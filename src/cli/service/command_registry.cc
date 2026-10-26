@@ -1,6 +1,7 @@
 #include "cli/service/command_registry.h"
 
 #include <algorithm>
+#include <cstdio>
 #include <iostream>
 #include <sstream>
 
@@ -8,54 +9,11 @@
 #include "absl/strings/str_format.h"
 #include "absl/strings/str_join.h"
 #include "cli/handlers/command_handlers.h"
+#include "cli/service/usage_schema.h"
+#include "nlohmann/json.hpp"
 
 namespace yaze {
 namespace cli {
-
-namespace {
-std::string EscapeJson(const std::string& input) {
-  std::string escaped;
-  escaped.reserve(input.size());
-  for (char c : input) {
-    switch (c) {
-      case '\\':
-        escaped.append("\\\\");
-        break;
-      case '\"':
-        escaped.append("\\\"");
-        break;
-      case '\n':
-        escaped.append("\\n");
-        break;
-      case '\r':
-        escaped.append("\\r");
-        break;
-      case '\t':
-        escaped.append("\\t");
-        break;
-      default:
-        if (static_cast<unsigned char>(c) < 0x20) {
-          absl::StrAppendFormat(&escaped, "\\u%04x",
-                                static_cast<unsigned char>(c));
-        } else {
-          escaped.push_back(c);
-        }
-    }
-  }
-  return escaped;
-}
-
-void AppendStringArray(std::ostringstream& out,
-                       const std::vector<std::string>& values) {
-  out << "[";
-  for (size_t i = 0; i < values.size(); ++i) {
-    if (i > 0)
-      out << ", ";
-    out << "\"" << EscapeJson(values[i]) << "\"";
-  }
-  out << "]";
-}
-}  // namespace
 
 CommandRegistry& CommandRegistry::Instance() {
   static CommandRegistry instance;
@@ -528,60 +486,62 @@ std::vector<std::string> CommandRegistry::GetAgentCommands() const {
 }
 
 std::string CommandRegistry::ExportFunctionSchemas() const {
-  std::ostringstream out;
-  out << "{\n  \"commands\": [\n";
-
-  bool first = true;
+  nlohmann::ordered_json commands = nlohmann::ordered_json::array();
   for (const auto& [_, metadata] : metadata_) {
-    if (!first)
-      out << ",\n";
-    first = false;
+    const std::vector<UsageParameter> parameters =
+        ParseUsageParameters(metadata.usage);
 
-    out << "    {\n";
-    out << "      \"name\": \"" << EscapeJson(metadata.name) << "\",\n";
-    out << "      \"category\": \"" << EscapeJson(metadata.category) << "\",\n";
-    out << "      \"description\": \"" << EscapeJson(metadata.description)
-        << "\",\n";
-    out << "      \"usage\": \"" << EscapeJson(metadata.usage) << "\",\n";
-    out << "      \"available_to_agent\": "
-        << (metadata.available_to_agent ? "true" : "false") << ",\n";
-    out << "      \"requires_rom\": "
-        << (metadata.requires_rom ? "true" : "false") << ",\n";
-    out << "      \"requires_grpc\": "
-        << (metadata.requires_grpc ? "true" : "false") << ",\n";
-    if (!metadata.todo_reference.empty()) {
-      out << "      \"todo_reference\": \""
-          << EscapeJson(metadata.todo_reference) << "\",\n";
-    } else {
-      out << "      \"todo_reference\": \"\",\n";
+    nlohmann::ordered_json command;
+    command["name"] = metadata.name;
+    command["category"] = metadata.category;
+    command["description"] = metadata.description;
+    command["usage"] = metadata.usage;
+    command["available_to_agent"] = metadata.available_to_agent;
+    command["requires_rom"] = metadata.requires_rom;
+    command["requires_grpc"] = metadata.requires_grpc;
+    command["todo_reference"] = metadata.todo_reference;
+    command["aliases"] = metadata.aliases;
+    command["examples"] = metadata.examples;
+    command["parameters"] = UsageParametersToJsonSchema(parameters);
+
+    nlohmann::ordered_json positional = nlohmann::ordered_json::array();
+    for (const UsageParameter& parameter : parameters) {
+      if (parameter.positional) {
+        positional.push_back(
+            {{"name", parameter.name}, {"required", parameter.required}});
+      }
     }
-    out << "      \"aliases\": ";
-    AppendStringArray(out, metadata.aliases);
-    out << ",\n";
-    out << "      \"examples\": ";
-    AppendStringArray(out, metadata.examples);
-    out << "\n";
-    out << "    }";
+    if (!positional.empty()) {
+      command["positional_arguments"] = std::move(positional);
+    }
+    commands.push_back(std::move(command));
   }
 
-  out << "\n  ]\n}";
-  return out.str();
+  nlohmann::ordered_json root;
+  root["commands"] = std::move(commands);
+  return root.dump(2, ' ', false, nlohmann::json::error_handler_t::replace);
 }
 
-std::string CommandRegistry::GenerateHelp(const std::string& name) const {
+std::string CommandRegistry::GenerateHelp(const std::string& name,
+                                          const util::AnsiStyle& style) const {
   auto* metadata = GetMetadata(name);
   if (!metadata) {
     return absl::StrFormat("Command '%s' not found", name);
   }
 
+  const auto label = [&style](absl::string_view text) {
+    return absl::StrCat(style.Highlight(), text, style.Reset());
+  };
+
   std::ostringstream help;
-  help << "\n\033[1;36m" << metadata->name << "\033[0m - "
+  help << "\n"
+       << style.Heading() << metadata->name << style.Reset() << " - "
        << metadata->description << "\n\n";
-  help << "\033[1;33mUsage:\033[0m\n";
+  help << label("Usage:") << "\n";
   help << "  " << metadata->usage << "\n\n";
 
   if (!metadata->examples.empty()) {
-    help << "\033[1;33mExamples:\033[0m\n";
+    help << label("Examples:") << "\n";
     for (const auto& example : metadata->examples) {
       help << "  " << example << "\n";
     }
@@ -589,34 +549,37 @@ std::string CommandRegistry::GenerateHelp(const std::string& name) const {
   }
 
   if (metadata->requires_rom) {
-    help << "\033[1;33mRequires:\033[0m ROM file (--rom=<path>)\n";
+    help << label("Requires:") << " ROM file (--rom=<path>)\n";
   }
   if (metadata->requires_grpc) {
-    help << "\033[1;33mRequires:\033[0m YAZE running with gRPC enabled\n";
+    help << label("Requires:") << " YAZE running with gRPC enabled\n";
   }
 
   if (!metadata->aliases.empty()) {
-    help << "\n\033[1;33mAliases:\033[0m "
-         << absl::StrJoin(metadata->aliases, ", ") << "\n";
+    help << "\n"
+         << label("Aliases:") << " " << absl::StrJoin(metadata->aliases, ", ")
+         << "\n";
   }
 
   return help.str();
 }
 
 std::string CommandRegistry::GenerateCategoryHelp(
-    const std::string& category) const {
+    const std::string& category, const util::AnsiStyle& style) const {
   auto commands = GetCommandsInCategory(category);
   if (commands.empty()) {
     return absl::StrFormat("No commands in category '%s'", category);
   }
 
   std::ostringstream help;
-  help << "\n\033[1;36m" << category << " commands:\033[0m\n\n";
+  help << "\n"
+       << style.Heading() << category << " commands:" << style.Reset()
+       << "\n\n";
 
   for (const auto& cmd : commands) {
     auto* metadata = GetMetadata(cmd);
     if (metadata) {
-      help << "  \033[1;33m" << cmd << "\033[0m\n";
+      help << "  " << style.Highlight() << cmd << style.Reset() << "\n";
       help << "    " << metadata->description << "\n";
       if (!metadata->usage.empty()) {
         help << "    Usage: " << metadata->usage << "\n";
@@ -628,13 +591,15 @@ std::string CommandRegistry::GenerateCategoryHelp(
   return help.str();
 }
 
-std::string CommandRegistry::GenerateCompleteHelp() const {
+std::string CommandRegistry::GenerateCompleteHelp(
+    const util::AnsiStyle& style) const {
   std::ostringstream help;
-  help << "\n\033[1;36mAll z3ed Commands:\033[0m\n\n";
+  help << "\n"
+       << style.Heading() << "All z3ed Commands:" << style.Reset() << "\n\n";
 
   auto categories = GetCategories();
   for (const auto& category : categories) {
-    help << GenerateCategoryHelp(category);
+    help << GenerateCategoryHelp(category, style);
   }
 
   return help.str();
@@ -652,8 +617,11 @@ absl::Status CommandRegistry::Execute(const std::string& name,
   const bool command_help_requested =
       std::find(args.begin(), args.end(), "--help") != args.end() ||
       std::find(args.begin(), args.end(), "-h") != args.end();
+  const util::AnsiStyle help_style = captured_output == nullptr
+                                         ? util::AnsiStyle::ForStream(stdout)
+                                         : util::AnsiStyle(false);
   if (command_help_requested) {
-    const std::string help = GenerateHelp(name);
+    const std::string help = GenerateHelp(name, help_style);
     if (captured_output != nullptr) {
       *captured_output = help;
     } else {
@@ -668,7 +636,7 @@ absl::Status CommandRegistry::Execute(const std::string& name,
   // command help in addition to the normal parser error/usage line.
   if (!status.ok() && status.code() == absl::StatusCode::kInvalidArgument &&
       args.empty()) {
-    const std::string help = GenerateHelp(name);
+    const std::string help = GenerateHelp(name, help_style);
     if (captured_output != nullptr) {
       if (!captured_output->empty()) {
         captured_output->append("\n\n");

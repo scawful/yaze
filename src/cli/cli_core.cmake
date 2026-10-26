@@ -16,6 +16,7 @@ set(YAZE_CLI_CORE_SOURCES
   cli/subcommand_routes.cc
   cli/util/ansi_style.cc
   cli/service/command_registry.cc
+  cli/service/usage_schema.cc
   cli/service/resources/command_context.cc
   cli/service/resources/command_handler.cc
   cli/service/agent/tools/project_graph_tool.cc

@@ -8,6 +8,7 @@
 
 #include "absl/status/statusor.h"
 #include "cli/service/resources/command_handler.h"
+#include "cli/util/ansi_style.h"
 
 namespace yaze {
 namespace cli {
@@ -83,23 +84,33 @@ class CommandRegistry {
 
   /**
    * @brief Export function schemas for AI tool calling (JSON)
+   *
+   * Each command carries a JSON Schema `parameters` object derived from its
+   * usage string, keyed by literal flag name.
    */
   std::string ExportFunctionSchemas() const;
 
   /**
    * @brief Generate help text for a command
+   *
+   * Help is plain text unless the caller passes an enabled style.
    */
-  std::string GenerateHelp(const std::string& name) const;
+  std::string GenerateHelp(
+      const std::string& name,
+      const util::AnsiStyle& style = util::AnsiStyle(false)) const;
 
   /**
    * @brief Generate category help text
    */
-  std::string GenerateCategoryHelp(const std::string& category) const;
+  std::string GenerateCategoryHelp(
+      const std::string& category,
+      const util::AnsiStyle& style = util::AnsiStyle(false)) const;
 
   /**
    * @brief Generate complete help text (all commands)
    */
-  std::string GenerateCompleteHelp() const;
+  std::string GenerateCompleteHelp(
+      const util::AnsiStyle& style = util::AnsiStyle(false)) const;
 
   /**
    * @brief Execute a command by name

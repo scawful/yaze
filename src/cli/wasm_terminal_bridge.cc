@@ -37,6 +37,7 @@
 #include "cli/service/ai/browser_ai_service.h"
 #include "cli/service/command_registry.h"
 #include "cli/subcommand_routes.h"
+#include "cli/util/ansi_style.h"
 #include "nlohmann/json.hpp"
 #include "rom/rom.h"
 
@@ -47,6 +48,8 @@ extern editor::EditorManager* GetGlobalEditorManager();
 namespace {
 
 constexpr char kTerminalUploadPath[] = "/.yaze/roms/terminal_upload.sfc";
+// xterm.js renders ANSI sequences, so registry help keeps its colors here.
+constexpr yaze::cli::util::AnsiStyle kTerminalStyle{true};
 
 struct BridgeState {
   std::unique_ptr<yaze::cli::BrowserAIService> ai_service;
@@ -181,12 +184,12 @@ std::string ExecuteRegistryCommand(const std::string& name, const Args& args) {
 std::string HandleHelp(const Args& args) {
   auto& registry = yaze::cli::CommandRegistry::Instance();
   if (args.size() < 2) {
-    return registry.GenerateCompleteHelp();
+    return registry.GenerateCompleteHelp(kTerminalStyle);
   }
   if (registry.HasCommand(args[1])) {
-    return registry.GenerateHelp(args[1]);
+    return registry.GenerateHelp(args[1], kTerminalStyle);
   }
-  return registry.GenerateCategoryHelp(args[1]);
+  return registry.GenerateCategoryHelp(args[1], kTerminalStyle);
 }
 
 std::string HandleRom(const Args& args) {
@@ -350,7 +353,7 @@ std::string ProcessCommandInternal(absl::string_view command_str) {
     return ExecuteRegistryCommand(args[0], Args(args.begin() + 1, args.end()));
   }
   if (!registry.GetCommandsInCategory(args[0]).empty()) {
-    return registry.GenerateCategoryHelp(args[0]);
+    return registry.GenerateCategoryHelp(args[0], kTerminalStyle);
   }
 
   return absl::StrCat("Unknown command: ", args[0],

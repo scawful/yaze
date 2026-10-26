@@ -184,18 +184,19 @@ absl::Status Cli::PrintScopedHelp(absl::Span<const std::string> words) const {
     return absl::OkStatus();
   }
 
+  const util::AnsiStyle& style = options_.style;
   const std::string& target = words[0];
   if (target == "all") {
-    out_ << registry_.GenerateCompleteHelp() << "\n";
+    out_ << registry_.GenerateCompleteHelp(style) << "\n";
     return absl::OkStatus();
   }
   if (registry_.HasCommand(target)) {
-    out_ << registry_.GenerateHelp(target) << "\n";
+    out_ << registry_.GenerateHelp(target, style) << "\n";
     return absl::OkStatus();
   }
   if (target == "agent") {
     if (words.size() > 1 && registry_.HasCommand(words[1])) {
-      out_ << registry_.GenerateHelp(words[1]) << "\n";
+      out_ << registry_.GenerateHelp(words[1], style) << "\n";
     } else {
       PrintAgentHelp();
     }
@@ -206,7 +207,7 @@ absl::Status Cli::PrintScopedHelp(absl::Span<const std::string> words) const {
       absl::StatusOr<CommandInvocation> invocation =
           group->resolve(words.subspan(1));
       if (invocation.ok() && registry_.HasCommand(invocation->command)) {
-        out_ << registry_.GenerateHelp(invocation->command) << "\n";
+        out_ << registry_.GenerateHelp(invocation->command, style) << "\n";
         return absl::OkStatus();
       }
     }
@@ -247,7 +248,7 @@ void Cli::PrintAliasHelp(absl::string_view group_name) const {
        << group.usage() << "\n";
   if (!registry_.GetCommandsInCategory(category).empty()) {
     out_ << "Equivalent direct commands:\n"
-         << registry_.GenerateCategoryHelp(category) << "\n";
+         << registry_.GenerateCategoryHelp(category, style) << "\n";
   }
   out_ << "Use `z3ed help " << group.name
        << " <subcommand>` for command-specific flags.\n";
