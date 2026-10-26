@@ -122,6 +122,12 @@ High-level release summary. For detailed notes, see
   - `debug` with no topic no longer reads past its arguments, `rom` subcommand
     errors print once, `--quiet=maybe` is rejected, and the HTTP API server
     stops before the ROM it serves is freed.
+  - The AI agent's tool schemas now use the flags each command reads.
+    Registered tools take their required and boolean flags from the command's
+    usage, the fallback `assets/agent/function_schemas.json` keeps only tools
+    the agent can dispatch, and the agent's `dungeon-set-room-property` tool
+    uses `--property`. A unit test checks registered tools, the prompt
+    catalogue, and the fallback list against each command.
 - **Appearance and Editor Shell**:
   - Added five editor themes (Blood Moon, Catppuccin Mocha, Dracula, Rosé Pine,
     Temple of Time), with upstream MIT notices for Catppuccin, Dracula, and Rosé
