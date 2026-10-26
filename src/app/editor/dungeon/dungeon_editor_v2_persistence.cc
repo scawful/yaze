@@ -87,15 +87,18 @@ constexpr char kMinecartDraftSaveBlockMessage[] =
     "publishes ASM source; use Publish Tracks in the Minecart Track Editor "
     "or discard the drafts first.";
 
-absl::Status ValidateChestObjectSaveCoupling(const DungeonRoomStore& rooms,
-                                             int only_room = -1) {
+absl::Status ValidateChestObjectSaveCoupling(
+    const DungeonRoomStore& rooms, const std::vector<int>& scope_rooms) {
   const auto& flags = core::FeatureFlags::get().dungeon;
   absl::Status status;
   rooms.ForEachMaterialized([&](int id, const zelda3::Room& room) {
     if (!status.ok() || !room.chests_dirty() || !room.object_stream_dirty())
       return;
-    const bool writes_objects = flags.kSaveObjects && room.IsLoaded() &&
-                                (only_room < 0 || only_room == id);
+    const bool writes_objects =
+        flags.kSaveObjects && room.IsLoaded() &&
+        (scope_rooms.empty() ||
+         std::find(scope_rooms.begin(), scope_rooms.end(), id) !=
+             scope_rooms.end());
     if (writes_objects == flags.kSaveChests)
       return;
     status = absl::FailedPreconditionError(absl::StrFormat(
@@ -626,9 +629,21 @@ absl::Status DungeonEditorV2::RunWithSaveTransaction(
 
 absl::Status DungeonEditorV2::ValidateSaveScope(int only_room,
                                                 bool room_data_only) const {
+  return ValidateSaveScopeForRooms(
+      only_room < 0 ? std::vector<int>{} : std::vector<int>{only_room},
+      room_data_only);
+}
+
+absl::Status DungeonEditorV2::ValidateSaveScopeForRooms(
+    const std::vector<int>& scope_rooms, bool room_data_only) const {
+  const auto in_scope = [&scope_rooms](int id) {
+    return scope_rooms.empty() ||
+           std::find(scope_rooms.begin(), scope_rooms.end(), id) !=
+               scope_rooms.end();
+  };
   // A chest object and its reward are one edit. Preserve the more specific
   // recovery instruction when only one half of that edit would be written.
-  RETURN_IF_ERROR(ValidateChestObjectSaveCoupling(rooms_, only_room));
+  RETURN_IF_ERROR(ValidateChestObjectSaveCoupling(rooms_, scope_rooms));
   const auto& flags = core::FeatureFlags::get().dungeon;
   zelda3::Room::SaveDirtySnapshot pending{};
   bool collision = false;
@@ -636,7 +651,7 @@ absl::Status DungeonEditorV2::ValidateSaveScope(int only_room,
   rooms_.ForEachMaterialized([&](int id, const zelda3::Room& room) {
     // Apply Room writes local streams for its selected room, but the compact
     // shared tables below include pending records from every materialized room.
-    if (only_room < 0 || only_room == id) {
+    if (in_scope(id)) {
       pending.object_stream |=
           room.object_stream_dirty() || room.object_stream_header_dirty();
       pending.sprites |= room.sprites_dirty();
@@ -700,8 +715,7 @@ absl::Status DungeonEditorV2::ValidateSaveScope(int only_room,
   // room in the save loop can change ROM bytes.
   absl::Status ownership;
   rooms_.ForEachLoaded([&](int id, const zelda3::Room& room) {
-    if (!ownership.ok() || !room.header_dirty() ||
-        (only_room >= 0 && only_room != id)) {
+    if (!ownership.ok() || !room.header_dirty() || !in_scope(id)) {
       return;
     }
     if (!rom_ || !rom_->is_loaded()) {
@@ -1077,12 +1091,19 @@ std::vector<std::pair<uint32_t, uint32_t>> DungeonEditorV2::CollectWriteRanges()
 }
 
 absl::Status DungeonEditorV2::SaveRoom(int room_id) {
-  return SaveRoomImpl(room_id, false);
+  return SaveRoomsImpl({room_id}, false);
 }
 
 // The room-only path is used exclusively by a detached scratch editor during
 // transfer preflight. It cannot save project-global palettes, pits or entrances.
-absl::Status DungeonEditorV2::SaveRoomImpl(int room_id, bool room_data_only) {
+// Several rooms share one scope so a swap's chest objects and rewards save
+// together, as in Save All.
+absl::Status DungeonEditorV2::SaveRoomsImpl(const std::vector<int>& room_ids,
+                                            bool room_data_only) {
+  if (room_ids.empty()) {
+    return absl::InvalidArgumentError("No rooms to save");
+  }
+  const int room_id = room_ids.front();
   if (minecart_track_editor_panel_ != nullptr &&
       minecart_track_editor_panel_->HasUnpublishedChanges()) {
     return absl::FailedPreconditionError(kMinecartDraftSaveBlockMessage);
@@ -1093,12 +1114,15 @@ absl::Status DungeonEditorV2::SaveRoomImpl(int room_id, bool room_data_only) {
         "Apply or explicitly discard Object Tile Editor changes before "
         "using Save or Apply Room");
   }
-  auto operation = [this, room_id, room_data_only]() -> absl::Status {
-    if (room_id < 0 || room_id >= static_cast<int>(rooms_.size())) {
-      return absl::InvalidArgumentError("Invalid room ID");
+  auto operation = [this, &room_ids, room_id,
+                    room_data_only]() -> absl::Status {
+    for (const int id : room_ids) {
+      if (id < 0 || id >= static_cast<int>(rooms_.size())) {
+        return absl::InvalidArgumentError("Invalid room ID");
+      }
     }
 
-    RETURN_IF_ERROR(ValidateSaveScope(room_id, room_data_only));
+    RETURN_IF_ERROR(ValidateSaveScopeForRooms(room_ids, room_data_only));
     const auto& flags = core::FeatureFlags::get().dungeon;
     std::optional<zelda3::ChestSavePlan> chest_save_plan;
     if (flags.kSaveCollision) {
@@ -1158,7 +1182,9 @@ absl::Status DungeonEditorV2::SaveRoomImpl(int room_id, bool room_data_only) {
       }
     }
     if (flags.kSaveObjects || flags.kSaveSprites || flags.kSaveRoomHeaders) {
-      RETURN_IF_ERROR(SaveRoomData(room_id));
+      for (const int id : room_ids) {
+        RETURN_IF_ERROR(SaveRoomData(id));
+      }
     }
 
     if (flags.kSaveTorches) {

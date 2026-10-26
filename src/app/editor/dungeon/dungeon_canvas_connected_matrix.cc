@@ -2,8 +2,10 @@
 #include "util/i18n/tr.h"
 
 #include <algorithm>
+#include <cctype>
 #include <cmath>
 #include <cstdio>
+#include <functional>
 #include <limits>
 #include <map>
 #include <optional>
@@ -16,13 +18,16 @@
 #include "app/editor/dungeon/dungeon_project_labels.h"
 #include "app/editor/dungeon/ui_constants.h"
 #include "app/gfx/resource/arena.h"
+#include "app/gui/automation/widget_auto_register.h"
 #include "app/gui/core/agent_theme.h"
+#include "app/gui/core/icons.h"
 #include "app/gui/core/style.h"
 #include "app/gui/core/style_guard.h"
 #include "app/gui/core/theme_manager.h"
 #include "app/gui/core/ui_helpers.h"
 #include "app/gui/widgets/themed_widgets.h"
 #include "imgui/imgui.h"
+#include "imgui/imgui_internal.h"
 #include "zelda3/resource_labels.h"
 
 namespace yaze::editor {
@@ -33,8 +38,6 @@ using namespace dungeon_ui;  // NOLINT(google-build-using-namespace)
 
 constexpr char kConnectedCurrentRoomHudId[] =
     "##DungeonConnectedCurrentRoomHUD";
-constexpr char kConnectedCanvasControlsId[] =
-    "##DungeonConnectedCanvasControls";
 constexpr char kConnectedCanvasOverviewId[] =
     "##DungeonConnectedCanvasOverview";
 
@@ -222,9 +225,38 @@ ImVec2 GetConnectedCanvasSize(int min_col, int max_col, int min_row,
       (rows * kDungeonRoomPixelSize) + ((rows - 1) * kConnectedRoomGap));
 }
 
-void HandleConnectedCanvasZoom(gui::Canvas& canvas,
-                               const gui::CanvasRuntime& canvas_rt,
-                               const ImVec2& content_size) {
+// The graph sits this far inside the overview's scroll content. Half the
+// window on each side lets any room reach the view center and lets graphs
+// smaller than the window be centered.
+ImVec2 ConnectedPanMargin(const ImVec2& window_size) {
+  return ImVec2(std::floor(window_size.x * 0.5f),
+                std::floor(window_size.y * 0.5f));
+}
+
+// Scroll that places canvas point `world` at `view_point`, measured from the
+// visible viewport's top-left.
+ImVec2 ConnectedScrollFor(const ImVec2& world, float scale,
+                          const ImVec2& margin, const ImVec2& view_point) {
+  return ImVec2(margin.x + (world.x * scale) - view_point.x,
+                margin.y + (world.y * scale) - view_point.y);
+}
+
+// Clamps against the extent the host reserves for `scale`, which may not be
+// applied to the window's own scroll limits until the next frame.
+void SetConnectedScroll(const ImVec2& scroll, const ImVec2& content_size,
+                        float scale, const ImVec2& margin,
+                        const ImVec2& window_size) {
+  const float max_x = std::max(
+      0.0f, (content_size.x * scale) + (margin.x * 2.0f) - window_size.x);
+  const float max_y = std::max(
+      0.0f, (content_size.y * scale) + (margin.y * 2.0f) - window_size.y);
+  ImGui::SetScrollX(std::clamp(scroll.x, 0.0f, max_x));
+  ImGui::SetScrollY(std::clamp(scroll.y, 0.0f, max_y));
+}
+
+void HandleConnectedCanvasZoom(gui::Canvas& canvas, const ImVec2& content_size,
+                               const ImVec2& margin, const ImVec2& view_min,
+                               const ImVec2& window_size) {
   if (!ImGui::IsWindowHovered(ImGuiHoveredFlags_AllowWhenBlockedByActiveItem)) {
     return;
   }
@@ -244,58 +276,35 @@ void HandleConnectedCanvasZoom(gui::Canvas& canvas,
   }
 
   const ImVec2 mouse_pos = ImGui::GetMousePos();
-  const ImVec2 mouse_local(mouse_pos.x - canvas_rt.canvas_p0.x,
-                           mouse_pos.y - canvas_rt.canvas_p0.y);
-  const float world_x = (ImGui::GetScrollX() + mouse_local.x) / old_scale;
-  const float world_y = (ImGui::GetScrollY() + mouse_local.y) / old_scale;
+  const ImVec2 view_point(mouse_pos.x - view_min.x, mouse_pos.y - view_min.y);
+  const ImVec2 world(
+      (ImGui::GetScrollX() + view_point.x - margin.x) / old_scale,
+      (ImGui::GetScrollY() + view_point.y - margin.y) / old_scale);
   canvas.set_global_scale(new_scale);
-
-  const float max_scroll_x =
-      std::max(0.0f, (content_size.x * new_scale) - canvas_rt.canvas_sz.x);
-  const float max_scroll_y =
-      std::max(0.0f, (content_size.y * new_scale) - canvas_rt.canvas_sz.y);
-  ImGui::SetScrollX(
-      std::clamp((world_x * new_scale) - mouse_local.x, 0.0f, max_scroll_x));
-  ImGui::SetScrollY(
-      std::clamp((world_y * new_scale) - mouse_local.y, 0.0f, max_scroll_y));
+  SetConnectedScroll(ConnectedScrollFor(world, new_scale, margin, view_point),
+                     content_size, new_scale, margin, window_size);
 }
 
-void HandleConnectedCanvasPan(int hovered_room_id) {
-  if (!ImGui::IsWindowHovered(ImGuiHoveredFlags_AllowWhenBlockedByActiveItem)) {
-    return;
-  }
-
-  const bool drag_middle = ImGui::IsMouseDragging(ImGuiMouseButton_Middle);
-  const bool drag_right = ImGui::IsMouseDragging(ImGuiMouseButton_Right);
-  const bool drag_left_background =
-      hovered_room_id < 0 && ImGui::IsMouseDragging(ImGuiMouseButton_Left);
-  if (!drag_middle && !drag_right && !drag_left_background) {
+void HandleConnectedCanvasPan(bool allow_hover_pan, bool left_pan_active) {
+  const bool hovered =
+      allow_hover_pan &&
+      ImGui::IsWindowHovered(ImGuiHoveredFlags_AllowWhenBlockedByActiveItem);
+  const bool drag_middle =
+      hovered && ImGui::IsMouseDragging(ImGuiMouseButton_Middle);
+  const bool drag_right =
+      hovered && ImGui::IsMouseDragging(ImGuiMouseButton_Right);
+  const bool drag_left =
+      left_pan_active && ImGui::IsMouseDragging(ImGuiMouseButton_Left);
+  if (!drag_middle && !drag_right && !drag_left) {
     return;
   }
 
   const ImVec2 delta = ImGui::GetIO().MouseDelta;
-  const float new_scroll_x =
-      std::clamp(ImGui::GetScrollX() - delta.x, 0.0f, ImGui::GetScrollMaxX());
-  const float new_scroll_y =
-      std::clamp(ImGui::GetScrollY() - delta.y, 0.0f, ImGui::GetScrollMaxY());
-  ImGui::SetScrollX(new_scroll_x);
-  ImGui::SetScrollY(new_scroll_y);
+  ImGui::SetScrollX(
+      std::clamp(ImGui::GetScrollX() - delta.x, 0.0f, ImGui::GetScrollMaxX()));
+  ImGui::SetScrollY(
+      std::clamp(ImGui::GetScrollY() - delta.y, 0.0f, ImGui::GetScrollMaxY()));
 }
-
-struct ConnectedCanvasControlActions {
-  bool fit = false;
-  bool reset = false;
-  bool reset_position = false;
-  bool hovered = false;
-  bool show_overview = true;
-  bool show_preview = true;
-  std::optional<ImVec2> moved_window_pos;
-};
-
-struct ConnectedControlsCompactActions {
-  bool fit = false;
-  bool reset = false;
-};
 
 void DrawConnectedControlsLegend() {
   const auto& agent_theme = AgentUI::GetTheme();
@@ -315,128 +324,29 @@ void DrawConnectedControlsLegend() {
       DungeonConnectedLinkType::Holewarp);
 }
 
-ConnectedControlsCompactActions DrawConnectedControlsCompact(
-    float scale, int connected_room_count, bool* show_overview,
-    bool* show_preview) {
-  ConnectedControlsCompactActions actions;
-  ImGui::TextDisabled(tr("%d room%s"), connected_room_count,
-                      connected_room_count == 1 ? "" : "s");
-  ImGui::SameLine(0.0f, 8.0f);
-  ImGui::TextDisabled("%.0f%%", scale * 100.0f);
-  if (ImGui::IsItemHovered()) {
-    ImGui::SetTooltip(tr("Connected zoom\nF fit\n0 reset\n+/- zoom"));
-  }
-
-  ImGui::SameLine(0.0f, 6.0f);
-  if (ImGui::SmallButton(ICON_MD_FIT_SCREEN "##ConnectedFit")) {
-    actions.fit = true;
-  }
-  if (ImGui::IsItemHovered()) {
-    ImGui::SetTooltip(tr("Fit all connected rooms in view (F)"));
-  }
-
-  ImGui::SameLine();
-  if (ImGui::SmallButton(ICON_MD_RESTART_ALT "##ConnectedReset")) {
-    actions.reset = true;
-  }
-  if (ImGui::IsItemHovered()) {
-    ImGui::SetTooltip(tr("Reset zoom and recenter on current room (0)"));
-  }
-
-  if (show_overview) {
+// Keeps short inline items on the current row while they fit.
+void SameLineIfFits(float next_width) {
+  const float row_end = ImGui::GetItemRectMax().x;
+  const float limit =
+      ImGui::GetWindowPos().x + ImGui::GetWindowContentRegionMax().x;
+  if (row_end + ImGui::GetStyle().ItemSpacing.x + next_width <= limit) {
     ImGui::SameLine();
-    ImGui::Checkbox(tr("Mini##ConnectedMini"), show_overview);
-    if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip(tr(
-          "Show connected overview map\nClick a room on the overview to jump"));
-    }
   }
-
-  if (show_preview) {
-    ImGui::SameLine();
-    ImGui::Checkbox(tr("Room##ConnectedRoomPreview"), show_preview);
-    if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip(tr("Show full-resolution preview of the current room"));
-    }
-  }
-
-  ImGui::SameLine(0.0f, 8.0f);
-  DrawConnectedControlsLegend();
-  return actions;
 }
 
 struct ConnectedCanvasOverviewActions {
   bool hovered = false;
-  std::optional<ImVec2> target_scroll;
+  // Canvas-space point the minimap asked to center in the view.
+  std::optional<ImVec2> center_on;
   std::optional<int> activated_room_id;
   int hovered_room_id = -1;
 };
 
-ConnectedCanvasControlActions DrawConnectedCanvasControls(
-    const ImVec2& pos, const ImVec2& pivot, float scale,
-    int connected_room_count, bool show_overview, bool show_preview) {
-  ConnectedCanvasControlActions actions;
-  actions.show_overview = show_overview;
-  actions.show_preview = show_preview;
-  const auto& theme = gui::ThemeManager::Get().GetCurrentTheme();
-
-  ImGui::SetNextWindowPos(pos, ImGuiCond_Always, pivot);
-  ImGui::SetNextWindowBgAlpha(0.84f);
-
-  const ImGuiWindowFlags flags =
-      ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoNav |
-      ImGuiWindowFlags_NoScrollWithMouse | ImGuiWindowFlags_NoSavedSettings |
-      ImGuiWindowFlags_AlwaysAutoResize;
-
-  ImVec4 controls_bg = gui::ConvertColorToImVec4(theme.editor_background);
-  controls_bg.w = 0.76f;
-  const gui::StyleColorGuard controls_colors({
-      {ImGuiCol_WindowBg, controls_bg},
-      {ImGuiCol_Border, gui::ConvertColorToImVec4(theme.accent)},
-  });
-  const gui::StyleVarGuard controls_vars({
-      {ImGuiStyleVar_WindowRounding, 4.0f},
-      {ImGuiStyleVar_WindowBorderSize, 1.0f},
-      {ImGuiStyleVar_WindowPadding, ImVec2(6.0f, 4.0f)},
-      {ImGuiStyleVar_FramePadding, ImVec2(5.0f, 2.0f)},
-      {ImGuiStyleVar_ItemSpacing, ImVec2(5.0f, 4.0f)},
-  });
-
-  if (ImGui::Begin(kConnectedCanvasControlsId, nullptr, flags)) {
-    actions.hovered =
-        ImGui::IsWindowHovered(ImGuiHoveredFlags_AllowWhenBlockedByActiveItem);
-    if (ImGui::SmallButton("::")) {}
-    if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip(tr("Drag controls\nDouble-click to snap back"));
-      if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
-        actions.reset_position = true;
-      }
-    }
-    if (ImGui::IsItemActive() &&
-        ImGui::IsMouseDragging(ImGuiMouseButton_Left)) {
-      const ImVec2 window_pos = ImGui::GetWindowPos();
-      const ImVec2 new_pos(window_pos.x + ImGui::GetIO().MouseDelta.x,
-                           window_pos.y + ImGui::GetIO().MouseDelta.y);
-      ImGui::SetWindowPos(new_pos);
-      actions.moved_window_pos = new_pos;
-    }
-    ImGui::SameLine(0.0f, 6.0f);
-    const auto compact_actions = DrawConnectedControlsCompact(
-        scale, connected_room_count, &actions.show_overview,
-        &actions.show_preview);
-    actions.fit = compact_actions.fit;
-    actions.reset = compact_actions.reset;
-  }
-  ImGui::End();
-
-  return actions;
-}
-
 ConnectedCanvasOverviewActions DrawConnectedCanvasOverview(
     const DungeonCanvasViewer::ConnectedRoomGraphData& connected_graph,
-    const ImVec2& content_size, const ImVec2& viewport_size,
-    float content_scale, float scroll_x, float scroll_y, int center_room_id,
-    int highlighted_room_id, const ImVec2& window_pos) {
+    const ImVec2& content_size, const ImVec2& view_world_min,
+    const ImVec2& view_world_size, int center_room_id, int highlighted_room_id,
+    const ImVec2& window_pos) {
   ConnectedCanvasOverviewActions actions;
   const auto& theme = gui::ThemeManager::Get().GetCurrentTheme();
 
@@ -640,49 +550,37 @@ ConnectedCanvasOverviewActions DrawConnectedCanvasOverview(
           ImGui::GetColorU32(gui::ConvertColorToImVec4(theme.warning)));
     }
 
-    const ImVec2 viewport_min(
-        map_min.x + ((scroll_x / content_scale) * overview_scale),
-        map_min.y + ((scroll_y / content_scale) * overview_scale));
-    const ImVec2 viewport_rect_size(
-        (viewport_size.x / content_scale) * overview_scale,
-        (viewport_size.y / content_scale) * overview_scale);
-    const ImVec2 viewport_rect_max(viewport_min.x + viewport_rect_size.x,
-                                   viewport_min.y + viewport_rect_size.y);
+    // The view may extend past the graph into the pan margin.
+    const ImVec2 viewport_min = overview_screen_point(view_world_min);
+    const ImVec2 viewport_rect_max =
+        overview_screen_point(ImVec2(view_world_min.x + view_world_size.x,
+                                     view_world_min.y + view_world_size.y));
+    draw_list->PushClipRect(map_min, map_max, true);
     draw_list->AddRectFilled(viewport_min, viewport_rect_max,
                              IM_COL32(255, 255, 255, 20), 2.0f);
     draw_list->AddRect(viewport_min, viewport_rect_max,
                        IM_COL32(255, 255, 255, 220), 2.0f, 0, 1.5f);
+    draw_list->PopClipRect();
 
     if (map_hovered) {
       actions.hovered = true;
-      const bool dragging = ImGui::IsMouseDragging(ImGuiMouseButton_Left);
       if (actions.hovered_room_id >= 0 &&
-          ImGui::IsMouseReleased(ImGuiMouseButton_Left) && !dragging) {
+          ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
         actions.activated_room_id = actions.hovered_room_id;
-      } else if ((actions.hovered_room_id < 0 &&
-                  ImGui::IsMouseClicked(ImGuiMouseButton_Left)) ||
-                 dragging) {
+      } else if (ImGui::IsMouseClicked(ImGuiMouseButton_Left) ||
+                 ImGui::IsMouseDragging(ImGuiMouseButton_Left)) {
         const ImVec2 current_mouse = ImGui::GetMousePos();
-        const float content_x =
-            std::clamp((current_mouse.x - map_min.x) / overview_scale, 0.0f,
-                       content_size.x);
-        const float content_y =
-            std::clamp((current_mouse.y - map_min.y) / overview_scale, 0.0f,
-                       content_size.y);
-        const float max_scroll_x =
-            std::max(0.0f, (content_size.x * content_scale) - viewport_size.x);
-        const float max_scroll_y =
-            std::max(0.0f, (content_size.y * content_scale) - viewport_size.y);
-        actions.target_scroll = ImVec2(
-            std::clamp((content_x * content_scale) - (viewport_size.x * 0.5f),
-                       0.0f, max_scroll_x),
-            std::clamp((content_y * content_scale) - (viewport_size.y * 0.5f),
-                       0.0f, max_scroll_y));
+        actions.center_on =
+            ImVec2(std::clamp((current_mouse.x - map_min.x) / overview_scale,
+                              0.0f, content_size.x),
+                   std::clamp((current_mouse.y - map_min.y) / overview_scale,
+                              0.0f, content_size.y));
       }
 
       if (actions.hovered_room_id >= 0) {
         ImGui::SetTooltip(
-            tr("[%03X] %s\nRelease to open room view"), actions.hovered_room_id,
+            tr("[%03X] %s\nDouble-click to open room view"),
+            actions.hovered_room_id,
             zelda3::GetRoomLabel(actions.hovered_room_id).c_str());
       }
     }
@@ -712,59 +610,161 @@ float DungeonCanvasViewer::ConnectedCanvasScale() const {
                     kConnectedCanvasMaxScale);
 }
 
-void DungeonCanvasViewer::DrawConnectedToolbarControls(int center_room_id) {
+ImVec2 DungeonCanvasViewer::GetConnectedScrollContentSize(int center_room_id,
+                                                          ImVec2 window_size) {
+  const ImVec2 content = GetConnectedContentSize(center_room_id);
+  const float scale = ConnectedCanvasScale();
+  const ImVec2 margin = ConnectedPanMargin(window_size);
+  return ImVec2((content.x * scale) + (margin.x * 2.0f),
+                (content.y * scale) + (margin.y * 2.0f));
+}
+
+void DungeonCanvasViewer::DrawConnectedInspectorControls(
+    int center_room_id, const std::function<void(int)>& on_jump_to_room) {
   if (center_room_id >= 0 && center_room_id < zelda3::kNumberOfRooms && rom_ &&
-      rom_->is_loaded() && rooms_) {
-    if (connected_graph_cache_start_room_id_ != center_room_id) {
-      connected_graph_cache_ = BuildConnectedRoomGraph(center_room_id);
-      connected_graph_cache_start_room_id_ = center_room_id;
+      rom_->is_loaded() && rooms_ &&
+      connected_graph_cache_start_room_id_ != center_room_id) {
+    connected_graph_cache_ = BuildConnectedRoomGraph(center_room_id);
+    connected_graph_cache_start_room_id_ = center_room_id;
+  }
+  const bool have_graph =
+      connected_graph_cache_start_room_id_ == center_room_id;
+  const ConnectedRoomGraphData& graph = connected_graph_cache_;
+  const auto& agent_theme = AgentUI::GetTheme();
+  gui::AutoWidgetScope automation_scope("Dungeon/Overview");
+  ImGui::PushID("ConnectedOverviewControls");
+
+  // Dungeon jump.
+  const std::string current_dungeon =
+      dungeon_project_labels::GetDungeonNameForRoom(project_, center_room_id);
+  ImGui::SetNextItemWidth(-1);
+  const bool jump_open =
+      ImGui::BeginCombo("##OverviewDungeonJump",
+                        current_dungeon.empty() ? tr("Jump to dungeon...")
+                                                : current_dungeon.c_str(),
+                        ImGuiComboFlags_HeightLarge);
+  gui::AutoRegisterLastItem("combo", "OverviewDungeonJump",
+                            "Jump to a dungeon by name");
+  if (ImGui::IsItemHovered()) {
+    ImGui::SetTooltip("%s", tr("Open a dungeon's entrance room by name"));
+  }
+  if (jump_open) {
+    if (ImGui::IsWindowAppearing()) {
+      dungeon_jump_targets_ = BuildDungeonJumpTargets(rom_, project_);
+      dungeon_jump_filter_[0] = '\0';
+      ImGui::SetKeyboardFocusHere();
     }
+    ImGui::SetNextItemWidth(-1);
+    ImGui::InputTextWithHint("##OverviewDungeonFilter", tr("Filter dungeons"),
+                             dungeon_jump_filter_,
+                             sizeof(dungeon_jump_filter_));
+    std::string filter = dungeon_jump_filter_;
+    std::transform(filter.begin(), filter.end(), filter.begin(),
+                   [](unsigned char c) { return std::tolower(c); });
+    bool any_shown = false;
+    for (size_t i = 0; i < dungeon_jump_targets_.size(); ++i) {
+      const auto& target = dungeon_jump_targets_[i];
+      std::string lower = target.name;
+      std::transform(lower.begin(), lower.end(), lower.begin(),
+                     [](unsigned char c) { return std::tolower(c); });
+      if (lower.find(filter) == std::string::npos) {
+        continue;
+      }
+      any_shown = true;
+      ImGui::PushID(static_cast<int>(i));
+      const std::string label =
+          absl::StrFormat("%s  [%03X]", target.name, target.room_id);
+      if (ImGui::Selectable(label.c_str(), target.name == current_dungeon) &&
+          on_jump_to_room) {
+        on_jump_to_room(target.room_id);
+      }
+      gui::AutoRegisterLastItem("selectable", target.name);
+      ImGui::PopID();
+    }
+    if (!any_shown) {
+      ImGui::TextDisabled("%s", dungeon_jump_targets_.empty()
+                                    ? tr("No dungeons found in this ROM")
+                                    : tr("No matching dungeons"));
+    }
+    ImGui::EndCombo();
   }
 
-  const int connected_room_count =
-      connected_graph_cache_start_room_id_ == center_room_id
-          ? connected_graph_cache_.room_count
-          : 0;
-  ImGui::TextDisabled(tr("%d room%s"), connected_room_count,
-                      connected_room_count == 1 ? "" : "s");
-  if (connected_graph_cache_start_room_id_ == center_room_id &&
-      connected_graph_cache_.unlinked_room_count > 0) {
-    ImGui::SameLine(0.0f, 6.0f);
-    ImGui::TextColored(AgentUI::GetTheme().status_warning, tr("%d unlinked"),
-                       connected_graph_cache_.unlinked_room_count);
+  // Zoom.
+  ImGui::AlignTextToFramePadding();
+  ImGui::Text(tr("Zoom %.0f%%"), ConnectedCanvasScale() * 100.0f);
+  ImGui::SameLine();
+  if (ImGui::SmallButton(ICON_MD_ZOOM_OUT "##OverviewZoomOut")) {
+    connected_canvas_zoom_request_ /= 1.12f;
+  }
+  gui::AutoRegisterLastItem("button", "OverviewZoomOut", "Zoom out (-)");
+  ImGui::SameLine();
+  if (ImGui::SmallButton(ICON_MD_ZOOM_IN "##OverviewZoomIn")) {
+    connected_canvas_zoom_request_ *= 1.12f;
+  }
+  gui::AutoRegisterLastItem("button", "OverviewZoomIn", "Zoom in (+)");
+  ImGui::SameLine();
+  if (ImGui::SmallButton(ICON_MD_FIT_SCREEN " Fit##OverviewFit")) {
+    connected_canvas_fit_requested_ = true;
+  }
+  gui::AutoRegisterLastItem("button", "OverviewFit",
+                            "Fit all rooms in view (F)");
+  ImGui::SameLine();
+  if (ImGui::SmallButton(ICON_MD_RESTART_ALT "##OverviewReset")) {
+    connected_canvas_reset_requested_ = true;
+  }
+  gui::AutoRegisterLastItem("button", "OverviewReset",
+                            "Reset zoom and center the current room (0)");
+  if (ImGui::IsItemHovered()) {
+    ImGui::SetTooltip("%s", tr("Reset zoom and center the current room (0)"));
+  }
+
+  ImGui::Checkbox(tr("Minimap##OverviewMinimap"), &show_connected_overview_);
+  gui::AutoRegisterLastItem("checkbox", "OverviewMinimap");
+  SameLineIfFits(ImGui::CalcTextSize(tr("Current room")).x +
+                 ImGui::GetFrameHeight() * 2.0f);
+  ImGui::Checkbox(tr("Current room##OverviewRoomPreview"),
+                  &show_connected_current_room_preview_);
+  gui::AutoRegisterLastItem("checkbox", "OverviewRoomPreview");
+
+  DrawConnectedControlsLegend();
+
+  // Graph summary.
+  const int room_count = have_graph ? graph.room_count : 0;
+  ImGui::TextDisabled(tr("%d room%s"), room_count, room_count == 1 ? "" : "s");
+  if (have_graph && graph.unlinked_room_count > 0) {
+    const std::string unlinked =
+        absl::StrCat(graph.unlinked_room_count, " ", tr("unlinked"));
+    SameLineIfFits(ImGui::CalcTextSize(unlinked.c_str()).x);
+    ImGui::TextColored(agent_theme.status_warning, "%s", unlinked.c_str());
     if (ImGui::IsItemHovered()) {
       ImGui::SetTooltip(
+          "%s",
           tr("Project rooms shown in this dungeon scope but not reachable from "
              "the current room through resolved ROM doors, staircases, or "
              "holewarps. They stay visible so broken connections are easier to "
              "repair."));
     }
   }
-  if (connected_graph_cache_start_room_id_ == center_room_id &&
-      !connected_graph_cache_.floor_order.empty()) {
-    const auto& agent_theme = AgentUI::GetTheme();
-    for (const std::string& floor_label : connected_graph_cache_.floor_order) {
-      const int floor_count =
-          CountConnectedRoomsOnFloor(connected_graph_cache_, floor_label);
+  if (have_graph) {
+    for (const std::string& floor_label : graph.floor_order) {
+      const int floor_count = CountConnectedRoomsOnFloor(graph, floor_label);
       if (floor_count <= 0) {
         continue;
       }
-      ImGui::SameLine(0.0f, 6.0f);
-      ImGui::TextColored(GetConnectedFloorBaseColor(
-                             agent_theme, connected_graph_cache_, floor_label),
-                         "%s:%d", floor_label.c_str(), floor_count);
+      const std::string text =
+          absl::StrFormat("%s:%d", floor_label, floor_count);
+      SameLineIfFits(ImGui::CalcTextSize(text.c_str()).x);
+      ImGui::TextColored(
+          GetConnectedFloorBaseColor(agent_theme, graph, floor_label), "%s",
+          text.c_str());
       if (ImGui::IsItemHovered()) {
         ImGui::SetTooltip(tr("%s rooms in this unified connected view"),
                           floor_label.c_str());
       }
     }
   }
-  const size_t issue_count =
-      connected_graph_cache_start_room_id_ == center_room_id
-          ? connected_graph_cache_.staircase_issues.size()
-          : 0;
+  const size_t issue_count = have_graph ? graph.staircase_issues.size() : 0;
   if (issue_count > 0) {
-    ImGui::SameLine(0.0f, 6.0f);
     ImGui::TextColored(gui::ConvertColorToImVec4(
                            gui::ThemeManager::Get().GetCurrentTheme().warning),
                        tr("%zu possible issue%s"), issue_count,
@@ -775,7 +775,7 @@ void DungeonCanvasViewer::DrawConnectedToolbarControls(int center_room_id) {
           "These do not establish runtime slot use. Room 000 is valid.\n"
           "Review header destinations manually; automatic clearing is "
           "disabled.");
-      for (const auto& issue : connected_graph_cache_.staircase_issues) {
+      for (const auto& issue : graph.staircase_issues) {
         absl::StrAppend(
             &tooltip,
             absl::StrFormat("\n[%03X] %s", issue.from_room_id,
@@ -784,7 +784,26 @@ void DungeonCanvasViewer::DrawConnectedToolbarControls(int center_room_id) {
       ImGui::SetTooltip("%s", tooltip.c_str());
     }
   }
-  ImGui::SameLine(0.0f, 6.0f);
+  const size_t out_of_scope_count =
+      have_graph ? graph.out_of_scope_links.size() : 0;
+  if (have_graph && graph.dungeon_scope_active && out_of_scope_count > 0) {
+    ImGui::TextColored(gui::ConvertColorToImVec4(
+                           gui::ThemeManager::Get().GetCurrentTheme().info),
+                       tr("%zu out-of-scope"), out_of_scope_count);
+    if (ImGui::IsItemHovered()) {
+      std::string tooltip(
+          "Resolved links that leave the current dungeon group. Hidden from\n"
+          "the visual matrix to keep the view scoped to one dungeon, but\n"
+          "still surfaced here so you can see cross-dungeon connections.");
+      for (const auto& link : graph.out_of_scope_links) {
+        absl::StrAppend(
+            &tooltip,
+            absl::StrFormat("\n[%03X] %s", link.from_room_id,
+                            FormatDungeonConnectedLinkDescription(link)));
+      }
+      ImGui::SetTooltip("%s", tooltip.c_str());
+    }
+  }
   ImGui::TextDisabled("%s", tr("Stair mapping unverified"));
   if (ImGui::IsItemHovered()) {
     ImGui::SetTooltip(
@@ -795,46 +814,20 @@ void DungeonCanvasViewer::DrawConnectedToolbarControls(int center_room_id) {
            "Automatic clearing is disabled; review Destinations in the room "
            "inspector."));
   }
-  const size_t out_of_scope_count =
-      connected_graph_cache_start_room_id_ == center_room_id
-          ? connected_graph_cache_.out_of_scope_links.size()
-          : 0;
-  if (connected_graph_cache_.dungeon_scope_active && out_of_scope_count > 0) {
-    ImGui::SameLine(0.0f, 6.0f);
-    ImGui::TextColored(gui::ConvertColorToImVec4(
-                           gui::ThemeManager::Get().GetCurrentTheme().info),
-                       tr("%zu out-of-scope"), out_of_scope_count);
-    if (ImGui::IsItemHovered()) {
-      std::string tooltip(
-          "Resolved links that leave the current dungeon group. Hidden from\n"
-          "the visual matrix to keep the view scoped to one dungeon, but\n"
-          "still surfaced here so you can see cross-dungeon connections.");
-      for (const auto& link : connected_graph_cache_.out_of_scope_links) {
-        absl::StrAppend(
-            &tooltip,
-            absl::StrFormat("\n[%03X] %s", link.from_room_id,
-                            FormatDungeonConnectedLinkDescription(link)));
-      }
-      ImGui::SetTooltip("%s", tooltip.c_str());
-    }
-  }
   if (!connected_action_status_message_.empty()) {
-    ImGui::SameLine(0.0f, 6.0f);
     ImGui::TextColored(connected_action_status_is_error_
-                           ? AgentUI::GetTheme().status_error
-                           : AgentUI::GetTheme().status_success,
+                           ? agent_theme.status_error
+                           : agent_theme.status_success,
                        "%s", connected_action_status_message_.c_str());
   }
-  ImGui::SameLine(0.0f, 8.0f);
-  const auto compact_actions = DrawConnectedControlsCompact(
-      ConnectedCanvasScale(), connected_room_count, &show_connected_overview_,
-      &show_connected_current_room_preview_);
-  if (compact_actions.fit) {
-    connected_canvas_fit_requested_ = true;
+  {
+    gui::StyleColorGuard hint_color(
+        ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled));
+    ImGui::TextWrapped(
+        "%s", tr("Double-click a room to open it. Drag to pan; scroll or "
+                 "+/- to zoom. F fits all rooms; 0 recenters."));
   }
-  if (compact_actions.reset) {
-    connected_canvas_reset_requested_ = true;
-  }
+  ImGui::PopID();
 }
 
 std::optional<int> DungeonCanvasViewer::DrawConnectedRoomMatrix(
@@ -883,30 +876,21 @@ std::optional<int> DungeonCanvasViewer::DrawConnectedRoomMatrix(
       GetConnectedCanvasSize(connected_graph.min_col, connected_graph.max_col,
                              connected_graph.min_row, connected_graph.max_row);
 
-  gui::BeginNoPadding();
-  gui::CanvasFrameOptions frame_opts;
-  frame_opts.canvas_size = content_size;
-  frame_opts.draw_grid = false;
-  frame_opts.draw_context_menu = false;
-  frame_opts.draw_overlay = true;
-  frame_opts.render_popups = true;
-
-  auto canvas_rt = gui::BeginCanvas(connected_canvas_, frame_opts);
-  gui::EndNoPadding();
-
-  HandleConnectedCanvasZoom(connected_canvas_, canvas_rt, content_size);
-  canvas_rt.scale = connected_canvas_.global_scale();
-
-  const ImVec2 window_pos = ImGui::GetWindowPos();
-  const ImVec2 window_content_min = ImGui::GetWindowContentRegionMin();
-  const ImVec2 window_content_max = ImGui::GetWindowContentRegionMax();
-  const ImVec2 viewport_screen_min(window_pos.x + window_content_min.x,
-                                   window_pos.y + window_content_min.y);
-  const ImVec2 viewport_screen_max(window_pos.x + window_content_max.x,
-                                   window_pos.y + window_content_max.y);
-  const ImVec2 viewport_size(
-      std::max(1.0f, window_content_max.x - window_content_min.x),
-      std::max(1.0f, window_content_max.y - window_content_min.y));
+  const ImVec2 window_size = ImGui::GetWindowSize();
+  const ImVec2 pan_margin = ConnectedPanMargin(window_size);
+  // The visible area, not the content region: with the host's explicit
+  // (overscrolled) content size, the content region spans the whole map.
+  const ImGuiWindow* host_window = ImGui::GetCurrentWindow();
+  const ImVec2 viewport_screen_min(
+      host_window->InnerRect.Min.x + host_window->WindowPadding.x,
+      host_window->InnerRect.Min.y + host_window->WindowPadding.y);
+  const ImVec2 viewport_screen_max(
+      std::max(viewport_screen_min.x + 1.0f,
+               host_window->InnerRect.Max.x - host_window->WindowPadding.x),
+      std::max(viewport_screen_min.y + 1.0f,
+               host_window->InnerRect.Max.y - host_window->WindowPadding.y));
+  const ImVec2 viewport_size(viewport_screen_max.x - viewport_screen_min.x,
+                             viewport_screen_max.y - viewport_screen_min.y);
   const bool reserve_connected_side_panel =
       show_connected_overview_ || show_connected_current_room_preview_;
   const float desired_side_panel_width =
@@ -945,33 +929,38 @@ std::optional<int> DungeonCanvasViewer::DrawConnectedRoomMatrix(
                                      mouse_pos.y >= viewport_screen_min.y &&
                                      mouse_pos.y <= viewport_screen_max.y;
 
-  auto center_room_scroll = [&](float scale_value, int room_id) {
+  // The graph starts `pan_margin` into the scroll content.
+  ImGui::SetCursorPos(pan_margin);
+  gui::BeginNoPadding();
+  gui::CanvasFrameOptions frame_opts;
+  frame_opts.canvas_size = content_size;
+  frame_opts.draw_grid = false;
+  frame_opts.draw_context_menu = false;
+  frame_opts.draw_overlay = true;
+  frame_opts.render_popups = true;
+
+  auto canvas_rt = gui::BeginCanvas(connected_canvas_, frame_opts);
+  gui::EndNoPadding();
+
+  HandleConnectedCanvasZoom(connected_canvas_, content_size, pan_margin,
+                            viewport_screen_min, window_size);
+  canvas_rt.scale = connected_canvas_.global_scale();
+
+  const ImVec2 map_view_center(map_viewport_size.x * 0.5f,
+                               map_viewport_size.y * 0.5f);
+  auto center_on = [&](const ImVec2& world, float scale_value) {
+    SetConnectedScroll(
+        ConnectedScrollFor(world, scale_value, pan_margin, map_view_center),
+        content_size, scale_value, pan_margin, window_size);
+  };
+  auto room_center = [&](int room_id) {
     const auto& placement =
         connected_graph.room_positions[static_cast<size_t>(room_id)];
     const ImVec2 room_origin = GetConnectedRoomOrigin(
         placement.col, placement.row, connected_graph.min_col,
         connected_graph.min_row);
-    const float max_scroll_x =
-        std::max(0.0f, (content_size.x * scale_value) - map_viewport_size.x);
-    const float max_scroll_y =
-        std::max(0.0f, (content_size.y * scale_value) - map_viewport_size.y);
-    return ImVec2(
-        std::clamp(
-            ((room_origin.x + (kDungeonRoomPixelSize * 0.5f)) * scale_value) -
-                (map_viewport_size.x * 0.5f),
-            0.0f, max_scroll_x),
-        std::clamp(
-            ((room_origin.y + (kDungeonRoomPixelSize * 0.5f)) * scale_value) -
-                (map_viewport_size.y * 0.5f),
-            0.0f, max_scroll_y));
-  };
-
-  auto center_content_scroll = [&](float scale_value) {
-    return ImVec2(
-        std::max(0.0f,
-                 ((content_size.x * scale_value) - map_viewport_size.x) * 0.5f),
-        std::max(0.0f, ((content_size.y * scale_value) - map_viewport_size.y) *
-                           0.5f));
+    return ImVec2(room_origin.x + (kDungeonRoomPixelSize * 0.5f),
+                  room_origin.y + (kDungeonRoomPixelSize * 0.5f));
   };
 
   auto set_scale_around_view_center = [&](float new_scale) {
@@ -981,22 +970,11 @@ std::optional<int> DungeonCanvasViewer::DrawConnectedRoomMatrix(
     if (std::abs(clamped_scale - old_scale) < 0.0001f) {
       return;
     }
-
-    const float world_x =
-        (ImGui::GetScrollX() + (map_viewport_size.x * 0.5f)) / old_scale;
-    const float world_y =
-        (ImGui::GetScrollY() + (map_viewport_size.y * 0.5f)) / old_scale;
+    const ImVec2 world(
+        (ImGui::GetScrollX() + map_view_center.x - pan_margin.x) / old_scale,
+        (ImGui::GetScrollY() + map_view_center.y - pan_margin.y) / old_scale);
     connected_canvas_.set_global_scale(clamped_scale);
-    const float max_scroll_x =
-        std::max(0.0f, (content_size.x * clamped_scale) - map_viewport_size.x);
-    const float max_scroll_y =
-        std::max(0.0f, (content_size.y * clamped_scale) - map_viewport_size.y);
-    ImGui::SetScrollX(
-        std::clamp((world_x * clamped_scale) - (map_viewport_size.x * 0.5f),
-                   0.0f, max_scroll_x));
-    ImGui::SetScrollY(
-        std::clamp((world_y * clamped_scale) - (map_viewport_size.y * 0.5f),
-                   0.0f, max_scroll_y));
+    center_on(world, clamped_scale);
     canvas_rt.scale = clamped_scale;
   };
 
@@ -1006,18 +984,13 @@ std::optional<int> DungeonCanvasViewer::DrawConnectedRoomMatrix(
     const float fit_scale = std::clamp(fit.scale, kConnectedCanvasMinScale,
                                        kConnectedCanvasMaxScale);
     connected_canvas_.set_global_scale(fit_scale);
-    const ImVec2 fit_scroll = center_content_scroll(fit_scale);
-    ImGui::SetScrollX(fit_scroll.x);
-    ImGui::SetScrollY(fit_scroll.y);
+    center_on(ImVec2(content_size.x * 0.5f, content_size.y * 0.5f), fit_scale);
     canvas_rt.scale = fit_scale;
   };
 
   auto apply_reset = [&]() {
     connected_canvas_.set_global_scale(kConnectedCanvasDefaultScale);
-    const ImVec2 reset_scroll =
-        center_room_scroll(kConnectedCanvasDefaultScale, center_room_id);
-    ImGui::SetScrollX(reset_scroll.x);
-    ImGui::SetScrollY(reset_scroll.y);
+    center_on(room_center(center_room_id), kConnectedCanvasDefaultScale);
     canvas_rt.scale = kConnectedCanvasDefaultScale;
     last_connected_matrix_room_id_ = -1;
   };
@@ -1049,19 +1022,25 @@ std::optional<int> DungeonCanvasViewer::DrawConnectedRoomMatrix(
     apply_reset();
     connected_canvas_reset_requested_ = false;
   }
+  if (std::abs(connected_canvas_zoom_request_ - 1.0f) > 0.0001f) {
+    set_scale_around_view_center(connected_canvas_.global_scale() *
+                                 connected_canvas_zoom_request_);
+    connected_canvas_zoom_request_ = 1.0f;
+  }
 
-  if (last_connected_matrix_room_id_ != center_room_id) {
-    const ImVec2 target_scroll =
-        center_room_scroll(canvas_rt.scale, center_room_id);
-    ImGui::SetScrollX(target_scroll.x);
-    ImGui::SetScrollY(target_scroll.y);
+  // A window's first frame reports a placeholder content region; center once
+  // the real viewport is known.
+  if (last_connected_matrix_room_id_ != center_room_id &&
+      !ImGui::IsWindowAppearing()) {
+    center_on(room_center(center_room_id), canvas_rt.scale);
     last_connected_matrix_room_id_ = center_room_id;
   }
 
   const float scaled_step =
       (kDungeonRoomPixelSize + kConnectedRoomGap) * canvas_rt.scale;
-  const float scroll_x = ImGui::GetScrollX();
-  const float scroll_y = ImGui::GetScrollY();
+  // Scroll measured from the graph origin; negative inside the pan margin.
+  const float scroll_x = ImGui::GetScrollX() - pan_margin.x;
+  const float scroll_y = ImGui::GetScrollY() - pan_margin.y;
   const int connected_cols =
       std::max(1, (connected_graph.max_col - connected_graph.min_col) + 1);
   const int connected_rows =
@@ -1271,59 +1250,23 @@ std::optional<int> DungeonCanvasViewer::DrawConnectedRoomMatrix(
                                    link_shadow, 12, 1.25f);
   }
 
-  ConnectedCanvasControlActions control_actions;
-  if (!connected_controls_inline_) {
-    const ImVec2 connected_controls_pos =
-        using_connected_side_panel ? side_panel_screen_min
-        : connected_controls_custom_position_
-            ? connected_controls_custom_position_value_
-            : ImVec2(viewport_screen_max.x - 12.0f,
-                     viewport_screen_min.y + 12.0f);
-    const ImVec2 connected_controls_pivot =
-        using_connected_side_panel || connected_controls_custom_position_
-            ? ImVec2(0.0f, 0.0f)
-            : ImVec2(1.0f, 0.0f);
-    control_actions = DrawConnectedCanvasControls(
-        connected_controls_pos, connected_controls_pivot,
-        connected_canvas_.global_scale(), connected_room_count,
-        show_connected_overview_, show_connected_current_room_preview_);
-    if (!using_connected_side_panel &&
-        control_actions.moved_window_pos.has_value()) {
-      connected_controls_custom_position_ = true;
-      connected_controls_custom_position_value_ =
-          *control_actions.moved_window_pos;
-    }
-    if (control_actions.reset_position) {
-      connected_controls_custom_position_ = false;
-      connected_controls_custom_position_value_ = ImVec2(0.0f, 0.0f);
-    }
-    show_connected_overview_ = control_actions.show_overview;
-    show_connected_current_room_preview_ = control_actions.show_preview;
-    if (control_actions.fit) {
-      apply_fit();
-    }
-    if (control_actions.reset) {
-      apply_reset();
-    }
-  }
-
   ConnectedCanvasOverviewActions overview_actions;
   if (show_connected_overview_) {
+    const float scale = connected_canvas_.global_scale();
     overview_actions = DrawConnectedCanvasOverview(
-        connected_graph, content_size, map_viewport_size,
-        connected_canvas_.global_scale(), ImGui::GetScrollX(),
-        ImGui::GetScrollY(), center_room_id, hovered_room_id,
+        connected_graph, content_size,
+        ImVec2((ImGui::GetScrollX() - pan_margin.x) / scale,
+               (ImGui::GetScrollY() - pan_margin.y) / scale),
+        ImVec2(map_viewport_size.x / scale, map_viewport_size.y / scale),
+        center_room_id, hovered_room_id,
         using_connected_side_panel
-            ? ImVec2(side_panel_screen_min.x,
-                     side_panel_screen_min.y + kConnectedControlsApproxHeight +
-                         8.0f)
+            ? side_panel_screen_min
             : ImVec2(
                   viewport_screen_max.x - kConnectedOverviewMaxWidth - 12.0f,
                   viewport_screen_max.y - kConnectedOverviewMaxHeight - 12.0f));
   }
-  if (overview_actions.target_scroll.has_value()) {
-    ImGui::SetScrollX(overview_actions.target_scroll->x);
-    ImGui::SetScrollY(overview_actions.target_scroll->y);
+  if (overview_actions.center_on.has_value()) {
+    center_on(*overview_actions.center_on, connected_canvas_.global_scale());
   }
   if (overview_actions.activated_room_id.has_value()) {
     if (*overview_actions.activated_room_id != center_room_id) {
@@ -1333,8 +1276,9 @@ std::optional<int> DungeonCanvasViewer::DrawConnectedRoomMatrix(
     return *overview_actions.activated_room_id;
   }
 
-  if (!control_actions.hovered && !overview_actions.hovered &&
-      hovered_room_id >= 0) {
+  const bool panning = connected_left_pan_active_ &&
+                       ImGui::IsMouseDragging(ImGuiMouseButton_Left);
+  if (!overview_actions.hovered && !panning && hovered_room_id >= 0) {
     if (rooms_ && hovered_room_id < static_cast<int>(rooms_->size())) {
       std::string tooltip = absl::StrFormat(
           "[%03X] %s", hovered_room_id,
@@ -1372,10 +1316,10 @@ std::optional<int> DungeonCanvasViewer::DrawConnectedRoomMatrix(
           }
         }
       }
-      absl::StrAppend(&tooltip, "\nClick to open room view");
+      absl::StrAppend(&tooltip, "\nDouble-click to open room view");
       ImGui::SetTooltip("%s", tooltip.c_str());
     }
-    if (ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
+    if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
       if (hovered_room_id != center_room_id) {
         NavigateToRoom(hovered_room_id);
       }
@@ -1418,10 +1362,17 @@ std::optional<int> DungeonCanvasViewer::DrawConnectedRoomMatrix(
                                   mouse_pos.x <= side_panel_screen_max.x &&
                                   mouse_pos.y >= side_panel_screen_min.y &&
                                   mouse_pos.y <= side_panel_screen_max.y;
-  HandleConnectedCanvasPan((control_actions.hovered ||
-                            overview_actions.hovered || side_panel_hovered)
-                               ? center_room_id
-                               : hovered_room_id);
+  // Rooms open on double-click, so a left drag pans from anywhere on the map.
+  const bool map_hovered =
+      mouse_in_map_viewport && !overview_actions.hovered &&
+      !side_panel_hovered &&
+      ImGui::IsWindowHovered(ImGuiHoveredFlags_AllowWhenBlockedByActiveItem);
+  if (ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
+    connected_left_pan_active_ = map_hovered;
+  } else if (!ImGui::IsMouseDown(ImGuiMouseButton_Left)) {
+    connected_left_pan_active_ = false;
+  }
+  HandleConnectedCanvasPan(map_hovered, connected_left_pan_active_);
 
   gui::EndCanvas(connected_canvas_, canvas_rt, frame_opts);
   return std::nullopt;

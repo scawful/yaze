@@ -3790,6 +3790,99 @@ TEST(DungeonCanvasViewerConnectedGraphTest,
 }
 
 TEST(DungeonCanvasViewerConnectedGraphTest,
+     OverviewCentersRoomOpensOnDoubleClickAndPansWithLeftDrag) {
+  std::vector<uint8_t> rom_data(0x8000, 0);
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(rom_data).ok());
+  DungeonRoomStore rooms(&rom);
+  auto& start = rooms[0x10];
+  ClearRoomLinks(&start);
+  start.AddDoor(
+      MakeDoor(zelda3::DoorDirection::East, zelda3::DoorType::NormalDoor));
+  start.SetLoaded(true);
+  auto& east = rooms[0x11];
+  ClearRoomLinks(&east);
+  east.AddDoor(
+      MakeDoor(zelda3::DoorDirection::West, zelda3::DoorType::NormalDoor));
+  east.SetLoaded(true);
+  DungeonCanvasViewer viewer(&rom);
+  viewer.SetRooms(&rooms);
+
+  ImGuiContext* previous = ImGui::GetCurrentContext();
+  ImGuiContext* context = ImGui::CreateContext();
+  ImGui::SetCurrentContext(context);
+  ImGuiIO& io = ImGui::GetIO();
+  io.IniFilename = nullptr;
+  io.DisplaySize = ImVec2(1000.0f, 800.0f);
+  io.DeltaTime = 1.0f / 60.0f;
+  io.Fonts->AddFontDefault();
+  unsigned char* pixels = nullptr;
+  int atlas_width = 0;
+  int atlas_height = 0;
+  io.Fonts->GetTexDataAsRGBA32(&pixels, &atlas_width, &atlas_height);
+  io.AddMousePosEvent(-1000.0f, -1000.0f);
+
+  const ImVec2 host_size(800.0f, 600.0f);
+  std::optional<int> opened;
+  ImVec2 scroll;
+  ImVec2 view_center;
+  const auto frame = [&]() {
+    ImGui::NewFrame();
+    ImGui::SetNextWindowPos(ImVec2(0.0f, 0.0f));
+    ImGui::SetNextWindowSize(host_size);
+    ImGui::SetNextWindowContentSize(
+        viewer.GetConnectedScrollContentSize(0x10, host_size));
+    ImGui::Begin("OverviewHost", nullptr,
+                 ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize |
+                     ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoScrollbar |
+                     ImGuiWindowFlags_NoScrollWithMouse |
+                     ImGuiWindowFlags_NoSavedSettings);
+    view_center = ImGui::GetCurrentWindow()->InnerRect.GetCenter();
+    opened = viewer.DrawConnectedRoomMatrix(0x10);
+    scroll = ImVec2(ImGui::GetScrollX(), ImGui::GetScrollY());
+    ImGui::End();
+    ImGui::Render();
+  };
+  for (int i = 0; i < 3; ++i) {
+    frame();
+  }
+  // The pan margin lets a graph smaller than the window center its room.
+  EXPECT_GT(scroll.x, 0.0f);
+  EXPECT_GT(scroll.y, 0.0f);
+
+  io.AddMousePosEvent(view_center.x, view_center.y);
+  frame();
+  io.AddMouseButtonEvent(0, true);
+  frame();
+  EXPECT_FALSE(opened.has_value()) << "a single click must not open a room";
+  io.AddMouseButtonEvent(0, false);
+  frame();
+  io.AddMouseButtonEvent(0, true);
+  frame();
+  ASSERT_TRUE(opened.has_value());
+  EXPECT_EQ(*opened, 0x10);
+  io.AddMouseButtonEvent(0, false);
+  for (int i = 0; i < 40; ++i) {
+    frame();
+  }
+
+  const ImVec2 before = scroll;
+  io.AddMouseButtonEvent(0, true);
+  frame();
+  io.AddMousePosEvent(view_center.x - 60.0f, view_center.y - 30.0f);
+  frame();
+  io.AddMouseButtonEvent(0, false);
+  frame();
+  frame();
+  EXPECT_FALSE(opened.has_value());
+  EXPECT_NEAR(scroll.x, before.x + 60.0f, 1.0f);
+  EXPECT_NEAR(scroll.y, before.y + 30.0f, 1.0f);
+
+  ImGui::DestroyContext(context);
+  ImGui::SetCurrentContext(previous);
+}
+
+TEST(DungeonCanvasViewerConnectedGraphTest,
      BuildConnectedRoomGraphIncludesUnlinkedScopedRoomsWithFloorLabels) {
   const std::filesystem::path root = MakeProjectRegistryRoot(R"json({
     "dungeons": [

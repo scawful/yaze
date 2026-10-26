@@ -14,6 +14,7 @@
 #include <vector>
 
 #include "app/editor/dungeon/dungeon_entrance_camera.h"
+#include "app/editor/dungeon/dungeon_jump_targets.h"
 #include "app/editor/dungeon/dungeon_proposal_overlay.h"
 #include "app/editor/dungeon/dungeon_room_composite.h"
 #include "app/editor/dungeon/dungeon_room_edit.h"
@@ -300,7 +301,10 @@ class DungeonCanvasViewer {
                            bool show_overlay, float scale);
   ImVec2 GetProposalPreviewContentSize(const DungeonProposalOverlay& overlay,
                                        float scale) const;
-  void DrawConnectedToolbarControls(int center_room_id);
+  // Overview zoom, display and dungeon-jump controls, drawn by the host's
+  // inspector rather than over the canvas. `on_jump_to_room` opens a room.
+  void DrawConnectedInspectorControls(
+      int center_room_id, const std::function<void(int)>& on_jump_to_room);
   void Draw(int room_id);
   void CancelMinecartGesture() { minecart_canvas_tool_.Cancel(); }
   void TriggerChangePing();
@@ -397,12 +401,13 @@ class DungeonCanvasViewer {
   // body child before DrawConnectedRoomMatrix runs, so the matrix doesn't need
   // to open its own BeginChild scroll wrapper.
   ImVec2 GetConnectedContentSize(int center_room_id);
+  // Scroll extent for a body window of `window_size`: the scaled graph plus a
+  // half-window margin on every side, so any room can be panned to the center
+  // and graphs smaller than the window can be centered.
+  ImVec2 GetConnectedScrollContentSize(int center_room_id, ImVec2 window_size);
   // Clamped connected-canvas zoom scale that matches the one used by
   // DrawConnectedRoomMatrix when it next runs.
   float ConnectedCanvasScale() const;
-  void SetConnectedControlsInline(bool inline_controls) {
-    connected_controls_inline_ = inline_controls;
-  }
 
   void SetContext(EditorContext ctx) {
     if (rom_ != ctx.rom || game_data_ != ctx.game_data) {
@@ -1105,16 +1110,19 @@ class DungeonCanvasViewer {
   bool connected_canvas_initialized_ = false;
   bool show_connected_overview_ = false;
   bool show_connected_current_room_preview_ = false;
-  bool connected_controls_inline_ = false;
   bool connected_canvas_fit_requested_ = false;
   bool connected_canvas_reset_requested_ = false;
+  // Zoom factor requested from the inspector, applied around the view center.
+  float connected_canvas_zoom_request_ = 1.0f;
+  // Left-drag panning only follows presses that began on the overview map.
+  bool connected_left_pan_active_ = false;
+  std::vector<DungeonJumpTarget> dungeon_jump_targets_;
+  char dungeon_jump_filter_[64] = {};
   // Last-frame visibility of the connected-mode side panel (overview /
   // preview). Used to apply hysteresis when the viewport width crosses the
   // panel's min-size threshold, so dragging the pane splitter past the
   // threshold doesn't cause a sudden ~220 px horizontal snap.
   bool connected_side_panel_visible_last_frame_ = false;
-  bool connected_controls_custom_position_ = false;
-  ImVec2 connected_controls_custom_position_value_ = ImVec2(0.0f, 0.0f);
   int connected_graph_cache_start_room_id_ = -1;
   ConnectedRoomGraphData connected_graph_cache_{};
   std::string connected_action_status_message_;

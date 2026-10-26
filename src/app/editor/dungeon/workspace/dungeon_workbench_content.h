@@ -295,6 +295,11 @@ class DungeonWorkbenchContent : public WindowContent {
   const char* GetWorkbenchToolUnavailableMessage(WorkbenchTool tool) const;
   void DrawApplyScopeControls(int room_id);
   void DrawPitDamageControls(int room_id);
+  // The toggle only requests the slot chooser; DrawPitDamageDetails opens it
+  // and shows status, so the toggle may sit inside a table cell. A null
+  // `label` draws the checkbox without visible text.
+  void DrawPitDamageToggle(int room_id, const char* label);
+  void DrawPitDamageDetails(int room_id);
   void DrawDungeonMapPopup(DungeonCanvasViewer& viewer);
   void DrawProposalPreviewWindow(DungeonCanvasViewer& viewer);
   DungeonMapPanel* GetEmbeddedDungeonMap(DungeonCanvasViewer& viewer);
@@ -375,6 +380,7 @@ class DungeonWorkbenchContent : public WindowContent {
   uint16_t pit_damage_replacement_room_id_ = 0;
   uint16_t pit_damage_victim_room_id_ = 0;
   int pit_damage_chooser_room_id_ = -1;
+  bool pit_damage_chooser_requested_ = false;
   std::string pit_damage_status_message_;
   bool pit_damage_status_error_ = false;
   DungeonWorkbenchPitDamageControlRects pit_damage_control_rects_{};

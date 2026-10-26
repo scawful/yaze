@@ -54,8 +54,11 @@ selected object or placement preview. Empty-room wheel input and canvas drag
 do not pan. Compare uses the same viewport without edit access.
 
 Workbench exposes **Room | Overview** beside room navigation. Overview is the
-separate read-only, pannable/zoomable room graph; clicking a preview opens that
-room for editing. Both choices exit Compare. Unopened project rooms must load
+separate read-only, pannable/zoomable room graph; left-drag pans (the map
+overscrolls by half a viewport so any room can be centered) and double-clicking
+a preview opens that room for editing. Overview controls (dungeon jump, zoom,
+minimap, legend, graph summary) live in the Inspect tab instead of floating over
+the map. Both choices exit Compare. Unopened project rooms must load
 from ROM before previewing, including rooms without resolved connections, and
 use their own resolved entrance graphics. Never render a default materialized
 Room as a substitute for loading the requested room.

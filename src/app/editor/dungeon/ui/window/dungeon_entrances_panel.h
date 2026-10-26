@@ -3,6 +3,7 @@
 
 #include <algorithm>
 #include <array>
+#include <cfloat>
 #include <cstdio>
 #include <functional>
 #include <memory>
@@ -139,6 +140,19 @@ class DungeonEntrancesPanel : public WindowContent {
                     context.effective_blockset());
     }
     ImGui::SetNextItemWidth(width);
+    // Entrance names are long; size the popup to them rather than to the
+    // narrow inspector combo. The widest label is measured while open.
+    const ImGuiStyle& style = ImGui::GetStyle();
+    const float max_popup_width =
+        std::max(ImGui::GetFontSize() * 18.0f,
+                 ImGui::GetMainViewport()->WorkSize.x * 0.6f);
+    const float popup_width = entrance_choice_width_ > 0.0f
+                                  ? entrance_choice_width_
+                                  : ImGui::GetFontSize() * 26.0f;
+    ImGui::SetNextWindowSizeConstraints(
+        ImVec2(std::min(popup_width, max_popup_width), 0.0f),
+        ImVec2(FLT_MAX, ImGui::GetTextLineHeightWithSpacing() * 20.0f +
+                            style.WindowPadding.y * 2.0f));
     const bool open = ImGui::BeginCombo(
         "##GraphicsEntrance", preview.c_str(),
         select_preview_ ? ImGuiComboFlags_HeightLarge : ImGuiComboFlags_None);
@@ -155,14 +169,18 @@ class DungeonEntrancesPanel : public WindowContent {
         gui::AutoRegisterLastItem("selectable", "Auto (follow room)");
         ImGui::Separator();
         // Keep Auto visible while the entrance list scrolls to a manual choice.
-        ImGui::BeginChild("##EntranceChoices",
-                          ImVec2(0, ImGui::GetTextLineHeightWithSpacing() * 8));
+        ImGui::BeginChild(
+            "##EntranceChoices",
+            ImVec2(0, ImGui::GetTextLineHeightWithSpacing() * 14));
       }
+      float widest_label = ImGui::CalcTextSize("Auto (follow room)").x;
       for (int slot = 0; slot < static_cast<int>(entrances_->size()); ++slot) {
         const std::string entry = DungeonEntrancePreviewLabel(slot);
         const std::string label = slot >= zelda3::kNumDungeonSpawnPoints
                                       ? entry + " - " + EntranceLabel(slot)
                                       : entry;
+        widest_label =
+            std::max(widest_label, ImGui::CalcTextSize(label.c_str()).x);
         if (ImGui::Selectable(label.c_str(), !automatic && slot == selected)) {
           if (select_preview_) {
             select_preview_(slot);
@@ -185,6 +203,9 @@ class DungeonEntrancesPanel : public WindowContent {
       if (select_preview_)
         ImGui::EndChild();
       ImGui::EndCombo();
+      entrance_choice_width_ =
+          widest_label + style.ScrollbarSize +
+          (style.WindowPadding.x + style.FramePadding.x) * 2.0f;
     }
   }
 
@@ -705,6 +726,7 @@ class DungeonEntrancesPanel : public WindowContent {
   bool navigation_shortcut_focus_ = false;
   int navigation_shortcut_last_draw_frame_ = -1;
   ImGuiTextFilter entrance_filter_;
+  float entrance_choice_width_ = 0.0f;
 };
 
 }  // namespace editor

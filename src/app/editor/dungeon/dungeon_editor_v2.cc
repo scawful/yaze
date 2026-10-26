@@ -28,6 +28,7 @@
 #include "app/editor/dungeon/dungeon_canvas_viewer.h"
 #include "app/editor/dungeon/dungeon_room_store.h"
 #include "app/editor/dungeon/inspectors/door_editor_content.h"
+#include "app/editor/dungeon/inspectors/dungeon_room_transfer_editor.h"
 #include "app/editor/dungeon/inspectors/palette_editor_content.h"
 #include "app/editor/dungeon/selectors/object_selector_content.h"
 #include "app/editor/dungeon/ui/window/custom_collision_panel.h"
@@ -901,6 +902,22 @@ void DungeonEditorV2::Initialize() {
           return dependencies_.project ? &dependencies_.project->hack_manifest
                                        : nullptr;
         });
+    room_swap_dialog_.SetCallbacks(
+        [this](int first, int second,
+               const DungeonRoomTransferOptions& options) {
+          return PreviewRoomSwap(first, second, options);
+        },
+        [this](const DungeonRoomSwapPlan& plan) {
+          return ApplyRoomSwap(plan);
+        });
+    matrix_panel->SetRoomDataSwapHandlers(
+        [this](int first, int second) {
+          room_swap_dialog_.SetReadOnly(!rom_ || !rom_->is_loaded());
+          room_swap_dialog_.Open(first, second);
+        },
+        [this]() { room_swap_dialog_.Draw(); });
+    matrix_panel->SetRoomCloneRequestCallback(
+        [this](int target, int source) { RequestRoomClone(target, source); });
     room_matrix_panel_ = matrix_panel.get();
     window_manager->RegisterWindowContent(std::move(matrix_panel));
   }
@@ -2636,6 +2653,18 @@ void DungeonEditorV2::SwapRoomInPanel(int old_room_id, int new_room_id) {
   pending_swap_.old_room_id = old_room_id;
   pending_swap_.new_room_id = new_room_id;
   pending_swap_.pending = true;
+}
+
+void DungeonEditorV2::RequestRoomClone(int target_room_id, int source_room_id) {
+  if (!IsValidRoomId(target_room_id) || !IsValidRoomId(source_room_id) ||
+      target_room_id == source_room_id) {
+    return;
+  }
+  auto* viewer = GetViewerForRoom(target_room_id);
+  if (!viewer || viewer->current_room_id() != target_room_id) {
+    return;
+  }
+  RequestDungeonRoomTransferPopup(*viewer, source_room_id);
 }
 
 void DungeonEditorV2::ProcessPendingSwap() {

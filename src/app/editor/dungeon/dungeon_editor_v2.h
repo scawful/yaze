@@ -32,6 +32,7 @@
 #include "dungeon_undo_actions.h"
 #include "imgui/imgui.h"
 #include "inspectors/door_editor_content.h"
+#include "inspectors/dungeon_room_swap_dialog.h"
 #include "rom/rom.h"
 #include "selectors/object_selector_content.h"
 #include "util/lru_cache.h"
@@ -177,6 +178,9 @@ class DungeonEditorV2 : public Editor {
   // Dirty fixed headers in scope must not share storage with another room.
   absl::Status ValidateSaveScope(int only_room = -1,
                                  bool room_data_only = false) const;
+  // As above for several rooms at once; an empty list means every room.
+  absl::Status ValidateSaveScopeForRooms(const std::vector<int>& scope_rooms,
+                                         bool room_data_only = false) const;
   absl::Status BeginSaveTransaction() override;
   void RollbackSaveTransaction() override;
   void CommitSaveTransaction() override;
@@ -192,6 +196,10 @@ class DungeonEditorV2 : public Editor {
       int target_room_id, int source_room_id, const std::string& json,
       const DungeonRoomTransferOptions& options);
   absl::Status ApplyRoomTransfer(const DungeonRoomTransferPlan& plan);
+  absl::StatusOr<DungeonRoomSwapPlan> PreviewRoomSwap(
+      int first_room_id, int second_room_id,
+      const DungeonRoomTransferOptions& options);
+  absl::Status ApplyRoomSwap(const DungeonRoomSwapPlan& plan);
   absl::Status EditRoomMetadata(int room_id, const RoomMetadataEdit& edit);
   // Shared roomset assignment (background slots 3-6); zero inherits main.
   absl::Status EditRoomGraphicsSheet(int room_id, int slot, int sheet_id);
@@ -477,7 +485,8 @@ class DungeonEditorV2 : public Editor {
   void RemoveViewerFromLru(int room_id);
 
   absl::Status SaveRoomData(int room_id);
-  absl::Status SaveRoomImpl(int room_id, bool room_data_only);
+  absl::Status SaveRoomsImpl(const std::vector<int>& room_ids,
+                             bool room_data_only);
   // Fixed 14-byte room headers have no copy-on-write allocator. Refuse an
   // in-place header write that would also change another room's header.
   static absl::Status ValidateRoomHeaderOwnership(const Rom& rom, int room_id);
@@ -532,6 +541,8 @@ class DungeonEditorV2 : public Editor {
   // Workbench panel pointer (owned by WorkspaceWindowManager, stored for notifications).
   class DungeonWorkbenchContent* workbench_panel_ = nullptr;
   RoomMatrixContent* room_matrix_panel_ = nullptr;
+  // Drawn by the room matrix, which opens it from a menu or drag-and-drop.
+  DungeonRoomSwapDialog room_swap_dialog_;
   DungeonEntrancesPanel* entrance_navigator_panel_ = nullptr;
 
   // Palette management
@@ -723,6 +734,13 @@ class DungeonEditorV2 : public Editor {
   absl::Status EnsureConnectionRoomLoaded(int room_id);
   absl::Status EnsureRoomTransferLoaded(int room_id);
   absl::Status PreflightRoomTransfer(const DungeonRoomTransferPlan& plan);
+  // Applies every plan to one detached model before saving, so shared tables
+  // see the combined result.
+  absl::Status PreflightRoomTransfers(
+      const std::vector<const DungeonRoomTransferPlan*>& plans);
+  void CaptureRoomTransferSelection(DungeonRoomTransferPlan& plan);
+  absl::Status ValidateRoomTransferStillCurrent(
+      const DungeonRoomTransferPlan& plan);
   absl::Status RestoreRoomTransfer(int room_id,
                                    const DungeonRoomDocument& document);
   void RefreshSelectionEditViews(int room_id,
@@ -764,6 +782,8 @@ class DungeonEditorV2 : public Editor {
   void FinalizeWaterFillUndoAction(int room_id);
   void RestoreRoomWaterFill(int room_id, const WaterFillSnapshot& snap);
   void SwapRoomInPanel(int old_room_id, int new_room_id);
+  // Opens Clone / Import on the target room's viewer with `source` preset.
+  void RequestRoomClone(int target_room_id, int source_room_id);
   void ProcessPendingSwap();  // Process deferred swap after draw
   void ProcessPendingWorkflowMode();
   void ProcessPendingStandaloneToolWindow();
