@@ -645,7 +645,9 @@ These options work with all commands:
 - `--data-format <hex|ascii|both>` - Byte view for read commands
 - `--tui` / `--interactive` - Removed (use `z3ed help` and command-scoped `--help`)
 - `--list-commands` - List all available commands
-- `--export-schemas` - Export command schemas as JSON
+- `--export-schemas` - Export command schemas as JSON; each command includes a
+  JSON Schema `parameters` object derived from its usage string, keyed by flag
+  name
 - `--version` - Show version information
 - `--self-test` - Run CLI self-test
 - `--verbose` - Enable verbose output
