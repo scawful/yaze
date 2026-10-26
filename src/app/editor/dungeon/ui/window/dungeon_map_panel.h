@@ -12,6 +12,7 @@
 #include "util/i18n/tr.h"
 
 #include "app/editor/agent/agent_ui_theme.h"
+#include "app/editor/dungeon/dungeon_canvas_viewer.h"
 #include "app/editor/dungeon/dungeon_room_composite.h"
 #include "app/editor/dungeon/dungeon_room_selector.h"
 #include "app/editor/dungeon/dungeon_room_store.h"
@@ -22,6 +23,7 @@
 #include "core/hack_manifest.h"
 #include "imgui/imgui.h"
 #include "zelda3/dungeon/room.h"
+#include "zelda3/dungeon/room_census.h"
 #include "zelda3/dungeon/room_layer_manager.h"
 #include "zelda3/resource_labels.h"
 
@@ -229,54 +231,28 @@ class DungeonMapPanel : public WindowContent {
                         kRoomHeight * 0.5f);
     };
 
-    // Draw connections between adjacent rooms (gray lines — doors)
+    // Registry edges may be historical adjacency guesses or raw header
+    // bytes. Draw only connections supported by current editable rooms.
     ImVec4 connection_color = theme.dungeon_room_border_dark;
     connection_color.w = 0.45f;
-    for (size_t i = 0; i < dungeon_room_ids_.size(); i++) {
-      for (size_t j = i + 1; j < dungeon_room_ids_.size(); j++) {
-        int room_a = dungeon_room_ids_[i];
-        int room_b = dungeon_room_ids_[j];
-
-        bool adjacent = false;
-        if (std::abs(room_a - room_b) == 16) {
-          adjacent = true;
-        } else if (std::abs(room_a - room_b) == 1) {
-          int col_a = room_a % 16;
-          int col_b = room_b % 16;
-          if (std::abs(col_a - col_b) == 1) {
-            adjacent = true;
-          }
+    for (const auto& link : CollectConnections()) {
+      const ImVec2 from = RoomCenter(link.from_room_id);
+      const ImVec2 to = RoomCenter(link.to_room_id);
+      switch (link.type) {
+        case DungeonConnectedLinkType::Door:
+          draw_list->AddLine(
+              from, to, ImGui::ColorConvertFloat4ToU32(connection_color), 1.5f);
+          break;
+        case DungeonConnectedLinkType::Staircase:
+          DrawDashedLine(draw_list, from, to, IM_COL32(100, 149, 237, 200),
+                         1.5f, 6.0f);
+          break;
+        case DungeonConnectedLinkType::Holewarp: {
+          const ImU32 red = IM_COL32(220, 60, 60, 200);
+          draw_list->AddLine(from, to, red, 2.0f);
+          DrawArrowhead(draw_list, from, to, red, 6.0f);
+          break;
         }
-
-        if (adjacent) {
-          draw_list->AddLine(RoomCenter(room_a), RoomCenter(room_b),
-                             ImGui::ColorConvertFloat4ToU32(connection_color),
-                             1.5f);
-        }
-      }
-    }
-
-    // Draw stair connections (blue dashed lines — bidirectional)
-    for (const auto& conn : stair_connections_) {
-      if (room_positions_.count(conn.from_room) &&
-          room_positions_.count(conn.to_room)) {
-        ImVec2 from = RoomCenter(conn.from_room);
-        ImVec2 to = RoomCenter(conn.to_room);
-        DrawDashedLine(draw_list, from, to, IM_COL32(100, 149, 237, 200), 1.5f,
-                       6.0f);
-      }
-    }
-
-    // Draw holewarp connections (red lines with arrow — one-way falls)
-    for (const auto& conn : holewarp_connections_) {
-      if (room_positions_.count(conn.from_room) &&
-          room_positions_.count(conn.to_room)) {
-        ImVec2 from = RoomCenter(conn.from_room);
-        ImVec2 to = RoomCenter(conn.to_room);
-        ImU32 red = IM_COL32(220, 60, 60, 200);
-        draw_list->AddLine(from, to, red, 2.0f);
-        // Arrowhead at destination
-        DrawArrowhead(draw_list, from, to, red, 6.0f);
       }
     }
 
@@ -451,6 +427,45 @@ class DungeonMapPanel : public WindowContent {
   }
 
  private:
+  std::vector<DungeonConnectedRoomLink> CollectConnections() const {
+    std::vector<DungeonConnectedRoomLink> links;
+    if (!rooms_) {
+      return links;
+    }
+    const auto warp_tags =
+        hack_manifest_ ? zelda3::RoomCensusWarpTagsFromManifest(*hack_manifest_)
+                       : std::set<uint8_t>{};
+    for (int room_id : dungeon_room_ids_) {
+      const auto* room = rooms_->GetIfMaterialized(room_id);
+      if (!room || !room->IsLoaded()) {
+        continue;
+      }
+      const auto outgoing = CollectDungeonConnectedRoomLinks(
+          room_id, *room,
+          [this](int neighbor_id, zelda3::DoorDirection direction) {
+            const auto* neighbor = rooms_->GetIfMaterialized(neighbor_id);
+            if (!neighbor || !neighbor->IsLoaded()) {
+              return false;
+            }
+            return std::any_of(
+                neighbor->GetDoors().begin(), neighbor->GetDoors().end(),
+                [direction](const auto& door) {
+                  return door.direction == direction &&
+                         zelda3::IsRoomConnectionDoorType(door.type);
+                });
+          },
+          nullptr, warp_tags);
+      for (const auto& link : outgoing) {
+        if (room_positions_.contains(link.to_room_id) &&
+            (link.type != DungeonConnectedLinkType::Door ||
+             link.from_room_id < link.to_room_id)) {
+          links.push_back(link);
+        }
+      }
+    }
+    return links;
+  }
+
   friend class DungeonMapPanelTestPeer;
 
   /**

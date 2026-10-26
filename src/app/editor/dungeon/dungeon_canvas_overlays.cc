@@ -10,6 +10,7 @@
 #include "absl/strings/str_format.h"
 #include "app/editor/dungeon/dungeon_canvas_transform.h"
 #include "app/editor/dungeon/dungeon_coordinates.h"
+#include "app/editor/dungeon/inspectors/dungeon_entity_inspector.h"
 #include "app/gfx/resource/arena.h"
 #include "app/gfx/resource/bitmap_texture_queue.h"
 #include "app/gui/core/agent_theme.h"
@@ -237,16 +238,8 @@ void DungeonCanvasViewer::RenderPotItems(const gui::CanvasRuntime& rt,
     return;
   }
 
-  static const char* kPotItemNames[] = {
-      "Nothing",       "Green Rupee", "Rock",         "Bee",        "Health",
-      "Bomb",          "Heart",       "Blue Rupee",   "Key",        "Arrow",
-      "Bomb",          "Heart",       "Magic",        "Full Magic", "Cucco",
-      "Green Soldier", "Bush Stal",   "Blue Soldier", "Landmine",   "Heart",
-      "Fairy",         "Heart",       "Nothing",      "Hole",       "Warp",
-      "Staircase",     "Bombable",    "Switch"};
-  constexpr size_t kPotItemNameCount =
-      sizeof(kPotItemNames) / sizeof(kPotItemNames[0]);
-
+  const auto sprite_colors =
+      zelda3::BuildDungeonSpriteRenderPalette(room, game_data_);
   const auto& selected =
       object_interaction_.entity_coordinator().GetSelectedEntities();
   for (size_t index = 0; index < pot_items.size(); ++index) {
@@ -272,25 +265,66 @@ void DungeonCanvasViewer::RenderPotItems(const gui::CanvasRuntime& rt,
         pot_item_color.w = 0.75f;
       }
 
-      gui::DrawRect(rt, canvas_x, canvas_y, entity_size, entity_size,
-                    pot_item_color);
+      const ItemPreviewKey preview_key{room.graphics_revision(), pot_item.item};
+      auto* preview = room.graphics_revision() != 0
+                          ? item_preview_cache_.Get(preview_key)
+                          : nullptr;
+      CachedSpritePreview uncached_preview;
+      if (preview == nullptr) {
+        CachedSpritePreview rendered;
+        if (DungeonRenderingHelpers::BuildPotItemPreview(
+                pot_item.item, room, rendered.pixels, rendered.bounds)) {
+          if (room.graphics_revision() != 0) {
+            preview =
+                item_preview_cache_.Insert(preview_key, std::move(rendered));
+          } else {
+            uncached_preview = std::move(rendered);
+            preview = &uncached_preview;
+          }
+        }
+      }
+
+      bool drew_preview = false;
+      if (preview != nullptr && preview->bounds.w > 0 &&
+          preview->bounds.h > 0 && !preview->pixels.empty()) {
+        const SDL_Rect preview_bounds = preview->bounds;
+        const int offset_x = (entity_size > preview_bounds.w)
+                                 ? (entity_size - preview_bounds.w) / 2
+                                 : 0;
+        const int offset_y = (entity_size > preview_bounds.h)
+                                 ? (entity_size - preview_bounds.h) / 2
+                                 : 0;
+        drew_preview = DrawSpritePreviewPixels(
+            rt, preview->pixels, preview_bounds,
+            canvas_x + preview_bounds.x + offset_x,
+            canvas_y + preview_bounds.y + offset_y, sprite_colors);
+      }
+
+      const bool is_selected = std::any_of(
+          selected.begin(), selected.end(), [index](const auto& entity) {
+            return entity.type == EntityType::Item && entity.index == index;
+          });
+      const bool show_label = ShowEntityLabel(
+          rt, canvas_x, canvas_y, entity_size, entity_size, is_selected);
+
+      if (drew_preview && (show_label || is_selected)) {
+        gui::DrawOutline(rt, canvas_x, canvas_y, entity_size, entity_size,
+                         ImGui::GetColorU32(pot_item_color));
+      } else if (!drew_preview) {
+        gui::DrawRect(rt, canvas_x, canvas_y, entity_size, entity_size,
+                      pot_item_color);
+      }
 
       std::string item_name;
-      if (pot_item.item < kPotItemNameCount) {
-        item_name = kPotItemNames[pot_item.item];
+      if (pot_item.item < kDungeonPotItemCount) {
+        item_name = GetDungeonPotItemName(pot_item.item);
       } else {
         item_name = absl::StrFormat("Unk%02X", pot_item.item);
       }
 
       std::string item_text =
           absl::StrFormat("%02X %s", pot_item.item, item_name.c_str());
-      if (ShowEntityLabel(rt, canvas_x, canvas_y, entity_size, entity_size,
-                          std::any_of(selected.begin(), selected.end(),
-                                      [index](const auto& entity) {
-                                        return entity.type ==
-                                                   EntityType::Item &&
-                                               entity.index == index;
-                                      }))) {
+      if (show_label) {
         gui::DrawText(rt, item_text, canvas_x, canvas_y - 10);
       }
     }

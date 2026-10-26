@@ -34,6 +34,8 @@ struct FlagsMenu {
              &core::FeatureFlags::get().overworld.kSaveOverworldExits);
     Checkbox(tr("Save Overworld Items"),
              &core::FeatureFlags::get().overworld.kSaveOverworldItems);
+    Checkbox(tr("Save Overworld Sprites"),
+             &core::FeatureFlags::get().overworld.kSaveOverworldSprites);
     Checkbox(tr("Save Overworld Properties"),
              &core::FeatureFlags::get().overworld.kSaveOverworldProperties);
     Checkbox(tr("Enable Custom Overworld Features"),

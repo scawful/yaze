@@ -43,6 +43,7 @@ class RomLoadOptionsDialog {
     bool save_overworld_entrances = true;
     bool save_overworld_exits = true;
     bool save_overworld_items = true;
+    bool save_overworld_sprites = true;
     bool save_dungeon_maps = false;
     bool save_all_palettes = false;
     bool save_gfx_groups = false;

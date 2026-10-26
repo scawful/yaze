@@ -208,19 +208,30 @@ void DrawDungeonRoomPropertyFields(DungeonCanvasViewer& viewer,
           "Edit not applied. Hover the field for its supported range.");
     return;
   }
-  choice_group("##WorkbenchRoomTags", label_width({"Tag 1", "Tag 2"}), [&] {
-    const auto tag_name = [&](int value) {
-      return dungeon_project_labels::GetRoomTagLabel(viewer.project(), value);
-    };
-    for (int index = 0; index < 2; ++index) {
-      const int tag = index == 0 ? room.tag1() : room.tag2();
-      draw_choice(
-          index == 0 ? "Tag 1" : "Tag 2",
-          index == 0 ? "##RoomHeaderTag1" : "##RoomHeaderTag2", tag, 0x40,
-          index == 0 ? RoomMetadataField::kTag1 : RoomMetadataField::kTag2,
-          tag_name);
-    }
-  });
+
+  const bool show_all = (layout == RoomPropertyLayout::kFull);
+  const bool show_core =
+      show_all || (layout == RoomPropertyLayout::kCoreGraphics);
+  const bool show_mechanics =
+      show_all || (layout == RoomPropertyLayout::kMechanics);
+  const bool show_tags =
+      show_all || (layout == RoomPropertyLayout::kTags) || show_mechanics;
+
+  if (show_tags) {
+    choice_group("##WorkbenchRoomTags", label_width({"Tag 1", "Tag 2"}), [&] {
+      const auto tag_name = [&](int value) {
+        return dungeon_project_labels::GetRoomTagLabel(viewer.project(), value);
+      };
+      for (int index = 0; index < 2; ++index) {
+        const int tag = index == 0 ? room.tag1() : room.tag2();
+        draw_choice(
+            index == 0 ? "Tag 1" : "Tag 2",
+            index == 0 ? "##RoomHeaderTag1" : "##RoomHeaderTag2", tag, 0x40,
+            index == 0 ? RoomMetadataField::kTag1 : RoomMetadataField::kTag2,
+            tag_name);
+      }
+    });
+  }
 
   if (inspector_storage->GetBool(error_id)) {
     ImGui::TextWrapped(
@@ -229,48 +240,56 @@ void DrawDungeonRoomPropertyFields(DungeonCanvasViewer& viewer,
         "range.");
   }
 
-  ImGui::SeparatorText("Room properties");
-  if (ImGui::BeginTable(
-          "##WorkbenchRoomGraphics", 4,
-          ImGuiTableFlags_RowBg | ImGuiTableFlags_SizingStretchProp)) {
-    ImGui::TableSetupColumn("Property 1", ImGuiTableColumnFlags_WidthFixed,
-                            label_width({"Layout", "Floor 1", "Palette"}));
-    ImGui::TableSetupColumn("Value 1", ImGuiTableColumnFlags_WidthStretch,
-                            1.0f);
-    ImGui::TableSetupColumn("Property 2", ImGuiTableColumnFlags_WidthFixed,
-                            label_width({"Blockset", "Floor 2", "Spriteset"}));
-    ImGui::TableSetupColumn("Value 2", ImGuiTableColumnFlags_WidthStretch,
-                            1.0f);
-    draw_hex("Layout", "##RoomHeaderLayout", room.layout_id(), 0x07,
-             RoomMetadataField::kLayout);
-    draw_hex("Blockset", "##RoomHeaderBlockset", room.blockset(), 0x51,
-             RoomMetadataField::kBlockset);
-    draw_hex("Floor 1", "##RoomHeaderFloor1", room.floor1(), 0x0F,
-             RoomMetadataField::kFloor1);
-    draw_hex("Floor 2", "##RoomHeaderFloor2", room.floor2(), 0x0F,
-             RoomMetadataField::kFloor2);
-    draw_hex("Palette", "##RoomHeaderPalette", room.palette(), 0x47,
-             RoomMetadataField::kPalette);
-    draw_hex("Spriteset", "##RoomHeaderSpriteset", room.spriteset(),
-             zelda3::kMaxDungeonSpriteset, RoomMetadataField::kSpriteset);
-    ImGui::EndTable();
+  if (show_core) {
+    if (show_all) {
+      ImGui::SeparatorText("Room properties");
+    }
+    if (ImGui::BeginTable(
+            "##WorkbenchRoomGraphics", 4,
+            ImGuiTableFlags_RowBg | ImGuiTableFlags_SizingStretchProp)) {
+      ImGui::TableSetupColumn("Property 1", ImGuiTableColumnFlags_WidthFixed,
+                              label_width({"Layout", "Floor 1", "Palette"}));
+      ImGui::TableSetupColumn("Value 1", ImGuiTableColumnFlags_WidthStretch,
+                              1.0f);
+      ImGui::TableSetupColumn(
+          "Property 2", ImGuiTableColumnFlags_WidthFixed,
+          label_width({"Blockset", "Floor 2", "Spriteset"}));
+      ImGui::TableSetupColumn("Value 2", ImGuiTableColumnFlags_WidthStretch,
+                              1.0f);
+      draw_hex("Layout", "##RoomHeaderLayout", room.layout_id(), 0x07,
+               RoomMetadataField::kLayout);
+      draw_hex("Blockset", "##RoomHeaderBlockset", room.blockset(), 0x51,
+               RoomMetadataField::kBlockset);
+      draw_hex("Floor 1", "##RoomHeaderFloor1", room.floor1(), 0x0F,
+               RoomMetadataField::kFloor1);
+      draw_hex("Floor 2", "##RoomHeaderFloor2", room.floor2(), 0x0F,
+               RoomMetadataField::kFloor2);
+      draw_hex("Palette", "##RoomHeaderPalette", room.palette(), 0x47,
+               RoomMetadataField::kPalette);
+      draw_hex("Spriteset", "##RoomHeaderSpriteset", room.spriteset(),
+               zelda3::kMaxDungeonSpriteset, RoomMetadataField::kSpriteset);
+      ImGui::EndTable();
+    }
   }
-  if (begin_properties("##WorkbenchRoomMessage", label_width({"Message"}))) {
-    draw_hex("Message", "##RoomHeaderMessage", room.message_id(), 0x0FFF,
-             RoomMetadataField::kMessage);
-    ImGui::EndTable();
+
+  if (show_mechanics) {
+    if (begin_properties("##WorkbenchRoomMessage", label_width({"Message"}))) {
+      draw_hex("Message", "##RoomHeaderMessage", room.message_id(), 0x0FFF,
+               RoomMetadataField::kMessage);
+      ImGui::EndTable();
+    }
+    choice_group(
+        "##WorkbenchRoomHeader",
+        label_width({"Layer 2 type", "Layer 2 mode", "Collision"}), [&] {
+          draw_choice("Layer 2 type", "##RoomHeaderBg2",
+                      static_cast<int>(room.bg2()), 9, RoomMetadataField::kBg2,
+                      GetBg2ModeName);
+          draw_choice("Layer 2 mode", "##RoomHeaderEffect", room.effect(), 8,
+                      RoomMetadataField::kEffect, GetLayer2ModeName);
+          draw_choice("Collision", "##RoomHeaderCollision", room.collision(), 5,
+                      RoomMetadataField::kCollision, GetCollisionName);
+        });
   }
-  choice_group(
-      "##WorkbenchRoomHeader",
-      label_width({"Layer 2 type", "Layer 2 mode", "Collision"}), [&] {
-        draw_choice("Layer 2 type", "##RoomHeaderBg2",
-                    static_cast<int>(room.bg2()), 9, RoomMetadataField::kBg2,
-                    GetBg2ModeName);
-        draw_choice("Layer 2 mode", "##RoomHeaderEffect", room.effect(), 8,
-                    RoomMetadataField::kEffect, GetLayer2ModeName);
-        draw_choice("Collision", "##RoomHeaderCollision", room.collision(), 5,
-                    RoomMetadataField::kCollision, GetCollisionName);
-      });
   ImGui::EndDisabled();
 }
 

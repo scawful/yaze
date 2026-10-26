@@ -364,6 +364,25 @@ TEST(OverworldAllocationTest, MarkerPresentReadsTheRelocatedTables) {
   EXPECT_EQ(Summary(report, "special_tail").free_with_map_data, 32);
 }
 
+TEST(OverworldAllocationTest, CustomCollisionMarkerCannotBypassApplyGuard) {
+  for (uint8_t marker : {0x04, 0x05, 0x06, 0xFE}) {
+    auto bytes = test::BuildOverworldAllocationTestRom(/*zs_v3=*/true);
+    bytes[0x140145] = marker;
+    bytes[0x1423FF] = 0xEA;  // May be a collision value, not a tail marker.
+    Rom rom = LoadRom(bytes);
+    const auto before = rom.vector();
+    const auto check = CheckTailMapExpansion(rom);
+    EXPECT_FALSE(check.marker_present);
+    EXPECT_FALSE(check.rom_compatible);
+    EXPECT_EQ(check.verdict, TailCheckVerdict::kUnsafe);
+    EXPECT_TRUE(FindingIds(check, true).count("custom_layout_conflict"));
+    EXPECT_EQ(TailMapExpansionApplyGuard(rom).code(),
+              absl::StatusCode::kFailedPrecondition);
+    EXPECT_EQ(rom.vector(), before);
+    EXPECT_FALSE(BuildReport(rom).tail_marker_present);
+  }
+}
+
 TEST(OverworldAllocationTest, ApplyGuardRefusesAnUnsafeRom) {
   Rom rom = LoadRom(test::BuildOverworldAllocationTestRom(/*zs_v3=*/true));
   const absl::Status status = TailMapExpansionApplyGuard(rom);

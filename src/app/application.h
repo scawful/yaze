@@ -47,6 +47,7 @@ struct AppConfig {
   bool headless = false;      // Run without GUI (uses NullWindowBackend)
   bool service_mode = false;  // Run with GUI backend but hidden window
   bool enable_api = false;
+  bool editor_control = false;  // Semantic local editor commands, opt-in.
   int api_port = 8080;
   bool enable_test_harness = false;
   std::string test_harness_bind_address = "0.0.0.0";

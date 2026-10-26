@@ -42,11 +42,6 @@
 
 namespace yaze {
 
-Application& Application::Instance() {
-  static Application instance;
-  return instance;
-}
-
 void Application::Initialize(const AppConfig& config) {
   config_ = config;
   LOG_INFO("App", "Initializing Application instance...");

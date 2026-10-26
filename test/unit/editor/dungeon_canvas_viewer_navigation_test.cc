@@ -69,6 +69,10 @@ struct IssueReportPopupSnapshot {
 
 class DungeonMapPanelTestPeer {
  public:
+  static auto Connections(const DungeonMapPanel& panel) {
+    return panel.CollectConnections();
+  }
+
   static size_t RoomCount(const DungeonMapPanel& panel) {
     return panel.dungeon_room_ids_.size();
   }
@@ -3217,6 +3221,7 @@ TEST(DungeonCanvasViewerConnectedGraphTest,
       MakeDoor(zelda3::DoorDirection::East, zelda3::DoorType::CaveExit));
   room.SetStaircaseRoom(0, 0x28);
   room.SetHolewarp(0x6A);
+  ASSERT_TRUE(room.AddObject(zelda3::RoomObject(0xFCA, 8, 8, 0, 0)).ok());
   ASSERT_TRUE(room.AddObject(zelda3::RoomObject(0x138, 4, 5, 0, 0)).ok());
 
   const auto links = CollectDungeonConnectedRoomLinks(
@@ -3238,6 +3243,107 @@ TEST(DungeonCanvasViewerConnectedGraphTest,
   EXPECT_EQ(links[2].from_room_id, 0x44);
   EXPECT_EQ(links[2].to_room_id, 0x6A);
   EXPECT_EQ(links[2].type, DungeonConnectedLinkType::Holewarp);
+}
+
+TEST(DungeonCanvasViewerConnectedGraphTest, UnusedHolewarpHeaderIsNotALink) {
+  zelda3::Room room;
+  ClearRoomLinks(&room);
+  room.SetHolewarp(0x6A);
+  EXPECT_TRUE(CollectDungeonConnectedRoomLinks(0x44, room, nullptr).empty());
+  EXPECT_EQ(room.holewarp(), 0x6A);  // Viewing never repairs header data.
+}
+
+TEST(DungeonCanvasViewerConnectedGraphTest, PlacedWarpUsesZeroOnItsSourcePage) {
+  for (int room_id : {0x44, 0x119}) {
+    zelda3::Room room;
+    ClearRoomLinks(&room);
+    ASSERT_TRUE(room.AddObject(zelda3::RoomObject(0xFCA, 8, 8, 0, 0)).ok());
+    const auto links = CollectDungeonConnectedRoomLinks(room_id, room, nullptr);
+    ASSERT_EQ(links.size(), 1u);
+    EXPECT_EQ(links[0].type, DungeonConnectedLinkType::Holewarp);
+    EXPECT_EQ(links[0].to_room_id, room_id & 0x100);
+  }
+}
+
+TEST(DungeonCanvasViewerConnectedGraphTest, DamagingPitsDoNotUseHolewarp) {
+  zelda3::Room room;
+  zelda3::GameData game_data;
+  // Default Room owns ID 0; use it for the membership table too.
+  game_data.pit_damage_table.SetRoomIds({0});
+  room.SetGameData(&game_data);
+  ClearRoomLinks(&room);
+  room.SetHolewarp(0x6A);
+  ASSERT_TRUE(room.AddObject(zelda3::RoomObject(0x0A4, 8, 8, 0, 0)).ok());
+  EXPECT_TRUE(CollectDungeonConnectedRoomLinks(0, room, nullptr).empty());
+  // Warp tiles still use the destination even in a pit-damage room.
+  ASSERT_TRUE(room.AddObject(zelda3::RoomObject(0xFCA, 12, 12, 0, 0)).ok());
+  const auto links = CollectDungeonConnectedRoomLinks(0, room, nullptr);
+  ASSERT_EQ(links.size(), 1u);
+  EXPECT_EQ(links[0].to_room_id, 0x6A);
+}
+
+TEST(DungeonCanvasViewerConnectedGraphTest, ScannedLayoutPitUsesHeader) {
+  zelda3::Room room;
+  ClearRoomLinks(&room);
+  room.SetHolewarp(0x6A);
+  auto facts = zelda3::CollectLoadedRoomLinkFacts(room, nullptr);
+  facts.has_pits = true;  // Layout/drawn tile scan supplies this fact.
+  const auto links =
+      CollectDungeonConnectedRoomLinks(0x44, room, nullptr, &facts);
+  ASSERT_EQ(links.size(), 1u);
+  EXPECT_EQ(links[0].to_room_id, 0x6A);
+}
+
+TEST(DungeonCanvasViewerConnectedGraphTest,
+     ProjectWarpTagUsesQuadrantsInsteadOfStaleHolewarp) {
+  zelda3::Room room;
+  ClearRoomLinks(&room);
+  room.SetTag1(static_cast<zelda3::TagKey>(0x2A));
+  room.SetHolewarp(0x6A);
+  room.SetStaircaseRoom(1, 0x28);
+  ASSERT_TRUE(room.AddObject(zelda3::RoomObject(0xFCA, 8, 8, 0, 0)).ok());
+  const auto diagnostics = CollectDungeonConnectedRoomLinkDiagnostics(
+      0x44, room, nullptr, nullptr, {0x2A});
+  ASSERT_EQ(diagnostics.links.size(), 4u);
+  EXPECT_TRUE(diagnostics.staircase_issues.empty());
+  for (int slot = 0; slot < 4; ++slot) {
+    EXPECT_EQ(diagnostics.links[slot].slot_index, slot);
+    EXPECT_EQ(diagnostics.links[slot].to_room_id, slot == 1 ? 0x28 : 0);
+  }
+  EXPECT_EQ(FormatDungeonConnectedLinkDescription(diagnostics.links[1]),
+            "Warp tag quadrant 2 -> [028]");
+}
+
+TEST(DungeonMapPanelTest, ConnectionsIgnoreAdjacencyAndStaleRegistryEdges) {
+  int current_room_id = 0x10;
+  ImVector<int> active_rooms;
+  DungeonRoomStore rooms;
+  for (int id : {0x10, 0x11}) {
+    ClearRoomLinks(&rooms[id]);
+    rooms[id].SetLoaded(true);
+  }
+  DungeonMapPanel panel(&current_room_id, &active_rooms, nullptr, &rooms);
+  core::DungeonEntry dungeon;
+  for (int id : {0x10, 0x11}) {
+    core::DungeonRoom room{};
+    room.id = id;
+    dungeon.rooms.push_back(room);
+  }
+  core::DungeonConnection stale{};
+  stale.from_room = 0x10;
+  stale.to_room = 0x11;
+  dungeon.stairs.push_back(stale);
+  dungeon.holewarps.push_back(stale);
+  panel.LoadFromDungeonEntry(dungeon);
+  EXPECT_TRUE(DungeonMapPanelTestPeer::Connections(panel).empty());
+  rooms[0x10].SetHolewarp(0x11);
+  EXPECT_TRUE(DungeonMapPanelTestPeer::Connections(panel).empty());
+  ASSERT_TRUE(
+      rooms[0x10].AddObject(zelda3::RoomObject(0xFCA, 8, 8, 0, 0)).ok());
+  const auto links = DungeonMapPanelTestPeer::Connections(panel);
+  ASSERT_EQ(links.size(), 1u);
+  EXPECT_EQ(links[0].from_room_id, 0x10);
+  EXPECT_EQ(links[0].to_room_id, 0x11);
 }
 
 TEST(DungeonCanvasViewerConnectedGraphTest,
@@ -3358,6 +3464,7 @@ TEST(DungeonCanvasViewerConnectedGraphTest,
   room.SetStaircaseRoom(0, 0x28);
   ASSERT_TRUE(room.AddObject(zelda3::RoomObject(0x138, 4, 5, 0, 0)).ok());
   room.SetHolewarp(0x6A);
+  ASSERT_TRUE(room.AddObject(zelda3::RoomObject(0xFCA, 8, 8, 0, 0)).ok());
 
   const auto diagnostics = CollectDungeonConnectedRoomLinkDiagnostics(
       0x44, room, [](int, zelda3::DoorDirection) { return true; });

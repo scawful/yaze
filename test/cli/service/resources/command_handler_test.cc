@@ -3,16 +3,23 @@
 #include <chrono>
 #include <filesystem>
 #include <fstream>
+#include <iterator>
 #include <string>
 #include <vector>
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
+#include "absl/flags/declare.h"
+#include "absl/flags/flag.h"
+#include "cli/handlers/tools/test_helpers_commands.h"
+#include "cli/service/rom/rom_sandbox_manager.h"
 #include "core/features.h"
 #include "core/project.h"
 #include "zelda3/dungeon/custom_object.h"
 #include "zelda3/dungeon/draw_routines/draw_routine_registry.h"
+
+ABSL_DECLARE_FLAG(bool, sandbox);
 
 namespace yaze {
 namespace cli {
@@ -118,6 +125,126 @@ class ProjectAwareCommandHandler : public CommandHandler {
   int routine_for_track_object_ = -1;
 };
 
+class ReadOnlyProbeCommandHandler : public CommandHandler {
+ public:
+  explicit ReadOnlyProbeCommandHandler(Rom* source_probe = nullptr)
+      : source_probe_(source_probe) {}
+  std::string GetName() const override { return "read-only-probe"; }
+  std::string GetUsage() const override { return "read-only-probe"; }
+  bool saw_read_only() const { return saw_read_only_; }
+  bool source_writable() const { return source_writable_; }
+  const std::string& active_filename() const { return active_filename_; }
+
+ protected:
+  absl::Status ValidateArgs(const ArgumentParser&) override {
+    return absl::OkStatus();
+  }
+  absl::Status Execute(Rom* rom, const ArgumentParser& parser,
+                       OutputFormatter& formatter) override {
+    saw_read_only_ = absl::IsPermissionDenied(rom->CheckLayoutWritable());
+    source_writable_ =
+        source_probe_ && source_probe_->CheckLayoutWritable().ok();
+    active_filename_ = rom->filename();
+    const auto byte = rom->ReadByte(0);
+    if (!byte.ok()) {
+      return byte.status();
+    }
+    formatter.AddField("first_byte", static_cast<int>(*byte));
+    if (parser.HasFlag("dry-run")) {
+      Rom simulated = *rom;
+      return simulated.WriteByte(0, 0x77);
+    }
+    const auto action = parser.GetString("action").value_or("inspect");
+    if (action == "write") {
+      return rom->WriteByte(0, 0x77);
+    }
+    if (action == "save") {
+      return rom->SaveToFile(
+          {.filename = parser.GetString("out").value_or("")});
+    }
+    if (action == "dirty") {
+      rom->set_dirty(true);
+    }
+    return absl::OkStatus();
+  }
+
+ private:
+  Rom* source_probe_ = nullptr;
+  bool saw_read_only_ = false;
+  bool source_writable_ = false;
+  std::string active_filename_;
+};
+
+class ReadOnlyCommandHandlerTest : public ::testing::Test {
+ protected:
+  void SetUp() override {
+    previous_sandbox_flag_ = absl::GetFlag(FLAGS_sandbox);
+    absl::SetFlag(&FLAGS_sandbox, false);
+    directory_ =
+        std::filesystem::temp_directory_path() /
+        ("yaze_command_read_only_" +
+         std::to_string(
+             std::chrono::steady_clock::now().time_since_epoch().count()));
+    std::filesystem::create_directories(directory_);
+    source_path_ = directory_ / "synthetic.sfc";
+    project_path_ = directory_ / "ReadOnly.yaze";
+    {
+      std::ofstream file(source_path_, std::ios::binary);
+      file.write(reinterpret_cast<const char*>(bytes_.data()),
+                 static_cast<std::streamsize>(bytes_.size()));
+      ASSERT_TRUE(file.good());
+    }
+    {
+      std::ofstream project(project_path_);
+      project << "[project]\nname=ReadOnly\n\n[rom]\nwrite_policy=read_only\n";
+      ASSERT_TRUE(project.good());
+    }
+    ASSERT_TRUE(rom_.LoadFromFile(source_path_.string()).ok());
+  }
+
+  void TearDown() override {
+    if (sandbox_root_changed_) {
+      auto& manager = RomSandboxManager::Instance();
+      for (const auto& sandbox : manager.ListSandboxes()) {
+        if (sandbox.directory.parent_path() == directory_ / "sandboxes") {
+          manager.RemoveSandbox(sandbox.id).IgnoreError();
+        }
+      }
+      manager.SetRootDirectory(previous_sandbox_root_);
+    }
+    absl::SetFlag(&FLAGS_sandbox, previous_sandbox_flag_);
+    std::error_code ec;
+    std::filesystem::remove_all(directory_, ec);
+  }
+
+  std::vector<std::string> Args(const std::string& action = "inspect") const {
+    return {"--project-context=" + project_path_.string(), "--format=json",
+            "--action=" + action};
+  }
+
+  std::vector<uint8_t> ReadBytes(const std::filesystem::path& path) const {
+    std::ifstream file(path, std::ios::binary);
+    return std::vector<uint8_t>(std::istreambuf_iterator<char>(file),
+                                std::istreambuf_iterator<char>());
+  }
+
+  void UseTemporarySandboxRoot() {
+    auto& manager = RomSandboxManager::Instance();
+    previous_sandbox_root_ = manager.RootDirectory();
+    manager.SetRootDirectory(directory_ / "sandboxes");
+    sandbox_root_changed_ = true;
+  }
+
+  Rom rom_;
+  std::filesystem::path directory_;
+  std::filesystem::path source_path_;
+  std::filesystem::path project_path_;
+  const std::vector<uint8_t> bytes_ = std::vector<uint8_t>(0x8000, 0x11);
+  std::filesystem::path previous_sandbox_root_;
+  bool previous_sandbox_flag_ = false;
+  bool sandbox_root_changed_ = false;
+};
+
 TEST(CommandHandlerTest, RunWithoutRomUsesFormatter) {
   NoRomCommandHandler handler;
   std::string output;
@@ -221,6 +348,93 @@ TEST(CommandHandlerTest, RunWithProjectContextAppliesEditorParityFlags) {
   EXPECT_FALSE(core::FeatureFlags::get().kEnableCustomObjects);
   EXPECT_EQ(zelda3::DrawRoutineRegistry::Get().GetRoutineIdForObject(0x31),
             zelda3::DrawRoutineIds::kNothing);
+}
+
+TEST_F(ReadOnlyCommandHandlerTest, InspectionAndCopiedDryRunRemainUsable) {
+  ReadOnlyProbeCommandHandler handler;
+  std::string output;
+  ASSERT_TRUE(handler.Run(Args(), &rom_, &output).ok());
+  EXPECT_TRUE(handler.saw_read_only());
+  EXPECT_THAT(output, ::testing::HasSubstr("first_byte"));
+  EXPECT_TRUE(rom_.CheckLayoutWritable().ok());
+
+  auto args = Args("write");
+  args.push_back("--dry-run");
+  ASSERT_TRUE(handler.Run(args, &rom_, &output).ok());
+  EXPECT_TRUE(handler.saw_read_only());
+  EXPECT_EQ(rom_.vector(), bytes_);
+  EXPECT_FALSE(rom_.dirty());
+  EXPECT_TRUE(rom_.CheckLayoutWritable().ok());
+}
+
+TEST_F(ReadOnlyCommandHandlerTest,
+       MutationAndPhysicalSaveAreDeniedAndRestoreState) {
+  ReadOnlyProbeCommandHandler handler;
+  std::string output;
+  EXPECT_TRUE(
+      absl::IsPermissionDenied(handler.Run(Args("write"), &rom_, &output)));
+  EXPECT_EQ(rom_.vector(), bytes_);
+  EXPECT_TRUE(rom_.CheckLayoutWritable().ok());
+
+  const auto target = directory_ / "must-not-exist.sfc";
+  auto args = Args("save");
+  args.push_back("--out=" + target.string());
+  EXPECT_TRUE(absl::IsPermissionDenied(handler.Run(args, &rom_, &output)));
+  EXPECT_FALSE(std::filesystem::exists(target));
+  EXPECT_FALSE(std::filesystem::exists(target.string() + ".tmp"));
+  EXPECT_EQ(ReadBytes(source_path_), bytes_);
+  EXPECT_TRUE(rom_.WriteByte(0, 0x22).ok());
+}
+
+TEST_F(ReadOnlyCommandHandlerTest, ToolsPatchV3RejectsReadOnlyProject) {
+  handlers::ToolsPatchV3CommandHandler handler;
+  const auto target = directory_ / "must-not-be-patched.sfc";
+  std::string output;
+  const auto status = handler.Run(
+      {"--rom=" + source_path_.string(), "--output=" + target.string(),
+       "--project-context=" + project_path_.string(), "--format=json"},
+      nullptr, &output);
+
+  EXPECT_TRUE(absl::IsPermissionDenied(status));
+  EXPECT_FALSE(std::filesystem::exists(target));
+  EXPECT_EQ(ReadBytes(source_path_), bytes_);
+}
+
+TEST_F(ReadOnlyCommandHandlerTest,
+       SandboxScopesOnlyActiveCopyAndBlocksAutoSave) {
+  UseTemporarySandboxRoot();
+  ReadOnlyProbeCommandHandler handler(&rom_);
+  std::string output;
+  auto args = Args();
+  args.push_back("--sandbox");
+  ASSERT_TRUE(handler.Run(args, &rom_, &output).ok());
+  EXPECT_TRUE(handler.saw_read_only());
+  EXPECT_TRUE(handler.source_writable());
+  EXPECT_NE(handler.active_filename(), source_path_.string());
+  EXPECT_EQ(ReadBytes(handler.active_filename()), bytes_);
+
+  args = Args("dirty");
+  args.push_back("--sandbox");
+  EXPECT_TRUE(absl::IsPermissionDenied(handler.Run(args, &rom_, &output)));
+  EXPECT_TRUE(handler.saw_read_only());
+  EXPECT_EQ(ReadBytes(handler.active_filename()), bytes_);
+  EXPECT_EQ(ReadBytes(source_path_), bytes_);
+  EXPECT_FALSE(rom_.dirty());
+  EXPECT_TRUE(rom_.CheckLayoutWritable().ok());
+}
+
+TEST_F(ReadOnlyCommandHandlerTest, NestedScopesRetainExternalProtection) {
+  ReadOnlyProbeCommandHandler handler;
+  std::string output;
+  {
+    ScopedRomReadOnly outer(rom_);
+    ASSERT_TRUE(handler.Run(Args(), &rom_, &output).ok());
+    EXPECT_TRUE(absl::IsPermissionDenied(rom_.CheckLayoutWritable()));
+    EXPECT_TRUE(
+        absl::IsPermissionDenied(handler.Run(Args("write"), &rom_, &output)));
+    EXPECT_TRUE(absl::IsPermissionDenied(rom_.WriteByte(0, 0x33)));
+  }
+  EXPECT_TRUE(rom_.WriteByte(0, 0x44).ok());
 }
 
 }  // namespace

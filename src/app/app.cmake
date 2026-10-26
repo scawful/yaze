@@ -248,7 +248,12 @@ endif()
 # Test Runner Executable
 # ==============================================================================
 if(YAZE_BUILD_TESTS)
-  add_executable(yaze_test app/testing/main_test.cc)
+  # This runner has no application event loop, like the other non-GUI tests.
+  # Keep its no-op screenshot provider out of runtime executables.
+  add_executable(yaze_test
+    app/testing/main_test.cc
+    ${CMAKE_SOURCE_DIR}/test/app_instance_stub.cc
+  )
   if(UNIX AND NOT APPLE)
     # Keep transitive shared libs (notably gRPC) when static test-support
     # dependencies pull additional symbols later in the link line.
@@ -263,6 +268,7 @@ if(YAZE_BUILD_TESTS)
     absl::flags
     absl::flags_parse
   )
+  yaze_link_app_runtime_rescan(yaze_test)
   target_include_directories(yaze_test PUBLIC
     ${CMAKE_SOURCE_DIR}/src
     ${CMAKE_SOURCE_DIR}/inc

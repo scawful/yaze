@@ -245,6 +245,7 @@ TailMapExpansion check (assets/patches/Overworld/TailMapExpansion.asm)
     $02:F80F  PC 0x01780F  opcode 0xBF  now $02:FB2D  vanilla $02:FB2D  patch $28:A640  vanilla
     $02:F815  PC 0x017815  opcode 0xBF  now $02:FB2E  vanilla $02:FB2E  patch $28:A641  vanilla
   Blockers:
+    [rom] custom_layout_conflict: Unmarked layout is incompatible with the old tail-map table layout; the $EA marker cannot identify expansion in this format
     [rom] zscustom_v3_required: ZSCustomOverworld v3 is required; this ROM reports ASM version 0xFF at $28:8145
     [patch] blank_stream_invalid: blank map stream at $30:8000 is 188 bytes with no $FF terminator; decoding reads past it and stops at $30:80BC after 94 decoded bytes (ran past the end of the data before $FF)
     [patch] blank_stream_invalid: blank map stream at $30:9000 is 4 bytes with no $FF terminator; decoding reads past it and stops at $30:9004 after 2 decoded bytes (ran past the end of the data before $FF)

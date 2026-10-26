@@ -336,6 +336,60 @@ TEST(WaterFillZoneTest, LoadLegacyWaterGateZonesParsesSym) {
   EXPECT_EQ(zones[1].fill_offsets, (std::vector<uint16_t>{42}));
 }
 
+TEST(WaterFillZoneTest, LoadLegacyWaterGateZonesIgnoresEmptyRecords) {
+  auto rom = MakeDummyRom(0x200000);
+  TempFile sym;
+  ASSERT_FALSE(sym.path.empty());
+  {
+    std::ofstream file(sym.path);
+    ASSERT_TRUE(file.good());
+    file << "25:8000 Oracle_WaterGate_Room25_Data\n"
+            "25:8100 Oracle_WaterGate_Room27_Data\n";
+  }
+  const auto bytes_before = rom->vector();
+  const bool dirty_before = rom->dirty();
+
+  const auto zones = LoadLegacyWaterGateZones(rom.get(), sym.path);
+
+  ASSERT_TRUE(zones.ok()) << zones.status();
+  EXPECT_TRUE(zones->empty());
+  EXPECT_EQ(rom->vector(), bytes_before);
+  EXPECT_EQ(rom->dirty(), dirty_before);
+}
+
+TEST(WaterFillZoneTest,
+     LoadLegacyWaterGateZonesKeepsPopulatedPeerOfEmptyRecord) {
+  for (const bool empty_room25 : {false, true}) {
+    SCOPED_TRACE(empty_room25);
+    auto rom = MakeDummyRom(0x200000);
+    const int populated_pc = SnesToPc(empty_room25 ? 0x258100 : 0x258000);
+    // Offset zero is a real fill tile, distinct from a zero tile count.
+    ASSERT_TRUE(rom->WriteByte(populated_pc, 1).ok());
+    ASSERT_TRUE(rom->WriteByte(populated_pc + 1, 0).ok());
+    ASSERT_TRUE(rom->WriteByte(populated_pc + 2, 0).ok());
+    TempFile sym;
+    ASSERT_FALSE(sym.path.empty());
+    {
+      std::ofstream file(sym.path);
+      ASSERT_TRUE(file.good());
+      file << "25:8000 Oracle_WaterGate_Room25_Data\n"
+              "25:8100 Oracle_WaterGate_Room27_Data\n";
+    }
+    const auto bytes_before = rom->vector();
+    const bool dirty_before = rom->dirty();
+
+    const auto zones = LoadLegacyWaterGateZones(rom.get(), sym.path);
+
+    ASSERT_TRUE(zones.ok()) << zones.status();
+    ASSERT_EQ(zones->size(), 1u);
+    EXPECT_EQ(zones->front().room_id, empty_room25 ? 0x27 : 0x25);
+    EXPECT_EQ(zones->front().sram_bit_mask, empty_room25 ? 0x01 : 0x02);
+    EXPECT_EQ(zones->front().fill_offsets, (std::vector<uint16_t>{0}));
+    EXPECT_EQ(rom->vector(), bytes_before);
+    EXPECT_EQ(rom->dirty(), dirty_before);
+  }
+}
+
 TEST(WaterFillZoneTest, NormalizeMasksAssignsAutoAndFixesDuplicates) {
   std::vector<WaterFillZoneEntry> zones;
   {

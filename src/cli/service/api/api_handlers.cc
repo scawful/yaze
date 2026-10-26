@@ -473,6 +473,43 @@ void HandleRenderDungeonMetadata(
 // Command execution endpoints (Phase 3)
 // ---------------------------------------------------------------------------
 
+void HandleEditorControl(
+    const httplib::Request& req, httplib::Response& res,
+    const std::function<absl::StatusOr<std::string>(const std::string&)>&
+        action) {
+  // Local processes opt in explicitly. Reject browser origins even if another
+  // API route grants CORS; a web page must never switch a user's project.
+  if ((req.remote_addr != "127.0.0.1" && req.remote_addr != "::1") ||
+      req.has_header("Origin") ||
+      req.get_header_value("X-Yaze-Control") != "1") {
+    res.status = 403;
+    res.set_content(
+        R"({"protocol":"yaze-editor-control/v1","status":"error","error":"Local editor client required"})",
+        "application/json");
+    return;
+  }
+  if (!action || req.body.size() > 16384) {
+    res.status = action ? 413 : 503;
+    res.set_content(
+        R"({"protocol":"yaze-editor-control/v1","status":"error","error":"Editor control unavailable or request too large"})",
+        "application/json");
+    return;
+  }
+  auto result = action(req.body);
+  if (!result.ok()) {
+    res.status = absl::IsDeadlineExceeded(result.status()) ? 504 : 503;
+    res.set_content(json({{"protocol", "yaze-editor-control/v1"},
+                          {"status", "error"},
+                          {"error", std::string(result.status().message())}})
+                        .dump(),
+                    "application/json");
+    return;
+  }
+  const auto response = json::parse(*result, nullptr, false);
+  res.status = response.is_object() ? response.value("http_status", 200) : 500;
+  res.set_content(*result, "application/json");
+}
+
 void HandleCommandExecute(const httplib::Request& req, httplib::Response& res,
                           yaze::Rom* rom) {
   ApplyCorsHeaders(res);

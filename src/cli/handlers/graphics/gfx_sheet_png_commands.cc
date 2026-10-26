@@ -371,6 +371,26 @@ absl::Status RequireUsGfxTables(const Rom& rom) {
   return absl::OkStatus();
 }
 
+// The write policy (graphics free space, reserved sheets, ASM-owned bytes)
+// comes only from --project-context. --project and --manifest look right but
+// were silently ignored, so a grown sheet was refused with "no graphics free
+// space is registered" even though the manifest registers some.
+absl::Status RejectUnreadProjectFlags(const resources::ArgumentParser& parser) {
+  for (const char* flag : {"project", "manifest"}) {
+    if (parser.GetString(flag).has_value()) {
+      return absl::InvalidArgumentError(absl::StrFormat(
+          "--%s is not read here; pass --project-context <path.yaze> so the "
+          "project's hack manifest (graphics_sheet_regions) sets where a "
+          "grown sheet may move",
+          flag));
+    }
+  }
+  return absl::OkStatus();
+}
+
+constexpr char kNoProjectHint[] =
+    "no --project-context given, so no hack manifest free space was used";
+
 }  // namespace
 
 absl::Status GfxExportCommandHandler::ValidateArgs(
@@ -422,6 +442,7 @@ absl::Status GfxExportCommandHandler::Execute(
 absl::Status GfxImportCommandHandler::ValidateArgs(
     const resources::ArgumentParser& parser) {
   RETURN_IF_ERROR(parser.RequireArgs({"sheet", "png"}));
+  RETURN_IF_ERROR(RejectUnreadProjectFlags(parser));
   const bool dry_run = parser.HasFlag("dry-run");
   const bool write = parser.HasFlag("write");
   if (dry_run == write) {
@@ -437,6 +458,12 @@ absl::Status GfxImportCommandHandler::ValidateArgs(
 absl::Status GfxImportCommandHandler::Execute(
     Rom* rom, const resources::ArgumentParser& parser,
     resources::OutputFormatter& formatter) {
+  if (parser.HasFlag("write") && project_ != nullptr &&
+      project_->rom_metadata.write_policy ==
+          project::RomWritePolicy::kReadOnly) {
+    return absl::PermissionDeniedError(
+        "Graphics import is disabled by the project's read-only policy");
+  }
   RETURN_IF_ERROR(RequireUsGfxTables(*rom));
   ASSIGN_OR_RETURN(const uint16_t sheet, ParseSheet(parser));
   ASSIGN_OR_RETURN(const int block, ParseIntArg(parser, "block", 0));
@@ -474,6 +501,9 @@ absl::Status GfxImportCommandHandler::Execute(
   if (!written.ok()) {
     // The preview still stands; say why the write would be refused.
     formatter.AddField("write_status", std::string(written.status().message()));
+    if (project_ == nullptr) {
+      formatter.AddField("hint", kNoProjectHint);
+    }
     if (parser.HasFlag("dry-run")) {
       formatter.AddField("mode", "dry-run");
       return absl::OkStatus();
@@ -613,6 +643,7 @@ absl::Status GfxRoomExportCommandHandler::Execute(
 absl::Status GfxRoomImportCommandHandler::ValidateArgs(
     const resources::ArgumentParser& parser) {
   RETURN_IF_ERROR(parser.RequireArgs({"room", "png"}));
+  RETURN_IF_ERROR(RejectUnreadProjectFlags(parser));
   const bool dry_run = parser.HasFlag("dry-run");
   const bool write = parser.HasFlag("write");
   if (dry_run == write) {
@@ -628,6 +659,12 @@ absl::Status GfxRoomImportCommandHandler::ValidateArgs(
 absl::Status GfxRoomImportCommandHandler::Execute(
     Rom* rom, const resources::ArgumentParser& parser,
     resources::OutputFormatter& formatter) {
+  if (parser.HasFlag("write") && project_ != nullptr &&
+      project_->rom_metadata.write_policy ==
+          project::RomWritePolicy::kReadOnly) {
+    return absl::PermissionDeniedError(
+        "Graphics import is disabled by the project's read-only policy");
+  }
   RETURN_IF_ERROR(RequireUsGfxTables(*rom));
   ASSIGN_OR_RETURN(auto context, LoadRoomContext(*rom, parser));
   const std::string png_path = *parser.GetString("png");
@@ -686,6 +723,9 @@ absl::Status GfxRoomImportCommandHandler::Execute(
   formatter.AddRawJsonField("sheets", sheets.dump());
   formatter.AddField("rooms_affected", HexIds(affected_rooms));
   formatter.AddField("write_status", refusal.empty() ? "ok" : refusal);
+  if (!refusal.empty() && project_ == nullptr) {
+    formatter.AddField("hint", kNoProjectHint);
+  }
   const auto rom_diff =
       rom::ComputeDiffRanges(rom->vector(), simulated.vector());
   formatter.AddField("rom_bytes_changed",

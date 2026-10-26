@@ -16,6 +16,8 @@ set(
   # because it depends on yaze_editor and yaze_gui, which would create a cycle:
   # yaze_agent -> yaze_app_core_lib -> yaze_editor -> yaze_agent
   app/activity_file.cc
+  app/application_instance.cc
+  app/controller_screenshot.cc
   app/platform/window.cc
   app/platform/window_backend_factory.cc
   app/platform/null_window_backend.cc
@@ -273,5 +275,41 @@ if(EMSCRIPTEN)
   )
   message(STATUS "  - WASM web resources copied (loading_indicator, error_handler, drop_zone)")
 endif()
+
+# Resolve the existing editor/test/GUI archive back-references for standalone
+# executables. Keep the real application entry/queue implementations in app_core;
+# test stubs, when present, resolve those symbols before archive extraction.
+function(yaze_link_app_runtime_rescan target_name)
+  if(UNIX AND NOT APPLE)
+    set(runtime_archives
+      yaze_test_support
+      yaze_editor
+      yaze_editor_system_session
+      yaze_editor_system_panels
+      yaze_editor_system_shortcuts
+      yaze_app_core_lib
+      yaze_emulator
+      yaze_emulator_ui
+      yaze_agent
+      yaze_gui_app
+      yaze_gui_widgets
+      yaze_canvas
+      yaze_gui_automation
+      yaze_gui_core
+      yaze_core_lib
+      yaze_zelda3
+      yaze_rom
+    )
+    foreach(optional_archive IN ITEMS
+        yaze_cli_core yaze_cli_editor_shared yaze_grpc_support yaze_net)
+      if(TARGET ${optional_archive})
+        list(APPEND runtime_archives ${optional_archive})
+      endif()
+    endforeach()
+    target_link_options(${target_name} PRIVATE -Wl,--no-as-needed)
+    target_link_libraries(${target_name} PRIVATE
+      -Wl,--start-group ${runtime_archives} -Wl,--end-group)
+  endif()
+endfunction()
 
 message(STATUS "✓ yaze_app_core_lib library configured (application layer)")

@@ -100,6 +100,28 @@ bool BeginChoice(const char* label, const char* id, const char* preview) {
   return open;
 }
 
+template <typename PlaceFn, typename DeleteFn>
+bool DrawEntityActionRow(PlaceFn&& on_place_another, DeleteFn&& on_delete) {
+  bool deleted = false;
+  if (ImGui::BeginTable(
+          "##EntityActions", 2,
+          ImGuiTableFlags_SizingStretchSame | ImGuiTableFlags_NoPadOuterX)) {
+    ImGui::TableNextColumn();
+    if (ImGui::Button("Place another", ImVec2(-1, 0))) {
+      on_place_another();
+    }
+    gui::AutoRegisterLastItem("button", "EntityPlaceAnother");
+    ImGui::TableNextColumn();
+    if (ImGui::Button("Delete", ImVec2(-1, 0))) {
+      on_delete();
+      deleted = true;
+    }
+    gui::AutoRegisterLastItem("button", "EntityDelete");
+    ImGui::EndTable();
+  }
+  return deleted;
+}
+
 void DrawDoor(DungeonCanvasViewer& viewer, size_t index,
               const std::function<void(int, size_t)>& jump_to_reciprocal) {
   const auto& doors = (*viewer.rooms())[viewer.current_room_id()].GetDoors();
@@ -110,6 +132,7 @@ void DrawDoor(DungeonCanvasViewer& viewer, size_t index,
   ImGui::TextWrapped("Door #%zu · %s", index,
                      std::string(zelda3::GetDoorTypeName(door.type)).c_str());
   bool changed = false;
+  bool deleted = false;
   ImGui::BeginDisabled(viewer.header_read_only() ||
                        !viewer.IsObjectInteractionEnabled());
   if (BeginProperties()) {
@@ -161,10 +184,47 @@ void DrawDoor(DungeonCanvasViewer& viewer, size_t index,
     }
     ImGui::EndTable();
   }
+  deleted = DrawEntityActionRow(
+      [&]() {
+        viewer.object_interaction().SetDoorPlacementMode(true, door.type);
+      },
+      [&]() {
+        (void)viewer.object_interaction()
+            .entity_coordinator()
+            .DeleteSelectedEntity();
+      });
   ImGui::EndDisabled();
+  if (deleted) {
+    return;
+  }
   if (changed) {
     viewer.object_interaction().entity_coordinator().door_handler().UpdateDoor(
         index, door.type, door.direction, door.position);
+  }
+
+  ImGui::Spacing();
+  const bool normal_door =
+      (*viewer.rooms())[viewer.current_room_id()].GetDoors()[index].type ==
+      zelda3::DoorType::NormalDoor;
+  ImGui::BeginDisabled(viewer.header_read_only() ||
+                       !viewer.IsObjectInteractionEnabled() || !normal_door);
+  if (ImGui::Button("Complete stone surround", ImVec2(-1, 0))) {
+    viewer.object_interaction().entity_coordinator().CompleteDoorTrim(index);
+  }
+  gui::AutoRegisterLastItem("button", "CompleteDoorTrim");
+  if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
+    ImGui::SetTooltip(
+        "%s", normal_door
+                  ? "Add missing stone trim on the selected side and select it "
+                    "with the door.\n"
+                    "Existing matching trim is reused. One Undo step."
+                  : "Stone surrounds are available for ordinary doors.");
+  }
+  ImGui::EndDisabled();
+  const auto& trim_status =
+      viewer.object_interaction().entity_coordinator().selection_edit_status();
+  if (!trim_status.ok()) {
+    ImGui::TextWrapped("%s", std::string(trim_status.message()).c_str());
   }
 
   // Re-read accepted room data inside the shared connection controls; the
@@ -246,6 +306,16 @@ void DrawSprite(DungeonCanvasViewer& viewer, size_t index,
   }
   ImGui::TextWrapped(
       "Position uses 16-pixel tiles. Drag in the canvas to move.");
+  (void)DrawEntityActionRow(
+      [&]() {
+        viewer.object_interaction().SetSpritePlacementMode(
+            true, static_cast<uint8_t>(id));
+      },
+      [&]() {
+        (void)viewer.object_interaction()
+            .entity_coordinator()
+            .DeleteSelectedEntity();
+      });
 }
 
 void DrawItem(DungeonCanvasViewer& viewer, size_t index,
@@ -257,8 +327,7 @@ void DrawItem(DungeonCanvasViewer& viewer, size_t index,
   const auto item = items[index];
   auto type = item.item;
   int x = item.GetPixelX(), y = item.GetPixelY();
-  const char* name =
-      type < kPotItemNames.size() ? kPotItemNames[type] : "Unknown";
+  const char* name = GetDungeonPotItemName(type);
   ImGui::TextWrapped("Pot item #%zu · %02X %s", index, type, name);
   DrawDungeonPotItemSaveNotice();
   bool changed = false;
@@ -295,9 +364,20 @@ void DrawItem(DungeonCanvasViewer& viewer, size_t index,
   ImGui::TextWrapped(
       "Position snaps to an 8-pixel grid; layer and control flags are "
       "preserved.");
+  (void)DrawEntityActionRow(
+      [&]() { viewer.object_interaction().SetItemPlacementMode(true, type); },
+      [&]() {
+        (void)viewer.object_interaction()
+            .entity_coordinator()
+            .DeleteSelectedEntity();
+      });
 }
 
 }  // namespace
+
+const char* GetDungeonPotItemName(uint8_t item_id) {
+  return item_id < kPotItemNames.size() ? kPotItemNames[item_id] : "Unknown";
+}
 
 void DrawDungeonPotItemSaveNotice() {
   if (core::FeatureFlags::get().dungeon.kSavePotItems) {

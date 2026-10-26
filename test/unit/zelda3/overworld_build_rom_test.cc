@@ -60,6 +60,66 @@ int WorldOf(int map_index) {
   return 0;
 }
 
+TEST(OverworldRomBuildTest,
+     RectangularAreaQuadrantsSurviveSizeChangeSaveReopen) {
+  const char* path = std::getenv("YAZE_TEST_ROM_OOS");
+  if (!path || !std::filesystem::exists(path)) {
+    GTEST_SKIP() << "Set YAZE_TEST_ROM_OOS to a ZSCustomOverworld v3 ROM";
+  }
+  Rom rom;
+  ASSERT_TRUE(LoadOverworldTestRom(path, rom));
+  ASSERT_TRUE(DetectOverworldRomProfile(rom).supports_area_enum);
+  GameData game_data;
+  ASSERT_TRUE(LoadGameData(rom, game_data).ok());
+  Overworld overworld(&rom, &game_data);
+  ASSERT_TRUE(overworld.Load(&rom).ok());
+  // Detach the future tall child from any authored multi-screen area first.
+  ASSERT_TRUE(
+      overworld.ConfigureMultiAreaMap(0x38, AreaSizeEnum::SmallArea).ok());
+
+  const auto directory =
+      std::filesystem::temp_directory_path() /
+      ("yaze_rectangular_area_" +
+       std::to_string(Clock::now().time_since_epoch().count()));
+  ASSERT_TRUE(std::filesystem::create_directory(directory));
+  struct Cleanup {
+    std::filesystem::path path;
+    ~Cleanup() {
+      std::error_code error;
+      std::filesystem::remove_all(path, error);
+    }
+  } cleanup{directory};
+
+  for (auto size : {AreaSizeEnum::WideArea, AreaSizeEnum::TallArea,
+                    AreaSizeEnum::SmallArea}) {
+    SCOPED_TRACE(static_cast<int>(size));
+    ASSERT_TRUE(overworld.ConfigureMultiAreaMap(0x30, size).ok());
+    const int child = size == AreaSizeEnum::WideArea ? 0x31 : 0x38;
+    const int quadrant = size == AreaSizeEnum::WideArea   ? 1
+                         : size == AreaSizeEnum::TallArea ? 2
+                                                          : 0;
+    EXPECT_EQ(overworld.overworld_map(child)->large_index(), quadrant);
+    ASSERT_TRUE(overworld.SaveLargeMaps().ok());
+    const auto saved =
+        directory / (std::to_string(static_cast<int>(size)) + ".sfc");
+    ASSERT_TRUE(rom.SaveToFile({.filename = saved.string()}).ok());
+    Rom reopened;
+    ASSERT_TRUE(reopened.LoadFromFile(saved.string()).ok());
+    Overworld reloaded(&reopened, &game_data);
+    ASSERT_TRUE(reloaded.Load(&reopened).ok());
+    EXPECT_EQ(reloaded.overworld_map(0x30)->area_size(), size);
+    EXPECT_EQ(reloaded.overworld_map(0x30)->large_index(), 0);
+    EXPECT_EQ(reloaded.overworld_map(child)->large_index(), quadrant);
+    EXPECT_EQ(reloaded.overworld_map(child)->area_size(), size);
+    EXPECT_EQ(reloaded.overworld_map(child)->parent(),
+              size == AreaSizeEnum::SmallArea ? child : 0x30);
+    // A second save after loading must retain every expanded transition byte.
+    const auto before = reopened.vector();
+    ASSERT_TRUE(reloaded.SaveLargeMaps().ok());
+    EXPECT_EQ(reopened.vector(), before);
+  }
+}
+
 // Times each build phase for every map and the Overworld::EnsureMapBuilt path
 // used by the editor and render service. Prints a table; asserts only that
 // every map builds.

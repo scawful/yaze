@@ -144,6 +144,9 @@ void DungeonObjectInteraction::UpdateCollisionPainting(
   if (rooms_ && current_room_id_ >= 0 && current_room_id_ < 296) {
     auto& room = (*rooms_)[current_room_id_];
     auto& state = mode_manager_.GetModeState();
+    const bool erase =
+        state.paint_collision_erase ||
+        (ImGui::GetCurrentContext() != nullptr && ImGui::GetIO().KeyAlt);
 
     // Only set for valid interior tiles (0-63)
     if (room_x >= 0 && room_x < 64 && room_y >= 0 && room_y < 64) {
@@ -174,6 +177,15 @@ void DungeonObjectInteraction::UpdateCollisionPainting(
                 lx, ly, state.paint_brush_radius,
                 /*min_x=*/0, /*min_y=*/0, /*max_x=*/63, /*max_y=*/63,
                 [&](int bx, int by) {
+                  if (erase) {
+                    if (!room.HasCollisionOverride(bx, by)) {
+                      return;
+                    }
+                    ensure_mutation();
+                    room.ClearCollisionTile(bx, by);
+                    changed = true;
+                    return;
+                  }
                   if (room.HasCollisionOverride(bx, by) &&
                       room.GetCollisionTile(bx, by) ==
                           state.paint_collision_value) {

@@ -41,6 +41,29 @@ std::string ResourceTypeToString(ResourceType type);
  */
 ResourceType StringToResourceType(const std::string& type_str);
 
+// Project label section for explicit user room renames. Opening an Oracle
+// project re-injects registry defaults into "room", so renames live here and
+// take precedence over registry and "room" labels.
+inline constexpr char kRoomOverrideLabelType[] = "room_override";
+
+/**
+ * @brief A label plus the name it replaces.
+ *
+ * from_project is true when project metadata (labels, registry, manifest)
+ * renamed the resource, e.g. Oracle's sprite $52 is "Collectible" while the
+ * vanilla slot is "ZoraKing".
+ */
+struct ResolvedLabel {
+  // Project name when set, else default_name.
+  std::string name;
+  // Hyrule Magic name (sprites, when preferred), else vanilla.
+  std::string default_name;
+  bool from_project = false;
+
+  // "Collectible (vanilla: ZoraKing)" when renamed, else just the name.
+  std::string Display() const;
+};
+
 /**
  * @class ResourceLabelProvider
  * @brief Unified interface for accessing resource labels with project overrides
@@ -86,6 +109,16 @@ class ResourceLabelProvider {
    * 3. Vanilla/default label
    */
   std::string GetLabel(ResourceType type, int id) const;
+
+  /**
+   * @brief Get the label without project overrides (steps 4-5 above)
+   */
+  std::string GetDefaultLabel(ResourceType type, int id) const;
+
+  /**
+   * @brief Get the label and the default name it replaces
+   */
+  ResolvedLabel ResolveLabel(ResourceType type, int id) const;
 
   /**
    * @brief Get a label using string type key (for compatibility)
@@ -188,6 +221,23 @@ class ResourceLabelProvider {
    */
   const ProjectLabels* GetAllProjectLabels() const { return project_labels_; }
 
+  /**
+   * @brief Provider wiring, saved and restored around a scoped project
+   */
+  struct State {
+    ProjectLabels* project_labels = nullptr;
+    const core::HackManifest* hack_manifest = nullptr;
+    bool prefer_hmagic = true;
+  };
+  State SnapshotState() const {
+    return {project_labels_, hack_manifest_, prefer_hmagic_};
+  }
+  void RestoreState(const State& state) {
+    project_labels_ = state.project_labels;
+    hack_manifest_ = state.hack_manifest;
+    prefer_hmagic_ = state.prefer_hmagic;
+  }
+
  private:
   // Project-specific label overrides (owned by YazeProject)
   ProjectLabels* project_labels_ = nullptr;
@@ -220,6 +270,13 @@ ResourceLabelProvider& GetResourceLabels();
  */
 inline std::string GetSpriteLabel(int id) {
   return GetResourceLabels().GetLabel(ResourceType::kSprite, id);
+}
+
+/**
+ * @brief Convenience function to resolve a sprite label with its default name
+ */
+inline ResolvedLabel ResolveSpriteLabel(int id) {
+  return GetResourceLabels().ResolveLabel(ResourceType::kSprite, id);
 }
 
 /**

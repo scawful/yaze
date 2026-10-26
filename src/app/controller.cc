@@ -321,7 +321,8 @@ void Controller::OnInput() {
   // screenshots) keeps full rate. Queued UI-thread tasks also skip the wait;
   // tasks posted during the wait end it through WakeEventLoop().
   {
-    bool busy = editor_manager_.WantsContinuousFrames();
+    bool busy = editor_manager_.WantsContinuousFrames() ||
+                editor_control_queue_.pending();
     {
       std::lock_guard<std::mutex> lock(screenshot_mutex_);
       busy = busy || !screenshot_requests_.empty();
@@ -419,6 +420,11 @@ void Controller::OnInput() {
   }
 }
 
+absl::StatusOr<std::string> Controller::RequestEditorControl(
+    const std::string& json) {
+  return editor_control_queue_.Submit(json);
+}
+
 absl::Status Controller::OnLoad() {
   if (!window_backend_) {
     return absl::InternalError("Window backend not initialized");
@@ -442,6 +448,9 @@ absl::Status Controller::OnLoad() {
   window_backend_->NewImGuiFrame();
   ImGui::NewFrame();
   InputDebugLogFrame();
+  editor_control_queue_.ProcessOne([this](const std::string& request) {
+    return editor_manager_.ExecuteEditorControl(request);
+  });
 
   // Advance any in-progress theme color transitions
   gui::ThemeManager::Get().UpdateTransition();
@@ -673,18 +682,6 @@ absl::Status Controller::LoadRomForTesting(const std::string& rom_path) {
   auto status = editor_manager_.OpenRomOrProject(rom_path);
   editor_manager_.SetAssetLoadMode(previous_mode);
   return status;
-}
-
-void Controller::RequestScreenshot(const ScreenshotRequest& request) {
-  {
-    std::lock_guard<std::mutex> lock(screenshot_mutex_);
-    screenshot_requests_.push(request);
-  }
-  // Callers are usually gRPC or HTTP threads. Without a wake, an idle loop
-  // would hold the capture for up to the idle wait (100-250 ms). An empty
-  // task reuses the queue's waker, which is guarded against the backend
-  // being shut down; calling window_backend_ here directly would not be.
-  util::UiThreadQueue::Get().Post([]() {});
 }
 
 void Controller::ProcessScreenshotRequests() const {

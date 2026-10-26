@@ -1,8 +1,11 @@
 #ifndef YAZE_APP_GUI_WIDGETS_TILE_SELECTOR_WIDGET_H
 #define YAZE_APP_GUI_WIDGETS_TILE_SELECTOR_WIDGET_H
 
+#include <functional>
 #include <string>
 #include <string_view>
+#include <utility>
+#include <vector>
 
 #include "app/gfx/core/bitmap.h"
 #include "app/gui/canvas/canvas.h"
@@ -51,8 +54,12 @@ class TileSelectorWidget {
 
   void AttachCanvas(Canvas* canvas);
   void SetTileCount(int total_tiles);
+  /// Snaps down so each tile cell is a whole number of screen pixels.
   void SetDisplayScale(float display_scale);
   float display_scale() const { return config_.display_scale; }
+  /// On-screen size of one tile; the atlas, grid, highlight and hit testing
+  /// all use this value.
+  float TileCellSize() const;
   void SetTilesPerRow(int tiles_per_row);
   int tiles_per_row() const { return config_.tiles_per_row; }
   void SetSelectedTile(int tile_id);
@@ -98,12 +105,33 @@ class TileSelectorWidget {
   void SetRangeFilter(int min_id, int max_id);
   void ClearRangeFilter();
 
+  /// Grid cell i shows tile order[i]; tiles not listed are hidden. Invalid and
+  /// duplicate IDs are dropped. Without an order, cells follow tile ID order.
+  void SetDisplayOrder(std::vector<int> order);
+  void ClearDisplayOrder();
+  bool has_display_order() const { return display_order_active_; }
+  const std::vector<int>& display_order() const { return display_order_; }
+  /// Tile shown in a grid cell, or -1 past the last cell.
+  int TileAtCell(int cell) const;
+  /// Grid cell showing a tile, or -1 when the display order hides it.
+  int CellOfTile(int tile_id) const;
+  /// Extra hover tooltip line for a tile (empty string adds nothing).
+  void SetHoverDetailProvider(std::function<std::string(int)> provider) {
+    hover_detail_ = std::move(provider);
+  }
+
  private:
   bool DrawFilterControls();
-  RenderResult HandleInteraction(int tile_display_size);
-  int ResolveTileAtCursor(int tile_display_size) const;
-  void DrawHighlight(int tile_display_size) const;
-  void DrawTileIdLabels(int tile_display_size) const;
+  int CellCount() const;
+  RenderResult HandleInteraction(float tile_display_size);
+  int ResolveTileAtCursor(float tile_display_size) const;
+  ImVec2 GridScreenOrigin() const;
+  // Visible grid rows [first, last) inside the current clip rect.
+  std::pair<int, int> VisibleRows(float tile_display_size) const;
+  void DrawOrderedTiles(gfx::Bitmap& atlas, float tile_display_size) const;
+  void DrawGridLines(float tile_display_size) const;
+  void DrawHighlight(float tile_display_size) const;
+  void DrawTileIdLabels(float tile_display_size) const;
   bool IsValidTileId(int tile_id) const;
   bool IsInFilterRange(int tile_id) const;
 
@@ -134,6 +162,12 @@ class TileSelectorWidget {
   bool filter_out_of_range_ = false;
   // Status from the most recent jump-to-ID entry attempt.
   JumpToTileResult last_jump_result_ = JumpToTileResult::kSuccess;
+
+  bool display_order_active_ = false;
+  std::vector<int> display_order_;
+  // Inverse of display_order_, sized total_tiles_; -1 marks hidden tiles.
+  std::vector<int> cell_of_tile_;
+  std::function<std::string(int)> hover_detail_;
 };
 
 }  // namespace yaze::gui

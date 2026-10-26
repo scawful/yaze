@@ -1,0 +1,38 @@
+{
+  "schema_version": 1,
+  "name": "synthetic-stone-inlay",
+  "palette": ["#00000000", "#313139FF", "#6B737BFF", "#BDC6CEFF", "#C68442FF"],
+  "canvas": {"width": 32, "height": 16, "background": 0},
+  "budget": {"max_tiles": 8, "max_unique_tiles": 8},
+  "assets": {
+    "corner": {
+      "pixels": [
+        [0, 0, 1, 1, 1, 1, 1, 1],
+        [0, 1, 3, 3, 3, 3, 3, 3],
+        [1, 3, 2, 2, 2, 2, 2, 2],
+        [1, 3, 2, 1, 1, 1, 2, 2],
+        [1, 3, 2, 1, 4, 1, 2, 2],
+        [1, 3, 2, 1, 1, 1, 2, 2],
+        [1, 3, 2, 2, 2, 2, 2, 2],
+        [1, 3, 2, 2, 2, 2, 2, 2]
+      ]
+    },
+    "stone-family": {
+      "assemble": {
+        "width": 16, "height": 16, "background": 0,
+        "stamps": [
+          {"asset": "corner", "at": [0, 0]},
+          {"asset": "corner", "at": [8, 0], "flip_x": true},
+          {"asset": "corner", "at": [0, 8], "flip_y": true},
+          {"asset": "corner", "at": [8, 8], "flip_x": true, "flip_y": true}
+        ]
+      }
+    },
+    "copper-family": {"from": "stone-family", "remap": {"3": 4, "4": 3}}
+  },
+  "stamps": [
+    {"asset": "stone-family", "at": [0, 0]},
+    {"asset": "copper-family", "at": [16, 0]}
+  ],
+  "exports": {"bpp": 3, "preview_scale": 8, "snes_palette": true}
+}

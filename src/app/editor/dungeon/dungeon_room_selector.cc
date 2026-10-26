@@ -299,7 +299,8 @@ void DungeonRoomSelector::RebuildEntranceFilterCache() {
     } else {
       int entrance_id = i - kNumSpawnPoints;
       if (entrance_id < kNumEntrances) {
-        display_name = zelda3::GetEntranceLabel(entrance_id);
+        display_name = dungeon_project_labels::GetEntranceLabel(
+            project_, entrance_id, entrances_ ? (*entrances_)[i].room_ : -1);
       } else {
         display_name = absl::StrFormat("Unknown Entrance %d", i);
       }
@@ -432,13 +433,10 @@ void DungeonRoomSelector::DrawEntranceSelectorInternal(bool show_properties) {
   ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
   entrance_filter_.DrawWithHint("Filter", tr("entrance name or room ID"));
 
-  // Rebuild cache if filter changed
+  // Target-room ownership can change while the filter text stays the same.
   std::string current_filter(entrance_filter_.InputBuf);
-  if (current_filter != last_entrance_filter_ ||
-      filtered_entrance_indices_.empty()) {
-    last_entrance_filter_ = current_filter;
-    RebuildEntranceFilterCache();
-  }
+  last_entrance_filter_ = current_filter;
+  RebuildEntranceFilterCache();
 
   constexpr int kNumSpawnPoints = zelda3::kNumDungeonSpawnPoints;
 
@@ -464,7 +462,8 @@ void DungeonRoomSelector::DrawEntranceSelectorInternal(bool show_properties) {
           display_name = absl::StrFormat("Spawn Point %d", i);
         } else {
           int entrance_id = i - kNumSpawnPoints;
-          display_name = zelda3::GetEntranceLabel(entrance_id);
+          display_name = dungeon_project_labels::GetEntranceLabel(
+              project_, entrance_id, (*entrances_)[i].room_);
         }
 
         int room_id = 0;
@@ -478,7 +477,9 @@ void DungeonRoomSelector::DrawEntranceSelectorInternal(bool show_properties) {
         ImGui::TableNextColumn();
 
         char label[32];
-        snprintf(label, sizeof(label), "%02X", i);
+        snprintf(label, sizeof(label), "%c%02X",
+                 i < kNumSpawnPoints ? 'S' : 'E',
+                 i < kNumSpawnPoints ? i : i - kNumSpawnPoints);
         if (ImGui::Selectable(label, current_entrance_id_ == i,
                               ImGuiSelectableFlags_SpanAllColumns)) {
           current_entrance_id_ = i;

@@ -1945,13 +1945,14 @@ void Room::LoadObjects() {
   // Parse objects with enhanced error handling
   ParseObjectsFromLocation(objects_location + 2);
 
-  // Load custom collision map if present
-  if (auto res = LoadCustomCollisionMap(rom_, room_id_); res.ok()) {
-    custom_collision_ = std::move(res.value());
+  // Load custom collision map if present, unless unsaved edits already exist
+  // (e.g. from a multi-room collision import before the room was first opened).
+  if (!custom_collision_dirty_) {
+    if (auto res = LoadCustomCollisionMap(rom_, room_id_); res.ok()) {
+      custom_collision_ = std::move(res.value());
+    }
+    custom_collision_dirty_ = false;
   }
-
-  // Freshly loaded from ROM; not dirty until the editor mutates it.
-  custom_collision_dirty_ = false;
   objects_loaded_ = true;
   MarkGraphicsDirty();
   MarkLayoutDirty();

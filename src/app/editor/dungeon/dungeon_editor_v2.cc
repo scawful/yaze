@@ -26,7 +26,6 @@
 // Project headers
 #include "app/editor/agent/agent_ui_theme.h"
 #include "app/editor/dungeon/dungeon_canvas_viewer.h"
-#include "app/editor/dungeon/dungeon_project_labels.h"
 #include "app/editor/dungeon/dungeon_room_store.h"
 #include "app/editor/dungeon/inspectors/door_editor_content.h"
 #include "app/editor/dungeon/inspectors/palette_editor_content.h"
@@ -116,6 +115,9 @@ WindowPresentationPolicy WorkbenchTool(std::string capability = std::string()) {
 
 void DungeonEditorV2::SetDependencies(const EditorDependencies& deps) {
   Editor::SetDependencies(deps);
+  room_selector_.SetProject(deps.project);
+  if (entrance_navigator_panel_)
+    entrance_navigator_panel_->SetProject(deps.project);
   // Dependency rebinding is the project-reload boundary even when the project
   // object is reused in place with a newly loaded manifest.
   InvalidateDungeonRenderContextCensus();
@@ -972,9 +974,11 @@ void DungeonEditorV2::Initialize() {
         dependencies_.user_settings->Save().IgnoreError();
       }
     });
-    workbench_panel_->SetPitDamageTableProvider([this]() {
-      return game_data_ ? &game_data_->pit_damage_table : nullptr;
-    });
+    workbench_panel_->SetPitDamageTableProvider(
+        [this]() {
+          return game_data_ ? &game_data_->pit_damage_table : nullptr;
+        },
+        [this]() { InvalidateConnectedRoomGraphs(); });
     window_manager->RegisterWindowContent(std::move(workbench));
   }
 
@@ -982,6 +986,7 @@ void DungeonEditorV2::Initialize() {
     auto entrances_panel = std::make_unique<DungeonEntrancesPanel>(
         &entrances_, &spawn_points_, &current_entrance_id_,
         [this](int entrance_id) { OnEntranceSelected(entrance_id); });
+    entrances_panel->SetProject(dependencies_.project);
     entrances_panel->SetGraphicsPreview(
         [this]() {
           return ResolveDungeonRenderContextForRoom(current_room_id_);
@@ -997,6 +1002,10 @@ void DungeonEditorV2::Initialize() {
                                           entrance_navigator_panel_);
     workbench_panel_->SetRoomRenderContextCallback(
         [this](int room_id) { ApplyEntranceRenderContext(room_id); });
+    workbench_panel_->SetRoomLabelEditCallback(
+        [this](int room_id, std::optional<std::string> label) {
+          return ApplyRoomLabelEdit(room_id, std::move(label));
+        });
   }
   if (room_matrix_panel_) {
     room_matrix_panel_->SetRenderContextCallback(
@@ -2296,6 +2305,22 @@ void DungeonEditorV2::FocusRoom(int room_id) {
   if (it != room_cards_.end()) {
     it->second->Focus();
   }
+}
+
+std::string DungeonEditorV2::proposal_review_path() const {
+  return workbench_panel_ ? workbench_panel_->loaded_proposal_path() : "";
+}
+
+absl::Status DungeonEditorV2::LoadProposalForReview(const std::string& path) {
+  if (!workbench_panel_) {
+    return absl::FailedPreconditionError("Dungeon Workbench is not loaded");
+  }
+  if (!workbench_panel_->LoadProposalOverlay(path)) {
+    return absl::InvalidArgumentError(workbench_panel_->proposal_error());
+  }
+  OpenWindow("dungeon.workbench");
+  workbench_panel_->RequestProposalPreview();
+  return absl::OkStatus();
 }
 
 void DungeonEditorV2::SelectObject(int obj_id) {

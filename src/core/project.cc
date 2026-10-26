@@ -11,6 +11,7 @@
 #include <filesystem>
 #include <fstream>
 #include <iomanip>
+#include <iterator>
 #include <sstream>
 
 #include "absl/strings/match.h"
@@ -19,6 +20,8 @@
 #include "absl/strings/str_split.h"
 #include "absl/strings/strip.h"
 #include "app/gui/core/icons.h"
+#include "core/lyra_terrain_document.h"
+#include "core/source_artifact_publisher.h"
 #include "imgui/imgui.h"
 #include "util/file_util.h"
 #include "util/json.h"
@@ -427,6 +430,8 @@ std::string RomWritePolicyToString(RomWritePolicy policy) {
       return "allow";
     case RomWritePolicy::kBlock:
       return "block";
+    case RomWritePolicy::kReadOnly:
+      return "read_only";
     case RomWritePolicy::kWarn:
     default:
       return "warn";
@@ -440,6 +445,9 @@ RomWritePolicy ParseRomWritePolicy(absl::string_view value) {
   }
   if (lower == "block") {
     return RomWritePolicy::kBlock;
+  }
+  if (lower == "read_only") {
+    return RomWritePolicy::kReadOnly;
   }
   return RomWritePolicy::kWarn;
 }
@@ -741,6 +749,126 @@ absl::Status YazeProject::SaveAs(const std::string& new_path) {
   }
 
   return status;
+}
+
+bool YazeProject::IsOracleCompatible() const {
+  return hack_manifest.loaded() &&
+         (hack_manifest.oracle_progression_state().has_value() ||
+          ToLowerCopy(hack_manifest.hack_name()).find("oracle") !=
+              std::string::npos);
+}
+
+absl::Status YazeProject::SaveAsWithLyraTerrain(
+    const std::string& new_path, const core::LyraTerrainDocument& terrain,
+    const std::optional<std::string>& expected_source_bytes) {
+#ifdef __EMSCRIPTEN__
+  return absl::UnimplementedError(
+      "Saving an independent Lyra project copy requires filesystem storage");
+#else
+  namespace fs = std::filesystem;
+  if (!project_opened() || lyra_terrain_file.empty() || new_path.empty()) {
+    return absl::FailedPreconditionError(
+        "An open project and Lyra terrain are required for Save As");
+  }
+  auto read =
+      [](const fs::path& path) -> absl::StatusOr<std::optional<std::string>> {
+    std::error_code ec;
+    if (!fs::exists(path, ec) && !ec) {
+      return std::nullopt;
+    }
+    if (ec || !fs::is_regular_file(path, ec) || ec ||
+        fs::file_size(path, ec) > 16 * 1024 * 1024 || ec) {
+      return absl::FailedPreconditionError(
+          "Project Save As source or destination is not a readable file");
+    }
+    std::ifstream stream(path, std::ios::binary);
+    if (!stream) {
+      return absl::PermissionDeniedError("Cannot read project Save As file");
+    }
+    std::string bytes{std::istreambuf_iterator<char>(stream), {}};
+    if (stream.bad()) {
+      return absl::DataLossError(
+          "Could not finish reading project Save As file");
+    }
+    return std::optional<std::string>(std::move(bytes));
+  };
+
+  auto candidate = *this;
+  // Preserve the original meaning of every relative asset before relocating.
+  candidate.NormalizePathsToAbsolute();
+  std::error_code ec;
+  const fs::path source_project = fs::absolute(candidate.filepath, ec);
+  if (ec) {
+    return absl::InvalidArgumentError("Cannot resolve the source project path");
+  }
+  const fs::path source_terrain = candidate.lyra_terrain_file;
+  const fs::path destination = fs::absolute(new_path, ec).lexically_normal();
+  if (ec) {
+    return absl::InvalidArgumentError(
+        "Cannot resolve the project Save As path");
+  }
+  fs::path destination_terrain = destination;
+  destination_terrain.replace_extension(".lyra-terrain.json");
+  candidate.filepath = destination.string();
+  candidate.lyra_terrain_file = destination_terrain.string();
+
+  const std::vector<fs::path> targets = {destination, destination_terrain};
+  std::vector<fs::path> read_only_targets = {source_project, source_terrain};
+  if (!candidate.rom_filename.empty()) {
+    read_only_targets.push_back(candidate.rom_filename);
+  }
+  ASSIGN_OR_RETURN(
+      auto lock,
+      core::AcquireSourceArtifactPublicationLock(
+          targets, {"Lyra project", "Lyra project files"}, read_only_targets));
+  ASSIGN_OR_RETURN(auto original_project, read(source_project));
+  if (!original_project) {
+    return absl::NotFoundError("The original project file is missing");
+  }
+  ASSIGN_OR_RETURN(auto original_terrain, read(source_terrain));
+  if (original_terrain != expected_source_bytes) {
+    return absl::FailedPreconditionError(
+        "Lyra terrain changed on disk; refusing stale Save As");
+  }
+  ASSIGN_OR_RETURN(auto previous_destination, read(destination));
+  ASSIGN_OR_RETURN(auto previous_terrain, read(destination_terrain));
+  if (previous_terrain) {
+    return absl::AlreadyExistsError(
+        "The destination project already owns Lyra terrain; choose another "
+        "project name");
+  }
+  auto now =
+      std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
+  std::stringstream timestamp;
+  timestamp << std::put_time(std::localtime(&now), "%Y-%m-%d %H:%M:%S");
+  candidate.metadata.last_modified = timestamp.str();
+  if (candidate.music_persistence.storage_key.empty()) {
+    candidate.music_persistence.storage_key = candidate.MakeStorageKey("music");
+  }
+  ASSIGN_OR_RETURN(auto descriptor, candidate.SerializeToString());
+  const std::string terrain_bytes = terrain.Serialize();
+  RETURN_IF_ERROR(core::PublishSourceArtifacts(
+      *lock,
+      {{source_project, original_project, *original_project},
+       {destination, previous_destination, descriptor},
+       {destination_terrain, std::nullopt, terrain_bytes}},
+      core::ComputeSourceArtifactSha256(*original_project),
+      [&]() -> absl::Status {
+        ASSIGN_OR_RETURN(auto source_after, read(source_terrain));
+        if (source_after != expected_source_bytes) {
+          return absl::FailedPreconditionError(
+              "Lyra terrain changed during Save As");
+        }
+        ASSIGN_OR_RETURN(auto saved, read(destination_terrain));
+        if (!saved) {
+          return absl::DataLossError("Saved Lyra terrain is missing");
+        }
+        return core::LyraTerrainDocument::Parse(*saved, terrain.profile())
+            .status();
+      }));
+  *this = std::move(candidate);
+  return absl::OkStatus();
+#endif
 }
 
 std::string YazeProject::MakeStorageKey(absl::string_view suffix) const {
@@ -1047,6 +1175,8 @@ absl::StatusOr<std::string> YazeProject::SerializeToString() const {
        << GetRelativePath(GetAbsolutePath(palette_catalog_file)) << "\n";
   file << "terrain_catalog_file="
        << GetRelativePath(GetAbsolutePath(terrain_catalog_file)) << "\n";
+  file << "lyra_terrain_file="
+       << GetRelativePath(GetAbsolutePath(lyra_terrain_file)) << "\n";
   file << "hack_manifest_file=" << GetRelativePath(hack_manifest_file) << "\n";
   file << "sprite_catalog_file="
        << GetRelativePath(GetAbsolutePath(sprite_catalog_file)) << "\n";
@@ -1078,6 +1208,12 @@ absl::StatusOr<std::string> YazeProject::SerializeToString() const {
        << (feature_flags.overworld.kApplyZSCustomOverworldASM ? "true"
                                                               : "false")
        << "\n";
+  file << "enable_special_world_expansion="
+       << (feature_flags.overworld.kEnableSpecialWorldExpansion ? "true"
+                                                                : "false")
+       << "\n";
+  file << "save_with_change_queue="
+       << (feature_flags.kSaveWithChangeQueue ? "true" : "false") << "\n";
   file << "save_dungeon_maps="
        << (feature_flags.kSaveDungeonMaps ? "true" : "false") << "\n";
   file << "save_overworld_maps="
@@ -1091,6 +1227,9 @@ absl::StatusOr<std::string> YazeProject::SerializeToString() const {
        << "\n";
   file << "save_overworld_items="
        << (feature_flags.overworld.kSaveOverworldItems ? "true" : "false")
+       << "\n";
+  file << "save_overworld_sprites="
+       << (feature_flags.overworld.kSaveOverworldSprites ? "true" : "false")
        << "\n";
   file << "save_overworld_properties="
        << (feature_flags.overworld.kSaveOverworldProperties ? "true" : "false")
@@ -1368,10 +1507,15 @@ absl::Status YazeProject::ParseFromString(const std::string& content) {
         "Project file contains unsupported lone carriage returns");
   }
 
+  rom_metadata.write_policy = RomWritePolicy::kWarn;
+  feature_flags.overworld.kSaveOverworldSprites = true;
+  feature_flags.overworld.kEnableSpecialWorldExpansion = false;
+  feature_flags.kSaveWithChangeQueue = false;
   sprite_catalog_file.clear();
   sprite_source_root.clear();
   sprite_assets.clear();
   terrain_catalog_file.clear();
+  lyra_terrain_file.clear();
   palette_catalog_file.clear();
   dungeon_tile_patterns.clear();
   file_passthrough = ProjectFilePassthrough{};
@@ -1477,6 +1621,8 @@ absl::Status YazeProject::ParseFromString(const std::string& content) {
         palette_catalog_file = value;
       else if (key == "terrain_catalog_file")
         terrain_catalog_file = value;
+      else if (key == "lyra_terrain_file")
+        lyra_terrain_file = value;
       else if (key == "hack_manifest_file")
         hack_manifest_file = value;
       else if (key == "sprite_catalog_file")
@@ -1512,6 +1658,10 @@ absl::Status YazeProject::ParseFromString(const std::string& content) {
         feature_flags.overworld.kLoadCustomOverworld = ParseBool(value);
       else if (key == "apply_zs_custom_overworld_asm")
         feature_flags.overworld.kApplyZSCustomOverworldASM = ParseBool(value);
+      else if (key == "enable_special_world_expansion")
+        feature_flags.overworld.kEnableSpecialWorldExpansion = ParseBool(value);
+      else if (key == "save_with_change_queue")
+        feature_flags.kSaveWithChangeQueue = ParseBool(value);
       else if (key == "save_dungeon_maps")
         feature_flags.kSaveDungeonMaps = ParseBool(value);
       else if (key == "save_overworld_maps")
@@ -1522,6 +1672,8 @@ absl::Status YazeProject::ParseFromString(const std::string& content) {
         feature_flags.overworld.kSaveOverworldExits = ParseBool(value);
       else if (key == "save_overworld_items")
         feature_flags.overworld.kSaveOverworldItems = ParseBool(value);
+      else if (key == "save_overworld_sprites")
+        feature_flags.overworld.kSaveOverworldSprites = ParseBool(value);
       else if (key == "save_overworld_properties")
         feature_flags.overworld.kSaveOverworldProperties = ParseBool(value);
       else if (key == "save_dungeon_objects")
@@ -2074,6 +2226,7 @@ void YazeProject::NormalizePathsToAbsolute() {
   normalize(&overworld_graphics_preview);
   normalize(&dungeon_tile_patterns);
   normalize(&terrain_catalog_file);
+  normalize(&lyra_terrain_file);
   normalize(&palette_catalog_file);
   for (auto& asset : sprite_assets)
     normalize(&asset.zsm_path);
@@ -2450,6 +2603,7 @@ void YazeProject::InitializeDefaults() {
   sprite_source_root.clear();
   sprite_assets.clear();
   terrain_catalog_file.clear();
+  lyra_terrain_file.clear();
   palette_catalog_file.clear();
   dungeon_tile_patterns.clear();
   if (metadata.project_id.empty()) {
@@ -2611,6 +2765,7 @@ ProjectManager::GetProjectTemplates() {
     t.template_project.feature_flags.overworld.kApplyZSCustomOverworldASM =
         false;
     t.template_project.feature_flags.overworld.kSaveOverworldMaps = false;
+    t.template_project.feature_flags.overworld.kSaveOverworldSprites = false;
     t.template_project.feature_flags.kSaveDungeonMaps = false;
     t.template_project.metadata.tags = {"randomizer", "compatible", "minimal"};
     templates.push_back(t);
@@ -3089,7 +3244,12 @@ void YazeProject::InitializeResourceLabelProvider() {
 #ifdef YAZE_ENABLE_JSON_PROJECT_FORMAT
 
 absl::Status YazeProject::LoadFromJsonFormat(const std::string& project_path) {
+  rom_metadata.write_policy = RomWritePolicy::kWarn;
+  feature_flags.overworld.kSaveOverworldSprites = true;
+  feature_flags.overworld.kEnableSpecialWorldExpansion = false;
+  feature_flags.kSaveWithChangeQueue = false;
   terrain_catalog_file.clear();
+  lyra_terrain_file.clear();
   palette_catalog_file.clear();
   dungeon_tile_patterns.clear();
 #ifdef __EMSCRIPTEN__
@@ -3151,6 +3311,8 @@ absl::Status YazeProject::LoadFromJsonFormat(const std::string& project_path) {
         palette_catalog_file = proj["palette_catalog_file"].get<std::string>();
       if (proj.contains("terrain_catalog_file"))
         terrain_catalog_file = proj["terrain_catalog_file"].get<std::string>();
+      if (proj.contains("lyra_terrain_file"))
+        lyra_terrain_file = proj["lyra_terrain_file"].get<std::string>();
       if (proj.contains("hack_manifest_file"))
         hack_manifest_file = proj["hack_manifest_file"].get<std::string>();
       if (proj.contains("sprite_catalog_file"))
@@ -3196,6 +3358,12 @@ absl::Status YazeProject::LoadFromJsonFormat(const std::string& project_path) {
         if (flags.contains("kSaveDungeonMaps"))
           feature_flags.kSaveDungeonMaps =
               flags["kSaveDungeonMaps"].get<bool>();
+        if (flags.contains("kSaveWithChangeQueue"))
+          feature_flags.kSaveWithChangeQueue =
+              flags["kSaveWithChangeQueue"].get<bool>();
+        if (flags.contains("kEnableSpecialWorldExpansion"))
+          feature_flags.overworld.kEnableSpecialWorldExpansion =
+              flags["kEnableSpecialWorldExpansion"].get<bool>();
         if (flags.contains("kSaveOverworldMaps"))
           feature_flags.overworld.kSaveOverworldMaps =
               flags["kSaveOverworldMaps"].get<bool>();
@@ -3208,6 +3376,9 @@ absl::Status YazeProject::LoadFromJsonFormat(const std::string& project_path) {
         if (flags.contains("kSaveOverworldItems"))
           feature_flags.overworld.kSaveOverworldItems =
               flags["kSaveOverworldItems"].get<bool>();
+        if (flags.contains("kSaveOverworldSprites"))
+          feature_flags.overworld.kSaveOverworldSprites =
+              flags["kSaveOverworldSprites"].get<bool>();
         if (flags.contains("kSaveOverworldProperties"))
           feature_flags.overworld.kSaveOverworldProperties =
               flags["kSaveOverworldProperties"].get<bool>();
@@ -3441,6 +3612,8 @@ absl::Status YazeProject::SaveToJsonFormat() {
       GetRelativePath(GetAbsolutePath(palette_catalog_file));
   proj["terrain_catalog_file"] =
       GetRelativePath(GetAbsolutePath(terrain_catalog_file));
+  proj["lyra_terrain_file"] =
+      GetRelativePath(GetAbsolutePath(lyra_terrain_file));
   proj["hack_manifest_file"] = hack_manifest_file;
   proj["sprite_catalog_file"] =
       GetRelativePath(GetAbsolutePath(sprite_catalog_file));
@@ -3464,6 +3637,10 @@ absl::Status YazeProject::SaveToJsonFormat() {
   // Feature flags
   // REMOVED: kLogInstructions (deprecated)
   proj["feature_flags"]["kSaveDungeonMaps"] = feature_flags.kSaveDungeonMaps;
+  proj["feature_flags"]["kSaveWithChangeQueue"] =
+      feature_flags.kSaveWithChangeQueue;
+  proj["feature_flags"]["kEnableSpecialWorldExpansion"] =
+      feature_flags.overworld.kEnableSpecialWorldExpansion;
   proj["feature_flags"]["kSaveOverworldMaps"] =
       feature_flags.overworld.kSaveOverworldMaps;
   proj["feature_flags"]["kSaveOverworldEntrances"] =
@@ -3472,6 +3649,8 @@ absl::Status YazeProject::SaveToJsonFormat() {
       feature_flags.overworld.kSaveOverworldExits;
   proj["feature_flags"]["kSaveOverworldItems"] =
       feature_flags.overworld.kSaveOverworldItems;
+  proj["feature_flags"]["kSaveOverworldSprites"] =
+      feature_flags.overworld.kSaveOverworldSprites;
   proj["feature_flags"]["kSaveOverworldProperties"] =
       feature_flags.overworld.kSaveOverworldProperties;
   proj["feature_flags"]["kSaveDungeonObjects"] =

@@ -156,6 +156,7 @@ void DungeonCanvasViewer::SetProject(const project::YazeProject* project) {
 void DungeonCanvasViewer::InvalidateExternalSpriteResources() {
   sprite_preview_resources_.SetContext({}, {}, {});
   sprite_preview_cache_.Clear();
+  item_preview_cache_.Clear();
 }
 
 zelda3::RoomLayerManager& DungeonCanvasViewer::GetRoomLayerManager(
