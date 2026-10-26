@@ -5108,7 +5108,7 @@ TEST_F(PaletteWorkspaceTest,
   core::FeatureFlags::get().kSaveAllPalettes = true;
   manager->GetCurrentProject()->feature_flags = core::FeatureFlags::get();
   const auto save_toast_begin = manager->toast_manager()->pending_count();
-  Click("Save ROM");
+  Click("Save");
   for (size_t i = save_toast_begin;
        i < manager->toast_manager()->pending_count(); ++i) {
     const auto* toast = manager->toast_manager()->GetPendingToast(i);
@@ -5144,7 +5144,7 @@ TEST_F(PaletteWorkspaceTest, DisabledSavePreservesColorAndDisk) {
   EnterColor("1234");
   const auto disk_hash = util::ComputeFileSha1Hex(a.string());
   const auto bytes = manager->GetCurrentRom()->vector();
-  Click("Save ROM");
+  Click("Save");
   bool refusal_shown = false;
   for (size_t i = 0; i < manager->toast_manager()->pending_count(); ++i) {
     const auto* toast = manager->toast_manager()->GetPendingToast(i);
@@ -5190,7 +5190,7 @@ TEST_F(PaletteWorkspaceTest, FailedFileWriteRestoresBaselineAndAllowsRetry) {
   EXPECT_EQ(pm.GetColor("dungeon_main", 0, 3).snes(), original);
   Click("Redo palette edit");
   EXPECT_EQ(pm.GetColor("dungeon_main", 0, 3).snes(), 0x1234);
-  Click("Save ROM");
+  Click("Save");
   EXPECT_FALSE(pm.HasUnsavedChanges());
   EXPECT_EQ(
       manager->GetCurrentEditorSet()->GetExistingEditor(EditorType::kDungeon),

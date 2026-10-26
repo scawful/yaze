@@ -1825,7 +1825,7 @@ void RightDrawerManager::DrawGlobalShortcuts() {
   DrawShortcutRow("Open", "Open ROM", absl::StrFormat("%s+O", ctrl));
   DrawShortcutRow("Save", "Save project and ROM edits",
                   absl::StrFormat("%s+S", ctrl));
-  DrawShortcutRow("Save As", "Save ROM As",
+  DrawShortcutRow("Save As", "Save As (ROM or project)",
                   absl::StrFormat("%s+Shift+S", ctrl));
   DrawShortcutRow("Undo", "Undo", absl::StrFormat("%s+Z", ctrl));
   DrawShortcutRow("Redo", "Redo", absl::StrFormat("%s+Shift+Z", ctrl));
@@ -2020,7 +2020,7 @@ void RightDrawerManager::DrawEditorSpecificHelp() {
       ImGui::Bullet();
       ImGui::TextWrapped(tr("Use panels to access tools and settings"));
       ImGui::Bullet();
-      ImGui::TextWrapped(tr("Save your work via File > Save ROM"));
+      ImGui::TextWrapped(tr("Save your work via File > Save"));
       break;
   }
 }

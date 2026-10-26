@@ -1104,8 +1104,8 @@ void PaletteEditor::DrawControlPanel() {
   const size_t modified_count = manager.GetModifiedColorCount();
   const bool pending = manager.HasUnsavedChanges() || (rom_ && rom_->dirty());
   ImGui::BeginDisabled(!pending || !dependencies_.window_manager);
-  const bool save = ImGui::Button(ICON_MD_SAVE " Save ROM");
-  gui::AutoRegisterLastItem("button", "Save ROM");
+  const bool save = ImGui::Button(ICON_MD_SAVE " Save");
+  gui::AutoRegisterLastItem("button", "Save");
   if (save)
     dependencies_.window_manager->TriggerSaveRom();
   ImGui::EndDisabled();

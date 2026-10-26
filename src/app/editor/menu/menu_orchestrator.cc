@@ -179,56 +179,47 @@ void MenuOrchestrator::BuildFileMenu() {
 }
 
 void MenuOrchestrator::AddFileMenuItems() {
-  // ROM Operations
+  // Save writes the ROM, the project file and the Lyra sidecar in one step,
+  // so the top level only has one Save. Project-only commands live under
+  // Project; Project Management keeps its own "Save Project" button.
   menu_builder_.Item(
-      "Open ROM / Project...", ICON_MD_FILE_OPEN, [this]() { OnOpenRom(); },
+      "Open...", ICON_MD_FILE_OPEN, [this]() { OnOpenRom(); },
       GetShortcutForAction("Open").c_str());
   AddRecentFilesSubmenu();
-  menu_builder_
+  menu_builder_.Separator()
       .Item(
           "Save", ICON_MD_SAVE, [this]() { OnSaveRom(); },
           GetShortcutForAction("Save").c_str(),
           [this]() { return CanSaveRom(); })
+      .HarnessId("Save")
+      // Both targets switch the session to the new file, like any Save As.
+      .BeginSubMenu("Save As", ICON_MD_SAVE_AS,
+                    [this]() { return CanSaveRom(); })
       .Item(
-          "Save As...", ICON_MD_SAVE_AS, [this]() { OnSaveRomAs(); },
-          GetShortcutForAction("Save As").c_str(),
+          "ROM...", ICON_MD_SAVE_AS, [this]() { OnSaveRomAs(); }, nullptr,
           [this]() { return CanSaveRom(); })
       .Item(
-          "Save Scope...", ICON_MD_TUNE,
-          [this]() {
-            popup_manager_.Show(PopupID::kSaveScope);
-            if (editor_manager_) {
-              editor_manager_->feature_hint_manager()->MaybeShow(
-                  FeatureHintId::kZScreamSave);
-            }
-          },
-          nullptr, [this]() { return CanSaveRom(); })
+          "Project...", ICON_MD_SAVE_AS, [this]() { OnSaveProjectAs(); },
+          nullptr, [this]() { return CanSaveProject(); })
+      .EndMenu()
       .Item(
-          "Revert to Saved", ICON_MD_RESTORE, [this]() { OnRevertRom(); },
+          "Revert to Saved...", ICON_MD_RESTORE, [this]() { OnRevertRom(); },
           nullptr,
           [this]() {
             return editor_manager_ && editor_manager_->CanRevertRom();
           })
       .Item(
-          "Close ROM", ICON_MD_CLOSE, [this]() { OnCloseRom(); }, nullptr,
+          "Close", ICON_MD_CLOSE, [this]() { OnCloseRom(); }, nullptr,
           [this]() {
             return editor_manager_ && editor_manager_->CanCloseRom();
           })
       .Separator();
 
-  // Project Operations
-  menu_builder_
+  menu_builder_.BeginSubMenu("Project", ICON_MD_FOLDER_SPECIAL)
       .Item("New Project", ICON_MD_CREATE_NEW_FOLDER,
             [this]() { OnCreateProject(); })
-      .Item("Open Project Only...", ICON_MD_FOLDER_OPEN,
+      .Item("Open Project File Only...", ICON_MD_FOLDER_OPEN,
             [this]() { OnOpenProject(); })
-      .Item(
-          "Save Project", ICON_MD_SAVE, [this]() { OnSaveProject(); }, nullptr,
-          [this]() { return CanSaveProject(); })
-      .Item(
-          "Save Project As...", ICON_MD_SAVE_AS,
-          [this]() { OnSaveProjectAs(); }, nullptr,
-          [this]() { return CanSaveProject(); })
       .Item(
           "Project Management...", ICON_MD_FOLDER_SPECIAL,
           [this]() { OnShowProjectManagement(); }, nullptr,
@@ -237,6 +228,7 @@ void MenuOrchestrator::AddFileMenuItems() {
           "Edit Project File...", ICON_MD_DESCRIPTION,
           [this]() { OnShowProjectFileEditor(); }, nullptr,
           [this]() { return HasProjectFile(); })
+      .BeginSubMenu("Lyra Sea", ICON_MD_MAP)
       .Item(
           "Edit Lyra", ICON_MD_MAP, [this]() { OnCreateLyraTerrain(); },
           nullptr,
@@ -248,19 +240,26 @@ void MenuOrchestrator::AddFileMenuItems() {
                    (project->IsOracleCompatible() ||
                     !project->lyra_terrain_file.empty());
           })
-      .BeginSubMenu("Advanced Lyra", ICON_MD_MORE_HORIZ)
       .Item(
-          "Import Lyra Terrain...", ICON_MD_FOLDER_OPEN,
-          [this]() { OnOpenLyraTerrain(); }, nullptr,
-          [this]() { return CanSaveProject() && HasActiveRom(); })
+          "Import...", ICON_MD_FOLDER_OPEN, [this]() { OnOpenLyraTerrain(); },
+          nullptr, [this]() { return CanSaveProject() && HasActiveRom(); })
       .Item(
-          "Apply Lyra Proposal...", ICON_MD_MAP,
+          "Apply Proposal...", ICON_MD_MAP,
           [this]() { OnApplyLyraTerrainProposal(); }, nullptr,
           [this]() { return CanSaveProject() && HasActiveRom(); })
       .EndMenu()
-      .Separator();
+      .Item(
+          "Save Scope...", ICON_MD_TUNE,
+          [this]() {
+            popup_manager_.Show(PopupID::kSaveScope);
+            if (editor_manager_) {
+              editor_manager_->feature_hint_manager()->MaybeShow(
+                  FeatureHintId::kZScreamSave);
+            }
+          },
+          nullptr, [this]() { return CanSaveRom(); })
+      .EndMenu();
 
-  // Settings and Quit (ROM analysis / backup / BPS live under Tools).
   // Settings stays here on every platform. On macOS the native app menu
   // (app_delegate.mm) also exposes Settings/Preferences; this entry is kept
   // so the ImGui menu bar remains complete when the native menu is absent.
@@ -273,10 +272,10 @@ void MenuOrchestrator::AddFileMenuItems() {
               absl::StrFormat("switch.%d",
                               static_cast<int>(EditorType::kSettings)))
               .c_str())
-      .Separator()
       .Item(
           "Quit", ICON_MD_EXIT_TO_APP, [this]() { OnQuit(); },
-          GetShortcutForAction("Quit").c_str());
+          GetShortcutForAction("Quit").c_str())
+      .HarnessId("Quit");
 }
 
 void MenuOrchestrator::AddRecentFilesSubmenu() {
@@ -1204,7 +1203,7 @@ void MenuOrchestrator::OnSaveRom() {
 
 void MenuOrchestrator::OnSaveRomAs() {
   if (editor_manager_) {
-    auto status = editor_manager_->SaveCurrentSessionAs();
+    auto status = editor_manager_->ShowSaveRomAs();
     if (!status.ok() && !absl::IsCancelled(status)) {
       toast_manager_.Show(
           absl::StrFormat("Failed to save a copy: %s", status.message()),

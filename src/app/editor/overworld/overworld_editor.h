@@ -198,8 +198,11 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   void CommitSaveTransaction() override;
   absl::Status Clear() override;
   bool HasPendingProjectDraftChanges() const {
-    return lyra_canvas_.dirty() ||
-           (graphics_source_ && graphics_source_->any_dirty());
+    return HasPendingLyraTerrainDraft() || HasPendingGraphicsSourceDraft();
+  }
+  bool HasPendingLyraTerrainDraft() const { return lyra_canvas_.dirty(); }
+  bool HasPendingGraphicsSourceDraft() const {
+    return graphics_source_ && graphics_source_->any_dirty();
   }
   void SetProjectContextProvider(
       std::function<project::YazeProject*()> provider) {
