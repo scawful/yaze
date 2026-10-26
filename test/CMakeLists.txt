@@ -417,6 +417,9 @@ if(YAZE_BUILD_TESTS)
     unit/editor/sheet_png_transfer_test.cc
     unit/editor/pixel_clipboard_test.cc
     unit/editor/graphics_sheet_sync_test.cc
+    unit/editor/graphics_scratch_asset_test.cc
+    unit/editor/scratch_bin_roundtrip_test.cc
+    unit/editor/scratch_workspace_test.cc
     unit/editor/graphics_usage_preview_test.cc
     unit/editor/overworld_graphics_context_test.cc
     unit/editor/sprite_graphics_context_test.cc

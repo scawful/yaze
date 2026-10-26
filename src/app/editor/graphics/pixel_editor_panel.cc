@@ -341,6 +341,13 @@ void PixelEditorPanel::DrawSourceContext() {
 }
 
 void PixelEditorPanel::DrawToolbar() {
+  if (open_scratch_) {
+    if (ImGui::Button("Scratch assets"))
+      open_scratch_();
+    gui::AutoRegisterLastItem("button", "Scratch assets");
+    HOVER_HINT(
+        "Keep editable sheets and BIN assets before assigning them to the ROM");
+  }
   struct Tool {
     PixelTool tool;
     const char* icon;

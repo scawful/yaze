@@ -2500,6 +2500,18 @@ void DungeonEditorV2::OpenGraphicsEditorForObject(
     return absl::OkStatus();
   };
   context->resolve_live_source = resolve_live_source;
+  context->preview_revision = [this, room_id, owner = game_data_,
+                               source_rom =
+                                   rom_]() -> absl::StatusOr<uint64_t> {
+    if (game_data_ != owner || rom_ != source_rom || !rom_ ||
+        !rom_->is_loaded()) {
+      return absl::FailedPreconditionError("Dungeon source session changed");
+    }
+    const auto* source = rooms_.GetIfMaterialized(room_id);
+    if (!source || !source->IsLoaded())
+      return absl::FailedPreconditionError("Dungeon source room changed");
+    return source->composite_source_revision();
+  };
   // Display refresh retains its earlier captured-source behavior. The strict
   // live resolver runs only at the palette/pixel mutation boundary.
   context->refresh_palettes = [this, room_id, object, owner = game_data_](

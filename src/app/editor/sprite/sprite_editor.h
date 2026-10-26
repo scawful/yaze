@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <map>
 #include <optional>
+#include <set>
 #include <string>
 #include <vector>
 
@@ -65,8 +66,20 @@ class SpriteEditor : public Editor {
   absl::Status Paste() override;
   absl::Status Find() override { return absl::UnimplementedError("Find"); }
   absl::Status Save() override;
+  bool HasPendingSpriteChanges() const {
+    return !dirty_sprite_indices_.empty() || sprite_bindings_pending_;
+  }
+  absl::Status PrepareProjectSave() { return Save(); }
+  void ProjectSaveCommitted() { sprite_bindings_pending_ = false; }
 
   void SetDependencies(const EditorDependencies& deps) override;
+  project::YazeProject* project() const {
+    if (dependencies_.project_context_provider) {
+      if (auto* active = dependencies_.project_context_provider())
+        return active;
+    }
+    return Editor::project();
+  }
   // Catalog failures are panel-local and never block unrelated editor loading.
   absl::Status ReloadSpriteCatalog();
   absl::Status OpenCatalogSource(const zelda3::SpriteSourceBinding& binding);
@@ -91,6 +104,11 @@ class SpriteEditor : public Editor {
   absl::Status SetSpriteGraphics(
       const std::array<uint8_t, 8>& sheets,
       const std::array<project::SpritePaletteBinding, 8>& rows);
+  absl::Status SetSpriteGraphicsSource(
+      int slot, const project::SpriteGraphicsSource& source);
+  // Known static poses become detached copies. IDs without a static layout
+  // become explicitly empty templates; this never patches vanilla draw code.
+  absl::Status CreateSpriteAssetFromVanilla(int sprite_id);
   const project::SpriteAssetBinding* current_sprite_binding() const;
 
   const zsprite::ZSprite* current_custom_sprite() const {
@@ -118,8 +136,18 @@ class SpriteEditor : public Editor {
   absl::Status asset_load_status_;
   absl::Status palette_binding_status_;
   absl::Status graphics_binding_status_;
+  absl::Status graphics_source_edit_status_;
   absl::Status source_check_status_;
   bool source_checked_ = false;
+  int graphics_source_slot_ = 0;
+  int graphics_source_kind_ = 0;
+  int graphics_source_bpp_ = 3;
+  uint32_t graphics_source_offset_ = 0;
+  char graphics_source_path_[4097] = {};
+  int graphics_source_document_ = -1;
+  int graphics_source_loaded_slot_ = -1;
+  void DrawGraphicsSourceBindings();
+  absl::Status OpenBoundBinInScratch(int slot);
   void DrawSpriteCatalog();
   void RefreshCatalogIfChanged();
   std::optional<zelda3::SpriteCatalog> sprite_catalog_;
@@ -148,7 +176,7 @@ class SpriteEditor : public Editor {
   void DrawVanillaSpriteEditor();
   void DrawSpritesList();
   void DrawSpriteCanvas();
-  void DrawCurrentSheets();
+  void DrawCurrentSheets(bool use_asset_binding);
   void DrawToolset();
 
   // ============================================================
@@ -186,7 +214,7 @@ class SpriteEditor : public Editor {
 
   // Graphics pipeline
   void RefreshSpritePreviewGraphics(bool use_asset_binding);
-  void LoadSpriteGraphicsBuffer();
+  void LoadSpriteGraphicsBuffer(bool use_asset_binding = true);
   void LoadSpritePalettes(bool use_asset_binding = true);
   void RenderVanillaSprite(const zelda3::SpriteOamLayout& layout);
 
@@ -206,6 +234,7 @@ class SpriteEditor : public Editor {
   int current_sprite_id_ = 0;
   int pending_sprite_tab_ = -1;
   uint8_t current_sheets_[8] = {0x73, 0x74, 0x79, 0x7A, 0x73, 0x73, 0x73, 0x73};
+  uint8_t vanilla_sheets_[8] = {0x73, 0x74, 0x79, 0x7A, 0x73, 0x73, 0x73, 0x73};
   bool sheets_loaded_ = false;
 
   // OAM Configuration for vanilla sprites
@@ -230,6 +259,8 @@ class SpriteEditor : public Editor {
   std::vector<std::string> custom_sprite_paths_;
   int current_custom_sprite_index_ = -1;
   bool zsm_dirty_ = false;
+  std::set<int> dirty_sprite_indices_;
+  bool sprite_bindings_pending_ = false;
 
   // Animation playback state
   bool animation_playing_ = false;
@@ -254,6 +285,8 @@ class SpriteEditor : public Editor {
   std::vector<uint8_t> sprite_gfx_buffer_;  // 8BPP combined sheets buffer
   gfx::PaletteGroup sprite_palettes_;       // Loaded sprite palettes
   bool gfx_buffer_loaded_ = false;
+  bool preview_uses_asset_graphics_ = false;
+  std::array<gfx::Bitmap, 8> external_sheet_previews_;
   const zelda3::GameData* preview_graphics_owner_ = nullptr;
   std::array<uint8_t, 8> loaded_preview_sheets_{};
   std::array<uint64_t, 8> loaded_preview_revisions_{};
@@ -264,8 +297,8 @@ class SpriteEditor : public Editor {
   // ============================================================
   // Slots 0-3 take the static sprite sheets and slots 4-7 a spriteset's
   // values + 0x73, as the game loads them (zelda3/sprite/sprite_sheet_slots).
-  void DrawSpritesetPicker();
-  void ApplySpritesetToSheets(int spriteset);
+  void DrawSpritesetPicker(bool use_asset_binding);
+  void ApplySpritesetToSheets(int spriteset, bool use_asset_binding);
   void DrawFrameTileWarnings();
   absl::Status OpenSelectedOamGraphics();
   absl::Status graphics_context_status_;

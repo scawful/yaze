@@ -1477,6 +1477,123 @@ TEST_F(GraphicsWorkspaceLayoutTest,
 }
 
 TEST_F(GraphicsWorkspaceLayoutTest,
+       SourcePreviewFollowsUnsavedRoomObjectsWithoutRenderFeedbackLoop) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+  zelda3::Room room(0, &rom, data_.get());
+  room.AddTileObject(zelda3::RoomObject(0, 1, 0, 0));
+  UsagePreviewView view(&state_);
+  view.SetRom(&rom);
+  view.SetGameData(data_.get());
+  int renders = 0;
+  GraphicsEditContext source;
+  source.owner = data_.get();
+  source.preview_revision = [&]() -> absl::StatusOr<uint64_t> {
+    return room.composite_source_revision();
+  };
+  source.render_preview = [&]() -> absl::StatusOr<usage_preview::PreviewImage> {
+    ++renders;
+    usage_preview::PreviewImage image;
+    image.width = 8;
+    image.height = 1;
+    image.pixels.assign(8, 0);
+    image.pixels[room.GetTileObjects().front().x()] = 1;
+    // Real room renderers can advance this revision as they rebuild caches.
+    room.MarkGraphicsDirty();
+    return image;
+  };
+  state_.source_context = std::move(source);
+  ++state_.source_context_revision;
+  const auto frame = [&] {
+    Frame([&] { view.DrawSourcePreview(); });
+  };
+  const absl::Cleanup cleanup = [&] {
+    gfx::Arena::Get().ClearTextureQueue();
+  };
+  frame();
+  EXPECT_EQ(renders, 1);
+  EXPECT_EQ(UsagePreviewViewTestPeer::SourceBitmap(view).GetPixel(1, 0), 1);
+  frame();
+  EXPECT_EQ(renders, 1);
+  auto moved = room.GetTileObjects().front();
+  moved.set_x(4);
+  ASSERT_TRUE(room.UpdateObject(0, moved).ok());
+  frame();
+  EXPECT_EQ(renders, 2);
+  EXPECT_EQ(UsagePreviewViewTestPeer::SourceBitmap(view).GetPixel(1, 0), 0);
+  EXPECT_EQ(UsagePreviewViewTestPeer::SourceBitmap(view).GetPixel(4, 0), 1);
+  frame();
+  EXPECT_EQ(renders, 2);
+  zelda3::GameData foreign;
+  view.SetGameData(&foreign);
+  frame();
+  EXPECT_EQ(renders, 2);
+}
+
+TEST_F(GraphicsWorkspaceLayoutTest,
+       OracleSourcePreviewRendersUnsavedObjectEditWithoutSheetChange) {
+  const char* path = std::getenv("YAZE_TEST_ROM_OOS");
+  if (!path || !std::filesystem::exists(path))
+    GTEST_SKIP() << "Set YAZE_TEST_ROM_OOS to an Oracle ROM copy";
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromFile(path).ok());
+  ASSERT_TRUE(zelda3::LoadGameData(rom, *data_).ok());
+  auto& custom = zelda3::CustomObjectManager::Get();
+  const auto custom_state = custom.SnapshotState();
+  const absl::Cleanup cleanup = [&] {
+    gfx::Arena::Get().ClearTextureQueue();
+    custom.RestoreState(custom_state);
+  };
+  custom.SetTilePatternsSource("");
+  auto room = zelda3::LoadRoomFromRom(&rom, 0x89);
+  room.SetGameData(data_.get());
+  usage_preview::RoomUsagePreview renderer;
+  ASSERT_TRUE(renderer.TraceLoadedRoom(&rom, data_.get(), &room).ok());
+  ASSERT_FALSE(renderer.tile_references().empty());
+  const size_t index = renderer.tile_references().front().object_index;
+  const auto original = room.GetTileObjects().at(index);
+  const auto bytes = rom.vector();
+  UsagePreviewView view(&state_);
+  view.SetRom(&rom);
+  view.SetGameData(data_.get());
+  GraphicsEditContext source;
+  source.owner = data_.get();
+  source.preview_revision = [&]() -> absl::StatusOr<uint64_t> {
+    return room.composite_source_revision();
+  };
+  source.render_preview = [&]() -> absl::StatusOr<usage_preview::PreviewImage> {
+    auto status =
+        renderer.Render(&rom, data_.get(), room.id(), {}, false, &room);
+    if (!status.ok())
+      return status;
+    return renderer.Snapshot();
+  };
+  state_.source_context = std::move(source);
+  ++state_.source_context_revision;
+  const auto frame = [&] {
+    Frame([&] { view.DrawSourcePreview(); });
+  };
+  frame();
+  const auto before = usage_preview::SnapshotBitmap(
+      UsagePreviewViewTestPeer::SourceBitmap(view));
+  auto moved = original;
+  moved.set_x(original.x() < 60 ? original.x() + 4 : original.x() - 4);
+  ASSERT_TRUE(room.UpdateObject(index, moved).ok());
+  frame();
+  const auto after = usage_preview::SnapshotBitmap(
+      UsagePreviewViewTestPeer::SourceBitmap(view));
+  EXPECT_GT(after.CountDifferentPixels(before), 0);
+  ASSERT_TRUE(room.UpdateObject(index, original).ok());
+  frame();
+  EXPECT_EQ(usage_preview::SnapshotBitmap(
+                UsagePreviewViewTestPeer::SourceBitmap(view))
+                .CountDifferentPixels(before),
+            0);
+  EXPECT_EQ(rom.vector(), bytes);
+  EXPECT_TRUE(state_.modified_sheets.empty());
+}
+
+TEST_F(GraphicsWorkspaceLayoutTest,
        PaletteReorderStagesScopeCancelApplyAndOneUndo) {
   BindReorderSource();
   auto cleanup = absl::MakeCleanup([&] {

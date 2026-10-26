@@ -5,6 +5,7 @@
 #include <fstream>
 
 #include "app/editor/sprite/sprite_authoring.h"
+#include "app/editor/sprite/sprite_graphics_source.h"
 #include "app/editor/system/workspace/workspace_window_manager.h"
 #include "core/project.h"
 #include "core/source_artifact_publisher.h"
@@ -203,6 +204,169 @@ TEST_F(SpriteCatalogSessionTest,
       project::SpriteAssetToJson(project::SpriteAssetBinding{}).dump();
   duplicate.insert(1, "\"version\":1,");
   EXPECT_FALSE(project::ParseSpriteAssetBinding(duplicate).ok());
+}
+
+TEST_F(SpriteCatalogSessionTest,
+       EveryVanillaIdCanCreateADetachedAuthoringAsset) {
+  SpriteEditor editor;
+  for (int id = 0; id < 256; ++id) {
+    ASSERT_TRUE(editor.CreateSpriteAssetFromVanilla(id).ok()) << id;
+    ASSERT_NE(editor.current_custom_sprite(), nullptr);
+    EXPECT_EQ(editor.current_custom_sprite()->property_sprid.Text,
+              std::to_string(id));
+    EXPECT_EQ(editor.current_sprite_binding()->catalog_key,
+              "vanilla." + std::to_string(id));
+    ASSERT_EQ(editor.current_custom_sprite()->editor.Frames.size(), 1u);
+    const auto* layout = zelda3::SpriteOamRegistry::GetLayout(id);
+    EXPECT_EQ(editor.current_custom_sprite()->editor.Frames[0].Tiles.size(),
+              layout ? layout->tiles.size() : 0u);
+  }
+  EXPECT_FALSE(editor.CreateSpriteAssetFromVanilla(-1).ok());
+  EXPECT_FALSE(editor.CreateSpriteAssetFromVanilla(256).ok());
+  EXPECT_TRUE(editor.HasPendingSpriteChanges());
+}
+
+TEST_F(SpriteCatalogSessionTest,
+       BinGraphicsBindingSurvivesUndoAndProjectReopen) {
+  std::vector<uint8_t> bytes(2048, 0);
+  bytes[0] = 0x80;
+  bytes[17] = 0x80;  // 4bpp high plane: first pixel = 9.
+  const auto bin = root_ / "sprites.bin";
+  std::ofstream output(bin, std::ios::binary);
+  output.write(reinterpret_cast<const char*>(bytes.data()), bytes.size());
+  output.close();
+  EditorDependencies deps;
+  deps.project = &project_;
+  SpriteEditor editor;
+  editor.SetDependencies(deps);
+  ASSERT_TRUE(editor.CreateSpriteAssetFromVanilla(0xA7).ok());
+  project::SpriteGraphicsSource source{"bin", "sprites.bin", 0, 4};
+  ASSERT_TRUE(editor.SetSpriteGraphicsSource(4, source).ok());
+  EXPECT_EQ(editor.current_sprite_binding()->graphics_sources[4].kind, "bin");
+  ASSERT_TRUE(editor.Undo().ok());
+  EXPECT_EQ(editor.current_sprite_binding()->graphics_sources[4].kind, "sheet");
+  ASSERT_TRUE(editor.Redo().ok());
+  ASSERT_TRUE(editor.SaveSpriteAsset((root_ / "stalfos.zsm").string()).ok());
+  EXPECT_TRUE(editor.HasPendingSpriteChanges());
+  ASSERT_TRUE(project_.Save().ok());
+  editor.ProjectSaveCommitted();
+  EXPECT_FALSE(editor.HasPendingSpriteChanges());
+  project::YazeProject reopened;
+  ASSERT_TRUE(reopened.Open(project_.filepath).ok());
+  SpriteEditor next;
+  deps.project = &reopened;
+  next.SetDependencies(deps);
+  ASSERT_TRUE(next.Load().ok());
+  ASSERT_NE(next.current_sprite_binding(), nullptr);
+  const auto& loaded = next.current_sprite_binding()->graphics_sources[4];
+  EXPECT_EQ(loaded.kind, "bin");
+  EXPECT_EQ(loaded.path, "sprites.bin");
+  EXPECT_EQ(loaded.bpp, 4);
+  auto pixels =
+      sprite_graphics_source::Resolve(loaded, 0, nullptr, nullptr, root_);
+  ASSERT_TRUE(pixels.ok()) << pixels.status();
+  ASSERT_EQ(pixels->size(), 4096u);
+  EXPECT_EQ((*pixels)[0], 9);
+  EXPECT_EQ((*pixels)[1], 0);
+  source.offset = 1;
+  EXPECT_FALSE(next.SetSpriteGraphicsSource(4, source).ok());
+  EXPECT_EQ(next.current_sprite_binding()->graphics_sources[4].offset, 0u);
+}
+
+TEST_F(SpriteCatalogSessionTest, GraphicsSourceSchemaRejectsMalformedRanges) {
+  project::SpriteAssetBinding asset;
+  asset.zsm_path = "actor.zsm";
+  EXPECT_EQ(project::SpriteAssetToJson(asset)["version"], 1);
+  asset.graphics_sources[0] = {"raw_rom", "", 0x300000, 4};
+  const auto json = project::SpriteAssetToJson(asset);
+  EXPECT_EQ(json["version"], 3);
+  ASSERT_TRUE(project::SpriteAssetFromJson(json).ok());
+  for (const auto& bad : {nlohmann::json(-1), nlohmann::json(0x100000000ULL)}) {
+    auto invalid = json;
+    invalid["graphics_sources"][0]["offset"] = bad;
+    EXPECT_FALSE(project::SpriteAssetFromJson(invalid).ok());
+  }
+  auto invalid = json;
+  invalid["graphics_sources"][0]["bpp"] = 8;
+  EXPECT_FALSE(project::SpriteAssetFromJson(invalid).ok());
+  invalid = json;
+  invalid["graphics_sources"][0]["kind"] = "compressed_rom";
+  EXPECT_FALSE(project::SpriteAssetFromJson(invalid).ok());
+  invalid = json;
+  invalid["graphics_sources"][0]["path"] = "ignored.bin";
+  EXPECT_FALSE(project::SpriteAssetFromJson(invalid).ok());
+  invalid = json;
+  invalid["graphics_sources"].erase(0);
+  EXPECT_FALSE(project::SpriteAssetFromJson(invalid).ok());
+}
+
+TEST_F(SpriteCatalogSessionTest, RawRomGraphicsUseBoundedHeaderlessPcOffsets) {
+  std::vector<uint8_t> bytes(0x300800, 0);
+  bytes[0x300000] = 0x80;
+  bytes[0x300011] = 0x80;
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(bytes).ok());
+  project::SpriteGraphicsSource source{"raw_rom", "", 0x300000, 4};
+  auto pixels = sprite_graphics_source::Resolve(source, 0, nullptr, &rom, {});
+  ASSERT_TRUE(pixels.ok()) << pixels.status();
+  EXPECT_EQ((*pixels)[0], 9);
+  source.offset++;
+  EXPECT_FALSE(
+      sprite_graphics_source::Resolve(source, 0, nullptr, &rom, {}).ok());
+  EXPECT_EQ(rom.vector(), bytes);
+}
+
+TEST_F(SpriteCatalogSessionTest, ExactSlotDecoderPreservesAllBitDepths) {
+  for (const int bpp : {2, 3, 4}) {
+    snes_tile8 tile{};
+    std::fill_n(tile.data, 64, (1 << bpp) - 1);
+    const auto encoded = gfx::PackBppTile(tile, bpp);
+    std::vector<uint8_t> bytes;
+    for (int i = 0; i < 64; ++i)
+      bytes.insert(bytes.end(), encoded.begin(), encoded.end());
+    auto decoded = sprite_graphics_source::Decode(bytes, bpp);
+    ASSERT_TRUE(decoded.ok()) << decoded.status();
+    EXPECT_EQ(decoded->size(), 4096u);
+    EXPECT_TRUE(
+        std::all_of(decoded->begin(), decoded->end(),
+                    [bpp](uint8_t pixel) { return pixel == (1 << bpp) - 1; }));
+    bytes.pop_back();
+    EXPECT_FALSE(sprite_graphics_source::Decode(bytes, bpp).ok());
+  }
+}
+
+TEST_F(SpriteCatalogSessionTest, SavingOneAssetPreservesOtherPendingDocuments) {
+  SpriteEditor editor;
+  ASSERT_TRUE(editor.CreateSpriteAssetFromVanilla(0).ok());
+  ASSERT_TRUE(editor.CreateSpriteAssetFromVanilla(0xA7).ok());
+  ASSERT_TRUE(editor.SaveSpriteAsset((root_ / "second.zsm").string()).ok());
+  EXPECT_TRUE(editor.HasPendingSpriteChanges());
+}
+
+TEST_F(SpriteCatalogSessionTest,
+       FailedSaveRestoresSelectedDocumentAndKeepsEdits) {
+  SpriteEditor editor;
+  const auto first = root_ / "first.zsm";
+  const auto second = root_ / "second.zsm";
+  ASSERT_TRUE(editor.CreateSpriteAssetFromVanilla(0).ok());
+  ASSERT_TRUE(editor.SaveSpriteAsset(first.string()).ok());
+  ASSERT_TRUE(editor.CreateSpriteAssetFromVanilla(0xA7).ok());
+  ASSERT_TRUE(editor.SaveSpriteAsset(second.string()).ok());
+  ASSERT_TRUE(editor.OpenSpriteAsset(first.string()).ok());
+  auto binding = *editor.current_sprite_binding();
+  binding.sheets[0] = 1;
+  ASSERT_TRUE(
+      editor.SetSpriteGraphics(binding.sheets, binding.palette_rows).ok());
+  ASSERT_TRUE(editor.OpenSpriteAsset(second.string()).ok());
+  const auto selected_name = editor.current_custom_sprite()->sprName;
+  ASSERT_TRUE(std::filesystem::remove(first));
+  ASSERT_TRUE(std::filesystem::create_directory(first));
+  EXPECT_FALSE(editor.Save().ok());
+  EXPECT_EQ(editor.current_custom_sprite()->sprName, selected_name);
+  EXPECT_TRUE(editor.HasPendingSpriteChanges());
+  EXPECT_TRUE(std::filesystem::is_directory(first));
+  ASSERT_TRUE(editor.OpenSpriteAsset(first.string()).ok());
+  EXPECT_EQ(editor.current_sprite_binding()->sheets[0], 1);
 }
 
 TEST_F(SpriteCatalogSessionTest,

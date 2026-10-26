@@ -192,6 +192,9 @@ struct EditorDependencies {
   gfx::IRenderer* renderer = nullptr;
   emu::Emulator* emulator = nullptr;
   void* custom_data = nullptr;
+  // Resolve the descriptor that normal Project Save actually writes. Editors
+  // with detached assets must not mutate only the session's captured snapshot.
+  std::function<project::YazeProject*()> project_context_provider;
 
   // Extract sub-structs for passing to components that only need a subset.
   CoreDependencies GetCoreDeps() const {

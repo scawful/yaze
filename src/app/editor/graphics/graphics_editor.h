@@ -22,6 +22,7 @@
 #include "app/editor/graphics/pixel_editor_panel.h"
 #include "app/editor/graphics/polyhedral_editor_panel.h"
 #include "app/editor/graphics/sheet_browser_panel.h"
+#include "app/editor/graphics/ui/scratch/graphics_scratch_view.h"
 #include "app/editor/graphics/ui/usage/usage_preview_view.h"
 #include "app/gfx/core/bitmap.h"
 #include "app/gfx/types/snes_palette.h"
@@ -99,10 +100,17 @@ class GraphicsEditor : public Editor {
     if (usage_preview_view_)
       usage_preview_view_->SetLiveRoomProvider(room_usage_provider_);
   }
+  void SetOverworldUsageProvider(
+      usage_preview::LiveOverworldProvider provider) {
+    overworld_usage_provider_ = std::move(provider);
+    if (usage_preview_view_)
+      usage_preview_view_->SetLiveOverworldProvider(overworld_usage_provider_);
+  }
   void PrepareForSessionTeardown() override {
     if (gfx_group_panel_)
       gfx_group_panel_->DetachRuntimeContext();
     SetRoomUsageProvider({});
+    SetOverworldUsageProvider({});
     main_graphics_usage_ = {};
     roomset_graphics_usage_ = {};
   }
@@ -129,7 +137,8 @@ class GraphicsEditor : public Editor {
 
   bool HasPendingGraphicsChanges() const {
     return state_.HasUnsavedChanges() || state_.selection.is_floating ||
-           (pixel_editor_panel_ && pixel_editor_panel_->HasActiveStroke());
+           (pixel_editor_panel_ && pixel_editor_panel_->HasActiveStroke()) ||
+           (scratch_view_ && scratch_view_->HasPendingChanges());
   }
 
   // Coordinated ROM save: Save() clears the modified-sheet set, so a failed
@@ -225,6 +234,8 @@ class GraphicsEditor : public Editor {
   // Opens only Pixel Editor and Usage Preview, retaining the source editor's
   // resolved colors and live preview for this ROM session.
   absl::Status OpenInContext(GraphicsEditContext context);
+  absl::Status ImportScratchBin(const std::string& path, int bpp, size_t offset,
+                                const gfx::SnesPalette& palette = {});
   // Callable command only; the existing controls own its future UI entry point.
   absl::Status ReorderSourcePalette(const std::vector<size_t>& targets,
                                     const std::array<uint8_t, 8>& permutation);
@@ -271,7 +282,9 @@ class GraphicsEditor : public Editor {
   std::unique_ptr<PalettesetEditorPanel> paletteset_panel_;
   std::unique_ptr<PolyhedralEditorPanel> polyhedral_panel_;
   usage_preview::LiveRoomProvider room_usage_provider_;
+  usage_preview::LiveOverworldProvider overworld_usage_provider_;
   std::unique_ptr<UsagePreviewView> usage_preview_view_;
+  std::unique_ptr<GraphicsScratchView> scratch_view_;
 
   // --- Prototype Viewer (Super Donkey / Dev Format Imports) ---
   void DrawPrototypeViewer();

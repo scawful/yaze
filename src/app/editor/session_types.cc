@@ -203,6 +203,14 @@ Editor* EditorSet::EnsureEditorCreated(EditorType type) const {
       }
       return contexts;
     });
+    graphics->SetOverworldUsageProvider([this]() -> zelda3::Overworld* {
+      if (session_teardown_prepared_ || !rom_ || !game_data_)
+        return nullptr;
+      auto* overworld = GetOverworldData();
+      return overworld && overworld->is_loaded() && overworld->rom() == rom_
+                 ? overworld
+                 : nullptr;
+    });
     graphics->SetMainGraphicsUsageCallback(main_usage);
     graphics->SetRoomsetGraphicsUsageCallback(roomset_usage);
   }
@@ -324,6 +332,13 @@ bool EditorSet::HasPendingGraphicsChanges() const {
   return false;
 }
 
+bool EditorSet::HasPendingSpriteChanges() const {
+  if (auto* editor =
+          static_cast<SpriteEditor*>(FindEditor(EditorType::kSprite)))
+    return editor->HasPendingSpriteChanges();
+  return false;
+}
+
 bool EditorSet::HasPendingScreenChanges() const {
   if (auto* editor =
           static_cast<ScreenEditor*>(FindEditor(EditorType::kScreen))) {
@@ -340,6 +355,8 @@ void EditorSet::InvalidateScreenRomBackedState() {
 }
 
 bool EditorSet::HasPendingProjectDraftChanges() const {
+  if (HasPendingSpriteChanges())
+    return true;
   if (auto* editor =
           static_cast<DungeonEditorV2*>(FindEditor(EditorType::kDungeon))) {
     if (editor->HasPendingProjectDraftChanges())
@@ -354,6 +371,9 @@ bool EditorSet::HasPendingProjectDraftChanges() const {
 
 absl::Status EditorSet::PrepareProjectSave(bool publish_lyra) {
   if (auto* editor =
+          static_cast<SpriteEditor*>(FindEditor(EditorType::kSprite)))
+    RETURN_IF_ERROR(editor->PrepareProjectSave());
+  if (auto* editor =
           static_cast<DungeonEditorV2*>(FindEditor(EditorType::kDungeon))) {
     RETURN_IF_ERROR(editor->PrepareProjectSave());
   }
@@ -367,6 +387,9 @@ absl::Status EditorSet::PrepareProjectSave(bool publish_lyra) {
 }
 
 void EditorSet::ProjectSaveCommitted() {
+  if (auto* editor =
+          static_cast<SpriteEditor*>(FindEditor(EditorType::kSprite)))
+    editor->ProjectSaveCommitted();
   if (auto* editor =
           static_cast<OverworldEditor*>(FindEditor(EditorType::kOverworld))) {
     editor->ProjectSaveCommitted();

@@ -1,5 +1,6 @@
 #include "app/editor/graphics/panels/graphics_editor_panels.h"
 #include "app/editor/graphics/polyhedral_editor_panel.h"
+#include "app/editor/graphics/ui/scratch/graphics_scratch_view.h"
 
 #include "gtest/gtest.h"
 
@@ -35,6 +36,9 @@ TEST(GraphicsEditorWindowIds, WrapperPanelsUseStableIds) {
 
   GraphicsPolyhedralPanel polyhedral(NoOpDraw);
   EXPECT_EQ(polyhedral.GetId(), "graphics.polyhedral");
+
+  GraphicsScratchWindow scratch(NoOpDraw);
+  EXPECT_EQ(scratch.GetId(), "graphics.scratch");
 }
 
 TEST(GraphicsEditorWindowIds, PolyhedralPanelMatchesWrapperId) {

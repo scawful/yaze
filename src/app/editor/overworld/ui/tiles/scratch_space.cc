@@ -1,452 +1,464 @@
 #include <algorithm>
 #include <cmath>
+#include <cstring>
 #include <filesystem>
-#include <fstream>
+#include <functional>
+#include <memory>
+#include <set>
 #include <vector>
-#include "util/i18n/tr.h"
 
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
-#include "absl/strings/str_format.h"
 #include "app/editor/overworld/overworld_editor.h"
-#include "app/gfx/core/bitmap.h"
-#include "app/gfx/debug/performance/performance_profiler.h"
+#include "app/editor/registry/undo_action.h"
 #include "app/gfx/render/tilemap.h"
 #include "app/gfx/resource/arena.h"
 #include "app/gui/canvas/canvas.h"
 #include "app/gui/core/icons.h"
-#include "app/gui/core/style.h"
 #include "imgui/imgui.h"
-#include "nlohmann/json.hpp"
-#include "util/log.h"
+#include "util/i18n/tr.h"
 #include "util/macro.h"
 #include "util/platform_paths.h"
-#include "zelda3/overworld/overworld.h"
 
 namespace yaze::editor {
-
-using namespace ImGui;
-
 namespace {
-
-constexpr int kScratchPadVersion = 1;
-constexpr const char* kScratchPadFileName = "ScratchPad.dat";
 
 absl::StatusOr<std::filesystem::path> GetScratchPadPath() {
   ASSIGN_OR_RETURN(auto config_dir, util::PlatformPaths::GetConfigDirectory());
-  return config_dir / kScratchPadFileName;
+  return config_dir / "ScratchPad.dat";
 }
+
+// DrawBitmap offsets are screen pixels; scrolling is already in screen space.
+// Canvas's old drawn_tile_position is owned by its bitmap painter, which this
+// Tile16 workspace does not invoke.
+ImVec2 ScratchMousePosition(const gui::Canvas& canvas) {
+  const float scale = std::max(0.01f, canvas.GetGlobalScale());
+  const auto mouse = ImGui::GetIO().MousePos;
+  const auto origin = canvas.zero_point();
+  const auto scroll = canvas.scrolling();
+  return ImVec2((mouse.x - origin.x - scroll.x - 2) / scale,
+                (mouse.y - origin.y - scroll.y - 2) / scale);
+}
+
+uint64_t ScratchPreviewRevision(const ScratchPage& page, gfx::Tilemap& atlas,
+                                bool loaded) {
+  uint64_t hash = 1469598103934665603ULL;
+  const auto add = [&hash](uint64_t value) {
+    hash = (hash ^ value) * 1099511628211ULL;
+  };
+  add(loaded);
+  add(atlas.atlas.width());
+  add(atlas.atlas.height());
+  for (size_t i = 0; i < atlas.atlas.palette().size(); ++i)
+    add(atlas.atlas.palette()[i].snes());
+  if (loaded && page.in_use) {
+    std::set<int> ids;
+    for (int y = 0; y < page.height; ++y)
+      for (int x = 0; x < page.width; ++x)
+        ids.insert(page.tile_data[x][y]);
+    for (const int id : ids) {
+      add(id);
+      for (const auto pixel : gfx::GetTilemapData(atlas, id))
+        add(pixel);
+    }
+  }
+  return hash;
+}
+
+class ScratchWorkspaceUndoAction final : public UndoAction {
+ public:
+  using Apply = std::function<absl::Status(const ScratchWorkspaceState&)>;
+  ScratchWorkspaceUndoAction(ScratchWorkspaceState before,
+                             ScratchWorkspaceState after, Apply apply,
+                             std::string description)
+      : before_(std::move(before)),
+        after_(std::move(after)),
+        apply_(std::move(apply)),
+        description_(std::move(description)) {}
+
+  absl::Status Undo() override { return apply_(before_); }
+  absl::Status Redo() override { return apply_(after_); }
+  std::string Description() const override { return description_; }
+  size_t MemoryUsage() const override {
+    return sizeof(*this) +
+           (before_.pages.size() + after_.pages.size()) * sizeof(ScratchPage);
+  }
+
+ private:
+  ScratchWorkspaceState before_;
+  ScratchWorkspaceState after_;
+  Apply apply_;
+  std::string description_;
+};
 
 }  // namespace
 
-// =============================================================================
-// Scratch Space - Unified Single Workspace
-// =============================================================================
-
 absl::Status OverworldEditor::LoadScratchPad() {
-  ASSIGN_OR_RETURN(auto path, GetScratchPadPath());
-  if (!std::filesystem::exists(path)) {
-    return absl::OkStatus();
+  if (scratch_initialized_)
+    return RebuildScratchBitmapFromTileData();
+  const auto path = GetScratchPadPath();
+  if (!path.ok()) {
+    scratch_load_status_ = path.status();
+    return scratch_load_status_;
   }
-
-  std::ifstream input(path);
-  if (!input.is_open()) {
-    return absl::InternalError(
-        absl::StrFormat("Could not open %s", path.string()));
-  }
-
-  auto root = nlohmann::json::parse(input, nullptr, false);
-  if (root.is_discarded() || !root.is_object()) {
-    return absl::DataLossError(
-        absl::StrFormat("Invalid scratch pad JSON in %s", path.string()));
-  }
-
-  scratch_space_.width = std::clamp(root.value("width", 16), 1, 32);
-  scratch_space_.height = std::clamp(root.value("height", 16), 1, 32);
-  scratch_space_.name = root.value("name", std::string("Scratch Space"));
-  scratch_space_.in_use = root.value("in_use", false);
-
-  for (auto& row : scratch_space_.tile_data) {
-    row.fill(0);
-  }
-
-  if (root.contains("tiles") && root["tiles"].is_array()) {
-    const auto& rows = root["tiles"];
-    for (size_t y = 0; y < rows.size() && y < 32; ++y) {
-      if (!rows[y].is_array()) {
-        continue;
-      }
-      const auto& row = rows[y];
-      for (size_t x = 0; x < row.size() && x < 32; ++x) {
-        scratch_space_.tile_data[x][y] = row[x].get<int>();
-      }
-    }
-  }
-
+  scratch_load_status_ = scratch_workspace_.Load(*path);
+  if (!scratch_load_status_.ok())
+    return scratch_load_status_;
+  scratch_initialized_ = true;
+  scratch_path_ = *path;
+  scratch_save_status_ = absl::OkStatus();
   scratch_space_dirty_ = false;
+  scratch_edit_before_.reset();
   return RebuildScratchBitmapFromTileData();
 }
 
-absl::Status OverworldEditor::SaveScratchPad() const {
-  ASSIGN_OR_RETURN(auto path, GetScratchPadPath());
-
-  nlohmann::json root;
-  root["version"] = kScratchPadVersion;
-  root["name"] = scratch_space_.name;
-  root["in_use"] = scratch_space_.in_use;
-  root["width"] = std::clamp(scratch_space_.width, 1, 32);
-  root["height"] = std::clamp(scratch_space_.height, 1, 32);
-  root["tiles"] = nlohmann::json::array();
-
-  for (int y = 0; y < root["height"].get<int>(); ++y) {
-    nlohmann::json row = nlohmann::json::array();
-    for (int x = 0; x < root["width"].get<int>(); ++x) {
-      row.push_back(scratch_space_.tile_data[x][y]);
-    }
-    root["tiles"].push_back(std::move(row));
-  }
-
-  std::ofstream output(path, std::ios::trunc);
-  if (!output.is_open()) {
-    return absl::InternalError(
-        absl::StrFormat("Could not write %s", path.string()));
-  }
-  output << root.dump(2) << '\n';
-  return absl::OkStatus();
+absl::Status OverworldEditor::SaveScratchPad() {
+  if (scratch_path_.empty())
+    return absl::FailedPreconditionError("Scratch workspace is not loaded");
+  return scratch_workspace_.Save(scratch_path_);
 }
 
 absl::Status OverworldEditor::FlushScratchPadIfDirty() {
-  if (!scratch_space_dirty_) {
+  if (!scratch_space_dirty_)
     return absl::OkStatus();
-  }
-  RETURN_IF_ERROR(SaveScratchPad());
+  scratch_save_status_ = SaveScratchPad();
+  RETURN_IF_ERROR(scratch_save_status_);
   scratch_space_dirty_ = false;
   return absl::OkStatus();
 }
 
 void OverworldEditor::MarkScratchSpaceDirty() {
   scratch_space_dirty_ = true;
+  scratch_save_status_ = absl::OkStatus();
+}
+
+void OverworldEditor::BeginScratchEdit() {
+  if (!scratch_edit_before_) {
+    FinalizePaintOperation();
+    scratch_edit_before_ = scratch_workspace_.state();
+  }
+}
+
+void OverworldEditor::FinishScratchEdit(const std::string& description) {
+  scratch_paint_gesture_owned_ = false;
+  if (!scratch_edit_before_)
+    return;
+  if (!(*scratch_edit_before_ == scratch_workspace_.state())) {
+    MarkScratchSpaceDirty();
+    undo_manager_.Push(std::make_unique<ScratchWorkspaceUndoAction>(
+        std::move(*scratch_edit_before_), scratch_workspace_.state(),
+        [this](const ScratchWorkspaceState& state) {
+          return RestoreScratchState(state);
+        },
+        description));
+  }
+  scratch_edit_before_.reset();
+}
+
+absl::Status OverworldEditor::RestoreScratchState(
+    const ScratchWorkspaceState& state) {
+  scratch_workspace_.Restore(state);
+  MarkScratchSpaceDirty();
+  RETURN_IF_ERROR(RebuildScratchBitmapFromTileData());
+  // Keep the Undo operation usable after a save failure; dirty state protects
+  // the recoverable snapshot and normal Save retries persistence.
+  (void)FlushScratchPadIfDirty();
+  return absl::OkStatus();
 }
 
 absl::Status OverworldEditor::RebuildScratchBitmapFromTileData() {
-  const int bitmap_width = scratch_space_.width * 16;
-  const int bitmap_height = scratch_space_.height * 16;
-  std::vector<uint8_t> empty_data(bitmap_width * bitmap_height, 0);
-  const bool was_in_use = scratch_space_.in_use;
-
-  scratch_space_.scratch_bitmap.Create(bitmap_width, bitmap_height, 8,
-                                       empty_data);
-  if (all_gfx_loaded_) {
-    palette_ = overworld_.current_area_palette();
-    scratch_space_.scratch_bitmap.SetPalette(palette_);
-    gfx::Arena::Get().QueueTextureCommand(
-        gfx::Arena::TextureCommandType::CREATE, &scratch_space_.scratch_bitmap);
-  }
-
-  if (map_blockset_loaded_ && was_in_use) {
-    for (int y = 0; y < scratch_space_.height && y < 32; ++y) {
-      for (int x = 0; x < scratch_space_.width && x < 32; ++x) {
-        UpdateScratchBitmapTile(x, y, scratch_space_.tile_data[x][y]);
+  const auto& page = scratch_workspace_.current();
+  const int width = page.width * 32;
+  const int height = page.height * 32;
+  std::vector<uint8_t> pixels(width * height, 0);
+  if (map_blockset_loaded_ && page.in_use) {
+    for (int ty = 0; ty < page.height; ++ty) {
+      for (int tx = 0; tx < page.width; ++tx) {
+        const auto tile =
+            gfx::GetTilemapData(tile16_blockset_, page.tile_data[tx][ty]);
+        if (tile.size() != 16 * 16)
+          continue;
+        for (int y = 0; y < 32; ++y)
+          for (int x = 0; x < 32; ++x)
+            pixels[(ty * 32 + y) * width + tx * 32 + x] =
+                tile[(y / 2) * 16 + x / 2];
       }
     }
   }
-  scratch_space_.in_use = was_in_use;
+  scratch_bitmap_.Create(width, height, 8, pixels);
+  // The Tile16 atlas already carries the currently selected area's palette.
+  // Watch its actual colors, since in-place palette/Tile16 edits do not create
+  // a new Bitmap resource generation.
+  scratch_bitmap_.SetPalette(tile16_blockset_.atlas.palette());
+  if (all_gfx_loaded_) {
+    gfx::Arena::Get().QueueTextureCommand(
+        gfx::Arena::TextureCommandType::CREATE, &scratch_bitmap_);
+  }
+  scratch_preview_map_ = current_map_;
+  scratch_preview_revision_ =
+      ScratchPreviewRevision(page, tile16_blockset_, map_blockset_loaded_);
   return absl::OkStatus();
 }
 
 absl::Status OverworldEditor::DrawScratchSpace() {
+  using namespace ImGui;
   if (is_lyra_preview()) {
-    ImGui::TextDisabled("Lyra preview: scratch editing unavailable");
+    TextDisabled("Lyra preview: scratch editing unavailable");
     return absl::OkStatus();
   }
-  // Header with clear button
-  Text(ICON_MD_BRUSH " Scratch Workspace");
-  SameLine();
-  if (Button(tr("Clear"))) {
-    RETURN_IF_ERROR(ClearScratchSpace());
-  }
-  HOVER_HINT("Clear scratch workspace");
-
-  // Status info
-  Text(tr("%s (%dx%d)"), scratch_space_.name.c_str(), scratch_space_.width,
-       scratch_space_.height);
-
-  // Interaction hints
-  if (ow_map_canvas_.select_rect_active() &&
-      !ow_map_canvas_.selected_tiles().empty()) {
-    TextColored(
-        ImVec4(0.4f, 1.0f, 0.4f, 1.0f), ICON_MD_CONTENT_PASTE
-        " Overworld selection active! Click in scratch space to stamp.");
-  } else {
-    Text(tr("Left-click to paint with current tile."));
-    Text(tr("Right-click to select tiles."));
+  if (!scratch_load_status_.ok()) {
+    TextWrapped("Scratch workspace retained on disk: %s",
+                std::string(scratch_load_status_.message()).c_str());
+    if (Button(tr("Retry loading scratch workspace")))
+      return LoadScratchPad();
+    return absl::OkStatus();
   }
 
-  // Initialize scratch bitmap if needed
-  if (!scratch_space_.scratch_bitmap.is_active()) {
-    int bitmap_width = scratch_space_.width * 16;
-    int bitmap_height = scratch_space_.height * 16;
-    std::vector<uint8_t> empty_data(bitmap_width * bitmap_height, 0);
-    scratch_space_.scratch_bitmap.Create(bitmap_width, bitmap_height, 8,
-                                         empty_data);
-    if (all_gfx_loaded_) {
-      palette_ = overworld_.current_area_palette();
-      scratch_space_.scratch_bitmap.SetPalette(palette_);
-      gfx::Arena::Get().QueueTextureCommand(
-          gfx::Arena::TextureCommandType::CREATE,
-          &scratch_space_.scratch_bitmap);
-    }
-  }
-
-  // Draw the scratch space canvas using modern BeginCanvas/EndCanvas pattern
-  gui::BeginPadding(3);
-  ImGui::BeginGroup();
-
-  ImVec2 scratch_content_size(scratch_space_.width * 16 + 4,
-                              scratch_space_.height * 16 + 4);
-
-  // Configure canvas frame options
-  gui::CanvasFrameOptions frame_opts;
-  frame_opts.canvas_size = scratch_content_size;
-  frame_opts.draw_grid = true;
-  frame_opts.grid_step = 32.0f;          // Tile16 grid (32px = 2x tile scale)
-  frame_opts.draw_context_menu = false;  // No context menu for scratch
-  frame_opts.draw_overlay = true;
-  frame_opts.render_popups = false;
-  frame_opts.use_child_window = false;
-
-  gui::BeginChildWithScrollbar("##ScratchSpaceScrollRegion",
-                               scratch_content_size);
-
-  auto canvas_rt = gui::BeginCanvas(scratch_canvas_, frame_opts);
-  gui::EndPadding();
-
-  if (scratch_space_.scratch_bitmap.is_active()) {
-    scratch_canvas_.DrawBitmap(scratch_space_.scratch_bitmap, 2, 2, 1.0f);
-  }
-
-  if (map_blockset_loaded_) {
-    scratch_canvas_.DrawTileSelector(32.0f);
-  }
-
-  // Handle Interactions using runtime hover state
-  if (canvas_rt.hovered) {
-    if (ow_map_canvas_.select_rect_active() &&
-        !ow_map_canvas_.selected_tiles().empty()) {
-      if (ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
-        RETURN_IF_ERROR(SaveCurrentSelectionToScratch());
+  const auto report = [this](absl::Status status) {
+    scratch_action_status_ = std::move(status);
+  };
+  TextUnformatted(ICON_MD_BRUSH " Scratch Workspace");
+  TextWrapped(
+      "Named layouts stay outside the ROM. Tile16 references preview "
+      "with the current area's graphics and palette.");
+  if (BeginCombo("Layout", scratch_workspace_.current().name.c_str())) {
+    for (const auto& page : scratch_workspace_.state().pages) {
+      PushID(std::to_string(page.id).c_str());
+      if (Selectable(page.name.c_str(),
+                     page.id == scratch_workspace_.state().selected_id)) {
+        FinishScratchEdit("Edit scratch layout");
+        scratch_workspace_.Select(page.id);
+        MarkScratchSpaceDirty();
+        report(RebuildScratchBitmapFromTileData());
       }
-    } else if (current_mode == EditingMode::DRAW_TILE ||
-               ImGui::IsMouseDown(ImGuiMouseButton_Left)) {
-      DrawScratchSpaceEdits();
+      PopID();
+    }
+    EndCombo();
+  }
+  BeginDisabled(scratch_workspace_.state().pages.size() >=
+                ScratchWorkspace::kMaxPages);
+  if (Button(tr("New layout"))) {
+    BeginScratchEdit();
+    const auto status = scratch_workspace_.AddPage();
+    FinishScratchEdit("New scratch layout");
+    report(status.ok() ? RebuildScratchBitmapFromTileData() : status);
+  }
+  SameLine();
+  if (Button(tr("Duplicate"))) {
+    BeginScratchEdit();
+    const auto status = scratch_workspace_.AddPage(true);
+    FinishScratchEdit("Duplicate scratch layout");
+    report(status.ok() ? RebuildScratchBitmapFromTileData() : status);
+  }
+  SameLine();
+  if (Button(tr("Capture selection")))
+    report(SaveCurrentSelectionToScratch());
+  EndDisabled();
+  BeginDisabled(scratch_workspace_.state().pages.size() <= 1);
+  if (Button(tr("Remove layout"))) {
+    BeginScratchEdit();
+    const auto status = scratch_workspace_.DeletePage();
+    FinishScratchEdit("Remove scratch layout");
+    report(status.ok() ? RebuildScratchBitmapFromTileData() : status);
+  }
+  EndDisabled();
+
+  const auto& page = scratch_workspace_.current();
+  if (scratch_name_id_ != page.id || !IsAnyItemActive()) {
+    scratch_name_buffer_.fill('\0');
+    std::memcpy(scratch_name_buffer_.data(), page.name.data(),
+                page.name.size());
+    scratch_name_id_ = page.id;
+  }
+  if (InputText("Name", scratch_name_buffer_.data(),
+                scratch_name_buffer_.size(),
+                ImGuiInputTextFlags_EnterReturnsTrue)) {
+    BeginScratchEdit();
+    report(scratch_workspace_.Rename(scratch_name_buffer_.data()));
+    FinishScratchEdit("Rename scratch layout");
+  }
+  int dimensions[] = {page.width, page.height};
+  if (InputInt2("Size in tiles", dimensions,
+                ImGuiInputTextFlags_EnterReturnsTrue)) {
+    BeginScratchEdit();
+    const auto resize = scratch_workspace_.Resize(dimensions[0], dimensions[1]);
+    FinishScratchEdit("Resize scratch layout");
+    if (resize.ok())
+      report(RebuildScratchBitmapFromTileData());
+    else
+      report(resize);
+  }
+
+  BeginDisabled(!page.in_use);
+  if (Button(tr("Copy layout as brush")))
+    report(LoadScratchToSelection());
+  EndDisabled();
+  SameLine();
+  if (Button(tr("Clear layout")))
+    report(ClearScratchSpace());
+  SameLine();
+  if (Button(tr("Refresh preview")))
+    report(RebuildScratchBitmapFromTileData());
+
+  TextWrapped(
+      "Left-drag paints the selected Tile16. A map selection stamps "
+      "on click. Right-click picks a Tile16. Copy a layout, hover "
+      "the map, and use Paste to place it.");
+  if (!scratch_bitmap_.is_active() || scratch_preview_map_ != current_map_ ||
+      scratch_preview_revision_ !=
+          ScratchPreviewRevision(page, tile16_blockset_, map_blockset_loaded_))
+    report(RebuildScratchBitmapFromTileData());
+
+  gui::CanvasFrameOptions options;
+  options.canvas_size = ImVec2(page.width * 32 + 4, page.height * 32 + 4);
+  options.draw_grid = true;
+  options.grid_step = 32.0f;
+  options.draw_context_menu = false;
+  options.draw_overlay = true;
+  options.render_popups = false;
+  options.use_child_window = false;
+  gui::BeginChildWithScrollbar(
+      "##ScratchSpaceScrollRegion",
+      ImVec2(0, std::max(150.0f, GetContentRegionAvail().y - 28)));
+  auto canvas = gui::BeginCanvas(scratch_canvas_, options);
+  scratch_canvas_.DrawBitmap(scratch_bitmap_, 2, 2, canvas.scale);
+  if (map_blockset_loaded_)
+    scratch_canvas_.DrawTileSelector(32);
+  if (canvas.hovered && map_blockset_loaded_) {
+    const auto cursor = ScratchMousePosition(scratch_canvas_);
+    const int x = static_cast<int>(std::floor(cursor.x / 32));
+    const int y = static_cast<int>(std::floor(cursor.y / 32));
+    if (x >= 0 && y >= 0 && x < page.width && y < page.height) {
+      if (IsMouseClicked(ImGuiMouseButton_Right)) {
+        RequestTile16Selection(page.tile_data[x][y]);
+      }
+      const auto* brush =
+          tile_painting_ ? tile_painting_->selection_brush() : nullptr;
+      if (brush && IsMouseClicked(ImGuiMouseButton_Left)) {
+        BeginScratchEdit();
+        const auto status = scratch_workspace_.Stamp(*brush, x, y);
+        FinishScratchEdit("Stamp scratch layout");
+        if (!status.ok())
+          report(status);
+        else
+          report(RebuildScratchBitmapFromTileData());
+      } else if (!brush) {
+        if (IsMouseClicked(ImGuiMouseButton_Left)) {
+          BeginScratchEdit();
+          scratch_paint_gesture_owned_ = true;
+        }
+        if (scratch_paint_gesture_owned_ && IsMouseDown(ImGuiMouseButton_Left))
+          DrawScratchSpaceEdits();
+      }
     }
   }
-
-  gui::EndCanvas(scratch_canvas_, canvas_rt, frame_opts);
+  gui::EndCanvas(scratch_canvas_, canvas, options);
   EndChild();
-  ImGui::EndGroup();
-
-  if (!ImGui::IsMouseDown(ImGuiMouseButton_Left)) {
-    RETURN_IF_ERROR(FlushScratchPadIfDirty());
+  if (!IsMouseDown(ImGuiMouseButton_Left)) {
+    FinishScratchEdit("Paint scratch layout");
+    if (scratch_save_status_.ok())
+      (void)FlushScratchPadIfDirty();
   }
-
+  if (!scratch_action_status_.ok())
+    TextWrapped("Scratch action: %s",
+                std::string(scratch_action_status_.message()).c_str());
+  if (!scratch_save_status_.ok()) {
+    TextWrapped("Unsaved scratch layouts: %s",
+                std::string(scratch_save_status_.message()).c_str());
+    if (Button(tr("Retry scratch save")))
+      (void)FlushScratchPadIfDirty();
+  }
   return absl::OkStatus();
 }
 
 void OverworldEditor::DrawScratchSpaceEdits() {
-  auto mouse_position = scratch_canvas_.drawn_tile_position();
-  int grid_size = 32;
-
-  int tile_x = static_cast<int>(mouse_position.x) / grid_size;
-  int tile_y = static_cast<int>(mouse_position.y) / grid_size;
-
-  int max_width = scratch_space_.width > 0 ? scratch_space_.width : 20;
-  int max_height = scratch_space_.height > 0 ? scratch_space_.height : 30;
-
-  if (tile_x >= 0 && tile_x < max_width && tile_y >= 0 && tile_y < max_height) {
-    bool changed = false;
-    if (tile_x < 32 && tile_y < 32) {
-      changed = scratch_space_.tile_data[tile_x][tile_y] != current_tile16_;
-      scratch_space_.tile_data[tile_x][tile_y] = current_tile16_;
-    }
-
-    if (changed) {
-      UpdateScratchBitmapTile(tile_x, tile_y, current_tile16_);
-    }
-
-    if (!scratch_space_.in_use) {
-      scratch_space_.in_use = true;
-      scratch_space_.name = "Modified Layout";
-      changed = true;
-      UpdateScratchBitmapTile(tile_x, tile_y, current_tile16_);
-    }
-    if (changed) {
-      MarkScratchSpaceDirty();
-    }
+  const auto cursor = ScratchMousePosition(scratch_canvas_);
+  const int x = static_cast<int>(std::floor(cursor.x / 32));
+  const int y = static_cast<int>(std::floor(cursor.y / 32));
+  auto& page = scratch_workspace_.current();
+  if (x < 0 || y < 0 || x >= page.width || y >= page.height ||
+      current_tile16_ < 0 || current_tile16_ > 0xFFFF)
+    return;
+  if (page.in_use && page.tile_data[x][y] == current_tile16_)
+    return;
+  if (scratch_workspace_.Stamp({1, 1, {current_tile16_}}, x, y).ok()) {
+    MarkScratchSpaceDirty();
+    UpdateScratchBitmapTile(x, y, current_tile16_);
   }
 }
 
 void OverworldEditor::DrawScratchSpacePattern() {
-  auto mouse_position = scratch_canvas_.drawn_tile_position();
-
-  int start_tile_x = static_cast<int>(mouse_position.x) / 32;
-  int start_tile_y = static_cast<int>(mouse_position.y) / 32;
-
   if (!dependencies_.shared_clipboard ||
-      !dependencies_.shared_clipboard->has_overworld_tile16) {
+      !dependencies_.shared_clipboard->has_overworld_tile16)
     return;
-  }
-
-  const auto& tile_ids = dependencies_.shared_clipboard->overworld_tile16_ids;
-  int pattern_width = dependencies_.shared_clipboard->overworld_width;
-  int pattern_height = dependencies_.shared_clipboard->overworld_height;
-
-  if (tile_ids.empty())
-    return;
-
-  int max_width = scratch_space_.width > 0 ? scratch_space_.width : 20;
-  int max_height = scratch_space_.height > 0 ? scratch_space_.height : 30;
-
-  int idx = 0;
-  for (int py = 0; py < pattern_height && (start_tile_y + py) < max_height;
-       ++py) {
-    for (int px = 0; px < pattern_width && (start_tile_x + px) < max_width;
-         ++px) {
-      if (idx < static_cast<int>(tile_ids.size())) {
-        int tile_id = tile_ids[idx];
-        int scratch_x = start_tile_x + px;
-        int scratch_y = start_tile_y + py;
-
-        if (scratch_x >= 0 && scratch_x < 32 && scratch_y >= 0 &&
-            scratch_y < 32) {
-          scratch_space_.tile_data[scratch_x][scratch_y] = tile_id;
-          UpdateScratchBitmapTile(scratch_x, scratch_y, tile_id);
-        }
-        idx++;
-      }
-    }
-  }
-
-  scratch_space_.in_use = true;
-  if (scratch_space_.name == "Scratch Space") {
-    scratch_space_.name =
-        absl::StrFormat("Pattern %dx%d", pattern_width, pattern_height);
-  }
-  MarkScratchSpaceDirty();
+  const auto& clipboard = *dependencies_.shared_clipboard;
+  const auto cursor = ScratchMousePosition(scratch_canvas_);
+  BeginScratchEdit();
+  const auto status = scratch_workspace_.Stamp(
+      {clipboard.overworld_width, clipboard.overworld_height,
+       clipboard.overworld_tile16_ids},
+      static_cast<int>(std::floor(cursor.x / 32)),
+      static_cast<int>(std::floor(cursor.y / 32)));
+  FinishScratchEdit("Stamp scratch layout");
+  if (status.ok())
+    (void)RebuildScratchBitmapFromTileData();
+  else
+    status_ = status;
 }
 
 void OverworldEditor::UpdateScratchBitmapTile(int tile_x, int tile_y,
                                               int tile_id) {
-  gfx::ScopedTimer timer("overworld_update_scratch_tile");
-
-  auto tile_data = gfx::GetTilemapData(tile16_blockset_, tile_id);
-  if (tile_data.empty())
+  const auto tile = gfx::GetTilemapData(tile16_blockset_, tile_id);
+  if (tile.size() != 16 * 16)
     return;
-
-  const int grid_size = 32;
-  int scratch_bitmap_width = scratch_space_.scratch_bitmap.width();
-  int scratch_bitmap_height = scratch_space_.scratch_bitmap.height();
-
-  for (int y = 0; y < 16; ++y) {
-    for (int x = 0; x < 16; ++x) {
-      int src_index = y * 16 + x;
-
-      int dst_x = tile_x * grid_size + x + x;
-      int dst_y = tile_y * grid_size + y + y;
-
-      if (dst_x >= 0 && dst_x < scratch_bitmap_width && dst_y >= 0 &&
-          dst_y < scratch_bitmap_height &&
-          src_index < static_cast<int>(tile_data.size())) {
-        for (int py = 0; py < 2 && (dst_y + py) < scratch_bitmap_height; ++py) {
-          for (int px = 0; px < 2 && (dst_x + px) < scratch_bitmap_width;
-               ++px) {
-            int dst_index = (dst_y + py) * scratch_bitmap_width + (dst_x + px);
-            scratch_space_.scratch_bitmap.WriteToPixel(dst_index,
-                                                       tile_data[src_index]);
-          }
-        }
-      }
-    }
-  }
-
-  scratch_space_.scratch_bitmap.set_modified(true);
+  for (int y = 0; y < 32; ++y)
+    for (int x = 0; x < 32; ++x)
+      scratch_bitmap_.WriteToPixel(
+          (tile_y * 32 + y) * scratch_bitmap_.width() + tile_x * 32 + x,
+          tile[(y / 2) * 16 + x / 2]);
+  scratch_bitmap_.set_modified(true);
   gfx::Arena::Get().QueueTextureCommand(gfx::Arena::TextureCommandType::UPDATE,
-                                        &scratch_space_.scratch_bitmap);
-  scratch_space_.in_use = true;
+                                        &scratch_bitmap_);
 }
 
 absl::Status OverworldEditor::SaveCurrentSelectionToScratch() {
-  gfx::ScopedTimer timer("overworld_save_selection_to_scratch");
-
   const auto* brush =
       tile_painting_ ? tile_painting_->selection_brush() : nullptr;
-  if (brush) {
-    scratch_space_.width = std::min(brush->width, 32);
-    scratch_space_.height = std::min(brush->height, 32);
-    scratch_space_.in_use = true;
-    scratch_space_.name = absl::StrFormat(
-        "Selection %dx%d", scratch_space_.width, scratch_space_.height);
-
-    const int bitmap_width = scratch_space_.width * 16;
-    const int bitmap_height = scratch_space_.height * 16;
-    scratch_space_.scratch_bitmap.Create(
-        bitmap_width, bitmap_height, 8,
-        std::vector<uint8_t>(bitmap_width * bitmap_height, 0));
-    if (all_gfx_loaded_) {
-      palette_ = overworld_.current_area_palette();
-      scratch_space_.scratch_bitmap.SetPalette(palette_);
-      gfx::Arena::Get().QueueTextureCommand(
-          gfx::Arena::TextureCommandType::CREATE,
-          &scratch_space_.scratch_bitmap);
-    }
-    for (int y = 0; y < scratch_space_.height; ++y) {
-      for (int x = 0; x < scratch_space_.width; ++x) {
-        const int tile_id = brush->at(x, y);
-        scratch_space_.tile_data[x][y] = tile_id;
-        UpdateScratchBitmapTile(x, y, tile_id);
-      }
-    }
-  } else {
-    scratch_space_.width = 16;
-    scratch_space_.height = 16;
-    scratch_space_.name = absl::StrFormat("Map %d Area", current_map_);
-    scratch_space_.in_use = true;
-  }
-
-  MarkScratchSpaceDirty();
-  RETURN_IF_ERROR(FlushScratchPadIfDirty());
-  return absl::OkStatus();
+  if (!brush)
+    return absl::FailedPreconditionError("Select an overworld rectangle first");
+  BeginScratchEdit();
+  const auto status = scratch_workspace_.Capture(*brush, current_map_);
+  FinishScratchEdit("Capture map selection in scratch layout");
+  RETURN_IF_ERROR(status);
+  RETURN_IF_ERROR(RebuildScratchBitmapFromTileData());
+  return FlushScratchPadIfDirty();
 }
 
 absl::Status OverworldEditor::LoadScratchToSelection() {
-  if (!scratch_space_.in_use) {
-    return absl::FailedPreconditionError("Scratch space is empty");
-  }
-
-  util::logf("Loading scratch space: %s", scratch_space_.name.c_str());
-
+  if (!dependencies_.shared_clipboard)
+    return absl::FailedPreconditionError("Clipboard unavailable");
+  const auto& page = scratch_workspace_.current();
+  if (!page.in_use)
+    return absl::FailedPreconditionError("Scratch layout is empty");
+  const auto brush = page.AsBrush();
+  if (overworld_.is_loaded() &&
+      std::any_of(brush.tile_ids.begin(), brush.tile_ids.end(), [this](int id) {
+        return id >= static_cast<int>(overworld_.tiles16().size());
+      }))
+    return absl::FailedPreconditionError(
+        "Scratch layout references Tile16 IDs absent from this ROM");
+  dependencies_.shared_clipboard->overworld_tile16_ids = brush.tile_ids;
+  dependencies_.shared_clipboard->overworld_width = brush.width;
+  dependencies_.shared_clipboard->overworld_height = brush.height;
+  dependencies_.shared_clipboard->has_overworld_tile16 = true;
   return absl::OkStatus();
 }
 
 absl::Status OverworldEditor::ClearScratchSpace() {
-  scratch_space_.in_use = false;
-  scratch_space_.name = "Scratch Space";
-
-  // Clear tile data
-  for (auto& row : scratch_space_.tile_data) {
-    row.fill(0);
-  }
-
-  // Clear the bitmap
-  if (scratch_space_.scratch_bitmap.is_active()) {
-    auto& data = scratch_space_.scratch_bitmap.mutable_data();
-    std::fill(data.begin(), data.end(), 0);
-    scratch_space_.scratch_bitmap.set_modified(true);
-    gfx::Arena::Get().QueueTextureCommand(
-        gfx::Arena::TextureCommandType::UPDATE, &scratch_space_.scratch_bitmap);
-  }
-
-  MarkScratchSpaceDirty();
+  BeginScratchEdit();
+  scratch_workspace_.Clear();
+  FinishScratchEdit("Clear scratch layout");
+  RETURN_IF_ERROR(RebuildScratchBitmapFromTileData());
   return FlushScratchPadIfDirty();
 }
 

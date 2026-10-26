@@ -1,5 +1,6 @@
 #include "app/editor/overworld/tile16/tile16_edit_session.h"
 
+#include "app/editor/graphics/usage_preview.h"
 #include "app/editor/overworld/overworld_undo_actions.h"
 #include "app/gfx/resource/arena.h"
 #include "gtest/gtest.h"
@@ -71,6 +72,36 @@ TEST_F(Tile16DocumentHistoryTest, EditsApplyToDocumentWithoutWritingRomBytes) {
   EXPECT_TRUE(rom_.dirty());
   EXPECT_EQ(published_, (std::vector<size_t>{1}));
   EXPECT_EQ(boundaries_, 1);
+}
+
+TEST_F(Tile16DocumentHistoryTest,
+       GraphicsUsagePreviewFollowsUnsavedEditUndoRedo) {
+  zelda3::GameData data;
+  data.graphics_buffer.assign(223 * 4096, 1);
+  zelda3::OverworldMap map(0, &rom_, &data);
+  for (int slot = 0; slot < 8; ++slot)
+    *map.mutable_static_graphics(slot) = slot + 1;
+  std::vector<uint16_t> colors(256);
+  for (int i = 0; i < 256; ++i)
+    colors[i] = static_cast<uint16_t>((i / 16) * 31);
+  *map.mutable_current_palette() = gfx::SnesPalette(colors);
+  usage_preview::Tile16UsagePreview preview;
+  const auto rom_before = rom_.vector();
+  auto render = [&] {
+    EXPECT_TRUE(
+        preview.ConfigureFromLive(map, overworld_.tiles16(), &data).ok());
+    return preview.Render({}, {0}, 1, 1);
+  };
+  const auto before = render();
+  ASSERT_FALSE(before.empty());
+  ASSERT_TRUE(session_.ApplyPaletteToAll(6).ok());
+  const auto after = render();
+  EXPECT_GT(after.CountDifferentPixels(before), 0);
+  ASSERT_TRUE(history_.Undo().ok());
+  EXPECT_EQ(render().CountDifferentPixels(before), 0);
+  ASSERT_TRUE(history_.Redo().ok());
+  EXPECT_EQ(render().CountDifferentPixels(after), 0);
+  EXPECT_EQ(rom_.vector(), rom_before);
 }
 
 TEST_F(Tile16DocumentHistoryTest,

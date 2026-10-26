@@ -67,6 +67,10 @@ struct GraphicsEditContext {
   size_t selected_target = 0;
   std::function<absl::StatusOr<usage_preview::PreviewImage>()> render_preview;
   std::function<void()> return_to_source;
+  // Cheap source-model identity for unsaved Tile16, placement, and object
+  // edits. Sampled before rendering and again afterward because rendering can
+  // itself advance a source cache revision. Never performs a ROM write.
+  std::function<absl::StatusOr<uint64_t>()> preview_revision;
   std::string drawing_description;
   // Re-resolve display colors through the source loader without replacing
   // the selected raw sheet/tile or pending pixel edits.

@@ -13,6 +13,7 @@
 #include "util/i18n/tr.h"
 #include "util/macro.h"
 #include "zelda3/dungeon/custom_object.h"
+#include "zelda3/overworld/overworld.h"
 #include "zelda3/sprite/sprite.h"
 #include "zelda3/sprite/sprite_sheet_slots.h"
 
@@ -59,6 +60,9 @@ void UsagePreviewView::InvalidateTables() {
   shared_room_preview_.Reset();
   source_dirty_ = true;
   source_render_time_ = -1.0;
+  source_model_revision_.reset();
+  live_tile16_hash_ = 0;
+  tile16_uses_live_source_ = false;
   tables_ready_ = false;
   room_blocks_.clear();
   fallback_room_blocks_.clear();
@@ -71,6 +75,8 @@ void UsagePreviewView::InvalidateTables() {
   last_render_time_ = -1.0;
   room_gfx_.clear();
   areas_.reset();
+  tile16_preview_ = usage_preview::Tile16UsagePreview{};
+  tile16s_.clear();
   room_preview_.Reset();
   configured_spriteset_ = -1;
   last_sheet_ = 0xFFFF;
@@ -286,10 +292,26 @@ void UsagePreviewView::DrawSourcePreview(bool show_controls) {
   const auto revision = gfx::PaletteManager::Get().ColorRevision(game_data_);
   if (rendered_source_revision_ != state_->source_context_revision ||
       source_palette_revision_ != revision) {
+    if (rendered_source_revision_ != state_->source_context_revision)
+      source_model_revision_.reset();
     rendered_source_revision_ = state_->source_context_revision;
     source_palette_revision_ = revision;
     source_dirty_ = true;
     source_render_time_ = -1.0;
+  }
+  if (live_ && source.preview_revision) {
+    const auto current = source.preview_revision();
+    if (!current.ok()) {
+      source_status_ = std::string(current.status().message());
+      source_dirty_ = true;
+      source_render_time_ = -1.0;
+      ImGui::TextWrapped("%s", source_status_.c_str());
+      return;
+    }
+    if (!source_model_revision_ || *source_model_revision_ != *current) {
+      source_model_revision_ = *current;
+      source_dirty_ = true;
+    }
   }
   // The independent Room chooser must not invalidate the captured Source.
   const uint64_t hash =
@@ -312,6 +334,13 @@ void UsagePreviewView::DrawSourcePreview(bool show_controls) {
         ShowImage(source_bitmap_, *rendered);
     }
     source_dirty_ = false;
+    // Rendering may refresh source caches. Sample after that work so a
+    // renderer's own revision does not cause another render every frame.
+    if (rendered.ok() && source.preview_revision) {
+      const auto current = source.preview_revision();
+      if (current.ok())
+        source_model_revision_ = *current;
+    }
     source_render_time_ = now;
   }
   if (!source_status_.empty()) {
@@ -887,23 +916,62 @@ void UsagePreviewView::DrawSpriteContext(bool render_now, float delta) {
 
 void UsagePreviewView::DrawTile16Context(bool render_now) {
   const uint16_t sheet = state_->current_sheet_id;
-  if (!areas_.has_value()) {
+  auto* live = live_overworld_provider_ ? live_overworld_provider_() : nullptr;
+  if (live && (!live->is_loaded() || live->rom() != rom_))
+    live = nullptr;
+  std::vector<int> choices;
+  if (live) {
+    for (const auto& map : live->overworld_maps()) {
+      if (!map.is_built() || map.game_data() != game_data_)
+        continue;
+      for (int slot = 0; slot < 8; ++slot) {
+        if (map.static_graphics(slot) == sheet) {
+          choices.push_back(map.index());
+          break;
+        }
+      }
+    }
+    const int current = live->current_map_id();
+    const auto preferred = std::find(choices.begin(), choices.end(), current);
+    if (preferred != choices.end())
+      std::rotate(choices.begin(), preferred, preferred + 1);
+  }
+  if (!areas_.has_value() && choices.empty()) {
     ImGui::TextDisabled(
-        "%s", tr("Reads all 160 overworld areas' graphics (about a second)."));
+        "%s", tr("Open an overworld area or load ROM area assignments."));
     if (ImGui::Button(tr("Load overworld areas"))) {
       areas_ = zelda3::CollectOverworldAreaGfx(*rom_, game_data_);
-      last_sheet_ = 0xFFFF;  // recompute the per-sheet lists
+      last_sheet_ = 0xFFFF;
     }
     return;
   }
-  if (areas_for_sheet_.empty()) {
+  if (!areas_ && !choices.empty() &&
+      ImGui::SmallButton(tr("Load other ROM areas"))) {
+    areas_ = zelda3::CollectOverworldAreaGfx(*rom_, game_data_);
+  }
+  if (areas_) {
     for (const auto& [area, info] : *areas_) {
       if (std::find(info.static_graphics.begin(),
                     info.static_graphics.begin() + 8,
-                    sheet) != info.static_graphics.begin() + 8) {
-        areas_for_sheet_.push_back(area);
+                    sheet) != info.static_graphics.begin() + 8 &&
+          std::find(choices.begin(), choices.end(), area) == choices.end()) {
+        choices.push_back(area);
       }
     }
+  }
+  if (choices != areas_for_sheet_) {
+    const int previous =
+        area_choice_ >= 0 &&
+                area_choice_ < static_cast<int>(areas_for_sheet_.size())
+            ? areas_for_sheet_[area_choice_]
+            : -1;
+    areas_for_sheet_ = std::move(choices);
+    const auto selected =
+        std::find(areas_for_sheet_.begin(), areas_for_sheet_.end(), previous);
+    area_choice_ = selected == areas_for_sheet_.end()
+                       ? 0
+                       : static_cast<int>(selected - areas_for_sheet_.begin());
+    render_now = true;
   }
   if (areas_for_sheet_.empty()) {
     ImGui::TextDisabled("%s", tr("No overworld area loads this sheet."));
@@ -936,10 +1004,48 @@ void UsagePreviewView::DrawTile16Context(bool render_now) {
   }
   const int tile_index = SelectedTileIndex();
 
-  if (tile16_preview_.area() != area) {
-    const auto status = tile16_preview_.Configure(rom_, game_data_, area);
-    status_ = status.ok() ? std::string() : std::string(status.message());
-    render_now = true;
+  const auto* live_map = live ? live->overworld_map(area) : nullptr;
+  if (live_map &&
+      (!live_map->is_built() || live_map->game_data() != game_data_))
+    live_map = nullptr;
+  if (live_map) {
+    uint64_t hash = kFnvOffset;
+    auto add = [&](uint64_t value) {
+      hash = (hash ^ value) * kFnvPrime;
+    };
+    add(area);
+    for (const auto& tile : live->tiles16())
+      for (const auto& quadrant : tile.tiles_info)
+        add(gfx::TileInfoToWord(quadrant));
+    for (const auto id : live_map->tileset_key()) {
+      add(id);
+      add(game_data_->sheet_store.Revision(id));
+    }
+    for (const auto& color : live_map->current_palette())
+      add(color.snes());
+    if (!tile16_uses_live_source_ || tile16_preview_.area() != area ||
+        live_tile16_hash_ != hash) {
+      const auto status = tile16_preview_.ConfigureFromLive(
+          *live_map, live->tiles16(), game_data_);
+      status_ = status.ok() ? std::string() : std::string(status.message());
+      if (!status.ok())
+        return;
+      tile16_uses_live_source_ = true;
+      live_tile16_hash_ = hash;
+      render_now = true;
+    }
+    ImGui::TextDisabled("%s", tr("Live overworld: unsaved Tile16 definitions"));
+  } else {
+    if (tile16_uses_live_source_ || tile16_preview_.area() != area) {
+      const auto status = tile16_preview_.Configure(rom_, game_data_, area);
+      status_ = status.ok() ? std::string() : std::string(status.message());
+      if (!status.ok())
+        return;
+      tile16_uses_live_source_ = false;
+      render_now = true;
+    }
+    ImGui::TextDisabled("%s",
+                        tr("ROM definitions: open this area for live edits"));
   }
   const auto tile16s = tile16_preview_.Tile16sUsingTile(sheet, tile_index);
   if (tile16s != tile16s_) {
