@@ -79,7 +79,13 @@ def verify(sidecar, output):
     expected_path = output / "expected-sidecar.json"
     if sha256(expected_path) != binding["expected_sha256"]:
         raise ValueError("Expected sidecar receipt changed")
-    if json.loads(sidecar.read_text()) != json.loads(expected_path.read_text()):
+    # Python equality aliases True/1 and 1.0/1. The native sidecar parser
+    # rejects those type changes; preserve them while ignoring key order.
+    def canonical(path):
+        return json.dumps(json.loads(path.read_text()), sort_keys=True,
+                          separators=(",", ":"), allow_nan=False)
+
+    if canonical(sidecar) != canonical(expected_path):
         raise ValueError("Saved Lyra sidecar differs from the single message edit")
     return {"sidecar_sha256": sha256(sidecar), "map_id": binding["map_id"],
             "message_id": binding["after_message_id"]}

@@ -61,6 +61,37 @@ class LyraGuiReplayTest(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "differs"):
                 REPLAY.verify(self.sidecar, self.output)
 
+    def check_integer_type_corruption(self, replacement):
+        self.original["maps"][0]["authoring"]["properties"]["message_id"] = 0
+        self.original["maps"][0]["tiles16"] = [[1]]
+        self.original["maps"][1]["authoring"]["properties"]["message_id"] = 1
+        self.original["profile"]["keep"] = 1
+        self.sidecar.write_text(json.dumps(self.original))
+        REPLAY.prepare(self.sidecar, self.output)
+        paths = [
+            ("maps", 0, "authoring", "properties", "message_id"),
+            ("maps", 1, "authoring", "properties", "message_id"),
+            ("maps", 0, "tiles16", 0, 0),
+            ("profile", "keep"),
+        ]
+        for path in paths:
+            with self.subTest(path=path, replacement=replacement):
+                changed = json.loads(
+                    (self.output / "expected-sidecar.json").read_text())
+                parent = changed
+                for key in path[:-1]:
+                    parent = parent[key]
+                parent[path[-1]] = replacement
+                self.sidecar.write_text(json.dumps(changed))
+                with self.assertRaisesRegex(ValueError, "differs"):
+                    REPLAY.verify(self.sidecar, self.output)
+
+    def test_verify_rejects_boolean_integer_aliases_throughout_document(self):
+        self.check_integer_type_corruption(True)
+
+    def test_verify_rejects_float_integer_aliases_throughout_document(self):
+        self.check_integer_type_corruption(1.0)
+
     def test_prepare_refuses_existing_evidence(self):
         REPLAY.prepare(self.sidecar, self.output)
         with self.assertRaises(FileExistsError):
