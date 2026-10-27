@@ -92,6 +92,7 @@ set(YAZE_CLI_CORE_SOURCES
   cli/handlers/rom/project_bundle_archive_commands.cc
   cli/handlers/rom/project_bundle_verify_commands.cc
   cli/handlers/rom/project_commands.cc
+  cli/handlers/rom/project_plan_commands.cc
   cli/handlers/rom/rom_commands.cc
 
   cli/handlers/tools/dungeon_doctor_commands.cc

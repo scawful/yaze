@@ -19,6 +19,7 @@
 #include "app/gui/core/icons.h"
 #include "app/gui/core/ui_helpers.h"
 #include "core/project.h"
+#include "core/project_plan_agent.h"
 #include "imgui/imgui.h"
 #include "imgui/misc/cpp/imgui_stdlib.h"
 
@@ -132,6 +133,13 @@ std::string StepLabel(const core::PlanRouteStep& step) {
   return step.code.empty() ? step.title : step.code;
 }
 
+std::string JsonString(const core::PlanJson& obj, const char* key,
+                       const char* fallback) {
+  auto it = obj.find(key);
+  return it != obj.end() && it->is_string() ? it->get<std::string>()
+                                            : std::string(fallback);
+}
+
 }  // namespace
 
 void PlanningEditor::Initialize() {
@@ -160,7 +168,20 @@ absl::Status PlanningEditor::Save() {
     return absl::FailedPreconditionError(
         "Restore the plan's project before saving its edits");
   }
-  absl::Status status = plan_->SaveToFile(plan_path_, loaded_source_);
+  std::string expected_source = loaded_source_;
+  std::string disk_source;
+  if (core::ProjectPlan::LoadFromFile(plan_path_, &disk_source).ok() &&
+      disk_source != loaded_source_) {
+    if (!core::AdoptPlanAgentOnlyChanges(&*plan_, loaded_source_,
+                                         disk_source)) {
+      save_error_ =
+          "The plan file changed outside agent status since it was loaded. "
+          "Your edits are kept; copy them, then Reload to see the file.";
+      return absl::AbortedError(save_error_);
+    }
+    expected_source = std::move(disk_source);
+  }
+  absl::Status status = plan_->SaveToFile(plan_path_, expected_source);
   if (!status.ok()) {
     save_error_ = std::string(status.message());
     return status;
@@ -333,6 +354,7 @@ void PlanningEditor::DrawOverview() {
   DrawMilestones();
   DrawRouteStrip();
   DrawDecisionQueue();
+  DrawAgentStatus();
   DrawReferences();
 }
 
@@ -462,6 +484,7 @@ void PlanningEditor::DrawRouteStrip() {
       ImGui::TextWrapped("%s", step.note.c_str());
     }
     DrawTargets(step.targets, "strip");
+    DrawAgentObservation("step:" + step.id);
     for (const auto* item : plan_->ItemsAtStep(step.id)) {
       ImGui::BulletText("%s", item->name.c_str());
       ImGui::SameLine();
@@ -507,6 +530,7 @@ void PlanningEditor::DrawDecisionQueue() {
       for (const auto& ref : d.refs) {
         ImGui::TextDisabled("%s", ref.c_str());
       }
+      DrawAgentObservation("decision:" + d.id);
       ImGui::TreePop();
     }
     ImGui::PopID();
@@ -666,6 +690,7 @@ void PlanningEditor::DrawStepDetail() {
                                 ImVec2(-1, ImGui::GetTextLineHeight() * 4))) {
     MarkDirty();
   }
+  DrawAgentObservation("step:" + step.id);
   if (ImGui::SmallButton(ICON_MD_DELETE " Remove step")) {
     steps.erase(steps.begin() + selected_step_);
     selected_step_ =
@@ -772,6 +797,7 @@ void PlanningEditor::DrawItems() {
                                 ImVec2(-1, ImGui::GetTextLineHeight() * 3))) {
     MarkDirty();
   }
+  DrawAgentObservation("item:" + item.id);
   for (const auto& need : item.needs) {
     const int step_index = plan_->FindStep(need.step);
     ImGui::BulletText("Needed at %s: %s",
@@ -785,6 +811,82 @@ void PlanningEditor::DrawItems() {
     selected_item_ = -1;
     MarkDirty();
   }
+  ImGui::PopID();
+}
+
+void PlanningEditor::DrawAgentStatus() {
+  const core::PlanJson* section = core::FindPlanAgentStatus(*plan_);
+  if (section == nullptr) {
+    return;
+  }
+  ImGui::SeparatorText(ICON_MD_SMART_TOY " Agent status");
+  const auto observations = section->find("observations");
+  const size_t count =
+      observations != section->end() && observations->is_object()
+          ? observations->size()
+          : 0;
+  ImGui::TextDisabled("%zu observations, updated %s by %s", count,
+                      JsonString(*section, "updated_utc", "-").c_str(),
+                      JsonString(*section, "agent", "-").c_str());
+  const auto orphans = core::OrphanedPlanAgentObservations(*plan_);
+  if (!orphans.empty()) {
+    gui::ColoredTextF(gui::GetWarningColor(),
+                      "%zu observations name entries no longer in the plan: %s",
+                      orphans.size(), absl::StrJoin(orphans, ", ").c_str());
+  }
+  if (count == 0 ||
+      !ImGui::TreeNode("##agent_observations", "Observations (%zu)", count)) {
+    return;
+  }
+  for (auto it = observations->begin(); it != observations->end(); ++it) {
+    ImGui::BulletText("%s", it.key().c_str());
+    const std::string state = JsonString(it.value(), "state", "");
+    if (!state.empty()) {
+      ImGui::SameLine();
+      gui::ColoredText(state.c_str(), gui::GetInfoColor());
+    }
+  }
+  ImGui::TreePop();
+}
+
+void PlanningEditor::DrawAgentObservation(const std::string& key) {
+  const core::PlanJson* obs = core::FindPlanAgentObservation(*plan_, key);
+  if (obs == nullptr) {
+    return;
+  }
+  ImGui::PushID(key.c_str());
+  ImGui::SeparatorText(ICON_MD_SMART_TOY " Agent status");
+  const std::string state = JsonString(*obs, "state", "");
+  if (!state.empty()) {
+    gui::ColoredText(state.c_str(), gui::GetInfoColor());
+  }
+  for (const char* field : {"summary", "next"}) {
+    const std::string text = JsonString(*obs, field, "");
+    if (!text.empty()) {
+      ImGui::TextWrapped("%s", text.c_str());
+    }
+  }
+  if (auto evidence = obs->find("evidence");
+      evidence != obs->end() && evidence->is_array()) {
+    for (const auto& entry : *evidence) {
+      if (entry.is_string()) {
+        ImGui::BulletText("%s", entry.get<std::string>().c_str());
+      }
+    }
+  }
+  if (auto prs = obs->find("prs"); prs != obs->end() && prs->is_array()) {
+    std::vector<std::string> labels;
+    for (const auto& pr : *prs) {
+      labels.push_back(pr.is_string() ? pr.get<std::string>()
+                                      : "#" + pr.dump());
+    }
+    ImGui::TextDisabled("PRs: %s", absl::StrJoin(labels, ", ").c_str());
+  }
+  ImGui::TextDisabled(
+      "%s %s - read-only; agents update this, your notes stay "
+      "yours",
+      JsonString(*obs, "agent", "").c_str(),
+      JsonString(*obs, "observed_utc", "").c_str());
   ImGui::PopID();
 }
 

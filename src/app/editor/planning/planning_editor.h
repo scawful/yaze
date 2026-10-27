@@ -57,6 +57,10 @@ class PlanningEditor : public Editor {
   void DrawRouteStrip();
   void DrawDecisionQueue();
   void DrawReferences();
+  void DrawAgentStatus();
+  // Read-only agent observation for "<kind>:<id>", drawn under the user's
+  // editable fields for that entry.
+  void DrawAgentObservation(const std::string& key);
   void DrawStepList();
   void DrawStepDetail();
   void DrawItems();
