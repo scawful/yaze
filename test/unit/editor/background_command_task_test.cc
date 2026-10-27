@@ -36,6 +36,31 @@ std::optional<std::string> GetEnvironmentValue(const char* name) {
   return std::string(value);
 }
 
+class ScopedEnvVar {
+ public:
+  ScopedEnvVar(const char* name, const std::string& value)
+      : name_(name), original_value_(GetEnvironmentValue(name)) {
+    EXPECT_EQ(setenv(name_.c_str(), value.c_str(), 1), 0);
+  }
+
+  ~ScopedEnvVar() {
+    if (original_value_.has_value()) {
+      EXPECT_EQ(setenv(name_.c_str(), original_value_->c_str(), 1), 0);
+    } else {
+      EXPECT_EQ(unsetenv(name_.c_str()), 0);
+    }
+  }
+
+  ScopedEnvVar(const ScopedEnvVar&) = delete;
+  ScopedEnvVar& operator=(const ScopedEnvVar&) = delete;
+
+ private:
+  std::string name_;
+  std::optional<std::string> original_value_;
+};
+
+constexpr char kInheritedVariable[] = "YAZE_BG_ENV_INHERITED";
+
 TEST(BackgroundCommandTaskTest, StreamsOutputWhileRunning) {
   BackgroundCommandTask task;
   ASSERT_TRUE(
@@ -62,42 +87,41 @@ TEST(BackgroundCommandTaskTest, StreamsOutputWhileRunning) {
 
 TEST(BackgroundCommandTaskTest,
      ChildEnvironmentOverridesInheritedValueWithoutChangingParent) {
-  const auto parent_value = GetEnvironmentValue("LOGNAME");
-  if (!parent_value.has_value()) {
-    GTEST_SKIP() << "LOGNAME must be inherited to test an override";
-  }
-  const std::string child_value = *parent_value + "_yaze_bg_child_override";
+  const std::string parent_value = "parent inherited value";
+  ScopedEnvVar inherited(kInheritedVariable, parent_value);
+  ASSERT_EQ(GetEnvironmentValue(kInheritedVariable), parent_value);
+  const std::string child_value = "child override value";
 
   BackgroundCommandTask task;
   ASSERT_TRUE(task.Start("printf '<yaze-bg-override>%s</yaze-bg-override>' "
-                         "\"$LOGNAME\"",
-                         ".", {{"LOGNAME", child_value}})
+                         "\"$YAZE_BG_ENV_INHERITED\"",
+                         ".", {{kInheritedVariable, child_value}})
                   .ok());
-  EXPECT_EQ(GetEnvironmentValue("LOGNAME"), parent_value);
+  EXPECT_EQ(GetEnvironmentValue(kInheritedVariable), parent_value);
   ASSERT_TRUE(task.Wait().ok());
   EXPECT_NE(task.GetSnapshot().output.find("<yaze-bg-override>" + child_value +
                                            "</yaze-bg-override>"),
             std::string::npos);
-  EXPECT_EQ(GetEnvironmentValue("LOGNAME"), parent_value);
+  EXPECT_EQ(GetEnvironmentValue(kInheritedVariable), parent_value);
 }
 
 TEST(BackgroundCommandTaskTest,
      EmptyChildEnvironmentValueClearsInheritedValue) {
-  const auto parent_value = GetEnvironmentValue("LOGNAME");
-  if (!parent_value.has_value() || parent_value->empty()) {
-    GTEST_SKIP() << "A nonempty inherited LOGNAME is needed to test clearing";
-  }
+  const std::string parent_value = "parent inherited value";
+  ScopedEnvVar inherited(kInheritedVariable, parent_value);
+  ASSERT_EQ(GetEnvironmentValue(kInheritedVariable), parent_value);
 
   BackgroundCommandTask task;
   ASSERT_TRUE(task.Start("printf '<yaze-bg-empty>%s:%s</yaze-bg-empty>' "
-                         "\"${LOGNAME+x}\" \"$LOGNAME\"",
-                         ".", {{"LOGNAME", ""}})
+                         "\"${YAZE_BG_ENV_INHERITED+x}\" "
+                         "\"$YAZE_BG_ENV_INHERITED\"",
+                         ".", {{kInheritedVariable, ""}})
                   .ok());
-  EXPECT_EQ(GetEnvironmentValue("LOGNAME"), parent_value);
+  EXPECT_EQ(GetEnvironmentValue(kInheritedVariable), parent_value);
   ASSERT_TRUE(task.Wait().ok());
   EXPECT_NE(task.GetSnapshot().output.find("<yaze-bg-empty>x:</yaze-bg-empty>"),
             std::string::npos);
-  EXPECT_EQ(GetEnvironmentValue("LOGNAME"), parent_value);
+  EXPECT_EQ(GetEnvironmentValue(kInheritedVariable), parent_value);
 }
 
 TEST(BackgroundCommandTaskTest,
@@ -123,25 +147,25 @@ TEST(BackgroundCommandTaskTest,
 
 TEST(BackgroundCommandTaskTest,
      ChildEnvironmentPreservesUnrelatedInheritedValue) {
-  const auto inherited_value = GetEnvironmentValue("LOGNAME");
-  if (!inherited_value.has_value()) {
-    GTEST_SKIP() << "LOGNAME must be inherited to test preservation";
-  }
+  const std::string inherited_value = "parent inherited value";
+  ScopedEnvVar inherited(kInheritedVariable, inherited_value);
+  ASSERT_EQ(GetEnvironmentValue(kInheritedVariable), inherited_value);
   constexpr char kVariable[] = "YAZE_BG_ENV_TEST_VALUE";
   const auto parent_value = GetEnvironmentValue(kVariable);
 
   BackgroundCommandTask task;
   ASSERT_TRUE(task.Start("printf '<yaze-bg-inherited>%s</yaze-bg-inherited>' "
-                         "\"$LOGNAME\"",
+                         "\"$YAZE_BG_ENV_INHERITED\"",
                          ".", {{kVariable, "child-only"}})
                   .ok());
+  EXPECT_EQ(GetEnvironmentValue(kInheritedVariable), inherited_value);
   EXPECT_EQ(GetEnvironmentValue(kVariable), parent_value);
   ASSERT_TRUE(task.Wait().ok());
   EXPECT_NE(
-      task.GetSnapshot().output.find("<yaze-bg-inherited>" + *inherited_value +
+      task.GetSnapshot().output.find("<yaze-bg-inherited>" + inherited_value +
                                      "</yaze-bg-inherited>"),
       std::string::npos);
-  EXPECT_EQ(GetEnvironmentValue("LOGNAME"), inherited_value);
+  EXPECT_EQ(GetEnvironmentValue(kInheritedVariable), inherited_value);
   EXPECT_EQ(GetEnvironmentValue(kVariable), parent_value);
 }
 
