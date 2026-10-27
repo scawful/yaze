@@ -1,10 +1,13 @@
 #include <algorithm>
 #include <cmath>
+#include <cstdint>
 #include <cstring>
 #include <filesystem>
 #include <functional>
 #include <memory>
 #include <set>
+#include <string>
+#include <utility>
 #include <vector>
 
 #include "absl/status/status.h"
@@ -15,6 +18,7 @@
 #include "app/gfx/resource/arena.h"
 #include "app/gui/canvas/canvas.h"
 #include "app/gui/core/icons.h"
+#include "app/gui/core/style.h"
 #include "imgui/imgui.h"
 #include "util/i18n/tr.h"
 #include "util/macro.h"

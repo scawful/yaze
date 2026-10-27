@@ -4,7 +4,9 @@
 #include <filesystem>
 #include <fstream>
 #include <iterator>
+#include <memory>
 #include <string>
+#include <system_error>
 
 #include "app/editor/editor_manager.h"
 #include "app/editor/layout/layout_coordinator.h"

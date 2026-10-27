@@ -4,10 +4,14 @@
 
 #include <atomic>
 #include <chrono>
+#include <cstdint>
 #include <filesystem>
 #include <fstream>
 #include <iterator>
+#include <memory>
 #include <string>
+#include <system_error>
+#include <vector>
 
 #include "app/gfx/resource/arena.h"
 #include "gtest/gtest.h"
