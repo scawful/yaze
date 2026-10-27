@@ -2,6 +2,7 @@
 #define YAZE_APP_EMU_AUDIO_S_DSP_H
 
 #include <cstdint>
+#include <iosfwd>
 #include <vector>
 
 namespace yaze {

@@ -2,6 +2,8 @@
 
 #include <cmath>
 #include <cstring>
+#include <istream>
+#include <ostream>
 
 namespace yaze {
 namespace emu {
