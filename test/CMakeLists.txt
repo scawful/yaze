@@ -330,6 +330,7 @@ if(YAZE_BUILD_TESTS)
     unit/gui/canvas_context_menu_role_test.cc
     unit/gui/item_context_menu_test.cc
     unit/zelda3/resource_labels_test.cc
+    unit/zelda3/entrance_names_issue_305_test.cc
     unit/zelda3/sprite_render_preview_test.cc
     unit/zelda3/sprite_catalog_test.cc
     unit/zelda3/dungeon/dungeon_stream_allocator_test.cc
