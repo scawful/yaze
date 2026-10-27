@@ -47,6 +47,10 @@ class LyraTerrainCanvas {
   absl::Status SaveAs(project::YazeProject* project,
                       const std::string& project_path,
                       zelda3::Overworld& overworld);
+  // Also used after native save to qualify a build receipt against the live
+  // document, including clean saves that do not republish the sidecar.
+  absl::Status ValidateSave(project::YazeProject* project,
+                            zelda3::Overworld& overworld);
   bool dirty() const;
   void ProjectSaveCommitted() { pending_project_commit_ = false; }
   bool loaded() const { return document_ != nullptr; }
@@ -130,8 +134,6 @@ class LyraTerrainCanvas {
   absl::Status BindSource(zelda3::Overworld& overworld,
                           core::LyraTerrainProfile* profile,
                           gfx::Bitmap* atlas = nullptr);
-  absl::Status ValidateSave(project::YazeProject* project,
-                            zelda3::Overworld& overworld);
   // Called only after document, native profile, and CPU atlas all validate.
   // Texture commands use the committed bitmap's stable member address.
   void InstallDocument(std::shared_ptr<core::LyraTerrainDocument> document,

@@ -22,6 +22,7 @@ set(YAZE_CORE_LIB_SOURCES
   gfx_sheet_policy_adapter.cc
   graphics_sheet_labels.cc
   hack_manifest.cc
+  native_save_receipt.cc
   oracle_menu_registry.cc
   oracle_progression.cc
   oracle_progression_loader.cc

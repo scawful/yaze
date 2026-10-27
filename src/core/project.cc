@@ -739,6 +739,62 @@ absl::Status YazeProject::LoadFromString(const std::string& content,
   return absl::OkStatus();
 }
 
+absl::Status YazeProject::ValidateSavedSourceBindings(
+    const std::string& content) const {
+  YazeProject saved;
+  saved.filepath = filepath;
+  try {
+    RETURN_IF_ERROR(saved.ParseFromString(content));
+    saved.NormalizePathsToAbsolute();
+  } catch (const std::exception& error) {
+    return absl::InvalidArgumentError(
+        std::string("Invalid saved project bindings: ") + error.what());
+  }
+  ASSIGN_OR_RETURN(const auto live_text, SerializeToString());
+  ASSIGN_OR_RETURN(const auto saved_text, saved.SerializeToString());
+  const auto bindings = [](const std::string& text) {
+    std::map<std::pair<std::string, std::string>, std::string> values;
+    std::istringstream input(text);
+    std::string line, section;
+    while (std::getline(input, line)) {
+      const auto trimmed = absl::StripAsciiWhitespace(line);
+      if (trimmed.empty() || trimmed.front() == '#')
+        continue;
+      if (trimmed.front() == '[' && trimmed.back() == ']') {
+        section = std::string(trimmed.substr(1, trimmed.size() - 2));
+        continue;
+      }
+      // These sections are transient application preferences, not sources.
+      if (section == "workspace" || section == "keybindings" ||
+          section == "editor_visibility" || section == "agent_settings")
+        continue;
+      const auto [key, value] = ParseKeyValue(std::string(trimmed));
+      if (key.empty() || (section == "project" &&
+                          (key == "last_modified" || key == "created_date")))
+        continue;
+      values[{section, key}] = value;
+    }
+    return values;
+  };
+  const auto live_bindings = bindings(live_text);
+  const auto saved_bindings = bindings(saved_text);
+  const auto mismatch = [](const auto& key) {
+    return absl::FailedPreconditionError(
+        "Saved project source bindings differ from the active project: [" +
+        key.first + "] " + key.second);
+  };
+  for (const auto& [key, value] : live_bindings) {
+    const auto saved = saved_bindings.find(key);
+    if (saved == saved_bindings.end() || saved->second != value)
+      return mismatch(key);
+  }
+  for (const auto& [key, value] : saved_bindings) {
+    if (live_bindings.find(key) == live_bindings.end())
+      return mismatch(key);
+  }
+  return absl::OkStatus();
+}
+
 absl::Status YazeProject::SaveAs(const std::string& new_path) {
   std::string old_filepath = filepath;
   filepath = new_path;

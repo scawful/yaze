@@ -318,6 +318,7 @@ if(YAZE_BUILD_TESTS)
     unit/core/project_paths_test.cc
     unit/core/project_bundle_path_test.cc
     unit/core/source_artifact_publisher_test.cc
+    unit/core/native_save_receipt_test.cc
     unit/rom/rom_diff_test.cc
     unit/rom/write_fence_test.cc
     unit/rom/private_lyra_reservation_test.cc

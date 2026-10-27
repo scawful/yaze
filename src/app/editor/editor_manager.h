@@ -739,6 +739,12 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
   absl::Status CheckOracleRomSafetyPreSave(Rom* rom);
   absl::Status SaveRomInternal(
       const std::optional<std::string>& save_as_filename);
+  absl::Status RecordCompletedNativeSave(const project::YazeProject& project,
+                                         const std::string& saved_rom,
+                                         bool save_as);
+  std::string NativeSaveEditingSourcePath() const;
+  absl::Status RetireNativeSaveTransfer(
+      const std::string& state, const std::string& editing_source_path = "");
   bool HasPendingRomSaveConfirmation() const;
   bool PendingRomSaveMatchesActiveSession() const;
   void FinishPendingRomSaveAttempt(const absl::Status& status);

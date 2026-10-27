@@ -8,7 +8,10 @@
 #include <filesystem>
 #include <fstream>
 #include <initializer_list>
+#include <iterator>
+#include <map>
 #include <optional>
+#include <random>
 #include <string>
 #include <utility>
 #include <vector>
@@ -40,15 +43,19 @@
 #include "app/platform/ios/ios_platform_state.h"
 #include "app/platform/timing.h"
 #include "core/features.h"
+#include "core/native_save_receipt.h"
 #include "core/project.h"
 #include "core/rom_settings.h"
+#include "core/source_artifact_publisher.h"
 #include "editor/core/content_registry.h"
 #include "rom/rom.h"
 #include "rom/rom_diff.h"
 #include "rom/transaction.h"
 #include "util/file_util.h"
+#include "util/json.h"
 #include "util/log.h"
 #include "util/macro.h"
+#include "util/platform_paths.h"
 #include "zelda3/dungeon/custom_object.h"
 #include "zelda3/dungeon/draw_routines/draw_routine_registry.h"
 #include "zelda3/game_data.h"
@@ -62,6 +69,64 @@
 
 namespace yaze::editor {
 namespace {
+// Declared source files only. Build outputs and the next build request are
+// consumers of the saved state, not inputs that a build may refresh in place.
+std::map<std::string, std::string> ProjectSaveSources(
+    const project::YazeProject& project) {
+  std::map<std::string, std::string> sources;
+  const auto add = [&](const std::string& role, const std::string& path) {
+    if (!path.empty())
+      sources.emplace(role, project.GetAbsolutePath(path));
+  };
+  for (size_t i = 0; i < project.additional_roms.size(); ++i)
+    add("dependency.additional_roms." + std::to_string(i),
+        project.additional_roms[i]);
+  add("sidecar", project.lyra_terrain_file);
+  add("dependency.labels_filename", project.labels_filename);
+  add("dependency.symbols_filename", project.symbols_filename);
+  add("dependency.cutscene_shots", project.cutscene_shots);
+  add("dependency.overworld_graphics_preview",
+      project.overworld_graphics_preview);
+  add("dependency.dungeon_tile_patterns", project.dungeon_tile_patterns);
+  add("dependency.custom_collision_json", project.custom_collision_json);
+  add("dependency.hack_manifest_file", project.hack_manifest_file);
+  add("dependency.sprite_catalog_file", project.sprite_catalog_file);
+  add("dependency.terrain_catalog_file", project.terrain_catalog_file);
+  add("dependency.palette_catalog_file", project.palette_catalog_file);
+  add("dependency.planning", project.planning.file);
+  add("dependency.atlas_symbols", project.atlas.symbols);
+  for (const auto& [id, files] : project.custom_object_files) {
+    for (size_t i = 0; i < files.size(); ++i) {
+      const auto path = std::filesystem::path(files[i]);
+      const auto resolved = path.is_absolute()
+                                ? path
+                                : std::filesystem::path(project.GetAbsolutePath(
+                                      project.custom_objects_folder)) /
+                                      path;
+      add("dependency.object_" + std::to_string(id) + "_" + std::to_string(i),
+          resolved.string());
+    }
+  }
+  for (size_t i = 0; i < project.atlas.annotations.size(); ++i)
+    add("dependency.atlas_" + std::to_string(i), project.atlas.annotations[i]);
+  for (size_t i = 0; i < project.sprite_assets.size(); ++i) {
+    const auto prefix = "dependency.sprite_" + std::to_string(i);
+    const auto& asset = project.sprite_assets[i];
+    add(prefix + "_zsm", asset.zsm_path);
+    if (!asset.source_path.empty())
+      add(prefix + "_source", (std::filesystem::path(project.GetAbsolutePath(
+                                   project.sprite_source_root)) /
+                               asset.source_path)
+                                  .string());
+    for (size_t slot = 0; slot < asset.graphics_sources.size(); ++slot) {
+      const auto& source = asset.graphics_sources[slot];
+      if (source.kind == "bin" || source.kind == "raw_rom")
+        add(prefix + "_slot_" + std::to_string(slot), source.path);
+    }
+  }
+  return sources;
+}
+
 class ScopedEditorSaveTransactions {
  public:
   ScopedEditorSaveTransactions() = default;
@@ -661,7 +726,8 @@ absl::Status EditorManager::SaveRomInternal(
     recent.Save();
     if (popup_manager_)
       popup_manager_->Hide(PopupID::kSaveAs);
-    return absl::OkStatus();
+    return RecordCompletedNativeSave(*save_project, *save_as_filename,
+                                     /*save_as=*/true);
   }
 
   // Pot streams are saved sparsely: unchanged/unloaded rooms are inventoried
@@ -877,8 +943,247 @@ absl::Status EditorManager::SaveRomInternal(
         popup_manager_->Hide(PopupID::kSaveAs);
       }
     }
+    return RecordCompletedNativeSave(
+        *save_project, save_as_filename.value_or(current_rom->filename()),
+        save_as_filename.has_value());
   }
   return save_status;
+}
+
+absl::Status EditorManager::RecordCompletedNativeSave(
+    const project::YazeProject& project, const std::string& saved_rom,
+    bool save_as) {
+#if defined(__EMSCRIPTEN__) || !defined(YAZE_WITH_JSON)
+  // Browser persistence has no native producer or durable publication lock.
+  return absl::OkStatus();
+#else
+  core::NativeSaveReceiptRequest request;
+  const auto finish = [&]() -> absl::Status {
+    std::error_code error;
+    const auto owner = std::filesystem::weakly_canonical(
+        project.project_opened() ? project.filepath : saved_rom, error);
+    if (error)
+      return absl::FailedPreconditionError("Cannot resolve save receipt owner");
+    request.receipt_path = owner.string() + ".native-save.json";
+    request.operation = save_as ? "save_as" : "save";
+    std::random_device random;
+    for (int i = 0; i < 4; ++i)
+      request.operation_id += absl::StrFormat("%08x", random());
+    const auto* rom = GetCurrentRom();
+    if (!rom)
+      return absl::FailedPreconditionError("Saved ROM session is unavailable");
+    const auto rom_path = std::filesystem::canonical(saved_rom, error);
+    if (error)
+      return absl::FailedPreconditionError("Cannot resolve saved ROM");
+    std::string_view saved_bytes(reinterpret_cast<const char*>(rom->data()),
+                                 rom->size());
+    std::string headered_bytes;
+    if (rom->has_copier_header()) {
+      const auto& header = rom->copier_header();
+      headered_bytes.assign(reinterpret_cast<const char*>(header.data()),
+                            header.size());
+      headered_bytes.append(saved_bytes);
+      saved_bytes = headered_bytes;
+    }
+    request.artifacts.push_back(
+        {"rom", rom_path, core::ComputeSourceArtifactSha256(saved_bytes)});
+    // Pin the process's expected producer once; the publisher still rehashes
+    // it before publication and on readback for every completed save.
+    static const auto producer =
+        []() -> absl::StatusOr<std::pair<std::filesystem::path, std::string>> {
+      ASSIGN_OR_RETURN(auto executable,
+                       util::PlatformPaths::GetExecutablePath());
+      ASSIGN_OR_RETURN(auto hash,
+                       core::ComputeSourceArtifactFileSha256(executable));
+      return std::make_pair(std::move(executable), std::move(hash));
+    }();
+    RETURN_IF_ERROR(producer.status());
+    request.artifacts.push_back(
+        {"producer", producer->first, producer->second});
+
+    const auto bind = [&](const std::string& role, const std::string& path) {
+      const auto digest = core::ComputeSourceArtifactFileSha256(path);
+      if (!digest.ok()) {
+        request.binding_errors.push_back(
+            role + ": " + std::string(digest.status().message()));
+      } else {
+        request.artifacts.push_back({role, path, *digest});
+      }
+    };
+    if (project.project_opened()) {
+      bind("project", project.filepath);
+      const auto live_sources = ProjectSaveSources(project);
+      std::ifstream descriptor(project.filepath, std::ios::binary);
+      if (descriptor) {
+        const std::string bytes{std::istreambuf_iterator<char>(descriptor), {}};
+        const auto binding_status = project.ValidateSavedSourceBindings(bytes);
+        if (!binding_status.ok())
+          request.binding_errors.push_back(
+              std::string(binding_status.message()));
+      }
+      for (const auto& [role, path] : live_sources)
+        bind(role, path);
+      for (size_t i = 0; i < project.sprite_assets.size(); ++i) {
+        const auto& asset = project.sprite_assets[i];
+        if (asset.source_path.empty())
+          continue;
+        const auto role = "dependency.sprite_" + std::to_string(i) + "_source";
+        const auto binding = std::find_if(
+            request.artifacts.begin(), request.artifacts.end(),
+            [&](const auto& artifact) { return artifact.role == role; });
+        if (project.sprite_source_root.empty() ||
+            (binding != request.artifacts.end() &&
+             binding->expected_sha256 != asset.source_sha256))
+          request.binding_errors.push_back(role + ": imported source is stale");
+      }
+
+#ifdef YAZE_WITH_JSON
+      // Preview transfers are explicit external dependencies of the manifest.
+      if (!project.overworld_graphics_preview.empty()) {
+        try {
+          const auto path =
+              project.GetAbsolutePath(project.overworld_graphics_preview);
+          std::ifstream input(path);
+          const auto preview = Json::parse(input);
+          size_t index = 0;
+          for (const auto& area : preview.at("areas"))
+            for (const auto& transfer : area.at("transfers"))
+              bind("dependency.preview_transfer_" + std::to_string(index++),
+                   (std::filesystem::path(path).parent_path() /
+                    transfer.at("path").get<std::string>())
+                       .string());
+        } catch (const std::exception& exception) {
+          request.binding_errors.push_back(
+              std::string("Cannot bind graphics preview transfers: ") +
+              exception.what());
+        }
+      }
+#else
+      if (!project.overworld_graphics_preview.empty())
+        request.binding_errors.push_back(
+            "Graphics preview dependency binding requires JSON support");
+#endif
+      if (!project.lyra_terrain_file.empty()) {
+        auto* overworld = static_cast<OverworldEditor*>(
+            GetCurrentEditorSet()->GetExistingEditor(EditorType::kOverworld));
+        if (!overworld || !overworld->lyra_canvas_.loaded()) {
+          request.binding_errors.push_back("Terrain document is not loaded");
+        } else {
+          auto context = project;
+          const auto valid = overworld->lyra_canvas_.ValidateSave(
+              &context, overworld->overworld());
+          if (!valid.ok())
+            request.binding_errors.push_back(std::string(valid.message()));
+          std::ifstream input(
+              project.GetAbsolutePath(project.lyra_terrain_file));
+          const std::string bytes{std::istreambuf_iterator<char>(input), {}};
+          const auto* live = overworld->lyra_canvas_.document();
+          const auto saved =
+              core::LyraTerrainDocument::Parse(bytes, live->profile());
+          if (!saved.ok() || saved->Serialize() != live->Serialize())
+            request.binding_errors.push_back(
+                "Saved terrain differs from the live document");
+        }
+      }
+    }
+    // Keep completion recordable when a large or malformed project has many
+    // unavailable optional inputs; never turn truncated evidence into complete.
+    if (request.artifacts.size() > 256) {
+      request.binding_errors.push_back(
+          "More than 256 source bindings; incomplete");
+      request.artifacts.resize(256);
+    }
+    if (request.binding_errors.size() > 256) {
+      const auto omitted = request.binding_errors.size() - 255;
+      request.binding_errors.resize(255);
+      request.binding_errors.push_back(std::to_string(omitted) +
+                                       " additional binding errors");
+    }
+    for (auto& diagnostic : request.binding_errors) {
+      if (diagnostic.size() > 1024) {
+        size_t end = 1000;
+        while (end > 0 &&
+               (static_cast<unsigned char>(diagnostic[end]) & 0xC0) == 0x80)
+          --end;
+        diagnostic = diagnostic.substr(0, end) + " [truncated]";
+      }
+    }
+    const auto descriptor = std::find_if(
+        request.artifacts.begin(), request.artifacts.end(),
+        [](const auto& artifact) { return artifact.role == "project"; });
+    const std::string project_path =
+        descriptor == request.artifacts.end()
+            ? ""
+            : std::filesystem::absolute(descriptor->path)
+                  .lexically_normal()
+                  .string();
+    ASSIGN_OR_RETURN(request.context,
+                     core::GetNativeSaveContext(NativeSaveEditingSourcePath(),
+                                                project_path));
+    ASSIGN_OR_RETURN(auto receipt, core::PublishNativeSaveReceipt(request));
+    if (!request.binding_errors.empty()) {
+      toast_manager_.Show("ROM saved; build inputs are incomplete: " +
+                              request.binding_errors.front(),
+                          ToastType::kWarning);
+    }
+    return absl::OkStatus();
+  };
+  absl::Status status;
+  try {
+    status = finish();
+  } catch (const std::exception& exception) {
+    status = absl::InternalError(exception.what());
+  }
+  if (!status.ok()) {
+    return absl::FailedPreconditionError(
+        "ROM saved, but native-save receipt is unavailable: " +
+        std::string(status.message()));
+  }
+  return status;
+#endif
+}
+
+std::string EditorManager::NativeSaveEditingSourcePath() const {
+  if (session_coordinator_) {
+    if (const auto* session = session_coordinator_->GetActiveRomSession();
+        session && session->rom_baseline &&
+        !session->rom_baseline->editing_source_path.empty()) {
+      return session->rom_baseline->editing_source_path;
+    }
+  }
+  const auto* rom = GetCurrentRom();
+  return rom ? rom->filename() : "";
+}
+
+absl::Status EditorManager::RetireNativeSaveTransfer(
+    const std::string& state, const std::string& editing_source_path) {
+#if defined(__EMSCRIPTEN__) || !defined(YAZE_WITH_JSON)
+  return absl::OkStatus();
+#else
+  const auto origin = editing_source_path.empty()
+                          ? NativeSaveEditingSourcePath()
+                          : editing_source_path;
+  if (origin.empty())
+    return absl::OkStatus();
+  std::string project_path;
+  std::error_code error;
+  if (current_project_.project_opened() &&
+      std::filesystem::is_regular_file(current_project_.filepath, error)) {
+    project_path = std::filesystem::absolute(current_project_.filepath, error)
+                       .lexically_normal()
+                       .string();
+  }
+  if (error == std::errc::no_such_file_or_directory) {
+    error.clear();
+  }
+  if (error) {
+    return absl::FailedPreconditionError(
+        "Cannot resolve native-save project context: " + error.message());
+  }
+  ASSIGN_OR_RETURN(auto context,
+                   core::GetNativeSaveContext(origin, project_path));
+  return core::RetireNativeSaveContext(context, state);
+#endif
 }
 
 absl::Status EditorManager::LoadProjectWithRom(bool allow_dialogs) {

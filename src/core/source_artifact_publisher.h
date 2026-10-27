@@ -85,6 +85,11 @@ AcquireSourceArtifactPublicationLock(
 
 std::string ComputeSourceArtifactSha256(std::string_view content);
 
+// Hashes a regular file with bounded memory. Missing and unreadable inputs
+// return an error instead of an empty identity.
+absl::StatusOr<std::string> ComputeSourceArtifactFileSha256(
+    const std::filesystem::path& path);
+
 // Publishes all updates as one rollback-protected transaction using atomic
 // replacement for each target. The first update is the primary CAS source and
 // must contain its exact preflight bytes. Exact byte readback is always

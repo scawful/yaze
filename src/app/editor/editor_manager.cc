@@ -100,6 +100,7 @@
 #include "app/platform/timing.h"
 #include "app/testing/test_manager.h"
 #include "core/features.h"
+#include "core/native_save_receipt.h"
 #include "core/palette_catalog.h"
 #include "core/project.h"
 #include "core/rom_settings.h"
@@ -167,7 +168,8 @@ namespace yaze::editor {
 
 namespace {
 absl::StatusOr<std::map<std::string, std::string>> ProjectBuildEnvironment(
-    const project::YazeProject& project) {
+    const project::YazeProject& project,
+    const std::string& editing_source_path) {
   if (project.filepath.empty()) {
     return absl::FailedPreconditionError("Save the project before building");
   }
@@ -187,10 +189,21 @@ absl::StatusOr<std::map<std::string, std::string>> ProjectBuildEnvironment(
         .lexically_normal()
         .string();
   };
+  std::string save_context_path;
+#if defined(YAZE_WITH_JSON) && !defined(__EMSCRIPTEN__)
+  if (!editing_source_path.empty()) {
+    ASSIGN_OR_RETURN(
+        auto save_context,
+        core::GetNativeSaveContext(editing_source_path, project_file.string()));
+    save_context_path = save_context.path.string();
+  }
+#endif
   return std::map<std::string, std::string>{
       {"YAZE_PROJECT_FILE", project_file.string()},
       {"YAZE_PROJECT_CODE_FOLDER", absolute(project.code_folder)},
       {"YAZE_PROJECT_ROM", absolute(project.rom_filename)},
+      {"YAZE_NATIVE_SAVE_RECEIPT", project_file.string() + ".native-save.json"},
+      {"YAZE_NATIVE_SAVE_CONTEXT", save_context_path},
       {"YAZE_LYRA_TERRAIN_FILE", absolute(project.lyra_terrain_file)},
       {"OOS_LYRA_PROJECT",
        project.lyra_terrain_file.empty() ? "" : project_file.string()},
@@ -4188,6 +4201,15 @@ absl::Status EditorManager::SaveProjectAs(const std::string& filepath) {
 
   CaptureActiveProjectContext();
 
+  if (save_status.ok()) {
+    const auto retirement = RetireNativeSaveTransfer("rebound");
+    if (!retirement.ok()) {
+      return absl::FailedPreconditionError(
+          "Project saved as, but its prior native-save transfer could not be "
+          "retired: " +
+          std::string(retirement.message()));
+    }
+  }
   return save_status;
 }
 
@@ -4324,7 +4346,9 @@ absl::StatusOr<std::string> EditorManager::RunProjectBuildCommand() {
   const std::string command = *command_or;
   const std::filesystem::path project_root =
       std::filesystem::path(current_project_.filepath).parent_path();
-  ASSIGN_OR_RETURN(auto environment, ProjectBuildEnvironment(current_project_));
+  ASSIGN_OR_RETURN(
+      auto environment,
+      ProjectBuildEnvironment(current_project_, NativeSaveEditingSourcePath()));
   BackgroundCommandTask task;
   auto start_status = task.Start(command, project_root.string(), environment);
   if (!start_status.ok()) {
@@ -4402,7 +4426,8 @@ void EditorManager::QueueBuildCurrentProject() {
 
   const std::filesystem::path project_root =
       std::filesystem::path(current_project_.filepath).parent_path();
-  auto environment = ProjectBuildEnvironment(current_project_);
+  auto environment =
+      ProjectBuildEnvironment(current_project_, NativeSaveEditingSourcePath());
   active_project_build_ = std::make_unique<BackgroundCommandTask>();
   auto start_status =
       environment.ok() ? active_project_build_->Start(

@@ -28,6 +28,58 @@
 namespace yaze {
 namespace util {
 
+absl::StatusOr<std::filesystem::path> PlatformPaths::GetExecutablePath() {
+  std::filesystem::path executable;
+#if defined(_WIN32)
+  std::vector<wchar_t> buffer(1024);
+  while (buffer.size() <= 32768) {
+    const DWORD length =
+        GetModuleFileNameW(nullptr, buffer.data(), buffer.size());
+    if (length == 0) {
+      return absl::InternalError("Cannot resolve the running executable");
+    }
+    if (length < buffer.size()) {
+      executable = std::wstring(buffer.data(), length);
+      break;
+    }
+    buffer.resize(buffer.size() * 2);
+  }
+#elif defined(__APPLE__)
+  uint32_t size = PATH_MAX;
+  std::vector<char> buffer(size);
+  if (_NSGetExecutablePath(buffer.data(), &size) != 0) {
+    buffer.resize(size);
+    if (_NSGetExecutablePath(buffer.data(), &size) != 0) {
+      return absl::InternalError("Cannot resolve the running executable");
+    }
+  }
+  executable = buffer.data();
+#elif defined(__linux__)
+  std::vector<char> buffer(1024);
+  while (buffer.size() <= 1024 * 1024) {
+    const auto length =
+        readlink("/proc/self/exe", buffer.data(), buffer.size());
+    if (length < 0) {
+      return absl::InternalError("Cannot resolve the running executable");
+    }
+    if (static_cast<size_t>(length) < buffer.size()) {
+      executable = std::string(buffer.data(), length);
+      break;
+    }
+    buffer.resize(buffer.size() * 2);
+  }
+#else
+  return absl::UnimplementedError("Native executable identity is unavailable");
+#endif
+  std::error_code error;
+  const auto canonical = std::filesystem::canonical(executable, error);
+  if (executable.empty() || error) {
+    return absl::FailedPreconditionError(
+        "Cannot canonicalize the running executable path");
+  }
+  return canonical;
+}
+
 std::filesystem::path PlatformPaths::GetHomeDirectory() {
   try {
 #ifdef _WIN32

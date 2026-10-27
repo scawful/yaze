@@ -89,6 +89,25 @@ TEST(SourceArtifactPublisherTest, Sha256MatchesPublishedKnownVectors) {
             "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad");
 }
 
+TEST(SourceArtifactPublisherTest, FileSha256StreamsKnownVectorAcrossChunks) {
+  ScopedTempDir temp;
+  const auto path = temp.path() / "input.bin";
+  WriteText(path, std::string(1000000, 'a'));
+  const auto digest = ComputeSourceArtifactFileSha256(path);
+  ASSERT_TRUE(digest.ok()) << digest.status();
+  EXPECT_EQ(*digest,
+            "cdc76e5c9914fb9281a1c7e284d73e67f1809a48a497200e046d39ccc7112cd0");
+  WriteText(path, "");
+  EXPECT_EQ(*ComputeSourceArtifactFileSha256(path),
+            "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855");
+}
+
+TEST(SourceArtifactPublisherTest, FileSha256RefusesMissingOrDirectoryInputs) {
+  ScopedTempDir temp;
+  EXPECT_FALSE(ComputeSourceArtifactFileSha256(temp.path() / "missing").ok());
+  EXPECT_FALSE(ComputeSourceArtifactFileSha256(temp.path()).ok());
+}
+
 TEST(SourceArtifactPublisherTest, RejectsRelativeTargetPaths) {
   const absl::Status status =
       ValidateSourceArtifactPublicationTargets({"relative/source.json"});

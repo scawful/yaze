@@ -450,6 +450,9 @@ struct YazeProject {
   // draft before it replaces the active descriptor on disk.
   absl::Status LoadFromString(const std::string& content,
                               const std::string& project_path);
+  // Checks the persisted source/build settings against this live context.
+  // UI layout, timestamps and recent-file history do not qualify build inputs.
+  absl::Status ValidateSavedSourceBindings(const std::string& content) const;
   absl::Status Save();
   // Create a new descriptor without replacing a file that appeared after the
   // caller's preflight check.

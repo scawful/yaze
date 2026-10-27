@@ -7,6 +7,7 @@
 #include <cstdlib>
 #include <filesystem>
 #include <fstream>
+#include <iterator>
 #include <memory>
 #include <random>
 #include <string>
@@ -42,6 +43,8 @@
 #include "app/gui/core/color.h"
 #include "app/platform/sdl_compat.h"
 #include "core/features.h"
+#include "core/native_save_receipt.h"
+#include "core/source_artifact_publisher.h"
 #include "editor_test_support.h"
 #include "framework/mock_renderer.h"
 #include "framework/rom_save_fault.h"
@@ -51,6 +54,8 @@
 #include "testing.h"
 #include "unit/zelda3/gfx_sheet_test_rom.h"
 #include "util/indexed_png.h"
+#include "util/json.h"
+#include "util/platform_paths.h"
 #include "util/rom_hash.h"
 #include "zelda3/dungeon/dungeon_rom_addresses.h"
 #include "zelda3/dungeon/room.h"
@@ -785,6 +790,302 @@ void DisableRomWritesForTest() {
   o.kSaveOverworldProperties = false;
   o.kSaveOverworldSprites = false;
 }
+
+#if defined(YAZE_WITH_JSON)
+class NativeSaveReceiptIntegrationTest : public ::testing::Test {
+ protected:
+  void SetUp() override {
+    std::filesystem::create_directory(cleanup_.path);
+    source_ = cleanup_.path / "source.sfc";
+    WriteTestRom(source_, "NATIVE RECEIPT TEST");
+    manager_ = std::make_unique<EditorManager>();
+    InitializeWithIsolatedSettings(*manager_, &renderer_);
+    manager_->SetAssetLoadMode(AssetLoadMode::kLazy);
+    manager_->user_settings().prefs().backup_before_save = false;
+    ASSERT_OK(manager_->OpenRomOrProject(source_.string()));
+    DisableRomWritesForTest();
+  }
+
+  void BindProject() {
+    auto* project = manager_->GetCurrentProject();
+    ASSERT_NE(project, nullptr);
+    project->name = "Native save receipt";
+    project->metadata.project_id = "native_save_receipt_fixture";
+    project->filepath = (cleanup_.path / "project.yaze").string();
+    project->rom_filename = source_.string();
+    project->workspace_settings.backup_on_save = false;
+    project->rom_metadata.write_policy = project::RomWritePolicy::kAllow;
+    project->feature_flags = core::FeatureFlags::get();
+    ASSERT_OK(project->Save());
+    receipt_ = project->filepath + ".native-save.json";
+  }
+
+  static std::string ReadText(const std::filesystem::path& path) {
+    std::ifstream input(path, std::ios::binary);
+    EXPECT_TRUE(input.is_open()) << path;
+    return std::string(std::istreambuf_iterator<char>(input), {});
+  }
+
+  static Json ReadReceipt(const std::filesystem::path& path) {
+    return Json::parse(ReadText(path));
+  }
+
+  static void ExpectArtifact(const Json& receipt, const std::string& role,
+                             const std::filesystem::path& path) {
+    ASSERT_TRUE(receipt.at("artifacts").is_array());
+    const auto& artifacts = receipt.at("artifacts");
+    const auto found = std::find_if(
+        artifacts.begin(), artifacts.end(),
+        [&role](const Json& artifact) { return artifact.at("role") == role; });
+    ASSERT_NE(found, artifacts.end()) << role;
+    EXPECT_EQ(found->at("path"), std::filesystem::canonical(path).string());
+    EXPECT_EQ(found->at("bytes"), std::filesystem::file_size(path));
+    EXPECT_EQ(found->at("sha256"),
+              core::ComputeSourceArtifactSha256(ReadText(path)));
+  }
+
+  static void ExpectProducer(const Json& receipt) {
+    const auto executable = util::PlatformPaths::GetExecutablePath();
+    ASSERT_TRUE(executable.ok()) << executable.status();
+    const auto& artifacts = receipt.at("artifacts");
+    const auto found = std::find_if(
+        artifacts.begin(), artifacts.end(),
+        [](const Json& artifact) { return artifact.at("role") == "producer"; });
+    ASSERT_NE(found, artifacts.end());
+    EXPECT_EQ(found->at("path"),
+              std::filesystem::canonical(*executable).string());
+    EXPECT_EQ(found->at("bytes"), std::filesystem::file_size(*executable));
+    EXPECT_EQ(found->at("sha256").get<std::string>().size(), 64u);
+  }
+
+  FeatureFlagsGuard flags_;
+  ScopedDirectoryCleanup cleanup_{MakeTempFilePath("yaze_native_receipt")};
+  ScopedImGuiContext imgui_;
+  gfx::NullRenderer renderer_;
+  std::unique_ptr<EditorManager> manager_;
+  std::filesystem::path source_, receipt_;
+};
+
+TEST_F(NativeSaveReceiptIntegrationTest,
+       NativeCommitsAdvanceGenerationEvenWhenRomBytesAreIdentical) {
+  ASSERT_NO_FATAL_FAILURE(BindProject());
+  ASSERT_FALSE(std::filesystem::exists(receipt_));
+  ASSERT_OK(manager_->GetCurrentRom()->WriteByte(0x1234, 0xA5));
+  ASSERT_OK(manager_->SaveCurrentSession());
+  ASSERT_TRUE(std::filesystem::exists(receipt_));
+  const auto first = ReadReceipt(receipt_);
+  if (const auto* evidence = std::getenv("YAZE_NATIVE_SAVE_RECEIPT_EVIDENCE")) {
+    const auto directory = std::filesystem::path(evidence);
+    ASSERT_TRUE(std::filesystem::is_directory(directory));
+    ASSERT_TRUE(std::filesystem::copy_file(
+        receipt_, directory / "first.native-save.json",
+        std::filesystem::copy_options::overwrite_existing));
+    ASSERT_TRUE(std::filesystem::copy_file(
+        manager_->GetCurrentProject()->filepath, directory / "first.yaze",
+        std::filesystem::copy_options::overwrite_existing));
+  }
+  EXPECT_EQ(first.at("kind"), "yaze.native_save.v1");
+  EXPECT_EQ(first.at("generation"), 1u);
+  EXPECT_EQ(first.at("operation"), "save");
+  EXPECT_TRUE(first.at("bindings_complete")) << first.dump(2);
+  EXPECT_TRUE(first.at("binding_errors").empty()) << first.dump(2);
+  ASSERT_FALSE(first.at("operation_id").get<std::string>().empty());
+  ExpectArtifact(first, "rom", source_);
+  ExpectArtifact(first, "project", manager_->GetCurrentProject()->filepath);
+  ExpectProducer(first);
+  const auto saved_bytes = ReadText(source_);
+
+  // An explicit native ROM save commits again even without dirty bytes.
+  ASSERT_OK(manager_->SaveRom());
+  const auto second = ReadReceipt(receipt_);
+  EXPECT_EQ(ReadText(source_), saved_bytes);
+  EXPECT_EQ(second.at("generation"), 2u);
+  EXPECT_EQ(second.at("operation"), "save");
+  EXPECT_NE(second.at("operation_id"), first.at("operation_id"));
+  EXPECT_EQ(second.at("artifacts"), first.at("artifacts"));
+  EXPECT_EQ(second.at("receipt_path"),
+            std::filesystem::canonical(receipt_).string());
+}
+
+TEST_F(NativeSaveReceiptIntegrationTest,
+       RawRomSaveAsBindsDestinationAndLeavesSourceUnchanged) {
+  const auto original = ReadText(source_);
+  const auto context = core::GetNativeSaveContext(source_.string(), "");
+  ASSERT_TRUE(context.ok()) << context.status();
+  const auto destination = cleanup_.path / "saved-copy.sfc";
+  const auto receipt = destination.string() + ".native-save.json";
+  ASSERT_OK(manager_->GetCurrentRom()->WriteByte(0x1234, 0xA5));
+  ASSERT_OK(manager_->SaveRomAs(destination.string()));
+  ASSERT_TRUE(std::filesystem::exists(receipt));
+  const auto saved = ReadReceipt(receipt);
+  EXPECT_EQ(saved.at("generation"), 1u);
+  EXPECT_EQ(saved.at("operation"), "save_as");
+  EXPECT_EQ(saved.at("receipt_path"),
+            std::filesystem::canonical(receipt).string());
+  ASSERT_EQ(saved.at("artifacts").size(), 2u);
+  ExpectArtifact(saved, "rom", destination);
+  ExpectProducer(saved);
+  EXPECT_EQ(manager_->GetCurrentRom()->filename(), destination.string());
+  const auto active_context = ReadReceipt(context->path);
+  EXPECT_EQ(active_context.at("editing_source_path"),
+            std::filesystem::canonical(source_).string());
+  EXPECT_EQ(active_context.at("rom_path"),
+            std::filesystem::canonical(destination).string());
+  EXPECT_EQ(active_context.at("state"), "committed");
+  EXPECT_EQ(active_context.at("native_commit").at("receipt_path"),
+            std::filesystem::canonical(receipt).string());
+  EXPECT_EQ(ReadText(source_), original);
+  EXPECT_FALSE(std::filesystem::exists(source_.string() + ".native-save.json"));
+}
+
+TEST_F(NativeSaveReceiptIntegrationTest,
+       PendingCancelledAndFailedSavesPreserveCommittedReceipt) {
+  ASSERT_NO_FATAL_FAILURE(BindProject());
+  ASSERT_OK(manager_->SaveRom());
+  const auto committed_receipt = ReadText(receipt_);
+  const auto committed_rom = ReadText(source_);
+  ASSERT_EQ(ReadReceipt(receipt_).at("generation"), 1u);
+  ASSERT_TRUE(ReadReceipt(receipt_).at("bindings_complete"));
+  auto* project = manager_->GetCurrentProject();
+  project->rom_metadata.write_policy = project::RomWritePolicy::kWarn;
+  project->rom_metadata.expected_hash = "deadbeef";
+  // The configured editing source is exempt; an unbound reference must warn.
+  project->rom_filename.clear();
+  ASSERT_TRUE(manager_->IsRomHashMismatch());
+  ASSERT_OK(manager_->GetCurrentRom()->WriteByte(0x1234, 0xA5));
+
+  EXPECT_TRUE(absl::IsCancelled(manager_->SaveRom()));
+  EXPECT_TRUE(manager_->IsRomWriteConfirmPending());
+  EXPECT_EQ(ReadText(receipt_), committed_receipt);
+  manager_->CancelRomWriteConfirm();
+  EXPECT_FALSE(manager_->IsRomWriteConfirmPending());
+  EXPECT_EQ(ReadText(receipt_), committed_receipt);
+  EXPECT_EQ(ReadText(source_), committed_rom);
+
+  ASSERT_TRUE(absl::IsCancelled(manager_->SaveRom()));
+  manager_->ConfirmRomWrite();
+  {
+    test::ScopedRomStagingFailure failure;
+    EXPECT_FALSE(manager_->ResumePendingRomSave().ok());
+  }
+  EXPECT_EQ(ReadText(receipt_), committed_receipt);
+  EXPECT_EQ(ReadText(source_), committed_rom);
+  EXPECT_TRUE(manager_->GetCurrentRom()->dirty());
+}
+
+TEST_F(NativeSaveReceiptIntegrationTest,
+       ProjectOnlySaveSuccessDoesNotIssueNativeReceipt) {
+  ASSERT_NO_FATAL_FAILURE(BindProject());
+  const auto original_rom = ReadText(source_);
+  manager_->GetCurrentProject()->name = "Project-only saved name";
+  manager_->MarkCurrentProjectDirty();
+  ASSERT_FALSE(manager_->GetCurrentRom()->dirty());
+  ASSERT_OK(manager_->SaveCurrentSession());
+  EXPECT_FALSE(manager_->IsCurrentProjectDirty());
+  EXPECT_EQ(ReadText(source_), original_rom);
+  EXPECT_FALSE(std::filesystem::exists(receipt_));
+  EXPECT_FALSE(std::filesystem::exists(source_.string() + ".native-save.json"));
+  project::YazeProject reopened;
+  ASSERT_OK(reopened.Open(manager_->GetCurrentProject()->filepath));
+  EXPECT_EQ(reopened.name, "Project-only saved name");
+}
+
+TEST_F(NativeSaveReceiptIntegrationTest,
+       HeaderedRomReceiptsBindCompleteNativeSaveAndSaveAsBytes) {
+  auto body = ReadText(source_);
+  ASSERT_EQ(body.size(), 512u * 1024u);
+  std::string header(512, '\x5A');
+  header.front() = 'S';
+  header.back() = 'H';
+  const auto headered_source = cleanup_.path / "headered.sfc";
+  {
+    std::ofstream output(headered_source, std::ios::binary);
+    ASSERT_TRUE(output.is_open());
+    output << header << body;
+    ASSERT_TRUE(output.good());
+  }
+  ASSERT_OK(manager_->OpenRomOrProject(headered_source.string()));
+  DisableRomWritesForTest();
+  auto* rom = manager_->GetCurrentRom();
+  ASSERT_NE(rom, nullptr);
+  ASSERT_TRUE(rom->has_copier_header());
+  EXPECT_EQ(
+      std::string(rom->copier_header().begin(), rom->copier_header().end()),
+      header);
+  ASSERT_EQ(rom->size(), body.size());
+
+  ASSERT_OK(rom->WriteByte(0x1234, 0xA5));
+  body[0x1234] = static_cast<char>(0xA5);
+  const auto expected_source = header + body;
+  ASSERT_OK(manager_->SaveCurrentSession());
+  EXPECT_EQ(ReadText(headered_source), expected_source);
+  const auto source_receipt =
+      ReadReceipt(headered_source.string() + ".native-save.json");
+  EXPECT_EQ(source_receipt.at("operation"), "save");
+  ExpectArtifact(source_receipt, "rom", headered_source);
+  EXPECT_NE(core::ComputeSourceArtifactSha256(expected_source),
+            core::ComputeSourceArtifactSha256(body));
+
+  ASSERT_OK(rom->WriteByte(0x1235, 0xB6));
+  body[0x1235] = static_cast<char>(0xB6);
+  const auto destination = cleanup_.path / "headered-copy.sfc";
+  ASSERT_OK(manager_->SaveRomAs(destination.string()));
+  EXPECT_EQ(ReadText(destination), header + body);
+  EXPECT_EQ(ReadText(headered_source), expected_source);
+  const auto destination_receipt =
+      ReadReceipt(destination.string() + ".native-save.json");
+  EXPECT_EQ(destination_receipt.at("operation"), "save_as");
+  ExpectArtifact(destination_receipt, "rom", destination);
+  ASSERT_TRUE(rom->has_copier_header());
+  EXPECT_EQ(
+      std::string(rom->copier_header().begin(), rom->copier_header().end()),
+      header);
+}
+
+TEST_F(NativeSaveReceiptIntegrationTest,
+       ProjectSaveAsRetiresContextWithoutChangingPriorReceiptOrSources) {
+  ASSERT_NO_FATAL_FAILURE(BindProject());
+  ASSERT_OK(manager_->SaveRom());
+  const auto committed = ReadReceipt(receipt_);
+  ASSERT_TRUE(committed.at("bindings_complete")) << committed.dump(2);
+  ASSERT_TRUE(committed.at("binding_errors").empty()) << committed.dump(2);
+  ASSERT_EQ(committed.at("generation"), 1u);
+  const auto old_project = manager_->GetCurrentProject()->filepath;
+  const auto context =
+      core::GetNativeSaveContext(source_.string(), old_project);
+  ASSERT_TRUE(context.ok()) << context.status();
+  const auto context_path = context->path;
+  const auto project_bytes = ReadText(old_project);
+  const auto receipt_bytes = ReadText(receipt_);
+  const auto rom_bytes = ReadText(source_);
+  const auto active_context = ReadReceipt(context_path);
+  ASSERT_EQ(active_context.at("state"), "committed");
+  ASSERT_EQ(active_context.at("native_commit").at("receipt_path"),
+            std::filesystem::canonical(receipt_).string());
+  ASSERT_EQ(active_context.at("native_commit").at("generation"), 1u);
+
+  const auto destination = cleanup_.path / "copy" / "Saved.yaze";
+  ASSERT_TRUE(std::filesystem::create_directory(destination.parent_path()));
+  ASSERT_OK(manager_->SaveProjectAs(destination.string()));
+  const auto retired = ReadReceipt(context_path);
+  EXPECT_EQ(retired.at("kind"), "yaze.native_save_context.v1");
+  EXPECT_EQ(retired.size(), 7u);
+  EXPECT_EQ(retired.at("editing_source_path"),
+            std::filesystem::canonical(source_).string());
+  EXPECT_EQ(retired.at("producer"), active_context.at("producer"));
+  EXPECT_EQ(retired.at("state"), "rebound");
+  EXPECT_EQ(retired.at("project_path"),
+            std::filesystem::canonical(destination).string());
+  EXPECT_EQ(retired.at("rom_path"),
+            std::filesystem::canonical(source_).string());
+  EXPECT_TRUE(retired.at("native_commit").is_null());
+  EXPECT_EQ(ReadText(old_project), project_bytes);
+  EXPECT_EQ(ReadText(receipt_), receipt_bytes);
+  EXPECT_EQ(ReadText(source_), rom_bytes);
+  EXPECT_FALSE(
+      std::filesystem::exists(destination.string() + ".native-save.json"));
+}
+#endif  // YAZE_WITH_JSON
 
 class RomLifecycleRebindPolicyTest : public ::testing::Test {
  protected:

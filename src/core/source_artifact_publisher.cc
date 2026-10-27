@@ -345,39 +345,55 @@ void TransformSha256(uint32_t state[8], const uint8_t block[64]) {
   state[7] += h;
 }
 
+class Sha256Digest {
+ public:
+  void Update(std::string_view content) {
+    bytes_ += content.size();
+    while (!content.empty()) {
+      const size_t count = std::min(content.size(), sizeof(block_) - used_);
+      std::memcpy(block_ + used_, content.data(), count);
+      content.remove_prefix(count);
+      used_ += count;
+      if (used_ == sizeof(block_)) {
+        TransformSha256(state_, block_);
+        used_ = 0;
+      }
+    }
+  }
+
+  std::string Finish() {
+    block_[used_++] = 0x80;
+    std::memset(block_ + used_, 0, sizeof(block_) - used_);
+    if (used_ > 56) {
+      TransformSha256(state_, block_);
+      std::memset(block_, 0, sizeof(block_));
+    }
+    const uint64_t bit_length = bytes_ * 8;
+    for (int index = 0; index < 8; ++index) {
+      block_[63 - index] = static_cast<uint8_t>(bit_length >> (index * 8));
+    }
+    TransformSha256(state_, block_);
+
+    std::string digest;
+    digest.reserve(64);
+    for (uint32_t value : state_) {
+      absl::StrAppend(&digest, absl::StrFormat("%08x", value));
+    }
+    return digest;
+  }
+
+ private:
+  uint32_t state_[8] = {0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a,
+                        0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19};
+  uint8_t block_[64] = {};
+  size_t used_ = 0;
+  uint64_t bytes_ = 0;
+};
+
 std::string Sha256Hex(std::string_view content) {
-  uint32_t state[8] = {0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a,
-                       0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19};
-  const auto* cursor = reinterpret_cast<const uint8_t*>(content.data());
-  size_t remaining = content.size();
-  while (remaining >= 64) {
-    TransformSha256(state, cursor);
-    cursor += 64;
-    remaining -= 64;
-  }
-
-  uint8_t block[64] = {};
-  if (remaining > 0) {
-    std::memcpy(block, cursor, remaining);
-  }
-  block[remaining] = 0x80;
-  if (remaining >= 56) {
-    TransformSha256(state, block);
-    std::memset(block, 0, sizeof(block));
-  }
-  const uint64_t bit_length = static_cast<uint64_t>(content.size()) * 8;
-  for (int index = 0; index < 8; ++index) {
-    block[63 - index] =
-        static_cast<uint8_t>(bit_length >> (static_cast<uint64_t>(index) * 8));
-  }
-  TransformSha256(state, block);
-
-  std::string digest;
-  digest.reserve(64);
-  for (uint32_t value : state) {
-    absl::StrAppend(&digest, absl::StrFormat("%08x", value));
-  }
-  return digest;
+  Sha256Digest digest;
+  digest.Update(content);
+  return digest.Finish();
 }
 
 absl::StatusOr<std::string> ReadTextFile(const fs::path& path,
@@ -1242,6 +1258,29 @@ AcquireSourceArtifactPublicationLock(
 
 std::string ComputeSourceArtifactSha256(std::string_view content) {
   return Sha256Hex(content);
+}
+
+absl::StatusOr<std::string> ComputeSourceArtifactFileSha256(
+    const fs::path& path) {
+  std::error_code error;
+  if (!fs::is_regular_file(path, error) || error) {
+    return absl::FailedPreconditionError(
+        "SHA256 input is not a readable regular file: " + path.string());
+  }
+  std::ifstream input(path, std::ios::binary);
+  if (!input) {
+    return absl::PermissionDeniedError("Cannot open SHA256 input: " +
+                                       path.string());
+  }
+  Sha256Digest digest;
+  std::array<char, 64 * 1024> buffer;
+  while (input.read(buffer.data(), buffer.size()) || input.gcount() > 0) {
+    digest.Update(std::string_view(buffer.data(), input.gcount()));
+  }
+  if (!input.eof() || input.bad()) {
+    return absl::DataLossError("Cannot read SHA256 input: " + path.string());
+  }
+  return digest.Finish();
 }
 
 absl::Status PublishSourceArtifacts(
