@@ -882,6 +882,10 @@ absl::Status ImGuiTestHarnessServiceImpl::Click(const ClickRequest* request,
         ImGuiKeyChord chord = 0;
         if (widget_label == "Save ROM") {
           chord = ImGuiMod_Shortcut | ImGuiKey_S;
+        } else if (widget_label == "Undo") {
+          chord = ImGuiMod_Shortcut | ImGuiKey_Z;
+        } else if (widget_label == "Redo") {
+          chord = ImGuiMod_Shortcut | ImGuiMod_Shift | ImGuiKey_Z;
         } else if (widget_label == "Settings") {
           chord = ImGuiMod_Shortcut | ImGuiKey_Comma;
         } else if (widget_label == "Quit") {
