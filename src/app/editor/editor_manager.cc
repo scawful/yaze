@@ -2157,17 +2157,10 @@ void EditorManager::ProcessStartupActions(const AppConfig& config) {
                                                       GetCurrentSessionId()));
   }
   if (config.jump_to_map >= 0) {
-    if (config.jump_to_map < zelda3::kNumOverworldMaps) {
-      event_bus_.Publish(JumpToMapRequestEvent::Create(config.jump_to_map,
-                                                       GetCurrentSessionId()));
-    } else {
-      LOG_WARN("EditorManager",
-               "Ignoring invalid startup overworld map target %d",
-               config.jump_to_map);
-      toast_manager_.Show("Ignored invalid startup overworld map: " +
-                              std::to_string(config.jump_to_map),
-                          editor::ToastType::kWarning);
-    }
+    // The navigation handler loads project assets before validating the target
+    // against the editor's displayed capacity (including project Lyra maps).
+    event_bus_.Publish(JumpToMapRequestEvent::Create(config.jump_to_map,
+                                                     GetCurrentSessionId()));
   }
 }
 

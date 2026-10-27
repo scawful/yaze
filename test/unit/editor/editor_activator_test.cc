@@ -117,6 +117,32 @@ TEST(EditorActivatorTest, RejectsInvalidOverworldMapJumpTargets) {
             "Invalid overworld map ID: 259");
 }
 
+TEST(EditorActivatorTest, LoadsProjectCapabilitiesBeforeRejectingMapTarget) {
+  EditorSet editor_set(nullptr, nullptr, nullptr, 0, nullptr);
+  auto* overworld = editor_set.GetOverworldEditor();
+  ToastManager toasts;
+  EditorActivator activator;
+  bool prepared = false;
+  EditorActivator::Dependencies deps;
+  deps.toast_manager = &toasts;
+  deps.get_current_editor_set = [&]() {
+    return &editor_set;
+  };
+  deps.ensure_editor_assets_loaded = [&](EditorType type) {
+    EXPECT_EQ(type, EditorType::kOverworld);
+    prepared = true;
+    return absl::OkStatus();
+  };
+  activator.Initialize(deps);
+  // An ordinary project without loaded Lyra terrain must still refuse A0.
+  activator.JumpToOverworldMap(0xA0);
+  EXPECT_TRUE(prepared);
+  EXPECT_EQ(overworld->current_map_id(), 0);
+  ASSERT_FALSE(toasts.GetHistory().empty());
+  EXPECT_EQ(toasts.GetHistory().front().message,
+            "Invalid overworld map ID: 160");
+}
+
 TEST(EditorActivatorTest, AppliesValidOverworldMapJumpTargets) {
   EditorSet editor_set(nullptr, nullptr, nullptr, 0, nullptr);
   auto* overworld_editor = editor_set.GetOverworldEditor();
