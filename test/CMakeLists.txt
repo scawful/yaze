@@ -7,6 +7,13 @@ if(YAZE_BUILD_TESTS)
     message(FATAL_ERROR "Yaze tests require CMake 3.22 or newer for filtered discovery")
   endif()
 
+  # Checkout paths reach tests through this generated header, never through a
+  # compile definition: a path in a definition differs per worktree and stops
+  # ccache from sharing every object of the target.
+  set(YAZE_TEST_GENERATED_DIR ${CMAKE_CURRENT_BINARY_DIR}/generated)
+  configure_file(${CMAKE_CURRENT_SOURCE_DIR}/yaze_test_paths.h.in
+                 ${YAZE_TEST_GENERATED_DIR}/yaze_test_paths.h @ONLY)
+
   # --- CTest registration: shards (default) or one entry per gtest case ---
   #
   # Starting a test process costs about 0.3 s, and most cases do under 1 ms of
@@ -110,6 +117,7 @@ if(YAZE_BUILD_TESTS)
     endif()
 
     target_include_directories(${suite_name} PUBLIC
+      ${YAZE_TEST_GENERATED_DIR}
       ${CMAKE_SOURCE_DIR}/src
       ${CMAKE_SOURCE_DIR}/inc
       ${CMAKE_SOURCE_DIR}/test
@@ -818,9 +826,6 @@ if(YAZE_BUILD_TESTS)
   list(APPEND STABLE_INTEGRATION_TEST_SOURCES ${QUICK_INTEGRATION_TEST_SOURCES})
 
   yaze_add_test_suite(yaze_test_unit "stable;unit" OFF ${STABLE_UNIT_TEST_SOURCES})
-  target_compile_definitions(yaze_test_unit PRIVATE
-    YAZE_TEST_FIXTURE_DIR="${CMAKE_SOURCE_DIR}/test/fixtures"
-  )
   add_test(
     NAME TestRunnerDiscoveryContract
     COMMAND ${CMAKE_COMMAND}
@@ -861,9 +866,6 @@ if(YAZE_BUILD_TESTS)
     endforeach()
     yaze_add_test_executable(${target_name} OFF ${_sources})
     set_target_properties(${target_name} PROPERTIES EXCLUDE_FROM_ALL TRUE)
-    target_compile_definitions(${target_name} PRIVATE
-      YAZE_TEST_FIXTURE_DIR="${CMAKE_SOURCE_DIR}/test/fixtures"
-    )
   endfunction()
 
   # Lyra terrain documents and canvas, project file paths, and project
@@ -896,9 +898,6 @@ if(YAZE_BUILD_TESTS)
       )
     endif()
   endif()
-  target_compile_definitions(yaze_test_integration PRIVATE
-    YAZE_TEST_FIXTURE_DIR="${CMAKE_SOURCE_DIR}/test/fixtures"
-  )
   if(YAZE_ENABLE_ROM_TESTS)
     target_compile_definitions(yaze_test_integration PRIVATE
       YAZE_ENABLE_ROM_TESTS=1

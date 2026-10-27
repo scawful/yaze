@@ -25,6 +25,44 @@ class BuildError(Exception):
     pass
 
 
+class BuildDirectoryLock:
+    """One configure/build writer per cache; released by the OS on exit."""
+
+    def __init__(self, directory):
+        self.path = directory.parent / ("." + directory.name + ".agent-build.lock")
+        self.stream = None
+
+    def __enter__(self):
+        self.path.parent.mkdir(parents=True, exist_ok=True)
+        self.stream = self.path.open("a+")
+        try:
+            if os.name == "nt":
+                import msvcrt
+                self.stream.seek(0)
+                if not self.stream.read(1):
+                    self.stream.write(" ")
+                    self.stream.flush()
+                self.stream.seek(0)
+                msvcrt.locking(self.stream.fileno(), msvcrt.LK_NBLCK, 1)
+            else:
+                import fcntl
+                fcntl.flock(self.stream.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except OSError as error:
+            self.stream.seek(0)
+            owner = self.stream.read().strip()
+            self.stream.close()
+            self.stream = None
+            raise BuildError(f"Build cache is already in use ({owner}): {self.path}") from error
+        self.stream.seek(0)
+        self.stream.truncate()
+        self.stream.write(f"pid={os.getpid()}")
+        self.stream.flush()
+        return self
+
+    def __exit__(self, *_args):
+        self.stream.close()
+
+
 class Cancellation:
     def __init__(self):
         self.received = None
@@ -336,6 +374,7 @@ def plan(root, args, env, platform):
                              "owned checkout/cache with --reuse-from, or explicitly "
                              "choose --allow-new-build for a justified cold build.")
     print(f"Cache: {'REUSE' if cache.exists() else 'COLD'} {directory}", flush=True)
+    print(f"CMAKE_DISABLE_PRECOMPILE_HEADERS: {disable_pch}", flush=True)
     pch_args = [f"-DCMAKE_DISABLE_PRECOMPILE_HEADERS={disable_pch}"]
     if not cache.exists():
         configure_command = ["cmake", "--preset", configure_name, *pch_args, "-B", str(directory)]
@@ -437,7 +476,13 @@ def main(argv=None, *, root=ROOT, platform=None):
             for command, _ in commands:
                 print("[dry-run] " + shlex.join(command))
             return 0
-        with Cancellation() as cancellation:
+        # Lock before configure and hold through build/owned-child cleanup.
+        # The sibling lock does not make a cold cache nonempty. Replan after
+        # acquiring it, since another writer may have completed meanwhile.
+        build_command = commands[-1][0]
+        directory = Path(build_command[build_command.index("--build") + 1])
+        with BuildDirectoryLock(directory), Cancellation() as cancellation:
+            commands = plan(root, args, env, platform)
             for command, command_env in commands:
                 result = cancellation.run(command, root, command_env)
                 if result:

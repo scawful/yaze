@@ -57,6 +57,15 @@ defaults; the agent entry point explicitly selects the host policy. A build
 cache stays at its original source path. One owner writes each source/cache;
 never select another agent's active or retained cache.
 
+The helper refuses a second writer to the same build folder and holds that
+lock through configure, compilation and owned-child cleanup. Raw CMake
+configure calls also refuse a concurrent configure. New configurations use
+the existing `~/.cpm-cache` dependency source cache; an explicit cache choice
+and existing configured caches stay unchanged. CPM locks its package fetches.
+Do not call raw CMake for a cache benchmark that is meant to test agent PCH
+defaults. Use the helper, inspect its selected cache/PCH settings, and check a
+few representative objects before considering another full benchmark.
+
 Usage examples:
 ```bash
 # Trigger CI workflow with artifacts and HTTP API tests enabled

@@ -376,6 +376,136 @@ class AgentBuildTest(unittest.TestCase):
         result, output = self.invoke(extra_env={"FAKE_EXIT": "7"})
         self.assertEqual(result, 7, output)
 
+    def test_second_writer_refuses_before_running_cmake(self):
+        self.cache()
+        with build.BuildDirectoryLock(self.cache_dir):
+            result, output = self.invoke()
+        self.assertEqual(result, 2, output)
+        self.assertIn("already in use", output)
+        self.assertFalse(self.calls())
+        result, output = self.invoke()
+        self.assertEqual(result, 0, output)
+
+    def test_lock_is_released_on_exception_and_dry_run_does_not_acquire(self):
+        with self.assertRaisesRegex(RuntimeError, "fixture"):
+            with build.BuildDirectoryLock(self.cache_dir):
+                raise RuntimeError("fixture")
+        self.assertFalse(self.cache_dir.exists())
+        with build.BuildDirectoryLock(self.cache_dir):
+            result, output = self.invoke("--preflight")
+        self.assertEqual(result, 0, output)
+        self.assertFalse(self.calls())
+
+    @unittest.skipUnless(shutil.which("cmake"), "needs cmake")
+    def test_raw_cmake_rejects_concurrent_configure_and_releases_lock(self):
+        cmake = shutil.which("cmake")
+        module = MODULE_PATH.parents[2] / "cmake/build_ownership.cmake"
+        source = self.root / "CMakeLists.txt"
+        ready = self.directory / "ready"
+        source.write_text(
+            'cmake_minimum_required(VERSION 3.16)\n'
+            f'include("{module.as_posix()}")\nproject(lock_probe NONE)\n'
+            'if(DEFINED ENV{PROBE_HOLD})\n'
+            f'  file(WRITE "{ready.as_posix()}" "ready")\n'
+            '  execute_process(COMMAND "${CMAKE_COMMAND}" -E sleep 2)\nendif()\n')
+        command = [cmake, "-S", str(self.root), "-B", str(self.cache_dir)]
+        first = subprocess.Popen(command, env={**os.environ, "PROBE_HOLD": "1"},
+                                 stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+        try:
+            deadline = time.monotonic() + 8
+            while not ready.exists() and first.poll() is None and time.monotonic() < deadline:
+                time.sleep(.02)
+            self.assertTrue(ready.exists(), "first configure did not acquire lock")
+            second = subprocess.run(command, capture_output=True, text=True, timeout=10)
+            self.assertNotEqual(second.returncode, 0)
+            self.assertIn("Another configure is using", second.stderr)
+            output, _ = first.communicate(timeout=10)
+            self.assertEqual(first.returncode, 0, output)
+            third = subprocess.run(command, capture_output=True, text=True, timeout=10)
+            self.assertEqual(third.returncode, 0, third.stderr)
+        finally:
+            if first.poll() is None:
+                first.terminate()
+                first.communicate(timeout=10)
+
+    @unittest.skipUnless(shutil.which("cmake"), "needs cmake")
+    def test_cpm_defaults_to_one_source_cache_and_preserves_explicit_off(self):
+        cmake = shutil.which("cmake")
+        home = self.directory / "home"
+        module = MODULE_PATH.parents[2] / "cmake/CPM.cmake"
+        shared = home / ".cpm-cache"
+        bootstrap = shared / "cpm/CPM_0.38.7.cmake"
+        bootstrap.parent.mkdir(parents=True)
+        bootstrap.write_text("# Offline fixture: no network or package work.\n")
+        env = {k: v for k, v in os.environ.items()
+               if k not in ("CPM_SOURCE_CACHE", "GITHUB_ACTIONS")}
+        env["HOME"] = str(home)
+        for name in ("a", "b", "explicit-off"):
+            root = self.directory / name
+            root.mkdir()
+            directory = root / "build"
+            root.joinpath("CMakeLists.txt").write_text(
+                'cmake_minimum_required(VERSION 3.16)\nproject(cache_probe NONE)\n'
+                f'include("{module.as_posix()}")\n'
+                'file(WRITE "${CMAKE_BINARY_DIR}/selected.txt" "${CPM_SOURCE_CACHE}")\n')
+            command = [cmake, "-S", str(root), "-B", str(directory)]
+            if name == "explicit-off":
+                local = directory / "cmake/CPM_0.38.7.cmake"
+                local.parent.mkdir(parents=True)
+                local.write_text("# Offline fixture.\n")
+                command.append("-DCPM_SOURCE_CACHE=OFF")
+            result = subprocess.run(command, env=env, capture_output=True, text=True, timeout=10)
+            self.assertEqual(result.returncode, 0, result.stderr)
+            expected = "OFF" if name == "explicit-off" else str(shared)
+            self.assertEqual((directory / "selected.txt").read_text(), expected)
+
+    @unittest.skipUnless(shutil.which("cmake") and shutil.which("ninja")
+                         and shutil.which("ccache"), "needs cmake, ninja and ccache")
+    def test_real_two_checkout_objects_use_no_pch_and_share_portable_object(self):
+        cmake, ccache = shutil.which("cmake"), shutil.which("ccache")
+        template = MODULE_PATH.parents[2] / "test/yaze_test_paths.h.in"
+        env = {k: v for k, v in os.environ.items() if not k.startswith("CCACHE_")}
+        env.update(CCACHE_DIR=str(self.directory / "ccache"),
+                   CCACHE_BASEDIR=str(self.directory), CCACHE_NOHASHDIR="1",
+                   CCACHE_SLOPPINESS="include_file_mtime,include_file_ctime",
+                   OOS_BUILD_MODE_FILE=str(self.mode_file))
+        for name in ("a", "b"):
+            root = self.directory / name
+            root.mkdir()
+            root.joinpath("test").mkdir()
+            shutil.copyfile(template, root / "test/yaze_test_paths.h.in")
+            root.joinpath("main.cc").write_text(
+                'const char* fixture_path();\nint main() { return fixture_path()[0] == 0; }\n')
+            root.joinpath("fixture.cc").write_text(
+                '#include "yaze_test_paths.h"\nconst char* fixture_path() { return YAZE_TEST_FIXTURE_DIR; }\n')
+            root.joinpath("CMakeLists.txt").write_text(
+                'cmake_minimum_required(VERSION 3.20)\nproject(object_probe CXX)\n'
+                'configure_file(test/yaze_test_paths.h.in generated/yaze_test_paths.h @ONLY)\n'
+                'add_executable(proof main.cc fixture.cc)\n'
+                'target_include_directories(proof PRIVATE "${CMAKE_BINARY_DIR}/generated")\n'
+                'target_precompile_headers(proof PRIVATE <vector>)\n')
+            data = {"version": 6, "configurePresets": [{"name": "probe", "generator": "Ninja",
+                    "binaryDir": "${sourceDir}/build", "cacheVariables": {
+                        "CMAKE_CXX_COMPILER_LAUNCHER": ccache,
+                        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"}}],
+                    "buildPresets": [{"name": "probe", "configurePreset": "probe"}]}
+            root.joinpath("CMakePresets.json").write_text(json.dumps(data))
+            stats = self.directory / (name + ".stats")
+            with mock.patch.dict(os.environ, {**env, "CCACHE_STATSLOG": str(stats)}, clear=True):
+                result = build.main(["--preset", "probe", "--jobs", "1", "--allow-new-build", "proof"],
+                                    root=root, platform="Linux")
+            self.assertEqual(result, 0)
+            commands = json.loads((root / "build/compile_commands.json").read_text())
+            self.assertEqual(len(commands), 2)
+            self.assertNotIn("cmake_pch", json.dumps(commands))
+            events = stats.read_text().splitlines()
+            self.assertEqual(events.count("cache_miss"), 2 if name == "a" else 1, events)
+            if name == "b":
+                self.assertEqual(events.count("direct_cache_hit"), 1, events)
+            # The path-sensitive source deliberately misses: its compiled
+            # fixture path must identify the new checkout, not the first one.
+            self.assertIn(str(root), (root / "build/generated/yaze_test_paths.h").read_text())
+
     def test_group_exit_readback_distinguishes_live_and_terminated_members(self):
         cancellation = build.Cancellation()
         cancellation.child = SimpleNamespace(pid=12345)

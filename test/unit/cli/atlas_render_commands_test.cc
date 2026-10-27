@@ -18,6 +18,7 @@
 #include "unique_temp_path.h"
 #include "unit/zelda3/dungeon/room_census_test_rom.h"
 #include "util/rom_hash.h"
+#include "yaze_test_paths.h"
 
 namespace yaze::cli {
 namespace {
