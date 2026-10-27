@@ -70,6 +70,12 @@ class LyraTerrainCanvas {
   absl::Status EditAuthoring(core::LyraAuthoringState after,
                              zelda3::Overworld& overworld,
                              UndoManager& history);
+  // A size explicitly assigns this page as the parent. Null unassigns the
+  // containing area, including all its pages, through the same Undo history.
+  absl::Status SetGameplayArea(int map_id,
+                               std::optional<core::LyraGameplayAreaSize> size,
+                               zelda3::Overworld& overworld,
+                               UndoManager& history);
   absl::Status PrepareMapAssets(zelda3::Overworld& overworld, int state);
   gfx::Bitmap& MapAtlas(int map_id);
   gfx::Bitmap* MapGraphics(int map_id);
@@ -109,6 +115,8 @@ class LyraTerrainCanvas {
   // Every control edits live authoring directly; no draft outlives a frame.
   void DrawEdgeConnections(int map_id, zelda3::Overworld& overworld,
                            UndoManager& history);
+  void DrawGameplayArea(int map_id, zelda3::Overworld& overworld,
+                        UndoManager& history);
   absl::Status ApplyAuthoring(core::LyraAuthoringState after,
                               zelda3::Overworld& overworld,
                               UndoManager& history);

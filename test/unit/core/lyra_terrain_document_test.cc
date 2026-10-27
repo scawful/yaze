@@ -1,6 +1,8 @@
 #include "core/lyra_terrain_document.h"
 
+#include <algorithm>
 #include <functional>
+#include <limits>
 
 #include "gtest/gtest.h"
 #include "nlohmann/json.hpp"
@@ -876,6 +878,299 @@ TEST(LyraTerrainDocumentTest, EdgeConnectionHistoryRetainsPairAndDirtyState) {
   auto reopened = LyraTerrainDocument::Parse(doc->Serialize(), Profile());
   ASSERT_TRUE(reopened.ok()) << reopened.status();
   EXPECT_EQ(reopened->authoring(), assigned);
+}
+
+TEST(LyraTerrainDocumentTest,
+     GameplayAreaFootprintsHaveExactOrderAndAllowOddRowAndColumnParents) {
+  EXPECT_EQ(
+      LyraGameplayAreaFootprint(0xA9, LyraGameplayAreaSize::kSmall).value(),
+      (std::vector<int>{0xA9}));
+  EXPECT_EQ(
+      LyraGameplayAreaFootprint(0xA9, LyraGameplayAreaSize::kWide).value(),
+      (std::vector<int>{0xA9, 0xAA}));
+  EXPECT_EQ(
+      LyraGameplayAreaFootprint(0xA9, LyraGameplayAreaSize::kTall).value(),
+      (std::vector<int>{0xA9, 0xB1}));
+  EXPECT_EQ(
+      LyraGameplayAreaFootprint(0xA9, LyraGameplayAreaSize::kLarge).value(),
+      (std::vector<int>{0xA9, 0xAA, 0xB1, 0xB2}));
+  EXPECT_EQ(
+      LyraGameplayAreaFootprint(0xBE, LyraGameplayAreaSize::kWide).value(),
+      (std::vector<int>{0xBE, 0xBF}));
+  EXPECT_EQ(
+      LyraGameplayAreaFootprint(0xB7, LyraGameplayAreaSize::kTall).value(),
+      (std::vector<int>{0xB7, 0xBF}));
+  EXPECT_EQ(
+      LyraGameplayAreaFootprint(0xB6, LyraGameplayAreaSize::kLarge).value(),
+      (std::vector<int>{0xB6, 0xB7, 0xBE, 0xBF}));
+}
+
+TEST(LyraTerrainDocumentTest,
+     GameplayAreaFootprintsBoundEveryParentWithoutWrapOrOverflow) {
+  const std::array<LyraGameplayAreaSize, 4> sizes = {
+      LyraGameplayAreaSize::kSmall, LyraGameplayAreaSize::kWide,
+      LyraGameplayAreaSize::kTall, LyraGameplayAreaSize::kLarge};
+  const std::array<int, 4> expected_counts = {32, 28, 24, 21};
+  for (size_t index = 0; index < sizes.size(); ++index) {
+    int valid = 0;
+    for (int parent = 0xA0; parent <= 0xBF; ++parent) {
+      const auto footprint = LyraGameplayAreaFootprint(parent, sizes[index]);
+      if (!footprint.ok())
+        continue;
+      ++valid;
+      ASSERT_FALSE(footprint->empty());
+      EXPECT_EQ(footprint->front(), parent);
+      EXPECT_TRUE(
+          std::all_of(footprint->begin(), footprint->end(),
+                      [](int map) { return map >= 0xA0 && map <= 0xBF; }));
+    }
+    EXPECT_EQ(valid, expected_counts[index]);
+    for (const int outside : {std::numeric_limits<int>::min(), 0x9F, 0xC0,
+                              std::numeric_limits<int>::max()}) {
+      EXPECT_FALSE(LyraGameplayAreaFootprint(outside, sizes[index]).ok());
+    }
+  }
+  for (const int east_edge : {0xA7, 0xAF, 0xB7, 0xBF}) {
+    EXPECT_FALSE(
+        LyraGameplayAreaFootprint(east_edge, LyraGameplayAreaSize::kWide).ok());
+    EXPECT_FALSE(
+        LyraGameplayAreaFootprint(east_edge, LyraGameplayAreaSize::kLarge)
+            .ok());
+  }
+  for (int last_row = 0xB8; last_row <= 0xBF; ++last_row) {
+    EXPECT_FALSE(
+        LyraGameplayAreaFootprint(last_row, LyraGameplayAreaSize::kTall).ok());
+    EXPECT_FALSE(
+        LyraGameplayAreaFootprint(last_row, LyraGameplayAreaSize::kLarge).ok());
+  }
+  EXPECT_FALSE(
+      LyraGameplayAreaFootprint(0xA0, static_cast<LyraGameplayAreaSize>(99))
+          .ok());
+}
+
+TEST(LyraTerrainDocumentTest, LegacySchemasLeaveEveryGameplayMapUnassigned) {
+  const auto doc = LyraTerrainDocument::Create(Profile(), 13);
+  ASSERT_TRUE(doc.ok());
+  const auto original = nlohmann::json::parse(doc->Serialize());
+  for (const int version : {1, 2, 3, 4}) {
+    SCOPED_TRACE(version);
+    auto legacy = original;
+    legacy["schema_version"] = version;
+    if (version <= 2)
+      legacy.erase("edge_connections");
+    if (version == 1) {
+      legacy.erase("flight_points");
+      for (auto& map : legacy["maps"])
+        map.erase("authoring");
+    }
+    if (version == 4) {
+      legacy["maps"][0]["authoring"]["properties"]["background_palette"] =
+          std::array<uint16_t, 128>{};
+      legacy["maps"][0]["authoring"]["asset_bindings"] =
+          std::array<std::string, 3>{"defs:0", "gfx:0", "palette:0"};
+    }
+    const auto parsed = LyraTerrainDocument::Parse(legacy.dump(), Profile());
+    ASSERT_TRUE(parsed.ok()) << parsed.status();
+    EXPECT_TRUE(parsed->authoring().gameplay_areas.empty());
+    EXPECT_EQ(parsed->maps(), doc->maps());
+    EXPECT_FALSE(parsed->dirty());
+    for (int map = 0xA0; map <= 0xBF; ++map)
+      EXPECT_EQ(parsed->GameplayAreaForMap(map), nullptr);
+    const auto saved = nlohmann::json::parse(parsed->Serialize());
+    EXPECT_FALSE(saved.contains("gameplay_areas"));
+    EXPECT_EQ(saved["schema_version"], version == 4 ? 4 : 3);
+    // An unknown layout field must never be silently dropped by legacy parsing.
+    legacy["gameplay_areas"] = nlohmann::json::array();
+    EXPECT_FALSE(LyraTerrainDocument::Parse(legacy.dump(), Profile()).ok());
+  }
+}
+
+TEST(LyraTerrainDocumentTest,
+     Schema5RoundtripPreservesGameplayOwnershipAndAllOtherAuthoring) {
+  auto doc = LyraTerrainDocument::Create(Profile(), 19);
+  ASSERT_TRUE(doc.ok());
+  auto state = WithEdgeConnections(doc->authoring());
+  state.gameplay_areas = {
+      {0xA1, LyraGameplayAreaSize::kLarge, {0xA1, 0xA2, 0xA9, 0xAA}},
+      {0xA4, LyraGameplayAreaSize::kWide, {0xA4, 0xA5}},
+      {0xAE, LyraGameplayAreaSize::kTall, {0xAE, 0xB6}},
+      {0xBF, LyraGameplayAreaSize::kSmall, {0xBF}}};
+  state.maps[1].asset_bindings = {"defs:1", "gfx:1", "palette:1"};
+  state.maps[1].properties.message_id = 0x1234;
+  state.maps[1].properties.background_palette = std::array<uint16_t, 128>{};
+  state.maps[1].properties.background_palette->back() = 0x7FFF;
+  state.maps[1].sprites.push_back({1, 0x15, 2, 3, 1});
+  state.maps[1].doors.push_back({1, 4, 5, std::nullopt});
+  state.maps[1].exits.push_back({1, 0x100, 6, 7, 78});
+  state.flight_points.push_back({1, 0xA1, 8, 9, "Area flight", std::nullopt});
+  ASSERT_TRUE(doc->SetAuthoring(doc->authoring(), state).ok());
+  const auto serialized = doc->Serialize();
+  const auto json = nlohmann::json::parse(serialized);
+  EXPECT_EQ(json["schema_version"], 5);
+  EXPECT_EQ(
+      json["gameplay_areas"][0],
+      nlohmann::json({{"parent_map_id", 0xA1},
+                      {"size", "large"},
+                      {"maps", std::vector<int>{0xA1, 0xA2, 0xA9, 0xAA}}}));
+  EXPECT_EQ(json["gameplay_areas"][1]["size"], "wide");
+  EXPECT_EQ(json["gameplay_areas"][2]["size"], "tall");
+  EXPECT_EQ(json["gameplay_areas"][3]["size"], "small");
+  const auto parsed = LyraTerrainDocument::Parse(serialized, Profile());
+  ASSERT_TRUE(parsed.ok()) << parsed.status();
+  EXPECT_EQ(parsed->authoring(), state);
+  EXPECT_EQ(parsed->maps(), doc->maps());
+  EXPECT_EQ(parsed->profile(), doc->profile());
+  EXPECT_EQ(parsed->Serialize(), serialized);
+  EXPECT_FALSE(parsed->dirty());
+  ASSERT_NE(parsed->GameplayAreaForMap(0xAA), nullptr);
+  EXPECT_EQ(parsed->GameplayAreaForMap(0xAA)->parent_map_id, 0xA1);
+  EXPECT_EQ(parsed->GameplayAreaForMap(0xA1), parsed->GameplayAreaForMap(0xAA));
+  EXPECT_EQ(parsed->GameplayAreaForMap(0xA0), nullptr);
+  EXPECT_EQ(parsed->GameplayAreaForMap(0x9F), nullptr);
+  EXPECT_EQ(parsed->GameplayAreaForMap(0xC0), nullptr);
+
+  auto native_palette = state;
+  native_palette.maps[1].properties.background_palette.reset();
+  ASSERT_TRUE(doc->SetAuthoring(state, native_palette).ok());
+  const auto no_palette =
+      LyraTerrainDocument::Parse(doc->Serialize(), Profile());
+  ASSERT_TRUE(no_palette.ok()) << no_palette.status();
+  EXPECT_EQ(no_palette->authoring(), native_palette);
+  EXPECT_EQ(nlohmann::json::parse(no_palette->Serialize())["schema_version"],
+            5);
+}
+
+TEST(LyraTerrainDocumentTest, GameplayAreaInvalidStateIsRejectedAtomically) {
+  auto doc = LyraTerrainDocument::Create(Profile(), 23);
+  ASSERT_TRUE(doc.ok());
+  const auto before = doc->authoring();
+  const auto before_maps = doc->maps();
+  const auto before_json = doc->Serialize();
+  using Mutation = std::function<void(LyraAuthoringState&)>;
+  const std::vector<Mutation> mutations = {
+      [](auto& s) {
+        s.gameplay_areas = {{0x9F, LyraGameplayAreaSize::kSmall, {0x9F}}};
+      },
+      [](auto& s) {
+        s.gameplay_areas = {
+            {0xA0, static_cast<LyraGameplayAreaSize>(99), {0xA0}}};
+      },
+      [](auto& s) {
+        s.gameplay_areas = {{0xA1, LyraGameplayAreaSize::kWide, {0xA2, 0xA1}}};
+      },
+      [](auto& s) {
+        s.gameplay_areas = {{0xA1, LyraGameplayAreaSize::kWide, {0xA1, 0xA1}}};
+      },
+      [](auto& s) {
+        s.gameplay_areas = {{0xA1, LyraGameplayAreaSize::kWide, {0xA2}}};
+      },
+      [](auto& s) {
+        s.gameplay_areas = {{0xA1, LyraGameplayAreaSize::kSmall, {0xA1, 0xA2}}};
+      },
+      [](auto& s) {
+        s.gameplay_areas = {{0xA7, LyraGameplayAreaSize::kWide, {0xA7, 0xA8}}};
+      },
+      [](auto& s) {
+        s.gameplay_areas = {{0xB8, LyraGameplayAreaSize::kTall, {0xB8, 0xC0}}};
+      },
+      [](auto& s) {
+        s.gameplay_areas = {{0xA0, LyraGameplayAreaSize::kWide, {0xA0, 0xA1}},
+                            {0xA1, LyraGameplayAreaSize::kSmall, {0xA1}}};
+      },
+      [](auto& s) {
+        s.gameplay_areas = {{0xA0, LyraGameplayAreaSize::kSmall, {0xA0}},
+                            {0xA0, LyraGameplayAreaSize::kSmall, {0xA0}}};
+      },
+  };
+  for (size_t index = 0; index < mutations.size(); ++index) {
+    SCOPED_TRACE(index);
+    auto invalid = before;
+    mutations[index](invalid);
+    EXPECT_EQ(doc->SetAuthoring(before, invalid).code(),
+              absl::StatusCode::kInvalidArgument);
+    EXPECT_EQ(doc->authoring(), before);
+    EXPECT_EQ(doc->maps(), before_maps);
+    EXPECT_EQ(doc->Serialize(), before_json);
+    EXPECT_FALSE(doc->dirty());
+  }
+}
+
+TEST(LyraTerrainDocumentTest,
+     Schema5GameplayAreaJsonRequiresExactBoundedShape) {
+  auto doc = LyraTerrainDocument::Create(Profile());
+  ASSERT_TRUE(doc.ok());
+  auto state = doc->authoring();
+  state.gameplay_areas = {{0xA1, LyraGameplayAreaSize::kWide, {0xA1, 0xA2}}};
+  ASSERT_TRUE(doc->SetAuthoring(doc->authoring(), state).ok());
+  const auto original = nlohmann::json::parse(doc->Serialize());
+  using Json = nlohmann::json;
+  using Mutation = std::function<void(Json&)>;
+  const std::vector<Mutation> mutations = {
+      [](auto& j) { j.erase("gameplay_areas"); },
+      [](auto& j) { j["unknown_layout"] = true; },
+      [](auto& j) { j["gameplay_areas"] = nullptr; },
+      [](auto& j) { j["gameplay_areas"] = Json::object(); },
+      [](auto& j) { j["gameplay_areas"] = Json::array(); },
+      [](auto& j) { j["gameplay_areas"][0] = Json::array(); },
+      [](auto& j) { j["gameplay_areas"][0].erase("parent_map_id"); },
+      [](auto& j) { j["gameplay_areas"][0].erase("size"); },
+      [](auto& j) { j["gameplay_areas"][0].erase("maps"); },
+      [](auto& j) { j["gameplay_areas"][0]["unknown"] = 0; },
+      [](auto& j) { j["gameplay_areas"][0]["parent_map_id"] = 0x9F; },
+      [](auto& j) { j["gameplay_areas"][0]["parent_map_id"] = 0xC0; },
+      [](auto& j) { j["gameplay_areas"][0]["parent_map_id"] = 161.0; },
+      [](auto& j) { j["gameplay_areas"][0]["size"] = "WIDE"; },
+      [](auto& j) { j["gameplay_areas"][0]["size"] = 2; },
+      [](auto& j) { j["gameplay_areas"][0]["size"] = nullptr; },
+      [](auto& j) { j["gameplay_areas"][0]["maps"] = nullptr; },
+      [](auto& j) { j["gameplay_areas"][0]["maps"] = Json::array(); },
+      [](auto& j) { j["gameplay_areas"][0]["maps"][0] = true; },
+      [](auto& j) { j["gameplay_areas"][0]["maps"][0] = 161.0; },
+      [](auto& j) {
+        j["gameplay_areas"][0]["maps"][0] = uint64_t{18446744073709551615ULL};
+      },
+      [](auto& j) {
+        j["gameplay_areas"][0]["maps"] = std::vector<int>{0xA2, 0xA1};
+      },
+      [](auto& j) {
+        j["gameplay_areas"][0]["maps"] = std::vector<int>{0xA1, 0xA1};
+      },
+      [](auto& j) { j["gameplay_areas"].push_back(j["gameplay_areas"][0]); },
+  };
+  for (size_t index = 0; index < mutations.size(); ++index) {
+    SCOPED_TRACE(index);
+    auto invalid = original;
+    mutations[index](invalid);
+    EXPECT_FALSE(LyraTerrainDocument::Parse(invalid.dump(), Profile()).ok());
+  }
+}
+
+TEST(LyraTerrainDocumentTest,
+     GameplayAreaUndoAndRemovalUseAuthoringDirtyState) {
+  auto doc = LyraTerrainDocument::Create(Profile());
+  ASSERT_TRUE(doc.ok());
+  const auto unassigned = doc->authoring();
+  auto assigned = unassigned;
+  assigned.gameplay_areas = {
+      {0xA9, LyraGameplayAreaSize::kLarge, {0xA9, 0xAA, 0xB1, 0xB2}}};
+  ASSERT_TRUE(doc->SetAuthoring(unassigned, assigned).ok());
+  EXPECT_TRUE(doc->dirty());
+  doc->MarkSaved();
+  EXPECT_FALSE(doc->dirty());
+  EXPECT_EQ(doc->SetAuthoring(unassigned, assigned).code(),
+            absl::StatusCode::kFailedPrecondition);
+  EXPECT_EQ(doc->authoring(), assigned);
+  ASSERT_TRUE(doc->BeginStroke().ok());
+  EXPECT_FALSE(doc->SetAuthoring(assigned, unassigned).ok());
+  doc->CancelStroke();
+  EXPECT_EQ(doc->authoring(), assigned);
+  ASSERT_TRUE(doc->SetAuthoring(assigned, unassigned).ok());
+  EXPECT_TRUE(doc->dirty());
+  EXPECT_EQ(doc->GameplayAreaForMap(0xA9), nullptr);
+  EXPECT_EQ(nlohmann::json::parse(doc->Serialize())["schema_version"], 3);
+  ASSERT_TRUE(doc->SetAuthoring(unassigned, assigned).ok());
+  EXPECT_FALSE(doc->dirty());
+  EXPECT_NE(doc->GameplayAreaForMap(0xB2), nullptr);
 }
 
 }  // namespace

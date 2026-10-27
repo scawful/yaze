@@ -534,8 +534,38 @@ TEST(EditorManagerProjectActionsTest,
   EXPECT_EQ(ReadFile(primary_project), initial_descriptor);
 
   const auto initial_authoring = editor->lyra_canvas_.document()->authoring();
+  EXPECT_TRUE(initial_authoring.gameplay_areas.empty());
+  UndoManager area_history;
+  auto& canvas = editor->lyra_canvas_;
+  using AreaSize = core::LyraGameplayAreaSize;
+  ASSERT_OK(canvas.SetGameplayArea(0xA0, AreaSize::kLarge, editor->overworld(),
+                                   area_history));
+  ASSERT_NE(canvas.document()->GameplayAreaForMap(0xA9), nullptr);
+  EXPECT_EQ(canvas.document()->GameplayAreaForMap(0xA9)->parent_map_id, 0xA0);
+  const auto assigned_area = canvas.document()->authoring();
+  const auto area_history_size = area_history.UndoStackSize();
+  // A child cannot silently steal ownership, and a root cannot wrap a row.
+  EXPECT_FALSE(canvas
+                   .SetGameplayArea(0xA1, AreaSize::kSmall, editor->overworld(),
+                                    area_history)
+                   .ok());
+  EXPECT_FALSE(canvas
+                   .SetGameplayArea(0xA7, AreaSize::kWide, editor->overworld(),
+                                    area_history)
+                   .ok());
+  EXPECT_EQ(canvas.document()->authoring(), assigned_area);
+  EXPECT_EQ(area_history.UndoStackSize(), area_history_size);
+  ASSERT_OK(canvas.SetGameplayArea(0xA9, std::nullopt, editor->overworld(),
+                                   area_history));
+  EXPECT_TRUE(canvas.document()->authoring().gameplay_areas.empty());
+  ASSERT_OK(area_history.Undo());
+  EXPECT_EQ(canvas.document()->authoring(), assigned_area);
+  ASSERT_OK(area_history.Redo());
+  EXPECT_EQ(canvas.document()->authoring(), initial_authoring);
   auto selected_scene = initial_authoring;
   selected_scene.maps[1].properties.message_id = 0x42;
+  selected_scene.gameplay_areas.push_back(
+      {0xA0, AreaSize::kWide, {0xA0, 0xA1}});
   selected_scene.edge_connections.push_back(
       {1, 0x99, 0xA1, core::LyraEdgePassage{15, 16}});
   ASSERT_OK(editor->EditProjectMapAuthoring(selected_scene));
@@ -582,6 +612,8 @@ TEST(EditorManagerProjectActionsTest,
 
   auto save_as_scene = selected_scene;
   save_as_scene.maps[0].properties.message_id = 0x71;
+  save_as_scene.gameplay_areas[0] = {
+      0xA0, AreaSize::kLarge, {0xA0, 0xA1, 0xA8, 0xA9}};
   ASSERT_OK(editor->EditProjectMapAuthoring(save_as_scene));
   save_as_scene = editor->lyra_canvas_.document()->authoring();
   const auto save_as_bytes = editor->lyra_canvas_.document()->Serialize();

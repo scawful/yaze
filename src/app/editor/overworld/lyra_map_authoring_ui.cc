@@ -8,6 +8,7 @@
 #include <cstdio>
 #include <string>
 #include <unordered_set>
+#include <utility>
 #include <vector>
 
 #include "absl/strings/ascii.h"
@@ -158,6 +159,55 @@ bool DrawSpriteTypePicker(const char* label, int& type,
 
 }  // namespace
 
+void LyraTerrainCanvas::DrawGameplayArea(int map_id,
+                                         zelda3::Overworld& overworld,
+                                         UndoManager& history) {
+  if (!ImGui::CollapsingHeader("Gameplay area",
+                               ImGuiTreeNodeFlags_DefaultOpen)) {
+    return;
+  }
+  // Keep a value copy: a selection below can replace the authoring vector.
+  const auto* stored = document_->GameplayAreaForMap(map_id);
+  const auto area = stored ? std::optional(*stored) : std::nullopt;
+  if (area) {
+    ImGui::Text("Parent: $%02X", area->parent_map_id);
+    ImGui::TextWrapped("Ordered pages: %s", FormatMapIds(area->maps).c_str());
+    if (ImGui::Button("Unassign whole area")) {
+      status_ = SetGameplayArea(map_id, std::nullopt, overworld, history);
+    }
+  } else {
+    ImGui::TextUnformatted("Parent: Unassigned");
+  }
+  const bool child = area && area->parent_map_id != map_id;
+  if (child) {
+    ImGui::TextWrapped("Select the parent page to change this area's size.");
+  }
+  ImGui::BeginDisabled(child);
+  if (ImGui::BeginCombo("Assign this page as parent", "Choose footprint")) {
+    using Size = core::LyraGameplayAreaSize;
+    const std::array<std::pair<Size, const char*>, 4> options = {{
+        {Size::kSmall, "Small (1 x 1 page)"},
+        {Size::kWide, "Wide (2 x 1 pages)"},
+        {Size::kTall, "Tall (1 x 2 pages)"},
+        {Size::kLarge, "Large (2 x 2 pages)"},
+    }};
+    for (const auto& [size, label] : options) {
+      const bool valid = core::LyraGameplayAreaFootprint(map_id, size).ok();
+      ImGui::BeginDisabled(!valid);
+      const bool selected = area && area->size == size;
+      if (ImGui::Selectable(label, selected) && !selected) {
+        status_ = SetGameplayArea(map_id, size, overworld, history);
+      }
+      ImGui::EndDisabled();
+    }
+    ImGui::EndCombo();
+  }
+  gui::WidgetIdRegistry::Instance().RegisterWidget(
+      "LyraMapProperties/combo:GameplayFootprint", "combo",
+      ImGui::GetID("Assign this page as parent"));
+  ImGui::EndDisabled();
+}
+
 void LyraTerrainCanvas::DrawProperties(int map_id, int& state,
                                        zelda3::Overworld& overworld,
                                        UndoManager& history) {
@@ -183,6 +233,7 @@ void LyraTerrainCanvas::DrawProperties(int map_id, int& state,
     ImGui::Text("Lyra Map Properties ($%02X)", map_id);
     ImGui::TextWrapped(
         "Project draft; saved with project; build/runtime unavailable");
+    DrawGameplayArea(map_id, overworld, history);
 
     // Game state selector combo 0..2
     const char* state_names[] = {"State 0", "State 1", "State 2"};

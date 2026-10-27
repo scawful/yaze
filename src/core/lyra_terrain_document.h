@@ -104,10 +104,32 @@ struct LyraEdgeConnection {
 // share a cardinal edge in the eight-column grid. Order-insensitive.
 bool LyraEdgeMapsAdjacent(int map_a, int map_b);
 
+// Project-owned gameplay composition only; this does not publish native maps.
+enum class LyraGameplayAreaSize {
+  kSmall = 0,
+  kLarge = 1,
+  kWide = 2,
+  kTall = 3
+};
+
+struct LyraGameplayArea {
+  int parent_map_id = 0;
+  LyraGameplayAreaSize size = LyraGameplayAreaSize::kSmall;
+  std::vector<int> maps;
+
+  bool operator==(const LyraGameplayArea&) const = default;
+};
+
+// Exact row-major footprint in the A0-BF eight-column, four-row grid. Any
+// in-bounds parent is allowed; footprints cannot wrap or leave that grid.
+absl::StatusOr<std::vector<int>> LyraGameplayAreaFootprint(
+    int parent_map_id, LyraGameplayAreaSize size);
+
 struct LyraAuthoringState {
   std::array<LyraMapAuthoring, 32> maps;
   std::vector<LyraFlightPoint> flight_points;
   std::vector<LyraEdgeConnection> edge_connections;
+  std::vector<LyraGameplayArea> gameplay_areas;
 
   bool operator==(const LyraAuthoringState&) const = default;
 };
@@ -148,7 +170,7 @@ struct LyraTerrainStroke {
 
 class LyraTerrainDocument {
  public:
-  static constexpr int kSchemaVersion = 4;
+  static constexpr int kSchemaVersion = 5;
   static constexpr int kMaxEdgeConnections = 64;
   static constexpr int kFirstMap = 0xA0;
   static constexpr int kMapCount = 32;
@@ -170,6 +192,8 @@ class LyraTerrainDocument {
   const LyraTerrainProfile& profile() const { return profile_; }
   const Maps& maps() const { return maps_; }
   const LyraAuthoringState& authoring() const { return authoring_; }
+  // Returns the explicit owner of a parent or child map; absent is unassigned.
+  const LyraGameplayArea* GameplayAreaForMap(int map_id) const;
   absl::Status SetAuthoring(const LyraAuthoringState& before,
                             const LyraAuthoringState& after);
   absl::StatusOr<uint16_t> tile(int global_x, int global_y) const;

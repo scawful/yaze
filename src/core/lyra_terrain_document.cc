@@ -158,6 +158,34 @@ Json EdgeConnectionJson(const LyraEdgeConnection& c) {
   return j;
 }
 
+const char* GameplayAreaSizeName(LyraGameplayAreaSize size) {
+  switch (size) {
+    case LyraGameplayAreaSize::kSmall:
+      return "small";
+    case LyraGameplayAreaSize::kWide:
+      return "wide";
+    case LyraGameplayAreaSize::kTall:
+      return "tall";
+    case LyraGameplayAreaSize::kLarge:
+      return "large";
+  }
+  return "";
+}
+
+std::optional<LyraGameplayAreaSize> ParseGameplayAreaSize(const Json& value) {
+  if (!value.is_string())
+    return std::nullopt;
+  if (value == "small")
+    return LyraGameplayAreaSize::kSmall;
+  if (value == "wide")
+    return LyraGameplayAreaSize::kWide;
+  if (value == "tall")
+    return LyraGameplayAreaSize::kTall;
+  if (value == "large")
+    return LyraGameplayAreaSize::kLarge;
+  return std::nullopt;
+}
+
 bool EdgeEndpoint(int map_id) {
   return (map_id >= 0x98 && map_id <= 0x9B) ||
          (map_id >= LyraTerrainDocument::kFirstMap &&
@@ -172,6 +200,24 @@ absl::Status ValidateAuthoringState(const LyraAuthoringState& state) {
   std::unordered_set<uint32_t> flight_ids;
   std::unordered_set<uint32_t> edge_ids;
   std::set<std::pair<int, int>> edge_pairs;
+
+  std::unordered_set<int> owned_maps;
+  for (const auto& area : state.gameplay_areas) {
+    const auto footprint =
+        LyraGameplayAreaFootprint(area.parent_map_id, area.size);
+    if (!footprint.ok())
+      return footprint.status();
+    if (area.maps != *footprint) {
+      return absl::InvalidArgumentError(
+          "Gameplay area maps must match its exact ordered footprint");
+    }
+    for (const int map_id : area.maps) {
+      if (!owned_maps.insert(map_id).second) {
+        return absl::InvalidArgumentError(
+            "Gameplay areas cannot share ownership of a map");
+      }
+    }
+  }
 
   const LyraMapProperties default_props;
 
@@ -376,6 +422,59 @@ bool LyraEdgeMapsAdjacent(int map_a, int map_b) {
                                  map_b / LyraTerrainDocument::kColumns);
 }
 
+absl::StatusOr<std::vector<int>> LyraGameplayAreaFootprint(
+    int parent_map_id, LyraGameplayAreaSize size) {
+  if (parent_map_id < LyraTerrainDocument::kFirstMap ||
+      parent_map_id >=
+          LyraTerrainDocument::kFirstMap + LyraTerrainDocument::kMapCount) {
+    return absl::InvalidArgumentError("Gameplay area parent must be A0-BF");
+  }
+  int width = 1;
+  int height = 1;
+  switch (size) {
+    case LyraGameplayAreaSize::kSmall:
+      break;
+    case LyraGameplayAreaSize::kWide:
+      width = 2;
+      break;
+    case LyraGameplayAreaSize::kTall:
+      height = 2;
+      break;
+    case LyraGameplayAreaSize::kLarge:
+      width = 2;
+      height = 2;
+      break;
+    default:
+      return absl::InvalidArgumentError("Unknown gameplay area size");
+  }
+  const int offset = parent_map_id - LyraTerrainDocument::kFirstMap;
+  if (offset % LyraTerrainDocument::kColumns + width >
+          LyraTerrainDocument::kColumns ||
+      offset / LyraTerrainDocument::kColumns + height >
+          LyraTerrainDocument::kRows) {
+    return absl::InvalidArgumentError(
+        "Gameplay area footprint leaves A0-BF grid");
+  }
+  std::vector<int> maps;
+  for (int row = 0; row < height; ++row) {
+    for (int column = 0; column < width; ++column) {
+      maps.push_back(parent_map_id + row * LyraTerrainDocument::kColumns +
+                     column);
+    }
+  }
+  return maps;
+}
+
+const LyraGameplayArea* LyraTerrainDocument::GameplayAreaForMap(
+    int map_id) const {
+  for (const auto& area : authoring_.gameplay_areas) {
+    if (std::find(area.maps.begin(), area.maps.end(), map_id) !=
+        area.maps.end())
+      return &area;
+  }
+  return nullptr;
+}
+
 absl::Status LyraTerrainProfile::Validate() const {
   if (tile_count == 0 || tile_count > 65536 ||
       !Fingerprint(tile16_definition_fingerprint) ||
@@ -486,6 +585,14 @@ absl::StatusOr<LyraTerrainDocument> LyraTerrainDocument::Parse(
             version == 3 ? "Malformed Lyra schema 3 header keys"
                          : "Malformed Lyra schema 4 header keys");
       }
+    } else if (version == 5) {
+      if (!HasKeys(json,
+                   {"schema", "schema_version", "columns", "rows", "map_width",
+                    "map_height", "tile_pixels", "profile", "maps",
+                    "flight_points", "edge_connections", "gameplay_areas"})) {
+        return absl::InvalidArgumentError(
+            "Malformed Lyra schema 5 header keys");
+      }
     } else {
       return absl::InvalidArgumentError("Unsupported Lyra schema version");
     }
@@ -572,7 +679,7 @@ absl::StatusOr<LyraTerrainDocument> LyraTerrainDocument::Parse(
         // properties
         const auto& props = auth["properties"];
         const bool has_override = props.contains("background_palette");
-        if ((has_override && version != 4) ||
+        if ((has_override && version < 4) ||
             !(has_override
                   ? HasKeys(
                         props,
@@ -778,6 +885,34 @@ absl::StatusOr<LyraTerrainDocument> LyraTerrainDocument::Parse(
       }
     }
 
+    if (version == 5) {
+      const auto& areas = json["gameplay_areas"];
+      if (!areas.is_array() || areas.empty() || areas.size() > kMapCount) {
+        return absl::InvalidArgumentError(
+            "gameplay_areas requires 1..32 explicit areas");
+      }
+      for (const auto& area : areas) {
+        if (!HasKeys(area, {"parent_map_id", "size", "maps"}) ||
+            !IntegerIn(area["parent_map_id"], kFirstMap,
+                       kFirstMap + kMapCount - 1) ||
+            !area["maps"].is_array() || area["maps"].empty() ||
+            area["maps"].size() > 4) {
+          return absl::InvalidArgumentError("Malformed gameplay area");
+        }
+        const auto size = ParseGameplayAreaSize(area["size"]);
+        if (!size.has_value())
+          return absl::InvalidArgumentError("Unknown gameplay area size");
+        LyraGameplayArea parsed{area["parent_map_id"].get<int>(), *size, {}};
+        for (const auto& map_id : area["maps"]) {
+          if (!IntegerIn(map_id, kFirstMap, kFirstMap + kMapCount - 1))
+            return absl::InvalidArgumentError(
+                "Gameplay area map must be A0-BF");
+          parsed.maps.push_back(map_id.get<int>());
+        }
+        document.authoring_.gameplay_areas.push_back(std::move(parsed));
+      }
+    }
+
     if (version == 4 && !has_background_palette)
       return absl::InvalidArgumentError(
           "Lyra schema 4 requires a map background palette override");
@@ -799,7 +934,9 @@ std::string LyraTerrainDocument::Serialize() const {
   for (const auto& map : authoring_.maps)
     has_background_palette |= map.properties.background_palette.has_value();
   Json json = {{"schema", "yaze.lyra-terrain"},
-               {"schema_version", has_background_palette ? 4 : 3},
+               {"schema_version", !authoring_.gameplay_areas.empty()
+                                      ? 5
+                                      : (has_background_palette ? 4 : 3)},
                {"columns", kColumns},
                {"rows", kRows},
                {"map_width", kMapSize},
@@ -825,6 +962,15 @@ std::string LyraTerrainDocument::Serialize() const {
   }
   for (const auto& c : authoring_.edge_connections) {
     json["edge_connections"].push_back(EdgeConnectionJson(c));
+  }
+  if (!authoring_.gameplay_areas.empty()) {
+    json["gameplay_areas"] = Json::array();
+    for (const auto& area : authoring_.gameplay_areas) {
+      json["gameplay_areas"].push_back(
+          {{"parent_map_id", area.parent_map_id},
+           {"size", GameplayAreaSizeName(area.size)},
+           {"maps", area.maps}});
+    }
   }
   return json.dump(2) + "\n";
 }
