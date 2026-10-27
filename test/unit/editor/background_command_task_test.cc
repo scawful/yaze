@@ -71,6 +71,73 @@ TEST(BackgroundCommandTaskTest, MissingWorkingDirectoryDoesNotRunCommand) {
   EXPECT_FALSE(std::filesystem::exists(marker));
 }
 
+TEST(BackgroundCommandTaskTest, FailureStatusIncludesExitAndFinalDiagnostic) {
+  BackgroundCommandTask task;
+  ASSERT_TRUE(
+      task.Start("printf 'Build setup\\n'; "
+                 "printf 'Expanded map writer is unavailable.\\n\\n' >&2; "
+                 "exit 2",
+                 ".")
+          .ok());
+
+  const auto status = task.Wait();
+  EXPECT_EQ(status.code(), absl::StatusCode::kInternal);
+  EXPECT_EQ(status.message(),
+            "Background command failed (exit 2): "
+            "Expanded map writer is unavailable.");
+  const auto snapshot = task.GetSnapshot();
+  EXPECT_EQ(snapshot.exit_code, 2);
+  EXPECT_EQ(snapshot.status, status);
+  EXPECT_NE(snapshot.output.find("Build setup"), std::string::npos);
+}
+
+TEST(BackgroundCommandTaskTest, FailureWithoutOutputStillIncludesExitCode) {
+  BackgroundCommandTask task;
+  ASSERT_TRUE(task.Start("exec >/dev/null 2>&1; exit 7", ".").ok());
+  const auto status = task.Wait();
+  EXPECT_EQ(status.code(), absl::StatusCode::kInternal);
+  EXPECT_NE(status.message().find("Background command failed (exit 7)"),
+            absl::string_view::npos);
+  EXPECT_EQ(task.GetSnapshot().exit_code, 7);
+}
+
+TEST(BackgroundCommandTaskTest,
+     FailureDiagnosticIsBoundedWithoutLosingFullLog) {
+  BackgroundCommandTask task;
+  ASSERT_TRUE(task.Start("printf 'reason: '; "
+                         "i=0; while [ $i -lt 600 ]; do printf x; "
+                         "i=$((i + 1)); done; printf '\\n'; exit 2",
+                         ".")
+                  .ok());
+  const auto status = task.Wait();
+  const std::string prefix = "Background command failed (exit 2): ";
+  EXPECT_EQ(status.message().substr(0, prefix.size()), prefix);
+  EXPECT_EQ(status.message().size(), prefix.size() + 512 + 3);
+  EXPECT_EQ(status.message().substr(status.message().size() - 3), "...");
+  EXPECT_NE(task.GetSnapshot().output.find(std::string(600, 'x')),
+            std::string::npos);
+}
+
+TEST(BackgroundCommandTaskTest, FailureDiagnosticPreservesUtf8Boundary) {
+  BackgroundCommandTask task;
+  const std::string detail = std::string(511, 'x') + "é";
+  ASSERT_TRUE(task.Start("printf '%s\\n' '" + detail + "'; exit 2", ".").ok());
+  const auto status = task.Wait();
+  EXPECT_EQ(status.message(), "Background command failed (exit 2): " +
+                                  std::string(511, 'x') + "...");
+  EXPECT_NE(task.GetSnapshot().output.find(detail), std::string::npos);
+}
+
+TEST(BackgroundCommandTaskTest, SignalFailureReportsSignal) {
+  BackgroundCommandTask task;
+  ASSERT_TRUE(task.Start("kill -TERM $$", ".").ok());
+  const auto status = task.Wait();
+  EXPECT_EQ(status.code(), absl::StatusCode::kInternal);
+  EXPECT_NE(status.message().find("Background command failed (signal 15)"),
+            absl::string_view::npos);
+  EXPECT_EQ(task.GetSnapshot().exit_code, -1);
+}
+
 // The command runs through a login shell ("sh -lc"), so the host's startup
 // files run first and may print text. Plain words such as "start" and "done"
 // can appear in that text, which would make this test cancel before the command

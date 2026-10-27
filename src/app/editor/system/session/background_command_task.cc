@@ -25,6 +25,7 @@ namespace yaze::editor {
 namespace {
 
 constexpr size_t kTailLineLimit = 4;
+constexpr size_t kFailureDetailLimit = 512;
 constexpr int kPollIntervalMs = 50;
 constexpr auto kCancelEscalationDelay = std::chrono::seconds(2);
 
@@ -229,7 +230,35 @@ void BackgroundCommandTask::WorkerMain(std::string command,
   if (!WIFEXITED(wait_status) || WEXITSTATUS(wait_status) != 0) {
     const int exit_code =
         WIFEXITED(wait_status) ? WEXITSTATUS(wait_status) : -1;
-    Finalize(absl::InternalError("Background command failed"), exit_code);
+    std::string message = "Background command failed";
+    if (WIFEXITED(wait_status)) {
+      message += " (exit " + std::to_string(exit_code) + ")";
+    } else if (WIFSIGNALED(wait_status)) {
+      message += " (signal " + std::to_string(WTERMSIG(wait_status)) + ")";
+    }
+    std::string detail;
+    {
+      std::lock_guard<std::mutex> lock(mutex_);
+      detail = output_tail_;
+    }
+    const auto last_newline = detail.rfind('\n');
+    if (last_newline != std::string::npos) {
+      detail.erase(0, last_newline + 1);
+    }
+    if (detail.size() > kFailureDetailLimit) {
+      size_t end = kFailureDetailLimit;
+      // Do not cut a UTF-8 diagnostic in the middle of a code point.
+      while (end > 0 &&
+             (static_cast<unsigned char>(detail[end]) & 0xC0) == 0x80) {
+        --end;
+      }
+      detail.resize(end);
+      detail += "...";
+    }
+    if (!detail.empty()) {
+      message += ": " + detail;
+    }
+    Finalize(absl::InternalError(message), exit_code);
     return;
   }
 
