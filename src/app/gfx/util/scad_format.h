@@ -1,13 +1,10 @@
-#ifndef YAZE_APP_GFX_scad_format_H
-#define YAZE_APP_GFX_scad_format_H
+#ifndef YAZE_APP_GFX_SCAD_FORMAT_H
+#define YAZE_APP_GFX_SCAD_FORMAT_H
 
 #include "app/platform/sdl_compat.h"
 
 #include <cstdint>
-#include <cstdlib>
-#include <cstring>
-#include <string>
-#include <unordered_map>
+#include <string_view>
 #include <vector>
 
 #include "absl/status/status.h"
@@ -44,14 +41,6 @@ struct CgxHeader {
   uint8_t color_path[0x100];
 };
 
-constexpr uint16_t kMatchedBytes[] = {0x4E, 0x41, 0x4B, 0x31, 0x39, 0x38, 0x39};
-constexpr uint16_t kOffsetFromMatchedBytesEnd = 0x1D;
-
-/**
- * @brief Find metastamp in CGX file
- */
-void FindMetastamp();
-
 /**
  * @brief Load Scr file (screen data)
  */
@@ -83,16 +72,7 @@ absl::Status SaveCgx(uint8_t bpp, std::string_view filename,
 /**
  * @brief Decode color file
  */
-std::vector<SDL_Color> DecodeColFile(const std::string_view filename);
-
-/**
- * @brief Decode obj file
- */
-absl::Status DecodeObjFile(
-    std::string_view filename, std::vector<uint8_t>& obj_data,
-    std::vector<uint8_t> actual_obj_data,
-    std::unordered_map<std::string, std::vector<uint8_t>> decoded_obj,
-    std::vector<uint8_t>& decoded_extra_obj, int& obj_loaded);
+std::vector<SDL_Color> DecodeColFile(std::string_view filename);
 
 /**
  * @brief Save Col file (palette data)
@@ -103,4 +83,4 @@ absl::Status SaveCol(std::string_view filename,
 }  // namespace gfx
 }  // namespace yaze
 
-#endif  // YAZE_APP_GFX_scad_format_H
+#endif  // YAZE_APP_GFX_SCAD_FORMAT_H
