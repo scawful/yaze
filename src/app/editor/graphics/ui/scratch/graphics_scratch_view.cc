@@ -291,7 +291,10 @@ void GraphicsScratchView::DrawPixels(GraphicsScratchAsset& asset) {
       const auto color =
           IM_COL32((c & 31) * 255 / 31, ((c >> 5) & 31) * 255 / 31,
                    ((c >> 10) & 31) * 255 / 31, 255);
-      draw->AddRectFilled(
+      // Pixel cells must share hard edges at fractional zoom. ImGui 1.93
+      // antialiases AddRectFilled when its bounds are fractional.
+      draw->PrimReserve(6, 4);
+      draw->PrimRect(
           ImVec2(origin.x + x * zoom_, origin.y + y * zoom_),
           ImVec2(origin.x + (x + 1) * zoom_, origin.y + (y + 1) * zoom_),
           color);

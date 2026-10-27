@@ -150,6 +150,72 @@ TEST(ProjectPathsTest, OracleIdentityRequiresManifestRatherThanProjectName) {
   EXPECT_TRUE(project.IsOracleCompatible());
 }
 
+TEST(ProjectPathsTest, SpriteBinPathsKeepIdentityThroughSaveAsAndReopen) {
+  ScopedTempDir temp(MakeUniqueTempDir("yaze_sprite_bin_identity"));
+  ScopedTempDir elsewhere(MakeUniqueTempDir("yaze_sprite_bin_cwd"));
+  const auto original = temp.path() / "original" / "Oracle.yaze";
+  const auto bin = original.parent_path() / "sprites.bin";
+  const auto copy = temp.path() / "copy" / "Saved.yaze";
+  const auto lyra_copy = temp.path() / "lyra-copy" / "Saved.yaze";
+  WriteTextFile(bin, "original BIN bytes");
+  WriteTextFile(copy.parent_path() / "sprites.bin", "different BIN bytes");
+  std::filesystem::create_directories(lyra_copy.parent_path());
+  YazeProject project;
+  project.name = "Sprite BIN identity";
+  project.filepath = original.string();
+  project.lyra_terrain_file =
+      (original.parent_path() / "Oracle.lyra-terrain.json").string();
+  SpriteAssetBinding asset;
+  asset.zsm_path = "actor.zsm";
+  asset.graphics_sources[0] = {"bin", "sprites.bin", 0, 3};
+  asset.graphics_sources[1] = {"raw_rom", "", 0x300000, 4};
+  project.sprite_assets.push_back(asset);
+  ASSERT_TRUE(project.Save().ok());
+  EXPECT_NE(ReadTextFile(original).find("\"path\":\"sprites.bin\""),
+            std::string::npos);
+
+  ScopedCurrentPath current_path(elsewhere.path());
+  ASSERT_TRUE(project.Open(original.string()).ok());
+  ASSERT_EQ(project.sprite_assets.size(), 1u);
+  EXPECT_EQ(project.sprite_assets[0].graphics_sources[0].path, bin.string());
+  ASSERT_TRUE(project.SaveAs(copy.string()).ok());
+  EXPECT_EQ(project.sprite_assets[0].graphics_sources[0].path, bin.string());
+  EXPECT_NE(ReadTextFile(copy).find("\"path\":\"../original/sprites.bin\""),
+            std::string::npos);
+  YazeProject reopened;
+  ASSERT_TRUE(reopened.Open(copy.string()).ok());
+  ASSERT_EQ(reopened.sprite_assets.size(), 1u);
+  EXPECT_EQ(reopened.sprite_assets[0].graphics_sources[0].path, bin.string());
+  EXPECT_EQ(ReadTextFile(reopened.sprite_assets[0].graphics_sources[0].path),
+            "original BIN bytes");
+  EXPECT_EQ(reopened.sprite_assets[0].graphics_sources[1].path, "");
+  EXPECT_EQ(reopened.sprite_assets[0].graphics_sources[1].offset, 0x300000u);
+  EXPECT_EQ(reopened.sprite_assets[0].graphics_sources[2].path, "");
+
+  core::LyraTerrainProfile profile;
+  profile.tile_count = 4096;
+  profile.tile16_definition_fingerprint = "definitions:fixture";
+  profile.graphics_fingerprint = "graphics:fixture";
+  profile.palette_fingerprint = "palette:fixture";
+  profile.animation_fingerprint = "animation:fixture";
+  auto document = core::LyraTerrainDocument::Create(profile, 11);
+  ASSERT_TRUE(document.ok()) << document.status();
+  ASSERT_TRUE(
+      reopened
+          .SaveAsWithLyraTerrain(lyra_copy.string(), *document, std::nullopt)
+          .ok());
+  YazeProject lyra_reopened;
+  ASSERT_TRUE(lyra_reopened.Open(lyra_copy.string()).ok());
+  ASSERT_EQ(lyra_reopened.sprite_assets.size(), 1u);
+  EXPECT_EQ(lyra_reopened.sprite_assets[0].graphics_sources[0].path,
+            bin.string());
+  EXPECT_EQ(
+      ReadTextFile(lyra_reopened.sprite_assets[0].graphics_sources[0].path),
+      "original BIN bytes");
+  EXPECT_EQ(ReadTextFile(copy.parent_path() / "sprites.bin"),
+            "different BIN bytes");
+}
+
 TEST(ProjectPathsTest, LyraSaveAsOwnsUnpublishedTerrainAndPreservesAssetPaths) {
   ScopedTempDir temp(MakeUniqueTempDir("yaze_lyra_save_as"));
   const auto original = temp.path() / "original" / "Oracle.yaze";

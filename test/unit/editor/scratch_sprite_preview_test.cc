@@ -1,5 +1,6 @@
 #include "app/editor/graphics/ui/scratch/graphics_scratch_view.h"
 
+#include <algorithm>
 #include <chrono>
 #include <filesystem>
 #include <fstream>
@@ -24,6 +25,12 @@ struct ScratchSpritePreviewTestPeer {
   }
   static void SetColor(GraphicsScratchView& view, int color) {
     view.color_ = color;
+  }
+  static void SetFractionalPixelGrid(GraphicsScratchView& view) {
+    view.zoom_ = 3.5f;
+    auto* asset = view.Selected();
+    std::fill(asset->pixels.begin(), asset->pixels.end(), 1);
+    asset->palette[1] = 0x001F;
   }
   static const gfx::Bitmap& Bitmap(const GraphicsScratchView& view) {
     return view.preview_bitmap_;
@@ -161,6 +168,45 @@ class ScratchSpritePreviewTest : public ::testing::Test {
   int renders_ = 0;
   ImGuiContext* previous_context_ = nullptr;
 };
+
+TEST_F(ScratchSpritePreviewTest,
+       FractionalZoomKeepsAdjacentPixelCellsHardEdged) {
+  ScratchSpritePreviewTestPeer::SetFractionalPixelGrid(*view_);
+  Draw();
+  Draw();
+  std::optional<gui::WidgetIdRegistry::WidgetInfo> canvas;
+  for (const auto& [path, widget] :
+       gui::WidgetIdRegistry::Instance().GetAllWidgets()) {
+    if (widget.label ==
+        gui::WidgetIdRegistry::NormalizeLabel("ScratchPixels")) {
+      canvas = widget;
+      break;
+    }
+  }
+  ASSERT_TRUE(canvas);
+  ImGuiWindow* pixel_window = nullptr;
+  for (auto* window : ImGui::GetCurrentContext()->Windows) {
+    if (window->Active &&
+        std::string(window->Name).find("ScratchPixels") != std::string::npos) {
+      pixel_window = window;
+      break;
+    }
+  }
+  ASSERT_NE(pixel_window, nullptr);
+  std::vector<ImVec2> pixel_vertices;
+  for (const auto& vertex : pixel_window->DrawList->VtxBuffer) {
+    if (vertex.col == IM_COL32(255, 0, 0, 255)) {
+      pixel_vertices.push_back(vertex.pos);
+    }
+  }
+  ASSERT_EQ(pixel_vertices.size(), 128u * 32u * 4u);
+  const ImVec2 offsets[] = {{0, 0},    {3.5f, 0}, {3.5f, 3.5f}, {0, 3.5f},
+                            {3.5f, 0}, {7, 0},    {7, 3.5f},    {3.5f, 3.5f}};
+  for (size_t i = 0; i < 8; ++i) {
+    EXPECT_FLOAT_EQ(pixel_vertices[i].x, canvas->bounds.min_x + offsets[i].x);
+    EXPECT_FLOAT_EQ(pixel_vertices[i].y, canvas->bounds.min_y + offsets[i].y);
+  }
+}
 
 TEST_F(ScratchSpritePreviewTest,
        PaintingUpdatesPoseBeforeExportAndReusesUnchangedImage) {

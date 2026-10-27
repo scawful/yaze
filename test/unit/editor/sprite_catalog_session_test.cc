@@ -243,6 +243,8 @@ TEST_F(SpriteCatalogSessionTest,
   project::SpriteGraphicsSource source{"bin", "sprites.bin", 0, 4};
   ASSERT_TRUE(editor.SetSpriteGraphicsSource(4, source).ok());
   EXPECT_EQ(editor.current_sprite_binding()->graphics_sources[4].kind, "bin");
+  EXPECT_EQ(editor.current_sprite_binding()->graphics_sources[4].path,
+            bin.string());
   ASSERT_TRUE(editor.Undo().ok());
   EXPECT_EQ(editor.current_sprite_binding()->graphics_sources[4].kind, "sheet");
   ASSERT_TRUE(editor.Redo().ok());
@@ -260,7 +262,7 @@ TEST_F(SpriteCatalogSessionTest,
   ASSERT_NE(next.current_sprite_binding(), nullptr);
   const auto& loaded = next.current_sprite_binding()->graphics_sources[4];
   EXPECT_EQ(loaded.kind, "bin");
-  EXPECT_EQ(loaded.path, "sprites.bin");
+  EXPECT_EQ(loaded.path, bin.string());
   EXPECT_EQ(loaded.bpp, 4);
   auto pixels =
       sprite_graphics_source::Resolve(loaded, 0, nullptr, nullptr, root_);

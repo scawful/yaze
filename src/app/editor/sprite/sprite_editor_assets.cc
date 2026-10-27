@@ -76,8 +76,12 @@ absl::Status SpriteEditor::SetSpriteGraphicsSource(
     return absl::FailedPreconditionError("Select a sprite asset");
   if (slot < 0 || slot >= 8)
     return absl::OutOfRangeError("Sprite graphics slot must be 0..7");
+  auto resolved_source = source;
+  if (resolved_source.kind == "bin" && project()) {
+    resolved_source.path = project()->GetAbsolutePath(resolved_source.path);
+  }
   auto candidate = *current_sprite_binding();
-  candidate.graphics_sources[slot] = source;
+  candidate.graphics_sources[slot] = resolved_source;
   if (candidate.zsm_path.empty())
     candidate.zsm_path = "unsaved.zsm";
   auto validated =
@@ -88,14 +92,14 @@ absl::Status SpriteEditor::SetSpriteGraphicsSource(
       project() && !project()->filepath.empty()
           ? std::filesystem::path(project()->filepath).parent_path()
           : std::filesystem::path{};
-  auto pixels = sprite_graphics_source::Resolve(source, current_sheets_[slot],
-                                                game_data(), rom_, directory);
+  auto pixels = sprite_graphics_source::Resolve(
+      resolved_source, current_sheets_[slot], game_data(), rom_, directory);
   // Sheet bindings can be authored before a ROM is loaded.
   if (!pixels.ok() && source.kind != "sheet")
     return pixels.status();
   BeginUndoTransaction();
   custom_sprite_bindings_[current_custom_sprite_index_].graphics_sources[slot] =
-      source;
+      std::move(resolved_source);
   ApplyCurrentSpriteBinding();
   MarkSpriteMutated();
   CommitUndoTransaction();
