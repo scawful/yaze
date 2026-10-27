@@ -329,6 +329,31 @@ absl::StatusOr<internal::ParsedTarget> ParseTargetString(
 
 namespace internal {
 
+absl::Status ValidateProjectSaveAsDestination(const char* destination) {
+  namespace fs = std::filesystem;
+  if (!destination ||
+      (*destination && (!fs::path(destination).is_absolute() ||
+                        fs::path(destination).extension() != ".yaze"))) {
+    return absl::InvalidArgumentError(
+        "Set YAZE_TEST_PROJECT_SAVE_AS to an absolute NEW copied-project "
+        ".yaze destination, or an empty string for Cancel");
+  }
+  if (!*destination) {
+    return absl::OkStatus();
+  }
+  std::error_code error;
+  const auto entry = fs::symlink_status(destination, error);
+  if (error && error != std::errc::no_such_file_or_directory) {
+    return absl::FailedPreconditionError(absl::StrCat(
+        "Cannot inspect Project Save As destination: ", error.message()));
+  }
+  if (entry.type() != fs::file_type::not_found) {
+    return absl::AlreadyExistsError(
+        "Project Save As replay destination already exists");
+  }
+  return absl::OkStatus();
+}
+
 absl::StatusOr<ResolvedWidgetSelector> ResolveWidgetSelector(
     absl::string_view target, absl::string_view widget_key) {
   ResolvedWidgetSelector resolved;
@@ -888,14 +913,12 @@ absl::Status ImGuiTestHarnessServiceImpl::Click(const ClickRequest* request,
           chord = ImGuiMod_Shortcut | ImGuiKey_S;
         } else if (widget_label == "Save As") {
           const char* destination = std::getenv("YAZE_TEST_PROJECT_SAVE_AS");
-          if (!destination ||
-              (*destination &&
-               (!std::filesystem::path(destination).is_absolute() ||
-                std::filesystem::path(destination).extension() != ".yaze"))) {
+          const auto destination_status =
+              internal::ValidateProjectSaveAsDestination(destination);
+          if (!destination_status.ok()) {
             manager->MarkHarnessTestCompleted(
                 captured_id, HarnessTestStatus::kFailed,
-                "Set YAZE_TEST_PROJECT_SAVE_AS to an absolute copied-project "
-                ".yaze destination, or an empty string for Cancel");
+                std::string(destination_status.message()));
             return;
           }
           auto* controller = Application::Instance().GetController();

@@ -3,6 +3,9 @@
 #include <gtest/gtest.h>
 
 #include <algorithm>
+#include <chrono>
+#include <filesystem>
+#include <fstream>
 #include <memory>
 #include <stdexcept>
 #include <string>
@@ -16,6 +19,45 @@
 
 namespace yaze::test {
 namespace {
+
+TEST(ProjectSaveDialogSeamTest, ValidatesSelectionBeforeKeyboardDispatch) {
+  EXPECT_TRUE(internal::ValidateProjectSaveAsDestination("").ok());
+  EXPECT_TRUE(absl::IsInvalidArgument(
+      internal::ValidateProjectSaveAsDestination(nullptr)));
+  EXPECT_TRUE(absl::IsInvalidArgument(
+      internal::ValidateProjectSaveAsDestination("relative.yaze")));
+}
+
+TEST(ProjectSaveDialogSeamTest,
+     RejectsExistingEntryAndReportsFilesystemErrors) {
+  namespace fs = std::filesystem;
+  const auto root =
+      fs::temp_directory_path() /
+      ("yaze-save-as-entry-" +
+       std::to_string(
+           std::chrono::steady_clock::now().time_since_epoch().count()));
+  fs::create_directory(root);
+  struct Cleanup {
+    fs::path root;
+    ~Cleanup() {
+      std::error_code error;
+      fs::remove_all(root, error);
+    }
+  } cleanup{root};
+  const auto destination = root / "occupied.yaze";
+  EXPECT_TRUE(
+      internal::ValidateProjectSaveAsDestination(destination.string().c_str())
+          .ok());
+  std::ofstream(destination).close();
+  EXPECT_TRUE(absl::IsAlreadyExists(internal::ValidateProjectSaveAsDestination(
+      destination.string().c_str())));
+  const auto invalid_parent = destination / "child.yaze";
+  const auto error = internal::ValidateProjectSaveAsDestination(
+      invalid_parent.string().c_str());
+  EXPECT_TRUE(absl::IsFailedPrecondition(error));
+  EXPECT_NE(std::string(error.message()).find("Cannot inspect"),
+            std::string::npos);
+}
 
 TEST(ProjectSaveDialogSeamTest, SelectionIsConsumedOnceAcrossUiThread) {
   util::ScopedSaveFileDialogResultForTesting picker("/scratch/moved.yaze");
