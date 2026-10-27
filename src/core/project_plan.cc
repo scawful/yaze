@@ -13,6 +13,7 @@
 
 #include "absl/strings/str_format.h"
 #include "core/project.h"
+#include "core/project_plan_agent.h"
 #include "core/source_artifact_publisher.h"
 #include "util/macro.h"
 
@@ -659,16 +660,23 @@ absl::Status ProjectPlan::SaveToFile(const std::string& path) const {
 absl::Status ProjectPlan::SaveToFile(const std::string& path,
                                      const std::string& expected_source) const {
   RETURN_IF_ERROR(ValidateIds());
+  return PublishSource(path, expected_source, Serialize());
+}
+
+absl::Status ProjectPlan::PublishSource(const std::string& path,
+                                        const std::string& expected_source,
+                                        const std::string& text) {
+  RETURN_IF_ERROR(Parse(text).status());
 #ifdef __EMSCRIPTEN__
   ASSIGN_OR_RETURN(auto current, ReadSource(path));
   if (current != expected_source) {
     return absl::AbortedError("Plan changed since it was loaded");
   }
-  return project::WriteProjectFileAtomically(path, Serialize(), true);
+  return project::WriteProjectFileAtomically(path, text, true);
 #else
   ASSIGN_OR_RETURN(auto lock, AcquireSourceArtifactPublicationLock(
                                   {path}, {"project plan", "project plan"}));
-  return PublishSourceArtifacts(*lock, {{path, expected_source, Serialize()}},
+  return PublishSourceArtifacts(*lock, {{path, expected_source, text}},
                                 ComputeSourceArtifactSha256(expected_source),
                                 [&]() { return LoadFromFile(path).status(); });
 #endif
@@ -784,6 +792,7 @@ absl::Status ProjectPlan::RenameStep(std::string_view id, std::string new_id) {
     RewriteTargets(&decision.targets, "step:" + std::string(id),
                    "step:" + new_id);
   }
+  RenamePlanAgentObservation(this, "step:" + std::string(id), "step:" + new_id);
   route_steps[index].id = std::move(new_id);
   return absl::OkStatus();
 }
@@ -811,6 +820,7 @@ absl::Status ProjectPlan::RenameItem(std::string_view id, std::string new_id) {
     RewriteTargets(&decision.targets, "item:" + std::string(id),
                    "item:" + new_id);
   }
+  RenamePlanAgentObservation(this, "item:" + std::string(id), "item:" + new_id);
   item->id = std::move(new_id);
   return absl::OkStatus();
 }

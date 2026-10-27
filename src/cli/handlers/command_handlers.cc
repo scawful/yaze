@@ -34,6 +34,7 @@
 #include "cli/handlers/mesen_handlers.h"
 #include "cli/handlers/rom/project_bundle_archive_commands.h"
 #include "cli/handlers/rom/project_bundle_verify_commands.h"
+#include "cli/handlers/rom/project_plan_commands.h"
 #include "cli/handlers/rom/rom_commands.h"
 #include "cli/handlers/tools/dungeon_doctor_commands.h"
 #include "cli/handlers/tools/dungeon_object_validate_commands.h"
@@ -113,6 +114,10 @@ CreateCliCommandHandlers() {
   handlers.push_back(std::make_unique<ProjectBundleVerifyCommandHandler>());
   handlers.push_back(std::make_unique<ProjectBundlePackCommandHandler>());
   handlers.push_back(std::make_unique<ProjectBundleUnpackCommandHandler>());
+
+  // Project plan
+  handlers.push_back(std::make_unique<PlanReadCommandHandler>());
+  handlers.push_back(std::make_unique<PlanAgentApplyCommandHandler>());
 
   // ROM commands
   handlers.push_back(std::make_unique<RomReadCommandHandler>());

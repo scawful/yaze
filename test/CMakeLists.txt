@@ -493,6 +493,7 @@ if(YAZE_BUILD_TESTS)
     unit/core/project_file_passthrough_test.cc
     unit/core/project_atlas_settings_test.cc
     unit/core/project_plan_test.cc
+    unit/core/project_plan_agent_test.cc
     unit/editor/planning_editor_test.cc
     unit/util/lru_cache_test.cc
     unit/util/bps_test.cc
@@ -521,6 +522,7 @@ if(YAZE_BUILD_TESTS)
     unit/cli/oracle_menu_commands_test.cc
     unit/cli/palette_commands_test.cc
     unit/cli/project_bundle_verify_test.cc
+    unit/cli/project_plan_commands_test.cc
     unit/cli/project_bundle_archive_test.cc
     unit/rom/rom_test.cc
     unit/rom/rom_copier_header_test.cc
@@ -877,6 +879,17 @@ if(YAZE_BUILD_TESTS)
   )
   yaze_add_focused_test_target(yaze_test_focus_lyra_authoring
     ${FOCUS_LYRA_AUTHORING_TEST_SOURCES})
+
+  # Planning model, agent status, editor lifecycle, CLI and shared publisher.
+  set(FOCUS_PLANNING_TEST_SOURCES
+    unit/core/project_plan_test.cc
+    unit/core/project_plan_agent_test.cc
+    unit/core/source_artifact_publisher_test.cc
+    unit/editor/planning_editor_test.cc
+    unit/cli/project_plan_commands_test.cc
+  )
+  yaze_add_focused_test_target(yaze_test_focus_planning
+    ${FOCUS_PLANNING_TEST_SOURCES})
 
   yaze_add_test_suite(yaze_test_integration "stable;integration" OFF ${STABLE_INTEGRATION_TEST_SOURCES})
   if(YAZE_WITH_GRPC AND TARGET yaze_grpc_support)

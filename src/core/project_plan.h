@@ -125,6 +125,11 @@ class ProjectPlan {
   // Publishes only if the file still contains the exact loaded source bytes.
   absl::Status SaveToFile(const std::string& path,
                           const std::string& expected_source) const;
+  // Publishes `text`, which must parse as a valid plan, under the same lock
+  // and exact-bytes check as SaveToFile.
+  static absl::Status PublishSource(const std::string& path,
+                                    const std::string& expected_source,
+                                    const std::string& text);
 
   absl::Status ValidateIds() const;
   std::string NewMilestoneId() const;

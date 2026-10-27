@@ -1,6 +1,7 @@
 #include "app/editor/planning/planning_editor.h"
 
 #include <algorithm>
+#include <cstdlib>
 #include <filesystem>
 #include <fstream>
 #include <iterator>
@@ -14,6 +15,8 @@
 #include "app/editor/session_types.h"
 #include "app/gfx/backend/null_renderer.h"
 #include "core/project.h"
+#include "core/project_plan_agent.h"
+#include "core/source_artifact_publisher.h"
 #include "editor_test_support.h"
 #include "gtest/gtest.h"
 #include "imgui/imgui.h"
@@ -25,6 +28,11 @@ class PlanningEditorTestPeer {
  public:
   static void EditGoal(PlanningEditor* editor, const std::string& title) {
     editor->plan_->goal.title = title;
+    editor->MarkDirty();
+  }
+  static void EditStepNote(PlanningEditor* editor, const std::string& note,
+                           int index = 0) {
+    editor->plan_->route_steps[index].note = note;
     editor->MarkDirty();
   }
   static absl::Status Reload(PlanningEditor* editor, bool discard = false) {
@@ -129,6 +137,134 @@ TEST_F(PlanningEditorTest, BindingChangeCannotSilentlyDiscardOrSaveOldDraft) {
   editors_->DiscardPlanningProjectDraft();
   EXPECT_FALSE(editor_->dirty());
   EXPECT_EQ(editor_->plan()->title, "Other");
+}
+
+constexpr char kRoutePlan[] = R"({
+ "schema": "yaze.plan/1",
+ "title": "Plan",
+ "route": {"steps": [{"id": "D4", "title": "Zora Temple", "note": "Old"}]},
+ "decisions": [{"id": "d4-rescue", "status": "open", "answer": "Approved"}],
+ "overworld": {"markers": [{"id": "m1"}]}
+})";
+
+absl::Status ApplyAgent(const fs::path& plan, const std::string& state,
+                        const std::string& utc) {
+  auto update = core::PlanAgentUpdate::Parse(
+      R"({"schema": "yaze.plan.agent_update/1", "agent": "agent",
+          "observed_utc": ")" +
+      utc + R"(", "observations": {"step:D4": {"state": ")" + state +
+      R"("}}})");
+  if (!update.ok()) {
+    return update.status();
+  }
+  update->base_sha256 = core::ComputeSourceArtifactSha256(Read(plan));
+  return core::ApplyPlanAgentUpdateToFile(plan.string(), *update, false)
+      .status();
+}
+
+TEST_F(PlanningEditorTest, SaveAdoptsConcurrentAgentUpdateAndFreshReopen) {
+  Write(plan_path_, core::ProjectPlan::Parse(kRoutePlan)->Serialize());
+  ASSERT_TRUE(PlanningEditorTestPeer::Reload(editor_, true).ok());
+  PlanningEditorTestPeer::EditStepNote(editor_, "Annotated in yaze");
+  ASSERT_TRUE(ApplyAgent(plan_path_, "DRAFT", "2026-10-27T21:00:00Z").ok());
+
+  ASSERT_TRUE(editor_->Save().ok());
+  EXPECT_FALSE(editor_->dirty());
+
+  project::YazeProject reopened_project;
+  ASSERT_TRUE(reopened_project.Open(project_path_.string()).ok());
+  EditorSet reopened(nullptr, nullptr, nullptr, 2, nullptr);
+  EditorDependencies dependencies;
+  dependencies.project = &reopened_project;
+  reopened.ApplyDependencies(dependencies);
+  auto* fresh =
+      static_cast<PlanningEditor*>(reopened.GetEditor(EditorType::kPlanning));
+  ASSERT_TRUE(fresh->Update().ok());
+  ASSERT_TRUE(fresh->plan().has_value());
+  EXPECT_EQ(fresh->plan()->route_steps[0].note, "Annotated in yaze");
+  EXPECT_EQ(fresh->plan()->decisions[0].answer, "Approved");
+  const auto* obs = core::FindPlanAgentObservation(*fresh->plan(), "step:D4");
+  ASSERT_NE(obs, nullptr);
+  EXPECT_EQ(obs->at("state"), "DRAFT");
+
+  ASSERT_TRUE(ApplyAgent(plan_path_, "MERGED", "2026-10-28T09:00:00Z").ok());
+  auto saved = core::ProjectPlan::LoadFromFile(plan_path_.string());
+  ASSERT_TRUE(saved.ok());
+  EXPECT_EQ(saved->route_steps[0].note, "Annotated in yaze");
+  EXPECT_EQ(saved->extra.at("overworld").at("markers")[0].at("id"), "m1");
+  EXPECT_EQ(core::FindPlanAgentObservation(*saved, "step:D4")->at("state"),
+            "MERGED");
+}
+
+TEST_F(PlanningEditorTest, SaveRefusesConcurrentHumanEditAndKeepsBoth) {
+  Write(plan_path_, core::ProjectPlan::Parse(kRoutePlan)->Serialize());
+  ASSERT_TRUE(PlanningEditorTestPeer::Reload(editor_, true).ok());
+  PlanningEditorTestPeer::EditStepNote(editor_, "Mine");
+  auto other = core::ProjectPlan::Parse(kRoutePlan);
+  other->route_steps[0].note = "Theirs";
+  Write(plan_path_, other->Serialize());
+  const std::string disk = Read(plan_path_);
+
+  const auto status = editor_->Save();
+  EXPECT_EQ(status.code(), absl::StatusCode::kAborted) << status;
+  EXPECT_TRUE(editor_->dirty());
+  EXPECT_EQ(editor_->plan()->route_steps[0].note, "Mine");
+  EXPECT_EQ(Read(plan_path_), disk);
+}
+
+// Copied-project probe: one process annotates a step through the normal
+// project-save path, a later process reopens and checks it. Skipped unless
+// YAZE_PLANNING_ROUNDTRIP_PROJECT, _STEP and _NOTE name a disposable copy.
+struct CopiedProject {
+  project::YazeProject project;
+  std::unique_ptr<EditorSet> editors;
+  PlanningEditor* editor = nullptr;
+};
+
+void OpenCopiedProject(CopiedProject* copied, const std::string& path) {
+  ASSERT_TRUE(copied->project.Open(path).ok());
+  copied->editors =
+      std::make_unique<EditorSet>(nullptr, nullptr, nullptr, 1, nullptr);
+  EditorDependencies dependencies;
+  dependencies.project = &copied->project;
+  copied->editors->ApplyDependencies(dependencies);
+  copied->editor = static_cast<PlanningEditor*>(
+      copied->editors->GetEditor(EditorType::kPlanning));
+  ASSERT_TRUE(copied->editor->Update().ok());
+  ASSERT_TRUE(copied->editor->plan().has_value());
+}
+
+TEST(PlanningCopiedProjectProbe, AnnotateStepThroughProjectSave) {
+  const char* path = std::getenv("YAZE_PLANNING_ROUNDTRIP_PROJECT");
+  const char* step = std::getenv("YAZE_PLANNING_ROUNDTRIP_STEP");
+  const char* note = std::getenv("YAZE_PLANNING_ROUNDTRIP_NOTE");
+  if (!path || !step || !note) {
+    GTEST_SKIP() << "Set YAZE_PLANNING_ROUNDTRIP_{PROJECT,STEP,NOTE}";
+  }
+  CopiedProject copied;
+  OpenCopiedProject(&copied, path);
+  const int index = copied.editor->plan()->FindStep(step);
+  ASSERT_GE(index, 0);
+  PlanningEditorTestPeer::EditStepNote(copied.editor, note, index);
+  ASSERT_TRUE(copied.editors->PrepareProjectSave().ok());
+  EXPECT_FALSE(copied.editors->HasPendingProjectDraftChanges());
+}
+
+TEST(PlanningCopiedProjectProbe, FreshReopenShowsAnnotationAndAgentStatus) {
+  const char* path = std::getenv("YAZE_PLANNING_ROUNDTRIP_PROJECT");
+  const char* step = std::getenv("YAZE_PLANNING_ROUNDTRIP_STEP");
+  const char* note = std::getenv("YAZE_PLANNING_ROUNDTRIP_NOTE");
+  if (!path || !step || !note) {
+    GTEST_SKIP() << "Set YAZE_PLANNING_ROUNDTRIP_{PROJECT,STEP,NOTE}";
+  }
+  CopiedProject copied;
+  OpenCopiedProject(&copied, path);
+  const auto& plan = *copied.editor->plan();
+  const int index = plan.FindStep(step);
+  ASSERT_GE(index, 0);
+  EXPECT_EQ(plan.route_steps[index].note, note);
+  EXPECT_NE(core::FindPlanAgentObservation(plan, std::string("step:") + step),
+            nullptr);
 }
 
 TEST_F(PlanningEditorTest, ExplicitDiscardReloadsOriginalBinding) {
