@@ -92,6 +92,9 @@ set(
   app/editor/graphics/gfx_group_editor.cc
   app/editor/graphics/gfx_group_editor_main.cc
   app/editor/graphics/graphics_editor.cc
+  app/editor/graphics/ui/scratch/graphics_scratch_view.cc
+  app/editor/graphics/graphics_scratch_storage.cc
+  app/editor/overworld/scratch_workspace.cc
   app/editor/graphics/link_sprite_panel.cc
   app/editor/graphics/palette_controls_panel.cc
   app/editor/graphics/paletteset_editor_panel.cc

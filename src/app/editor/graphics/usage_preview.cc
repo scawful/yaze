@@ -552,7 +552,8 @@ absl::Status Tile16UsagePreview::Configure(Rom* rom,
     return absl::InvalidArgumentError(
         absl::StrFormat("Invalid overworld area 0x%02X", area));
   }
-  if (tiles16_.empty() || rom_ != rom) {
+  const bool binding_changed = rom_ != rom || game_data_ != game_data;
+  if (tiles16_.empty() || binding_changed) {
     auto tiles16 = zelda3::ReadMap16Tiles(*rom);
     if (!tiles16.ok()) {
       return tiles16.status();
@@ -561,7 +562,7 @@ absl::Status Tile16UsagePreview::Configure(Rom* rom,
   }
   rom_ = rom;
   game_data_ = game_data;
-  if (!map_ || area_ != area) {
+  if (!map_ || area_ != area || binding_changed) {
     map_ = std::make_unique<zelda3::OverworldMap>(area, rom, game_data);
     map_->set_game_state(0);
     map_->LoadAreaGraphics();
@@ -571,6 +572,24 @@ absl::Status Tile16UsagePreview::Configure(Rom* rom,
     }
     area_ = area;
   }
+  return absl::OkStatus();
+}
+
+absl::Status Tile16UsagePreview::ConfigureFromLive(
+    const zelda3::OverworldMap& map,
+    const std::vector<gfx::Tile16>& definitions,
+    const zelda3::GameData* owner) {
+  if (!owner || map.game_data() != owner || definitions.empty() ||
+      definitions.size() > zelda3::kNumTile16Individual) {
+    return absl::FailedPreconditionError(
+        "Live overworld graphics session is missing or mismatched");
+  }
+  map_ = std::make_unique<zelda3::OverworldMap>(map);
+  tiles16_ = definitions;
+  area_ = map.index();
+  // A subsequent ROM-backed Configure must reload its definitions.
+  rom_ = nullptr;
+  game_data_ = nullptr;
   return absl::OkStatus();
 }
 

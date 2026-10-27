@@ -708,7 +708,7 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
                                    const project::YazeProject& project);
   bool RestoreProjectContextForSession(RomSession* session);
   void RestoreProjectEditingStateForSession(RomSession* session);
-  absl::Status SaveActiveProjectEditingWork();
+  absl::Status SaveActiveProjectEditingWork(bool allow_dialogs = true);
   absl::Status PrepareRawProjectFileSave(const std::string& filepath,
                                          const std::string& contents);
   absl::Status CommitRawProjectFileSave(const std::string& filepath,

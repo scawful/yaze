@@ -1,11 +1,18 @@
 #include "app/editor/sprite/sprite_editor.h"
 
+#include <cstring>
 #include <filesystem>
 
+#include "app/editor/editor_manager.h"
+#include "app/editor/graphics/graphics_editor.h"
 #include "app/editor/sprite/sprite_authoring.h"
+#include "app/editor/sprite/sprite_graphics_context.h"
+#include "app/editor/sprite/sprite_graphics_source.h"
+#include "app/editor/system/workspace/workspace_window_manager.h"
 #include "core/project.h"
 #include "core/source_artifact_publisher.h"
 #include "core/sprite_asset_json.h"
+#include "zelda3/sprite/sprite.h"
 
 namespace yaze::editor {
 const project::SpriteAssetBinding* SpriteEditor::current_sprite_binding()
@@ -27,6 +34,216 @@ void SpriteEditor::ApplyCurrentSpriteBinding() {
     source_checked_ = false;
     palette_binding_status_ = absl::OkStatus();
     graphics_binding_status_ = absl::OkStatus();
+    graphics_source_edit_status_ = absl::OkStatus();
+    graphics_source_document_ = -1;
+  }
+}
+
+absl::Status SpriteEditor::CreateSpriteAssetFromVanilla(int sprite_id) {
+  if (sprite_id < 0 || sprite_id > 255)
+    return absl::OutOfRangeError("Sprite ID must be 0..255");
+  CommitUndoTransaction();
+  const auto* layout = zelda3::SpriteOamRegistry::GetPreviewOverride(
+      sprite_id, project() ? project()->hack_manifest.hack_name() : "");
+  if (!layout)
+    layout = zelda3::SpriteOamRegistry::GetLayout(sprite_id);
+  CreateNewZSprite();
+  std::copy_n(vanilla_sheets_, 8, current_sheets_);
+  std::copy_n(vanilla_sheets_, 8,
+              custom_sprite_bindings_.back().sheets.begin());
+  auto& copy = custom_sprites_.back();
+  copy.sprName = std::string(zelda3::kSpriteDefaultNames[sprite_id]) +
+                 (layout ? " (static pose copy)" : " (empty template)");
+  copy.property_sprid.Text = std::to_string(sprite_id);
+  if (layout)
+    copy.editor.Frames[0] = sprite_authoring::CopyVanillaLayout(*layout);
+  custom_sprite_bindings_.back().catalog_key =
+      "vanilla." + std::to_string(sprite_id);
+  gfx_buffer_loaded_ = false;
+  if (dependencies_.window_manager) {
+    auto visible = dependencies_.window_manager->GetVisibleWindowIds(
+        dependencies_.session_id);
+    visible.push_back("sprite.custom_editor");
+    dependencies_.window_manager->SetVisibleWindows(dependencies_.session_id,
+                                                    visible);
+  }
+  return absl::OkStatus();
+}
+
+absl::Status SpriteEditor::SetSpriteGraphicsSource(
+    int slot, const project::SpriteGraphicsSource& source) {
+  if (!current_sprite_binding())
+    return absl::FailedPreconditionError("Select a sprite asset");
+  if (slot < 0 || slot >= 8)
+    return absl::OutOfRangeError("Sprite graphics slot must be 0..7");
+  auto resolved_source = source;
+  if (resolved_source.kind == "bin" && project()) {
+    resolved_source.path = project()->GetAbsolutePath(resolved_source.path);
+  }
+  auto candidate = *current_sprite_binding();
+  candidate.graphics_sources[slot] = resolved_source;
+  if (candidate.zsm_path.empty())
+    candidate.zsm_path = "unsaved.zsm";
+  auto validated =
+      project::SpriteAssetFromJson(project::SpriteAssetToJson(candidate));
+  if (!validated.ok())
+    return validated.status();
+  const auto directory =
+      project() && !project()->filepath.empty()
+          ? std::filesystem::path(project()->filepath).parent_path()
+          : std::filesystem::path{};
+  auto pixels = sprite_graphics_source::Resolve(
+      resolved_source, current_sheets_[slot], game_data(), rom_, directory);
+  // Sheet bindings can be authored before a ROM is loaded.
+  if (!pixels.ok() && source.kind != "sheet")
+    return pixels.status();
+  BeginUndoTransaction();
+  custom_sprite_bindings_[current_custom_sprite_index_].graphics_sources[slot] =
+      std::move(resolved_source);
+  ApplyCurrentSpriteBinding();
+  MarkSpriteMutated();
+  CommitUndoTransaction();
+  return absl::OkStatus();
+}
+
+absl::Status SpriteEditor::OpenBoundBinInScratch(int slot) {
+  const auto* binding = current_sprite_binding();
+  if (!binding || slot < 0 || slot >= 8 ||
+      binding->graphics_sources[slot].kind != "bin")
+    return absl::FailedPreconditionError("Select a bound BIN graphics slot");
+  auto* manager = static_cast<EditorManager*>(dependencies_.custom_data);
+  if (!manager)
+    return absl::FailedPreconditionError("Editor manager unavailable");
+  auto path = std::filesystem::path(binding->graphics_sources[slot].path);
+  if (path.is_relative()) {
+    if (!project() || project()->filepath.empty())
+      return absl::FailedPreconditionError(
+          "Save the project to resolve this BIN path");
+    path = std::filesystem::path(project()->filepath).parent_path() / path;
+  }
+  RefreshSpritePreviewGraphics(true);
+  RETURN_IF_ERROR(graphics_binding_status_);
+  RETURN_IF_ERROR(palette_binding_status_);
+  int palette = 0;
+  std::optional<zsprite::Frame> captured_frame;
+  std::string captured_label;
+  if (const auto* sprite = current_custom_sprite();
+      sprite && current_frame_ >= 0 &&
+      current_frame_ < static_cast<int>(sprite->editor.Frames.size())) {
+    const auto& frame = sprite->editor.Frames[current_frame_];
+    captured_frame = frame;
+    captured_label = sprite->sprName + " / frame " +
+                     std::to_string(current_frame_) + " / slot " +
+                     std::to_string(slot);
+    if (selected_tile_index_ >= 0 &&
+        selected_tile_index_ < static_cast<int>(frame.Tiles.size()))
+      palette = frame.Tiles[selected_tile_index_].palette;
+    else
+      for (const auto& tile : frame.Tiles)
+        if (zelda3::SpriteSlotForTile(tile.id) == slot) {
+          palette = tile.palette;
+          break;
+        }
+  }
+  if (palette >= static_cast<int>(sprite_palettes_.size()))
+    return absl::FailedPreconditionError("Selected OAM palette unavailable");
+  RETURN_IF_ERROR(manager->EnsureEditorAssetsLoaded(EditorType::kGraphics));
+  auto* editors = manager->GetCurrentEditorSet();
+  if (!editors || !editors->GetGraphicsEditor())
+    return absl::FailedPreconditionError("Graphics editor unavailable");
+  const auto& source = binding->graphics_sources[slot];
+  RETURN_IF_ERROR(editors->GetGraphicsEditor()->ImportScratchBin(
+      path.lexically_normal().string(), source.bpp, source.offset,
+      sprite_palettes_.palette_ref(palette)));
+  if (captured_frame) {
+    editors->GetGraphicsEditor()->SetScratchPreview(
+        std::move(captured_label),
+        [frame = std::move(*captured_frame), buffer = sprite_gfx_buffer_,
+         palettes = sprite_palettes_, slot,
+         palette](const GraphicsScratchAsset& asset)
+            -> absl::StatusOr<usage_preview::PreviewImage> {
+          if (asset.pixels.size() != 4096 || buffer.size() < 8 * 4096)
+            return absl::InvalidArgumentError(
+                "Sprite scratch slot has invalid dimensions");
+          auto updated = buffer;
+          std::copy(asset.pixels.begin(), asset.pixels.end(),
+                    updated.begin() + slot * 4096);
+          auto colors = palettes;
+          gfx::SnesPalette row;
+          for (const auto color : asset.palette)
+            row.AddColor(gfx::SnesColor(color));
+          colors.palette_ref(palette) = std::move(row);
+          return sprite_graphics_context::RenderFrameBuffer(frame, updated,
+                                                            colors);
+        });
+  } else {
+    editors->GetGraphicsEditor()->SetScratchPreview({}, {});
+  }
+  manager->SwitchToEditor(EditorType::kGraphics, true);
+  return absl::OkStatus();
+}
+
+void SpriteEditor::DrawGraphicsSourceBindings() {
+  const auto* binding = current_sprite_binding();
+  if (!binding || !ImGui::CollapsingHeader("Graphics sources"))
+    return;
+  ImGui::TextWrapped(
+      "Each slot holds 64 tiles (128 x 32 pixels). BIN and raw ROM ranges "
+      "are preview sources. Edit a BIN through Graphics > Scratch, export it, "
+      "then reload here. Raw ROM offsets are headerless PC byte offsets.");
+  ImGui::SliderInt("Graphics slot", &graphics_source_slot_, 0, 7);
+  if (graphics_source_document_ != current_custom_sprite_index_ ||
+      graphics_source_loaded_slot_ != graphics_source_slot_) {
+    const auto& source = binding->graphics_sources[graphics_source_slot_];
+    graphics_source_kind_ = source.kind == "bin"       ? 1
+                            : source.kind == "raw_rom" ? 2
+                                                       : 0;
+    graphics_source_bpp_ = source.bpp;
+    graphics_source_offset_ = source.offset;
+    std::strncpy(graphics_source_path_, source.path.c_str(),
+                 sizeof(graphics_source_path_) - 1);
+    graphics_source_path_[sizeof(graphics_source_path_) - 1] = '\0';
+    graphics_source_document_ = current_custom_sprite_index_;
+    graphics_source_loaded_slot_ = graphics_source_slot_;
+  }
+  constexpr const char* kinds[] = {"ROM sheet", "BIN file", "Raw ROM range"};
+  ImGui::Combo("Source", &graphics_source_kind_, kinds, 3);
+  if (graphics_source_kind_ != 0) {
+    ImGui::SliderInt("Bits per pixel", &graphics_source_bpp_, 2, 4);
+    ImGui::InputScalar("Byte offset (hex)", ImGuiDataType_U32,
+                       &graphics_source_offset_, nullptr, nullptr, "%08X",
+                       ImGuiInputTextFlags_CharsHexadecimal);
+    if (graphics_source_kind_ == 1)
+      ImGui::InputText("BIN path", graphics_source_path_,
+                       sizeof(graphics_source_path_));
+  }
+  if (ImGui::Button("Apply graphics source")) {
+    project::SpriteGraphicsSource source;
+    if (graphics_source_kind_ != 0) {
+      source.kind = graphics_source_kind_ == 1 ? "bin" : "raw_rom";
+      source.path = graphics_source_kind_ == 1 ? graphics_source_path_ : "";
+      source.offset = graphics_source_offset_;
+      source.bpp = graphics_source_bpp_;
+    }
+    graphics_source_edit_status_ =
+        SetSpriteGraphicsSource(graphics_source_slot_, source);
+  }
+  ImGui::SameLine();
+  if (ImGui::Button("Reload graphics sources")) {
+    gfx_buffer_loaded_ = false;
+    preview_needs_update_ = true;
+  }
+  if (binding->graphics_sources[graphics_source_slot_].kind == "bin" &&
+      ImGui::Button("Edit bound BIN in Graphics Scratch"))
+    graphics_source_edit_status_ = OpenBoundBinInScratch(graphics_source_slot_);
+  if (!graphics_source_edit_status_.ok())
+    ImGui::TextWrapped("%s", graphics_source_edit_status_.ToString().c_str());
+  for (int slot = 0; slot < 8; ++slot) {
+    const auto& source = binding->graphics_sources[slot];
+    if (source.kind != "sheet")
+      ImGui::TextWrapped("Slot %d: %s, %dbpp, offset $%08X %s", slot,
+                         source.kind.c_str(), source.bpp, source.offset,
+                         source.path.c_str());
   }
 }
 
@@ -54,6 +271,7 @@ absl::Status SpriteEditor::SetSpriteGraphics(
 }
 
 absl::Status SpriteEditor::OpenSpriteAsset(const std::string& path) {
+  CommitUndoTransaction();
   const auto absolute =
       std::filesystem::absolute(path).lexically_normal().string();
   auto found = std::find(custom_sprite_paths_.begin(),
@@ -136,7 +354,7 @@ absl::StatusOr<std::string> SpriteEditor::ExportCurrentSpriteDraw() {
 }
 
 void SpriteEditor::DrawSpriteAssetBindings() {
-
+  DrawGraphicsSourceBindings();
   if (!palette_binding_status_.ok())
     ImGui::TextWrapped("%s", palette_binding_status_.ToString().c_str());
   if (!graphics_binding_status_.ok())

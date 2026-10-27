@@ -13,6 +13,15 @@ struct SpritePaletteBinding {
   int index = 0;
 };
 
+// One 128x32 slot of decoded sprite pixels. File and ROM offsets address raw
+// SNES planar bytes, never compressed streams or an inferred expansion table.
+struct SpriteGraphicsSource {
+  std::string kind = "sheet";  // sheet, bin, raw_rom
+  std::string path;            // Project-relative or absolute BIN path.
+  uint32_t offset = 0;  // Byte offset; raw_rom uses headerless PC offsets.
+  int bpp = 3;
+};
+
 // Stored in the project, leaving the upstream ZSM binary format unchanged.
 // zsm_path identifies the saved asset; catalog_key is optional provenance.
 struct SpriteAssetBinding {
@@ -23,6 +32,7 @@ struct SpriteAssetBinding {
   std::string source_label;
   std::string source_sha256;
   std::array<uint8_t, 8> sheets = {0, 10, 6, 7, 0, 0, 0, 0};
+  std::array<SpriteGraphicsSource, 8> graphics_sources;
   std::array<SpritePaletteBinding, 8> palette_rows;
   SpriteBehavior behavior;
 };

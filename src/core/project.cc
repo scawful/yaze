@@ -1193,6 +1193,11 @@ absl::StatusOr<std::string> YazeProject::SerializeToString() const {
   for (size_t i = 0; i < sprite_assets.size(); ++i) {
     auto asset = sprite_assets[i];
     asset.zsm_path = GetRelativePath(GetAbsolutePath(asset.zsm_path));
+    for (auto& source : asset.graphics_sources) {
+      if (source.kind == "bin") {
+        source.path = GetRelativePath(GetAbsolutePath(source.path));
+      }
+    }
     file << "asset_" << i << "=" << SpriteAssetToJson(asset).dump() << "\n";
   }
   file << "\n";
@@ -2237,8 +2242,14 @@ void YazeProject::NormalizePathsToAbsolute() {
   normalize(&lyra_terrain_file);
   normalize(&lyra_build_request_file);
   normalize(&palette_catalog_file);
-  for (auto& asset : sprite_assets)
+  for (auto& asset : sprite_assets) {
     normalize(&asset.zsm_path);
+    for (auto& source : asset.graphics_sources) {
+      if (source.kind == "bin") {
+        normalize(&source.path);
+      }
+    }
+  }
   normalize(&output_folder);
 
   for (auto& rom_path : additional_roms) {
@@ -3638,6 +3649,11 @@ absl::Status YazeProject::SaveToJsonFormat() {
   proj["sprite_assets"] = nlohmann::json::array();
   for (auto asset : sprite_assets) {
     asset.zsm_path = GetRelativePath(GetAbsolutePath(asset.zsm_path));
+    for (auto& source : asset.graphics_sources) {
+      if (source.kind == "bin") {
+        source.path = GetRelativePath(GetAbsolutePath(source.path));
+      }
+    }
     proj["sprite_assets"].push_back(SpriteAssetToJson(asset));
   }
   proj["output_folder"] = output_folder;

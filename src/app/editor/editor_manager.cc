@@ -76,6 +76,7 @@
 #include "app/editor/shell/windows/dashboard_panel.h"
 #include "app/editor/shell/windows/project_management_panel.h"
 #include "app/editor/shell/windows/settings_panel.h"
+#include "app/editor/sprite/sprite_editor.h"
 #include "app/editor/system/editor_registry.h"
 #include "app/editor/system/emulator_runtime_policy.h"
 #include "app/editor/system/project_workflow_status.h"
@@ -3947,13 +3948,24 @@ bool EditorManager::IsCurrentProjectDirty() const {
           session->editors.HasPendingProjectDraftChanges());
 }
 
-absl::Status EditorManager::SaveActiveProjectEditingWork() {
+absl::Status EditorManager::SaveActiveProjectEditingWork(bool allow_dialogs) {
   if (!session_coordinator_) {
     return absl::FailedPreconditionError("No session coordinator");
   }
   auto* session = session_coordinator_->GetActiveRomSession();
   if (!session) {
     return absl::FailedPreconditionError("No active ROM session");
+  }
+
+  if (auto* graphics = static_cast<GraphicsEditor*>(
+          session->editors.GetExistingEditor(EditorType::kGraphics))) {
+    RETURN_IF_ERROR(graphics->SaveScratchAssets());
+  }
+
+  if (session->editors.HasPendingSpriteChanges()) {
+    auto* sprite = static_cast<SpriteEditor*>(
+        session->editors.GetExistingEditor(EditorType::kSprite));
+    RETURN_IF_ERROR(allow_dialogs ? sprite->Save() : sprite->SaveForAutosave());
   }
 
   CaptureActiveProjectEditingState();
@@ -3996,7 +4008,7 @@ absl::Status EditorManager::AutosaveActiveSession() {
     return absl::FailedPreconditionError("No session coordinator");
   }
   const size_t session_index = GetCurrentSessionIndex();
-  RETURN_IF_ERROR(SaveActiveProjectEditingWork());
+  RETURN_IF_ERROR(SaveActiveProjectEditingWork(/*allow_dialogs=*/false));
   const auto* session = session_coordinator_->GetActiveRomSession();
   if (session != nullptr && session->backup_restore_pending) {
     return absl::CancelledError(
@@ -4668,7 +4680,8 @@ absl::Status EditorManager::DiscardPendingRomBackupRestore() {
   }
 
   const size_t session_index = GetCurrentSessionIndex();
-  if (session->editors.HasPendingGraphicsChanges() ||
+  if (session->editors.HasPendingSpriteChanges() ||
+      session->editors.HasPendingGraphicsChanges() ||
       session->HasPendingGfxGroupChanges() ||
       session->editors.HasPendingScreenChanges() ||
       HasPendingDungeonChangesForSession(session_index) ||
@@ -5234,7 +5247,9 @@ bool EditorManager::SessionHasPendingUnsavedWork(size_t session_index) const {
   auto* session =
       static_cast<RomSession*>(session_coordinator_->GetSession(session_index));
   return session != nullptr &&
-         (SessionHasPendingRomWork(session_index) || session->project_dirty ||
+         (SessionHasPendingRomWork(session_index) ||
+          session->editors.HasPendingSpriteChanges() ||
+          session->project_dirty ||
           session->editors.HasPendingProjectDraftChanges() ||
           (session->project_file_editor_state.initialized &&
            session->project_file_editor_state.modified));
@@ -5342,6 +5357,8 @@ std::string EditorManager::DescribePendingUnsavedWork(
       session != nullptr && session->rom.is_loaded() && session->rom.dirty();
   const bool pending_dungeon_changes =
       HasPendingDungeonChangesForSession(session_index);
+  const bool pending_sprite_changes =
+      session != nullptr && session->editors.HasPendingSpriteChanges();
   const bool pending_graphics_changes =
       session != nullptr && session->editors.HasPendingGraphicsChanges();
   const bool pending_gfx_group_changes =
@@ -5370,6 +5387,8 @@ std::string EditorManager::DescribePendingUnsavedWork(
                                    pending_palette_colors,
                                    pending_palette_colors == 1 ? "" : "s"));
   }
+  if (pending_sprite_changes)
+    work.emplace_back("unsaved sprite assets");
   if (pending_graphics_changes) {
     work.emplace_back("unapplied graphics sheet edits");
   }
@@ -5407,6 +5426,8 @@ std::string EditorManager::CompactPendingUnsavedWorkLabel(
       session != nullptr && session->rom.is_loaded() && session->rom.dirty();
   const bool pending_dungeon_changes =
       HasPendingDungeonChangesForSession(session_index);
+  const bool pending_sprite_changes =
+      session != nullptr && session->editors.HasPendingSpriteChanges();
   const bool pending_graphics_changes =
       session != nullptr && session->editors.HasPendingGraphicsChanges();
   const bool pending_gfx_group_changes =
@@ -5432,6 +5453,8 @@ std::string EditorManager::CompactPendingUnsavedWorkLabel(
   if (pending_palette_colors > 0) {
     tags.push_back("Palette");
   }
+  if (pending_sprite_changes)
+    tags.emplace_back("Sprites");
   if (pending_graphics_changes) {
     tags.push_back("Gfx");
   }
@@ -5706,6 +5729,11 @@ void EditorManager::ConfigureEditorDependencies(EditorSet* editor_set, Rom* rom,
   deps.renderer = renderer_;
   deps.emulator = &emulator_;
   deps.custom_data = this;
+  deps.project_context_provider = [this,
+                                   session_id]() -> project::YazeProject* {
+    return IsCurrentProjectContextOwnedBySession(session_id) ? &current_project_
+                                                             : nullptr;
+  };
   deps.gfx_group_workspace = editor_set->gfx_group_workspace();
 
   editor_set->ApplyDependencies(deps);

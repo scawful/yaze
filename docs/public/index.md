@@ -36,6 +36,7 @@ Welcome to the YAZE documentation. This site covers installation, usage, and dev
 - [Build Troubleshooting](build/troubleshooting.md) - Common issues
 
 ### Usage Guides
+- [Graphics authoring](usage/graphics-authoring.md) - Connected previews, scratch layouts, and custom sprite graphics
 - [Dungeon Editor](usage/dungeon-editor.md) - Room editing guide
 - [Beta Testing](usage/beta-testing.md) - What to test and how to report useful bugs
 - [.yazeproj Bundles](usage/yazeproj-bundles.md) - Portable project bundle format

@@ -168,6 +168,30 @@ restore its own graphics context. ZSM bytes stay compatible with ZSpriteMaker;
 project metadata must never be appended to the upstream binary format. Automated
 reopen uses a bounded, validated byte snapshot before decoding a ZSM asset.
 
+### Explicit graphics source bindings (version 3)
+
+Version-3 asset records add `graphics_sources`, exactly eight records containing
+`kind`, `path`, `offset`, and `bpp`. Existing fields retain their meaning and
+`behavior` remains optional. `sheet` uses the corresponding `sheets` entry, an
+empty path, offset zero, and bpp 3. `bin` requires a project-relative or absolute
+path. `raw_rom` requires an empty path and a headerless PC offset. External source
+depths are 2, 3, or 4 and resolve exactly 64 complete planar tiles into 4096 indexed
+pixels. Only the selected range is read, at most 2048 bytes. Invalid kinds, depths,
+paths, lengths, or offsets are rejected before changing a binding.
+
+These sources feed custom authoring previews and tile selectors. They do not
+extend the game's graphics ID table, allocate ROM space, write a loader, or modify
+the BIN or ROM. The slot decoder uses the shared per-tile codec rather than a
+whole-sheet converter with different dimensions. Explicit reload picks up external
+file changes. Source selection joins sprite Undo; saved ZSM/project metadata
+reopens it. Project save success clears pending binding metadata, while failed
+project writes leave the close guard active.
+
+All vanilla IDs `$00–$FF` can create detached authoring assets. Known static layouts
+copy a pose; unknown layouts create an explicitly empty template. No new native
+pose decoding or draw-code write-back is implied. Graphics pixel navigation refuses
+assets with external sources to prevent editing unrelated fallback ROM sheets.
+
 ### Shared behavior/action model
 
 The **Behavior** tab and `oracle_actions_v1` candidate backend are implemented.
