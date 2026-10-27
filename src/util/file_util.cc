@@ -2,7 +2,10 @@
 
 #include <filesystem>
 #include <fstream>
+#include <mutex>
 #include <sstream>
+#include <stdexcept>
+#include <utility>
 
 #include "core/features.h"
 #include "util/platform_paths.h"
@@ -11,6 +14,43 @@ namespace yaze {
 namespace util {
 
 namespace fs = std::filesystem;
+
+namespace {
+std::mutex save_dialog_test_mutex;
+ScopedSaveFileDialogResultForTesting* save_dialog_test_scope = nullptr;
+}  // namespace
+
+ScopedSaveFileDialogResultForTesting::ScopedSaveFileDialogResultForTesting(
+    std::string result)
+    : result_(std::move(result)) {
+  std::lock_guard<std::mutex> lock(save_dialog_test_mutex);
+  if (save_dialog_test_scope != nullptr) {
+    throw std::logic_error("Save dialog test scope is already active");
+  }
+  save_dialog_test_scope = this;
+}
+
+ScopedSaveFileDialogResultForTesting::~ScopedSaveFileDialogResultForTesting() {
+  std::lock_guard<std::mutex> lock(save_dialog_test_mutex);
+  save_dialog_test_scope = nullptr;
+}
+
+bool ScopedSaveFileDialogResultForTesting::consumed() const {
+  std::lock_guard<std::mutex> lock(save_dialog_test_mutex);
+  return consumed_;
+}
+
+std::optional<std::string>
+FileDialogWrapper::ConsumeSaveFileDialogResultForTesting() {
+  std::lock_guard<std::mutex> lock(save_dialog_test_mutex);
+  if (!save_dialog_test_scope || !save_dialog_test_scope->result_) {
+    return std::nullopt;
+  }
+  auto result = std::move(save_dialog_test_scope->result_);
+  save_dialog_test_scope->result_.reset();
+  save_dialog_test_scope->consumed_ = true;
+  return result;
+}
 
 std::string GetFileExtension(const std::string& filename) {
   return fs::path(filename).extension().string();

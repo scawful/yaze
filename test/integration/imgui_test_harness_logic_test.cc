@@ -4,15 +4,52 @@
 
 #include <algorithm>
 #include <memory>
+#include <stdexcept>
 #include <string>
+#include <thread>
 
 #include "app/gui/automation/widget_id_registry.h"
 #include "app/service/imgui_test_harness_service.h"
 #include "app/testing/test_manager.h"
 #include "protos/imgui_test_harness.pb.h"
+#include "util/file_util.h"
 
 namespace yaze::test {
 namespace {
+
+TEST(ProjectSaveDialogSeamTest, SelectionIsConsumedOnceAcrossUiThread) {
+  util::ScopedSaveFileDialogResultForTesting picker("/scratch/moved.yaze");
+  std::optional<std::string> selected;
+  std::thread ui([&]() {
+    selected = util::FileDialogWrapper::ConsumeSaveFileDialogResultForTesting();
+  });
+  ui.join();
+  ASSERT_TRUE(selected.has_value());
+  EXPECT_EQ(*selected, "/scratch/moved.yaze");
+  EXPECT_TRUE(picker.consumed());
+  EXPECT_FALSE(
+      util::FileDialogWrapper::ConsumeSaveFileDialogResultForTesting());
+}
+
+TEST(ProjectSaveDialogSeamTest, CancelIsAnEngagedEmptyResult) {
+  util::ScopedSaveFileDialogResultForTesting picker("");
+  auto selected =
+      util::FileDialogWrapper::ConsumeSaveFileDialogResultForTesting();
+  ASSERT_TRUE(selected.has_value());
+  EXPECT_TRUE(selected->empty());
+  EXPECT_TRUE(picker.consumed());
+}
+
+TEST(ProjectSaveDialogSeamTest, UnusedSelectionDoesNotLeakPastScope) {
+  {
+    util::ScopedSaveFileDialogResultForTesting picker("/scratch/unused.yaze");
+    EXPECT_FALSE(picker.consumed());
+    EXPECT_THROW(util::ScopedSaveFileDialogResultForTesting nested(""),
+                 std::logic_error);
+  }
+  EXPECT_FALSE(
+      util::FileDialogWrapper::ConsumeSaveFileDialogResultForTesting());
+}
 
 TEST(ImGuiTestHarnessLogicTest,
      ScreenshotRejectsUnsupportedFormatsBeforeQueue) {
