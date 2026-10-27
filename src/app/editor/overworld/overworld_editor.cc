@@ -1493,6 +1493,11 @@ absl::Status OverworldEditor::Save() {
   if (rom_ == nullptr) {
     return absl::FailedPreconditionError("No ROM for overworld sprites");
   }
+  if (dependencies_.project && dependencies_.project->hack_manifest.loaded()) {
+    RETURN_IF_ERROR(rom_->AttachLyraPrivateReservation(
+        dependencies_.project->hack_manifest));
+  }
+  RETURN_IF_ERROR(overworld_.ValidatePrivateNativeTerrainSave());
   RETURN_IF_ERROR(rom_->CheckLayoutWritable());
   // A disabled save domain must neither validate nor serialize staged edits.
   const bool saving_sprites =

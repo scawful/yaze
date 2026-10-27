@@ -320,6 +320,7 @@ if(YAZE_BUILD_TESTS)
     unit/core/source_artifact_publisher_test.cc
     unit/rom/rom_diff_test.cc
     unit/rom/write_fence_test.cc
+    unit/rom/private_lyra_reservation_test.cc
     unit/emu/emulator_test.cc
     unit/emu/cpu_flags_test.cc
     unit/emu/snes_io_reset_test.cc
@@ -882,6 +883,9 @@ if(YAZE_BUILD_TESTS)
   )
   yaze_add_focused_test_target(yaze_test_focus_lyra_authoring
     ${FOCUS_LYRA_AUTHORING_TEST_SOURCES})
+
+  yaze_add_focused_test_target(yaze_test_focus_private_lyra
+    unit/rom/private_lyra_reservation_test.cc)
 
   yaze_add_focused_test_target(yaze_test_focus_proposal_drawer
     unit/editor/right_drawer_manager_test.cc)
