@@ -8,7 +8,9 @@
 
 #include <algorithm>
 #include <chrono>
+#include <cstdlib>
 #include <deque>
+#include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <limits>
@@ -31,6 +33,7 @@
 #include "app/testing/test_script_parser.h"
 #include "protos/imgui_test_harness.grpc.pb.h"
 #include "protos/imgui_test_harness.pb.h"
+#include "util/file_util.h"
 #include "yaze.h"  // For YAZE_VERSION_STRING
 
 // The Windows SDK defines Yield as a function-like macro, which collides with
@@ -325,6 +328,31 @@ absl::StatusOr<internal::ParsedTarget> ParseTargetString(
 }  // namespace
 
 namespace internal {
+
+absl::Status ValidateProjectSaveAsDestination(const char* destination) {
+  namespace fs = std::filesystem;
+  if (!destination ||
+      (*destination && (!fs::path(destination).is_absolute() ||
+                        fs::path(destination).extension() != ".yaze"))) {
+    return absl::InvalidArgumentError(
+        "Set YAZE_TEST_PROJECT_SAVE_AS to an absolute NEW copied-project "
+        ".yaze destination, or an empty string for Cancel");
+  }
+  if (!*destination) {
+    return absl::OkStatus();
+  }
+  std::error_code error;
+  const auto entry = fs::symlink_status(destination, error);
+  if (error && error != std::errc::no_such_file_or_directory) {
+    return absl::FailedPreconditionError(absl::StrCat(
+        "Cannot inspect Project Save As destination: ", error.message()));
+  }
+  if (entry.type() != fs::file_type::not_found) {
+    return absl::AlreadyExistsError(
+        "Project Save As replay destination already exists");
+  }
+  return absl::OkStatus();
+}
 
 absl::StatusOr<ResolvedWidgetSelector> ResolveWidgetSelector(
     absl::string_view target, absl::string_view widget_key) {
@@ -880,12 +908,33 @@ absl::Status ImGuiTestHarnessServiceImpl::Click(const ClickRequest* request,
     try {
       if (widget_type == "shortcut") {
         ImGuiKeyChord chord = 0;
+        std::optional<util::ScopedSaveFileDialogResultForTesting> save_picker;
         if (widget_label == "Save ROM") {
           chord = ImGuiMod_Shortcut | ImGuiKey_S;
         } else if (widget_label == "Undo") {
           chord = ImGuiMod_Shortcut | ImGuiKey_Z;
         } else if (widget_label == "Redo") {
           chord = ImGuiMod_Shortcut | ImGuiMod_Shift | ImGuiKey_Z;
+        } else if (widget_label == "Save As") {
+          const char* destination = std::getenv("YAZE_TEST_PROJECT_SAVE_AS");
+          const auto destination_status =
+              internal::ValidateProjectSaveAsDestination(destination);
+          if (!destination_status.ok()) {
+            manager->MarkHarnessTestCompleted(
+                captured_id, HarnessTestStatus::kFailed,
+                std::string(destination_status.message()));
+            return;
+          }
+          auto* controller = Application::Instance().GetController();
+          auto* editor = controller ? controller->editor_manager() : nullptr;
+          if (!editor || !editor->GetCurrentProject()->project_opened()) {
+            manager->MarkHarnessTestCompleted(
+                captured_id, HarnessTestStatus::kFailed,
+                "Project Save As replay requires an open copied project");
+            return;
+          }
+          save_picker.emplace(destination);
+          chord = ImGuiMod_Shortcut | ImGuiMod_Shift | ImGuiKey_S;
         } else if (widget_label == "Settings") {
           chord = ImGuiMod_Shortcut | ImGuiKey_Comma;
         } else if (widget_label == "Quit") {
@@ -932,6 +981,12 @@ absl::Status ImGuiTestHarnessServiceImpl::Click(const ClickRequest* request,
 
         ctx->KeyPress(chord);
         ctx->Yield(2);
+        if (save_picker && !save_picker->consumed()) {
+          manager->MarkHarnessTestCompleted(
+              captured_id, HarnessTestStatus::kFailed,
+              "Project Save As shortcut did not reach the destination picker");
+          return;
+        }
         if (ctx->IsError()) {
           const std::string error_message =
               absl::StrFormat("Shortcut failed for '%s'", widget_label);

@@ -17,6 +17,9 @@ struct HarnessTestExecution;
 
 namespace internal {
 
+// Empty selects Cancel. Nonempty destinations must be new absolute .yaze paths.
+absl::Status ValidateProjectSaveAsDestination(const char* destination);
+
 struct ParsedTarget {
   std::string type;
   std::string label;

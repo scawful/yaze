@@ -3,16 +3,95 @@
 #include <gtest/gtest.h>
 
 #include <algorithm>
+#include <chrono>
+#include <filesystem>
+#include <fstream>
 #include <memory>
+#include <stdexcept>
 #include <string>
+#include <thread>
 
 #include "app/gui/automation/widget_id_registry.h"
 #include "app/service/imgui_test_harness_service.h"
 #include "app/testing/test_manager.h"
 #include "protos/imgui_test_harness.pb.h"
+#include "util/file_util.h"
 
 namespace yaze::test {
 namespace {
+
+TEST(ProjectSaveDialogSeamTest, ValidatesSelectionBeforeKeyboardDispatch) {
+  EXPECT_TRUE(internal::ValidateProjectSaveAsDestination("").ok());
+  EXPECT_TRUE(absl::IsInvalidArgument(
+      internal::ValidateProjectSaveAsDestination(nullptr)));
+  EXPECT_TRUE(absl::IsInvalidArgument(
+      internal::ValidateProjectSaveAsDestination("relative.yaze")));
+}
+
+TEST(ProjectSaveDialogSeamTest,
+     RejectsExistingEntryAndReportsFilesystemErrors) {
+  namespace fs = std::filesystem;
+  const auto root =
+      fs::temp_directory_path() /
+      ("yaze-save-as-entry-" +
+       std::to_string(
+           std::chrono::steady_clock::now().time_since_epoch().count()));
+  fs::create_directory(root);
+  struct Cleanup {
+    fs::path root;
+    ~Cleanup() {
+      std::error_code error;
+      fs::remove_all(root, error);
+    }
+  } cleanup{root};
+  const auto destination = root / "occupied.yaze";
+  EXPECT_TRUE(
+      internal::ValidateProjectSaveAsDestination(destination.string().c_str())
+          .ok());
+  std::ofstream(destination).close();
+  EXPECT_TRUE(absl::IsAlreadyExists(internal::ValidateProjectSaveAsDestination(
+      destination.string().c_str())));
+  const auto invalid_parent = destination / "child.yaze";
+  const auto error = internal::ValidateProjectSaveAsDestination(
+      invalid_parent.string().c_str());
+  EXPECT_TRUE(absl::IsFailedPrecondition(error));
+  EXPECT_NE(std::string(error.message()).find("Cannot inspect"),
+            std::string::npos);
+}
+
+TEST(ProjectSaveDialogSeamTest, SelectionIsConsumedOnceAcrossUiThread) {
+  util::ScopedSaveFileDialogResultForTesting picker("/scratch/moved.yaze");
+  std::optional<std::string> selected;
+  std::thread ui([&]() {
+    selected = util::FileDialogWrapper::ConsumeSaveFileDialogResultForTesting();
+  });
+  ui.join();
+  ASSERT_TRUE(selected.has_value());
+  EXPECT_EQ(*selected, "/scratch/moved.yaze");
+  EXPECT_TRUE(picker.consumed());
+  EXPECT_FALSE(
+      util::FileDialogWrapper::ConsumeSaveFileDialogResultForTesting());
+}
+
+TEST(ProjectSaveDialogSeamTest, CancelIsAnEngagedEmptyResult) {
+  util::ScopedSaveFileDialogResultForTesting picker("");
+  auto selected =
+      util::FileDialogWrapper::ConsumeSaveFileDialogResultForTesting();
+  ASSERT_TRUE(selected.has_value());
+  EXPECT_TRUE(selected->empty());
+  EXPECT_TRUE(picker.consumed());
+}
+
+TEST(ProjectSaveDialogSeamTest, UnusedSelectionDoesNotLeakPastScope) {
+  {
+    util::ScopedSaveFileDialogResultForTesting picker("/scratch/unused.yaze");
+    EXPECT_FALSE(picker.consumed());
+    EXPECT_THROW(util::ScopedSaveFileDialogResultForTesting nested(""),
+                 std::logic_error);
+  }
+  EXPECT_FALSE(
+      util::FileDialogWrapper::ConsumeSaveFileDialogResultForTesting());
+}
 
 TEST(ImGuiTestHarnessLogicTest,
      ScreenshotRejectsUnsupportedFormatsBeforeQueue) {
