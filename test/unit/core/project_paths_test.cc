@@ -366,11 +366,13 @@ TEST(ProjectPathsTest, LyraSaveAsRefusesDestinationThatIsBuildRequest) {
   const std::string request_bytes =
       "{\"kind\":\"source-bound request fixture\"}\n";
   WriteTextFile(destination, request_bytes);
+  std::filesystem::create_directories(original.parent_path());
   YazeProject project;
   project.name = "Oracle";
   project.filepath = original.string();
   project.lyra_build_request_file = destination.string();
-  ASSERT_TRUE(project.Save().ok());
+  const auto save_status = project.Save();
+  ASSERT_TRUE(save_status.ok()) << save_status;
   const auto original_bytes = ReadTextFile(original);
   project.lyra_terrain_file = terrain.string();
   core::LyraTerrainProfile profile;
