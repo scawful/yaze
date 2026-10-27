@@ -3,7 +3,14 @@
 High-level release summary. For detailed notes, see
 `docs/public/reference/changelog.md`.
 
-## 0.8.0 (in development)
+## 0.8.0 (experimental, unreleased)
+- **Experimental release.** 0.8.0 packages the merged editor work for Linux,
+  macOS, and Windows instead of waiting for Dungeon Editor completion, which
+  continues as the next Dungeon milestone. The supported / experimental /
+  deferred table is in `docs/public/release-notes.md`. Release date, release
+  SHA, and packaged-candidate results are pending.
+- Fixed a use-after-free in `ObjectDrawCodeTest` found by the Memory Sanitizer
+  job: the test kept a pointer into a temporary `ReadObjectDrawCode` result.
 - Dungeon pot-item edits now use the normal sparse save path without loading
   every room. Disabled pot saving reports the existing Save Scope control and
   preserves the edit for retry; untouched room streams remain unchanged.
@@ -17,9 +24,6 @@ High-level release summary. For detailed notes, see
   pointer/artwork ranges, and signed basement boss-floor encoding. Floor
   buttons update the full model and restore the visible floor on Undo/Redo.
   Tile16 artwork, title-screen and overworld pause-map saves remain blocked.
-- Dungeon Editor completion milestone. See
-  `docs/internal/plans/release-ladder-0x-2026.md` for scope. Release date,
-  final merge SHA, and packaged-candidate evidence are pending.
 - **Upgrading from 0.7.2**: several saves, z3ed commands, Hack Manifest
   sections, project files, menus, and package layouts behave differently. See
   the **Upgrading from 0.7.2** section in `docs/public/reference/changelog.md`
