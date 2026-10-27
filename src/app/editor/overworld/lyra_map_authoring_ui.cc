@@ -272,7 +272,11 @@ void LyraTerrainCanvas::DrawProperties(int map_id, int& state,
       ImGui::TreePop();
     }
 
-    if (ImGui::TreeNode("Music and message")) {
+    const bool music_open = ImGui::TreeNode("Music and message");
+    gui::WidgetIdRegistry::Instance().RegisterWidget(
+        absl::StrFormat("LyraMapProperties/%02X/tree:MusicMessage", map_id),
+        "tree", ImGui::GetItemID());
+    if (music_open) {
       for (int i = 0; i < 4; ++i) {
         ImGui::PushID(i);
         int value = draft.music[i];
@@ -285,6 +289,10 @@ void LyraTerrainCanvas::DrawProperties(int map_id, int& state,
                              nullptr, "%04X",
                              ImGuiInputTextFlags_CharsHexadecimal))
         draft.message_id = std::clamp(value, 0, 65535);
+      gui::WidgetIdRegistry::Instance().RegisterWidget(
+          absl::StrFormat("LyraMapProperties/%02X/input_scalar:MessageId",
+                          map_id),
+          "input_scalar", ImGui::GetItemID());
       ImGui::TreePop();
     }
 
