@@ -76,6 +76,7 @@
 #include "app/editor/shell/windows/dashboard_panel.h"
 #include "app/editor/shell/windows/project_management_panel.h"
 #include "app/editor/shell/windows/settings_panel.h"
+#include "app/editor/sprite/sprite_editor.h"
 #include "app/editor/system/editor_registry.h"
 #include "app/editor/system/emulator_runtime_policy.h"
 #include "app/editor/system/project_workflow_status.h"
