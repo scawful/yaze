@@ -322,18 +322,17 @@ bool OpenPlanning(ImGuiTestContext* ctx, Controller* controller, Fixture* f) {
   f->plan = manager->GetCurrentProject()->PlanningFilePath();
   IM_CHECK_NO_RET(!f->plan.empty());
 
-  // SwitchToEditor(kPlanning) is a no-op because Planning is not a tracked
-  // active editor; the activity bar category button is the user path.
+  // Below 900px wide (SDL's dummy video driver) the compact layout differs
+  // from the native default the panel geometry checks assume.
+  if (ImGui::GetMainViewport()->WorkSize.x < 900.0f &&
+      controller->window_backend() != nullptr) {
+    controller->window_backend()->SetSize(1536, 896);
+    ctx->Yield(5);
+  }
+  // The Dashboard picker and the "Switch to Planning Editor" palette command
+  // both open Planning through SwitchToEditor.
   if (manager->GetWindowManager()->GetActiveCategory() != "Planning") {
-    // Below 900px wide (SDL's dummy video driver) the compact layout hides
-    // the activity bar; use the native default window size.
-    if (ImGui::GetMainViewport()->WorkSize.x < 900.0f &&
-        controller->window_backend() != nullptr) {
-      controller->window_backend()->SetSize(1536, 896);
-      ctx->Yield(5);
-    }
-    ctx->SetRef("##ActivityBar");
-    ctx->ItemClick(ICON_MD_ROUTE);
+    manager->SwitchToEditor(EditorType::kPlanning);
     ctx->Yield(10);
   }
   IM_CHECK_NO_RET(manager->GetWindowManager()->GetActiveCategory() ==

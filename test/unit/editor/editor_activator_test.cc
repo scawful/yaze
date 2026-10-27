@@ -11,6 +11,7 @@
 
 #include <gtest/gtest.h>
 
+#include <algorithm>
 #include <vector>
 
 namespace yaze::editor {
@@ -44,6 +45,12 @@ class EditorActivatorLayoutTest : public ::testing::Test {
     };
     deps.get_current_session_id = [this]() {
       return window_manager_.GetActiveSessionId();
+    };
+    deps.ensure_editor_assets_loaded = [this](EditorType type) {
+      if (materialize_on_switch_) {
+        editor_set_.GetEditor(type);
+      }
+      return absl::OkStatus();
     };
     deps.queue_deferred_action = [this](std::function<void()> action) {
       if (defer_layout_actions_) {
@@ -87,6 +94,7 @@ class EditorActivatorLayoutTest : public ::testing::Test {
   bool overworld_tile_selector_visible_ = false;
   bool overworld_properties_visible_ = false;
   bool defer_layout_actions_ = false;
+  bool materialize_on_switch_ = false;
   std::vector<std::function<void()>> deferred_layout_actions_;
   WorkspaceWindowManager window_manager_;
   LayoutManager layout_manager_;
@@ -316,6 +324,28 @@ TEST_F(EditorActivatorLayoutTest, DeferredEditorSwitchDoesNotCrossRomSessions) {
 
   EXPECT_FALSE(*dungeon_editor->active());
   EXPECT_FALSE(layout_manager_.IsLayoutInitialized(EditorType::kDungeon));
+}
+
+TEST_F(EditorActivatorLayoutTest, PlanningSwitchFromDashboardShowsPlanning) {
+  bool overview_visible = false;
+  RegisterPanel(0, "planning.overview", "Planning", &overview_visible);
+  window_manager_.SetActiveCategory("Dashboard");
+  materialize_on_switch_ = true;
+
+  activator_.SwitchToEditor(EditorType::kPlanning, true);
+
+  Editor* planning = editor_set_.GetEditor(EditorType::kPlanning);
+  ASSERT_NE(planning, nullptr);
+  EXPECT_TRUE(*planning->active());
+  EXPECT_EQ(window_manager_.GetActiveCategory(), "Planning");
+
+  activator_.SwitchToEditor(EditorType::kPlanning, true);
+
+  EXPECT_TRUE(*planning->active());
+  EXPECT_EQ(window_manager_.GetActiveCategory(), "Planning");
+  EXPECT_EQ(std::count(editor_set_.active_editors_.begin(),
+                       editor_set_.active_editors_.end(), planning),
+            1);
 }
 
 }  // namespace

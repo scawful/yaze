@@ -243,6 +243,7 @@ bool EditorSet::ShouldTrackAsActiveEditor(EditorType type) const {
     case EditorType::kMusic:
     case EditorType::kOverworld:
     case EditorType::kPalette:
+    case EditorType::kPlanning:
     case EditorType::kScreen:
     case EditorType::kSprite:
       return true;
