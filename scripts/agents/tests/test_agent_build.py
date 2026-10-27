@@ -7,6 +7,8 @@ import io
 import json
 import os
 from pathlib import Path
+import re
+import shutil
 import signal
 import subprocess
 import sys
@@ -123,18 +125,45 @@ class AgentBuildTest(unittest.TestCase):
     def test_new_build_can_opt_back_into_precompiled_headers(self):
         result, output = self.invoke(extra_env={"YAZE_AGENT_PCH": "1"})
         self.assertEqual(result, 0, output)
-        self.assertEqual(self.calls()[0]["args"], ["--preset", "mac-ai", "-B", str(self.cache_dir)])
+        self.assertEqual(self.calls()[0]["args"], ["--preset", "mac-ai", "-DCMAKE_DISABLE_PRECOMPILE_HEADERS=OFF",
+                                                   "-B", str(self.cache_dir)])
 
     def test_fresh_keeps_the_existing_tree_precompiled_header_choice(self):
         self.cache()
-        result, output = self.invoke("--fresh")
+        result, output = self.invoke("--fresh", extra_env={"YAZE_AGENT_PCH": "0"})
         self.assertEqual(result, 0, output)
-        self.assertNotIn("-DCMAKE_DISABLE_PRECOMPILE_HEADERS=ON", self.calls()[0]["args"])
-        with (self.cache_dir / "CMakeCache.txt").open("a") as stream:
-            stream.write("CMAKE_DISABLE_PRECOMPILE_HEADERS:BOOL=ON\n")
-        result, output = self.invoke("--fresh")
-        self.assertEqual(result, 0, output)
-        self.assertIn("-DCMAKE_DISABLE_PRECOMPILE_HEADERS=ON", self.calls()[-2]["args"])
+        self.assertIn("-DCMAKE_DISABLE_PRECOMPILE_HEADERS=OFF", self.calls()[0]["args"])
+        for recorded in ("ON", "YES", "off", "2"):
+            self.cache()
+            with (self.cache_dir / "CMakeCache.txt").open("a") as stream:
+                stream.write(f"CMAKE_DISABLE_PRECOMPILE_HEADERS:BOOL={recorded}\n")
+            result, output = self.invoke("--fresh", extra_env={"YAZE_AGENT_PCH": "1"})
+            self.assertEqual(result, 0, output)
+            self.assertIn(f"-DCMAKE_DISABLE_PRECOMPILE_HEADERS={recorded}", self.calls()[-2]["args"])
+
+    @unittest.skipUnless(shutil.which("cmake") and shutil.which("ninja"), "needs cmake and ninja")
+    def test_real_cmake_cache_keeps_the_choice_over_a_preset_value(self):
+        (self.root / "CMakeLists.txt").write_text("cmake_minimum_required(VERSION 3.20)\nproject(probe NONE)\n")
+        data = json.loads((self.root / "CMakePresets.json").read_text())
+        data["configurePresets"][0]["generator"] = "Ninja"
+        data["configurePresets"][0]["cacheVariables"] = {"CMAKE_DISABLE_PRECOMPILE_HEADERS": "ON"}
+        del data["buildPresets"][0]["configuration"]
+        (self.root / "CMakePresets.json").write_text(json.dumps(data))
+        env = {"PATH": os.environ.get("PATH", os.defpath)}
+        cache = self.cache_dir / "CMakeCache.txt"
+
+        def configure(fresh, extra_env=None):
+            args = SimpleNamespace(preset="mac-ai", jobs=1, targets=["all"], fresh=fresh)
+            command = build.plan(self.root, args, {**env, **(extra_env or {})}, "Linux")[0][0]
+            subprocess.run(command, cwd=self.root, env=env, check=True, capture_output=True)
+            match = re.search(r"^CMAKE_DISABLE_PRECOMPILE_HEADERS:[^=]*=(.*)$", cache.read_text(), re.M)
+            return match[1] if match else None
+
+        self.assertEqual(configure(False, {"YAZE_AGENT_PCH": "1"}), "OFF")
+        self.assertEqual(configure(True), "OFF")
+        cache.write_text(re.sub(r"^CMAKE_DISABLE_PRECOMPILE_HEADERS:.*$",
+                                "CMAKE_DISABLE_PRECOMPILE_HEADERS:BOOL=YES", cache.read_text(), flags=re.M))
+        self.assertEqual(configure(True, {"YAZE_AGENT_PCH": "1"}), "YES")
 
     def test_warm_cache_builds_only_once_without_configure(self):
         self.cache()

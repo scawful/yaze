@@ -366,8 +366,10 @@ def plan(root, args, env, platform):
     configure_command = None
     # Precompiled headers embed absolute paths, so ccache cannot share their
     # objects between worktrees. New agent trees build without them; existing
-    # trees keep their recorded choice so a reconfigure never forces a rebuild.
-    disable_pch = env.get("YAZE_AGENT_PCH") != "1"
+    # trees keep their recorded value verbatim (CMake, not this script, decides
+    # its truth) so a reconfigure never forces a rebuild. The value is always
+    # passed explicitly because a preset cache variable would otherwise win.
+    disable_pch = "OFF" if env.get("YAZE_AGENT_PCH") == "1" else "ON"
     if cache.is_symlink():
         raise BuildError(f"Build cache must not be a symlink: {cache}")
     if cache.exists():
@@ -387,11 +389,11 @@ def plan(root, args, env, platform):
         configs = cache_values.get("CMAKE_CONFIGURATION_TYPES", "").split(";")
         if config and config not in configs and config != cache_values.get("CMAKE_BUILD_TYPE"):
             raise BuildError(f"Build cache does not contain configuration {config}: {cache}")
-        disable_pch = cache_values.get("CMAKE_DISABLE_PRECOMPILE_HEADERS", "").upper() in ("ON", "1", "TRUE")
+        disable_pch = cache_values.get("CMAKE_DISABLE_PRECOMPILE_HEADERS", "OFF")
     else:
         if directory.exists() and any(directory.iterdir()):
             raise BuildError(f"Nonempty build directory has no CMakeCache.txt: {directory}")
-    pch_args = ["-DCMAKE_DISABLE_PRECOMPILE_HEADERS=ON"] if disable_pch else []
+    pch_args = [f"-DCMAKE_DISABLE_PRECOMPILE_HEADERS={disable_pch}"]
     if not cache.exists():
         configure_command = ["cmake", "--preset", configure_name, *pch_args, "-B", str(directory)]
     if args.fresh:
