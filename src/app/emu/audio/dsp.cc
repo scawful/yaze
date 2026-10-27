@@ -168,7 +168,7 @@ void Dsp::Cycle() {
   HandleNoise();
 
   // 5. Update State Flags
-  evenCycle = !evenCycle; // Used for Key On/Off timing (every other sample)
+  evenCycle = !evenCycle;  // Used for Key On/Off timing (every other sample)
 
   // 6. Apply Mute Flag (FLG bit 6)
   if (mute) {
@@ -207,7 +207,7 @@ void Dsp::HandleEcho() {
   firBufferL[firBufferIndex] = ramSample >> 1;
   ramSample = aram_[(adr + 2) & 0xffff] | (aram_[(adr + 3) & 0xffff] << 8);
   firBufferR[firBufferIndex] = ramSample >> 1;
-  
+
   // Calculate FIR-sum (Finite Impulse Response Filter)
   // 8-tap filter applied to echo buffer history
   int sumL = 0, sumR = 0;
@@ -222,18 +222,18 @@ void Dsp::HandleEcho() {
   }
   sumL = clamp16(sumL) & ~1;
   sumR = clamp16(sumR) & ~1;
-  
+
   // Apply master volume and mix echo into main output
   // sampleOutL/R currently holds the sum of all voices
   sampleOutL = clamp16(((sampleOutL * masterVolumeL) >> 7) +
                        ((sumL * echoVolumeL) >> 7));
   sampleOutR = clamp16(((sampleOutR * masterVolumeR) >> 7) +
                        ((sumR * echoVolumeR) >> 7));
-  
+
   // Calculate echo feedback for next pass
   int echoL = clamp16(echoOutL + clip16((sumL * feedbackVolume) >> 7)) & ~1;
   int echoR = clamp16(echoOutR + clip16((sumR * feedbackVolume) >> 7)) & ~1;
-  
+
   // Write feedback to echo buffer in RAM
   if (echoWrites) {
     aram_[adr] = echoL & 0xff;
@@ -287,7 +287,7 @@ void Dsp::CycleChannel(int ch) {
   if (channel[ch].useNoise) {
     sample = clip16(noiseSample * 2);
   } else {
-    sample = GetSample(ch); // Interpolated sample from BRR buffer
+    sample = GetSample(ch);  // Interpolated sample from BRR buffer
   }
 
   // Apply Gain/Envelope (16-bit * 11-bit -> ~27-bit, scaled back to 16-bit)
@@ -334,7 +334,7 @@ void Dsp::CycleChannel(int ch) {
   channel[ch].pitchCounter += pitch;
   if (channel[ch].pitchCounter > 0x7fff)
     channel[ch].pitchCounter = 0x7fff;
-  
+
   // set outputs
   ram[(ch << 4) | 8] = channel[ch].gain >> 4;
   ram[(ch << 4) | 9] = sample >> 8;
@@ -726,7 +726,8 @@ void Dsp::GetSamples(int16_t* sample_data, int samples_per_frame,
   // Resample from native samples-per-frame based on precise SNES timing.
   // NTSC: 32040 Hz / 60.0988 Hz/frame = ~533.122 samples/frame
   // PAL:  32040 Hz / 50.007 Hz/frame = ~640.71 samples/frame
-  const double native_per_frame = pal_timing ? (32040.0 / 50.007) : (32040.0 / 60.0988);
+  const double native_per_frame =
+      pal_timing ? (32040.0 / 50.007) : (32040.0 / 60.0988);
   const double step = native_per_frame / static_cast<double>(samples_per_frame);
 
   // Start reading one native frame behind the frame boundary
@@ -822,7 +823,8 @@ void Dsp::GetSamples(int16_t* sample_data, int samples_per_frame,
         break;
       }
       case InterpolationType::Cubic: {
-        const int idx0 = (idx - 1 + 0x800) & 0x7ff;  // Fixed: use full 2048 buffer
+        const int idx0 =
+            (idx - 1 + 0x800) & 0x7ff;  // Fixed: use full 2048 buffer
         const int idx1 = idx & 0x7ff;
         const int idx2 = (idx + 1) & 0x7ff;
         const int idx3 = (idx + 2) & 0x7ff;
@@ -922,38 +924,48 @@ void Dsp::SaveState(std::ostream& stream) {
   for (const auto& ch : channel) {
     write_channel(ch);
   }
-  
+
   stream.write(reinterpret_cast<const char*>(&counter), sizeof(counter));
   stream.write(reinterpret_cast<const char*>(&dirPage), sizeof(dirPage));
   stream.write(reinterpret_cast<const char*>(&evenCycle), sizeof(evenCycle));
   stream.write(reinterpret_cast<const char*>(&mute), sizeof(mute));
   stream.write(reinterpret_cast<const char*>(&reset), sizeof(reset));
-  stream.write(reinterpret_cast<const char*>(&masterVolumeL), sizeof(masterVolumeL));
-  stream.write(reinterpret_cast<const char*>(&masterVolumeR), sizeof(masterVolumeR));
-  
+  stream.write(reinterpret_cast<const char*>(&masterVolumeL),
+               sizeof(masterVolumeL));
+  stream.write(reinterpret_cast<const char*>(&masterVolumeR),
+               sizeof(masterVolumeR));
+
   stream.write(reinterpret_cast<const char*>(&sampleOutL), sizeof(sampleOutL));
   stream.write(reinterpret_cast<const char*>(&sampleOutR), sizeof(sampleOutR));
   stream.write(reinterpret_cast<const char*>(&echoOutL), sizeof(echoOutL));
   stream.write(reinterpret_cast<const char*>(&echoOutR), sizeof(echoOutR));
-  
-  stream.write(reinterpret_cast<const char*>(&noiseSample), sizeof(noiseSample));
+
+  stream.write(reinterpret_cast<const char*>(&noiseSample),
+               sizeof(noiseSample));
   stream.write(reinterpret_cast<const char*>(&noiseRate), sizeof(noiseRate));
-  
+
   stream.write(reinterpret_cast<const char*>(&echoWrites), sizeof(echoWrites));
-  stream.write(reinterpret_cast<const char*>(&echoVolumeL), sizeof(echoVolumeL));
-  stream.write(reinterpret_cast<const char*>(&echoVolumeR), sizeof(echoVolumeR));
-  stream.write(reinterpret_cast<const char*>(&feedbackVolume), sizeof(feedbackVolume));
-  stream.write(reinterpret_cast<const char*>(&echoBufferAdr), sizeof(echoBufferAdr));
+  stream.write(reinterpret_cast<const char*>(&echoVolumeL),
+               sizeof(echoVolumeL));
+  stream.write(reinterpret_cast<const char*>(&echoVolumeR),
+               sizeof(echoVolumeR));
+  stream.write(reinterpret_cast<const char*>(&feedbackVolume),
+               sizeof(feedbackVolume));
+  stream.write(reinterpret_cast<const char*>(&echoBufferAdr),
+               sizeof(echoBufferAdr));
   stream.write(reinterpret_cast<const char*>(&echoDelay), sizeof(echoDelay));
   stream.write(reinterpret_cast<const char*>(&echoLength), sizeof(echoLength));
-  stream.write(reinterpret_cast<const char*>(&echoBufferIndex), sizeof(echoBufferIndex));
-  stream.write(reinterpret_cast<const char*>(&firBufferIndex), sizeof(firBufferIndex));
-  
+  stream.write(reinterpret_cast<const char*>(&echoBufferIndex),
+               sizeof(echoBufferIndex));
+  stream.write(reinterpret_cast<const char*>(&firBufferIndex),
+               sizeof(firBufferIndex));
+
   stream.write(reinterpret_cast<const char*>(firValues), sizeof(firValues));
   stream.write(reinterpret_cast<const char*>(firBufferL), sizeof(firBufferL));
   stream.write(reinterpret_cast<const char*>(firBufferR), sizeof(firBufferR));
-  
-  stream.write(reinterpret_cast<const char*>(&lastFrameBoundary), sizeof(lastFrameBoundary));
+
+  stream.write(reinterpret_cast<const char*>(&lastFrameBoundary),
+               sizeof(lastFrameBoundary));
 }
 
 void Dsp::LoadState(std::istream& stream) {
@@ -1003,7 +1015,7 @@ void Dsp::LoadState(std::istream& stream) {
   for (auto& ch : channel) {
     read_channel(ch);
   }
-  
+
   stream.read(reinterpret_cast<char*>(&counter), sizeof(counter));
   stream.read(reinterpret_cast<char*>(&dirPage), sizeof(dirPage));
   stream.read(reinterpret_cast<char*>(&evenCycle), sizeof(evenCycle));
@@ -1011,15 +1023,15 @@ void Dsp::LoadState(std::istream& stream) {
   stream.read(reinterpret_cast<char*>(&reset), sizeof(reset));
   stream.read(reinterpret_cast<char*>(&masterVolumeL), sizeof(masterVolumeL));
   stream.read(reinterpret_cast<char*>(&masterVolumeR), sizeof(masterVolumeR));
-  
+
   stream.read(reinterpret_cast<char*>(&sampleOutL), sizeof(sampleOutL));
   stream.read(reinterpret_cast<char*>(&sampleOutR), sizeof(sampleOutR));
   stream.read(reinterpret_cast<char*>(&echoOutL), sizeof(echoOutL));
   stream.read(reinterpret_cast<char*>(&echoOutR), sizeof(echoOutR));
-  
+
   stream.read(reinterpret_cast<char*>(&noiseSample), sizeof(noiseSample));
   stream.read(reinterpret_cast<char*>(&noiseRate), sizeof(noiseRate));
-  
+
   stream.read(reinterpret_cast<char*>(&echoWrites), sizeof(echoWrites));
   stream.read(reinterpret_cast<char*>(&echoVolumeL), sizeof(echoVolumeL));
   stream.read(reinterpret_cast<char*>(&echoVolumeR), sizeof(echoVolumeR));
@@ -1027,14 +1039,16 @@ void Dsp::LoadState(std::istream& stream) {
   stream.read(reinterpret_cast<char*>(&echoBufferAdr), sizeof(echoBufferAdr));
   stream.read(reinterpret_cast<char*>(&echoDelay), sizeof(echoDelay));
   stream.read(reinterpret_cast<char*>(&echoLength), sizeof(echoLength));
-  stream.read(reinterpret_cast<char*>(&echoBufferIndex), sizeof(echoBufferIndex));
+  stream.read(reinterpret_cast<char*>(&echoBufferIndex),
+              sizeof(echoBufferIndex));
   stream.read(reinterpret_cast<char*>(&firBufferIndex), sizeof(firBufferIndex));
-  
+
   stream.read(reinterpret_cast<char*>(firValues), sizeof(firValues));
   stream.read(reinterpret_cast<char*>(firBufferL), sizeof(firBufferL));
   stream.read(reinterpret_cast<char*>(firBufferR), sizeof(firBufferR));
-  
-  stream.read(reinterpret_cast<char*>(&lastFrameBoundary), sizeof(lastFrameBoundary));
+
+  stream.read(reinterpret_cast<char*>(&lastFrameBoundary),
+              sizeof(lastFrameBoundary));
 }
 
 }  // namespace emu
