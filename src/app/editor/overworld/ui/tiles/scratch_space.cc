@@ -282,8 +282,7 @@ absl::Status OverworldEditor::DrawScratchSpace() {
     FinishScratchEdit("Rename scratch layout");
   }
   int dimensions[] = {page.width, page.height};
-  if (InputInt2("Size in tiles", dimensions,
-                ImGuiInputTextFlags_EnterReturnsTrue)) {
+  if (InputInt2("Size in tiles", dimensions)) {
     BeginScratchEdit();
     const auto resize = scratch_workspace_.Resize(dimensions[0], dimensions[1]);
     FinishScratchEdit("Resize scratch layout");
