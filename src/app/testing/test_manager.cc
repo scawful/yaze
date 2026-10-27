@@ -269,6 +269,7 @@ void TestManager::UpdateRemoteReplayFocus() {
 
 void TestManager::StopUITesting() {
   if (ui_test_engine_ && ImGui::GetCurrentContext() != nullptr) {
+    ImGuiTestEngine_AbortCurrentTest(ui_test_engine_);
     ImGuiTestEngine_Stop(ui_test_engine_);
     RestoreRemoteReplayFocus();
     std::vector<std::string> cancelled;
