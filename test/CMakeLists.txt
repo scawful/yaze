@@ -1047,6 +1047,7 @@ if(YAZE_BUILD_TESTS)
     e2e/dead_click_regression_test.cc
     e2e/settings_drawer_test.cc
     e2e/menu_tilemap_editor_test.cc
+    e2e/planning_roundtrip_test.cc
     e2e/room_matrix_census_test.cc
     e2e/dungeon_editor_smoke_test.cc
     e2e/canvas_selection_test.cc
