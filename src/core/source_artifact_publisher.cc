@@ -22,6 +22,10 @@
 #include <utility>
 #include <vector>
 
+#if defined(__APPLE__) && !defined(YAZE_FORCE_PORTABLE_SOURCE_SHA256)
+#include <CommonCrypto/CommonDigest.h>
+#endif
+
 #include "absl/status/status.h"
 #include "absl/strings/ascii.h"
 #include "absl/strings/str_cat.h"
@@ -272,6 +276,37 @@ class SourceArtifactWriteLocks {
 #endif
 };
 
+#if defined(__APPLE__) && !defined(YAZE_FORCE_PORTABLE_SOURCE_SHA256)
+class Sha256Digest {
+ public:
+  Sha256Digest() { CC_SHA256_Init(&context_); }
+
+  void Update(std::string_view content) {
+    while (!content.empty()) {
+      const size_t count =
+          std::min(content.size(),
+                   static_cast<size_t>(std::numeric_limits<CC_LONG>::max()));
+      CC_SHA256_Update(&context_, content.data(), static_cast<CC_LONG>(count));
+      content.remove_prefix(count);
+    }
+  }
+
+  std::string Finish() {
+    std::array<unsigned char, CC_SHA256_DIGEST_LENGTH> bytes;
+    CC_SHA256_Final(bytes.data(), &context_);
+    constexpr char kHex[] = "0123456789abcdef";
+    std::string digest(bytes.size() * 2, '\0');
+    for (size_t index = 0; index < bytes.size(); ++index) {
+      digest[index * 2] = kHex[bytes[index] >> 4];
+      digest[index * 2 + 1] = kHex[bytes[index] & 0x0f];
+    }
+    return digest;
+  }
+
+ private:
+  CC_SHA256_CTX context_;
+};
+#else
 constexpr uint32_t kSha256Constants[64] = {
     0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b, 0x59f111f1,
     0x923f82a4, 0xab1c5ed5, 0xd807aa98, 0x12835b01, 0x243185be, 0x550c7dc3,
@@ -389,6 +424,7 @@ class Sha256Digest {
   size_t used_ = 0;
   uint64_t bytes_ = 0;
 };
+#endif
 
 std::string Sha256Hex(std::string_view content) {
   Sha256Digest digest;

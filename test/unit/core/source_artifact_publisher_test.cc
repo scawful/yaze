@@ -89,6 +89,41 @@ TEST(SourceArtifactPublisherTest, Sha256MatchesPublishedKnownVectors) {
             "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad");
 }
 
+TEST(SourceArtifactPublisherTest,
+     Sha256MatchesPaddingAndBinaryChunkBoundaries) {
+  struct Vector {
+    size_t bytes;
+    const char* sha256;
+  };
+  const Vector vectors[] = {
+      {55, "463eb28e72f82e0a96c0a4cc53690c571281131f672aa229e0d45ae59b598b59"},
+      {56, "da2ae4d6b36748f2a318f23e7ab1dfdf45acdc9d049bd80e59de82a60895f562"},
+      {63, "29af2686fd53374a36b0846694cc342177e428d1647515f078784d69cdb9e488"},
+      {64, "fdeab9acf3710362bd2658cdc9a29e8f9c757fcf9811603a8c447cd1d9151108"},
+      {65, "4bfd2c8b6f1eec7a2afeb48b934ee4b2694182027e6d0fc075074f2fabb31781"},
+      {65535,
+       "5f1bf999bcba5e05d4c34a13710d2e4bff005877874dcce49ac87af61076231e"},
+      {65536,
+       "7daca2095d0438260fa849183dfc67faa459fdf4936e1bc91eec6b281b27e4c2"},
+      {65537,
+       "2deb0bd2129a9d3aed91e3cff58b3993752be549642890a3e853ec1065f9b617"},
+  };
+  ScopedTempDir temp;
+  const auto path = temp.path() / "binary.bin";
+  for (const auto& vector : vectors) {
+    SCOPED_TRACE(vector.bytes);
+    std::string bytes(vector.bytes, '\0');
+    for (size_t i = 0; i < bytes.size(); ++i) {
+      bytes[i] = static_cast<char>(i % 256);
+    }
+    WriteText(path, bytes);
+    EXPECT_EQ(ComputeSourceArtifactSha256(bytes), vector.sha256);
+    const auto file_hash = ComputeSourceArtifactFileSha256(path);
+    ASSERT_TRUE(file_hash.ok()) << file_hash.status();
+    EXPECT_EQ(*file_hash, vector.sha256);
+  }
+}
+
 TEST(SourceArtifactPublisherTest, FileSha256StreamsKnownVectorAcrossChunks) {
   ScopedTempDir temp;
   const auto path = temp.path() / "input.bin";
