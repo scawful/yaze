@@ -447,6 +447,8 @@ absl::Status Controller::OnLoad() {
   // Start new ImGui frame via backend (handles SDL2/SDL3 automatically)
   window_backend_->NewImGuiFrame();
   ImGui::NewFrame();
+  // Include every application widget, including menus, in this frame.
+  gui::WidgetIdRegistry::Instance().BeginFrame();
   InputDebugLogFrame();
   editor_control_queue_.ProcessOne([this](const std::string& request) {
     return editor_manager_.ExecuteEditorControl(request);
@@ -552,7 +554,6 @@ absl::Status Controller::OnLoad() {
     editor_manager_.ui_coordinator()->DrawMenuBarRestoreButton();
   }
 #endif
-  gui::WidgetIdRegistry::Instance().BeginFrame();
   absl::Status update_status = editor_manager_.Update();
   gui::WidgetIdRegistry::Instance().EndFrame();
   RETURN_IF_ERROR(update_status);

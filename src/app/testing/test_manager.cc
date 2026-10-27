@@ -205,18 +205,94 @@ void TestManager::InitializeUITesting() {
 
 void TestManager::OnPostSwap() {
   if (ui_test_engine_ && ImGui::GetCurrentContext() != nullptr) {
+    UpdateRemoteReplayFocus();
     ImGuiTestEngine_PostSwap(ui_test_engine_);
+    // A harness terminal record is published inside TestFunc, before the
+    // engine unwinds and applies its end-of-queue focus policy. Restore only
+    // here, on the UI thread after that lifecycle boundary.
+    UpdateRemoteReplayFocus();
   }
+}
+
+void TestManager::RegisterRemoteReplayTest(ImGuiTest* test,
+                                           const std::string& harness_id) {
+  absl::MutexLock lock(&mutex_);
+  remote_replay_tests_[test] = harness_id;
+}
+
+absl::Status TestManager::BeginRemoteReplayFocus(ImGuiTest* test) {
+  ImVector<ImGuiTestRunTask> queue;
+  ImGuiTestEngine_GetTestQueue(ui_test_engine_, &queue);
+  {
+    absl::MutexLock lock(&mutex_);
+    // Registered dynamic tests remain manually re-runnable. An untagged
+    // later run is ordinary work and must not inherit the original RPC scope.
+    if (!remote_replay_tests_.contains(test))
+      return absl::OkStatus();
+    for (const auto& task : queue) {
+      if (!remote_replay_tests_.contains(task.Test)) {
+        RestoreRemoteReplayFocus();
+        return absl::FailedPreconditionError(
+            "Remote replay cannot share a queue with ordinary UI tests");
+      }
+    }
+  }
+  auto& io = ImGuiTestEngine_GetIO(ui_test_engine_);
+  if (!remote_replay_restore_focus_.has_value())
+    remote_replay_restore_focus_ = io.ConfigRestoreFocusAfterTests;
+  io.ConfigRestoreFocusAfterTests = false;
+  return absl::OkStatus();
+}
+
+void TestManager::RestoreRemoteReplayFocus() {
+  if (remote_replay_restore_focus_.has_value()) {
+    ImGuiTestEngine_GetIO(ui_test_engine_).ConfigRestoreFocusAfterTests =
+        *remote_replay_restore_focus_;
+    remote_replay_restore_focus_.reset();
+  }
+}
+
+void TestManager::UpdateRemoteReplayFocus() {
+  ImVector<ImGuiTestRunTask> queue;
+  ImGuiTestEngine_GetTestQueue(ui_test_engine_, &queue);
+  absl::MutexLock lock(&mutex_);
+  bool ordinary_job = false;
+  for (const auto& task : queue)
+    ordinary_job |= !remote_replay_tests_.contains(task.Test);
+  // Ordinary/manual work keeps its existing focus policy. A remote job may
+  // not acquire an override in a mixed queue.
+  if (queue.empty() || ordinary_job)
+    RestoreRemoteReplayFocus();
+  if (queue.empty())
+    remote_replay_tests_.clear();
 }
 
 void TestManager::StopUITesting() {
   if (ui_test_engine_ && ImGui::GetCurrentContext() != nullptr) {
     ImGuiTestEngine_Stop(ui_test_engine_);
+    RestoreRemoteReplayFocus();
+    std::vector<std::string> cancelled;
+    {
+      absl::MutexLock lock(&mutex_);
+      for (const auto& entry : remote_replay_tests_)
+        cancelled.push_back(entry.second);
+      remote_replay_tests_.clear();
+    }
+#ifdef YAZE_WITH_GRPC
+    for (const auto& id : cancelled) {
+      auto execution = GetHarnessTestExecution(id);
+      if (execution.ok() && (execution->status == HarnessTestStatus::kQueued ||
+                             execution->status == HarnessTestStatus::kRunning))
+        MarkHarnessTestCompleted(id, HarnessTestStatus::kFailed,
+                                 "Remote replay cancelled with UI test engine");
+    }
+#endif
   }
 }
 
 void TestManager::DestroyUITestingContext() {
   if (ui_test_engine_) {
+    RestoreRemoteReplayFocus();
     ImGuiTestEngine_DestroyContext(ui_test_engine_);
     ui_test_engine_ = nullptr;
   }

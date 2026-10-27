@@ -37,6 +37,7 @@
 #include "protos/imgui_test_harness.grpc.pb.h"
 #include "protos/imgui_test_harness.pb.h"
 #include "util/file_util.h"
+#include "util/ui_thread_queue.h"
 #include "yaze.h"  // For YAZE_VERSION_STRING
 
 // The Windows SDK defines Yield as a function-like macro, which collides with
@@ -51,7 +52,18 @@
 
 // Helper to register and run a test dynamically
 namespace {
+thread_local int g_remote_replay_depth = 0;
+
+class ScopedRemoteReplaySubmission {
+ public:
+  ScopedRemoteReplaySubmission() { ++g_remote_replay_depth; }
+  ~ScopedRemoteReplaySubmission() { --g_remote_replay_depth; }
+};
+
 struct DynamicTestData {
+  bool remote_replay = g_remote_replay_depth != 0;
+  yaze::test::TestManager* manager = nullptr;
+  std::string harness_id;
   std::function<void(ImGuiTestContext*)> test_func;
 };
 
@@ -71,8 +83,41 @@ void KeepDynamicTestData(const std::shared_ptr<DynamicTestData>& data) {
 void RunDynamicTest(ImGuiTestContext* ctx) {
   auto* data = (DynamicTestData*)ctx->Test->UserData;
   if (data && data->test_func) {
+    if (data->remote_replay) {
+      const auto admitted = data->manager->BeginRemoteReplayFocus(ctx->Test);
+      if (!admitted.ok()) {
+        data->manager->MarkHarnessTestCompleted(
+            data->harness_id, yaze::test::HarnessTestStatus::kFailed,
+            std::string(admitted.message()));
+        return;
+      }
+    }
     data->test_func(ctx);
   }
+}
+
+// Registration, replay ownership and queue admission are one UI-thread task.
+// In particular, OnPostSwap cannot clear ownership in between these steps.
+absl::Status QueueDynamicTest(ImGuiTestEngine* engine,
+                              yaze::test::TestManager* manager,
+                              yaze::util::UiThreadQueue* ui_queue,
+                              const std::string& name,
+                              const std::string& harness_id,
+                              std::shared_ptr<DynamicTestData> data) {
+  return ui_queue->RunOnUiThread(
+      [engine, manager, name, harness_id, data = std::move(data)] {
+        ImGuiTest* test = IM_REGISTER_TEST(engine, "grpc", name.c_str());
+        test->SetOwnedName(name.c_str());
+        test->TestFunc = RunDynamicTest;
+        test->UserData = data.get();
+        data->manager = manager;
+        data->harness_id = harness_id;
+        if (data->remote_replay)
+          manager->RegisterRemoteReplayTest(test, harness_id);
+        ImGuiTestEngine_QueueTest(engine, test, ImGuiTestRunFlags_RunFromGui);
+        KeepDynamicTestData(data);
+        return absl::OkStatus();
+      });
 }
 
 // Helper to check if a test has completed (not queued or running)
@@ -828,6 +873,13 @@ std::unique_ptr<::grpc::Service> CreateImGuiTestHarnessServiceGrpc(
 // ImGuiTestHarnessServiceImpl - RPC Handlers
 // ============================================================================
 
+ImGuiTestHarnessServiceImpl::ImGuiTestHarnessServiceImpl(
+    TestManager* test_manager, util::UiThreadQueue* ui_thread_queue)
+    : test_manager_(test_manager),
+      ui_thread_queue_(ui_thread_queue ? ui_thread_queue
+                                       : &util::UiThreadQueue::Get()),
+      test_recorder_(test_manager) {}
+
 absl::Status ImGuiTestHarnessServiceImpl::Ping(const PingRequest* request,
                                                PingResponse* response) {
   // Echo back the message with "Pong: " prefix
@@ -1133,14 +1185,13 @@ absl::Status ImGuiTestHarnessServiceImpl::Click(const ClickRequest* request,
       static_cast<long long>(
           std::chrono::system_clock::now().time_since_epoch().count()));
 
-  ImGuiTest* test = IM_REGISTER_TEST(engine, "grpc", test_name.c_str());
-  // The engine stores the name pointer; test_name dies when this returns.
-  test->SetOwnedName(test_name.c_str());
-  test->TestFunc = RunDynamicTest;
-  test->UserData = test_data.get();
-
-  ImGuiTestEngine_QueueTest(engine, test, ImGuiTestRunFlags_RunFromGui);
-  KeepDynamicTestData(test_data);
+  const auto queued = QueueDynamicTest(engine, test_manager_, ui_thread_queue_,
+                                       test_name, test_id, test_data);
+  if (!queued.ok()) {
+    test_manager_->MarkHarnessTestCompleted(test_id, HarnessTestStatus::kFailed,
+                                            std::string(queued.message()));
+    return queued;
+  }
 
   auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(
       std::chrono::steady_clock::now() - start);
@@ -1319,14 +1370,13 @@ absl::Status ImGuiTestHarnessServiceImpl::Type(const TypeRequest* request,
       static_cast<long long>(
           std::chrono::system_clock::now().time_since_epoch().count()));
 
-  ImGuiTest* test = IM_REGISTER_TEST(engine, "grpc", test_name.c_str());
-  // The engine stores the name pointer; test_name dies when this returns.
-  test->SetOwnedName(test_name.c_str());
-  test->TestFunc = RunDynamicTest;
-  test->UserData = test_data.get();
-
-  ImGuiTestEngine_QueueTest(engine, test, ImGuiTestRunFlags_RunFromGui);
-  KeepDynamicTestData(test_data);
+  const auto queued = QueueDynamicTest(engine, test_manager_, ui_thread_queue_,
+                                       test_name, test_id, test_data);
+  if (!queued.ok()) {
+    test_manager_->MarkHarnessTestCompleted(test_id, HarnessTestStatus::kFailed,
+                                            std::string(queued.message()));
+    return queued;
+  }
 
   auto timeout = std::chrono::seconds(5);
   auto wait_start = std::chrono::steady_clock::now();
@@ -1551,14 +1601,13 @@ absl::Status ImGuiTestHarnessServiceImpl::Wait(const WaitRequest* request,
       static_cast<long long>(
           std::chrono::system_clock::now().time_since_epoch().count()));
 
-  ImGuiTest* test = IM_REGISTER_TEST(engine, "grpc", test_name.c_str());
-  // The engine stores the name pointer; test_name dies when this returns.
-  test->SetOwnedName(test_name.c_str());
-  test->TestFunc = RunDynamicTest;
-  test->UserData = test_data.get();
-
-  ImGuiTestEngine_QueueTest(engine, test, ImGuiTestRunFlags_RunFromGui);
-  KeepDynamicTestData(test_data);
+  const auto queued = QueueDynamicTest(engine, test_manager_, ui_thread_queue_,
+                                       test_name, test_id, test_data);
+  if (!queued.ok()) {
+    test_manager_->MarkHarnessTestCompleted(test_id, HarnessTestStatus::kFailed,
+                                            std::string(queued.message()));
+    return queued;
+  }
 
   auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(
       std::chrono::steady_clock::now() - start);
@@ -1841,14 +1890,13 @@ absl::Status ImGuiTestHarnessServiceImpl::Assert(const AssertRequest* request,
       static_cast<long long>(
           std::chrono::system_clock::now().time_since_epoch().count()));
 
-  ImGuiTest* test = IM_REGISTER_TEST(engine, "grpc", test_name.c_str());
-  // The engine stores the name pointer; test_name dies when this returns.
-  test->SetOwnedName(test_name.c_str());
-  test->TestFunc = RunDynamicTest;
-  test->UserData = test_data.get();
-
-  ImGuiTestEngine_QueueTest(engine, test, ImGuiTestRunFlags_RunFromGui);
-  KeepDynamicTestData(test_data);
+  const auto queued = QueueDynamicTest(engine, test_manager_, ui_thread_queue_,
+                                       test_name, test_id, test_data);
+  if (!queued.ok()) {
+    test_manager_->MarkHarnessTestCompleted(test_id, HarnessTestStatus::kFailed,
+                                            std::string(queued.message()));
+    return queued;
+  }
 
   response->set_success(true);
   std::string message = absl::StrFormat("Queued assertion for '%s:%s'",
@@ -2393,6 +2441,9 @@ absl::Status ImGuiTestHarnessServiceImpl::ReplayTest(
       absl::FormatTime("%Y%m%dT%H%M%S", absl::Now(), absl::UTCTimeZone())));
 
   auto suspension = test_recorder_.Suspend();
+#if defined(YAZE_ENABLE_IMGUI_TEST_ENGINE) && YAZE_ENABLE_IMGUI_TEST_ENGINE
+  ScopedRemoteReplaySubmission remote_submission;
+#endif
 
   std::vector<std::string> logs;
   logs.reserve(script.steps.size() * 2 + 4);

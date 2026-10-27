@@ -6,20 +6,30 @@
 #include <chrono>
 #include <filesystem>
 #include <fstream>
+#include <future>
 #include <memory>
 #include <stdexcept>
 #include <string>
 #include <thread>
 
+#include "app/editor/menu/menu_builder.h"
 #include "app/editor/system/workspace/panel_host.h"
 #include "app/editor/system/workspace/workspace_window_manager.h"
 #include "app/gui/automation/widget_id_registry.h"
+#include "app/gui/core/icons.h"
 #include "app/service/imgui_test_harness_service.h"
 #include "app/testing/test_manager.h"
 #include "app/testing/test_script_parser.h"
 #include "imgui/imgui_internal.h"
 #include "protos/imgui_test_harness.pb.h"
 #include "util/file_util.h"
+#include "util/ui_thread_queue.h"
+#if defined(YAZE_ENABLE_IMGUI_TEST_ENGINE) && YAZE_ENABLE_IMGUI_TEST_ENGINE
+#ifdef Yield
+#undef Yield
+#endif
+#include "imgui_test_engine/imgui_te_context.h"
+#endif
 
 namespace yaze::test {
 namespace {
@@ -628,6 +638,319 @@ TEST(ImGuiTestHarnessLogicTest, ListenerLifetimeSurvivesCallerRelease) {
   retained_listener.reset();
   EXPECT_TRUE(weak_listener.expired());
 }
+
+#if defined(YAZE_ENABLE_IMGUI_TEST_ENGINE) && YAZE_ENABLE_IMGUI_TEST_ENGINE
+class RemoteReplayUiPersistenceTest : public ::testing::Test {
+ protected:
+  void SetUp() override {
+    previous_ = ImGui::GetCurrentContext();
+    context_ = ImGui::CreateContext();
+    auto& io = ImGui::GetIO();
+    io.IniFilename = nullptr;
+    io.LogFilename = nullptr;
+    io.DisplaySize = ImVec2(800, 600);
+    io.DeltaTime = 1.0f / 60.0f;
+    unsigned char* pixels;
+    int width, height;
+    io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
+    ASSERT_EQ(manager_.GetUITestEngine(), nullptr);
+    ui_queue_.BindToCurrentThread();
+    manager_.InitializeUITesting();
+    owns_engine_ = manager_.GetUITestEngine() != nullptr;
+    ASSERT_TRUE(owns_engine_);
+    ImGuiTestEngine_GetIO(manager_.GetUITestEngine()).ConfigSavedSettings =
+        false;
+    root_ = std::filesystem::temp_directory_path() /
+            ("yaze-replay-ui-" +
+             std::to_string(
+                 std::chrono::steady_clock::now().time_since_epoch().count()));
+    std::filesystem::create_directory(root_);
+    menu_.BeginMenu("View")
+        .Item("Switch Editor...", ICON_MD_SWAP_HORIZ, [] {})
+        .EndMenu();
+    Frame();
+    ImGui::FocusWindow(ImGui::FindWindowByName("Replay Other"));
+    Frame();
+  }
+  void TearDown() override {
+    if (owns_engine_) {
+      if (!engine_stopped_)
+        manager_.StopUITesting();
+      manager_.DestroyUITestingContext();
+      gui::WidgetIdRegistry::Instance().Clear();
+    }
+    ui_queue_.Shutdown();
+    ImGui::DestroyContext(context_);
+    ImGui::SetCurrentContext(previous_);
+    std::error_code error;
+    std::filesystem::remove_all(root_, error);
+  }
+  void Frame(bool legacy_registry_order = false) {
+    auto& registry = gui::WidgetIdRegistry::Instance();
+    ui_queue_.Drain();
+    ImGui::NewFrame();
+    if (!legacy_registry_order)
+      registry.BeginFrame();
+    ImGui::SetNextWindowPos(ImVec2(0, 0));
+    ImGui::SetNextWindowSize(ImVec2(500, 400));
+    ImGui::Begin("Replay Menu Host", nullptr, ImGuiWindowFlags_MenuBar);
+    if (ImGui::BeginMenuBar()) {
+      menu_.Draw();
+      ImGui::EndMenuBar();
+    }
+    ImGui::End();
+    if (legacy_registry_order)
+      registry.BeginFrame();
+    ImGui::Begin("Replay Other");
+    ImGui::TextUnformatted("Ordinary editor focus");
+    ImGui::End();
+    registry.EndFrame();
+    ImGui::Render();
+    manager_.OnPostSwap();
+  }
+  ReplayTestResponse Replay(std::vector<TestScriptStep> steps,
+                            bool pause_admission = false,
+                            bool cancel_admission = false) {
+    TestScript script;
+    script.name = "Remote replay UI persistence";
+    script.steps = std::move(steps);
+    const auto path = root_ / (std::to_string(next_script_++) + ".json");
+    EXPECT_TRUE(TestScriptParser::WriteToFile(script, path.string()).ok());
+    auto result =
+        std::async(std::launch::async, [this, path, cancel_admission] {
+          ReplayTestRequest request;
+          request.set_script_path(path.string());
+          request.set_ci_mode(true);
+          ReplayTestResponse response;
+          const auto status = service_.ReplayTest(&request, &response);
+          EXPECT_EQ(status.ok(), !cancel_admission) << status;
+          return response;
+        });
+    const auto deadline =
+        std::chrono::steady_clock::now() + std::chrono::seconds(10);
+    if (pause_admission || cancel_admission) {
+      while (!ui_queue_.HasPendingTasks() &&
+             std::chrono::steady_clock::now() < deadline)
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+      EXPECT_TRUE(ui_queue_.HasPendingTasks());
+      // Reproduce the formerly racy empty-engine-queue boundary before the
+      // UI thread atomically registers, tags and admits the remote task.
+      manager_.OnPostSwap();
+      if (cancel_admission)
+        ui_queue_.Shutdown();
+    }
+    while (result.wait_for(std::chrono::milliseconds(0)) !=
+               std::future_status::ready &&
+           std::chrono::steady_clock::now() < deadline) {
+      Frame();
+      std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    }
+    EXPECT_EQ(result.wait_for(std::chrono::milliseconds(0)),
+              std::future_status::ready);
+    auto response = result.get();
+    // The RPC record becomes terminal inside TestFunc. Drive the *actual*
+    // queued task through engine unwind, not just that early record.
+    while (!ImGuiTestEngine_IsTestQueueEmpty(manager_.GetUITestEngine()) &&
+           std::chrono::steady_clock::now() < deadline)
+      Frame();
+    Frame();
+    EXPECT_TRUE(ImGuiTestEngine_IsTestQueueEmpty(manager_.GetUITestEngine()));
+    return response;
+  }
+  TestScriptStep OpenView() {
+    TestScriptStep step;
+    step.action = "click";
+    step.widget_key = "MainMenu/menu:View";
+    step.expect_success = true;
+    step.expect_status = "passed";
+    return step;
+  }
+  TestScriptStep Probe(const std::string& reference) {
+    TestScriptStep step;
+    step.action = "assert";
+    step.condition = "exists:" + reference;
+    step.expect_success = true;
+    step.expect_status = "passed";
+    return step;
+  }
+  bool FocusRestoration() {
+    return ImGuiTestEngine_GetIO(manager_.GetUITestEngine())
+        .ConfigRestoreFocusAfterTests;
+  }
+  TestManager& manager_ = TestManager::Get();
+  util::UiThreadQueue ui_queue_;
+  ImGuiTestHarnessServiceImpl service_{&manager_, &ui_queue_};
+  ImGuiContext* previous_ = nullptr;
+  ImGuiContext* context_ = nullptr;
+  editor::MenuBuilder menu_;
+  std::filesystem::path root_;
+  int next_script_ = 0;
+  bool engine_stopped_ = false;
+  bool owns_engine_ = false;
+};
+
+TEST_F(RemoteReplayUiPersistenceTest,
+       TwoSeparateRemoteReplaysKeepMenuThroughTerminalAndEngineUnwind) {
+  ASSERT_TRUE(FocusRestoration());
+  const auto opened = Replay({OpenView()});
+  ASSERT_TRUE(opened.success()) << opened.message();
+  ASSERT_TRUE(FocusRestoration());
+  ASSERT_GT(context_->OpenPopupStack.Size, 0);
+  // A second actual service call starts only after the first queue drained.
+  const auto observed = Replay(
+      {Probe(std::string("**/") + ICON_MD_SWAP_HORIZ + " Switch Editor...")});
+  EXPECT_TRUE(observed.success()) << observed.message();
+  EXPECT_EQ(observed.steps_executed(), 1);
+  EXPECT_TRUE(FocusRestoration());
+  EXPECT_GT(context_->OpenPopupStack.Size, 0);
+}
+
+TEST_F(RemoteReplayUiPersistenceTest, FailedRemoteReplayRestoresPriorPolicy) {
+  const auto failed = Replay({Probe("**/Missing replay item")});
+  EXPECT_FALSE(failed.success());
+  EXPECT_TRUE(FocusRestoration());
+}
+
+TEST_F(RemoteReplayUiPersistenceTest, TimedOutRemoteWaitRestoresPriorPolicy) {
+  TestScriptStep wait;
+  wait.action = "wait";
+  wait.condition = "element_visible:**/Missing replay item";
+  wait.timeout_ms = 1;
+  wait.expect_success = true;
+  wait.expect_status = "passed";
+  const auto failed = Replay({wait});
+  EXPECT_FALSE(failed.success());
+  EXPECT_TRUE(FocusRestoration());
+}
+
+TEST_F(RemoteReplayUiPersistenceTest, ExistingDisabledPolicyIsRestoredExactly) {
+  ImGuiTestEngine_GetIO(manager_.GetUITestEngine())
+      .ConfigRestoreFocusAfterTests = false;
+  EXPECT_TRUE(Replay({OpenView()}).success());
+  EXPECT_FALSE(FocusRestoration());
+}
+
+TEST_F(RemoteReplayUiPersistenceTest,
+       EmptyQueueFrameBeforeUiAdmissionDoesNotLoseReplayOwnership) {
+  EXPECT_TRUE(Replay({OpenView()}, true).success());
+  EXPECT_TRUE(FocusRestoration());
+  EXPECT_GT(context_->OpenPopupStack.Size, 0);
+}
+
+TEST_F(RemoteReplayUiPersistenceTest,
+       CancelledUiAdmissionDoesNotStartOrLeakFocusOverride) {
+  EXPECT_FALSE(Replay({OpenView()}, false, true).success());
+  EXPECT_TRUE(FocusRestoration());
+  EXPECT_TRUE(ImGuiTestEngine_IsTestQueueEmpty(manager_.GetUITestEngine()));
+}
+
+TEST_F(RemoteReplayUiPersistenceTest, OrdinaryQueueKeepsItsFocusPolicy) {
+  ImGuiTest* ordinary = IM_REGISTER_TEST(manager_.GetUITestEngine(), "ordinary",
+                                         "remote-mixed-control");
+  ordinary->TestFunc = [](ImGuiTestContext*) {
+  };
+  ImGuiTestEngine_QueueTest(manager_.GetUITestEngine(), ordinary,
+                            ImGuiTestRunFlags_RunFromGui);
+  const auto rejected = Replay({OpenView()});
+  EXPECT_FALSE(rejected.success());
+  EXPECT_NE(rejected.message().find("ordinary UI tests"), std::string::npos);
+  EXPECT_TRUE(FocusRestoration());
+}
+
+TEST_F(RemoteReplayUiPersistenceTest,
+       StoppingAnActiveReplayQueueRestoresPolicyAndCompletesCancellation) {
+  struct State {
+    TestManager* manager;
+    std::string id;
+  } state{&manager_,
+          manager_.RegisterHarnessTest("cancel remote replay", "grpc")};
+  ImGuiTest* job = IM_REGISTER_TEST(manager_.GetUITestEngine(), "grpc",
+                                    "remote-cancellation-control");
+  job->UserData = &state;
+  job->TestFunc = [](ImGuiTestContext* ctx) {
+    auto* state = static_cast<State*>(ctx->Test->UserData);
+    IM_CHECK(state->manager->BeginRemoteReplayFocus(ctx->Test).ok());
+    state->manager->MarkHarnessTestRunning(state->id);
+    while (!ctx->IsError())
+      ctx->Yield();
+  };
+  manager_.RegisterRemoteReplayTest(job, state.id);
+  ImGuiTestEngine_QueueTest(manager_.GetUITestEngine(), job,
+                            ImGuiTestRunFlags_RunFromGui);
+  const auto deadline =
+      std::chrono::steady_clock::now() + std::chrono::seconds(5);
+  while (FocusRestoration() && std::chrono::steady_clock::now() < deadline)
+    Frame();
+  EXPECT_FALSE(FocusRestoration());
+  manager_.StopUITesting();
+  engine_stopped_ = true;
+  EXPECT_TRUE(FocusRestoration());
+  const auto cancelled = manager_.GetHarnessTestExecution(state.id);
+  ASSERT_TRUE(cancelled.ok());
+  EXPECT_EQ(cancelled->status, HarnessTestStatus::kFailed);
+  EXPECT_NE(cancelled->error_message.find("cancelled"), std::string::npos);
+}
+
+TEST_F(RemoteReplayUiPersistenceTest,
+       RetainedRemoteJobCanBeRerunManuallyWithOrdinaryFocusPolicy) {
+  const auto opened = Replay({OpenView()});
+  ASSERT_TRUE(opened.success());
+  std::string harness_id;
+  const std::string prefix = "  Test ID: ";
+  for (const auto& log : opened.logs())
+    if (log.find(prefix) == 0)
+      harness_id = log.substr(prefix.size());
+  ASSERT_FALSE(harness_id.empty());
+  ImVector<ImGuiTest*> tests;
+  ImGuiTestEngine_GetTestList(manager_.GetUITestEngine(), &tests);
+  ASSERT_FALSE(tests.empty());
+  ImGuiTest* retained = tests.back();
+  ImGui::ClosePopupToLevel(0, false);
+  ImGui::FocusWindow(ImGui::FindWindowByName("Replay Other"));
+  Frame();
+  ImGuiTestEngine_QueueTest(manager_.GetUITestEngine(), retained,
+                            ImGuiTestRunFlags_RunFromGui);
+  bool saw_open_menu = false;
+  const auto deadline =
+      std::chrono::steady_clock::now() + std::chrono::seconds(5);
+  while (!ImGuiTestEngine_IsTestQueueEmpty(manager_.GetUITestEngine()) &&
+         std::chrono::steady_clock::now() < deadline) {
+    Frame();
+    saw_open_menu |= context_->OpenPopupStack.Size > 0;
+  }
+  EXPECT_TRUE(saw_open_menu);  // The retained closure really ran.
+  EXPECT_TRUE(FocusRestoration());
+  EXPECT_EQ(context_->OpenPopupStack.Size, 0);  // Ordinary restore still ran.
+  const auto execution = manager_.GetHarnessTestExecution(harness_id);
+  ASSERT_TRUE(execution.ok());
+  EXPECT_EQ(execution->status, HarnessTestStatus::kPassed);
+}
+
+TEST_F(RemoteReplayUiPersistenceTest,
+       VisibleMenuDiscoveryCoversFullFrameAndRejectsOldFrameOrder) {
+  DiscoverWidgetsRequest request;
+  request.set_window_filter("MainMenu");
+  request.set_include_invisible(false);
+  request.set_include_disabled(false);
+  DiscoverWidgetsResponse response;
+  Frame(true);
+  ASSERT_TRUE(service_.DiscoverWidgets(&request, &response).ok());
+  EXPECT_EQ(response.total_widgets(), 0);
+  Frame();
+  ASSERT_TRUE(service_.DiscoverWidgets(&request, &response).ok());
+  ASSERT_GT(response.total_widgets(), 0);
+  bool found = false;
+  for (const auto& window : response.windows())
+    for (const auto& widget : window.widgets())
+      if (widget.widget_key() == "MainMenu/menu:View") {
+        found = true;
+        EXPECT_TRUE(widget.visible());
+        EXPECT_TRUE(widget.enabled());
+        EXPECT_FALSE(widget.stale());
+      }
+  EXPECT_TRUE(found);
+}
+#endif
 
 }  // namespace
 }  // namespace yaze::test

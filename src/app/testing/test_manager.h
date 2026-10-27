@@ -6,6 +6,7 @@
 #include <functional>
 #include <map>
 #include <memory>
+#include <optional>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -213,6 +214,10 @@ class TestManager {
   ImGuiTestEngine* GetUITestEngine() { return ui_test_engine_; }
   void InitializeUITesting();
   void OnPostSwap();
+  // Replay jobs retain popup/focus state between remote calls. All engine
+  // configuration changes happen on the UI thread, after queue admission.
+  void RegisterRemoteReplayTest(ImGuiTest* test, const std::string& harness_id);
+  absl::Status BeginRemoteReplayFocus(ImGuiTest* test);
   void StopUITesting();  // Stop test engine while ImGui context is valid
   void DestroyUITestingContext();  // Destroy test engine after ImGui context is
                                    // destroyed
@@ -358,8 +363,13 @@ class TestManager {
   static constexpr size_t kMaxResourceHistorySize = 1000;
 
   // UI Testing
-#ifdef YAZE_ENABLE_IMGUI_TEST_ENGINE
+#if defined(YAZE_ENABLE_IMGUI_TEST_ENGINE) && YAZE_ENABLE_IMGUI_TEST_ENGINE
   ImGuiTestEngine* ui_test_engine_ = nullptr;
+  std::unordered_map<ImGuiTest*, std::string> remote_replay_tests_
+      ABSL_GUARDED_BY(mutex_);
+  std::optional<bool> remote_replay_restore_focus_;
+  void UpdateRemoteReplayFocus();
+  void RestoreRemoteReplayFocus();
 #endif
 
   // UI State
