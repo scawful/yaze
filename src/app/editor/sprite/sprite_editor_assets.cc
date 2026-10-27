@@ -6,6 +6,7 @@
 #include "app/editor/editor_manager.h"
 #include "app/editor/graphics/graphics_editor.h"
 #include "app/editor/sprite/sprite_authoring.h"
+#include "app/editor/sprite/sprite_graphics_context.h"
 #include "app/editor/sprite/sprite_graphics_source.h"
 #include "app/editor/system/workspace/workspace_window_manager.h"
 #include "core/project.h"
@@ -116,13 +117,20 @@ absl::Status SpriteEditor::OpenBoundBinInScratch(int slot) {
           "Save the project to resolve this BIN path");
     path = std::filesystem::path(project()->filepath).parent_path() / path;
   }
-  LoadSpritePalettes();
+  RefreshSpritePreviewGraphics(true);
+  RETURN_IF_ERROR(graphics_binding_status_);
   RETURN_IF_ERROR(palette_binding_status_);
   int palette = 0;
+  std::optional<zsprite::Frame> captured_frame;
+  std::string captured_label;
   if (const auto* sprite = current_custom_sprite();
       sprite && current_frame_ >= 0 &&
       current_frame_ < static_cast<int>(sprite->editor.Frames.size())) {
     const auto& frame = sprite->editor.Frames[current_frame_];
+    captured_frame = frame;
+    captured_label = sprite->sprName + " / frame " +
+                     std::to_string(current_frame_) + " / slot " +
+                     std::to_string(slot);
     if (selected_tile_index_ >= 0 &&
         selected_tile_index_ < static_cast<int>(frame.Tiles.size()))
       palette = frame.Tiles[selected_tile_index_].palette;
@@ -143,6 +151,30 @@ absl::Status SpriteEditor::OpenBoundBinInScratch(int slot) {
   RETURN_IF_ERROR(editors->GetGraphicsEditor()->ImportScratchBin(
       path.lexically_normal().string(), source.bpp, source.offset,
       sprite_palettes_.palette_ref(palette)));
+  if (captured_frame) {
+    editors->GetGraphicsEditor()->SetScratchPreview(
+        std::move(captured_label),
+        [frame = std::move(*captured_frame), buffer = sprite_gfx_buffer_,
+         palettes = sprite_palettes_, slot,
+         palette](const GraphicsScratchAsset& asset)
+            -> absl::StatusOr<usage_preview::PreviewImage> {
+          if (asset.pixels.size() != 4096 || buffer.size() < 8 * 4096)
+            return absl::InvalidArgumentError(
+                "Sprite scratch slot has invalid dimensions");
+          auto updated = buffer;
+          std::copy(asset.pixels.begin(), asset.pixels.end(),
+                    updated.begin() + slot * 4096);
+          auto colors = palettes;
+          gfx::SnesPalette row;
+          for (const auto color : asset.palette)
+            row.AddColor(gfx::SnesColor(color));
+          colors.palette_ref(palette) = std::move(row);
+          return sprite_graphics_context::RenderFrameBuffer(frame, updated,
+                                                            colors);
+        });
+  } else {
+    editors->GetGraphicsEditor()->SetScratchPreview({}, {});
+  }
   manager->SwitchToEditor(EditorType::kGraphics, true);
   return absl::OkStatus();
 }

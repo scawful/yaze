@@ -603,6 +603,12 @@ absl::Status GraphicsEditor::ImportScratchBin(const std::string& path, int bpp,
   return scratch_view_->ImportBin(path, bpp, offset, palette);
 }
 
+void GraphicsEditor::SetScratchPreview(std::string label,
+                                       ScratchPreviewCallback callback) {
+  if (scratch_view_)
+    scratch_view_->SetAssociatedPreview(std::move(label), std::move(callback));
+}
+
 absl::Status GraphicsEditor::Update() {
   // Panels are now drawn via WorkspaceWindowManager::DrawAllVisiblePanels()
   // This Update() only handles editor-level state and keyboard shortcuts

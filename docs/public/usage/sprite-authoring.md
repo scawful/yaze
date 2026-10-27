@@ -134,3 +134,8 @@ work with explicit loader and family-ownership contracts.
 
 See [catalog setup](sprite-catalog.md) and the
 [agent-facing standard](../../internal/architecture/sprite-catalog.md).
+
+When a bound BIN opens in Graphics Scratch, its captured sprite frame updates
+from scratch pixels before export. Other graphics slots retain their captured
+pixels. Returning to the Sprite editor and reloading sources reads the exported
+BIN; scratch painting alone does not replace that file.

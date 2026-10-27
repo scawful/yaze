@@ -72,7 +72,9 @@ template; they do not claim to decode the game's animation or behavior.
 
 Custom assets can bind each graphics slot to an ordinary sheet, a BIN range, or
 an explicit raw-ROM PC offset at 2, 3, or 4 bpp. **Edit bound BIN in Graphics
-Scratch** opens a detached copy with the selected OAM palette. Export the edited
+Scratch** opens a detached copy with the selected OAM palette and a captured
+frame preview. The pose updates while painting, before the BIN is exported.
+Selecting another asset hides that captured pose. Export the edited
 BIN, update its binding if necessary, and choose **Reload graphics sources**.
 Raw-ROM sources remain read-only preview ranges. See
 [Sprite authoring](sprite-authoring.md) for frame, OAM, binding, and save details.

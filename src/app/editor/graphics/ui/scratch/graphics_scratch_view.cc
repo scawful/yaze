@@ -5,6 +5,8 @@
 #include "app/editor/graphics/graphics_sheet_sync.h"
 #include "app/editor/graphics/graphics_undo_actions.h"
 #include "app/gfx/resource/arena.h"
+#include "app/gui/automation/widget_auto_register.h"
+#include "app/gui/core/style.h"
 #include "imgui/imgui.h"
 #include "imgui/misc/cpp/imgui_stdlib.h"
 #include "util/file_util.h"
@@ -59,6 +61,21 @@ GraphicsScratchView::GraphicsScratchView(GraphicsEditorState* state,
                                          std::string library_path)
     : state_(state), history_(history), path_(std::move(library_path)) {
   Load();
+}
+
+GraphicsScratchView::~GraphicsScratchView() {
+  gfx::Arena::Get().RetireBitmap(preview_bitmap_);
+}
+
+void GraphicsScratchView::SetAssociatedPreview(
+    std::string label, ScratchPreviewCallback callback) {
+  const auto* asset = Selected();
+  preview_asset_id_ = asset ? asset->id : 0;
+  preview_label_ = std::move(label);
+  preview_callback_ = std::move(callback);
+  preview_hash_.reset();
+  preview_error_.clear();
+  gfx::Arena::Get().RetireBitmap(preview_bitmap_);
 }
 
 void GraphicsScratchView::Load() {
@@ -256,6 +273,7 @@ absl::Status GraphicsScratchView::ExportBin(const std::string& path) {
 }
 
 void GraphicsScratchView::DrawPixels(GraphicsScratchAsset& asset) {
+  gui::AutoWidgetScope scratch_scope("Graphics/Scratch");
   ImGui::SliderFloat("Zoom", &zoom_, 2, 8, "%.0fx");
   color_ = std::clamp(color_, 0, (1 << asset.bpp) - 1);
   ImGui::SliderInt("Color", &color_, 0, (1 << asset.bpp) - 1);
@@ -265,6 +283,7 @@ void GraphicsScratchView::DrawPixels(GraphicsScratchAsset& asset) {
   ImGui::InvisibleButton(
       "Pixels", ImVec2(128 * zoom_, 32 * zoom_),
       ImGuiButtonFlags_MouseButtonLeft | ImGuiButtonFlags_MouseButtonRight);
+  gui::AutoRegisterLastItem("canvas", "ScratchPixels");
   auto* draw = ImGui::GetWindowDrawList();
   for (int y = 0; y < 32; ++y) {
     for (int x = 0; x < 128; ++x) {
@@ -293,6 +312,84 @@ void GraphicsScratchView::DrawPixels(GraphicsScratchAsset& asset) {
       }
     }
   }
+  ImGui::EndChild();
+}
+
+void GraphicsScratchView::DrawAssociatedPreview() {
+  const auto* asset = Selected();
+  if (!asset || asset->id != preview_asset_id_ || !preview_callback_)
+    return;
+  uint64_t hash = 1469598103934665603ULL;
+  for (const auto pixel : asset->pixels)
+    hash = (hash ^ pixel) * 1099511628211ULL;
+  for (const auto color : asset->palette)
+    hash = (hash ^ color) * 1099511628211ULL;
+  if (!preview_hash_ || *preview_hash_ != hash) {
+    preview_hash_ = hash;
+    auto image = preview_callback_(*asset);
+    if (!image.ok()) {
+      preview_error_ = std::string(image.status().message());
+    } else {
+      const bool indexed =
+          image->format == usage_preview::PreviewImage::Format::kIndexed;
+      const size_t bytes_per_pixel = indexed ? 1 : 4;
+      if (image->width <= 0 || image->height <= 0 || image->width > 1024 ||
+          image->height > 1024 ||
+          image->pixels.size() != static_cast<size_t>(image->width) *
+                                      image->height * bytes_per_pixel) {
+        preview_error_ = "Associated preview returned invalid image dimensions";
+      } else {
+        preview_error_.clear();
+        const int depth = indexed ? 8 : 32;
+        const bool create = !preview_bitmap_.is_active() ||
+                            preview_bitmap_.width() != image->width ||
+                            preview_bitmap_.height() != image->height ||
+                            preview_bitmap_.depth() != depth;
+        if (create)
+          preview_bitmap_.Create(image->width, image->height, depth,
+                                 image->pixels);
+        else
+          preview_bitmap_.set_data(image->pixels);
+        if (indexed) {
+          std::vector<SDL_Color> colors(image->colors.begin(),
+                                        image->colors.end());
+          if (image->index0_transparent)
+            colors[0].a = 0;
+          preview_bitmap_.SetPalette(colors);
+        }
+        preview_bitmap_.metadata().purpose =
+            gfx::Bitmap::BitmapPurpose::kPreview;
+        gfx::Arena::Get().QueueTextureCommand(
+            create ? gfx::Arena::TextureCommandType::CREATE
+                   : gfx::Arena::TextureCommandType::UPDATE,
+            &preview_bitmap_);
+      }
+    }
+  }
+  ImGui::Separator();
+  ImGui::TextWrapped("Associated sprite preview: %s", preview_label_.c_str());
+  ImGui::TextDisabled(
+      "Captured pose; scratch pixels update before BIN export.");
+  if (!preview_error_.empty()) {
+    ImGui::TextWrapped("Preview unavailable: %s", preview_error_.c_str());
+    return;
+  }
+  if (!preview_bitmap_.is_active())
+    return;
+  const float scale = std::clamp(
+      ImGui::GetContentRegionAvail().x / preview_bitmap_.width(), 0.25f, 2.0f);
+  gui::CanvasFrameOptions options;
+  options.canvas_size = ImVec2(preview_bitmap_.width() * scale + 4,
+                               preview_bitmap_.height() * scale + 4);
+  options.draw_grid = false;
+  options.draw_context_menu = false;
+  options.draw_overlay = false;
+  options.render_popups = false;
+  options.use_child_window = false;
+  gui::BeginChildWithScrollbar("ScratchAssociatedPreview", options.canvas_size);
+  auto canvas = gui::BeginCanvas(preview_canvas_, options);
+  preview_canvas_.DrawBitmap(preview_bitmap_, 2, 2, scale);
+  gui::EndCanvas(preview_canvas_, canvas, options);
   ImGui::EndChild();
 }
 
@@ -406,6 +503,7 @@ void GraphicsScratchView::Draw(bool* p_open) {
     SetStatus(Flush());
   ImGui::EndDisabled();
   DrawPixels(*asset);
+  DrawAssociatedPreview();
 }
 
 }  // namespace yaze::editor

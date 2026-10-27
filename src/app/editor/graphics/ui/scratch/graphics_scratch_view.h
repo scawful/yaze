@@ -8,19 +8,27 @@
 #include <tuple>
 
 #include "app/editor/graphics/graphics_editor_state.h"
+#include "app/editor/graphics/graphics_preview_image.h"
 #include "app/editor/graphics/graphics_scratch_asset.h"
 #include "app/editor/registry/undo_manager.h"
 #include "app/editor/system/editor_panel.h"
+#include "app/gui/canvas/canvas.h"
 #include "app/gui/core/icons.h"
 
 namespace yaze::editor {
 
+using ScratchPreviewCallback =
+    std::function<absl::StatusOr<usage_preview::PreviewImage>(
+        const GraphicsScratchAsset&)>;
+
 class GraphicsScratchView : public WindowContent {
   friend struct GraphicsScratchBinTestPeer;
+  friend struct ScratchSpritePreviewTestPeer;
 
  public:
   GraphicsScratchView(GraphicsEditorState* state, UndoManager* history,
                       std::string library_path = "");
+  ~GraphicsScratchView() override;
   std::string GetId() const override { return "graphics.scratch"; }
   std::string GetDisplayName() const override { return "Graphics Scratch"; }
   std::string GetIcon() const override { return ICON_MD_BRUSH; }
@@ -42,6 +50,9 @@ class GraphicsScratchView : public WindowContent {
   absl::Status ApplyToSheet();
   absl::Status ExportBin(const std::string& path);
   const GraphicsScratchLibrary& library() const { return library_; }
+  // Binds a captured source pose to the currently imported asset, never another
+  // library selection. The callback must own its captured input values.
+  void SetAssociatedPreview(std::string label, ScratchPreviewCallback callback);
   void SetApplyValidator(std::function<absl::Status(uint16_t)> validator) {
     apply_validator_ = std::move(validator);
   }
@@ -58,6 +69,7 @@ class GraphicsScratchView : public WindowContent {
   void RefreshPublishedBaselines();
   void SetStatus(absl::Status status);
   void DrawPixels(GraphicsScratchAsset& asset);
+  void DrawAssociatedPreview();
   GraphicsScratchAsset* Selected();
   GraphicsEditorState* state_;
   UndoManager* history_;
@@ -78,6 +90,14 @@ class GraphicsScratchView : public WindowContent {
   float zoom_ = 4;
   std::function<absl::Status(uint16_t)> apply_validator_;
   std::function<absl::Status(const std::string&)> export_validator_;
+  ScratchPreviewCallback preview_callback_;
+  std::string preview_label_;
+  std::string preview_error_;
+  uint64_t preview_asset_id_ = 0;
+  std::optional<uint64_t> preview_hash_;
+  gfx::Bitmap preview_bitmap_;
+  gui::Canvas preview_canvas_{"ScratchSourcePreview", ImVec2(256, 256),
+                              gui::CanvasGridSize::k8x8};
   // Export is an external write, not an Undoable pixel edit. Keep successful
   // CAS baselines current when an older pixel/history snapshot is restored.
   std::map<std::tuple<std::string, uint64_t, int>, std::vector<uint8_t>>

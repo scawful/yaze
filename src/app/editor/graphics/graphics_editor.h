@@ -236,6 +236,7 @@ class GraphicsEditor : public Editor {
   absl::Status OpenInContext(GraphicsEditContext context);
   absl::Status ImportScratchBin(const std::string& path, int bpp, size_t offset,
                                 const gfx::SnesPalette& palette = {});
+  void SetScratchPreview(std::string label, ScratchPreviewCallback callback);
   // Callable command only; the existing controls own its future UI entry point.
   absl::Status ReorderSourcePalette(const std::vector<size_t>& targets,
                                     const std::array<uint8_t, 8>& permutation);
