@@ -39,6 +39,24 @@ with fake CMake and signing commands. It checks staging, loader invocation, and
 failure preservation; real binary loading and signature validity still require
 native deployment checks.
 
+Build preflight and reuse:
+```bash
+# Inspect dependencies and cache; does not compile or fetch.
+scripts/agent_build.sh --preflight yaze
+# Build incrementally in the existing owned lane.
+scripts/agent_build.sh yaze
+# Reuse a released clean checkout at the same commit, in place.
+scripts/agent_build.sh --reuse-from /absolute/path/to/owned-checkout yaze
+# Only when no compatible cache exists; record why a cold build is needed.
+scripts/agent_build.sh --allow-new-build yaze
+```
+
+Desk mode uses the host core count without a priority reduction. Laptop mode
+remains restricted. Direct portable CMake/CTest presets retain conservative
+defaults; the agent entry point explicitly selects the host policy. A build
+cache stays at its original source path. One owner writes each source/cache;
+never select another agent's active or retained cache.
+
 Usage examples:
 ```bash
 # Trigger CI workflow with artifacts and HTTP API tests enabled
@@ -241,10 +259,11 @@ cmake --build build --parallel 4 --target yaze_test
 ```
 
 ### Parallel Compilation
-Local and agent builds default to four workers to avoid starving interactive
-sessions. Override that limit explicitly when the machine has headroom:
+Local builds default to four workers to avoid starving interactive sessions.
+`agent_build.sh` instead follows `~/.config/oos/build_mode` (desk 8, laptop 2,
+max 4). Override the limit explicitly when the machine has headroom:
 ```bash
-YAZE_BUILD_JOBS=8 ./scripts/agent_build.sh yaze
+YAZE_BUILD_JOBS=4 ./scripts/agent_build.sh yaze
 CMAKE_BUILD_PARALLEL_LEVEL=8 scripts/agents/run-tests.sh mac-dbg
 cmake --build build --target yaze --parallel 8
 ```

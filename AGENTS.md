@@ -51,10 +51,16 @@ test apps and verify process/window cleanup before finishing or handing off.
 
 ### 5) Essential Repo Facts
 - Local agent build: `scripts/agent_build.sh yaze` (or the specific CLI/test target).
-  Reuses the preset directory, configures only when needed, and waits for the
-  shared heavy lock on macOS. Do not wrap it in another heavy lock.
-- Jobs: the agent helper defaults to 2 background workers, with a maximum of 4.
-  Presets retain their ≤4 defaults; use `YAZE_BUILD_JOBS` for the helper override.
+  Reuses the preset directory and configures only when needed. Builds never take
+  the native heavy lock `/tmp/oos-heavy.lock`.
+- Jobs: the agent helper follows `~/.config/oos/build_mode` like `quiet-build`:
+  desk mode uses all host cores at normal priority; laptop or unset uses 2
+  background workers (max 4). Explicit worker limits remain available.
+- Run `scripts/agent_build.sh --preflight <targets>` before a build. Reuse the
+  current owned source/cache; `--reuse-from <checkout>` requires the same clean
+  commit. A missing cache requires explicit `--allow-new-build`, with the cold
+  build reason recorded in the handoff. Never move a CMake cache between paths.
+  `--jobs` or `YAZE_BUILD_JOBS` override the default; presets keep their own counts.
 - Tests before push: `ctest --preset mac-ai` (same `^stable$` selection as CI; `mac-ai-unit` is a subset)
 - One test: `build/presets/mac-ai/bin/Debug/yaze_test_unit --gtest_filter='Suite.Case'` (ctest entries are shards)
 - Coord SoT: `~/.context/agent-universe/{events.jsonl,state.json}`
