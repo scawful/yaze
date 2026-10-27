@@ -942,6 +942,110 @@ TEST(EditorManagerProjectActionsTest,
 }
 
 TEST(EditorManagerProjectActionsTest,
+     SyncAndQueuedBuildsUseRelocatedProjectContextWithoutChangingRequest) {
+#if defined(_WIN32) || defined(__EMSCRIPTEN__) || \
+    (defined(__APPLE__) && TARGET_OS_IPHONE)
+  GTEST_SKIP() << "Background commands require a POSIX desktop";
+#else
+  ScopedImGuiContext imgui;
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  test::InitializeWithIsolatedSettings(*manager, renderer.get());
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+  ScopedTempDir temp(MakeTempDir("yaze_project_build_context"));
+  const auto original = temp.path / "original";
+  const auto relocated = temp.path / "copy with 'quotes'";
+  std::filesystem::create_directories(original / "code folder");
+  std::filesystem::create_directories(relocated);
+  const auto original_project = original / "original.yaze";
+  const auto copied_project = relocated / "copy.yaze";
+  const auto rom = original / "source.sfc";
+  const auto terrain = original / "terrain.json";
+  const auto request = original / "request.json";
+  WriteRomFile(rom);
+  std::ofstream(terrain) << "terrain context canary";
+  std::ofstream(request) << "request context canary";
+  auto* project = manager->GetCurrentProject();
+  project->name = "Build context";
+  project->filepath = original_project.string();
+  project->rom_filename = rom.string();
+  project->code_folder = (original / "code folder").string();
+  project->lyra_terrain_file = terrain.string();
+  project->lyra_build_request_file = request.string();
+  project->build_script = "./build_context.sh";
+  ASSERT_OK(project->Save());
+  ASSERT_OK(project->Open(original_project.string()));
+  const auto original_bytes = ReadFile(original_project);
+  ASSERT_OK(project->SaveAs(copied_project.string()));
+  ASSERT_EQ(project->lyra_build_request_file, request.string());
+
+  const auto script_path = relocated / "build_context.sh";
+  {
+    std::ofstream script(script_path);
+    ASSERT_TRUE(script.is_open());
+    script << R"sh(#!/bin/sh
+printf '%s\n' "$YAZE_PROJECT_FILE" "$YAZE_PROJECT_CODE_FOLDER" \
+  "$YAZE_PROJECT_ROM" "$YAZE_LYRA_TERRAIN_FILE" "$OOS_LYRA_PROJECT" \
+  "$OOS_LYRA_REQUEST" > build.context
+printf '%s\n' "${YAZE_PROJECT_FILE+set}" "${YAZE_PROJECT_CODE_FOLDER+set}" \
+  "${YAZE_PROJECT_ROM+set}" "${YAZE_LYRA_TERRAIN_FILE+set}" \
+  "${OOS_LYRA_PROJECT+set}" "${OOS_LYRA_REQUEST+set}" > build.presence
+)sh";
+    ASSERT_TRUE(script.good());
+  }
+  std::filesystem::permissions(
+      script_path,
+      std::filesystem::perms::owner_exec | std::filesystem::perms::owner_read,
+      std::filesystem::perm_options::add);
+  const std::string expected =
+      copied_project.string() + "\n" + (original / "code folder").string() +
+      "\n" + rom.string() + "\n" + terrain.string() + "\n" +
+      copied_project.string() + "\n" + request.string() + "\n";
+  for (bool queued : {false, true}) {
+    SCOPED_TRACE(queued ? "queued" : "synchronous");
+    std::filesystem::remove(relocated / "build.context");
+    if (queued) {
+      manager->QueueBuildCurrentProject();
+      const auto deadline =
+          std::chrono::steady_clock::now() + std::chrono::seconds(5);
+      while (ContentRegistry::Context::build_workflow_status().state ==
+                 ProjectWorkflowState::kRunning &&
+             std::chrono::steady_clock::now() < deadline) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(20));
+        ImGui::GetIO().DisplaySize = ImVec2(1280, 720);
+        ImGui::NewFrame();
+        const auto status = manager->Update();
+        ImGui::Render();
+        ASSERT_OK(status);
+      }
+      const auto status = ContentRegistry::Context::build_workflow_status();
+      ASSERT_EQ(status.state, ProjectWorkflowState::kSuccess) << status.detail;
+    } else {
+      ASSERT_OK(manager->BuildCurrentProject());
+    }
+    EXPECT_EQ(ReadFile(relocated / "build.context"), expected);
+    EXPECT_EQ(ReadFile(relocated / "build.presence"),
+              "set\nset\nset\nset\nset\nset\n");
+  }
+
+  // Every known name remains an explicit override when its binding is absent.
+  project->code_folder.clear();
+  project->rom_filename.clear();
+  project->lyra_terrain_file.clear();
+  project->lyra_build_request_file.clear();
+  ASSERT_OK(project->Save());
+  ASSERT_OK(manager->BuildCurrentProject());
+  EXPECT_EQ(ReadFile(relocated / "build.context"),
+            copied_project.string() + "\n\n\n\n\n\n");
+  EXPECT_EQ(ReadFile(relocated / "build.presence"),
+            "set\nset\nset\nset\nset\nset\n");
+  EXPECT_EQ(ReadFile(original_project), original_bytes);
+  EXPECT_EQ(ReadFile(request), "request context canary");
+  EXPECT_EQ(ReadFile(terrain), "terrain context canary");
+#endif
+}
+
+TEST(EditorManagerProjectActionsTest,
      BuildCurrentProjectFallsBackToManifestBuildScript) {
 #ifdef _WIN32
   GTEST_SKIP() << "Test uses #!/bin/sh shebang + chmod exec, POSIX-only";

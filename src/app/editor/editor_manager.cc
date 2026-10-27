@@ -18,6 +18,7 @@
 #include <fstream>
 #include <functional>
 #include <initializer_list>
+#include <map>
 #include <memory>
 #include <optional>
 #include <sstream>
@@ -165,6 +166,37 @@
 namespace yaze::editor {
 
 namespace {
+absl::StatusOr<std::map<std::string, std::string>> ProjectBuildEnvironment(
+    const project::YazeProject& project) {
+  if (project.filepath.empty()) {
+    return absl::FailedPreconditionError("Save the project before building");
+  }
+  std::error_code error;
+  const auto project_file =
+      std::filesystem::absolute(project.filepath, error).lexically_normal();
+  if (error) {
+    return absl::FailedPreconditionError(
+        "Cannot resolve the project build context: " + error.message());
+  }
+  const auto absolute = [&project_file](const std::string& value) {
+    if (value.empty()) {
+      return std::string();
+    }
+    const std::filesystem::path path(value);
+    return (path.is_absolute() ? path : project_file.parent_path() / path)
+        .lexically_normal()
+        .string();
+  };
+  return std::map<std::string, std::string>{
+      {"YAZE_PROJECT_FILE", project_file.string()},
+      {"YAZE_PROJECT_CODE_FOLDER", absolute(project.code_folder)},
+      {"YAZE_PROJECT_ROM", absolute(project.rom_filename)},
+      {"YAZE_LYRA_TERRAIN_FILE", absolute(project.lyra_terrain_file)},
+      {"OOS_LYRA_PROJECT",
+       project.lyra_terrain_file.empty() ? "" : project_file.string()},
+      {"OOS_LYRA_REQUEST", absolute(project.lyra_build_request_file)}};
+}
+
 std::string LastNonEmptyLine(const std::string& text) {
   std::vector<std::string> lines = absl::StrSplit(text, '\n');
   for (auto it = lines.rbegin(); it != lines.rend(); ++it) {
@@ -4299,8 +4331,9 @@ absl::StatusOr<std::string> EditorManager::RunProjectBuildCommand() {
   const std::string command = *command_or;
   const std::filesystem::path project_root =
       std::filesystem::path(current_project_.filepath).parent_path();
+  ASSIGN_OR_RETURN(auto environment, ProjectBuildEnvironment(current_project_));
   BackgroundCommandTask task;
-  auto start_status = task.Start(command, project_root.string());
+  auto start_status = task.Start(command, project_root.string(), environment);
   if (!start_status.ok()) {
     return start_status;
   }
@@ -4376,9 +4409,12 @@ void EditorManager::QueueBuildCurrentProject() {
 
   const std::filesystem::path project_root =
       std::filesystem::path(current_project_.filepath).parent_path();
+  auto environment = ProjectBuildEnvironment(current_project_);
   active_project_build_ = std::make_unique<BackgroundCommandTask>();
   auto start_status =
-      active_project_build_->Start(*command_or, project_root.string());
+      environment.ok() ? active_project_build_->Start(
+                             *command_or, project_root.string(), *environment)
+                       : environment.status();
   if (!start_status.ok()) {
     UpdateBuildWorkflowStatus(
         &status_bar_, project_management_panel_.get(),

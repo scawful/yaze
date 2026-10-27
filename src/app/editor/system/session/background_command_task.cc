@@ -18,6 +18,11 @@
 #include <unistd.h>
 #if defined(__APPLE__)
 #include <TargetConditionals.h>
+#if !TARGET_OS_IPHONE
+#include <crt_externs.h>
+#endif
+#else
+extern char** environ;
 #endif
 #endif
 
@@ -28,6 +33,30 @@ constexpr size_t kTailLineLimit = 4;
 constexpr size_t kFailureDetailLimit = 512;
 constexpr int kPollIntervalMs = 50;
 constexpr auto kCancelEscalationDelay = std::chrono::seconds(2);
+
+std::vector<std::string> ChildEnvironment(
+    const std::map<std::string, std::string>& overrides) {
+  std::vector<std::string> environment;
+#if !defined(_WIN32) && !defined(__EMSCRIPTEN__) && \
+    !(defined(__APPLE__) && TARGET_OS_IPHONE)
+#if defined(__APPLE__)
+  char** inherited = *_NSGetEnviron();
+#else
+  char** inherited = environ;
+#endif
+  for (char** entry = inherited; entry && *entry; ++entry) {
+    const std::string value(*entry);
+    const auto separator = value.find('=');
+    if (!overrides.contains(value.substr(0, separator))) {
+      environment.push_back(value);
+    }
+  }
+#endif
+  for (const auto& [name, value] : overrides) {
+    environment.push_back(name + "=" + value);
+  }
+  return environment;
+}
 
 bool SupportsNativeBackgroundCommands() {
 #if defined(_WIN32) || defined(__EMSCRIPTEN__) || \
@@ -45,8 +74,9 @@ BackgroundCommandTask::~BackgroundCommandTask() {
   JoinIfNeeded();
 }
 
-absl::Status BackgroundCommandTask::Start(const std::string& command,
-                                          const std::string& directory) {
+absl::Status BackgroundCommandTask::Start(
+    const std::string& command, const std::string& directory,
+    const std::map<std::string, std::string>& environment) {
   std::lock_guard<std::mutex> lock(mutex_);
   if (started_ && !finished_) {
     return absl::FailedPreconditionError("Task is already running");
@@ -56,6 +86,15 @@ absl::Status BackgroundCommandTask::Start(const std::string& command,
     return absl::UnimplementedError(
         "Background commands are not supported on this platform");
   }
+
+  for (const auto& [name, value] : environment) {
+    if (name.empty() || name.find('=') != std::string::npos ||
+        name.find('\0') != std::string::npos ||
+        value.find('\0') != std::string::npos) {
+      return absl::InvalidArgumentError("Invalid child environment override");
+    }
+  }
+  auto child_environment = ChildEnvironment(environment);
 
   JoinIfNeeded();
   started_ = true;
@@ -69,8 +108,8 @@ absl::Status BackgroundCommandTask::Start(const std::string& command,
   output_.clear();
   output_tail_.clear();
   status_ = absl::UnknownError("Task is running");
-  worker_ =
-      std::thread(&BackgroundCommandTask::WorkerMain, this, command, directory);
+  worker_ = std::thread(&BackgroundCommandTask::WorkerMain, this, command,
+                        directory, std::move(child_environment));
   return absl::OkStatus();
 }
 
@@ -113,7 +152,8 @@ absl::Status BackgroundCommandTask::Wait() {
 }
 
 void BackgroundCommandTask::WorkerMain(std::string command,
-                                       std::string directory) {
+                                       std::string directory,
+                                       std::vector<std::string> environment) {
 #if defined(_WIN32) || defined(__EMSCRIPTEN__) || \
     (defined(__APPLE__) && TARGET_OS_IPHONE)
   Finalize(absl::UnimplementedError(
@@ -121,6 +161,15 @@ void BackgroundCommandTask::WorkerMain(std::string command,
            -1);
   return;
 #else
+  // All storage and pointers are owned before fork; the child only performs
+  // process setup and exec, without mutating the parent's environment.
+  std::vector<char*> environment_pointers;
+  environment_pointers.reserve(environment.size() + 1);
+  for (auto& entry : environment) {
+    environment_pointers.push_back(entry.data());
+  }
+  environment_pointers.push_back(nullptr);
+
   int pipe_fds[2];
   if (pipe(pipe_fds) != 0) {
     Finalize(absl::InternalError("Failed to create process pipe"), -1);
@@ -151,7 +200,8 @@ void BackgroundCommandTask::WorkerMain(std::string command,
         _exit(127);
       }
     }
-    execl("/bin/sh", "sh", "-lc", command.c_str(), static_cast<char*>(nullptr));
+    execle("/bin/sh", "sh", "-lc", command.c_str(), static_cast<char*>(nullptr),
+           environment_pointers.data());
     _exit(127);
   }
 
