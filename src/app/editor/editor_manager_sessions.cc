@@ -177,33 +177,6 @@ void EditorManager::HandleSessionSwitched(size_t new_index, RomSession* session,
     CancelPendingRomSave(/*hide_popups=*/true);
     CaptureRuntimeFeatureFlags();
     CaptureActiveProjectContext();
-    std::string previous_source;
-    if (active_project_context_session_id_) {
-      if (const auto previous_index =
-              ResolveSessionIndexById(*active_project_context_session_id_)) {
-        const auto* previous = static_cast<RomSession*>(
-            session_coordinator_->GetSession(*previous_index));
-        if (previous) {
-          previous_source =
-              previous->rom_baseline &&
-                      !previous->rom_baseline->editing_source_path.empty()
-                  ? previous->rom_baseline->editing_source_path
-                  : previous->rom.filename();
-        }
-      }
-    }
-    if (previous_source.empty() && !current_project_.rom_filename.empty()) {
-      previous_source =
-          current_project_.GetAbsolutePath(current_project_.rom_filename);
-    }
-    if (!previous_source.empty()) {
-      const auto retirement =
-          RetireNativeSaveTransfer("session_changed", previous_source);
-      if (!retirement.ok()) {
-        LOG_ERROR("EditorManager", "Cannot retire native-save transfer: %s",
-                  std::string(retirement.message()).c_str());
-      }
-    }
     if (!RestoreProjectContextForSession(session) && session != nullptr) {
       LOG_ERROR("EditorManager",
                 "Session %zu has no project context; saves are disabled",
@@ -369,15 +342,6 @@ void EditorManager::HandleSessionClosed(size_t index) {
         session_coordinator_->IsValidSessionIndex(index)
             ? static_cast<RomSession*>(session_coordinator_->GetSession(index))
             : nullptr;
-    if (closing_session && closing_session == active_session) {
-      // Closing removes the baseline before the later null-session switch.
-      const auto retirement = RetireNativeSaveTransfer("session_changed");
-      if (!retirement.ok()) {
-        LOG_ERROR("EditorManager",
-                  "Cannot retire closing native-save transfer: %s",
-                  std::string(retirement.message()).c_str());
-      }
-    }
     if (closing_session != nullptr) {
       zelda3::CustomObjectManager::Get().RemoveRuntimeContext(
           closing_session->session_id());

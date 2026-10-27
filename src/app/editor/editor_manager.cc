@@ -625,6 +625,8 @@ void EditorManager::InitializeSubsystems() {
   menu_orchestrator_->SetShortcutManager(&shortcut_manager_);
 
   session_coordinator_->SetEditorManager(this);
+  session_coordinator_->SetBeforeSessionTransition(
+      [this] { return RetireNativeSaveTransfer("rebound"); });
   session_coordinator_->SetEventBus(&event_bus_);  // Enable event publishing
   ContentRegistry::Context::SetEventBus(
       &event_bus_);  // Global event bus access
@@ -4144,6 +4146,9 @@ absl::Status EditorManager::SaveProjectAs(const std::string& filepath) {
   }
   // Dungeon property drafts still join the saved descriptor. Lyra publishes
   // directly into its new owner instead of flushing into the original source.
+  // Refuse the rebind before writing either owner if the previous native
+  // transfer cannot be durably retired. A failed Save As leaves it retired.
+  RETURN_IF_ERROR(RetireNativeSaveTransfer("rebound"));
   RETURN_IF_ERROR(PrepareActiveProjectEditorDraftsForSave(
       /*publish_lyra=*/lyra_editor == nullptr));
   CaptureActiveProjectContext();
@@ -4205,8 +4210,8 @@ absl::Status EditorManager::SaveProjectAs(const std::string& filepath) {
     const auto retirement = RetireNativeSaveTransfer("rebound");
     if (!retirement.ok()) {
       return absl::FailedPreconditionError(
-          "Project saved as, but its prior native-save transfer could not be "
-          "retired: " +
+          "Project saved as, but its retired native-save context could not be "
+          "updated: " +
           std::string(retirement.message()));
     }
   }
@@ -4620,6 +4625,10 @@ absl::Status EditorManager::SetCurrentRom(Rom* rom) {
           static_cast<RomSession*>(session_coordinator_->GetSession(i));
       if (session && &session->rom == rom) {
         session_coordinator_->SwitchToSession(i);
+        if (GetCurrentRom() != rom) {
+          return absl::FailedPreconditionError(
+              "The requested ROM session could not be activated");
+        }
         // Update test manager with current ROM for ROM-dependent tests
         test::TestManager::Get().SetCurrentRom(GetCurrentRom());
         RefreshResourceLabelProvider();
@@ -5086,6 +5095,10 @@ void EditorManager::ConfirmPendingUnsavedSessionActionSaveAndContinue() {
     }
 
     session_coordinator_->SwitchToSession(*session_index);
+    if (GetCurrentSessionId() != session_id) {
+      return absl::FailedPreconditionError(
+          "The requested ROM session could not be activated before saving");
+    }
     RETURN_IF_ERROR(SaveActiveProjectEditingWork());
     if (SessionHasPendingRomWork(*session_index)) {
       RETURN_IF_ERROR(SaveRom());
@@ -5154,6 +5167,13 @@ void EditorManager::ConfirmPendingUnsavedSessionActionSaveAndContinue() {
         ResolveSessionIndexById(original_session_id);
     if (original_session_index.has_value()) {
       session_coordinator_->SwitchToSession(*original_session_index);
+      if (GetCurrentSessionId() != original_session_id) {
+        toast_manager_.Show(
+            "Session saved, but the original ROM session could not be "
+            "restored. Close was cancelled.",
+            ToastType::kError);
+        return;
+      }
     }
   }
 
@@ -5274,6 +5294,13 @@ void EditorManager::ExecutePendingUnsavedSessionAction(
       if (session_coordinator_ &&
           *target_index != session_coordinator_->GetActiveSessionIndex()) {
         session_coordinator_->SwitchToSession(*target_index);
+      }
+      if (GetCurrentSessionId() != action.target_session_id) {
+        toast_manager_.Show(
+            "Revert cancelled: the requested ROM session could not be "
+            "activated",
+            ToastType::kError);
+        break;
       }
       auto status = RevertRomToSavedInternal();
       if (status.ok()) {

@@ -93,6 +93,8 @@ SessionCoordinator::SessionCoordinator(WorkspaceWindowManager* window_manager,
       toast_manager_(toast_manager),
       user_settings_(user_settings) {}
 
+SessionCoordinator::~SessionCoordinator() = default;
+
 void SessionCoordinator::NotifySessionSwitched(size_t old_index,
                                                size_t new_index,
                                                RomSession* session,
@@ -254,6 +256,14 @@ void SessionCoordinator::CloseSessionInternal(size_t index,
 
   const size_t session_id = GetSessionId(index);
   const bool closing_active_session = index == active_session_index_;
+  if (closing_active_session) {
+    const auto transition = PrepareActiveSessionTransition();
+    if (!transition.ok()) {
+      ShowSessionOperationResult(
+          "Close Session: " + std::string(transition.message()), false);
+      return;
+    }
+  }
 
   // Editors retain non-owning references to their session's workspace panels.
   // Detach those references before UnregisterSession destroys the panels.
@@ -313,6 +323,24 @@ void SessionCoordinator::SwitchToSessionInternal(size_t index, bool transient) {
   if (!IsValidSessionIndex(index))
     return;
 
+  if (!transient && index != active_session_index_) {
+    const auto transition = PrepareActiveSessionTransition();
+    if (!transition.ok()) {
+      ShowSessionOperationResult(
+          "Switch Session: " + std::string(transition.message()), false);
+      return;
+    }
+  }
+  ApplySessionActivation(index, transient);
+}
+
+absl::Status SessionCoordinator::PrepareActiveSessionTransition() {
+  return before_session_transition_ && !sessions_.empty()
+             ? before_session_transition_()
+             : absl::OkStatus();
+}
+
+void SessionCoordinator::ApplySessionActivation(size_t index, bool transient) {
   size_t old_index = active_session_index_;
   active_session_index_ = index;
 
@@ -958,6 +986,10 @@ absl::StatusOr<RomSession*> SessionCoordinator::CreateSessionFromRom(
   if (!path_status.ok()) {
     return path_status;
   }
+  const auto transition = PrepareActiveSessionTransition();
+  if (!transition.ok()) {
+    return transition;
+  }
 
   const size_t new_session_id = next_session_id_++;
   const size_t new_session_index = sessions_.size();
@@ -979,7 +1011,7 @@ absl::StatusOr<RomSession*> SessionCoordinator::CreateSessionFromRom(
     NotifySessionSwitched(new_session_index, new_session_index, session.get(),
                           /*transient=*/false);
   } else {
-    SwitchToSession(new_session_index);
+    ApplySessionActivation(new_session_index, /*transient=*/false);
   }
 
   NotifySessionRomLoaded(new_session_index, session.get());
@@ -1001,6 +1033,12 @@ absl::Status SessionCoordinator::DiscardProvisionalSession(size_t session_id) {
   const size_t index =
       static_cast<size_t>(std::distance(sessions_.begin(), session_it));
   const bool closing_active_session = index == active_session_index_;
+  if (closing_active_session) {
+    const auto transition = PrepareActiveSessionTransition();
+    if (!transition.ok()) {
+      return transition;
+    }
+  }
   (*session_it)->editors.PrepareForSessionTeardown();
   if (window_manager_) {
     window_manager_->UnregisterSession(session_id);
@@ -1058,6 +1096,12 @@ void SessionCoordinator::CleanupClosedSessions() {
 void SessionCoordinator::ClearAllSessions() {
   if (sessions_.empty())
     return;
+  const auto transition = PrepareActiveSessionTransition();
+  if (!transition.ok()) {
+    ShowSessionOperationResult(
+        "Clear Sessions: " + std::string(transition.message()), false);
+    return;
+  }
 
   // Editors retain non-owning references to session cards. Detach every editor
   // before unregistering any card so cross-panel callbacks cannot observe a

@@ -714,6 +714,7 @@ absl::Status EditorManager::SaveRomInternal(
       return absl::FailedPreconditionError(
           "Open Lyra A0 terrain before Save As");
     }
+    RETURN_IF_ERROR(RetireNativeSaveTransfer("rebound"));
     RETURN_IF_ERROR(overworld->SaveLyraA0TerrainAs(*save_as_filename));
     CaptureCurrentRomIdentity(/*preserve_editing_source=*/true);
     if (auto* session = session_coordinator_->GetActiveRomSession()) {
@@ -913,6 +914,11 @@ absl::Status EditorManager::SaveRomInternal(
           save_project->GetAbsolutePath(save_project->custom_collision_json);
     }
   }
+  // A same-byte save still supersedes the prior native operation. Retire its
+  // external context before committing disk/baseline state, so publication or
+  // write failure cannot leave the previous operation consumable as current.
+  // Pending confirmation and serializer/conflict checks above do not retire it.
+  RETURN_IF_ERROR(RetireNativeSaveTransfer("rebound"));
   auto save_status =
       save_as_filename.has_value()
           ? rom_file_manager_.SaveRomAs(current_rom, *save_as_filename)
