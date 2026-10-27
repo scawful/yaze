@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 
+#include <algorithm>
 #include <memory>
 
 #include "app/editor/code/assembly_editor.h"
@@ -81,6 +82,17 @@ TEST_F(UnitTest_EditorSet, ActiveEditorsList) {
     }
   }
   EXPECT_TRUE(found_dungeon);
+}
+
+TEST_F(UnitTest_EditorSet, PlanningIsTrackedOnceAsActiveEditor) {
+  EditorSet editor_set;
+
+  Editor* planning = editor_set.GetEditor(EditorType::kPlanning);
+  ASSERT_NE(planning, nullptr);
+  EXPECT_EQ(editor_set.GetEditor(EditorType::kPlanning), planning);
+  EXPECT_EQ(std::count(editor_set.active_editors_.begin(),
+                       editor_set.active_editors_.end(), planning),
+            1);
 }
 
 TEST_F(UnitTest_EditorSet, PassiveHelpersDoNotMaterializeEditors) {
