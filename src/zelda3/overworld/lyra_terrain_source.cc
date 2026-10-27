@@ -7,8 +7,10 @@
 #include "absl/strings/str_format.h"
 #include "app/gfx/core/bitmap.h"
 #include "core/source_artifact_publisher.h"
+#include "nlohmann/json.hpp"
 #include "util/macro.h"
 #include "zelda3/game_data.h"
+#include "zelda3/graphics/resolved_graphics_context.h"
 #include "zelda3/overworld/overworld.h"
 
 namespace yaze::zelda3 {
@@ -232,6 +234,200 @@ absl::StatusOr<LyraNativeMapAssets> ResolveLyraMapAssets(
     AddWord(binding, source.current_palette()[i].snes());
   return LyraNativeMapAssets{std::move(source),
                              core::ComputeSourceArtifactSha256(binding)};
+}
+
+absl::StatusOr<std::string> DescribeLyraNativeMapAssets(
+    const core::LyraMapProperties& p, int state,
+    const LyraNativeMapAssets& assets) {
+  const auto& source = assets.source;
+  if (state < 0 || state > 2 || source.game_state() != state)
+    return absl::InvalidArgumentError(
+        "Lyra inspection state does not match assets");
+  const auto* data = source.game_data();
+  const auto& pixels = source.current_graphics();
+  const auto& palette = source.current_palette();
+  if (!data || source.HasGraphicsPreview() || pixels.size() != 0x10000 ||
+      palette.size() != 256)
+    return absl::FailedPreconditionError(
+        "Lyra inspection requires complete native resolved assets");
+  for (int slot = 0; slot < 16; ++slot) {
+    if ((static_cast<size_t>(source.static_graphics(slot)) + 1) * 0x1000 >
+        data->graphics_buffer.size())
+      return absl::OutOfRangeError(
+          "Lyra inspection source sheet is unavailable");
+  }
+  if ((static_cast<size_t>(source.animated_sheet()) + 1) * 0x1000 >
+      data->graphics_buffer.size())
+    return absl::OutOfRangeError(
+        "Lyra inspection animation sheet is unavailable");
+  if (source.animated_sheet() == 0)
+    return absl::FailedPreconditionError(
+        "Lyra inspection has no resolved animation sheet");
+  const auto effective_sheet = [&](int slot) {
+    // The resolver's explicit-zero repair wins over the legacy loader's slot.
+    return slot < 8 && p.graphics_sheets[slot] == 0
+               ? 0
+               : static_cast<int>(source.static_graphics(slot));
+  };
+  const auto empty_slot = [&](int slot) {
+    return source.static_graphics(slot) == 0 &&
+           !(slot < 8 && p.graphics_sheets[slot] == 0);
+  };
+
+  // A copied map can retain sheet overrides independently of GraphicsPreview.
+  // Require the actual rendered bytes to agree with the native source whose
+  // identity we export. Do not rebuild or mutate the supplied resolver result.
+  for (int slot = 0; slot < 16; ++slot) {
+    const size_t sheet = effective_sheet(slot);
+    const int bias =
+        slot == 0 || slot == 3 || slot == 4 || slot == 5 ? 0x88 : 0;
+    for (size_t offset = 0; offset < 0x1000; ++offset) {
+      uint8_t expected = 0;
+      if (slot == 7 && offset < 0x800) {
+        expected =
+            data->graphics_buffer[static_cast<size_t>(source.animated_sheet()) *
+                                      0x1000 +
+                                  offset];
+      } else if (sheet != 0 || (slot < 8 && p.graphics_sheets[slot] == 0)) {
+        // Explicit saved BG sheet zero is real, unlike BuildTileset's legacy
+        // empty-slot sentinel; ResolveLyraMapAssets repairs it after the build.
+        expected = static_cast<uint8_t>(
+            data->graphics_buffer[sheet * 0x1000 + offset] + bias);
+      }
+      if (pixels[slot * 0x1000 + offset] != expected)
+        return absl::FailedPreconditionError(
+            "Lyra inspection pixels do not match native source sheets");
+    }
+  }
+
+  std::string colors;
+  auto words = nlohmann::json::array();
+  for (size_t i = 0; i < palette.size(); ++i) {
+    words.push_back(palette[i].snes());
+    AddWord(colors, palette[i].snes());
+  }
+  std::string binding = LyraMapAssetKey(p, state);
+  binding.append(reinterpret_cast<const char*>(pixels.data()), pixels.size());
+  binding.append(colors);
+  if (core::ComputeSourceArtifactSha256(binding) != assets.binding)
+    return absl::FailedPreconditionError(
+        "Lyra inspection native binding does not match resolved assets");
+
+  const auto pixel_hash = [&](size_t offset, size_t count) {
+    return core::ComputeSourceArtifactSha256(
+        {reinterpret_cast<const char*>(pixels.data() + offset), count});
+  };
+  const auto sheet_hash = [&](int sheet) {
+    return core::ComputeSourceArtifactSha256(
+        {reinterpret_cast<const char*>(data->graphics_buffer.data() +
+                                       static_cast<size_t>(sheet) * 0x1000),
+         0x1000});
+  };
+  const auto context = DescribeOverworldGraphicsContext(source);
+  auto slots = nlohmann::json::array();
+  for (int slot = 0; slot < 16; ++slot) {
+    const bool empty = empty_slot(slot);
+    nlohmann::json entry = {
+        {"slot", slot},
+        {"sheet_id", empty ? nlohmann::json(nullptr)
+                           : nlohmann::json(effective_sheet(slot))},
+        {"loader_sheet_id", source.static_graphics(slot)},
+        {"source", empty ? "native_empty_slot" : "native_rom_decoded_sheet"},
+        {"role", slot < 8 ? "background" : "sprite"},
+        {"decoded_byte_count", empty ? 0 : 0x1000},
+        {"decoded_format", empty ? "none" : "indexed8"},
+        {"decoded_sheet_sha256",
+         empty ? nlohmann::json(nullptr)
+               : nlohmann::json(sheet_hash(effective_sheet(slot)))},
+        {"resolved_offset", slot * 0x1000},
+        {"resolved_byte_count", 0x1000},
+        {"resolved_slot_sha256", pixel_hash(slot * 0x1000, 0x1000)},
+        {"palette_index_bias",
+         slot == 0 || slot == 3 || slot == 4 || slot == 5 ? 0x88 : 0},
+        {"composite", slot == 7},
+    };
+    if (context.slots.size() == 16) {
+      entry["loader_role"] = context.slots[slot].role;
+      entry["loader_source"] = context.slots[slot].source;
+      entry["inherited_sheet"] = context.slots[slot].inherited_sheet;
+      entry["loader_agrees"] = context.slots[slot].loader_agrees;
+    }
+    slots.push_back(std::move(entry));
+  }
+  nlohmann::json saved = {
+      {"graphics_sheets", p.graphics_sheets},
+      {"main_palette", p.main_palette},
+      {"palette_set", p.palette_set},
+      {"animated_sheet", p.animated_sheet},
+      {"sprite_graphics", p.sprite_graphics},
+      {"sprite_palettes", p.sprite_palettes},
+  };
+  nlohmann::json bg_words = nullptr;
+  nlohmann::json bg_hash = nullptr;
+  if (p.background_palette) {
+    std::string bg_bytes;
+    for (auto word : *p.background_palette)
+      AddWord(bg_bytes, word);
+    saved["background_palette"] = *p.background_palette;
+    bg_words = *p.background_palette;
+    bg_hash = core::ComputeSourceArtifactSha256(bg_bytes);
+  }
+  nlohmann::json document = {
+      {"schema", "yaze.lyra-native-resolution.v1"},
+      {"resolution_mode", "native-only"},
+      {"inspection_only", true},
+      {"resolver_seed_map", 0x3A},
+      {"seed_semantics", "resolver seed; not gameplay parent"},
+      {"state", state},
+      {"saved_properties", std::move(saved)},
+      {"native_base_binding", assets.binding},
+      {"binding_algorithm", "yaze.lyra-native-binding.legacy-v1"},
+      {"runtime_assignment", "unassigned"},
+      {"runtime_assignment_scope",
+       "inspection does not assign catalog or areas"},
+      {"custom_catalog_binding", nullptr},
+      {"custom_transfers", nlohmann::json::array()},
+      {"effective_sprite_graphics", source.sprite_graphics(state)},
+      {"effective_sprite_palette", source.sprite_palette(state)},
+      {"slots", std::move(slots)},
+      {"graphics",
+       {{"format", "indexed8"},
+        {"byte_count", pixels.size()},
+        {"sha256", pixel_hash(0, pixels.size())}}},
+      {"palette",
+       {{"words", std::move(words)},
+        {"encoding", "256 uint16 little-endian SNES words"},
+        {"byte_count", colors.size()},
+        {"uint16le_sha256", core::ComputeSourceArtifactSha256(colors)},
+        {"background_override_words", std::move(bg_words)},
+        {"background_override_uint16le_sha256", std::move(bg_hash)},
+        {"background_source", p.background_palette ? "saved_bg128" : "native"},
+        {"runtime_consumer",
+         p.background_palette ? "unsupported" : "unassigned"}}},
+      {"animation",
+       {{"sheet_id", source.animated_sheet()},
+        {"decoded_sheet_sha256", sheet_hash(source.animated_sheet())},
+        {"decoded_byte_count", 0x1000},
+        {"frame", 0},
+        {"source_offset", 0},
+        {"destination_offset", 0x7000},
+        {"byte_count", 0x800},
+        {"frame0_sha256", pixel_hash(0x7000, 0x800)},
+        {"composite_slot7_sha256", pixel_hash(0x7000, 0x1000)},
+        {"static_lower_sheet_id", empty_slot(7)
+                                      ? nlohmann::json(nullptr)
+                                      : nlohmann::json(effective_sheet(7))},
+        {"static_lower_source",
+         empty_slot(7) ? "native_empty_slot" : "native_rom_decoded_sheet"},
+        {"static_lower_source_offset",
+         empty_slot(7) ? nlohmann::json(nullptr) : nlohmann::json(0x800)},
+        {"static_lower_destination_offset", 0x7800},
+        {"static_lower_byte_count", 0x800},
+        {"sequence_status", "frame0_only; runtime sequencing not resolved"}}},
+      {"context", nlohmann::json::parse(context.ToJson())},
+      {"context_scope", "native resolver seed; not authored map or area"},
+  };
+  return document.dump();
 }
 
 }  // namespace yaze::zelda3

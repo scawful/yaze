@@ -33,6 +33,13 @@ struct LyraNativeMapAssets {
 };
 absl::StatusOr<LyraNativeMapAssets> ResolveLyraMapAssets(
     Overworld& overworld, const core::LyraMapProperties& properties, int state);
+
+// Describe a result from the fresh native resolver without loading or changing
+// assets. Native-only describes inspection, never an authored runtime/catalog
+// assignment. Retains the legacy binding and identifies resolved components.
+absl::StatusOr<std::string> DescribeLyraNativeMapAssets(
+    const core::LyraMapProperties& properties, int state,
+    const LyraNativeMapAssets& assets);
 }  // namespace yaze::zelda3
 
 #endif

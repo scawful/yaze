@@ -138,6 +138,7 @@ absl::Status LyraVerifyProjectCommandHandler::Execute(
                    core::LyraTerrainDocument::Parse(text, profile));
   std::unordered_map<std::string, std::string> native_bindings;
   std::unordered_map<std::string, std::array<uint16_t, 256>> resolved_palettes;
+  std::unordered_map<std::string, nlohmann::json> resolved_assets;
   auto inspected = nlohmann::json::array();
   int mismatches = 0;
   std::array<std::array<std::string, 3>, core::LyraTerrainDocument::kMapCount>
@@ -151,6 +152,10 @@ absl::Status LyraVerifyProjectCommandHandler::Execute(
         ASSIGN_OR_RETURN(auto assets, zelda3::ResolveLyraMapAssets(
                                           overworld, map.properties, state));
         if (InspectAssets()) {
+          ASSIGN_OR_RETURN(const auto description,
+                           zelda3::DescribeLyraNativeMapAssets(map.properties,
+                                                               state, assets));
+          resolved_assets.emplace(key, nlohmann::json::parse(description));
           std::array<uint16_t, 256> palette;
           for (size_t color = 0; color < palette.size(); ++color)
             palette[color] = assets.source.current_palette()[color].snes();
@@ -175,6 +180,9 @@ absl::Status LyraVerifyProjectCommandHandler::Execute(
             {"current_binding", found->second},
             {"binding_changed", changed},
             {"palette_words", resolved_palettes.at(key)},
+            {"native_base_binding", found->second},
+            {"runtime_assignment", "unassigned"},
+            {"native_assets", resolved_assets.at(key)},
         });
       }
       // Default properties bind through the verified shared profile. Preserve
@@ -215,6 +223,35 @@ absl::Status LyraVerifyProjectCommandHandler::Execute(
 
   if (InspectAssets()) {
     formatter.AddField("inspection_only", true);
+    formatter.AddField("native_resolution_schema",
+                       std::string("yaze.lyra-native-resolution.v1"));
+    formatter.AddField("unique_native_resolutions",
+                       static_cast<int>(resolved_assets.size()));
+    // Capture the exact effective map, including unknown keys. Default JSON
+    // objects sort keys, so dump() is canonical across unordered-map insertion.
+    nlohmann::json overrides = nlohmann::json::object();
+    for (const auto& [key, value] : project_->rom_address_overrides.addresses)
+      overrides[key] = value;
+    formatter.AddRawJsonField("rom_address_overrides", overrides.dump());
+    formatter.AddField("rom_address_overrides_sha256",
+                       core::ComputeSourceArtifactSha256(overrides.dump()));
+    formatter.AddField(
+        "rom_address_overrides_encoding",
+        std::string(
+            "compact sorted-key JSON; uint32 decimal values; no newline"));
+    const auto descriptor_hash =
+        core::ComputeSourceArtifactFileSha256(project_->filepath);
+    formatter.AddField("project_descriptor_path", project_->filepath);
+    formatter.AddRawJsonField("project_descriptor_sha256",
+                              descriptor_hash.ok()
+                                  ? nlohmann::json(*descriptor_hash).dump()
+                                  : "null");
+    formatter.AddField(
+        "project_descriptor_identity_status",
+        std::string(descriptor_hash.ok() ? "identified" : "unavailable"));
+    if (!descriptor_hash.ok())
+      formatter.AddField("project_descriptor_identity_error",
+                         std::string(descriptor_hash.status().message()));
     formatter.AddField("asset_binding_mismatches", mismatches);
     formatter.AddRawJsonField("map_assets", inspected.dump());
     return absl::OkStatus();
