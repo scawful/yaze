@@ -40,25 +40,26 @@ Use the build-only entrypoint for local agent iteration:
 scripts/agent_build.sh yaze
 scripts/agent_build.sh yaze z3ed --jobs 4
 scripts/agent_build.sh yaze_test_unit --dry-run
-scripts/agent_build.sh --status
 ```
 
-It defaults to two workers and accepts one through four. `--jobs` overrides
-the task-specific `YAZE_BUILD_JOBS`. It intentionally ignores an inherited
-`CMAKE_BUILD_PARALLEL_LEVEL` and sets the selected count for its children.
+Its worker count follows the host build mode in `~/.config/oos/build_mode`
+(`OOS_BUILD_MODE_FILE` overrides), matching `quiet-build`: desk mode defaults to
+and allows up to eight workers; laptop mode, a missing file or any other value
+defaults to two and allows up to four. `--jobs` overrides the task-specific
+`YAZE_BUILD_JOBS`, which overrides the mode default. It intentionally ignores an
+inherited `CMAKE_BUILD_PARALLEL_LEVEL` and sets the selected count for its children.
 It resolves the preset's
 build directory, checks an existing cache's source/configuration, and configures
 only when the cache is absent. `YAZE_BUILD_DIR` overrides both configure and build
 paths. `--fresh` explicitly requests a fresh configure after the same identity
 checks. No test execution, installation or runtime sync is included.
 
-On macOS it runs configure/build with `taskpolicy -b nice -n 10` for background
-priority. It waits up to 600 seconds for `/tmp/oos-heavy.lock`, polling every two
-seconds and reporting owner changes or 30-second wait updates. Use
-`--wait-seconds 0` to refuse immediately, or choose a limit up to 3600 seconds.
-It never steals a stale, missing-owner or foreign lock. SIGINT/SIGTERM cancel only
-its child process group; it waits for that group to exit before releasing its
-matching lock. `--status` and `--dry-run` do not acquire the lock or configure.
+On macOS it runs configure/build under `nice -n 10` with `taskpolicy -c utility`
+in desk mode (P-cores allowed) or `taskpolicy -b` in laptop mode (background,
+E-cores only). Builds never take the native heavy lock `/tmp/oos-heavy.lock`;
+that lane is reserved for emulator and native GUI work. SIGINT/SIGTERM cancel
+only its child process group, and it waits for that group to exit before
+returning. `--dry-run` prints the commands without configuring or building.
 
 The helper keeps the existing compiler-cache configuration and infers
 `CCACHE_BASEDIR` from the Git common repository/worktree parent unless explicitly

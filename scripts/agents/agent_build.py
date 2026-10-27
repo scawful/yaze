@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
-"""Build selected targets quietly, reusing a preset and the macOS heavy lane."""
+"""Build selected targets quietly with a preset, sized by the host build mode."""
 
 import argparse
 import json
-import math
 import os
 from pathlib import Path
 import platform as host_platform
@@ -11,84 +10,18 @@ import re
 import shlex
 import shutil
 import signal
-import stat
 import subprocess
 import sys
 import time
-import uuid
 
 ROOT = Path(__file__).resolve().parents[2]
-LOCK_PATH = Path("/tmp/oos-heavy.lock")
+# Shared with ~/.local/bin/quiet-build: (default jobs, maximum jobs, QoS flags).
+# Desk builds may use P-cores; laptop builds stay on background QoS.
+BUILD_MODES = {"desk": (8, 8, ["-c", "utility"]), "laptop": (2, 4, ["-b"])}
 
 
 class BuildError(Exception):
     pass
-
-
-def read_regular(directory_fd, name, limit=16384):
-    fd = os.open(name, os.O_RDONLY | os.O_NOFOLLOW, dir_fd=directory_fd)
-    with os.fdopen(fd, "rb") as stream:
-        info = os.fstat(stream.fileno())
-        if not stat.S_ISREG(info.st_mode) or info.st_size > limit:
-            raise BuildError(f"Invalid heavy-lock file: {name}")
-        return stream.read(limit + 1).decode("utf-8")
-
-
-def lock_status(path):
-    try:
-        fd = os.open(path, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW)
-    except FileNotFoundError:
-        return None
-    try:
-        info = os.fstat(fd)
-        has_metadata = True
-        try:
-            metadata = json.loads(read_regular(fd, "metadata.json"))
-        except FileNotFoundError:
-            has_metadata = False
-            metadata = None  # Existing clients write only the plain owner file.
-        except (ValueError, UnicodeError) as error:
-            raise BuildError(f"Malformed heavy-lock metadata: {path}") from error
-        # Metadata is published after owner. Read it first to avoid pairing a
-        # new complete metadata file with a pre-publication missing owner.
-        try:
-            owner = read_regular(fd, "owner", 4096).strip() or "?"
-        except FileNotFoundError:
-            owner = "?"
-        if isinstance(metadata, dict) and metadata.get("owner") != owner:
-            try:
-                # An owner may release metadata then owner between our reads.
-                read_regular(fd, "metadata.json")
-            except FileNotFoundError:
-                has_metadata, metadata = False, None
-        if has_metadata:
-            if (not isinstance(metadata, dict)
-                    or type(metadata.get("schema")) is not int
-                    or metadata["schema"] != 1
-                    or not isinstance(metadata.get("token"), str)
-                    or not re.fullmatch(r"[a-f0-9]{32}", metadata["token"])
-                    or type(metadata.get("pid")) is not int
-                    or metadata["pid"] <= 0
-                    or metadata.get("owner") != owner
-                    or type(metadata.get("started_at")) not in (int, float)
-                    or not math.isfinite(metadata["started_at"])
-                    or metadata["started_at"] <= 0):
-                raise BuildError(f"Malformed heavy-lock metadata: {path}")
-        if os.fstat(fd).st_nlink == 0:
-            return None  # The directory was released during inspection.
-        return {"owner": owner, "metadata": metadata,
-                "age_seconds": max(0, int(time.time() - info.st_mtime)),
-                "identity": (info.st_dev, info.st_ino)}
-    finally:
-        os.close(fd)
-
-
-def describe_lock(state):
-    if state is None:
-        return "Heavy lane: free"
-    metadata = state["metadata"]
-    pid = f", pid={metadata['pid']}" if metadata else ", legacy/unknown metadata"
-    return f"Heavy lane: owner={state['owner']}{pid}, age={state['age_seconds']}s"
 
 
 class Cancellation:
@@ -169,8 +102,8 @@ class Cancellation:
                         cancelled_at = time.monotonic()
                         self.send_group(self.received)
                     elapsed = time.monotonic() - cancelled_at
-                    # Escalate only our newly created process group. The lane
-                    # stays held until its leader AND descendants have exited.
+                    # Escalate only our newly created process group. The helper
+                    # returns only after its leader AND descendants have exited.
                     if elapsed >= 5 and not termination_sent:
                         self.send_group(signal.SIGTERM)
                         termination_sent = True
@@ -186,73 +119,6 @@ class Cancellation:
         finally:
             if finished:
                 self.child = None
-
-
-class HeavyLane:
-    def __init__(self, path, owner, root):
-        self.path = path
-        self.owner = owner
-        self.metadata = {"schema": 1, "token": uuid.uuid4().hex,
-                         "pid": os.getpid(), "owner": owner,
-                         "started_at": time.time(), "source": str(root)}
-        self.identity = None
-
-    def acquire(self, wait_seconds, cancellation):
-        started = time.monotonic()
-        last_owner = None
-        last_report = started
-        while True:
-            cancellation.check()
-            try:
-                self.path.mkdir()
-            except FileExistsError:
-                state = lock_status(self.path)
-                if state is None:
-                    continue  # Owner released between mkdir and inspection.
-                signature = (state["identity"], state["owner"])
-                now = time.monotonic()
-                if signature != last_owner or now - last_report >= 30:
-                    print(f"{describe_lock(state)}; waited {now - started:.1f}s", flush=True)
-                    last_owner, last_report = signature, now
-                if now - started >= wait_seconds:
-                    raise BuildError(f"Heavy lane remained busy after {now - started:.1f}s; no lock was changed")
-                time.sleep(min(2.0, wait_seconds - (now - started)))
-                continue
-            info = self.path.stat()
-            self.identity = (info.st_dev, info.st_ino)
-            # Signal handlers only record cancellation, so publication finishes.
-            # Unknown/partial locks are never reclaimed by another invocation.
-            with (self.path / "owner").open("x") as stream:
-                stream.write(self.owner + "\n")
-            pending = self.path / (".metadata-" + self.metadata["token"] + ".tmp")
-            with pending.open("x") as stream:
-                json.dump(self.metadata, stream)
-                stream.write("\n")
-            pending.replace(self.path / "metadata.json")
-            print(f"Acquired heavy lane after {time.monotonic() - started:.1f}s", flush=True)
-            return
-
-    def release(self):
-        if self.identity is None:
-            return
-        state = lock_status(self.path)
-        if (state is None or state["identity"] != self.identity
-                or state["metadata"] != self.metadata
-                or state["owner"] != self.owner):
-            raise BuildError("Heavy lock identity changed; refusing to release it")
-        fd = os.open(self.path, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW)
-        try:
-            info = os.fstat(fd)
-            if (info.st_dev, info.st_ino) != self.identity:
-                raise BuildError("Heavy lock identity changed during release")
-            if set(os.listdir(fd)) != {"owner", "metadata.json"}:
-                raise BuildError("Unknown heavy-lock contents; refusing to release it")
-            os.unlink("metadata.json", dir_fd=fd)
-            os.unlink("owner", dir_fd=fd)
-            os.rmdir(self.path)
-            self.identity = None
-        finally:
-            os.close(fd)
 
 
 def presets(root):
@@ -399,7 +265,7 @@ def plan(root, args, env, platform):
             if (shutil.which(tool, path=env.get("PATH")) is None
                     or shutil.which(tool, path=build_env.get("PATH")) is None):
                 raise BuildError(f"Required quiet-build tool is missing: {tool}")
-        prefix = ["taskpolicy", "-b", "nice", "-n", "10"]
+        prefix = ["taskpolicy", *BUILD_MODES[args.mode][2], "nice", "-n", "10"]
     # CMake itself applies the configure preset environment. A --build path
     # (needed for YAZE_BUILD_DIR) requires the inherited build environment here.
     commands = [(prefix + configure_command, env)] if configure_command else []
@@ -424,27 +290,34 @@ def cache_base(root, env):
         return str(root.parent)
 
 
-def main(argv=None, *, root=ROOT, lock_path=LOCK_PATH, platform=None):
+def build_mode(env):
+    path = env.get("OOS_BUILD_MODE_FILE") or Path(env.get("HOME") or Path.home()) / ".config/oos/build_mode"
+    try:
+        mode = Path(path).read_text().strip()
+    except OSError:
+        return "laptop"
+    return mode if mode in BUILD_MODES else "laptop"
+
+
+def main(argv=None, *, root=ROOT, platform=None):
     platform = platform or host_platform.system()
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("targets", nargs="*", default=["yaze"])
     parser.add_argument("--preset", default={"Darwin": "mac-ai", "Linux": "lin-ai"}.get(platform, "win-ai"))
-    parser.add_argument("--jobs", type=int, default=os.environ.get("YAZE_BUILD_JOBS", "2"),
-                        help="workers, 1–4 (default 2; YAZE_BUILD_JOBS overrides)")
-    parser.add_argument("--wait-seconds", type=int, default=600,
-                        help="wait for the heavy lane (0–3600; default 600)")
-    parser.add_argument("--status", action="store_true", help="read heavy-lane owner and age, then exit")
-    parser.add_argument("--dry-run", action="store_true", help="show commands without taking the lane")
+    parser.add_argument("--jobs", type=int,
+                        help="workers (desk mode: default/max 8; laptop or unset: default 2, max 4; "
+                             "YAZE_BUILD_JOBS overrides the default)")
+    parser.add_argument("--dry-run", action="store_true", help="show commands without running them")
     parser.add_argument("--fresh", action="store_true", help="explicitly reconfigure with cmake --fresh")
     args = parser.parse_args(argv)
     try:
-        if args.status:
-            print(describe_lock(lock_status(lock_path)))
-            return 0
-        if not 1 <= args.jobs <= 4:
-            raise BuildError("Agent build jobs must be between 1 and 4 (default 2)")
-        if not 0 <= args.wait_seconds <= 3600:
-            raise BuildError("Wait must be between 0 and 3600 seconds")
+        args.mode = build_mode(os.environ)
+        default_jobs, max_jobs, _ = BUILD_MODES[args.mode]
+        if args.jobs is None:
+            args.jobs = int(os.environ.get("YAZE_BUILD_JOBS") or default_jobs)
+        if not 1 <= args.jobs <= max_jobs:
+            raise BuildError(f"Agent build jobs must be between 1 and {max_jobs} in {args.mode} mode "
+                             f"(default {default_jobs})")
         for target in args.targets:
             if (not re.fullmatch(r"[A-Za-z0-9_.:+-]+", target)
                     or re.match(r"^(all|test|install|package|clean|rebuild_cache|edit_cache)(?:$|[-_:])", target)):
@@ -456,39 +329,22 @@ def main(argv=None, *, root=ROOT, lock_path=LOCK_PATH, platform=None):
         env["CMAKE_BUILD_PARALLEL_LEVEL"] = str(args.jobs)
         env["CCACHE_BASEDIR"] = cache_base(root, env)
         commands = plan(root, args, env, platform)
-        print(f"Source: {root}\nPreset: {args.preset}\nJobs: {args.jobs}\n"
+        print(f"Source: {root}\nPreset: {args.preset}\nBuild mode: {args.mode}\nJobs: {args.jobs}\n"
               f"CCACHE_BASEDIR: {env['CCACHE_BASEDIR']}", flush=True)
         if args.dry_run:
-            if platform == "Darwin":
-                print(describe_lock(lock_status(lock_path)))
             for command, _ in commands:
                 print("[dry-run] " + shlex.join(command))
             return 0
-        owner = env.get("YAZE_BUILD_OWNER", f"yaze-agent-build-{os.getpid()}")
-        if not owner.strip() or owner != owner.strip() or len(owner) > 512 or "\n" in owner or "\r" in owner:
-            raise BuildError("YAZE_BUILD_OWNER must be one nonempty line of at most 512 characters")
-        lane = HeavyLane(lock_path, owner, root) if platform == "Darwin" else None
         with Cancellation() as cancellation:
-            try:
-                if lane:
-                    lane.acquire(args.wait_seconds, cancellation)
-                cancellation.check()
-                # Revalidate source/config after waiting for another owner.
-                commands = plan(root, args, env, platform)
-                for command, command_env in commands:
-                    result = cancellation.run(command, root, command_env)
-                    if result:
-                        return result
-                    if "--preset" in command:
-                        args.fresh = False
-                        if len(plan(root, args, env, platform)) != 1:
-                            raise BuildError("Configure did not create a valid build cache")
-                return 0
-            finally:
-                if lane and cancellation.child is None:
-                    lane.release()
-                elif lane:
-                    print("Build process group exit is unconfirmed; retaining own lock", file=sys.stderr)
+            for command, command_env in commands:
+                result = cancellation.run(command, root, command_env)
+                if result:
+                    return result
+                if "--preset" in command:
+                    args.fresh = False
+                    if len(plan(root, args, env, platform)) != 1:
+                        raise BuildError("Configure did not create a valid build cache")
+            return 0
     except (BuildError, OSError, ValueError, KeyError, TypeError, subprocess.SubprocessError) as error:
         print(f"agent_build: {error}", file=sys.stderr)
         return 2

@@ -184,8 +184,9 @@ assert_missing_binary_help z3ed \
 assert_missing_binary_help yaze_test \
     "cmake --build build_ai --target yaze_test --parallel 4"
 
-# The agent entrypoint uses a quiet two-worker default and refuses >4.
-# Its fake-command tests also cover cache identity and temporary lock lifecycle.
+# The agent entrypoint sizes jobs from the host build mode (laptop: 2, max 4;
+# desk: 8, max 8) and never takes the native heavy lock. Its fake-command tests
+# also cover cache identity and process-group cancellation.
 PYTHONDONTWRITEBYTECODE=1 python3 "$ROOT_DIR/scripts/agents/tests/test_agent_build.py"
 
 run_tests_helper() {

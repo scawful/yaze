@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Quiet-build regressions using fake commands and disposable lock directories."""
+"""Quiet-build regressions using fake commands and a disposable build-mode file."""
 
 import contextlib
 import importlib.util
@@ -11,7 +11,6 @@ import signal
 import subprocess
 import sys
 import tempfile
-import threading
 import time
 from types import SimpleNamespace
 import unittest
@@ -66,7 +65,7 @@ class AgentBuildTest(unittest.TestCase):
         self.directory = Path(self.tmp.name).resolve()
         self.root = self.directory / "repo"
         self.root.mkdir()
-        self.lock = self.directory / "heavy.lock"
+        self.mode_file = self.directory / "build_mode"
         self.log = self.directory / "calls.jsonl"
         self.bin = self.directory / "bin"
         self.bin.mkdir()
@@ -81,10 +80,12 @@ class AgentBuildTest(unittest.TestCase):
         }
         (self.root / "CMakePresets.json").write_text(json.dumps(data))
         self.command("cmake", FAKE_CMAKE)
-        self.command("taskpolicy", "import os,sys\nos.execvp(sys.argv[2], sys.argv[2:])\n")
+        self.command("taskpolicy", "import os,sys\nskip = 3 if sys.argv[1] == '-c' else 2\n"
+                                   "os.execvp(sys.argv[skip], sys.argv[skip:])\n")
         self.command("nice", "import os,sys\nos.execvp(sys.argv[3], sys.argv[3:])\n")
         self.env = {"PATH": str(self.bin) + os.pathsep + os.defpath,
-                    "FAKE_LOG": str(self.log), "PYTHONDONTWRITEBYTECODE": "1"}
+                    "FAKE_LOG": str(self.log), "PYTHONDONTWRITEBYTECODE": "1",
+                    "OOS_BUILD_MODE_FILE": str(self.mode_file)}
 
     def command(self, name, code):
         path = self.bin / name
@@ -102,7 +103,7 @@ class AgentBuildTest(unittest.TestCase):
         output = io.StringIO()
         with mock.patch.dict(os.environ, {**self.env, **(extra_env or {})}, clear=True), \
                 contextlib.redirect_stdout(output), contextlib.redirect_stderr(output):
-            result = build.main(list(args), root=self.root, lock_path=self.lock, platform="Darwin")
+            result = build.main(list(args), root=self.root, platform="Darwin")
         return result, output.getvalue()
 
     def calls(self):
@@ -117,7 +118,10 @@ class AgentBuildTest(unittest.TestCase):
         self.assertEqual(calls[1]["base"], str(self.root.parent))
         self.assertEqual([call["jobs"] for call in calls], ["2", "2"])
         self.assertIn("taskpolicy -b nice -n 10", output)
-        self.assertFalse(self.lock.exists())
+        self.assertIn("Build mode: laptop", output)
+
+    def test_builds_never_take_the_native_heavy_lock(self):
+        self.assertNotIn("oos-heavy.lock", MODULE_PATH.read_text())
 
     def test_warm_cache_builds_only_once_without_configure(self):
         self.cache()
@@ -155,13 +159,12 @@ class AgentBuildTest(unittest.TestCase):
         self.assertEqual(result, 2, output)
         self.assertEqual(len(self.calls()), before)
 
-    def test_foreign_source_and_wrong_config_fail_before_lock(self):
+    def test_foreign_source_and_wrong_config_fail_before_build(self):
         for root, config in ((self.directory / "foreign", "Debug"), (self.root, "Release")):
             with self.subTest(root=root, config=config):
                 self.cache(root=root, config=config)
                 result, output = self.invoke()
                 self.assertEqual(result, 2, output)
-                self.assertFalse(self.lock.exists())
                 self.assertFalse(self.calls())
 
     def test_nonempty_directory_without_cache_is_not_reconfigured(self):
@@ -182,121 +185,39 @@ class AgentBuildTest(unittest.TestCase):
         result, output = self.invoke("--dry-run", "--jobs", "4", extra_env={"YAZE_BUILD_JOBS": "3"})
         self.assertEqual(result, 0, output)
         self.assertIn("--parallel 4", output)
-        for jobs in ("0", "6", "7"):
+        for jobs in ("0", "5", "8"):
             result, output = self.invoke(extra_env={"YAZE_BUILD_JOBS": jobs})
             self.assertEqual(result, 2, output)
         self.assertFalse(self.calls())
 
-    def test_status_and_dry_run_do_not_modify_legacy_lock(self):
+    def test_desk_mode_raises_default_and_maximum_and_allows_p_cores(self):
         self.cache()
-        self.lock.mkdir()
-        owner = self.lock / "owner"
-        owner.write_text("other-agent\n")
-        before = owner.stat()
-        for args in (("--status",), ("--dry-run",)):
-            result, output = self.invoke(*args)
-            self.assertEqual(result, 0, output)
-            self.assertIn("owner=other-agent", output)
-        self.assertEqual(owner.stat().st_mtime_ns, before.st_mtime_ns)
-        self.assertEqual(owner.read_text(), "other-agent\n")
-        self.assertFalse(self.calls())
-
-    def test_legacy_lock_timeout_never_removes_owner(self):
-        self.cache()
-        self.lock.mkdir()
-        (self.lock / "owner").write_text("foreign\n")
-        result, output = self.invoke("--wait-seconds", "0")
-        self.assertEqual(result, 2, output)
-        self.assertEqual((self.lock / "owner").read_text(), "foreign\n")
-        self.assertFalse(self.calls())
-
-    def test_wait_acquires_only_after_test_owner_releases(self):
-        self.cache()
-        self.lock.mkdir()
-        (self.lock / "owner").write_text("test-owner\n")
-        def release():
-            time.sleep(.1)
-            (self.lock / "owner").unlink()
-            self.lock.rmdir()
-        thread = threading.Thread(target=release)
-        thread.start()
-        try:
-            result, output = self.invoke("--wait-seconds", "4")
-        finally:
-            thread.join()
+        self.mode_file.write_text("desk\n")
+        result, output = self.invoke("--dry-run", extra_env={"CMAKE_BUILD_PARALLEL_LEVEL": "4"})
         self.assertEqual(result, 0, output)
-        self.assertFalse(self.lock.exists())
-
-    def test_cache_identity_is_rechecked_after_wait(self):
-        self.cache()
-        self.lock.mkdir()
-        (self.lock / "owner").write_text("test-owner\n")
-        def replace_cache_then_release():
-            time.sleep(.1)
-            self.cache(root=self.directory / "foreign")
-            (self.lock / "owner").unlink()
-            self.lock.rmdir()
-        thread = threading.Thread(target=replace_cache_then_release)
-        thread.start()
-        try:
-            result, output = self.invoke("--wait-seconds", "4")
-        finally:
-            thread.join()
+        self.assertIn("Build mode: desk", output)
+        self.assertIn("--parallel 8", output)
+        self.assertIn("taskpolicy -c utility nice -n 10", output)
+        result, output = self.invoke("--dry-run", extra_env={"YAZE_BUILD_JOBS": "6"})
+        self.assertEqual(result, 0, output)
+        self.assertIn("--parallel 6", output)
+        result, output = self.invoke("--jobs", "9")
         self.assertEqual(result, 2, output)
         self.assertFalse(self.calls())
-        self.assertFalse(self.lock.exists())
 
-    def test_malformed_metadata_and_symlink_lock_refuse(self):
+    def test_unknown_build_mode_falls_back_to_laptop(self):
         self.cache()
-        self.lock.mkdir()
-        (self.lock / "owner").write_text("foreign\n")
-        metadata = self.lock / "metadata.json"
-        for value in ("{", "null", "{}"):
-            metadata.write_text(value)
-            result, output = self.invoke("--wait-seconds", "0")
-            self.assertEqual(result, 2, output)
-            self.assertEqual(metadata.read_text(), value)
-        metadata.unlink()
-        (self.lock / "owner").unlink()
-        self.lock.rmdir()
-        self.lock.symlink_to(self.root, target_is_directory=True)
-        result, output = self.invoke("--wait-seconds", "0")
-        self.assertEqual(result, 2, output)
-        self.assertTrue(self.lock.is_symlink())
-        self.assertFalse(self.calls())
+        self.mode_file.write_text("turbo\n")
+        result, output = self.invoke("--dry-run")
+        self.assertEqual(result, 0, output)
+        self.assertIn("Build mode: laptop", output)
+        self.assertIn("taskpolicy -b nice -n 10", output)
+        self.assertIn("--parallel 2", output)
 
-    def test_changed_ownership_is_not_released(self):
-        lane = build.HeavyLane(self.lock, "test", self.root)
-        lane.acquire(0, build.Cancellation())
-        (self.lock / "owner").write_text("new-owner\n")
-        with self.assertRaises(build.BuildError):
-            lane.release()
-        self.assertTrue(self.lock.exists())
-
-    def test_metadata_publication_is_atomic_for_another_waiter(self):
-        lane = build.HeavyLane(self.lock, "test", self.root)
-        original_dump = json.dump
-        observed = []
-        def paused_dump(value, stream):
-            stream.write('{')
-            stream.flush()
-            observed.append(build.lock_status(self.lock))
-            stream.seek(0)
-            stream.truncate()
-            original_dump(value, stream)
-        with mock.patch.object(build.json, "dump", side_effect=paused_dump):
-            lane.acquire(0, build.Cancellation())
-        self.assertEqual(observed[0]["owner"], "test")
-        self.assertIsNone(observed[0]["metadata"])
-        self.assertEqual(build.lock_status(self.lock)["metadata"], lane.metadata)
-        lane.release()
-        self.assertFalse(self.lock.exists())
-
-    def test_failure_releases_own_lock(self):
+    def test_failure_returns_build_status(self):
         self.cache()
         result, output = self.invoke(extra_env={"FAKE_EXIT": "7"})
         self.assertEqual(result, 7, output)
-        self.assertFalse(self.lock.exists())
 
     def test_group_exit_readback_distinguishes_live_and_terminated_members(self):
         cancellation = build.Cancellation()
@@ -314,7 +235,7 @@ class AgentBuildTest(unittest.TestCase):
             with self.assertRaises(PermissionError):
                 cancellation.send_group(signal.SIGTERM)
 
-    def test_missing_qos_tool_and_action_target_fail_before_lock(self):
+    def test_missing_qos_tool_and_action_target_fail_before_build(self):
         (self.bin / "taskpolicy").unlink()
         with mock.patch.object(build.shutil, "which", return_value=None):
             result, output = self.invoke()
@@ -322,7 +243,6 @@ class AgentBuildTest(unittest.TestCase):
         for target in ("all", "install", "test", "test-fast"):
             result, output = self.invoke(target)
             self.assertEqual(result, 2, output)
-        self.assertFalse(self.lock.exists())
         self.assertFalse(self.calls())
 
     def test_sigint_and_sigterm_wait_for_owned_process_group(self):
@@ -331,7 +251,7 @@ class AgentBuildTest(unittest.TestCase):
             "import importlib.util,sys; from pathlib import Path; "
             f"s=importlib.util.spec_from_file_location('helper',{str(MODULE_PATH)!r}); "
             "m=importlib.util.module_from_spec(s); s.loader.exec_module(m); "
-            f"sys.exit(m.main([],root=Path({str(self.root)!r}),lock_path=Path({str(self.lock)!r}),platform='Darwin'))")
+            f"sys.exit(m.main([],root=Path({str(self.root)!r}),platform='Darwin'))")
         for signum in (signal.SIGINT, signal.SIGTERM):
             with self.subTest(signum=signum):
                 marker = self.directory / f"process-{signum}"
@@ -344,12 +264,10 @@ class AgentBuildTest(unittest.TestCase):
                         time.sleep(.02)
                     self.assertTrue(marker.exists(), "fake build did not start")
                     pids = json.loads(marker.read_text())
-                    self.assertTrue(self.lock.exists())
                     proc.send_signal(signum)
                     output, _ = proc.communicate(timeout=8)
                     self.assertEqual(proc.returncode, 2, output)
                     self.assertTrue(Path(str(marker) + ".reaped").exists())
-                    self.assertFalse(self.lock.exists(), output)
                     for pid in pids:
                         with self.assertRaises(ProcessLookupError):
                             os.kill(pid, 0)
@@ -357,31 +275,6 @@ class AgentBuildTest(unittest.TestCase):
                     if proc.poll() is None:
                         proc.terminate()
                         proc.wait(timeout=15)
-
-    def test_sigterm_while_waiting_preserves_existing_lock(self):
-        self.cache()
-        self.lock.mkdir()
-        (self.lock / "owner").write_text("test-other-owner\n")
-        driver = (
-            "import importlib.util,sys; from pathlib import Path; "
-            f"s=importlib.util.spec_from_file_location('helper',{str(MODULE_PATH)!r}); "
-            "m=importlib.util.module_from_spec(s); s.loader.exec_module(m); "
-            f"sys.exit(m.main(['--wait-seconds','5'],root=Path({str(self.root)!r}),lock_path=Path({str(self.lock)!r}),platform='Darwin'))")
-        proc = subprocess.Popen([sys.executable, "-c", driver], env=self.env,
-                                stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
-        try:
-            while proc.poll() is None:
-                if "owner=test-other-owner" in proc.stdout.readline():
-                    break
-            proc.terminate()
-            output, _ = proc.communicate(timeout=5)
-            self.assertEqual(proc.returncode, 2, output)
-            self.assertEqual((self.lock / "owner").read_text(), "test-other-owner\n")
-            self.assertFalse(self.calls())
-        finally:
-            if proc.poll() is None:
-                proc.terminate()
-                proc.wait(timeout=8)
 
 
 if __name__ == "__main__":

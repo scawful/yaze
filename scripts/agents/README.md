@@ -241,10 +241,11 @@ cmake --build build --parallel 4 --target yaze_test
 ```
 
 ### Parallel Compilation
-Local and agent builds default to four workers to avoid starving interactive
-sessions. Override that limit explicitly when the machine has headroom:
+Local builds default to four workers to avoid starving interactive sessions.
+`agent_build.sh` instead follows `~/.config/oos/build_mode` (desk 8, laptop 2,
+max 4). Override the limit explicitly when the machine has headroom:
 ```bash
-YAZE_BUILD_JOBS=8 ./scripts/agent_build.sh yaze
+YAZE_BUILD_JOBS=4 ./scripts/agent_build.sh yaze
 CMAKE_BUILD_PARALLEL_LEVEL=8 scripts/agents/run-tests.sh mac-dbg
 cmake --build build --target yaze --parallel 8
 ```

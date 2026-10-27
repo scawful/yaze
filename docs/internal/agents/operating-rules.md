@@ -20,7 +20,9 @@ disagrees, this page wins; fix the older page or link here.
    windows, yabai rules and created Space are gone before reporting or handing
    off.
 5. Builds and test batches on the Mac run through `quiet-build -- <command>`
-   (at most 4 jobs; it backs off under load or heat). Rules:
+   (8 jobs in desk mode, 2 in laptop mode, per `~/.config/oos/build_mode`; it
+   backs off under load or heat). Builds never take the native heavy lock
+   `/tmp/oos-heavy.lock`. Rules:
    `~/.context/projects/oracle-of-secrets/scratchpad/board_rules.md`.
 
 ## 2. Agent coordination
