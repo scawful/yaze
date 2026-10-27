@@ -3,6 +3,7 @@
 #include <chrono>
 #include <filesystem>
 #include <fstream>
+#include <iterator>
 
 #include "app/editor/sprite/sprite_authoring.h"
 #include "app/editor/sprite/sprite_graphics_source.h"
@@ -253,8 +254,44 @@ TEST_F(SpriteCatalogSessionTest,
   ASSERT_TRUE(project_.Save().ok());
   editor.ProjectSaveCommitted();
   EXPECT_FALSE(editor.HasPendingSpriteChanges());
+
+  const auto copied_directory = root_ / "copy";
+  ASSERT_TRUE(fs::create_directory(copied_directory));
+  const auto decoy_bin = copied_directory / "sprites.bin";
+  std::vector<uint8_t> decoy_bytes(2048, 0);
+  decoy_bytes[1] = 0x80;  // The destination-relative BIN decodes to pixel 2.
+  {
+    std::ofstream decoy(decoy_bin, std::ios::binary);
+    ASSERT_TRUE(decoy.is_open());
+    decoy.write(reinterpret_cast<const char*>(decoy_bytes.data()),
+                decoy_bytes.size());
+    ASSERT_TRUE(decoy.good());
+  }
+  ASSERT_TRUE(
+      project_.SaveAs((copied_directory / "project.yaze").string()).ok());
+  // History owns its binding snapshots independently of the project model.
+  // Restoring one after Save As must retain the original BIN identity.
+  ASSERT_TRUE(editor.Undo().ok());
+  EXPECT_EQ(editor.current_sprite_binding()->graphics_sources[4].kind, "sheet");
+  ASSERT_TRUE(editor.Redo().ok());
+  const auto& live_source =
+      editor.current_sprite_binding()->graphics_sources[4];
+  EXPECT_EQ(live_source.path, bin.string());
+  auto live_pixels = sprite_graphics_source::Resolve(live_source, 0, nullptr,
+                                                     nullptr, copied_directory);
+  ASSERT_TRUE(live_pixels.ok()) << live_pixels.status();
+  ASSERT_EQ(live_pixels->size(), 4096u);
+  EXPECT_EQ((*live_pixels)[0], 9);
+  EXPECT_EQ((*live_pixels)[1], 0);
+  ASSERT_TRUE(editor.Save().ok());  // Saves the existing named ZSM asset.
+  ASSERT_TRUE(project_.Save().ok());
+  editor.ProjectSaveCommitted();
+  EXPECT_FALSE(editor.HasPendingSpriteChanges());
+
   project::YazeProject reopened;
   ASSERT_TRUE(reopened.Open(project_.filepath).ok());
+  ASSERT_EQ(reopened.sprite_assets.size(), 1u);
+  EXPECT_EQ(reopened.sprite_assets[0].graphics_sources[4].path, bin.string());
   SpriteEditor next;
   deps.project = &reopened;
   next.SetDependencies(deps);
@@ -264,8 +301,8 @@ TEST_F(SpriteCatalogSessionTest,
   EXPECT_EQ(loaded.kind, "bin");
   EXPECT_EQ(loaded.path, bin.string());
   EXPECT_EQ(loaded.bpp, 4);
-  auto pixels =
-      sprite_graphics_source::Resolve(loaded, 0, nullptr, nullptr, root_);
+  auto pixels = sprite_graphics_source::Resolve(loaded, 0, nullptr, nullptr,
+                                                copied_directory);
   ASSERT_TRUE(pixels.ok()) << pixels.status();
   ASSERT_EQ(pixels->size(), 4096u);
   EXPECT_EQ((*pixels)[0], 9);
@@ -273,6 +310,13 @@ TEST_F(SpriteCatalogSessionTest,
   source.offset = 1;
   EXPECT_FALSE(next.SetSpriteGraphicsSource(4, source).ok());
   EXPECT_EQ(next.current_sprite_binding()->graphics_sources[4].offset, 0u);
+  const auto read_bin = [](const fs::path& path) {
+    std::ifstream input(path, std::ios::binary);
+    EXPECT_TRUE(input.is_open());
+    return std::vector<uint8_t>(std::istreambuf_iterator<char>(input), {});
+  };
+  EXPECT_EQ(read_bin(bin), bytes);
+  EXPECT_EQ(read_bin(decoy_bin), decoy_bytes);
 }
 
 TEST_F(SpriteCatalogSessionTest, GraphicsSourceSchemaRejectsMalformedRanges) {
