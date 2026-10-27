@@ -5,6 +5,7 @@
 #include <fstream>
 #include <iterator>
 #include <memory>
+#include <optional>
 #include <string>
 #include <system_error>
 
@@ -15,9 +16,13 @@
 #include "app/gfx/backend/irenderer.h"
 #include "app/gfx/backend/null_renderer.h"
 #include "app/platform/null_window_backend.h"
+#include "core/features.h"
+#include "core/rom_settings.h"
 #include "editor_test_support.h"
 #include "imgui/imgui.h"
 #include "imgui/imgui_internal.h"
+#include "zelda3/dungeon/custom_object.h"
+#include "zelda3/dungeon/draw_routines/draw_routine_registry.h"
 #include "zelda3/resource_labels.h"
 
 namespace yaze {
@@ -99,6 +104,13 @@ class EditorManagerTest : public ::testing::Test {
 class EditorManagerSpriteLifecycleTest : public EditorManagerTest {
  protected:
   void SetUp() override {
+    saved_flags_ = core::FeatureFlags::get();
+    saved_addresses_ = core::RomSettings::Get().address_overrides();
+    auto& custom = zelda3::CustomObjectManager::Get();
+    saved_custom_context_ = custom.active_runtime_context_id();
+    saved_custom_state_ = custom.SnapshotState();
+    saved_labels_ = zelda3::GetResourceLabels().SnapshotState();
+    previous_imgui_ = ImGui::GetCurrentContext();
     EditorManagerTest::SetUp();
     ::yaze::test::InitializeWithIsolatedSettings(*editor_manager_,
                                                  renderer_.get());
@@ -135,6 +147,19 @@ class EditorManagerSpriteLifecycleTest : public EditorManagerTest {
 
   void TearDown() override {
     EditorManagerTest::TearDown();
+    core::FeatureFlags::get() = saved_flags_;
+    zelda3::DrawRoutineRegistry::Get().RefreshFeatureFlagMappings();
+    core::RomSettings::Get().SetAddressOverrides(saved_addresses_);
+    auto& custom = zelda3::CustomObjectManager::Get();
+    if (saved_custom_context_) {
+      custom.ActivateRuntimeContext(*saved_custom_context_,
+                                    saved_custom_state_);
+    } else {
+      custom.ActivateStandaloneContext();
+      custom.RestoreState(saved_custom_state_);
+    }
+    zelda3::GetResourceLabels().RestoreState(saved_labels_);
+    ImGui::SetCurrentContext(previous_imgui_);
     std::error_code error;
     std::filesystem::remove_all(directory_, error);
   }
@@ -151,6 +176,12 @@ class EditorManagerSpriteLifecycleTest : public EditorManagerTest {
     return reopened.editor.Frames.size();
   }
 
+  core::FeatureFlags::Flags saved_flags_{};
+  core::RomAddressOverrides saved_addresses_;
+  std::optional<uint64_t> saved_custom_context_;
+  zelda3::CustomObjectManager::State saved_custom_state_;
+  zelda3::ResourceLabelProvider::State saved_labels_;
+  ImGuiContext* previous_imgui_ = nullptr;
   std::filesystem::path directory_;
   std::filesystem::path sprite_path_;
   std::filesystem::path project_path_;
