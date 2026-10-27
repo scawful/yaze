@@ -57,10 +57,17 @@ struct ScopedImGuiContext {
 
 struct ScopedTempDir {
   std::filesystem::path path;
+  bool retain_on_success = false;
   explicit ScopedTempDir(std::filesystem::path p) : path(std::move(p)) {
     std::filesystem::create_directories(path);
   }
   ~ScopedTempDir() {
+    if (retain_on_success && !::testing::Test::HasFailure() &&
+        !::testing::Test::IsSkipped()) {
+      ::testing::Test::RecordProperty("lyra_authoring_retained_root",
+                                      path.string());
+      return;
+    }
     std::error_code ec;
     std::filesystem::remove_all(path, ec);
   }
@@ -712,6 +719,12 @@ TEST(EditorManagerProjectActionsTest,
             immutable_hash);
   EXPECT_EQ(core::ComputeSourceArtifactSha256(ReadFile(immutable_rom)),
             immutable_hash);
+
+  const char* retain = std::getenv("YAZE_LYRA_AUTHORING_RETAIN");
+  if (retain != nullptr && std::string(retain) == "1" &&
+      !::testing::Test::HasFailure() && !::testing::Test::IsSkipped()) {
+    directory.retain_on_success = true;
+  }
 }
 
 TEST(EditorManagerProjectActionsTest,
