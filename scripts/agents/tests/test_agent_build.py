@@ -112,12 +112,29 @@ class AgentBuildTest(unittest.TestCase):
         result, output = self.invoke("yaze", "z3ed")
         self.assertEqual(result, 0, output)
         calls = self.calls()
-        self.assertEqual(calls[0]["args"], ["--preset", "mac-ai", "-B", str(self.cache_dir)])
+        self.assertEqual(calls[0]["args"], ["--preset", "mac-ai", "-DCMAKE_DISABLE_PRECOMPILE_HEADERS=ON",
+                                            "-B", str(self.cache_dir)])
         self.assertEqual(calls[1]["args"], ["--build", str(self.cache_dir), "--config", "Debug", "--target", "yaze", "z3ed", "--parallel", "2"])
         self.assertEqual(calls[1]["base"], str(self.root.parent))
         self.assertEqual([call["jobs"] for call in calls], ["2", "2"])
         self.assertIn("taskpolicy -b nice -n 10", output)
         self.assertFalse(self.lock.exists())
+
+    def test_new_build_can_opt_back_into_precompiled_headers(self):
+        result, output = self.invoke(extra_env={"YAZE_AGENT_PCH": "1"})
+        self.assertEqual(result, 0, output)
+        self.assertEqual(self.calls()[0]["args"], ["--preset", "mac-ai", "-B", str(self.cache_dir)])
+
+    def test_fresh_keeps_the_existing_tree_precompiled_header_choice(self):
+        self.cache()
+        result, output = self.invoke("--fresh")
+        self.assertEqual(result, 0, output)
+        self.assertNotIn("-DCMAKE_DISABLE_PRECOMPILE_HEADERS=ON", self.calls()[0]["args"])
+        with (self.cache_dir / "CMakeCache.txt").open("a") as stream:
+            stream.write("CMAKE_DISABLE_PRECOMPILE_HEADERS:BOOL=ON\n")
+        result, output = self.invoke("--fresh")
+        self.assertEqual(result, 0, output)
+        self.assertIn("-DCMAKE_DISABLE_PRECOMPILE_HEADERS=ON", self.calls()[-2]["args"])
 
     def test_warm_cache_builds_only_once_without_configure(self):
         self.cache()
