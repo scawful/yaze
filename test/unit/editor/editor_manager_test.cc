@@ -3,6 +3,7 @@
 
 #include <filesystem>
 #include <fstream>
+#include <iterator>
 #include <string>
 
 #include "app/editor/editor_manager.h"
@@ -185,6 +186,31 @@ TEST_F(EditorManagerSpriteLifecycleTest,
   ASSERT_TRUE(reopened.Open(project_path_.string()).ok());
   ASSERT_EQ(reopened.sprite_assets.size(), 1);
   EXPECT_EQ(reopened.sprite_assets[0].sheets[4], 9);
+}
+
+TEST_F(EditorManagerSpriteLifecycleTest,
+       AutosaveRetainsUntitledSpriteWithoutWritingNamedAssetsOrOpeningDialogs) {
+  AppendFrame();
+  const auto read = [](const std::filesystem::path& path) {
+    std::ifstream input(path, std::ios::binary);
+    return std::string(std::istreambuf_iterator<char>(input), {});
+  };
+  const auto sprite_before = read(sprite_path_);
+  const auto project_before = read(project_path_);
+  ASSERT_TRUE(sprite_->CreateSpriteAssetFromVanilla(0xA7).ok());
+  const auto untitled_name = sprite_->current_custom_sprite()->sprName;
+  ASSERT_TRUE(sprite_->current_sprite_binding()->zsm_path.empty());
+  const auto status = editor_manager_->AutosaveActiveSession();
+  EXPECT_EQ(status.code(), absl::StatusCode::kFailedPrecondition);
+  EXPECT_NE(status.message().find("Save As"), std::string::npos);
+  EXPECT_EQ(read(sprite_path_), sprite_before);
+  EXPECT_EQ(read(project_path_), project_before);
+  EXPECT_EQ(sprite_->current_custom_sprite()->sprName, untitled_name);
+  EXPECT_TRUE(sprite_->current_sprite_binding()->zsm_path.empty());
+  EXPECT_TRUE(sprite_->HasPendingSpriteChanges());
+  EXPECT_TRUE(EditorManagerLayoutTestPeer::HasPendingWork(*editor_manager_));
+  ASSERT_TRUE(sprite_->OpenSpriteAsset(sprite_path_.string()).ok());
+  EXPECT_EQ(sprite_->current_custom_sprite()->editor.Frames.size(), 2);
 }
 
 TEST_F(EditorManagerSpriteLifecycleTest,

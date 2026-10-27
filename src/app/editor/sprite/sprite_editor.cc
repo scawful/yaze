@@ -171,6 +171,19 @@ void SpriteEditor::HandleEditorShortcuts() {
   }
 }
 
+absl::Status SpriteEditor::SaveForAutosave() {
+  // Inspect every pending document before Save can write any named asset.
+  for (const int index : dirty_sprite_indices_) {
+    if (index < 0 || index >= static_cast<int>(custom_sprite_paths_.size()) ||
+        custom_sprite_paths_[index].empty()) {
+      return absl::FailedPreconditionError(
+          "Autosave paused: untitled sprite assets are retained; use Sprite "
+          "Save As to choose their destinations");
+    }
+  }
+  return Save();
+}
+
 absl::Status SpriteEditor::Save() {
   if (!dirty_sprite_indices_.empty()) {
     CommitUndoTransaction();

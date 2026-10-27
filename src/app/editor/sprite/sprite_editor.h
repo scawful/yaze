@@ -66,6 +66,8 @@ class SpriteEditor : public Editor {
   absl::Status Paste() override;
   absl::Status Find() override { return absl::UnimplementedError("Find"); }
   absl::Status Save() override;
+  // Background saves retain untitled documents instead of opening Save As.
+  absl::Status SaveForAutosave();
   bool HasPendingSpriteChanges() const {
     return !dirty_sprite_indices_.empty() || sprite_bindings_pending_;
   }

@@ -3947,7 +3947,7 @@ bool EditorManager::IsCurrentProjectDirty() const {
           session->editors.HasPendingProjectDraftChanges());
 }
 
-absl::Status EditorManager::SaveActiveProjectEditingWork() {
+absl::Status EditorManager::SaveActiveProjectEditingWork(bool allow_dialogs) {
   if (!session_coordinator_) {
     return absl::FailedPreconditionError("No session coordinator");
   }
@@ -3957,8 +3957,9 @@ absl::Status EditorManager::SaveActiveProjectEditingWork() {
   }
 
   if (session->editors.HasPendingSpriteChanges()) {
-    RETURN_IF_ERROR(
-        session->editors.GetExistingEditor(EditorType::kSprite)->Save());
+    auto* sprite = static_cast<SpriteEditor*>(
+        session->editors.GetExistingEditor(EditorType::kSprite));
+    RETURN_IF_ERROR(allow_dialogs ? sprite->Save() : sprite->SaveForAutosave());
   }
 
   CaptureActiveProjectEditingState();
@@ -4001,7 +4002,7 @@ absl::Status EditorManager::AutosaveActiveSession() {
     return absl::FailedPreconditionError("No session coordinator");
   }
   const size_t session_index = GetCurrentSessionIndex();
-  RETURN_IF_ERROR(SaveActiveProjectEditingWork());
+  RETURN_IF_ERROR(SaveActiveProjectEditingWork(/*allow_dialogs=*/false));
   const auto* session = session_coordinator_->GetActiveRomSession();
   if (session != nullptr && session->backup_restore_pending) {
     return absl::CancelledError(
