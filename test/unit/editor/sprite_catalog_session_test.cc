@@ -25,12 +25,10 @@ class SpriteCatalogSessionTest : public ::testing::Test {
              std::to_string(
                  std::chrono::steady_clock::now().time_since_epoch().count()));
     fs::create_directories(root_ / "source/Sprites/NPCs");
-    const auto fixture = fs::path(__FILE__)
-                             .parent_path()
-                             .parent_path()
-                             .parent_path()
-                             .parent_path() /
-                         "assets/sprite_catalogs/oracle_f0.json";
+    const auto fixture =
+        fs::path(YAZE_TEST_FIXTURE_DIR).parent_path().parent_path() /
+        "assets/sprite_catalogs/oracle_f0.json";
+    ASSERT_TRUE(fs::is_regular_file(fixture)) << fixture;
     fs::copy_file(fixture, root_ / "catalog.json");
     std::ofstream(root_ / "source/Sprites/NPCs/maple.asm")
         << "; fixture\nMapleHandler:\nRTL\n";

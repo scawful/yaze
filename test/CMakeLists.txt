@@ -966,6 +966,9 @@ if(YAZE_BUILD_TESTS)
     endif()
     yaze_add_test_suite(yaze_test_quick_unit_core "quick;fast_unit;fast_unit_core" OFF ${QUICK_UNIT_CORE_TEST_SOURCES})
     yaze_add_test_suite(yaze_test_quick_unit_editor "quick;fast_unit;fast_unit_editor" OFF ${QUICK_UNIT_EDITOR_TEST_SOURCES})
+    target_compile_definitions(yaze_test_quick_unit_editor PRIVATE
+      YAZE_TEST_FIXTURE_DIR="${CMAKE_SOURCE_DIR}/test/fixtures"
+    )
     yaze_add_test_suite(yaze_test_quick_integration "quick;fast_integration" OFF ${QUICK_INTEGRATION_TEST_SOURCES})
   else()
     message(STATUS "Skipping quick test binaries (YAZE_BUILD_QUICK_TESTS=OFF)")
