@@ -285,6 +285,14 @@ TEST_F(GraphicsScratchFileTest, ApplyUsesSessionStoreAndOneUndoStep) {
   data->sheet_store.MarkAllSheetsChanged();
   auto& arena = gfx::Arena::Get();
   const auto* old_owner = arena.gfx_sheets_owner();
+  auto& bitmap = arena.mutable_gfx_sheets()->at(0);
+  auto saved_bitmap = std::move(bitmap);
+  const absl::Cleanup cleanup = [&] {
+    bitmap = std::move(saved_bitmap);
+    arena.set_gfx_sheets_owner(old_owner);
+    arena.ClearTextureQueue();
+  };
+  bitmap.Create(128, 32, 8, std::vector<uint8_t>(4096, 0));
   arena.set_gfx_sheets_owner(data.get());
   AttachSheetStore(state_, data.get());
   GraphicsScratchView view(&state_, &history_, path_.string());
@@ -295,7 +303,6 @@ TEST_F(GraphicsScratchFileTest, ApplyUsesSessionStoreAndOneUndoStep) {
   EXPECT_TRUE(state_.modified_sheets.count(0));
   EXPECT_TRUE(history_.Undo().ok());
   EXPECT_EQ(data->sheet_store.Sheet(0)[0], 0);
-  arena.set_gfx_sheets_owner(old_owner);
 }
 
 }  // namespace
