@@ -3957,6 +3957,11 @@ absl::Status EditorManager::SaveActiveProjectEditingWork(bool allow_dialogs) {
     return absl::FailedPreconditionError("No active ROM session");
   }
 
+  if (auto* graphics = static_cast<GraphicsEditor*>(
+          session->editors.GetExistingEditor(EditorType::kGraphics))) {
+    RETURN_IF_ERROR(graphics->SaveScratchAssets());
+  }
+
   if (session->editors.HasPendingSpriteChanges()) {
     auto* sprite = static_cast<SpriteEditor*>(
         session->editors.GetExistingEditor(EditorType::kSprite));

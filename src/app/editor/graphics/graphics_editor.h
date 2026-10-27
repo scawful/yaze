@@ -117,6 +117,8 @@ class GraphicsEditor : public Editor {
   void Initialize() override;
   absl::Status Load() override;
   absl::Status Save() override;
+  // Detached assets save independently of ROM sheet serialization settings.
+  absl::Status SaveScratchAssets();
   absl::Status Update() override;
   // Cut, Copy and Paste use the system clipboard as PNG (pixel editor).
   /**
@@ -261,6 +263,7 @@ class GraphicsEditor : public Editor {
                              const zelda3::GfxSheetPointerTables&)>
       verify_written_sheet_ = VerifyWrittenSheetPixels;
 
+  friend class EditorManagerLayoutTestPeer;
   friend class GraphicsEditorSaveStoplossTestPeer;
   friend class AuthoringSaveWorkflowTestPeer;
 

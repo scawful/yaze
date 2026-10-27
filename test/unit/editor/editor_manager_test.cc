@@ -10,6 +10,7 @@
 #include <system_error>
 
 #include "app/editor/editor_manager.h"
+#include "app/editor/graphics/graphics_editor.h"
 #include "app/editor/layout/layout_coordinator.h"
 #include "app/editor/registry/content_registry.h"
 #include "app/editor/sprite/sprite_editor.h"
@@ -46,6 +47,13 @@ class EditorManagerLayoutTestPeer {
     auto* session = manager->session_coordinator()->GetActiveRomSession();
     manager->BindProjectContextToSession(session, project);
     manager->RestoreProjectContextForSession(session);
+  }
+
+  static GraphicsScratchView& SetScratchLibrary(
+      GraphicsEditor& editor, const std::filesystem::path& path) {
+    editor.scratch_view_ = std::make_unique<GraphicsScratchView>(
+        &editor.state_, &editor.undo_manager_, path.string());
+    return *editor.scratch_view_;
   }
 
   static bool HasPendingWork(const EditorManager& manager) {
@@ -262,6 +270,47 @@ TEST_F(EditorManagerSpriteLifecycleTest,
   ASSERT_TRUE(editor_manager_->SaveCurrentSession().ok());
   EXPECT_EQ(SavedFrameCount(sprite_path_), 2);
   EXPECT_FALSE(EditorManagerLayoutTestPeer::HasPendingWork(*editor_manager_));
+}
+
+TEST_F(EditorManagerSpriteLifecycleTest,
+       NormalSaveRetriesScratchAssetsWithoutGraphicsSheetSaveOrRom) {
+  core::FeatureFlags::get().kSaveGraphicsSheet = false;
+  session_->feature_flags.kSaveGraphicsSheet = false;
+  ASSERT_FALSE(session_->rom.is_loaded());
+  const auto library_path = directory_ / "pending" / "s.json";
+  const auto bin_path = directory_ / "gfx.bin";
+  {
+    std::ofstream output(bin_path, std::ios::binary);
+    const std::string bytes(1536, '\0');
+    output.write(bytes.data(), bytes.size());
+    ASSERT_TRUE(output.good());
+  }
+  auto* graphics =
+      session_->editors.GetEditorAs<GraphicsEditor>(EditorType::kGraphics);
+  ASSERT_NE(graphics, nullptr);
+  auto& scratch =
+      EditorManagerLayoutTestPeer::SetScratchLibrary(*graphics, library_path);
+  EXPECT_FALSE(scratch.ImportBin(bin_path.string(), 3, 0).ok());
+  ASSERT_TRUE(graphics->HasPendingGraphicsChanges());
+  ASSERT_EQ(scratch.library().assets.size(), 1);
+  EXPECT_FALSE(editor_manager_->SaveCurrentSession().ok());
+  EXPECT_TRUE(graphics->HasPendingGraphicsChanges());
+  EXPECT_TRUE(EditorManagerLayoutTestPeer::HasPendingWork(*editor_manager_));
+  EXPECT_FALSE(std::filesystem::exists(library_path));
+  ASSERT_TRUE(std::filesystem::create_directory(library_path.parent_path()));
+  const auto save = editor_manager_->SaveCurrentSession();
+  ASSERT_TRUE(save.ok()) << save;
+  EXPECT_FALSE(core::FeatureFlags::get().kSaveGraphicsSheet);
+  EXPECT_FALSE(session_->rom.is_loaded());
+  EXPECT_FALSE(graphics->HasPendingGraphicsChanges());
+  EXPECT_FALSE(EditorManagerLayoutTestPeer::HasPendingWork(*editor_manager_));
+  GraphicsEditorState detached_state;
+  UndoManager detached_history;
+  GraphicsScratchView reopened(&detached_state, &detached_history,
+                               library_path.string());
+  ASSERT_EQ(reopened.library().assets.size(), 1);
+  EXPECT_EQ(reopened.library().assets.front().pixels,
+            scratch.library().assets.front().pixels);
 }
 
 TEST_F(EditorManagerSpriteLifecycleTest,

@@ -460,11 +460,15 @@ GraphicsEditor::PrepareGraphicsSave() {
   return prepared;
 }
 
+absl::Status GraphicsEditor::SaveScratchAssets() {
+  if (!scratch_view_)
+    return absl::OkStatus();
+  scratch_view_->FinishGesture();
+  return scratch_view_->Flush();
+}
+
 absl::Status GraphicsEditor::Save() {
-  if (scratch_view_) {
-    scratch_view_->FinishGesture();
-    RETURN_IF_ERROR(scratch_view_->Flush());
-  }
+  RETURN_IF_ERROR(SaveScratchAssets());
   if (state_.selection.is_floating)
     return absl::FailedPreconditionError(
         "Commit or cancel the floating paste in Graphics before saving "
