@@ -2536,6 +2536,19 @@ absl::Status ImGuiTestHarnessServiceImpl::ReplayTest(
       break;
     }
 
+    // Preserve the terminal action evidence before a CI expectation failure
+    // stops the replay and replaces its summary with the mismatch message.
+    logs.push_back(absl::StrFormat("  Result: %s", step_message));
+    if (have_execution) {
+      logs.push_back(absl::StrFormat("  Test ID: %s", execution.test_id));
+      logs.push_back(absl::StrFormat(
+          "  Status: %s",
+          ::yaze::test::HarnessStatusToString(execution.status)));
+      for (const auto& failure : execution.assertion_failures) {
+        logs.push_back(absl::StrFormat("  Assertion failure: %s", failure));
+      }
+    }
+
     bool expectations_met = (step_success == step.expect_success);
     std::string expectation_error;
 
@@ -2600,13 +2613,6 @@ absl::Status ImGuiTestHarnessServiceImpl::ReplayTest(
       }
     } else {
       assertion->set_passed(true);
-      logs.push_back(absl::StrFormat("  Result: %s", step_message));
-    }
-
-    if (have_execution && !execution.assertion_failures.empty()) {
-      for (const auto& failure : execution.assertion_failures) {
-        logs.push_back(absl::StrFormat("  Assertion failure: %s", failure));
-      }
     }
 
     if (!overall_success && request->ci_mode()) {

@@ -16,6 +16,7 @@
 #include "app/gui/automation/widget_id_registry.h"
 #include "app/service/imgui_test_harness_service.h"
 #include "app/testing/test_manager.h"
+#include "app/testing/test_script_parser.h"
 #include "imgui/imgui_internal.h"
 #include "protos/imgui_test_harness.pb.h"
 #include "util/file_util.h"
@@ -399,6 +400,69 @@ TEST(ImGuiTestHarnessLogicTest, ReplayTerminalPassOverridesQueuedFailure) {
 
   EXPECT_TRUE(step_success);
   EXPECT_EQ(step_message, "Queued assertion");
+}
+
+TEST(ImGuiTestHarnessLogicTest,
+     CiReplayKeepsTerminalErrorBeforeFirstExpectationFailureStops) {
+  auto& manager = TestManager::Get();
+  HarnessCallbackReset reset(&manager);
+  manager.SetHarnessListener(nullptr);
+  manager.SetFailureScreenshotRequester({});
+  const auto root =
+      std::filesystem::temp_directory_path() /
+      ("yaze-replay-failure-" +
+       std::to_string(
+           std::chrono::steady_clock::now().time_since_epoch().count()));
+  struct Cleanup {
+    std::filesystem::path root;
+    ~Cleanup() {
+      std::error_code error;
+      std::filesystem::remove_all(root, error);
+    }
+  } cleanup{root};
+
+  TestScript script;
+  TestScriptStep step;
+  step.action = "assert";
+  step.condition = "value_equals:42";
+  step.expect_success = true;
+  step.expect_status = "passed";
+  script.steps = {step, step};
+  const auto script_path = (root / "first-failure.json").string();
+  ASSERT_TRUE(TestScriptParser::WriteToFile(script, script_path).ok());
+  ImGuiTestHarnessServiceImpl service(&manager);
+  ReplayTestRequest request;
+  request.set_script_path(script_path);
+  request.set_ci_mode(true);
+  ReplayTestResponse response;
+
+  ASSERT_TRUE(service.ReplayTest(&request, &response).ok());
+
+  EXPECT_FALSE(response.success());
+  EXPECT_EQ(response.steps_executed(), 1);
+  ASSERT_EQ(response.assertions_size(), 1);
+  EXPECT_EQ(response.assertions(0).description(), "Step 1 (assert)");
+  EXPECT_FALSE(response.assertions(0).passed());
+  EXPECT_EQ(response.assertions(0).expected_value(), "passed");
+  EXPECT_EQ(response.assertions(0).actual_value(), "failed");
+  EXPECT_NE(response.message().find("Expected success=true but got false"),
+            std::string::npos);
+  const auto has_log = [&](const std::string& expected) {
+    return std::find(response.logs().begin(), response.logs().end(),
+                     expected) != response.logs().end();
+  };
+  EXPECT_TRUE(has_log("Step 1: assert"));
+  EXPECT_TRUE(
+      has_log("  Result: value_equals requires widget_key so the input "
+              "is unambiguous"));
+  EXPECT_TRUE(has_log("  Status: failed"));
+  EXPECT_FALSE(has_log("Step 2: assert"));
+  EXPECT_TRUE(std::any_of(response.logs().begin(), response.logs().end(),
+                          [](const std::string& log) {
+                            return log.find("  Test ID: ") == 0 &&
+                                   log.size() >
+                                       std::string("  Test ID: ").size();
+                          }));
 }
 
 TEST(ImGuiTestHarnessLogicTest,
