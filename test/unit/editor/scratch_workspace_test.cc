@@ -14,6 +14,7 @@
 #include <vector>
 
 #include "app/gfx/resource/arena.h"
+#include "core/source_artifact_publisher.h"
 #include "gtest/gtest.h"
 #include "imgui/imgui.h"
 #include "nlohmann/json.hpp"
@@ -243,9 +244,12 @@ TEST_F(ScratchWorkspaceFileTest, SavesAndReopensMultiplePagesAtomically) {
   ScratchWorkspace reopened;
   ASSERT_TRUE(reopened.Load(path_).ok());
   EXPECT_TRUE(reopened.state() == workspace.state());
-  EXPECT_EQ(std::distance(std::filesystem::directory_iterator(directory_),
-                          std::filesystem::directory_iterator()),
-            1);
+  std::vector<std::filesystem::path> artifacts;
+  for (const auto& entry : std::filesystem::directory_iterator(directory_)) {
+    if (entry.path().filename() != core::kSourceArtifactPublicationLockBasename)
+      artifacts.push_back(entry.path().filename());
+  }
+  EXPECT_EQ(artifacts, (std::vector<std::filesystem::path>{path_.filename()}));
 }
 
 TEST_F(ScratchWorkspaceFileTest, FailedLoadCannotOverwriteRecoveryFile) {
