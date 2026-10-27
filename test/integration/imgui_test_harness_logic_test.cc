@@ -11,14 +11,142 @@
 #include <string>
 #include <thread>
 
+#include "app/editor/system/workspace/panel_host.h"
+#include "app/editor/system/workspace/workspace_window_manager.h"
 #include "app/gui/automation/widget_id_registry.h"
 #include "app/service/imgui_test_harness_service.h"
 #include "app/testing/test_manager.h"
+#include "imgui/imgui_internal.h"
 #include "protos/imgui_test_harness.pb.h"
 #include "util/file_util.h"
 
 namespace yaze::test {
 namespace {
+
+class HarnessWindowFocusTest : public ::testing::Test {
+ protected:
+  void SetUp() override {
+    previous_ = ImGui::GetCurrentContext();
+    context_ = ImGui::CreateContext();
+    auto& io = ImGui::GetIO();
+    io.IniFilename = nullptr;
+    io.LogFilename = nullptr;
+    io.DisplaySize = ImVec2(800, 600);
+    io.DeltaTime = 1.0f / 60.0f;
+    io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+    unsigned char* pixels = nullptr;
+    int width = 0, height = 0;
+    io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
+    windows_.RegisterSession(0);
+    windows_.RegisterSession(1);
+    windows_.SetActiveSession(0);
+    windows_.RegisterWindow(0, "test.focus", "Focus Target", "", "Test");
+    windows_.RegisterWindow(0, "test.other", "Other Target", "", "Test");
+    windows_.RegisterWindow(1, "test.foreign", "Foreign Target", "", "Test");
+    target_ = host_.GetWorkspaceWindowName(0, "test.focus");
+    other_ = host_.GetWorkspaceWindowName(0, "test.other");
+  }
+
+  void TearDown() override {
+    ImGui::DestroyContext(context_);
+    ImGui::SetCurrentContext(previous_);
+  }
+
+  void Frame(bool dock = false) {
+    ImGui::NewFrame();
+    if (dock) {
+      const ImGuiID dock_id = ImHashStr("HarnessWindowFocusDock");
+      ImGui::SetNextWindowPos(ImVec2(0, 0));
+      ImGui::SetNextWindowSize(ImVec2(800, 600));
+      ImGui::Begin("Focus Dock Host", nullptr, ImGuiWindowFlags_NoDocking);
+      if (!docked_) {
+        ImGui::DockBuilderRemoveNode(dock_id);
+        ImGui::DockBuilderAddNode(dock_id, ImGuiDockNodeFlags_DockSpace);
+        ImGui::DockBuilderSetNodeSize(dock_id, ImVec2(800, 600));
+        ImGui::DockBuilderDockWindow(target_.c_str(), dock_id);
+        ImGui::DockBuilderDockWindow(other_.c_str(), dock_id);
+        ImGui::DockBuilderFinish(dock_id);
+        docked_ = true;
+      }
+      ImGui::DockSpace(dock_id);
+      ImGui::End();
+    }
+    for (const auto* name : {&target_, &other_}) {
+      ImGui::Begin(name->c_str());
+      ImGui::TextUnformatted("Window focus regression");
+      ImGui::End();
+    }
+    ImGui::Render();
+  }
+
+  editor::WorkspaceWindowManager windows_;
+  editor::WindowHost host_{&windows_};
+  std::string target_, other_;
+  ImGuiContext* previous_ = nullptr;
+  ImGuiContext* context_ = nullptr;
+  bool docked_ = false;
+};
+
+TEST_F(HarnessWindowFocusTest, FocusesRegisteredWindowThroughNormalHost) {
+  Frame();
+  const auto focused = internal::FocusHarnessWindow(&host_, 0, "test.focus");
+  ASSERT_TRUE(focused.ok()) << focused.status();
+  EXPECT_EQ(*focused, target_);
+  Frame();
+  EXPECT_TRUE(windows_.IsWindowOpen(0, "test.focus"));
+  EXPECT_TRUE(internal::VerifyHarnessWindowFocus(*focused).ok());
+}
+
+TEST_F(HarnessWindowFocusTest, RejectsUnknownEmptyAndForeignSessions) {
+  Frame();
+  EXPECT_TRUE(absl::IsInvalidArgument(
+      internal::FocusHarnessWindow(&host_, 0, "").status()));
+  EXPECT_TRUE(absl::IsNotFound(
+      internal::FocusHarnessWindow(&host_, 0, "unknown").status()));
+  EXPECT_TRUE(absl::IsFailedPrecondition(
+      internal::FocusHarnessWindow(&host_, 1, "test.focus").status()));
+  EXPECT_TRUE(absl::IsFailedPrecondition(
+      internal::FocusHarnessWindow(&host_, 99, "test.focus").status()));
+  const auto* foreign = windows_.GetWindowDescriptor(1, "test.foreign");
+  ASSERT_NE(foreign, nullptr);
+  EXPECT_TRUE(absl::IsNotFound(
+      internal::FocusHarnessWindow(&host_, 0, foreign->card_id).status()));
+  windows_.SetActiveSession(1);
+  EXPECT_TRUE(absl::IsNotFound(
+      internal::FocusHarnessWindow(&host_, 1, "test.focus").status()));
+  EXPECT_FALSE(windows_.IsWindowOpen(0, "test.focus"));
+}
+
+TEST_F(HarnessWindowFocusTest, RejectsUnavailableOrUndrawnWindowBeforeOpening) {
+  EXPECT_TRUE(absl::IsFailedPrecondition(
+      internal::FocusHarnessWindow(nullptr, 0, "test.focus").status()));
+  EXPECT_TRUE(absl::IsFailedPrecondition(
+      internal::FocusHarnessWindow(&host_, 0, "test.focus").status()));
+  EXPECT_FALSE(windows_.IsWindowOpen(0, "test.focus"));
+}
+
+TEST_F(HarnessWindowFocusTest, FocusSelectsTheRequestedDockTab) {
+  Frame(true);
+  Frame(true);
+  ASSERT_TRUE(internal::FocusHarnessWindow(&host_, 0, "test.other").ok());
+  Frame(true);
+  EXPECT_FALSE(internal::VerifyHarnessWindowFocus(target_).ok());
+  const auto focused = internal::FocusHarnessWindow(&host_, 0, "test.focus");
+  ASSERT_TRUE(focused.ok()) << focused.status();
+  Frame(true);
+  Frame(true);
+  ASSERT_NE(ImGui::FindWindowByName(target_.c_str()), nullptr);
+  EXPECT_TRUE(ImGui::FindWindowByName(target_.c_str())->DockTabIsVisible);
+  EXPECT_TRUE(internal::VerifyHarnessWindowFocus(target_).ok());
+}
+
+TEST(ImGuiTestHarnessLogicTest, WindowTargetKeepsStableIdForUiDispatch) {
+  const auto target = internal::ResolveWidgetSelector("window:test.focus", "");
+  ASSERT_TRUE(target.ok()) << target.status();
+  EXPECT_EQ(target->target.type, "window");
+  EXPECT_EQ(target->target.label, "test.focus");
+  EXPECT_EQ(target->imgui_id, 0u);
+}
 
 TEST(ProjectSaveDialogSeamTest, ValidatesSelectionBeforeKeyboardDispatch) {
   EXPECT_TRUE(internal::ValidateProjectSaveAsDestination("").ok());

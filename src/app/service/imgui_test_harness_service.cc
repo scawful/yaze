@@ -27,10 +27,13 @@
 #include "absl/synchronization/mutex.h"
 #include "absl/time/clock.h"
 #include "absl/time/time.h"
+#include "app/editor/system/workspace/panel_host.h"
+#include "app/editor/system/workspace/workspace_window_manager.h"
 #include "app/gui/automation/widget_id_registry.h"
 #include "app/service/screenshot_utils.h"
 #include "app/testing/test_manager.h"
 #include "app/testing/test_script_parser.h"
+#include "imgui/imgui_internal.h"
 #include "protos/imgui_test_harness.grpc.pb.h"
 #include "protos/imgui_test_harness.pb.h"
 #include "util/file_util.h"
@@ -328,6 +331,55 @@ absl::StatusOr<internal::ParsedTarget> ParseTargetString(
 }  // namespace
 
 namespace internal {
+
+absl::StatusOr<std::string> FocusHarnessWindow(editor::WindowHost* host,
+                                               size_t session_id,
+                                               absl::string_view window_id) {
+  if (window_id.empty() || window_id.find('\0') != absl::string_view::npos) {
+    return absl::InvalidArgumentError(
+        "Window target requires a nonempty base ID");
+  }
+  if (!host || !host->window_manager() || !ImGui::GetCurrentContext()) {
+    return absl::FailedPreconditionError(
+        "Window host/UI context is unavailable");
+  }
+  auto* windows = host->window_manager();
+  if (windows->GetActiveSessionId() != session_id) {
+    return absl::FailedPreconditionError("Window target session is not active");
+  }
+  const std::string id = host->ResolveWindowId(std::string(window_id));
+  const auto session_windows = windows->GetWindowsInSession(session_id);
+  if (std::find(session_windows.begin(), session_windows.end(), id) ==
+          session_windows.end() ||
+      !windows->GetWindowDescriptor(session_id, id)) {
+    return absl::NotFoundError("Unknown window ID in the active session: " +
+                               id);
+  }
+  const std::string name = host->GetWorkspaceWindowName(session_id, id);
+  if (name.empty() || !ImGui::FindWindowByName(name.c_str())) {
+    return absl::FailedPreconditionError(
+        "Registered window has not been drawn");
+  }
+  if (!host->OpenAndFocusWindow(session_id, id)) {
+    return absl::FailedPreconditionError("Window host refused to open/focus: " +
+                                         id);
+  }
+  return name;
+}
+
+absl::Status VerifyHarnessWindowFocus(absl::string_view window_name) {
+  ImGuiContext* context = ImGui::GetCurrentContext();
+  ImGuiWindow* window =
+      context ? ImGui::FindWindowByName(std::string(window_name).c_str())
+              : nullptr;
+  if (!window || !window->Active || window->Hidden ||
+      (window->DockNode && !window->DockTabIsVisible) || !context->NavWindow ||
+      context->NavWindow->RootWindow != window->RootWindow) {
+    return absl::FailedPreconditionError(
+        "Requested window/tab is not focused and visible");
+  }
+  return absl::OkStatus();
+}
 
 absl::Status ValidateProjectSaveAsDestination(const char* destination) {
   namespace fs = std::filesystem;
@@ -906,6 +958,37 @@ absl::Status ImGuiTestHarnessServiceImpl::Click(const ClickRequest* request,
                           mouse_button](ImGuiTestContext* ctx) {
     manager->MarkHarnessTestRunning(captured_id);
     try {
+      if (widget_type == "window") {
+        auto* controller = Application::Instance().GetController();
+        auto* editor = controller ? controller->editor_manager() : nullptr;
+        if (!editor || !editor->GetCurrentEditorSet()) {
+          manager->MarkHarnessTestCompleted(
+              captured_id, HarnessTestStatus::kFailed,
+              "Window focus requires an active editor session");
+          return;
+        }
+        const auto focused = internal::FocusHarnessWindow(
+            editor->window_host(), editor->GetCurrentSessionId(), widget_label);
+        if (!focused.ok()) {
+          manager->MarkHarnessTestCompleted(
+              captured_id, HarnessTestStatus::kFailed,
+              std::string(focused.status().message()));
+          return;
+        }
+        ctx->Yield(2);
+        const auto verified = internal::VerifyHarnessWindowFocus(*focused);
+        if (!verified.ok() || ctx->IsError()) {
+          manager->MarkHarnessTestCompleted(
+              captured_id, HarnessTestStatus::kFailed,
+              verified.ok() ? "Window focus action failed"
+                            : std::string(verified.message()));
+          return;
+        }
+        manager->MarkHarnessTestCompleted(captured_id,
+                                          HarnessTestStatus::kPassed,
+                                          "Focused window: " + widget_label);
+        return;
+      }
       if (widget_type == "shortcut") {
         ImGuiKeyChord chord = 0;
         std::optional<util::ScopedSaveFileDialogResultForTesting> save_picker;
