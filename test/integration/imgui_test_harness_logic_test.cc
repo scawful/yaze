@@ -851,9 +851,16 @@ TEST_F(RemoteReplayUiPersistenceTest, OrdinaryQueueKeepsItsFocusPolicy) {
   };
   ImGuiTestEngine_QueueTest(manager_.GetUITestEngine(), ordinary,
                             ImGuiTestRunFlags_RunFromGui);
-  const auto rejected = Replay({OpenView()});
-  EXPECT_FALSE(rejected.success());
-  EXPECT_NE(rejected.message().find("ordinary UI tests"), std::string::npos);
+  auto expected_rejection = OpenView();
+  expected_rejection.expect_success = false;
+  expected_rejection.expect_status = "failed";
+  expected_rejection.expect_message = "ordinary UI tests";
+  const auto rejected = Replay({expected_rejection}, /*pause_admission=*/true);
+  ASSERT_TRUE(rejected.success()) << rejected.DebugString();
+  ASSERT_EQ(rejected.assertions_size(), 1) << rejected.DebugString();
+  EXPECT_TRUE(rejected.assertions(0).passed()) << rejected.DebugString();
+  EXPECT_EQ(rejected.assertions(0).actual_value(), "failed")
+      << rejected.DebugString();
   EXPECT_TRUE(FocusRestoration());
 }
 
