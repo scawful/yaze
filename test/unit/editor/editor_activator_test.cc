@@ -164,6 +164,61 @@ TEST(EditorActivatorTest, AppliesValidOverworldMapJumpTargets) {
 }
 
 TEST_F(EditorActivatorLayoutTest,
+       RepeatedMapNavigationKeepsVisibleOverworldActive) {
+  auto* dungeon = editor_set_.GetEditor(EditorType::kDungeon);
+  auto* overworld = editor_set_.GetOverworldEditor();
+  ASSERT_NE(dungeon, nullptr);
+  ASSERT_NE(overworld, nullptr);
+  activator_.SwitchToEditor(EditorType::kDungeon, true);
+  activator_.SwitchToEditor(EditorType::kOverworld, true);
+
+  for (const int map_id : {0x23, 0x7F, 0x7F}) {
+    activator_.JumpToOverworldMap(map_id);
+    EXPECT_TRUE(*overworld->active());
+    EXPECT_EQ(window_manager_.GetActiveCategory(), "Overworld");
+    EXPECT_EQ(overworld->current_map_id(), map_id);
+  }
+}
+
+TEST_F(EditorActivatorLayoutTest,
+       DeferredFreshStartupMapNavigationKeepsExplicitOverworldActive) {
+  auto* dungeon = editor_set_.GetEditor(EditorType::kDungeon);
+  auto* overworld = editor_set_.GetOverworldEditor();
+  ASSERT_NE(dungeon, nullptr);
+  ASSERT_NE(overworld, nullptr);
+  dungeon->set_active(false);
+  overworld->set_active(false);
+  defer_layout_actions_ = true;
+  ImGui::EndFrame();
+
+  // Post-load fallback, explicit --editor, then --map arrive before frame one.
+  activator_.SwitchToEditor(EditorType::kDungeon, true);
+  activator_.SwitchToEditor(EditorType::kOverworld, true);
+  activator_.JumpToOverworldMap(0x7F);
+  const size_t startup_action_count = deferred_layout_actions_.size();
+  ImGui::NewFrame();
+  ASSERT_EQ(startup_action_count, 3u);
+  auto startup_actions = std::move(deferred_layout_actions_);
+  deferred_layout_actions_.clear();
+  for (auto& action : startup_actions) {
+    action();
+  }
+  // Editor activation queued layout work for the following frame as well.
+  auto layout_actions = std::move(deferred_layout_actions_);
+  deferred_layout_actions_.clear();
+  for (auto& action : layout_actions) {
+    action();
+  }
+
+  EXPECT_TRUE(*overworld->active());
+  EXPECT_EQ(window_manager_.GetActiveCategory(), "Overworld");
+  EXPECT_EQ(overworld->current_map_id(), 0x7F);
+  activator_.JumpToOverworldMap(0x7F);
+  EXPECT_TRUE(*overworld->active());
+  EXPECT_EQ(window_manager_.GetActiveCategory(), "Overworld");
+}
+
+TEST_F(EditorActivatorLayoutTest,
        RepeatedDungeonActivationRefreshesLazyDockingForActiveSession) {
   RegisterDungeonPanel(0, LayoutPresets::Panels::kDungeonWorkbench,
                        &session_zero_workbench_visible_);

@@ -374,8 +374,8 @@ void EditorActivator::JumpToOverworldMap(int map_id) {
     return;
   }
 
-  // Switch to overworld editor
-  SwitchToEditor(EditorType::kOverworld);
+  // Navigation activates its destination even when that editor is already open.
+  SwitchToEditor(EditorType::kOverworld, /*force_visible=*/true);
 
   // Use the editor's navigation path so graphics, viewport and hover-follow
   // state agree with the requested map, including startup --map requests.
