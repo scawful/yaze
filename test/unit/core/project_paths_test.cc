@@ -135,6 +135,85 @@ TEST(ProjectPathsTest, LyraTerrainPathIsDistinctAndSurvivesReopen) {
   EXPECT_TRUE(reopened.lyra_terrain_file.empty());
 }
 
+TEST(ProjectPathsTest, LyraBuildRequestKeepsIdentityThroughSaveAsAndReset) {
+  ScopedTempDir temp(MakeUniqueTempDir("yaze_lyra_request_identity"));
+  ScopedTempDir elsewhere(MakeUniqueTempDir("yaze_lyra_request_cwd"));
+  const auto original = temp.path() / "original" / "Oracle.yaze";
+  const auto request = original.parent_path() / "requests" / "native.json";
+  const auto destination = temp.path() / "copy" / "Saved.yaze";
+  const std::string request_bytes = "source-bound request fixture\n";
+  WriteTextFile(request, request_bytes);
+  WriteTextFile(original,
+                "[project]\nname=Lyra request identity\n\n[files]\n"
+                "lyra_build_request_file=requests/native.json\n");
+  std::filesystem::create_directories(destination.parent_path());
+
+  {
+    ScopedCurrentPath current_path(elsewhere.path());
+    YazeProject project;
+    ASSERT_TRUE(project.Open(original.string()).ok());
+    EXPECT_EQ(project.lyra_build_request_file, request.string());
+    ASSERT_TRUE(project.Save().ok());
+    EXPECT_NE(ReadTextFile(original).find(
+                  "lyra_build_request_file=requests/native.json\n"),
+              std::string::npos);
+    ASSERT_TRUE(project.SaveAs(destination.string()).ok());
+    EXPECT_EQ(project.lyra_build_request_file, request.string());
+  }
+
+  EXPECT_NE(
+      ReadTextFile(destination)
+          .find("lyra_build_request_file=../original/requests/native.json\n"),
+      std::string::npos);
+  YazeProject reopened;
+  ASSERT_TRUE(reopened.Open(destination.string()).ok());
+  EXPECT_EQ(reopened.lyra_build_request_file, request.string());
+  EXPECT_EQ(ReadTextFile(request), request_bytes);
+  EXPECT_FALSE(std::filesystem::exists(destination.parent_path() / "requests" /
+                                       "native.json"));
+
+  const auto unrelated = temp.path() / "Unrelated.yaze";
+  WriteTextFile(unrelated, "[project]\nname=No Lyra request\n");
+  ASSERT_TRUE(reopened.Open(unrelated.string()).ok());
+  EXPECT_TRUE(reopened.lyra_build_request_file.empty());
+}
+
+#ifdef YAZE_ENABLE_JSON_PROJECT_FORMAT
+TEST(ProjectPathsTest, JsonLyraBuildRequestSurvivesSaveAsAndReopen) {
+  ScopedTempDir temp(MakeUniqueTempDir("yaze_lyra_request_json"));
+  const auto original = temp.path() / "original" / "Oracle.yaze";
+  const auto request = original.parent_path() / "requests" / "native.json";
+  const auto destination = temp.path() / "copy" / "Saved.yaze";
+  const std::string request_bytes = "source-bound JSON request fixture\n";
+  WriteTextFile(request, request_bytes);
+  WriteTextFile(original, R"json({"yaze_project": {
+    "name": "JSON Lyra request",
+    "lyra_build_request_file": "requests/native.json"
+  }})json");
+  std::filesystem::create_directories(destination.parent_path());
+
+  YazeProject project;
+  ASSERT_TRUE(project.Open(original.string()).ok());
+  EXPECT_EQ(project.lyra_build_request_file, request.string());
+  // The public Save path writes native INI even when Open read JSON.
+  ASSERT_TRUE(project.Save().ok());
+  ASSERT_TRUE(project.SaveAs(destination.string()).ok());
+  YazeProject reopened;
+  ASSERT_TRUE(reopened.Open(destination.string()).ok());
+  EXPECT_EQ(reopened.lyra_build_request_file, request.string());
+  EXPECT_EQ(ReadTextFile(request), request_bytes);
+  EXPECT_FALSE(std::filesystem::exists(destination.parent_path() / "requests" /
+                                       "native.json"));
+
+  const auto unrelated = temp.path() / "Unrelated.yaze";
+  WriteTextFile(
+      unrelated,
+      R"json({"yaze_project": {"name": "No JSON Lyra request"}})json");
+  ASSERT_TRUE(reopened.Open(unrelated.string()).ok());
+  EXPECT_TRUE(reopened.lyra_build_request_file.empty());
+}
+#endif  // YAZE_ENABLE_JSON_PROJECT_FORMAT
+
 TEST(ProjectPathsTest, OracleIdentityRequiresManifestRatherThanProjectName) {
   YazeProject project;
   project.name = "Oracle of Secrets";
@@ -161,10 +240,14 @@ TEST(ProjectPathsTest, LyraSaveAsOwnsUnpublishedTerrainAndPreservesAssetPaths) {
   std::filesystem::create_directories(destination.parent_path());
   const auto rom = original.parent_path() / "private.sfc";
   WriteTextFile(rom, "private ROM");
+  const auto request = original.parent_path() / "requests" / "native.json";
+  const std::string request_bytes = "source-bound request fixture\n";
+  WriteTextFile(request, request_bytes);
   YazeProject project;
   project.name = "Oracle";
   project.filepath = original.string();
   project.rom_filename = rom.string();
+  project.lyra_build_request_file = "requests/native.json";
   ASSERT_TRUE(project.Save().ok());
   const auto original_bytes = ReadTextFile(original);
   // Unsaved first-use project state must reach the copy, not the original.
@@ -183,12 +266,21 @@ TEST(ProjectPathsTest, LyraSaveAsOwnsUnpublishedTerrainAndPreservesAssetPaths) {
   ASSERT_TRUE(status.ok()) << status;
   EXPECT_EQ(project.filepath, destination.string());
   EXPECT_EQ(project.lyra_terrain_file, destination_terrain.string());
+  EXPECT_EQ(project.lyra_build_request_file, request.string());
   EXPECT_EQ(ReadTextFile(original), original_bytes);
+  EXPECT_EQ(ReadTextFile(request), request_bytes);
+  EXPECT_NE(
+      ReadTextFile(destination)
+          .find("lyra_build_request_file=../original/requests/native.json\n"),
+      std::string::npos);
+  EXPECT_FALSE(std::filesystem::exists(destination.parent_path() / "requests" /
+                                       "native.json"));
   EXPECT_FALSE(std::filesystem::exists(original_terrain));
   EXPECT_EQ(ReadTextFile(rom), "private ROM");
   YazeProject reopened;
   ASSERT_TRUE(reopened.Open(destination.string()).ok());
   EXPECT_EQ(reopened.lyra_terrain_file, destination_terrain.string());
+  EXPECT_EQ(reopened.lyra_build_request_file, request.string());
   EXPECT_EQ(reopened.rom_filename, rom.string());
   EXPECT_EQ(reopened.terrain_catalog_file,
             (original.parent_path() / "labels.json").string());
@@ -196,6 +288,47 @@ TEST(ProjectPathsTest, LyraSaveAsOwnsUnpublishedTerrainAndPreservesAssetPaths) {
       ReadTextFile(destination_terrain), profile);
   ASSERT_TRUE(saved.ok()) << saved.status();
   EXPECT_EQ(saved->MapTile(0xBF, 31, 31).value(), 11);
+}
+
+TEST(ProjectPathsTest, LyraSaveAsRefusesDestinationThatIsBuildRequest) {
+  ScopedTempDir temp(MakeUniqueTempDir("yaze_lyra_request_alias"));
+  const auto original = temp.path() / "original" / "Oracle.yaze";
+  const auto terrain = original.parent_path() / "Oracle.lyra-terrain.json";
+  const auto destination = temp.path() / "copy" / "Saved.yaze";
+  auto destination_terrain = destination;
+  destination_terrain.replace_extension(".lyra-terrain.json");
+  const std::string request_bytes =
+      "{\"kind\":\"source-bound request fixture\"}\n";
+  WriteTextFile(destination, request_bytes);
+  YazeProject project;
+  project.name = "Oracle";
+  project.filepath = original.string();
+  project.lyra_build_request_file = destination.string();
+  ASSERT_TRUE(project.Save().ok());
+  const auto original_bytes = ReadTextFile(original);
+  project.lyra_terrain_file = terrain.string();
+  core::LyraTerrainProfile profile;
+  profile.tile_count = 4096;
+  profile.tile16_definition_fingerprint = "definitions:fixture";
+  profile.graphics_fingerprint = "graphics:fixture";
+  profile.palette_fingerprint = "palette:fixture";
+  profile.animation_fingerprint = "animation:fixture";
+  auto document = core::LyraTerrainDocument::Create(profile, 11);
+  ASSERT_TRUE(document.ok()) << document.status();
+  const auto document_before = document->Serialize();
+
+  const auto status = project.SaveAsWithLyraTerrain(destination.string(),
+                                                    *document, std::nullopt);
+
+  EXPECT_EQ(status.code(), absl::StatusCode::kInvalidArgument) << status;
+  EXPECT_EQ(project.filepath, original.string());
+  EXPECT_EQ(project.lyra_terrain_file, terrain.string());
+  EXPECT_EQ(project.lyra_build_request_file, destination.string());
+  EXPECT_EQ(ReadTextFile(original), original_bytes);
+  EXPECT_EQ(ReadTextFile(destination), request_bytes);
+  EXPECT_EQ(document->Serialize(), document_before);
+  EXPECT_FALSE(std::filesystem::exists(terrain));
+  EXPECT_FALSE(std::filesystem::exists(destination_terrain));
 }
 
 TEST(ProjectPathsTest,

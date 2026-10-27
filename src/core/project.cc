@@ -817,6 +817,9 @@ absl::Status YazeProject::SaveAsWithLyraTerrain(
   if (!candidate.rom_filename.empty()) {
     read_only_targets.push_back(candidate.rom_filename);
   }
+  if (!candidate.lyra_build_request_file.empty()) {
+    read_only_targets.push_back(candidate.lyra_build_request_file);
+  }
   ASSIGN_OR_RETURN(
       auto lock,
       core::AcquireSourceArtifactPublicationLock(
@@ -1177,6 +1180,8 @@ absl::StatusOr<std::string> YazeProject::SerializeToString() const {
        << GetRelativePath(GetAbsolutePath(terrain_catalog_file)) << "\n";
   file << "lyra_terrain_file="
        << GetRelativePath(GetAbsolutePath(lyra_terrain_file)) << "\n";
+  file << "lyra_build_request_file="
+       << GetRelativePath(GetAbsolutePath(lyra_build_request_file)) << "\n";
   file << "hack_manifest_file=" << GetRelativePath(hack_manifest_file) << "\n";
   file << "sprite_catalog_file="
        << GetRelativePath(GetAbsolutePath(sprite_catalog_file)) << "\n";
@@ -1516,6 +1521,7 @@ absl::Status YazeProject::ParseFromString(const std::string& content) {
   sprite_assets.clear();
   terrain_catalog_file.clear();
   lyra_terrain_file.clear();
+  lyra_build_request_file.clear();
   palette_catalog_file.clear();
   dungeon_tile_patterns.clear();
   file_passthrough = ProjectFilePassthrough{};
@@ -1623,6 +1629,8 @@ absl::Status YazeProject::ParseFromString(const std::string& content) {
         terrain_catalog_file = value;
       else if (key == "lyra_terrain_file")
         lyra_terrain_file = value;
+      else if (key == "lyra_build_request_file")
+        lyra_build_request_file = value;
       else if (key == "hack_manifest_file")
         hack_manifest_file = value;
       else if (key == "sprite_catalog_file")
@@ -2227,6 +2235,7 @@ void YazeProject::NormalizePathsToAbsolute() {
   normalize(&dungeon_tile_patterns);
   normalize(&terrain_catalog_file);
   normalize(&lyra_terrain_file);
+  normalize(&lyra_build_request_file);
   normalize(&palette_catalog_file);
   for (auto& asset : sprite_assets)
     normalize(&asset.zsm_path);
@@ -2604,6 +2613,7 @@ void YazeProject::InitializeDefaults() {
   sprite_assets.clear();
   terrain_catalog_file.clear();
   lyra_terrain_file.clear();
+  lyra_build_request_file.clear();
   palette_catalog_file.clear();
   dungeon_tile_patterns.clear();
   if (metadata.project_id.empty()) {
@@ -3250,6 +3260,7 @@ absl::Status YazeProject::LoadFromJsonFormat(const std::string& project_path) {
   feature_flags.kSaveWithChangeQueue = false;
   terrain_catalog_file.clear();
   lyra_terrain_file.clear();
+  lyra_build_request_file.clear();
   palette_catalog_file.clear();
   dungeon_tile_patterns.clear();
 #ifdef __EMSCRIPTEN__
@@ -3263,7 +3274,7 @@ absl::Status YazeProject::LoadFromJsonFormat(const std::string& project_path) {
   }
 
   try {
-    json j;
+    Json j;
     file >> j;
 
     sprite_catalog_file.clear();
@@ -3313,6 +3324,9 @@ absl::Status YazeProject::LoadFromJsonFormat(const std::string& project_path) {
         terrain_catalog_file = proj["terrain_catalog_file"].get<std::string>();
       if (proj.contains("lyra_terrain_file"))
         lyra_terrain_file = proj["lyra_terrain_file"].get<std::string>();
+      if (proj.contains("lyra_build_request_file"))
+        lyra_build_request_file =
+            proj["lyra_build_request_file"].get<std::string>();
       if (proj.contains("hack_manifest_file"))
         hack_manifest_file = proj["hack_manifest_file"].get<std::string>();
       if (proj.contains("sprite_catalog_file"))
@@ -3575,7 +3589,7 @@ absl::Status YazeProject::LoadFromJsonFormat(const std::string& project_path) {
     }
 
     return absl::OkStatus();
-  } catch (const json::exception& e) {
+  } catch (const Json::exception& e) {
     return absl::InvalidArgumentError(
         absl::StrFormat("JSON parse error: %s", e.what()));
   }
@@ -3586,7 +3600,7 @@ absl::Status YazeProject::SaveToJsonFormat() {
   return absl::UnimplementedError(
       "JSON project format saving is not supported in the web build");
 #endif
-  json j;
+  Json j;
   auto& proj = j["yaze_project"];
 
   // Metadata
@@ -3614,6 +3628,8 @@ absl::Status YazeProject::SaveToJsonFormat() {
       GetRelativePath(GetAbsolutePath(terrain_catalog_file));
   proj["lyra_terrain_file"] =
       GetRelativePath(GetAbsolutePath(lyra_terrain_file));
+  proj["lyra_build_request_file"] =
+      GetRelativePath(GetAbsolutePath(lyra_build_request_file));
   proj["hack_manifest_file"] = hack_manifest_file;
   proj["sprite_catalog_file"] =
       GetRelativePath(GetAbsolutePath(sprite_catalog_file));
