@@ -499,7 +499,13 @@ void SDL2WindowBackend::RenderImGui(gfx::IRenderer* renderer) {
     SDL_Renderer* sdl_renderer =
         static_cast<SDL_Renderer*>(renderer->GetBackendRenderer());
     if (sdl_renderer) {
-      ImGui_ImplSDLRenderer2_RenderDrawData(ImGui::GetDrawData(), sdl_renderer);
+      // The SDL_Renderer backend scales clip rects but not vertices unless the
+      // renderer scale is set; SDL then scales both and the backend skips it.
+      ImDrawData* draw_data = ImGui::GetDrawData();
+      SDL_RenderSetScale(sdl_renderer, draw_data->FramebufferScale.x,
+                         draw_data->FramebufferScale.y);
+      ImGui_ImplSDLRenderer2_RenderDrawData(draw_data, sdl_renderer);
+      SDL_RenderSetScale(sdl_renderer, 1.0f, 1.0f);
     }
   }
 
