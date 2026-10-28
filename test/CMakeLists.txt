@@ -718,6 +718,7 @@ if(YAZE_BUILD_TESTS)
     integration/palette_manager_test.cc
     integration/object_selection_integration_test.cc
     integration/interaction_delegation_test.cc
+    integration/save_reopen_e2e_test.cc
   )
   # rom_debug_agent.cc is only compiled with YAZE_ENABLE_REMOTE_AUTOMATION, and
   # its header pulls in app/service/emulator_service_impl.h, which needs the
@@ -897,6 +898,14 @@ if(YAZE_BUILD_TESTS)
         YAZE_SCREENSHOT_TEST_HAS_PNG=1
       )
     endif()
+  endif()
+  # save_reopen_e2e_test.cc runs z3ed in separate processes to check that a CLI
+  # write persists to disk and reopens.
+  if(TARGET z3ed)
+    add_dependencies(yaze_test_integration z3ed)
+    target_compile_definitions(yaze_test_integration PRIVATE
+      YAZE_TEST_Z3ED_PATH="$<TARGET_FILE:z3ed>"
+    )
   endif()
   if(YAZE_ENABLE_ROM_TESTS)
     target_compile_definitions(yaze_test_integration PRIVATE
