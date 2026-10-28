@@ -38,7 +38,6 @@ This document defines all CMake configuration flags, their interactions, and the
 | `YAZE_ENABLE_LTO` | OFF | Link-time optimization | Increases build time by ~30% |
 | `YAZE_ENABLE_SANITIZERS` | OFF | AddressSanitizer/UBSanitizer | For memory safety debugging |
 | `YAZE_ENABLE_COVERAGE` | OFF | Code coverage tracking | For testing metrics |
-| `YAZE_UNITY_BUILD` | OFF | Unity (Jumbo) builds | May hide include issues |
 
 ### Development & CI Options
 
@@ -109,7 +108,7 @@ YAZE_BUILD_AGENT_UI
 
 YAZE_ENABLE_AGENT_CLI
   ├─ Requires: YAZE_BUILD_CLI OR YAZE_BUILD_Z3ED
-  └─ Requires: ftxui, various CLI handlers
+  └─ Requires: various CLI handlers
 
 YAZE_ENABLE_HTTP_API
   ├─ Requires: YAZE_ENABLE_AGENT_CLI

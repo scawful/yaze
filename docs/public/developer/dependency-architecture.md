@@ -34,7 +34,7 @@ platforms: `mac-dbg`, `mac-ai`, `lin-dbg`, `win-dbg`, etc. The `*-ai` presets en
   every other target.
 - **`yaze_util`**: logging, file I/O, BPS patch helpers, and the legacy flag system. Only depends
   on `yaze_common` plus optional gRPC/Abseil symbols.
-- **Third-party**: SDL2, ImGui, Abseil, yaml-cpp, FTXUI, Asar. They are configured under
+- **Third-party**: SDL2, ImGui, Abseil, yaml-cpp, Asar. They are configured under
   `cmake/dependencies/*.cmake` and linked where needed.
 
 Touching headers in this layer effectively invalidates most of the build. Keep common utilities
@@ -64,7 +64,7 @@ alone. Touching editor UI code does **not** require rebuilding `yaze_emulator`.
 - **`yaze_agent`** (`src/cli/agent`): shared logic behind the CLI and AI workflows. Built whenever
   `YAZE_ENABLE_AGENT_CLI` is enabled (automatically true when `YAZE_BUILD_Z3ED=ON`). When both the CLI and the agent UI are disabled, CMake now emits a lightweight stub target so GUI-only builds don't drag in unnecessary dependencies.
 - **`z3ed` binary** (`src/cli/z3ed.cmake`): links `yaze_agent`, `yaze_zelda3`, `yaze_gfx`, and
-  Abseil/FTXUI.
+  Abseil.
 - **`yaze_core_lib`** (`src/core`): static library that exposes project management helpers and the
   Asar integration. When `YAZE_BUILD_LIB=ON` it can be consumed by external tools.
 - **`yaze_test_support`** (`src/app/test`): harness for the in-editor dashboard and `yaze_test`.

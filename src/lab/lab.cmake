@@ -40,7 +40,7 @@ target_link_libraries(yaze_lab PRIVATE
 )
 
 if(APPLE)
-  target_link_libraries(yaze_lab PUBLIC "-framework Cocoa")
+  target_link_libraries(yaze_lab PRIVATE "-framework Cocoa")
 endif()
 
 message(STATUS "✓ yaze_lab sandbox target configured")

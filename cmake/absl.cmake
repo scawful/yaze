@@ -1,5 +1,5 @@
 # Abseil release to use when fetching from source
-set(YAZE_ABSL_GIT_TAG "20240116.2" CACHE STRING "Abseil release tag used when fetching from source")
+set(YAZE_ABSL_GIT_TAG "${ABSEIL_VERSION}" CACHE STRING "Abseil release tag used when fetching from source")
 
 # Attempt to use the system package unless the build explicitly requests the
 # bundled (fetched) copy or we're on platforms where prebuilt packages are often

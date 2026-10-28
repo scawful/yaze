@@ -2,7 +2,7 @@
 
 ## Overview
 
-The yaze test suite has been reorganized to improve CI performance and developer experience. Optional test suites (ROM-dependent, AI experimental, benchmarks) are now gated OFF by default and only run in nightly CI or when explicitly enabled.
+The yaze test suite has been reorganized to improve CI performance and developer experience. Optional test suites (ROM-dependent, AI experimental) are now gated OFF by default and only run in nightly CI or when explicitly enabled.
 
 ## CMake Options for Test Suites
 
@@ -11,7 +11,6 @@ The yaze test suite has been reorganized to improve CI performance and developer
 | `YAZE_BUILD_TESTS` | ON | Build test executables | All tests |
 | `YAZE_ENABLE_ROM_TESTS` | **OFF** | Enable tests requiring ROM files | ROM-dependent tests |
 | `YAZE_ENABLE_AI_RUNTIME` | **OFF** | Enable AI runtime integration tests | Experimental AI tests |
-| `YAZE_ENABLE_BENCHMARK_TESTS` | **OFF** | Enable performance benchmarks | Benchmark suite |
 | `YAZE_TEST_ROM_VANILLA_PATH` | *(empty)* | Path to vanilla test ROM file | ROM-dependent tests |
 | `YAZE_TEST_ROM_EXPANDED_PATH` | *(empty)* | Path to expanded test ROM file | Expanded ROM tests |
 | `YAZE_TEST_ROM_PATH` | *(legacy)* | Legacy vanilla ROM path | ROM-dependent tests |
@@ -52,7 +51,8 @@ The yaze test suite has been reorganized to improve CI performance and developer
   - Graphics optimization benchmarks
   - Memory pool performance tests
   - Label: `benchmark`
-  - Enable with: `-DYAZE_ENABLE_BENCHMARK_TESTS=ON`
+  - `yaze_test_benchmark` is built whenever `YAZE_BUILD_TESTS=ON`; select it
+    with `ctest -L benchmark`
 
 ## Running Tests
 
@@ -86,8 +86,7 @@ ctest --test-dir build -L experimental
 
 ### With Benchmark Tests
 ```bash
-# Configure with benchmarks enabled
-cmake --preset mac-dbg -DYAZE_ENABLE_BENCHMARK_TESTS=ON
+cmake --preset mac-dbg
 cmake --build build
 ctest --test-dir build -L benchmark
 ```
@@ -98,7 +97,6 @@ ctest --test-dir build -L benchmark
 cmake --preset mac-dbg \
   -DYAZE_ENABLE_ROM_TESTS=ON \
   -DYAZE_ENABLE_AI_RUNTIME=ON \
-  -DYAZE_ENABLE_BENCHMARK_TESTS=ON \
   -DYAZE_TEST_ROM_VANILLA_PATH=~/roms/alttp_vanilla.sfc \
   -DYAZE_TEST_ROM_EXPANDED_PATH=~/roms/oos168.sfc
 cmake --build build
@@ -173,8 +171,7 @@ After: Same command still works, but only runs stable tests by default
 ### To run the same comprehensive suite as before:
 ```bash
 cmake --preset your-preset \
-  -DYAZE_ENABLE_ROM_TESTS=ON \
-  -DYAZE_ENABLE_BENCHMARK_TESTS=ON
+  -DYAZE_ENABLE_ROM_TESTS=ON
 ./build/bin/yaze_test
 ```
 
