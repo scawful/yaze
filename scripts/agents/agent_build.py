@@ -19,6 +19,10 @@ ROOT = Path(__file__).resolve().parents[2]
 # Laptop keeps the explicit restricted policy. Never alter a running build.
 HOST_JOBS = max(1, os.cpu_count() or 1)
 BUILD_MODES = {"desk": (HOST_JOBS, HOST_JOBS, []), "laptop": (2, 4, ["-b"])}
+# Mac builds yield to the Windows build box when the Mac is short on memory
+# or disk (AGENT_STORAGE_HYGIENE: 30 GiB free before allocating a new tree).
+MAC_MAX_SWAP_FRACTION = 0.75
+MAC_MIN_FREE_GIB = 30
 
 
 class BuildError(Exception):
@@ -427,6 +431,37 @@ def build_mode(env):
     return mode if mode in BUILD_MODES else "laptop"
 
 
+def host_pressure(path):
+    """Return (free disk bytes at path, swap used MiB, swap total MiB)."""
+    free = shutil.disk_usage(path).free
+    try:
+        text = subprocess.run(["sysctl", "-n", "vm.swapusage"], text=True,
+                              capture_output=True, check=True).stdout
+        used, total = (float(re.search(rf"{key} = ([\d.]+)M", text).group(1))
+                       for key in ("used", "total"))
+    except (OSError, subprocess.SubprocessError, AttributeError):
+        used = total = 0.0
+    return free, used, total
+
+
+def mac_pressure_check(root, cold, env):
+    if env.get("YAZE_AGENT_BUILD_LOCAL") == "1":
+        return
+    free, used, total = host_pressure(root)
+    reasons = []
+    if total and used / total >= MAC_MAX_SWAP_FRACTION:
+        reasons.append(f"swap {used / 1024:.1f} of {total / 1024:.1f} GiB used")
+    if cold and free < MAC_MIN_FREE_GIB * 2**30:
+        reasons.append(f"{free / 2**30:.0f} GiB free disk for a new build tree "
+                       f"(needs {MAC_MIN_FREE_GIB})")
+    if reasons:
+        raise BuildError(
+            "Mac build refused: " + "; ".join(reasons) + ". Build and test on the Windows box "
+            "instead: scripts/remote/mm-test.sh <branch> [--target T | --filter 'Suite.*'] "
+            "(MM_HOST=eva-02 for the second box). For macOS-only proof, rerun with "
+            "YAZE_AGENT_BUILD_LOCAL=1.")
+
+
 def main(argv=None, *, root=ROOT, platform=None):
     platform = platform or host_platform.system()
     parser = argparse.ArgumentParser(description=__doc__)
@@ -476,6 +511,8 @@ def main(argv=None, *, root=ROOT, platform=None):
             for command, _ in commands:
                 print("[dry-run] " + shlex.join(command))
             return 0
+        if platform == "Darwin":
+            mac_pressure_check(root, len(commands) > 1, env)
         # Lock before configure and hold through build/owned-child cleanup.
         # The sibling lock does not make a cold cache nonempty. Replan after
         # acquiring it, since another writer may have completed meanwhile.

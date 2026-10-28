@@ -88,6 +88,10 @@ class AgentBuildTest(unittest.TestCase):
         self.env = {"PATH": str(self.bin) + os.pathsep + os.defpath,
                     "FAKE_LOG": str(self.log), "PYTHONDONTWRITEBYTECODE": "1",
                     "OOS_BUILD_MODE_FILE": str(self.mode_file)}
+        self.pressure = (500 * 2**30, 0.0, 32768.0)
+        patcher = mock.patch.object(build, "host_pressure", lambda _path: self.pressure)
+        patcher.start()
+        self.addCleanup(patcher.stop)
 
     def command(self, name, code):
         path = self.bin / name
@@ -259,6 +263,36 @@ class AgentBuildTest(unittest.TestCase):
         self.assertEqual(result, 2, output)
         self.assertIn("--allow-new-build", output)
         self.assertFalse(self.calls())
+
+    def test_mac_swap_pressure_refuses_build_and_points_to_windows_box(self):
+        self.cache()
+        self.pressure = (500 * 2**30, 30000.0, 32768.0)
+        result, output = self.invoke()
+        self.assertEqual(result, 2, output)
+        self.assertIn("swap 29.3 of 32.0 GiB used", output)
+        self.assertIn("scripts/remote/mm-test.sh", output)
+        self.assertFalse(self.calls())
+
+    def test_low_disk_refuses_only_a_new_build_tree(self):
+        self.pressure = (20 * 2**30, 0.0, 32768.0)
+        result, output = self.invoke()
+        self.assertEqual(result, 2, output)
+        self.assertIn("20 GiB free disk for a new build tree", output)
+        self.assertFalse(self.calls())
+        self.cache()
+        result, output = self.invoke()
+        self.assertEqual(result, 0, output)
+        self.assertEqual(len(self.calls()), 1)
+
+    def test_local_override_and_preview_ignore_mac_pressure(self):
+        self.cache()
+        self.pressure = (1 * 2**30, 32000.0, 32768.0)
+        result, output = self.invoke("--preflight")
+        self.assertEqual(result, 0, output)
+        self.assertFalse(self.calls())
+        result, output = self.invoke(extra_env={"YAZE_AGENT_BUILD_LOCAL": "1"})
+        self.assertEqual(result, 0, output)
+        self.assertEqual(len(self.calls()), 1)
 
     def test_preflight_reports_cold_cache_without_building(self):
         result, output = self.invoke("--preflight", allow_new_build=False)
