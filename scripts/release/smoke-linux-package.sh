@@ -133,7 +133,9 @@ if [[ "$install_deb" == true ]]; then
     echo "DEB Package must be 'yaze', found '$deb_package'"
     exit 1
   fi
-  expected_deb_version="${expected_version/-/~}"
+  # Bash 5 tilde-expands an unquoted ~ in the replacement text.
+  deb_tilde="~"
+  expected_deb_version="${expected_version/-/$deb_tilde}"
   if [[ "${deb_version#v}" != "$expected_deb_version" ]]; then
     echo "DEB Version mismatch: expected '$expected_deb_version', found '$deb_version'"
     exit 1
