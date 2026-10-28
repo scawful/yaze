@@ -131,6 +131,35 @@ class FontAtlasPanel : public WindowContent {
 };
 
 /**
+ * @brief Load and inspect the project's expanded dialogue source.
+ */
+class ExpandedSourcePanel : public WindowContent {
+ public:
+  using DrawCallback = std::function<void()>;
+
+  explicit ExpandedSourcePanel(DrawCallback draw_callback)
+      : draw_callback_(std::move(draw_callback)) {}
+
+  std::string GetId() const override { return "message.expanded_source"; }
+  std::string GetDisplayName() const override { return "Expanded Source"; }
+  std::string GetIcon() const override { return ICON_MD_LIBRARY_ADD; }
+  std::string GetEditorCategory() const override { return "Message"; }
+  WindowPresentationPolicy GetPresentationPolicy() const override {
+    return WindowPresentationPolicy::OptionalPopOut();
+  }
+  int GetPriority() const override { return 50; }
+
+  void Draw(bool* p_open) override {
+    if (draw_callback_) {
+      draw_callback_();
+    }
+  }
+
+ private:
+  DrawCallback draw_callback_;
+};
+
+/**
  * @brief WindowContent for Dictionary
  */
 class DictionaryPanel : public WindowContent {
