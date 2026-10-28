@@ -385,6 +385,8 @@ class DungeonCanvasViewer {
   absl::Status EditChest(int room_id, size_t index, uint8_t item_id,
                          bool big_chest);
   absl::Status DeleteChest(int room_id, size_t index);
+  absl::Status OpenChestEditor(int room_id, size_t index);
+  void DrawChestEditorPopup();
   DungeonChestEditorState& chest_editor_state() { return chest_editor_state_; }
   void InvalidateConnectedRoomGraph() {
     connected_graph_cache_start_room_id_ = -1;
@@ -980,6 +982,7 @@ class DungeonCanvasViewer {
   std::vector<gui::CanvasMenuItem> BuildSelectionContextMenuItems(
       int room_id, std::optional<zelda3::RoomObject> context_object);
   std::optional<zelda3::RoomObject> GetObjectUnderContextCursor(int room_id);
+  std::optional<size_t> GetObjectIndexUnderContextCursor(int room_id);
   gui::CanvasMenuItem BuildRoomContextMenu(int room_id);
   gui::CanvasMenuItem BuildReportContextMenu(int room_id);
   std::optional<gui::CanvasMenuItem> BuildOpenContextMenu();
@@ -1207,6 +1210,7 @@ class DungeonCanvasViewer {
   ChestEditCallback chest_edit_callback_;
   ChestDeleteCallback chest_delete_callback_;
   DungeonChestEditorState chest_editor_state_;
+  DungeonChestEditDialogState chest_edit_dialog_state_;
   DoorConnectionPreviewCallback door_connection_preview_callback_;
   DoorConnectionApplyCallback door_connection_apply_callback_;
   std::function<void(int, size_t)> door_connection_navigation_callback_;

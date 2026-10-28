@@ -281,8 +281,7 @@ class DungeonEntrancePropertiesUiTest
         [this]() -> const std::deque<int>& { return recent_; }, [](int) {},
         [](bool) {});
     content_->SetNavigationPanels(nullptr, panel_.get());
-    content_->SetRoomInspectorSubTab(
-        DungeonWorkbenchContent::RoomInspectorSubTab::Warps);
+    content_->FocusEntranceBrowser();
 
     auto& flags = core::FeatureFlags::get().dungeon;
     flags.kSaveObjects = false;
@@ -326,7 +325,7 @@ class DungeonEntrancePropertiesUiTest
     ImGui::Begin("EntrancePropertyHost", nullptr,
                  ImGuiWindowFlags_NoSavedSettings);
     if (GetParam() == EntrancePropertyHost::kWorkbench) {
-      DungeonWorkbenchContentTestPeer::DrawRoomInspector(*content_, viewer_);
+      DungeonWorkbenchContentTestPeer::DrawNavigator(*content_, 1080, 1840);
     } else {
       panel_->Draw(nullptr);
     }
@@ -475,6 +474,27 @@ class DungeonEntrancePropertiesUiTest
   std::unique_ptr<DungeonWorkbenchContent> content_;
   std::filesystem::path temp_dir_;
 };
+
+TEST_P(DungeonEntrancePropertiesUiTest,
+       WorkbenchEntranceRailRespectsViewerReadOnlyAndInteractionPolicy) {
+  for (const bool read_only : {true, false}) {
+    viewer_.SetHeaderReadOnly(read_only);
+    viewer_.SetObjectInteractionEnabled(read_only);
+    DrawFrame();
+    DrawFrame();
+    bool found = false;
+    for (const auto& [path, widget] :
+         gui::WidgetIdRegistry::Instance().GetAllWidgets()) {
+      if (widget.label != "RegularRoomId")
+        continue;
+      found = true;
+      EXPECT_EQ(widget.enabled,
+                GetParam() == EntrancePropertyHost::kStandalone);
+    }
+    EXPECT_TRUE(found);
+    EXPECT_FALSE(Peer::Regular(*editor_).dirty());
+  }
+}
 
 TEST_P(DungeonEntrancePropertiesUiTest,
        RegularTypedPropertyIsOneUndoableDirtyTransition) {

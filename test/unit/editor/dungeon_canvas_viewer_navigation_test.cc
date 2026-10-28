@@ -2602,6 +2602,42 @@ TEST(DungeonCanvasViewerContextMenuTest,
 }
 
 TEST(DungeonCanvasViewerContextMenuTest,
+     SelectedChestEditComesBeforeStandardCommands) {
+  ScopedImGuiContext imgui;
+  ImGui::GetIO().MousePos = ImVec2(-1000, -1000);
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+  DungeonRoomStore rooms(&rom);
+  rooms[0].SetLoaded(true);
+  rooms[0].LoadChests();
+  rooms[0].GetChests().push_back({0x24, false});
+  rooms[0].SetTileObjects({zelda3::RoomObject{0xF99, 10, 10, 0x00, 0}});
+  DungeonCanvasViewer viewer(&rom);
+  viewer.SetRooms(&rooms);
+  viewer.object_interaction().SetCurrentRoom(&rooms, 0);
+  viewer.object_interaction().SetSelectedObjects({0});
+  int edits = 0;
+  viewer.SetChestEditCallback([&](int, size_t, uint8_t, bool) {
+    ++edits;
+    return absl::OkStatus();
+  });
+  const auto items = DungeonCanvasViewerTestPeer::SelectionContextMenuItems(
+      viewer, 0, std::nullopt);
+  ASSERT_GE(items.size(), 8u);
+  const std::array<const char*, 8> expected{
+      "Edit Chest...", "Cut",    "Copy",    "Paste",
+      "Duplicate",     "Delete", "Arrange", "Placement"};
+  for (size_t i = 0; i < expected.size(); ++i) {
+    EXPECT_EQ(items[i].label, expected[i]);
+  }
+  ASSERT_TRUE(items.front().enabled_condition());
+  items.front().callback();
+  EXPECT_EQ(edits, 0);
+  viewer.SetHeaderReadOnly(true);
+  EXPECT_FALSE(items.front().enabled_condition());
+}
+
+TEST(DungeonCanvasViewerContextMenuTest,
      SelectedObjectKeepsCommonActionsDirectAndGroupsArrangement) {
   ScopedImGuiContext imgui;
   DungeonRoomStore rooms;

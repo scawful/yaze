@@ -5,6 +5,7 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
+#include "app/editor/dungeon/ui/workbench/dungeon_browser.h"
 
 #include <SDL.h>
 
@@ -71,6 +72,7 @@ class DoorEditorContent : public WindowContent {
   std::function<DungeonCanvasViewer*()> canvas_viewer_provider_;
   DungeonRoomStore* rooms_ = nullptr;
   int current_room_id_ = 0;
+  workbench::DungeonBrowserState browser_state_;
   zelda3::DoorType selected_door_type_ = zelda3::DoorType::NormalDoor;
   bool door_placement_mode_ = false;
   std::function<void(int, size_t)> on_jump_to_reciprocal_door_;

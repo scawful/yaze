@@ -466,6 +466,9 @@ absl::Status DungeonEditorV2::RefreshRomBackedState() {
   if (object_tile_editor_panel_) {
     object_tile_editor_panel_->Close();
   }
+  if (room_matrix_panel_) {
+    room_matrix_panel_->InvalidatePreviewCache();
+  }
   auto prepare_viewer = [this](DungeonCanvasViewer* viewer, int room_id) {
     if (viewer) {
       viewer->RefreshRomBackedState(rom_, game_data_, &rooms_, room_id);
@@ -967,13 +970,6 @@ void DungeonEditorV2::Initialize() {
         });
     workbench_panel_->SetOpenKeyboardShortcutsCallback(
         [window_manager]() { window_manager->TriggerShowShortcuts(); });
-    workbench_panel_->SetOnInspectorSideChanged([this](bool on_left) {
-      if (dependencies_.user_settings) {
-        dependencies_.user_settings->SetDungeonInspectorSide(on_left ? "left"
-                                                                     : "right");
-        dependencies_.user_settings->Save().IgnoreError();
-      }
-    });
     workbench_panel_->SetPitDamageTableProvider(
         [this]() {
           return game_data_ ? &game_data_->pit_damage_table : nullptr;
@@ -1008,8 +1004,9 @@ void DungeonEditorV2::Initialize() {
         });
   }
   if (room_matrix_panel_) {
-    room_matrix_panel_->SetRenderContextCallback(
-        [this](int room_id) { ApplyEntranceRenderContext(room_id); });
+    room_matrix_panel_->SetPreviewEntranceBlocksetResolver([this](int room_id) {
+      return ResolveSelectedEntranceBlocksetForRoom(room_id);
+    });
   }
 
   // Note: RoomGraphicsContent and PaletteEditorContent are registered
@@ -1468,13 +1465,6 @@ absl::Status DungeonEditorV2::Update() {
   ProcessPendingWorkflowMode();
   ProcessPendingStandaloneToolWindow();
   ExpireStaleRoomCanvasDeleteShortcut();
-
-  // Mirror the workbench inspector to the LEFT when user_settings says so.
-  // Persisted across sessions via UserSettings::dungeon_inspector_side.
-  if (workbench_panel_ && dependencies_.user_settings) {
-    workbench_panel_->SetInspectorOnLeft(
-        dependencies_.user_settings->GetDungeonInspectorSide() == "left");
-  }
 
   const auto& theme = AgentUI::GetTheme();
   if (room_window_class_.ClassId == 0) {

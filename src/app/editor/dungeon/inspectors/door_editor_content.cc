@@ -180,7 +180,78 @@ void DoorEditorContent::Draw(bool* /*p_open*/) {
 }
 
 void DoorEditorContent::DrawInWorkbench() {
-  DrawContent(false);
+  gui::AutoWidgetScope scope("Dungeon/DoorEditor");
+  ResolveCanvasViewer();
+  constexpr const char* categories[] = {"All doors", "Room links", "Exits",
+                                        "Key doors"};
+  workbench::DrawDungeonBrowserControls(browser_state_, categories);
+  std::vector<std::pair<int, std::string>> entries;
+  for (auto type : zelda3::GetPlaceableDoorTypes()) {
+    if (browser_state_.category == 1 && !zelda3::IsRoomConnectionDoorType(type))
+      continue;
+    if (browser_state_.category == 2 && !zelda3::IsExitDoorType(type))
+      continue;
+    if (browser_state_.category == 3 &&
+        !(type == zelda3::DoorType::SmallKeyDoor ||
+          type == zelda3::DoorType::BigKeyDoor ||
+          type == zelda3::DoorType::UnopenableBigKeyDoor ||
+          type == zelda3::DoorType::SmallKeyStairsUp ||
+          type == zelda3::DoorType::SmallKeyStairsDown ||
+          type == zelda3::DoorType::SmallKeyStairsUpLower ||
+          type == zelda3::DoorType::SmallKeyStairsDownLower))
+      continue;
+    const int id = static_cast<int>(type);
+    const std::string name(zelda3::GetDoorTypeName(type));
+    if (workbench::DungeonBrowserMatches(browser_state_.search, id, name))
+      entries.emplace_back(id, name);
+  }
+  if (browser_state_.sort == 1)
+    std::stable_sort(entries.begin(), entries.end(),
+                     [](const auto& a, const auto& b) {
+                       return workbench::DungeonBrowserFold(a.second) <
+                              workbench::DungeonBrowserFold(b.second);
+                     });
+  std::array<SDL_Color, 256> colors{};
+  const zelda3::Room* room =
+      rooms_ && current_room_id_ >= 0 &&
+              current_room_id_ < static_cast<int>(rooms_->size())
+          ? &(*rooms_)[current_room_id_]
+          : nullptr;
+  if (room) {
+    const auto& palette = room->rendered_palette();
+    std::copy_n(palette.begin(), std::min(palette.size(), colors.size()),
+                colors.begin());
+  }
+  const bool can_place = CanEditRoom();
+  if (ImGui::BeginChild("##DoorLibrary", ImVec2(0, 0), false)) {
+    ImGui::BeginDisabled(!can_place);
+    for (const auto& [id, name] : entries) {
+      const auto type = static_cast<zelda3::DoorType>(id);
+      ImGui::PushID(id);
+      const bool picked = workbench::DrawDungeonBrowserRow(
+          id, name, selected_door_type_ == type, [&](ImVec2 pos, ImVec2 size) {
+            if (!room)
+              return false;
+            const auto& preview = GetOrCreateDoorPreview(type, *room);
+            return DungeonRenderingHelpers::DrawSpritePreview(
+                ImGui::GetWindowDrawList(), preview.pixels,
+                SDL_Rect{0, 0, preview.width, preview.height}, pos,
+                ImVec2(pos.x + size.x, pos.y + size.y), colors,
+                DungeonRenderingHelpers::kBackgroundBufferTransparentIndex);
+          });
+      gui::AutoRegisterLastItem("selectable",
+                                absl::StrFormat("place_door_%02X", id));
+      if (picked && can_place) {
+        selected_door_type_ = type;
+        canvas_viewer_->object_interaction().SetDoorPlacementMode(true, type);
+      }
+      ImGui::PopID();
+    }
+    ImGui::EndDisabled();
+    if (entries.empty())
+      ImGui::TextDisabled("No matches");
+  }
+  ImGui::EndChild();
 }
 
 bool DoorEditorContent::HasMatchingViewer() const {

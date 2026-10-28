@@ -38,6 +38,16 @@ class DungeonWorkbenchContentTestPeer {
                             float height) {
     content.DrawSidebarPane(width, height, 22, false);
   }
+  static void SetViewer(DungeonWorkbenchContent& content,
+                        DungeonCanvasViewer* viewer) {
+    content.get_viewer_ = [viewer]() {
+      return viewer;
+    };
+  }
+  static void SetRoomContextRowVisible(DungeonWorkbenchContent& content,
+                                       bool visible) {
+    content.layout_state_.show_room_context_row = visible;
+  }
   static const auto& RebuildDungeonBadgeCache(
       DungeonWorkbenchContent& content) {
     content.BuildRoomDungeonCache();

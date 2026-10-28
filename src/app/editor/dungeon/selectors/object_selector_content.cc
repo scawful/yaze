@@ -221,11 +221,10 @@ void ObjectSelectorContent::DrawContent(bool show_placement_summary) {
   }
 
   DrawInteractionSummary(show_placement_summary);
-  // Let the Workbench's parent scroll when placement controls consume the
-  // viewport; the asset grid must remain large enough to choose another object.
-  DrawObjectSelector(show_placement_summary
-                         ? 1.0f
-                         : ImGui::GetTextLineHeightWithSpacing() * 8.0f);
+  if (show_placement_summary)
+    DrawObjectSelector();
+  else
+    object_selector_.DrawWorkbenchBrowser();
 }
 
 void ObjectSelectorContent::SelectObject(int obj_id) {

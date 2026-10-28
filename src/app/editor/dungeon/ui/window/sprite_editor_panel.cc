@@ -59,7 +59,63 @@ void SpriteEditorPanel::Draw(bool* /*p_open*/) {
 }
 
 void SpriteEditorPanel::DrawInWorkbench() {
-  DrawContent(false);
+  gui::AutoWidgetScope scope("Dungeon/SpriteEditor");
+  if (!current_room_id_ || !rooms_ || *current_room_id_ < 0 ||
+      *current_room_id_ >= static_cast<int>(rooms_->size()))
+    return;
+  if (canvas_viewer_ &&
+      canvas_viewer_->object_interaction().IsSpritePlacementActive())
+    DrawPlacementControls();
+  constexpr const char* categories[] = {"All sprites", "Used here"};
+  workbench::DrawDungeonBrowserControls(browser_state_, categories);
+  auto& room = (*rooms_)[*current_room_id_];
+  std::vector<std::pair<int, std::string>> entries;
+  for (int id = 0; id < 256; ++id) {
+    if (browser_state_.category == 1 &&
+        std::none_of(room.GetSprites().begin(), room.GetSprites().end(),
+                     [id](const auto& sprite) { return sprite.id() == id; }))
+      continue;
+    auto name = SpriteName(id);
+    if (workbench::DungeonBrowserMatches(browser_state_.search, id, name))
+      entries.emplace_back(id, std::move(name));
+  }
+  if (browser_state_.sort == 1)
+    std::stable_sort(entries.begin(), entries.end(),
+                     [](const auto& a, const auto& b) {
+                       return workbench::DungeonBrowserFold(a.second) <
+                              workbench::DungeonBrowserFold(b.second);
+                     });
+  const bool can_place =
+      canvas_viewer_ &&
+      canvas_viewer_->current_room_id() == *current_room_id_ &&
+      canvas_viewer_->IsObjectInteractionEnabled() &&
+      !canvas_viewer_->header_read_only();
+  const auto colors = zelda3::BuildDungeonSpriteRenderPalette(
+      room, canvas_viewer_ ? canvas_viewer_->game_data() : nullptr);
+  if (ImGui::BeginChild("##SpriteLibrary", ImVec2(0, 0), false)) {
+    ImGui::BeginDisabled(!can_place);
+    for (const auto& [id, name] : entries) {
+      ImGui::PushID(id);
+      const bool picked = workbench::DrawDungeonBrowserRow(
+          id, name, selected_sprite_id_ == id, [&](ImVec2 pos, ImVec2 size) {
+            const auto& preview = GetOrCreateSpritePreview(id, room);
+            return DungeonRenderingHelpers::DrawSpritePreview(
+                ImGui::GetWindowDrawList(), preview.pixels, preview.bounds, pos,
+                ImVec2(pos.x + size.x, pos.y + size.y), colors);
+          });
+      gui::AutoRegisterLastItem("selectable",
+                                absl::StrFormat("place_sprite_%02X", id));
+      if (picked && can_place) {
+        selected_sprite_id_ = id;
+        canvas_viewer_->object_interaction().SetSpritePlacementMode(true, id);
+      }
+      ImGui::PopID();
+    }
+    ImGui::EndDisabled();
+    if (entries.empty())
+      ImGui::TextDisabled("No matches");
+  }
+  ImGui::EndChild();
 }
 
 void SpriteEditorPanel::DrawContent(bool show_room_sprites) {

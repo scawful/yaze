@@ -9,11 +9,9 @@ struct DungeonWorkbenchLayoutState {
   bool show_left_sidebar = true;
   bool show_right_inspector = true;
 
-  // Remembered widths for the collapsible panes when expanded. The right
-  // inspector defaults narrower than the left room browser because the
-  // inspector content (selection details + bulk actions) fits comfortably at
-  // ~280 px, whereas the room matrix on the left wants a little more room.
-  float left_width = 280.0f;
+  // The browser includes a narrow navigation rail. Selection and the room
+  // matrix share the right pane, independently of the active browser.
+  float left_width = 304.0f;
   float right_width = 280.0f;
 
   // Split/compare quality-of-life.

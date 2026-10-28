@@ -16,6 +16,7 @@
 #include "app/editor/dungeon/dungeon_room_composite.h"
 #include "app/editor/dungeon/dungeon_room_selector.h"
 #include "app/editor/dungeon/dungeon_room_store.h"
+#include "app/editor/dungeon/dungeon_room_transfer.h"
 #include "app/editor/dungeon/workspace/room_matrix_census.h"
 #include "app/editor/system/editor_panel.h"
 #include "app/gfx/resource/arena.h"
@@ -83,8 +84,30 @@ class RoomMatrixContent : public WindowContent {
     on_room_intent_ = std::move(callback);
   }
 
-  void SetRenderContextCallback(std::function<void(int)> callback) {
-    prepare_render_context_ = std::move(callback);
+  // Resolve the graphics owner without changing a shared room or selection.
+  void SetPreviewEntranceBlocksetResolver(
+      std::function<uint8_t(int)> resolver) {
+    preview_entrance_blockset_resolver_ = std::move(resolver);
+  }
+
+  // The parent owns this region's size. Short regions scroll the matrix while
+  // the retained hover preview stays in a separate, bounded child below it.
+  void DrawInWorkbench(float preview_height = 144.0f) {
+    fixed_preview_mode_ = true;
+    requested_preview_height_ = std::max(0.0f, preview_height);
+    Draw(nullptr);
+    fixed_preview_mode_ = false;
+  }
+
+  int preview_room_id() const { return preview_room_id_; }
+
+  // A successful ROM refresh can replace bytes and decoded resources in place
+  // without changing the room ID, pointers or authored document.
+  void InvalidatePreviewCache() {
+    tooltip_composite_output_.Retire();
+    hover_preview_room_.reset();
+    hover_preview_document_.reset();
+    preview_room_id_ = -1;
   }
 
   // Project dungeon ownership and warp tags for the census overlay.
@@ -103,7 +126,8 @@ class RoomMatrixContent : public WindowContent {
     on_room_selected_ = {};
     on_room_swap_ = {};
     on_room_intent_ = {};
-    prepare_render_context_ = {};
+    preview_entrance_blockset_resolver_ = {};
+    preview_room_id_ = -1;
     navigation_shortcut_focus_ = false;
   }
   bool OwnsNavigationShortcutFocus() const {
@@ -137,6 +161,24 @@ class RoomMatrixContent : public WindowContent {
     DrawMatrixHeader(census_rom);
     const bool census_on = census_.enabled() && census_.census() != nullptr;
 
+    float preview_height = 0.0f;
+    if (fixed_preview_mode_) {
+      if (preview_room_id_ < 0)
+        preview_room_id_ = std::clamp(*current_room_id_, 0, kTotalRooms - 1);
+      const float height = std::max(1.0f, ImGui::GetContentRegionAvail().y);
+      preview_height = std::min(
+          requested_preview_height_,
+          std::max(0.0f, height - 64.0f - ImGui::GetStyle().ItemSpacing.y));
+      const float grid_height = std::max(
+          1.0f, height - preview_height - ImGui::GetStyle().ItemSpacing.y);
+      if (!ImGui::BeginChild("##RoomMatrixGrid", ImVec2(0, grid_height),
+                             false)) {
+        ImGui::EndChild();
+        DrawFixedPreview(preview_height);
+        return;
+      }
+    }
+
     const ImVec2 avail = ImGui::GetContentRegionAvail();
     const float panel_width = std::max(1.0f, avail.x);
     const float panel_height =
@@ -145,9 +187,10 @@ class RoomMatrixContent : public WindowContent {
         (panel_width - kCellSpacing * (kRoomsPerRow - 1)) / kRoomsPerRow;
     const float cell_size_by_height =
         (panel_height - kCellSpacing * (kRoomsPerCol - 1)) / kRoomsPerCol;
-    const float cell_size = std::max(
-        1.0f, std::floor(std::min({cell_size_by_width, cell_size_by_height,
-                                   24.0f * ImGui::GetFontSize() / 13.0f})));
+    const float cell_size =
+        std::max(fixed_preview_mode_ ? 8.0f : 1.0f,
+                 std::floor(std::min({cell_size_by_width, cell_size_by_height,
+                                      24.0f * ImGui::GetFontSize() / 13.0f})));
 
     const float grid_width =
         kRoomsPerRow * cell_size + kCellSpacing * (kRoomsPerRow - 1);
@@ -248,6 +291,10 @@ class RoomMatrixContent : public WindowContent {
           gui::AutoRegisterLastItem("button",
                                     absl::StrFormat("Room 0x%03X", room_id));
 
+          const bool cell_hovered = ImGui::IsItemHovered();
+          if (fixed_preview_mode_ && cell_hovered)
+            preview_room_id_ = room_id;
+
           if (ImGui::IsItemClicked()) {
             if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
               // Double-click: open as standalone panel
@@ -305,7 +352,7 @@ class RoomMatrixContent : public WindowContent {
           });
 
           // Tooltip with room info and thumbnail preview
-          if (ImGui::IsItemHovered()) {
+          if (cell_hovered && !fixed_preview_mode_) {
             ImGui::BeginTooltip();
             // Use unified ResourceLabelProvider for room names
             ImGui::Text("%s", zelda3::GetRoomLabel(room_id).c_str());
@@ -325,10 +372,7 @@ class RoomMatrixContent : public WindowContent {
             }
 
             if (rooms_) {
-              zelda3::Room* room = rooms_->GetIfLoaded(room_id);
-              if (room == nullptr) {
-                room = HoverPreviewRoom(room_id);
-              }
+              zelda3::Room* room = HoverPreviewRoom(room_id);
               if (room != nullptr) {
                 ImGui::TextDisabled(
                     "Palette: 0x%02X | Blockset: 0x%02X | Spriteset: 0x%02X",
@@ -338,8 +382,6 @@ class RoomMatrixContent : public WindowContent {
                     room->GetTileObjects().size(), room->GetSprites().size(),
                     room->GetDoors().size(), room->GetChests().size());
 
-                if (prepare_render_context_)
-                  prepare_render_context_(room_id);
                 auto& preview_bitmap = PrepareCanonicalRoomComposite(
                     *room, tooltip_composite_output_);
                 gfx::EnsureCompositeBitmapTextureQueued(preview_bitmap);
@@ -371,36 +413,126 @@ class RoomMatrixContent : public WindowContent {
     // rather than adding another full grid below the last cell.
     ImGui::SetCursorScreenPos(grid_origin);
     ImGui::Dummy(ImVec2(panel_width, grid_height + y_offset));
+    if (fixed_preview_mode_) {
+      ImGui::EndChild();
+      DrawFixedPreview(preview_height);
+    }
   }
 
   void SetRooms(DungeonRoomStore* rooms) {
     if (rooms_ != rooms) {
       rooms_ = rooms;
       census_.Invalidate();
-      tooltip_composite_output_.Retire();
-      hover_preview_room_.reset();
+      InvalidatePreviewCache();
     }
   }
 
  private:
-  // Unopened rooms preview from a tooltip-owned copy. Replacing the shared
-  // room would drop pending imported collision and mark the room as open.
+  friend class RoomMatrixContentTestPeer;
+
+  void DrawFixedPreview(float height) {
+    if (height <= 0.0f)
+      return;
+    const bool open = ImGui::BeginChild(
+        "##RoomMatrixFixedPreview", ImVec2(0, height), false,
+        ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
+    if (open) {
+      const std::string caption = absl::StrFormat(
+          "%03X  %s", preview_room_id_, zelda3::GetRoomLabel(preview_room_id_));
+      const ImVec2 position = ImGui::GetCursorScreenPos();
+      const ImVec2 label_size(ImGui::GetContentRegionAvail().x,
+                              ImGui::GetTextLineHeight());
+      auto* draw_list = ImGui::GetWindowDrawList();
+      draw_list->PushClipRect(
+          position,
+          ImVec2(position.x + label_size.x, position.y + label_size.y), true);
+      draw_list->AddText(position, ImGui::GetColorU32(ImGuiCol_TextDisabled),
+                         caption.c_str());
+      draw_list->PopClipRect();
+      ImGui::Dummy(label_size);
+      const ImVec2 available = ImGui::GetContentRegionAvail();
+      const float size = std::max(0.0f, std::min(available.x, available.y));
+      if (size > 0.0f) {
+        if (auto* room = HoverPreviewRoom(preview_room_id_)) {
+          auto& bitmap =
+              PrepareCanonicalRoomComposite(*room, tooltip_composite_output_);
+          gfx::EnsureCompositeBitmapTextureQueued(bitmap);
+          gfx::Arena::Get().ProcessTextureQueue(nullptr);
+          if (bitmap.is_active() && bitmap.texture() != 0) {
+            ImGui::SetCursorPosX(ImGui::GetCursorPosX() +
+                                 (available.x - size) * 0.5f);
+            ImGui::Image((ImTextureID)(intptr_t)bitmap.texture(),
+                         ImVec2(size, size));
+          }
+        }
+      }
+    }
+    ImGui::EndChild();
+  }
+
+  // Every preview owns its room. Loaded rooms contribute their current authored
+  // document, while unopened rooms load privately without losing pending imports
+  // or materializing a room in the shared store.
   zelda3::Room* HoverPreviewRoom(int room_id) {
     Rom* rom = rooms_ ? rooms_->rom() : nullptr;
-    if (rom == nullptr || !rom->is_loaded()) {
+    if (rom == nullptr || !rom->is_loaded() || room_id < 0 ||
+        room_id >= static_cast<int>(DungeonRoomStore::kRoomCount)) {
       return nullptr;
     }
-    if (!hover_preview_room_ || hover_preview_room_->id() != room_id) {
+    const auto* source = rooms_->GetIfMaterialized(room_id);
+    std::optional<DungeonRoomDocument> document;
+    if (source && source->IsLoaded())
+      document = CaptureDungeonRoomDocument(*source);
+    const bool document_changed =
+        document.has_value() != hover_preview_document_.has_value() ||
+        (document &&
+         !SameDungeonRoomDocument(*document, *hover_preview_document_));
+    if (!hover_preview_room_ || hover_preview_room_->id() != room_id ||
+        hover_preview_room_->rom() != rom || document_changed) {
       tooltip_composite_output_.Retire();
       hover_preview_room_ =
           std::make_unique<zelda3::Room>(zelda3::LoadRoomFromRom(rom, room_id));
       hover_preview_room_->SetGameData(rooms_->game_data());
+      if (document)
+        ApplyDungeonRoomDocument(*hover_preview_room_, *document);
+      hover_preview_document_ = std::move(document);
     }
+    if (hover_preview_room_->game_data() != rooms_->game_data()) {
+      tooltip_composite_output_.Retire();
+      hover_preview_room_->SetGameData(rooms_->game_data());
+      hover_preview_room_->MarkGraphicsDirty();
+    }
+    if (source) {
+      if (hover_preview_room_->graphics_sheet_overrides() !=
+          source->graphics_sheet_overrides()) {
+        hover_preview_room_->SetGraphicsSheetOverrides(
+            source->graphics_sheet_overrides());
+      }
+    } else if (!hover_preview_room_->graphics_sheet_overrides().empty()) {
+      hover_preview_room_->SetGraphicsSheetOverrides({});
+    }
+    if (source && !source->IsLoaded()) {
+      auto pending = CaptureDungeonRoomDocument(*hover_preview_room_);
+      if (source->custom_collision_dirty() || source->has_custom_collision())
+        pending.collision = source->custom_collision();
+      if (source->water_fill_dirty() || source->water_fill_zone().has_data)
+        pending.water = source->water_fill_zone();
+      ApplyDungeonRoomDocument(*hover_preview_room_, pending);
+    }
+    const uint8_t blockset = preview_entrance_blockset_resolver_
+                                 ? preview_entrance_blockset_resolver_(room_id)
+                             : source ? source->render_entrance_blockset()
+                                      : 0xFF;
+    hover_preview_room_->SetRenderEntranceBlockset(blockset);
     return hover_preview_room_.get();
   }
 
-  std::function<void(int)> prepare_render_context_;
+  std::function<uint8_t(int)> preview_entrance_blockset_resolver_;
   std::unique_ptr<zelda3::Room> hover_preview_room_;
+  std::optional<DungeonRoomDocument> hover_preview_document_;
+  int preview_room_id_ = -1;
+  bool fixed_preview_mode_ = false;
+  float requested_preview_height_ = 144.0f;
   void DrawMatrixHeader(Rom* rom) {
     const float button_width = ImGui::GetFrameHeight();
     const float spacing = ImGui::GetStyle().ItemSpacing.x;

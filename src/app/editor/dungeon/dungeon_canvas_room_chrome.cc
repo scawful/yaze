@@ -3,6 +3,7 @@
 #include "util/i18n/tr.h"
 
 #include <algorithm>
+#include <cmath>
 #include <cstdint>
 #include <initializer_list>
 #include <optional>
@@ -59,9 +60,9 @@ std::string GetLayer2ModeName(int value) {
 
 }  // namespace
 
-void DrawDungeonRoomPropertyFields(DungeonCanvasViewer& viewer,
-                                   zelda3::Room& room, int room_id,
-                                   RoomPropertyLayout layout) {
+void DrawDungeonRoomPropertyFields(
+    DungeonCanvasViewer& viewer, zelda3::Room& room, int room_id,
+    RoomPropertyLayout layout, const std::function<void()>& draw_pit_damage) {
   auto* rooms = viewer.rooms();
   if (!rooms || room_id < 0 || room_id >= static_cast<int>(rooms->size()))
     return;
@@ -216,7 +217,10 @@ void DrawDungeonRoomPropertyFields(DungeonCanvasViewer& viewer,
   const bool show_core = show_all ||
                          (layout == RoomPropertyLayout::kCoreGraphics) ||
                          (layout == RoomPropertyLayout::kCoreGraphicsRow);
-  const bool show_mechanics =
+  const bool show_mechanics = show_all ||
+                              (layout == RoomPropertyLayout::kMechanics) ||
+                              (layout == RoomPropertyLayout::kRoomDetails);
+  const bool show_message =
       show_all || (layout == RoomPropertyLayout::kMechanics);
   const bool show_tags =
       show_all || (layout == RoomPropertyLayout::kTags) || show_mechanics;
@@ -250,11 +254,19 @@ void DrawDungeonRoomPropertyFields(DungeonCanvasViewer& viewer,
     }
     const bool horizontal = layout == RoomPropertyLayout::kCoreGraphicsRow;
     const float available = ImGui::GetContentRegionAvail().x;
-    const int pairs = horizontal
-                          ? (available >= ImGui::GetFontSize() * 60.0f   ? 6
-                             : available >= ImGui::GetFontSize() * 33.0f ? 3
-                                                                         : 2)
-                          : 2;
+    const float property_width =
+        label_width({"Layout", "Blockset", "Floor 1", "Floor 2", "Palette",
+                     "Spriteset", "Message", "Pit damage"});
+    const float value_width =
+        ImGui::CalcTextSize("0000").x + ImGui::GetStyle().FramePadding.x * 2.0f;
+    const float pair_width =
+        property_width + value_width + ImGui::GetStyle().CellPadding.x * 4.0f;
+    const int field_count = 7 + (draw_pit_damage ? 1 : 0);
+    const int pairs =
+        horizontal ? std::clamp(static_cast<int>(std::floor(
+                                    available / std::max(pair_width, 1.0f))),
+                                1, field_count)
+                   : 2;
     const ImGuiTableFlags graphics_flags =
         ImGuiTableFlags_RowBg |
         (horizontal
@@ -263,17 +275,12 @@ void DrawDungeonRoomPropertyFields(DungeonCanvasViewer& viewer,
     if (ImGui::BeginTable("##WorkbenchRoomGraphics", pairs * 2,
                           graphics_flags)) {
       for (int pair = 0; pair < pairs; ++pair) {
-        ImGui::TableSetupColumn(
-            "Property", ImGuiTableColumnFlags_WidthFixed,
-            label_width({"Layout", "Blockset", "Floor 1", "Floor 2", "Palette",
-                         "Spriteset"}));
-        ImGui::TableSetupColumn(
-            "Value",
-            horizontal ? ImGuiTableColumnFlags_WidthFixed
-                       : ImGuiTableColumnFlags_WidthStretch,
-            horizontal ? ImGui::CalcTextSize("000").x +
-                             ImGui::GetStyle().FramePadding.x * 2.0f
-                       : 1.0f);
+        ImGui::TableSetupColumn("Property", ImGuiTableColumnFlags_WidthFixed,
+                                property_width);
+        ImGui::TableSetupColumn("Value",
+                                horizontal ? ImGuiTableColumnFlags_WidthFixed
+                                           : ImGuiTableColumnFlags_WidthStretch,
+                                horizontal ? value_width : 1.0f);
       }
       draw_hex("Layout", "##RoomHeaderLayout", room.layout_id(), 0x07,
                RoomMetadataField::kLayout);
@@ -287,16 +294,26 @@ void DrawDungeonRoomPropertyFields(DungeonCanvasViewer& viewer,
                RoomMetadataField::kPalette);
       draw_hex("Spriteset", "##RoomHeaderSpriteset", room.spriteset(),
                zelda3::kMaxDungeonSpriteset, RoomMetadataField::kSpriteset);
+      if (horizontal) {
+        draw_hex("Message", "##RoomHeaderMessage", room.message_id(), 0x0FFF,
+                 RoomMetadataField::kMessage);
+        if (draw_pit_damage) {
+          property_row("Pit damage");
+          draw_pit_damage();
+        }
+      }
       ImGui::EndTable();
     }
   }
 
-  if (show_mechanics) {
+  if (show_message) {
     if (begin_properties("##WorkbenchRoomMessage", label_width({"Message"}))) {
       draw_hex("Message", "##RoomHeaderMessage", room.message_id(), 0x0FFF,
                RoomMetadataField::kMessage);
       ImGui::EndTable();
     }
+  }
+  if (show_mechanics) {
     choice_group(
         "##WorkbenchRoomHeader",
         label_width({"Layer 2 type", "Layer 2 mode", "Collision"}), [&] {

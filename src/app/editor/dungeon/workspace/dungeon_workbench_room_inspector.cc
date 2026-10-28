@@ -15,7 +15,6 @@
 #include "app/editor/dungeon/inspectors/dungeon_destination_editor.h"
 #include "app/editor/dungeon/inspectors/dungeon_entity_inspector.h"
 #include "app/editor/dungeon/inspectors/dungeon_room_transfer_editor.h"
-#include "app/editor/dungeon/ui/window/dungeon_entrances_panel.h"
 #include "app/editor/dungeon/workspace/dungeon_workbench_inspector_helpers.h"
 #include "app/gui/automation/widget_auto_register.h"
 #include "app/gui/core/icons.h"
@@ -25,6 +24,7 @@
 #include "imgui/imgui.h"
 #include "rom/rom.h"
 #include "util/i18n/tr.h"
+#include "zelda3/dungeon/chest_edit.h"
 #include "zelda3/dungeon/object_layer_semantics.h"
 #include "zelda3/resource_labels.h"
 #include "zelda3/zelda3_labels.h"
@@ -111,13 +111,7 @@ void DrawObjectIndexJump(DungeonCanvasViewer& viewer) {
 
 void DungeonWorkbenchContent::DrawInspectorShelf(DungeonCanvasViewer& viewer,
                                                  bool /*compact*/) {
-  if (inspector_mode_ == InspectorMode::Tools) {
-    DrawInspectorToolPanel(viewer);
-    return;
-  }
-
   auto& interaction = viewer.object_interaction();
-  const int room_id = viewer.current_room_id();
   ImGui::PushID("InspectedSelection");
   const bool placing_object = DrawObjectPlacementInspector(viewer);
   if (!placing_object && interaction.mode_manager().IsPlacementActive()) {
@@ -132,12 +126,6 @@ void DungeonWorkbenchContent::DrawInspectorShelf(DungeonCanvasViewer& viewer,
   } else if (!placing_object) {
     DrawInspectorShelfSelection(viewer);
   }
-  ImGui::PopID();
-  // A selected-element action may navigate or rebind the room.
-  if (viewer.current_room_id() != room_id)
-    return;
-  ImGui::PushID("InspectedRoom");
-  DrawInspectorShelfRoom(viewer);
   ImGui::PopID();
 }
 
@@ -288,15 +276,6 @@ void DungeonWorkbenchContent::DrawInspectorShelfSelection(
 
   // ── Tile Object Selection ──
   if (obj_count > 0) {
-    workbench::DrawInspectorSectionHeader(ICON_MD_WIDGETS " Object Selection");
-    ImGui::TextColored(theme.text_primary, ICON_MD_WIDGETS " %zu object%s",
-                       obj_count, obj_count == 1 ? "" : "s");
-    if (obj_count == 1) {
-      ImGui::SameLine();
-      ImGui::TextDisabled(tr("Focused selection"));
-      DrawObjectIndexJump(viewer);
-    }
-
     const auto indices = interaction.GetSelectedObjectIndices();
 
     // Multi-object summary + inline bulk editor (O1)
@@ -474,117 +453,153 @@ void DungeonWorkbenchContent::DrawInspectorShelfSelection(
         // Keep this frame's property values independent of that storage.
         const auto obj = objects[idx];
         const std::string obj_name = zelda3::GetObjectName(obj.id_);
-        const int subtype = zelda3::GetObjectSubtype(obj.id_);
         const bool uses_room_stream = zelda3::UsesRoomObjectStream(obj);
         int displayed_layer = obj.GetLayerValue();
-        const int pixel_x = obj.x_ * 8;
-        const int pixel_y = obj.y_ * 8;
+        const auto chest_index = zelda3::ChestIndexForObject(objects, idx);
+        const bool editable =
+            viewer.IsObjectInteractionEnabled() && !viewer.header_read_only();
 
-        // Name + category header
-        workbench::DrawInspectorSectionHeader(ICON_MD_CATEGORY
-                                              " Focused Object");
-        ImGui::TextColored(theme.text_primary, "%s", obj_name.c_str());
-        ImGui::TextDisabled(tr("%s (Type %d)  #%zu in list"),
-                            GetObjectCategory(obj.id_), subtype, idx);
-
-        // Property table
-        constexpr ImGuiTableFlags kPropsFlags = ImGuiTableFlags_BordersInnerV |
-                                                ImGuiTableFlags_RowBg |
-                                                ImGuiTableFlags_NoPadOuterX;
-        if (ImGui::BeginTable("##SelObjProps", 2, kPropsFlags)) {
-          ImGui::TableSetupColumn("Prop", ImGuiTableColumnFlags_WidthFixed,
-                                  56.0f);
-          ImGui::TableSetupColumn("Val", ImGuiTableColumnFlags_WidthStretch);
-
-          // ID
-          gui::LayoutHelpers::PropertyRow("ID", [&]() {
-            uint16_t obj_id = static_cast<uint16_t>(obj.id_ & 0x0FFF);
-            if (auto res =
-                    gui::InputHexWordEx("##SelObjId", &obj_id, 80.0f, true);
-                res.ShouldApply()) {
-              obj_id &= 0x0FFF;
-              interaction.SetObjectId(idx, static_cast<int16_t>(obj_id));
-            }
-          });
-
-          // Position
-          gui::LayoutHelpers::PropertyRow("Pos", [&]() {
-            int pos_x = obj.x_;
-            int pos_y = obj.y_;
-            ImGui::SetNextItemWidth(60);
-            bool x_changed =
-                ImGui::DragInt("##SelObjX", &pos_x, 0.1f, 0, 63, "X:%d");
-            {
-              gui::AutoWidgetScope automation_scope("Dungeon/Workbench");
-              gui::AutoRegisterLastItem("drag_int", "selected_object_x",
-                                        "Selected room object X coordinate");
-            }
-            ImGui::SameLine();
-            ImGui::SetNextItemWidth(60);
-            bool y_changed =
-                ImGui::DragInt("##SelObjY", &pos_y, 0.1f, 0, 63, "Y:%d");
-            {
-              gui::AutoWidgetScope automation_scope("Dungeon/Workbench");
-              gui::AutoRegisterLastItem("drag_int", "selected_object_y",
-                                        "Selected room object Y coordinate");
-            }
-            if (x_changed || y_changed) {
-              int delta_x = pos_x - obj.x_;
-              int delta_y = pos_y - obj.y_;
-              interaction.entity_coordinator().tile_handler().MoveObjects(
-                  room_id, {idx}, delta_x, delta_y);
-            }
-          });
-
-          uint8_t requested_size = obj.size_;
-          if (workbench::DrawObjectSizeControls(obj, &requested_size)) {
-            interaction.SetObjectSize(idx, requested_size);
-          }
-
-          gui::LayoutHelpers::PropertyRow(
-              uses_room_stream ? "Stream" : "Layer", [&]() {
-                int layer = displayed_layer;
-                const char* stream_names[] = {"Primary", "BG2 overlay",
-                                              "BG1 overlay"};
-                const char* special_layer_names[] = {"Upper layer (BG1)",
-                                                     "Lower layer (BG2)"};
-                ImGui::SetNextItemWidth(-1);
-                if (ImGui::Combo(
-                        "##SelObjLayer", &layer,
-                        uses_room_stream ? stream_names : special_layer_names,
-                        uses_room_stream ? IM_ARRAYSIZE(stream_names)
-                                         : IM_ARRAYSIZE(special_layer_names))) {
-                  const int max_layer = uses_room_stream ? 2 : 1;
-                  layer = std::clamp(layer, 0, max_layer);
-                  if (interaction.SetObjectLayer(
-                          idx,
-                          static_cast<zelda3::RoomObject::LayerType>(layer))) {
-                    displayed_layer = layer;
-                  }
-                }
-              });
-          gui::LayoutHelpers::PropertyRow("Route", [&]() {
-            ImGui::TextDisabled(
-                "%s", uses_room_stream ? GetObjectStreamName(displayed_layer)
+        ImGui::TextWrapped("%s  ($%03X)", obj_name.c_str(), obj.id_);
+        if (ImGui::IsItemHovered()) {
+          ImGui::BeginTooltip();
+          ImGui::Text("Object %zu, %s (Type %d)", idx,
+                      GetObjectCategory(obj.id_),
+                      zelda3::GetObjectSubtype(obj.id_));
+          ImGui::Text("Pixel (%d, %d), %s", obj.x_ * 8, obj.y_ * 8,
+                      uses_room_stream ? GetObjectStreamName(displayed_layer)
                                        : GetSpecialLayerName(displayed_layer));
-          });
-
-          // Pixel coords (read-only info)
-          gui::LayoutHelpers::PropertyRow("Pixel", [&]() {
-            ImGui::TextDisabled("(%d, %d)", pixel_x, pixel_y);
-          });
-
-          ImGui::EndTable();
+          const auto description = workbench::DescribeObjectSize(obj);
+          if (!description.wheel_hint.empty())
+            ImGui::TextUnformatted(description.wheel_hint.c_str());
+          ImGui::EndTooltip();
         }
-        const auto description = workbench::DescribeObjectSize(obj);
-        if (!description.wheel_hint.empty()) {
-          ImGui::TextWrapped("%s", description.wheel_hint.c_str());
+
+        if (chest_index) {
+          const bool has_contents =
+              room.AreChestsLoaded() && *chest_index < room.GetChests().size();
+          if (has_contents) {
+            const auto chest = room.GetChests()[*chest_index];
+            ImGui::TextWrapped(
+                "Contents: %s",
+                GetDungeonChestItemLabel(chest.id, viewer.project()).c_str());
+            ImGui::Text("Size: %s", chest.size ? "Big" : "Small");
+          } else {
+            ImGui::TextDisabled("Contents unavailable");
+            ImGui::Text("Size: %s", obj.id_ == 0xFB1 ? "Big" : "Small");
+          }
+          ImGui::BeginDisabled(!editable || !has_contents);
+          if (ImGui::Button("Edit Chest...", ImVec2(-1, 0))) {
+            const auto status = viewer.OpenChestEditor(room_id, *chest_index);
+            viewer.chest_editor_state().error =
+                status.ok() ? "" : std::string(status.message());
+          }
+          {
+            gui::AutoWidgetScope scope("Dungeon/Workbench");
+            gui::AutoRegisterLastItem("button", "edit_chest");
+          }
+          ImGui::EndDisabled();
+          if (!viewer.chest_editor_state().error.empty())
+            ImGui::TextWrapped("%s", viewer.chest_editor_state().error.c_str());
         }
-        // Actions can reallocate the room's object vector; no object references
-        // are used after this point.
-        const auto current_indices = interaction.GetSelectedObjectIndices();
-        if (current_indices.size() == 1) {
-          DrawSelectedObjectActions(viewer, current_indices.front());
+
+        const bool show_properties =
+            !chest_index ||
+            ImGui::CollapsingHeader("Properties##ChestProperties");
+        if (chest_index) {
+          gui::AutoWidgetScope scope("Dungeon/Workbench");
+          gui::AutoRegisterLastItem("collapsing_header", "chest_properties");
+        }
+        if (show_properties) {
+          ImGui::BeginDisabled(!editable);
+          // Property edits retain the existing handlers and validation.
+          constexpr ImGuiTableFlags kPropsFlags =
+              ImGuiTableFlags_BordersInnerV | ImGuiTableFlags_RowBg |
+              ImGuiTableFlags_NoPadOuterX;
+          if (ImGui::BeginTable("##SelObjProps", 2, kPropsFlags)) {
+            ImGui::TableSetupColumn("Prop", ImGuiTableColumnFlags_WidthFixed,
+                                    56.0f);
+            ImGui::TableSetupColumn("Val", ImGuiTableColumnFlags_WidthStretch);
+
+            // ID
+            gui::LayoutHelpers::PropertyRow("ID", [&]() {
+              uint16_t obj_id = static_cast<uint16_t>(obj.id_ & 0x0FFF);
+              if (auto res =
+                      gui::InputHexWordEx("##SelObjId", &obj_id, 80.0f, true);
+                  res.ShouldApply()) {
+                obj_id &= 0x0FFF;
+                interaction.SetObjectId(idx, static_cast<int16_t>(obj_id));
+              }
+            });
+
+            // Position
+            gui::LayoutHelpers::PropertyRow("Pos", [&]() {
+              int pos_x = obj.x_;
+              int pos_y = obj.y_;
+              ImGui::SetNextItemWidth(60);
+              bool x_changed =
+                  ImGui::DragInt("##SelObjX", &pos_x, 0.1f, 0, 63, "X:%d");
+              {
+                gui::AutoWidgetScope automation_scope("Dungeon/Workbench");
+                gui::AutoRegisterLastItem("drag_int", "selected_object_x",
+                                          "Selected room object X coordinate");
+              }
+              ImGui::SameLine();
+              ImGui::SetNextItemWidth(60);
+              bool y_changed =
+                  ImGui::DragInt("##SelObjY", &pos_y, 0.1f, 0, 63, "Y:%d");
+              {
+                gui::AutoWidgetScope automation_scope("Dungeon/Workbench");
+                gui::AutoRegisterLastItem("drag_int", "selected_object_y",
+                                          "Selected room object Y coordinate");
+              }
+              if (x_changed || y_changed) {
+                int delta_x = pos_x - obj.x_;
+                int delta_y = pos_y - obj.y_;
+                interaction.entity_coordinator().tile_handler().MoveObjects(
+                    room_id, {idx}, delta_x, delta_y);
+              }
+            });
+
+            uint8_t requested_size = obj.size_;
+            if (workbench::DrawObjectSizeControls(obj, &requested_size)) {
+              interaction.SetObjectSize(idx, requested_size);
+            }
+
+            gui::LayoutHelpers::PropertyRow(
+                uses_room_stream ? "Stream" : "Layer", [&]() {
+                  int layer = displayed_layer;
+                  const char* stream_names[] = {"Primary", "BG2 overlay",
+                                                "BG1 overlay"};
+                  const char* special_layer_names[] = {"Upper layer (BG1)",
+                                                       "Lower layer (BG2)"};
+                  ImGui::SetNextItemWidth(-1);
+                  if (ImGui::Combo(
+                          "##SelObjLayer", &layer,
+                          uses_room_stream ? stream_names : special_layer_names,
+                          uses_room_stream
+                              ? IM_ARRAYSIZE(stream_names)
+                              : IM_ARRAYSIZE(special_layer_names))) {
+                    const int max_layer = uses_room_stream ? 2 : 1;
+                    layer = std::clamp(layer, 0, max_layer);
+                    if (interaction.SetObjectLayer(
+                            idx, static_cast<zelda3::RoomObject::LayerType>(
+                                     layer))) {
+                      displayed_layer = layer;
+                    }
+                  }
+                });
+            ImGui::EndTable();
+          }
+          // Actions can reallocate the room's object vector; no object references
+          // are used after this point.
+          const auto current_indices = interaction.GetSelectedObjectIndices();
+          if (current_indices.size() == 1) {
+            DrawSelectedObjectActions(viewer, current_indices.front());
+          }
+          ImGui::EndDisabled();
+          if (chest_index ||
+              ImGui::CollapsingHeader("Details##SelectionDetails"))
+            DrawObjectIndexJump(viewer);
         }
       }
     }
@@ -773,7 +788,9 @@ void DungeonWorkbenchContent::DrawRoomContextRow(DungeonCanvasViewer& viewer) {
     DrawRoomContextHeader(viewer);
     ImGui::TableNextColumn();
     DrawDungeonRoomPropertyFields(viewer, (*rooms)[room_id], room_id,
-                                  RoomPropertyLayout::kCoreGraphicsRow);
+                                  RoomPropertyLayout::kCoreGraphicsRow, [&]() {
+                                    DrawPitDamageControls(room_id, true);
+                                  });
     ImGui::EndTable();
   }
   ImGui::PopID();
@@ -796,101 +813,20 @@ void DungeonWorkbenchContent::DrawInspectorShelfRoom(
 
     if (!layout_state_.show_room_context_row) {
       ImGui::Spacing();
-      DrawDungeonRoomPropertyFields(viewer, room, room_id,
-                                    RoomPropertyLayout::kCoreGraphics);
+      DrawDungeonRoomPropertyFields(
+          viewer, room, room_id, RoomPropertyLayout::kCoreGraphicsRow,
+          [&]() { DrawPitDamageControls(room_id, true); });
     }
-
-    // Sub-tabs for secondary room properties.
-    struct SubTabDef {
-      const char* label;
-      RoomInspectorSubTab tab;
-      const char* id;
-    };
-    constexpr SubTabDef kSubTabs[] = {
-        {ICON_MD_TUNE " Mechanics", RoomInspectorSubTab::Mechanics,
-         "tab_mechanics"},
-        {ICON_MD_STAIRS " Warps", RoomInspectorSubTab::Warps, "tab_warps"},
-        {ICON_MD_TAG " Tags/Chests", RoomInspectorSubTab::TagsAndChests,
-         "tab_tags_chests"},
-    };
 
     ImGui::Spacing();
-    const float avail_width = ImGui::GetContentRegionAvail().x;
-    const int tab_cols = avail_width >= 240.0f ? 3 : 2;
-    if (ImGui::BeginTable("##RoomSubTabs", tab_cols,
-                          ImGuiTableFlags_SizingStretchSame |
-                              ImGuiTableFlags_NoPadInnerX |
-                              ImGuiTableFlags_NoPadOuterX)) {
-      for (const auto& tab_def : kSubTabs) {
-        ImGui::TableNextColumn();
-        const bool active = (room_inspector_sub_tab_ == tab_def.tab);
-        gui::StyleColorGuard selected_guard(
-            ImGuiCol_Button,
-            ImGui::GetStyleColorVec4(active ? ImGuiCol_ButtonActive
-                                            : ImGuiCol_Button));
-        if (ImGui::Button(tab_def.label,
-                          ImVec2(ImGui::GetContentRegionAvail().x,
-                                 ImGui::GetFrameHeight()))) {
-          room_inspector_sub_tab_ = tab_def.tab;
-        }
-        gui::AutoRegisterLastItem("button", tab_def.id);
-        if (active) {
-          const ImVec2 min = ImGui::GetItemRectMin();
-          const ImVec2 max = ImGui::GetItemRectMax();
-          ImGui::GetWindowDrawList()->AddLine(
-              ImVec2(min.x, max.y - 1), ImVec2(max.x, max.y - 1),
-              ImGui::GetColorU32(ImGuiCol_CheckMark), 2.0f);
-        }
-      }
-      ImGui::EndTable();
-    }
-    ImGui::Separator();
-
-    switch (room_inspector_sub_tab_) {
-      case RoomInspectorSubTab::Mechanics: {
-        DrawDungeonRoomPropertyFields(viewer, room, room_id,
-                                      RoomPropertyLayout::kMechanics);
-        DrawPitDamageControls(room_id);
-        break;
-      }
-      case RoomInspectorSubTab::Warps: {
-        workbench::DrawInspectorSectionHeader("Destinations");
-        DrawDungeonDestinationEditor(viewer);
-        if (viewer.current_room_id() != room_id)
-          return;
-
-        if (entrance_navigator_content_) {
-          ImGui::PushID("InspectedEntrance");
-          workbench::DrawInspectorSectionHeader("Entrance");
-          const std::string id = entrance_navigator_content_->GetId();
-          if (is_standalone_tool_open_ && is_standalone_tool_open_(id)) {
-            ImGui::TextDisabled(
-                "Entrance properties are open in a separate window.");
-            if (ImGui::Button("Show entrance window") &&
-                open_and_focus_standalone_tool_)
-              open_and_focus_standalone_tool_(id);
-          } else {
-            ImGui::BeginDisabled(viewer.header_read_only() ||
-                                 !viewer.IsObjectInteractionEnabled());
-            entrance_navigator_content_->DrawPropertiesInWorkbench();
-            ImGui::EndDisabled();
-          }
-          ImGui::PopID();
-          if (viewer.current_room_id() != room_id)
-            return;
-        }
-        break;
-      }
-      case RoomInspectorSubTab::TagsAndChests: {
-        DrawDungeonRoomPropertyFields(viewer, room, room_id,
-                                      RoomPropertyLayout::kTags);
-        ImGui::Spacing();
-        workbench::DrawInspectorSectionHeader(ICON_MD_INVENTORY_2
-                                              " Chest contents");
-        DrawDungeonChestEditor(room_id, room, viewer);
-        break;
-      }
-    }
+    workbench::DrawInspectorSectionHeader("Room behavior");
+    DrawDungeonRoomPropertyFields(viewer, room, room_id,
+                                  RoomPropertyLayout::kRoomDetails);
+    ImGui::Spacing();
+    workbench::DrawInspectorSectionHeader("Warps & stairs");
+    DrawDungeonDestinationEditor(viewer);
+    if (viewer.current_room_id() != room_id)
+      return;
   } else {
     ImGui::TextDisabled(tr("Room properties unavailable"));
   }

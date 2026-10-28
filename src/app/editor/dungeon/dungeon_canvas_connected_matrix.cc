@@ -970,6 +970,7 @@ void DungeonCanvasViewer::DrawConnectedToolbarControls(int center_room_id) {
 
 std::optional<int> DungeonCanvasViewer::DrawConnectedRoomMatrix(
     int center_room_id) {
+  DrawChestEditorPopup();
   // This is a read-only overview. A release here must not complete a gesture
   // that began in the editable room canvas when the user returns to that view.
   CancelMinecartGesture();

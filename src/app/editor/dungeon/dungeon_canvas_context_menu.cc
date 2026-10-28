@@ -11,6 +11,7 @@
 #include "app/gui/core/platform_keys.h"
 #include "imgui/imgui.h"
 #include "util/log.h"
+#include "zelda3/dungeon/chest_edit.h"
 #include "zelda3/dungeon/object_layer_semantics.h"
 #include "zelda3/dungeon/object_tile_editor.h"
 #include "zelda3/resource_labels.h"
@@ -151,6 +152,13 @@ gui::CanvasMenuItem DungeonCanvasViewer::BuildInsertContextMenu() {
 
 std::optional<zelda3::RoomObject>
 DungeonCanvasViewer::GetObjectUnderContextCursor(int room_id) {
+  const auto index = GetObjectIndexUnderContextCursor(room_id);
+  return index ? std::optional((*rooms_)[room_id].GetTileObjects()[*index])
+               : std::nullopt;
+}
+
+std::optional<size_t> DungeonCanvasViewer::GetObjectIndexUnderContextCursor(
+    int room_id) {
   if (!rooms_ || room_id < 0 || room_id >= zelda3::kNumberOfRooms) {
     return std::nullopt;
   }
@@ -170,7 +178,7 @@ DungeonCanvasViewer::GetObjectUnderContextCursor(int room_id) {
   if (*hovered_index >= objects.size()) {
     return std::nullopt;
   }
-  return objects[*hovered_index];
+  return hovered_index;
 }
 
 std::vector<gui::CanvasMenuItem>
@@ -208,6 +216,40 @@ DungeonCanvasViewer::BuildSelectionContextMenuItems(
   }
 
   std::vector<gui::CanvasMenuItem> items;
+
+  if (valid_room) {
+    auto& room = (*rooms_)[room_id];
+    std::optional<size_t> chest_index;
+    if (context_object &&
+        zelda3::IsStatefulChestObjectId(context_object->id_)) {
+      if (const auto index = GetObjectIndexUnderContextCursor(room_id)) {
+        chest_index =
+            zelda3::ChestIndexForObject(room.GetTileObjects(), *index);
+      }
+    }
+    if (!chest_index && single_selection) {
+      chest_index =
+          zelda3::ChestIndexForObject(room.GetTileObjects(), selected.front());
+    }
+    if (chest_index) {
+      gui::CanvasMenuItem edit_chest(
+          "Edit Chest...", ICON_MD_EDIT,
+          [this, room_id, index = *chest_index]() {
+            const auto status = OpenChestEditor(room_id, index);
+            chest_editor_state_.error =
+                status.ok() ? "" : std::string(status.message());
+          });
+      edit_chest.enabled_condition = [this, room_id, index = *chest_index]() {
+        const auto* room = rooms_ ? rooms_->GetIfLoaded(room_id) : nullptr;
+        return !header_read_only_ && IsObjectInteractionEnabled() &&
+               chest_edit_callback_ && room && room->AreChestsLoaded() &&
+               index < room->GetChests().size();
+      };
+      edit_chest.tooltip = "Edit this chest's reward and type.";
+      edit_chest.separator_after = true;
+      items.push_back(std::move(edit_chest));
+    }
+  }
 
   bool can_edit_selected_graphics = false;
   std::function<void()> edit_selected_graphics;
@@ -529,7 +571,7 @@ gui::CanvasMenuItem DungeonCanvasViewer::BuildCopyExportContextMenu(
         [room_label]() { ImGui::SetClipboardText(room_label.c_str()); });
   }
   copy_export_menu.subitems.emplace_back(
-      "Export Layout Template...", ICON_MD_FILE_DOWNLOAD, [this, room_id]() {
+      "Copy Layout Template", ICON_MD_CONTENT_COPY, [this, room_id]() {
         if (!rooms_ || room_id < 0 || room_id >= zelda3::kNumberOfRooms) {
           return;
         }
@@ -720,6 +762,13 @@ gui::CanvasMenuItem DungeonCanvasViewer::BuildDebugContextMenu(int room_id) {
   gui::CanvasMenuItem debug_menu;
   debug_menu.label = "Debug";
   debug_menu.icon = ICON_MD_BUG_REPORT;
+
+  debug_menu.subitems.emplace_back(
+      "Chest Records...", ICON_MD_INVENTORY, [this, room_id]() {
+        chest_edit_dialog_state_.diagnostics_room_id = room_id;
+        chest_edit_dialog_state_.show_diagnostics = true;
+      });
+  debug_menu.subitems.back().separator_after = true;
 
   debug_menu.subitems.push_back(gui::CanvasMenuItem(
       "Room Info", ICON_MD_INFO,
