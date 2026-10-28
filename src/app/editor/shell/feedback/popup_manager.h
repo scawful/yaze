@@ -102,6 +102,7 @@ constexpr const char* kDataIntegrity = "Data Integrity Check";
 constexpr const char* kDungeonPotItemSaveConfirm =
     "Dungeon Pot Item Save Confirmation";
 constexpr const char* kRomWriteConfirm = "ROM Write Confirmation";
+constexpr const char* kUnpublishedMessageSource = "Unpublished Message Source";
 constexpr const char* kWriteConflictWarning = "Write Conflict Warning";
 constexpr const char* kUnsavedSessionChanges =
     "Unsaved Session Changes Confirmation";
@@ -125,6 +126,7 @@ class PopupManager {
 
   // Show a specific popup
   void Show(const char* name);
+  void ShowUnpublishedMessageSource(size_t session_id);
 
   // Registers or replaces a popup. Initialize() registers the built-in ones.
   void RegisterPopup(const std::string& name, PopupType type,
@@ -197,6 +199,7 @@ class PopupManager {
   // Debug/Testing popups
   void DrawDataIntegrityPopup();
   void DrawDungeonPotItemSaveConfirmPopup();
+  void DrawUnpublishedMessageSourcePopup();
   void DrawRomBackupManagerPopup();
   void DrawRomWriteConfirmPopup();
   void DrawWriteConflictWarningPopup();
@@ -211,6 +214,7 @@ class PopupManager {
     std::string error;
   } save_as_;
 
+  size_t unpublished_message_session_ = 0;
   EditorManager* editor_manager_;
   std::unordered_map<std::string, PopupParams> popups_;
   uint64_t next_shown_order_ = 1;

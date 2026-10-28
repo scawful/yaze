@@ -2875,7 +2875,8 @@ void EditorManager::CancelPendingRomSave(bool hide_popups) {
   }
   for (const char* popup :
        {PopupID::kRomWriteConfirm, PopupID::kDungeonPotItemSaveConfirm,
-        PopupID::kWriteConflictWarning, PopupID::kSaveAs}) {
+        PopupID::kUnpublishedMessageSource, PopupID::kWriteConflictWarning,
+        PopupID::kSaveAs}) {
     if (popup_manager_->IsVisible(popup)) {
       popup_manager_->Hide(popup);
     }
@@ -2914,13 +2915,7 @@ absl::Status EditorManager::SaveCurrentSession() {
   if (!session_coordinator_ || !session_coordinator_->GetActiveRomSession()) {
     return absl::FailedPreconditionError("No active ROM session");
   }
-  if (auto* message = static_cast<MessageEditor*>(
-          GetCurrentEditorSet()->GetExistingEditor(EditorType::kMessage));
-      message && message->HasUnpublishedMessageSourceChanges()) {
-    return absl::FailedPreconditionError(
-        "Expanded message source has unpublished edits; use Preview and "
-        "Publish in the Message editor before saving");
-  }
+  RETURN_IF_ERROR(CheckUnpublishedMessageSourceBeforeSave());
   CaptureActiveProjectEditingState();
   const size_t session_id = GetCurrentSessionId();
   RETURN_IF_ERROR(SaveActiveProjectEditingWork());
@@ -2951,6 +2946,7 @@ absl::Status EditorManager::SaveRom() {
     // ResumePendingRomSave() helper.
     return ResumePendingRomSave();
   }
+  RETURN_IF_ERROR(CheckUnpublishedMessageSourceBeforeSave());
   RETURN_IF_ERROR(StartPendingRomSave(std::nullopt));
   auto status = SaveRomInternal(std::nullopt);
   FinishPendingRomSaveAttempt(status);
@@ -2964,6 +2960,7 @@ absl::Status EditorManager::SaveRomAs(const std::string& filename) {
   if (pending_rom_save_.has_value() && HasPendingRomSaveConfirmation()) {
     return absl::CancelledError("Save pending confirmation");
   }
+  RETURN_IF_ERROR(CheckUnpublishedMessageSourceBeforeSave());
   RETURN_IF_ERROR(StartPendingRomSave(filename));
   auto status = SaveRomInternal(filename);
   FinishPendingRomSaveAttempt(status);

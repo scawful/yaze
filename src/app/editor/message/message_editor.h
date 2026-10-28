@@ -66,6 +66,7 @@ class MessageEditor : public Editor {
   void DrawTextCommands();
   void DrawSpecialCharacters();
   void DrawExpandedMessageSettings();
+  void ExportForReview();
   void DrawDictionary();
   void DrawMessageTools();
   void DrawMessagePreview();
@@ -208,6 +209,7 @@ class MessageEditor : public Editor {
   bool HasMessageSourceLayout() const;
   void DrawExpandedSourceBanner();
   void LoadCanonicalExpandedSourceFromUi();
+  absl::Status ExportReviewBundleToFile(const std::string& path) const;
   bool ExpandedEditsAreSourceOwned() const;
   std::pair<int, int> ExpandedInspectionRange() const;
   std::string MessageSourceIncomingPath() const;

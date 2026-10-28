@@ -13,6 +13,7 @@
 #include "absl/strings/str_format.h"
 #include "app/editor/editor_manager.h"
 #include "app/editor/layout/layout_presets.h"
+#include "app/editor/message/message_editor.h"
 #include "app/gui/app/feature_flags_menu.h"
 #include "app/gui/automation/widget_id_registry.h"
 #include "app/gui/core/icons.h"
@@ -143,6 +144,9 @@ void PopupManager::Initialize() {
   popups_[PopupID::kDungeonPotItemSaveConfirm] = {
       PopupID::kDungeonPotItemSaveConfirm, PopupType::kConfirmation, false,
       false, [this]() { DrawDungeonPotItemSaveConfirmPopup(); }};
+  popups_[PopupID::kUnpublishedMessageSource] = {
+      PopupID::kUnpublishedMessageSource, PopupType::kConfirmation, false,
+      false, [this]() { DrawUnpublishedMessageSourcePopup(); }};
   popups_[PopupID::kRomWriteConfirm] = {
       PopupID::kRomWriteConfirm, PopupType::kConfirmation, false, false,
       [this]() { DrawRomWriteConfirmPopup(); }};
@@ -1585,6 +1589,39 @@ void PopupManager::DrawDataIntegrityPopup() {
   Separator();
   if (Button(tr("Close"), ::yaze::gui::kDefaultModalSize)) {
     Hide(PopupID::kDataIntegrity);
+  }
+}
+
+void PopupManager::ShowUnpublishedMessageSource(size_t session_id) {
+  unpublished_message_session_ = session_id;
+  Show(PopupID::kUnpublishedMessageSource);
+}
+
+void PopupManager::DrawUnpublishedMessageSourcePopup() {
+  MessageEditor* message = nullptr;
+  if (editor_manager_ &&
+      editor_manager_->GetCurrentSessionId() == unpublished_message_session_) {
+    if (auto* editors = editor_manager_->GetCurrentEditorSet()) {
+      message = static_cast<MessageEditor*>(
+          editors->GetExistingEditor(EditorType::kMessage));
+    }
+  }
+  ImGui::TextWrapped("%s", tr("Expanded edits have not been published. Export "
+                              "a review bundle, or cancel and use Preview "
+                              "Publication and Publish in Expanded Source."));
+  ImGui::TextWrapped("%s", tr("Saving the ROM will not publish this text."));
+  ImGui::Spacing();
+  ImGui::BeginDisabled(message == nullptr);
+  const bool export_review = ImGui::Button(tr("Export for review"));
+  ImGui::EndDisabled();
+  if (export_review && message) {
+    Hide(PopupID::kUnpublishedMessageSource);
+    message->ExportForReview();
+    return;
+  }
+  ImGui::SameLine();
+  if (ImGui::Button(tr("Cancel"))) {
+    Hide(PopupID::kUnpublishedMessageSource);
   }
 }
 

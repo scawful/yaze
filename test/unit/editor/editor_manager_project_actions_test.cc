@@ -22,6 +22,7 @@
 #include "app/editor/layout/layout_presets.h"
 #include "app/editor/message/message_editor.h"
 #include "app/editor/overworld/overworld_editor.h"
+#include "app/editor/shell/feedback/popup_manager.h"
 #include "app/editor/shell/feedback/toast_manager.h"
 #include "app/gfx/backend/null_renderer.h"
 #include "app/gfx/resource/arena.h"
@@ -461,6 +462,16 @@ TEST(EditorManagerProjectActionsTest,
   manager->GetCurrentProject()->metadata.author = "Pending project edit";
   manager->MarkCurrentProjectDirty();
   const auto status = manager->SaveCurrentSession();
+  EXPECT_TRUE(
+      manager->popup_manager()->IsVisible(PopupID::kUnpublishedMessageSource));
+  const auto explicit_save = manager->SaveRom();
+  EXPECT_EQ(explicit_save.code(), absl::StatusCode::kFailedPrecondition);
+  const auto output = directory.path / "unpublished.sfc";
+  const auto save_as = manager->SaveRomAs(output.string());
+  EXPECT_EQ(save_as.code(), absl::StatusCode::kFailedPrecondition);
+  EXPECT_FALSE(std::filesystem::exists(output));
+  EXPECT_TRUE(
+      manager->popup_manager()->IsVisible(PopupID::kUnpublishedMessageSource));
 
   EXPECT_EQ(status.code(), absl::StatusCode::kFailedPrecondition);
   EXPECT_NE(std::string(status.message()).find("Preview and Publish"),

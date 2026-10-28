@@ -36,6 +36,7 @@
 #include "app/gui/core/style_guard.h"
 #include "app/gui/core/ui_helpers.h"
 #include "app/gui/widgets/empty_state.h"
+#include "app/gui/widgets/themed_widgets.h"
 #include "imgui.h"
 #include "imgui/imgui_internal.h"
 #include "imgui/misc/cpp/imgui_stdlib.h"
@@ -1282,20 +1283,12 @@ void MessageEditor::DrawMessageList() {
     ImGui::SetTooltip("Import message bundle");
   }
   ImGui::SameLine();
-  if (gui::LayoutHelpers::ToolbarButton(ICON_MD_DOWNLOAD)) {
-    const std::string path = util::FileDialogWrapper::ShowSaveFileDialog();
-    if (!path.empty()) {
-      auto status =
-          ExportMessageBundleToJson(path, list_of_texts_, expanded_messages_);
-      if (!status.ok()) {
-        message_bundle_status_ =
-            absl::StrFormat("Export failed: %s", status.message());
-        message_bundle_status_error_ = true;
-      } else {
-        message_bundle_status_ = absl::StrFormat("Exported bundle: %s", path);
-        message_bundle_status_error_ = false;
-      }
-    }
+  const bool writer =
+      dependencies_.project &&
+      dependencies_.project->workspace_settings.last_layout_preset == "Writer";
+  if (writer ? gui::PrimaryButton(tr("Export for review"))
+             : gui::LayoutHelpers::ToolbarButton(ICON_MD_DOWNLOAD)) {
+    ExportForReview();
   }
   if (ImGui::IsItemHovered()) {
     ImGui::SetTooltip("Export message bundle");
@@ -1761,11 +1754,12 @@ void MessageEditor::DrawExpandedMessageSettings() {
       OpenMessageById(display_id);
     }
   }
-  ImGui::SameLine();
-  if (ImGui::Button(tr("Export to JSON"))) {
-    std::string path = util::FileDialogWrapper::ShowSaveFileDialog();
-    if (!path.empty()) {
-      PRINT_IF_ERROR(ExportMessagesToJson(path, expanded_messages_));
+  if (ImGui::CollapsingHeader(tr("Advanced"))) {
+    if (ImGui::Button(tr("Legacy JSON export"))) {
+      std::string path = util::FileDialogWrapper::ShowSaveFileDialog();
+      if (!path.empty()) {
+        PRINT_IF_ERROR(ExportMessagesToJson(path, expanded_messages_));
+      }
     }
   }
 
@@ -1794,6 +1788,32 @@ void MessageEditor::LoadCanonicalExpandedSourceFromUi() {
     message_bundle_status_ = std::string(status.message());
     message_bundle_status_error_ = true;
   }
+}
+
+void MessageEditor::ExportForReview() {
+  const auto path = util::FileDialogWrapper::ShowSaveFileDialog();
+  if (path.empty()) {
+    return;
+  }
+  const auto status = ExportReviewBundleToFile(path);
+  message_bundle_status_error_ = !status.ok();
+  message_bundle_status_ =
+      status.ok() ? absl::StrFormat("Exported bundle: %s", path)
+                  : absl::StrFormat("Export failed: %s", status.message());
+}
+
+absl::Status MessageEditor::ExportReviewBundleToFile(
+    const std::string& path) const {
+  if (!current_parse_errors_.empty()) {
+    return absl::FailedPreconditionError(
+        "Resolve message parse errors before exporting for review");
+  }
+  if (IsCanonicalBundlePath(path)) {
+    return absl::PermissionDeniedError(
+        "Export for review requires a separate file. Use Preview and Publish "
+        "to update the canonical source.");
+  }
+  return ExportMessageBundleToJson(path, list_of_texts_, expanded_messages_);
 }
 
 void MessageEditor::DrawTokenInserter(const std::vector<TextElement>& elements,

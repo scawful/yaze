@@ -737,6 +737,7 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
   absl::Status CheckRomWritePolicy(
       const std::optional<std::string>& target_filename = std::nullopt);
   absl::Status CheckOracleRomSafetyPreSave(Rom* rom);
+  absl::Status CheckUnpublishedMessageSourceBeforeSave();
   absl::Status SaveRomInternal(
       const std::optional<std::string>& save_as_filename);
   bool HasPendingRomSaveConfirmation() const;

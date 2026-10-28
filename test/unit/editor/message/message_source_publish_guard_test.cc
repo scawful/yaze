@@ -15,6 +15,7 @@
 #include <utility>
 
 #include "imgui/imgui.h"
+#include "imgui/imgui_internal.h"
 
 #include <gtest/gtest.h>
 #include <nlohmann/json.hpp>
@@ -37,6 +38,15 @@ class MessageEditorPublishGuardTestPeer {
 
   static void DrawSourceBanner(MessageEditor& editor) {
     editor.DrawExpandedSourceBanner();
+  }
+
+  static absl::Status ExportReview(MessageEditor& editor,
+                                   const std::string& path) {
+    return editor.ExportReviewBundleToFile(path);
+  }
+
+  static void SetParseError(MessageEditor& editor) {
+    editor.current_parse_errors_ = {"Unrecognized text command"};
   }
 
   static size_t ExpandedCount(const MessageEditor& editor) {
@@ -449,6 +459,138 @@ TEST(MessageProjectSourceLoadTest, BannerPreservesPendingEditsAndShowsError) {
             std::string::npos);
   EXPECT_EQ(fixture.rom.vector(), rom_before);
   EXPECT_EQ(ReadText(fixture.canonical), source_before);
+}
+
+TEST(MessageReviewExportTest, WriterShowsLabeledExportForReview) {
+  ScopedImGuiFrame ui;
+  PublishFixture fixture;
+  MessageEditor editor(&fixture.rom, fixture.dependencies);
+  ASSERT_TRUE(editor.Load().ok());
+  const auto rendered_list = [&] {
+    std::string text;
+    ui.DrawOnce([&] {
+      ImGui::LogToBuffer();
+      editor.DrawMessageList();
+      text = ImGui::GetCurrentContext()->LogBuffer.c_str();
+      ImGui::LogFinish();
+    });
+    return text;
+  };
+
+  EXPECT_EQ(rendered_list().find("Export for review"), std::string::npos);
+  fixture.project.workspace_settings.last_layout_preset = "Writer";
+  EXPECT_NE(rendered_list().find("Export for review"), std::string::npos);
+}
+
+TEST(MessageReviewExportTest, LegacyExportIsUnderCollapsedAdvancedSection) {
+  ScopedImGuiFrame ui;
+  PublishFixture fixture;
+  MessageEditor editor(&fixture.rom, fixture.dependencies);
+  ASSERT_TRUE(editor.Load().ok());
+  std::string text;
+  ui.DrawOnce([&] {
+    ImGui::LogToBuffer();
+    editor.DrawExpandedMessageSettings();
+    text = ImGui::GetCurrentContext()->LogBuffer.c_str();
+    ImGui::LogFinish();
+  });
+
+  EXPECT_NE(text.find("Advanced"), std::string::npos);
+  EXPECT_EQ(text.find("Legacy JSON export"), std::string::npos);
+  EXPECT_EQ(text.find("Export to JSON"), std::string::npos);
+}
+
+TEST(MessageReviewExportTest, ExportsBothBanksAndKeepsUnpublishedSourceState) {
+  PublishFixture fixture;
+  fixture.project.workspace_settings.last_layout_preset = "Writer";
+  MessageEditor editor(&fixture.rom, fixture.dependencies);
+  ASSERT_TRUE(editor.Load().ok());
+  MessageEditorPublishGuardTestPeer::SetVanillaDirty(editor);
+  MessageEditorPublishGuardTestPeer::SetExpandedText(editor, 0, "Review draft");
+  MessageEditorPublishGuardTestPeer::MarkExpandedDirty(editor);
+  MessageEditorPublishGuardTestPeer::Preview(editor);
+  ASSERT_TRUE(MessageEditorPublishGuardTestPeer::Ready(editor));
+  ASSERT_TRUE(editor.HasUnpublishedMessageSourceChanges());
+  const auto source_sha =
+      MessageEditorPublishGuardTestPeer::LoadedSourceSha(editor);
+  const auto rom_before = fixture.rom.vector();
+  const auto source_before = ReadText(fixture.canonical);
+  const auto review_path = fixture.root.path() / "review.json";
+
+  ASSERT_TRUE(MessageEditorPublishGuardTestPeer::ExportReview(
+                  editor, review_path.string())
+                  .ok());
+
+  const auto review = Json::parse(ReadText(review_path));
+  EXPECT_EQ(review.at("format"), "yaze-message-bundle");
+  EXPECT_EQ(review.at("version"), 1);
+  EXPECT_EQ(review.at("counts").at("vanilla"), 1);
+  EXPECT_EQ(review.at("counts").at("expanded"), 2);
+  ASSERT_EQ(review.at("messages").size(), 3u);
+  EXPECT_EQ(review.at("messages").at(0).at("bank"), "vanilla");
+  EXPECT_EQ(review.at("messages").at(1).at("bank"), "expanded");
+  EXPECT_EQ(review.at("messages").at(1).at("text"), "Review draft");
+  EXPECT_TRUE(editor.HasUnpublishedMessageSourceChanges());
+  EXPECT_TRUE(MessageEditorPublishGuardTestPeer::VanillaDirty(editor));
+  EXPECT_TRUE(MessageEditorPublishGuardTestPeer::Ready(editor));
+  EXPECT_EQ(MessageEditorPublishGuardTestPeer::LoadedSourceSha(editor),
+            source_sha);
+  EXPECT_EQ(fixture.rom.vector(), rom_before);
+  EXPECT_EQ(ReadText(fixture.canonical), source_before);
+  EXPECT_FALSE(
+      fs::exists(fixture.root.path() / "Core/Generated/expanded_messages.asm"));
+}
+
+TEST(MessageReviewExportTest, CanonicalDestinationCannotBypassPublication) {
+  PublishFixture fixture;
+  MessageEditor editor(&fixture.rom, fixture.dependencies);
+  ASSERT_TRUE(editor.Load().ok());
+  MessageEditorPublishGuardTestPeer::SetExpandedText(editor, 0, "Draft");
+  MessageEditorPublishGuardTestPeer::MarkExpandedDirty(editor);
+  const auto source_before = ReadText(fixture.canonical);
+
+  const auto status = MessageEditorPublishGuardTestPeer::ExportReview(
+      editor, fixture.canonical.string());
+
+  EXPECT_EQ(status.code(), absl::StatusCode::kPermissionDenied);
+  EXPECT_NE(std::string(status.message()).find("Preview and Publish"),
+            std::string::npos);
+  EXPECT_EQ(ReadText(fixture.canonical), source_before);
+  EXPECT_TRUE(editor.HasUnpublishedMessageSourceChanges());
+}
+
+TEST(MessageReviewExportTest, ParseErrorDoesNotExportStaleBackingText) {
+  PublishFixture fixture;
+  MessageEditor editor(&fixture.rom, fixture.dependencies);
+  ASSERT_TRUE(editor.Load().ok());
+  MessageEditorPublishGuardTestPeer::SetParseError(editor);
+  const auto review_path = fixture.root.path() / "review.json";
+
+  const auto status = MessageEditorPublishGuardTestPeer::ExportReview(
+      editor, review_path.string());
+
+  EXPECT_EQ(status.code(), absl::StatusCode::kFailedPrecondition);
+  EXPECT_FALSE(fs::exists(review_path));
+}
+
+TEST(MessageReviewExportTest, FileFailureKeepsExpandedDraftAndSourceIdentity) {
+  PublishFixture fixture;
+  MessageEditor editor(&fixture.rom, fixture.dependencies);
+  ASSERT_TRUE(editor.Load().ok());
+  MessageEditorPublishGuardTestPeer::SetExpandedText(editor, 0, "Draft");
+  MessageEditorPublishGuardTestPeer::MarkExpandedDirty(editor);
+  const auto source_sha =
+      MessageEditorPublishGuardTestPeer::LoadedSourceSha(editor);
+
+  EXPECT_FALSE(MessageEditorPublishGuardTestPeer::ExportReview(
+                   editor, fixture.root.path().string())
+                   .ok());
+
+  EXPECT_TRUE(editor.HasUnpublishedMessageSourceChanges());
+  EXPECT_EQ(MessageEditorPublishGuardTestPeer::ExpandedText(editor, 0),
+            "Draft");
+  EXPECT_EQ(MessageEditorPublishGuardTestPeer::LoadedSourceSha(editor),
+            source_sha);
 }
 
 TEST(MessageProjectSourceLoadTest,

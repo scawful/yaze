@@ -27,6 +27,7 @@
 #include "app/editor/editor.h"
 #include "app/editor/graphics/screen_editor.h"
 #include "app/editor/layout/layout_presets.h"
+#include "app/editor/message/message_editor.h"
 #include "app/editor/overworld/overworld_editor.h"
 #include "app/editor/session_types.h"
 #include "app/editor/shell/coordinator/ui_coordinator.h"
@@ -880,6 +881,23 @@ absl::Status EditorManager::SaveRomInternal(
     }
   }
   return save_status;
+}
+
+absl::Status EditorManager::CheckUnpublishedMessageSourceBeforeSave() {
+  auto* editors = GetCurrentEditorSet();
+  auto* message = editors
+                      ? static_cast<MessageEditor*>(
+                            editors->GetExistingEditor(EditorType::kMessage))
+                      : nullptr;
+  if (!message || !message->HasUnpublishedMessageSourceChanges()) {
+    return absl::OkStatus();
+  }
+  if (popup_manager_) {
+    popup_manager_->ShowUnpublishedMessageSource(GetCurrentSessionId());
+  }
+  return absl::FailedPreconditionError(
+      "Expanded message source has unpublished edits; use Preview and "
+      "Publish in the Message editor before saving");
 }
 
 void EditorManager::ShowPostLoadSurface(bool apply_project_workspace) {
