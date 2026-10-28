@@ -118,6 +118,8 @@ void GraphicsEditor::Initialize() {
           workspace->CloseWindow("graphics.sheet_browser_v2");
       });
   palette_controls_panel_ = std::make_unique<PaletteControlsPanel>(&state_);
+  image_import_panel_ =
+      std::make_unique<ImageImportPanel>(&state_, &undo_manager_);
   link_sprite_panel_ = std::make_unique<LinkSpritePanel>(&state_, rom_);
   gfx_group_panel_ = std::make_unique<GfxGroupEditor>();
   gfx_group_panel_->SetWorkspaceState(dependencies_.gfx_group_workspace);
@@ -213,6 +215,13 @@ void GraphicsEditor::Initialize() {
         if (polyhedral_panel_) {
           bool open = true;
           polyhedral_panel_->Draw(&open);
+        }
+      }));
+
+  window_manager->RegisterWindowContent(
+      std::make_unique<GraphicsImageImportPanel>([this]() {
+        if (image_import_panel_) {
+          status_ = image_import_panel_->Update();
         }
       }));
 }

@@ -35,6 +35,9 @@ TEST(GraphicsEditorWindowIds, WrapperPanelsUseStableIds) {
 
   GraphicsPolyhedralPanel polyhedral(NoOpDraw);
   EXPECT_EQ(polyhedral.GetId(), "graphics.polyhedral");
+
+  GraphicsImageImportPanel image_import(NoOpDraw);
+  EXPECT_EQ(image_import.GetId(), "graphics.image_import");
 }
 
 TEST(GraphicsEditorWindowIds, PolyhedralPanelMatchesWrapperId) {
