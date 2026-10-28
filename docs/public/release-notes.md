@@ -1,6 +1,6 @@
 # Release Notes
 
-## v0.8.0
+## v0.8.0-exp.1
 
 **Type:** Experimental release — Dungeon rendering and authoring, save safety,
 graphics and project tooling
