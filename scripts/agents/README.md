@@ -51,6 +51,18 @@ scripts/agent_build.sh --reuse-from /absolute/path/to/owned-checkout yaze
 scripts/agent_build.sh --allow-new-build yaze
 ```
 
+Build and test on the Windows box (`mm`, 16 cores) by default; it ships
+local-only commits as a git bundle and keeps its own build trees:
+```bash
+scripts/remote/mm-test.sh <branch> --target yaze           # build only
+scripts/remote/mm-test.sh <branch> --filter 'Suite.*'      # focused tests
+MM_HOST=eva-02 scripts/remote/mm-test.sh <branch>          # second box, once set up
+```
+Keep Mac builds for macOS-specific proof. On macOS, `agent_build.sh` refuses
+to build when swap is at least 75% used, or when a new build tree would start
+with less than 30 GiB free, and prints the `mm-test.sh` command instead.
+`YAZE_AGENT_BUILD_LOCAL=1` builds locally anyway.
+
 Desk mode uses the host core count without a priority reduction. Laptop mode
 remains restricted. Direct portable CMake/CTest presets retain conservative
 defaults; the agent entry point explicitly selects the host policy. A build
