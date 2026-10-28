@@ -348,22 +348,22 @@ class DungeonMapPanel : public WindowContent {
         ImVec2 glow_min(room_min.x - 2, room_min.y - 2);
         ImVec2 glow_max(room_max.x + 2, room_max.y + 2);
         draw_list->AddRect(glow_min, glow_max,
-                           ImGui::ColorConvertFloat4ToU32(glow), 0.0f, 0, 4.0f);
+                           ImGui::ColorConvertFloat4ToU32(glow), 0.0f, 4.0f);
         // Inner border
         draw_list->AddRect(
             room_min, room_max,
             ImGui::ColorConvertFloat4ToU32(theme.dungeon_selection_primary),
-            0.0f, 0, 2.0f);
+            0.0f, 2.0f);
       } else if (is_open) {
         draw_list->AddRect(
             room_min, room_max,
             ImGui::ColorConvertFloat4ToU32(theme.dungeon_grid_cell_selected),
-            0.0f, 0, 2.0f);
+            0.0f, 2.0f);
       } else {
         draw_list->AddRect(
             room_min, room_max,
             ImGui::ColorConvertFloat4ToU32(theme.dungeon_grid_cell_border),
-            0.0f, 0, 1.0f);
+            0.0f, 1.0f);
       }
 
       // Room type badge (small colored dot in top-left corner)

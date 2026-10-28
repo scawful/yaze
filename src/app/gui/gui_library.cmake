@@ -18,6 +18,7 @@ set(GUI_CORE_SRC
   app/gui/core/background_renderer.cc
   app/gui/core/color.cc
   app/gui/core/icons.cc
+  app/gui/core/imgui_diagnostics.cc
   app/gui/core/input.cc
   app/gui/core/layout_helpers.cc
   app/gui/core/platform_keys.cc

@@ -12,6 +12,7 @@
 #include "app/editor/system/workspace/workspace_window_manager.h"
 #include "app/gfx/core/bitmap.h"
 #include "app/gfx/resource/arena.h"
+#include "app/gfx/types/snes_tile.h"
 #include "app/gfx/util/palette_manager.h"
 #include "app/gui/automation/widget_id_registry.h"
 #include "core/project.h"
@@ -36,10 +37,14 @@ struct SpriteEditorPreviewTestPeer {
     return editor.sprite_preview_bitmap_;
   }
   static void SetSheet(SpriteEditor& editor, int slot, uint8_t id) {
-    editor.current_sheets_[slot] = id;
+    editor.vanilla_sheets_[slot] = id;
   }
   static uint8_t Sheet(const SpriteEditor& editor, int slot) {
-    return editor.current_sheets_[slot];
+    return editor.vanilla_sheets_[slot];
+  }
+  static const gfx::Bitmap& ExternalSheet(const SpriteEditor& editor,
+                                          int slot) {
+    return editor.external_sheet_previews_[slot];
   }
   static void CreateOracleFrame(SpriteEditor& editor) {
     editor.CreateNewZSprite();
@@ -401,6 +406,57 @@ TEST_F(RegisteredSpritePreviewTest,
   EXPECT_TRUE(HasPixel(SpriteEditorPreviewTestPeer::CustomBitmap(*editor_), 2));
   EXPECT_EQ(log_.find("Experimental static preview"), std::string::npos);
   EXPECT_EQ(log_.find("Preview unavailable"), std::string::npos);
+}
+
+TEST_F(RegisteredSpritePreviewTest,
+       BoundRawRom4bppPixelsRenderThroughTheRegisteredCustomCanvas) {
+  snes_tile8 tile{};
+  std::fill_n(tile.data, 64, 9);
+  const auto encoded = gfx::PackBppTile(tile, 4);
+  std::vector<uint8_t> raw;
+  for (int i = 0; i < 64; ++i)
+    raw.insert(raw.end(), encoded.begin(), encoded.end());
+  ASSERT_TRUE(rom_.WriteVector(0x1F0000, raw).ok());
+  ASSERT_TRUE(editor_->CreateSpriteAssetFromVanilla(0xA7).ok());
+  ASSERT_TRUE(
+      editor_->SetSpriteGraphicsSource(4, {"raw_rom", "", 0x1F0000, 4}).ok());
+  Draw("sprite.custom_editor");
+  Draw("sprite.custom_editor");
+  EXPECT_TRUE(HasPixel(SpriteEditorPreviewTestPeer::CustomBitmap(*editor_), 9));
+  EXPECT_FALSE(
+      HasPixel(SpriteEditorPreviewTestPeer::CustomBitmap(*editor_), 2));
+  const auto before = SpriteEditorPreviewTestPeer::ExternalSheet(*editor_, 4)
+                          .palette()[9]
+                          .snes();
+  auto binding = *editor_->current_sprite_binding();
+  binding.palette_rows[0] = {"global_sprites", 3};
+  ASSERT_TRUE(
+      editor_->SetSpriteGraphics(binding.sheets, binding.palette_rows).ok());
+  Draw("sprite.custom_editor");
+  EXPECT_NE(SpriteEditorPreviewTestPeer::ExternalSheet(*editor_, 4)
+                .palette()[9]
+                .snes(),
+            before);
+  EXPECT_EQ(SpriteEditorPreviewTestPeer::ExternalSheet(*editor_, 4)
+                .palette()[9]
+                .snes(),
+            data_.palette_groups.global_sprites.palette_ref(3)[9].snes());
+  ASSERT_TRUE(editor_->Undo().ok());  // Palette binding.
+  ASSERT_TRUE(editor_->Undo().ok());
+  Draw("sprite.custom_editor");
+  EXPECT_TRUE(HasPixel(SpriteEditorPreviewTestPeer::CustomBitmap(*editor_), 2));
+  EXPECT_FALSE(
+      HasPixel(SpriteEditorPreviewTestPeer::CustomBitmap(*editor_), 9));
+  ASSERT_TRUE(editor_->Redo().ok());
+  Draw("sprite.custom_editor");
+  EXPECT_TRUE(HasPixel(SpriteEditorPreviewTestPeer::CustomBitmap(*editor_), 9));
+  // The same frame slots still refer to ordinary sheets in the vanilla view.
+  Select(0xA7);
+  EXPECT_TRUE(
+      HasPixel(SpriteEditorPreviewTestPeer::VanillaBitmap(*editor_), 2));
+  EXPECT_FALSE(
+      HasPixel(SpriteEditorPreviewTestPeer::VanillaBitmap(*editor_), 9));
+  EXPECT_EQ(SpriteEditorPreviewTestPeer::Sheet(*editor_, 4), 0x92);
 }
 
 }  // namespace

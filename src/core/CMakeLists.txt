@@ -22,11 +22,13 @@ set(YAZE_CORE_LIB_SOURCES
   gfx_sheet_policy_adapter.cc
   graphics_sheet_labels.cc
   hack_manifest.cc
+  native_save_receipt.cc
   oracle_menu_registry.cc
   oracle_progression.cc
   oracle_progression_loader.cc
   project.cc
   project_plan.cc
+  project_plan_agent.cc
   terrain_catalog.cc
   lyra_terrain_document.cc
   palette_catalog.cc

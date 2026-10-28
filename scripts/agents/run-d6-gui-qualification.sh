@@ -1,9 +1,21 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# This mode prepares an intact current-project fixture only. Native replay still
+# needs a separately reviewed case; the historical D6 checks below stay pinned.
+if [[ "${1:-}" == "--prepare-current-bundle" ]]; then
+  shift
+  exec python3 "$(dirname "${BASH_SOURCE[0]}")/prepare_authoring_bundle_fixture.py" prepare "$@"
+fi
+
 usage() {
   cat <<'EOF'
 Usage:
+  scripts/agents/run-d6-gui-qualification.sh --prepare-current-bundle \
+    --bundle <current .yazeproj> --inventory <reviewed inventory.json> \
+    --inventory-sha256 <exact hash> --destination <absent copy> \
+    --receipt <absent receipt.json>
+
   scripts/agents/run-d6-gui-qualification.sh \
     --project <disposable Oracle-of-Secrets.yaze> \
     --rom <disposable oos168.sfc> \

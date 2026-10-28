@@ -320,6 +320,229 @@ TEST_F(DeferredScalarInputTest,
   EXPECT_FALSE(committed_);
 }
 
+// Drives the hex inputs through real frames so wheel, button, and text input
+// reach them the way they do in the editor.
+class HexInputTest : public ::testing::Test {
+ protected:
+  void SetUp() override {
+    context_ = ImGui::CreateContext();
+    ImGui::SetCurrentContext(context_);
+    ImGuiIO& io = ImGui::GetIO();
+    io.IniFilename = nullptr;
+    io.DisplaySize = ImVec2(640.0f, 480.0f);
+    io.DeltaTime = 1.0f / 60.0f;
+    unsigned char* pixels = nullptr;
+    int width = 0;
+    int height = 0;
+    io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
+  }
+
+  void TearDown() override {
+    ImGui::DestroyContext(context_);
+    context_ = nullptr;
+  }
+
+  // Events are injected before NewFrame, so they target the item rect
+  // recorded on the previous frame.
+  void RunFrame(const std::function<void()>& draw,
+                const std::function<void(ImGuiIO&)>& inject_events = {},
+                bool focus_host = true) {
+    ImGuiIO& io = ImGui::GetIO();
+    if (inject_events) {
+      inject_events(io);
+    }
+
+    ImGui::NewFrame();
+    ImGui::SetNextWindowPos(ImVec2(20.0f, 20.0f), ImGuiCond_Always);
+    ImGui::SetNextWindowSize(ImVec2(320.0f, 120.0f), ImGuiCond_Always);
+    if (focus_host) {
+      ImGui::SetNextWindowFocus();
+    }
+    ImGui::Begin(
+        "HexInputHost", nullptr,
+        ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoSavedSettings);
+    draw();
+    item_min_ = ImGui::GetItemRectMin();
+    item_max_ = ImGui::GetItemRectMax();
+    frame_height_ = ImGui::GetFrameHeight();
+    ImGui::End();
+    ImGui::EndFrame();
+  }
+
+  float CenterY() const { return (item_min_.y + item_max_.y) * 0.5f; }
+
+  void MoveMouse(const std::function<void()>& draw, float x, float y) {
+    RunFrame(draw, [=](ImGuiIO& io) { io.AddMousePosEvent(x, y); });
+  }
+
+  void Click(const std::function<void()>& draw, float x, float y) {
+    MoveMouse(draw, x, y);
+    RunFrame(draw, [](ImGuiIO& io) {
+      io.AddMouseButtonEvent(ImGuiMouseButton_Left, true);
+    });
+    RunFrame(draw, [](ImGuiIO& io) {
+      io.AddMouseButtonEvent(ImGuiMouseButton_Left, false);
+    });
+  }
+
+  void WheelBehindPopup(const std::function<void()>& draw_input,
+                        ImGuiKey modifier = ImGuiMod_Ctrl) {
+    bool show_popup = false;
+    bool popup_open = false;
+    bool hovered_normally = false;
+    bool hovered_allowing_popup = false;
+    auto draw = [&] {
+      draw_input();
+      hovered_normally = ImGui::IsItemHovered();
+      hovered_allowing_popup =
+          ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenBlockedByPopup);
+      if (show_popup) {
+        if (!ImGui::IsPopupOpen("WheelBlocker")) {
+          ImGui::OpenPopup("WheelBlocker");
+        }
+        // Keep the popup away from the input: popup blocking, rather than
+        // another window covering the item, must reject the wheel.
+        ImGui::SetNextWindowPos(ImVec2(380.0f, 20.0f), ImGuiCond_Always);
+        popup_open = ImGui::BeginPopup("WheelBlocker");
+        if (popup_open) {
+          ImGui::TextUnformatted("Popup blocks the underlying input");
+          ImGui::EndPopup();
+        }
+      }
+    };
+    RunFrame(draw);
+    MoveMouse(draw, (item_min_.x + item_max_.x) * 0.5f, CenterY());
+    show_popup = true;
+    RunFrame(draw);
+    // Refocusing the host would close its popup before the wheel arrives.
+    RunFrame(
+        draw, [modifier](ImGuiIO& io) { io.AddKeyEvent(modifier, true); },
+        /*focus_host=*/false);
+    RunFrame(
+        draw, [](ImGuiIO& io) { io.AddMouseWheelEvent(0.0f, 1.0f); },
+        /*focus_host=*/false);
+    RunFrame(draw, {}, /*focus_host=*/false);
+
+    ASSERT_TRUE(popup_open);
+    EXPECT_FALSE(hovered_normally);
+    EXPECT_TRUE(hovered_allowing_popup);
+  }
+
+  ImGuiContext* context_ = nullptr;
+  ImVec2 item_min_{};
+  ImVec2 item_max_{};
+  float frame_height_ = 0.0f;
+};
+
+// Hovering is not enough: a plain wheel over a field scrolls the panel.
+// Callers apply on ShouldApply(), so a reported no-op change would reach
+// them on every scroll tick.
+TEST_F(HexInputTest, PlainWheelOverWordFieldReportsNoChange) {
+  uint16_t value = 0x0010;
+  bool reported = false;
+  auto draw = [&] {
+    reported |= InputHexWordEx("##Room", &value, 80.0f, true).changed;
+  };
+  RunFrame(draw);
+  MoveMouse(draw, (item_min_.x + item_max_.x) * 0.5f, CenterY());
+  RunFrame(draw, [](ImGuiIO& io) { io.AddMouseWheelEvent(0.0f, 1.0f); });
+  RunFrame(draw);
+
+  EXPECT_EQ(value, 0x0010);
+  EXPECT_FALSE(reported);
+}
+
+TEST_F(HexInputTest, CtrlWheelStepsWordByOneAsImmediateChange) {
+  uint16_t value = 0x0010;
+  bool should_apply = false;
+  auto draw = [&] {
+    should_apply |= InputHexWordEx("##Room", &value, 80.0f, true).ShouldApply();
+  };
+  RunFrame(draw);
+  MoveMouse(draw, (item_min_.x + item_max_.x) * 0.5f, CenterY());
+  RunFrame(draw, [](ImGuiIO& io) { io.AddKeyEvent(ImGuiMod_Ctrl, true); });
+  RunFrame(draw, [](ImGuiIO& io) { io.AddMouseWheelEvent(0.0f, 1.0f); });
+  RunFrame(draw);
+
+  EXPECT_EQ(value, 0x0011);
+  EXPECT_TRUE(should_apply);
+}
+
+TEST_F(HexInputTest, CtrlWheelBehindPopupDoesNotChangeByteField) {
+  uint8_t value = 0x10;
+  bool reported = false;
+  WheelBehindPopup([&] {
+    reported |= InputHexByteEx("##Room", &value, 80.0f, true).ShouldApply();
+  });
+
+  EXPECT_EQ(value, 0x10);
+  EXPECT_FALSE(reported);
+}
+
+TEST_F(HexInputTest, SuperWheelBehindPopupDoesNotChangeClampedByteField) {
+  uint8_t value = 0x10;
+  bool reported = false;
+  WheelBehindPopup(
+      [&] {
+        reported |= InputHexByteEx("##Room", &value, uint8_t{0x3F}, 80.0f, true)
+                        .ShouldApply();
+      },
+      ImGuiMod_Super);
+
+  EXPECT_EQ(value, 0x10);
+  EXPECT_FALSE(reported);
+}
+
+TEST_F(HexInputTest, CtrlWheelBehindPopupDoesNotChangeWordField) {
+  uint16_t value = 0x0010;
+  bool reported = false;
+  WheelBehindPopup([&] {
+    reported |= InputHexWordEx("##Room", &value, 80.0f, true).ShouldApply();
+  });
+
+  EXPECT_EQ(value, 0x0010);
+  EXPECT_FALSE(reported);
+}
+
+// Regular hex inputs allowed popup-blocked hover before the upgrade. Keep
+// that separate contract while restoring the extended inputs' stricter one.
+TEST_F(HexInputTest, RegularWordFieldKeepsLegacyWheelBehaviorBehindPopup) {
+  uint16_t value = 0x0010;
+  bool reported = false;
+  WheelBehindPopup(
+      [&] { reported |= InputHexWord("##Room", &value, 80.0f, true); });
+
+  EXPECT_EQ(value, 0x0011);
+  EXPECT_TRUE(reported);
+}
+
+TEST_F(HexInputTest, U64StepButtonAddsOne) {
+  uint64_t value = 0;
+  auto draw = [&] {
+    InputHex("##Offset", &value);
+  };
+  RunFrame(draw);
+  // With a hidden label the group ends at the "+" button.
+  Click(draw, item_max_.x - frame_height_ * 0.5f, CenterY());
+  RunFrame(draw);
+
+  EXPECT_EQ(value, 1u);
+}
+
+TEST_F(HexInputTest, U64TextEntryKeepsUpperBits) {
+  uint64_t value = 0;
+  auto draw = [&] {
+    InputHex("##Offset", &value);
+  };
+  RunFrame(draw);
+  Click(draw, item_min_.x + 8.0f, CenterY());
+  RunFrame(draw, [](ImGuiIO& io) { io.AddInputCharactersUTF8("123456789A"); });
+  RunFrame(draw, [](ImGuiIO& io) { io.AddKeyEvent(ImGuiKey_Enter, true); });
+  RunFrame(draw);
+
+  EXPECT_EQ(value, 0x123456789Aull);
+}
+
 }  // namespace
 }  // namespace gui
 }  // namespace yaze

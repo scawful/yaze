@@ -488,8 +488,8 @@ void RoomGraphicsContent::Draw(bool* p_open) {
     }
     gui::AutoRegisterLastItem("button", absl::StrFormat("Slot %02d", i));
     if (i == selected_slot_)
-      draw_list->AddRect(start, end, ImGui::GetColorU32(ImGuiCol_NavHighlight),
-                         0, 0, 2);
+      draw_list->AddRect(start, end, ImGui::GetColorU32(ImGuiCol_NavCursor),
+                         0.0f, 2.0f);
     const char* role = i < 3    ? "Main"
                        : i < 7  ? "Room"
                        : i == 7 ? "Main/anim"

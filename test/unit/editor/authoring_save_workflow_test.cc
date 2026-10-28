@@ -808,7 +808,9 @@ TEST_F(AuthoringSaveWorkflowTest, OracleProjectLoadsCanonicalMessagesOnOpen) {
   const auto include_before = ReadFile(fixture.root / include_relative);
   const auto rom_before = ReadFile(fixture.rom);
   const auto source = nlohmann::json::parse(bundle_before);
-  ASSERT_EQ(source.at("messages").size(), 119u);
+  const auto& source_messages = source.at("messages");
+  ASSERT_TRUE(source_messages.is_array());
+  ASSERT_FALSE(source_messages.empty());
 
   for (const auto mode : {AssetLoadMode::kLazy, AssetLoadMode::kFull}) {
     SCOPED_TRACE(mode == AssetLoadMode::kLazy ? "lazy open" : "preloaded open");
@@ -821,14 +823,15 @@ TEST_F(AuthoringSaveWorkflowTest, OracleProjectLoadsCanonicalMessagesOnOpen) {
     ASSERT_NE(messages, nullptr);
     const auto& expanded =
         AuthoringSaveWorkflowTestPeer::ExpandedMessages(*messages);
-    ASSERT_EQ(expanded.size(), 119u);
+    ASSERT_EQ(expanded.size(), source_messages.size());
     for (size_t i = 0; i < expanded.size(); ++i) {
-      EXPECT_EQ(expanded[i].ID, source.at("messages")[i].at("id"));
+      EXPECT_EQ(expanded[i].ID, source_messages[i].at("id"));
       EXPECT_EQ(expanded[i].RawString,
-                source.at("messages")[i].at("text").get<std::string>());
+                source_messages[i].at("text").get<std::string>());
       EXPECT_TRUE(messages->OpenMessageById(0x18D + static_cast<int>(i)));
     }
-    EXPECT_FALSE(messages->OpenMessageById(0x204));
+    EXPECT_FALSE(messages->OpenMessageById(
+        0x18D + static_cast<int>(source_messages.size())));
     EXPECT_FALSE(messages->CanUndo());
     EXPECT_EQ(manager_->GetCurrentRom()->vector(), rom_before);
     EXPECT_FALSE(manager_->GetCurrentRom()->dirty());

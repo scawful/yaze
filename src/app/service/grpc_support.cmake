@@ -81,7 +81,6 @@ if(TARGET ImGuiTestEngine)
   target_link_libraries(yaze_grpc_support PUBLIC ImGuiTestEngine)
   target_compile_definitions(yaze_grpc_support PRIVATE
     YAZE_ENABLE_IMGUI_TEST_ENGINE=1
-    IMGUI_DEFINE_MATH_OPERATORS=1
   )
 endif()
 

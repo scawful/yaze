@@ -8,6 +8,7 @@
 #include <cerrno>
 #include <chrono>
 #include <cstdint>
+#include <cstdio>
 #include <filesystem>
 #include <fstream>
 #include <iomanip>
@@ -296,10 +297,11 @@ std::string BasenameLower(const std::string& path) {
   return ToLowerCopy(std::filesystem::path(path).filename().string());
 }
 
-#ifndef __EMSCRIPTEN__
 uint64_t CurrentProcessIdForProjectSave() {
 #if defined(_WIN32)
   return static_cast<uint64_t>(::GetCurrentProcessId());
+#elif defined(__EMSCRIPTEN__)
+  return 0;
 #else
   return static_cast<uint64_t>(::getpid());
 #endif
@@ -323,6 +325,30 @@ void RemoveProjectSaveTempFile(const std::filesystem::path& temp_path) {
 absl::Status WriteProjectFileAtomicallyImpl(
     const std::filesystem::path& target_path, absl::string_view contents,
     bool replace_existing) {
+#ifdef __EMSCRIPTEN__
+  if (!replace_existing) {
+    // MEMFS/IDBFS do not support hard links. Exclusive fopen keeps the existing
+    // synchronous virtual-filesystem workflow without replacing a destination.
+    FILE* file = std::fopen(target_path.c_str(), "wbx");
+    if (file == nullptr) {
+      if (errno == EEXIST) {
+        return absl::AlreadyExistsError(absl::StrFormat(
+            "Project file already exists: %s", target_path.string()));
+      }
+      return absl::InternalError(absl::StrFormat(
+          "Cannot create project file: %s", target_path.string()));
+    }
+    const bool written = std::fwrite(contents.data(), 1, contents.size(),
+                                     file) == contents.size();
+    const bool closed = std::fclose(file) == 0;
+    if (!written || !closed) {
+      RemoveProjectSaveTempFile(target_path);
+      return absl::InternalError(absl::StrFormat(
+          "Failed to write project file: %s", target_path.string()));
+    }
+    return absl::OkStatus();
+  }
+#endif
   const std::filesystem::path temp_path = MakeProjectSaveTempPath(target_path);
   std::ofstream file(temp_path, std::ios::binary | std::ios::trunc);
   if (!file.is_open()) {
@@ -355,6 +381,8 @@ absl::Status WriteProjectFileAtomicallyImpl(
     rename_error = std::error_code(static_cast<int>(::GetLastError()),
                                    std::system_category());
   }
+#elif defined(__EMSCRIPTEN__)
+  std::filesystem::rename(temp_path, target_path, rename_error);
 #else
   if (replace_existing) {
     std::filesystem::rename(temp_path, target_path, rename_error);
@@ -383,10 +411,8 @@ absl::Status WriteProjectFileAtomicallyImpl(
 
   return absl::OkStatus();
 }
-#endif
 }  // namespace
 
-#ifndef __EMSCRIPTEN__
 absl::Status WriteProjectFileAtomically(absl::string_view target_path,
                                         absl::string_view contents,
                                         bool replace_existing) {
@@ -394,7 +420,6 @@ absl::Status WriteProjectFileAtomically(absl::string_view target_path,
       std::filesystem::path(std::string(target_path)), contents,
       replace_existing);
 }
-#endif
 
 std::string RomRoleToString(RomRole role) {
   switch (role) {
@@ -739,6 +764,62 @@ absl::Status YazeProject::LoadFromString(const std::string& content,
   return absl::OkStatus();
 }
 
+absl::Status YazeProject::ValidateSavedSourceBindings(
+    const std::string& content) const {
+  YazeProject saved;
+  saved.filepath = filepath;
+  try {
+    RETURN_IF_ERROR(saved.ParseFromString(content));
+    saved.NormalizePathsToAbsolute();
+  } catch (const std::exception& error) {
+    return absl::InvalidArgumentError(
+        std::string("Invalid saved project bindings: ") + error.what());
+  }
+  ASSIGN_OR_RETURN(const auto live_text, SerializeToString());
+  ASSIGN_OR_RETURN(const auto saved_text, saved.SerializeToString());
+  const auto bindings = [](const std::string& text) {
+    std::map<std::pair<std::string, std::string>, std::string> values;
+    std::istringstream input(text);
+    std::string line, section;
+    while (std::getline(input, line)) {
+      const auto trimmed = absl::StripAsciiWhitespace(line);
+      if (trimmed.empty() || trimmed.front() == '#')
+        continue;
+      if (trimmed.front() == '[' && trimmed.back() == ']') {
+        section = std::string(trimmed.substr(1, trimmed.size() - 2));
+        continue;
+      }
+      // These sections are transient application preferences, not sources.
+      if (section == "workspace" || section == "keybindings" ||
+          section == "editor_visibility" || section == "agent_settings")
+        continue;
+      const auto [key, value] = ParseKeyValue(std::string(trimmed));
+      if (key.empty() || (section == "project" &&
+                          (key == "last_modified" || key == "created_date")))
+        continue;
+      values[{section, key}] = value;
+    }
+    return values;
+  };
+  const auto live_bindings = bindings(live_text);
+  const auto saved_bindings = bindings(saved_text);
+  const auto mismatch = [](const auto& key) {
+    return absl::FailedPreconditionError(
+        "Saved project source bindings differ from the active project: [" +
+        key.first + "] " + key.second);
+  };
+  for (const auto& [key, value] : live_bindings) {
+    const auto saved = saved_bindings.find(key);
+    if (saved == saved_bindings.end() || saved->second != value)
+      return mismatch(key);
+  }
+  for (const auto& [key, value] : saved_bindings) {
+    if (live_bindings.find(key) == live_bindings.end())
+      return mismatch(key);
+  }
+  return absl::OkStatus();
+}
+
 absl::Status YazeProject::SaveAs(const std::string& new_path) {
   std::string old_filepath = filepath;
   filepath = new_path;
@@ -816,6 +897,9 @@ absl::Status YazeProject::SaveAsWithLyraTerrain(
   std::vector<fs::path> read_only_targets = {source_project, source_terrain};
   if (!candidate.rom_filename.empty()) {
     read_only_targets.push_back(candidate.rom_filename);
+  }
+  if (!candidate.lyra_build_request_file.empty()) {
+    read_only_targets.push_back(candidate.lyra_build_request_file);
   }
   ASSIGN_OR_RETURN(
       auto lock,
@@ -1177,6 +1261,8 @@ absl::StatusOr<std::string> YazeProject::SerializeToString() const {
        << GetRelativePath(GetAbsolutePath(terrain_catalog_file)) << "\n";
   file << "lyra_terrain_file="
        << GetRelativePath(GetAbsolutePath(lyra_terrain_file)) << "\n";
+  file << "lyra_build_request_file="
+       << GetRelativePath(GetAbsolutePath(lyra_build_request_file)) << "\n";
   file << "hack_manifest_file=" << GetRelativePath(hack_manifest_file) << "\n";
   file << "sprite_catalog_file="
        << GetRelativePath(GetAbsolutePath(sprite_catalog_file)) << "\n";
@@ -1188,6 +1274,11 @@ absl::StatusOr<std::string> YazeProject::SerializeToString() const {
   for (size_t i = 0; i < sprite_assets.size(); ++i) {
     auto asset = sprite_assets[i];
     asset.zsm_path = GetRelativePath(GetAbsolutePath(asset.zsm_path));
+    for (auto& source : asset.graphics_sources) {
+      if (source.kind == "bin") {
+        source.path = GetRelativePath(GetAbsolutePath(source.path));
+      }
+    }
     file << "asset_" << i << "=" << SpriteAssetToJson(asset).dump() << "\n";
   }
   file << "\n";
@@ -1516,6 +1607,7 @@ absl::Status YazeProject::ParseFromString(const std::string& content) {
   sprite_assets.clear();
   terrain_catalog_file.clear();
   lyra_terrain_file.clear();
+  lyra_build_request_file.clear();
   palette_catalog_file.clear();
   dungeon_tile_patterns.clear();
   file_passthrough = ProjectFilePassthrough{};
@@ -1623,6 +1715,8 @@ absl::Status YazeProject::ParseFromString(const std::string& content) {
         terrain_catalog_file = value;
       else if (key == "lyra_terrain_file")
         lyra_terrain_file = value;
+      else if (key == "lyra_build_request_file")
+        lyra_build_request_file = value;
       else if (key == "hack_manifest_file")
         hack_manifest_file = value;
       else if (key == "sprite_catalog_file")
@@ -2227,9 +2321,16 @@ void YazeProject::NormalizePathsToAbsolute() {
   normalize(&dungeon_tile_patterns);
   normalize(&terrain_catalog_file);
   normalize(&lyra_terrain_file);
+  normalize(&lyra_build_request_file);
   normalize(&palette_catalog_file);
-  for (auto& asset : sprite_assets)
+  for (auto& asset : sprite_assets) {
     normalize(&asset.zsm_path);
+    for (auto& source : asset.graphics_sources) {
+      if (source.kind == "bin") {
+        normalize(&source.path);
+      }
+    }
+  }
   normalize(&output_folder);
 
   for (auto& rom_path : additional_roms) {
@@ -2604,6 +2705,7 @@ void YazeProject::InitializeDefaults() {
   sprite_assets.clear();
   terrain_catalog_file.clear();
   lyra_terrain_file.clear();
+  lyra_build_request_file.clear();
   palette_catalog_file.clear();
   dungeon_tile_patterns.clear();
   if (metadata.project_id.empty()) {
@@ -3250,6 +3352,7 @@ absl::Status YazeProject::LoadFromJsonFormat(const std::string& project_path) {
   feature_flags.kSaveWithChangeQueue = false;
   terrain_catalog_file.clear();
   lyra_terrain_file.clear();
+  lyra_build_request_file.clear();
   palette_catalog_file.clear();
   dungeon_tile_patterns.clear();
 #ifdef __EMSCRIPTEN__
@@ -3263,7 +3366,7 @@ absl::Status YazeProject::LoadFromJsonFormat(const std::string& project_path) {
   }
 
   try {
-    json j;
+    Json j;
     file >> j;
 
     sprite_catalog_file.clear();
@@ -3313,6 +3416,9 @@ absl::Status YazeProject::LoadFromJsonFormat(const std::string& project_path) {
         terrain_catalog_file = proj["terrain_catalog_file"].get<std::string>();
       if (proj.contains("lyra_terrain_file"))
         lyra_terrain_file = proj["lyra_terrain_file"].get<std::string>();
+      if (proj.contains("lyra_build_request_file"))
+        lyra_build_request_file =
+            proj["lyra_build_request_file"].get<std::string>();
       if (proj.contains("hack_manifest_file"))
         hack_manifest_file = proj["hack_manifest_file"].get<std::string>();
       if (proj.contains("sprite_catalog_file"))
@@ -3575,7 +3681,7 @@ absl::Status YazeProject::LoadFromJsonFormat(const std::string& project_path) {
     }
 
     return absl::OkStatus();
-  } catch (const json::exception& e) {
+  } catch (const Json::exception& e) {
     return absl::InvalidArgumentError(
         absl::StrFormat("JSON parse error: %s", e.what()));
   }
@@ -3586,7 +3692,7 @@ absl::Status YazeProject::SaveToJsonFormat() {
   return absl::UnimplementedError(
       "JSON project format saving is not supported in the web build");
 #endif
-  json j;
+  Json j;
   auto& proj = j["yaze_project"];
 
   // Metadata
@@ -3614,6 +3720,8 @@ absl::Status YazeProject::SaveToJsonFormat() {
       GetRelativePath(GetAbsolutePath(terrain_catalog_file));
   proj["lyra_terrain_file"] =
       GetRelativePath(GetAbsolutePath(lyra_terrain_file));
+  proj["lyra_build_request_file"] =
+      GetRelativePath(GetAbsolutePath(lyra_build_request_file));
   proj["hack_manifest_file"] = hack_manifest_file;
   proj["sprite_catalog_file"] =
       GetRelativePath(GetAbsolutePath(sprite_catalog_file));
@@ -3622,6 +3730,11 @@ absl::Status YazeProject::SaveToJsonFormat() {
   proj["sprite_assets"] = nlohmann::json::array();
   for (auto asset : sprite_assets) {
     asset.zsm_path = GetRelativePath(GetAbsolutePath(asset.zsm_path));
+    for (auto& source : asset.graphics_sources) {
+      if (source.kind == "bin") {
+        source.path = GetRelativePath(GetAbsolutePath(source.path));
+      }
+    }
     proj["sprite_assets"].push_back(SpriteAssetToJson(asset));
   }
   proj["output_folder"] = output_folder;

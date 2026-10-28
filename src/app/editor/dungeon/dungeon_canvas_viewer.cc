@@ -585,7 +585,7 @@ void DungeonCanvasViewer::DrawChangePingOverlay(
                          max.y >= viewport_min.y && min.y <= viewport_max.y;
     if (visible) {
       canvas_rt.draw_list->AddRectFilled(min, max, fill_color, 2.0f);
-      canvas_rt.draw_list->AddRect(min, max, border_color, 2.0f, 0,
+      canvas_rt.draw_list->AddRect(min, max, border_color, 2.0f,
                                    2.0f + 2.0f * remaining);
       continue;
     }

@@ -299,8 +299,8 @@ void ObjectSelection::DrawSelectionHighlights(
     ImU32 border_color = ImGui::GetColorU32(theme.selection_primary);
     ImU32 pulse_color_u32 = ImGui::GetColorU32(pulsing_color);
 
-    draw_list->AddRect(obj_start, obj_end, border_color, 0.0f, 0, 2.0f);
-    draw_list->AddRect(obj_start, obj_end, pulse_color_u32, 0.0f, 0, 4.0f);
+    draw_list->AddRect(obj_start, obj_end, border_color, 0.0f, 2.0f);
+    draw_list->AddRect(obj_start, obj_end, pulse_color_u32, 0.0f, 4.0f);
 
     // Draw corner handles with theme handle color
     float handle_size = 6.0f * std::max(1.0f, scale * 0.5f);
@@ -315,7 +315,7 @@ void ObjectSelection::DrawSelectionHighlights(
       draw_list->AddRect(
           ImVec2(pos.x - handle_size / 2, pos.y - handle_size / 2),
           ImVec2(pos.x + handle_size / 2, pos.y + handle_size / 2),
-          handle_outline, 2.0f, 0, 1.0f);
+          handle_outline, 2.0f, 1.0f);
     };
 
     draw_handle(obj_start);
@@ -371,7 +371,7 @@ void ObjectSelection::DrawRectangleSelectionBox(gui::Canvas* canvas) {
              theme.selection_secondary.z, 0.15f));
 
   draw_list->AddRectFilled(box_start, box_end, fill_color);
-  draw_list->AddRect(box_start, box_end, border_color, 0.0f, 0, 2.0f);
+  draw_list->AddRect(box_start, box_end, border_color, 0.0f, 2.0f);
 }
 
 // ============================================================================

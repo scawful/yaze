@@ -326,8 +326,10 @@ if(YAZE_BUILD_TESTS)
     unit/core/project_paths_test.cc
     unit/core/project_bundle_path_test.cc
     unit/core/source_artifact_publisher_test.cc
+    unit/core/native_save_receipt_test.cc
     unit/rom/rom_diff_test.cc
     unit/rom/write_fence_test.cc
+    unit/rom/private_lyra_reservation_test.cc
     unit/emu/emulator_test.cc
     unit/emu/cpu_flags_test.cc
     unit/emu/snes_io_reset_test.cc
@@ -425,6 +427,10 @@ if(YAZE_BUILD_TESTS)
     unit/editor/sheet_png_transfer_test.cc
     unit/editor/pixel_clipboard_test.cc
     unit/editor/graphics_sheet_sync_test.cc
+    unit/editor/graphics_scratch_asset_test.cc
+    unit/editor/scratch_bin_roundtrip_test.cc
+    unit/editor/scratch_sprite_preview_test.cc
+    unit/editor/scratch_workspace_test.cc
     unit/editor/graphics_usage_preview_test.cc
     unit/editor/overworld_graphics_context_test.cc
     unit/editor/sprite_graphics_context_test.cc
@@ -440,6 +446,8 @@ if(YAZE_BUILD_TESTS)
     unit/gui/resize_handles_test.cc
     unit/gui/font_picker_test.cc
     unit/gui/icon_browser_test.cc
+    unit/gui/style_guard_scopes_test.cc
+    unit/gui/draw_sampling_test.cc
     unit/editor/layout/dock_tree_test.cc
     unit/editor/layout/dock_tree_json_test.cc
     unit/editor/layout/dock_tree_renderer_test.cc
@@ -457,6 +465,7 @@ if(YAZE_BUILD_TESTS)
     unit/cli/dungeon_object_validate_test.cc
     unit/cli/dungeon_collision_json_commands_test.cc
     unit/cli/dungeon_render_commands_test.cc
+    unit/cli/dungeon_wall_profile_commands_test.cc
     unit/cli/dungeon_edit_commands_test.cc
     unit/cli/dungeon_track_collision_commands_test.cc
     unit/cli/editor_completion_command_handlers_test.cc
@@ -501,14 +510,18 @@ if(YAZE_BUILD_TESTS)
     unit/core/project_file_passthrough_test.cc
     unit/core/project_atlas_settings_test.cc
     unit/core/project_plan_test.cc
+    unit/core/project_plan_agent_test.cc
+    unit/editor/planning_editor_test.cc
     unit/util/lru_cache_test.cc
     unit/util/bps_test.cc
     unit/util/indexed_png_test.cc
     unit/util/i18n_test.cc
     unit/util/hex_test.cc
     unit/util/log_test.cc
+    unit/util/ui_thread_queue_test.cc
     unit/deps/dependency_smoke_test.cc
     unit/cli/resource_catalog_test.cc
+    unit/cli/replay_output_test.cc
     unit/cli/tile16_proposal_generator_test.cc
     unit/cli/command_registry_test.cc
     unit/cli/rom_doctor_water_fill_test.cc
@@ -528,6 +541,7 @@ if(YAZE_BUILD_TESTS)
     unit/cli/oracle_menu_commands_test.cc
     unit/cli/palette_commands_test.cc
     unit/cli/project_bundle_verify_test.cc
+    unit/cli/project_plan_commands_test.cc
     unit/cli/project_bundle_archive_test.cc
     unit/rom/rom_test.cc
     unit/rom/rom_copier_header_test.cc
@@ -552,12 +566,15 @@ if(YAZE_BUILD_TESTS)
     unit/palette_json_test.cc
     unit/snes_color_test.cc
     unit/gui/tile_selector_widget_test.cc
+    unit/gui/widget_registry_test.cc
     unit/gui/canvas_automation_api_test.cc
     unit/gui/canvas_coordinate_sync_test.cc
     unit/gui/canvas_zoom_anchor_test.cc
     unit/gui/window_clamp_test.cc
+    unit/gui/table_helpers_test.cc
     unit/gui/panel_window_test.cc
     unit/gui/animator_test.cc
+    unit/gui/imgui_diagnostics_test.cc
     unit/editor/message/message_data_test.cc
     unit/editor/message/message_id_resolver_test.cc
     unit/editor/oracle_validation_view_model_test.cc
@@ -638,6 +655,7 @@ if(YAZE_BUILD_TESTS)
     unit/zelda3/dungeon/door_position_test.cc
     unit/zelda3/dungeon/room_object_encoding_test.cc
     unit/zelda3/custom_object_test.cc
+    unit/zelda3/dungeon_wall_profile_test.cc
     unit/zelda3/dungeon/dungeon_tile_patterns_test.cc
     unit/zelda3/dungeon/room_manipulation_test.cc
     unit/zelda3/dungeon/pot_item_position_test.cc
@@ -879,6 +897,27 @@ if(YAZE_BUILD_TESTS)
   yaze_add_focused_test_target(yaze_test_focus_lyra_authoring
     ${FOCUS_LYRA_AUTHORING_TEST_SOURCES})
 
+  yaze_add_focused_test_target(yaze_test_focus_private_lyra
+    unit/rom/private_lyra_reservation_test.cc)
+
+  yaze_add_focused_test_target(yaze_test_focus_proposal_drawer
+    unit/editor/right_drawer_manager_test.cc)
+
+  yaze_add_focused_test_target(yaze_test_focus_wall_profile
+    unit/zelda3/dungeon_wall_profile_test.cc
+    unit/cli/dungeon_wall_profile_commands_test.cc)
+
+  # Planning model, agent status, editor lifecycle, CLI and shared publisher.
+  set(FOCUS_PLANNING_TEST_SOURCES
+    unit/core/project_plan_test.cc
+    unit/core/project_plan_agent_test.cc
+    unit/core/source_artifact_publisher_test.cc
+    unit/editor/planning_editor_test.cc
+    unit/cli/project_plan_commands_test.cc
+  )
+  yaze_add_focused_test_target(yaze_test_focus_planning
+    ${FOCUS_PLANNING_TEST_SOURCES})
+
   yaze_add_test_suite(yaze_test_integration "stable;integration" OFF ${STABLE_INTEGRATION_TEST_SOURCES})
   if(YAZE_WITH_GRPC AND TARGET yaze_grpc_support)
     # Match the encoder's compiled capability, not sibling-directory visibility
@@ -948,6 +987,9 @@ if(YAZE_BUILD_TESTS)
     endif()
     yaze_add_test_suite(yaze_test_quick_unit_core "quick;fast_unit;fast_unit_core" OFF ${QUICK_UNIT_CORE_TEST_SOURCES})
     yaze_add_test_suite(yaze_test_quick_unit_editor "quick;fast_unit;fast_unit_editor" OFF ${QUICK_UNIT_EDITOR_TEST_SOURCES})
+    target_compile_definitions(yaze_test_quick_unit_editor PRIVATE
+      YAZE_TEST_FIXTURE_DIR="${CMAKE_SOURCE_DIR}/test/fixtures"
+    )
     yaze_add_test_suite(yaze_test_quick_integration "quick;fast_integration" OFF ${QUICK_INTEGRATION_TEST_SOURCES})
   else()
     message(STATUS "Skipping quick test binaries (YAZE_BUILD_QUICK_TESTS=OFF)")
@@ -1032,6 +1074,7 @@ if(YAZE_BUILD_TESTS)
     e2e/dead_click_regression_test.cc
     e2e/settings_drawer_test.cc
     e2e/menu_tilemap_editor_test.cc
+    e2e/planning_roundtrip_test.cc
     e2e/room_matrix_census_test.cc
     e2e/dungeon_editor_smoke_test.cc
     e2e/canvas_selection_test.cc
@@ -1066,13 +1109,17 @@ if(YAZE_BUILD_TESTS)
       "-Wl,--no-whole-archive")
   endif()
 
-  # Add a single test entry to run the entire GUI suite headlessly
+  # Run the two native-close routing cases through the null window backend.
   add_test(
       NAME headless_gui_suite
-      COMMAND $<TARGET_FILE:yaze_test_gui> -nogui --fast WindowBrowser,WindowSidebarToggle,RightDrawer,WorkflowActivityWidgets
+      COMMAND $<TARGET_FILE:yaze_test_gui>
+              --gtest_filter=NativeCloseEvents/ControllerWindowCloseTest.RoutesNativeCloseThroughEditorQuit/*
       WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
   )
-  set_tests_properties(headless_gui_suite PROPERTIES LABELS "headless_gui;experimental")
+  set_tests_properties(headless_gui_suite PROPERTIES
+    LABELS "headless_gui;experimental"
+    FAIL_REGULAR_EXPRESSION "Running 0 tests"
+  )
 
   # Mouse-release regressions (menu item, overworld right-click popup, panel
   # close X) driven through ImGuiTestEngine against the full Controller UI.

@@ -2,8 +2,11 @@
 
 #include <gtest/gtest.h>
 
+#include <array>
 #include <chrono>
+#include <cstdlib>
 #include <filesystem>
+#include <optional>
 #include <string>
 #include <thread>
 
@@ -24,6 +27,39 @@
 
 namespace yaze::editor {
 namespace {
+
+std::optional<std::string> GetEnvironmentValue(const char* name) {
+  const char* value = std::getenv(name);
+  if (value == nullptr) {
+    return std::nullopt;
+  }
+  return std::string(value);
+}
+
+class ScopedEnvVar {
+ public:
+  ScopedEnvVar(const char* name, const std::string& value)
+      : name_(name), original_value_(GetEnvironmentValue(name)) {
+    EXPECT_EQ(setenv(name_.c_str(), value.c_str(), 1), 0);
+  }
+
+  ~ScopedEnvVar() {
+    if (original_value_.has_value()) {
+      EXPECT_EQ(setenv(name_.c_str(), original_value_->c_str(), 1), 0);
+    } else {
+      EXPECT_EQ(unsetenv(name_.c_str()), 0);
+    }
+  }
+
+  ScopedEnvVar(const ScopedEnvVar&) = delete;
+  ScopedEnvVar& operator=(const ScopedEnvVar&) = delete;
+
+ private:
+  std::string name_;
+  std::optional<std::string> original_value_;
+};
+
+constexpr char kInheritedVariable[] = "YAZE_BG_ENV_INHERITED";
 
 TEST(BackgroundCommandTaskTest, StreamsOutputWhileRunning) {
   BackgroundCommandTask task;
@@ -49,6 +85,124 @@ TEST(BackgroundCommandTaskTest, StreamsOutputWhileRunning) {
   EXPECT_NE(final_snapshot.output.find("second"), std::string::npos);
 }
 
+TEST(BackgroundCommandTaskTest,
+     ChildEnvironmentOverridesInheritedValueWithoutChangingParent) {
+  const std::string parent_value = "parent inherited value";
+  ScopedEnvVar inherited(kInheritedVariable, parent_value);
+  ASSERT_EQ(GetEnvironmentValue(kInheritedVariable), parent_value);
+  const std::string child_value = "child override value";
+
+  BackgroundCommandTask task;
+  ASSERT_TRUE(task.Start("printf '<yaze-bg-override>%s</yaze-bg-override>' "
+                         "\"$YAZE_BG_ENV_INHERITED\"",
+                         ".", {{kInheritedVariable, child_value}})
+                  .ok());
+  EXPECT_EQ(GetEnvironmentValue(kInheritedVariable), parent_value);
+  ASSERT_TRUE(task.Wait().ok());
+  EXPECT_NE(task.GetSnapshot().output.find("<yaze-bg-override>" + child_value +
+                                           "</yaze-bg-override>"),
+            std::string::npos);
+  EXPECT_EQ(GetEnvironmentValue(kInheritedVariable), parent_value);
+}
+
+TEST(BackgroundCommandTaskTest,
+     EmptyChildEnvironmentValueClearsInheritedValue) {
+  const std::string parent_value = "parent inherited value";
+  ScopedEnvVar inherited(kInheritedVariable, parent_value);
+  ASSERT_EQ(GetEnvironmentValue(kInheritedVariable), parent_value);
+
+  BackgroundCommandTask task;
+  ASSERT_TRUE(task.Start("printf '<yaze-bg-empty>%s:%s</yaze-bg-empty>' "
+                         "\"${YAZE_BG_ENV_INHERITED+x}\" "
+                         "\"$YAZE_BG_ENV_INHERITED\"",
+                         ".", {{kInheritedVariable, ""}})
+                  .ok());
+  EXPECT_EQ(GetEnvironmentValue(kInheritedVariable), parent_value);
+  ASSERT_TRUE(task.Wait().ok());
+  EXPECT_NE(task.GetSnapshot().output.find("<yaze-bg-empty>x:</yaze-bg-empty>"),
+            std::string::npos);
+  EXPECT_EQ(GetEnvironmentValue(kInheritedVariable), parent_value);
+}
+
+TEST(BackgroundCommandTaskTest,
+     ChildEnvironmentValuePreservesShellMetacharacters) {
+  constexpr char kVariable[] = "YAZE_BG_ENV_TEST_VALUE";
+  const auto parent_value = GetEnvironmentValue(kVariable);
+  const std::string child_value =
+      "spaces 'single quotes' \"double quotes\"; $(printf expanded) "
+      "`printf expanded` \\backslash\nsecond line";
+
+  BackgroundCommandTask task;
+  ASSERT_TRUE(task.Start("printf '<yaze-bg-literal>%s</yaze-bg-literal>' "
+                         "\"$YAZE_BG_ENV_TEST_VALUE\"",
+                         ".", {{kVariable, child_value}})
+                  .ok());
+  EXPECT_EQ(GetEnvironmentValue(kVariable), parent_value);
+  ASSERT_TRUE(task.Wait().ok());
+  EXPECT_NE(task.GetSnapshot().output.find("<yaze-bg-literal>" + child_value +
+                                           "</yaze-bg-literal>"),
+            std::string::npos);
+  EXPECT_EQ(GetEnvironmentValue(kVariable), parent_value);
+}
+
+TEST(BackgroundCommandTaskTest,
+     ChildEnvironmentPreservesUnrelatedInheritedValue) {
+  const std::string inherited_value = "parent inherited value";
+  ScopedEnvVar inherited(kInheritedVariable, inherited_value);
+  ASSERT_EQ(GetEnvironmentValue(kInheritedVariable), inherited_value);
+  constexpr char kVariable[] = "YAZE_BG_ENV_TEST_VALUE";
+  const auto parent_value = GetEnvironmentValue(kVariable);
+
+  BackgroundCommandTask task;
+  ASSERT_TRUE(task.Start("printf '<yaze-bg-inherited>%s</yaze-bg-inherited>' "
+                         "\"$YAZE_BG_ENV_INHERITED\"",
+                         ".", {{kVariable, "child-only"}})
+                  .ok());
+  EXPECT_EQ(GetEnvironmentValue(kInheritedVariable), inherited_value);
+  EXPECT_EQ(GetEnvironmentValue(kVariable), parent_value);
+  ASSERT_TRUE(task.Wait().ok());
+  EXPECT_NE(
+      task.GetSnapshot().output.find("<yaze-bg-inherited>" + inherited_value +
+                                     "</yaze-bg-inherited>"),
+      std::string::npos);
+  EXPECT_EQ(GetEnvironmentValue(kInheritedVariable), inherited_value);
+  EXPECT_EQ(GetEnvironmentValue(kVariable), parent_value);
+}
+
+TEST(BackgroundCommandTaskTest, InvalidEnvironmentNamesDoNotStartTask) {
+  const std::array<std::string, 3> invalid_names = {
+      "", "BAD=NAME", std::string("BAD\0NAME", 8)};
+  for (size_t i = 0; i < invalid_names.size(); ++i) {
+    SCOPED_TRACE(i);
+    BackgroundCommandTask task;
+    ASSERT_FALSE(task.GetSnapshot().started);
+    const auto status =
+        task.Start("printf 'unexpected'", ".", {{invalid_names[i], "value"}});
+    EXPECT_EQ(status.code(), absl::StatusCode::kInvalidArgument);
+    const auto snapshot = task.GetSnapshot();
+    EXPECT_FALSE(snapshot.started);
+    EXPECT_FALSE(snapshot.running);
+    EXPECT_FALSE(snapshot.finished);
+    EXPECT_TRUE(snapshot.command.empty());
+    EXPECT_TRUE(snapshot.output.empty());
+  }
+}
+
+TEST(BackgroundCommandTaskTest, EnvironmentValueWithNulDoesNotStartTask) {
+  BackgroundCommandTask task;
+  ASSERT_FALSE(task.GetSnapshot().started);
+  const auto status =
+      task.Start("printf 'unexpected'", ".",
+                 {{"YAZE_BG_ENV_TEST_VALUE", std::string("bad\0value", 9)}});
+  EXPECT_EQ(status.code(), absl::StatusCode::kInvalidArgument);
+  const auto snapshot = task.GetSnapshot();
+  EXPECT_FALSE(snapshot.started);
+  EXPECT_FALSE(snapshot.running);
+  EXPECT_FALSE(snapshot.finished);
+  EXPECT_TRUE(snapshot.command.empty());
+  EXPECT_TRUE(snapshot.output.empty());
+}
+
 TEST(BackgroundCommandTaskTest, MissingWorkingDirectoryDoesNotRunCommand) {
   const auto nonce =
       std::chrono::steady_clock::now().time_since_epoch().count();
@@ -69,6 +223,73 @@ TEST(BackgroundCommandTaskTest, MissingWorkingDirectoryDoesNotRunCommand) {
                                            "directory"),
             std::string::npos);
   EXPECT_FALSE(std::filesystem::exists(marker));
+}
+
+TEST(BackgroundCommandTaskTest, FailureStatusIncludesExitAndFinalDiagnostic) {
+  BackgroundCommandTask task;
+  ASSERT_TRUE(
+      task.Start("printf 'Build setup\\n'; "
+                 "printf 'Expanded map writer is unavailable.\\n\\n' >&2; "
+                 "exit 2",
+                 ".")
+          .ok());
+
+  const auto status = task.Wait();
+  EXPECT_EQ(status.code(), absl::StatusCode::kInternal);
+  EXPECT_EQ(status.message(),
+            "Background command failed (exit 2): "
+            "Expanded map writer is unavailable.");
+  const auto snapshot = task.GetSnapshot();
+  EXPECT_EQ(snapshot.exit_code, 2);
+  EXPECT_EQ(snapshot.status, status);
+  EXPECT_NE(snapshot.output.find("Build setup"), std::string::npos);
+}
+
+TEST(BackgroundCommandTaskTest, FailureWithoutOutputStillIncludesExitCode) {
+  BackgroundCommandTask task;
+  ASSERT_TRUE(task.Start("exec >/dev/null 2>&1; exit 7", ".").ok());
+  const auto status = task.Wait();
+  EXPECT_EQ(status.code(), absl::StatusCode::kInternal);
+  EXPECT_NE(status.message().find("Background command failed (exit 7)"),
+            absl::string_view::npos);
+  EXPECT_EQ(task.GetSnapshot().exit_code, 7);
+}
+
+TEST(BackgroundCommandTaskTest,
+     FailureDiagnosticIsBoundedWithoutLosingFullLog) {
+  BackgroundCommandTask task;
+  ASSERT_TRUE(task.Start("printf 'reason: '; "
+                         "i=0; while [ $i -lt 600 ]; do printf x; "
+                         "i=$((i + 1)); done; printf '\\n'; exit 2",
+                         ".")
+                  .ok());
+  const auto status = task.Wait();
+  const std::string prefix = "Background command failed (exit 2): ";
+  EXPECT_EQ(status.message().substr(0, prefix.size()), prefix);
+  EXPECT_EQ(status.message().size(), prefix.size() + 512 + 3);
+  EXPECT_EQ(status.message().substr(status.message().size() - 3), "...");
+  EXPECT_NE(task.GetSnapshot().output.find(std::string(600, 'x')),
+            std::string::npos);
+}
+
+TEST(BackgroundCommandTaskTest, FailureDiagnosticPreservesUtf8Boundary) {
+  BackgroundCommandTask task;
+  const std::string detail = std::string(511, 'x') + "é";
+  ASSERT_TRUE(task.Start("printf '%s\\n' '" + detail + "'; exit 2", ".").ok());
+  const auto status = task.Wait();
+  EXPECT_EQ(status.message(), "Background command failed (exit 2): " +
+                                  std::string(511, 'x') + "...");
+  EXPECT_NE(task.GetSnapshot().output.find(detail), std::string::npos);
+}
+
+TEST(BackgroundCommandTaskTest, SignalFailureReportsSignal) {
+  BackgroundCommandTask task;
+  ASSERT_TRUE(task.Start("kill -TERM $$", ".").ok());
+  const auto status = task.Wait();
+  EXPECT_EQ(status.code(), absl::StatusCode::kInternal);
+  EXPECT_NE(status.message().find("Background command failed (signal 15)"),
+            absl::string_view::npos);
+  EXPECT_EQ(task.GetSnapshot().exit_code, -1);
 }
 
 // The command runs through a login shell ("sh -lc"), so the host's startup

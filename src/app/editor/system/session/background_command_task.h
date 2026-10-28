@@ -1,9 +1,11 @@
 #ifndef YAZE_APP_EDITOR_SYSTEM_BACKGROUND_COMMAND_TASK_H_
 #define YAZE_APP_EDITOR_SYSTEM_BACKGROUND_COMMAND_TASK_H_
 
+#include <map>
 #include <mutex>
 #include <string>
 #include <thread>
+#include <vector>
 
 #include "absl/status/status.h"
 
@@ -31,13 +33,18 @@ class BackgroundCommandTask {
   BackgroundCommandTask(const BackgroundCommandTask&) = delete;
   BackgroundCommandTask& operator=(const BackgroundCommandTask&) = delete;
 
-  absl::Status Start(const std::string& command, const std::string& directory);
+  // Overrides affect only the child. An empty value replaces any inherited
+  // value with an empty string.
+  absl::Status Start(
+      const std::string& command, const std::string& directory,
+      const std::map<std::string, std::string>& environment = {});
   void Cancel();
   Snapshot GetSnapshot() const;
   absl::Status Wait();
 
  private:
-  void WorkerMain(std::string command, std::string directory);
+  void WorkerMain(std::string command, std::string directory,
+                  std::vector<std::string> environment);
   void AppendOutput(const char* data, size_t size);
   void Finalize(absl::Status status, int exit_code);
   void JoinIfNeeded();

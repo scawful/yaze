@@ -2,6 +2,7 @@
 #define YAZE_UTIL_FILE_UTIL_H_
 
 #include <functional>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -17,8 +18,27 @@ struct FileDialogOptions {
   std::vector<FileDialogFilter> filters;
 };
 
+// One-shot destination-picker result for owned GUI tests. Empty means Cancel.
+// Process-scoped because the test coroutine and UI may run on different threads.
+class ScopedSaveFileDialogResultForTesting {
+ public:
+  explicit ScopedSaveFileDialogResultForTesting(std::string result);
+  ~ScopedSaveFileDialogResultForTesting();
+  ScopedSaveFileDialogResultForTesting(
+      const ScopedSaveFileDialogResultForTesting&) = delete;
+  ScopedSaveFileDialogResultForTesting& operator=(
+      const ScopedSaveFileDialogResultForTesting&) = delete;
+  bool consumed() const;
+
+ private:
+  friend class FileDialogWrapper;
+  std::optional<std::string> result_;
+  bool consumed_ = false;
+};
+
 class FileDialogWrapper {
  public:
+  static std::optional<std::string> ConsumeSaveFileDialogResultForTesting();
   /**
    * @brief ShowOpenFileDialog opens a file dialog and returns the selected
    * filepath. Uses global feature flag to choose implementation.

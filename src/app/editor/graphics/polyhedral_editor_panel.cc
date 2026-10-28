@@ -568,8 +568,8 @@ void PolyhedralEditorPanel::DrawPreview(PolyShape& shape) {
       ImU32 line_col = ImGui::GetColorU32(ImVec4(0.2f, 0.4f, 0.6f, 1.0f));
       dl->AddConvexPolyFilled(pts.data(), static_cast<int>(pts.size()),
                               fill_col);
-      dl->AddPolyline(pts.data(), static_cast<int>(pts.size()), line_col,
-                      ImDrawFlags_Closed, 2.0f);
+      dl->AddPolyline(pts.data(), static_cast<int>(pts.size()), line_col, 2.0f,
+                      ImDrawFlags_Closed);
     }
 
     // Draw vertices as dots

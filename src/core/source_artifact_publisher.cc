@@ -22,6 +22,10 @@
 #include <utility>
 #include <vector>
 
+#if defined(__APPLE__) && !defined(YAZE_FORCE_PORTABLE_SOURCE_SHA256)
+#include <CommonCrypto/CommonDigest.h>
+#endif
+
 #include "absl/status/status.h"
 #include "absl/strings/ascii.h"
 #include "absl/strings/str_cat.h"
@@ -272,6 +276,37 @@ class SourceArtifactWriteLocks {
 #endif
 };
 
+#if defined(__APPLE__) && !defined(YAZE_FORCE_PORTABLE_SOURCE_SHA256)
+class Sha256Digest {
+ public:
+  Sha256Digest() { CC_SHA256_Init(&context_); }
+
+  void Update(std::string_view content) {
+    while (!content.empty()) {
+      const size_t count =
+          std::min(content.size(),
+                   static_cast<size_t>(std::numeric_limits<CC_LONG>::max()));
+      CC_SHA256_Update(&context_, content.data(), static_cast<CC_LONG>(count));
+      content.remove_prefix(count);
+    }
+  }
+
+  std::string Finish() {
+    std::array<unsigned char, CC_SHA256_DIGEST_LENGTH> bytes;
+    CC_SHA256_Final(bytes.data(), &context_);
+    constexpr char kHex[] = "0123456789abcdef";
+    std::string digest(bytes.size() * 2, '\0');
+    for (size_t index = 0; index < bytes.size(); ++index) {
+      digest[index * 2] = kHex[bytes[index] >> 4];
+      digest[index * 2 + 1] = kHex[bytes[index] & 0x0f];
+    }
+    return digest;
+  }
+
+ private:
+  CC_SHA256_CTX context_;
+};
+#else
 constexpr uint32_t kSha256Constants[64] = {
     0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b, 0x59f111f1,
     0x923f82a4, 0xab1c5ed5, 0xd807aa98, 0x12835b01, 0x243185be, 0x550c7dc3,
@@ -345,39 +380,56 @@ void TransformSha256(uint32_t state[8], const uint8_t block[64]) {
   state[7] += h;
 }
 
+class Sha256Digest {
+ public:
+  void Update(std::string_view content) {
+    bytes_ += content.size();
+    while (!content.empty()) {
+      const size_t count = std::min(content.size(), sizeof(block_) - used_);
+      std::memcpy(block_ + used_, content.data(), count);
+      content.remove_prefix(count);
+      used_ += count;
+      if (used_ == sizeof(block_)) {
+        TransformSha256(state_, block_);
+        used_ = 0;
+      }
+    }
+  }
+
+  std::string Finish() {
+    block_[used_++] = 0x80;
+    std::memset(block_ + used_, 0, sizeof(block_) - used_);
+    if (used_ > 56) {
+      TransformSha256(state_, block_);
+      std::memset(block_, 0, sizeof(block_));
+    }
+    const uint64_t bit_length = bytes_ * 8;
+    for (int index = 0; index < 8; ++index) {
+      block_[63 - index] = static_cast<uint8_t>(bit_length >> (index * 8));
+    }
+    TransformSha256(state_, block_);
+
+    std::string digest;
+    digest.reserve(64);
+    for (uint32_t value : state_) {
+      absl::StrAppend(&digest, absl::StrFormat("%08x", value));
+    }
+    return digest;
+  }
+
+ private:
+  uint32_t state_[8] = {0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a,
+                        0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19};
+  uint8_t block_[64] = {};
+  size_t used_ = 0;
+  uint64_t bytes_ = 0;
+};
+#endif
+
 std::string Sha256Hex(std::string_view content) {
-  uint32_t state[8] = {0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a,
-                       0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19};
-  const auto* cursor = reinterpret_cast<const uint8_t*>(content.data());
-  size_t remaining = content.size();
-  while (remaining >= 64) {
-    TransformSha256(state, cursor);
-    cursor += 64;
-    remaining -= 64;
-  }
-
-  uint8_t block[64] = {};
-  if (remaining > 0) {
-    std::memcpy(block, cursor, remaining);
-  }
-  block[remaining] = 0x80;
-  if (remaining >= 56) {
-    TransformSha256(state, block);
-    std::memset(block, 0, sizeof(block));
-  }
-  const uint64_t bit_length = static_cast<uint64_t>(content.size()) * 8;
-  for (int index = 0; index < 8; ++index) {
-    block[63 - index] =
-        static_cast<uint8_t>(bit_length >> (static_cast<uint64_t>(index) * 8));
-  }
-  TransformSha256(state, block);
-
-  std::string digest;
-  digest.reserve(64);
-  for (uint32_t value : state) {
-    absl::StrAppend(&digest, absl::StrFormat("%08x", value));
-  }
-  return digest;
+  Sha256Digest digest;
+  digest.Update(content);
+  return digest.Finish();
 }
 
 absl::StatusOr<std::string> ReadTextFile(const fs::path& path,
@@ -819,13 +871,15 @@ absl::Status SyncParentDirectory(const fs::path& target) {
 }
 
 absl::Status ReplaceFromTemp(const fs::path& temp, const fs::path& target,
-                             bool* replaced = nullptr) {
+                             bool* replaced = nullptr,
+                             bool replace_existing = true) {
   if (replaced != nullptr) {
     *replaced = false;
   }
 #if defined(_WIN32)
-  if (!MoveFileExW(temp.wstring().c_str(), target.wstring().c_str(),
-                   MOVEFILE_REPLACE_EXISTING | MOVEFILE_WRITE_THROUGH)) {
+  const DWORD flags = MOVEFILE_WRITE_THROUGH |
+                      (replace_existing ? MOVEFILE_REPLACE_EXISTING : 0);
+  if (!MoveFileExW(temp.wstring().c_str(), target.wstring().c_str(), flags)) {
     const DWORD error = GetLastError();
     return absl::InternalError(absl::StrFormat(
         "Failed to publish %s: %s", target.string(),
@@ -837,13 +891,25 @@ absl::Status ReplaceFromTemp(const fs::path& temp, const fs::path& target,
   }
 #else
   std::error_code rename_ec;
-  fs::rename(temp, target, rename_ec);
+  if (replace_existing) {
+    fs::rename(temp, target, rename_ec);
+  } else {
+    fs::create_hard_link(temp, target, rename_ec);
+  }
   if (rename_ec) {
     return absl::InternalError(absl::StrFormat(
         "Failed to publish %s: %s", target.string(), rename_ec.message()));
   }
   if (replaced != nullptr) {
     *replaced = true;
+  }
+  if (!replace_existing) {
+    fs::remove(temp, rename_ec);
+    if (rename_ec) {
+      return absl::InternalError(
+          absl::StrFormat("Failed to remove published temporary file %s: %s",
+                          temp.string(), rename_ec.message()));
+    }
   }
 #endif
   return SyncParentDirectory(target);
@@ -975,6 +1041,20 @@ absl::Status ReturnFailureAfterCleanup(
 }
 
 absl::Status RestoreArtifact(const PublicationArtifact& artifact) {
+  std::error_code status_ec;
+  const auto status = fs::symlink_status(artifact.target, status_ec);
+  if (status_ec || !fs::is_regular_file(status)) {
+    return absl::AbortedError(
+        absl::StrFormat("Published file changed before rollback; preserving %s",
+                        artifact.target.string()));
+  }
+  ASSIGN_OR_RETURN(auto current,
+                   ReadTextFile(artifact.target, "published file"));
+  if (current != artifact.content) {
+    return absl::AbortedError(
+        absl::StrFormat("Published file changed before rollback; preserving %s",
+                        artifact.target.string()));
+  }
   if (artifact.original_content.has_value()) {
     fs::path restore_temp;
     ASSIGN_OR_RETURN(
@@ -1112,7 +1192,8 @@ absl::Status PublishArtifactSet(std::vector<PublicationArtifact>* artifacts,
     }
     bool replaced = false;
     const absl::Status replace_status =
-        ReplaceFromTemp(artifact.temp, artifact.target, &replaced);
+        ReplaceFromTemp(artifact.temp, artifact.target, &replaced,
+                        artifact.original_content.has_value());
     artifact.published = replaced;
     if (!replace_status.ok()) {
       return RollBackPublication(artifacts, replace_status, labels);
@@ -1242,6 +1323,29 @@ AcquireSourceArtifactPublicationLock(
 
 std::string ComputeSourceArtifactSha256(std::string_view content) {
   return Sha256Hex(content);
+}
+
+absl::StatusOr<std::string> ComputeSourceArtifactFileSha256(
+    const fs::path& path) {
+  std::error_code error;
+  if (!fs::is_regular_file(path, error) || error) {
+    return absl::FailedPreconditionError(
+        "SHA256 input is not a readable regular file: " + path.string());
+  }
+  std::ifstream input(path, std::ios::binary);
+  if (!input) {
+    return absl::PermissionDeniedError("Cannot open SHA256 input: " +
+                                       path.string());
+  }
+  Sha256Digest digest;
+  std::array<char, 64 * 1024> buffer;
+  while (input.read(buffer.data(), buffer.size()) || input.gcount() > 0) {
+    digest.Update(std::string_view(buffer.data(), input.gcount()));
+  }
+  if (!input.eof() || input.bad()) {
+    return absl::DataLossError("Cannot read SHA256 input: " + path.string());
+  }
+  return digest.Finish();
 }
 
 absl::Status PublishSourceArtifacts(

@@ -154,7 +154,8 @@ void SpriteEditor::DrawSpriteCatalog() {
   if (!sprite_catalog_)
     return;
   ImGui::Separator();
-  catalog_filter_.Draw(tr("Filter families / variants"));
+  catalog_filter_.DrawWithHint(tr("Filter families / variants"),
+                               tr("name or key"));
   const auto& families = sprite_catalog_->families();
   for (size_t i = 0; i < families.size(); ++i) {
     const auto& family = families[i];

@@ -341,6 +341,13 @@ void PixelEditorPanel::DrawSourceContext() {
 }
 
 void PixelEditorPanel::DrawToolbar() {
+  if (open_scratch_) {
+    if (ImGui::Button("Scratch assets"))
+      open_scratch_();
+    gui::AutoRegisterLastItem("button", "Scratch assets");
+    HOVER_HINT(
+        "Keep editable sheets and BIN assets before assigning them to the ROM");
+  }
   struct Tool {
     PixelTool tool;
     const char* icon;
@@ -535,12 +542,12 @@ void PixelEditorPanel::DrawCanvas() {
                             state_->selection.y + state_->selection.height);
           canvas_.draw_list()->AddRect(
               sel_min, sel_max, ImGui::GetColorU32(IM_COL32(255, 255, 0, 255)),
-              0.0f, 0, 2.0f);
+              0.0f, 2.0f);
 
           // Marching ants effect (simplified)
           canvas_.draw_list()->AddRect(
               sel_min, sel_max, ImGui::GetColorU32(IM_COL32(0, 0, 0, 128)),
-              0.0f, 0, 1.0f);
+              0.0f, 1.0f);
         }
 
         DrawFloatingPaste();
@@ -557,9 +564,11 @@ void PixelEditorPanel::DrawCanvas() {
                 start, end, ImGui::GetColorU32(IM_COL32(255, 255, 0, 200)),
                 2.0f);
           } else if (state_->current_tool == PixelTool::kRectangle) {
+            // Dragging up or left puts end before start; ImGui 1.93 draws
+            // nothing for an inverted rect.
             canvas_.draw_list()->AddRect(
-                start, end, ImGui::GetColorU32(IM_COL32(255, 255, 0, 200)),
-                0.0f, 0, 2.0f);
+                ImMin(start, end), ImMax(start, end),
+                ImGui::GetColorU32(IM_COL32(255, 255, 0, 200)), 0.0f, 2.0f);
           }
         }
 
@@ -647,7 +656,7 @@ void PixelEditorPanel::DrawCursorCrosshair() {
   ImVec2 pixel_max(cursor_screen.x + pixel_size, cursor_screen.y + pixel_size);
   canvas_.draw_list()->AddRect(pixel_min, pixel_max,
                                ImGui::GetColorU32(IM_COL32(255, 255, 255, 200)),
-                               0.0f, 0, 2.0f);
+                               0.0f, 2.0f);
 }
 
 void PixelEditorPanel::DrawBrushPreview() {
@@ -672,8 +681,7 @@ void PixelEditorPanel::DrawBrushPreview() {
   ImU32 outline_color = (state_->current_tool == PixelTool::kEraser)
                             ? ImGui::GetColorU32(IM_COL32(255, 100, 100, 200))
                             : ImGui::GetColorU32(IM_COL32(100, 255, 100, 200));
-  canvas_.draw_list()->AddRect(brush_min, brush_max, outline_color, 0.0f, 0,
-                               1.0f);
+  canvas_.draw_list()->AddRect(brush_min, brush_max, outline_color, 0.0f, 1.0f);
 }
 
 void PixelEditorPanel::DrawPixelInfoTooltip(const gfx::Bitmap& sheet) {
@@ -742,7 +750,7 @@ void PixelEditorPanel::DrawTileHighlight(const gfx::Bitmap& sheet) {
   sel_outline.w = 0.9f;
   const ImU32 outline_color = ImGui::GetColorU32(sel_outline);
   canvas_.draw_list()->AddRectFilled(min, max, fill_color);
-  canvas_.draw_list()->AddRect(min, max, outline_color, 0.0f, 0, 2.0f);
+  canvas_.draw_list()->AddRect(min, max, outline_color, 0.0f, 2.0f);
 
   if (ImGui::IsMouseHoveringRect(min, max)) {
     ImGui::BeginTooltip();
@@ -811,7 +819,7 @@ void PixelEditorPanel::DrawColorPicker() {
       ImGui::GetWindowDrawList()->AddRect(
           ImVec2(min.x - 1, min.y - 1), ImVec2(max.x + 1, max.y + 1),
           ImGui::GetColorU32(gui::GetSelectedColor()),
-          ImGui::GetStyle().FrameRounding, 0, 1.5f);
+          ImGui::GetStyle().FrameRounding, 1.5f);
     }
 
     if (ImGui::IsItemHovered()) {
@@ -1410,14 +1418,12 @@ void PixelEditorPanel::DrawPixelGrids(float canvas_width, float canvas_height) {
   const float zoom = state_->zoom_level;
   auto lines = [&](float step, ImU32 color, float thickness) {
     for (float x = step; x < canvas_width; x += step) {
-      draw_list->AddLine(ImVec2(origin.x + x, origin.y),
-                         ImVec2(origin.x + x, origin.y + canvas_height), color,
-                         thickness);
+      draw_list->AddLineV(origin.x + x, origin.y, origin.y + canvas_height,
+                          color, thickness);
     }
     for (float y = step; y < canvas_height; y += step) {
-      draw_list->AddLine(ImVec2(origin.x, origin.y + y),
-                         ImVec2(origin.x + canvas_width, origin.y + y), color,
-                         thickness);
+      draw_list->AddLineH(origin.x, origin.x + canvas_width, origin.y + y,
+                          color, thickness);
     }
   };
   if (state_->show_pixel_grid && zoom >= 6.0f) {
@@ -1728,14 +1734,17 @@ void PixelEditorPanel::DrawFloatingPaste() {
       const ImVec2 p0 = PixelToScreen(selection.x + dx, selection.y + dy);
       const ImVec2 p1 =
           PixelToScreen(selection.x + dx + 1, selection.y + dy + 1);
-      draw_list->AddRectFilled(
+      // Keep adjacent pixels hard-edged at fractional zoom, as in dungeon
+      // sprite previews. AddRectFilled adds an AA fringe to fractional bounds.
+      draw_list->PrimReserve(6, 4);
+      draw_list->PrimRect(
           p0, p1, ImGui::GetColorU32(IM_COL32(rgb[0], rgb[1], rgb[2], 230)));
     }
   }
   draw_list->AddRect(PixelToScreen(selection.x, selection.y),
                      PixelToScreen(selection.x + selection.width,
                                    selection.y + selection.height),
-                     ImGui::GetColorU32(gui::GetInfoColor()), 0.0f, 0, 2.0f);
+                     ImGui::GetColorU32(gui::GetInfoColor()), 0.0f, 2.0f);
 }
 
 ImVec2 PixelEditorPanel::ScreenToPixel(ImVec2 screen_pos) {

@@ -942,6 +942,8 @@ void OverworldEditor::DrawOverworldCanvas() {
 }
 
 absl::Status OverworldEditor::PrepareProjectSave() {
+  FinishScratchEdit("Edit scratch layout");
+  RETURN_IF_ERROR(FlushScratchPadIfDirty());
   lyra_canvas_.FinishStroke(undo_manager_);
   return lyra_canvas_.Save(TerrainProject(), overworld_);
 }
@@ -1439,6 +1441,25 @@ absl::Status OverworldEditor::Paste() {
                                      clipboard.overworld_tile16_ids});
 }
 
+absl::StatusOr<int> OverworldEditor::ApplyTile16Stencil(
+    int map_id, const std::vector<GuardedTileCell>& cells) {
+  if (is_lyra_preview()) {
+    return absl::FailedPreconditionError("Lyra preview is read-only");
+  }
+  if (!overworld_.is_loaded() || !tile_painting_) {
+    return absl::FailedPreconditionError("Overworld is not loaded");
+  }
+  if (map_id < 0 || map_id >= zelda3::kNumOverworldMaps ||
+      IsProjectTerrainMap(map_id)) {
+    return absl::OutOfRangeError("Stencil map must be a ROM overworld map");
+  }
+  SelectMapForEditing(map_id, /*respect_pin=*/false);
+  if (current_map_ != map_id) {
+    return absl::FailedPreconditionError("Stencil map could not be selected");
+  }
+  return tile_painting_->ApplyGuardedCells(map_id, cells);
+}
+
 absl::Status OverworldEditor::CheckForCurrentMap() {
   if (canvas_nav_)
     return canvas_nav_->CheckForCurrentMap();
@@ -1490,9 +1511,16 @@ void OverworldEditor::CommitSaveTransaction() {
 }
 
 absl::Status OverworldEditor::Save() {
+  FinishScratchEdit("Edit scratch layout");
+  RETURN_IF_ERROR(FlushScratchPadIfDirty());
   if (rom_ == nullptr) {
     return absl::FailedPreconditionError("No ROM for overworld sprites");
   }
+  if (dependencies_.project && dependencies_.project->hack_manifest.loaded()) {
+    RETURN_IF_ERROR(rom_->AttachLyraPrivateReservation(
+        dependencies_.project->hack_manifest));
+  }
+  RETURN_IF_ERROR(overworld_.ValidatePrivateNativeTerrainSave());
   RETURN_IF_ERROR(rom_->CheckLayoutWritable());
   // A disabled save domain must neither validate nor serialize staged edits.
   const bool saving_sprites =
@@ -1837,6 +1865,7 @@ absl::Status OverworldEditor::RenameProjectResourceLabelWithUndo(
 }
 
 absl::Status OverworldEditor::Undo() {
+  FinishScratchEdit("Edit scratch layout");
   lyra_canvas_.FinishStroke(undo_manager_);
   if (is_lyra_preview() && !lyra_a0_terrain_writable()) {
     return absl::FailedPreconditionError("Lyra preview is read-only");
@@ -1847,6 +1876,7 @@ absl::Status OverworldEditor::Undo() {
 }
 
 absl::Status OverworldEditor::Redo() {
+  FinishScratchEdit("Edit scratch layout");
   lyra_canvas_.FinishStroke(undo_manager_);
   if (is_lyra_preview() && !lyra_a0_terrain_writable()) {
     return absl::FailedPreconditionError("Lyra preview is read-only");
@@ -2139,6 +2169,33 @@ absl::Status OverworldEditor::OpenGraphicsForTile16Quadrant(int tile16_id,
       return refreshed.status();
     return UpdateGraphicsContextPalettes(source, std::move(*refreshed));
   };
+  context->preview_revision = [this, owner,
+                               source_map_id]() -> absl::StatusOr<uint64_t> {
+    if (game_data_ != owner || !overworld_.is_loaded())
+      return absl::FailedPreconditionError("Overworld source session changed");
+    constexpr uint64_t kPrime = 1099511628211ULL;
+    uint64_t hash = 1469598103934665603ULL;
+    auto add = [&](uint64_t value) {
+      hash = (hash ^ value) * kPrime;
+    };
+    for (const auto& tile : overworld_.tiles16())
+      for (const auto& quadrant : tile.tiles_info)
+        add(gfx::TileInfoToWord(quadrant));
+    const auto& placements =
+        overworld_.GetMapTiles(zelda3::WorldForOverworldMap(source_map_id));
+    const int local =
+        source_map_id - zelda3::WorldForOverworldMap(source_map_id) * 0x40;
+    const int x0 = (local % 8) * 32;
+    const int y0 = (local / 8) * 32;
+    for (int x = x0; x < x0 + 32; ++x) {
+      if (x >= static_cast<int>(placements.size()) ||
+          y0 + 32 > static_cast<int>(placements[x].size()))
+        return absl::FailedPreconditionError("Overworld source grid changed");
+      for (int y = y0; y < y0 + 32; ++y)
+        add(placements[x][y]);
+    }
+    return hash;
+  };
   context->render_preview =
       [this, preview_map, owner,
        source_map_id]() -> absl::StatusOr<usage_preview::PreviewImage> {
@@ -2157,7 +2214,7 @@ absl::Status OverworldEditor::OpenGraphicsForTile16Quadrant(int tile16_id,
     RETURN_IF_ERROR(preview_map->BuildTiles16Gfx(
         *overworld_.mutable_tiles16(),
         static_cast<int>(overworld_.tiles16().size())));
-    const int world = source_map_id / 0x40;
+    const int world = zelda3::WorldForOverworldMap(source_map_id);
     RETURN_IF_ERROR(preview_map->BuildBitmap(overworld_.GetMapTiles(world)));
     usage_preview::PreviewImage image;
     image.width = 512;

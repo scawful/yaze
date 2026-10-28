@@ -19,6 +19,7 @@
 #include "app/gui/core/icons.h"
 #include "app/gui/core/ui_helpers.h"
 #include "core/project.h"
+#include "core/project_plan_agent.h"
 #include "imgui/imgui.h"
 #include "imgui/misc/cpp/imgui_stdlib.h"
 
@@ -132,6 +133,13 @@ std::string StepLabel(const core::PlanRouteStep& step) {
   return step.code.empty() ? step.title : step.code;
 }
 
+std::string JsonString(const core::PlanJson& obj, const char* key,
+                       const char* fallback) {
+  auto it = obj.find(key);
+  return it != obj.end() && it->is_string() ? it->get<std::string>()
+                                            : std::string(fallback);
+}
+
 }  // namespace
 
 void PlanningEditor::Initialize() {
@@ -148,49 +156,81 @@ void PlanningEditor::Initialize() {
 }
 
 absl::Status PlanningEditor::Update() {
-  SyncWithProject();
-  return absl::OkStatus();
+  return SyncWithProject();
 }
 
 absl::Status PlanningEditor::Save() {
   if (!plan_ || !dirty_ || plan_path_.empty()) {
     return absl::OkStatus();
   }
-  absl::Status status = plan_->SaveToFile(plan_path_);
+  if (!project() || project()->filepath != project_path_ ||
+      project()->PlanningFilePath() != plan_path_) {
+    return absl::FailedPreconditionError(
+        "Restore the plan's project before saving its edits");
+  }
+  std::string expected_source = loaded_source_;
+  std::string disk_source;
+  if (core::ProjectPlan::LoadFromFile(plan_path_, &disk_source).ok() &&
+      disk_source != loaded_source_) {
+    if (!core::AdoptPlanAgentOnlyChanges(&*plan_, loaded_source_,
+                                         disk_source)) {
+      save_error_ =
+          "The plan file changed outside agent status since it was loaded. "
+          "Your edits are kept; copy them, then Reload to see the file.";
+      return absl::AbortedError(save_error_);
+    }
+    expected_source = std::move(disk_source);
+  }
+  absl::Status status = plan_->SaveToFile(plan_path_, expected_source);
   if (!status.ok()) {
     save_error_ = std::string(status.message());
     return status;
   }
   save_error_.clear();
+  loaded_source_ = plan_->Serialize();
   dirty_ = false;
   return absl::OkStatus();
 }
 
-void PlanningEditor::SyncWithProject() {
+absl::Status PlanningEditor::SyncWithProject() {
   const std::string path = project() ? project()->PlanningFilePath() : "";
-  if (path == plan_path_) {
-    return;
+  const std::string project_path = project() ? project()->filepath : "";
+  if (path == plan_path_ && project_path == project_path_) {
+    return absl::OkStatus();
+  }
+  if (dirty_) {
+    save_error_ = "Save or discard plan edits before replacing their project";
+    return absl::FailedPreconditionError(save_error_);
   }
   plan_path_ = path;
+  project_path_ = project_path;
+  loaded_source_.clear();
   plan_.reset();
   load_error_.clear();
   dirty_ = false;
   selected_step_ = -1;
   selected_item_ = -1;
   if (!plan_path_.empty()) {
-    (void)Reload();
+    return Reload();
   }
+  return absl::OkStatus();
 }
 
-absl::Status PlanningEditor::Reload() {
-  auto loaded = core::ProjectPlan::LoadFromFile(plan_path_);
+absl::Status PlanningEditor::Reload(bool discard_changes) {
+  if (dirty_ && !discard_changes) {
+    save_error_ = "Save or explicitly discard plan edits before reloading";
+    return absl::FailedPreconditionError(save_error_);
+  }
+  std::string source;
+  auto loaded = core::ProjectPlan::LoadFromFile(plan_path_, &source);
   if (!loaded.ok()) {
     load_error_ = std::string(loaded.status().message());
-    plan_.reset();
     return loaded.status();
   }
   plan_ = std::move(*loaded);
+  loaded_source_ = std::move(source);
   load_error_.clear();
+  save_error_.clear();
   dirty_ = false;
   if (selected_step_ >= static_cast<int>(plan_->route_steps.size())) {
     selected_step_ = -1;
@@ -199,6 +239,16 @@ absl::Status PlanningEditor::Reload() {
     selected_item_ = -1;
   }
   return absl::OkStatus();
+}
+
+void PlanningEditor::DiscardProjectDraftChanges() {
+  dirty_ = false;
+  plan_.reset();
+  plan_path_.clear();
+  project_path_.clear();
+  loaded_source_.clear();
+  save_error_.clear();
+  (void)SyncWithProject();
 }
 
 void PlanningEditor::DrawNoPlan() {
@@ -216,8 +266,11 @@ void PlanningEditor::DrawNoPlan() {
     ImGui::Separator();
   }
   ImGui::TextWrapped(
-      "This project has no plan file. Create one, or set [planning] file= in "
-      "the .yaze file (absolute, or relative to the project).");
+      load_error_.empty()
+          ? "This project has no plan file. Create one, or set [planning] "
+            "file= in the .yaze file."
+          : "The linked plan could not be loaded. Retry after repairing it, or "
+            "create a plan at a new path. Existing files are never replaced.");
   if (new_plan_path_.empty()) {
     const std::filesystem::path project_path(project()->filepath);
     new_plan_path_ = (project_path.parent_path() /
@@ -227,20 +280,18 @@ void PlanningEditor::DrawNoPlan() {
   ImGui::SetNextItemWidth(-1);
   ImGui::InputText("##new_plan_path", &new_plan_path_);
   if (ImGui::Button(ICON_MD_ADD " Create plan and link it to the project")) {
-    auto plan = core::ProjectPlan::CreateEmpty(project()->name);
-    absl::Status status = plan.SaveToFile(new_plan_path_);
-    if (status.ok()) {
-      project()->planning.file = project()->GetRelativePath(new_plan_path_);
-      status = project()->Save();
-    }
+    absl::Status status =
+        core::ProjectPlan::CreateAndLink(project(), new_plan_path_);
     if (!status.ok()) {
       load_error_ = std::string(status.message());
+    } else {
+      (void)SyncWithProject();
     }
   }
 }
 
 bool PlanningEditor::DrawPlanHeader() {
-  SyncWithProject();
+  (void)SyncWithProject();
   if (!plan_) {
     DrawNoPlan();
     return false;
@@ -259,7 +310,24 @@ bool PlanningEditor::DrawPlanHeader() {
   ImGui::EndDisabled();
   ImGui::SameLine();
   if (ImGui::SmallButton(ICON_MD_REFRESH " Reload")) {
-    (void)Reload();
+    if (dirty_) {
+      ImGui::OpenPopup("Discard plan edits?");
+    } else {
+      (void)Reload();
+    }
+  }
+  if (ImGui::BeginPopupModal("Discard plan edits?", nullptr,
+                             ImGuiWindowFlags_AlwaysAutoResize)) {
+    ImGui::TextUnformatted("Reload discards the unsaved plan edits.");
+    if (ImGui::Button("Discard and reload")) {
+      (void)Reload(true);
+      ImGui::CloseCurrentPopup();
+    }
+    ImGui::SameLine();
+    if (ImGui::Button("Keep editing")) {
+      ImGui::CloseCurrentPopup();
+    }
+    ImGui::EndPopup();
   }
   if (dirty_) {
     ImGui::SameLine();
@@ -286,6 +354,7 @@ void PlanningEditor::DrawOverview() {
   DrawMilestones();
   DrawRouteStrip();
   DrawDecisionQueue();
+  DrawAgentStatus();
   DrawReferences();
 }
 
@@ -363,7 +432,7 @@ void PlanningEditor::DrawMilestones() {
   }
   if (ImGui::SmallButton(ICON_MD_ADD " Milestone")) {
     core::PlanMilestone m;
-    m.id = absl::StrFormat("m%zu", plan_->milestones.size() + 1);
+    m.id = plan_->NewMilestoneId();
     m.title = "New milestone";
     m.status = "planned";
     plan_->milestones.push_back(std::move(m));
@@ -415,6 +484,7 @@ void PlanningEditor::DrawRouteStrip() {
       ImGui::TextWrapped("%s", step.note.c_str());
     }
     DrawTargets(step.targets, "strip");
+    DrawAgentObservation("step:" + step.id);
     for (const auto* item : plan_->ItemsAtStep(step.id)) {
       ImGui::BulletText("%s", item->name.c_str());
       ImGui::SameLine();
@@ -460,13 +530,14 @@ void PlanningEditor::DrawDecisionQueue() {
       for (const auto& ref : d.refs) {
         ImGui::TextDisabled("%s", ref.c_str());
       }
+      DrawAgentObservation("decision:" + d.id);
       ImGui::TreePop();
     }
     ImGui::PopID();
   }
   if (ImGui::SmallButton(ICON_MD_ADD " Decision")) {
     core::PlanDecision d;
-    d.id = absl::StrFormat("decision-%zu", plan_->decisions.size() + 1);
+    d.id = plan_->NewDecisionId();
     d.title = "New decision";
     d.status = "open";
     plan_->decisions.push_back(std::move(d));
@@ -566,7 +637,7 @@ void PlanningEditor::DrawStepList() {
   }
   if (ImGui::SmallButton(ICON_MD_ADD " Step")) {
     core::PlanRouteStep step;
-    step.id = absl::StrFormat("step-%zu", steps.size() + 1);
+    step.id = plan_->NewStepId();
     step.title = "New step";
     step.kind = "story";
     const size_t at = selected_step_ >= 0 ? selected_step_ + 1 : steps.size();
@@ -586,19 +657,15 @@ void PlanningEditor::DrawStepDetail() {
   }
   auto& step = steps[selected_step_];
   ImGui::PushID("step_detail");
-  const std::string old_id = step.id;
-  if (ImGui::InputText("Id", &step.id)) {
-    for (auto& item : plan_->route_items) {
-      if (item.step == old_id) {
-        item.step = step.id;
-      }
-      for (auto& need : item.needs) {
-        if (need.step == old_id) {
-          need.step = step.id;
-        }
-      }
+  std::string edited_id = step.id;
+  if (ImGui::InputText("Id", &edited_id)) {
+    const auto status = plan_->RenameStep(step.id, std::move(edited_id));
+    if (status.ok()) {
+      save_error_.clear();
+      MarkDirty();
+    } else {
+      save_error_ = std::string(status.message());
     }
-    MarkDirty();
   }
   if (ImGui::InputText("Code", &step.code)) {
     MarkDirty();
@@ -623,6 +690,7 @@ void PlanningEditor::DrawStepDetail() {
                                 ImVec2(-1, ImGui::GetTextLineHeight() * 4))) {
     MarkDirty();
   }
+  DrawAgentObservation("step:" + step.id);
   if (ImGui::SmallButton(ICON_MD_DELETE " Remove step")) {
     steps.erase(steps.begin() + selected_step_);
     selected_step_ =
@@ -645,7 +713,7 @@ void PlanningEditor::DrawItems() {
   ImGui::SameLine();
   if (ImGui::SmallButton(ICON_MD_ADD " Item")) {
     core::PlanRouteItem item;
-    item.id = absl::StrFormat("item-%zu", items.size() + 1);
+    item.id = plan_->NewItemId();
     item.name = "New item";
     item.step = step_id;
     item.status = "proposed";
@@ -729,6 +797,7 @@ void PlanningEditor::DrawItems() {
                                 ImVec2(-1, ImGui::GetTextLineHeight() * 3))) {
     MarkDirty();
   }
+  DrawAgentObservation("item:" + item.id);
   for (const auto& need : item.needs) {
     const int step_index = plan_->FindStep(need.step);
     ImGui::BulletText("Needed at %s: %s",
@@ -742,6 +811,82 @@ void PlanningEditor::DrawItems() {
     selected_item_ = -1;
     MarkDirty();
   }
+  ImGui::PopID();
+}
+
+void PlanningEditor::DrawAgentStatus() {
+  const core::PlanJson* section = core::FindPlanAgentStatus(*plan_);
+  if (section == nullptr) {
+    return;
+  }
+  ImGui::SeparatorText(ICON_MD_SMART_TOY " Agent status");
+  const auto observations = section->find("observations");
+  const size_t count =
+      observations != section->end() && observations->is_object()
+          ? observations->size()
+          : 0;
+  ImGui::TextDisabled("%zu observations, updated %s by %s", count,
+                      JsonString(*section, "updated_utc", "-").c_str(),
+                      JsonString(*section, "agent", "-").c_str());
+  const auto orphans = core::OrphanedPlanAgentObservations(*plan_);
+  if (!orphans.empty()) {
+    gui::ColoredTextF(gui::GetWarningColor(),
+                      "%zu observations name entries no longer in the plan: %s",
+                      orphans.size(), absl::StrJoin(orphans, ", ").c_str());
+  }
+  if (count == 0 ||
+      !ImGui::TreeNode("##agent_observations", "Observations (%zu)", count)) {
+    return;
+  }
+  for (auto it = observations->begin(); it != observations->end(); ++it) {
+    ImGui::BulletText("%s", it.key().c_str());
+    const std::string state = JsonString(it.value(), "state", "");
+    if (!state.empty()) {
+      ImGui::SameLine();
+      gui::ColoredText(state.c_str(), gui::GetInfoColor());
+    }
+  }
+  ImGui::TreePop();
+}
+
+void PlanningEditor::DrawAgentObservation(const std::string& key) {
+  const core::PlanJson* obs = core::FindPlanAgentObservation(*plan_, key);
+  if (obs == nullptr) {
+    return;
+  }
+  ImGui::PushID(key.c_str());
+  ImGui::SeparatorText(ICON_MD_SMART_TOY " Agent status");
+  const std::string state = JsonString(*obs, "state", "");
+  if (!state.empty()) {
+    gui::ColoredText(state.c_str(), gui::GetInfoColor());
+  }
+  for (const char* field : {"summary", "next"}) {
+    const std::string text = JsonString(*obs, field, "");
+    if (!text.empty()) {
+      ImGui::TextWrapped("%s", text.c_str());
+    }
+  }
+  if (auto evidence = obs->find("evidence");
+      evidence != obs->end() && evidence->is_array()) {
+    for (const auto& entry : *evidence) {
+      if (entry.is_string()) {
+        ImGui::BulletText("%s", entry.get<std::string>().c_str());
+      }
+    }
+  }
+  if (auto prs = obs->find("prs"); prs != obs->end() && prs->is_array()) {
+    std::vector<std::string> labels;
+    for (const auto& pr : *prs) {
+      labels.push_back(pr.is_string() ? pr.get<std::string>()
+                                      : "#" + pr.dump());
+    }
+    ImGui::TextDisabled("PRs: %s", absl::StrJoin(labels, ", ").c_str());
+  }
+  ImGui::TextDisabled(
+      "%s %s - read-only; agents update this, your notes stay "
+      "yours",
+      JsonString(*obs, "agent", "").c_str(),
+      JsonString(*obs, "observed_utc", "").c_str());
   ImGui::PopID();
 }
 

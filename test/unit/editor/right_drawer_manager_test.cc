@@ -2,15 +2,29 @@
 
 #include <gtest/gtest.h>
 
+#include <chrono>
+#include <filesystem>
+#include <fstream>
+#include <memory>
+#include <vector>
+
+#include "app/editor/editor_manager.h"
 #include "app/editor/menu/menu_builder.h"
 #include "app/editor/shell/windows/settings_panel.h"
 #include "app/editor/system/session/user_settings.h"
+#include "app/editor/system/workspace/proposal_drawer.h"
+#include "rom/rom.h"
+#ifdef Z3ED_AI
+#include "cli/service/rom/rom_sandbox_manager.h"
+#endif
 #include "app/editor/ui/toast_manager.h"
+#include "app/gfx/backend/null_renderer.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/layout_helpers.h"
 #include "app/gui/core/theme_manager.h"
 #include "app/gui/core/ui_config.h"
 #include "app/gui/widgets/themed_widgets.h"
+#include "editor_test_support.h"
 #include "imgui/imgui.h"
 #include "imgui/imgui_internal.h"
 
@@ -18,6 +32,10 @@ namespace yaze::editor {
 
 class RightDrawerManagerTestPeer {
  public:
+  static void DrawProposals(RightDrawerManager& manager) {
+    manager.DrawProposalsPanel();
+  }
+
   // Draw just the header (used for layout smoke checks).
   static void DrawHeader(RightDrawerManager& manager, const char* title) {
     const auto type = manager.GetActiveDrawer();
@@ -31,6 +49,41 @@ class RightDrawerManagerTestPeer {
   static float ConfiguredWidth(RightDrawerManager& manager,
                                RightDrawerManager::DrawerType type) {
     return manager.GetConfiguredPanelWidth(type);
+  }
+};
+
+class ProposalDrawerTestPeer {
+ public:
+  static absl::Status Accept(ProposalDrawer& drawer, const std::string& id) {
+    return drawer.AcceptProposal(id);
+  }
+  static void Refresh(ProposalDrawer& drawer) { drawer.RefreshProposals(); }
+  static void Select(ProposalDrawer& drawer, const std::string& id) {
+    drawer.SelectProposal(id);
+  }
+  static bool SelectionIsCurrent(const ProposalDrawer& drawer,
+                                 const std::string& id) {
+    for (const auto& proposal : drawer.proposals_) {
+      if (&proposal == drawer.selected_proposal_)
+        return proposal.id == id;
+    }
+    return false;
+  }
+  static bool HasSelection(const ProposalDrawer& drawer) {
+    return drawer.selected_proposal_ != nullptr;
+  }
+  static void Request(ProposalDrawer& drawer, const std::string& action,
+                      const std::string& id) {
+    drawer.confirm_action_ = action;
+    drawer.confirm_proposal_id_ = id;
+    drawer.show_confirm_dialog_ = true;
+  }
+  static bool HasPendingAction(const ProposalDrawer& drawer) {
+    return drawer.show_confirm_dialog_ || !drawer.confirm_action_.empty() ||
+           !drawer.confirm_proposal_id_.empty();
+  }
+  static const absl::Status& ActionStatus(const ProposalDrawer& drawer) {
+    return drawer.action_status_;
   }
 };
 
@@ -475,6 +528,271 @@ TEST_F(RightDrawerManagerTest, CompactNavTabsFitEverySupportedDrawerWidth) {
         << "compact tabs overflow at window_w=" << window_w;
   }
 }
+
+#ifdef Z3ED_AI
+class ProposalDrawerWorkflowTest : public RightDrawerManagerTest {
+ protected:
+  void SetUp() override {
+    RightDrawerManagerTest::SetUp();
+    const auto serial =
+        std::chrono::steady_clock::now().time_since_epoch().count();
+    root_ = std::filesystem::temp_directory_path() /
+            ("yaze-proposal-drawer-" + std::to_string(serial));
+    auto& registry = cli::ProposalRegistry::Instance();
+    previous_proposal_root_ = registry.RootDirectory();
+    registry.SetRootDirectory(root_ / "proposals");
+    auto& sandboxes = cli::RomSandboxManager::Instance();
+    previous_sandbox_root_ = sandboxes.RootDirectory();
+    sandboxes.SetRootDirectory(root_ / "sandboxes");
+    ASSERT_TRUE(rom_.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+    rom_.set_filename((root_ / "source.sfc").string());
+    drawer_.SetRom(&rom_);
+    manager_.SetRom(&rom_);
+    manager_.SetProposalDrawer(&drawer_);
+  }
+
+  void TearDown() override {
+    auto& registry = cli::ProposalRegistry::Instance();
+    for (const auto& id : proposal_ids_)
+      (void)registry.RemoveProposal(id);
+    registry.SetRootDirectory(previous_proposal_root_);
+    auto& sandboxes = cli::RomSandboxManager::Instance();
+    for (const auto& id : sandbox_ids_)
+      (void)sandboxes.RemoveSandbox(id);
+    sandboxes.SetRootDirectory(previous_sandbox_root_);
+    std::error_code ec;
+    std::filesystem::remove_all(root_, ec);
+    RightDrawerManagerTest::TearDown();
+  }
+
+  std::string CreateProposal(Rom* source_rom = nullptr) {
+    auto sandbox = cli::RomSandboxManager::Instance().CreateSandbox(
+        source_rom ? *source_rom : rom_, "test");
+    EXPECT_TRUE(sandbox.ok()) << sandbox.status();
+    if (!sandbox.ok())
+      return {};
+    sandbox_ids_.push_back(sandbox->id);
+    auto proposal = cli::ProposalRegistry::Instance().CreateProposal(
+        sandbox->id, sandbox->rom_path, "test proposal", "test changes");
+    EXPECT_TRUE(proposal.ok()) << proposal.status();
+    if (!proposal.ok())
+      return {};
+    proposal_ids_.push_back(proposal->id);
+    return proposal->id;
+  }
+
+  void Frame(RightDrawerManager& manager) {
+    ImGui::NewFrame();
+    ImGui::SetNextWindowPos(ImVec2(20, 20));
+    ImGui::SetNextWindowSize(ImVec2(560, 640));
+    ImGui::Begin("Proposal drawer host");
+    RightDrawerManagerTestPeer::DrawProposals(manager);
+    ImGui::End();
+    ImGui::Render();
+  }
+
+  void Frame() { Frame(manager_); }
+
+  void Confirm() {
+    Frame();
+    Frame();  // Let the modal settle its automatic size and position.
+    auto* popup = ImGui::FindWindowByName("Confirm Proposal Action");
+    ASSERT_NE(popup, nullptr);
+    ASSERT_TRUE(ImGui::IsPopupOpen("Confirm Proposal Action",
+                                   ImGuiPopupFlags_AnyPopupId));
+    const float button_height =
+        ImGui::GetFontSize() + ImGui::GetStyle().FramePadding.y * 2;
+    const ImVec2 yes(popup->DC.CursorStartPos.x + 60,
+                     popup->DC.CursorMaxPos.y - button_height / 2);
+    auto& io = ImGui::GetIO();
+    io.AddMousePosEvent(yes.x, yes.y);
+    Frame();
+    io.AddMouseButtonEvent(0, true);
+    Frame();
+    io.AddMouseButtonEvent(0, false);
+    Frame();
+    Frame();
+  }
+
+  Rom rom_;
+  ProposalDrawer drawer_;
+  RightDrawerManager manager_;
+  std::filesystem::path root_, previous_proposal_root_, previous_sandbox_root_;
+  std::vector<std::string> proposal_ids_, sandbox_ids_;
+};
+
+TEST_F(ProposalDrawerWorkflowTest, ApplyRefusesBeforeRomOrReviewStateMutation) {
+  const auto id = CreateProposal();
+  ASSERT_FALSE(id.empty());
+  const auto sandbox = cli::RomSandboxManager::Instance().ActiveSandbox();
+  ASSERT_TRUE(sandbox.ok());
+  Rom changed;
+  ASSERT_TRUE(changed.LoadFromFile(sandbox->rom_path.string()).ok());
+  ASSERT_TRUE(changed.WriteByte(0x100, 0xA5).ok());
+  ASSERT_TRUE(changed.SaveToFile({.save_new = false}).ok());
+  const auto original = rom_.vector();
+  const bool was_dirty = rom_.dirty();
+
+  const auto status = ProposalDrawerTestPeer::Accept(drawer_, id);
+  EXPECT_EQ(status.code(), absl::StatusCode::kUnimplemented);
+  EXPECT_EQ(rom_.vector(), original);
+  EXPECT_EQ(rom_.dirty(), was_dirty);
+  const auto proposal = cli::ProposalRegistry::Instance().GetProposal(id);
+  ASSERT_TRUE(proposal.ok());
+  EXPECT_EQ(proposal->status, cli::ProposalRegistry::ProposalStatus::kPending);
+}
+
+TEST_F(ProposalDrawerWorkflowTest, EmbeddedRejectAndDeleteRequireConfirmation) {
+  for (const std::string action : {"reject", "delete"}) {
+    const auto id = CreateProposal();
+    ASSERT_FALSE(id.empty());
+    ProposalDrawerTestPeer::Refresh(drawer_);
+    ProposalDrawerTestPeer::Select(drawer_, id);
+    ProposalDrawerTestPeer::Request(drawer_, action, id);
+    const auto pending = cli::ProposalRegistry::Instance().GetProposal(id);
+    ASSERT_TRUE(pending.ok());
+    EXPECT_EQ(pending->status, cli::ProposalRegistry::ProposalStatus::kPending);
+    Confirm();  // Runs RightDrawerManager's embedded DrawContent path.
+    EXPECT_TRUE(ProposalDrawerTestPeer::ActionStatus(drawer_).ok());
+    EXPECT_FALSE(ProposalDrawerTestPeer::HasPendingAction(drawer_));
+    const auto after = cli::ProposalRegistry::Instance().GetProposal(id);
+    if (action == "reject") {
+      ASSERT_TRUE(after.ok());
+      EXPECT_EQ(after->status,
+                cli::ProposalRegistry::ProposalStatus::kRejected);
+    } else {
+      EXPECT_EQ(after.status().code(), absl::StatusCode::kNotFound);
+    }
+  }
+}
+
+TEST_F(ProposalDrawerWorkflowTest,
+       RefreshResolvesTheRetainedIdAndClearsRemoval) {
+  const auto selected = CreateProposal();
+  ASSERT_FALSE(selected.empty());
+  ProposalDrawerTestPeer::Refresh(drawer_);
+  ProposalDrawerTestPeer::Select(drawer_, selected);
+  for (int i = 0; i < 5; ++i) {
+    ASSERT_FALSE(CreateProposal().empty());
+    ProposalDrawerTestPeer::Refresh(drawer_);
+    EXPECT_TRUE(ProposalDrawerTestPeer::SelectionIsCurrent(drawer_, selected));
+    Frame();
+  }
+  ASSERT_TRUE(cli::ProposalRegistry::Instance().RemoveProposal(selected).ok());
+  ProposalDrawerTestPeer::Refresh(drawer_);
+  EXPECT_FALSE(ProposalDrawerTestPeer::HasSelection(drawer_));
+  Frame();
+}
+
+TEST_F(ProposalDrawerWorkflowTest, SwitchingRomCancelsAnOpenConfirmation) {
+  const auto id = CreateProposal();
+  ASSERT_FALSE(id.empty());
+  ProposalDrawerTestPeer::Refresh(drawer_);
+  ProposalDrawerTestPeer::Select(drawer_, id);
+  ProposalDrawerTestPeer::Request(drawer_, "reject", id);
+  Frame();
+  Frame();
+  ASSERT_TRUE(ProposalDrawerTestPeer::HasPendingAction(drawer_));
+  ASSERT_TRUE(ProposalDrawerTestPeer::SelectionIsCurrent(drawer_, id));
+  auto* popup = ImGui::FindWindowByName("Confirm Proposal Action");
+  ASSERT_NE(popup, nullptr);
+  const ImGuiID popup_id = popup->PopupId;
+  ASSERT_TRUE(ImGui::IsPopupOpen(popup_id, ImGuiPopupFlags_AnyPopupLevel));
+  Rom other;
+  drawer_.SetRom(&other);
+  manager_.SetRom(&other);
+  Frame();
+  EXPECT_FALSE(ImGui::IsPopupOpen(popup_id, ImGuiPopupFlags_AnyPopupLevel));
+  Frame();
+  EXPECT_FALSE(popup->Active);
+  EXPECT_FALSE(ProposalDrawerTestPeer::HasPendingAction(drawer_));
+  EXPECT_FALSE(ProposalDrawerTestPeer::HasSelection(drawer_));
+  const auto proposal = cli::ProposalRegistry::Instance().GetProposal(id);
+  ASSERT_TRUE(proposal.ok());
+  EXPECT_EQ(proposal->status, cli::ProposalRegistry::ProposalStatus::kPending);
+}
+
+TEST_F(ProposalDrawerWorkflowTest,
+       SwappingProjectRomInPlaceClosesConfirmationWithoutReviewAction) {
+  const auto original_path = root_ / "original.sfc";
+  const auto replacement_path = root_ / "replacement.sfc";
+  const auto project_path = root_ / "minimal.yaze";
+  auto write_rom = [](const std::filesystem::path& path,
+                      const std::string& title) {
+    std::vector<uint8_t> bytes(512 * 1024, 0);
+    for (size_t i = 0; i < title.size(); ++i) {
+      bytes[0x7FC0 + i] = static_cast<uint8_t>(title[i]);
+    }
+    std::ofstream output(path, std::ios::binary | std::ios::trunc);
+    ASSERT_TRUE(output.is_open());
+    output.write(reinterpret_cast<const char*>(bytes.data()),
+                 static_cast<std::streamsize>(bytes.size()));
+    ASSERT_TRUE(output.good());
+  };
+  write_rom(original_path, "BEFORE PROPOSAL SWAP");
+  write_rom(replacement_path, "AFTER PROPOSAL SWAP");
+  {
+    std::ofstream output(project_path);
+    ASSERT_TRUE(output.is_open());
+    output << "[project]\nname=Proposal replacement fixture\n\n"
+              "[files]\nrom_filename="
+           << original_path.string()
+           << "\nrom_backup_folder=backups\ncode_folder=\nassets_folder=\n"
+              "patches_folder=\nlabels_filename=\nsymbols_filename=\n"
+              "output_folder=build\n\n[workspace]\nautosave_enabled=false\n"
+              "backup_on_save=false\n";
+    ASSERT_TRUE(output.good());
+  }
+
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto editor = std::make_unique<EditorManager>();
+  test::InitializeWithIsolatedSettings(*editor, renderer.get());
+  editor->SetAssetLoadMode(AssetLoadMode::kLazy);
+  const auto opened = editor->OpenRomOrProject(project_path.string());
+  ASSERT_TRUE(opened.ok()) << opened;
+  Rom* const rom_address = editor->GetCurrentRom();
+  ASSERT_NE(rom_address, nullptr);
+  const auto original_bytes = rom_address->vector();
+  auto* right_drawer = editor->right_drawer_manager();
+  ASSERT_NE(right_drawer, nullptr);
+  auto* proposal_drawer = right_drawer->proposal_drawer();
+  ASSERT_NE(proposal_drawer, nullptr);
+  right_drawer->SetRom(rom_address);
+  proposal_drawer->SetRom(rom_address);
+
+  const auto id = CreateProposal(rom_address);
+  ASSERT_FALSE(id.empty());
+  ProposalDrawerTestPeer::Refresh(*proposal_drawer);
+  ProposalDrawerTestPeer::Select(*proposal_drawer, id);
+  ProposalDrawerTestPeer::Request(*proposal_drawer, "reject", id);
+  Frame(*right_drawer);
+  Frame(*right_drawer);
+  ASSERT_TRUE(ProposalDrawerTestPeer::HasPendingAction(*proposal_drawer));
+  ASSERT_TRUE(ProposalDrawerTestPeer::SelectionIsCurrent(*proposal_drawer, id));
+  auto* popup = ImGui::FindWindowByName("Confirm Proposal Action");
+  ASSERT_NE(popup, nullptr);
+  const ImGuiID popup_id = popup->PopupId;
+  ASSERT_TRUE(ImGui::IsPopupOpen(popup_id, ImGuiPopupFlags_AnyPopupLevel));
+
+  const auto swapped = editor->SwapProjectRom(replacement_path.string());
+  ASSERT_TRUE(swapped.ok()) << swapped;
+  ASSERT_EQ(editor->GetCurrentRom(), rom_address);
+  EXPECT_NE(rom_address->vector(), original_bytes);
+  const auto replacement_bytes = rom_address->vector();
+  const bool replacement_dirty = rom_address->dirty();
+  Frame(*right_drawer);
+  EXPECT_FALSE(ImGui::IsPopupOpen(popup_id, ImGuiPopupFlags_AnyPopupLevel));
+  Frame(*right_drawer);
+  EXPECT_FALSE(popup->Active);
+  EXPECT_FALSE(ProposalDrawerTestPeer::HasPendingAction(*proposal_drawer));
+  EXPECT_FALSE(ProposalDrawerTestPeer::HasSelection(*proposal_drawer));
+  const auto proposal = cli::ProposalRegistry::Instance().GetProposal(id);
+  ASSERT_TRUE(proposal.ok());
+  EXPECT_EQ(proposal->status, cli::ProposalRegistry::ProposalStatus::kPending);
+  EXPECT_EQ(rom_address->vector(), replacement_bytes);
+  EXPECT_EQ(rom_address->dirty(), replacement_dirty);
+}
+#endif  // Z3ED_AI
 
 }  // namespace
 }  // namespace yaze::editor

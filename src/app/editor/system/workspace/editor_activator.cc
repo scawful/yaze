@@ -343,16 +343,6 @@ void EditorActivator::JumpToDungeonRoom(int room_id) {
 }
 
 void EditorActivator::JumpToOverworldMap(int map_id) {
-  if (map_id < 0 || map_id >= zelda3::kNumOverworldMaps) {
-    LOG_WARN("EditorActivator", "Rejected invalid overworld map jump target %d",
-             map_id);
-    if (deps_.toast_manager) {
-      deps_.toast_manager->Show(
-          "Invalid overworld map ID: " + std::to_string(map_id),
-          ToastType::kWarning);
-    }
-    return;
-  }
 
   auto* editor_set =
       deps_.get_current_editor_set ? deps_.get_current_editor_set() : nullptr;
@@ -372,12 +362,24 @@ void EditorActivator::JumpToOverworldMap(int map_id) {
     }
   }
 
-  // Switch to overworld editor
-  SwitchToEditor(EditorType::kOverworld);
+  auto* overworld = editor_set->GetOverworldEditor();
+  if (!overworld || map_id < 0 || map_id >= overworld->DisplayedMapCount()) {
+    LOG_WARN("EditorActivator", "Rejected invalid overworld map jump target %d",
+             map_id);
+    if (deps_.toast_manager) {
+      deps_.toast_manager->Show(
+          "Invalid overworld map ID: " + std::to_string(map_id),
+          ToastType::kWarning);
+    }
+    return;
+  }
+
+  // Navigation activates its destination even when that editor is already open.
+  SwitchToEditor(EditorType::kOverworld, /*force_visible=*/true);
 
   // Use the editor's navigation path so graphics, viewport and hover-follow
   // state agree with the requested map, including startup --map requests.
-  editor_set->GetOverworldEditor()->JumpToMap(map_id);
+  overworld->JumpToMap(map_id);
 }
 
 void EditorActivator::JumpToMessage(int message_id) {

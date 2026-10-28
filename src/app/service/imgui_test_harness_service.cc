@@ -8,7 +8,9 @@
 
 #include <algorithm>
 #include <chrono>
+#include <cstdlib>
 #include <deque>
+#include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <limits>
@@ -25,12 +27,17 @@
 #include "absl/synchronization/mutex.h"
 #include "absl/time/clock.h"
 #include "absl/time/time.h"
+#include "app/editor/system/workspace/panel_host.h"
+#include "app/editor/system/workspace/workspace_window_manager.h"
 #include "app/gui/automation/widget_id_registry.h"
 #include "app/service/screenshot_utils.h"
 #include "app/testing/test_manager.h"
 #include "app/testing/test_script_parser.h"
+#include "imgui/imgui_internal.h"
 #include "protos/imgui_test_harness.grpc.pb.h"
 #include "protos/imgui_test_harness.pb.h"
+#include "util/file_util.h"
+#include "util/ui_thread_queue.h"
 #include "yaze.h"  // For YAZE_VERSION_STRING
 
 // The Windows SDK defines Yield as a function-like macro, which collides with
@@ -45,7 +52,18 @@
 
 // Helper to register and run a test dynamically
 namespace {
+thread_local int g_remote_replay_depth = 0;
+
+class ScopedRemoteReplaySubmission {
+ public:
+  ScopedRemoteReplaySubmission() { ++g_remote_replay_depth; }
+  ~ScopedRemoteReplaySubmission() { --g_remote_replay_depth; }
+};
+
 struct DynamicTestData {
+  bool remote_replay = g_remote_replay_depth != 0;
+  yaze::test::TestManager* manager = nullptr;
+  std::string harness_id;
   std::function<void(ImGuiTestContext*)> test_func;
 };
 
@@ -65,8 +83,41 @@ void KeepDynamicTestData(const std::shared_ptr<DynamicTestData>& data) {
 void RunDynamicTest(ImGuiTestContext* ctx) {
   auto* data = (DynamicTestData*)ctx->Test->UserData;
   if (data && data->test_func) {
+    if (data->remote_replay) {
+      const auto admitted = data->manager->BeginRemoteReplayFocus(ctx->Test);
+      if (!admitted.ok()) {
+        data->manager->MarkHarnessTestCompleted(
+            data->harness_id, yaze::test::HarnessTestStatus::kFailed,
+            std::string(admitted.message()));
+        return;
+      }
+    }
     data->test_func(ctx);
   }
+}
+
+// Registration, replay ownership and queue admission are one UI-thread task.
+// In particular, OnPostSwap cannot clear ownership in between these steps.
+absl::Status QueueDynamicTest(ImGuiTestEngine* engine,
+                              yaze::test::TestManager* manager,
+                              yaze::util::UiThreadQueue* ui_queue,
+                              const std::string& name,
+                              const std::string& harness_id,
+                              std::shared_ptr<DynamicTestData> data) {
+  return ui_queue->RunOnUiThread(
+      [engine, manager, name, harness_id, data = std::move(data)] {
+        ImGuiTest* test = IM_REGISTER_TEST(engine, "grpc", name.c_str());
+        test->SetOwnedName(name.c_str());
+        test->TestFunc = RunDynamicTest;
+        test->UserData = data.get();
+        data->manager = manager;
+        data->harness_id = harness_id;
+        if (data->remote_replay)
+          manager->RegisterRemoteReplayTest(test, harness_id);
+        ImGuiTestEngine_QueueTest(engine, test, ImGuiTestRunFlags_RunFromGui);
+        KeepDynamicTestData(data);
+        return absl::OkStatus();
+      });
 }
 
 // Helper to check if a test has completed (not queued or running)
@@ -325,6 +376,80 @@ absl::StatusOr<internal::ParsedTarget> ParseTargetString(
 }  // namespace
 
 namespace internal {
+
+absl::StatusOr<std::string> FocusHarnessWindow(editor::WindowHost* host,
+                                               size_t session_id,
+                                               absl::string_view window_id) {
+  if (window_id.empty() || window_id.find('\0') != absl::string_view::npos) {
+    return absl::InvalidArgumentError(
+        "Window target requires a nonempty base ID");
+  }
+  if (!host || !host->window_manager() || !ImGui::GetCurrentContext()) {
+    return absl::FailedPreconditionError(
+        "Window host/UI context is unavailable");
+  }
+  auto* windows = host->window_manager();
+  if (windows->GetActiveSessionId() != session_id) {
+    return absl::FailedPreconditionError("Window target session is not active");
+  }
+  const std::string id = host->ResolveWindowId(std::string(window_id));
+  const auto session_windows = windows->GetWindowsInSession(session_id);
+  if (std::find(session_windows.begin(), session_windows.end(), id) ==
+          session_windows.end() ||
+      !windows->GetWindowDescriptor(session_id, id)) {
+    return absl::NotFoundError("Unknown window ID in the active session: " +
+                               id);
+  }
+  const std::string name = host->GetWorkspaceWindowName(session_id, id);
+  if (name.empty() || !ImGui::FindWindowByName(name.c_str())) {
+    return absl::FailedPreconditionError(
+        "Registered window has not been drawn");
+  }
+  if (!host->OpenAndFocusWindow(session_id, id)) {
+    return absl::FailedPreconditionError("Window host refused to open/focus: " +
+                                         id);
+  }
+  return name;
+}
+
+absl::Status VerifyHarnessWindowFocus(absl::string_view window_name) {
+  ImGuiContext* context = ImGui::GetCurrentContext();
+  ImGuiWindow* window =
+      context ? ImGui::FindWindowByName(std::string(window_name).c_str())
+              : nullptr;
+  if (!window || !window->Active || window->Hidden ||
+      (window->DockNode && !window->DockTabIsVisible) || !context->NavWindow ||
+      context->NavWindow->RootWindow != window->RootWindow) {
+    return absl::FailedPreconditionError(
+        "Requested window/tab is not focused and visible");
+  }
+  return absl::OkStatus();
+}
+
+absl::Status ValidateProjectSaveAsDestination(const char* destination) {
+  namespace fs = std::filesystem;
+  if (!destination ||
+      (*destination && (!fs::path(destination).is_absolute() ||
+                        fs::path(destination).extension() != ".yaze"))) {
+    return absl::InvalidArgumentError(
+        "Set YAZE_TEST_PROJECT_SAVE_AS to an absolute NEW copied-project "
+        ".yaze destination, or an empty string for Cancel");
+  }
+  if (!*destination) {
+    return absl::OkStatus();
+  }
+  std::error_code error;
+  const auto entry = fs::symlink_status(destination, error);
+  if (error && error != std::errc::no_such_file_or_directory) {
+    return absl::FailedPreconditionError(absl::StrCat(
+        "Cannot inspect Project Save As destination: ", error.message()));
+  }
+  if (entry.type() != fs::file_type::not_found) {
+    return absl::AlreadyExistsError(
+        "Project Save As replay destination already exists");
+  }
+  return absl::OkStatus();
+}
 
 absl::StatusOr<ResolvedWidgetSelector> ResolveWidgetSelector(
     absl::string_view target, absl::string_view widget_key) {
@@ -748,6 +873,13 @@ std::unique_ptr<::grpc::Service> CreateImGuiTestHarnessServiceGrpc(
 // ImGuiTestHarnessServiceImpl - RPC Handlers
 // ============================================================================
 
+ImGuiTestHarnessServiceImpl::ImGuiTestHarnessServiceImpl(
+    TestManager* test_manager, util::UiThreadQueue* ui_thread_queue)
+    : test_manager_(test_manager),
+      ui_thread_queue_(ui_thread_queue ? ui_thread_queue
+                                       : &util::UiThreadQueue::Get()),
+      test_recorder_(test_manager) {}
+
 absl::Status ImGuiTestHarnessServiceImpl::Ping(const PingRequest* request,
                                                PingResponse* response) {
   // Echo back the message with "Pong: " prefix
@@ -878,10 +1010,66 @@ absl::Status ImGuiTestHarnessServiceImpl::Click(const ClickRequest* request,
                           mouse_button](ImGuiTestContext* ctx) {
     manager->MarkHarnessTestRunning(captured_id);
     try {
+      if (widget_type == "window") {
+        auto* controller = Application::Instance().GetController();
+        auto* editor = controller ? controller->editor_manager() : nullptr;
+        if (!editor || !editor->GetCurrentEditorSet()) {
+          manager->MarkHarnessTestCompleted(
+              captured_id, HarnessTestStatus::kFailed,
+              "Window focus requires an active editor session");
+          return;
+        }
+        const auto focused = internal::FocusHarnessWindow(
+            editor->window_host(), editor->GetCurrentSessionId(), widget_label);
+        if (!focused.ok()) {
+          manager->MarkHarnessTestCompleted(
+              captured_id, HarnessTestStatus::kFailed,
+              std::string(focused.status().message()));
+          return;
+        }
+        ctx->Yield(2);
+        const auto verified = internal::VerifyHarnessWindowFocus(*focused);
+        if (!verified.ok() || ctx->IsError()) {
+          manager->MarkHarnessTestCompleted(
+              captured_id, HarnessTestStatus::kFailed,
+              verified.ok() ? "Window focus action failed"
+                            : std::string(verified.message()));
+          return;
+        }
+        manager->MarkHarnessTestCompleted(captured_id,
+                                          HarnessTestStatus::kPassed,
+                                          "Focused window: " + widget_label);
+        return;
+      }
       if (widget_type == "shortcut") {
         ImGuiKeyChord chord = 0;
+        std::optional<util::ScopedSaveFileDialogResultForTesting> save_picker;
         if (widget_label == "Save ROM") {
           chord = ImGuiMod_Shortcut | ImGuiKey_S;
+        } else if (widget_label == "Undo") {
+          chord = ImGuiMod_Shortcut | ImGuiKey_Z;
+        } else if (widget_label == "Redo") {
+          chord = ImGuiMod_Shortcut | ImGuiMod_Shift | ImGuiKey_Z;
+        } else if (widget_label == "Save As") {
+          const char* destination = std::getenv("YAZE_TEST_PROJECT_SAVE_AS");
+          const auto destination_status =
+              internal::ValidateProjectSaveAsDestination(destination);
+          if (!destination_status.ok()) {
+            manager->MarkHarnessTestCompleted(
+                captured_id, HarnessTestStatus::kFailed,
+                std::string(destination_status.message()));
+            return;
+          }
+          auto* controller = Application::Instance().GetController();
+          auto* editor = controller ? controller->editor_manager() : nullptr;
+          if (!editor || !editor->GetCurrentProject()->project_opened()) {
+            manager->MarkHarnessTestCompleted(
+                captured_id, HarnessTestStatus::kFailed,
+                "Project Save As replay requires an open copied project");
+            return;
+          }
+          save_picker.emplace(destination);
+          chord = ImGuiMod_Shortcut | ImGuiMod_Shift | ImGuiKey_S;
         } else if (widget_label == "Settings") {
           chord = ImGuiMod_Shortcut | ImGuiKey_Comma;
         } else if (widget_label == "Quit") {
@@ -928,6 +1116,12 @@ absl::Status ImGuiTestHarnessServiceImpl::Click(const ClickRequest* request,
 
         ctx->KeyPress(chord);
         ctx->Yield(2);
+        if (save_picker && !save_picker->consumed()) {
+          manager->MarkHarnessTestCompleted(
+              captured_id, HarnessTestStatus::kFailed,
+              "Project Save As shortcut did not reach the destination picker");
+          return;
+        }
         if (ctx->IsError()) {
           const std::string error_message =
               absl::StrFormat("Shortcut failed for '%s'", widget_label);
@@ -991,12 +1185,13 @@ absl::Status ImGuiTestHarnessServiceImpl::Click(const ClickRequest* request,
       static_cast<long long>(
           std::chrono::system_clock::now().time_since_epoch().count()));
 
-  ImGuiTest* test = IM_REGISTER_TEST(engine, "grpc", test_name.c_str());
-  test->TestFunc = RunDynamicTest;
-  test->UserData = test_data.get();
-
-  ImGuiTestEngine_QueueTest(engine, test, ImGuiTestRunFlags_RunFromGui);
-  KeepDynamicTestData(test_data);
+  const auto queued = QueueDynamicTest(engine, test_manager_, ui_thread_queue_,
+                                       test_name, test_id, test_data);
+  if (!queued.ok()) {
+    test_manager_->MarkHarnessTestCompleted(test_id, HarnessTestStatus::kFailed,
+                                            std::string(queued.message()));
+    return queued;
+  }
 
   auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(
       std::chrono::steady_clock::now() - start);
@@ -1175,12 +1370,13 @@ absl::Status ImGuiTestHarnessServiceImpl::Type(const TypeRequest* request,
       static_cast<long long>(
           std::chrono::system_clock::now().time_since_epoch().count()));
 
-  ImGuiTest* test = IM_REGISTER_TEST(engine, "grpc", test_name.c_str());
-  test->TestFunc = RunDynamicTest;
-  test->UserData = test_data.get();
-
-  ImGuiTestEngine_QueueTest(engine, test, ImGuiTestRunFlags_RunFromGui);
-  KeepDynamicTestData(test_data);
+  const auto queued = QueueDynamicTest(engine, test_manager_, ui_thread_queue_,
+                                       test_name, test_id, test_data);
+  if (!queued.ok()) {
+    test_manager_->MarkHarnessTestCompleted(test_id, HarnessTestStatus::kFailed,
+                                            std::string(queued.message()));
+    return queued;
+  }
 
   auto timeout = std::chrono::seconds(5);
   auto wait_start = std::chrono::steady_clock::now();
@@ -1405,12 +1601,13 @@ absl::Status ImGuiTestHarnessServiceImpl::Wait(const WaitRequest* request,
       static_cast<long long>(
           std::chrono::system_clock::now().time_since_epoch().count()));
 
-  ImGuiTest* test = IM_REGISTER_TEST(engine, "grpc", test_name.c_str());
-  test->TestFunc = RunDynamicTest;
-  test->UserData = test_data.get();
-
-  ImGuiTestEngine_QueueTest(engine, test, ImGuiTestRunFlags_RunFromGui);
-  KeepDynamicTestData(test_data);
+  const auto queued = QueueDynamicTest(engine, test_manager_, ui_thread_queue_,
+                                       test_name, test_id, test_data);
+  if (!queued.ok()) {
+    test_manager_->MarkHarnessTestCompleted(test_id, HarnessTestStatus::kFailed,
+                                            std::string(queued.message()));
+    return queued;
+  }
 
   auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(
       std::chrono::steady_clock::now() - start);
@@ -1693,12 +1890,13 @@ absl::Status ImGuiTestHarnessServiceImpl::Assert(const AssertRequest* request,
       static_cast<long long>(
           std::chrono::system_clock::now().time_since_epoch().count()));
 
-  ImGuiTest* test = IM_REGISTER_TEST(engine, "grpc", test_name.c_str());
-  test->TestFunc = RunDynamicTest;
-  test->UserData = test_data.get();
-
-  ImGuiTestEngine_QueueTest(engine, test, ImGuiTestRunFlags_RunFromGui);
-  KeepDynamicTestData(test_data);
+  const auto queued = QueueDynamicTest(engine, test_manager_, ui_thread_queue_,
+                                       test_name, test_id, test_data);
+  if (!queued.ok()) {
+    test_manager_->MarkHarnessTestCompleted(test_id, HarnessTestStatus::kFailed,
+                                            std::string(queued.message()));
+    return queued;
+  }
 
   response->set_success(true);
   std::string message = absl::StrFormat("Queued assertion for '%s:%s'",
@@ -2243,6 +2441,9 @@ absl::Status ImGuiTestHarnessServiceImpl::ReplayTest(
       absl::FormatTime("%Y%m%dT%H%M%S", absl::Now(), absl::UTCTimeZone())));
 
   auto suspension = test_recorder_.Suspend();
+#if defined(YAZE_ENABLE_IMGUI_TEST_ENGINE) && YAZE_ENABLE_IMGUI_TEST_ENGINE
+  ScopedRemoteReplaySubmission remote_submission;
+#endif
 
   std::vector<std::string> logs;
   logs.reserve(script.steps.size() * 2 + 4);
@@ -2386,6 +2587,19 @@ absl::Status ImGuiTestHarnessServiceImpl::ReplayTest(
       break;
     }
 
+    // Preserve the terminal action evidence before a CI expectation failure
+    // stops the replay and replaces its summary with the mismatch message.
+    logs.push_back(absl::StrFormat("  Result: %s", step_message));
+    if (have_execution) {
+      logs.push_back(absl::StrFormat("  Test ID: %s", execution.test_id));
+      logs.push_back(absl::StrFormat(
+          "  Status: %s",
+          ::yaze::test::HarnessStatusToString(execution.status)));
+      for (const auto& failure : execution.assertion_failures) {
+        logs.push_back(absl::StrFormat("  Assertion failure: %s", failure));
+      }
+    }
+
     bool expectations_met = (step_success == step.expect_success);
     std::string expectation_error;
 
@@ -2450,13 +2664,6 @@ absl::Status ImGuiTestHarnessServiceImpl::ReplayTest(
       }
     } else {
       assertion->set_passed(true);
-      logs.push_back(absl::StrFormat("  Result: %s", step_message));
-    }
-
-    if (have_execution && !execution.assertion_failures.empty()) {
-      for (const auto& failure : execution.assertion_failures) {
-        logs.push_back(absl::StrFormat("  Assertion failure: %s", failure));
-      }
     }
 
     if (!overall_success && request->ci_mode()) {

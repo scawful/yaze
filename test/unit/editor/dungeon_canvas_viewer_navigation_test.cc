@@ -4328,9 +4328,12 @@ class DungeonCanvasRoomInformationTest : public ::testing::Test {
     rt.scale = scale;
     rt.scrolling = scroll;
     auto& draw_list = *rt.draw_list;
-    // Keep line geometry on the white atlas pixel so GlyphUvs isolates actual
-    // font glyphs. Production badge rendering retains its normal draw flags.
-    draw_list.Flags &= ~ImDrawListFlags_AntiAliasedLinesUseTex;
+    // Keep line and rounded-corner geometry on the white atlas pixel so
+    // GlyphUvs isolates actual font glyphs. Since ImGui 1.93, anti-aliased
+    // lines and rounded corners sample baked atlas textures. Production badge
+    // rendering retains its normal draw flags.
+    draw_list.Flags &=
+        ~(ImDrawFlags_AALines | ImDrawFlags_UseTexForRoundCorners);
     const auto last_item = ImGui::GetItemID();
     const int first = draw_list.VtxBuffer.Size;
     DungeonCanvasViewerTestPeer::RenderChestContents(viewer_, rt, room);

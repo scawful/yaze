@@ -1944,10 +1944,11 @@ TEST(DungeonCollisionJsonCommandsTest,
   Rom rom;
   ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0x00)).ok());
 
-  const auto in_path =
-      ::yaze::test::UniqueTempPath("yaze_water_fill_required_room", ".json");
-  const auto report_path = ::yaze::test::UniqueTempPath(
-      "yaze_water_fill_required_room", ".report.json");
+  // Report publication appends its own temporary suffix. Keep the test's
+  // basename short enough for the Windows runner's isolated TEMP directory.
+  ScopedTempDirectory temp("required_water_room");
+  const auto in_path = temp.path() / "input.json";
+  const auto report_path = temp.path() / "report.json";
   WriteFile(
       in_path,
       "{\n"
@@ -1963,8 +1964,8 @@ TEST(DungeonCollisionJsonCommandsTest,
       handler.Run({"--in", in_path.string(), "--dry-run", "--report",
                    report_path.string(), "--format=json"},
                   &rom, &output);
-  EXPECT_FALSE(status.ok());
-  EXPECT_EQ(status.code(), absl::StatusCode::kFailedPrecondition);
+  ASSERT_EQ(status.code(), absl::StatusCode::kFailedPrecondition) << status;
+  ASSERT_TRUE(std::filesystem::is_regular_file(report_path)) << status;
 
   const auto report = nlohmann::json::parse(ReadFile(report_path));
   ASSERT_TRUE(report.contains("preflight"));
@@ -1978,9 +1979,6 @@ TEST(DungeonCollisionJsonCommandsTest,
     }
   }
   EXPECT_TRUE(found_required_room_error);
-
-  std::filesystem::remove(in_path);
-  std::filesystem::remove(report_path);
 }
 
 TEST(DungeonCollisionJsonCommandsTest,

@@ -36,6 +36,7 @@
 #include "e2e/editor_smoke_tests.h"
 #include "e2e/framework_smoke_test.h"
 #include "e2e/menu_tilemap_editor_test.h"
+#include "e2e/planning_roundtrip_test.h"
 #include "e2e/room_matrix_census_test.h"
 #include "e2e/settings_drawer_test.h"
 #include "imgui/backends/imgui_impl_sdl2.h"
@@ -731,6 +732,8 @@ int main(int argc, char* argv[]) {
     yaze::test::e2e::RegisterSettingsDrawerTests(engine, &controller);
     // Menu Tilemap (2bpp) panel: real-click paint, undo, Ctrl/Cmd+S save
     yaze::test::e2e::RegisterMenuTilemapEditorTests(engine, &controller);
+    // Planning shared workflow on YAZE_PLANNING_E2E_PROJECT (skips without)
+    yaze::test::e2e::RegisterPlanningRoundtripTests(engine, &controller);
     // Room Matrix census overlay: toggle click + hover a free room
     yaze::test::e2e::RegisterRoomMatrixCensusTests(engine, &controller);
 

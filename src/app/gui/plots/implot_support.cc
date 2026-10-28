@@ -56,12 +56,7 @@ ImVec2 ScaledSpacing(float multiplier) {
 
 ImPlotStyle BuildBaseStyle(const Theme& theme, const PlotStyleConfig& config) {
   ImPlotStyle style;
-  style.LineWeight = config.line_weight;
-  style.MarkerSize = config.marker_size;
-  style.MarkerWeight = config.marker_weight;
-  style.FillAlpha = config.fill_alpha;
-  style.DigitalBitHeight = ImGui::GetFontSize() * 0.85f;
-  style.DigitalBitGap = ImGui::GetStyle().ItemSpacing.y * 0.5f;
+  style.DigitalSpacing = ImGui::GetStyle().ItemSpacing.y * 0.5f;
   style.PlotBorderSize = 1.0f;
   style.MinorAlpha = config.grid_alpha;
   style.MajorTickLen = ImVec2(6.0f, 6.0f);
@@ -85,12 +80,7 @@ ImPlotStyle BuildBaseStyle(const Theme& theme, const PlotStyleConfig& config) {
   style.Use24HourClock = config.use_24h_clock;
   style.UseLocalTime = true;
 
-  // Line, Fill and Marker colors stay IMPLOT_AUTO_COL (the ImPlotStyle
-  // default) so each series takes the next colormap entry. Forcing them made
-  // every series in a plot the same color.
   style.Colormap = ThemeColormap(theme);
-  style.Colors[ImPlotCol_ErrorBar] =
-      WithAlpha(ConvertColorToImVec4(theme.text_secondary), 0.85f);
   style.Colors[ImPlotCol_FrameBg] =
       WithAlpha(ConvertColorToImVec4(theme.surface), config.background_alpha);
   style.Colors[ImPlotCol_PlotBg] =
@@ -127,6 +117,19 @@ ImPlotStyle BuildBaseStyle(const Theme& theme, const PlotStyleConfig& config) {
   return style;
 }
 
+ImPlotSpec BuildBaseItemSpec(const Theme& /*theme*/,
+                             const PlotStyleConfig& config) {
+  // Line, fill and marker colors stay IMPLOT_AUTO_COL so each series takes the
+  // next entry of the theme colormap. Forcing them made every series in a plot
+  // the same color. Items that need a fixed color copy this spec and set it.
+  ImPlotSpec spec;
+  spec.LineWeight = config.line_weight;
+  spec.FillAlpha = config.fill_alpha;
+  spec.MarkerSize = config.marker_size;
+  spec.Size = ImGui::GetFontSize() * 0.85f;  // digital bar height
+  return spec;
+}
+
 }  // namespace
 
 void EnsureImPlotContext() {
@@ -141,9 +144,14 @@ ImPlotStyle BuildStyleFromTheme(const Theme& theme,
   return BuildBaseStyle(theme, config);
 }
 
+ImPlotSpec BuildItemSpecFromTheme(const Theme& theme,
+                                  const PlotStyleConfig& config) {
+  return BuildBaseItemSpec(theme, config);
+}
+
 PlotStyleScope::PlotStyleScope(const Theme& theme,
                                const PlotStyleConfig& config)
-    : previous_style_() {
+    : previous_style_(), item_spec_(BuildBaseItemSpec(theme, config)) {
   EnsureImPlotContext();
   previous_style_ = ImPlot::GetStyle();
   ImPlot::GetStyle() = BuildBaseStyle(theme, config);

@@ -2,9 +2,11 @@
 #define YAZE_APP_EDITOR_SYSTEM_SESSION_COORDINATOR_H_
 
 #include <deque>
+#include <functional>
 #include <memory>
 #include <optional>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "absl/status/status.h"
@@ -49,10 +51,13 @@ class SessionCoordinator {
   explicit SessionCoordinator(WorkspaceWindowManager* window_manager,
                               ToastManager* toast_manager,
                               UserSettings* user_settings);
-  ~SessionCoordinator() = default;
+  ~SessionCoordinator();
 
   void SetEditorManager(ISessionConfigurator* manager) {
     editor_manager_ = manager;
+  }
+  void SetBeforeSessionTransition(std::function<absl::Status()> callback) {
+    before_session_transition_ = std::move(callback);
   }
   void SetEditorRegistry(EditorRegistry* registry) {
     editor_registry_ = registry;
@@ -197,6 +202,8 @@ class SessionCoordinator {
  private:
   void ActivateCreatedSession(size_t index);
   void SwitchToSessionInternal(size_t index, bool transient);
+  absl::Status PrepareActiveSessionTransition();
+  void ApplySessionActivation(size_t index, bool transient);
   void CloseSessionInternal(size_t index, bool allow_closing_last);
   void NotifySessionSwitched(size_t old_index, size_t new_index,
                              RomSession* session, bool transient);
@@ -228,6 +235,7 @@ class SessionCoordinator {
   // Session limits
   static constexpr size_t kMaxSessions = 8;
   static constexpr size_t kMinSessions = 1;
+  std::function<absl::Status()> before_session_transition_;
 };
 
 }  // namespace editor

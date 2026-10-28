@@ -261,9 +261,10 @@ void SheetBrowserPanel::DrawSelectedSheetInfo() {
                         ImGuiTableFlags_SizingStretchProp |
                             ImGuiTableFlags_RowBg |
                             ImGuiTableFlags_BordersInnerH)) {
-    ImGui::TableSetupColumn(tr("Used by"), ImGuiTableColumnFlags_WidthFixed);
+    ImGui::TableSetupColumn(gui::ColumnLabel(tr("Used by"), "used_by").c_str(),
+                            ImGuiTableColumnFlags_WidthFixed);
     ImGui::TableSetupColumn("#", ImGuiTableColumnFlags_WidthFixed);
-    ImGui::TableSetupColumn(tr("Ids (hex)"));
+    ImGui::TableSetupColumn(gui::ColumnLabel(tr("Ids (hex)"), "ids").c_str());
     ImGui::TableHeadersRow();
     const auto& use = entry.usage;
     if (entry.sprite_value.has_value()) {

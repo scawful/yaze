@@ -395,6 +395,7 @@ void EditorManager::HandleSessionRomLoaded(size_t index, Rom* rom) {
   // Update ContentRegistry when ROM is loaded (if this is the active session)
   if (rom && session_coordinator_ &&
       index == session_coordinator_->GetActiveSessionIndex()) {
+    proposal_drawer_.InvalidateRomContext();
     ContentRegistry::Context::SetRom(rom);
     // Also update GameData from the session
     if (session) {

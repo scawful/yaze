@@ -764,10 +764,10 @@ void MessageEditor::DrawDialogueTextPane(float height) {
   if (side_by_side &&
       ImGui::BeginTable("##DialogueColumns", 2, ImGuiTableFlags_Resizable,
                         ImVec2(0.0f, height))) {
-    ImGui::TableSetupColumn(tr("Loaded"), ImGuiTableColumnFlags_WidthStretch,
-                            0.45f);
-    ImGui::TableSetupColumn(tr("Editing"), ImGuiTableColumnFlags_WidthStretch,
-                            0.55f);
+    ImGui::TableSetupColumn(gui::ColumnLabel(tr("Loaded"), "loaded").c_str(),
+                            ImGuiTableColumnFlags_WidthStretch, 0.45f);
+    ImGui::TableSetupColumn(gui::ColumnLabel(tr("Editing"), "editing").c_str(),
+                            ImGuiTableColumnFlags_WidthStretch, 0.55f);
     ImGui::TableNextRow();
     ImGui::TableNextColumn();
     ImGui::TextDisabled(tr("Loaded"));

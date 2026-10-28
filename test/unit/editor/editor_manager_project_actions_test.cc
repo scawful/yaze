@@ -57,10 +57,17 @@ struct ScopedImGuiContext {
 
 struct ScopedTempDir {
   std::filesystem::path path;
+  bool retain_on_success = false;
   explicit ScopedTempDir(std::filesystem::path p) : path(std::move(p)) {
     std::filesystem::create_directories(path);
   }
   ~ScopedTempDir() {
+    if (retain_on_success && !::testing::Test::HasFailure() &&
+        !::testing::Test::IsSkipped()) {
+      ::testing::Test::RecordProperty("lyra_authoring_retained_root",
+                                      path.string());
+      return;
+    }
     std::error_code ec;
     std::filesystem::remove_all(path, ec);
   }
@@ -534,8 +541,38 @@ TEST(EditorManagerProjectActionsTest,
   EXPECT_EQ(ReadFile(primary_project), initial_descriptor);
 
   const auto initial_authoring = editor->lyra_canvas_.document()->authoring();
+  EXPECT_TRUE(initial_authoring.gameplay_areas.empty());
+  UndoManager area_history;
+  auto& canvas = editor->lyra_canvas_;
+  using AreaSize = core::LyraGameplayAreaSize;
+  ASSERT_OK(canvas.SetGameplayArea(0xA0, AreaSize::kLarge, editor->overworld(),
+                                   area_history));
+  ASSERT_NE(canvas.document()->GameplayAreaForMap(0xA9), nullptr);
+  EXPECT_EQ(canvas.document()->GameplayAreaForMap(0xA9)->parent_map_id, 0xA0);
+  const auto assigned_area = canvas.document()->authoring();
+  const auto area_history_size = area_history.UndoStackSize();
+  // A child cannot silently steal ownership, and a root cannot wrap a row.
+  EXPECT_FALSE(canvas
+                   .SetGameplayArea(0xA1, AreaSize::kSmall, editor->overworld(),
+                                    area_history)
+                   .ok());
+  EXPECT_FALSE(canvas
+                   .SetGameplayArea(0xA7, AreaSize::kWide, editor->overworld(),
+                                    area_history)
+                   .ok());
+  EXPECT_EQ(canvas.document()->authoring(), assigned_area);
+  EXPECT_EQ(area_history.UndoStackSize(), area_history_size);
+  ASSERT_OK(canvas.SetGameplayArea(0xA9, std::nullopt, editor->overworld(),
+                                   area_history));
+  EXPECT_TRUE(canvas.document()->authoring().gameplay_areas.empty());
+  ASSERT_OK(area_history.Undo());
+  EXPECT_EQ(canvas.document()->authoring(), assigned_area);
+  ASSERT_OK(area_history.Redo());
+  EXPECT_EQ(canvas.document()->authoring(), initial_authoring);
   auto selected_scene = initial_authoring;
   selected_scene.maps[1].properties.message_id = 0x42;
+  selected_scene.gameplay_areas.push_back(
+      {0xA0, AreaSize::kWide, {0xA0, 0xA1}});
   selected_scene.edge_connections.push_back(
       {1, 0x99, 0xA1, core::LyraEdgePassage{15, 16}});
   ASSERT_OK(editor->EditProjectMapAuthoring(selected_scene));
@@ -582,6 +619,8 @@ TEST(EditorManagerProjectActionsTest,
 
   auto save_as_scene = selected_scene;
   save_as_scene.maps[0].properties.message_id = 0x71;
+  save_as_scene.gameplay_areas[0] = {
+      0xA0, AreaSize::kLarge, {0xA0, 0xA1, 0xA8, 0xA9}};
   ASSERT_OK(editor->EditProjectMapAuthoring(save_as_scene));
   save_as_scene = editor->lyra_canvas_.document()->authoring();
   const auto save_as_bytes = editor->lyra_canvas_.document()->Serialize();
@@ -618,6 +657,31 @@ TEST(EditorManagerProjectActionsTest,
       relocated_terrain.string()));
   EXPECT_TRUE(SessionCoordinator::PathsReferToSameBackingFile(
       saved.GetAbsolutePath(saved.rom_filename), primary_rom.string()));
+  // Save As publishes the new owner's receipt binding its own descriptor,
+  // its terrain sidecar and the unchanged ROM.
+  const auto relocated_receipt = nlohmann::json::parse(
+      ReadFile(relocated_project.string() + ".native-save.json"));
+  EXPECT_EQ(relocated_receipt.at("operation"), "save_as");
+  // The fixture names label/symbol files it never creates; only those may be
+  // reported unbound.
+  for (const auto& error : relocated_receipt.at("binding_errors")) {
+    EXPECT_EQ(error.get<std::string>().rfind("dependency.", 0), 0u)
+        << relocated_receipt.dump(2);
+  }
+  for (const auto& [role, path] :
+       std::vector<std::pair<std::string, std::filesystem::path>>{
+           {"project", relocated_project},
+           {"sidecar", relocated_terrain},
+           {"rom", primary_rom}}) {
+    const auto& artifacts = relocated_receipt.at("artifacts");
+    const auto found =
+        std::find_if(artifacts.begin(), artifacts.end(),
+                     [&](const auto& item) { return item.at("role") == role; });
+    ASSERT_NE(found, artifacts.end()) << role;
+    EXPECT_EQ(found->at("path"), std::filesystem::canonical(path).string());
+    EXPECT_EQ(found->at("sha256"),
+              core::ComputeSourceArtifactSha256(ReadFile(path)));
+  }
 
   ASSERT_NO_FATAL_FAILURE(open_fresh_manager(relocated_project));
   ASSERT_OK(manager->EnsureEditorAssetsLoaded(EditorType::kOverworld));
@@ -680,6 +744,12 @@ TEST(EditorManagerProjectActionsTest,
             immutable_hash);
   EXPECT_EQ(core::ComputeSourceArtifactSha256(ReadFile(immutable_rom)),
             immutable_hash);
+
+  const char* retain = std::getenv("YAZE_LYRA_AUTHORING_RETAIN");
+  if (retain != nullptr && std::string(retain) == "1" &&
+      !::testing::Test::HasFailure() && !::testing::Test::IsSkipped()) {
+    directory.retain_on_success = true;
+  }
 }
 
 TEST(EditorManagerProjectActionsTest,
@@ -939,6 +1009,110 @@ TEST(EditorManagerProjectActionsTest,
   ASSERT_TRUE(std::filesystem::exists(marker_path));
   EXPECT_EQ(ReadFile(marker_path), "project-build");
 #endif  // _WIN32
+}
+
+TEST(EditorManagerProjectActionsTest,
+     SyncAndQueuedBuildsUseRelocatedProjectContextWithoutChangingRequest) {
+#if defined(_WIN32) || defined(__EMSCRIPTEN__) || \
+    (defined(__APPLE__) && TARGET_OS_IPHONE)
+  GTEST_SKIP() << "Background commands require a POSIX desktop";
+#else
+  ScopedImGuiContext imgui;
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  test::InitializeWithIsolatedSettings(*manager, renderer.get());
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+  ScopedTempDir temp(MakeTempDir("yaze_project_build_context"));
+  const auto original = temp.path / "original";
+  const auto relocated = temp.path / "copy with 'quotes'";
+  std::filesystem::create_directories(original / "code folder");
+  std::filesystem::create_directories(relocated);
+  const auto original_project = original / "original.yaze";
+  const auto copied_project = relocated / "copy.yaze";
+  const auto rom = original / "source.sfc";
+  const auto terrain = original / "terrain.json";
+  const auto request = original / "request.json";
+  WriteRomFile(rom);
+  std::ofstream(terrain) << "terrain context canary";
+  std::ofstream(request) << "request context canary";
+  auto* project = manager->GetCurrentProject();
+  project->name = "Build context";
+  project->filepath = original_project.string();
+  project->rom_filename = rom.string();
+  project->code_folder = (original / "code folder").string();
+  project->lyra_terrain_file = terrain.string();
+  project->lyra_build_request_file = request.string();
+  project->build_script = "./build_context.sh";
+  ASSERT_OK(project->Save());
+  ASSERT_OK(project->Open(original_project.string()));
+  const auto original_bytes = ReadFile(original_project);
+  ASSERT_OK(project->SaveAs(copied_project.string()));
+  ASSERT_EQ(project->lyra_build_request_file, request.string());
+
+  const auto script_path = relocated / "build_context.sh";
+  {
+    std::ofstream script(script_path);
+    ASSERT_TRUE(script.is_open());
+    script << R"sh(#!/bin/sh
+printf '%s\n' "$YAZE_PROJECT_FILE" "$YAZE_PROJECT_CODE_FOLDER" \
+  "$YAZE_PROJECT_ROM" "$YAZE_LYRA_TERRAIN_FILE" "$OOS_LYRA_PROJECT" \
+  "$OOS_LYRA_REQUEST" > build.context
+printf '%s\n' "${YAZE_PROJECT_FILE+set}" "${YAZE_PROJECT_CODE_FOLDER+set}" \
+  "${YAZE_PROJECT_ROM+set}" "${YAZE_LYRA_TERRAIN_FILE+set}" \
+  "${OOS_LYRA_PROJECT+set}" "${OOS_LYRA_REQUEST+set}" > build.presence
+)sh";
+    ASSERT_TRUE(script.good());
+  }
+  std::filesystem::permissions(
+      script_path,
+      std::filesystem::perms::owner_exec | std::filesystem::perms::owner_read,
+      std::filesystem::perm_options::add);
+  const std::string expected =
+      copied_project.string() + "\n" + (original / "code folder").string() +
+      "\n" + rom.string() + "\n" + terrain.string() + "\n" +
+      copied_project.string() + "\n" + request.string() + "\n";
+  for (bool queued : {false, true}) {
+    SCOPED_TRACE(queued ? "queued" : "synchronous");
+    std::filesystem::remove(relocated / "build.context");
+    if (queued) {
+      manager->QueueBuildCurrentProject();
+      const auto deadline =
+          std::chrono::steady_clock::now() + std::chrono::seconds(5);
+      while (ContentRegistry::Context::build_workflow_status().state ==
+                 ProjectWorkflowState::kRunning &&
+             std::chrono::steady_clock::now() < deadline) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(20));
+        ImGui::GetIO().DisplaySize = ImVec2(1280, 720);
+        ImGui::NewFrame();
+        const auto status = manager->Update();
+        ImGui::Render();
+        ASSERT_OK(status);
+      }
+      const auto status = ContentRegistry::Context::build_workflow_status();
+      ASSERT_EQ(status.state, ProjectWorkflowState::kSuccess) << status.detail;
+    } else {
+      ASSERT_OK(manager->BuildCurrentProject());
+    }
+    EXPECT_EQ(ReadFile(relocated / "build.context"), expected);
+    EXPECT_EQ(ReadFile(relocated / "build.presence"),
+              "set\nset\nset\nset\nset\nset\n");
+  }
+
+  // Every known name remains an explicit override when its binding is absent.
+  project->code_folder.clear();
+  project->rom_filename.clear();
+  project->lyra_terrain_file.clear();
+  project->lyra_build_request_file.clear();
+  ASSERT_OK(project->Save());
+  ASSERT_OK(manager->BuildCurrentProject());
+  EXPECT_EQ(ReadFile(relocated / "build.context"),
+            copied_project.string() + "\n\n\n\n\n\n");
+  EXPECT_EQ(ReadFile(relocated / "build.presence"),
+            "set\nset\nset\nset\nset\nset\n");
+  EXPECT_EQ(ReadFile(original_project), original_bytes);
+  EXPECT_EQ(ReadFile(request), "request context canary");
+  EXPECT_EQ(ReadFile(terrain), "terrain context canary");
+#endif
 }
 
 TEST(EditorManagerProjectActionsTest,
@@ -2653,6 +2827,51 @@ TEST_F(EditorControlRomSwapTest, RejectsEachStaleIdentityAndMalformedArgument) {
   changed = request;
   changed["path"] = "relative.sfc";
   EXPECT_EQ(Execute(changed)["http_status"], 400);
+  ExpectUnchanged();
+  EXPECT_FALSE(manager_->HasPendingUnsavedSessionAction());
+}
+
+TEST_F(EditorControlRomSwapTest, StencilRefusesBeforeTouchingTheEditor) {
+  const auto stencil_path = temp_dir_.path / "stencil.json";
+  const auto write_stencil = [&](const std::string& schema) {
+    std::ofstream(stencil_path, std::ios::binary | std::ios::trunc)
+        << nlohmann::json(
+               {{"schema", schema},
+                {"map_id", 0x98},
+                {"cells",
+                 {{{"x", 0}, {"y", 0}, {"expected", 1}, {"proposed", 2}}}}})
+               .dump();
+    return core::ComputeSourceArtifactSha256(ReadFile(stencil_path));
+  };
+  const nlohmann::json request = {
+      {"command", "overworld.stencil.apply"},
+      {"path", stencil_path.string()},
+      {"stencil_sha256", write_stencil("yaze.overworld_tile16_stencil.v1")},
+      {"expected", State()}};
+
+  auto changed = request;
+  changed["stencil_sha256"] = std::string(64, '0');
+  EXPECT_EQ(Execute(changed)["http_status"], 409);
+  changed = request;
+  changed["expected"]["pid"] = request["expected"]["pid"].get<int>() + 1;
+  EXPECT_EQ(Execute(changed)["http_status"], 409);
+  changed = request;
+  changed["path"] = "relative.json";
+  EXPECT_EQ(Execute(changed)["http_status"], 400);
+  changed = request;
+  changed["path"] = (temp_dir_.path / "missing.json").string();
+  EXPECT_EQ(Execute(changed)["http_status"], 422);
+  changed = request;
+  changed["stencil_sha256"] = write_stencil("other.schema");
+  EXPECT_EQ(Execute(changed)["http_status"], 400);
+  write_stencil("yaze.overworld_tile16_stencil.v1");
+
+  manager_->ShowProjectFileEditor();
+  const auto draft = MakeModifiedProjectDraft(
+      manager_->project_file_editor(), manager_->GetCurrentProject(),
+      ProjectFileContents("Unsaved Draft", rom_path_));
+  EXPECT_EQ(Execute(request)["http_status"], 409);
+  EXPECT_EQ(manager_->project_file_editor()->CaptureState().text, draft.text);
   ExpectUnchanged();
   EXPECT_FALSE(manager_->HasPendingUnsavedSessionAction());
 }

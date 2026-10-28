@@ -23,6 +23,7 @@ set(YAZE_UTIL_SRC
   util/platform_paths.cc
   util/file_util.cc
   util/rom_hash.cc
+  util/ui_thread_queue.cc  # Service-thread to UI-thread task marshaling
   util/hyrule_magic.cc  # Byte order utilities (moved from zelda3)
   util/indexed_png.cc   # Indexed PNG encode/decode (miniz)
   util/i18n/translator.cc       # Runtime string translation (tr)
