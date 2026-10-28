@@ -14,6 +14,9 @@
 #   --build-dir <dir>     Build directory to use (default: build)
 #   --help                Show this help text
 #
+# Without a configured build dir, a passing scripts/remote/mm-test.sh test run
+# of HEAD (build/remote-mm/*/summary.txt) replaces the build and smoke tests.
+#
 # Env:
 #   YAZE_PREPUSH_BUILD_DIR   Build directory override
 #   YAZE_PREPUSH_TIMEOUT     Test timeout in seconds (default: 120)
@@ -94,6 +97,22 @@ check_cmake_configured() {
     return 1
   fi
   return 0
+}
+
+# A passing scripts/remote/mm-test.sh test run of exactly HEAD stands in for the
+# local build and smoke tests, so checkouts that build on the Windows box can push.
+use_remote_proof() {
+  local head summary
+  head="$(git rev-parse HEAD)"
+  for summary in build/remote-mm/*/summary.txt; do
+    [[ -f "$summary" ]] || continue
+    if grep -qx "sha=$head" "$summary" && grep -qx "exit=0" "$summary" \
+        && ! grep -qx "mode=build" "$summary"; then
+      print_ok "Remote proof for ${head:0:9}: ${summary%/summary.txt} ($(grep -m1 '^mode=' "$summary"))"
+      return 0
+    fi
+  done
+  return 1
 }
 
 run_with_timeout() {
@@ -234,6 +253,11 @@ main() {
   print_header "Pre-Push Validation"
   check_git_repo
   run_rom_guard
+
+  if [[ "$SKIP_BUILD" == false && ! -f "$BUILD_DIR/CMakeCache.txt" ]] && use_remote_proof; then
+    SKIP_BUILD=true
+    SKIP_TESTS=true
+  fi
 
   # Formatting and existing test binaries do not need a configured CMake build.
   if [[ "$SKIP_BUILD" == false ]] && ! check_cmake_configured; then
