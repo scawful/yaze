@@ -7,9 +7,12 @@ They take precedence over broad parity or completion claims in historical
 entries below. Historical entries record changes at their original scope;
 they do not establish current end-to-end or release qualification.
 
-## 0.8.0 (in development)
+## 0.8.0 (experimental, unreleased)
 
-Release date, final merge SHA, and packaged-candidate evidence are pending.
+0.8.0 is an experimental release of the merged editor work, not the completed
+Dungeon Editor milestone. The supported / experimental / deferred table is in
+the [release notes](../release-notes.md#v080). Release date, final merge SHA,
+and packaged-candidate evidence are pending.
 
 - Fixed white overworld map and subscreen overlay textures. Their indexed
   bitmaps now declare 8-bit depth, restoring palette application and pixel row

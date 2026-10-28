@@ -2,7 +2,7 @@
 
 This is the canonical pre-release checklist referenced by internal testing and architecture docs.
 
-Last reviewed: 2026-09-22. The
+Last reviewed: 2026-10-27. The
 [editor capability parity plan](plans/editor-capability-parity-plan.md) defines
 package scope and implementation gates. This checklist records release
 qualification of the final combined candidate.
@@ -10,12 +10,46 @@ qualification of the final combined candidate.
 For one deferred user testing pass, use the
 [combined manual editor checklist](plans/manual-editor-checklist-2026-09-23.md).
 
-## v0.8.0 scope gate
+## v0.8.0 experimental release gate
 
-v0.8.0 is the Dungeon Editor completion milestone, not merely a bounded tester
-preview. Use the [dungeon completion backlog](plans/dungeon-0.8.0-issue-test-backlog-2026-06-28.md)
-for object evidence and agent-owned work. Preview packages and reviewed merges
-may continue while these requirements remain open.
+Scope changed on 2026-10-27: v0.8.0 ships as an **experimental** release on
+Linux, macOS, and Windows instead of waiting for Dungeon Editor completion.
+The supported, experimental, and deferred feature table is in the
+[v0.8.0 release notes](../public/release-notes.md#v080). Unfinished features
+are labeled there; they are not release prerequisites. The Dungeon completion
+gates below stay open as roadmap work and are not checked by this release.
+
+Each item needs a result recorded against the exact candidate SHA. An earlier
+green commit or an open PR does not check a box.
+
+- [ ] Required CI on the candidate SHA reported as it is, including Memory
+  Sanitizer. A failure is fixed or named in the release PR, never suppressed.
+- [ ] `Release` dispatched with `publish=false` on the candidate SHA; every
+  Linux, macOS, and Windows build, package, and Release-config test job passes.
+- [ ] Each package starts and reports exactly `yaze 0.8.0`; package layout and
+  bundled assets pass the existing validators in section 3.
+- [ ] On each platform, `z3ed` opens a clean ROM copy, saves it, and the saved
+  copy reopens. Windows uses the packaged-Windows smoke in the operating rules.
+- [ ] Packaged GUI open/edit/Save ROM/close/reopen on a ROM copy, with the
+  backup created, for each platform where a person or GUI-capable runner can
+  do it. Platforms without that check are listed as unchecked, not passed.
+  The Windows Save As check in
+  [issue #107](https://github.com/scawful/yaze/issues/107) stays with a person.
+- [ ] Known critical network exposure is fixed or compiled out. The `release`
+  preset builds with `YAZE_ENABLE_HTTP_API` off, so the unauthenticated
+  `z3ed --http-port` and `yaze --enable_api` servers are absent from packages.
+  Confirm `HTTP API Server: OFF` in each Release build log, or merge
+  [PR #312](https://github.com/scawful/yaze/pull/312) first if the release
+  configuration enables it.
+- [ ] Release notes, `docs/CHANGELOG.md`, and `docs/internal/status.md` name
+  the candidate SHA, Release run, and every check that was not run.
+
+## Dungeon completion roadmap (not a v0.8.0 gate)
+
+These were the original v0.8.0 scope gates. They remain open and move to the
+next Dungeon milestone. Use the
+[dungeon completion backlog](plans/dungeon-0.8.0-issue-test-backlog-2026-06-28.md)
+for object evidence and agent-owned work.
 
 - [ ] `DA-1`: supported entity, metadata, and compound room edits undo/redo
   exactly. Invalid/no-op edits preserve data and history.
@@ -114,7 +148,15 @@ bash scripts/release/extract-release-notes.sh vX.Y.Z docs/public/release-notes.m
 
 - Confirm `CI/CD Pipeline` and `Security Scanning` are green for the release commit.
 - Before tagging, dispatch `Release` with `publish=false` for the exact release
-  commit and require every Linux, macOS, and Windows build/test job to pass.
+  commit and require every Linux, macOS, and Windows build/test job to pass:
+
+```bash
+gh workflow run release.yml --repo scawful/yaze --ref <candidate-branch> \
+  -f version=v0.8.0 -f publish=false
+```
+
+  `--ref` takes a branch or tag, so freeze the candidate on a branch whose
+  head is the exact SHA under test, then record the run's `headSha`.
 - Trigger or verify `Release` workflow completion for the release tag.
 - Confirm `Create Release` job succeeds before announcing availability.
 
@@ -135,7 +177,7 @@ SHA. Complete these paths in the packaged application, not a source-tree binary:
 - Palette: one color edit -> Palette **Save to ROM** -> File **Save ROM** ->
   close -> reopen -> verify.
 
-For the v0.8.0 Dungeon milestone, expand the Dungeon path to size/position and
+For the Dungeon completion milestone (not v0.8.0), expand the Dungeon path to size/position and
 stream edits, repeat/once placement, doors, sprites, items/chests, room metadata,
 connections, room/prefab reuse, and supported block/pit changes. Check undo/redo
 for every supported domain, including a mixed edit sequence and room switches.
