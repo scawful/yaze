@@ -11,10 +11,9 @@
 #include "e2e/dungeon_object_drawing_test.h"
 
 #include "app/controller.h"
-#include "rom/rom.h"
-#include "gtest/gtest.h"
 #include "imgui.h"
 #include "imgui_test_engine/imgui_te_context.h"
+#include "rom/rom.h"
 #include "test_utils.h"
 #include "zelda3/dungeon/room.h"
 
@@ -197,7 +196,8 @@ void E2ETest_DungeonObjectDrawing_BasicPlacement(ImGuiTestContext* ctx) {
   if (ctx->WindowInfo("Object Editor").Window != nullptr) {
     ctx->LogInfo("Object Editor panel is visible");
   } else {
-    ctx->LogWarning("Object Editor panel not visible - may be differently named");
+    ctx->LogWarning(
+        "Object Editor panel not visible - may be differently named");
   }
 
   // Step 6: Verify canvas is present in the room card
@@ -208,7 +208,8 @@ void E2ETest_DungeonObjectDrawing_BasicPlacement(ImGuiTestContext* ctx) {
   // The canvas uses "##DungeonCanvas" or similar ID
 
   ctx->LogInfo("=== Basic Object Placement Test Complete ===");
-  ctx->LogInfo("Note: Full placement verification requires direct object state access");
+  ctx->LogInfo(
+      "Note: Full placement verification requires direct object state access");
 }
 
 void E2ETest_DungeonObjectDrawing_MultiLayerObjects(ImGuiTestContext* ctx) {
@@ -414,70 +415,6 @@ void E2ETest_DungeonObjectDrawing_ObjectRepositioning(ImGuiTestContext* ctx) {
   }
 
   ctx->LogInfo("=== Object Repositioning Test Complete ===");
-}
-
-// =============================================================================
-// GTest Integration - Unit tests for object drawing infrastructure
-// =============================================================================
-
-/**
- * @class DungeonObjectDrawingTest
- * @brief GTest fixture for object drawing unit tests
- */
-class DungeonObjectDrawingTest : public ::testing::Test {
- protected:
-  void SetUp() override {
-    // Check if ROM testing is enabled
-    if (!TestRomManager::IsRomTestingEnabled()) {
-      skip_rom_tests_ = true;
-    }
-  }
-
-  bool skip_rom_tests_ = false;
-};
-
-TEST_F(DungeonObjectDrawingTest, RoomObjectStructure) {
-  // Test that RoomObject can be created with valid parameters
-  zelda3::RoomObject obj(0x01, 10, 20, 1, 0);
-
-  EXPECT_EQ(obj.id_, 0x01);
-  EXPECT_EQ(obj.x_, 10);
-  EXPECT_EQ(obj.y_, 20);
-  EXPECT_EQ(obj.size_, 1);
-}
-
-TEST_F(DungeonObjectDrawingTest, RoomObjectLayerTypes) {
-  // Test layer type enumeration
-  zelda3::RoomObject obj(0x01, 0, 0, 1, 0);
-
-  // Default layer should be BG1
-  EXPECT_EQ(obj.layer_, zelda3::RoomObject::LayerType::BG1);
-
-  // Test setting different layers
-  obj.layer_ = zelda3::RoomObject::LayerType::BG2;
-  EXPECT_EQ(obj.layer_, zelda3::RoomObject::LayerType::BG2);
-
-  obj.layer_ = zelda3::RoomObject::LayerType::BG3;
-  EXPECT_EQ(obj.layer_, zelda3::RoomObject::LayerType::BG3);
-}
-
-TEST_F(DungeonObjectDrawingTest, ObjectPositionBounds) {
-  // Test object position validation
-  // Room dimensions are 64x64 tiles (512x512 pixels at 8px per tile)
-  constexpr int kMaxTileX = 63;
-  constexpr int kMaxTileY = 63;
-
-  // Valid position
-  zelda3::RoomObject valid_obj(0x01, 32, 32, 1, 0);
-  EXPECT_GE(valid_obj.x_, 0);
-  EXPECT_LE(valid_obj.x_, kMaxTileX);
-  EXPECT_GE(valid_obj.y_, 0);
-  EXPECT_LE(valid_obj.y_, kMaxTileY);
-
-  // Edge positions
-  zelda3::RoomObject corner_obj(0x01, kMaxTileX, kMaxTileY, 1, 0);
-  EXPECT_EQ(corner_obj.x_, kMaxTileX);
-  EXPECT_EQ(corner_obj.y_, kMaxTileY);
 }
 
 }  // namespace test

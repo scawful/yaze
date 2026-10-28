@@ -672,7 +672,6 @@ if(YAZE_BUILD_TESTS)
     # Platform Tests
     platform/sdl3_audio_backend_test.cc
     platform/window_backend_test.cc
-    platform/wasm_async_guard_test.cc
     platform/native_menu_bridge_test.cc
     ../src/app/platform/native_menu_bridge.cc
     ../src/cli/service/resources/resource_catalog.cc
@@ -1042,9 +1041,6 @@ if(YAZE_BUILD_TESTS)
     e2e/dungeon_layer_rendering_test.cc
     e2e/editor_smoke_tests.cc
     e2e/workflow_activity_widgets_test.cc
-    # AI Multimodal Testing Framework
-    e2e/ai_multimodal_test.cc
-    e2e/emulator_stepping_test.cc
   )
 
   if(YAZE_ENABLE_AI_RUNTIME)

@@ -22,11 +22,11 @@
 
 #include "app/controller.h"
 #include "app/platform/window.h"
-#include "rom/rom.h"
 #include "gtest/gtest.h"
 #include "imgui.h"
 #include "imgui_test_engine/imgui_te_context.h"
 #include "imgui_test_engine/imgui_te_engine.h"
+#include "rom/rom.h"
 #include "test_utils.h"
 
 #ifdef YAZE_AI_RUNTIME_AVAILABLE
@@ -226,6 +226,7 @@ void E2ETest_VisualVerification_MultiRoomNavigation(ImGuiTestContext* ctx) {
 // GTest Integration - Unit Tests for verification infrastructure
 // =============================================================================
 
+#ifdef YAZE_AI_RUNTIME_AVAILABLE
 /**
  * @class DungeonVisualVerificationTest
  * @brief GTest fixture for visual verification infrastructure tests
@@ -256,18 +257,6 @@ class DungeonVisualVerificationTest : public ::testing::Test {
   bool skip_ai_tests_ = false;
 };
 
-TEST_F(DungeonVisualVerificationTest, TestDirectoryCreated) {
-  ASSERT_TRUE(std::filesystem::exists(test_dir_));
-}
-
-TEST_F(DungeonVisualVerificationTest, ApiKeyCheck) {
-  if (skip_ai_tests_) {
-    GTEST_SKIP() << "GEMINI_API_KEY not set - skipping AI tests";
-  }
-  EXPECT_FALSE(api_key_.empty());
-}
-
-#ifdef YAZE_AI_RUNTIME_AVAILABLE
 TEST_F(DungeonVisualVerificationTest, GeminiServiceAvailable) {
   if (skip_ai_tests_) {
     GTEST_SKIP() << "GEMINI_API_KEY not set";
@@ -318,7 +307,8 @@ TEST_F(DungeonVisualVerificationTest, ImageAnalysisBasic) {
   cli::GeminiAIService service(config);
 
   auto response = service.GenerateMultimodalResponse(
-      image_path.string(), "What do you see in this image? Keep response brief.");
+      image_path.string(),
+      "What do you see in this image? Keep response brief.");
 
   ASSERT_TRUE(response.ok()) << response.status().message();
   EXPECT_FALSE(response->text_response.empty());

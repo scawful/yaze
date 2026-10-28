@@ -2,7 +2,7 @@
 
 Status: ACTIVE
 Owner: test-infrastructure-expert
-Last Reviewed: 2026-09-28
+Last Reviewed: 2026-10-28
 
 This log records every test that Phase 1 of the test-suite debloat deleted,
 registered, or fixed, with the category and the reason, so that a reviewer can
@@ -123,8 +123,9 @@ Not deleted, although the plan's §2(d) proposes it:
   `dungeon_layer_rendering_test.cc`). They compile in `yaze_test_gui` and are the
   only ImGui drivers for the dungeon canvas. The plan replaces them with E2E-07;
   they should go when E2E-07 lands, not before.
-- Moving `e2e/dungeon_visual_verification_test.cc`, `e2e/ai_multimodal_test.cc`
-  and `integration/ai/ai_gui_controller_test.cc` to the experimental binary. That
+- Moving `e2e/dungeon_visual_verification_test.cc` and
+  `integration/ai/ai_gui_controller_test.cc` to the experimental binary
+  (`e2e/ai_multimodal_test.cc` was deleted in the 2026-10-28 follow-up). That
   adds list lines and needs the GUI harness in `yaze_test_experimental`; it is
   left for the Phase 4 label work.
 - `DungeonCanvasAssetRefreshTest.DISABLED_ProfileSpritePreviewFrames`: an opt-in
@@ -413,3 +414,27 @@ Not changed here: `SettingsPanelTest.DisplayDensityKeepsClassicYazePaintedByColo
 (owned by the `claude/test-sharding` work), and the `rom_dependent` suite's
 shared `/tmp/yaze_test_states` (the generation test writes states that the
 preview test reads on purpose, and that binary is not built).
+
+## 5. Follow-up removals (2026-10-28)
+
+Checked on `origin/master` `39a1c5200`. Restore with the steps at the top.
+No `stable` (unit or integration) case changed.
+
+| File or case | Lines | Why it was dead or trivial | Still covered by |
+|---|---:|---|---|
+| `test/e2e/emulator_stepping_test.{cc,h}` | 254 | Compiled into `yaze_test_gui`, but nothing calls `IM_REGISTER_TEST` for its 5 functions; their checks are commented-out placeholders | `StepControllerTest` (step into/over/out, call stack) in `yaze_test_unit` |
+| `test/e2e/ai_multimodal_test.{cc,h}` | 237 | Compiled into `yaze_test_gui`, but its 3 functions are never registered, so they never ran | Nothing ran before either; `ScreenshotAssertion` and `AIVisionVerifier` have no test |
+| `test/platform/wasm_async_guard_test.cc` | 34 | The whole file is inside `#ifdef __EMSCRIPTEN__`, and every WASM preset sets `YAZE_BUILD_TESTS=OFF`, so it compiled to an empty file | Nothing ran before either |
+| `test/mocks/mock_memory.h`, `test/e2e/test_helpers.h`, `test/unit/zelda3/test_dungeon_objects.h` | 393 | No file includes them | Not applicable |
+| `test/test_utils/mock_rom_generator.h`, `test/test_utils/rom_integrity_validator.h` | 208 | No file includes them, and their member functions were declared but never defined | Not applicable |
+| `DungeonObjectDrawingTest.RoomObjectStructure`, `RoomObjectLayerTypes`, `ObjectPositionBounds` (`test/e2e/dungeon_object_drawing_test.cc`) | 63 | The constructor stores its arguments, and assigning a member reads it back (A4) | `room_object_encoding_test.cc` encode/decode round trips and `MapRoomObjectListIndexToDrawLayer` |
+| `DungeonVisualVerificationTest.TestDirectoryCreated`, `ApiKeyCheck` (`test/e2e/dungeon_visual_verification_test.cc`) | 10 | Check the fixture's own `SetUp` and the environment variable it just read | Not applicable; the fixture now compiles only with `YAZE_AI_RUNTIME_AVAILABLE`, the only build with cases left in it |
+
+Found but not changed (each needs a GUI run):
+
+- `headless_gui_suite` runs `yaze_test_gui -nogui --fast WindowBrowser,...`.
+  Without `--ui`, `test/yaze_test.cc` uses the last positional argument as a
+  gtest filter. Those four names are ImGui tests joined by commas, so the
+  entry runs 0 cases and passes.
+- `RegisterWorkflowActivityWidgetTests` (`test/e2e/workflow_activity_widgets_test.cc`)
+  is never called, so `E2ETest/WorkflowActivityWidgets` is never registered.
