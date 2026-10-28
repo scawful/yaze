@@ -28,6 +28,11 @@ namespace {
 namespace fs = std::filesystem;
 using nlohmann::json;
 
+std::string JsonPathText(const fs::path& path) {
+  const auto bytes = path.generic_u8string();
+  return std::string(bytes.begin(), bytes.end());
+}
+
 class ScopedTempDir {
  public:
   ScopedTempDir() {
@@ -192,7 +197,7 @@ void ExpectCommittedContext(const NativeSaveContext& context,
   const auto& commit = document.at("native_commit");
   EXPECT_EQ(commit.size(), 3u);
   EXPECT_EQ(commit.at("receipt_path"),
-            fs::canonical(request.receipt_path).generic_string());
+            JsonPathText(fs::canonical(request.receipt_path)));
   EXPECT_EQ(commit.at("generation").get<uint64_t>(), generation);
   EXPECT_EQ(commit.at("operation_id"), request.operation_id);
   const auto rom =
@@ -201,7 +206,7 @@ void ExpectCommittedContext(const NativeSaveContext& context,
                      return artifact.role == "rom";
                    });
   ASSERT_NE(rom, request.artifacts.end());
-  EXPECT_EQ(document.at("rom_path"), fs::canonical(rom->path).generic_string());
+  EXPECT_EQ(document.at("rom_path"), JsonPathText(fs::canonical(rom->path)));
   const auto producer =
       std::find_if(request.artifacts.begin(), request.artifacts.end(),
                    [](const NativeSaveArtifact& artifact) {
@@ -210,10 +215,58 @@ void ExpectCommittedContext(const NativeSaveContext& context,
   ASSERT_NE(producer, request.artifacts.end());
   const json expected_producer = {
       {"role", "producer"},
-      {"path", fs::canonical(producer->path).generic_string()},
+      {"path", JsonPathText(fs::canonical(producer->path))},
       {"sha256", producer->expected_sha256},
       {"bytes", fs::file_size(producer->path)}};
   EXPECT_EQ(document.at("producer"), expected_producer);
+}
+
+TEST_F(NativeSaveReceiptTest, NativeSeparatorsReplayGenericReceiptAndContext) {
+  ScopedAppDataOverride app_data(temp_.path() / "private context");
+  ASSERT_TRUE(app_data.ok());
+  const auto nested = temp_.path() / fs::u8path(u8"native-\u00E9 paths");
+  fs::create_directory(nested);
+  AddInput("dependency.unicode", nested / fs::u8path(u8"layout-\u00E9.bin"),
+           "unicode dependency bytes");
+  receipt_path_ = nested / "receipt.json";
+  request_.receipt_path = receipt_path_;
+  request_.receipt_path.make_preferred();
+  for (auto& artifact : request_.artifacts)
+    artifact.path.make_preferred();
+  const auto context =
+      GetNativeSaveContext(request_.artifacts[0].path.string(), "");
+  ASSERT_TRUE(context.ok()) << context.status();
+  request_.context = *context;
+
+  const auto first = PublishNativeSaveReceipt(request_);
+  ASSERT_TRUE(first.ok()) << first.status();
+  const auto document = json::parse(first->json);
+  EXPECT_EQ(document.at("receipt_path"),
+            JsonPathText(fs::canonical(receipt_path_)));
+  for (const auto& artifact : document.at("artifacts")) {
+    const auto text = artifact.at("path").get<std::string>();
+    EXPECT_EQ(text.find('\\'), std::string::npos);
+    const auto decoded = fs::u8path(text);
+    EXPECT_TRUE(decoded.is_absolute());
+    EXPECT_EQ(decoded, fs::canonical(decoded));
+  }
+  ExpectCommittedContext(*context, request_, 1);
+
+  // A persisted v1 receipt remains readable and idempotent when callers supply
+  // native-format paths. A new operation keeps the same artifact identities.
+  const auto replay = PublishNativeSaveReceipt(request_);
+  ASSERT_TRUE(replay.ok()) << replay.status();
+  EXPECT_EQ(replay->generation, 1u);
+  EXPECT_EQ(replay->json, first->json);
+  request_.operation_id = "native-path-save-2";
+  const auto second = PublishNativeSaveReceipt(request_);
+  ASSERT_TRUE(second.ok()) << second.status();
+  EXPECT_EQ(second->generation, 2u);
+  EXPECT_EQ(json::parse(second->json).at("artifacts"),
+            document.at("artifacts"));
+  ExpectCommittedContext(*context, request_, 2);
+  ExpectInputsUnchanged();
+  ExpectNoTemporaryArtifacts();
 }
 
 TEST_F(NativeSaveReceiptTest, PublishesCanonicalSortedReceiptAtGenerationOne) {
@@ -232,7 +285,8 @@ TEST_F(NativeSaveReceiptTest, PublishesCanonicalSortedReceiptAtGenerationOne) {
   EXPECT_EQ(document.at("operation"), "save");
   EXPECT_EQ(document.at("bindings_complete"), true);
   EXPECT_EQ(document.at("binding_errors"), json::array());
-  EXPECT_EQ(document.at("receipt_path"), fs::canonical(receipt_path_).string());
+  EXPECT_EQ(document.at("receipt_path"),
+            JsonPathText(fs::canonical(receipt_path_)));
   const auto& artifacts = document.at("artifacts");
   ASSERT_EQ(artifacts.size(), 3u);
   EXPECT_EQ(artifacts[0].at("role"), "dependency.layout");
@@ -691,7 +745,7 @@ TEST_F(NativeSaveReceiptTest,
 TEST_F(NativeSaveReceiptTest, ContextIdentityUsesCurrentPrivateAppDataRoot) {
   const auto original = GetAppDataOverride();
   const auto origin = request_.artifacts[0].path;
-  const std::string canonical_origin = fs::canonical(origin).generic_string();
+  const std::string canonical_origin = JsonPathText(fs::canonical(origin));
   const std::string key = ComputeSourceArtifactSha256(canonical_origin);
   {
     ScopedAppDataOverride app_data(temp_.path() / "app-data-one");
@@ -713,14 +767,14 @@ TEST_F(NativeSaveReceiptTest, ContextIdentityUsesCurrentPrivateAppDataRoot) {
     EXPECT_EQ(changed->editing_source_path, canonical_origin);
     EXPECT_EQ(changed->path, first->path);
     EXPECT_EQ(changed->project_path,
-              (temp_.path() / "second.yaze").generic_string());
+              JsonPathText(temp_.path() / "second.yaze"));
     const auto different_origin = GetNativeSaveContext(
         request_.artifacts[2].path.string(), changed->project_path);
     ASSERT_TRUE(different_origin.ok()) << different_origin.status();
     EXPECT_NE(different_origin->path, first->path);
     EXPECT_EQ(different_origin->path.filename(),
               ComputeSourceArtifactSha256(
-                  fs::canonical(request_.artifacts[2].path).generic_string()) +
+                  JsonPathText(fs::canonical(request_.artifacts[2].path))) +
                   ".json");
     EXPECT_FALSE(fs::exists(different_origin->path));
     {
@@ -894,7 +948,7 @@ TEST_F(NativeSaveReceiptTest, ContextMalformedOrForeignIdentityIsPreserved) {
   invalid_origin["editing_source_path"] = "relative-origin.sfc";
   auto foreign_origin = json::parse(ReadBytes(context->path));
   foreign_origin["editing_source_path"] =
-      fs::canonical(request_.artifacts[2].path).generic_string();
+      JsonPathText(fs::canonical(request_.artifacts[2].path));
   request_.operation_id = "native-save-2";
   for (const auto& bytes :
        {std::string("{"), invalid_origin.dump(), foreign_origin.dump()}) {

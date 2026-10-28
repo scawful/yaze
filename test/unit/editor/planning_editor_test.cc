@@ -379,7 +379,8 @@ TEST_F(PlanningProjectActionsTest,
   const auto descriptor = directory_ / "hack.yaze";
   const auto receipt = fs::path(descriptor.string() + ".native-save.json");
   manager_->MarkCurrentProjectDirty();
-  ASSERT_TRUE(manager_->SaveCurrentSession().ok());
+  const auto initial_save = manager_->SaveCurrentSession();
+  ASSERT_TRUE(initial_save.ok()) << initial_save;
   EXPECT_FALSE(editor_->dirty());
   EXPECT_EQ(core::ProjectPlan::LoadFromFile(plan_path_.string())->goal.title,
             "Edited");
@@ -389,7 +390,8 @@ TEST_F(PlanningProjectActionsTest,
   const auto receipt_bytes = Read(receipt);
 
   PlanningEditorTestPeer::EditGoal(editor_, "Plan only");
-  ASSERT_TRUE(manager_->SaveCurrentSession().ok());
+  const auto plan_save = manager_->SaveCurrentSession();
+  ASSERT_TRUE(plan_save.ok()) << plan_save;
   EXPECT_FALSE(editor_->dirty());
   EXPECT_EQ(core::ProjectPlan::LoadFromFile(plan_path_.string())->goal.title,
             "Plan only");
@@ -414,7 +416,8 @@ TEST_F(PlanningProjectActionsTest,
   PlanningEditorTestPeer::EditGoal(editor_, "Dual");
   manager_->GetCurrentProject()->name = "Renamed with plan";
   manager_->MarkCurrentProjectDirty();
-  ASSERT_TRUE(manager_->SaveCurrentSession().ok());
+  const auto combined_save = manager_->SaveCurrentSession();
+  ASSERT_TRUE(combined_save.ok()) << combined_save;
   EXPECT_FALSE(editor_->dirty());
   EXPECT_EQ(core::ProjectPlan::LoadFromFile(plan_path_.string())->goal.title,
             "Dual");

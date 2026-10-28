@@ -50,6 +50,8 @@ struct NativeSaveReceipt {
   std::string json;
 };
 
+// Receipt/context JSON paths use UTF-8 generic separators ("/") on every host.
+// Filesystem inputs may use the host's native separators.
 // Records an already completed native save. All paths must be absolute, roles
 // unique, and expected hashes lowercase SHA-256. Distinct roles may share an
 // exact canonical path only with the same expected hash. The rom and producer

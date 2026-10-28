@@ -834,6 +834,11 @@ class ScopedPublicationLockFailure {
 
 class NativeSaveReceiptIntegrationTest : public ::testing::Test {
  protected:
+  static std::string ReceiptPathText(const std::filesystem::path& path) {
+    const auto bytes = std::filesystem::canonical(path).generic_u8string();
+    return std::string(bytes.begin(), bytes.end());
+  }
+
   void SetUp() override {
     std::filesystem::create_directory(cleanup_.path);
     source_ = cleanup_.path / "source.sfc";
@@ -889,7 +894,7 @@ class NativeSaveReceiptIntegrationTest : public ::testing::Test {
         artifacts.begin(), artifacts.end(),
         [&role](const Json& artifact) { return artifact.at("role") == role; });
     ASSERT_NE(found, artifacts.end()) << role;
-    EXPECT_EQ(found->at("path"), std::filesystem::canonical(path).string());
+    EXPECT_EQ(found->at("path"), ReceiptPathText(path));
     EXPECT_EQ(found->at("bytes"), std::filesystem::file_size(path));
     EXPECT_EQ(found->at("sha256"),
               core::ComputeSourceArtifactSha256(ReadText(path)));
@@ -903,8 +908,7 @@ class NativeSaveReceiptIntegrationTest : public ::testing::Test {
         artifacts.begin(), artifacts.end(),
         [](const Json& artifact) { return artifact.at("role") == "producer"; });
     ASSERT_NE(found, artifacts.end());
-    EXPECT_EQ(found->at("path"),
-              std::filesystem::canonical(*executable).string());
+    EXPECT_EQ(found->at("path"), ReceiptPathText(*executable));
     EXPECT_EQ(found->at("bytes"), std::filesystem::file_size(*executable));
     EXPECT_EQ(found->at("sha256").get<std::string>().size(), 64u);
   }
@@ -954,8 +958,7 @@ TEST_F(NativeSaveReceiptIntegrationTest,
   EXPECT_EQ(second.at("operation"), "save");
   EXPECT_NE(second.at("operation_id"), first.at("operation_id"));
   EXPECT_EQ(second.at("artifacts"), first.at("artifacts"));
-  EXPECT_EQ(second.at("receipt_path"),
-            std::filesystem::canonical(receipt_).string());
+  EXPECT_EQ(second.at("receipt_path"), ReceiptPathText(receipt_));
 }
 
 TEST_F(NativeSaveReceiptIntegrationTest,
@@ -971,20 +974,17 @@ TEST_F(NativeSaveReceiptIntegrationTest,
   const auto saved = ReadReceipt(receipt);
   EXPECT_EQ(saved.at("generation"), 1u);
   EXPECT_EQ(saved.at("operation"), "save_as");
-  EXPECT_EQ(saved.at("receipt_path"),
-            std::filesystem::canonical(receipt).string());
+  EXPECT_EQ(saved.at("receipt_path"), ReceiptPathText(receipt));
   ASSERT_EQ(saved.at("artifacts").size(), 2u);
   ExpectArtifact(saved, "rom", destination);
   ExpectProducer(saved);
   EXPECT_EQ(manager_->GetCurrentRom()->filename(), destination.string());
   const auto active_context = ReadReceipt(context->path);
-  EXPECT_EQ(active_context.at("editing_source_path"),
-            std::filesystem::canonical(source_).string());
-  EXPECT_EQ(active_context.at("rom_path"),
-            std::filesystem::canonical(destination).string());
+  EXPECT_EQ(active_context.at("editing_source_path"), ReceiptPathText(source_));
+  EXPECT_EQ(active_context.at("rom_path"), ReceiptPathText(destination));
   EXPECT_EQ(active_context.at("state"), "committed");
   EXPECT_EQ(active_context.at("native_commit").at("receipt_path"),
-            std::filesystem::canonical(receipt).string());
+            ReceiptPathText(receipt));
   EXPECT_EQ(ReadText(source_), original);
   EXPECT_FALSE(std::filesystem::exists(source_.string() + ".native-save.json"));
 }
@@ -1321,7 +1321,7 @@ TEST_F(NativeSaveReceiptIntegrationTest,
   const auto active_context = ReadReceipt(context_path);
   ASSERT_EQ(active_context.at("state"), "committed");
   ASSERT_EQ(active_context.at("native_commit").at("receipt_path"),
-            std::filesystem::canonical(receipt_).string());
+            ReceiptPathText(receipt_));
   ASSERT_EQ(active_context.at("native_commit").at("generation"), 1u);
 
   const auto destination = cleanup_.path / "copy" / "Saved.yaze";
@@ -1339,16 +1339,13 @@ TEST_F(NativeSaveReceiptIntegrationTest,
   const auto rebound = ReadReceipt(context_path);
   EXPECT_EQ(rebound.at("kind"), "yaze.native_save_context.v1");
   EXPECT_EQ(rebound.size(), 7u);
-  EXPECT_EQ(rebound.at("editing_source_path"),
-            std::filesystem::canonical(source_).string());
+  EXPECT_EQ(rebound.at("editing_source_path"), ReceiptPathText(source_));
   EXPECT_EQ(rebound.at("producer"), active_context.at("producer"));
   EXPECT_EQ(rebound.at("state"), "committed");
-  EXPECT_EQ(rebound.at("project_path"),
-            std::filesystem::canonical(destination).string());
-  EXPECT_EQ(rebound.at("rom_path"),
-            std::filesystem::canonical(source_).string());
+  EXPECT_EQ(rebound.at("project_path"), ReceiptPathText(destination));
+  EXPECT_EQ(rebound.at("rom_path"), ReceiptPathText(source_));
   EXPECT_EQ(rebound.at("native_commit").at("receipt_path"),
-            std::filesystem::canonical(new_receipt_path).string());
+            ReceiptPathText(new_receipt_path));
   EXPECT_EQ(ReadText(old_project), project_bytes);
   EXPECT_EQ(ReadText(receipt_), receipt_bytes);
   EXPECT_EQ(ReadText(source_), rom_bytes);
@@ -1431,8 +1428,7 @@ TEST_F(NativeSaveReceiptIntegrationTest,
   EXPECT_EQ(manager_->GetCurrentProject()->filepath, destination.string());
   const auto rebound = ReadReceipt(context_);
   EXPECT_EQ(rebound.at("state"), "committed");
-  EXPECT_EQ(rebound.at("project_path"),
-            std::filesystem::canonical(destination).string());
+  EXPECT_EQ(rebound.at("project_path"), ReceiptPathText(destination));
   EXPECT_EQ(ReadText(project), project_bytes);
   EXPECT_EQ(ReadText(receipt_), receipt_bytes);
   EXPECT_EQ(ReadText(source_), rom_bytes);
