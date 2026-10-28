@@ -25,6 +25,20 @@ set(YAZE_GRPC_TARGETS "")
 set(YAZE_FTXUI_TARGETS "")
 set(YAZE_TESTING_TARGETS "")
 
+# FindPNG searches frameworks first on macOS, and Mono.framework (present on
+# GitHub macOS runners) ships libpng 1.4 headers that would pair with the
+# libpng 1.6 library. Later find_package(PNG) calls reuse this result.
+if(APPLE AND NOT TARGET PNG::PNG)
+  if(PNG_PNG_INCLUDE_DIR MATCHES "/Mono\\.framework/")
+    unset(PNG_PNG_INCLUDE_DIR CACHE)
+  endif()
+  set(_yaze_saved_find_framework "${CMAKE_FIND_FRAMEWORK}")
+  set(CMAKE_FIND_FRAMEWORK LAST)
+  find_package(PNG QUIET)
+  set(CMAKE_FIND_FRAMEWORK "${_yaze_saved_find_framework}")
+  unset(_yaze_saved_find_framework)
+endif()
+
 # Core dependencies (always required)
 # Window backend selection is centralized in one place for easier backend swaps.
 include(cmake/dependencies/window_backend.cmake)
