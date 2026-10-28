@@ -281,8 +281,7 @@ class DungeonEntrancePropertiesUiTest
         [this]() -> const std::deque<int>& { return recent_; }, [](int) {},
         [](bool) {});
     content_->SetNavigationPanels(nullptr, panel_.get());
-    content_->SetRoomInspectorSubTab(
-        DungeonWorkbenchContent::RoomInspectorSubTab::Warps);
+    content_->FocusEntranceBrowser();
 
     auto& flags = core::FeatureFlags::get().dungeon;
     flags.kSaveObjects = false;
@@ -322,11 +321,12 @@ class DungeonEntrancePropertiesUiTest
     gui::WidgetIdRegistry::Instance().Clear();
     ImGui::NewFrame();
     ImGui::SetNextWindowPos(ImVec2(20, 20), ImGuiCond_Always);
-    ImGui::SetNextWindowSize(ImVec2(1100, 1900), ImGuiCond_Always);
+    ImGui::SetNextWindowSize(ImVec2(pane_width_ + 20, 1900), ImGuiCond_Always);
     ImGui::Begin("EntrancePropertyHost", nullptr,
                  ImGuiWindowFlags_NoSavedSettings);
     if (GetParam() == EntrancePropertyHost::kWorkbench) {
-      DungeonWorkbenchContentTestPeer::DrawRoomInspector(*content_, viewer_);
+      DungeonWorkbenchContentTestPeer::DrawNavigator(*content_, pane_width_,
+                                                     1840);
     } else {
       panel_->Draw(nullptr);
     }
@@ -474,7 +474,109 @@ class DungeonEntrancePropertiesUiTest
   std::deque<int> recent_;
   std::unique_ptr<DungeonWorkbenchContent> content_;
   std::filesystem::path temp_dir_;
+  float pane_width_ = 1080;
 };
+
+TEST_P(DungeonEntrancePropertiesUiTest,
+       EntranceRailFieldsAndCameraBoundariesFitNarrowWidths) {
+  if (GetParam() != EntrancePropertyHost::kWorkbench)
+    GTEST_SKIP() << "This geometry contract covers the Workbench rail host.";
+  const auto font =
+      std::filesystem::path(YAZE_TEST_FIXTURE_DIR).parent_path().parent_path() /
+      "assets/font/Karla-Regular.ttf";
+  ASSERT_TRUE(std::filesystem::is_regular_file(font));
+  auto& io = ImGui::GetIO();
+  io.Fonts->Clear();
+  io.FontDefault = io.Fonts->AddFontFromFileTTF(font.string().c_str(), 13);
+  ASSERT_NE(io.FontDefault, nullptr);
+  unsigned char* pixels = nullptr;
+  int atlas_width = 0, atlas_height = 0;
+  io.Fonts->GetTexDataAsRGBA32(&pixels, &atlas_width, &atlas_height);
+  for (const float scale : {1.0f, 1.5f}) {
+    ImGui::GetIO().FontGlobalScale = scale;
+    for (const float width : {260.0f, 304.0f, 320.0f}) {
+      pane_width_ = width;
+      for (const int slot : {0, zelda3::kNumDungeonSpawnPoints}) {
+        SCOPED_TRACE(absl::StrFormat("pane %.0f scale %.1f slot %d", width,
+                                     scale, slot));
+        Peer::Select(*editor_, slot);
+        DrawFrame();
+        DrawFrame();
+        const char* trigger =
+            slot == 0 ? "SpawnCameraTriggerX" : "RegularCameraTriggerX";
+        bool advanced_open = false;
+        for (const auto& [path, widget] :
+             gui::WidgetIdRegistry::Instance().GetAllWidgets())
+          advanced_open |= widget.label == trigger;
+        if (!advanced_open) {
+          ASSERT_NO_FATAL_FAILURE(Click("AdvancedCameraData"));
+          DrawFrame();
+        }
+        ImGuiWindow* properties = nullptr;
+        for (auto* window : ImGui::GetCurrentContext()->Windows)
+          if (window->Active &&
+              std::string(window->Name).find("/##NavigatorTools_") !=
+                  std::string::npos)
+            properties = window;
+        ASSERT_NE(properties, nullptr);
+        EXPECT_LE(properties->DC.CursorMaxPos.x,
+                  properties->WorkRect.Max.x + 1);
+        EXPECT_FLOAT_EQ(properties->ScrollMax.x, 0);
+        EXPECT_GT(ImGui::CalcTextSize("DDDD").x, ImGui::CalcTextSize("FFFF").x);
+        int fields = 0;
+        int boundaries = 0;
+        for (const auto& [path, widget] :
+             gui::WidgetIdRegistry::Instance().GetAllWidgets()) {
+          if (!path.starts_with("Dungeon/Entrances/input:"))
+            continue;
+          ++fields;
+          boundaries += widget.label.starts_with("CameraBoundary");
+          EXPECT_TRUE(widget.visible) << path;
+          EXPECT_GE(widget.bounds.min_x, properties->InnerClipRect.Min.x)
+              << path;
+          EXPECT_LE(widget.bounds.max_x, properties->InnerClipRect.Max.x)
+              << path;
+          EXPECT_GE(widget.bounds.min_y, properties->InnerClipRect.Min.y)
+              << path;
+          EXPECT_LE(widget.bounds.max_y, properties->InnerClipRect.Max.y)
+              << path;
+          if (widget.label == "RegularRoomId" ||
+              widget.label == "RegularPlayerX" ||
+              widget.label == "RegularPlayerY" ||
+              widget.label == "SpawnRoomId" || widget.label == "SpawnPlayerX" ||
+              widget.label == "SpawnPlayerY")
+            EXPECT_GE(widget.bounds.max_x - widget.bounds.min_x,
+                      ImGui::CalcTextSize("DDDD").x +
+                          ImGui::GetStyle().FramePadding.x * 2.0f)
+                << path;
+        }
+        EXPECT_GE(fields, 20);
+        EXPECT_EQ(boundaries, 8);
+      }
+    }
+  }
+}
+
+TEST_P(DungeonEntrancePropertiesUiTest,
+       WorkbenchEntranceRailRespectsViewerReadOnlyAndInteractionPolicy) {
+  for (const bool read_only : {true, false}) {
+    viewer_.SetHeaderReadOnly(read_only);
+    viewer_.SetObjectInteractionEnabled(read_only);
+    DrawFrame();
+    DrawFrame();
+    bool found = false;
+    for (const auto& [path, widget] :
+         gui::WidgetIdRegistry::Instance().GetAllWidgets()) {
+      if (widget.label != "RegularRoomId")
+        continue;
+      found = true;
+      EXPECT_EQ(widget.enabled,
+                GetParam() == EntrancePropertyHost::kStandalone);
+    }
+    EXPECT_TRUE(found);
+    EXPECT_FALSE(Peer::Regular(*editor_).dirty());
+  }
+}
 
 TEST_P(DungeonEntrancePropertiesUiTest,
        RegularTypedPropertyIsOneUndoableDirtyTransition) {

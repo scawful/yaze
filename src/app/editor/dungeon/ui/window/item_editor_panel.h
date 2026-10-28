@@ -6,6 +6,7 @@
 #include <unordered_map>
 #include <utility>
 #include <vector>
+#include "app/editor/dungeon/ui/workbench/dungeon_browser.h"
 
 #include <SDL.h>
 
@@ -80,6 +81,7 @@ class ItemEditorPanel : public WindowContent {
   DungeonRoomStore* rooms_ = nullptr;
   DungeonCanvasViewer* canvas_viewer_ = nullptr;
 
+  workbench::DungeonBrowserState browser_state_;
   int selected_item_id_ = 0;
   bool placement_mode_ = false;
 

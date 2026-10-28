@@ -408,6 +408,7 @@ if(YAZE_BUILD_TESTS)
     unit/editor/room_graphics_content_test.cc
     unit/editor/dungeon_workbench_toolbar_test.cc
     unit/editor/dungeon_workbench_content_test.cc
+    unit/editor/room_matrix_content_test.cc
     unit/editor/object_tile_editor_panel_test.cc
     unit/editor/object_coverage_panel_test.cc
     unit/editor/dungeon_proposal_overlay_test.cc

@@ -991,7 +991,7 @@ TEST_F(DungeonEditorPaletteRefreshTest,
 }
 
 TEST_F(DungeonEditorPaletteRefreshTest,
-       RoomMatrixTooltipUsesSelectedEntranceBeforeRenderingCachedRoom) {
+       RoomMatrixTooltipResolvesEntranceWithoutChangingCachedRoom) {
   game_data_.main_blockset_ids[1][0] = 9;
   game_data_.main_blockset_ids[2][0] = 10;
   DungeonRoomStore rooms(&rom_, &game_data_);
@@ -1007,9 +1007,10 @@ TEST_F(DungeonEditorPaletteRefreshTest,
   matrix.SetRooms(&rooms);
   uint8_t selected_main = 2;
   int calls = 0;
-  matrix.SetRenderContextCallback([&](int id) {
+  matrix.SetPreviewEntranceBlocksetResolver([&](int id) {
+    EXPECT_EQ(id, 0);
     ++calls;
-    rooms[id].SetRenderEntranceBlockset(selected_main);
+    return selected_main;
   });
   ScopedImGuiTestContext imgui;
   absl::Cleanup clear_registry = [] {
@@ -1042,7 +1043,7 @@ TEST_F(DungeonEditorPaletteRefreshTest,
     frame();
     frame();
     EXPECT_GT(calls, before);
-    EXPECT_EQ(room.blocks()[0], main_gfx == 1 ? 9 : 10);
+    EXPECT_EQ(room.blocks()[0], 9);  // Hover renders a private room.
   }
 }
 

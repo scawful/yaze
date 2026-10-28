@@ -317,6 +317,8 @@ void DungeonCanvasViewer::RefreshRomBackedState(Rom* rom,
   ResetRoomCompositeOutputs();
   connection_editor_state_ = {};
   room_transfer_state_ = {};
+  chest_editor_state_ = {};
+  chest_edit_dialog_state_ = {};
   InvalidateExternalSpriteResources();
   ClearPreviewObject();
   object_interaction_.CancelPlacement();
@@ -465,6 +467,7 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
   ImGui::EndChild();
   SyncViewerStateFromCanvasConfig();
   DrawDungeonRoomTransferPopup(*this);
+  DrawChestEditorPopup();
 }
 
 void DungeonCanvasViewer::UpdateRoomCanvasShortcutFocus(bool hovered,
