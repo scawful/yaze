@@ -178,6 +178,18 @@ std::string FormatHexUintList(const std::vector<uint16_t>& values) {
   });
 }
 
+// The INI parser converts some values with std::stoi, which throws on empty,
+// non-numeric or out-of-range text.
+template <typename Parse>
+absl::Status CatchInvalidProjectValue(Parse&& parse) {
+  try {
+    return parse();
+  } catch (const std::exception& error) {
+    return absl::InvalidArgumentError(
+        absl::StrFormat("Invalid project file value: %s", error.what()));
+  }
+}
+
 // Returns nullopt when the digits overflow unsigned long (32 bits on Windows).
 std::optional<std::string> ToDecimalKey(absl::string_view digits, int base) {
   try {
@@ -582,7 +594,8 @@ absl::Status YazeProject::Open(const std::string& project_path) {
   auto storage_key = MakeStorageKey("project");
   auto storage_or = platform::WasmStorage::LoadProject(storage_key);
   if (storage_or.ok()) {
-    return ParseFromString(storage_or.value());
+    return CatchInvalidProjectValue(
+        [&] { return ParseFromString(storage_or.value()); });
   }
 #endif
 
@@ -676,10 +689,12 @@ absl::Status YazeProject::Open(const std::string& project_path) {
         LOG_DEBUG("Project", "Detected JSON format project file");
         load_status = LoadFromJsonFormat(resolved_path);
       } else {
-        load_status = ParseFromString(content);
+        load_status =
+            CatchInvalidProjectValue([&] { return ParseFromString(content); });
       }
 #else
-      load_status = ParseFromString(content);
+      load_status =
+          CatchInvalidProjectValue([&] { return ParseFromString(content); });
 #endif
     } else {
       return absl::InvalidArgumentError(
@@ -736,12 +751,8 @@ absl::Status YazeProject::LoadFromString(const std::string& content,
   filepath = project_path;
 #endif
   format = ProjectFormat::kYazeNative;
-  try {
-    RETURN_IF_ERROR(ParseFromString(content));
-  } catch (const std::exception& error) {
-    return absl::InvalidArgumentError(
-        absl::StrFormat("Invalid project file value: %s", error.what()));
-  }
+  RETURN_IF_ERROR(
+      CatchInvalidProjectValue([&] { return ParseFromString(content); }));
   NormalizePathsToAbsolute();
   TryLoadZ3dkConfig();
   TryLoadHackManifest();
@@ -1945,7 +1956,8 @@ absl::Status YazeProject::LoadFromYazeFormat(const std::string& project_path) {
   auto storage_key = MakeStorageKey("project");
   auto storage_or = platform::WasmStorage::LoadProject(storage_key);
   if (storage_or.ok()) {
-    return ParseFromString(storage_or.value());
+    return CatchInvalidProjectValue(
+        [&] { return ParseFromString(storage_or.value()); });
   }
 #endif  // __EMSCRIPTEN__
 
@@ -1958,7 +1970,8 @@ absl::Status YazeProject::LoadFromYazeFormat(const std::string& project_path) {
   std::stringstream buffer;
   buffer << file.rdbuf();
   file.close();
-  return ParseFromString(buffer.str());
+  return CatchInvalidProjectValue(
+      [&] { return ParseFromString(buffer.str()); });
 }
 
 absl::Status YazeProject::SaveToYazeFormat(bool replace_existing) {

@@ -6,6 +6,7 @@
 #include <string>
 #include <vector>
 
+#include "absl/status/status.h"
 #include "gtest/gtest.h"
 
 namespace yaze::project {
@@ -38,16 +39,16 @@ class ScopedTempDir {
 void WriteTextFile(const std::filesystem::path& path, const std::string& data) {
   std::filesystem::create_directories(path.parent_path());
   std::ofstream file(path, std::ios::out | std::ios::trunc);
-  ASSERT_TRUE(file.is_open()) << "Failed to open file for writing: "
-                              << path.string();
+  ASSERT_TRUE(file.is_open())
+      << "Failed to open file for writing: " << path.string();
   file << data;
   file.close();
 }
 
 std::string ReadTextFile(const std::filesystem::path& path) {
   std::ifstream file(path);
-  EXPECT_TRUE(file.is_open()) << "Failed to open file for reading: "
-                              << path.string();
+  EXPECT_TRUE(file.is_open())
+      << "Failed to open file for reading: " << path.string();
   std::string content((std::istreambuf_iterator<char>(file)),
                       std::istreambuf_iterator<char>());
   file.close();
@@ -93,15 +94,46 @@ TEST(ProjectBundleTest, OpenCreatesProjectFileWhenMissing) {
   EXPECT_NE(saved.find("code_folder=project"), std::string::npos);
 }
 
+TEST(ProjectBundleTest, OpenReportsMalformedNumericValueInProjectFile) {
+  ScopedTempDir temp(MakeUniqueTempDir("yaze_project_bad_number"));
+  const auto project_file = temp.path() / "Broken.yaze";
+  WriteTextFile(project_file,
+                "[project]\nname=Broken\n\n[workspace]\n"
+                "backup_retention_count=\n");
+
+  YazeProject project;
+  absl::Status status;
+  ASSERT_NO_THROW(status = project.Open(project_file.string()));
+  EXPECT_EQ(status.code(), absl::StatusCode::kInvalidArgument);
+  EXPECT_NE(status.message().find("Invalid project file value"),
+            std::string::npos)
+      << status;
+}
+
+TEST(ProjectBundleTest, OpenReportsMalformedNumericValueInBundle) {
+  ScopedTempDir temp(MakeUniqueTempDir("yaze_project_bundle_bad_number"));
+  const auto bundle_root = temp.path() / "Broken.yazeproj";
+  WriteTextFile(bundle_root / "project.yaze",
+                "[project]\nname=Broken\n\n[build]\nbuild_number=abc\n");
+
+  YazeProject project;
+  absl::Status status;
+  ASSERT_NO_THROW(status = project.Open(bundle_root.string()));
+  EXPECT_EQ(status.code(), absl::StatusCode::kInvalidArgument);
+  EXPECT_NE(status.message().find("Invalid project file value"),
+            std::string::npos)
+      << status;
+}
+
 TEST(ProjectBundleTest, ProjectManagerFindsBundleDirectories) {
   ScopedTempDir temp(MakeUniqueTempDir("yaze_project_discovery"));
 
   const auto bundle_root = temp.path() / "FoundMe.yazeproj";
   std::filesystem::create_directories(bundle_root);
 
-  const auto found = ProjectManager::FindProjectsInDirectory(temp.path().string());
+  const auto found =
+      ProjectManager::FindProjectsInDirectory(temp.path().string());
   EXPECT_TRUE(ContainsPath(found, bundle_root));
 }
 
 }  // namespace yaze::project
-
