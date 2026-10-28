@@ -43,11 +43,7 @@ set(GRPC_VERSION_UNIX "1.76.0" CACHE STRING "gRPC version for Linux/macOS")
 # Compatibility alias used in status output and legacy scripts.
 set(GRPC_VERSION "${GRPC_VERSION_WINDOWS}" CACHE STRING "Legacy gRPC version alias")
 
-set(PROTOBUF_VERSION "3.25.1" CACHE STRING "Protobuf version (system package path)")
-# source: https://github.com/protocolbuffers/protobuf
-# license: BSD-3-Clause
-
-set(ABSEIL_VERSION "20240116.0" CACHE STRING "Abseil version (system package path)")
+set(ABSEIL_VERSION "20240116.2" CACHE STRING "Abseil release fetched when gRPC is off and no system package is found")
 # source: https://github.com/abseil/abseil-cpp
 # license: Apache-2.0
 
@@ -60,16 +56,11 @@ set(BENCHMARK_VERSION "1.8.3" CACHE STRING "Google Benchmark version")
 # source: https://github.com/google/benchmark
 # license: Apache-2.0
 
-# CLI
-set(FTXUI_VERSION "5.0.0" CACHE STRING "FTXUI version")
-# source: https://github.com/ArthurSonzogni/FTXUI
-# license: MIT
-
 # =============================================================================
 # Vendored dependencies (tracked for auditability)
 # =============================================================================
 
-set(IMGUI_VERSION "1.92.5-WIP" CACHE STRING "Dear ImGui bundled version")
+set(IMGUI_VERSION "1.92.8-WIP" CACHE STRING "Dear ImGui bundled version")
 # source: ext/imgui
 # license: MIT
 
@@ -77,7 +68,7 @@ set(SDL2_BUNDLED_VERSION "2.33.0" CACHE STRING "Bundled SDL snapshot version")
 # source: ext/SDL
 # license: zlib
 
-set(NATIVEFILEDIALOG_EXT_VERSION "1.1.0+" CACHE STRING "nativefiledialog-extended interface level")
+set(NATIVEFILEDIALOG_EXT_VERSION "1.3.0" CACHE STRING "nativefiledialog-extended version")
 # source: ext/nativefiledialog-extended
 # license: zlib
 

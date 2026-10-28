@@ -186,7 +186,7 @@ Test strategy and labels live in [test/README.md](../test/README.md) and
 | Script | Class | Purpose |
 |--------|-------|---------|
 | `test_fast.sh` | canonical | High-signal subset of stable unit + integration tests for quick iteration |
-| `test_runner.py` | canonical | Sharded parallel test execution; driven by `cmake/TestInfrastructure.cmake` |
+| `test_runner.py` | canonical | Sharded parallel test execution; run directly (no CMake target invokes it) |
 | `aggregate_test_results.py` | canonical | Merge parallel test results into one report; used by CI |
 | `oracle_smoke.sh` | canonical | Oracle-of-Secrets regression smoke checks, JSON summary on stdout |
 | `rom_safety_preflight.sh` | canonical | ROM write-safety preflight; see [rom-safety-guardrails.md](../docs/internal/agents/rom-safety-guardrails.md) |
@@ -246,8 +246,6 @@ paths, and its Goron Mines data already lives in
 
 Each of these needs its own change; none is fixed by this index.
 
-- `cmake/TestInfrastructure.cmake` references `scripts/smart_test_selector.py`,
-  which does not exist. The target that uses it fails if invoked.
 - Several public docs still describe a single `yaze_test` binary with
   `--unit` / `--integration` / `--e2e` flags (`docs/public/developer/testing-guide.md`,
   `docs/public/examples/README.md`, `test/README.md`, `test/e2e/README.md`).

@@ -1277,7 +1277,6 @@ cmake --build build --target yaze --parallel 4
 
 ### Build Optimizations
 
-- Use `-DYAZE_UNITY_BUILD=ON` for faster compilation
 - Use quiet presets (mac-dbg) to suppress warnings
 - Use verbose presets (mac-dbg-v) for detailed warnings
 - Parallel builds default to `--parallel 4`; override the worker count explicitly when needed.

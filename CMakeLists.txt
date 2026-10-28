@@ -14,6 +14,15 @@ cmake_policy(SET CMP0091 NEW)
 # Windows presets specify dynamic CRT (/MD) to avoid linking issues
 cmake_policy(SET CMP0048 NEW)
 cmake_policy(SET CMP0077 NEW)
+# The yaze static libraries depend on each other in cycles, so CMake repeats
+# them on link lines for single-pass linkers. Apple, MSVC and LLD linkers
+# resolve across all archives, and ld64 warns "ignoring duplicate libraries".
+# CMP0156 drops the repeats only for such linkers (GNU ld keeps them);
+# CMP0179 keeps each library's first occurrence, the copy those linkers use.
+if(POLICY CMP0179)
+  cmake_policy(SET CMP0156 NEW)
+  cmake_policy(SET CMP0179 NEW)
+endif()
 
 include(cmake/version.cmake)
 
