@@ -15,6 +15,7 @@
 #include <filesystem>
 #include <fstream>
 #include <iterator>
+#include <map>
 #include <memory>
 #include <optional>
 #include <string>
@@ -36,6 +37,7 @@
 #include "app/editor/dungeon/ui/window/object_tile_editor_panel.h"
 #include "app/editor/dungeon/ui/window/room_tag_editor_panel.h"
 #include "app/editor/editor_manager.h"
+#include "app/editor/graphics/catalog_tile_browser.h"
 #include "app/editor/graphics/graphics_editor.h"
 #include "app/editor/graphics/palette_pixel_command.h"
 #include "app/editor/graphics/pixel_clipboard.h"
@@ -174,6 +176,11 @@ class AuthoringSaveWorkflowTestPeer {
 
   static GraphicsEditorState& GraphicsState(GraphicsEditor& editor) {
     return editor.state_;
+  }
+  static absl::Status ApplyCatalogArt(GraphicsEditor& editor,
+                                      CatalogTileBrowserState& browser) {
+    return ApplyCatalogArtToObject(browser, editor.state_,
+                                   editor.undo_manager_);
   }
 
   static void PaintGraphicsPixel(GraphicsEditor& editor, int x, int y,
@@ -5177,6 +5184,133 @@ TEST_F(AuthoringSaveWorkflowTest,
   EXPECT_EQ(graphics->undo_manager().UndoStackSize(), graphics_undo + 1);
   gfx::Arena::Get().ClearTextureQueue();
   reopened.reset();
+  EXPECT_EQ(util::ComputeFileSha1Hex(fixture.rom.string()),
+            fixture.source_hash);
+  EXPECT_EQ(util::ComputeFileSha1Hex(kSharedRom), fixture.shared_hash);
+}
+
+TEST_F(AuthoringSaveWorkflowTest,
+       DungeonCatalogObjectTryApplyUndoRedoSaveAsFreshReopen) {
+  const auto fixture = CopyProject("yaze-catalog-object-save");
+  Open(fixture);
+  ASSERT_OK(manager_->EnsureEditorAssetsLoaded(EditorType::kDungeon));
+  ASSERT_OK(manager_->EnsureEditorAssetsLoaded(EditorType::kGraphics));
+  auto* editors = manager_->GetCurrentEditorSet();
+  auto* dungeon = editors->GetEditorAs<DungeonEditorV2>(EditorType::kDungeon);
+  auto* graphics = editors->GetGraphicsEditor();
+  ASSERT_NE(dungeon, nullptr);
+  ASSERT_NE(graphics, nullptr);
+  auto& state = AuthoringSaveWorkflowTestPeer::GraphicsState(*graphics);
+  const auto control_path = fixture.root / "control.sfc";
+  ASSERT_OK(manager_->SaveRomAs(control_path.string()));
+  const auto original_pixels = state.game_data->graphics_buffer;
+  const auto color_revision =
+      gfx::PaletteManager::Get().ColorRevision(state.game_data);
+  const auto undo_depth = graphics->undo_manager().UndoStackSize();
+  CatalogTileBrowserState browser;
+  const PalettePermutation permutation{0, 2, 3, 4, 5, 6, 7, 1};
+  absl::Status last_candidate =
+      absl::NotFoundError("No placed object has an editable source pattern");
+  bool found = false;
+  for (const int room_id : {0x89, 5}) {
+    AuthoringSaveWorkflowTestPeer::SelectDungeonRoom(*dungeon, room_id);
+    ASSERT_OK(
+        AuthoringSaveWorkflowTestPeer::LoadDungeonRoom(*dungeon, room_id));
+    auto& room = dungeon->rooms()[room_id];
+    room.PrepareForRender();
+    for (const auto& object : room.GetTileObjects()) {
+      const auto geometry =
+          MakeDungeonGraphicsEditContext(room, object, state.game_data);
+      if (!geometry.ok() || geometry->pattern_cells.empty())
+        continue;
+      AuthoringSaveWorkflowTestPeer::OpenObjectGraphics(*dungeon, room_id,
+                                                        object);
+      if (!state.source_context)
+        continue;
+      const auto& source = *state.source_context;
+      std::map<uint16_t, int> pages;
+      std::vector<CatalogAssemblyCell> assembly;
+      for (const auto& cell : source.pattern_cells) {
+        ASSERT_LT(cell.target, source.targets.size());
+        const auto& target = source.targets[cell.target];
+        const auto entry =
+            pages.emplace(target.sheet_id, static_cast<int>(pages.size()))
+                .first;
+        assembly.push_back({cell.x, cell.y, entry->second, target.tile_index,
+                            cell.hflip, cell.vflip});
+      }
+      CancelCatalogArtPreview(browser);
+      browser.sources.clear();
+      browser.sources.resize(pages.size());
+      browser.asset_preview.reset();
+      browser.asset_cache_id.clear();
+      for (const auto& [sheet, page] : pages) {
+        auto& item = browser.sources[page];
+        item.id = "save.object.page-" + std::to_string(page);
+        item.asset_id = "save.object";
+        item.title = "Placed object artwork";
+        item.page = page;
+        item.page_count = static_cast<int>(pages.size());
+        item.pixel_width = source.pattern_width;
+        item.pixel_height = source.pattern_height;
+        item.assembly = assembly;
+        const auto pixels = state.game_data->sheet_store.Sheet(sheet);
+        ASSERT_EQ(pixels.size(), 4096u);
+        for (const auto pixel : pixels) {
+          ASSERT_LT(pixel, permutation.size());
+          item.indexed_pixels.push_back(permutation[pixel]);
+        }
+      }
+      browser.source = 0;
+      last_candidate = TryCatalogArtOnObject(browser, state);
+      if (last_candidate.ok() && browser.object_pending &&
+          !browser.object_pending->sheets.empty()) {
+        found = true;
+        break;
+      }
+    }
+    if (found)
+      break;
+  }
+  ASSERT_TRUE(found) << last_candidate;
+  ASSERT_TRUE(browser.object_pending);
+  auto expected = browser.object_pending->before_sheets;
+  for (const auto& diff : browser.object_pending->sheets)
+    for (size_t i = 0; i < diff.offsets.size(); ++i)
+      expected.at(diff.sheet)[diff.offsets[i]] = diff.after[i];
+  EXPECT_EQ(state.game_data->graphics_buffer, original_pixels);
+  EXPECT_EQ(graphics->undo_manager().UndoStackSize(), undo_depth);
+  ASSERT_OK(ValidateCatalogArtPreview(browser, state));
+  ASSERT_OK(AuthoringSaveWorkflowTestPeer::ApplyCatalogArt(*graphics, browser));
+  EXPECT_EQ(graphics->undo_manager().UndoStackSize(), undo_depth + 1);
+  EXPECT_EQ(gfx::PaletteManager::Get().ColorRevision(state.game_data),
+            color_revision);
+  ASSERT_OK(graphics->Undo());
+  EXPECT_EQ(state.game_data->graphics_buffer, original_pixels);
+  ASSERT_OK(graphics->Redo());
+  for (const auto& [sheet, pixels] : expected) {
+    const auto current = state.game_data->sheet_store.Sheet(sheet);
+    EXPECT_EQ(std::vector<uint8_t>(current.begin(), current.end()), pixels);
+  }
+
+  const auto destination = fixture.root / "catalog-object.sfc";
+  ASSERT_OK(manager_->SaveRomAs(destination.string()));
+  ExpectProtectedRegionsMatch(
+      ReadFile(control_path), ReadFile(destination),
+      manager_->GetCurrentProject()->hack_manifest.protected_regions());
+  manager_.reset();
+  gfx::Arena::Get().ClearTextureQueue();
+  manager_ = std::make_unique<EditorManager>();
+  test::InitializeWithIsolatedSettings(*manager_, &renderer_);
+  manager_->SetAssetLoadMode(AssetLoadMode::kLazy);
+  ASSERT_OK(manager_->OpenRomOrProject(destination.string()));
+  ASSERT_OK(manager_->EnsureEditorAssetsLoaded(EditorType::kGraphics));
+  const auto* loaded = manager_->GetCurrentGameData();
+  ASSERT_NE(loaded, nullptr);
+  for (const auto& [sheet, pixels] : expected) {
+    const auto current = loaded->sheet_store.Sheet(sheet);
+    EXPECT_EQ(std::vector<uint8_t>(current.begin(), current.end()), pixels);
+  }
   EXPECT_EQ(util::ComputeFileSha1Hex(fixture.rom.string()),
             fixture.source_hash);
   EXPECT_EQ(util::ComputeFileSha1Hex(kSharedRom), fixture.shared_hash);

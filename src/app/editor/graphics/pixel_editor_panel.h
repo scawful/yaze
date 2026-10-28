@@ -135,6 +135,12 @@ class PixelEditorPanel : public WindowContent {
    */
   void DrawColorPicker();
 
+  void DrawIndexSwapControls();
+  int swap_from_id_ = 1;
+  int swap_to_id_ = 2;
+  int swap_scope_ = 0;
+  std::string index_swap_status_;
+
   /**
    * @brief Draw the status bar with cursor position
    */

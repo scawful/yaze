@@ -428,6 +428,12 @@ if(YAZE_BUILD_TESTS)
     unit/editor/sheet_png_transfer_test.cc
     unit/editor/pixel_clipboard_test.cc
     unit/editor/graphics_sheet_sync_test.cc
+    unit/editor/catalog_tile_transfer_test.cc
+    unit/editor/catalog_palette_preview_test.cc
+    unit/editor/catalog_tile_browser_test.cc
+    unit/editor/catalog_object_transfer_test.cc
+    unit/editor/catalog_bundled_assets_test.cc
+    unit/editor/pixel_index_command_test.cc
     unit/editor/graphics_scratch_asset_test.cc
     unit/editor/scratch_bin_roundtrip_test.cc
     unit/editor/scratch_sprite_preview_test.cc
@@ -907,6 +913,18 @@ if(YAZE_BUILD_TESTS)
   yaze_add_focused_test_target(yaze_test_focus_wall_profile
     unit/zelda3/dungeon_wall_profile_test.cc
     unit/cli/dungeon_wall_profile_commands_test.cc)
+
+  yaze_add_focused_test_target(yaze_test_focus_graphics_art
+    unit/editor/catalog_tile_transfer_test.cc
+    unit/editor/catalog_palette_preview_test.cc
+    unit/editor/catalog_tile_browser_test.cc
+    unit/editor/catalog_object_transfer_test.cc
+    unit/editor/catalog_bundled_assets_test.cc
+    unit/editor/pixel_index_command_test.cc
+    unit/editor/sheet_png_transfer_test.cc
+    unit/editor/graphics_sheet_sync_test.cc
+    unit/editor/dungeon_palette_source_test.cc
+    unit/editor/authoring_save_workflow_test.cc)
 
   # Planning model, agent status, editor lifecycle, CLI and shared publisher.
   set(FOCUS_PLANNING_TEST_SOURCES

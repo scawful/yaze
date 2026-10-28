@@ -11,6 +11,7 @@
 #include "app/editor/graphics/graphics_sheet_sync.h"
 #include "app/editor/graphics/graphics_undo_actions.h"
 #include "app/editor/graphics/palette_controls_panel.h"
+#include "app/editor/graphics/pixel_index_command.h"
 #include "app/gfx/resource/arena.h"
 #include "app/gui/automation/widget_auto_register.h"
 #include "app/gui/core/color.h"
@@ -815,6 +816,71 @@ void PixelEditorPanel::DrawColorPicker() {
   ImGui::EndGroup();
   ImGui::PopStyleVar();
   palette_reorder_.Draw(*state_, apply_palette_reorder_, HasActiveStroke());
+  DrawIndexSwapControls();
+}
+
+void PixelEditorPanel::DrawIndexSwapControls() {
+  const bool show_swap = ImGui::CollapsingHeader(tr("Swap color IDs"));
+  gui::AutoRegisterLastItem("header", "Swap color IDs");
+  if (!show_swap)
+    return;
+  ImGui::TextWrapped("%s",
+                     tr("Swap matching pixels across the selection. "
+                        "Palette colors stay fixed; ID 0 stays transparent."));
+  ImGui::Combo(tr("Swap scope"), &swap_scope_,
+               "Selected pixels\0Object source tiles\0");
+  gui::AutoRegisterLastItem("combo", "Swap scope");
+  ImGui::SetNextItemWidth(ImGui::GetFontSize() * 6);
+  ImGui::InputInt(tr("From ID"), &swap_from_id_, 0, 0);
+  gui::AutoRegisterLastItem("input", "Swap from color ID");
+  ImGui::SameLine();
+  ImGui::SetNextItemWidth(ImGui::GetFontSize() * 6);
+  ImGui::InputInt(tr("To ID"), &swap_to_id_, 0, 0);
+  gui::AutoRegisterLastItem("input", "Swap to color ID");
+  swap_from_id_ = std::clamp(swap_from_id_, 1, 7);
+  swap_to_id_ = std::clamp(swap_to_id_, 1, 7);
+  const bool has_selection = state_->selection.is_active &&
+                             state_->selection.width > 0 &&
+                             state_->selection.height > 0;
+  const bool has_source =
+      state_->source_context && !state_->source_context->targets.empty();
+  const bool ready = undo_manager_ && !state_->selection.is_floating &&
+                     !HasActiveStroke() && swap_from_id_ != swap_to_id_ &&
+                     (swap_scope_ == 0 ? has_selection : has_source);
+  ImGui::BeginDisabled(!ready);
+  if (ImGui::Button(tr("Swap selected color IDs"))) {
+    std::vector<PixelIndexTarget> targets;
+    absl::Status status;
+    if (swap_scope_ == 0) {
+      const auto& selection = state_->selection;
+      auto selected = MakePixelIndexRectangleSelection(
+          state_->current_sheet_id, selection.x, selection.y, selection.width,
+          selection.height);
+      if (selected.ok())
+        targets = std::move(*selected);
+      else
+        status = selected.status();
+    } else {
+      for (const auto& target : state_->source_context->targets) {
+        targets.push_back({target.sheet_id, target.tile_index});
+      }
+    }
+    if (status.ok()) {
+      PixelIndexPermutation permutation{0, 1, 2, 3, 4, 5, 6, 7};
+      std::swap(permutation[swap_from_id_], permutation[swap_to_id_]);
+      status = ApplyPixelIndexPermutation(*state_, *undo_manager_, targets,
+                                          permutation);
+    }
+    index_swap_status_ =
+        status.ok() ? tr("Color IDs swapped. Undo restores the pixels.")
+                    : std::string(status.message());
+  }
+  gui::AutoRegisterLastItem("button", "Swap selected color IDs");
+  ImGui::EndDisabled();
+  ImGui::TextWrapped("%s", tr("These are shared sheet pixels. Other objects "
+                              "using the same tiles also use the edited art."));
+  if (!index_swap_status_.empty())
+    ImGui::TextWrapped("%s", index_swap_status_.c_str());
 }
 
 void PixelEditorPanel::DrawMiniMap() {

@@ -266,6 +266,7 @@ class GraphicsEditor : public Editor {
   friend class EditorManagerLayoutTestPeer;
   friend class GraphicsEditorSaveStoplossTestPeer;
   friend class AuthoringSaveWorkflowTestPeer;
+  friend class DungeonPaletteSourceTestPeer;
 
   // Applies `edit` to the active project (the copy that is saved) and to this
   // session's project snapshot, then marks the project dirty. Fails when no

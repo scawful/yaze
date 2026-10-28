@@ -4,6 +4,7 @@
 #include <array>
 #include <cstdint>
 #include <functional>
+#include <map>
 #include <optional>
 #include <string>
 #include <vector>
@@ -47,6 +48,16 @@ struct GraphicsEditTarget {
   std::string SourceOrientationLabel() const;
 };
 
+// A rendered object cell points at its actual physical source target. Cell
+// coordinates are relative to the object's drawn bounds, in 8x8 tiles.
+struct GraphicsSourceCell {
+  int x = 0;
+  int y = 0;
+  size_t target = 0;
+  bool hflip = false;
+  bool vflip = false;
+};
+
 // Read-only validation against the owning session's current palette model.
 // No fallback RGB lookup or palette/pixel mutation is performed.
 absl::Status ValidateGraphicsPaletteAddressing(const GraphicsEditTarget& target,
@@ -81,6 +92,14 @@ struct GraphicsEditContext {
   std::function<absl::Status(GraphicsEditContext&)> resolve_live_source;
   std::optional<uint64_t> palette_revision;
   std::string palette_error;
+  int pattern_width = 0;
+  int pattern_height = 0;
+  std::vector<GraphicsSourceCell> pattern_cells;
+  // A source-owned detached renderer. Supplied pixels never enter the store,
+  // active room, undo history or ROM merely to draw an art candidate.
+  std::function<absl::StatusOr<usage_preview::PreviewImage>(
+      const std::map<uint16_t, std::vector<uint8_t>>&)>
+      render_staged_preview;
 };
 
 // Applies fresh colors only when the source still addresses the same tiles.
