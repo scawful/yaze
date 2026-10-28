@@ -1031,5 +1031,37 @@ TEST(MessageCommandsPolicyTest, MessageWriteVanillaSaveFailurePrintsErrorJson) {
   EXPECT_EQ(rom.vector(), memory_before);  // the transaction rolled back
 }
 
+TEST(MessageCommandsPolicyTest, MessageListStopsAtRomEndWithoutEndMarker) {
+  // The vanilla text bank runs to the end of this ROM with no 0xFF marker.
+  std::vector<uint8_t> data(editor::kTextData + 4, 0x00);
+  data[editor::kTextData] = editor::FindMatchingCharacter('A');
+  data[editor::kTextData + 1] = editor::kMessageTerminator;
+  data[editor::kTextData + 2] = editor::FindMatchingCharacter('B');
+  data[editor::kTextData + 3] = editor::FindMatchingCharacter('B');
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(data).ok());
+  ASSERT_EQ(rom.size(), data.size());
+
+  handlers::MessageListCommandHandler handler;
+  std::string output;
+  const auto status = handler.Run({"--format=json"}, &rom, &output);
+
+  ASSERT_TRUE(status.ok()) << status << output;
+  const auto result = nlohmann::json::parse(output).at("Message List");
+  EXPECT_EQ(result.at("total_messages"), 1);
+}
+
+TEST(MessageCommandsPolicyTest, MessageReadOnRomWithoutTextBankFindsNothing) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x10000, 0x00)).ok());
+  ASSERT_LT(rom.size(), static_cast<size_t>(editor::kTextData));
+
+  handlers::MessageReadCommandHandler handler;
+  std::string output;
+  const auto status = handler.Run({"--id=0", "--format=json"}, &rom, &output);
+
+  EXPECT_EQ(status.code(), absl::StatusCode::kNotFound) << status << output;
+}
+
 }  // namespace
 }  // namespace yaze::cli
