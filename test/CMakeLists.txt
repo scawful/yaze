@@ -439,6 +439,7 @@ if(YAZE_BUILD_TESTS)
     unit/gui/empty_state_test.cc
     unit/gui/resize_handles_test.cc
     unit/gui/font_picker_test.cc
+    unit/gui/icon_font_alignment_test.cc
     unit/gui/icon_browser_test.cc
     unit/editor/layout/dock_tree_test.cc
     unit/editor/layout/dock_tree_json_test.cc
