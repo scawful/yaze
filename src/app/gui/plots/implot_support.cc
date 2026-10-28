@@ -1,5 +1,8 @@
 #include "app/gui/plots/implot_support.h"
 
+#include <vector>
+
+#include "absl/strings/str_format.h"
 #include "app/gui/core/color.h"
 #include "app/gui/core/layout_helpers.h"
 #include "app/gui/core/theme_manager.h"
@@ -11,6 +14,39 @@ namespace {
 
 ImVec4 WithAlpha(const ImVec4& color, float alpha) {
   return ImVec4(color.x, color.y, color.z, color.w * alpha);
+}
+
+bool IsCloseColor(const ImVec4& a, const ImVec4& b) {
+  const float dr = a.x - b.x;
+  const float dg = a.y - b.y;
+  const float db = a.z - b.z;
+  return dr * dr + dg * dg + db * db < 0.15f * 0.15f;
+}
+
+// Series 0 keeps the theme's plot_lines color; later series take ImPlot's
+// Deep palette so multi-series plots stay distinguishable. ImPlot keeps
+// colormaps for the life of the context and asserts on a reused name, and
+// the list depends only on plot_lines, so the name is keyed on that color.
+ImPlotColormap ThemeColormap(const Theme& theme) {
+  const ImVec4 primary =
+      WithAlpha(ConvertColorToImVec4(theme.plot_lines), 1.0f);
+  const std::string name = absl::StrFormat(
+      "yaze_theme_%08X", ImGui::ColorConvertFloat4ToU32(primary));
+  const ImPlotColormap existing = ImPlot::GetColormapIndex(name.c_str());
+  if (existing != -1) {
+    return existing;
+  }
+
+  std::vector<ImVec4> colors = {primary};
+  const int deep_size = ImPlot::GetColormapSize(ImPlotColormap_Deep);
+  for (int i = 0; i < deep_size; ++i) {
+    const ImVec4 color = ImPlot::GetColormapColor(i, ImPlotColormap_Deep);
+    if (!IsCloseColor(color, primary)) {
+      colors.push_back(color);
+    }
+  }
+  return ImPlot::AddColormap(name.c_str(), colors.data(),
+                             static_cast<int>(colors.size()), true);
 }
 
 ImVec2 ScaledSpacing(float multiplier) {
@@ -49,14 +85,10 @@ ImPlotStyle BuildBaseStyle(const Theme& theme, const PlotStyleConfig& config) {
   style.Use24HourClock = config.use_24h_clock;
   style.UseLocalTime = true;
 
-  style.Colors[ImPlotCol_Line] =
-      WithAlpha(ConvertColorToImVec4(theme.plot_lines), 1.0f);
-  style.Colors[ImPlotCol_Fill] =
-      WithAlpha(ConvertColorToImVec4(theme.plot_histogram), config.fill_alpha);
-  style.Colors[ImPlotCol_MarkerOutline] =
-      WithAlpha(ConvertColorToImVec4(theme.text_primary), 1.0f);
-  style.Colors[ImPlotCol_MarkerFill] =
-      WithAlpha(ConvertColorToImVec4(theme.accent), 0.9f);
+  // Line, Fill and Marker colors stay IMPLOT_AUTO_COL (the ImPlotStyle
+  // default) so each series takes the next colormap entry. Forcing them made
+  // every series in a plot the same color.
+  style.Colormap = ThemeColormap(theme);
   style.Colors[ImPlotCol_ErrorBar] =
       WithAlpha(ConvertColorToImVec4(theme.text_secondary), 0.85f);
   style.Colors[ImPlotCol_FrameBg] =

@@ -934,28 +934,51 @@ void PaletteEditorWidget::DrawPaletteAnalysis(const gfx::SnesPalette& palette) {
     }
   }
 
-  // Visual histogram of color reuse
+  // Visual histogram of color reuse. Bars sit at ordinal positions: raw BGR555
+  // values on the x axis span 0-0x7FFF and shrink each bar to a sliver.
   {
-    plotting::PlotStyleScope plot_style(
-        gui::ThemeManager::Get().GetCurrentTheme());
-    plotting::PlotConfig plot_cfg{.id = "Palette Color Frequency",
-                                  .x_label = "Color Index",
-                                  .y_label = "Count",
-                                  .flags = ImPlotFlags_NoBoxSelect,
-                                  .x_axis_flags = ImPlotAxisFlags_AutoFit,
-                                  .y_axis_flags = ImPlotAxisFlags_AutoFit};
-    std::vector<double> x;
-    std::vector<double> y;
-    x.reserve(color_frequency.size());
-    y.reserve(color_frequency.size());
-    for (const auto& [snes_color, count] : color_frequency) {
-      x.push_back(static_cast<double>(snes_color));
-      y.push_back(static_cast<double>(count));
-    }
+    const auto& theme = ThemeManager::Get().GetCurrentTheme();
+    plotting::PlotStyleScope plot_style(theme);
+    plotting::PlotConfig plot_cfg{
+        .id = "Palette Color Frequency",
+        .x_label = "Unique Color",
+        .y_label = "Count",
+        .flags = ImPlotFlags_NoBoxSelect | ImPlotFlags_NoLegend,
+        .x_axis_flags = ImPlotAxisFlags_AutoFit,
+        .y_axis_flags = ImPlotAxisFlags_AutoFit};
     plotting::PlotGuard plot(plot_cfg);
-    if (plot && !x.empty()) {
-      ImPlot::PlotBars("Count", x.data(), y.data(), static_cast<int>(x.size()),
-                       0.5, 0.0, ImPlotBarsFlags_None);
+    if (plot && !color_frequency.empty()) {
+      // Hex labels stay readable up to one 16-color row.
+      constexpr size_t kMaxLabeledTicks = 16;
+      if (color_frequency.size() <= kMaxLabeledTicks) {
+        std::vector<double> ticks;
+        std::vector<std::string> labels;
+        for (const auto& [snes_color, count] : color_frequency) {
+          ticks.push_back(static_cast<double>(ticks.size()));
+          labels.push_back(absl::StrFormat("%04X", snes_color));
+        }
+        std::vector<const char*> label_ptrs;
+        for (const auto& label : labels) {
+          label_ptrs.push_back(label.c_str());
+        }
+        ImPlot::SetupAxisTicks(ImAxis_X1, ticks.data(),
+                               static_cast<int>(ticks.size()),
+                               label_ptrs.data());
+      }
+
+      // One item per color so each bar shows the color it counts; the border
+      // keeps dark colors visible against the plot background.
+      const ImVec4 border = ConvertColorToImVec4(theme.border);
+      double x = 0.0;
+      for (const auto& [snes_color, count] : color_frequency) {
+        const double y = static_cast<double>(count);
+        ImPlot::SetNextFillStyle(
+            gui::ConvertSnesColorToImVec4(gfx::SnesColor(snes_color)), 1.0f);
+        ImPlot::SetNextLineStyle(border);
+        ImPlot::PlotBars(absl::StrFormat("##color%04X", snes_color).c_str(), &x,
+                         &y, 1, 0.67, 0.0, ImPlotBarsFlags_None);
+        x += 1.0;
+      }
     }
   }
 

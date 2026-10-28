@@ -457,7 +457,7 @@ void RenderPerformanceMonitor(Emulator* emu) {
       plotting::PlotConfig dma_config{
           .id = "DMA/VRAM Bytes",
           .y_label = "bytes/frame",
-          .flags = ImPlotFlags_NoLegend,
+          .flags = ImPlotFlags_None,  // Legend tells DMA from VRAM
           .x_axis_flags = ImPlotAxisFlags_NoTickLabels |
                           ImPlotAxisFlags_NoGridLines |
                           ImPlotAxisFlags_NoTickMarks,
@@ -511,6 +511,7 @@ void RenderPerformanceMonitor(Emulator* emu) {
           x[i] = static_cast<double>(i);
           y[i] = static_cast<double>(free_bytes[i]);
         }
+        ImPlot::SetNextFillStyle(ConvertColorToImVec4(theme.plot_histogram));
         ImPlot::PlotBars("Free", x.data(), y.data(),
                          static_cast<int>(free_bytes.size()), 0.67, 0.0,
                          ImPlotBarsFlags_None);
@@ -568,7 +569,7 @@ void RenderPerformanceMonitor(Emulator* emu) {
         plotting::PlotConfig audio_level_config{
             .id = "Audio Levels (RMS)",
             .y_label = "normalized",
-            .flags = ImPlotFlags_NoLegend,
+            .flags = ImPlotFlags_None,  // Legend tells L from R
             .x_axis_flags = ImPlotAxisFlags_NoTickLabels |
                             ImPlotAxisFlags_NoGridLines |
                             ImPlotAxisFlags_NoTickMarks,

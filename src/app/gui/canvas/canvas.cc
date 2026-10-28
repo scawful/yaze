@@ -1586,30 +1586,31 @@ void Canvas::DrawInfoGrid(float grid_step, int tile_id_offset, int label_id) {
     DrawGridLines(grid_step);
     DrawCustomHighlight(grid_step);
 
-    if (!enable_custom_labels_) {
-      return;
-    }
-
     // Draw the contents of labels on the grid
-    for (float x = fmodf(scrolling_.x, grid_step);
-         x < canvas_sz_.x * global_scale_; x += grid_step) {
-      for (float y = fmodf(scrolling_.y, grid_step);
-           y < canvas_sz_.y * global_scale_; y += grid_step) {
-        int tile_x = (x - scrolling_.x) / grid_step;
-        int tile_y = (y - scrolling_.y) / grid_step;
-        int tile_id = tile_x + (tile_y * tile_id_offset);
+    if (enable_custom_labels_) {
+      for (float x = fmodf(scrolling_.x, grid_step);
+           x < canvas_sz_.x * global_scale_; x += grid_step) {
+        for (float y = fmodf(scrolling_.y, grid_step);
+             y < canvas_sz_.y * global_scale_; y += grid_step) {
+          int tile_x = (x - scrolling_.x) / grid_step;
+          int tile_y = (y - scrolling_.y) / grid_step;
+          int tile_id = tile_x + (tile_y * tile_id_offset);
 
-        if (tile_id >= labels_[label_id].size()) {
-          break;
+          if (tile_id >= labels_[label_id].size()) {
+            break;
+          }
+          const std::string& label = labels_[label_id][tile_id];
+          draw_list_->AddText(
+              ImVec2(canvas_p0_.x + x + (grid_step / 2) - tile_id_offset,
+                     canvas_p0_.y + y + (grid_step / 2) - tile_id_offset),
+              kWhiteColor, label.c_str());
         }
-        std::string label = labels_[label_id][tile_id];
-        draw_list_->AddText(
-            ImVec2(canvas_p0_.x + x + (grid_step / 2) - tile_id_offset,
-                   canvas_p0_.y + y + (grid_step / 2) - tile_id_offset),
-            kWhiteColor, label.data());
       }
     }
   }
+  // Every path must pop: an unbalanced clip rect clips everything drawn
+  // after this canvas into the same window's draw list.
+  draw_list_->PopClipRect();
 }
 
 void Canvas::DrawCustomHighlight(float grid_step) {
