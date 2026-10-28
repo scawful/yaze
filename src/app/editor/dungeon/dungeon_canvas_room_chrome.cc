@@ -100,6 +100,9 @@ void DrawDungeonRoomPropertyFields(DungeonCanvasViewer& viewer,
   auto draw_hex = [&](const char* label, const char* id, int value,
                       int max_value, RoomMetadataField field, int index = 0) {
     property_row(label);
+    ImGui::SetNextItemWidth(
+        ImGui::CalcTextSize(max_value > 0xFF ? "0000" : "000").x +
+        ImGui::GetStyle().FramePadding.x * 2.0f);
     auto target = identity;
     target.element = static_cast<uint64_t>(field);
     target.component = static_cast<uint64_t>(index);
@@ -210,8 +213,9 @@ void DrawDungeonRoomPropertyFields(DungeonCanvasViewer& viewer,
   }
 
   const bool show_all = (layout == RoomPropertyLayout::kFull);
-  const bool show_core =
-      show_all || (layout == RoomPropertyLayout::kCoreGraphics);
+  const bool show_core = show_all ||
+                         (layout == RoomPropertyLayout::kCoreGraphics) ||
+                         (layout == RoomPropertyLayout::kCoreGraphicsRow);
   const bool show_mechanics =
       show_all || (layout == RoomPropertyLayout::kMechanics);
   const bool show_tags =
@@ -244,18 +248,33 @@ void DrawDungeonRoomPropertyFields(DungeonCanvasViewer& viewer,
     if (show_all) {
       ImGui::SeparatorText("Room properties");
     }
-    if (ImGui::BeginTable(
-            "##WorkbenchRoomGraphics", 4,
-            ImGuiTableFlags_RowBg | ImGuiTableFlags_SizingStretchProp)) {
-      ImGui::TableSetupColumn("Property 1", ImGuiTableColumnFlags_WidthFixed,
-                              label_width({"Layout", "Floor 1", "Palette"}));
-      ImGui::TableSetupColumn("Value 1", ImGuiTableColumnFlags_WidthStretch,
-                              1.0f);
-      ImGui::TableSetupColumn(
-          "Property 2", ImGuiTableColumnFlags_WidthFixed,
-          label_width({"Blockset", "Floor 2", "Spriteset"}));
-      ImGui::TableSetupColumn("Value 2", ImGuiTableColumnFlags_WidthStretch,
-                              1.0f);
+    const bool horizontal = layout == RoomPropertyLayout::kCoreGraphicsRow;
+    const float available = ImGui::GetContentRegionAvail().x;
+    const int pairs = horizontal
+                          ? (available >= ImGui::GetFontSize() * 60.0f   ? 6
+                             : available >= ImGui::GetFontSize() * 33.0f ? 3
+                                                                         : 2)
+                          : 2;
+    const ImGuiTableFlags graphics_flags =
+        ImGuiTableFlags_RowBg |
+        (horizontal
+             ? ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_NoHostExtendX
+             : ImGuiTableFlags_SizingStretchProp);
+    if (ImGui::BeginTable("##WorkbenchRoomGraphics", pairs * 2,
+                          graphics_flags)) {
+      for (int pair = 0; pair < pairs; ++pair) {
+        ImGui::TableSetupColumn(
+            "Property", ImGuiTableColumnFlags_WidthFixed,
+            label_width({"Layout", "Blockset", "Floor 1", "Floor 2", "Palette",
+                         "Spriteset"}));
+        ImGui::TableSetupColumn(
+            "Value",
+            horizontal ? ImGuiTableColumnFlags_WidthFixed
+                       : ImGuiTableColumnFlags_WidthStretch,
+            horizontal ? ImGui::CalcTextSize("000").x +
+                             ImGui::GetStyle().FramePadding.x * 2.0f
+                       : 1.0f);
+      }
       draw_hex("Layout", "##RoomHeaderLayout", room.layout_id(), 0x07,
                RoomMetadataField::kLayout);
       draw_hex("Blockset", "##RoomHeaderBlockset", room.blockset(), 0x51,

@@ -128,6 +128,7 @@ class DungeonRoomMetadataUiTest : public ::testing::Test {
           ImGui::GetStateStorage()->SetInt(ImGui::GetID(label), 0);
         }
       }
+      DungeonWorkbenchContentTestPeer::DrawRoomContextRow(content_, viewer_);
       DungeonWorkbenchContentTestPeer::DrawInspector(content_, viewer_,
                                                      compact_);
     }
@@ -249,6 +250,32 @@ class DungeonRoomMetadataUiTest : public ::testing::Test {
       [](int) {},
       [](bool) {}};
 };
+
+TEST_F(DungeonRoomMetadataUiTest,
+       RoomContextRowKeepsCompactGraphicsTogetherAtDesktopWidths) {
+  for (const float width : {1400.0f, 2200.0f}) {
+    SCOPED_TRACE(width);
+    width_ = width;
+    ImGui::GetIO().DisplaySize = ImVec2(width + 200.0f, 1400);
+    DrawFrame();
+    DrawFrame();
+    std::optional<float> field_y;
+    for (size_t i = 0; i < 6; ++i) {
+      const auto widget = Widget(kRoomPropertyFields[i]);
+      ASSERT_TRUE(widget) << kRoomPropertyFields[i];
+      ASSERT_TRUE(widget->visible) << kRoomPropertyFields[i];
+      if (!field_y) {
+        field_y = widget->bounds.min_y;
+      }
+      EXPECT_FLOAT_EQ(widget->bounds.min_y, *field_y);
+      EXPECT_FLOAT_EQ(widget->bounds.max_x - widget->bounds.min_x,
+                      ImGui::CalcTextSize("000").x +
+                          ImGui::GetStyle().FramePadding.x * 2.0f);
+    }
+  }
+  EXPECT_TRUE(edits_.empty());
+  EXPECT_FALSE(rooms_[0].HasUnsavedChanges());
+}
 
 TEST_F(DungeonRoomMetadataUiTest,
        DefaultAndPersistedCollapsedInspectExposeEssentialsAtLaptopSize) {

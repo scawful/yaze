@@ -8,6 +8,10 @@ namespace yaze::editor {
 
 class DungeonWorkbenchContentTestPeer {
  public:
+  static const DungeonWorkbenchLayoutState& LayoutState(
+      const DungeonWorkbenchContent& content) {
+    return content.layout_state_;
+  }
   static void DrawToolsToolbar(DungeonWorkbenchContent& content) {
     DungeonWorkbenchToolbarParams params;
     params.layout = &content.layout_state_;
@@ -52,6 +56,10 @@ class DungeonWorkbenchContentTestPeer {
   static void DrawRoomInspector(DungeonWorkbenchContent& content,
                                 DungeonCanvasViewer& viewer) {
     content.DrawInspectorShelfRoom(viewer);
+  }
+  static void DrawRoomContextRow(DungeonWorkbenchContent& content,
+                                 DungeonCanvasViewer& viewer) {
+    content.DrawRoomContextRow(viewer);
   }
   static void SetRoomInspectorSubTab(
       DungeonWorkbenchContent& content,

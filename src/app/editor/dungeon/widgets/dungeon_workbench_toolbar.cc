@@ -51,7 +51,7 @@ constexpr char kToolbarPopupIdRecentRooms[] = "##WorkbenchRecentRooms";
 constexpr char kToolbarPopupIdOverflow[] = "##WorkbenchToolbarOverflow";
 constexpr char kToolbarStartCompareLabel[] = "Compare";
 constexpr char kToolbarRecentRoomsLabel[] = ICON_MD_HISTORY;
-constexpr char kToolbarViewOptionsLabel[] = "Display";
+constexpr char kToolbarViewOptionsLabel[] = "View";
 constexpr char kToolbarSaveContentLabel[] = "Save content";
 constexpr char kToolbarModeRoomLabel[] = "Room";
 constexpr char kToolbarModeConnectedLabel[] = "Overview";
@@ -156,6 +156,10 @@ void DrawViewOptionsContents(const DungeonWorkbenchToolbarParams& p) {
   }
 
   DrawDungeonOverlayControls(*p.primary_viewer);
+  if (p.draw_layout_options) {
+    ImGui::Separator();
+    p.draw_layout_options();
+  }
 }
 
 void DrawViewOptionsButton(const DungeonWorkbenchToolbarParams& p,

@@ -21,6 +21,11 @@ struct DungeonWorkbenchLayoutState {
 
   // Read-only stitched room matrix view for browsing adjacent rooms.
   bool show_connected_canvas_view = false;
+
+  // Session-only presentation options, adjustable without rebuilding the app.
+  bool show_room_context_row = true;
+  bool show_nearby_rooms = true;
+  float nearby_rooms_height = 120.0f;
 };
 
 }  // namespace yaze::editor

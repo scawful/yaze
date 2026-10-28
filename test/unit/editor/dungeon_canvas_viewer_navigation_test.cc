@@ -25,6 +25,7 @@
 #include "app/gfx/core/bitmap.h"
 #include "app/gfx/resource/arena.h"
 #include "app/gfx/types/snes_tile.h"
+#include "app/gui/automation/widget_id_registry.h"
 #include "app/gui/canvas/canvas_pipelines.h"
 #include "app/gui/core/icons.h"
 #include "core/features.h"
@@ -318,15 +319,15 @@ class DungeonCanvasViewerTestPeer {
     return viewer.change_ping_start_time_;
   }
 
-  static bool InvokeDisplayContextMenuItem(DungeonCanvasViewer& viewer,
-                                           int room_id, const char* label) {
+  static bool InvokeViewContextMenuItem(DungeonCanvasViewer& viewer,
+                                        int room_id, const char* label) {
     viewer.canvas_.ClearContextMenuItems();
     viewer.AddLoadedRoomContextMenuItems(room_id);
     // Copy before dispatch: a Fit callback can refresh the room composite.
     const auto menu = viewer.canvas_.editor_menu();
     for (const auto& section : menu.sections) {
       for (const auto& item : section.items) {
-        if (item.label != "Display")
+        if (item.label != "View")
           continue;
         for (const auto& action : item.subitems) {
           if (action.label == label && action.callback) {
@@ -337,6 +338,17 @@ class DungeonCanvasViewerTestPeer {
       }
     }
     return false;
+  }
+
+  static std::vector<gui::CanvasMenuItem> LoadedRoomContextMenuItems(
+      DungeonCanvasViewer& viewer, int room_id) {
+    viewer.canvas_.ClearContextMenuItems();
+    viewer.AddLoadedRoomContextMenuItems(room_id);
+    std::vector<gui::CanvasMenuItem> items;
+    for (const auto& section : viewer.canvas_.editor_menu().sections) {
+      items.insert(items.end(), section.items.begin(), section.items.end());
+    }
+    return items;
   }
 
   static std::vector<std::string> InteractionContextMenuLabels(
@@ -568,6 +580,7 @@ class DungeonCanvasWheelRoutingTest : public ::testing::Test {
   }
 
   void TearDown() override {
+    gui::WidgetIdRegistry::Instance().Clear();
     content_.reset();
     primary_.reset();
     compare_.reset();
@@ -1024,7 +1037,7 @@ TEST_F(DungeonCanvasWheelRoutingTest,
     ExpectCentered(Frame());
     EXPECT_FLOAT_EQ(primary_->canvas().global_scale(), 2.0f);
     EXPECT_FALSE(primary_->canvas().GetConfig().show_builtin_context_menu);
-    ASSERT_TRUE(DungeonCanvasViewerTestPeer::InvokeDisplayContextMenuItem(
+    ASSERT_TRUE(DungeonCanvasViewerTestPeer::InvokeViewContextMenuItem(
         *primary_, primary_->current_room_id(), "Fit room"));
     ExpectRoomFits(Frame());
     host_size_ = ImVec2(960, 720);
@@ -1040,7 +1053,7 @@ TEST_F(DungeonCanvasWheelRoutingTest, RepeatedZoomOutKeepsRoomVisible) {
   Frame();
   for (int i = 0; i < 12; ++i) {
     const float before = primary_->canvas().global_scale();
-    ASSERT_TRUE(DungeonCanvasViewerTestPeer::InvokeDisplayContextMenuItem(
+    ASSERT_TRUE(DungeonCanvasViewerTestPeer::InvokeViewContextMenuItem(
         *primary_, primary_->current_room_id(), "Zoom out"));
     EXPECT_GT(primary_->canvas().global_scale(), 0.0f);
     EXPECT_LE(primary_->canvas().global_scale(), before);
@@ -1048,7 +1061,7 @@ TEST_F(DungeonCanvasWheelRoutingTest, RepeatedZoomOutKeepsRoomVisible) {
                     primary_->canvas().global_scale());
     ExpectCentered(Frame());
   }
-  ASSERT_TRUE(DungeonCanvasViewerTestPeer::InvokeDisplayContextMenuItem(
+  ASSERT_TRUE(DungeonCanvasViewerTestPeer::InvokeViewContextMenuItem(
       *primary_, primary_->current_room_id(), "Fit room"));
   ExpectRoomFits(Frame());
 
@@ -1072,10 +1085,10 @@ TEST_F(DungeonCanvasWheelRoutingTest, SmallPaneZoomIsNotMistakenForFit) {
   SetHost(Host::Compare);
   ExpectRoomFits(Frame());
   ASSERT_LT(primary_->canvas().global_scale(), 0.25f);
-  ASSERT_TRUE(DungeonCanvasViewerTestPeer::InvokeDisplayContextMenuItem(
+  ASSERT_TRUE(DungeonCanvasViewerTestPeer::InvokeViewContextMenuItem(
       *primary_, primary_->current_room_id(), "Zoom in"));
   Frame();
-  ASSERT_TRUE(DungeonCanvasViewerTestPeer::InvokeDisplayContextMenuItem(
+  ASSERT_TRUE(DungeonCanvasViewerTestPeer::InvokeViewContextMenuItem(
       *primary_, primary_->current_room_id(), "Zoom out"));
   ExpectCentered(Frame());
   EXPECT_FLOAT_EQ(primary_->canvas().global_scale(), 0.25f);
@@ -1083,7 +1096,7 @@ TEST_F(DungeonCanvasWheelRoutingTest, SmallPaneZoomIsNotMistakenForFit) {
   Frame();
   ExpectCentered(Frame());
   EXPECT_FLOAT_EQ(primary_->canvas().global_scale(), 0.25f);
-  ASSERT_TRUE(DungeonCanvasViewerTestPeer::InvokeDisplayContextMenuItem(
+  ASSERT_TRUE(DungeonCanvasViewerTestPeer::InvokeViewContextMenuItem(
       *primary_, primary_->current_room_id(), "Fit room"));
   ExpectRoomFits(Frame());
   host_size_ = ImVec2(960, 720);
@@ -1138,7 +1151,7 @@ TEST_F(DungeonCanvasWheelRoutingTest,
   ASSERT_LT(std::min(zoomed.canvas_bounds.GetWidth(),
                      zoomed.canvas_bounds.GetHeight()),
             128);
-  ASSERT_TRUE(DungeonCanvasViewerTestPeer::InvokeDisplayContextMenuItem(
+  ASSERT_TRUE(DungeonCanvasViewerTestPeer::InvokeViewContextMenuItem(
       *primary_, primary_->current_room_id(), "Fit room"));
   EXPECT_FLOAT_EQ(primary_->canvas().global_scale(), 0.25f);
   ExpectRoomFits(Frame());
@@ -1188,6 +1201,125 @@ TEST_F(DungeonCanvasWheelRoutingTest,
   EXPECT_GE(fitted.bitmap.Min.y, fitted.viewport.Min.y - 1);
   EXPECT_LE(fitted.bitmap.Max.x, fitted.viewport.Max.x + 1);
   EXPECT_LE(fitted.bitmap.Max.y, fitted.viewport.Max.y + 1);
+}
+
+TEST_F(DungeonCanvasWheelRoutingTest,
+       DisplayPopupWidthSlidersChangeAndKeepActualPaneWidths) {
+  product_host_ = true;
+  synthetic_overflow_ = false;
+  host_size_ = ImVec2(1600, 900);
+  auto& io = ImGui::GetIO();
+  io.DisplaySize = ImVec2(1920, 1080);
+  const auto frame = [&]() {
+    gui::WidgetIdRegistry::Instance().Clear();
+    Frame();
+  };
+  const auto widget = [](const char* label)
+      -> std::optional<gui::WidgetIdRegistry::WidgetInfo> {
+    for (const auto& [path, info] :
+         gui::WidgetIdRegistry::Instance().GetAllWidgets()) {
+      if (info.label == gui::WidgetIdRegistry::NormalizeLabel(label))
+        return info;
+    }
+    return std::nullopt;
+  };
+  const auto pane_width = [](const char* id) {
+    const std::string child = std::string("/") + id + "_";
+    for (auto* window : ImGui::GetCurrentContext()->Windows) {
+      if (window->Active &&
+          std::string(window->Name).find(child) != std::string::npos)
+        return window->Size.x;
+    }
+    return -1.0f;
+  };
+  frame();
+  frame();
+  auto display = widget("ViewOptionsButton");
+  ASSERT_TRUE(display.has_value());
+  io.AddMousePosEvent((display->bounds.min_x + display->bounds.max_x) * 0.5f,
+                      (display->bounds.min_y + display->bounds.max_y) * 0.5f);
+  frame();
+  io.AddMouseButtonEvent(0, true);
+  frame();
+  io.AddMouseButtonEvent(0, false);
+  frame();
+  frame();
+
+  for (bool browser : {true, false}) {
+    SCOPED_TRACE(browser ? "Browser width" : "Inspector width");
+    const char* label = browser ? "Browser width" : "Inspector width";
+    const char* pane =
+        browser ? "##DungeonWorkbenchSidebar" : "##DungeonWorkbenchInspector";
+    const auto slider = widget(label);
+    ASSERT_TRUE(slider.has_value());
+    ASSERT_TRUE(slider->visible);
+    const auto stored_width = [&]() {
+      const auto& layout =
+          DungeonWorkbenchContentTestPeer::LayoutState(*content_);
+      return browser ? layout.left_width : layout.right_width;
+    };
+    const float before = stored_width();
+    const float pane_before = pane_width(pane);
+    ASSERT_GT(pane_before, 0.0f);
+    // Stay inside the slider frame; the registered rectangle includes its label.
+    io.AddMousePosEvent(
+        slider->bounds.min_x + ImGui::GetFontSize() * 16 * 0.65f,
+        (slider->bounds.min_y + slider->bounds.max_y) * 0.5f);
+    frame();
+    io.AddMouseButtonEvent(0, true);
+    frame();
+    const float changed = stored_width();
+    EXPECT_GT(changed, before + 40.0f);
+    EXPECT_NEAR(pane_width(pane), changed, 1.0f);
+    EXPECT_GT(pane_width(pane), pane_before + 40.0f);
+    io.AddMouseButtonEvent(0, false);
+    frame();
+    frame();
+    EXPECT_FLOAT_EQ(stored_width(), changed);
+    EXPECT_NEAR(pane_width(pane), changed, 1.0f);
+  }
+  gui::WidgetIdRegistry::Instance().Clear();
+}
+
+TEST_F(DungeonCanvasWheelRoutingTest,
+       TallCanvasWithoutNearbyRoomsKeepsStatusBarAtBottom) {
+  product_host_ = true;
+  synthetic_overflow_ = false;
+  auto& io = ImGui::GetIO();
+  io.DisplaySize = ImVec2(1100, 1200);
+  const auto graph =
+      DungeonCanvasViewerTestPeer::BuildConnectedRoomGraph(*primary_, room_id_);
+  ASSERT_TRUE(std::none_of(
+      graph.links.begin(), graph.links.end(), [this](const auto& link) {
+        return link.from_room_id == room_id_ && link.to_room_id != room_id_;
+      }));
+  const auto child = [](const char* id) -> ImGuiWindow* {
+    const std::string name = std::string("/") + id + "_";
+    for (auto* window : ImGui::GetCurrentContext()->Windows) {
+      if (window->Active &&
+          std::string(window->Name).find(name) != std::string::npos)
+        return window;
+    }
+    return nullptr;
+  };
+  for (float height : {900.0f, 1050.0f}) {
+    SCOPED_TRACE(height);
+    host_size_ = ImVec2(900, height);
+    Frame();
+    Frame();
+    auto* canvas = child("##DungeonWorkbenchCanvas");
+    auto* body = child("##DungeonCanvasBody");
+    auto* status = child("##DungeonStatusBar");
+    ASSERT_NE(canvas, nullptr);
+    ASSERT_NE(body, nullptr);
+    ASSERT_NE(status, nullptr);
+    EXPECT_EQ(child("##NearbyRoomPreviews"), nullptr);
+    EXPECT_GE(status->Pos.y - (body->Pos.y + body->Size.y), 80.0f);
+    EXPECT_NEAR(status->Pos.y + status->Size.y, canvas->InnerClipRect.Max.y,
+                1.0f);
+    EXPECT_EQ(canvas->ScrollMax.y, 0.0f);
+    EXPECT_FALSE(canvas->ScrollbarY);
+  }
 }
 
 TEST(DungeonCanvasFitTest, LegacyCanvasFitsHostFromPopupWithoutZoomGrowth) {
@@ -2335,6 +2467,87 @@ INSTANTIATE_TEST_SUITE_P(
     });
 
 }  // namespace
+
+TEST(DungeonCanvasViewerContextMenuTest,
+     LoadedRoomUsesDirectInspectorAndStandardGroups) {
+  ScopedImGuiContext imgui;
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+  DungeonRoomStore rooms(&rom);
+  DungeonCanvasViewer viewer(&rom);
+  viewer.SetRooms(&rooms);
+  int inspector_opens = 0;
+  std::vector<std::string> opened;
+  viewer.SetShowDungeonSettingsCallback([&]() { ++inspector_opens; });
+  viewer.SetShowRoomListCallback([&]() { opened.push_back("Room List"); });
+  viewer.SetShowRoomMatrixCallback([&]() { opened.push_back("Room Matrix"); });
+  viewer.SetShowRoomGraphicsCallback(
+      [&]() { opened.push_back("Room Graphics"); });
+  viewer.SetShowDoorEditorCallback([&]() { opened.push_back("Door Editor"); });
+  viewer.SetShowEntranceListCallback(
+      [&]() { opened.push_back("Entrance List"); });
+
+  const auto menu =
+      DungeonCanvasViewerTestPeer::LoadedRoomContextMenuItems(viewer, 0);
+  std::vector<std::string> labels;
+  for (const auto& item : menu) {
+    labels.push_back(item.label);
+  }
+  EXPECT_EQ(labels, (std::vector<std::string>{"Inspector...", "Room", "Open",
+                                              "View", "Export", "Debug"}));
+  ASSERT_EQ(menu.size(), 6u);
+  ASSERT_TRUE(menu[0].callback);
+  menu[0].callback();
+  EXPECT_EQ(inspector_opens, 1);
+
+  for (const auto& item : menu[2].subitems) {
+    ASSERT_TRUE(item.callback);
+    item.callback();
+  }
+  EXPECT_EQ(opened, (std::vector<std::string>{"Room List", "Room Matrix",
+                                              "Room Graphics", "Door Editor",
+                                              "Entrance List"}));
+  ASSERT_FALSE(menu[4].subitems.empty());
+  EXPECT_EQ(menu[4].subitems.front().label, "Copy Room Summary");
+  ASSERT_FALSE(menu[5].subitems.empty());
+  EXPECT_EQ(menu[5].subitems.back().label, "Capture Issue");
+  EXPECT_FALSE(menu[5].subitems.back().subitems.empty());
+}
+
+TEST(DungeonCanvasViewerContextMenuTest,
+     PasteKeepsCapturedRoomAnchorWhenPointerMovesIntoMenu) {
+  ScopedImGuiContext imgui;
+  DungeonRoomStore rooms;
+  rooms[0].SetTileObjects({zelda3::RoomObject{0x01, 10, 10, 0x00, 0}});
+  DungeonCanvasViewer viewer;
+  viewer.SetRooms(&rooms);
+  auto& interaction = viewer.object_interaction();
+  interaction.SetCurrentRoom(&rooms, 0);
+  interaction.SetSelectedObjects({0});
+  ASSERT_TRUE(interaction.HandleCopySelected().ok());
+  viewer.canvas().set_scrolling(ImVec2(-40, -24));
+  viewer.canvas().set_global_scale(2.0f);
+  const DungeonCanvasTransform transform(viewer.canvas().zero_point(),
+                                         viewer.canvas().scrolling(),
+                                         viewer.canvas().global_scale());
+  ImGui::GetIO().MousePos = transform.RoomPixelsToScreen(ImVec2(131, 150));
+  const auto menu = DungeonCanvasViewerTestPeer::SelectionContextMenuItems(
+      viewer, 0, std::nullopt);
+  const auto paste =
+      std::find_if(menu.begin(), menu.end(),
+                   [](const auto& item) { return item.label == "Paste"; });
+  ASSERT_NE(paste, menu.end());
+  ASSERT_TRUE(paste->enabled_condition());
+  ASSERT_TRUE(paste->callback);
+
+  ImGui::GetIO().MousePos = transform.RoomPixelsToScreen(ImVec2(270, 300));
+  paste->callback();
+
+  ASSERT_TRUE(interaction.selection_edit_status().ok());
+  ASSERT_EQ(rooms[0].GetTileObjects().size(), 2u);
+  EXPECT_EQ(rooms[0].GetTileObjects()[1].x_, 16);
+  EXPECT_EQ(rooms[0].GetTileObjects()[1].y_, 18);
+}
 
 TEST(DungeonCanvasViewerContextMenuTest,
      EmptySelectionKeepsPasteAndInsertAtRoot) {

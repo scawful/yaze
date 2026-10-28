@@ -2,6 +2,7 @@
 #define YAZE_APP_EMU_AUDIO_S_DSP_H
 
 #include <cstdint>
+#include <iosfwd>
 #include <vector>
 
 namespace yaze {
@@ -9,8 +10,8 @@ namespace emu {
 
 enum class InterpolationType {
   Linear,
-  Hermite,  // Used by bsnes/Snes9x - better quality than linear
-  Gaussian, // SNES hardware accurate
+  Hermite,   // Used by bsnes/Snes9x - better quality than linear
+  Gaussian,  // SNES hardware accurate
   Cosine,
   Cubic,
 };
@@ -92,7 +93,7 @@ class Dsp {
   void NewFrame();
 
   void Reset();
-  
+
   void SaveState(std::ostream& stream);
   void LoadState(std::istream& stream);
 
@@ -117,18 +118,22 @@ class Dsp {
   int CopyNativeFrame(int16_t* sample_data, bool pal_timing);
 
   void SetChannelMute(int ch, bool mute) {
-    if (ch >= 0 && ch < 8) debug_mute_channels_[ch] = mute;
+    if (ch >= 0 && ch < 8)
+      debug_mute_channels_[ch] = mute;
   }
   bool GetChannelMute(int ch) const {
-    if (ch >= 0 && ch < 8) return debug_mute_channels_[ch];
+    if (ch >= 0 && ch < 8)
+      return debug_mute_channels_[ch];
     return false;
   }
 
   // Accessor for visualization
   const DspChannel& GetChannel(int ch) const {
     // Safety clamp
-    if (ch < 0) ch = 0;
-    if (ch > 7) ch = 7;
+    if (ch < 0)
+      ch = 0;
+    if (ch > 7)
+      ch = 7;
     return channel[ch];
   }
 

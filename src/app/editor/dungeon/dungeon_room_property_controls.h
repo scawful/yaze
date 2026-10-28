@@ -12,6 +12,7 @@ enum class RoomPropertyLayout {
   kCompact,
   kFull,
   kCoreGraphics,
+  kCoreGraphicsRow,
   kTags,
   kMechanics,
 };

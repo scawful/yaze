@@ -17,6 +17,14 @@ float ClampWorkbenchPaneWidth(float desired_width, float min_width,
 
 }  // namespace
 
+float ResolveDungeonWorkbenchNearbyHeight(float width, float height,
+                                          float requested_height,
+                                          float item_spacing) {
+  const float spare = height - width - std::max(item_spacing, 0.0f);
+  const float preview_height = std::min(requested_height, spare);
+  return width > 0.0f && preview_height >= 80.0f ? preview_height : 0.0f;
+}
+
 bool DrawDungeonWorkbenchVerticalSplitter(const char* id, float height,
                                           float* pane_width, float min_width,
                                           float max_width,

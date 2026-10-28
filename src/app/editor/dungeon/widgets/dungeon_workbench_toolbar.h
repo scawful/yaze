@@ -32,6 +32,7 @@ struct DungeonWorkbenchToolbarParams {
   std::function<void(float)> draw_entrance_context;
   std::function<void()> draw_tools;
   std::function<void()> draw_save_content;
+  std::function<void()> draw_layout_options;
 
   char* compare_search_buf = nullptr;
   size_t compare_search_buf_size = 0;

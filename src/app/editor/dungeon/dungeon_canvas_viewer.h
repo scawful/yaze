@@ -293,6 +293,10 @@ class DungeonCanvasViewer {
 
   void DrawDungeonCanvas(int room_id);
   std::optional<int> DrawConnectedRoomMatrix(int center_room_id);
+  // Read-only direct-neighbor thumbnails within the caller's spare height,
+  // including captions. Does not change the room view; clicks use normal room
+  // navigation after drawing. Empty connections consume no layout space.
+  void DrawNearbyRoomPreviews(int room_id, float height);
   // Read-only proposal preview: overlay.rooms rendered left to right with the
   // visible layers drawn on top. Never edits room data.
   void DrawProposalPreview(const DungeonProposalOverlay& overlay,

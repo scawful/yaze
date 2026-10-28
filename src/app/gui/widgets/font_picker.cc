@@ -2,6 +2,7 @@
 
 #include <array>
 #include <cstdio>
+#include <string_view>
 
 #include "imgui/imgui.h"
 #include "imgui/imgui_internal.h"

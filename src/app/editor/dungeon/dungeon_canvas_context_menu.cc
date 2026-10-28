@@ -18,6 +18,23 @@
 
 namespace yaze::editor {
 
+namespace {
+
+std::pair<int, int> ContextMenuRoomPosition(const gui::Canvas& canvas) {
+  ImVec2 screen_position = ImGui::GetIO().MousePos;
+  if (!ImGui::IsMouseClicked(ImGuiMouseButton_Right)) {
+    if (const auto popup_anchor = canvas.context_menu_open_screen_position();
+        popup_anchor.has_value()) {
+      screen_position = *popup_anchor;
+    }
+  }
+  return DungeonCanvasTransform(canvas.zero_point(), canvas.scrolling(),
+                                canvas.global_scale())
+      .ScreenToRoomPixelCoordinates(screen_position);
+}
+
+}  // namespace
+
 void DungeonCanvasViewer::PopulateCanvasContextMenu(int room_id) {
   canvas_.ClearContextMenuItems();
   AddInteractionContextMenuItems(room_id);
@@ -42,41 +59,44 @@ void DungeonCanvasViewer::AddLoadedRoomContextMenuItems(int room_id) {
     return;
   }
 
+  if (show_dungeon_settings_callback_) {
+    gui::CanvasMenuItem inspector("Inspector...", ICON_MD_TUNE, [this]() {
+      show_dungeon_settings_callback_();
+    });
+    inspector.separator_after = true;
+    canvas_.AddContextMenuItem(std::move(inspector));
+  }
   canvas_.AddContextMenuItem(BuildRoomContextMenu(room_id));
   if (auto open_menu = BuildOpenContextMenu(); open_menu.has_value()) {
     canvas_.AddContextMenuItem(std::move(*open_menu));
   }
-  gui::CanvasMenuItem display;
-  display.label = "Display";
-  display.icon = ICON_MD_VISIBILITY;
-  display.subitems.emplace_back(
-      "Fit room", ICON_MD_FIT_SCREEN, [this, room_id] {
-        if (auto* bitmap = PrepareRoomCompositeBitmap(room_id)) {
-          canvas_.SetZoomToFit(*bitmap);
-          room_viewport_auto_fit_ = true;
-          room_viewport_last_scale_ = canvas_.global_scale();
-        }
-      });
-  display.subitems.emplace_back("Zoom in", ICON_MD_ZOOM_IN, [this] {
+  gui::CanvasMenuItem view;
+  view.label = "View";
+  view.icon = ICON_MD_VISIBILITY;
+  view.subitems.emplace_back("Fit room", ICON_MD_FIT_SCREEN, [this, room_id] {
+    if (auto* bitmap = PrepareRoomCompositeBitmap(room_id)) {
+      canvas_.SetZoomToFit(*bitmap);
+      room_viewport_auto_fit_ = true;
+      room_viewport_last_scale_ = canvas_.global_scale();
+    }
+  });
+  view.subitems.emplace_back("Zoom in", ICON_MD_ZOOM_IN, [this] {
     room_viewport_auto_fit_ = false;
     canvas_.ZoomIn();
   });
-  display.subitems.emplace_back("Zoom out", ICON_MD_ZOOM_OUT, [this] {
+  view.subitems.emplace_back("Zoom out", ICON_MD_ZOOM_OUT, [this] {
     room_viewport_auto_fit_ = false;
     canvas_.ZoomOut();
   });
-  display.subitems.back().separator_after = true;
-  display.subitems.push_back(BuildLayerVisibilityContextMenu(room_id));
-  display.subitems.push_back(BuildOverlayContextMenu());
-  canvas_.AddContextMenuItem(std::move(display));
-
-  gui::CanvasMenuItem advanced;
-  advanced.label = "Advanced";
-  advanced.icon = ICON_MD_MORE_HORIZ;
-  advanced.subitems.push_back(BuildCopyExportContextMenu(room_id));
-  advanced.subitems.push_back(BuildReportContextMenu(room_id));
-  advanced.subitems.push_back(BuildDebugContextMenu(room_id));
-  canvas_.AddContextMenuItem(std::move(advanced));
+  view.subitems.back().separator_after = true;
+  view.subitems.push_back(BuildLayerVisibilityContextMenu(room_id));
+  view.subitems.push_back(BuildOverlayContextMenu());
+  canvas_.AddContextMenuItem(std::move(view));
+  canvas_.AddContextMenuItem(BuildCopyExportContextMenu(room_id));
+  auto debug = BuildDebugContextMenu(room_id);
+  debug.subitems.back().separator_after = true;
+  debug.subitems.push_back(BuildReportContextMenu(room_id));
+  canvas_.AddContextMenuItem(std::move(debug));
 }
 
 gui::CanvasMenuItem DungeonCanvasViewer::BuildInsertContextMenu() {
@@ -135,18 +155,7 @@ DungeonCanvasViewer::GetObjectUnderContextCursor(int room_id) {
     return std::nullopt;
   }
 
-  const ImGuiIO& io = ImGui::GetIO();
-  ImVec2 screen_position = io.MousePos;
-  if (!ImGui::IsMouseClicked(ImGuiMouseButton_Right)) {
-    if (const auto popup_anchor = canvas_.context_menu_open_screen_position();
-        popup_anchor.has_value()) {
-      screen_position = *popup_anchor;
-    }
-  }
-  const DungeonCanvasTransform transform(
-      canvas_.zero_point(), canvas_.scrolling(), canvas_.global_scale());
-  const auto [canvas_x, canvas_y] =
-      transform.ScreenToRoomPixelCoordinates(screen_position);
+  const auto [canvas_x, canvas_y] = ContextMenuRoomPosition(canvas_);
   if (!dungeon_coords::IsWithinBounds(canvas_x, canvas_y)) {
     return std::nullopt;
   }
@@ -241,9 +250,13 @@ DungeonCanvasViewer::BuildSelectionContextMenuItems(
     };
   };
   auto paste_item = [&]() {
+    const auto [room_x, room_y] =
+        has_clipboard ? ContextMenuRoomPosition(canvas_) : std::pair{0, 0};
     gui::CanvasMenuItem item(
         "Paste", ICON_MD_CONTENT_PASTE,
-        [&interaction]() { (void)interaction.HandlePasteObjects(); },
+        [&interaction, room_x, room_y]() {
+          (void)interaction.HandlePasteObjectsAt(room_x, room_y);
+        },
         gui::FormatCtrlShortcut(ImGuiKey_V));
     item.enabled_condition = enabled_if(has_clipboard);
     return item;
@@ -464,6 +477,10 @@ std::optional<gui::CanvasMenuItem> DungeonCanvasViewer::BuildOpenContextMenu() {
   gui::CanvasMenuItem open_menu;
   open_menu.label = "Open";
   open_menu.icon = ICON_MD_OPEN_IN_NEW;
+  if (show_room_list_callback_) {
+    open_menu.subitems.emplace_back("Room List", ICON_MD_LIST,
+                                    [this]() { show_room_list_callback_(); });
+  }
   if (show_room_matrix_callback_) {
     open_menu.subitems.emplace_back("Room Matrix", ICON_MD_GRID_VIEW,
                                     [this]() { show_room_matrix_callback_(); });
@@ -491,7 +508,7 @@ std::optional<gui::CanvasMenuItem> DungeonCanvasViewer::BuildOpenContextMenu() {
 gui::CanvasMenuItem DungeonCanvasViewer::BuildCopyExportContextMenu(
     int room_id) {
   gui::CanvasMenuItem copy_export_menu;
-  copy_export_menu.label = "Copy / Export";
+  copy_export_menu.label = "Export";
   copy_export_menu.icon = ICON_MD_CONTENT_COPY;
   copy_export_menu.subitems.emplace_back(
       "Copy Room Summary", ICON_MD_ASSIGNMENT, [this, room_id]() {

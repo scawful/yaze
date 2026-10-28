@@ -712,6 +712,137 @@ float DungeonCanvasViewer::ConnectedCanvasScale() const {
                     kConnectedCanvasMaxScale);
 }
 
+void DungeonCanvasViewer::DrawNearbyRoomPreviews(int room_id, float height) {
+  if (!ImGui::GetCurrentContext() || !rom_ || !rom_->is_loaded() || !rooms_ ||
+      room_id < 0 || room_id >= zelda3::kNumberOfRooms ||
+      !std::isfinite(height) || height <= 0.0f) {
+    return;
+  }
+
+  const float gap = ImGui::GetStyle().ItemSpacing.x;
+  const float caption_height = ImGui::GetTextLineHeight();
+  const float caption_gap = ImGui::GetStyle().ItemSpacing.y;
+  const ImVec2 available = ImGui::GetContentRegionAvail();
+  height = std::min(height, available.y);
+  if (available.x <= 0.0f || height <= caption_height + caption_gap) {
+    return;
+  }
+
+  if (connected_graph_cache_start_room_id_ != room_id) {
+    connected_graph_cache_ = BuildConnectedRoomGraph(room_id);
+    connected_graph_cache_start_room_id_ = room_id;
+  }
+  std::array<DungeonConnectedRoomLink, 4> neighbors;
+  size_t count = 0;
+  for (const auto& link : connected_graph_cache_.links) {
+    if (link.from_room_id != room_id || link.to_room_id == room_id ||
+        link.to_room_id < 0 || link.to_room_id >= zelda3::kNumberOfRooms) {
+      continue;
+    }
+    if (std::any_of(neighbors.begin(), neighbors.begin() + count,
+                    [&](const auto& neighbor) {
+                      return neighbor.to_room_id == link.to_room_id;
+                    })) {
+      continue;
+    }
+    neighbors[count++] = link;
+    if (count == neighbors.size()) {
+      break;
+    }
+  }
+  if (count == 0) {
+    return;
+  }
+
+  const float cell_width = (available.x - gap * static_cast<float>(count - 1)) /
+                           static_cast<float>(count);
+  if (cell_width <= 0.0f) {
+    return;
+  }
+
+  PruneConnectedRoomCompositeOutputs();
+  std::array<gfx::Bitmap*, 4> bitmaps{};
+  for (size_t i = 0; i < count; ++i) {
+    bitmaps[i] = PrepareConnectedRoomCompositeBitmap(neighbors[i].to_room_id);
+  }
+  if (renderer_) {
+    gfx::Arena::Get().ProcessTextureQueue(renderer_);
+  }
+
+  int activated_room = -1;
+  ImGui::PushID(room_id);
+  gui::StyleVarGuard padding(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
+  const bool open = ImGui::BeginChild(
+      "##NearbyRoomPreviews", ImVec2(available.x, height), false,
+      ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
+  if (open) {
+    const ImVec2 origin = ImGui::GetCursorScreenPos();
+    const ImVec2 content = ImGui::GetContentRegionAvail();
+    const float actual_cell_width =
+        (content.x - gap * static_cast<float>(count - 1)) /
+        static_cast<float>(count);
+    const float thumbnail_size = std::max(
+        1.0f,
+        std::min(actual_cell_width, content.y - caption_height - caption_gap));
+    const auto& theme = AgentUI::GetTheme();
+    ImDrawList* draw_list = ImGui::GetWindowDrawList();
+    for (size_t i = 0; i < count; ++i) {
+      const int neighbor_id = neighbors[i].to_room_id;
+      const ImVec2 cell_origin(
+          origin.x + static_cast<float>(i) * (actual_cell_width + gap),
+          origin.y);
+      ImGui::SetCursorScreenPos(cell_origin);
+      ImGui::PushID(neighbor_id);
+      ImGui::BeginDisabled(!CanNavigateRooms());
+      if (ImGui::InvisibleButton(
+              "##NearbyRoom",
+              ImVec2(std::max(1.0f, actual_cell_width),
+                     thumbnail_size + caption_gap + caption_height))) {
+        activated_room = neighbor_id;
+      }
+      ImGui::EndDisabled();
+      const bool hovered = ImGui::IsItemHovered();
+      const ImVec2 image_min(
+          cell_origin.x + (actual_cell_width - thumbnail_size) * 0.5f,
+          cell_origin.y);
+      const ImVec2 image_max(image_min.x + thumbnail_size,
+                             image_min.y + thumbnail_size);
+      if (bitmaps[i] && bitmaps[i]->texture()) {
+        draw_list->AddImage((ImTextureID)(intptr_t)bitmaps[i]->texture(),
+                            image_min, image_max);
+      } else {
+        draw_list->AddRectFilled(image_min, image_max,
+                                 ImGui::GetColorU32(theme.editor_background));
+      }
+      draw_list->AddRect(image_min, image_max,
+                         ImGui::GetColorU32(hovered ? theme.selection_primary
+                                                    : gui::GetOutlineVec4()));
+      const std::string label = absl::StrFormat(
+          "[%03X] %s", neighbor_id,
+          dungeon_project_labels::GetRoomLabel(project_, neighbor_id));
+      const ImVec2 caption_pos(cell_origin.x, image_max.y + caption_gap);
+      const ImVec4 caption_clip(cell_origin.x, caption_pos.y,
+                                cell_origin.x + actual_cell_width,
+                                caption_pos.y + caption_height);
+      draw_list->AddText(nullptr, 0.0f, caption_pos,
+                         ImGui::GetColorU32(ImGuiCol_Text), label.c_str(),
+                         nullptr, 0.0f, &caption_clip);
+      if (hovered) {
+        ImGui::SetTooltip(
+            "%s\n%s\n%s", label.c_str(),
+            FormatDungeonConnectedLinkDescription(neighbors[i]).c_str(),
+            tr("Click to open room view"));
+      }
+      ImGui::PopID();
+    }
+  }
+  ImGui::EndChild();
+  ImGui::PopID();
+  if (activated_room >= 0) {
+    NavigateToRoom(activated_room);
+  }
+}
+
 void DungeonCanvasViewer::DrawConnectedToolbarControls(int center_room_id) {
   if (center_room_id >= 0 && center_room_id < zelda3::kNumberOfRooms && rom_ &&
       rom_->is_loaded() && rooms_) {

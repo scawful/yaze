@@ -701,7 +701,8 @@ void DungeonWorkbenchContent::DrawSidebarContent() {
       show_room_matrix_
           ? std::max(1.0f, (available - separator - toggle_bar_height) *
                                navigator_tools_fraction_)
-          : std::max(1.0f, available - toggle_bar_height - 6.0f);
+          : std::max(1.0f, available - toggle_bar_height -
+                               2.0f * ImGui::GetStyle().ItemSpacing.y);
 
   if (ImGui::BeginChild("##NavigatorTools", ImVec2(0, upper), false)) {
     WindowContent* content = nullptr;
@@ -811,14 +812,6 @@ void DungeonWorkbenchContent::Draw(bool* p_open) {
   const float min_sidebar_w =
       std::max(gui::UIConfig::kContentMinWidthSidebar, 260.0f);
   const float min_canvas_w = std::max(420.0f, min_sidebar_w + 96.0f);
-  const DungeonWorkbenchPaneLayout pane_layout =
-      ResolveDungeonWorkbenchPaneLayout(
-          total_w, min_canvas_w, min_sidebar_w, splitter_w,
-          layout_state_.left_width, layout_state_.right_width,
-          layout_state_.show_left_sidebar, layout_state_.show_right_inspector);
-  const bool show_left = pane_layout.responsive.show_left;
-  const bool show_right = pane_layout.responsive.show_right;
-
   if (current_room_id_) {
     DungeonWorkbenchToolbarParams params;
     params.layout = &layout_state_;
@@ -845,6 +838,9 @@ void DungeonWorkbenchContent::Draw(bool* p_open) {
     params.draw_save_content = [this]() {
       DrawApplyScopeControls(current_room_id_ ? *current_room_id_ : -1);
     };
+    params.draw_layout_options = [this]() {
+      DrawLayoutOptions();
+    };
     params.on_request_dungeon_map = [this]() {
       RequestDungeonMapPopup();
     };
@@ -861,6 +857,19 @@ void DungeonWorkbenchContent::Draw(bool* p_open) {
       return;
     }
   }
+
+  if (primary_viewer && layout_state_.show_room_context_row) {
+    DrawRoomContextRow(*primary_viewer);
+  }
+
+  // Display controls can change widths or visibility in this frame.
+  const DungeonWorkbenchPaneLayout pane_layout =
+      ResolveDungeonWorkbenchPaneLayout(
+          total_w, min_canvas_w, min_sidebar_w, splitter_w,
+          layout_state_.left_width, layout_state_.right_width,
+          layout_state_.show_left_sidebar, layout_state_.show_right_inspector);
+  const bool show_left = pane_layout.responsive.show_left;
+  const bool show_right = pane_layout.responsive.show_right;
 
   const float btn = gui::LayoutHelpers::GetTouchSafeWidgetHeight();
   const float total_h = std::max(ImGui::GetContentRegionAvail().y, 1.0f);
@@ -951,6 +960,35 @@ void DungeonWorkbenchContent::Draw(bool* p_open) {
   }
 }
 
+void DungeonWorkbenchContent::DrawLayoutOptions() {
+  gui::AutoWidgetScope automation_scope("Dungeon/WorkbenchLayout");
+  ImGui::TextUnformatted(tr("Workbench layout"));
+  ImGui::Checkbox(tr("Room properties above panes"),
+                  &layout_state_.show_room_context_row);
+  ImGui::Checkbox(tr("Nearby rooms in spare canvas space"),
+                  &layout_state_.show_nearby_rooms);
+  ImGui::SetNextItemWidth(ImGui::GetFontSize() * 16.0f);
+  ImGui::SliderFloat(tr("Browser width"), &layout_state_.left_width, 224.0f,
+                     600.0f, "%.0f px");
+  gui::AutoRegisterLastItem("slider", "Browser width");
+  ImGui::SetNextItemWidth(ImGui::GetFontSize() * 16.0f);
+  ImGui::SliderFloat(tr("Inspector width"), &layout_state_.right_width, 272.0f,
+                     600.0f, "%.0f px");
+  gui::AutoRegisterLastItem("slider", "Inspector width");
+  ImGui::SetNextItemWidth(ImGui::GetFontSize() * 16.0f);
+  ImGui::SliderFloat(tr("Placement / matrix split"), &navigator_tools_fraction_,
+                     0.20f, 0.65f, "%.2f");
+  ImGui::SetNextItemWidth(ImGui::GetFontSize() * 16.0f);
+  ImGui::SliderFloat(tr("Nearby preview height"),
+                     &layout_state_.nearby_rooms_height, 80.0f, 180.0f,
+                     "%.0f px");
+  if (ImGui::Button(tr("Reset workbench layout"))) {
+    layout_state_ = {};
+    navigator_tools_fraction_ = 0.40f;
+  }
+  ImGui::TextDisabled(tr("Layout changes apply immediately for this session."));
+}
+
 void DungeonWorkbenchContent::DrawCanvasPane(
     float width, float height, DungeonCanvasViewer* primary_viewer) {
   const bool canvas_open = ImGui::BeginChild(
@@ -970,6 +1008,20 @@ void DungeonWorkbenchContent::DrawCanvasPane(
           ImGui::GetStyle().ItemSpacing.y;
 
       const bool connected_mode = layout_state_.show_connected_canvas_view;
+      const ImVec2 body_available = ImGui::GetContentRegionAvail();
+      const float nearby_height =
+          layout_state_.show_nearby_rooms && !connected_mode &&
+                  !split_view_enabled_
+              ? ResolveDungeonWorkbenchNearbyHeight(
+                    body_available.x - ImGui::GetStyle().WindowPadding.x * 2,
+                    body_available.y - status_bar_reserved -
+                        ImGui::GetStyle().WindowPadding.y * 2,
+                    layout_state_.nearby_rooms_height,
+                    ImGui::GetStyle().ItemSpacing.y)
+              : 0.0f;
+      const float nearby_reserved =
+          nearby_height > 0.0f ? nearby_height + ImGui::GetStyle().ItemSpacing.y
+                               : 0.0f;
       ImGuiWindowFlags body_flags =
           ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse;
       if (connected_mode) {
@@ -984,7 +1036,8 @@ void DungeonWorkbenchContent::DrawCanvasPane(
                      ImGuiWindowFlags_NoScrollWithMouse;
       }
       const bool body_open = ImGui::BeginChild(
-          "##DungeonCanvasBody", ImVec2(0.0f, -status_bar_reserved), false,
+          "##DungeonCanvasBody",
+          ImVec2(0.0f, -status_bar_reserved - nearby_reserved), false,
           body_flags);
       if (body_open) {
         if (connected_mode) {
@@ -1003,6 +1056,15 @@ void DungeonWorkbenchContent::DrawCanvasPane(
         }
       }
       ImGui::EndChild();
+
+      if (nearby_height > 0.0f) {
+        const float preview_y = ImGui::GetCursorPosY();
+        primary_viewer->DrawNearbyRoomPreviews(*current_room_id_,
+                                               nearby_height);
+        if (ImGui::GetCursorPosY() == preview_y) {
+          ImGui::Dummy(ImVec2(0.0f, nearby_height));
+        }
+      }
 
       const char* tool_mode =
           primary_viewer->object_interaction().mode_manager().GetModeName();

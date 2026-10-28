@@ -279,6 +279,9 @@ class DungeonWorkbenchContent : public WindowContent {
   void DrawInspector(DungeonCanvasViewer& viewer, bool compact);
   void DrawInspectorShelf(DungeonCanvasViewer& viewer, bool compact);
   void DrawInspectorShelfRoom(DungeonCanvasViewer& viewer);
+  void DrawRoomContextHeader(DungeonCanvasViewer& viewer);
+  void DrawRoomContextRow(DungeonCanvasViewer& viewer);
+  void DrawLayoutOptions();
   void DrawInspectorShelfSelection(DungeonCanvasViewer& viewer);
   bool DrawObjectPlacementInspector(DungeonCanvasViewer& viewer);
   void DrawSelectedObjectActions(DungeonCanvasViewer& viewer, size_t index);

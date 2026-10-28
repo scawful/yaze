@@ -47,6 +47,15 @@
 
 namespace yaze::editor {
 
+TEST(DungeonWorkbenchContentLayoutTest, NearbyPreviewsPreserveFittedRoomSize) {
+  EXPECT_FLOAT_EQ(ResolveDungeonWorkbenchNearbyHeight(600, 600, 120, 8), 0);
+  EXPECT_FLOAT_EQ(ResolveDungeonWorkbenchNearbyHeight(600, 680, 120, 8), 0);
+  EXPECT_FLOAT_EQ(ResolveDungeonWorkbenchNearbyHeight(600, 720, 120, 8), 112);
+  EXPECT_FLOAT_EQ(ResolveDungeonWorkbenchNearbyHeight(600, 900, 120, 8), 120);
+  EXPECT_FLOAT_EQ(ResolveDungeonWorkbenchNearbyHeight(900, 600, 120, 8), 0);
+  EXPECT_FLOAT_EQ(ResolveDungeonWorkbenchNearbyHeight(0, 900, 120, 8), 0);
+}
+
 class DungeonCanvasViewerTestPeer {
  public:
   static void BindViewer(DungeonEditorV2& editor, Rom* rom,
@@ -418,6 +427,96 @@ TEST(DungeonWorkbenchNavigatorUiTest,
   content.FocusEntranceBrowser();
   EXPECT_STREQ(content.GetInspectorModeIdForTesting(), "inspect");
   EXPECT_STREQ(content.GetSidebarModeIdForTesting(), "items");
+}
+
+TEST(DungeonWorkbenchNavigatorUiTest, CollapsedMatrixDoesNotOverflowSidebar) {
+  auto* previous_context = ImGui::GetCurrentContext();
+  auto* context = ImGui::CreateContext();
+  absl::Cleanup cleanup = [&] {
+    gui::WidgetIdRegistry::Instance().Clear();
+    ImGui::DestroyContext(context);
+    ImGui::SetCurrentContext(previous_context);
+  };
+  auto& io = ImGui::GetIO();
+  io.IniFilename = nullptr;
+  io.DisplaySize = ImVec2(800, 800);
+  io.DeltaTime = 1.0f / 60.0f;
+  unsigned char* pixels = nullptr;
+  int width = 0, height = 0;
+  io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
+
+  int room_id = 0;
+  const std::deque<int> recent;
+  auto content = MakeWorkbenchForToolStateTests(room_id, recent);
+  ImVector<int> active_rooms;
+  RoomMatrixContent matrix(&room_id, &active_rooms, [](int) {});
+  FakeWorkbenchToolContent objects("dungeon.object_selector");
+  content.SetNavigationPanels(&matrix, nullptr);
+  content.SetEmbeddedEditorPanels(&objects, nullptr, nullptr, nullptr, nullptr,
+                                  nullptr);
+
+  const auto frame = [&]() {
+    gui::WidgetIdRegistry::Instance().Clear();
+    ImGui::NewFrame();
+    ImGui::SetNextWindowPos(ImVec2(20, 20), ImGuiCond_Always);
+    ImGui::SetNextWindowSize(ImVec2(320, 720), ImGuiCond_Always);
+    ImGui::Begin("CollapsedMatrixHost", nullptr,
+                 ImGuiWindowFlags_NoSavedSettings);
+    DungeonWorkbenchContentTestPeer::DrawNavigator(content, 280, 640);
+    ImGui::End();
+    ImGui::Render();
+  };
+  const auto settle = [&]() {
+    // Begin() uses the previous frame's content size to decide scrollbars.
+    // Also let the resulting available-width change settle before inspecting.
+    frame();
+    frame();
+    frame();
+  };
+  const auto active_child = [&](const char* id) -> ImGuiWindow* {
+    const std::string child_name = std::string("/") + id + "_";
+    for (ImGuiWindow* window : context->Windows) {
+      if (window->Active &&
+          std::string(window->Name).find(child_name) != std::string::npos) {
+        return window;
+      }
+    }
+    return nullptr;
+  };
+
+  for (float spacing : {4.0f, 6.0f, 8.0f, 12.0f}) {
+    SCOPED_TRACE(spacing);
+    ImGui::GetStyle().ItemSpacing.y = spacing;
+    content.FocusRoomMatrix();
+    settle();
+    auto* sidebar = active_child("##DungeonWorkbenchSidebar");
+    auto* tools = active_child("##NavigatorTools");
+    ASSERT_NE(sidebar, nullptr);
+    ASSERT_NE(tools, nullptr);
+    ASSERT_NE(active_child("##NavigatorMatrix"), nullptr);
+    EXPECT_EQ(sidebar->ScrollMax.y, 0.0f);
+    EXPECT_FALSE(sidebar->ScrollbarY);
+    const float expanded_tools_height = tools->Size.y;
+
+    DungeonWorkbenchContentTestPeer::SetRoomMatrixVisible(content, false);
+    settle();
+    sidebar = active_child("##DungeonWorkbenchSidebar");
+    tools = active_child("##NavigatorTools");
+    ASSERT_NE(sidebar, nullptr);
+    ASSERT_NE(tools, nullptr);
+    EXPECT_EQ(active_child("##NavigatorMatrix"), nullptr);
+    EXPECT_GT(tools->Size.y, expanded_tools_height);
+    EXPECT_EQ(sidebar->ScrollMax.y, 0.0f);
+    EXPECT_FALSE(sidebar->ScrollbarY);
+
+    content.FocusRoomMatrix();
+    settle();
+    sidebar = active_child("##DungeonWorkbenchSidebar");
+    ASSERT_NE(sidebar, nullptr);
+    EXPECT_NE(active_child("##NavigatorMatrix"), nullptr);
+    EXPECT_EQ(sidebar->ScrollMax.y, 0.0f);
+    EXPECT_FALSE(sidebar->ScrollbarY);
+  }
 }
 
 // Exercise the real matrix drawing and its registered input rectangles. This

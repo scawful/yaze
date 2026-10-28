@@ -597,7 +597,7 @@ void DungeonWorkbenchContent::DrawInspectorShelfSelection(
   }
 }
 
-void DungeonWorkbenchContent::DrawInspectorShelfRoom(
+void DungeonWorkbenchContent::DrawRoomContextHeader(
     DungeonCanvasViewer& viewer) {
   const auto& theme = AgentUI::GetTheme();
 
@@ -749,16 +749,56 @@ void DungeonWorkbenchContent::DrawInspectorShelfRoom(
   } else {
     ImGui::TextUnformatted(tr("Room: None"));
   }
+}
+
+void DungeonWorkbenchContent::DrawRoomContextRow(DungeonCanvasViewer& viewer) {
+  auto* rooms = viewer.rooms();
+  const int room_id = viewer.current_room_id();
+  if (!rooms || room_id < 0 || room_id >= static_cast<int>(rooms->size())) {
+    return;
+  }
+  const bool wide =
+      ImGui::GetContentRegionAvail().x >= ImGui::GetFontSize() * 55.0f;
+  ImGui::PushID("WorkbenchRoomContext");
+  if (ImGui::BeginTable("##RoomContextRow", wide ? 2 : 1,
+                        ImGuiTableFlags_BordersOuterH |
+                            ImGuiTableFlags_NoPadOuterX |
+                            ImGuiTableFlags_SizingStretchProp)) {
+    if (wide) {
+      ImGui::TableSetupColumn("Room", ImGuiTableColumnFlags_WidthFixed,
+                              ImGui::GetFontSize() * 19.0f);
+      ImGui::TableSetupColumn("Properties", ImGuiTableColumnFlags_WidthStretch);
+    }
+    ImGui::TableNextColumn();
+    DrawRoomContextHeader(viewer);
+    ImGui::TableNextColumn();
+    DrawDungeonRoomPropertyFields(viewer, (*rooms)[room_id], room_id,
+                                  RoomPropertyLayout::kCoreGraphicsRow);
+    ImGui::EndTable();
+  }
+  ImGui::PopID();
+}
+
+void DungeonWorkbenchContent::DrawInspectorShelfRoom(
+    DungeonCanvasViewer& viewer) {
+  int room_id = viewer.current_room_id();
+  if (room_id < 0 && current_room_id_) {
+    room_id = *current_room_id_;
+  }
+  if (!layout_state_.show_room_context_row) {
+    DrawRoomContextHeader(viewer);
+  }
 
   // Room properties share the editor's validated metadata edit boundary.
   if (auto* rooms = viewer.rooms();
       rooms && room_id >= 0 && room_id < static_cast<int>(rooms->size())) {
     auto& room = (*rooms)[room_id];
 
-    // Core layout & graphics 2x3 grid is always visible at the top.
-    ImGui::Spacing();
-    DrawDungeonRoomPropertyFields(viewer, room, room_id,
-                                  RoomPropertyLayout::kCoreGraphics);
+    if (!layout_state_.show_room_context_row) {
+      ImGui::Spacing();
+      DrawDungeonRoomPropertyFields(viewer, room, room_id,
+                                    RoomPropertyLayout::kCoreGraphics);
+    }
 
     // Sub-tabs for secondary room properties.
     struct SubTabDef {
