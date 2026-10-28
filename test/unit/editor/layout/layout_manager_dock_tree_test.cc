@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 
+#include "app/editor/layout/layout_coordinator.h"
 #include "app/editor/layout/layout_designer/dock_tree.h"
 #include "app/editor/layout/layout_designer/dock_tree_json.h"
 #include "app/editor/layout/layout_manager.h"
@@ -142,6 +143,49 @@ float OverworldRightRegionWidth(WorkspaceWindowManager& window_manager,
     return -1.0f;
   }
   return root->ChildNodes[1]->Size.x;
+}
+
+TEST_F(LayoutManagerDockTreeTest,
+       NamedRoleRebuildUsesAuthoritativeDockspaceAcrossWindows) {
+  const auto preset = LayoutPresets::GetDesignerPreset();
+  auto visible = std::make_unique<bool[]>(preset.default_visible_panels.size());
+  for (size_t i = 0; i < preset.default_visible_panels.size(); ++i) {
+    RegisterPanel(preset.default_visible_panels[i].c_str(), &visible[i]);
+  }
+  layout_manager_.SetMainDockspaceId(kDockspaceId);
+  LayoutCoordinator coordinator;
+  LayoutCoordinator::Dependencies deps;
+  deps.layout_manager = &layout_manager_;
+  deps.window_manager = &window_manager_;
+  coordinator.Initialize(deps);
+  ImGui::Begin("RolePickerChildWindow");
+  const auto wrong_scope = ImGui::GetID("MainDockSpace");
+  ASSERT_NE(wrong_scope, kDockspaceId);
+  ASSERT_TRUE(
+      coordinator.ApplyLayoutPreset("Designer", 0, EditorType::kGraphics));
+  coordinator.ProcessLayoutRebuild(EditorType::kGraphics, false);
+  ImGui::End();
+  EXPECT_FALSE(layout_manager_.IsRebuildRequested());
+  auto* root = ImGui::DockBuilderGetNode(kDockspaceId);
+  ASSERT_NE(root, nullptr);
+  EXPECT_TRUE(layout_manager_.IsLayoutInitialized(EditorType::kGraphics));
+  EXPECT_EQ(ImGui::DockBuilderGetNode(wrong_scope), nullptr);
+}
+
+TEST_F(LayoutManagerDockTreeTest, NamedRoleRebuildWaitsForControllerDockspace) {
+  LayoutCoordinator coordinator;
+  LayoutCoordinator::Dependencies deps;
+  deps.layout_manager = &layout_manager_;
+  deps.window_manager = &window_manager_;
+  coordinator.Initialize(deps);
+  layout_manager_.SetMainDockspaceId(0x45341333u);
+  ASSERT_TRUE(
+      coordinator.ApplyLayoutPreset("Designer", 0, EditorType::kGraphics));
+  coordinator.ProcessLayoutRebuild(EditorType::kGraphics, false);
+  EXPECT_TRUE(layout_manager_.IsRebuildRequested());
+  layout_manager_.SetMainDockspaceId(kDockspaceId);
+  coordinator.ProcessLayoutRebuild(EditorType::kGraphics, false);
+  EXPECT_FALSE(layout_manager_.IsRebuildRequested());
 }
 
 TEST_F(LayoutManagerDockTreeTest, ExactWidthPanelFirstInRegionSetsRegionWidth) {

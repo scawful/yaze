@@ -134,7 +134,10 @@ void LayoutCoordinator::ResetWorkspaceLayout() {
   // Force immediate rebuild for active context
   ImGuiContext* imgui_ctx = ImGui::GetCurrentContext();
   if (imgui_ctx && imgui_ctx->WithinFrameScope) {
-    ImGuiID dockspace_id = ImGui::GetID("MainDockSpace");
+    const ImGuiID cached_dockspace = layout_manager_->GetMainDockspaceId();
+    const ImGuiID dockspace_id = cached_dockspace != 0
+                                     ? cached_dockspace
+                                     : ImGui::GetID("MainDockSpace");
 
     // Determine which layout to rebuild based on emulator visibility
     if (ui_coordinator_ && ui_coordinator_->IsEmulatorVisible()) {
@@ -260,7 +263,15 @@ void LayoutCoordinator::ProcessLayoutRebuild(EditorType current_editor_type,
     return;
   }
 
-  ImGuiID dockspace_id = ImGui::GetID("MainDockSpace");
+  const ImGuiID cached_dockspace = layout_manager_->GetMainDockspaceId();
+  const ImGuiID dockspace_id =
+      cached_dockspace != 0 ? cached_dockspace : ImGui::GetID("MainDockSpace");
+
+  // A role can queue its rebuild before the controller creates the host.
+  // Keep the request until that dockspace exists, rather than dropping it.
+  if (!ImGui::DockBuilderGetNode(dockspace_id)) {
+    return;
+  }
 
   // Determine which editor layout to rebuild
   EditorType rebuild_type = layout_manager_->RequestedRebuildEditor();
@@ -295,7 +306,10 @@ void LayoutCoordinator::InitializeEditorLayout(EditorType type) {
   // Defer layout initialization to ensure we are in the correct scope
   QueueDeferredAction([this, type]() {
     if (layout_manager_ && !layout_manager_->IsLayoutInitialized(type)) {
-      ImGuiID dockspace_id = ImGui::GetID("MainDockSpace");
+      const ImGuiID cached_dockspace = layout_manager_->GetMainDockspaceId();
+      const ImGuiID dockspace_id = cached_dockspace != 0
+                                       ? cached_dockspace
+                                       : ImGui::GetID("MainDockSpace");
       layout_manager_->InitializeEditorLayout(type, dockspace_id);
     }
   });
