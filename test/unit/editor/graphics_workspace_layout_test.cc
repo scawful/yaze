@@ -651,10 +651,27 @@ TEST_F(GraphicsWorkspaceLayoutTest,
     EXPECT_LE(host->ContentSize.x, host->InnerRect.GetWidth() + 1) << width;
     auto* content = ActiveChild("##PixelEditorContent");
     ASSERT_NE(content, nullptr);
-    EXPECT_GT(content->Size.y, 580) << width;
+    // The collapsed Swap color IDs row is part of the current editor. Verify
+    // that the canvas receives the actual remainder after its controls and
+    // status strip, rather than the pre-swap-row fixed pixel budget.
+    const auto swap = FindWidget("Swap color IDs");
+    ASSERT_TRUE(swap) << width;
+    ASSERT_TRUE(swap->bounds.valid) << width;
+    EXPECT_NEAR(content->Pos.y,
+                swap->bounds.max_y + ImGui::GetStyle().ItemSpacing.y, 1)
+        << width;
+    const float status_height = ImGui::GetFrameHeightWithSpacing() +
+                                ImGui::GetStyle().ItemSpacing.y + 1;
+    const float remaining_height = host->WorkRect.Max.y - content->Pos.y;
+    ASSERT_GT(remaining_height, status_height) << width;
+    EXPECT_NEAR(content->Size.y, remaining_height - status_height, 1) << width;
     auto* canvas = ActiveChild("##CanvasArea");
     ASSERT_NE(canvas, nullptr);
     EXPECT_GT(canvas->Size.x, width - 40) << width;
+    // WorkRect can retain the previous frame's larger content extent while
+    // controls reflow. InnerRect is this child's current visible allocation.
+    EXPECT_NEAR(canvas->Pos.y + canvas->Size.y, content->InnerRect.Max.y, 1)
+        << width;
   }
   const auto frame = [&] {
     Frame([&] { EXPECT_TRUE(pixel.Update().ok()); });

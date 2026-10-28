@@ -624,7 +624,7 @@ class DungeonCanvasWheelRoutingTest : public ::testing::Test {
     return result;
   }
 
-  Snapshot Frame(DungeonCanvasViewer* target = nullptr) {
+  Snapshot Frame(DungeonCanvasViewer* target = nullptr, bool capture = true) {
     if (!target)
       target = primary_.get();
     ImGui::NewFrame();
@@ -638,7 +638,9 @@ class DungeonCanvasWheelRoutingTest : public ::testing::Test {
     else
       DungeonWorkbenchContentTestPeer::DrawCanvasPane(*content_, *primary_, 760,
                                                       460);
-    Snapshot result = Capture(*target);
+    Snapshot result;
+    if (capture)
+      result = Capture(*target);
     // A scrollable ancestor makes accidental wheel propagation observable even
     // when the canvas itself happens to fit at the selected scale.
     if (synthetic_overflow_)
@@ -660,8 +662,11 @@ class DungeonCanvasWheelRoutingTest : public ::testing::Test {
         viewer->canvas().set_global_scale(scale);
       viewer->canvas().set_scrolling(ImVec2(-40, -40));
     }
-    Frame();
-    Frame();
+    // New short Compare children can be clipped during their first layout
+    // measurement. Prime the host without asserting on that transient frame;
+    // callers still capture and validate the settled drawing surface.
+    Frame(nullptr, /*capture=*/false);
+    Frame(nullptr, /*capture=*/false);
   }
 
   Snapshot Wheel(DungeonCanvasViewer& viewer, ImVec2 point, float x, float y,

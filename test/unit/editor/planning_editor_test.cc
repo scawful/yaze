@@ -287,7 +287,9 @@ class PlanningProjectActionsTest : public ::testing::Test {
     manager_ = std::make_unique<EditorManager>();
     test::InitializeWithIsolatedSettings(*manager_, renderer_.get());
     manager_->SetAssetLoadMode(AssetLoadMode::kLazy);
-    directory_ = test::UniqueTempPath("planning_project_actions");
+    // UniqueTempPath includes the case name. Leave Windows path budget for
+    // the native receipt's temporary and backup publication suffixes.
+    directory_ = test::UniqueTempPath("plan");
     fs::create_directories(directory_);
     const auto rom = directory_ / "fixture.sfc";
     std::vector<char> bytes(512 * 1024, 0);
@@ -379,7 +381,8 @@ TEST_F(PlanningProjectActionsTest,
   const auto descriptor = directory_ / "hack.yaze";
   const auto receipt = fs::path(descriptor.string() + ".native-save.json");
   manager_->MarkCurrentProjectDirty();
-  ASSERT_TRUE(manager_->SaveCurrentSession().ok());
+  const auto initial_save = manager_->SaveCurrentSession();
+  ASSERT_TRUE(initial_save.ok()) << initial_save;
   EXPECT_FALSE(editor_->dirty());
   EXPECT_EQ(core::ProjectPlan::LoadFromFile(plan_path_.string())->goal.title,
             "Edited");
@@ -389,7 +392,8 @@ TEST_F(PlanningProjectActionsTest,
   const auto receipt_bytes = Read(receipt);
 
   PlanningEditorTestPeer::EditGoal(editor_, "Plan only");
-  ASSERT_TRUE(manager_->SaveCurrentSession().ok());
+  const auto plan_save = manager_->SaveCurrentSession();
+  ASSERT_TRUE(plan_save.ok()) << plan_save;
   EXPECT_FALSE(editor_->dirty());
   EXPECT_EQ(core::ProjectPlan::LoadFromFile(plan_path_.string())->goal.title,
             "Plan only");
@@ -414,7 +418,8 @@ TEST_F(PlanningProjectActionsTest,
   PlanningEditorTestPeer::EditGoal(editor_, "Dual");
   manager_->GetCurrentProject()->name = "Renamed with plan";
   manager_->MarkCurrentProjectDirty();
-  ASSERT_TRUE(manager_->SaveCurrentSession().ok());
+  const auto combined_save = manager_->SaveCurrentSession();
+  ASSERT_TRUE(combined_save.ok()) << combined_save;
   EXPECT_FALSE(editor_->dirty());
   EXPECT_EQ(core::ProjectPlan::LoadFromFile(plan_path_.string())->goal.title,
             "Dual");
