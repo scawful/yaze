@@ -148,7 +148,7 @@ void MinecartCollisionTool::Draw(const gui::CanvasRuntime& rt,
         const auto q = transform.RoomPixelsToScreen(
             ImVec2((mx + size) * 8, (my + size) * 8));
         rt.draw_list->AddRect(p, q, ImGui::GetColorU32(theme.selection_primary),
-                              0, 0, 2);
+                              0.0f, 2.0f);
       }
     }
     const auto color = ImGui::GetColorU32(preview.ok() ? theme.status_warning

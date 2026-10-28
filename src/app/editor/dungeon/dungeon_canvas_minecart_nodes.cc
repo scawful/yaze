@@ -207,7 +207,7 @@ bool DungeonCanvasViewer::DrawMinecartNodePlacement(
                rt.canvas_p0.y + rt.canvas_sz.y * transform.scale()),
         true);
     rt.draw_list->AddRectFilled(p, q, (color & 0x00FFFFFF) | 0x44000000);
-    rt.draw_list->AddRect(p, q, color, 0, 0, 2);
+    rt.draw_list->AddRect(p, q, color, 0.0f, 2.0f);
     rt.draw_list->PopClipRect();
     if (!validity.ok()) {
       ImGui::SetTooltip("%s", std::string(validity.message()).c_str());
