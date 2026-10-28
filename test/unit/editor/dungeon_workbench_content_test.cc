@@ -33,6 +33,7 @@
 #include "app/editor/system/session/user_settings.h"
 #include "app/editor/system/workspace/workspace_window_manager.h"
 #include "app/gui/automation/widget_id_registry.h"
+#include "app/gui/core/icons.h"
 #include "core/features.h"
 #include "core/project.h"
 #include "dungeon_workbench_test_peer.h"
@@ -41,6 +42,7 @@
 #include "rom/snes.h"
 #include "test_utils/expanded_entrance_fixture.h"
 #include "util/file_util.h"
+#include "util/platform_paths.h"
 #include "zelda3/dungeon/custom_object.h"
 #include "zelda3/dungeon/pit_damage_table.h"
 #include "zelda3/dungeon/room_entrance.h"
@@ -426,6 +428,185 @@ TEST(DungeonWorkbenchNavigatorUiTest,
   EXPECT_STREQ(content.GetSidebarModeIdForTesting(), "entrance");
   frame();
   EXPECT_TRUE(widget("Graphics entrance").has_value());
+}
+
+TEST(DungeonWorkbenchNavigatorUiTest,
+     RailCentersCompleteMaterialGlyphsAtFontScales) {
+  auto* previous_context = ImGui::GetCurrentContext();
+  auto* context = ImGui::CreateContext();
+  absl::Cleanup cleanup = [&] {
+    gui::WidgetIdRegistry::Instance().Clear();
+    ImGui::DestroyContext(context);
+    ImGui::SetCurrentContext(previous_context);
+  };
+  const auto font_path = [](const char* filename) -> std::filesystem::path {
+#ifdef YAZE_TEST_FIXTURE_DIR
+    return std::filesystem::path(YAZE_TEST_FIXTURE_DIR)
+               .parent_path()
+               .parent_path() /
+           "assets/font" / filename;
+#else
+    auto asset =
+        util::PlatformPaths::FindAsset(std::string("font/") + filename);
+    return asset.ok() ? *asset : std::filesystem::path{};
+#endif
+  };
+  const auto text_font = font_path("Karla-Regular.ttf");
+  const auto icon_font = font_path("MaterialIcons-Regular.ttf");
+  ASSERT_TRUE(std::filesystem::is_regular_file(text_font)) << text_font;
+  ASSERT_TRUE(std::filesystem::is_regular_file(icon_font)) << icon_font;
+  auto& io = ImGui::GetIO();
+  io.IniFilename = nullptr;
+  io.DisplaySize = ImVec2(1000, 1000);
+  io.DeltaTime = 1.0f / 60.0f;
+  io.ConfigInputTrickleEventQueue = false;
+  io.FontDefault = io.Fonts->AddFontFromFileTTF(text_font.string().c_str(), 16);
+  ASSERT_NE(io.FontDefault, nullptr);
+  ImFontConfig icons;
+  icons.MergeMode = true;
+  icons.GlyphOffset.y = 5;
+  icons.GlyphMinAdvanceX = 13;
+  icons.PixelSnapH = true;
+  static const ImWchar ranges[] = {ICON_MIN_MD, 0xf900, 0};
+  ASSERT_NE(io.Fonts->AddFontFromFileTTF(icon_font.string().c_str(), 18, &icons,
+                                         ranges),
+            nullptr);
+  unsigned char* pixels = nullptr;
+  int atlas_width = 0, atlas_height = 0;
+  io.Fonts->GetTexDataAsRGBA32(&pixels, &atlas_width, &atlas_height);
+  io.Fonts->SetTexID((ImTextureID)0x4321);
+  io.AddMousePosEvent(-1000, -1000);
+
+  int room_id = 0;
+  const std::deque<int> recent;
+  auto content = MakeWorkbenchForToolStateTests(room_id, recent);
+  DungeonCanvasViewer viewer;
+  DungeonWorkbenchContentTestPeer::SetViewer(content, &viewer);
+  FakeWorkbenchToolContent objects("dungeon.object_selector");
+  content.SetEmbeddedEditorPanels(&objects, nullptr, nullptr, nullptr, nullptr,
+                                  nullptr);
+  const std::pair<const char*, const char*> controls[] = {
+      {"room", ICON_MD_TUNE},
+      {"objects", ICON_MD_WIDGETS},
+      {"sprites", ICON_MD_PEST_CONTROL},
+      {"doors", ICON_MD_DOOR_FRONT},
+      {"items", ICON_MD_INVENTORY_2},
+      {"entrance", ICON_MD_LOGIN},
+      {"palette", ICON_MD_PALETTE},
+      {"minecart", ICON_MD_TRAIN},
+      {"custom_collision", ICON_MD_GRID_ON},
+  };
+  const auto widget =
+      [](const char* id) -> std::optional<gui::WidgetIdRegistry::WidgetInfo> {
+    for (const auto& [path, info] :
+         gui::WidgetIdRegistry::Instance().GetAllWidgets()) {
+      if (path.starts_with("Dungeon/WorkbenchRail/") && info.label == id)
+        return info;
+    }
+    return std::nullopt;
+  };
+  float host_width = 260;
+  ImFontBaked* rendered_font = nullptr;
+  const auto frame = [&] {
+    gui::WidgetIdRegistry::Instance().Clear();
+    ImGui::NewFrame();
+    ImGui::SetNextWindowPos(ImVec2(20, 20), ImGuiCond_Always);
+    ImGui::SetNextWindowSize(ImVec2(host_width + 20, 880), ImGuiCond_Always);
+    ImGui::Begin("RailGlyphHost", nullptr, ImGuiWindowFlags_NoSavedSettings);
+    DungeonWorkbenchContentTestPeer::DrawNavigator(content, host_width, 840);
+    rendered_font = ImGui::GetFontBaked();
+    ImGui::End();
+    ImGui::Render();
+  };
+  const auto click = [&](const char* id) {
+    const auto target = widget(id);
+    ASSERT_TRUE(target) << id;
+    ASSERT_TRUE(target->visible) << id;
+    ASSERT_TRUE(target->enabled) << id;
+    io.AddMousePosEvent((target->bounds.min_x + target->bounds.max_x) * 0.5f,
+                        (target->bounds.min_y + target->bounds.max_y) * 0.5f);
+    frame();
+    io.AddMouseButtonEvent(0, true);
+    frame();
+    io.AddMouseButtonEvent(0, false);
+    frame();
+  };
+  const ImGuiStyle original_style = ImGui::GetStyle();
+  for (const float scale : {1.0f, 1.25f, 1.5f}) {
+    io.FontGlobalScale = scale;
+    ImGui::GetStyle() = original_style;
+    ImGui::GetStyle().ScaleAllSizes(scale);
+    // Test the rendered result despite a text-button alignment inherited from
+    // the host. A style-only assertion cannot detect the Material baseline.
+    ImGui::GetStyle().ButtonTextAlign = ImVec2(0, 1);
+    for (const float width : {260.0f, 320.0f}) {
+      SCOPED_TRACE(absl::StrFormat("width %.0f scale %.2f", width, scale));
+      host_width = width;
+      io.AddMousePosEvent(-1000, -1000);
+      frame();
+      frame();
+      ImGuiWindow* rail = nullptr;
+      for (auto* window : context->Windows) {
+        if (window->Active &&
+            std::string(window->Name).find("/##WorkbenchRail_") !=
+                std::string::npos)
+          rail = window;
+      }
+      ASSERT_NE(rail, nullptr);
+      ASSERT_NE(rendered_font, nullptr);
+      const auto& vertices = rail->DrawList->VtxBuffer;
+      for (const auto& [id, icon] : controls) {
+        SCOPED_TRACE(id);
+        const auto button = widget(id);
+        ASSERT_TRUE(button);
+        ASSERT_TRUE(button->visible);
+        const auto& bounds = button->bounds;
+        EXPECT_NEAR(rail->WorkRect.GetWidth() - (bounds.max_x - bounds.min_x),
+                    4.0f, 0.5f);
+        EXPECT_NEAR((bounds.min_x + bounds.max_x) * 0.5f,
+                    rail->WorkRect.GetCenter().x, 0.5f);
+        unsigned int codepoint = 0;
+        ImTextCharFromUtf8(&codepoint, icon, nullptr);
+        const auto* glyph = rendered_font->FindGlyphNoFallback(codepoint);
+        ASSERT_NE(glyph, nullptr);
+        ASSERT_TRUE(glyph->Visible);
+        int complete_glyphs = 0;
+        for (int i = 0; i + 3 < vertices.Size; ++i) {
+          const auto& a = vertices[i];
+          const auto& b = vertices[i + 1];
+          const auto& c = vertices[i + 2];
+          const auto& d = vertices[i + 3];
+          if (a.uv.x != glyph->U0 || a.uv.y != glyph->V0 ||
+              b.uv.x != glyph->U1 || b.uv.y != glyph->V0 ||
+              c.uv.x != glyph->U1 || c.uv.y != glyph->V1 ||
+              d.uv.x != glyph->U0 || d.uv.y != glyph->V1 ||
+              (a.col & IM_COL32_A_MASK) == 0)
+            continue;
+          ++complete_glyphs;
+          EXPECT_NEAR((a.pos.x + c.pos.x) * 0.5f,
+                      (bounds.min_x + bounds.max_x) * 0.5f, 0.5f);
+          EXPECT_NEAR((a.pos.y + c.pos.y) * 0.5f,
+                      (bounds.min_y + bounds.max_y) * 0.5f, 0.5f);
+          EXPECT_GE(a.pos.x, bounds.min_x + scale);
+          EXPECT_GE(a.pos.y, bounds.min_y + scale);
+          EXPECT_LE(c.pos.x, bounds.max_x - scale);
+          EXPECT_LE(c.pos.y, bounds.max_y - scale);
+          EXPECT_GE(a.pos.x, rail->InnerClipRect.Min.x);
+          EXPECT_GE(a.pos.y, rail->InnerClipRect.Min.y);
+          EXPECT_LE(c.pos.x, rail->InnerClipRect.Max.x);
+          EXPECT_LE(c.pos.y, rail->InnerClipRect.Max.y);
+        }
+        EXPECT_EQ(complete_glyphs, 1);
+      }
+      EXPECT_FLOAT_EQ(ImGui::GetStyle().ButtonTextAlign.x, 0);
+      EXPECT_FLOAT_EQ(ImGui::GetStyle().ButtonTextAlign.y, 1);
+      ASSERT_NO_FATAL_FAILURE(click("entrance"));
+      EXPECT_STREQ(content.GetSidebarModeIdForTesting(), "entrance");
+      ASSERT_NO_FATAL_FAILURE(click("objects"));
+      EXPECT_STREQ(content.GetSidebarModeIdForTesting(), "objects");
+    }
+  }
+  EXPECT_GT(objects.draw_count, 0);
 }
 
 TEST(DungeonWorkbenchNavigatorUiTest, CollapsedMatrixDoesNotOverflowInspector) {

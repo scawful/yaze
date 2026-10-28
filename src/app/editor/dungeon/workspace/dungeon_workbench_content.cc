@@ -43,6 +43,7 @@
 #include "app/gui/core/platform_keys.h"
 #include "app/gui/core/style_guard.h"
 #include "app/gui/core/ui_config.h"
+#include "app/gui/widgets/centered_icon_button.h"
 #include "app/gui/widgets/themed_widgets.h"
 #include "core/features.h"
 #include "core/project.h"
@@ -662,7 +663,10 @@ void DungeonWorkbenchContent::DrawSidebarModeTabs() {
         ImGui::GetStyleColorVec4(selected ? ImGuiCol_ButtonActive
                                           : ImGuiCol_Button));
     ImGui::PushID(id);
-    if (ImGui::Button(icon, ImVec2(size, size)))
+    ImGui::SetCursorPosX(
+        ImGui::GetCursorPosX() +
+        std::max(0.0f, (ImGui::GetContentRegionAvail().x - size) * 0.5f));
+    if (gui::CenteredIconButton(icon, size))
       action();
     gui::AutoRegisterLastItem("button", id, label);
     if (selected) {
