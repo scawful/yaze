@@ -102,9 +102,11 @@ void FindDiffRegions(const std::vector<uint8_t>& target,
   size_t min_size = std::min(target.size(), baseline.size());
 
   auto is_ignored = [&](uint32_t i) {
-    if (!smart_diff) return false;
+    if (!smart_diff)
+      return false;
     // SNES Checksum region
-    if (i >= yaze::cli::kChecksumComplementPos && i <= yaze::cli::kChecksumPos + 1)
+    if (i >= yaze::cli::kChecksumComplementPos &&
+        i <= yaze::cli::kChecksumPos + 1)
       return true;
     // ZSCustom Version/Flags region
     if (i >= 0x140141 && i <= 0x140148)
@@ -119,7 +121,8 @@ void FindDiffRegions(const std::vector<uint8_t>& target,
     size_t diff_count = 0;
 
     for (uint32_t i = 0; i < min_size; ++i) {
-      if (is_ignored(i)) continue;
+      if (is_ignored(i))
+        continue;
 
       if (target[i] != baseline[i]) {
         if (!in_diff) {
@@ -143,6 +146,21 @@ void FindDiffRegions(const std::vector<uint8_t>& target,
     return;
   }
 
+  auto checked = [&](uint32_t i) {
+    for (const auto& region : kCriticalRegions) {
+      if ((region_filter.empty() || region.category == region_filter) &&
+          i >= region.start && i < region.end) {
+        return true;
+      }
+    }
+    return false;
+  };
+  for (uint32_t i = 0; i < min_size; ++i) {
+    if (target[i] != baseline[i] && !is_ignored(i) && !checked(i)) {
+      result.unchecked_diff_bytes++;
+    }
+  }
+
   for (const auto& region : kCriticalRegions) {
     if (!region_filter.empty() && region.category != region_filter) {
       continue;
@@ -156,7 +174,8 @@ void FindDiffRegions(const std::vector<uint8_t>& target,
     size_t diff_count = 0;
 
     for (uint32_t i = region.start; i < end; ++i) {
-      if (is_ignored(i)) continue;
+      if (is_ignored(i))
+        continue;
 
       if (target[i] != baseline[i]) {
         diff_count++;
@@ -298,7 +317,13 @@ void OutputTextAssessment(const RomCompareResult& result) {
     }
   }
 
-  if (!has_issues && result.diff_regions.empty()) {
+  if (result.unchecked_diff_bytes > 0) {
+    std::cout << absl::StrFormat(
+        "║  %-7zu byte(s) differ outside the checked regions (--all)    ║\n",
+        result.unchecked_diff_bytes);
+  }
+  if (!has_issues && result.diff_regions.empty() &&
+      result.unchecked_diff_bytes == 0) {
     std::cout
         << "║  ROMs are identical in all checked regions                   ║\n";
   } else if (!has_issues) {
@@ -364,7 +389,8 @@ absl::Status RomCompareCommandHandler::Execute(
                            result.baseline.has_expanded_tile32);
 
   // Find differences
-  FindDiffRegions(target_data, baseline_data, result, smart_diff, region_filter, scan_all);
+  FindDiffRegions(target_data, baseline_data, result, smart_diff, region_filter,
+                  scan_all);
 
   // JSON output
   OutputRomInfoJson(formatter, "baseline", result.baseline);
@@ -374,6 +400,8 @@ absl::Status RomCompareCommandHandler::Execute(
   formatter.AddField("features_match", result.features_match);
   formatter.AddField("total_diff_bytes",
                      static_cast<int>(result.total_diff_bytes));
+  formatter.AddField("unchecked_diff_bytes",
+                     static_cast<int>(result.unchecked_diff_bytes));
 
   formatter.BeginArray("diff_regions");
   for (const auto& diff : result.diff_regions) {
@@ -394,11 +422,15 @@ absl::Status RomCompareCommandHandler::Execute(
     }
   }
   formatter.AddField("has_critical_differences", has_critical);
-  formatter.AddField("assessment", has_critical
-                                       ? "warning"
-                                       : (result.diff_regions.empty()
-                                              ? "identical"
-                                              : "expected_differences"));
+  const char* assessment = "expected_differences";
+  if (has_critical) {
+    assessment = "warning";
+  } else if (result.diff_regions.empty()) {
+    assessment = result.unchecked_diff_bytes > 0
+                     ? "differences_outside_checked_regions"
+                     : "identical";
+  }
+  formatter.AddField("assessment", assessment);
 
   // Text output
   if (!is_json) {

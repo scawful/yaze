@@ -4,6 +4,7 @@
 
 #include "absl/strings/str_format.h"
 #include "absl/strings/str_split.h"
+#include "cli/handlers/rom/rom_commands.h"
 
 namespace yaze {
 namespace cli {
@@ -114,38 +115,10 @@ absl::Status HexWriteCommandHandler::Execute(
     }
   }
 
-  // Validate range
-  if (address + bytes.size() > rom->size()) {
-    return absl::OutOfRangeError(
-        absl::StrFormat("Write beyond ROM: 0x%X+%zu > %zu", address,
-                        bytes.size(), rom->size()));
-  }
-
-  // Write data
-  if (auto status = rom->CheckLayoutWritable(); !status.ok()) {
-    return status;
-  }
-  for (size_t i = 0; i < bytes.size(); ++i) {
-    if (auto status = rom->WriteByte(address + i, bytes[i]); !status.ok()) {
-      return status;
-    }
-  }
-
-  // Format written data
-  std::string hex_data;
-  for (size_t i = 0; i < bytes.size(); ++i) {
-    absl::StrAppendFormat(&hex_data, "%02X", bytes[i]);
-    if (i < bytes.size() - 1)
-      hex_data += " ";
-  }
-
   formatter.BeginObject("Hex Write");
-  formatter.AddHexField("address", address, 6);
-  formatter.AddField("bytes_written", static_cast<int>(bytes.size()));
-  formatter.AddField("hex_data", hex_data);
+  auto status = ApplyRawRomWrite(rom, address, bytes, parser, formatter);
   formatter.EndObject();
-
-  return absl::OkStatus();
+  return status;
 }
 
 absl::Status HexSearchCommandHandler::Execute(

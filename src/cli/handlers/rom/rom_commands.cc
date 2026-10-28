@@ -1,10 +1,12 @@
 #include "cli/handlers/rom/rom_commands.h"
 
 #include <cctype>
+#include <filesystem>
 #include <fstream>
 
 #include "absl/strings/str_format.h"
 #include "absl/strings/str_split.h"
+#include "cli/handlers/game/overworld_sprite_edit_commands.h"
 #include "cli/util/hex_util.h"
 #include "rom/rom.h"
 #include "util/macro.h"
@@ -105,30 +107,83 @@ absl::Status RomWriteCommandHandler::Execute(
     bytes.push_back(static_cast<uint8_t>(value));
   }
 
+  return ApplyRawRomWrite(rom, address, bytes, parser, formatter);
+}
+
+namespace {
+
+std::string HexBytes(const std::vector<uint8_t>& bytes) {
+  std::string out;
+  for (size_t i = 0; i < bytes.size(); ++i) {
+    if (i > 0) {
+      out += ' ';
+    }
+    absl::StrAppendFormat(&out, "%02X", bytes[i]);
+  }
+  return out;
+}
+
+}  // namespace
+
+absl::Status ApplyRawRomWrite(Rom* rom, uint32_t address,
+                              const std::vector<uint8_t>& bytes,
+                              const resources::ArgumentParser& parser,
+                              resources::OutputFormatter& formatter) {
+  if (rom == nullptr || !rom->is_loaded()) {
+    return absl::FailedPreconditionError("ROM not loaded");
+  }
   if (bytes.empty()) {
     return absl::InvalidArgumentError("No data bytes provided");
   }
-
   if (address + bytes.size() > rom->size()) {
     return absl::OutOfRangeError(
         absl::StrFormat("Write beyond ROM: 0x%X+%zu > %zu", address,
                         bytes.size(), rom->size()));
   }
+  const bool do_write = parser.HasFlag("write");
+  const bool mock_rom = parser.HasFlag("mock-rom");
+  if (do_write && !mock_rom && !parser.HasFlag("allow-project-rom") &&
+      IsOracleProjectRomPath(std::filesystem::path(rom->filename()))) {
+    return absl::PermissionDeniedError(absl::StrFormat(
+        "Refusing --write to %s: it is inside an Oracle of Secrets checkout. "
+        "Write a copy, or pass --allow-project-rom deliberately.",
+        rom->filename()));
+  }
 
+  std::vector<uint8_t> before(bytes.size());
+  for (size_t i = 0; i < bytes.size(); ++i) {
+    ASSIGN_OR_RETURN(before[i], rom->ReadByte(address + i));
+  }
+  formatter.AddHexField("address", address, 6);
+  formatter.AddField("byte_count", static_cast<int>(bytes.size()));
+  formatter.AddField("before", HexBytes(before));
+  formatter.AddField("after", HexBytes(bytes));
+  formatter.AddField("mode", do_write ? "write" : "dry-run");
+  if (!do_write) {
+    formatter.AddField("write_status", "dry-run");
+    return absl::OkStatus();
+  }
+
+  RETURN_IF_ERROR(rom->CheckLayoutWritable());
   for (size_t i = 0; i < bytes.size(); ++i) {
     RETURN_IF_ERROR(rom->WriteByte(address + i, bytes[i]));
   }
-
-  std::string hex_data;
-  for (size_t i = 0; i < bytes.size(); ++i) {
-    absl::StrAppendFormat(&hex_data, "%02X", bytes[i]);
-    if (i < bytes.size() - 1)
-      hex_data += " ";
+  if (mock_rom) {
+    formatter.AddField("save_status", "mock-rom-skipped");
+    return absl::OkStatus();
   }
+  Rom::SaveSettings save_settings;
+  save_settings.require_backup = true;
+  RETURN_IF_ERROR(rom->SaveToFile(save_settings));
+  formatter.AddField("save_status", "saved");
 
-  formatter.AddHexField("address", address, 6);
-  formatter.AddField("bytes_written", static_cast<int>(bytes.size()));
-  formatter.AddField("data", hex_data);
+  Rom reopened;
+  RETURN_IF_ERROR(reopened.LoadFromFile(rom->filename()));
+  if (reopened.vector() != rom->vector()) {
+    return absl::DataLossError(
+        "Saved ROM file differs from the written image; restore the backup");
+  }
+  formatter.AddField("verified_reload", true);
   return absl::OkStatus();
 }
 
