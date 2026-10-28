@@ -12,6 +12,7 @@
 #include "core/source_artifact_publisher.h"
 #include "core/sprite_asset_json.h"
 #include "gtest/gtest.h"
+#include "yaze_test_paths.h"
 
 namespace yaze::editor {
 namespace {

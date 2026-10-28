@@ -43,6 +43,7 @@
 #include "test_utils/expanded_entrance_fixture.h"
 #include "util/file_util.h"
 #include "util/platform_paths.h"
+#include "yaze_test_paths.h"
 #include "zelda3/dungeon/custom_object.h"
 #include "zelda3/dungeon/pit_damage_table.h"
 #include "zelda3/dungeon/room_entrance.h"

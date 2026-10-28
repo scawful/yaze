@@ -19,6 +19,7 @@
 #include "imgui/imgui.h"
 #include "imgui/imgui_internal.h"
 #include "rom/rom.h"
+#include "yaze_test_paths.h"
 
 namespace yaze::editor {
 
