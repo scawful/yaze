@@ -976,9 +976,12 @@ class DungeonWorkbenchResetUiTest : public DungeonWorkbenchObjectSizeUiTest {
       sprites_.Draw(nullptr);
     else if (show_library_)
       DungeonWorkbenchContentTestPeer::DrawNavigator(content_, width_, 600);
-    else
+    else {
+      if (show_room_context_row_)
+        DungeonWorkbenchContentTestPeer::DrawRoomContextRow(content_, viewer_);
       DungeonWorkbenchContentTestPeer::DrawInspectorPane(content_, viewer_,
                                                          width_, 600, true);
+    }
     text_ = ImGui::GetCurrentContext()->LogBuffer.c_str();
     ImGui::LogFinish();
     ImGui::End();
@@ -1036,6 +1039,7 @@ class DungeonWorkbenchResetUiTest : public DungeonWorkbenchObjectSizeUiTest {
   float width_ = 260;
   bool show_library_ = false;
   bool show_standalone_sprites_ = false;
+  bool show_room_context_row_ = false;
   std::string text_;
 };
 
@@ -1394,7 +1398,8 @@ TEST_F(DungeonWorkbenchResetUiTest,
 }
 
 TEST_F(DungeonWorkbenchResetUiTest,
-       CompactInspectFollowsSelectionAndAlwaysDrawsRoomFields) {
+       CompactInspectFollowsSelectionAndKeepsRoomContextVisible) {
+  show_room_context_row_ = true;
   rooms_[0].GetSprites().emplace_back(1, 2, 3, 0, 0);
   for (float width : {260.0f, 320.0f}) {
     width_ = width;
@@ -1403,6 +1408,8 @@ TEST_F(DungeonWorkbenchResetUiTest,
     Frame();
     ASSERT_TRUE(Find("SpriteX").has_value());
     EXPECT_TRUE(Find("SpriteX")->visible);
+    ASSERT_TRUE(Find("RoomHeaderPalette").has_value());
+    EXPECT_TRUE(Find("RoomHeaderPalette")->visible);
     for (const char* field : {"RoomHeaderTag1", "RoomHeaderTag2",
                               "RoomHeaderPalette", "RoomHeaderCollision"})
       EXPECT_TRUE(Find(field).has_value()) << field;
