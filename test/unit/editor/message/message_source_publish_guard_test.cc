@@ -9,6 +9,7 @@
 #include <iostream>
 #include <iterator>
 #include <map>
+#include <memory>
 #include <stdexcept>
 #include <string>
 #include <utility>
@@ -19,7 +20,9 @@
 #include <nlohmann/json.hpp>
 
 #include "absl/strings/str_format.h"
+#include "app/editor/message/ui/message_editor_views.h"
 #include "app/editor/session_types.h"
+#include "app/editor/system/workspace/workspace_window_manager.h"
 #include "core/project.h"
 #include "rom/rom.h"
 #include "rom/snes.h"
@@ -30,6 +33,10 @@ class MessageEditorPublishGuardTestPeer {
  public:
   static absl::Status LoadCanonical(MessageEditor& editor) {
     return editor.LoadCanonicalExpandedSource();
+  }
+
+  static void DrawSourceBanner(MessageEditor& editor) {
+    editor.DrawExpandedSourceBanner();
   }
 
   static size_t ExpandedCount(const MessageEditor& editor) {
@@ -217,6 +224,8 @@ class ScopedImGuiFrame {
   ScopedImGuiFrame() {
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO();
+    io.IniFilename = nullptr;
+    io.LogFilename = nullptr;
     io.DisplaySize = ImVec2(1280.0f, 720.0f);
     io.DeltaTime = 1.0f / 60.0f;
     unsigned char* pixels = nullptr;
@@ -240,6 +249,26 @@ class ScopedImGuiFrame {
     draw();
     ImGui::End();
     ImGui::Render();
+  }
+
+  template <typename Draw>
+  void ClickLastItem(Draw&& draw) {
+    ImVec2 center;
+    const auto frame = [&] {
+      DrawOnce([&] {
+        draw();
+        const auto min = ImGui::GetItemRectMin();
+        const auto max = ImGui::GetItemRectMax();
+        center = ImVec2((min.x + max.x) / 2, (min.y + max.y) / 2);
+      });
+    };
+    frame();
+    ImGui::GetIO().AddMousePosEvent(center.x, center.y);
+    frame();
+    ImGui::GetIO().AddMouseButtonEvent(ImGuiMouseButton_Left, true);
+    frame();
+    ImGui::GetIO().AddMouseButtonEvent(ImGuiMouseButton_Left, false);
+    frame();
   }
 };
 
@@ -344,6 +373,82 @@ TEST(MessageProjectSourceLoadTest,
   EXPECT_FALSE(fixture.rom.dirty());
   EXPECT_EQ(ReadText(fixture.canonical), source_before);
   EXPECT_EQ(ReadText(include_path), include_before);
+}
+
+TEST(MessageProjectSourceLoadTest,
+     MissingConfigurationBannerOpensIndependentExpandedSourceWindow) {
+  ScopedImGuiFrame ui;
+  PublishFixture fixture;
+  fixture.dependencies.project = nullptr;
+  WorkspaceWindowManager windows;
+  windows.RegisterSession(fixture.dependencies.session_id);
+  windows.SetActiveSession(fixture.dependencies.session_id);
+  windows.RegisterWindowContent(std::make_unique<ExpandedSourcePanel>([] {}));
+  fixture.dependencies.window_manager = &windows;
+  MessageEditor editor(&fixture.rom, fixture.dependencies);
+  const auto rom_before = fixture.rom.vector();
+  const auto source_before = ReadText(fixture.canonical);
+  const auto* descriptor = windows.GetWindowDescriptor(
+      fixture.dependencies.session_id, "message.expanded_source");
+  ASSERT_NE(descriptor, nullptr);
+  EXPECT_TRUE(descriptor->IsListedInWindowBrowser());
+  EXPECT_FALSE(windows.IsWindowOpen(fixture.dependencies.session_id,
+                                    "message.expanded_source"));
+
+  ui.ClickLastItem(
+      [&] { MessageEditorPublishGuardTestPeer::DrawSourceBanner(editor); });
+
+  EXPECT_TRUE(windows.IsWindowOpen(fixture.dependencies.session_id,
+                                   "message.expanded_source"));
+  EXPECT_EQ(MessageEditorPublishGuardTestPeer::ExpandedCount(editor), 0u);
+  EXPECT_FALSE(MessageEditorPublishGuardTestPeer::BundleStatusError(editor));
+  EXPECT_EQ(fixture.rom.vector(), rom_before);
+  EXPECT_FALSE(fixture.rom.dirty());
+  EXPECT_EQ(ReadText(fixture.canonical), source_before);
+}
+
+TEST(MessageProjectSourceLoadTest,
+     BannerLoadsConfiguredCanonicalSourceWithoutWrites) {
+  ScopedImGuiFrame ui;
+  PublishFixture fixture;
+  MessageEditor editor(&fixture.rom, fixture.dependencies);
+  const auto rom_before = fixture.rom.vector();
+  const auto source_before = ReadText(fixture.canonical);
+
+  ui.ClickLastItem(
+      [&] { MessageEditorPublishGuardTestPeer::DrawSourceBanner(editor); });
+
+  EXPECT_EQ(MessageEditorPublishGuardTestPeer::ExpandedCount(editor), 2u);
+  EXPECT_EQ(MessageEditorPublishGuardTestPeer::ExpandedText(editor, 0),
+            "Alpha");
+  EXPECT_EQ(MessageEditorPublishGuardTestPeer::LoadedSourceSha(editor),
+            ComputeMessageSourceSha256(source_before));
+  EXPECT_FALSE(MessageEditorPublishGuardTestPeer::ExpandedDirty(editor));
+  EXPECT_FALSE(MessageEditorPublishGuardTestPeer::Ready(editor));
+  EXPECT_EQ(fixture.rom.vector(), rom_before);
+  EXPECT_FALSE(fixture.rom.dirty());
+  EXPECT_EQ(ReadText(fixture.canonical), source_before);
+}
+
+TEST(MessageProjectSourceLoadTest, BannerPreservesPendingEditsAndShowsError) {
+  ScopedImGuiFrame ui;
+  PublishFixture fixture;
+  MessageEditor editor(&fixture.rom, fixture.dependencies);
+  MessageEditorPublishGuardTestPeer::SetFontDirty(editor);
+  const auto rom_before = fixture.rom.vector();
+  const auto source_before = ReadText(fixture.canonical);
+
+  ui.ClickLastItem(
+      [&] { MessageEditorPublishGuardTestPeer::DrawSourceBanner(editor); });
+
+  EXPECT_EQ(MessageEditorPublishGuardTestPeer::ExpandedCount(editor), 0u);
+  EXPECT_TRUE(MessageEditorPublishGuardTestPeer::FontDirty(editor));
+  EXPECT_TRUE(MessageEditorPublishGuardTestPeer::BundleStatusError(editor));
+  EXPECT_NE(MessageEditorPublishGuardTestPeer::BundleStatus(editor).find(
+                "pending edits"),
+            std::string::npos);
+  EXPECT_EQ(fixture.rom.vector(), rom_before);
+  EXPECT_EQ(ReadText(fixture.canonical), source_before);
 }
 
 TEST(MessageProjectSourceLoadTest,

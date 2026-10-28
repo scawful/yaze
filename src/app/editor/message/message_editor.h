@@ -211,6 +211,8 @@ class MessageEditor : public Editor {
   std::string CurrentReferenceText() const;
   void DrawDialogueTextPane(float height);
   bool HasMessageSourceLayout() const;
+  void DrawExpandedSourceBanner();
+  void LoadCanonicalExpandedSourceFromUi();
   bool ExpandedEditsAreSourceOwned() const;
   std::pair<int, int> ExpandedInspectionRange() const;
   std::string MessageSourceIncomingPath() const;
