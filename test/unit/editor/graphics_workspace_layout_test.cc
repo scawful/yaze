@@ -638,6 +638,61 @@ TEST_F(GraphicsWorkspaceLayoutTest,
 }
 
 TEST_F(GraphicsWorkspaceLayoutTest,
+       BrowserPaletteRecolorsSheetsWithoutChangingAuthoredData) {
+  data_->palette_groups.sprites_aux1.AddPalette(
+      gfx::SnesPalette(std::vector<uint16_t>(7, 0x001f)));
+  data_->palette_groups.global_sprites.AddPalette(
+      gfx::SnesPalette(std::vector<uint16_t>(60, 0x03e0)));
+  SheetBrowserPanel browser(&state_);
+  browser.Initialize();
+  const auto frame = [&] {
+    Frame([&] { EXPECT_TRUE(browser.Update().ok()); }, 480);
+  };
+  const auto authored = data_->graphics_buffer;
+  const auto pixels = bitmap_->vector();
+  const auto revision = data_->sheet_store.Revision(0);
+  const auto expect_color = [&](uint16_t snes) {
+    const auto expected = gfx::SnesColor(snes).rgb();
+    const auto actual = bitmap_->ReadColor(0, 0);  // Index one.
+    EXPECT_EQ(actual.r, expected.x);
+    EXPECT_EQ(actual.g, expected.y);
+    EXPECT_EQ(actual.b, expected.z);
+  };
+  frame();
+  frame();
+  ASSERT_NE(ActiveChild("/##Sheet00"), nullptr);
+  EXPECT_FALSE(state_.browser_palette.has_value());
+  expect_color(0x7fff);
+
+  Click("Preview palette", frame);
+  Click("Preview group sprites_aux1", frame);
+  ASSERT_TRUE(state_.browser_palette.has_value());
+  EXPECT_EQ(state_.browser_palette->group, "sprites_aux1");
+  ASSERT_NE(state_.PreviewPalette(0), nullptr);
+  EXPECT_EQ(state_.PreviewPalette(0)->group, "sprites_aux1");
+  expect_color(0x001f);
+
+  Click("Preview palette", frame);
+  Click("Preview group global_sprites", frame);
+  EXPECT_EQ(state_.browser_palette->group, "global_sprites");
+  EXPECT_EQ(state_.PreviewPalette(0)->group, "global_sprites");
+  expect_color(0x03e0);
+  // Four 15-color rows: the browser exposes the same row stepper.
+  Click("Next palette row", frame);
+  EXPECT_EQ(state_.browser_palette->row, 1);
+
+  Click("Preview palette", frame);
+  Click("Loaded colors", frame);
+  EXPECT_FALSE(state_.browser_palette.has_value());
+  EXPECT_EQ(state_.PreviewPalette(0), nullptr);
+  expect_color(0x7fff);
+  EXPECT_EQ(data_->graphics_buffer, authored);
+  EXPECT_EQ(bitmap_->vector(), pixels);
+  EXPECT_EQ(data_->sheet_store.Revision(0), revision);
+  EXPECT_TRUE(state_.modified_sheets.empty());
+}
+
+TEST_F(GraphicsWorkspaceLayoutTest,
        PixelToolbarFitsAndViewOptionsAreReachable) {
   PixelEditorPanel pixel(&state_, nullptr);
   for (float width : {440.0f, 640.0f, 980.0f}) {

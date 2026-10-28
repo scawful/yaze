@@ -231,7 +231,7 @@ absl::Status GraphicsEditor::Load() {
   if (usage_preview_view_)
     usage_preview_view_->Reset();
   state_.ClearSourceContext();
-  state_.preview_palettes.clear();
+  state_.ClearPreviewPalettes();
 
   // Initialize all graphics sheets with appropriate palettes from ROM
   // This ensures textures are created for editing

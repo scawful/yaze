@@ -165,7 +165,7 @@ class GraphicsEditor : public Editor {
   void set_rom(Rom* rom) {
     if (rom_ != rom) {
       state_.ClearSourceContext();
-      state_.preview_palettes.clear();
+      state_.ClearPreviewPalettes();
     }
     rom_ = rom;
     if (sheet_browser_panel_) {

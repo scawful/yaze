@@ -9,6 +9,7 @@
 
 #include "absl/strings/str_format.h"
 #include "absl/strings/str_join.h"
+#include "app/editor/graphics/palette_controls_panel.h"
 #include "app/gfx/resource/arena.h"
 #include "app/gui/automation/widget_auto_register.h"
 #include "app/gui/core/icons.h"
@@ -698,6 +699,17 @@ void SheetBrowserPanel::DrawSearchBar() {
     DrawBatchOperations();
     ImGui::EndPopup();
   }
+
+  // Display only: recolors the Arena sheets, never the ROM or project.
+  ImGui::AlignTextToFramePadding();
+  ImGui::TextUnformatted(tr("Palette:"));
+  HOVER_HINT("Show every sheet in this palette; display only");
+  ImGui::SameLine();
+  ImGui::PushID("BrowserPalette");
+  DrawGraphicsPreviewPaletteSelector(*state_,
+                                     GraphicsPaletteSelectorLayout::kInline,
+                                     GraphicsPaletteSelectorScope::kAllSheets);
+  ImGui::PopID();
 }
 
 void SheetBrowserPanel::DrawBatchOperations() {

@@ -9,11 +9,17 @@
 namespace yaze {
 namespace editor {
 
-// Shared by the pixel strip and the existing Palette Controls panel.
+// Shared by the pixel strip, the Palette Controls panel and the Sheet
+// Browser. kCurrentSheet previews one sheet; kAllSheets sets the browser
+// palette on every sheet.
 enum class GraphicsPaletteSelectorLayout { kStacked, kInline };
+enum class GraphicsPaletteSelectorScope { kCurrentSheet, kAllSheets };
 void DrawGraphicsPreviewPaletteSelector(
-    GraphicsEditorState& state, GraphicsPaletteSelectorLayout layout =
-                                    GraphicsPaletteSelectorLayout::kStacked);
+    GraphicsEditorState& state,
+    GraphicsPaletteSelectorLayout layout =
+        GraphicsPaletteSelectorLayout::kStacked,
+    GraphicsPaletteSelectorScope scope =
+        GraphicsPaletteSelectorScope::kCurrentSheet);
 
 /**
  * @brief Panel for managing palettes applied to graphics sheets
