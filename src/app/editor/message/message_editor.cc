@@ -93,10 +93,9 @@ void MessageEditor::Initialize() {
   window_manager->RegisterWindowContent(
       std::make_unique<MessagePreviewPanel>([this]() { DrawPreviewPanel(); }));
   window_manager->RegisterWindowContent(
-      std::make_unique<FontAtlasPanel>([this]() {
-        DrawFontAtlas();
-        DrawExpandedMessageSettings();
-      }));
+      std::make_unique<FontAtlasPanel>([this]() { DrawFontAtlas(); }));
+  window_manager->RegisterWindowContent(std::make_unique<ExpandedSourcePanel>(
+      [this]() { DrawExpandedMessageSettings(); }));
   window_manager->RegisterWindowContent(
       std::make_unique<DictionaryPanel>([this]() { DrawMessageTools(); }));
 
@@ -1271,6 +1270,7 @@ void MessageEditor::DrawMessageHeader() {
 }
 
 void MessageEditor::DrawMessageList() {
+  DrawExpandedSourceBanner();
   gui::LayoutHelpers::BeginToolbar("##MessageListTools");
   if (gui::LayoutHelpers::ToolbarButton(ICON_MD_UPLOAD)) {
     const std::string path = util::FileDialogWrapper::ShowOpenFileDialog();
@@ -1668,8 +1668,7 @@ void MessageEditor::DrawFontAtlas() {
 }
 
 void MessageEditor::DrawExpandedMessageSettings() {
-  ImGui::Separator();
-  gui::SectionHeader(ICON_MD_LIBRARY_ADD, tr("Expanded Messages"),
+  gui::SectionHeader(ICON_MD_LIBRARY_ADD, tr("Expanded Source"),
                      gui::GetWarningColor());
 
   if (HasMessageSourceLayout()) {
@@ -1680,13 +1679,14 @@ void MessageEditor::DrawExpandedMessageSettings() {
            "uses the "
            "manifest data range and does not replace the canonical source."));
     if (ImGui::Button(tr("Load canonical source"))) {
-      const auto status = LoadCanonicalExpandedSource();
-      if (!status.ok()) {
-        message_bundle_status_ = std::string(status.message());
-        message_bundle_status_error_ = true;
-      }
+      LoadCanonicalExpandedSourceFromUi();
     }
     ImGui::SameLine();
+  } else {
+    ImGui::TextWrapped(
+        "%s", tr("No canonical source is configured. Open a project with an "
+                 "expanded message source, or inspect an "
+                 "expanded bank from a file or ROM below."));
   }
   if (ImGui::Button(HasMessageSourceLayout() ? tr("Inspect built ROM")
                                              : tr("Load from ROM"))) {
@@ -1770,6 +1770,30 @@ void MessageEditor::DrawExpandedMessageSettings() {
   }
 
   DrawMessageSourceSync();
+}
+
+void MessageEditor::DrawExpandedSourceBanner() {
+  if (!expanded_messages_.empty()) {
+    return;
+  }
+  ImGui::TextWrapped("%s", tr("Expanded messages not loaded"));
+  if (ImGui::Button(tr("Load canonical source"))) {
+    if (dependencies_.window_manager) {
+      dependencies_.window_manager->OpenWindow(dependencies_.session_id,
+                                               "message.expanded_source");
+    }
+    if (HasMessageSourceLayout()) {
+      LoadCanonicalExpandedSourceFromUi();
+    }
+  }
+}
+
+void MessageEditor::LoadCanonicalExpandedSourceFromUi() {
+  const auto status = LoadCanonicalExpandedSource();
+  if (!status.ok()) {
+    message_bundle_status_ = std::string(status.message());
+    message_bundle_status_error_ = true;
+  }
 }
 
 void MessageEditor::DrawTokenInserter(const std::vector<TextElement>& elements,
