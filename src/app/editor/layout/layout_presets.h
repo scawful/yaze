@@ -130,6 +130,8 @@ class LayoutPresets {
    */
   static PanelLayoutPreset GetDesignerPreset();
 
+  static PanelLayoutPreset GetWriterPreset();
+
   /**
    * @brief Get the "modder" workspace preset (full-featured)
    */
@@ -264,6 +266,7 @@ class LayoutPresets {
     // Message cards (message_editor.cc)
     static constexpr const char* kMessageList = "message.message_list";
     static constexpr const char* kMessageEditor = "message.message_editor";
+    static constexpr const char* kMessagePreview = "message.preview";
     static constexpr const char* kMessageFontAtlas = "message.font_atlas";
     static constexpr const char* kMessageDictionary = "message.dictionary";
 

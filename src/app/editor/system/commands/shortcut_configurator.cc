@@ -932,6 +932,12 @@ void ConfigureEditorShortcuts(const ShortcutDependencies& deps,
         }
       });
   shortcut_manager->RegisterCommand(
+      "Layout: Apply Writer Preset", [editor_manager]() {
+        if (editor_manager) {
+          editor_manager->ApplyLayoutPreset("Writer");
+        }
+      });
+  shortcut_manager->RegisterCommand(
       "Layout: Apply Modder Preset", [editor_manager]() {
         if (editor_manager) {
           editor_manager->ApplyLayoutPreset("Modder");

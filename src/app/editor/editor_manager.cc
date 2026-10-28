@@ -44,6 +44,7 @@
 #include "absl/strings/str_split.h"
 #include "absl/strings/string_view.h"
 #include "imgui/imgui.h"
+#include "imgui/imgui_internal.h"
 #ifdef YAZE_WITH_JSON
 #include "nlohmann/json.hpp"
 #endif
@@ -354,11 +355,36 @@ void EditorManager::ResetWorkspaceLayout() {
 }
 
 void EditorManager::ApplyLayoutPreset(const std::string& preset_name) {
-  if (layout_coordinator_.ApplyLayoutPreset(preset_name,
-                                            GetCurrentSessionId()) &&
-      current_project_.project_opened() &&
-      current_project_.workspace_settings.last_layout_preset != preset_name) {
-    current_project_.workspace_settings.last_layout_preset = preset_name;
+  if (preset_name == "Writer" &&
+      window_manager_.GetActiveCategory() != "Message") {
+    SwitchToEditor(EditorType::kMessage, /*force_visible=*/true);
+    const auto* context = ImGui::GetCurrentContext();
+    if (!context || !context->WithinFrameScope) {
+      QueueDeferredAction(
+          [this, preset_name, session_id = GetCurrentSessionId()] {
+            if (GetCurrentSessionId() == session_id) {
+              ApplyLayoutPreset(preset_name);
+            }
+          });
+      return;
+    }
+    if (window_manager_.GetActiveCategory() != "Message") {
+      return;
+    }
+  }
+  if (!layout_coordinator_.ApplyLayoutPreset(preset_name,
+                                             GetCurrentSessionId())) {
+    return;
+  }
+  auto& workspace = current_project_.workspace_settings;
+  const bool changed =
+      workspace.last_layout_preset != preset_name ||
+      (preset_name == "Writer" && workspace.startup_editor != "message");
+  workspace.last_layout_preset = preset_name;
+  if (preset_name == "Writer") {
+    workspace.startup_editor = "message";
+  }
+  if (changed && current_project_.project_opened()) {
     MarkCurrentProjectDirty();
   }
 }

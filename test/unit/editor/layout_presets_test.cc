@@ -192,5 +192,30 @@ TEST(LayoutPresetsTest, AssemblyDefaultIncludesSupportingToolWindows) {
   EXPECT_EQ(disassembly_pos->second, DockPosition::RightBottom);
 }
 
+TEST(LayoutPresetsTest, WriterContainsOnlyFourPositionedMessageWindows) {
+  const auto preset = LayoutPresets::GetWriterPreset();
+  EXPECT_EQ(preset.name, "Writer");
+  EXPECT_EQ(preset.editor_type, EditorType::kMessage);
+  const std::vector<std::string> expected = {
+      LayoutPresets::Panels::kMessageList,
+      LayoutPresets::Panels::kMessageEditor,
+      LayoutPresets::Panels::kMessagePreview,
+      LayoutPresets::Panels::kMessageDictionary,
+  };
+  EXPECT_EQ(preset.default_visible_panels, expected);
+  EXPECT_TRUE(preset.optional_panels.empty());
+  EXPECT_TRUE(preset.dock_only_default_visible_panels);
+  ASSERT_EQ(preset.panel_positions.size(), expected.size());
+  EXPECT_EQ(preset.panel_positions.at(LayoutPresets::Panels::kMessageList),
+            DockPosition::Left);
+  EXPECT_EQ(preset.panel_positions.at(LayoutPresets::Panels::kMessageEditor),
+            DockPosition::Center);
+  EXPECT_EQ(preset.panel_positions.at(LayoutPresets::Panels::kMessagePreview),
+            DockPosition::RightTop);
+  EXPECT_EQ(
+      preset.panel_positions.at(LayoutPresets::Panels::kMessageDictionary),
+      DockPosition::RightBottom);
+}
+
 }  // namespace
 }  // namespace yaze::editor

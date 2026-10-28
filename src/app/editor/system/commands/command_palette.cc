@@ -817,6 +817,7 @@ void CommandPalette::RegisterLayoutCommands(
       {"Minimal", "Minimal workspace with essential panels only"},
       {"Developer", "Debug-focused layout with emulator and memory tools"},
       {"Designer", "Visual-focused layout for graphics and palette editing"},
+      {"Writer", "Dialogue list, editor, preview, and dictionary"},
       {"Modder", "Full-featured layout with all panels available"},
       {"Overworld Expert", "Optimized layout for overworld editing"},
       {"Dungeon Expert", "Optimized layout for dungeon editing"},

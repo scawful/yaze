@@ -17,6 +17,8 @@ std::optional<PanelLayoutPreset> LayoutPresets::GetNamedPreset(
     return GetDeveloperPreset();
   if (name == "Designer")
     return GetDesignerPreset();
+  if (name == "Writer")
+    return GetWriterPreset();
   if (name == "Modder")
     return GetModderPreset();
   if (name == "Overworld Expert" || name == "Overworld Artist") {
@@ -457,6 +459,24 @@ PanelLayoutPreset LayoutPresets::GetDesignerPreset() {
       // Screen editing for menus/title
       Panels::kScreenTitleScreen,
       Panels::kScreenInventoryMenu,
+  };
+  return preset;
+}
+
+PanelLayoutPreset LayoutPresets::GetWriterPreset() {
+  PanelLayoutPreset preset;
+  preset.name = "Writer";
+  preset.description = "Dialogue list, text editor, preview, and dictionary";
+  preset.editor_type = EditorType::kMessage;
+  preset.default_visible_panels = {Panels::kMessageList, Panels::kMessageEditor,
+                                   Panels::kMessagePreview,
+                                   Panels::kMessageDictionary};
+  preset.dock_only_default_visible_panels = true;
+  preset.panel_positions = {
+      {Panels::kMessageList, DockPosition::Left},
+      {Panels::kMessageEditor, DockPosition::Center},
+      {Panels::kMessagePreview, DockPosition::RightTop},
+      {Panels::kMessageDictionary, DockPosition::RightBottom},
   };
   return preset;
 }

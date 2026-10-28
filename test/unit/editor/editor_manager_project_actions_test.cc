@@ -869,6 +869,35 @@ TEST(EditorManagerProjectActionsTest,
 }
 
 TEST(EditorManagerProjectActionsTest,
+     SelectingWriterFromGraphicsActivatesExactlyItsFourWindows) {
+  ScopedImGuiContext imgui;
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  ::yaze::test::InitializeWithIsolatedSettings(*manager, renderer.get());
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+  ScopedTempDir directory(MakeTempDir("yaze_select_writer_workspace"));
+  const auto rom = directory.path / "writer.sfc";
+  WriteStartupEditorRom(rom);
+  manager->user_settings().prefs().default_editor = 3;
+  ASSERT_OK(manager->OpenRomOrProject(rom.string()));
+  AdvanceStartupFrames(*manager);
+  ExpectStartupEditorActive(*manager, EditorType::kGraphics, "Graphics");
+  manager->ApplyLayoutPreset("Writer");
+  AdvanceStartupFrames(*manager);
+  ExpectStartupEditorActive(*manager, EditorType::kMessage, "Message");
+  auto expected = LayoutPresets::GetWriterPreset().default_visible_panels;
+  auto visible = manager->window_manager().GetVisibleWindowIds(
+      manager->GetCurrentSessionId());
+  std::sort(expected.begin(), expected.end());
+  std::sort(visible.begin(), visible.end());
+  EXPECT_EQ(visible, expected);
+  EXPECT_EQ(manager->GetCurrentProject()->workspace_settings.last_layout_preset,
+            "Writer");
+  EXPECT_EQ(manager->GetCurrentProject()->workspace_settings.startup_editor,
+            "message");
+}
+
+TEST(EditorManagerProjectActionsTest,
      LayoutOnlyProjectChoosesAVisiblePrimaryEditor) {
   ScopedImGuiContext imgui;
   auto renderer = std::make_unique<gfx::NullRenderer>();

@@ -73,6 +73,35 @@ class MessageEditorPanel : public WindowContent {
 };
 
 /**
+ * @brief WindowContent for the shared message preview renderer.
+ */
+class MessagePreviewPanel : public WindowContent {
+ public:
+  using DrawCallback = std::function<void()>;
+
+  explicit MessagePreviewPanel(DrawCallback draw_callback)
+      : draw_callback_(std::move(draw_callback)) {}
+
+  std::string GetId() const override { return "message.preview"; }
+  std::string GetDisplayName() const override { return "Message Preview"; }
+  std::string GetIcon() const override { return ICON_MD_PREVIEW; }
+  std::string GetEditorCategory() const override { return "Message"; }
+  WindowPresentationPolicy GetPresentationPolicy() const override {
+    return WindowPresentationPolicy::OptionalPopOut();
+  }
+  int GetPriority() const override { return 25; }
+
+  void Draw(bool* p_open) override {
+    if (draw_callback_) {
+      draw_callback_();
+    }
+  }
+
+ private:
+  DrawCallback draw_callback_;
+};
+
+/**
  * @brief WindowContent for Font Atlas
  */
 class FontAtlasPanel : public WindowContent {

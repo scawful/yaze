@@ -1,13 +1,18 @@
 #include "app/editor/message/message_list_query.h"
 
 #include <array>
+#include <functional>
+#include <memory>
 #include <string>
 #include <utility>
 #include <vector>
 
+#include "app/editor/layout/layout_presets.h"
 #include "app/editor/message/message_editor.h"
 #include "app/editor/message/ui/message_editor_views.h"
+#include "app/editor/system/workspace/workspace_window_manager.h"
 #include "app/gfx/resource/arena.h"
+#include "core/project.h"
 #include "gtest/gtest.h"
 #include "imgui/imgui.h"
 #include "imgui/imgui_internal.h"
@@ -54,6 +59,108 @@ class MessageEditorListPanelTestPeer {
 };
 
 namespace {
+
+class MessageWriterWorkspaceTest : public ::testing::Test {
+ protected:
+  void SetUp() override {
+    previous_context_ = ImGui::GetCurrentContext();
+    context_ = ImGui::CreateContext();
+    auto& io = ImGui::GetIO();
+    io.IniFilename = nullptr;
+    io.LogFilename = nullptr;
+    io.DisplaySize = ImVec2(1280, 800);
+    io.DeltaTime = 1.0f / 60;
+    unsigned char* pixels = nullptr;
+    int width = 0;
+    int height = 0;
+    io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
+    std::vector<uint8_t> bytes(0x200000, 0);
+    bytes[kTextData] = 0x00;
+    bytes[kTextData + 1] = kMessageTerminator;
+    bytes[kTextData + 2] = 0xFF;
+    ASSERT_TRUE(rom_.LoadFromData(bytes).ok());
+    windows_.RegisterSession(0);
+    windows_.SetActiveSession(0);
+    project_.workspace_settings.last_layout_preset = "Writer";
+    EditorDependencies dependencies;
+    dependencies.rom = &rom_;
+    dependencies.project = &project_;
+    dependencies.window_manager = &windows_;
+    editor_ = std::make_unique<MessageEditor>(&rom_, dependencies);
+    editor_->Initialize();
+  }
+  void TearDown() override {
+    gfx::Arena::Get().ClearTextureQueue();
+    editor_.reset();
+    ImGui::DestroyContext(context_);
+    ImGui::SetCurrentContext(previous_context_);
+  }
+  std::string Frame(const std::function<void()>& draw) {
+    ImGui::NewFrame();
+    ImGui::SetNextWindowPos(ImVec2(20, 20), ImGuiCond_Always);
+    ImGui::SetNextWindowSize(ImVec2(800, 700), ImGuiCond_Always);
+    ImGui::Begin("WriterWorkspaceTest", nullptr,
+                 ImGuiWindowFlags_NoSavedSettings);
+    ImGui::LogToBuffer();
+    draw();
+    const std::string text = context_->LogBuffer.c_str();
+    ImGui::LogFinish();
+    ImGui::End();
+    ImGui::Render();
+    return text;
+  }
+  float TextPaneHeight() const {
+    for (const auto* window : context_->Windows) {
+      if (window->LastFrameActive == context_->FrameCount &&
+          std::string(window->Name).find("##MessageTextPane") !=
+              std::string::npos) {
+        return window->Size.y;
+      }
+    }
+    return 0;
+  }
+  ImGuiContext* previous_context_ = nullptr;
+  ImGuiContext* context_ = nullptr;
+  Rom rom_;
+  project::YazeProject project_;
+  WorkspaceWindowManager windows_;
+  std::unique_ptr<MessageEditor> editor_;
+};
+
+TEST_F(MessageWriterWorkspaceTest, WriterWindowsHaveRealRegisteredContents) {
+  const auto preset = LayoutPresets::GetWriterPreset();
+  windows_.HideAll(0);
+  for (const auto& id : preset.default_visible_panels) {
+    SCOPED_TRACE(id);
+    ASSERT_NE(windows_.GetWindowContent(0, id), nullptr);
+    ASSERT_TRUE(windows_.OpenWindow(0, id));
+    EXPECT_TRUE(windows_.IsWindowOpen(0, id));
+  }
+  EXPECT_FALSE(
+      windows_.IsWindowOpen(0, LayoutPresets::Panels::kMessageFontAtlas));
+  const auto* preview =
+      windows_.GetWindowDescriptor(0, LayoutPresets::Panels::kMessagePreview);
+  ASSERT_NE(preview, nullptr);
+  EXPECT_EQ(preview->display_name, "Message Preview");
+  EXPECT_TRUE(preview->IsListedInWindowBrowser());
+}
+
+TEST_F(MessageWriterWorkspaceTest, WriterUsesSeparatePreviewAndLargerTextPane) {
+  project_.workspace_settings.last_layout_preset.clear();
+  const auto embedded = Frame([&] { editor_->DrawCurrentMessage(); });
+  const auto embedded_height = TextPaneHeight();
+  EXPECT_NE(embedded.find("Message Preview"), std::string::npos);
+  project_.workspace_settings.last_layout_preset = "Writer";
+  const auto writer = Frame([&] { editor_->DrawCurrentMessage(); });
+  EXPECT_EQ(writer.find("Message Preview"), std::string::npos);
+  EXPECT_GT(TextPaneHeight(), embedded_height + 100);
+  auto* preview =
+      windows_.GetWindowContent(0, LayoutPresets::Panels::kMessagePreview);
+  ASSERT_NE(preview, nullptr);
+  const auto separate = Frame([&] { preview->Draw(nullptr); });
+  EXPECT_NE(separate.find("Message Preview"), std::string::npos);
+  EXPECT_FALSE(rom_.dirty());
+}
 
 // Draw the same WindowContent callback registered by MessageEditor::Initialize,
 // without loading ROM graphics or opening a native window.

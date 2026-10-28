@@ -942,6 +942,10 @@ void MenuOrchestrator::AddLayoutSubmenu() {
               nullptr, false, layout_enabled)) {
         OnLoadDesignerLayout();
       }
+      if (ImGui::MenuItem(absl::StrFormat("%s Writer", ICON_MD_CHAT).c_str(),
+                          nullptr, false, layout_enabled)) {
+        apply_preset("Writer");
+      }
       if (ImGui::MenuItem(absl::StrFormat("%s Modder", ICON_MD_BUILD).c_str(),
                           nullptr, false, layout_enabled)) {
         OnLoadModderLayout();
