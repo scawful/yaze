@@ -404,6 +404,9 @@ if(YAZE_BUILD_TESTS)
     unit/editor/dungeon_proposal_overlay_test.cc
     unit/editor/minecart_track_source_test.cc
     unit/editor/minecart_track_editor_panel_test.cc
+    unit/editor/minecart_collision_tool_test.cc
+    unit/editor/minecart_node_placement_test.cc
+    unit/editor/minecart_palette_workflow_test.cc
     unit/editor/project_manager_validator_test.cc
     unit/editor/tile_painting_manager_test.cc
     unit/zelda3/overworld_graphics_preview_test.cc

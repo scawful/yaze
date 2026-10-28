@@ -2,7 +2,9 @@
 
 #include <algorithm>
 #include <array>
+#include <bitset>
 #include <cstdint>
+#include <iterator>
 #include <sstream>
 #include <string>
 #include <utility>
@@ -247,7 +249,171 @@ DimensionService::DimensionResult ResolveTrackObjectDimensions(
   return dims;
 }
 
+struct CanonicalRailStamp {
+  int x;
+  int y;
+  int layer;
+  uint8_t value;
+
+  bool operator==(const CanonicalRailStamp&) const = default;
+  bool operator<(const CanonicalRailStamp& other) const {
+    return std::tie(x, y, layer, value) <
+           std::tie(other.x, other.y, other.layer, other.value);
+  }
+};
+
+std::vector<CanonicalRailStamp> CanonicalRailStamps(
+    std::span<const RoomObject> objects) {
+  // Semantic identity only: corner/crossing values identify changed geometry
+  // for explicit refusal below; they do not establish a four-cell stencil.
+  // Oracle artwork variants share behavior; subtype is not a size nibble.
+  static constexpr std::array<uint8_t, 16> kBehavior = {
+      0xB0, 0xB1, 0xB2, 0xB4, 0xB3, 0xB5, 0xB1, 0xB0,
+      0xB2, 0xB4, 0xB3, 0xB5, 0xB6, 0x00, 0xB6, 0x00};
+  std::vector<CanonicalRailStamp> stamps;
+  for (const auto& object : objects) {
+    const size_t subtype = object.size_ & 0x1F;
+    if (object.id_ != 0x31 || subtype >= kBehavior.size() ||
+        kBehavior[subtype] == 0) {
+      continue;
+    }
+    stamps.push_back(
+        {object.x_, object.y_, object.GetLayerValue(), kBehavior[subtype]});
+  }
+  std::sort(stamps.begin(), stamps.end());
+  return stamps;
+}
+
+bool HasValidRailFootprint(const CanonicalRailStamp& stamp) {
+  return stamp.layer == 0 && stamp.x >= 0 && stamp.y >= 0 &&
+         stamp.x <= kGridSize - 2 && stamp.y <= kGridSize - 2;
+}
+
+struct CanonicalRailGrid {
+  std::array<uint8_t, kGridSize * kGridSize> values{};
+  std::bitset<kGridSize * kGridSize> conflicts;
+};
+
+CanonicalRailGrid BuildCanonicalRailGrid(
+    const std::vector<CanonicalRailStamp>& stamps) {
+  CanonicalRailGrid grid;
+  for (const auto& stamp : stamps) {
+    // Unchanged unsupported geometry does not block unrelated object edits.
+    if (!HasValidRailFootprint(stamp)) {
+      continue;
+    }
+    for (int dy = 0; dy < 2; ++dy) {
+      for (int dx = 0; dx < 2; ++dx) {
+        const size_t offset = (stamp.y + dy) * kGridSize + stamp.x + dx;
+        if (grid.values[offset] != 0 && grid.values[offset] != stamp.value) {
+          grid.conflicts.set(offset);
+        }
+        grid.values[offset] = stamp.value;
+      }
+    }
+  }
+  return grid;
+}
+
+bool IsOrdinaryRail(uint8_t value) {
+  return value >= 0xB0 && value <= 0xB6;
+}
+
+bool IsProtectedRailBehavior(uint8_t value) {
+  return (value >= 0xB7 && value <= 0xBE) || (value >= 0xD0 && value <= 0xD3);
+}
+
 }  // namespace
+
+absl::StatusOr<MinecartTrackCollisionEdit> SynchronizeMinecartTrackCollision(
+    std::span<const RoomObject> before_objects,
+    std::span<const RoomObject> after_objects,
+    const CustomCollisionMap& before_collision,
+    const MinecartTrackCollisionOwnership& before_ownership) {
+  MinecartTrackCollisionEdit result{before_collision, before_ownership};
+  const auto before_stamps = CanonicalRailStamps(before_objects);
+  const auto after_stamps = CanonicalRailStamps(after_objects);
+  std::vector<CanonicalRailStamp> changed;
+  std::set_symmetric_difference(before_stamps.begin(), before_stamps.end(),
+                                after_stamps.begin(), after_stamps.end(),
+                                std::back_inserter(changed));
+  if (changed.empty()) {
+    return result;
+  }
+
+  std::bitset<kGridSize * kGridSize> touched;
+  for (const auto& stamp : changed) {
+    if (stamp.value != 0xB0 && stamp.value != 0xB1) {
+      return absl::FailedPreconditionError(
+          "Automatic rail collision supports straight pieces only; use the "
+          "rail behavior tools for corners and crossings");
+    }
+    if (!HasValidRailFootprint(stamp)) {
+      return absl::FailedPreconditionError(
+          "Automatic rail collision requires upper-layer 16 pixel pieces "
+          "fully inside the room");
+    }
+    for (int dy = 0; dy < 2; ++dy) {
+      for (int dx = 0; dx < 2; ++dx) {
+        touched.set((stamp.y + dy) * kGridSize + stamp.x + dx);
+      }
+    }
+  }
+  const auto before_grid = BuildCanonicalRailGrid(before_stamps);
+  const auto after_grid = BuildCanonicalRailGrid(after_stamps);
+  for (size_t offset = 0; offset < before_collision.tiles.size(); ++offset) {
+    if (!touched.test(offset)) {
+      continue;
+    }
+    if (before_grid.conflicts.test(offset) ||
+        after_grid.conflicts.test(offset)) {
+      return absl::FailedPreconditionError(absl::StrFormat(
+          "Conflicting rail shapes overlap collision cell %zu", offset));
+    }
+    if (before_grid.values[offset] == after_grid.values[offset]) {
+      continue;
+    }
+
+    const uint8_t desired = after_grid.values[offset];
+    auto owner = result.ownership.find(offset);
+    if (owner != result.ownership.end()) {
+      if (before_collision.tiles[offset] != owner->second.generated_value ||
+          !before_collision.HasOverride(offset)) {
+        // A manual edit invalidates ownership; never restore over that edit.
+        result.ownership.erase(owner);
+      } else if (desired == 0) {
+        result.collision.tiles[offset] = owner->second.baseline_value;
+        result.collision.overrides.set(offset, owner->second.baseline_override);
+        result.ownership.erase(owner);
+        continue;
+      } else {
+        result.collision.SetOverride(offset, desired);
+        owner->second.generated_value = desired;
+        continue;
+      }
+    }
+    if (desired == 0) {
+      continue;  // Existing authored rails have no session ownership.
+    }
+    const uint8_t current = before_collision.tiles[offset];
+    if (IsProtectedRailBehavior(current)) {
+      continue;
+    }
+    if (before_collision.HasOverride(offset) && current != 0 &&
+        !IsOrdinaryRail(current)) {
+      return absl::FailedPreconditionError(absl::StrFormat(
+          "Other collision occupies rail cell %zu; edit collision explicitly",
+          offset));
+    }
+    if (current == desired && before_collision.HasOverride(offset)) {
+      continue;  // Do not adopt a matching authored rail.
+    }
+    result.ownership[offset] = {before_collision.overrides.test(offset),
+                                current, desired};
+    result.collision.SetOverride(offset, desired);
+  }
+  return result;
+}
 
 absl::StatusOr<TrackCollisionResult> GenerateTrackCollision(
     Room* room, const GeneratorOptions& options) {

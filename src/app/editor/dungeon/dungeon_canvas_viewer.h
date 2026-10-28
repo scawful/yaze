@@ -234,6 +234,8 @@ enum class ObjectRenderMode {
 };
 
 class DungeonCanvasViewer {
+  friend class MinecartPaletteWorkflowTestPeer;
+
  public:
   explicit DungeonCanvasViewer(Rom* rom = nullptr)
       : rom_(rom), object_interaction_(&canvas_) {
@@ -306,7 +308,11 @@ class DungeonCanvasViewer {
                                        float scale) const;
   void DrawConnectedToolbarControls(int center_room_id);
   void Draw(int room_id);
-  void CancelMinecartGesture() { minecart_canvas_tool_.Cancel(); }
+  void CancelMinecartGesture() {
+    minecart_canvas_tool_.Cancel();
+    minecart_collision_tool_.Cancel();
+  }
+  void CancelMinecartNodeDrag();
   void TriggerChangePing();
   using MetadataEditCallback =
       std::function<absl::Status(int, const RoomMetadataEdit&)>;
@@ -719,6 +725,8 @@ class DungeonCanvasViewer {
 
   // Enable/disable object interaction mode
   void SetObjectInteractionEnabled(bool enabled) {
+    if (object_interaction_enabled_ && !enabled)
+      CancelMinecartNodeDrag();
     object_interaction_enabled_ = enabled;
   }
   bool IsObjectInteractionEnabled() const {
@@ -727,7 +735,11 @@ class DungeonCanvasViewer {
 
   // Make the room header controls non-interactive while retaining centered
   // canvas zoom (useful for split/compare views).
-  void SetHeaderReadOnly(bool read_only) { header_read_only_ = read_only; }
+  void SetHeaderReadOnly(bool read_only) {
+    if (!header_read_only_ && read_only)
+      CancelMinecartNodeDrag();
+    header_read_only_ = read_only;
+  }
   bool header_read_only() const { return header_read_only_; }
 
   // Hide the header chrome entirely (useful for stitched/split layouts where a
@@ -1176,6 +1188,8 @@ class DungeonCanvasViewer {
   bool DrawCrumbleCanvas(const gui::CanvasRuntime& rt);
   bool DrawMinecartCanvas(const gui::CanvasRuntime& rt, zelda3::Room& room,
                           int room_id);
+  bool DrawMinecartNodePlacement(const gui::CanvasRuntime& rt,
+                                 zelda3::Room& room, int room_id);
   bool show_crumble_floor_ = false;
   CrumbleFloorView crumble_floor_view_;
   bool show_minecart_tracks_ = false;

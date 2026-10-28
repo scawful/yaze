@@ -214,20 +214,37 @@ void DungeonCanvasViewer::HandleRoomCanvasDropTargets(zelda3::Room& room,
 bool DungeonCanvasViewer::DrawMinecartCanvas(const gui::CanvasRuntime& rt,
                                              zelda3::Room& room, int room_id) {
   if (!minecart_track_panel_) {
-    minecart_canvas_tool_.Cancel();
+    CancelMinecartGesture();
     return false;
   }
   auto* panel = minecart_track_panel_;
-  if ((panel->canvas_editing() || panel->collision_stamping()) &&
+  const auto* payload = ImGui::GetDragDropPayload();
+  const bool palette_drag =
+      payload && (payload->IsDataType(kMinecartNodeDragPayload) ||
+                  (payload->IsDataType(gui::kDragPayloadRoomObject) &&
+                   payload->DataSize == sizeof(gui::RoomObjectDragPayload) &&
+                   static_cast<const gui::RoomObjectDragPayload*>(payload->Data)
+                           ->object_id == 0x31));
+  const bool own_actor_drag =
+      payload && payload->IsDataType(kMinecartNodeDragPayload) &&
+      payload->DataSize == sizeof(MinecartToolPayload) &&
+      static_cast<const MinecartToolPayload*>(payload->Data)->owner == panel &&
+      static_cast<const MinecartToolPayload*>(payload->Data)->source_viewer ==
+          this;
+  if ((panel->canvas_editing() || panel->collision_stamping() ||
+       panel->placement_brush()) &&
       minecart_owned_input_ && object_interaction_enabled_ &&
-      !object_interaction_.mode_manager().IsSelectMode()) {
+      !object_interaction_.mode_manager().IsSelectMode() &&
+      (!palette_drag || own_actor_drag)) {
     // Choosing another placement/paint tool ends cart editing immediately.
     panel->set_canvas_editing(false);
     panel->set_collision_stamping(false);
+    panel->CancelNodePlacement();
   }
   const bool owns_input =
-      (panel->canvas_editing() || panel->collision_stamping()) &&
-      object_interaction_enabled_;
+      (panel->canvas_editing() || panel->collision_stamping() ||
+       panel->placement_brush() || palette_drag) &&
+      object_interaction_enabled_ && !header_read_only();
   if (owns_input && !minecart_owned_input_) {
     object_interaction_.HandleMouseRelease();
     object_interaction_.CancelPlacement();
@@ -236,20 +253,33 @@ bool DungeonCanvasViewer::DrawMinecartCanvas(const gui::CanvasRuntime& rt,
     object_interaction_.entity_coordinator().ClearAllEntitySelections();
   }
   minecart_owned_input_ = owns_input;
-  if (object_interaction_enabled_)
-    panel->SetActiveRoom(room_id);
-  if (panel->collision_stamping() && object_interaction_enabled_) {
+  if (!owns_input) {
+    CancelMinecartGesture();
+    return false;
+  }
+  if (DrawMinecartNodePlacement(rt, room, room_id)) {
+    CancelMinecartGesture();
+    show_custom_collision_overlay_ = true;
+    return true;
+  }
+  const auto brush = panel->placement_brush();
+  if (panel->collision_stamping() || (brush && brush->collision_only)) {
     minecart_canvas_tool_.Cancel();
     if (room_canvas_shortcut_focus_ && ImGui::IsKeyPressed(ImGuiKey_Escape)) {
       panel->set_collision_stamping(false);
+      panel->CancelNodePlacement();
+      minecart_collision_tool_.Cancel();
       return true;
     }
     show_custom_collision_overlay_ = true;
     minecart_collision_tool_.Draw(
-        rt, room.custom_collision(), room_id, panel->collision_stamp_value(),
-        panel->collision_stamp_size(), panel->collision_stamp_callback());
+        rt, room.custom_collision(), room_id,
+        brush ? brush->collision : panel->collision_stamp_value(),
+        brush ? brush->size : panel->collision_stamp_size(),
+        panel->collision_stamp_callback());
     return true;
   }
+  minecart_collision_tool_.Cancel();
   const MinecartCanvasBinding binding{
       .tracks = panel->GetTracks(),
       .selected = panel->selected_track(),
@@ -269,9 +299,9 @@ bool DungeonCanvasViewer::DrawMinecartCanvas(const gui::CanvasRuntime& rt,
 
 bool DungeonCanvasViewer::DrawCrumbleCanvas(const gui::CanvasRuntime& rt) {
   if (!object_interaction_.mode_manager().IsSelectMode() ||
-      (minecart_track_panel_ &&
-       (minecart_track_panel_->canvas_editing() ||
-        minecart_track_panel_->collision_stamping()))) {
+      (minecart_track_panel_ && (minecart_track_panel_->canvas_editing() ||
+                                 minecart_track_panel_->collision_stamping() ||
+                                 minecart_track_panel_->placement_brush()))) {
     crumble_floor_view_.Stop();
   }
   return show_crumble_floor_ &&

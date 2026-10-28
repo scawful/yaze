@@ -91,7 +91,8 @@ void DungeonCanvasViewer::HandleRoomCanvasNavigation(
     const bool tool_active = crumble_floor_view_.rehearsing() ||
                              (minecart_track_panel_ &&
                               (minecart_track_panel_->canvas_editing() ||
-                               minecart_track_panel_->collision_stamping()));
+                               minecart_track_panel_->collision_stamping() ||
+                               minecart_track_panel_->placement_brush()));
     const bool resize_object =
         object_interaction_enabled_ && !tool_active &&
         (!object_interaction_.GetSelectedObjectIndices().empty() ||

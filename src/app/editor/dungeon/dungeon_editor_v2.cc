@@ -114,6 +114,19 @@ WindowPresentationPolicy WorkbenchTool(std::string capability = std::string()) {
 }  // namespace
 
 void DungeonEditorV2::SetDependencies(const EditorDependencies& deps) {
+  if (minecart_track_editor_panel_)
+    minecart_track_editor_panel_->CancelNodePlacement();
+  room_viewers_.ForEach([](int, std::unique_ptr<DungeonCanvasViewer>& viewer) {
+    if (viewer)
+      viewer->CancelMinecartGesture();
+  });
+  for (auto* viewer :
+       {workbench_viewer_.get(), workbench_compare_viewer_.get()}) {
+    if (viewer)
+      viewer->CancelMinecartGesture();
+  }
+  minecart_collision_ownership_.clear();
+  ++minecart_collision_generation_;
   Editor::SetDependencies(deps);
   room_selector_.SetProject(deps.project);
   if (entrance_navigator_panel_)
@@ -139,6 +152,7 @@ void DungeonEditorV2::ConfigureMinecartProjectCallbacks() {
 
   auto* editor_manager = static_cast<EditorManager*>(dependencies_.custom_data);
   const size_t session_id = dependencies_.session_id;
+  minecart_track_editor_panel_->SetActiveRoom(current_room_id_);
   minecart_track_editor_panel_->SetTrackEditCallback(
       [this, editor_manager, session_id](const MinecartTrack& before,
                                          const MinecartTrack& after,
@@ -153,6 +167,18 @@ void DungeonEditorV2::ConfigureMinecartProjectCallbacks() {
     return object_selector_panel_ &&
            object_selector_panel_->DrawMinecartPalette();
   });
+  minecart_track_editor_panel_->SetNodePlacementCallback(
+      [this, editor_manager, session_id](
+          int room, int x, int y,
+          const MinecartNodeBrush& brush) -> absl::Status {
+        if (editor_manager &&
+            !editor_manager->IsCurrentProjectContextOwnedBySession(
+                session_id)) {
+          return absl::FailedPreconditionError(
+              "Activate this dungeon project before placing track nodes");
+        }
+        return PlaceMinecartNode(room, x, y, brush);
+      });
   minecart_track_editor_panel_->SetCollisionStampCallback(
       [this, editor_manager, session_id](
           int room, const zelda3::CustomCollisionMap& expected,
@@ -497,6 +523,8 @@ absl::Status DungeonEditorV2::RefreshRomBackedState() {
   undo_manager_.Clear();
   save_transaction_snapshot_.reset();
   pending_undo_ = {};
+  minecart_collision_ownership_.clear();
+  ++minecart_collision_generation_;
   has_pending_undo_ = false;
   pending_collision_undo_ = {};
   pending_water_fill_undo_ = {};
@@ -3047,6 +3075,9 @@ DungeonCanvasViewer* DungeonEditorV2::GetWorkbenchCompareViewer(int room_id) {
 }
 
 void DungeonEditorV2::SyncPanelsToRoom(int room_id) {
+  if (minecart_track_editor_panel_) {
+    minecart_track_editor_panel_->SetActiveRoom(room_id);
+  }
   // Update object editor card with current viewer
   if (object_selector_panel_) {
     object_selector_panel_->SetCanvasViewerProvider(
