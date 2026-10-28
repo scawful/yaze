@@ -554,31 +554,9 @@ class RoomMatrixContent : public WindowContent {
                       ImVec2(button_width, 0)))
       ImGui::OpenPopup("##MatrixOptionsPopup");
     gui::AutoRegisterLastItem("button", "Room matrix options");
-    if (ImGui::IsItemHovered())
-      ImGui::SetTooltip(tr("Room colors and census"));
-    if (ImGui::BeginPopup("##MatrixOptionsPopup")) {
-      ImGui::TextDisabled("Room palette colors (same swatch as ZScream)");
-      ImGui::TextUnformatted("Brighter + thin outline: open room");
-      ImGui::TextUnformatted("Accent outline: current room");
-      ImGui::Separator();
-      census_.DrawControls(rom);
-      ImGui::EndPopup();
-    }
-    const std::string caption = absl::StrFormat(
-        "%03X  %s", *current_room_id_, zelda3::GetRoomLabel(*current_room_id_));
-    // Clip long custom names to one line, with the full name on hover.
-    const ImVec2 pos = ImGui::GetCursorScreenPos();
-    const ImVec2 size(ImGui::GetContentRegionAvail().x,
-                      ImGui::GetTextLineHeight());
-    auto* draw = ImGui::GetWindowDrawList();
-    draw->PushClipRect(pos, ImVec2(pos.x + size.x, pos.y + size.y), true);
-    draw->AddText(pos, ImGui::GetColorU32(ImGuiCol_TextDisabled),
-                  caption.c_str());
-    draw->PopClipRect();
-    ImGui::Dummy(size);
     if (ImGui::IsItemHovered()) {
       ImGui::BeginTooltip();
-      ImGui::TextUnformatted(caption.c_str());
+      ImGui::TextUnformatted(tr("Room colors and census"));
       ImGui::TextDisabled("%d loaded rooms",
                           rooms_ ? static_cast<int>(rooms_->LoadedCount())
                                  : active_rooms_->Size);
@@ -588,6 +566,14 @@ class RoomMatrixContent : public WindowContent {
       ImGui::TextDisabled(
           "Click a room to open. Double-click for a separate panel.");
       ImGui::EndTooltip();
+    }
+    if (ImGui::BeginPopup("##MatrixOptionsPopup")) {
+      ImGui::TextDisabled("Room palette colors (same swatch as ZScream)");
+      ImGui::TextUnformatted("Brighter + thin outline: open room");
+      ImGui::TextUnformatted("Accent outline: current room");
+      ImGui::Separator();
+      census_.DrawControls(rom);
+      ImGui::EndPopup();
     }
   }
 
