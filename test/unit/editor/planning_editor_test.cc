@@ -287,7 +287,9 @@ class PlanningProjectActionsTest : public ::testing::Test {
     manager_ = std::make_unique<EditorManager>();
     test::InitializeWithIsolatedSettings(*manager_, renderer_.get());
     manager_->SetAssetLoadMode(AssetLoadMode::kLazy);
-    directory_ = test::UniqueTempPath("planning_project_actions");
+    // UniqueTempPath includes the case name. Leave Windows path budget for
+    // the native receipt's temporary and backup publication suffixes.
+    directory_ = test::UniqueTempPath("plan");
     fs::create_directories(directory_);
     const auto rom = directory_ / "fixture.sfc";
     std::vector<char> bytes(512 * 1024, 0);
