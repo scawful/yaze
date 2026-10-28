@@ -356,11 +356,13 @@ void EditorSet::InvalidateScreenRomBackedState() {
 }
 
 bool EditorSet::HasPendingProjectDraftChanges() const {
+  return HasPendingPlanningProjectDraftChanges() ||
+         HasPendingBuildProjectDraftChanges();
+}
+
+bool EditorSet::HasPendingBuildProjectDraftChanges() const {
   if (HasPendingSpriteChanges())
     return true;
-  if (HasPendingPlanningProjectDraftChanges()) {
-    return true;
-  }
   if (auto* editor =
           static_cast<DungeonEditorV2*>(FindEditor(EditorType::kDungeon))) {
     if (editor->HasPendingProjectDraftChanges())

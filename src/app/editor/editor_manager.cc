@@ -2972,7 +2972,13 @@ absl::Status EditorManager::SaveCurrentSession() {
   }
   CaptureActiveProjectEditingState();
   const size_t session_id = GetCurrentSessionId();
-  RETURN_IF_ERROR(SaveActiveProjectEditingWork());
+  // A following ROM save publishes the receipt for both; a project-only
+  // receipt failure must not block that ROM save.
+  defer_project_native_completion_ =
+      SessionHasPendingRomWork(GetCurrentSessionIndex());
+  const auto project_status = SaveActiveProjectEditingWork();
+  defer_project_native_completion_ = false;
+  RETURN_IF_ERROR(project_status);
   if (GetCurrentSessionId() != session_id) {
     return absl::FailedPreconditionError(
         "The active session changed while saving project work");
@@ -2980,7 +2986,21 @@ absl::Status EditorManager::SaveCurrentSession() {
   if (SessionHasPendingRomWork(GetCurrentSessionIndex())) {
     return SaveRom();
   }
-  return absl::OkStatus();
+  return CompletePendingProjectNativeSave();
+}
+
+absl::Status EditorManager::CompletePendingProjectNativeSave() {
+  auto* session = session_coordinator_
+                      ? session_coordinator_->GetActiveRomSession()
+                      : nullptr;
+  const auto* rom = GetCurrentRom();
+  if (session == nullptr || !session->native_save_completion_pending ||
+      pending_rom_save_.has_value() || !current_project_.project_opened() ||
+      rom == nullptr || !rom->is_loaded() || rom->filename().empty()) {
+    return absl::OkStatus();
+  }
+  return RecordCompletedNativeSave(current_project_, rom->filename(),
+                                   /*save_as=*/false, /*rom_written=*/false);
 }
 
 absl::Status EditorManager::SaveRom() {
@@ -3916,6 +3936,21 @@ absl::Status EditorManager::SaveProject() {
           "preserve that draft before saving project settings");
     }
   }
+  auto* save_session = session_coordinator_
+                           ? session_coordinator_->GetActiveRomSession()
+                           : nullptr;
+  // Every project Save except a Planning-only one commits build-owned work:
+  // the descriptor and any terrain/sprite/dungeon drafts. Retire the prior
+  // native commit before any of those bytes change.
+  const bool build_owned =
+      current_project_.project_opened() && save_session != nullptr &&
+      (save_session->project_dirty ||
+       save_session->native_save_completion_pending ||
+       save_session->editors.HasPendingBuildProjectDraftChanges() ||
+       !save_session->editors.HasPendingPlanningProjectDraftChanges());
+  if (build_owned) {
+    RETURN_IF_ERROR(RetireNativeSaveTransfer("rebound"));
+  }
   RETURN_IF_ERROR(PrepareActiveProjectEditorDraftsForSave());
   CaptureActiveProjectContext();
   if (!current_project_.project_opened()) {
@@ -3963,7 +3998,14 @@ absl::Status EditorManager::SaveProject() {
     RebaseCleanProjectFileDraft(current_project_.filepath);
   }
   CaptureActiveProjectContext();
-  return status;
+  if (!status.ok() || !build_owned) {
+    return status;
+  }
+  save_session->native_save_completion_pending = true;
+  if (defer_project_native_completion_) {
+    return absl::OkStatus();
+  }
+  return CompletePendingProjectNativeSave();
 }
 
 void EditorManager::MarkCurrentProjectDirty() {

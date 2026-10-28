@@ -739,9 +739,12 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
   absl::Status CheckOracleRomSafetyPreSave(Rom* rom);
   absl::Status SaveRomInternal(
       const std::optional<std::string>& save_as_filename);
+  // rom_written=false records a project-only Save: the ROM is bound as it is
+  // on disk and is never rewritten.
   absl::Status RecordCompletedNativeSave(const project::YazeProject& project,
                                          const std::string& saved_rom,
-                                         bool save_as);
+                                         bool save_as, bool rom_written = true);
+  absl::Status CompletePendingProjectNativeSave();
   std::string NativeSaveEditingSourcePath() const;
   absl::Status RetireNativeSaveTransfer(
       const std::string& state, const std::string& editing_source_path = "");
@@ -808,6 +811,9 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
     Rom* rom = nullptr;
   };
   std::optional<PendingRomSave> pending_rom_save_;
+  // Set while Save Current Session persists project work ahead of a ROM save
+  // whose own native receipt will complete that project Save.
+  bool defer_project_native_completion_ = false;
 
   // Deferred action queue - executed at the start of each frame
   std::vector<std::function<void()>> deferred_actions_;

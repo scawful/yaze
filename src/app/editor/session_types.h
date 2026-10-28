@@ -105,6 +105,9 @@ class EditorSet {
   // exists. ROM replacement must not materialize an otherwise-unused editor.
   void InvalidateScreenRomBackedState();
   bool HasPendingProjectDraftChanges() const;
+  // Project drafts other than Planning, whose plan is a live reference rather
+  // than a build input.
+  bool HasPendingBuildProjectDraftChanges() const;
   bool HasPendingPlanningProjectDraftChanges() const;
   absl::Status PrepareProjectSave(bool publish_lyra = true);
   void ProjectSaveCommitted();
@@ -202,6 +205,9 @@ struct RomSession {
   // the session has not yet been bound to a project context and must not save.
   std::optional<project::YazeProject> project_context;
   bool project_dirty = false;
+  // A build-owned project Save persisted, but its native-save receipt is not
+  // yet published. The next Save retries completion without new edits.
+  bool native_save_completion_pending = false;
 
   // True when the gfx group tables (blocksets, spritesets, palettesets) in
   // game_data differ from the ROM buffer. Derived from the data, so every

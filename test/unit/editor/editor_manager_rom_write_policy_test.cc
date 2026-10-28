@@ -1033,21 +1033,100 @@ TEST_F(NativeSaveReceiptIntegrationTest,
   EXPECT_TRUE(retired.at("native_commit").is_null());
 }
 
+// A project Save rewrites build inputs (the descriptor, and any terrain or
+// other drafts), so it is a native Save and publishes a receipt. It binds the
+// clean ROM as it is on disk and never rewrites it.
 TEST_F(NativeSaveReceiptIntegrationTest,
-       ProjectOnlySaveSuccessDoesNotIssueNativeReceipt) {
+       ProjectOnlySaveIssuesNativeReceiptWithoutWritingRom) {
   ASSERT_NO_FATAL_FAILURE(BindProject());
   const auto original_rom = ReadText(source_);
+  const auto rom_time = std::filesystem::last_write_time(source_);
   manager_->GetCurrentProject()->name = "Project-only saved name";
   manager_->MarkCurrentProjectDirty();
   ASSERT_FALSE(manager_->GetCurrentRom()->dirty());
   ASSERT_OK(manager_->SaveCurrentSession());
   EXPECT_FALSE(manager_->IsCurrentProjectDirty());
   EXPECT_EQ(ReadText(source_), original_rom);
-  EXPECT_FALSE(std::filesystem::exists(receipt_));
+  EXPECT_EQ(std::filesystem::last_write_time(source_), rom_time);
   EXPECT_FALSE(std::filesystem::exists(source_.string() + ".native-save.json"));
+  ASSERT_TRUE(std::filesystem::exists(receipt_));
+  const auto receipt = ReadReceipt(receipt_);
+  EXPECT_EQ(receipt.at("generation"), 1u);
+  EXPECT_EQ(receipt.at("operation"), "save");
+  EXPECT_TRUE(receipt.at("bindings_complete")) << receipt.dump(2);
+  ExpectArtifact(receipt, "rom", source_);
+  ExpectArtifact(receipt, "project", manager_->GetCurrentProject()->filepath);
+  ExpectProducer(receipt);
+  const auto context = core::GetNativeSaveContext(
+      source_.string(), manager_->GetCurrentProject()->filepath);
+  ASSERT_TRUE(context.ok()) << context.status();
+  EXPECT_EQ(ReadReceipt(context->path).at("state"), "committed");
   project::YazeProject reopened;
   ASSERT_OK(reopened.Open(manager_->GetCurrentProject()->filepath));
   EXPECT_EQ(reopened.name, "Project-only saved name");
+  // Nothing new to persist: Save does not invent another generation.
+  ASSERT_OK(manager_->SaveCurrentSession());
+  EXPECT_EQ(ReadReceipt(receipt_).at("generation"), 1u);
+}
+
+TEST_F(NativeSaveReceiptIntegrationTest,
+       ProjectSaveRetriesFailedCompletionWithoutNewEdits) {
+  ASSERT_NO_FATAL_FAILURE(BindProject());
+  const auto original_rom = ReadText(source_);
+  // A directory at the receipt path makes publication fail after the project
+  // bytes are already persisted.
+  ASSERT_TRUE(std::filesystem::create_directory(receipt_));
+  manager_->GetCurrentProject()->name = "Saved before completion";
+  manager_->MarkCurrentProjectDirty();
+  const auto failed = manager_->SaveCurrentSession();
+  ASSERT_FALSE(failed.ok());
+  EXPECT_NE(failed.message().find("Project saved"), std::string::npos)
+      << failed;
+  EXPECT_NE(failed.message().find("Save again to retry"), std::string::npos)
+      << failed;
+  EXPECT_EQ(failed.message().find("ROM saved"), std::string::npos) << failed;
+  EXPECT_FALSE(manager_->IsCurrentProjectDirty());
+  project::YazeProject reopened;
+  ASSERT_OK(reopened.Open(manager_->GetCurrentProject()->filepath));
+  EXPECT_EQ(reopened.name, "Saved before completion");
+
+  std::filesystem::remove(receipt_);
+  const auto descriptor = ReadText(manager_->GetCurrentProject()->filepath);
+  ASSERT_OK(manager_->SaveCurrentSession());
+  EXPECT_EQ(ReadText(manager_->GetCurrentProject()->filepath), descriptor);
+  EXPECT_EQ(ReadText(source_), original_rom);
+  ASSERT_TRUE(std::filesystem::is_regular_file(receipt_));
+  const auto receipt = ReadReceipt(receipt_);
+  EXPECT_EQ(receipt.at("generation"), 1u);
+  ExpectArtifact(receipt, "project", manager_->GetCurrentProject()->filepath);
+  ExpectArtifact(receipt, "rom", source_);
+}
+
+TEST_F(NativeSaveReceiptIntegrationTest,
+       NativeReceiptExcludesLivePlanningButKeepsAliasedBuildRoles) {
+  ASSERT_NO_FATAL_FAILURE(BindProject());
+  const auto plan = cleanup_.path / "live.plan.json";
+  const auto labels = cleanup_.path / "labels.json";
+  std::ofstream(plan) << "{\"schema\":\"yaze.plan/1\"}";
+  std::ofstream(labels) << "{}";
+  auto* project = manager_->GetCurrentProject();
+  project->planning.file = plan.string();
+  project->labels_filename = labels.string();
+  manager_->MarkCurrentProjectDirty();
+  ASSERT_OK(manager_->SaveCurrentSession());
+  const auto first = ReadReceipt(receipt_);
+  for (const auto& artifact : first.at("artifacts")) {
+    EXPECT_NE(artifact.at("role"), "dependency.planning") << first.dump(2);
+  }
+  ExpectArtifact(first, "dependency.labels_filename", labels);
+
+  // A file that is also a build input stays bound under that role.
+  project->planning.file = labels.string();
+  manager_->MarkCurrentProjectDirty();
+  ASSERT_OK(manager_->SaveCurrentSession());
+  const auto second = ReadReceipt(receipt_);
+  EXPECT_EQ(second.at("generation"), 2u);
+  ExpectArtifact(second, "dependency.labels_filename", labels);
 }
 
 TEST_F(NativeSaveReceiptIntegrationTest,

@@ -93,7 +93,8 @@ std::map<std::string, std::string> ProjectSaveSources(
   add("dependency.sprite_catalog_file", project.sprite_catalog_file);
   add("dependency.terrain_catalog_file", project.terrain_catalog_file);
   add("dependency.palette_catalog_file", project.palette_catalog_file);
-  add("dependency.planning", project.planning.file);
+  // Planning is a live project reference, not a build input: its own CAS
+  // save owns it, and agent status edits must not invalidate a native Save.
   add("dependency.atlas_symbols", project.atlas.symbols);
   for (const auto& [id, files] : project.custom_object_files) {
     for (size_t i = 0; i < files.size(); ++i) {
@@ -958,7 +959,7 @@ absl::Status EditorManager::SaveRomInternal(
 
 absl::Status EditorManager::RecordCompletedNativeSave(
     const project::YazeProject& project, const std::string& saved_rom,
-    bool save_as) {
+    bool save_as, bool rom_written) {
 #if defined(__EMSCRIPTEN__) || !defined(YAZE_WITH_JSON)
   // Browser persistence has no native producer or durable publication lock.
   return absl::OkStatus();
@@ -981,18 +982,24 @@ absl::Status EditorManager::RecordCompletedNativeSave(
     const auto rom_path = std::filesystem::canonical(saved_rom, error);
     if (error)
       return absl::FailedPreconditionError("Cannot resolve saved ROM");
-    std::string_view saved_bytes(reinterpret_cast<const char*>(rom->data()),
-                                 rom->size());
-    std::string headered_bytes;
-    if (rom->has_copier_header()) {
-      const auto& header = rom->copier_header();
-      headered_bytes.assign(reinterpret_cast<const char*>(header.data()),
-                            header.size());
-      headered_bytes.append(saved_bytes);
-      saved_bytes = headered_bytes;
+    if (rom_written) {
+      std::string_view saved_bytes(reinterpret_cast<const char*>(rom->data()),
+                                   rom->size());
+      std::string headered_bytes;
+      if (rom->has_copier_header()) {
+        const auto& header = rom->copier_header();
+        headered_bytes.assign(reinterpret_cast<const char*>(header.data()),
+                              header.size());
+        headered_bytes.append(saved_bytes);
+        saved_bytes = headered_bytes;
+      }
+      request.artifacts.push_back(
+          {"rom", rom_path, core::ComputeSourceArtifactSha256(saved_bytes)});
+    } else {
+      ASSIGN_OR_RETURN(const auto on_disk,
+                       core::ComputeSourceArtifactFileSha256(rom_path));
+      request.artifacts.push_back({"rom", rom_path, on_disk});
     }
-    request.artifacts.push_back(
-        {"rom", rom_path, core::ComputeSourceArtifactSha256(saved_bytes)});
     // Pin the process's expected producer once; the publisher still rehashes
     // it before publication and on readback for every completed save.
     static const auto producer =
@@ -1128,7 +1135,8 @@ absl::Status EditorManager::RecordCompletedNativeSave(
                                                 project_path));
     ASSIGN_OR_RETURN(auto receipt, core::PublishNativeSaveReceipt(request));
     if (!request.binding_errors.empty()) {
-      toast_manager_.Show("ROM saved; build inputs are incomplete: " +
+      toast_manager_.Show(std::string(rom_written ? "ROM" : "Project") +
+                              " saved; build inputs are incomplete: " +
                               request.binding_errors.front(),
                           ToastType::kWarning);
     }
@@ -1142,8 +1150,16 @@ absl::Status EditorManager::RecordCompletedNativeSave(
   }
   if (!status.ok()) {
     return absl::FailedPreconditionError(
-        "ROM saved, but native-save receipt is unavailable: " +
-        std::string(status.message()));
+        rom_written
+            ? "ROM saved, but native-save receipt is unavailable: " +
+                  std::string(status.message())
+            : "Project saved, but its native-save receipt is unavailable; "
+              "Save again to retry: " +
+                  std::string(status.message()));
+  }
+  if (session_coordinator_) {
+    if (auto* session = session_coordinator_->GetActiveRomSession())
+      session->native_save_completion_pending = false;
   }
   return status;
 #endif
