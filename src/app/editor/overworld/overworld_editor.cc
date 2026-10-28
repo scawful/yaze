@@ -1441,6 +1441,25 @@ absl::Status OverworldEditor::Paste() {
                                      clipboard.overworld_tile16_ids});
 }
 
+absl::StatusOr<int> OverworldEditor::ApplyTile16Stencil(
+    int map_id, const std::vector<GuardedTileCell>& cells) {
+  if (is_lyra_preview()) {
+    return absl::FailedPreconditionError("Lyra preview is read-only");
+  }
+  if (!overworld_.is_loaded() || !tile_painting_) {
+    return absl::FailedPreconditionError("Overworld is not loaded");
+  }
+  if (map_id < 0 || map_id >= zelda3::kNumOverworldMaps ||
+      IsProjectTerrainMap(map_id)) {
+    return absl::OutOfRangeError("Stencil map must be a ROM overworld map");
+  }
+  SelectMapForEditing(map_id, /*respect_pin=*/false);
+  if (current_map_ != map_id) {
+    return absl::FailedPreconditionError("Stencil map could not be selected");
+  }
+  return tile_painting_->ApplyGuardedCells(map_id, cells);
+}
+
 absl::Status OverworldEditor::CheckForCurrentMap() {
   if (canvas_nav_)
     return canvas_nav_->CheckForCurrentMap();

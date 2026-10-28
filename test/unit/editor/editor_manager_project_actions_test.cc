@@ -2831,6 +2831,51 @@ TEST_F(EditorControlRomSwapTest, RejectsEachStaleIdentityAndMalformedArgument) {
   EXPECT_FALSE(manager_->HasPendingUnsavedSessionAction());
 }
 
+TEST_F(EditorControlRomSwapTest, StencilRefusesBeforeTouchingTheEditor) {
+  const auto stencil_path = temp_dir_.path / "stencil.json";
+  const auto write_stencil = [&](const std::string& schema) {
+    std::ofstream(stencil_path, std::ios::binary | std::ios::trunc)
+        << nlohmann::json(
+               {{"schema", schema},
+                {"map_id", 0x98},
+                {"cells",
+                 {{{"x", 0}, {"y", 0}, {"expected", 1}, {"proposed", 2}}}}})
+               .dump();
+    return core::ComputeSourceArtifactSha256(ReadFile(stencil_path));
+  };
+  const nlohmann::json request = {
+      {"command", "overworld.stencil.apply"},
+      {"path", stencil_path.string()},
+      {"stencil_sha256", write_stencil("yaze.overworld_tile16_stencil.v1")},
+      {"expected", State()}};
+
+  auto changed = request;
+  changed["stencil_sha256"] = std::string(64, '0');
+  EXPECT_EQ(Execute(changed)["http_status"], 409);
+  changed = request;
+  changed["expected"]["pid"] = request["expected"]["pid"].get<int>() + 1;
+  EXPECT_EQ(Execute(changed)["http_status"], 409);
+  changed = request;
+  changed["path"] = "relative.json";
+  EXPECT_EQ(Execute(changed)["http_status"], 400);
+  changed = request;
+  changed["path"] = (temp_dir_.path / "missing.json").string();
+  EXPECT_EQ(Execute(changed)["http_status"], 422);
+  changed = request;
+  changed["stencil_sha256"] = write_stencil("other.schema");
+  EXPECT_EQ(Execute(changed)["http_status"], 400);
+  write_stencil("yaze.overworld_tile16_stencil.v1");
+
+  manager_->ShowProjectFileEditor();
+  const auto draft = MakeModifiedProjectDraft(
+      manager_->project_file_editor(), manager_->GetCurrentProject(),
+      ProjectFileContents("Unsaved Draft", rom_path_));
+  EXPECT_EQ(Execute(request)["http_status"], 409);
+  EXPECT_EQ(manager_->project_file_editor()->CaptureState().text, draft.text);
+  ExpectUnchanged();
+  EXPECT_FALSE(manager_->HasPendingUnsavedSessionAction());
+}
+
 TEST_F(EditorControlRomSwapTest, RejectsCandidateChangedAfterReceipt) {
   const auto request = Request();
   WriteRomFile(candidate_path_, "CHANGED AFTER RECEIPT");

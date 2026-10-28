@@ -191,6 +191,9 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   absl::Status Cut() override { return absl::UnimplementedError("Cut"); }
   absl::Status Copy() override;
   absl::Status Paste() override;
+  /// Select `map_id` and apply a guarded stencil as one undoable paint.
+  absl::StatusOr<int> ApplyTile16Stencil(
+      int map_id, const std::vector<GuardedTileCell>& cells);
   absl::Status Find() override { return absl::UnimplementedError("Find"); }
   absl::Status Save() override;
   absl::Status BeginSaveTransaction() override;

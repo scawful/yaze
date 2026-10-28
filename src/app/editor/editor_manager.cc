@@ -3068,9 +3068,13 @@ std::string EditorManager::ExecuteEditorControl(const std::string& request) {
   json response = {{"protocol", "yaze-editor-control/v1"},
                    {"status", "ok"},
                    {"http_status", 200}};
-  response["capabilities"]["commands"] = {"status",           "project.open",
-                                          "project.rom.swap", "dungeon.select",
-                                          "proposal.load",    "panel.hide"};
+  response["capabilities"]["commands"] = {"status",
+                                          "project.open",
+                                          "project.rom.swap",
+                                          "dungeon.select",
+                                          "proposal.load",
+                                          "panel.hide",
+                                          "overworld.stencil.apply"};
 #ifdef _WIN32
   const auto pid = _getpid();
 #else
@@ -3103,38 +3107,20 @@ std::string EditorManager::ExecuteEditorControl(const std::string& request) {
                  ? editors->GetEditorAs<DungeonEditorV2>(EditorType::kDungeon)
                  : nullptr;
     };
-    if (command == "status") {
-      // Read-only; usable before a ROM is opened.
-    } else if (command == "project.open") {
-      const auto path = path_argument();
-      const auto extension = std::filesystem::path(path).extension();
-      if (extension != ".yaze" && extension != ".zsproj" &&
-          extension != ".yazeproj") {
-        fail(400, "project.open requires a .yaze, .zsproj or .yazeproj path");
-      } else if (HasAnySessionPendingUnsavedWork() ||
-                 HasPendingUnsavedSessionAction()) {
-        fail(409, "Project switch blocked: " + DescribeAllPendingUnsavedWork());
-      } else if (current_project_.filepath != path) {
-        // No implicit save/discard and no repair/file picker fallback.
-        const auto status = OpenRomOrProjectInternal(path, false);
-        if (!status.ok())
-          fail(422, std::string(status.message()));
+    const auto hash_argument = [](const json& value) {
+      const auto hash = value.get<std::string>();
+      if (hash.size() != 64 ||
+          !std::all_of(hash.begin(), hash.end(), [](char ch) {
+            return (ch >= '0' && ch <= '9') || (ch >= 'a' && ch <= 'f');
+          })) {
+        throw std::invalid_argument(
+            "SHA256 must contain 64 lowercase hexadecimal characters");
       }
-    } else if (command == "project.rom.swap") {
-      const auto path = path_argument();
-      const auto hash_argument = [](const json& value) {
-        const auto hash = value.get<std::string>();
-        if (hash.size() != 64 ||
-            !std::all_of(hash.begin(), hash.end(), [](char ch) {
-              return (ch >= '0' && ch <= '9') || (ch >= 'a' && ch <= 'f');
-            })) {
-          throw std::invalid_argument(
-              "SHA256 must contain 64 lowercase hexadecimal characters");
-        }
-        return hash;
-      };
-      const auto candidate_sha256 = hash_argument(body.at("candidate_sha256"));
-      const auto& expected = body.at("expected");
+      return hash;
+    };
+    // The caller names the exact editor it inspected; any other process,
+    // session, project, ROM file or ROM bytes refuses the command.
+    const auto expected_editor_matches = [&](const json& expected) {
       for (const auto* field : {"pid", "session_id"}) {
         if (!expected.at(field).is_number_integer() || expected.at(field) < 0 ||
             (std::string_view(field) == "pid" && expected.at(field) == 0)) {
@@ -3155,18 +3141,42 @@ std::string EditorManager::ExecuteEditorControl(const std::string& request) {
       const auto current_rom_path = expected_path("rom_path");
       const auto current_sha256 = hash_argument(expected.at("rom_sha256"));
       const auto* rom = GetCurrentRom();
+      return current_project_.project_opened() && rom && rom->is_loaded() &&
+             expected.at("pid") == pid &&
+             expected.at("session_id") == GetCurrentSessionId() &&
+             SessionCoordinator::PathsReferToSameBackingFile(
+                 project_path, current_project_.filepath) &&
+             SessionCoordinator::PathsReferToSameBackingFile(current_rom_path,
+                                                             rom->filename()) &&
+             current_sha256 == rom_sha256(*rom);
+    };
+    if (command == "status") {
+      // Read-only; usable before a ROM is opened.
+    } else if (command == "project.open") {
+      const auto path = path_argument();
+      const auto extension = std::filesystem::path(path).extension();
+      if (extension != ".yaze" && extension != ".zsproj" &&
+          extension != ".yazeproj") {
+        fail(400, "project.open requires a .yaze, .zsproj or .yazeproj path");
+      } else if (HasAnySessionPendingUnsavedWork() ||
+                 HasPendingUnsavedSessionAction()) {
+        fail(409, "Project switch blocked: " + DescribeAllPendingUnsavedWork());
+      } else if (current_project_.filepath != path) {
+        // No implicit save/discard and no repair/file picker fallback.
+        const auto status = OpenRomOrProjectInternal(path, false);
+        if (!status.ok())
+          fail(422, std::string(status.message()));
+      }
+    } else if (command == "project.rom.swap") {
+      const auto path = path_argument();
+      const auto candidate_sha256 = hash_argument(body.at("candidate_sha256"));
+      const bool identity_matches =
+          expected_editor_matches(body.at("expected"));
       if (HasAnySessionPendingUnsavedWork() ||
           HasPendingUnsavedSessionAction()) {
         fail(409, "ROM swap blocked by pending work or action: " +
                       DescribeAllPendingUnsavedWork());
-      } else if (!current_project_.project_opened() || !rom ||
-                 !rom->is_loaded() || expected.at("pid") != pid ||
-                 expected.at("session_id") != GetCurrentSessionId() ||
-                 !SessionCoordinator::PathsReferToSameBackingFile(
-                     project_path, current_project_.filepath) ||
-                 !SessionCoordinator::PathsReferToSameBackingFile(
-                     current_rom_path, rom->filename()) ||
-                 current_sha256 != rom_sha256(*rom)) {
+      } else if (!identity_matches) {
         fail(409,
              "ROM swap expected identity does not match the active editor");
       } else {
@@ -3174,6 +3184,69 @@ std::string EditorManager::ExecuteEditorControl(const std::string& request) {
         if (!status.ok()) {
           fail(absl::IsAborted(status) ? 409 : 422,
                std::string(status.message()));
+        }
+      }
+    } else if (command == "overworld.stencil.apply") {
+      const auto path = path_argument();
+      const auto stencil_sha256 = hash_argument(body.at("stencil_sha256"));
+      const bool identity_matches =
+          expected_editor_matches(body.at("expected"));
+      std::ifstream file(path, std::ios::binary);
+      const std::string bytes((std::istreambuf_iterator<char>(file)),
+                              std::istreambuf_iterator<char>());
+      if (!file.good() && !file.eof()) {
+        fail(422, "Stencil file could not be read");
+      } else if (core::ComputeSourceArtifactSha256(bytes) != stencil_sha256) {
+        fail(409, "Stencil file does not match stencil_sha256");
+      } else if (HasAnySessionPendingUnsavedWork() ||
+                 HasPendingUnsavedSessionAction()) {
+        fail(409, "Stencil blocked by pending work or action: " +
+                      DescribeAllPendingUnsavedWork());
+      } else if (!identity_matches) {
+        fail(409, "Stencil expected identity does not match the active editor");
+      } else {
+        const auto stencil = json::parse(bytes);
+        if (stencil.at("schema").get<std::string>() !=
+            "yaze.overworld_tile16_stencil.v1") {
+          throw std::invalid_argument(
+              "Stencil schema must be yaze.overworld_tile16_stencil.v1");
+        }
+        const int map_id = stencil.at("map_id").get<int>();
+        std::vector<GuardedTileCell> cells;
+        for (const auto& cell : stencil.at("cells")) {
+          const auto tile = [&](const char* field) {
+            const int value = cell.at(field).get<int>();
+            if (value < 0 || value > 0xFFFF) {
+              throw std::invalid_argument(std::string("Stencil ") + field +
+                                          " must be a Tile16 ID");
+            }
+            return static_cast<uint16_t>(value);
+          };
+          cells.push_back({cell.at("x").get<int>(), cell.at("y").get<int>(),
+                           tile("expected"), tile("proposed")});
+        }
+        const auto loaded = EnsureEditorAssetsLoaded(EditorType::kOverworld);
+        auto* editors = GetCurrentEditorSet();
+        auto* overworld =
+            editors
+                ? editors->GetEditorAs<OverworldEditor>(EditorType::kOverworld)
+                : nullptr;
+        if (!loaded.ok()) {
+          fail(422, std::string(loaded.message()));
+        } else if (!overworld) {
+          fail(503, "Overworld editor is unavailable");
+        } else {
+          SwitchToEditor(EditorType::kOverworld, true);
+          const auto changed = overworld->ApplyTile16Stencil(map_id, cells);
+          if (!changed.ok()) {
+            fail(absl::IsFailedPrecondition(changed.status()) ? 409 : 422,
+                 std::string(changed.status().message()));
+          } else {
+            response["map_id"] = map_id;
+            response["cells"] = cells.size();
+            response["cells_changed"] = *changed;
+            response["stencil_sha256"] = stencil_sha256;
+          }
         }
       }
     } else if (command == "dungeon.select" || command == "proposal.load") {
