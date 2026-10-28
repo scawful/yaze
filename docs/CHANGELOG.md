@@ -9,6 +9,15 @@ High-level release summary. For detailed notes, see
   continues as the next Dungeon milestone. The supported / experimental /
   deferred table is in `docs/public/release-notes.md`. Release date, release
   SHA, and packaged-candidate results are pending.
+- `z3ed rom-write` and `hex-write` reported `bytes_written` without saving the
+  ROM. They now preview by default and save only with `--write`, keeping a
+  backup and verifying the reloaded file; writes into an Oracle checkout need
+  `--allow-project-rom`. `rom-compare` no longer reports `identical` when bytes
+  differ outside its checked regions (`unchecked_diff_bytes`; `--all` locates
+  them).
+- `scripts/dev/local-workflow.sh test` builds the suites behind the CTest
+  preset and runs with the configuration and `--no-tests=error`; it previously
+  found no tests and passed. `scripts/yaze` finds preset build directories.
 - Fixed a use-after-free in `ObjectDrawCodeTest` found by the Memory Sanitizer
   job: the test kept a pointer into a temporary `ReadObjectDrawCode` result.
 - Dungeon pot-item edits now use the normal sparse save path without loading
