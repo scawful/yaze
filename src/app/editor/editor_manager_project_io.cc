@@ -21,6 +21,7 @@
 #include "absl/strings/match.h"
 #include "absl/strings/str_format.h"
 #include "imgui/imgui.h"
+#include "imgui/imgui_internal.h"
 
 #include "app/editor/dungeon/dungeon_editor_v2.h"
 #include "app/editor/editor.h"
@@ -881,6 +882,99 @@ absl::Status EditorManager::SaveRomInternal(
   return save_status;
 }
 
+void EditorManager::ShowPostLoadSurface(bool apply_project_workspace) {
+  if (ui_coordinator_) {
+    ui_coordinator_->SetWelcomeScreenVisible(false);
+  }
+
+  std::optional<EditorType> target;
+  bool project_layout_applied = false;
+  if (apply_project_workspace && current_project_.project_opened()) {
+    const auto& workspace = current_project_.workspace_settings;
+    if (!workspace.startup_editor.empty()) {
+      target = ParseEditorTypeFromString(workspace.startup_editor);
+      if (target == EditorType::kUnknown) {
+        target.reset();
+      }
+    }
+    const auto preset =
+        LayoutPresets::GetNamedPreset(workspace.last_layout_preset);
+    project_layout_applied = preset.has_value();
+    if (!target.has_value() && preset &&
+        preset->editor_type != EditorType::kUnknown) {
+      target = preset->editor_type;
+    }
+  }
+
+  // An explicit project start takes precedence; plain ROM loads retain the
+  // editor already open so it binds to the new session.
+  if (!target.has_value() && HasOpenEditor()) {
+    target = current_editor_->type();
+  }
+
+  // 2. Settings > Editor Behavior > Default Editor.
+  if (!target.has_value()) {
+    switch (user_settings_.prefs().default_editor) {
+      case 1:
+        target = EditorType::kOverworld;
+        break;
+      case 2:
+        target = EditorType::kDungeon;
+        break;
+      case 3:
+        target = EditorType::kGraphics;
+        break;
+      case 4:
+        target = EditorType::kMessage;
+        break;
+      default:
+        break;
+    }
+  }
+
+  // 3. The editor picker, unless it is suppressed (--startup_dashboard=hide
+  //    or Settings > Test mode). Suppressed with no other choice: open the
+  //    most recently used editor, else Dungeon.
+  if (!target.has_value()) {
+    if (!project_layout_applied &&
+        (!ui_coordinator_ || ui_coordinator_->ShouldShowDashboard())) {
+      if (ui_coordinator_) {
+        ui_coordinator_->SetEditorSelectionVisible(true);
+      }
+      // Suppress panel drawing until the user picks an editor.
+      window_manager_.SetActiveCategory(
+          WorkspaceWindowManager::kDashboardCategory, /*notify=*/false);
+      return;
+    }
+    target =
+        (dashboard_panel_ ? dashboard_panel_->MostRecentEditor() : std::nullopt)
+            .value_or(EditorType::kDungeon);
+  }
+
+  if (ui_coordinator_) {
+    ui_coordinator_->SetStartupSurface(StartupSurface::kEditor);
+  }
+  SwitchToEditor(*target, /*force_visible=*/true);
+  // Editor activation restores its own saved visibility. Apply the project's
+  // explicit layout last so activation cannot cover that choice.
+  if (project_layout_applied) {
+    const auto apply_layout =
+        [this, session_id = GetCurrentSessionId(),
+         preset = current_project_.workspace_settings.last_layout_preset,
+         editor = *target]() {
+          if (GetCurrentSessionId() == session_id) {
+            layout_coordinator_.ApplyLayoutPreset(preset, session_id, editor);
+          }
+        };
+    const auto* context = ImGui::GetCurrentContext();
+    if (context && context->WithinFrameScope) {
+      apply_layout();
+    } else {
+      QueueDeferredAction(apply_layout);
+    }
+  }
+}
+
 absl::Status EditorManager::LoadProjectWithRom(bool allow_dialogs) {
   auto pending_selection = std::move(pending_project_rom_selection_);
   pending_project_rom_selection_.reset();
@@ -1241,7 +1335,7 @@ absl::Status EditorManager::LoadProjectWithRom(bool allow_dialogs) {
     pending_project_rom_selection_.reset();
   }
 
-  ShowPostLoadSurface();
+  ShowPostLoadSurface(/*apply_project_workspace=*/true);
 
   MaybeEmitZScreamRomLoadHints();
 

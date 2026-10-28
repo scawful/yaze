@@ -18,6 +18,8 @@
 #include "app/editor/dungeon/dungeon_editor_v2.h"
 #include "app/editor/dungeon/dungeon_project_labels.h"
 #include "app/editor/editor_manager.h"
+#include "app/editor/events/core_events.h"
+#include "app/editor/layout/layout_presets.h"
 #include "app/editor/message/message_editor.h"
 #include "app/editor/overworld/overworld_editor.h"
 #include "app/editor/shell/feedback/toast_manager.h"
@@ -29,9 +31,11 @@
 #include "editor_test_support.h"
 #include "test_utils.h"
 #include "testing.h"
+#include "unit/zelda3/gfx_sheet_test_rom.h"
 #include "zelda3/resource_labels.h"
 
 #include "imgui/imgui.h"
+#include "imgui/imgui_internal.h"
 #include "nlohmann/json.hpp"
 
 namespace yaze::editor {
@@ -113,6 +117,50 @@ void WriteProjectFile(const std::filesystem::path& path,
   ASSERT_TRUE(out.is_open());
   out << ProjectFileContents(name, rom_path);
   ASSERT_TRUE(out.good());
+}
+
+void WriteStartupEditorRom(const std::filesystem::path& path) {
+  // Reuse the real compressed-sheet fixture so normal GameData and editor
+  // initialization run. The lightweight 512 KiB project-I/O fixture above is
+  // deliberately too small for Message and Graphics editor assets.
+  auto fixture = ::yaze::test::BuildGfxSheetTestRom();
+  fixture.bytes.resize(2 * 1024 * 1024, 0);
+  fixture.bytes[0x7FD9] = 1;  // US graphics pointer tables.
+  fixture.bytes[kTextData] = 0x00;
+  fixture.bytes[kTextData + 1] = kMessageTerminator;
+  fixture.bytes[kTextData + 2] = 0xFF;
+  std::ofstream output(path, std::ios::binary | std::ios::trunc);
+  ASSERT_TRUE(output.is_open());
+  output.write(reinterpret_cast<const char*>(fixture.bytes.data()),
+               static_cast<std::streamsize>(fixture.bytes.size()));
+  ASSERT_TRUE(output.good());
+}
+
+void AdvanceStartupFrames(EditorManager& manager) {
+  ImGui::GetIO().DisplaySize = ImVec2(1280, 720);
+  ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+  for (int frame = 0; frame < 3; ++frame) {
+    ImGui::NewFrame();
+    const auto dockspace = ImGui::GetID("MainDockSpace");
+    if (!ImGui::DockBuilderGetNode(dockspace)) {
+      ImGui::DockBuilderAddNode(dockspace, ImGuiDockNodeFlags_DockSpace);
+      ImGui::DockBuilderSetNodeSize(dockspace, ImVec2(1280, 720));
+    }
+    ImGui::DockSpace(dockspace, ImVec2(0, 0), ImGuiDockNodeFlags_KeepAliveOnly);
+    ContentRegistry::Context::event_bus()->Publish(FrameGuiBeginEvent{});
+    EXPECT_OK(manager.Update());
+    ImGui::Render();
+  }
+}
+
+void ExpectStartupEditorActive(EditorManager& manager, EditorType type,
+                               const char* category) {
+  EXPECT_EQ(manager.window_manager().GetActiveCategory(), category);
+  const auto* editors = manager.GetCurrentEditorSet();
+  ASSERT_NE(editors, nullptr);
+  auto* editor = editors->GetExistingEditor(type);
+  ASSERT_NE(editor, nullptr);
+  EXPECT_TRUE(*editor->active());
 }
 
 ProjectFileEditorState MakeModifiedProjectDraft(ProjectFileEditor* editor,
@@ -777,6 +825,163 @@ TEST(EditorManagerProjectActionsTest,
   EXPECT_EQ(manager->GetCurrentSessionId(), id_b);
   EXPECT_EQ(manager->GetCurrentProject()->name, "Project B");
   EXPECT_EQ(manager->GetActiveSessionCount(), 2u);
+}
+
+TEST(EditorManagerProjectActionsTest,
+     ProjectStartupOpensMessagesAndRestoresItsLayoutWithoutPicker) {
+  ScopedImGuiContext imgui;
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  ::yaze::test::InitializeWithIsolatedSettings(*manager, renderer.get());
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+  ScopedTempDir directory(MakeTempDir("yaze_project_startup_workspace"));
+  const auto rom = directory.path / "writer.sfc";
+  const auto path = directory.path / "writer.yaze";
+  WriteStartupEditorRom(rom);
+  WriteProjectFile(path, "Writer", rom);
+  {
+    project::YazeProject project;
+    ASSERT_OK(project.Open(path.string()));
+    project.workspace_settings.last_layout_preset = "Minimal";
+    project.workspace_settings.startup_editor = "message";
+    ASSERT_OK(project.Save());
+  }
+  manager->user_settings().prefs().default_editor = 2;
+  const auto descriptor_before_open = ReadFile(path);
+  ASSERT_OK(manager->OpenRomOrProject(path.string()));
+  AdvanceStartupFrames(*manager);
+  ExpectStartupEditorActive(*manager, EditorType::kMessage, "Message");
+  EXPECT_FALSE(manager->ui_coordinator()->IsEditorSelectionVisible());
+  EXPECT_TRUE(manager->window_manager().IsWindowOpen(
+      manager->GetCurrentSessionId(), LayoutPresets::Panels::kMessageEditor));
+  EXPECT_EQ(manager->user_settings().prefs().default_editor, 2);
+  EXPECT_TRUE(manager->window_manager().IsWindowOpen(
+      manager->GetCurrentSessionId(), LayoutPresets::Panels::kMessageEditor));
+  EXPECT_FALSE(manager->window_manager().IsWindowOpen(
+      manager->GetCurrentSessionId(), LayoutPresets::Panels::kMessageList));
+  EXPECT_EQ(ReadFile(path), descriptor_before_open);
+  ASSERT_OK(manager->SaveProject());
+
+  project::YazeProject reopened;
+  ASSERT_OK(reopened.Open(path.string()));
+  EXPECT_EQ(reopened.workspace_settings.last_layout_preset, "Minimal");
+  EXPECT_EQ(reopened.workspace_settings.startup_editor, "message");
+}
+
+TEST(EditorManagerProjectActionsTest,
+     LayoutOnlyProjectChoosesAVisiblePrimaryEditor) {
+  ScopedImGuiContext imgui;
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  ::yaze::test::InitializeWithIsolatedSettings(*manager, renderer.get());
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+  ScopedTempDir directory(MakeTempDir("yaze_layout_only_startup"));
+  const auto rom = directory.path / "designer.sfc";
+  const auto path = directory.path / "designer.yaze";
+  WriteStartupEditorRom(rom);
+  WriteProjectFile(path, "Designer", rom);
+  std::ofstream(path, std::ios::app) << "last_layout_preset=Designer\n";
+  manager->user_settings().prefs().default_editor = 0;
+  ASSERT_OK(manager->OpenRomOrProject(path.string()));
+  AdvanceStartupFrames(*manager);
+  ExpectStartupEditorActive(*manager, EditorType::kGraphics, "Graphics");
+  EXPECT_FALSE(manager->ui_coordinator()->IsEditorSelectionVisible());
+  EXPECT_TRUE(manager->window_manager().IsWindowOpen(
+      manager->GetCurrentSessionId(),
+      LayoutPresets::Panels::kGraphicsSheetEditor));
+}
+
+TEST(EditorManagerProjectActionsTest,
+     UnknownProjectStartupKeysFallBackToExistingPreference) {
+  ScopedImGuiContext imgui;
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  ::yaze::test::InitializeWithIsolatedSettings(*manager, renderer.get());
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+  ScopedTempDir directory(MakeTempDir("yaze_unknown_startup"));
+  const auto rom = directory.path / "future.sfc";
+  const auto path = directory.path / "future.yaze";
+  WriteStartupEditorRom(rom);
+  WriteProjectFile(path, "Future", rom);
+  std::ofstream(path, std::ios::app)
+      << "last_layout_preset=future-layout\nstartup_editor=future-editor\n";
+  manager->user_settings().prefs().default_editor = 4;
+  ASSERT_OK(manager->OpenRomOrProject(path.string()));
+  AdvanceStartupFrames(*manager);
+  ExpectStartupEditorActive(*manager, EditorType::kMessage, "Message");
+  EXPECT_FALSE(manager->ui_coordinator()->IsEditorSelectionVisible());
+}
+
+TEST(EditorManagerProjectActionsTest,
+     MessageDefaultEditorAppendsToExistingPreferences) {
+  ScopedImGuiContext imgui;
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  ::yaze::test::InitializeWithIsolatedSettings(*manager, renderer.get());
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+  ScopedTempDir directory(MakeTempDir("yaze_default_message_editor"));
+  const auto rom = directory.path / "messages.sfc";
+  WriteStartupEditorRom(rom);
+  manager->user_settings().prefs().default_editor = 4;
+  ASSERT_OK(manager->OpenRomOrProject(rom.string()));
+  AdvanceStartupFrames(*manager);
+  ExpectStartupEditorActive(*manager, EditorType::kMessage, "Message");
+  EXPECT_FALSE(manager->ui_coordinator()->IsEditorSelectionVisible());
+}
+
+TEST(EditorManagerProjectActionsTest,
+     LegacyDefaultEditorPreferencesKeepTheirNumericValues) {
+  ScopedTempDir directory(MakeTempDir("yaze_legacy_default_editor"));
+  const auto path = directory.path / "settings.json";
+  for (int value = 0; value <= 4; ++value) {
+    std::ofstream(path) << nlohmann::json{
+        {"editor", {{"default_editor", value}}}};
+    UserSettings settings;
+    settings.SetSettingsFilePathForTesting(path.string());
+    ASSERT_OK(settings.Load());
+    EXPECT_EQ(settings.prefs().default_editor, value);
+    ASSERT_OK(settings.Save());
+    UserSettings reopened;
+    reopened.SetSettingsFilePathForTesting(path.string());
+    ASSERT_OK(reopened.Load());
+    EXPECT_EQ(reopened.prefs().default_editor, value);
+  }
+}
+
+TEST(EditorManagerProjectActionsTest,
+     ReusedProjectModelClearsMissingStartupKeysBeforeSavingLegacyProject) {
+  ScopedTempDir directory(MakeTempDir("yaze_legacy_startup_keys"));
+  const auto rom = directory.path / "game.sfc";
+  const auto first = directory.path / "writer.yaze";
+  const auto legacy = directory.path / "legacy.yaze";
+  WriteRomFile(rom);
+  WriteProjectFile(first, "Writer", rom);
+  WriteProjectFile(legacy, "Legacy", rom);
+  std::ofstream(first, std::ios::app)
+      << "last_layout_preset=Minimal\nstartup_editor=message\n";
+  project::YazeProject project;
+  ASSERT_OK(project.Open(first.string()));
+  ASSERT_EQ(project.workspace_settings.startup_editor, "message");
+  ASSERT_OK(project.Open(legacy.string()));
+  EXPECT_TRUE(project.workspace_settings.startup_editor.empty());
+  EXPECT_TRUE(project.workspace_settings.last_layout_preset.empty());
+  ASSERT_OK(project.Save());
+  project::YazeProject reopened;
+  ASSERT_OK(reopened.Open(legacy.string()));
+  EXPECT_TRUE(reopened.workspace_settings.startup_editor.empty());
+  EXPECT_TRUE(reopened.workspace_settings.last_layout_preset.empty());
+}
+
+TEST(EditorManagerProjectActionsTest,
+     SavedTemplateLayoutNamesResolveWithoutRenamingOldProjects) {
+  auto dungeon = LayoutPresets::GetNamedPreset("dungeon_default");
+  ASSERT_TRUE(dungeon.has_value());
+  EXPECT_EQ(dungeon->editor_type, EditorType::kDungeon);
+  auto graphics = LayoutPresets::GetNamedPreset("graphics_default");
+  ASSERT_TRUE(graphics.has_value());
+  EXPECT_EQ(graphics->editor_type, EditorType::kGraphics);
+  EXPECT_FALSE(
+      LayoutPresets::GetNamedPreset("future-editor-layout").has_value());
 }
 
 TEST(EditorManagerProjectActionsTest,

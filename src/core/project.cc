@@ -1296,6 +1296,7 @@ absl::StatusOr<std::string> YazeProject::SerializeToString() const {
        << (workspace_settings.prefer_hmagic_names ? "true" : "false") << "\n";
   file << "last_layout_preset=" << workspace_settings.last_layout_preset
        << "\n";
+  file << "startup_editor=" << workspace_settings.startup_editor << "\n";
   file << "saved_layouts="
        << absl::StrJoin(workspace_settings.saved_layouts, ",") << "\n";
   file << "recent_files=" << absl::StrJoin(workspace_settings.recent_files, ",")
@@ -1511,6 +1512,8 @@ absl::Status YazeProject::ParseFromString(const std::string& content) {
   feature_flags.overworld.kSaveOverworldSprites = true;
   feature_flags.overworld.kEnableSpecialWorldExpansion = false;
   feature_flags.kSaveWithChangeQueue = false;
+  workspace_settings.last_layout_preset.clear();
+  workspace_settings.startup_editor.clear();
   sprite_catalog_file.clear();
   sprite_source_root.clear();
   sprite_assets.clear();
@@ -1739,6 +1742,8 @@ absl::Status YazeProject::ParseFromString(const std::string& content) {
         workspace_settings.prefer_hmagic_names = ParseBool(value);
       else if (key == "last_layout_preset")
         workspace_settings.last_layout_preset = value;
+      else if (key == "startup_editor")
+        workspace_settings.startup_editor = value;
       else if (key == "saved_layouts")
         workspace_settings.saved_layouts = ParseStringList(value);
       else if (key == "recent_files")

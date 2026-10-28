@@ -31,19 +31,14 @@ namespace {
 constexpr char kLegacyPanelsKey[] = "panels";
 constexpr char kWindowsKey[] = "windows";
 
-// Helper function to show default windows from LayoutPresets
-void ShowDefaultWindowsForEditor(WorkspaceWindowManager* registry,
-                                 EditorType type) {
+// Open the effective preset's windows without undoing optional user choices.
+void ShowPresetWindows(WorkspaceWindowManager* registry,
+                       const PanelLayoutPreset& preset) {
   if (!registry)
     return;
-
-  auto default_windows = LayoutPresets::GetDefaultWindows(type);
-  for (const auto& window_id : default_windows) {
+  for (const auto& window_id : preset.default_visible_panels) {
     registry->OpenWindow(window_id);
   }
-
-  LOG_INFO("LayoutManager", "Showing %zu default windows for editor type %d",
-           default_windows.size(), static_cast<int>(type));
 }
 
 yaze::Json BoolMapToJson(const std::unordered_map<std::string, bool>& map) {
@@ -103,48 +98,6 @@ std::filesystem::path GetLayoutsFilePath(LayoutScope scope,
   return *layouts_dir / "layouts.json";
 }
 
-bool TryGetNamedPreset(const std::string& preset_name,
-                       PanelLayoutPreset* preset_out) {
-  if (!preset_out) {
-    return false;
-  }
-
-  if (preset_name == "Minimal") {
-    *preset_out = LayoutPresets::GetMinimalPreset();
-    return true;
-  }
-  if (preset_name == "Developer") {
-    *preset_out = LayoutPresets::GetDeveloperPreset();
-    return true;
-  }
-  if (preset_name == "Designer") {
-    *preset_out = LayoutPresets::GetDesignerPreset();
-    return true;
-  }
-  if (preset_name == "Modder") {
-    *preset_out = LayoutPresets::GetModderPreset();
-    return true;
-  }
-  if (preset_name == "Overworld Expert") {
-    *preset_out = LayoutPresets::GetOverworldArtistPreset();
-    return true;
-  }
-  if (preset_name == "Dungeon Expert") {
-    *preset_out = LayoutPresets::GetDungeonMasterPreset();
-    return true;
-  }
-  if (preset_name == "Testing") {
-    *preset_out = LayoutPresets::GetLogicDebuggerPreset();
-    return true;
-  }
-  if (preset_name == "Audio") {
-    *preset_out = LayoutPresets::GetAudioEngineerPreset();
-    return true;
-  }
-
-  return false;
-}
-
 std::string ResolveProfilePresetName(const std::string& profile_id,
                                      EditorType editor_type) {
   if (profile_id == "mapping") {
@@ -167,13 +120,59 @@ std::string ResolveProfilePresetName(const std::string& profile_id,
 
 }  // namespace
 
+PanelLayoutPreset LayoutManager::GetEffectivePreset(EditorType type) const {
+  if (window_manager_) {
+    const auto session =
+        named_presets_.find(window_manager_->GetActiveSessionId());
+    if (session != named_presets_.end()) {
+      const auto name = session->second.find(type);
+      if (name != session->second.end()) {
+        if (auto preset = LayoutPresets::GetNamedPreset(name->second)) {
+          return *preset;
+        }
+      }
+    }
+  }
+  return LayoutPresets::GetDefaultPreset(type);
+}
+
+void LayoutManager::RequestRebuild(EditorType type) {
+  rebuild_requested_ = true;
+  requested_rebuild_editor_ = type;
+  requested_rebuild_session_ =
+      window_manager_ ? window_manager_->GetActiveSessionId() : 0;
+}
+
+EditorType LayoutManager::RequestedRebuildEditor() const {
+  return window_manager_ && window_manager_->GetActiveSessionId() ==
+                                requested_rebuild_session_
+             ? requested_rebuild_editor_
+             : EditorType::kUnknown;
+}
+
+bool LayoutManager::ApplyNamedPreset(const std::string& name, size_t session_id,
+                                     EditorType editor_type) {
+  const auto preset = LayoutPresets::GetNamedPreset(name);
+  if (!window_manager_ || !preset || editor_type == EditorType::kUnknown) {
+    return false;
+  }
+  named_presets_[session_id][editor_type] = name;
+  DisableLazyDefaultDocking();
+  window_manager_->HideAllWindowsInSession(session_id);
+  for (const auto& panel_id : preset->default_visible_panels) {
+    window_manager_->OpenWindow(session_id, panel_id);
+  }
+  RequestRebuild(editor_type);
+  return true;
+}
+
 void LayoutManager::DisableLazyDefaultDocking() {
   lazy_default_dock_state_ = LazyDefaultDockState{};
 }
 
 void LayoutManager::RefreshLazyDefaultDockingContext(EditorType type,
                                                      ImGuiID dockspace_id) {
-  const PanelLayoutPreset preset = LayoutPresets::GetDefaultPreset(type);
+  const PanelLayoutPreset preset = GetEffectivePreset(type);
   auto& state = lazy_default_dock_state_;
   if (!preset.dock_only_default_visible_panels || !window_manager_ ||
       state.dockspace != dockspace_id ||
@@ -203,7 +202,7 @@ void LayoutManager::DockOpenPresetPanels(EditorType type) {
   }
 
   const size_t session_id = window_manager_->GetActiveSessionId();
-  const PanelLayoutPreset preset = LayoutPresets::GetDefaultPreset(type);
+  const PanelLayoutPreset preset = GetEffectivePreset(type);
   const auto dock_if_open = [&](const std::string& panel_id) {
     if (window_manager_->IsWindowOpen(session_id, panel_id)) {
       DockPresetPositionOnFirstOpen(session_id, panel_id,
@@ -288,7 +287,7 @@ void LayoutManager::InitializeEditorLayout(EditorType type,
   BuildLayoutFromPreset(type, dockspace_id);
 
   // Show default windows from LayoutPresets (single source of truth)
-  ShowDefaultWindowsForEditor(window_manager_, type);
+  ShowPresetWindows(window_manager_, GetEffectivePreset(type));
 
   // Finalize the layout
   ImGui::DockBuilderFinish(dockspace_id);
@@ -334,7 +333,7 @@ void LayoutManager::RebuildLayout(EditorType type, ImGuiID dockspace_id) {
   BuildLayoutFromPreset(type, dockspace_id);
 
   // Show default cards from LayoutPresets (single source of truth)
-  ShowDefaultWindowsForEditor(window_manager_, type);
+  ShowPresetWindows(window_manager_, GetEffectivePreset(type));
 
   // Finalize the layout
   ImGui::DockBuilderFinish(dockspace_id);
@@ -693,7 +692,7 @@ void LayoutManager::BuildLayoutFromPreset(EditorType type,
   // first-open record points at nodes that were just destroyed, including
   // records belonging to another editor or ROM session.
   lazy_default_dock_attempts_.clear();
-  auto preset = LayoutPresets::GetDefaultPreset(type);
+  auto preset = GetEffectivePreset(type);
 
   if (!window_manager_) {
     LOG_WARN("LayoutManager",
@@ -866,8 +865,7 @@ bool LayoutManager::DockPresetPositionOnFirstOpen(
     return false;
   }
 
-  const PanelLayoutPreset preset =
-      LayoutPresets::GetDefaultPreset(state.editor_type);
+  const PanelLayoutPreset preset = GetEffectivePreset(state.editor_type);
   const bool is_default_visible =
       std::find(preset.default_visible_panels.begin(),
                 preset.default_visible_panels.end(),
@@ -1356,23 +1354,9 @@ bool LayoutManager::ApplyBuiltInProfile(const std::string& profile_id,
     matched_profile.preset_name = resolved_preset;
   }
 
-  PanelLayoutPreset preset;
-  if (!TryGetNamedPreset(matched_profile.preset_name, &preset)) {
-    LOG_WARN("LayoutManager", "Unable to resolve preset '%s' for profile '%s'",
-             matched_profile.preset_name.c_str(), profile_id.c_str());
+  if (!ApplyNamedPreset(matched_profile.preset_name, session_id, editor_type)) {
     return false;
   }
-
-  // The requested rebuild will establish a fresh lazy-default state. Avoid
-  // mutating the current dock tree while profile visibility is changing.
-  DisableLazyDefaultDocking();
-
-  window_manager_->HideAllWindowsInSession(session_id);
-  for (const auto& panel_id : preset.default_visible_panels) {
-    window_manager_->OpenWindow(session_id, panel_id);
-  }
-
-  RequestRebuild();
 
   if (out_profile) {
     *out_profile = matched_profile;
@@ -1547,6 +1531,9 @@ void LayoutManager::SaveLayoutsToDisk(LayoutScope scope) const {
 }
 
 void LayoutManager::ResetToDefaultLayout(EditorType type) {
+  if (window_manager_) {
+    named_presets_[window_manager_->GetActiveSessionId()].erase(type);
+  }
   DisableLazyDefaultDocking();
   layouts_initialized_[type] = false;
   LOG_INFO("LayoutManager", "Reset layout for editor type %d",

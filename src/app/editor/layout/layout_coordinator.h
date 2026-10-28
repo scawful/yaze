@@ -109,7 +109,8 @@ class LayoutCoordinator {
    * @param preset_name Name of the preset (e.g., "Minimal", "Developer")
    * @param session_id Current session ID for panel management
    */
-  void ApplyLayoutPreset(const std::string& preset_name, size_t session_id);
+  bool ApplyLayoutPreset(const std::string& preset_name, size_t session_id,
+                         EditorType editor_type = EditorType::kUnknown);
 
   /**
    * @brief Reset current editor layout to its default configuration

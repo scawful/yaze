@@ -109,6 +109,71 @@ class LayoutManagerPersistenceTest : public ::testing::Test {
   std::filesystem::path layout_path_;
 };
 
+TEST_F(LayoutManagerPersistenceTest,
+       NamedPresetSurvivesInitializationAndRebuildUntilReset) {
+  ASSERT_TRUE(
+      layout_manager_.ApplyNamedPreset("Minimal", 0, EditorType::kDungeon));
+  EXPECT_FALSE(dungeon_workbench_visible_);
+  layout_manager_.InitializeEditorLayout(EditorType::kDungeon, kDockspaceId);
+  EXPECT_FALSE(dungeon_workbench_visible_);
+  layout_manager_.RebuildLayout(EditorType::kDungeon, kDockspaceId);
+  EXPECT_FALSE(dungeon_workbench_visible_);
+  layout_manager_.ClearNamedPresets(0);
+  layout_manager_.RebuildLayout(EditorType::kDungeon, kDockspaceId);
+  EXPECT_TRUE(dungeon_workbench_visible_);
+  ASSERT_TRUE(
+      layout_manager_.ApplyNamedPreset("Minimal", 0, EditorType::kDungeon));
+  layout_manager_.ResetToDefaultLayout(EditorType::kDungeon);
+  layout_manager_.RebuildLayout(EditorType::kDungeon, kDockspaceId);
+  EXPECT_TRUE(dungeon_workbench_visible_);
+}
+
+TEST_F(LayoutManagerPersistenceTest,
+       NamedAudioPresetKeepsRequestedEditorWhenDebuggerWindowsAreVisible) {
+  LayoutCoordinator coordinator;
+  LayoutCoordinator::Dependencies deps;
+  deps.layout_manager = &layout_manager_;
+  deps.window_manager = &window_manager_;
+  coordinator.Initialize(deps);
+  bool ppu_visible = false;
+  WindowDescriptor descriptor;
+  descriptor.card_id = LayoutPresets::Panels::kEmulatorPpuViewer;
+  descriptor.display_name = "PPU Viewer";
+  descriptor.category = "Emulator";
+  descriptor.visibility_flag = &ppu_visible;
+  window_manager_.RegisterWindow(0, descriptor);
+  ASSERT_TRUE(layout_manager_.ApplyNamedPreset("Audio", 0, EditorType::kMusic));
+  EXPECT_EQ(layout_manager_.RequestedRebuildEditor(), EditorType::kMusic);
+  layout_manager_.RequestRebuild();
+  EXPECT_EQ(layout_manager_.RequestedRebuildEditor(), EditorType::kUnknown);
+  ASSERT_TRUE(layout_manager_.ApplyNamedPreset("Audio", 0, EditorType::kMusic));
+  layout_manager_.InitializeEditorLayout(EditorType::kMusic,
+                                         ImGui::GetID("MainDockSpace"));
+  coordinator.ProcessLayoutRebuild(EditorType::kOverworld,
+                                   /*is_emulator_visible=*/true);
+  EXPECT_TRUE(layout_manager_.IsLayoutInitialized(EditorType::kMusic));
+  EXPECT_FALSE(layout_manager_.IsLayoutInitialized(EditorType::kEmulator));
+  EXPECT_FALSE(ppu_visible);
+  EXPECT_FALSE(layout_manager_.IsRebuildRequested());
+}
+
+TEST_F(LayoutManagerPersistenceTest, NamedPresetIsScopedToItsRomSession) {
+  ASSERT_TRUE(
+      layout_manager_.ApplyNamedPreset("Minimal", 0, EditorType::kDungeon));
+  window_manager_.RegisterSession(1);
+  window_manager_.SetActiveSession(1);
+  bool other_workbench = false;
+  WindowDescriptor descriptor;
+  descriptor.card_id = LayoutPresets::Panels::kDungeonWorkbench;
+  descriptor.display_name = "Other Dungeon Workbench";
+  descriptor.category = "Dungeon";
+  descriptor.visibility_flag = &other_workbench;
+  window_manager_.RegisterWindow(1, descriptor);
+  layout_manager_.InitializeEditorLayout(EditorType::kDungeon, kDockspaceId);
+  EXPECT_TRUE(other_workbench);
+  EXPECT_FALSE(dungeon_workbench_visible_);
+}
+
 TEST_F(LayoutManagerPersistenceTest, LoadsWindowSchemaAliasFromDisk) {
   yaze::Json root;
   root["version"] = 1;

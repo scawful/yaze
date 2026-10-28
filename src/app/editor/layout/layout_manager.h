@@ -18,6 +18,7 @@ namespace editor {
 // Forward declaration
 class WorkspaceWindowManager;
 class UserSettings;
+struct PanelLayoutPreset;
 
 /**
  * @enum LayoutType
@@ -105,6 +106,13 @@ class LayoutManager {
    * Useful for resetting layouts to their default state.
    */
   void RebuildLayout(EditorType type, ImGuiID dockspace_id);
+
+  // Retain a named preset through deferred initialization and dock rebuilds.
+  bool ApplyNamedPreset(const std::string& name, size_t session_id,
+                        EditorType editor_type);
+  void ClearNamedPresets(size_t session_id) {
+    named_presets_.erase(session_id);
+  }
 
   /**
    * @brief Dock a hidden-by-default panel at its preset position on first open.
@@ -295,7 +303,8 @@ class LayoutManager {
   /**
    * @brief Request a layout rebuild on next frame
    */
-  void RequestRebuild() { rebuild_requested_ = true; }
+  void RequestRebuild(EditorType type = EditorType::kUnknown);
+  EditorType RequestedRebuildEditor() const;
 
   /**
    * @brief Check if rebuild was requested
@@ -305,7 +314,10 @@ class LayoutManager {
   /**
    * @brief Clear rebuild request flag
    */
-  void ClearRebuildRequest() { rebuild_requested_ = false; }
+  void ClearRebuildRequest() {
+    rebuild_requested_ = false;
+    requested_rebuild_editor_ = EditorType::kUnknown;
+  }
 
   /**
    * @brief Get window title for a card ID from registry
@@ -448,6 +460,7 @@ class LayoutManager {
  private:
   // DockBuilder layout implementations for each editor type
   void BuildLayoutFromPreset(EditorType type, ImGuiID dockspace_id);
+  PanelLayoutPreset GetEffectivePreset(EditorType type) const;
   void DisableLazyDefaultDocking();
   void RefreshLazyDefaultDockingContext(EditorType type, ImGuiID dockspace_id);
   void DockOpenPresetPanels(EditorType type);
@@ -478,12 +491,16 @@ class LayoutManager {
 
   // Panel manager for window title lookups
   WorkspaceWindowManager* window_manager_ = nullptr;
+  std::unordered_map<size_t, std::unordered_map<EditorType, std::string>>
+      named_presets_;
 
   // Current layout type
   LayoutType current_layout_type_ = LayoutType::kDefault;
 
   // Rebuild flag
   bool rebuild_requested_ = false;
+  EditorType requested_rebuild_editor_ = EditorType::kUnknown;
+  size_t requested_rebuild_session_ = 0;
 
   // Last used dockspace ID (for rebuild operations)
   ImGuiID last_dockspace_id_ = 0;

@@ -1295,7 +1295,8 @@ void SettingsPanel::DrawEditorBehavior() {
   ImGui::Text(tr("%s Default Editor"), ICON_MD_EDIT);
   ImGui::Separator();
 
-  const char* editors[] = {"None", "Overworld", "Dungeon", "Graphics"};
+  const char* editors[] = {"None", "Overworld", "Dungeon", "Graphics",
+                           "Messages"};
   if (ImGui::Combo("##DefaultEditor", &user_settings_->prefs().default_editor,
                    editors, IM_ARRAYSIZE(editors))) {
     user_settings_->Save();

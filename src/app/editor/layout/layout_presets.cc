@@ -5,6 +5,35 @@
 namespace yaze {
 namespace editor {
 
+std::optional<PanelLayoutPreset> LayoutPresets::GetNamedPreset(
+    const std::string& name) {
+  if (name == "dungeon_default")
+    return GetDefaultPreset(EditorType::kDungeon);
+  if (name == "graphics_default")
+    return GetDefaultPreset(EditorType::kGraphics);
+  if (name == "Minimal")
+    return GetMinimalPreset();
+  if (name == "Developer")
+    return GetDeveloperPreset();
+  if (name == "Designer")
+    return GetDesignerPreset();
+  if (name == "Modder")
+    return GetModderPreset();
+  if (name == "Overworld Expert" || name == "Overworld Artist") {
+    return GetOverworldArtistPreset();
+  }
+  if (name == "Dungeon Expert" || name == "Dungeon Master") {
+    return GetDungeonMasterPreset();
+  }
+  if (name == "Testing" || name == "Logic Debugger") {
+    return GetLogicDebuggerPreset();
+  }
+  if (name == "Audio" || name == "Audio Engineer") {
+    return GetAudioEngineerPreset();
+  }
+  return std::nullopt;
+}
+
 PanelLayoutPreset LayoutPresets::GetDefaultPreset(EditorType type) {
   PanelLayoutPreset preset;
   preset.editor_type = type;
@@ -367,7 +396,7 @@ PanelLayoutPreset LayoutPresets::GetMinimalPreset() {
   PanelLayoutPreset preset;
   preset.name = "Minimal";
   preset.description = "Essential cards only for focused editing";
-  preset.editor_type = EditorType::kUnknown;  // Applies to all
+  preset.editor_type = EditorType::kDungeon;  // Primary startup editor
   // Core editing cards across editors
   preset.default_visible_panels = {
       Panels::kOverworldCanvas,      Panels::kDungeonRoomSelector,
@@ -383,7 +412,7 @@ PanelLayoutPreset LayoutPresets::GetDeveloperPreset() {
   PanelLayoutPreset preset;
   preset.name = "Developer";
   preset.description = "Debug and development focused layout";
-  preset.editor_type = EditorType::kUnknown;  // Applies to all
+  preset.editor_type = EditorType::kEmulator;  // Primary startup editor
   preset.default_visible_panels = {
       // Emulator/debug cards
       Panels::kEmulatorCpuDebugger,
@@ -406,7 +435,7 @@ PanelLayoutPreset LayoutPresets::GetDesignerPreset() {
   PanelLayoutPreset preset;
   preset.name = "Designer";
   preset.description = "Visual and artistic focused layout";
-  preset.editor_type = EditorType::kUnknown;  // Applies to all
+  preset.editor_type = EditorType::kGraphics;  // Primary startup editor
   preset.default_visible_panels = {
       // Graphics cards
       Panels::kGraphicsSheetBrowser,
@@ -436,7 +465,7 @@ PanelLayoutPreset LayoutPresets::GetModderPreset() {
   PanelLayoutPreset preset;
   preset.name = "Modder";
   preset.description = "Full-featured layout for comprehensive editing";
-  preset.editor_type = EditorType::kUnknown;  // Applies to all
+  preset.editor_type = EditorType::kOverworld;  // Primary startup editor
   preset.default_visible_panels = {
       // Overworld cards
       Panels::kOverworldCanvas,

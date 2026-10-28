@@ -87,7 +87,9 @@ class UserSettings {
 
     // Editor Behavior
     bool backup_before_save = true;
-    int default_editor = 0;  // 0=None, 1=Overworld, 2=Dungeon, 3=Graphics
+    // Persisted values are append-only.
+    int default_editor =
+        0;  // 0=None, 1=Overworld, 2=Dungeon, 3=Graphics, 4=Messages
 
     // Performance
     bool vsync = true;

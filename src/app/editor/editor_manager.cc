@@ -342,11 +342,25 @@ bool EditorManager::IsPanelBasedEditor(EditorType type) {
 }
 
 void EditorManager::ResetWorkspaceLayout() {
+  if (layout_manager_) {
+    layout_manager_->ClearNamedPresets(GetCurrentSessionId());
+  }
+  if (current_project_.project_opened() &&
+      !current_project_.workspace_settings.last_layout_preset.empty()) {
+    current_project_.workspace_settings.last_layout_preset.clear();
+    MarkCurrentProjectDirty();
+  }
   layout_coordinator_.ResetWorkspaceLayout();
 }
 
 void EditorManager::ApplyLayoutPreset(const std::string& preset_name) {
-  layout_coordinator_.ApplyLayoutPreset(preset_name, GetCurrentSessionId());
+  if (layout_coordinator_.ApplyLayoutPreset(preset_name,
+                                            GetCurrentSessionId()) &&
+      current_project_.project_opened() &&
+      current_project_.workspace_settings.last_layout_preset != preset_name) {
+    current_project_.workspace_settings.last_layout_preset = preset_name;
+    MarkCurrentProjectDirty();
+  }
 }
 
 bool EditorManager::ApplyLayoutProfile(const std::string& profile_id) {
@@ -497,6 +511,11 @@ void EditorManager::ResetCurrentEditorLayout() {
   user_settings_.prefs().last_applied_layout_name.clear();
   settings_dirty_ = true;
   settings_dirty_timestamp_ = TimingManager::Get().GetElapsedTime();
+  if (current_project_.project_opened() &&
+      !current_project_.workspace_settings.last_layout_preset.empty()) {
+    current_project_.workspace_settings.last_layout_preset.clear();
+    MarkCurrentProjectDirty();
+  }
   layout_coordinator_.ResetCurrentEditorLayout(current_editor_->type(),
                                                GetCurrentSessionId());
 }
@@ -1846,59 +1865,6 @@ bool EditorManager::HasOpenEditor() const {
   return current_editor_ != nullptr &&
          window_manager_.GetActiveCategory() !=
              WorkspaceWindowManager::kDashboardCategory;
-}
-
-void EditorManager::ShowPostLoadSurface() {
-  if (ui_coordinator_) {
-    ui_coordinator_->SetWelcomeScreenVisible(false);
-  }
-
-  // 1. Never cover an editor the user already has open. Re-enter the same
-  //    editor type so it binds to the newly loaded session.
-  std::optional<EditorType> target;
-  if (HasOpenEditor()) {
-    target = current_editor_->type();
-  }
-
-  // 2. Settings > Editor Behavior > Default Editor.
-  if (!target.has_value()) {
-    switch (user_settings_.prefs().default_editor) {
-      case 1:
-        target = EditorType::kOverworld;
-        break;
-      case 2:
-        target = EditorType::kDungeon;
-        break;
-      case 3:
-        target = EditorType::kGraphics;
-        break;
-      default:
-        break;
-    }
-  }
-
-  // 3. The editor picker, unless it is suppressed (--startup_dashboard=hide
-  //    or Settings > Test mode). Suppressed with no other choice: open the
-  //    most recently used editor, else Dungeon.
-  if (!target.has_value()) {
-    if (!ui_coordinator_ || ui_coordinator_->ShouldShowDashboard()) {
-      if (ui_coordinator_) {
-        ui_coordinator_->SetEditorSelectionVisible(true);
-      }
-      // Suppress panel drawing until the user picks an editor.
-      window_manager_.SetActiveCategory(
-          WorkspaceWindowManager::kDashboardCategory, /*notify=*/false);
-      return;
-    }
-    target =
-        (dashboard_panel_ ? dashboard_panel_->MostRecentEditor() : std::nullopt)
-            .value_or(EditorType::kDungeon);
-  }
-
-  if (ui_coordinator_) {
-    ui_coordinator_->SetStartupSurface(StartupSurface::kEditor);
-  }
-  SwitchToEditor(*target, /*force_visible=*/true);
 }
 
 void EditorManager::InitializeShortcutSystem() {

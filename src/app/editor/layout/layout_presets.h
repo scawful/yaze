@@ -1,6 +1,7 @@
 #ifndef YAZE_APP_EDITOR_LAYOUT_LAYOUT_PRESETS_H_
 #define YAZE_APP_EDITOR_LAYOUT_LAYOUT_PRESETS_H_
 
+#include <optional>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -33,7 +34,7 @@ enum class DockPosition {
 struct PanelLayoutPreset {
   std::string name;
   std::string description;
-  EditorType editor_type;
+  EditorType editor_type = EditorType::kUnknown;
   std::vector<std::string> default_visible_panels;
   std::vector<std::string> optional_panels;  // Available but hidden by default
   std::unordered_map<std::string, DockPosition> panel_positions;
@@ -63,6 +64,8 @@ class LayoutPresets {
    * @return PanelLayoutPreset with default panels
    */
   static PanelLayoutPreset GetDefaultPreset(EditorType type);
+  static std::optional<PanelLayoutPreset> GetNamedPreset(
+      const std::string& name);
   static WorkspaceLayoutPreset GetDefaultWorkspacePreset(EditorType type) {
     return GetDefaultPreset(type);
   }

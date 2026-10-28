@@ -148,52 +148,34 @@ void LayoutCoordinator::ResetWorkspaceLayout() {
   }
 }
 
-void LayoutCoordinator::ApplyLayoutPreset(const std::string& preset_name,
-                                          size_t session_id) {
+bool LayoutCoordinator::ApplyLayoutPreset(const std::string& preset_name,
+                                          size_t session_id,
+                                          EditorType editor_type) {
   if (!window_manager_) {
-    return;
+    return false;
   }
 
-  PanelLayoutPreset preset;
-
-  // Get the preset by name
-  if (preset_name == "Minimal") {
-    preset = LayoutPresets::GetMinimalPreset();
-  } else if (preset_name == "Developer") {
-    preset = LayoutPresets::GetDeveloperPreset();
-  } else if (preset_name == "Designer") {
-    preset = LayoutPresets::GetDesignerPreset();
-  } else if (preset_name == "Modder") {
-    preset = LayoutPresets::GetModderPreset();
-  } else if (preset_name == "Overworld Expert") {
-    preset = LayoutPresets::GetOverworldArtistPreset();
-  } else if (preset_name == "Dungeon Expert") {
-    preset = LayoutPresets::GetDungeonMasterPreset();
-  } else if (preset_name == "Testing") {
-    preset = LayoutPresets::GetLogicDebuggerPreset();
-  } else if (preset_name == "Audio") {
-    preset = LayoutPresets::GetAudioEngineerPreset();
-  } else {
+  auto preset = LayoutPresets::GetNamedPreset(preset_name);
+  if (!preset.has_value()) {
     LOG_WARN("LayoutCoordinator", "Unknown layout preset: %s",
              preset_name.c_str());
     if (toast_manager_) {
       toast_manager_->Show(absl::StrFormat("Unknown preset: %s", preset_name),
                            ToastType::kWarning);
     }
-    return;
+    return false;
   }
 
-  // Hide all panels first
-  window_manager_->HideAll();
-
-  // Show only the panels defined in the preset
-  for (const auto& panel_id : preset.default_visible_panels) {
-    window_manager_->OpenWindow(session_id, panel_id);
+  if (editor_type == EditorType::kUnknown) {
+    editor_type = EditorRegistry::GetEditorTypeFromCategory(
+        window_manager_->GetActiveCategory());
   }
-
-  // Request a dock rebuild so the preset positions are applied
-  if (layout_manager_) {
-    layout_manager_->RequestRebuild();
+  if (editor_type == EditorType::kUnknown) {
+    editor_type = preset->editor_type;
+  }
+  if (!layout_manager_ || !layout_manager_->ApplyNamedPreset(
+                              preset_name, session_id, editor_type)) {
+    return false;
   }
 
   LOG_INFO("LayoutCoordinator", "Applied layout preset: %s",
@@ -202,6 +184,7 @@ void LayoutCoordinator::ApplyLayoutPreset(const std::string& preset_name,
     toast_manager_->Show(absl::StrFormat("Layout: %s", preset_name),
                          ToastType::kSuccess);
   }
+  return true;
 }
 
 std::string LayoutCoordinator::DefaultLayoutBackupName(EditorType type) {
@@ -280,8 +263,11 @@ void LayoutCoordinator::ProcessLayoutRebuild(EditorType current_editor_type,
   ImGuiID dockspace_id = ImGui::GetID("MainDockSpace");
 
   // Determine which editor layout to rebuild
-  EditorType rebuild_type = EditorType::kUnknown;
-  if (is_emulator_visible) {
+  EditorType rebuild_type = layout_manager_->RequestedRebuildEditor();
+  if (rebuild_type != EditorType::kUnknown) {
+    // An explicit named preset owns its editor even when it includes debug
+    // windows from the Emulator category.
+  } else if (is_emulator_visible) {
     rebuild_type = EditorType::kEmulator;
   } else if (current_editor_type != EditorType::kUnknown) {
     rebuild_type = current_editor_type;

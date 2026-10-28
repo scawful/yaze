@@ -343,6 +343,7 @@ void EditorManager::HandleSessionClosed(size_t index) {
             ? static_cast<RomSession*>(session_coordinator_->GetSession(index))
             : nullptr;
     if (closing_session != nullptr) {
+      layout_manager_->ClearNamedPresets(closing_session->session_id());
       zelda3::CustomObjectManager::Get().RemoveRuntimeContext(
           closing_session->session_id());
     }

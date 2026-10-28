@@ -66,6 +66,7 @@ struct WorkspaceSettings {
 
   // Layout settings
   std::string last_layout_preset;
+  std::string startup_editor;
   std::vector<std::string> saved_layouts;
   std::string window_layout_data;  // ImGui .ini data
 

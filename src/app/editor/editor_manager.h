@@ -567,7 +567,7 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
   void SetupComponentCallbacks();
   // After a ROM or project loads: stay in the open editor, open the Settings
   // default editor, or show the editor picker, in that order.
-  void ShowPostLoadSurface();
+  void ShowPostLoadSurface(bool apply_project_workspace = false);
   void SetupDialogCallbacks();
   void MaybeEmitZScreamRomLoadHints();
   void SetupSidebarCallbacks();
