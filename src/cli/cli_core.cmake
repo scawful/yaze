@@ -71,6 +71,7 @@ set(YAZE_CLI_CORE_SOURCES
   cli/handlers/game/dungeon_group_commands.cc
   cli/handlers/game/dungeon_map_commands.cc
   cli/handlers/game/dungeon_render_commands.cc
+  cli/handlers/game/dungeon_wall_profile_commands.cc
   cli/handlers/game/dungeon_tile_type_commands.cc
   cli/handlers/game/dungeon_stream_plan_commands.cc
   cli/handlers/game/message.cc

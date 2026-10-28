@@ -14,6 +14,7 @@
 #include "cli/handlers/game/dungeon_render_commands.h"
 #include "cli/handlers/game/dungeon_stream_plan_commands.h"
 #include "cli/handlers/game/dungeon_tile_type_commands.h"
+#include "cli/handlers/game/dungeon_wall_profile_commands.h"
 #include "cli/handlers/game/message_commands.h"
 #include "cli/handlers/game/minecart_commands.h"
 #include "cli/handlers/game/music_commands.h"
@@ -163,6 +164,7 @@ CreateCliCommandHandlers() {
   handlers.push_back(std::make_unique<DungeonMinecartAuditCommandHandler>());
   handlers.push_back(std::make_unique<DungeonMinecartMapCommandHandler>());
   handlers.push_back(std::make_unique<DungeonRenderCommandHandler>());
+  handlers.push_back(std::make_unique<DungeonWallProfileCommandHandler>());
   handlers.push_back(std::make_unique<DungeonStreamPlanCommandHandler>());
   handlers.push_back(
       std::make_unique<DungeonGenerateTrackCollisionCommandHandler>());

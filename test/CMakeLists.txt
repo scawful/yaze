@@ -457,6 +457,7 @@ if(YAZE_BUILD_TESTS)
     unit/cli/dungeon_object_validate_test.cc
     unit/cli/dungeon_collision_json_commands_test.cc
     unit/cli/dungeon_render_commands_test.cc
+    unit/cli/dungeon_wall_profile_commands_test.cc
     unit/cli/dungeon_edit_commands_test.cc
     unit/cli/dungeon_track_collision_commands_test.cc
     unit/cli/editor_completion_command_handlers_test.cc
@@ -646,6 +647,7 @@ if(YAZE_BUILD_TESTS)
     unit/zelda3/dungeon/door_position_test.cc
     unit/zelda3/dungeon/room_object_encoding_test.cc
     unit/zelda3/custom_object_test.cc
+    unit/zelda3/dungeon_wall_profile_test.cc
     unit/zelda3/dungeon/dungeon_tile_patterns_test.cc
     unit/zelda3/dungeon/room_manipulation_test.cc
     unit/zelda3/dungeon/pot_item_position_test.cc
@@ -898,6 +900,10 @@ if(YAZE_BUILD_TESTS)
 
   yaze_add_focused_test_target(yaze_test_focus_proposal_drawer
     unit/editor/right_drawer_manager_test.cc)
+
+  yaze_add_focused_test_target(yaze_test_focus_wall_profile
+    unit/zelda3/dungeon_wall_profile_test.cc
+    unit/cli/dungeon_wall_profile_commands_test.cc)
 
   # Planning model, agent status, editor lifecycle, CLI and shared publisher.
   set(FOCUS_PLANNING_TEST_SOURCES
