@@ -16,9 +16,11 @@
 #include "app/editor/dungeon/dungeon_room_store.h"
 #include "app/editor/dungeon/minecart_track_source.h"
 #include "app/editor/dungeon/ui/minecart/minecart_collision_tool.h"
+#include "app/editor/dungeon/ui/minecart/minecart_node_tool.h"
 #include "app/editor/system/workspace/editor_panel.h"
 #include "app/gui/core/icons.h"
 #include "core/project.h"
+#include "imgui/imgui.h"
 #include "zelda3/dungeon/room.h"
 #include "zelda3/dungeon/track_collision_generator.h"
 
@@ -88,7 +90,12 @@ class MinecartTrackEditorPanel : public WindowContent {
   void set_canvas_editing(bool enabled);
   int selected_track() const { return selected_track_; }
   void SelectTrack(int id) { selected_track_ = id; }
-  void SetActiveRoom(int room) { active_room_ = room; }
+  void SetActiveRoom(int room) {
+    if (active_room_ != room) {
+      placement_brush_.reset();
+    }
+    active_room_ = room;
+  }
   void CancelPick() { CancelCoordinatePicking(); }
 
   void SetRailPaletteCallback(std::function<bool()> draw) {
@@ -103,12 +110,63 @@ class MinecartTrackEditorPanel : public WindowContent {
   bool collision_stamping() const { return collision_stamping_; }
   void set_collision_stamping(bool enabled) {
     collision_stamping_ = enabled;
-    if (enabled)
+    if (enabled) {
+      CancelNodePlacement();
       set_canvas_editing(false);
+    }
   }
   uint8_t collision_stamp_value() const { return collision_stamp_value_; }
   int collision_stamp_size() const { return collision_stamp_large_ ? 2 : 1; }
   void DrawRailTools();
+  void DrawNodeTools();
+  using NodePlacementCallback =
+      std::function<absl::Status(int, int, int, const MinecartNodeBrush&)>;
+  void SetNodePlacementCallback(NodePlacementCallback callback) {
+    place_node_ = std::move(callback);
+  }
+  const NodePlacementCallback& node_placement_callback() const {
+    return place_node_;
+  }
+  const std::optional<MinecartToolPayload>& placement_brush() const {
+    return placement_brush_;
+  }
+  void SetPlacementBrush(const MinecartToolPayload& brush) {
+    CancelNodePlacement();
+    set_canvas_editing(false);
+    collision_stamping_ = false;
+    placement_brush_ = brush;
+    placement_brush_->owner = this;
+    placement_brush_->revision = canvas_revision_;
+    placement_brush_->room_id = active_room_;
+  }
+  // Invalidate only an active payload owned by this panel. Repeated cleanup
+  // cannot renew or repeatedly age a canceled gesture. A viewer filter avoids
+  // canceling another editable canvas when a compare view becomes read only.
+  void CancelNodeDrag(const void* source_viewer = nullptr) {
+    if (!ImGui::GetCurrentContext())
+      return;
+    const auto* payload = ImGui::GetDragDropPayload();
+    if (!payload || !payload->IsDataType(kMinecartNodeDragPayload) ||
+        payload->DataSize != sizeof(MinecartToolPayload))
+      return;
+    const auto* token = static_cast<const MinecartToolPayload*>(payload->Data);
+    if (token->owner == this && token->revision == canvas_revision_ &&
+        (!source_viewer || token->source_viewer == source_viewer)) {
+      ++canvas_revision_;
+    }
+  }
+  void CancelNodePlacement() {
+    CancelNodeDrag();
+    placement_brush_.reset();
+  }
+  void ReportToolStatus(const absl::Status& status) {
+    status_message_ = status.ok() ? "" : std::string(status.message());
+    show_success_ = status.ok();
+  }
+  bool automatic_rail_collision() const { return automatic_rail_collision_; }
+  void set_automatic_rail_collision(bool enabled) {
+    automatic_rail_collision_ = enabled;
+  }
 
   // Advanced Pick uses the same paired move operation as marker dragging.
   bool IsPickingCoordinates() const { return picking_mode_; }
@@ -146,6 +204,8 @@ class MinecartTrackEditorPanel : public WindowContent {
     track_edit_callback_ = {};
     draw_rail_palette_ = {};
     apply_collision_stamp_ = {};
+    place_node_ = {};
+    placement_brush_.reset();
     collision_stamping_ = false;
     canvas_editing_ = false;
     rooms_ = nullptr;
@@ -201,7 +261,14 @@ class MinecartTrackEditorPanel : public WindowContent {
   std::function<bool()> draw_rail_palette_;
   MinecartCollisionApply apply_collision_stamp_;
   bool collision_stamping_ = false;
-  bool collision_stamp_large_ = true;
+  bool automatic_rail_collision_ = true;
+  std::optional<MinecartToolPayload> placement_brush_;
+  NodePlacementCallback place_node_;
+  int node_id_ = 0;
+  int node_departure_ = 0;
+  int node_switch_orientation_ = 0;
+  int node_junction_ = 0;
+  bool collision_stamp_large_ = false;
   uint8_t collision_stamp_value_ = 0xB1;
   TrackEditCallback track_edit_callback_;
   uint64_t track_generation_ = 0;

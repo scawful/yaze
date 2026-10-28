@@ -26,6 +26,11 @@ bool HasSameObjectIdentity(const zelda3::RoomObject& lhs,
 
 DungeonCanvasViewer::~DungeonCanvasViewer() = default;
 
+void DungeonCanvasViewer::CancelMinecartNodeDrag() {
+  if (minecart_track_panel_)
+    minecart_track_panel_->CancelNodeDrag(this);
+}
+
 absl::StatusOr<std::string> DungeonCanvasViewer::ExportRoomDocument(
     int room_id) {
   if (!room_document_export_callback_ || !rooms_ || room_id < 0 ||
@@ -311,9 +316,11 @@ void DungeonCanvasViewer::RefreshRomBackedState(Rom* rom,
                                                 zelda3::GameData* game_data,
                                                 DungeonRoomStore* rooms,
                                                 int room_id) {
+  if (minecart_track_panel_)
+    minecart_track_panel_->CancelNodePlacement();
   // Refresh can replace Room values in place while all backing pointers stay
   // identical. Discard presentation stamps before those replacements occur.
-  minecart_canvas_tool_.Cancel();
+  CancelMinecartGesture();
   ResetRoomCompositeOutputs();
   connection_editor_state_ = {};
   room_transfer_state_ = {};
@@ -392,7 +399,7 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
       minecart_track_panel_->set_canvas_editing(tracks);
       if (tracks)
         crumble_floor_view_.Stop();
-      minecart_canvas_tool_.Cancel();
+      CancelMinecartGesture();
     }
   }
   ImGui::EndGroup();
@@ -414,10 +421,11 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
       object_interaction_.mode_manager().CancelCurrentMode();
       object_interaction_.ClearSelection();
       object_interaction_.entity_coordinator().ClearAllEntitySelections();
-      minecart_canvas_tool_.Cancel();
+      CancelMinecartGesture();
       if (minecart_track_panel_) {
         minecart_track_panel_->set_canvas_editing(false);
         minecart_track_panel_->set_collision_stamping(false);
+        minecart_track_panel_->CancelNodePlacement();
       }
     }
   }

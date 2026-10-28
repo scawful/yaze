@@ -3,7 +3,10 @@
 #include <algorithm>
 #include <memory>
 #include <set>
+#include <span>
+#include <tuple>
 #include <utility>
+#include <vector>
 
 #include "app/editor/dungeon/ui/window/minecart_track_editor_panel.h"
 #include "app/editor/system/session/hack_manifest_save_validation.h"
@@ -13,6 +16,29 @@
 
 namespace yaze::editor {
 namespace {
+
+absl::Status ValidateSwitchTransforms(
+    std::span<const DungeonSpriteSnapshot> before,
+    std::span<const DungeonSpriteSnapshot> after) {
+  const auto positions = [](std::span<const DungeonSpriteSnapshot> sprites) {
+    std::vector<std::tuple<int, int, int>> result;
+    for (const auto& sprite : sprites) {
+      if (sprite.id == 0xB0 && !sprite.deleted)
+        result.emplace_back(sprite.x, sprite.y, sprite.layer);
+    }
+    std::sort(result.begin(), result.end());
+    return result;
+  };
+  const auto previous = positions(before);
+  const auto next = positions(after);
+  // A multiset subset permits deletions and channel/key edits, but neither a
+  // new anchor nor a duplicate actor can be introduced by a generic transform.
+  if (!std::includes(previous.begin(), previous.end(), next.begin(),
+                     next.end()))
+    return absl::FailedPreconditionError(
+        "Place and move switch tracks with Tracks > Nodes");
+  return absl::OkStatus();
+}
 
 class DungeonSelectionAction final : public UndoAction {
  public:
@@ -68,13 +94,17 @@ absl::Status DungeonEditorV2::PreflightSpriteMutation(
   if (!room || room->rom() != rom_) {
     return absl::FailedPreconditionError("Sprite room is not loaded");
   }
-  auto candidate = CaptureDungeonSelectionEditState(*room);
+  const auto before = CaptureDungeonSelectionEditState(*room);
+  auto candidate = before;
   candidate.sprites.clear();
   for (const auto& sprite : sprites) {
     candidate.sprites.push_back({sprite.id(), sprite.x(), sprite.y(),
                                  sprite.subtype(), sprite.layer(),
                                  sprite.key_drop(), sprite.deleted()});
   }
+  if (minecart_track_editor_panel_)
+    RETURN_IF_ERROR(
+        ValidateSwitchTransforms(before.sprites, candidate.sprites));
   return PreflightStreamMutation(room_id, candidate, kSelectionSprites);
 }
 
@@ -281,6 +311,10 @@ absl::Status DungeonEditorV2::CommitSelectionEdit(
         "edit");
   }
 
+  if (minecart_track_editor_panel_ && (plan.domains & kSelectionSprites))
+    RETURN_IF_ERROR(
+        ValidateSwitchTransforms(current.sprites, plan.after.sprites));
+
   if (continuous && !pending_selection_undo_.plan) {
     pending_selection_undo_.plan = plan;
     pending_selection_undo_.dirty_before = room->CaptureSaveDirtySnapshot();
@@ -322,11 +356,42 @@ void DungeonEditorV2::PushSelectionUndoAction(DungeonSelectionEditPlan plan) {
 
 void DungeonEditorV2::PushSelectionUndoBatch(
     std::vector<DungeonSelectionEditPlan> plans, std::string description) {
-  undo_manager_.Push(std::make_unique<DungeonSelectionAction>(
-      std::move(plans), std::move(description),
+  std::unique_ptr<UndoAction> action = std::make_unique<DungeonSelectionAction>(
+      plans, std::move(description),
       [this](const std::vector<DungeonSelectionEditPlan>& states, bool after) {
         return RestoreSelectionEditBatch(states, after);
-      }));
+      });
+  // Nest collision restores around the existing batch. Every wrapper checks
+  // its expected map before the innermost action changes any room.
+  std::vector<DungeonCustomCollisionSnapshot> collision_before;
+  const auto ownership_before = minecart_collision_ownership_;
+  for (const auto& plan : plans) {
+    if (!(plan.domains & kSelectionObjects)) {
+      continue;
+    }
+    const auto* room = rooms_.GetIfLoaded(plan.room_id);
+    if (!room) {
+      continue;
+    }
+    collision_before.push_back({plan.room_id, room->custom_collision()});
+    auto paired =
+        PairMinecartObjectCollision(plan.room_id, plan.before.objects,
+                                    plan.after.objects, std::move(action));
+    if (!paired.ok()) {
+      for (const auto& snapshot : collision_before) {
+        RestoreRoomCustomCollision(snapshot.room_id, snapshot.map);
+      }
+      minecart_collision_ownership_ = ownership_before;
+      (void)RestoreSelectionEditBatch(plans, false);
+      if (object_selector_panel_) {
+        object_selector_panel_->SetPlacementError(
+            std::string(paired.status().message()));
+      }
+      return;
+    }
+    action = std::move(*paired);
+  }
+  undo_manager_.Push(std::move(action));
 }
 
 void DungeonEditorV2::FinalizeSelectionUndoAction() {

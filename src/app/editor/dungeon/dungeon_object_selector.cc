@@ -371,6 +371,9 @@ bool DungeonObjectSelector::DrawMinecartPalette() {
       }
       gui::AutoRegisterLastItem("selectable",
                                 absl::StrFormat("Rail%d", subtype));
+      if (status.ok()) {
+        gui::BeginRoomObjectDragSource(0x31, current_room_id_, 0, 0, subtype);
+      }
       ImGui::EndDisabled();
       const auto top = ImGui::GetItemRectMin();
       auto obj = MakePreviewObject(0x31);

@@ -669,6 +669,7 @@ void DungeonEditorV2::BeginUndoSnapshot(int room_id) {
   pending_undo_.room_id = room_id;
   pending_undo_.before_objects = rooms_[room_id].GetTileObjects();
   pending_undo_.before_chests = rooms_[room_id].GetChests();
+  pending_undo_.dirty_before = rooms_[room_id].CaptureSaveDirtySnapshot();
   pending_undo_.before_selection.clear();
   if (auto* viewer = GetViewerForRoom(room_id);
       viewer &&
@@ -694,16 +695,34 @@ void DungeonEditorV2::FinalizeUndoAction(int room_id) {
   }
 
   auto action = std::make_unique<DungeonObjectsAction>(
-      room_id, std::move(pending_undo_.before_objects),
-      std::move(pending_undo_.before_selection), std::move(after_objects),
-      std::move(after_selection), std::move(pending_undo_.before_chests),
+      room_id, pending_undo_.before_objects, pending_undo_.before_selection,
+      after_objects, std::move(after_selection), pending_undo_.before_chests,
       rooms_[room_id].GetChests(),
       [this](int rid, const std::vector<zelda3::RoomObject>& objects,
              const std::vector<size_t>& selected_indices,
              const std::vector<chest_data>& chests) {
         return RestoreRoomObjects(rid, objects, selected_indices, chests);
       });
-  undo_manager_.Push(std::move(action));
+  auto paired = PairMinecartObjectCollision(
+      room_id, pending_undo_.before_objects, after_objects, std::move(action));
+  if (paired.ok()) {
+    undo_manager_.Push(std::move(*paired));
+  } else {
+    // The normal handlers preflight before mutation. Retain atomic rollback
+    // for callers that finish an edit after its collision context changed.
+    const auto restored = RestoreRoomObjects(
+        room_id, pending_undo_.before_objects, pending_undo_.before_selection,
+        pending_undo_.before_chests);
+    if (restored.ok()) {
+      rooms_[room_id].RestoreSaveDirtySnapshot(pending_undo_.dirty_before);
+    }
+    if (object_selector_panel_) {
+      object_selector_panel_->SetPlacementError(
+          std::string(paired.status().message()));
+    }
+    LOG_WARN("DungeonEditorV2", "Track collision edit refused: %s",
+             paired.status().message());
+  }
   if (minecart_track_editor_panel_) {
     minecart_track_editor_panel_->InvalidateRoomAudit();
   }
@@ -874,22 +893,55 @@ class CollisionBatchRollback {
 absl::Status DungeonEditorV2::ApplyMinecartCollisionStamp(
     int room_id, const zelda3::CustomCollisionMap& expected,
     const MinecartCollisionStamp& stamp) {
+  // Ending a gesture can generate rail collision and can retire the canvas
+  // tool's original-map storage. Copy both inputs before that boundary.
+  const auto expected_snapshot = expected;
+  const auto stamp_snapshot = stamp;
+  FinalizePendingUndoActions();
   auto* room = rooms_.GetIfMaterialized(room_id);
   if (!room || !rom_ ||
       !zelda3::HasCustomCollisionWriteSupport(rom_->vector().size())) {
     return absl::FailedPreconditionError(
         "Load a room with expanded collision support");
   }
-  if (!CollisionMapsEqual(room->custom_collision(), expected)) {
+  if (!CollisionMapsEqual(room->custom_collision(), expected_snapshot)) {
     return absl::FailedPreconditionError(
         "Collision changed; preview the stamp again");
   }
-  ASSIGN_OR_RETURN(auto after, PreviewMinecartCollisionStamp(expected, stamp));
-  if (CollisionMapsEqual(expected, after))
+  if (stamp_snapshot.source &&
+      (stamp_snapshot.size == 1 || stamp_snapshot.size == 2)) {
+    const int x = stamp_snapshot.source->x;
+    const int y = stamp_snapshot.source->y;
+    if (x >= 0 && y >= 0 && x <= 64 - stamp_snapshot.size &&
+        y <= 64 - stamp_snapshot.size) {
+      for (const auto& sprite : room->GetSprites()) {
+        if (sprite.deleted() || sprite.layer() != 0 || sprite.x() < 0 ||
+            sprite.y() < 0 || sprite.x() > 31 || sprite.y() > 31)
+          continue;
+        const int actor_x = sprite.x() * 2;
+        const int actor_y = sprite.y() * 2;
+        if (actor_x < x || actor_y < y || actor_x >= x + stamp_snapshot.size ||
+            actor_y >= y + stamp_snapshot.size)
+          continue;
+        const size_t offset = actor_y * 64 + actor_x;
+        if (!expected_snapshot.HasOverride(offset))
+          continue;
+        const auto value = expected_snapshot.tiles[offset];
+        if (sprite.id() == 0xA3 && value >= 0xB7 && value <= 0xBA)
+          return absl::FailedPreconditionError(
+              "Move this cart and its stop with the Cart Starts marker");
+        if (sprite.id() == 0xB0 && value >= 0xD0 && value <= 0xD3)
+          return absl::FailedPreconditionError(
+              "Move this switch track with Tracks > Nodes");
+      }
+    }
+  }
+  ASSIGN_OR_RETURN(auto after, PreviewMinecartCollisionStamp(expected_snapshot,
+                                                             stamp_snapshot));
+  if (CollisionMapsEqual(expected_snapshot, after))
     return absl::OkStatus();
   // Finalizing another tool may invalidate overlays, so keep value snapshots.
-  const auto before = expected;
-  FinalizePendingUndoActions();
+  const auto before = expected_snapshot;
   auto action = std::make_unique<DungeonCustomCollisionAction>(
       room_id, before, after,
       [this](int rid, const zelda3::CustomCollisionMap& map) {
