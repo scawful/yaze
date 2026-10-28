@@ -11,7 +11,11 @@ require chasing separate floating panels.
 
 ### Key Features
 
-- **512x512 canvas** per room with pan, zoom, grid, and collision overlays
+- **512x512 canvas** per room with pan, zoom, grid, and collision overlays.
+  Settings > Appearance > Canvas Grid stores whether new room canvases (and
+  the Overworld map) start with the grid shown, plus the dungeon grid spacing
+  (8, 16 or 32 pixels). Grid toggles made inside an editor last for the
+  session only.
 - **Layer visualization** with BG1/BG2 toggles and colored object outlines
 - **Dungeon Workbench** with room browser, canvas, and a three-mode inspector
 - **Window workflow fallback** for users who still want standalone panels

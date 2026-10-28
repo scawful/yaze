@@ -17,6 +17,7 @@
 #include "absl/status/statusor.h"
 #include "absl/strings/str_format.h"
 #include "app/editor/editor.h"
+#include "app/editor/system/session/canvas_view_settings.h"
 #include "app/editor/system/workspace/workspace_window_manager.h"
 #include "app/emu/render/emulator_render_service.h"
 #include "app/gfx/types/snes_palette.h"
@@ -421,6 +422,10 @@ class DungeonEditorV2 : public Editor {
   void InvalidateDungeonRenderContextCensus();
   void ApplyEntranceRenderContext(int room_id);
   void ConfigureViewerRenderContext(DungeonCanvasViewer* viewer, int room_id);
+  // Persisted grid defaults: every field for a new viewer, and only changed
+  // fields for open viewers so per-room grid toggles are kept.
+  void ApplyCanvasViewDefaults(DungeonCanvasViewer* viewer);
+  void ApplyChangedCanvasViewSettings();
   std::optional<DungeonEntranceCameraState> GetEntranceCameraState(
       int slot_index) const;
   absl::Status RepairEntranceCamera(int slot_index);
@@ -551,6 +556,7 @@ class DungeonEditorV2 : public Editor {
       kMaxCachedViewers};
   std::unique_ptr<DungeonCanvasViewer> workbench_viewer_;
   std::unique_ptr<DungeonCanvasViewer> workbench_compare_viewer_;
+  std::optional<CanvasViewSettings> applied_canvas_view_;
 
   gui::PaletteEditorWidget palette_editor_;
   // Panel pointers. WorkspaceWindowManager owns these when available; fallback

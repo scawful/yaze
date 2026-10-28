@@ -18,6 +18,7 @@
 #include "app/editor/layout/layout_manager.h"
 #include "app/editor/registry/content_registry.h"
 #include "app/editor/system/commands/shortcut_manager.h"
+#include "app/editor/system/session/canvas_view_settings.h"
 #include "app/editor/system/workspace/workspace_window_manager.h"
 #include "app/gui/animation/animator.h"
 #include "app/gui/app/feature_flags_menu.h"
@@ -1068,6 +1069,36 @@ void SettingsPanel::DrawAppearanceSettings() {
     ImGui::SetTooltip(
         tr("Display ROM, session, cursor, and zoom info at bottom of window"));
   }
+
+  ImGui::Spacing();
+  ImGui::Text(tr("%s Canvas Grid"), ICON_MD_GRID_ON);
+  ImGui::Separator();
+
+  auto& canvas_view = user_settings_->prefs().canvas_view;
+  if (ImGui::Checkbox(tr("Overworld map grid"),
+                      &canvas_view.overworld_show_grid)) {
+    user_settings_->Save();
+  }
+  if (ImGui::Checkbox(tr("Dungeon room grid"),
+                      &canvas_view.dungeon_show_grid)) {
+    user_settings_->Save();
+  }
+  const auto size_it =
+      std::find(kDungeonGridSizes.begin(), kDungeonGridSizes.end(),
+                canvas_view.dungeon_grid_size);
+  int size_index = size_it == kDungeonGridSizes.end()
+                       ? 0
+                       : static_cast<int>(size_it - kDungeonGridSizes.begin());
+  const char* size_labels[] = {"8 px", "16 px", "32 px"};
+  static_assert(std::size(size_labels) == kDungeonGridSizes.size());
+  if (ImGui::Combo(tr("Dungeon grid size"), &size_index, size_labels,
+                   IM_ARRAYSIZE(size_labels))) {
+    canvas_view.dungeon_grid_size = kDungeonGridSizes[size_index];
+    user_settings_->Save();
+  }
+  ImGui::TextDisabled(
+      "%s", tr("Defaults for new canvases. A change also applies to open "
+               "canvases; grid toggles made in an editor are not saved."));
 
   ImGui::Spacing();
   ImGui::Text(tr("%s Editor Behavior"), ICON_MD_TUNE);

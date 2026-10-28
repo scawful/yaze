@@ -452,6 +452,7 @@ if(YAZE_BUILD_TESTS)
     unit/editor/user_settings_named_layouts_test.cc
     unit/editor/user_settings_test_isolation_test.cc
     unit/editor/user_settings_layout_defaults_test.cc
+    unit/editor/canvas_view_settings_test.cc
     unit/editor/emulator_runtime_policy_test.cc
     unit/editor/overworld_map_status_test.cc
     unit/cli/dungeon_object_validate_test.cc

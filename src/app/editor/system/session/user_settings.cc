@@ -409,6 +409,13 @@ absl::Status LoadPreferencesFromIni(const std::filesystem::path& path,
     } else if (key == "dungeon_inspector_side") {
       prefs->dungeon_inspector_side =
           (val == "left") ? std::string("left") : std::string("right");
+    } else if (key == "canvas_overworld_show_grid") {
+      prefs->canvas_view.overworld_show_grid = (val == "1");
+    } else if (key == "canvas_dungeon_show_grid") {
+      prefs->canvas_view.dungeon_show_grid = (val == "1");
+    } else if (key == "canvas_dungeon_grid_size") {
+      prefs->canvas_view.dungeon_grid_size =
+          to_int(val, prefs->canvas_view.dungeon_grid_size);
     }
     // Status Bar
     else if (key == "show_status_bar") {
@@ -558,6 +565,12 @@ absl::Status SavePreferencesToIni(const std::filesystem::path& path,
     ss << "sidebar_context_collapsed." << category << "=1\n";
   }
   ss << "dungeon_inspector_side=" << prefs.dungeon_inspector_side << "\n";
+  ss << "canvas_overworld_show_grid="
+     << (prefs.canvas_view.overworld_show_grid ? 1 : 0) << "\n";
+  ss << "canvas_dungeon_show_grid="
+     << (prefs.canvas_view.dungeon_show_grid ? 1 : 0) << "\n";
+  ss << "canvas_dungeon_grid_size=" << prefs.canvas_view.dungeon_grid_size
+     << "\n";
 
   // Status Bar
   ss << "show_status_bar=" << (prefs.show_status_bar ? 1 : 0) << "\n";
@@ -944,6 +957,11 @@ absl::Status LoadPreferencesFromJson(const std::filesystem::path& path,
         p.value("undo_history_size", prefs->undo_history_size);
   }
 
+  if (root.contains("canvas")) {
+    prefs->canvas_view =
+        CanvasViewSettingsFromJson(root["canvas"], prefs->canvas_view);
+  }
+
   if (root.contains("ai")) {
     const auto& ai = root["ai"];
     prefs->ai_provider = ai.value("provider", prefs->ai_provider);
@@ -1240,6 +1258,8 @@ absl::Status SavePreferencesToJson(const std::filesystem::path& path,
       {"undo_history_size", prefs.undo_history_size},
   };
 
+  root["canvas"] = CanvasViewSettingsToJson(prefs.canvas_view);
+
   json ai_hosts = json::array();
   for (const auto& host : prefs.ai_hosts) {
     ai_hosts.push_back({
@@ -1460,6 +1480,7 @@ absl::Status UserSettings::Load() {
 
     prefs_.switch_motion_profile =
         std::clamp(prefs_.switch_motion_profile, 0, 2);
+    prefs_.canvas_view = NormalizeCanvasViewSettings(prefs_.canvas_view);
 
     if (ImGui::GetCurrentContext() != nullptr) {
       ImGui::GetIO().FontGlobalScale = prefs_.font_global_scale;

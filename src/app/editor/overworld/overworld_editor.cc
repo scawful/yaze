@@ -60,6 +60,7 @@
 #include "app/editor/overworld/ui/ui_constants.h"
 #include "app/editor/shell/feedback/toast_manager.h"
 #include "app/editor/system/session/hack_manifest_save_validation.h"
+#include "app/editor/system/session/user_settings.h"
 #include "app/editor/system/workspace/workspace_window_manager.h"
 #include "app/gfx/core/bitmap.h"
 #include "app/gfx/debug/performance/performance_profiler.h"
@@ -786,6 +787,7 @@ void OverworldEditor::RefreshMapsForSheetEdits() {
 
 absl::Status OverworldEditor::Update() {
   status_ = absl::OkStatus();
+  ApplyCanvasViewSettings();
 
   // Safety check: Ensure ROM is loaded and graphics are ready
   if (!rom_ || !rom_->is_loaded()) {
@@ -2359,6 +2361,20 @@ void OverworldEditor::ToggleGrid() {
   auto config = ow_map_canvas_.GetConfig();
   config.enable_grid = !config.enable_grid;
   ow_map_canvas_.ApplyConfigSnapshot(config);
+}
+
+void OverworldEditor::ApplyCanvasViewSettings() {
+  if (!dependencies_.user_settings) {
+    return;
+  }
+  const CanvasViewSettings& current =
+      dependencies_.user_settings->prefs().canvas_view;
+  const auto changes = DiffCanvasViewSettings(applied_canvas_view_, current);
+  if (changes.overworld_show_grid &&
+      *changes.overworld_show_grid != grid_visible()) {
+    ToggleGrid();
+  }
+  applied_canvas_view_ = NormalizeCanvasViewSettings(current);
 }
 
 bool OverworldEditor::grid_visible() const {

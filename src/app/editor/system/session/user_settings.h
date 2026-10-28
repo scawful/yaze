@@ -8,6 +8,7 @@
 #include <vector>
 
 #include "absl/status/status.h"
+#include "app/editor/system/session/canvas_view_settings.h"
 
 namespace yaze {
 namespace editor {
@@ -174,6 +175,9 @@ class UserSettings {
     // a future "top" / "bottom" / "floating" extension does not require a
     // migration of existing settings files.
     std::string dungeon_inspector_side = "left";
+
+    // Canvas grid defaults for the Overworld map and Dungeon room canvases.
+    CanvasViewSettings canvas_view;
 
     // Panel Visibility State (per editor type)
     // Maps editor_type_name -> (panel_id -> visible)

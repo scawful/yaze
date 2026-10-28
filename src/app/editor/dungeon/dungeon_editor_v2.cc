@@ -111,7 +111,45 @@ WindowPresentationPolicy WorkbenchTool(std::string capability = std::string()) {
       .WithHost("Dungeon Workbench inspector");
 }
 
+void ApplyDungeonGridChanges(DungeonCanvasViewer* viewer,
+                             const CanvasViewSettingsChanges& changes) {
+  if (!viewer) {
+    return;
+  }
+  if (changes.dungeon_show_grid) {
+    viewer->set_show_grid(*changes.dungeon_show_grid);
+  }
+  if (changes.dungeon_grid_size) {
+    viewer->set_custom_grid_size(*changes.dungeon_grid_size);
+  }
+}
+
 }  // namespace
+
+void DungeonEditorV2::ApplyCanvasViewDefaults(DungeonCanvasViewer* viewer) {
+  if (dependencies_.user_settings) {
+    ApplyDungeonGridChanges(
+        viewer,
+        DiffCanvasViewSettings(
+            std::nullopt, dependencies_.user_settings->prefs().canvas_view));
+  }
+}
+
+void DungeonEditorV2::ApplyChangedCanvasViewSettings() {
+  if (!dependencies_.user_settings) {
+    return;
+  }
+  const CanvasViewSettings& current =
+      dependencies_.user_settings->prefs().canvas_view;
+  const auto changes = DiffCanvasViewSettings(applied_canvas_view_, current);
+  room_viewers_.ForEach(
+      [&changes](int, std::unique_ptr<DungeonCanvasViewer>& room_viewer) {
+        ApplyDungeonGridChanges(room_viewer.get(), changes);
+      });
+  ApplyDungeonGridChanges(workbench_viewer_.get(), changes);
+  ApplyDungeonGridChanges(workbench_compare_viewer_.get(), changes);
+  applied_canvas_view_ = NormalizeCanvasViewSettings(current);
+}
 
 void DungeonEditorV2::SetDependencies(const EditorDependencies& deps) {
   Editor::SetDependencies(deps);
@@ -1475,6 +1513,7 @@ absl::Status DungeonEditorV2::Update() {
     workbench_panel_->SetInspectorOnLeft(
         dependencies_.user_settings->GetDungeonInspectorSide() == "left");
   }
+  ApplyChangedCanvasViewSettings();
 
   const auto& theme = AgentUI::GetTheme();
   if (room_window_class_.ClassId == 0) {
@@ -2944,6 +2983,7 @@ DungeonCanvasViewer* DungeonEditorV2::GetStandaloneViewerForRoom(int room_id) {
     viewer->SetRoomDetailsExpanded(true);
     DungeonCanvasViewer* viewer_ptr = viewer.get();
     ConfigureEditableViewer(viewer_ptr);
+    ApplyCanvasViewDefaults(viewer_ptr);
     viewer->SetRoomNavigationCallback([this](int target_room) {
       if (target_room >= 0 && target_room < static_cast<int>(rooms_.size())) {
         OnRoomSelected(target_room);
@@ -3018,6 +3058,7 @@ DungeonCanvasViewer* DungeonEditorV2::GetWorkbenchViewer() {
     viewer->SetHeaderVisible(false);
     viewer->SetHeaderHiddenMetadataHudVisible(false);
     ConfigureEditableViewer(viewer);
+    ApplyCanvasViewDefaults(viewer);
 
     // In workbench mode, arrow navigation swaps the current room without
     // changing window identities.
@@ -3046,6 +3087,7 @@ DungeonCanvasViewer* DungeonEditorV2::GetWorkbenchCompareViewer(int room_id) {
     viewer->SetObjectInteractionEnabled(false);
     viewer->SetHeaderReadOnly(true);
     viewer->SetHeaderVisible(false);
+    ApplyCanvasViewDefaults(viewer);
   }
 
   auto* viewer = workbench_compare_viewer_.get();

@@ -29,6 +29,7 @@
 #include "app/editor/overworld/ui/navigation/overworld_toolbar.h"
 #include "app/editor/overworld/ui/ui_constants.h"
 #include "app/editor/palette/palette_editor.h"
+#include "app/editor/system/session/canvas_view_settings.h"
 #include "app/gfx/core/bitmap.h"
 #include "app/gfx/render/tilemap.h"
 #include "app/gfx/types/snes_palette.h"
@@ -447,6 +448,8 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   bool entities_visible() const { return show_entities_; }
   void ToggleGrid();
   bool grid_visible() const;
+  /// Applies changed persisted canvas grid defaults to the map canvas.
+  void ApplyCanvasViewSettings();
   /// Open and focus the docked Map Properties window (double-click a map,
   /// context menu "Map > Map Properties").
   void OpenMapPropertiesWindow();
@@ -908,6 +911,7 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
 
   gui::Canvas ow_map_canvas_{"OwMap", kOverworldCanvasSize,
                              gui::CanvasGridSize::k64x64};
+  std::optional<CanvasViewSettings> applied_canvas_view_;
   gui::Canvas current_gfx_canvas_{"CurrentGfx", kCurrentGfxCanvasSize,
                                   gui::CanvasGridSize::k32x32};
   gui::Canvas blockset_canvas_{"OwBlockset", kBlocksetCanvasSize,
