@@ -15,9 +15,8 @@ void FeatureHintManager::RegisterBuiltinHints() {
                 "Screen Editor → Overworld Map (not this canvas).",
                 ToastType::kInfo, 9.0f, true});
   RegisterHint({FeatureHintId::kZScreamDungeon,
-                "ZScream tip: Dungeon layout mirrors ZScream — room canvas "
-                "center, selectors left, inspector on the right (Settings can "
-                "swap sides).",
+                "Browse room tools on the left. Inspect selections and "
+                "preview rooms on the right.",
                 ToastType::kInfo, 9.0f, true});
   RegisterHint({FeatureHintId::kZScreamProjects,
                 "ZScream tip: .yaze / .yazeproj projects track ROM + settings. "
