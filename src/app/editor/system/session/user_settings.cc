@@ -4,18 +4,23 @@
 #include <array>
 #include <filesystem>
 #include <fstream>
+#include <iterator>
 #include <sstream>
 #include <string_view>
 #include <system_error>
 
+#include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
 #include "app/editor/layout/layout_designer/dock_tree.h"
 #include "app/editor/layout/layout_designer/dock_tree_json.h"
+#include "app/editor/layout/layout_presets.h"
 #include "app/editor/system/workspace/panel_visibility.h"
 #include "app/gui/core/style.h"
+#include "core/source_artifact_publisher.h"
 #include "imgui/imgui.h"
 #include "util/file_util.h"
 #include "util/log.h"
+#include "util/macro.h"
 #include "util/platform_paths.h"
 
 #ifdef YAZE_WITH_JSON
@@ -320,6 +325,8 @@ absl::Status LoadPreferencesFromIni(const std::filesystem::path& path,
       prefs->backup_before_save = (val == "1");
     } else if (key == "default_editor") {
       prefs->default_editor = to_int(val, prefs->default_editor);
+    } else if (key == "startup_layout_preset") {
+      prefs->startup_layout_preset = val;
     }
     // Performance
     else if (key == "vsync") {
@@ -463,7 +470,8 @@ absl::Status LoadPreferencesFromIni(const std::filesystem::path& path,
 }
 
 absl::Status SavePreferencesToIni(const std::filesystem::path& path,
-                                  const UserSettings::Preferences& prefs) {
+                                  const UserSettings::Preferences& prefs,
+                                  std::string* serialized = nullptr) {
   auto ensure_status = EnsureParentDirectory(path);
   if (!ensure_status.ok()) {
     return ensure_status;
@@ -510,6 +518,7 @@ absl::Status SavePreferencesToIni(const std::filesystem::path& path,
   // Editor Behavior
   ss << "backup_before_save=" << (prefs.backup_before_save ? 1 : 0) << "\n";
   ss << "default_editor=" << prefs.default_editor << "\n";
+  ss << "startup_layout_preset=" << prefs.startup_layout_preset << "\n";
 
   // Performance
   ss << "vsync=" << (prefs.vsync ? 1 : 0) << "\n";
@@ -608,6 +617,10 @@ absl::Status SavePreferencesToIni(const std::filesystem::path& path,
     ss << "named_layout." << layout_name << "=" << single_line << "\n";
   }
 
+  if (serialized) {
+    *serialized = ss.str();
+    return absl::OkStatus();
+  }
   std::ofstream file(path);
   if (!file.is_open()) {
     return absl::InternalError(
@@ -928,6 +941,8 @@ absl::Status LoadPreferencesFromJson(const std::filesystem::path& path,
     prefs->backup_before_save =
         e.value("backup_before_save", prefs->backup_before_save);
     prefs->default_editor = e.value("default_editor", prefs->default_editor);
+    prefs->startup_layout_preset =
+        e.value("startup_layout_preset", prefs->startup_layout_preset);
     {
       std::string side =
           e.value("dungeon_inspector_side", prefs->dungeon_inspector_side);
@@ -1177,7 +1192,8 @@ absl::Status LoadPreferencesFromJson(const std::filesystem::path& path,
 }
 
 absl::Status SavePreferencesToJson(const std::filesystem::path& path,
-                                   const UserSettings::Preferences& prefs) {
+                                   const UserSettings::Preferences& prefs,
+                                   std::string* serialized = nullptr) {
   auto ensure_status = EnsureParentDirectory(path);
   if (!ensure_status.ok()) {
     return ensure_status;
@@ -1230,6 +1246,7 @@ absl::Status SavePreferencesToJson(const std::filesystem::path& path,
   root["editor"] = {
       {"backup_before_save", prefs.backup_before_save},
       {"default_editor", prefs.default_editor},
+      {"startup_layout_preset", prefs.startup_layout_preset},
       {"dungeon_inspector_side", prefs.dungeon_inspector_side},
   };
 
@@ -1367,6 +1384,10 @@ absl::Status SavePreferencesToJson(const std::filesystem::path& path,
       {"use_icloud_sync", prefs.use_icloud_sync},
   };
 
+  if (serialized) {
+    *serialized = root.dump(2) + "\n";
+    return absl::OkStatus();
+  }
   std::ofstream file(path);
   if (!file.is_open()) {
     return absl::InternalError(
@@ -1925,6 +1946,72 @@ std::string UserSettings::GetDungeonInspectorSide() const {
 
 void UserSettings::SetDungeonInspectorSide(std::string side) {
   prefs_.dungeon_inspector_side = (side == "left") ? "left" : "right";
+}
+
+absl::Status UserSettings::SaveStartupRole(int default_editor,
+                                           const std::string& preset) {
+  const auto& roles = LayoutPresets::GetStartupRoles();
+  if (!(default_editor == 0 && preset.empty()) &&
+      std::none_of(roles.begin(), roles.end(), [&](const auto& role) {
+        return role.default_editor == default_editor &&
+               role.layout_preset == preset;
+      })) {
+    return absl::InvalidArgumentError("Unknown startup workspace");
+  }
+  auto candidate = prefs_;
+  candidate.default_editor = default_editor;
+  candidate.startup_layout_preset = preset;
+  try {
+    std::vector<core::SourceArtifactUpdate> updates;
+    std::vector<std::filesystem::path> targets;
+    const auto add = [&](const std::filesystem::path& path,
+                         std::string content) {
+      targets.push_back(std::filesystem::absolute(path));
+      updates.push_back({targets.back(), std::nullopt, std::move(content)});
+    };
+    std::string content;
+#ifdef YAZE_WITH_JSON
+    RETURN_IF_ERROR(
+        SavePreferencesToJson(settings_file_path_, candidate, &content));
+    add(settings_file_path_, std::move(content));
+#endif
+    RETURN_IF_ERROR(
+        SavePreferencesToIni(legacy_settings_file_path_, candidate, &content));
+    add(legacy_settings_file_path_, std::move(content));
+    ASSIGN_OR_RETURN(auto lock,
+                     core::AcquireSourceArtifactPublicationLock(
+                         targets, {"user settings", "saved user settings"}));
+    for (auto& update : updates) {
+      std::error_code error;
+      if (!std::filesystem::exists(update.target, error)) {
+        if (error) {
+          return absl::FailedPreconditionError(error.message());
+        }
+        continue;
+      }
+      std::ifstream input(update.target, std::ios::binary);
+      if (!input.is_open()) {
+        return absl::PermissionDeniedError("Cannot read current user settings");
+      }
+      update.before = std::string(std::istreambuf_iterator<char>(input), {});
+      if (input.bad()) {
+        return absl::DataLossError("Cannot read complete user settings");
+      }
+    }
+    if (!updates.front().before) {
+      return absl::FailedPreconditionError(
+          "Initialize settings before choosing a workspace");
+    }
+    const auto expected =
+        core::ComputeSourceArtifactSha256(*updates.front().before);
+    RETURN_IF_ERROR(
+        core::PublishSourceArtifacts(*lock, std::move(updates), expected));
+    prefs_ = std::move(candidate);
+    return absl::OkStatus();
+  } catch (const std::exception& error) {
+    return absl::InternalError(
+        absl::StrCat("Failed to save startup workspace: ", error.what()));
+  }
 }
 
 absl::Status UserSettings::Save() {

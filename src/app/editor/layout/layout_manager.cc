@@ -120,6 +120,16 @@ std::string ResolveProfilePresetName(const std::string& profile_id,
 
 }  // namespace
 
+std::string LayoutManager::GetNamedPreset(size_t session_id,
+                                          EditorType type) const {
+  const auto session = named_presets_.find(session_id);
+  if (session == named_presets_.end()) {
+    return {};
+  }
+  const auto preset = session->second.find(type);
+  return preset == session->second.end() ? std::string{} : preset->second;
+}
+
 PanelLayoutPreset LayoutManager::GetEffectivePreset(EditorType type) const {
   if (window_manager_) {
     const auto session =

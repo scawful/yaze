@@ -913,6 +913,11 @@ void EditorManager::RegisterEditors() {
 
   // STEP 4.8: Initialize DashboardPanel
   dashboard_panel_ = std::make_unique<DashboardPanel>(this);
+  dashboard_panel_->SetShortcutManager(&shortcut_manager_);
+  dashboard_panel_->SetRoleSelectionCallback(
+      [this](EditorType type, const std::string& preset) {
+        return ChooseStartupRole(type, preset);
+      });
 
   if (window_host_) {
     WindowDefinition dashboard_definition;
@@ -5683,6 +5688,7 @@ void EditorManager::ConfigureEditorDependencies(EditorSet* editor_set, Rom* rom,
   deps.shortcut_manager = &shortcut_manager_;
   deps.shared_clipboard = &shared_clipboard_;
   deps.user_settings = &user_settings_;
+  deps.layout_manager = layout_manager_.get();
   if (session_coordinator_) {
     const auto session_index = ResolveSessionIndexById(session_id);
     if (session_index.has_value()) {
@@ -5716,6 +5722,14 @@ void EditorManager::ConfigureEditorDependencies(EditorSet* editor_set, Rom* rom,
         });
   }
   if (auto* settings_panel = editor_set->GetSettingsPanel()) {
+    settings_panel->SetStartupRoleCallback(
+        [this, session_id](EditorType type, const std::string& preset) {
+          if (GetCurrentSessionId() != session_id) {
+            return absl::FailedPreconditionError(
+                "Settings session is inactive");
+          }
+          return ChooseStartupRole(type, preset);
+        });
     // Settings edit the same active project that CaptureActiveProjectContext
     // persists. Editing the session snapshot directly loses changes when the
     // next capture replaces that snapshot with current_project_.

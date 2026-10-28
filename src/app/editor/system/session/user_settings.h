@@ -89,7 +89,8 @@ class UserSettings {
     bool backup_before_save = true;
     // Persisted values are append-only.
     int default_editor =
-        0;  // 0=None, 1=Overworld, 2=Dungeon, 3=Graphics, 4=Messages
+        0;  // 0=None, 1=Overworld, 2=Dungeon, 3=Graphics, 4=Messages, 5=Assembly
+    std::string startup_layout_preset;
 
     // Performance
     bool vsync = true;
@@ -210,6 +211,7 @@ class UserSettings {
 
   absl::Status Load();
   absl::Status Save();
+  absl::Status SaveStartupRole(int default_editor, const std::string& preset);
 
   // Applies one-time layout-default migrations when target_revision is newer
   // than persisted settings. Returns true when preferences changed; callers

@@ -61,6 +61,7 @@ class MessageEditor : public Editor {
 
   void DrawMessageList();
   void DrawCurrentMessage();
+  bool IsWriterWorkspace() const;
   void DrawPreviewPanel();
   void DrawFontAtlas();
   void DrawTextCommands();

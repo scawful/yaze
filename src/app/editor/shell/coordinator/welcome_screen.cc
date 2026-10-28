@@ -11,10 +11,12 @@
 #include "absl/strings/str_format.h"
 #include "absl/time/clock.h"
 #include "absl/time/time.h"
+#include "app/editor/system/commands/shortcut_manager.h"
 #include "app/editor/system/session/user_settings.h"
 #include "app/gui/canvas/item_context_menu.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/input.h"
+#include "app/gui/core/platform_keys.h"
 #include "app/gui/core/style_guard.h"
 #include "app/gui/core/theme_manager.h"
 #include "app/gui/core/ui_helpers.h"
@@ -526,7 +528,8 @@ bool WelcomeScreen::Show(bool* p_open) {
     // height. The content pane itself never scrolls — recents are capped to
     // what fits so the whole welcome surface stays readable at a glance.
     const float footer_gap = ImGui::GetStyle().ItemSpacing.y;
-    const float footer_height = ImGui::GetFrameHeight() + 3.0f * footer_gap;
+    const float footer_height = ImGui::GetFrameHeight() + 3.0f * footer_gap +
+                                ImGui::GetTextLineHeightWithSpacing();
     ImGui::BeginChild(
         "WelcomeContent", ImVec2(0, -footer_height), false,
         ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
@@ -1447,6 +1450,16 @@ void WelcomeScreen::DrawFooterBar() {
   if (ImGui::SmallButton(close_label.c_str())) {
     manually_closed_ = true;
   }
+  DrawCommandPaletteHint();
+}
+
+void WelcomeScreen::DrawCommandPaletteHint() {
+  const auto shortcut =
+      shortcut_manager_ ? shortcut_manager_->GetDisplayString("Command Palette")
+                        : gui::FormatCtrlShiftShortcut(ImGuiKey_P);
+  ImGui::TextDisabled(
+      "%s: %s", shortcut.empty() ? tr("Command Palette") : shortcut.c_str(),
+      tr("search every command"));
 }
 
 }  // namespace editor

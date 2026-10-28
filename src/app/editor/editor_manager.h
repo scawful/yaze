@@ -362,6 +362,7 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
 
   // Panel layout presets (command palette accessible)
   void ApplyLayoutPreset(const std::string& preset_name);
+  absl::Status ChooseStartupRole(EditorType type, const std::string& preset);
   bool ApplyLayoutProfile(const std::string& profile_id);
   void CaptureTemporaryLayoutSnapshot();
   void RestoreTemporaryLayoutSnapshot(bool clear_after_restore = false);
@@ -568,6 +569,7 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
   // After a ROM or project loads: stay in the open editor, open the Settings
   // default editor, or show the editor picker, in that order.
   void ShowPostLoadSurface(bool apply_project_workspace = false);
+  void ActivateStartupWorkspace(EditorType type, const std::string& preset);
   void SetupDialogCallbacks();
   void MaybeEmitZScreamRomLoadHints();
   void SetupSidebarCallbacks();

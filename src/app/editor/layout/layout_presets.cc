@@ -36,6 +36,17 @@ std::optional<PanelLayoutPreset> LayoutPresets::GetNamedPreset(
   return std::nullopt;
 }
 
+const std::vector<StartupRolePreset>& LayoutPresets::GetStartupRoles() {
+  static const std::vector<StartupRolePreset> roles = {
+      {"Write dialogue", EditorType::kMessage, 4, "Writer"},
+      {"Build maps", EditorType::kOverworld, 1, "Overworld Artist"},
+      {"Build dungeons", EditorType::kDungeon, 2, "Dungeon Master"},
+      {"Edit graphics", EditorType::kGraphics, 3, "Designer"},
+      {"Write ASM", EditorType::kAssembly, 5, "Developer"},
+  };
+  return roles;
+}
+
 PanelLayoutPreset LayoutPresets::GetDefaultPreset(EditorType type) {
   PanelLayoutPreset preset;
   preset.editor_type = type;

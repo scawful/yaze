@@ -1,4 +1,5 @@
 #include "app/editor/shell/windows/settings_panel.h"
+#include "app/editor/layout/layout_presets.h"
 
 #include "app/gui/automation/widget_id_registry.h"
 #include "util/i18n/tr.h"
@@ -1292,13 +1293,50 @@ void SettingsPanel::DrawEditorBehavior() {
   }
 
   ImGui::Spacing();
+  ImGui::Text("%s", tr("Startup role"));
+  ImGui::Separator();
+  const auto& roles = LayoutPresets::GetStartupRoles();
+  const auto& prefs = user_settings_->prefs();
+  const auto current =
+      std::find_if(roles.begin(), roles.end(), [&](const auto& role) {
+        return role.default_editor == prefs.default_editor &&
+               role.layout_preset == prefs.startup_layout_preset;
+      });
+  const char* label = current != roles.end() ? current->label.c_str()
+                                             : "Choose on open / custom editor";
+  if (ImGui::BeginCombo("##StartupRole", tr(label))) {
+    const auto choose = [&](EditorType type, const std::string& preset) {
+      const auto status = startup_role_callback_
+                              ? startup_role_callback_(type, preset)
+                              : absl::FailedPreconditionError(
+                                    "Workspace selection is unavailable");
+      startup_role_error_ = status.ok() ? "" : std::string(status.message());
+    };
+    if (ImGui::Selectable(tr("Choose on open / custom editor"),
+                          current == roles.end())) {
+      choose(EditorType::kUnknown, "");
+    }
+    for (const auto& role : roles) {
+      if (ImGui::Selectable(tr(role.label.c_str()),
+                            current != roles.end() &&
+                                current->editor_type == role.editor_type)) {
+        choose(role.editor_type, role.layout_preset);
+      }
+    }
+    ImGui::EndCombo();
+  }
+  if (!startup_role_error_.empty()) {
+    ImGui::TextWrapped("%s", startup_role_error_.c_str());
+  }
+  ImGui::Spacing();
   ImGui::Text(tr("%s Default Editor"), ICON_MD_EDIT);
   ImGui::Separator();
 
-  const char* editors[] = {"None", "Overworld", "Dungeon", "Graphics",
-                           "Messages"};
+  const char* editors[] = {"None",     "Overworld", "Dungeon",
+                           "Graphics", "Messages",  "Assembly"};
   if (ImGui::Combo("##DefaultEditor", &user_settings_->prefs().default_editor,
                    editors, IM_ARRAYSIZE(editors))) {
+    user_settings_->prefs().startup_layout_preset.clear();
     user_settings_->Save();
   }
 

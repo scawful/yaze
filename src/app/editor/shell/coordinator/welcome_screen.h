@@ -13,6 +13,7 @@ namespace yaze {
 namespace editor {
 
 class UserSettings;
+class ShortcutManager;
 
 /**
  * @class WelcomeScreen
@@ -120,6 +121,9 @@ class WelcomeScreen {
    * @brief Load persisted Welcome-screen animation preferences.
    */
   void SetUserSettings(UserSettings* settings);
+  void SetShortcutManager(ShortcutManager* shortcuts) {
+    shortcut_manager_ = shortcuts;
+  }
 
   /**
    * @brief Accessor used by command-palette wiring so the same recent list
@@ -139,6 +143,7 @@ class WelcomeScreen {
   void DrawProjectPanel(const RecentProject& project, int index,
                         const ImVec2& card_size);
   void DrawFooterBar();
+  void DrawCommandPaletteHint();
   void DrawFirstRunGuide();
   void DrawRecentAnnotationPopup();
   void DrawUndoRemovalBanner();
@@ -152,6 +157,7 @@ class WelcomeScreen {
       const std::vector<RecentProject>& entries);
 
   RecentProjectsModel recent_projects_model_;
+  ShortcutManager* shortcut_manager_ = nullptr;
   bool manually_closed_ = false;
 
   // Callbacks

@@ -17,7 +17,9 @@
 #include <TargetConditionals.h>
 #endif
 
+#include "absl/cleanup/cleanup.h"
 #include "absl/status/status.h"
+#include "absl/strings/ascii.h"
 #include "absl/strings/match.h"
 #include "absl/strings/str_format.h"
 #include "imgui/imgui.h"
@@ -900,6 +902,56 @@ absl::Status EditorManager::CheckUnpublishedMessageSourceBeforeSave() {
       "Publish in the Message editor before saving");
 }
 
+absl::Status EditorManager::ChooseStartupRole(EditorType type,
+                                              const std::string& preset) {
+  int default_editor = 0;
+  std::string startup_editor;
+  if (type != EditorType::kUnknown || !preset.empty()) {
+    const auto& roles = LayoutPresets::GetStartupRoles();
+    const auto role =
+        std::find_if(roles.begin(), roles.end(), [&](const auto& role) {
+          return role.editor_type == type && role.layout_preset == preset;
+        });
+    if (role == roles.end()) {
+      return absl::InvalidArgumentError("Unknown startup workspace");
+    }
+    default_editor = role->default_editor;
+    startup_editor =
+        absl::AsciiStrToLower(EditorRegistry::GetEditorCategory(type));
+  }
+  const auto session_id = GetCurrentSessionId();
+  const auto visibility = window_manager_.GetVisibleWindowIds(session_id);
+  auto preferences_before = user_settings_.prefs();
+  const bool dirty_before = settings_dirty_;
+  const float dirty_timestamp_before = settings_dirty_timestamp_;
+  auto rollback = absl::MakeCleanup([&] {
+    window_manager_.SetVisibleWindows(session_id, visibility);
+    user_settings_.prefs() = std::move(preferences_before);
+    settings_dirty_ = dirty_before;
+    settings_dirty_timestamp_ = dirty_timestamp_before;
+  });
+  if (type != EditorType::kUnknown && GetCurrentRom() &&
+      GetCurrentRom()->is_loaded()) {
+    RETURN_IF_ERROR(EnsureEditorAssetsLoaded(type));
+  }
+  RETURN_IF_ERROR(user_settings_.SaveStartupRole(default_editor, preset));
+  std::move(rollback).Cancel();
+  auto& workspace = current_project_.workspace_settings;
+  const bool changed = workspace.last_layout_preset != preset ||
+                       workspace.startup_editor != startup_editor;
+  workspace.last_layout_preset = preset;
+  workspace.startup_editor = startup_editor;
+  if (changed && current_project_.project_opened()) {
+    MarkCurrentProjectDirty();
+  }
+  if (type != EditorType::kUnknown &&
+      ((GetCurrentRom() && GetCurrentRom()->is_loaded()) ||
+       type == EditorType::kAssembly)) {
+    ActivateStartupWorkspace(type, preset);
+  }
+  return absl::OkStatus();
+}
+
 void EditorManager::ShowPostLoadSurface(bool apply_project_workspace) {
   if (ui_coordinator_) {
     ui_coordinator_->SetWelcomeScreenVisible(false);
@@ -907,6 +959,7 @@ void EditorManager::ShowPostLoadSurface(bool apply_project_workspace) {
 
   std::optional<EditorType> target;
   bool project_layout_applied = false;
+  std::string startup_preset;
   if (apply_project_workspace && current_project_.project_opened()) {
     const auto& workspace = current_project_.workspace_settings;
     if (!workspace.startup_editor.empty()) {
@@ -918,6 +971,9 @@ void EditorManager::ShowPostLoadSurface(bool apply_project_workspace) {
     const auto preset =
         LayoutPresets::GetNamedPreset(workspace.last_layout_preset);
     project_layout_applied = preset.has_value();
+    if (project_layout_applied) {
+      startup_preset = workspace.last_layout_preset;
+    }
     if (!target.has_value() && preset &&
         preset->editor_type != EditorType::kUnknown) {
       target = preset->editor_type;
@@ -945,8 +1001,21 @@ void EditorManager::ShowPostLoadSurface(bool apply_project_workspace) {
       case 4:
         target = EditorType::kMessage;
         break;
+      case 5:
+        target = EditorType::kAssembly;
+        break;
       default:
         break;
+    }
+  }
+  if (!project_layout_applied) {
+    for (const auto& role : LayoutPresets::GetStartupRoles()) {
+      if (target == role.editor_type &&
+          role.default_editor == user_settings_.prefs().default_editor &&
+          role.layout_preset == user_settings_.prefs().startup_layout_preset) {
+        startup_preset = role.layout_preset;
+        break;
+      }
     }
   }
 
@@ -969,27 +1038,29 @@ void EditorManager::ShowPostLoadSurface(bool apply_project_workspace) {
             .value_or(EditorType::kDungeon);
   }
 
+  ActivateStartupWorkspace(*target, startup_preset);
+}
+
+void EditorManager::ActivateStartupWorkspace(EditorType type,
+                                             const std::string& preset) {
   if (ui_coordinator_) {
     ui_coordinator_->SetStartupSurface(StartupSurface::kEditor);
   }
-  SwitchToEditor(*target, /*force_visible=*/true);
-  // Editor activation restores its own saved visibility. Apply the project's
-  // explicit layout last so activation cannot cover that choice.
-  if (project_layout_applied) {
-    const auto apply_layout =
-        [this, session_id = GetCurrentSessionId(),
-         preset = current_project_.workspace_settings.last_layout_preset,
-         editor = *target]() {
-          if (GetCurrentSessionId() == session_id) {
-            layout_coordinator_.ApplyLayoutPreset(preset, session_id, editor);
-          }
-        };
-    const auto* context = ImGui::GetCurrentContext();
-    if (context && context->WithinFrameScope) {
-      apply_layout();
-    } else {
-      QueueDeferredAction(apply_layout);
+  SwitchToEditor(type, /*force_visible=*/true);
+  if (preset.empty()) {
+    return;
+  }
+  const auto apply_layout = [this, session_id = GetCurrentSessionId(), preset,
+                             type]() {
+    if (GetCurrentSessionId() == session_id) {
+      layout_coordinator_.ApplyLayoutPreset(preset, session_id, type);
     }
+  };
+  const auto* context = ImGui::GetCurrentContext();
+  if (context && context->WithinFrameScope) {
+    apply_layout();
+  } else {
+    QueueDeferredAction(apply_layout);
   }
 }
 

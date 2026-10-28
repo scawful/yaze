@@ -67,6 +67,7 @@ UICoordinator::UICoordinator(
       shortcut_manager_(shortcut_manager) {
   // Initialize welcome screen with proper callbacks
   welcome_screen_ = std::make_unique<WelcomeScreen>();
+  welcome_screen_->SetShortcutManager(&shortcut_manager_);
 
   // Bind persistent prefs so animation tweaks survive restart.
   if (editor_manager_) {

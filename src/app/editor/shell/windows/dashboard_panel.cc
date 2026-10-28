@@ -2,13 +2,17 @@
 #include "util/i18n/tr.h"
 
 #include <algorithm>
+#include <array>
 #include <cfloat>
 #include <fstream>
 #include <sstream>
 
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
+#include "app/editor/layout/layout_presets.h"
+#include "app/editor/system/commands/shortcut_manager.h"
 #include "app/editor/system/workspace/editor_manager_interfaces.h"
+#include "app/gui/automation/widget_id_registry.h"
 #include "app/gui/core/color.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/platform_keys.h"
@@ -263,12 +267,15 @@ void DashboardPanel::Draw() {
       ImGui::Spacing();
     }
 
-    DrawRecentEditors();
-    if (!recent_editors_.empty()) {
-      ImGui::Separator();
-      ImGui::Spacing();
+    DrawRoleChoices();
+    if (ImGui::CollapsingHeader(tr("All editors"))) {
+      DrawRecentEditors();
+      if (!recent_editors_.empty()) {
+        ImGui::Separator();
+        ImGui::Spacing();
+      }
+      DrawEditorGrid();
     }
-    DrawEditorGrid();
   }
   window_.End();
 }
@@ -285,12 +292,59 @@ void DashboardPanel::DrawWelcomeHeader() {
   // asked for, no size change, and an unchecked index into a vector whose
   // length depends on which fonts actually loaded.
   ImGui::PushFont(nullptr, HeadingFontSize(1.4f));
-  ImGui::TextColored(accent, ICON_MD_EDIT " Select an Editor");
+  ImGui::TextColored(accent, "%s", tr("What do you want to do?"));
   ImGui::PopFont();
 
-  ImGui::TextColored(text_secondary,
-                     tr("Choose an editor to begin working on your ROM. "
-                        "You can open multiple editors simultaneously."));
+  ImGui::TextColored(text_secondary, "%s",
+                     tr("Choose a workspace. You can change it in Settings."));
+  DrawCommandPaletteHint();
+}
+
+void DashboardPanel::DrawRoleChoices() {
+  const float height = std::max(44.0f, ImGui::GetFrameHeight() + 8.0f);
+  for (const auto& role : LayoutPresets::GetStartupRoles()) {
+    const bool enabled = has_rom_ || role.editor_type == EditorType::kAssembly;
+    ImGui::BeginDisabled(!enabled);
+    const auto metadata = std::find_if(
+        editors_.begin(), editors_.end(),
+        [&](const auto& editor) { return editor.type == role.editor_type; });
+    const auto label =
+        absl::StrCat(metadata != editors_.end() ? metadata->icon : "", " ",
+                     tr(role.label.c_str()));
+    const bool clicked = ImGui::Button(label.c_str(), ImVec2(-1, height));
+    gui::WidgetIdRegistry::Instance().RegisterWidget(
+        absl::StrCat("RolePicker/button:", role.label), "button",
+        ImGui::GetItemID());
+    ImGui::EndDisabled();
+    if (!clicked) {
+      continue;
+    }
+    const auto status =
+        role_selection_callback_
+            ? role_selection_callback_(role.editor_type, role.layout_preset)
+            : absl::FailedPreconditionError(
+                  "Workspace selection is unavailable");
+    role_selection_error_ = status.ok() ? "" : std::string(status.message());
+    if (status.ok()) {
+      if (editor_switcher_) {
+        editor_switcher_->DismissEditorSelection();
+      }
+      show_ = false;
+      break;
+    }
+  }
+  if (!role_selection_error_.empty()) {
+    ImGui::TextWrapped("%s", role_selection_error_.c_str());
+  }
+}
+
+void DashboardPanel::DrawCommandPaletteHint() {
+  const auto shortcut =
+      shortcut_manager_ ? shortcut_manager_->GetDisplayString("Command Palette")
+                        : gui::FormatCtrlShiftShortcut(ImGuiKey_P);
+  ImGui::TextDisabled(
+      "%s: %s", shortcut.empty() ? tr("Command Palette") : shortcut.c_str(),
+      tr("search every command"));
 }
 
 void DashboardPanel::DrawRecentEditors() {

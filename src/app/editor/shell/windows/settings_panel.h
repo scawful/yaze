@@ -82,6 +82,10 @@ class SettingsPanel : public Editor {
   bool CanPaste() const override { return false; }
 
   void SetUserSettings(UserSettings* settings) { user_settings_ = settings; }
+  void SetStartupRoleCallback(
+      std::function<absl::Status(EditorType, const std::string&)> callback) {
+    startup_role_callback_ = std::move(callback);
+  }
   void SetWindowManager(WorkspaceWindowManager* registry) {
     window_manager_ = registry;
   }
@@ -182,6 +186,9 @@ class SettingsPanel : public Editor {
   std::string workspace_status_message_;
   bool workspace_status_is_error_ = false;
 
+  std::function<absl::Status(EditorType, const std::string&)>
+      startup_role_callback_;
+  std::string startup_role_error_;
   OpenMinecartTracksCallback open_minecart_tracks_callback_;
   std::string project_status_message_;
 

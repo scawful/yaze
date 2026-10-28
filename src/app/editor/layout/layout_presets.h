@@ -41,6 +41,13 @@ struct PanelLayoutPreset {
   bool dock_only_default_visible_panels = false;
 };
 
+struct StartupRolePreset {
+  std::string label;
+  EditorType editor_type;
+  int default_editor;
+  std::string layout_preset;
+};
+
 using WorkspaceLayoutPreset = PanelLayoutPreset;
 
 /**
@@ -64,6 +71,7 @@ class LayoutPresets {
    * @return PanelLayoutPreset with default panels
    */
   static PanelLayoutPreset GetDefaultPreset(EditorType type);
+  static const std::vector<StartupRolePreset>& GetStartupRoles();
   static std::optional<PanelLayoutPreset> GetNamedPreset(
       const std::string& name);
   static WorkspaceLayoutPreset GetDefaultWorkspacePreset(EditorType type) {

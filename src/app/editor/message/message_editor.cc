@@ -16,6 +16,7 @@
 #include "absl/strings/match.h"
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
+#include "app/editor/layout/layout_manager.h"
 #include "app/editor/menu/status_bar.h"
 #include "app/editor/message/message_id_resolver.h"
 #include "app/editor/message/message_list_query.h"
@@ -1283,9 +1284,7 @@ void MessageEditor::DrawMessageList() {
     ImGui::SetTooltip("Import message bundle");
   }
   ImGui::SameLine();
-  const bool writer =
-      dependencies_.project &&
-      dependencies_.project->workspace_settings.last_layout_preset == "Writer";
+  const bool writer = IsWriterWorkspace();
   if (writer ? gui::PrimaryButton(tr("Export for review"))
              : gui::LayoutHelpers::ToolbarButton(ICON_MD_DOWNLOAD)) {
     ExportForReview();
@@ -1493,13 +1492,21 @@ void MessageEditor::DrawMessageStructure() {
                      estimated_line_width, current_line_chars);
 }
 
+bool MessageEditor::IsWriterWorkspace() const {
+  if (dependencies_.layout_manager) {
+    return dependencies_.layout_manager->GetNamedPreset(
+               dependencies_.session_id, EditorType::kMessage) == "Writer";
+  }
+  return dependencies_.project &&
+         dependencies_.project->workspace_settings.last_layout_preset ==
+             "Writer";
+}
+
 void MessageEditor::DrawCurrentMessage() {
   DrawMessageHeader();
   DrawFindBar();
 
-  const bool writer =
-      dependencies_.project &&
-      dependencies_.project->workspace_settings.last_layout_preset == "Writer";
+  const bool writer = IsWriterWorkspace();
   const auto line_warnings = ValidateMessageLineWidths(message_text_box_.text);
   const bool has_diagnostics =
       !current_parse_errors_.empty() || !current_parse_warnings_.empty();

@@ -992,7 +992,7 @@ TEST(EditorManagerProjectActionsTest,
      LegacyDefaultEditorPreferencesKeepTheirNumericValues) {
   ScopedTempDir directory(MakeTempDir("yaze_legacy_default_editor"));
   const auto path = directory.path / "settings.json";
-  for (int value = 0; value <= 4; ++value) {
+  for (int value = 0; value <= 5; ++value) {
     std::ofstream(path) << nlohmann::json{
         {"editor", {{"default_editor", value}}}};
     UserSettings settings;
@@ -1005,6 +1005,192 @@ TEST(EditorManagerProjectActionsTest,
     ASSERT_OK(reopened.Load());
     EXPECT_EQ(reopened.prefs().default_editor, value);
   }
+}
+
+TEST(StartupRoleSettingsTest, EveryRoleRoundTripsJsonAndLegacyIni) {
+  ScopedTempDir directory(MakeTempDir("yaze_startup_role_roundtrip"));
+  const auto path = directory.path / "settings.json";
+  UserSettings settings;
+  settings.SetSettingsFilePathForTesting(path.string());
+  ASSERT_OK(settings.Load());
+  for (const auto& role : LayoutPresets::GetStartupRoles()) {
+    SCOPED_TRACE(role.label);
+    ASSERT_OK(
+        settings.SaveStartupRole(role.default_editor, role.layout_preset));
+    UserSettings json_settings;
+    json_settings.SetSettingsFilePathForTesting(path.string());
+    ASSERT_OK(json_settings.Load());
+    EXPECT_EQ(json_settings.prefs().default_editor, role.default_editor);
+    EXPECT_EQ(json_settings.prefs().startup_layout_preset, role.layout_preset);
+    std::filesystem::remove(path);
+    UserSettings ini_settings;
+    ini_settings.SetSettingsFilePathForTesting(path.string());
+    ASSERT_OK(ini_settings.Load());
+    EXPECT_EQ(ini_settings.prefs().default_editor, role.default_editor);
+    EXPECT_EQ(ini_settings.prefs().startup_layout_preset, role.layout_preset);
+  }
+  ASSERT_OK(settings.SaveStartupRole(0, ""));
+  UserSettings cleared;
+  cleared.SetSettingsFilePathForTesting(path.string());
+  ASSERT_OK(cleared.Load());
+  EXPECT_EQ(cleared.prefs().default_editor, 0);
+  EXPECT_TRUE(cleared.prefs().startup_layout_preset.empty());
+}
+
+TEST(StartupRoleSettingsTest,
+     InvalidPairAndLatePathFailurePreserveAllSettings) {
+  ScopedTempDir directory(MakeTempDir("yaze_startup_role_failure"));
+  UserSettings settings;
+  settings.SetSettingsFilePathForTesting(
+      (directory.path / "settings.json").string());
+  ASSERT_OK(settings.Load());
+  ASSERT_OK(settings.SaveStartupRole(3, "Designer"));
+  const auto before_json = ReadFile(settings.settings_file_path());
+  const auto before_ini = ReadFile(settings.legacy_settings_file_path());
+  EXPECT_EQ(settings.SaveStartupRole(4, "Designer").code(),
+            absl::StatusCode::kInvalidArgument);
+  EXPECT_EQ(ReadFile(settings.settings_file_path()), before_json);
+  EXPECT_EQ(ReadFile(settings.legacy_settings_file_path()), before_ini);
+  std::filesystem::remove(settings.legacy_settings_file_path());
+  std::filesystem::create_directory(settings.legacy_settings_file_path());
+  EXPECT_FALSE(settings.SaveStartupRole(4, "Writer").ok());
+  EXPECT_EQ(ReadFile(settings.settings_file_path()), before_json);
+  EXPECT_TRUE(
+      std::filesystem::is_directory(settings.legacy_settings_file_path()));
+  EXPECT_EQ(settings.prefs().default_editor, 3);
+  EXPECT_EQ(settings.prefs().startup_layout_preset, "Designer");
+}
+
+TEST(EditorManagerProjectActionsTest,
+     RoleChoiceSavesProjectWorkspaceAndReopensIt) {
+  ScopedImGuiContext imgui;
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  ::yaze::test::InitializeWithIsolatedSettings(*manager, renderer.get());
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+  ScopedTempDir directory(MakeTempDir("yaze_role_project"));
+  manager->user_settings().SetSettingsFilePathForTesting(
+      (directory.path / "settings.json").string());
+  ASSERT_OK(manager->user_settings().Save());
+  const auto rom = directory.path / "writer.sfc";
+  const auto path = directory.path / "writer.yaze";
+  WriteStartupEditorRom(rom);
+  WriteProjectFile(path, "Writer", rom);
+  ASSERT_OK(manager->OpenRomOrProject(path.string()));
+  AdvanceStartupFrames(*manager);
+  ASSERT_OK(manager->ChooseStartupRole(EditorType::kMessage, "Writer"));
+  AdvanceStartupFrames(*manager);
+  ExpectStartupEditorActive(*manager, EditorType::kMessage, "Message");
+  EXPECT_TRUE(manager->IsCurrentProjectDirty());
+  EXPECT_TRUE(manager->GetCurrentEditorSet()
+                  ->GetEditorAs<MessageEditor>(EditorType::kMessage)
+                  ->IsWriterWorkspace());
+  EXPECT_EQ(manager->user_settings().prefs().default_editor, 4);
+  EXPECT_EQ(manager->user_settings().prefs().startup_layout_preset, "Writer");
+  ASSERT_OK(manager->SaveProject());
+  project::YazeProject reopened;
+  ASSERT_OK(reopened.Open(path.string()));
+  EXPECT_EQ(reopened.workspace_settings.startup_editor, "message");
+  EXPECT_EQ(reopened.workspace_settings.last_layout_preset, "Writer");
+}
+
+TEST(EditorManagerProjectActionsTest,
+     FailedRoleChoicePreservesProjectAndPicker) {
+  ScopedImGuiContext imgui;
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  ::yaze::test::InitializeWithIsolatedSettings(*manager, renderer.get());
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+  ScopedTempDir directory(MakeTempDir("yaze_role_project_failure"));
+  auto& settings = manager->user_settings();
+  settings.SetSettingsFilePathForTesting(
+      (directory.path / "settings.json").string());
+  ASSERT_OK(settings.Save());
+  const auto rom = directory.path / "writer.sfc";
+  const auto path = directory.path / "writer.yaze";
+  WriteStartupEditorRom(rom);
+  WriteProjectFile(path, "Writer", rom);
+  ASSERT_OK(manager->OpenRomOrProject(path.string()));
+  AdvanceStartupFrames(*manager);
+  manager->window_manager().RegisterWindow(manager->GetCurrentSessionId(),
+                                           "dungeon.room_5", "Transient room",
+                                           "", "Dungeon");
+  ASSERT_TRUE(manager->window_manager().OpenWindow(
+      manager->GetCurrentSessionId(), "dungeon.room_5"));
+  const bool dirty_before = manager->IsCurrentProjectDirty();
+  const auto workspace_before =
+      manager->GetCurrentProject()->workspace_settings;
+  const auto panel_preferences_before = settings.prefs().panel_visibility_state;
+  const auto visible_before = manager->window_manager().GetVisibleWindowIds(
+      manager->GetCurrentSessionId());
+  const auto json_before = ReadFile(settings.settings_file_path());
+  std::filesystem::remove(settings.legacy_settings_file_path());
+  std::filesystem::create_directory(settings.legacy_settings_file_path());
+  EXPECT_FALSE(manager->ChooseStartupRole(EditorType::kMessage, "Writer").ok());
+  EXPECT_EQ(ReadFile(settings.settings_file_path()), json_before);
+  EXPECT_EQ(settings.prefs().panel_visibility_state, panel_preferences_before);
+  EXPECT_EQ(manager->window_manager().GetVisibleWindowIds(
+                manager->GetCurrentSessionId()),
+            visible_before);
+  EXPECT_EQ(manager->IsCurrentProjectDirty(), dirty_before);
+  EXPECT_EQ(manager->GetCurrentProject()->workspace_settings.startup_editor,
+            workspace_before.startup_editor);
+  EXPECT_EQ(manager->GetCurrentProject()->workspace_settings.last_layout_preset,
+            workspace_before.last_layout_preset);
+  EXPECT_TRUE(manager->ui_coordinator()->IsEditorSelectionVisible());
+  EXPECT_EQ(settings.prefs().default_editor, 0);
+  EXPECT_TRUE(settings.prefs().startup_layout_preset.empty());
+}
+
+TEST(EditorManagerProjectActionsTest,
+     FreshRawRomUsesSavedWriterRoleWithoutProjectMutation) {
+  ScopedImGuiContext imgui;
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  ScopedTempDir directory(MakeTempDir("yaze_role_raw_rom"));
+  const auto path = directory.path / "settings.json";
+  const auto rom = directory.path / "writer.sfc";
+  WriteStartupEditorRom(rom);
+  UserSettings settings;
+  settings.SetSettingsFilePathForTesting(path.string());
+  ASSERT_OK(settings.Load());
+  ASSERT_OK(settings.SaveStartupRole(4, "Writer"));
+  auto manager = std::make_unique<EditorManager>();
+  manager->user_settings().SetSettingsFilePathForTesting(path.string());
+  manager->Initialize(renderer.get(), "");
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+  ASSERT_OK(manager->OpenRomOrProject(rom.string()));
+  AdvanceStartupFrames(*manager);
+  ExpectStartupEditorActive(*manager, EditorType::kMessage, "Message");
+  EXPECT_TRUE(manager->GetCurrentEditorSet()
+                  ->GetEditorAs<MessageEditor>(EditorType::kMessage)
+                  ->IsWriterWorkspace());
+  EXPECT_FALSE(manager->IsCurrentProjectDirty());
+  EXPECT_TRUE(manager->GetCurrentProject()
+                  ->workspace_settings.last_layout_preset.empty());
+  auto expected = LayoutPresets::GetWriterPreset().default_visible_panels;
+  auto visible = manager->window_manager().GetVisibleWindowIds(
+      manager->GetCurrentSessionId());
+  std::sort(expected.begin(), expected.end());
+  std::sort(visible.begin(), visible.end());
+  EXPECT_EQ(visible, expected);
+  manager->ResetWorkspaceLayout();
+  EXPECT_FALSE(manager->GetCurrentEditorSet()
+                   ->GetEditorAs<MessageEditor>(EditorType::kMessage)
+                   ->IsWriterWorkspace());
+}
+
+TEST(EditorManagerProjectActionsTest, AsmRoleCanBeSelectedWithoutRom) {
+  ScopedImGuiContext imgui;
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  ::yaze::test::InitializeWithIsolatedSettings(*manager, renderer.get());
+  ASSERT_OK(manager->ChooseStartupRole(EditorType::kAssembly, "Developer"));
+  AdvanceStartupFrames(*manager);
+  ExpectStartupEditorActive(*manager, EditorType::kAssembly, "Assembly");
+  EXPECT_EQ(manager->user_settings().prefs().default_editor, 5);
+  EXPECT_EQ(manager->user_settings().prefs().startup_layout_preset,
+            "Developer");
+  EXPECT_FALSE(manager->ui_coordinator()->IsEditorSelectionVisible());
 }
 
 TEST(EditorManagerProjectActionsTest,

@@ -6,8 +6,10 @@
 
 #include <gtest/gtest.h>
 
+#include "app/editor/system/commands/shortcut_manager.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/input.h"
+#include "app/gui/core/platform_keys.h"
 #include "app/gui/core/theme_manager.h"
 #include "core/project.h"
 #include "imgui/imgui.h"
@@ -30,6 +32,10 @@ class WelcomeScreenTestPeer {
 
   static void DrawQuickActions(WelcomeScreen* screen) {
     screen->DrawQuickActions();
+  }
+
+  static void DrawPaletteHint(WelcomeScreen* screen) {
+    screen->DrawCommandPaletteHint();
   }
 
   static bool ShouldUseStackedLayout(float content_width, float content_height,
@@ -396,6 +402,34 @@ INSTANTIATE_TEST_SUITE_P(
 
 // The other breakpoint tests only bound kWelcomeSplitMinWidth loosely — the
 // constant could drift anywhere in (500, 900] undetected. Pin both edges.
+TEST_F(WelcomeScreenTest, CommandPaletteHintReflectsRebindingAndUnboundState) {
+  WelcomeScreen screen;
+  const auto render_hint = [&] {
+    ImGui::NewFrame();
+    ImGui::Begin("WelcomeHintTest", nullptr, ImGuiWindowFlags_NoSavedSettings);
+    ImGui::LogToBuffer();
+    WelcomeScreenTestPeer::DrawPaletteHint(&screen);
+    const std::string text = ImGui::GetCurrentContext()->LogBuffer.c_str();
+    ImGui::LogFinish();
+    ImGui::End();
+    ImGui::Render();
+    return text;
+  };
+  EXPECT_NE(render_hint().find(gui::FormatCtrlShiftShortcut(ImGuiKey_P) +
+                               ": search every command"),
+            std::string::npos);
+  ShortcutManager shortcuts;
+  shortcuts.RegisterShortcut("Command Palette", ImGuiKey_F8, [] {});
+  screen.SetShortcutManager(&shortcuts);
+  EXPECT_NE(render_hint().find("F8: search every command"), std::string::npos);
+  ASSERT_TRUE(shortcuts.UpdateShortcutKeys("Command Palette", {}));
+  const auto text = render_hint();
+  EXPECT_NE(text.find("Command Palette: search every command"),
+            std::string::npos);
+  EXPECT_EQ(text.find(gui::FormatCtrlShiftShortcut(ImGuiKey_P)),
+            std::string::npos);
+}
+
 TEST(WelcomeScreenLayoutTest, SplitBreakpointSitsAt800TimesScale) {
   EXPECT_TRUE(
       WelcomeScreenTestPeer::ShouldUseStackedLayout(799.0f, 600.0f, 1.0f));

@@ -49,6 +49,7 @@ namespace editor {
 struct GfxGroupWorkspaceState;
 class GlobalEditorContext;
 class WorkspaceWindowManager;
+class LayoutManager;
 class ToastManager;
 class UserSettings;
 class StatusBar;
@@ -156,6 +157,7 @@ struct UIDependencies {
   SharedClipboard* shared_clipboard = nullptr;
   UserSettings* user_settings = nullptr;
   StatusBar* status_bar = nullptr;
+  LayoutManager* layout_manager = nullptr;
 };
 
 /**
@@ -187,6 +189,7 @@ struct EditorDependencies {
   SharedClipboard* shared_clipboard = nullptr;
   UserSettings* user_settings = nullptr;
   StatusBar* status_bar = nullptr;
+  LayoutManager* layout_manager = nullptr;
 
   // --- Specialized dependencies ---
   gfx::IRenderer* renderer = nullptr;
@@ -199,8 +202,9 @@ struct EditorDependencies {
             session_id};
   }
   UIDependencies GetUIDeps() const {
-    return {window_manager,   toast_manager,    undo_manager,  popup_manager,
-            shortcut_manager, shared_clipboard, user_settings, status_bar};
+    return {window_manager, toast_manager,    undo_manager,
+            popup_manager,  shortcut_manager, shared_clipboard,
+            user_settings,  status_bar,       layout_manager};
   }
 
   EditorContext context() const { return {rom, game_data}; }

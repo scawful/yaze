@@ -110,6 +110,7 @@ class LayoutManager {
   // Retain a named preset through deferred initialization and dock rebuilds.
   bool ApplyNamedPreset(const std::string& name, size_t session_id,
                         EditorType editor_type);
+  std::string GetNamedPreset(size_t session_id, EditorType type) const;
   void ClearNamedPresets(size_t session_id) {
     named_presets_.erase(session_id);
   }
