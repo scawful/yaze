@@ -20,17 +20,19 @@
 # Default (no options): build yaze_test_unit and run ctest label "unit".
 #
 # Works for local-only branches: the commits the PC lacks travel as a git bundle.
-# Env: MM_HOST (ssh alias, default mm), MM_REMOTE_ROOT (runner dir relative to the
-# remote home, default src/yaze-remote), MM_MAX_WORKTREES (default 8),
+# Env: MM_HOST (ssh alias; forces one box), MM_HOSTS (boxes tried in order when
+# MM_HOST is unset, default "mm eva-02": first with a free build lock, else wait
+# on the first reachable), MM_REMOTE_ROOT (runner dir relative to the remote
+# home, default src/yaze-remote), MM_MAX_WORKTREES (default 8),
 # MM_LOCK_WAIT_MIN (default 120).
 # Exit: 0 pass, 1 test failures, 2 configure/build failure, 3 setup/usage error.
 # See scripts/remote/README.md.
 set -euo pipefail
 
-usage() { sed -n '2,27p' "$0" | sed 's/^# \{0,1\}//'; exit "${1:-3}"; }
+usage() { sed -n '2,29p' "$0" | sed 's/^# \{0,1\}//'; exit "${1:-3}"; }
 die() { echo "mm-test: $*" >&2; exit 3; }
 
-host="${MM_HOST:-mm}"
+host="${MM_HOST:-}"
 remote_root="${MM_REMOTE_ROOT:-src/yaze-remote}"
 preset="ci-windows"
 ref="" filter="" gtest_args="" full=0 clean=0 ccache=1 jobs="" out_dir="" targets=()
@@ -55,6 +57,27 @@ done
 gtest_args_re='^[A-Za-z0-9_=,.:/ -]*$'
 [[ "$gtest_args" =~ $gtest_args_re ]] || die "gtest-args may only use [A-Za-z0-9_=,.:/ -]"
 [[ "$jobs" =~ ^[0-9]*$ ]] || die "--jobs must be a number"
+
+# Prints FREE or BUSY for a box's build lock; fails if the box is unreachable.
+lock_state() {
+  local script="\$p = Join-Path \$env:USERPROFILE '${remote_root//\//\\}\\build.lock'
+if (-not (Test-Path \$p)) { 'FREE'; exit }
+try { [IO.File]::Open(\$p, 'Open', 'ReadWrite', 'None').Close(); 'FREE' } catch { 'BUSY' }"
+  ssh -o BatchMode=yes -o LogLevel=ERROR -o ConnectTimeout=5 "$1" \
+    "pwsh -NoProfile -EncodedCommand $(printf '%s' "$script" | iconv -t UTF-16LE | base64 | tr -d '\n')" \
+    | tr -d '\r'
+}
+if [[ -z "$host" ]]; then
+  fallback=""
+  for candidate in ${MM_HOSTS:-mm eva-02}; do
+    state="$(lock_state "$candidate" 2>/dev/null)" || { echo "[mac] $candidate unreachable"; continue; }
+    if [[ "$state" == FREE ]]; then host="$candidate"; break; fi
+    echo "[mac] $candidate build lock busy"
+    fallback="${fallback:-$candidate}"
+  done
+  host="${host:-$fallback}"
+  [[ -n "$host" ]] || die "no build box reachable (${MM_HOSTS:-mm eva-02})"
+fi
 
 repo_root="$(git rev-parse --show-toplevel)" || die "run inside a yaze checkout"
 sha="$(git rev-parse --verify --quiet "${ref}^{commit}")" || die "unknown ref: $ref"
@@ -84,7 +107,7 @@ trap cleanup EXIT
 mm() { ssh -o BatchMode=yes -o LogLevel=ERROR "$host" "$@" | perl -pe 'BEGIN{$|=1} s/[\0\r]//g'; }
 
 # 1. Ask the PC which commits it has, so the bundle carries only what is missing.
-tips="$(mm "mkdir $remote_job_win 2>nul & git -C src/yaze for-each-ref --format=%(objectname) refs/heads refs/remotes refs/mm 2>nul")" \
+tips="$(mm "mkdir $remote_job_win 2>nul & git -C src/yaze for-each-ref --format=%(objectname) refs/heads refs/remotes refs/mm 2>nul & exit 0")" \
   || die "ssh $host failed"
 have=()
 while read -r obj type; do
