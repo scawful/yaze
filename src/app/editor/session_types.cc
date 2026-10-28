@@ -339,6 +339,12 @@ void EditorSet::InvalidateScreenRomBackedState() {
   }
 }
 
+bool EditorSet::HasUnpublishedMessageSourceChanges() const {
+  const auto* editor =
+      static_cast<MessageEditor*>(FindEditor(EditorType::kMessage));
+  return editor && editor->HasUnpublishedMessageSourceChanges();
+}
+
 bool EditorSet::HasPendingProjectDraftChanges() const {
   if (auto* editor =
           static_cast<DungeonEditorV2*>(FindEditor(EditorType::kDungeon))) {

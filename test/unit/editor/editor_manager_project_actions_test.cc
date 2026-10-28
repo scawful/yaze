@@ -493,6 +493,25 @@ TEST(EditorManagerProjectActionsTest,
   EXPECT_EQ(ReadFile(rom), rom_before);
   EXPECT_FALSE(
       std::filesystem::exists(directory.path / "expanded_messages.asm"));
+
+  // Saving project metadata does not publish or discard the source draft.
+  ASSERT_OK(manager->SaveProject());
+  ASSERT_FALSE(manager->IsCurrentProjectDirty());
+  ASSERT_FALSE(manager->GetCurrentRom()->dirty());
+  EXPECT_TRUE(
+      manager->GetCurrentEditorSet()->HasUnpublishedMessageSourceChanges());
+  manager->Quit();
+  EXPECT_TRUE(manager->HasPendingUnsavedSessionAction());
+  EXPECT_FALSE(manager->quit());
+  manager->ConfirmPendingUnsavedSessionActionSaveAndContinue();
+  EXPECT_FALSE(manager->quit());
+  EXPECT_TRUE(message->HasUnpublishedMessageSourceChanges());
+  EXPECT_EQ(ReadFile(canonical), source_before);
+  EXPECT_EQ(ReadFile(rom), rom_before);
+  manager->Quit();
+  ASSERT_TRUE(manager->HasPendingUnsavedSessionAction());
+  manager->ConfirmPendingUnsavedSessionActionDiscardAndContinue();
+  EXPECT_TRUE(manager->quit());
 }
 
 TEST(EditorManagerProjectActionsTest,

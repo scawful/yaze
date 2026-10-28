@@ -5224,6 +5224,7 @@ bool EditorManager::SessionHasPendingUnsavedWork(size_t session_index) const {
       static_cast<RomSession*>(session_coordinator_->GetSession(session_index));
   return session != nullptr &&
          (SessionHasPendingRomWork(session_index) || session->project_dirty ||
+          session->editors.HasUnpublishedMessageSourceChanges() ||
           session->editors.HasPendingProjectDraftChanges() ||
           (session->project_file_editor_state.initialized &&
            session->project_file_editor_state.modified));
@@ -5380,6 +5381,9 @@ std::string EditorManager::DescribePendingUnsavedWork(
   if (project_file_dirty) {
     work.emplace_back("an unsaved project-file draft");
   }
+  if (session && session->editors.HasUnpublishedMessageSourceChanges()) {
+    work.emplace_back("unpublished message source edits");
+  }
   return work.empty() ? "unsaved work" : absl::StrJoin(work, " and ");
 }
 
@@ -5435,6 +5439,9 @@ std::string EditorManager::CompactPendingUnsavedWorkLabel(
   }
   if (project_dirty || project_editor_draft || project_file_dirty) {
     tags.push_back("Project");
+  }
+  if (session && session->editors.HasUnpublishedMessageSourceChanges()) {
+    tags.push_back("Message Source");
   }
   return absl::StrJoin(tags, "+");
 }

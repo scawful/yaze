@@ -1313,6 +1313,7 @@ bool SessionCoordinator::IsSessionModified(size_t index) const {
   }
 
   if (session->project_dirty ||
+      session->editors.HasUnpublishedMessageSourceChanges() ||
       session->editors.HasPendingProjectDraftChanges() ||
       (session->project_file_editor_state.initialized &&
        session->project_file_editor_state.modified)) {

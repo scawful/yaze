@@ -461,6 +461,28 @@ TEST(MessageProjectSourceLoadTest, BannerPreservesPendingEditsAndShowsError) {
   EXPECT_EQ(ReadText(fixture.canonical), source_before);
 }
 
+TEST(MessageReviewExportTest, ExportDoesNotClearSessionDraftGuard) {
+  PublishFixture fixture;
+  EditorSet editors(&fixture.rom);
+  editors.ApplyDependencies(fixture.dependencies);
+  auto* editor = editors.GetEditorAs<MessageEditor>(EditorType::kMessage);
+  ASSERT_NE(editor, nullptr);
+  ASSERT_TRUE(editor->LoadCanonicalExpandedSource().ok());
+  EXPECT_FALSE(editors.HasUnpublishedMessageSourceChanges());
+  MessageEditorPublishGuardTestPeer::SetExpandedText(*editor, 0,
+                                                     "Review draft");
+  MessageEditorPublishGuardTestPeer::MarkExpandedDirty(*editor);
+  EXPECT_FALSE(fixture.rom.dirty());
+  EXPECT_TRUE(editors.HasUnpublishedMessageSourceChanges());
+  const auto output = fixture.root.path() / "review.json";
+  ASSERT_TRUE(
+      MessageEditorPublishGuardTestPeer::ExportReview(*editor, output.string())
+          .ok());
+  EXPECT_TRUE(fs::exists(output));
+  EXPECT_TRUE(editors.HasUnpublishedMessageSourceChanges());
+  EXPECT_FALSE(fixture.rom.dirty());
+}
+
 TEST(MessageReviewExportTest, WriterShowsLabeledExportForReview) {
   ScopedImGuiFrame ui;
   PublishFixture fixture;
