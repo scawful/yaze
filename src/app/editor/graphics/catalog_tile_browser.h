@@ -27,6 +27,8 @@ struct CatalogTileBrowserState {
   std::string loaded_path;
   std::string search;
   std::string group_filter, category_filter;
+  // 0 shows every kind; see CatalogKindFilterOptions in the browser.
+  int kind_filter = 0;
   std::string palette_search;
   std::string status;
   std::vector<CatalogSheetSource> sources;

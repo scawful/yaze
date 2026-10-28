@@ -109,6 +109,8 @@ set(
   app/editor/graphics/catalog_tile_browser.cc
   app/editor/graphics/catalog_object_transfer.cc
   app/editor/graphics/pixel_index_command.cc
+  app/editor/graphics/color_id_permutation.cc
+  app/editor/graphics/scratch_color_id_command.cc
   app/editor/graphics/pixel_clipboard.cc
   app/editor/graphics/graphics_save_plan.cc
   app/editor/graphics/graphics_sheet_sync.cc

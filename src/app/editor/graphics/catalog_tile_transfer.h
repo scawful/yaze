@@ -2,6 +2,7 @@
 #define YAZE_APP_EDITOR_GRAPHICS_CATALOG_TILE_TRANSFER_H_
 
 #include <cstdint>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -24,6 +25,16 @@ struct CatalogAssemblyCell {
   bool operator==(const CatalogAssemblyCell&) const = default;
 };
 
+enum class CatalogResourceKind {
+  kOtherSheet,
+  kOverworldTile,
+  kDungeonTile,
+  kInteriorTile,
+  kSpritePose,
+};
+
+const char* CatalogResourceKindName(CatalogResourceKind kind);
+
 struct CatalogSheetSource {
   // Keep these first four fields compatible with existing sheet consumers.
   std::string id, title, source_path;
@@ -37,6 +48,13 @@ struct CatalogSheetSource {
   std::vector<CatalogAssemblyCell> assembly;
   // A catalog describes detached art, never a native resource allocation.
   bool resources_bound = false;
+  CatalogResourceKind resource_kind = CatalogResourceKind::kOtherSheet;
+  // Optional research provenance. Non-string values are ignored.
+  std::string notes, conversion, behavior_status, provenance_status;
+  std::string identification_confidence, source_url;
+  bool color_reduction = false;
+  // Planar page bytes, decoded at bpp and checked against the indexed page.
+  std::string binary_path, binary_sha256;
 };
 
 // Reads schema_version 1 references. Paths resolve relative to the catalog.
@@ -44,10 +62,29 @@ struct CatalogSheetSource {
 // Existing raw_path references retain their trusted, hash-checked source paths.
 // New source_kind "indexed-png" references require checked 128x32 pages inside
 // the catalog directory (or its explicit asset_root). Each page becomes one
-// source; asset_id and page identify its logical multi-page assembly.
-// Entries without sheet payloads and explicitly non-sheet references are skipped.
+// source; asset_id and page identify its logical multi-page assembly. A page
+// binary_path must be 64 SNES planar tiles at the reference bpp that decode to
+// the page's indices. resources_bound must be false when present.
+// resource_kind ("overworld-tile", "dungeon-tile", "interior-tile",
+// "sprite-pose", "other-sheet") is explicit or derives from category.
+// Unrecognized fields are ignored. Entries without sheet payloads and
+// explicitly non-sheet references are skipped.
 absl::StatusOr<std::vector<CatalogSheetSource>> LoadCatalogSheetSources(
     const std::string& filename);
+
+struct CatalogSourceFilter {
+  std::optional<CatalogResourceKind> kind;
+  // Palette view: sources that declare their own palette.
+  bool palettes_only = false;
+  std::string group, category, search;
+};
+
+// Case-insensitive search covers names, IDs and provenance text.
+bool CatalogSourceMatches(const CatalogSheetSource& source,
+                          const CatalogSourceFilter& filter);
+
+// ROM sheet writers accept 3bpp catalog pages only.
+absl::Status ValidateCatalogSourceForRomSheet(const CatalogSheetSource& source);
 
 struct CatalogAssetPreview {
   int width = 0, height = 0, bpp = 3;

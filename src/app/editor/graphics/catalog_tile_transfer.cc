@@ -131,6 +131,67 @@ absl::StatusOr<int> Integer(const Json& value, int minimum, int maximum) {
   return value.get<int>();
 }
 
+// Research catalogs carry optional notes of varying shape; only usable text
+// is retained.
+std::string OptionalText(const Json& reference, const char* key) {
+  if (!reference.contains(key))
+    return {};
+  auto text = Text(reference.at(key));
+  return text.ok() ? *std::move(text) : std::string();
+}
+
+CatalogResourceKind ResolveResourceKind(const Json& reference,
+                                        const std::string& category) {
+  static constexpr std::pair<const char*, CatalogResourceKind> kNames[] = {
+      {"overworld-tile", CatalogResourceKind::kOverworldTile},
+      {"dungeon-tile", CatalogResourceKind::kDungeonTile},
+      {"interior-tile", CatalogResourceKind::kInteriorTile},
+      {"sprite-pose", CatalogResourceKind::kSpritePose},
+      {"other-sheet", CatalogResourceKind::kOtherSheet}};
+  static constexpr std::pair<const char*, CatalogResourceKind> kCategories[] = {
+      {"overworld", CatalogResourceKind::kOverworldTile},
+      {"dungeon", CatalogResourceKind::kDungeonTile},
+      {"interior", CatalogResourceKind::kInteriorTile},
+      {"sprite", CatalogResourceKind::kSpritePose}};
+  const auto explicit_kind = OptionalText(reference, "resource_kind");
+  for (const auto& [name, kind] : kNames)
+    if (explicit_kind == name)
+      return kind;
+  for (const auto& [name, kind] : kCategories)
+    if (category == name)
+      return kind;
+  return CatalogResourceKind::kOtherSheet;
+}
+
+absl::Status CheckResourcesUnbound(const Json& reference) {
+  if (!reference.contains("resources_bound") ||
+      reference.at("resources_bound").is_null())
+    return absl::OkStatus();
+  if (!reference.at("resources_bound").is_boolean())
+    return absl::InvalidArgumentError(
+        "Catalog resources_bound must be a boolean");
+  if (reference.at("resources_bound").get<bool>())
+    return absl::FailedPreconditionError(
+        "Catalog art resources must remain unbound");
+  return absl::OkStatus();
+}
+
+void ReadResearchProvenance(const Json& reference, CatalogSheetSource& source) {
+  const std::pair<const char*, std::string*> fields[] = {
+      {"notes", &source.notes},
+      {"conversion", &source.conversion},
+      {"behavior_status", &source.behavior_status},
+      {"provenance_status", &source.provenance_status},
+      {"identification_confidence", &source.identification_confidence},
+      {"source_url", &source.source_url}};
+  for (const auto& [key, target] : fields)
+    *target = OptionalText(reference, key);
+  source.color_reduction = reference.contains("color_reduction") &&
+                           reference.at("color_reduction").is_boolean() &&
+                           reference.at("color_reduction").get<bool>();
+  source.resource_kind = ResolveResourceKind(reference, source.category);
+}
+
 absl::StatusOr<std::filesystem::path> ContainedPath(
     const std::filesystem::path& root, const std::string& name) {
   namespace fs = std::filesystem;
@@ -206,6 +267,39 @@ absl::Status ValidateAssembly(const CatalogSheetSource& source) {
   return absl::OkStatus();
 }
 
+// The suffix never selects an encoding; the reference bpp does.
+absl::Status CheckPlanarPage(const Json& page,
+                             const std::filesystem::path& root,
+                             CatalogSheetSource& source) {
+  ASSIGN_OR_RETURN(auto name, Text(page.at("binary_path")));
+  if (!page.contains("binary_sha256"))
+    return absl::InvalidArgumentError(
+        "Catalog planar page requires binary_sha256");
+  ASSIGN_OR_RETURN(auto hash, Text(page.at("binary_sha256")));
+  ASSIGN_OR_RETURN(auto path, ContainedPath(root, name));
+  ASSIGN_OR_RETURN(auto bytes, ReadFile(path, false, kMaxCatalogBytes));
+  RETURN_IF_ERROR(CheckHash(bytes, hash));
+  const int bpp = source.bpp;
+  if (bytes.size() != static_cast<size_t>(64 * 8 * bpp))
+    return absl::InvalidArgumentError(
+        "Catalog planar page must hold 64 tiles at " + std::to_string(bpp) +
+        "bpp: " + path.string());
+  const std::vector<uint8_t> planar(bytes.begin(), bytes.end());
+  for (int tile = 0; tile < 64; ++tile) {
+    const auto decoded = gfx::UnpackBppTile(planar, tile * 8 * bpp, bpp);
+    for (int y = 0; y < 8; ++y)
+      for (int x = 0; x < 8; ++x)
+        if (decoded.data[y * 8 + x] !=
+            source.indexed_pixels[PixelOffset(tile, x, y)])
+          return absl::DataLossError(
+              "Catalog planar page differs from its indexed PNG at " +
+              std::to_string(bpp) + "bpp: " + path.string());
+  }
+  source.binary_path = path.string();
+  source.binary_sha256 = core::ComputeSourceArtifactSha256(bytes);
+  return absl::OkStatus();
+}
+
 absl::Status LoadIndexedReference(const Json& reference,
                                   const std::filesystem::path& root,
                                   const std::string& id,
@@ -238,6 +332,8 @@ absl::Status LoadIndexedReference(const Json& reference,
   if (reference.contains("bpp")) {
     ASSIGN_OR_RETURN(base.bpp, Integer(reference.at("bpp"), 3, 4));
   }
+  RETURN_IF_ERROR(CheckResourcesUnbound(reference));
+  ReadResearchProvenance(reference, base);
   if (reference.contains("physical_binding") &&
       !reference.at("physical_binding").is_null() &&
       reference.at("physical_binding") != "UNBOUND")
@@ -370,6 +466,8 @@ absl::Status LoadIndexedReference(const Json& reference,
     if (source.source_sha256.empty())
       source.source_sha256 = source.page_sha256;
     RETURN_IF_ERROR(ValidatePage(source));
+    if (pages[page].contains("binary_path"))
+      RETURN_IF_ERROR(CheckPlanarPage(pages[page], root, source));
     if (!loaded.empty() && loaded.front().palette != source.palette)
       return absl::InvalidArgumentError(
           "Catalog assembly pages use different palettes");
@@ -380,7 +478,59 @@ absl::Status LoadIndexedReference(const Json& reference,
   return absl::OkStatus();
 }
 
+bool ContainsFolded(std::string value, std::string needle) {
+  const auto lower = [](unsigned char c) {
+    return static_cast<char>(std::tolower(c));
+  };
+  std::transform(value.begin(), value.end(), value.begin(), lower);
+  std::transform(needle.begin(), needle.end(), needle.begin(), lower);
+  return value.find(needle) != std::string::npos;
+}
+
 }  // namespace
+
+const char* CatalogResourceKindName(CatalogResourceKind kind) {
+  switch (kind) {
+    case CatalogResourceKind::kOverworldTile:
+      return "Overworld tile motif";
+    case CatalogResourceKind::kDungeonTile:
+      return "Dungeon tile motif";
+    case CatalogResourceKind::kInteriorTile:
+      return "Interior tile motif";
+    case CatalogResourceKind::kSpritePose:
+      return "Sprite family poses";
+    case CatalogResourceKind::kOtherSheet:
+      break;
+  }
+  return "Other source sheet";
+}
+
+bool CatalogSourceMatches(const CatalogSheetSource& source,
+                          const CatalogSourceFilter& filter) {
+  if (filter.kind && source.resource_kind != *filter.kind)
+    return false;
+  if (filter.palettes_only && source.palette.empty())
+    return false;
+  if (!filter.group.empty() && source.group != filter.group)
+    return false;
+  if (!filter.category.empty() && source.category != filter.category)
+    return false;
+  return ContainsFolded(source.title + " " + source.name + " " + source.id +
+                            " " + source.material + " " + source.game + " " +
+                            source.group + " " + source.category + " " +
+                            source.credit + " " + source.notes,
+                        filter.search);
+}
+
+absl::Status ValidateCatalogSourceForRomSheet(
+    const CatalogSheetSource& source) {
+  if (source.bpp != 3)
+    return absl::FailedPreconditionError(
+        "This " + std::to_string(source.bpp) +
+        "bpp page cannot be written into a 3bpp ROM sheet; IDs and palette "
+        "rows do not convert implicitly");
+  return absl::OkStatus();
+}
 
 absl::StatusOr<std::vector<CatalogSheetSource>> LoadCatalogSheetSources(
     const std::string& filename) {
@@ -506,6 +656,8 @@ absl::StatusOr<std::vector<CatalogSheetSource>> LoadCatalogSheetSources(
         if (reference.contains(key)) {
           ASSIGN_OR_RETURN(*target, Text(reference.at(key)));
         }
+      RETURN_IF_ERROR(CheckResourcesUnbound(reference));
+      ReadResearchProvenance(reference, source);
       if (reference.contains("palette_bgr555")) {
         const auto& palette = reference.at("palette_bgr555");
         if (!palette.is_array() || palette.size() != 8)

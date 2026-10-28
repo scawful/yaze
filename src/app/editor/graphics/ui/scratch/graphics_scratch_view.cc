@@ -272,6 +272,62 @@ absl::Status GraphicsScratchView::ExportBin(const std::string& path) {
   return absl::OkStatus();
 }
 
+absl::Status GraphicsScratchView::SwapColorIds(
+    const std::vector<ScratchColorIdTarget>& targets,
+    const ColorIdPermutation& permutation) {
+  RETURN_IF_ERROR(PrepareCommand());
+  if (!load_ok_)
+    return absl::FailedPreconditionError("Scratch library could not be loaded");
+  ASSIGN_OR_RETURN(const auto plan, PlanScratchColorIdPermutation(
+                                        library_, targets, permutation));
+  if (plan.edit.ranges.empty())
+    return absl::OkStatus();
+  auto next = library_;
+  RETURN_IF_ERROR(ApplyScratchColorIdPlan(next, plan));
+  auto before = std::move(library_);
+  library_ = std::move(next);
+  return Record(std::move(before));
+}
+
+void GraphicsScratchView::DrawColorIdSwap(
+    const GraphicsScratchAsset& selected) {
+  gui::AutoWidgetScope scratch_scope("Graphics/Scratch");
+  // SwapColorIds replaces the library that owns `selected`.
+  const uint64_t asset_id = selected.id;
+  const int bpp = selected.bpp;
+  const int last_id = (1 << bpp) - 1;
+  ImGui::TextUnformatted("Swap color IDs");
+  ImGui::SetNextItemWidth(120);
+  ImGui::InputInt("From ID##scratch_swap", &swap_from_id_, 0, 0);
+  gui::AutoRegisterLastItem("input", "Scratch swap from color ID");
+  ImGui::SameLine();
+  ImGui::SetNextItemWidth(120);
+  ImGui::InputInt("To ID##scratch_swap", &swap_to_id_, 0, 0);
+  gui::AutoRegisterLastItem("input", "Scratch swap to color ID");
+  swap_from_id_ = std::clamp(swap_from_id_, 1, last_id);
+  swap_to_id_ = std::clamp(swap_to_id_, 1, last_id);
+  ImGui::Checkbox("Every asset at this depth", &swap_all_at_depth_);
+  gui::AutoRegisterLastItem("checkbox", "Scratch swap every asset at depth");
+  ImGui::TextDisabled("ID 0 stays transparent; IDs 1-%d at %dbpp.", last_id,
+                      bpp);
+  ImGui::BeginDisabled(stroke_.has_value() || swap_from_id_ == swap_to_id_);
+  if (ImGui::Button("Swap color IDs##scratch")) {
+    std::vector<ScratchColorIdTarget> targets;
+    for (const auto& candidate : library_.assets) {
+      if (candidate.id == asset_id ||
+          (swap_all_at_depth_ && candidate.bpp == bpp)) {
+        const auto whole = WholeScratchAssetSelection(candidate.id);
+        targets.insert(targets.end(), whole.begin(), whole.end());
+      }
+    }
+    const auto permutation = MakeColorIdSwap(bpp, swap_from_id_, swap_to_id_);
+    SetStatus(permutation.ok() ? SwapColorIds(targets, *permutation)
+                               : permutation.status());
+  }
+  gui::AutoRegisterLastItem("button", "Scratch swap color IDs");
+  ImGui::EndDisabled();
+}
+
 void GraphicsScratchView::DrawPixels(GraphicsScratchAsset& asset) {
   gui::AutoWidgetScope scratch_scope("Graphics/Scratch");
   ImGui::SliderFloat("Zoom", &zoom_, 2, 8, "%.0fx");
@@ -505,6 +561,11 @@ void GraphicsScratchView::Draw(bool* p_open) {
   if (ImGui::Button("Save scratch library"))
     SetStatus(Flush());
   ImGui::EndDisabled();
+  DrawColorIdSwap(*asset);
+  // Swapping replaces the library; reacquire the selection before painting.
+  asset = Selected();
+  if (!asset)
+    return;
   DrawPixels(*asset);
   DrawAssociatedPreview();
 }

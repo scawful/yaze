@@ -433,7 +433,9 @@ if(YAZE_BUILD_TESTS)
     unit/editor/catalog_tile_browser_test.cc
     unit/editor/catalog_object_transfer_test.cc
     unit/editor/catalog_bundled_assets_test.cc
+    unit/editor/catalog_gbc_collection_test.cc
     unit/editor/pixel_index_command_test.cc
+    unit/editor/color_id_permutation_test.cc
     unit/editor/graphics_scratch_asset_test.cc
     unit/editor/scratch_bin_roundtrip_test.cc
     unit/editor/scratch_sprite_preview_test.cc
@@ -920,7 +922,9 @@ if(YAZE_BUILD_TESTS)
     unit/editor/catalog_tile_browser_test.cc
     unit/editor/catalog_object_transfer_test.cc
     unit/editor/catalog_bundled_assets_test.cc
+    unit/editor/catalog_gbc_collection_test.cc
     unit/editor/pixel_index_command_test.cc
+    unit/editor/color_id_permutation_test.cc
     unit/editor/sheet_png_transfer_test.cc
     unit/editor/graphics_sheet_sync_test.cc
     unit/editor/dungeon_palette_source_test.cc

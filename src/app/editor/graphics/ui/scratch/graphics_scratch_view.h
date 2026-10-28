@@ -10,6 +10,7 @@
 #include "app/editor/graphics/graphics_editor_state.h"
 #include "app/editor/graphics/graphics_preview_image.h"
 #include "app/editor/graphics/graphics_scratch_asset.h"
+#include "app/editor/graphics/scratch_color_id_command.h"
 #include "app/editor/registry/undo_manager.h"
 #include "app/editor/system/editor_panel.h"
 #include "app/gui/canvas/canvas.h"
@@ -49,6 +50,9 @@ class GraphicsScratchView : public WindowContent {
                          const gfx::SnesPalette& palette = {});
   absl::Status ApplyToSheet();
   absl::Status ExportBin(const std::string& path);
+  // One Undo step covers every affected asset; a no-op adds no history.
+  absl::Status SwapColorIds(const std::vector<ScratchColorIdTarget>& targets,
+                            const ColorIdPermutation& permutation);
   const GraphicsScratchLibrary& library() const { return library_; }
   // Binds a captured source pose to the currently imported asset, never another
   // library selection. The callback must own its captured input values.
@@ -69,6 +73,7 @@ class GraphicsScratchView : public WindowContent {
   void RefreshPublishedBaselines();
   void SetStatus(absl::Status status);
   void DrawPixels(GraphicsScratchAsset& asset);
+  void DrawColorIdSwap(const GraphicsScratchAsset& selected);
   void DrawAssociatedPreview();
   GraphicsScratchAsset* Selected();
   GraphicsEditorState* state_;
@@ -87,6 +92,9 @@ class GraphicsScratchView : public WindowContent {
   int bpp_ = 4;
   int bin_offset_ = 0;
   int color_ = 1;
+  int swap_from_id_ = 1;
+  int swap_to_id_ = 2;
+  bool swap_all_at_depth_ = false;
   float zoom_ = 4;
   std::function<absl::Status(uint16_t)> apply_validator_;
   std::function<absl::Status(const std::string&)> export_validator_;

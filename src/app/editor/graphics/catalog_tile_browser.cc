@@ -4,6 +4,9 @@
 #include <array>
 #include <cctype>
 #include <cstdlib>
+#include <iterator>
+#include <optional>
+#include <string>
 #include <utility>
 
 #include "app/editor/graphics/graphics_editor_state.h"
@@ -278,6 +281,100 @@ void DrawStagedPreview(CatalogTileBrowserState& browser) {
   ImGui::EndChild();
 }
 
+struct KindFilterOption {
+  const char* label;
+  std::optional<CatalogResourceKind> kind;
+  bool palettes_only;
+};
+
+constexpr KindFilterOption kKindFilterOptions[] = {
+    {"All resources", std::nullopt, false},
+    {"Overworld tile motifs", CatalogResourceKind::kOverworldTile, false},
+    {"Dungeon tile motifs", CatalogResourceKind::kDungeonTile, false},
+    {"Interior tile motifs", CatalogResourceKind::kInteriorTile, false},
+    {"Sprite family poses", CatalogResourceKind::kSpritePose, false},
+    {"Palettes", std::nullopt, true},
+    {"Other source sheets", CatalogResourceKind::kOtherSheet, false}};
+
+CatalogSourceFilter BrowserFilter(const CatalogTileBrowserState& browser) {
+  const int count = static_cast<int>(std::size(kKindFilterOptions));
+  const auto& option =
+      kKindFilterOptions[std::clamp(browser.kind_filter, 0, count - 1)];
+  return {option.kind, option.palettes_only, browser.group_filter,
+          browser.category_filter, browser.search};
+}
+
+void DrawKindFilter(CatalogTileBrowserState& browser) {
+  const int count = static_cast<int>(std::size(kKindFilterOptions));
+  browser.kind_filter = std::clamp(browser.kind_filter, 0, count - 1);
+  const bool open = ImGui::BeginCombo(
+      "Resource kind", kKindFilterOptions[browser.kind_filter].label);
+  gui::AutoRegisterLastItem("combo", "Resource kind");
+  if (!open)
+    return;
+  for (int i = 0; i < count; ++i)
+    if (ImGui::Selectable(kKindFilterOptions[i].label,
+                          browser.kind_filter == i))
+      browser.kind_filter = i;
+  ImGui::EndCombo();
+}
+
+ImU32 Bgr555Color(uint16_t color) {
+  return IM_COL32((color & 31) * 255 / 31, ((color >> 5) & 31) * 255 / 31,
+                  ((color >> 10) & 31) * 255 / 31, 255);
+}
+
+void DrawPaletteSwatches(const std::vector<uint16_t>& palette) {
+  if (palette.empty())
+    return;
+  ImGui::Text("Declared palette: %zu colors (BGR555)", palette.size());
+  const float size = ImGui::GetFrameHeight();
+  auto* draw = ImGui::GetWindowDrawList();
+  const auto origin = ImGui::GetCursorScreenPos();
+  for (size_t i = 0; i < palette.size(); ++i) {
+    const ImVec2 a(origin.x + i * (size + 2), origin.y);
+    draw->AddRectFilled(a, ImVec2(a.x + size, a.y + size),
+                        Bgr555Color(palette[i]));
+    if (i == 0)
+      draw->AddLine(a, ImVec2(a.x + size, a.y + size),
+                    IM_COL32(200, 60, 60, 255), 2.f);
+  }
+  ImGui::Dummy(ImVec2(palette.size() * (size + 2), size));
+  if (ImGui::IsItemHovered())
+    ImGui::SetTooltip("ID 0 is transparent");
+}
+
+void DrawProvenance(const CatalogSheetSource& source) {
+  const auto field = [](const char* label, const std::string& value) {
+    if (!value.empty())
+      ImGui::TextWrapped("%s: %s", label, value.c_str());
+  };
+  ImGui::TextWrapped("%s | %s | %s",
+                     CatalogResourceKindName(source.resource_kind),
+                     source.group.c_str(), source.category.c_str());
+  ImGui::Text("Bit depth: %dbpp (%d color IDs)%s", source.bpp, 1 << source.bpp,
+              source.resources_bound ? "" : " | unbound art");
+  field("Material", source.material);
+  field("Game", source.game);
+  field("Credit", source.credit);
+  field("Source SHA256", source.source_sha256);
+  field("Source origin", source.source_origin);
+  field("Source URL", source.source_url);
+  field("Conversion", source.conversion);
+  if (source.color_reduction)
+    ImGui::TextWrapped(
+        "Color reduction: source colors were reduced to fit this depth.");
+  field("Notes", source.notes);
+  field("Provenance", source.provenance_status);
+  field("Identification", source.identification_confidence);
+  field("Behavior", source.behavior_status);
+  ImGui::TextWrapped("Source: %s", source.source_path.c_str());
+  if (!source.binary_path.empty())
+    ImGui::TextWrapped("Planar %dbpp page verified: %s", source.bpp,
+                       source.binary_path.c_str());
+  DrawPaletteSwatches(source.palette);
+}
+
 bool DrawMetadataFilter(const char* label, std::string& selected,
                         const std::set<std::string>& values) {
   const bool open =
@@ -534,19 +631,14 @@ void DrawCatalogTileBrowser(CatalogTileBrowserState& browser,
     if (!source.category.empty())
       categories.insert(source.category);
   }
+  DrawKindFilter(browser);
   DrawMetadataFilter("Group", browser.group_filter, groups);
   DrawMetadataFilter("Category", browser.category_filter, categories);
+  const auto filter = BrowserFilter(browser);
   if (ImGui::BeginListBox("##CatalogSources", ImVec2(-1, 130))) {
     for (size_t i = 0; i < browser.sources.size(); ++i) {
       const auto& source = browser.sources[i];
-      if (source.page != 0 ||
-          (!browser.group_filter.empty() &&
-           source.group != browser.group_filter) ||
-          (!browser.category_filter.empty() &&
-           source.category != browser.category_filter) ||
-          !Matches(source.title + " " + source.id + " " + source.material +
-                       " " + source.game + " " + source.group,
-                   browser.search))
+      if (source.page != 0 || !CatalogSourceMatches(source, filter))
         continue;
       ImGui::PushID(static_cast<int>(i));
       const auto* current_source = SelectedSource(browser);
@@ -554,13 +646,17 @@ void DrawCatalogTileBrowser(CatalogTileBrowserState& browser,
           current_source && (source.asset_id.empty()
                                  ? current_source->id == source.id
                                  : current_source->asset_id == source.asset_id);
-      const auto& label = source.name.empty() ? source.title : source.name;
+      const auto& name = source.name.empty() ? source.title : source.name;
+      const auto label =
+          filter.palettes_only
+              ? name + " palette (" + std::to_string(source.palette.size()) +
+                    " colors)"
+              : name + " (" + std::to_string(source.bpp) + "bpp)";
       if (ImGui::Selectable(label.c_str(), selected)) {
         ResetSourceSelection(browser, static_cast<int>(i));
         browser.palette = source.palette.empty() ? -1 : -3;
       }
-      gui::AutoRegisterLastItem(
-          "selectable", source.name.empty() ? source.title : source.name);
+      gui::AutoRegisterLastItem("selectable", name);
       ImGui::PopID();
     }
     ImGui::EndListBox();
@@ -684,16 +780,14 @@ void DrawCatalogTileBrowser(CatalogTileBrowserState& browser,
       "Preview colors only. Paste preserves pixel indices and "
       "does not replace destination palette colors.");
   const auto& source = browser.sources[browser.source];
-  ImGui::TextWrapped("%s | %s | %s", source.group.c_str(),
-                     source.category.c_str(), source.material.c_str());
-  if (!source.game.empty())
-    ImGui::TextWrapped("Game: %s", source.game.c_str());
-  if (!source.credit.empty())
-    ImGui::TextWrapped("Credit: %s", source.credit.c_str());
-  ImGui::TextWrapped("Source: %s", source.source_path.c_str());
-  ImGui::TextWrapped(
-      "Apply replaces the existing source tiles. Objects sharing those tiles "
-      "will also show the new artwork.");
+  DrawProvenance(source);
+  const auto rom_sheet_depth = ValidateCatalogSourceForRomSheet(source);
+  if (rom_sheet_depth.ok())
+    ImGui::TextWrapped(
+        "Apply replaces the existing source tiles. Objects sharing those "
+        "tiles will also show the new artwork.");
+  else
+    ImGui::TextWrapped("%s", std::string(rom_sheet_depth.message()).c_str());
   DrawLogicalAsset(browser, colors);
   if (destination.source_context) {
     const auto& context = *destination.source_context;
@@ -706,7 +800,7 @@ void DrawCatalogTileBrowser(CatalogTileBrowserState& browser,
         "Open an object's graphics source to try this art on its existing "
         "pattern.");
   }
-  ImGui::BeginDisabled(!destination.source_context ||
+  ImGui::BeginDisabled(!rom_sheet_depth.ok() || !destination.source_context ||
                        !destination.source_context->render_staged_preview);
   if (gui::AutoButton("Try on selected object")) {
     const auto status = TryCatalogArtOnObject(browser, destination);
@@ -758,6 +852,8 @@ void DrawCatalogTileBrowser(CatalogTileBrowserState& browser,
       ImGui::EndCombo();
     }
   }
+  ImGui::Text("Page %d/%d: %dbpp, %d bytes planar", source.page + 1,
+              source.page_count, source.bpp, 64 * 8 * source.bpp);
   ImGui::TextUnformatted(
       "Click tiles, drag a rectangle, or Shift-click a range.");
   int hovered_source = -1;
@@ -853,8 +949,8 @@ void DrawCatalogTileBrowser(CatalogTileBrowserState& browser,
   ImGui::Text("%zu selected tiles; %s", browser.selected.size(),
               browser.preserve_layout ? "source layout preserved"
                                       : "packed in row-major order");
-  ImGui::BeginDisabled(browser.selected.empty() || !undo_manager ||
-                       destination.selection.is_floating);
+  ImGui::BeginDisabled(!rom_sheet_depth.ok() || browser.selected.empty() ||
+                       !undo_manager || destination.selection.is_floating);
   if (gui::AutoButton("Preview tile copy")) {
     const std::vector<int> selected(browser.selected.begin(),
                                     browser.selected.end());

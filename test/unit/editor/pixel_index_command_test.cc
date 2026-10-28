@@ -762,5 +762,64 @@ TEST_F(PixelIndexCommandTest,
   EXPECT_EQ(state_.selection.pixel_data, (std::vector<uint8_t>{7, 0}));
 }
 
+TEST_F(PixelIndexCommandTest, DepthAwareEntryMatchesTheThreeBppPlanExactly) {
+  const std::vector<PixelIndexTarget> targets{
+      {kFirstSheet, 0},
+      {kFirstSheet, 1, uint64_t{1} << 9, true, false},
+      {kSecondSheet, 5}};
+  const auto legacy = PlanPixelIndexPermutation(state_, targets, kSwap);
+  const auto swap = MakeColorIdSwap(3, 1, 2);
+  ASSERT_TRUE(swap.ok());
+  const auto depth_aware = PlanColorIdPermutation(state_, targets, *swap);
+  ASSERT_TRUE(legacy.ok()) << legacy.status();
+  ASSERT_TRUE(depth_aware.ok()) << depth_aware.status();
+  EXPECT_EQ(depth_aware->selected_pixels, legacy->selected_pixels);
+  EXPECT_EQ(depth_aware->physical_tiles, legacy->physical_tiles);
+  EXPECT_EQ(depth_aware->before_sheets, legacy->before_sheets);
+  EXPECT_EQ(depth_aware->sheet_revisions, legacy->sheet_revisions);
+  ASSERT_EQ(depth_aware->targets.size(), legacy->targets.size());
+  for (size_t i = 0; i < legacy->targets.size(); ++i) {
+    EXPECT_EQ(depth_aware->targets[i].sheet_id, legacy->targets[i].sheet_id);
+    EXPECT_EQ(depth_aware->targets[i].tile_index,
+              legacy->targets[i].tile_index);
+    EXPECT_EQ(depth_aware->targets[i].pixel_mask,
+              legacy->targets[i].pixel_mask);
+  }
+  ASSERT_EQ(depth_aware->sheets.size(), legacy->sheets.size());
+  for (size_t i = 0; i < legacy->sheets.size(); ++i) {
+    EXPECT_EQ(depth_aware->sheets[i].sheet, legacy->sheets[i].sheet);
+    EXPECT_EQ(depth_aware->sheets[i].offsets, legacy->sheets[i].offsets);
+    EXPECT_EQ(depth_aware->sheets[i].before, legacy->sheets[i].before);
+    EXPECT_EQ(depth_aware->sheets[i].after, legacy->sheets[i].after);
+  }
+
+  ASSERT_TRUE(ApplyColorIdPermutation(state_, history_, targets, *swap).ok());
+  EXPECT_EQ(history_.UndoStackSize(), 1u);
+  EXPECT_EQ(state_.modified_sheets.size(), 2u);
+  ASSERT_TRUE(history_.Undo().ok());
+  EXPECT_EQ(Pixels(kFirstSheet), Pattern());
+  EXPECT_EQ(Pixels(kSecondSheet), Pattern());
+}
+
+TEST_F(PixelIndexCommandTest,
+       DepthAwareEntryRefusesOtherDepthsAndReadOnlyTwoBppSheets) {
+  const auto four = MakeColorIdSwap(4, 1, 2);
+  const auto two = MakeColorIdSwap(2, 1, 2);
+  const auto three = MakeColorIdSwap(3, 1, 2);
+  ASSERT_TRUE(four.ok() && two.ok() && three.ok());
+  EXPECT_FALSE(PlanColorIdPermutation(state_, {{kFirstSheet, 0}}, *four).ok());
+  EXPECT_FALSE(PlanColorIdPermutation(state_, {{kFirstSheet, 0}}, *two).ok());
+  const auto read_only = PlanColorIdPermutation(state_, {{113, 0}}, *three);
+  EXPECT_EQ(read_only.status().code(), absl::StatusCode::kFailedPrecondition);
+  auto transparent = IdentityColorIdPermutation(3);
+  std::swap(transparent.ids[0], transparent.ids[3]);
+  EXPECT_FALSE(
+      ApplyColorIdPermutation(state_, history_, {{kFirstSheet, 0}}, transparent)
+          .ok());
+  EXPECT_EQ(Pixels(kFirstSheet), Pattern());
+  EXPECT_TRUE(state_.modified_sheets.empty());
+  EXPECT_EQ(history_.UndoStackSize(), 0u);
+}
+
 }  // namespace
 }  // namespace yaze::editor

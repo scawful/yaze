@@ -11,6 +11,7 @@
 #include <vector>
 
 #include "absl/status/statusor.h"
+#include "app/editor/graphics/color_id_permutation.h"
 #include "app/editor/graphics/graphics_edit_context.h"
 #include "app/editor/graphics/graphics_sheet_sync.h"
 
@@ -99,6 +100,19 @@ absl::Status ApplyPixelIndexPermutation(
     GraphicsEditorState& state, UndoManager& history,
     const std::vector<PixelIndexTarget>& targets,
     const PixelIndexPermutation& permutation);
+
+// Depth-aware entry for ROM sheets. Writable ROM sheets are 3bpp; 2bpp ROM
+// sheets are read-only and a permutation for any other depth is refused.
+// Accepted permutations produce exactly the 3bpp plan above.
+absl::StatusOr<PixelIndexPlan> PlanColorIdPermutation(
+    const GraphicsEditorState& state,
+    const std::vector<PixelIndexTarget>& targets,
+    const ColorIdPermutation& permutation);
+
+absl::Status ApplyColorIdPermutation(
+    GraphicsEditorState& state, UndoManager& history,
+    const std::vector<PixelIndexTarget>& targets,
+    const ColorIdPermutation& permutation);
 
 }  // namespace yaze::editor
 

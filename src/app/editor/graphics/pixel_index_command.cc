@@ -43,18 +43,7 @@ absl::Status ValidatePermutation(const PixelIndexPermutation& permutation) {
 }
 
 uint64_t PhysicalMask(const PixelIndexTarget& target) {
-  uint64_t mask = 0;
-  for (int y = 0; y < 8; ++y) {
-    for (int x = 0; x < 8; ++x) {
-      if ((target.pixel_mask & (uint64_t{1} << (y * 8 + x))) == 0) {
-        continue;
-      }
-      const int raw_x = target.hflip ? 7 - x : x;
-      const int raw_y = target.vflip ? 7 - y : y;
-      mask |= uint64_t{1} << (raw_y * 8 + raw_x);
-    }
-  }
-  return mask;
+  return PhysicalPixelMask(target.pixel_mask, target.hflip, target.vflip);
 }
 
 bool IsRaw3bpp(absl::Span<const uint8_t> pixels) {
@@ -509,6 +498,33 @@ absl::Status ApplyPixelIndexPermutation(
     const PixelIndexPermutation& permutation) {
   ASSIGN_OR_RETURN(const auto plan,
                    PlanPixelIndexPermutation(state, targets, permutation));
+  return ApplyPixelIndexPlan(state, history, plan);
+}
+
+absl::StatusOr<PixelIndexPlan> PlanColorIdPermutation(
+    const GraphicsEditorState& state,
+    const std::vector<PixelIndexTarget>& targets,
+    const ColorIdPermutation& permutation) {
+  for (const auto& target : targets) {
+    if (target.sheet_id < zelda3::GraphicsSheetStore::kSheetCount &&
+        zelda3::GetGfxSheetStorageKind(target.sheet_id) ==
+            zelda3::GfxSheetStorageKind::kCompressed2bpp) {
+      return absl::FailedPreconditionError(
+          "2bpp ROM sheets are read-only; swap IDs in a 2bpp scratch BIN");
+    }
+  }
+  RETURN_IF_ERROR(ValidateColorIdPermutationForBacking(permutation, 3));
+  PixelIndexPermutation legacy;
+  std::copy_n(permutation.ids.begin(), legacy.size(), legacy.begin());
+  return PlanPixelIndexPermutation(state, targets, legacy);
+}
+
+absl::Status ApplyColorIdPermutation(
+    GraphicsEditorState& state, UndoManager& history,
+    const std::vector<PixelIndexTarget>& targets,
+    const ColorIdPermutation& permutation) {
+  ASSIGN_OR_RETURN(const auto plan,
+                   PlanColorIdPermutation(state, targets, permutation));
   return ApplyPixelIndexPlan(state, history, plan);
 }
 
