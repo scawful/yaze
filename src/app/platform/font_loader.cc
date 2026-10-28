@@ -7,6 +7,7 @@
 #include <vector>
 
 #include "absl/status/status.h"
+#include "absl/status/statusor.h"
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
 #include "app/gui/core/icons.h"
@@ -98,15 +99,38 @@ absl::Status LoadFont(const FontConfig& font_config) {
   return absl::OkStatus();
 }
 
-absl::Status AddIconFont(const FontConfig& /*config*/) {
+// Material Icons draws every glyph in an em box that rests on the baseline,
+// and ImGui places merged glyphs relative to the base font's ascent. Base
+// fonts differ in ascent, so the offset that centers the icon box on the line
+// height is derived per font. ImGui scales GlyphOffset with the requested
+// size, which keeps the icon centered at every dynamic font size.
+absl::StatusOr<float> CenteredIconOffsetY(ImFont* base_font, float base_size) {
+  // A large bake reads the ascent ratio without ImGui's per-size rounding.
+  // Merging the icon source into base_font discards this bake.
+  constexpr float kMetricsBakeSize = 1024.0F;
+  ImFontBaked* metrics = base_font->GetFontBaked(kMetricsBakeSize);
+  if (metrics == nullptr) {
+    return absl::InternalError("Failed to read base font metrics");
+  }
+  const float ascent = metrics->Ascent * base_size / kMetricsBakeSize;
+  // ImGui rounds the ascent up at each size, which lowers merged glyphs by up
+  // to 1px; a quarter pixel at the reference size splits that rounding.
+  constexpr float kAscentRoundingBias = 0.25F;
+  return (base_size + ICON_FONT_SIZE) * 0.5F - ascent - kAscentRoundingBias;
+}
+
+absl::Status AddIconFont(const FontConfig& config) {
   static const ImWchar icons_ranges[] = {ICON_MIN_MD, 0xf900, 0};
+  ImGuiIO& imgui_io = ImGui::GetIO();
+  ASSIGN_OR_RETURN(
+      const float offset_y,
+      CenteredIconOffsetY(imgui_io.Fonts->Fonts.back(), config.font_size));
   ImFontConfig icons_config{};
   icons_config.MergeMode = true;
-  icons_config.GlyphOffset.y = 5.0F;
+  icons_config.GlyphOffset.y = offset_y;
   icons_config.GlyphMinAdvanceX = 13.0F;
   icons_config.PixelSnapH = true;
   std::string icon_font_path = SetFontPath(FONT_ICON_FILE_NAME_MD);
-  ImGuiIO& imgui_io = ImGui::GetIO();
   if (!imgui_io.Fonts->AddFontFromFileTTF(icon_font_path.c_str(),
                                           ICON_FONT_SIZE, &icons_config,
                                           icons_ranges)) {

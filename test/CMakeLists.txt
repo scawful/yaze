@@ -474,6 +474,7 @@ if(YAZE_BUILD_TESTS)
     unit/gui/empty_state_test.cc
     unit/gui/resize_handles_test.cc
     unit/gui/font_picker_test.cc
+    unit/gui/icon_font_alignment_test.cc
     unit/gui/icon_browser_test.cc
     unit/gui/style_guard_scopes_test.cc
     unit/gui/draw_sampling_test.cc
