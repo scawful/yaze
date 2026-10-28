@@ -18,8 +18,7 @@ ImVec2 ScaledSpacing(float multiplier) {
   return ImVec2(spacing * multiplier, spacing * multiplier);
 }
 
-ImPlotStyle BuildBaseStyle(const Theme& theme,
-                           const PlotStyleConfig& config) {
+ImPlotStyle BuildBaseStyle(const Theme& theme, const PlotStyleConfig& config) {
   ImPlotStyle style;
   style.LineWeight = config.line_weight;
   style.MarkerSize = config.marker_size;
@@ -118,12 +117,13 @@ PlotStyleScope::PlotStyleScope(const Theme& theme,
   ImPlot::GetStyle() = BuildBaseStyle(theme, config);
 }
 
-PlotStyleScope::~PlotStyleScope() { ImPlot::GetStyle() = previous_style_; }
+PlotStyleScope::~PlotStyleScope() {
+  ImPlot::GetStyle() = previous_style_;
+}
 
 PlotGuard::PlotGuard(const PlotConfig& config) {
   EnsureImPlotContext();
-  should_end_ =
-      ImPlot::BeginPlot(config.id.c_str(), config.size, config.flags);
+  should_end_ = ImPlot::BeginPlot(config.id.c_str(), config.size, config.flags);
   if (should_end_) {
     ImPlot::SetupAxes(config.x_label, config.y_label, config.x_axis_flags,
                       config.y_axis_flags);
