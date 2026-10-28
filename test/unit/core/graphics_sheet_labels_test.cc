@@ -126,5 +126,26 @@ TEST(GraphicsSheetLabelsTest, MigratesOldGfxGroupLabelKeysInRomLabelFiles) {
   EXPECT_EQ(labels.GetLabel("roomset", "81"), "Roomset 81");
 }
 
+// Keys too large for unsigned long are kept as written instead of throwing out
+// of LoadLabels, which runs on every ROM open.
+TEST(GraphicsSheetLabelsTest, KeepsGfxGroupKeysTooLargeToMigrate) {
+  const auto path = test::UniqueTempPath("rom_labels_overflow", ".labels");
+  {
+    std::ofstream file(path);
+    file << "[spriteset]\n0x12=Old twelve\n"
+            "0x99999999999999999999=Huge decimal\n"
+            "0x1FFFFFFFFFFFFFFFFF=Huge hex\n";
+  }
+  project::ResourceLabelManager labels;
+  bool loaded = false;
+  EXPECT_NO_THROW(loaded = labels.LoadLabels(path.string()));
+  std::filesystem::remove(path);
+  ASSERT_TRUE(loaded);
+  EXPECT_EQ(labels.GetLabel("spriteset", "12"), "Old twelve");
+  EXPECT_EQ(labels.GetLabel("spriteset", "0x99999999999999999999"),
+            "Huge decimal");
+  EXPECT_EQ(labels.GetLabel("spriteset", "0x1FFFFFFFFFFFFFFFFF"), "Huge hex");
+}
+
 }  // namespace
 }  // namespace yaze::core

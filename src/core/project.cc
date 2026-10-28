@@ -12,7 +12,9 @@
 #include <fstream>
 #include <iomanip>
 #include <iterator>
+#include <optional>
 #include <sstream>
+#include <stdexcept>
 
 #include "absl/strings/match.h"
 #include "absl/strings/str_format.h"
@@ -176,6 +178,15 @@ std::string FormatHexUintList(const std::vector<uint16_t>& values) {
   });
 }
 
+// Returns nullopt when the digits overflow unsigned long (32 bits on Windows).
+std::optional<std::string> ToDecimalKey(absl::string_view digits, int base) {
+  try {
+    return std::to_string(std::stoul(std::string(digits), nullptr, base));
+  } catch (const std::out_of_range&) {
+    return std::nullopt;
+  }
+}
+
 // Before 2026-09-25 the gfx group editor keyed blockset, roomset and
 // spriteset labels as "0x" + decimal digits (spriteset 12 -> "0x12", which the
 // label resolver reads as hex 18); the paletteset editor did the same until
@@ -210,14 +221,12 @@ void MigrateGfxGroupLabelKeys(
         if (pass == 0 && !prefixed && all_of(digits, is_decimal)) {
           canonical = std::string(digits);
         } else if (pass == 1 && prefixed && all_of(digits, is_decimal)) {
-          canonical =
-              std::to_string(std::stoul(std::string(digits), nullptr, 10));
+          canonical = ToDecimalKey(digits, 10).value_or(key);
         } else if (pass == 2 && !all_of(digits, is_decimal)) {
           // Real hex keys become decimal; anything else is kept as written.
-          canonical =
-              prefixed && all_of(digits, is_hex)
-                  ? std::to_string(std::stoul(std::string(digits), nullptr, 16))
-                  : key;
+          canonical = prefixed && all_of(digits, is_hex)
+                          ? ToDecimalKey(digits, 16).value_or(key)
+                          : key;
         }
         if (!canonical.empty()) {
           migrated.emplace(canonical, value);
