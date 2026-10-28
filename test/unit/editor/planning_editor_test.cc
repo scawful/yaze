@@ -20,6 +20,7 @@
 #include "editor_test_support.h"
 #include "gtest/gtest.h"
 #include "imgui/imgui.h"
+#include "nlohmann/json.hpp"
 #include "unique_temp_path.h"
 
 namespace yaze::editor {
@@ -368,6 +369,61 @@ TEST_F(PlanningProjectActionsTest, SaveAsRefusalPreservesOriginalPlanDraft) {
   EXPECT_FALSE(manager_->SaveProjectAs("").ok());
   EXPECT_TRUE(editor_->dirty());
   EXPECT_EQ(Read(plan_path_), original);
+}
+
+// The plan is a live reference, not a build input: a Save with only plan edits
+// writes only the plan. A Save that also changes project settings rewrites the
+// descriptor and publishes a native receipt as usual.
+TEST_F(PlanningProjectActionsTest,
+       PlanOnlySaveLeavesDescriptorAndNativeReceiptUntouched) {
+  const auto descriptor = directory_ / "hack.yaze";
+  const auto receipt = fs::path(descriptor.string() + ".native-save.json");
+  manager_->MarkCurrentProjectDirty();
+  ASSERT_TRUE(manager_->SaveCurrentSession().ok());
+  EXPECT_FALSE(editor_->dirty());
+  EXPECT_EQ(core::ProjectPlan::LoadFromFile(plan_path_.string())->goal.title,
+            "Edited");
+  ASSERT_TRUE(fs::is_regular_file(receipt));
+  const auto descriptor_bytes = Read(descriptor);
+  const auto descriptor_time = fs::last_write_time(descriptor);
+  const auto receipt_bytes = Read(receipt);
+
+  PlanningEditorTestPeer::EditGoal(editor_, "Plan only");
+  ASSERT_TRUE(manager_->SaveCurrentSession().ok());
+  EXPECT_FALSE(editor_->dirty());
+  EXPECT_EQ(core::ProjectPlan::LoadFromFile(plan_path_.string())->goal.title,
+            "Plan only");
+  EXPECT_EQ(Read(descriptor), descriptor_bytes);
+  EXPECT_EQ(fs::last_write_time(descriptor), descriptor_time);
+  EXPECT_EQ(Read(receipt), receipt_bytes);
+
+  // A concurrent human edit still refuses the plan CAS; nothing else moves.
+  PlanningEditorTestPeer::EditGoal(editor_, "Mine");
+  const std::string theirs =
+      core::ProjectPlan::CreateEmpty("Theirs").Serialize();
+  Write(plan_path_, theirs);
+  const auto refused = manager_->SaveCurrentSession();
+  EXPECT_EQ(refused.code(), absl::StatusCode::kAborted) << refused;
+  EXPECT_TRUE(editor_->dirty());
+  EXPECT_EQ(Read(plan_path_), theirs);
+  EXPECT_EQ(Read(descriptor), descriptor_bytes);
+  EXPECT_EQ(Read(receipt), receipt_bytes);
+  manager_->GetCurrentEditorSet()->DiscardPlanningProjectDraft();
+
+  // Project settings plus a plan edit: both persist and the receipt advances.
+  PlanningEditorTestPeer::EditGoal(editor_, "Dual");
+  manager_->GetCurrentProject()->name = "Renamed with plan";
+  manager_->MarkCurrentProjectDirty();
+  ASSERT_TRUE(manager_->SaveCurrentSession().ok());
+  EXPECT_FALSE(editor_->dirty());
+  EXPECT_EQ(core::ProjectPlan::LoadFromFile(plan_path_.string())->goal.title,
+            "Dual");
+  EXPECT_NE(Read(descriptor), descriptor_bytes);
+  const auto advanced = nlohmann::json::parse(Read(receipt));
+  EXPECT_EQ(
+      advanced.at("generation"),
+      nlohmann::json::parse(receipt_bytes).at("generation").get<int>() + 1);
+  EXPECT_TRUE(advanced.at("bindings_complete")) << advanced.dump(2);
 }
 
 TEST_F(PlanningProjectActionsTest, SaveAndContinuePersistsPlanBeforeQuit) {

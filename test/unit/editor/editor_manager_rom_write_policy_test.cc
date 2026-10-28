@@ -1102,6 +1102,127 @@ TEST_F(NativeSaveReceiptIntegrationTest,
   ExpectArtifact(receipt, "rom", source_);
 }
 
+// A project-only receipt binds the ROM only as this session loaded or last
+// wrote it, copier header included; another writer's bytes are never blessed.
+TEST_F(NativeSaveReceiptIntegrationTest,
+       ProjectOnlySaveRefusesRomChangedOnDiskByAnotherWriter) {
+  const auto body = ReadText(source_);
+  const std::string header(512, '\x11');
+  const auto headered = cleanup_.path / "headered.sfc";
+  std::ofstream(headered, std::ios::binary) << header << body;
+  ASSERT_OK(manager_->OpenRomOrProject(headered.string()));
+  DisableRomWritesForTest();
+  ASSERT_TRUE(manager_->GetCurrentRom()->has_copier_header());
+  source_ = headered;
+  ASSERT_NO_FATAL_FAILURE(BindProject());
+  const auto loaded = ReadText(headered);
+  auto external = loaded;
+  external[7] = '\x22';
+  std::ofstream(headered, std::ios::binary | std::ios::trunc) << external;
+
+  manager_->GetCurrentProject()->name = "Saved over an external ROM edit";
+  manager_->MarkCurrentProjectDirty();
+  ASSERT_FALSE(manager_->GetCurrentRom()->dirty());
+  const auto refused = manager_->SaveCurrentSession();
+  ASSERT_FALSE(refused.ok());
+  EXPECT_NE(refused.message().find("changed on disk"), std::string::npos)
+      << refused;
+  EXPECT_NE(refused.message().find("Revert to Saved"), std::string::npos)
+      << refused;
+  EXPECT_FALSE(std::filesystem::exists(receipt_));
+  EXPECT_EQ(ReadText(headered), external);
+  EXPECT_FALSE(manager_->SaveCurrentSession().ok());
+  EXPECT_FALSE(std::filesystem::exists(receipt_));
+  EXPECT_EQ(ReadText(headered), external);
+
+  // Restoring the bytes yaze loaded lets the pending completion publish.
+  std::ofstream(headered, std::ios::binary | std::ios::trunc) << loaded;
+  ASSERT_OK(manager_->SaveCurrentSession());
+  const auto receipt = ReadReceipt(receipt_);
+  EXPECT_TRUE(receipt.at("bindings_complete")) << receipt.dump(2);
+  ExpectArtifact(receipt, "rom", headered);
+  ExpectArtifact(receipt, "project", manager_->GetCurrentProject()->filepath);
+}
+
+// Unsaved ROM edits stay a draft: a project-only Save binds the file as last
+// loaded and neither writes nor discards the in-memory edits.
+TEST_F(NativeSaveReceiptIntegrationTest,
+       ProjectOnlySaveKeepsUnsavedRomDraftAndBindsLoadedFile) {
+  ASSERT_NO_FATAL_FAILURE(BindProject());
+  const auto original_rom = ReadText(source_);
+  ASSERT_OK(manager_->GetCurrentRom()->WriteByte(0x1234, 0xA5));
+  manager_->GetCurrentProject()->name = "Project saved beside a ROM draft";
+  manager_->MarkCurrentProjectDirty();
+  ASSERT_OK(manager_->SaveProject());
+  EXPECT_TRUE(manager_->GetCurrentRom()->dirty());
+  EXPECT_EQ(ReadText(source_), original_rom);
+  const auto receipt = ReadReceipt(receipt_);
+  EXPECT_TRUE(receipt.at("bindings_complete")) << receipt.dump(2);
+  ExpectArtifact(receipt, "rom", source_);
+}
+
+TEST_F(NativeSaveReceiptIntegrationTest,
+       ProjectSaveAsRetriesFailedReceiptWithoutNewEdits) {
+  ASSERT_NO_FATAL_FAILURE(CommitBaseline());
+  const auto old_receipt = ReadText(receipt_);
+  const auto destination = cleanup_.path / "relocated.yaze";
+  const auto new_receipt =
+      std::filesystem::path(destination.string() + ".native-save.json");
+  ASSERT_TRUE(std::filesystem::create_directory(new_receipt));
+  const auto failed = manager_->SaveProjectAs(destination.string());
+  ASSERT_FALSE(failed.ok());
+  EXPECT_NE(failed.message().find("Project saved"), std::string::npos)
+      << failed;
+  EXPECT_EQ(manager_->GetCurrentProject()->filepath, destination.string());
+  EXPECT_FALSE(manager_->IsCurrentProjectDirty());
+  const auto retired = ReadReceipt(context_);
+  EXPECT_EQ(retired.at("state"), "rebound");
+  EXPECT_TRUE(retired.at("native_commit").is_null());
+  EXPECT_EQ(ReadText(receipt_), old_receipt);
+
+  std::filesystem::remove(new_receipt);
+  const auto descriptor = ReadText(destination);
+  ASSERT_OK(manager_->SaveCurrentSession());
+  EXPECT_EQ(ReadText(destination), descriptor);
+  const auto receipt = ReadReceipt(new_receipt);
+  EXPECT_EQ(receipt.at("operation"), "save_as");
+  EXPECT_EQ(receipt.at("generation"), 1u);
+  ExpectArtifact(receipt, "project", destination);
+  ExpectArtifact(receipt, "rom", source_);
+  EXPECT_EQ(ReadReceipt(context_).at("state"), "committed");
+}
+
+// Autosave shares Save's boundary: with ROM work pending, the ROM write
+// publishes the single receipt; a failed project-only completion is retried
+// by the next autosave without new edits.
+TEST_F(NativeSaveReceiptIntegrationTest,
+       AutosaveDefersProjectReceiptToRomSaveAndRetriesCleanDraft) {
+  ASSERT_NO_FATAL_FAILURE(BindProject());
+  manager_->GetCurrentProject()->name = "Autosaved with the ROM";
+  manager_->MarkCurrentProjectDirty();
+  ASSERT_OK(manager_->GetCurrentRom()->WriteByte(0x1234, 0xA5));
+  ASSERT_OK(manager_->AutosaveActiveSession());
+  EXPECT_FALSE(manager_->GetCurrentRom()->dirty());
+  EXPECT_EQ(static_cast<uint8_t>(ReadText(source_)[0x1234]), 0xA5);
+  const auto first = ReadReceipt(receipt_);
+  EXPECT_EQ(first.at("generation"), 1u);
+  EXPECT_EQ(first.at("operation"), "save");
+  ExpectArtifact(first, "rom", source_);
+  ExpectArtifact(first, "project", manager_->GetCurrentProject()->filepath);
+
+  std::filesystem::remove(receipt_);
+  ASSERT_TRUE(std::filesystem::create_directory(receipt_));
+  manager_->GetCurrentProject()->name = "Autosaved before completion";
+  manager_->MarkCurrentProjectDirty();
+  EXPECT_FALSE(manager_->AutosaveActiveSession().ok());
+  EXPECT_FALSE(manager_->IsCurrentProjectDirty());
+  std::filesystem::remove(receipt_);
+  ASSERT_OK(manager_->AutosaveActiveSession());
+  const auto retried = ReadReceipt(receipt_);
+  ExpectArtifact(retried, "project", manager_->GetCurrentProject()->filepath);
+  ExpectArtifact(retried, "rom", source_);
+}
+
 TEST_F(NativeSaveReceiptIntegrationTest,
        NativeReceiptExcludesLivePlanningButKeepsAliasedBuildRoles) {
   ASSERT_NO_FATAL_FAILURE(BindProject());
@@ -1182,7 +1303,7 @@ TEST_F(NativeSaveReceiptIntegrationTest,
 }
 
 TEST_F(NativeSaveReceiptIntegrationTest,
-       ProjectSaveAsRetiresContextWithoutChangingPriorReceiptOrSources) {
+       ProjectSaveAsCommitsNewOwnerWithoutChangingPriorReceiptOrSources) {
   ASSERT_NO_FATAL_FAILURE(BindProject());
   ASSERT_OK(manager_->SaveRom());
   const auto committed = ReadReceipt(receipt_);
@@ -1206,23 +1327,31 @@ TEST_F(NativeSaveReceiptIntegrationTest,
   const auto destination = cleanup_.path / "copy" / "Saved.yaze";
   ASSERT_TRUE(std::filesystem::create_directory(destination.parent_path()));
   ASSERT_OK(manager_->SaveProjectAs(destination.string()));
-  const auto retired = ReadReceipt(context_path);
-  EXPECT_EQ(retired.at("kind"), "yaze.native_save_context.v1");
-  EXPECT_EQ(retired.size(), 7u);
-  EXPECT_EQ(retired.at("editing_source_path"),
+  // The old owner is retired and Save As completes the new owner's receipt.
+  const auto new_receipt_path = destination.string() + ".native-save.json";
+  const auto new_receipt = ReadReceipt(new_receipt_path);
+  EXPECT_EQ(new_receipt.at("operation"), "save_as");
+  EXPECT_EQ(new_receipt.at("generation"), 1u);
+  EXPECT_TRUE(new_receipt.at("bindings_complete")) << new_receipt.dump(2);
+  ExpectArtifact(new_receipt, "project", destination);
+  ExpectArtifact(new_receipt, "rom", source_);
+  ExpectProducer(new_receipt);
+  const auto rebound = ReadReceipt(context_path);
+  EXPECT_EQ(rebound.at("kind"), "yaze.native_save_context.v1");
+  EXPECT_EQ(rebound.size(), 7u);
+  EXPECT_EQ(rebound.at("editing_source_path"),
             std::filesystem::canonical(source_).string());
-  EXPECT_EQ(retired.at("producer"), active_context.at("producer"));
-  EXPECT_EQ(retired.at("state"), "rebound");
-  EXPECT_EQ(retired.at("project_path"),
+  EXPECT_EQ(rebound.at("producer"), active_context.at("producer"));
+  EXPECT_EQ(rebound.at("state"), "committed");
+  EXPECT_EQ(rebound.at("project_path"),
             std::filesystem::canonical(destination).string());
-  EXPECT_EQ(retired.at("rom_path"),
+  EXPECT_EQ(rebound.at("rom_path"),
             std::filesystem::canonical(source_).string());
-  EXPECT_TRUE(retired.at("native_commit").is_null());
+  EXPECT_EQ(rebound.at("native_commit").at("receipt_path"),
+            std::filesystem::canonical(new_receipt_path).string());
   EXPECT_EQ(ReadText(old_project), project_bytes);
   EXPECT_EQ(ReadText(receipt_), receipt_bytes);
   EXPECT_EQ(ReadText(source_), rom_bytes);
-  EXPECT_FALSE(
-      std::filesystem::exists(destination.string() + ".native-save.json"));
 }
 
 TEST_F(NativeSaveReceiptIntegrationTest,
@@ -1300,9 +1429,10 @@ TEST_F(NativeSaveReceiptIntegrationTest,
   }
   ASSERT_OK(manager_->SaveProjectAs(destination.string()));
   EXPECT_EQ(manager_->GetCurrentProject()->filepath, destination.string());
-  const auto retired = ReadReceipt(context_);
-  EXPECT_EQ(retired.at("state"), "rebound");
-  EXPECT_TRUE(retired.at("native_commit").is_null());
+  const auto rebound = ReadReceipt(context_);
+  EXPECT_EQ(rebound.at("state"), "committed");
+  EXPECT_EQ(rebound.at("project_path"),
+            std::filesystem::canonical(destination).string());
   EXPECT_EQ(ReadText(project), project_bytes);
   EXPECT_EQ(ReadText(receipt_), receipt_bytes);
   EXPECT_EQ(ReadText(source_), rom_bytes);

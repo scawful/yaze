@@ -109,6 +109,7 @@ class EditorSet {
   // than a build input.
   bool HasPendingBuildProjectDraftChanges() const;
   bool HasPendingPlanningProjectDraftChanges() const;
+  absl::Status SavePlanningProjectDraft();
   absl::Status PrepareProjectSave(bool publish_lyra = true);
   void ProjectSaveCommitted();
   void DiscardPlanningProjectDraft();
@@ -175,7 +176,13 @@ struct RomBaselineIdentity {
   std::string normalized_path;
   // Retained across our own saves, reset when loading/replacing ROM bytes.
   std::string editing_source_path;
+  // SHA-256 of the backing file bytes (copier header included) as loaded or
+  // last written by this session; empty when the ROM was already dirty.
+  std::string backing_sha256;
 };
+
+// SHA-256 of the bytes SaveToFile writes for this ROM, copier header included.
+std::string ComputeRomFileBytesSha256(const Rom& rom);
 
 /**
  * @struct RomSession
@@ -208,6 +215,7 @@ struct RomSession {
   // A build-owned project Save persisted, but its native-save receipt is not
   // yet published. The next Save retries completion without new edits.
   bool native_save_completion_pending = false;
+  bool native_save_completion_save_as = false;
 
   // True when the gfx group tables (blocksets, spritesets, palettesets) in
   // game_data differ from the ROM buffer. Derived from the data, so every

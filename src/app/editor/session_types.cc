@@ -23,6 +23,7 @@
 #include "app/editor/system/session/user_settings.h"
 #include "app/gfx/resource/arena.h"
 #include "app/gfx/util/palette_manager.h"
+#include "core/source_artifact_publisher.h"
 #include "core/version_manager.h"
 
 namespace yaze::editor {
@@ -381,6 +382,12 @@ bool EditorSet::HasPendingPlanningProjectDraftChanges() const {
   return editor && editor->HasPendingProjectDraftChanges();
 }
 
+absl::Status EditorSet::SavePlanningProjectDraft() {
+  auto* editor =
+      static_cast<PlanningEditor*>(FindEditor(EditorType::kPlanning));
+  return editor ? editor->Save() : absl::OkStatus();
+}
+
 absl::Status EditorSet::PrepareProjectSave(bool publish_lyra) {
   if (auto* editor =
           static_cast<SpriteEditor*>(FindEditor(EditorType::kSprite)))
@@ -477,6 +484,13 @@ RomSession::RomSession(Rom&& r, UserSettings* user_settings, size_t session_id,
   CaptureRomIdentity();
 }
 
+std::string ComputeRomFileBytesSha256(const Rom& rom) {
+  std::string bytes(reinterpret_cast<const char*>(rom.copier_header().data()),
+                    rom.copier_header().size());
+  bytes.append(reinterpret_cast<const char*>(rom.data()), rom.size());
+  return core::ComputeSourceArtifactSha256(bytes);
+}
+
 void RomSession::CaptureRomIdentity(bool preserve_editing_source) {
   if (!rom.is_loaded()) {
     rom_baseline.reset();
@@ -489,7 +503,7 @@ void RomSession::CaptureRomIdentity(bool preserve_editing_source) {
                                          : path.string();
   rom_baseline = RomBaselineIdentity{
       util::ComputeRomIdentityHashes(rom.data(), rom.size()), path.string(),
-      editing_source};
+      editing_source, rom.dirty() ? "" : ComputeRomFileBytesSha256(rom)};
 }
 
 void RomSession::ReloadGraphicsDisplay() {

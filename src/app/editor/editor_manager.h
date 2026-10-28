@@ -709,6 +709,13 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
   bool RestoreProjectContextForSession(RomSession* session);
   void RestoreProjectEditingStateForSession(RomSession* session);
   absl::Status SaveActiveProjectEditingWork(bool allow_dialogs = true);
+  // Saves project work; when ROM work is also pending, the ROM save that
+  // follows publishes the one native-save receipt for both.
+  absl::Status SaveProjectWorkBeforeRomSave(bool allow_dialogs);
+  void ApplyProjectSaveSettings(project::YazeProject* project,
+                                bool include_recent_files);
+  bool ProjectDescriptorMatchesDisk();
+  bool IsPlanningOnlyProjectSave(const RomSession& session);
   absl::Status PrepareRawProjectFileSave(const std::string& filepath,
                                          const std::string& contents);
   absl::Status CommitRawProjectFileSave(const std::string& filepath,

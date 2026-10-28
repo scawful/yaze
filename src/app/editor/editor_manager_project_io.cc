@@ -983,21 +983,28 @@ absl::Status EditorManager::RecordCompletedNativeSave(
     if (error)
       return absl::FailedPreconditionError("Cannot resolve saved ROM");
     if (rom_written) {
-      std::string_view saved_bytes(reinterpret_cast<const char*>(rom->data()),
-                                   rom->size());
-      std::string headered_bytes;
-      if (rom->has_copier_header()) {
-        const auto& header = rom->copier_header();
-        headered_bytes.assign(reinterpret_cast<const char*>(header.data()),
-                              header.size());
-        headered_bytes.append(saved_bytes);
-        saved_bytes = headered_bytes;
-      }
       request.artifacts.push_back(
-          {"rom", rom_path, core::ComputeSourceArtifactSha256(saved_bytes)});
+          {"rom", rom_path, ComputeRomFileBytesSha256(*rom)});
     } else {
+      // A project-only Save binds the ROM file only as this session loaded or
+      // last wrote it; bytes changed by another writer are never blessed.
+      const auto* session = session_coordinator_
+                                ? session_coordinator_->GetActiveRomSession()
+                                : nullptr;
+      if (session == nullptr || !session->rom_baseline ||
+          session->rom_baseline->backing_sha256.empty()) {
+        return absl::FailedPreconditionError(
+            "The ROM has no verified on-disk identity in this session; save "
+            "the ROM first");
+      }
       ASSIGN_OR_RETURN(const auto on_disk,
                        core::ComputeSourceArtifactFileSha256(rom_path));
+      if (on_disk != session->rom_baseline->backing_sha256) {
+        return absl::FailedPreconditionError(
+            "The ROM file changed on disk since yaze loaded or last saved it; "
+            "use Revert to Saved to load it, or save the ROM from yaze to "
+            "replace it");
+      }
       request.artifacts.push_back({"rom", rom_path, on_disk});
     }
     // Pin the process's expected producer once; the publisher still rehashes
@@ -1158,8 +1165,10 @@ absl::Status EditorManager::RecordCompletedNativeSave(
                   std::string(status.message()));
   }
   if (session_coordinator_) {
-    if (auto* session = session_coordinator_->GetActiveRomSession())
+    if (auto* session = session_coordinator_->GetActiveRomSession()) {
       session->native_save_completion_pending = false;
+      session->native_save_completion_save_as = false;
+    }
   }
   return status;
 #endif

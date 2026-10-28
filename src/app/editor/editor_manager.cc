@@ -18,6 +18,7 @@
 #include <fstream>
 #include <functional>
 #include <initializer_list>
+#include <iterator>
 #include <map>
 #include <memory>
 #include <optional>
@@ -2972,13 +2973,7 @@ absl::Status EditorManager::SaveCurrentSession() {
   }
   CaptureActiveProjectEditingState();
   const size_t session_id = GetCurrentSessionId();
-  // A following ROM save publishes the receipt for both; a project-only
-  // receipt failure must not block that ROM save.
-  defer_project_native_completion_ =
-      SessionHasPendingRomWork(GetCurrentSessionIndex());
-  const auto project_status = SaveActiveProjectEditingWork();
-  defer_project_native_completion_ = false;
-  RETURN_IF_ERROR(project_status);
+  RETURN_IF_ERROR(SaveProjectWorkBeforeRomSave(/*allow_dialogs=*/true));
   if (GetCurrentSessionId() != session_id) {
     return absl::FailedPreconditionError(
         "The active session changed while saving project work");
@@ -3000,7 +2995,17 @@ absl::Status EditorManager::CompletePendingProjectNativeSave() {
     return absl::OkStatus();
   }
   return RecordCompletedNativeSave(current_project_, rom->filename(),
-                                   /*save_as=*/false, /*rom_written=*/false);
+                                   session->native_save_completion_save_as,
+                                   /*rom_written=*/false);
+}
+
+absl::Status EditorManager::SaveProjectWorkBeforeRomSave(bool allow_dialogs) {
+  // A project-only receipt failure must not block the following ROM save.
+  defer_project_native_completion_ =
+      SessionHasPendingRomWork(GetCurrentSessionIndex());
+  const auto status = SaveActiveProjectEditingWork(allow_dialogs);
+  defer_project_native_completion_ = false;
+  return status;
 }
 
 absl::Status EditorManager::SaveRom() {
@@ -3939,15 +3944,16 @@ absl::Status EditorManager::SaveProject() {
   auto* save_session = session_coordinator_
                            ? session_coordinator_->GetActiveRomSession()
                            : nullptr;
-  // Every project Save except a Planning-only one commits build-owned work:
-  // the descriptor and any terrain/sprite/dungeon drafts. Retire the prior
-  // native commit before any of those bytes change.
+  if (save_session != nullptr && IsPlanningOnlyProjectSave(*save_session)) {
+    // The plan is a live reference outside the build: its own CAS save is the
+    // whole Save, leaving the descriptor and native receipt untouched.
+    return save_session->editors.SavePlanningProjectDraft();
+  }
+  // Every other project Save commits build-owned work: the descriptor and
+  // any terrain/sprite/dungeon drafts. Retire the prior native commit before
+  // any of those bytes change.
   const bool build_owned =
-      current_project_.project_opened() && save_session != nullptr &&
-      (save_session->project_dirty ||
-       save_session->native_save_completion_pending ||
-       save_session->editors.HasPendingBuildProjectDraftChanges() ||
-       !save_session->editors.HasPendingPlanningProjectDraftChanges());
+      current_project_.project_opened() && save_session != nullptr;
   if (build_owned) {
     RETURN_IF_ERROR(RetireNativeSaveTransfer("rebound"));
   }
@@ -3957,31 +3963,7 @@ absl::Status EditorManager::SaveProject() {
     return CreateNewProject();
   }
 
-  // Update project with current settings
-  if (GetCurrentRom() && GetCurrentEditorSet()) {
-    if (session_coordinator_) {
-      auto* session = session_coordinator_->GetActiveRomSession();
-      if (session) {
-        current_project_.feature_flags = session->feature_flags;
-      }
-    }
-
-    current_project_.workspace_settings.font_global_scale =
-        user_settings_.prefs().font_global_scale;
-    current_project_.workspace_settings.autosave_enabled =
-        user_settings_.prefs().autosave_enabled;
-    current_project_.workspace_settings.autosave_interval_secs =
-        user_settings_.prefs().autosave_interval;
-    current_project_.workspace_settings.backup_on_save =
-        user_settings_.prefs().backup_before_save;
-
-    // Save recent files
-    auto& manager = project::RecentFilesManager::GetInstance();
-    current_project_.workspace_settings.recent_files.clear();
-    for (const auto& file : manager.GetRecentFiles()) {
-      current_project_.workspace_settings.recent_files.push_back(file);
-    }
-  }
+  ApplyProjectSaveSettings(&current_project_, /*include_recent_files=*/true);
 
   auto status = current_project_.Save();
   if (status.ok()) {
@@ -4006,6 +3988,66 @@ absl::Status EditorManager::SaveProject() {
     return absl::OkStatus();
   }
   return CompletePendingProjectNativeSave();
+}
+
+void EditorManager::ApplyProjectSaveSettings(project::YazeProject* project,
+                                             bool include_recent_files) {
+  if (!GetCurrentRom() || !GetCurrentEditorSet()) {
+    return;
+  }
+  if (session_coordinator_) {
+    if (auto* session = session_coordinator_->GetActiveRomSession()) {
+      project->feature_flags = session->feature_flags;
+    }
+  }
+  project->workspace_settings.font_global_scale =
+      user_settings_.prefs().font_global_scale;
+  project->workspace_settings.autosave_enabled =
+      user_settings_.prefs().autosave_enabled;
+  project->workspace_settings.autosave_interval_secs =
+      user_settings_.prefs().autosave_interval;
+  project->workspace_settings.backup_on_save =
+      user_settings_.prefs().backup_before_save;
+  if (!include_recent_files) {
+    return;
+  }
+  auto& manager = project::RecentFilesManager::GetInstance();
+  project->workspace_settings.recent_files.clear();
+  for (const auto& file : manager.GetRecentFiles()) {
+    project->workspace_settings.recent_files.push_back(file);
+  }
+}
+
+// True when a project Save would write the descriptor bytes already on disk,
+// apart from its timestamp and the recent-files list, which are not build
+// inputs.
+bool EditorManager::ProjectDescriptorMatchesDisk() {
+  if (current_project_.filepath.empty() ||
+      current_project_.music_persistence.storage_key.empty()) {
+    return false;
+  }
+  CaptureActiveProjectContext();
+  project::YazeProject candidate = current_project_;
+  ApplyProjectSaveSettings(&candidate, /*include_recent_files=*/false);
+  candidate.NormalizePathsToAbsolute();
+  const auto serialized = candidate.SerializeToString();
+  std::ifstream input(current_project_.filepath, std::ios::binary);
+  if (!serialized.ok() || !input.is_open()) {
+    return false;
+  }
+  const std::string on_disk((std::istreambuf_iterator<char>(input)),
+                            std::istreambuf_iterator<char>());
+  return !input.bad() && on_disk == *serialized;
+}
+
+bool EditorManager::IsPlanningOnlyProjectSave(const RomSession& session) {
+  return current_project_.project_opened() && !session.project_dirty &&
+         !session.native_save_completion_pending &&
+         !(session.project_file_editor_state.initialized &&
+           session.project_file_editor_state.modified) &&
+         !session.editors.HasPendingBuildProjectDraftChanges() &&
+         session.editors.HasPendingPlanningProjectDraftChanges() &&
+         ProjectDescriptorMatchesDisk();
 }
 
 void EditorManager::MarkCurrentProjectDirty() {
@@ -4090,7 +4132,7 @@ absl::Status EditorManager::AutosaveActiveSession() {
     return absl::FailedPreconditionError("No session coordinator");
   }
   const size_t session_index = GetCurrentSessionIndex();
-  RETURN_IF_ERROR(SaveActiveProjectEditingWork(/*allow_dialogs=*/false));
+  RETURN_IF_ERROR(SaveProjectWorkBeforeRomSave(/*allow_dialogs=*/false));
   const auto* session = session_coordinator_->GetActiveRomSession();
   if (session != nullptr && session->backup_restore_pending) {
     return absl::CancelledError(
@@ -4098,6 +4140,8 @@ absl::Status EditorManager::AutosaveActiveSession() {
   }
   if (SessionHasPendingRomWork(session_index)) {
     RETURN_IF_ERROR(SaveRom());
+  } else {
+    RETURN_IF_ERROR(CompletePendingProjectNativeSave());
   }
   if (SessionHasPendingUnsavedWork(session_index)) {
     return absl::FailedPreconditionError(
@@ -4253,16 +4297,25 @@ absl::Status EditorManager::SaveProjectAs(const std::string& filepath) {
 
   CaptureActiveProjectContext();
 
-  if (save_status.ok()) {
-    const auto retirement = RetireNativeSaveTransfer("rebound");
-    if (!retirement.ok()) {
-      return absl::FailedPreconditionError(
-          "Project saved as, but its retired native-save context could not be "
-          "updated: " +
-          std::string(retirement.message()));
-    }
+  if (!save_status.ok()) {
+    return save_status;
   }
-  return save_status;
+  const auto retirement = RetireNativeSaveTransfer("rebound");
+  if (!retirement.ok()) {
+    return absl::FailedPreconditionError(
+        "Project saved as, but its retired native-save context could not be "
+        "updated: " +
+        std::string(retirement.message()));
+  }
+  // The new owner's receipt is part of Save As; a failed completion stays
+  // pending so a Save without new edits retries it.
+  if (auto* session = session_coordinator_
+                          ? session_coordinator_->GetActiveRomSession()
+                          : nullptr) {
+    session->native_save_completion_pending = true;
+    session->native_save_completion_save_as = true;
+  }
+  return CompletePendingProjectNativeSave();
 }
 
 absl::StatusOr<std::string> EditorManager::ResolveProjectBuildCommand() {

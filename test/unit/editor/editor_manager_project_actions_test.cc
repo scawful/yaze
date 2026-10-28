@@ -657,6 +657,31 @@ TEST(EditorManagerProjectActionsTest,
       relocated_terrain.string()));
   EXPECT_TRUE(SessionCoordinator::PathsReferToSameBackingFile(
       saved.GetAbsolutePath(saved.rom_filename), primary_rom.string()));
+  // Save As publishes the new owner's receipt binding its own descriptor,
+  // its terrain sidecar and the unchanged ROM.
+  const auto relocated_receipt = nlohmann::json::parse(
+      ReadFile(relocated_project.string() + ".native-save.json"));
+  EXPECT_EQ(relocated_receipt.at("operation"), "save_as");
+  // The fixture names label/symbol files it never creates; only those may be
+  // reported unbound.
+  for (const auto& error : relocated_receipt.at("binding_errors")) {
+    EXPECT_EQ(error.get<std::string>().rfind("dependency.", 0), 0u)
+        << relocated_receipt.dump(2);
+  }
+  for (const auto& [role, path] :
+       std::vector<std::pair<std::string, std::filesystem::path>>{
+           {"project", relocated_project},
+           {"sidecar", relocated_terrain},
+           {"rom", primary_rom}}) {
+    const auto& artifacts = relocated_receipt.at("artifacts");
+    const auto found =
+        std::find_if(artifacts.begin(), artifacts.end(),
+                     [&](const auto& item) { return item.at("role") == role; });
+    ASSERT_NE(found, artifacts.end()) << role;
+    EXPECT_EQ(found->at("path"), std::filesystem::canonical(path).string());
+    EXPECT_EQ(found->at("sha256"),
+              core::ComputeSourceArtifactSha256(ReadFile(path)));
+  }
 
   ASSERT_NO_FATAL_FAILURE(open_fresh_manager(relocated_project));
   ASSERT_OK(manager->EnsureEditorAssetsLoaded(EditorType::kOverworld));
