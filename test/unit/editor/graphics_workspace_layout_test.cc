@@ -668,7 +668,9 @@ TEST_F(GraphicsWorkspaceLayoutTest,
     auto* canvas = ActiveChild("##CanvasArea");
     ASSERT_NE(canvas, nullptr);
     EXPECT_GT(canvas->Size.x, width - 40) << width;
-    EXPECT_NEAR(canvas->Pos.y + canvas->Size.y, content->WorkRect.Max.y, 1)
+    // WorkRect can retain the previous frame's larger content extent while
+    // controls reflow. InnerRect is this child's current visible allocation.
+    EXPECT_NEAR(canvas->Pos.y + canvas->Size.y, content->InnerRect.Max.y, 1)
         << width;
   }
   const auto frame = [&] {
