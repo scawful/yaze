@@ -6,6 +6,7 @@ source_repo="${YAZE_NIGHTLY_SOURCE_REPO:-$repo_root}"
 
 nightly_build_dir="${YAZE_NIGHTLY_BUILD_DIR:-$HOME/.yaze/nightly/local/build-nightly}"
 nightly_build_type="${YAZE_NIGHTLY_BUILD_TYPE:-RelWithDebInfo}"
+nightly_use_existing_build="${YAZE_NIGHTLY_USE_EXISTING_BUILD:-0}"
 nightly_prefix="${YAZE_NIGHTLY_PREFIX:-$HOME/.local/yaze/nightly}"
 nightly_component="${YAZE_NIGHTLY_COMPONENT:-yaze}"
 nightly_bin_dir="${YAZE_NIGHTLY_BIN_DIR:-$HOME/.local/bin}"
@@ -203,25 +204,73 @@ fallback_install() {
   fi
 }
 
-cmake_generator="Ninja"
-if ! command -v ninja >/dev/null 2>&1; then
-  cmake_generator="Unix Makefiles"
-fi
+cache_value() {
+  sed -n "s/^$1:[^=]*=//p" "$nightly_build_dir/CMakeCache.txt"
+}
 
-echo "[nightly-local] Configuring build ($cmake_generator, $nightly_build_type)"
-cmake -S "$source_repo" -B "$nightly_build_dir" -G "$cmake_generator" \
-  -DCMAKE_BUILD_TYPE="$nightly_build_type" \
-  -DYAZE_ENABLE_GRPC=ON \
-  -DYAZE_ENABLE_REMOTE_AUTOMATION=ON \
-  -DYAZE_PREFER_SYSTEM_GRPC="$nightly_prefer_system_grpc" \
-  -DYAZE_ENABLE_AI_RUNTIME="$nightly_ai_runtime" \
-  -DYAZE_ENABLE_AI="$nightly_ai_features" \
-  -DCMAKE_SKIP_INSTALL_RPATH="$nightly_skip_install_rpath" \
-  -DYAZE_BUILD_TESTS=OFF
+if [[ "$nightly_use_existing_build" == "1" ]]; then
+  [[ -f "$nightly_build_dir/CMakeCache.txt" &&
+     -f "$nightly_build_dir/cmake_install.cmake" ]] || {
+    echo "[nightly-local] Existing build requires a configured cache and install script." >&2
+    exit 1
+  }
+  cached_source="$(cache_value CMAKE_HOME_DIRECTORY)"
+  [[ -d "$cached_source" && -d "$source_repo" ]] || exit 1
+  [[ "$(cd "$cached_source" && pwd -P)" == "$(cd "$source_repo" && pwd -P)" ]] || {
+    echo "[nightly-local] Existing cache belongs to a different source directory." >&2
+    exit 1
+  }
+  configurations="$(cache_value CMAKE_CONFIGURATION_TYPES)"
+  if [[ -n "$configurations" ]]; then
+    case ";$configurations;" in
+      *";$nightly_build_type;"*) ;;
+      *) echo "[nightly-local] Configuration is absent from existing cache: $nightly_build_type" >&2; exit 1 ;;
+    esac
+  elif [[ "$(cache_value CMAKE_BUILD_TYPE)" != "$nightly_build_type" ]]; then
+    echo "[nightly-local] Build type does not match existing cache: $nightly_build_type" >&2
+    exit 1
+  fi
+  echo "[nightly-local] Reusing configured cache ($(cache_value CMAKE_GENERATOR), $nightly_build_type); skipping configure."
+elif [[ "$nightly_use_existing_build" == "0" ]]; then
+  cmake_generator="Ninja"
+  if ! command -v ninja >/dev/null 2>&1; then
+    cmake_generator="Unix Makefiles"
+  fi
+
+  echo "[nightly-local] Configuring build ($cmake_generator, $nightly_build_type)"
+  cmake -S "$source_repo" -B "$nightly_build_dir" -G "$cmake_generator" \
+    -DCMAKE_BUILD_TYPE="$nightly_build_type" \
+    -DYAZE_ENABLE_GRPC=ON \
+    -DYAZE_ENABLE_REMOTE_AUTOMATION=ON \
+    -DYAZE_PREFER_SYSTEM_GRPC="$nightly_prefer_system_grpc" \
+    -DYAZE_ENABLE_AI_RUNTIME="$nightly_ai_runtime" \
+    -DYAZE_ENABLE_AI="$nightly_ai_features" \
+    -DCMAKE_SKIP_INSTALL_RPATH="$nightly_skip_install_rpath" \
+    -DYAZE_BUILD_TESTS=OFF
+
+else
+  echo "[nightly-local] YAZE_NIGHTLY_USE_EXISTING_BUILD must be 0 or 1." >&2
+  exit 1
+fi
 
 echo "[nightly-local] Building yaze + z3ed"
 cmake --build "$nightly_build_dir" --config "$nightly_build_type" \
   --target yaze z3ed --parallel "$nightly_build_jobs"
+
+if [[ "$nightly_use_existing_build" == "1" ]]; then
+  output_dir="$nightly_build_dir/bin"
+  if [[ -n "$configurations" ]]; then
+    output_dir="$output_dir/$nightly_build_type"
+  fi
+  yaze_output="$output_dir/yaze"
+  if [[ "$(uname -s)" == "Darwin" ]]; then
+    yaze_output="$output_dir/yaze.app/Contents/MacOS/yaze"
+  fi
+  [[ -x "$yaze_output" && -x "$output_dir/z3ed" ]] || {
+    echo "[nightly-local] Existing build is missing yaze or z3ed outputs in $output_dir." >&2
+    exit 1
+  }
+fi
 
 stamp="$(date +%Y%m%d-%H%M%S)"
 mkdir -p "$nightly_prefix/releases"
@@ -229,6 +278,10 @@ release_dir="$(mktemp -d "$nightly_prefix/releases/$stamp.XXXXXX")"
 
 echo "[nightly-local] Installing to $release_dir"
 if ! cmake --install "$nightly_build_dir" --prefix "$release_dir" --component "$nightly_component" --config "$nightly_build_type"; then
+  if [[ "$nightly_use_existing_build" == "1" ]]; then
+    echo "[nightly-local] Existing-cache install failed; refusing fallback copy." >&2
+    exit 1
+  fi
   echo "[nightly-local] cmake --install failed; attempting fallback copy." >&2
   fallback_install
 fi

@@ -49,6 +49,11 @@ cat >"$fake_bin/cmake" <<'SH'
 #!/usr/bin/env bash
 set -euo pipefail
 
+echo "${1:-configure}" >>"$TEST_CMAKE_LOG"
+if [[ "${TEST_REUSE:-0}" == "1" && ( "${1:-}" == "--build" || "${1:-}" == "--install" ) ]]; then
+  [[ " $* " == *" --config ${TEST_CONFIG:-RelWithDebInfo} "* ]] || exit 10
+fi
+
 write_binary() {
   cat >"$1" <<'BIN'
 #!/usr/bin/env bash
@@ -64,6 +69,7 @@ BIN
 
 if [[ "${1:-}" == "--build" ]]; then
   build_dir="$2"
+  if [[ "${TEST_SKIP_BUILD_OUTPUT:-0}" == "1" ]]; then exit 0; fi
   mkdir -p "$build_dir/bin"
   : >"$build_dir/bin/yaze"
   : >"$build_dir/bin/z3ed"
@@ -72,6 +78,7 @@ if [[ "${1:-}" == "--build" ]]; then
 fi
 
 if [[ "${1:-}" == "--install" ]]; then
+  [[ "${TEST_INSTALL_FAIL:-0}" != "1" ]] || exit 9
   prefix=""
   while (($#)); do
     if [[ "$1" == "--prefix" ]]; then
@@ -167,6 +174,9 @@ run_installer() {
     TEST_LOAD_FAIL="${TEST_LOAD_FAIL:-}" \
     TEST_SIGN_LOG="$TMP_ROOT/sign.log" \
     TEST_LOAD_LOG="$TMP_ROOT/load.log" \
+    TEST_CMAKE_LOG="$TMP_ROOT/cmake.log" \
+    YAZE_NIGHTLY_USE_EXISTING_BUILD="${TEST_REUSE:-0}" \
+    YAZE_NIGHTLY_BUILD_TYPE="${TEST_CONFIG:-RelWithDebInfo}" \
     YAZE_NIGHTLY_SOURCE_REPO="$fixture_worktree" \
     YAZE_NIGHTLY_BUILD_DIR="$TMP_ROOT/build" \
     YAZE_NIGHTLY_PREFIX="$nightly_prefix" \
@@ -238,6 +248,70 @@ done
 
 if TEST_ACTIVATION_FAIL=1 run_installer; then
   fail "installer ignored activation failure"
+fi
+assert_previous_release
+
+# Reuse preserves the existing configuration, but still builds current source.
+cat >"$TMP_ROOT/build/CMakeCache.txt" <<EOF
+CMAKE_HOME_DIRECTORY:INTERNAL=$fixture_worktree
+CMAKE_GENERATOR:INTERNAL=Ninja Multi-Config
+CMAKE_CONFIGURATION_TYPES:STRING=Debug;RelWithDebInfo
+EOF
+: >"$TMP_ROOT/build/cmake_install.cmake"
+mkdir -p "$TMP_ROOT/build/bin/Debug"
+for binary in yaze z3ed; do
+  cp "$TMP_ROOT/build/bin/$binary" "$TMP_ROOT/build/bin/Debug/$binary"
+done
+: >"$TMP_ROOT/cmake.log"
+TEST_REUSE=1 TEST_CONFIG=Debug run_installer
+[[ "$(tr '\n' ' ' <"$TMP_ROOT/cmake.log")" == "--build --install " ]] ||
+  fail "reuse did not skip configure and retain build/install"
+previous_release="$(readlink "$nightly_prefix/current")"
+
+for rejection in source config missing-cache missing-output; do
+  cp "$TMP_ROOT/build/CMakeCache.txt" "$TMP_ROOT/cache.saved"
+  case "$rejection" in
+    source) sed "s|$fixture_worktree|$fixture_repo|" "$TMP_ROOT/cache.saved" >"$TMP_ROOT/build/CMakeCache.txt" ;;
+    config) TEST_CONFIG=Release ;;
+    missing-cache) rm "$TMP_ROOT/build/CMakeCache.txt" ;;
+    missing-output) rm "$TMP_ROOT/build/bin/Debug/z3ed" ;;
+  esac
+  : >"$TMP_ROOT/cmake.log"
+  if TEST_REUSE=1 TEST_CONFIG="${TEST_CONFIG:-Debug}" TEST_SKIP_BUILD_OUTPUT=1 run_installer; then
+    fail "reuse accepted $rejection"
+  fi
+  assert_previous_release
+  if [[ "$rejection" != missing-output && -s "$TMP_ROOT/cmake.log" ]]; then
+    fail "invalid cache reached build/install"
+  fi
+  cp "$TMP_ROOT/cache.saved" "$TMP_ROOT/build/CMakeCache.txt"
+  cp "$TMP_ROOT/build/bin/z3ed" "$TMP_ROOT/build/bin/Debug/z3ed"
+  unset TEST_CONFIG
+done
+# Single-config caches require an exact build type, too.
+cp "$TMP_ROOT/build/CMakeCache.txt" "$TMP_ROOT/cache.saved"
+cat >"$TMP_ROOT/build/CMakeCache.txt" <<EOF
+CMAKE_HOME_DIRECTORY:INTERNAL=$fixture_worktree
+CMAKE_GENERATOR:INTERNAL=Ninja
+CMAKE_BUILD_TYPE:STRING=Debug
+EOF
+TEST_REUSE=1 TEST_CONFIG=Debug run_installer
+previous_release="$(readlink "$nightly_prefix/current")"
+if TEST_REUSE=1 TEST_CONFIG=Release run_installer; then
+  fail "reuse accepted a single-config build type mismatch"
+fi
+assert_previous_release
+cp "$TMP_ROOT/cache.saved" "$TMP_ROOT/build/CMakeCache.txt"
+if TEST_REUSE=1 TEST_CONFIG=Debug TEST_LOAD_FAIL=z3ed run_installer; then
+  fail "reuse accepted loader failure"
+fi
+assert_previous_release
+if TEST_REUSE=1 TEST_CONFIG=Debug TEST_INSTALL_FAIL=1 run_installer; then
+  fail "reuse accepted install failure"
+fi
+assert_previous_release
+if TEST_REUSE=1 TEST_CONFIG=Debug TEST_ACTIVATION_FAIL=1 run_installer; then
+  fail "reuse accepted activation failure"
 fi
 assert_previous_release
 
