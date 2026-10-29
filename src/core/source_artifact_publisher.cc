@@ -25,6 +25,10 @@
 #if defined(__APPLE__) && !defined(YAZE_FORCE_PORTABLE_SOURCE_SHA256)
 #include <CommonCrypto/CommonDigest.h>
 #endif
+#if defined(__linux__) && defined(YAZE_SOURCE_SHA256_OPENSSL) && \
+    !defined(YAZE_FORCE_PORTABLE_SOURCE_SHA256)
+#include <openssl/evp.h>
+#endif
 
 #include "absl/status/status.h"
 #include "absl/strings/ascii.h"
@@ -37,6 +41,9 @@
 #define NOMINMAX
 #endif
 #include <windows.h>
+#if !defined(YAZE_FORCE_PORTABLE_SOURCE_SHA256)
+#include <bcrypt.h>
+#endif
 #elif !defined(__EMSCRIPTEN__)
 #include <fcntl.h>
 #include <sys/file.h>
@@ -276,37 +283,6 @@ class SourceArtifactWriteLocks {
 #endif
 };
 
-#if defined(__APPLE__) && !defined(YAZE_FORCE_PORTABLE_SOURCE_SHA256)
-class Sha256Digest {
- public:
-  Sha256Digest() { CC_SHA256_Init(&context_); }
-
-  void Update(std::string_view content) {
-    while (!content.empty()) {
-      const size_t count =
-          std::min(content.size(),
-                   static_cast<size_t>(std::numeric_limits<CC_LONG>::max()));
-      CC_SHA256_Update(&context_, content.data(), static_cast<CC_LONG>(count));
-      content.remove_prefix(count);
-    }
-  }
-
-  std::string Finish() {
-    std::array<unsigned char, CC_SHA256_DIGEST_LENGTH> bytes;
-    CC_SHA256_Final(bytes.data(), &context_);
-    constexpr char kHex[] = "0123456789abcdef";
-    std::string digest(bytes.size() * 2, '\0');
-    for (size_t index = 0; index < bytes.size(); ++index) {
-      digest[index * 2] = kHex[bytes[index] >> 4];
-      digest[index * 2 + 1] = kHex[bytes[index] & 0x0f];
-    }
-    return digest;
-  }
-
- private:
-  CC_SHA256_CTX context_;
-};
-#else
 constexpr uint32_t kSha256Constants[64] = {
     0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b, 0x59f111f1,
     0x923f82a4, 0xab1c5ed5, 0xd807aa98, 0x12835b01, 0x243185be, 0x550c7dc3,
@@ -380,7 +356,7 @@ void TransformSha256(uint32_t state[8], const uint8_t block[64]) {
   state[7] += h;
 }
 
-class Sha256Digest {
+class PortableSha256Digest {
  public:
   void Update(std::string_view content) {
     bytes_ += content.size();
@@ -424,12 +400,180 @@ class Sha256Digest {
   size_t used_ = 0;
   uint64_t bytes_ = 0;
 };
+
+#if !defined(YAZE_FORCE_PORTABLE_SOURCE_SHA256) && \
+    (defined(__APPLE__) || defined(_WIN32) ||      \
+     (defined(__linux__) && defined(YAZE_SOURCE_SHA256_OPENSSL)))
+class NativeSha256Digest {
+ public:
+  NativeSha256Digest() {
+#if defined(__APPLE__)
+    initialized_ = CC_SHA256_Init(&context_) == 1;
+#elif defined(_WIN32)
+    if (BCryptOpenAlgorithmProvider(&provider_, BCRYPT_SHA256_ALGORITHM,
+                                    nullptr, 0) < 0) {
+      provider_ = nullptr;
+      return;
+    }
+    // CNG owns the hash-object buffer when no caller buffer is supplied.
+    if (BCryptCreateHash(provider_, &hash_, nullptr, 0, nullptr, 0, 0) < 0) {
+      hash_ = nullptr;
+      return;
+    }
+    initialized_ = true;
+#else
+    context_ = EVP_MD_CTX_new();
+    initialized_ = context_ != nullptr &&
+                   EVP_DigestInit_ex(context_, EVP_sha256(), nullptr) == 1;
 #endif
+  }
+
+  ~NativeSha256Digest() {
+#if defined(_WIN32)
+    if (hash_ != nullptr) {
+      BCryptDestroyHash(hash_);
+    }
+    if (provider_ != nullptr) {
+      BCryptCloseAlgorithmProvider(provider_, 0);
+    }
+#elif !defined(__APPLE__)
+    EVP_MD_CTX_free(context_);
+#endif
+  }
+
+  NativeSha256Digest(const NativeSha256Digest&) = delete;
+  NativeSha256Digest& operator=(const NativeSha256Digest&) = delete;
+
+  // Initialization selects the backend once. A later failure must not switch
+  // to a fresh portable state containing only the remaining input chunks.
+  bool available() const { return initialized_; }
+
+  void Update(std::string_view content) {
+    if (!initialized_ || failed_) {
+      return;
+    }
+#if defined(__APPLE__) || defined(_WIN32)
+    while (!content.empty()) {
+#if defined(__APPLE__)
+      const size_t count =
+          std::min(content.size(),
+                   static_cast<size_t>(std::numeric_limits<CC_LONG>::max()));
+      const bool ok = CC_SHA256_Update(&context_, content.data(),
+                                       static_cast<CC_LONG>(count)) == 1;
+#else
+      const size_t count =
+          std::min(content.size(),
+                   static_cast<size_t>(std::numeric_limits<ULONG>::max()));
+      const bool ok =
+          BCryptHashData(hash_,
+                         const_cast<PUCHAR>(
+                             reinterpret_cast<const UCHAR*>(content.data())),
+                         static_cast<ULONG>(count), 0) >= 0;
+#endif
+      if (!ok) {
+        failed_ = true;
+        return;
+      }
+      content.remove_prefix(count);
+    }
+#else
+    if (!content.empty() &&
+        EVP_DigestUpdate(context_, content.data(), content.size()) != 1) {
+      failed_ = true;
+    }
+#endif
+  }
+
+  // An empty result is internal failure, never a valid SHA256 identity. The
+  // caller can then replay the complete input with the portable implementation.
+  std::string Finish() {
+    if (!initialized_ || failed_) {
+      return {};
+    }
+    std::array<unsigned char, 32> bytes{};
+#if defined(__APPLE__)
+    if (CC_SHA256_Final(bytes.data(), &context_) != 1) {
+      return {};
+    }
+#elif defined(_WIN32)
+    if (BCryptFinishHash(hash_, bytes.data(), static_cast<ULONG>(bytes.size()),
+                         0) < 0) {
+      return {};
+    }
+#else
+    unsigned int size = 0;
+    if (EVP_DigestFinal_ex(context_, bytes.data(), &size) != 1 ||
+        size != bytes.size()) {
+      return {};
+    }
+#endif
+    constexpr char kHex[] = "0123456789abcdef";
+    std::string digest(bytes.size() * 2, '\0');
+    for (size_t index = 0; index < bytes.size(); ++index) {
+      digest[index * 2] = kHex[bytes[index] >> 4];
+      digest[index * 2 + 1] = kHex[bytes[index] & 0x0f];
+    }
+    return digest;
+  }
+
+ private:
+  bool initialized_ = false;
+  bool failed_ = false;
+#if defined(__APPLE__)
+  CC_SHA256_CTX context_;
+#elif defined(_WIN32)
+  BCRYPT_ALG_HANDLE provider_ = nullptr;
+  BCRYPT_HASH_HANDLE hash_ = nullptr;
+#else
+  EVP_MD_CTX* context_ = nullptr;
+#endif
+};
+#endif
+
+class Sha256Digest {
+ public:
+  void Update(std::string_view content) {
+#if !defined(YAZE_FORCE_PORTABLE_SOURCE_SHA256) && \
+    (defined(__APPLE__) || defined(_WIN32) ||      \
+     (defined(__linux__) && defined(YAZE_SOURCE_SHA256_OPENSSL)))
+    if (native_.available()) {
+      native_.Update(content);
+      return;
+    }
+#endif
+    portable_.Update(content);
+  }
+
+  std::string Finish() {
+#if !defined(YAZE_FORCE_PORTABLE_SOURCE_SHA256) && \
+    (defined(__APPLE__) || defined(_WIN32) ||      \
+     (defined(__linux__) && defined(YAZE_SOURCE_SHA256_OPENSSL)))
+    if (native_.available()) {
+      return native_.Finish();
+    }
+#endif
+    return portable_.Finish();
+  }
+
+ private:
+#if !defined(YAZE_FORCE_PORTABLE_SOURCE_SHA256) && \
+    (defined(__APPLE__) || defined(_WIN32) ||      \
+     (defined(__linux__) && defined(YAZE_SOURCE_SHA256_OPENSSL)))
+  NativeSha256Digest native_;
+#endif
+  PortableSha256Digest portable_;
+};
 
 std::string Sha256Hex(std::string_view content) {
   Sha256Digest digest;
   digest.Update(content);
-  return digest.Finish();
+  auto result = digest.Finish();
+  if (!result.empty()) {
+    return result;
+  }
+  PortableSha256Digest fallback;
+  fallback.Update(content);
+  return fallback.Finish();
 }
 
 absl::StatusOr<std::string> ReadTextFile(const fs::path& path,
@@ -1350,7 +1494,25 @@ absl::StatusOr<std::string> ComputeSourceArtifactFileSha256(
   if (!input.eof() || input.bad()) {
     return absl::DataLossError("Cannot read SHA256 input: " + path.string());
   }
-  return digest.Finish();
+  auto result = digest.Finish();
+  if (!result.empty()) {
+    return result;
+  }
+  // Reuse the same open file, but restart the hash from its first byte after
+  // native failure. Replaying just the last chunk would produce a false hash.
+  input.clear();
+  input.seekg(0, std::ios::beg);
+  if (!input) {
+    return absl::DataLossError("Cannot rewind SHA256 input: " + path.string());
+  }
+  PortableSha256Digest fallback;
+  while (input.read(buffer.data(), buffer.size()) || input.gcount() > 0) {
+    fallback.Update(std::string_view(buffer.data(), input.gcount()));
+  }
+  if (!input.eof() || input.bad()) {
+    return absl::DataLossError("Cannot reread SHA256 input: " + path.string());
+  }
+  return fallback.Finish();
 }
 
 absl::Status PublishSourceArtifacts(
