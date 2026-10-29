@@ -457,6 +457,143 @@ TEST(OverworldEntranceCompatibilityTest, ExpandedSaveWritesAll256Entries) {
   EXPECT_EQ(*entrance_id, static_cast<uint8_t>(index));
 }
 
+TEST(OverworldEntranceCompatibilityTest,
+     ExpandedHoleAndUnusedKindsRoundTripWithoutLegacyWrites) {
+  Rom rom;
+  InitOverworldTestRom(rom, 0x03);
+  rom[kOverworldEntranceExpandedFlagPos] = 0;
+  ASSERT_TRUE(rom.WriteShort(kOverworldEntranceMap, 0xBEEF).ok());
+  std::vector<OverworldEntrance> entries(256);
+  for (auto& entry : entries)
+    entry.deleted = true;
+  entries[200] =
+      OverworldEntrance(336, 3216, 0x0B, 0xB0, ((9 * 64) + 21) * 2, false);
+  entries[201] =
+      OverworldEntrance(352, 3232, 0x23, 0xB0, ((10 * 64) + 22) * 2, true);
+  ASSERT_TRUE(SaveEntrances(&rom, entries, true).ok());
+  EXPECT_EQ(*rom.ReadWord(kOverworldEntranceMap), 0xBEEF);
+  EXPECT_EQ(*rom.ReadWord(GetOverworldEntranceMapExpanded() + 201 * 2), 0x80B0);
+  Rom reopened;
+  ASSERT_TRUE(reopened.LoadFromData(rom.vector()).ok());
+  const auto loaded = LoadEntrances(&reopened);
+  ASSERT_TRUE(loaded.ok()) << loaded.status();
+  EXPECT_EQ(loaded->at(200).map_id_, 0xB0);
+  EXPECT_EQ(loaded->at(200).entrance_id_, 0x0B);
+  EXPECT_FALSE(loaded->at(200).deleted);
+  EXPECT_FALSE(loaded->at(200).is_hole_);
+  EXPECT_EQ(loaded->at(201).map_id_, 0xB0);
+  EXPECT_TRUE(loaded->at(201).is_hole_);
+  EXPECT_FALSE(loaded->at(201).deleted);
+  EXPECT_TRUE(loaded->at(202).deleted);
+  EXPECT_FALSE(loaded->at(202).is_hole_);
+  const auto before = reopened.vector();
+  ASSERT_TRUE(SaveEntrances(&reopened, *loaded, true).ok());
+  EXPECT_EQ(reopened.vector(), before);
+}
+
+TEST(OverworldEntranceCompatibilityTest,
+     NormalSavePreservesExpandedIdsInsteadOfWritingLegacyHoles) {
+  Rom rom;
+  InitOverworldTestRom(rom, 0x03);
+  rom[kOverworldEntranceExpandedFlagPos] = 0;
+  Overworld overworld(&rom);
+  auto& entrances = *overworld.mutable_entrances();
+  entrances.resize(256);
+  for (auto& entry : entrances)
+    entry.deleted = true;
+  entrances[200] =
+      OverworldEntrance(336, 3216, 0x0B, 0xB0, ((9 * 64) + 21) * 2, false);
+  entrances[201] =
+      OverworldEntrance(352, 3232, 0x23, 0xB0, ((10 * 64) + 22) * 2, true);
+  // Legacy holes are not separate storage in an expanded layout. Their
+  // loaded values must never overwrite combined-table ID rows 161-255.
+  auto holes = LoadHoles(&rom);
+  ASSERT_TRUE(holes.ok()) << holes.status();
+  *overworld.mutable_holes() = *holes;
+
+  ASSERT_TRUE(overworld.SaveEntrances().ok());
+  const auto first_save = rom.vector();
+  ASSERT_TRUE(overworld.SaveEntrances().ok());
+  EXPECT_EQ(rom.vector(), first_save);
+  Rom reopened;
+  ASSERT_TRUE(reopened.LoadFromData(rom.vector()).ok());
+  auto loaded = LoadEntrances(&reopened);
+  ASSERT_TRUE(loaded.ok()) << loaded.status();
+  ASSERT_EQ(loaded->size(), 256);
+  EXPECT_EQ(loaded->at(200).entrance_id_, 0x0B);
+  EXPECT_EQ(loaded->at(201).entrance_id_, 0x23);
+  EXPECT_EQ(loaded->at(201).map_id_, 0xB0);
+  EXPECT_TRUE(loaded->at(201).is_hole_);
+  const auto before = rom.vector();
+  EXPECT_EQ(SaveHoles(&rom, overworld.holes()).code(),
+            absl::StatusCode::kFailedPrecondition);
+  EXPECT_EQ(rom.vector(), before);
+}
+
+TEST(OverworldEntranceCompatibilityTest,
+     ExpandedNormalSaveRejectsEditedLegacyHolesBeforeAnyWrite) {
+  Rom rom;
+  InitOverworldTestRom(rom, 0x03);
+  rom[kOverworldEntranceExpandedFlagPos] = 0;
+  Overworld overworld(&rom);
+  overworld.mutable_entrances()->resize(256);
+  auto holes = LoadHoles(&rom);
+  ASSERT_TRUE(holes.ok()) << holes.status();
+  *overworld.mutable_holes() = *holes;
+  const auto before = rom.vector();
+  // Cover a raw position edit and a stale packed position after a UI move.
+  overworld.mutable_holes()->at(0).entrance_id_ ^= 1;
+  EXPECT_EQ(overworld.SaveEntrances().code(),
+            absl::StatusCode::kFailedPrecondition);
+  EXPECT_EQ(rom.vector(), before);
+  *overworld.mutable_holes() = *holes;
+  overworld.mutable_holes()->at(0).x_ += 16;
+  EXPECT_EQ(overworld.SaveEntrances().code(),
+            absl::StatusCode::kFailedPrecondition);
+  EXPECT_EQ(rom.vector(), before);
+  *overworld.mutable_holes() = *holes;
+  std::swap(overworld.mutable_holes()->at(0), overworld.mutable_holes()->at(1));
+  EXPECT_EQ(overworld.SaveEntrances().code(),
+            absl::StatusCode::kFailedPrecondition);
+  EXPECT_EQ(rom.vector(), before);
+  overworld.mutable_holes()->clear();
+  EXPECT_EQ(overworld.SaveEntrances().code(),
+            absl::StatusCode::kFailedPrecondition);
+  EXPECT_EQ(rom.vector(), before);
+  *overworld.mutable_holes() = *holes;
+  ASSERT_TRUE(overworld.SaveEntrances().ok());
+}
+
+TEST(OverworldEntranceCompatibilityTest, NormalSaveStillWritesLegacyHoles) {
+  Rom rom;
+  InitOverworldTestRom(rom, 0xFF);
+  Overworld overworld(&rom);
+  overworld.mutable_entrances()->resize(kNumOverworldEntrances);
+  overworld.mutable_holes()->assign(
+      kNumOverworldHoles, OverworldEntrance(32, 64, 0x23, 0, 0x604, true));
+  ASSERT_TRUE(overworld.SaveEntrances().ok());
+  auto loaded = LoadHoles(&rom);
+  ASSERT_TRUE(loaded.ok()) << loaded.status();
+  EXPECT_EQ(loaded->at(0).entrance_id_, 0x23);
+  EXPECT_EQ(loaded->at(0).map_pos_, 0x604);
+  EXPECT_TRUE(loaded->at(0).is_hole_);
+}
+
+TEST(OverworldEntranceCompatibilityTest,
+     IncompleteTablesAndHoleVectorsRefuseBeforeMutation) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(100, 0x5A)).ok());
+  const auto before = rom.vector();
+  EXPECT_FALSE(
+      SaveEntrances(&rom, std::vector<OverworldEntrance>(256), true).ok());
+  EXPECT_EQ(rom.vector(), before);
+  EXPECT_FALSE(SaveHoles(&rom, {}).ok());
+  EXPECT_EQ(rom.vector(), before);
+  EXPECT_FALSE(LoadEntrances(nullptr).ok());
+  EXPECT_FALSE(LoadHoles(nullptr).ok());
+  EXPECT_FALSE(SaveEntrances(nullptr, {}, false).ok());
+}
+
 TEST(OverworldItemCompatibilityTest,
      VanillaSaveLeavesSpecialWorldPointerSlotsUntouched) {
   Rom rom;

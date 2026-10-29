@@ -348,6 +348,10 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
 
   /// @brief Notify that an entity has been modified, marking ROM as dirty
   void NotifyEntityModified(zelda3::GameEntity* entity);
+  absl::Status ApplyEntranceEdit(zelda3::OverworldEntrance* target,
+                                 const zelda3::OverworldEntrance& draft);
+  absl::Status ApplyExitEdit(zelda3::OverworldExit* target,
+                             const zelda3::OverworldExit& draft);
   void OpenEntityEditor(zelda3::GameEntity* entity);
 
   /// @brief Trigger a jump to a dungeon room

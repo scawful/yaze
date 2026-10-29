@@ -1,6 +1,9 @@
 #include "app/editor/overworld/entity/entity_workbench.h"
 #include "util/i18n/tr.h"
 
+#include <algorithm>
+#include <memory>
+#include <tuple>
 #include <vector>
 
 #include "absl/strings/str_format.h"
@@ -8,6 +11,8 @@
 #include "app/editor/core/panel_registration.h"
 #include "app/editor/overworld/entity/entity.h"
 #include "app/editor/overworld/entity/entity_mutation_service.h"
+#include "app/editor/overworld/entity/entity_operations.h"
+#include "app/editor/overworld/overworld_undo_actions.h"
 #include "app/editor/overworld/panels/overworld_panel_access.h"
 #include "app/gui/canvas/item_context_menu.h"
 #include "app/gui/core/popup_id.h"
@@ -18,6 +23,59 @@ namespace yaze {
 namespace editor {
 
 namespace {
+
+bool SameRecord(const zelda3::OverworldEntrance& a,
+                const zelda3::OverworldEntrance& b) {
+  return std::tie(a.map_id_, a.x_, a.y_, a.game_x_, a.game_y_, a.map_pos_,
+                  a.entrance_id_, a.is_hole_, a.deleted) ==
+         std::tie(b.map_id_, b.x_, b.y_, b.game_x_, b.game_y_, b.map_pos_,
+                  b.entrance_id_, b.is_hole_, b.deleted);
+}
+
+bool SameRecord(const zelda3::OverworldExit& a,
+                const zelda3::OverworldExit& b) {
+  return std::tie(a.map_id_, a.x_, a.y_, a.game_x_, a.game_y_, a.room_id_,
+                  a.map_pos_, a.x_player_, a.y_player_, a.x_scroll_,
+                  a.y_scroll_, a.x_camera_, a.y_camera_, a.scroll_mod_x_,
+                  a.scroll_mod_y_, a.door_type_1_, a.door_type_2_,
+                  a.is_automatic_, a.is_hole_, a.deleted_) ==
+         std::tie(b.map_id_, b.x_, b.y_, b.game_x_, b.game_y_, b.room_id_,
+                  b.map_pos_, b.x_player_, b.y_player_, b.x_scroll_,
+                  b.y_scroll_, b.x_camera_, b.y_camera_, b.scroll_mod_x_,
+                  b.scroll_mod_y_, b.door_type_1_, b.door_type_2_,
+                  b.is_automatic_, b.is_hole_, b.deleted_);
+}
+
+template <typename Record>
+std::optional<size_t> FindRecordRow(const std::vector<Record>& records,
+                                    const Record* target) {
+  for (size_t i = 0; i < records.size(); ++i) {
+    if (&records[i] == target)
+      return i;
+  }
+  return std::nullopt;
+}
+
+template <typename Record, typename Notify>
+absl::Status CommitRecordEdit(std::vector<Record>& records, size_t row,
+                              const Record& after, UndoManager& history,
+                              Notify notify, const char* description) {
+  const Record before = records[row];
+  if (SameRecord(before, after))
+    return absl::OkStatus();
+  auto restore = [&records, row, notify](const Record& value) -> absl::Status {
+    if (row >= records.size()) {
+      return absl::FailedPreconditionError("The edited table row is gone");
+    }
+    records[row] = value;
+    notify(&records[row]);
+    return absl::OkStatus();
+  };
+  RETURN_IF_ERROR(restore(after));
+  history.Push(std::make_unique<OverworldRecordEditAction<Record>>(
+      before, after, std::move(restore), description));
+  return absl::OkStatus();
+}
 
 const char* GetEntityTypeLabel(zelda3::GameEntity::EntityType type) {
   switch (type) {
@@ -45,6 +103,60 @@ const char* GetEntityTypeLabel(zelda3::GameEntity::EntityType type) {
 }
 
 }  // namespace
+
+absl::Status OverworldEditor::ApplyEntranceEdit(
+    zelda3::OverworldEntrance* target, const zelda3::OverworldEntrance& draft) {
+  if (overworld_.is_lyra_preview()) {
+    return absl::FailedPreconditionError(
+        "Native entity editing is unavailable in preview");
+  }
+  auto* records = overworld_.mutable_entrances();
+  auto row = FindRecordRow(*records, target);
+  if (!row) {
+    records = overworld_.mutable_holes();
+    row = FindRecordRow(*records, target);
+    if (row && rom_ &&
+        zelda3::DetectOverworldRomProfile(*rom_).has_expanded_entrances) {
+      return absl::FailedPreconditionError(
+          "Select the hole's row in the expanded entrance table");
+    }
+  }
+  if (!row)
+    return absl::NotFoundError("Select a current entrance table row");
+  ASSIGN_OR_RETURN(auto after, BuildOverworldEntranceEdit(
+                                   overworld_, *records, *row, draft,
+                                   records == overworld_.mutable_holes()));
+  return CommitRecordEdit(
+      *records, *row, after, undo_manager_,
+      [this](zelda3::OverworldEntrance* value) {
+        if (current_entity_ == value)
+          edit_entrance_ = *value;
+        NotifyEntityModified(value);
+      },
+      "Edit overworld entrance");
+}
+
+absl::Status OverworldEditor::ApplyExitEdit(
+    zelda3::OverworldExit* target, const zelda3::OverworldExit& draft) {
+  if (overworld_.is_lyra_preview()) {
+    return absl::FailedPreconditionError(
+        "Native entity editing is unavailable in preview");
+  }
+  auto* records = overworld_.mutable_exits();
+  const auto row = FindRecordRow(*records, target);
+  if (!row)
+    return absl::NotFoundError("Select a current return table row");
+  ASSIGN_OR_RETURN(auto after,
+                   BuildOverworldExitEdit(overworld_, *records, *row, draft));
+  return CommitRecordEdit(
+      *records, *row, after, undo_manager_,
+      [this](zelda3::OverworldExit* value) {
+        if (current_entity_ == value)
+          edit_exit_ = *value;
+        NotifyEntityModified(value);
+      },
+      "Edit overworld return");
+}
 
 void OverworldEntityWorkbench::Draw(bool* p_open) {
   (void)p_open;
@@ -243,17 +355,25 @@ void OverworldEntityWorkbench::DrawPopups() {
   if (DrawExitEditorPopup(editor->edit_exit())) {
     if (editing_entity &&
         editing_entity->entity_type_ == zelda3::GameEntity::EntityType::kExit) {
-      *static_cast<zelda3::OverworldExit*>(editing_entity) =
-          editor->edit_exit();
-      editor->NotifyEntityModified(editing_entity);
+      const auto status = editor->ApplyExitEdit(
+          static_cast<zelda3::OverworldExit*>(editing_entity),
+          editor->edit_exit());
+      if (!status.ok()) {
+        editor->insert_error() = std::string(status.message());
+        ImGui::OpenPopup("Entity Edit Error");
+      }
     }
   }
   if (DrawOverworldEntrancePopup(editor->edit_entrance())) {
     if (editing_entity && editing_entity->entity_type_ ==
                               zelda3::GameEntity::EntityType::kEntrance) {
-      *static_cast<zelda3::OverworldEntrance*>(editing_entity) =
-          editor->edit_entrance();
-      editor->NotifyEntityModified(editing_entity);
+      const auto status = editor->ApplyEntranceEdit(
+          static_cast<zelda3::OverworldEntrance*>(editing_entity),
+          editor->edit_entrance());
+      if (!status.ok()) {
+        editor->insert_error() = std::string(status.message());
+        ImGui::OpenPopup("Entity Edit Error");
+      }
     }
   }
   if (DrawItemEditorPopup(editor->edit_item())) {
@@ -274,6 +394,14 @@ void OverworldEntityWorkbench::DrawPopups() {
       *static_cast<zelda3::Sprite*>(editing_entity) = editor->edit_sprite();
       editor->NotifyEntityModified(editing_entity);
     }
+  }
+
+  if (ImGui::BeginPopupModal("Entity Edit Error", nullptr,
+                             ImGuiWindowFlags_AlwaysAutoResize)) {
+    ImGui::TextWrapped("%s", editor->insert_error().c_str());
+    if (ImGui::Button(tr("OK")))
+      ImGui::CloseCurrentPopup();
+    ImGui::EndPopup();
   }
 
   const bool exit_popup_open = ImGui::IsPopupOpen(
