@@ -1521,9 +1521,11 @@ struct ExpandedRunFixture {
   static constexpr uint64_t kGeneration = 7;
   static constexpr char kOperation[] = "y12b-native-save";
 
+  // Evidence records canonical paths; macOS temp_directory_path() is a
+  // symlink (/var -> /private/var).
   ExpandedRunFixture(EditorManager& owner, const std::filesystem::path& folder)
       : manager(owner),
-        root(folder),
+        root(std::filesystem::weakly_canonical(folder)),
         project(root / "project.yaze"),
         source(root / "editing.sfc"),
         stale(root / "stale.sfc"),
