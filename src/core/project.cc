@@ -936,6 +936,13 @@ absl::Status YazeProject::SaveAsWithLyraTerrain(
   if (!candidate.lyra_build_request_file.empty()) {
     read_only_targets.push_back(candidate.lyra_build_request_file);
   }
+  for (const auto& reference : {candidate.native_save_producer_file,
+                                candidate.native_save_transfer_proof_file,
+                                candidate.native_save_receipt_file}) {
+    if (!reference.empty()) {
+      read_only_targets.push_back(reference);
+    }
+  }
   ASSIGN_OR_RETURN(
       auto lock,
       core::AcquireSourceArtifactPublicationLock(
@@ -1298,6 +1305,19 @@ absl::StatusOr<std::string> YazeProject::SerializeToString() const {
        << GetRelativePath(GetAbsolutePath(lyra_terrain_file)) << "\n";
   file << "lyra_build_request_file="
        << GetRelativePath(GetAbsolutePath(lyra_build_request_file)) << "\n";
+  if (!native_save_producer_file.empty()) {
+    file << "native_save_producer_file="
+         << GetRelativePath(GetAbsolutePath(native_save_producer_file)) << "\n";
+  }
+  if (!native_save_transfer_proof_file.empty()) {
+    file << "native_save_transfer_proof_file="
+         << GetRelativePath(GetAbsolutePath(native_save_transfer_proof_file))
+         << "\n";
+  }
+  if (!native_save_receipt_file.empty()) {
+    file << "native_save_receipt_file="
+         << GetRelativePath(GetAbsolutePath(native_save_receipt_file)) << "\n";
+  }
   file << "hack_manifest_file=" << GetRelativePath(hack_manifest_file) << "\n";
   file << "sprite_catalog_file="
        << GetRelativePath(GetAbsolutePath(sprite_catalog_file)) << "\n";
@@ -1643,6 +1663,9 @@ absl::Status YazeProject::ParseFromString(const std::string& content) {
   terrain_catalog_file.clear();
   lyra_terrain_file.clear();
   lyra_build_request_file.clear();
+  native_save_producer_file.clear();
+  native_save_transfer_proof_file.clear();
+  native_save_receipt_file.clear();
   palette_catalog_file.clear();
   dungeon_tile_patterns.clear();
   file_passthrough = ProjectFilePassthrough{};
@@ -1752,6 +1775,12 @@ absl::Status YazeProject::ParseFromString(const std::string& content) {
         lyra_terrain_file = value;
       else if (key == "lyra_build_request_file")
         lyra_build_request_file = value;
+      else if (key == "native_save_producer_file")
+        native_save_producer_file = value;
+      else if (key == "native_save_transfer_proof_file")
+        native_save_transfer_proof_file = value;
+      else if (key == "native_save_receipt_file")
+        native_save_receipt_file = value;
       else if (key == "hack_manifest_file")
         hack_manifest_file = value;
       else if (key == "sprite_catalog_file")
@@ -2357,6 +2386,9 @@ void YazeProject::NormalizePathsToAbsolute() {
   normalize(&terrain_catalog_file);
   normalize(&lyra_terrain_file);
   normalize(&lyra_build_request_file);
+  normalize(&native_save_producer_file);
+  normalize(&native_save_transfer_proof_file);
+  normalize(&native_save_receipt_file);
   normalize(&palette_catalog_file);
   for (auto& asset : sprite_assets) {
     normalize(&asset.zsm_path);
@@ -2741,6 +2773,9 @@ void YazeProject::InitializeDefaults() {
   terrain_catalog_file.clear();
   lyra_terrain_file.clear();
   lyra_build_request_file.clear();
+  native_save_producer_file.clear();
+  native_save_transfer_proof_file.clear();
+  native_save_receipt_file.clear();
   palette_catalog_file.clear();
   dungeon_tile_patterns.clear();
   if (metadata.project_id.empty()) {
@@ -3388,6 +3423,9 @@ absl::Status YazeProject::LoadFromJsonFormat(const std::string& project_path) {
   terrain_catalog_file.clear();
   lyra_terrain_file.clear();
   lyra_build_request_file.clear();
+  native_save_producer_file.clear();
+  native_save_transfer_proof_file.clear();
+  native_save_receipt_file.clear();
   palette_catalog_file.clear();
   dungeon_tile_patterns.clear();
 #ifdef __EMSCRIPTEN__
@@ -3454,6 +3492,15 @@ absl::Status YazeProject::LoadFromJsonFormat(const std::string& project_path) {
       if (proj.contains("lyra_build_request_file"))
         lyra_build_request_file =
             proj["lyra_build_request_file"].get<std::string>();
+      if (proj.contains("native_save_producer_file"))
+        native_save_producer_file =
+            proj["native_save_producer_file"].get<std::string>();
+      if (proj.contains("native_save_transfer_proof_file"))
+        native_save_transfer_proof_file =
+            proj["native_save_transfer_proof_file"].get<std::string>();
+      if (proj.contains("native_save_receipt_file"))
+        native_save_receipt_file =
+            proj["native_save_receipt_file"].get<std::string>();
       if (proj.contains("hack_manifest_file"))
         hack_manifest_file = proj["hack_manifest_file"].get<std::string>();
       if (proj.contains("sprite_catalog_file"))
@@ -3757,6 +3804,18 @@ absl::Status YazeProject::SaveToJsonFormat() {
       GetRelativePath(GetAbsolutePath(lyra_terrain_file));
   proj["lyra_build_request_file"] =
       GetRelativePath(GetAbsolutePath(lyra_build_request_file));
+  if (!native_save_producer_file.empty()) {
+    proj["native_save_producer_file"] =
+        GetRelativePath(GetAbsolutePath(native_save_producer_file));
+  }
+  if (!native_save_transfer_proof_file.empty()) {
+    proj["native_save_transfer_proof_file"] =
+        GetRelativePath(GetAbsolutePath(native_save_transfer_proof_file));
+  }
+  if (!native_save_receipt_file.empty()) {
+    proj["native_save_receipt_file"] =
+        GetRelativePath(GetAbsolutePath(native_save_receipt_file));
+  }
   proj["hack_manifest_file"] = hack_manifest_file;
   proj["sprite_catalog_file"] =
       GetRelativePath(GetAbsolutePath(sprite_catalog_file));

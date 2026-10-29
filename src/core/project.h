@@ -344,6 +344,13 @@ struct YazeProject {
   // Optional producer request; saving does not refresh its source bindings.
   std::string lyra_build_request_file;
 
+  // Optional build-transfer control references. Save preserves their paths,
+  // but does not create, copy, or refresh their contents. The canonical Save
+  // receipt remains adjacent to the descriptor, even with a legacy reference.
+  std::string native_save_producer_file;
+  std::string native_save_transfer_proof_file;
+  std::string native_save_receipt_file;
+
   // Optional read-only palette names, contextual sprite uses and provenance.
   std::string palette_catalog_file;
 
