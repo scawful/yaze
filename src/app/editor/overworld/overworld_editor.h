@@ -234,6 +234,9 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
 
   int jump_to_tab() { return jump_to_tab_; }
   int jump_to_tab_ = -1;
+  // Regular entrance IDs share numbers with room IDs but not meaning; the
+  // dungeon editor resolves the entrance's room.
+  int jump_to_entrance_ = -1;
 
   // ===========================================================================
   // ROM State
@@ -354,7 +357,9 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   void RequestJumpToRoom(int room_id) { jump_to_tab_ = room_id; }
 
   /// @brief Trigger a jump to a dungeon entrance
-  void RequestJumpToEntrance(int entrance_id) { jump_to_tab_ = entrance_id; }
+  void RequestJumpToEntrance(int entrance_id) {
+    jump_to_entrance_ = entrance_id;
+  }
 
   /// @brief Access the entity mutation service
   EntityMutationService* entity_mutation_service() {

@@ -409,8 +409,8 @@ void OverworldEditor::InitInteractionCoordinator() {
             static_cast<zelda3::OverworldExit*>(entity)->room_id_;
         break;
       case zelda3::GameEntity::EntityType::kEntrance:
-        this->jump_to_tab_ =
-            static_cast<zelda3::OverworldEntrance*>(entity)->entrance_id_;
+        RequestJumpToEntrance(
+            static_cast<zelda3::OverworldEntrance*>(entity)->entrance_id_);
         break;
       default:
         break;

@@ -842,6 +842,11 @@ void SessionCoordinator::UpdateSessions() {
                 overworld_editor.jump_to_tab());
             overworld_editor.jump_to_tab_ = -1;
           }
+          if (overworld_editor.jump_to_entrance_ != -1) {
+            session->editors.GetDungeonEditor()->OpenRegularEntrance(
+                overworld_editor.jump_to_entrance_);
+            overworld_editor.jump_to_entrance_ = -1;
+          }
         }
 
         // CARD-BASED EDITORS: Don't wrap in Begin/End, they manage own windows

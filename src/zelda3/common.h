@@ -158,7 +158,7 @@ constexpr const char* kEntranceNames[] = {
     "Kakariko Pub South",
     "Kakariko Pub North",
     "Kakariko Inn",
-    "Sahasrahlah's Disco Infernum",
+    "Sahasrahla's Hideout",
     "Kakariko's Lame Shop",
     "Village of Outcasts Chest Game",
     "Village of Outcasts Orphanage",
