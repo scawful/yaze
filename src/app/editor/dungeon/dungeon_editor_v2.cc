@@ -2300,6 +2300,12 @@ void DungeonEditorV2::add_room(int room_id) {
   OnRoomSelected(room_id);
 }
 
+void DungeonEditorV2::OpenRegularEntrance(int entrance_id) {
+  if (entrance_id < 0 || entrance_id >= zelda3::kNumRegularDungeonEntrances)
+    return;
+  OnEntranceSelected(zelda3::kNumDungeonSpawnPoints + entrance_id);
+}
+
 void DungeonEditorV2::FocusRoom(int room_id) {
   auto it = room_cards_.find(room_id);
   if (it != room_cards_.end()) {

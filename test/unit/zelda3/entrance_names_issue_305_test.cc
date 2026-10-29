@@ -24,8 +24,8 @@ TEST(EntranceNamesIssue305Test, EntranceId0x45IsSahasrahlaNotThievesTown) {
 TEST(EntranceNamesIssue305Test, VanillaEntranceTablePinsSeveralIds) {
   const auto& names = Zelda3Labels::GetEntranceNames();
   ASSERT_GT(names.size(), 0x46u);
-  EXPECT_EQ(names[0x0D], "Sahasrahla's House West");
-  EXPECT_EQ(names[0x0E], "Sahasrahla's House East");
+  EXPECT_EQ(names[0x0D], "Kakariko Elder's House West");
+  EXPECT_EQ(names[0x0E], "Kakariko Elder's House East");
   EXPECT_EQ(names[0x33], "Tower of Hera");
   EXPECT_EQ(names[0x34], "Thieves's Town");
   EXPECT_EQ(names[0x44], "Kakariko Inn");

@@ -1202,6 +1202,30 @@ TEST(DungeonEditorV2RomSafetyTest,
             1);
 }
 
+// scawful/yaze#305: overworld entrance $45 (Sahasrahla's hut) opened room $045,
+// a Thieves' Town room, because the entrance ID was used as a room ID.
+TEST(DungeonEditorV2RomSafetyTest, RegularEntranceOpensItsRoomNotSameNumber) {
+  constexpr int kEntranceId = 0x45;
+  constexpr int kEntranceRoom = 0x105;
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+  auto editor = std::make_unique<DungeonEditorV2>(&rom);
+  DungeonEditorV2RegularEntranceTestPeer::RegularEntrance(*editor, kEntranceId)
+      .room_ = kEntranceRoom;
+  *editor->mutable_current_room_id() = 5;
+
+  editor->OpenRegularEntrance(kEntranceId);
+
+  EXPECT_EQ(DungeonEditorV2SpawnPointTestPeer::SelectedEntranceSlot(*editor),
+            zelda3::kNumDungeonSpawnPoints + kEntranceId);
+  EXPECT_EQ(*editor->mutable_current_room_id(), kEntranceRoom);
+
+  editor->OpenRegularEntrance(zelda3::kNumRegularDungeonEntrances);
+  EXPECT_EQ(DungeonEditorV2SpawnPointTestPeer::SelectedEntranceSlot(*editor),
+            zelda3::kNumDungeonSpawnPoints + kEntranceId);
+  EXPECT_EQ(*editor->mutable_current_room_id(), kEntranceRoom);
+}
+
 TEST(DungeonEditorV2RomSafetyTest,
      SaveRoomPersistsDedicatedSpawnPointAndClearsDirtyState) {
   constexpr int kSpawnId = 1;

@@ -259,6 +259,9 @@ class DungeonEditorV2 : public Editor {
 
   // Room management
   void add_room(int room_id);
+  // Opens the room of regular entrance `entrance_id` (0x00-0x84, the overworld
+  // entrance numbering) with that entrance's render context.
+  void OpenRegularEntrance(int entrance_id);
   void FocusRoom(int room_id);
   absl::Status LoadProposalForReview(const std::string& path);
   std::string proposal_review_path() const;
