@@ -1,5 +1,25 @@
 # Editor candidate status
 
+## v0.8.0 experimental release (2026-10-27)
+
+Current release: v0.7.2. `VERSION` is `0.8.0`; nothing is tagged or published.
+On 2026-10-27 the v0.8.0 scope changed to an experimental Linux, macOS, and
+Windows release of merged work. Dungeon Editor completion (`DA-1` to `DA-5`)
+remains open roadmap work. Scope, gates, and the feature table:
+[release checklist](release-checklist.md) and
+[v0.8.0 release notes](../public/release-notes.md#v080).
+
+| Item | State |
+| --- | --- |
+| Base | `master` `5d4b39ae0` |
+| CI on base | Run 40567451155: every job passed except Memory Sanitizer (heap-use-after-free in `object_draw_code_test.cc:72`, a test-owned temporary) |
+| Sanitizer fix | Release-prep PR keeps the `ReadObjectDrawCode` result alive; sanitizer stays enabled |
+| HTTP API exposure | Release preset builds with `YAZE_ENABLE_HTTP_API` off (Release run 34817034857 logged `HTTP API Server: OFF` on all three platforms); [PR #312](https://github.com/scawful/yaze/pull/312) fixes source builds and is stacked on #308/#309 |
+| `Release` with `publish=false` on the candidate | Not dispatched |
+| Packaged startup, `z3ed` copy save/reopen, GUI save/reopen | Not run; [issue #107](https://github.com/scawful/yaze/issues/107) Windows GUI Save As stays with a person |
+
+## Earlier candidate notes
+
 The combined editor candidate brings together overworld/Tile16 changes from
 `0f3855d6f` and dungeon authoring from `804b32eea`. The combined application build
 and 1,303 focused automated tests passed; three optional asset tests skipped. Native editing and disposable-ROM acceptance

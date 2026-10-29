@@ -38,7 +38,7 @@ the listed environment variable.
 | `dev-setup.sh` | canonical | One-command setup for a new developer machine |
 | `verify-build-environment.sh` / `.ps1` | canonical | Per-machine toolchain diagnostics; `--fix` / `-FixIssues` repairs common problems |
 | `setup-vcpkg-windows.ps1` | canonical | Bootstrap and populate vcpkg on Windows |
-| `agent_build.sh` | canonical | Quiet incremental agent builds: selected targets, two workers (max four), preset-directory reuse and automatic macOS heavy-lock waiting. `--dry-run` previews; `--status` shows the owner. `YAZE_BUILD_DIR` overrides the directory. |
+| `agent_build.sh` | canonical | Quiet incremental agent builds: selected targets, workers from `~/.config/oos/build_mode` (desk all host cores, laptop 2 with max four) and preset-directory reuse; never takes the native heavy lock. `--preflight` checks dependencies and previews cache reuse. Cold builds require `--allow-new-build`; `--reuse-from` selects a clean same-commit owner checkout. `YAZE_BUILD_DIR` overrides the directory. |
 | `build_cleaner.py` | canonical | Maintain CMake source lists and self-header includes; also a `build_cleaner` CMake target |
 | `audit_test_registration.py` | canonical | Require every `*_test.cc` source to be registered or explicitly excluded with a reason |
 | `fetch_usdasm.sh` | canonical | Fetch the usdasm disassembly on demand (`USDASM_DIR`, `USDASM_REPO_URL`) |

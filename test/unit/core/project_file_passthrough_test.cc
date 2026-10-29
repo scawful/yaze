@@ -17,6 +17,7 @@
 
 #include "core/project.h"
 #include "unique_temp_path.h"
+#include "yaze_test_paths.h"
 
 namespace yaze::project {
 namespace {

@@ -67,7 +67,8 @@ TEST(ObjectDrawCodeTest, ReadsDispatchTablesAndSpotsExpandedJumps) {
   data[stub + 3] = 0x01;
   Rom vanilla_style;
   ASSERT_TRUE(vanilla_style.LoadFromData(data).ok());
-  const auto* same = Find(ReadObjectDrawCode(vanilla_style), 0x031);
+  const auto vanilla_codes = ReadObjectDrawCode(vanilla_style);
+  const auto* same = Find(vanilla_codes, 0x031);
   ASSERT_NE(same, nullptr);
   EXPECT_FALSE(same->jumps_to_expanded_code);
 }

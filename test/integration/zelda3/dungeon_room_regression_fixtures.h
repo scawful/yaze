@@ -6,7 +6,7 @@
 namespace yaze::zelda3::test {
 
 // Symptom categories for ROM-backed room render regression fixtures.
-// See docs/internal/hand-off/HANDOFF_DUNGEON_RENDERING_REGRESSION_TRIAGE_2026-04-16.md
+// See docs/internal/zelda3/dungeon-rendering-regression-triage.md
 enum class DungeonRoomRegressionCategory : uint8_t {
   kCornerAndOverlayStreams = 0,
   kBg2OverlayPlatform,
