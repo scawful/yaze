@@ -95,6 +95,10 @@ struct WorkspaceSettings {
  * @brief Dungeon overlay configuration (per-project).
  */
 struct DungeonOverlaySettings {
+  // Authoring layout only. Version 2 requires validated migration evidence;
+  // this setting alone does not declare that the ROM has the MCR2 runtime.
+  int minecart_catalog_version = 1;
+
   // Collision tile IDs used by minecart tracks and interactions.
   std::vector<uint16_t> track_tiles;
   std::vector<uint16_t> track_stop_tiles;
@@ -323,6 +327,9 @@ struct YazeProject {
   std::string overworld_graphics_preview;
   // Read-only literal ASM tile patterns for the standard dungeon renderer.
   std::string dungeon_tile_patterns;
+  // Immutable evidence for a version-2 editable minecart object catalog.
+  // Current-ROM admission is validated separately from this file reference.
+  std::string minecart_catalog_migration_receipt;
   // Tracked custom collision source kept in step with the ROM on every save
   // ([files] custom_collision_json). Empty: collision lives only in the ROM.
   std::string custom_collision_json;

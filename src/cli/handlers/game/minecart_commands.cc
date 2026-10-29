@@ -1,5 +1,7 @@
 #include "cli/handlers/game/minecart_commands.h"
 
+#include "zelda3/dungeon/custom_object.h"
+
 #include <array>
 #include <cstdint>
 #include <set>
@@ -145,7 +147,11 @@ RoomMinecartAudit AuditRoom(Rom* rom, int room_id, int track_object_id,
 
   for (const auto& obj : room.GetTileObjects()) {
     const int subtype = obj.size_ & 0x0F;
-    const auto profile = zelda3::DetectMinecartRailProfile(rom->vector());
+    const auto profile =
+        (zelda3::DetectMinecartRailProfile(rom->vector()) ==
+                 zelda3::MinecartRailProfile::kExpanded
+             ? zelda3::MinecartRailProfile::kExpanded
+             : zelda3::CustomObjectManager::Get().GetMinecartRailProfile());
     if (track_object_id == 0x31) {
       if (!zelda3::FindMinecartRailDescriptor(obj.id_, subtype, profile))
         continue;

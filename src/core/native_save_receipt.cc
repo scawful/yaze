@@ -347,6 +347,7 @@ absl::Status RetireNativeSaveContext(const NativeSaveContext& context,
   if (!existing.has_value()) {
     return absl::OkStatus();
   }
+
   ASSIGN_OR_RETURN(auto lock,
                    AcquireSourceArtifactPublicationLock({context.path}));
   ASSIGN_OR_RETURN(const auto before, ReadOptionalOutput(context.path));
@@ -379,6 +380,115 @@ absl::Status RetireNativeSaveContext(const NativeSaveContext& context,
         }
         return absl::OkStatus();
       });
+}
+
+absl::StatusOr<NativeSaveReceipt> VerifyCurrentNativeSaveReceipt(
+    const fs::path& requested_receipt,
+    const std::optional<NativeSaveContext>& context,
+    const std::vector<NativeSaveArtifact>& required_artifacts,
+    NativeSaveReceiptVerification policy) {
+  if (context.has_value() &&
+      policy == NativeSaveReceiptVerification::kPersistedDataAdmission) {
+    return absl::InvalidArgumentError(
+        "Current native save context requires current-artifact verification");
+  }
+  ASSIGN_OR_RETURN(const auto receipt_path,
+                   ResolveRegularFile(requested_receipt));
+  ASSIGN_OR_RETURN(const auto receipt_text,
+                   ReadBoundedFile(receipt_path, kMaxReceiptBytes));
+  std::optional<std::string> context_text;
+  if (context.has_value()) {
+    RETURN_IF_ERROR(ValidateContext(*context));
+    ASSIGN_OR_RETURN(const auto context_path,
+                     ResolveRegularFile(context->path));
+    ASSIGN_OR_RETURN(context_text,
+                     ReadBoundedFile(context_path, kMaxReceiptBytes));
+  }
+  try {
+    const auto receipt = Json::parse(receipt_text);
+    RETURN_IF_ERROR(ValidatePreviousReceipt(receipt, receipt_path));
+    if (receipt["bindings_complete"] != true) {
+      return absl::FailedPreconditionError(
+          "Native save receipt does not have complete bindings");
+    }
+    std::map<std::string, const Json*> roles;
+    std::vector<ArtifactBinding> bindings;
+    for (const auto& artifact : receipt["artifacts"]) {
+      const auto role = artifact["role"].get<std::string>();
+      roles.emplace(role, &artifact);
+      if (role == "producer" &&
+          policy == NativeSaveReceiptVerification::kPersistedDataAdmission) {
+        continue;
+      }
+      const auto path = fs::u8path(artifact["path"].get<std::string>());
+      ASSIGN_OR_RETURN(const auto resolved, ResolveRegularFile(path));
+      if (path != resolved) {
+        return absl::FailedPreconditionError(
+            "Native save artifact path is no longer canonical");
+      }
+      ArtifactBinding binding{{artifact["role"].get<std::string>(), path,
+                               artifact["sha256"].get<std::string>()},
+                              resolved,
+                              artifact["bytes"].get<uint64_t>()};
+      RETURN_IF_ERROR(VerifyBinding(binding));
+      bindings.push_back(std::move(binding));
+    }
+    if (context.has_value()) {
+      const auto current = Json::parse(*context_text);
+      RETURN_IF_ERROR(ValidatePreviousContext(current, *context));
+      if (current["state"] != "committed" ||
+          current["project_path"] != context->project_path ||
+          current["native_commit"]["receipt_path"] != PathText(receipt_path) ||
+          current["native_commit"]["generation"] != receipt["generation"] ||
+          current["native_commit"]["operation_id"] != receipt["operation_id"] ||
+          current["rom_path"] != (*roles.at("rom"))["path"] ||
+          current["producer"] != *roles.at("producer")) {
+        return absl::FailedPreconditionError(
+            "Native save receipt is not the current committed generation");
+      }
+    }
+    std::set<std::string> required_roles;
+    for (const auto& required : required_artifacts) {
+      if (!IsIdentifier(required.role, true) ||
+          !required_roles.insert(required.role).second ||
+          !IsSha256(required.expected_sha256)) {
+        return absl::InvalidArgumentError(
+            "Invalid required native save artifact");
+      }
+      ASSIGN_OR_RETURN(const auto path, ResolveRegularFile(required.path));
+      const auto found = roles.find(required.role);
+      if (found == roles.end() || (*found->second)["path"] != PathText(path) ||
+          (*found->second)["sha256"] != required.expected_sha256) {
+        return absl::FailedPreconditionError(
+            "Required native save artifact binding differs: " + required.role);
+      }
+    }
+    for (const auto& binding : bindings) {
+      RETURN_IF_ERROR(VerifyBinding(binding));
+    }
+    ASSIGN_OR_RETURN(const auto receipt_after,
+                     ReadBoundedFile(receipt_path, kMaxReceiptBytes));
+    ASSIGN_OR_RETURN(const auto final_receipt_path,
+                     ResolveRegularFile(requested_receipt));
+    if (receipt_after != receipt_text || final_receipt_path != receipt_path) {
+      return absl::AbortedError("Native save admission changed while reading");
+    }
+    if (context.has_value()) {
+      ASSIGN_OR_RETURN(const auto context_after,
+                       ReadBoundedFile(context->path, kMaxReceiptBytes));
+      ASSIGN_OR_RETURN(const auto final_context_path,
+                       ResolveRegularFile(context->path));
+      if (context_after != *context_text ||
+          final_context_path != context->path) {
+        return absl::AbortedError("Native save context changed while reading");
+      }
+    }
+    return NativeSaveReceipt{receipt["generation"].get<uint64_t>(),
+                             receipt_text};
+  } catch (const std::exception& error) {
+    return absl::FailedPreconditionError(
+        std::string("Invalid native save admission: ") + error.what());
+  }
 }
 
 absl::StatusOr<NativeSaveReceipt> PublishNativeSaveReceipt(
@@ -608,6 +718,12 @@ absl::Status RetireNativeSaveContext(const NativeSaveContext&,
 
 absl::StatusOr<NativeSaveReceipt> PublishNativeSaveReceipt(
     const NativeSaveReceiptRequest&) {
+  return absl::UnimplementedError("Native save receipts require JSON support");
+}
+
+absl::StatusOr<NativeSaveReceipt> VerifyCurrentNativeSaveReceipt(
+    const std::filesystem::path&, const std::optional<NativeSaveContext>&,
+    const std::vector<NativeSaveArtifact>&, NativeSaveReceiptVerification) {
   return absl::UnimplementedError("Native save receipts require JSON support");
 }
 

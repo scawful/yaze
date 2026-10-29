@@ -55,6 +55,14 @@ namespace yaze {
 namespace project {
 
 namespace {
+absl::Status ValidateMinecartCatalogVersion(int version) {
+  if (version != 1 && version != 2) {
+    return absl::InvalidArgumentError(
+        "dungeon_overlay.minecart_catalog_version must be integer 1 or 2");
+  }
+  return absl::OkStatus();
+}
+
 std::string ToLowerCopy(std::string value) {
   std::transform(
       value.begin(), value.end(), value.begin(),
@@ -1584,6 +1592,8 @@ bool IsKnownProjectFileSection(absl::string_view name) {
 }
 
 absl::StatusOr<std::string> YazeProject::SerializeToString() const {
+  RETURN_IF_ERROR(
+      ValidateMinecartCatalogVersion(dungeon_overlay.minecart_catalog_version));
   std::ostringstream file;
 
   // Write header comment
@@ -1630,6 +1640,11 @@ absl::StatusOr<std::string> YazeProject::SerializeToString() const {
   if (!custom_collision_json.empty()) {
     file << "custom_collision_json="
          << GetRelativePath(GetAbsolutePath(custom_collision_json)) << "\n";
+  }
+  if (!minecart_catalog_migration_receipt.empty()) {
+    file << "minecart_catalog_migration_receipt="
+         << GetRelativePath(GetAbsolutePath(minecart_catalog_migration_receipt))
+         << "\n";
   }
   file << "output_folder=" << GetRelativePath(output_folder) << "\n";
   file << "custom_objects_folder=" << GetRelativePath(custom_objects_folder)
@@ -1808,6 +1823,8 @@ absl::StatusOr<std::string> YazeProject::SerializeToString() const {
     minecart_sprite_ids = {0xA3};
   }
   file << "[dungeon_overlay]\n";
+  file << "minecart_catalog_version="
+       << dungeon_overlay.minecart_catalog_version << "\n";
   file << "track_tiles=" << FormatHexUintList(track_tiles) << "\n";
   file << "track_stop_tiles=" << FormatHexUintList(track_stop_tiles) << "\n";
   file << "track_switch_tiles=" << FormatHexUintList(track_switch_tiles)
@@ -2005,6 +2022,8 @@ absl::Status YazeProject::ParseFromString(const std::string& content) {
   native_save_receipt_file.clear();
   palette_catalog_file.clear();
   dungeon_tile_patterns.clear();
+  minecart_catalog_migration_receipt.clear();
+  dungeon_overlay.minecart_catalog_version = 1;
   file_passthrough = ProjectFilePassthrough{};
   atlas = AtlasSettings{};
   planning = PlanningSettings{};
@@ -2096,6 +2115,8 @@ absl::Status YazeProject::ParseFromString(const std::string& content) {
         overworld_graphics_preview = value;
       else if (key == "dungeon_tile_patterns")
         dungeon_tile_patterns = value;
+      else if (key == "minecart_catalog_migration_receipt")
+        minecart_catalog_migration_receipt = value;
       else if (key == "cutscene_shots")
         cutscene_shots = value;
       else if (key == "custom_collision_json")
@@ -2241,7 +2262,14 @@ absl::Status YazeProject::ParseFromString(const std::string& content) {
       else
         understood = false;
     } else if (current_section == "dungeon_overlay") {
-      if (key == "track_tiles")
+      if (key == "minecart_catalog_version") {
+        if (value != "1" && value != "2") {
+          return absl::InvalidArgumentError(
+              "dungeon_overlay.minecart_catalog_version must be integer 1 or "
+              "2");
+        }
+        dungeon_overlay.minecart_catalog_version = value == "2" ? 2 : 1;
+      } else if (key == "track_tiles")
         dungeon_overlay.track_tiles = ParseHexUintList(value);
       else if (key == "track_stop_tiles")
         dungeon_overlay.track_stop_tiles = ParseHexUintList(value);
@@ -2543,6 +2571,8 @@ absl::Status YazeProject::ResetToDefaults() {
 
 absl::Status YazeProject::Validate() const {
   std::vector<std::string> errors;
+  RETURN_IF_ERROR(
+      ValidateMinecartCatalogVersion(dungeon_overlay.minecart_catalog_version));
 
   if (name.empty())
     errors.push_back("Project name is required");
@@ -2550,6 +2580,11 @@ absl::Status YazeProject::Validate() const {
     errors.push_back("Project file path is required");
   if (rom_filename.empty())
     errors.push_back("ROM file is required");
+  if (dungeon_overlay.minecart_catalog_version == 2 &&
+      minecart_catalog_migration_receipt.empty()) {
+    errors.push_back(
+        "Minecart catalog version 2 requires a migration receipt file");
+  }
 
 #ifndef __EMSCRIPTEN__
   // Check if files exist
@@ -2566,6 +2601,19 @@ absl::Status YazeProject::Validate() const {
   if (!labels_filename.empty() &&
       !std::filesystem::exists(GetAbsolutePath(labels_filename))) {
     errors.push_back("Labels file does not exist: " + labels_filename);
+  }
+
+  if (dungeon_overlay.minecart_catalog_version == 2 &&
+      !minecart_catalog_migration_receipt.empty()) {
+    const auto receipt = GetAbsolutePath(minecart_catalog_migration_receipt);
+    std::error_code error;
+    if (!std::filesystem::is_regular_file(receipt, error) || error ||
+        !std::ifstream(receipt, std::ios::binary).is_open()) {
+      errors.push_back(
+          "Minecart catalog migration receipt is not a readable "
+          "regular file: " +
+          minecart_catalog_migration_receipt);
+    }
   }
 
   if (!hack_manifest_file.empty()) {
@@ -2605,6 +2653,11 @@ std::vector<std::string> YazeProject::GetMissingFiles() const {
   if (!hack_manifest_file.empty() &&
       !std::filesystem::exists(GetAbsolutePath(hack_manifest_file))) {
     missing.push_back(hack_manifest_file);
+  }
+  if (!minecart_catalog_migration_receipt.empty() &&
+      !std::filesystem::exists(
+          GetAbsolutePath(minecart_catalog_migration_receipt))) {
+    missing.push_back(minecart_catalog_migration_receipt);
   }
 #endif  // __EMSCRIPTEN__
 
@@ -2720,6 +2773,7 @@ void YazeProject::NormalizePathsToAbsolute() {
   normalize(&sprite_source_root);
   normalize(&overworld_graphics_preview);
   normalize(&dungeon_tile_patterns);
+  normalize(&minecart_catalog_migration_receipt);
   normalize(&terrain_catalog_file);
   normalize(&lyra_terrain_file);
   normalize(&lyra_build_request_file);
@@ -3115,6 +3169,7 @@ void YazeProject::InitializeDefaults() {
   native_save_receipt_file.clear();
   palette_catalog_file.clear();
   dungeon_tile_patterns.clear();
+  minecart_catalog_migration_receipt.clear();
   if (metadata.project_id.empty()) {
     metadata.project_id = GenerateProjectId();
   }
@@ -3151,6 +3206,7 @@ void YazeProject::InitializeDefaults() {
   workspace_settings.show_collision = false;
 
   // Initialize default dungeon overlay settings (minecart tracks)
+  dungeon_overlay.minecart_catalog_version = 1;
   dungeon_overlay.track_tiles.clear();
   for (uint16_t tile = 0xB0; tile <= 0xBE; ++tile) {
     dungeon_overlay.track_tiles.push_back(tile);
@@ -3765,6 +3821,8 @@ absl::Status YazeProject::LoadFromJsonFormat(const std::string& project_path) {
   native_save_receipt_file.clear();
   palette_catalog_file.clear();
   dungeon_tile_patterns.clear();
+  minecart_catalog_migration_receipt.clear();
+  dungeon_overlay.minecart_catalog_version = 1;
 #ifdef __EMSCRIPTEN__
   return absl::UnimplementedError(
       "JSON project format loading is not supported in the web build");
@@ -3820,6 +3878,9 @@ absl::Status YazeProject::LoadFromJsonFormat(const std::string& project_path) {
       if (proj.contains("dungeon_tile_patterns"))
         dungeon_tile_patterns =
             proj["dungeon_tile_patterns"].get<std::string>();
+      if (proj.contains("minecart_catalog_migration_receipt"))
+        minecart_catalog_migration_receipt =
+            proj["minecart_catalog_migration_receipt"].get<std::string>();
       if (proj.contains("palette_catalog_file"))
         palette_catalog_file = proj["palette_catalog_file"].get<std::string>();
       if (proj.contains("terrain_catalog_file"))
@@ -3977,6 +4038,38 @@ absl::Status YazeProject::LoadFromJsonFormat(const std::string& project_path) {
               ws["backup_keep_daily_days"].get<int>();
       }
 
+      if (proj.contains("dungeon_overlay")) {
+        const auto& overlay = proj["dungeon_overlay"];
+        if (!overlay.is_object()) {
+          return absl::InvalidArgumentError(
+              "dungeon_overlay must be an object");
+        }
+        if (overlay.contains("minecart_catalog_version")) {
+          const auto& version = overlay["minecart_catalog_version"];
+          if (!version.is_number_integer() || (version != 1 && version != 2)) {
+            return absl::InvalidArgumentError(
+                "dungeon_overlay.minecart_catalog_version must be integer 1 or "
+                "2");
+          }
+          dungeon_overlay.minecart_catalog_version = version.get<int>();
+        }
+        if (overlay.contains("track_tiles"))
+          dungeon_overlay.track_tiles =
+              overlay["track_tiles"].get<std::vector<uint16_t>>();
+        if (overlay.contains("track_stop_tiles"))
+          dungeon_overlay.track_stop_tiles =
+              overlay["track_stop_tiles"].get<std::vector<uint16_t>>();
+        if (overlay.contains("track_switch_tiles"))
+          dungeon_overlay.track_switch_tiles =
+              overlay["track_switch_tiles"].get<std::vector<uint16_t>>();
+        if (overlay.contains("track_object_ids"))
+          dungeon_overlay.track_object_ids =
+              overlay["track_object_ids"].get<std::vector<uint16_t>>();
+        if (overlay.contains("minecart_sprite_ids"))
+          dungeon_overlay.minecart_sprite_ids =
+              overlay["minecart_sprite_ids"].get<std::vector<uint16_t>>();
+      }
+
       if (proj.contains("rom_addresses") && proj["rom_addresses"].is_object()) {
         rom_address_overrides.addresses.clear();
         for (auto it = proj["rom_addresses"].begin();
@@ -4107,6 +4200,8 @@ absl::Status YazeProject::LoadFromJsonFormat(const std::string& project_path) {
 }
 
 absl::Status YazeProject::SaveToJsonFormat() {
+  RETURN_IF_ERROR(
+      ValidateMinecartCatalogVersion(dungeon_overlay.minecart_catalog_version));
 #ifdef __EMSCRIPTEN__
   return absl::UnimplementedError(
       "JSON project format saving is not supported in the web build");
@@ -4133,6 +4228,10 @@ absl::Status YazeProject::SaveToJsonFormat() {
   proj["symbols_filename"] = symbols_filename;
   proj["dungeon_tile_patterns"] =
       GetRelativePath(GetAbsolutePath(dungeon_tile_patterns));
+  if (!minecart_catalog_migration_receipt.empty()) {
+    proj["minecart_catalog_migration_receipt"] =
+        GetRelativePath(GetAbsolutePath(minecart_catalog_migration_receipt));
+  }
   proj["palette_catalog_file"] =
       GetRelativePath(GetAbsolutePath(palette_catalog_file));
   proj["terrain_catalog_file"] =
@@ -4239,6 +4338,18 @@ absl::Status YazeProject::SaveToJsonFormat() {
       workspace_settings.backup_keep_daily;
   proj["workspace_settings"]["backup_keep_daily_days"] =
       workspace_settings.backup_keep_daily_days;
+
+  proj["dungeon_overlay"]["minecart_catalog_version"] =
+      dungeon_overlay.minecart_catalog_version;
+  proj["dungeon_overlay"]["track_tiles"] = dungeon_overlay.track_tiles;
+  proj["dungeon_overlay"]["track_stop_tiles"] =
+      dungeon_overlay.track_stop_tiles;
+  proj["dungeon_overlay"]["track_switch_tiles"] =
+      dungeon_overlay.track_switch_tiles;
+  proj["dungeon_overlay"]["track_object_ids"] =
+      dungeon_overlay.track_object_ids;
+  proj["dungeon_overlay"]["minecart_sprite_ids"] =
+      dungeon_overlay.minecart_sprite_ids;
 
   auto& agent = proj["agent_settings"];
   agent["ai_provider"] = agent_settings.ai_provider;

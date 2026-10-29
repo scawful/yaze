@@ -491,7 +491,54 @@ std::string ComputeRomFileBytesSha256(const Rom& rom) {
   return core::ComputeSourceArtifactSha256(bytes);
 }
 
+absl::Status RomSession::QualifyMinecartCatalog(
+    const project::YazeProject& project) {
+  std::string reference;
+  if (!project.minecart_catalog_migration_receipt.empty()) {
+    std::error_code error;
+    reference =
+        std::filesystem::weakly_canonical(
+            project.GetAbsolutePath(project.minecart_catalog_migration_receipt),
+            error)
+            .string();
+    if (error) {
+      minecart_catalog_status = absl::FailedPreconditionError(
+          "Cannot resolve the minecart catalog migration evidence");
+      return minecart_catalog_status;
+    }
+  }
+  if (minecart_catalog_binding &&
+      minecart_catalog_project_version ==
+          project.dungeon_overlay.minecart_catalog_version &&
+      minecart_catalog_reference == reference) {
+    minecart_catalog_status = absl::OkStatus();
+    return minecart_catalog_status;
+  }
+  if (minecart_catalog_binding && minecart_catalog_project_version == 2 &&
+      project.dungeon_overlay.minecart_catalog_version == 1 &&
+      zelda3::DetectMinecartRailProfile(rom.vector()) !=
+          zelda3::MinecartRailProfile::kExpanded) {
+    minecart_catalog_status = absl::FailedPreconditionError(
+        "A migrated minecart ROM cannot be downgraded by changing project "
+        "settings");
+    return minecart_catalog_status;
+  }
+  auto binding = core::ResolveMinecartCatalogBinding(rom, project);
+  minecart_catalog_status = binding.status();
+  if (binding.ok()) {
+    minecart_catalog_binding = std::move(*binding);
+    minecart_catalog_project_version =
+        project.dungeon_overlay.minecart_catalog_version;
+    minecart_catalog_reference = std::move(reference);
+  }
+  return minecart_catalog_status;
+}
+
 void RomSession::CaptureRomIdentity(bool preserve_editing_source) {
+  if (!preserve_editing_source) {
+    minecart_catalog_binding.reset();
+    minecart_catalog_status = absl::OkStatus();
+  }
   if (!rom.is_loaded()) {
     rom_baseline.reset();
     return;
@@ -504,6 +551,9 @@ void RomSession::CaptureRomIdentity(bool preserve_editing_source) {
   rom_baseline = RomBaselineIdentity{
       util::ComputeRomIdentityHashes(rom.data(), rom.size()), path.string(),
       editing_source, rom.dirty() ? "" : ComputeRomFileBytesSha256(rom)};
+  if (!preserve_editing_source && project_context) {
+    QualifyMinecartCatalog(*project_context).IgnoreError();
+  }
 }
 
 void RomSession::ReloadGraphicsDisplay() {

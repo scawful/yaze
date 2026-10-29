@@ -101,6 +101,7 @@
 #include "app/platform/timing.h"
 #include "app/testing/test_manager.h"
 #include "core/features.h"
+#include "core/minecart_catalog_binding.h"
 #include "core/native_save_receipt.h"
 #include "core/palette_catalog.h"
 #include "core/project.h"
@@ -1212,6 +1213,7 @@ void EditorManager::CaptureActiveProjectEditingState() {
 
 absl::Status EditorManager::PrepareActiveProjectEditorDraftsForSave(
     bool publish_lyra) {
+  RETURN_IF_ERROR(ValidateMinecartCatalogForSave());
   if (!session_coordinator_) {
     return absl::OkStatus();
   }
@@ -1328,6 +1330,56 @@ absl::Status EditorManager::PrepareRawProjectFileSave(
         "Raw project file cannot change the ROM backing file of a loaded "
         "session; use Project Management > Swap ROM");
   }
+  const auto& admitted = session->minecart_catalog_binding;
+  if (admitted && admitted->validated &&
+      session->minecart_catalog_status.ok() &&
+      session->minecart_catalog_project_version == 2 &&
+      admitted->profile == zelda3::MinecartRailProfile::kExpanded &&
+      parsed_project.dungeon_overlay.minecart_catalog_version == 1 &&
+      zelda3::DetectMinecartRailProfile(session->rom.vector()) !=
+          zelda3::MinecartRailProfile::kExpanded) {
+    return absl::FailedPreconditionError(
+        "The loaded ROM uses the migrated minecart catalog; reverting the "
+        "project version requires a matching reverse ROM migration");
+  }
+
+  std::filesystem::path reference;
+  if (!parsed_project.minecart_catalog_migration_receipt.empty()) {
+    std::error_code error;
+    reference = std::filesystem::weakly_canonical(
+        parsed_project.GetAbsolutePath(
+            parsed_project.minecart_catalog_migration_receipt),
+        error);
+    if (error) {
+      return absl::FailedPreconditionError(
+          "Cannot resolve the minecart catalog migration evidence");
+    }
+  }
+  if (admitted && admitted->validated &&
+      session->minecart_catalog_status.ok() &&
+      session->minecart_catalog_project_version ==
+          parsed_project.dungeon_overlay.minecart_catalog_version &&
+      std::filesystem::path(session->minecart_catalog_reference) == reference) {
+    // Admission belongs to the loaded generation. Ordinary unsaved ROM edits
+    // must not be re-admitted against a receipt for the previous saved bytes.
+    if (!admitted->migration_receipt_path.empty()) {
+      ASSIGN_OR_RETURN(const auto digest,
+                       core::ComputeSourceArtifactFileSha256(reference));
+      if (reference != admitted->migration_receipt_path ||
+          digest != admitted->migration_receipt_sha256) {
+        return absl::FailedPreconditionError(
+            "The minecart migration evidence changed; nothing was saved");
+      }
+    }
+  } else {
+    // Keep candidate validation pure: a rejected raw draft must not invalidate
+    // the active session's previously admitted catalog or runtime context.
+    const auto catalog =
+        core::ResolveMinecartCatalogBinding(session->rom, parsed_project);
+    if (!catalog.ok()) {
+      return catalog.status();
+    }
+  }
   return session_coordinator_->CheckBackingFileAvailable(
       parsed_project.rom_filename, session->session_id());
 }
@@ -1347,10 +1399,25 @@ absl::Status EditorManager::CommitRawProjectFileSave(
     return absl::FailedPreconditionError("No active ROM session");
   }
 
+  RETURN_IF_ERROR(PrepareRawProjectFileSave(filepath, contents));
   project::YazeProject parsed_project;
   RETURN_IF_ERROR(parsed_project.LoadFromString(contents, filepath));
+  auto previous_project = current_project_;
+  const auto previous_binding = session->minecart_catalog_binding;
+  const auto previous_status = session->minecart_catalog_status;
+  const auto previous_version = session->minecart_catalog_project_version;
+  const auto previous_reference = session->minecart_catalog_reference;
   current_project_ = std::move(parsed_project);
   BindProjectContextToSession(session, current_project_);
+  if (!session->minecart_catalog_status.ok()) {
+    const auto failure = session->minecart_catalog_status;
+    current_project_ = std::move(previous_project);
+    session->minecart_catalog_binding = previous_binding;
+    session->minecart_catalog_status = previous_status;
+    session->minecart_catalog_project_version = previous_version;
+    session->minecart_catalog_reference = previous_reference;
+    return failure;
+  }
   session->project_dirty = false;
   active_project_context_session_id_ = session->session_id();
   runtime_feature_flags_session_id_ = session->session_id();
@@ -4051,6 +4118,7 @@ absl::Status EditorManager::OpenLyraTerrainFromPath(const std::string& path) {
 }
 
 absl::Status EditorManager::SaveProject() {
+  RETURN_IF_ERROR(ValidateMinecartCatalogForSave());
   CaptureActiveProjectEditingState();
   if (session_coordinator_) {
     if (auto* session = session_coordinator_->GetActiveRomSession();
@@ -4200,6 +4268,7 @@ bool EditorManager::IsCurrentProjectDirty() const {
 }
 
 absl::Status EditorManager::SaveActiveProjectEditingWork(bool allow_dialogs) {
+  RETURN_IF_ERROR(ValidateMinecartCatalogForSave());
   if (!session_coordinator_) {
     return absl::FailedPreconditionError("No session coordinator");
   }
@@ -4315,6 +4384,7 @@ absl::Status EditorManager::SaveProjectAs() {
 }
 
 absl::Status EditorManager::SaveProjectAs(const std::string& filepath) {
+  RETURN_IF_ERROR(ValidateMinecartCatalogForSave());
   if (filepath.empty()) {
     return absl::InvalidArgumentError("Project file path cannot be empty");
   }

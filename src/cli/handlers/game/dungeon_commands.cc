@@ -1,5 +1,7 @@
 #include "cli/handlers/game/dungeon_commands.h"
 
+#include "zelda3/dungeon/custom_object.h"
+
 #include <algorithm>
 #include <fstream>
 #include <limits>
@@ -1162,7 +1164,11 @@ absl::Status DungeonGenerateTrackCollisionCommandHandler::Execute(
     resources::OutputFormatter& formatter) {
   // Build generator options (shared by single and batch modes)
   zelda3::GeneratorOptions options;
-  options.rail_profile = zelda3::DetectMinecartRailProfile(rom->vector());
+  options.rail_profile =
+      (zelda3::DetectMinecartRailProfile(rom->vector()) ==
+               zelda3::MinecartRailProfile::kExpanded
+           ? zelda3::MinecartRailProfile::kExpanded
+           : zelda3::CustomObjectManager::Get().GetMinecartRailProfile());
 
   // Parse --promote-switch X,Y pairs
   auto switch_str = parser.GetString("promote-switch");

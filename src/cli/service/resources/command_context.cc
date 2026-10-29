@@ -12,6 +12,7 @@
 #include "absl/strings/str_join.h"
 #include "cli/handlers/rom/mock_rom.h"
 #include "cli/util/hex_util.h"
+#include "core/minecart_catalog_binding.h"
 #include "core/project.h"
 #include "zelda3/dungeon/draw_routines/draw_routine_registry.h"
 #include "zelda3/resource_labels.h"
@@ -35,7 +36,8 @@ bool ProjectUsesCustomObjects(const project::YazeProject& project) {
          !project.custom_object_files.empty();
 }
 
-bool SeedLegacyTrackObjectMapping(project::YazeProject* project, const Rom* rom,
+bool SeedLegacyTrackObjectMapping(project::YazeProject* project,
+                                  zelda3::MinecartRailProfile profile,
                                   std::string* warning) {
   if (project == nullptr) {
     return false;
@@ -50,9 +52,7 @@ bool SeedLegacyTrackObjectMapping(project::YazeProject* project, const Rom* rom,
 
   const auto& defaults =
       zelda3::CustomObjectManager::DefaultSubtypeFilenamesForObject(
-          kTrackCustomObjectId,
-          rom ? zelda3::DetectMinecartRailProfile(rom->vector())
-              : zelda3::MinecartRailProfile::kLegacy);
+          kTrackCustomObjectId, profile);
   if (defaults.empty()) {
     return false;
   }
@@ -203,6 +203,17 @@ absl::Status CommandContext::ApplyProjectRuntimeContext() {
     return absl::OkStatus();
   }
   if (!config_.project_context_path.has_value()) {
+    // A raw CLI ROM has no authority to borrow another session's catalog.
+    // Unmarked version-2 editing requires its explicit project context.
+    previous_custom_object_state_ =
+        zelda3::CustomObjectManager::Get().SnapshotState();
+    zelda3::CustomObjectManager::State state;
+    if (active_rom_) {
+      state.rail_profile =
+          zelda3::DetectMinecartRailProfile(active_rom_->vector());
+    }
+    zelda3::CustomObjectManager::Get().RestoreState(state);
+    project_runtime_applied_ = true;
     return absl::OkStatus();
   }
   if (config_.project_context_path->empty()) {
@@ -221,6 +232,20 @@ absl::Status CommandContext::ApplyProjectRuntimeContext() {
                         *config_.project_context_path, open_status.message()));
   }
 
+  core::MinecartCatalogBinding catalog;
+  if (active_rom_) {
+    auto resolved = core::ResolveMinecartCatalogBinding(*active_rom_, project);
+    if (!resolved.ok()) {
+      zelda3::GetResourceLabels().RestoreState(label_state);
+      return resolved.status();
+    }
+    catalog = std::move(*resolved);
+  } else if (project.dungeon_overlay.minecart_catalog_version == 2) {
+    zelda3::GetResourceLabels().RestoreState(label_state);
+    return absl::FailedPreconditionError(
+        "Load the migrated ROM to use this minecart project context");
+  }
+
   // Keep editor parity by auto-enabling custom objects when project config
   // defines custom object data but stale feature flags are still disabled.
   if (ProjectUsesCustomObjects(project) &&
@@ -233,7 +258,7 @@ absl::Status CommandContext::ApplyProjectRuntimeContext() {
     }
   }
   std::string legacy_mapping_warning;
-  if (SeedLegacyTrackObjectMapping(&project, active_rom_,
+  if (SeedLegacyTrackObjectMapping(&project, catalog.profile,
                                    &legacy_mapping_warning) &&
       config_.verbose) {
     std::cerr << "Warning: " << legacy_mapping_warning << '\n';
@@ -250,9 +275,7 @@ absl::Status CommandContext::ApplyProjectRuntimeContext() {
   previous_label_state_ = label_state;
   active_project.InitializeResourceLabelProvider();
   core::FeatureFlags::get() = active_project.feature_flags;
-  zelda3::CustomObjectManager::Get().SetMinecartRailProfile(
-      active_rom_ ? zelda3::DetectMinecartRailProfile(active_rom_->vector())
-                  : zelda3::MinecartRailProfile::kLegacy);
+  zelda3::CustomObjectManager::Get().SetMinecartRailProfile(catalog.profile);
   zelda3::DrawRoutineRegistry::Get().RefreshFeatureFlagMappings();
 
   if (!active_project.custom_object_files.empty()) {

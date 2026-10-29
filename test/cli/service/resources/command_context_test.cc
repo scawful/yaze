@@ -1,5 +1,7 @@
 #include "cli/service/resources/command_context.h"
 
+#include <algorithm>
+#include <array>
 #include <chrono>
 #include <filesystem>
 #include <fstream>
@@ -163,6 +165,70 @@ TEST_F(CommandContextTest, UsesExternalRomContext) {
   auto rom_or = context.GetRom();
   ASSERT_TRUE(rom_or.ok());
   EXPECT_EQ(rom_or.value(), &mock_rom_);
+}
+
+TEST_F(CommandContextTest,
+       RawLegacyRomCannotBorrowAmbientExpandedCatalogOrAssets) {
+  auto& manager = zelda3::CustomObjectManager::Get();
+  zelda3::CustomObjectManager::State ambient;
+  ambient.base_path = (temp_root_ / "another_project").string();
+  ambient.custom_file_map = {{0x31, {"another_track.bin"}}};
+  ambient.dungeon_tile_patterns =
+      (temp_root_ / "another_patterns.asm").string();
+  ambient.rail_profile = zelda3::MinecartRailProfile::kExpanded;
+  manager.RestoreState(ambient);
+  Rom legacy_rom;
+  ASSERT_TRUE(legacy_rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+  {
+    CommandContext::Config config;
+    config.external_rom_context = &legacy_rom;
+    CommandContext context(config);
+    const auto rom = context.GetRom();
+    ASSERT_TRUE(rom.ok()) << rom.status();
+    EXPECT_EQ(*rom, &legacy_rom);
+    EXPECT_EQ(context.GetProjectContext(), nullptr);
+    const auto scoped = manager.SnapshotState();
+    EXPECT_EQ(scoped.rail_profile, zelda3::MinecartRailProfile::kLegacy);
+    EXPECT_TRUE(scoped.base_path.empty());
+    EXPECT_TRUE(scoped.custom_file_map.empty());
+    EXPECT_TRUE(scoped.dungeon_tile_patterns.empty());
+    EXPECT_EQ(manager.ResolveFilename(0x31, 12), "track_floor_any.bin");
+  }
+  EXPECT_EQ(manager.SnapshotState(), ambient);
+}
+
+TEST_F(CommandContextTest,
+       RawMarkedRomScopesExpandedCatalogAndRestoresAmbientLegacyAssets) {
+  auto& manager = zelda3::CustomObjectManager::Get();
+  zelda3::CustomObjectManager::State ambient;
+  ambient.base_path = (temp_root_ / "legacy_project").string();
+  ambient.custom_file_map = {{0x32, {"another_prop.bin"}}};
+  ambient.dungeon_tile_patterns = (temp_root_ / "legacy_patterns.asm").string();
+  ambient.rail_profile = zelda3::MinecartRailProfile::kLegacy;
+  manager.RestoreState(ambient);
+  std::vector<uint8_t> bytes(0x200000, 0);
+  constexpr std::array<uint8_t, 8> marker = {'M', 'C', 'R', '2', 16, 13, 2, 0};
+  std::copy(marker.begin(), marker.end(),
+            bytes.begin() + zelda3::kMinecartRailProfileMarkerPc);
+  Rom marked_rom;
+  ASSERT_TRUE(marked_rom.LoadFromData(bytes).ok());
+  {
+    CommandContext::Config config;
+    config.external_rom_context = &marked_rom;
+    CommandContext context(config);
+    const auto rom = context.GetRom();
+    ASSERT_TRUE(rom.ok()) << rom.status();
+    EXPECT_EQ(*rom, &marked_rom);
+    EXPECT_EQ(context.GetProjectContext(), nullptr);
+    const auto scoped = manager.SnapshotState();
+    EXPECT_EQ(scoped.rail_profile, zelda3::MinecartRailProfile::kExpanded);
+    EXPECT_TRUE(scoped.base_path.empty());
+    EXPECT_TRUE(scoped.custom_file_map.empty());
+    EXPECT_TRUE(scoped.dungeon_tile_patterns.empty());
+    EXPECT_EQ(manager.GetSubtypeCount(0x32), 13);
+    EXPECT_EQ(manager.ResolveFilename(0x32, 12), "track_floor_tjunction_W.bin");
+  }
+  EXPECT_EQ(manager.SnapshotState(), ambient);
 }
 
 TEST_F(CommandContextTest, LoadsRomFromPath) {

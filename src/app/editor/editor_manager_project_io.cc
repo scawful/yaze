@@ -43,6 +43,7 @@
 #include "app/platform/ios/ios_platform_state.h"
 #include "app/platform/timing.h"
 #include "core/features.h"
+#include "core/minecart_catalog_binding.h"
 #include "core/native_save_receipt.h"
 #include "core/project.h"
 #include "core/rom_settings.h"
@@ -88,6 +89,8 @@ std::map<std::string, std::string> ProjectSaveSources(
   add("dependency.overworld_graphics_preview",
       project.overworld_graphics_preview);
   add("dependency.dungeon_tile_patterns", project.dungeon_tile_patterns);
+  add("dependency.minecart_catalog_migration",
+      project.minecart_catalog_migration_receipt);
   add("dependency.custom_collision_json", project.custom_collision_json);
   add("dependency.hack_manifest_file", project.hack_manifest_file);
   add("dependency.sprite_catalog_file", project.sprite_catalog_file);
@@ -98,6 +101,8 @@ std::map<std::string, std::string> ProjectSaveSources(
   add("dependency.atlas_symbols", project.atlas.symbols);
   for (const auto& [id, files] : project.custom_object_files) {
     for (size_t i = 0; i < files.size(); ++i) {
+      if (files[i].empty())
+        continue;  // Reserved slots have no source asset; retain later indices.
       const auto path = std::filesystem::path(files[i]);
       const auto resolved = path.is_absolute()
                                 ? path
@@ -181,7 +186,8 @@ bool ProjectUsesCustomObjects(const project::YazeProject& project) {
 
 constexpr int kTrackCustomObjectId = 0x31;
 
-bool SeedLegacyTrackObjectMapping(project::YazeProject* project, const Rom* rom,
+bool SeedLegacyTrackObjectMapping(project::YazeProject* project,
+                                  zelda3::MinecartRailProfile profile,
                                   std::string* warning) {
   if (project == nullptr) {
     return false;
@@ -196,9 +202,7 @@ bool SeedLegacyTrackObjectMapping(project::YazeProject* project, const Rom* rom,
 
   const auto& defaults =
       zelda3::CustomObjectManager::DefaultSubtypeFilenamesForObject(
-          kTrackCustomObjectId,
-          rom ? zelda3::DetectMinecartRailProfile(rom->vector())
-              : zelda3::MinecartRailProfile::kLegacy);
+          kTrackCustomObjectId, profile);
   if (defaults.empty()) {
     return false;
   }
@@ -587,6 +591,55 @@ absl::Status EditorManager::LoadRomInternal() {
 #endif
 }
 
+absl::Status EditorManager::ValidateMinecartCatalogForSave() const {
+  const auto* session = session_coordinator_
+                            ? session_coordinator_->GetActiveRomSession()
+                            : nullptr;
+  if (current_project_.dungeon_overlay.minecart_catalog_version != 2) {
+    if (session && session->minecart_catalog_binding &&
+        session->minecart_catalog_project_version == 2 &&
+        session->minecart_catalog_binding->profile ==
+            zelda3::MinecartRailProfile::kExpanded &&
+        zelda3::DetectMinecartRailProfile(session->rom.vector()) !=
+            zelda3::MinecartRailProfile::kExpanded) {
+      return absl::FailedPreconditionError(
+          "A migrated minecart ROM requires catalog version 2; nothing was "
+          "saved");
+    }
+    return absl::OkStatus();
+  }
+  if (!session || !session->minecart_catalog_status.ok() ||
+      !session->minecart_catalog_binding ||
+      !session->minecart_catalog_binding->validated ||
+      session->minecart_catalog_binding->profile !=
+          zelda3::MinecartRailProfile::kExpanded ||
+      session->minecart_catalog_project_version != 2) {
+    return absl::FailedPreconditionError(
+        "The minecart catalog has not been admitted for this ROM; reopen "
+        "the migrated project before saving");
+  }
+  const auto& binding = *session->minecart_catalog_binding;
+  if (binding.migration_receipt_path.empty()) {
+    return absl::OkStatus();  // A compiled MCR2 image declares its own catalog.
+  }
+  std::error_code error;
+  const auto current_reference = std::filesystem::weakly_canonical(
+      current_project_.GetAbsolutePath(
+          current_project_.minecart_catalog_migration_receipt),
+      error);
+  if (error || current_reference != binding.migration_receipt_path) {
+    return absl::FailedPreconditionError(
+        "The minecart catalog evidence changed; reopen the migrated project");
+  }
+  ASSIGN_OR_RETURN(const auto digest,
+                   core::ComputeSourceArtifactFileSha256(current_reference));
+  if (digest != binding.migration_receipt_sha256) {
+    return absl::FailedPreconditionError(
+        "The minecart migration evidence changed on disk; nothing was saved");
+  }
+  return absl::OkStatus();
+}
+
 absl::Status EditorManager::SaveRomInternal(
     const std::optional<std::string>& save_as_filename) {
   auto* current_rom = GetCurrentRom();
@@ -594,6 +647,7 @@ absl::Status EditorManager::SaveRomInternal(
   if (!current_rom || !current_editor_set) {
     return absl::FailedPreconditionError("No ROM or editor set loaded");
   }
+  RETURN_IF_ERROR(ValidateMinecartCatalogForSave());
   if (auto* overworld = static_cast<OverworldEditor*>(
           current_editor_set->GetExistingEditor(EditorType::kOverworld)))
     RETURN_IF_ERROR(overworld->ValidateProjectNativeSaveRecovery());
@@ -982,6 +1036,7 @@ absl::Status EditorManager::RecordCompletedNativeSave(
   // Browser persistence has no native producer or durable publication lock.
   return absl::OkStatus();
 #else
+  RETURN_IF_ERROR(ValidateMinecartCatalogForSave());
   core::NativeSaveReceiptRequest request;
   const auto finish = [&]() -> absl::Status {
     std::error_code error;
@@ -1158,6 +1213,7 @@ absl::Status EditorManager::RecordCompletedNativeSave(
     ASSIGN_OR_RETURN(request.context,
                      core::GetNativeSaveContext(NativeSaveEditingSourcePath(),
                                                 project_path));
+    RETURN_IF_ERROR(ValidateMinecartCatalogForSave());
     ASSIGN_OR_RETURN(auto receipt, core::PublishNativeSaveReceipt(request));
     if (!request.binding_errors.empty()) {
       toast_manager_.Show(std::string(rom_written ? "ROM" : "Project") +
@@ -1469,6 +1525,13 @@ absl::Status EditorManager::LoadProjectWithRom(bool allow_dialogs) {
     current_project_.rom_filename = project_rom_path;
   }
 
+  auto catalog =
+      core::ResolveMinecartCatalogBinding(temp_rom, current_project_);
+  if (!catalog.ok()) {
+    abandon_selected_rom();
+    return catalog.status();
+  }
+
   const size_t previous_session_count =
       session_coordinator_->GetTotalSessionCount();
   auto session_or = session_coordinator_->CreateSessionFromRom(
@@ -1478,6 +1541,14 @@ absl::Status EditorManager::LoadProjectWithRom(bool allow_dialogs) {
     return session_or.status();
   }
   RomSession* session = *session_or;
+  // Admission covers the loaded bytes, before compatible flag/map defaults
+  // are applied to the in-memory project. Keep that qualification for edits.
+  session->minecart_catalog_binding = *catalog;
+  session->minecart_catalog_status = absl::OkStatus();
+  session->minecart_catalog_project_version =
+      current_project_.dungeon_overlay.minecart_catalog_version;
+  session->minecart_catalog_reference =
+      catalog->migration_receipt_path.string();
 
   ConfigureEditorDependencies(GetCurrentEditorSet(), GetCurrentRom(),
                               GetCurrentSessionId());
@@ -1495,7 +1566,7 @@ absl::Status EditorManager::LoadProjectWithRom(bool allow_dialogs) {
                         ToastType::kInfo);
   }
   std::string legacy_mapping_warning;
-  if (SeedLegacyTrackObjectMapping(&current_project_, GetCurrentRom(),
+  if (SeedLegacyTrackObjectMapping(&current_project_, catalog->profile,
                                    &legacy_mapping_warning)) {
     LOG_WARN("EditorManager", "%s", legacy_mapping_warning.c_str());
     toast_manager_.Show(
@@ -1519,6 +1590,17 @@ absl::Status EditorManager::LoadProjectWithRom(bool allow_dialogs) {
 #endif
 
   BindProjectContextToSession(session, current_project_);
+  if (!session->minecart_catalog_status.ok()) {
+    const auto status = session->minecart_catalog_status;
+    abandon_selected_rom();
+    const auto cleanup =
+        DiscardProvisionalSessionCreatedSince(previous_session_count);
+    if (!cleanup.ok()) {
+      return absl::DataLossError(std::string(status.message()) + "; " +
+                                 std::string(cleanup.message()));
+    }
+    return status;
+  }
   RestoreProjectContextForSession(session);
   if (version_manager_) {
     // Opening a project never creates a Git repository; the Initialize Git

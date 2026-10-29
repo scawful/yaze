@@ -95,7 +95,8 @@ std::string FormatHexList(const std::vector<uint16_t>& values) {
 
 bool OverlaySettingsEqual(const project::DungeonOverlaySettings& lhs,
                           const project::DungeonOverlaySettings& rhs) {
-  return lhs.track_tiles == rhs.track_tiles &&
+  return lhs.minecart_catalog_version == rhs.minecart_catalog_version &&
+         lhs.track_tiles == rhs.track_tiles &&
          lhs.track_stop_tiles == rhs.track_stop_tiles &&
          lhs.track_switch_tiles == rhs.track_switch_tiles &&
          lhs.track_object_ids == rhs.track_object_ids &&
@@ -591,7 +592,7 @@ absl::StatusOr<bool> MinecartTrackEditorPanel::CommitOverlayInputsForSave() {
   }
 
   InitializeOverlayInputs();
-  project::DungeonOverlaySettings candidate;
+  project::DungeonOverlaySettings candidate = project_->dungeon_overlay;
   auto parse_field = [](const char* field_name, const std::string& input,
                         std::vector<uint16_t>* target) -> absl::Status {
     const auto parsed_or = ParseHexList(input);

@@ -18,7 +18,8 @@ namespace yaze::editor {
 namespace {
 
 zelda3::CustomObjectManager::State BuildCustomObjectRuntimeState(
-    const project::YazeProject& project, const Rom* rom) {
+    const project::YazeProject& project, const Rom* rom,
+    const RomSession* session = nullptr) {
   return {
       .base_path = project.custom_objects_folder.empty()
                        ? ""
@@ -28,8 +29,10 @@ zelda3::CustomObjectManager::State BuildCustomObjectRuntimeState(
           project.dungeon_tile_patterns.empty()
               ? ""
               : project.GetAbsolutePath(project.dungeon_tile_patterns),
-      .rail_profile = rom ? zelda3::DetectMinecartRailProfile(rom->vector())
-                          : zelda3::MinecartRailProfile::kLegacy,
+      .rail_profile = session && session->minecart_catalog_binding
+                          ? session->minecart_catalog_binding->profile
+                      : rom ? zelda3::DetectMinecartRailProfile(rom->vector())
+                            : zelda3::MinecartRailProfile::kLegacy,
   };
 }
 
@@ -38,6 +41,12 @@ zelda3::CustomObjectManager::State BuildCustomObjectRuntimeState(
 void EditorManager::BindProjectContextToSession(
     RomSession* session, const project::YazeProject& project) {
   if (!session) {
+    return;
+  }
+  const auto catalog_status = session->QualifyMinecartCatalog(project);
+  if (!catalog_status.ok()) {
+    LOG_ERROR("EditorManager", "Minecart catalog admission failed: %s",
+              catalog_status.ToString().c_str());
     return;
   }
   const bool needs_version_manager =
@@ -77,8 +86,10 @@ void EditorManager::ApplyCurrentProjectRuntimeContext() {
   core::RomSettings::Get().SetAddressOverrides(
       current_project_.rom_address_overrides);
   auto& custom_object_manager = zelda3::CustomObjectManager::Get();
-  const auto custom_object_state =
-      BuildCustomObjectRuntimeState(current_project_, GetCurrentRom());
+  const auto custom_object_state = BuildCustomObjectRuntimeState(
+      current_project_, GetCurrentRom(),
+      session_coordinator_ ? session_coordinator_->GetActiveRomSession()
+                           : nullptr);
   if (session_coordinator_ != nullptr &&
       session_coordinator_->GetActiveRomSession() != nullptr) {
     custom_object_manager.ActivateRuntimeContext(
@@ -194,7 +205,7 @@ void EditorManager::HandleSessionSwitched(size_t new_index, RomSession* session,
       const auto custom_object_state =
           session->project_context.has_value()
               ? BuildCustomObjectRuntimeState(*session->project_context,
-                                              &session->rom)
+                                              &session->rom, session)
               : zelda3::CustomObjectManager::State{};
       zelda3::CustomObjectManager::Get().ActivateRuntimeContext(
           session->session_id(), custom_object_state);

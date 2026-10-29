@@ -69,6 +69,29 @@ struct NativeSaveReceipt {
 absl::StatusOr<NativeSaveReceipt> PublishNativeSaveReceipt(
     const NativeSaveReceiptRequest& request);
 
+enum class NativeSaveReceiptVerification {
+  kCurrentArtifacts,
+  // Editor reopen retains the historical producer record after an installed
+  // build is retired. Current ROM, project and dependency files still bind.
+  kPersistedDataAdmission,
+};
+
+// Read-only admission of the current committed native Save. Reuses the same
+// schema and artifact checks as publication, verifies every artifact against
+// disk, and requires the named bindings. With a context, also requires its
+// current committed generation/operation. Without one, validates persisted data
+// admission after normal session activation retired its process pointer.
+// PersistedDataAdmission validates the strict historical producer record but
+// does not require its executable to remain installed. It cannot take a process
+// context; current/build admission keeps full producer-file verification.
+// It never advances a generation or publishes a receipt.
+absl::StatusOr<NativeSaveReceipt> VerifyCurrentNativeSaveReceipt(
+    const std::filesystem::path& receipt_path,
+    const std::optional<NativeSaveContext>& context,
+    const std::vector<NativeSaveArtifact>& required_artifacts,
+    NativeSaveReceiptVerification policy =
+        NativeSaveReceiptVerification::kCurrentArtifacts);
+
 }  // namespace yaze::core
 
 #endif  // YAZE_CORE_NATIVE_SAVE_RECEIPT_H_

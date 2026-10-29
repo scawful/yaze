@@ -1452,6 +1452,149 @@ TEST(ObjectTileEditorTest, CustomObjectRoundtrip) {
   EXPECT_FALSE(layout.custom_source_bytes.empty());
 }
 
+TEST(ObjectTileEditorTest, ExpandedCustomSlotsRoundtripUsesActiveCatalog) {
+  ScopedCustomObjectDirectory custom_dir("yaze_test_expanded_custom_slots");
+  ASSERT_TRUE(custom_dir.ready());
+  auto& manager = CustomObjectManager::Get();
+  manager.SetMinecartRailProfile(MinecartRailProfile::kExpanded);
+  struct Slot {
+    int object_id;
+    int subtype;
+    const char* filename;
+  };
+  const Slot slots[] = {
+      {0x32, 5, "track_floor_any.bin"},
+      {0x32, 6, "wall_sword_house.bin"},
+      {0x32, 7, "track_any.bin"},
+      {0x32, 8, "small_statue.bin"},
+      {0x32, 9, "track_floor_tjunction_N.bin"},
+      {0x32, 10, "track_floor_tjunction_S.bin"},
+      {0x32, 11, "track_floor_tjunction_E.bin"},
+      {0x32, 12, "track_floor_tjunction_W.bin"},
+      {0x31, 12, "track_tjunction_N.bin"},
+      {0x31, 13, "track_tjunction_S.bin"},
+      {0x31, 14, "track_tjunction_E.bin"},
+      {0x31, 15, "track_tjunction_W.bin"},
+  };
+  const CustomObject original{
+      .tiles = {{0, 0, 0x1D45}, {1, 0, 0x5D45}, {0, 1, 0x9D45}, {1, 1, 0xDD45}},
+  };
+  Rom rom;
+  ObjectTileEditor editor(&rom);
+  for (const auto& slot : slots) {
+    SCOPED_TRACE(::testing::Message()
+                 << "object=" << slot.object_id << " subtype=" << slot.subtype);
+    const auto asset_path = custom_dir.path() / slot.filename;
+    WriteTestCustomObject(asset_path, original);
+    const auto original_bytes = ReadTestBinary(asset_path);
+    auto layout = editor.LoadCustomObjectLayout(slot.object_id, slot.subtype);
+    ASSERT_TRUE(layout.ok()) << layout.status();
+    ASSERT_EQ(layout->cells.size(), 4);
+    EXPECT_EQ(layout->custom_filename, slot.filename);
+    EXPECT_EQ(layout->custom_source_bytes, original_bytes);
+    layout->cells[3].tile_info = gfx::WordToTileInfo(0xDD46);
+    layout->cells[3].modified = true;
+
+    const auto status = editor.WriteBack(*layout);
+
+    ASSERT_TRUE(status.ok()) << status;
+    auto reloaded = editor.LoadCustomObjectLayout(slot.object_id, slot.subtype);
+    ASSERT_TRUE(reloaded.ok()) << reloaded.status();
+    ASSERT_EQ(reloaded->cells.size(), 4);
+    EXPECT_EQ(reloaded->cells[0].original_word, 0x1D45);
+    EXPECT_EQ(reloaded->cells[3].original_word, 0xDD46);
+    EXPECT_EQ(reloaded->custom_source_bytes, ReadTestBinary(asset_path));
+    EXPECT_NE(reloaded->custom_source_bytes, original_bytes);
+  }
+}
+
+TEST(ObjectTileEditorTest,
+     LegacyCatalogSwitchKeepsExpandedDraftAndSourceAsset) {
+  ScopedCustomObjectDirectory custom_dir("yaze_test_custom_catalog_switch");
+  ASSERT_TRUE(custom_dir.ready());
+  auto& manager = CustomObjectManager::Get();
+  const CustomObject original{.tiles = {{0, 0, 0x1D45}}};
+  const auto legacy_path = custom_dir.path() / "track_floor_any.bin";
+  WriteTestCustomObject(legacy_path, original);
+  const auto legacy_bytes = ReadTestBinary(legacy_path);
+  struct Slot {
+    int object_id;
+    int subtype;
+    const char* filename;
+  };
+  const Slot slots[] = {
+      {0x32, 6, "wall_sword_house.bin"},
+      {0x32, 8, "small_statue.bin"},
+      {0x32, 12, "track_floor_tjunction_W.bin"},
+      // This slot remains in bounds, but its mapped asset changes in Legacy.
+      {0x31, 12, "track_tjunction_N.bin"},
+  };
+  Rom rom;
+  ObjectTileEditor editor(&rom);
+  for (const auto& slot : slots) {
+    SCOPED_TRACE(::testing::Message()
+                 << "object=" << slot.object_id << " subtype=" << slot.subtype);
+    manager.SetMinecartRailProfile(MinecartRailProfile::kExpanded);
+    const auto asset_path = custom_dir.path() / slot.filename;
+    WriteTestCustomObject(asset_path, original);
+    const auto original_bytes = ReadTestBinary(asset_path);
+    auto layout = editor.LoadCustomObjectLayout(slot.object_id, slot.subtype);
+    ASSERT_TRUE(layout.ok()) << layout.status();
+    ASSERT_EQ(layout->cells.size(), 1);
+    layout->cells[0].tile_info = gfx::WordToTileInfo(0x1D46);
+    layout->cells[0].modified = true;
+    manager.SetMinecartRailProfile(MinecartRailProfile::kLegacy);
+
+    const auto status = editor.WriteBack(*layout);
+
+    if (slot.object_id == 0x32) {
+      EXPECT_TRUE(absl::IsFailedPrecondition(status)) << status;
+      const auto unavailable =
+          editor.LoadCustomObjectLayout(slot.object_id, slot.subtype);
+      EXPECT_TRUE(absl::IsOutOfRange(unavailable.status()));
+    } else {
+      EXPECT_TRUE(absl::IsAborted(status)) << status;
+    }
+    EXPECT_TRUE(layout->HasModifications());
+    EXPECT_EQ(layout->custom_source_bytes, original_bytes);
+    EXPECT_EQ(ReadTestBinary(asset_path), original_bytes);
+    EXPECT_EQ(ReadTestBinary(legacy_path), legacy_bytes);
+  }
+}
+
+TEST(ObjectTileEditorTest, CustomFileMapCannotExtendFixedRuntimeTileEditing) {
+  ScopedCustomObjectDirectory custom_dir("yaze_test_custom_runtime_bounds");
+  ASSERT_TRUE(custom_dir.ready());
+  auto& manager = CustomObjectManager::Get();
+  manager.SetMinecartRailProfile(MinecartRailProfile::kExpanded);
+  manager.SetObjectFileMap(
+      {{0x33, {"track_LR.bin"}},
+       {0x32, std::vector<std::string>(14, "track_LR.bin")}});
+  const CustomObject original{.tiles = {{0, 0, 0x1D58}}};
+  const auto asset_path = custom_dir.path() / "track_LR.bin";
+  WriteTestCustomObject(asset_path, original);
+  const auto original_bytes = ReadTestBinary(asset_path);
+  Rom rom;
+  ObjectTileEditor editor(&rom);
+
+  EXPECT_TRUE(
+      absl::IsUnimplemented(editor.LoadCustomObjectLayout(0x33, 0).status()));
+  EXPECT_TRUE(
+      absl::IsOutOfRange(editor.LoadCustomObjectLayout(0x32, 13).status()));
+  auto layout = editor.LoadCustomObjectLayout(0x31, 0);
+  ASSERT_TRUE(layout.ok()) << layout.status();
+  ASSERT_EQ(layout->cells.size(), 1);
+  layout->object_id = 0x33;
+  layout->cells[0].tile_info = gfx::WordToTileInfo(0x1D59);
+  layout->cells[0].modified = true;
+
+  const auto status = editor.WriteBack(*layout);
+
+  EXPECT_TRUE(absl::IsFailedPrecondition(status)) << status;
+  EXPECT_TRUE(layout->HasModifications());
+  EXPECT_EQ(ReadTestBinary(asset_path), original_bytes);
+}
+
 TEST(ObjectTileEditorTest, CustomSpriteBodyRoundtripKeepsRawSourceWords) {
   ScopedCustomObjectDirectory custom_dir("yaze_test_custom_sprite_body");
   ASSERT_TRUE(custom_dir.ready());

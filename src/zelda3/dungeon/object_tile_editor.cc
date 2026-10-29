@@ -264,8 +264,9 @@ ObjectTileEditor::ObjectTileEditor(Rom* rom) : rom_(rom) {}
 
 absl::StatusOr<ObjectTileLayout> ObjectTileEditor::LoadCustomObjectLayout(
     int16_t object_id, int subtype) {
-  const int runtime_count =
-      CustomObjectManager::RuntimeSubtypeCountForObject(object_id);
+  auto& manager = CustomObjectManager::Get();
+  const int runtime_count = CustomObjectManager::RuntimeSubtypeCountForObject(
+      object_id, manager.GetMinecartRailProfile());
   if (runtime_count == 0) {
     return absl::UnimplementedError(
         "Custom tile editing supports only registered fixed runtime objects");
@@ -275,7 +276,6 @@ absl::StatusOr<ObjectTileLayout> ObjectTileEditor::LoadCustomObjectLayout(
         "Custom object subtype is outside the runtime dispatch table");
   }
 
-  auto& manager = CustomObjectManager::Get();
   const std::string filename = manager.ResolveFilename(object_id, subtype);
   if (filename.empty()) {
     return absl::NotFoundError(
@@ -632,8 +632,9 @@ absl::Status ObjectTileEditor::WriteBack(ObjectTileLayout& layout) {
       return absl::FailedPreconditionError(
           "Custom object has no source snapshot for safe write-back");
     }
-    const int runtime_count =
-        CustomObjectManager::RuntimeSubtypeCountForObject(layout.object_id);
+    auto& mgr = CustomObjectManager::Get();
+    const int runtime_count = CustomObjectManager::RuntimeSubtypeCountForObject(
+        layout.object_id, mgr.GetMinecartRailProfile());
     if (layout.custom_subtype < 0 || layout.custom_subtype >= runtime_count) {
       return absl::FailedPreconditionError(
           "Custom object layout no longer identifies a fixed runtime slot");
@@ -646,7 +647,6 @@ absl::Status ObjectTileEditor::WriteBack(ObjectTileLayout& layout) {
           {cell.rel_x, cell.rel_y, gfx::TileInfoToWord(cell.tile_info)});
     }
 
-    auto& mgr = CustomObjectManager::Get();
     if (mgr.ResolveFilename(layout.object_id, layout.custom_subtype) !=
         layout.custom_filename) {
       return absl::AbortedError(

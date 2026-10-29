@@ -18,6 +18,7 @@
 #include "app/editor/graphics/gfx_group_workspace_state.h"
 #include "core/asar_wrapper.h"  // For AsarSymbol (backend-agnostic symbol shape)
 #include "core/features.h"
+#include "core/minecart_catalog_binding.h"
 #include "core/project.h"
 #include "rom/rom.h"
 #include "util/rom_hash.h"
@@ -195,6 +196,11 @@ struct RomSession {
   // Empty sessions have no baseline. Session activation must never capture it.
   std::optional<RomBaselineIdentity> rom_baseline;
   void CaptureRomIdentity(bool preserve_editing_source = false);
+  absl::Status QualifyMinecartCatalog(const project::YazeProject& project);
+  std::optional<core::MinecartCatalogBinding> minecart_catalog_binding;
+  absl::Status minecart_catalog_status;
+  int minecart_catalog_project_version = 1;
+  std::string minecart_catalog_reference;
 
   zelda3::GameData game_data;
   // Display copies have stable addresses across user and per-frame activation.

@@ -26,6 +26,7 @@
 #include "app/gfx/backend/null_renderer.h"
 #include "app/gfx/resource/arena.h"
 #include "app/gfx/util/palette_manager.h"
+#include "core/minecart_catalog_binding.h"
 #include "core/native_save_receipt.h"
 #include "core/palette_catalog.h"
 #include "core/source_artifact_publisher.h"
@@ -33,6 +34,7 @@
 #include "framework/rom_save_fault.h"
 #include "test_utils.h"
 #include "testing.h"
+#include "zelda3/dungeon/custom_object.h"
 #include "zelda3/resource_labels.h"
 
 #include "imgui/imgui.h"
@@ -2922,6 +2924,125 @@ TEST(EditorManagerProjectActionsTest, RawProjectSaveRejectsBackingFileChanges) {
   EXPECT_EQ(ReadFile(project_path), descriptor_before);
   EXPECT_TRUE(SessionCoordinator::PathsReferToSameBackingFile(
       manager->GetCurrentProject()->rom_filename, rom_path.string()));
+}
+
+TEST(EditorManagerProjectActionsTest,
+     RawProjectSaveRejectsUnadmittedMinecartCatalogWithoutChangingSession) {
+  ScopedImGuiContext imgui;
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  ::yaze::test::InitializeWithIsolatedSettings(*manager, renderer.get());
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+  ScopedTempDir temp_dir(MakeTempDir("yaze_raw_minecart_admission"));
+  const auto rom_path = temp_dir.path / "game.sfc";
+  const auto project_path = temp_dir.path / "game.yaze";
+  WriteRomFile(rom_path, "RAW CATALOG GUARD");
+  WriteProjectFile(project_path, "Legacy catalog", rom_path);
+  const auto descriptor_before = ReadFile(project_path);
+  const auto rom_before = ReadFile(rom_path);
+  ASSERT_OK(manager->OpenRomOrProject(project_path.string()));
+  manager->ShowProjectFileEditor();
+  auto* editor = manager->project_file_editor();
+  auto* session = manager->session_coordinator()->GetActiveRomSession();
+  ASSERT_NE(editor, nullptr);
+  ASSERT_NE(session, nullptr);
+  ASSERT_TRUE(session->minecart_catalog_binding.has_value());
+  const auto binding_before = *session->minecart_catalog_binding;
+  const auto runtime_before =
+      zelda3::CustomObjectManager::Get().GetMinecartRailProfile();
+  const auto session_id = session->session_id();
+  const auto draft =
+      descriptor_before +
+      "\n[dungeon_overlay]\nminecart_catalog_version=2\n"
+      "[files]\nminecart_catalog_migration_receipt=missing.json\n";
+  MakeModifiedProjectDraft(editor, manager->GetCurrentProject(), draft);
+
+  EXPECT_EQ(editor->SaveFile().code(), absl::StatusCode::kFailedPrecondition);
+  EXPECT_TRUE(editor->IsModified());
+  EXPECT_EQ(ReadFile(project_path), descriptor_before);
+  EXPECT_EQ(ReadFile(rom_path), rom_before);
+  EXPECT_EQ(manager->GetCurrentSessionId(), session_id);
+  EXPECT_EQ(
+      manager->GetCurrentProject()->dungeon_overlay.minecart_catalog_version,
+      1);
+  ASSERT_TRUE(session->project_context.has_value());
+  EXPECT_EQ(session->project_context->dungeon_overlay.minecart_catalog_version,
+            1);
+  ASSERT_TRUE(session->minecart_catalog_binding.has_value());
+  EXPECT_TRUE(session->minecart_catalog_status.ok());
+  EXPECT_EQ(session->minecart_catalog_binding->profile, binding_before.profile);
+  EXPECT_EQ(session->minecart_catalog_binding->rom_sha256,
+            binding_before.rom_sha256);
+  EXPECT_EQ(zelda3::CustomObjectManager::Get().GetMinecartRailProfile(),
+            runtime_before);
+  EXPECT_EQ(editor->CaptureState().text, draft);
+  EXPECT_FALSE(
+      std::filesystem::exists(project_path.string() + ".native-save.json"));
+}
+
+TEST(EditorManagerProjectActionsTest,
+     RawProjectSavePreservesAdmittedCatalogThroughUnsavedEdits) {
+  ScopedImGuiContext imgui;
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  ::yaze::test::InitializeWithIsolatedSettings(*manager, renderer.get());
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+  ScopedTempDir temp_dir(MakeTempDir("yaze_raw_minecart_cached_admission"));
+  const auto rom_path = temp_dir.path / "game.sfc";
+  const auto project_path = temp_dir.path / "game.yaze";
+  const auto receipt_path = temp_dir.path / "migration.json";
+  WriteRomFile(rom_path, "CACHED CATALOG GUARD");
+  WriteProjectFile(project_path, "Admitted catalog", rom_path);
+  {
+    std::ofstream receipt(receipt_path, std::ios::binary);
+    receipt << "immutable admission fixture\n";
+  }
+  ASSERT_OK(manager->OpenRomOrProject(project_path.string()));
+  auto* project = manager->GetCurrentProject();
+  auto* session = manager->session_coordinator()->GetActiveRomSession();
+  ASSERT_NE(session, nullptr);
+  ASSERT_TRUE(session->minecart_catalog_binding.has_value());
+  project->dungeon_overlay.minecart_catalog_version = 2;
+  project->minecart_catalog_migration_receipt =
+      std::filesystem::canonical(receipt_path).string();
+  // This fixture starts at the already-qualified session boundary; the core
+  // resolver independently covers full migration proof. These receipt bytes
+  // deliberately cannot qualify a new admission.
+  core::MinecartCatalogBinding binding;
+  binding.profile = zelda3::MinecartRailProfile::kExpanded;
+  binding.validated = true;
+  binding.rom_sha256 = session->minecart_catalog_binding->rom_sha256;
+  binding.migration_receipt_path = project->minecart_catalog_migration_receipt;
+  binding.migration_receipt_sha256 =
+      core::ComputeSourceArtifactSha256(ReadFile(receipt_path));
+  session->minecart_catalog_binding = binding;
+  session->minecart_catalog_status = absl::OkStatus();
+  session->minecart_catalog_project_version = 2;
+  session->minecart_catalog_reference =
+      project->minecart_catalog_migration_receipt;
+  session->project_context = *project;
+  ASSERT_OK(manager->GetCurrentRom()->WriteByte(0x1234, 0xA5));
+  manager->ShowProjectFileEditor();
+  auto* editor = manager->project_file_editor();
+  const auto contents = project->SerializeToString();
+  ASSERT_TRUE(contents.ok()) << contents.status();
+  MakeModifiedProjectDraft(editor, project, *contents);
+  ASSERT_OK(editor->SaveFile());
+  EXPECT_TRUE(manager->GetCurrentRom()->dirty());
+  EXPECT_EQ(manager->GetCurrentRom()->vector()[0x1234], 0xA5);
+  EXPECT_EQ(session->minecart_catalog_binding->rom_sha256, binding.rom_sha256);
+  EXPECT_EQ(session->minecart_catalog_project_version, 2);
+
+  const auto admitted_descriptor = ReadFile(project_path);
+  auto downgrade = admitted_descriptor;
+  const auto version = downgrade.find("minecart_catalog_version=2");
+  ASSERT_NE(version, std::string::npos);
+  downgrade.replace(version, std::string("minecart_catalog_version=2").size(),
+                    "minecart_catalog_version=1");
+  MakeModifiedProjectDraft(editor, project, downgrade);
+  EXPECT_EQ(editor->SaveFile().code(), absl::StatusCode::kFailedPrecondition);
+  EXPECT_EQ(ReadFile(project_path), admitted_descriptor);
+  EXPECT_EQ(session->minecart_catalog_project_version, 2);
 }
 
 TEST(EditorManagerProjectActionsTest,

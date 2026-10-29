@@ -360,7 +360,186 @@ TEST(ProjectPathsTest, LyraSaveAsPreservesFutureNativeSaveReferences) {
   EXPECT_EQ(reopened.native_save_receipt_file, receipt.string());
 }
 
+TEST(ProjectPathsTest, MinecartCatalogMetadataSurvivesSaveAsAndResetsToLegacy) {
+  ScopedTempDir temp(MakeUniqueTempDir("yaze_minecart_catalog_metadata"));
+  ScopedTempDir elsewhere(MakeUniqueTempDir("yaze_minecart_catalog_cwd"));
+  const auto original = temp.path() / "original" / "Oracle.yaze";
+  const auto receipt = original.parent_path() / "proof" / "migration.json";
+  const auto destination = temp.path() / "copy" / "Saved.yaze";
+  const std::string receipt_bytes = "immutable migration evidence\n";
+  WriteTextFile(receipt, receipt_bytes);
+  WriteTextFile(original,
+                "[project]\nname=Minecart catalog\n\n[files]\n"
+                "minecart_catalog_migration_receipt=proof/migration.json\n\n"
+                "[dungeon_overlay]\nminecart_catalog_version=2\n");
+  std::filesystem::create_directories(destination.parent_path());
+
+  ScopedCurrentPath current_path(elsewhere.path());
+  YazeProject project;
+  EXPECT_EQ(project.dungeon_overlay.minecart_catalog_version, 1);
+  ASSERT_TRUE(project.Open(original.string()).ok());
+  EXPECT_EQ(project.dungeon_overlay.minecart_catalog_version, 2);
+  EXPECT_EQ(project.minecart_catalog_migration_receipt, receipt.string());
+  ASSERT_TRUE(project.SaveAs(destination.string()).ok());
+  const auto saved = ReadTextFile(destination);
+  EXPECT_NE(saved.find("minecart_catalog_version=2\n"), std::string::npos);
+  EXPECT_NE(saved.find("minecart_catalog_migration_receipt="
+                       "../original/proof/migration.json\n"),
+            std::string::npos);
+  EXPECT_EQ(ReadTextFile(receipt), receipt_bytes);
+  EXPECT_FALSE(std::filesystem::exists(destination.parent_path() / "proof"));
+
+  YazeProject reopened;
+  ASSERT_TRUE(reopened.Open(destination.string()).ok());
+  EXPECT_EQ(reopened.dungeon_overlay.minecart_catalog_version, 2);
+  EXPECT_EQ(reopened.minecart_catalog_migration_receipt, receipt.string());
+  ASSERT_TRUE(reopened.ResetToDefaults().ok());
+  EXPECT_EQ(reopened.dungeon_overlay.minecart_catalog_version, 1);
+  EXPECT_TRUE(reopened.minecart_catalog_migration_receipt.empty());
+  ASSERT_TRUE(reopened.Open(original.string()).ok());
+  const auto legacy = temp.path() / "Legacy.yaze";
+  WriteTextFile(legacy, "[project]\nname=Legacy\n");
+  ASSERT_TRUE(reopened.Open(legacy.string()).ok());
+  EXPECT_EQ(reopened.dungeon_overlay.minecart_catalog_version, 1);
+  EXPECT_TRUE(reopened.minecart_catalog_migration_receipt.empty());
+}
+
+TEST(ProjectPathsTest,
+     MinecartCatalogVersionRejectsUnsupportedOrUntypedValues) {
+  ScopedTempDir temp(MakeUniqueTempDir("yaze_minecart_catalog_version"));
+  const auto descriptor = temp.path() / "Oracle.yaze";
+  for (const std::string value :
+       {"", "0", "3", "-1", "2.0", "2x", "true", "01"}) {
+    SCOPED_TRACE(value);
+    YazeProject project;
+    const auto status = project.LoadFromString(
+        "[dungeon_overlay]\nminecart_catalog_version=" + value + "\n",
+        descriptor.string());
+    EXPECT_EQ(status.code(), absl::StatusCode::kInvalidArgument);
+  }
+
+  WriteTextFile(descriptor, "original descriptor\n");
+  YazeProject project;
+  project.filepath = descriptor.string();
+  project.dungeon_overlay.minecart_catalog_version = 3;
+  EXPECT_EQ(project.Save().code(), absl::StatusCode::kInvalidArgument);
+  EXPECT_EQ(ReadTextFile(descriptor), "original descriptor\n");
+}
+
+TEST(ProjectPathsTest,
+     MinecartCatalogVersionTwoRequiresReadableReceiptReference) {
+  ScopedTempDir temp(MakeUniqueTempDir("yaze_minecart_catalog_reference"));
+  YazeProject project;
+  project.name = "Minecart catalog";
+  project.filepath = (temp.path() / "Oracle.yaze").string();
+  project.rom_filename = (temp.path() / "rom.sfc").string();
+  WriteTextFile(project.rom_filename, "ROM fixture\n");
+  ASSERT_TRUE(project.Validate().ok());
+  project.dungeon_overlay.minecart_catalog_version = 2;
+  EXPECT_FALSE(project.Validate().ok());
+  project.minecart_catalog_migration_receipt = "proof/migration.json";
+  EXPECT_FALSE(project.Validate().ok());
+  const auto missing = project.GetMissingFiles();
+  EXPECT_NE(std::find(missing.begin(), missing.end(),
+                      project.minecart_catalog_migration_receipt),
+            missing.end());
+  std::filesystem::create_directories(temp.path() / "proof" / "migration.json");
+  EXPECT_FALSE(project.Validate().ok());
+  std::filesystem::remove(temp.path() / "proof" / "migration.json");
+  WriteTextFile(temp.path() / "proof" / "migration.json", "{}");
+  // Reference validation never qualifies receipt contents or the selected ROM.
+  EXPECT_TRUE(project.Validate().ok());
+}
+
+TEST(ProjectPathsTest,
+     MinecartCatalogMetadataParticipatesInSavedSourceBindings) {
+  ScopedTempDir temp(MakeUniqueTempDir("yaze_minecart_catalog_bindings"));
+  YazeProject project;
+  ASSERT_TRUE(project
+                  .LoadFromString(
+                      "[files]\nminecart_catalog_migration_receipt=proof.json\n"
+                      "[dungeon_overlay]\nminecart_catalog_version=2\n",
+                      (temp.path() / "Oracle.yaze").string())
+                  .ok());
+  const auto saved = project.SerializeToString();
+  ASSERT_TRUE(saved.ok()) << saved.status();
+  EXPECT_TRUE(project.ValidateSavedSourceBindings(*saved).ok());
+  project.dungeon_overlay.minecart_catalog_version = 1;
+  EXPECT_FALSE(project.ValidateSavedSourceBindings(*saved).ok());
+  project.dungeon_overlay.minecart_catalog_version = 2;
+  project.minecart_catalog_migration_receipt =
+      (temp.path() / "different-proof.json").string();
+  EXPECT_FALSE(project.ValidateSavedSourceBindings(*saved).ok());
+}
+
 #ifdef YAZE_ENABLE_JSON_PROJECT_FORMAT
+TEST(ProjectPathsTest, JsonMinecartCatalogAndOverlaySurviveSaveAndReset) {
+  ScopedTempDir temp(MakeUniqueTempDir("yaze_minecart_catalog_json"));
+  const auto original = temp.path() / "Oracle.yaze";
+  const auto receipt = temp.path() / "proof" / "migration.json";
+  WriteTextFile(receipt, "immutable JSON migration evidence\n");
+  WriteTextFile(original, R"json({"yaze_project": {
+    "name": "JSON minecart catalog",
+    "minecart_catalog_migration_receipt": "proof/migration.json",
+    "dungeon_overlay": {
+      "minecart_catalog_version": 2,
+      "track_tiles": [176, 177], "track_stop_tiles": [183],
+      "track_switch_tiles": [208], "track_object_ids": [49, 50],
+      "minecart_sprite_ids": [163]
+    },
+    "custom_objects": {"0x32": ["furnace.bin", "anvil.bin", "chair.bin",
+      "", "", "track_floor_any.bin", "wall_sword_house.bin", "track_any.bin",
+      "small_statue.bin", "custom_n.bin", "custom_s.bin", "custom_e.bin",
+      "custom_w.bin"]}
+  }})json");
+  YazeProject project;
+  ASSERT_TRUE(project.Open(original.string()).ok());
+  EXPECT_EQ(project.dungeon_overlay.minecart_catalog_version, 2);
+  EXPECT_EQ(project.minecart_catalog_migration_receipt, receipt.string());
+  EXPECT_EQ(project.dungeon_overlay.track_tiles,
+            (std::vector<uint16_t>{0xB0, 0xB1}));
+  EXPECT_EQ(project.dungeon_overlay.track_stop_tiles,
+            (std::vector<uint16_t>{0xB7}));
+  EXPECT_EQ(project.dungeon_overlay.track_switch_tiles,
+            (std::vector<uint16_t>{0xD0}));
+  EXPECT_EQ(project.dungeon_overlay.track_object_ids,
+            (std::vector<uint16_t>{0x31, 0x32}));
+  EXPECT_EQ(project.dungeon_overlay.minecart_sprite_ids,
+            (std::vector<uint16_t>{0xA3}));
+  ASSERT_EQ(project.custom_object_files.at(0x32).size(), 13);
+  EXPECT_TRUE(project.custom_object_files.at(0x32)[3].empty());
+  EXPECT_TRUE(project.custom_object_files.at(0x32)[4].empty());
+  ASSERT_TRUE(project.Save().ok());
+  YazeProject reopened;
+  ASSERT_TRUE(reopened.Open(original.string()).ok());
+  EXPECT_EQ(reopened.dungeon_overlay.minecart_catalog_version, 2);
+  EXPECT_EQ(reopened.minecart_catalog_migration_receipt, receipt.string());
+  EXPECT_EQ(reopened.dungeon_overlay.track_object_ids,
+            project.dungeon_overlay.track_object_ids);
+  EXPECT_EQ(reopened.custom_object_files, project.custom_object_files);
+  const auto legacy = temp.path() / "Legacy.yaze";
+  WriteTextFile(legacy, R"json({"yaze_project": {"name": "Legacy"}})json");
+  ASSERT_TRUE(reopened.Open(legacy.string()).ok());
+  EXPECT_EQ(reopened.dungeon_overlay.minecart_catalog_version, 1);
+  EXPECT_TRUE(reopened.minecart_catalog_migration_receipt.empty());
+}
+
+TEST(ProjectPathsTest, JsonMinecartCatalogVersionRequiresIntegerOneOrTwo) {
+  ScopedTempDir temp(MakeUniqueTempDir("yaze_minecart_catalog_json_version"));
+  const auto descriptor = temp.path() / "Oracle.yaze";
+  for (const std::string value :
+       {"0", "3", "-1", "2.0", "\"2\"", "true", "null"}) {
+    SCOPED_TRACE(value);
+    WriteTextFile(descriptor,
+                  "{\"yaze_project\":{\"dungeon_overlay\":{"
+                  "\"minecart_catalog_version\":" +
+                      value + "}}}");
+    YazeProject project;
+    EXPECT_EQ(project.Open(descriptor.string()).code(),
+              absl::StatusCode::kInvalidArgument);
+  }
+}
+
 TEST(ProjectPathsTest, JsonNativeSaveReferencesSurviveSaveAsAndReopen) {
   ScopedTempDir temp(MakeUniqueTempDir("yaze_native_save_reference_json"));
   ScopedTempDir elsewhere(MakeUniqueTempDir("yaze_native_save_json_cwd"));
@@ -1073,14 +1252,18 @@ TEST(ProjectPathsTest, CustomObjectSubtypeSlotsRoundTripThroughIni) {
   project.name = "Custom Object Slots";
   project.custom_object_files = {
       {0x31, {"", "", "track_corner.bin", "", "track_floor.bin"}},
-      {0x32, {"furnace.bin", "", "chair.bin"}},
+      {0x32,
+       {"furnace.bin", "anvil.bin", "chair.bin", "", "", "track_floor_any.bin",
+        "wall_sword_house.bin", "track_any.bin", "small_statue.bin",
+        "custom_n.bin", "custom_s.bin", "custom_e.bin", "custom_w.bin"}},
   };
 
   ASSERT_TRUE(project.Save().ok());
   const std::string serialized = ReadTextFile(project_file);
   EXPECT_NE(serialized.find("object_0x31=,,track_corner.bin,,track_floor.bin"),
             std::string::npos);
-  EXPECT_NE(serialized.find("object_0x32=furnace.bin,,chair.bin"),
+  EXPECT_NE(serialized.find("object_0x32=furnace.bin,anvil.bin,chair.bin,,,"
+                            "track_floor_any.bin,wall_sword_house.bin,"),
             std::string::npos);
 
   YazeProject reopened;

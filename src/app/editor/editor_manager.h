@@ -704,6 +704,7 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
   absl::Status PrepareActiveProjectEditorDraftsForSave(
       bool publish_lyra = true);
   void DetachActiveProjectContext();
+  absl::Status ValidateMinecartCatalogForSave() const;
   void BindProjectContextToSession(RomSession* session,
                                    const project::YazeProject& project);
   bool RestoreProjectContextForSession(RomSession* session);
