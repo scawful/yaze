@@ -33,7 +33,7 @@ absl::StatusOr<PlanTarget> ParseObservationKey(std::string_view key) {
     return absl::InvalidArgumentError(absl::StrFormat(
         "Observation key must be step:, item:, decision: or milestone: "
         "followed by an ID: \"%s\"",
-        key));
+        std::string(key)));
   }
   return target;
 }
