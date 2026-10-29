@@ -21,6 +21,7 @@
 #include "app/editor/editor_manager.h"
 #include "app/editor/message/message_editor.h"
 #include "app/editor/overworld/overworld_editor.h"
+#include "app/editor/shell/feedback/popup_manager.h"
 #include "app/editor/shell/feedback/toast_manager.h"
 #include "app/gfx/backend/null_renderer.h"
 #include "app/gfx/resource/arena.h"
@@ -35,6 +36,7 @@
 #include "zelda3/resource_labels.h"
 
 #include "imgui/imgui.h"
+#include "imgui/imgui_internal.h"
 #include "nlohmann/json.hpp"
 
 namespace yaze::editor {
@@ -169,6 +171,88 @@ class LyraActionCallbackEditor : public Editor {
  private:
   std::function<absl::Status()> callback_;
 };
+
+// Headless owner/render probe: this is not native window acceptance.
+TEST(EditorManagerProjectActionsTest,
+     TwoProjectDirtyDocumentsRenderQuitConfirmationBeforeDiscard) {
+  ScopedImGuiContext imgui;
+  ScopedTempDir directory(MakeTempDir("yaze_two_project_quit_popup"));
+  const auto rom_a = directory.path / "a.sfc";
+  const auto rom_b = directory.path / "b.sfc";
+  const auto project_a = directory.path / "a.yaze";
+  const auto project_b = directory.path / "b.yaze";
+  WriteRomFile(rom_a);
+  WriteRomFile(rom_b);
+  WriteProjectFile(project_a, "Quit A", rom_a);
+  WriteProjectFile(project_b, "Quit B", rom_b);
+  const auto disk_a = ReadFile(project_a);
+  const auto disk_b = ReadFile(project_b);
+  const auto bytes_a = ReadFile(rom_a);
+  const auto bytes_b = ReadFile(rom_b);
+  const auto flags = core::FeatureFlags::get();
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  absl::Cleanup cleanup = [&] {
+    gfx::Arena::Get().ClearTextureQueue();
+    manager.reset();
+    gfx::PaletteManager::Get().ResetForTesting();
+    core::FeatureFlags::get() = flags;
+  };
+  test::InitializeWithIsolatedSettings(*manager, &renderer);
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+  ASSERT_OK(manager->OpenRomOrProject(project_a.string()));
+  ASSERT_OK(manager->OpenRomOrProject(project_b.string()));
+  const auto selected = manager->GetCurrentSessionId();
+  manager->GetCurrentProject()->metadata.description = "unsaved document B";
+  manager->MarkCurrentProjectDirty();
+  manager->SwitchToSession(0);
+  if (manager->HasPendingUnsavedSessionAction())
+    manager->ConfirmPendingUnsavedSessionActionDiscardAndContinue();
+  ASSERT_EQ(manager->GetCurrentSessionIndex(), 0u);
+  manager->GetCurrentProject()->metadata.description = "unsaved document A";
+  manager->MarkCurrentProjectDirty();
+  manager->SwitchToSession(1);
+  if (manager->HasPendingUnsavedSessionAction())
+    manager->ConfirmPendingUnsavedSessionActionDiscardAndContinue();
+  ASSERT_EQ(manager->GetCurrentSessionId(), selected);
+  manager->Quit();
+  ASSERT_FALSE(manager->quit());
+  ASSERT_TRUE(manager->HasPendingUnsavedSessionAction());
+  ASSERT_TRUE(
+      manager->popup_manager()->IsVisible(PopupID::kUnsavedSessionChanges));
+  bool rendered = false;
+  auto& io = ImGui::GetIO();
+  io.DisplaySize = ImVec2(1280, 720);
+  io.DeltaTime = 1.0f / 60.0f;
+  for (int frame = 0; frame < 6; ++frame) {
+    ImGui::NewFrame();
+    const auto status = manager->Update();
+    ImGuiWindow* modal =
+        ImGui::FindWindowByName(PopupID::kUnsavedSessionChanges);
+    rendered |= modal && modal->Active && !modal->Hidden &&
+                (modal->Flags & ImGuiWindowFlags_Modal);
+    for (const auto& popup : ImGui::GetCurrentContext()->OpenPopupStack) {
+      std::cout << "quit_probe frame=" << frame << " id=" << popup.PopupId
+                << " parent=" << popup.OpenParentId
+                << " opened=" << popup.OpenFrameCount
+                << " window=" << (popup.Window ? popup.Window->Name : "pending")
+                << '\n';
+    }
+    ImGui::Render();
+    ASSERT_OK(status);
+    EXPECT_EQ(manager->GetCurrentSessionId(), selected);
+    EXPECT_TRUE(manager->HasPendingUnsavedSessionAction());
+    EXPECT_FALSE(manager->quit());
+  }
+  EXPECT_TRUE(rendered)
+      << "Quit guard remained pending without a visible modal";
+  EXPECT_EQ(ReadFile(project_a), disk_a);
+  EXPECT_EQ(ReadFile(project_b), disk_b);
+  EXPECT_EQ(ReadFile(rom_a), bytes_a);
+  EXPECT_EQ(ReadFile(rom_b), bytes_b);
+  manager->ConfirmPendingUnsavedSessionActionDiscardAndContinue();
+  EXPECT_TRUE(manager->quit());
+}
 
 TEST(EditorManagerProjectActionsTest,
      LyraTerrainActionsRequireSavedProjectAndLoadedRom) {
