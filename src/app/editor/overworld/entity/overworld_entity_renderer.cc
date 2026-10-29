@@ -105,7 +105,8 @@ void OverworldEntityRenderer::DrawExits(const gui::CanvasRuntime& rt,
 void OverworldEntityRenderer::DrawProjectConnections(
     const gui::CanvasRuntime& rt, const core::LyraAuthoringState& authoring,
     int world, bool entrances_enabled, bool exits_enabled,
-    const OverworldConnectionView* drag_preview) {
+    const OverworldConnectionView* drag_preview, bool entrances_interactive,
+    bool exits_interactive) {
   hovered_project_connection_.reset();
   if (!rt.draw_list || !std::isfinite(rt.scale) || rt.scale <= 0 || world < 0 ||
       world > 2) {
@@ -144,8 +145,10 @@ void OverworldEntityRenderer::DrawProjectConnections(
       DrawConnectionMarker(
           rt, placement->world_x, placement->world_y,
           is_entrance ? EntityType::kEntrance : EntityType::kExit, label);
-      if (HoveringConnectionMarker(rt, placement->world_x,
-                                   placement->world_y)) {
+      const bool interactive =
+          is_entrance ? entrances_interactive : exits_interactive;
+      if (interactive && HoveringConnectionMarker(rt, placement->world_x,
+                                                  placement->world_y)) {
         hovered_project_connection_ = connection.reference;
         hovered_entity_ = nullptr;
       }

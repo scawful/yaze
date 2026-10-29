@@ -83,6 +83,7 @@ class OverworldEntityWorkbench : public WindowContent {
                                        int world_x, int world_y);
 
  private:
+  friend class OverworldConnectionWorkbenchTestPeer;
   static constexpr const char* kContextMenuPopupId =
       "##OverworldEntityContextMenu";
 
@@ -95,10 +96,13 @@ class OverworldEntityWorkbench : public WindowContent {
                                  const ProjectConnectionEditPlan& plan);
   void DrawProjectConnectionPopup(OverworldEditor& editor);
   void DrawProjectConnectionContextMenu(OverworldEditor& editor);
+  void ResetProjectConnectionDraft();
   const OverworldEditor* project_owner_ = nullptr;
   const core::LyraTerrainDocument* project_document_ = nullptr;
   std::optional<OverworldConnectionReference> project_selection_;
   std::optional<OverworldConnectionView> project_draft_before_;
+  const OverworldEditor* project_draft_owner_ = nullptr;
+  const core::LyraTerrainDocument* project_draft_document_ = nullptr;
   ProjectConnectionEdit project_draft_;
   bool request_project_editor_ = false;
   bool request_project_context_ = false;

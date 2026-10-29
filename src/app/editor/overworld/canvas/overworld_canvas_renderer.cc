@@ -273,11 +273,7 @@ void OverworldCanvasRenderer::DrawOverworldCanvas() {
       editor_->entity_renderer_->DrawItems(canvas_rt, editor_->current_world_);
       editor_->entity_renderer_->DrawSprites(canvas_rt, editor_->current_world_,
                                              editor_->game_state_);
-      if (const auto* document = editor_->lyra_canvas_.document()) {
-        editor_->entity_renderer_->DrawProjectConnections(
-            canvas_rt, document->authoring(), editor_->current_world_, true,
-            true, project_drag_preview_ ? &*project_drag_preview_ : nullptr);
-      }
+      DrawProjectConnections(canvas_rt);
       FilterHoveredEntityByMode();
       DrawEntityHoverTooltip();
     } else if (editor_->entity_renderer_) {
@@ -288,11 +284,9 @@ void OverworldCanvasRenderer::DrawOverworldCanvas() {
     // Area subscreen overlays are composited per map in DrawOverworldMaps()
     // (toggle: show_overlay_preview_).
 
-    // Always refresh hover preview: when the canvas is not hovered this clears
-    // hovered_map_ so the status bar falls back to the selected map.
-    if (canvas_rt.hovered) {
-      editor_->HandleMapInteraction();
-    }
+    // Project connections own entity gestures before map navigation handles
+    // clicks, including the double-click that opens properties.
+    HandleMapInteraction(canvas_rt);
 
     if (tile_tool) {
       editor_->CheckForOverworldEdits();
@@ -438,6 +432,36 @@ void OverworldCanvasRenderer::DrawOverworldCanvas() {
   editor_->DrawItemInsertPopup();
 }
 
+bool OverworldCanvasRenderer::HandleMapInteraction(
+    const gui::CanvasRuntime& canvas) {
+  // The navigation callback knows native pointers. Project references own the
+  // same gestures here, before navigation can select or open map properties.
+  if (!canvas.hovered || project_drag_before_ ||
+      (editor_->entity_renderer_ &&
+       editor_->entity_renderer_->hovered_project_connection()))
+    return false;
+  editor_->HandleMapInteraction();
+  return true;
+}
+
+std::optional<OverworldConnectionReference>
+OverworldCanvasRenderer::DrawProjectConnections(
+    const gui::CanvasRuntime& canvas) {
+  const auto* document = editor_->lyra_canvas_.document();
+  if (!document || !editor_->entity_renderer_)
+    return std::nullopt;
+  const auto mode = editor_->entity_edit_mode_;
+  const bool interactive = editor_->current_mode == EditingMode::MOUSE &&
+                           mode != EntityEditMode::ITEMS &&
+                           mode != EntityEditMode::SPRITES;
+  editor_->entity_renderer_->DrawProjectConnections(
+      canvas, document->authoring(), editor_->current_world_, true, true,
+      project_drag_preview_ ? &*project_drag_preview_ : nullptr,
+      interactive && mode != EntityEditMode::EXITS,
+      interactive && mode != EntityEditMode::ENTRANCES);
+  return editor_->entity_renderer_->hovered_project_connection();
+}
+
 absl::Status OverworldCanvasRenderer::CommitNativeConnectionDrag(
     zelda3::GameEntity* target, const OverworldConnectionView& before) {
   if (const auto* ref =
@@ -478,6 +502,8 @@ bool OverworldCanvasRenderer::HandleProjectConnectionInput(
     const gui::CanvasRuntime& canvas, OverworldEntityWorkbench& workbench,
     const std::optional<OverworldConnectionReference>& hovered) {
   const auto cancel_drag = [&] {
+    if (project_drag_before_)
+      editor_->is_dragging_entity_ = false;
     project_drag_before_.reset();
     project_drag_preview_.reset();
   };
@@ -494,7 +520,8 @@ bool OverworldCanvasRenderer::HandleProjectConnectionInput(
     cancel_drag();
     return consumed;
   }
-  if (!project_drag_before_ && hovered && canvas.hovered) {
+  if (!project_drag_before_ && !editor_->is_dragging_entity_ && hovered &&
+      canvas.hovered) {
     if (ImGui::IsMouseClicked(ImGuiMouseButton_Right)) {
       editor_->status_ =
           workbench.OpenProjectConnectionContextMenu(*editor_, *hovered);
@@ -511,8 +538,7 @@ bool OverworldCanvasRenderer::HandleProjectConnectionInput(
         return true;
       project_drag_before_ = workbench.SelectedProjectConnection(*editor_);
       if (project_drag_before_) {
-        project_drag_position_ = ImVec2(project_drag_before_->world_x,
-                                        project_drag_before_->world_y);
+        editor_->is_dragging_entity_ = true;
         project_drag_preview_ = project_drag_before_;
       }
       return true;
@@ -520,17 +546,18 @@ bool OverworldCanvasRenderer::HandleProjectConnectionInput(
   }
   if (!project_drag_before_)
     return false;
-  if (ImGui::IsMouseDragging(ImGuiMouseButton_Left)) {
-    const auto delta = ImGui::GetIO().MouseDelta;
+  if (ImGui::IsMouseDragging(ImGuiMouseButton_Left) ||
+      ImGui::IsMouseReleased(ImGuiMouseButton_Left)) {
+    const auto delta = ImGui::GetMouseDragDelta(ImGuiMouseButton_Left);
     if (std::isfinite(delta.x) && std::isfinite(delta.y)) {
-      project_drag_position_.x = std::clamp(
-          project_drag_position_.x + delta.x / canvas.scale, 0.0f, 4080.0f);
-      project_drag_position_.y = std::clamp(
-          project_drag_position_.y + delta.y / canvas.scale, 2048.0f, 4080.0f);
-      project_drag_preview_->world_x =
-          static_cast<int>(project_drag_position_.x / 16) * 16;
-      project_drag_preview_->world_y =
-          static_cast<int>(project_drag_position_.y / 16) * 16;
+      const float x =
+          std::clamp(project_drag_before_->world_x + delta.x / canvas.scale,
+                     0.0f, 4080.0f);
+      const float y =
+          std::clamp(project_drag_before_->world_y + delta.y / canvas.scale,
+                     2048.0f, 4080.0f);
+      project_drag_preview_->world_x = static_cast<int>(x / 16) * 16;
+      project_drag_preview_->world_y = static_cast<int>(y / 16) * 16;
       project_drag_preview_->physical_map_id =
           editor_->current_world_ * 64 + project_drag_preview_->world_x / 512 +
           project_drag_preview_->world_y / 512 * 8;

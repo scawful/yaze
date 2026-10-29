@@ -88,6 +88,9 @@ class OverworldCanvasRenderer {
   friend class OverworldConnectionCanvasTestPeer;
   absl::Status CommitNativeConnectionDrag(
       zelda3::GameEntity* target, const OverworldConnectionView& before);
+  std::optional<OverworldConnectionReference> DrawProjectConnections(
+      const gui::CanvasRuntime& canvas);
+  bool HandleMapInteraction(const gui::CanvasRuntime& canvas);
   bool HandleProjectConnectionInput(
       const gui::CanvasRuntime& canvas, OverworldEntityWorkbench& workbench,
       const std::optional<OverworldConnectionReference>& hovered);
@@ -133,7 +136,6 @@ class OverworldCanvasRenderer {
   std::optional<OverworldConnectionView> native_connection_drag_before_;
   std::optional<OverworldConnectionView> project_drag_before_;
   std::optional<OverworldConnectionView> project_drag_preview_;
-  ImVec2 project_drag_position_{};
   gui::AdaptiveSheetScaleMode tile16_scale_mode_ =
       gui::AdaptiveSheetScaleMode::kFit;
   gui::AdaptiveSheetScaleMode area_graphics_scale_mode_ =

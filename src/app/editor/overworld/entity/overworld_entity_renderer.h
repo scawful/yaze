@@ -56,10 +56,12 @@ class OverworldEntityRenderer {
                    int game_state);
   // Project markers use the ordinary entrance/return presentation while their
   // selection stays a stable project reference. Preview changes display only.
+  // Interaction flags filter hits without hiding either visible marker kind.
   void DrawProjectConnections(
       const gui::CanvasRuntime& rt, const core::LyraAuthoringState& authoring,
       int world, bool entrances_enabled = true, bool exits_enabled = true,
-      const OverworldConnectionView* drag_preview = nullptr);
+      const OverworldConnectionView* drag_preview = nullptr,
+      bool entrances_interactive = true, bool exits_interactive = true);
 
   // ==========================================================================
   // Legacy rendering methods (kept for backward compatibility)

@@ -29,6 +29,14 @@
 
 namespace yaze::editor {
 
+class OverworldConnectionWorkbenchTestPeer {
+ public:
+  static const OverworldConnectionDestination& DraftDestination(
+      const OverworldEntityWorkbench& workbench) {
+    return workbench.project_draft_.destination;
+  }
+};
+
 class OverworldConnectionCanvasTestPeer {
  public:
   static bool Input(
@@ -48,6 +56,14 @@ class OverworldConnectionCanvasTestPeer {
                                    zelda3::GameEntity* target,
                                    const OverworldConnectionView& before) {
     return renderer.CommitNativeConnectionDrag(target, before);
+  }
+  static std::optional<OverworldConnectionReference> DrawProject(
+      OverworldCanvasRenderer& renderer, const gui::CanvasRuntime& canvas) {
+    return renderer.DrawProjectConnections(canvas);
+  }
+  static bool MapInteraction(OverworldCanvasRenderer& renderer,
+                             const gui::CanvasRuntime& canvas) {
+    return renderer.HandleMapInteraction(canvas);
   }
 };
 
@@ -435,6 +451,53 @@ TEST_F(OverworldConnectionWorkbenchTest,
 }
 
 TEST_F(OverworldConnectionWorkbenchTest,
+       CanvasPressThenMoveAndReleaseCommitsFinalTileWithOneUndoStep) {
+  PrepareProjectDrag();
+  OverworldCanvasRenderer canvas(editor_.get());
+  const auto history_before = editor_->undo_manager().UndoStackSize();
+  EXPECT_TRUE(
+      CanvasInput(canvas, {100, 100}, true, ProjectEntranceReference{41}));
+  EXPECT_EQ(Document().authoring(), baseline_);
+  // The next frame delivers both movement and release; no held-move frame
+  // precedes it. The final displacement still belongs to this gesture.
+  EXPECT_TRUE(CanvasInput(canvas, {124, 132}, false));
+  EXPECT_FALSE(OverworldConnectionCanvasTestPeer::Dragging(canvas));
+  EXPECT_EQ(Document().authoring().maps[0].doors[0],
+            (core::LyraDoorPlacement{41, 2, 4, 0x25}));
+  EXPECT_EQ(editor_->undo_manager().UndoStackSize(), history_before + 1);
+  const auto after = Document().authoring();
+  ASSERT_TRUE(editor_->Undo().ok());
+  EXPECT_EQ(Document().authoring(), baseline_);
+  ASSERT_TRUE(editor_->Redo().ok());
+  EXPECT_EQ(Document().authoring(), after);
+  ExpectProtectedData(Document().authoring());
+}
+
+TEST_F(OverworldConnectionWorkbenchTest,
+       CanvasLastMovementOnReleaseIsIncludedAfterHeldPreview) {
+  PrepareProjectDrag();
+  OverworldCanvasRenderer canvas(editor_.get());
+  const auto history_before = editor_->undo_manager().UndoStackSize();
+  EXPECT_TRUE(
+      CanvasInput(canvas, {100, 100}, true, ProjectEntranceReference{41}));
+  EXPECT_TRUE(CanvasInput(canvas, {116, 116}, true));
+  auto preview = OverworldConnectionCanvasTestPeer::Preview(canvas);
+  ASSERT_TRUE(preview.has_value());
+  EXPECT_EQ(preview->world_x, 32);
+  EXPECT_EQ(preview->world_y, 2096);
+  EXPECT_EQ(Document().authoring(), baseline_);
+  EXPECT_EQ(editor_->undo_manager().UndoStackSize(), history_before);
+  EXPECT_TRUE(CanvasInput(canvas, {132, 132}, false));
+  EXPECT_EQ(Document().authoring().maps[0].doors[0],
+            (core::LyraDoorPlacement{41, 3, 4, 0x25}));
+  EXPECT_EQ(editor_->undo_manager().UndoStackSize(), history_before + 1);
+  EXPECT_FALSE(OverworldConnectionCanvasTestPeer::Dragging(canvas));
+  ASSERT_TRUE(editor_->Undo().ok());
+  EXPECT_EQ(Document().authoring(), baseline_);
+  ExpectProtectedData(Document().authoring());
+}
+
+TEST_F(OverworldConnectionWorkbenchTest,
        CanvasDragRespectsScaleAndRetainsReturnDestination) {
   PrepareProjectDrag();
   OverworldCanvasRenderer canvas(editor_.get());
@@ -743,6 +806,242 @@ TEST_F(OverworldConnectionWorkbenchTest,
     EXPECT_EQ(editor_->undo_manager().UndoStackSize(), history_before);
   }
   ExpectProtectedData(Document().authoring());
+}
+
+TEST_F(OverworldConnectionWorkbenchTest,
+       ModalDraftCannotSaveIntoRetargetedEditorWithIdenticalIdAndPreimage) {
+  auto project = project_;
+  project.filepath = (directory_ / "ModalOther.yaze").string();
+  project.lyra_terrain_file.clear();
+  std::unique_ptr<OverworldEditor> other;
+  ASSERT_NO_FATAL_FAILURE(CreateEditor(other, project, 404));
+  ASSERT_TRUE(other->EditProjectMapAuthoring(baseline_).ok());
+  const auto history_a = editor_->undo_manager().UndoStackSize();
+  const auto history_b = other->undo_manager().UndoStackSize();
+  const auto id =
+      gui::MakePopupId(gui::EditorNames::kOverworld, "Entrance Editor");
+  const auto draw_popup = [&]() {
+    ImGui::EndFrame();
+    ImGui::NewFrame();
+    ImGui::Begin("ModalOwnershipHost");
+    workbench_.DrawPopups();
+    const bool open = ImGui::IsPopupOpen(id.c_str());
+    ImGui::End();
+    return open;
+  };
+  ContentRegistry::Context::SetEditorWindowContext("Overworld", editor_.get());
+  ASSERT_TRUE(
+      workbench_
+          .OpenProjectConnectionEditor(*editor_, ProjectEntranceReference{41})
+          .ok());
+  ASSERT_TRUE(draw_popup());
+  ASSERT_TRUE(draw_popup());
+  auto* popup = ImGui::FindWindowByName(id.c_str());
+  ASSERT_NE(popup, nullptr);
+  ImGui::ActivateItemByID(popup->GetID("Assign entrance ID"));
+  ASSERT_TRUE(draw_popup());
+  ASSERT_TRUE(std::holds_alternative<std::monostate>(
+      OverworldConnectionWorkbenchTestPeer::DraftDestination(workbench_)));
+  EXPECT_EQ(Document().authoring(), baseline_);
+
+  // The second editor has the same ID and complete record preimage. A stale
+  // modal therefore needs document ownership in addition to record equality.
+  ASSERT_TRUE(
+      workbench_.SelectProjectConnection(*other, ProjectEntranceReference{41})
+          .ok());
+  ContentRegistry::Context::SetEditorWindowContext("Overworld", other.get());
+  ImGui::ActivateItemByID(popup->GetID("Save"));
+  EXPECT_FALSE(draw_popup());
+  EXPECT_EQ(Document().authoring(), baseline_);
+  EXPECT_EQ(other->lyra_canvas_.document()->authoring(), baseline_);
+  EXPECT_EQ(editor_->undo_manager().UndoStackSize(), history_a);
+  EXPECT_EQ(other->undo_manager().UndoStackSize(), history_b);
+
+  // An explicit new opening in the current editor creates its own draft.
+  ASSERT_TRUE(
+      workbench_
+          .OpenProjectConnectionEditor(*other, ProjectEntranceReference{41})
+          .ok());
+  ASSERT_TRUE(draw_popup());
+  ASSERT_TRUE(draw_popup());
+  popup = ImGui::FindWindowByName(id.c_str());
+  ASSERT_NE(popup, nullptr);
+  ImGui::ActivateItemByID(popup->GetID("Assign entrance ID"));
+  ASSERT_TRUE(draw_popup());
+  ASSERT_TRUE(std::holds_alternative<std::monostate>(
+      OverworldConnectionWorkbenchTestPeer::DraftDestination(workbench_)));
+  ImGui::ActivateItemByID(popup->GetID("Save"));
+  EXPECT_FALSE(draw_popup());
+  EXPECT_EQ(
+      other->lyra_canvas_.document()->authoring().maps[0].doors[0].entrance_id,
+      std::nullopt);
+  EXPECT_EQ(other->undo_manager().UndoStackSize(), history_b + 1);
+  EXPECT_EQ(Document().authoring(), baseline_);
+  ASSERT_TRUE(other->Undo().ok());
+  EXPECT_EQ(other->lyra_canvas_.document()->authoring(), baseline_);
+  ExpectProtectedData(Document().authoring());
+}
+
+TEST_F(OverworldConnectionWorkbenchTest,
+       ModalDraftCannotSaveIntoReplacementDocumentWithIdenticalRecord) {
+  ContentRegistry::Context::SetEditorWindowContext("Overworld", editor_.get());
+  const auto id =
+      gui::MakePopupId(gui::EditorNames::kOverworld, "Entrance Editor");
+  const auto draw_popup = [&]() {
+    ImGui::EndFrame();
+    ImGui::NewFrame();
+    ImGui::Begin("ModalDocumentHost");
+    workbench_.DrawPopups();
+    const bool open = ImGui::IsPopupOpen(id.c_str());
+    ImGui::End();
+    return open;
+  };
+  ASSERT_TRUE(
+      workbench_
+          .OpenProjectConnectionEditor(*editor_, ProjectEntranceReference{41})
+          .ok());
+  ASSERT_TRUE(draw_popup());
+  ASSERT_TRUE(draw_popup());
+  auto* popup = ImGui::FindWindowByName(id.c_str());
+  ASSERT_NE(popup, nullptr);
+  ImGui::ActivateItemByID(popup->GetID("Assign entrance ID"));
+  ASSERT_TRUE(draw_popup());
+  ASSERT_TRUE(std::holds_alternative<std::monostate>(
+      OverworldConnectionWorkbenchTestPeer::DraftDestination(workbench_)));
+  const auto* old_document = editor_->lyra_canvas_.document();
+  editor_->lyra_canvas_.Reset();
+  auto replacement = project_;
+  replacement.filepath = (directory_ / "ModalReplacement.yaze").string();
+  replacement.lyra_terrain_file.clear();
+  ASSERT_TRUE(
+      editor_->lyra_canvas_.Create(&replacement, editor_->overworld()).ok());
+  ASSERT_NE(editor_->lyra_canvas_.document(), old_document);
+  ASSERT_TRUE(editor_->EditProjectMapAuthoring(baseline_).ok());
+  ASSERT_TRUE(
+      workbench_.SelectProjectConnection(*editor_, ProjectEntranceReference{41})
+          .ok());
+  const auto history_before = editor_->undo_manager().UndoStackSize();
+  ImGui::ActivateItemByID(popup->GetID("Save"));
+  EXPECT_FALSE(draw_popup());
+  EXPECT_EQ(Document().authoring(), baseline_);
+  EXPECT_EQ(editor_->undo_manager().UndoStackSize(), history_before);
+  ExpectProtectedData(Document().authoring());
+}
+
+TEST_F(OverworldConnectionWorkbenchTest,
+       CanvasExitsModeSelectsReturnOverOverlappingEntrance) {
+  auto overlapping = baseline_;
+  overlapping.maps[0].exits.push_back({52, 0x127, 1, 2, std::nullopt});
+  ASSERT_TRUE(editor_->EditProjectMapAuthoring(overlapping).ok());
+  PrepareProjectDrag();
+  editor_->SetEntityEditMode(EntityEditMode::EXITS);
+  ContentRegistry::Context::SetEditorWindowContext("Overworld", editor_.get());
+  OverworldCanvasRenderer renderer(editor_.get());
+  ImGui::EndFrame();
+  ImGui::GetIO().AddMousePosEvent(24, 2088);
+  ImGui::GetIO().AddMouseButtonEvent(ImGuiMouseButton_Left, true);
+  ImGui::NewFrame();
+  ImGui::Begin("ConnectionOverlapHost");
+  gui::CanvasRuntime canvas;
+  canvas.hovered = true;
+  canvas.scale = 1.0f;
+  canvas.draw_list = ImGui::GetWindowDrawList();
+  auto hovered =
+      OverworldConnectionCanvasTestPeer::DrawProject(renderer, canvas);
+  EXPECT_TRUE(hovered.has_value());
+  if (hovered)
+    EXPECT_EQ(*hovered,
+              OverworldConnectionReference(ProjectReturnReference{52}));
+  EXPECT_FALSE(
+      OverworldConnectionCanvasTestPeer::MapInteraction(renderer, canvas));
+  EXPECT_TRUE(OverworldConnectionCanvasTestPeer::Input(renderer, canvas,
+                                                       workbench_, hovered));
+  ImGui::End();
+  auto selected = workbench_.SelectedProjectConnection(*editor_);
+  ASSERT_TRUE(selected.has_value());
+  EXPECT_EQ(selected->reference,
+            OverworldConnectionReference(ProjectReturnReference{52}));
+  EXPECT_EQ(Document().authoring(), overlapping);
+
+  // Escape clears the left gesture before the right-click context request.
+  EXPECT_TRUE(CanvasInput(renderer, {24, 2088}, false, std::nullopt, true));
+  ImGui::EndFrame();
+  ImGui::GetIO().AddKeyEvent(ImGuiKey_Escape, false);
+  ImGui::GetIO().AddMouseButtonEvent(ImGuiMouseButton_Right, true);
+  ImGui::NewFrame();
+  ImGui::Begin("ConnectionOverlapHost");
+  canvas.draw_list = ImGui::GetWindowDrawList();
+  hovered = OverworldConnectionCanvasTestPeer::DrawProject(renderer, canvas);
+  EXPECT_TRUE(hovered.has_value());
+  EXPECT_FALSE(
+      OverworldConnectionCanvasTestPeer::MapInteraction(renderer, canvas));
+  EXPECT_TRUE(OverworldConnectionCanvasTestPeer::Input(renderer, canvas,
+                                                       workbench_, hovered));
+  workbench_.DrawPopups();
+  EXPECT_TRUE(ImGui::IsPopupOpen("##OverworldEntityContextMenu"));
+  ImGui::End();
+  selected = workbench_.SelectedProjectConnection(*editor_);
+  ASSERT_TRUE(selected.has_value());
+  EXPECT_EQ(selected->reference,
+            OverworldConnectionReference(ProjectReturnReference{52}));
+  EXPECT_EQ(Document().authoring(), overlapping);
+}
+
+TEST_F(OverworldConnectionWorkbenchTest,
+       ProjectDoubleClickOpensOrdinaryReturnPopupWithoutMapNavigation) {
+  auto overlapping = baseline_;
+  overlapping.maps[0].exits.push_back({52, 0x127, 1, 2, std::nullopt});
+  ASSERT_TRUE(editor_->EditProjectMapAuthoring(overlapping).ok());
+  PrepareProjectDrag();
+  editor_->SetEntityEditMode(EntityEditMode::EXITS);
+  ContentRegistry::Context::SetEditorWindowContext("Overworld", editor_.get());
+  OverworldCanvasRenderer renderer(editor_.get());
+  const auto id = gui::MakePopupId(gui::EditorNames::kOverworld, "Exit Editor");
+  const auto history_before = editor_->undo_manager().UndoStackSize();
+  const auto frame = [&](bool down) {
+    ImGui::EndFrame();
+    auto& io = ImGui::GetIO();
+    io.AddMousePosEvent(24, 2088);
+    io.AddMouseButtonEvent(ImGuiMouseButton_Left, down);
+    ImGui::NewFrame();
+    ImGui::Begin("ConnectionDoubleClickHost");
+    gui::CanvasRuntime canvas;
+    canvas.hovered = true;
+    canvas.scale = 1.0f;
+    canvas.draw_list = ImGui::GetWindowDrawList();
+    const auto hovered =
+        OverworldConnectionCanvasTestPeer::DrawProject(renderer, canvas);
+    EXPECT_TRUE(hovered.has_value());
+    EXPECT_FALSE(
+        OverworldConnectionCanvasTestPeer::MapInteraction(renderer, canvas));
+    const bool dragging_before =
+        OverworldConnectionCanvasTestPeer::Dragging(renderer);
+    EXPECT_EQ(OverworldConnectionCanvasTestPeer::Input(renderer, canvas,
+                                                       workbench_, hovered),
+              down || dragging_before);
+    const bool double_click =
+        ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left);
+    workbench_.DrawPopups();
+    const bool open = ImGui::IsPopupOpen(id.c_str());
+    ImGui::End();
+    return std::make_pair(double_click, open);
+  };
+  EXPECT_FALSE(frame(true).first);
+  EXPECT_FALSE(frame(false).second);
+  const auto double_click = frame(true);
+  EXPECT_TRUE(double_click.first);
+  EXPECT_TRUE(double_click.second);
+  EXPECT_FALSE(OverworldConnectionCanvasTestPeer::Dragging(renderer));
+  const auto selected = workbench_.SelectedProjectConnection(*editor_);
+  ASSERT_TRUE(selected.has_value());
+  EXPECT_EQ(selected->reference,
+            OverworldConnectionReference(ProjectReturnReference{52}));
+  EXPECT_EQ(Document().authoring(), overlapping);
+  EXPECT_EQ(editor_->undo_manager().UndoStackSize(), history_before);
+  auto* popup = ImGui::FindWindowByName(id.c_str());
+  ASSERT_NE(popup, nullptr);
+  ImGui::ActivateItemByID(popup->GetID("Cancel"));
+  frame(false);
 }
 
 }  // namespace

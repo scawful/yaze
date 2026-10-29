@@ -206,6 +206,55 @@ TEST_F(OverworldProjectConnectionRendererTest,
 }
 
 TEST_F(OverworldProjectConnectionRendererTest,
+       ExitInteractionSelectsOverlappedReturnWithoutHidingEntrance) {
+  authoring_.maps[0].exits.push_back({202, 0x105, 2, 3, 0});
+  const auto before = authoring_;
+  const auto visible = Frame([&](const auto& rt) {
+    renderer_.DrawProjectConnections(rt, authoring_, 2);
+  });
+  ASSERT_EQ(renderer_.hovered_project_connection(),
+            OverworldConnectionReference(ProjectEntranceReference{101}));
+  const auto exit_interaction = Frame([&](const auto& rt) {
+    renderer_.DrawProjectConnections(rt, authoring_, 2, true, true, nullptr,
+                                     false, true);
+  });
+  ExpectSameVertices(exit_interaction, visible);
+  EXPECT_EQ(renderer_.hovered_project_connection(),
+            OverworldConnectionReference(ProjectReturnReference{202}));
+  EXPECT_EQ(authoring_, before);
+}
+
+TEST_F(OverworldProjectConnectionRendererTest,
+       EntranceInteractionSelectsOverlappedEntranceWithoutHidingReturn) {
+  authoring_.maps[0].exits.push_back({202, 0x105, 2, 3, 0});
+  const auto visible = Frame([&](const auto& rt) {
+    renderer_.DrawProjectConnections(rt, authoring_, 2);
+  });
+  const auto entrance_interaction = Frame([&](const auto& rt) {
+    renderer_.DrawProjectConnections(rt, authoring_, 2, true, true, nullptr,
+                                     true, false);
+  });
+  ExpectSameVertices(entrance_interaction, visible);
+  EXPECT_EQ(renderer_.hovered_project_connection(),
+            OverworldConnectionReference(ProjectEntranceReference{101}));
+}
+
+TEST_F(OverworldProjectConnectionRendererTest,
+       DisabledConnectionInteractionClearsHoverWithoutHidingEitherKind) {
+  authoring_.maps[0].exits.push_back({202, 0x105, 2, 3, 0});
+  const auto visible = Frame([&](const auto& rt) {
+    renderer_.DrawProjectConnections(rt, authoring_, 2);
+  });
+  ASSERT_TRUE(renderer_.hovered_project_connection());
+  const auto noninteractive = Frame([&](const auto& rt) {
+    renderer_.DrawProjectConnections(rt, authoring_, 2, true, true, nullptr,
+                                     false, false);
+  });
+  ExpectSameVertices(noninteractive, visible);
+  EXPECT_FALSE(renderer_.hovered_project_connection());
+}
+
+TEST_F(OverworldProjectConnectionRendererTest,
        DragPreviewChangesOnlyMatchingMarkerLocationWithoutMutation) {
   const auto before = authoring_;
   auto view = ResolveOverworldConnection({{}, {}, {}, &authoring_},

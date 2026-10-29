@@ -208,6 +208,15 @@ absl::Status OverworldEntityWorkbench::SelectProjectConnection(
 absl::Status OverworldEntityWorkbench::OpenProjectConnectionEditor(
     OverworldEditor& editor, const OverworldConnectionReference& reference) {
   RETURN_IF_ERROR(SelectProjectConnection(editor, reference));
+  const auto current = SelectedProjectConnection(editor);
+  if (!current) {
+    return absl::FailedPreconditionError("Select a current project connection");
+  }
+  project_draft_before_ = *current;
+  project_draft_owner_ = &editor;
+  project_draft_document_ = editor.lyra_canvas_.document();
+  project_draft_ = {current->physical_map_id, current->world_x,
+                    current->world_y, current->destination};
   request_project_editor_ = true;
   return absl::OkStatus();
 }
@@ -299,18 +308,21 @@ void OverworldEntityWorkbench::DrawProjectConnectionContextMenu(
   }
 }
 
+void OverworldEntityWorkbench::ResetProjectConnectionDraft() {
+  project_draft_before_.reset();
+  project_draft_owner_ = nullptr;
+  project_draft_document_ = nullptr;
+  request_project_editor_ = false;
+}
+
 void OverworldEntityWorkbench::DrawProjectConnectionPopup(
     OverworldEditor& editor) {
   if (request_project_editor_) {
     request_project_editor_ = false;
-    const auto current = SelectedProjectConnection(editor);
-    if (!current)
+    if (!project_draft_before_)
       return;
-    project_draft_before_ = *current;
-    project_draft_ = {current->physical_map_id, current->world_x,
-                      current->world_y, current->destination};
-    const bool entrance =
-        std::holds_alternative<ProjectEntranceReference>(current->reference);
+    const bool entrance = std::holds_alternative<ProjectEntranceReference>(
+        project_draft_before_->reference);
     ImGui::OpenPopup(
         gui::MakePopupId(gui::EditorNames::kOverworld,
                          entrance ? "Entrance Editor" : "Exit Editor")
@@ -326,6 +338,15 @@ void OverworldEntityWorkbench::DrawProjectConnectionPopup(
   bool closed = false;
   if (ImGui::BeginPopupModal(id.c_str(), nullptr,
                              ImGuiWindowFlags_AlwaysAutoResize)) {
+    if (project_draft_owner_ != &editor ||
+        project_draft_document_ != editor.lyra_canvas_.document()) {
+      // Selection may have retargeted to an identical ID in another session.
+      // The open draft still belongs to the editor/document that opened it.
+      ImGui::CloseCurrentPopup();
+      ImGui::EndPopup();
+      ResetProjectConnectionDraft();
+      return;
+    }
     const auto current = SelectedProjectConnection(editor);
     const bool available =
         current && current->reference == project_draft_before_->reference;
@@ -407,7 +428,7 @@ void OverworldEntityWorkbench::DrawProjectConnectionPopup(
     closed = true;
   }
   if (closed)
-    project_draft_before_.reset();
+    ResetProjectConnectionDraft();
 }
 
 void OverworldEntityWorkbench::Draw(bool* p_open) {
@@ -600,6 +621,11 @@ void OverworldEntityWorkbench::DrawPopups() {
 
   auto* editor = ctx.editor;
   auto* editing_entity = editing_entity_;
+  // A project popup that closes or loses its document this frame still owns
+  // the shared popup ID. Never reuse its pending activation for a native row.
+  const bool project_popup_owned = project_selection_.has_value() ||
+                                   project_draft_before_.has_value() ||
+                                   request_project_editor_;
 
   if (request_project_context_) {
     request_project_context_ = false;
@@ -636,7 +662,7 @@ void OverworldEntityWorkbench::DrawPopups() {
     ImGui::EndPopup();
   }
 
-  if (!project_selection_ && !project_draft_before_ &&
+  if (!project_popup_owned && !project_selection_ && !project_draft_before_ &&
       DrawExitEditorPopup(editor->edit_exit())) {
     if (editing_entity &&
         editing_entity->entity_type_ == zelda3::GameEntity::EntityType::kExit) {
@@ -649,7 +675,7 @@ void OverworldEntityWorkbench::DrawPopups() {
       }
     }
   }
-  if (!project_selection_ && !project_draft_before_ &&
+  if (!project_popup_owned && !project_selection_ && !project_draft_before_ &&
       DrawOverworldEntrancePopup(editor->edit_entrance())) {
     if (editing_entity && editing_entity->entity_type_ ==
                               zelda3::GameEntity::EntityType::kEntrance) {
