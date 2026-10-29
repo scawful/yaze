@@ -33,6 +33,40 @@ function GitOk([string[]]$Argv) {
   if ($rc -ne 0) { Fail 3 "git $($Argv -join ' ') failed ($rc); see out\git.log" }
 }
 
+# Age and last use identify review candidates, not permission to delete evidence.
+function Write-RetentionReport([string]$Root, [string]$WtRoot, [string]$JobDir,
+                               [int]$MaxWorktrees, [datetime]$Now = (Get-Date)) {
+  Write-Output 'retention: report only; worktrees, stamps and job evidence are preserved'
+  try {
+    $stampDir = Join-Path $Root 'stamps'
+    if (Test-Path -LiteralPath $stampDir -PathType Container -ErrorAction Stop) {
+      $stamps = @(Get-ChildItem -LiteralPath $stampDir -File -ErrorAction Stop |
+        Sort-Object LastWriteTime -Descending)
+      foreach ($stamp in ($stamps | Select-Object -Skip ([math]::Max(0, $MaxWorktrees)))) {
+        $candidate = Join-Path $WtRoot $stamp.Name
+        Write-Output "retention review worktree: $candidate"
+      }
+    }
+  } catch {
+    Write-Output "retention review unavailable for worktrees: $($_.Exception.Message)"
+  }
+  try {
+    $jobsDir = Join-Path $Root 'jobs'
+    if (Test-Path -LiteralPath $jobsDir -PathType Container -ErrorAction Stop) {
+      $currentJob = [IO.Path]::GetFullPath($JobDir).TrimEnd(
+        [IO.Path]::DirectorySeparatorChar, [IO.Path]::AltDirectorySeparatorChar)
+      $jobs = @(Get-ChildItem -LiteralPath $jobsDir -Directory -ErrorAction Stop)
+      foreach ($candidate in $jobs) {
+        if ($candidate.FullName -ne $currentJob -and $candidate.LastWriteTime -lt $Now.AddDays(-2)) {
+          Write-Output "retention review job: $($candidate.FullName)"
+        }
+      }
+    }
+  } catch {
+    Write-Output "retention review unavailable for jobs: $($_.Exception.Message)"
+  }
+}
+
 $JobDir = (Resolve-Path $JobDir).Path
 $Out = Join-Path $JobDir 'out'
 New-Item -ItemType Directory -Force -Path $Out | Out-Null
@@ -269,20 +303,9 @@ $summary = [ordered]@{
 foreach ($k in $times.Keys) { $summary[$k] = $times[$k] }
 $summary.GetEnumerator() | ForEach-Object { "$($_.Key)=$($_.Value)" } | Set-Content (Join-Path $Out 'summary.txt')
 
-# Keep the newest max_worktrees worktrees (by last use); drop older ones and old job dirs.
-$stampDir = Join-Path $Root 'stamps'
-Get-ChildItem $stampDir -File | Sort-Object LastWriteTime -Descending |
-  Select-Object -Skip ([int]$job.max_worktrees) | ForEach-Object {
-    $old = Join-Path $WtRoot $_.Name
-    Say "pruning least-recently-used worktree $($_.Name)"
-    & git -C $Repo worktree remove --force $old *> $null
-    if (Test-Path $old) { Remove-Item -Recurse -Force $old -ErrorAction SilentlyContinue }
-    Remove-Item $_.FullName -Force
-  }
-& git -C $Repo worktree prune *> $null
-Get-ChildItem (Join-Path $Root 'jobs') -Directory |
-  Where-Object { $_.FullName -ne $JobDir -and $_.LastWriteTime -lt (Get-Date).AddDays(-2) } |
-  Remove-Item -Recurse -Force -ErrorAction SilentlyContinue
+# Report candidates without removing held worktrees, fixtures or result logs.
+Write-RetentionReport -Root $Root -WtRoot $WtRoot -JobDir $JobDir -MaxWorktrees ([int]$job.max_worktrees) |
+  ForEach-Object { Say $_ }
 Remove-Item $ownerPath -Force -ErrorAction SilentlyContinue
 $lock.Dispose()
 exit $rcFinal

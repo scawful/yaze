@@ -71,9 +71,18 @@ Details:
   `Documents\Yaze\settings.json`, creates that folder, and skips every test.
   All test processes of one run share these dirs (the harness would give each
   process its own), so tests that write settings can interfere under `ctest -j`.
-- **Cleanup.** The newest `MM_MAX_WORKTREES` worktrees (default 8, by last
-  use) are kept; older ones and job dirs older than two days are removed.
-  `--clean` deletes one branch's build dir before building.
+- **Retention review.** The runner reports worktrees beyond
+  `MM_MAX_WORKTREES` (default 8, ordered by last-use stamp) and job directories
+  older than two days. It preserves every worktree, stamp and job directory,
+  including ignored files, test homes and logs. The current job is excluded
+  from old-job review. A threshold of `0` reports all stamped worktrees;
+  it does not authorize deletion. Missing scan directories are skipped;
+  unreadable scan directories are reported without changing the build/test
+  exit result. Review age and count
+  are not proof that a task is complete. Any later archive or removal requires
+  the workspace storage policy's preservation and restore checks, including
+  active-task and pending-acceptance checks. `--clean` still explicitly deletes
+  one branch's build directory before building.
 
 ## Configuration
 
@@ -82,11 +91,23 @@ Details:
 | `MM_HOST` | unset | SSH alias of one PC to use (key auth, default shell `cmd`); disables fallback |
 | `MM_HOSTS` | `mm` | Boxes tried in order when `MM_HOST` is unset: the first ready box with a free build lock runs the job; if all are busy, it waits on the first reachable one |
 | `MM_REMOTE_ROOT` | `src/yaze-remote` | Runner dir, relative to the remote home |
-| `MM_MAX_WORKTREES` | `8` | Worktrees kept on the PC |
+| `MM_MAX_WORKTREES` | `8` | Worktree count threshold for report-only retention review; `0` reports all stamps, never deletes |
 | `MM_LOCK_WAIT_MIN` | `120` | Minutes to wait for the build lock |
 
 The PC-side clone (`%USERPROFILE%\src\yaze`) and worktree root
 (`%USERPROFILE%\src\yw`) are fixed in `mm-build.ps1`.
+
+The focused retention regression runs without a build, source sync or the
+runner's main body. It extracts only `Write-RetentionReport` from the production
+PowerShell AST and checks synthetic files and metadata in an owned temporary
+directory:
+
+```powershell
+pwsh -NoProfile -File scripts/remote/tests/mm-retention-test.ps1
+```
+
+Use `-RunnerPath <file>` to check another runner source. No real ROM, worktree
+or job directory is needed. The fixture removes only its own synthetic tree.
 
 ## One-time setup on the PC (user scope, no admin)
 
