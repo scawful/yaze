@@ -2173,15 +2173,42 @@ TEST_F(MinecartObjectCollisionWorkflowTest,
 }
 
 TEST_F(MinecartObjectCollisionWorkflowTest,
-       UnsupportedCornerAndCollisionConflictRollBackWithoutHistory) {
+       CornerPlacementSharesOneObjectAndCollisionUndoStep) {
+  const auto original = room_->custom_collision();
   EditObjects({zelda3::RoomObject(0x31, 10, 10, 2)});
-  EXPECT_TRUE(room_->GetTileObjects().empty());
-  EXPECT_FALSE(room_->custom_collision().HasOverrides());
-  EXPECT_EQ(editor_->undo_manager().UndoStackSize(), 0);
+  ASSERT_EQ(editor_->undo_manager().UndoStackSize(), 1);
+  ExpectObject(10, 10, 2);
+  ExpectPiece(10, 10, 0xB2);
+  EXPECT_EQ(room_->custom_collision().overrides.count(), 4);
+  EXPECT_EQ(DungeonEditorV2MinecartTrackTestPeer::OwnedCollisionCells(*editor_,
+                                                                      kRoom),
+            4);
+  EXPECT_TRUE(room_->object_stream_dirty());
+  EXPECT_TRUE(room_->custom_collision_dirty());
+  const auto placed = room_->custom_collision();
 
+  ASSERT_TRUE(editor_->Undo().ok());
+  EXPECT_TRUE(room_->GetTileObjects().empty());
+  EXPECT_EQ(room_->custom_collision(), original);
+  EXPECT_EQ(editor_->undo_manager().UndoStackSize(), 0);
+  EXPECT_EQ(DungeonEditorV2MinecartTrackTestPeer::OwnedCollisionCells(*editor_,
+                                                                      kRoom),
+            0);
+  ASSERT_TRUE(editor_->Redo().ok());
+  ExpectObject(10, 10, 2);
+  EXPECT_EQ(room_->custom_collision(), placed);
+  EXPECT_EQ(editor_->undo_manager().UndoStackSize(), 1);
+  EXPECT_EQ(DungeonEditorV2MinecartTrackTestPeer::OwnedCollisionCells(*editor_,
+                                                                      kRoom),
+            4);
+  EXPECT_EQ(rom_.vector(), rom_before_);
+}
+
+TEST_F(MinecartObjectCollisionWorkflowTest,
+       CollisionConflictRollsBackWithoutHistory) {
   room_->custom_collision().SetOverride(715, 0x20);
   const auto obstacle = room_->custom_collision();
-  EditObjects({zelda3::RoomObject(0x31, 10, 10, 0)});
+  EditObjects({zelda3::RoomObject(0x31, 10, 10, 2)});
   EXPECT_TRUE(room_->GetTileObjects().empty());
   EXPECT_EQ(room_->custom_collision(), obstacle);
   EXPECT_EQ(editor_->undo_manager().UndoStackSize(), 0);
@@ -2268,9 +2295,66 @@ TEST_F(MinecartObjectCollisionWorkflowTest,
 }
 
 TEST_F(MinecartObjectCollisionWorkflowTest,
-       GroupSelectionUnsupportedShapeFailsBeforePublication) {
+       GroupSelectionCornersMoveInOnePairedUndoStep) {
   panel_.set_automatic_rail_collision(false);
-  EditObjects({zelda3::RoomObject(0x31, 10, 10, 2)});
+  EditObjects({zelda3::RoomObject(0x31, 10, 10, 2),
+               zelda3::RoomObject(0x31, 20, 10, 5)});
+  ASSERT_EQ(editor_->undo_manager().UndoStackSize(), 1);
+  panel_.set_automatic_rail_collision(true);
+  const auto original = room_->custom_collision();
+  const auto expect_objects = [this](int delta) {
+    ASSERT_EQ(room_->GetTileObjects().size(), 2);
+    for (size_t index = 0; index < 2; ++index) {
+      const auto& object = room_->GetTileObjects()[index];
+      EXPECT_EQ(object.id_, 0x31);
+      EXPECT_EQ(object.x_, 10 + static_cast<int>(index) * 10 + delta);
+      EXPECT_EQ(object.y_, 10);
+      EXPECT_EQ(object.size_, index == 0 ? 2 : 5);
+      EXPECT_EQ(object.GetLayerValue(), 0);
+    }
+  };
+  DungeonSelectionEditRequest request;
+  request.kind = DungeonSelectionEditKind::kMove;
+  request.objects = {0, 1};
+  request.delta_x_pixels = 16;
+  const auto plan = PlanDungeonSelectionEdit(*room_, request);
+  ASSERT_TRUE(plan.ok()) << plan.status();
+  const auto status = DungeonEditorV2MinecartTrackTestPeer::CommitSelectionEdit(
+      *editor_, *plan);
+  ASSERT_TRUE(status.ok()) << status;
+  expect_objects(2);
+  ExpectPiece(12, 10, 0xB2);
+  ExpectPiece(22, 10, 0xB5);
+  EXPECT_EQ(room_->custom_collision().overrides.count(), 8);
+  EXPECT_FALSE(room_->custom_collision().HasOverride(650));
+  EXPECT_FALSE(room_->custom_collision().HasOverride(660));
+  EXPECT_EQ(DungeonEditorV2MinecartTrackTestPeer::OwnedCollisionCells(*editor_,
+                                                                      kRoom),
+            8);
+  ASSERT_EQ(editor_->undo_manager().UndoStackSize(), 2);
+  const auto moved = room_->custom_collision();
+
+  ASSERT_TRUE(editor_->Undo().ok());
+  expect_objects(0);
+  EXPECT_EQ(room_->custom_collision(), original);
+  EXPECT_EQ(editor_->undo_manager().UndoStackSize(), 1);
+  EXPECT_EQ(DungeonEditorV2MinecartTrackTestPeer::OwnedCollisionCells(*editor_,
+                                                                      kRoom),
+            0);
+  ASSERT_TRUE(editor_->Redo().ok());
+  expect_objects(2);
+  EXPECT_EQ(room_->custom_collision(), moved);
+  EXPECT_EQ(editor_->undo_manager().UndoStackSize(), 2);
+  EXPECT_EQ(DungeonEditorV2MinecartTrackTestPeer::OwnedCollisionCells(*editor_,
+                                                                      kRoom),
+            8);
+  EXPECT_EQ(rom_.vector(), rom_before_);
+}
+
+TEST_F(MinecartObjectCollisionWorkflowTest,
+       GroupSelectionLowerLayerCornerFailsBeforePublication) {
+  panel_.set_automatic_rail_collision(false);
+  EditObjects({zelda3::RoomObject(0x31, 10, 10, 2, 1)});
   ASSERT_EQ(editor_->undo_manager().UndoStackSize(), 1);
   panel_.set_automatic_rail_collision(true);
   const auto original = room_->custom_collision();
@@ -2284,8 +2368,38 @@ TEST_F(MinecartObjectCollisionWorkflowTest,
       *editor_, *plan);
   EXPECT_TRUE(absl::IsFailedPrecondition(status)) << status;
   ExpectObject(10, 10, 2);
+  ASSERT_EQ(room_->GetTileObjects().size(), 1);
+  EXPECT_EQ(room_->GetTileObjects().front().GetLayerValue(), 1);
   EXPECT_EQ(editor_->undo_manager().UndoStackSize(), 1);
   EXPECT_EQ(room_->custom_collision(), original);
+  EXPECT_EQ(DungeonEditorV2MinecartTrackTestPeer::OwnedCollisionCells(*editor_,
+                                                                      kRoom),
+            0);
+  EXPECT_EQ(rom_.vector(), rom_before_);
+}
+
+TEST_F(MinecartObjectCollisionWorkflowTest,
+       GroupSelectionOutOfBoundsCornerFailsBeforePublication) {
+  panel_.set_automatic_rail_collision(false);
+  EditObjects({zelda3::RoomObject(0x31, 10, 61, 2)});
+  ASSERT_EQ(editor_->undo_manager().UndoStackSize(), 1);
+  panel_.set_automatic_rail_collision(true);
+  const auto original = room_->custom_collision();
+  DungeonSelectionEditRequest request;
+  request.kind = DungeonSelectionEditKind::kMove;
+  request.objects = {0};
+  request.delta_y_pixels = 16;
+  const auto plan = PlanDungeonSelectionEdit(*room_, request);
+  ASSERT_TRUE(plan.ok()) << plan.status();
+  const auto status = DungeonEditorV2MinecartTrackTestPeer::CommitSelectionEdit(
+      *editor_, *plan);
+  EXPECT_TRUE(absl::IsFailedPrecondition(status)) << status;
+  ExpectObject(10, 61, 2);
+  EXPECT_EQ(editor_->undo_manager().UndoStackSize(), 1);
+  EXPECT_EQ(room_->custom_collision(), original);
+  EXPECT_EQ(DungeonEditorV2MinecartTrackTestPeer::OwnedCollisionCells(*editor_,
+                                                                      kRoom),
+            0);
   EXPECT_EQ(rom_.vector(), rom_before_);
 }
 

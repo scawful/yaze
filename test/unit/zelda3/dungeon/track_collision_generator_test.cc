@@ -394,13 +394,14 @@ TEST(MinecartTrackCollisionSyncTest,
       room.AddTileObject(objects.front());
       room.custom_collision() = original;
       room.custom_collision().ClearOverride(650);
+      const auto expected_before_generation = room.custom_collision();
       GeneratorOptions options;
       options.rail_profile = MinecartRailProfile::kExpanded;
       auto generated = GenerateTrackCollision(&room, options);
       ASSERT_TRUE(generated.ok()) << generated.status();
       EXPECT_EQ(generated->tiles_generated, 1);
       EXPECT_EQ(generated->collision_map, placed->collision);
-      EXPECT_EQ(room.custom_collision(), original);
+      EXPECT_EQ(room.custom_collision(), expected_before_generation);
     }
   }
 }
