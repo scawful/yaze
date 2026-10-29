@@ -3,14 +3,10 @@ name: WASM Development Build
 on:
   pull_request:
     paths:
-      - 'src/**'
-      - 'inc/**'
-      - 'cmake/**'
-      - 'ext/**'
-      - 'assets/**'
-      - 'VERSION'
-      - 'CMakeLists.txt'
-      - 'CMakePresets.json'
+      - 'src/web/**'
+      - 'src/app/platform/wasm/**'
+      - 'src/app/emu/platform/wasm/**'
+      - 'src/app/net/wasm/**'
       - 'scripts/build-wasm.sh'
       - 'scripts/package-wasm-assets.sh'
       - 'scripts/agents/package.json'
@@ -19,6 +15,8 @@ on:
       - 'scripts/agents/serve_static_with_coi.py'
       - '.github/workflows/wasm-dev.yml'
   workflow_dispatch:
+  schedule:
+    - cron: '0 4 * * 1'
 
 concurrency:
   group: wasm-dev-${{ github.event.pull_request.number || github.ref }}
