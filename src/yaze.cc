@@ -1,6 +1,8 @@
 // C API implementation - no heavy GUI/editor dependencies
+#include <algorithm>
 #include <cstdint>
 #include <cstring>
+#include <limits>
 #include <memory>
 #include <string>
 #include <vector>
@@ -270,11 +272,17 @@ yaze_status yaze_load_messages(const zelda3_rom* rom, zelda3_message** messages,
   if (rom->impl == nullptr) {
     return YAZE_ERROR_NOT_INITIALIZED;
   }
+  if (rom->data == nullptr ||
+      rom->size <= static_cast<uint64_t>(yaze::editor::kTextData)) {
+    return YAZE_ERROR_INVALID_ARG;
+  }
 
   try {
-    // Use LoadAllTextData from message_data.h
+    const int scan_end = static_cast<int>(std::min<uint64_t>(
+        rom->size, static_cast<uint64_t>(std::numeric_limits<int>::max())));
     std::vector<yaze::editor::MessageData> message_data =
-        yaze::editor::ReadAllTextData(rom->data, 0);
+        yaze::editor::ReadAllTextData(rom->data, yaze::editor::kTextData,
+                                      scan_end);
 
     *message_count = static_cast<int>(message_data.size());
     *messages = new zelda3_message[*message_count];
