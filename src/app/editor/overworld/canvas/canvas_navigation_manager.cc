@@ -211,6 +211,12 @@ absl::Status CanvasNavigationManager::CheckForCurrentMap() {
     ctx_.ow_map_canvas->DrawOutline((local_map % 8) * kOverworldMapSize,
                                     (local_map / 8) * kOverworldMapSize,
                                     kOverworldMapSize, kOverworldMapSize);
+    if (*hovered_map >= 0 && *hovered_map != current_highlighted_map) {
+      const int h_local = *hovered_map % 0x40;
+      ctx_.ow_map_canvas->DrawOutline((h_local % 8) * kOverworldMapSize,
+                                      (h_local / 8) * kOverworldMapSize,
+                                      kOverworldMapSize, kOverworldMapSize);
+    }
     if (!hovered_project_terrain && callbacks_.ensure_map_texture) {
       callbacks_.ensure_map_texture(*hovered_map);
     }

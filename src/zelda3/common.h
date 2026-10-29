@@ -83,6 +83,7 @@ class GameEntity {
 };
 
 constexpr int kNumOverworldMaps = 160;
+constexpr int kExpandedMapCount = 192;
 
 // 1 byte, not 0 if enabled
 // vanilla, v2, v3

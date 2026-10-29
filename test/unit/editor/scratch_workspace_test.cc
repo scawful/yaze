@@ -76,8 +76,8 @@ class OverworldScratchTestPeer {
     const auto origin = canvas.zero_point();
     const auto scroll = canvas.scrolling();
     const float scale = canvas.GetGlobalScale();
-    return ImVec2(origin.x + scroll.x + 2 + (x + 0.5f) * 32 * scale,
-                  origin.y + scroll.y + 2 + (y + 0.5f) * 32 * scale);
+    return ImVec2(origin.x + scroll.x + 2 + (x + 0.5f) * 16 * scale,
+                  origin.y + scroll.y + 2 + (y + 0.5f) * 16 * scale);
   }
   static int CurrentTile(const OverworldEditor& editor) {
     return editor.current_tile16_;
@@ -87,6 +87,21 @@ class OverworldScratchTestPeer {
   }
   static gfx::Bitmap& Atlas(OverworldEditor& editor) {
     return editor.tile16_blockset_.atlas;
+  }
+  static const TileBrush* SelectionBrush(const OverworldEditor& editor) {
+    return editor.selection_brush();
+  }
+  static bool ScratchSelecting(const OverworldEditor& editor) {
+    return editor.scratch_selecting_;
+  }
+  static bool ScratchSelectActive(const OverworldEditor& editor) {
+    return editor.scratch_select_active_;
+  }
+  static ImVec2 ScratchSelectMin(const OverworldEditor& editor) {
+    return editor.scratch_select_min_;
+  }
+  static ImVec2 ScratchSelectMax(const OverworldEditor& editor) {
+    return editor.scratch_select_max_;
   }
 };
 
@@ -294,8 +309,8 @@ TEST_F(ScratchWorkspaceFileTest,
   EXPECT_EQ(clipboard.overworld_tile16_ids,
             (std::vector<int>{1, 2, 3, 4, 5, 6}));
   ASSERT_TRUE(OverworldScratchTestPeer::BuildPreview(editor).ok());
-  EXPECT_EQ(OverworldScratchTestPeer::Preview(editor).width(), 96);
-  EXPECT_EQ(OverworldScratchTestPeer::Preview(editor).height(), 64);
+  EXPECT_EQ(OverworldScratchTestPeer::Preview(editor).width(), 48);
+  EXPECT_EQ(OverworldScratchTestPeer::Preview(editor).height(), 32);
   ASSERT_TRUE(editor.Undo().ok());
   EXPECT_EQ(OverworldScratchTestPeer::State(editor).pages.size(), 1);
   EXPECT_FALSE(editor.HasPendingProjectDraftChanges());
@@ -416,6 +431,22 @@ TEST_F(ScratchWorkspaceUiTest,
   EXPECT_EQ(OverworldScratchTestPeer::Preview(*editor_).vector()[0], 5);
   EXPECT_EQ(OverworldScratchTestPeer::Preview(*editor_).palette()[5].snes(),
             0x001F);
+}
+
+TEST_F(ScratchWorkspaceUiTest, RightClickDragReleasesOutsideCanvasCleanly) {
+  auto start = OverworldScratchTestPeer::CellCenter(*editor_, 0, 0);
+  Frame(start, false, true);
+  EXPECT_TRUE(OverworldScratchTestPeer::ScratchSelecting(*editor_));
+
+  Frame(ImVec2(1500, 1500), false, true);
+  EXPECT_TRUE(OverworldScratchTestPeer::ScratchSelecting(*editor_));
+  Frame(ImVec2(1500, 1500), false, false);
+  EXPECT_FALSE(OverworldScratchTestPeer::ScratchSelecting(*editor_));
+  EXPECT_TRUE(OverworldScratchTestPeer::ScratchSelectActive(*editor_));
+  EXPECT_EQ(OverworldScratchTestPeer::ScratchSelectMin(*editor_).x, 0);
+  EXPECT_EQ(OverworldScratchTestPeer::ScratchSelectMin(*editor_).y, 0);
+  EXPECT_EQ(OverworldScratchTestPeer::ScratchSelectMax(*editor_).x, 3);
+  EXPECT_EQ(OverworldScratchTestPeer::ScratchSelectMax(*editor_).y, 1);
 }
 
 TEST_F(ScratchWorkspaceFileTest, RemovedFileAndNonFileTargetsRemainProtected) {

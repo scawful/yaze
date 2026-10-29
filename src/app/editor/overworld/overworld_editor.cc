@@ -670,6 +670,14 @@ absl::Status OverworldEditor::Load() {
       [this](int tile16_id, int quadrant) {
         return OpenGraphicsForTile16Quadrant(tile16_id, quadrant);
       });
+  tile16_editor_.SetHoverDetailProvider([this](int tile_id) -> std::string {
+    const int count = GetTile16UsageCount(tile_id);
+    if (count <= 0) {
+      return {};
+    }
+    return absl::StrFormat("Placed %d times (%s)", count,
+                           GetTile16ScopeLabel());
+  });
 
   tile16_editor_.set_on_document_changed(
       [this](const std::vector<Tile16Commit>&) {
@@ -2450,13 +2458,152 @@ void OverworldEditor::OpenMapPropertiesWindow() {
     return;
   }
   const size_t session_id = window_manager->GetActiveSessionId();
-  window_manager->OpenWindow(session_id, OverworldPanelIds::kMapProperties);
-  window_manager->MarkWindowRecentlyUsed(OverworldPanelIds::kMapProperties);
-  // Bring a docked-but-hidden tab to front. No-op until the window exists.
-  const std::string window_name = window_manager->GetWorkspaceWindowName(
-      session_id, OverworldPanelIds::kMapProperties);
-  if (!window_name.empty()) {
-    ImGui::SetWindowFocus(window_name.c_str());
+  if (window_manager->IsWindowOpen(session_id,
+                                   OverworldPanelIds::kMapProperties)) {
+    window_manager->CloseWindow(session_id, OverworldPanelIds::kMapProperties);
+  } else {
+    window_manager->OpenWindowFloating(session_id,
+                                       OverworldPanelIds::kMapProperties);
+    window_manager->MarkWindowRecentlyUsed(OverworldPanelIds::kMapProperties);
+    const std::string window_name = window_manager->GetWorkspaceWindowName(
+        session_id, OverworldPanelIds::kMapProperties);
+    if (!window_name.empty()) {
+      ImGui::SetWindowFocus(window_name.c_str());
+    }
+  }
+}
+
+void OverworldEditor::DrawEditorMenu() {
+  auto* window_manager = dependencies_.window_manager;
+  const size_t session_id =
+      window_manager ? window_manager->GetActiveSessionId() : 0;
+
+  const bool properties_open =
+      window_manager && window_manager->IsWindowOpen(
+                            session_id, OverworldPanelIds::kMapProperties);
+  if (ImGui::MenuItem("Map Properties...", "M", properties_open)) {
+    OpenMapPropertiesWindow();
+  }
+
+  ImGui::Separator();
+
+  if (ImGui::BeginMenu("Scratch Workspace")) {
+    const auto& pages = scratch_workspace_.state().pages;
+    const auto& page = scratch_workspace_.current();
+    int current_page_idx = 0;
+    for (size_t i = 0; i < pages.size(); ++i) {
+      if (pages[i].id == scratch_workspace_.state().selected_id) {
+        current_page_idx = static_cast<int>(i);
+        break;
+      }
+    }
+    if (ImGui::MenuItem("Previous Layout", nullptr, false,
+                        current_page_idx > 0)) {
+      FinishScratchEdit("Switch scratch layout");
+      scratch_workspace_.Select(pages[current_page_idx - 1].id);
+      MarkScratchSpaceDirty();
+      (void)RebuildScratchBitmapFromTileData();
+    }
+    if (ImGui::MenuItem(
+            "Next Layout", nullptr, false,
+            current_page_idx < static_cast<int>(pages.size()) - 1)) {
+      FinishScratchEdit("Switch scratch layout");
+      scratch_workspace_.Select(pages[current_page_idx + 1].id);
+      MarkScratchSpaceDirty();
+      (void)RebuildScratchBitmapFromTileData();
+    }
+    if (ImGui::MenuItem("New Layout", nullptr, false,
+                        pages.size() < ScratchWorkspace::kMaxPages)) {
+      BeginScratchEdit();
+      (void)scratch_workspace_.AddPage();
+      FinishScratchEdit("New scratch layout");
+      (void)RebuildScratchBitmapFromTileData();
+    }
+    if (ImGui::MenuItem("Duplicate Layout", nullptr, false,
+                        pages.size() < ScratchWorkspace::kMaxPages)) {
+      BeginScratchEdit();
+      (void)scratch_workspace_.AddPage(true);
+      FinishScratchEdit("Duplicate scratch layout");
+      (void)RebuildScratchBitmapFromTileData();
+    }
+    if (ImGui::MenuItem("Clear Layout")) {
+      (void)ClearScratchSpace();
+    }
+    if (ImGui::MenuItem("Delete Layout", nullptr, false, pages.size() > 1)) {
+      BeginScratchEdit();
+      (void)scratch_workspace_.DeletePage();
+      FinishScratchEdit("Delete scratch layout");
+      (void)RebuildScratchBitmapFromTileData();
+    }
+    ImGui::Separator();
+    const auto* active_brush = selection_brush();
+    const bool can_capture = (active_brush && active_brush->valid());
+    if (ImGui::MenuItem(
+            "Capture Selection to Scratch", nullptr, false,
+            can_capture && pages.size() < ScratchWorkspace::kMaxPages)) {
+      (void)SaveCurrentSelectionToScratch();
+    }
+    if (ImGui::MenuItem("Copy Layout as Brush", nullptr, false, page.in_use)) {
+      (void)LoadScratchToSelection();
+    }
+    if (ImGui::MenuItem("Refresh Preview")) {
+      (void)RebuildScratchBitmapFromTileData();
+    }
+    ImGui::EndMenu();
+  }
+
+  ImGui::Separator();
+
+  if (ImGui::BeginMenu("Entities")) {
+    ImGui::MenuItem("Show Entities", nullptr, &show_entities_);
+    ImGui::Separator();
+    if (ImGui::MenuItem("All Entities (Select Mode)", nullptr,
+                        entity_edit_mode_ == EntityEditMode::NONE)) {
+      SetEntityEditMode(EntityEditMode::NONE);
+    }
+    if (ImGui::MenuItem("Entrances Mode", nullptr,
+                        entity_edit_mode_ == EntityEditMode::ENTRANCES)) {
+      SetEntityEditMode(EntityEditMode::ENTRANCES);
+    }
+    if (ImGui::MenuItem("Exits Mode", nullptr,
+                        entity_edit_mode_ == EntityEditMode::EXITS)) {
+      SetEntityEditMode(EntityEditMode::EXITS);
+    }
+    if (ImGui::MenuItem("Items Mode", nullptr,
+                        entity_edit_mode_ == EntityEditMode::ITEMS)) {
+      SetEntityEditMode(EntityEditMode::ITEMS);
+    }
+    if (ImGui::MenuItem("Sprites Mode", nullptr,
+                        entity_edit_mode_ == EntityEditMode::SPRITES)) {
+      SetEntityEditMode(EntityEditMode::SPRITES);
+    }
+    ImGui::EndMenu();
+  }
+
+  if (ImGui::BeginMenu("Tiles & Graphics")) {
+    if (ImGui::MenuItem("Tile16 Editor", nullptr, false)) {
+      ToggleTile16EditorWindow();
+    }
+    if (ImGui::MenuItem("Item List", nullptr, false)) {
+      ToggleItemListWindow();
+    }
+    ImGui::EndMenu();
+  }
+
+  ImGui::Separator();
+
+  if (ImGui::BeginMenu("Diagnostics")) {
+    if (ImGui::MenuItem("Usage Statistics", nullptr, false)) {
+      if (window_manager) {
+        window_manager->OpenWindow(session_id, OverworldPanelIds::kUsageStats);
+      }
+    }
+    if (ImGui::MenuItem("Debug Window", nullptr, false)) {
+      if (window_manager) {
+        window_manager->OpenWindow(session_id, OverworldPanelIds::kDebugWindow);
+      }
+    }
+    ImGui::EndMenu();
   }
 }
 
@@ -2470,6 +2617,17 @@ void OverworldEditor::ContributeStatus(StatusBar* status_bar) {
                             hovered_map_, ow_map_canvas_.IsMouseHovering())));
   status_bar->SetCustomSegment("Tile16",
                                absl::StrFormat("0x%03X", current_tile16_));
+  if (ow_map_canvas_.IsMouseHovering()) {
+    const auto mouse = ow_map_canvas_.hover_mouse_pos();
+    const float scale = ow_map_canvas_.global_scale() > 0
+                            ? ow_map_canvas_.global_scale()
+                            : 1.0f;
+    const int tx = static_cast<int>(mouse.x / (16.0f * scale)) % 32;
+    const int ty = static_cast<int>(mouse.y / (16.0f * scale)) % 32;
+    status_bar->SetCustomSegment("Pos", absl::StrFormat("(%d, %d)", tx, ty));
+  } else {
+    status_bar->ClearCustomSegment("Pos");
+  }
 
   const char* mode_label;
   switch (entity_edit_mode_) {
@@ -2615,6 +2773,37 @@ EditorContextSnapshot OverworldEditor::BuildContextSnapshot() const {
         snapshot, zelda3::DescribeOverworldGraphicsContext(*map, identity));
   }
   return snapshot;
+}
+
+void OverworldEditor::SetSelectionBrush(TileBrush brush) {
+  if (tile_painting_) {
+    tile_painting_->SetSelectionBrush(brush);
+  }
+  if (dependencies_.shared_clipboard) {
+    dependencies_.shared_clipboard->overworld_tile16_ids = brush.tile_ids;
+    dependencies_.shared_clipboard->overworld_width = brush.width;
+    dependencies_.shared_clipboard->overworld_height = brush.height;
+    dependencies_.shared_clipboard->has_overworld_tile16 = brush.valid();
+  }
+}
+
+void OverworldEditor::ClearSelectionBrush() {
+  if (tile_painting_) {
+    tile_painting_->ClearSelectionBrush();
+  }
+}
+
+const TileBrush* OverworldEditor::selection_brush() const {
+  return tile_painting_ ? tile_painting_->selection_brush() : nullptr;
+}
+
+int OverworldEditor::GetTile16UsageCount(int tile_id) const {
+  return canvas_renderer_ ? canvas_renderer_->tile16_usage_count(tile_id) : 0;
+}
+
+std::string OverworldEditor::GetTile16ScopeLabel() const {
+  return canvas_renderer_ ? canvas_renderer_->Tile16ScopeLabel()
+                          : std::string();
 }
 
 }  // namespace yaze::editor

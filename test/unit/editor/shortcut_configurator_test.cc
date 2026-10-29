@@ -231,6 +231,12 @@ TEST_F(ShortcutConfiguratorTest, DefaultBindingsHaveNoUnintendedConflicts) {
   ASSERT_NE(brush, nullptr);
   ASSERT_TRUE(brush->editor_type.has_value());
   EXPECT_EQ(*brush->editor_type, EditorType::kOverworld);
+  const Shortcut* map_properties =
+      shortcuts.FindShortcut("overworld.toggle_map_properties");
+  ASSERT_NE(map_properties, nullptr);
+  ASSERT_TRUE(map_properties->editor_type.has_value());
+  EXPECT_EQ(*map_properties->editor_type, EditorType::kOverworld);
+  EXPECT_EQ(map_properties->keys, (std::vector<ImGuiKey>{ImGuiKey_M}));
   const Shortcut* next_object =
       shortcuts.FindShortcut("dungeon.object.next_object");
   ASSERT_NE(next_object, nullptr);

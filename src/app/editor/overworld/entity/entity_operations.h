@@ -210,6 +210,9 @@ zelda3::OverworldItem* FindNearestItemForSelection(
  */
 inline uint8_t GetParentMapId(const zelda3::OverworldMap* map,
                               int current_map) {
+  if (!map) {
+    return static_cast<uint8_t>(current_map);
+  }
   uint8_t parent = map->parent();
   return (parent == 0xFF) ? static_cast<uint8_t>(current_map) : parent;
 }

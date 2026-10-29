@@ -30,6 +30,10 @@ disagrees, this page wins; fix the older page or link here.
    checkouts can use `--reuse-from`; cold builds require `--allow-new-build`
    and a recorded reason. Keep one writer per source/cache. Never repoint a
    cache to a different source directory or alter an active/frozen build.
+7. The persistent worktree `~/src/hobby/yaze-worktrees/ui-dev` (branch `ui-dev`,
+   preset `mac-ai`) is reserved for rapid local UI iteration. Its build tree
+   and ccache state are protected from automated cleanup to keep incremental UI
+   rebuilds (~7s) warm.
 
 ## 2. Agent coordination
 

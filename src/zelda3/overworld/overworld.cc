@@ -1083,7 +1083,7 @@ absl::Status Overworld::LoadOverworldMaps() {
                 (*rom_)[kOverworldSpecialGfxGroup +
                         (map->parent() - kSpecialWorldMapIdStart)]);
             map->set_area_palette((*rom_)[kOverworldSpecialPalGroup + 1]);
-          } else if (i == 0x88) {
+          } else if (i == 0x88 || i == 0x93) {
             map->set_area_graphics(0x51);
             map->set_area_palette(0x00);
           } else if (i < kSpecialWorldMapIdStart) {
@@ -1232,7 +1232,7 @@ absl::Status Overworld::EnsureMapBuilt(int map_index) {
             (*rom_)[kOverworldSpecialGfxGroup +
                     (map->parent() - kSpecialWorldMapIdStart)]);
         map->set_area_palette((*rom_)[kOverworldSpecialPalGroup + 1]);
-      } else if (map_index == 0x88) {
+      } else if (map_index == 0x88 || map_index == 0x93) {
         map->set_area_graphics(0x51);
         map->set_area_palette(0x00);
       } else if (map_index < kSpecialWorldMapIdStart) {

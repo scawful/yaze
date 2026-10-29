@@ -26,11 +26,10 @@ class MapPropertiesPanel : public EditorPanel {
   std::string GetDisplayName() const override { return "Map Properties"; }
   std::string GetIcon() const override { return ICON_MD_TUNE; }
   std::string GetEditorCategory() const override { return "Overworld"; }
-  float GetPreferredWidth() const override {
-    // Label column (118) + hex/combos; laid out to fit under the Tile16
-    // selector column, which sets the right dock width.
-    return 300.0f;
-  }
+  std::string GetShortcutHint() const override { return "M"; }
+  bool PrefersFloating() const override { return true; }
+  float GetPreferredWidth() const override { return 360.0f; }
+  float GetPreferredHeight() const override { return 480.0f; }
   void Draw(bool* p_open) override;
 };
 

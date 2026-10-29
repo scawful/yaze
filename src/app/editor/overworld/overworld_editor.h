@@ -37,6 +37,7 @@
 #include "app/gfx/types/snes_palette.h"
 #include "app/gui/canvas/canvas.h"
 #include "app/gui/core/input.h"
+#include "app/gui/layout/adaptive_sheet_layout.h"
 #include "app/gui/widgets/tile_selector_widget.h"
 #include "imgui/imgui.h"
 #include "rom/rom.h"
@@ -223,6 +224,7 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   absl::Status PrepareProjectSave();
   void ProjectSaveCommitted() { lyra_canvas_.ProjectSaveCommitted(); }
   void ContributeStatus(StatusBar* status_bar) override;
+  void DrawEditorMenu() override;
   EditorContextSnapshot BuildContextSnapshot() const override;
 
   /// @brief Access the underlying Overworld data
@@ -386,6 +388,12 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   int game_state() const { return game_state_; }
   // Preview only; does not rewrite story progression or entity placements.
   void SetPreviewStoryState(int state);
+
+  void SetSelectionBrush(TileBrush brush);
+  void ClearSelectionBrush();
+  const TileBrush* selection_brush() const;
+  int GetTile16UsageCount(int tile_id) const;
+  std::string GetTile16ScopeLabel() const;
 
   // ===========================================================================
   // Entity System - Insertion and Editing
@@ -897,9 +905,18 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   std::filesystem::path scratch_path_;
   uint64_t scratch_name_id_ = 0;
   std::array<char, 129> scratch_name_buffer_{};
+  uint64_t scratch_resize_id_ = 0;
+  std::array<int, 2> scratch_resize_dimensions_{16, 16};
   int scratch_preview_map_ = -1;
   uint64_t scratch_preview_revision_ = 0;
   bool scratch_paint_gesture_owned_ = false;
+  bool scratch_select_active_ = false;
+  ImVec2 scratch_select_min_{-1, -1};
+  ImVec2 scratch_select_max_{-1, -1};
+  bool scratch_selecting_ = false;
+  ImVec2 scratch_drag_start_{-1, -1};
+  gui::AdaptiveSheetScaleMode scratch_scale_mode_ =
+      gui::AdaptiveSheetScaleMode::kFit;
 
   // ===========================================================================
   // Core Data References
@@ -977,7 +994,7 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
                                    gui::CanvasGridSize::k16x16};
   gui::Canvas properties_canvas_;
   gui::Canvas scratch_canvas_{"ScratchSpace", ImVec2(320, 480),
-                              gui::CanvasGridSize::k32x32};
+                              gui::CanvasGridSize::k16x16};
 
   // ===========================================================================
   // Panel Cards
