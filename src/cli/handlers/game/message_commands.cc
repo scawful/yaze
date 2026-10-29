@@ -323,18 +323,6 @@ absl::StatusOr<ExpandedMutationContext> PreflightExpandedMutation(
   return context;
 }
 
-absl::StatusOr<ExpandedMutationContext> PreflightExpandedMutation(
-    const resources::ArgumentParser& parser, const Rom& rom) {
-  auto project_context_or =
-      LoadProjectMutationContext(parser, rom, "Expanded message mutation");
-  if (!project_context_or.ok()) {
-    return project_context_or.status();
-  }
-  ProjectMutationContext project_context =
-      std::move(project_context_or.value());
-  return PreflightExpandedMutation(project_context.project, rom);
-}
-
 absl::Status VerifyCleanDiskSnapshot(const Rom& rom,
                                      std::vector<uint8_t>* baseline) {
   if (rom.dirty()) {
@@ -1606,6 +1594,101 @@ absl::Status WriteVanillaMessage(Rom* rom,
                                edit.plan, edit.expected_count));
 }
 
+// message-write --range expanded: replaces one expanded message and saves the
+// bound project ROM with the same clean-snapshot, backup and readback checks
+// as the vanilla range. Success is reported only after the bytes are on disk.
+absl::Status WriteExpandedMessage(Rom* rom,
+                                  const resources::ArgumentParser& parser,
+                                  resources::OutputFormatter& formatter, int id,
+                                  const std::string& text) {
+#ifdef __EMSCRIPTEN__
+  return absl::FailedPreconditionError(
+      "message-write --range expanded is unavailable in WebAssembly because "
+      "the browser filesystem cannot provide durable backup and readback "
+      "guarantees");
+#endif
+  if (rom == nullptr || !rom->is_loaded()) {
+    return absl::FailedPreconditionError("ROM not loaded; provide --rom");
+  }
+  const auto warnings = editor::ValidateMessageLineWidths(text);
+  const auto bytes = editor::ParseMessageToData(text);
+  if (bytes.empty() && !text.empty()) {
+    return absl::InvalidArgumentError("Encoding produced no bytes");
+  }
+
+  ASSIGN_OR_RETURN(
+      ProjectMutationContext project_context,
+      LoadProjectMutationContext(parser, *rom, "Expanded message mutation"));
+  ASSIGN_OR_RETURN(ExpandedMutationContext context,
+                   PreflightExpandedMutation(project_context.project, *rom));
+  RETURN_IF_ERROR(ValidateExpandedMessageId(id, context));
+  std::vector<uint8_t> disk_baseline;
+  RETURN_IF_ERROR(VerifyCleanDiskSnapshot(*rom, &disk_baseline));
+
+  const auto expanded = ReadExpandedMessages(*rom, context.start, context.end);
+  RETURN_IF_ERROR(ValidateExpandedMessageBankSize(expanded.size(), context));
+  std::vector<std::string> all_texts;
+  all_texts.reserve(expanded.size());
+  for (const auto& msg : expanded) {
+    all_texts.push_back(msg.RawString);
+  }
+  if (id >= static_cast<int>(all_texts.size())) {
+    all_texts.resize(id + 1);
+  }
+  all_texts[id] = text;
+
+  formatter.BeginObject("Message Write Result");
+  formatter.AddField("id", id);
+  formatter.AddField("range", "expanded");
+  formatter.AddField("text", text);
+  formatter.AddField("encoded_length", static_cast<int>(bytes.size()));
+  if (!context.policy_warning.empty()) {
+    formatter.AddField("write_policy_warning", context.policy_warning);
+  }
+  if (!warnings.empty()) {
+    formatter.BeginArray("line_width_warnings");
+    for (const auto& warning : warnings) {
+      formatter.AddArrayItem(warning);
+    }
+    formatter.EndArray();
+  }
+
+  // Close the result object on every exit, so a failure still prints valid
+  // JSON with its error (a DataLoss error names the backup to restore).
+  auto finish = [&formatter](absl::Status status) {
+    if (status.ok()) {
+      formatter.AddField("status", "success");
+      formatter.AddField("readback_verified", true);
+    } else {
+      formatter.AddField("status", "error");
+      formatter.AddField("error", std::string(status.message()));
+    }
+    formatter.EndObject();
+    return status;
+  };
+
+  ScopedRomTransaction transaction(*rom);
+  absl::Status status =
+      editor::WriteExpandedTextData(rom, context.start, context.end, all_texts);
+  if (status.ok() && rom->dirty()) {
+    status = VerifyDiskSnapshotUnchanged(project_context.canonical_rom_path,
+                                         disk_baseline);
+    if (status.ok()) {
+      Rom::SaveSettings save_settings;
+      save_settings.save_new = false;
+      save_settings.require_backup = true;
+      save_settings.filename = project_context.canonical_rom_path.string();
+      status = rom->SaveToFile(save_settings);
+    }
+  }
+  if (!status.ok()) {
+    return finish(status);  // the transaction rolls the ROM back
+  }
+  transaction.Commit();
+  return finish(VerifySavedRom(*rom, project_context.canonical_rom_path,
+                               std::nullopt, std::nullopt));
+}
+
 }  // namespace
 
 absl::Status MessageWriteCommandHandler::Execute(
@@ -1627,71 +1710,7 @@ absl::Status MessageWriteCommandHandler::Execute(
     return absl::InvalidArgumentError(absl::StrFormat(
         "message-write --range must be vanilla or expanded, got %s", range));
   }
-
-  // Validate line widths first
-  auto warnings = editor::ValidateMessageLineWidths(text);
-
-  // Encode to bytes
-  auto bytes = editor::ParseMessageToData(text);
-  if (bytes.empty() && !text.empty()) {
-    return absl::InvalidArgumentError("Encoding produced no bytes");
-  }
-
-  auto context_or = PreflightExpandedMutation(parser, *rom);
-  if (!context_or.ok()) {
-    return context_or.status();
-  }
-  auto context = std::move(context_or.value());
-  auto id_status = ValidateExpandedMessageId(msg_id, context);
-  if (!id_status.ok()) {
-    return id_status;
-  }
-
-  // Read existing expanded messages to find the target
-  auto expanded = ReadExpandedMessages(*rom, context.start, context.end);
-  auto bank_size_status =
-      ValidateExpandedMessageBankSize(expanded.size(), context);
-  if (!bank_size_status.ok()) {
-    return bank_size_status;
-  }
-
-  // Build the full message list, inserting/replacing at msg_id
-  std::vector<std::string> all_texts;
-  all_texts.reserve(expanded.size());
-  for (const auto& msg : expanded) {
-    all_texts.push_back(msg.RawString);
-  }
-  if (msg_id >= static_cast<int>(all_texts.size())) {
-    all_texts.resize(msg_id + 1);
-  }
-  all_texts[msg_id] = text;
-
-  // Write back
-  ScopedRomTransaction transaction(*rom);
-  auto status =
-      editor::WriteExpandedTextData(rom, context.start, context.end, all_texts);
-  if (!status.ok())
-    return status;
-  transaction.Commit();
-
-  formatter.BeginObject("Message Write Result");
-  formatter.AddField("id", msg_id);
-  formatter.AddField("text", text);
-  formatter.AddField("encoded_length", static_cast<int>(bytes.size()));
-  formatter.AddField("status", "success");
-  if (!context.policy_warning.empty()) {
-    formatter.AddField("write_policy_warning", context.policy_warning);
-  }
-  if (!warnings.empty()) {
-    formatter.BeginArray("line_width_warnings");
-    for (const auto& warning : warnings) {
-      formatter.AddArrayItem(warning);
-    }
-    formatter.EndArray();
-  }
-  formatter.EndObject();
-
-  return absl::OkStatus();
+  return WriteExpandedMessage(rom, parser, formatter, msg_id, text);
 }
 
 // ===========================================================================
