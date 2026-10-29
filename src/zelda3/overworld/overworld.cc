@@ -3456,9 +3456,27 @@ absl::Status Overworld::SaveMap16Tiles() {
 }
 
 absl::Status Overworld::SaveEntrances() {
+  if (!rom_) {
+    return absl::InvalidArgumentError("Cannot save entrances without a ROM");
+  }
+  const bool expanded = DetectOverworldRomProfile(*rom_).has_expanded_entrances;
+  if (expanded) {
+    if (all_holes_.size() != kNumOverworldHoles) {
+      return absl::FailedPreconditionError(
+          "Legacy hole source rows are missing");
+    }
+    for (size_t i = 0; i < all_holes_.size(); ++i) {
+      if (!all_holes_[i].HasUnchangedHoleSourceState(i)) {
+        return absl::FailedPreconditionError(
+            "Legacy holes were edited; use the expanded entrance table rows");
+      }
+    }
+  }
   RETURN_IF_ERROR(
-      ::yaze::zelda3::SaveEntrances(rom_, all_entrances_, expanded_entrances_));
-  RETURN_IF_ERROR(SaveHoles(rom_, all_holes_));
+      ::yaze::zelda3::SaveEntrances(rom_, all_entrances_, expanded));
+  if (!expanded) {
+    RETURN_IF_ERROR(SaveHoles(rom_, all_holes_));
+  }
   return absl::OkStatus();
 }
 

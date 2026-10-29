@@ -253,4 +253,28 @@ TEST_F(LayoutManagerPersistenceTest,
   ContentRegistry::Context::SetEventBus(old_bus);
   core::FeatureFlags::get().dungeon = old_flags;
 }
+
+TEST_F(LayoutManagerPersistenceTest, NamedPresetKeepsOpenDungeonWorkbench) {
+  LayoutCoordinator coordinator;
+  coordinator.Initialize(
+      {.layout_manager = &layout_manager_, .window_manager = &window_manager_});
+  window_manager_.OpenWindow(0, LayoutPresets::Panels::kDungeonWorkbench);
+  window_manager_.OpenWindow(0, "test.demo");
+
+  coordinator.ApplyLayoutPreset("Minimal", 0);
+
+  EXPECT_TRUE(dungeon_workbench_visible_);
+  EXPECT_FALSE(visible_);
+}
+
+TEST_F(LayoutManagerPersistenceTest, NamedPresetDoesNotOpenClosedWorkbench) {
+  LayoutCoordinator coordinator;
+  coordinator.Initialize(
+      {.layout_manager = &layout_manager_, .window_manager = &window_manager_});
+  window_manager_.CloseWindow(0, LayoutPresets::Panels::kDungeonWorkbench);
+
+  coordinator.ApplyLayoutPreset("Dungeon Expert", 0);
+
+  EXPECT_FALSE(dungeon_workbench_visible_);
+}
 }  // namespace yaze::editor
