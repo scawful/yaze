@@ -1899,6 +1899,86 @@ TEST(EditorManagerProjectActionsTest,
 }
 
 TEST(EditorManagerProjectActionsTest,
+     RunWithoutExpandedRequestPreservesDailyAndLabManifestTarget) {
+  // Match the persisted daily/Lab configuration: native-save capability refs
+  // are configured, but no expanded build request has been selected.
+  for (const auto* name : {"Oracle-of-Secrets", "Oracle Prototype Lab"}) {
+    SCOPED_TRACE(name);
+    ScopedImGuiContext imgui;
+    auto renderer = std::make_unique<gfx::NullRenderer>();
+    auto manager = std::make_unique<EditorManager>();
+    test::InitializeWithIsolatedSettings(*manager, renderer.get());
+    manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+    ScopedTempDir temp(MakeTempDir("yaze_daily_manifest_run"));
+    const auto bundle = temp.path / "Oracle.yazeproj";
+    const auto descriptor = bundle / "project.yaze";
+    const auto source = bundle / "rom";
+    const auto target = bundle / "project" / "Roms" / "oos168x.sfc";
+    const auto manifest = target.parent_path() / "hack_manifest.json";
+    std::filesystem::create_directories(target.parent_path());
+    WriteRomFile(source, "DAILY EDITING SOURCE");
+    WriteRomFile(target, "DAILY MANIFEST OUTPUT");
+    ExpandedRunFixture::Write(
+        descriptor,
+        "[project]\nname=" + std::string(name) +
+            "\nproject_id=yaze_daily_manifest_fixture\n\n"
+            "[files]\nrom_filename=rom\ncode_folder=project\n"
+            "lyra_terrain_file=assets/project/lyra_terrain_file/"
+            "unified.lyra-terrain.json\nlyra_build_request_file=\n"
+            "hack_manifest_file=project/Roms/hack_manifest.json\n"
+            "native_save_producer_file=transfer/producer-identity.json\n"
+            "native_save_transfer_proof_file=transfer/transfer-proof.json\n\n"
+            "[rom]\nrole=dev\nwrite_policy=block\n\n"
+            "[build]\nbuild_script=python3 project/Scripts/Build/"
+            "authoring_bundle_build.py --project project.yaze\n"
+            "build_target=project/Roms/oos168x.sfc\n\n"
+            "[workspace]\nautosave_enabled=false\nbackup_on_save=false\n");
+    ExpandedRunFixture::WriteJson(
+        manifest,
+        {{"manifest_version", 2},
+         {"hack_name", "Oracle of Secrets"},
+         {"build_pipeline",
+          {{"dev_rom", "rom"}, {"patched_rom", "project/Roms/oos168x.sfc"}}}});
+    const auto descriptor_before = ReadFile(descriptor);
+    const auto manifest_before = ReadFile(manifest);
+    const auto source_before = core::ComputeSourceArtifactFileSha256(source);
+    const auto target_hash = core::ComputeSourceArtifactFileSha256(target);
+    ASSERT_TRUE(source_before.ok()) << source_before.status();
+    ASSERT_TRUE(target_hash.ok()) << target_hash.status();
+    ASSERT_NE(*source_before, *target_hash);
+
+    ASSERT_OK(manager->OpenRomOrProject(descriptor.string()));
+    const auto* project = manager->GetCurrentProject();
+    ASSERT_NE(project, nullptr);
+    ASSERT_TRUE(project->project_opened());
+    ASSERT_FALSE(project->native_save_producer_file.empty());
+    ASSERT_FALSE(project->native_save_transfer_proof_file.empty());
+    ASSERT_TRUE(project->lyra_build_request_file.empty());
+    ASSERT_TRUE(project->hack_manifest.loaded());
+    const auto result = manager->RunCurrentProject();
+    EXPECT_TRUE(result.ok()) << result;
+    if (!result.ok()) {
+      continue;
+    }
+    EXPECT_EQ(std::filesystem::path(
+                  ContentRegistry::Context::run_workflow_status().detail),
+              target);
+    EXPECT_EQ(LoadedLoRomSha256(*manager, std::filesystem::file_size(target)),
+              *target_hash);
+    EXPECT_EQ(std::filesystem::path(manager->GetCurrentRom()->filename()),
+              source);
+    const auto source_after = core::ComputeSourceArtifactFileSha256(source);
+    ASSERT_TRUE(source_after.ok()) << source_after.status();
+    EXPECT_EQ(*source_after, *source_before);
+    EXPECT_EQ(ReadFile(descriptor), descriptor_before);
+    EXPECT_EQ(ReadFile(manifest), manifest_before);
+    EXPECT_FALSE(std::filesystem::exists(bundle / "transfer"));
+    EXPECT_FALSE(
+        std::filesystem::exists(bundle / "project.yaze.native-save.json"));
+  }
+}
+
+TEST(EditorManagerProjectActionsTest,
      ExpandedRunRejectsChangedOrUnadmittedGenerationWithoutManifestFallback) {
   using Fixture = ExpandedRunFixture;
   using Json = Fixture::Json;
