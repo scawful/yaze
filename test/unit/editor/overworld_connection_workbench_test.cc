@@ -532,6 +532,58 @@ TEST_F(OverworldConnectionWorkbenchTest,
 }
 
 TEST_F(OverworldConnectionWorkbenchTest,
+       CanvasSubthresholdReleaseMotionLeavesAuthoringAndHistoryUnchanged) {
+  PrepareProjectDrag();
+  OverworldCanvasRenderer canvas(editor_.get());
+  const auto history_before = editor_->undo_manager().UndoStackSize();
+  EXPECT_TRUE(
+      CanvasInput(canvas, {100, 100}, true, ProjectEntranceReference{41}));
+  ASSERT_TRUE(OverworldConnectionCanvasTestPeer::Dragging(canvas));
+  // Negative jitter would floor into the previous Tile16 without a threshold.
+  EXPECT_TRUE(CanvasInput(canvas, {99, 99}, false));
+  EXPECT_FALSE(OverworldConnectionCanvasTestPeer::Dragging(canvas));
+  EXPECT_FALSE(OverworldConnectionCanvasTestPeer::Preview(canvas).has_value());
+  EXPECT_EQ(Document().authoring(), baseline_);
+  EXPECT_EQ(editor_->undo_manager().UndoStackSize(), history_before);
+  auto selected = workbench_.SelectedProjectConnection(*editor_);
+  ASSERT_TRUE(selected.has_value());
+  EXPECT_EQ(selected->reference,
+            OverworldConnectionReference(ProjectEntranceReference{41}));
+  EXPECT_EQ(selected->world_x, 16);
+  EXPECT_EQ(selected->world_y, 2080);
+  ExpectProtectedData(Document().authoring());
+}
+
+TEST_F(OverworldConnectionWorkbenchTest,
+       CanvasDragReturningToOriginClearsPreviewWithoutAddingUndo) {
+  PrepareProjectDrag();
+  OverworldCanvasRenderer canvas(editor_.get());
+  const auto history_before = editor_->undo_manager().UndoStackSize();
+  EXPECT_TRUE(
+      CanvasInput(canvas, {100, 100}, true, ProjectEntranceReference{41}));
+  EXPECT_TRUE(CanvasInput(canvas, {132, 116}, true));
+  auto preview = OverworldConnectionCanvasTestPeer::Preview(canvas);
+  ASSERT_TRUE(preview.has_value());
+  EXPECT_EQ(preview->world_x, 48);
+  EXPECT_EQ(preview->world_y, 2096);
+  EXPECT_EQ(Document().authoring(), baseline_);
+  EXPECT_EQ(editor_->undo_manager().UndoStackSize(), history_before);
+  // The final release returns to the original position after a real preview.
+  EXPECT_TRUE(CanvasInput(canvas, {100, 100}, false));
+  EXPECT_FALSE(OverworldConnectionCanvasTestPeer::Dragging(canvas));
+  EXPECT_FALSE(OverworldConnectionCanvasTestPeer::Preview(canvas).has_value());
+  EXPECT_EQ(Document().authoring(), baseline_);
+  EXPECT_EQ(editor_->undo_manager().UndoStackSize(), history_before);
+  auto selected = workbench_.SelectedProjectConnection(*editor_);
+  ASSERT_TRUE(selected.has_value());
+  EXPECT_EQ(selected->reference,
+            OverworldConnectionReference(ProjectEntranceReference{41}));
+  EXPECT_EQ(selected->world_x, 16);
+  EXPECT_EQ(selected->world_y, 2080);
+  ExpectProtectedData(Document().authoring());
+}
+
+TEST_F(OverworldConnectionWorkbenchTest,
        CanvasLastMovementOnReleaseIsIncludedAfterHeldPreview) {
   PrepareProjectDrag();
   OverworldCanvasRenderer canvas(editor_.get());

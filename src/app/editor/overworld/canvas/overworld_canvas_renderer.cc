@@ -550,8 +550,17 @@ bool OverworldCanvasRenderer::HandleProjectConnectionInput(
     return false;
   if (ImGui::IsMouseDragging(ImGuiMouseButton_Left) ||
       ImGui::IsMouseReleased(ImGuiMouseButton_Left)) {
-    const auto delta = ImGui::GetMouseDragDelta(ImGuiMouseButton_Left);
-    if (std::isfinite(delta.x) && std::isfinite(delta.y)) {
+    // ImGui updates the maximum drag distance while the button is held. A
+    // move first delivered with release still needs its final displacement.
+    const auto delta = ImGui::GetMouseDragDelta(ImGuiMouseButton_Left, 0.0f);
+    const auto& io = ImGui::GetIO();
+    const float threshold_squared =
+        io.MouseDragThreshold * io.MouseDragThreshold;
+    const bool past_threshold =
+        io.MouseDragMaxDistanceSqr[ImGuiMouseButton_Left] >=
+            threshold_squared ||
+        delta.x * delta.x + delta.y * delta.y >= threshold_squared;
+    if (past_threshold && std::isfinite(delta.x) && std::isfinite(delta.y)) {
       const float x =
           std::clamp(project_drag_before_->world_x + delta.x / canvas.scale,
                      0.0f, 4080.0f);
