@@ -9,9 +9,12 @@
 #include <vector>
 
 #include "absl/status/status.h"
+#include "absl/strings/str_format.h"
 #include "app/editor/overworld/canvas/overworld_canvas_renderer.h"
 #include "app/editor/overworld/overworld_editor.h"
+#include "app/editor/overworld/ui/navigation/overworld_toolbar.h"
 #include "app/editor/registry/content_registry.h"
+#include "app/gui/automation/widget_id_registry.h"
 #include "app/gui/core/popup_id.h"
 #include "core/features.h"
 #include "core/project.h"
@@ -20,6 +23,7 @@
 #include "framework/headless_editor_test.h"
 #include "gtest/gtest.h"
 #include "imgui/imgui_internal.h"
+#include "rom/snes.h"
 #define MINIZ_NO_ZLIB_COMPATIBLE_NAMES
 #include "miniz/miniz.h"
 #undef MINIZ_NO_ZLIB_COMPATIBLE_NAMES
@@ -69,6 +73,59 @@ class OverworldConnectionCanvasTestPeer {
 
 namespace {
 
+void InitializeNativeOverworldFixture(std::vector<uint8_t>& image) {
+  const auto write_word = [&image](size_t offset, uint16_t value) {
+    image.at(offset) = static_cast<uint8_t>(value);
+    image.at(offset + 1) = static_cast<uint8_t>(value >> 8);
+  };
+  const auto write_long = [&image](size_t offset, uint32_t value) {
+    image.at(offset) = static_cast<uint8_t>(value);
+    image.at(offset + 1) = static_cast<uint8_t>(value >> 8);
+    image.at(offset + 2) = static_cast<uint8_t>(value >> 16);
+  };
+
+  // The maintained fixture initializes the relocated descriptor tables. Its
+  // descriptor-free variant still needs the native tables used by Load().
+  // Select US metadata and use the fixture's existing 256-byte zero plane.
+  image.at(0x7FD9) = 1;
+  const auto& addresses = zelda3::kVersionConstantsMap.at(zelda3_version::US);
+  constexpr uint32_t kZeroPlanePc = 0x131000;
+  for (int map = 0; map < zelda3::kNumOverworldMaps; ++map) {
+    write_long(addresses.kCompressedAllMap32PointersHigh + map * 3,
+               PcToSnes(kZeroPlanePc));
+    write_long(addresses.kCompressedAllMap32PointersLow + map * 3,
+               PcToSnes(kZeroPlanePc));
+    image.at(zelda3::kOverworldMapParentIdExpanded + map) =
+        static_cast<uint8_t>(map);
+  }
+
+  // LoadItems follows a metadata pointer, a separate bank byte, and per-map
+  // words until FFFF. Zero pointers have no terminator and walk off the ROM.
+  const auto empty_items = PcToSnes(zelda3::kOverworldItemsStartDataNew);
+  write_long(zelda3::overworldItemsAddress,
+             PcToSnes(zelda3::kOverworldItemsPointersNew));
+  image.at(zelda3::overworldItemsAddressBank) =
+      static_cast<uint8_t>(empty_items >> 16);
+  for (int map = 0; map < zelda3::kNumOverworldMaps; ++map) {
+    write_word(zelda3::kOverworldItemsPointersNew + map * 2,
+               static_cast<uint16_t>(empty_items));
+  }
+  write_word(zelda3::kOverworldItemsStartDataNew, 0xFFFF);
+
+  // v3 uses three expanded pointer tables and bank-$09 lists. Reuse one
+  // bounded empty native sprite list, separate from the relocated Lyra list.
+  constexpr int kEmptySpritesPc = zelda3::overworldSpritesDataStartExpanded;
+  image.at(kEmptySpritesPc) = 0xFF;
+  for (const auto table : {zelda3::overworldSpritesBeginingExpanded,
+                           zelda3::overworldSpritesZeldaExpanded,
+                           zelda3::overworldSpritesAgahnimExpanded}) {
+    for (int map = 0; map < zelda3::kNumOverworldMaps; ++map) {
+      write_word(table + map * 2,
+                 static_cast<uint16_t>(PcToSnes(kEmptySpritesPc)));
+    }
+  }
+}
+
 class OverworldConnectionWorkbenchTest : public test::HeadlessEditorTest {
  protected:
   void SetUp() override {
@@ -91,6 +148,7 @@ class OverworldConnectionWorkbenchTest : public test::HeadlessEditorTest {
                             static_cast<mz_ulong>(fixture.size)),
               MZ_OK);
     ASSERT_EQ(length, image.size());
+    InitializeNativeOverworldFixture(image);
     image[zelda3::OverworldCustomTileGFXGroupEnabled] = 1;
     rom_ = std::make_unique<Rom>();
     ASSERT_TRUE(rom_->LoadFromData(image).ok());
@@ -935,6 +993,8 @@ TEST_F(OverworldConnectionWorkbenchTest,
   ASSERT_TRUE(editor_->EditProjectMapAuthoring(overlapping).ok());
   PrepareProjectDrag();
   editor_->SetEntityEditMode(EntityEditMode::EXITS);
+  editor_->SetEntityEditMode(EntityEditMode::ITEMS);
+  editor_->SetEntityEditMode(EntityEditMode::SPRITES);
   ContentRegistry::Context::SetEditorWindowContext("Overworld", editor_.get());
   OverworldCanvasRenderer renderer(editor_.get());
   ImGui::EndFrame();
@@ -1042,6 +1102,121 @@ TEST_F(OverworldConnectionWorkbenchTest,
   ASSERT_NE(popup, nullptr);
   ImGui::ActivateItemByID(popup->GetID("Cancel"));
   frame(false);
+}
+
+TEST_F(OverworldConnectionWorkbenchTest,
+       ToolbarProjectModesRequireConnectionsAndKeepNativeOnlyActionsDisabled) {
+  OverworldToolbar toolbar;
+  int world = 0;
+  int map = 0;
+  bool locked = false;
+  EditingMode mode = EditingMode::MOUSE;
+  EntityEditMode entity_mode = EntityEditMode::NONE;
+  int item_insertions = 0;
+  toolbar.on_insert_item = [&] {
+    ++item_insertions;
+  };
+  const auto history_before = editor_->undo_manager().UndoStackSize();
+  for (int map_id : {0, 0xA0, 0xBF}) {
+    SCOPED_TRACE(map_id);
+    map = map_id;
+    world = map_id / 64;
+    mode = EditingMode::MOUSE;
+    entity_mode = EntityEditMode::NONE;
+    toolbar.project_connections_available = false;
+    const bool project_map = map_id >= 0xA0;
+    gui::WidgetIdRegistry::Instance().Clear();
+    const auto frame = [&]() {
+      ImGui::EndFrame();
+      gui::WidgetIdRegistry::Instance().BeginFrame();
+      ImGui::NewFrame();
+      ImGui::SetNextWindowPos(ImVec2(0, 0));
+      ImGui::SetNextWindowSize(ImVec2(1100, 600));
+      ImGui::Begin("ToolbarConnectionModesHost", nullptr,
+                   ImGuiWindowFlags_NoSavedSettings);
+      toolbar.Draw(world, map, locked, mode, entity_mode, window_manager_.get(),
+                   rom_.get(), &editor_->overworld(), &project_, 0);
+      ImGui::End();
+      gui::WidgetIdRegistry::Instance().EndFrame();
+    };
+    const auto widget = [&](const char* name) {
+      return gui::WidgetIdRegistry::Instance().GetWidgetInfo(
+          std::string("OverworldToolbar/") + name);
+    };
+    const auto click = [&](const char* name) {
+      const auto info = widget(name);
+      ASSERT_TRUE(info.has_value()) << name;
+      ASSERT_TRUE(info->bounds.valid) << name;
+      const auto bounds = info->bounds;
+      ImGui::GetIO().AddMousePosEvent((bounds.min_x + bounds.max_x) / 2,
+                                      (bounds.min_y + bounds.max_y) / 2);
+      frame();
+      ImGui::GetIO().AddMouseButtonEvent(0, true);
+      frame();
+      ImGui::GetIO().AddMouseButtonEvent(0, false);
+      frame();
+      frame();
+    };
+    frame();
+    frame();
+    auto entities = widget("button:Entities");
+    ASSERT_TRUE(entities.has_value());
+    EXPECT_EQ(entities->enabled, !project_map);
+    if (project_map) {
+      click("button:Entities");
+      EXPECT_TRUE(GImGui->OpenPopupStack.empty());
+      EXPECT_EQ(entity_mode, EntityEditMode::NONE);
+      toolbar.project_connections_available = true;
+      frame();
+      entities = widget("button:Entities");
+      ASSERT_TRUE(entities.has_value());
+      EXPECT_TRUE(entities->enabled);
+    }
+    const auto insert_item = widget("button:Insert Item");
+    ASSERT_TRUE(insert_item.has_value());
+    EXPECT_EQ(insert_item->enabled, !project_map);
+    if (project_map) {
+      click("button:Insert Item");
+      EXPECT_EQ(item_insertions, 0);
+    }
+    click("button:Entities");
+    ASSERT_FALSE(GImGui->OpenPopupStack.empty());
+    for (const char* label :
+         {"All entities", "Entrances", "Exits", "Items", "Sprites"}) {
+      const auto info =
+          widget(absl::StrFormat("entity_mode:%s", label).c_str());
+      ASSERT_TRUE(info.has_value()) << label;
+      const bool connection_mode =
+          std::string(label) == "Entrances" || std::string(label) == "Exits";
+      EXPECT_EQ(info->enabled, !project_map || connection_mode) << label;
+    }
+    if (project_map) {
+      for (const char* label : {"All entities", "Items", "Sprites"}) {
+        click(absl::StrFormat("entity_mode:%s", label).c_str());
+        EXPECT_EQ(entity_mode, EntityEditMode::NONE);
+        EXPECT_FALSE(GImGui->OpenPopupStack.empty());
+      }
+    }
+    click("entity_mode:Entrances");
+    EXPECT_EQ(entity_mode, EntityEditMode::ENTRANCES);
+    click("button:Entities");
+    click("entity_mode:Exits");
+    EXPECT_EQ(entity_mode, EntityEditMode::EXITS);
+    if (!project_map) {
+      for (const auto& [label, expected_mode] :
+           {std::pair{"Items", EntityEditMode::ITEMS},
+            std::pair{"Sprites", EntityEditMode::SPRITES},
+            std::pair{"All entities", EntityEditMode::NONE}}) {
+        click("button:Entities");
+        click(absl::StrFormat("entity_mode:%s", label).c_str());
+        EXPECT_EQ(entity_mode, expected_mode);
+      }
+    }
+  }
+  EXPECT_EQ(editor_->undo_manager().UndoStackSize(), history_before);
+  EXPECT_EQ(Document().authoring(), baseline_);
+  ExpectProtectedData(Document().authoring());
+  gui::WidgetIdRegistry::Instance().Clear();
 }
 
 }  // namespace

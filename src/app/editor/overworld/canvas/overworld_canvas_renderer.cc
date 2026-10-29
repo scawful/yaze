@@ -128,6 +128,8 @@ void OverworldCanvasRenderer::DrawOverworldCanvas() {
   if (!lyra_preview && editor_->rom_ != nullptr && editor_->rom_->is_loaded() &&
       editor_->overworld_.is_loaded() && editor_->toolbar_) {
     editor_->toolbar_->shortcuts = editor_->dependencies_.shortcut_manager;
+    editor_->toolbar_->project_connections_available =
+        editor_->lyra_canvas_.loaded();
     editor_->toolbar_->Draw(
         editor_->current_world_, editor_->current_map_,
         editor_->current_map_lock_, editor_->current_mode,

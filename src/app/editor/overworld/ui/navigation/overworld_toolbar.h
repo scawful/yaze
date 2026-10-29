@@ -51,6 +51,9 @@ class OverworldToolbar {
   /// Used for shortcut hints in tooltips (GetDisplayString).
   ShortcutManager* shortcuts = nullptr;
 
+  // Set by the canvas from the current loaded project document each frame.
+  bool project_connections_available = false;
+
   std::function<void(int)> on_world_changed;
   std::function<void(int)> on_story_changed;
   std::function<void(EditingMode)> on_set_mode;

@@ -2490,7 +2490,10 @@ void OverworldEditor::SetEditingMode(EditingMode mode) {
 }
 
 void OverworldEditor::SetEntityEditMode(EntityEditMode mode) {
-  if (is_lyra_preview() || IsProjectTerrainMap(current_map_)) {
+  if (is_lyra_preview() ||
+      (current_map_ >= 0xA0 && current_map_ < 0xC0 &&
+       (!lyra_canvas_.loaded() || (mode != EntityEditMode::ENTRANCES &&
+                                   mode != EntityEditMode::EXITS)))) {
     return;
   }
   entity_edit_mode_ = mode;

@@ -383,8 +383,10 @@ void OverworldToolbar::Draw(int& current_world, int& current_map,
       on_insert_item();
     }
   }
+  ImGui::EndDisabled();
 
   // --- Entity modes ------------------------------------------------------------
+  ImGui::BeginDisabled(project_terrain && !project_connections_available);
   GroupSeparator();
   if (ImGui::Button(compact ? ICON_MD_PLACE : entity_label)) {
     ImGui::OpenPopup("EntityTools");
@@ -398,6 +400,11 @@ void OverworldToolbar::Draw(int& current_world, int& current_map,
   }
   if (ImGui::BeginPopup("EntityTools")) {
     const auto choose = [&](EntityEditMode mode) {
+      if (project_terrain && (!project_connections_available ||
+                              (mode != EntityEditMode::ENTRANCES &&
+                               mode != EntityEditMode::EXITS))) {
+        return;
+      }
       if (on_set_entity_mode) {
         on_set_entity_mode(mode);
       } else {
@@ -405,30 +412,44 @@ void OverworldToolbar::Draw(int& current_world, int& current_map,
       }
     };
     if (ImGui::MenuItem("All entities", nullptr,
-                        entity_edit_mode == EntityEditMode::NONE)) {
+                        entity_edit_mode == EntityEditMode::NONE,
+                        !project_terrain)) {
       choose(EntityEditMode::NONE);
     }
+    gui::WidgetIdRegistry::Instance().RegisterWidget(
+        "OverworldToolbar/entity_mode:All entities", "menuitem",
+        ImGui::GetItemID());
     for (const auto& button : kEntityModeButtons) {
-      const bool disabled_for_tail =
-          (current_map >= 0xA0 && current_map < 0xC0) &&
-          button.mode == EntityEditMode::ITEMS;
-      if (disabled_for_tail) {
+      const bool native_only = button.mode == EntityEditMode::ITEMS ||
+                               button.mode == EntityEditMode::SPRITES;
+      const bool disabled_for_project = project_terrain && native_only;
+      const bool disabled_for_tail = current_map >= 0xA0 &&
+                                     current_map < 0xC0 &&
+                                     button.mode == EntityEditMode::ITEMS;
+      const bool disabled = disabled_for_project || disabled_for_tail;
+      if (disabled) {
         ImGui::BeginDisabled();
       }
       if (ImGui::MenuItem(button.label, nullptr,
                           entity_edit_mode == button.mode)) {
         choose(button.mode);
       }
+      gui::WidgetIdRegistry::Instance().RegisterWidget(
+          std::string("OverworldToolbar/entity_mode:") + button.label,
+          "menuitem", ImGui::GetItemID());
       if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
         if (disabled_for_tail) {
           ImGui::SetTooltip(
               "Items unavailable on Tail Maps (SRAM event storage "
               "unallocated)");
+        } else if (disabled_for_project) {
+          ImGui::SetTooltip(
+              "Use Map Properties to edit project sprite drafts.");
         } else {
           ImGui::SetTooltip("%s", button.tooltip);
         }
       }
-      if (disabled_for_tail) {
+      if (disabled) {
         ImGui::EndDisabled();
       }
     }
