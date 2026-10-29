@@ -192,9 +192,16 @@ class MinecartCatalogBindingTest : public ::testing::Test {
     Write(project_.rom_filename,
           std::string(reinterpret_cast<const char*>(edited.data()),
                       edited.size()));
-    const auto descriptor = project_.SerializeToString();
-    ASSERT_TRUE(descriptor.ok()) << descriptor.status();
-    Write(project_.filepath, *descriptor);
+    const auto draft = project_.SerializeToString();
+    ASSERT_TRUE(draft.ok()) << draft.status();
+    // Normal loading derives persistence keys and project metadata. Save those
+    // defaults, then reopen the persisted descriptor as a real caller does.
+    project::YazeProject loaded;
+    ASSERT_TRUE(loaded.LoadFromString(*draft, project_.filepath).ok());
+    ASSERT_TRUE(loaded.Save().ok());
+    const auto descriptor = Read(loaded.filepath);
+    const auto descriptor_path = loaded.filepath;
+    ASSERT_TRUE(project_.LoadFromString(descriptor, descriptor_path).ok());
     const auto producer_path = directory_ / "producer.bin";
     Write(producer_path, "qualified-test-producer");
     const auto context =
@@ -206,11 +213,11 @@ class MinecartCatalogBindingTest : public ::testing::Test {
     request.operation_id = "catalog-save-1";
     request.operation = "save";
     request.context = context_;
-    request.artifacts = {{"rom", project_.rom_filename, Hash(edited)},
-                         {"project", project_.filepath,
-                          ComputeSourceArtifactSha256(*descriptor)},
-                         {"producer", producer_path,
-                          ComputeSourceArtifactSha256(Read(producer_path))}};
+    request.artifacts = {
+        {"rom", project_.rom_filename, Hash(edited)},
+        {"project", project_.filepath, ComputeSourceArtifactSha256(descriptor)},
+        {"producer", producer_path,
+         ComputeSourceArtifactSha256(Read(producer_path))}};
     if (include_migration) {
       request.artifacts.push_back(
           {"dependency.minecart_catalog_migration",
