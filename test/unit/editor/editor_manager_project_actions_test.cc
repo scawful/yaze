@@ -674,9 +674,10 @@ TEST(EditorManagerProjectActionsTest,
            {"sidecar", relocated_terrain},
            {"rom", primary_rom}}) {
     const auto& artifacts = relocated_receipt.at("artifacts");
-    const auto found =
-        std::find_if(artifacts.begin(), artifacts.end(),
-                     [&](const auto& item) { return item.at("role") == role; });
+    const std::string& wanted_role = role;
+    const auto found = std::find_if(
+        artifacts.begin(), artifacts.end(),
+        [&](const auto& item) { return item.at("role") == wanted_role; });
     ASSERT_NE(found, artifacts.end()) << role;
     EXPECT_EQ(found->at("path"), std::filesystem::canonical(path).string());
     EXPECT_EQ(found->at("sha256"),
