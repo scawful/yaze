@@ -1855,7 +1855,9 @@ TEST(EditorManagerProjectActionsTest,
   const auto status = ContentRegistry::Context::run_workflow_status();
   EXPECT_EQ(status.state, ProjectWorkflowState::kSuccess);
   EXPECT_EQ(std::filesystem::path(status.detail), fixture.target);
-  EXPECT_EQ(*built_hash, fixture.verification_json["compiled_rom_sha256"]);
+  EXPECT_EQ(
+      *built_hash,
+      fixture.verification_json["compiled_rom_sha256"].get<std::string>());
   EXPECT_EQ(LoadedLoRomSha256(*manager, 0x400000), *built_hash);
   EXPECT_NE(*built_hash, *source_hash);
   EXPECT_EQ(std::filesystem::path(manager->GetCurrentRom()->filename()),
