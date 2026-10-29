@@ -63,6 +63,28 @@ target_link_libraries(yaze_util PUBLIC
   yaze_miniz
 )
 
+# Native SHA256 for source/producer identity; builds without libcrypto keep
+# the portable implementation. Link on the implementation's owning target.
+if(WIN32)
+  target_link_libraries(yaze_util PRIVATE bcrypt)
+  message(STATUS "Source artifact SHA256: Windows CNG")
+elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux" AND
+       (NOT YAZE_ENABLE_GRPC OR _YAZE_USING_SYSTEM_GRPC))
+  if(NOT TARGET OpenSSL::Crypto)
+    find_package(OpenSSL QUIET COMPONENTS Crypto)
+  endif()
+  if(TARGET OpenSSL::Crypto)
+    target_link_libraries(yaze_util PRIVATE OpenSSL::Crypto)
+    target_compile_definitions(yaze_util PRIVATE YAZE_SOURCE_SHA256_OPENSSL)
+    message(STATUS "Source artifact SHA256: OpenSSL EVP")
+  else()
+    message(STATUS "Source artifact SHA256: portable (OpenSSL Crypto unavailable)")
+  endif()
+elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+  # Keep the bundled gRPC crypto provider; do not introduce system libcrypto.
+  message(STATUS "Source artifact SHA256: portable (bundled gRPC crypto preserved)")
+endif()
+
 # Add Abseil dependencies
 # When gRPC is enabled, we link to grpc++ which transitively provides Abseil
 # When gRPC is disabled, we use the standalone Abseil from absl.cmake

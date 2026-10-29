@@ -138,6 +138,50 @@ TEST(SourceArtifactPublisherTest, FileSha256StreamsKnownVectorAcrossChunks) {
             "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855");
 }
 
+TEST(SourceArtifactPublisherTest, FileSha256MatchesLargeBinaryMemoryDigest) {
+  ScopedTempDir temp;
+  const auto path = temp.path() / "large-binary.bin";
+  std::string bytes(16 * 1024 * 1024 + 17, '\0');
+  for (size_t index = 0; index < bytes.size(); ++index) {
+    bytes[index] = static_cast<char>(index % 256);
+  }
+  WriteText(path, bytes);
+  // Independently computed SHA256 for this binary pattern, including NULs.
+  constexpr const char* kExpected =
+      "95efbbacc4a59ff8db42623a3df617f34d1f8bdbe66288b66914823ef0300b86";
+  EXPECT_EQ(ComputeSourceArtifactSha256(bytes), kExpected);
+  const auto file_hash = ComputeSourceArtifactFileSha256(path);
+  ASSERT_TRUE(file_hash.ok()) << file_hash.status();
+  EXPECT_EQ(*file_hash, kExpected);
+  EXPECT_EQ(fs::file_size(path), bytes.size());
+}
+
+TEST(SourceArtifactPublisherTest, Sha256ContextsAreIndependentAcrossThreads) {
+  std::string bytes(65537, '\0');
+  for (size_t index = 0; index < bytes.size(); ++index) {
+    bytes[index] = static_cast<char>(index % 256);
+  }
+  std::vector<std::future<bool>> hashes;
+  for (int worker = 0; worker < 8; ++worker) {
+    hashes.push_back(std::async(std::launch::async, [&bytes]() {
+      for (int repeat = 0; repeat < 8; ++repeat) {
+        if (ComputeSourceArtifactSha256(bytes) !=
+                "2deb0bd2129a9d3aed91e3cff58b3993752be549642890a3e853ec1065f9b6"
+                "17" ||
+            ComputeSourceArtifactSha256("abc") !=
+                "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015"
+                "ad") {
+          return false;
+        }
+      }
+      return true;
+    }));
+  }
+  for (auto& hash : hashes) {
+    EXPECT_TRUE(hash.get());
+  }
+}
+
 TEST(SourceArtifactPublisherTest, FileSha256RefusesMissingOrDirectoryInputs) {
   ScopedTempDir temp;
   EXPECT_FALSE(ComputeSourceArtifactFileSha256(temp.path() / "missing").ok());
