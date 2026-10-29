@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <array>
 #include <chrono>
+#include <cstdint>
 #include <functional>
 #include <map>
 #include <memory>
@@ -57,7 +58,12 @@ class Tile16EditSession {
     before_edit_ = std::move(before_edit);
   }
   bool has_shared_history() const { return history_ != &undo_manager_; }
-  absl::Status ReplaceCurrentTile(const gfx::Tile16& data);
+  // Edits passing the same non-zero group merge into one Undo step while that
+  // step is still the newest history entry. Allocate one group per user
+  // interaction (for example, one property dialog session).
+  uint64_t NewEditGroup() { return ++last_edit_group_; }
+  absl::Status ReplaceCurrentTile(const gfx::Tile16& data,
+                                  uint64_t edit_group = 0);
 
   // Prepare an unapplied action for an owning command. Validates the complete
   // batch without changing definitions, pending edits, dirty state or history.
@@ -337,7 +343,8 @@ class Tile16EditSession {
   void CopyTile16ToAtlas(int tile_id);
 
  private:
-  absl::Status RunEdit(const std::function<absl::Status()>& operation);
+  absl::Status RunEdit(const std::function<absl::Status()>& operation,
+                       uint64_t edit_group = 0);
   absl::Status ApplyDefinitions(const std::vector<Tile16Commit>& definitions);
   absl::Status ValidateDefinitionImport(
       const std::vector<Tile16Commit>& definitions) const;
@@ -363,6 +370,7 @@ class Tile16EditSession {
   // Keep naturally aligned document/history data before small UI flags.
   std::vector<gfx::Tile16>* document_definitions_ = nullptr;
   UndoManager* history_ = &undo_manager_;
+  uint64_t last_edit_group_ = 0;
   Rom* rom_ = nullptr;
   zelda3::GameData* game_data_ = nullptr;
   std::chrono::steady_clock::time_point last_rom_write_time_{};

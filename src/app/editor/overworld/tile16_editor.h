@@ -2,6 +2,7 @@
 #define YAZE_APP_EDITOR_TILE16EDITOR_H
 
 #include <array>
+#include <cstdint>
 #include <functional>
 #include <string>
 #include <utility>
@@ -113,8 +114,9 @@ class Tile16Editor : public gfx::GfxContext {
                     std::function<void()> before_edit = {}) {
     session_.BindDocument(definitions, history, std::move(before_edit));
   }
-  absl::Status ReplaceCurrentTile(const gfx::Tile16& data) {
-    return session_.ReplaceCurrentTile(data);
+  absl::Status ReplaceCurrentTile(const gfx::Tile16& data,
+                                  uint64_t edit_group = 0) {
+    return session_.ReplaceCurrentTile(data, edit_group);
   }
   absl::Status Undo() { return session_.Undo(); }
   absl::Status Redo() { return session_.Redo(); }
@@ -298,6 +300,8 @@ class Tile16Editor : public gfx::GfxContext {
   absl::Status status_;
   absl::Status graphics_open_status_;
   std::function<absl::Status(int, int)> open_graphics_for_quadrant_;
+  // One shared Undo step per open session of the manual properties dialog.
+  uint64_t manual_edit_group_ = 0;
 };
 
 }  // namespace editor
