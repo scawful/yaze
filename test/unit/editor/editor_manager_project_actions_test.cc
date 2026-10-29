@@ -198,7 +198,7 @@ TEST(EditorManagerProjectActionsTest,
     gfx::PaletteManager::Get().ResetForTesting();
     core::FeatureFlags::get() = flags;
   };
-  test::InitializeWithIsolatedSettings(*manager, &renderer);
+  test::InitializeWithIsolatedSettings(*manager, renderer.get());
   manager->SetAssetLoadMode(AssetLoadMode::kLazy);
   ASSERT_OK(manager->OpenRomOrProject(project_a.string()));
   ASSERT_OK(manager->OpenRomOrProject(project_b.string()));
