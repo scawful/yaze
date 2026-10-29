@@ -1430,6 +1430,7 @@ absl::Status EditorManager::CommitRawProjectFileSave(
     // Metadata edits must retain admission of the saved ROM without committing
     // unsaved ROM changes. Reuse the normal project-only completion path.
     session->native_save_completion_pending = true;
+    RETURN_IF_ERROR(RetireNativeSaveTransfer("rebound"));
     if (!defer_project_native_completion_) {
       return CompletePendingProjectNativeSave();
     }
