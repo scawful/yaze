@@ -255,7 +255,6 @@ set(
   app/editor/layout/layout_designer/split_boundary_drag.cc
   app/editor/layout/layout_designer/tree_undo_stack.cc
   app/editor/layout/layout_manager.cc
-  app/editor/layout/layout_orchestrator.cc
   app/editor/layout/layout_presets.cc
   app/editor/layout/window_delegate.cc
   app/editor/system/workspace/editor_activator.cc

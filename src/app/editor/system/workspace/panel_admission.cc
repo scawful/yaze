@@ -26,6 +26,9 @@ const std::vector<PanelAdmissionEntry> kFirstClassAllowlist = {
     {"overworld.tile16_selector",
      "Tile16 palette the canvas paints from; docked beside the canvas in the "
      "Overworld Default preset."},
+    {"overworld.scratch",
+     "Scratch workspace for staging, assembling, and selecting tile "
+     "compositions beside the canvas."},
     {"overworld.properties",
      "Current default: selected-map properties in the Overworld Default "
      "preset."},

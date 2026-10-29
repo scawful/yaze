@@ -134,7 +134,9 @@ float OverworldRightRegionWidth(WorkspaceWindowManager& window_manager,
       LayoutPresets::Panels::kOverworldTile16Selector, selector_width,
       selector_exact));
   window_manager.RegisterWindowContent(std::make_unique<WidthPanel>(
-      LayoutPresets::Panels::kOverworldMapProperties, 360.0f, false));
+      LayoutPresets::Panels::kOverworldScratch, 360.0f, false));
+  window_manager.RegisterWindowContent(std::make_unique<WidthPanel>(
+      LayoutPresets::Panels::kOverworldAreaGraphics, 0.0f, false));
   layout_manager.InitializeEditorLayout(EditorType::kOverworld, kDockspaceId);
   ImGuiDockNode* root = ImGui::DockBuilderGetNode(kDockspaceId);
   if (!root || !root->IsSplitNode() || root->SplitAxis != ImGuiAxis_X ||
