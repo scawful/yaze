@@ -70,7 +70,12 @@ class MinecartCatalogBindingTest : public ::testing::Test {
   void SetUp() override {
     if (const char* old = std::getenv("YAZE_APP_DATA_DIR"))
       old_app_data_ = old;
-    directory_ = ::yaze::test::UniqueTempPath("yaze_minecart_catalog_binding");
+    const auto unique = ::yaze::test::UniqueTempPath("mcb");
+    // Retain the helper's uniqueness without carrying a full test name into
+    // Windows native-save context and publication temporary paths.
+    const auto token =
+        ComputeSourceArtifactSha256(unique.filename().generic_string());
+    directory_ = unique.parent_path() / ("mcb_" + token.substr(0, 20));
     ASSERT_TRUE(fs::create_directories(directory_));
     directory_ = fs::canonical(directory_);
     ASSERT_EQ(SetAppData(directory_.string()), 0);
