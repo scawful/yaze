@@ -171,12 +171,16 @@ absl::StatusOr<RoomObjectFootprint> MeasureRoomObjectFootprint(
     result.diagnostics.emplace_back(
         "Full bounds extend outside the room; trace cells may be clipped");
   if (result.cells.empty()) {
+    // DrawObject can return OK after skipping a missing tile payload. Standalone
+    // geometry uses dummy tiles, so its rectangle cannot qualify an empty
+    // actual trace as a verified no-write state.
+    result.measured = false;
+    result.full_bounds_measured = false;
+    result.measurement_source =
+        geometry.ok() ? "geometry_without_raster_trace" : "unmeasured";
     result.diagnostics.emplace_back(
-        "No raster writes in this state; empty does not imply passability");
-    if (!geometry.ok()) {
-      result.measured = false;
-      result.measurement_source = "unmeasured";
-    }
+        "No actual raster writes were observed; missing payload and verified "
+        "no-write state are not distinguished, so placement is unqualified");
   }
   if (result.layers.custom_override_active)
     result.diagnostics.emplace_back(

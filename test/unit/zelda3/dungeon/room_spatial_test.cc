@@ -95,6 +95,29 @@ TEST_F(RoomSpatialTest, BothBuffersAndThirdListRemainDistinctFromPlanes) {
                           [](const auto& cell) { return cell.layer == 0; }));
 }
 
+TEST_F(RoomSpatialTest, MissingRasterPayloadCannotQualifyStandaloneGeometry) {
+  auto bytes = before_;
+  // A corrupt signed subtype offset points before the image. ObjectDrawer
+  // skips the missing payload with OK; standalone geometry still draws its
+  // positive dummy tiles and reports the ordinary C9 floor rectangle.
+  bytes[kRoomObjectSubtype1 + 0xC9 * 2] = 0x00;
+  bytes[kRoomObjectSubtype1 + 0xC9 * 2 + 1] = 0x90;
+  Rom missing_payload;
+  ASSERT_TRUE(missing_payload.LoadFromData(bytes).ok());
+  const auto dirty = missing_payload.dirty();
+  const auto footprint = MeasureRoomObjectFootprint(
+      &missing_payload, 0, RoomObject(0xC9, 20, 20, 0));
+  ASSERT_TRUE(footprint.ok()) << footprint.status();
+  EXPECT_TRUE(footprint->cells.empty());
+  EXPECT_EQ(footprint->bounds.width, 4);
+  EXPECT_EQ(footprint->bounds.height, 4);
+  EXPECT_FALSE(footprint->measured);
+  EXPECT_FALSE(footprint->full_bounds_measured);
+  EXPECT_EQ(footprint->measurement_source, "geometry_without_raster_trace");
+  EXPECT_EQ(missing_payload.vector(), bytes);
+  EXPECT_EQ(missing_payload.dirty(), dirty);
+}
+
 TEST_F(RoomSpatialTest, AnalysisPreservesPainterOrderAndReportsSharedWrites) {
   Room room(0, &rom_);
   room.AddTileObject(RoomObject(0x00, 8, 8, 1, 2));

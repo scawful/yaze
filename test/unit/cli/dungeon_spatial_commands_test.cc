@@ -46,6 +46,23 @@ class DungeonSpatialCommandsTest : public testing::Test {
         zelda3::test::TestRoomStream({zelda3::test::TestObjectBytes(4, 20, 20)},
                                      {zelda3::test::TestDoorBytes(0, 0, 0)}),
         0x9100, std::array<uint8_t, 14>{});
+    // The census fixture borrows PC008000 for header pointers, overlapping the
+    // subtype1 art-offset table. Move that table before enabling object draws.
+    constexpr int kHeaderTablePc = 0x078000;
+    std::copy_n(data.begin() + SnesToPc(zelda3::test::kTestHeaderTableSnes),
+                zelda3::kRoomCensusRoomCount * 2,
+                data.begin() + kHeaderTablePc);
+    const uint32_t header_table = PcToSnes(kHeaderTablePc);
+    for (int byte = 0; byte < 3; ++byte) {
+      data[zelda3::kRoomHeaderPointer + byte] =
+          static_cast<uint8_t>(header_table >> (byte * 8));
+    }
+    std::fill_n(data.begin() + zelda3::kRoomObjectSubtype1, 0x200, 0);
+    // Both 04 walls and C9 floors select a real eight-word pattern at offset0.
+    for (int tile = 0; tile < 8; ++tile) {
+      data[zelda3::kRoomObjectTileAddress + tile * 2] = tile + 1;
+      data[zelda3::kRoomObjectTileAddress + tile * 2 + 1] = 0x20;
+    }
     ASSERT_TRUE(rom_.LoadFromData(data).ok());
     path_ = std::filesystem::temp_directory_path() /
             ("spatial-" +
@@ -130,6 +147,8 @@ TEST_F(DungeonSpatialCommandsTest,
   EXPECT_FALSE(report.at("valid").get<bool>());
   EXPECT_FALSE(report.at("write_performed").get<bool>());
   EXPECT_FALSE(report.at("runtime_qualified").get<bool>());
+  ASSERT_EQ(report.at("footprints").size(), 1);
+  EXPECT_EQ(report.at("footprints")[0].at("upper_write_cells"), 16);
   const auto& existing = report.at("existing_objects");
   ASSERT_EQ(existing.size(), 2);
   EXPECT_EQ(existing[0].at("source"), "layout");
@@ -154,6 +173,8 @@ TEST_F(DungeonSpatialCommandsTest,
   const auto status = Run(14, 4, {"--allow-existing=0,1"}, &output);
   EXPECT_TRUE(absl::IsFailedPrecondition(status)) << status;
   const auto report = PlanReport(output);
+  ASSERT_EQ(report.at("footprints").size(), 1);
+  EXPECT_EQ(report.at("footprints")[0].at("upper_write_cells"), 16);
   ASSERT_EQ(report.at("clearances").size(), 1);
   const auto& clearance = report.at("clearances")[0];
   EXPECT_EQ(clearance.at("source"), "door_editor_bounds");
