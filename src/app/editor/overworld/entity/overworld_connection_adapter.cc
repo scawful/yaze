@@ -280,7 +280,8 @@ absl::StatusOr<ProjectConnectionEditPlan> PrepareProjectConnectionEdit(
       plan.after.maps[after_index].doors.push_back(next);
     }
   } else {
-    const auto ref = std::get<ProjectReturnReference>(expected.reference);
+    const auto return_ref =
+        std::get<ProjectReturnReference>(expected.reference);
     const auto* old = std::get_if<core::LyraExitPlacement>(&expected.record);
     if (!old || *old != std::get<core::LyraExitPlacement>(current->record)) {
       return absl::FailedPreconditionError("Project return changed since edit");
@@ -299,7 +300,7 @@ absl::StatusOr<ProjectConnectionEditPlan> PrepareProjectConnectionEdit(
     auto& before = plan.after.maps[before_index].exits;
     const auto found =
         std::find_if(before.begin(), before.end(),
-                     [&](const auto& row) { return row.id == ref.id; });
+                     [&](const auto& row) { return row.id == return_ref.id; });
     if (before_index == after_index) {
       *found = next;
     } else {
