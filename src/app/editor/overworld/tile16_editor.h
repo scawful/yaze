@@ -258,6 +258,7 @@ class Tile16Editor : public gfx::GfxContext {
   absl::Status LoadLayoutFromScratch(int slot);
 
  private:
+  friend class Tile16EditorActionRowTestPeer;
   // Canvas uses ImVector<string> (byte copies); labels borrow this stable
   // backing storage rather than temporary strings created during refresh.
   std::array<std::string, 0x200> collision_label_storage_{};

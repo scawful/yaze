@@ -740,27 +740,21 @@ absl::Status Tile16Editor::DrawCompactActionStatusRow(
       };
 
       next_action_cell();
-      if (!session_.CanUndo()) {
-        ImGui::BeginDisabled();
-      }
-      if (ImGui::Button(tr("Undo"),
-                        ImVec2(ImGui::GetContentRegionAvail().x, 0))) {
-        action_status = Undo();
-      }
-      if (!session_.CanUndo()) {
-        ImGui::EndDisabled();
+      {
+        gui::DisabledScope disabled(!session_.CanUndo());
+        if (ImGui::Button(tr("Undo"),
+                          ImVec2(ImGui::GetContentRegionAvail().x, 0))) {
+          action_status = Undo();
+        }
       }
 
       next_action_cell();
-      if (!session_.CanRedo()) {
-        ImGui::BeginDisabled();
-      }
-      if (ImGui::Button(tr("Redo"),
-                        ImVec2(ImGui::GetContentRegionAvail().x, 0))) {
-        action_status = Redo();
-      }
-      if (!session_.CanRedo()) {
-        ImGui::EndDisabled();
+      {
+        gui::DisabledScope disabled(!session_.CanRedo());
+        if (ImGui::Button(tr("Redo"),
+                          ImVec2(ImGui::GetContentRegionAvail().x, 0))) {
+          action_status = Redo();
+        }
       }
 
       next_action_cell();
