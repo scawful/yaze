@@ -27,6 +27,7 @@
 #include "app/gui/widgets/themed_widgets.h"
 #include "core/project.h"
 #include "imgui/imgui.h"
+#include "util/macro.h"
 
 #include <cstring>
 
@@ -715,10 +716,10 @@ absl::Status PaletteEditor::Save() {
   }
 
   auto& palette_manager = gfx::PaletteManager::Get();
+  ASSIGN_OR_RETURN(const auto ranges,
+                   palette_manager.GetModifiedColorWriteRanges(game_data()));
   if (dependencies_.project != nullptr &&
       dependencies_.project->hack_manifest.loaded()) {
-    const auto ranges =
-        palette_manager.GetModifiedColorWriteRanges(game_data());
     if (!ranges.empty()) {
       RETURN_IF_ERROR(ValidateHackManifestSaveConflicts(
           dependencies_.project->hack_manifest,

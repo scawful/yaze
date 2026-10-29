@@ -154,6 +154,130 @@ TEST_F(Tile16DocumentHistoryTest, FourDefinitionStampIsOneCompleteUndoStep) {
     ExpectDefinition(overworld_.tiles16()[id], after[id]);
 }
 
+TEST_F(Tile16DocumentHistoryTest, LargeDefinitionImportIsOneCompleteUndoStep) {
+  const auto before = overworld_.tiles16();
+  const auto rom_bytes = rom_.vector();
+  std::vector<Tile16Commit> imports;
+  for (int id = 1; id <= 68; ++id) {
+    auto definition = initial_;
+    definition.tile0_.id_ = id + 16;
+    definition.tile3_.palette_ = 5;
+    imports.push_back({id, definition});
+  }
+  ASSERT_TRUE(
+      session_.ImportDefinitions(imports, "Import boat definitions").ok());
+  EXPECT_EQ(history_.UndoStackSize(), 1u);
+  EXPECT_EQ(history_.GetUndoDescription(), "Import boat definitions");
+  EXPECT_EQ(published_, (std::vector<size_t>{68}));
+  EXPECT_EQ(boundaries_, 1);
+  EXPECT_TRUE(rom_.dirty());
+  for (const auto& edit : imports)
+    ExpectDefinition(overworld_.tiles16()[edit.tile_id], edit.tile_data);
+  ASSERT_TRUE(history_.Undo().ok());
+  for (const auto& edit : imports)
+    ExpectDefinition(overworld_.tiles16()[edit.tile_id], before[edit.tile_id]);
+  ASSERT_TRUE(history_.Redo().ok());
+  for (const auto& edit : imports)
+    ExpectDefinition(overworld_.tiles16()[edit.tile_id], edit.tile_data);
+  EXPECT_EQ(history_.UndoStackSize(), 1u);
+  EXPECT_EQ(rom_.vector(), rom_bytes);
+}
+
+TEST_F(Tile16DocumentHistoryTest,
+       InvalidDefinitionImportsPreserveDocumentHistoryAndPendingState) {
+  ASSERT_TRUE(session_.ApplyPaletteToAll(6).ok());
+  ASSERT_TRUE(history_.Undo().ok());
+  rom_.set_dirty(false);
+  const auto before = overworld_.tiles16();
+  const auto atlas_pixels = atlas_.vector();
+  const auto published = published_;
+  const int boundaries = boundaries_;
+  auto changed = initial_;
+  changed.tile0_.palette_ = 4;
+
+  EXPECT_FALSE(session_.ImportDefinitions({{1, changed}, {1, initial_}}).ok());
+  EXPECT_FALSE(session_
+                   .ImportDefinitions(
+                       {{1, changed}, {zelda3::kNumTile16Individual, changed}})
+                   .ok());
+  EXPECT_FALSE(session_.ImportDefinitions({{-1, changed}}).ok());
+  changed.tile0_.id_ = 1024;
+  EXPECT_FALSE(session_.ImportDefinitions({{1, initial_}, {2, changed}}).ok());
+
+  for (int id = 0; id < zelda3::kNumTile16Individual; ++id)
+    ExpectDefinition(overworld_.tiles16()[id], before[id]);
+  EXPECT_EQ(history_.UndoStackSize(), 0u);
+  EXPECT_EQ(history_.RedoStackSize(), 1u);
+  EXPECT_EQ(published_, published);
+  EXPECT_EQ(boundaries_, boundaries);
+  EXPECT_EQ(atlas_.vector(), atlas_pixels);
+  EXPECT_FALSE(rom_.dirty());
+  ExpectDefinition(session_.current_tile16_data(), initial_);
+}
+
+TEST_F(Tile16DocumentHistoryTest,
+       PreparedDefinitionImportLeavesApplicationAndHistoryToParticipant) {
+  const auto before = overworld_.tiles16();
+  const auto atlas_pixels = atlas_.vector();
+  auto changed = initial_;
+  changed.tile1_.palette_ = 4;
+  const std::vector<Tile16Commit> imports{{1, changed}, {2, changed}};
+  auto prepared = session_.PrepareDefinitionImport(imports, "Combined import");
+  ASSERT_TRUE(prepared.ok());
+  ASSERT_NE(*prepared, nullptr);
+  EXPECT_EQ((*prepared)->Description(), "Combined import");
+  for (int id : {0, 1, 2})
+    ExpectDefinition(overworld_.tiles16()[id], before[id]);
+  EXPECT_EQ(atlas_.vector(), atlas_pixels);
+  EXPECT_FALSE(rom_.dirty());
+  EXPECT_TRUE(published_.empty());
+  EXPECT_EQ(boundaries_, 0);
+  EXPECT_EQ(history_.UndoStackSize(), 0u);
+
+  ASSERT_TRUE((*prepared)->Redo().ok());
+  ExpectDefinition(overworld_.tiles16()[1], changed);
+  ExpectDefinition(overworld_.tiles16()[2], changed);
+  EXPECT_EQ(history_.UndoStackSize(), 0u);
+  EXPECT_EQ(boundaries_, 0);
+  ASSERT_TRUE((*prepared)->Undo().ok());
+  ExpectDefinition(overworld_.tiles16()[1], before[1]);
+  ExpectDefinition(overworld_.tiles16()[2], before[2]);
+  EXPECT_EQ(history_.UndoStackSize(), 0u);
+}
+
+TEST_F(Tile16DocumentHistoryTest,
+       PreparedDefinitionImportRefusesLostContextBeforeApplyingAnyTile) {
+  const auto before = overworld_.tiles16();
+  auto prepared =
+      session_.PrepareDefinitionImport({{1, initial_}, {2, initial_}});
+  ASSERT_TRUE(prepared.ok());
+  ASSERT_NE(*prepared, nullptr);
+  session_.SetRom(nullptr);
+  EXPECT_FALSE((*prepared)->Redo().ok());
+  session_.SetRom(&rom_);
+  for (int id : {0, 1, 2})
+    ExpectDefinition(overworld_.tiles16()[id], before[id]);
+  EXPECT_FALSE(rom_.dirty());
+  EXPECT_TRUE(published_.empty());
+  EXPECT_EQ(boundaries_, 0);
+  EXPECT_EQ(history_.UndoStackSize(), 0u);
+}
+
+TEST_F(Tile16DocumentHistoryTest,
+       EmptyAndNoOpDefinitionImportsDoNotPushHistoryOrFinalizePainting) {
+  auto empty = session_.PrepareDefinitionImport({});
+  ASSERT_TRUE(empty.ok());
+  EXPECT_EQ(*empty, nullptr);
+  auto unchanged = session_.PrepareDefinitionImport({{0, initial_}});
+  ASSERT_TRUE(unchanged.ok());
+  EXPECT_EQ(*unchanged, nullptr);
+  ASSERT_TRUE(session_.ImportDefinitions({{0, initial_}}).ok());
+  EXPECT_FALSE(rom_.dirty());
+  EXPECT_TRUE(published_.empty());
+  EXPECT_EQ(boundaries_, 0);
+  EXPECT_EQ(history_.UndoStackSize(), 0u);
+}
+
 TEST_F(Tile16DocumentHistoryTest,
        NoOpAndInvalidEditsPreserveRedoAndCleanState) {
   ASSERT_TRUE(session_.ApplyPaletteToAll(6).ok());
@@ -257,7 +381,7 @@ TEST_F(Tile16DocumentHistoryTest, ManualPropertiesPasteAndScratchAreUndoable) {
   ExpectDefinition(overworld_.tiles16()[0], initial_);
 }
 TEST_F(Tile16DocumentHistoryTest, StampHoverPreviewMatchesEveryPublishedTile) {
-  for (int size : {1, 2, 4}) {
+  for (int size : {1, 2, 3, 4}) {
     for (int flips = 0; flips < 4; ++flips) {
       SCOPED_TRACE(size);
       SCOPED_TRACE(flips);
@@ -272,7 +396,15 @@ TEST_F(Tile16DocumentHistoryTest, StampHoverPreviewMatchesEveryPublishedTile) {
       const bool dirty = rom_.dirty();
       gfx::Bitmap preview;
       ASSERT_TRUE(session_.BuildStampPreview({8, 8}, &preview).ok());
-      EXPECT_EQ(preview.width(), size == 4 ? 32 : 16);
+      const bool single_tile_stamp = size == 1 || size == 2;
+      const int expected_extent = single_tile_stamp ? 16 : 32;
+      EXPECT_EQ(preview.width(), expected_extent);
+      EXPECT_EQ(preview.height(), expected_extent);
+      if (size == 3) {
+        ASSERT_EQ(preview.width(), 32);
+        ASSERT_EQ(preview.height(), 32);
+        ASSERT_EQ(preview.vector().size(), 1024u);
+      }
       EXPECT_EQ(history_.UndoStackSize(), history_size);
       EXPECT_EQ(boundaries_, boundaries);
       EXPECT_EQ(rom_.dirty(), dirty);
@@ -280,7 +412,7 @@ TEST_F(Tile16DocumentHistoryTest, StampHoverPreviewMatchesEveryPublishedTile) {
         ExpectDefinition(overworld_.tiles16()[id], before[id]);
       }
       ASSERT_TRUE(session_.DrawToCurrentTile16({8, 8}).ok());
-      const int columns = size == 4 ? 2 : 1;
+      const int columns = single_tile_stamp ? 1 : 2;
       for (int y = 0; y < columns; ++y) {
         for (int x = 0; x < columns; ++x) {
           gfx::Bitmap committed;

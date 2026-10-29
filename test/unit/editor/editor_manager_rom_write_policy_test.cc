@@ -16,6 +16,7 @@
 #include <vector>
 
 #include "absl/status/status.h"
+#include "absl/strings/ascii.h"
 #include "absl/strings/str_format.h"
 #include "app/application.h"
 #include "app/editor/core/content_registry.h"
@@ -4308,7 +4309,7 @@ TEST(ScreenSaveStoplossTest,
   const auto reload_status = manager->ReloadProjectRom();
   EXPECT_EQ(reload_status.code(), absl::StatusCode::kOutOfRange)
       << reload_status;
-  EXPECT_NE(std::string(reload_status.message()).find("palette"),
+  EXPECT_NE(absl::AsciiStrToLower(reload_status.message()).find("palette"),
             std::string::npos)
       << reload_status;
 
@@ -5067,7 +5068,8 @@ class SessionRomIdentityTest : public ::testing::Test {
     ASSERT_NE(toast, nullptr);
     EXPECT_EQ(toast->type, ToastType::kError);
     EXPECT_NE(toast->message.find("Revert failed:"), std::string::npos);
-    EXPECT_NE(toast->message.find("palette"), std::string::npos);
+    EXPECT_NE(absl::AsciiStrToLower(toast->message).find("palette"),
+              std::string::npos);
     ExpectBaseline(baseline);
     EXPECT_EQ(manager->GetCurrentRom()->vector(), raw);
     EXPECT_EQ(util::ComputeFileSha1Hex(a.string()), disk_hash);
@@ -5320,7 +5322,8 @@ TEST_F(SessionRomIdentityTest, FailedRevertRestoresDirtyBytesAndPriorBaseline) {
   ASSERT_NE(toast, nullptr);
   EXPECT_EQ(toast->type, ToastType::kError);
   EXPECT_NE(toast->message.find("Revert failed:"), std::string::npos);
-  EXPECT_NE(toast->message.find("palette"), std::string::npos);
+  EXPECT_NE(absl::AsciiStrToLower(toast->message).find("palette"),
+            std::string::npos);
   EXPECT_EQ(manager->GetCurrentSessionId(), id);
   EXPECT_EQ(manager->GetCurrentRom()->vector(), bytes);
   EXPECT_TRUE(manager->GetCurrentRom()->dirty());
@@ -5996,10 +5999,11 @@ TEST_F(PaletteWorkspaceTest,
   ASSERT_EQ(pm.GetColor("dungeon_main", 0, 3).snes(), 0x1234);
   auto before = manager->GetCurrentRom()->vector();
   const auto ranges = pm.GetModifiedColorWriteRanges();
-  ASSERT_EQ(ranges.size(), 1);
-  ASSERT_EQ(ranges[0].second - ranges[0].first, 2);
-  before[ranges[0].first] = 0x34;
-  before[ranges[0].first + 1] = 0x12;
+  ASSERT_TRUE(ranges.ok()) << ranges.status();
+  ASSERT_EQ(ranges->size(), 1);
+  ASSERT_EQ((*ranges)[0].second - (*ranges)[0].first, 2);
+  before[(*ranges)[0].first] = 0x34;
+  before[(*ranges)[0].first + 1] = 0x12;
   core::FeatureFlags::get().kSaveAllPalettes = true;
   manager->GetCurrentProject()->feature_flags = core::FeatureFlags::get();
   const auto save_toast_begin = manager->toast_manager()->pending_count();

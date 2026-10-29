@@ -2,10 +2,14 @@
 #include "core/project.h"
 
 #include <algorithm>
+#include <charconv>
 #include <chrono>
+#include <cstdint>
+#include <ctime>
 #include <filesystem>
 #include <fstream>
 #include <string>
+#include <system_error>
 #include <vector>
 
 #include "gtest/gtest.h"
@@ -786,6 +790,141 @@ TEST(ProjectPathsTest, CustomObjectSubtypeSlotsRoundTripThroughIni) {
 }
 
 #ifndef __EMSCRIPTEN__
+namespace {
+
+std::filesystem::path NextProjectSaveStagingPath(
+    const std::filesystem::path& target) {
+  // A failed create reports its staging path and consumes one sequence number.
+  // Probe a missing parent to observe that number without creating a file or
+  // depending on how many project saves earlier tests performed.
+  const auto probe = target.parent_path() / "missing-parent" / "probe.yaze";
+  const auto status = WriteProjectFileAtomically(probe.string(), "probe", true);
+  EXPECT_FALSE(status.ok());
+  const std::string message(status.message());
+  const std::string prefix = probe.string() + ".tmp.";
+  const size_t prefix_at = message.find(prefix);
+  if (status.ok() || prefix_at == std::string::npos) {
+    ADD_FAILURE() << "Missing staging path in create failure: " << status;
+    return {};
+  }
+  const size_t pid_at = prefix_at + prefix.size();
+  const size_t separator = message.find('.', pid_at);
+  if (separator == std::string::npos) {
+    ADD_FAILURE() << "Missing staging sequence in create failure: " << status;
+    return {};
+  }
+  uint64_t sequence = 0;
+  const auto parsed =
+      std::from_chars(message.data() + separator + 1,
+                      message.data() + message.size(), sequence);
+  if (parsed.ec != std::errc()) {
+    ADD_FAILURE() << "Invalid staging sequence in create failure: " << status;
+    return {};
+  }
+  auto staging_path = target;
+  staging_path += ".tmp." + message.substr(pid_at, separator - pid_at) + "." +
+                  std::to_string(sequence + 1);
+  return staging_path;
+}
+
+}  // namespace
+
+TEST(ProjectPathsTest, AtomicWriterPreservesPreexistingRegularStagingFile) {
+  ScopedTempDir temp(MakeUniqueTempDir("yaze_project_regular_stage"));
+  const auto target = temp.path() / "Project.yaze";
+  WriteTextFile(target, "original descriptor");
+
+  for (const bool replace_existing : {false, true}) {
+    SCOPED_TRACE(replace_existing);
+    const auto staging_path = NextProjectSaveStagingPath(target);
+    ASSERT_FALSE(staging_path.empty());
+    WriteTextFile(staging_path, "foreign staging contents");
+
+    const auto status = WriteProjectFileAtomically(
+        target.string(), "replacement descriptor", replace_existing);
+
+    EXPECT_FALSE(status.ok());
+    EXPECT_EQ(ReadTextFile(target), "original descriptor");
+    ASSERT_TRUE(std::filesystem::is_regular_file(staging_path));
+    EXPECT_EQ(ReadTextFile(staging_path), "foreign staging contents");
+  }
+}
+
+TEST(ProjectPathsTest, AtomicWriterPreservesPreexistingSymlinkStagingFile) {
+  ScopedTempDir temp(MakeUniqueTempDir("yaze_project_symlink_stage"));
+  const auto target = temp.path() / "Project.yaze";
+  const auto victim = temp.path() / "unrelated.txt";
+  WriteTextFile(target, "original descriptor");
+  WriteTextFile(victim, "unrelated contents");
+
+  for (const bool replace_existing : {false, true}) {
+    SCOPED_TRACE(replace_existing);
+    const auto staging_path = NextProjectSaveStagingPath(target);
+    ASSERT_FALSE(staging_path.empty());
+    std::error_code error;
+    std::filesystem::create_symlink(victim, staging_path, error);
+#if defined(_WIN32)
+    if (error == std::errc::permission_denied ||
+        error == std::errc::operation_not_permitted) {
+      GTEST_SKIP()
+          << "Cannot create staging symlink without Windows privilege: "
+          << error.message();
+    }
+#endif
+    ASSERT_FALSE(error) << error.message();
+
+    const auto status = WriteProjectFileAtomically(
+        target.string(), "replacement descriptor", replace_existing);
+
+    EXPECT_FALSE(status.ok());
+    EXPECT_EQ(ReadTextFile(target), "original descriptor");
+    EXPECT_EQ(ReadTextFile(victim), "unrelated contents");
+    ASSERT_TRUE(std::filesystem::is_symlink(staging_path));
+    EXPECT_EQ(std::filesystem::read_symlink(staging_path), victim);
+  }
+}
+
+TEST(ProjectPathsTest, AtomicWriterPublishesNewAndReplacementWithoutStage) {
+  ScopedTempDir temp(MakeUniqueTempDir("yaze_project_writer_publication"));
+
+  for (const bool replace_existing : {false, true}) {
+    SCOPED_TRACE(replace_existing);
+    const auto target =
+        temp.path() / (replace_existing ? "Existing.yaze" : "New.yaze");
+    if (replace_existing) {
+      WriteTextFile(target, "original descriptor");
+    }
+    const auto staging_path = NextProjectSaveStagingPath(target);
+    ASSERT_FALSE(staging_path.empty());
+
+    const auto status = WriteProjectFileAtomically(
+        target.string(), "published descriptor", replace_existing);
+
+    ASSERT_TRUE(status.ok()) << status;
+    EXPECT_EQ(ReadTextFile(target), "published descriptor");
+    EXPECT_FALSE(std::filesystem::exists(staging_path));
+  }
+}
+
+TEST(ProjectPathsTest, AtomicWriterNoReplaceFailureCleansOnlyOwnedStage) {
+  ScopedTempDir temp(MakeUniqueTempDir("yaze_project_owned_stage_cleanup"));
+  const auto target = temp.path() / "Existing.yaze";
+  WriteTextFile(target, "original descriptor");
+  const auto staging_path = NextProjectSaveStagingPath(target);
+  ASSERT_FALSE(staging_path.empty());
+  auto foreign_path = staging_path;
+  foreign_path += ".foreign";
+  WriteTextFile(foreign_path, "foreign staging contents");
+
+  const auto status = WriteProjectFileAtomically(
+      target.string(), "replacement descriptor", false);
+
+  EXPECT_EQ(status.code(), absl::StatusCode::kAlreadyExists);
+  EXPECT_EQ(ReadTextFile(target), "original descriptor");
+  EXPECT_FALSE(std::filesystem::exists(staging_path));
+  EXPECT_EQ(ReadTextFile(foreign_path), "foreign staging contents");
+}
+
 TEST(ProjectPathsTest, SaveAtomicallyReplacesExistingDescriptor) {
   ScopedTempDir temp(MakeUniqueTempDir("yaze_project_atomic_save"));
   const auto project_file = temp.path() / "Atomic.yaze";

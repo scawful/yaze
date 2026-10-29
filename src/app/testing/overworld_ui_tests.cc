@@ -10,6 +10,7 @@
 #include <filesystem>
 #include <fstream>
 #include <iterator>
+#include <memory>
 #include <optional>
 #include <string>
 
@@ -20,6 +21,7 @@
 #include "app/editor/overworld/overworld_editor.h"
 #include "app/editor/overworld/ui/ui_constants.h"
 #include "app/gui/automation/widget_id_registry.h"
+#include "app/service/screenshot_utils.h"
 #include "core/source_artifact_publisher.h"
 #include "imgui.h"
 #include "nlohmann/json.hpp"
@@ -1532,6 +1534,194 @@ static void RegisterLyraTerrainReopenTest(ImGuiTestEngine* engine) {
 // Public registration entry point
 // ============================================================================
 
+// Read-only GUI coverage for an explicitly selected disposable boat fixture.
+// Only input widgets and Preview are exercised; Import/Publish/Save are absent.
+static void RegisterProjectGraphicsImportPreviewTest(ImGuiTestEngine* engine) {
+#ifdef YAZE_WITH_GRPC
+  const char* requested = std::getenv("YAZE_GUI_BOAT_PROJECT");
+  const char* pack = std::getenv("YAZE_GUI_BOAT_PACK");
+  if (!requested || !*requested || !pack || !*pack)
+    return;
+  auto& io = ImGuiTestEngine_GetIO(engine);
+  io.ConfigLogToTTY = true;
+  ImGuiTest* test =
+      IM_REGISTER_TEST(engine, "project_graphics", "boat_pack_preview_fields");
+  test->TestFunc = [](ImGuiTestContext* ctx) {
+    namespace fs = std::filesystem;
+    const char* requested = std::getenv("YAZE_GUI_BOAT_PROJECT");
+    const char* pack = std::getenv("YAZE_GUI_BOAT_PACK");
+    const char* capture = std::getenv("YAZE_GUI_BOAT_CAPTURE");
+    IM_CHECK(requested && *requested && pack && *pack && capture && *capture);
+    IM_CHECK(fs::path(requested).is_absolute() && fs::path(pack).is_absolute());
+    IM_CHECK(fs::path(capture).is_absolute());
+    std::error_code ec;
+    const auto project_path = fs::canonical(requested, ec);
+    IM_CHECK(!ec && project_path.filename() == "boat-import-reopen.yaze");
+    const auto pack_path = fs::canonical(pack, ec);
+    IM_CHECK(!ec);
+    const fs::path capture_path(capture);
+    const auto fields_path = capture_path.parent_path() /
+                             (capture_path.stem().string() + "-fields.png");
+    IM_CHECK(fs::is_directory(capture_path.parent_path()));
+    IM_CHECK(!fs::exists(capture_path) && !fs::exists(fields_path));
+    const auto read = [](const fs::path& path) -> std::optional<std::string> {
+      std::ifstream file(path, std::ios::binary);
+      if (!file)
+        return std::nullopt;
+      std::string bytes{std::istreambuf_iterator<char>(file), {}};
+      return file.bad() ? std::nullopt : std::optional<std::string>(bytes);
+    };
+
+    editor::EditorManager* manager = nullptr;
+    for (int frame = 0; frame < 200 && !manager; ++frame) {
+      auto* controller = Application::Instance().GetController();
+      manager = controller ? controller->editor_manager() : nullptr;
+      if (!manager)
+        ctx->Yield(1);
+    }
+    IM_CHECK(manager != nullptr);
+    // Project and Lyra palette loading belong on the normal main frame, not
+    // the test coroutine's smaller platform thread stack.
+    auto opened = std::make_shared<std::optional<absl::Status>>();
+    manager->QueueDeferredAction([manager, project_path, opened] {
+      const auto status = manager->OpenRomOrProject(project_path.string());
+      if (status.ok()) {
+        manager->OpenEditorAndPanelsFromFlags(
+            "Overworld", "overworld.canvas,overworld.area_graphics");
+      }
+      *opened = status;
+    });
+    for (int frame = 0; frame < 200 && !opened->has_value(); ++frame)
+      ctx->Yield(1);
+    IM_CHECK(opened->has_value() && opened->value().ok());
+    editor::OverworldEditor* overworld = nullptr;
+    for (int frame = 0; frame < 200; ++frame) {
+      auto* editors = manager->GetCurrentEditorSet();
+      overworld = editors ? editors->GetEditorAs<editor::OverworldEditor>(
+                                editor::EditorType::kOverworld)
+                          : nullptr;
+      if (overworld && overworld->overworld().is_loaded())
+        break;
+      ctx->Yield(1);
+    }
+    IM_CHECK(overworld && overworld->overworld().is_loaded());
+    auto* project = manager->GetCurrentProject();
+    IM_CHECK(project && fs::canonical(project->filepath, ec) == project_path &&
+             !ec);
+    IM_CHECK(project->name.find("disposable") != std::string::npos);
+    auto* rom = manager->GetCurrentRom();
+    IM_CHECK(rom && rom->is_loaded() && !rom->dirty());
+    const auto rom_path = fs::canonical(rom->filename(), ec);
+    IM_CHECK(!ec && rom_path.parent_path() == project_path.parent_path());
+    IM_CHECK(rom_path.filename() == "boat-import-save-as.sfc");
+    const auto rom_before = rom->vector();
+    const auto rom_disk_before = read(rom_path);
+    const auto project_before = read(project_path);
+    IM_CHECK(rom_disk_before && project_before);
+    // The area button contains '/', so use its public action to open the
+    // modal, then exercise the actual ImGui inputs and Preview button below.
+    auto source_opened = std::make_shared<std::optional<absl::Status>>();
+    manager->QueueDeferredAction([overworld, source_opened] {
+      overworld->SetCurrentMap(0x31);
+      auto status = overworld->overworld().EnsureMapBuilt(0x31);
+      if (status.ok())
+        status = overworld->OpenProjectGraphicsSource();
+      *source_opened = status;
+    });
+    for (int frame = 0; frame < 200 && !source_opened->has_value(); ++frame)
+      ctx->Yield(1);
+    IM_CHECK(source_opened->has_value() && source_opened->value().ok());
+    ctx->Yield(3);
+    ctx->SetRef("Edit Project Graphics");
+    IM_CHECK(ctx->GetWindowByRef("") != nullptr);
+    const auto input = ctx->ItemInfo("**/Logical pack JSON");
+    IM_CHECK(input.ID != 0 && input.Window != nullptr);
+    ctx->SetRef(input.Window);
+    ctx->ItemInputValue(input.ID, pack_path.string().c_str());
+    ctx->ItemClick("Load pack");
+    ctx->Yield(3);
+    struct PaletteInputs {
+      const char* id;
+      int row;
+      const char* first;
+      int count;
+    };
+    const PaletteInputs palettes[] = {
+        {"P0", 3, "100", 64}, {"P1", 4, "180", 32}, {"P2", 2, "140", 64}};
+    for (const auto& palette : palettes) {
+      const std::string scope = std::string(palette.id) + "/";
+      IM_CHECK(ctx->ItemExists((scope + "BG palette row").c_str()));
+      ctx->ItemInputValue((scope + "BG palette row").c_str(), palette.row);
+      ctx->ItemInputValue((scope + "First BG character (hex)").c_str(),
+                          palette.first);
+      ctx->ItemInputValue((scope + "Owned character count").c_str(),
+                          palette.count);
+    }
+    ctx->ItemInputValue("First Tile16 (hex)", "EEC");
+    ctx->ItemInputValue("Owned Tile16 count", 96);
+    ctx->ItemInputValue("Area anchor X (Tile16)", 33);
+    ctx->ItemInputValue("Area anchor Y (Tile16)", 17);
+    ctx->ItemClick("Preview import");
+    ctx->Yield(3);
+    IM_CHECK(ctx->ItemExists(
+        "I reviewed the destination ranges and shared palette records"));
+
+    // The application's test engine has no ScreenCaptureFunc binding. Reuse
+    // its existing renderer queue rather than an OS capture or a second backend.
+    const auto capture_renderer = [&](const fs::path& path) -> absl::Status {
+      auto result =
+          std::make_shared<std::optional<absl::StatusOr<ScreenshotArtifact>>>();
+      auto* controller = Application::Instance().GetController();
+      if (!controller)
+        return absl::FailedPreconditionError("No GUI controller");
+      controller->RequestScreenshot(
+          {.preferred_path = path.string(),
+           .format = ScreenshotFormat::kPng,
+           .reveal_to_user = false,
+           .callback = [result](absl::StatusOr<ScreenshotArtifact> image) {
+             *result = std::move(image);
+           }});
+      for (int frame = 0; frame < 200 && !result->has_value(); ++frame)
+        ctx->Yield(1);
+      if (!result->has_value())
+        return absl::DeadlineExceededError("GUI capture timed out");
+      if (!result->value().ok())
+        return result->value().status();
+      if (result->value()->file_path != path.string() ||
+          result->value()->width <= 0 || result->value()->height <= 0)
+        return absl::DataLossError(
+            "GUI capture did not return the requested image");
+      return absl::OkStatus();
+    };
+    ctx->ScrollToTop(input.Window->ID);
+    ctx->Yield(2);
+    IM_CHECK(capture_renderer(fields_path).ok());
+    ctx->ScrollToItemY(
+        "I reviewed the destination ranges and shared palette records");
+    ctx->Yield(2);
+    IM_CHECK(capture_renderer(capture_path).ok());
+    IM_CHECK(fs::is_regular_file(capture_path) &&
+             fs::is_regular_file(fields_path));
+    ctx->SetRef("Edit Project Graphics");
+    ctx->ItemClick("Close (keep draft)");
+    ctx->Yield(3);
+    const auto* closed_modal = ctx->GetWindowByRef("");
+    IM_CHECK(!closed_modal || !closed_modal->Active);
+    IM_CHECK(!overworld->HasPendingProjectDraftChanges());
+    IM_CHECK(!rom->dirty() && rom->vector() == rom_before);
+    IM_CHECK(read(rom_path) == rom_disk_before &&
+             read(project_path) == project_before);
+    ctx->LogInfo(
+        "Boat GUI preview PASS: P0/P1/P2, map31, no import/publish/save; "
+        "captures %s and %s",
+        capture_path.string().c_str(), fields_path.string().c_str());
+  };
+  ImGuiTestEngine_QueueTest(engine, test, ImGuiTestRunFlags_RunFromCommandLine);
+#else
+  (void)engine;  // The maintained renderer screenshot queue requires gRPC.
+#endif
+}
+
 void RegisterOverworldUITests(ImGuiTestEngine* engine) {
   if (engine == nullptr)
     return;
@@ -1542,6 +1732,7 @@ void RegisterOverworldUITests(ImGuiTestEngine* engine) {
   RegisterWorldSelectorTests(engine);
   RegisterLyraTerrainAcceptanceTest(engine);
   RegisterLyraTerrainReopenTest(engine);
+  RegisterProjectGraphicsImportPreviewTest(engine);
 }
 
 }  // namespace yaze::test

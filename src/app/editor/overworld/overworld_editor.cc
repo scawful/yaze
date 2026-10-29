@@ -591,6 +591,9 @@ absl::Status OverworldEditor::CheckRomReplacement(
 
 absl::Status OverworldEditor::Load() {
   gfx::ScopedTimer timer("OverworldEditor::Load");
+  if (graphics_source_ && graphics_source_->any_dirty())
+    return absl::FailedPreconditionError(
+        "Publish project graphics before reloading overworld data");
 
   LOG_DEBUG("OverworldEditor", "Loading overworld.");
   if (!rom_ || !rom_->is_loaded()) {
@@ -626,6 +629,13 @@ absl::Status OverworldEditor::Load() {
     dependencies_.window_manager->RegisterPanelAlias("overworld.debug_window",
                                                      "overworld.debug");
   }
+
+  graphics_source_.reset();
+  graphics_source_project_ = nullptr;
+  graphics_import_applied_ = false;
+  graphics_import_asset_.reset();
+  graphics_import_plan_.reset();
+  graphics_source_open_ = false;
 
   // Clear undo/redo state when loading new ROM data
   current_paint_operation_.reset();
@@ -807,6 +817,8 @@ absl::Status OverworldEditor::Update() {
   NormalizeCurrentSelectionState();
   status_.Update(SyncProjectGraphicsPreview());
 
+  DrawProjectGraphicsSource();
+
   // Process deferred textures for smooth loading
   ProcessDeferredTextures();
 
@@ -942,6 +954,9 @@ void OverworldEditor::DrawOverworldCanvas() {
 }
 
 absl::Status OverworldEditor::PrepareProjectSave() {
+  if (graphics_source_ && graphics_source_->any_dirty())
+    return absl::FailedPreconditionError(
+        "Publish project graphics before Save Project");
   FinishScratchEdit("Edit scratch layout");
   RETURN_IF_ERROR(FlushScratchPadIfDirty());
   lyra_canvas_.FinishStroke(undo_manager_);
@@ -970,6 +985,9 @@ absl::Status OverworldEditor::OpenLyraTerrain(const std::string& path) {
 
 absl::Status OverworldEditor::SaveProjectTerrainAs(
     project::YazeProject* project, const std::string& project_path) {
+  if (graphics_source_ && graphics_source_->any_dirty())
+    return absl::FailedPreconditionError(
+        "Publish project graphics before Save Project As");
   lyra_canvas_.FinishStroke(undo_manager_);
   return lyra_canvas_.SaveAs(project, project_path, overworld_);
 }
@@ -1511,6 +1529,10 @@ void OverworldEditor::CommitSaveTransaction() {
 }
 
 absl::Status OverworldEditor::Save() {
+  if (graphics_source_ && graphics_source_->any_dirty())
+    return absl::FailedPreconditionError(
+        "Publish project graphics before Save ROM (Edit / Import Project "
+        "Graphics)");
   FinishScratchEdit("Edit scratch layout");
   RETURN_IF_ERROR(FlushScratchPadIfDirty());
   if (rom_ == nullptr) {
@@ -1888,26 +1910,17 @@ absl::Status OverworldEditor::Redo() {
 // ============================================================================
 
 absl::Status OverworldEditor::SyncProjectGraphicsPreview(bool force) {
-  const auto* owner = dependencies_.project;
-  const std::string path =
-      owner && !owner->overworld_graphics_preview.empty()
-          ? owner->GetAbsolutePath(owner->overworld_graphics_preview)
-          : std::string{};
+  const std::string path = ProjectGraphicsPath();
   if (!force && path == graphics_preview_config_path_)
     return absl::OkStatus();
-  graphics_preview_config_path_ = path;
-  // An invalid new config must not leave the previous project's art active.
-  overworld_.SetGraphicsPreview({});
-  auto preview = core::LoadOverworldGraphicsPreview(path);
-  if (preview.ok())
-    overworld_.SetGraphicsPreview(std::move(*preview));
-  if (!force && overworld_.is_loaded()) {
-    for (int i = 0; i < zelda3::kNumOverworldMaps; ++i) {
-      maps_bmp_[i].set_modified(true);
-    }
-    RETURN_IF_ERROR(RefreshTile16Blockset());
+  if (path != graphics_preview_config_path_) {
+    graphics_preview_baseline_.clear();
+    overworld_.SetGraphicsPreview({});
   }
-  return preview.status();
+  ASSIGN_OR_RETURN(auto preview, core::LoadOverworldGraphicsPreview(path));
+  graphics_preview_baseline_ = std::move(preview);
+  graphics_preview_config_path_ = path;
+  return RefreshPendingProjectGraphics();
 }
 
 absl::Status OverworldEditor::LoadGraphics() {
@@ -2279,6 +2292,15 @@ void OverworldEditor::RequestTile16Selection(int tile_id) {
 }
 
 absl::Status OverworldEditor::Clear() {
+  graphics_source_.reset();
+  graphics_source_project_ = nullptr;
+  graphics_source_open_ = false;
+  graphics_import_applied_ = false;
+  graphics_import_asset_.reset();
+  graphics_import_plan_.reset();
+  graphics_import_pack_.clear();
+  graphics_preview_baseline_.clear();
+  graphics_preview_config_path_.clear();
   lyra_canvas_.Reset();
   pending_tile16_selection_after_gfx_.reset();
   lyra_loaded_rom_sha1_.clear();
