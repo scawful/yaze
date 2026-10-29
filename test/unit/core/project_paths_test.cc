@@ -182,7 +182,232 @@ TEST(ProjectPathsTest, LyraBuildRequestKeepsIdentityThroughSaveAsAndReset) {
   EXPECT_TRUE(reopened.lyra_build_request_file.empty());
 }
 
+TEST(ProjectPathsTest, NativeSaveReferencesKeepIdentityThroughSaveAsAndReset) {
+  ScopedTempDir temp(MakeUniqueTempDir("yaze_native_save_reference_identity"));
+  ScopedTempDir elsewhere(MakeUniqueTempDir("yaze_native_save_reference_cwd"));
+  const auto original = temp.path() / "original" / "Oracle.yaze";
+  const auto producer = original.parent_path() / "control" / "producer.json";
+  const auto proof = original.parent_path() / "control" / "proof.json";
+  const auto receipt = original.parent_path() / "control" / "receipt.json";
+  const auto destination = temp.path() / "copy" / "Saved.yaze";
+  WriteTextFile(producer, "producer identity\n");
+  WriteTextFile(proof, "immutable transfer proof\n");
+  WriteTextFile(receipt, "retained receipt\n");
+  WriteTextFile(original,
+                "[project]\nname=Native save reference identity\n\n[files]\n"
+                "native_save_producer_file=control/producer.json\n"
+                "native_save_transfer_proof_file=control/proof.json\n"
+                "native_save_receipt_file=control/receipt.json\n");
+  std::filesystem::create_directories(destination.parent_path());
+
+  ScopedCurrentPath current_path(elsewhere.path());
+  YazeProject project;
+  ASSERT_TRUE(project.Open(original.string()).ok());
+  EXPECT_EQ(project.native_save_producer_file, producer.string());
+  EXPECT_EQ(project.native_save_transfer_proof_file, proof.string());
+  EXPECT_EQ(project.native_save_receipt_file, receipt.string());
+  ASSERT_TRUE(project.Save().ok());
+  const auto saved_original = ReadTextFile(original);
+  EXPECT_NE(
+      saved_original.find("native_save_producer_file=control/producer.json\n"),
+      std::string::npos);
+  EXPECT_NE(saved_original.find(
+                "native_save_transfer_proof_file=control/proof.json\n"),
+            std::string::npos);
+  EXPECT_NE(
+      saved_original.find("native_save_receipt_file=control/receipt.json\n"),
+      std::string::npos);
+  ASSERT_TRUE(project.SaveAs(destination.string()).ok());
+  EXPECT_EQ(project.native_save_producer_file, producer.string());
+  EXPECT_EQ(project.native_save_transfer_proof_file, proof.string());
+  EXPECT_EQ(project.native_save_receipt_file, receipt.string());
+  const auto saved_copy = ReadTextFile(destination);
+  EXPECT_NE(
+      saved_copy.find(
+          "native_save_producer_file=../original/control/producer.json\n"),
+      std::string::npos);
+  EXPECT_NE(saved_copy.find("native_save_transfer_proof_file="
+                            "../original/control/proof.json\n"),
+            std::string::npos);
+  EXPECT_NE(saved_copy.find(
+                "native_save_receipt_file=../original/control/receipt.json\n"),
+            std::string::npos);
+
+  YazeProject reopened;
+  ASSERT_TRUE(reopened.Open(destination.string()).ok());
+  EXPECT_EQ(reopened.native_save_producer_file, producer.string());
+  EXPECT_EQ(reopened.native_save_transfer_proof_file, proof.string());
+  EXPECT_EQ(reopened.native_save_receipt_file, receipt.string());
+  EXPECT_EQ(ReadTextFile(original), saved_original);
+  EXPECT_EQ(ReadTextFile(producer), "producer identity\n");
+  EXPECT_EQ(ReadTextFile(proof), "immutable transfer proof\n");
+  EXPECT_EQ(ReadTextFile(receipt), "retained receipt\n");
+  EXPECT_FALSE(std::filesystem::exists(destination.parent_path() / "control"));
+
+  ASSERT_TRUE(reopened.ResetToDefaults().ok());
+  EXPECT_TRUE(reopened.native_save_producer_file.empty());
+  EXPECT_TRUE(reopened.native_save_transfer_proof_file.empty());
+  EXPECT_TRUE(reopened.native_save_receipt_file.empty());
+  const auto reset_descriptor = ReadTextFile(destination);
+  EXPECT_EQ(reset_descriptor.find("native_save_producer_file="),
+            std::string::npos);
+  EXPECT_EQ(reset_descriptor.find("native_save_transfer_proof_file="),
+            std::string::npos);
+  EXPECT_EQ(reset_descriptor.find("native_save_receipt_file="),
+            std::string::npos);
+  ASSERT_TRUE(reopened.Open(original.string()).ok());
+  ASSERT_FALSE(reopened.native_save_producer_file.empty());
+  ASSERT_TRUE(reopened
+                  .LoadFromString("[project]\nname=Unrelated\n",
+                                  (temp.path() / "Unrelated.yaze").string())
+                  .ok());
+  EXPECT_TRUE(reopened.native_save_producer_file.empty());
+  EXPECT_TRUE(reopened.native_save_transfer_proof_file.empty());
+  EXPECT_TRUE(reopened.native_save_receipt_file.empty());
+}
+
+TEST(ProjectPathsTest, NativeSaveFutureReferencesDoNotCreateControlFiles) {
+  ScopedTempDir temp(MakeUniqueTempDir("yaze_native_save_future_references"));
+  const auto original = temp.path() / "original" / "Oracle.yaze";
+  const auto producer = original.parent_path() / "producer.json";
+  const auto proof = original.parent_path() / "future" / "proof.json";
+  const auto receipt = original.parent_path() / "future" / "receipt.json";
+  const auto destination = temp.path() / "copy" / "Saved.yaze";
+  WriteTextFile(producer, "existing producer\n");
+  WriteTextFile(original,
+                "[project]\nname=Future native save controls\n\n[files]\n"
+                "native_save_producer_file=producer.json\n"
+                "native_save_transfer_proof_file=future/proof.json\n"
+                "native_save_receipt_file=future/receipt.json\n");
+  std::filesystem::create_directories(destination.parent_path());
+
+  YazeProject project;
+  ASSERT_TRUE(project.Open(original.string()).ok());
+  ASSERT_TRUE(project.Save().ok());
+  ASSERT_TRUE(project.SaveAs(destination.string()).ok());
+  YazeProject reopened;
+  ASSERT_TRUE(reopened.Open(destination.string()).ok());
+  EXPECT_EQ(reopened.native_save_producer_file, producer.string());
+  EXPECT_EQ(reopened.native_save_transfer_proof_file, proof.string());
+  EXPECT_EQ(reopened.native_save_receipt_file, receipt.string());
+  EXPECT_EQ(ReadTextFile(producer), "existing producer\n");
+  EXPECT_FALSE(std::filesystem::exists(proof.parent_path()));
+  EXPECT_FALSE(std::filesystem::exists(destination.parent_path() / "future"));
+  EXPECT_FALSE(
+      std::filesystem::exists(destination.parent_path() / "producer.json"));
+}
+
+TEST(ProjectPathsTest, LyraSaveAsPreservesFutureNativeSaveReferences) {
+  ScopedTempDir temp(MakeUniqueTempDir("yaze_lyra_future_native_save_refs"));
+  const auto original = temp.path() / "original" / "Oracle.yaze";
+  const auto terrain = original.parent_path() / "Oracle.lyra-terrain.json";
+  const auto producer = original.parent_path() / "producer.json";
+  const auto proof =
+      original.parent_path() / "future" / "generation" / "proof.json";
+  const auto receipt =
+      original.parent_path() / "future" / "generation" / "receipt.json";
+  const auto destination = temp.path() / "copy" / "Saved.yaze";
+  auto destination_terrain = destination;
+  destination_terrain.replace_extension(".lyra-terrain.json");
+  WriteTextFile(producer, "existing producer identity\n");
+  WriteTextFile(original,
+                "[project]\nname=Future Lyra native save controls\n\n[files]\n"
+                "lyra_terrain_file=Oracle.lyra-terrain.json\n"
+                "native_save_producer_file=producer.json\n"
+                "native_save_transfer_proof_file=future/generation/proof.json\n"
+                "native_save_receipt_file=future/generation/receipt.json\n");
+  const auto original_bytes = ReadTextFile(original);
+  std::filesystem::create_directories(destination.parent_path());
+  YazeProject project;
+  ASSERT_TRUE(project.Open(original.string()).ok());
+  core::LyraTerrainProfile profile;
+  profile.tile_count = 4096;
+  profile.tile16_definition_fingerprint = "definitions:fixture";
+  profile.graphics_fingerprint = "graphics:fixture";
+  profile.palette_fingerprint = "palette:fixture";
+  profile.animation_fingerprint = "animation:fixture";
+  auto document = core::LyraTerrainDocument::Create(profile, 11);
+  ASSERT_TRUE(document.ok()) << document.status();
+
+  const auto status = project.SaveAsWithLyraTerrain(destination.string(),
+                                                    *document, std::nullopt);
+
+  ASSERT_TRUE(status.ok()) << status;
+  EXPECT_EQ(project.native_save_producer_file, producer.string());
+  EXPECT_EQ(project.native_save_transfer_proof_file, proof.string());
+  EXPECT_EQ(project.native_save_receipt_file, receipt.string());
+  EXPECT_EQ(ReadTextFile(original), original_bytes);
+  EXPECT_EQ(ReadTextFile(producer), "existing producer identity\n");
+  EXPECT_EQ(ReadTextFile(destination_terrain), document->Serialize());
+  EXPECT_FALSE(std::filesystem::exists(terrain));
+  EXPECT_FALSE(std::filesystem::exists(original.parent_path() / "future"));
+  EXPECT_FALSE(std::filesystem::exists(destination.parent_path() / "future"));
+  const auto saved_descriptor = ReadTextFile(destination);
+  EXPECT_NE(saved_descriptor.find(
+                "native_save_producer_file=../original/producer.json\n"),
+            std::string::npos);
+  EXPECT_NE(saved_descriptor.find("native_save_transfer_proof_file="
+                                  "../original/future/generation/proof.json\n"),
+            std::string::npos);
+  EXPECT_NE(
+      saved_descriptor.find("native_save_receipt_file="
+                            "../original/future/generation/receipt.json\n"),
+      std::string::npos);
+  YazeProject reopened;
+  ASSERT_TRUE(reopened.Open(destination.string()).ok());
+  EXPECT_EQ(reopened.native_save_producer_file, producer.string());
+  EXPECT_EQ(reopened.native_save_transfer_proof_file, proof.string());
+  EXPECT_EQ(reopened.native_save_receipt_file, receipt.string());
+}
+
 #ifdef YAZE_ENABLE_JSON_PROJECT_FORMAT
+TEST(ProjectPathsTest, JsonNativeSaveReferencesSurviveSaveAsAndReopen) {
+  ScopedTempDir temp(MakeUniqueTempDir("yaze_native_save_reference_json"));
+  ScopedTempDir elsewhere(MakeUniqueTempDir("yaze_native_save_json_cwd"));
+  const auto original = temp.path() / "original" / "Oracle.yaze";
+  const auto producer = original.parent_path() / "control" / "producer.json";
+  const auto proof = original.parent_path() / "control" / "proof.json";
+  const auto receipt = original.parent_path() / "control" / "receipt.json";
+  const auto destination = temp.path() / "copy" / "Saved.yaze";
+  WriteTextFile(producer, "JSON producer identity\n");
+  WriteTextFile(proof, "JSON immutable transfer proof\n");
+  WriteTextFile(receipt, "JSON retained receipt\n");
+  WriteTextFile(original, R"json({"yaze_project": {
+    "name": "JSON native save references",
+    "native_save_producer_file": "control/producer.json",
+    "native_save_transfer_proof_file": "control/proof.json",
+    "native_save_receipt_file": "control/receipt.json"
+  }})json");
+  std::filesystem::create_directories(destination.parent_path());
+
+  ScopedCurrentPath current_path(elsewhere.path());
+  YazeProject project;
+  ASSERT_TRUE(project.Open(original.string()).ok());
+  EXPECT_EQ(project.native_save_producer_file, producer.string());
+  EXPECT_EQ(project.native_save_transfer_proof_file, proof.string());
+  EXPECT_EQ(project.native_save_receipt_file, receipt.string());
+  // The public Save path exports native INI after loading a JSON descriptor.
+  ASSERT_TRUE(project.Save().ok());
+  ASSERT_TRUE(project.SaveAs(destination.string()).ok());
+  YazeProject reopened;
+  ASSERT_TRUE(reopened.Open(destination.string()).ok());
+  EXPECT_EQ(reopened.native_save_producer_file, producer.string());
+  EXPECT_EQ(reopened.native_save_transfer_proof_file, proof.string());
+  EXPECT_EQ(reopened.native_save_receipt_file, receipt.string());
+  EXPECT_EQ(ReadTextFile(producer), "JSON producer identity\n");
+  EXPECT_EQ(ReadTextFile(proof), "JSON immutable transfer proof\n");
+  EXPECT_EQ(ReadTextFile(receipt), "JSON retained receipt\n");
+  EXPECT_FALSE(std::filesystem::exists(destination.parent_path() / "control"));
+
+  const auto unrelated = temp.path() / "Unrelated.yaze";
+  WriteTextFile(unrelated,
+                R"json({"yaze_project": {"name": "No native save refs"}})json");
+  ASSERT_TRUE(reopened.Open(unrelated.string()).ok());
+  EXPECT_TRUE(reopened.native_save_producer_file.empty());
+  EXPECT_TRUE(reopened.native_save_transfer_proof_file.empty());
+  EXPECT_TRUE(reopened.native_save_receipt_file.empty());
+}
+
 TEST(ProjectPathsTest, JsonLyraBuildRequestSurvivesSaveAsAndReopen) {
   ScopedTempDir temp(MakeUniqueTempDir("yaze_lyra_request_json"));
   const auto original = temp.path() / "original" / "Oracle.yaze";
@@ -401,6 +626,80 @@ TEST(ProjectPathsTest, LyraSaveAsRefusesDestinationThatIsBuildRequest) {
   EXPECT_EQ(document->Serialize(), document_before);
   EXPECT_FALSE(std::filesystem::exists(terrain));
   EXPECT_FALSE(std::filesystem::exists(destination_terrain));
+}
+
+TEST(ProjectPathsTest, LyraSaveAsRefusesNativeSaveReferenceDestinationAliases) {
+  struct Reference {
+    const char* name;
+    std::string YazeProject::* path;
+  };
+  const std::vector<Reference> references = {
+      {"producer", &YazeProject::native_save_producer_file},
+      {"proof", &YazeProject::native_save_transfer_proof_file},
+      {"receipt", &YazeProject::native_save_receipt_file}};
+  for (const auto& reference : references) {
+    for (bool targets_terrain : {false, true}) {
+      for (bool hard_link : {false, true}) {
+        SCOPED_TRACE(reference.name);
+        SCOPED_TRACE(targets_terrain ? "terrain destination"
+                                     : "project destination");
+        SCOPED_TRACE(hard_link ? "hard-link alias" : "same-path alias");
+        ScopedTempDir temp(
+            MakeUniqueTempDir("yaze_native_save_reference_alias"));
+        const auto original = temp.path() / "original" / "Oracle.yaze";
+        const auto terrain =
+            original.parent_path() / "Oracle.lyra-terrain.json";
+        const auto destination = temp.path() / "copy" / "Saved.yaze";
+        auto destination_terrain = destination;
+        destination_terrain.replace_extension(".lyra-terrain.json");
+        const auto target = targets_terrain ? destination_terrain : destination;
+        const auto source = hard_link ? temp.path() / "protected.json" : target;
+        const std::string control_bytes = "immutable native save control\n";
+        WriteTextFile(source, control_bytes);
+        std::filesystem::create_directories(original.parent_path());
+        std::filesystem::create_directories(destination.parent_path());
+        if (hard_link) {
+          std::error_code error;
+          std::filesystem::create_hard_link(source, target, error);
+          ASSERT_FALSE(error) << error.message();
+        }
+        YazeProject project;
+        project.name = "Native save reference alias";
+        project.filepath = original.string();
+        project.*(reference.path) = source.string();
+        ASSERT_TRUE(project.Save().ok());
+        const auto original_bytes = ReadTextFile(original);
+        project.lyra_terrain_file = terrain.string();
+        core::LyraTerrainProfile profile;
+        profile.tile_count = 4096;
+        profile.tile16_definition_fingerprint = "definitions:fixture";
+        profile.graphics_fingerprint = "graphics:fixture";
+        profile.palette_fingerprint = "palette:fixture";
+        profile.animation_fingerprint = "animation:fixture";
+        auto document = core::LyraTerrainDocument::Create(profile, 11);
+        ASSERT_TRUE(document.ok()) << document.status();
+        const auto document_before = document->Serialize();
+
+        const auto status = project.SaveAsWithLyraTerrain(
+            destination.string(), *document, std::nullopt);
+
+        EXPECT_EQ(status.code(), absl::StatusCode::kInvalidArgument) << status;
+        EXPECT_EQ(project.filepath, original.string());
+        EXPECT_EQ(project.lyra_terrain_file, terrain.string());
+        EXPECT_EQ(project.*(reference.path), source.string());
+        EXPECT_EQ(ReadTextFile(original), original_bytes);
+        EXPECT_EQ(ReadTextFile(source), control_bytes);
+        EXPECT_EQ(ReadTextFile(target), control_bytes);
+        EXPECT_EQ(document->Serialize(), document_before);
+        EXPECT_FALSE(std::filesystem::exists(terrain));
+        EXPECT_FALSE(std::filesystem::exists(
+            targets_terrain ? destination : destination_terrain));
+        if (hard_link) {
+          EXPECT_TRUE(std::filesystem::equivalent(source, target));
+        }
+      }
+    }
+  }
 }
 
 TEST(ProjectPathsTest,

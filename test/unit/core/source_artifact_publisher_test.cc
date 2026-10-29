@@ -201,6 +201,65 @@ TEST(SourceArtifactPublisherTest,
 }
 
 TEST(SourceArtifactPublisherTest,
+     MissingReadOnlyParentDoesNotPreventOutputPublicationOrCreateDirectories) {
+  ScopedTempDir temp;
+  const auto source = temp.path() / "input" / "source.json";
+  const auto future = temp.path() / "future" / "generation" / "proof.json";
+  const auto output = temp.path() / "output" / "generated.json";
+  WriteText(source, "canonical\n");
+  WriteText(output, "old output\n");
+  const auto missing_output = temp.path() / "missing-output" / "generated.json";
+  const auto missing_output_lock =
+      AcquireSourceArtifactPublicationLock({missing_output}, {}, {future});
+  EXPECT_EQ(missing_output_lock.status().code(),
+            absl::StatusCode::kFailedPrecondition)
+      << missing_output_lock.status();
+  EXPECT_FALSE(fs::exists(missing_output.parent_path()));
+  EXPECT_FALSE(fs::exists(temp.path() / "future"));
+  auto lock =
+      AcquireSourceArtifactPublicationLock({output}, {}, {source, future});
+  ASSERT_TRUE(lock.ok()) << lock.status();
+  EXPECT_FALSE(fs::exists(temp.path() / "future"));
+  const auto status =
+      PublishSourceArtifacts(**lock,
+                             {{source, "canonical\n", "canonical\n"},
+                              {output, "old output\n", "new output\n"}},
+                             ComputeSourceArtifactSha256("canonical\n"));
+  ASSERT_TRUE(status.ok()) << status;
+  EXPECT_EQ(ReadText(source), "canonical\n");
+  EXPECT_EQ(ReadText(output), "new output\n");
+  EXPECT_FALSE(fs::exists(temp.path() / "future"));
+  EXPECT_FALSE(fs::exists(source.parent_path() /
+                          kSourceArtifactPublicationLockBasename));
+  ExpectNoPublicationArtifacts(temp.path());
+}
+
+TEST(SourceArtifactPublisherTest,
+     ReadOnlyReferencesCannotUseOutputPersistentLockPath) {
+  ScopedTempDir temp;
+  const auto output = temp.path() / "generated.json";
+  const auto lock_path = temp.path() / kSourceArtifactPublicationLockBasename;
+  WriteText(output, "original output\n");
+  for (bool existing_lock : {false, true}) {
+    SCOPED_TRACE(existing_lock ? "existing lock path" : "future lock path");
+    if (existing_lock) {
+      WriteText(lock_path, "protected lock sentinel\n");
+    }
+    const auto lock =
+        AcquireSourceArtifactPublicationLock({output}, {}, {lock_path});
+    EXPECT_EQ(lock.status().code(), absl::StatusCode::kInvalidArgument)
+        << lock.status();
+    EXPECT_EQ(ReadText(output), "original output\n");
+    if (existing_lock) {
+      EXPECT_EQ(ReadText(lock_path), "protected lock sentinel\n");
+    } else {
+      EXPECT_FALSE(fs::exists(lock_path));
+    }
+    ExpectNoPublicationArtifacts(temp.path());
+  }
+}
+
+TEST(SourceArtifactPublisherTest,
      ReadOnlyInputStillChecksCasAndCannotBePromotedToAnOutput) {
   ScopedTempDir temp;
   const auto source = temp.path() / "source.json";

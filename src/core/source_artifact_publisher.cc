@@ -1291,7 +1291,8 @@ AcquireSourceArtifactPublicationLock(
 
   std::vector<fs::path> resolved_targets;
   ASSIGN_OR_RETURN(resolved_targets,
-                   PreparePublicationTargets(all_targets, labels));
+                   ResolvePublicationTargets(all_targets, labels));
+  RETURN_IF_ERROR(ValidateDistinctPublicationTargets(resolved_targets, labels));
   const std::vector<fs::path> resolved_writable(
       resolved_targets.begin(), resolved_targets.begin() + targets.size());
   const std::vector<fs::path> resolved_read_only(
@@ -1299,6 +1300,10 @@ AcquireSourceArtifactPublicationLock(
 
   std::vector<fs::path> lock_paths;
   ASSIGN_OR_RETURN(lock_paths, PublicationLockPaths(resolved_writable, labels));
+  // Read-only references may name future control files whose directories do
+  // not exist yet. Only writable directories need persistent lock paths.
+  RETURN_IF_ERROR(
+      ValidateTargetsDoNotAliasLocks(lock_paths, resolved_targets, labels));
   std::unique_ptr<SourceArtifactWriteLocks> write_locks;
   ASSIGN_OR_RETURN(write_locks,
                    SourceArtifactWriteLocks::Acquire(lock_paths, labels));
