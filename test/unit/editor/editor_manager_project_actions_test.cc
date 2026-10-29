@@ -1885,6 +1885,7 @@ TEST(EditorManagerProjectActionsTest,
   auto* project = manager->GetCurrentProject();
   project->native_save_producer_file.clear();
   project->native_save_transfer_proof_file.clear();
+  project->lyra_build_request_file.clear();
   ASSERT_FALSE(project->lyra_terrain_file.empty());
   ASSERT_FALSE(std::filesystem::exists(fixture.target));
   ASSERT_OK(manager->RunCurrentProject());
@@ -2070,8 +2071,27 @@ TEST(EditorManagerProjectActionsTest,
              [](auto& f) {
                f.manager.GetCurrentProject()->build_target = f.stale.string();
              }},
-            {"partial transfer references", [](auto& f) {
-               f.manager.GetCurrentProject()->lyra_build_request_file.clear();
+            {"missing selected request file",
+             [](auto& f) { std::filesystem::remove(f.request); }},
+            {"malformed selected request file",
+             [](auto& f) { Fixture::Write(f.request, "{"); }},
+            {"selected request without producer",
+             [](auto& f) {
+               f.manager.GetCurrentProject()->native_save_producer_file.clear();
+             }},
+            {"selected request without proof",
+             [](auto& f) {
+               f.manager.GetCurrentProject()
+                   ->native_save_transfer_proof_file.clear();
+             }},
+            {"selected request without native-save capabilities",
+             [](auto& f) {
+               auto* project = f.manager.GetCurrentProject();
+               project->native_save_producer_file.clear();
+               project->native_save_transfer_proof_file.clear();
+             }},
+            {"selected request without terrain", [](auto& f) {
+               f.manager.GetCurrentProject()->lyra_terrain_file.clear();
              }}};
   for (const auto& [name, mutate] : cases) {
     SCOPED_TRACE(name);

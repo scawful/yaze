@@ -459,7 +459,8 @@ struct YazeProject {
   // Checks the persisted source/build settings against this live context.
   // UI layout, timestamps and recent-file history do not qualify build inputs.
   absl::Status ValidateSavedSourceBindings(const std::string& content) const;
-  // Returns no selection when producer/proof references are both empty.
+  // Returns no selection when lyra_build_request_file is empty. Native-save
+  // producer/proof references alone describe capability, not expanded admission.
   // Expanded claims require the existing completed build and its current
   // hash-bound Save/transfer evidence. Failure must not use a manifest fallback.
   // This does not compile, grant allocation, or create completion evidence.

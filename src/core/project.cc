@@ -888,8 +888,7 @@ absl::StatusOr<std::string> ExpandedRunCanonical(const std::string& text) {
 absl::StatusOr<std::optional<std::string>>
 YazeProject::ResolveExpandedBuildRunTarget(
     const std::string& editing_source_path) const {
-  if (native_save_producer_file.empty() &&
-      native_save_transfer_proof_file.empty()) {
+  if (lyra_build_request_file.empty()) {
     return std::optional<std::string>{};
   }
 #if !defined(YAZE_WITH_JSON) || defined(__EMSCRIPTEN__)
@@ -899,8 +898,8 @@ YazeProject::ResolveExpandedBuildRunTarget(
   namespace fs = std::filesystem;
   if (!project_opened() || native_save_producer_file.empty() ||
       native_save_transfer_proof_file.empty() || lyra_terrain_file.empty() ||
-      lyra_build_request_file.empty() || build_target.empty() ||
-      code_folder.empty() || editing_source_path.empty()) {
+      build_target.empty() || code_folder.empty() ||
+      editing_source_path.empty()) {
     return ExpandedRunError("complete saved expanded references are required");
   }
   try {
