@@ -85,9 +85,15 @@ class LyraTerrainCanvas {
     return document_ &&
            (document_->profile_dirty() || native_save_.has_value());
   }
-  absl::Status BeginNativeSave();
+  absl::Status BeginNativeSave(project::YazeProject* project);
+  absl::Status RecordNativeSaveProjectPublication(
+      const project::YazeProject& project);
+  absl::Status ValidateNativeSaveRecovery();
   absl::Status RollbackNativeSave();
-  void CommitNativeSave() { native_save_.reset(); }
+  void CommitNativeSave() {
+    if (native_save_ && !native_save_->recovery_required)
+      native_save_.reset();
+  }
   gfx::Bitmap& MapAtlas(int map_id);
   gfx::Bitmap* MapGraphics(int map_id);
   void DrawProperties(int map_id, int& state, zelda3::Overworld& overworld,
@@ -195,6 +201,10 @@ class LyraTerrainCanvas {
     std::optional<std::string> source_bytes;
     bool unpublished;
     bool pending_project_commit;
+    std::string project_path;
+    std::string project_before;
+    std::optional<std::string> project_published;
+    bool recovery_required = false;
   };
   std::optional<NativeSave> native_save_;
   // Tracks navigation for transient copy feedback only.

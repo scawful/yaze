@@ -11,6 +11,7 @@
 #include <filesystem>
 #include <fstream>
 #include <iostream>
+#include <mutex>
 #include <new>
 #include <string>
 #include <system_error>
@@ -191,12 +192,25 @@ absl::Status CreateRequiredBackup(
 // Keep the name independent of the destination basename so long ROM filenames
 // still fit the filesystem's component limit. Exclusive creation, rather than
 // the nonce alone, establishes ownership; never reopen this path to write it.
-std::atomic<bool> g_fail_rom_staging_for_testing{false};
+std::mutex g_rom_staging_failure_mutex;
+bool g_fail_rom_staging_for_testing = false;
+std::function<void()> g_before_rom_staging_failure;
 
 absl::StatusOr<std::filesystem::path> WriteExclusiveRomTemp(
     const std::filesystem::path& target_path,
     const std::vector<uint8_t>& bytes) {
-  if (g_fail_rom_staging_for_testing.load(std::memory_order_relaxed)) {
+  bool fail_staging = false;
+  std::function<void()> before_failure;
+  {
+    std::lock_guard<std::mutex> guard(g_rom_staging_failure_mutex);
+    fail_staging = g_fail_rom_staging_for_testing;
+    before_failure = g_before_rom_staging_failure;
+  }
+  if (fail_staging) {
+    // Copy the callback while locked, then run it unlocked so a callback may
+    // reset the fault without deadlocking the save worker.
+    if (before_failure)
+      before_failure();
     return absl::InternalError(
         "Could not create temp ROM file: staging failure injected for testing");
   }
@@ -414,8 +428,14 @@ const char* CopierHeaderReasonName(CopierHeaderReason reason) {
   return "none";
 }
 
-void Rom::SetStagingFailureForTesting(bool fail) {
-  g_fail_rom_staging_for_testing.store(fail, std::memory_order_relaxed);
+void Rom::SetStagingFailureForTesting(bool fail,
+                                      std::function<void()> before_failure) {
+  std::lock_guard<std::mutex> guard(g_rom_staging_failure_mutex);
+  g_fail_rom_staging_for_testing = fail;
+  if (fail)
+    g_before_rom_staging_failure = std::move(before_failure);
+  else
+    g_before_rom_staging_failure = {};
 }
 
 rom::LyraLayoutInspection Rom::InspectLyraLayout() const {

@@ -7,6 +7,7 @@
 #include <filesystem>
 #include <fstream>
 #include <functional>
+#include <optional>
 #include <string>
 #include <thread>
 #include <utility>
@@ -456,8 +457,46 @@ TEST(EditorManagerProjectActionsTest,
       std::filesystem::exists(directory.path / "expanded_messages.asm"));
 }
 
-TEST(EditorManagerProjectActionsTest,
-     LyraDirectTile8PaintKeepsAtlasesAndRollsBackFailedNativeSave) {
+std::string LyraAtlasDifference(const std::vector<uint8_t>& actual,
+                                const std::vector<uint8_t>& expected) {
+  nlohmann::json first = nlohmann::json::array();
+  std::vector<size_t> quadrant_differences(4, 0);
+  size_t differences = 0;
+  constexpr int kWidth = 128;
+  constexpr int kTile = 0xF63;
+  constexpr int kTileX = kTile % 8 * 16;
+  constexpr int kTileY = kTile / 8 * 16;
+  const auto size = std::min(actual.size(), expected.size());
+  for (size_t i = 0; i < size; ++i) {
+    if (actual[i] == expected[i])
+      continue;
+    ++differences;
+    const int x = static_cast<int>(i % kWidth);
+    const int y = static_cast<int>(i / kWidth);
+    if (x >= kTileX && x < kTileX + 16 && y >= kTileY && y < kTileY + 16) {
+      const int quadrant =
+          (x - kTileX >= 8 ? 1 : 0) + (y - kTileY >= 8 ? 2 : 0);
+      ++quadrant_differences[quadrant];
+    }
+    if (first.size() < 12) {
+      first.push_back({{"offset", i},
+                       {"x", x},
+                       {"y", y},
+                       {"tile16", y / 16 * 8 + x / 16},
+                       {"actual", actual[i]},
+                       {"expected", expected[i]}});
+    }
+  }
+  return nlohmann::json({{"actual_bytes", actual.size()},
+                         {"expected_bytes", expected.size()},
+                         {"different_pixels", differences},
+                         {"f63_quadrant_differences", quadrant_differences},
+                         {"first_differences", first}})
+      .dump();
+}
+
+void QualifyLyraDirectTile8PaintNativeSave(bool initial_publication,
+                                           bool rollback_conflict) {
   const auto source =
       test::TestRomManager::GetRomPath(test::RomRole::kExpanded);
   if (source.empty() || !std::filesystem::is_regular_file(source))
@@ -484,6 +523,7 @@ TEST(EditorManagerProjectActionsTest,
   project.feature_flags.overworld.kSaveOverworldProperties = false;
   project.rom_metadata.write_policy = project::RomWritePolicy::kAllow;
   ASSERT_OK(project.Save());
+  const auto initial_descriptor = ReadFile(project_path);
   const auto flags = core::FeatureFlags::get();
   std::unique_ptr<EditorManager> manager;
   absl::Cleanup cleanup = [&] {
@@ -508,11 +548,21 @@ TEST(EditorManagerProjectActionsTest,
       EditorType::kOverworld);
   ASSERT_NE(editor, nullptr);
   ASSERT_TRUE(editor->lyra_canvas_.loaded());
-  ASSERT_OK(manager->SaveProject());
+  if (initial_publication)
+    ASSERT_OK(manager->SaveProject());
+  const auto descriptor_before = ReadFile(project_path);
+  if (!initial_publication)
+    EXPECT_EQ(descriptor_before, initial_descriptor);
   const auto terrain_path =
       std::filesystem::path(manager->GetCurrentProject()->GetAbsolutePath(
           manager->GetCurrentProject()->lyra_terrain_file));
-  const auto terrain_before = ReadFile(terrain_path);
+  const auto read_terrain = [&]() -> std::optional<std::string> {
+    if (!std::filesystem::exists(terrain_path))
+      return std::nullopt;
+    return ReadFile(terrain_path);
+  };
+  const auto terrain_before = read_terrain();
+  EXPECT_EQ(terrain_before.has_value(), initial_publication);
   const auto rom_before = ReadFile(rom_path);
   auto& canvas = editor->lyra_canvas_;
   const auto* identity = canvas.document();
@@ -546,7 +596,8 @@ TEST(EditorManagerProjectActionsTest,
   ASSERT_OK(editor->Undo());
   EXPECT_EQ(identity->profile(), profile);
   ASSERT_OK(canvas.PrepareMapAssets(editor->overworld(), 0));
-  EXPECT_EQ(canvas.MapAtlas(0xA2).vector(), atlas_before);
+  EXPECT_EQ(canvas.MapAtlas(0xA2).vector(), atlas_before)
+      << LyraAtlasDifference(canvas.MapAtlas(0xA2).vector(), atlas_before);
   ASSERT_OK(editor->Redo());
   ASSERT_OK(canvas.PrepareMapAssets(editor->overworld(), 0));
   EXPECT_EQ(canvas.MapAtlas(0xA2).vector(), atlas_after);
@@ -554,24 +605,94 @@ TEST(EditorManagerProjectActionsTest,
   // A disabled native definition serializer refuses before sidecar publication.
   core::FeatureFlags::get().overworld.kSaveOverworldMaps = false;
   EXPECT_FALSE(manager->SaveCurrentSession().ok());
-  EXPECT_EQ(ReadFile(terrain_path), terrain_before);
+  EXPECT_EQ(read_terrain(), terrain_before);
+  EXPECT_EQ(ReadFile(project_path), descriptor_before);
   core::FeatureFlags::get().overworld.kSaveOverworldMaps = true;
+  bool conflict_injected = false;
+  std::string external_terrain;
   {
-    test::ScopedRomStagingFailure failure;
+    absl::Cleanup reset_staging_fault = [] {
+      Rom::SetStagingFailureForTesting(false);
+    };
+    Rom::SetStagingFailureForTesting(true, [&] {
+      if (!rollback_conflict)
+        return;
+      // This runs at the ROM staging boundary after the source publisher has
+      // returned. Model a distinct writer deterministically, without polling.
+      const auto published = ReadFile(terrain_path);
+      EXPECT_NE(published, terrain_before.value_or(""));
+      external_terrain = published + "\nexternal writer owns these bytes\n";
+      std::ofstream output(terrain_path, std::ios::binary | std::ios::trunc);
+      ASSERT_TRUE(output.is_open());
+      output << external_terrain;
+      ASSERT_TRUE(output.good());
+      conflict_injected = true;
+    });
     const auto saved = manager->SaveCurrentSession();
     EXPECT_FALSE(saved.ok()) << saved;
+    EXPECT_NE(saved.message().find("staging failure injected for testing"),
+              absl::string_view::npos)
+        << saved;
   }
   EXPECT_EQ(ReadFile(rom_path), rom_before);
-  EXPECT_EQ(ReadFile(terrain_path), terrain_before);
   EXPECT_EQ(canvas.document(), identity);
-  EXPECT_TRUE(identity->profile_dirty());
   EXPECT_TRUE(canvas.dirty());
   EXPECT_TRUE(manager->GetCurrentRom()->dirty());
   EXPECT_EQ(identity->maps(), maps);
   EXPECT_EQ(identity->authoring(), authoring);
+  if (rollback_conflict) {
+    ASSERT_TRUE(conflict_injected);
+    EXPECT_EQ(ReadFile(terrain_path), external_terrain);
+    const auto descriptor_after_conflict = ReadFile(project_path);
+    const auto pending_rom = manager->GetCurrentRom()->vector();
+    // Public retry routes must all refuse terminal recovery state. A retained
+    // pending ROM request must not bypass the failed source CAS rollback.
+    EXPECT_FALSE(manager->SaveCurrentSession().ok());
+    EXPECT_FALSE(manager->SaveRom().ok());
+    const auto rejected_target = directory.path / "must-not-save.sfc";
+    EXPECT_FALSE(manager->SaveRomAs(rejected_target.string()).ok());
+    EXPECT_FALSE(std::filesystem::exists(rejected_target));
+    EXPECT_EQ(ReadFile(terrain_path), external_terrain);
+    EXPECT_EQ(ReadFile(project_path), descriptor_after_conflict);
+    EXPECT_EQ(ReadFile(rom_path), rom_before);
+    EXPECT_EQ(manager->GetCurrentRom()->vector(), pending_rom);
+    EXPECT_EQ(canvas.document(), identity);
+    EXPECT_EQ(identity->maps(), maps);
+    EXPECT_EQ(identity->authoring(), authoring);
+    EXPECT_EQ(ReadFile(source), source_before);
+    return;
+  }
+  EXPECT_EQ(read_terrain(), terrain_before);
+  EXPECT_EQ(ReadFile(project_path), descriptor_before);
+  EXPECT_TRUE(identity->profile_dirty());
+
+  // Prove the old disk pair is independently loadable before any retry.
+  // Destroy this test manager only: the real user process is never involved.
+  ASSERT_NO_FATAL_FAILURE(reopen());
+  editor = manager->GetCurrentEditorSet()->GetEditorAs<OverworldEditor>(
+      EditorType::kOverworld);
+  ASSERT_NE(editor, nullptr);
+  ASSERT_TRUE(editor->lyra_canvas_.loaded());
+  EXPECT_EQ(editor->overworld().tiles16()[0xF63].tile2_.id_, 0x0A0);
+  EXPECT_EQ(editor->lyra_canvas_.document()->profile(), profile);
+  EXPECT_EQ(editor->lyra_canvas_.document()->maps(), maps);
+  EXPECT_EQ(editor->lyra_canvas_.document()->authoring(), authoring);
+  EXPECT_EQ(read_terrain(), terrain_before);
+  EXPECT_EQ(ReadFile(project_path), descriptor_before);
+  ASSERT_OK(editor->lyra_canvas_.PrepareMapAssets(editor->overworld(), 0));
+  EXPECT_EQ(editor->lyra_canvas_.MapAtlas(0xA2).vector(), atlas_before);
+
+  // Reapply the same user operation in the cold editor, then retry normally.
+  editor->SelectMapForEditing(0xA2, false);
+  ASSERT_OK(editor->SyncProjectTile16Context());
+  editor->RequestTile16Selection(0xF63);
+  editor->tile16_editor().set_current_tile8(0x060);
+  editor->tile16_editor().set_edit_mode(Tile16EditMode::kPaint);
+  ASSERT_OK(
+      editor->tile16_editor().HandleTile16CanvasClick({0, 8}, true, false));
   ASSERT_OK(manager->SaveCurrentSession());
-  EXPECT_FALSE(identity->profile_dirty());
-  EXPECT_NE(ReadFile(terrain_path), terrain_before);
+  EXPECT_FALSE(editor->lyra_canvas_.document()->profile_dirty());
+  EXPECT_NE(ReadFile(terrain_path), terrain_before.value_or(""));
   ASSERT_NO_FATAL_FAILURE(reopen());
   editor = manager->GetCurrentEditorSet()->GetEditorAs<OverworldEditor>(
       EditorType::kOverworld);
@@ -598,6 +719,21 @@ TEST(EditorManagerProjectActionsTest,
   EXPECT_EQ(editor->lyra_canvas_.MapAtlas(0xA2).vector(), atlas_after);
   pixel = original;
   ASSERT_OK(editor->lyra_canvas_.PrepareMapAssets(editor->overworld(), 0));
+}
+
+TEST(EditorManagerProjectActionsTest,
+     LyraDirectTile8PaintKeepsAtlasesAndRollsBackFailedNativeSave) {
+  ASSERT_NO_FATAL_FAILURE(QualifyLyraDirectTile8PaintNativeSave(true, false));
+}
+
+TEST(EditorManagerProjectActionsTest,
+     LyraFirstDefinitionPublicationFailureRestoresAbsentSourceAndDescriptor) {
+  ASSERT_NO_FATAL_FAILURE(QualifyLyraDirectTile8PaintNativeSave(false, false));
+}
+
+TEST(EditorManagerProjectActionsTest,
+     LyraRollbackConflictBlocksEveryPublicRomSaveRetry) {
+  ASSERT_NO_FATAL_FAILURE(QualifyLyraDirectTile8PaintNativeSave(true, true));
 }
 
 TEST(EditorManagerProjectActionsTest,

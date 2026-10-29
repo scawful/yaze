@@ -4088,6 +4088,12 @@ absl::Status EditorManager::SaveProject() {
 
   auto status = current_project_.Save();
   if (status.ok()) {
+    if (auto* editors = GetCurrentEditorSet()) {
+      if (auto* overworld = static_cast<OverworldEditor*>(
+              editors->GetExistingEditor(EditorType::kOverworld)))
+        RETURN_IF_ERROR(
+            overworld->RecordProjectNativeSavePublication(current_project_));
+    }
     if (auto* editors = GetCurrentEditorSet())
       editors->ProjectSaveCommitted();
     if (project_management_panel_) {

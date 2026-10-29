@@ -146,6 +146,7 @@ TEST_F(Tile16DocumentHistoryTest,
   ASSERT_TRUE(session_.HandleTile16CanvasClick({0, 8}, true, false).ok());
   auto expected = original;
   expected.tile2_.id_ = 0x060;
+  expected.tile2_.palette_ = 0;
   zelda3::SyncTile16TilesInfo(&expected);
   ExpectDefinition(overworld_.tiles16()[kTile], expected);
   EXPECT_EQ(history_.UndoStackSize(), 1u);

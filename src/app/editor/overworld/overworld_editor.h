@@ -223,11 +223,19 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   }
   absl::Status PrepareProjectSave();
   absl::Status BeginProjectNativeSave() {
+    RETURN_IF_ERROR(lyra_canvas_.ValidateNativeSaveRecovery());
     if (HasPendingLyraDefinitionSave() &&
         !core::FeatureFlags::get().overworld.kSaveOverworldMaps)
       return absl::FailedPreconditionError(
           "Enable Save Overworld Maps to save changed Tile16 definitions");
-    return lyra_canvas_.BeginNativeSave();
+    return lyra_canvas_.BeginNativeSave(TerrainProject());
+  }
+  absl::Status RecordProjectNativeSavePublication(
+      const project::YazeProject& project) {
+    return lyra_canvas_.RecordNativeSaveProjectPublication(project);
+  }
+  absl::Status ValidateProjectNativeSaveRecovery() {
+    return lyra_canvas_.ValidateNativeSaveRecovery();
   }
   absl::Status RollbackProjectNativeSave() {
     return lyra_canvas_.RollbackNativeSave();

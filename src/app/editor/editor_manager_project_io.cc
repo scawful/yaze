@@ -593,6 +593,9 @@ absl::Status EditorManager::SaveRomInternal(
     return absl::FailedPreconditionError("No ROM or editor set loaded");
   }
   if (auto* overworld = static_cast<OverworldEditor*>(
+          current_editor_set->GetExistingEditor(EditorType::kOverworld)))
+    RETURN_IF_ERROR(overworld->ValidateProjectNativeSaveRecovery());
+  if (auto* overworld = static_cast<OverworldEditor*>(
           current_editor_set->GetExistingEditor(EditorType::kOverworld));
       overworld && overworld->HasUnpublishedProjectGraphics()) {
     return absl::FailedPreconditionError(
@@ -927,6 +930,9 @@ absl::Status EditorManager::SaveRomInternal(
   // write failure cannot leave the previous operation consumable as current.
   // Pending confirmation and serializer/conflict checks above do not retire it.
   RETURN_IF_ERROR(RetireNativeSaveTransfer("rebound"));
+  if (auto* overworld = static_cast<OverworldEditor*>(
+          current_editor_set->GetExistingEditor(EditorType::kOverworld)))
+    RETURN_IF_ERROR(overworld->ValidateProjectNativeSaveRecovery());
   auto save_status =
       save_as_filename.has_value()
           ? rom_file_manager_.SaveRomAs(current_rom, *save_as_filename)

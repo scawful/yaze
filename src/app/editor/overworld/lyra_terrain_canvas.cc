@@ -820,6 +820,7 @@ absl::Status LyraTerrainCanvas::ValidateSave(project::YazeProject* project,
 
 absl::Status LyraTerrainCanvas::Save(project::YazeProject* project,
                                      zelda3::Overworld& overworld) {
+  RETURN_IF_ERROR(ValidateNativeSaveRecovery());
   if (!dirty())
     return absl::OkStatus();
   if (definition_save_pending() && !native_save_)
@@ -836,41 +837,104 @@ absl::Status LyraTerrainCanvas::Save(project::YazeProject* project,
   return absl::OkStatus();
 }
 
-absl::Status LyraTerrainCanvas::BeginNativeSave() {
+absl::Status LyraTerrainCanvas::BeginNativeSave(project::YazeProject* project) {
+  RETURN_IF_ERROR(ValidateNativeSaveRecovery());
   if (native_save_ || !definition_save_pending())
     return absl::OkStatus();
+  if (!project || !project->project_opened())
+    return absl::FailedPreconditionError(
+        "Lyra definition Save requires its project");
+  ASSIGN_OR_RETURN(auto descriptor, ReadSource(project->filepath));
+  if (!descriptor)
+    return absl::FailedPreconditionError(
+        "Save the project before Tile16 definitions");
   native_save_.emplace(NativeSave{document_, *document_, source_bytes_,
-                                  unpublished_, pending_project_commit_});
+                                  unpublished_, pending_project_commit_,
+                                  project->filepath, *descriptor, std::nullopt,
+                                  false});
   return absl::OkStatus();
+}
+
+absl::Status LyraTerrainCanvas::RecordNativeSaveProjectPublication(
+    const project::YazeProject& project) {
+  if (!native_save_)
+    return absl::OkStatus();
+  ASSIGN_OR_RETURN(auto expected, project.SerializeToString());
+  native_save_->project_published = expected;
+  return ValidateNativeSaveRecovery();
+}
+
+absl::Status LyraTerrainCanvas::ValidateNativeSaveRecovery() {
+  if (!native_save_)
+    return absl::OkStatus();
+  if (native_save_->recovery_required)
+    return absl::FailedPreconditionError(
+        "Lyra save recovery required; changed external files and live drafts "
+        "retained");
+  auto validate = [&]() -> absl::Status {
+    if (native_save_->owner != document_)
+      return absl::FailedPreconditionError(
+          "Lyra save belongs to another document");
+    ASSIGN_OR_RETURN(auto current_source, ReadSource(source_path_));
+    ASSIGN_OR_RETURN(auto current_project,
+                     ReadSource(native_save_->project_path));
+    const auto& expected_project = native_save_->project_published
+                                       ? *native_save_->project_published
+                                       : native_save_->project_before;
+    if (current_source != source_bytes_ || !current_project ||
+        *current_project != expected_project)
+      return absl::FailedPreconditionError(
+          "Lyra save sources changed; recovery required before saving the ROM");
+    return absl::OkStatus();
+  };
+  const auto status = validate();
+  if (!status.ok())
+    native_save_->recovery_required = true;
+  return status;
 }
 
 absl::Status LyraTerrainCanvas::RollbackNativeSave() {
   if (!native_save_)
     return absl::OkStatus();
+  // Every early return retains this gate. A later CmdS/Resume/Autosave cannot
+  // bypass a refused rollback and commit a ROM against somebody else's files.
+  native_save_->recovery_required = true;
   if (native_save_->owner != document_)
     return absl::FailedPreconditionError(
         "Lyra save rollback belongs to a different document; draft retained");
-  if (source_bytes_ != native_save_->source_bytes) {
-    ASSIGN_OR_RETURN(auto lock,
-                     core::AcquireSourceArtifactPublicationLock(
-                         {source_path_}, {"Lyra rollback", "terrain"}));
-    ASSIGN_OR_RETURN(auto current, ReadSource(source_path_));
-    if (current != source_bytes_)
+  ASSIGN_OR_RETURN(auto lock, core::AcquireSourceArtifactPublicationLock(
+                                  {native_save_->project_path, source_path_},
+                                  {"Lyra rollback", "project and terrain"}));
+  ASSIGN_OR_RETURN(auto current_source, ReadSource(source_path_));
+  ASSIGN_OR_RETURN(auto current_project,
+                   ReadSource(native_save_->project_path));
+  const auto& owned_project = native_save_->project_published
+                                  ? *native_save_->project_published
+                                  : native_save_->project_before;
+  if (current_source != source_bytes_ || !current_project ||
+      *current_project != owned_project)
+    return absl::DataLossError(
+        "Lyra save rollback refused changed sidecar or descriptor; draft and "
+        "recovery baseline retained");
+  std::vector<core::SourceArtifactUpdate> updates = {
+      {native_save_->project_path, current_project,
+       native_save_->project_before}};
+  if (native_save_->source_bytes) {
+    updates.push_back(
+        {source_path_, current_source, *native_save_->source_bytes});
+  } else if (current_source) {
+    // Guard the new sidecar while restoring the descriptor's absent reference.
+    // Only after that succeeds may this transaction remove its own new output.
+    updates.push_back({source_path_, current_source, *current_source});
+  }
+  RETURN_IF_ERROR(core::PublishSourceArtifacts(
+      *lock, std::move(updates),
+      core::ComputeSourceArtifactSha256(*current_project)));
+  if (!native_save_->source_bytes && current_source) {
+    std::error_code ec;
+    if (!fs::remove(source_path_, ec) || ec)
       return absl::DataLossError(
-          "Lyra save rollback refused changed sidecar; draft and recovery "
-          "baseline retained");
-    if (native_save_->source_bytes) {
-      RETURN_IF_ERROR(core::PublishSourceArtifacts(
-          *lock, {{source_path_, source_bytes_, *native_save_->source_bytes}},
-          core::ComputeSourceArtifactSha256(*source_bytes_)));
-    } else {
-      // This transaction created the sidecar. The locked exact-byte check
-      // above proves it still owns the output before restoring its absence.
-      std::error_code ec;
-      if (!fs::remove(source_path_, ec) || ec)
-        return absl::DataLossError(
-            "Lyra save rollback could not remove its new sidecar");
-    }
+          "Lyra save rollback could not remove its new sidecar");
   }
   document_->RestoreSavedBaseline(native_save_->baseline);
   source_bytes_ = native_save_->source_bytes;

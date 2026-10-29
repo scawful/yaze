@@ -4,6 +4,7 @@
 #include <array>
 #include <cstddef>
 #include <cstdint>
+#include <functional>
 #include <map>
 #include <memory>
 #include <string>
@@ -94,7 +95,11 @@ class Rom {
                                    const std::string& filename);
   // Test seam: while set, SaveToFile fails when creating its staging file,
   // after any backup is written and before the destination is replaced.
-  static void SetStagingFailureForTesting(bool fail);
+  // The optional callback runs immediately before the injected error. It lets
+  // tests model an external change after source publication without a race.
+  // Disabling the fault also clears the callback.
+  static void SetStagingFailureForTesting(
+      bool fail, std::function<void()> before_failure = {});
 
   void Expand(int size) {
     // This exact-save transfer cannot be resized by a native producer.
