@@ -115,6 +115,7 @@ void CanvasNavigationManager::Initialize(
   *this = CanvasNavigationManager{};
   ctx_ = context;
   callbacks_ = callbacks;
+  pending_scroll_ = ImVec2(0.0f, 0.0f);
 }
 
 // =============================================================================

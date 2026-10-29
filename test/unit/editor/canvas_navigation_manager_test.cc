@@ -2,6 +2,7 @@
 
 #include <limits>
 #include <memory>
+#include <utility>
 
 #include "app/editor/overworld/ui/ui_constants.h"
 #include "app/gui/canvas/canvas.h"
@@ -666,11 +667,17 @@ TEST_F(CanvasWorldViewportTest, ReinitializationClearsSessionMemory) {
   Settle();
   ScrollTo(ImVec2(40, 80));
   manager_.Initialize(ctx_, callbacks_);
-  Settle();
+  const ImVec2 initial = Settle();
+  EXPECT_FLOAT_EQ(initial.x, 0);
+  EXPECT_FLOAT_EQ(initial.y, 0);
   current_world_ = 0;
   const ImVec2 scroll = Settle();
   EXPECT_FLOAT_EQ(scroll.x, 0);
   EXPECT_FLOAT_EQ(scroll.y, 0);
+  current_world_ = 1;
+  const ImVec2 returned = Settle();
+  EXPECT_FLOAT_EQ(returned.x, 0);
+  EXPECT_FLOAT_EQ(returned.y, 0);
 }
 
 // ===========================================================================
