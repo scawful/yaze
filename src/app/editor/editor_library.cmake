@@ -172,6 +172,7 @@ set(
   app/editor/overworld/entity/entity.cc
   app/editor/overworld/entity/entity_mutation_service.cc
   app/editor/overworld/entity/entity_operations.cc
+  app/editor/overworld/entity/overworld_connection_adapter.cc
   app/editor/overworld/entity/entity_workbench.cc
   app/editor/overworld/entity/overworld_entity_renderer.cc
   app/editor/overworld/maps/map_properties.cc

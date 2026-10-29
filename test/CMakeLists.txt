@@ -394,6 +394,7 @@ if(YAZE_BUILD_TESTS)
     unit/editor/theme_style_snapshot_test.cc
     unit/editor/theme_generator_test.cc
     unit/editor/overworld_entity_marker_color_test.cc
+    unit/editor/overworld_connection_adapter_test.cc
     unit/editor/panel_admission_test.cc
     unit/editor/editor_manager_test.cc
     unit/editor/ui_coordinator_workflow_test.cc
