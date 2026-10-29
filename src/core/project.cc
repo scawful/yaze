@@ -938,10 +938,10 @@ YazeProject::ResolveExpandedBuildRunTarget(
                        ExpandedRunCanonical(row.at("path").get<std::string>()));
       const auto path = fs::u8path(name);
       const auto expected = row.at("sha256").get<std::string>();
-      std::error_code error;
-      const auto size = fs::file_size(path, error);
+      std::error_code file_error;
+      const auto size = fs::file_size(path, file_error);
       RETURN_IF_ERROR(ExpandedRunRequire(
-          !error && fs::is_regular_file(path, error) && !error &&
+          !file_error && fs::is_regular_file(path, file_error) && !file_error &&
               fs::u8path(row.at("path").get<std::string>()) == path &&
               expected.size() == 64 && size <= 1024ULL * 1024 * 1024 &&
               size <= remaining,
@@ -977,11 +977,12 @@ YazeProject::ResolveExpandedBuildRunTarget(
     };
     const auto read_text =
         [&](const std::string& name) -> absl::StatusOr<std::string> {
-      std::error_code error;
+      std::error_code file_error;
       const auto path = fs::u8path(name);
-      const auto size = fs::file_size(path, error);
-      RETURN_IF_ERROR(ExpandedRunRequire(!error && size <= 16 * 1024 * 1024,
-                                         "metadata is missing or too large"));
+      const auto size = fs::file_size(path, file_error);
+      RETURN_IF_ERROR(
+          ExpandedRunRequire(!file_error && size <= 16 * 1024 * 1024,
+                             "metadata is missing or too large"));
       std::ifstream stream(path, std::ios::binary);
       std::string raw(static_cast<size_t>(size), '\0');
       stream.read(raw.data(), static_cast<std::streamsize>(raw.size()));
