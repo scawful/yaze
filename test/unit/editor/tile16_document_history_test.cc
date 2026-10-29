@@ -373,6 +373,50 @@ TEST_F(Tile16DocumentHistoryTest,
   std::filesystem::remove(path, ec);
 }
 
+TEST_F(Tile16DocumentHistoryTest,
+       SavedExpandedEditSurvivesReopenAndUndoAfterSaveRedirtiesDocument) {
+  const auto path =
+      std::filesystem::temp_directory_path() /
+      ("yaze_tile16_exp_reopen_" +
+       std::to_string(
+           std::chrono::steady_clock::now().time_since_epoch().count()) +
+       ".sfc");
+  Rom::SaveSettings settings;
+  settings.filename = path.string();
+  auto edited = initial_;
+  edited.tile2_.palette_ = 5;
+  edited.tile2_.horizontal_mirror_ = true;
+  ASSERT_TRUE(session_.ReplaceCurrentTile(edited).ok());
+  ASSERT_TRUE(rom_.dirty());
+
+  ASSERT_TRUE(overworld_.SaveMap16Expanded().ok());
+  ASSERT_TRUE(rom_.SaveToFile(settings).ok());
+  EXPECT_FALSE(rom_.dirty());
+
+  const int map16_expanded = zelda3::GetMap16TilesExpanded();
+  auto saved_word = rom_.ReadWord(map16_expanded + 4);
+  ASSERT_TRUE(saved_word.ok());
+  EXPECT_EQ(gfx::GetTilesInfo(*saved_word).palette_, 5);
+  EXPECT_TRUE(gfx::GetTilesInfo(*saved_word).horizontal_mirror_);
+
+  // Undo after Save must re-dirty the document
+  ASSERT_TRUE(history_.Undo().ok());
+  EXPECT_TRUE(rom_.dirty());
+  ExpectDefinition(overworld_.tiles16()[0], initial_);
+
+  ASSERT_TRUE(overworld_.SaveMap16Expanded().ok());
+  ASSERT_TRUE(rom_.SaveToFile(settings).ok());
+  saved_word = rom_.ReadWord(map16_expanded + 4);
+  ASSERT_TRUE(saved_word.ok());
+  EXPECT_EQ(gfx::GetTilesInfo(*saved_word).palette_, initial_.tile2_.palette_);
+
+  ASSERT_TRUE(history_.Redo().ok());
+  EXPECT_TRUE(rom_.dirty());
+  ExpectDefinition(overworld_.tiles16()[0], edited);
+  std::error_code ec;
+  std::filesystem::remove(path, ec);
+}
+
 TEST_F(Tile16DocumentHistoryTest, GroupedPropertyEditsAreOneSharedUndoStep) {
   const auto before = overworld_.tiles16();
   const auto rom_bytes = rom_.vector();

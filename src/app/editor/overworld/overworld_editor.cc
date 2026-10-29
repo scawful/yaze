@@ -648,7 +648,11 @@ absl::Status OverworldEditor::Load() {
     return absl::OkStatus();
   }
   tile16_editor_.BindDocument(overworld_.mutable_tiles16(), &undo_manager_,
-                              [this]() { FinalizePaintOperation(); });
+                              [this]() {
+                                FinishScratchEdit("Edit scratch layout");
+                                lyra_canvas_.FinishStroke(undo_manager_);
+                                FinalizePaintOperation();
+                              });
   RETURN_IF_ERROR(
       tile16_editor_.Initialize(tile16_blockset_bmp_, current_gfx_bmp_,
                                 *overworld_.mutable_all_tiles_types()));
