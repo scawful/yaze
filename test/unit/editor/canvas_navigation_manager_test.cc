@@ -514,6 +514,165 @@ TEST_F(CanvasNavigationManagerTest, StartupCenterWaitsForMeasuredViewport) {
   ImGui::DestroyContext(context);
 }
 
+// Exercise the actual BeginChild scroll and extent handling without a renderer.
+class CanvasWorldViewportTest : public CanvasNavigationManagerTest {
+ protected:
+  void SetUp() override {
+    CanvasNavigationManagerTest::SetUp();
+    imgui_context_ = ImGui::CreateContext();
+    ImGuiIO& io = ImGui::GetIO();
+    io.IniFilename = nullptr;
+    io.DisplaySize = ImVec2(800, 600);
+    io.DeltaTime = 1.0f / 60.0f;
+    unsigned char* pixels = nullptr;
+    int width = 0, height = 0;
+    io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
+  }
+
+  void TearDown() override { ImGui::DestroyContext(imgui_context_); }
+
+  ImVec2 DrawFrame(std::optional<ImVec2> scroll = std::nullopt,
+                   ImVec2 size = ImVec2(320, 240)) {
+    ImGui::NewFrame();
+    ImGui::SetNextWindowPos(ImVec2(0, 0));
+    ImGui::SetNextWindowSize(ImVec2(700, 550));
+    ImGui::Begin("World viewport memory");
+    manager_.BeginCanvasViewport();
+    ImGui::BeginChild("Map viewport", size, true,
+                      ImGuiWindowFlags_AlwaysVerticalScrollbar |
+                          ImGuiWindowFlags_AlwaysHorizontalScrollbar |
+                          ImGuiWindowFlags_NoScrollWithMouse);
+    manager_.EndCanvasViewport(false);
+    ImGui::Dummy(
+        ImVec2(4096 * canvas_.global_scale(), 4096 * canvas_.global_scale()));
+    const ImVec2 result = ImGui::GetCurrentWindow()->Scroll;
+    if (scroll) {
+      ImGui::SetScrollX(scroll->x);
+      ImGui::SetScrollY(scroll->y);
+    }
+    ImGui::EndChild();
+    ImGui::End();
+    ImGui::Render();
+    return result;
+  }
+
+  ImVec2 Settle(ImVec2 size = ImVec2(320, 240)) {
+    DrawFrame(std::nullopt, size);
+    DrawFrame(std::nullopt, size);
+    return DrawFrame(std::nullopt, size);
+  }
+
+  void ScrollTo(ImVec2 scroll) {
+    DrawFrame(scroll);
+    const ImVec2 actual = Settle();
+    EXPECT_FLOAT_EQ(actual.x, scroll.x);
+    EXPECT_FLOAT_EQ(actual.y, scroll.y);
+  }
+
+  ImGuiContext* imgui_context_ = nullptr;
+};
+
+TEST_F(CanvasWorldViewportTest, EachWorldRestoresItsOwnScroll) {
+  Settle();
+  ScrollTo(ImVec2(3000, 2800));
+  current_world_ = 1;
+  ImVec2 scroll = Settle();
+  EXPECT_FLOAT_EQ(scroll.x, 0);
+  EXPECT_FLOAT_EQ(scroll.y, 0);
+  ScrollTo(ImVec2(40, 80));
+  current_world_ = 2;
+  Settle();
+  ScrollTo(ImVec2(1600, 2200));
+
+  for (const auto& entry :
+       {std::pair{0, ImVec2(3000, 2800)}, std::pair{1, ImVec2(40, 80)},
+        std::pair{2, ImVec2(1600, 2200)}, std::pair{0, ImVec2(3000, 2800)}}) {
+    current_world_ = entry.first;
+    scroll = Settle();
+    EXPECT_FLOAT_EQ(scroll.x, entry.second.x);
+    EXPECT_FLOAT_EQ(scroll.y, entry.second.y);
+  }
+}
+
+TEST_F(CanvasWorldViewportTest, SharedZoomPreservesEachWorldMapPosition) {
+  Settle();
+  ScrollTo(ImVec2(1000, 1200));
+  current_world_ = 1;
+  Settle();
+  manager_.ZoomIn();
+  Settle();
+  ScrollTo(ImVec2(40, 80));
+  const float scale = canvas_.global_scale();
+
+  current_world_ = 0;
+  const ImVec2 scroll = Settle();
+  EXPECT_FLOAT_EQ(canvas_.global_scale(), scale);
+  EXPECT_NEAR(scroll.x, 1000 * scale, 1.0f);
+  EXPECT_NEAR(scroll.y, 1200 * scale, 1.0f);
+  current_world_ = 1;
+  const ImVec2 restored = Settle();
+  EXPECT_FLOAT_EQ(restored.x, 40);
+  EXPECT_FLOAT_EQ(restored.y, 80);
+}
+
+TEST_F(CanvasWorldViewportTest, ExplicitMapJumpOverridesWorldRestoration) {
+  Settle();
+  ScrollTo(ImVec2(3000, 2800));
+  current_world_ = 1;
+  current_map_ = 0x49;
+  manager_.CenterOnMap(current_map_);
+  const ImVec2 scroll = Settle();
+  EXPECT_GT(scroll.x, 500);
+  EXPECT_LT(scroll.x, 800);
+  EXPECT_GT(scroll.y, 500);
+  EXPECT_LT(scroll.y, 800);
+  current_world_ = 0;
+  EXPECT_FLOAT_EQ(Settle().x, 3000);
+}
+
+TEST_F(CanvasWorldViewportTest, ResetAffectsOnlyCurrentWorld) {
+  Settle();
+  ScrollTo(ImVec2(3000, 2800));
+  current_world_ = 1;
+  Settle();
+  ScrollTo(ImVec2(40, 80));
+  manager_.ResetOverworldView();
+  const ImVec2 reset = Settle();
+  EXPECT_FLOAT_EQ(reset.x, 0);
+  EXPECT_FLOAT_EQ(reset.y, 0);
+  current_world_ = 0;
+  EXPECT_FLOAT_EQ(Settle().x, 3000);
+  current_world_ = 1;
+  EXPECT_FLOAT_EQ(Settle().x, 0);
+}
+
+TEST_F(CanvasWorldViewportTest, RestoreUsesNewMeasuredViewportBounds) {
+  Settle();
+  ScrollTo(ImVec2(3790, 3870));
+  current_world_ = 1;
+  Settle();
+  current_world_ = 0;
+  const ImVec2 larger = Settle(ImVec2(600, 450));
+  EXPECT_GT(larger.x, 3400);
+  EXPECT_LT(larger.x, 3600);
+  EXPECT_GT(larger.y, 3600);
+  EXPECT_LT(larger.y, 3800);
+}
+
+TEST_F(CanvasWorldViewportTest, ReinitializationClearsSessionMemory) {
+  Settle();
+  ScrollTo(ImVec2(3000, 2800));
+  current_world_ = 1;
+  Settle();
+  ScrollTo(ImVec2(40, 80));
+  manager_.Initialize(ctx_, callbacks_);
+  Settle();
+  current_world_ = 0;
+  const ImVec2 scroll = Settle();
+  EXPECT_FLOAT_EQ(scroll.x, 0);
+  EXPECT_FLOAT_EQ(scroll.y, 0);
+}
+
 // ===========================================================================
 // UpdateBlocksetSelectorState - null-safety
 // ===========================================================================

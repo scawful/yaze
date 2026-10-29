@@ -111,6 +111,8 @@ void SelectMapForEditing(const CanvasNavigationContext& ctx,
 void CanvasNavigationManager::Initialize(
     const CanvasNavigationContext& context,
     const CanvasNavigationCallbacks& callbacks) {
+  // A new document/session must not inherit navigation from an earlier one.
+  *this = CanvasNavigationManager{};
   ctx_ = context;
   callbacks_ = callbacks;
 }
@@ -515,14 +517,51 @@ ImVec2 CanvasNavigationManager::ClampScroll(ImVec2 scroll) const {
                 std::round(std::clamp(scroll.y, 0.0f, max_y)));
 }
 
+void CanvasNavigationManager::SyncWorldViewport() {
+  if (!ctx_.ow_map_canvas || !ctx_.current_world || *ctx_.current_world < 0 ||
+      *ctx_.current_world >= static_cast<int>(world_origins_.size())) {
+    return;
+  }
+  const int world = *ctx_.current_world;
+  if (!viewport_world_) {
+    viewport_world_ = world;
+    return;
+  }
+  if (*viewport_world_ == world) {
+    return;
+  }
+
+  const float scale = std::max(ctx_.ow_map_canvas->global_scale(), 0.01f);
+  const ImVec2 scroll = pending_scroll_.value_or(last_scroll_);
+  world_origins_[*viewport_world_] = restoring_world_origin_.value_or(
+      ImVec2(scroll.x / scale, scroll.y / scale));
+  viewport_world_ = world;
+  restoring_world_origin_ = world_origins_[world];
+  pending_scroll_ = ImVec2(restoring_world_origin_->x * scale,
+                           restoring_world_origin_->y * scale);
+  pending_center_map_.reset();
+
+  // Input admitted by the previous world's viewport cannot pan this world.
+  pan_button_ = -1;
+  pan_active_ = false;
+  wheel_pan_ = {};
+  zoom_residual_ = 0.0f;
+  zoom_idle_seconds_ = 0.0f;
+  canvas_item_hovered_ = false;
+  canvas_window_hovered_ = false;
+  SuspendHoverFollowUntilMouseMoves();
+}
+
 void CanvasNavigationManager::SetScaleAboutAnchor(float new_scale,
                                                   ImVec2 anchor) {
+  SyncWorldViewport();
   if (!ctx_.ow_map_canvas)
     return;
   const float old_scale = ctx_.ow_map_canvas->global_scale();
   new_scale = std::clamp(new_scale, kOverworldMinZoom, kOverworldMaxZoom);
   if (new_scale == old_scale)
     return;
+  restoring_world_origin_.reset();
   const ImVec2 base = pending_scroll_.value_or(last_scroll_);
   ctx_.ow_map_canvas->set_global_scale(new_scale);
   pending_scroll_ = ScrollForZoomAtAnchor(base, anchor, old_scale, new_scale);
@@ -539,6 +578,7 @@ void CanvasNavigationManager::BeginCanvasViewport() {
   if (!ctx_.ow_map_canvas) {
     return;
   }
+  SyncWorldViewport();
   const ImGuiIO& io = ImGui::GetIO();
   std::optional<ImVec2> target = pending_scroll_;
   pending_scroll_.reset();
@@ -550,7 +590,7 @@ void CanvasNavigationManager::BeginCanvasViewport() {
       callbacks_.is_entity_hovered && callbacks_.is_entity_hovered();
   const bool dragging_entity =
       ctx_.is_dragging_entity && *ctx_.is_dragging_entity;
-  if (pan_button_ < 0 && canvas_item_hovered_) {
+  if (!restoring_world_origin_ && pan_button_ < 0 && canvas_item_hovered_) {
     if (ImGui::IsMouseClicked(ImGuiMouseButton_Middle)) {
       pan_button_ = ImGuiMouseButton_Middle;
       pan_active_ = true;  // Middle only pans: follow the cursor at once.
@@ -586,7 +626,7 @@ void CanvasNavigationManager::BeginCanvasViewport() {
   // ---- Wheel: pan in detents, Cmd/Ctrl+wheel zooms at the cursor -------------
   const bool zoom_modifier =
       io.KeyCtrl || (gui::IsMacPlatform() && io.KeySuper);
-  if (canvas_window_hovered_ && !pan_active_) {
+  if (!restoring_world_origin_ && canvas_window_hovered_ && !pan_active_) {
     ImVec2 wheel(io.MouseWheelH, io.MouseWheel);
     if (!gui::IsMacPlatform() && io.KeyShift && wheel.x == 0.0f) {
       wheel = ImVec2(wheel.y, 0.0f);  // Shift+wheel scrolls horizontally.
@@ -653,6 +693,17 @@ void CanvasNavigationManager::EndCanvasViewport(bool canvas_item_hovered) {
   canvas_item_hovered_ = canvas_item_hovered;
   canvas_window_hovered_ = ImGui::IsWindowHovered();
   viewport_known_ = viewport_size_.x > 0.0f && viewport_size_.y > 0.0f;
+  if (viewport_known_ && restoring_world_origin_) {
+    // The new world's child may acquire scrollbars or a different extent.
+    // Reapply from map coordinates until its measured viewport settles.
+    const float scale = ctx_.ow_map_canvas->global_scale();
+    pending_scroll_ = ImVec2(restoring_world_origin_->x * scale,
+                             restoring_world_origin_->y * scale);
+    if (had_viewport && previous_size.x == viewport_size_.x &&
+        previous_size.y == viewport_size_.y) {
+      restoring_world_origin_.reset();
+    }
+  }
   if (viewport_known_ && pending_center_map_) {
     const int map = *pending_center_map_;
     // Scrollbars can change InnerRect after the first content frame. Recenter
@@ -679,6 +730,7 @@ void CanvasNavigationManager::ZoomOut() {
 }
 
 void CanvasNavigationManager::ZoomToFit() {
+  SyncWorldViewport();
   if (!ctx_.ow_map_canvas || !viewport_known_) {
     return;
   }
@@ -689,12 +741,15 @@ void CanvasNavigationManager::ZoomToFit() {
   const float world_height = ((world_maps + 7) / 8) * kOverworldMapSize;
   const float scale =
       std::min(viewport_size_.x / kWorldSize, viewport_size_.y / world_height);
+  restoring_world_origin_.reset();
   ctx_.ow_map_canvas->set_global_scale(
       std::clamp(scale, kOverworldMinZoom, kOverworldMaxZoom));
   pending_scroll_ = ImVec2(0.0f, 0.0f);
 }
 
 void CanvasNavigationManager::ResetOverworldView() {
+  SyncWorldViewport();
+  restoring_world_origin_.reset();
   pending_center_map_.reset();
   if (ctx_.ow_map_canvas) {
     ctx_.ow_map_canvas->set_global_scale(1.0f);
@@ -709,10 +764,12 @@ void CanvasNavigationManager::CenterOverworldView() {
 }
 
 void CanvasNavigationManager::CenterOnMap(int map_id) {
+  SyncWorldViewport();
   const int map_count = DisplayedMapCount(ctx_, callbacks_);
   if (!ctx_.ow_map_canvas || map_id < 0 || map_id >= map_count) {
     return;
   }
+  restoring_world_origin_.reset();
   // Startup jumps arrive before the canvas child has a measured viewport.
   // Wait for that size rather than placing the map's center at the top-left.
   if (!viewport_known_) {
@@ -734,9 +791,11 @@ void CanvasNavigationManager::CenterOnMap(int map_id) {
 }
 
 void CanvasNavigationManager::CenterOnWorldTile(int world_x, int world_y) {
+  SyncWorldViewport();
   if (!ctx_.ow_map_canvas || !viewport_known_) {
     return;
   }
+  restoring_world_origin_.reset();
   const float scale = std::max(ctx_.ow_map_canvas->global_scale(), 0.01f);
   pending_scroll_ =
       ImVec2((world_x * 16.0f + 8.0f) * scale - viewport_size_.x * 0.5f,

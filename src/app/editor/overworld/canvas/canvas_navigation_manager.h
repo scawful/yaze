@@ -248,6 +248,7 @@ class CanvasNavigationManager {
   void SetScaleAboutAnchor(float new_scale, ImVec2 anchor);
   ImVec2 ClampScroll(ImVec2 scroll) const;
   ImVec2 ContentSize() const;
+  void SyncWorldViewport();
 
   // Viewport state recorded by EndCanvasViewport (previous frame).
   ImVec2 viewport_min_{0.0f, 0.0f};
@@ -256,6 +257,11 @@ class CanvasNavigationManager {
   bool canvas_item_hovered_ = false;
   bool canvas_window_hovered_ = false;
   bool viewport_known_ = false;
+
+  // Session-local world positions in unscaled map pixels. Zoom remains shared.
+  std::array<ImVec2, 3> world_origins_{};
+  std::optional<int> viewport_world_;
+  std::optional<ImVec2> restoring_world_origin_;
 
   std::optional<ImVec2> hover_follow_suspended_at_;
 
