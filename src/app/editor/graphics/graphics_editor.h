@@ -16,6 +16,7 @@
 #include "app/editor/graphics/graphics_editor_state.h"
 #include "app/editor/graphics/graphics_save_plan.h"
 #include "app/editor/graphics/graphics_sheet_sync.h"
+#include "app/editor/graphics/image_import_panel.h"
 #include "app/editor/graphics/link_sprite_panel.h"
 #include "app/editor/graphics/palette_controls_panel.h"
 #include "app/editor/graphics/paletteset_editor_panel.h"
@@ -175,7 +176,7 @@ class GraphicsEditor : public Editor {
   void set_rom(Rom* rom) {
     if (rom_ != rom) {
       state_.ClearSourceContext();
-      state_.preview_palettes.clear();
+      state_.ClearPreviewPalettes();
     }
     rom_ = rom;
     if (sheet_browser_panel_) {
@@ -286,6 +287,7 @@ class GraphicsEditor : public Editor {
   GfxGroupEditor::RoomsetUsageCallback roomset_graphics_usage_;
   std::unique_ptr<PalettesetEditorPanel> paletteset_panel_;
   std::unique_ptr<PolyhedralEditorPanel> polyhedral_panel_;
+  std::unique_ptr<ImageImportPanel> image_import_panel_;
   usage_preview::LiveRoomProvider room_usage_provider_;
   usage_preview::LiveOverworldProvider overworld_usage_provider_;
   std::unique_ptr<UsagePreviewView> usage_preview_view_;

@@ -39,6 +39,9 @@ TEST(GraphicsEditorWindowIds, WrapperPanelsUseStableIds) {
 
   GraphicsScratchWindow scratch(NoOpDraw);
   EXPECT_EQ(scratch.GetId(), "graphics.scratch");
+
+  GraphicsImageImportPanel image_import(NoOpDraw);
+  EXPECT_EQ(image_import.GetId(), "graphics.image_import");
 }
 
 TEST(GraphicsEditorWindowIds, PolyhedralPanelMatchesWrapperId) {

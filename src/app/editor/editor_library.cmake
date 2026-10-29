@@ -114,6 +114,8 @@ set(
   app/editor/graphics/pixel_index_command.cc
   app/editor/graphics/color_id_permutation.cc
   app/editor/graphics/scratch_color_id_command.cc
+  app/editor/graphics/sheet_image_import.cc
+  app/editor/graphics/image_import_panel.cc
   app/editor/graphics/pixel_clipboard.cc
   app/editor/graphics/graphics_save_plan.cc
   app/editor/graphics/graphics_sheet_sync.cc

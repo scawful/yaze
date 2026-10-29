@@ -444,6 +444,7 @@ if(YAZE_BUILD_TESTS)
     unit/editor/overworld_property_edit_test.cc
     unit/editor/gfx_group_editor_render_test.cc
     unit/editor/sheet_png_transfer_test.cc
+    unit/editor/sheet_image_import_test.cc
     unit/editor/pixel_clipboard_test.cc
     unit/editor/graphics_sheet_sync_test.cc
     unit/editor/catalog_tile_transfer_test.cc
