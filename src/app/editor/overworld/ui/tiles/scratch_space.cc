@@ -231,7 +231,6 @@ absl::Status OverworldEditor::DrawScratchSpace() {
   }
 
   const auto& pages = scratch_workspace_.state().pages;
-  const auto& page = scratch_workspace_.current();
   int current_page_idx = 0;
   for (size_t i = 0; i < pages.size(); ++i) {
     if (pages[i].id == scratch_workspace_.state().selected_id) {
@@ -256,7 +255,8 @@ absl::Status OverworldEditor::DrawScratchSpace() {
   SameLine();
 
   SetNextItemWidth(std::max(100.0f, GetContentRegionAvail().x - 220.0f));
-  if (BeginCombo("##ScratchLayout", page.name.c_str())) {
+  if (BeginCombo("##ScratchLayout",
+                 scratch_workspace_.current().name.c_str())) {
     for (const auto& p : pages) {
       PushID(std::to_string(p.id).c_str());
       if (Selectable(p.name.c_str(),
@@ -327,6 +327,7 @@ absl::Status OverworldEditor::DrawScratchSpace() {
 
   if (BeginPopup("ScratchMoreMenu")) {
     if (BeginMenu("Rename layout")) {
+      const auto& page = scratch_workspace_.current();
       if (scratch_name_id_ != page.id || !IsAnyItemActive()) {
         scratch_name_buffer_.fill('\0');
         std::memcpy(
@@ -347,6 +348,7 @@ absl::Status OverworldEditor::DrawScratchSpace() {
     }
 
     if (BeginMenu("Resize layout")) {
+      const auto& page = scratch_workspace_.current();
       if (scratch_resize_id_ != page.id || !IsAnyItemActive()) {
         scratch_resize_dimensions_[0] = page.width;
         scratch_resize_dimensions_[1] = page.height;
@@ -393,7 +395,8 @@ absl::Status OverworldEditor::DrawScratchSpace() {
 
     Separator();
 
-    if (MenuItem("Copy layout as brush", nullptr, false, page.in_use)) {
+    if (MenuItem("Copy layout as brush", nullptr, false,
+                 scratch_workspace_.current().in_use)) {
       report(LoadScratchToSelection());
     }
 
@@ -404,6 +407,9 @@ absl::Status OverworldEditor::DrawScratchSpace() {
     EndPopup();
   }
 
+  // Layout actions above can replace the selection or reallocate/erase pages.
+  // Only retain the selected page after those actions finish for this frame.
+  const auto& page = scratch_workspace_.current();
   if (!scratch_bitmap_.is_active() || scratch_preview_map_ != current_map_ ||
       scratch_preview_revision_ !=
           ScratchPreviewRevision(page, tile16_blockset_, map_blockset_loaded_))

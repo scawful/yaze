@@ -14,9 +14,11 @@
 #include <vector>
 
 #include "app/gfx/resource/arena.h"
+#include "app/gui/core/icons.h"
 #include "core/source_artifact_publisher.h"
 #include "gtest/gtest.h"
 #include "imgui/imgui.h"
+#include "imgui/imgui_internal.h"
 #include "nlohmann/json.hpp"
 
 namespace yaze::editor {
@@ -49,6 +51,9 @@ class OverworldScratchTestPeer {
   }
   static const gfx::Bitmap& Preview(const OverworldEditor& editor) {
     return editor.scratch_bitmap_;
+  }
+  static ImVec2 CanvasSize(const OverworldEditor& editor) {
+    return editor.scratch_canvas_.canvas_size();
   }
   static absl::Status PrepareUi(OverworldEditor& editor) {
     editor.map_blockset_loaded_ = true;
@@ -383,8 +388,45 @@ class ScratchWorkspaceUiTest : public ScratchWorkspaceFileTest {
     ImGui::End();
     ImGui::Render();
   }
+  void ActivateToolbar(const char* label) {
+    auto* window = ImGui::FindWindowByName("ScratchMouseHost");
+    ASSERT_NE(window, nullptr);
+    // Queue activation of the actual toolbar button, then let its callback and
+    // the rest of DrawScratchSpace execute in the same ImGui frame.
+    ImGui::ActivateItemByID(window->GetID(label));
+    Frame(ImVec2(-100, -100));
+  }
   std::unique_ptr<OverworldEditor> editor_;
 };
+
+TEST_F(ScratchWorkspaceUiTest, ToolbarLayoutChangesUseCurrentPageInSameFrame) {
+  const uint64_t first_id =
+      OverworldScratchTestPeer::State(*editor_).selected_id;
+  EXPECT_EQ(OverworldScratchTestPeer::CanvasSize(*editor_).x, 68);
+  EXPECT_EQ(OverworldScratchTestPeer::CanvasSize(*editor_).y, 36);
+
+  // New layout grows the page vector and selects a default 16x16 page. Its
+  // preview and canvas must both use that page before this frame finishes.
+  ActivateToolbar(ICON_MD_ADD "##ScratchNew");
+  ASSERT_EQ(OverworldScratchTestPeer::State(*editor_).pages.size(), 2);
+  const uint64_t second_id =
+      OverworldScratchTestPeer::State(*editor_).selected_id;
+  EXPECT_NE(second_id, first_id);
+  EXPECT_EQ(OverworldScratchTestPeer::Preview(*editor_).width(), 256);
+  EXPECT_EQ(OverworldScratchTestPeer::Preview(*editor_).height(), 256);
+  EXPECT_EQ(OverworldScratchTestPeer::CanvasSize(*editor_).x, 260);
+  EXPECT_EQ(OverworldScratchTestPeer::CanvasSize(*editor_).y, 260);
+
+  ActivateToolbar(ICON_MD_CHEVRON_LEFT "##ScratchPrev");
+  EXPECT_EQ(OverworldScratchTestPeer::State(*editor_).selected_id, first_id);
+  EXPECT_EQ(OverworldScratchTestPeer::CanvasSize(*editor_).x, 68);
+  EXPECT_EQ(OverworldScratchTestPeer::CanvasSize(*editor_).y, 36);
+
+  ActivateToolbar(ICON_MD_CHEVRON_RIGHT "##ScratchNext");
+  EXPECT_EQ(OverworldScratchTestPeer::State(*editor_).selected_id, second_id);
+  EXPECT_EQ(OverworldScratchTestPeer::CanvasSize(*editor_).x, 260);
+  EXPECT_EQ(OverworldScratchTestPeer::CanvasSize(*editor_).y, 260);
+}
 
 TEST_F(ScratchWorkspaceUiTest,
        RealMousePaintDragAndPickUseScrolledScaledCanvas) {
