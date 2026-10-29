@@ -23,7 +23,8 @@
 # Env: MM_HOST (ssh alias; forces one box), MM_HOSTS (boxes tried in order when
 # MM_HOST is unset, default "mm": first ready box with a free build lock, else
 # wait on the first reachable), MM_REMOTE_ROOT (runner dir relative to the
-# remote home, default src/yaze-remote), MM_MAX_WORKTREES (default 8),
+# remote home, default src/yaze-remote), MM_MAX_WORKTREES (review threshold,
+# default 8; report only, never deletes worktrees, stamps or job evidence),
 # MM_LOCK_WAIT_MIN (default 120).
 # Exit: 0 pass, 1 test failures, 2 configure/build failure, 3 setup/usage error.
 # See scripts/remote/README.md.
