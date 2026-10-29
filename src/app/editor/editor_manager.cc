@@ -4479,6 +4479,13 @@ absl::StatusOr<std::string> EditorManager::ResolveProjectRunTarget() const {
     return absl::FailedPreconditionError("No project open");
   }
 
+  ASSIGN_OR_RETURN(const auto expanded,
+                   current_project_.ResolveExpandedBuildRunTarget(
+                       NativeSaveEditingSourcePath()));
+  if (expanded) {
+    return *expanded;
+  }
+
   std::string target;
   if (current_project_.hack_manifest.loaded()) {
     target = current_project_.hack_manifest.build_pipeline().patched_rom;
