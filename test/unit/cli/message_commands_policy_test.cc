@@ -16,6 +16,7 @@
 #include <nlohmann/json.hpp>
 
 #include "app/editor/message/message_data.h"
+#include "cli/handlers/tools/message_doctor_commands.h"
 #include "framework/rom_save_fault.h"
 #include "rom/rom.h"
 #include "zelda3/resource_labels.h"
@@ -1161,6 +1162,44 @@ TEST(MessageCommandsPolicyTest,
   EXPECT_EQ(rom.vector(), memory_before);
   EXPECT_EQ(ReadBinaryFile(rom_path), disk_before);
   EXPECT_EQ(CountBackupArtifacts(rom_path), 0);
+}
+
+nlohmann::json RunMessageDoctor(const std::vector<uint8_t>& data) {
+  Rom rom;
+  EXPECT_TRUE(rom.LoadFromData(data).ok());
+  MessageDoctorCommandHandler handler;
+  std::string output;
+  const auto status = handler.Run({"--format=json"}, &rom, &output);
+  EXPECT_TRUE(status.ok()) << status << "\n" << output;
+  return nlohmann::json::parse(output);
+}
+
+TEST(MessageDoctorBoundsTest, RomShorterThanDictionaryBankReportsCritical) {
+  const auto result = RunMessageDoctor(std::vector<uint8_t>(0x10000, 0x00));
+
+  EXPECT_EQ(result.at("critical_count"), 1);
+  EXPECT_THAT(result.dump(), HasSubstr("dictionary_out_of_bounds"));
+}
+
+TEST(MessageDoctorBoundsTest, ScanStopsAtRomEndInsideTextBank) {
+  // The text bank is cut short with no 0xFF end marker: the scan must stop
+  // at the last byte the ROM holds, not at kTextDataEnd.
+  constexpr size_t kMessagesBeforeEnd = 0x10;
+  std::vector<uint8_t> data(editor::kTextData + kMessagesBeforeEnd, 0x00);
+  std::fill(data.begin() + editor::kTextData, data.end(),
+            editor::kMessageTerminator);
+
+  const auto result = RunMessageDoctor(data);
+
+  EXPECT_EQ(result.at("critical_count"), 0);
+  EXPECT_EQ(result.at("messages_scanned"), kMessagesBeforeEnd);
+}
+
+TEST(MessageDoctorBoundsTest, RomEndingBeforeTextBankScansNothing) {
+  const auto result = RunMessageDoctor(std::vector<uint8_t>(0x80000, 0x00));
+
+  EXPECT_EQ(result.at("critical_count"), 0);
+  EXPECT_EQ(result.at("messages_scanned"), 0);
 }
 
 }  // namespace
