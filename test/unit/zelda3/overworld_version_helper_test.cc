@@ -457,6 +457,55 @@ TEST(OverworldEntranceCompatibilityTest, ExpandedSaveWritesAll256Entries) {
   EXPECT_EQ(*entrance_id, static_cast<uint8_t>(index));
 }
 
+TEST(OverworldEntranceCompatibilityTest,
+     ExpandedHoleAndUnusedKindsRoundTripWithoutLegacyWrites) {
+  Rom rom;
+  InitOverworldTestRom(rom, 0x03);
+  rom[kOverworldEntranceExpandedFlagPos] = 0;
+  ASSERT_TRUE(rom.WriteShort(kOverworldEntranceMap, 0xBEEF).ok());
+  std::vector<OverworldEntrance> entries(256);
+  for (auto& entry : entries)
+    entry.deleted = true;
+  entries[200] =
+      OverworldEntrance(336, 3216, 0x0B, 0xB0, ((9 * 64) + 21) * 2, false);
+  entries[201] =
+      OverworldEntrance(352, 3232, 0x23, 0xB0, ((10 * 64) + 22) * 2, true);
+  ASSERT_TRUE(SaveEntrances(&rom, entries, true).ok());
+  EXPECT_EQ(*rom.ReadWord(kOverworldEntranceMap), 0xBEEF);
+  EXPECT_EQ(*rom.ReadWord(GetOverworldEntranceMapExpanded() + 201 * 2), 0x80B0);
+  Rom reopened;
+  ASSERT_TRUE(reopened.LoadFromData(rom.vector()).ok());
+  const auto loaded = LoadEntrances(&reopened);
+  ASSERT_TRUE(loaded.ok()) << loaded.status();
+  EXPECT_EQ(loaded->at(200).map_id_, 0xB0);
+  EXPECT_EQ(loaded->at(200).entrance_id_, 0x0B);
+  EXPECT_FALSE(loaded->at(200).deleted);
+  EXPECT_FALSE(loaded->at(200).is_hole_);
+  EXPECT_EQ(loaded->at(201).map_id_, 0xB0);
+  EXPECT_TRUE(loaded->at(201).is_hole_);
+  EXPECT_FALSE(loaded->at(201).deleted);
+  EXPECT_TRUE(loaded->at(202).deleted);
+  EXPECT_FALSE(loaded->at(202).is_hole_);
+  const auto before = reopened.vector();
+  ASSERT_TRUE(SaveEntrances(&reopened, *loaded, true).ok());
+  EXPECT_EQ(reopened.vector(), before);
+}
+
+TEST(OverworldEntranceCompatibilityTest,
+     IncompleteTablesAndHoleVectorsRefuseBeforeMutation) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(100, 0x5A)).ok());
+  const auto before = rom.vector();
+  EXPECT_FALSE(
+      SaveEntrances(&rom, std::vector<OverworldEntrance>(256), true).ok());
+  EXPECT_EQ(rom.vector(), before);
+  EXPECT_FALSE(SaveHoles(&rom, {}).ok());
+  EXPECT_EQ(rom.vector(), before);
+  EXPECT_FALSE(LoadEntrances(nullptr).ok());
+  EXPECT_FALSE(LoadHoles(nullptr).ok());
+  EXPECT_FALSE(SaveEntrances(nullptr, {}, false).ok());
+}
+
 TEST(OverworldItemCompatibilityTest,
      VanillaSaveLeavesSpecialWorldPointerSlotsUntouched) {
   Rom rom;
