@@ -1612,6 +1612,11 @@ struct ExpandedRunFixture {
 #else
     model->build_script = "sh build-fixture.sh";
 #endif
+    // Opening a real project assigns its persistent identity before Save.
+    // Normalize this in-memory fixture through the same parser before hashing.
+    const auto descriptor = model->SerializeToString();
+    ASSERT_TRUE(descriptor.ok()) << descriptor.status();
+    ASSERT_OK(model->LoadFromString(*descriptor, project.string()));
     ASSERT_OK(model->hack_manifest.LoadFromString(Json{
         {"manifest_version", 2},
         {"hack_name", "Run target fixture"},
