@@ -196,6 +196,10 @@ TEST(ProjectSaveDialogSeamTest,
   EXPECT_TRUE(absl::IsFailedPrecondition(error));
   EXPECT_NE(std::string(error.message()).find("Cannot inspect"),
             std::string::npos);
+  const auto missing_parent = root / "missing" / "child.yaze";
+  const auto missing_error = internal::ValidateProjectSaveAsDestination(
+      missing_parent.string().c_str());
+  EXPECT_TRUE(absl::IsFailedPrecondition(missing_error)) << missing_error;
 }
 
 TEST(ProjectSaveDialogSeamTest, SelectionIsConsumedOnceAcrossUiThread) {

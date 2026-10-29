@@ -448,6 +448,15 @@ absl::Status ValidateProjectSaveAsDestination(const char* destination) {
     return absl::AlreadyExistsError(
         "Project Save As replay destination already exists");
   }
+  // Windows reports a path below a regular file as not found rather than
+  // ENOTDIR, so the parent is checked explicitly.
+  const auto parent = fs::path(destination).parent_path();
+  const auto parent_entry = fs::status(parent, error);
+  if (error || parent_entry.type() != fs::file_type::directory) {
+    return absl::FailedPreconditionError(
+        absl::StrCat("Cannot inspect Project Save As destination: parent ",
+                     parent.string(), " is not an existing directory"));
+  }
   return absl::OkStatus();
 }
 
