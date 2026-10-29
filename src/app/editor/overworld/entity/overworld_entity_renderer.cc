@@ -1,5 +1,6 @@
 #include "overworld_entity_renderer.h"
 
+#include <cmath>
 #include <string>
 
 #include "absl/strings/str_format.h"
@@ -37,6 +38,24 @@ namespace {
 ImVec4 MarkerColor(EntityType type, bool is_hole = false) {
   return EntityMarkerColor(AgentUI::GetTheme(), type, is_hole);
 }
+void DrawConnectionMarker(const gui::CanvasRuntime& rt, int x, int y,
+                          EntityType type, const std::string& label,
+                          bool is_hole = false) {
+  gui::DrawRect(rt, x, y, 16, 16, MarkerColor(type, is_hole));
+  gui::DrawText(rt, label, x, y);
+}
+
+bool HoveringConnectionMarker(const gui::CanvasRuntime& rt, int x, int y) {
+  if (!rt.hovered)
+    return false;
+  const ImVec2 mouse = ImGui::GetIO().MousePos;
+  const ImVec2 start(rt.canvas_p0.x + rt.scrolling.x + x * rt.scale,
+                     rt.canvas_p0.y + rt.scrolling.y + y * rt.scale);
+  const float size = 16.0f * rt.scale;
+  return mouse.x >= start.x && mouse.x <= start.x + size &&
+         mouse.y >= start.y && mouse.y <= start.y + size;
+}
+
 ImVec4 GetDiggableTileColor() {
   const auto& theme = AgentUI::GetTheme();
   return ImVec4{theme.status_active.x, theme.status_active.y,
@@ -54,13 +73,11 @@ void OverworldEntityRenderer::DrawEntrances(const gui::CanvasRuntime& rt,
   for (auto& each : overworld_->entrances()) {
     if (each.map_id_ < 0x40 + (current_world * 0x40) &&
         each.map_id_ >= (current_world * 0x40) && !each.deleted) {
-      gui::DrawRect(rt, each.x_, each.y_, 16, 16,
-                    MarkerColor(EntityType::kEntrance, each.is_hole_));
+      DrawConnectionMarker(rt, each.x_, each.y_, EntityType::kEntrance,
+                           util::HexByte(each.entrance_id_), each.is_hole_);
       if (IsMouseHoveringOverEntity(each, rt)) {
         hovered_entity_ = &each;
       }
-      std::string str = util::HexByte(each.entrance_id_);
-      gui::DrawText(rt, str, each.x_, each.y_);
     }
   }
 }
@@ -68,22 +85,71 @@ void OverworldEntityRenderer::DrawEntrances(const gui::CanvasRuntime& rt,
 void OverworldEntityRenderer::DrawExits(const gui::CanvasRuntime& rt,
                                         int current_world) {
   // Reset hover state at the start of entity rendering (DrawExits is called first)
-  hovered_entity_ = nullptr;
+  ResetHoveredEntity();
 
   int i = 0;
   for (auto& each : *overworld_->mutable_exits()) {
     if (each.map_id_ < 0x40 + (current_world * 0x40) &&
         each.map_id_ >= (current_world * 0x40) && !each.deleted_) {
-      gui::DrawRect(rt, each.x_, each.y_, 16, 16,
-                    MarkerColor(EntityType::kExit));
+      DrawConnectionMarker(rt, each.x_, each.y_, EntityType::kExit,
+                           util::HexByte(i));
       if (IsMouseHoveringOverEntity(each, rt)) {
         hovered_entity_ = &each;
       }
       each.entity_id_ = i;
-      std::string str = util::HexByte(i);
-      gui::DrawText(rt, str, each.x_, each.y_);
     }
     i++;
+  }
+}
+
+void OverworldEntityRenderer::DrawProjectConnections(
+    const gui::CanvasRuntime& rt, const core::LyraAuthoringState& authoring,
+    int world, bool entrances_enabled, bool exits_enabled,
+    const OverworldConnectionView* drag_preview) {
+  hovered_project_connection_.reset();
+  if (!rt.draw_list || !std::isfinite(rt.scale) || rt.scale <= 0 || world < 0 ||
+      world > 2) {
+    return;
+  }
+  const auto connections =
+      CollectOverworldConnections({{}, {}, {}, &authoring});
+  if (!connections.ok())
+    return;
+
+  // Match ordinary ordering: exits first, then entrances on top.
+  for (const bool entrances : {false, true}) {
+    if (entrances ? !entrances_enabled : !exits_enabled)
+      continue;
+    for (const auto& connection : *connections) {
+      const bool is_entrance = std::holds_alternative<ProjectEntranceReference>(
+          connection.reference);
+      if (is_entrance != entrances)
+        continue;
+      const auto* placement = &connection;
+      if (drag_preview && drag_preview->reference == connection.reference) {
+        placement = drag_preview;
+      }
+      if (placement->physical_map_id / 0x40 != world)
+        continue;
+      std::string label = "?";
+      if (const auto* destination = std::get_if<DungeonEntranceDestination>(
+              &connection.destination)) {
+        label = util::HexByte(destination->entrance_id);
+      } else if (const auto* return_destination =
+                     std::get_if<DungeonReturnDestination>(
+                         &connection.destination);
+                 return_destination && return_destination->row) {
+        label = util::HexByte(*return_destination->row);
+      }
+      DrawConnectionMarker(
+          rt, placement->world_x, placement->world_y,
+          is_entrance ? EntityType::kEntrance : EntityType::kExit, label);
+      if (HoveringConnectionMarker(rt, placement->world_x,
+                                   placement->world_y)) {
+        hovered_project_connection_ = connection.reference;
+        hovered_entity_ = nullptr;
+      }
+    }
   }
 }
 
@@ -167,7 +233,7 @@ void OverworldEntityRenderer::DrawExits(ImVec2 canvas_p0, ImVec2 scrolling,
                                         int current_world, int current_mode) {
   // Reset hover state at the start of entity rendering (DrawExits is called
   // first)
-  hovered_entity_ = nullptr;
+  ResetHoveredEntity();
   float scale = canvas_->global_scale();
 
   int i = 0;

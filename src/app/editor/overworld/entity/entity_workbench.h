@@ -5,6 +5,7 @@
 #include <optional>
 #include <string>
 
+#include "app/editor/overworld/entity/overworld_connection_adapter.h"
 #include "app/editor/system/editor_panel.h"
 #include "app/gui/core/icons.h"
 #include "imgui/imgui.h"
@@ -24,6 +25,7 @@ class GameEntity;
 namespace editor {
 
 class EntityMutationService;
+class OverworldEditor;
 
 /**
  * @class OverworldEntityWorkbench
@@ -62,6 +64,24 @@ class OverworldEntityWorkbench : public WindowContent {
   // popup ID resolves at the same ID-stack level as its BeginPopupModal.
   zelda3::GameEntity* DrawEntityContextMenu();
 
+  absl::Status SelectProjectConnection(
+      OverworldEditor& editor, const OverworldConnectionReference& reference);
+  std::optional<OverworldConnectionView> SelectedProjectConnection(
+      OverworldEditor& editor);
+  void ClearProjectConnection();
+  absl::Status OpenProjectConnectionEditor(
+      OverworldEditor& editor, const OverworldConnectionReference& reference);
+  absl::Status OpenProjectConnectionContextMenu(
+      OverworldEditor& editor, const OverworldConnectionReference& reference);
+  absl::Status ApplyProjectConnectionEdit(
+      OverworldEditor& editor, const OverworldConnectionView& expected,
+      const ProjectConnectionEdit& edit);
+  absl::Status DeleteProjectConnection(OverworldEditor& editor,
+                                       const OverworldConnectionView& expected);
+  absl::Status InsertProjectConnection(OverworldEditor& editor,
+                                       const std::string& type, int map_id,
+                                       int world_x, int world_y);
+
  private:
   static constexpr const char* kContextMenuPopupId =
       "##OverworldEntityContextMenu";
@@ -71,6 +91,19 @@ class OverworldEntityWorkbench : public WindowContent {
   const Rom* inspected_rom_ = nullptr;
   const uint8_t* inspected_rom_data_ = nullptr;
   std::string inspected_filename_;
+  absl::Status CommitProjectPlan(OverworldEditor& editor,
+                                 const ProjectConnectionEditPlan& plan);
+  void DrawProjectConnectionPopup(OverworldEditor& editor);
+  void DrawProjectConnectionContextMenu(OverworldEditor& editor);
+  const OverworldEditor* project_owner_ = nullptr;
+  const core::LyraTerrainDocument* project_document_ = nullptr;
+  std::optional<OverworldConnectionReference> project_selection_;
+  std::optional<OverworldConnectionView> project_draft_before_;
+  ProjectConnectionEdit project_draft_;
+  bool request_project_editor_ = false;
+  bool request_project_context_ = false;
+  std::string project_error_;
+  bool request_entity_error_ = false;
 };
 
 }  // namespace editor

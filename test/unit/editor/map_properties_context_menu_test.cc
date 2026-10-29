@@ -98,6 +98,15 @@ void ExpectTarget(const OverworldContextTarget& actual,
   EXPECT_EQ(actual.tile16_id, expected.tile16_id);
 }
 
+OverworldContextTarget ProjectConnectionTarget(int map_id) {
+  return {map_id,
+          map_id,
+          2,
+          1,
+          ImVec2((map_id % 8) * 512 + 48, (map_id % 64 / 8) * 512 + 64),
+          0x123};
+}
+
 class MapPropertiesContextMenuTest : public ::testing::Test {
  protected:
   void SetUp() override {
@@ -121,8 +130,9 @@ class MapPropertiesContextMenuTest : public ::testing::Test {
     system_.SetOpenMapPropertiesCallback([this]() { show_properties_ = true; });
   }
 
-  void Build(int mode = 0) {
-    system_.SetupCanvasContextMenu(canvas_, target_, map_lock_, mode);
+  void Build(int mode = 0, bool project_connections_available = false) {
+    system_.SetupCanvasContextMenu(canvas_, target_, map_lock_, mode, nullptr,
+                                   nullptr, project_connections_available);
   }
 
   void Invoke(const std::string& label) {
@@ -272,6 +282,182 @@ TEST_F(MapPropertiesContextMenuTest,
   Invoke("Edit Tile16");
   EXPECT_EQ(sample_calls, 1);
   EXPECT_EQ(edit_calls, 1);
+}
+
+TEST_F(MapPropertiesContextMenuTest,
+       ProjectA0AndBfConnectionsDispatchTheCapturedTargetWithCapability) {
+  std::vector<std::string> inserted_types;
+  std::vector<OverworldContextTarget> received;
+  system_.SetEntityCallbacks(
+      [&](const std::string& type, const OverworldContextTarget& target) {
+        inserted_types.push_back(type);
+        received.push_back(target);
+      });
+  for (const int map_id : {0xA0, 0xBF}) {
+    SCOPED_TRACE(map_id);
+    inserted_types.clear();
+    received.clear();
+    target_ = ProjectConnectionTarget(map_id);
+    const auto expected = target_;
+    ASSERT_FALSE(target_.valid());
+    ASSERT_TRUE(target_.valid(192));
+    Build(1, true);
+    auto* title =
+        FindRootMenuItem(canvas_, map_id == 0xA0 ? "Map 0xA0" : "Map 0xBF");
+    ASSERT_NE(title, nullptr);
+    auto* insert = FindRootMenuItem(canvas_, "Insert");
+    ASSERT_NE(insert, nullptr);
+    ASSERT_TRUE(insert->enabled_condition());
+    std::vector<std::function<void()>> callbacks;
+    for (const auto* label : {"Entrance", "Exit"}) {
+      auto* item = FindMenuItem(canvas_, label);
+      ASSERT_NE(item, nullptr);
+      ASSERT_TRUE(item->enabled_condition());
+      ASSERT_TRUE(item->callback);
+      callbacks.push_back(item->callback);
+    }
+    target_ = {};
+    Build();
+    for (const auto& callback : callbacks)
+      callback();
+    EXPECT_EQ(inserted_types, (std::vector<std::string>{"entrance", "exit"}));
+    ASSERT_EQ(received.size(), 2);
+    for (const auto& target : received)
+      ExpectTarget(target, expected);
+  }
+}
+
+TEST_F(MapPropertiesContextMenuTest,
+       ProjectConnectionsWithoutCapabilityAreDisabledAndCallbacksRefuse) {
+  int insertions = 0;
+  system_.SetEntityCallbacks(
+      [&](const std::string&, const OverworldContextTarget&) { ++insertions; });
+  for (const int map_id : {0xA0, 0xBF}) {
+    SCOPED_TRACE(map_id);
+    target_ = ProjectConnectionTarget(map_id);
+    Build();  // The new capability defaults to false.
+    ASSERT_NE(FindRootMenuItem(canvas_, "Outside Overworld"), nullptr);
+    for (const auto* label :
+         {"Insert", "Entrance", "Hole", "Exit", "Item", "Sprite"}) {
+      auto* item = FindMenuItem(canvas_, label);
+      ASSERT_NE(item, nullptr);
+      EXPECT_FALSE(item->enabled_condition()) << label;
+      if (item->callback)
+        item->callback();
+    }
+  }
+  EXPECT_EQ(insertions, 0);
+}
+
+TEST_F(MapPropertiesContextMenuTest,
+       ProjectCapabilityDoesNotEnableNativeOnlyActionsOrTheirCallbacks) {
+  int insertions = 0;
+  int tile_actions = 0;
+  system_.SetEntityCallbacks(
+      [&](const std::string&, const OverworldContextTarget&) { ++insertions; });
+  system_.SetTile16SampleCallback([&](const OverworldContextTarget&) {
+    ++tile_actions;
+    return true;
+  });
+  system_.SetTile16EditCallback(
+      [&](const OverworldContextTarget&) { ++tile_actions; });
+  system_.SetTile16GraphicsCallback(
+      [&](const OverworldContextTarget&) { ++tile_actions; });
+  for (const int map_id : {0xA0, 0xBF}) {
+    SCOPED_TRACE(map_id);
+    target_ = ProjectConnectionTarget(map_id);
+    Build(0, true);
+    for (const auto* label :
+         {"Hole", "Item", "Sprite", "Sample Tile16", "Edit Tile16",
+          "Edit Graphics", "Select This Map", "Map Properties", "Pin Map"}) {
+      auto* item = FindMenuItem(canvas_, label);
+      ASSERT_NE(item, nullptr);
+      EXPECT_FALSE(item->enabled_condition()) << label;
+      ASSERT_TRUE(item->callback);
+      item->callback();
+    }
+  }
+  EXPECT_EQ(insertions, 0);
+  EXPECT_EQ(tile_actions, 0);
+  EXPECT_EQ(selection_calls_, 0);
+  EXPECT_FALSE(show_properties_);
+  EXPECT_FALSE(map_lock_);
+}
+
+TEST_F(MapPropertiesContextMenuTest,
+       NativeInsertionActionsRemainAvailableWithDefaultOrProjectCapability) {
+  const auto expected = target_;
+  std::vector<std::string> inserted_types;
+  system_.SetEntityCallbacks(
+      [&](const std::string& type, const OverworldContextTarget& target) {
+        inserted_types.push_back(type);
+        ExpectTarget(target, expected);
+      });
+  for (const bool capability : {false, true}) {
+    SCOPED_TRACE(capability);
+    inserted_types.clear();
+    Build(0, capability);
+    auto* insert = FindRootMenuItem(canvas_, "Insert");
+    ASSERT_NE(insert, nullptr);
+    ASSERT_TRUE(insert->enabled_condition());
+    for (const auto* label : {"Entrance", "Hole", "Exit", "Item", "Sprite"})
+      Invoke(label);
+    EXPECT_EQ(inserted_types,
+              (std::vector<std::string>{"entrance", "hole", "exit", "item",
+                                        "sprite"}));
+  }
+}
+
+TEST_F(MapPropertiesContextMenuTest,
+       ProjectConnectionCapabilityDoesNotAdmitInvalidTargetGeometry) {
+  int insertions = 0;
+  system_.SetEntityCallbacks(
+      [&](const std::string&, const OverworldContextTarget&) { ++insertions; });
+  std::vector<OverworldContextTarget> invalid;
+  auto target = ProjectConnectionTarget(0xA0);
+  target.world_position.x = 512;
+  invalid.push_back(target);  // Position belongs to A1.
+  target = ProjectConnectionTarget(0xBF);
+  target.world_position.y = 4096;
+  invalid.push_back(target);
+  target = ProjectConnectionTarget(0xA0);
+  target.parent_map_id = 0x1E;
+  invalid.push_back(target);  // Parent belongs to another world.
+  target = ProjectConnectionTarget(0xA0);
+  target.world_position.x = std::numeric_limits<float>::quiet_NaN();
+  invalid.push_back(target);
+  target = ProjectConnectionTarget(0xA0);
+  target.game_state = 3;
+  invalid.push_back(target);
+  target = ProjectConnectionTarget(0xBF);
+  target.map_id = 0xC0;
+  invalid.push_back(target);
+  for (const auto& malformed : invalid) {
+    target_ = malformed;
+    Build(0, true);
+    for (const auto* label :
+         {"Insert", "Entrance", "Hole", "Exit", "Item", "Sprite"}) {
+      auto* item = FindMenuItem(canvas_, label);
+      ASSERT_NE(item, nullptr);
+      EXPECT_FALSE(item->enabled_condition()) << label;
+      if (item->callback)
+        item->callback();
+    }
+  }
+  EXPECT_EQ(insertions, 0);
+}
+
+TEST_F(MapPropertiesContextMenuTest,
+       ProjectConnectionCapabilityStillRequiresInsertionCallback) {
+  target_ = ProjectConnectionTarget(0xA0);
+  Build(0, true);
+  for (const auto* label : {"Insert", "Entrance", "Exit"}) {
+    auto* item = FindMenuItem(canvas_, label);
+    ASSERT_NE(item, nullptr);
+    EXPECT_FALSE(item->enabled_condition());
+    if (item->callback)
+      item->callback();
+  }
 }
 
 TEST_F(MapPropertiesContextMenuTest, UnavailableActionsAreDisabled) {

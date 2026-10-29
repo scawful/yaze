@@ -34,6 +34,28 @@ bool OverworldCanvasRenderer::PrepareContextMenu(
   if (!target) {
     return false;
   }
+  if (editor_->current_mode == EditingMode::MOUSE && editor_->show_entities_ &&
+      editor_->IsProjectTerrainMap(target->map_id) &&
+      editor_->lyra_canvas_.document()) {
+    const auto connections = CollectOverworldConnections(
+        {{}, {}, {}, &editor_->lyra_canvas_.document()->authoring()});
+    if (connections.ok()) {
+      for (const auto& connection : *connections) {
+        const bool entrance = std::holds_alternative<ProjectEntranceReference>(
+            connection.reference);
+        const auto mode = editor_->entity_edit_mode_;
+        const bool allowed = mode != EntityEditMode::ITEMS &&
+                             mode != EntityEditMode::SPRITES &&
+                             (mode != EntityEditMode::ENTRANCES || entrance) &&
+                             (mode != EntityEditMode::EXITS || !entrance);
+        if (allowed && target->world_position.x >= connection.world_x &&
+            target->world_position.x < connection.world_x + 16 &&
+            target->world_position.y >= connection.world_y &&
+            target->world_position.y < connection.world_y + 16)
+          return false;
+      }
+    }
+  }
   const auto* map = editor_->overworld_.overworld_map(target->map_id);
   if (!map) {
     if (editor_->IsProjectTerrainMap(target->map_id)) {
@@ -67,13 +89,19 @@ bool OverworldCanvasRenderer::PrepareContextMenu(
   editor_->map_properties_system_->SetupCanvasContextMenu(
       canvas, *target, editor_->current_map_lock_,
       static_cast<int>(editor_->current_mode), editor_->dependencies_.project,
-      editor_->dependencies_.shared_clipboard);
+      editor_->dependencies_.shared_clipboard,
+      editor_->IsProjectTerrainMap(target->map_id) &&
+          editor_->lyra_canvas_.loaded());
   return true;
 }
 
 void OverworldEditor::HandleEntityInsertion(
     const std::string& entity_type, const OverworldContextTarget& target) {
-  if (!target.valid()) {
+  if (!target.valid(DisplayedMapCount())) {
+    return;
+  }
+  if (IsProjectTerrainMap(target.map_id) &&
+      (entity_type != "entrance" && entity_type != "exit")) {
     return;
   }
   if (entity_type == "item") {

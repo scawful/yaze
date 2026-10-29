@@ -158,6 +158,258 @@ absl::Status OverworldEditor::ApplyExitEdit(
       "Edit overworld return");
 }
 
+void OverworldEntityWorkbench::ClearProjectConnection() {
+  project_selection_.reset();
+  project_owner_ = nullptr;
+  project_document_ = nullptr;
+  request_project_editor_ = request_project_context_ = false;
+  project_error_.clear();
+  // A modal draft survives until DrawProjectConnectionPopup closes its popup.
+}
+
+std::optional<OverworldConnectionView>
+OverworldEntityWorkbench::SelectedProjectConnection(OverworldEditor& editor) {
+  const auto* document = editor.lyra_canvas_.document();
+  if (!project_selection_ || project_owner_ != &editor || !document ||
+      document != project_document_) {
+    ClearProjectConnection();
+    return std::nullopt;
+  }
+  const auto resolved = ResolveOverworldConnection(
+      {{}, {}, {}, &document->authoring()}, *project_selection_);
+  if (!resolved.ok()) {
+    ClearProjectConnection();
+    return std::nullopt;
+  }
+  return *resolved;
+}
+
+absl::Status OverworldEntityWorkbench::SelectProjectConnection(
+    OverworldEditor& editor, const OverworldConnectionReference& reference) {
+  const auto* document = editor.lyra_canvas_.document();
+  if (!document || editor.is_lyra_preview() ||
+      (!std::holds_alternative<ProjectEntranceReference>(reference) &&
+       !std::holds_alternative<ProjectReturnReference>(reference))) {
+    return absl::FailedPreconditionError("Select a current project connection");
+  }
+  const auto resolved = ResolveOverworldConnection(
+      {{}, {}, {}, &document->authoring()}, reference);
+  if (!resolved.ok())
+    return resolved.status();
+  editor.SetCurrentEntity(nullptr);
+  editing_entity_ = nullptr;
+  project_owner_ = &editor;
+  project_document_ = document;
+  project_selection_ = reference;
+  project_error_.clear();
+  return absl::OkStatus();
+}
+
+absl::Status OverworldEntityWorkbench::OpenProjectConnectionEditor(
+    OverworldEditor& editor, const OverworldConnectionReference& reference) {
+  RETURN_IF_ERROR(SelectProjectConnection(editor, reference));
+  request_project_editor_ = true;
+  return absl::OkStatus();
+}
+
+absl::Status OverworldEntityWorkbench::OpenProjectConnectionContextMenu(
+    OverworldEditor& editor, const OverworldConnectionReference& reference) {
+  RETURN_IF_ERROR(SelectProjectConnection(editor, reference));
+  request_project_context_ = true;
+  return absl::OkStatus();
+}
+
+absl::Status OverworldEntityWorkbench::CommitProjectPlan(
+    OverworldEditor& editor, const ProjectConnectionEditPlan& plan) {
+  const auto* document = editor.lyra_canvas_.document();
+  if (!document || document->authoring() != plan.before) {
+    return absl::FailedPreconditionError("Connection edit is stale");
+  }
+  return editor.EditProjectMapAuthoring(plan.after);
+}
+
+absl::Status OverworldEntityWorkbench::ApplyProjectConnectionEdit(
+    OverworldEditor& editor, const OverworldConnectionView& expected,
+    const ProjectConnectionEdit& edit) {
+  const auto current = SelectedProjectConnection(editor);
+  if (!current || current->reference != expected.reference) {
+    return absl::FailedPreconditionError(
+        "Connection selection is no longer current");
+  }
+  const auto plan = PrepareProjectConnectionEdit(
+      *editor.lyra_canvas_.document(), expected, edit);
+  if (!plan.ok())
+    return plan.status();
+  return CommitProjectPlan(editor, *plan);
+}
+
+absl::Status OverworldEntityWorkbench::DeleteProjectConnection(
+    OverworldEditor& editor, const OverworldConnectionView& expected) {
+  const auto current = SelectedProjectConnection(editor);
+  auto* mutations = editor.entity_mutation_service();
+  if (!current || current->reference != expected.reference || !mutations) {
+    return absl::FailedPreconditionError(
+        "Connection selection is no longer current");
+  }
+  const auto plan = mutations->PrepareProjectConnectionDeletion(
+      *editor.lyra_canvas_.document(), expected);
+  if (!plan.ok())
+    return plan.status();
+  RETURN_IF_ERROR(CommitProjectPlan(editor, *plan));
+  ClearProjectConnection();
+  return absl::OkStatus();
+}
+
+absl::Status OverworldEntityWorkbench::InsertProjectConnection(
+    OverworldEditor& editor, const std::string& type, int map_id, int world_x,
+    int world_y) {
+  const auto* document = editor.lyra_canvas_.document();
+  auto* mutations = editor.entity_mutation_service();
+  if (!document || !mutations || editor.is_lyra_preview()) {
+    return absl::FailedPreconditionError("Project authoring is unavailable");
+  }
+  const auto mutation = mutations->PrepareProjectConnectionInsertion(
+      *document, type, map_id, world_x, world_y);
+  if (!mutation.ok())
+    return mutation.status();
+  RETURN_IF_ERROR(CommitProjectPlan(editor, mutation->plan));
+  return OpenProjectConnectionEditor(editor, mutation->reference);
+}
+
+void OverworldEntityWorkbench::DrawProjectConnectionContextMenu(
+    OverworldEditor& editor) {
+  auto current = SelectedProjectConnection(editor);
+  if (!current)
+    return;
+  if (ImGui::MenuItem("Edit Properties..."))
+    (void)OpenProjectConnectionEditor(editor, current->reference);
+  if (const auto* entrance =
+          std::get_if<DungeonEntranceDestination>(&current->destination)) {
+    if (ImGui::MenuItem("Jump to Entrance"))
+      editor.RequestJumpToEntrance(entrance->entrance_id);
+  } else if (const auto* destination =
+                 std::get_if<DungeonReturnDestination>(&current->destination)) {
+    if (ImGui::MenuItem("Jump to Room"))
+      editor.RequestJumpToRoom(destination->room_id);
+  }
+  if (ImGui::MenuItem("Delete")) {
+    const auto status = DeleteProjectConnection(editor, *current);
+    if (!status.ok())
+      project_error_ = std::string(status.message());
+  }
+}
+
+void OverworldEntityWorkbench::DrawProjectConnectionPopup(
+    OverworldEditor& editor) {
+  if (request_project_editor_) {
+    request_project_editor_ = false;
+    const auto current = SelectedProjectConnection(editor);
+    if (!current)
+      return;
+    project_draft_before_ = *current;
+    project_draft_ = {current->physical_map_id, current->world_x,
+                      current->world_y, current->destination};
+    const bool entrance =
+        std::holds_alternative<ProjectEntranceReference>(current->reference);
+    ImGui::OpenPopup(
+        gui::MakePopupId(gui::EditorNames::kOverworld,
+                         entrance ? "Entrance Editor" : "Exit Editor")
+            .c_str());
+  }
+  if (!project_draft_before_)
+    return;
+  const bool entrance = std::holds_alternative<ProjectEntranceReference>(
+      project_draft_before_->reference);
+  const auto id =
+      gui::MakePopupId(gui::EditorNames::kOverworld,
+                       entrance ? "Entrance Editor" : "Exit Editor");
+  bool closed = false;
+  if (ImGui::BeginPopupModal(id.c_str(), nullptr,
+                             ImGuiWindowFlags_AlwaysAutoResize)) {
+    const auto current = SelectedProjectConnection(editor);
+    const bool available =
+        current && current->reference == project_draft_before_->reference;
+    if (available) {
+      ImGui::Text("%s", entrance ? "Entrance" : "Exit");
+      ImGui::Separator();
+      ImGui::InputScalar("Map ID", ImGuiDataType_S32,
+                         &project_draft_.physical_map_id, nullptr, nullptr,
+                         "%02X", ImGuiInputTextFlags_CharsHexadecimal);
+      ImGui::InputScalar("X Position", ImGuiDataType_S32,
+                         &project_draft_.world_x, nullptr, nullptr, "%03X",
+                         ImGuiInputTextFlags_CharsHexadecimal);
+      ImGui::InputScalar("Y Position", ImGuiDataType_S32,
+                         &project_draft_.world_y, nullptr, nullptr, "%03X",
+                         ImGuiInputTextFlags_CharsHexadecimal);
+      if (entrance) {
+        bool assigned = std::holds_alternative<DungeonEntranceDestination>(
+            project_draft_.destination);
+        if (ImGui::Checkbox("Assign entrance ID", &assigned)) {
+          project_draft_.destination =
+              assigned ? OverworldConnectionDestination(
+                             DungeonEntranceDestination{0})
+                       : OverworldConnectionDestination(std::monostate{});
+        }
+        if (auto* target = std::get_if<DungeonEntranceDestination>(
+                &project_draft_.destination)) {
+          ImGui::InputScalar("Entrance ID", ImGuiDataType_S32,
+                             &target->entrance_id, nullptr, nullptr, "%02X",
+                             ImGuiInputTextFlags_CharsHexadecimal);
+        }
+      } else {
+        auto& target =
+            std::get<DungeonReturnDestination>(project_draft_.destination);
+        ImGui::InputScalar("Room ID", ImGuiDataType_S32, &target.room_id,
+                           nullptr, nullptr, "%03X",
+                           ImGuiInputTextFlags_CharsHexadecimal);
+        bool assigned = target.row.has_value();
+        if (ImGui::Checkbox("Assign return row", &assigned)) {
+          if (assigned)
+            target.row = 0;
+          else
+            target.row.reset();
+        }
+        if (target.row)
+          ImGui::InputScalar("Return row", ImGuiDataType_S32, &*target.row,
+                             nullptr, nullptr, "%02X",
+                             ImGuiInputTextFlags_CharsHexadecimal);
+      }
+      ImGui::Separator();
+      if (ImGui::Button(tr("Save"))) {
+        const auto status = ApplyProjectConnectionEdit(
+            editor, *project_draft_before_, project_draft_);
+        if (status.ok())
+          closed = true;
+        else
+          project_error_ = std::string(status.message());
+      }
+      ImGui::SameLine();
+      if (ImGui::Button(tr("Delete"))) {
+        const auto status =
+            DeleteProjectConnection(editor, *project_draft_before_);
+        if (status.ok())
+          closed = true;
+        else
+          project_error_ = std::string(status.message());
+      }
+      ImGui::SameLine();
+    } else {
+      ImGui::TextUnformatted("The selected connection is no longer available.");
+    }
+    if (ImGui::Button(tr("Cancel")))
+      closed = true;
+    if (!project_error_.empty())
+      ImGui::TextWrapped("%s", project_error_.c_str());
+    if (closed)
+      ImGui::CloseCurrentPopup();
+    ImGui::EndPopup();
+  } else if (!ImGui::IsPopupOpen(id.c_str())) {
+    closed = true;
+  }
+  if (closed)
+    project_draft_before_.reset();
+}
+
 void OverworldEntityWorkbench::Draw(bool* p_open) {
   (void)p_open;
   const auto ctx = CurrentOverworldWindowContext();
@@ -168,19 +420,6 @@ void OverworldEntityWorkbench::Draw(bool* p_open) {
   if (editor->is_lyra_preview()) {
     ImGui::TextDisabled("Lyra preview: entity editing unavailable");
     return;
-  }
-
-  if (editor->current_map_id() >= 0xA0 && editor->current_map_id() < 0xC0) {
-    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.85f, 0.3f, 1.0f));
-    ImGui::Text(ICON_MD_INFO " Tail Map $%02X Entity Limitations",
-                editor->current_map_id());
-    ImGui::PopStyleColor();
-    ImGui::TextWrapped(
-        "• Items & Bomb Doors: Disabled (requires SRAM event allocation)\n"
-        "• Exits: 1 free slot (full links require ASM exit table v2)\n"
-        "• Entrances: Trigger table v2 in development (Phase P2)\n"
-        "• Sprites: Draft state (actor compilation needed for ROM)");
-    ImGui::Separator();
   }
 
   // Special triggers are tile properties, not entrance entities. Keep their
@@ -267,6 +506,19 @@ void OverworldEntityWorkbench::Draw(bool* p_open) {
     ImGui::Separator();
   }
 
+  if (editor->current_entity())
+    ClearProjectConnection();
+  if (auto connection = SelectedProjectConnection(*editor)) {
+    const bool entrance =
+        std::holds_alternative<ProjectEntranceReference>(connection->reference);
+    ImGui::Text(tr("Type: %s"), entrance ? "Entrance" : "Exit");
+    ImGui::Separator();
+    if (ImGui::Button(ICON_MD_SETTINGS " Open Popup Editor"))
+      (void)OpenProjectConnectionEditor(*editor, connection->reference);
+    if (!project_error_.empty())
+      ImGui::TextWrapped("%s", project_error_.c_str());
+    return;
+  }
   auto* active_entity = editor->current_entity();
   if (active_entity == nullptr) {
     ImGui::TextDisabled(tr("No entity selected"));
@@ -284,6 +536,8 @@ void OverworldEntityWorkbench::Draw(bool* p_open) {
 void OverworldEntityWorkbench::SetActiveEntity(zelda3::GameEntity* entity) {
   const auto ctx = CurrentOverworldWindowContext();
   if (ctx) {
+    if (entity)
+      ClearProjectConnection();
     ctx.editor->SetCurrentEntity(entity);
   }
 }
@@ -294,6 +548,7 @@ void OverworldEntityWorkbench::OpenEditorFor(zelda3::GameEntity* entity) {
     return;
 
   auto* editor = ctx.editor;
+  ClearProjectConnection();
   editor->SetCurrentEntity(entity);
   editing_entity_ = entity;
 
@@ -333,6 +588,7 @@ void OverworldEntityWorkbench::OpenContextMenuFor(zelda3::GameEntity* entity) {
   if (!ctx || !entity) {
     return;
   }
+  ClearProjectConnection();
   ctx.editor->SetCurrentEntity(entity);
   ImGui::OpenPopup(kContextMenuPopupId);
 }
@@ -345,13 +601,28 @@ void OverworldEntityWorkbench::DrawPopups() {
   auto* editor = ctx.editor;
   auto* editing_entity = editing_entity_;
 
+  if (request_project_context_) {
+    request_project_context_ = false;
+    if (SelectedProjectConnection(*editor))
+      ImGui::OpenPopup(kContextMenuPopupId);
+  }
   zelda3::GameEntity* entity_to_edit = nullptr;
   if (ImGui::BeginPopup(kContextMenuPopupId)) {
-    entity_to_edit = DrawEntityContextMenu();
+    if (SelectedProjectConnection(*editor))
+      DrawProjectConnectionContextMenu(*editor);
+    else
+      entity_to_edit = DrawEntityContextMenu();
     ImGui::EndPopup();
+  }
+  if (project_selection_ || project_draft_before_) {
+    DrawProjectConnectionPopup(*editor);
   }
   if (entity_to_edit) {
     OpenEditorFor(entity_to_edit);
+  }
+  if (request_entity_error_) {
+    request_entity_error_ = false;
+    ImGui::OpenPopup("Entity Edit Error");
   }
 
   if (ImGui::BeginPopupModal("Entity Insert Error", nullptr,
@@ -365,7 +636,8 @@ void OverworldEntityWorkbench::DrawPopups() {
     ImGui::EndPopup();
   }
 
-  if (DrawExitEditorPopup(editor->edit_exit())) {
+  if (!project_selection_ && !project_draft_before_ &&
+      DrawExitEditorPopup(editor->edit_exit())) {
     if (editing_entity &&
         editing_entity->entity_type_ == zelda3::GameEntity::EntityType::kExit) {
       const auto status = editor->ApplyExitEdit(
@@ -377,7 +649,8 @@ void OverworldEntityWorkbench::DrawPopups() {
       }
     }
   }
-  if (DrawOverworldEntrancePopup(editor->edit_entrance())) {
+  if (!project_selection_ && !project_draft_before_ &&
+      DrawOverworldEntrancePopup(editor->edit_entrance())) {
     if (editing_entity && editing_entity->entity_type_ ==
                               zelda3::GameEntity::EntityType::kEntrance) {
       const auto status = editor->ApplyEntranceEdit(
@@ -443,6 +716,20 @@ void OverworldEntityWorkbench::ProcessPendingInsertion(
   if (!request)
     return;
 
+  if (editor->IsProjectTerrainMap(request->target.map_id) &&
+      (request->type == "entrance" || request->type == "exit")) {
+    if (!request->target.valid(editor->DisplayedMapCount()))
+      return;
+    const auto position = SnapToEntityGrid(request->target.world_position);
+    const auto status = InsertProjectConnection(
+        *editor, request->type, request->target.map_id,
+        static_cast<int>(position.x), static_cast<int>(position.y));
+    if (!status.ok()) {
+      editor->insert_error() = std::string(status.message());
+      ImGui::OpenPopup("Entity Insert Error");
+    }
+    return;
+  }
   auto res = mutation_service->InsertEntity(request->type, request->target,
                                             request->item_id);
 
@@ -482,6 +769,32 @@ zelda3::GameEntity* OverworldEntityWorkbench::DrawEntityContextMenu() {
     items.emplace_back("Jump to Entrance", ICON_MD_LINK, [editor, entrance]() {
       editor->RequestJumpToEntrance(entrance->entrance_id_);
     });
+  }
+  if (active_entity->entity_type_ == zelda3::GameEntity::kEntrance ||
+      active_entity->entity_type_ == zelda3::GameEntity::kExit) {
+    items.emplace_back(
+        "Delete", ICON_MD_DELETE, [this, editor, active_entity]() {
+          absl::Status status;
+          if (active_entity->entity_type_ == zelda3::GameEntity::kEntrance) {
+            auto* target =
+                static_cast<zelda3::OverworldEntrance*>(active_entity);
+            auto draft = *target;
+            draft.deleted = true;
+            status = editor->ApplyEntranceEdit(target, draft);
+          } else {
+            auto* target = static_cast<zelda3::OverworldExit*>(active_entity);
+            auto draft = *target;
+            draft.deleted_ = true;
+            status = editor->ApplyExitEdit(target, draft);
+          }
+          if (status.ok()) {
+            editor->SetCurrentEntity(nullptr);
+            editing_entity_ = nullptr;
+          } else {
+            editor->insert_error() = std::string(status.message());
+            request_entity_error_ = true;
+          }
+        });
   }
   gui::RenderMenuItems(items);
   return entity_to_edit;

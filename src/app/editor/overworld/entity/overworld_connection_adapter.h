@@ -97,6 +97,10 @@ struct ProjectConnectionEditPlan {
   core::LyraAuthoringState before;
   core::LyraAuthoringState after;
 };
+struct ProjectConnectionMutation {
+  ProjectConnectionEditPlan plan;
+  OverworldConnectionReference reference;
+};
 
 // Pure preflight: resolve stable identity, refuse a stale expected record, and
 // validate a value copy through the existing document's SetAuthoring contract.

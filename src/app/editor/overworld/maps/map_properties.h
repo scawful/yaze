@@ -167,11 +167,13 @@ class MapPropertiesSystem {
   // Context menu integration. Layout: header (map, tile), Tile, Map,
   // Related Maps, clipboard, Insert, View; see
   // docs/internal/gui/context-menus.md ("Overworld map canvas").
+  // Project capability admits only entrance/exit insertion on A0-BF maps.
   void SetupCanvasContextMenu(gui::Canvas& canvas,
                               const OverworldContextTarget& target,
                               bool& current_map_lock, int current_mode = 0,
                               project::YazeProject* project = nullptr,
-                              SharedClipboard* shared_clipboard = nullptr);
+                              SharedClipboard* shared_clipboard = nullptr,
+                              bool project_connections_available = false);
 
   absl::Status ApplyPropertyEdit(const OverworldPropertyEdit& edit);
   absl::Status ApplyPropertyEdits(

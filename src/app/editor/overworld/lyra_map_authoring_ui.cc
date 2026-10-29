@@ -42,26 +42,6 @@ uint32_t AllocateSpriteId(const core::LyraAuthoringState& state) {
   return AllocateStableId(ids);
 }
 
-uint32_t AllocateDoorId(const core::LyraAuthoringState& state) {
-  std::vector<uint32_t> ids;
-  for (const auto& map : state.maps) {
-    for (const auto& d : map.doors) {
-      ids.push_back(d.id);
-    }
-  }
-  return AllocateStableId(ids);
-}
-
-uint32_t AllocateExitId(const core::LyraAuthoringState& state) {
-  std::vector<uint32_t> ids;
-  for (const auto& map : state.maps) {
-    for (const auto& e : map.exits) {
-      ids.push_back(e.id);
-    }
-  }
-  return AllocateStableId(ids);
-}
-
 uint32_t AllocateFlightPointId(const core::LyraAuthoringState& state) {
   std::vector<uint32_t> ids;
   for (const auto& f : state.flight_points) {
@@ -230,25 +210,9 @@ void LyraTerrainCanvas::DrawProperties(int map_id, int& state,
     core::LyraMapProperties& draft = PropertyDraftFor(map_index);
 
     ImGui::PushID("LyraProperties");
-    ImGui::Text("Lyra Map Properties ($%02X)", map_id);
-    ImGui::TextWrapped(
-        "Project draft; saved with project; build/runtime unavailable");
+    ImGui::Text("Map Properties ($%02X)", map_id);
+    ImGui::TextDisabled("Saved with the project.");
 
-    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.85f, 0.3f, 1.0f));
-    if (ImGui::CollapsingHeader(ICON_MD_INFO " Tail Map Limitations ($A0-$BF)",
-                                ImGuiTreeNodeFlags_DefaultOpen)) {
-      ImGui::PopStyleColor();
-      ImGui::TextWrapped(
-          "• Items & Bomb Doors: Disabled (pending SRAM event allocation in "
-          "save file)\n"
-          "• Exits: 1 free slot in vanilla table; multi-link requires ASM exit "
-          "table v2\n"
-          "• Entrances: Light-world trigger links v2 in development (Phase "
-          "P2)\n"
-          "• Sprites: Draft state only (requires actor compilation for ROM)");
-    } else {
-      ImGui::PopStyleColor();
-    }
     DrawGameplayArea(map_id, overworld, history);
 
     // Game state selector combo 0..2
@@ -538,154 +502,9 @@ void LyraTerrainCanvas::DrawProperties(int map_id, int& state,
       }
     }
 
-    // Doors / Entrances
-    if (ImGui::CollapsingHeader("Doors / Entrances",
-                                ImGuiTreeNodeFlags_DefaultOpen)) {
-      if (ImGui::Button("Add entrance")) {
-        core::LyraAuthoringState next_state = document_->authoring();
-        const uint32_t new_id = AllocateDoorId(next_state);
-        next_state.maps[map_index].doors.push_back({
-            .id = new_id,
-            .x = 16,
-            .y = 16,
-            .entrance_id = std::nullopt,
-        });
-        (void)EditAuthoring(next_state, overworld, history);
-      }
-      gui::WidgetIdRegistry::Instance().RegisterWidget(
-          "LyraMapProperties/button:AddEntrance", "button", ImGui::GetItemID());
-      ImGui::SameLine();
-      if (ImGui::Button("Place entrance on canvas")) {
-        placement_kind_ = 2;
-        placement_type_ = 0;
-      }
-
-      const auto& doors = document_->authoring().maps[map_index].doors;
-      for (size_t i = 0; i < doors.size(); ++i) {
-        const auto& d = doors[i];
-        ImGui::PushID(static_cast<int>(d.id + 0x200000));
-        std::string header_label =
-            absl::StrFormat("Entrance #%u (ID: %u)", i, d.id);
-        if (ImGui::CollapsingHeader((header_label + "###entity").c_str())) {
-          core::LyraAuthoringState next_state = document_->authoring();
-          auto& target = next_state.maps[map_index].doors[i];
-          bool changed = false;
-
-          int door_x = target.x;
-          if (ImGui::SliderInt("X", &door_x, 0, 31)) {
-            target.x = door_x;
-            changed = true;
-          }
-          int door_y = target.y;
-          if (ImGui::SliderInt("Y", &door_y, 0, 31)) {
-            target.y = door_y;
-            changed = true;
-          }
-          int ent_id = target.entrance_id.value_or(-1);
-          if (ImGui::InputInt("Entrance ID (-1 unassigned)", &ent_id)) {
-            if (ent_id < 0) {
-              target.entrance_id = std::nullopt;
-            } else {
-              target.entrance_id = std::min(ent_id, 0xFE);
-            }
-            changed = true;
-          }
-
-          if (ImGui::Button("Remove")) {
-            next_state.maps[map_index].doors.erase(
-                next_state.maps[map_index].doors.begin() + i);
-            (void)EditAuthoring(next_state, overworld, history);
-            ImGui::PopID();
-            break;
-          }
-
-          if (changed) {
-            (void)EditAuthoring(next_state, overworld, history);
-            ImGui::PopID();
-            break;
-          }
-        }
-        ImGui::PopID();
-      }
-    }
-
-    // Exits
-    if (ImGui::CollapsingHeader("Exits", ImGuiTreeNodeFlags_DefaultOpen)) {
-      if (ImGui::Button("Add exit")) {
-        core::LyraAuthoringState next_state = document_->authoring();
-        const uint32_t new_id = AllocateExitId(next_state);
-        next_state.maps[map_index].exits.push_back({
-            .id = new_id,
-            .room_id = 0,
-            .x = 16,
-            .y = 16,
-            .exit_row = std::nullopt,
-        });
-        (void)EditAuthoring(next_state, overworld, history);
-      }
-      gui::WidgetIdRegistry::Instance().RegisterWidget(
-          "LyraMapProperties/button:AddExit", "button", ImGui::GetItemID());
-      ImGui::SameLine();
-      if (ImGui::Button("Place exit on canvas")) {
-        placement_kind_ = 3;
-        placement_type_ = 0;
-      }
-
-      const auto& exits = document_->authoring().maps[map_index].exits;
-      for (size_t i = 0; i < exits.size(); ++i) {
-        const auto& e = exits[i];
-        ImGui::PushID(static_cast<int>(e.id + 0x300000));
-        std::string header_label =
-            absl::StrFormat("Exit #%u (ID: %u)", i, e.id);
-        if (ImGui::CollapsingHeader((header_label + "###entity").c_str())) {
-          core::LyraAuthoringState next_state = document_->authoring();
-          auto& target = next_state.maps[map_index].exits[i];
-          bool changed = false;
-
-          int exit_x = target.x;
-          if (ImGui::SliderInt("X", &exit_x, 0, 31)) {
-            target.x = exit_x;
-            changed = true;
-          }
-          int exit_y = target.y;
-          if (ImGui::SliderInt("Y", &exit_y, 0, 31)) {
-            target.y = exit_y;
-            changed = true;
-          }
-          int room_id = target.room_id;
-          if (ImGui::InputScalar("Room ID", ImGuiDataType_S32, &room_id,
-                                 nullptr, nullptr, "%03X",
-                                 ImGuiInputTextFlags_CharsHexadecimal)) {
-            target.room_id = std::clamp(room_id, 0, 0x127);
-            changed = true;
-          }
-          int row_val = target.exit_row.value_or(-1);
-          if (ImGui::InputInt("Exit row (-1 unassigned)", &row_val)) {
-            if (row_val < 0) {
-              target.exit_row = std::nullopt;
-            } else {
-              target.exit_row = std::min(row_val, 78);
-            }
-            changed = true;
-          }
-
-          if (ImGui::Button("Remove")) {
-            next_state.maps[map_index].exits.erase(
-                next_state.maps[map_index].exits.begin() + i);
-            (void)EditAuthoring(next_state, overworld, history);
-            ImGui::PopID();
-            break;
-          }
-
-          if (changed) {
-            (void)EditAuthoring(next_state, overworld, history);
-            ImGui::PopID();
-            break;
-          }
-        }
-        ImGui::PopID();
-      }
-    }
+    ImGui::TextDisabled(
+        "Use the Entrance and Exit tools and Entity Properties to edit "
+        "connections.");
 
     ImGui::PopID();
   }
@@ -937,33 +756,13 @@ void LyraTerrainCanvas::DrawEntities(const gui::CanvasRuntime& canvas,
 
   const float marker_size = 16.0f * scale;
 
-  // Draw project map entities (sprites, doors, exits)
+  // Connections share the ordinary entity renderer; sprite previews remain here.
   for (int map_idx = 0; map_idx < Document::kMapCount; ++map_idx) {
     const int map_id = Document::kFirstMap + map_idx;
     if (map_id / 0x40 != world) {
       continue;
     }
     const auto& map_auth = document_->authoring().maps[map_idx];
-
-    // Exits (Distinct color: yellow / orange-yellow)
-    for (const auto& exit : map_auth.exits) {
-      const ImVec2 p_min = ToScreen(map_id, exit.x, exit.y);
-      const ImVec2 p_max(p_min.x + marker_size, p_min.y + marker_size);
-      draw->AddRectFilled(p_min, p_max, IM_COL32(230, 190, 40, 180));
-      draw->AddRect(p_min, p_max, IM_COL32(255, 255, 255, 220));
-      draw->AddText(ImVec2(p_min.x + 2, p_min.y + 2), IM_COL32(0, 0, 0, 255),
-                    "exit");
-    }
-
-    // Doors / Entrances (Distinct color: green)
-    for (const auto& door : map_auth.doors) {
-      const ImVec2 p_min = ToScreen(map_id, door.x, door.y);
-      const ImVec2 p_max(p_min.x + marker_size, p_min.y + marker_size);
-      draw->AddRectFilled(p_min, p_max, IM_COL32(50, 190, 80, 180));
-      draw->AddRect(p_min, p_max, IM_COL32(255, 255, 255, 220));
-      draw->AddText(ImVec2(p_min.x + 2, p_min.y + 2), IM_COL32(0, 0, 0, 255),
-                    "entrance");
-    }
 
     // Sprites matching current state (Distinct color: red / magenta)
     for (const auto& sprite : map_auth.sprites) {
@@ -1084,33 +883,6 @@ void LyraTerrainCanvas::HandleEntityInput(const gui::CanvasRuntime& canvas,
         .x = local_x,
         .y = local_y,
         .state = std::clamp(placement_state_, 0, 2),
-    });
-    absl::Status edit_status = EditAuthoring(next_state, overworld, history);
-    if (edit_status.ok()) {
-      placement_kind_ = 0;
-    }
-  } else if (placement_kind_ == 2) {
-    // Door / Entrance
-    const uint32_t new_id = AllocateDoorId(next_state);
-    next_state.maps[map_index].doors.push_back({
-        .id = new_id,
-        .x = local_x,
-        .y = local_y,
-        .entrance_id = std::nullopt,
-    });
-    absl::Status edit_status = EditAuthoring(next_state, overworld, history);
-    if (edit_status.ok()) {
-      placement_kind_ = 0;
-    }
-  } else if (placement_kind_ == 3) {
-    // Exit
-    const uint32_t new_id = AllocateExitId(next_state);
-    next_state.maps[map_index].exits.push_back({
-        .id = new_id,
-        .room_id = 0,
-        .x = local_x,
-        .y = local_y,
-        .exit_row = std::nullopt,
     });
     absl::Status edit_status = EditAuthoring(next_state, overworld, history);
     if (edit_status.ok()) {

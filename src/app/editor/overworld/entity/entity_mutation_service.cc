@@ -1,15 +1,124 @@
 #include "app/editor/overworld/entity/entity_mutation_service.h"
 
 #include <algorithm>
+#include <unordered_set>
 
 #include "app/editor/overworld/entity/entity_operations.h"
 #include "zelda3/overworld/overworld.h"
 
 namespace yaze {
 namespace editor {
+namespace {
+
+absl::StatusOr<uint32_t> AllocateProjectConnectionId(
+    const core::LyraAuthoringState& state, bool entrance) {
+  std::unordered_set<uint32_t> ids;
+  for (const auto& map : state.maps) {
+    if (entrance) {
+      for (const auto& row : map.doors)
+        ids.insert(row.id);
+    } else {
+      for (const auto& row : map.exits)
+        ids.insert(row.id);
+    }
+  }
+  uint32_t candidate = 1;
+  while (ids.contains(candidate)) {
+    if (++candidate == 0) {
+      return absl::ResourceExhaustedError(
+          "Project connection IDs are exhausted");
+    }
+  }
+  return candidate;
+}
+
+absl::Status ValidateProjectConnectionPlan(
+    const core::LyraTerrainDocument& document,
+    const ProjectConnectionEditPlan& plan) {
+  auto validation = document;
+  return validation.SetAuthoring(plan.before, plan.after);
+}
+
+}  // namespace
 
 EntityMutationService::EntityMutationService(zelda3::Overworld& overworld)
     : overworld_(overworld) {}
+
+absl::StatusOr<ProjectConnectionMutation>
+EntityMutationService::PrepareProjectConnectionInsertion(
+    const core::LyraTerrainDocument& document, const std::string& type,
+    int map_id, int world_x, int world_y) {
+  if (type != "entrance" && type != "exit") {
+    return absl::InvalidArgumentError(
+        "Project connections support entrance or exit insertion");
+  }
+  if (map_id < core::LyraTerrainDocument::kFirstMap || map_id >= 0xC0 ||
+      world_x < 0 || world_x >= 4096 || world_y < 0 || world_y >= 4096 ||
+      world_x % 16 != 0 || world_y % 16 != 0 ||
+      map_id != 0x80 + world_y / 512 * 8 + world_x / 512) {
+    return absl::InvalidArgumentError(
+        "Project connection needs aligned world pixels on its A0-BF map");
+  }
+  const bool entrance = type == "entrance";
+  const auto id = AllocateProjectConnectionId(document.authoring(), entrance);
+  if (!id.ok())
+    return id.status();
+  ProjectConnectionMutation mutation{
+      {document.authoring(), document.authoring()},
+      ProjectEntranceReference{*id}};
+  auto& map = mutation.plan.after.maps[map_id - 0xA0];
+  const int x = world_x % 512 / 16;
+  const int y = world_y % 512 / 16;
+  if (entrance) {
+    map.doors.push_back({*id, x, y, std::nullopt});
+  } else {
+    map.exits.push_back({*id, 0, x, y, std::nullopt});
+    mutation.reference = ProjectReturnReference{*id};
+  }
+  const auto status = ValidateProjectConnectionPlan(document, mutation.plan);
+  if (!status.ok())
+    return status;
+  return mutation;
+}
+
+absl::StatusOr<ProjectConnectionEditPlan>
+EntityMutationService::PrepareProjectConnectionDeletion(
+    const core::LyraTerrainDocument& document,
+    const OverworldConnectionView& expected) {
+  if (!std::holds_alternative<ProjectEntranceReference>(expected.reference) &&
+      !std::holds_alternative<ProjectReturnReference>(expected.reference)) {
+    return absl::InvalidArgumentError(
+        "Use the native record deletion transaction");
+  }
+  const auto current = ResolveOverworldConnection(
+      {{}, {}, {}, &document.authoring()}, expected.reference);
+  if (!current.ok())
+    return current.status();
+  // Reuse the edit preflight to verify the complete expected record and reject
+  // stale identities. Its unchanged draft cannot rewrite unrelated fields.
+  auto plan =
+      PrepareProjectConnectionEdit(document, expected,
+                                   {current->physical_map_id, current->world_x,
+                                    current->world_y, current->destination});
+  if (!plan.ok())
+    return plan.status();
+  auto& map = plan->after.maps[current->physical_map_id - 0xA0];
+  if (const auto* reference =
+          std::get_if<ProjectEntranceReference>(&expected.reference)) {
+    std::erase_if(map.doors,
+                  [&](const auto& row) { return row.id == reference->id; });
+  } else {
+    const auto return_reference =
+        std::get<ProjectReturnReference>(expected.reference);
+    std::erase_if(map.exits, [&](const auto& row) {
+      return row.id == return_reference.id;
+    });
+  }
+  const auto status = ValidateProjectConnectionPlan(document, *plan);
+  if (!status.ok())
+    return status;
+  return plan;
+}
 
 EntityMutationService::MutationResult EntityMutationService::InsertEntity(
     const std::string& type, const OverworldContextTarget& target,

@@ -381,10 +381,14 @@ void MapPropertiesSystem::DrawOverlayEditor(int current_map,
 void MapPropertiesSystem::SetupCanvasContextMenu(
     gui::Canvas& canvas, const OverworldContextTarget& target,
     bool& current_map_lock, int current_mode, project::YazeProject* project,
-    SharedClipboard* shared_clipboard) {
+    SharedClipboard* shared_clipboard, bool project_connections_available) {
   (void)current_mode;  // Explicit context actions are independent of tool mode.
   const int map_id = target.map_id;
   const bool valid_map = target.valid();
+  const bool valid_project_connection = project_connections_available &&
+                                        map_id >= 0xA0 && map_id < 0xC0 &&
+                                        target.valid(zelda3::kExpandedMapCount);
+  const bool valid_connection_target = valid_map || valid_project_connection;
   canvas.ClearContextMenuItems();
   // This canvas supplies one complete View menu through editor navigation.
   canvas.SetShowBuiltinContextMenu(false);
@@ -416,8 +420,9 @@ void MapPropertiesSystem::SetupCanvasContextMenu(
   // Menu rows share a label column. Keep metadata in tooltips so long map
   // names cannot widen every action and its shortcut column.
   auto title = gui::CanvasMenuItem::Disabled(
-      valid_map ? absl::StrFormat("Map 0x%02X", map_id) : "Outside Overworld");
-  if (valid_map) {
+      valid_connection_target ? absl::StrFormat("Map 0x%02X", map_id)
+                              : "Outside Overworld");
+  if (valid_connection_target) {
     title.tooltip = describe(map_id);
   }
   add(std::move(title), ICON_MD_MAP, !(valid_map && target.tile16_id >= 0));
@@ -621,8 +626,8 @@ void MapPropertiesSystem::SetupCanvasContextMenu(
   // --- Insert: entities placed at the clicked tile --------------------------
   gui::CanvasMenuItem insert_menu;
   insert_menu.label = "Insert";
-  insert_menu.enabled_condition = [this, valid_map]() {
-    return valid_map && bool(entity_insert_callback_);
+  insert_menu.enabled_condition = [this, valid_connection_target]() {
+    return valid_connection_target && bool(entity_insert_callback_);
   };
   struct EntityType {
     const char* icon;
@@ -639,11 +644,20 @@ void MapPropertiesSystem::SetupCanvasContextMenu(
   // Not a structured binding: lambdas can't capture those before Clang 16.
   for (const EntityType& entity : entity_types) {
     const char* type = entity.type;
-    insert_menu.subitems.emplace_back(
-        entity.label, entity.icon, [this, target, type]() {
-          if (entity_insert_callback_ && target.valid())
-            entity_insert_callback_(type, target);
-        });
+    const bool project_type =
+        std::strcmp(type, "entrance") == 0 || std::strcmp(type, "exit") == 0;
+    const bool valid_type_target =
+        valid_map || (valid_project_connection && project_type);
+    // Retained callbacks must enforce the same gate as menu enablement.
+    gui::CanvasMenuItem item(entity.label, entity.icon,
+                             [this, target, type, valid_type_target]() {
+                               if (entity_insert_callback_ && valid_type_target)
+                                 entity_insert_callback_(type, target);
+                             });
+    item.enabled_condition = [this, valid_type_target]() {
+      return valid_type_target && bool(entity_insert_callback_);
+    };
+    insert_menu.subitems.push_back(std::move(item));
   }
   add(std::move(insert_menu), ICON_MD_ADD_LOCATION);
 

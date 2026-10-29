@@ -7,6 +7,7 @@
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "app/editor/overworld/canvas/overworld_context_target.h"
+#include "app/editor/overworld/entity/overworld_connection_adapter.h"
 #include "imgui/imgui.h"
 #include "zelda3/overworld/overworld_item.h"
 
@@ -53,6 +54,15 @@ class EntityMutationService {
   MutationResult DeleteSprite(zelda3::Sprite* sprite, int game_state);
   MutationResult DeleteEntrance(zelda3::OverworldEntrance* entrance);
   MutationResult DeleteExit(zelda3::OverworldExit* exit);
+
+  // Project records never enter native ROM vectors. These pure plans retain
+  // preimages for the caller's existing authoring transaction/shared Undo.
+  absl::StatusOr<ProjectConnectionMutation> PrepareProjectConnectionInsertion(
+      const core::LyraTerrainDocument& document, const std::string& type,
+      int map_id, int world_x, int world_y);
+  absl::StatusOr<ProjectConnectionEditPlan> PrepareProjectConnectionDeletion(
+      const core::LyraTerrainDocument& document,
+      const OverworldConnectionView& expected);
 
   MutationResult DuplicateItem(const zelda3::OverworldItem& source,
                                int offset_x, int offset_y);

@@ -10,7 +10,9 @@
 #include <vector>
 
 #include "absl/status/status.h"
+#include "app/editor/overworld/entity/entity_mutation_service.h"
 #include "gtest/gtest.h"
+#include "zelda3/overworld/overworld.h"
 
 namespace yaze::editor {
 namespace {
@@ -84,6 +86,8 @@ class OverworldConnectionAdapterTest : public ::testing::Test {
   }
 
   std::optional<core::LyraTerrainDocument> document_;
+  zelda3::Overworld native_{nullptr};
+  EntityMutationService mutations_{native_};
 };
 
 TEST_F(OverworldConnectionAdapterTest,
@@ -599,6 +603,251 @@ TEST_F(OverworldConnectionAdapterTest,
   EXPECT_TRUE(document_->stroke_active());
   EXPECT_EQ(document_->authoring(), before);
   EXPECT_EQ(document_->MapTile(0xA0, 0, 0).value(), 8);
+  document_->CancelStroke();
+}
+
+TEST_F(OverworldConnectionAdapterTest,
+       ProjectInsertionAllocatesLowestUnusedIdWithinEachKindAcrossMaps) {
+  auto before = document_->authoring();
+  before.maps[1].doors.push_back({2, 0, 0, 0x25});
+  before.maps[31].doors.push_back({4, 1, 1, 0x26});
+  ASSERT_TRUE(document_->SetAuthoring(document_->authoring(), before).ok());
+  document_->MarkSaved();
+  const auto entrance = mutations_.PrepareProjectConnectionInsertion(
+      *document_, "entrance", 0xBF, 4080, 4080);
+  const auto exit = mutations_.PrepareProjectConnectionInsertion(
+      *document_, "exit", 0xA0, 0, 2048);
+  ASSERT_TRUE(entrance.ok()) << entrance.status();
+  ASSERT_TRUE(exit.ok()) << exit.status();
+  EXPECT_EQ(entrance->reference,
+            OverworldConnectionReference(ProjectEntranceReference{3}));
+  EXPECT_EQ(exit->reference,
+            OverworldConnectionReference(ProjectReturnReference{2}));
+  EXPECT_EQ(entrance->plan.before, before);
+  EXPECT_EQ(entrance->plan.after.maps[31].doors.back(),
+            (core::LyraDoorPlacement{3, 31, 31, std::nullopt}));
+  EXPECT_EQ(exit->plan.after.maps[0].exits.back(),
+            (core::LyraExitPlacement{2, 0, 0, 0, std::nullopt}));
+  EXPECT_EQ(document_->authoring(), before);
+  EXPECT_FALSE(document_->dirty());
+}
+
+TEST_F(OverworldConnectionAdapterTest,
+       ProjectInsertionCommitDeletionAndRestorationKeepStableIdentity) {
+  const auto baseline = document_->authoring();
+  const auto insertion = mutations_.PrepareProjectConnectionInsertion(
+      *document_, "entrance", 0xBF, 4064, 4080);
+  ASSERT_TRUE(insertion.ok()) << insertion.status();
+  ASSERT_TRUE(
+      document_->SetAuthoring(insertion->plan.before, insertion->plan.after)
+          .ok());
+  auto selected = ResolveOverworldConnection(Records(), insertion->reference);
+  ASSERT_TRUE(selected.ok()) << selected.status();
+  EXPECT_EQ(std::get<core::LyraDoorPlacement>(selected->record).id, 2u);
+  const auto deletion =
+      mutations_.PrepareProjectConnectionDeletion(*document_, *selected);
+  ASSERT_TRUE(deletion.ok()) << deletion.status();
+  EXPECT_EQ(document_->authoring(), insertion->plan.after);
+  ASSERT_TRUE(document_->SetAuthoring(deletion->before, deletion->after).ok());
+  EXPECT_EQ(document_->authoring(), baseline);
+  EXPECT_TRUE(absl::IsNotFound(
+      ResolveOverworldConnection(Records(), insertion->reference).status()));
+  ASSERT_TRUE(document_->SetAuthoring(deletion->after, deletion->before).ok());
+  auto restored = ResolveOverworldConnection(Records(), insertion->reference);
+  ASSERT_TRUE(restored.ok()) << restored.status();
+  EXPECT_EQ(std::get<core::LyraDoorPlacement>(restored->record),
+            std::get<core::LyraDoorPlacement>(selected->record));
+  auto fresh =
+      core::LyraTerrainDocument::Parse(document_->Serialize(), Profile());
+  ASSERT_TRUE(fresh.ok()) << fresh.status();
+  EXPECT_EQ(fresh->authoring(), insertion->plan.after);
+  EXPECT_EQ(fresh->authoring().maps[2], baseline.maps[2]);
+  EXPECT_EQ(fresh->authoring().flight_points, baseline.flight_points);
+}
+
+TEST_F(OverworldConnectionAdapterTest,
+       ProjectReturnInsertionAndDeletionLeaveEntranceWithSameIdUntouched) {
+  const auto insertion = mutations_.PrepareProjectConnectionInsertion(
+      *document_, "exit", 0xA1, 512, 2048);
+  ASSERT_TRUE(insertion.ok()) << insertion.status();
+  ASSERT_TRUE(
+      document_->SetAuthoring(insertion->plan.before, insertion->plan.after)
+          .ok());
+  auto selected = ResolveOverworldConnection(Records(), insertion->reference);
+  ASSERT_TRUE(selected.ok()) << selected.status();
+  EXPECT_EQ(std::get<DungeonReturnDestination>(selected->destination),
+            (DungeonReturnDestination{0, std::nullopt}));
+  const auto deletion =
+      mutations_.PrepareProjectConnectionDeletion(*document_, *selected);
+  ASSERT_TRUE(deletion.ok()) << deletion.status();
+  EXPECT_EQ(deletion->after, insertion->plan.before);
+  EXPECT_EQ(deletion->after.maps[0].doors, deletion->before.maps[0].doors);
+}
+
+TEST_F(OverworldConnectionAdapterTest,
+       ProjectInsertionRejectsHolesUnknownKindsAndInvalidCoordinates) {
+  struct Insertion {
+    const char* type;
+    int map;
+    int x;
+    int y;
+  };
+  const auto before = document_->authoring();
+  for (const auto& request : std::array<Insertion, 10>{{
+           {"hole", 0xA0, 0, 2048},
+           {"sprite", 0xA0, 0, 2048},
+           {"entrance", 0x9F, 0, 2048},
+           {"exit", 0xC0, 0, 2048},
+           {"entrance", 0xA0, -16, 2048},
+           {"entrance", 0xA0, 0, -16},
+           {"entrance", 0xA0, 1, 2048},
+           {"exit", 0xA0, 0, 2049},
+           {"exit", 0xBF, 4080, 4096},
+           {"entrance", 0xA0, 512, 2048},
+       }}) {
+    SCOPED_TRACE(request.type);
+    SCOPED_TRACE(request.map);
+    SCOPED_TRACE(request.x);
+    SCOPED_TRACE(request.y);
+    EXPECT_TRUE(absl::IsInvalidArgument(
+        mutations_
+            .PrepareProjectConnectionInsertion(
+                *document_, request.type, request.map, request.x, request.y)
+            .status()));
+  }
+  EXPECT_EQ(document_->authoring(), before);
+  EXPECT_FALSE(document_->dirty());
+}
+
+TEST_F(OverworldConnectionAdapterTest,
+       ProjectInsertionCollisionAndFullMapRefuseWithoutSourceMutation) {
+  const auto baseline = document_->authoring();
+  EXPECT_TRUE(
+      absl::IsInvalidArgument(mutations_
+                                  .PrepareProjectConnectionInsertion(
+                                      *document_, "entrance", 0xA0, 16, 2080)
+                                  .status()));
+  EXPECT_EQ(document_->authoring(), baseline);
+  auto full = baseline;
+  full.maps[1].doors.clear();
+  for (uint32_t i = 0; i < 64; ++i) {
+    full.maps[1].doors.push_back({100 + i, static_cast<int>(i % 32),
+                                  static_cast<int>(i / 32), std::nullopt});
+  }
+  ASSERT_TRUE(document_->SetAuthoring(baseline, full).ok());
+  document_->MarkSaved();
+  EXPECT_TRUE(
+      absl::IsInvalidArgument(mutations_
+                                  .PrepareProjectConnectionInsertion(
+                                      *document_, "entrance", 0xA1, 512, 2080)
+                                  .status()));
+  EXPECT_EQ(document_->authoring(), full);
+  EXPECT_FALSE(document_->dirty());
+}
+
+TEST_F(OverworldConnectionAdapterTest,
+       ProjectDeletionResolvesIdAfterReorderAndPreservesSurvivors) {
+  auto before = document_->authoring();
+  std::reverse(before.maps[0].doors.begin(), before.maps[0].doors.end());
+  ASSERT_TRUE(document_->SetAuthoring(document_->authoring(), before).ok());
+  document_->MarkSaved();
+  auto selected = Door();
+  ASSERT_TRUE(selected.ok()) << selected.status();
+  const auto deletion =
+      mutations_.PrepareProjectConnectionDeletion(*document_, *selected);
+  ASSERT_TRUE(deletion.ok()) << deletion.status();
+  ASSERT_EQ(deletion->after.maps[0].doors.size(), 1);
+  EXPECT_EQ(deletion->after.maps[0].doors[0], before.maps[0].doors[0]);
+  EXPECT_EQ(deletion->after.maps[0].doors[0].id, 7u);
+  EXPECT_EQ(deletion->after.maps[0].exits, before.maps[0].exits);
+  EXPECT_EQ(deletion->after.maps[2], before.maps[2]);
+  EXPECT_EQ(document_->authoring(), before);
+  EXPECT_FALSE(document_->dirty());
+}
+
+TEST_F(OverworldConnectionAdapterTest,
+       ProjectDeletionRefusesChangedMovedMissingAndReusedIds) {
+  auto selected = Door();
+  ASSERT_TRUE(selected.ok()) << selected.status();
+  const auto baseline = document_->authoring();
+  auto changed = baseline;
+  changed.maps[0].doors[0].entrance_id = 0x27;
+  ASSERT_TRUE(document_->SetAuthoring(baseline, changed).ok());
+  EXPECT_TRUE(absl::IsFailedPrecondition(
+      mutations_.PrepareProjectConnectionDeletion(*document_, *selected)
+          .status()));
+  auto removed = changed;
+  removed.maps[0].doors.erase(removed.maps[0].doors.begin());
+  ASSERT_TRUE(document_->SetAuthoring(changed, removed).ok());
+  EXPECT_TRUE(absl::IsNotFound(
+      mutations_.PrepareProjectConnectionDeletion(*document_, *selected)
+          .status()));
+  auto reused = removed;
+  reused.maps[0].doors.push_back({1, 9, 10, 0x25});
+  ASSERT_TRUE(document_->SetAuthoring(removed, reused).ok());
+  EXPECT_TRUE(absl::IsFailedPrecondition(
+      mutations_.PrepareProjectConnectionDeletion(*document_, *selected)
+          .status()));
+  auto moved = removed;
+  moved.maps[31].doors.push_back(
+      std::get<core::LyraDoorPlacement>(selected->record));
+  ASSERT_TRUE(document_->SetAuthoring(reused, moved).ok());
+  EXPECT_TRUE(absl::IsFailedPrecondition(
+      mutations_.PrepareProjectConnectionDeletion(*document_, *selected)
+          .status()));
+  EXPECT_EQ(document_->authoring(), moved);
+}
+
+TEST_F(OverworldConnectionAdapterTest,
+       ProjectMutationPlansNeverInjectIntoNativeVectors) {
+  native_.mutable_entrances()->push_back(Entrance(0, 16, 32, 0x25));
+  native_.mutable_holes()->push_back(Entrance(0, 48, 64, 0x27, true));
+  native_.mutable_exits()->push_back(zelda3::OverworldExit{});
+  const auto return_before = ReturnFields(native_.mutable_exits()->at(0));
+  auto selected = Door();
+  ASSERT_TRUE(selected.ok()) << selected.status();
+  EXPECT_TRUE(mutations_
+                  .PrepareProjectConnectionInsertion(*document_, "entrance",
+                                                     0xBF, 4080, 4080)
+                  .ok());
+  EXPECT_TRUE(mutations_
+                  .PrepareProjectConnectionInsertion(*document_, "exit", 0xA1,
+                                                     512, 2048)
+                  .ok());
+  EXPECT_TRUE(
+      mutations_.PrepareProjectConnectionDeletion(*document_, *selected).ok());
+  ASSERT_EQ(native_.entrances().size(), 1);
+  EXPECT_EQ(native_.entrances()[0].entrance_id_, 0x25);
+  ASSERT_EQ(native_.mutable_holes()->size(), 1);
+  EXPECT_EQ(native_.mutable_holes()->at(0).entrance_id_, 0x27);
+  ASSERT_EQ(native_.mutable_exits()->size(), 1);
+  EXPECT_EQ(ReturnFields(native_.mutable_exits()->at(0)), return_before);
+  EXPECT_FALSE(document_->dirty());
+}
+
+TEST_F(OverworldConnectionAdapterTest,
+       ProjectDeletionRejectsNativeReferenceAndActiveStrokeProtectsBothPlans) {
+  const std::vector<zelda3::OverworldEntrance> native{Entrance(0, 0, 0, 0x25)};
+  auto native_selection = ResolveOverworldConnection(
+      {native, {}, {}, nullptr},
+      NativeEntranceReference{NativeEntranceTable::kEntrances, 0});
+  ASSERT_TRUE(native_selection.ok()) << native_selection.status();
+  EXPECT_TRUE(absl::IsInvalidArgument(
+      mutations_.PrepareProjectConnectionDeletion(*document_, *native_selection)
+          .status()));
+  auto selected = Return();
+  ASSERT_TRUE(selected.ok()) << selected.status();
+  const auto before = document_->authoring();
+  ASSERT_TRUE(document_->BeginStroke().ok());
+  EXPECT_TRUE(absl::IsFailedPrecondition(
+      mutations_.PrepareProjectConnectionDeletion(*document_, *selected)
+          .status()));
+  EXPECT_TRUE(absl::IsFailedPrecondition(
+      mutations_
+          .PrepareProjectConnectionInsertion(*document_, "exit", 0xA0, 0, 2048)
+          .status()));
+  EXPECT_TRUE(document_->stroke_active());
+  EXPECT_EQ(document_->authoring(), before);
   document_->CancelStroke();
 }
 

@@ -9,6 +9,7 @@
 
 // C++ standard library headers
 #include <algorithm>
+#include <cmath>
 #include <memory>
 #include <string>
 #include <vector>
@@ -22,6 +23,7 @@
 // Project headers
 #include "app/editor/agent/agent_ui_theme.h"
 #include "app/editor/overworld/entity/entity.h"
+#include "app/editor/overworld/entity/entity_workbench.h"
 #include "app/editor/overworld/entity/overworld_entity_renderer.h"
 #include "app/editor/overworld/maps/map_properties.h"
 #include "app/editor/overworld/overworld_editor.h"
@@ -271,6 +273,11 @@ void OverworldCanvasRenderer::DrawOverworldCanvas() {
       editor_->entity_renderer_->DrawItems(canvas_rt, editor_->current_world_);
       editor_->entity_renderer_->DrawSprites(canvas_rt, editor_->current_world_,
                                              editor_->game_state_);
+      if (const auto* document = editor_->lyra_canvas_.document()) {
+        editor_->entity_renderer_->DrawProjectConnections(
+            canvas_rt, document->authoring(), editor_->current_world_, true,
+            true, project_drag_preview_ ? &*project_drag_preview_ : nullptr);
+      }
       FilterHoveredEntityByMode();
       DrawEntityHoverTooltip();
     } else if (editor_->entity_renderer_) {
@@ -297,8 +304,18 @@ void OverworldCanvasRenderer::DrawOverworldCanvas() {
       return;
     }
     // --- BEGIN ENTITY DRAG/DROP LOGIC ---
-    if (editor_->current_mode == EditingMode::MOUSE &&
-        editor_->TryPlaceArmedItem()) {
+    bool project_input = false;
+    if (auto* workbench = editor_->GetWorkbench()) {
+      project_input = HandleProjectConnectionInput(
+          canvas_rt, *workbench,
+          editor_->entity_renderer_
+              ? editor_->entity_renderer_->hovered_project_connection()
+              : std::nullopt);
+    }
+    if (project_input) {
+      // Project connections commit once through the same authoring history.
+    } else if (editor_->current_mode == EditingMode::MOUSE &&
+               editor_->TryPlaceArmedItem()) {
       // The click placed the item chosen from Insert Item.
     } else if (editor_->current_mode == EditingMode::MOUSE &&
                editor_->entity_renderer_) {
@@ -307,6 +324,39 @@ void OverworldCanvasRenderer::DrawOverworldCanvas() {
       // 1. Initiate drag
       if (!editor_->is_dragging_entity_ && hovered_entity &&
           ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
+        if (auto* workbench = editor_->GetWorkbench())
+          workbench->ClearProjectConnection();
+        native_connection_drag_before_.reset();
+        const auto capture = [&](const auto& rows, bool holes) {
+          for (size_t row = 0; row < rows.size(); ++row) {
+            if (static_cast<const zelda3::GameEntity*>(&rows[row]) !=
+                hovered_entity)
+              continue;
+            const auto snapshot = ResolveOverworldConnection(
+                {editor_->overworld_.entrances(), editor_->overworld_.holes(),
+                 *editor_->overworld_.exits(), nullptr},
+                NativeEntranceReference{holes ? NativeEntranceTable::kHoles
+                                              : NativeEntranceTable::kEntrances,
+                                        row});
+            if (snapshot.ok())
+              native_connection_drag_before_ = *snapshot;
+          }
+        };
+        if (hovered_entity->entity_type_ == zelda3::GameEntity::kEntrance) {
+          capture(editor_->overworld_.entrances(), false);
+          if (!native_connection_drag_before_)
+            capture(editor_->overworld_.holes(), true);
+        } else if (hovered_entity->entity_type_ == zelda3::GameEntity::kExit) {
+          const auto& rows = *editor_->overworld_.exits();
+          for (size_t row = 0; row < rows.size(); ++row) {
+            if (&rows[row] != hovered_entity)
+              continue;
+            const auto snapshot = ResolveOverworldConnection(
+                {{}, {}, rows, nullptr}, NativeReturnReference{row});
+            if (snapshot.ok())
+              native_connection_drag_before_ = *snapshot;
+          }
+        }
         editor_->dragged_entity_ = hovered_entity;
         entity_drag_origin_ = ImVec2(hovered_entity->x_, hovered_entity->y_);
         editor_->is_dragging_entity_ = true;
@@ -355,21 +405,28 @@ void OverworldCanvasRenderer::DrawOverworldCanvas() {
             editor_->dragged_entity_->UpdateMapProperties(
                 editor_->dragged_entity_->map_id_, &editor_->overworld_);
           }
+          if (native_connection_drag_before_) {
+            const auto committed = CommitNativeConnectionDrag(
+                editor_->dragged_entity_, *native_connection_drag_before_);
+            if (!committed.ok())
+              editor_->status_ = committed;
+          }
           if (editor_->drag_item_snapshot_) {
             // No-op if the item ended where it started.
             editor_->PushItemUndoAction(
                 std::move(*editor_->drag_item_snapshot_),
                 "Move overworld item");
           }
-          // TODO(overworld): entrances, exits and sprites have no undo action
-          // yet; their drags only mark the ROM dirty.
-          editor_->rom_->set_dirty(true);
+          // Connection edits and items finalize their own history/dirty state.
+          if (!native_connection_drag_before_ && !editor_->drag_item_snapshot_)
+            editor_->rom_->set_dirty(true);
         }
         editor_->drag_item_snapshot_.reset();
         editor_->is_dragging_entity_ = false;
         editor_->dragged_entity_ = nullptr;
         editor_->dragged_entity_free_movement_ = false;
         entity_drag_origin_.reset();
+        native_connection_drag_before_.reset();
       }
     }
     // --- END ENTITY DRAG/DROP LOGIC ---
@@ -379,6 +436,118 @@ void OverworldCanvasRenderer::DrawOverworldCanvas() {
   gui::EndCanvas(editor_->ow_map_canvas_, canvas_rt, frame_opts);
   ImGui::EndChild();
   editor_->DrawItemInsertPopup();
+}
+
+absl::Status OverworldCanvasRenderer::CommitNativeConnectionDrag(
+    zelda3::GameEntity* target, const OverworldConnectionView& before) {
+  if (const auto* ref =
+          std::get_if<NativeEntranceReference>(&before.reference)) {
+    auto* rows = ref->table == NativeEntranceTable::kEntrances
+                     ? editor_->overworld_.mutable_entrances()
+                 : ref->table == NativeEntranceTable::kHoles
+                     ? editor_->overworld_.mutable_holes()
+                     : nullptr;
+    const auto* entrance =
+        std::get_if<zelda3::OverworldEntrance>(&before.record);
+    if (!rows || !entrance || ref->row >= rows->size() ||
+        &rows->at(ref->row) != target) {
+      return absl::FailedPreconditionError(
+          "Entrance drag row is no longer current");
+    }
+    auto* value = &rows->at(ref->row);
+    const auto draft = *value;
+    *value = *entrance;
+    return editor_->ApplyEntranceEdit(value, draft);
+  }
+  if (const auto* ref = std::get_if<NativeReturnReference>(&before.reference)) {
+    auto* rows = editor_->overworld_.mutable_exits();
+    const auto* exit = std::get_if<zelda3::OverworldExit>(&before.record);
+    if (!exit || ref->row >= rows->size() || &rows->at(ref->row) != target) {
+      return absl::FailedPreconditionError(
+          "Return drag row is no longer current");
+    }
+    auto* value = &rows->at(ref->row);
+    const auto draft = *value;
+    *value = *exit;
+    return editor_->ApplyExitEdit(value, draft);
+  }
+  return absl::InvalidArgumentError("Select a native connection for dragging");
+}
+
+bool OverworldCanvasRenderer::HandleProjectConnectionInput(
+    const gui::CanvasRuntime& canvas, OverworldEntityWorkbench& workbench,
+    const std::optional<OverworldConnectionReference>& hovered) {
+  const auto cancel_drag = [&] {
+    project_drag_before_.reset();
+    project_drag_preview_.reset();
+  };
+  if (!editor_->show_entities_ || editor_->current_mode != EditingMode::MOUSE ||
+      !editor_->lyra_canvas_.loaded() || !std::isfinite(canvas.scale) ||
+      canvas.scale <= 0 ||
+      (project_drag_before_ &&
+       project_drag_before_->physical_map_id / 64 != editor_->current_world_)) {
+    cancel_drag();
+    return false;
+  }
+  if (ImGui::IsKeyPressed(ImGuiKey_Escape)) {
+    const bool consumed = project_drag_before_.has_value();
+    cancel_drag();
+    return consumed;
+  }
+  if (!project_drag_before_ && hovered && canvas.hovered) {
+    if (ImGui::IsMouseClicked(ImGuiMouseButton_Right)) {
+      editor_->status_ =
+          workbench.OpenProjectConnectionContextMenu(*editor_, *hovered);
+      return true;
+    }
+    if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
+      editor_->status_ =
+          workbench.OpenProjectConnectionEditor(*editor_, *hovered);
+      return true;
+    }
+    if (ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
+      editor_->status_ = workbench.SelectProjectConnection(*editor_, *hovered);
+      if (!editor_->status_.ok())
+        return true;
+      project_drag_before_ = workbench.SelectedProjectConnection(*editor_);
+      if (project_drag_before_) {
+        project_drag_position_ = ImVec2(project_drag_before_->world_x,
+                                        project_drag_before_->world_y);
+        project_drag_preview_ = project_drag_before_;
+      }
+      return true;
+    }
+  }
+  if (!project_drag_before_)
+    return false;
+  if (ImGui::IsMouseDragging(ImGuiMouseButton_Left)) {
+    const auto delta = ImGui::GetIO().MouseDelta;
+    if (std::isfinite(delta.x) && std::isfinite(delta.y)) {
+      project_drag_position_.x = std::clamp(
+          project_drag_position_.x + delta.x / canvas.scale, 0.0f, 4080.0f);
+      project_drag_position_.y = std::clamp(
+          project_drag_position_.y + delta.y / canvas.scale, 2048.0f, 4080.0f);
+      project_drag_preview_->world_x =
+          static_cast<int>(project_drag_position_.x / 16) * 16;
+      project_drag_preview_->world_y =
+          static_cast<int>(project_drag_position_.y / 16) * 16;
+      project_drag_preview_->physical_map_id =
+          editor_->current_world_ * 64 + project_drag_preview_->world_x / 512 +
+          project_drag_preview_->world_y / 512 * 8;
+    }
+    ImGui::SetMouseCursor(ImGuiMouseCursor_Hand);
+  }
+  if (ImGui::IsMouseReleased(ImGuiMouseButton_Left)) {
+    const auto& preview = *project_drag_preview_;
+    editor_->status_ = workbench.ApplyProjectConnectionEdit(
+        *editor_, *project_drag_before_,
+        {preview.physical_map_id, preview.world_x, preview.world_y,
+         project_drag_before_->destination});
+    cancel_drag();
+  } else if (!ImGui::IsMouseDown(ImGuiMouseButton_Left)) {
+    cancel_drag();
+  }
+  return true;
 }
 
 // =============================================================================
@@ -1124,6 +1293,20 @@ void OverworldCanvasRenderer::DrawV3Settings() {
 }
 
 void OverworldCanvasRenderer::FilterHoveredEntityByMode() {
+  if (const auto& project =
+          editor_->entity_renderer_->hovered_project_connection()) {
+    const bool entrance =
+        std::holds_alternative<ProjectEntranceReference>(*project);
+    const bool allowed =
+        editor_->current_mode == EditingMode::MOUSE &&
+        editor_->entity_edit_mode_ != EntityEditMode::ITEMS &&
+        editor_->entity_edit_mode_ != EntityEditMode::SPRITES &&
+        (editor_->entity_edit_mode_ != EntityEditMode::ENTRANCES || entrance) &&
+        (editor_->entity_edit_mode_ != EntityEditMode::EXITS || !entrance);
+    if (!allowed)
+      editor_->entity_renderer_->ResetHoveredEntity();
+    return;
+  }
   auto* entity = editor_->entity_renderer_->hovered_entity();
   if (!entity) {
     return;

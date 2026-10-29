@@ -1,8 +1,10 @@
 #ifndef YAZE_APP_EDITOR_OVERWORLD_OVERWORLD_ENTITY_RENDERER_H
 #define YAZE_APP_EDITOR_OVERWORLD_OVERWORLD_ENTITY_RENDERER_H
 
+#include <optional>
 #include <vector>
 
+#include "app/editor/overworld/entity/overworld_connection_adapter.h"
 #include "app/gfx/core/bitmap.h"
 #include "app/gui/canvas/canvas.h"
 #include "imgui/imgui.h"
@@ -52,6 +54,12 @@ class OverworldEntityRenderer {
   void DrawItems(const gui::CanvasRuntime& rt, int current_world);
   void DrawSprites(const gui::CanvasRuntime& rt, int current_world,
                    int game_state);
+  // Project markers use the ordinary entrance/return presentation while their
+  // selection stays a stable project reference. Preview changes display only.
+  void DrawProjectConnections(
+      const gui::CanvasRuntime& rt, const core::LyraAuthoringState& authoring,
+      int world, bool entrances_enabled = true, bool exits_enabled = true,
+      const OverworldConnectionView* drag_preview = nullptr);
 
   // ==========================================================================
   // Legacy rendering methods (kept for backward compatibility)
@@ -75,12 +83,20 @@ class OverworldEntityRenderer {
   void DrawDiggableTileHighlights(int current_world, int current_map);
 
   auto hovered_entity() const { return hovered_entity_; }
-  void ResetHoveredEntity() { hovered_entity_ = nullptr; }
+  std::optional<OverworldConnectionReference> hovered_project_connection()
+      const {
+    return hovered_project_connection_;
+  }
+  void ResetHoveredEntity() {
+    hovered_entity_ = nullptr;
+    hovered_project_connection_.reset();
+  }
   bool show_diggable_tiles() const { return show_diggable_tiles_; }
   void set_show_diggable_tiles(bool show) { show_diggable_tiles_ = show; }
 
  private:
   zelda3::GameEntity* hovered_entity_ = nullptr;
+  std::optional<OverworldConnectionReference> hovered_project_connection_;
   zelda3::Overworld* overworld_;
   gui::Canvas* canvas_;
   std::vector<gfx::Bitmap>* sprite_previews_;

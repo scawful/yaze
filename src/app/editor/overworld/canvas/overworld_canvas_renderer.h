@@ -8,7 +8,9 @@
 #include <vector>
 
 #include "absl/status/status.h"
+#include "app/editor/overworld/entity/overworld_connection_adapter.h"
 #include "app/gfx/core/bitmap.h"
+#include "app/gui/canvas/canvas_types.h"
 #include "app/gui/layout/adaptive_sheet_layout.h"
 #include "imgui/imgui.h"
 #include "zelda3/overworld/tile16_usage_index.h"
@@ -17,6 +19,7 @@ namespace yaze {
 namespace editor {
 
 class OverworldEditor;
+class OverworldEntityWorkbench;
 
 void DrawSheetScaleControl(const char* id, gui::AdaptiveSheetScaleMode* mode);
 
@@ -82,6 +85,12 @@ class OverworldCanvasRenderer {
   std::string Tile16ScopeLabel() const;
 
  private:
+  friend class OverworldConnectionCanvasTestPeer;
+  absl::Status CommitNativeConnectionDrag(
+      zelda3::GameEntity* target, const OverworldConnectionView& before);
+  bool HandleProjectConnectionInput(
+      const gui::CanvasRuntime& canvas, OverworldEntityWorkbench& workbench,
+      const std::optional<OverworldConnectionReference>& hovered);
   // =========================================================================
   // Internal Canvas Drawing Helpers
   // =========================================================================
@@ -121,6 +130,10 @@ class OverworldCanvasRenderer {
 
   OverworldEditor* editor_;  ///< Non-owning pointer to the parent editor
   std::optional<ImVec2> entity_drag_origin_;
+  std::optional<OverworldConnectionView> native_connection_drag_before_;
+  std::optional<OverworldConnectionView> project_drag_before_;
+  std::optional<OverworldConnectionView> project_drag_preview_;
+  ImVec2 project_drag_position_{};
   gui::AdaptiveSheetScaleMode tile16_scale_mode_ =
       gui::AdaptiveSheetScaleMode::kFit;
   gui::AdaptiveSheetScaleMode area_graphics_scale_mode_ =
