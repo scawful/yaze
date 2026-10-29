@@ -279,6 +279,10 @@ void CommandRegistry::RegisterHandlers(
       } else if (name == "rom-compare") {
         metadata.examples = {
             "z3ed rom-compare --rom=target.sfc --baseline=vanilla.sfc"};
+      } else if (name == "rom-write") {
+        metadata.examples = {
+            "z3ed rom-write --rom=/tmp/oos-work.sfc --address=0x15819C "
+            "--data=\"0C\" --write --format=json"};
       }
     } else if (name.find("emulator-") == 0) {
       metadata.category = "emulator";
