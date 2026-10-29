@@ -45,6 +45,10 @@ class BackgroundCommandTask {
  private:
   void WorkerMain(std::string command, std::string directory,
                   std::vector<std::string> environment);
+#ifdef _WIN32
+  void WorkerMainWindows(std::string command, std::string directory,
+                         std::vector<std::string> environment);
+#endif
   void AppendOutput(const char* data, size_t size);
   void Finalize(absl::Status status, int exit_code);
   void JoinIfNeeded();

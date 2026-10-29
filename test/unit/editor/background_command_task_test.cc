@@ -12,10 +12,8 @@
 
 #include "absl/strings/str_cat.h"
 
-// BackgroundCommandTask::Start() returns UnimplementedError on Windows,
-// Emscripten, and iOS (see background_command_task.cc:SupportsNative*).
-// Gate the whole suite on POSIX-desktop targets so CI on those platforms
-// does not spuriously fail.
+// This suite uses POSIX shell syntax. Windows has a native suite below;
+// Emscripten and iOS retain the unsupported-platform contract.
 #if defined(_WIN32) || defined(__EMSCRIPTEN__) || \
     (defined(__APPLE__) && TARGET_OS_IPHONE)
 #define YAZE_BACKGROUND_COMMANDS_SUPPORTED 0
@@ -336,7 +334,385 @@ TEST(BackgroundCommandTaskTest, CancelStopsRunningCommand) {
 }  // namespace
 }  // namespace yaze::editor
 
-#else  // !YAZE_BACKGROUND_COMMANDS_SUPPORTED
+#elif defined(_WIN32)
+
+#include <fstream>
+#include <iterator>
+
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
+#include <windows.h>
+
+#include "absl/strings/escaping.h"
+
+namespace yaze::editor {
+namespace {
+
+class ScopedWindowsTestHandle {
+ public:
+  explicit ScopedWindowsTestHandle(HANDLE handle) : handle_(handle) {}
+  ~ScopedWindowsTestHandle() {
+    if (handle_ && handle_ != INVALID_HANDLE_VALUE)
+      CloseHandle(handle_);
+  }
+  HANDLE get() const { return handle_; }
+  ScopedWindowsTestHandle(const ScopedWindowsTestHandle&) = delete;
+  ScopedWindowsTestHandle& operator=(const ScopedWindowsTestHandle&) = delete;
+
+ private:
+  HANDLE handle_;
+};
+
+class ScopedWindowsTestDirectory {
+ public:
+  ScopedWindowsTestDirectory() {
+    const auto nonce =
+        std::chrono::steady_clock::now().time_since_epoch().count();
+    path_ = std::filesystem::temp_directory_path() /
+            ("yaze_windows_command_" + std::to_string(nonce));
+    std::filesystem::create_directories(path_);
+  }
+  ~ScopedWindowsTestDirectory() {
+    std::error_code error;
+    std::filesystem::remove_all(path_, error);
+  }
+  const std::filesystem::path& path() const { return path_; }
+
+ private:
+  std::filesystem::path path_;
+};
+
+std::optional<std::wstring> WindowsEnvironmentValue(const std::wstring& name) {
+  SetLastError(ERROR_SUCCESS);
+  const DWORD required = GetEnvironmentVariableW(name.c_str(), nullptr, 0);
+  if (required == 0) {
+    if (GetLastError() == ERROR_ENVVAR_NOT_FOUND)
+      return std::nullopt;
+    return std::wstring();
+  }
+  std::wstring value(required, L'\0');
+  const DWORD copied =
+      GetEnvironmentVariableW(name.c_str(), value.data(), required);
+  value.resize(copied);
+  return value;
+}
+
+class ScopedWindowsEnvironment {
+ public:
+  ScopedWindowsEnvironment(std::wstring name, const std::wstring& value)
+      : name_(std::move(name)), before_(WindowsEnvironmentValue(name_)) {
+    EXPECT_TRUE(SetEnvironmentVariableW(name_.c_str(), value.c_str()));
+  }
+  ~ScopedWindowsEnvironment() {
+    EXPECT_TRUE(SetEnvironmentVariableW(name_.c_str(),
+                                        before_ ? before_->c_str() : nullptr));
+  }
+
+ private:
+  std::wstring name_;
+  std::optional<std::wstring> before_;
+};
+
+std::string WindowsPathUtf8(const std::filesystem::path& path) {
+  const auto text = path.u8string();
+  return std::string(reinterpret_cast<const char*>(text.data()), text.size());
+}
+
+std::wstring WindowsTestWide(const std::string& text) {
+  const int size = MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS,
+                                       text.data(), text.size(), nullptr, 0);
+  EXPECT_GT(size, 0);
+  std::wstring wide(size, L'\0');
+  EXPECT_EQ(MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, text.data(),
+                                text.size(), wide.data(), size),
+            size);
+  return wide;
+}
+
+std::string EncodedPowerShell(const std::string& script) {
+  const auto wide = WindowsTestWide(script);
+  std::string bytes;
+  for (wchar_t character : wide) {
+    bytes.push_back(static_cast<char>(character & 255));
+    bytes.push_back(static_cast<char>((character >> 8) & 255));
+  }
+  return absl::Base64Escape(bytes);
+}
+
+std::filesystem::path WindowsPowerShellPath() {
+  std::array<wchar_t, MAX_PATH> directory{};
+  const DWORD size = GetSystemDirectoryW(directory.data(), directory.size());
+  EXPECT_GT(size, 0u);
+  EXPECT_LT(size, directory.size());
+  return std::filesystem::path(directory.data()) / "WindowsPowerShell" /
+         "v1.0" / "powershell.exe";
+}
+
+std::string PowerShellCommand(const std::string& script) {
+  return "\"" + WindowsPathUtf8(WindowsPowerShellPath()) +
+         "\" -NoLogo -NoProfile -NonInteractive -EncodedCommand " +
+         EncodedPowerShell(
+             "[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false); " +
+             script);
+}
+
+bool WaitForWindowsOutput(BackgroundCommandTask& task,
+                          const std::string& marker) {
+  const auto deadline =
+      std::chrono::steady_clock::now() + std::chrono::seconds(10);
+  while (std::chrono::steady_clock::now() < deadline) {
+    if (task.GetSnapshot().output.find(marker) != std::string::npos)
+      return true;
+    if (task.GetSnapshot().finished)
+      return false;
+    std::this_thread::sleep_for(std::chrono::milliseconds(25));
+  }
+  return false;
+}
+
+std::string QuotePowerShell(const std::string& text) {
+  std::string escaped = "'";
+  for (char character : text) {
+    escaped += character;
+    if (character == '\'')
+      escaped += '\'';
+  }
+  return escaped + "'";
+}
+
+std::string WindowsTreeCommand(
+    const std::filesystem::path& pid_file,
+    const std::filesystem::path& release_parent = {}) {
+  const std::string child_arguments =
+      "-NoLogo -NoProfile -NonInteractive -EncodedCommand " +
+      EncodedPowerShell("Start-Sleep -Seconds 30");
+  return PowerShellCommand(
+      "$start = [Diagnostics.ProcessStartInfo]::new(); "
+      "$start.FileName = " +
+      QuotePowerShell(WindowsPathUtf8(WindowsPowerShellPath())) +
+      "; $start.Arguments = " + QuotePowerShell(child_arguments) +
+      "; $start.UseShellExecute = $false; $start.CreateNoWindow = $true; "
+      "$child = [Diagnostics.Process]::Start($start); "
+      "[IO.File]::WriteAllText(" +
+      QuotePowerShell(WindowsPathUtf8(pid_file)) +
+      ", [string]$child.Id); [Console]::WriteLine('yaze-win-tree-ready'); " +
+      (release_parent.empty()
+           ? "Start-Sleep -Seconds 30"
+           : "while (-not [IO.File]::Exists(" +
+                 QuotePowerShell(WindowsPathUtf8(release_parent)) +
+                 ")) { Start-Sleep -Milliseconds 25 }; exit 0"));
+}
+
+DWORD ReadWindowsChildPid(const std::filesystem::path& path) {
+  std::ifstream input(path);
+  DWORD pid = 0;
+  input >> pid;
+  EXPECT_TRUE(input.good() || input.eof());
+  EXPECT_NE(pid, 0u);
+  return pid;
+}
+
+TEST(BackgroundCommandTaskTest, WindowsStreamsStdoutAndStderrBeforeCompletion) {
+  ScopedWindowsTestDirectory root;
+  const auto release = root.path() / "release-stream";
+  BackgroundCommandTask task;
+  ASSERT_TRUE(task.Start(PowerShellCommand(
+                             "[Console]::WriteLine('yaze-win-first'); "
+                             "[Console]::Error.WriteLine('yaze-win-stderr'); "
+                             "while (-not [IO.File]::Exists(" +
+                             QuotePowerShell(WindowsPathUtf8(release)) +
+                             ")) { Start-Sleep -Milliseconds 25 }; "
+                             "[Console]::WriteLine('yaze-win-last')"),
+                         ".")
+                  .ok());
+  ASSERT_TRUE(WaitForWindowsOutput(task, "yaze-win-first"));
+  EXPECT_TRUE(task.GetSnapshot().running);
+  {
+    std::ofstream release_file(release, std::ios::binary);
+    ASSERT_TRUE(release_file.is_open());
+  }
+  ASSERT_TRUE(task.Wait().ok()) << task.GetSnapshot().status;
+  const auto snapshot = task.GetSnapshot();
+  EXPECT_NE(snapshot.output.find("yaze-win-stderr"), std::string::npos);
+  EXPECT_NE(snapshot.output.find("yaze-win-last"), std::string::npos);
+  EXPECT_EQ(snapshot.exit_code, 0);
+  EXPECT_TRUE(snapshot.finished);
+  EXPECT_FALSE(snapshot.running);
+}
+
+TEST(BackgroundCommandTaskTest, WindowsKeepsChildEnvironmentIsolated) {
+  ScopedWindowsEnvironment inherited(L"YAZE_BG_WIN_INHERITED",
+                                     L"parent inherited");
+  ScopedWindowsEnvironment replaced(L"YAZE_BG_WIN_OVERRIDE",
+                                    L"parent override");
+  ScopedWindowsEnvironment emptied(L"YAZE_BG_WIN_EMPTY", L"parent nonempty");
+  const std::string literal =
+      "é 中文 'quotes' \"double\"; $(not-evaluated) `literal` & ! %PATH%";
+  BackgroundCommandTask task;
+  ASSERT_TRUE(task.Start(PowerShellCommand("[Console]::WriteLine('inherited=' "
+                                           "+ $env:YAZE_BG_WIN_INHERITED); "
+                                           "[Console]::WriteLine('override=' + "
+                                           "$env:YAZE_BG_WIN_OVERRIDE); "
+                                           "[Console]::WriteLine('empty=<' + "
+                                           "$env:YAZE_BG_WIN_EMPTY + '>'); "
+                                           "[Console]::WriteLine('literal=' + "
+                                           "$env:YAZE_BG_WIN_LITERAL)"),
+                         ".",
+                         {{"yaze_bg_win_override", "child override"},
+                          {"YAZE_BG_WIN_EMPTY", ""},
+                          {"YAZE_BG_WIN_LITERAL", literal}})
+                  .ok());
+  ASSERT_TRUE(task.Wait().ok()) << task.GetSnapshot().status;
+  const auto output = task.GetSnapshot().output;
+  EXPECT_NE(output.find("inherited=parent inherited"), std::string::npos);
+  EXPECT_NE(output.find("override=child override"), std::string::npos);
+  EXPECT_NE(output.find("empty=<>"), std::string::npos);
+  EXPECT_NE(output.find("literal=" + literal), std::string::npos);
+  EXPECT_EQ(WindowsEnvironmentValue(L"YAZE_BG_WIN_INHERITED"),
+            L"parent inherited");
+  EXPECT_EQ(WindowsEnvironmentValue(L"YAZE_BG_WIN_OVERRIDE"),
+            L"parent override");
+  EXPECT_EQ(WindowsEnvironmentValue(L"YAZE_BG_WIN_EMPTY"), L"parent nonempty");
+}
+
+TEST(BackgroundCommandTaskTest,
+     WindowsRejectsInvalidAndDuplicateEnvironmentNames) {
+  const std::vector<std::map<std::string, std::string>> invalid = {
+      {{"", "bad"}},
+      {{"BAD=NAME", "bad"}},
+      {{std::string("BAD\0NAME", 8), "bad"}},
+      {{"YAZE_BG_WIN_VALUE", std::string("bad\0value", 9)}},
+      {{"YAZE_BG_WIN_NAME", "one"}, {"yaze_bg_win_name", "two"}}};
+  for (const auto& environment : invalid) {
+    BackgroundCommandTask task;
+    const auto status = task.Start("echo must-not-run", ".", environment);
+    EXPECT_EQ(status.code(), absl::StatusCode::kInvalidArgument) << status;
+    EXPECT_FALSE(task.GetSnapshot().started);
+    EXPECT_TRUE(task.GetSnapshot().output.empty());
+  }
+}
+
+TEST(BackgroundCommandTaskTest, WindowsUsesUnicodeWorkingDirectory) {
+  ScopedWindowsTestDirectory root;
+  const auto directory =
+      root.path() / std::filesystem::path(u8"cwd with spaces é 中文");
+  std::filesystem::create_directories(directory);
+  BackgroundCommandTask task;
+  ASSERT_TRUE(
+      task.Start("echo yaze-cwd>marker.txt", WindowsPathUtf8(directory)).ok());
+  ASSERT_TRUE(task.Wait().ok()) << task.GetSnapshot().status;
+  EXPECT_TRUE(std::filesystem::is_regular_file(directory / "marker.txt"));
+  EXPECT_FALSE(std::filesystem::exists(root.path() / "marker.txt"));
+}
+
+TEST(BackgroundCommandTaskTest,
+     WindowsMissingWorkingDirectoryDoesNotRunCommand) {
+  ScopedWindowsTestDirectory root;
+  const auto missing = root.path() / "missing";
+  const auto marker = root.path() / "marker.txt";
+  BackgroundCommandTask task;
+  ASSERT_TRUE(task.Start("echo unexpected>\"" + WindowsPathUtf8(marker) + "\"",
+                         WindowsPathUtf8(missing))
+                  .ok());
+  const auto status = task.Wait();
+  EXPECT_FALSE(status.ok());
+  EXPECT_NE(status.message().find("Cannot enter command working directory"),
+            absl::string_view::npos);
+  EXPECT_FALSE(std::filesystem::exists(marker));
+  EXPECT_FALSE(std::filesystem::exists(missing));
+}
+
+TEST(BackgroundCommandTaskTest, WindowsFailurePreservesExitAndDiagnostic) {
+  BackgroundCommandTask task;
+  ASSERT_TRUE(task.Start("echo Build setup & echo Expanded map writer is "
+                         "unavailable. 1>&2 & exit /b 2",
+                         ".")
+                  .ok());
+  const auto status = task.Wait();
+  EXPECT_EQ(status.code(), absl::StatusCode::kInternal);
+  EXPECT_EQ(status.message(),
+            "Background command failed (exit 2): Expanded "
+            "map writer is unavailable.");
+  EXPECT_EQ(task.GetSnapshot().exit_code, 2);
+  EXPECT_NE(task.GetSnapshot().output.find("Build setup"), std::string::npos);
+  BackgroundCommandTask silent;
+  ASSERT_TRUE(silent.Start("exit /b 7", ".").ok());
+  EXPECT_EQ(silent.Wait().message(), "Background command failed (exit 7)");
+  EXPECT_EQ(silent.GetSnapshot().exit_code, 7);
+}
+
+TEST(BackgroundCommandTaskTest, WindowsCancelTerminatesOwnedChildTree) {
+  ScopedWindowsTestDirectory root;
+  const auto pid_file = root.path() / "child.pid";
+  BackgroundCommandTask task;
+  ASSERT_TRUE(task.Start(WindowsTreeCommand(pid_file), ".").ok());
+  ASSERT_TRUE(WaitForWindowsOutput(task, "yaze-win-tree-ready"));
+  ScopedWindowsTestHandle child(
+      OpenProcess(SYNCHRONIZE, FALSE, ReadWindowsChildPid(pid_file)));
+  ASSERT_NE(child.get(), nullptr);
+  EXPECT_EQ(WaitForSingleObject(child.get(), 0), WAIT_TIMEOUT);
+  task.Cancel();
+  EXPECT_EQ(task.Wait().code(), absl::StatusCode::kCancelled);
+  EXPECT_EQ(WaitForSingleObject(child.get(), 5000), WAIT_OBJECT_0);
+  EXPECT_TRUE(task.GetSnapshot().finished);
+  EXPECT_FALSE(task.GetSnapshot().running);
+}
+
+TEST(BackgroundCommandTaskTest, WindowsShellCompletionLeavesNoOwnedChild) {
+  ScopedWindowsTestDirectory root;
+  const auto pid_file = root.path() / "child.pid";
+  const auto release_parent = root.path() / "release-parent";
+  BackgroundCommandTask task;
+  ASSERT_TRUE(
+      task.Start(WindowsTreeCommand(pid_file, release_parent), ".").ok());
+  ASSERT_TRUE(WaitForWindowsOutput(task, "yaze-win-tree-ready"));
+  ScopedWindowsTestHandle child(
+      OpenProcess(SYNCHRONIZE, FALSE, ReadWindowsChildPid(pid_file)));
+  ASSERT_NE(child.get(), nullptr);
+  EXPECT_EQ(WaitForSingleObject(child.get(), 0), WAIT_TIMEOUT);
+  {
+    std::ofstream release_file(release_parent, std::ios::binary);
+    ASSERT_TRUE(release_file.is_open());
+  }
+  ASSERT_TRUE(task.Wait().ok()) << task.GetSnapshot().status;
+  EXPECT_EQ(WaitForSingleObject(child.get(), 5000), WAIT_OBJECT_0);
+}
+
+TEST(BackgroundCommandTaskTest, WindowsDestructorCancelsOwnedChildTree) {
+  ScopedWindowsTestDirectory root;
+  const auto pid_file = root.path() / "child.pid";
+  HANDLE child_handle = nullptr;
+  {
+    BackgroundCommandTask task;
+    ASSERT_TRUE(task.Start(WindowsTreeCommand(pid_file), ".").ok());
+    ASSERT_TRUE(WaitForWindowsOutput(task, "yaze-win-tree-ready"));
+    child_handle =
+        OpenProcess(SYNCHRONIZE, FALSE, ReadWindowsChildPid(pid_file));
+    ASSERT_NE(child_handle, nullptr);
+  }
+  ScopedWindowsTestHandle child(child_handle);
+  EXPECT_EQ(WaitForSingleObject(child.get(), 5000), WAIT_OBJECT_0);
+}
+
+TEST(BackgroundCommandTaskTest, WindowsImmediateCancelAndReuseResetTaskState) {
+  BackgroundCommandTask task;
+  ASSERT_TRUE(
+      task.Start(PowerShellCommand("Start-Sleep -Seconds 30"), ".").ok());
+  task.Cancel();
+  EXPECT_EQ(task.Wait().code(), absl::StatusCode::kCancelled);
+  ASSERT_TRUE(task.Start("echo yaze-win-reused", ".").ok());
+  ASSERT_TRUE(task.Wait().ok()) << task.GetSnapshot().status;
+  EXPECT_FALSE(task.GetSnapshot().cancel_requested);
+  EXPECT_EQ(task.GetSnapshot().exit_code, 0);
+  EXPECT_NE(task.GetSnapshot().output.find("yaze-win-reused"),
+            std::string::npos);
+}
+
+}  // namespace
+}  // namespace yaze::editor
+
+#else  // !YAZE_BACKGROUND_COMMANDS_SUPPORTED && !defined(_WIN32)
 
 #include <absl/status/status.h>
 #include "app/editor/system/session/background_command_task.h"

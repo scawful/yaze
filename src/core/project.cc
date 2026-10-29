@@ -14,6 +14,7 @@
 #include <iomanip>
 #include <iterator>
 #include <sstream>
+#include <stdexcept>
 
 #include "absl/strings/match.h"
 #include "absl/strings/str_format.h"
@@ -22,6 +23,7 @@
 #include "absl/strings/strip.h"
 #include "app/gui/core/icons.h"
 #include "core/lyra_terrain_document.h"
+#include "core/native_save_receipt.h"
 #include "core/source_artifact_publisher.h"
 #include "imgui/imgui.h"
 #include "util/file_util.h"
@@ -855,6 +857,341 @@ absl::Status YazeProject::ValidateSavedSourceBindings(
   return absl::OkStatus();
 }
 
+namespace {
+#if defined(YAZE_WITH_JSON) && !defined(__EMSCRIPTEN__)
+absl::Status ExpandedRunError(const std::string& message) {
+  return absl::FailedPreconditionError("Expanded run target unavailable: " +
+                                       message);
+}
+absl::Status ExpandedRunRequire(bool valid, const std::string& message) {
+  return valid ? absl::OkStatus() : ExpandedRunError(message);
+}
+std::string ExpandedRunPathText(const std::filesystem::path& path) {
+  const auto text = path.generic_u8string();
+  return std::string(text.begin(), text.end());
+}
+absl::StatusOr<std::string> ExpandedRunCanonical(const std::string& text) {
+  const auto path = std::filesystem::u8path(text);
+  if (text.empty() || !path.is_absolute()) {
+    return ExpandedRunError("an absolute evidence path is required");
+  }
+  std::error_code error;
+  const auto canonical = std::filesystem::weakly_canonical(path, error);
+  if (error) {
+    return ExpandedRunError("cannot resolve evidence path: " + text);
+  }
+  return ExpandedRunPathText(canonical);
+}
+#endif
+}  // namespace
+
+absl::StatusOr<std::optional<std::string>>
+YazeProject::ResolveExpandedBuildRunTarget(
+    const std::string& editing_source_path) const {
+  if (lyra_build_request_file.empty()) {
+    return std::optional<std::string>{};
+  }
+#if !defined(YAZE_WITH_JSON) || defined(__EMSCRIPTEN__)
+  return absl::UnimplementedError(
+      "Expanded run target verification requires desktop JSON support");
+#else
+  namespace fs = std::filesystem;
+  if (!project_opened() || native_save_producer_file.empty() ||
+      native_save_transfer_proof_file.empty() || lyra_terrain_file.empty() ||
+      build_target.empty() || code_folder.empty() ||
+      editing_source_path.empty()) {
+    return ExpandedRunError("complete saved expanded references are required");
+  }
+  try {
+    ASSIGN_OR_RETURN(const auto descriptor, ExpandedRunCanonical(filepath));
+    const auto resolve = [&](const std::string& ref) {
+      return ExpandedRunCanonical(GetAbsolutePath(ref));
+    };
+    ASSIGN_OR_RETURN(const auto rom, resolve(rom_filename));
+    ASSIGN_OR_RETURN(const auto terrain, resolve(lyra_terrain_file));
+    ASSIGN_OR_RETURN(const auto request_path, resolve(lyra_build_request_file));
+    ASSIGN_OR_RETURN(const auto producer_path,
+                     resolve(native_save_producer_file));
+    ASSIGN_OR_RETURN(const auto future_proof,
+                     resolve(native_save_transfer_proof_file));
+    ASSIGN_OR_RETURN(const auto candidate, resolve(build_target));
+    ASSIGN_OR_RETURN(const auto engine, resolve(code_folder));
+    ASSIGN_OR_RETURN(
+        const auto authority,
+        core::GetNativeSaveContext(editing_source_path, descriptor));
+    const fs::path target = fs::u8path(candidate);
+    const auto relative =
+        target.lexically_relative(fs::u8path(engine) / "Roms");
+    RETURN_IF_ERROR(ExpandedRunRequire(
+        target.filename() == "oos168x.sfc" && !relative.empty() &&
+            !relative.is_absolute() && *relative.begin() != ".." &&
+            !relative.parent_path().empty(),
+        "build_target must name a generation under the project engine"));
+
+    // These are freshness joins for artifacts already authenticated by Oracle's
+    // compiler. They do not reproduce allocation or native-verifier policy.
+    uint64_t remaining = 8ULL * 1024 * 1024 * 1024;
+    std::vector<Json> observed;
+    const auto check_file = [&](const Json& row) -> absl::Status {
+      ASSIGN_OR_RETURN(const auto name,
+                       ExpandedRunCanonical(row.at("path").get<std::string>()));
+      const auto path = fs::u8path(name);
+      const auto expected = row.at("sha256").get<std::string>();
+      std::error_code file_error;
+      const auto size = fs::file_size(path, file_error);
+      RETURN_IF_ERROR(ExpandedRunRequire(
+          !file_error && fs::is_regular_file(path, file_error) && !file_error &&
+              fs::u8path(row.at("path").get<std::string>()) == path &&
+              expected.size() == 64 && size <= 1024ULL * 1024 * 1024 &&
+              size <= remaining,
+          "an evidence file is missing, changed, or exceeds its bounds"));
+      remaining -= size;
+      for (const char* key : {"size", "bytes"}) {
+        if (row.contains(key)) {
+          RETURN_IF_ERROR(
+              ExpandedRunRequire(row.at(key).is_number_unsigned() &&
+                                     row.at(key).get<uint64_t>() == size,
+                                 "an evidence byte count differs"));
+        }
+      }
+      ASSIGN_OR_RETURN(const auto actual,
+                       core::ComputeSourceArtifactFileSha256(path));
+      return ExpandedRunRequire(actual == expected,
+                                "evidence changed: " + name);
+    };
+    const auto check = [&](const Json& row) -> absl::Status {
+      RETURN_IF_ERROR(ExpandedRunRequire(observed.size() < 8192,
+                                         "too many evidence bindings"));
+      RETURN_IF_ERROR(check_file(row));
+      observed.push_back(row);
+      return absl::OkStatus();
+    };
+    const auto rows = [&](const Json& values) -> absl::Status {
+      RETURN_IF_ERROR(ExpandedRunRequire(
+          (values.is_array() || values.is_object()) && values.size() <= 4096,
+          "an evidence binding collection is malformed"));
+      for (const auto& row : values)
+        RETURN_IF_ERROR(check(row));
+      return absl::OkStatus();
+    };
+    const auto read_text =
+        [&](const std::string& name) -> absl::StatusOr<std::string> {
+      std::error_code file_error;
+      const auto path = fs::u8path(name);
+      const auto size = fs::file_size(path, file_error);
+      RETURN_IF_ERROR(
+          ExpandedRunRequire(!file_error && size <= 16 * 1024 * 1024,
+                             "metadata is missing or too large"));
+      std::ifstream stream(path, std::ios::binary);
+      std::string raw(static_cast<size_t>(size), '\0');
+      stream.read(raw.data(), static_cast<std::streamsize>(raw.size()));
+      char extra;
+      RETURN_IF_ERROR(ExpandedRunRequire(
+          stream.gcount() == static_cast<std::streamsize>(raw.size()) &&
+              !stream.get(extra) && !stream.bad(),
+          "metadata changed while reading"));
+      RETURN_IF_ERROR(check(Json{
+          {"path", name}, {"sha256", core::ComputeSourceArtifactSha256(raw)}}));
+      return raw;
+    };
+    const auto load = [&](const std::string& name) -> absl::StatusOr<Json> {
+      ASSIGN_OR_RETURN(const auto raw, read_text(name));
+      auto document =
+          Json::parse(raw, [](int depth, Json::parse_event_t, Json&) {
+            if (depth > 64)
+              throw std::runtime_error("evidence nesting is too deep");
+            return true;
+          });
+      RETURN_IF_ERROR(ExpandedRunRequire(document.is_object(),
+                                         "evidence JSON must be an object"));
+      return document;
+    };
+    const auto same_path = [&](const Json& value,
+                               const std::string& expected) -> absl::Status {
+      ASSIGN_OR_RETURN(const auto path,
+                       ExpandedRunCanonical(value.get<std::string>()));
+      return ExpandedRunRequire(path == expected,
+                                "evidence belongs to another path");
+    };
+    const auto sibling = [&](const char* name) {
+      return ExpandedRunPathText(target.parent_path() / name);
+    };
+    ASSIGN_OR_RETURN(const auto build, load(sibling("oos168x.build.json")));
+    RETURN_IF_ERROR(ExpandedRunRequire(
+        build.at("schema_version") == 1 &&
+            (build.at("state") == "completed" ||
+             build.at("state") == "completed_with_gaps") &&
+            build.at("finish").at("exit_code") == 0 &&
+            build.at("finish").at("required_gaps") == Json::array(),
+        "the selected build is incomplete or failed"));
+    RETURN_IF_ERROR(same_path(build.at("root"), engine));
+    const auto& artifacts = build.at("artifacts");
+    for (const char* key :
+         {"output_rom", "symbols", "lyra_prepare", "lyra_verification"}) {
+      RETURN_IF_ERROR(
+          ExpandedRunRequire(artifacts.at(key).contains("size"),
+                             "a build artifact byte count is absent"));
+      RETURN_IF_ERROR(check(artifacts.at(key)));
+    }
+    RETURN_IF_ERROR(check(build.at("base_rom")));
+    RETURN_IF_ERROR(same_path(build.at("base_rom").at("path"), rom));
+    RETURN_IF_ERROR(
+        same_path(artifacts.at("output_rom").at("path"), candidate));
+    RETURN_IF_ERROR(
+        ExpandedRunRequire(artifacts.at("output_rom").at("size") == 0x400000,
+                           "the expanded output must be exactly 4 MiB"));
+    RETURN_IF_ERROR(
+        same_path(artifacts.at("symbols").at("path"), sibling("oos168x.sym")));
+    RETURN_IF_ERROR(same_path(artifacts.at("lyra_verification").at("path"),
+                              sibling("oos168x.lyra-verification.json")));
+    ASSIGN_OR_RETURN(
+        const auto prepared,
+        load(artifacts.at("lyra_prepare").at("path").get<std::string>()));
+    ASSIGN_OR_RETURN(
+        const auto verified,
+        load(artifacts.at("lyra_verification").at("path").get<std::string>()));
+    RETURN_IF_ERROR(ExpandedRunRequire(
+        prepared.at("kind") == "lyra.current_build_prepare.v1" &&
+            verified.at("kind") == "lyra.current_build_verification.v1" &&
+            verified.at("compiled_consumers_verified") == true &&
+            verified.at("prepared_sha256") ==
+                artifacts.at("lyra_prepare").at("sha256") &&
+            verified.at("compiled_rom_sha256") ==
+                artifacts.at("output_rom").at("sha256") &&
+            verified.at("symbols_sha256") ==
+                artifacts.at("symbols").at("sha256") &&
+            verified.at("saved_rom_sha256") ==
+                build.at("base_rom").at("sha256") &&
+            prepared.at("saved_rom_sha256") == verified.at("saved_rom_sha256"),
+        "compiled verification does not bind this build"));
+    for (const char* flag :
+         {"selected", "allocation_granted", "producer_enforcement_verified",
+          "runtime_admission", "ordinary_build_ready"}) {
+      RETURN_IF_ERROR(ExpandedRunRequire(
+          prepared.at(flag).is_boolean() && prepared.at(flag).get<bool>(),
+          "expanded build admission is incomplete"));
+    }
+    RETURN_IF_ERROR(
+        ExpandedRunRequire(!prepared.contains("runtime_scope"),
+                           "a private preview is not an ordinary run target"));
+    RETURN_IF_ERROR(same_path(prepared.at("project"), descriptor));
+    RETURN_IF_ERROR(same_path(prepared.at("base_rom"), rom));
+    RETURN_IF_ERROR(same_path(prepared.at("request"), request_path));
+    RETURN_IF_ERROR(rows(prepared.at("inputs")));
+    const Json* request_binding = nullptr;
+    for (const auto& row : prepared.at("inputs")) {
+      ASSIGN_OR_RETURN(const auto path,
+                       ExpandedRunCanonical(row.at("path").get<std::string>()));
+      if (path == request_path)
+        request_binding = &row;
+    }
+    RETURN_IF_ERROR(
+        ExpandedRunRequire(request_binding != nullptr,
+                           "the preparation omits its request binding"));
+    RETURN_IF_ERROR(check(*request_binding));
+    ASSIGN_OR_RETURN(const auto request, load(request_path));
+    const auto& live = request.at("live");
+    const auto& plan = prepared.at("terrain_plan");
+    RETURN_IF_ERROR(ExpandedRunRequire(
+        request.at("kind") == "lyra.current_save_transfer_request.v1" &&
+            plan.at("target") == request.at("target") &&
+            plan.at("transfer_id") == request.at("transfer_id") &&
+            plan.at("generation") == live.at("generation") &&
+            plan.at("operation_id") == live.at("operation_id") &&
+            plan.at("save_context") == live.at("save_context"),
+        "the prepared transfer or saved generation differs"));
+    RETURN_IF_ERROR(same_path(request.at("target").at("path"), candidate));
+    RETURN_IF_ERROR(same_path(live.at("project"), descriptor));
+    RETURN_IF_ERROR(same_path(live.at("producer").at("path"), producer_path));
+    RETURN_IF_ERROR(same_path(live.at("enforcement_receipt"), future_proof));
+    RETURN_IF_ERROR(same_path(live.at("inputs").at("rom").at("path"), rom));
+    RETURN_IF_ERROR(
+        same_path(live.at("inputs").at("project").at("path"), descriptor));
+    RETURN_IF_ERROR(
+        same_path(live.at("inputs").at("terrain").at("path"), terrain));
+    RETURN_IF_ERROR(rows(live.at("inputs")));
+    RETURN_IF_ERROR(rows(request.at("inputs")));
+    for (const char* key : {"producer", "save_receipt", "save_context"})
+      RETURN_IF_ERROR(check(live.at(key)));
+    for (const char* key : {"observation", "save_snapshot", "producer_snapshot",
+                            "context_snapshot"})
+      RETURN_IF_ERROR(check(request.at(key)));
+    const auto& producer = live.at("producer_identity");
+    RETURN_IF_ERROR(check(producer.at("editor")));
+    RETURN_IF_ERROR(check(producer.at("verifier")));
+    RETURN_IF_ERROR(rows(producer.at("source_bindings")));
+    RETURN_IF_ERROR(check(plan.at("enforcement_receipt")));
+    if (request.contains("native_verification"))
+      RETURN_IF_ERROR(check(request.at("native_verification")));
+    if (plan.at("enforcement_owner") == "oracle.current_builder") {
+      RETURN_IF_ERROR(ExpandedRunRequire(
+          plan.at("enforcement_receipt") == request.at("native_verification"),
+          "the builder enforcement binding differs"));
+    } else {
+      RETURN_IF_ERROR(
+          ExpandedRunRequire(plan.at("enforcement_owner") == "legacy_producer",
+                             "the enforcement owner is unsupported"));
+      RETURN_IF_ERROR(
+          same_path(plan.at("enforcement_receipt").at("path"), future_proof));
+    }
+
+    const auto receipt_path = descriptor + ".native-save.json";
+    RETURN_IF_ERROR(
+        same_path(live.at("save_receipt").at("path"), receipt_path));
+    RETURN_IF_ERROR(same_path(live.at("save_context").at("path"),
+                              ExpandedRunPathText(authority.path)));
+    ASSIGN_OR_RETURN(const auto receipt, load(receipt_path));
+    ASSIGN_OR_RETURN(const auto context,
+                     load(ExpandedRunPathText(authority.path)));
+    RETURN_IF_ERROR(ExpandedRunRequire(
+        receipt.at("kind") == "yaze.native_save.v1" &&
+            receipt.at("bindings_complete") == true &&
+            receipt.at("binding_errors") == Json::array() &&
+            live.at("generation").is_number_unsigned() &&
+            live.at("generation").get<uint64_t>() > 0 &&
+            live.at("operation_id").is_string() &&
+            !live.at("operation_id").get_ref<const std::string&>().empty() &&
+            receipt.at("generation") == live.at("generation") &&
+            receipt.at("operation_id") == live.at("operation_id") &&
+            context.at("kind") == "yaze.native_save_context.v1" &&
+            context.at("state") == "committed" &&
+            context.at("native_commit").at("generation") ==
+                live.at("generation") &&
+            context.at("native_commit").at("operation_id") ==
+                live.at("operation_id"),
+        "native Save completion or current context differs"));
+    RETURN_IF_ERROR(same_path(receipt.at("receipt_path"), receipt_path));
+    RETURN_IF_ERROR(same_path(context.at("native_commit").at("receipt_path"),
+                              receipt_path));
+    RETURN_IF_ERROR(same_path(context.at("editing_source_path"),
+                              authority.editing_source_path));
+    RETURN_IF_ERROR(same_path(context.at("project_path"), descriptor));
+    RETURN_IF_ERROR(same_path(context.at("rom_path"), rom));
+    const Json* saved_producer = nullptr;
+    for (const auto& row : receipt.at("artifacts")) {
+      if (row.at("role") == "producer")
+        saved_producer = &row;
+    }
+    RETURN_IF_ERROR(ExpandedRunRequire(
+        saved_producer != nullptr &&
+            context.at("producer") == *saved_producer &&
+            saved_producer->at("sha256") == producer.at("editor").at("sha256"),
+        "native Save and context producers differ"));
+    ASSIGN_OR_RETURN(const auto editor_path,
+                     ExpandedRunCanonical(
+                         producer.at("editor").at("path").get<std::string>()));
+    RETURN_IF_ERROR(same_path(saved_producer->at("path"), editor_path));
+    ASSIGN_OR_RETURN(const auto saved_descriptor, read_text(descriptor));
+    RETURN_IF_ERROR(ValidateSavedSourceBindings(saved_descriptor));
+    for (const auto& binding : observed)
+      RETURN_IF_ERROR(check_file(binding));
+    return std::optional<std::string>(candidate);
+  } catch (const std::exception& error) {
+    return ExpandedRunError(
+        std::string("invalid or incomplete build evidence: ") + error.what());
+  }
+#endif
+}
 absl::Status YazeProject::SaveAs(const std::string& new_path) {
   std::string old_filepath = filepath;
   filepath = new_path;
