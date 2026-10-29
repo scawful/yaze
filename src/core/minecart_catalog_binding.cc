@@ -258,9 +258,10 @@ absl::StatusOr<Json> MigrationRecords(const Rom& rom) {
 }
 
 absl::Status VerifyInitialMigration(const Rom& rom, const Json& receipt) {
-  RETURN_IF_ERROR(Require(receipt["bytes"] == rom.size() &&
-                              receipt["output_sha256"] == RomHash(rom),
-                          "Minecart migration output differs from loaded ROM"));
+  RETURN_IF_ERROR(
+      Require(receipt["bytes"].get<size_t>() == rom.size() &&
+                  receipt["output_sha256"].get<std::string>() == RomHash(rom),
+              "Minecart migration output differs from loaded ROM"));
   auto restored = rom.vector();
   for (const auto& record : receipt["records"]) {
     const size_t pos = record["pc"].get<size_t>();
@@ -271,10 +272,11 @@ absl::Status VerifyInitialMigration(const Rom& rom, const Json& receipt) {
     ASSIGN_OR_RETURN(const auto old, RecordBytes(record["old"]));
     std::copy(old.begin(), old.end(), restored.begin() + pos);
   }
-  RETURN_IF_ERROR(Require(ComputeSourceArtifactSha256(std::string_view(
-                              reinterpret_cast<const char*>(restored.data()),
-                              restored.size())) == receipt["input_sha256"],
-                          "Minecart migration original SHA-256 differs"));
+  RETURN_IF_ERROR(Require(
+      ComputeSourceArtifactSha256(std::string_view(
+          reinterpret_cast<const char*>(restored.data()), restored.size())) ==
+          receipt["input_sha256"].get<std::string>(),
+      "Minecart migration original SHA-256 differs"));
   Rom original;
   RETURN_IF_ERROR(original.LoadFromData(restored));
   ASSIGN_OR_RETURN(const auto records, MigrationRecords(original));
@@ -330,6 +332,27 @@ absl::StatusOr<MinecartCatalogBinding> ResolveMinecartCatalogBinding(
         "Minecart catalog version 2 requires its migration receipt");
   }
   try {
+    std::optional<fs::path> editing_source;
+    if (binding.profile != MinecartRailProfile::kExpanded) {
+      std::error_code error;
+      const auto loaded_rom = fs::canonical(fs::u8path(rom.filename()), error);
+      if (error) {
+        return absl::FailedPreconditionError(
+            "Cannot resolve minecart editing source");
+      }
+      const auto configured_rom = fs::canonical(
+          fs::u8path(project.GetAbsolutePath(project.rom_filename)), error);
+      if (error || configured_rom != loaded_rom) {
+        return absl::FailedPreconditionError(
+            "Minecart project refers to another editing source");
+      }
+      ASSIGN_OR_RETURN(const auto source_hash,
+                       ComputeSourceArtifactFileSha256(configured_rom));
+      RETURN_IF_ERROR(Require(
+          source_hash == binding.rom_sha256,
+          "Loaded minecart ROM differs from the configured project ROM"));
+      editing_source = configured_rom;
+    }
     ASSIGN_OR_RETURN(const auto source,
                      ReadReceipt(fs::u8path(project.GetAbsolutePath(
                          project.minecart_catalog_migration_receipt))));
@@ -341,7 +364,8 @@ absl::StatusOr<MinecartCatalogBinding> ResolveMinecartCatalogBinding(
     if (binding.profile == MinecartRailProfile::kExpanded) {
       // The exact runtime marker admits this profile; declared version 2 still
       // carries its immutable dependency into subsequent native Save receipts.
-    } else if (receipt["output_sha256"] == binding.rom_sha256) {
+    } else if (receipt["output_sha256"].get<std::string>() ==
+               binding.rom_sha256) {
       RETURN_IF_ERROR(VerifyInitialMigration(rom, receipt));
     } else {
       std::error_code error;
@@ -350,16 +374,7 @@ absl::StatusOr<MinecartCatalogBinding> ResolveMinecartCatalogBinding(
       if (error)
         return absl::FailedPreconditionError(
             "Cannot resolve minecart project descriptor");
-      const auto rom_path = fs::canonical(fs::u8path(rom.filename()), error);
-      if (error)
-        return absl::FailedPreconditionError(
-            "Cannot resolve minecart editing source");
-      const auto configured_rom = fs::canonical(
-          fs::u8path(project.GetAbsolutePath(project.rom_filename)), error);
-      if (error || configured_rom != rom_path) {
-        return absl::FailedPreconditionError(
-            "Minecart project refers to another editing source");
-      }
+      const auto& rom_path = *editing_source;
       ASSIGN_OR_RETURN(const auto saved_project, ReadReceipt(descriptor));
       RETURN_IF_ERROR(
           project.ValidateSavedSourceBindings(saved_project.second));
@@ -387,6 +402,19 @@ absl::StatusOr<MinecartCatalogBinding> ResolveMinecartCatalogBinding(
     RETURN_IF_ERROR(
         Require(after.first == source.first && after.second == source.second,
                 "Minecart migration receipt changed during admission"));
+    if (editing_source.has_value()) {
+      std::error_code error;
+      const auto current_source = fs::canonical(
+          fs::u8path(project.GetAbsolutePath(project.rom_filename)), error);
+      if (error || current_source != *editing_source) {
+        return absl::FailedPreconditionError(
+            "Minecart editing source changed during admission");
+      }
+      ASSIGN_OR_RETURN(const auto current_hash,
+                       ComputeSourceArtifactFileSha256(current_source));
+      RETURN_IF_ERROR(Require(current_hash == binding.rom_sha256,
+                              "Minecart project ROM changed during admission"));
+    }
     binding.profile = MinecartRailProfile::kExpanded;
     binding.validated = true;
     return binding;

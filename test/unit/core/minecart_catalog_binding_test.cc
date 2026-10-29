@@ -163,6 +163,9 @@ class MinecartCatalogBindingTest : public ::testing::Test {
     WriteMigration();
     ASSERT_TRUE(rom_.LoadFromData(migrated_).ok());
     rom_.set_filename(project_.rom_filename);
+    Write(project_.rom_filename,
+          std::string(reinterpret_cast<const char*>(migrated_.data()),
+                      migrated_.size()));
   }
 
   void TearDown() override {
@@ -277,6 +280,25 @@ TEST_F(MinecartCatalogBindingTest,
 }
 
 TEST_F(MinecartCatalogBindingTest,
+       InitialMigrationRejectsDifferentConfiguredRomPathOrBytes) {
+  const auto configured = project_.rom_filename;
+  const auto other = directory_ / "different-source.sfc";
+  const auto migrated_bytes = Read(configured);
+  Write(other, migrated_bytes);
+  project_.rom_filename = other.string();
+  EXPECT_FALSE(ResolveMinecartCatalogBinding(rom_, project_).ok());
+  EXPECT_EQ(Read(other), migrated_bytes);
+
+  project_.rom_filename = configured;
+  const std::string legacy_bytes(
+      reinterpret_cast<const char*>(original_.data()), original_.size());
+  Write(configured, legacy_bytes);
+  EXPECT_FALSE(ResolveMinecartCatalogBinding(rom_, project_).ok());
+  EXPECT_EQ(Read(configured), legacy_bytes);
+  EXPECT_EQ(rom_.vector(), migrated_);
+}
+
+TEST_F(MinecartCatalogBindingTest,
        VersionTwoNeverFallsBackWhenReceiptIsMissing) {
   project_.minecart_catalog_migration_receipt.clear();
   EXPECT_FALSE(ResolveMinecartCatalogBinding(rom_, project_).ok());
@@ -319,6 +341,10 @@ TEST_F(MinecartCatalogBindingTest,
   migration_["output_sha256"] = Hash(extra_migrated);
   WriteMigration();
   ASSERT_TRUE(rom_.LoadFromData(extra_migrated).ok());
+  rom_.set_filename(project_.rom_filename);
+  Write(project_.rom_filename,
+        std::string(reinterpret_cast<const char*>(extra_migrated.data()),
+                    extra_migrated.size()));
   EXPECT_FALSE(ResolveMinecartCatalogBinding(rom_, project_).ok());
 }
 

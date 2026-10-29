@@ -1426,6 +1426,14 @@ absl::Status EditorManager::CommitRawProjectFileSave(
   if (project_management_panel_) {
     project_management_panel_->SetProject(&current_project_, false);
   }
+  if (current_project_.dungeon_overlay.minecart_catalog_version == 2) {
+    // Metadata edits must retain admission of the saved ROM without committing
+    // unsaved ROM changes. Reuse the normal project-only completion path.
+    session->native_save_completion_pending = true;
+    if (!defer_project_native_completion_) {
+      return CompletePendingProjectNativeSave();
+    }
+  }
   return absl::OkStatus();
 }
 

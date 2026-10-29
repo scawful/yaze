@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 
 #include <algorithm>
+#include <array>
 #include <chrono>
 #include <cstdint>
 #include <cstdlib>
@@ -9,6 +10,7 @@
 #include <functional>
 #include <optional>
 #include <string>
+#include <string_view>
 #include <thread>
 #include <utility>
 #include <vector>
@@ -3044,6 +3046,204 @@ TEST(EditorManagerProjectActionsTest,
   EXPECT_EQ(ReadFile(project_path), admitted_descriptor);
   EXPECT_EQ(session->minecart_catalog_project_version, 2);
 }
+
+#if defined(YAZE_WITH_JSON) && !defined(__EMSCRIPTEN__)
+TEST(EditorManagerProjectActionsTest,
+     UnmarkedMinecartCatalogSurvivesPublicSaveAndFreshReopen) {
+  ScopedImGuiContext imgui;
+  ScopedTempDir temp_dir(MakeTempDir("yaze_minecart_public_save_reopen"));
+  const auto directory = std::filesystem::canonical(temp_dir.path);
+  const auto rom_path = directory / "game.sfc";
+  const auto project_path = directory / "game.yaze";
+  const auto migration_path = directory / "migration.json";
+  std::vector<uint8_t> original(0x200000, 0);
+  const std::string title = "YAZE CATALOG TEST";
+  std::copy(title.begin(), title.end(), original.begin() + 0x7FC0);
+  original[0x7FD5] = 0x20;
+  original[0x7FD9] = 1;
+  const auto pointer = [&](size_t offset, size_t pc) {
+    const uint32_t snes = ((pc & 0x3F8000) << 1) | (pc & 0x7FFF) | 0x8000;
+    for (int byte = 0; byte < 3; ++byte)
+      original[offset + byte] = snes >> (byte * 8);
+  };
+  pointer(0x874C, 0xF8000);
+  for (int room = 0; room < 296; ++room)
+    pointer(0xF8000 + room * 3, room == 0 ? 0x50000 : 0x51000);
+  const auto hex = [](const std::array<uint8_t, 3>& bytes) {
+    constexpr char digits[] = "0123456789abcdef";
+    std::string result;
+    for (uint8_t byte : bytes) {
+      result += digits[byte >> 4];
+      result += digits[byte & 15];
+    }
+    return result;
+  };
+  auto records = nlohmann::json::array();
+  size_t cursor = 0x50000;
+  original[cursor++] = 1;
+  original[cursor++] = 12;
+  for (int index = 0; index < 37; ++index) {
+    const int subtype = 12 + index % 4;
+    const int target = subtype - 7;
+    const int x = index + 4;
+    const std::array<uint8_t, 3> old = {
+        static_cast<uint8_t>((x << 2) | (subtype >> 2)),
+        static_cast<uint8_t>((8 << 2) | (subtype & 3)), 0x31};
+    const std::array<uint8_t, 3> next = {
+        static_cast<uint8_t>((x << 2) | (target >> 2)),
+        static_cast<uint8_t>((8 << 2) | (target & 3)), 0x32};
+    records.push_back({{"room", 0},
+                       {"layer", 0},
+                       {"index", index},
+                       {"pc", cursor},
+                       {"raw", hex(old)},
+                       {"aliased_rooms", nlohmann::json::array({0})},
+                       {"old", hex(old)},
+                       {"new", hex(next)},
+                       {"x", x},
+                       {"y", 8},
+                       {"old_object", 0x31},
+                       {"old_subtype", subtype},
+                       {"new_object", 0x32},
+                       {"new_subtype", target}});
+    for (uint8_t byte : old)
+      original[cursor++] = byte;
+  }
+  for (int byte = 0; byte < 6; ++byte)
+    original[cursor++] = 0xFF;  // Three object-list terminators.
+  original[0x51000] = 1;
+  original[0x51001] = 12;
+  std::fill_n(original.begin() + 0x51002, 6, 0xFF);
+  auto migrated = original;
+  for (const auto& record : records) {
+    const auto offset = record["pc"].get<size_t>();
+    const int target = record["new_subtype"].get<int>();
+    migrated[offset] = (migrated[offset] & 0xFC) | (target >> 2);
+    migrated[offset + 1] = (migrated[offset + 1] & 0xFC) | (target & 3);
+    migrated[offset + 2] = 0x32;
+  }
+  const auto hash = [](const std::vector<uint8_t>& bytes) {
+    return core::ComputeSourceArtifactSha256(std::string_view(
+        reinterpret_cast<const char*>(bytes.data()), bytes.size()));
+  };
+  const nlohmann::json migration = {
+      {"schema", "oracle-minecart-object-migration/v1"},
+      {"mode", "published"},
+      {"state", "intermediate-old-runtime"},
+      {"editor_ready", false},
+      {"runtime_ready", false},
+      {"bytes", migrated.size()},
+      {"rooms_parsed", 296},
+      {"record_count", 37},
+      {"changed_bytes", 111},
+      {"input_sha256", hash(original)},
+      {"output_sha256", hash(migrated)},
+      {"records", records}};
+  {
+    std::ofstream rom_file(rom_path, std::ios::binary);
+    rom_file.write(reinterpret_cast<const char*>(migrated.data()),
+                   static_cast<std::streamsize>(migrated.size()));
+    ASSERT_TRUE(rom_file.good());
+    std::ofstream receipt(migration_path, std::ios::binary);
+    receipt << migration.dump(2) << '\n';
+    ASSERT_TRUE(receipt.good());
+  }
+  project::YazeProject descriptor;
+  descriptor.name = "Minecart lifecycle";
+  descriptor.filepath = project_path.string();
+  descriptor.rom_filename = rom_path.string();
+  descriptor.metadata.project_id = "minecart-lifecycle-fixture";
+  descriptor.metadata.created_by = "YAZE";
+  descriptor.dungeon_overlay.minecart_catalog_version = 2;
+  descriptor.minecart_catalog_migration_receipt = migration_path.string();
+  descriptor.workspace_settings.backup_on_save = false;
+  descriptor.feature_flags.kSaveMessages = false;
+  ASSERT_OK(descriptor.Save());
+
+  const auto flags_before = core::FeatureFlags::get();
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  absl::Cleanup cleanup = [&] {
+    gfx::Arena::Get().ClearTextureQueue();
+    manager.reset();
+    gfx::PaletteManager::Get().ResetForTesting();
+    core::FeatureFlags::get() = flags_before;
+  };
+  test::InitializeWithIsolatedSettings(*manager, renderer.get());
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+  ASSERT_OK(manager->OpenRomOrProject(project_path.string()));
+  auto* session = manager->session_coordinator()->GetActiveRomSession();
+  ASSERT_NE(session, nullptr);
+  ASSERT_TRUE(session->minecart_catalog_binding.has_value());
+  EXPECT_EQ(session->minecart_catalog_binding->profile,
+            zelda3::MinecartRailProfile::kExpanded);
+  EXPECT_EQ(session->minecart_catalog_binding->native_save_generation, 0);
+  ASSERT_OK(manager->GetCurrentRom()->WriteByte(0x100000, 0x5A));
+  ASSERT_OK(manager->SaveRom());
+  const auto save_path = project_path.string() + ".native-save.json";
+  const auto first_save = nlohmann::json::parse(ReadFile(save_path));
+  ASSERT_EQ(first_save["bindings_complete"], true) << first_save.dump();
+  const auto generation = first_save["generation"].get<uint64_t>();
+
+  ASSERT_OK(manager->GetCurrentRom()->WriteByte(0x100001, 0xA6));
+  manager->ShowProjectFileEditor();
+  auto draft = manager->GetCurrentProject()->SerializeToString();
+  ASSERT_TRUE(draft.ok()) << draft.status();
+  const auto description = draft->find("description=");
+  ASSERT_NE(description, std::string::npos);
+  draft->insert(description + std::string("description=").size(),
+                "authored project metadata");
+  MakeModifiedProjectDraft(manager->project_file_editor(),
+                           manager->GetCurrentProject(), *draft);
+  ASSERT_OK(manager->project_file_editor()->SaveFile());
+  EXPECT_TRUE(manager->GetCurrentRom()->dirty());
+  EXPECT_EQ(manager->GetCurrentRom()->vector()[0x100001], 0xA6);
+  const auto metadata_save = nlohmann::json::parse(ReadFile(save_path));
+  ASSERT_EQ(metadata_save["bindings_complete"], true) << metadata_save.dump();
+  EXPECT_GT(metadata_save["generation"].get<uint64_t>(), generation);
+  // A project-only save qualifies the saved ROM without serializing unrelated
+  // dirty ROM bytes. Drop this disposable in-memory edit to inspect that disk
+  // generation in a new manager before the next ordinary ROM save.
+  manager.reset();
+  gfx::PaletteManager::Get().ResetForTesting();
+  manager = std::make_unique<EditorManager>();
+  test::InitializeWithIsolatedSettings(*manager, renderer.get());
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+  ASSERT_OK(manager->OpenRomOrProject(project_path.string()));
+  session = manager->session_coordinator()->GetActiveRomSession();
+  ASSERT_NE(session, nullptr);
+  ASSERT_TRUE(session->minecart_catalog_binding.has_value());
+  EXPECT_EQ(session->minecart_catalog_binding->profile,
+            zelda3::MinecartRailProfile::kExpanded);
+  EXPECT_EQ(session->minecart_catalog_binding->native_save_generation,
+            metadata_save["generation"].get<uint64_t>());
+  EXPECT_EQ(manager->GetCurrentProject()->metadata.description,
+            "authored project metadata");
+  EXPECT_EQ(manager->GetCurrentRom()->vector()[0x100000], 0x5A);
+  EXPECT_EQ(manager->GetCurrentRom()->vector()[0x100001], 0);
+  ASSERT_OK(manager->GetCurrentRom()->WriteByte(0x100001, 0xA6));
+  ASSERT_OK(manager->SaveRom());
+  const auto refreshed = nlohmann::json::parse(ReadFile(save_path));
+  ASSERT_EQ(refreshed["bindings_complete"], true) << refreshed.dump();
+  EXPECT_GT(refreshed["generation"].get<uint64_t>(),
+            metadata_save["generation"].get<uint64_t>());
+  manager.reset();
+  gfx::PaletteManager::Get().ResetForTesting();
+  manager = std::make_unique<EditorManager>();
+  test::InitializeWithIsolatedSettings(*manager, renderer.get());
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+  ASSERT_OK(manager->OpenRomOrProject(project_path.string()));
+  session = manager->session_coordinator()->GetActiveRomSession();
+  ASSERT_NE(session, nullptr);
+  ASSERT_TRUE(session->minecart_catalog_binding.has_value());
+  EXPECT_EQ(session->minecart_catalog_binding->profile,
+            zelda3::MinecartRailProfile::kExpanded);
+  EXPECT_EQ(session->minecart_catalog_binding->native_save_generation,
+            refreshed["generation"].get<uint64_t>());
+  EXPECT_EQ(manager->GetCurrentRom()->vector()[0x100000], 0x5A);
+  EXPECT_EQ(manager->GetCurrentRom()->vector()[0x100001], 0xA6);
+}
+#endif
 
 TEST(EditorManagerProjectActionsTest,
      RawSaveAsResolvesStructuredAndRawDraftConflict) {
