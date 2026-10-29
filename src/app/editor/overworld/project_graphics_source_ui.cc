@@ -158,7 +158,7 @@ void OverworldEditor::DrawProjectGraphicsSource() {
         if (index == graphics_source_index_)
           ImGui::GetWindowDrawList()->AddRect(
               ImGui::GetItemRectMin(), ImGui::GetItemRectMax(),
-              IM_COL32(255, 255, 255, 255), 0, 0, 2);
+              IM_COL32(255, 255, 255, 255), 0.0f, 2.0f);
         ImGui::PopID();
       }
       ImGui::Text("Paint index: %d", graphics_source_index_);
@@ -206,7 +206,7 @@ void OverworldEditor::DrawProjectGraphicsSource() {
               if (tile == graphics_source_tile_)
                 ImGui::GetWindowDrawList()->AddRect(
                     origin, ImVec2(origin.x + 24, origin.y + 24),
-                    IM_COL32(255, 255, 255, 255), 0, 0, 2);
+                    IM_COL32(255, 255, 255, 255), 0.0f, 2.0f);
               ImGui::PopID();
             }
           }
