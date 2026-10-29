@@ -183,12 +183,21 @@ void LayoutCoordinator::ApplyLayoutPreset(const std::string& preset_name,
     return;
   }
 
+  // An open Dungeon Workbench is the dungeon editor's workflow mode, not an
+  // optional tool window; a named preset must not switch the user out of it.
+  const bool keep_dungeon_workbench = window_manager_->IsWindowOpen(
+      session_id, LayoutPresets::Panels::kDungeonWorkbench);
+
   // Hide all panels first
   window_manager_->HideAll();
 
   // Show only the panels defined in the preset
   for (const auto& panel_id : preset.default_visible_panels) {
     window_manager_->OpenWindow(session_id, panel_id);
+  }
+  if (keep_dungeon_workbench) {
+    window_manager_->OpenWindow(session_id,
+                                LayoutPresets::Panels::kDungeonWorkbench);
   }
 
   // Request a dock rebuild so the preset positions are applied
