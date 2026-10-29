@@ -14,7 +14,6 @@
 #include "app/editor/dungeon/inspectors/dungeon_chest_editor.h"
 #include "app/editor/dungeon/inspectors/dungeon_destination_editor.h"
 #include "app/editor/dungeon/inspectors/dungeon_entity_inspector.h"
-#include "app/editor/dungeon/inspectors/dungeon_room_transfer_editor.h"
 #include "app/editor/dungeon/ui/window/dungeon_entrances_panel.h"
 #include "app/editor/dungeon/workspace/dungeon_workbench_inspector_helpers.h"
 #include "app/gui/automation/widget_auto_register.h"
@@ -118,6 +117,22 @@ void DungeonWorkbenchContent::DrawInspectorShelf(DungeonCanvasViewer& viewer,
 
   auto& interaction = viewer.object_interaction();
   const int room_id = viewer.current_room_id();
+  if (layout_state_.show_connected_canvas_view) {
+    // Overview has no object selection; its map controls live here instead
+    // of floating over the map.
+    workbench::DrawInspectorSectionHeader(ICON_MD_ACCOUNT_TREE " Overview");
+    ImGui::PushID("OverviewControls");
+    viewer.DrawConnectedInspectorControls(
+        current_room_id_ ? *current_room_id_ : room_id, on_room_selected_);
+    ImGui::PopID();
+    if (viewer.current_room_id() != room_id)
+      return;
+    ImGui::Spacing();
+    ImGui::PushID("InspectedRoom");
+    DrawInspectorShelfRoom(viewer);
+    ImGui::PopID();
+    return;
+  }
   ImGui::PushID("InspectedSelection");
   const bool placing_object = DrawObjectPlacementInspector(viewer);
   if (!placing_object && interaction.mode_manager().IsPlacementActive()) {
@@ -755,10 +770,14 @@ void DungeonWorkbenchContent::DrawInspectorShelfRoom(
       rooms && room_id >= 0 && room_id < static_cast<int>(rooms->size())) {
     auto& room = (*rooms)[room_id];
 
-    // Core layout & graphics 2x3 grid is always visible at the top.
+    // Core graphics, message and pit damage are always visible at the top.
     ImGui::Spacing();
+    const RoomPropertyExtraCell pit_damage_cell{
+        tr("Pit damage"), [&]() { DrawPitDamageToggle(room_id, nullptr); }};
     DrawDungeonRoomPropertyFields(viewer, room, room_id,
-                                  RoomPropertyLayout::kCoreGraphics);
+                                  RoomPropertyLayout::kCoreGraphics,
+                                  &pit_damage_cell);
+    DrawPitDamageDetails(room_id);
 
     // Sub-tabs for secondary room properties.
     struct SubTabDef {
@@ -810,7 +829,6 @@ void DungeonWorkbenchContent::DrawInspectorShelfRoom(
       case RoomInspectorSubTab::Mechanics: {
         DrawDungeonRoomPropertyFields(viewer, room, room_id,
                                       RoomPropertyLayout::kMechanics);
-        DrawPitDamageControls(room_id);
         break;
       }
       case RoomInspectorSubTab::Warps: {
@@ -853,15 +871,6 @@ void DungeonWorkbenchContent::DrawInspectorShelfRoom(
     }
   } else {
     ImGui::TextDisabled(tr("Room properties unavailable"));
-  }
-
-  if (workbench::BeginInspectorSection(
-          ICON_MD_CONTENT_COPY " Clone / Import Room", false)) {
-    if (viewer.room_transfer_state().popup_open) {
-      ImGui::TextWrapped("Room transfer is open in the canvas dialog.");
-    } else {
-      DrawDungeonRoomTransferEditor(viewer);
-    }
   }
 }
 

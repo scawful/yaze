@@ -14,6 +14,7 @@
 #include "app/editor/dungeon/dungeon_overlay_controls.h"
 #include "app/editor/dungeon/dungeon_project_labels.h"
 #include "app/editor/dungeon/dungeon_room_selector.h"
+#include "app/editor/dungeon/inspectors/dungeon_room_transfer_editor.h"
 #include "app/editor/dungeon/ui/workbench/dungeon_workbench_chrome.h"
 #include "app/editor/dungeon/widgets/dungeon_room_nav_widget.h"
 #include "app/gui/automation/widget_auto_register.h"
@@ -219,7 +220,7 @@ void DrawCanvasModeSelector(const DungeonWorkbenchToolbarParams& p,
           ImVec2(workbench::CalcIconButtonWidth(kToolbarModeConnectedLabel,
                                                 height),
                  height),
-          "Dungeon overview: click a room preview to edit it",
+          "Dungeon overview: double-click a room preview to edit it",
           p.layout->show_connected_canvas_view)) {
     p.layout->show_connected_canvas_view = true;
     *p.split_view_enabled = false;
@@ -663,12 +664,23 @@ bool DrawToolbarOverflowMenu(const DungeonWorkbenchToolbarParams& p,
     DrawCompareContents(p);
   }
 
+  const bool can_transfer_room =
+      p.primary_viewer && p.current_room_id && *p.current_room_id >= 0;
   const bool has_hidden_room_action =
+      can_transfer_room ||
       (!visibility.apply_room && p.on_save_room && p.current_room_id &&
        *p.current_room_id >= 0) ||
       (!visibility.dungeon_map && p.on_request_dungeon_map);
   if (has_hidden_room_action) {
     ImGui::Separator();
+  }
+  if (can_transfer_room &&
+      ImGui::MenuItem(ICON_MD_CONTENT_COPY " Clone / Import Room...")) {
+    RequestDungeonRoomTransferPopup(*p.primary_viewer);
+  }
+  if (can_transfer_room) {
+    gui::AutoRegisterLastItem("menu_item", "ToolbarRoomTransfer",
+                              "Clone or import this room's contents");
   }
   if (!visibility.apply_room && p.on_save_room && p.current_room_id &&
       *p.current_room_id >= 0 && ImGui::MenuItem(ICON_MD_SAVE " Apply Room")) {
@@ -738,15 +750,6 @@ bool DungeonWorkbenchToolbar::Draw(const DungeonWorkbenchToolbarParams& p) {
   const ToolbarVisibility visibility = ResolveToolbarVisibility(p, layout);
   const float right_actions_width =
       ToolbarRightActionsWidth(p, layout, visibility);
-
-  // Connected toolbar controls: render as a floating canvas overlay (the
-  // viewer's built-in fallback) instead of inline. Inline rendering races
-  // against the right cluster because the controls are variable-width and
-  // only present when stitched mode is active. Overlay mode anchors them to
-  // the canvas viewport corner where they belong.
-  if (p.primary_viewer) {
-    p.primary_viewer->SetConnectedControlsInline(false);
-  }
 
   // ── Render row ───────────────────────────────────────────────────
   if (visibility.pane_toggles) {

@@ -403,6 +403,42 @@ TEST_F(DungeonRoomMetadataUiTest,
   }
 }
 
+TEST_F(DungeonRoomMetadataUiTest,
+       CoreHexFieldsStayCompactAndShareRowsWithMessageAndPitDamage) {
+  content_.SetRoomInspectorSubTab(
+      DungeonWorkbenchContent::RoomInspectorSubTab::Warps);
+  for (const float width : {320.0f, 640.0f}) {
+    width_ = width;
+    ScrollTo(0);
+    SCOPED_TRACE(width);
+    for (size_t i = 0; i < 7; ++i) {
+      const auto widget = Widget(kRoomPropertyFields[i]);
+      ASSERT_TRUE(widget) << kRoomPropertyFields[i];
+      EXPECT_TRUE(widget->visible) << kRoomPropertyFields[i];
+      const float input_width = widget->bounds.max_x - widget->bounds.min_x;
+      EXPECT_GE(input_width, rendered_hex_width_) << kRoomPropertyFields[i];
+      // Inputs hold at most three hex digits and must not stretch.
+      EXPECT_LE(input_width, 2.0f * rendered_hex_width_)
+          << kRoomPropertyFields[i];
+    }
+    const auto message = Widget("RoomHeaderMessage");
+    const auto pit = Widget("PitDamageEnabled");
+    ASSERT_TRUE(message);
+    ASSERT_TRUE(pit);
+    EXPECT_TRUE(pit->visible);
+    EXPECT_FLOAT_EQ(message->bounds.min_y, pit->bounds.min_y);
+    EXPECT_GT(pit->bounds.min_x, message->bounds.max_x);
+    EXPECT_LE(pit->bounds.max_x, 20 + width_);
+  }
+  // Wide panes fit four label/value pairs per row.
+  EXPECT_FLOAT_EQ(Widget("RoomHeaderLayout")->bounds.min_y,
+                  Widget("RoomHeaderFloor2")->bounds.min_y);
+  EXPECT_FLOAT_EQ(Widget("RoomHeaderPalette")->bounds.min_y,
+                  Widget("PitDamageEnabled")->bounds.min_y);
+  EXPECT_TRUE(edits_.empty());
+  EXPECT_FALSE(pit_table_.dirty());
+}
+
 TEST_F(DungeonRoomMetadataUiTest, BothVisibleTagSelectorsUseTypedEditBoundary) {
   DrawFrame();
   DrawFrame();

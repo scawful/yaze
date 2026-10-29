@@ -11,6 +11,7 @@
 #include <vector>
 #include "util/i18n/tr.h"
 
+#include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
 #include "app/editor/agent/agent_ui_theme.h"
 #include "app/editor/dungeon/dungeon_room_composite.h"
@@ -87,6 +88,19 @@ class RoomMatrixContent : public WindowContent {
     prepare_render_context_ = std::move(callback);
   }
 
+  // `request` opens the room data swap dialog for (first, second); `draw`
+  // renders that dialog inside this panel's ID scope every frame.
+  void SetRoomDataSwapHandlers(std::function<void(int, int)> request,
+                               std::function<void()> draw) {
+    on_room_data_swap_request_ = std::move(request);
+    draw_room_data_swap_dialog_ = std::move(draw);
+  }
+
+  // Opens Clone / Import for (target, source).
+  void SetRoomCloneRequestCallback(std::function<void(int, int)> callback) {
+    on_room_clone_request_ = std::move(callback);
+  }
+
   // Project dungeon ownership and warp tags for the census overlay.
   void SetCensusManifestProvider(
       RoomMatrixCensusOverlay::ManifestProvider provider) {
@@ -104,6 +118,9 @@ class RoomMatrixContent : public WindowContent {
     on_room_swap_ = {};
     on_room_intent_ = {};
     prepare_render_context_ = {};
+    on_room_data_swap_request_ = {};
+    draw_room_data_swap_dialog_ = {};
+    on_room_clone_request_ = {};
     navigation_shortcut_focus_ = false;
   }
   bool OwnsNavigationShortcutFocus() const {
@@ -261,10 +278,34 @@ class RoomMatrixContent : public WindowContent {
             }
           }
 
+          if (on_room_data_swap_request_) {
+            if (ImGui::BeginDragDropSource()) {
+              ImGui::SetDragDropPayload(kRoomDragPayload, &room_id,
+                                        sizeof(room_id));
+              ImGui::Text(ICON_MD_SWAP_HORIZ " Room %03X", room_id);
+              ImGui::TextDisabled("%s",
+                                  tr("Drop on another room to swap data"));
+              ImGui::EndDragDropSource();
+            }
+            if (ImGui::BeginDragDropTarget()) {
+              if (const ImGuiPayload* payload =
+                      ImGui::AcceptDragDropPayload(kRoomDragPayload);
+                  payload && payload->DataSize == sizeof(int)) {
+                const int source_room = *static_cast<const int*>(payload->Data);
+                if (source_room != room_id) {
+                  on_room_data_swap_request_(source_room, room_id);
+                }
+              }
+              ImGui::EndDragDropTarget();
+            }
+          }
+
           gui::ItemContextMenu(nullptr, [&, room_id]() {
-            const bool can_swap =
-                on_room_swap_ && current_room_id_ && *current_room_id_ >= 0 &&
+            const bool has_other_current =
+                current_room_id_ && *current_room_id_ >= 0 &&
                 *current_room_id_ < kTotalRooms && *current_room_id_ != room_id;
+            const bool can_swap = on_room_swap_ && has_other_current;
+            const int current_room = current_room_id_ ? *current_room_id_ : -1;
 
             std::vector<gui::MenuItemSpec> items;
             items.emplace_back(is_open ? "Focus Room" : "Open in Workbench",
@@ -295,17 +336,45 @@ class RoomMatrixContent : public WindowContent {
             items.back().separator_after = true;
 
             items.push_back(gui::MenuItemSpec::Conditional(
-                tr("Swap With Current Room"),
+                tr("Show in Current Panel"),
                 [this, room_id]() {
                   on_room_swap_(*current_room_id_, room_id);
                 },
                 [can_swap]() { return can_swap; }));
+            items.back().icon = ICON_MD_OPEN_IN_BROWSER;
+            items.back().tooltip =
+                tr("Replace the room shown in the current panel");
+            items.back().separator_after = true;
+
+            const std::string current_label =
+                has_other_current ? absl::StrFormat("%03X", current_room)
+                                  : std::string(tr("Current Room"));
+            const bool can_swap_data =
+                on_room_data_swap_request_ && has_other_current;
+            items.push_back(gui::MenuItemSpec::Conditional(
+                absl::StrCat(tr("Swap Data With"), " ", current_label, "..."),
+                [this, room_id, current_room]() {
+                  on_room_data_swap_request_(current_room, room_id);
+                },
+                [can_swap_data]() { return can_swap_data; }));
             items.back().icon = ICON_MD_SWAP_HORIZ;
+            items.back().tooltip =
+                tr("Exchange room contents. Tip: drag one room onto another.");
+            const bool can_clone = on_room_clone_request_ && has_other_current;
+            items.push_back(gui::MenuItemSpec::Conditional(
+                absl::StrCat(tr("Clone Into"), " ", current_label, "..."),
+                [this, room_id, current_room]() {
+                  on_room_clone_request_(current_room, room_id);
+                },
+                [can_clone]() { return can_clone; }));
+            items.back().icon = ICON_MD_CONTENT_COPY;
+            items.back().tooltip =
+                tr("Replace the current room's contents with this room's");
             return items;
           });
 
           // Tooltip with room info and thumbnail preview
-          if (ImGui::IsItemHovered()) {
+          if (ImGui::IsItemHovered() && !ImGui::GetDragDropPayload()) {
             ImGui::BeginTooltip();
             // Use unified ResourceLabelProvider for room names
             ImGui::Text("%s", zelda3::GetRoomLabel(room_id).c_str());
@@ -371,6 +440,9 @@ class RoomMatrixContent : public WindowContent {
     // rather than adding another full grid below the last cell.
     ImGui::SetCursorScreenPos(grid_origin);
     ImGui::Dummy(ImVec2(panel_width, grid_height + y_offset));
+    if (draw_room_data_swap_dialog_) {
+      draw_room_data_swap_dialog_();
+    }
   }
 
   void SetRooms(DungeonRoomStore* rooms) {
@@ -383,6 +455,8 @@ class RoomMatrixContent : public WindowContent {
   }
 
  private:
+  static constexpr const char* kRoomDragPayload = "YAZE_DUNGEON_ROOM_ID";
+
   // Unopened rooms preview from a tooltip-owned copy. Replacing the shared
   // room would drop pending imported collision and mark the room as open.
   zelda3::Room* HoverPreviewRoom(int room_id) {
@@ -455,6 +529,8 @@ class RoomMatrixContent : public WindowContent {
                             meta->second);
       ImGui::TextDisabled(
           "Click a room to open. Double-click for a separate panel.");
+      if (on_room_data_swap_request_)
+        ImGui::TextDisabled("Drag a room onto another to swap their data.");
       ImGui::EndTooltip();
     }
   }
@@ -591,6 +667,9 @@ class RoomMatrixContent : public WindowContent {
   std::function<void(int)> on_room_selected_;
   std::function<void(int, int)> on_room_swap_;
   std::function<void(int, RoomSelectionIntent)> on_room_intent_;
+  std::function<void(int, int)> on_room_data_swap_request_;
+  std::function<void()> draw_room_data_swap_dialog_;
+  std::function<void(int, int)> on_room_clone_request_;
   RoomCompositeOutput tooltip_composite_output_;
   RoomMatrixCensusOverlay census_;
   bool navigation_shortcut_focus_ = false;

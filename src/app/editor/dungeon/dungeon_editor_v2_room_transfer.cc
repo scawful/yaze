@@ -1,8 +1,12 @@
 #include "app/editor/dungeon/dungeon_editor_v2.h"
 
+#include <algorithm>
 #include <map>
 #include <memory>
+#include <optional>
+#include <string>
 #include <utility>
+#include <vector>
 
 #include "app/editor/system/session/hack_manifest_save_validation.h"
 #include "core/features.h"
@@ -16,31 +20,50 @@ namespace {
 
 class RoomTransferAction final : public UndoAction {
  public:
-  using Restore = std::function<absl::Status(const DungeonRoomDocument&)>;
-  RoomTransferAction(DungeonRoomTransferPlan plan, Restore restore)
-      : plan_(std::move(plan)), restore_(std::move(restore)) {}
-  absl::Status Undo() override { return restore_(plan_.before); }
-  absl::Status Redo() override { return restore_(plan_.after); }
-  std::string Description() const override {
-    return absl::StrFormat("Replace room %03X contents", plan_.target_room_id);
-  }
+  using Restore =
+      std::function<absl::Status(int room_id, const DungeonRoomDocument&)>;
+  RoomTransferAction(std::vector<DungeonRoomTransferPlan> plans,
+                     std::string description, Restore restore)
+      : plans_(std::move(plans)),
+        description_(std::move(description)),
+        restore_(std::move(restore)) {}
+  absl::Status Undo() override { return RestoreAll(/*after=*/false); }
+  absl::Status Redo() override { return RestoreAll(/*after=*/true); }
+  std::string Description() const override { return description_; }
   size_t MemoryUsage() const override {
-    size_t bytes = sizeof(plan_);
-    for (const auto* document : {&plan_.before, &plan_.after}) {
-      const auto& c = document->contents;
-      bytes += c.objects.size() * sizeof(zelda3::RoomObject) +
-               c.chests.size() * sizeof(chest_data) +
-               c.doors.size() * sizeof(zelda3::Room::Door) +
-               c.sprites.size() * sizeof(DungeonSpriteSnapshot) +
-               c.items.size() * sizeof(zelda3::PotItem);
+    size_t bytes = sizeof(*this);
+    for (const auto& plan : plans_) {
+      bytes += sizeof(plan);
+      for (const auto* document : {&plan.before, &plan.after}) {
+        const auto& c = document->contents;
+        bytes += c.objects.size() * sizeof(zelda3::RoomObject) +
+                 c.chests.size() * sizeof(chest_data) +
+                 c.doors.size() * sizeof(zelda3::Room::Door) +
+                 c.sprites.size() * sizeof(DungeonSpriteSnapshot) +
+                 c.items.size() * sizeof(zelda3::PotItem);
+      }
     }
     return bytes;
   }
 
  private:
-  DungeonRoomTransferPlan plan_;
+  absl::Status RestoreAll(bool after) {
+    absl::Status result;
+    for (const auto& plan : plans_) {
+      result.Update(
+          restore_(plan.target_room_id, after ? plan.after : plan.before));
+    }
+    return result;
+  }
+
+  std::vector<DungeonRoomTransferPlan> plans_;
+  std::string description_;
   Restore restore_;
 };
+
+uint8_t PlannedWaterMask(const DungeonRoomTransferPlan& plan) {
+  return plan.after.water.has_data ? plan.after.water.sram_bit_mask : 0;
+}
 
 absl::Status CheckTransferSaveFlags(const zelda3::Room& changed) {
   const auto& f = core::FeatureFlags::get().dungeon;
@@ -110,8 +133,11 @@ absl::Status ValidateTransferTorchSource(const Rom& rom, int room_id) {
   return absl::OkStatus();
 }
 
-absl::Status AssignTransferredWaterMask(Rom& rom, const DungeonRoomStore& rooms,
-                                        DungeonRoomTransferPlan& plan) {
+// A swap companion's room is also being replaced: its planned mask (zero when
+// it will hold no zone) stands in for its current one.
+absl::Status AssignTransferredWaterMask(
+    Rom& rom, const DungeonRoomStore& rooms, DungeonRoomTransferPlan& plan,
+    std::optional<std::pair<int, uint8_t>> companion = std::nullopt) {
   if (!(plan.options.domains & kTransferWater) || !plan.after.water.has_data)
     return absl::OkStatus();
   ASSIGN_OR_RETURN(const auto saved, zelda3::LoadWaterFillTable(&rom));
@@ -124,6 +150,12 @@ absl::Status AssignTransferredWaterMask(Rom& rom, const DungeonRoomStore& rooms,
     else if (room.water_fill_dirty())
       masks.erase(id);
   });
+  if (companion) {
+    if (companion->second != 0)
+      masks[companion->first] = companion->second;
+    else
+      masks.erase(companion->first);
+  }
   uint8_t used = 0;
   for (const auto& [id, mask] : masks) {
     if (id != plan.target_room_id)
@@ -252,8 +284,54 @@ absl::StatusOr<DungeonRoomTransferPlan> DungeonEditorV2::PreviewRoomTransfer(
     plan.clone_source_room_id = source_room_id;
     plan.clone_source_before = std::move(source);
   }
+  CaptureRoomTransferSelection(plan);
+  RETURN_IF_ERROR(AssignTransferredWaterMask(*rom_, rooms_, plan));
+  if (plan.changed())
+    RETURN_IF_ERROR(PreflightRoomTransfer(plan));
+  return plan;
+}
+
+absl::StatusOr<DungeonRoomSwapPlan> DungeonEditorV2::PreviewRoomSwap(
+    int first_room_id, int second_room_id,
+    const DungeonRoomTransferOptions& options) {
+  if (first_room_id == second_room_id) {
+    return absl::InvalidArgumentError("Choose two different rooms to swap");
+  }
+  RETURN_IF_ERROR(EnsureRoomTransferLoaded(first_room_id));
+  RETURN_IF_ERROR(EnsureRoomTransferLoaded(second_room_id));
+  auto first_document =
+      CaptureDungeonRoomDocument(*rooms_.GetIfLoaded(first_room_id));
+  auto second_document =
+      CaptureDungeonRoomDocument(*rooms_.GetIfLoaded(second_room_id));
+  ASSIGN_OR_RETURN(auto first,
+                   PlanDungeonRoomTransfer(*rooms_.GetIfLoaded(first_room_id),
+                                           second_document, options));
+  ASSIGN_OR_RETURN(auto second,
+                   PlanDungeonRoomTransfer(*rooms_.GetIfLoaded(second_room_id),
+                                           first_document, options));
+  first.clone_source_room_id = second_room_id;
+  first.clone_source_before = std::move(second_document);
+  second.clone_source_room_id = first_room_id;
+  second.clone_source_before = std::move(first_document);
+  CaptureRoomTransferSelection(first);
+  CaptureRoomTransferSelection(second);
+  // The second room's current zone moves away, so it holds no bit while the
+  // first plan picks; the second then avoids whatever the first kept.
+  RETURN_IF_ERROR(AssignTransferredWaterMask(
+      *rom_, rooms_, first, std::make_pair(second_room_id, uint8_t{0})));
+  RETURN_IF_ERROR(AssignTransferredWaterMask(
+      *rom_, rooms_, second,
+      std::make_pair(first_room_id, PlannedWaterMask(first))));
+  DungeonRoomSwapPlan plan{std::move(first), std::move(second)};
+  if (plan.changed())
+    RETURN_IF_ERROR(PreflightRoomTransfers({&plan.first, &plan.second}));
+  return plan;
+}
+
+void DungeonEditorV2::CaptureRoomTransferSelection(
+    DungeonRoomTransferPlan& plan) {
   auto capture_selection = [&](DungeonCanvasViewer* viewer) {
-    if (!viewer || viewer->current_room_id() != target_room_id)
+    if (!viewer || viewer->current_room_id() != plan.target_room_id)
       return;
     plan.before.contents.selected_objects =
         viewer->object_interaction().GetSelectedObjectIndices();
@@ -266,14 +344,15 @@ absl::StatusOr<DungeonRoomTransferPlan> DungeonEditorV2::PreviewRoomTransfer(
   });
   capture_selection(workbench_compare_viewer_.get());
   capture_selection(workbench_viewer_.get());
-  RETURN_IF_ERROR(AssignTransferredWaterMask(*rom_, rooms_, plan));
-  if (plan.changed())
-    RETURN_IF_ERROR(PreflightRoomTransfer(plan));
-  return plan;
 }
 
 absl::Status DungeonEditorV2::PreflightRoomTransfer(
     const DungeonRoomTransferPlan& plan) {
+  return PreflightRoomTransfers({&plan});
+}
+
+absl::Status DungeonEditorV2::PreflightRoomTransfers(
+    const std::vector<const DungeonRoomTransferPlan*>& plans) {
   Rom scratch(*rom_);
   // Only a detached model is visible to serializers: no live renderer, palette
   // state, history, source files or borrowed room buffers can be mutated here.
@@ -311,45 +390,65 @@ absl::Status DungeonEditorV2::PreflightRoomTransfer(
       copy.SetWaterFillTile(offset % 64, offset / 64, true);
     copy.ClearWaterFillDirty();
   }
-  auto& target = *shadow->rooms_.GetIfLoaded(plan.target_room_id);
-  // Check only newly changed domains; older unrelated unsaved edits retain
-  // their normal Save behavior in the subsequent shared-table preflight.
-  const auto prior_dirty = target.CaptureSaveDirtySnapshot();
-  target.ClearSaveDirtyState();
-  target.ClearCustomCollisionDirty();
-  target.ClearWaterFillDirty();
-  ApplyDungeonRoomDocument(target, plan.after);
-  RETURN_IF_ERROR(CheckTransferSaveFlags(target));
-  const auto changed_dirty = target.CaptureSaveDirtySnapshot();
-  target.RestoreSaveDirtySnapshot(prior_dirty);
-  auto combined = prior_dirty;
-  combined.header |= changed_dirty.header;
-  combined.object_stream |= changed_dirty.object_stream;
-  combined.object_stream_header |= changed_dirty.object_stream_header;
-  combined.sprites |= changed_dirty.sprites;
-  combined.chests |= changed_dirty.chests;
-  combined.pot_items |= changed_dirty.pot_items;
-  combined.torches |= changed_dirty.torches;
-  combined.blocks |= changed_dirty.blocks;
-  combined.custom_collision |= changed_dirty.custom_collision;
-  combined.water_fill |= changed_dirty.water_fill;
-  combined.water_fill_sram_bit_mask = plan.after.water.sram_bit_mask;
-  combined.block_load_orders = changed_dirty.block_load_orders;
-  target.RestoreSaveDirtySnapshot(combined);
-  if (core::FeatureFlags::get().dungeon.kSaveRoomHeaders &&
-      target.header_dirty()) {
-    RETURN_IF_ERROR(ValidateRoomHeaderOwnership(scratch, plan.target_room_id));
+  std::vector<bool> changed_water(plans.size(), false);
+  for (size_t i = 0; i < plans.size(); ++i) {
+    const auto& plan = *plans[i];
+    auto& target = *shadow->rooms_.GetIfLoaded(plan.target_room_id);
+    // Check only newly changed domains; older unrelated unsaved edits retain
+    // their normal Save behavior in the subsequent shared-table preflight.
+    const auto prior_dirty = target.CaptureSaveDirtySnapshot();
+    target.ClearSaveDirtyState();
+    target.ClearCustomCollisionDirty();
+    target.ClearWaterFillDirty();
+    ApplyDungeonRoomDocument(target, plan.after);
+    RETURN_IF_ERROR(CheckTransferSaveFlags(target));
+    const auto changed_dirty = target.CaptureSaveDirtySnapshot();
+    target.RestoreSaveDirtySnapshot(prior_dirty);
+    auto combined = prior_dirty;
+    combined.header |= changed_dirty.header;
+    combined.object_stream |= changed_dirty.object_stream;
+    combined.object_stream_header |= changed_dirty.object_stream_header;
+    combined.sprites |= changed_dirty.sprites;
+    combined.chests |= changed_dirty.chests;
+    combined.pot_items |= changed_dirty.pot_items;
+    combined.torches |= changed_dirty.torches;
+    combined.blocks |= changed_dirty.blocks;
+    combined.custom_collision |= changed_dirty.custom_collision;
+    combined.water_fill |= changed_dirty.water_fill;
+    combined.water_fill_sram_bit_mask = plan.after.water.sram_bit_mask;
+    combined.block_load_orders = changed_dirty.block_load_orders;
+    target.RestoreSaveDirtySnapshot(combined);
+    changed_water[i] = changed_dirty.water_fill;
   }
-  RETURN_IF_ERROR(shadow->SaveRoomImpl(plan.target_room_id, true));
-  if (changed_dirty.water_fill &&
-      target.water_fill_sram_bit_mask() != plan.after.water.sram_bit_mask) {
-    return absl::FailedPreconditionError(
-        "Water-fill state bits changed; preview again");
+  for (const auto* plan : plans) {
+    if (core::FeatureFlags::get().dungeon.kSaveRoomHeaders &&
+        shadow->rooms_.GetIfLoaded(plan->target_room_id)->header_dirty()) {
+      RETURN_IF_ERROR(
+          ValidateRoomHeaderOwnership(scratch, plan->target_room_id));
+    }
   }
+  std::vector<int> target_ids;
+  for (const auto* plan : plans) {
+    target_ids.push_back(plan->target_room_id);
+  }
+  RETURN_IF_ERROR(shadow->SaveRoomsImpl(target_ids, true));
+  for (size_t i = 0; i < plans.size(); ++i) {
+    const auto& target = *shadow->rooms_.GetIfLoaded(plans[i]->target_room_id);
+    if (changed_water[i] && target.water_fill_sram_bit_mask() !=
+                                plans[i]->after.water.sram_bit_mask) {
+      return absl::FailedPreconditionError(
+          "Water-fill state bits changed; preview again");
+    }
+  }
+  const auto is_target = [&](int id) {
+    return std::any_of(plans.begin(), plans.end(), [id](const auto* plan) {
+      return plan->target_room_id == id;
+    });
+  };
   bool changed_other_mask = false;
   rooms_.ForEachMaterialized([&](int id, const zelda3::Room& original) {
     const auto* copy = shadow->rooms_.GetIfMaterialized(id);
-    if (id != plan.target_room_id && original.has_water_fill_zone() && copy &&
+    if (!is_target(id) && original.has_water_fill_zone() && copy &&
         original.water_fill_sram_bit_mask() != copy->water_fill_sram_bit_mask())
       changed_other_mask = true;
   });
@@ -385,17 +484,29 @@ absl::Status DungeonEditorV2::PreflightRoomTransfer(
   return absl::OkStatus();
 }
 
+absl::Status DungeonEditorV2::ValidateRoomTransferStillCurrent(
+    const DungeonRoomTransferPlan& plan) {
+  const auto* target = rooms_.GetIfLoaded(plan.target_room_id);
+  if (plan.rom != rom_ || !target || target->rom() != rom_ ||
+      target->id() != plan.target_room_id ||
+      !SameDungeonRoomDocument(CaptureDungeonRoomDocument(*target),
+                               plan.before)) {
+    return absl::FailedPreconditionError(
+        "Room changed since preview; preview again");
+  }
+  ASSIGN_OR_RETURN(const auto checked,
+                   PlanDungeonRoomTransfer(*target, plan.after, plan.options));
+  if (!SameDungeonRoomDocument(checked.after, plan.after)) {
+    return absl::InvalidArgumentError(
+        "Room preview does not match its copy options");
+  }
+  return absl::OkStatus();
+}
+
 absl::Status DungeonEditorV2::ApplyRoomTransfer(
     const DungeonRoomTransferPlan& plan) {
   auto validate = [&]() -> absl::Status {
-    const auto* target = rooms_.GetIfLoaded(plan.target_room_id);
-    if (plan.rom != rom_ || !target || target->rom() != rom_ ||
-        target->id() != plan.target_room_id ||
-        !SameDungeonRoomDocument(CaptureDungeonRoomDocument(*target),
-                                 plan.before)) {
-      return absl::FailedPreconditionError(
-          "Room changed since preview; preview again");
-    }
+    RETURN_IF_ERROR(ValidateRoomTransferStillCurrent(plan));
     if (plan.clone_source_room_id >= 0) {
       const auto* source = rooms_.GetIfLoaded(plan.clone_source_room_id);
       if (!source || source->rom() != rom_ || !plan.clone_source_before ||
@@ -404,13 +515,6 @@ absl::Status DungeonEditorV2::ApplyRoomTransfer(
         return absl::FailedPreconditionError(
             "Source room changed; preview again");
       }
-    }
-    ASSIGN_OR_RETURN(
-        const auto checked,
-        PlanDungeonRoomTransfer(*target, plan.after, plan.options));
-    if (!SameDungeonRoomDocument(checked.after, plan.after)) {
-      return absl::InvalidArgumentError(
-          "Room preview does not match its copy options");
     }
     return absl::OkStatus();
   };
@@ -423,11 +527,55 @@ absl::Status DungeonEditorV2::ApplyRoomTransfer(
   // Gesture finalization can alter shared-table occupancy in another room.
   RETURN_IF_ERROR(PreflightRoomTransfer(plan));
   RETURN_IF_ERROR(RestoreRoomTransfer(plan.target_room_id, plan.after));
-  auto history = plan;
-  history.clone_source_before.reset();
+  std::vector<DungeonRoomTransferPlan> history{plan};
+  history.front().clone_source_before.reset();
   undo_manager_.Push(std::make_unique<RoomTransferAction>(
-      std::move(history), [this, id = plan.target_room_id,
-                           rom = rom_](const DungeonRoomDocument& state) {
+      std::move(history),
+      absl::StrFormat("Replace room %03X contents", plan.target_room_id),
+      [this, rom = rom_](int id, const DungeonRoomDocument& state) {
+        if (rom_ != rom)
+          return absl::FailedPreconditionError(
+              "Room history belongs to another ROM");
+        return RestoreRoomTransfer(id, state);
+      }));
+  return absl::OkStatus();
+}
+
+absl::Status DungeonEditorV2::ApplyRoomSwap(const DungeonRoomSwapPlan& plan) {
+  const auto& first = plan.first;
+  const auto& second = plan.second;
+  if (first.target_room_id == second.target_room_id ||
+      first.clone_source_room_id != second.target_room_id ||
+      second.clone_source_room_id != first.target_room_id) {
+    return absl::InvalidArgumentError("Swap preview does not pair two rooms");
+  }
+  // Each target's pre-swap document is the other plan's source, so checking
+  // both targets also checks both sources.
+  auto validate = [&]() -> absl::Status {
+    RETURN_IF_ERROR(ValidateRoomTransferStillCurrent(first));
+    return ValidateRoomTransferStillCurrent(second);
+  };
+  RETURN_IF_ERROR(validate());
+  if (!plan.changed())
+    return absl::OkStatus();
+  RETURN_IF_ERROR(PreflightRoomTransfers({&first, &second}));
+  FinalizePendingUndoActions();
+  RETURN_IF_ERROR(validate());
+  RETURN_IF_ERROR(PreflightRoomTransfers({&first, &second}));
+  RETURN_IF_ERROR(RestoreRoomTransfer(first.target_room_id, first.after));
+  if (auto status = RestoreRoomTransfer(second.target_room_id, second.after);
+      !status.ok()) {
+    (void)RestoreRoomTransfer(first.target_room_id, first.before);
+    return status;
+  }
+  std::vector<DungeonRoomTransferPlan> history{first, second};
+  for (auto& entry : history)
+    entry.clone_source_before.reset();
+  undo_manager_.Push(std::make_unique<RoomTransferAction>(
+      std::move(history),
+      absl::StrFormat("Swap rooms %03X and %03X", first.target_room_id,
+                      second.target_room_id),
+      [this, rom = rom_](int id, const DungeonRoomDocument& state) {
         if (rom_ != rom)
           return absl::FailedPreconditionError(
               "Room history belongs to another ROM");

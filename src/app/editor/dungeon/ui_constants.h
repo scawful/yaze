@@ -33,7 +33,6 @@ inline constexpr float kConnectedSidePanelApproxMinWidth = 196.0f;
 // that the panel collapses. Prevents a sudden ~220 px horizontal snap when
 // toggling the panel near the visibility threshold.
 inline constexpr float kConnectedSidePanelHideHysteresis = 40.0f;
-inline constexpr float kConnectedControlsApproxHeight = 62.0f;
 inline constexpr float kConnectedOverviewApproxHeight = 168.0f;
 inline constexpr float kConnectedPreviewApproxHeight = 212.0f;
 

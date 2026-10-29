@@ -61,6 +61,14 @@ struct DungeonRoomTransferPlan {
   bool changed() const;
 };
 
+// Two replacements that are preflighted, published and undone together. Each
+// plan's source is the other room's pre-swap document.
+struct DungeonRoomSwapPlan {
+  DungeonRoomTransferPlan first;
+  DungeonRoomTransferPlan second;
+  bool changed() const { return first.changed() || second.changed(); }
+};
+
 DungeonRoomDocument CaptureDungeonRoomDocument(const zelda3::Room& room);
 // Compares authored fields only, ignoring provenance room ID and selection.
 bool SameDungeonRoomDocument(const DungeonRoomDocument& a,

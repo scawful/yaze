@@ -12,6 +12,7 @@
 #include <utility>
 #include <vector>
 
+#include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
 #include "app/editor/agent/agent_ui_theme.h"
 #include "app/editor/dungeon/dungeon_canvas_viewer.h"
@@ -970,18 +971,18 @@ void DungeonWorkbenchContent::DrawCanvasPane(
           ImGui::GetStyle().ItemSpacing.y;
 
       const bool connected_mode = layout_state_.show_connected_canvas_view;
-      ImGuiWindowFlags body_flags =
+      const ImGuiWindowFlags body_flags =
           ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse;
       if (connected_mode) {
         // Body child owns the connected-mode scroll container; matrix no
-        // longer nests its own BeginChild for scrolling.
-        const ImVec2 content_size =
-            primary_viewer->GetConnectedContentSize(*current_room_id_);
-        const float scale = primary_viewer->ConnectedCanvasScale();
+        // longer nests its own BeginChild for scrolling. Overview pans by
+        // dragging and the minimap, so its overscrolled extent has no bars.
+        const ImVec2 avail = ImGui::GetContentRegionAvail();
         ImGui::SetNextWindowContentSize(
-            ImVec2(content_size.x * scale, content_size.y * scale));
-        body_flags = ImGuiWindowFlags_HorizontalScrollbar |
-                     ImGuiWindowFlags_NoScrollWithMouse;
+            primary_viewer->GetConnectedScrollContentSize(
+                *current_room_id_,
+                ImVec2(avail.x,
+                       std::max(1.0f, avail.y - status_bar_reserved))));
       }
       const bool body_open = ImGui::BeginChild(
           "##DungeonCanvasBody", ImVec2(0.0f, -status_bar_reserved), false,
@@ -1349,41 +1350,41 @@ void DungeonWorkbenchContent::DrawApplyScopeControls(int room_id) {
 }
 
 void DungeonWorkbenchContent::DrawPitDamageControls(int room_id) {
-  pit_damage_control_rects_ = {};
-  if (pit_damage_chooser_room_id_ >= 0 &&
-      pit_damage_chooser_room_id_ != room_id) {
-    if (ImGui::BeginPopup("##PitDamageSlotChooser")) {
-      ImGui::CloseCurrentPopup();
-      ImGui::EndPopup();
+  DrawPitDamageToggle(room_id, tr("Pit damage"));
+  DrawPitDamageDetails(room_id);
+}
+
+void DungeonWorkbenchContent::DrawPitDamageToggle(int room_id,
+                                                  const char* label) {
+  const std::string checkbox_label =
+      absl::StrCat(label ? label : "", "##PitDamageEnabled");
+  auto draw_unavailable = [&](const char* reason) {
+    bool enabled = false;
+    ImGui::BeginDisabled();
+    ImGui::Checkbox(checkbox_label.c_str(), &enabled);
+    ImGui::EndDisabled();
+    if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
+      ImGui::SetTooltip("%s", reason);
     }
-    pit_damage_chooser_room_id_ = -1;
-  }
-  const auto& theme = AgentUI::GetTheme();
+  };
   zelda3::PitDamageTable* table =
       get_pit_damage_table_ ? get_pit_damage_table_() : nullptr;
   if (!table) {
-    bool enabled = false;
-    ImGui::BeginDisabled();
-    ImGui::Checkbox(tr("Pit damage##PitDamageEnabled"), &enabled);
-    ImGui::EndDisabled();
-    if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
-      ImGui::SetTooltip(tr("Available after room data loads."));
-    }
+    draw_unavailable(tr("Available after room data loads."));
     return;
   }
   const auto membership = BuildPitDamageMembershipState(
       table, room_id, pit_damage_replacement_room_id_,
       pit_damage_victim_room_id_);
   if (!membership.room_valid) {
-    ImGui::TextDisabled(tr("No valid room selected."));
+    draw_unavailable(tr("No valid room selected."));
     return;
   }
 
-  const uint16_t current_room = membership.room_id;
   bool room_deals_damage = membership.deals_damage;
-  if (ImGui::Checkbox(tr("Pit damage##PitDamageEnabled"), &room_deals_damage)) {
+  if (ImGui::Checkbox(checkbox_label.c_str(), &room_deals_damage)) {
     pit_damage_chooser_room_id_ = room_id;
-    ImGui::OpenPopup("##PitDamageSlotChooser");
+    pit_damage_chooser_requested_ = true;
   }
   {
     gui::AutoWidgetScope automation_scope("Dungeon/Workbench");
@@ -1394,6 +1395,36 @@ void DungeonWorkbenchContent::DrawPitDamageControls(int room_id) {
         "Choose which room gives up or receives a pit-damage slot when "
         "changing this room.");
   }
+}
+
+void DungeonWorkbenchContent::DrawPitDamageDetails(int room_id) {
+  pit_damage_control_rects_ = {};
+  if (pit_damage_chooser_room_id_ >= 0 &&
+      pit_damage_chooser_room_id_ != room_id) {
+    if (ImGui::BeginPopup("##PitDamageSlotChooser")) {
+      ImGui::CloseCurrentPopup();
+      ImGui::EndPopup();
+    }
+    pit_damage_chooser_room_id_ = -1;
+    pit_damage_chooser_requested_ = false;
+  }
+  if (pit_damage_chooser_requested_) {
+    pit_damage_chooser_requested_ = false;
+    ImGui::OpenPopup("##PitDamageSlotChooser");
+  }
+  const auto& theme = AgentUI::GetTheme();
+  zelda3::PitDamageTable* table =
+      get_pit_damage_table_ ? get_pit_damage_table_() : nullptr;
+  if (!table) {
+    return;
+  }
+  const auto membership = BuildPitDamageMembershipState(
+      table, room_id, pit_damage_replacement_room_id_,
+      pit_damage_victim_room_id_);
+  if (!membership.room_valid) {
+    return;
+  }
+  const uint16_t current_room = membership.room_id;
 
   if (membership.dirty) {
     ImGui::TextColored(theme.status_warning,
