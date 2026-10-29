@@ -2,8 +2,10 @@
 #define YAZE_APP_ZELDA3_OVERWORLD_ENTRANCE_H
 
 #include <array>
+#include <cstddef>
 #include <cstdint>
 #include <cstdlib>
+#include <optional>
 #include <vector>
 
 #include "absl/status/status.h"
@@ -107,12 +109,12 @@ constexpr int kOverworldHoleEntrance = 0xDB84C;
 // entrance is a hole
 class OverworldEntrance : public GameEntity {
  public:
-  uint16_t map_pos_;
-  uint8_t entrance_id_;
+  uint16_t map_pos_ = 0;
+  uint8_t entrance_id_ = 0;
   bool is_hole_ = false;
   bool deleted = false;
 
-  OverworldEntrance() = default;
+  OverworldEntrance() { entity_type_ = kEntrance; }
   OverworldEntrance(int x, int y, uint8_t entrance_id, short map_id,
                     uint16_t map_pos, bool hole)
       : map_pos_(map_pos), entrance_id_(entrance_id), is_hole_(hole) {
@@ -149,6 +151,26 @@ class OverworldEntrance : public GameEntity {
     // Calculate map position encoding for ROM save
     map_pos_ = (uint16_t)((((game_y_) << 6) | (game_x_ & 0x3F)) << 1);
   }
+
+  // In expanded ROMs these legacy records describe overlapping, inactive
+  // bytes. Keep a load snapshot so Save can reject edits instead of dropping
+  // them, even after a previous expanded Save changed those ROM bytes.
+  void RememberHoleSourceState(size_t row) {
+    hole_source_state_ = HoleState();
+    hole_source_row_ = row;
+  }
+  bool HasUnchangedHoleSourceState(size_t row) const {
+    return hole_source_state_ && hole_source_row_ == row &&
+           *hole_source_state_ == HoleState();
+  }
+
+ private:
+  std::array<int, 9> HoleState() const {
+    return {map_id_, map_pos_, entrance_id_, x_,     y_,
+            game_x_, game_y_,  is_hole_,     deleted};
+  }
+  std::optional<std::array<int, 9>> hole_source_state_;
+  size_t hole_source_row_ = 0;
 };
 constexpr int kEntranceTileTypePtrLow = 0xDB8BF;
 constexpr int kEntranceTileTypePtrHigh = 0xDB917;

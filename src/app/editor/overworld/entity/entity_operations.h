@@ -15,6 +15,19 @@
 namespace yaze {
 namespace editor {
 
+// Build an existing table row's complete serialized value before mutating it.
+// The row is explicit: entrance IDs and return rooms are not unique identities.
+// Maps must already be present in the owning model; this does not admit or
+// allocate a project terrain map, entrance slot, or return row.
+absl::StatusOr<zelda3::OverworldEntrance> BuildOverworldEntranceEdit(
+    const zelda3::Overworld& overworld,
+    const std::vector<zelda3::OverworldEntrance>& records, size_t row,
+    const zelda3::OverworldEntrance& draft, bool legacy_hole_table = false);
+absl::StatusOr<zelda3::OverworldExit> BuildOverworldExitEdit(
+    const zelda3::Overworld& overworld,
+    const std::vector<zelda3::OverworldExit>& records, size_t row,
+    const zelda3::OverworldExit& draft);
+
 /**
  * @brief Flat helper functions for entity insertion/manipulation
  *

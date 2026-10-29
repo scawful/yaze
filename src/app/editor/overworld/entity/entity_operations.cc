@@ -74,7 +74,145 @@ bool MatchesItemIdentity(const zelda3::OverworldItem& lhs,
          lhs.game_y_ == rhs.game_y_ && lhs.bg2_ == rhs.bg2_;
 }
 
+absl::Status ValidateRecordPosition(const zelda3::Overworld& overworld,
+                                    int map_id, int x, int y) {
+  const auto* parent = overworld.overworld_map(map_id);
+  if (map_id < 0 || map_id >= 0xC0 || !parent) {
+    return absl::InvalidArgumentError("The record's map is not available");
+  }
+  if (parent->parent() != map_id && parent->parent() != 0xFF) {
+    return absl::InvalidArgumentError("Choose the area's parent map");
+  }
+  if (x < 0 || y < 0 || x >= 4096 || y >= 4096) {
+    return absl::InvalidArgumentError("Position must be within 0-4095 pixels");
+  }
+  const auto size = parent->area_size();
+  const int width = (size == zelda3::AreaSizeEnum::LargeArea ||
+                     size == zelda3::AreaSizeEnum::WideArea)
+                        ? 1024
+                        : 512;
+  const int height = (size == zelda3::AreaSizeEnum::LargeArea ||
+                      size == zelda3::AreaSizeEnum::TallArea)
+                         ? 1024
+                         : 512;
+  const int local_x = x - (map_id % 8) * 512;
+  const int local_y = y - ((map_id % 64) / 8) * 512;
+  const int screen = (map_id / 64) * 64 + x / 512 + (y / 512) * 8;
+  const auto* page = overworld.overworld_map(screen);
+  const int page_parent =
+      page ? (page->parent() == 0xFF ? screen : page->parent()) : -1;
+  if (local_x < 0 || local_y < 0 || local_x >= width || local_y >= height ||
+      screen / 64 != map_id / 64 || !page || page_parent != map_id) {
+    return absl::InvalidArgumentError(
+        "Position does not belong to the selected parent area");
+  }
+  return absl::OkStatus();
+}
+
 }  // namespace
+
+absl::StatusOr<zelda3::OverworldEntrance> BuildOverworldEntranceEdit(
+    const zelda3::Overworld& overworld,
+    const std::vector<zelda3::OverworldEntrance>& records, size_t row,
+    const zelda3::OverworldEntrance& draft, bool legacy_hole_table) {
+  if (row >= records.size()) {
+    return absl::NotFoundError("Entrance row is no longer available");
+  }
+  if (draft.is_hole_ != records[row].is_hole_) {
+    return absl::InvalidArgumentError("An edit cannot change the record kind");
+  }
+  auto value = draft;
+  value.entity_type_ = zelda3::GameEntity::kEntrance;
+  value.entity_id_ = static_cast<int>(row);
+  if (value.deleted) {
+    value.map_pos_ = 0xFFFF;
+    return value;
+  }
+  RETURN_IF_ERROR(
+      ValidateRecordPosition(overworld, value.map_id_, value.x_, value.y_));
+  if (value.x_ % 16 != 0 || value.y_ % 16 != 0) {
+    return absl::InvalidArgumentError("Entrance position must align to a tile");
+  }
+  const auto& before = records[row];
+  if (value.map_id_ != before.map_id_ || value.x_ != before.x_ ||
+      value.y_ != before.y_) {
+    value.UpdateMapProperties(value.map_id_, &overworld);
+  } else {
+    value.map_pos_ = before.map_pos_;
+    value.game_x_ = before.game_x_;
+    value.game_y_ = before.game_y_;
+  }
+  // The legacy hole decoder adds $400. Its existing non-wrapping codec
+  // cannot round-trip positions in the first eight local tile rows.
+  if (legacy_hole_table && value.map_pos_ < 0x400) {
+    return absl::InvalidArgumentError(
+        "Legacy hole positions must start at local tile row 8");
+  }
+  for (size_t i = row + 1; i < records.size(); ++i) {
+    const auto& other = records[i];
+    if (!other.deleted && other.map_id_ == value.map_id_ &&
+        other.map_pos_ == value.map_pos_ && other.is_hole_ == value.is_hole_) {
+      return absl::FailedPreconditionError(absl::StrFormat(
+          "Entrance row %d is shadowed by row %d at this position", row, i));
+    }
+  }
+  return value;
+}
+
+absl::StatusOr<zelda3::OverworldExit> BuildOverworldExitEdit(
+    const zelda3::Overworld& overworld,
+    const std::vector<zelda3::OverworldExit>& records, size_t row,
+    const zelda3::OverworldExit& draft) {
+  if (row >= records.size()) {
+    return absl::NotFoundError("Return row is no longer available");
+  }
+  if (draft.is_hole_ != records[row].is_hole_) {
+    return absl::InvalidArgumentError("An edit cannot change the record kind");
+  }
+  auto value = draft;
+  value.entity_type_ = zelda3::GameEntity::kExit;
+  value.entity_id_ = static_cast<int>(row);
+  if (value.deleted_) {
+    // The runtime scans room IDs, not the editor's deleted marker. Retire
+    // this authored row's dispatch key as well as its player coordinates.
+    value.room_id_ = 0xFFFF;
+    value.x_player_ = value.y_player_ = 0xFFFF;
+    return value;
+  }
+  if (value.room_id_ == 0xFFFF) {
+    return absl::InvalidArgumentError("Choose a room for this return row");
+  }
+  RETURN_IF_ERROR(
+      ValidateRecordPosition(overworld, value.map_id_, value.x_, value.y_));
+  const auto& before = records[row];
+  const bool geometry_changed = value.map_id_ != before.map_id_ ||
+                                value.x_ != before.x_ || value.y_ != before.y_;
+  const bool scroll_changed = value.x_scroll_ != before.x_scroll_ ||
+                              value.y_scroll_ != before.y_scroll_;
+  const bool camera_changed = value.x_camera_ != before.x_camera_ ||
+                              value.y_camera_ != before.y_camera_;
+  // Automatic is an editor preference, not a persisted ROM bit. An untouched
+  // loaded row must retain its authored camera/VRAM rather than normalize it.
+  if (geometry_changed || value.is_automatic_ != before.is_automatic_ ||
+      scroll_changed || (value.is_automatic_ && camera_changed)) {
+    value.UpdateMapProperties(value.map_id_, &overworld);
+  } else {
+    value.x_player_ = before.x_player_;
+    value.y_player_ = before.y_player_;
+    value.map_pos_ = before.map_pos_;
+    value.game_x_ = before.game_x_;
+    value.game_y_ = before.game_y_;
+  }
+  for (size_t i = row + 1; i < records.size(); ++i) {
+    // The native scan compares room IDs, including rows whose player
+    // coordinates contain the unused sentinel.
+    if (records[i].room_id_ == value.room_id_) {
+      return absl::FailedPreconditionError(absl::StrFormat(
+          "Return row %d is shadowed by row %d for this room", row, i));
+    }
+  }
+  return value;
+}
 
 absl::StatusOr<zelda3::OverworldItem> BuildOverworldItemForInsertion(
     const std::vector<zelda3::OverworldMap>& maps, ImVec2 world_position,
@@ -109,6 +247,11 @@ absl::StatusOr<zelda3::OverworldEntrance*> InsertEntrance(
     bool is_hole) {
   if (!overworld || !overworld->is_loaded()) {
     return absl::FailedPreconditionError("Overworld not loaded");
+  }
+
+  if (is_hole && overworld->expanded_entrances()) {
+    return absl::FailedPreconditionError(
+        "Expanded holes use existing combined entrance table rows");
   }
 
   // Snap to 16x16 grid and clamp to bounds (ZScream: EntranceMode.cs:86-87)
