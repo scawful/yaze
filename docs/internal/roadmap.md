@@ -18,6 +18,17 @@ rescoped to an experimental release of merged work (see the
 [release checklist](release-checklist.md)); the Dungeon completion requirements
 below are not v0.8.0 gates and continue into the next Dungeon milestone.
 
+Second active goal: expanded overworld map tooling. On 2026-10-27 scawful set
+full expanded-map writing, normal save/reopen, and matching Build/Test as P0
+Oracle work. On 2026-10-29 scawful added: "I really can build these maps fast
+once the tools are ready." Map content waits on these editor tools, not on
+authoring time, so they are the critical path for the complete 64-cell
+`$80–$BF` Lyra third world: Tile16 commit/discard/Undo through the normal
+save lifecycle, entrance/return records for moved maps, expanded-map write →
+Build → Run/Test of the exact built generation, and procedural terrain
+proposals applied through normal Undo. Work-chunk IDs and owners live in the
+Oracle `work_chunks_2026-10-29/CHUNKS.md` handoff (Y8b, Y10, Y12a–Y12c).
+
 The [editor capability parity plan](plans/editor-capability-parity-plan.md)
 owns the target baseline, work-package IDs, dependencies, and implementation
 instructions. The [feature coverage report](../public/reference/feature-coverage-report.md)
