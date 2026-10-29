@@ -55,6 +55,7 @@ class DungeonEditorPaletteRefreshTestPeer;
 class DungeonEditorV2MinecartTrackTestPeer;
 class DungeonEditorV2MinecartNodeTestPeer;
 struct MinecartNodeBrush;
+enum class MinecartNodeKind;
 class DungeonEditorV2ObjectTileEditorTestPeer;
 class DungeonEditorV2EntranceCameraTestPeer;
 class DungeonEditorEntrancePropertiesTestPeer;
@@ -461,6 +462,8 @@ class DungeonEditorV2 : public Editor {
       int room_id, const std::vector<zelda3::RoomObject>& objects) const;
   absl::Status PlaceMinecartNode(int room_id, int tile_x, int tile_y,
                                  const MinecartNodeBrush& brush);
+  absl::StatusOr<int> FindAvailableMinecartNodeId(MinecartNodeKind kind,
+                                                  int room_id) const;
   void SynchronizeCustomObjectAssets();
 
   // Show or create a standalone room panel

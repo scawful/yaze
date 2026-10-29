@@ -10,6 +10,7 @@
 #include "app/gui/core/agent_theme.h"
 #include "app/gui/core/drag_drop.h"
 #include "imgui/imgui_internal.h"
+#include "zelda3/dungeon/custom_object.h"
 
 namespace yaze::editor {
 
@@ -24,11 +25,16 @@ bool DungeonCanvasViewer::DrawMinecartNodePlacement(
   const auto* active = ImGui::GetDragDropPayload();
   bool node_drag = active && active->IsDataType(kMinecartNodeDragPayload) &&
                    active->DataSize == sizeof(MinecartToolPayload);
+  const auto rail_profile =
+      zelda3::CustomObjectManager::Get().GetMinecartRailProfile();
   const bool rail_drag =
       active && active->IsDataType(gui::kDragPayloadRoomObject) &&
       active->DataSize == sizeof(gui::RoomObjectDragPayload) &&
-      static_cast<const gui::RoomObjectDragPayload*>(active->Data)->object_id ==
-          0x31;
+      zelda3::FindMinecartRailDescriptor(
+          static_cast<const gui::RoomObjectDragPayload*>(active->Data)
+              ->object_id,
+          static_cast<const gui::RoomObjectDragPayload*>(active->Data)->size,
+          rail_profile) != nullptr;
   if (!node_drag && !rail_drag && !panel->placement_brush()) {
     return false;
   }
@@ -145,15 +151,15 @@ bool DungeonCanvasViewer::DrawMinecartNodePlacement(
   if (rail_drag) {
     const auto& payload =
         *static_cast<const gui::RoomObjectDragPayload*>(active->Data);
-    rail.emplace(0x31, x, y, payload.size, 0);
+    rail.emplace(payload.object_id, x, y, payload.size, 0);
     auto objects = room.GetTileObjects();
     objects.push_back(*rail);
-    validity =
-        panel->automatic_rail_collision()
-            ? zelda3::SynchronizeMinecartTrackCollision(
-                  room.GetTileObjects(), objects, room.custom_collision())
-                  .status()
-            : absl::OkStatus();
+    validity = panel->automatic_rail_collision()
+                   ? zelda3::SynchronizeMinecartTrackCollision(
+                         room.GetTileObjects(), objects,
+                         room.custom_collision(), {}, rail_profile)
+                         .status()
+                   : absl::OkStatus();
     if (x < 0 || y < 0 || x > 62 || y > 62 || payload.size > 15) {
       validity =
           absl::InvalidArgumentError("Place a complete rail inside this room");

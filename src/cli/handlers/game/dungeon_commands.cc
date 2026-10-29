@@ -1162,6 +1162,7 @@ absl::Status DungeonGenerateTrackCollisionCommandHandler::Execute(
     resources::OutputFormatter& formatter) {
   // Build generator options (shared by single and batch modes)
   zelda3::GeneratorOptions options;
+  options.rail_profile = zelda3::DetectMinecartRailProfile(rom->vector());
 
   // Parse --promote-switch X,Y pairs
   auto switch_str = parser.GetString("promote-switch");

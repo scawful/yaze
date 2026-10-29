@@ -4,6 +4,7 @@
 #include "app/editor/dungeon/ui/window/minecart_track_editor_panel.h"
 #include "core/features.h"
 #include "util/macro.h"
+#include "zelda3/dungeon/custom_object.h"
 
 namespace yaze::editor {
 namespace {
@@ -64,7 +65,8 @@ absl::Status DungeonEditorV2::PreflightMinecartObjectCollision(
                              ? zelda3::MinecartTrackCollisionOwnership{}
                              : found->second;
   return zelda3::SynchronizeMinecartTrackCollision(
-             *before, objects, room->custom_collision(), ownership)
+             *before, objects, room->custom_collision(), ownership,
+             zelda3::CustomObjectManager::Get().GetMinecartRailProfile())
       .status();
 }
 
@@ -87,9 +89,11 @@ DungeonEditorV2::PairMinecartObjectCollision(
   const auto ownership_before = found == minecart_collision_ownership_.end()
                                     ? zelda3::MinecartTrackCollisionOwnership{}
                                     : found->second;
-  ASSIGN_OR_RETURN(auto edit,
-                   zelda3::SynchronizeMinecartTrackCollision(
-                       before, after, collision_before, ownership_before));
+  ASSIGN_OR_RETURN(
+      auto edit,
+      zelda3::SynchronizeMinecartTrackCollision(
+          before, after, collision_before, ownership_before,
+          zelda3::CustomObjectManager::Get().GetMinecartRailProfile()));
   if (edit.collision == collision_before &&
       edit.ownership == ownership_before) {
     return object_action;

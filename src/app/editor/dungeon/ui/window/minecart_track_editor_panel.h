@@ -90,12 +90,7 @@ class MinecartTrackEditorPanel : public WindowContent {
   void set_canvas_editing(bool enabled);
   int selected_track() const { return selected_track_; }
   void SelectTrack(int id) { selected_track_ = id; }
-  void SetActiveRoom(int room) {
-    if (active_room_ != room) {
-      placement_brush_.reset();
-    }
-    active_room_ = room;
-  }
+  void SetActiveRoom(int room);
   void CancelPick() { CancelCoordinatePicking(); }
 
   void SetRailPaletteCallback(std::function<bool()> draw) {
@@ -121,12 +116,18 @@ class MinecartTrackEditorPanel : public WindowContent {
   void DrawNodeTools();
   using NodePlacementCallback =
       std::function<absl::Status(int, int, int, const MinecartNodeBrush&)>;
+  using AvailableNodeIdCallback =
+      std::function<absl::StatusOr<int>(MinecartNodeKind, int)>;
   void SetNodePlacementCallback(NodePlacementCallback callback) {
     place_node_ = std::move(callback);
   }
   const NodePlacementCallback& node_placement_callback() const {
     return place_node_;
   }
+  void SetAvailableNodeIdCallback(AvailableNodeIdCallback callback) {
+    available_node_id_ = std::move(callback);
+  }
+  absl::Status SelectAvailableNodeId(MinecartNodeKind kind);
   const std::optional<MinecartToolPayload>& placement_brush() const {
     return placement_brush_;
   }
@@ -134,10 +135,10 @@ class MinecartTrackEditorPanel : public WindowContent {
     CancelNodePlacement();
     set_canvas_editing(false);
     collision_stamping_ = false;
-    placement_brush_ = brush;
-    placement_brush_->owner = this;
-    placement_brush_->revision = canvas_revision_;
-    placement_brush_->room_id = active_room_;
+    selected_placement_tool_ = PlacementToolSelection{
+        brush.node.kind,      brush.node.id,   brush.node.collision,
+        brush.collision_only, brush.collision, brush.size};
+    BindPlacementBrushToRoom();
   }
   // Invalidate only an active payload owned by this panel. Repeated cleanup
   // cannot renew or repeatedly age a canceled gesture. A viewer filter avoids
@@ -157,6 +158,7 @@ class MinecartTrackEditorPanel : public WindowContent {
   }
   void CancelNodePlacement() {
     CancelNodeDrag();
+    selected_placement_tool_.reset();
     placement_brush_.reset();
   }
   void ReportToolStatus(const absl::Status& status) {
@@ -205,6 +207,8 @@ class MinecartTrackEditorPanel : public WindowContent {
     draw_rail_palette_ = {};
     apply_collision_stamp_ = {};
     place_node_ = {};
+    available_node_id_ = {};
+    selected_placement_tool_.reset();
     placement_brush_.reset();
     collision_stamping_ = false;
     canvas_editing_ = false;
@@ -234,6 +238,8 @@ class MinecartTrackEditorPanel : public WindowContent {
   void DrawOverlaySettings();
   void InitializeOverlayInputs();
   void ClearOverlayInputs();
+  void BindPlacementBrushToRoom();
+  void RefreshPlacementToolIdentity(MinecartNodeKind kind);
 
   using OverlayListMember =
       std::vector<uint16_t> project::DungeonOverlaySettings::*;
@@ -262,12 +268,24 @@ class MinecartTrackEditorPanel : public WindowContent {
   MinecartCollisionApply apply_collision_stamp_;
   bool collision_stamping_ = false;
   bool automatic_rail_collision_ = true;
+  // Tool intent survives room navigation. Source anchors and collision CAS
+  // snapshots belong only to the fresh per-room gesture payload below.
+  struct PlacementToolSelection {
+    MinecartNodeKind kind;
+    int id;
+    uint8_t node_collision;
+    bool collision_only;
+    uint8_t collision;
+    int size;
+  };
+  std::optional<PlacementToolSelection> selected_placement_tool_;
   std::optional<MinecartToolPayload> placement_brush_;
   NodePlacementCallback place_node_;
+  AvailableNodeIdCallback available_node_id_;
   int node_id_ = 0;
+  int node_channel_ = 0;
   int node_departure_ = 0;
   int node_switch_orientation_ = 0;
-  int node_junction_ = 0;
   bool collision_stamp_large_ = false;
   uint8_t collision_stamp_value_ = 0xB1;
   TrackEditCallback track_edit_callback_;

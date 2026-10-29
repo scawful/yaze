@@ -1172,6 +1172,27 @@ TEST(DungeonObjectSelectorCustomRuntimeTest,
   EXPECT_FALSE(IsMinecartGraphicsRuntimeSlot(0x32, 0));
 }
 
+TEST(DungeonObjectSelectorCustomRuntimeTest,
+     ExpandedRailNamesAndManagementFollowTheExplicitProfile) {
+  constexpr auto expanded = zelda3::MinecartRailProfile::kExpanded;
+  EXPECT_EQ(GetDungeonCustomObjectSlotName(0x31, 13),
+            "Sword House wall object");
+  EXPECT_EQ(GetDungeonCustomObjectSlotName(0x31, 13, expanded),
+            "Pit track T: north / east / west");
+  EXPECT_EQ(GetDungeonCustomObjectSlotName(0x32, 6, expanded),
+            "Sword House wall object");
+  EXPECT_EQ(GetDungeonCustomObjectSlotName(0x32, 8, expanded), "Small statue");
+  EXPECT_EQ(GetDungeonCustomObjectSlotName(0x32, 5, expanded),
+            "Floor track any direction");
+  EXPECT_EQ(GetDungeonCustomObjectSlotName(0x32, 7, expanded),
+            "Pit track any direction");
+  EXPECT_TRUE(IsMinecartGraphicsRuntimeSlot(0x32, 9, expanded));
+  EXPECT_TRUE(IsMinecartGraphicsRuntimeSlot(0x31, 15, expanded));
+  EXPECT_FALSE(IsMinecartGraphicsRuntimeSlot(0x32, 6, expanded));
+  EXPECT_FALSE(IsMinecartGraphicsRuntimeSlot(0x32, 8, expanded));
+  EXPECT_FALSE(IsMinecartGraphicsRuntimeSlot(0x32, 9));
+}
+
 TEST(DungeonObjectSelectorSizeTest,
      ProgrammaticSelectionUsesPersistedSizeSemantics) {
   DungeonObjectSelector selector;

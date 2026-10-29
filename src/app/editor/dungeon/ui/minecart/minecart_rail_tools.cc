@@ -16,14 +16,13 @@ void MinecartTrackEditorPanel::DrawRailTools() {
     gui::AutoRegisterLastItem("checkbox", "Auto collision");
     if (ImGui::IsItemHovered()) {
       ImGui::SetTooltip(
-          "Straight rails set collision with placement and Undo. "
-          "Corners and crossings need explicit behavior until their "
-          "collision patterns are verified. Existing collision is preserved.");
+          "Rails pair their verified collision with placement and Undo. "
+          "Existing stops, switches and unrelated collision are preserved.");
     }
     if (draw_rail_palette_ && draw_rail_palette_()) {
       set_canvas_editing(false);
       set_collision_stamping(false);
-      placement_brush_.reset();
+      CancelNodePlacement();
     }
     ImGui::EndTabItem();
   }
@@ -100,14 +99,45 @@ void MinecartTrackEditorPanel::DrawRailTools() {
 void MinecartTrackEditorPanel::DrawNodeTools() {
   ImGui::SetNextItemWidth(ImGui::CalcTextSize("00000").x +
                           2 * ImGui::GetStyle().FramePadding.x);
-  ImGui::InputInt("ID", &node_id_, 0, 0);
+  const bool cart_id_changed = ImGui::InputInt("Cart ID", &node_id_, 0, 0);
   node_id_ = std::clamp(node_id_, 0, 31);
-  gui::AutoRegisterLastItem("input", "Node ID");
+  if (cart_id_changed)
+    RefreshPlacementToolIdentity(MinecartNodeKind::kCartStart);
+  gui::AutoRegisterLastItem("input", "Cart ID");
   if (ImGui::IsItemHovered()) {
     ImGui::SetTooltip(
-        "Cart: unused route 0-31. Switches: shared channel 0-31. "
+        "Cart identity and route slot, 0-31. "
         "Move an existing cart using its room marker.");
   }
+  ImGui::SameLine();
+  ImGui::BeginDisabled(!available_node_id_);
+  if (ImGui::SmallButton("Unused##CartId")) {
+    ReportToolStatus(SelectAvailableNodeId(MinecartNodeKind::kCartStart));
+  }
+  gui::AutoRegisterLastItem("button", "Find unused cart ID");
+  if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
+    ImGui::SetTooltip(
+        "Choose a reserved route slot after checking every room's carts.");
+  }
+  ImGui::EndDisabled();
+  ImGui::SetNextItemWidth(ImGui::CalcTextSize("00000").x +
+                          2 * ImGui::GetStyle().FramePadding.x);
+  const bool channel_changed = ImGui::InputInt("Channel", &node_channel_, 0, 0);
+  node_channel_ = std::clamp(node_channel_, 0, 31);
+  if (channel_changed)
+    RefreshPlacementToolIdentity(MinecartNodeKind::kSwitch);
+  gui::AutoRegisterLastItem("input", "Switch channel");
+  ImGui::SameLine();
+  ImGui::BeginDisabled(!available_node_id_);
+  if (ImGui::SmallButton("Unused##SwitchChannel")) {
+    ReportToolStatus(SelectAvailableNodeId(MinecartNodeKind::kSwitch));
+  }
+  gui::AutoRegisterLastItem("button", "Find unused switch channel");
+  if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
+    ImGui::SetTooltip(
+        "Choose a free channel through the project's switch validation.");
+  }
+  ImGui::EndDisabled();
   ImGui::SetNextItemWidth(-1);
   ImGui::Combo("##Departure", &node_departure_,
                "Depart south\0Depart north\0Depart east\0Depart west\0");
@@ -117,11 +147,6 @@ void MinecartTrackEditorPanel::DrawNodeTools() {
                "Switch: right / down\0Switch: right / up\0"
                "Switch: left / down\0Switch: left / up\0");
   gui::AutoRegisterLastItem("combo", "Switch orientation");
-  ImGui::SetNextItemWidth(-1);
-  ImGui::Combo("##JunctionExits", &node_junction_,
-               "T: south / east / west\0T: north / east / west\0"
-               "T: north / south / west\0T: north / south / east\0");
-  gui::AutoRegisterLastItem("combo", "Junction exits");
   auto row = [&](const char* label, const char* help,
                  MinecartToolPayload payload) {
     ImGui::BeginDisabled(payload.collision_only ? !apply_collision_stamp_
@@ -151,11 +176,10 @@ void MinecartTrackEditorPanel::DrawNodeTools() {
       {{MinecartNodeKind::kCartStart, node_id_, stop}});
   row("End stop", "Sets the cart's departure direction.", {{}, true, stop, 1});
   row("Switch", "Links a lever to this channel.",
-      {{MinecartNodeKind::kSwitch, node_id_, 0}});
+      {{MinecartNodeKind::kSwitch, node_channel_, 0}});
   row("Switch track", "Places a rotating track and its collision.",
-      {{MinecartNodeKind::kSwitchTrack, node_id_, rotating}});
-  row("T junction", "Sets the three available exits. Artwork is separate.",
-      {{}, true, static_cast<uint8_t>(0xBB + node_junction_), 1});
+      {{MinecartNodeKind::kSwitchTrack, node_channel_, rotating}});
+  ImGui::TextDisabled("Choose rail corners and T junctions in Rails.");
 }
 
 }  // namespace yaze::editor

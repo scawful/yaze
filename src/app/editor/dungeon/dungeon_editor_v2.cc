@@ -180,6 +180,17 @@ void DungeonEditorV2::ConfigureMinecartProjectCallbacks() {
         }
         return PlaceMinecartNode(room, x, y, brush);
       });
+  minecart_track_editor_panel_->SetAvailableNodeIdCallback(
+      [this, editor_manager, session_id](MinecartNodeKind kind,
+                                         int room) -> absl::StatusOr<int> {
+        if (editor_manager &&
+            !editor_manager->IsCurrentProjectContextOwnedBySession(
+                session_id)) {
+          return absl::FailedPreconditionError(
+              "Activate this dungeon project before selecting node identities");
+        }
+        return FindAvailableMinecartNodeId(kind, room);
+      });
   minecart_track_editor_panel_->SetCollisionStampCallback(
       [this, editor_manager, session_id](
           int room, const zelda3::CustomCollisionMap& expected,

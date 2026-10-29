@@ -3,6 +3,7 @@
 #include <gtest/gtest.h>
 
 #include <cstdint>
+#include <optional>
 #include <vector>
 
 #include "app/editor/dungeon/dungeon_canvas_viewer.h"
@@ -177,6 +178,87 @@ TEST(DungeonWorkbenchToolbarLogicTest, InlineRoomNavNeverHides) {
   EXPECT_TRUE(DungeonWorkbenchToolbar::ShouldShowInlineRoomNav(760.0f));
   EXPECT_TRUE(DungeonWorkbenchToolbar::ShouldShowInlineRoomNav(720.0f));
   EXPECT_TRUE(DungeonWorkbenchToolbar::ShouldShowInlineRoomNav(320.0f));
+}
+
+TEST_F(DungeonWorkbenchToolbarTest,
+       MinecartEntryOpensToolsInRoomViewAndOverviewKeepsTheToolMode) {
+  DungeonWorkbenchLayoutState layout;
+  layout.show_connected_canvas_view = true;
+  int current_room = 0x098;
+  int compare_room = 0x099;
+  bool split = false;
+  bool minecart_mode = false;
+  int requests = 0;
+  DungeonWorkbenchToolbarParams params;
+  params.layout = &layout;
+  params.current_room_id = &current_room;
+  params.compare_room_id = &compare_room;
+  params.split_view_enabled = &split;
+  params.on_minecart_mode = [&] {
+    ++requests;
+    minecart_mode = true;
+  };
+  auto draw = [&] {
+    ImGui::SetWindowPos(ImVec2(0, 0));
+    ImGui::SetWindowSize(ImVec2(1200, 140));
+    gui::WidgetIdRegistry::Instance().Clear();
+    params.minecart_mode = minecart_mode;
+    EXPECT_FALSE(DungeonWorkbenchToolbar::Draw(params));
+  };
+  auto next_frame = [&] {
+    ImGui::End();
+    ImGui::Render();
+    ImGui::NewFrame();
+    ImGui::Begin("ToolbarHost");
+    draw();
+  };
+  draw();
+  next_frame();
+  std::optional<ImVec2> button;
+  for (const auto& [path, widget] :
+       gui::WidgetIdRegistry::Instance().GetAllWidgets()) {
+    if (widget.label == gui::WidgetIdRegistry::NormalizeLabel("MinecartMode") &&
+        widget.visible && widget.enabled && widget.bounds.valid) {
+      button = ImVec2((widget.bounds.min_x + widget.bounds.max_x) * 0.5f,
+                      (widget.bounds.min_y + widget.bounds.max_y) * 0.5f);
+      break;
+    }
+  }
+  ASSERT_TRUE(button);
+  ImGui::GetIO().AddMousePosEvent(button->x, button->y);
+  next_frame();
+  ImGui::GetIO().AddMouseButtonEvent(ImGuiMouseButton_Left, true);
+  next_frame();
+  EXPECT_EQ(requests, 0);
+  ImGui::GetIO().AddMouseButtonEvent(ImGuiMouseButton_Left, false);
+  next_frame();
+  EXPECT_EQ(requests, 1);
+  EXPECT_TRUE(minecart_mode);
+  EXPECT_FALSE(layout.show_connected_canvas_view);
+  EXPECT_FALSE(split);
+  EXPECT_EQ(current_room, 0x098);
+  button.reset();
+  for (const auto& [path, widget] :
+       gui::WidgetIdRegistry::Instance().GetAllWidgets()) {
+    if (widget.label ==
+            gui::WidgetIdRegistry::NormalizeLabel("CanvasModeConnected") &&
+        widget.visible && widget.enabled && widget.bounds.valid) {
+      button = ImVec2((widget.bounds.min_x + widget.bounds.max_x) * 0.5f,
+                      (widget.bounds.min_y + widget.bounds.max_y) * 0.5f);
+      break;
+    }
+  }
+  ASSERT_TRUE(button);
+  ImGui::GetIO().AddMousePosEvent(button->x, button->y);
+  next_frame();
+  ImGui::GetIO().AddMouseButtonEvent(ImGuiMouseButton_Left, true);
+  next_frame();
+  ImGui::GetIO().AddMouseButtonEvent(ImGuiMouseButton_Left, false);
+  next_frame();
+  EXPECT_TRUE(layout.show_connected_canvas_view);
+  EXPECT_TRUE(minecart_mode);
+  EXPECT_EQ(requests, 1);
+  gui::WidgetIdRegistry::Instance().Clear();
 }
 
 class DungeonWorkbenchSizeDescriptionTest : public ::testing::Test {

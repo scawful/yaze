@@ -272,15 +272,37 @@ TEST(MinecartTrackCollisionSyncTest,
 }
 
 TEST(MinecartTrackCollisionSyncTest,
-     UnverifiedCornerAndCrossingChangesRequireExplicitBehaviorEditing) {
-  for (const uint8_t subtype : {2, 3, 4, 5, 8, 9, 10, 11, 12, 14}) {
+     CornersAndCrossingsUseTheNewPlacementContractAndRestoreBaselines) {
+  // New placements use the explicit canonical policy. Existing saved rooms
+  // may have nonuniform authored corner cells and must not be regenerated.
+  constexpr std::pair<uint8_t, uint8_t> cases[] = {
+      {2, 0xB2}, {3, 0xB4},  {4, 0xB3},  {5, 0xB5},  {8, 0xB2},
+      {9, 0xB4}, {10, 0xB3}, {11, 0xB5}, {12, 0xB6}, {14, 0xB6}};
+  for (const auto& [subtype, expected] : cases) {
     SCOPED_TRACE(::testing::Message() << "subtype=" << +subtype);
     const std::vector<RoomObject> objects{RoomObject(0x31, 10, 10, subtype)};
-    EXPECT_FALSE(SynchronizeMinecartTrackCollision({}, objects, {}).ok());
-    EXPECT_FALSE(SynchronizeMinecartTrackCollision(objects, {}, {}).ok());
-    // Existing pieces do not block unrelated room edits or get regenerated.
     CustomCollisionMap original;
+    original.SetOverride(650, 0);
+    original.SetOverride(999, 0x20);
+    auto placed = SynchronizeMinecartTrackCollision({}, objects, original);
+    ASSERT_TRUE(placed.ok()) << placed.status();
+    EXPECT_EQ(placed->ownership.size(), 4);
+    for (const int offset : {650, 651, 714, 715}) {
+      EXPECT_EQ(placed->collision.tiles[offset], expected);
+      EXPECT_TRUE(placed->collision.HasOverride(offset));
+    }
+    auto removed = SynchronizeMinecartTrackCollision(
+        objects, {}, placed->collision, placed->ownership);
+    ASSERT_TRUE(removed.ok()) << removed.status();
+    EXPECT_EQ(removed->collision, original);
+    EXPECT_EQ(removed->collision.overrides, original.overrides);
+    EXPECT_TRUE(removed->ownership.empty());
+
+    // A real saved TL example has [B2,B0;B1,B2], not four equal cells.
     original.SetOverride(650, 0xB2);
+    original.SetOverride(651, 0xB0);
+    original.SetOverride(714, 0xB1);
+    original.SetOverride(715, 0xB2);
     auto unchanged =
         SynchronizeMinecartTrackCollision(objects, objects, original);
     ASSERT_TRUE(unchanged.ok()) << unchanged.status();
@@ -292,6 +314,149 @@ TEST(MinecartTrackCollisionSyncTest,
   ASSERT_TRUE(decorative.ok()) << decorative.status();
   EXPECT_FALSE(decorative->collision.HasOverrides());
   EXPECT_TRUE(decorative->ownership.empty());
+}
+
+TEST(MinecartRailCatalogTest, ExactBoundedMarkerSelectsExpandedProfile) {
+  constexpr std::array<uint8_t, 8> marker = {'M', 'C', 'R', '2', 16, 13, 2, 0};
+  std::vector<uint8_t> bytes(kMinecartRailProfileMarkerPc + marker.size(), 0);
+  EXPECT_EQ(DetectMinecartRailProfile(bytes), MinecartRailProfile::kLegacy);
+  std::copy(marker.begin(), marker.end(),
+            bytes.begin() + kMinecartRailProfileMarkerPc);
+  EXPECT_EQ(DetectMinecartRailProfile(bytes), MinecartRailProfile::kExpanded);
+  EXPECT_EQ(DetectMinecartRailProfile(
+                std::span<const uint8_t>(bytes).first(bytes.size() - 1)),
+            MinecartRailProfile::kLegacy);
+  for (size_t index = 0; index < marker.size(); ++index) {
+    bytes[kMinecartRailProfileMarkerPc + index] ^= 1;
+    EXPECT_EQ(DetectMinecartRailProfile(bytes), MinecartRailProfile::kLegacy);
+    bytes[kMinecartRailProfileMarkerPc + index] ^= 1;
+  }
+}
+
+TEST(MinecartRailCatalogTest, LegacyAndExpandedSlotsRemainExplicit) {
+  EXPECT_EQ(MinecartRailDescriptors().size(), 14);
+  EXPECT_EQ(MinecartRailDescriptors(MinecartRailProfile::kExpanded).size(), 22);
+  ASSERT_NE(FindMinecartRailDescriptor(0x31, 12), nullptr);
+  EXPECT_EQ(FindMinecartRailDescriptor(0x31, 12)->shape,
+            MinecartRailShape::kCrossing);
+  EXPECT_EQ(FindMinecartRailDescriptor(0x31, 13), nullptr);
+  EXPECT_EQ(FindMinecartRailDescriptor(0x31, 15), nullptr);
+  EXPECT_EQ(FindMinecartRailDescriptor(0x32, 5), nullptr);
+  EXPECT_EQ(FindMinecartRailDescriptor(0x31, 16), nullptr);
+  const auto* floor_cross =
+      FindMinecartRailDescriptor(0x32, 5, MinecartRailProfile::kExpanded);
+  ASSERT_NE(floor_cross, nullptr);
+  EXPECT_EQ(floor_cross->shape, MinecartRailShape::kCrossing);
+  EXPECT_EQ(floor_cross->style, MinecartRailStyle::kFloor);
+  const auto* pit_cross =
+      FindMinecartRailDescriptor(0x32, 7, MinecartRailProfile::kExpanded);
+  ASSERT_NE(pit_cross, nullptr);
+  EXPECT_EQ(pit_cross->style, MinecartRailStyle::kPit);
+  for (const int subtype : {0, 1, 2, 3, 4, 6, 8, 13}) {
+    EXPECT_EQ(FindMinecartRailDescriptor(0x32, subtype,
+                                         MinecartRailProfile::kExpanded),
+              nullptr);
+  }
+}
+
+TEST(MinecartTrackCollisionSyncTest,
+     ExpandedJunctionsOwnOnlyTheExistingEightPixelNodeAnchor) {
+  for (const int family : {0x31, 0x32}) {
+    for (int orientation = 0; orientation < 4; ++orientation) {
+      const int subtype = (family == 0x31 ? 12 : 9) + orientation;
+      SCOPED_TRACE(::testing::Message()
+                   << "family=" << family << " subtype=" << subtype);
+      const std::vector<RoomObject> objects{
+          RoomObject(family, 10, 10, subtype)};
+      CustomCollisionMap original;
+      original.SetOverride(650, 0);
+      original.SetOverride(651, 0x20);
+      original.SetOverride(714, 0xB9);
+      original.SetOverride(715, 0);
+      auto placed = SynchronizeMinecartTrackCollision(
+          {}, objects, original, {}, MinecartRailProfile::kExpanded);
+      ASSERT_TRUE(placed.ok()) << placed.status();
+      EXPECT_EQ(placed->ownership.size(), 1);
+      EXPECT_EQ(placed->collision.tiles[650], 0xBB + orientation);
+      for (const int offset : {651, 714, 715}) {
+        EXPECT_EQ(placed->collision.tiles[offset], original.tiles[offset]);
+        EXPECT_EQ(placed->collision.overrides[offset],
+                  original.overrides[offset]);
+      }
+      auto removed = SynchronizeMinecartTrackCollision(
+          objects, {}, placed->collision, placed->ownership,
+          MinecartRailProfile::kExpanded);
+      ASSERT_TRUE(removed.ok()) << removed.status();
+      EXPECT_EQ(removed->collision, original);
+      EXPECT_EQ(removed->collision.overrides, original.overrides);
+
+      Room room;
+      room.AddTileObject(objects.front());
+      room.custom_collision() = original;
+      room.custom_collision().ClearOverride(650);
+      GeneratorOptions options;
+      options.rail_profile = MinecartRailProfile::kExpanded;
+      auto generated = GenerateTrackCollision(&room, options);
+      ASSERT_TRUE(generated.ok()) << generated.status();
+      EXPECT_EQ(generated->tiles_generated, 1);
+      EXPECT_EQ(generated->collision_map, placed->collision);
+      EXPECT_EQ(room.custom_collision(), original);
+    }
+  }
+}
+
+TEST(TrackCollisionGeneratorTest,
+     CanonicalBatchDoesNotRegenerateAuthoredCornerStencilOrExplicitFloor) {
+  Room room;
+  room.AddTileObject(RoomObject(0x31, 10, 10, 2));
+  CustomCollisionMap original;
+  // Existing saved TL stencil from the audited Oracle room $87.
+  original.SetOverride(650, 0xB2);
+  original.SetOverride(651, 0xB0);
+  original.SetOverride(714, 0xB1);
+  original.SetOverride(715, 0xB2);
+  original.SetOverride(999, 0);
+  room.custom_collision() = original;
+  auto generated = GenerateTrackCollision(&room);
+  ASSERT_TRUE(generated.ok()) << generated.status();
+  EXPECT_EQ(generated->collision_map, original);
+  EXPECT_EQ(generated->collision_map.overrides, original.overrides);
+  EXPECT_EQ(room.custom_collision(), original);
+
+  room.custom_collision().SetOverride(650, 0);
+  generated = GenerateTrackCollision(&room);
+  ASSERT_TRUE(generated.ok()) << generated.status();
+  EXPECT_TRUE(generated->collision_map.HasOverride(650));
+  EXPECT_EQ(generated->collision_map.tiles[650], 0);
+}
+
+TEST(TrackCollisionGeneratorTest,
+     CanonicalBatchUsesPlacementShapesAndPreservesAuthoredNodes) {
+  for (const auto profile :
+       {MinecartRailProfile::kLegacy, MinecartRailProfile::kExpanded}) {
+    for (const auto& rail : MinecartRailDescriptors(profile)) {
+      Room room;
+      const std::vector<RoomObject> objects{
+          RoomObject(rail.object_id, 10, 10, rail.subtype)};
+      room.AddTileObject(objects.front());
+      CustomCollisionMap original;
+      original.SetOverride(650, 0xD2);
+      original.SetOverride(999, 0);
+      room.custom_collision() = original;
+      auto placed =
+          SynchronizeMinecartTrackCollision({}, objects, original, {}, profile);
+      ASSERT_TRUE(placed.ok()) << placed.status();
+      GeneratorOptions options;
+      options.rail_profile = profile;
+      auto generated = GenerateTrackCollision(&room, options);
+      ASSERT_TRUE(generated.ok()) << generated.status();
+      EXPECT_EQ(generated->collision_map, placed->collision);
+      EXPECT_EQ(generated->collision_map.tiles[650], 0xD2);
+      EXPECT_TRUE(generated->collision_map.HasOverride(999));
+      EXPECT_EQ(generated->collision_map.tiles[999], 0);
+      EXPECT_EQ(room.custom_collision(), original);
+    }
+  }
 }
 
 TEST(MinecartTrackCollisionSyncTest,

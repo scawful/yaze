@@ -33,6 +33,8 @@ struct DungeonWorkbenchToolbarParams {
   std::function<void()> draw_tools;
   std::function<void()> draw_save_content;
   std::function<void()> draw_layout_options;
+  std::function<void()> on_minecart_mode;
+  bool minecart_mode = false;
 
   char* compare_search_buf = nullptr;
   size_t compare_search_buf_size = 0;

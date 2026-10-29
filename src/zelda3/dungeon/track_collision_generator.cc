@@ -253,32 +253,31 @@ struct CanonicalRailStamp {
   int x;
   int y;
   int layer;
-  uint8_t value;
+  MinecartRailShape shape;
+  std::array<uint8_t, 4> stencil;
+  bool verified;
+  uint8_t mask;
 
   bool operator==(const CanonicalRailStamp&) const = default;
   bool operator<(const CanonicalRailStamp& other) const {
-    return std::tie(x, y, layer, value) <
-           std::tie(other.x, other.y, other.layer, other.value);
+    return std::tie(x, y, layer, shape, stencil, verified, mask) <
+           std::tie(other.x, other.y, other.layer, other.shape, other.stencil,
+                    other.verified, other.mask);
   }
 };
 
 std::vector<CanonicalRailStamp> CanonicalRailStamps(
-    std::span<const RoomObject> objects) {
-  // Semantic identity only: corner/crossing values identify changed geometry
-  // for explicit refusal below; they do not establish a four-cell stencil.
-  // Oracle artwork variants share behavior; subtype is not a size nibble.
-  static constexpr std::array<uint8_t, 16> kBehavior = {
-      0xB0, 0xB1, 0xB2, 0xB4, 0xB3, 0xB5, 0xB1, 0xB0,
-      0xB2, 0xB4, 0xB3, 0xB5, 0xB6, 0x00, 0xB6, 0x00};
+    std::span<const RoomObject> objects, MinecartRailProfile profile) {
   std::vector<CanonicalRailStamp> stamps;
   for (const auto& object : objects) {
-    const size_t subtype = object.size_ & 0x1F;
-    if (object.id_ != 0x31 || subtype >= kBehavior.size() ||
-        kBehavior[subtype] == 0) {
+    const auto* rail =
+        FindMinecartRailDescriptor(object.id_, object.size_, profile);
+    if (rail == nullptr) {
       continue;
     }
-    stamps.push_back(
-        {object.x_, object.y_, object.GetLayerValue(), kBehavior[subtype]});
+    stamps.push_back({object.x_, object.y_, object.GetLayerValue(), rail->shape,
+                      rail->collision_stencil, rail->collision_verified,
+                      rail->collision_mask});
   }
   std::sort(stamps.begin(), stamps.end());
   return stamps;
@@ -291,6 +290,7 @@ bool HasValidRailFootprint(const CanonicalRailStamp& stamp) {
 
 struct CanonicalRailGrid {
   std::array<uint8_t, kGridSize * kGridSize> values{};
+  std::bitset<kGridSize * kGridSize> present;
   std::bitset<kGridSize * kGridSize> conflicts;
 };
 
@@ -304,11 +304,17 @@ CanonicalRailGrid BuildCanonicalRailGrid(
     }
     for (int dy = 0; dy < 2; ++dy) {
       for (int dx = 0; dx < 2; ++dx) {
+        if ((stamp.mask & (1 << (dy * 2 + dx))) == 0) {
+          continue;
+        }
         const size_t offset = (stamp.y + dy) * kGridSize + stamp.x + dx;
-        if (grid.values[offset] != 0 && grid.values[offset] != stamp.value) {
+        const uint8_t value = stamp.stencil[dy * 2 + dx];
+        if (!stamp.verified ||
+            (grid.present.test(offset) && grid.values[offset] != value)) {
           grid.conflicts.set(offset);
         }
-        grid.values[offset] = stamp.value;
+        grid.values[offset] = value;
+        grid.present.set(offset);
       }
     }
   }
@@ -323,16 +329,65 @@ bool IsProtectedRailBehavior(uint8_t value) {
   return (value >= 0xB7 && value <= 0xBE) || (value >= 0xD0 && value <= 0xD3);
 }
 
+absl::StatusOr<TrackCollisionResult> GenerateCanonicalTrackCollision(
+    Room& room, const GeneratorOptions& options) {
+  const auto stamps =
+      CanonicalRailStamps(room.GetTileObjects(), options.rail_profile);
+  for (const auto& stamp : stamps) {
+    if (!stamp.verified || !HasValidRailFootprint(stamp)) {
+      return absl::FailedPreconditionError(
+          "Track generation requires verified upper-layer rail pieces fully "
+          "inside the room");
+    }
+  }
+  const auto grid = BuildCanonicalRailGrid(stamps);
+  if (grid.conflicts.any()) {
+    return absl::FailedPreconditionError(
+        "Conflicting rail shapes overlap collision cells");
+  }
+
+  TrackCollisionResult result;
+  result.room_id = room.id();
+  // Batch generation is also a candidate operation: preserve all existing
+  // overrides, including explicit floor and manually authored node behavior.
+  result.collision_map = room.custom_collision();
+  for (size_t offset = 0; offset < grid.values.size(); ++offset) {
+    if (!grid.present.test(offset)) {
+      continue;
+    }
+    const uint8_t current = result.collision_map.tiles[offset];
+    if (result.collision_map.HasOverride(offset)) {
+      if (current != 0 && !IsOrdinaryRail(current) &&
+          !IsProtectedRailBehavior(current)) {
+        return absl::FailedPreconditionError(absl::StrFormat(
+            "Other collision occupies rail cell %zu; edit collision explicitly",
+            offset));
+      }
+      // Unlike a new object placement, a batch has no before/after geometry
+      // proving that a saved cell should change. Its authored stencil wins.
+    } else {
+      result.collision_map.SetOverride(offset, grid.values[offset]);
+    }
+    ++result.tiles_generated;
+    const uint8_t value = result.collision_map.tiles[offset];
+    result.stop_count += value >= 0xB7 && value <= 0xBA;
+    result.corner_count += IsCornerTile(value);
+    result.switch_count += value >= 0xD0 && value <= 0xD3;
+  }
+  return result;
+}
+
 }  // namespace
 
 absl::StatusOr<MinecartTrackCollisionEdit> SynchronizeMinecartTrackCollision(
     std::span<const RoomObject> before_objects,
     std::span<const RoomObject> after_objects,
     const CustomCollisionMap& before_collision,
-    const MinecartTrackCollisionOwnership& before_ownership) {
+    const MinecartTrackCollisionOwnership& before_ownership,
+    MinecartRailProfile profile) {
   MinecartTrackCollisionEdit result{before_collision, before_ownership};
-  const auto before_stamps = CanonicalRailStamps(before_objects);
-  const auto after_stamps = CanonicalRailStamps(after_objects);
+  const auto before_stamps = CanonicalRailStamps(before_objects, profile);
+  const auto after_stamps = CanonicalRailStamps(after_objects, profile);
   std::vector<CanonicalRailStamp> changed;
   std::set_symmetric_difference(before_stamps.begin(), before_stamps.end(),
                                 after_stamps.begin(), after_stamps.end(),
@@ -343,10 +398,9 @@ absl::StatusOr<MinecartTrackCollisionEdit> SynchronizeMinecartTrackCollision(
 
   std::bitset<kGridSize * kGridSize> touched;
   for (const auto& stamp : changed) {
-    if (stamp.value != 0xB0 && stamp.value != 0xB1) {
+    if (!stamp.verified) {
       return absl::FailedPreconditionError(
-          "Automatic rail collision supports straight pieces only; use the "
-          "rail behavior tools for corners and crossings");
+          "This rail has no verified automatic collision stencil");
     }
     if (!HasValidRailFootprint(stamp)) {
       return absl::FailedPreconditionError(
@@ -355,7 +409,9 @@ absl::StatusOr<MinecartTrackCollisionEdit> SynchronizeMinecartTrackCollision(
     }
     for (int dy = 0; dy < 2; ++dy) {
       for (int dx = 0; dx < 2; ++dx) {
-        touched.set((stamp.y + dy) * kGridSize + stamp.x + dx);
+        if ((stamp.mask & (1 << (dy * 2 + dx))) != 0) {
+          touched.set((stamp.y + dy) * kGridSize + stamp.x + dx);
+        }
       }
     }
   }
@@ -370,7 +426,10 @@ absl::StatusOr<MinecartTrackCollisionEdit> SynchronizeMinecartTrackCollision(
       return absl::FailedPreconditionError(absl::StrFormat(
           "Conflicting rail shapes overlap collision cell %zu", offset));
     }
-    if (before_grid.values[offset] == after_grid.values[offset]) {
+    const bool desired_present = after_grid.present.test(offset);
+    if (before_grid.present.test(offset) == desired_present &&
+        (!desired_present ||
+         before_grid.values[offset] == after_grid.values[offset])) {
       continue;
     }
 
@@ -381,7 +440,7 @@ absl::StatusOr<MinecartTrackCollisionEdit> SynchronizeMinecartTrackCollision(
           !before_collision.HasOverride(offset)) {
         // A manual edit invalidates ownership; never restore over that edit.
         result.ownership.erase(owner);
-      } else if (desired == 0) {
+      } else if (!desired_present) {
         result.collision.tiles[offset] = owner->second.baseline_value;
         result.collision.overrides.set(offset, owner->second.baseline_override);
         result.ownership.erase(owner);
@@ -392,7 +451,7 @@ absl::StatusOr<MinecartTrackCollisionEdit> SynchronizeMinecartTrackCollision(
         continue;
       }
     }
-    if (desired == 0) {
+    if (!desired_present) {
       continue;  // Existing authored rails have no session ownership.
     }
     const uint8_t current = before_collision.tiles[offset];
@@ -426,62 +485,67 @@ absl::StatusOr<TrackCollisionResult> GenerateTrackCollision(
   room->EnsureObjectsLoaded();
 
   TrackCollisionResult result;
-  result.room_id = room->id();
-  result.collision_map.tiles.fill(0);
+  if (options.track_object_id == 0x31) {
+    ASSIGN_OR_RETURN(result, GenerateCanonicalTrackCollision(*room, options));
+  } else {
+    result.room_id = room->id();
+    result.collision_map.tiles.fill(0);
 
-  // Step 1: Build occupancy grid from rail objects.
-  // Rail objects (ID 0x31) have coordinates in the room's tile space.
-  // RoomObject x_ and y_ are in tile coordinates (each tile = 8 pixels).
-  // The collision grid is 64x64 (covering 512x512 pixels = full room).
-  std::array<bool, kGridSize * kGridSize> occupied{};
-  auto& dimension_service = DimensionService::Get();
+    // Step 1: Build occupancy grid from rail objects.
+    // Rail objects (ID 0x31) have coordinates in the room's tile space.
+    // RoomObject x_ and y_ are in tile coordinates (each tile = 8 pixels).
+    // The collision grid is 64x64 (covering 512x512 pixels = full room).
+    std::array<bool, kGridSize * kGridSize> occupied{};
+    auto& dimension_service = DimensionService::Get();
 
-  for (const auto& obj : room->GetTileObjects()) {
-    if (obj.id_ != static_cast<int16_t>(options.track_object_id)) {
-      continue;
-    }
-    const int subtype = obj.size_ & 0x1F;
-    if (!IsMinecartTrackGraphicsSubtype(options.track_object_id, subtype)) {
-      continue;
-    }
+    for (const auto& obj : room->GetTileObjects()) {
+      if (obj.id_ != static_cast<int16_t>(options.track_object_id)) {
+        continue;
+      }
+      const int subtype = obj.size_ & 0x1F;
+      if (!IsMinecartTrackGraphicsSubtype(options.track_object_id, subtype,
+                                          options.rail_profile)) {
+        continue;
+      }
 
-    const auto dims =
-        ResolveTrackObjectDimensions(obj, options, dimension_service);
-    int base_x = obj.x_ + dims.offset_x_tiles;
-    int base_y = obj.y_ + dims.offset_y_tiles;
-    int w = std::max(1, dims.width_tiles);
-    int h = std::max(1, dims.height_tiles);
+      const auto dims =
+          ResolveTrackObjectDimensions(obj, options, dimension_service);
+      int base_x = obj.x_ + dims.offset_x_tiles;
+      int base_y = obj.y_ + dims.offset_y_tiles;
+      int w = std::max(1, dims.width_tiles);
+      int h = std::max(1, dims.height_tiles);
 
-    for (int dy = 0; dy < h; ++dy) {
-      for (int dx = 0; dx < w; ++dx) {
-        int gx = base_x + dx;
-        int gy = base_y + dy;
-        if (gx >= 0 && gx < kGridSize && gy >= 0 && gy < kGridSize) {
-          occupied[gy * kGridSize + gx] = true;
+      for (int dy = 0; dy < h; ++dy) {
+        for (int dx = 0; dx < w; ++dx) {
+          int gx = base_x + dx;
+          int gy = base_y + dy;
+          if (gx >= 0 && gx < kGridSize && gy >= 0 && gy < kGridSize) {
+            occupied[gy * kGridSize + gx] = true;
+          }
         }
       }
     }
-  }
 
-  // Step 2: Classify each occupied tile by neighbor connectivity.
-  for (int y = 0; y < kGridSize; ++y) {
-    for (int x = 0; x < kGridSize; ++x) {
-      if (!occupied[y * kGridSize + x])
-        continue;
+    // Step 2: Classify each occupied tile by neighbor connectivity.
+    for (int y = 0; y < kGridSize; ++y) {
+      for (int x = 0; x < kGridSize; ++x) {
+        if (!occupied[y * kGridSize + x])
+          continue;
 
-      bool up = (y > 0) && occupied[(y - 1) * kGridSize + x];
-      bool down = (y < kGridSize - 1) && occupied[(y + 1) * kGridSize + x];
-      bool left = (x > 0) && occupied[y * kGridSize + (x - 1)];
-      bool right = (x < kGridSize - 1) && occupied[y * kGridSize + (x + 1)];
+        bool up = (y > 0) && occupied[(y - 1) * kGridSize + x];
+        bool down = (y < kGridSize - 1) && occupied[(y + 1) * kGridSize + x];
+        bool left = (x > 0) && occupied[y * kGridSize + (x - 1)];
+        bool right = (x < kGridSize - 1) && occupied[y * kGridSize + (x + 1)];
 
-      uint8_t tile = ClassifyTile(up, down, left, right);
-      result.collision_map.tiles[y * kGridSize + x] = tile;
-      result.tiles_generated++;
+        uint8_t tile = ClassifyTile(up, down, left, right);
+        result.collision_map.tiles[y * kGridSize + x] = tile;
+        result.tiles_generated++;
 
-      if (tile >= 0xB7 && tile <= 0xBA)
-        result.stop_count++;
-      if (tile >= 0xB2 && tile <= 0xB5)
-        result.corner_count++;
+        if (tile >= 0xB7 && tile <= 0xBA)
+          result.stop_count++;
+        if (tile >= 0xB2 && tile <= 0xB5)
+          result.corner_count++;
+      }
     }
   }
 
@@ -509,7 +573,8 @@ absl::StatusOr<TrackCollisionResult> GenerateTrackCollision(
     }
   }
 
-  result.collision_map.has_data = (result.tiles_generated > 0);
+  result.collision_map.has_data =
+      result.collision_map.has_data || result.tiles_generated > 0;
   result.ascii_visualization = VisualizeCollisionMap(result.collision_map);
 
   return result;

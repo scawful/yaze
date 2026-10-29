@@ -59,6 +59,11 @@ struct GeneratorOptions {
   // Track rail object ID to scan for (default: 0x31)
   int track_object_id = 0x31;
 
+  // The canonical 0x31 mode follows this catalog, including admitted 0x32 rails
+  // in the expanded profile. Other explicitly configured IDs retain occupancy
+  // generation for compatibility.
+  MinecartRailProfile rail_profile = MinecartRailProfile::kLegacy;
+
   // Positions to promote from regular corners to switch corners.
   // Each pair is (tile_x, tile_y) in the 64x64 collision grid.
   std::vector<std::pair<int, int>> switch_promotions;
@@ -86,9 +91,7 @@ struct MinecartTrackCollisionEdit {
   MinecartTrackCollisionOwnership ownership;
 };
 
-// Synchronize changed Oracle object 0x31 straight rails with their verified 2x2
-// behavior: subtypes 0/7 are horizontal, 1/6 vertical. Changed corner/crossing
-// pieces require explicit behavior editing until their stencils are verified.
+// Synchronize changed Oracle rails with their profile's verified 2x2 behavior.
 // Only primary-list rails are supported. Unchanged geometry, authored
 // stops/switches, and unowned departing cells are preserved. Owned departing
 // cells restore their baseline only while their generated value still matches.
@@ -100,11 +103,12 @@ absl::StatusOr<MinecartTrackCollisionEdit> SynchronizeMinecartTrackCollision(
     std::span<const RoomObject> before_objects,
     std::span<const RoomObject> after_objects,
     const CustomCollisionMap& before_collision,
-    const MinecartTrackCollisionOwnership& before_ownership = {});
+    const MinecartTrackCollisionOwnership& before_ownership = {},
+    MinecartRailProfile profile = MinecartRailProfile::kLegacy);
 
 // Build a collision map from rail objects in a room.
-// Reads Object 0x31 (rail) positions, builds an occupancy grid,
-// then classifies each tile by its neighbor connectivity.
+// Canonical rails use the same verified descriptors as automatic placement.
+// Explicitly configured noncanonical IDs retain occupancy classification.
 absl::StatusOr<TrackCollisionResult> GenerateTrackCollision(
     Room* room, const GeneratorOptions& options = {});
 

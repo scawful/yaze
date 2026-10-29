@@ -181,7 +181,7 @@ bool ProjectUsesCustomObjects(const project::YazeProject& project) {
 
 constexpr int kTrackCustomObjectId = 0x31;
 
-bool SeedLegacyTrackObjectMapping(project::YazeProject* project,
+bool SeedLegacyTrackObjectMapping(project::YazeProject* project, const Rom* rom,
                                   std::string* warning) {
   if (project == nullptr) {
     return false;
@@ -196,7 +196,9 @@ bool SeedLegacyTrackObjectMapping(project::YazeProject* project,
 
   const auto& defaults =
       zelda3::CustomObjectManager::DefaultSubtypeFilenamesForObject(
-          kTrackCustomObjectId);
+          kTrackCustomObjectId,
+          rom ? zelda3::DetectMinecartRailProfile(rom->vector())
+              : zelda3::MinecartRailProfile::kLegacy);
   if (defaults.empty()) {
     return false;
   }
@@ -1493,7 +1495,7 @@ absl::Status EditorManager::LoadProjectWithRom(bool allow_dialogs) {
                         ToastType::kInfo);
   }
   std::string legacy_mapping_warning;
-  if (SeedLegacyTrackObjectMapping(&current_project_,
+  if (SeedLegacyTrackObjectMapping(&current_project_, GetCurrentRom(),
                                    &legacy_mapping_warning)) {
     LOG_WARN("EditorManager", "%s", legacy_mapping_warning.c_str());
     toast_manager_.Show(

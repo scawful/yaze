@@ -18,7 +18,7 @@ namespace yaze::editor {
 namespace {
 
 zelda3::CustomObjectManager::State BuildCustomObjectRuntimeState(
-    const project::YazeProject& project) {
+    const project::YazeProject& project, const Rom* rom) {
   return {
       .base_path = project.custom_objects_folder.empty()
                        ? ""
@@ -28,6 +28,8 @@ zelda3::CustomObjectManager::State BuildCustomObjectRuntimeState(
           project.dungeon_tile_patterns.empty()
               ? ""
               : project.GetAbsolutePath(project.dungeon_tile_patterns),
+      .rail_profile = rom ? zelda3::DetectMinecartRailProfile(rom->vector())
+                          : zelda3::MinecartRailProfile::kLegacy,
   };
 }
 
@@ -76,7 +78,7 @@ void EditorManager::ApplyCurrentProjectRuntimeContext() {
       current_project_.rom_address_overrides);
   auto& custom_object_manager = zelda3::CustomObjectManager::Get();
   const auto custom_object_state =
-      BuildCustomObjectRuntimeState(current_project_);
+      BuildCustomObjectRuntimeState(current_project_, GetCurrentRom());
   if (session_coordinator_ != nullptr &&
       session_coordinator_->GetActiveRomSession() != nullptr) {
     custom_object_manager.ActivateRuntimeContext(
@@ -191,7 +193,8 @@ void EditorManager::HandleSessionSwitched(size_t new_index, RomSession* session,
       runtime_feature_flags_session_id_ = session->session_id();
       const auto custom_object_state =
           session->project_context.has_value()
-              ? BuildCustomObjectRuntimeState(*session->project_context)
+              ? BuildCustomObjectRuntimeState(*session->project_context,
+                                              &session->rom)
               : zelda3::CustomObjectManager::State{};
       zelda3::CustomObjectManager::Get().ActivateRuntimeContext(
           session->session_id(), custom_object_state);

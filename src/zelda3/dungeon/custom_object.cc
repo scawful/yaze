@@ -583,6 +583,18 @@ void CustomObjectManager::ClearObjectFileMap() {
   InvalidateCaches();
 }
 
+void CustomObjectManager::SetMinecartRailProfile(MinecartRailProfile profile) {
+  if (GetMinecartRailProfile() == profile) {
+    return;
+  }
+  ActiveContext().state.rail_profile = profile;
+  InvalidateCaches();
+}
+
+MinecartRailProfile CustomObjectManager::GetMinecartRailProfile() const {
+  return ActiveContext().state.rail_profile;
+}
+
 void CustomObjectManager::SetTilePatternsSource(const std::string& path) {
   ActiveContext().state.dungeon_tile_patterns = path;
   InvalidateCaches();
@@ -644,14 +656,9 @@ const std::vector<std::string>* CustomObjectManager::ResolveFileList(
   if (custom_it != custom_file_map.end()) {
     return &custom_it->second;
   }
-  if (object_id == 0x31) {
-    return &kSubtype1Filenames;
-  }
-  if (object_id == 0x32) {
-    return &kSubtype2Filenames;
-  }
-  if (object_id == 0x54) {
-    return &kSubtype54Filenames;
+  if (RuntimeSubtypeCountForObject(object_id, GetMinecartRailProfile()) > 0) {
+    return &DefaultSubtypeFilenamesForObject(object_id,
+                                             GetMinecartRailProfile());
   }
   return nullptr;
 }
@@ -684,12 +691,24 @@ CustomObjectManager::GetObjectInternal(int object_id, int subtype) {
     return absl::NotFoundError("Object ID not mapped to custom object");
   }
 
-  const int runtime_count = RuntimeSubtypeCountForObject(object_id);
+  const int runtime_count =
+      RuntimeSubtypeCountForObject(object_id, GetMinecartRailProfile());
   if (subtype < 0 || (runtime_count > 0 && subtype >= runtime_count) ||
       subtype >= static_cast<int>(list->size())) {
     return absl::OutOfRangeError("Subtype index out of range");
   }
 
+  if (runtime_count > 0) {
+    ASSIGN_OR_RETURN(const auto binding,
+                     ResolveSlotBinding(object_id, subtype));
+    if (GetMinecartRailProfile() == MinecartRailProfile::kExpanded &&
+        object_id == 0x32 && (subtype == 3 || subtype == 4) &&
+        binding.origin == CustomObjectMappingOrigin::kDefaultFilename &&
+        binding.filename.empty()) {
+      return std::make_shared<CustomObject>();
+    }
+    return LoadObject(binding.filename);
+  }
   return LoadObject((*list)[subtype]);
 }
 
@@ -737,7 +756,8 @@ CustomObjectRenderSnapshot CustomObjectManager::CaptureRenderSnapshot(
 }
 
 int CustomObjectManager::GetSubtypeCount(int object_id) const {
-  const int runtime_count = RuntimeSubtypeCountForObject(object_id);
+  const int runtime_count =
+      RuntimeSubtypeCountForObject(object_id, GetMinecartRailProfile());
   if (runtime_count > 0) {
     return runtime_count;
   }
@@ -747,8 +767,10 @@ int CustomObjectManager::GetSubtypeCount(int object_id) const {
   return 0;
 }
 
-int CustomObjectManager::RuntimeSubtypeCountForObject(int object_id) {
-  return static_cast<int>(DefaultSubtypeFilenamesForObject(object_id).size());
+int CustomObjectManager::RuntimeSubtypeCountForObject(
+    int object_id, MinecartRailProfile profile) {
+  return static_cast<int>(
+      DefaultSubtypeFilenamesForObject(object_id, profile).size());
 }
 
 const std::array<int, 3>& CustomObjectManager::RuntimeObjectIds() {
@@ -765,7 +787,39 @@ std::vector<std::string> CustomObjectManager::GetEffectiveFileList(
 }
 
 const std::vector<std::string>&
-CustomObjectManager::DefaultSubtypeFilenamesForObject(int object_id) {
+CustomObjectManager::DefaultSubtypeFilenamesForObject(
+    int object_id, MinecartRailProfile profile) {
+  static const std::vector<std::string> kExpanded31 = [] {
+    std::vector<std::string> files(16);
+    for (const auto& rail :
+         MinecartRailDescriptors(MinecartRailProfile::kExpanded)) {
+      if (rail.object_id == 0x31) {
+        files[rail.subtype] = rail.filename;
+      }
+    }
+    return files;
+  }();
+  static const std::vector<std::string> kExpanded32 = [] {
+    std::vector<std::string> files(13);
+    files[0] = "furnace.bin";
+    files[1] = "firewood.bin";
+    files[2] = "ice_chair.bin";
+    files[6] = "wall_sword_house.bin";
+    files[8] = "small_statue.bin";
+    for (const auto& rail :
+         MinecartRailDescriptors(MinecartRailProfile::kExpanded)) {
+      if (rail.object_id == 0x32) {
+        files[rail.subtype] = rail.filename;
+      }
+    }
+    return files;
+  }();
+  if (profile == MinecartRailProfile::kExpanded) {
+    if (object_id == 0x31)
+      return kExpanded31;
+    if (object_id == 0x32)
+      return kExpanded32;
+  }
   static const std::vector<std::string> kEmpty;
   if (object_id == 0x31) {
     return kSubtype1Filenames;
@@ -785,7 +839,8 @@ void CustomObjectManager::ReloadAll() {
 
 absl::StatusOr<CustomObjectSlotBinding> CustomObjectManager::ResolveSlotBinding(
     int object_id, int subtype) const {
-  const int runtime_count = RuntimeSubtypeCountForObject(object_id);
+  const int runtime_count =
+      RuntimeSubtypeCountForObject(object_id, GetMinecartRailProfile());
   if (runtime_count <= 0) {
     return absl::NotFoundError("Object ID has no fixed custom runtime slots");
   }
@@ -797,7 +852,8 @@ absl::StatusOr<CustomObjectSlotBinding> CustomObjectManager::ResolveSlotBinding(
   const auto& custom_file_map = ActiveContext().state.custom_file_map;
   const auto mapped_it = custom_file_map.find(object_id);
   if (mapped_it == custom_file_map.end()) {
-    const auto& defaults = DefaultSubtypeFilenamesForObject(object_id);
+    const auto& defaults =
+        DefaultSubtypeFilenamesForObject(object_id, GetMinecartRailProfile());
     binding.filename = defaults[static_cast<size_t>(subtype)];
     binding.origin = CustomObjectMappingOrigin::kDefaultFilename;
   } else if (subtype >= static_cast<int>(mapped_it->second.size()) ||
@@ -807,17 +863,27 @@ absl::StatusOr<CustomObjectSlotBinding> CustomObjectManager::ResolveSlotBinding(
     binding.filename = mapped_it->second[static_cast<size_t>(subtype)];
     binding.origin = CustomObjectMappingOrigin::kConfiguredFilename;
   }
+  if (GetMinecartRailProfile() == MinecartRailProfile::kExpanded &&
+      object_id == 0x31 && subtype >= 12 && subtype <= 15 &&
+      binding.origin == CustomObjectMappingOrigin::kConfiguredFilename &&
+      binding.filename == kSubtype1Filenames[static_cast<size_t>(subtype)]) {
+    return absl::FailedPreconditionError(absl::StrFormat(
+        "Custom object 0x31:%X still maps to legacy asset %s; migrate the "
+        "paired project before using the MCR2 ROM",
+        subtype, binding.filename));
+  }
   return binding;
 }
 
 std::string CustomObjectManager::ResolveFilename(int object_id,
                                                  int subtype) const {
-  if (RuntimeSubtypeCountForObject(object_id) > 0) {
+  if (RuntimeSubtypeCountForObject(object_id, GetMinecartRailProfile()) > 0) {
     const auto binding = ResolveSlotBinding(object_id, subtype);
     return binding.ok() ? binding->filename : "";
   }
   const auto* list = ResolveFileList(object_id);
-  const int runtime_count = RuntimeSubtypeCountForObject(object_id);
+  const int runtime_count =
+      RuntimeSubtypeCountForObject(object_id, GetMinecartRailProfile());
   if (list && subtype >= 0 && (runtime_count == 0 || subtype < runtime_count) &&
       subtype < static_cast<int>(list->size())) {
     return (*list)[subtype];

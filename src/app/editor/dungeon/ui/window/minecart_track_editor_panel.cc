@@ -26,6 +26,7 @@
 #include "app/gui/core/style_guard.h"
 #include "util/log.h"
 #include "zelda3/dungeon/custom_collision.h"
+#include "zelda3/dungeon/custom_object.h"
 #include "zelda3/dungeon/track_collision_generator.h"
 
 namespace yaze::editor {
@@ -155,6 +156,7 @@ absl::StatusOr<std::vector<uint16_t>> ParseHexList(const std::string& input) {
 }  // namespace
 
 void MinecartTrackEditorPanel::ResetTrackSession() {
+  selected_placement_tool_.reset();
   placement_brush_.reset();
   collision_stamping_ = false;
   ++track_generation_;
@@ -173,6 +175,67 @@ void MinecartTrackEditorPanel::ResetTrackSession() {
   CancelCoordinatePicking();
   ClearCollisionPreview();
   audit_dirty_ = true;
+}
+
+void MinecartTrackEditorPanel::BindPlacementBrushToRoom() {
+  placement_brush_.reset();
+  if (!selected_placement_tool_ || active_room_ < 0) {
+    return;
+  }
+  const auto& tool = *selected_placement_tool_;
+  MinecartToolPayload brush;
+  brush.node.kind = tool.kind;
+  brush.node.id = tool.id;
+  brush.node.collision = tool.node_collision;
+  brush.collision_only = tool.collision_only;
+  brush.collision = tool.collision;
+  brush.size = tool.size;
+  brush.owner = this;
+  brush.revision = canvas_revision_;
+  brush.room_id = active_room_;
+  placement_brush_ = brush;
+}
+
+void MinecartTrackEditorPanel::SetActiveRoom(int room) {
+  if (active_room_ == room) {
+    return;
+  }
+  CancelNodeDrag();
+  ++canvas_revision_;
+  active_room_ = room;
+  BindPlacementBrushToRoom();
+}
+
+void MinecartTrackEditorPanel::RefreshPlacementToolIdentity(
+    MinecartNodeKind kind) {
+  if (!selected_placement_tool_ || selected_placement_tool_->collision_only ||
+      (selected_placement_tool_->kind == MinecartNodeKind::kCartStart) !=
+          (kind == MinecartNodeKind::kCartStart)) {
+    return;
+  }
+  CancelNodeDrag();
+  selected_placement_tool_->id =
+      kind == MinecartNodeKind::kCartStart ? node_id_ : node_channel_;
+  BindPlacementBrushToRoom();
+}
+
+absl::Status MinecartTrackEditorPanel::SelectAvailableNodeId(
+    MinecartNodeKind kind) {
+  if (!available_node_id_ || active_room_ < 0) {
+    return absl::FailedPreconditionError(
+        "Load the project's minecart document and target room first");
+  }
+  ASSIGN_OR_RETURN(const int id, available_node_id_(kind, active_room_));
+  if (id < 0 || id >= kTrackSlotCount) {
+    return absl::InternalError("Available minecart ID is outside 0..31");
+  }
+  if (kind == MinecartNodeKind::kCartStart) {
+    node_id_ = id;
+  } else {
+    node_channel_ = id;
+  }
+  RefreshPlacementToolIdentity(kind);
+  return absl::OkStatus();
 }
 
 absl::Status MinecartTrackEditorPanel::RefreshProjectBinding() {
@@ -814,6 +877,8 @@ void MinecartTrackEditorPanel::RebuildAuditCache(bool include_unmaterialized) {
   }
 
   std::vector<uint16_t> track_object_ids = {0x31};
+  const auto rail_profile =
+      zelda3::CustomObjectManager::Get().GetMinecartRailProfile();
   std::vector<uint16_t> minecart_sprite_ids = {0xA3};
   if (project_) {
     if (!project_->dungeon_overlay.track_object_ids.empty()) {
@@ -842,11 +907,14 @@ void MinecartTrackEditorPanel::RebuildAuditCache(bool include_unmaterialized) {
     std::array<bool, kTrackSlotCount> seen_subtype{};
 
     for (const auto& obj : room.GetTileObjects()) {
-      if (!track_object_id_map[static_cast<int>(obj.id_)]) {
+      const auto* rail =
+          zelda3::FindMinecartRailDescriptor(obj.id_, obj.size_, rail_profile);
+      if (!rail && !track_object_id_map[static_cast<int>(obj.id_)]) {
         continue;
       }
       int subtype = obj.size_ & 0x1F;
-      if (zelda3::IsMinecartTrackGraphicsSubtype(obj.id_, subtype) &&
+      if (zelda3::IsMinecartTrackGraphicsSubtype(obj.id_, subtype,
+                                                 rail_profile) &&
           subtype >= 0 && subtype < kTrackSlotCount) {
         if (!seen_subtype[static_cast<size_t>(subtype)]) {
           seen_subtype[static_cast<size_t>(subtype)] = true;
@@ -876,7 +944,8 @@ void MinecartTrackEditorPanel::RebuildAuditCache(bool include_unmaterialized) {
 
     std::array<bool, kTrackSlotCount> seen_route_slot{};
     for (const auto& sprite : room.GetSprites()) {
-      if (!minecart_sprite_id_map[static_cast<int>(sprite.id())]) {
+      if (sprite.deleted() || sprite.layer() != 0 ||
+          !minecart_sprite_id_map[static_cast<int>(sprite.id())]) {
         continue;
       }
       audit.has_minecart_sprite = true;
@@ -929,9 +998,17 @@ void MinecartTrackEditorPanel::RebuildAuditCache(bool include_unmaterialized) {
 absl::StatusOr<zelda3::GeneratorOptions>
 MinecartTrackEditorPanel::ResolveGeneratorOptions() const {
   zelda3::GeneratorOptions options;
+  options.rail_profile =
+      zelda3::CustomObjectManager::Get().GetMinecartRailProfile();
   if (project_ == nullptr ||
       project_->dungeon_overlay.track_object_ids.empty()) {
     return options;
+  }
+  if (options.rail_profile == zelda3::MinecartRailProfile::kExpanded &&
+      std::all_of(project_->dungeon_overlay.track_object_ids.begin(),
+                  project_->dungeon_overlay.track_object_ids.end(),
+                  [](uint16_t id) { return id == 0x31 || id == 0x32; })) {
+    return options;  // One canonical catalog spans both runtime families.
   }
   if (project_->dungeon_overlay.track_object_ids.size() != 1) {
     return absl::FailedPreconditionError(

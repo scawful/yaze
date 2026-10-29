@@ -46,11 +46,12 @@ class MinecartPaletteWorkflowTest : public testing::Test {
     panel_.SetNodePlacementCallback([this](int room, int x, int y,
                                            const MinecartNodeBrush& brush) {
       nodes_.push_back({room, x, y, brush});
-      const auto candidate = PreviewMinecartNodePlacement(room_, x, y, brush);
+      auto& target = room == kRoom ? room_ : other_room_;
+      const auto candidate = PreviewMinecartNodePlacement(target, x, y, brush);
       if (!candidate.ok())
         return candidate.status();
-      room_.GetSprites() = candidate->sprites;
-      room_.custom_collision() = candidate->collision;
+      target.GetSprites() = candidate->sprites;
+      target.custom_collision() = candidate->collision;
       return absl::OkStatus();
     });
     panel_.SetCollisionStampCallback(
@@ -58,12 +59,13 @@ class MinecartPaletteWorkflowTest : public testing::Test {
                const MinecartCollisionStamp& stamp) {
           stamp_rooms_.push_back(room);
           stamps_.push_back(stamp);
-          if (!(room_.custom_collision() == expected))
+          auto& target = room == kRoom ? room_ : other_room_;
+          if (!(target.custom_collision() == expected))
             return absl::FailedPreconditionError("Stale collision preview");
           const auto after = PreviewMinecartCollisionStamp(expected, stamp);
           if (!after.ok())
             return after.status();
-          room_.custom_collision() = *after;
+          target.custom_collision() = *after;
           return absl::OkStatus();
         });
     Frame();
@@ -110,8 +112,9 @@ class MinecartPaletteWorkflowTest : public testing::Test {
     rt.scale = 1.25f;
     rt.hovered = ImGui::IsItemHovered();
     canvas_hovered_ = rt.hovered;
-    owns_input_ =
-        MinecartPaletteWorkflowTestPeer::Draw(viewer_, rt, room_, kRoom);
+    auto& active_room = active_room_id_ == kRoom ? room_ : other_room_;
+    owns_input_ = MinecartPaletteWorkflowTestPeer::Draw(
+        viewer_, rt, active_room, active_room_id_);
     ImGui::End();
     if (draw_other_canvas_) {
       ImGui::SetNextWindowPos(ImVec2(1000, 720), ImGuiCond_Always);
@@ -209,6 +212,7 @@ class MinecartPaletteWorkflowTest : public testing::Test {
     MinecartNodeBrush brush;
   };
   static constexpr int kRoom = 0x98;
+  int active_room_id_ = kRoom;
   ImGuiContext* context_ = nullptr;
   project::YazeProject project_;
   project::YazeProject rebound_project_;
@@ -618,6 +622,111 @@ TEST_F(MinecartPaletteWorkflowTest, CleanupWithoutActivePayloadKeepsRevision) {
   panel_.CancelNodePlacement();
   viewer_.CancelMinecartNodeDrag();
   EXPECT_EQ(panel_.canvas_revision(), revision);
+}
+
+TEST_F(MinecartPaletteWorkflowTest,
+       RoomNavigationKeepsToolButRejectsThePreviousActorGesture) {
+  SeedSwitchActor(false);
+  ASSERT_NO_FATAL_FAILURE(BeginActorDrag("Switch"));
+  const auto old_revision = panel_.canvas_revision();
+  active_room_id_ = kRoom + 1;
+  panel_.SetActiveRoom(active_room_id_);
+  ASSERT_TRUE(panel_.placement_brush());
+  EXPECT_NE(panel_.placement_brush()->revision, old_revision);
+  EXPECT_EQ(panel_.placement_brush()->room_id, active_room_id_);
+  EXPECT_EQ(panel_.placement_brush()->node.kind, MinecartNodeKind::kSwitch);
+  EXPECT_EQ(panel_.placement_brush()->node.source_x, -1);
+  EXPECT_EQ(panel_.placement_brush()->node.source_y, -1);
+  EXPECT_FALSE(panel_.placement_brush()->node.expected_collision);
+  MoveCell(21, 23);
+  Button(false);
+  EXPECT_TRUE(nodes_.empty());
+  EXPECT_TRUE(other_room_.GetSprites().empty());
+
+  Frame();
+  MoveCell(25, 27);
+  Button(true);
+  Button(false);
+  ASSERT_EQ(nodes_.size(), 1u);
+  EXPECT_EQ(nodes_[0].room, active_room_id_);
+  EXPECT_EQ(nodes_[0].x, 24);
+  EXPECT_EQ(nodes_[0].y, 26);
+  EXPECT_EQ(nodes_[0].brush.source_x, -1);
+  EXPECT_FALSE(nodes_[0].brush.expected_collision);
+  ASSERT_EQ(room_.GetSprites().size(), 1u);
+  EXPECT_EQ(room_.GetSprites()[0].x(), 5);
+  EXPECT_EQ(room_.GetSprites()[0].y(), 6);
+  ASSERT_EQ(other_room_.GetSprites().size(), 1u);
+  EXPECT_EQ(other_room_.GetSprites()[0].id(), 0xAF);
+}
+
+TEST_F(MinecartPaletteWorkflowTest,
+       EndStopToolContinuesAcrossRoomsWithoutMovingPreviousBehavior) {
+  ASSERT_NO_FATAL_FAILURE(ClickPalette("End stop"));
+  MoveCell(11, 13);
+  Button(true);
+  Button(false);
+  ASSERT_EQ(stamps_.size(), 1u);
+  const auto first_room_collision = room_.custom_collision();
+  active_room_id_ = kRoom + 1;
+  panel_.SetActiveRoom(active_room_id_);
+  MoveCell(21, 23);
+  Button(true);
+  Button(false);
+  ASSERT_EQ(stamps_.size(), 2u);
+  EXPECT_EQ(stamp_rooms_[0], kRoom);
+  EXPECT_EQ(stamp_rooms_[1], active_room_id_);
+  EXPECT_EQ(room_.custom_collision(), first_room_collision);
+  EXPECT_EQ(other_room_.custom_collision().tiles[23 * 64 + 21], 0xB7);
+  EXPECT_EQ(other_room_.custom_collision().overrides.count(), 1u);
+}
+
+TEST_F(MinecartPaletteWorkflowTest,
+       AvailableIdButtonsUseProjectValidationAndRefreshTheActiveTool) {
+  std::vector<std::pair<MinecartNodeKind, int>> requests;
+  panel_.SetAvailableNodeIdCallback(
+      [&](MinecartNodeKind kind, int room) -> absl::StatusOr<int> {
+        requests.emplace_back(kind, room);
+        return kind == MinecartNodeKind::kCartStart ? 27 : 9;
+      });
+  Frame();
+  EXPECT_TRUE(requests.empty());
+  ASSERT_NO_FATAL_FAILURE(ClickPalette("Switch"));
+  ASSERT_NO_FATAL_FAILURE(ClickPalette("Find unused switch channel"));
+  ASSERT_EQ(requests.size(), 1u);
+  EXPECT_EQ(requests[0], (std::pair{MinecartNodeKind::kSwitch, kRoom}));
+  ASSERT_TRUE(panel_.placement_brush());
+  EXPECT_EQ(panel_.placement_brush()->node.id, 9);
+  MoveCell(11, 13);
+  Button(true);
+  Button(false);
+  ASSERT_EQ(nodes_.size(), 1u);
+  EXPECT_EQ(nodes_[0].brush.id, 9);
+
+  ASSERT_NO_FATAL_FAILURE(ClickPalette("Find unused cart ID"));
+  ASSERT_EQ(requests.size(), 2u);
+  EXPECT_EQ(requests[1], (std::pair{MinecartNodeKind::kCartStart, kRoom}));
+  ASSERT_NO_FATAL_FAILURE(ClickPalette("Cart spawn"));
+  ASSERT_TRUE(panel_.placement_brush());
+  EXPECT_EQ(panel_.placement_brush()->node.id, 27);
+  EXPECT_EQ(nodes_.size(), 1u);  // Choosing an identity does not place a cart.
+}
+
+TEST_F(MinecartPaletteWorkflowTest,
+       FailedAvailableIdLookupKeepsTheSelectedChannelAndRoomData) {
+  panel_.SetAvailableNodeIdCallback(
+      [](MinecartNodeKind, int) -> absl::StatusOr<int> {
+        return absl::FailedPreconditionError("All switch channels are in use");
+      });
+  ASSERT_NO_FATAL_FAILURE(ClickPalette("Switch"));
+  ASSERT_TRUE(panel_.placement_brush());
+  const int channel = panel_.placement_brush()->node.id;
+  ASSERT_NO_FATAL_FAILURE(ClickPalette("Find unused switch channel"));
+  ASSERT_TRUE(panel_.placement_brush());
+  EXPECT_EQ(panel_.placement_brush()->node.id, channel);
+  EXPECT_TRUE(room_.GetSprites().empty());
+  EXPECT_FALSE(room_.custom_collision().HasOverrides());
+  EXPECT_TRUE(nodes_.empty());
 }
 
 }  // namespace

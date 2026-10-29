@@ -1,5 +1,6 @@
 #include "app/editor/dungeon/ui/minecart/minecart_node_tool.h"
 
+#include <algorithm>
 #include <functional>
 #include <memory>
 #include <utility>
@@ -226,6 +227,54 @@ absl::StatusOr<MinecartNodePlacement> PreviewMinecartNodePlacement(
       candidate.collision.SetOverride(offset, brush.collision);
   }
   return candidate;
+}
+
+absl::StatusOr<int> DungeonEditorV2::FindAvailableMinecartNodeId(
+    MinecartNodeKind kind, int room_id) const {
+  const auto* room = rooms_.GetIfLoaded(room_id);
+  if (!room || !rom_ || room->rom() != rom_ || !minecart_track_editor_panel_) {
+    return absl::FailedPreconditionError("Load the target minecart room first");
+  }
+  for (int identity = 0; identity < static_cast<int>(kMinecartTrackSlotCount);
+       ++identity) {
+    bool used = false;
+    if (kind == MinecartNodeKind::kCartStart) {
+      const auto& tracks = minecart_track_editor_panel_->GetTracks();
+      const auto found = std::find_if(tracks.begin(), tracks.end(),
+                                      [identity](const MinecartTrack& track) {
+                                        return track.id == identity;
+                                      });
+      if (found == tracks.end() || found->room_id != 0)
+        continue;
+    }
+    for (const auto& sprite : room->GetSprites()) {
+      if (sprite.deleted() || sprite.subtype() != identity)
+        continue;
+      if ((kind == MinecartNodeKind::kCartStart && sprite.id() == 0xA3) ||
+          (kind != MinecartNodeKind::kCartStart &&
+           (sprite.id() == 0xAF || sprite.id() == 0xB0))) {
+        used = true;
+        break;
+      }
+    }
+    if (used)
+      continue;
+    if (kind == MinecartNodeKind::kCartStart) {
+      const auto status =
+          ValidateUnusedCartIdentity(rooms_, *rom_, room_id, identity);
+      if (!status.ok()) {
+        if (status.message() ==
+            "This cart identity is already used in another room")
+          continue;
+        return status;
+      }
+    }
+    return identity;
+  }
+  return absl::ResourceExhaustedError(
+      kind == MinecartNodeKind::kCartStart
+          ? "All 32 cart identities are in use"
+          : "All 32 switch channels are in use");
 }
 
 absl::Status DungeonEditorV2::PlaceMinecartNode(

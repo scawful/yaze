@@ -35,7 +35,7 @@ bool ProjectUsesCustomObjects(const project::YazeProject& project) {
          !project.custom_object_files.empty();
 }
 
-bool SeedLegacyTrackObjectMapping(project::YazeProject* project,
+bool SeedLegacyTrackObjectMapping(project::YazeProject* project, const Rom* rom,
                                   std::string* warning) {
   if (project == nullptr) {
     return false;
@@ -50,7 +50,9 @@ bool SeedLegacyTrackObjectMapping(project::YazeProject* project,
 
   const auto& defaults =
       zelda3::CustomObjectManager::DefaultSubtypeFilenamesForObject(
-          kTrackCustomObjectId);
+          kTrackCustomObjectId,
+          rom ? zelda3::DetectMinecartRailProfile(rom->vector())
+              : zelda3::MinecartRailProfile::kLegacy);
   if (defaults.empty()) {
     return false;
   }
@@ -231,7 +233,8 @@ absl::Status CommandContext::ApplyProjectRuntimeContext() {
     }
   }
   std::string legacy_mapping_warning;
-  if (SeedLegacyTrackObjectMapping(&project, &legacy_mapping_warning) &&
+  if (SeedLegacyTrackObjectMapping(&project, active_rom_,
+                                   &legacy_mapping_warning) &&
       config_.verbose) {
     std::cerr << "Warning: " << legacy_mapping_warning << '\n';
   }
@@ -247,6 +250,9 @@ absl::Status CommandContext::ApplyProjectRuntimeContext() {
   previous_label_state_ = label_state;
   active_project.InitializeResourceLabelProvider();
   core::FeatureFlags::get() = active_project.feature_flags;
+  zelda3::CustomObjectManager::Get().SetMinecartRailProfile(
+      active_rom_ ? zelda3::DetectMinecartRailProfile(active_rom_->vector())
+                  : zelda3::MinecartRailProfile::kLegacy);
   zelda3::DrawRoutineRegistry::Get().RefreshFeatureFlagMappings();
 
   if (!active_project.custom_object_files.empty()) {

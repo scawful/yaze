@@ -23,6 +23,7 @@
 // object_renderer.h removed - using ObjectDrawer for production rendering
 #include "imgui/imgui.h"
 #include "zelda3/dungeon/dungeon_object_registry.h"
+#include "zelda3/dungeon/minecart_object_semantics.h"
 #include "zelda3/dungeon/object_tile_editor.h"
 
 namespace yaze {
@@ -55,8 +56,12 @@ DungeonObjectPreviewFit ResolveDungeonObjectPreviewFit(float source_width,
                                                        float box_height);
 bool MatchesDungeonObjectStreamFilter(int object_id, int selected_filter);
 bool IsDungeonCustomObjectRuntimeSlot(int object_id, int subtype);
-bool IsMinecartGraphicsRuntimeSlot(int object_id, int subtype);
-std::string GetDungeonCustomObjectSlotName(int object_id, int subtype);
+bool IsMinecartGraphicsRuntimeSlot(
+    int object_id, int subtype,
+    zelda3::MinecartRailProfile profile = zelda3::MinecartRailProfile::kLegacy);
+std::string GetDungeonCustomObjectSlotName(
+    int object_id, int subtype,
+    zelda3::MinecartRailProfile profile = zelda3::MinecartRailProfile::kLegacy);
 
 /**
  * @brief Handles object selection, preview, and editing UI

@@ -144,11 +144,14 @@ RoomMinecartAudit AuditRoom(Rom* rom, int room_id, int track_object_id,
   room.LoadSprites();
 
   for (const auto& obj : room.GetTileObjects()) {
-    if (static_cast<int>(obj.id_) != track_object_id) {
-      continue;
-    }
-    int subtype = obj.size_ & 0x1F;
-    if (!zelda3::IsMinecartTrackGraphicsSubtype(track_object_id, subtype)) {
+    const int subtype = obj.size_ & 0x0F;
+    const auto profile = zelda3::DetectMinecartRailProfile(rom->vector());
+    if (track_object_id == 0x31) {
+      if (!zelda3::FindMinecartRailDescriptor(obj.id_, subtype, profile))
+        continue;
+    } else if (static_cast<int>(obj.id_) != track_object_id ||
+               !zelda3::IsMinecartTrackGraphicsSubtype(track_object_id, subtype,
+                                                       profile)) {
       continue;
     }
     audit.track_object_subtypes.insert(subtype);

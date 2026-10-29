@@ -839,6 +839,13 @@ void DungeonWorkbenchContent::Draw(bool* p_open) {
     params.draw_layout_options = [this]() {
       DrawLayoutOptions();
     };
+    params.minecart_mode = sidebar_mode_ == SidebarMode::Tools &&
+                           active_tool_ == WorkbenchTool::MinecartTracks;
+    if (minecart_track_panel_) {
+      params.on_minecart_mode = [this]() {
+        OpenMinecartTool();
+      };
+    }
     params.on_request_dungeon_map = [this]() {
       RequestDungeonMapPopup();
     };

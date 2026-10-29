@@ -190,17 +190,25 @@ bool MatchesDungeonObjectStreamFilter(int object_id, int selected_filter) {
 }
 
 bool IsDungeonCustomObjectRuntimeSlot(int object_id, int subtype) {
-  return subtype >= 0 &&
-         subtype < zelda3::CustomObjectManager::RuntimeSubtypeCountForObject(
-                       object_id);
+  return zelda3::CustomObjectManager::RuntimeSubtypeCountForObject(object_id) >
+             0 &&
+         subtype >= 0 &&
+         subtype <
+             zelda3::CustomObjectManager::Get().GetSubtypeCount(object_id);
 }
 
-bool IsMinecartGraphicsRuntimeSlot(int object_id, int subtype) {
-  return object_id == 0x31 &&
-         zelda3::IsMinecartTrackGraphicsSubtype(object_id, subtype);
+bool IsMinecartGraphicsRuntimeSlot(int object_id, int subtype,
+                                   zelda3::MinecartRailProfile profile) {
+  return zelda3::FindMinecartRailDescriptor(object_id, subtype, profile) !=
+         nullptr;
 }
 
-std::string GetDungeonCustomObjectSlotName(int object_id, int subtype) {
+std::string GetDungeonCustomObjectSlotName(
+    int object_id, int subtype, zelda3::MinecartRailProfile profile) {
+  if (const auto* rail =
+          zelda3::FindMinecartRailDescriptor(object_id, subtype, profile)) {
+    return rail->label;
+  }
   static constexpr std::array<const char*, 16> kObject31Names = {
       "Pit track horizontal",           "Pit track vertical",
       "Pit track corner top-left",      "Pit track corner top-right",
@@ -219,6 +227,12 @@ std::string GetDungeonCustomObjectSlotName(int object_id, int subtype) {
       "Kydreeok body",
       "Manhandla body",
   };
+  if (profile == zelda3::MinecartRailProfile::kExpanded && object_id == 0x32) {
+    if (subtype == 6)
+      return kObject31Names[13];
+    if (subtype == 8)
+      return kObject31Names[15];
+  }
   if (object_id == 0x31 && subtype >= 0 &&
       subtype < static_cast<int>(kObject31Names.size())) {
     return kObject31Names[subtype];
@@ -233,6 +247,14 @@ std::string GetDungeonCustomObjectSlotName(int object_id, int subtype) {
   }
   return "Unknown custom runtime slot";
 }
+
+namespace {
+std::string CurrentCustomObjectSlotName(int object_id, int subtype) {
+  return GetDungeonCustomObjectSlotName(
+      object_id, subtype,
+      zelda3::CustomObjectManager::Get().GetMinecartRailProfile());
+}
+}  // namespace
 
 DungeonObjectSelector::~DungeonObjectSelector() {
   RetirePreviewCache();
@@ -288,7 +310,7 @@ std::string DungeonObjectSelector::GetObjectTypeSymbol(int object_id) {
 
 void DungeonObjectSelector::SelectObject(int obj_id, int subtype) {
   const int runtime_count =
-      zelda3::CustomObjectManager::RuntimeSubtypeCountForObject(obj_id);
+      zelda3::CustomObjectManager::Get().GetSubtypeCount(obj_id);
   if (runtime_count > 0 && subtype < 0 &&
       core::FeatureFlags::get().kEnableCustomObjects) {
     // In custom-enabled projects these IDs are dispatch families, not one
@@ -345,39 +367,54 @@ bool DungeonObjectSelector::DrawMinecartPalette() {
   }
   const auto layout = ResolveDungeonObjectSelectorGridLayout(
       ImGui::GetContentRegionAvail().x, 64.0f, ImGui::GetStyle().ItemSpacing.x);
+  const auto profile =
+      zelda3::CustomObjectManager::Get().GetMinecartRailProfile();
+  const auto rails = zelda3::MinecartRailDescriptors(profile);
   bool chosen = false;
   ImGui::PushID("MinecartRailPalette");
-  // Keep the complete catalog visible, with the same shape order in both
-  // families. These are artwork choices; behavior is edited separately.
-  static constexpr std::array<std::array<int, 7>, 2> kFamilies = {
-      {{7, 6, 8, 9, 10, 11, 12}, {0, 1, 2, 3, 4, 5, 14}}};
-  for (size_t family = 0; family < kFamilies.size(); ++family) {
-    ImGui::TextDisabled("%s",
-                        family == 0 ? "Floor-style rails" : "Pit-style rails");
+  for (const auto style :
+       {zelda3::MinecartRailStyle::kFloor, zelda3::MinecartRailStyle::kPit}) {
+    ImGui::TextDisabled("%s", style == zelda3::MinecartRailStyle::kFloor
+                                  ? "Floor-style rails"
+                                  : "Pit-style rails");
+    std::vector<const zelda3::MinecartRailDescriptor*> family;
+    for (const auto& rail : rails) {
+      if (rail.style == style)
+        family.push_back(&rail);
+    }
+    std::stable_sort(family.begin(), family.end(),
+                     [](const auto* lhs, const auto* rhs) {
+                       return lhs->shape < rhs->shape;
+                     });
     int column = 0;
-    for (int subtype : kFamilies[family]) {
+    for (const auto* descriptor : family) {
+      const auto& rail = *descriptor;
       if (column)
         ImGui::SameLine();
-      const auto status = GetCustomObjectAssetStatus(0x31, subtype);
-      const auto name = GetDungeonCustomObjectSlotName(0x31, subtype);
-      const auto label = absl::StrFormat("##Rail%d", subtype);
+      const auto status =
+          GetCustomObjectAssetStatus(rail.object_id, rail.subtype);
+      const auto label =
+          absl::StrFormat("##Rail%02X_%d", rail.object_id, rail.subtype);
       ImGui::BeginDisabled(!status.ok());
       if (ImGui::Selectable(label.c_str(),
-                            object_loaded_ && preview_object_.id_ == 0x31 &&
-                                preview_object_.size_ == subtype,
+                            object_loaded_ &&
+                                preview_object_.id_ == rail.object_id &&
+                                preview_object_.size_ == rail.subtype,
                             0, ImVec2(layout.item_size, layout.item_size))) {
-        SelectObject(0x31, subtype);
+        SelectObject(rail.object_id, rail.subtype);
         chosen = true;
       }
-      gui::AutoRegisterLastItem("selectable",
-                                absl::StrFormat("Rail%d", subtype));
+      gui::AutoRegisterLastItem(
+          "selectable",
+          absl::StrFormat("Rail%02X_%d", rail.object_id, rail.subtype));
       if (status.ok()) {
-        gui::BeginRoomObjectDragSource(0x31, current_room_id_, 0, 0, subtype);
+        gui::BeginRoomObjectDragSource(rail.object_id, current_room_id_, 0, 0,
+                                       rail.subtype);
       }
       ImGui::EndDisabled();
       const auto top = ImGui::GetItemRectMin();
-      auto obj = MakePreviewObject(0x31);
-      obj.size_ = subtype;
+      auto obj = MakePreviewObject(rail.object_id);
+      obj.size_ = rail.subtype;
       const bool rendered =
           status.ok() && ImGui::IsItemVisible() &&
           DrawObjectPreview(obj, ImVec2(top.x + 3, top.y + 3),
@@ -389,11 +426,15 @@ bool DungeonObjectSelector::DrawMinecartPalette() {
       }
       if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
         ImGui::BeginTooltip();
-        ImGui::TextUnformatted(name.c_str());
+        ImGui::TextUnformatted(rail.label);
+        ImGui::Text("Object %02X:%02X", rail.object_id, rail.subtype);
         ImGui::TextUnformatted(status.ok()
                                    ? "Click, then place on the room canvas."
                                    : std::string(status.message()).c_str());
-        if (status.ok() && family == 0) {
+        if (status.ok() && !rail.collision_verified) {
+          ImGui::TextUnformatted("Automatic collision is not verified.");
+        }
+        if (status.ok() && style == zelda3::MinecartRailStyle::kFloor) {
           ImGui::TextUnformatted(
               "Uses fixed floor tiles; check the room's graphics and palette.");
         }
@@ -429,7 +470,7 @@ void DungeonObjectSelector::DrawWorkbenchBrowser() {
           std::min(zelda3::CustomObjectManager::Get().GetSubtypeCount(id),
                    kPersistedCustomSubtypeSlots);
       for (int slot = 0; slot < count; ++slot) {
-        const std::string name = GetDungeonCustomObjectSlotName(id, slot);
+        const std::string name = CurrentCustomObjectSlotName(id, slot);
         const std::string key = absl::StrFormat("%02X:%02X", id, slot);
         if (workbench::DungeonBrowserMatches(browser_state_.search, id, name) ||
             workbench::DungeonBrowserFold(key).find(
@@ -915,8 +956,8 @@ void DungeonObjectSelector::DrawObjectDetails(int object_id, int subtype) {
     const auto binding = manager.ResolveSlotBinding(object_id, subtype);
     ImGui::TextColored(theme.selection_primary, "Custom 0x%02X:%02X", object_id,
                        subtype);
-    ImGui::TextWrapped(
-        "%s", GetDungeonCustomObjectSlotName(object_id, subtype).c_str());
+    ImGui::TextWrapped("%s",
+                       CurrentCustomObjectSlotName(object_id, subtype).c_str());
     ImGui::Separator();
     ImGui::TextWrapped("File: %s", binding.ok() && !binding->filename.empty()
                                        ? binding->filename.c_str()
@@ -1489,7 +1530,7 @@ void DungeonObjectSelector::DrawCustomObjectAssetBrowser() {
     const char* label;
     const char* description;
   };
-  static constexpr std::array<CustomAssetFamily, 3> kFamilies = {{
+  static constexpr std::array<CustomAssetFamily, 3> kLegacyFamilies = {{
       {0x31, "Tracks + Props (16)",
        "Minecart tile layouts, the Sword House wall object, and a small "
        "statue"},
@@ -1497,6 +1538,18 @@ void DungeonObjectSelector::DrawCustomObjectAssetBrowser() {
        "Furnace, firewood, chair, Minish stump, and Minish wall hole assets"},
       {0x54, "Boss Bodies (2)", "Kydreeok and Manhandla body tilemaps"},
   }};
+  static constexpr std::array<CustomAssetFamily, 3> kExpandedFamilies = {{
+      {0x31, "Rails (16)", "Floor and pit rails, corners, and pit T junctions"},
+      {0x32, "Props + Rail Junctions (13)",
+       "Ice and Minish props, relocated crossings, wall and statue, and floor "
+       "T junctions"},
+      {0x54, "Boss Bodies (2)", "Kydreeok and Manhandla body tilemaps"},
+  }};
+  const auto profile =
+      zelda3::CustomObjectManager::Get().GetMinecartRailProfile();
+  const auto& kFamilies = profile == zelda3::MinecartRailProfile::kExpanded
+                              ? kExpandedFamilies
+                              : kLegacyFamilies;
   const CustomAssetFamily* selected_family = &kFamilies.front();
   for (const auto& family : kFamilies) {
     if (custom_asset_family_id_ == family.object_id) {
@@ -1528,8 +1581,8 @@ void DungeonObjectSelector::DrawCustomObjectAssetBrowser() {
   const auto name_strip = ReserveBrowserNameStrip();
   std::string browser_name = absl::StrFormat(
       "0x%02X:%02X  %s", custom_asset_family_id_, custom_asset_subtype_,
-      GetDungeonCustomObjectSlotName(custom_asset_family_id_,
-                                     custom_asset_subtype_));
+      CurrentCustomObjectSlotName(custom_asset_family_id_,
+                                  custom_asset_subtype_));
   {
     const ImGuiStyle& style = ImGui::GetStyle();
     const float item_spacing = std::max(2.0f, style.ItemSpacing.x * 0.5f);
@@ -1550,7 +1603,7 @@ void DungeonObjectSelector::DrawCustomObjectAssetBrowser() {
                                          kPersistedCustomSubtypeSlots);
       for (int subtype = 0; subtype < subtype_count; ++subtype) {
         const std::string subtype_name =
-            GetDungeonCustomObjectSlotName(obj_id, subtype);
+            CurrentCustomObjectSlotName(obj_id, subtype);
 
         if (custom_col > 0) {
           ImGui::SameLine(0.0f, item_spacing);
@@ -1651,7 +1704,7 @@ void DungeonObjectSelector::DrawCustomObjectAssetBrowser() {
   }
   DrawBrowserNameStrip(name_strip, browser_name);
   ImGui::Separator();
-  const std::string selected_name = GetDungeonCustomObjectSlotName(
+  const std::string selected_name = CurrentCustomObjectSlotName(
       custom_asset_family_id_, custom_asset_subtype_);
   const auto selected_binding_or = obj_manager.ResolveSlotBinding(
       custom_asset_family_id_, custom_asset_subtype_);
@@ -1694,13 +1747,17 @@ void DungeonObjectSelector::DrawCustomObjectAssetBrowser() {
                        selected_asset_status.message().data());
   }
   ImGui::PushTextWrapPos(0.0f);
-  if (custom_asset_family_id_ == 0x31 && custom_asset_subtype_ == 13) {
-    ImGui::TextDisabled(
-        "%s", tr("Custom 0x31 wall object; separate from vanilla wall and "
-                 "corner tile tables"));
+  if ((profile == zelda3::MinecartRailProfile::kLegacy &&
+       custom_asset_family_id_ == 0x31 && custom_asset_subtype_ == 13) ||
+      (profile == zelda3::MinecartRailProfile::kExpanded &&
+       custom_asset_family_id_ == 0x32 && custom_asset_subtype_ == 6)) {
+    ImGui::TextDisabled("%s",
+                        tr("Custom wall object; separate from vanilla wall and "
+                           "corner tile tables"));
   } else if (IsMinecartGraphicsRuntimeSlot(custom_asset_family_id_,
-                                           custom_asset_subtype_)) {
-    ImGui::TextDisabled("%s", tr("Tile layout only; behavior is separate"));
+                                           custom_asset_subtype_, profile)) {
+    ImGui::TextDisabled(
+        "%s", tr("Place through Minecart Tracks to pair art and collision"));
   }
   if (custom_asset_family_id_ == 0x54) {
     ImGui::TextColored(theme.text_warning_yellow, ICON_MD_WARNING
@@ -1775,7 +1832,7 @@ void DungeonObjectSelector::DrawCustomObjectAssetBrowser() {
   }
 
   if (IsMinecartGraphicsRuntimeSlot(custom_asset_family_id_,
-                                    custom_asset_subtype_)) {
+                                    custom_asset_subtype_, profile)) {
     const bool can_open_minecart =
         static_cast<bool>(open_minecart_editor_window_callback_);
     if (!can_open_minecart) {

@@ -55,6 +55,7 @@ constexpr char kToolbarViewOptionsLabel[] = "View";
 constexpr char kToolbarSaveContentLabel[] = "Save content";
 constexpr char kToolbarModeRoomLabel[] = "Room";
 constexpr char kToolbarModeConnectedLabel[] = "Overview";
+constexpr char kToolbarModeMinecartLabel[] = "Minecart";
 constexpr char kToolbarOverflowLabel[] = ICON_MD_MORE_HORIZ;
 constexpr char kToolbarRoomSearchHint[] = "Type to filter rooms...";
 constexpr char kToolbarPanelWorkflowTooltip[] =
@@ -197,12 +198,19 @@ void DrawSaveContentButton(const DungeonWorkbenchToolbarParams& p,
   }
 }
 
-float CanvasModeSelectorWidth(const ToolbarLayout& layout) {
-  return workbench::CalcIconButtonWidth(kToolbarModeRoomLabel,
-                                        layout.button_size) +
-         kToolbarActionGap +
-         workbench::CalcIconButtonWidth(kToolbarModeConnectedLabel,
-                                        layout.button_size);
+float CanvasModeSelectorWidth(const DungeonWorkbenchToolbarParams& p,
+                              const ToolbarLayout& layout) {
+  float width = workbench::CalcIconButtonWidth(kToolbarModeRoomLabel,
+                                               layout.button_size) +
+                kToolbarActionGap +
+                workbench::CalcIconButtonWidth(kToolbarModeConnectedLabel,
+                                               layout.button_size);
+  if (p.on_minecart_mode) {
+    width +=
+        kToolbarActionGap + workbench::CalcIconButtonWidth(
+                                kToolbarModeMinecartLabel, layout.button_size);
+  }
+  return width;
 }
 
 void DrawCanvasModeSelector(const DungeonWorkbenchToolbarParams& p,
@@ -216,6 +224,20 @@ void DrawCanvasModeSelector(const DungeonWorkbenchToolbarParams& p,
           !p.layout->show_connected_canvas_view && !*p.split_view_enabled)) {
     p.layout->show_connected_canvas_view = false;
     *p.split_view_enabled = false;
+  }
+  if (p.on_minecart_mode) {
+    ImGui::SameLine(0.0f, kToolbarActionGap);
+    if (DrawToolbarActionButton(
+            "MinecartMode", kToolbarModeMinecartLabel,
+            ImVec2(workbench::CalcIconButtonWidth(kToolbarModeMinecartLabel,
+                                                  height),
+                   height),
+            "Open rail and node tools; use Overview to choose another room",
+            p.minecart_mode)) {
+      p.layout->show_connected_canvas_view = false;
+      *p.split_view_enabled = false;
+      p.on_minecart_mode();
+    }
   }
   ImGui::SameLine(0.0f, kToolbarActionGap);
   if (DrawToolbarActionButton(
@@ -507,7 +529,7 @@ float ToolbarEstimatedWidth(const DungeonWorkbenchToolbarParams& p,
       ImGui::CalcTextSize("00000").x + ImGui::GetStyle().FramePadding.x * 2.0f;
   append_left(navigation_width, kToolbarClusterGap);
   if (visibility.stitched_rooms) {
-    append_left(CanvasModeSelectorWidth(layout), kToolbarClusterGap);
+    append_left(CanvasModeSelectorWidth(p, layout), kToolbarClusterGap);
   }
 
   if (visibility.entrance)
@@ -661,6 +683,12 @@ bool DrawToolbarOverflowMenu(const DungeonWorkbenchToolbarParams& p,
                         p.layout->show_connected_canvas_view)) {
       p.layout->show_connected_canvas_view = true;
       *p.split_view_enabled = false;
+    }
+    if (p.on_minecart_mode &&
+        ImGui::MenuItem("Minecart tools", nullptr, p.minecart_mode)) {
+      p.layout->show_connected_canvas_view = false;
+      *p.split_view_enabled = false;
+      p.on_minecart_mode();
     }
   }
   if (!visibility.compare) {

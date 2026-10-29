@@ -14,6 +14,7 @@
 #include "absl/status/statusor.h"
 #include "app/gfx/types/snes_tile.h"
 #include "zelda3/dungeon/dungeon_tile_patterns.h"
+#include "zelda3/dungeon/minecart_object_semantics.h"
 
 namespace yaze {
 namespace zelda3 {
@@ -163,6 +164,7 @@ class CustomObjectManager {
     std::string base_path;
     std::unordered_map<int, std::vector<std::string>> custom_file_map;
     std::string dungeon_tile_patterns;
+    MinecartRailProfile rail_profile = MinecartRailProfile::kLegacy;
 
     bool operator==(const State&) const = default;
   };
@@ -179,6 +181,8 @@ class CustomObjectManager {
   void ClearObjectFileMap();
   // Independent of custom-object dispatch. Empty path restores ROM patterns.
   void SetTilePatternsSource(const std::string& path);
+  void SetMinecartRailProfile(MinecartRailProfile profile);
+  MinecartRailProfile GetMinecartRailProfile() const;
   absl::StatusOr<std::shared_ptr<const DungeonTilePatterns>> GetTilePatterns();
   bool HasCustomFileMap() const;
 
@@ -207,7 +211,9 @@ class CustomObjectManager {
   // The current Oracle runtime dispatch tables have fixed capacities. Project
   // filename mappings may replace assets within these slots but cannot add
   // new runtime subtypes.
-  static int RuntimeSubtypeCountForObject(int object_id);
+  static int RuntimeSubtypeCountForObject(
+      int object_id,
+      MinecartRailProfile profile = MinecartRailProfile::kLegacy);
 
   // Canonical Oracle object IDs backed by fixed external runtime assets.
   static const std::array<int, 3>& RuntimeObjectIds();
@@ -221,7 +227,8 @@ class CustomObjectManager {
   // Returns the built-in subtype filename list for supported object IDs.
   // Returns an empty list for other IDs.
   static const std::vector<std::string>& DefaultSubtypeFilenamesForObject(
-      int object_id);
+      int object_id,
+      MinecartRailProfile profile = MinecartRailProfile::kLegacy);
 
   // Accessors for tile editor write-back
   const std::string& GetBasePath() const;

@@ -1,5 +1,6 @@
 #include "zelda3/dungeon/custom_object.h"
 
+#include <algorithm>
 #include <array>
 #include <chrono>
 #include <cstdlib>
@@ -110,6 +111,8 @@ class CustomObjectManagerTest : public ::testing::Test {
     // Set up manager with temp root
     CustomObjectManager::Get().Initialize(temp_dir_.string());
     CustomObjectManager::Get().ClearObjectFileMap();
+    CustomObjectManager::Get().SetMinecartRailProfile(
+        MinecartRailProfile::kLegacy);
   }
 
   void TearDown() override {
@@ -716,6 +719,101 @@ TEST_F(CustomObjectManagerTest, SpriteBodyDefaultSubtypeOrderMatchesOracleAbi) {
   EXPECT_EQ(CustomObjectManager::Get().ResolveFilename(0x54, 0), defaults[0]);
   EXPECT_EQ(CustomObjectManager::Get().ResolveFilename(0x54, 1), defaults[1]);
   EXPECT_TRUE(CustomObjectManager::Get().ResolveFilename(0x54, 2).empty());
+}
+
+TEST_F(CustomObjectManagerTest,
+       ExpandedDefaultsUseRailCatalogAndOnlyReservedDefaultsAreNoOps) {
+  auto& manager = CustomObjectManager::Get();
+  manager.SetMinecartRailProfile(MinecartRailProfile::kExpanded);
+  EXPECT_EQ(manager.GetSubtypeCount(0x31), 16);
+  EXPECT_EQ(manager.GetSubtypeCount(0x32), 13);
+  for (const auto& rail :
+       MinecartRailDescriptors(MinecartRailProfile::kExpanded)) {
+    EXPECT_EQ(manager.ResolveFilename(rail.object_id, rail.subtype),
+              rail.filename);
+  }
+  for (const int subtype : {3, 4}) {
+    auto binding = manager.ResolveSlotBinding(0x32, subtype);
+    ASSERT_TRUE(binding.ok()) << binding.status();
+    EXPECT_TRUE(binding->filename.empty());
+    EXPECT_EQ(binding->origin, CustomObjectMappingOrigin::kDefaultFilename);
+    auto object = manager.GetObjectInternal(0x32, subtype);
+    ASSERT_TRUE(object.ok()) << object.status();
+    ASSERT_NE(*object, nullptr);
+    EXPECT_TRUE((*object)->IsEmpty());
+  }
+
+  const auto defaults = CustomObjectManager::DefaultSubtypeFilenamesForObject(
+      0x32, MinecartRailProfile::kExpanded);
+  manager.SetObjectFileMap({{0x32, defaults}});
+  for (const int subtype : {3, 4}) {
+    auto binding = manager.ResolveSlotBinding(0x32, subtype);
+    ASSERT_TRUE(binding.ok()) << binding.status();
+    EXPECT_EQ(binding->origin,
+              CustomObjectMappingOrigin::kConfiguredSlotUnmapped);
+    EXPECT_FALSE(manager.GetObjectInternal(0x32, subtype).ok());
+  }
+}
+
+TEST_F(CustomObjectManagerTest,
+       ExpandedRomRejectsLegacyReassignedMappingsBeforeLoadingAssets) {
+  auto& manager = CustomObjectManager::Get();
+  auto legacy = CustomObjectManager::DefaultSubtypeFilenamesForObject(0x31);
+  for (const int subtype : {12, 13, 14, 15}) {
+    WriteBinaryFile(legacy[subtype], {0x01, 0x00, 0x40, 0x28, 0x00, 0x00});
+  }
+  manager.SetObjectFileMap({{0x31, legacy}});
+  manager.SetMinecartRailProfile(MinecartRailProfile::kExpanded);
+  for (const int subtype : {12, 13, 14, 15}) {
+    auto binding = manager.ResolveSlotBinding(0x31, subtype);
+    EXPECT_TRUE(absl::IsFailedPrecondition(binding.status()));
+    auto object = manager.GetObjectInternal(0x31, subtype);
+    EXPECT_TRUE(absl::IsFailedPrecondition(object.status()));
+    EXPECT_TRUE(manager.ResolveFilename(0x31, subtype).empty());
+  }
+  auto refused_snapshot = manager.CaptureRenderSnapshot(true);
+  EXPECT_TRUE(absl::IsFailedPrecondition(
+      refused_snapshot.GetObject(0x31, 12).status()));
+
+  // A project may still explicitly replace a valid slot with its own asset.
+  WriteBinaryFile("my_junction.bin", {0x01, 0x00, 0x55, 0x28, 0x00, 0x00});
+  legacy[12] = "my_junction.bin";
+  manager.SetObjectFileMap({{0x31, legacy}});
+  auto custom = manager.GetObjectInternal(0x31, 12);
+  ASSERT_TRUE(custom.ok()) << custom.status();
+  ASSERT_EQ((*custom)->tiles.size(), 1);
+  EXPECT_EQ((*custom)->tiles.front().tile_data, 0x2855);
+
+  manager.SetMinecartRailProfile(MinecartRailProfile::kLegacy);
+  EXPECT_TRUE(manager.ResolveSlotBinding(0x31, 13).ok());
+  EXPECT_TRUE(manager.GetObjectInternal(0x31, 13).ok());
+}
+
+TEST_F(CustomObjectManagerTest,
+       FrozenRendererKeepsItsCatalogWhenMarkerBoundProfileChanges) {
+  auto& manager = CustomObjectManager::Get();
+  WriteBinaryFile("track_floor_any.bin", {0x01, 0x00, 0x40, 0x28, 0x00, 0x00});
+  WriteBinaryFile("track_tjunction_N.bin",
+                  {0x01, 0x00, 0x55, 0x28, 0x00, 0x00});
+  auto legacy = manager.CaptureRenderSnapshot(true);
+  std::vector<uint8_t> rom(kMinecartRailProfileMarkerPc + 8, 0);
+  const std::array<uint8_t, 8> marker = {'M', 'C', 'R', '2', 16, 13, 2, 0};
+  std::copy(marker.begin(), marker.end(),
+            rom.begin() + kMinecartRailProfileMarkerPc);
+  manager.SetMinecartRailProfile(DetectMinecartRailProfile(rom));
+  auto expanded = manager.CaptureRenderSnapshot(true);
+  manager.SetMinecartRailProfile(MinecartRailProfile::kLegacy);
+
+  auto old_cross = legacy.GetObject(0x31, 12);
+  auto new_junction = expanded.GetObject(0x31, 12);
+  auto new_cross = expanded.GetObject(0x32, 5);
+  ASSERT_TRUE(old_cross.ok()) << old_cross.status();
+  ASSERT_TRUE(new_junction.ok()) << new_junction.status();
+  ASSERT_TRUE(new_cross.ok()) << new_cross.status();
+  EXPECT_EQ((*old_cross)->tiles.front().tile_data, 0x2840);
+  EXPECT_EQ((*new_junction)->tiles.front().tile_data, 0x2855);
+  EXPECT_EQ((*new_cross)->tiles.front().tile_data, 0x2840);
+  EXPECT_TRUE(absl::IsOutOfRange(legacy.GetObject(0x32, 5).status()));
 }
 
 TEST_F(CustomObjectManagerTest, TrackIceAndMinishSubtypeOrderMatchesOracleAbi) {
