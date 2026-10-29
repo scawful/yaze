@@ -47,7 +47,10 @@ if(YAZE_BUILD_TESTS)
   # A shard runs hundreds of cases. Under `taskpolicy -b` (efficiency cores,
   # about 5x slower) the heaviest unit shard takes about 180 s, so allow 600 s.
   # CI's `--timeout 300` applies only to entries without their own TIMEOUT.
-  set(YAZE_TEST_SHARD_TIMEOUT 600)
+  # Sanitizer builds run several times slower and raise this from the command
+  # line.
+  set(YAZE_TEST_SHARD_TIMEOUT 600 CACHE STRING
+    "Timeout in seconds for one ctest shard entry")
   # A unit shard prints about 300 KB. ctest stores at most 300 KB of a failed
   # test's output (JUnit XML, LastTest.log) and keeps the head, which would
   # drop gtest's closing "[  FAILED  ]" summary. --output-on-failure on the

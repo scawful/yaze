@@ -126,11 +126,16 @@ runs:
         if [ "$suite" = "all" ]; then
           suite="stable"
         fi
+        # Shards give each process whole fixtures, so they are safe to run
+        # concurrently (test/CMakeLists.txt).
+        python_cmd="$(command -v python3 || command -v python)"
+        jobs="$("$python_cmd" -c 'import os; print(os.cpu_count() or 2)')"
         ctest --test-dir "build/presets/${{ inputs.preset }}" \
           --build-config "${{ inputs.build-type }}" \
           --label-regex "^${suite}$" \
           --no-tests=error \
           --output-on-failure \
+          --parallel "$jobs" \
           --timeout 300 \
           --output-junit "$PWD/build/presets/${{ inputs.preset }}/${suite}_test_results.xml"
 
