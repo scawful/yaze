@@ -476,6 +476,7 @@ if(YAZE_BUILD_TESTS)
     unit/editor/layout/layout_designer_panel_replace_tree_test.cc
     unit/editor/user_settings_named_layouts_test.cc
     unit/editor/user_settings_test_isolation_test.cc
+    unit/editor/user_settings_load_validation_test.cc
     unit/editor/user_settings_layout_defaults_test.cc
     unit/editor/emulator_runtime_policy_test.cc
     unit/editor/overworld_map_status_test.cc
@@ -535,6 +536,7 @@ if(YAZE_BUILD_TESTS)
     unit/util/i18n_test.cc
     unit/util/hex_test.cc
     unit/util/log_test.cc
+    unit/util/crash_handler_test.cc
     unit/util/ui_thread_queue_test.cc
     unit/deps/dependency_smoke_test.cc
     unit/cli/resource_catalog_test.cc
