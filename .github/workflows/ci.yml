@@ -171,7 +171,9 @@ jobs:
             build/bin/*.dll
             build/bin/${{ env.BUILD_TYPE }}/*.exe
             build/bin/${{ env.BUILD_TYPE }}/*.dll
-          if-no-files-found: warn
+            build/presets/${{ matrix.preset }}/bin/${{ env.BUILD_TYPE }}/*.exe
+            build/presets/${{ matrix.preset }}/bin/${{ env.BUILD_TYPE }}/*.dll
+          if-no-files-found: error
           retention-days: 3
 
   test:

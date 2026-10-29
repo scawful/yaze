@@ -49,7 +49,7 @@ cd "${PROJECT_ROOT}" || exit 1
 
 # 1. Build (Fast)
 echo "📦 Building YAZE (Target: yaze)..."
-"./scripts/agent_build.sh" yaze
+YAZE_AGENT_BUILD_LOCAL=1 "./scripts/agent_build.sh" yaze
 
 # 2. Check ROM
 if [ ! -f "$ROM_PATH" ]; then

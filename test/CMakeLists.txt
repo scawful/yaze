@@ -119,6 +119,12 @@ if(YAZE_BUILD_TESTS)
       add_executable(${suite_name} yaze_test.cc app_instance_stub.cc ${sources})
     endif()
 
+    target_precompile_headers(${suite_name} PRIVATE
+      "$<$<COMPILE_LANGUAGE:CXX>:${CMAKE_SOURCE_DIR}/src/yaze_pch.h>"
+      <gtest/gtest.h>
+      <gmock/gmock.h>
+    )
+
     target_include_directories(${suite_name} PUBLIC
       ${YAZE_TEST_GENERATED_DIR}
       ${CMAKE_SOURCE_DIR}/src
