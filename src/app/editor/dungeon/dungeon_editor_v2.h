@@ -50,6 +50,7 @@ namespace editor {
 
 class CustomCollisionPanel;
 class DungeonEntrancesPanel;
+struct GraphicsEditContext;
 class DungeonEditorPaletteRefreshTestPeer;
 class DungeonEditorV2MinecartTrackTestPeer;
 class DungeonEditorV2MinecartNodeTestPeer;
@@ -469,6 +470,10 @@ class DungeonEditorV2 : public Editor {
   void HandleObjectPlaced(const zelda3::RoomObject& obj);
   void OpenGraphicsEditorForObject(int room_id,
                                    const zelda3::RoomObject& object);
+  // Supplies the detached art-candidate preview and its source revision.
+  void ConfigureStagedGraphicsPreview(
+      GraphicsEditContext& context, int room_id,
+      std::function<absl::Status(GraphicsEditContext&)> resolve_live_source);
   absl::Status OpenObjectTileEditorForObject(int room_id,
                                              const zelda3::RoomObject& object);
 
