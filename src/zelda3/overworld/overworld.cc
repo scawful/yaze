@@ -191,6 +191,7 @@ absl::Status Overworld::Load(Rom* rom) {
   // Cache ROM version to avoid repeated detection (called 160+ times otherwise)
   cached_version_ = profile.version;
   expanded_entrances_ = profile.has_expanded_entrances;
+  has_tail_map_expansion_ = profile.has_tail_map_expansion;
 
   // Phase 1: Tile Assembly (can be parallelized)
   {
@@ -308,6 +309,7 @@ absl::Status Overworld::BuildLyraTerrainPreview(
   const auto profile = DetectOverworldRomProfile(*rom_);
   cached_version_ = profile.version;
   expanded_entrances_ = profile.has_expanded_entrances;
+  has_tail_map_expansion_ = profile.has_tail_map_expansion;
   tiles16_.clear();
   tiles32_unique_.clear();
   overworld_maps_.clear();

@@ -799,10 +799,11 @@ void CanvasNavigationManager::QueueAdjacentMapsForPreload(int center_map) {
   int local_index = center_map % 64;
   int map_x = local_index % 8;
   int map_y = local_index / 8;
-  int max_rows = center_map >= zelda3::kSpecialWorldMapIdStart &&
-                         !ctx_.overworld->is_lyra_preview()
-                     ? 4
-                     : 8;
+  const int max_rows =
+      center_map >= zelda3::kSpecialWorldMapIdStart &&
+              DisplayedMapCount(ctx_, callbacks_) <= zelda3::kNumOverworldMaps
+          ? 4
+          : 8;
 
   // Add adjacent maps (4-connected neighbors)
   static const int dx[] = {-1, 1, 0, 0};
@@ -812,7 +813,7 @@ void CanvasNavigationManager::QueueAdjacentMapsForPreload(int center_map) {
     int nx = map_x + dx[i];
     int ny = map_y + dy[i];
 
-    // Check bounds (world grid; special world is only 4 rows high)
+    // Check bounds (world grid; standard special world is 4 rows, expanded is 8)
     if (nx >= 0 && nx < 8 && ny >= 0 && ny < max_rows) {
       int neighbor_index = world_offset + ny * 8 + nx;
       // Only queue if not already built

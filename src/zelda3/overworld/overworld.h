@@ -445,7 +445,13 @@ class Overworld {
     return descriptor_layout_.presence == rom::LyraLayoutPresence::kValid;
   }
   int inspected_map_count() const {
-    return is_lyra_preview() ? descriptor_layout_.capacity : kNumOverworldMaps;
+    if (is_lyra_preview()) {
+      return descriptor_layout_.capacity;
+    }
+    if (has_tail_map_expansion_) {
+      return kExpandedMapCount;
+    }
+    return kNumOverworldMaps;
   }
   bool descriptor_sprite_display_available() const { return false; }
   bool lyra_a0_terrain_writable() const {
@@ -831,6 +837,8 @@ class Overworld {
   auto expanded_tile16() const { return expanded_tile16_; }
   auto expanded_tile32() const { return expanded_tile32_; }
   auto expanded_entrances() const { return expanded_entrances_; }
+  bool has_tail_map_expansion() const { return has_tail_map_expansion_; }
+  void set_has_tail_map_expansion(bool v) { has_tail_map_expansion_ = v; }
   int current_map_id() const { return current_map_; }
   int current_world() const { return current_world_; }
   void set_current_map(int i) { current_map_ = i; }
@@ -902,6 +910,7 @@ class Overworld {
   bool expanded_tile16_ = false;
   bool expanded_tile32_ = false;
   bool expanded_entrances_ = false;
+  bool has_tail_map_expansion_ = false;
 
   int game_state_ = 0;
   int current_map_ = 0;

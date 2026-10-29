@@ -170,6 +170,19 @@ void OverworldEntityWorkbench::Draw(bool* p_open) {
     return;
   }
 
+  if (editor->current_map_id() >= 0xA0 && editor->current_map_id() < 0xC0) {
+    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.85f, 0.3f, 1.0f));
+    ImGui::Text(ICON_MD_INFO " Tail Map $%02X Entity Limitations",
+                editor->current_map_id());
+    ImGui::PopStyleColor();
+    ImGui::TextWrapped(
+        "• Items & Bomb Doors: Disabled (requires SRAM event allocation)\n"
+        "• Exits: 1 free slot (full links require ASM exit table v2)\n"
+        "• Entrances: Trigger table v2 in development (Phase P2)\n"
+        "• Sprites: Draft state (actor compilation needed for ROM)");
+    ImGui::Separator();
+  }
+
   // Special triggers are tile properties, not entrance entities. Keep their
   // on-demand inspector reachable even when no marker is selected.
   const Rom* rom = editor->rom();

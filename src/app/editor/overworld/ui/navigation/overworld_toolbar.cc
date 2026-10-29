@@ -220,6 +220,18 @@ void OverworldToolbar::Draw(int& current_world, int& current_map,
   if (ImGui::Button(metadata.map_id_label.c_str()) && on_open_map_properties) {
     on_open_map_properties();
   }
+  if (current_map >= 0xA0 && current_map < 0xC0) {
+    ImGui::SameLine(0, 2);
+    ImGui::TextColored(ImVec4(1.0f, 0.85f, 0.3f, 1.0f), ICON_MD_INFO);
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip(
+          "Tail Map ($A0-$BF) • Entity Limits:\n"
+          "• Items: Disabled (SRAM event storage $7EF000-$7EF4FF unallocated)\n"
+          "• Exits: 1 free slot (full links need exit table v2)\n"
+          "• Entrances: Trigger table v2 in development (Phase P2)\n"
+          "• Sprites: Draft state (actor compilation needed for ROM)");
+    }
+  }
   if (ImGui::IsItemHovered()) {
     ImGui::SetTooltip(
         "%s\n%s\nClick this button or double-click the canvas map for "
@@ -397,12 +409,27 @@ void OverworldToolbar::Draw(int& current_world, int& current_map,
       choose(EntityEditMode::NONE);
     }
     for (const auto& button : kEntityModeButtons) {
+      const bool disabled_for_tail =
+          (current_map >= 0xA0 && current_map < 0xC0) &&
+          button.mode == EntityEditMode::ITEMS;
+      if (disabled_for_tail) {
+        ImGui::BeginDisabled();
+      }
       if (ImGui::MenuItem(button.label, nullptr,
                           entity_edit_mode == button.mode)) {
         choose(button.mode);
       }
-      if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip("%s", button.tooltip);
+      if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
+        if (disabled_for_tail) {
+          ImGui::SetTooltip(
+              "Items unavailable on Tail Maps (SRAM event storage "
+              "unallocated)");
+        } else {
+          ImGui::SetTooltip("%s", button.tooltip);
+        }
+      }
+      if (disabled_for_tail) {
+        ImGui::EndDisabled();
       }
     }
     ImGui::EndPopup();

@@ -233,6 +233,22 @@ void LyraTerrainCanvas::DrawProperties(int map_id, int& state,
     ImGui::Text("Lyra Map Properties ($%02X)", map_id);
     ImGui::TextWrapped(
         "Project draft; saved with project; build/runtime unavailable");
+
+    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.85f, 0.3f, 1.0f));
+    if (ImGui::CollapsingHeader(ICON_MD_INFO " Tail Map Limitations ($A0-$BF)",
+                                ImGuiTreeNodeFlags_DefaultOpen)) {
+      ImGui::PopStyleColor();
+      ImGui::TextWrapped(
+          "• Items & Bomb Doors: Disabled (pending SRAM event allocation in "
+          "save file)\n"
+          "• Exits: 1 free slot in vanilla table; multi-link requires ASM exit "
+          "table v2\n"
+          "• Entrances: Light-world trigger links v2 in development (Phase "
+          "P2)\n"
+          "• Sprites: Draft state only (requires actor compilation for ROM)");
+    } else {
+      ImGui::PopStyleColor();
+    }
     DrawGameplayArea(map_id, overworld, history);
 
     // Game state selector combo 0..2

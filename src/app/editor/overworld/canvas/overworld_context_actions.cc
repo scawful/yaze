@@ -138,6 +138,18 @@ void OverworldEditor::DrawItemInsertPopup() {
   if (!ImGui::BeginPopup("Insert Item")) {
     return;
   }
+  if (current_map_ >= 0xA0 && current_map_ < 0xC0) {
+    ImGui::TextColored(ImVec4(1.0f, 0.4f, 0.4f, 1.0f),
+                       "Item Placement Unavailable ($%02X)", current_map_);
+    ImGui::TextWrapped(
+        "Persistent event storage (SRAM $7EF000-$7EF4FF) is not yet allocated "
+        "for maps $A0-$BF.");
+    if (ImGui::Button("Close")) {
+      ImGui::CloseCurrentPopup();
+    }
+    ImGui::EndPopup();
+    return;
+  }
   ImGui::TextUnformatted(tr("Choose an item"));
   ImGui::BeginChild("##ItemInsertList", ImVec2(220.0f, 220.0f),
                     ImGuiChildFlags_Borders);
