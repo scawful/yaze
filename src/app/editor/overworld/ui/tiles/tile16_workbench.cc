@@ -16,6 +16,7 @@
 #include "app/gfx/debug/performance/performance_profiler.h"
 #include "app/gfx/resource/arena.h"
 #include "app/gfx/types/snes_palette.h"
+#include "app/gui/automation/widget_auto_register.h"
 #include "app/gui/canvas/canvas.h"
 #include "app/gui/canvas/item_context_menu.h"
 #include "app/gui/core/input.h"
@@ -706,6 +707,7 @@ absl::Status Tile16Editor::DrawTile16EditorWorkbenchColumn(
 
 absl::Status Tile16Editor::DrawCompactActionStatusRow(
     bool* show_debug_info, bool* show_advanced_controls) {
+  gui::AutoWidgetScope action_scope("Tile16/CompactActions");
   const float available_width = ImGui::GetContentRegionAvail().x;
   const int action_count = 4;
   const int columns = ComputeTile16CompactActionColumnCount(available_width);
@@ -742,8 +744,8 @@ absl::Status Tile16Editor::DrawCompactActionStatusRow(
       next_action_cell();
       {
         gui::DisabledScope disabled(!session_.CanUndo());
-        if (ImGui::Button(tr("Undo"),
-                          ImVec2(ImGui::GetContentRegionAvail().x, 0))) {
+        if (gui::AutoButton(tr("Undo"),
+                            ImVec2(ImGui::GetContentRegionAvail().x, 0))) {
           action_status = Undo();
         }
       }
@@ -751,8 +753,8 @@ absl::Status Tile16Editor::DrawCompactActionStatusRow(
       next_action_cell();
       {
         gui::DisabledScope disabled(!session_.CanRedo());
-        if (ImGui::Button(tr("Redo"),
-                          ImVec2(ImGui::GetContentRegionAvail().x, 0))) {
+        if (gui::AutoButton(tr("Redo"),
+                            ImVec2(ImGui::GetContentRegionAvail().x, 0))) {
           action_status = Redo();
         }
       }
