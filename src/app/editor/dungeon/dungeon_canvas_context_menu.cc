@@ -296,7 +296,7 @@ DungeonCanvasViewer::BuildSelectionContextMenuItems(
         has_clipboard ? ContextMenuRoomPosition(canvas_) : std::pair{0, 0};
     gui::CanvasMenuItem item(
         "Paste", ICON_MD_CONTENT_PASTE,
-        [&interaction, room_x, room_y]() {
+        [&interaction, room_x = room_x, room_y = room_y]() {
           (void)interaction.HandlePasteObjectsAt(room_x, room_y);
         },
         gui::FormatCtrlShortcut(ImGuiKey_V));

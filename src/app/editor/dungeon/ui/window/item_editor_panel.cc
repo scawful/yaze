@@ -56,7 +56,8 @@ void ItemEditorPanel::DrawInWorkbench() {
     for (const auto& [id, name] : entries) {
       ImGui::PushID(id);
       const bool picked = workbench::DrawDungeonBrowserRow(
-          id, name, selected_item_id_ == id, [&](ImVec2 pos, ImVec2 size) {
+          id, name, selected_item_id_ == id,
+          [&, id = id](ImVec2 pos, ImVec2 size) {
             const auto& preview =
                 GetOrCreateItemPreview(static_cast<uint8_t>(id), room);
             return DungeonRenderingHelpers::DrawSpritePreview(

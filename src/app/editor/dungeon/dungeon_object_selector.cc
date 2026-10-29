@@ -508,7 +508,7 @@ void DungeonObjectSelector::DrawWorkbenchBrowser() {
       ImGui::PushID(id);
       if (workbench::DrawDungeonBrowserRow(
               id, name, selected_object_id_ == id,
-              [&](ImVec2 pos, ImVec2 size) {
+              [&, id = id](ImVec2 pos, ImVec2 size) {
                 return DrawObjectPreview(MakePreviewObject(id), pos, size);
               }))
         SelectObject(id);

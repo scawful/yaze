@@ -97,7 +97,8 @@ void SpriteEditorPanel::DrawInWorkbench() {
     for (const auto& [id, name] : entries) {
       ImGui::PushID(id);
       const bool picked = workbench::DrawDungeonBrowserRow(
-          id, name, selected_sprite_id_ == id, [&](ImVec2 pos, ImVec2 size) {
+          id, name, selected_sprite_id_ == id,
+          [&, id = id](ImVec2 pos, ImVec2 size) {
             const auto& preview = GetOrCreateSpritePreview(id, room);
             return DungeonRenderingHelpers::DrawSpritePreview(
                 ImGui::GetWindowDrawList(), preview.pixels, preview.bounds, pos,
