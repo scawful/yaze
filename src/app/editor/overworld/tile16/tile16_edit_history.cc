@@ -1,5 +1,7 @@
 #include "app/editor/overworld/tile16/tile16_edit_session.h"
 
+#include <algorithm>
+#include <cstdint>
 #include <set>
 
 #include "app/editor/core/undo_action.h"
@@ -20,16 +22,26 @@ bool SameDefinition(const gfx::Tile16& a, const gfx::Tile16& b) {
   return true;
 }
 
+bool ContainsTile(const std::vector<Tile16Commit>& edits, int tile_id) {
+  return std::any_of(edits.begin(), edits.end(), [tile_id](const auto& edit) {
+    return edit.tile_id == tile_id;
+  });
+}
+
 class Tile16DefinitionEditAction final : public UndoAction {
  public:
   using Apply = std::function<absl::Status(const std::vector<Tile16Commit>&)>;
   Tile16DefinitionEditAction(std::vector<Tile16Commit> before,
                              std::vector<Tile16Commit> after, Apply apply,
-                             std::string description = {})
+                             std::string description = {},
+                             const void* owner = nullptr,
+                             uint64_t edit_group = 0)
       : before_(std::move(before)),
         after_(std::move(after)),
         apply_(std::move(apply)),
-        description_(std::move(description)) {}
+        description_(std::move(description)),
+        owner_(owner),
+        edit_group_(edit_group) {}
   absl::Status Undo() override { return apply_(before_); }
   absl::Status Redo() override { return apply_(after_); }
   std::string Description() const override {
@@ -40,11 +52,33 @@ class Tile16DefinitionEditAction final : public UndoAction {
   size_t MemoryUsage() const override {
     return (before_.size() + after_.size()) * sizeof(Tile16Commit);
   }
+  bool CanMergeWith(const UndoAction& prev) const override {
+    const auto* previous =
+        dynamic_cast<const Tile16DefinitionEditAction*>(&prev);
+    return edit_group_ != 0 && previous != nullptr &&
+           previous->owner_ == owner_ && previous->edit_group_ == edit_group_;
+  }
+  // Keeps the earliest before state and the latest after state of each tile.
+  void MergeWith(UndoAction& prev) override {
+    auto& previous = static_cast<Tile16DefinitionEditAction&>(prev);
+    std::vector<Tile16Commit> before = std::move(previous.before_);
+    for (auto& edit : before_) {
+      if (!ContainsTile(before, edit.tile_id))
+        before.push_back(std::move(edit));
+    }
+    for (auto& edit : previous.after_) {
+      if (!ContainsTile(after_, edit.tile_id))
+        after_.push_back(std::move(edit));
+    }
+    before_ = std::move(before);
+  }
 
  private:
   std::vector<Tile16Commit> before_, after_;
   Apply apply_;
   std::string description_;
+  const void* owner_ = nullptr;
+  uint64_t edit_group_ = 0;
 };
 }  // namespace
 
@@ -188,7 +222,7 @@ absl::Status Tile16EditSession::ImportDefinitions(
 }
 
 absl::Status Tile16EditSession::RunEdit(
-    const std::function<absl::Status()>& operation) {
+    const std::function<absl::Status()>& operation, uint64_t edit_group) {
   // A map stroke must enter history before the following definition edit.
   if (before_edit_)
     before_edit_();
@@ -234,17 +268,21 @@ absl::Status Tile16EditSession::RunEdit(
       std::move(before), std::move(after),
       [this](const std::vector<Tile16Commit>& edits) {
         return ApplyDefinitions(edits);
-      }));
+      },
+      std::string{}, this, edit_group));
   return absl::OkStatus();
 }
 
-absl::Status Tile16EditSession::ReplaceCurrentTile(const gfx::Tile16& data) {
-  return RunEdit([&]() {
-    current_tile16_data_ = data;
-    zelda3::SyncTile16TilesInfo(&current_tile16_data_);
-    RETURN_IF_ERROR(RegenerateTile16BitmapFromROM());
-    MarkCurrentTileModified();
-    return absl::OkStatus();
-  });
+absl::Status Tile16EditSession::ReplaceCurrentTile(const gfx::Tile16& data,
+                                                   uint64_t edit_group) {
+  return RunEdit(
+      [&]() {
+        current_tile16_data_ = data;
+        zelda3::SyncTile16TilesInfo(&current_tile16_data_);
+        RETURN_IF_ERROR(RegenerateTile16BitmapFromROM());
+        MarkCurrentTileModified();
+        return absl::OkStatus();
+      },
+      edit_group);
 }
 }  // namespace yaze::editor

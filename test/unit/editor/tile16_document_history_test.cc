@@ -1,5 +1,9 @@
 #include "app/editor/overworld/tile16/tile16_edit_session.h"
 
+#include <chrono>
+#include <filesystem>
+#include <string>
+
 #include "app/editor/graphics/usage_preview.h"
 #include "app/editor/overworld/overworld_undo_actions.h"
 #include "app/gfx/resource/arena.h"
@@ -13,6 +17,16 @@ void ExpectDefinition(const gfx::Tile16& actual, const gfx::Tile16& expected) {
     EXPECT_EQ(gfx::TileInfoToShort(zelda3::Tile16QuadrantInfo(actual, q)),
               gfx::TileInfoToShort(zelda3::Tile16QuadrantInfo(expected, q)));
   }
+}
+
+gfx::Tile16 ReopenTile16(const std::filesystem::path& path, int id) {
+  Rom reopened;
+  Rom::LoadOptions options;
+  options.load_resource_labels = false;
+  EXPECT_TRUE(reopened.LoadFromFile(path.string(), options).ok());
+  auto tile = reopened.ReadTile16(id, zelda3::kTile16Ptr);
+  EXPECT_TRUE(tile.ok());
+  return tile.ok() ? *tile : gfx::Tile16{};
 }
 
 class Tile16DocumentHistoryTest : public testing::Test {
@@ -318,6 +332,111 @@ TEST_F(Tile16DocumentHistoryTest,
   ExpectDefinition(*saved, initial_);
   ASSERT_TRUE(history_.Redo().ok());
   EXPECT_EQ(overworld_.tiles16()[0].tile0_.palette_, 6);
+}
+
+TEST_F(Tile16DocumentHistoryTest,
+       SavedEditSurvivesReopenAndUndoAfterSaveRedirtiesDocument) {
+  const auto path =
+      std::filesystem::temp_directory_path() /
+      ("yaze_tile16_reopen_" +
+       std::to_string(
+           std::chrono::steady_clock::now().time_since_epoch().count()) +
+       ".sfc");
+  Rom::SaveSettings settings;
+  settings.filename = path.string();
+  auto edited = initial_;
+  edited.tile2_.palette_ = 5;
+  edited.tile2_.horizontal_mirror_ = true;
+  ASSERT_TRUE(session_.ReplaceCurrentTile(edited).ok());
+  ASSERT_TRUE(rom_.dirty());
+
+  ASSERT_TRUE(overworld_.SaveMap16Tiles().ok());
+  ASSERT_TRUE(rom_.SaveToFile(settings).ok());
+  EXPECT_FALSE(rom_.dirty());
+  ExpectDefinition(ReopenTile16(path, 0), edited);
+
+  // Undo after Save must re-dirty the document so close/save prompts again,
+  // and must not touch the saved file until the next Save.
+  ASSERT_TRUE(history_.Undo().ok());
+  EXPECT_TRUE(rom_.dirty());
+  ExpectDefinition(overworld_.tiles16()[0], initial_);
+  ExpectDefinition(ReopenTile16(path, 0), edited);
+
+  ASSERT_TRUE(overworld_.SaveMap16Tiles().ok());
+  ASSERT_TRUE(rom_.SaveToFile(settings).ok());
+  ExpectDefinition(ReopenTile16(path, 0), initial_);
+
+  ASSERT_TRUE(history_.Redo().ok());
+  EXPECT_TRUE(rom_.dirty());
+  ExpectDefinition(overworld_.tiles16()[0], edited);
+  std::error_code ec;
+  std::filesystem::remove(path, ec);
+}
+
+TEST_F(Tile16DocumentHistoryTest, GroupedPropertyEditsAreOneSharedUndoStep) {
+  const auto before = overworld_.tiles16();
+  const auto rom_bytes = rom_.vector();
+  const uint64_t group = session_.NewEditGroup();
+  auto edited = initial_;
+  for (int palette = 2; palette <= 7; ++palette) {
+    edited.tile1_.palette_ = palette;
+    ASSERT_TRUE(session_.ReplaceCurrentTile(edited, group).ok());
+  }
+  edited.tile3_.id_ = 9;
+  ASSERT_TRUE(session_.ReplaceCurrentTile(edited, group).ok());
+  EXPECT_EQ(history_.UndoStackSize(), 1u);
+  EXPECT_EQ(boundaries_, 7);
+  EXPECT_TRUE(rom_.dirty());
+  ExpectDefinition(overworld_.tiles16()[0], edited);
+
+  ASSERT_TRUE(history_.Undo().ok());
+  EXPECT_FALSE(history_.CanUndo());
+  for (int id = 0; id < zelda3::kNumTile16Individual; ++id)
+    ExpectDefinition(overworld_.tiles16()[id], before[id]);
+  ExpectDefinition(session_.current_tile16_data(), initial_);
+
+  ASSERT_TRUE(history_.Redo().ok());
+  ExpectDefinition(overworld_.tiles16()[0], edited);
+  ExpectDefinition(session_.current_tile16_data(), edited);
+  EXPECT_EQ(rom_.vector(), rom_bytes);
+}
+
+TEST_F(Tile16DocumentHistoryTest, EditGroupsMergeOnlyWhileNewestHistoryStep) {
+  const uint64_t group = session_.NewEditGroup();
+  auto edited = initial_;
+  edited.tile0_.palette_ = 2;
+  ASSERT_TRUE(session_.ReplaceCurrentTile(edited, group).ok());
+  auto& map = overworld_.GetMapTiles(0);
+  map[1][1] = 5;
+  history_.Push(std::make_unique<OverworldTilePaintAction>(
+      0, 0, std::vector<OverworldTileChange>{{1, 1, 0, 5}}, &overworld_,
+      std::function<void()>{}));
+  edited.tile0_.palette_ = 3;
+  ASSERT_TRUE(session_.ReplaceCurrentTile(edited, group).ok());
+  edited.tile0_.palette_ = 4;
+  ASSERT_TRUE(session_.ReplaceCurrentTile(edited).ok());
+  edited.tile0_.palette_ = 5;
+  ASSERT_TRUE(session_.ReplaceCurrentTile(edited, group).ok());
+  edited.tile0_.palette_ = 6;
+  ASSERT_TRUE(
+      session_.ReplaceCurrentTile(edited, session_.NewEditGroup()).ok());
+  ASSERT_EQ(history_.UndoStackSize(), 6u);
+
+  for (int expected : {5, 4, 3, 2}) {
+    ASSERT_TRUE(history_.Undo().ok());
+    EXPECT_EQ(overworld_.tiles16()[0].tile0_.palette_, expected);
+  }
+  EXPECT_EQ(map[1][1], 5);
+  ASSERT_TRUE(history_.Undo().ok());
+  EXPECT_EQ(map[1][1], 0);
+  ASSERT_TRUE(history_.Undo().ok());
+  ExpectDefinition(overworld_.tiles16()[0], initial_);
+
+  // A grouped edit after Undo starts a new step instead of reviving Redo.
+  edited.tile0_.palette_ = 7;
+  ASSERT_TRUE(session_.ReplaceCurrentTile(edited, group).ok());
+  EXPECT_FALSE(history_.CanRedo());
+  EXPECT_EQ(history_.UndoStackSize(), 1u);
 }
 
 TEST_F(Tile16DocumentHistoryTest, EdgeClippedStampHasCompleteUndo) {
