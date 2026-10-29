@@ -61,6 +61,12 @@ absl::Status SDL2WindowBackend::Initialize(const WindowConfig& config) {
     RETURN_IF_ERROR(Shutdown());
   }
 
+#ifdef _WIN32
+  // Without this, Windows bitmap-stretches the DPI-unaware window at 125-150%
+  // scaling. SDL reads the hint during video init.
+  SDL_SetHint(SDL_HINT_WINDOWS_DPI_SCALING, "1");
+#endif
+
   // Initialize SDL2 subsystems
   if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_TIMER |
                SDL_INIT_GAMECONTROLLER) != 0) {
@@ -73,17 +79,18 @@ absl::Status SDL2WindowBackend::Initialize(const WindowConfig& config) {
   int screen_height = config.height;
 
   if (screen_width == 0 || screen_height == 0) {
-    // Auto-detect from display
-    SDL_DisplayMode display_mode;
-    if (SDL_GetCurrentDisplayMode(0, &display_mode) == 0) {
-      screen_width = static_cast<int>(display_mode.w * config.display_scale);
-      screen_height = static_cast<int>(display_mode.h * config.display_scale);
+    // Display bounds use window coordinates; with Windows DPI scaling the
+    // display mode is in pixels and would oversize the window.
+    SDL_Rect display_bounds;
+    if (SDL_GetDisplayBounds(0, &display_bounds) == 0) {
+      screen_width = static_cast<int>(display_bounds.w * config.display_scale);
+      screen_height = static_cast<int>(display_bounds.h * config.display_scale);
     } else {
       // Fallback to reasonable defaults
       screen_width = 1280;
       screen_height = 720;
       LOG_WARN("SDL2WindowBackend",
-               "Failed to get display mode, using defaults: %dx%d",
+               "Failed to get display bounds, using defaults: %dx%d",
                screen_width, screen_height);
     }
   }
@@ -513,7 +520,13 @@ void SDL2WindowBackend::RenderImGui(gfx::IRenderer* renderer) {
     SDL_Renderer* sdl_renderer =
         static_cast<SDL_Renderer*>(renderer->GetBackendRenderer());
     if (sdl_renderer) {
-      ImGui_ImplSDLRenderer2_RenderDrawData(ImGui::GetDrawData(), sdl_renderer);
+      // The SDL_Renderer backend scales clip rects but not vertices unless the
+      // renderer scale is set; SDL then scales both and the backend skips it.
+      ImDrawData* draw_data = ImGui::GetDrawData();
+      SDL_RenderSetScale(sdl_renderer, draw_data->FramebufferScale.x,
+                         draw_data->FramebufferScale.y);
+      ImGui_ImplSDLRenderer2_RenderDrawData(draw_data, sdl_renderer);
+      SDL_RenderSetScale(sdl_renderer, 1.0f, 1.0f);
     }
   }
 
