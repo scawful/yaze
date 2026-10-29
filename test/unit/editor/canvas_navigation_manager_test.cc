@@ -543,7 +543,7 @@ class CanvasWorldViewportTest : public CanvasNavigationManagerTest {
                       ImGuiWindowFlags_AlwaysVerticalScrollbar |
                           ImGuiWindowFlags_AlwaysHorizontalScrollbar |
                           ImGuiWindowFlags_NoScrollWithMouse);
-    manager_.EndCanvasViewport(false);
+    manager_.EndCanvasViewport(ImGui::IsWindowHovered());
     ImGui::Dummy(
         ImVec2(4096 * canvas_.global_scale(), 4096 * canvas_.global_scale()));
     const ImVec2 result = ImGui::GetCurrentWindow()->Scroll;
@@ -593,6 +593,60 @@ TEST_F(CanvasWorldViewportTest, EachWorldRestoresItsOwnScroll) {
     EXPECT_FLOAT_EQ(scroll.x, entry.second.x);
     EXPECT_FLOAT_EQ(scroll.y, entry.second.y);
   }
+}
+
+TEST_F(CanvasWorldViewportTest, WheelEventsRestoreWorldsAndCancelResidual) {
+  ImGuiIO& io = ImGui::GetIO();
+  io.ConfigInputTrickleEventQueue = false;
+  io.AddMousePosEvent(100,
+                      100);  // Inside the canvas child, clear of scrollbars.
+  Settle();
+
+  // These events pass through ImGui's input queue and the manager's actual
+  // hovered-window wheel path. No direct scroll setters seed either world.
+  io.AddMouseWheelEvent(-1, 0);
+  ImVec2 scroll = DrawFrame();
+  ASSERT_FLOAT_EQ(scroll.x, 64);
+  ASSERT_FLOAT_EQ(scroll.y, 0);
+  io.AddMouseWheelEvent(0, -2);
+  scroll = DrawFrame();
+  ASSERT_FLOAT_EQ(scroll.x, 64);
+  ASSERT_FLOAT_EQ(scroll.y, 128);
+
+  // Leave 6.4px on each axis, short of the 8px pan detent.
+  io.AddMouseWheelEvent(-0.1f, -0.1f);
+  scroll = DrawFrame();
+  ASSERT_FLOAT_EQ(scroll.x, 64);
+  ASSERT_FLOAT_EQ(scroll.y, 128);
+
+  current_world_ = 1;
+  scroll = Settle();
+  ASSERT_FLOAT_EQ(scroll.x, 0);
+  ASSERT_FLOAT_EQ(scroll.y, 0);
+  // Only 4px of new input: a leaked 6.4px residual would move both axes 8px.
+  // The switch/settle interval stays below the wheel's 80ms idle reset.
+  io.AddMouseWheelEvent(-0.0625f, -0.0625f);
+  scroll = DrawFrame();
+  ASSERT_FLOAT_EQ(scroll.x, 0);
+  ASSERT_FLOAT_EQ(scroll.y, 0);
+  io.AddMouseWheelEvent(-1, -1);
+  scroll = DrawFrame();
+  ASSERT_FLOAT_EQ(scroll.x, 64);
+  ASSERT_FLOAT_EQ(scroll.y, 64);
+
+  current_world_ = 0;
+  scroll = Settle();
+  ASSERT_FLOAT_EQ(scroll.x, 64);
+  ASSERT_FLOAT_EQ(scroll.y, 128);
+  // The second world's remaining 4px must also be discarded on return.
+  io.AddMouseWheelEvent(-0.0625f, -0.0625f);
+  scroll = DrawFrame();
+  EXPECT_FLOAT_EQ(scroll.x, 64);
+  EXPECT_FLOAT_EQ(scroll.y, 128);
+  current_world_ = 1;
+  scroll = Settle();
+  EXPECT_FLOAT_EQ(scroll.x, 64);
+  EXPECT_FLOAT_EQ(scroll.y, 64);
 }
 
 TEST_F(CanvasWorldViewportTest, SharedZoomPreservesEachWorldMapPosition) {
