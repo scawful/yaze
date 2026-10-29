@@ -575,7 +575,7 @@ void DungeonObjectInteraction::DrawHoverHighlight(
 
   // Draw dashed-style border (simulated with thinner line)
   draw_list->AddRect(obj_start, obj_end, ImGui::GetColorU32(hover_border), 0.0f,
-                     0, 1.5f);
+                     1.5f);
 }
 
 void DungeonObjectInteraction::PlaceObjectAtPosition(int room_x, int room_y) {
@@ -764,31 +764,44 @@ absl::Status DungeonObjectInteraction::HandlePasteAt(int pixel_x, int pixel_y) {
   return entity_coordinator_.CommitSelectionEdit(request);
 }
 
-absl::Status DungeonObjectInteraction::HandlePasteObjects() {
+absl::Status DungeonObjectInteraction::HandlePasteObjectsAt(int pixel_x,
+                                                            int pixel_y) {
   if (!HasClipboardData())
     return absl::OkStatus();
+  if (!dungeon_coords::IsWithinBounds(pixel_x, pixel_y)) {
+    return HandlePasteAt(pixel_x, pixel_y);
+  }
   const auto& copied = clipboard();
-  int target_x = copied.origin_pixel_x;
-  int target_y = copied.origin_pixel_y;
   const int step = !copied.sprites.empty() || !copied.items.empty()
                        ? dungeon_coords::kSpriteTileSize
                        : dungeon_coords::kTileSize;
+  // Snap the translation, rather than the target, so a copied group keeps
+  // each member's relative position on its original encoding grid.
+  return HandlePasteAt(
+      copied.origin_pixel_x + (pixel_x - copied.origin_pixel_x) / step * step,
+      copied.origin_pixel_y + (pixel_y - copied.origin_pixel_y) / step * step);
+}
+
+absl::Status DungeonObjectInteraction::HandlePasteObjects() {
+  if (!HasClipboardData())
+    return absl::OkStatus();
   if (canvas_ && ImGui::GetCurrentContext()) {
     const auto [mouse_x, mouse_y] =
         GetCanvasTransform().ScreenToRoomPixelCoordinates(
             ImGui::GetIO().MousePos);
     if (dungeon_coords::IsWithinBounds(mouse_x, mouse_y)) {
-      // Snap the translation, rather than the target, so a copied group keeps
-      // each member's relative position on its original encoding grid.
-      target_x += (mouse_x - target_x) / step * step;
-      target_y += (mouse_y - target_y) / step * step;
-      return HandlePasteAt(target_x, target_y);
+      return HandlePasteObjectsAt(mouse_x, mouse_y);
     }
   }
   // With no canvas target, doors retain their exact source wall slots.
   // An automatic diagonal offset cannot represent a valid wall destination.
+  const auto& copied = clipboard();
+  const int step = !copied.sprites.empty() || !copied.items.empty()
+                       ? dungeon_coords::kSpriteTileSize
+                       : dungeon_coords::kTileSize;
   const int fallback_offset = copied.doors.empty() ? step : 0;
-  return HandlePasteAt(target_x + fallback_offset, target_y + fallback_offset);
+  return HandlePasteAt(copied.origin_pixel_x + fallback_offset,
+                       copied.origin_pixel_y + fallback_offset);
 }
 
 void DungeonObjectInteraction::DrawGhostPreview() {

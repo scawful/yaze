@@ -1387,6 +1387,8 @@ void Tile16Editor::DrawScratchSpace() {
 void Tile16Editor::DrawManualTile8Inputs() {
   if (ImGui::BeginPopupModal("ManualTile8Editor", nullptr,
                              ImGuiWindowFlags_AlwaysAutoResize)) {
+    if (manual_edit_group_ == 0)
+      manual_edit_group_ = session_.NewEditGroup();
     ImGui::Text("Tile16 0x%03X — quadrant properties",
                 session_.current_tile16());
     auto edited = session_.current_tile16_data();
@@ -1415,10 +1417,12 @@ void Tile16Editor::DrawManualTile8Inputs() {
       ImGui::PopID();
     }
     if (changed)
-      status_ = ReplaceCurrentTile(edited);
+      status_ = ReplaceCurrentTile(edited, manual_edit_group_);
     if (ImGui::Button("Close"))
       ImGui::CloseCurrentPopup();
     ImGui::EndPopup();
+  } else {
+    manual_edit_group_ = 0;
   }
 }
 

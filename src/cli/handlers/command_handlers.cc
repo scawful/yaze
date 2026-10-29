@@ -14,6 +14,7 @@
 #include "cli/handlers/game/dungeon_render_commands.h"
 #include "cli/handlers/game/dungeon_stream_plan_commands.h"
 #include "cli/handlers/game/dungeon_tile_type_commands.h"
+#include "cli/handlers/game/dungeon_wall_profile_commands.h"
 #include "cli/handlers/game/message_commands.h"
 #include "cli/handlers/game/minecart_commands.h"
 #include "cli/handlers/game/music_commands.h"
@@ -34,6 +35,7 @@
 #include "cli/handlers/mesen_handlers.h"
 #include "cli/handlers/rom/project_bundle_archive_commands.h"
 #include "cli/handlers/rom/project_bundle_verify_commands.h"
+#include "cli/handlers/rom/project_plan_commands.h"
 #include "cli/handlers/rom/rom_commands.h"
 #include "cli/handlers/tools/dungeon_doctor_commands.h"
 #include "cli/handlers/tools/dungeon_object_validate_commands.h"
@@ -114,6 +116,10 @@ CreateCliCommandHandlers() {
   handlers.push_back(std::make_unique<ProjectBundlePackCommandHandler>());
   handlers.push_back(std::make_unique<ProjectBundleUnpackCommandHandler>());
 
+  // Project plan
+  handlers.push_back(std::make_unique<PlanReadCommandHandler>());
+  handlers.push_back(std::make_unique<PlanAgentApplyCommandHandler>());
+
   // ROM commands
   handlers.push_back(std::make_unique<RomReadCommandHandler>());
   handlers.push_back(std::make_unique<RomWriteCommandHandler>());
@@ -158,6 +164,7 @@ CreateCliCommandHandlers() {
   handlers.push_back(std::make_unique<DungeonMinecartAuditCommandHandler>());
   handlers.push_back(std::make_unique<DungeonMinecartMapCommandHandler>());
   handlers.push_back(std::make_unique<DungeonRenderCommandHandler>());
+  handlers.push_back(std::make_unique<DungeonWallProfileCommandHandler>());
   handlers.push_back(std::make_unique<DungeonStreamPlanCommandHandler>());
   handlers.push_back(
       std::make_unique<DungeonGenerateTrackCollisionCommandHandler>());
@@ -193,6 +200,7 @@ CreateCliCommandHandlers() {
   handlers.push_back(std::make_unique<OverworldExportGraphCommandHandler>());
   handlers.push_back(std::make_unique<OverworldRenderCommandHandler>());
   handlers.push_back(std::make_unique<LyraVerifyProjectCommandHandler>());
+  handlers.push_back(std::make_unique<LyraInspectProjectCommandHandler>());
 
   // Overworld editing (dry-run by default; --write commits)
   handlers.push_back(std::make_unique<OverworldAddSpriteCommandHandler>());

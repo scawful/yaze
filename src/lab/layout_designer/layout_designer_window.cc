@@ -351,8 +351,7 @@ void LayoutDesignerWindow::DrawMenuBar() {
 }
 
 void LayoutDesignerWindow::DrawToolbar() {
-  gui::StyleVarGuard toolbar_spacing(ImGuiStyleVar_ItemSpacing,
-                                     ImVec2(4, 4));
+  gui::StyleVarGuard toolbar_spacing(ImGuiStyleVar_ItemSpacing, ImVec2(4, 4));
 
   // Mode switcher
   bool is_panel_mode = (design_mode_ == DesignMode::PanelLayout);
@@ -599,14 +598,12 @@ void LayoutDesignerWindow::DrawCanvas() {
   // Background grid
   const float grid_step = 50.0f * canvas_zoom_;
   for (float x_pos = 0; x_pos < scaled_size.x; x_pos += grid_step) {
-    draw_list->AddLine(
-        ImVec2(canvas_pos.x + x_pos, canvas_pos.y),
-        ImVec2(canvas_pos.x + x_pos, canvas_pos.y + scaled_size.y), grid_color);
+    draw_list->AddLineV(canvas_pos.x + x_pos, canvas_pos.y,
+                        canvas_pos.y + scaled_size.y, grid_color);
   }
   for (float y_pos = 0; y_pos < scaled_size.y; y_pos += grid_step) {
-    draw_list->AddLine(
-        ImVec2(canvas_pos.x, canvas_pos.y + y_pos),
-        ImVec2(canvas_pos.x + scaled_size.x, canvas_pos.y + y_pos), grid_color);
+    draw_list->AddLineH(canvas_pos.x, canvas_pos.x + scaled_size.x,
+                        canvas_pos.y + y_pos, grid_color);
   }
 
   // Reset drop state at start of frame
@@ -685,7 +682,7 @@ void LayoutDesignerWindow::DrawDockNode(DockNode* node, const ImVec2& pos,
       }
     }
 
-    draw_list->AddRect(pos, rect_max, border_color, 4.0f, 0, 2.0f);
+    draw_list->AddRect(pos, rect_max, border_color, 4.0f, 2.0f);
 
     // Handle click selection (when not dragging)
     if (!is_drag_active && IsMouseOverRect(pos, rect_max) &&
@@ -702,14 +699,15 @@ void LayoutDesignerWindow::DrawDockNode(DockNode* node, const ImVec2& pos,
     ImVec2 capsule_pos = ImVec2(pos.x + panel_padding, pos.y + panel_padding);
     for (const auto& panel : node->panels) {
       ImVec2 capsule_min = capsule_pos;
+      // Leaves narrower than 2 * panel_padding would invert the capsule.
       ImVec2 capsule_max =
-          ImVec2(rect_max.x - panel_padding, capsule_pos.y + capsule_height);
+          ImVec2(std::max(capsule_min.x, rect_max.x - panel_padding),
+                 capsule_pos.y + capsule_height);
       ImU32 capsule_fill =
           alpha_color(ImGui::GetColorU32(ImGuiCol_Header), 0.7f);
       ImU32 capsule_border = ImGui::GetColorU32(ImGuiCol_HeaderActive);
       draw_list->AddRectFilled(capsule_min, capsule_max, capsule_fill, 6.0f);
-      draw_list->AddRect(capsule_min, capsule_max, capsule_border, 6.0f, 0,
-                         1.5f);
+      draw_list->AddRect(capsule_min, capsule_max, capsule_border, 6.0f, 1.5f);
 
       std::string label =
           absl::StrFormat("%s %s", panel.icon, panel.display_name);
@@ -772,8 +770,10 @@ void LayoutDesignerWindow::DrawDockNode(DockNode* node, const ImVec2& pos,
     if (node->split_dir == ImGuiDir_Left || node->split_dir == ImGuiDir_Right) {
       // Horizontal split
       float split_x = size.x * node->split_ratio;
-      left_size = ImVec2(split_x - 2, size.y);
-      right_size = ImVec2(size.x - split_x - 2, size.y);
+      // Clamp at zero: deep splits can leave less than the 2px gutter, and a
+      // negative size inverts the node rect.
+      left_size = ImVec2(std::max(0.0f, split_x - 2), size.y);
+      right_size = ImVec2(std::max(0.0f, size.x - split_x - 2), size.y);
       right_pos = ImVec2(pos.x + split_x + 2, pos.y);
 
       // Draw split line
@@ -783,8 +783,8 @@ void LayoutDesignerWindow::DrawDockNode(DockNode* node, const ImVec2& pos,
     } else {
       // Vertical split
       float split_y = size.y * node->split_ratio;
-      left_size = ImVec2(size.x, split_y - 2);
-      right_size = ImVec2(size.x, size.y - split_y - 2);
+      left_size = ImVec2(size.x, std::max(0.0f, split_y - 2));
+      right_size = ImVec2(size.x, std::max(0.0f, size.y - split_y - 2));
       right_pos = ImVec2(pos.x, pos.y + split_y + 2);
 
       // Draw split line
@@ -862,7 +862,8 @@ void LayoutDesignerWindow::DrawNodeProperties(DockNode* node) {
 
   if (node->IsSplit()) {
     ImGui::Text("Type: Split");
-    ImGui::SliderFloat("Split Ratio", &node->split_ratio, 0.1f, 0.9f);
+    ImGui::SliderFloat("Split Ratio", &node->split_ratio, 0.1f, 0.9f, "%.3f",
+                       ImGuiSliderFlags_AlwaysClamp);
 
     const char* dir_names[] = {"None", "Left", "Right", "Up", "Down"};
     int dir_idx = static_cast<int>(node->split_dir);
@@ -1654,8 +1655,7 @@ void LayoutDesignerWindow::DrawDropZones(const ImVec2& pos, const ImVec2& size,
 
     draw_list->AddRectFilled(drop_zone.min, drop_zone.max, color, 4.0f);
     draw_list->AddRect(drop_zone.min, drop_zone.max,
-                       ImGui::GetColorU32(ImGuiCol_HeaderActive), 4.0f, 0,
-                       1.0f);
+                       ImGui::GetColorU32(ImGuiCol_HeaderActive), 4.0f, 1.0f);
 
     if (is_hovered) {
       // Store the target for when drop happens
@@ -2013,16 +2013,13 @@ void LayoutDesignerWindow::DrawWidgetCanvas() {
   // Grid
   const float grid_step = 20.0f;
   for (float x_pos = 0; x_pos < canvas_size.x; x_pos += grid_step) {
-    draw_list->AddLine(
-        ImVec2(canvas_pos.x + x_pos, canvas_pos.y),
-        ImVec2(canvas_pos.x + x_pos, canvas_pos.y + canvas_size.y),
-        IM_COL32(50, 50, 55, 255));
+    draw_list->AddLineV(canvas_pos.x + x_pos, canvas_pos.y,
+                        canvas_pos.y + canvas_size.y,
+                        IM_COL32(50, 50, 55, 255));
   }
   for (float y_pos = 0; y_pos < canvas_size.y; y_pos += grid_step) {
-    draw_list->AddLine(
-        ImVec2(canvas_pos.x, canvas_pos.y + y_pos),
-        ImVec2(canvas_pos.x + canvas_size.x, canvas_pos.y + y_pos),
-        IM_COL32(50, 50, 55, 255));
+    draw_list->AddLineH(canvas_pos.x, canvas_pos.x + canvas_size.x,
+                        canvas_pos.y + y_pos, IM_COL32(50, 50, 55, 255));
   }
 
   // Draw widgets

@@ -1,5 +1,9 @@
 #include "app/editor/overworld/tile16/tile16_edit_session.h"
 
+#include <algorithm>
+#include <cstdint>
+#include <set>
+
 #include "app/editor/core/undo_action.h"
 #include "app/gfx/resource/arena.h"
 #include "util/macro.h"
@@ -18,26 +22,63 @@ bool SameDefinition(const gfx::Tile16& a, const gfx::Tile16& b) {
   return true;
 }
 
+bool ContainsTile(const std::vector<Tile16Commit>& edits, int tile_id) {
+  return std::any_of(edits.begin(), edits.end(), [tile_id](const auto& edit) {
+    return edit.tile_id == tile_id;
+  });
+}
+
 class Tile16DefinitionEditAction final : public UndoAction {
  public:
   using Apply = std::function<absl::Status(const std::vector<Tile16Commit>&)>;
   Tile16DefinitionEditAction(std::vector<Tile16Commit> before,
-                             std::vector<Tile16Commit> after, Apply apply)
+                             std::vector<Tile16Commit> after, Apply apply,
+                             std::string description = {},
+                             const void* owner = nullptr,
+                             uint64_t edit_group = 0)
       : before_(std::move(before)),
         after_(std::move(after)),
-        apply_(std::move(apply)) {}
+        apply_(std::move(apply)),
+        description_(std::move(description)),
+        owner_(owner),
+        edit_group_(edit_group) {}
   absl::Status Undo() override { return apply_(before_); }
   absl::Status Redo() override { return apply_(after_); }
   std::string Description() const override {
+    if (!description_.empty())
+      return description_;
     return before_.size() == 1 ? "Edit Tile16 definition" : "Edit Tile16 stamp";
   }
   size_t MemoryUsage() const override {
     return (before_.size() + after_.size()) * sizeof(Tile16Commit);
   }
+  bool CanMergeWith(const UndoAction& prev) const override {
+    const auto* previous =
+        dynamic_cast<const Tile16DefinitionEditAction*>(&prev);
+    return edit_group_ != 0 && previous != nullptr &&
+           previous->owner_ == owner_ && previous->edit_group_ == edit_group_;
+  }
+  // Keeps the earliest before state and the latest after state of each tile.
+  void MergeWith(UndoAction& prev) override {
+    auto& previous = static_cast<Tile16DefinitionEditAction&>(prev);
+    std::vector<Tile16Commit> before = std::move(previous.before_);
+    for (auto& edit : before_) {
+      if (!ContainsTile(before, edit.tile_id))
+        before.push_back(std::move(edit));
+    }
+    for (auto& edit : previous.after_) {
+      if (!ContainsTile(after_, edit.tile_id))
+        after_.push_back(std::move(edit));
+    }
+    before_ = std::move(before);
+  }
 
  private:
   std::vector<Tile16Commit> before_, after_;
   Apply apply_;
+  std::string description_;
+  const void* owner_ = nullptr;
+  uint64_t edit_group_ = 0;
 };
 }  // namespace
 
@@ -98,8 +139,90 @@ absl::Status Tile16EditSession::ApplyDefinitions(
   return absl::OkStatus();
 }
 
+absl::Status Tile16EditSession::ValidateDefinitionImport(
+    const std::vector<Tile16Commit>& definitions) const {
+  if (definitions.empty())
+    return absl::OkStatus();
+  if (!rom_ || !tile16_blockset_) {
+    return absl::FailedPreconditionError(
+        "Tile16 blockset or ROM not initialized");
+  }
+  std::set<int> destinations;
+  for (const auto& edit : definitions) {
+    if (edit.tile_id < 0 || edit.tile_id >= zelda3::kNumTile16Individual ||
+        (document_definitions_ &&
+         edit.tile_id >= static_cast<int>(document_definitions_->size()))) {
+      return absl::OutOfRangeError("Tile16 import is outside the document");
+    }
+    if (!destinations.insert(edit.tile_id).second) {
+      return absl::InvalidArgumentError(
+          "Tile16 import contains a duplicate destination");
+    }
+    ASSIGN_OR_RETURN(const auto original, ReadDocumentTile(edit.tile_id));
+    for (int q = 0; q < 4; ++q) {
+      const auto& info = zelda3::Tile16QuadrantInfo(edit.tile_data, q);
+      if (info.id_ >= 1024 ||
+          info.id_ >= static_cast<int>(current_gfx_individual_.size()) ||
+          info.palette_ > 7) {
+        return absl::OutOfRangeError(
+            "Tile16 import has invalid Tile8 metadata");
+      }
+    }
+    gfx::Bitmap before, after;
+    RETURN_IF_ERROR(BuildTile16BitmapFromData(original, &before));
+    RETURN_IF_ERROR(BuildTile16BitmapFromData(edit.tile_data, &after));
+  }
+  // ApplyDefinitions refreshes the current selection after publishing. Check
+  // that render now too, so its last fallible operation cannot partially apply
+  // a batch. Redo/Undo repeat this preflight against the current source.
+  ASSIGN_OR_RETURN(const auto current, ReadDocumentTile(current_tile16_));
+  gfx::Bitmap preview;
+  return BuildTile16BitmapFromData(current, &preview);
+}
+
+absl::StatusOr<std::unique_ptr<UndoAction>>
+Tile16EditSession::PrepareDefinitionImport(
+    const std::vector<Tile16Commit>& definitions, std::string description) {
+  RETURN_IF_ERROR(ValidateDefinitionImport(definitions));
+  std::vector<Tile16Commit> before, after;
+  for (const auto& edit : definitions) {
+    ASSIGN_OR_RETURN(auto original, ReadDocumentTile(edit.tile_id));
+    auto normalized = edit.tile_data;
+    zelda3::SyncTile16TilesInfo(&normalized);
+    if (!SameDefinition(original, normalized)) {
+      before.push_back({edit.tile_id, std::move(original)});
+      after.push_back({edit.tile_id, std::move(normalized)});
+    }
+  }
+  if (after.empty())
+    return std::unique_ptr<UndoAction>{};
+  return std::unique_ptr<UndoAction>(
+      std::make_unique<Tile16DefinitionEditAction>(
+          std::move(before), std::move(after),
+          [this](const std::vector<Tile16Commit>& edits) {
+            RETURN_IF_ERROR(ValidateDefinitionImport(edits));
+            return ApplyDefinitions(edits);
+          },
+          std::move(description)));
+}
+
+absl::Status Tile16EditSession::ImportDefinitions(
+    const std::vector<Tile16Commit>& definitions, std::string description) {
+  ASSIGN_OR_RETURN(auto action, PrepareDefinitionImport(
+                                    definitions, std::move(description)));
+  if (!action)
+    return absl::OkStatus();
+  // Match RunEdit's chronological ordering without finalizing pending painting
+  // for a refused/no-op preparation or for an externally owned action.
+  if (before_edit_)
+    before_edit_();
+  RETURN_IF_ERROR(action->Redo());
+  history_->Push(std::move(action));
+  return absl::OkStatus();
+}
+
 absl::Status Tile16EditSession::RunEdit(
-    const std::function<absl::Status()>& operation) {
+    const std::function<absl::Status()>& operation, uint64_t edit_group) {
   // A map stroke must enter history before the following definition edit.
   if (before_edit_)
     before_edit_();
@@ -145,17 +268,21 @@ absl::Status Tile16EditSession::RunEdit(
       std::move(before), std::move(after),
       [this](const std::vector<Tile16Commit>& edits) {
         return ApplyDefinitions(edits);
-      }));
+      },
+      std::string{}, this, edit_group));
   return absl::OkStatus();
 }
 
-absl::Status Tile16EditSession::ReplaceCurrentTile(const gfx::Tile16& data) {
-  return RunEdit([&]() {
-    current_tile16_data_ = data;
-    zelda3::SyncTile16TilesInfo(&current_tile16_data_);
-    RETURN_IF_ERROR(RegenerateTile16BitmapFromROM());
-    MarkCurrentTileModified();
-    return absl::OkStatus();
-  });
+absl::Status Tile16EditSession::ReplaceCurrentTile(const gfx::Tile16& data,
+                                                   uint64_t edit_group) {
+  return RunEdit(
+      [&]() {
+        current_tile16_data_ = data;
+        zelda3::SyncTile16TilesInfo(&current_tile16_data_);
+        RETURN_IF_ERROR(RegenerateTile16BitmapFromROM());
+        MarkCurrentTileModified();
+        return absl::OkStatus();
+      },
+      edit_group);
 }
 }  // namespace yaze::editor

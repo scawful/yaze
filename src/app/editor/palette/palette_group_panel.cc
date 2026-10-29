@@ -689,12 +689,15 @@ absl::Status PaletteGroupPanel::SaveToRom() {
         "Cannot save palettes from an inactive ROM session");
   }
   auto& palette_manager = gfx::PaletteManager::Get();
+  const auto ranges =
+      palette_manager.GetModifiedGroupColorWriteRanges(group_name_);
+  if (!ranges.ok()) {
+    return ranges.status();
+  }
   if (project_ != nullptr && project_->hack_manifest.loaded()) {
-    const auto ranges =
-        palette_manager.GetModifiedGroupColorWriteRanges(group_name_);
-    if (!ranges.empty()) {
+    if (!ranges->empty()) {
       const absl::Status preflight = ValidateHackManifestSaveConflicts(
-          project_->hack_manifest, project_->rom_metadata.write_policy, ranges,
+          project_->hack_manifest, project_->rom_metadata.write_policy, *ranges,
           display_name_, "PaletteGroupPanel", toast_manager_);
       if (!preflight.ok()) {
         return preflight;

@@ -40,9 +40,10 @@ struct WidgetState {
 };
 
 // Capture current ImGui widget state for debugging
-// Returns JSON-formatted string representing the widget hierarchy and state
-// When ImGui internals are unavailable (UI test engine disabled), returns a
-// short diagnostic JSON payload.
+// Returns JSON-formatted string representing the widget hierarchy and state.
+// "focused_window" is the name of ImGui's NavWindow, or "" when no window has
+// focus. Returns a short error payload when there is no ImGui context.
+// Call from the thread that owns the ImGui context.
 std::string CaptureWidgetState();
 
 // Serialize widget state to JSON format

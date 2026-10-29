@@ -24,6 +24,7 @@
 #include "app/gfx/backend/null_renderer.h"
 #include "app/gfx/resource/arena.h"
 #include "app/gfx/util/palette_manager.h"
+#include "core/native_save_receipt.h"
 #include "core/palette_catalog.h"
 #include "core/source_artifact_publisher.h"
 #include "editor_test_support.h"
@@ -57,10 +58,17 @@ struct ScopedImGuiContext {
 
 struct ScopedTempDir {
   std::filesystem::path path;
+  bool retain_on_success = false;
   explicit ScopedTempDir(std::filesystem::path p) : path(std::move(p)) {
     std::filesystem::create_directories(path);
   }
   ~ScopedTempDir() {
+    if (retain_on_success && !::testing::Test::HasFailure() &&
+        !::testing::Test::IsSkipped()) {
+      ::testing::Test::RecordProperty("lyra_authoring_retained_root",
+                                      path.string());
+      return;
+    }
     std::error_code ec;
     std::filesystem::remove_all(path, ec);
   }
@@ -92,6 +100,17 @@ std::string ReadFile(const std::filesystem::path& path) {
   EXPECT_TRUE(in.is_open());
   return std::string((std::istreambuf_iterator<char>(in)),
                      std::istreambuf_iterator<char>());
+}
+
+std::string LoadedLoRomSha256(EditorManager& manager, size_t rom_size) {
+  std::string bytes(rom_size, '\0');
+  auto& memory = manager.emulator().snes().memory();
+  for (size_t offset = 0; offset < bytes.size(); ++offset) {
+    bytes[offset] = static_cast<char>(
+        memory.cart_read(static_cast<uint8_t>(offset / 0x8000),
+                         static_cast<uint16_t>(0x8000 | (offset & 0x7fff))));
+  }
+  return core::ComputeSourceArtifactSha256(bytes);
 }
 
 std::string ProjectFileContents(const std::string& name,
@@ -534,8 +553,38 @@ TEST(EditorManagerProjectActionsTest,
   EXPECT_EQ(ReadFile(primary_project), initial_descriptor);
 
   const auto initial_authoring = editor->lyra_canvas_.document()->authoring();
+  EXPECT_TRUE(initial_authoring.gameplay_areas.empty());
+  UndoManager area_history;
+  auto& canvas = editor->lyra_canvas_;
+  using AreaSize = core::LyraGameplayAreaSize;
+  ASSERT_OK(canvas.SetGameplayArea(0xA0, AreaSize::kLarge, editor->overworld(),
+                                   area_history));
+  ASSERT_NE(canvas.document()->GameplayAreaForMap(0xA9), nullptr);
+  EXPECT_EQ(canvas.document()->GameplayAreaForMap(0xA9)->parent_map_id, 0xA0);
+  const auto assigned_area = canvas.document()->authoring();
+  const auto area_history_size = area_history.UndoStackSize();
+  // A child cannot silently steal ownership, and a root cannot wrap a row.
+  EXPECT_FALSE(canvas
+                   .SetGameplayArea(0xA1, AreaSize::kSmall, editor->overworld(),
+                                    area_history)
+                   .ok());
+  EXPECT_FALSE(canvas
+                   .SetGameplayArea(0xA7, AreaSize::kWide, editor->overworld(),
+                                    area_history)
+                   .ok());
+  EXPECT_EQ(canvas.document()->authoring(), assigned_area);
+  EXPECT_EQ(area_history.UndoStackSize(), area_history_size);
+  ASSERT_OK(canvas.SetGameplayArea(0xA9, std::nullopt, editor->overworld(),
+                                   area_history));
+  EXPECT_TRUE(canvas.document()->authoring().gameplay_areas.empty());
+  ASSERT_OK(area_history.Undo());
+  EXPECT_EQ(canvas.document()->authoring(), assigned_area);
+  ASSERT_OK(area_history.Redo());
+  EXPECT_EQ(canvas.document()->authoring(), initial_authoring);
   auto selected_scene = initial_authoring;
   selected_scene.maps[1].properties.message_id = 0x42;
+  selected_scene.gameplay_areas.push_back(
+      {0xA0, AreaSize::kWide, {0xA0, 0xA1}});
   selected_scene.edge_connections.push_back(
       {1, 0x99, 0xA1, core::LyraEdgePassage{15, 16}});
   ASSERT_OK(editor->EditProjectMapAuthoring(selected_scene));
@@ -582,6 +631,8 @@ TEST(EditorManagerProjectActionsTest,
 
   auto save_as_scene = selected_scene;
   save_as_scene.maps[0].properties.message_id = 0x71;
+  save_as_scene.gameplay_areas[0] = {
+      0xA0, AreaSize::kLarge, {0xA0, 0xA1, 0xA8, 0xA9}};
   ASSERT_OK(editor->EditProjectMapAuthoring(save_as_scene));
   save_as_scene = editor->lyra_canvas_.document()->authoring();
   const auto save_as_bytes = editor->lyra_canvas_.document()->Serialize();
@@ -618,6 +669,32 @@ TEST(EditorManagerProjectActionsTest,
       relocated_terrain.string()));
   EXPECT_TRUE(SessionCoordinator::PathsReferToSameBackingFile(
       saved.GetAbsolutePath(saved.rom_filename), primary_rom.string()));
+  // Save As publishes the new owner's receipt binding its own descriptor,
+  // its terrain sidecar and the unchanged ROM.
+  const auto relocated_receipt = nlohmann::json::parse(
+      ReadFile(relocated_project.string() + ".native-save.json"));
+  EXPECT_EQ(relocated_receipt.at("operation"), "save_as");
+  // The fixture names label/symbol files it never creates; only those may be
+  // reported unbound.
+  for (const auto& error : relocated_receipt.at("binding_errors")) {
+    EXPECT_EQ(error.get<std::string>().rfind("dependency.", 0), 0u)
+        << relocated_receipt.dump(2);
+  }
+  for (const auto& [role, path] :
+       std::vector<std::pair<std::string, std::filesystem::path>>{
+           {"project", relocated_project},
+           {"sidecar", relocated_terrain},
+           {"rom", primary_rom}}) {
+    const auto& artifacts = relocated_receipt.at("artifacts");
+    const std::string& wanted_role = role;
+    const auto found = std::find_if(
+        artifacts.begin(), artifacts.end(),
+        [&](const auto& item) { return item.at("role") == wanted_role; });
+    ASSERT_NE(found, artifacts.end()) << role;
+    EXPECT_EQ(found->at("path"), std::filesystem::canonical(path).string());
+    EXPECT_EQ(found->at("sha256"),
+              core::ComputeSourceArtifactSha256(ReadFile(path)));
+  }
 
   ASSERT_NO_FATAL_FAILURE(open_fresh_manager(relocated_project));
   ASSERT_OK(manager->EnsureEditorAssetsLoaded(EditorType::kOverworld));
@@ -680,6 +757,12 @@ TEST(EditorManagerProjectActionsTest,
             immutable_hash);
   EXPECT_EQ(core::ComputeSourceArtifactSha256(ReadFile(immutable_rom)),
             immutable_hash);
+
+  const char* retain = std::getenv("YAZE_LYRA_AUTHORING_RETAIN");
+  if (retain != nullptr && std::string(retain) == "1" &&
+      !::testing::Test::HasFailure() && !::testing::Test::IsSkipped()) {
+    directory.retain_on_success = true;
+  }
 }
 
 TEST(EditorManagerProjectActionsTest,
@@ -939,6 +1022,110 @@ TEST(EditorManagerProjectActionsTest,
   ASSERT_TRUE(std::filesystem::exists(marker_path));
   EXPECT_EQ(ReadFile(marker_path), "project-build");
 #endif  // _WIN32
+}
+
+TEST(EditorManagerProjectActionsTest,
+     SyncAndQueuedBuildsUseRelocatedProjectContextWithoutChangingRequest) {
+#if defined(_WIN32) || defined(__EMSCRIPTEN__) || \
+    (defined(__APPLE__) && TARGET_OS_IPHONE)
+  GTEST_SKIP() << "Background commands require a POSIX desktop";
+#else
+  ScopedImGuiContext imgui;
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  test::InitializeWithIsolatedSettings(*manager, renderer.get());
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+  ScopedTempDir temp(MakeTempDir("yaze_project_build_context"));
+  const auto original = temp.path / "original";
+  const auto relocated = temp.path / "copy with 'quotes'";
+  std::filesystem::create_directories(original / "code folder");
+  std::filesystem::create_directories(relocated);
+  const auto original_project = original / "original.yaze";
+  const auto copied_project = relocated / "copy.yaze";
+  const auto rom = original / "source.sfc";
+  const auto terrain = original / "terrain.json";
+  const auto request = original / "request.json";
+  WriteRomFile(rom);
+  std::ofstream(terrain) << "terrain context canary";
+  std::ofstream(request) << "request context canary";
+  auto* project = manager->GetCurrentProject();
+  project->name = "Build context";
+  project->filepath = original_project.string();
+  project->rom_filename = rom.string();
+  project->code_folder = (original / "code folder").string();
+  project->lyra_terrain_file = terrain.string();
+  project->lyra_build_request_file = request.string();
+  project->build_script = "./build_context.sh";
+  ASSERT_OK(project->Save());
+  ASSERT_OK(project->Open(original_project.string()));
+  const auto original_bytes = ReadFile(original_project);
+  ASSERT_OK(project->SaveAs(copied_project.string()));
+  ASSERT_EQ(project->lyra_build_request_file, request.string());
+
+  const auto script_path = relocated / "build_context.sh";
+  {
+    std::ofstream script(script_path);
+    ASSERT_TRUE(script.is_open());
+    script << R"sh(#!/bin/sh
+printf '%s\n' "$YAZE_PROJECT_FILE" "$YAZE_PROJECT_CODE_FOLDER" \
+  "$YAZE_PROJECT_ROM" "$YAZE_LYRA_TERRAIN_FILE" "$OOS_LYRA_PROJECT" \
+  "$OOS_LYRA_REQUEST" > build.context
+printf '%s\n' "${YAZE_PROJECT_FILE+set}" "${YAZE_PROJECT_CODE_FOLDER+set}" \
+  "${YAZE_PROJECT_ROM+set}" "${YAZE_LYRA_TERRAIN_FILE+set}" \
+  "${OOS_LYRA_PROJECT+set}" "${OOS_LYRA_REQUEST+set}" > build.presence
+)sh";
+    ASSERT_TRUE(script.good());
+  }
+  std::filesystem::permissions(
+      script_path,
+      std::filesystem::perms::owner_exec | std::filesystem::perms::owner_read,
+      std::filesystem::perm_options::add);
+  const std::string expected =
+      copied_project.string() + "\n" + (original / "code folder").string() +
+      "\n" + rom.string() + "\n" + terrain.string() + "\n" +
+      copied_project.string() + "\n" + request.string() + "\n";
+  for (bool queued : {false, true}) {
+    SCOPED_TRACE(queued ? "queued" : "synchronous");
+    std::filesystem::remove(relocated / "build.context");
+    if (queued) {
+      manager->QueueBuildCurrentProject();
+      const auto deadline =
+          std::chrono::steady_clock::now() + std::chrono::seconds(5);
+      while (ContentRegistry::Context::build_workflow_status().state ==
+                 ProjectWorkflowState::kRunning &&
+             std::chrono::steady_clock::now() < deadline) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(20));
+        ImGui::GetIO().DisplaySize = ImVec2(1280, 720);
+        ImGui::NewFrame();
+        const auto status = manager->Update();
+        ImGui::Render();
+        ASSERT_OK(status);
+      }
+      const auto status = ContentRegistry::Context::build_workflow_status();
+      ASSERT_EQ(status.state, ProjectWorkflowState::kSuccess) << status.detail;
+    } else {
+      ASSERT_OK(manager->BuildCurrentProject());
+    }
+    EXPECT_EQ(ReadFile(relocated / "build.context"), expected);
+    EXPECT_EQ(ReadFile(relocated / "build.presence"),
+              "set\nset\nset\nset\nset\nset\n");
+  }
+
+  // Every known name remains an explicit override when its binding is absent.
+  project->code_folder.clear();
+  project->rom_filename.clear();
+  project->lyra_terrain_file.clear();
+  project->lyra_build_request_file.clear();
+  ASSERT_OK(project->Save());
+  ASSERT_OK(manager->BuildCurrentProject());
+  EXPECT_EQ(ReadFile(relocated / "build.context"),
+            copied_project.string() + "\n\n\n\n\n\n");
+  EXPECT_EQ(ReadFile(relocated / "build.presence"),
+            "set\nset\nset\nset\nset\nset\n");
+  EXPECT_EQ(ReadFile(original_project), original_bytes);
+  EXPECT_EQ(ReadFile(request), "request context canary");
+  EXPECT_EQ(ReadFile(terrain), "terrain context canary");
+#endif
 }
 
 TEST(EditorManagerProjectActionsTest,
@@ -1260,9 +1447,6 @@ TEST(EditorManagerProjectActionsTest,
 
 TEST(EditorManagerProjectActionsTest,
      RunCurrentProjectPrefersManifestPatchedRomAndReloadsEmulator) {
-#ifdef _WIN32
-  GTEST_SKIP() << "Test uses #!/bin/sh shebang + chmod exec, POSIX-only";
-#else
   ScopedImGuiContext imgui;
   auto renderer = std::make_unique<gfx::NullRenderer>();
   auto manager = std::make_unique<EditorManager>();
@@ -1271,13 +1455,22 @@ TEST(EditorManagerProjectActionsTest,
 
   ScopedTempDir temp_dir(MakeTempDir("yaze_run_project_output"));
   const auto project_path = temp_dir.path / "project.yaze";
+  const auto source_rom = temp_dir.path / "editing_source.sfc";
   const auto valid_rom = temp_dir.path / "patched_valid.sfc";
+  WriteRomFile(source_rom, "EDITING SOURCE ROM");
   WriteRomFile(valid_rom, "RUN TARGET ROM");
+  ASSERT_OK(manager->OpenRomOrProject(source_rom.string()));
+  const auto source_sha256 = core::ComputeSourceArtifactFileSha256(source_rom);
+  ASSERT_TRUE(source_sha256.ok()) << source_sha256.status();
+  const auto target_sha256 = core::ComputeSourceArtifactFileSha256(valid_rom);
+  ASSERT_TRUE(target_sha256.ok()) << target_sha256.status();
+  ASSERT_NE(*source_sha256, *target_sha256);
 
   auto* project = manager->GetCurrentProject();
   ASSERT_NE(project, nullptr);
   project->name = "RunProjectOutput";
   project->filepath = project_path.string();
+  project->rom_filename = source_rom.string();
   project->build_target = "missing_output.sfc";
   ASSERT_TRUE(project->hack_manifest
                   .LoadFromString(R"json(
@@ -1296,12 +1489,641 @@ TEST(EditorManagerProjectActionsTest,
   EXPECT_TRUE(manager->emulator().running());
   ASSERT_NE(manager->ui_coordinator(), nullptr);
   EXPECT_TRUE(manager->ui_coordinator()->IsEmulatorVisible());
+  const auto status = ContentRegistry::Context::run_workflow_status();
+  EXPECT_EQ(status.state, ProjectWorkflowState::kSuccess);
+  EXPECT_EQ(std::filesystem::path(status.detail), valid_rom);
+  const auto loaded_sha256 =
+      LoadedLoRomSha256(*manager, std::filesystem::file_size(valid_rom));
+  EXPECT_EQ(loaded_sha256, *target_sha256);
+  EXPECT_NE(loaded_sha256, *source_sha256);
+  EXPECT_EQ(std::filesystem::path(manager->GetCurrentRom()->filename()),
+            source_rom);
+  const auto source_after = core::ComputeSourceArtifactFileSha256(source_rom);
+  ASSERT_TRUE(source_after.ok()) << source_after.status();
+  EXPECT_EQ(*source_after, *source_sha256);
 
   const auto& history = manager->toast_manager()->GetHistory();
   ASSERT_FALSE(history.empty());
   EXPECT_NE(history.front().message.find("patched_valid.sfc"),
             std::string::npos);
-#endif  // _WIN32
+}
+
+// These synthetic receipts exercise the existing Build/Run consumer contract.
+// They do not establish an Oracle allocation grant or compiled gameplay proof.
+struct ExpandedRunFixture {
+  using Json = nlohmann::json;
+  EditorManager& manager;
+  std::filesystem::path root, project, source, stale, target, seed, request;
+  std::filesystem::path producer, proof, prepare, verification, build_receipt;
+  std::filesystem::path symbols, ledger, editor, verifier, source_binding;
+  std::filesystem::path context, save_receipt, snapshot, staged;
+  Json request_json, prepare_json, verification_json, build_json;
+  static constexpr uint64_t kGeneration = 7;
+  static constexpr char kOperation[] = "y12b-native-save";
+
+  // Evidence records canonical paths; macOS temp_directory_path() is a
+  // symlink (/var -> /private/var).
+  ExpandedRunFixture(EditorManager& owner, const std::filesystem::path& folder)
+      : manager(owner),
+        root(std::filesystem::weakly_canonical(folder)),
+        project(root / "project.yaze"),
+        source(root / "editing.sfc"),
+        stale(root / "stale.sfc"),
+        target(root / "engine" / "Roms" / "generation-7" / "oos168x.sfc"),
+        seed(root / "candidate.sfc"),
+        request(root / "snapshot" / "request.json"),
+        producer(root / "producer.json"),
+        proof(root / "future" / "proof.json"),
+        prepare(root / "engine" / "Data" / "Generated" / "lyra_project" /
+                "prepare.json"),
+        verification(target.parent_path() / "oos168x.lyra-verification.json"),
+        build_receipt(target.parent_path() / "oos168x.build.json"),
+        symbols(target.parent_path() / "oos168x.sym"),
+        ledger(root / "engine" / "Config" / "allocation_ownership.json"),
+        editor(root / "selected-editor.bin"),
+        verifier(root / "selected-z3ed.bin"),
+        source_binding(root / "engine" / "Oracle_main.asm"),
+        save_receipt(root / "project.yaze.native-save.json"),
+        snapshot(root / "snapshot"),
+        staged(root / "staged") {}
+
+  static std::string Text(const std::filesystem::path& path) {
+    const auto utf8 = path.generic_u8string();
+    return std::string(utf8.begin(), utf8.end());
+  }
+  static void Write(const std::filesystem::path& path,
+                    const std::string& bytes) {
+    std::filesystem::create_directories(path.parent_path());
+    std::ofstream output(path, std::ios::binary);
+    ASSERT_TRUE(output.is_open()) << path;
+    output.write(bytes.data(), static_cast<std::streamsize>(bytes.size()));
+    ASSERT_TRUE(output.good()) << path;
+  }
+  static void WriteJson(const std::filesystem::path& path, const Json& value) {
+    Write(path, value.dump(2) + "\n");
+  }
+  static Json Binding(const std::filesystem::path& path,
+                      const std::filesystem::path& bytes_from = {}) {
+    const auto& bytes_path = bytes_from.empty() ? path : bytes_from;
+    const auto digest = core::ComputeSourceArtifactFileSha256(bytes_path);
+    EXPECT_TRUE(digest.ok()) << digest.status();
+    return {{"path", Text(path)}, {"sha256", digest.ok() ? *digest : ""}};
+  }
+  static Json Artifact(const std::filesystem::path& path,
+                       const std::filesystem::path& bytes_from = {}) {
+    auto row = Binding(path, bytes_from);
+    row["size"] =
+        std::filesystem::file_size(bytes_from.empty() ? path : bytes_from);
+    return row;
+  }
+  static Json SaveArtifact(const std::string& role,
+                           const std::filesystem::path& path) {
+    auto row = Binding(path);
+    row["role"] = role;
+    row["bytes"] = std::filesystem::file_size(path);
+    return row;
+  }
+
+  void Initialize() {
+    WriteRomFile(source, "EDITING SOURCE");
+    WriteRomFile(stale, "STALE MANIFEST");
+    WriteRomFile(seed, "GENERATION SEVEN");
+    std::filesystem::resize_file(seed, 0x400000);
+    std::filesystem::create_directories(staged);
+    std::filesystem::create_directories(target.parent_path());
+    Write(editor, "selected editor fixture\n");
+    Write(verifier, "selected verifier fixture\n");
+    Write(source_binding, "; selected source fixture\n");
+    Write(ledger, "{}\n");
+    const auto terrain = root / "terrain.json";
+    Write(terrain, "{}\n");
+    ASSERT_OK(manager.OpenRomOrProject(source.string()));
+    auto* model = manager.GetCurrentProject();
+    ASSERT_NE(model, nullptr);
+    model->name = "Expanded Run generation";
+    model->filepath = project.string();
+    model->rom_filename = source.string();
+    model->code_folder = (root / "engine").string();
+    model->lyra_terrain_file = terrain.string();
+    model->lyra_build_request_file = request.string();
+    model->native_save_producer_file = producer.string();
+    model->native_save_transfer_proof_file = proof.string();
+    model->native_save_receipt_file = (root / "legacy-receipt.json").string();
+    model->build_target = target.string();
+#ifdef _WIN32
+    model->build_script = "build-fixture.cmd";
+#else
+    model->build_script = "sh build-fixture.sh";
+#endif
+    // Opening a real project assigns its persistent identity before Save.
+    // Normalize this in-memory fixture through the same parser before hashing.
+    const auto descriptor = model->SerializeToString();
+    ASSERT_TRUE(descriptor.ok()) << descriptor.status();
+    ASSERT_OK(model->LoadFromString(*descriptor, project.string()));
+    ASSERT_OK(model->hack_manifest.LoadFromString(Json{
+        {"manifest_version", 2},
+        {"hack_name", "Run target fixture"},
+        {"build_pipeline",
+         {{"patched_rom", stale.string()}}}}.dump()));
+    ASSERT_OK(model->Save());
+    const Json producer_identity{
+        {"kind", "yaze.native_save_producer_identity.v1"},
+        {"source_head", std::string(40, 'a')},
+        {"editor", Binding(editor)},
+        {"verifier", Binding(verifier)},
+        {"source_bindings", Json::array({Binding(source_binding)})}};
+    WriteJson(producer, producer_identity);
+    const auto producer_artifact = SaveArtifact("producer", editor);
+    WriteJson(save_receipt,
+              {{"kind", "yaze.native_save.v1"},
+               {"generation", kGeneration},
+               {"operation_id", kOperation},
+               {"operation", "save"},
+               {"receipt_path", Text(save_receipt)},
+               {"bindings_complete", true},
+               {"binding_errors", Json::array()},
+               {"artifacts", Json::array({SaveArtifact("project", project),
+                                          SaveArtifact("rom", source),
+                                          SaveArtifact("sidecar", terrain),
+                                          producer_artifact})}});
+    auto native_context =
+        core::GetNativeSaveContext(source.string(), project.string());
+    ASSERT_TRUE(native_context.ok()) << native_context.status();
+    context = native_context->path;
+    WriteJson(context,
+              {{"kind", "yaze.native_save_context.v1"},
+               {"editing_source_path", native_context->editing_source_path},
+               {"project_path", native_context->project_path},
+               {"rom_path", Text(source)},
+               {"producer", producer_artifact},
+               {"state", "committed"},
+               {"native_commit",
+                {{"receipt_path", Text(save_receipt)},
+                 {"generation", kGeneration},
+                 {"operation_id", kOperation}}}});
+    Json live_inputs{{"project", Binding(project)},
+                     {"rom", Binding(source)},
+                     {"terrain", Binding(terrain)}};
+    Json snapshot_inputs = Json::object();
+    for (const auto& [role, row] : live_inputs.items()) {
+      const auto copy = snapshot / (role + ".snapshot");
+      std::filesystem::create_directories(copy.parent_path());
+      std::filesystem::copy_file(
+          std::filesystem::u8path(row.at("path").get<std::string>()), copy);
+      snapshot_inputs[role] = Binding(copy);
+    }
+    for (const auto& [name, original] :
+         std::vector<std::pair<std::string, std::filesystem::path>>{
+             {"native-save.json", save_receipt},
+             {"producer.json", producer},
+             {"context.json", context}}) {
+      std::filesystem::copy_file(original, snapshot / name);
+    }
+    Write(snapshot / "observation.json", "{}\n");
+    const auto execution = snapshot / "native-verification.json";
+    WriteJson(
+        execution,
+        {{"kind", "yaze.lyra_verify_project_execution.v1"},
+         {"binary", Binding(verifier)},
+         {"source_bindings", producer_identity["source_bindings"]},
+         {"generation", kGeneration},
+         {"operation_id", kOperation},
+         {"save_receipt", Binding(save_receipt)},
+         {"save_context", Binding(context)},
+         {"source_rom_sha256", Binding(source)["sha256"]},
+         {"exit_code", 0},
+         {"command", Json::array({Text(verifier), "lyra-verify-project",
+                                  "--project-context=" + Text(project),
+                                  "--rom=" + Text(source), "--format=json"})},
+         {"observation", Binding(snapshot / "observation.json")}});
+    const Json target_row{{"path", Text(target)},
+                          {"size", 0x400000},
+                          {"role", "compiled_candidate"},
+                          {"native_serializer_after_compile", "forbidden"}};
+    request_json = {{"kind", "lyra.current_save_transfer_request.v1"},
+                    {"live",
+                     {{"project", Text(project)},
+                      {"inputs", live_inputs},
+                      {"producer", Binding(producer)},
+                      {"producer_identity", producer_identity},
+                      {"save_receipt", Binding(save_receipt)},
+                      {"save_context", Binding(context)},
+                      {"generation", kGeneration},
+                      {"operation_id", kOperation},
+                      {"enforcement_receipt", Text(proof)}}},
+                    {"snapshot_root", Text(snapshot)},
+                    {"inputs", snapshot_inputs},
+                    {"observation", Binding(snapshot / "observation.json")},
+                    {"save_snapshot", Binding(snapshot / "native-save.json")},
+                    {"producer_snapshot", Binding(snapshot / "producer.json")},
+                    {"context_snapshot", Binding(snapshot / "context.json")},
+                    {"native_verification", Binding(execution)},
+                    {"census", Json::object()},
+                    {"allocation_policy_id", "current_runtime"},
+                    {"target", target_row}};
+    request_json["transfer_id"] =
+        core::ComputeSourceArtifactSha256(request_json.dump());
+    WriteJson(request, request_json);
+    Json inputs = Json::array();
+    for (const auto& path :
+         {project, source, request, ledger, source_binding, execution}) {
+      inputs.push_back(Binding(path));
+    }
+    for (const auto& row : snapshot_inputs)
+      inputs.push_back(row);
+    prepare_json = {
+        {"kind", "lyra.current_build_prepare.v1"},
+        {"selected", true},
+        {"allocation_granted", true},
+        {"producer_enforcement_verified", true},
+        {"runtime_admission", true},
+        {"ordinary_build_ready", true},
+        {"project", Text(project)},
+        {"base_rom", Text(source)},
+        {"request", Text(request)},
+        {"ledger", Text(ledger)},
+        {"saved_rom_sha256", Binding(source)["sha256"]},
+        {"current_ledger_sha256", Binding(ledger)["sha256"]},
+        {"inputs", inputs},
+        {"current_source_profile",
+         {{"kind", "lyra.current_native_source_profile.v1"},
+          {"selected_source",
+           {{"root", Text(root / "engine")},
+            {"head", std::string(40, 'a')},
+            {"bindings", Json::array({Binding(source_binding)})}}}}},
+        {"terrain_plan",
+         {{"target", target_row},
+          {"transfer_id", request_json["transfer_id"]},
+          {"generation", kGeneration},
+          {"operation_id", kOperation},
+          {"save_context", Binding(context)},
+          {"retirement", "next_native_save"},
+          {"enforcement_owner", "oracle.current_builder"},
+          {"enforcement_receipt", Binding(execution)}}}};
+    WriteJson(prepare, prepare_json);
+    verification_json = {
+        {"kind", "lyra.current_build_verification.v1"},
+        {"compiled_consumers_verified", true},
+        {"compiled_rom_sha256", Binding(seed)["sha256"]},
+        {"saved_rom_sha256", Binding(source)["sha256"]},
+        {"symbols_sha256",
+         core::ComputeSourceArtifactSha256("fixture symbols\n")},
+        {"prepared_sha256", Binding(prepare)["sha256"]},
+        {"current_ledger_sha256", Binding(ledger)["sha256"]},
+        {"runtime_verified", false},
+        {"native_gameplay_verified", false},
+        {"save_reopen_verified", false},
+        {"production_maps", Json::array()},
+        {"production_edge_ids", Json::array()},
+        {"compile_order",
+         {{"owner", "oracle.current_builder"},
+          {"required_order",
+           Json::array({"native_save", "immutable_snapshot",
+                        "compile_candidate", "no_native_serializer"})},
+          {"native_verification", Binding(execution)},
+          {"saved_generation_unchanged", true},
+          {"immutable_snapshot_verified", true},
+          {"derived_output_verified", true},
+          {"oracle_compile_order_verified", true}}}};
+    RefreshBuildEvidence();
+#ifdef _WIN32
+    std::string script = "@echo off\r\n";
+    for (const auto& name :
+         {"oos168x.sfc", "oos168x.sym", "oos168x.lyra-verification.json",
+          "oos168x.build.json"}) {
+      script += "copy /b /y \"staged\\" + std::string(name) +
+                "\" \"engine\\Roms\\generation-7\\" + name +
+                "\" >nul\r\nif errorlevel 1 exit /b 1\r\n";
+    }
+    script += "echo fixture-build-complete\r\n";
+    Write(root / "build-fixture.cmd", script);
+#else
+    std::string script = "set -e\n";
+    for (const auto& name :
+         {"oos168x.sfc", "oos168x.sym", "oos168x.lyra-verification.json",
+          "oos168x.build.json"}) {
+      script += "cp 'staged/" + std::string(name) +
+                "' 'engine/Roms/generation-7/" + name + "'\n";
+    }
+    script += "printf 'fixture-build-complete\\n'\n";
+    Write(root / "build-fixture.sh", script);
+#endif
+  }
+
+  void RefreshBuildEvidence() {
+    std::filesystem::copy_file(
+        seed, staged / "oos168x.sfc",
+        std::filesystem::copy_options::overwrite_existing);
+    Write(staged / "oos168x.sym", "fixture symbols\n");
+    WriteJson(staged / "oos168x.lyra-verification.json", verification_json);
+    build_json = {{"schema_version", 1},
+                  {"state", "completed"},
+                  {"root", Text(root / "engine")},
+                  {"base_rom", Artifact(source)},
+                  {"finish",
+                   {{"exit_code", 0},
+                    {"required_gaps", Json::array()},
+                    {"optional_gaps", Json::array()}}},
+                  {"checks", Json::array({{{"name", "lyra_verify"},
+                                           {"status", "passed"},
+                                           {"required", true},
+                                           {"exit_code", 0}}})},
+                  {"artifacts",
+                   {{"output_rom", Artifact(target, staged / "oos168x.sfc")},
+                    {"symbols", Artifact(symbols, staged / "oos168x.sym")},
+                    {"lyra_prepare", Artifact(prepare)},
+                    {"lyra_verification",
+                     Artifact(verification,
+                              staged / "oos168x.lyra-verification.json")}}}};
+    WriteJson(staged / "oos168x.build.json", build_json);
+  }
+};
+
+TEST(EditorManagerProjectActionsTest,
+     ExpandedBuildThenRunLoadsSameGenerationPathAndHash) {
+  ScopedImGuiContext imgui;
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  test::InitializeWithIsolatedSettings(*manager, renderer.get());
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+  ScopedTempDir temp(MakeTempDir("yaze_build_then_run_generation"));
+  ExpandedRunFixture fixture(*manager, temp.path);
+  fixture.Initialize();
+  ASSERT_FALSE(::testing::Test::HasFatalFailure());
+  ASSERT_FALSE(std::filesystem::exists(fixture.target));
+  ASSERT_OK(manager->BuildCurrentProject());
+  EXPECT_EQ(ContentRegistry::Context::build_workflow_status().state,
+            ProjectWorkflowState::kSuccess);
+  const auto built_hash = core::ComputeSourceArtifactFileSha256(fixture.target);
+  ASSERT_TRUE(built_hash.ok()) << built_hash.status();
+  const auto source_hash =
+      core::ComputeSourceArtifactFileSha256(fixture.source);
+  ASSERT_TRUE(source_hash.ok()) << source_hash.status();
+  ASSERT_OK(manager->RunCurrentProject());
+  const auto status = ContentRegistry::Context::run_workflow_status();
+  EXPECT_EQ(status.state, ProjectWorkflowState::kSuccess);
+  EXPECT_EQ(std::filesystem::path(status.detail), fixture.target);
+  EXPECT_EQ(
+      *built_hash,
+      fixture.verification_json["compiled_rom_sha256"].get<std::string>());
+  EXPECT_EQ(LoadedLoRomSha256(*manager, 0x400000), *built_hash);
+  EXPECT_NE(*built_hash, *source_hash);
+  EXPECT_EQ(std::filesystem::path(manager->GetCurrentRom()->filename()),
+            fixture.source);
+  EXPECT_FALSE(std::filesystem::exists(fixture.proof.parent_path()));
+}
+
+TEST(EditorManagerProjectActionsTest,
+     RunWithoutExpandedAdmissionRetainsManifestTarget) {
+  ScopedImGuiContext imgui;
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  test::InitializeWithIsolatedSettings(*manager, renderer.get());
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+  ScopedTempDir temp(MakeTempDir("yaze_run_unadmitted_manifest"));
+  ExpandedRunFixture fixture(*manager, temp.path);
+  fixture.Initialize();
+  ASSERT_FALSE(::testing::Test::HasFatalFailure());
+  // A Lyra document or legacy receipt reference alone is not expanded admission.
+  auto* project = manager->GetCurrentProject();
+  project->native_save_producer_file.clear();
+  project->native_save_transfer_proof_file.clear();
+  project->lyra_build_request_file.clear();
+  ASSERT_FALSE(project->lyra_terrain_file.empty());
+  ASSERT_FALSE(std::filesystem::exists(fixture.target));
+  ASSERT_OK(manager->RunCurrentProject());
+  EXPECT_EQ(std::filesystem::path(
+                ContentRegistry::Context::run_workflow_status().detail),
+            fixture.stale);
+  const auto expected = core::ComputeSourceArtifactFileSha256(fixture.stale);
+  ASSERT_TRUE(expected.ok()) << expected.status();
+  EXPECT_EQ(
+      LoadedLoRomSha256(*manager, std::filesystem::file_size(fixture.stale)),
+      *expected);
+}
+
+TEST(EditorManagerProjectActionsTest,
+     RunWithoutExpandedRequestPreservesDailyAndLabManifestTarget) {
+  // Match the persisted daily/Lab configuration: native-save capability refs
+  // are configured, but no expanded build request has been selected.
+  for (const auto* name : {"Oracle-of-Secrets", "Oracle Prototype Lab"}) {
+    SCOPED_TRACE(name);
+    ScopedImGuiContext imgui;
+    auto renderer = std::make_unique<gfx::NullRenderer>();
+    auto manager = std::make_unique<EditorManager>();
+    test::InitializeWithIsolatedSettings(*manager, renderer.get());
+    manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+    ScopedTempDir temp(MakeTempDir("yaze_daily_manifest_run"));
+    const auto bundle = temp.path / "Oracle.yazeproj";
+    const auto descriptor = bundle / "project.yaze";
+    const auto source = bundle / "rom";
+    const auto target = bundle / "project" / "Roms" / "oos168x.sfc";
+    const auto manifest = target.parent_path() / "hack_manifest.json";
+    std::filesystem::create_directories(target.parent_path());
+    WriteRomFile(source, "DAILY EDITING SOURCE");
+    WriteRomFile(target, "DAILY MANIFEST OUTPUT");
+    ExpandedRunFixture::Write(
+        descriptor,
+        "[project]\nname=" + std::string(name) +
+            "\nproject_id=yaze_daily_manifest_fixture\n\n"
+            "[files]\nrom_filename=rom\ncode_folder=project\n"
+            "lyra_terrain_file=assets/project/lyra_terrain_file/"
+            "unified.lyra-terrain.json\nlyra_build_request_file=\n"
+            "hack_manifest_file=project/Roms/hack_manifest.json\n"
+            "native_save_producer_file=transfer/producer-identity.json\n"
+            "native_save_transfer_proof_file=transfer/transfer-proof.json\n\n"
+            "[rom]\nrole=dev\nwrite_policy=block\n\n"
+            "[build]\nbuild_script=python3 project/Scripts/Build/"
+            "authoring_bundle_build.py --project project.yaze\n"
+            "build_target=project/Roms/oos168x.sfc\n\n"
+            "[workspace]\nautosave_enabled=false\nbackup_on_save=false\n");
+    ExpandedRunFixture::WriteJson(
+        manifest,
+        {{"manifest_version", 2},
+         {"hack_name", "Oracle of Secrets"},
+         {"build_pipeline",
+          {{"dev_rom", "rom"}, {"patched_rom", "project/Roms/oos168x.sfc"}}}});
+    const auto descriptor_before = ReadFile(descriptor);
+    const auto manifest_before = ReadFile(manifest);
+    const auto source_before = core::ComputeSourceArtifactFileSha256(source);
+    const auto target_hash = core::ComputeSourceArtifactFileSha256(target);
+    ASSERT_TRUE(source_before.ok()) << source_before.status();
+    ASSERT_TRUE(target_hash.ok()) << target_hash.status();
+    ASSERT_NE(*source_before, *target_hash);
+
+    ASSERT_OK(manager->OpenRomOrProject(descriptor.string()));
+    const auto* project = manager->GetCurrentProject();
+    ASSERT_NE(project, nullptr);
+    ASSERT_TRUE(project->project_opened());
+    ASSERT_FALSE(project->native_save_producer_file.empty());
+    ASSERT_FALSE(project->native_save_transfer_proof_file.empty());
+    ASSERT_TRUE(project->lyra_build_request_file.empty());
+    ASSERT_TRUE(project->hack_manifest.loaded());
+    const auto result = manager->RunCurrentProject();
+    EXPECT_TRUE(result.ok()) << result;
+    if (!result.ok()) {
+      continue;
+    }
+    EXPECT_EQ(std::filesystem::path(
+                  ContentRegistry::Context::run_workflow_status().detail),
+              target);
+    EXPECT_EQ(LoadedLoRomSha256(*manager, std::filesystem::file_size(target)),
+              *target_hash);
+    EXPECT_EQ(std::filesystem::path(manager->GetCurrentRom()->filename()),
+              source);
+    const auto source_after = core::ComputeSourceArtifactFileSha256(source);
+    ASSERT_TRUE(source_after.ok()) << source_after.status();
+    EXPECT_EQ(*source_after, *source_before);
+    EXPECT_EQ(ReadFile(descriptor), descriptor_before);
+    EXPECT_EQ(ReadFile(manifest), manifest_before);
+    EXPECT_FALSE(std::filesystem::exists(bundle / "transfer"));
+    EXPECT_FALSE(
+        std::filesystem::exists(bundle / "project.yaze.native-save.json"));
+  }
+}
+
+TEST(EditorManagerProjectActionsTest,
+     ExpandedRunRejectsChangedOrUnadmittedGenerationWithoutManifestFallback) {
+  using Fixture = ExpandedRunFixture;
+  using Json = Fixture::Json;
+  const std::vector<std::pair<std::string, std::function<void(Fixture&)>>>
+      cases{{"missing build receipt",
+             [](auto& f) { std::filesystem::remove(f.build_receipt); }},
+            {"malformed build receipt",
+             [](auto& f) { Fixture::Write(f.build_receipt, "{"); }},
+            {"in-progress build",
+             [](auto& f) {
+               f.build_json["state"] = "in_progress";
+               Fixture::WriteJson(f.build_receipt, f.build_json);
+             }},
+            {"failed build",
+             [](auto& f) {
+               f.build_json["finish"]["exit_code"] = 7;
+               Fixture::WriteJson(f.build_receipt, f.build_json);
+             }},
+            {"required build gap",
+             [](auto& f) {
+               f.build_json["finish"]["required_gaps"] =
+                   Json::array({"lyra_verify"});
+               Fixture::WriteJson(f.build_receipt, f.build_json);
+             }},
+            {"changed compiled ROM",
+             [](auto& f) {
+               std::fstream rom(
+                   f.target, std::ios::in | std::ios::out | std::ios::binary);
+               rom.seekp(0x7FC0);
+               rom.put('X');
+             }},
+            {"missing verification",
+             [](auto& f) { std::filesystem::remove(f.verification); }},
+            {"legacy verification",
+             [](auto& f) {
+               f.verification_json["kind"] =
+                   "lyra.ordinary_build_verification.v1";
+               Fixture::WriteJson(f.verification, f.verification_json);
+               f.build_json["artifacts"]["lyra_verification"] =
+                   Fixture::Artifact(f.verification);
+               Fixture::WriteJson(f.build_receipt, f.build_json);
+             }},
+            {"preview-only admission",
+             [](auto& f) {
+               f.prepare_json["ordinary_build_ready"] = false;
+               f.prepare_json["runtime_scope"] = "seeded_checkpoint_preview";
+               Fixture::WriteJson(f.prepare, f.prepare_json);
+               f.verification_json["prepared_sha256"] =
+                   Fixture::Binding(f.prepare)["sha256"];
+               Fixture::WriteJson(f.verification, f.verification_json);
+               f.build_json["artifacts"]["lyra_prepare"] =
+                   Fixture::Artifact(f.prepare);
+               f.build_json["artifacts"]["lyra_verification"] =
+                   Fixture::Artifact(f.verification);
+               Fixture::WriteJson(f.build_receipt, f.build_json);
+             }},
+            {"next native Save",
+             [](auto& f) {
+               auto receipt = Json::parse(ReadFile(f.save_receipt));
+               receipt["generation"] = Fixture::kGeneration + 1;
+               receipt["operation_id"] = "next-native-save";
+               Fixture::WriteJson(f.save_receipt, receipt);
+             }},
+            {"legacy receipt cannot replace canonical completion",
+             [](auto& f) {
+               std::filesystem::copy_file(f.save_receipt,
+                                          f.root / "legacy-receipt.json");
+               std::filesystem::remove(f.save_receipt);
+             }},
+            {"rebound native context",
+             [](auto& f) {
+               auto context = Json::parse(ReadFile(f.context));
+               context["state"] = "rebound";
+               context["native_commit"] = nullptr;
+               Fixture::WriteJson(f.context, context);
+             }},
+            {"changed selected editor",
+             [](auto& f) { Fixture::Write(f.editor, "new editor\n"); }},
+            {"changed terrain",
+             [](auto& f) {
+               Fixture::Write(f.root / "terrain.json", "{\"changed\":true}\n");
+             }},
+            {"changed transfer target",
+             [](auto& f) {
+               f.request_json["target"]["path"] = Fixture::Text(f.stale);
+               Fixture::WriteJson(f.request, f.request_json);
+             }},
+            {"changed active target",
+             [](auto& f) {
+               f.manager.GetCurrentProject()->build_target = f.stale.string();
+             }},
+            {"missing selected request file",
+             [](auto& f) { std::filesystem::remove(f.request); }},
+            {"malformed selected request file",
+             [](auto& f) { Fixture::Write(f.request, "{"); }},
+            {"selected request without producer",
+             [](auto& f) {
+               f.manager.GetCurrentProject()->native_save_producer_file.clear();
+             }},
+            {"selected request without proof",
+             [](auto& f) {
+               f.manager.GetCurrentProject()
+                   ->native_save_transfer_proof_file.clear();
+             }},
+            {"selected request without native-save capabilities",
+             [](auto& f) {
+               auto* project = f.manager.GetCurrentProject();
+               project->native_save_producer_file.clear();
+               project->native_save_transfer_proof_file.clear();
+             }},
+            {"selected request without terrain", [](auto& f) {
+               f.manager.GetCurrentProject()->lyra_terrain_file.clear();
+             }}};
+  for (const auto& [name, mutate] : cases) {
+    SCOPED_TRACE(name);
+    ScopedImGuiContext imgui;
+    auto renderer = std::make_unique<gfx::NullRenderer>();
+    auto manager = std::make_unique<EditorManager>();
+    test::InitializeWithIsolatedSettings(*manager, renderer.get());
+    manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+    ScopedTempDir temp(MakeTempDir("yaze_rejected_run_generation"));
+    Fixture fixture(*manager, temp.path);
+    fixture.Initialize();
+    ASSERT_FALSE(::testing::Test::HasFatalFailure());
+    ASSERT_OK(manager->BuildCurrentProject());
+    ASSERT_OK(manager->RunCurrentProject());
+    const auto runtime_before = LoadedLoRomSha256(*manager, 0x400000);
+    const auto source_before =
+        core::ComputeSourceArtifactFileSha256(fixture.source);
+    ASSERT_TRUE(source_before.ok()) << source_before.status();
+    mutate(fixture);
+    const auto result = manager->RunCurrentProject();
+    EXPECT_FALSE(result.ok()) << name;
+    EXPECT_EQ(ContentRegistry::Context::run_workflow_status().state,
+              ProjectWorkflowState::kFailure);
+    EXPECT_EQ(LoadedLoRomSha256(*manager, 0x400000), runtime_before);
+    const auto source_after =
+        core::ComputeSourceArtifactFileSha256(fixture.source);
+    ASSERT_TRUE(source_after.ok()) << source_after.status();
+    EXPECT_EQ(*source_after, *source_before);
+  }
 }
 
 TEST(EditorManagerProjectActionsTest,
@@ -2653,6 +3475,51 @@ TEST_F(EditorControlRomSwapTest, RejectsEachStaleIdentityAndMalformedArgument) {
   changed = request;
   changed["path"] = "relative.sfc";
   EXPECT_EQ(Execute(changed)["http_status"], 400);
+  ExpectUnchanged();
+  EXPECT_FALSE(manager_->HasPendingUnsavedSessionAction());
+}
+
+TEST_F(EditorControlRomSwapTest, StencilRefusesBeforeTouchingTheEditor) {
+  const auto stencil_path = temp_dir_.path / "stencil.json";
+  const auto write_stencil = [&](const std::string& schema) {
+    std::ofstream(stencil_path, std::ios::binary | std::ios::trunc)
+        << nlohmann::json(
+               {{"schema", schema},
+                {"map_id", 0x98},
+                {"cells",
+                 {{{"x", 0}, {"y", 0}, {"expected", 1}, {"proposed", 2}}}}})
+               .dump();
+    return core::ComputeSourceArtifactSha256(ReadFile(stencil_path));
+  };
+  const nlohmann::json request = {
+      {"command", "overworld.stencil.apply"},
+      {"path", stencil_path.string()},
+      {"stencil_sha256", write_stencil("yaze.overworld_tile16_stencil.v1")},
+      {"expected", State()}};
+
+  auto changed = request;
+  changed["stencil_sha256"] = std::string(64, '0');
+  EXPECT_EQ(Execute(changed)["http_status"], 409);
+  changed = request;
+  changed["expected"]["pid"] = request["expected"]["pid"].get<int>() + 1;
+  EXPECT_EQ(Execute(changed)["http_status"], 409);
+  changed = request;
+  changed["path"] = "relative.json";
+  EXPECT_EQ(Execute(changed)["http_status"], 400);
+  changed = request;
+  changed["path"] = (temp_dir_.path / "missing.json").string();
+  EXPECT_EQ(Execute(changed)["http_status"], 422);
+  changed = request;
+  changed["stencil_sha256"] = write_stencil("other.schema");
+  EXPECT_EQ(Execute(changed)["http_status"], 400);
+  write_stencil("yaze.overworld_tile16_stencil.v1");
+
+  manager_->ShowProjectFileEditor();
+  const auto draft = MakeModifiedProjectDraft(
+      manager_->project_file_editor(), manager_->GetCurrentProject(),
+      ProjectFileContents("Unsaved Draft", rom_path_));
+  EXPECT_EQ(Execute(request)["http_status"], 409);
+  EXPECT_EQ(manager_->project_file_editor()->CaptureState().text, draft.text);
   ExpectUnchanged();
   EXPECT_FALSE(manager_->HasPendingUnsavedSessionAction());
 }

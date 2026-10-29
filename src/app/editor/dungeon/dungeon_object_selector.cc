@@ -371,6 +371,9 @@ bool DungeonObjectSelector::DrawMinecartPalette() {
       }
       gui::AutoRegisterLastItem("selectable",
                                 absl::StrFormat("Rail%d", subtype));
+      if (status.ok()) {
+        gui::BeginRoomObjectDragSource(0x31, current_room_id_, 0, 0, subtype);
+      }
       ImGui::EndDisabled();
       const auto top = ImGui::GetItemRectMin();
       auto obj = MakePreviewObject(0x31);
@@ -401,6 +404,126 @@ bool DungeonObjectSelector::DrawMinecartPalette() {
   }
   ImGui::PopID();
   return chosen;
+}
+
+void DungeonObjectSelector::DrawWorkbenchBrowser() {
+  gui::AutoWidgetScope scope("Dungeon/ObjectBrowser");
+  SynchronizeCustomObjectGeneration();
+  constexpr const char* categories[] = {
+      "All objects", "Walls", "Floors", "Decorations", "Interactive",
+      "Stairs",      "Doors", "Chests", "Special",     "Custom assets"};
+  workbench::DrawDungeonBrowserControls(browser_state_, categories);
+  if (browser_state_.category == 9) {
+    if (!core::FeatureFlags::get().kEnableCustomObjects) {
+      ImGui::TextDisabled("Custom objects are disabled");
+      return;
+    }
+    struct Asset {
+      int id;
+      int slot;
+      std::string name;
+    };
+    std::vector<Asset> assets;
+    for (int id : zelda3::CustomObjectManager::RuntimeObjectIds()) {
+      const int count =
+          std::min(zelda3::CustomObjectManager::Get().GetSubtypeCount(id),
+                   kPersistedCustomSubtypeSlots);
+      for (int slot = 0; slot < count; ++slot) {
+        const std::string name = GetDungeonCustomObjectSlotName(id, slot);
+        const std::string key = absl::StrFormat("%02X:%02X", id, slot);
+        if (workbench::DungeonBrowserMatches(browser_state_.search, id, name) ||
+            workbench::DungeonBrowserFold(key).find(
+                workbench::DungeonBrowserFold(browser_state_.search)) !=
+                std::string::npos)
+          assets.push_back({id, slot, name});
+      }
+    }
+    if (browser_state_.sort == 1)
+      std::stable_sort(assets.begin(), assets.end(),
+                       [](const Asset& a, const Asset& b) {
+                         return workbench::DungeonBrowserFold(a.name) <
+                                workbench::DungeonBrowserFold(b.name);
+                       });
+    if (ImGui::BeginChild("##CustomLibrary", ImVec2(0, 0), false)) {
+      for (const auto& asset : assets) {
+        ImGui::PushID(asset.id * 1000 + asset.slot);
+        const auto status = GetCustomObjectAssetStatus(asset.id, asset.slot);
+        ImGui::BeginDisabled(!status.ok());
+        const bool picked = workbench::DrawDungeonBrowserRow(
+            asset.id, asset.name,
+            selected_object_id_ == asset.id &&
+                preview_object_.size_ == asset.slot,
+            [&](ImVec2 pos, ImVec2 size) {
+              auto object = MakePreviewObject(asset.id);
+              object.size_ = zelda3::CanonicalRoomObjectSize(
+                  asset.id, static_cast<uint8_t>(asset.slot));
+              return DrawObjectPreview(object, pos, size);
+            },
+            absl::StrFormat("%02X:%02X", asset.id, asset.slot));
+        ImGui::EndDisabled();
+        if (!status.ok() &&
+            ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
+          ImGui::SetTooltip("%s", std::string(status.message()).c_str());
+        if (picked && status.ok())
+          SelectObject(asset.id, asset.slot);
+        DrawObjectContextMenu(asset.id, asset.slot);
+        if (status.ok())
+          gui::BeginRoomObjectDragSource(
+              static_cast<uint16_t>(asset.id), current_room_id_, 0, 0,
+              zelda3::CanonicalRoomObjectSize(
+                  asset.id, static_cast<uint8_t>(asset.slot)));
+        ImGui::PopID();
+      }
+      if (assets.empty())
+        ImGui::TextDisabled("No matches");
+    }
+    ImGui::EndChild();
+    return;
+  }
+  std::vector<std::pair<int, std::string>> entries;
+  for (const auto range : {std::pair{0x000, 0x0F7}, std::pair{0x100, 0x13F},
+                           std::pair{0xF80, 0xFFF}}) {
+    for (int id = range.first; id <= range.second; ++id) {
+      if (core::FeatureFlags::get().kEnableCustomObjects &&
+          zelda3::CustomObjectManager::RuntimeSubtypeCountForObject(id) > 0)
+        continue;
+      if (browser_state_.category > 0) {
+        const auto category = zelda3::ObjectCategories::GetObjectCategory(id);
+        if (!category.ok() || *category != categories[browser_state_.category])
+          continue;
+      }
+      std::string name = zelda3::GetObjectName(id);
+      if (workbench::DungeonBrowserMatches(browser_state_.search, id, name))
+        entries.emplace_back(id, std::move(name));
+    }
+  }
+  if (browser_state_.sort == 1)
+    std::stable_sort(entries.begin(), entries.end(),
+                     [](const auto& a, const auto& b) {
+                       return workbench::DungeonBrowserFold(a.second) <
+                              workbench::DungeonBrowserFold(b.second);
+                     });
+  if (ImGui::BeginChild("##ObjectLibrary", ImVec2(0, 0), false)) {
+    for (const auto& [id, name] : entries) {
+      ImGui::PushID(id);
+      if (workbench::DrawDungeonBrowserRow(
+              id, name, selected_object_id_ == id,
+              [&, id = id](ImVec2 pos, ImVec2 size) {
+                return DrawObjectPreview(MakePreviewObject(id), pos, size);
+              }))
+        SelectObject(id);
+      gui::AutoRegisterLastItem("selectable",
+                                absl::StrFormat("place_object_%03X", id));
+      DrawObjectContextMenu(id);
+      gui::BeginRoomObjectDragSource(
+          static_cast<uint16_t>(id), current_room_id_, 0, 0,
+          zelda3::DefaultRoomObjectSizeForPlacement(id));
+      ImGui::PopID();
+    }
+    if (entries.empty())
+      ImGui::TextDisabled("No matches");
+  }
+  ImGui::EndChild();
 }
 
 void DungeonObjectSelector::DrawObjectAssetBrowser(float minimum_grid_height) {
@@ -687,7 +810,7 @@ void DungeonObjectSelector::DrawObjectAssetBrowser(float minimum_grid_height) {
           draw_list->AddRect(
               button_pos,
               ImVec2(button_pos.x + item_size, button_pos.y + item_size),
-              border_color, 2.0f, 0, is_selected ? 2.0f : 1.0f);
+              border_color, 2.0f, is_selected ? 2.0f : 1.0f);
         }
 
         // Compact routine symbology badge — top-right corner overlay, drawn
@@ -1497,7 +1620,7 @@ void DungeonObjectSelector::DrawCustomObjectAssetBrowser() {
           draw_list->AddRect(
               button_pos,
               ImVec2(button_pos.x + item_size, button_pos.y + item_size),
-              border_color, 2.0f, 0, is_selected ? 2.0f : 1.0f);
+              border_color, 2.0f, is_selected ? 2.0f : 1.0f);
         }
 
         if (item_visible && show_id) {

@@ -91,6 +91,9 @@ std::string FileDialogWrapper::ShowOpenFolderDialog() {
 
 std::string FileDialogWrapper::ShowSaveFileDialog(
     const std::string& default_name, const std::string& default_extension) {
+  if (auto result = ConsumeSaveFileDialogResultForTesting()) {
+    return *result;
+  }
   if (NFD_Init() != NFD_OKAY) {
     return "";
   }

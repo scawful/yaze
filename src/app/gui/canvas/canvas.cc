@@ -16,6 +16,7 @@
 #include "app/gui/canvas/canvas_automation_api.h"
 #include "app/gui/canvas/canvas_extensions.h"
 #include "app/gui/canvas/canvas_utils.h"
+#include "app/gui/core/draw_sampling.h"
 #include "app/gui/core/layout_helpers.h"
 #include "app/gui/core/style.h"
 #include "imgui/imgui.h"
@@ -1094,6 +1095,7 @@ bool Canvas::DrawTilePainter(const Bitmap& bitmap, int size, float scale) {
   points_.push_back(paint_pos_end);
 
   if (bitmap.is_active()) {
+    ScopedNearestSampling nearest_sampling(draw_list_);
     draw_list_->AddImage((ImTextureID)(intptr_t)bitmap.texture(),
                          ImVec2(origin.x + paint_pos.x, origin.y + paint_pos.y),
                          ImVec2(origin.x + paint_pos.x + scaled_size,
@@ -1338,6 +1340,7 @@ void Canvas::DrawBitmap(Bitmap& bitmap, ImVec2 dest_pos, ImVec2 dest_size,
 
 // TODO: Add parameters for sizing and positioning
 void Canvas::DrawBitmapTable(const BitmapTable& gfx_bin) {
+  ScopedNearestSampling nearest_sampling(draw_list_);
   for (const auto& [key, value] : gfx_bin) {
     // Skip null or inactive bitmaps without valid textures
     if (!value || !value->is_active() || !value->texture()) {
@@ -1430,6 +1433,9 @@ void Canvas::DrawBitmapGroup(std::vector<int>& group, gfx::Tilemap& tilemap,
   int tiles_per_row = rect_width / tile_size;
   int tiles_per_col = rect_height / tile_size;
 
+  // The rest of this function draws only these atlas tiles, so the scope can
+  // end with the function. The tiles share a texture and stay in one command.
+  ScopedNearestSampling nearest_sampling(draw_list_);
   int i = 0;
   for (int y = 0; y < tiles_per_col + 1; ++y) {
     for (int x = 0; x < tiles_per_row + 1; ++x) {

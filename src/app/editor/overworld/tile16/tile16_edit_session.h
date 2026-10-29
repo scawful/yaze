@@ -4,13 +4,17 @@
 #include <algorithm>
 #include <array>
 #include <chrono>
+#include <cstdint>
 #include <functional>
 #include <map>
+#include <memory>
 #include <optional>
+#include <string>
 #include <utility>
 #include <vector>
 
 #include "absl/status/status.h"
+#include "absl/status/statusor.h"
 #include "app/editor/core/undo_manager.h"
 #include "app/editor/overworld/tile16/tile16_edit_types.h"
 #include "app/gfx/core/bitmap.h"
@@ -54,7 +58,23 @@ class Tile16EditSession {
     before_edit_ = std::move(before_edit);
   }
   bool has_shared_history() const { return history_ != &undo_manager_; }
-  absl::Status ReplaceCurrentTile(const gfx::Tile16& data);
+  // Edits passing the same non-zero group merge into one Undo step while that
+  // step is still the newest history entry. Allocate one group per user
+  // interaction (for example, one property dialog session).
+  uint64_t NewEditGroup() { return ++last_edit_group_; }
+  absl::Status ReplaceCurrentTile(const gfx::Tile16& data,
+                                  uint64_t edit_group = 0);
+
+  // Prepare an unapplied action for an owning command. Validates the complete
+  // batch without changing definitions, pending edits, dirty state or history.
+  // Empty/no-op imports return nullptr. The session must outlive the action.
+  absl::StatusOr<std::unique_ptr<UndoAction>> PrepareDefinitionImport(
+      const std::vector<Tile16Commit>& definitions,
+      std::string description = "Import Tile16 definitions");
+  // Standalone import: apply the prepared batch and push one shared Undo step.
+  absl::Status ImportDefinitions(
+      const std::vector<Tile16Commit>& definitions,
+      std::string description = "Import Tile16 definitions");
 
   absl::Status LoadTile8();
   absl::Status SetCurrentTile(int id);
@@ -323,8 +343,11 @@ class Tile16EditSession {
   void CopyTile16ToAtlas(int tile_id);
 
  private:
-  absl::Status RunEdit(const std::function<absl::Status()>& operation);
+  absl::Status RunEdit(const std::function<absl::Status()>& operation,
+                       uint64_t edit_group = 0);
   absl::Status ApplyDefinitions(const std::vector<Tile16Commit>& definitions);
+  absl::Status ValidateDefinitionImport(
+      const std::vector<Tile16Commit>& definitions) const;
   absl::StatusOr<gfx::Tile16> ReadDocumentTile(int id) const;
   absl::Status PasteTile16FromClipboardImpl();
   absl::Status LoadTile16FromScratchSpaceImpl(int slot);
@@ -347,6 +370,7 @@ class Tile16EditSession {
   // Keep naturally aligned document/history data before small UI flags.
   std::vector<gfx::Tile16>* document_definitions_ = nullptr;
   UndoManager* history_ = &undo_manager_;
+  uint64_t last_edit_group_ = 0;
   Rom* rom_ = nullptr;
   zelda3::GameData* game_data_ = nullptr;
   std::chrono::steady_clock::time_point last_rom_write_time_{};

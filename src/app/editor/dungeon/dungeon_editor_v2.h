@@ -50,8 +50,11 @@ namespace editor {
 
 class CustomCollisionPanel;
 class DungeonEntrancesPanel;
+struct GraphicsEditContext;
 class DungeonEditorPaletteRefreshTestPeer;
 class DungeonEditorV2MinecartTrackTestPeer;
+class DungeonEditorV2MinecartNodeTestPeer;
+struct MinecartNodeBrush;
 class DungeonEditorV2ObjectTileEditorTestPeer;
 class DungeonEditorV2EntranceCameraTestPeer;
 class DungeonEditorEntrancePropertiesTestPeer;
@@ -351,6 +354,7 @@ class DungeonEditorV2 : public Editor {
   friend class DungeonConnectionEditsTestPeer;
   friend class DungeonRoomTransferTestPeer;
   friend class DungeonEditorV2MinecartTrackTestPeer;
+  friend class DungeonEditorV2MinecartNodeTestPeer;
   friend class DungeonEditorV2ObjectTileEditorTestPeer;
   friend class DungeonEditorV2EntranceCameraTestPeer;
   friend class DungeonEditorEntrancePropertiesTestPeer;
@@ -446,6 +450,14 @@ class DungeonEditorV2 : public Editor {
   absl::Status ApplyMinecartTrackEdit(const MinecartTrack& before,
                                       const MinecartTrack& after,
                                       bool move_cart);
+  absl::StatusOr<std::unique_ptr<UndoAction>> PairMinecartObjectCollision(
+      int room_id, const std::vector<zelda3::RoomObject>& before,
+      const std::vector<zelda3::RoomObject>& after,
+      std::unique_ptr<UndoAction> object_action);
+  absl::Status PreflightMinecartObjectCollision(
+      int room_id, const std::vector<zelda3::RoomObject>& objects) const;
+  absl::Status PlaceMinecartNode(int room_id, int tile_x, int tile_y,
+                                 const MinecartNodeBrush& brush);
   void SynchronizeCustomObjectAssets();
 
   // Show or create a standalone room panel
@@ -458,6 +470,10 @@ class DungeonEditorV2 : public Editor {
   void HandleObjectPlaced(const zelda3::RoomObject& obj);
   void OpenGraphicsEditorForObject(int room_id,
                                    const zelda3::RoomObject& object);
+  // Supplies the detached art-candidate preview and its source revision.
+  void ConfigureStagedGraphicsPreview(
+      GraphicsEditContext& context, int room_id,
+      std::function<absl::Status(GraphicsEditContext&)> resolve_live_source);
   absl::Status OpenObjectTileEditorForObject(int room_id,
                                              const zelda3::RoomObject& object);
 
@@ -611,8 +627,14 @@ class DungeonEditorV2 : public Editor {
     std::vector<zelda3::RoomObject> before_objects;
     std::vector<chest_data> before_chests;
     std::vector<size_t> before_selection;
+    zelda3::Room::SaveDirtySnapshot dirty_before;
   };
   PendingUndo pending_undo_;
+  // Ownership is deliberately session-local. Imported collision never becomes
+  // disposable merely because its value resembles a generated rail.
+  std::unordered_map<int, zelda3::MinecartTrackCollisionOwnership>
+      minecart_collision_ownership_;
+  uint64_t minecart_collision_generation_ = 0;
   bool has_pending_undo_ = false;
   bool undo_restore_triggered_ping_ = false;
 

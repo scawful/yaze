@@ -99,13 +99,20 @@ class EditorSet {
   int TotalDungeonRoomCount() const;
   std::vector<std::pair<uint32_t, uint32_t>> CollectDungeonWriteRanges() const;
   bool HasPendingGraphicsChanges() const;
+  bool HasPendingSpriteChanges() const;
   bool HasPendingScreenChanges() const;
   // Reset cached Screen Editor models only when that lazy editor already
   // exists. ROM replacement must not materialize an otherwise-unused editor.
   void InvalidateScreenRomBackedState();
   bool HasPendingProjectDraftChanges() const;
+  // Project drafts other than Planning, whose plan is a live reference rather
+  // than a build input.
+  bool HasPendingBuildProjectDraftChanges() const;
+  bool HasPendingPlanningProjectDraftChanges() const;
+  absl::Status SavePlanningProjectDraft();
   absl::Status PrepareProjectSave(bool publish_lyra = true);
   void ProjectSaveCommitted();
+  void DiscardPlanningProjectDraft();
   zelda3::Overworld* GetOverworldData() const;
 
   // Deprecated named accessors (legacy compatibility)
@@ -169,7 +176,13 @@ struct RomBaselineIdentity {
   std::string normalized_path;
   // Retained across our own saves, reset when loading/replacing ROM bytes.
   std::string editing_source_path;
+  // SHA-256 of the backing file bytes (copier header included) as loaded or
+  // last written by this session; empty when the ROM was already dirty.
+  std::string backing_sha256;
 };
+
+// SHA-256 of the bytes SaveToFile writes for this ROM, copier header included.
+std::string ComputeRomFileBytesSha256(const Rom& rom);
 
 /**
  * @struct RomSession
@@ -199,6 +212,10 @@ struct RomSession {
   // the session has not yet been bound to a project context and must not save.
   std::optional<project::YazeProject> project_context;
   bool project_dirty = false;
+  // A build-owned project Save persisted, but its native-save receipt is not
+  // yet published. The next Save retries completion without new edits.
+  bool native_save_completion_pending = false;
+  bool native_save_completion_save_as = false;
 
   // True when the gfx group tables (blocksets, spritesets, palettesets) in
   // game_data differ from the ROM buffer. Derived from the data, so every

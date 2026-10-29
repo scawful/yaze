@@ -175,6 +175,14 @@ bool DrawObjectSizeControls(const zelda3::RoomObject& object,
                                     "Selected custom object variant");
         }
       });
+      gui::LayoutHelpers::PropertyRow("Variant ID", [&]() {
+        int observed_variant = object.size_;
+        ImGui::InputInt("##SelectedObjectVariantValue", &observed_variant, 0, 0,
+                        ImGuiInputTextFlags_ReadOnly);
+        gui::AutoWidgetScope automation_scope("Dungeon/Workbench");
+        gui::AutoRegisterLastItem("input_int", "selected_object_variant_value",
+                                  "Current custom object variant");
+      });
     } else {
       const bool is_length = description.kind == ObjectSizeControlKind::kLength;
       gui::LayoutHelpers::PropertyRow(is_length ? "Length" : "Size", [&]() {

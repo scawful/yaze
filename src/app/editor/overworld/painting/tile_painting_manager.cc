@@ -2,8 +2,10 @@
 
 #include <algorithm>
 #include <cmath>
+#include <string>
 #include <vector>
 
+#include "absl/strings/str_format.h"
 #include "app/editor/overworld/painting/tile_brush_preview.h"
 #include "app/editor/overworld/tile16_editor.h"
 #include "app/gfx/resource/arena.h"
@@ -257,6 +259,83 @@ absl::Status TilePaintingManager::PaintPattern(const TileBrush& brush,
       *deps_.current_map = anchor_map;
     }
   }
+  RefreshChangedMaps(changed_maps);
+  return absl::OkStatus();
+}
+
+absl::StatusOr<int> TilePaintingManager::ApplyGuardedCells(
+    int map_id, const std::vector<GuardedTileCell>& cells) {
+  if (map_id < 0 || map_id >= zelda3::kNumOverworldMaps) {
+    return absl::OutOfRangeError("Stencil map is outside the ROM map model");
+  }
+  if (map_id / 0x40 != *deps_.current_world) {
+    return absl::FailedPreconditionError(
+        "Stencil map is not in the displayed world");
+  }
+  if (cells.empty()) {
+    return absl::InvalidArgumentError("Stencil has no cells");
+  }
+  const int origin_x = (map_id % 0x40) % 8 * kTilesPerMap;
+  const int origin_y = (map_id % 0x40) / 8 * kTilesPerMap;
+  std::vector<bool> seen(kTilesPerMap * kTilesPerMap, false);
+  int mismatches = 0;
+  std::string first_mismatch;
+  for (const auto& cell : cells) {
+    if (cell.x < 0 || cell.x >= kTilesPerMap || cell.y < 0 ||
+        cell.y >= kTilesPerMap) {
+      return absl::InvalidArgumentError(absl::StrFormat(
+          "Stencil cell (%d,%d) is outside the map", cell.x, cell.y));
+    }
+    if (cell.proposed >= zelda3::kNumTile16Individual) {
+      return absl::InvalidArgumentError(
+          absl::StrFormat("Stencil cell (%d,%d) proposes invalid Tile16 0x%X",
+                          cell.x, cell.y, cell.proposed));
+    }
+    const int index = cell.y * kTilesPerMap + cell.x;
+    if (seen[index]) {
+      return absl::InvalidArgumentError(
+          absl::StrFormat("Stencil repeats cell (%d,%d)", cell.x, cell.y));
+    }
+    seen[index] = true;
+    const TilePosition position{origin_x + cell.x, origin_y + cell.y};
+    if (IsProjectTile(position)) {
+      return absl::FailedPreconditionError(
+          "Stencil cells must be ROM map tiles, not project terrain");
+    }
+    const auto current = ReadTile(position);
+    if (!current.ok()) {
+      return current.status();
+    }
+    if (*current != cell.expected && mismatches++ == 0) {
+      first_mismatch = absl::StrFormat("(%d,%d) expected 0x%03X, found 0x%03X",
+                                       cell.x, cell.y, cell.expected, *current);
+    }
+  }
+  if (mismatches > 0) {
+    return absl::FailedPreconditionError(
+        absl::StrFormat("Stencil guard failed at %d cell(s); first %s",
+                        mismatches, first_mismatch));
+  }
+
+  FinalizePendingPaint();
+  ChangedMaps changed_maps{};
+  int changed = 0;
+  for (const auto& cell : cells) {
+    if (PaintTile({origin_x + cell.x, origin_y + cell.y}, cell.proposed,
+                  changed_maps)) {
+      ++changed;
+    }
+  }
+  if (changed == 0) {
+    return 0;
+  }
+  deps_.rom->set_dirty(true);
+  callbacks_.finalize_paint_operation();
+  RefreshChangedMaps(changed_maps);
+  return changed;
+}
+
+void TilePaintingManager::RefreshChangedMaps(const ChangedMaps& changed_maps) {
   for (int map = 0; map < zelda3::kNumOverworldMaps; ++map) {
     if (changed_maps[map]) {
       if ((*deps_.maps_bmp)[map].is_active()) {
@@ -266,7 +345,6 @@ absl::Status TilePaintingManager::PaintPattern(const TileBrush& brush,
       callbacks_.refresh_overworld_map_on_demand(map);
     }
   }
-  return absl::OkStatus();
 }
 
 bool TilePaintingManager::PaintTile(TilePosition position, int tile_id,

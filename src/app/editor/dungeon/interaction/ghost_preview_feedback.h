@@ -93,7 +93,7 @@ inline void DrawPlacementCapacityBadge(ImDrawList* draw_list,
       ImGui::GetColorU32(ImVec4(accent.x, accent.y, accent.z, 0.18f)), 5.0f);
   draw_list->AddRect(
       badge_min, badge_max,
-      ImGui::GetColorU32(ImVec4(accent.x, accent.y, accent.z, 0.92f)), 5.0f, 0,
+      ImGui::GetColorU32(ImVec4(accent.x, accent.y, accent.z, 0.92f)), 5.0f,
       2.0f);
   draw_list->AddText(ImVec2(badge_min.x + 7.0f, badge_min.y + 4.0f),
                      ImGui::GetColorU32(theme.text_primary),

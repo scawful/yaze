@@ -17,6 +17,10 @@ namespace util {
  */
 class PlatformPaths {
  public:
+  // Resolves the running native executable, independent of the working
+  // directory or PATH. Used to bind file receipts to the actual producer.
+  static absl::StatusOr<std::filesystem::path> GetExecutablePath();
+
   /**
    * @brief Get the user's home directory in a cross-platform way
    *

@@ -10,9 +10,6 @@
 #include "absl/time/time.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/ui_helpers.h"
-#ifdef Z3ED_AI
-#include "cli/service/rom/rom_sandbox_manager.h"
-#endif
 #include "imgui/imgui.h"
 
 // Policy evaluation support (optional, only in main yaze build)
@@ -43,6 +40,13 @@ void ProposalDrawer::DrawContent() {
   }
   ImGui::SameLine();
   DrawStatusFilter();
+  if (!action_status_.ok()) {
+    ImGui::PushStyleColor(ImGuiCol_Text, gui::GetErrorColor());
+    ImGui::TextWrapped("%s", std::string(action_status_.message()).c_str());
+    ImGui::PopStyleColor();
+  } else if (!action_feedback_.empty()) {
+    ImGui::TextWrapped("%s", tr(action_feedback_.c_str()));
+  }
 
   ImGui::Separator();
 
@@ -64,117 +68,90 @@ void ProposalDrawer::DrawContent() {
     DrawProposalDetail();
     ImGui::EndChild();
   }
+  DrawConfirmationDialog();
 }
 
 void ProposalDrawer::Draw() {
   if (!visible_)
     return;
 
-  // Set drawer position on the right side
   ImGuiIO& io = ImGui::GetIO();
   ImGui::SetNextWindowPos(ImVec2(io.DisplaySize.x - drawer_width_, 0),
                           ImGuiCond_Always);
   ImGui::SetNextWindowSize(ImVec2(drawer_width_, io.DisplaySize.y),
                            ImGuiCond_Always);
-
-  ImGuiWindowFlags flags = ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize |
-                           ImGuiWindowFlags_NoCollapse;
-
+  const ImGuiWindowFlags flags = ImGuiWindowFlags_NoMove |
+                                 ImGuiWindowFlags_NoResize |
+                                 ImGuiWindowFlags_NoCollapse;
   if (ImGui::Begin("Agent Proposals", &visible_, flags)) {
-    if (needs_refresh_) {
-      RefreshProposals();
-      needs_refresh_ = false;
-      if (!selected_proposal_id_.empty() && !selected_proposal_) {
-        SelectProposal(selected_proposal_id_);
-      }
-    }
-
-    // Header with refresh button
-    if (ImGui::Button(ICON_MD_REFRESH " Refresh")) {
-      RefreshProposals();
-    }
-    ImGui::SameLine();
-    DrawStatusFilter();
-
-    ImGui::Separator();
-
-    // Split view: proposal list on top, details on bottom
-    float list_height = ImGui::GetContentRegionAvail().y * 0.4f;
-
-    ImGui::BeginChild("ProposalList", ImVec2(0, list_height), true);
-    DrawProposalList();
-    ImGui::EndChild();
-
-    if (selected_proposal_) {
-      ImGui::Separator();
-      ImGui::BeginChild("ProposalDetail", ImVec2(0, 0), true);
-      DrawProposalDetail();
-      ImGui::EndChild();
-    }
+    DrawContent();
   }
   ImGui::End();
+}
 
-  // Confirmation dialog
+void ProposalDrawer::SetRom(Rom* rom) {
+  if (rom_ == rom)
+    return;
+  rom_ = rom;
+  InvalidateRomContext();
+}
+
+void ProposalDrawer::InvalidateRomContext() {
+  CancelPendingAction();
+  selected_proposal_id_.clear();
+  selected_proposal_ = nullptr;
+  diff_content_.clear();
+  log_content_.clear();
+  action_status_ = absl::OkStatus();
+  action_feedback_.clear();
+  needs_refresh_ = true;
+}
+
+void ProposalDrawer::CancelPendingAction() {
+  show_confirm_dialog_ = false;
+  confirm_action_.clear();
+  confirm_proposal_id_.clear();
+}
+
+void ProposalDrawer::DrawConfirmationDialog() {
   if (show_confirm_dialog_) {
-    ImGui::OpenPopup("Confirm Action");
+    ImGui::OpenPopup("Confirm Proposal Action");
     show_confirm_dialog_ = false;
   }
-
-  if (ImGui::BeginPopupModal("Confirm Action", nullptr,
-                             ImGuiWindowFlags_AlwaysAutoResize)) {
-    ImGui::Text(tr("Are you sure you want to %s this proposal?"),
-                confirm_action_.c_str());
-    ImGui::Separator();
-
-    if (ImGui::Button(tr("Yes"), ImVec2(120, 0))) {
-      if (confirm_action_ == "accept") {
-        AcceptProposal(confirm_proposal_id_);
-      } else if (confirm_action_ == "reject") {
-        RejectProposal(confirm_proposal_id_);
-      } else if (confirm_action_ == "delete") {
-        DeleteProposal(confirm_proposal_id_);
-      }
-      ImGui::CloseCurrentPopup();
-      RefreshProposals();
-    }
-    ImGui::SameLine();
-    if (ImGui::Button(tr("No"), ImVec2(120, 0))) {
-      ImGui::CloseCurrentPopup();
-    }
+  if (!ImGui::BeginPopupModal("Confirm Proposal Action", nullptr,
+                              ImGuiWindowFlags_AlwaysAutoResize)) {
+    return;
+  }
+  if (confirm_action_.empty() || confirm_proposal_id_.empty()) {
+    ImGui::CloseCurrentPopup();
     ImGui::EndPopup();
+    return;
   }
 
-#ifdef YAZE_ENABLE_POLICY_FRAMEWORK
-  // Policy override dialog (NEW)
-  if (show_override_dialog_) {
-    ImGui::OpenPopup("Override Policy");
-    show_override_dialog_ = false;
-  }
-
-  if (ImGui::BeginPopupModal("Override Policy", nullptr,
-                             ImGuiWindowFlags_AlwaysAutoResize)) {
-    ImGui::TextColored(gui::GetWarningColor(),
-                       ICON_MD_WARNING " Policy Override Required");
-    ImGui::Separator();
-    ImGui::TextWrapped(tr("This proposal has policy warnings."));
-    ImGui::TextWrapped(tr("Do you want to override and accept anyway?"));
-    ImGui::Spacing();
-    ImGui::TextColored(gui::GetWarningColor(),
-                       tr("Note: This action will be logged."));
-    ImGui::Separator();
-
-    if (ImGui::Button(tr("Override and Accept"), ImVec2(150, 0))) {
-      confirm_action_ = "accept";
-      show_confirm_dialog_ = true;
-      ImGui::CloseCurrentPopup();
+  ImGui::Text(tr("Are you sure you want to %s this proposal?"),
+              confirm_action_.c_str());
+  ImGui::Separator();
+  if (ImGui::Button(tr("Yes"), ImVec2(120, 0))) {
+    if (confirm_action_ == "reject") {
+      action_status_ = RejectProposal(confirm_proposal_id_);
+      action_feedback_ = "Proposal rejected.";
+    } else if (confirm_action_ == "delete") {
+      action_status_ = DeleteProposal(confirm_proposal_id_);
+      action_feedback_ = "Proposal deleted.";
+    } else {
+      action_status_ = AcceptProposal(confirm_proposal_id_);
+      action_feedback_.clear();
     }
-    ImGui::SameLine();
-    if (ImGui::Button(tr("Cancel"), ImVec2(150, 0))) {
-      ImGui::CloseCurrentPopup();
-    }
-    ImGui::EndPopup();
+    CancelPendingAction();
+    ImGui::CloseCurrentPopup();
+    RefreshProposals();
   }
-#endif  // YAZE_ENABLE_POLICY_FRAMEWORK
+  ImGui::SameLine();
+  if (ImGui::Button(tr("No"), ImVec2(120, 0))) {
+    CancelPendingAction();
+    ImGui::CloseCurrentPopup();
+  }
+  ImGui::EndPopup();
 }
 
 void ProposalDrawer::DrawProposalList() {
@@ -432,47 +409,10 @@ void ProposalDrawer::DrawActionButtons() {
   const auto& p = *selected_proposal_;
   bool is_pending = p.status == cli::ProposalRegistry::ProposalStatus::kPending;
 
-  // Evaluate policies to determine if Accept button should be enabled
-  bool can_accept = true;
-  bool needs_override = false;
-
-#ifdef YAZE_ENABLE_POLICY_FRAMEWORK
   if (is_pending) {
-    auto& policy_eval = cli::PolicyEvaluator::GetInstance();
-    if (policy_eval.IsEnabled()) {
-      auto policy_result = policy_eval.EvaluateProposal(p.id);
-      if (policy_result.ok()) {
-        const auto& result = policy_result.value();
-        can_accept = !result.has_critical_violations();
-        needs_override = result.can_accept_with_override();
-      }
-    }
-  }
-#endif  // YAZE_ENABLE_POLICY_FRAMEWORK
-
-  // Accept button (only for pending proposals, gated by policy)
-  if (is_pending) {
-    if (!can_accept) {
-      ImGui::BeginDisabled();
-    }
-
     if (ImGui::Button(ICON_MD_CHECK " Accept", ImVec2(-1, 0))) {
-      if (needs_override) {
-        // Show override confirmation dialog
-        show_override_dialog_ = true;
-        confirm_proposal_id_ = p.id;
-      } else {
-        // Proceed directly to accept confirmation
-        confirm_action_ = "accept";
-        confirm_proposal_id_ = p.id;
-        show_confirm_dialog_ = true;
-      }
-    }
-
-    if (!can_accept) {
-      ImGui::EndDisabled();
-      ImGui::SameLine();
-      ImGui::TextColored(gui::GetErrorColor(), tr("(Blocked by policy)"));
+      action_status_ = AcceptProposal(p.id);
+      action_feedback_.clear();
     }
 
     // Reject button (only for pending proposals)
@@ -518,24 +458,13 @@ void ProposalDrawer::RefreshProposals() {
       break;
   }
 
+  // Replacing the list invalidates pointers into the previous vector.
+  const std::string selected_id = selected_proposal_id_;
+  selected_proposal_ = nullptr;
   proposals_ = registry.ListProposals(filter);
-
-  // Clear selection if proposal no longer exists
-  if (!selected_proposal_id_.empty()) {
-    bool found = false;
-    for (const auto& p : proposals_) {
-      if (p.id == selected_proposal_id_) {
-        found = true;
-        break;
-      }
-    }
-    if (!found) {
-      selected_proposal_id_.clear();
-      selected_proposal_ = nullptr;
-      diff_content_.clear();
-      log_content_.clear();
-    }
-  }
+  SelectProposal(selected_id);
+  if (!selected_proposal_)
+    selected_proposal_id_.clear();
 #endif
 }
 
@@ -554,81 +483,10 @@ void ProposalDrawer::SelectProposal(const std::string& proposal_id) {
   }
 }
 
-absl::Status ProposalDrawer::AcceptProposal(const std::string& proposal_id) {
-#ifdef Z3ED_AI
-  auto& registry = cli::ProposalRegistry::Instance();
-
-  // Get proposal metadata to find sandbox
-  auto proposal_or = registry.GetProposal(proposal_id);
-  if (!proposal_or.ok()) {
-    return proposal_or.status();
-  }
-
-  const auto& proposal = *proposal_or;
-
-  // Check if ROM is available
-  if (!rom_) {
-    return absl::FailedPreconditionError(
-        "No ROM loaded. Cannot merge proposal changes.");
-  }
-
-  // Find sandbox ROM path using the sandbox_id from the proposal
-  auto& sandbox_mgr = cli::RomSandboxManager::Instance();
-  auto sandboxes = sandbox_mgr.ListSandboxes();
-
-  std::filesystem::path sandbox_rom_path;
-  for (const auto& sandbox : sandboxes) {
-    if (sandbox.id == proposal.sandbox_id) {
-      sandbox_rom_path = sandbox.rom_path;
-      break;
-    }
-  }
-
-  if (sandbox_rom_path.empty()) {
-    return absl::NotFoundError(
-        absl::StrFormat("Sandbox ROM not found for proposal %s (sandbox: %s)",
-                        proposal_id, proposal.sandbox_id));
-  }
-
-  // Verify sandbox ROM exists
-  std::error_code ec;
-  if (!std::filesystem::exists(sandbox_rom_path, ec)) {
-    return absl::NotFoundError(absl::StrFormat(
-        "Sandbox ROM file does not exist: %s", sandbox_rom_path.string()));
-  }
-
-  // Load sandbox ROM data
-  Rom sandbox_rom;
-  auto load_status = sandbox_rom.LoadFromFile(sandbox_rom_path.string());
-  if (!load_status.ok()) {
-    return absl::InternalError(absl::StrFormat("Failed to load sandbox ROM: %s",
-                                               load_status.message()));
-  }
-
-  // Merge sandbox ROM data into main ROM
-  // Copy the entire ROM data vector from sandbox to main ROM
-  const auto& sandbox_data = sandbox_rom.vector();
-  auto merge_status = rom_->WriteVector(0, sandbox_data);
-  if (!merge_status.ok()) {
-    return absl::InternalError(absl::StrFormat(
-        "Failed to merge sandbox ROM data: %s", merge_status.message()));
-  }
-
-  // Update proposal status
-  auto status = registry.UpdateStatus(
-      proposal_id, cli::ProposalRegistry::ProposalStatus::kAccepted);
-
-  if (status.ok()) {
-    // Mark ROM as dirty so save prompts appear
-    // Note: Rom tracks dirty state internally via Write operations
-    // The WriteVector call above already marked it as dirty
-  }
-
-  needs_refresh_ = true;
-  return status;
-#else
-  return absl::UnimplementedError("AI features disabled");
-#endif
+absl::Status ProposalDrawer::AcceptProposal(const std::string&) {
+  return absl::UnimplementedError(
+      "Proposal apply is unavailable. Preview the changes and apply them "
+      "through the normal editor.");
 }
 
 absl::Status ProposalDrawer::RejectProposal(const std::string& proposal_id) {

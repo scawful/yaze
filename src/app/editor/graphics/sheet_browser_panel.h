@@ -9,6 +9,7 @@
 
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
+#include "app/editor/graphics/catalog_tile_browser.h"
 #include "app/editor/graphics/graphics_editor_state.h"
 #include "app/editor/graphics/graphics_save_plan.h"
 #include "app/editor/graphics/sheet_png_transfer.h"
@@ -185,6 +186,7 @@ class SheetBrowserPanel : public WindowContent {
   void DrawPngTransfer(uint16_t sheet_id);
   absl::StatusOr<zelda3::SheetPalette> PngPalette(int sheet_id = -1);
   void SetPngStatus(std::string message, bool is_error);
+  CatalogTileBrowserState catalog_browser_;
   UndoManager* undo_manager_ = nullptr;
   int png_palette_mode_ =
       0;  // 0 gray, 1 explicit left, 2 sprite, 3 loaded slot

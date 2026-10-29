@@ -113,26 +113,8 @@ bool InputScalarLeft(const char* label, ImGuiDataType data_type, void* p_data,
       g.LastItemData.ID, label,
       g.LastItemData.StatusFlags | ImGuiItemStatusFlags_Inputable);
 
-  // Mouse wheel support
-  if (IsItemHovered() && g.IO.MouseWheel != 0.0f) {
-    float scroll_amount = g.IO.MouseWheel;
-    float scroll_speed = 0.25f;  // Adjust the scroll speed as needed
-
-    if (g.IO.KeyCtrl && p_step_fast)
-      scroll_amount *= *(const float*)p_step_fast;
-    else
-      scroll_amount *= *(const float*)p_step;
-
-    if (scroll_amount > 0.0f) {
-      scroll_amount *= scroll_speed;  // Adjust the scroll speed as needed
-      DataTypeApplyOp(data_type, '+', p_data, p_data, &scroll_amount);
-      value_changed = true;
-    } else if (scroll_amount < 0.0f) {
-      scroll_amount *= -scroll_speed;  // Adjust the scroll speed as needed
-      DataTypeApplyOp(data_type, '-', p_data, p_data, &scroll_amount);
-      value_changed = true;
-    }
-  }
+  // The mouse wheel is applied by the typed yaze::gui wrappers
+  // (ApplyHexMouseWheel), which know the value's type and range.
 
   // Step buttons
   if (!no_step) {
@@ -236,28 +218,8 @@ InputScalarResult InputScalarLeftEx(const char* label, ImGuiDataType data_type,
       g.LastItemData.ID, label,
       g.LastItemData.StatusFlags | ImGuiItemStatusFlags_Inputable);
 
-  // Mouse wheel support - immediate change
-  if (IsItemHovered() && g.IO.MouseWheel != 0.0f) {
-    float scroll_amount = g.IO.MouseWheel;
-    float scroll_speed = 0.25f;
-
-    if (g.IO.KeyCtrl && p_step_fast)
-      scroll_amount *= *(const float*)p_step_fast;
-    else
-      scroll_amount *= *(const float*)p_step;
-
-    if (scroll_amount > 0.0f) {
-      scroll_amount *= scroll_speed;
-      DataTypeApplyOp(data_type, '+', p_data, p_data, &scroll_amount);
-      result.changed = true;
-      result.immediate = true;
-    } else if (scroll_amount < 0.0f) {
-      scroll_amount *= -scroll_speed;
-      DataTypeApplyOp(data_type, '-', p_data, p_data, &scroll_amount);
-      result.changed = true;
-      result.immediate = true;
-    }
-  }
+  // The mouse wheel is applied by the typed yaze::gui wrappers
+  // (ApplyHexMouseWheel), which report it as an immediate change.
 
   // Step buttons - immediate change
   if (!no_step) {
@@ -351,8 +313,9 @@ void PrepareDeferredScalarStorage(ImGuiContext* context, int frame) {
   storage.last_frame = frame;
 }
 
-bool IsValueWheelAdjustmentAllowedForCurrentItem() {
-  if (!ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenBlockedByPopup)) {
+bool IsValueWheelAdjustmentAllowedForCurrentItem(
+    ImGuiHoveredFlags hover_flags = ImGuiHoveredFlags_AllowWhenBlockedByPopup) {
+  if (!ImGui::IsItemHovered(hover_flags)) {
     return false;
   }
 
@@ -362,8 +325,10 @@ bool IsValueWheelAdjustmentAllowedForCurrentItem() {
 }
 
 template <typename T>
-bool ApplyHexMouseWheel(T* data, T min_value, T max_value) {
-  if (!IsValueWheelAdjustmentAllowedForCurrentItem()) {
+bool ApplyHexMouseWheel(
+    T* data, T min_value, T max_value,
+    ImGuiHoveredFlags hover_flags = ImGuiHoveredFlags_AllowWhenBlockedByPopup) {
+  if (!IsValueWheelAdjustmentAllowedForCurrentItem(hover_flags)) {
     return false;
   }
 
@@ -388,6 +353,9 @@ bool ApplyHexMouseWheel(T* data, T min_value, T max_value) {
 
 const int kStepOneHex = 0x01;
 const int kStepFastHex = 0x0F;
+// ImGuiDataType_U64 reads its step through an 8-byte pointer.
+const uint64_t kStepOneHex64 = 0x01;
+const uint64_t kStepFastHex64 = 0x0F;
 
 bool InputScalarDeferred(const char* label, ImGuiDataType data_type, void* data,
                          const char* format, ImGuiInputTextFlags flags,
@@ -468,16 +436,21 @@ bool InputScalarDeferred(const char* label, ImGuiDataType data_type, void* data,
 }
 
 bool InputHex(const char* label, uint64_t* data) {
-  return ImGui::InputScalar(label, ImGuiDataType_U64, data, &kStepOneHex,
-                            &kStepFastHex, "%06X",
+  return ImGui::InputScalar(label, ImGuiDataType_U64, data, &kStepOneHex64,
+                            &kStepFastHex64, "%06llX",
                             ImGuiInputTextFlags_CharsHexadecimal);
 }
 
 bool InputHex(const char* label, int* data, int num_digits, float input_width) {
   const std::string format = "%0" + std::to_string(num_digits) + "X";
-  return ImGui::InputScalarLeft(label, ImGuiDataType_S32, data, &kStepOneHex,
-                                &kStepFastHex, format.c_str(), input_width,
-                                ImGuiInputTextFlags_CharsHexadecimal);
+  bool changed = ImGui::InputScalarLeft(
+      label, ImGuiDataType_S32, data, &kStepOneHex, &kStepFastHex,
+      format.c_str(), input_width, ImGuiInputTextFlags_CharsHexadecimal);
+  // Hex fields hold addresses and IDs; stepping below zero would wrap to
+  // FFFFFFFF.
+  bool wheel_changed =
+      ApplyHexMouseWheel<int>(data, 0, std::numeric_limits<int>::max());
+  return changed || wheel_changed;
 }
 
 bool InputHexShort(const char* label, uint32_t* data) {
@@ -535,6 +508,11 @@ InputHexResult InputHexByteEx(const char* label, uint8_t* data,
   auto result = ImGui::InputScalarLeftEx(
       label, ImGuiDataType_U8, data, &kStepOneHex, &kStepFastHex, "%02X",
       input_width, ImGuiInputTextFlags_CharsHexadecimal, no_step);
+  if (ApplyHexMouseWheel<uint8_t>(data, 0u, std::numeric_limits<uint8_t>::max(),
+                                  ImGuiHoveredFlags_None)) {
+    result.changed = true;
+    result.immediate = true;
+  }
   InputHexResult hex_result;
   hex_result.changed = result.changed;
   hex_result.immediate = result.immediate;
@@ -551,6 +529,11 @@ InputHexResult InputHexByteEx(const char* label, uint8_t* data,
   if (result.changed && *data > max_value) {
     *data = max_value;
   }
+  if (ApplyHexMouseWheel<uint8_t>(data, 0u, max_value,
+                                  ImGuiHoveredFlags_None)) {
+    result.changed = true;
+    result.immediate = true;
+  }
   InputHexResult hex_result;
   hex_result.changed = result.changed;
   hex_result.immediate = result.immediate;
@@ -563,6 +546,12 @@ InputHexResult InputHexWordEx(const char* label, uint16_t* data,
   auto result = ImGui::InputScalarLeftEx(
       label, ImGuiDataType_U16, data, &kStepOneHex, &kStepFastHex, "%04X",
       input_width, ImGuiInputTextFlags_CharsHexadecimal, no_step);
+  if (ApplyHexMouseWheel<uint16_t>(data, 0u,
+                                   std::numeric_limits<uint16_t>::max(),
+                                   ImGuiHoveredFlags_None)) {
+    result.changed = true;
+    result.immediate = true;
+  }
   InputHexResult hex_result;
   hex_result.changed = result.changed;
   hex_result.immediate = result.immediate;

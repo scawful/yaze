@@ -23,6 +23,10 @@
 #include "zelda3/gfx_sheet_inventory.h"
 #include "zelda3/overworld/overworld_map.h"
 
+namespace yaze::zelda3 {
+class Overworld;
+}
+
 namespace yaze::editor::usage_preview {
 
 /**
@@ -87,6 +91,7 @@ struct LiveRoomContext {
 };
 using LiveRoomContexts = std::map<int, LiveRoomContext>;
 using LiveRoomProvider = std::function<LiveRoomContexts()>;
+using LiveOverworldProvider = std::function<zelda3::Overworld*()>;
 std::string RoomContextLabel(const LiveRoomContext* live);
 
 struct RoomTileReference {
@@ -225,6 +230,12 @@ class Tile16UsagePreview {
  public:
   /// Loads overworld area `area` (graphics and palette) and the tile16 table.
   absl::Status Configure(Rom* rom, zelda3::GameData* game_data, int area);
+
+  // Copies the selected live map and unsaved Tile16 definitions. The renderer
+  // owns its copies, so preview overrides never mutate the source editor.
+  absl::Status ConfigureFromLive(const zelda3::OverworldMap& map,
+                                 const std::vector<gfx::Tile16>& definitions,
+                                 const zelda3::GameData* owner);
 
   /// Tile16s in the loaded area's blockset that use 8x8 tile `tile_index`
   /// (0-63) of `sheet`, in any of the slots the area loads it into.

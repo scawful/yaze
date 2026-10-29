@@ -1,5 +1,10 @@
 #include "app/editor/overworld/tile16/tile16_edit_session.h"
 
+#include <chrono>
+#include <filesystem>
+#include <string>
+
+#include "app/editor/graphics/usage_preview.h"
 #include "app/editor/overworld/overworld_undo_actions.h"
 #include "app/gfx/resource/arena.h"
 #include "gtest/gtest.h"
@@ -12,6 +17,16 @@ void ExpectDefinition(const gfx::Tile16& actual, const gfx::Tile16& expected) {
     EXPECT_EQ(gfx::TileInfoToShort(zelda3::Tile16QuadrantInfo(actual, q)),
               gfx::TileInfoToShort(zelda3::Tile16QuadrantInfo(expected, q)));
   }
+}
+
+gfx::Tile16 ReopenTile16(const std::filesystem::path& path, int id) {
+  Rom reopened;
+  Rom::LoadOptions options;
+  options.load_resource_labels = false;
+  EXPECT_TRUE(reopened.LoadFromFile(path.string(), options).ok());
+  auto tile = reopened.ReadTile16(id, zelda3::kTile16Ptr);
+  EXPECT_TRUE(tile.ok());
+  return tile.ok() ? *tile : gfx::Tile16{};
 }
 
 class Tile16DocumentHistoryTest : public testing::Test {
@@ -74,6 +89,36 @@ TEST_F(Tile16DocumentHistoryTest, EditsApplyToDocumentWithoutWritingRomBytes) {
 }
 
 TEST_F(Tile16DocumentHistoryTest,
+       GraphicsUsagePreviewFollowsUnsavedEditUndoRedo) {
+  zelda3::GameData data;
+  data.graphics_buffer.assign(223 * 4096, 1);
+  zelda3::OverworldMap map(0, &rom_, &data);
+  for (int slot = 0; slot < 8; ++slot)
+    *map.mutable_static_graphics(slot) = slot + 1;
+  std::vector<uint16_t> colors(256);
+  for (int i = 0; i < 256; ++i)
+    colors[i] = static_cast<uint16_t>((i / 16) * 31);
+  *map.mutable_current_palette() = gfx::SnesPalette(colors);
+  usage_preview::Tile16UsagePreview preview;
+  const auto rom_before = rom_.vector();
+  auto render = [&] {
+    EXPECT_TRUE(
+        preview.ConfigureFromLive(map, overworld_.tiles16(), &data).ok());
+    return preview.Render({}, {0}, 1, 1);
+  };
+  const auto before = render();
+  ASSERT_FALSE(before.empty());
+  ASSERT_TRUE(session_.ApplyPaletteToAll(6).ok());
+  const auto after = render();
+  EXPECT_GT(after.CountDifferentPixels(before), 0);
+  ASSERT_TRUE(history_.Undo().ok());
+  EXPECT_EQ(render().CountDifferentPixels(before), 0);
+  ASSERT_TRUE(history_.Redo().ok());
+  EXPECT_EQ(render().CountDifferentPixels(after), 0);
+  EXPECT_EQ(rom_.vector(), rom_before);
+}
+
+TEST_F(Tile16DocumentHistoryTest,
        SwitchingDefinitionsDoesNotRequireConfirmation) {
   ASSERT_TRUE(session_.ApplyPaletteToAll(6).ok());
   session_.RequestTileSwitch(1);
@@ -123,6 +168,130 @@ TEST_F(Tile16DocumentHistoryTest, FourDefinitionStampIsOneCompleteUndoStep) {
     ExpectDefinition(overworld_.tiles16()[id], after[id]);
 }
 
+TEST_F(Tile16DocumentHistoryTest, LargeDefinitionImportIsOneCompleteUndoStep) {
+  const auto before = overworld_.tiles16();
+  const auto rom_bytes = rom_.vector();
+  std::vector<Tile16Commit> imports;
+  for (int id = 1; id <= 68; ++id) {
+    auto definition = initial_;
+    definition.tile0_.id_ = id + 16;
+    definition.tile3_.palette_ = 5;
+    imports.push_back({id, definition});
+  }
+  ASSERT_TRUE(
+      session_.ImportDefinitions(imports, "Import boat definitions").ok());
+  EXPECT_EQ(history_.UndoStackSize(), 1u);
+  EXPECT_EQ(history_.GetUndoDescription(), "Import boat definitions");
+  EXPECT_EQ(published_, (std::vector<size_t>{68}));
+  EXPECT_EQ(boundaries_, 1);
+  EXPECT_TRUE(rom_.dirty());
+  for (const auto& edit : imports)
+    ExpectDefinition(overworld_.tiles16()[edit.tile_id], edit.tile_data);
+  ASSERT_TRUE(history_.Undo().ok());
+  for (const auto& edit : imports)
+    ExpectDefinition(overworld_.tiles16()[edit.tile_id], before[edit.tile_id]);
+  ASSERT_TRUE(history_.Redo().ok());
+  for (const auto& edit : imports)
+    ExpectDefinition(overworld_.tiles16()[edit.tile_id], edit.tile_data);
+  EXPECT_EQ(history_.UndoStackSize(), 1u);
+  EXPECT_EQ(rom_.vector(), rom_bytes);
+}
+
+TEST_F(Tile16DocumentHistoryTest,
+       InvalidDefinitionImportsPreserveDocumentHistoryAndPendingState) {
+  ASSERT_TRUE(session_.ApplyPaletteToAll(6).ok());
+  ASSERT_TRUE(history_.Undo().ok());
+  rom_.set_dirty(false);
+  const auto before = overworld_.tiles16();
+  const auto atlas_pixels = atlas_.vector();
+  const auto published = published_;
+  const int boundaries = boundaries_;
+  auto changed = initial_;
+  changed.tile0_.palette_ = 4;
+
+  EXPECT_FALSE(session_.ImportDefinitions({{1, changed}, {1, initial_}}).ok());
+  EXPECT_FALSE(session_
+                   .ImportDefinitions(
+                       {{1, changed}, {zelda3::kNumTile16Individual, changed}})
+                   .ok());
+  EXPECT_FALSE(session_.ImportDefinitions({{-1, changed}}).ok());
+  changed.tile0_.id_ = 1024;
+  EXPECT_FALSE(session_.ImportDefinitions({{1, initial_}, {2, changed}}).ok());
+
+  for (int id = 0; id < zelda3::kNumTile16Individual; ++id)
+    ExpectDefinition(overworld_.tiles16()[id], before[id]);
+  EXPECT_EQ(history_.UndoStackSize(), 0u);
+  EXPECT_EQ(history_.RedoStackSize(), 1u);
+  EXPECT_EQ(published_, published);
+  EXPECT_EQ(boundaries_, boundaries);
+  EXPECT_EQ(atlas_.vector(), atlas_pixels);
+  EXPECT_FALSE(rom_.dirty());
+  ExpectDefinition(session_.current_tile16_data(), initial_);
+}
+
+TEST_F(Tile16DocumentHistoryTest,
+       PreparedDefinitionImportLeavesApplicationAndHistoryToParticipant) {
+  const auto before = overworld_.tiles16();
+  const auto atlas_pixels = atlas_.vector();
+  auto changed = initial_;
+  changed.tile1_.palette_ = 4;
+  const std::vector<Tile16Commit> imports{{1, changed}, {2, changed}};
+  auto prepared = session_.PrepareDefinitionImport(imports, "Combined import");
+  ASSERT_TRUE(prepared.ok());
+  ASSERT_NE(*prepared, nullptr);
+  EXPECT_EQ((*prepared)->Description(), "Combined import");
+  for (int id : {0, 1, 2})
+    ExpectDefinition(overworld_.tiles16()[id], before[id]);
+  EXPECT_EQ(atlas_.vector(), atlas_pixels);
+  EXPECT_FALSE(rom_.dirty());
+  EXPECT_TRUE(published_.empty());
+  EXPECT_EQ(boundaries_, 0);
+  EXPECT_EQ(history_.UndoStackSize(), 0u);
+
+  ASSERT_TRUE((*prepared)->Redo().ok());
+  ExpectDefinition(overworld_.tiles16()[1], changed);
+  ExpectDefinition(overworld_.tiles16()[2], changed);
+  EXPECT_EQ(history_.UndoStackSize(), 0u);
+  EXPECT_EQ(boundaries_, 0);
+  ASSERT_TRUE((*prepared)->Undo().ok());
+  ExpectDefinition(overworld_.tiles16()[1], before[1]);
+  ExpectDefinition(overworld_.tiles16()[2], before[2]);
+  EXPECT_EQ(history_.UndoStackSize(), 0u);
+}
+
+TEST_F(Tile16DocumentHistoryTest,
+       PreparedDefinitionImportRefusesLostContextBeforeApplyingAnyTile) {
+  const auto before = overworld_.tiles16();
+  auto prepared =
+      session_.PrepareDefinitionImport({{1, initial_}, {2, initial_}});
+  ASSERT_TRUE(prepared.ok());
+  ASSERT_NE(*prepared, nullptr);
+  session_.SetRom(nullptr);
+  EXPECT_FALSE((*prepared)->Redo().ok());
+  session_.SetRom(&rom_);
+  for (int id : {0, 1, 2})
+    ExpectDefinition(overworld_.tiles16()[id], before[id]);
+  EXPECT_FALSE(rom_.dirty());
+  EXPECT_TRUE(published_.empty());
+  EXPECT_EQ(boundaries_, 0);
+  EXPECT_EQ(history_.UndoStackSize(), 0u);
+}
+
+TEST_F(Tile16DocumentHistoryTest,
+       EmptyAndNoOpDefinitionImportsDoNotPushHistoryOrFinalizePainting) {
+  auto empty = session_.PrepareDefinitionImport({});
+  ASSERT_TRUE(empty.ok());
+  EXPECT_EQ(*empty, nullptr);
+  auto unchanged = session_.PrepareDefinitionImport({{0, initial_}});
+  ASSERT_TRUE(unchanged.ok());
+  EXPECT_EQ(*unchanged, nullptr);
+  ASSERT_TRUE(session_.ImportDefinitions({{0, initial_}}).ok());
+  EXPECT_FALSE(rom_.dirty());
+  EXPECT_TRUE(published_.empty());
+  EXPECT_EQ(boundaries_, 0);
+  EXPECT_EQ(history_.UndoStackSize(), 0u);
+}
+
 TEST_F(Tile16DocumentHistoryTest,
        NoOpAndInvalidEditsPreserveRedoAndCleanState) {
   ASSERT_TRUE(session_.ApplyPaletteToAll(6).ok());
@@ -163,6 +332,111 @@ TEST_F(Tile16DocumentHistoryTest,
   ExpectDefinition(*saved, initial_);
   ASSERT_TRUE(history_.Redo().ok());
   EXPECT_EQ(overworld_.tiles16()[0].tile0_.palette_, 6);
+}
+
+TEST_F(Tile16DocumentHistoryTest,
+       SavedEditSurvivesReopenAndUndoAfterSaveRedirtiesDocument) {
+  const auto path =
+      std::filesystem::temp_directory_path() /
+      ("yaze_tile16_reopen_" +
+       std::to_string(
+           std::chrono::steady_clock::now().time_since_epoch().count()) +
+       ".sfc");
+  Rom::SaveSettings settings;
+  settings.filename = path.string();
+  auto edited = initial_;
+  edited.tile2_.palette_ = 5;
+  edited.tile2_.horizontal_mirror_ = true;
+  ASSERT_TRUE(session_.ReplaceCurrentTile(edited).ok());
+  ASSERT_TRUE(rom_.dirty());
+
+  ASSERT_TRUE(overworld_.SaveMap16Tiles().ok());
+  ASSERT_TRUE(rom_.SaveToFile(settings).ok());
+  EXPECT_FALSE(rom_.dirty());
+  ExpectDefinition(ReopenTile16(path, 0), edited);
+
+  // Undo after Save must re-dirty the document so close/save prompts again,
+  // and must not touch the saved file until the next Save.
+  ASSERT_TRUE(history_.Undo().ok());
+  EXPECT_TRUE(rom_.dirty());
+  ExpectDefinition(overworld_.tiles16()[0], initial_);
+  ExpectDefinition(ReopenTile16(path, 0), edited);
+
+  ASSERT_TRUE(overworld_.SaveMap16Tiles().ok());
+  ASSERT_TRUE(rom_.SaveToFile(settings).ok());
+  ExpectDefinition(ReopenTile16(path, 0), initial_);
+
+  ASSERT_TRUE(history_.Redo().ok());
+  EXPECT_TRUE(rom_.dirty());
+  ExpectDefinition(overworld_.tiles16()[0], edited);
+  std::error_code ec;
+  std::filesystem::remove(path, ec);
+}
+
+TEST_F(Tile16DocumentHistoryTest, GroupedPropertyEditsAreOneSharedUndoStep) {
+  const auto before = overworld_.tiles16();
+  const auto rom_bytes = rom_.vector();
+  const uint64_t group = session_.NewEditGroup();
+  auto edited = initial_;
+  for (int palette = 2; palette <= 7; ++palette) {
+    edited.tile1_.palette_ = palette;
+    ASSERT_TRUE(session_.ReplaceCurrentTile(edited, group).ok());
+  }
+  edited.tile3_.id_ = 9;
+  ASSERT_TRUE(session_.ReplaceCurrentTile(edited, group).ok());
+  EXPECT_EQ(history_.UndoStackSize(), 1u);
+  EXPECT_EQ(boundaries_, 7);
+  EXPECT_TRUE(rom_.dirty());
+  ExpectDefinition(overworld_.tiles16()[0], edited);
+
+  ASSERT_TRUE(history_.Undo().ok());
+  EXPECT_FALSE(history_.CanUndo());
+  for (int id = 0; id < zelda3::kNumTile16Individual; ++id)
+    ExpectDefinition(overworld_.tiles16()[id], before[id]);
+  ExpectDefinition(session_.current_tile16_data(), initial_);
+
+  ASSERT_TRUE(history_.Redo().ok());
+  ExpectDefinition(overworld_.tiles16()[0], edited);
+  ExpectDefinition(session_.current_tile16_data(), edited);
+  EXPECT_EQ(rom_.vector(), rom_bytes);
+}
+
+TEST_F(Tile16DocumentHistoryTest, EditGroupsMergeOnlyWhileNewestHistoryStep) {
+  const uint64_t group = session_.NewEditGroup();
+  auto edited = initial_;
+  edited.tile0_.palette_ = 2;
+  ASSERT_TRUE(session_.ReplaceCurrentTile(edited, group).ok());
+  auto& map = overworld_.GetMapTiles(0);
+  map[1][1] = 5;
+  history_.Push(std::make_unique<OverworldTilePaintAction>(
+      0, 0, std::vector<OverworldTileChange>{{1, 1, 0, 5}}, &overworld_,
+      std::function<void()>{}));
+  edited.tile0_.palette_ = 3;
+  ASSERT_TRUE(session_.ReplaceCurrentTile(edited, group).ok());
+  edited.tile0_.palette_ = 4;
+  ASSERT_TRUE(session_.ReplaceCurrentTile(edited).ok());
+  edited.tile0_.palette_ = 5;
+  ASSERT_TRUE(session_.ReplaceCurrentTile(edited, group).ok());
+  edited.tile0_.palette_ = 6;
+  ASSERT_TRUE(
+      session_.ReplaceCurrentTile(edited, session_.NewEditGroup()).ok());
+  ASSERT_EQ(history_.UndoStackSize(), 6u);
+
+  for (int expected : {5, 4, 3, 2}) {
+    ASSERT_TRUE(history_.Undo().ok());
+    EXPECT_EQ(overworld_.tiles16()[0].tile0_.palette_, expected);
+  }
+  EXPECT_EQ(map[1][1], 5);
+  ASSERT_TRUE(history_.Undo().ok());
+  EXPECT_EQ(map[1][1], 0);
+  ASSERT_TRUE(history_.Undo().ok());
+  ExpectDefinition(overworld_.tiles16()[0], initial_);
+
+  // A grouped edit after Undo starts a new step instead of reviving Redo.
+  edited.tile0_.palette_ = 7;
+  ASSERT_TRUE(session_.ReplaceCurrentTile(edited, group).ok());
+  EXPECT_FALSE(history_.CanRedo());
+  EXPECT_EQ(history_.UndoStackSize(), 1u);
 }
 
 TEST_F(Tile16DocumentHistoryTest, EdgeClippedStampHasCompleteUndo) {
@@ -226,7 +500,7 @@ TEST_F(Tile16DocumentHistoryTest, ManualPropertiesPasteAndScratchAreUndoable) {
   ExpectDefinition(overworld_.tiles16()[0], initial_);
 }
 TEST_F(Tile16DocumentHistoryTest, StampHoverPreviewMatchesEveryPublishedTile) {
-  for (int size : {1, 2, 4}) {
+  for (int size : {1, 2, 3, 4}) {
     for (int flips = 0; flips < 4; ++flips) {
       SCOPED_TRACE(size);
       SCOPED_TRACE(flips);
@@ -241,7 +515,15 @@ TEST_F(Tile16DocumentHistoryTest, StampHoverPreviewMatchesEveryPublishedTile) {
       const bool dirty = rom_.dirty();
       gfx::Bitmap preview;
       ASSERT_TRUE(session_.BuildStampPreview({8, 8}, &preview).ok());
-      EXPECT_EQ(preview.width(), size == 4 ? 32 : 16);
+      const bool single_tile_stamp = size == 1 || size == 2;
+      const int expected_extent = single_tile_stamp ? 16 : 32;
+      EXPECT_EQ(preview.width(), expected_extent);
+      EXPECT_EQ(preview.height(), expected_extent);
+      if (size == 3) {
+        ASSERT_EQ(preview.width(), 32);
+        ASSERT_EQ(preview.height(), 32);
+        ASSERT_EQ(preview.vector().size(), 1024u);
+      }
       EXPECT_EQ(history_.UndoStackSize(), history_size);
       EXPECT_EQ(boundaries_, boundaries);
       EXPECT_EQ(rom_.dirty(), dirty);
@@ -249,7 +531,7 @@ TEST_F(Tile16DocumentHistoryTest, StampHoverPreviewMatchesEveryPublishedTile) {
         ExpectDefinition(overworld_.tiles16()[id], before[id]);
       }
       ASSERT_TRUE(session_.DrawToCurrentTile16({8, 8}).ok());
-      const int columns = size == 4 ? 2 : 1;
+      const int columns = single_tile_stamp ? 1 : 2;
       for (int y = 0; y < columns; ++y) {
         for (int x = 0; x < columns; ++x) {
           gfx::Bitmap committed;

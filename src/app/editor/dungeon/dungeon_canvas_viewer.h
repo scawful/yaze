@@ -234,6 +234,8 @@ enum class ObjectRenderMode {
 };
 
 class DungeonCanvasViewer {
+  friend class MinecartPaletteWorkflowTestPeer;
+
  public:
   explicit DungeonCanvasViewer(Rom* rom = nullptr)
       : rom_(rom), object_interaction_(&canvas_) {
@@ -293,6 +295,10 @@ class DungeonCanvasViewer {
 
   void DrawDungeonCanvas(int room_id);
   std::optional<int> DrawConnectedRoomMatrix(int center_room_id);
+  // Read-only direct-neighbor thumbnails within the caller's spare height,
+  // including captions. Does not change the room view; clicks use normal room
+  // navigation after drawing. Empty connections consume no layout space.
+  void DrawNearbyRoomPreviews(int room_id, float height);
   // Read-only proposal preview: overlay.rooms rendered left to right with the
   // visible layers drawn on top. Never edits room data.
   void DrawProposalPreview(const DungeonProposalOverlay& overlay,
@@ -302,7 +308,11 @@ class DungeonCanvasViewer {
                                        float scale) const;
   void DrawConnectedToolbarControls(int center_room_id);
   void Draw(int room_id);
-  void CancelMinecartGesture() { minecart_canvas_tool_.Cancel(); }
+  void CancelMinecartGesture() {
+    minecart_canvas_tool_.Cancel();
+    minecart_collision_tool_.Cancel();
+  }
+  void CancelMinecartNodeDrag();
   void TriggerChangePing();
   using MetadataEditCallback =
       std::function<absl::Status(int, const RoomMetadataEdit&)>;
@@ -381,6 +391,8 @@ class DungeonCanvasViewer {
   absl::Status EditChest(int room_id, size_t index, uint8_t item_id,
                          bool big_chest);
   absl::Status DeleteChest(int room_id, size_t index);
+  absl::Status OpenChestEditor(int room_id, size_t index);
+  void DrawChestEditorPopup();
   DungeonChestEditorState& chest_editor_state() { return chest_editor_state_; }
   void InvalidateConnectedRoomGraph() {
     connected_graph_cache_start_room_id_ = -1;
@@ -713,6 +725,8 @@ class DungeonCanvasViewer {
 
   // Enable/disable object interaction mode
   void SetObjectInteractionEnabled(bool enabled) {
+    if (object_interaction_enabled_ && !enabled)
+      CancelMinecartNodeDrag();
     object_interaction_enabled_ = enabled;
   }
   bool IsObjectInteractionEnabled() const {
@@ -721,7 +735,11 @@ class DungeonCanvasViewer {
 
   // Make the room header controls non-interactive while retaining centered
   // canvas zoom (useful for split/compare views).
-  void SetHeaderReadOnly(bool read_only) { header_read_only_ = read_only; }
+  void SetHeaderReadOnly(bool read_only) {
+    if (!header_read_only_ && read_only)
+      CancelMinecartNodeDrag();
+    header_read_only_ = read_only;
+  }
   bool header_read_only() const { return header_read_only_; }
 
   // Hide the header chrome entirely (useful for stitched/split layouts where a
@@ -976,6 +994,7 @@ class DungeonCanvasViewer {
   std::vector<gui::CanvasMenuItem> BuildSelectionContextMenuItems(
       int room_id, std::optional<zelda3::RoomObject> context_object);
   std::optional<zelda3::RoomObject> GetObjectUnderContextCursor(int room_id);
+  std::optional<size_t> GetObjectIndexUnderContextCursor(int room_id);
   gui::CanvasMenuItem BuildRoomContextMenu(int room_id);
   gui::CanvasMenuItem BuildReportContextMenu(int room_id);
   std::optional<gui::CanvasMenuItem> BuildOpenContextMenu();
@@ -1169,6 +1188,8 @@ class DungeonCanvasViewer {
   bool DrawCrumbleCanvas(const gui::CanvasRuntime& rt);
   bool DrawMinecartCanvas(const gui::CanvasRuntime& rt, zelda3::Room& room,
                           int room_id);
+  bool DrawMinecartNodePlacement(const gui::CanvasRuntime& rt,
+                                 zelda3::Room& room, int room_id);
   bool show_crumble_floor_ = false;
   CrumbleFloorView crumble_floor_view_;
   bool show_minecart_tracks_ = false;
@@ -1203,6 +1224,7 @@ class DungeonCanvasViewer {
   ChestEditCallback chest_edit_callback_;
   ChestDeleteCallback chest_delete_callback_;
   DungeonChestEditorState chest_editor_state_;
+  DungeonChestEditDialogState chest_edit_dialog_state_;
   DoorConnectionPreviewCallback door_connection_preview_callback_;
   DoorConnectionApplyCallback door_connection_apply_callback_;
   std::function<void(int, size_t)> door_connection_navigation_callback_;

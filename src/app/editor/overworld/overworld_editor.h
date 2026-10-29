@@ -22,6 +22,9 @@
 #include "app/editor/overworld/maps/map_texture_coordinator.h"
 #include "app/editor/overworld/overworld_undo_actions.h"
 #include "app/editor/overworld/painting/tile_painting_manager.h"
+#include "app/editor/overworld/project_graphics_import.h"
+#include "app/editor/overworld/project_graphics_source.h"
+#include "app/editor/overworld/scratch_workspace.h"
 #include "app/editor/overworld/tile16_editor.h"
 #include "app/editor/overworld/ui/debug/debug_window_card.h"
 #include "app/editor/overworld/ui/debug/usage_statistics_card.h"
@@ -134,6 +137,7 @@ constexpr absl::string_view kOWMapTable = "#MapSettingsTable";
  */
 class OverworldEditor : public Editor, public gfx::GfxContext {
   friend class OverworldCanvasRenderer;
+  friend class OverworldScratchTestPeer;
 
  public:
   // ===========================================================================
@@ -189,13 +193,29 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   absl::Status Cut() override { return absl::UnimplementedError("Cut"); }
   absl::Status Copy() override;
   absl::Status Paste() override;
+  /// Select `map_id` and apply a guarded stencil as one undoable paint.
+  absl::StatusOr<int> ApplyTile16Stencil(
+      int map_id, const std::vector<GuardedTileCell>& cells);
   absl::Status Find() override { return absl::UnimplementedError("Find"); }
   absl::Status Save() override;
   absl::Status BeginSaveTransaction() override;
   void RollbackSaveTransaction() override;
   void CommitSaveTransaction() override;
   absl::Status Clear() override;
-  bool HasPendingProjectDraftChanges() const { return lyra_canvas_.dirty(); }
+  bool HasPendingProjectDraftChanges() const {
+    return lyra_canvas_.dirty() || scratch_space_dirty_ ||
+           (graphics_source_ && graphics_source_->any_dirty());
+  }
+  bool HasUnpublishedProjectGraphics() const {
+    return graphics_source_ && graphics_source_->any_dirty();
+  }
+  absl::Status OpenProjectGraphicsSource();
+  absl::StatusOr<ProjectGraphicsImportPlan> PreviewProjectGraphicsImport(
+      const std::string& pack, const ProjectGraphicsImportBindings& bindings);
+  absl::Status ApplyProjectGraphicsImport(
+      const std::string& pack, const ProjectGraphicsImportBindings& bindings);
+  absl::Status PlaceProjectGraphicsImport(int world_x, int world_y);
+  absl::Status PublishProjectGraphicsSource();
   void SetProjectContextProvider(
       std::function<project::YazeProject*()> provider) {
     project_context_provider_ = std::move(provider);
@@ -470,6 +490,8 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
       return absl::OkStatus();
     }
     NormalizeCurrentSelectionState();
+    if (ImGui::Button("Edit / Import Project Graphics"))
+      status_.Update(OpenProjectGraphicsSource());
     if (!canvas_renderer_)
       return absl::FailedPreconditionError("Renderer not initialized");
     return canvas_renderer_->DrawAreaGraphics();
@@ -550,6 +572,31 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   }
   std::function<project::YazeProject*()> project_context_provider_;
   friend class AuthoringSaveWorkflowTestPeer;
+  friend class ProjectGraphicsImportSaveTestPeer;
+  friend class ProjectGraphicsImportWorkflowTestPeer;
+  void DrawProjectGraphicsSource();
+  void DrawProjectGraphicsImport();
+  std::string ProjectGraphicsPath() const;
+  absl::Status ReloadProjectGraphics();
+  absl::Status RefreshPendingProjectGraphics();
+  absl::StatusOr<ProjectGraphicsImportContext> GraphicsImportContext();
+  std::shared_ptr<ProjectGraphicsSource> graphics_source_;
+  const project::YazeProject* graphics_source_project_ = nullptr;
+  bool graphics_source_open_ = false;
+  bool graphics_import_applied_ = false;
+  int graphics_source_tile_ = 0;
+  int graphics_source_palette_ = 5;
+  int graphics_source_index_ = 1;
+  absl::Status graphics_source_status_;
+  std::string graphics_source_message_;
+  zelda3::OverworldGraphicsPreview graphics_preview_baseline_;
+  std::array<char, 1024> graphics_import_path_{};
+  std::optional<ProjectGraphicsImportAsset> graphics_import_asset_;
+  std::optional<ProjectGraphicsImportPlan> graphics_import_plan_;
+  ProjectGraphicsImportBindings graphics_import_bindings_;
+  ProjectGraphicsImportBindings graphics_import_applied_bindings_;
+  std::string graphics_import_pack_;
+  bool graphics_import_ranges_reviewed_ = false;
 
   // Identifies the exact descriptor image bound to this model. The session
   // reload path may restore those bytes after a refused ROM replacement.
@@ -698,7 +745,10 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   void DrawScratchSpaceSelection();
   void UpdateScratchBitmapTile(int tile_x, int tile_y, int tile_id);
   absl::Status LoadScratchPad();
-  absl::Status SaveScratchPad() const;
+  absl::Status SaveScratchPad();
+  void BeginScratchEdit();
+  void FinishScratchEdit(const std::string& description);
+  absl::Status RestoreScratchState(const ScratchWorkspaceState& state);
   absl::Status FlushScratchPadIfDirty();
   absl::Status RebuildScratchBitmapFromTileData();
   void MarkScratchSpaceDirty();
@@ -827,19 +877,20 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   // Scratch Space System (Unified Single Workspace)
   // ===========================================================================
 
-  struct ScratchSpace {
-    gfx::Bitmap scratch_bitmap;
-    std::array<std::array<int, 32>, 32> tile_data{};
-    bool in_use = false;
-    std::string name = "Scratch Space";
-    int width = 16;
-    int height = 16;
-    std::vector<ImVec2> selected_tiles;
-    std::vector<ImVec2> selected_points;
-    bool select_rect_active = false;
-  };
-  ScratchSpace scratch_space_;
+  ScratchWorkspace scratch_workspace_;
+  gfx::Bitmap scratch_bitmap_;
+  std::optional<ScratchWorkspaceState> scratch_edit_before_;
   bool scratch_space_dirty_ = false;
+  absl::Status scratch_load_status_;
+  absl::Status scratch_action_status_;
+  absl::Status scratch_save_status_;
+  bool scratch_initialized_ = false;
+  std::filesystem::path scratch_path_;
+  uint64_t scratch_name_id_ = 0;
+  std::array<char, 129> scratch_name_buffer_{};
+  int scratch_preview_map_ = -1;
+  uint64_t scratch_preview_revision_ = 0;
+  bool scratch_paint_gesture_owned_ = false;
 
   // ===========================================================================
   // Core Data References

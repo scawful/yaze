@@ -202,10 +202,11 @@ void SampleEditorView::DrawWaveform(const MusicSample& sample) {
     if (sample.loops) {
       double loop_sample = (sample.loop_point / 9.0) * 16.0;
       ImPlot::TagX(loop_sample, ImVec4(0, 1, 0, 1), "Loop Start");
-      ImPlot::SetNextLineStyle(ImVec4(0, 1, 0, 0.5));
+      ImPlotSpec loop_spec;
+      loop_spec.LineColor = ImVec4(0, 1, 0, 0.5);
       double loop_x[] = {loop_sample, loop_sample};
       double loop_y[] = {-1.0, 1.0};
-      ImPlot::PlotLine("Loop", loop_x, loop_y, 2);
+      ImPlot::PlotLine("Loop", loop_x, loop_y, 2, loop_spec);
     }
 
     ImPlot::EndPlot();

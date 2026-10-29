@@ -289,6 +289,8 @@ class DungeonObjectInteraction {
   void HandleDeleteAllObjects();
   absl::Status HandleCopySelected();
   absl::Status HandlePasteObjects();
+  // Snap a pointer anchor while preserving the copied group's encoding grids.
+  absl::Status HandlePasteObjectsAt(int pixel_x, int pixel_y);
   absl::Status HandleDuplicateSelected();
   absl::Status HandlePasteAt(int pixel_x, int pixel_y);
   const absl::Status& selection_edit_status() const {

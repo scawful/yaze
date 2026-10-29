@@ -72,6 +72,15 @@ absl::Status SheetBrowserPanel::Update() {
       ImGui::EndChild();
       ImGui::EndTabItem();
     }
+    const bool show_catalog = ImGui::BeginTabItem(tr("Catalog"));
+    gui::AutoRegisterLastItem("tab", "Catalog");
+    if (show_catalog) {
+      ImGui::BeginChild("##CatalogTileTransfer", ImVec2(0, 0));
+      DrawCatalogTileBrowser(catalog_browser_, *state_, undo_manager_,
+                             SheetUsageSummary(state_->current_sheet_id));
+      ImGui::EndChild();
+      ImGui::EndTabItem();
+    }
     ImGui::EndTabBar();
   }
   return absl::OkStatus();
@@ -80,6 +89,9 @@ absl::Status SheetBrowserPanel::Update() {
 void SheetBrowserPanel::SetDataSources(
     Rom* rom, zelda3::GameData* game_data,
     std::function<const project::YazeProject*()> project_getter) {
+  if (rom_ != rom || game_data_ != game_data) {
+    catalog_browser_.pending.reset();
+  }
   rom_ = rom;
   game_data_ = game_data;
   project_getter_ = std::move(project_getter);
@@ -261,9 +273,10 @@ void SheetBrowserPanel::DrawSelectedSheetInfo() {
                         ImGuiTableFlags_SizingStretchProp |
                             ImGuiTableFlags_RowBg |
                             ImGuiTableFlags_BordersInnerH)) {
-    ImGui::TableSetupColumn(tr("Used by"), ImGuiTableColumnFlags_WidthFixed);
+    ImGui::TableSetupColumn(gui::ColumnLabel(tr("Used by"), "used_by").c_str(),
+                            ImGuiTableColumnFlags_WidthFixed);
     ImGui::TableSetupColumn("#", ImGuiTableColumnFlags_WidthFixed);
-    ImGui::TableSetupColumn(tr("Ids (hex)"));
+    ImGui::TableSetupColumn(gui::ColumnLabel(tr("Ids (hex)"), "ids").c_str());
     ImGui::TableHeadersRow();
     const auto& use = entry.usage;
     if (entry.sprite_value.has_value()) {

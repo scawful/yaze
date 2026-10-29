@@ -14,6 +14,8 @@ namespace yaze::editor {
 // the yaze.plan/1 file named by the project's [planning] section. Works with
 // or without a ROM and never writes the ROM; Save() writes only the plan file.
 class PlanningEditor : public Editor {
+  friend class PlanningEditorTestPeer;
+
  public:
   PlanningEditor() { type_ = EditorType::kPlanning; }
 
@@ -38,12 +40,16 @@ class PlanningEditor : public Editor {
   void DrawRoute();
 
   bool dirty() const { return dirty_; }
+  bool HasPendingProjectDraftChanges() const { return dirty_; }
+  // Called only after an authorized project replacement succeeds, or an
+  // explicit discard. A failed or canceled open must preserve the draft.
+  void DiscardProjectDraftChanges();
   const std::optional<core::ProjectPlan>& plan() const { return plan_; }
 
  private:
   // Loads the plan when the project's [planning] path changes.
-  void SyncWithProject();
-  absl::Status Reload();
+  absl::Status SyncWithProject();
+  absl::Status Reload(bool discard_changes = false);
   bool DrawPlanHeader();
   void DrawNoPlan();
   void DrawGoal();
@@ -51,6 +57,10 @@ class PlanningEditor : public Editor {
   void DrawRouteStrip();
   void DrawDecisionQueue();
   void DrawReferences();
+  void DrawAgentStatus();
+  // Read-only agent observation for "<kind>:<id>", drawn under the user's
+  // editable fields for that entry.
+  void DrawAgentObservation(const std::string& key);
   void DrawStepList();
   void DrawStepDetail();
   void DrawItems();
@@ -59,6 +69,8 @@ class PlanningEditor : public Editor {
   void MarkDirty() { dirty_ = true; }
 
   std::string plan_path_;
+  std::string project_path_;
+  std::string loaded_source_;
   std::optional<core::ProjectPlan> plan_;
   std::string load_error_;
   std::string save_error_;

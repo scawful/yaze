@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <array>
+#include <cmath>
 #include <filesystem>
 #include <fstream>
 #include <sstream>
@@ -30,6 +31,18 @@ using json = nlohmann::json;
 #endif
 
 namespace {
+
+// Matches the Settings slider and View > Zoom range. A scale of 0 or NaN from a
+// hand-edited or truncated file makes every widget too small to use.
+constexpr float kMinFontGlobalScale = 0.5f;
+constexpr float kMaxFontGlobalScale = 2.0f;
+
+float SanitizeFontGlobalScale(float scale) {
+  if (!std::isfinite(scale)) {
+    return 1.0f;
+  }
+  return std::clamp(scale, kMinFontGlobalScale, kMaxFontGlobalScale);
+}
 
 absl::Status EnsureParentDirectory(const std::filesystem::path& path) {
   auto parent = path.parent_path();
@@ -259,7 +272,8 @@ absl::Status LoadPreferencesFromIni(const std::filesystem::path& path,
 
     // General
     if (key == "font_global_scale") {
-      prefs->font_global_scale = to_float(val, prefs->font_global_scale);
+      prefs->font_global_scale =
+          SanitizeFontGlobalScale(to_float(val, prefs->font_global_scale));
     } else if (key == "backup_rom") {
       prefs->backup_rom = (val == "1");
     } else if (key == "save_new_auto") {
@@ -313,7 +327,7 @@ absl::Status LoadPreferencesFromIni(const std::filesystem::path& path,
     } else if (key == "language_locale") {
       prefs->language_locale = val;
     } else if (key == "font_family_index") {
-      prefs->font_family_index = std::stoi(val);
+      prefs->font_family_index = to_int(val, prefs->font_family_index);
     }
     // Editor Behavior
     else if (key == "backup_before_save") {
@@ -862,8 +876,8 @@ absl::Status LoadPreferencesFromJson(const std::filesystem::path& path,
 
   if (root.contains("general")) {
     const auto& g = root["general"];
-    prefs->font_global_scale =
-        g.value("font_global_scale", prefs->font_global_scale);
+    prefs->font_global_scale = SanitizeFontGlobalScale(
+        g.value("font_global_scale", prefs->font_global_scale));
     prefs->backup_rom = g.value("backup_rom", prefs->backup_rom);
     prefs->save_new_auto = g.value("save_new_auto", prefs->save_new_auto);
     prefs->autosave_enabled =

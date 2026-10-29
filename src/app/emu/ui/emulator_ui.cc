@@ -360,7 +360,7 @@ void RenderSnesPpu(Emulator* emu) {
       draw_list->AddRect(
           screen_pos, screen_size,
           ImGui::ColorConvertFloat4ToU32(ConvertColorToImVec4(theme.accent)),
-          0.0f, 0, 2.0f);
+          0.0f, 2.0f);
     }
   } else {
     // Not initialized - show helpful placeholder
@@ -421,8 +421,9 @@ void RenderPerformanceMonitor(Emulator* emu) {
         ImPlot::SetupAxisLimits(ImAxis_Y1, 0.0f, target_ms * 2.5f,
                                 ImGuiCond_Always);
         ImPlot::PlotLine("Frame ms", frame_ms.data(),
-                         static_cast<int>(frame_ms.size()));
-        ImPlot::PlotInfLines("Target", &target_ms, 1);
+                         static_cast<int>(frame_ms.size()), 1.0, 0.0,
+                         plot_style.item_spec());
+        ImPlot::PlotInfLines("Target", &target_ms, 1, plot_style.item_spec());
       }
     }
 
@@ -440,10 +441,11 @@ void RenderPerformanceMonitor(Emulator* emu) {
       if (plot) {
         ImPlot::SetupAxisLimits(ImAxis_Y1, 0.0f, 75.0f, ImGuiCond_Always);
         ImPlot::PlotLine("FPS", fps_history.data(),
-                         static_cast<int>(fps_history.size()));
+                         static_cast<int>(fps_history.size()), 1.0, 0.0,
+                         plot_style.item_spec());
         const float target_fps =
             emu->snes().memory().pal_timing() ? 50.0f : 60.0f;
-        ImPlot::PlotInfLines("Target", &target_fps, 1);
+        ImPlot::PlotInfLines("Target", &target_fps, 1, plot_style.item_spec());
       }
     }
   }
@@ -480,11 +482,13 @@ void RenderPerformanceMonitor(Emulator* emu) {
         // Now do the plotting
         if (!dma_hist.empty()) {
           ImPlot::PlotLine("DMA", dma_hist.data(),
-                           static_cast<int>(dma_hist.size()));
+                           static_cast<int>(dma_hist.size()), 1.0, 0.0,
+                           plot_style.item_spec());
         }
         if (!vram_hist.empty()) {
           ImPlot::PlotLine("VRAM", vram_hist.data(),
-                           static_cast<int>(vram_hist.size()));
+                           static_cast<int>(vram_hist.size()), 1.0, 0.0,
+                           plot_style.item_spec());
         }
       }
     } else {
@@ -511,10 +515,10 @@ void RenderPerformanceMonitor(Emulator* emu) {
           x[i] = static_cast<double>(i);
           y[i] = static_cast<double>(free_bytes[i]);
         }
-        ImPlot::SetNextFillStyle(ConvertColorToImVec4(theme.plot_histogram));
+        ImPlotSpec free_spec = plot_style.item_spec();
+        free_spec.FillColor = ConvertColorToImVec4(theme.plot_histogram);
         ImPlot::PlotBars("Free", x.data(), y.data(),
-                         static_cast<int>(free_bytes.size()), 0.67, 0.0,
-                         ImPlotBarsFlags_None);
+                         static_cast<int>(free_bytes.size()), 0.67, free_spec);
       }
     } else {
       ImGui::TextDisabled("Load a ROM to analyze free space.");
@@ -558,7 +562,8 @@ void RenderPerformanceMonitor(Emulator* emu) {
                                    1.2f),
               ImGuiCond_Always);
           ImPlot::PlotLine("Queued", audio_history.data(),
-                           static_cast<int>(audio_history.size()));
+                           static_cast<int>(audio_history.size()), 1.0, 0.0,
+                           plot_style.item_spec());
         }
       }
 
@@ -579,11 +584,13 @@ void RenderPerformanceMonitor(Emulator* emu) {
           ImPlot::SetupAxisLimits(ImAxis_Y1, 0.0f, 1.0f, ImGuiCond_Always);
           if (!audio_l.empty()) {
             ImPlot::PlotLine("L", audio_l.data(),
-                             static_cast<int>(audio_l.size()));
+                             static_cast<int>(audio_l.size()), 1.0, 0.0,
+                             plot_style.item_spec());
           }
           if (!audio_r.empty()) {
             ImPlot::PlotLine("R", audio_r.data(),
-                             static_cast<int>(audio_r.size()));
+                             static_cast<int>(audio_r.size()), 1.0, 0.0,
+                             plot_style.item_spec());
           }
         }
       }

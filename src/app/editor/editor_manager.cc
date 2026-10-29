@@ -18,6 +18,8 @@
 #include <fstream>
 #include <functional>
 #include <initializer_list>
+#include <iterator>
+#include <map>
 #include <memory>
 #include <optional>
 #include <sstream>
@@ -76,6 +78,7 @@
 #include "app/editor/shell/windows/dashboard_panel.h"
 #include "app/editor/shell/windows/project_management_panel.h"
 #include "app/editor/shell/windows/settings_panel.h"
+#include "app/editor/sprite/sprite_editor.h"
 #include "app/editor/system/editor_registry.h"
 #include "app/editor/system/emulator_runtime_policy.h"
 #include "app/editor/system/project_workflow_status.h"
@@ -98,6 +101,7 @@
 #include "app/platform/timing.h"
 #include "app/testing/test_manager.h"
 #include "core/features.h"
+#include "core/native_save_receipt.h"
 #include "core/palette_catalog.h"
 #include "core/project.h"
 #include "core/rom_settings.h"
@@ -164,6 +168,49 @@
 namespace yaze::editor {
 
 namespace {
+absl::StatusOr<std::map<std::string, std::string>> ProjectBuildEnvironment(
+    const project::YazeProject& project,
+    const std::string& editing_source_path) {
+  if (project.filepath.empty()) {
+    return absl::FailedPreconditionError("Save the project before building");
+  }
+  std::error_code error;
+  const auto project_file =
+      std::filesystem::absolute(project.filepath, error).lexically_normal();
+  if (error) {
+    return absl::FailedPreconditionError(
+        "Cannot resolve the project build context: " + error.message());
+  }
+  const auto absolute = [&project_file](const std::string& value) {
+    if (value.empty()) {
+      return std::string();
+    }
+    const std::filesystem::path path(value);
+    return (path.is_absolute() ? path : project_file.parent_path() / path)
+        .lexically_normal()
+        .string();
+  };
+  std::string save_context_path;
+#if defined(YAZE_WITH_JSON) && !defined(__EMSCRIPTEN__)
+  if (!editing_source_path.empty()) {
+    ASSIGN_OR_RETURN(
+        auto save_context,
+        core::GetNativeSaveContext(editing_source_path, project_file.string()));
+    save_context_path = save_context.path.string();
+  }
+#endif
+  return std::map<std::string, std::string>{
+      {"YAZE_PROJECT_FILE", project_file.string()},
+      {"YAZE_PROJECT_CODE_FOLDER", absolute(project.code_folder)},
+      {"YAZE_PROJECT_ROM", absolute(project.rom_filename)},
+      {"YAZE_NATIVE_SAVE_RECEIPT", project_file.string() + ".native-save.json"},
+      {"YAZE_NATIVE_SAVE_CONTEXT", save_context_path},
+      {"YAZE_LYRA_TERRAIN_FILE", absolute(project.lyra_terrain_file)},
+      {"OOS_LYRA_PROJECT",
+       project.lyra_terrain_file.empty() ? "" : project_file.string()},
+      {"OOS_LYRA_REQUEST", absolute(project.lyra_build_request_file)}};
+}
+
 std::string LastNonEmptyLine(const std::string& text) {
   std::vector<std::string> lines = absl::StrSplit(text, '\n');
   for (auto it = lines.rbegin(); it != lines.rend(); ++it) {
@@ -579,6 +626,8 @@ void EditorManager::InitializeSubsystems() {
   menu_orchestrator_->SetShortcutManager(&shortcut_manager_);
 
   session_coordinator_->SetEditorManager(this);
+  session_coordinator_->SetBeforeSessionTransition(
+      [this] { return RetireNativeSaveTransfer("rebound"); });
   session_coordinator_->SetEventBus(&event_bus_);  // Enable event publishing
   ContentRegistry::Context::SetEventBus(
       &event_bus_);  // Global event bus access
@@ -2156,17 +2205,10 @@ void EditorManager::ProcessStartupActions(const AppConfig& config) {
                                                       GetCurrentSessionId()));
   }
   if (config.jump_to_map >= 0) {
-    if (config.jump_to_map < zelda3::kNumOverworldMaps) {
-      event_bus_.Publish(JumpToMapRequestEvent::Create(config.jump_to_map,
-                                                       GetCurrentSessionId()));
-    } else {
-      LOG_WARN("EditorManager",
-               "Ignoring invalid startup overworld map target %d",
-               config.jump_to_map);
-      toast_manager_.Show("Ignored invalid startup overworld map: " +
-                              std::to_string(config.jump_to_map),
-                          editor::ToastType::kWarning);
-    }
+    // The navigation handler loads project assets before validating the target
+    // against the editor's displayed capacity (including project Lyra maps).
+    event_bus_.Publish(JumpToMapRequestEvent::Create(config.jump_to_map,
+                                                     GetCurrentSessionId()));
   }
 }
 
@@ -2931,7 +2973,7 @@ absl::Status EditorManager::SaveCurrentSession() {
   }
   CaptureActiveProjectEditingState();
   const size_t session_id = GetCurrentSessionId();
-  RETURN_IF_ERROR(SaveActiveProjectEditingWork());
+  RETURN_IF_ERROR(SaveProjectWorkBeforeRomSave(/*allow_dialogs=*/true));
   if (GetCurrentSessionId() != session_id) {
     return absl::FailedPreconditionError(
         "The active session changed while saving project work");
@@ -2939,7 +2981,31 @@ absl::Status EditorManager::SaveCurrentSession() {
   if (SessionHasPendingRomWork(GetCurrentSessionIndex())) {
     return SaveRom();
   }
-  return absl::OkStatus();
+  return CompletePendingProjectNativeSave();
+}
+
+absl::Status EditorManager::CompletePendingProjectNativeSave() {
+  auto* session = session_coordinator_
+                      ? session_coordinator_->GetActiveRomSession()
+                      : nullptr;
+  const auto* rom = GetCurrentRom();
+  if (session == nullptr || !session->native_save_completion_pending ||
+      pending_rom_save_.has_value() || !current_project_.project_opened() ||
+      rom == nullptr || !rom->is_loaded() || rom->filename().empty()) {
+    return absl::OkStatus();
+  }
+  return RecordCompletedNativeSave(current_project_, rom->filename(),
+                                   session->native_save_completion_save_as,
+                                   /*rom_written=*/false);
+}
+
+absl::Status EditorManager::SaveProjectWorkBeforeRomSave(bool allow_dialogs) {
+  // A project-only receipt failure must not block the following ROM save.
+  defer_project_native_completion_ =
+      SessionHasPendingRomWork(GetCurrentSessionIndex());
+  const auto status = SaveActiveProjectEditingWork(allow_dialogs);
+  defer_project_native_completion_ = false;
+  return status;
 }
 
 absl::Status EditorManager::SaveRom() {
@@ -3002,9 +3068,13 @@ std::string EditorManager::ExecuteEditorControl(const std::string& request) {
   json response = {{"protocol", "yaze-editor-control/v1"},
                    {"status", "ok"},
                    {"http_status", 200}};
-  response["capabilities"]["commands"] = {"status",           "project.open",
-                                          "project.rom.swap", "dungeon.select",
-                                          "proposal.load",    "panel.hide"};
+  response["capabilities"]["commands"] = {"status",
+                                          "project.open",
+                                          "project.rom.swap",
+                                          "dungeon.select",
+                                          "proposal.load",
+                                          "panel.hide",
+                                          "overworld.stencil.apply"};
 #ifdef _WIN32
   const auto pid = _getpid();
 #else
@@ -3037,38 +3107,20 @@ std::string EditorManager::ExecuteEditorControl(const std::string& request) {
                  ? editors->GetEditorAs<DungeonEditorV2>(EditorType::kDungeon)
                  : nullptr;
     };
-    if (command == "status") {
-      // Read-only; usable before a ROM is opened.
-    } else if (command == "project.open") {
-      const auto path = path_argument();
-      const auto extension = std::filesystem::path(path).extension();
-      if (extension != ".yaze" && extension != ".zsproj" &&
-          extension != ".yazeproj") {
-        fail(400, "project.open requires a .yaze, .zsproj or .yazeproj path");
-      } else if (HasAnySessionPendingUnsavedWork() ||
-                 HasPendingUnsavedSessionAction()) {
-        fail(409, "Project switch blocked: " + DescribeAllPendingUnsavedWork());
-      } else if (current_project_.filepath != path) {
-        // No implicit save/discard and no repair/file picker fallback.
-        const auto status = OpenRomOrProjectInternal(path, false);
-        if (!status.ok())
-          fail(422, std::string(status.message()));
+    const auto hash_argument = [](const json& value) {
+      const auto hash = value.get<std::string>();
+      if (hash.size() != 64 ||
+          !std::all_of(hash.begin(), hash.end(), [](char ch) {
+            return (ch >= '0' && ch <= '9') || (ch >= 'a' && ch <= 'f');
+          })) {
+        throw std::invalid_argument(
+            "SHA256 must contain 64 lowercase hexadecimal characters");
       }
-    } else if (command == "project.rom.swap") {
-      const auto path = path_argument();
-      const auto hash_argument = [](const json& value) {
-        const auto hash = value.get<std::string>();
-        if (hash.size() != 64 ||
-            !std::all_of(hash.begin(), hash.end(), [](char ch) {
-              return (ch >= '0' && ch <= '9') || (ch >= 'a' && ch <= 'f');
-            })) {
-          throw std::invalid_argument(
-              "SHA256 must contain 64 lowercase hexadecimal characters");
-        }
-        return hash;
-      };
-      const auto candidate_sha256 = hash_argument(body.at("candidate_sha256"));
-      const auto& expected = body.at("expected");
+      return hash;
+    };
+    // The caller names the exact editor it inspected; any other process,
+    // session, project, ROM file or ROM bytes refuses the command.
+    const auto expected_editor_matches = [&](const json& expected) {
       for (const auto* field : {"pid", "session_id"}) {
         if (!expected.at(field).is_number_integer() || expected.at(field) < 0 ||
             (std::string_view(field) == "pid" && expected.at(field) == 0)) {
@@ -3089,18 +3141,42 @@ std::string EditorManager::ExecuteEditorControl(const std::string& request) {
       const auto current_rom_path = expected_path("rom_path");
       const auto current_sha256 = hash_argument(expected.at("rom_sha256"));
       const auto* rom = GetCurrentRom();
+      return current_project_.project_opened() && rom && rom->is_loaded() &&
+             expected.at("pid") == pid &&
+             expected.at("session_id") == GetCurrentSessionId() &&
+             SessionCoordinator::PathsReferToSameBackingFile(
+                 project_path, current_project_.filepath) &&
+             SessionCoordinator::PathsReferToSameBackingFile(current_rom_path,
+                                                             rom->filename()) &&
+             current_sha256 == rom_sha256(*rom);
+    };
+    if (command == "status") {
+      // Read-only; usable before a ROM is opened.
+    } else if (command == "project.open") {
+      const auto path = path_argument();
+      const auto extension = std::filesystem::path(path).extension();
+      if (extension != ".yaze" && extension != ".zsproj" &&
+          extension != ".yazeproj") {
+        fail(400, "project.open requires a .yaze, .zsproj or .yazeproj path");
+      } else if (HasAnySessionPendingUnsavedWork() ||
+                 HasPendingUnsavedSessionAction()) {
+        fail(409, "Project switch blocked: " + DescribeAllPendingUnsavedWork());
+      } else if (current_project_.filepath != path) {
+        // No implicit save/discard and no repair/file picker fallback.
+        const auto status = OpenRomOrProjectInternal(path, false);
+        if (!status.ok())
+          fail(422, std::string(status.message()));
+      }
+    } else if (command == "project.rom.swap") {
+      const auto path = path_argument();
+      const auto candidate_sha256 = hash_argument(body.at("candidate_sha256"));
+      const bool identity_matches =
+          expected_editor_matches(body.at("expected"));
       if (HasAnySessionPendingUnsavedWork() ||
           HasPendingUnsavedSessionAction()) {
         fail(409, "ROM swap blocked by pending work or action: " +
                       DescribeAllPendingUnsavedWork());
-      } else if (!current_project_.project_opened() || !rom ||
-                 !rom->is_loaded() || expected.at("pid") != pid ||
-                 expected.at("session_id") != GetCurrentSessionId() ||
-                 !SessionCoordinator::PathsReferToSameBackingFile(
-                     project_path, current_project_.filepath) ||
-                 !SessionCoordinator::PathsReferToSameBackingFile(
-                     current_rom_path, rom->filename()) ||
-                 current_sha256 != rom_sha256(*rom)) {
+      } else if (!identity_matches) {
         fail(409,
              "ROM swap expected identity does not match the active editor");
       } else {
@@ -3108,6 +3184,69 @@ std::string EditorManager::ExecuteEditorControl(const std::string& request) {
         if (!status.ok()) {
           fail(absl::IsAborted(status) ? 409 : 422,
                std::string(status.message()));
+        }
+      }
+    } else if (command == "overworld.stencil.apply") {
+      const auto path = path_argument();
+      const auto stencil_sha256 = hash_argument(body.at("stencil_sha256"));
+      const bool identity_matches =
+          expected_editor_matches(body.at("expected"));
+      std::ifstream file(path, std::ios::binary);
+      const std::string bytes((std::istreambuf_iterator<char>(file)),
+                              std::istreambuf_iterator<char>());
+      if (!file.good() && !file.eof()) {
+        fail(422, "Stencil file could not be read");
+      } else if (core::ComputeSourceArtifactSha256(bytes) != stencil_sha256) {
+        fail(409, "Stencil file does not match stencil_sha256");
+      } else if (HasAnySessionPendingUnsavedWork() ||
+                 HasPendingUnsavedSessionAction()) {
+        fail(409, "Stencil blocked by pending work or action: " +
+                      DescribeAllPendingUnsavedWork());
+      } else if (!identity_matches) {
+        fail(409, "Stencil expected identity does not match the active editor");
+      } else {
+        const auto stencil = json::parse(bytes);
+        if (stencil.at("schema").get<std::string>() !=
+            "yaze.overworld_tile16_stencil.v1") {
+          throw std::invalid_argument(
+              "Stencil schema must be yaze.overworld_tile16_stencil.v1");
+        }
+        const int map_id = stencil.at("map_id").get<int>();
+        std::vector<GuardedTileCell> cells;
+        for (const auto& cell : stencil.at("cells")) {
+          const auto tile = [&](const char* field) {
+            const int value = cell.at(field).get<int>();
+            if (value < 0 || value > 0xFFFF) {
+              throw std::invalid_argument(std::string("Stencil ") + field +
+                                          " must be a Tile16 ID");
+            }
+            return static_cast<uint16_t>(value);
+          };
+          cells.push_back({cell.at("x").get<int>(), cell.at("y").get<int>(),
+                           tile("expected"), tile("proposed")});
+        }
+        const auto loaded = EnsureEditorAssetsLoaded(EditorType::kOverworld);
+        auto* editors = GetCurrentEditorSet();
+        auto* overworld =
+            editors
+                ? editors->GetEditorAs<OverworldEditor>(EditorType::kOverworld)
+                : nullptr;
+        if (!loaded.ok()) {
+          fail(422, std::string(loaded.message()));
+        } else if (!overworld) {
+          fail(503, "Overworld editor is unavailable");
+        } else {
+          SwitchToEditor(EditorType::kOverworld, true);
+          const auto changed = overworld->ApplyTile16Stencil(map_id, cells);
+          if (!changed.ok()) {
+            fail(absl::IsFailedPrecondition(changed.status()) ? 409 : 422,
+                 std::string(changed.status().message()));
+          } else {
+            response["map_id"] = map_id;
+            response["cells"] = cells.size();
+            response["cells_changed"] = *changed;
+            response["stencil_sha256"] = stencil_sha256;
+          }
         }
       }
     } else if (command == "dungeon.select" || command == "proposal.load") {
@@ -3875,37 +4014,29 @@ absl::Status EditorManager::SaveProject() {
           "preserve that draft before saving project settings");
     }
   }
+  auto* save_session = session_coordinator_
+                           ? session_coordinator_->GetActiveRomSession()
+                           : nullptr;
+  if (save_session != nullptr && IsPlanningOnlyProjectSave(*save_session)) {
+    // The plan is a live reference outside the build: its own CAS save is the
+    // whole Save, leaving the descriptor and native receipt untouched.
+    return save_session->editors.SavePlanningProjectDraft();
+  }
+  // Every other project Save commits build-owned work: the descriptor and
+  // any terrain/sprite/dungeon drafts. Retire the prior native commit before
+  // any of those bytes change.
+  const bool build_owned =
+      current_project_.project_opened() && save_session != nullptr;
+  if (build_owned) {
+    RETURN_IF_ERROR(RetireNativeSaveTransfer("rebound"));
+  }
   RETURN_IF_ERROR(PrepareActiveProjectEditorDraftsForSave());
   CaptureActiveProjectContext();
   if (!current_project_.project_opened()) {
     return CreateNewProject();
   }
 
-  // Update project with current settings
-  if (GetCurrentRom() && GetCurrentEditorSet()) {
-    if (session_coordinator_) {
-      auto* session = session_coordinator_->GetActiveRomSession();
-      if (session) {
-        current_project_.feature_flags = session->feature_flags;
-      }
-    }
-
-    current_project_.workspace_settings.font_global_scale =
-        user_settings_.prefs().font_global_scale;
-    current_project_.workspace_settings.autosave_enabled =
-        user_settings_.prefs().autosave_enabled;
-    current_project_.workspace_settings.autosave_interval_secs =
-        user_settings_.prefs().autosave_interval;
-    current_project_.workspace_settings.backup_on_save =
-        user_settings_.prefs().backup_before_save;
-
-    // Save recent files
-    auto& manager = project::RecentFilesManager::GetInstance();
-    current_project_.workspace_settings.recent_files.clear();
-    for (const auto& file : manager.GetRecentFiles()) {
-      current_project_.workspace_settings.recent_files.push_back(file);
-    }
-  }
+  ApplyProjectSaveSettings(&current_project_, /*include_recent_files=*/true);
 
   auto status = current_project_.Save();
   if (status.ok()) {
@@ -3922,7 +4053,74 @@ absl::Status EditorManager::SaveProject() {
     RebaseCleanProjectFileDraft(current_project_.filepath);
   }
   CaptureActiveProjectContext();
-  return status;
+  if (!status.ok() || !build_owned) {
+    return status;
+  }
+  save_session->native_save_completion_pending = true;
+  if (defer_project_native_completion_) {
+    return absl::OkStatus();
+  }
+  return CompletePendingProjectNativeSave();
+}
+
+void EditorManager::ApplyProjectSaveSettings(project::YazeProject* project,
+                                             bool include_recent_files) {
+  if (!GetCurrentRom() || !GetCurrentEditorSet()) {
+    return;
+  }
+  if (session_coordinator_) {
+    if (auto* session = session_coordinator_->GetActiveRomSession()) {
+      project->feature_flags = session->feature_flags;
+    }
+  }
+  project->workspace_settings.font_global_scale =
+      user_settings_.prefs().font_global_scale;
+  project->workspace_settings.autosave_enabled =
+      user_settings_.prefs().autosave_enabled;
+  project->workspace_settings.autosave_interval_secs =
+      user_settings_.prefs().autosave_interval;
+  project->workspace_settings.backup_on_save =
+      user_settings_.prefs().backup_before_save;
+  if (!include_recent_files) {
+    return;
+  }
+  auto& manager = project::RecentFilesManager::GetInstance();
+  project->workspace_settings.recent_files.clear();
+  for (const auto& file : manager.GetRecentFiles()) {
+    project->workspace_settings.recent_files.push_back(file);
+  }
+}
+
+// True when a project Save would write the descriptor bytes already on disk,
+// apart from its timestamp and the recent-files list, which are not build
+// inputs.
+bool EditorManager::ProjectDescriptorMatchesDisk() {
+  if (current_project_.filepath.empty() ||
+      current_project_.music_persistence.storage_key.empty()) {
+    return false;
+  }
+  CaptureActiveProjectContext();
+  project::YazeProject candidate = current_project_;
+  ApplyProjectSaveSettings(&candidate, /*include_recent_files=*/false);
+  candidate.NormalizePathsToAbsolute();
+  const auto serialized = candidate.SerializeToString();
+  std::ifstream input(current_project_.filepath, std::ios::binary);
+  if (!serialized.ok() || !input.is_open()) {
+    return false;
+  }
+  const std::string on_disk((std::istreambuf_iterator<char>(input)),
+                            std::istreambuf_iterator<char>());
+  return !input.bad() && on_disk == *serialized;
+}
+
+bool EditorManager::IsPlanningOnlyProjectSave(const RomSession& session) {
+  return current_project_.project_opened() && !session.project_dirty &&
+         !session.native_save_completion_pending &&
+         !(session.project_file_editor_state.initialized &&
+           session.project_file_editor_state.modified) &&
+         !session.editors.HasPendingBuildProjectDraftChanges() &&
+         session.editors.HasPendingPlanningProjectDraftChanges() &&
+         ProjectDescriptorMatchesDisk();
 }
 
 void EditorManager::MarkCurrentProjectDirty() {
@@ -3947,13 +4145,24 @@ bool EditorManager::IsCurrentProjectDirty() const {
           session->editors.HasPendingProjectDraftChanges());
 }
 
-absl::Status EditorManager::SaveActiveProjectEditingWork() {
+absl::Status EditorManager::SaveActiveProjectEditingWork(bool allow_dialogs) {
   if (!session_coordinator_) {
     return absl::FailedPreconditionError("No session coordinator");
   }
   auto* session = session_coordinator_->GetActiveRomSession();
   if (!session) {
     return absl::FailedPreconditionError("No active ROM session");
+  }
+
+  if (auto* graphics = static_cast<GraphicsEditor*>(
+          session->editors.GetExistingEditor(EditorType::kGraphics))) {
+    RETURN_IF_ERROR(graphics->SaveScratchAssets());
+  }
+
+  if (session->editors.HasPendingSpriteChanges()) {
+    auto* sprite = static_cast<SpriteEditor*>(
+        session->editors.GetExistingEditor(EditorType::kSprite));
+    RETURN_IF_ERROR(allow_dialogs ? sprite->Save() : sprite->SaveForAutosave());
   }
 
   CaptureActiveProjectEditingState();
@@ -3996,7 +4205,7 @@ absl::Status EditorManager::AutosaveActiveSession() {
     return absl::FailedPreconditionError("No session coordinator");
   }
   const size_t session_index = GetCurrentSessionIndex();
-  RETURN_IF_ERROR(SaveActiveProjectEditingWork());
+  RETURN_IF_ERROR(SaveProjectWorkBeforeRomSave(/*allow_dialogs=*/false));
   const auto* session = session_coordinator_->GetActiveRomSession();
   if (session != nullptr && session->backup_restore_pending) {
     return absl::CancelledError(
@@ -4004,6 +4213,8 @@ absl::Status EditorManager::AutosaveActiveSession() {
   }
   if (SessionHasPendingRomWork(session_index)) {
     RETURN_IF_ERROR(SaveRom());
+  } else {
+    RETURN_IF_ERROR(CompletePendingProjectNativeSave());
   }
   if (SessionHasPendingUnsavedWork(session_index)) {
     return absl::FailedPreconditionError(
@@ -4065,6 +4276,11 @@ absl::Status EditorManager::SaveProjectAs(const std::string& filepath) {
                                                       file_path)) {
     return SaveProject();
   }
+  if (auto* editors = GetCurrentEditorSet();
+      editors && editors->HasPendingPlanningProjectDraftChanges()) {
+    return absl::FailedPreconditionError(
+        "Save or discard plan edits before saving the project to another file");
+  }
 
   if (session_coordinator_) {
     if (auto* session = session_coordinator_->GetActiveRomSession();
@@ -4094,6 +4310,9 @@ absl::Status EditorManager::SaveProjectAs(const std::string& filepath) {
   }
   // Dungeon property drafts still join the saved descriptor. Lyra publishes
   // directly into its new owner instead of flushing into the original source.
+  // Refuse the rebind before writing either owner if the previous native
+  // transfer cannot be durably retired. A failed Save As leaves it retired.
+  RETURN_IF_ERROR(RetireNativeSaveTransfer("rebound"));
   RETURN_IF_ERROR(PrepareActiveProjectEditorDraftsForSave(
       /*publish_lyra=*/lyra_editor == nullptr));
   CaptureActiveProjectContext();
@@ -4151,7 +4370,25 @@ absl::Status EditorManager::SaveProjectAs(const std::string& filepath) {
 
   CaptureActiveProjectContext();
 
-  return save_status;
+  if (!save_status.ok()) {
+    return save_status;
+  }
+  const auto retirement = RetireNativeSaveTransfer("rebound");
+  if (!retirement.ok()) {
+    return absl::FailedPreconditionError(
+        "Project saved as, but its retired native-save context could not be "
+        "updated: " +
+        std::string(retirement.message()));
+  }
+  // The new owner's receipt is part of Save As; a failed completion stays
+  // pending so a Save without new edits retries it.
+  if (auto* session = session_coordinator_
+                          ? session_coordinator_->GetActiveRomSession()
+                          : nullptr) {
+    session->native_save_completion_pending = true;
+    session->native_save_completion_save_as = true;
+  }
+  return CompletePendingProjectNativeSave();
 }
 
 absl::StatusOr<std::string> EditorManager::ResolveProjectBuildCommand() {
@@ -4242,6 +4479,13 @@ absl::StatusOr<std::string> EditorManager::ResolveProjectRunTarget() const {
     return absl::FailedPreconditionError("No project open");
   }
 
+  ASSIGN_OR_RETURN(const auto expanded,
+                   current_project_.ResolveExpandedBuildRunTarget(
+                       NativeSaveEditingSourcePath()));
+  if (expanded) {
+    return *expanded;
+  }
+
   std::string target;
   if (current_project_.hack_manifest.loaded()) {
     target = current_project_.hack_manifest.build_pipeline().patched_rom;
@@ -4287,8 +4531,11 @@ absl::StatusOr<std::string> EditorManager::RunProjectBuildCommand() {
   const std::string command = *command_or;
   const std::filesystem::path project_root =
       std::filesystem::path(current_project_.filepath).parent_path();
+  ASSIGN_OR_RETURN(
+      auto environment,
+      ProjectBuildEnvironment(current_project_, NativeSaveEditingSourcePath()));
   BackgroundCommandTask task;
-  auto start_status = task.Start(command, project_root.string());
+  auto start_status = task.Start(command, project_root.string(), environment);
   if (!start_status.ok()) {
     return start_status;
   }
@@ -4364,9 +4611,13 @@ void EditorManager::QueueBuildCurrentProject() {
 
   const std::filesystem::path project_root =
       std::filesystem::path(current_project_.filepath).parent_path();
+  auto environment =
+      ProjectBuildEnvironment(current_project_, NativeSaveEditingSourcePath());
   active_project_build_ = std::make_unique<BackgroundCommandTask>();
   auto start_status =
-      active_project_build_->Start(*command_or, project_root.string());
+      environment.ok() ? active_project_build_->Start(
+                             *command_or, project_root.string(), *environment)
+                       : environment.status();
   if (!start_status.ok()) {
     UpdateBuildWorkflowStatus(
         &status_bar_, project_management_panel_.get(),
@@ -4554,6 +4805,10 @@ absl::Status EditorManager::SetCurrentRom(Rom* rom) {
           static_cast<RomSession*>(session_coordinator_->GetSession(i));
       if (session && &session->rom == rom) {
         session_coordinator_->SwitchToSession(i);
+        if (GetCurrentRom() != rom) {
+          return absl::FailedPreconditionError(
+              "The requested ROM session could not be activated");
+        }
         // Update test manager with current ROM for ROM-dependent tests
         test::TestManager::Get().SetCurrentRom(GetCurrentRom());
         RefreshResourceLabelProvider();
@@ -4668,7 +4923,8 @@ absl::Status EditorManager::DiscardPendingRomBackupRestore() {
   }
 
   const size_t session_index = GetCurrentSessionIndex();
-  if (session->editors.HasPendingGraphicsChanges() ||
+  if (session->editors.HasPendingSpriteChanges() ||
+      session->editors.HasPendingGraphicsChanges() ||
       session->HasPendingGfxGroupChanges() ||
       session->editors.HasPendingScreenChanges() ||
       HasPendingDungeonChangesForSession(session_index) ||
@@ -5019,6 +5275,10 @@ void EditorManager::ConfirmPendingUnsavedSessionActionSaveAndContinue() {
     }
 
     session_coordinator_->SwitchToSession(*session_index);
+    if (GetCurrentSessionId() != session_id) {
+      return absl::FailedPreconditionError(
+          "The requested ROM session could not be activated before saving");
+    }
     RETURN_IF_ERROR(SaveActiveProjectEditingWork());
     if (SessionHasPendingRomWork(*session_index)) {
       RETURN_IF_ERROR(SaveRom());
@@ -5087,6 +5347,13 @@ void EditorManager::ConfirmPendingUnsavedSessionActionSaveAndContinue() {
         ResolveSessionIndexById(original_session_id);
     if (original_session_index.has_value()) {
       session_coordinator_->SwitchToSession(*original_session_index);
+      if (GetCurrentSessionId() != original_session_id) {
+        toast_manager_.Show(
+            "Session saved, but the original ROM session could not be "
+            "restored. Close was cancelled.",
+            ToastType::kError);
+        return;
+      }
     }
   }
 
@@ -5208,6 +5475,13 @@ void EditorManager::ExecutePendingUnsavedSessionAction(
           *target_index != session_coordinator_->GetActiveSessionIndex()) {
         session_coordinator_->SwitchToSession(*target_index);
       }
+      if (GetCurrentSessionId() != action.target_session_id) {
+        toast_manager_.Show(
+            "Revert cancelled: the requested ROM session could not be "
+            "activated",
+            ToastType::kError);
+        break;
+      }
       auto status = RevertRomToSavedInternal();
       if (status.ok()) {
         toast_manager_.Show("Reverted ROM to the saved file",
@@ -5234,7 +5508,9 @@ bool EditorManager::SessionHasPendingUnsavedWork(size_t session_index) const {
   auto* session =
       static_cast<RomSession*>(session_coordinator_->GetSession(session_index));
   return session != nullptr &&
-         (SessionHasPendingRomWork(session_index) || session->project_dirty ||
+         (SessionHasPendingRomWork(session_index) ||
+          session->editors.HasPendingSpriteChanges() ||
+          session->project_dirty ||
           session->editors.HasPendingProjectDraftChanges() ||
           (session->project_file_editor_state.initialized &&
            session->project_file_editor_state.modified));
@@ -5342,6 +5618,8 @@ std::string EditorManager::DescribePendingUnsavedWork(
       session != nullptr && session->rom.is_loaded() && session->rom.dirty();
   const bool pending_dungeon_changes =
       HasPendingDungeonChangesForSession(session_index);
+  const bool pending_sprite_changes =
+      session != nullptr && session->editors.HasPendingSpriteChanges();
   const bool pending_graphics_changes =
       session != nullptr && session->editors.HasPendingGraphicsChanges();
   const bool pending_gfx_group_changes =
@@ -5370,6 +5648,8 @@ std::string EditorManager::DescribePendingUnsavedWork(
                                    pending_palette_colors,
                                    pending_palette_colors == 1 ? "" : "s"));
   }
+  if (pending_sprite_changes)
+    work.emplace_back("unsaved sprite assets");
   if (pending_graphics_changes) {
     work.emplace_back("unapplied graphics sheet edits");
   }
@@ -5407,6 +5687,8 @@ std::string EditorManager::CompactPendingUnsavedWorkLabel(
       session != nullptr && session->rom.is_loaded() && session->rom.dirty();
   const bool pending_dungeon_changes =
       HasPendingDungeonChangesForSession(session_index);
+  const bool pending_sprite_changes =
+      session != nullptr && session->editors.HasPendingSpriteChanges();
   const bool pending_graphics_changes =
       session != nullptr && session->editors.HasPendingGraphicsChanges();
   const bool pending_gfx_group_changes =
@@ -5432,6 +5714,8 @@ std::string EditorManager::CompactPendingUnsavedWorkLabel(
   if (pending_palette_colors > 0) {
     tags.push_back("Palette");
   }
+  if (pending_sprite_changes)
+    tags.emplace_back("Sprites");
   if (pending_graphics_changes) {
     tags.push_back("Gfx");
   }
@@ -5706,6 +5990,11 @@ void EditorManager::ConfigureEditorDependencies(EditorSet* editor_set, Rom* rom,
   deps.renderer = renderer_;
   deps.emulator = &emulator_;
   deps.custom_data = this;
+  deps.project_context_provider = [this,
+                                   session_id]() -> project::YazeProject* {
+    return IsCurrentProjectContextOwnedBySession(session_id) ? &current_project_
+                                                             : nullptr;
+  };
   deps.gfx_group_workspace = editor_set->gfx_group_workspace();
 
   editor_set->ApplyDependencies(deps);

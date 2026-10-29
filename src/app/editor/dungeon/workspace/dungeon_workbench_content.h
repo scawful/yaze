@@ -185,17 +185,6 @@ class DungeonWorkbenchContent : public WindowContent {
   void OpenObjectCoverageTool();
   bool PopOutActiveTool();
 
-  // Mirror toggle: when true, the inspector renders on the LEFT and the
-  // sidebar renders on the RIGHT (ZScream-style). Width semantics are
-  // preserved (layout_state_.right_width is still the inspector's width),
-  // so splitter drags still affect the correct pane regardless of side.
-  void SetInspectorOnLeft(bool on_left) { inspector_on_left_ = on_left; }
-  bool IsInspectorOnLeft() const { return inspector_on_left_; }
-  // Wired by the editor to persist the user's mirror choice in UserSettings.
-  // Called when the in-inspector swap-side button is clicked.
-  void SetOnInspectorSideChanged(std::function<void(bool)> cb) {
-    on_inspector_side_changed_ = std::move(cb);
-  }
   void SetPrimaryCanvasDrawnCallback(
       std::function<void(DungeonCanvasViewer&)> cb) {
     on_primary_canvas_drawn_ = std::move(cb);
@@ -279,6 +268,9 @@ class DungeonWorkbenchContent : public WindowContent {
   void DrawInspector(DungeonCanvasViewer& viewer, bool compact);
   void DrawInspectorShelf(DungeonCanvasViewer& viewer, bool compact);
   void DrawInspectorShelfRoom(DungeonCanvasViewer& viewer);
+  void DrawRoomContextHeader(DungeonCanvasViewer& viewer);
+  void DrawRoomContextRow(DungeonCanvasViewer& viewer);
+  void DrawLayoutOptions();
   void DrawInspectorShelfSelection(DungeonCanvasViewer& viewer);
   bool DrawObjectPlacementInspector(DungeonCanvasViewer& viewer);
   void DrawSelectedObjectActions(DungeonCanvasViewer& viewer, size_t index);
@@ -294,7 +286,7 @@ class DungeonWorkbenchContent : public WindowContent {
   const char* GetWorkbenchToolShortLabel(WorkbenchTool tool) const;
   const char* GetWorkbenchToolUnavailableMessage(WorkbenchTool tool) const;
   void DrawApplyScopeControls(int room_id);
-  void DrawPitDamageControls(int room_id);
+  void DrawPitDamageControls(int room_id, bool compact = false);
   void DrawDungeonMapPopup(DungeonCanvasViewer& viewer);
   void DrawProposalPreviewWindow(DungeonCanvasViewer& viewer);
   DungeonMapPanel* GetEmbeddedDungeonMap(DungeonCanvasViewer& viewer);
@@ -310,7 +302,6 @@ class DungeonWorkbenchContent : public WindowContent {
   // Workbench-owned UI state (was in DungeonEditorV2, moved here Phase 6.2).
   int previous_room_id_ = -1;
   bool split_view_enabled_ = false;
-  bool inspector_on_left_ = true;
   int compare_room_id_ = -1;
   DungeonWorkbenchLayoutState layout_state_{};
   std::function<void(int)> on_room_selected_;
@@ -325,7 +316,6 @@ class DungeonWorkbenchContent : public WindowContent {
   std::function<bool(const std::string&)> is_standalone_tool_open_;
   std::function<bool(const std::string&)> open_and_focus_standalone_tool_;
   std::function<void()> open_keyboard_shortcuts_;
-  std::function<void(bool)> on_inspector_side_changed_;
   std::function<void(DungeonCanvasViewer&)> on_primary_canvas_drawn_;
   std::function<void(int)> prepare_room_render_context_;
   RoomLabelEditCallback room_label_edit_callback_;
@@ -335,9 +325,17 @@ class DungeonWorkbenchContent : public WindowContent {
   std::function<void()> on_pit_damage_changed_;
   Rom* rom_ = nullptr;
 
-  enum class SidebarMode : uint8_t { Objects, Sprites, Doors, Items };
-  SidebarMode sidebar_mode_ = SidebarMode::Objects;
-  float navigator_tools_fraction_ = 0.40f;
+  enum class SidebarMode : uint8_t {
+    Room,
+    Objects,
+    Sprites,
+    Doors,
+    Items,
+    Entrance,
+    Tools
+  };
+  SidebarMode sidebar_mode_ = SidebarMode::Room;
+  float navigator_tools_fraction_ = 0.30f;
   bool show_room_matrix_ = true;
 
   RoomInspectorSubTab room_inspector_sub_tab_ = RoomInspectorSubTab::Mechanics;

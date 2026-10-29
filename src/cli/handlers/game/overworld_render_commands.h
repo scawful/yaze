@@ -85,9 +85,31 @@ class LyraVerifyProjectCommandHandler : public resources::CommandHandler {
   absl::Status Execute(Rom* rom, const resources::ArgumentParser& parser,
                        resources::OutputFormatter& formatter) override;
 
+ protected:
+  virtual bool InspectAssets() const { return false; }
+
  private:
   std::string GetDefaultFormat() const override { return "json"; }
   std::string GetOutputTitle() const override { return "Lyra Project Inputs"; }
+};
+
+// Read-only migration evidence; never rebinds a document or verifies stale data.
+class LyraInspectProjectCommandHandler
+    : public LyraVerifyProjectCommandHandler {
+ public:
+  std::string GetName() const override { return "lyra-inspect-project"; }
+  std::string GetUsage() const override {
+    return "lyra-inspect-project --project-context=<project.yaze> "
+           "--rom=<source>";
+  }
+
+ protected:
+  bool InspectAssets() const override { return true; }
+
+ private:
+  std::string GetOutputTitle() const override {
+    return "Lyra Asset Inspection";
+  }
 };
 
 }  // namespace handlers

@@ -89,7 +89,12 @@ bool DrawSpritePreviewPixels(const gui::CanvasRuntime& rt,
                        origin.y + (room_y + y) * scale);
       const ImVec2 max(origin.x + (room_x + x) * scale,
                        origin.y + (room_y + y + 1) * scale);
-      rt.draw_list->AddRectFilled(min, max, color);
+      // PrimRect instead of AddRectFilled: since 1.93, AddRectFilled
+      // anti-aliases rects with fractional corners (any non-integer zoom or
+      // pan), which insets the solid color 0.5px and leaves seams between
+      // adjacent pixel runs. Sprite art needs hard edges.
+      rt.draw_list->PrimReserve(6, 4);
+      rt.draw_list->PrimRect(min, max, color);
       drew_any_pixel = true;
     }
   }

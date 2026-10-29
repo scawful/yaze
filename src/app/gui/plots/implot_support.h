@@ -12,9 +12,8 @@ namespace gui {
 namespace plotting {
 
 struct PlotStyleConfig {
-  float line_weight = 2.0f;
+  float line_weight = 2.0f;  // also the marker edge weight in ImPlot 1.x
   float marker_size = 4.0f;
-  float marker_weight = 1.25f;
   float fill_alpha = 0.35f;
   float grid_alpha = 0.35f;
   float background_alpha = 0.9f;
@@ -35,15 +34,23 @@ struct PlotConfig {
 void EnsureImPlotContext();
 ImPlotStyle BuildStyleFromTheme(const Theme& theme,
                                 const PlotStyleConfig& config = {});
+// ImPlot 1.x styles plot items only through the ImPlotSpec passed to each
+// PlotX call; ImPlotStyle no longer carries line, fill, or marker defaults.
+ImPlotSpec BuildItemSpecFromTheme(const Theme& theme,
+                                  const PlotStyleConfig& config = {});
 
+// Applies the themed ImPlotStyle for its lifetime. Pass item_spec() to each
+// PlotX call inside the scope so items match the theme too.
 class PlotStyleScope {
  public:
- PlotStyleScope(const Theme& theme,
-                 const PlotStyleConfig& config = {});
+  PlotStyleScope(const Theme& theme, const PlotStyleConfig& config = {});
   ~PlotStyleScope();
+
+  const ImPlotSpec& item_spec() const { return item_spec_; }
 
  private:
   ImPlotStyle previous_style_{};
+  ImPlotSpec item_spec_{};
 };
 
 class PlotGuard {

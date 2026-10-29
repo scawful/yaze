@@ -290,6 +290,22 @@ void CommandRegistry::RegisterHandlers(
             "z3ed project-bundle-unpack --archive MyProject.zip "
             "--out ./projects --dry-run"};
       }
+    } else if (name == "plan-read" || name == "plan-agent-apply") {
+      metadata.category = "project";
+      metadata.requires_rom = false;
+      if (name == "plan-read") {
+        metadata.description = "Project plan IDs, SHA-256 and agent status";
+        metadata.examples = {
+            "z3ed plan-read --plan oracle.plan.json --format=json",
+            "z3ed plan-read --project Oracle-of-Secrets.yaze"};
+      } else {
+        metadata.description = "Apply agent observations to a project plan";
+        metadata.examples = {
+            "z3ed plan-agent-apply --plan oracle.plan.json "
+            "--update update.json --dry-run --format=json",
+            "z3ed plan-agent-apply --plan oracle.plan.json "
+            "--update update.json --format=json"};
+      }
     } else if (name.find("rom-") == 0) {
       metadata.category = "rom";
       metadata.description = "ROM inspection and validation";

@@ -256,6 +256,9 @@ std::string yaze::util::FileDialogWrapper::ShowOpenFolderDialog() {
 
 std::string yaze::util::FileDialogWrapper::ShowSaveFileDialog(
     const std::string& default_name, const std::string& default_extension) {
+  if (auto result = ConsumeSaveFileDialogResultForTesting()) {
+    return *result;
+  }
   const auto base_dir = ResolveDocumentsPath();
   const std::string filename = BuildSaveFilename(default_name, default_extension);
   return (base_dir / filename).string();
@@ -518,6 +521,9 @@ std::string yaze::util::FileDialogWrapper::ShowOpenFolderDialog() {
 
 std::string yaze::util::FileDialogWrapper::ShowSaveFileDialog(const std::string& default_name, 
                                                              const std::string& default_extension) {
+  if (auto result = ConsumeSaveFileDialogResultForTesting()) {
+    return *result;
+  }
   if (core::FeatureFlags::get().kUseNativeFileDialog) {
     return ShowSaveFileDialogNFD(default_name, default_extension);
   } else {

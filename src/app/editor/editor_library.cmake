@@ -29,6 +29,7 @@ set(
   app/editor/dungeon/dungeon_editor_v2_connection_edits.cc
   app/editor/dungeon/dungeon_editor_v2_render_context.cc
   app/editor/dungeon/dungeon_editor_v2_context.cc
+  app/editor/dungeon/dungeon_editor_v2_graphics_preview.cc
   app/editor/dungeon/dungeon_editor_v2_room_transfer.cc
   app/editor/dungeon/dungeon_room_edit.cc
   app/editor/dungeon/dungeon_selection_edit.cc
@@ -61,6 +62,8 @@ set(
   app/editor/dungeon/interaction/tile_object_handler.cc
   app/editor/dungeon/dungeon_proposal_overlay.cc
   app/editor/dungeon/dungeon_editor_v2_minecart.cc
+  app/editor/dungeon/dungeon_editor_v2_minecart_nodes.cc
+  app/editor/dungeon/dungeon_canvas_minecart_nodes.cc
   app/editor/dungeon/ui/crumble/crumble_floor_model.cc
   app/editor/dungeon/ui/crumble/crumble_floor_view.cc
   app/editor/dungeon/ui/minecart/minecart_canvas_tool.cc
@@ -92,6 +95,9 @@ set(
   app/editor/graphics/gfx_group_editor.cc
   app/editor/graphics/gfx_group_editor_main.cc
   app/editor/graphics/graphics_editor.cc
+  app/editor/graphics/ui/scratch/graphics_scratch_view.cc
+  app/editor/graphics/graphics_scratch_storage.cc
+  app/editor/overworld/scratch_workspace.cc
   app/editor/graphics/link_sprite_panel.cc
   app/editor/graphics/palette_controls_panel.cc
   app/editor/graphics/paletteset_editor_panel.cc
@@ -101,6 +107,13 @@ set(
   app/editor/graphics/screen_menu_tilemap_editor.cc
   app/editor/graphics/sheet_browser_panel.cc
   app/editor/graphics/sheet_png_transfer.cc
+  app/editor/graphics/catalog_tile_transfer.cc
+  app/editor/graphics/catalog_palette_preview.cc
+  app/editor/graphics/catalog_tile_browser.cc
+  app/editor/graphics/catalog_object_transfer.cc
+  app/editor/graphics/pixel_index_command.cc
+  app/editor/graphics/color_id_permutation.cc
+  app/editor/graphics/scratch_color_id_command.cc
   app/editor/graphics/pixel_clipboard.cc
   app/editor/graphics/graphics_save_plan.cc
   app/editor/graphics/graphics_sheet_sync.cc
@@ -165,6 +178,12 @@ set(
   app/editor/overworld/maps/overworld_map_metadata.cc
   app/editor/overworld/maps/overworld_property_edit.cc
   app/editor/overworld/overworld_editor.cc
+  app/editor/overworld/project_graphics_source.cc
+  app/editor/overworld/project_graphics_source_ui.cc
+  app/editor/overworld/project_graphics_import.cc
+  app/editor/overworld/project_graphics_import_command.cc
+  app/editor/overworld/project_graphics_import_controller.cc
+  app/editor/overworld/project_graphics_import_ui.cc
   app/editor/overworld/lyra_terrain_canvas.cc
   app/editor/overworld/lyra_map_authoring_ui.cc
   app/editor/dungeon/ui/window/custom_collision_panel.cc

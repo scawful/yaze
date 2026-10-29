@@ -282,6 +282,28 @@ TEST_F(ThemeStyleSnapshotTest, ClassicYazeWritesEveryImGuiColorSlot) {
   EXPECT_FLOAT_EQ(ImGui::GetStyle().GrabRounding, 5.0f);
 }
 
+// The preset writer has the same contract: Theme::ApplyToImGui() paints every
+// slot, so switching Classic -> preset cannot leave Classic colors behind.
+// Before ImGui 1.93 it skipped DragDropTargetBg and UnsavedMarker.
+TEST_F(ThemeStyleSnapshotTest, PresetThemeWritesEveryImGuiColorSlot) {
+  constexpr ImVec4 kSentinel(1.0f, 0.0f, 1.0f, 0.123f);
+  ImVec4* colors = ImGui::GetStyle().Colors;
+  for (int i = 0; i < ImGuiCol_COUNT; ++i) {
+    colors[i] = kSentinel;
+  }
+
+  Theme().ApplyToImGui();
+
+  for (int i = 0; i < ImGuiCol_COUNT; ++i) {
+    const bool untouched =
+        colors[i].x == kSentinel.x && colors[i].y == kSentinel.y &&
+        colors[i].z == kSentinel.z && colors[i].w == kSentinel.w;
+    EXPECT_FALSE(untouched)
+        << "Theme::ApplyToImGui() left ImGuiCol_" << ImGui::GetStyleColorName(i)
+        << " (index " << i << ") unwritten; it will inherit the previous theme";
+  }
+}
+
 // Classic YAZE's spacing is part of its identity: ColorsYaze() sets
 // FramePadding 6x3 and ItemSpacing 6x4. Carrying density across a theme
 // switch must scale those authored dimensions, not replace them.

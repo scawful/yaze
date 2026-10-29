@@ -5,9 +5,11 @@
 
 #include <memory>
 
+#include "absl/status/status.h"
 #include "app/application.h"
 #include "cli/service/api/http_server.h"
 #include "util/log.h"
+#include "util/ui_thread_queue.h"
 
 namespace yaze::app {
 
@@ -27,14 +29,26 @@ inline std::unique_ptr<cli::api::HttpServer> SetupEditorHttpServer(
         auto* manager = controller->editor_manager();
         return manager ? &manager->emulator().symbol_provider() : nullptr;
       });
+  // HTTP callbacks run on service threads; SDL window actions belong to the
+  // UI thread. The server stops before its captured controller is destroyed.
+  auto run_window_action = [controller](void (Controller::*action)()) -> bool {
+    absl::Status status = util::UiThreadQueue::Get().RunOnUiThread(
+        [controller, action]() -> absl::Status {
+          (controller->*action)();
+          return absl::OkStatus();
+        });
+    if (!status.ok()) {
+      LOG_WARN("App", "HTTP window action failed: %s",
+               std::string(status.message()).c_str());
+    }
+    return status.ok();
+  };
   server->SetWindowActions(
-      [controller]() {
-        controller->ShowWindow();
-        return true;
+      [run_window_action]() {
+        return run_window_action(&Controller::ShowWindow);
       },
-      [controller]() {
-        controller->HideWindow();
-        return false;
+      [run_window_action]() {
+        return run_window_action(&Controller::HideWindow);
       });
 
   if (config.editor_control) {

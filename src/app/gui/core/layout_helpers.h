@@ -1,9 +1,11 @@
 #ifndef YAZE_APP_GUI_LAYOUT_HELPERS_H
 #define YAZE_APP_GUI_LAYOUT_HELPERS_H
 
+#include <string>
 #include <vector>
 
 #include "absl/strings/str_format.h"
+#include "absl/strings/string_view.h"
 #include "app/gui/core/theme_manager.h"
 #include "imgui/imgui.h"
 
@@ -48,12 +50,14 @@ class LayoutHelpers {
   static void BeginPaddedPanel(const char* label, float padding = -1.0f);
   static void EndPaddedPanel();
 
+  // Call EndTableWithTheming() only when BeginTableWithTheming() returns
+  // true, the same rule as ImGui::BeginTable(). On false the theme pushes
+  // are already undone.
   static bool BeginTableWithTheming(const char* str_id, int columns,
                                     ImGuiTableFlags flags = 0,
                                     const ImVec2& outer_size = ImVec2(0, 0),
                                     float inner_width = 0.0f);
   static void EndTableWithTheming();
-  static void EndTable() { ImGui::EndTable(); }
 
   static void BeginCanvasPanel(const char* label,
                                ImVec2* canvas_size = nullptr);
@@ -79,8 +83,6 @@ class LayoutHelpers {
   // Input preset functions for common patterns
   static bool InputHexRow(const char* label, uint8_t* data);
   static bool InputHexRow(const char* label, uint16_t* data);
-  static void BeginPropertyGrid(const char* label);
-  static void EndPropertyGrid();
   static bool InputToolbarField(const char* label, char* buf, size_t buf_size);
 
   // Toolbar helpers
@@ -123,6 +125,13 @@ class LayoutHelpers {
     return base_value * GetTheme().compact_factor;
   }
 };
+
+// Returns "text###stable_id" for ImGui::TableSetupColumn(). ImGui matches
+// saved column width, order and visibility by the label's ID, and only the
+// part after "###" goes into that ID. Use this when `text` is translated
+// (tr()), so a language change keeps the saved column settings. The header
+// still shows only `text`.
+std::string ColumnLabel(absl::string_view text, absl::string_view stable_id);
 
 }  // namespace gui
 }  // namespace yaze

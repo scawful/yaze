@@ -8,6 +8,10 @@ namespace yaze::editor {
 
 class DungeonWorkbenchContentTestPeer {
  public:
+  static const DungeonWorkbenchLayoutState& LayoutState(
+      const DungeonWorkbenchContent& content) {
+    return content.layout_state_;
+  }
   static void DrawToolsToolbar(DungeonWorkbenchContent& content) {
     DungeonWorkbenchToolbarParams params;
     params.layout = &content.layout_state_;
@@ -34,6 +38,16 @@ class DungeonWorkbenchContentTestPeer {
                             float height) {
     content.DrawSidebarPane(width, height, 22, false);
   }
+  static void SetViewer(DungeonWorkbenchContent& content,
+                        DungeonCanvasViewer* viewer) {
+    content.get_viewer_ = [viewer]() {
+      return viewer;
+    };
+  }
+  static void SetRoomContextRowVisible(DungeonWorkbenchContent& content,
+                                       bool visible) {
+    content.layout_state_.show_room_context_row = visible;
+  }
   static const auto& RebuildDungeonBadgeCache(
       DungeonWorkbenchContent& content) {
     content.BuildRoomDungeonCache();
@@ -52,6 +66,10 @@ class DungeonWorkbenchContentTestPeer {
   static void DrawRoomInspector(DungeonWorkbenchContent& content,
                                 DungeonCanvasViewer& viewer) {
     content.DrawInspectorShelfRoom(viewer);
+  }
+  static void DrawRoomContextRow(DungeonWorkbenchContent& content,
+                                 DungeonCanvasViewer& viewer) {
+    content.DrawRoomContextRow(viewer);
   }
   static void SetRoomInspectorSubTab(
       DungeonWorkbenchContent& content,

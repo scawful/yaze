@@ -651,10 +651,27 @@ TEST_F(GraphicsWorkspaceLayoutTest,
     EXPECT_LE(host->ContentSize.x, host->InnerRect.GetWidth() + 1) << width;
     auto* content = ActiveChild("##PixelEditorContent");
     ASSERT_NE(content, nullptr);
-    EXPECT_GT(content->Size.y, 580) << width;
+    // The collapsed Swap color IDs row is part of the current editor. Verify
+    // that the canvas receives the actual remainder after its controls and
+    // status strip, rather than the pre-swap-row fixed pixel budget.
+    const auto swap = FindWidget("Swap color IDs");
+    ASSERT_TRUE(swap) << width;
+    ASSERT_TRUE(swap->bounds.valid) << width;
+    EXPECT_NEAR(content->Pos.y,
+                swap->bounds.max_y + ImGui::GetStyle().ItemSpacing.y, 1)
+        << width;
+    const float status_height = ImGui::GetFrameHeightWithSpacing() +
+                                ImGui::GetStyle().ItemSpacing.y + 1;
+    const float remaining_height = host->WorkRect.Max.y - content->Pos.y;
+    ASSERT_GT(remaining_height, status_height) << width;
+    EXPECT_NEAR(content->Size.y, remaining_height - status_height, 1) << width;
     auto* canvas = ActiveChild("##CanvasArea");
     ASSERT_NE(canvas, nullptr);
     EXPECT_GT(canvas->Size.x, width - 40) << width;
+    // WorkRect can retain the previous frame's larger content extent while
+    // controls reflow. InnerRect is this child's current visible allocation.
+    EXPECT_NEAR(canvas->Pos.y + canvas->Size.y, content->InnerRect.Max.y, 1)
+        << width;
   }
   const auto frame = [&] {
     Frame([&] { EXPECT_TRUE(pixel.Update().ok()); });
@@ -1394,6 +1411,45 @@ TEST_F(GraphicsWorkspaceLayoutTest,
 }
 
 TEST_F(GraphicsWorkspaceLayoutTest,
+       FloatingPasteKeepsAdjacentPixelsHardEdgedAtFractionalZoom) {
+  state_.open_sheets.insert(0);
+  state_.SetZoom(1.5f);
+  state_.selection.x = 1;
+  state_.selection.y = 1;
+  state_.selection.width = 2;
+  state_.selection.height = 1;
+  state_.selection.pixel_data = {1, 2};
+  state_.selection.is_active = true;
+  state_.selection.is_floating = true;
+  PixelEditorPanel pixel(&state_, nullptr);
+  const auto frame = [&] {
+    Frame([&] { EXPECT_TRUE(pixel.Update().ok()); });
+  };
+  frame();
+  frame();
+
+  const auto origin = SheetOrigin();
+  ASSERT_TRUE(origin);
+  auto* canvas = ActiveChild("##CanvasArea");
+  ASSERT_NE(canvas, nullptr);
+  const ImU32 paste_color = IM_COL32(255, 255, 255, 230);
+  std::vector<ImVec2> paste_vertices;
+  for (const auto& vertex : canvas->DrawList->VtxBuffer) {
+    if (vertex.col == paste_color) {
+      paste_vertices.push_back(vertex.pos);
+    }
+  }
+  ASSERT_EQ(paste_vertices.size(), 8u);
+  const ImVec2 offsets[] = {{1.5f, 1.5f}, {3.0f, 1.5f}, {3.0f, 3.0f},
+                            {1.5f, 3.0f}, {3.0f, 1.5f}, {4.5f, 1.5f},
+                            {4.5f, 3.0f}, {3.0f, 3.0f}};
+  for (size_t i = 0; i < paste_vertices.size(); ++i) {
+    EXPECT_FLOAT_EQ(paste_vertices[i].x, origin->x + offsets[i].x);
+    EXPECT_FLOAT_EQ(paste_vertices[i].y, origin->y + offsets[i].y);
+  }
+}
+
+TEST_F(GraphicsWorkspaceLayoutTest,
        InlineAndComparisonShareSourceRefreshThroughPixelsPaletteAndErrors) {
   auto& palettes = gfx::PaletteManager::Get();
   palettes.ResetForTesting();
@@ -1474,6 +1530,123 @@ TEST_F(GraphicsWorkspaceLayoutTest,
   view.SetGameData(data_.get());
   frame();
   EXPECT_EQ(renders, 7);
+}
+
+TEST_F(GraphicsWorkspaceLayoutTest,
+       SourcePreviewFollowsUnsavedRoomObjectsWithoutRenderFeedbackLoop) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+  zelda3::Room room(0, &rom, data_.get());
+  room.AddTileObject(zelda3::RoomObject(0, 1, 0, 0));
+  UsagePreviewView view(&state_);
+  view.SetRom(&rom);
+  view.SetGameData(data_.get());
+  int renders = 0;
+  GraphicsEditContext source;
+  source.owner = data_.get();
+  source.preview_revision = [&]() -> absl::StatusOr<uint64_t> {
+    return room.composite_source_revision();
+  };
+  source.render_preview = [&]() -> absl::StatusOr<usage_preview::PreviewImage> {
+    ++renders;
+    usage_preview::PreviewImage image;
+    image.width = 8;
+    image.height = 1;
+    image.pixels.assign(8, 0);
+    image.pixels[room.GetTileObjects().front().x()] = 1;
+    // Real room renderers can advance this revision as they rebuild caches.
+    room.MarkGraphicsDirty();
+    return image;
+  };
+  state_.source_context = std::move(source);
+  ++state_.source_context_revision;
+  const auto frame = [&] {
+    Frame([&] { view.DrawSourcePreview(); });
+  };
+  const absl::Cleanup cleanup = [&] {
+    gfx::Arena::Get().ClearTextureQueue();
+  };
+  frame();
+  EXPECT_EQ(renders, 1);
+  EXPECT_EQ(UsagePreviewViewTestPeer::SourceBitmap(view).GetPixel(1, 0), 1);
+  frame();
+  EXPECT_EQ(renders, 1);
+  auto moved = room.GetTileObjects().front();
+  moved.set_x(4);
+  ASSERT_TRUE(room.UpdateObject(0, moved).ok());
+  frame();
+  EXPECT_EQ(renders, 2);
+  EXPECT_EQ(UsagePreviewViewTestPeer::SourceBitmap(view).GetPixel(1, 0), 0);
+  EXPECT_EQ(UsagePreviewViewTestPeer::SourceBitmap(view).GetPixel(4, 0), 1);
+  frame();
+  EXPECT_EQ(renders, 2);
+  zelda3::GameData foreign;
+  view.SetGameData(&foreign);
+  frame();
+  EXPECT_EQ(renders, 2);
+}
+
+TEST_F(GraphicsWorkspaceLayoutTest,
+       OracleSourcePreviewRendersUnsavedObjectEditWithoutSheetChange) {
+  const char* path = std::getenv("YAZE_TEST_ROM_OOS");
+  if (!path || !std::filesystem::exists(path))
+    GTEST_SKIP() << "Set YAZE_TEST_ROM_OOS to an Oracle ROM copy";
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromFile(path).ok());
+  ASSERT_TRUE(zelda3::LoadGameData(rom, *data_).ok());
+  auto& custom = zelda3::CustomObjectManager::Get();
+  const auto custom_state = custom.SnapshotState();
+  const absl::Cleanup cleanup = [&] {
+    gfx::Arena::Get().ClearTextureQueue();
+    custom.RestoreState(custom_state);
+  };
+  custom.SetTilePatternsSource("");
+  auto room = zelda3::LoadRoomFromRom(&rom, 0x89);
+  room.SetGameData(data_.get());
+  usage_preview::RoomUsagePreview renderer;
+  ASSERT_TRUE(renderer.TraceLoadedRoom(&rom, data_.get(), &room).ok());
+  ASSERT_FALSE(renderer.tile_references().empty());
+  const size_t index = renderer.tile_references().front().object_index;
+  const auto original = room.GetTileObjects().at(index);
+  const auto bytes = rom.vector();
+  UsagePreviewView view(&state_);
+  view.SetRom(&rom);
+  view.SetGameData(data_.get());
+  GraphicsEditContext source;
+  source.owner = data_.get();
+  source.preview_revision = [&]() -> absl::StatusOr<uint64_t> {
+    return room.composite_source_revision();
+  };
+  source.render_preview = [&]() -> absl::StatusOr<usage_preview::PreviewImage> {
+    auto status =
+        renderer.Render(&rom, data_.get(), room.id(), {}, false, &room);
+    if (!status.ok())
+      return status;
+    return renderer.Snapshot();
+  };
+  state_.source_context = std::move(source);
+  ++state_.source_context_revision;
+  const auto frame = [&] {
+    Frame([&] { view.DrawSourcePreview(); });
+  };
+  frame();
+  const auto before = usage_preview::SnapshotBitmap(
+      UsagePreviewViewTestPeer::SourceBitmap(view));
+  auto moved = original;
+  moved.set_x(original.x() < 60 ? original.x() + 4 : original.x() - 4);
+  ASSERT_TRUE(room.UpdateObject(index, moved).ok());
+  frame();
+  const auto after = usage_preview::SnapshotBitmap(
+      UsagePreviewViewTestPeer::SourceBitmap(view));
+  EXPECT_GT(after.CountDifferentPixels(before), 0);
+  ASSERT_TRUE(room.UpdateObject(index, original).ok());
+  frame();
+  EXPECT_EQ(usage_preview::SnapshotBitmap(
+                UsagePreviewViewTestPeer::SourceBitmap(view))
+                .CountDifferentPixels(before),
+            0);
+  EXPECT_EQ(rom.vector(), bytes);
+  EXPECT_TRUE(state_.modified_sheets.empty());
 }
 
 TEST_F(GraphicsWorkspaceLayoutTest,
