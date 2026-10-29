@@ -45,6 +45,9 @@ class Tile16Editor : public gfx::GfxContext {
       std::function<absl::Status(int, int)> callback) {
     open_graphics_for_quadrant_ = std::move(callback);
   }
+  void SetHoverDetailProvider(std::function<std::string(int)> provider) {
+    blockset_selector_.SetHoverDetailProvider(std::move(provider));
+  }
   absl::Status OpenGraphicsForActiveQuadrant() {
     if (!open_graphics_for_quadrant_) {
       return absl::FailedPreconditionError("Graphics editor is unavailable");

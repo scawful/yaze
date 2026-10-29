@@ -327,31 +327,160 @@ absl::Status OverworldEditor::DrawScratchSpace() {
   scratch_canvas_.DrawBitmap(scratch_bitmap_, 2, 2, canvas.scale);
   if (map_blockset_loaded_)
     scratch_canvas_.DrawTileSelector(32);
+
+  const auto* active_brush = selection_brush();
+  const ImVec2 origin = scratch_canvas_.zero_point();
+  const ImVec2 scroll = scratch_canvas_.scrolling();
+  const float scale = canvas.scale;
+
+  // Render existing selection rectangle if active
+  if (scratch_select_active_) {
+    const float x0 =
+        origin.x + scroll.x + (scratch_select_min_.x * 32.0f + 2.0f) * scale;
+    const float y0 =
+        origin.y + scroll.y + (scratch_select_min_.y * 32.0f + 2.0f) * scale;
+    const float x1 = origin.x + scroll.x +
+                     ((scratch_select_max_.x + 1.0f) * 32.0f + 2.0f) * scale;
+    const float y1 = origin.y + scroll.y +
+                     ((scratch_select_max_.y + 1.0f) * 32.0f + 2.0f) * scale;
+    canvas.draw_list->AddRectFilled(ImVec2(x0, y0), ImVec2(x1, y1),
+                                    IM_COL32(80, 140, 240, 50));
+    canvas.draw_list->AddRect(ImVec2(x0, y0), ImVec2(x1, y1),
+                              IM_COL32(255, 255, 255, 220), 0.0f, 0, 2.0f);
+  }
+
   if (canvas.hovered && map_blockset_loaded_) {
     const auto cursor = ScratchMousePosition(scratch_canvas_);
     const int x = static_cast<int>(std::floor(cursor.x / 32));
     const int y = static_cast<int>(std::floor(cursor.y / 32));
-    if (x >= 0 && y >= 0 && x < page.width && y < page.height) {
-      if (IsMouseClicked(ImGuiMouseButton_Right)) {
-        RequestTile16Selection(page.tile_data[x][y]);
+
+    // Right mouse drag-selection (Tile16 Select Rect)
+    if (IsMouseClicked(ImGuiMouseButton_Right) && x >= 0 && y >= 0 &&
+        x < page.width && y < page.height) {
+      scratch_selecting_ = true;
+      scratch_drag_start_ = ImVec2(x, y);
+      scratch_select_min_ = scratch_drag_start_;
+      scratch_select_max_ = scratch_drag_start_;
+    }
+
+    if (scratch_selecting_ && IsMouseDragging(ImGuiMouseButton_Right)) {
+      int cur_x = std::clamp(x, 0, page.width - 1);
+      int cur_y = std::clamp(y, 0, page.height - 1);
+      int min_x = std::min(static_cast<int>(scratch_drag_start_.x), cur_x);
+      int min_y = std::min(static_cast<int>(scratch_drag_start_.y), cur_y);
+      int max_x = std::max(static_cast<int>(scratch_drag_start_.x), cur_x);
+      int max_y = std::max(static_cast<int>(scratch_drag_start_.y), cur_y);
+      scratch_select_min_ = ImVec2(min_x, min_y);
+      scratch_select_max_ = ImVec2(max_x, max_y);
+
+      // Draw active dragging rect
+      const float x0 = origin.x + scroll.x + (min_x * 32.0f + 2.0f) * scale;
+      const float y0 = origin.y + scroll.y + (min_y * 32.0f + 2.0f) * scale;
+      const float x1 =
+          origin.x + scroll.x + ((max_x + 1.0f) * 32.0f + 2.0f) * scale;
+      const float y1 =
+          origin.y + scroll.y + ((max_y + 1.0f) * 32.0f + 2.0f) * scale;
+      canvas.draw_list->AddRectFilled(ImVec2(x0, y0), ImVec2(x1, y1),
+                                      IM_COL32(100, 160, 255, 70));
+      canvas.draw_list->AddRect(ImVec2(x0, y0), ImVec2(x1, y1),
+                                IM_COL32(255, 255, 255, 255), 0.0f, 0, 2.0f);
+    }
+
+    if (scratch_selecting_ && !IsMouseDown(ImGuiMouseButton_Right)) {
+      scratch_selecting_ = false;
+      int start_x = static_cast<int>(scratch_drag_start_.x);
+      int start_y = static_cast<int>(scratch_drag_start_.y);
+      int end_x = std::clamp(x, 0, page.width - 1);
+      int end_y = std::clamp(y, 0, page.height - 1);
+
+      if (start_x == end_x && start_y == end_y) {
+        // Single right click: sample Tile16
+        RequestTile16Selection(page.tile_data[start_x][start_y]);
+        scratch_select_active_ = false;
+      } else {
+        int min_x = std::min(start_x, end_x);
+        int max_x = std::max(start_x, end_x);
+        int min_y = std::min(start_y, end_y);
+        int max_y = std::max(start_y, end_y);
+        TileBrush brush;
+        brush.width = max_x - min_x + 1;
+        brush.height = max_y - min_y + 1;
+        brush.tile_ids.reserve(brush.width * brush.height);
+        for (int row = min_y; row <= max_y; ++row) {
+          for (int col = min_x; col <= max_x; ++col) {
+            brush.tile_ids.push_back(page.tile_data[col][row]);
+          }
+        }
+        SetSelectionBrush(std::move(brush));
+        scratch_select_active_ = true;
+        scratch_select_min_ = ImVec2(min_x, min_y);
+        scratch_select_max_ = ImVec2(max_x, max_y);
       }
-      const auto* brush =
-          tile_painting_ ? tile_painting_->selection_brush() : nullptr;
-      if (brush && IsMouseClicked(ImGuiMouseButton_Left)) {
-        BeginScratchEdit();
-        const auto status = scratch_workspace_.Stamp(*brush, x, y);
-        FinishScratchEdit("Stamp scratch layout");
-        if (!status.ok())
-          report(status);
-        else
-          report(RebuildScratchBitmapFromTileData());
-      } else if (!brush) {
+    }
+
+    // Brush stamp or single-tile paint
+    if (x >= 0 && y >= 0 && x < page.width && y < page.height) {
+      if (active_brush && active_brush->valid()) {
+        // Draw brush ghost preview
+        const float bx0 = origin.x + scroll.x + (x * 32.0f + 2.0f) * scale;
+        const float by0 = origin.y + scroll.y + (y * 32.0f + 2.0f) * scale;
+        const float bx1 = origin.x + scroll.x +
+                          ((x + active_brush->width) * 32.0f + 2.0f) * scale;
+        const float by1 = origin.y + scroll.y +
+                          ((y + active_brush->height) * 32.0f + 2.0f) * scale;
+        canvas.draw_list->AddRect(ImVec2(bx0, by0), ImVec2(bx1, by1),
+                                  IM_COL32(255, 220, 50, 220), 0.0f, 0, 2.0f);
+
+        if (IsMouseClicked(ImGuiMouseButton_Left)) {
+          BeginScratchEdit();
+          const auto status = scratch_workspace_.Stamp(*active_brush, x, y);
+          FinishScratchEdit("Stamp scratch layout");
+          if (!status.ok())
+            report(status);
+          else
+            report(RebuildScratchBitmapFromTileData());
+        }
+      } else {
         if (IsMouseClicked(ImGuiMouseButton_Left)) {
           BeginScratchEdit();
           scratch_paint_gesture_owned_ = true;
         }
         if (scratch_paint_gesture_owned_ && IsMouseDown(ImGuiMouseButton_Left))
           DrawScratchSpaceEdits();
+      }
+
+      // Hover to View tooltip: show tile info, usage count, coordinates, zoomed preview
+      if (!scratch_selecting_ && !IsMouseDown(ImGuiMouseButton_Left) &&
+          !IsMouseDown(ImGuiMouseButton_Right) && page.in_use) {
+        const int tile_id = page.tile_data[x][y];
+        if (ImGui::BeginTooltip()) {
+          ImGui::Text(tr("Tile %d (0x%03X)"), tile_id, tile_id);
+          ImGui::TextDisabled("Scratch: (%d, %d)", x, y);
+          const int usage = GetTile16UsageCount(tile_id);
+          if (usage > 0) {
+            ImGui::Text(tr("Placed %d times (%s)"), usage,
+                        GetTile16ScopeLabel().c_str());
+          }
+          if (tile16_blockset_.atlas.is_active()) {
+            const int tile_col = tile_id % 16;
+            const int tile_row = tile_id / 16;
+            const float atlas_w =
+                static_cast<float>(tile16_blockset_.atlas.width());
+            const float atlas_h =
+                static_cast<float>(tile16_blockset_.atlas.height());
+            if (atlas_w > 0 && atlas_h > 0) {
+              const float uv0_x = (tile_col * 16.0f) / atlas_w;
+              const float uv0_y = (tile_row * 16.0f) / atlas_h;
+              const float uv1_x = ((tile_col + 1) * 16.0f) / atlas_w;
+              const float uv1_y = ((tile_row + 1) * 16.0f) / atlas_h;
+              ImGui::Image(
+                  (ImTextureID)(intptr_t)tile16_blockset_.atlas.texture(),
+                  ImVec2(64.0f, 64.0f), ImVec2(uv0_x, uv0_y),
+                  ImVec2(uv1_x, uv1_y));
+            }
+          }
+          ImGui::EndTooltip();
+        }
       }
     }
   }
@@ -438,8 +567,6 @@ absl::Status OverworldEditor::SaveCurrentSelectionToScratch() {
 }
 
 absl::Status OverworldEditor::LoadScratchToSelection() {
-  if (!dependencies_.shared_clipboard)
-    return absl::FailedPreconditionError("Clipboard unavailable");
   const auto& page = scratch_workspace_.current();
   if (!page.in_use)
     return absl::FailedPreconditionError("Scratch layout is empty");
@@ -450,10 +577,7 @@ absl::Status OverworldEditor::LoadScratchToSelection() {
       }))
     return absl::FailedPreconditionError(
         "Scratch layout references Tile16 IDs absent from this ROM");
-  dependencies_.shared_clipboard->overworld_tile16_ids = brush.tile_ids;
-  dependencies_.shared_clipboard->overworld_width = brush.width;
-  dependencies_.shared_clipboard->overworld_height = brush.height;
-  dependencies_.shared_clipboard->has_overworld_tile16 = true;
+  SetSelectionBrush(brush);
   return absl::OkStatus();
 }
 
@@ -461,6 +585,8 @@ absl::Status OverworldEditor::ClearScratchSpace() {
   BeginScratchEdit();
   scratch_workspace_.Clear();
   FinishScratchEdit("Clear scratch layout");
+  scratch_select_active_ = false;
+  ClearSelectionBrush();
   RETURN_IF_ERROR(RebuildScratchBitmapFromTileData());
   return FlushScratchPadIfDirty();
 }

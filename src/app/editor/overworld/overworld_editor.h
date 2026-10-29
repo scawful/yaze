@@ -387,6 +387,12 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   // Preview only; does not rewrite story progression or entity placements.
   void SetPreviewStoryState(int state);
 
+  void SetSelectionBrush(TileBrush brush);
+  void ClearSelectionBrush();
+  const TileBrush* selection_brush() const;
+  int GetTile16UsageCount(int tile_id) const;
+  std::string GetTile16ScopeLabel() const;
+
   // ===========================================================================
   // Entity System - Insertion and Editing
   // ===========================================================================
@@ -900,6 +906,11 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   int scratch_preview_map_ = -1;
   uint64_t scratch_preview_revision_ = 0;
   bool scratch_paint_gesture_owned_ = false;
+  bool scratch_select_active_ = false;
+  ImVec2 scratch_select_min_{-1, -1};
+  ImVec2 scratch_select_max_{-1, -1};
+  bool scratch_selecting_ = false;
+  ImVec2 scratch_drag_start_{-1, -1};
 
   // ===========================================================================
   // Core Data References

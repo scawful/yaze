@@ -103,8 +103,30 @@ bool TilePaintingManager::IsValidTile(TilePosition position) const {
 }
 
 const TileBrush* TilePaintingManager::selection_brush() const {
+  if (external_brush_active_ && brush_.valid()) {
+    return &brush_;
+  }
   return deps_.ow_map_canvas->select_rect_active() && brush_.valid() ? &brush_
                                                                      : nullptr;
+}
+
+void TilePaintingManager::SetSelectionBrush(TileBrush brush) {
+  brush_ = std::move(brush);
+  if (deps_.selected_tile16_ids) {
+    *deps_.selected_tile16_ids = brush_.tile_ids;
+  }
+  external_brush_active_ = brush_.valid();
+}
+
+void TilePaintingManager::ClearSelectionBrush() {
+  brush_ = {};
+  if (deps_.selected_tile16_ids) {
+    deps_.selected_tile16_ids->clear();
+  }
+  external_brush_active_ = false;
+  if (deps_.ow_map_canvas) {
+    deps_.ow_map_canvas->ClearSelection();
+  }
 }
 
 void TilePaintingManager::FinalizePendingPaint() {
@@ -493,6 +515,7 @@ void TilePaintingManager::CheckForSelectRectangle() {
     canvas.set_selected_tile_pos(ImVec2(-1, -1));
   }
   if (!was_active && canvas.select_rect_active()) {
+    external_brush_active_ = false;
     if (selection_gesture_owned_ && canvas.IsMouseHovering()) {
       CaptureSelection();
     } else {
@@ -502,7 +525,7 @@ void TilePaintingManager::CheckForSelectRectangle() {
   if (!ImGui::IsMouseDown(ImGuiMouseButton_Right)) {
     selection_gesture_owned_ = false;
   }
-  if (!canvas.select_rect_active()) {
+  if (!canvas.select_rect_active() && !external_brush_active_) {
     brush_ = {};
     deps_.selected_tile16_ids->clear();
   }

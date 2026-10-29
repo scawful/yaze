@@ -670,6 +670,14 @@ absl::Status OverworldEditor::Load() {
       [this](int tile16_id, int quadrant) {
         return OpenGraphicsForTile16Quadrant(tile16_id, quadrant);
       });
+  tile16_editor_.SetHoverDetailProvider([this](int tile_id) -> std::string {
+    const int count = GetTile16UsageCount(tile_id);
+    if (count <= 0) {
+      return {};
+    }
+    return absl::StrFormat("Placed %d times (%s)", count,
+                           GetTile16ScopeLabel());
+  });
 
   tile16_editor_.set_on_document_changed(
       [this](const std::vector<Tile16Commit>&) {
@@ -2470,6 +2478,17 @@ void OverworldEditor::ContributeStatus(StatusBar* status_bar) {
                             hovered_map_, ow_map_canvas_.IsMouseHovering())));
   status_bar->SetCustomSegment("Tile16",
                                absl::StrFormat("0x%03X", current_tile16_));
+  if (ow_map_canvas_.IsMouseHovering()) {
+    const auto mouse = ow_map_canvas_.hover_mouse_pos();
+    const float scale = ow_map_canvas_.global_scale() > 0
+                            ? ow_map_canvas_.global_scale()
+                            : 1.0f;
+    const int tx = static_cast<int>(mouse.x / (16.0f * scale)) % 32;
+    const int ty = static_cast<int>(mouse.y / (16.0f * scale)) % 32;
+    status_bar->SetCustomSegment("Pos", absl::StrFormat("(%d, %d)", tx, ty));
+  } else {
+    status_bar->ClearCustomSegment("Pos");
+  }
 
   const char* mode_label;
   switch (entity_edit_mode_) {
@@ -2615,6 +2634,37 @@ EditorContextSnapshot OverworldEditor::BuildContextSnapshot() const {
         snapshot, zelda3::DescribeOverworldGraphicsContext(*map, identity));
   }
   return snapshot;
+}
+
+void OverworldEditor::SetSelectionBrush(TileBrush brush) {
+  if (tile_painting_) {
+    tile_painting_->SetSelectionBrush(brush);
+  }
+  if (dependencies_.shared_clipboard) {
+    dependencies_.shared_clipboard->overworld_tile16_ids = brush.tile_ids;
+    dependencies_.shared_clipboard->overworld_width = brush.width;
+    dependencies_.shared_clipboard->overworld_height = brush.height;
+    dependencies_.shared_clipboard->has_overworld_tile16 = brush.valid();
+  }
+}
+
+void OverworldEditor::ClearSelectionBrush() {
+  if (tile_painting_) {
+    tile_painting_->ClearSelectionBrush();
+  }
+}
+
+const TileBrush* OverworldEditor::selection_brush() const {
+  return tile_painting_ ? tile_painting_->selection_brush() : nullptr;
+}
+
+int OverworldEditor::GetTile16UsageCount(int tile_id) const {
+  return canvas_renderer_ ? canvas_renderer_->tile16_usage_count(tile_id) : 0;
+}
+
+std::string OverworldEditor::GetTile16ScopeLabel() const {
+  return canvas_renderer_ ? canvas_renderer_->Tile16ScopeLabel()
+                          : std::string();
 }
 
 }  // namespace yaze::editor

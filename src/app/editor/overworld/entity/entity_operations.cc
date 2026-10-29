@@ -23,7 +23,7 @@ struct EntityInsertionPosition {
 absl::StatusOr<EntityInsertionPosition> ResolveEntityInsertionPosition(
     const std::vector<zelda3::OverworldMap>& maps, ImVec2 world_position,
     int current_map) {
-  if (current_map < 0 || current_map >= zelda3::kNumOverworldMaps ||
+  if (current_map < 0 || current_map >= zelda3::kExpandedMapCount ||
       current_map >= static_cast<int>(maps.size())) {
     return absl::InvalidArgumentError("Invalid entity insertion map");
   }
@@ -44,7 +44,7 @@ absl::StatusOr<EntityInsertionPosition> ResolveEntityInsertionPosition(
 
   const int raw_parent = maps[current_map].parent();
   const int parent = raw_parent == 0xFF ? current_map : raw_parent;
-  if (parent < 0 || parent >= zelda3::kNumOverworldMaps ||
+  if (parent < 0 || parent >= zelda3::kExpandedMapCount ||
       parent >= static_cast<int>(maps.size()) || parent / 64 != world) {
     return absl::InvalidArgumentError("Invalid entity insertion parent map");
   }
@@ -77,7 +77,7 @@ bool MatchesItemIdentity(const zelda3::OverworldItem& lhs,
 absl::Status ValidateRecordPosition(const zelda3::Overworld& overworld,
                                     int map_id, int x, int y) {
   const auto* parent = overworld.overworld_map(map_id);
-  if (map_id < 0 || map_id >= 0xC0 || !parent) {
+  if (map_id < 0 || map_id >= zelda3::kExpandedMapCount || !parent) {
     return absl::InvalidArgumentError("The record's map is not available");
   }
   if (parent->parent() != map_id && parent->parent() != 0xFF) {
@@ -236,10 +236,13 @@ absl::StatusOr<zelda3::Sprite> BuildOverworldSpriteForInsertion(
   if (!position.ok()) {
     return position.status();
   }
-  return zelda3::Sprite(maps[current_map].current_graphics(),
-                        static_cast<uint8_t>(position->parent_map), sprite_id,
-                        position->game_x, position->game_y, position->x,
-                        position->y);
+  static const std::vector<uint8_t> empty_gfx;
+  const auto& gfx = current_map < static_cast<int>(maps.size())
+                        ? maps[current_map].current_graphics()
+                        : empty_gfx;
+  return zelda3::Sprite(gfx, static_cast<uint8_t>(position->parent_map),
+                        sprite_id, position->game_x, position->game_y,
+                        position->x, position->y);
 }
 
 absl::StatusOr<zelda3::OverworldEntrance*> InsertEntrance(

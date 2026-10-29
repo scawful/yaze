@@ -188,7 +188,7 @@ constexpr int kExpandedPtrTableMarker = 0x1423FF;  // Location of marker byte
 constexpr uint8_t kExpandedPtrTableMagic = 0xEA;   // Marker value when applied
 constexpr int kExpandedPtrTableHigh = 0x142400;    // New high table location
 constexpr int kExpandedPtrTableLow = 0x142640;     // New low table location
-constexpr int kExpandedMapCount = 192;             // 0x00-0xBF
+// kExpandedMapCount is defined in zelda3/common.h
 
 constexpr int overworldTilesType = 0x071459;
 constexpr int overworldMessages = 0x03F51D;

@@ -94,6 +94,8 @@ class TilePaintingManager {
 
   /// The captured selection, independent of its source or preview position.
   const TileBrush* selection_brush() const;
+  void SetSelectionBrush(TileBrush brush);
+  void ClearSelectionBrush();
 
   /// Paste a validated pattern at the current canvas cursor, using the same
   /// clipping, per-map refresh, and undo path as rectangle painting.
@@ -167,6 +169,7 @@ class TilePaintingManager {
   int gesture_world_ = 0;
   EditingMode gesture_mode_ = EditingMode::DRAW_TILE;
   bool selection_gesture_owned_ = false;
+  bool external_brush_active_ = false;
   TileBrush brush_;
   std::array<gfx::Bitmap, zelda3::kNumOverworldMaps> map_brush_previews_;
 };

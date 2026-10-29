@@ -42,6 +42,7 @@
 #include "app/gui/core/ui_config.h"
 #include "app/gui/core/ui_helpers.h"
 #include "app/gui/widgets/tile_selector_widget.h"
+#include "core/lyra_terrain_document.h"
 #include "rom/rom.h"
 #include "util/log.h"
 #include "zelda3/overworld/overworld.h"
@@ -255,30 +256,6 @@ void OverworldCanvasRenderer::DrawOverworldCanvas() {
                             editor_->current_mode == EditingMode::FILL_TILE);
     if (!tile_tool && editor_->tile_painting_)
       editor_->tile_painting_->SuspendCanvasGestures();
-    if (project_terrain) {
-      // Legacy entities cannot be moved into a project-only terrain screen.
-      // Cancel at the boundary, before its coordinates reach the ROM model.
-      if (editor_->is_dragging_entity_) {
-        if (editor_->dragged_entity_ && entity_drag_origin_) {
-          editor_->dragged_entity_->x_ = entity_drag_origin_->x;
-          editor_->dragged_entity_->y_ = entity_drag_origin_->y;
-        }
-        entity_drag_origin_.reset();
-        editor_->drag_item_snapshot_.reset();
-        editor_->is_dragging_entity_ = false;
-        editor_->dragged_entity_ = nullptr;
-        editor_->dragged_entity_free_movement_ = false;
-      }
-      if (editor_->entity_renderer_)
-        editor_->entity_renderer_->ResetHoveredEntity();
-      if (canvas_rt.hovered)
-        editor_->HandleMapInteraction();
-      if (tile_tool)
-        editor_->CheckForOverworldEdits();
-      gui::EndCanvas(editor_->ow_map_canvas_, canvas_rt, frame_opts);
-      ImGui::EndChild();
-      return;
-    }
 
     if (editor_->current_world_ != 2 && editor_->lyra_canvas_.loaded() &&
         editor_->show_entities_) {
@@ -297,6 +274,7 @@ void OverworldCanvasRenderer::DrawOverworldCanvas() {
       editor_->entity_renderer_->DrawSprites(canvas_rt, editor_->current_world_,
                                              editor_->game_state_);
       FilterHoveredEntityByMode();
+      DrawEntityHoverTooltip();
     } else if (editor_->entity_renderer_) {
       // Hidden entities can't be hovered, dragged or right-clicked.
       editor_->entity_renderer_->ResetHoveredEntity();
@@ -369,8 +347,16 @@ void OverworldCanvasRenderer::DrawOverworldCanvas() {
                            canvas_rt.scrolling,
                            editor_->dragged_entity_free_movement_, end_scale);
           // Pass overworld context for proper area size detection
-          editor_->dragged_entity_->UpdateMapProperties(
-              editor_->dragged_entity_->map_id_, &editor_->overworld_);
+          const int new_map = editor_->current_world_ * 64 +
+                              editor_->dragged_entity_->x_ / 512 +
+                              (editor_->dragged_entity_->y_ / 512) * 8;
+          if (new_map >= 0 && new_map < editor_->DisplayedMapCount()) {
+            editor_->dragged_entity_->UpdateMapProperties(new_map,
+                                                          &editor_->overworld_);
+          } else {
+            editor_->dragged_entity_->UpdateMapProperties(
+                editor_->dragged_entity_->map_id_, &editor_->overworld_);
+          }
           if (editor_->drag_item_snapshot_) {
             // No-op if the item ended where it started.
             editor_->PushItemUndoAction(
@@ -685,16 +671,8 @@ absl::Status OverworldCanvasRenderer::DrawTile16Selector() {
     editor_->RequestTile16Selection(
         editor_->blockset_selector_->GetSelectedTileID());
   }
-  const bool project_terrain =
-      editor_->IsProjectTerrainMap(editor_->current_map_);
-  // Usage counts only cover legacy maps, so project terrain keeps the full
-  // ID-ordered palette instead of a sort/filter that ignores its placements.
-  if (project_terrain) {
-    ResetTile16Order();
-  } else {
-    DrawTile16ViewControls();
-    RefreshTile16Order(tile16_grid_hovered_);
-  }
+  DrawTile16ViewControls();
+  RefreshTile16Order(tile16_grid_hovered_);
 
   // Padding is read at BeginChild; pop it right away so the grid's tooltip
   // and context menu keep normal popup padding.
@@ -708,6 +686,8 @@ absl::Status OverworldCanvasRenderer::DrawTile16Selector() {
     return absl::OkStatus();
   }
 
+  const bool project_terrain =
+      editor_->IsProjectTerrainMap(editor_->current_map_);
   gfx::Bitmap& atlas =
       project_terrain ? editor_->lyra_canvas_.MapAtlas(editor_->current_map_)
                       : editor_->tile16_blockset_.atlas;
@@ -827,9 +807,39 @@ void OverworldCanvasRenderer::RefreshTile16Order(bool grid_hovered) {
 
   std::vector<int> counts(zelda3::kNumTile16Individual, 0);
   for (const int map_id : Tile16ScopeMaps()) {
-    zelda3::AccumulateTile16MapUsage(
-        editor_->overworld_.GetMapTiles(std::min(map_id / 0x40, 2)),
-        map_id % 0x40, &counts);
+    if (map_id <
+        static_cast<int>(editor_->overworld_.overworld_maps().size())) {
+      zelda3::AccumulateTile16MapUsage(
+          editor_->overworld_.GetMapTiles(std::min(map_id / 0x40, 2)),
+          map_id % 0x40, &counts);
+    }
+  }
+  if (editor_->lyra_canvas_.loaded() && editor_->lyra_canvas_.document()) {
+    const auto* doc = editor_->lyra_canvas_.document();
+    const auto& lyra_maps = doc->maps();
+    for (int m = 0; m < core::LyraTerrainDocument::kMapCount; ++m) {
+      const int map_id = core::LyraTerrainDocument::kFirstMap + m;
+      bool include_map = false;
+      if (tile16_scope_ == Tile16UsageScope::kAllMaps) {
+        include_map = true;
+      } else if (tile16_scope_ == Tile16UsageScope::kCurrentWorld &&
+                 editor_->current_world_ == 2) {
+        include_map = true;
+      } else if (tile16_scope_ == Tile16UsageScope::kCurrentArea &&
+                 editor_->current_map_ == map_id) {
+        include_map = true;
+      } else if (tile16_scope_ == Tile16UsageScope::kArea &&
+                 tile16_scope_area_ == map_id) {
+        include_map = true;
+      }
+      if (include_map) {
+        for (uint16_t tile : lyra_maps[m]) {
+          if (tile < counts.size()) {
+            counts[tile]++;
+          }
+        }
+      }
+    }
   }
   tile16_last_count_time_ = now;
   tile16_counted_world_ = editor_->current_world_;
@@ -1140,6 +1150,65 @@ void OverworldCanvasRenderer::FilterHoveredEntityByMode() {
   }
   if (!allowed) {
     editor_->entity_renderer_->ResetHoveredEntity();
+  }
+}
+
+void OverworldCanvasRenderer::DrawEntityHoverTooltip() {
+  if (!editor_->entity_renderer_ ||
+      !editor_->ow_map_canvas_.IsMouseHovering()) {
+    return;
+  }
+  const auto* entity = editor_->entity_renderer_->hovered_entity();
+  if (!entity) {
+    return;
+  }
+  if (ImGui::BeginTooltip()) {
+    switch (entity->entity_type_) {
+      case zelda3::GameEntity::EntityType::kEntrance: {
+        const auto* entrance =
+            static_cast<const zelda3::OverworldEntrance*>(entity);
+        ImGui::Text("%s", entrance->is_hole_ ? ICON_MD_CYCLONE " Hole"
+                                             : ICON_MD_DOOR_FRONT " Entrance");
+        ImGui::Text("Entrance ID: 0x%02X | Map: 0x%02X", entrance->entrance_id_,
+                    entrance->map_id_);
+        ImGui::TextDisabled("Pos: (%d, %d) · Game: (%d, %d)", entrance->x_,
+                            entrance->y_, entrance->game_x_, entrance->game_y_);
+        break;
+      }
+      case zelda3::GameEntity::EntityType::kExit: {
+        const auto* exit = static_cast<const zelda3::OverworldExit*>(entity);
+        ImGui::Text("%s", ICON_MD_DOOR_BACK " Exit");
+        ImGui::Text("Room ID: 0x%02X | Map: 0x%02X", exit->room_id_,
+                    exit->map_id_);
+        ImGui::TextDisabled("Pos: (%d, %d)", exit->x_, exit->y_);
+        break;
+      }
+      case zelda3::GameEntity::EntityType::kItem: {
+        const auto* item = static_cast<const zelda3::OverworldItem*>(entity);
+        std::string item_name = (item->id_ < zelda3::kSecretItemNames.size())
+                                    ? zelda3::kSecretItemNames[item->id_]
+                                    : absl::StrFormat("0x%02X", item->id_);
+        ImGui::Text("%s %s", ICON_MD_GRASS, item_name.c_str());
+        ImGui::Text("Item ID: 0x%02X | Map: 0x%02X", item->id_,
+                    item->room_map_id_);
+        ImGui::TextDisabled("Pos: (%d, %d) · Game: (%d, %d)", item->x_,
+                            item->y_, item->game_x_, item->game_y_);
+        break;
+      }
+      case zelda3::GameEntity::EntityType::kSprite: {
+        const auto* sprite = static_cast<const zelda3::Sprite*>(entity);
+        ImGui::Text("%s %s", ICON_MD_PEST_CONTROL_RODENT,
+                    sprite->name().c_str());
+        ImGui::Text("Sprite ID: 0x%02X | Map: 0x%02X", sprite->id(),
+                    sprite->map_id());
+        ImGui::TextDisabled("Pos: (%d, %d) · Game: (%d, %d)", sprite->x_,
+                            sprite->y_, sprite->game_x_, sprite->game_y_);
+        break;
+      }
+      default:
+        break;
+    }
+    ImGui::EndTooltip();
   }
 }
 
