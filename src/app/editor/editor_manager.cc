@@ -2917,6 +2917,17 @@ bool EditorManager::PendingRomSaveMatchesActiveSession() const {
 }
 
 void EditorManager::CancelPendingRomSave(bool hide_popups) {
+  if (pending_rom_save_.has_value()) {
+    if (auto* editors = GetCurrentEditorSet()) {
+      if (auto* overworld = static_cast<OverworldEditor*>(
+              editors->GetExistingEditor(EditorType::kOverworld))) {
+        const auto rollback = overworld->RollbackProjectNativeSave();
+        if (!rollback.ok())
+          LOG_ERROR("EditorManager", "Lyra save rollback: %s",
+                    rollback.ToString().c_str());
+      }
+    }
+  }
   pending_rom_save_.reset();
   rom_lifecycle_.ResetPendingSaveState();
 
@@ -2946,14 +2957,28 @@ absl::Status EditorManager::StartPendingRomSave(
   return absl::OkStatus();
 }
 
-void EditorManager::FinishPendingRomSaveAttempt(const absl::Status& status) {
+absl::Status EditorManager::FinishPendingRomSaveAttempt(
+    const absl::Status& status) {
   // A Cancelled status is resumable only while one of this request's explicit
   // confirmation dialogs is pending. Every other outcome is terminal and must
   // consume all one-shot bypasses so a later Ctrl+S cannot inherit consent.
   if (status.ok() || !absl::IsCancelled(status) ||
       !HasPendingRomSaveConfirmation()) {
+    if (!status.ok()) {
+      if (auto* editors = GetCurrentEditorSet()) {
+        if (auto* overworld = static_cast<OverworldEditor*>(
+                editors->GetExistingEditor(EditorType::kOverworld))) {
+          const auto rollback = overworld->RollbackProjectNativeSave();
+          if (!rollback.ok()) {
+            return absl::DataLossError(
+                absl::StrCat(status.message(), "; ", rollback.message()));
+          }
+        }
+      }
+    }
     CancelPendingRomSave();
   }
+  return status;
 }
 
 absl::Status EditorManager::SaveCurrentSession() {
@@ -3000,11 +3025,24 @@ absl::Status EditorManager::CompletePendingProjectNativeSave() {
 }
 
 absl::Status EditorManager::SaveProjectWorkBeforeRomSave(bool allow_dialogs) {
+  auto* editors = GetCurrentEditorSet();
+  auto* overworld =
+      editors ? static_cast<OverworldEditor*>(
+                    editors->GetExistingEditor(EditorType::kOverworld))
+              : nullptr;
+  if (overworld)
+    RETURN_IF_ERROR(overworld->BeginProjectNativeSave());
   // A project-only receipt failure must not block the following ROM save.
   defer_project_native_completion_ =
       SessionHasPendingRomWork(GetCurrentSessionIndex());
   const auto status = SaveActiveProjectEditingWork(allow_dialogs);
   defer_project_native_completion_ = false;
+  if (!status.ok() && overworld) {
+    const auto rollback = overworld->RollbackProjectNativeSave();
+    if (!rollback.ok())
+      return absl::DataLossError(
+          absl::StrCat(status.message(), "; ", rollback.message()));
+  }
   return status;
 }
 
@@ -3025,10 +3063,15 @@ absl::Status EditorManager::SaveRom() {
     // ResumePendingRomSave() helper.
     return ResumePendingRomSave();
   }
+  if (auto* editors = GetCurrentEditorSet()) {
+    if (auto* overworld = static_cast<OverworldEditor*>(
+            editors->GetExistingEditor(EditorType::kOverworld));
+        overworld && overworld->HasPendingLyraDefinitionSave())
+      RETURN_IF_ERROR(SaveProjectWorkBeforeRomSave(/*allow_dialogs=*/true));
+  }
   RETURN_IF_ERROR(StartPendingRomSave(std::nullopt));
   auto status = SaveRomInternal(std::nullopt);
-  FinishPendingRomSaveAttempt(status);
-  return status;
+  return FinishPendingRomSaveAttempt(status);
 }
 
 absl::Status EditorManager::SaveRomAs(const std::string& filename) {
@@ -3038,10 +3081,16 @@ absl::Status EditorManager::SaveRomAs(const std::string& filename) {
   if (pending_rom_save_.has_value() && HasPendingRomSaveConfirmation()) {
     return absl::CancelledError("Save pending confirmation");
   }
+  if (auto* editors = GetCurrentEditorSet()) {
+    if (auto* overworld = static_cast<OverworldEditor*>(
+            editors->GetExistingEditor(EditorType::kOverworld));
+        overworld && overworld->HasPendingLyraDefinitionSave())
+      return absl::FailedPreconditionError(
+          "Save Tile16 definition changes to the project ROM before Save As");
+  }
   RETURN_IF_ERROR(StartPendingRomSave(filename));
   auto status = SaveRomInternal(filename);
-  FinishPendingRomSaveAttempt(status);
-  return status;
+  return FinishPendingRomSaveAttempt(status);
 }
 
 absl::Status EditorManager::ResumePendingRomSave() {
@@ -3057,8 +3106,7 @@ absl::Status EditorManager::ResumePendingRomSave() {
 
   const auto save_as_filename = pending_rom_save_->save_as_filename;
   auto status = SaveRomInternal(save_as_filename);
-  FinishPendingRomSaveAttempt(status);
-  return status;
+  return FinishPendingRomSaveAttempt(status);
 }
 
 std::string EditorManager::ExecuteEditorControl(const std::string& request) {

@@ -102,6 +102,9 @@ absl::Status Tile16EditSession::ApplyDefinitions(
   // Validate and render the complete batch before publishing any definition.
   // History stores metadata, not pixels tied to the map's graphics/palette.
   std::vector<gfx::Bitmap> bitmaps(definitions.size());
+  std::vector<Tile16Commit> before;
+  const auto previous_edits = document_edits_;
+  const auto previous_bitmaps = edited_tile_bitmaps_;
   for (size_t i = 0; i < definitions.size(); ++i) {
     const auto& edit = definitions[i];
     if (edit.tile_id < 0 || edit.tile_id >= zelda3::kNumTile16Individual ||
@@ -111,6 +114,8 @@ absl::Status Tile16EditSession::ApplyDefinitions(
     }
     RETURN_IF_ERROR(BuildTile16BitmapFromData(edit.tile_data, &bitmaps[i]));
     bitmaps[i].SetPalette(current_tile16_bmp_.palette());
+    ASSIGN_OR_RETURN(auto original, ReadDocumentTile(edit.tile_id));
+    before.push_back({edit.tile_id, original});
   }
   for (size_t i = 0; i < definitions.size(); ++i) {
     const auto& edit = definitions[i];
@@ -123,9 +128,24 @@ absl::Status Tile16EditSession::ApplyDefinitions(
   }
   tile8_usage_cache_dirty_ = true;
   preview_dirty_ = true;
-  RETURN_IF_ERROR(SetCurrentTile(current_tile16_));
-  if (on_document_changed_)
-    on_document_changed_(definitions);
+  auto status = SetCurrentTile(current_tile16_);
+  if (status.ok() && on_document_changed_)
+    status = on_document_changed_(before, definitions);
+  if (!status.ok()) {
+    // A binding refusal is part of the edit transaction, including Undo/Redo.
+    // Restore metadata and derived previews before returning the error.
+    document_edits_ = previous_edits;
+    edited_tile_bitmaps_ = previous_bitmaps;
+    for (const auto& edit : before) {
+      if (document_definitions_)
+        (*document_definitions_)[edit.tile_id] = edit.tile_data;
+      gfx::Bitmap bitmap;
+      if (BuildTile16BitmapFromData(edit.tile_data, &bitmap).ok())
+        CopyTileBitmapToBlockset(edit.tile_id, bitmap);
+    }
+    (void)SetCurrentTile(current_tile16_);
+    return status;
+  }
   if (rom_)
     rom_->set_dirty(true);
   if (HasTile16BlocksetBitmap()) {
@@ -260,7 +280,6 @@ absl::Status Tile16EditSession::RunEdit(
     return SetCurrentTile(current_tile16_);
   const auto applied = ApplyDefinitions(after);
   if (!applied.ok()) {
-    (void)ApplyDefinitions(before);
     document_edits_ = previous;
     return applied;
   }

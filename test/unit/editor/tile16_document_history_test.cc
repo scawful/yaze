@@ -3,6 +3,7 @@
 #include <chrono>
 #include <filesystem>
 #include <string>
+#include <utility>
 
 #include "app/editor/graphics/usage_preview.h"
 #include "app/editor/overworld/overworld_undo_actions.h"
@@ -57,12 +58,42 @@ class Tile16DocumentHistoryTest : public testing::Test {
     ASSERT_TRUE(session_.InitializeBitmaps(atlas_, graphics_, types_).ok());
     session_.set_palette(palette);
     session_.set_on_document_changed(
-        [&](const std::vector<Tile16Commit>& edits) {
+        [&](const std::vector<Tile16Commit>&,
+            const std::vector<Tile16Commit>& edits) {
           published_.push_back(edits.size());
+          return absl::OkStatus();
         });
     rom_.set_dirty(false);
   }
   void TearDown() override { gfx::Arena::Get().ClearTextureQueue(); }
+
+  void InitializeIncidentTile() {
+    constexpr int kTile = 0xF63;
+    auto definition = initial_;
+    definition.tile2_.id_ = 0x0A0;
+    zelda3::SyncTile16TilesInfo(&definition);
+    (*overworld_.mutable_tiles16())[kTile] = definition;
+    ASSERT_TRUE(rom_.WriteTile16(kTile, zelda3::kTile16Ptr, definition).ok());
+    // These two source tiles share an atlas column. Give their rows different
+    // pixels so this regression checks the rendered quadrant as well as IDs.
+    auto source = graphics_.vector();
+    for (int y = 0; y < 8; ++y) {
+      for (int x = 0; x < 8; ++x) {
+        source[(0x0A0 / 16 * 8 + y) * 128 + x] = 3;
+        source[(0x060 / 16 * 8 + y) * 128 + x] = 12;
+      }
+    }
+    graphics_.set_data(source);
+    ASSERT_TRUE(session_.LoadTile8().ok());
+    ASSERT_TRUE(session_.SetCurrentTile(kTile).ok());
+    zelda3::BlitTile16BitmapToAtlas(&atlas_, kTile,
+                                    session_.current_tile16_bmp());
+    zelda3::BlitTile16BitmapToAtlas(&tilemap_.atlas, kTile,
+                                    session_.current_tile16_bmp());
+    session_.set_edit_mode(Tile16EditMode::kPaint);
+    session_.set_current_tile8(0x060);
+    rom_.set_dirty(false);
+  }
 
   Rom rom_;
   zelda3::Overworld overworld_{&rom_};
@@ -86,6 +117,90 @@ TEST_F(Tile16DocumentHistoryTest, EditsApplyToDocumentWithoutWritingRomBytes) {
   EXPECT_TRUE(rom_.dirty());
   EXPECT_EQ(published_, (std::vector<size_t>{1}));
   EXPECT_EQ(boundaries_, 1);
+}
+
+TEST_F(Tile16DocumentHistoryTest,
+       DirectSandQuadrantClickAppliesWithoutApplyAndSharesUndoRedo) {
+  ASSERT_NO_FATAL_FAILURE(InitializeIncidentTile());
+  constexpr int kTile = 0xF63;
+  const auto original = overworld_.tiles16()[kTile];
+  const auto rom_before = rom_.vector();
+  const auto pixels_before = tilemap_.atlas.vector();
+  const auto preview_before = session_.current_tile16_bmp().vector();
+  std::vector<std::pair<int, int>> transitions;
+  session_.set_on_document_changed(
+      [&](const std::vector<Tile16Commit>& before,
+          const std::vector<Tile16Commit>& after) -> absl::Status {
+        EXPECT_EQ(before.size(), 1u);
+        EXPECT_EQ(after.size(), 1u);
+        if (before.size() != 1 || after.size() != 1)
+          return absl::InternalError("Expected one definition");
+        EXPECT_EQ(before[0].tile_id, kTile);
+        EXPECT_EQ(after[0].tile_id, kTile);
+        transitions.emplace_back(before[0].tile_data.tile2_.id_,
+                                 after[0].tile_data.tile2_.id_);
+        return absl::OkStatus();
+      });
+
+  // Exact reported operation: a direct Tile8 click into quadrant 2, no Apply.
+  ASSERT_TRUE(session_.HandleTile16CanvasClick({0, 8}, true, false).ok());
+  auto expected = original;
+  expected.tile2_.id_ = 0x060;
+  zelda3::SyncTile16TilesInfo(&expected);
+  ExpectDefinition(overworld_.tiles16()[kTile], expected);
+  EXPECT_EQ(history_.UndoStackSize(), 1u);
+  EXPECT_EQ(boundaries_, 1);
+  EXPECT_TRUE(rom_.dirty());
+  EXPECT_EQ(rom_.vector(), rom_before);
+  EXPECT_NE(tilemap_.atlas.vector(), pixels_before);
+  EXPECT_NE(session_.current_tile16_bmp().vector(), preview_before);
+  const auto pixels_after = tilemap_.atlas.vector();
+
+  ASSERT_TRUE(history_.Undo().ok());
+  ExpectDefinition(overworld_.tiles16()[kTile], original);
+  EXPECT_EQ(tilemap_.atlas.vector(), pixels_before);
+  EXPECT_EQ(session_.current_tile16_bmp().vector(), preview_before);
+  EXPECT_EQ(rom_.vector(), rom_before);
+  ASSERT_TRUE(history_.Redo().ok());
+  ExpectDefinition(overworld_.tiles16()[kTile], expected);
+  EXPECT_EQ(tilemap_.atlas.vector(), pixels_after);
+  EXPECT_EQ(rom_.vector(), rom_before);
+  EXPECT_EQ(transitions, (std::vector<std::pair<int, int>>{
+                             {0x0A0, 0x060}, {0x060, 0x0A0}, {0x0A0, 0x060}}));
+}
+
+TEST_F(Tile16DocumentHistoryTest,
+       RejectedSandDefinitionBindingRestoresMetadataDraftsHistoryAndPixels) {
+  ASSERT_NO_FATAL_FAILURE(InitializeIncidentTile());
+  constexpr int kTile = 0xF63;
+  const auto original = overworld_.tiles16()[kTile];
+  const auto rom_before = rom_.vector();
+  const auto atlas_before = atlas_.vector();
+  const auto pixels_before = tilemap_.atlas.vector();
+  const auto preview_before = session_.current_tile16_bmp().vector();
+  const auto pending_before = session_.pending_changes_count();
+  session_.set_on_document_changed(
+      [&](const std::vector<Tile16Commit>&,
+          const std::vector<Tile16Commit>& after) -> absl::Status {
+        if (!after.empty() && after[0].tile_data.tile2_.id_ == 0x060)
+          return absl::FailedPreconditionError("External Lyra graphics drift");
+        return absl::OkStatus();
+      });
+
+  const auto rejected = session_.HandleTile16CanvasClick({0, 8}, true, false);
+  EXPECT_TRUE(absl::IsFailedPrecondition(rejected)) << rejected;
+  EXPECT_NE(rejected.message().find("External Lyra graphics drift"),
+            absl::string_view::npos);
+  ExpectDefinition(overworld_.tiles16()[kTile], original);
+  ExpectDefinition(session_.current_tile16_data(), original);
+  EXPECT_EQ(session_.pending_changes_count(), pending_before);
+  EXPECT_EQ(history_.UndoStackSize(), 0u);
+  EXPECT_EQ(history_.RedoStackSize(), 0u);
+  EXPECT_EQ(rom_.vector(), rom_before);
+  EXPECT_FALSE(rom_.dirty());
+  EXPECT_EQ(atlas_.vector(), atlas_before);
+  EXPECT_EQ(tilemap_.atlas.vector(), pixels_before);
+  EXPECT_EQ(session_.current_tile16_bmp().vector(), preview_before);
 }
 
 TEST_F(Tile16DocumentHistoryTest,

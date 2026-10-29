@@ -21,6 +21,11 @@ void Tile16EditorView::Draw(bool* p_open) {
     ImGui::TextDisabled("Lyra preview: Tile16 editing unavailable");
     return;
   }
+  if (const auto status = ctx.editor->SyncProjectTile16Context();
+      !status.ok()) {
+    ImGui::TextWrapped("%s", std::string(status.message()).c_str());
+    return;
+  }
 
   // Log a failure once per distinct message; this runs every frame.
   static std::string last_error;

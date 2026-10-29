@@ -222,6 +222,23 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
     project_context_provider_ = std::move(provider);
   }
   absl::Status PrepareProjectSave();
+  absl::Status BeginProjectNativeSave() {
+    if (HasPendingLyraDefinitionSave() &&
+        !core::FeatureFlags::get().overworld.kSaveOverworldMaps)
+      return absl::FailedPreconditionError(
+          "Enable Save Overworld Maps to save changed Tile16 definitions");
+    return lyra_canvas_.BeginNativeSave();
+  }
+  absl::Status RollbackProjectNativeSave() {
+    return lyra_canvas_.RollbackNativeSave();
+  }
+  void CommitProjectNativeSave() { lyra_canvas_.CommitNativeSave(); }
+  bool HasPendingLyraDefinitionSave() const {
+    return lyra_canvas_.definition_save_pending();
+  }
+  // Refreshes only the selected project map's resolved graphics context;
+  // retains the bound Tile16 document and shared chronological history.
+  absl::Status SyncProjectTile16Context();
   void ProjectSaveCommitted() { lyra_canvas_.ProjectSaveCommitted(); }
   void ContributeStatus(StatusBar* status_bar) override;
   void DrawEditorMenu() override;
@@ -834,6 +851,8 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   int current_blockset_ = 0;
   int game_state_ = 1;      // 0=Beginning, 1=Pendants, 2=Crystals
   int current_tile16_ = 0;  // Selected tile16 for painting
+  int project_tile16_context_map_ = -1;
+  uint64_t project_tile16_context_generation_ = 0;
   int selected_entrance_ = 0;
   int selected_usage_map_ = 0xFFFF;
 

@@ -647,6 +647,8 @@ absl::Status OverworldEditor::Load() {
     all_gfx_loaded_ = true;
     return absl::OkStatus();
   }
+  project_tile16_context_map_ = -1;
+  project_tile16_context_generation_ = 0;
   tile16_editor_.BindDocument(overworld_.mutable_tiles16(), &undo_manager_,
                               [this]() {
                                 FinishScratchEdit("Edit scratch layout");
@@ -684,12 +686,16 @@ absl::Status OverworldEditor::Load() {
   });
 
   tile16_editor_.set_on_document_changed(
-      [this](const std::vector<Tile16Commit>&) {
+      [this](const std::vector<Tile16Commit>& before,
+             const std::vector<Tile16Commit>&) -> absl::Status {
+        RETURN_IF_ERROR(
+            lyra_canvas_.RebindTile16Definitions(overworld_, before));
         if (map_refresh_) {
           map_refresh_->InvalidateTile16Definitions();
           RefreshOverworldMap();
           status_ = RefreshTile16Blockset();
         }
+        return absl::OkStatus();
       });
 
   // Set up entity insertion callback for MapPropertiesSystem
@@ -1088,8 +1094,11 @@ void OverworldEditor::SelectMapForEditing(int map_id, bool respect_pin) {
   if (project_terrain) {
     SetCurrentEntity(nullptr);
     entity_edit_mode_ = EntityEditMode::NONE;
+    if (all_gfx_loaded_)
+      status_ = SyncProjectTile16Context();
     return;
   }
+  project_tile16_context_map_ = -1;
   overworld_.set_current_map(current_map_);
   overworld_.set_current_world(current_world_);
 
@@ -1541,6 +1550,10 @@ void OverworldEditor::CommitSaveTransaction() {
 }
 
 absl::Status OverworldEditor::Save() {
+  if (HasPendingLyraDefinitionSave() &&
+      !core::FeatureFlags::get().overworld.kSaveOverworldMaps)
+    return absl::FailedPreconditionError(
+        "Enable Save Overworld Maps to save changed Tile16 definitions");
   if (graphics_source_ && graphics_source_->any_dirty())
     return absl::FailedPreconditionError(
         "Publish project graphics before Save ROM (Edit / Import Project "
@@ -2275,6 +2288,43 @@ absl::Status OverworldEditor::OpenGraphicsForTile16Quadrant(int tile16_id,
   return absl::OkStatus();
 }
 
+absl::Status OverworldEditor::SyncProjectTile16Context() {
+  if (!IsProjectTerrainMap(current_map_))
+    return absl::OkStatus();
+  RETURN_IF_ERROR(lyra_canvas_.PrepareMapAssets(overworld_, game_state_));
+  const auto generation = lyra_canvas_.asset_generation();
+  if (project_tile16_context_map_ == current_map_ &&
+      project_tile16_context_generation_ == generation)
+    return absl::OkStatus();
+  auto* graphics = lyra_canvas_.MapGraphics(current_map_);
+  auto& atlas = lyra_canvas_.MapAtlas(current_map_);
+  if (!graphics || !graphics->is_active() || !atlas.is_active())
+    return absl::FailedPreconditionError(
+        "Selected Lyra graphics are unavailable");
+  if (!current_gfx_bmp_.is_active() ||
+      current_gfx_bmp_.width() != graphics->width() ||
+      current_gfx_bmp_.height() != graphics->height())
+    current_gfx_bmp_.Create(graphics->width(), graphics->height(), 8,
+                            graphics->vector());
+  else
+    current_gfx_bmp_.set_data(graphics->vector());
+  current_gfx_bmp_.SetPalette(graphics->palette());
+  gfx::Arena::Get().QueueTextureCommand(
+      current_gfx_bmp_.texture() ? gfx::Arena::TextureCommandType::UPDATE
+                                 : gfx::Arena::TextureCommandType::CREATE,
+      &current_gfx_bmp_);
+  gfx::UpdateTilemap(renderer_, tile16_blockset_, atlas.vector());
+  tile16_blockset_.atlas.SetPalette(atlas.palette());
+  tile16_blockset_bmp_.set_data(atlas.vector());
+  tile16_blockset_bmp_.SetPalette(atlas.palette());
+  palette_ = atlas.palette();
+  tile16_editor_.set_palette(palette_);
+  RETURN_IF_ERROR(tile16_editor_.SetCurrentTile(current_tile16_));
+  project_tile16_context_map_ = current_map_;
+  project_tile16_context_generation_ = generation;
+  return absl::OkStatus();
+}
+
 void OverworldEditor::RequestTile16Selection(int tile_id) {
   if (tile_id < 0 || tile_id >= zelda3::kNumTile16Individual) {
     return;
@@ -2288,6 +2338,11 @@ void OverworldEditor::RequestTile16Selection(int tile_id) {
   }
 
   pending_tile16_selection_after_gfx_.reset();
+  const auto context = SyncProjectTile16Context();
+  if (!context.ok()) {
+    status_ = context;
+    return;
+  }
 
   if (tile_id == tile16_editor_.current_tile16()) {
     current_tile16_ = tile_id;

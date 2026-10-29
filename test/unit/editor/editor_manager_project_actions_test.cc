@@ -28,6 +28,7 @@
 #include "core/palette_catalog.h"
 #include "core/source_artifact_publisher.h"
 #include "editor_test_support.h"
+#include "framework/rom_save_fault.h"
 #include "test_utils.h"
 #include "testing.h"
 #include "zelda3/resource_labels.h"
@@ -453,6 +454,150 @@ TEST(EditorManagerProjectActionsTest,
   EXPECT_EQ(ReadFile(rom), rom_before);
   EXPECT_FALSE(
       std::filesystem::exists(directory.path / "expanded_messages.asm"));
+}
+
+TEST(EditorManagerProjectActionsTest,
+     LyraDirectTile8PaintKeepsAtlasesAndRollsBackFailedNativeSave) {
+  const auto source =
+      test::TestRomManager::GetRomPath(test::RomRole::kExpanded);
+  if (source.empty() || !std::filesystem::is_regular_file(source))
+    GTEST_SKIP() << test::TestRomManager::GetRomRoleHint(
+        test::RomRole::kExpanded);
+  const auto source_before = ReadFile(source);
+  ScopedImGuiContext imgui;
+  gfx::NullRenderer renderer;
+  ScopedTempDir directory(MakeTempDir("yaze_lyra_tile16_refresh"));
+  const auto rom_path = directory.path / "source.sfc";
+  const auto project_path = directory.path / "Oracle.yaze";
+  std::filesystem::copy_file(source, rom_path);
+  WriteProjectFile(project_path, "Oracle Tile16 regression", rom_path);
+  std::ofstream(directory.path / "hack_manifest.json")
+      << R"({"manifest_version":2,"hack_name":"Oracle of Secrets"})";
+  project::YazeProject project;
+  ASSERT_OK(project.Open(project_path.string()));
+  project.feature_flags.overworld.kLoadCustomOverworld = true;
+  project.feature_flags.overworld.kSaveOverworldMaps = true;
+  project.feature_flags.overworld.kSaveOverworldSprites = false;
+  project.feature_flags.overworld.kSaveOverworldEntrances = false;
+  project.feature_flags.overworld.kSaveOverworldExits = false;
+  project.feature_flags.overworld.kSaveOverworldItems = false;
+  project.feature_flags.overworld.kSaveOverworldProperties = false;
+  project.rom_metadata.write_policy = project::RomWritePolicy::kAllow;
+  ASSERT_OK(project.Save());
+  const auto flags = core::FeatureFlags::get();
+  std::unique_ptr<EditorManager> manager;
+  absl::Cleanup cleanup = [&] {
+    gfx::Arena::Get().ClearTextureQueue();
+    manager.reset();
+    gfx::PaletteManager::Get().ResetForTesting();
+    gfx::Arena::Get().ClearTextureQueue();
+    core::FeatureFlags::get() = flags;
+  };
+  auto reopen = [&]() {
+    gfx::Arena::Get().ClearTextureQueue();
+    manager.reset();
+    gfx::PaletteManager::Get().ResetForTesting();
+    manager = std::make_unique<EditorManager>();
+    test::InitializeWithIsolatedSettings(*manager, &renderer);
+    manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+    ASSERT_OK(manager->OpenRomOrProject(project_path.string()));
+    ASSERT_OK(manager->EnsureEditorAssetsLoaded(EditorType::kOverworld));
+  };
+  ASSERT_NO_FATAL_FAILURE(reopen());
+  auto* editor = manager->GetCurrentEditorSet()->GetEditorAs<OverworldEditor>(
+      EditorType::kOverworld);
+  ASSERT_NE(editor, nullptr);
+  ASSERT_TRUE(editor->lyra_canvas_.loaded());
+  ASSERT_OK(manager->SaveProject());
+  const auto terrain_path =
+      std::filesystem::path(manager->GetCurrentProject()->GetAbsolutePath(
+          manager->GetCurrentProject()->lyra_terrain_file));
+  const auto terrain_before = ReadFile(terrain_path);
+  const auto rom_before = ReadFile(rom_path);
+  auto& canvas = editor->lyra_canvas_;
+  const auto* identity = canvas.document();
+  const auto maps = identity->maps();
+  const auto authoring = identity->authoring();
+  const auto profile = identity->profile();
+  editor->SelectMapForEditing(0xA2, false);
+  ASSERT_OK(editor->SyncProjectTile16Context());
+  editor->RequestTile16Selection(0xF63);
+  ASSERT_EQ(editor->tile16_editor().current_tile16(), 0xF63);
+  const auto old_tile = editor->overworld().tiles16()[0xF63];
+  ASSERT_EQ(old_tile.tile2_.id_, 0x0A0)
+      << "This regression requires the preserved Oracle sand definition";
+  const auto atlas_before = canvas.MapAtlas(0xA2).vector();
+  ASSERT_FALSE(atlas_before.empty());
+  editor->tile16_editor().set_current_tile8(0x060);
+  editor->tile16_editor().set_edit_mode(Tile16EditMode::kPaint);
+  ASSERT_OK(
+      editor->tile16_editor().HandleTile16CanvasClick({0, 8}, true, false));
+  ASSERT_OK(canvas.PrepareMapAssets(editor->overworld(), 0));
+  EXPECT_EQ(editor->overworld().tiles16()[0xF63].tile2_.id_, 0x060);
+  EXPECT_EQ(canvas.document(), identity);
+  EXPECT_EQ(identity->maps(), maps);
+  EXPECT_EQ(identity->authoring(), authoring);
+  EXPECT_NE(identity->profile(), profile);
+  EXPECT_TRUE(identity->profile_dirty());
+  const auto atlas_after = canvas.MapAtlas(0xA2).vector();
+  EXPECT_FALSE(atlas_after.empty());
+  EXPECT_NE(atlas_after, atlas_before);
+  EXPECT_EQ(ReadFile(rom_path), rom_before);
+  ASSERT_OK(editor->Undo());
+  EXPECT_EQ(identity->profile(), profile);
+  ASSERT_OK(canvas.PrepareMapAssets(editor->overworld(), 0));
+  EXPECT_EQ(canvas.MapAtlas(0xA2).vector(), atlas_before);
+  ASSERT_OK(editor->Redo());
+  ASSERT_OK(canvas.PrepareMapAssets(editor->overworld(), 0));
+  EXPECT_EQ(canvas.MapAtlas(0xA2).vector(), atlas_after);
+
+  // A disabled native definition serializer refuses before sidecar publication.
+  core::FeatureFlags::get().overworld.kSaveOverworldMaps = false;
+  EXPECT_FALSE(manager->SaveCurrentSession().ok());
+  EXPECT_EQ(ReadFile(terrain_path), terrain_before);
+  core::FeatureFlags::get().overworld.kSaveOverworldMaps = true;
+  {
+    test::ScopedRomStagingFailure failure;
+    const auto saved = manager->SaveCurrentSession();
+    EXPECT_FALSE(saved.ok()) << saved;
+  }
+  EXPECT_EQ(ReadFile(rom_path), rom_before);
+  EXPECT_EQ(ReadFile(terrain_path), terrain_before);
+  EXPECT_EQ(canvas.document(), identity);
+  EXPECT_TRUE(identity->profile_dirty());
+  EXPECT_TRUE(canvas.dirty());
+  EXPECT_TRUE(manager->GetCurrentRom()->dirty());
+  EXPECT_EQ(identity->maps(), maps);
+  EXPECT_EQ(identity->authoring(), authoring);
+  ASSERT_OK(manager->SaveCurrentSession());
+  EXPECT_FALSE(identity->profile_dirty());
+  EXPECT_NE(ReadFile(terrain_path), terrain_before);
+  ASSERT_NO_FATAL_FAILURE(reopen());
+  editor = manager->GetCurrentEditorSet()->GetEditorAs<OverworldEditor>(
+      EditorType::kOverworld);
+  ASSERT_TRUE(editor->lyra_canvas_.loaded());
+  EXPECT_EQ(editor->overworld().tiles16()[0xF63].tile2_.id_, 0x060);
+  EXPECT_EQ(editor->lyra_canvas_.document()->maps(), maps);
+  EXPECT_EQ(editor->lyra_canvas_.document()->authoring(), authoring);
+  ASSERT_OK(editor->lyra_canvas_.PrepareMapAssets(editor->overworld(), 0));
+  EXPECT_EQ(editor->lyra_canvas_.MapAtlas(0xA2).vector(), atlas_after);
+  EXPECT_EQ(ReadFile(source), source_before);
+
+  // Unrelated source drift remains refused and keeps the last verified view.
+  auto* donor = editor->overworld().mutable_overworld_map(0x3A);
+  ASSERT_NE(donor, nullptr);
+  auto* data = const_cast<zelda3::GameData*>(donor->game_data());
+  ASSERT_NE(data, nullptr);
+  const auto bound = editor->lyra_canvas_.document()->profile();
+  auto& pixel = data->graphics_buffer[0x3A * 0x1000];
+  const auto original = pixel;
+  pixel ^= 1;
+  EXPECT_FALSE(
+      editor->lyra_canvas_.PrepareMapAssets(editor->overworld(), 0).ok());
+  EXPECT_EQ(editor->lyra_canvas_.document()->profile(), bound);
+  EXPECT_EQ(editor->lyra_canvas_.MapAtlas(0xA2).vector(), atlas_after);
+  pixel = original;
+  ASSERT_OK(editor->lyra_canvas_.PrepareMapAssets(editor->overworld(), 0));
 }
 
 TEST(EditorManagerProjectActionsTest,

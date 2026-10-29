@@ -214,7 +214,9 @@ class Tile16Editor : public gfx::GfxContext {
   }
 
   void set_on_document_changed(
-      std::function<void(const std::vector<Tile16Commit>&)> callback) {
+      std::function<absl::Status(const std::vector<Tile16Commit>&,
+                                 const std::vector<Tile16Commit>&)>
+          callback) {
     session_.set_on_document_changed(std::move(callback));
   }
   void set_on_changes_committed(
@@ -240,6 +242,7 @@ class Tile16Editor : public gfx::GfxContext {
     return blockset_selector_.GetSelectedTileID();
   }
   int current_tile8() const { return session_.current_tile8(); }
+  void set_current_tile8(int id) { session_.set_current_tile8(id); }
   int active_quadrant() const { return session_.active_quadrant(); }
   void set_active_quadrant(int quadrant) {
     session_.set_active_quadrant(quadrant);

@@ -10,6 +10,7 @@
 
 #include "app/editor/core/undo_manager.h"
 #include "app/editor/overworld/painting/tile_brush.h"
+#include "app/editor/overworld/tile16/tile16_edit_types.h"
 #include "app/gfx/core/bitmap.h"
 #include "app/gui/canvas/canvas.h"
 #include "core/lyra_terrain_document.h"
@@ -77,6 +78,16 @@ class LyraTerrainCanvas {
                                zelda3::Overworld& overworld,
                                UndoManager& history);
   absl::Status PrepareMapAssets(zelda3::Overworld& overworld, int state);
+  absl::Status RebindTile16Definitions(zelda3::Overworld& overworld,
+                                       const std::vector<Tile16Commit>& before);
+  uint64_t asset_generation() const { return asset_generation_; }
+  bool definition_save_pending() const {
+    return document_ &&
+           (document_->profile_dirty() || native_save_.has_value());
+  }
+  absl::Status BeginNativeSave();
+  absl::Status RollbackNativeSave();
+  void CommitNativeSave() { native_save_.reset(); }
   gfx::Bitmap& MapAtlas(int map_id);
   gfx::Bitmap* MapGraphics(int map_id);
   void DrawProperties(int map_id, int& state, zelda3::Overworld& overworld,
@@ -175,6 +186,17 @@ class LyraTerrainCanvas {
   absl::Status authoring_assets_status_;
   std::optional<core::LyraAuthoringState> validated_authoring_;
   bool assets_valid_ = false;
+  bool sources_changed_ = false;
+  uint64_t asset_generation_ = 0;
+  absl::Status assets_status_;
+  struct NativeSave {
+    std::shared_ptr<core::LyraTerrainDocument> owner;
+    core::LyraTerrainDocument baseline;
+    std::optional<std::string> source_bytes;
+    bool unpublished;
+    bool pending_project_commit;
+  };
+  std::optional<NativeSave> native_save_;
   // Tracks navigation for transient copy feedback only.
   int property_map_ = -1;
   std::array<std::optional<PropertyDraft>, core::LyraTerrainDocument::kMapCount>

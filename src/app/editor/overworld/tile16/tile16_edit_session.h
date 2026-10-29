@@ -177,7 +177,9 @@ class Tile16EditSession {
   void set_palette(const gfx::SnesPalette& palette);
 
   void set_on_document_changed(
-      std::function<void(const std::vector<Tile16Commit>&)> callback) {
+      std::function<absl::Status(const std::vector<Tile16Commit>&,
+                                 const std::vector<Tile16Commit>&)>
+          callback) {
     on_document_changed_ = std::move(callback);
   }
   void set_on_changes_committed(
@@ -381,7 +383,9 @@ class Tile16EditSession {
   std::map<int, gfx::Bitmap> edited_tile_bitmaps_;
   std::vector<zelda3::Tile8PixelData> current_gfx_individual_;
   std::function<void()> before_edit_;
-  std::function<void(const std::vector<Tile16Commit>&)> on_document_changed_;
+  std::function<absl::Status(const std::vector<Tile16Commit>&,
+                             const std::vector<Tile16Commit>&)>
+      on_document_changed_;
   std::function<absl::Status(const std::vector<Tile16Commit>&)>
       on_changes_committed_;
   std::function<void(int)> on_current_tile_changed_;

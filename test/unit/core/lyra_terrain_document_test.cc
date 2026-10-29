@@ -70,6 +70,125 @@ TEST(LyraTerrainDocumentTest, RoundTripRetainsEveryMapAndExactProfile) {
   EXPECT_EQ(reopened->MapTile(0xBF, 0, 0).value(), 131);
 }
 
+TEST(LyraTerrainDocumentTest,
+     DefinitionRebindPreservesDocumentTerrainAndAuthoring) {
+  auto created = LyraTerrainDocument::Create(Profile(), 7);
+  ASSERT_TRUE(created.ok());
+  auto& document = *created;
+  const auto* identity = &document;
+  ASSERT_TRUE(document.BeginStroke().ok());
+  for (int map = 0; map < LyraTerrainDocument::kMapCount; ++map) {
+    ASSERT_TRUE(document.Paint((map % 8) * 32, (map / 8) * 32, 100 + map).ok());
+  }
+  ASSERT_TRUE(document.EndStroke().ok());
+  auto authoring = document.authoring();
+  authoring.gameplay_areas.push_back(
+      {0xA2, LyraGameplayAreaSize::kSmall, {0xA2}});
+  ASSERT_TRUE(document.SetAuthoring(document.authoring(), authoring).ok());
+  document.MarkSaved();
+  const auto maps = document.maps();
+  auto changed = Profile();
+  changed.tile16_definition_fingerprint = "definitions:paint-f63-q2";
+
+  ASSERT_TRUE(document.RebindTile16Definitions(Profile(), changed).ok());
+  EXPECT_EQ(&document, identity);
+  EXPECT_EQ(document.profile(), changed);
+  EXPECT_EQ(document.maps(), maps);
+  EXPECT_EQ(document.authoring(), authoring);
+  EXPECT_TRUE(document.profile_dirty());
+  EXPECT_TRUE(document.dirty());
+  auto reopened = LyraTerrainDocument::Parse(document.Serialize(), changed);
+  ASSERT_TRUE(reopened.ok()) << reopened.status();
+  EXPECT_EQ(reopened->maps(), maps);
+  EXPECT_EQ(reopened->authoring(), authoring);
+  EXPECT_FALSE(reopened->dirty());
+}
+
+TEST(LyraTerrainDocumentTest, SavedDefinitionRebindUndoRedoTracksBaseline) {
+  auto document = LyraTerrainDocument::Create(Profile(), 7);
+  ASSERT_TRUE(document.ok());
+  auto changed = Profile();
+  changed.tile16_definition_fingerprint = "definitions:paint-f63-q2";
+  ASSERT_TRUE(document->RebindTile16Definitions(Profile(), changed).ok());
+  EXPECT_TRUE(document->profile_dirty());
+  document->MarkSaved();
+  EXPECT_FALSE(document->profile_dirty());
+  EXPECT_FALSE(document->dirty());
+
+  ASSERT_TRUE(document->RebindTile16Definitions(changed, Profile()).ok());
+  EXPECT_TRUE(document->profile_dirty());
+  EXPECT_TRUE(document->dirty());
+  ASSERT_TRUE(document->RebindTile16Definitions(Profile(), changed).ok());
+  EXPECT_FALSE(document->profile_dirty());
+  EXPECT_FALSE(document->dirty());
+}
+
+TEST(LyraTerrainDocumentTest,
+     DefinitionRebindRefusesExternalAssetsAndStaleExpectedProfileAtomically) {
+  auto document = LyraTerrainDocument::Create(Profile(), 7);
+  ASSERT_TRUE(document.ok());
+  const auto before = document->Serialize();
+  using Mutation = std::function<void(LyraTerrainProfile&)>;
+  const std::vector<Mutation> external_changes = {
+      [](auto& p) { p.graphics_sheets[0] ^= 1; },
+      [](auto& p) { p.main_palette ^= 1; },
+      [](auto& p) { p.palette_set ^= 1; },
+      [](auto& p) { p.animated_sheet ^= 1; },
+      [](auto& p) { ++p.tile_count; },
+      [](auto& p) { p.graphics_fingerprint += "-external"; },
+      [](auto& p) { p.palette_fingerprint += "-external"; },
+      [](auto& p) { p.animation_fingerprint += "-external"; },
+  };
+  for (size_t i = 0; i < external_changes.size(); ++i) {
+    SCOPED_TRACE(i);
+    auto changed = Profile();
+    changed.tile16_definition_fingerprint = "definitions:paint-f63-q2";
+    external_changes[i](changed);
+    EXPECT_FALSE(document->RebindTile16Definitions(Profile(), changed).ok());
+    EXPECT_EQ(document->Serialize(), before);
+    EXPECT_FALSE(document->profile_dirty());
+    EXPECT_FALSE(document->dirty());
+  }
+  auto stale = Profile();
+  stale.tile16_definition_fingerprint = "definitions:stale";
+  auto changed = Profile();
+  changed.tile16_definition_fingerprint = "definitions:paint-f63-q2";
+  EXPECT_FALSE(document->RebindTile16Definitions(stale, changed).ok());
+  EXPECT_EQ(document->Serialize(), before);
+  EXPECT_FALSE(document->dirty());
+}
+
+TEST(LyraTerrainDocumentTest,
+     FailedPublicationRestoresSavedBaselineWithoutReplacingLiveDrafts) {
+  auto created = LyraTerrainDocument::Create(Profile(), 7);
+  ASSERT_TRUE(created.ok());
+  auto& document = *created;
+  const auto* identity = &document;
+  const auto baseline = document;
+  auto changed = Profile();
+  changed.tile16_definition_fingerprint = "definitions:paint-f63-q2";
+  ASSERT_TRUE(document.RebindTile16Definitions(Profile(), changed).ok());
+  ASSERT_TRUE(document.BeginStroke().ok());
+  ASSERT_TRUE(document.Paint(64, 0, 0xF63).ok());
+  ASSERT_TRUE(document.EndStroke().ok());
+  auto authoring = document.authoring();
+  authoring.gameplay_areas.push_back(
+      {0xA2, LyraGameplayAreaSize::kSmall, {0xA2}});
+  ASSERT_TRUE(document.SetAuthoring(document.authoring(), authoring).ok());
+  const auto live_maps = document.maps();
+  document.MarkSaved();
+  ASSERT_FALSE(document.dirty());
+
+  document.RestoreSavedBaseline(baseline);
+  EXPECT_EQ(&document, identity);
+  EXPECT_EQ(document.profile(), changed);
+  EXPECT_EQ(document.maps(), live_maps);
+  EXPECT_EQ(document.authoring(), authoring);
+  EXPECT_EQ(document.MapTile(0xA2, 0, 0).value(), 0xF63);
+  EXPECT_TRUE(document.profile_dirty());
+  EXPECT_TRUE(document.dirty());
+}
+
 TEST(LyraTerrainDocumentTest, RefusesMalformedSchemaDimensionsMapsAndTiles) {
   const auto document = LyraTerrainDocument::Create(Profile());
   ASSERT_TRUE(document.ok());

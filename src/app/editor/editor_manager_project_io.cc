@@ -932,6 +932,9 @@ absl::Status EditorManager::SaveRomInternal(
           ? rom_file_manager_.SaveRomAs(current_rom, *save_as_filename)
           : rom_file_manager_.SaveRom(current_rom, collision_source);
   if (save_status.ok()) {
+    if (auto* overworld = static_cast<OverworldEditor*>(
+            current_editor_set->GetExistingEditor(EditorType::kOverworld)))
+      overworld->CommitProjectNativeSave();
     editor_transactions.Commit();
     rom_transaction.Commit();
     CaptureCurrentRomIdentity(/*preserve_editing_source=*/true);

@@ -190,6 +190,18 @@ class LyraTerrainDocument {
   std::string Serialize() const;
 
   const LyraTerrainProfile& profile() const { return profile_; }
+  // Only the owning Tile16 edit transaction may advance this binding. Other
+  // source identities and the tile count remain exact guards.
+  absl::Status RebindTile16Definitions(const LyraTerrainProfile& before,
+                                       const LyraTerrainProfile& after);
+  bool profile_dirty() const { return profile_ != saved_profile_; }
+  // Restore a failed publication's baseline without replacing live drafts or
+  // the document shared by terrain and authoring Undo actions.
+  void RestoreSavedBaseline(const LyraTerrainDocument& baseline) {
+    saved_profile_ = baseline.saved_profile_;
+    saved_maps_ = baseline.saved_maps_;
+    saved_authoring_ = baseline.saved_authoring_;
+  }
   const Maps& maps() const { return maps_; }
   const LyraAuthoringState& authoring() const { return authoring_; }
   // Returns the explicit owner of a parent or child map; absent is unassigned.
@@ -208,9 +220,11 @@ class LyraTerrainDocument {
   absl::Status ApplyStroke(const LyraTerrainStroke& stroke, bool undo);
 
   bool dirty() const {
-    return maps_ != saved_maps_ || authoring_ != saved_authoring_;
+    return profile_dirty() || maps_ != saved_maps_ ||
+           authoring_ != saved_authoring_;
   }
   void MarkSaved() {
+    saved_profile_ = profile_;
     saved_maps_ = maps_;
     saved_authoring_ = authoring_;
   }
@@ -218,6 +232,7 @@ class LyraTerrainDocument {
  private:
   LyraTerrainDocument() = default;
   LyraTerrainProfile profile_;
+  LyraTerrainProfile saved_profile_;
   Maps maps_{};
   Maps saved_maps_{};
   LyraAuthoringState authoring_{};

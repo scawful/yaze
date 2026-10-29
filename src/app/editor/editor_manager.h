@@ -757,7 +757,7 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
       const std::string& state, const std::string& editing_source_path = "");
   bool HasPendingRomSaveConfirmation() const;
   bool PendingRomSaveMatchesActiveSession() const;
-  void FinishPendingRomSaveAttempt(const absl::Status& status);
+  absl::Status FinishPendingRomSaveAttempt(const absl::Status& status);
   void CancelPendingRomSave(bool hide_popups = false);
   absl::Status StartPendingRomSave(
       const std::optional<std::string>& save_as_filename);

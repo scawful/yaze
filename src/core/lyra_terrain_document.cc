@@ -8,6 +8,7 @@
 #include <utility>
 
 #include "nlohmann/json.hpp"
+#include "util/macro.h"
 
 namespace yaze::core {
 namespace {
@@ -504,6 +505,21 @@ absl::StatusOr<LyraTerrainDocument> LyraTerrainDocument::Create(
     map.fill(fill_tile);
   document->MarkSaved();
   return std::move(*document);
+}
+
+absl::Status LyraTerrainDocument::RebindTile16Definitions(
+    const LyraTerrainProfile& before, const LyraTerrainProfile& after) {
+  if (profile_ != before)
+    return absl::FailedPreconditionError("Lyra Tile16 edit binding is stale");
+  RETURN_IF_ERROR(after.Validate());
+  auto definition_only = before;
+  definition_only.tile16_definition_fingerprint =
+      after.tile16_definition_fingerprint;
+  if (definition_only != after)
+    return absl::FailedPreconditionError(
+        "Tile16 editing cannot rebind Lyra graphics, palettes or animation");
+  profile_ = after;
+  return absl::OkStatus();
 }
 
 absl::Status LyraTerrainDocument::SetAuthoring(
