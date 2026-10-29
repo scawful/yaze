@@ -26,6 +26,7 @@ class MapPropertiesPanel : public EditorPanel {
   std::string GetDisplayName() const override { return "Map Properties"; }
   std::string GetIcon() const override { return ICON_MD_TUNE; }
   std::string GetEditorCategory() const override { return "Overworld"; }
+  std::string GetShortcutHint() const override { return "M"; }
   bool PrefersFloating() const override { return true; }
   float GetPreferredWidth() const override { return 360.0f; }
   float GetPreferredHeight() const override { return 480.0f; }

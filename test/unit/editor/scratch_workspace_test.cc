@@ -88,6 +88,21 @@ class OverworldScratchTestPeer {
   static gfx::Bitmap& Atlas(OverworldEditor& editor) {
     return editor.tile16_blockset_.atlas;
   }
+  static const TileBrush* SelectionBrush(const OverworldEditor& editor) {
+    return editor.selection_brush();
+  }
+  static bool ScratchSelecting(const OverworldEditor& editor) {
+    return editor.scratch_selecting_;
+  }
+  static bool ScratchSelectActive(const OverworldEditor& editor) {
+    return editor.scratch_select_active_;
+  }
+  static ImVec2 ScratchSelectMin(const OverworldEditor& editor) {
+    return editor.scratch_select_min_;
+  }
+  static ImVec2 ScratchSelectMax(const OverworldEditor& editor) {
+    return editor.scratch_select_max_;
+  }
 };
 
 namespace {
@@ -416,6 +431,22 @@ TEST_F(ScratchWorkspaceUiTest,
   EXPECT_EQ(OverworldScratchTestPeer::Preview(*editor_).vector()[0], 5);
   EXPECT_EQ(OverworldScratchTestPeer::Preview(*editor_).palette()[5].snes(),
             0x001F);
+}
+
+TEST_F(ScratchWorkspaceUiTest, RightClickDragReleasesOutsideCanvasCleanly) {
+  auto start = OverworldScratchTestPeer::CellCenter(*editor_, 0, 0);
+  Frame(start, false, true);
+  EXPECT_TRUE(OverworldScratchTestPeer::ScratchSelecting(*editor_));
+
+  Frame(ImVec2(1500, 1500), false, true);
+  EXPECT_TRUE(OverworldScratchTestPeer::ScratchSelecting(*editor_));
+  Frame(ImVec2(1500, 1500), false, false);
+  EXPECT_FALSE(OverworldScratchTestPeer::ScratchSelecting(*editor_));
+  EXPECT_TRUE(OverworldScratchTestPeer::ScratchSelectActive(*editor_));
+  EXPECT_EQ(OverworldScratchTestPeer::ScratchSelectMin(*editor_).x, 0);
+  EXPECT_EQ(OverworldScratchTestPeer::ScratchSelectMin(*editor_).y, 0);
+  EXPECT_EQ(OverworldScratchTestPeer::ScratchSelectMax(*editor_).x, 3);
+  EXPECT_EQ(OverworldScratchTestPeer::ScratchSelectMax(*editor_).y, 1);
 }
 
 TEST_F(ScratchWorkspaceFileTest, RemovedFileAndNonFileTargetsRemainProtected) {

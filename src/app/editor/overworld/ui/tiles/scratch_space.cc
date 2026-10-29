@@ -243,7 +243,7 @@ absl::Status OverworldEditor::DrawScratchSpace() {
   // --- Compact 26px Toolbar Header ---
   BeginDisabled(current_page_idx <= 0);
   if (Button(ICON_MD_CHEVRON_LEFT "##ScratchPrev")) {
-    FinishScratchEdit("Edit scratch layout");
+    FinishScratchEdit("Switch scratch layout");
     scratch_workspace_.Select(pages[current_page_idx - 1].id);
     MarkScratchSpaceDirty();
     report(RebuildScratchBitmapFromTileData());
@@ -261,7 +261,7 @@ absl::Status OverworldEditor::DrawScratchSpace() {
       PushID(std::to_string(p.id).c_str());
       if (Selectable(p.name.c_str(),
                      p.id == scratch_workspace_.state().selected_id)) {
-        FinishScratchEdit("Edit scratch layout");
+        FinishScratchEdit("Switch scratch layout");
         scratch_workspace_.Select(p.id);
         MarkScratchSpaceDirty();
         report(RebuildScratchBitmapFromTileData());
@@ -275,7 +275,7 @@ absl::Status OverworldEditor::DrawScratchSpace() {
 
   BeginDisabled(current_page_idx >= static_cast<int>(pages.size()) - 1);
   if (Button(ICON_MD_CHEVRON_RIGHT "##ScratchNext")) {
-    FinishScratchEdit("Edit scratch layout");
+    FinishScratchEdit("Switch scratch layout");
     scratch_workspace_.Select(pages[current_page_idx + 1].id);
     MarkScratchSpaceDirty();
     report(RebuildScratchBitmapFromTileData());
@@ -302,9 +302,7 @@ absl::Status OverworldEditor::DrawScratchSpace() {
   SameLine();
 
   const auto* active_brush = selection_brush();
-  const bool can_capture =
-      (active_brush && active_brush->valid()) ||
-      (tile_painting_ && tile_painting_->selection_brush());
+  const bool can_capture = (active_brush && active_brush->valid());
   BeginDisabled(pages.size() >= ScratchWorkspace::kMaxPages || !can_capture);
   if (Button(ICON_MD_FILE_DOWNLOAD "##ScratchCapture")) {
     report(SaveCurrentSelectionToScratch());
@@ -349,17 +347,27 @@ absl::Status OverworldEditor::DrawScratchSpace() {
     }
 
     if (BeginMenu("Resize layout")) {
-      int dimensions[] = {page.width, page.height};
+      if (scratch_resize_id_ != page.id || !IsAnyItemActive()) {
+        scratch_resize_dimensions_[0] = page.width;
+        scratch_resize_dimensions_[1] = page.height;
+        scratch_resize_id_ = page.id;
+      }
       SetNextItemWidth(120.0f);
-      if (InputInt2("Tiles (W x H)##ScratchResize", dimensions)) {
+      const bool enter_pressed = InputInt2(
+          "Tiles (W x H)##ScratchResize", scratch_resize_dimensions_.data(),
+          ImGuiInputTextFlags_EnterReturnsTrue);
+      SameLine();
+      const bool apply_clicked = Button("Apply##ScratchResize");
+      if (enter_pressed || apply_clicked) {
         BeginScratchEdit();
-        const auto resize =
-            scratch_workspace_.Resize(dimensions[0], dimensions[1]);
+        const auto resize = scratch_workspace_.Resize(
+            scratch_resize_dimensions_[0], scratch_resize_dimensions_[1]);
         FinishScratchEdit("Resize scratch layout");
         if (resize.ok())
           report(RebuildScratchBitmapFromTileData());
         else
           report(resize);
+        CloseCurrentPopup();
       }
       EndMenu();
     }
@@ -376,10 +384,10 @@ absl::Status OverworldEditor::DrawScratchSpace() {
       report(ClearScratchSpace());
     }
 
-    if (MenuItem("Remove layout", nullptr, false, pages.size() > 1)) {
+    if (MenuItem("Delete layout", nullptr, false, pages.size() > 1)) {
       BeginScratchEdit();
       const auto status = scratch_workspace_.DeletePage();
-      FinishScratchEdit("Remove scratch layout");
+      FinishScratchEdit("Delete scratch layout");
       report(status.ok() ? RebuildScratchBitmapFromTileData() : status);
     }
 
@@ -458,13 +466,14 @@ absl::Status OverworldEditor::DrawScratchSpace() {
                               IM_COL32(255, 255, 255, 220), 0.0f, 0, 2.0f);
   }
 
-  if (canvas.hovered && map_blockset_loaded_) {
+  if (scratch_selecting_ || (canvas.hovered && map_blockset_loaded_)) {
     const auto cursor = ScratchMousePosition(scratch_canvas_);
     const int x = static_cast<int>(std::floor(cursor.x / 16.0f));
     const int y = static_cast<int>(std::floor(cursor.y / 16.0f));
 
     // Right mouse drag-selection (Tile16 Select Rect)
-    if (IsMouseClicked(ImGuiMouseButton_Right) && x >= 0 && y >= 0 &&
+    if (canvas.hovered && map_blockset_loaded_ &&
+        IsMouseClicked(ImGuiMouseButton_Right) && x >= 0 && y >= 0 &&
         x < page.width && y < page.height) {
       scratch_selecting_ = true;
       scratch_drag_start_ = ImVec2(x, y);
@@ -525,109 +534,113 @@ absl::Status OverworldEditor::DrawScratchSpace() {
       }
     }
 
-    // Brush stamp or single-tile paint
-    if (x >= 0 && y >= 0 && x < page.width && y < page.height) {
-      if (active_brush && active_brush->valid()) {
-        // Draw brush ghost preview with atlas textures
-        const float bx0 = grid_min.x + x * cell_size;
-        const float by0 = grid_min.y + y * cell_size;
-        const float bx1 = grid_min.x + (x + active_brush->width) * cell_size;
-        const float by1 = grid_min.y + (y + active_brush->height) * cell_size;
+    if (canvas.hovered && map_blockset_loaded_) {
+      // Brush stamp or single-tile paint
+      if (x >= 0 && y >= 0 && x < page.width && y < page.height) {
+        if (active_brush && active_brush->valid()) {
+          // Draw brush ghost preview with atlas textures
+          const float bx0 = grid_min.x + x * cell_size;
+          const float by0 = grid_min.y + y * cell_size;
+          const float bx1 = grid_min.x + (x + active_brush->width) * cell_size;
+          const float by1 = grid_min.y + (y + active_brush->height) * cell_size;
 
-        if (tile16_blockset_.atlas.is_active()) {
-          const int cols = std::max(1, tile16_blockset_.atlas.width() / 16);
-          const float atlas_w =
-              static_cast<float>(tile16_blockset_.atlas.width());
-          const float atlas_h =
-              static_cast<float>(tile16_blockset_.atlas.height());
-          if (atlas_w > 0.0f && atlas_h > 0.0f) {
-            for (int by = 0; by < active_brush->height; ++by) {
-              for (int bx = 0; bx < active_brush->width; ++bx) {
-                if (x + bx < 0 || x + bx >= page.width || y + by < 0 ||
-                    y + by >= page.height)
-                  continue;
-                const int brush_idx = by * active_brush->width + bx;
-                if (brush_idx >=
-                    static_cast<int>(active_brush->tile_ids.size()))
-                  continue;
-                const int tile_id = active_brush->tile_ids[brush_idx];
-                const int tile_col = tile_id % cols;
-                const int tile_row = tile_id / cols;
-                const float uv0_x = (tile_col * 16.0f) / atlas_w;
-                const float uv0_y = (tile_row * 16.0f) / atlas_h;
-                const float uv1_x = ((tile_col + 1) * 16.0f) / atlas_w;
-                const float uv1_y = ((tile_row + 1) * 16.0f) / atlas_h;
-                const float tx0 = grid_min.x + (x + bx) * cell_size;
-                const float ty0 = grid_min.y + (y + by) * cell_size;
-                canvas.draw_list->AddImage(
-                    (ImTextureID)(intptr_t)tile16_blockset_.atlas.texture(),
-                    ImVec2(tx0, ty0), ImVec2(tx0 + cell_size, ty0 + cell_size),
-                    ImVec2(uv0_x, uv0_y), ImVec2(uv1_x, uv1_y),
-                    IM_COL32(255, 255, 255, 170));
-              }
-            }
-          }
-        }
-        canvas.draw_list->AddRect(ImVec2(bx0, by0), ImVec2(bx1, by1),
-                                  IM_COL32(255, 220, 50, 220), 0.0f, 0, 2.0f);
-
-        if (IsMouseClicked(ImGuiMouseButton_Left)) {
-          BeginScratchEdit();
-          const auto status = scratch_workspace_.Stamp(*active_brush, x, y);
-          FinishScratchEdit("Stamp scratch layout");
-          if (!status.ok())
-            report(status);
-          else
-            report(RebuildScratchBitmapFromTileData());
-        }
-      } else {
-        // Hover cursor box on single tile
-        const float hx0 = grid_min.x + x * cell_size;
-        const float hy0 = grid_min.y + y * cell_size;
-        canvas.draw_list->AddRect(ImVec2(hx0, hy0),
-                                  ImVec2(hx0 + cell_size, hy0 + cell_size),
-                                  IM_COL32(255, 255, 255, 180), 0.0f, 0, 1.5f);
-
-        if (IsMouseClicked(ImGuiMouseButton_Left)) {
-          BeginScratchEdit();
-          scratch_paint_gesture_owned_ = true;
-        }
-        if (scratch_paint_gesture_owned_ && IsMouseDown(ImGuiMouseButton_Left))
-          DrawScratchSpaceEdits();
-      }
-
-      // Hover to View tooltip: show tile info, usage count, coordinates, zoomed preview
-      if (!scratch_selecting_ && !IsMouseDown(ImGuiMouseButton_Left) &&
-          !IsMouseDown(ImGuiMouseButton_Right) && page.in_use) {
-        const int tile_id = page.tile_data[x][y];
-        if (ImGui::BeginTooltip()) {
-          ImGui::Text(tr("Tile %d (0x%03X)"), tile_id, tile_id);
-          ImGui::TextDisabled("Scratch: (%d, %d)", x, y);
-          const int usage = GetTile16UsageCount(tile_id);
-          if (usage > 0) {
-            ImGui::Text(tr("Placed %d times (%s)"), usage,
-                        GetTile16ScopeLabel().c_str());
-          }
           if (tile16_blockset_.atlas.is_active()) {
             const int cols = std::max(1, tile16_blockset_.atlas.width() / 16);
-            const int tile_col = tile_id % cols;
-            const int tile_row = tile_id / cols;
             const float atlas_w =
                 static_cast<float>(tile16_blockset_.atlas.width());
             const float atlas_h =
                 static_cast<float>(tile16_blockset_.atlas.height());
-            if (atlas_w > 0 && atlas_h > 0) {
-              const float uv0_x = (tile_col * 16.0f) / atlas_w;
-              const float uv0_y = (tile_row * 16.0f) / atlas_h;
-              const float uv1_x = ((tile_col + 1) * 16.0f) / atlas_w;
-              const float uv1_y = ((tile_row + 1) * 16.0f) / atlas_h;
-              ImGui::Image(
-                  (ImTextureID)(intptr_t)tile16_blockset_.atlas.texture(),
-                  ImVec2(64.0f, 64.0f), ImVec2(uv0_x, uv0_y),
-                  ImVec2(uv1_x, uv1_y));
+            if (atlas_w > 0.0f && atlas_h > 0.0f) {
+              for (int by = 0; by < active_brush->height; ++by) {
+                for (int bx = 0; bx < active_brush->width; ++bx) {
+                  if (x + bx < 0 || x + bx >= page.width || y + by < 0 ||
+                      y + by >= page.height)
+                    continue;
+                  const int brush_idx = by * active_brush->width + bx;
+                  if (brush_idx >=
+                      static_cast<int>(active_brush->tile_ids.size()))
+                    continue;
+                  const int tile_id = active_brush->tile_ids[brush_idx];
+                  const int tile_col = tile_id % cols;
+                  const int tile_row = tile_id / cols;
+                  const float uv0_x = (tile_col * 16.0f) / atlas_w;
+                  const float uv0_y = (tile_row * 16.0f) / atlas_h;
+                  const float uv1_x = ((tile_col + 1) * 16.0f) / atlas_w;
+                  const float uv1_y = ((tile_row + 1) * 16.0f) / atlas_h;
+                  const float tx0 = grid_min.x + (x + bx) * cell_size;
+                  const float ty0 = grid_min.y + (y + by) * cell_size;
+                  canvas.draw_list->AddImage(
+                      (ImTextureID)(intptr_t)tile16_blockset_.atlas.texture(),
+                      ImVec2(tx0, ty0),
+                      ImVec2(tx0 + cell_size, ty0 + cell_size),
+                      ImVec2(uv0_x, uv0_y), ImVec2(uv1_x, uv1_y),
+                      IM_COL32(255, 255, 255, 170));
+                }
+              }
             }
           }
-          ImGui::EndTooltip();
+          canvas.draw_list->AddRect(ImVec2(bx0, by0), ImVec2(bx1, by1),
+                                    IM_COL32(255, 220, 50, 220), 0.0f, 0, 2.0f);
+
+          if (IsMouseClicked(ImGuiMouseButton_Left)) {
+            BeginScratchEdit();
+            const auto status = scratch_workspace_.Stamp(*active_brush, x, y);
+            FinishScratchEdit("Stamp scratch layout");
+            if (!status.ok())
+              report(status);
+            else
+              report(RebuildScratchBitmapFromTileData());
+          }
+        } else {
+          // Hover cursor box on single tile
+          const float hx0 = grid_min.x + x * cell_size;
+          const float hy0 = grid_min.y + y * cell_size;
+          canvas.draw_list->AddRect(
+              ImVec2(hx0, hy0), ImVec2(hx0 + cell_size, hy0 + cell_size),
+              IM_COL32(255, 255, 255, 180), 0.0f, 0, 1.5f);
+
+          if (IsMouseClicked(ImGuiMouseButton_Left)) {
+            BeginScratchEdit();
+            scratch_paint_gesture_owned_ = true;
+          }
+          if (scratch_paint_gesture_owned_ &&
+              IsMouseDown(ImGuiMouseButton_Left))
+            DrawScratchSpaceEdits();
+        }
+
+        // Hover to View tooltip: show tile info, usage count, coordinates, zoomed preview
+        if (!scratch_selecting_ && !IsMouseDown(ImGuiMouseButton_Left) &&
+            !IsMouseDown(ImGuiMouseButton_Right) && page.in_use) {
+          const int tile_id = page.tile_data[x][y];
+          if (ImGui::BeginTooltip()) {
+            ImGui::Text(tr("Tile %d (0x%03X)"), tile_id, tile_id);
+            ImGui::TextDisabled("Scratch: (%d, %d)", x, y);
+            const int usage = GetTile16UsageCount(tile_id);
+            if (usage > 0) {
+              ImGui::Text(tr("Placed %d times (%s)"), usage,
+                          GetTile16ScopeLabel().c_str());
+            }
+            if (tile16_blockset_.atlas.is_active()) {
+              const int cols = std::max(1, tile16_blockset_.atlas.width() / 16);
+              const int tile_col = tile_id % cols;
+              const int tile_row = tile_id / cols;
+              const float atlas_w =
+                  static_cast<float>(tile16_blockset_.atlas.width());
+              const float atlas_h =
+                  static_cast<float>(tile16_blockset_.atlas.height());
+              if (atlas_w > 0 && atlas_h > 0) {
+                const float uv0_x = (tile_col * 16.0f) / atlas_w;
+                const float uv0_y = (tile_row * 16.0f) / atlas_h;
+                const float uv1_x = ((tile_col + 1) * 16.0f) / atlas_w;
+                const float uv1_y = ((tile_row + 1) * 16.0f) / atlas_h;
+                ImGui::Image(
+                    (ImTextureID)(intptr_t)tile16_blockset_.atlas.texture(),
+                    ImVec2(64.0f, 64.0f), ImVec2(uv0_x, uv0_y),
+                    ImVec2(uv1_x, uv1_y));
+              }
+            }
+            ImGui::EndTooltip();
+          }
         }
       }
     }

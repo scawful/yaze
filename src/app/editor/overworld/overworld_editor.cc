@@ -2497,16 +2497,17 @@ void OverworldEditor::DrawEditorMenu() {
         break;
       }
     }
-    if (ImGui::MenuItem("Previous Layout", "[", false, current_page_idx > 0)) {
-      FinishScratchEdit("Edit scratch layout");
+    if (ImGui::MenuItem("Previous Layout", nullptr, false,
+                        current_page_idx > 0)) {
+      FinishScratchEdit("Switch scratch layout");
       scratch_workspace_.Select(pages[current_page_idx - 1].id);
       MarkScratchSpaceDirty();
       (void)RebuildScratchBitmapFromTileData();
     }
     if (ImGui::MenuItem(
-            "Next Layout", "]", false,
+            "Next Layout", nullptr, false,
             current_page_idx < static_cast<int>(pages.size()) - 1)) {
-      FinishScratchEdit("Edit scratch layout");
+      FinishScratchEdit("Switch scratch layout");
       scratch_workspace_.Select(pages[current_page_idx + 1].id);
       MarkScratchSpaceDirty();
       (void)RebuildScratchBitmapFromTileData();
@@ -2531,14 +2532,12 @@ void OverworldEditor::DrawEditorMenu() {
     if (ImGui::MenuItem("Delete Layout", nullptr, false, pages.size() > 1)) {
       BeginScratchEdit();
       (void)scratch_workspace_.DeletePage();
-      FinishScratchEdit("Remove scratch layout");
+      FinishScratchEdit("Delete scratch layout");
       (void)RebuildScratchBitmapFromTileData();
     }
     ImGui::Separator();
     const auto* active_brush = selection_brush();
-    const bool can_capture =
-        (active_brush && active_brush->valid()) ||
-        (tile_painting_ && tile_painting_->selection_brush());
+    const bool can_capture = (active_brush && active_brush->valid());
     if (ImGui::MenuItem(
             "Capture Selection to Scratch", nullptr, false,
             can_capture && pages.size() < ScratchWorkspace::kMaxPages)) {

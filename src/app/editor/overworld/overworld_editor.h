@@ -905,6 +905,8 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   std::filesystem::path scratch_path_;
   uint64_t scratch_name_id_ = 0;
   std::array<char, 129> scratch_name_buffer_{};
+  uint64_t scratch_resize_id_ = 0;
+  std::array<int, 2> scratch_resize_dimensions_{16, 16};
   int scratch_preview_map_ = -1;
   uint64_t scratch_preview_revision_ = 0;
   bool scratch_paint_gesture_owned_ = false;
