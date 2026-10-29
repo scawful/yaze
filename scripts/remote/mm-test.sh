@@ -21,9 +21,9 @@
 #
 # Works for local-only branches: the commits the PC lacks travel as a git bundle.
 # Env: MM_HOST (ssh alias; forces one box), MM_HOSTS (boxes tried in order when
-# MM_HOST is unset, default "mm eva-02": first with a free build lock, else wait
-# on the first reachable), MM_REMOTE_ROOT (runner dir relative to the remote
-# home, default src/yaze-remote), MM_MAX_WORKTREES (default 8),
+# MM_HOST is unset, default "mm": first ready box with a free build lock, else
+# wait on the first reachable), MM_REMOTE_ROOT (runner dir relative to the
+# remote home, default src/yaze-remote), MM_MAX_WORKTREES (default 8),
 # MM_LOCK_WAIT_MIN (default 120).
 # Exit: 0 pass, 1 test failures, 2 configure/build failure, 3 setup/usage error.
 # See scripts/remote/README.md.
@@ -58,9 +58,12 @@ gtest_args_re='^[A-Za-z0-9_=,.:/ -]*$'
 [[ "$gtest_args" =~ $gtest_args_re ]] || die "gtest-args may only use [A-Za-z0-9_=,.:/ -]"
 [[ "$jobs" =~ ^[0-9]*$ ]] || die "--jobs must be a number"
 
-# Prints FREE or BUSY for a box's build lock; fails if the box is unreachable.
+# Prints FREE or BUSY for a box's build lock; UNPREPARED if build tools are missing;
+# fails if the box is unreachable.
 lock_state() {
-  local script="\$p = Join-Path \$env:USERPROFILE '${remote_root//\//\\}\\build.lock'
+  local script="\$t = Join-Path \$env:USERPROFILE 'tools'
+if (-not ((Test-Path \"\$t\\ninja\\ninja.exe\") -and (Test-Path \"\$t\\ccache\\ccache.exe\") -and (Get-Command cmake -ErrorAction SilentlyContinue))) { 'UNPREPARED'; exit }
+\$p = Join-Path \$env:USERPROFILE '${remote_root//\//\\}\\build.lock'
 if (-not (Test-Path \$p)) { 'FREE'; exit }
 try { [IO.File]::Open(\$p, 'Open', 'ReadWrite', 'None').Close(); 'FREE' } catch { 'BUSY' }"
   ssh -o BatchMode=yes -o LogLevel=ERROR -o ConnectTimeout=5 "$1" \
@@ -69,14 +72,15 @@ try { [IO.File]::Open(\$p, 'Open', 'ReadWrite', 'None').Close(); 'FREE' } catch 
 }
 if [[ -z "$host" ]]; then
   fallback=""
-  for candidate in ${MM_HOSTS:-mm eva-02}; do
+  for candidate in ${MM_HOSTS:-mm}; do
     state="$(lock_state "$candidate" 2>/dev/null)" || { echo "[mac] $candidate unreachable"; continue; }
+    if [[ "$state" == UNPREPARED ]]; then echo "[mac] $candidate missing build tools (unprepared)"; continue; fi
     if [[ "$state" == FREE ]]; then host="$candidate"; break; fi
     echo "[mac] $candidate build lock busy"
     fallback="${fallback:-$candidate}"
   done
   host="${host:-$fallback}"
-  [[ -n "$host" ]] || die "no build box reachable (${MM_HOSTS:-mm eva-02})"
+  [[ -n "$host" ]] || die "no ready build box reachable (${MM_HOSTS:-mm})"
 fi
 
 repo_root="$(git rev-parse --show-toplevel)" || die "run inside a yaze checkout"

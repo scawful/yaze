@@ -79,9 +79,10 @@ runs:
     # and the primary key embedded github.sha, so it only matched a re-run of
     # the same commit. Every pull request compiled cold.
     #
-    # Pushes to master, develop, and cursor integration branches save caches:
-    # pull requests restore base branch caches. With max-size raised to 3G,
-    # the ~1,170 compiled objects do not thrash LRU eviction mid-build.
+    # Only pushes to master save: pull requests restore master's cache.
+    # Saving from other branches risks evicting master's entries under
+    # GitHub's 10 GB repository cache budget. With max-size raised to 3G,
+    # master's ~1,170 compiled objects fit without mid-build LRU thrashing.
     - name: Setup sccache
       if: inputs.compiler-cache == 'true'
       uses: hendrikmuhs/ccache-action@v1.2
@@ -94,7 +95,7 @@ runs:
           ${{ inputs.platform }}-${{ inputs.preset }}-v2
         max-size: 3G
         variant: sccache
-        save: ${{ github.event_name == 'push' && (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/develop' || startsWith(github.ref, 'refs/heads/cursor/yaze-integration') || startsWith(github.ref, 'refs/heads/cursor/yaze-intake')) }}
+        save: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
 
     - name: Setup MSVC Dev Cmd (Windows)
       if: inputs.platform == 'windows'

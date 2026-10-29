@@ -80,7 +80,7 @@ Details:
 | Variable | Default | Meaning |
 |----------|---------|---------|
 | `MM_HOST` | unset | SSH alias of one PC to use (key auth, default shell `cmd`); disables fallback |
-| `MM_HOSTS` | `mm eva-02` | Boxes tried in order when `MM_HOST` is unset: the first with a free build lock runs the job; if all are busy, it waits on the first reachable one |
+| `MM_HOSTS` | `mm` | Boxes tried in order when `MM_HOST` is unset: the first ready box with a free build lock runs the job; if all are busy, it waits on the first reachable one |
 | `MM_REMOTE_ROOT` | `src/yaze-remote` | Runner dir, relative to the remote home |
 | `MM_MAX_WORKTREES` | `8` | Worktrees kept on the PC |
 | `MM_LOCK_WAIT_MIN` | `120` | Minutes to wait for the build lock |
