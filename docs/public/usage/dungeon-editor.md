@@ -21,6 +21,7 @@ require chasing separate floating panels.
 **Related Documentation:**
 - [Architecture Overview](../developer/architecture.md)
 - [Canvas System](../developer/canvas-system.md)
+- [Spatial explanation and pattern composition](dungeon-spatial-contract.md)
 
 ---
 

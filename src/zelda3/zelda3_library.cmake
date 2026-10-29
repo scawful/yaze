@@ -44,6 +44,7 @@ set(
   zelda3/dungeon/room_census_vanilla_fingerprints.cc
   zelda3/dungeon/room.cc
   zelda3/dungeon/room_collision.cc
+  zelda3/dungeon/room_spatial.cc
   zelda3/dungeon/room_layer_manager.cc
   zelda3/dungeon/room_layout.cc
   zelda3/dungeon/room_links.cc

@@ -48,12 +48,21 @@ class DungeonDescribeRoomCommandHandler : public resources::CommandHandler {
   }
   std::string GetUsage() const {
     return "dungeon-describe-room --room <room_id> [--sprite-registry <path>] "
-           "[--include-objects] [--include-staircase-resolution] [--format "
+           "[--include-objects] [--include-staircase-resolution] "
+           "[--spatial] [--spatial-cells] [--spatial-collision] [--format "
            "<json|text>]";
   }
 
   absl::Status ValidateArgs(const resources::ArgumentParser& parser) override {
-    return parser.RequireArgs({"room"});
+    const auto status = parser.RequireArgs({"room"});
+    if (!status.ok())
+      return status;
+    if ((parser.HasFlag("spatial-cells") ||
+         parser.HasFlag("spatial-collision")) &&
+        !parser.HasFlag("spatial")) {
+      return absl::InvalidArgumentError("Spatial details require --spatial");
+    }
+    return absl::OkStatus();
   }
 
   absl::Status Execute(Rom* rom, const resources::ArgumentParser& parser,

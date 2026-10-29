@@ -5,6 +5,7 @@
 #include "cli/handlers/game/dungeon_collision_commands.h"
 #include "cli/handlers/game/dungeon_commands.h"
 #include "cli/handlers/game/dungeon_edit_commands.h"
+#include "cli/handlers/game/dungeon_spatial_commands.h"
 #include "cli/handlers/game/dungeon_tile_type_commands.h"
 #include "cli/handlers/game/message_commands.h"
 #include "cli/handlers/game/minecart_commands.h"
@@ -146,10 +147,16 @@ void RegisterBuiltinAgentTools(ToolRegistry& registry) {
                               "List sprites in a dungeon room",
                               "dungeon-list-sprites --room=<id>", {}, true,
                               false, DungeonListSpritesCommandHandler)
-  REGISTER_BUILTIN_AGENT_TOOL("dungeon-describe-room", "dungeon",
-                              "Describe a room",
-                              "dungeon-describe-room --room=<id>", {}, true,
-                              false, DungeonDescribeRoomCommandHandler)
+  REGISTER_BUILTIN_AGENT_TOOL(
+      "dungeon-describe-room", "dungeon",
+      "Describe a room, including optional spatial and layer explanation",
+      DungeonDescribeRoomCommandHandler().GetUsage(), {}, true, false,
+      DungeonDescribeRoomCommandHandler)
+  REGISTER_BUILTIN_AGENT_TOOL(
+      "dungeon-template-plan", "dungeon",
+      "Read-only deterministic object-template placement and clearance plan",
+      DungeonTemplatePlanCommandHandler().GetUsage(), {}, true, false,
+      DungeonTemplatePlanCommandHandler)
   REGISTER_BUILTIN_AGENT_TOOL("dungeon-export-room", "dungeon",
                               "Export room data",
                               "dungeon-export-room --room=<id>", {}, true,

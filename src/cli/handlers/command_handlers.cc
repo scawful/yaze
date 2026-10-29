@@ -12,6 +12,7 @@
 #include "cli/handlers/game/dungeon_group_commands.h"
 #include "cli/handlers/game/dungeon_map_commands.h"
 #include "cli/handlers/game/dungeon_render_commands.h"
+#include "cli/handlers/game/dungeon_spatial_commands.h"
 #include "cli/handlers/game/dungeon_stream_plan_commands.h"
 #include "cli/handlers/game/dungeon_tile_type_commands.h"
 #include "cli/handlers/game/dungeon_wall_profile_commands.h"
@@ -137,6 +138,7 @@ CreateCliCommandHandlers() {
   // Dungeon inspection
   handlers.push_back(std::make_unique<DungeonListSpritesCommandHandler>());
   handlers.push_back(std::make_unique<DungeonDescribeRoomCommandHandler>());
+  handlers.push_back(std::make_unique<DungeonTemplatePlanCommandHandler>());
   handlers.push_back(std::make_unique<DungeonListChestsCommandHandler>());
   handlers.push_back(std::make_unique<DungeonGetEntranceCommandHandler>());
   handlers.push_back(std::make_unique<DungeonExportRoomCommandHandler>());

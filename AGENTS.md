@@ -74,6 +74,9 @@ test apps and verify process/window cleanup before finishing or handing off.
 - `oos<VERSION>.sfc` = edit target; `oos<VERSION>x.sfc` = patched/emulator only
 - `z3ed --write` → base ROM (`oos168.sfc`), never `oos168x.sfc`
 - Handoff: `../oracle-of-secrets/.context/scratchpad/agent_handoff.md`
+- Dungeon geometry and layout reasoning: `docs/public/usage/dungeon-spatial-contract.md`;
+  use `dungeon-describe-room --spatial` before `dungeon-template-plan`. Keep
+  default-state geometry, collision replay and native gameplay proof distinct.
 
 ### 5b) Cloud / ROM-less Sessions
 - Linux cloud agents (Claude Code web, Codex, Cursor): follow

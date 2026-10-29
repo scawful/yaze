@@ -73,7 +73,16 @@ void CommandRegistry::RegisterHandlers(
       metadata.description = "Dungeon inspection and editing";
       if (name == "dungeon-describe-room") {
         metadata.examples = {
-            "z3ed dungeon-describe-room --room=5 --format=json"};
+            "z3ed dungeon-describe-room --room=5 --format=json",
+            "z3ed dungeon-describe-room --room=0x26 --spatial "
+            "--spatial-collision --format=json"};
+      } else if (name == "dungeon-template-plan") {
+        metadata.description =
+            "Read-only deterministic object-template placement with measured "
+            "footprints and explicit clearance";
+        metadata.examples = {
+            "z3ed dungeon-template-plan --room=0x26 --template=island.json "
+            "--x=23 --y=21 --format=json"};
       } else if (name == "dungeon-stream-plan") {
         metadata.description =
             "Read-only stream inventory, alias/overlap, and free-space "

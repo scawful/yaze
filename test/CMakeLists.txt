@@ -356,6 +356,7 @@ if(YAZE_BUILD_TESTS)
     unit/zelda3/dungeon/dungeon_stream_allocator_test.cc
     unit/cli/dungeon_spawn_report_commands_test.cc
     unit/cli/dungeon_stream_plan_commands_test.cc
+    unit/cli/dungeon_spatial_commands_test.cc
     unit/cli/message_commands_policy_test.cc
   )
   set(QUICK_UNIT_EDITOR_TEST_SOURCES
@@ -689,6 +690,8 @@ if(YAZE_BUILD_TESTS)
     unit/zelda3/dungeon/draw_routine_registry_ids_test.cc
     unit/zelda3/dungeon/game_tilemap_comparison_test.cc
     unit/zelda3/dungeon/room_collision_test.cc
+    unit/zelda3/dungeon/room_spatial_test.cc
+    unit/zelda3/dungeon/object_template_plan_test.cc
     unit/zelda3/dungeon/room_layer_registers_test.cc
     unit/zelda3/dungeon/room_limit_regression_test.cc
     unit/zelda3/dungeon/door_position_test.cc

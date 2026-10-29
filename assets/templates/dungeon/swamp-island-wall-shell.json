@@ -1,0 +1,63 @@
+{
+  "name": "Swamp island wall shell",
+  "description": "Measured Swamp Palace room36 wall/corner shell:16x24 Tile8,8x16 interior at relative4,4. Ordered geometry reference; stairs, water state, art compatibility and traversal are separate.",
+  "category": "Measured reference",
+  "objects": [
+    {
+      "id": 271,
+      "rel_x": 0,
+      "rel_y": 0,
+      "size": 0,
+      "layer": 0
+    },
+    {
+      "id": 4,
+      "rel_x": 4,
+      "rel_y": 0,
+      "size": 3,
+      "layer": 0
+    },
+    {
+      "id": 269,
+      "rel_x": 12,
+      "rel_y": 0,
+      "size": 0,
+      "layer": 0
+    },
+    {
+      "id": 100,
+      "rel_x": 0,
+      "rel_y": 4,
+      "size": 7,
+      "layer": 0
+    },
+    {
+      "id": 270,
+      "rel_x": 0,
+      "rel_y": 20,
+      "size": 0,
+      "layer": 0
+    },
+    {
+      "id": 3,
+      "rel_x": 4,
+      "rel_y": 20,
+      "size": 3,
+      "layer": 0
+    },
+    {
+      "id": 268,
+      "rel_x": 12,
+      "rel_y": 20,
+      "size": 0,
+      "layer": 0
+    },
+    {
+      "id": 99,
+      "rel_x": 12,
+      "rel_y": 4,
+      "size": 7,
+      "layer": 0
+    }
+  ]
+}

@@ -1,0 +1,119 @@
+{
+  "name": "Swamp island bank assembly",
+  "description": "Ordered Swamp Palace room36 perimeter, water-facing strips, chest and stair reference. State/event registration, floor2=0E, room graphics and chest rewards are external dependencies; geometry planning does not qualify gameplay.",
+  "category": "Measured reference",
+  "objects": [
+    {
+      "id": 271,
+      "rel_x": 0,
+      "rel_y": 0,
+      "size": 0,
+      "layer": 0
+    },
+    {
+      "id": 4,
+      "rel_x": 4,
+      "rel_y": 0,
+      "size": 3,
+      "layer": 0
+    },
+    {
+      "id": 269,
+      "rel_x": 12,
+      "rel_y": 0,
+      "size": 0,
+      "layer": 0
+    },
+    {
+      "id": 100,
+      "rel_x": 0,
+      "rel_y": 4,
+      "size": 7,
+      "layer": 0
+    },
+    {
+      "id": 270,
+      "rel_x": 0,
+      "rel_y": 20,
+      "size": 0,
+      "layer": 0
+    },
+    {
+      "id": 3,
+      "rel_x": 4,
+      "rel_y": 20,
+      "size": 3,
+      "layer": 0
+    },
+    {
+      "id": 268,
+      "rel_x": 12,
+      "rel_y": 20,
+      "size": 0,
+      "layer": 0
+    },
+    {
+      "id": 99,
+      "rel_x": 12,
+      "rel_y": 4,
+      "size": 7,
+      "layer": 0
+    },
+    {
+      "id": 65,
+      "rel_x": 0,
+      "rel_y": 0,
+      "size": 13,
+      "layer": 0
+    },
+    {
+      "id": 122,
+      "rel_x": 0,
+      "rel_y": 1,
+      "size": 15,
+      "layer": 0
+    },
+    {
+      "id": 122,
+      "rel_x": 0,
+      "rel_y": 17,
+      "size": 5,
+      "layer": 0
+    },
+    {
+      "id": 66,
+      "rel_x": 0,
+      "rel_y": 23,
+      "size": 13,
+      "layer": 0
+    },
+    {
+      "id": 121,
+      "rel_x": 15,
+      "rel_y": 1,
+      "size": 15,
+      "layer": 0
+    },
+    {
+      "id": 121,
+      "rel_x": 15,
+      "rel_y": 17,
+      "size": 5,
+      "layer": 0
+    },
+    {
+      "id": 4017,
+      "rel_x": 6,
+      "rel_y": 6,
+      "size": 4,
+      "layer": 0
+    },
+    {
+      "id": 306,
+      "rel_x": 6,
+      "rel_y": 20,
+      "size": 0,
+      "layer": 0
+    }
+  ]
+}

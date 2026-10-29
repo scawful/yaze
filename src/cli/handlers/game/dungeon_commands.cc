@@ -1,4 +1,5 @@
 #include "cli/handlers/game/dungeon_commands.h"
+#include "cli/handlers/game/dungeon_spatial_commands.h"
 
 #include "zelda3/dungeon/custom_object.h"
 
@@ -377,7 +378,8 @@ absl::Status DungeonDescribeRoomCommandHandler::Execute(
   auto room_id_str = parser.GetString("room").value();
 
   int room_id;
-  if (!ParseHexString(room_id_str, &room_id)) {
+  if (!ParseHexString(room_id_str, &room_id) || room_id < 0 ||
+      room_id >= zelda3::kNumberOfRooms) {
     return absl::InvalidArgumentError("Invalid room ID format. Must be hex.");
   }
 
@@ -580,6 +582,9 @@ absl::Status DungeonDescribeRoomCommandHandler::Execute(
   }
   formatter.EndArray();
 
+  if (parser.HasFlag("spatial")) {
+    RETURN_IF_ERROR(WriteRoomSpatialReport(rom, room, parser, formatter));
+  }
   return absl::OkStatus();
 }
 
