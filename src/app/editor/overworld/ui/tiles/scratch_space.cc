@@ -336,13 +336,13 @@ absl::Status OverworldEditor::DrawScratchSpace() {
   // Render existing selection rectangle if active
   if (scratch_select_active_) {
     const float x0 =
-        origin.x + scroll.x + (scratch_select_min_.x * 32.0f + 2.0f) * scale;
+        origin.x + scroll.x + 2.0f + scratch_select_min_.x * 32.0f * scale;
     const float y0 =
-        origin.y + scroll.y + (scratch_select_min_.y * 32.0f + 2.0f) * scale;
-    const float x1 = origin.x + scroll.x +
-                     ((scratch_select_max_.x + 1.0f) * 32.0f + 2.0f) * scale;
-    const float y1 = origin.y + scroll.y +
-                     ((scratch_select_max_.y + 1.0f) * 32.0f + 2.0f) * scale;
+        origin.y + scroll.y + 2.0f + scratch_select_min_.y * 32.0f * scale;
+    const float x1 = origin.x + scroll.x + 2.0f +
+                     (scratch_select_max_.x + 1.0f) * 32.0f * scale;
+    const float y1 = origin.y + scroll.y + 2.0f +
+                     (scratch_select_max_.y + 1.0f) * 32.0f * scale;
     canvas.draw_list->AddRectFilled(ImVec2(x0, y0), ImVec2(x1, y1),
                                     IM_COL32(80, 140, 240, 50));
     canvas.draw_list->AddRect(ImVec2(x0, y0), ImVec2(x1, y1),
@@ -374,12 +374,12 @@ absl::Status OverworldEditor::DrawScratchSpace() {
       scratch_select_max_ = ImVec2(max_x, max_y);
 
       // Draw active dragging rect
-      const float x0 = origin.x + scroll.x + (min_x * 32.0f + 2.0f) * scale;
-      const float y0 = origin.y + scroll.y + (min_y * 32.0f + 2.0f) * scale;
+      const float x0 = origin.x + scroll.x + 2.0f + min_x * 32.0f * scale;
+      const float y0 = origin.y + scroll.y + 2.0f + min_y * 32.0f * scale;
       const float x1 =
-          origin.x + scroll.x + ((max_x + 1.0f) * 32.0f + 2.0f) * scale;
+          origin.x + scroll.x + 2.0f + (max_x + 1.0f) * 32.0f * scale;
       const float y1 =
-          origin.y + scroll.y + ((max_y + 1.0f) * 32.0f + 2.0f) * scale;
+          origin.y + scroll.y + 2.0f + (max_y + 1.0f) * 32.0f * scale;
       canvas.draw_list->AddRectFilled(ImVec2(x0, y0), ImVec2(x1, y1),
                                       IM_COL32(100, 160, 255, 70));
       canvas.draw_list->AddRect(ImVec2(x0, y0), ImVec2(x1, y1),
@@ -422,12 +422,12 @@ absl::Status OverworldEditor::DrawScratchSpace() {
     if (x >= 0 && y >= 0 && x < page.width && y < page.height) {
       if (active_brush && active_brush->valid()) {
         // Draw brush ghost preview
-        const float bx0 = origin.x + scroll.x + (x * 32.0f + 2.0f) * scale;
-        const float by0 = origin.y + scroll.y + (y * 32.0f + 2.0f) * scale;
-        const float bx1 = origin.x + scroll.x +
-                          ((x + active_brush->width) * 32.0f + 2.0f) * scale;
-        const float by1 = origin.y + scroll.y +
-                          ((y + active_brush->height) * 32.0f + 2.0f) * scale;
+        const float bx0 = origin.x + scroll.x + 2.0f + x * 32.0f * scale;
+        const float by0 = origin.y + scroll.y + 2.0f + y * 32.0f * scale;
+        const float bx1 = origin.x + scroll.x + 2.0f +
+                          (x + active_brush->width) * 32.0f * scale;
+        const float by1 = origin.y + scroll.y + 2.0f +
+                          (y + active_brush->height) * 32.0f * scale;
         canvas.draw_list->AddRect(ImVec2(bx0, by0), ImVec2(bx1, by1),
                                   IM_COL32(255, 220, 50, 220), 0.0f, 0, 2.0f);
 
@@ -462,8 +462,9 @@ absl::Status OverworldEditor::DrawScratchSpace() {
                         GetTile16ScopeLabel().c_str());
           }
           if (tile16_blockset_.atlas.is_active()) {
-            const int tile_col = tile_id % 16;
-            const int tile_row = tile_id / 16;
+            const int cols = std::max(1, tile16_blockset_.atlas.width() / 16);
+            const int tile_col = tile_id % cols;
+            const int tile_row = tile_id / cols;
             const float atlas_w =
                 static_cast<float>(tile16_blockset_.atlas.width());
             const float atlas_h =
