@@ -37,6 +37,7 @@
 #include "app/gfx/types/snes_palette.h"
 #include "app/gui/canvas/canvas.h"
 #include "app/gui/core/input.h"
+#include "app/gui/layout/adaptive_sheet_layout.h"
 #include "app/gui/widgets/tile_selector_widget.h"
 #include "imgui/imgui.h"
 #include "rom/rom.h"
@@ -223,6 +224,7 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   absl::Status PrepareProjectSave();
   void ProjectSaveCommitted() { lyra_canvas_.ProjectSaveCommitted(); }
   void ContributeStatus(StatusBar* status_bar) override;
+  void DrawEditorMenu() override;
   EditorContextSnapshot BuildContextSnapshot() const override;
 
   /// @brief Access the underlying Overworld data
@@ -911,6 +913,8 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   ImVec2 scratch_select_max_{-1, -1};
   bool scratch_selecting_ = false;
   ImVec2 scratch_drag_start_{-1, -1};
+  gui::AdaptiveSheetScaleMode scratch_scale_mode_ =
+      gui::AdaptiveSheetScaleMode::kFit;
 
   // ===========================================================================
   // Core Data References
@@ -988,7 +992,7 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
                                    gui::CanvasGridSize::k16x16};
   gui::Canvas properties_canvas_;
   gui::Canvas scratch_canvas_{"ScratchSpace", ImVec2(320, 480),
-                              gui::CanvasGridSize::k32x32};
+                              gui::CanvasGridSize::k16x16};
 
   // ===========================================================================
   // Panel Cards

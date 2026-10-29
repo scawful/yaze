@@ -76,8 +76,8 @@ class OverworldScratchTestPeer {
     const auto origin = canvas.zero_point();
     const auto scroll = canvas.scrolling();
     const float scale = canvas.GetGlobalScale();
-    return ImVec2(origin.x + scroll.x + 2 + (x + 0.5f) * 32 * scale,
-                  origin.y + scroll.y + 2 + (y + 0.5f) * 32 * scale);
+    return ImVec2(origin.x + scroll.x + 2 + (x + 0.5f) * 16 * scale,
+                  origin.y + scroll.y + 2 + (y + 0.5f) * 16 * scale);
   }
   static int CurrentTile(const OverworldEditor& editor) {
     return editor.current_tile16_;
@@ -294,8 +294,8 @@ TEST_F(ScratchWorkspaceFileTest,
   EXPECT_EQ(clipboard.overworld_tile16_ids,
             (std::vector<int>{1, 2, 3, 4, 5, 6}));
   ASSERT_TRUE(OverworldScratchTestPeer::BuildPreview(editor).ok());
-  EXPECT_EQ(OverworldScratchTestPeer::Preview(editor).width(), 96);
-  EXPECT_EQ(OverworldScratchTestPeer::Preview(editor).height(), 64);
+  EXPECT_EQ(OverworldScratchTestPeer::Preview(editor).width(), 48);
+  EXPECT_EQ(OverworldScratchTestPeer::Preview(editor).height(), 32);
   ASSERT_TRUE(editor.Undo().ok());
   EXPECT_EQ(OverworldScratchTestPeer::State(editor).pages.size(), 1);
   EXPECT_FALSE(editor.HasPendingProjectDraftChanges());

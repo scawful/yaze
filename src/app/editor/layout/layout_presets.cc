@@ -13,33 +13,33 @@ PanelLayoutPreset LayoutPresets::GetDefaultPreset(EditorType type) {
     case EditorType::kOverworld:
       preset.name = "Overworld Default";
       preset.description =
-          "Map-first layout with Tile16 and area graphics on the right";
+          "Map-first layout with Tile16, scratch space, and area graphics on "
+          "the right";
       preset.default_visible_panels = {
           Panels::kOverworldCanvas,
           Panels::kOverworldTile16Selector,
+          Panels::kOverworldScratch,
           Panels::kOverworldAreaGraphics,
-          Panels::kOverworldMapProperties,
       };
       preset.dock_only_default_visible_panels = true;
       preset.panel_positions = {
           {Panels::kOverworldCanvas, DockPosition::Center},
-          {Panels::kOverworldTile16Selector, DockPosition::RightTop},
-          {Panels::kOverworldTile16Editor, DockPosition::RightTop},
-          {Panels::kOverworldMapProperties, DockPosition::RightBottom},
-          {Panels::kOverworldTile8Selector, DockPosition::LeftBottom},
-          {Panels::kOverworldAreaGraphics, DockPosition::RightBottom},
-          {Panels::kOverworldScratch, DockPosition::RightBottom},
-          {Panels::kOverworldGfxGroups, DockPosition::RightBottom},
-          {Panels::kOverworldUsageStats, DockPosition::RightBottom},
-          {Panels::kOverworldItemList, DockPosition::RightBottom},
-          {Panels::kOverworldV3Settings, DockPosition::RightBottom},
-          {Panels::kOverworldDebug, DockPosition::RightBottom},
+          {Panels::kOverworldTile16Selector, DockPosition::Right},
+          {Panels::kOverworldScratch, DockPosition::Right},
+          {Panels::kOverworldAreaGraphics, DockPosition::Right},
+          {Panels::kOverworldTile16Editor, DockPosition::Right},
+          {Panels::kOverworldTile8Selector, DockPosition::Left},
+          {Panels::kOverworldGfxGroups, DockPosition::Right},
+          {Panels::kOverworldUsageStats, DockPosition::Right},
+          {Panels::kOverworldItemList, DockPosition::Right},
+          {Panels::kOverworldV3Settings, DockPosition::Right},
+          {Panels::kOverworldDebug, DockPosition::Right},
       };
       preset.optional_panels = {
-          Panels::kOverworldTile16Editor, Panels::kOverworldTile8Selector,
-          Panels::kOverworldScratch,      Panels::kOverworldGfxGroups,
-          Panels::kOverworldUsageStats,   Panels::kOverworldItemList,
-          Panels::kOverworldV3Settings,   Panels::kOverworldDebug,
+          Panels::kOverworldTile16Editor,  Panels::kOverworldTile8Selector,
+          Panels::kOverworldMapProperties, Panels::kOverworldGfxGroups,
+          Panels::kOverworldUsageStats,    Panels::kOverworldItemList,
+          Panels::kOverworldV3Settings,    Panels::kOverworldDebug,
       };
       break;
 

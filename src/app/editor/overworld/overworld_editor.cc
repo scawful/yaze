@@ -2458,13 +2458,153 @@ void OverworldEditor::OpenMapPropertiesWindow() {
     return;
   }
   const size_t session_id = window_manager->GetActiveSessionId();
-  window_manager->OpenWindow(session_id, OverworldPanelIds::kMapProperties);
-  window_manager->MarkWindowRecentlyUsed(OverworldPanelIds::kMapProperties);
-  // Bring a docked-but-hidden tab to front. No-op until the window exists.
-  const std::string window_name = window_manager->GetWorkspaceWindowName(
-      session_id, OverworldPanelIds::kMapProperties);
-  if (!window_name.empty()) {
-    ImGui::SetWindowFocus(window_name.c_str());
+  if (window_manager->IsWindowOpen(session_id,
+                                   OverworldPanelIds::kMapProperties)) {
+    window_manager->CloseWindow(session_id, OverworldPanelIds::kMapProperties);
+  } else {
+    window_manager->OpenWindowFloating(session_id,
+                                       OverworldPanelIds::kMapProperties);
+    window_manager->MarkWindowRecentlyUsed(OverworldPanelIds::kMapProperties);
+    const std::string window_name = window_manager->GetWorkspaceWindowName(
+        session_id, OverworldPanelIds::kMapProperties);
+    if (!window_name.empty()) {
+      ImGui::SetWindowFocus(window_name.c_str());
+    }
+  }
+}
+
+void OverworldEditor::DrawEditorMenu() {
+  auto* window_manager = dependencies_.window_manager;
+  const size_t session_id =
+      window_manager ? window_manager->GetActiveSessionId() : 0;
+
+  const bool properties_open =
+      window_manager && window_manager->IsWindowOpen(
+                            session_id, OverworldPanelIds::kMapProperties);
+  if (ImGui::MenuItem("Map Properties...", "M", properties_open)) {
+    OpenMapPropertiesWindow();
+  }
+
+  ImGui::Separator();
+
+  if (ImGui::BeginMenu("Scratch Workspace")) {
+    const auto& pages = scratch_workspace_.state().pages;
+    const auto& page = scratch_workspace_.current();
+    int current_page_idx = 0;
+    for (size_t i = 0; i < pages.size(); ++i) {
+      if (pages[i].id == scratch_workspace_.state().selected_id) {
+        current_page_idx = static_cast<int>(i);
+        break;
+      }
+    }
+    if (ImGui::MenuItem("Previous Layout", "[", false, current_page_idx > 0)) {
+      FinishScratchEdit("Edit scratch layout");
+      scratch_workspace_.Select(pages[current_page_idx - 1].id);
+      MarkScratchSpaceDirty();
+      (void)RebuildScratchBitmapFromTileData();
+    }
+    if (ImGui::MenuItem(
+            "Next Layout", "]", false,
+            current_page_idx < static_cast<int>(pages.size()) - 1)) {
+      FinishScratchEdit("Edit scratch layout");
+      scratch_workspace_.Select(pages[current_page_idx + 1].id);
+      MarkScratchSpaceDirty();
+      (void)RebuildScratchBitmapFromTileData();
+    }
+    if (ImGui::MenuItem("New Layout", nullptr, false,
+                        pages.size() < ScratchWorkspace::kMaxPages)) {
+      BeginScratchEdit();
+      (void)scratch_workspace_.AddPage();
+      FinishScratchEdit("New scratch layout");
+      (void)RebuildScratchBitmapFromTileData();
+    }
+    if (ImGui::MenuItem("Duplicate Layout", nullptr, false,
+                        pages.size() < ScratchWorkspace::kMaxPages)) {
+      BeginScratchEdit();
+      (void)scratch_workspace_.AddPage(true);
+      FinishScratchEdit("Duplicate scratch layout");
+      (void)RebuildScratchBitmapFromTileData();
+    }
+    if (ImGui::MenuItem("Clear Layout")) {
+      (void)ClearScratchSpace();
+    }
+    if (ImGui::MenuItem("Delete Layout", nullptr, false, pages.size() > 1)) {
+      BeginScratchEdit();
+      (void)scratch_workspace_.DeletePage();
+      FinishScratchEdit("Remove scratch layout");
+      (void)RebuildScratchBitmapFromTileData();
+    }
+    ImGui::Separator();
+    const auto* active_brush = selection_brush();
+    const bool can_capture =
+        (active_brush && active_brush->valid()) ||
+        (tile_painting_ && tile_painting_->selection_brush());
+    if (ImGui::MenuItem(
+            "Capture Selection to Scratch", nullptr, false,
+            can_capture && pages.size() < ScratchWorkspace::kMaxPages)) {
+      (void)SaveCurrentSelectionToScratch();
+    }
+    if (ImGui::MenuItem("Copy Layout as Brush", nullptr, false, page.in_use)) {
+      (void)LoadScratchToSelection();
+    }
+    if (ImGui::MenuItem("Refresh Preview")) {
+      (void)RebuildScratchBitmapFromTileData();
+    }
+    ImGui::EndMenu();
+  }
+
+  ImGui::Separator();
+
+  if (ImGui::BeginMenu("Entities")) {
+    ImGui::MenuItem("Show Entities", nullptr, &show_entities_);
+    ImGui::Separator();
+    if (ImGui::MenuItem("All Entities (Select Mode)", nullptr,
+                        entity_edit_mode_ == EntityEditMode::NONE)) {
+      SetEntityEditMode(EntityEditMode::NONE);
+    }
+    if (ImGui::MenuItem("Entrances Mode", nullptr,
+                        entity_edit_mode_ == EntityEditMode::ENTRANCES)) {
+      SetEntityEditMode(EntityEditMode::ENTRANCES);
+    }
+    if (ImGui::MenuItem("Exits Mode", nullptr,
+                        entity_edit_mode_ == EntityEditMode::EXITS)) {
+      SetEntityEditMode(EntityEditMode::EXITS);
+    }
+    if (ImGui::MenuItem("Items Mode", nullptr,
+                        entity_edit_mode_ == EntityEditMode::ITEMS)) {
+      SetEntityEditMode(EntityEditMode::ITEMS);
+    }
+    if (ImGui::MenuItem("Sprites Mode", nullptr,
+                        entity_edit_mode_ == EntityEditMode::SPRITES)) {
+      SetEntityEditMode(EntityEditMode::SPRITES);
+    }
+    ImGui::EndMenu();
+  }
+
+  if (ImGui::BeginMenu("Tiles & Graphics")) {
+    if (ImGui::MenuItem("Tile16 Editor", nullptr, false)) {
+      ToggleTile16EditorWindow();
+    }
+    if (ImGui::MenuItem("Item List", nullptr, false)) {
+      ToggleItemListWindow();
+    }
+    ImGui::EndMenu();
+  }
+
+  ImGui::Separator();
+
+  if (ImGui::BeginMenu("Diagnostics")) {
+    if (ImGui::MenuItem("Usage Statistics", nullptr, false)) {
+      if (window_manager) {
+        window_manager->OpenWindow(session_id, OverworldPanelIds::kUsageStats);
+      }
+    }
+    if (ImGui::MenuItem("Debug Window", nullptr, false)) {
+      if (window_manager) {
+        window_manager->OpenWindow(session_id, OverworldPanelIds::kDebugWindow);
+      }
+    }
+    ImGui::EndMenu();
   }
 }
 

@@ -18,6 +18,8 @@ namespace editor {
 
 class OverworldEditor;
 
+void DrawSheetScaleControl(const char* id, gui::AdaptiveSheetScaleMode* mode);
+
 /**
  * @class OverworldCanvasRenderer
  * @brief Handles all canvas drawing and panel rendering for the overworld

@@ -332,6 +332,10 @@ class Editor {
   // segments via StatusBar's Set* setters.
   virtual void ContributeStatus(StatusBar* /*status_bar*/) {}
 
+  // Push editor-specific top menu items into the main menu bar.
+  // Called when this editor is active. Runs inside an open BeginMenu scope.
+  virtual void DrawEditorMenu() {}
+
   virtual EditorContextSnapshot BuildContextSnapshot() const {
     EditorContextSnapshot snapshot;
     const size_t index = EditorTypeIndex(type_);

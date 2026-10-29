@@ -50,8 +50,6 @@
 
 namespace yaze::editor {
 
-namespace {
-
 void DrawSheetScaleControl(const char* id, gui::AdaptiveSheetScaleMode* mode) {
   if (mode == nullptr) {
     return;
@@ -67,7 +65,7 @@ void DrawSheetScaleControl(const char* id, gui::AdaptiveSheetScaleMode* mode) {
   }
 }
 
-}  // namespace
+namespace {}  // namespace
 
 OverworldCanvasRenderer::OverworldCanvasRenderer(OverworldEditor* editor)
     : editor_(editor) {
