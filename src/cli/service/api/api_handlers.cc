@@ -573,6 +573,17 @@ void HandleCommandExecute(const httplib::Request& req, httplib::Response& res,
   }
 }
 
+void HandleCommandExecuteDisabled(const httplib::Request& req,
+                                  httplib::Response& res) {
+  (void)req;
+  ApplyCorsHeaders(res);
+  json j;
+  j["status"] = "error";
+  j["error"] = "Command execution is disabled on this server";
+  res.status = 403;
+  res.set_content(j.dump(), "application/json");
+}
+
 void HandleCommandList(const httplib::Request& req, httplib::Response& res) {
   (void)req;
   ApplyCorsHeaders(res);

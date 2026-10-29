@@ -1,13 +1,12 @@
 #include "cli/service/agent/tool_registry.h"
 
-#include <algorithm>
 #include <string>
-#include <string_view>
+#include <vector>
 
 #include "absl/container/flat_hash_set.h"
 #include "absl/strings/str_cat.h"
-#include "absl/strings/str_split.h"
 #include "cli/service/agent/tool_registration.h"
+#include "cli/service/usage_schema.h"
 
 namespace yaze {
 namespace cli {
@@ -15,97 +14,25 @@ namespace agent {
 
 namespace {
 
-std::string StripTokenDelimiters(std::string token) {
-  while (!token.empty() && (token.front() == '[' || token.front() == '(' ||
-                            token.front() == ',')) {
-    token.erase(token.begin());
-  }
-  while (!token.empty() &&
-         (token.back() == ']' || token.back() == ')' || token.back() == ',')) {
-    token.pop_back();
-  }
-  return token;
-}
-
-std::vector<std::string> SplitUsageTokens(std::string_view usage) {
-  std::vector<std::string> tokens;
-  // Older Abseil (e.g. distro packages on Ubuntu 22.04 CI) does not accept
-  // absl::SkipEmpty with string_view + char overload; split an owned string.
-  const std::string usage_owned(usage);
-  for (absl::string_view token :
-       absl::StrSplit(usage_owned, ' ', absl::SkipEmpty())) {
-    tokens.emplace_back(token);
-  }
-  return tokens;
-}
-
-std::vector<std::string> InferRequiredArgsFromUsage(const std::string& usage) {
+std::vector<std::string> InferRequiredArgsFromUsage(
+    const std::vector<UsageParameter>& parameters) {
   std::vector<std::string> required_args;
-  absl::flat_hash_set<std::string> seen;
-  const auto tokens = SplitUsageTokens(usage);
-
-  int optional_depth = 0;
-  for (size_t i = 0; i < tokens.size(); ++i) {
-    const std::string& token = tokens[i];
-    optional_depth +=
-        static_cast<int>(std::count(token.begin(), token.end(), '['));
-    const bool is_optional = optional_depth > 0;
-
-    const std::string cleaned = StripTokenDelimiters(token);
-    if (!is_optional && cleaned.rfind("--", 0) == 0) {
-      std::string arg_name = cleaned.substr(2);
-      const size_t equals_pos = arg_name.find('=');
-      if (equals_pos != std::string::npos) {
-        arg_name = arg_name.substr(0, equals_pos);
-      } else if (i + 1 < tokens.size()) {
-        const std::string next = StripTokenDelimiters(tokens[i + 1]);
-        if (next.empty() || next.front() != '<') {
-          arg_name.clear();
-        }
-      } else {
-        arg_name.clear();
-      }
-
-      if (!arg_name.empty() && seen.insert(arg_name).second) {
-        required_args.push_back(std::move(arg_name));
-      }
+  for (const UsageParameter& parameter : parameters) {
+    if (!parameter.positional && parameter.required && parameter.takes_value) {
+      required_args.push_back(parameter.name);
     }
-
-    optional_depth -=
-        static_cast<int>(std::count(token.begin(), token.end(), ']'));
   }
-
   return required_args;
 }
 
-std::vector<std::string> InferFlagArgsFromUsage(const std::string& usage) {
+std::vector<std::string> InferFlagArgsFromUsage(
+    const std::vector<UsageParameter>& parameters) {
   std::vector<std::string> flag_args;
-  absl::flat_hash_set<std::string> seen;
-  const auto tokens = SplitUsageTokens(usage);
-
-  for (size_t i = 0; i < tokens.size(); ++i) {
-    const std::string cleaned = StripTokenDelimiters(tokens[i]);
-    if (cleaned.rfind("--", 0) != 0) {
-      continue;
-    }
-
-    std::string arg_name = cleaned.substr(2);
-    if (arg_name.find('=') != std::string::npos) {
-      continue;
-    }
-
-    const bool has_value_token =
-        i + 1 < tokens.size() && !StripTokenDelimiters(tokens[i + 1]).empty() &&
-        StripTokenDelimiters(tokens[i + 1]).front() == '<';
-    if (has_value_token) {
-      continue;
-    }
-
-    if (seen.insert(arg_name).second) {
-      flag_args.push_back(std::move(arg_name));
+  for (const UsageParameter& parameter : parameters) {
+    if (!parameter.positional && !parameter.takes_value) {
+      flag_args.push_back(parameter.name);
     }
   }
-
   return flag_args;
 }
 
@@ -146,11 +73,13 @@ ToolDefinition NormalizeDefinition(ToolDefinition def) {
   if (def.access == ToolAccess::kReadOnly) {
     def.access = InferToolAccess(def.name);
   }
+  const std::vector<UsageParameter> parameters =
+      ParseUsageParameters(def.usage);
   if (def.required_args.empty()) {
-    def.required_args = InferRequiredArgsFromUsage(def.usage);
+    def.required_args = InferRequiredArgsFromUsage(parameters);
   }
   if (def.flag_args.empty()) {
-    def.flag_args = InferFlagArgsFromUsage(def.usage);
+    def.flag_args = InferFlagArgsFromUsage(parameters);
   }
   return def;
 }

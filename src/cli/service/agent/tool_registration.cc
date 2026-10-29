@@ -37,6 +37,11 @@ namespace {
 
 template <typename HandlerClass>
 void RegisterBuiltinTool(ToolRegistry& registry, ToolDefinition definition) {
+  // A bare-name usage carries no flags; the handler's usage is the contract
+  // that required/flag argument inference and tools-describe rely on.
+  if (definition.usage == definition.name) {
+    definition.usage = HandlerClass().GetUsage();
+  }
   registry.RegisterTool(std::move(definition),
                         []() { return std::make_unique<HandlerClass>(); });
 }
@@ -221,8 +226,9 @@ void RegisterBuiltinAgentTools(ToolRegistry& registry) {
       {}, true, false, DungeonTileTypesCommandHandler)
   REGISTER_BUILTIN_AGENT_TOOL(
       "dungeon-set-room-property", "dungeon", "Set room property",
-      "dungeon-set-room-property --room=<id> --key=<key> --value=<val>", {},
-      true, false, DungeonSetRoomPropertyCommandHandler)
+      "dungeon-set-room-property --room=<id> --property=<property> "
+      "--value=<val>",
+      {}, true, false, DungeonSetRoomPropertyCommandHandler)
   REGISTER_BUILTIN_AGENT_TOOL("dungeon-room-header", "dungeon",
                               "Debug room header bytes",
                               "dungeon-room-header --room=<id>", {}, true,

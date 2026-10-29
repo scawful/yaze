@@ -1,8 +1,11 @@
+#include <iostream>
+#include <string>
+
 #include "absl/flags/declare.h"
 #include "absl/flags/flag.h"
 #include "app/gfx/types/snes_palette.h"
 #include "app/gfx/util/scad_format.h"
-#include "cli/cli.h"
+#include "rom/rom.h"
 #include "zelda3/game_data.h"
 
 ABSL_DECLARE_FLAG(std::string, rom);

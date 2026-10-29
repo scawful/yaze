@@ -49,7 +49,12 @@ if(YAZE_ENABLE_JSON)
 endif()
 
 set(YAZE_CLI_CORE_SOURCES
+  cli/cli.cc
+  cli/global_flags.cc
+  cli/subcommand_routes.cc
+  cli/util/ansi_style.cc
   cli/service/command_registry.cc
+  cli/service/usage_schema.cc
   cli/service/resources/resource_catalog.cc
   cli/service/resources/resource_context_builder.cc
   cli/handlers/mesen_handlers.cc

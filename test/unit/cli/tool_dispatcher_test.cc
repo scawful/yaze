@@ -17,6 +17,7 @@ namespace yaze::cli::agent {
 namespace {
 
 using ::testing::Contains;
+using ::testing::ElementsAre;
 using ::testing::HasSubstr;
 
 class FailingIfReachedHandler : public resources::CommandHandler {
@@ -59,6 +60,14 @@ class FlagEchoHandler : public resources::CommandHandler {
     formatter.AddField("dry_run", parser.HasFlag("dry-run"));
     formatter.EndObject();
     return absl::OkStatus();
+  }
+};
+
+class ModeEchoHandler : public FlagEchoHandler {
+ public:
+  std::string GetName() const override { return "mode-echo"; }
+  std::string GetUsage() const override {
+    return "mode-echo --name <value> [--mode fast|slow] [--verbose]";
   }
 };
 
@@ -196,6 +205,31 @@ TEST(ToolDispatcherUnitTest, BooleanToolArgsAreConvertedIntoFlags) {
   EXPECT_EQ(payload["name"], "demo");
   EXPECT_EQ(payload["verbose"], true);
   EXPECT_EQ(payload["dry_run"], false);
+}
+
+TEST(ToolDispatcherUnitTest, LiteralValueFlagsAcceptValues) {
+  ToolRegistry::Get().RegisterTool(
+      {"test-literal-value",
+       "test",
+       "Checks flags whose value is a literal rather than <placeholder>",
+       "test-literal-value --name <value> [--mode fast|slow] [--verbose]",
+       {},
+       false,
+       false,
+       ToolAccess::kReadOnly,
+       {},
+       {}},
+      []() { return std::make_unique<ModeEchoHandler>(); });
+
+  const auto definition =
+      ToolRegistry::Get().GetToolDefinition("test-literal-value");
+  ASSERT_TRUE(definition.has_value());
+  EXPECT_THAT(definition->flag_args, ElementsAre("verbose"));
+
+  ToolDispatcher dispatcher;
+  auto result = dispatcher.Dispatch(
+      MakeToolCall("test-literal-value", {{"name", "demo"}, {"mode", "fast"}}));
+  EXPECT_TRUE(result.ok()) << result.status().message();
 }
 #endif
 

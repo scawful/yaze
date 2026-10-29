@@ -1,6 +1,7 @@
 #include <functional>
 #include <iostream>
 #include <mutex>
+#include <sstream>
 #include <string>
 #include <thread>
 #include <vector>
@@ -9,7 +10,6 @@
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_join.h"
 #include "absl/time/clock.h"
-#include "cli/cli.h"
 #include "cli/handlers/agent/todo_commands.h"
 #include "cli/service/agent/conversational_agent_service.h"
 #include "cli/service/ai/browser_ai_service.h"

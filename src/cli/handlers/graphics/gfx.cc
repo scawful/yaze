@@ -1,8 +1,12 @@
+#include <cstdint>
+#include <iostream>
+#include <string>
+
 #include "absl/flags/declare.h"
 #include "absl/flags/flag.h"
 #include "app/gfx/resource/arena.h"
 #include "app/gfx/util/scad_format.h"
-#include "cli/cli.h"
+#include "rom/rom.h"
 
 ABSL_DECLARE_FLAG(std::string, rom);
 

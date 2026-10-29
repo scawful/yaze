@@ -29,7 +29,7 @@ absl::Status HttpServer::Start(int port, bool loopback_only) {
   editor_control_only_ = loopback_only && static_cast<bool>(editor_control_);
   RegisterRoutes();
 
-  const char* address = loopback_only ? "127.0.0.1" : "0.0.0.0";
+  const std::string address = loopback_only ? "127.0.0.1" : bind_address_;
   if (!server_->bind_to_port(address, port)) {
     return absl::UnavailableError("HTTP API port is already in use");
   }
@@ -46,9 +46,10 @@ absl::Status HttpServer::Start(int port, bool loopback_only) {
   });
 
   // Publish Bonjour service for LAN discovery by iOS clients.
-  if (!loopback_only) {
-    bonjour_.Publish(port);
+  if (loopback_only) {
+    return absl::OkStatus();
   }
+  bonjour_.Publish(port);
   if (bonjour_.IsAvailable()) {
     if (bonjour_.IsPublished()) {
       LOG_INFO("HttpServer", "Bonjour discovery published on port %d", port);
@@ -182,11 +183,15 @@ void HttpServer::RegisterRoutes() {
   server_->Options("/api/v1/render/dungeon/metadata", HandleCorsPreflight);
 
   // Command execution endpoints (Phase 3)
-  server_->Post("/api/v1/command/execute",
-                [this](const httplib::Request& req, httplib::Response& res) {
-                  Rom* rom = rom_source_ ? rom_source_() : nullptr;
-                  HandleCommandExecute(req, res, rom);
-                });
+  if (command_execution_enabled_) {
+    server_->Post("/api/v1/command/execute",
+                  [this](const httplib::Request& req, httplib::Response& res) {
+                    Rom* rom = rom_source_ ? rom_source_() : nullptr;
+                    HandleCommandExecute(req, res, rom);
+                  });
+  } else {
+    server_->Post("/api/v1/command/execute", HandleCommandExecuteDisabled);
+  }
   server_->Get("/api/v1/command/list", HandleCommandList);
   server_->Options("/api/v1/command/execute", HandleCorsPreflight);
   server_->Options("/api/v1/command/list", HandleCorsPreflight);
