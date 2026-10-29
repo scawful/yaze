@@ -59,14 +59,21 @@ struct RoomObjectFootprint {
   std::vector<std::string> diagnostics;
 };
 
+struct RoomSpatialFloorGraphics {
+  uint8_t upper = 0;
+  uint8_t lower = 0;
+};
+
 // Uses the active, already-bound project custom-object context. Copies the
 // object, traces isolated ObjectDrawer writes and measures model bounds;
 // never falls back to guessed dimensions or mutates ROM bytes. Invalid encoding
 // and unsupported/draw failures are errors. A null state is the draw routine's
-// default branch, not a statement about live gameplay state.
+// default branch, not a statement about live gameplay state. Floor operators
+// use supplied room selectors, or read the persisted room stream when absent.
 absl::StatusOr<RoomObjectFootprint> MeasureRoomObjectFootprint(
     Rom* rom, int room_id, const RoomObject& object,
-    const DungeonState* state = nullptr);
+    const DungeonState* state = nullptr,
+    std::optional<RoomSpatialFloorGraphics> floor_graphics = std::nullopt);
 
 struct RoomSpatialDoor {
   size_t index = 0;

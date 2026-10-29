@@ -9,6 +9,7 @@
 #include "util/macro.h"
 #include "zelda3/dungeon/door_position.h"
 #include "zelda3/dungeon/draw_routines/draw_routine_registry.h"
+#include "zelda3/dungeon/dungeon_stream_allocator.h"
 #include "zelda3/dungeon/geometry/object_geometry.h"
 #include "zelda3/dungeon/object_drawer.h"
 #include "zelda3/dungeon/room_layout.h"
@@ -105,8 +106,8 @@ void FindOverlaps(RoomSpatialAnalysis* analysis) {
 }  // namespace
 
 absl::StatusOr<RoomObjectFootprint> MeasureRoomObjectFootprint(
-    Rom* rom, int room_id, const RoomObject& source,
-    const DungeonState* state) {
+    Rom* rom, int room_id, const RoomObject& source, const DungeonState* state,
+    std::optional<RoomSpatialFloorGraphics> floor_graphics) {
   if (!rom || !rom->is_loaded())
     return absl::FailedPreconditionError("Spatial measurement requires a ROM");
   if (room_id < 0 || room_id >= kNumberOfRooms)
@@ -132,6 +133,21 @@ absl::StatusOr<RoomObjectFootprint> MeasureRoomObjectFootprint(
 
   std::vector<ObjectDrawer::TileTrace> trace;
   ObjectDrawer drawer(rom, room_id, nullptr);
+  if (object.id_ == 0xC4 || object.id_ == 0xDB) {
+    // These floor operators reuse the room-selected pattern, not their ordinary
+    // object payload. Read its live stream through the maintained strict reader.
+    if (!floor_graphics) {
+      ASSIGN_OR_RETURN(const auto stream,
+                       ReadDungeonObjectStream(*rom, room_id));
+      if (!stream.valid || stream.encoded_stream.size() < 2)
+        return absl::DataLossError("Room floor pattern header is unavailable");
+      const uint8_t floors = stream.encoded_stream.front();
+      floor_graphics =
+          RoomSpatialFloorGraphics{static_cast<uint8_t>(floors & 0x0F),
+                                   static_cast<uint8_t>((floors >> 4) & 0x0F)};
+    }
+    drawer.SetRoomFloorGraphics(floor_graphics->upper, floor_graphics->lower);
+  }
   drawer.SetTraceCollector(&trace, /*trace_only=*/true);
   gfx::BackgroundBuffer upper(512, 512), lower(512, 512);
   gfx::PaletteGroup palette;
@@ -240,8 +256,9 @@ absl::StatusOr<RoomSpatialAnalysis> AnalyzeRoomSpatial(
   result.load_state = options.load_state;
 
   const auto append = [&](const RoomObject& object, size_t index, bool layout) {
-    auto footprint = MeasureRoomObjectFootprint(rom, room.id(), object,
-                                                options.object_state);
+    auto footprint = MeasureRoomObjectFootprint(
+        rom, room.id(), object, options.object_state,
+        RoomSpatialFloorGraphics{room.floor1(), room.floor2()});
     auto measured = footprint.ok()
                         ? std::move(*footprint)
                         : Unmeasured(object, index, layout, footprint.status());

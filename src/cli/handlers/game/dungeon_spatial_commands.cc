@@ -4,6 +4,7 @@
 #include <fstream>
 #include <iterator>
 #include <map>
+#include <memory>
 #include <string_view>
 
 #include "absl/strings/str_cat.h"
@@ -174,10 +175,13 @@ absl::Status WriteRoomSpatialReport(Rom* rom, const zelda3::Room& room,
   zelda3::RoomSpatialOptions options;
   zelda3::RoomTilemaps tilemaps;
   if (parser.HasFlag("spatial-collision")) {
-    zelda3::GameData game_data;
-    RETURN_IF_ERROR(zelda3::LoadGameData(*rom, game_data));
+    // GameData embeds the palettes of every graphics sheet. Keep that storage
+    // off the Windows CLI's default stack, including non-collision requests.
+    auto game_data = std::make_unique<zelda3::GameData>();
+    RETURN_IF_ERROR(zelda3::LoadGameData(
+        *rom, *game_data, zelda3::LoadOptions{.expand_rom = false}));
     auto rendered = zelda3::LoadRoomFromRom(rom, room.id());
-    rendered.SetGameData(&game_data);
+    rendered.SetGameData(game_data.get());
     rendered.LoadRoomGraphics();
     rendered.RenderRoomGraphics();
     tilemaps = zelda3::ComposeYazeRoomTilemaps(rendered);

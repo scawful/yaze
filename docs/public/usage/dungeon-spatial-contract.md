@@ -16,6 +16,9 @@ Add `--spatial-cells` for individual tile writes. Add `--spatial-collision` to
 render the room and compute the existing vanilla room-load collision model.
 Together, those flags include the two collision grids. Without project context,
 the command cannot know source-owned custom artwork or pattern overrides.
+Graphics loading leaves the ROM size unchanged. Floor operators `$C4/$DB` use
+the room's floor-pattern selectors; standalone measurements read them from the
+persisted object stream, while room analysis uses the supplied Room's selectors.
 
 The `spatial` result separates these concepts:
 
@@ -156,6 +159,37 @@ regions and layer transitions. For Fortress, validate typed links to the retaine
 room set rather than treating every registry entry as active or every header
 destination as a usable edge. Existing `dungeon-graph`/room-link APIs distinguish
 actual links from unused header references.
+
+## Build a pattern vocabulary from examples
+
+Keep reference studies small and entrance-anchored. Pin the source-file hash,
+copier-header offset, reader version and project/custom-art profile. A separate
+payload-view hash can reveal header variants; it does not replace the original
+file identity. Filenames, modification dates and checksum-complement validity
+alone cannot establish the latest playable release. Preserve ambiguous versions.
+
+Reuse `CollectRoomLinks` and its maintained graph command for typed connections.
+Reciprocal doors, instantiated stair slots, pits and unused header destinations
+have different evidence. A structurally strong edge does not prove that Link
+has its key, can reach its approach, or arrives in the intended region/plane.
+Progression requirements and effects belong above those existing facts: inventory,
+fungible key counts, one-time pickups/unlocks, reversible state and return routes.
+An internal locked door can divide one room into several gameplay regions.
+
+An example becomes a pattern by naming the relationship that serves its role:
+an aligned approach with varied rhythm, a reward visible before its route opens,
+a water-fed island with a return port, or a prison encounter with staging space.
+Retain the exact measured assembly as evidence, then distinguish that evidence
+from authored choices about silhouette, pacing, art and deliberate exceptions.
+Object count and graph degree do not establish room quality or justify removal.
+
+Use the existing proposal preview to compare two or three concrete arrangements
+before expanding the chosen one into ordered templates. Keep a companion brief
+for intent, preserved landmarks, ports/arrival/approach, states, actor dependencies,
+spacing profile, exact overlap permissions and unknowns; these are not additional
+keys accepted by the strict template parser. Human feedback selects the design.
+When converting half-open measured bounds to an inclusive preview rectangle,
+use `right = x + width - 1` and `bottom = y + height - 1`.
 
 ## Generation scaffold
 

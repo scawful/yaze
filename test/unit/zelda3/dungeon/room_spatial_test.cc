@@ -1,11 +1,13 @@
 #include "zelda3/dungeon/room_spatial.h"
 
 #include <algorithm>
+#include <utility>
 #include <vector>
 
 #include "core/features.h"
 #include "gtest/gtest.h"
 #include "rom/rom.h"
+#include "unit/zelda3/dungeon/room_census_test_rom.h"
 #include "zelda3/dungeon/draw_routines/draw_routine_registry.h"
 #include "zelda3/dungeon/geometry/object_geometry.h"
 
@@ -116,6 +118,41 @@ TEST_F(RoomSpatialTest, MissingRasterPayloadCannotQualifyStandaloneGeometry) {
   EXPECT_EQ(footprint->measurement_source, "geometry_without_raster_trace");
   EXPECT_EQ(missing_payload.vector(), bytes);
   EXPECT_EQ(missing_payload.dirty(), dirty);
+}
+
+TEST_F(RoomSpatialTest, FloorOperatorsUseTheLiveRoomPatternSelectors) {
+  auto bytes = test::BuildRoomCensusTestRom();
+  bytes[test::kTestObjectDataPc] = 0x21;  // upper pattern1, lower pattern2
+  for (int pattern = 0; pattern < 3; ++pattern) {
+    for (int tile = 0; tile < 4; ++tile) {
+      for (const int table :
+           {kRoomObjectTileAddress, kRoomObjectTileAddressFloor}) {
+        bytes[table + pattern * 16 + tile * 2] = 0x40 + pattern;
+        bytes[table + pattern * 16 + tile * 2 + 1] = 0x20;
+      }
+    }
+  }
+  Rom floor_rom;
+  ASSERT_TRUE(floor_rom.LoadFromData(bytes).ok());
+  const auto dirty = floor_rom.dirty();
+  for (const auto [id, word] :
+       {std::pair{0xC4, 0x2041}, std::pair{0xDB, 0x2042}}) {
+    const auto footprint =
+        MeasureRoomObjectFootprint(&floor_rom, 1, RoomObject(id, 10, 10, 0));
+    ASSERT_TRUE(footprint.ok()) << footprint.status();
+    ASSERT_FALSE(footprint->cells.empty());
+    EXPECT_EQ(footprint->cells.front().word, word);
+  }
+  Room edited_room(1, &floor_rom);
+  edited_room.AddTileObject(RoomObject(0xC4, 10, 10, 0));
+  edited_room.set_floor1(2);
+  const auto edited = AnalyzeRoomSpatial(&floor_rom, edited_room);
+  ASSERT_TRUE(edited.ok()) << edited.status();
+  ASSERT_EQ(edited->objects.size(), 1);
+  ASSERT_FALSE(edited->objects.front().cells.empty());
+  EXPECT_EQ(edited->objects.front().cells.front().word, 0x2042);
+  EXPECT_EQ(floor_rom.vector(), bytes);
+  EXPECT_EQ(floor_rom.dirty(), dirty);
 }
 
 TEST_F(RoomSpatialTest, AnalysisPreservesPainterOrderAndReportsSharedWrites) {
