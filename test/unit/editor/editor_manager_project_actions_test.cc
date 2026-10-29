@@ -576,13 +576,15 @@ void QualifyLyraDirectTile8PaintNativeSave(bool initial_publication,
   const auto old_tile = editor->overworld().tiles16()[0xF63];
   ASSERT_EQ(old_tile.tile2_.id_, 0x0A0)
       << "This regression requires the preserved Oracle sand definition";
+  const int asset_state = editor->game_state();
+  ASSERT_OK(canvas.PrepareMapAssets(editor->overworld(), asset_state));
   const auto atlas_before = canvas.MapAtlas(0xA2).vector();
   ASSERT_FALSE(atlas_before.empty());
   editor->tile16_editor().set_current_tile8(0x060);
   editor->tile16_editor().set_edit_mode(Tile16EditMode::kPaint);
   ASSERT_OK(
       editor->tile16_editor().HandleTile16CanvasClick({0, 8}, true, false));
-  ASSERT_OK(canvas.PrepareMapAssets(editor->overworld(), 0));
+  ASSERT_OK(canvas.PrepareMapAssets(editor->overworld(), editor->game_state()));
   EXPECT_EQ(editor->overworld().tiles16()[0xF63].tile2_.id_, 0x060);
   EXPECT_EQ(canvas.document(), identity);
   EXPECT_EQ(identity->maps(), maps);
@@ -593,13 +595,14 @@ void QualifyLyraDirectTile8PaintNativeSave(bool initial_publication,
   EXPECT_FALSE(atlas_after.empty());
   EXPECT_NE(atlas_after, atlas_before);
   EXPECT_EQ(ReadFile(rom_path), rom_before);
+  ASSERT_EQ(editor->game_state(), asset_state);
   ASSERT_OK(editor->Undo());
   EXPECT_EQ(identity->profile(), profile);
-  ASSERT_OK(canvas.PrepareMapAssets(editor->overworld(), 0));
+  ASSERT_OK(canvas.PrepareMapAssets(editor->overworld(), editor->game_state()));
   EXPECT_EQ(canvas.MapAtlas(0xA2).vector(), atlas_before)
       << LyraAtlasDifference(canvas.MapAtlas(0xA2).vector(), atlas_before);
   ASSERT_OK(editor->Redo());
-  ASSERT_OK(canvas.PrepareMapAssets(editor->overworld(), 0));
+  ASSERT_OK(canvas.PrepareMapAssets(editor->overworld(), editor->game_state()));
   EXPECT_EQ(canvas.MapAtlas(0xA2).vector(), atlas_after);
 
   // A disabled native definition serializer refuses before sidecar publication.
@@ -679,7 +682,8 @@ void QualifyLyraDirectTile8PaintNativeSave(bool initial_publication,
   EXPECT_EQ(editor->lyra_canvas_.document()->authoring(), authoring);
   EXPECT_EQ(read_terrain(), terrain_before);
   EXPECT_EQ(ReadFile(project_path), descriptor_before);
-  ASSERT_OK(editor->lyra_canvas_.PrepareMapAssets(editor->overworld(), 0));
+  ASSERT_OK(editor->lyra_canvas_.PrepareMapAssets(editor->overworld(),
+                                                  editor->game_state()));
   EXPECT_EQ(editor->lyra_canvas_.MapAtlas(0xA2).vector(), atlas_before);
 
   // Reapply the same user operation in the cold editor, then retry normally.
@@ -700,7 +704,8 @@ void QualifyLyraDirectTile8PaintNativeSave(bool initial_publication,
   EXPECT_EQ(editor->overworld().tiles16()[0xF63].tile2_.id_, 0x060);
   EXPECT_EQ(editor->lyra_canvas_.document()->maps(), maps);
   EXPECT_EQ(editor->lyra_canvas_.document()->authoring(), authoring);
-  ASSERT_OK(editor->lyra_canvas_.PrepareMapAssets(editor->overworld(), 0));
+  ASSERT_OK(editor->lyra_canvas_.PrepareMapAssets(editor->overworld(),
+                                                  editor->game_state()));
   EXPECT_EQ(editor->lyra_canvas_.MapAtlas(0xA2).vector(), atlas_after);
   EXPECT_EQ(ReadFile(source), source_before);
 
@@ -713,12 +718,14 @@ void QualifyLyraDirectTile8PaintNativeSave(bool initial_publication,
   auto& pixel = data->graphics_buffer[0x3A * 0x1000];
   const auto original = pixel;
   pixel ^= 1;
-  EXPECT_FALSE(
-      editor->lyra_canvas_.PrepareMapAssets(editor->overworld(), 0).ok());
+  EXPECT_FALSE(editor->lyra_canvas_
+                   .PrepareMapAssets(editor->overworld(), editor->game_state())
+                   .ok());
   EXPECT_EQ(editor->lyra_canvas_.document()->profile(), bound);
   EXPECT_EQ(editor->lyra_canvas_.MapAtlas(0xA2).vector(), atlas_after);
   pixel = original;
-  ASSERT_OK(editor->lyra_canvas_.PrepareMapAssets(editor->overworld(), 0));
+  ASSERT_OK(editor->lyra_canvas_.PrepareMapAssets(editor->overworld(),
+                                                  editor->game_state()));
 }
 
 TEST(EditorManagerProjectActionsTest,
