@@ -47,6 +47,37 @@ history. An observed trace may be clipped. Strict planning additionally requires
 `full_bounds_measured`; mixed routing, unqualified custom overrides and explicit
 state contexts cannot silently use an estimated rectangle.
 
+## Check the connection to existing walls
+
+A copied assembly can have correct dimensions while erasing the corner that
+terminates an existing wall. Inspect retaining-wall connections before calling
+the room proposal ready:
+
+```sh
+z3ed --rom=candidate.sfc dungeon-describe-room --room=0x26 \
+  --project-context=project.yaze --spatial --spatial-strict-joins --format=json
+```
+
+`spatial.retaining_wall_joins` reports known native architectural endpoint loss,
+including the original face/corner indices, buffer planes, affected cells and
+later wall objects. Strict mode returns a failing status for a detected loss or
+an unassessed known retaining-wall object; the structured diagnosis is retained.
+Ordinary `--spatial` reports the same findings without changing its inspection
+exit behavior.
+
+The first supported relation is a native horizontal `$003` face ending at an
+east `$10C` corner. The rejected Zora bank keeps `$003(21,44,size7)` and
+`$10C(37,44)` in its stream, but new `$064(37,43,size1)` and `$10E(37,47)`
+replace all 16 corner cells on each buffer. Keeping the old corner record is
+insufficient: its architectural connection no longer survives.
+
+This check evaluates the architectural wall pass. It excludes later water,
+floor and decoration repaint, which valid vanilla assemblies use intentionally.
+It does not require every final wall pixel to survive. Custom replacements,
+unmeasured bounds and other wall grammars remain unqualified. The result always
+sets `complete_room_qualification=false`; `no_known_endpoint_loss` is not a
+general visual, collision or gameplay approval.
+
 ## Compose an ordered pattern
 
 Patterns use the existing `ObjectTemplate` payload:
@@ -87,14 +118,19 @@ construction; it never returns an apparently successful partial group.
 Important output contracts:
 
 1. `valid=true` establishes the reported default-state geometry checks only.
-   Allocation, graphics compatibility, actor/reward dependencies, room states,
+   Known native retaining-wall endpoint loss also blocks. Allocation, graphics
+   compatibility, actor/reward dependencies, room states,
    event registration and movement acceptance remain separately unverified.
 2. `plan.existing_objects` maps every existing index to `layout` or `room` and
    its original `source_index`. Use this map for `--allow-existing=0,3` or
    `--allow-pairs=2:4,5:7`; do not substitute array positions from another report.
-3. Internal template overlap is an ordered-repaint observation. Existing-object
+3. Internal template overlap is normally an ordered-repaint observation. New
+   architectural endpoint loss is a separate blocking `wall_join_loss` conflict.
+   Existing-object
    overlap blocks unless explicitly allowed. Permissions apply to identified
-   overlaps and never bypass reserved regions or unknown footprint checks.
+   overlaps and never bypass wall-join loss, reserved regions or unknown
+   footprint checks. An unrelated preexisting wall issue is not attributed to
+   the new placement.
 4. A `--clearance=x,y,width,height,upper|lower|both` box reserves space against
    this new group's drawn cells. It does not assert that existing terrain is
    empty or walkable. Existing doors additionally reserve their typed editor
@@ -190,6 +226,15 @@ spacing profile, exact overlap permissions and unknowns; these are not additiona
 keys accepted by the strict template parser. Human feedback selects the design.
 When converting half-open measured bounds to an inclusive preview rectangle,
 use `right = x + width - 1` and `bottom = y + height - 1`.
+
+The bundled `assets/proposals/dungeon/zora-reservoir-review.json` demonstrates
+one complete two-room review: current bank and puzzle, proposed supply join,
+Princess/Baby staging, intended return, and unresolved seams. Load it from the
+Dungeon Workbench's **Proposal Preview**. The floating panel keeps its own pan,
+zoom, Fit and optional 8/16-pixel grid; **Room** and **Room + proposal** share
+that view without changing the editing canvas. A step filters annotations; it
+does not operate the dam or change water state. Use the correct separately
+bound LOW/HIGH ROMs. The loaded room image is not an immutable before snapshot.
 
 ## Generation scaffold
 

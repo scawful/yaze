@@ -8,6 +8,7 @@
 #include <string>
 #include <vector>
 
+#include "cli/handlers/game/dungeon_commands.h"
 #include "cli/service/command_registry.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
@@ -30,6 +31,18 @@ Json PlanReport(const std::string& output) {
       return child["plan"];
   }
   ADD_FAILURE() << "Missing structured plan: " << output;
+  return Json::object();
+}
+
+Json SpatialReport(const std::string& output) {
+  const Json value = Json::parse(output);
+  if (value.contains("spatial"))
+    return value["spatial"];
+  for (const auto& [key, child] : value.items()) {
+    if (child.is_object() && child.contains("spatial"))
+      return child["spatial"];
+  }
+  ADD_FAILURE() << "Missing structured spatial report: " << output;
   return Json::object();
 }
 
@@ -89,6 +102,28 @@ class DungeonSpatialCommandsTest : public testing::Test {
     handlers::DungeonTemplatePlanCommandHandler handler;
     return handler.Run(arguments, &rom_, output);
   }
+  void LoadWallJoin(bool occluded) {
+    const auto encode = [](int id, int x, int y, int size) {
+      const auto bytes =
+          zelda3::RoomObject(id, x, y, size, 0).EncodeObjectToBytes();
+      return std::vector<uint8_t>{bytes.b1, bytes.b2, bytes.b3};
+    };
+    std::vector<std::vector<uint8_t>> objects = {encode(0x003, 21, 44, 7),
+                                                 encode(0x10C, 37, 44, 0)};
+    if (occluded) {
+      objects.push_back(encode(0x064, 37, 43, 1));
+      objects.push_back(encode(0x10E, 37, 47, 0));
+    } else {
+      // A later nonarchitectural pass is intentional composition, not loss of
+      // the face-to-corner connection.
+      objects.push_back(encode(0xC9, 37, 44, 0));
+    }
+    const auto stream = zelda3::test::TestRoomStream(objects);
+    auto bytes = rom_.vector();
+    std::copy(stream.begin(), stream.end(),
+              bytes.begin() + zelda3::test::kTestObjectDataPc + 0x200);
+    ASSERT_TRUE(rom_.LoadFromData(bytes).ok());
+  }
   Rom rom_;
   std::filesystem::path path_;
 };
@@ -122,6 +157,7 @@ TEST_F(DungeonSpatialCommandsTest, RegistryExportsPlannerAndSpatialHelp) {
   EXPECT_THAT(room_help, HasSubstr("--spatial"));
   EXPECT_THAT(room_help, HasSubstr("--spatial-cells"));
   EXPECT_THAT(room_help, HasSubstr("--spatial-collision"));
+  EXPECT_THAT(room_help, HasSubstr("--spatial-strict-joins"));
   const Json schemas = Json::parse(registry.ExportFunctionSchemas());
   bool found = false;
   for (const auto& command : schemas.at("commands")) {
@@ -134,6 +170,58 @@ TEST_F(DungeonSpatialCommandsTest, RegistryExportsPlannerAndSpatialHelp) {
     }
   }
   EXPECT_TRUE(found);
+}
+
+TEST_F(DungeonSpatialCommandsTest,
+       StrictWallJoinsRejectEndpointLossWithStructuredDiagnosis) {
+  LoadWallJoin(true);
+  const auto before = rom_.vector();
+  const bool was_dirty = rom_.dirty();
+  handlers::DungeonDescribeRoomCommandHandler handler;
+  std::string output;
+  const auto status = handler.Run(
+      {"--room=0x01", "--spatial", "--spatial-strict-joins", "--format=json"},
+      &rom_, &output);
+  ASSERT_TRUE(absl::IsFailedPrecondition(status)) << status << output;
+  const auto joins = SpatialReport(output).at("retaining_wall_joins");
+  EXPECT_EQ(joins.at("status"), "needs_reconnection");
+  EXPECT_FALSE(joins.at("complete_room_qualification").get<bool>());
+  ASSERT_EQ(joins.at("issues").size(), 1);
+  const auto& issue = joins.at("issues")[0];
+  EXPECT_EQ(issue.at("face_id"), 0x003);
+  EXPECT_EQ(issue.at("corner_id"), 0x10C);
+  EXPECT_EQ(issue.at("upper_cells"), 16);
+  EXPECT_EQ(issue.at("lower_cells"), 16);
+  ASSERT_EQ(issue.at("overwriters").size(), 2);
+  EXPECT_EQ(rom_.vector(), before);
+  EXPECT_EQ(rom_.dirty(), was_dirty);
+
+  // Ordinary description remains an inspection: it carries the diagnosis
+  // without changing the command's legacy non-strict exit behavior.
+  EXPECT_TRUE(
+      handler.Run({"--room=0x01", "--spatial", "--format=json"}, &rom_, &output)
+          .ok());
+  EXPECT_EQ(SpatialReport(output).at("retaining_wall_joins").at("status"),
+            "needs_reconnection");
+}
+
+TEST_F(DungeonSpatialCommandsTest,
+       StrictWallJoinsPermitLaterFloorPassAndRequireSpatialMode) {
+  LoadWallJoin(false);
+  const auto before = rom_.vector();
+  handlers::DungeonDescribeRoomCommandHandler handler;
+  std::string output;
+  const auto status = handler.Run(
+      {"--room=0x01", "--spatial", "--spatial-strict-joins", "--format=json"},
+      &rom_, &output);
+  ASSERT_TRUE(status.ok()) << status << output;
+  const auto joins = SpatialReport(output).at("retaining_wall_joins");
+  EXPECT_EQ(joins.at("status"), "no_known_endpoint_loss");
+  EXPECT_TRUE(joins.at("issues").empty());
+  EXPECT_FALSE(joins.at("complete_room_qualification").get<bool>());
+  EXPECT_TRUE(absl::IsInvalidArgument(
+      handler.Run({"--room=0x01", "--spatial-strict-joins"}, &rom_)));
+  EXPECT_EQ(rom_.vector(), before);
 }
 
 TEST_F(DungeonSpatialCommandsTest,

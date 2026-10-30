@@ -66,6 +66,48 @@ Json Cell(const zelda3::RoomSpatialCell& cell) {
           {"word", cell.word}};
 }
 
+Json WallJoins(const std::vector<zelda3::RoomWallJoinIssue>& issues,
+               const std::string& coverage, size_t unassessed_objects) {
+  Json result = {
+      {"coverage", coverage},
+      {"complete_room_qualification", false},
+      {"unassessed_objects", unassessed_objects},
+      {"status", !issues.empty()      ? "needs_reconnection"
+                 : unassessed_objects ? "unassessed_native_walls"
+                                      : "no_known_endpoint_loss"},
+      {"scope",
+       "Known native retaining-wall endpoint relations in architectural "
+       "painter order; floor, water and decoration overpaints are excluded. "
+       "This does not qualify other joins, final pixels or gameplay."},
+      {"issues", Json::array()}};
+  for (const auto& issue : issues) {
+    Json value = {{"kind", issue.kind},
+                  {"face_index", issue.face_index},
+                  {"face_is_layout", issue.face_is_layout},
+                  {"face_id", issue.face_id},
+                  {"corner_index", issue.corner_index},
+                  {"corner_is_layout", issue.corner_is_layout},
+                  {"corner_id", issue.corner_id},
+                  {"endpoint_bounds", Bounds(issue.endpoint_bounds)},
+                  {"upper_cells", issue.upper_cells},
+                  {"lower_cells", issue.lower_cells},
+                  {"diagnostic", issue.diagnostic},
+                  {"lost_cells", Json::array()},
+                  {"overwriters", Json::array()}};
+    for (const auto& cell : issue.lost_cells)
+      value["lost_cells"].push_back(Cell(cell));
+    for (const auto& writer : issue.overwriters) {
+      value["overwriters"].push_back({{"object_index", writer.object_index},
+                                      {"is_layout", writer.is_layout},
+                                      {"object_id", writer.object_id},
+                                      {"upper_cells", writer.upper_cells},
+                                      {"lower_cells", writer.lower_cells}});
+    }
+    result["issues"].push_back(std::move(value));
+  }
+  return result;
+}
+
 Json Footprint(const zelda3::RoomObjectFootprint& object, bool include_cells) {
   size_t upper = 0;
   for (const auto& cell : object.cells)
@@ -164,6 +206,8 @@ const char* ConflictName(zelda3::ObjectTemplatePlanConflictKind kind) {
       return "existing_overlap";
     case Kind::kTemplateOverlap:
       return "ordered_template_overlap";
+    case Kind::kWallJoinLoss:
+      return "wall_join_loss";
   }
   return "unknown";
 }
@@ -262,6 +306,10 @@ absl::Status WriteRoomSpatialReport(Rom* rom, const zelda3::Room& room,
          {"lower_cells", overlap.lower_cells},
          {"classification", overlap.classification}});
   }
+  report["retaining_wall_joins"] =
+      WallJoins(analysis.retaining_wall_join_issues,
+                analysis.retaining_wall_join_coverage,
+                analysis.retaining_wall_join_unassessed_objects);
   report["collision"] = {
       {"computed", analysis.collision.has_value()},
       {"model",
@@ -305,7 +353,19 @@ absl::Status WriteRoomSpatialReport(Rom* rom, const zelda3::Room& room,
       analysis.overlaps.size(), " ordered overlaps. Layout ",
       analysis.layout_id, "; BG mode ", analysis.layer2_mode,
       "; collision key ", analysis.collision_mode,
+      "; retaining-wall endpoint issues ",
+      analysis.retaining_wall_join_issues.size(),
       ". Upper/lower visibility and collision remain separate.\n"));
+  if (parser.HasFlag("spatial-strict-joins")) {
+    if (!analysis.retaining_wall_join_issues.empty())
+      return absl::FailedPreconditionError(
+          "Known retaining-wall endpoint is occluded; inspect "
+          "spatial.retaining_wall_joins");
+    if (analysis.retaining_wall_join_unassessed_objects != 0)
+      return absl::FailedPreconditionError(
+          "Retaining-wall inspection is incomplete; inspect "
+          "spatial.retaining_wall_joins.unassessed_objects");
+  }
   return absl::OkStatus();
 }
 
@@ -385,14 +445,22 @@ absl::Status DungeonTemplatePlanCommandHandler::Execute(
        "vector"},
       {"validation_scope",
        "isolated default-state geometry, baseline layout/object writes and "
-       "door editor bounds"},
+       "door editor bounds, plus known native retaining-wall endpoint loss"},
       {"unverified_contracts",
        {"engine state and ordered registrations",
         "player approach and reachability", "target graphics compatibility",
+        "wall joins outside the inspected native endpoint relation",
         "sprite/chest/event dependencies", "allocation and write preflight"}},
       {"generation",
        "deterministic translation only; procedural expansion is not "
        "implemented"}};
+  result["retaining_wall_joins"] = WallJoins(
+      plan.retaining_wall_join_issues, plan.retaining_wall_join_coverage,
+      plan.retaining_wall_join_unassessed_objects);
+  result["retaining_wall_joins"]["index_space"] =
+      "existing_objects prefix, then template indices; draw-list sorting "
+      "does not renumber these identities";
+  result["retaining_wall_joins"]["template_index_base"] = existing.size();
   result["existing_objects"] = Json::array();
   for (size_t index = 0; index < existing.size(); ++index) {
     const auto& object = existing[index];

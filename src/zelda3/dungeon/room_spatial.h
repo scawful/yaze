@@ -4,6 +4,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <optional>
+#include <span>
 #include <string>
 #include <vector>
 
@@ -97,6 +98,44 @@ struct RoomSpatialOverlap {
   std::string classification;
 };
 
+inline constexpr char kRetainingWallJoinCoverage[] =
+    "partial_native_003_east_10c_wall_stage";
+
+struct RoomWallJoinOverwriter {
+  size_t object_index = 0;
+  bool is_layout = false;
+  int object_id = 0;
+  size_t upper_cells = 0;
+  size_t lower_cells = 0;
+};
+
+struct RoomWallJoinIssue {
+  std::string kind = "native_architectural_endpoint_loss";
+  size_t face_index = 0;
+  bool face_is_layout = false;
+  int face_id = 0;
+  size_t corner_index = 0;
+  bool corner_is_layout = false;
+  int corner_id = 0;
+  RoomSpatialBounds endpoint_bounds;
+  size_t upper_cells = 0;
+  size_t lower_cells = 0;
+  // Complete counts above; at most the first 64 original corner cells below.
+  std::vector<RoomSpatialCell> lost_cells;
+  std::vector<RoomWallJoinOverwriter> overwriters;
+  std::string diagnostic;
+};
+
+// Input is painter ordered; object_index/is_layout remain original identities.
+// Only the native 003 east -> 10C relation is source/control bound. Native
+// 003/004/063/064/108..10F writes can replace its terminal. Floor, water,
+// decoration and priority/mask passes are deliberately not wall-stage owners.
+// Zero issues does not qualify other joins, composed pixels or gameplay.
+std::vector<RoomWallJoinIssue> InspectRetainingWallJoins(
+    std::span<const RoomObjectFootprint> ordered_objects);
+size_t CountUnassessedRetainingWallObjects(
+    std::span<const RoomObjectFootprint> ordered_objects);
+
 struct RoomSpatialOptions {
   const DungeonState* object_state = nullptr;
   UnderworldRoomLoadState load_state;
@@ -124,6 +163,9 @@ struct RoomSpatialAnalysis {
   std::vector<RoomObjectFootprint> objects;
   std::vector<RoomSpatialDoor> doors;
   std::vector<RoomSpatialOverlap> overlaps;
+  std::string retaining_wall_join_coverage = kRetainingWallJoinCoverage;
+  size_t retaining_wall_join_unassessed_objects = 0;
+  std::vector<RoomWallJoinIssue> retaining_wall_join_issues;
   std::optional<RoomCollisionMaps> collision;
   size_t custom_collision_overrides = 0;
   std::vector<std::string> diagnostics;

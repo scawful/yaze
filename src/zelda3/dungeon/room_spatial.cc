@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <map>
+#include <set>
 #include <tuple>
 #include <utility>
 
@@ -103,7 +104,139 @@ void FindOverlaps(RoomSpatialAnalysis* analysis) {
   }
 }
 
+using WallCellKey = std::tuple<uint8_t, int, int>;  // plane, y, x
+
+bool IsRetainingId(int id) {
+  return id == 0x003 || id == 0x004 || id == 0x063 || id == 0x064 ||
+         (id >= 0x108 && id <= 0x10F);
+}
+
+bool AssessedNativeWall(const RoomObjectFootprint& object) {
+  if (!IsRetainingId(object.object_id) || !object.measured ||
+      !object.full_bounds_measured || object.outside_room ||
+      object.layers.custom_override_active ||
+      !object.layers.draws_to_both_bgs || object.cells.empty())
+    return false;
+  const auto& bounds = object.bounds;
+  if (bounds.x != object.anchor_x || bounds.y != object.anchor_y ||
+      bounds.x < 0 || bounds.y < 0 || bounds.width <= 0 || bounds.width > 64 ||
+      bounds.height <= 0 || bounds.height > 64 ||
+      bounds.x > 64 - bounds.width || bounds.y > 64 - bounds.height)
+    return false;
+  if (object.object_id == 0x003 || object.object_id == 0x004) {
+    if (bounds.height != 4)
+      return false;
+  } else if (object.object_id == 0x063 || object.object_id == 0x064) {
+    if (bounds.width != 4)
+      return false;
+  } else if (bounds.width != 4 || bounds.height != 4) {
+    return false;
+  }
+  std::set<WallCellKey> cells;
+  for (const auto& cell : object.cells) {
+    if (cell.layer > 1 || cell.x < bounds.x || cell.x >= bounds.right() ||
+        cell.y < bounds.y || cell.y >= bounds.bottom())
+      return false;
+    cells.emplace(cell.layer, cell.y, cell.x);
+  }
+  // The bounded native rectangular writes must be observed on both planes.
+  return cells.size() == static_cast<size_t>(bounds.width * bounds.height * 2);
+}
+
+bool SameWallPlacement(const RoomObjectFootprint& a,
+                       const RoomObjectFootprint& b) {
+  return a.object_id == b.object_id && a.anchor_x == b.anchor_x &&
+         a.anchor_y == b.anchor_y && a.bounds.width == b.bounds.width &&
+         a.bounds.height == b.bounds.height;
+}
+
 }  // namespace
+
+size_t CountUnassessedRetainingWallObjects(
+    std::span<const RoomObjectFootprint> ordered_objects) {
+  return std::count_if(
+      ordered_objects.begin(), ordered_objects.end(), [](const auto& object) {
+        return IsRetainingId(object.object_id) && !AssessedNativeWall(object);
+      });
+}
+
+std::vector<RoomWallJoinIssue> InspectRetainingWallJoins(
+    std::span<const RoomObjectFootprint> ordered_objects) {
+  std::map<WallCellKey, size_t> owners;
+  std::vector<size_t> walls;
+  for (size_t index = 0; index < ordered_objects.size(); ++index) {
+    const auto& object = ordered_objects[index];
+    if (!AssessedNativeWall(object))
+      continue;
+    walls.push_back(index);
+    for (const auto& cell : object.cells)
+      owners[{cell.layer, cell.y, cell.x}] = index;
+  }
+  std::vector<RoomWallJoinIssue> issues;
+  for (size_t face_position : walls) {
+    const auto& face = ordered_objects[face_position];
+    if (face.object_id != 0x003)
+      continue;
+    bool remaining[2] = {false, false};
+    for (const auto& cell : face.cells) {
+      const auto& owner =
+          ordered_objects[owners.at({cell.layer, cell.y, cell.x})];
+      if (SameWallPlacement(face, owner))
+        remaining[cell.layer] = true;
+    }
+    if (!remaining[0] && !remaining[1])
+      continue;
+    for (size_t corner_position : walls) {
+      const auto& corner = ordered_objects[corner_position];
+      if (corner.object_id != 0x10C || corner.anchor_x != face.bounds.right() ||
+          corner.anchor_y != face.anchor_y)
+        continue;
+      RoomWallJoinIssue issue;
+      issue.face_index = face.object_index;
+      issue.face_is_layout = face.is_layout;
+      issue.face_id = face.object_id;
+      issue.corner_index = corner.object_index;
+      issue.corner_is_layout = corner.is_layout;
+      issue.corner_id = corner.object_id;
+      issue.endpoint_bounds = corner.bounds;
+      std::map<WallCellKey, RoomSpatialCell> lost;
+      std::map<size_t, std::pair<size_t, size_t>> overwriters;
+      for (const auto& cell : corner.cells) {
+        if (!remaining[cell.layer])
+          continue;
+        const size_t owner_position = owners.at({cell.layer, cell.y, cell.x});
+        const auto& owner = ordered_objects[owner_position];
+        if (SameWallPlacement(corner, owner))
+          continue;  // Equivalent native corner repaint preserves the role.
+        if (!lost.emplace(WallCellKey{cell.layer, cell.y, cell.x}, cell).second)
+          continue;
+        ++(cell.layer == 0 ? issue.upper_cells : issue.lower_cells);
+        auto& counts = overwriters[owner_position];
+        ++(cell.layer == 0 ? counts.first : counts.second);
+      }
+      if (lost.empty())
+        continue;
+      for (const auto& [key, cell] : lost) {
+        if (issue.lost_cells.size() == 64)
+          break;
+        issue.lost_cells.push_back(cell);
+      }
+      for (const auto& [position, counts] : overwriters) {
+        const auto& owner = ordered_objects[position];
+        issue.overwriters.push_back({owner.object_index, owner.is_layout,
+                                     owner.object_id, counts.first,
+                                     counts.second});
+      }
+      issue.diagnostic =
+          "Native 003 east terminal 10C is replaced by incompatible "
+          "architectural writes while the face remains; reconnect the "
+          "surrounding wall assembly. Partial wall-stage coverage only; "
+          "not composed-pixel or gameplay qualification.";
+      issues.push_back(std::move(issue));
+    }
+  }
+  return issues;
+}
 
 absl::StatusOr<RoomObjectFootprint> MeasureRoomObjectFootprint(
     Rom* rom, int room_id, const RoomObject& source, const DungeonState* state,
@@ -309,6 +442,12 @@ absl::StatusOr<RoomSpatialAnalysis> AnalyzeRoomSpatial(
          DoorPositionManager::IsValidPosition(door.position, door.direction)});
   }
   FindOverlaps(&result);
+  std::vector<RoomObjectFootprint> wall_order = result.layout;
+  wall_order.insert(wall_order.end(), result.objects.begin(),
+                    result.objects.end());
+  result.retaining_wall_join_unassessed_objects =
+      CountUnassessedRetainingWallObjects(wall_order);
+  result.retaining_wall_join_issues = InspectRetainingWallJoins(wall_order);
   for (size_t index = 0; index < room.custom_collision().tiles.size(); ++index)
     result.custom_collision_overrides +=
         room.custom_collision().HasOverride(index);
@@ -325,6 +464,11 @@ absl::StatusOr<RoomSpatialAnalysis> AnalyzeRoomSpatial(
   result.diagnostics.emplace_back(
       "Trace-only replay excludes priority-only mutations and pixel reveal "
       "masks");
+  result.diagnostics.emplace_back(
+      "Retaining-wall checks cover only native 003 east-to-10C endpoints in "
+      "ordered architectural writes; zero issues is not general join, pixel "
+      "or gameplay qualification. Unassessed native/custom-bound retaining "
+      "objects remain outside this partial coverage.");
   result.diagnostics.emplace_back(
       "Collision maps are vanilla room-load replay; custom overrides are "
       "counted separately");

@@ -49,7 +49,8 @@ class DungeonDescribeRoomCommandHandler : public resources::CommandHandler {
   std::string GetUsage() const {
     return "dungeon-describe-room --room <room_id> [--sprite-registry <path>] "
            "[--include-objects] [--include-staircase-resolution] "
-           "[--spatial] [--spatial-cells] [--spatial-collision] [--format "
+           "[--spatial] [--spatial-cells] [--spatial-collision] "
+           "[--spatial-strict-joins] [--format "
            "<json|text>]";
   }
 
@@ -58,7 +59,8 @@ class DungeonDescribeRoomCommandHandler : public resources::CommandHandler {
     if (!status.ok())
       return status;
     if ((parser.HasFlag("spatial-cells") ||
-         parser.HasFlag("spatial-collision")) &&
+         parser.HasFlag("spatial-collision") ||
+         parser.HasFlag("spatial-strict-joins")) &&
         !parser.HasFlag("spatial")) {
       return absl::InvalidArgumentError("Spatial details require --spatial");
     }

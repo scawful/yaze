@@ -8,7 +8,10 @@
 #include <set>
 #include <tuple>
 
+#include "core/features.h"
 #include "gtest/gtest.h"
+#include "zelda3/dungeon/draw_routines/draw_routine_registry.h"
+#include "zelda3/dungeon/geometry/object_geometry.h"
 
 namespace yaze::zelda3 {
 namespace {
@@ -28,7 +31,16 @@ bool HasConflict(const ObjectTemplatePlacementPlan& plan,
 class ObjectTemplatePlanTest : public testing::Test {
  protected:
   void SetUp() override {
+    flags_ = core::FeatureFlags::get();
+    core::FeatureFlags::get().kEnableCustomObjects = false;
+    DrawRoutineRegistry::Get().RefreshFeatureFlagMappings();
+    ObjectGeometry::Get().ClearCache();
     ASSERT_TRUE(rom_.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+  }
+  void TearDown() override {
+    core::FeatureFlags::get() = flags_;
+    DrawRoutineRegistry::Get().RefreshFeatureFlagMappings();
+    ObjectGeometry::Get().ClearCache();
   }
   ObjectTemplatePlacementPlan Plan(
       const ObjectTemplate& object_template, ObjectTemplateTile8Anchor anchor,
@@ -38,7 +50,116 @@ class ObjectTemplatePlanTest : public testing::Test {
                                        existing, options);
   }
   Rom rom_;
+  core::FeatureFlags::Flags flags_;
 };
+
+TEST_F(ObjectTemplatePlanTest, ZoraJoinLossCannotBeWaivedByOverlapPairs) {
+  // Original vector identities differ from painter positions after list sort.
+  const std::vector<RoomObject> existing = {RoomObject(0x10C, 37, 44, 0),
+                                            RoomObject(0x003, 21, 44, 7)};
+  const auto graft = Template({{0x064, 0, 0, 1, 2}, {0x10E, 0, 4, 0, 2}});
+  ObjectTemplatePlanOptions options;
+  options.allowed_existing_pairs = {{0, 0}, {1, 0}};
+  const auto before = rom_.vector();
+  const auto plan = Plan(graft, {37, 43}, existing, options);
+  EXPECT_FALSE(plan.valid);
+  ASSERT_EQ(plan.retaining_wall_join_issues.size(), 1);
+  const auto& issue = plan.retaining_wall_join_issues.front();
+  EXPECT_EQ(issue.face_index, 1);
+  EXPECT_EQ(issue.corner_index, 0);
+  EXPECT_EQ(issue.overwriters[0].object_index, 2);
+  EXPECT_EQ(issue.overwriters[1].object_index, 3);
+  EXPECT_EQ(issue.upper_cells, 16);
+  EXPECT_EQ(issue.lower_cells, 16);
+  const auto conflict = std::find_if(
+      plan.conflicts.begin(), plan.conflicts.end(), [](const auto& value) {
+        return value.kind == ObjectTemplatePlanConflictKind::kWallJoinLoss;
+      });
+  ASSERT_NE(conflict, plan.conflicts.end());
+  EXPECT_TRUE(conflict->blocking);
+  EXPECT_EQ(conflict->template_index, 0);
+  EXPECT_EQ(conflict->existing_index, 0);
+  EXPECT_EQ(conflict->cell_count, 32);
+  EXPECT_EQ(rom_.vector(), before);
+}
+
+TEST_F(ObjectTemplatePlanTest, ExistingJoinLossDoesNotBlockAnUnrelatedPlan) {
+  const std::vector<RoomObject> existing = {
+      RoomObject(0x003, 21, 44, 7), RoomObject(0x10C, 37, 44, 0),
+      RoomObject(0x064, 37, 43, 1, 2), RoomObject(0x10E, 37, 47, 0, 2)};
+  const auto plan = Plan(Template({{0xC9, 0, 0, 0, 0}}), {52, 5}, existing);
+  EXPECT_TRUE(plan.valid);
+  EXPECT_TRUE(plan.retaining_wall_join_issues.empty());
+  EXPECT_FALSE(
+      HasConflict(plan, ObjectTemplatePlanConflictKind::kWallJoinLoss));
+}
+
+TEST_F(ObjectTemplatePlanTest,
+       WorseningPartialBaselineReportsOnlyNewLostCells) {
+  const std::vector<RoomObject> existing = {RoomObject(0x003, 21, 44, 7),
+                                            RoomObject(0x10C, 37, 44, 0),
+                                            RoomObject(0x064, 37, 43, 1, 2)};
+  ObjectTemplatePlanOptions options;
+  options.allowed_existing_indices = {1, 2};
+  // Proposed0 only repaints the24 cells already lost to old064. Proposed1
+  // causes the new row47 loss and must be named by the blocking conflict.
+  const auto plan = Plan(Template({{0x064, 0, 0, 1, 2}, {0x10E, 0, 4, 0, 2}}),
+                         {37, 43}, existing, options);
+  EXPECT_FALSE(plan.valid);
+  const auto conflict = std::find_if(
+      plan.conflicts.begin(), plan.conflicts.end(), [](const auto& value) {
+        return value.kind == ObjectTemplatePlanConflictKind::kWallJoinLoss;
+      });
+  ASSERT_NE(conflict, plan.conflicts.end());
+  EXPECT_EQ(conflict->template_index, 1);
+  EXPECT_EQ(conflict->cell_count, 8);  // New row47: four per physical plane.
+  for (const auto& cell : conflict->cells)
+    EXPECT_EQ(cell.y, 47);
+}
+
+TEST_F(ObjectTemplatePlanTest, DrawListMergeDoesNotPretendEarlyPaintWins) {
+  const std::vector<RoomObject> existing = {RoomObject(0x003, 21, 44, 7, 0),
+                                            RoomObject(0x10C, 37, 44, 0, 2)};
+  ObjectTemplatePlanOptions options;
+  options.allowed_existing_indices = {1};
+  // Although appended to the source vector, list0 is drawn before old list2.
+  const auto plan =
+      Plan(Template({{0x064, 0, 0, 1, 0}}), {37, 43}, existing, options);
+  EXPECT_TRUE(plan.valid);
+  EXPECT_TRUE(plan.retaining_wall_join_issues.empty());
+}
+
+TEST_F(ObjectTemplatePlanTest, EquivalentCornerRepaintRemainsAllowed) {
+  const std::vector<RoomObject> existing = {RoomObject(0x003, 21, 44, 7),
+                                            RoomObject(0x10C, 37, 44, 0)};
+  ObjectTemplatePlanOptions options;
+  options.allowed_existing_indices = {1};
+  const auto plan =
+      Plan(Template({{0x10C, 0, 0, 0, 2}}), {37, 44}, existing, options);
+  EXPECT_TRUE(plan.valid);
+  EXPECT_TRUE(plan.retaining_wall_join_issues.empty());
+}
+
+TEST_F(ObjectTemplatePlanTest, ConnectedVanilla36BankAndWaterPlanPass) {
+  // Exact ordered source14..23, relative to(17,7), followed by water/decor.
+  const auto donor = Template({{0x108, 0, 0, 0, 0},
+                               {0x003, 4, 0, 0, 0},
+                               {0x10A, 6, 0, 0, 0},
+                               {0x064, 6, 4, 1, 0},
+                               {0x10E, 6, 8, 0, 0},
+                               {0x003, 10, 8, 4, 0},
+                               {0x10C, 20, 8, 0, 0},
+                               {0x063, 20, 4, 1, 0},
+                               {0x108, 20, 0, 0, 0},
+                               {0x003, 24, 0, 3, 0},
+                               {0xC9, 10, 8, 15, 1},
+                               {0x00, 20, 8, 1, 2}});
+  const auto plan = Plan(donor, {17, 7});
+  EXPECT_TRUE(plan.valid);
+  EXPECT_EQ(plan.placements.size(), 12);
+  EXPECT_EQ(plan.retaining_wall_join_unassessed_objects, 0);
+  EXPECT_TRUE(plan.retaining_wall_join_issues.empty());
+}
 
 TEST_F(ObjectTemplatePlanTest, StrictReaderRejectsPartialAndAmbiguousPayloads) {
   const std::string prefix =

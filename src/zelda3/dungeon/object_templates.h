@@ -67,6 +67,7 @@ enum class ObjectTemplatePlanConflictKind {
   kClearance,
   kExistingOverlap,
   kTemplateOverlap,
+  kWallJoinLoss,
 };
 
 struct ObjectTemplatePlanConflict {
@@ -91,6 +92,11 @@ struct ObjectTemplatePlacementPlan {
   std::vector<RoomObject> placements;
   std::vector<RoomObjectFootprint> footprints;
   std::vector<ObjectTemplatePlanConflict> conflicts;
+  std::string retaining_wall_join_coverage = kRetainingWallJoinCoverage;
+  size_t retaining_wall_join_unassessed_objects = 0;
+  // Newly affected endpoints only, with complete candidate issue counts.
+  // Indices use existing[e], proposed[existing.size()+i], not sorted positions.
+  std::vector<RoomWallJoinIssue> retaining_wall_join_issues;
 };
 
 // Read-only planning through the same renderer footprints as spatial analysis.

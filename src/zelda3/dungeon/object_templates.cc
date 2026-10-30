@@ -127,6 +127,92 @@ ObjectTemplatePlanConflict IntersectCells(const CellMap& first,
   return conflict;
 }
 
+void CheckNewWallJoinLosses(ObjectTemplatePlacementPlan& plan,
+                            std::vector<RoomObjectFootprint> existing,
+                            size_t existing_count) {
+  const auto painter_order = [](const auto& a, const auto& b) {
+    return a.list_index < b.list_index;
+  };
+  std::stable_sort(existing.begin(), existing.end(), painter_order);
+  const auto baseline = InspectRetainingWallJoins(existing);
+  auto combined = existing;
+  for (auto footprint : plan.footprints) {
+    footprint.object_index += existing_count;
+    combined.push_back(std::move(footprint));
+  }
+  // Stable original identities survive sorting. Within a list, normal append
+  // places proposed objects after existing objects, as the room writer does.
+  std::stable_sort(combined.begin(), combined.end(), painter_order);
+  plan.retaining_wall_join_unassessed_objects =
+      CountUnassessedRetainingWallObjects(combined);
+  for (auto issue : InspectRetainingWallJoins(combined)) {
+    std::set<CellKey> already_lost;
+    for (const auto& prior : baseline) {
+      if (prior.face_index == issue.face_index &&
+          prior.face_is_layout == issue.face_is_layout &&
+          prior.corner_index == issue.corner_index &&
+          prior.corner_is_layout == issue.corner_is_layout) {
+        for (const auto& cell : prior.lost_cells)
+          already_lost.emplace(cell.layer, cell.y, cell.x);
+      }
+    }
+    ObjectTemplatePlanConflict conflict;
+    for (const auto& cell : issue.lost_cells) {
+      if (!already_lost.contains({cell.layer, cell.y, cell.x}))
+        AddCell(conflict, cell);
+    }
+    if (conflict.cell_count == 0)
+      continue;  // An unrelated plan must not inherit baseline failures.
+    conflict.kind = ObjectTemplatePlanConflictKind::kWallJoinLoss;
+    conflict.blocking = true;  // Geometry overlap allowances cannot waive this.
+    std::set<CellKey> newly_lost;
+    for (const auto& cell : conflict.cells)
+      newly_lost.emplace(cell.layer, cell.y, cell.x);
+    std::map<CellKey, std::pair<bool, size_t>> new_cell_owners;
+    // Attribute only the new cells, retaining last-writer order. An earlier
+    // proposed repaint can own baseline losses without causing this conflict.
+    for (const auto& footprint : combined) {
+      const bool reported_owner =
+          std::any_of(issue.overwriters.begin(), issue.overwriters.end(),
+                      [&](const auto& owner) {
+                        return owner.object_index == footprint.object_index &&
+                               owner.is_layout == footprint.is_layout;
+                      });
+      if (!reported_owner)
+        continue;
+      for (const auto& cell : footprint.cells) {
+        const CellKey key{cell.layer, cell.y, cell.x};
+        if (newly_lost.contains(key))
+          new_cell_owners[key] = {footprint.is_layout, footprint.object_index};
+      }
+    }
+    bool proposed_owner = false;
+    for (const auto& [key, owner] : new_cell_owners) {
+      if (!owner.first && owner.second >= existing_count) {
+        conflict.template_index = owner.second - existing_count;
+        proposed_owner = true;
+        break;
+      }
+    }
+    if (!proposed_owner) {
+      const size_t source = issue.face_index >= existing_count
+                                ? issue.face_index
+                                : issue.corner_index;
+      conflict.template_index =
+          source >= existing_count ? source - existing_count : 0;
+    }
+    if (issue.corner_index < existing_count)
+      conflict.existing_index = issue.corner_index;
+    else if (issue.face_index < existing_count)
+      conflict.existing_index = issue.face_index;
+    conflict.message =
+        "New native 003-to-10C retaining-wall endpoint loss; reconnect the "
+        "wall assembly. Explicit overlap allowances do not waive join loss.";
+    plan.conflicts.push_back(std::move(conflict));
+    plan.retaining_wall_join_issues.push_back(std::move(issue));
+  }
+}
+
 }  // namespace
 
 absl::StatusOr<ObjectTemplate> ParseObjectTemplateJson(
@@ -322,9 +408,20 @@ ObjectTemplatePlacementPlan PlanObjectTemplatePlacement(
     plan.footprints.push_back(std::move(*footprint));
   }
 
+  std::vector<RoomObjectFootprint> existing_footprints;
   for (size_t e = 0; e < existing_objects.size(); ++e) {
     auto footprint =
         MeasureRoomObjectFootprint(rom, room_id, existing_objects[e], state);
+    if (footprint.ok()) {
+      footprint->object_index = e;
+      existing_footprints.push_back(*footprint);
+    } else {
+      RoomObjectFootprint missing;
+      missing.object_index = e;
+      missing.object_id = existing_objects[e].id_;
+      missing.list_index = existing_objects[e].GetLayerValue();
+      existing_footprints.push_back(std::move(missing));
+    }
     if (!footprint.ok() || !footprint->measured ||
         !footprint->full_bounds_measured) {
       const std::string reason =
@@ -372,6 +469,8 @@ ObjectTemplatePlacementPlan PlanObjectTemplatePlacement(
       plan.conflicts.push_back(std::move(conflict));
     }
   }
+  CheckNewWallJoinLosses(plan, std::move(existing_footprints),
+                         existing_objects.size());
   plan.valid =
       std::none_of(plan.conflicts.begin(), plan.conflicts.end(),
                    [](const auto& conflict) { return conflict.blocking; });
