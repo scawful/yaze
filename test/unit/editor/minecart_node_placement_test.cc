@@ -44,6 +44,19 @@ class DungeonEditorV2MinecartNodeTestPeer {
   static uint64_t Generation(DungeonEditorV2& editor) {
     return editor.minecart_collision_generation_;
   }
+  static DungeonCanvasViewer& WorkbenchSelection(DungeonEditorV2& editor,
+                                                 Rom& rom, int room) {
+    editor.current_room_id_ = room;
+    editor.workbench_viewer_ = std::make_unique<DungeonCanvasViewer>();
+    editor.workbench_viewer_->RefreshRomBackedState(&rom, nullptr,
+                                                    &editor.rooms_, room);
+    editor.workbench_viewer_->object_interaction().SetSelectedObjects({0});
+    return *editor.workbench_viewer_;
+  }
+  static absl::StatusOr<DungeonSelectionClipboard> CaptureAssembly(
+      DungeonEditorV2& editor, int room) {
+    return editor.CaptureSelectedMinecartAssembly(room);
+  }
   static zelda3::Room& Bind(DungeonEditorV2& editor,
                             MinecartTrackEditorPanel& panel, Rom& rom) {
     editor.minecart_track_editor_panel_ = &panel;
@@ -776,6 +789,55 @@ TEST_F(MinecartAssemblyEditorTest,
   EXPECT_EQ(panel_.GetTracks(), tracks);
   EXPECT_EQ(rom_.vector(), bytes);
   EXPECT_EQ(editor_->undo_manager().UndoStackSize(), 0u);
+}
+
+TEST_F(MinecartAssemblyEditorTest,
+       CaptureUsesTheSelectedWorkbenchRoomAndRejectsAStaleRoomRequest) {
+  auto plan = Path();
+  ASSERT_TRUE(plan.ok()) << plan.status();
+  ASSERT_TRUE(Apply(*plan).ok());
+  core::FeatureFlags::get().dungeon.kUseWorkbench = true;
+  panel_.SetActiveRoom(0x98);
+  auto& viewer = DungeonEditorV2MinecartNodeTestPeer::WorkbenchSelection(
+      *editor_, rom_, 0x98);
+  auto copied =
+      DungeonEditorV2MinecartNodeTestPeer::CaptureAssembly(*editor_, 0x98);
+  ASSERT_TRUE(copied.ok()) << copied.status();
+  EXPECT_EQ(copied->objects.size(), 1u);
+  auto& other = DungeonEditorV2MinecartNodeTestPeer::OtherRoom(*editor_, rom_);
+  other.SetTileObjects({});
+  const auto history = editor_->undo_manager().UndoStackSize();
+  EXPECT_FALSE(
+      DungeonEditorV2MinecartNodeTestPeer::CaptureAssembly(*editor_, 0x99)
+          .ok());
+  EXPECT_EQ(viewer.current_room_id(), 0x98);
+  EXPECT_TRUE(other.GetTileObjects().empty());
+  EXPECT_EQ(editor_->undo_manager().UndoStackSize(), history);
+}
+
+TEST_F(MinecartAssemblyEditorTest,
+       TranslatedCopyKeepsSignedOffsetsAndRejectsMalformedCollision) {
+  auto plan = Path();
+  ASSERT_TRUE(plan.ok()) << plan.status();
+  ASSERT_TRUE(Apply(*plan).ok());
+  auto copy =
+      CaptureMinecartAssembly(*room_, {0, 1, 2, 3, 4}, {}, panel_.GetTracks(),
+                              zelda3::MinecartRailProfile::kLegacy);
+  ASSERT_TRUE(copy.ok()) << copy.status();
+  zelda3::Room target(0x99, nullptr);
+  auto shifted =
+      PlanMinecartAssembly(target, *copy, 0, 0, {}, panel_.GetTracks(), {},
+                           zelda3::MinecartRailProfile::kLegacy);
+  ASSERT_TRUE(shifted.ok()) << shifted.status();
+  EXPECT_TRUE(shifted->collision_after.HasOverride(0));
+  EXPECT_EQ(shifted->selection.after.objects[0].x_, 0);
+  EXPECT_EQ(shifted->selection.after.objects[0].y_, 0);
+  copy->minecart->collision[4096] = 0xB0;
+  EXPECT_FALSE(PlanMinecartAssembly(target, *copy, 0, 0, {}, panel_.GetTracks(),
+                                    {}, zelda3::MinecartRailProfile::kLegacy)
+                   .ok());
+  EXPECT_TRUE(target.GetTileObjects().empty());
+  EXPECT_FALSE(target.custom_collision().HasOverrides());
 }
 
 TEST_F(MinecartAssemblyEditorTest,

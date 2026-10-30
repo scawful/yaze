@@ -141,7 +141,8 @@ DungeonEditorV2::CaptureSelectedMinecartAssembly(int room_id) {
   auto* room = rooms_.GetIfLoaded(room_id);
   auto* viewer = GetViewerForRoom(room_id);
   if (!room || !viewer || !rom_ || room->rom() != rom_ ||
-      !minecart_track_editor_panel_)
+      !minecart_track_editor_panel_ || viewer->current_room_id() != room_id ||
+      minecart_track_editor_panel_->active_room() != room_id)
     return absl::FailedPreconditionError(
         "Select the rail assembly in a loaded Room view first");
   auto& interaction = viewer->object_interaction();

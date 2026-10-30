@@ -294,7 +294,11 @@ absl::StatusOr<MinecartAssemblyPlan> PlanMinecartAssembly(
                        room.GetTileObjects(), selection.after.objects,
                        room.custom_collision(), ownership, profile));
   for (const auto& [offset, value] : clipboard.minecart->collision) {
-    const int x = offset % 64 + dx / 8, y = offset / 64 + dy / 8;
+    if (offset >= 64 * 64)
+      return absl::OutOfRangeError(
+          "Copied collision offset is outside its source room");
+    const int x = static_cast<int>(offset % 64) + dx / 8;
+    const int y = static_cast<int>(offset / 64) + dy / 8;
     if (x < 0 || x > 63 || y < 0 || y > 63)
       return absl::OutOfRangeError("Translated collision leaves this room");
     const size_t target = y * 64 + x;
