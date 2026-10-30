@@ -153,9 +153,6 @@
 #include "app/testing/rom_dependent_test_suite.h"
 #include "app/testing/zscustomoverworld_test_suite.h"
 #endif
-#ifdef YAZE_ENABLE_GTEST
-#include "app/testing/unit_test_suite.h"
-#endif
 #ifdef YAZE_WITH_GRPC
 #include "app/testing/z3ed_test_suite.h"
 #endif
@@ -1544,11 +1541,6 @@ void EditorManager::InitializeTestSuites() {
   test_manager.RegisterTestSuite(std::make_unique<test::E2ETestSuite>());
   test_manager.RegisterTestSuite(
       std::make_unique<test::ZSCustomOverworldTestSuite>());
-#endif
-
-  // Register Google Test suite if available
-#ifdef YAZE_ENABLE_GTEST
-  test_manager.RegisterTestSuite(std::make_unique<test::UnitTestSuite>());
 #endif
 
   // Register z3ed AI Agent test suites (requires gRPC)

@@ -18,10 +18,8 @@ CLI_CORE_CMAKE = SRC / "cli/cli_core.cmake"
 EDITOR_CMAKE = SRC / "app/editor/editor_library.cmake"
 
 # Editor includes of agent-library headers whose symbols are referenced only
-# under Z3ED_AI or YAZE_ENABLE_POLICY_FRAMEWORK, or only for enum types.
+# under Z3ED_AI, or only for enum types.
 GUARDED_AGENT_INCLUDES = {
-    ("app/editor/system/workspace/proposal_drawer.cc",
-     "cli/service/planning/policy_evaluator.h"),
     ("app/editor/system/workspace/proposal_drawer.h",
      "cli/service/planning/proposal_registry.h"),
 }

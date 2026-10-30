@@ -12,11 +12,6 @@
 #include "app/gui/core/ui_helpers.h"
 #include "imgui/imgui.h"
 
-// Policy evaluation support (optional, only in main yaze build)
-#ifdef YAZE_ENABLE_POLICY_FRAMEWORK
-#include "cli/service/planning/policy_evaluator.h"
-#endif
-
 namespace yaze {
 namespace editor {
 
@@ -283,11 +278,6 @@ void ProposalDrawer::DrawProposalDetail() {
     }
   }
 
-  // Policy Status section (NEW)
-#ifdef YAZE_ENABLE_POLICY_FRAMEWORK
-  DrawPolicyStatus();
-#endif
-
   // Action buttons
   ImGui::Separator();
   DrawActionButtons();
@@ -302,104 +292,6 @@ void ProposalDrawer::DrawStatusFilter() {
     status_filter_ = static_cast<StatusFilter>(current_filter);
     RefreshProposals();
   }
-}
-
-void ProposalDrawer::DrawPolicyStatus() {
-#ifdef YAZE_ENABLE_POLICY_FRAMEWORK
-  if (!selected_proposal_)
-    return;
-
-  const auto& p = *selected_proposal_;
-
-  // Only evaluate policies for pending proposals
-  if (p.status != cli::ProposalRegistry::ProposalStatus::kPending) {
-    return;
-  }
-
-  if (ImGui::CollapsingHeader(tr("Policy Status"),
-                              ImGuiTreeNodeFlags_DefaultOpen)) {
-    auto& policy_eval = cli::PolicyEvaluator::GetInstance();
-
-    if (!policy_eval.IsEnabled()) {
-      ImGui::TextColored(gui::GetDisabledColor(),
-                         ICON_MD_INFO " No policies configured");
-      ImGui::TextWrapped(
-          tr("Create .yaze/policies/agent.yaml to enable policy evaluation"));
-      return;
-    }
-
-    // Evaluate proposal against policies
-    auto policy_result = policy_eval.EvaluateProposal(p.id);
-
-    if (!policy_result.ok()) {
-      ImGui::TextColored(gui::GetErrorColor(),
-                         ICON_MD_ERROR " Policy evaluation failed");
-      ImGui::TextWrapped("%s", policy_result.status().message().data());
-      return;
-    }
-
-    const auto& result = policy_result.value();
-
-    // Overall status
-    if (result.is_clean()) {
-      ImGui::TextColored(gui::GetSuccessColor(),
-                         ICON_MD_VERIFIED " All policies passed");
-    } else if (result.passed) {
-      ImGui::TextColored(gui::GetWarningColor(),
-                         ICON_MD_WARNING " Passed with warnings");
-    } else {
-      ImGui::TextColored(gui::GetErrorColor(),
-                         ICON_MD_CANCEL " Critical violations found");
-    }
-
-    ImGui::Separator();
-
-    // Show critical violations
-    if (!result.critical_violations.empty()) {
-      ImGui::TextColored(gui::GetErrorColor(),
-                         ICON_MD_BLOCK " Critical Violations:");
-      for (const auto& violation : result.critical_violations) {
-        ImGui::Bullet();
-        ImGui::TextWrapped("%s: %s", violation.policy_name.c_str(),
-                           violation.message.c_str());
-        if (!violation.details.empty()) {
-          ImGui::Indent();
-          ImGui::TextColored(gui::GetDisabledColor(), "%s",
-                             violation.details.c_str());
-          ImGui::Unindent();
-        }
-      }
-      ImGui::Separator();
-    }
-
-    // Show warnings
-    if (!result.warnings.empty()) {
-      ImGui::TextColored(gui::GetWarningColor(), ICON_MD_WARNING " Warnings:");
-      for (const auto& violation : result.warnings) {
-        ImGui::Bullet();
-        ImGui::TextWrapped("%s: %s", violation.policy_name.c_str(),
-                           violation.message.c_str());
-        if (!violation.details.empty()) {
-          ImGui::Indent();
-          ImGui::TextColored(gui::GetDisabledColor(), "%s",
-                             violation.details.c_str());
-          ImGui::Unindent();
-        }
-      }
-      ImGui::Separator();
-    }
-
-    // Show info messages
-    if (!result.info.empty()) {
-      ImGui::TextColored(gui::GetInfoColor(), ICON_MD_INFO " Information:");
-      for (const auto& violation : result.info) {
-        ImGui::Bullet();
-        ImGui::TextWrapped("%s: %s", violation.policy_name.c_str(),
-                           violation.message.c_str());
-      }
-    }
-  }
-#endif  // YAZE_ENABLE_POLICY_FRAMEWORK
 }
 
 void ProposalDrawer::DrawActionButtons() {

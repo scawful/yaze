@@ -1174,30 +1174,9 @@ void TestManager::DrawTestDashboard(bool* show_dashboard) {
       ImGui::Text("%s Google Test Integration", ICON_MD_SCIENCE);
       ImGui::Separator();
 
-#ifdef YAZE_ENABLE_GTEST
-      ImGui::Text("Google Test framework is available");
-
-      if (ImGui::Button("Run All Google Tests")) {
-        // Run Google tests - this would integrate with gtest
-        LOG_INFO("TestManager", "Running Google Tests...");
-      }
-
-      ImGui::SameLine();
-      if (ImGui::Button("Run Specific Test Suite")) {
-        // Show test suite selector
-      }
-
-      ImGui::Separator();
-      ImGui::Text("Available Test Suites:");
-      ImGui::BulletText("Unit Tests");
-      ImGui::BulletText("Integration Tests");
-      ImGui::BulletText("Performance Tests");
-#else
       ImGui::TextColored(gui::GetWarningColor(),
                          "%s Google Test framework not available",
                          ICON_MD_WARNING);
-      ImGui::Text("Enable YAZE_ENABLE_GTEST to use Google Test integration");
-#endif
     }
     ImGui::End();
   }
