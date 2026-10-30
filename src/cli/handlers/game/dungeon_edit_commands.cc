@@ -21,6 +21,7 @@
 #include "rom/transaction.h"
 #include "rom/write_fence.h"
 #include "util/macro.h"
+#include "zelda3/dungeon/chest_edit.h"
 #include "zelda3/dungeon/dungeon_stream_allocator.h"
 #include "zelda3/dungeon/object_layer_semantics.h"
 #include "zelda3/dungeon/room.h"
@@ -306,6 +307,33 @@ absl::Status ValidateObjectSaveManifestConflicts(
   return absl::PermissionDeniedError("Write conflict with Hack Manifest");
 }
 
+absl::Status SavePlacedObject(
+    Rom* rom, int room_id, zelda3::Room& room,
+    const StreamSaveManifestContext* manifest_context) {
+  const auto* layout = manifest_context != nullptr
+                           ? &manifest_context->allocator_layout
+                           : nullptr;
+  if (!room.chests_dirty()) {
+    return room.SaveObjects(layout);
+  }
+
+  const auto lookup = [&](int id) -> const zelda3::Room* {
+    return id == room_id ? &room : nullptr;
+  };
+  ASSIGN_OR_RETURN(auto plan, zelda3::BuildChestSavePlan(
+                                  rom, zelda3::kNumberOfRooms, lookup));
+  if (manifest_context != nullptr &&
+      !manifest_context->manifest.AnalyzePcWriteRanges(plan.write_ranges())
+           .empty()) {
+    return absl::PermissionDeniedError("Write conflict with Hack Manifest");
+  }
+
+  // Both plans run inside the caller's transaction. If object allocation
+  // touches the chest table, ApplyChestSavePlan rejects its stale preimage.
+  RETURN_IF_ERROR(room.SaveObjects(layout));
+  return zelda3::ApplyChestSavePlan(rom, plan, lookup);
+}
+
 absl::Status PreflightObjectSave(
     const Rom& source_rom, int room_id, const zelda3::RoomObject& object,
     const zelda3::Room& pending_room,
@@ -326,9 +354,12 @@ absl::Status PreflightObjectSave(
 
   zelda3::Room scratch_room = zelda3::LoadRoomFromRom(&scratch_rom, room_id);
   RETURN_IF_ERROR(scratch_room.AddObject(object));
-  return scratch_room.SaveObjects(manifest_context != nullptr
-                                      ? &manifest_context->allocator_layout
-                                      : nullptr);
+  if (pending_room.chests_dirty()) {
+    scratch_room.GetChests() = pending_room.GetChests();
+    scratch_room.MarkChestsDirty();
+  }
+  return SavePlacedObject(&scratch_rom, room_id, scratch_room,
+                          manifest_context);
 }
 
 absl::Status PreflightObjectRemoval(
@@ -1559,6 +1590,24 @@ absl::Status DungeonPlaceObjectCommandHandler::Execute(
         object_id, canonical_size));
   }
 
+  const bool is_chest = zelda3::IsStatefulChestObjectId(object_id);
+  const auto chest_item_arg = parser.GetString("chest-item");
+  if (is_chest && !chest_item_arg.has_value()) {
+    return absl::InvalidArgumentError(
+        "Stateful chest placement requires --chest-item <hex receipt>");
+  }
+  if (!is_chest && chest_item_arg.has_value()) {
+    return absl::InvalidArgumentError(
+        "--chest-item is only valid for stateful chest objects");
+  }
+  int chest_item = 0;
+  if (chest_item_arg.has_value()) {
+    ASSIGN_OR_RETURN(chest_item, GetRequiredHex(parser, "chest-item"));
+    if (chest_item < 0 || chest_item > 0xFF) {
+      return absl::InvalidArgumentError("Chest receipt must be 0x00-0xFF");
+    }
+  }
+
   std::optional<StreamSaveManifestContext> manifest_context;
   ASSIGN_OR_RETURN(
       manifest_context,
@@ -1577,6 +1626,25 @@ absl::Status DungeonPlaceObjectCommandHandler::Execute(
                          static_cast<uint8_t>(x), static_cast<uint8_t>(y),
                          static_cast<uint8_t>(size),
                          static_cast<uint8_t>(layer));
+
+  std::optional<std::vector<chest_data>> planned_chests;
+  if (is_chest) {
+    const auto& original = room.GetTileObjects();
+    auto candidate = original;
+    candidate.push_back(obj);
+    std::vector<std::optional<size_t>> source_indices;
+    source_indices.reserve(candidate.size());
+    for (size_t i = 0; i < original.size(); ++i) {
+      source_indices.emplace_back(i);
+    }
+    source_indices.emplace_back(std::nullopt);
+    std::vector<std::optional<chest_data>> overrides(candidate.size());
+    overrides.back() =
+        chest_data{static_cast<uint8_t>(chest_item), object_id == 0xFB1};
+    ASSIGN_OR_RETURN(planned_chests, zelda3::PlanChestObjectEdit(
+                                         original, room.GetChests(), candidate,
+                                         source_indices, overrides));
+  }
 
   // Determine type for reporting
   int type = zelda3::RoomObject::DetermineObjectType((object_id & 0xFF),
@@ -1607,6 +1675,14 @@ absl::Status DungeonPlaceObjectCommandHandler::Execute(
     formatter.EndObject();
     return add_status;
   }
+  if (planned_chests.has_value()) {
+    room.GetChests() = std::move(*planned_chests);
+    room.MarkChestsDirty();
+    formatter.AddHexField("chest_item", chest_item, 2);
+    formatter.AddField("chest_index",
+                       static_cast<int>(*zelda3::ChestIndexForObject(
+                           room.GetTileObjects(), count_before)));
+  }
 
   formatter.AddField("objects_after",
                      static_cast<int>(room.GetTileObjects().size()));
@@ -1626,7 +1702,11 @@ absl::Status DungeonPlaceObjectCommandHandler::Execute(
 
   if (do_write) {
     auto save_status = MutateAndSaveRomWithBackup(
-        rom, formatter, [&room, layout]() { return room.SaveObjects(layout); });
+        rom, formatter, [&room, rom, room_id, &manifest_context]() {
+          return SavePlacedObject(
+              rom, room_id, room,
+              manifest_context.has_value() ? &*manifest_context : nullptr);
+        });
     if (!save_status.ok()) {
       formatter.EndObject();
       return save_status;
