@@ -20,7 +20,7 @@
 #include "zelda3/dungeon/dungeon_stream_allocator.h"
 #include "zelda3/dungeon/room.h"
 #include "zelda3/dungeon/track_collision_generator.h"
-#include "zelda3/overworld/overworld_version_helper.h"
+#include "zelda3/overworld/overworld.h"
 
 namespace yaze::test {
 namespace {
