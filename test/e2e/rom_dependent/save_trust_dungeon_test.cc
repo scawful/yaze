@@ -417,7 +417,7 @@ TEST_P(SaveTrustDungeonTest, MustFailControlOmittingSaveToFile) {
 }
 
 INSTANTIATE_TEST_SUITE_P(
-    RomClasses, SaveTrustDungeonTest,
+    SaveTrustRomClasses, SaveTrustDungeonTest,
     ::testing::Values(DungeonRomClass::kVanilla, DungeonRomClass::kExpanded,
                       DungeonRomClass::kOracle),
     [](const ::testing::TestParamInfo<DungeonRomClass>& info) {
