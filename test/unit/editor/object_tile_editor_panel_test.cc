@@ -734,9 +734,11 @@ TEST(DungeonEditorV2ObjectTileEditorTest,
 TEST(DungeonEditorV2ObjectTileEditorTest,
      PlacedCustomObjectOpensExactAssetAndPreservesAnUnappliedDraft) {
   ScopedCustomObjectState custom_state(MakeTempDir("placed_custom_tiles"));
+  zelda3::CustomObjectManager::Get().SetMinecartRailProfile(
+      zelda3::MinecartRailProfile::kLegacy);
   WriteCustomObjectAsset(custom_state.dir / "track_corner_TR.bin",
                          zelda3::CustomObject{.tiles = {{0, 0, 0x0986}}});
-  WriteCustomObjectAsset(custom_state.dir / "track_custom.bin",
+  WriteCustomObjectAsset(custom_state.dir / "track_LR.bin",
                          zelda3::CustomObject{.tiles = {{0, 0, 0x0987}}});
   Rom rom;
   ASSERT_TRUE(rom.LoadFromData(MakeEditableStandardObjectRomData()).ok());
