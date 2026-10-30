@@ -13,6 +13,7 @@
 #include <unordered_map>
 #include <vector>
 
+#include "absl/status/status.h"
 #include "app/editor/dungeon/dungeon_entrance_camera.h"
 #include "app/editor/dungeon/dungeon_proposal_overlay.h"
 #include "app/editor/dungeon/dungeon_room_composite.h"
@@ -696,6 +697,10 @@ class DungeonCanvasViewer {
       std::function<void(int, const zelda3::RoomObject&)> callback) {
     edit_object_tiles_callback_ = std::move(callback);
   }
+  // Shared admission and action for Selection and the canvas context menu.
+  absl::Status ObjectTileEditStatus(int room_id,
+                                    const zelda3::RoomObject& object) const;
+  void EditObjectTiles(int room_id, const zelda3::RoomObject& object);
   // Opens Object Coverage on the selected object's ID.
   void SetCheckObjectCoverageCallback(
       std::function<void(int, const zelda3::RoomObject&)> callback) {
@@ -1125,6 +1130,7 @@ class DungeonCanvasViewer {
   bool connected_canvas_initialized_ = false;
   bool show_connected_overview_ = false;
   bool show_connected_current_room_preview_ = false;
+  bool show_connected_minecart_nodes_ = true;
   bool connected_controls_inline_ = false;
   bool connected_canvas_fit_requested_ = false;
   bool connected_canvas_reset_requested_ = false;

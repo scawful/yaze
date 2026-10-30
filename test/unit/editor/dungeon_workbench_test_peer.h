@@ -27,6 +27,9 @@ class DungeonWorkbenchContentTestPeer {
       const DungeonWorkbenchContent& content) {
     return content.layout_state_;
   }
+  static void SetOverview(DungeonWorkbenchContent& content, bool show) {
+    content.layout_state_.show_connected_canvas_view = show;
+  }
   static void DrawToolsToolbar(DungeonWorkbenchContent& content) {
     DungeonWorkbenchToolbarParams params;
     params.layout = &content.layout_state_;

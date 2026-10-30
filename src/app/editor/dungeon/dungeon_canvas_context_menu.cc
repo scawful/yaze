@@ -38,6 +38,39 @@ std::pair<int, int> ContextMenuRoomPosition(const gui::Canvas& canvas) {
 
 }  // namespace
 
+absl::Status DungeonCanvasViewer::ObjectTileEditStatus(
+    int room_id, const zelda3::RoomObject& object) const {
+  if (!rooms_ || room_id < 0 || room_id >= static_cast<int>(rooms_->size())) {
+    return absl::OutOfRangeError("Dungeon room is unavailable");
+  }
+  if (!edit_object_tiles_callback_) {
+    return absl::FailedPreconditionError("Object Tile Editor is unavailable");
+  }
+  auto& custom_objects = zelda3::CustomObjectManager::Get();
+  const bool custom_dispatch =
+      core::FeatureFlags::get().kEnableCustomObjects &&
+      zelda3::CustomObjectManager::RuntimeSubtypeCountForObject(
+          object.id_, custom_objects.GetMinecartRailProfile()) > 0;
+  if (custom_dispatch) {
+    if (custom_objects.ResolveFilename(object.id_, object.size_).empty()) {
+      return absl::NotFoundError("This variant has no mapped editable asset");
+    }
+    return custom_objects.GetObjectInternal(object.id_, object.size_).status();
+  }
+  if (!zelda3::ObjectTileEditor::IsEditableStandardObject(object.id_)) {
+    return absl::UnimplementedError(
+        "Tile editing is not yet supported for this object layout");
+  }
+  return absl::OkStatus();
+}
+
+void DungeonCanvasViewer::EditObjectTiles(int room_id,
+                                          const zelda3::RoomObject& object) {
+  if (ObjectTileEditStatus(room_id, object).ok()) {
+    edit_object_tiles_callback_(room_id, object);
+  }
+}
+
 void DungeonCanvasViewer::PopulateCanvasContextMenu(int room_id) {
   canvas_.ClearContextMenuItems();
   AddInteractionContextMenuItems(room_id);
@@ -272,23 +305,9 @@ DungeonCanvasViewer::BuildSelectionContextMenuItems(
           show_room_graphics_callback_();
         }
       };
-      auto& custom_objects = zelda3::CustomObjectManager::Get();
-      const bool custom_dispatch =
-          core::FeatureFlags::get().kEnableCustomObjects &&
-          zelda3::CustomObjectManager::RuntimeSubtypeCountForObject(
-              object.id_, custom_objects.GetMinecartRailProfile()) > 0;
-      const int subtype = object.size_;
-      can_edit_selected_tiles =
-          edit_object_tiles_callback_ != nullptr &&
-          (custom_dispatch
-               ? !custom_objects.ResolveFilename(object.id_, subtype).empty() &&
-                     custom_objects.GetObjectInternal(object.id_, subtype).ok()
-               : zelda3::ObjectTileEditor::IsEditableStandardObject(
-                     object.id_));
+      can_edit_selected_tiles = ObjectTileEditStatus(room_id, object).ok();
       edit_selected_tiles = [this, room_id, object]() {
-        if (edit_object_tiles_callback_) {
-          edit_object_tiles_callback_(room_id, object);
-        }
+        EditObjectTiles(room_id, object);
       };
       if (check_object_coverage_callback_) {
         check_selected_coverage = [this, room_id, object]() {

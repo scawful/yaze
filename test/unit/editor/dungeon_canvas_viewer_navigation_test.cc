@@ -20,6 +20,7 @@
 #include "app/editor/dungeon/dungeon_project_labels.h"
 #include "app/editor/dungeon/dungeon_room_selector.h"
 #include "app/editor/dungeon/ui/window/dungeon_map_panel.h"
+#include "app/editor/dungeon/ui/window/minecart_track_editor_panel.h"
 #include "app/editor/dungeon/ui_constants.h"
 #include "app/editor/dungeon/workspace/dungeon_workbench_content.h"
 #include "app/gfx/core/bitmap.h"
@@ -298,6 +299,36 @@ class DungeonCanvasViewerTestPeer {
   static DungeonCanvasViewer::ConnectedRoomGraphData BuildConnectedRoomGraph(
       DungeonCanvasViewer& viewer, int start_room_id) {
     return viewer.BuildConnectedRoomGraph(start_room_id);
+  }
+
+  static void SeedOverview(DungeonCanvasViewer& viewer, int start_room,
+                           int other_room) {
+    viewer.connected_graph_cache_ = {};
+    auto& graph = viewer.connected_graph_cache_;
+    graph.room_mask[start_room] = true;
+    graph.room_mask[other_room] = true;
+    graph.room_positions[start_room] = {0, 0, true, true};
+    graph.room_positions[other_room] = {1, 0, true, true};
+    graph.max_col = 1;
+    graph.room_count = 2;
+    viewer.connected_graph_cache_start_room_id_ = start_room;
+    viewer.SetConnectedControlsInline(true);
+  }
+
+  static ImVec2 OverviewRoomCenter(const DungeonCanvasViewer& viewer,
+                                   int room_id) {
+    const auto& p = viewer.connected_graph_cache_.room_positions[room_id];
+    const auto origin = viewer.connected_canvas_.zero_point();
+    const float scale = viewer.connected_canvas_.global_scale();
+    return ImVec2(
+        origin.x +
+            (p.col * (512 + dungeon_ui::kConnectedRoomGap) + 256) * scale,
+        origin.y +
+            (p.row * (512 + dungeon_ui::kConnectedRoomGap) + 256) * scale);
+  }
+
+  static bool OverviewNodesVisible(const DungeonCanvasViewer& viewer) {
+    return viewer.show_connected_minecart_nodes_;
   }
 
   static int ApplyConnectedStaircaseIssueAutoFixes(DungeonCanvasViewer& viewer,
@@ -4812,6 +4843,232 @@ TEST_F(DungeonCanvasRoomInformationTest,
                 1.0f);
     EXPECT_LT(bottom, 60 + scroll.y + 24 * 8 * scale);
   }
+}
+
+TEST(DungeonMinecartOverviewTest,
+     CollectsLiveNodesAndKeepsIdentitySeparateFromCollision) {
+  using Kind = MinecartOverviewNodeKind;
+  zelda3::Room room(0x98, nullptr);
+  room.GetSprites().emplace_back(0xA3, 10, 12, 17, 0);
+  room.GetSprites().emplace_back(0xAF, 14, 16, 3, 0);
+  room.GetSprites().emplace_back(0xB0, 20, 22, 3, 0);
+  room.GetSprites().emplace_back(0xAF, 24, 26, 4, 1);
+  room.custom_collision().SetOverride(24 * 64 + 20, 0xB7);
+  room.custom_collision().SetOverride(30 * 64 + 22, 0xBA);
+  room.custom_collision().SetOverride(44 * 64 + 40, 0xD2);
+  room.custom_collision().SetOverride(48 * 64 + 46, 0xD3);
+  const std::vector<MinecartTrack> tracks = {
+      {17, 0x98, 8 * 512 + 160, 9 * 512 + 192}};
+  const auto nodes = CollectMinecartOverviewNodes(room, tracks);
+  ASSERT_EQ(nodes.size(), 7u);
+  ASSERT_EQ(nodes.front().kind, Kind::kCartStart);
+  EXPECT_TRUE(nodes.front().paired_actor);
+  EXPECT_EQ(nodes.front().pixel_x, 160);
+  EXPECT_EQ(nodes.front().pixel_y, 192);
+  EXPECT_TRUE(IsMinecartOverviewNodeSelected(nodes.front(), nodes, {17, 3}));
+  for (const auto& node : nodes) {
+    SCOPED_TRACE(DescribeMinecartOverviewNode(node));
+    if (node.kind == Kind::kStop) {
+      EXPECT_EQ(node.id, -1);
+      EXPECT_EQ(IsMinecartOverviewNodeSelected(node, nodes, {17, 3}),
+                node.pixel_x == 160 && node.pixel_y == 192);
+    }
+    if (node.kind == Kind::kSwitch || node.kind == Kind::kRotatingTrack) {
+      EXPECT_EQ(IsMinecartOverviewNodeSelected(node, nodes, {17, 3}),
+                node.id == 3);
+    }
+    if (node.layer == 1) {
+      EXPECT_FALSE(node.has_collision);
+      EXPECT_NE(DescribeMinecartOverviewNode(node).find("lower layer"),
+                std::string::npos);
+    }
+  }
+  // A live sprite move is visible even while the unchanged source start
+  // remains in the same room. No cached graph can conceal the mismatch.
+  room.GetSprites()[0].set_x(11);
+  const auto moved = CollectMinecartOverviewNodes(room, tracks);
+  EXPECT_FALSE(moved.front().paired_actor);
+  EXPECT_EQ(std::count_if(moved.begin(), moved.end(),
+                          [](const auto& node) {
+                            return node.kind == Kind::kCart &&
+                                   node.pixel_x == 176;
+                          }),
+            1);
+}
+
+TEST(DungeonMinecartOverviewTest,
+     ExcludesInactiveInvalidDeletedAndUnrelatedNodes) {
+  zelda3::Room room(0x98, nullptr);
+  room.GetSprites().emplace_back(0xAF, 3, 4, 2, 0);
+  room.GetSprites().back().set_deleted(true);
+  room.GetSprites().emplace_back(0x01, 3, 4, 2, 0);
+  room.GetSprites().emplace_back(0xB0, 32, 4, 2, 0);
+  const std::vector<MinecartTrack> tracks = {{1, 0, 0, 0},
+                                             {32, 0x98, 8 * 512, 9 * 512},
+                                             {2, 0x98, 9 * 512, 9 * 512},
+                                             {3, 0x99, 9 * 512, 9 * 512}};
+  EXPECT_TRUE(CollectMinecartOverviewNodes(room, tracks).empty());
+  zelda3::Room unused(0, nullptr);
+  EXPECT_TRUE(CollectMinecartOverviewNodes(unused, tracks).empty());
+}
+
+TEST(DungeonMinecartOverviewTest,
+     MarkersUseRoomTransformAndHoverWithoutTakingInput) {
+  ScopedImGuiContext context;
+  auto& io = ImGui::GetIO();
+  io.IniFilename = nullptr;
+  io.DeltaTime = 1.0f / 60.0f;
+  unsigned char* pixels = nullptr;
+  int width = 0, height = 0;
+  io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
+  const std::array<MinecartOverviewNode, 1> nodes = {
+      {{MinecartOverviewNodeKind::kSwitch, 9, 160, 192}}};
+  for (float scale : {0.125f, 0.5f, 1.25f}) {
+    const DungeonCanvasTransform transform(ImVec2(80, 90), ImVec2(-13, -17),
+                                           scale);
+    const auto center = transform.RoomPixelsToScreen(ImVec2(168, 200));
+    io.AddMousePosEvent(center.x, center.y);
+    ImGui::NewFrame();
+    ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiCond_Always);
+    ImGui::SetNextWindowSize(ImVec2(950, 700), ImGuiCond_Always);
+    ImGui::Begin("MinecartOverviewMarkers", nullptr,
+                 ImGuiWindowFlags_NoSavedSettings);
+    const auto previous_item = ImGui::GetItemID();
+    auto* draw_list = ImGui::GetWindowDrawList();
+    const auto first = draw_list->VtxBuffer.Size;
+    const auto details =
+        DrawMinecartOverviewNodes(draw_list, transform, nodes, {}, true);
+    ASSERT_NE(draw_list->VtxBuffer.Size, first);
+    float left = center.x, right = center.x, top = center.y, bottom = center.y;
+    for (int i = first; i < draw_list->VtxBuffer.Size; ++i) {
+      const auto p = draw_list->VtxBuffer[i].pos;
+      left = std::min(left, p.x);
+      right = std::max(right, p.x);
+      top = std::min(top, p.y);
+      bottom = std::max(bottom, p.y);
+    }
+    // Unselected high-zoom nodes include a label to the right. The marker's
+    // left/top/bottom bounds remain centered on the transformed room anchor.
+    EXPECT_NEAR((top + bottom) / 2, center.y, 1.5f);
+    EXPECT_LT(left, center.x);
+    EXPECT_GT(right, center.x);
+    EXPECT_NE(details.find("Switch channel S9"), std::string::npos);
+    EXPECT_EQ(ImGui::GetItemID(), previous_item);
+    EXPECT_TRUE(
+        DrawMinecartOverviewNodes(draw_list, transform, nodes, {}, false)
+            .empty());
+    ImGui::End();
+    ImGui::Render();
+  }
+}
+
+TEST(DungeonMinecartOverviewTest,
+     ToggleRequiresExplicitMinecartBindingAndFitsNarrowControls) {
+  ScopedImGuiContext context;
+  auto& io = ImGui::GetIO();
+  io.IniFilename = nullptr;
+  io.DisplaySize = ImVec2(1200, 800);
+  io.DeltaTime = 1.0f / 60.0f;
+  io.ConfigInputTrickleEventQueue = false;
+  unsigned char* pixels = nullptr;
+  int width = 0, height = 0;
+  io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
+  DungeonCanvasViewer viewer;
+  MinecartTrackEditorPanel panel;
+  project::YazeProject project;
+  viewer.SetProject(&project);
+  viewer.SetMinecartTrackPanel(&panel);
+  float host_width = 300;
+  float content_right = 0;
+  auto frame = [&]() {
+    gui::WidgetIdRegistry::Instance().Clear();
+    ImGui::NewFrame();
+    ImGui::SetNextWindowPos(ImVec2(20, 20), ImGuiCond_Always);
+    ImGui::SetNextWindowSize(ImVec2(host_width, 300), ImGuiCond_Always);
+    ImGui::Begin("MinecartOverviewControls", nullptr,
+                 ImGuiWindowFlags_NoSavedSettings);
+    content_right =
+        ImGui::GetWindowPos().x + ImGui::GetWindowContentRegionMax().x;
+    viewer.DrawConnectedToolbarControls(-1);
+    ImGui::End();
+    ImGui::Render();
+    return gui::WidgetIdRegistry::Instance().GetWidgetInfo(
+        "Dungeon/Overview/checkbox:Minecart nodes");
+  };
+  EXPECT_FALSE(frame().has_value());
+  ASSERT_TRUE(project.hack_manifest
+                  .LoadFromString(R"json({
+    "manifest_version":3,
+    "minecart_tracks":{"source":{"format":"yaze-minecart-track-table",
+    "version":1,"path":"Sprites/Objects/data/minecart_tracks.asm"}}
+  })json")
+                  .ok());
+  viewer.SetProject(&project);
+  for (float width : {300.0f, 640.0f, 1024.0f}) {
+    host_width = width;
+    frame();
+    const auto toggle = frame();
+    ASSERT_TRUE(toggle.has_value());
+    EXPECT_TRUE(toggle->visible);
+    EXPECT_TRUE(toggle->bounds.valid);
+    EXPECT_LE(toggle->bounds.max_x, content_right + 1);
+  }
+  EXPECT_TRUE(DungeonCanvasViewerTestPeer::OverviewNodesVisible(viewer));
+  const auto toggle = frame();
+  ASSERT_TRUE(toggle.has_value());
+  const auto& bounds = toggle->bounds;
+  io.AddMousePosEvent((bounds.min_x + bounds.max_x) / 2,
+                      (bounds.min_y + bounds.max_y) / 2);
+  frame();
+  io.AddMouseButtonEvent(0, true);
+  frame();
+  io.AddMouseButtonEvent(0, false);
+  frame();
+  EXPECT_FALSE(DungeonCanvasViewerTestPeer::OverviewNodesVisible(viewer));
+  viewer.SetProject(nullptr);
+  EXPECT_FALSE(frame().has_value());
+  gui::WidgetIdRegistry::Instance().Clear();
+}
+
+TEST_F(DungeonCanvasWheelRoutingTest,
+       OverviewRoomClickRetainsMinecartBrushAndReturnsToRoomView) {
+  MinecartTrackEditorPanel panel;
+  project::YazeProject project;
+  ASSERT_TRUE(panel.SetProject(&project).ok());
+  panel.SetRooms(&rooms_);
+  panel.SetActiveRoom(0);
+  MinecartToolPayload brush;
+  brush.node = {MinecartNodeKind::kSwitchTrack, 9, 0xD2};
+  panel.SetPlacementBrush(brush);
+  primary_->SetMinecartTrackPanel(&panel);
+  primary_->SetRoomSwapCallback([&](int old_room, int next_room) {
+    EXPECT_EQ(old_room, 0);
+    room_id_ = next_room;
+    panel.SetActiveRoom(next_room);
+  });
+  DungeonCanvasViewerTestPeer::SeedOverview(*primary_, 0, 1);
+  DungeonWorkbenchContentTestPeer::SetOverview(*content_, true);
+  auto& io = ImGui::GetIO();
+  io.AddMousePosEvent(-1000, -1000);
+  Frame(nullptr, false);
+  Frame(nullptr, false);
+  const auto room_center =
+      DungeonCanvasViewerTestPeer::OverviewRoomCenter(*primary_, 1);
+  io.AddMousePosEvent(room_center.x, room_center.y);
+  Frame(nullptr, false);
+  io.AddMouseButtonEvent(0, true);
+  Frame(nullptr, false);
+  io.AddMouseButtonEvent(0, false);
+  EXPECT_EQ(room_id_, 1);
+  EXPECT_FALSE(DungeonWorkbenchContentTestPeer::LayoutState(*content_)
+                   .show_connected_canvas_view);
+  ASSERT_TRUE(panel.placement_brush().has_value());
+  EXPECT_EQ(panel.placement_brush()->node.kind, MinecartNodeKind::kSwitchTrack);
+  EXPECT_EQ(panel.placement_brush()->node.id, 9);
+  EXPECT_EQ(panel.placement_brush()->node.collision, 0xD2);
+  EXPECT_EQ(panel.placement_brush()->room_id, 1);
+  primary_->SetMinecartTrackPanel(nullptr);
+  primary_->SetRoomSwapCallback({});
 }
 
 }  // namespace yaze::editor

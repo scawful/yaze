@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <cmath>
 
+#include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
 #include "app/editor/dungeon/dungeon_canvas_transform.h"
 #include "app/gui/core/agent_theme.h"
@@ -69,6 +70,227 @@ absl::Status ValidateCartStartDestination(const zelda3::Room& room,
       return absl::FailedPreconditionError("Another cart occupies this stop");
   }
   return absl::OkStatus();
+}
+
+std::vector<MinecartOverviewNode> CollectMinecartOverviewNodes(
+    const zelda3::Room& room, std::span<const MinecartTrack> tracks) {
+  std::vector<MinecartOverviewNode> nodes;
+  auto collision_at = [&](MinecartOverviewNode& node) {
+    const int x = node.pixel_x / 8, y = node.pixel_y / 8;
+    const size_t offset = y * 64 + x;
+    if (node.layer == 0 && room.has_custom_collision() &&
+        room.custom_collision().HasOverride(offset)) {
+      node.collision = room.custom_collision().tiles[offset];
+      node.has_collision = true;
+    }
+  };
+  for (const auto& track : tracks) {
+    if (track.room_id != room.id() || track.id < 0 ||
+        track.id >= static_cast<int>(kMinecartTrackSlotCount) ||
+        (track.room_id == 0 && track.start_x == 0 && track.start_y == 0)) {
+      continue;
+    }
+    const auto local = MinecartLocalPosition(track);
+    if (!local) {
+      continue;
+    }
+    MinecartOverviewNode node{MinecartOverviewNodeKind::kCartStart, track.id,
+                              local->first, local->second};
+    node.paired_actor = FindCartStartSprite(room, track).ok();
+    collision_at(node);
+    nodes.push_back(node);
+  }
+  for (const auto& sprite : room.GetSprites()) {
+    if (sprite.deleted() || sprite.IsOverlord() || sprite.x() >= 32 ||
+        sprite.y() >= 32) {
+      continue;
+    }
+    MinecartOverviewNodeKind kind;
+    switch (sprite.id()) {
+      case 0xA3:
+        kind = MinecartOverviewNodeKind::kCart;
+        break;
+      case 0xAF:
+        kind = MinecartOverviewNodeKind::kSwitch;
+        break;
+      case 0xB0:
+        kind = MinecartOverviewNodeKind::kRotatingTrack;
+        break;
+      default:
+        continue;
+    }
+    MinecartOverviewNode node{kind, sprite.subtype(), sprite.x() * 16,
+                              sprite.y() * 16, sprite.layer()};
+    // A correctly paired start represents its cart too. Keep mismatched carts
+    // visible so a stale source start cannot hide a live sprite edit.
+    if (kind == MinecartOverviewNodeKind::kCart &&
+        std::any_of(nodes.begin(), nodes.end(), [&](const auto& start) {
+          return start.kind == MinecartOverviewNodeKind::kCartStart &&
+                 start.paired_actor && start.id == node.id &&
+                 start.pixel_x == node.pixel_x &&
+                 start.pixel_y == node.pixel_y && node.layer == 0;
+        })) {
+      continue;
+    }
+    collision_at(node);
+    nodes.push_back(node);
+  }
+  if (!room.has_custom_collision()) {
+    return nodes;
+  }
+  const auto& collision = room.custom_collision();
+  for (size_t offset = 0; offset < collision.tiles.size(); ++offset) {
+    const uint8_t value = collision.tiles[offset];
+    const bool stop = value >= 0xB7 && value <= 0xBA;
+    const bool rotating = value >= 0xD0 && value <= 0xD3;
+    if ((!stop && !rotating) || !collision.HasOverride(offset)) {
+      continue;
+    }
+    const int x = static_cast<int>(offset % 64) * 8;
+    const int y = static_cast<int>(offset / 64) * 8;
+    if (rotating &&
+        std::any_of(nodes.begin(), nodes.end(), [&](const auto& actor) {
+          return actor.kind == MinecartOverviewNodeKind::kRotatingTrack &&
+                 actor.layer == 0 && actor.pixel_x == x && actor.pixel_y == y;
+        })) {
+      continue;
+    }
+    nodes.push_back({stop ? MinecartOverviewNodeKind::kStop
+                          : MinecartOverviewNodeKind::kRotatingCollision,
+                     -1, x, y, 0, value, true});
+  }
+  return nodes;
+}
+
+bool IsMinecartOverviewNodeSelected(
+    const MinecartOverviewNode& node,
+    std::span<const MinecartOverviewNode> room_nodes,
+    const MinecartOverviewSelection& selection) {
+  using Kind = MinecartOverviewNodeKind;
+  if (node.kind == Kind::kSwitch || node.kind == Kind::kRotatingTrack) {
+    return selection.channel >= 0 && node.id == selection.channel;
+  }
+  if (node.kind == Kind::kCartStart || node.kind == Kind::kCart) {
+    return selection.cart_id >= 0 && node.id == selection.cart_id;
+  }
+  return std::any_of(
+      room_nodes.begin(), room_nodes.end(), [&](const auto& other) {
+        return other.layer == 0 && other.pixel_x == node.pixel_x &&
+               other.pixel_y == node.pixel_y &&
+               ((node.kind == Kind::kStop &&
+                 (other.kind == Kind::kCartStart ||
+                  other.kind == Kind::kCart) &&
+                 selection.cart_id >= 0 && other.id == selection.cart_id) ||
+                (node.kind == Kind::kRotatingCollision &&
+                 other.kind == Kind::kRotatingTrack && selection.channel >= 0 &&
+                 other.id == selection.channel));
+      });
+}
+
+std::string DescribeMinecartOverviewNode(const MinecartOverviewNode& node) {
+  using Kind = MinecartOverviewNodeKind;
+  std::string text;
+  switch (node.kind) {
+    case Kind::kCartStart:
+      text = absl::StrFormat(
+          "Cart start C%d (%s)", node.id,
+          node.paired_actor ? "paired cart" : "no matching cart");
+      break;
+    case Kind::kCart:
+      text = absl::StrFormat("Placed cart C%d (start does not match)", node.id);
+      break;
+    case Kind::kStop:
+      text = "Stop collision";
+      break;
+    case Kind::kSwitch:
+      text = absl::StrFormat("Switch channel S%d", node.id);
+      break;
+    case Kind::kRotatingTrack:
+      text = absl::StrFormat("Rotating track channel S%d", node.id);
+      break;
+    case Kind::kRotatingCollision:
+      text = "Rotating-track collision (no actor at this anchor)";
+      break;
+  }
+  absl::StrAppend(&text, absl::StrFormat(" | tile (%d,%d) | %s layer",
+                                         node.pixel_x / 8, node.pixel_y / 8,
+                                         node.layer == 0 ? "upper" : "lower"));
+  if (node.has_collision) {
+    absl::StrAppend(&text,
+                    absl::StrFormat(" | collision $%02X", node.collision));
+  } else if (node.kind != Kind::kSwitch) {
+    absl::StrAppend(&text, " | custom collision unavailable at anchor");
+  }
+  return text;
+}
+
+std::string DrawMinecartOverviewNodes(
+    ImDrawList* draw_list, const DungeonCanvasTransform& transform,
+    std::span<const MinecartOverviewNode> nodes,
+    const MinecartOverviewSelection& selection, bool hover_enabled) {
+  if (!draw_list) {
+    return {};
+  }
+  using Kind = MinecartOverviewNodeKind;
+  const auto& theme = AgentUI::GetTheme();
+  const float radius = std::clamp(4.0f + transform.scale() * 3.0f, 4.0f, 9.0f);
+  std::string hovered;
+  for (const auto& node : nodes) {
+    const bool collision_only =
+        node.kind == Kind::kStop || node.kind == Kind::kRotatingCollision;
+    const float half_size = collision_only ? 4.0f : 8.0f;
+    const auto center = transform.RoomPixelsToScreen(
+        ImVec2(node.pixel_x + half_size, node.pixel_y + half_size));
+    const bool selected =
+        IsMinecartOverviewNodeSelected(node, nodes, selection);
+    const auto base_color = node.kind == Kind::kSwitch ? theme.status_error
+                            : node.kind == Kind::kRotatingTrack ||
+                                    node.kind == Kind::kRotatingCollision
+                                ? theme.transport_color
+                            : node.kind == Kind::kStop
+                                ? theme.status_success
+                                : theme.selection_primary;
+    const ImU32 color = ImGui::GetColorU32(base_color);
+    draw_list->AddCircleFilled(center, radius + 1.5f, IM_COL32(0, 0, 0, 220),
+                               12);
+    if (collision_only) {
+      draw_list->AddRectFilled(ImVec2(center.x - radius, center.y - radius),
+                               ImVec2(center.x + radius, center.y + radius),
+                               color, 1.0f);
+    } else if (node.kind == Kind::kSwitch ||
+               node.kind == Kind::kRotatingTrack) {
+      draw_list->AddQuadFilled(ImVec2(center.x, center.y - radius),
+                               ImVec2(center.x + radius, center.y),
+                               ImVec2(center.x, center.y + radius),
+                               ImVec2(center.x - radius, center.y), color);
+    } else {
+      draw_list->AddCircleFilled(center, radius, color, 12);
+    }
+    if (selected) {
+      draw_list->AddCircle(center, radius + 3.0f,
+                           ImGui::GetColorU32(theme.status_warning), 12, 2.0f);
+    }
+    if (node.id >= 0 && (selected || transform.scale() >= 0.24f)) {
+      const char prefix = node.kind == Kind::kSwitch          ? 'S'
+                          : node.kind == Kind::kRotatingTrack ? 'R'
+                                                              : 'C';
+      const auto label = absl::StrFormat("%c%d", prefix, node.id);
+      const ImVec2 position(center.x + radius + 3.0f, center.y - 7.0f);
+      draw_list->AddText(ImVec2(position.x + 1, position.y + 1),
+                         IM_COL32(0, 0, 0, 255), label.c_str());
+      draw_list->AddText(position, ImGui::GetColorU32(theme.text_primary),
+                         label.c_str());
+    }
+    const auto mouse = ImGui::GetMousePos();
+    const float dx = mouse.x - center.x, dy = mouse.y - center.y;
+    if (hover_enabled && dx * dx + dy * dy <= (radius + 3) * (radius + 3)) {
+      if (!hovered.empty()) {
+        hovered += '\n';
+      }
+      hovered += DescribeMinecartOverviewNode(node);
+    }
+  }
+  return hovered;
 }
 
 void MinecartCanvasTool::Cancel() {

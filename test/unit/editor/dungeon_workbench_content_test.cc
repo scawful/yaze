@@ -1121,7 +1121,10 @@ class DungeonWorkbenchPlacementUiTest
     ImGui::SetNextWindowPos(ImVec2(20, 20), ImGuiCond_Always);
     ImGui::SetNextWindowSize(ImVec2(272, 560), ImGuiCond_Always);
     ImGui::Begin("PlacementHost", nullptr, ImGuiWindowFlags_NoSavedSettings);
+    ImGui::LogToBuffer();
     DungeonWorkbenchContentTestPeer::DrawInspector(content_, viewer_);
+    logged_text_ = ImGui::GetCurrentContext()->LogBuffer.c_str();
+    ImGui::LogFinish();
     auto* window = ImGui::GetCurrentWindow();
     EXPECT_LE(window->DC.CursorMaxPos.x, window->WorkRect.Max.x + 1);
     ImGui::End();
@@ -1151,6 +1154,83 @@ class DungeonWorkbenchPlacementUiTest
   DungeonWorkbenchContent content_ =
       MakeWorkbenchForToolStateTests(room_id_, recent_);
 };
+
+TEST_F(DungeonWorkbenchPlacementUiTest,
+       SelectionTileActionShowsExactRailAndPropAssetsWithoutRoomMutation) {
+  WriteCustomAssets({"track_custom.bin", "junction_n.bin", "furnace.bin"});
+  auto& manager = zelda3::CustomObjectManager::Get();
+  manager.SetMinecartRailProfile(zelda3::MinecartRailProfile::kExpanded);
+  std::vector<std::string> rails(16);
+  rails[0] = "track_custom.bin";
+  rails[13] = "junction_n.bin";
+  std::vector<std::string> props(13);
+  props[0] = "furnace.bin";
+  manager.SetObjectFileMap({{0x31, rails}, {0x32, props}});
+  core::FeatureFlags::get().kEnableCustomObjects = true;
+  auto& interaction = viewer_.object_interaction();
+  interaction.CancelPlacement();
+  rooms_[0].SetTileObjects({zelda3::RoomObject(0x31, 12, 14, 13, 1),
+                            zelda3::RoomObject(0x32, 16, 18, 0, 0)});
+  rooms_[0].ClearSaveDirtyState();
+  int callbacks = 0;
+  std::string opened_asset;
+  viewer_.SetEditObjectTilesCallback(
+      [&](int room, const zelda3::RoomObject& object) {
+        EXPECT_EQ(room, 0);
+        opened_asset = manager.ResolveFilename(object.id_, object.size_);
+        ++callbacks;
+      });
+  content_.FocusSelectionInspector();
+  for (size_t index = 0; index < 2; ++index) {
+    interaction.SetSelectedObjects({index});
+    DrawInspectorFrame();
+    DrawInspectorFrame();
+    const char* expected_asset = index == 0 ? "junction_n.bin" : "furnace.bin";
+    EXPECT_NE(logged_text_.find(expected_asset), std::string::npos);
+    EXPECT_NE(logged_text_.find("Available"), std::string::npos);
+    ClickInspector("button:edit_object_tiles");
+    EXPECT_EQ(opened_asset, expected_asset);
+    EXPECT_EQ(callbacks, index + 1);
+    EXPECT_EQ(interaction.GetSelectedObjectIndices(),
+              std::vector<size_t>{index});
+  }
+  EXPECT_EQ(rooms_[0].GetTileObjects()[0].size_, 13);
+  EXPECT_EQ(rooms_[0].GetTileObjects()[1].size_, 0);
+  EXPECT_FALSE(rooms_[0].HasUnsavedChanges());
+}
+
+TEST_F(DungeonWorkbenchPlacementUiTest,
+       SelectionTileActionDisablesMissingCorruptAndInvalidAssets) {
+  WriteCustomAssets({"track_custom.bin"});
+  std::ofstream(custom_assets_ / "corrupt.bin", std::ios::binary).put('\x01');
+  auto& manager = zelda3::CustomObjectManager::Get();
+  manager.SetObjectFileMap(
+      {{0x31, {"track_custom.bin", "missing.bin", "corrupt.bin"}}});
+  core::FeatureFlags::get().kEnableCustomObjects = true;
+  auto& interaction = viewer_.object_interaction();
+  interaction.CancelPlacement();
+  content_.FocusSelectionInspector();
+  int callbacks = 0;
+  viewer_.SetEditObjectTilesCallback(
+      [&](int, const zelda3::RoomObject&) { ++callbacks; });
+  for (uint8_t subtype : {1, 2, 32}) {
+    rooms_[0].SetTileObjects({zelda3::RoomObject(0x31, 12, 14, subtype, 1)});
+    interaction.SetSelectedObjects({0});
+    DrawInspectorFrame();
+    DrawInspectorFrame();
+    const auto widget = Widget("button:edit_object_tiles");
+    ASSERT_TRUE(widget.has_value());
+    EXPECT_FALSE(widget->enabled);
+    EXPECT_NE(logged_text_.find("Unavailable"), std::string::npos);
+    // The common operation rechecks admission even if called after a menu was
+    // created while another asset was still available.
+    viewer_.EditObjectTiles(0, rooms_[0].GetTileObjects()[0]);
+    EXPECT_EQ(callbacks, 0);
+    EXPECT_EQ(rooms_[0].GetTileObjects()[0].size_, subtype);
+  }
+  viewer_.EditObjectTiles(-1, zelda3::RoomObject(0x31, 0, 0, 0, 0));
+  EXPECT_EQ(callbacks, 0);
+}
 
 class DungeonWorkbenchResetUiTest : public DungeonWorkbenchObjectSizeUiTest {
  protected:

@@ -10,6 +10,7 @@
 #include <vector>
 
 #include "app/editor/dungeon/dungeon_editor_v2.h"
+#include "app/editor/dungeon/ui/minecart/minecart_canvas_tool.h"
 #include "app/editor/dungeon/ui/window/minecart_track_editor_panel.h"
 #include "core/project.h"
 #include "gtest/gtest.h"
@@ -280,6 +281,46 @@ TEST_F(MinecartNodePlacementTest, SwitchTrackUndoRestoresPriorRail) {
   ASSERT_TRUE(editor_->Redo().ok());
   EXPECT_EQ(room_->custom_collision().tiles[48 * 64 + 50], 0xD0);
   EXPECT_EQ(ReadSource(), original_source_);
+}
+
+TEST_F(MinecartNodePlacementTest,
+       OverviewSnapshotsFollowUnsavedCartAndRotatingTrackUndoRedo) {
+  using Kind = MinecartOverviewNodeKind;
+  auto snapshot = [&]() {
+    return CollectMinecartOverviewNodes(*room_, panel_.GetTracks());
+  };
+  EXPECT_TRUE(snapshot().empty());
+  ASSERT_TRUE(Place({MinecartNodeKind::kCartStart, 17, 0xB8}).ok());
+  auto nodes = snapshot();
+  ASSERT_EQ(nodes.size(), 2u);  // Paired cart/start and sampled stop.
+  EXPECT_EQ(nodes.front().kind, Kind::kCartStart);
+  EXPECT_TRUE(nodes.front().paired_actor);
+  EXPECT_EQ(nodes.front().pixel_x, 400);
+  EXPECT_EQ(nodes.front().pixel_y, 384);
+  EXPECT_EQ(panel_.GetTracks()[17].room_id, 0x98);
+  EXPECT_EQ(ReadSource(), original_source_);
+  ASSERT_TRUE(editor_->Undo().ok());
+  EXPECT_TRUE(snapshot().empty());
+  ASSERT_TRUE(editor_->Redo().ok());
+  EXPECT_EQ(snapshot().size(), 2u);
+  ASSERT_TRUE(editor_->Undo().ok());
+
+  ASSERT_TRUE(Place({MinecartNodeKind::kSwitchTrack, 9, 0xD2}).ok());
+  nodes = snapshot();
+  ASSERT_EQ(nodes.size(), 1u);
+  EXPECT_EQ(nodes.front().kind, Kind::kRotatingTrack);
+  EXPECT_EQ(nodes.front().id, 9);
+  EXPECT_TRUE(nodes.front().has_collision);
+  EXPECT_EQ(nodes.front().collision, 0xD2);
+  EXPECT_TRUE(IsMinecartOverviewNodeSelected(nodes.front(), nodes, {-1, 9}));
+  ASSERT_TRUE(editor_->Undo().ok());
+  EXPECT_TRUE(snapshot().empty());
+  ASSERT_TRUE(editor_->Redo().ok());
+  nodes = snapshot();
+  ASSERT_FALSE(nodes.empty());
+  EXPECT_EQ(nodes.front().collision, 0xD2);
+  EXPECT_EQ(ReadSource(), original_source_);
+  EXPECT_EQ(rom_.vector(), original_rom_);
 }
 
 TEST_F(MinecartNodePlacementTest,

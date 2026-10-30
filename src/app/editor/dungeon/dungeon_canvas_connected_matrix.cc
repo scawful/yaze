@@ -13,9 +13,12 @@
 
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
+#include "app/editor/dungeon/dungeon_canvas_transform.h"
 #include "app/editor/dungeon/dungeon_project_labels.h"
+#include "app/editor/dungeon/ui/window/minecart_track_editor_panel.h"
 #include "app/editor/dungeon/ui_constants.h"
 #include "app/gfx/resource/arena.h"
+#include "app/gui/automation/widget_auto_register.h"
 #include "app/gui/core/agent_theme.h"
 #include "app/gui/core/style.h"
 #include "app/gui/core/style_guard.h"
@@ -37,6 +40,12 @@ constexpr char kConnectedCanvasControlsId[] =
     "##DungeonConnectedCanvasControls";
 constexpr char kConnectedCanvasOverviewId[] =
     "##DungeonConnectedCanvasOverview";
+
+bool HasMinecartOverviewContext(const project::YazeProject* project,
+                                const MinecartTrackEditorPanel* panel) {
+  return panel && project && project->hack_manifest.loaded() &&
+         project->hack_manifest.minecart_track_layout().source.has_value();
+}
 
 ImVec2 GetConnectedRoomOrigin(int grid_col, int grid_row, int min_col,
                               int min_row) {
@@ -317,7 +326,7 @@ void DrawConnectedControlsLegend() {
 
 ConnectedControlsCompactActions DrawConnectedControlsCompact(
     float scale, int connected_room_count, bool* show_overview,
-    bool* show_preview) {
+    bool* show_preview, bool* show_minecart_nodes) {
   ConnectedControlsCompactActions actions;
   ImGui::TextDisabled(tr("%d room%s"), connected_room_count,
                       connected_room_count == 1 ? "" : "s");
@@ -360,7 +369,33 @@ ConnectedControlsCompactActions DrawConnectedControlsCompact(
     }
   }
 
-  ImGui::SameLine(0.0f, 8.0f);
+  if (show_minecart_nodes) {
+    const float checkbox_width = ImGui::GetFrameHeight() +
+                                 ImGui::GetStyle().ItemInnerSpacing.x +
+                                 ImGui::CalcTextSize(tr("Minecart nodes")).x;
+    if (ImGui::GetItemRectMax().x + ImGui::GetStyle().ItemSpacing.x +
+            checkbox_width <=
+        ImGui::GetWindowPos().x + ImGui::GetWindowContentRegionMax().x) {
+      ImGui::SameLine();
+    }
+    gui::AutoWidgetScope scope("Dungeon/Overview");
+    gui::AutoCheckbox(tr("Minecart nodes##ConnectedMinecartNodes"),
+                      show_minecart_nodes);
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip(
+          "%s",
+          tr("Live starts/carts (circles), stops (squares), switches and "
+             "rotating tracks (diamonds). C = cart ID; S/R = shared "
+             "switch channel. Matching IDs do not prove a rail route. "
+             "Hover nodes for details; place or move them in Room view."));
+    }
+  }
+
+  const float legend_width = ImGui::CalcTextSize("Door Stair Warp").x + 72.0f;
+  if (ImGui::GetItemRectMax().x + 8.0f + legend_width <=
+      ImGui::GetWindowPos().x + ImGui::GetWindowContentRegionMax().x) {
+    ImGui::SameLine(0.0f, 8.0f);
+  }
   DrawConnectedControlsLegend();
   return actions;
 }
@@ -374,7 +409,8 @@ struct ConnectedCanvasOverviewActions {
 
 ConnectedCanvasControlActions DrawConnectedCanvasControls(
     const ImVec2& pos, const ImVec2& pivot, float scale,
-    int connected_room_count, bool show_overview, bool show_preview) {
+    int connected_room_count, bool show_overview, bool show_preview,
+    bool* show_minecart_nodes) {
   ConnectedCanvasControlActions actions;
   actions.show_overview = show_overview;
   actions.show_preview = show_preview;
@@ -423,7 +459,7 @@ ConnectedCanvasControlActions DrawConnectedCanvasControls(
     ImGui::SameLine(0.0f, 6.0f);
     const auto compact_actions = DrawConnectedControlsCompact(
         scale, connected_room_count, &actions.show_overview,
-        &actions.show_preview);
+        &actions.show_preview, show_minecart_nodes);
     actions.fit = compact_actions.fit;
     actions.reset = compact_actions.reset;
   }
@@ -959,7 +995,10 @@ void DungeonCanvasViewer::DrawConnectedToolbarControls(int center_room_id) {
   ImGui::SameLine(0.0f, 8.0f);
   const auto compact_actions = DrawConnectedControlsCompact(
       ConnectedCanvasScale(), connected_room_count, &show_connected_overview_,
-      &show_connected_current_room_preview_);
+      &show_connected_current_room_preview_,
+      HasMinecartOverviewContext(project_, minecart_track_panel_)
+          ? &show_connected_minecart_nodes_
+          : nullptr);
   if (compact_actions.fit) {
     connected_canvas_fit_requested_ = true;
   }
@@ -1292,6 +1331,24 @@ std::optional<int> DungeonCanvasViewer::DrawConnectedRoomMatrix(
                                  link_thickness);
   }
 
+  std::span<const MinecartTrack> minecart_tracks;
+  MinecartOverviewSelection minecart_selection;
+  const bool show_minecart_nodes =
+      show_connected_minecart_nodes_ &&
+      HasMinecartOverviewContext(project_, minecart_track_panel_);
+  if (show_minecart_nodes) {
+    minecart_tracks = minecart_track_panel_->GetTracks();
+    minecart_selection.cart_id = minecart_track_panel_->selected_track();
+    if (const auto& brush = minecart_track_panel_->placement_brush();
+        brush && !brush->collision_only) {
+      if (brush->node.kind == MinecartNodeKind::kCartStart) {
+        minecart_selection.cart_id = brush->node.id;
+      } else {
+        minecart_selection.channel = brush->node.id;
+      }
+    }
+  }
+  std::string hovered_minecart_nodes;
   int hovered_room_id = -1;
   for (int room_id : visible_rooms) {
     const auto& placement =
@@ -1366,6 +1423,34 @@ std::optional<int> DungeonCanvasViewer::DrawConnectedRoomMatrix(
                            screen_min.y + kConnectedRoomLabelPadding);
     const ImVec2 label_max(label_min.x + label_size.x + 12.0f,
                            label_min.y + kConnectedRoomLabelHeight);
+    if (show_minecart_nodes && screen_max.x > viewport_screen_min.x &&
+        screen_max.y > viewport_screen_min.y &&
+        screen_min.x < map_viewport_screen_max.x &&
+        screen_min.y < map_viewport_screen_max.y) {
+      // The graph determines placement only. Read actors/collision/source
+      // drafts afresh, so edits and Undo never depend on graph invalidation.
+      const auto* live_room = rooms_->GetIfMaterialized(room_id);
+      if (live_room) {
+        const auto nodes =
+            CollectMinecartOverviewNodes(*live_room, minecart_tracks);
+        canvas_rt.draw_list->PushClipRect(
+            ImVec2(std::max(screen_min.x, viewport_screen_min.x),
+                   std::max(screen_min.y, viewport_screen_min.y)),
+            ImVec2(std::min(screen_max.x, map_viewport_screen_max.x),
+                   std::min(screen_max.y, map_viewport_screen_max.y)),
+            true);
+        const auto details = DrawMinecartOverviewNodes(
+            canvas_rt.draw_list,
+            DungeonCanvasTransform(screen_min, ImVec2(0, 0), canvas_rt.scale),
+            nodes, minecart_selection, hovered);
+        canvas_rt.draw_list->PopClipRect();
+        if (!details.empty()) {
+          hovered_minecart_nodes = details;
+        }
+      }
+    }
+    // Room identity remains legible when a node is near the caption. Hover
+    // still reports the node under it without introducing another input item.
     canvas_rt.draw_list->AddRectFilled(label_min, label_max, label_bg, 5.0f);
     canvas_rt.draw_list->AddText(ImVec2(label_min.x + 6.0f, label_min.y + 6.0f),
                                  ImGui::GetColorU32(theme.text_primary),
@@ -1418,7 +1503,10 @@ std::optional<int> DungeonCanvasViewer::DrawConnectedRoomMatrix(
     control_actions = DrawConnectedCanvasControls(
         connected_controls_pos, connected_controls_pivot,
         connected_canvas_.global_scale(), connected_room_count,
-        show_connected_overview_, show_connected_current_room_preview_);
+        show_connected_overview_, show_connected_current_room_preview_,
+        HasMinecartOverviewContext(project_, minecart_track_panel_)
+            ? &show_connected_minecart_nodes_
+            : nullptr);
     if (!using_connected_side_panel &&
         control_actions.moved_window_pos.has_value()) {
       connected_controls_custom_position_ = true;
@@ -1472,6 +1560,11 @@ std::optional<int> DungeonCanvasViewer::DrawConnectedRoomMatrix(
           "[%03X] %s", hovered_room_id,
           dungeon_project_labels::GetRoomLabel(project_, hovered_room_id)
               .c_str());
+      if (!hovered_minecart_nodes.empty()) {
+        absl::StrAppend(&tooltip, "\n", hovered_minecart_nodes,
+                        "\nMatching cart IDs/channels are associations; "
+                        "physical rail connections are unverified.");
+      }
       const auto& hovered_placement =
           connected_graph.room_positions[static_cast<size_t>(hovered_room_id)];
       const std::string& floor_label =

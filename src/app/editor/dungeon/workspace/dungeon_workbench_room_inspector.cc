@@ -21,10 +21,12 @@
 #include "app/gui/core/input.h"
 #include "app/gui/core/layout_helpers.h"
 #include "app/gui/core/style_guard.h"
+#include "core/features.h"
 #include "imgui/imgui.h"
 #include "rom/rom.h"
 #include "util/i18n/tr.h"
 #include "zelda3/dungeon/chest_edit.h"
+#include "zelda3/dungeon/custom_object.h"
 #include "zelda3/dungeon/object_layer_semantics.h"
 #include "zelda3/resource_labels.h"
 #include "zelda3/zelda3_labels.h"
@@ -472,6 +474,35 @@ void DungeonWorkbenchContent::DrawInspectorShelfSelection(
           if (!description.wheel_hint.empty())
             ImGui::TextUnformatted(description.wheel_hint.c_str());
           ImGui::EndTooltip();
+        }
+
+        const auto tile_edit_status = viewer.ObjectTileEditStatus(room_id, obj);
+        auto& custom_objects = zelda3::CustomObjectManager::Get();
+        if (core::FeatureFlags::get().kEnableCustomObjects &&
+            zelda3::CustomObjectManager::RuntimeSubtypeCountForObject(
+                obj.id_, custom_objects.GetMinecartRailProfile()) > 0) {
+          const auto filename =
+              custom_objects.ResolveFilename(obj.id_, obj.size_);
+          ImGui::TextWrapped("Asset: %s", filename.empty() ? "Unmapped variant"
+                                                           : filename.c_str());
+        }
+        ImGui::BeginDisabled(!tile_edit_status.ok());
+        if (ImGui::Button(tr("Edit tiles..."))) {
+          viewer.EditObjectTiles(room_id, obj);
+        }
+        {
+          gui::AutoWidgetScope scope("Dungeon/Workbench");
+          gui::AutoRegisterLastItem(
+              "button", "edit_object_tiles",
+              "Edit the selected object's exact tile asset");
+        }
+        ImGui::EndDisabled();
+        ImGui::SameLine();
+        ImGui::TextDisabled(
+            "%s", tile_edit_status.ok() ? "Available" : "Unavailable");
+        if (!tile_edit_status.ok()) {
+          ImGui::TextWrapped("%s",
+                             std::string(tile_edit_status.message()).c_str());
         }
 
         if (chest_index) {

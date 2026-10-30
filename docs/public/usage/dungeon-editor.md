@@ -166,9 +166,14 @@ preview. Without a configured source, rendering continues to use ROM patterns.
    containing that cart ID. The room buttons retain the selected placement
    tool. **Scan project rooms** includes unopened rooms; otherwise the list
    covers loaded rooms and includes their unsaved edits.
-4. Use **Overview** to choose another room, then continue placement in
-   **Room** view. Overview is a navigation view. Reopening the active Minecart
-   tool keeps the selected node or behavior tool.
+4. In **Overview**, enable **Minecart nodes** to see cart starts, placed carts,
+   stops, switches, and rotating tracks across the displayed rooms. Markers
+   follow live room and source drafts, including unsaved edits and Undo.
+   The selected cart ID or switch channel is highlighted. Hover a marker for
+   its identity, position, layer, and available collision details.
+5. Click a room in **Overview** to return to **Room** view and continue
+   placement with the chosen tool and brush. Reopening the active Minecart
+   tool also keeps the selected node or behavior tool.
 
 Cart placements identify matching route IDs. They do not establish that the
 rails connect or that a cart can complete the route in the game. Advanced
@@ -186,11 +191,14 @@ its asset. Missing or invalid assets are unavailable and show the reason. A
 room's existing unavailable variant stays unchanged until you choose a valid
 replacement.
 
-Right-click a selected object and choose **Edit Object Tiles…** to open its
-exact asset in the existing Object Tile Editor. The same action is available
-from the asset browser. Tile edits affect every placement using that asset;
-object position, layer, and variant remain room-instance properties. Apply or
-revert an unfinished tile draft before opening another asset.
+In **Selection**, use **Edit tiles…** to open the selected object's exact asset
+in the existing Object Tile Editor. The custom filename and availability appear
+beside the action; unavailable assets keep the button disabled and show the
+reason. The button uses the same guarded operation as right-click **Edit Object
+Tiles…**. The asset browser also opens the Object Tile Editor. Tile edits affect
+every placement using that asset; object position, layer, and variant remain
+room-instance properties. Apply or revert an unfinished tile draft before
+opening another asset. Attempting to open another asset preserves the draft.
 
 ### Saving
 

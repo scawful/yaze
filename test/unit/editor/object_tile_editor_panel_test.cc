@@ -12,6 +12,7 @@
 #include <vector>
 
 #include "absl/strings/str_format.h"
+#include "app/editor/dungeon/dungeon_canvas_viewer.h"
 #include "app/editor/dungeon/dungeon_editor_v2.h"
 #include "app/editor/system/session/hack_manifest_save_validation.h"
 #include "app/editor/system/workspace/workspace_window_manager.h"
@@ -735,6 +736,8 @@ TEST(DungeonEditorV2ObjectTileEditorTest,
   ScopedCustomObjectState custom_state(MakeTempDir("placed_custom_tiles"));
   WriteCustomObjectAsset(custom_state.dir / "track_corner_TR.bin",
                          zelda3::CustomObject{.tiles = {{0, 0, 0x0986}}});
+  WriteCustomObjectAsset(custom_state.dir / "track_custom.bin",
+                         zelda3::CustomObject{.tiles = {{0, 0, 0x0987}}});
   Rom rom;
   ASSERT_TRUE(rom.LoadFromData(MakeEditableStandardObjectRomData()).ok());
   zelda3::GameData game_data(&rom);
@@ -757,10 +760,20 @@ TEST(DungeonEditorV2ObjectTileEditorTest,
   DungeonEditorV2ObjectTileEditorTestPeer::SetObjectTileEditorPanel(editor,
                                                                     panel_ptr);
 
+  DungeonCanvasViewer viewer;
+  viewer.SetRooms(&editor.rooms());
+  absl::Status status;
+  int tile_actions = 0;
+  viewer.SetEditObjectTilesCallback([&](int room_id,
+                                        const zelda3::RoomObject& selected) {
+    ++tile_actions;
+    status =
+        DungeonEditorV2ObjectTileEditorTestPeer::OpenObjectTileEditorForObject(
+            editor, room_id, selected);
+  });
   const zelda3::RoomObject object(0x31, 12, 14, 3, 1);
-  auto status =
-      DungeonEditorV2ObjectTileEditorTestPeer::OpenObjectTileEditorForObject(
-          editor, 0, object);
+  viewer.EditObjectTiles(0, object);
+  ASSERT_EQ(tile_actions, 1);
   ASSERT_TRUE(status.ok()) << status;
   ASSERT_TRUE(window_manager.IsWindowOpen(0, panel_ptr->GetId()));
   const auto& layout = ObjectTileEditorPanelTestAccess::Layout(*panel_ptr);
@@ -779,9 +792,11 @@ TEST(DungeonEditorV2ObjectTileEditorTest,
   ObjectTileEditorPanelTestAccess::SetFirstCellTileAndPalette(*panel_ptr, 0x187,
                                                               2);
   ASSERT_TRUE(panel_ptr->HasUnappliedChanges());
-  status =
-      DungeonEditorV2ObjectTileEditorTestPeer::OpenObjectTileEditorForObject(
-          editor, 0, zelda3::RoomObject(0x31, 0, 0, 0, 0));
+  ASSERT_TRUE(
+      viewer.ObjectTileEditStatus(0, zelda3::RoomObject(0x31, 0, 0, 0, 0))
+          .ok());
+  viewer.EditObjectTiles(0, zelda3::RoomObject(0x31, 0, 0, 0, 0));
+  ASSERT_EQ(tile_actions, 2);
   EXPECT_TRUE(absl::IsFailedPrecondition(status)) << status;
   EXPECT_TRUE(panel_ptr->HasUnappliedChanges());
   EXPECT_EQ(ObjectTileEditorPanelTestAccess::FirstCellTileId(*panel_ptr),
