@@ -17,7 +17,7 @@ and reopen workflow.
 - **Startup/Memory Footprint**: Lazy session editors, deferred hidden asset loads, leaner room state, and trimmed eager bitmap allocation reduce startup and editor overhead.
 - **Release Hardening**: Version/changelog/release-notes preflight gating remains enforced in the release workflow.
 - **UI Module Migration RFC**: New editor UI work now targets feature-oriented `ui/<module>/...` folders and blocks new `_panel`/`panels` additions via editor guardrails.
-- **Editor folder map (contributors)**: Top-level editor sources use `registry/` (ContentRegistry, undo), `shell/` (global chrome: coordinator, dialogs, toast/popup, cross-editor windows), `system/{workspace,session,commands}/` (matches CMake `yaze_editor_system_*`), and `hack/oracle/` + `hack/oracle/ui/` for Oracle workflow. See the internal [Editor UI module pattern](../../internal/architecture/editor-ui-module-pattern.md) doc for the canonical table.
+- **Editor folder map (contributors)**: Top-level editor sources use `registry/` (ContentRegistry, undo), `shell/` (global chrome: coordinator, dialogs, toast/popup, cross-editor windows), `system/{workspace,session,commands}/` (matches CMake `yaze_editor_system_*`), and `oracle/` + `oracle/panels/` for Oracle workflow. See the internal [Editor UI module pattern](../../internal/architecture/editor-ui-module-pattern.md) doc for the canonical table.
 
 ### Known Issues
 

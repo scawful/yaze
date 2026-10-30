@@ -77,7 +77,7 @@ fs::path FileSystemToolBase::GetProjectRoot() const {
   while (!root.empty() && root != root.root_path()) {
     // Check for yaze-specific markers
     if (fs::exists(root / "CMakeLists.txt") &&
-        fs::exists(root / "src" / "yaze.cc")) {
+        fs::exists(root / "src" / "app")) {
       return root;
     }
     // Also check for .git directory as a fallback

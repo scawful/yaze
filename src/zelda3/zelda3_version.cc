@@ -1,6 +1,5 @@
-// C API version helpers declared in inc/zelda.h. They live in yaze_zelda3
-// rather than src/yaze.cc (which no CMake target builds) so the app, the CLI
-// and the tests can link them.
+// C API version helpers declared in inc/zelda.h. They live in yaze_zelda3 so
+// the app, the CLI and the tests can link them.
 
 #include <string>
 
