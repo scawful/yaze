@@ -8,6 +8,7 @@
 #include <fstream>
 #include <iterator>
 #include <memory>
+#include <sstream>
 #include <string>
 #include <utility>
 #include <vector>
@@ -140,16 +141,16 @@ class SaveTrustTile32Test
         ++differences;
       }
     }
-    auto result = ::testing::AssertionFailure();
-    result << "Source bytes=" << source_bytes_.size()
-           << ", saved bytes=" << actual.size()
-           << ", changed common bytes=" << differences
-           << ", first differing PC=0x" << std::hex << first;
+    std::ostringstream details;
+    details << "Source bytes=" << source_bytes_.size()
+            << ", saved bytes=" << actual.size()
+            << ", changed common bytes=" << differences
+            << ", first differing PC=0x" << std::hex << first;
     if (first < common) {
-      result << ", source=0x" << static_cast<int>(source_bytes_[first])
-             << ", saved=0x" << static_cast<int>(actual[first]);
+      details << ", source=0x" << static_cast<int>(source_bytes_[first])
+              << ", saved=0x" << static_cast<int>(actual[first]);
     }
-    return result;
+    return ::testing::AssertionFailure() << details.str();
   }
 
   std::unique_ptr<editor::OverworldTilePaintAction> PaintOneTile() {
