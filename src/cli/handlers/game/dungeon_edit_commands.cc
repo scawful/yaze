@@ -322,14 +322,29 @@ absl::Status SavePlacedObject(
   };
   ASSIGN_OR_RETURN(auto plan, zelda3::BuildChestSavePlan(
                                   rom, zelda3::kNumberOfRooms, lookup));
+  ASSIGN_OR_RETURN(auto object_ranges, room.GetObjectSaveWriteRanges(layout));
+  auto chest_ranges = plan.write_ranges();
+  // Preserve unused chest capacity as well as the current changed records.
+  chest_ranges.emplace_back(
+      plan.data_pc, static_cast<uint32_t>(plan.data_pc +
+                                          plan.original_capacity_bytes.size()));
+  for (const auto& object_range : object_ranges) {
+    for (const auto& chest_range : chest_ranges) {
+      if (object_range.first < chest_range.second &&
+          chest_range.first < object_range.second) {
+        return absl::FailedPreconditionError(
+            "Object and chest save ranges overlap");
+      }
+    }
+  }
   if (manifest_context != nullptr &&
       !manifest_context->manifest.AnalyzePcWriteRanges(plan.write_ranges())
            .empty()) {
     return absl::PermissionDeniedError("Write conflict with Hack Manifest");
   }
 
-  // Both plans run inside the caller's transaction. If object allocation
-  // touches the chest table, ApplyChestSavePlan rejects its stale preimage.
+  // Reject overlap even when an object write would preserve the old table
+  // bytes. The chest planner also verifies the preimage before applying.
   RETURN_IF_ERROR(room.SaveObjects(layout));
   return zelda3::ApplyChestSavePlan(rom, plan, lookup);
 }
