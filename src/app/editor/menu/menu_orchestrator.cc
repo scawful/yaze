@@ -460,15 +460,6 @@ void MenuOrchestrator::BuildEditorMenu() {
     case EditorType::kOverworld:
       menu_title = "Overworld";
       break;
-    case EditorType::kDungeon:
-      menu_title = "Dungeon";
-      break;
-    case EditorType::kGraphics:
-      menu_title = "Graphics";
-      break;
-    case EditorType::kMusic:
-      menu_title = "Music";
-      break;
     default:
       return;
   }
