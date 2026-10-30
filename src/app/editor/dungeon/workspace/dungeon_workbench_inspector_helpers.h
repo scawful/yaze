@@ -27,6 +27,10 @@ struct ObjectSizeDescription {
 // Uses the same geometry service as canvas selection; does not mutate the object.
 ObjectSizeDescription DescribeObjectSize(const zelda3::RoomObject& object);
 
+// Custom names use the active admitted catalog profile; vanilla names retain
+// their normal size semantics when custom objects are disabled.
+std::string RoomObjectDisplayName(const zelda3::RoomObject& object);
+
 // Draw size/variant rows inside the caller's two-column property table.
 // Returns a requested encoded value; the caller owns mutation and undo.
 bool DrawObjectSizeControls(const zelda3::RoomObject& object,

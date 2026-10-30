@@ -1681,8 +1681,11 @@ void DungeonWorkbenchContent::OpenTool(WorkbenchTool tool) {
   if (tool == WorkbenchTool::None) {
     return;
   }
+  const bool keep_minecart_tool = tool == WorkbenchTool::MinecartTracks &&
+                                  active_tool_ == tool &&
+                                  sidebar_mode_ == SidebarMode::Tools;
   active_tool_ = tool;
-  if (minecart_track_panel_) {
+  if (minecart_track_panel_ && !keep_minecart_tool) {
     minecart_track_panel_->CancelNodePlacement();
     minecart_track_panel_->set_collision_stamping(false);
     minecart_track_panel_->set_canvas_editing(tool ==

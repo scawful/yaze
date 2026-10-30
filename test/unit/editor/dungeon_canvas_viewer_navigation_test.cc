@@ -2798,6 +2798,52 @@ TEST(DungeonCanvasViewerContextMenuTest,
   EXPECT_EQ(FindLabelIndex(labels, "Edit Object Tiles..."), labels.size());
 }
 
+TEST_F(DungeonCanvasAssetRefreshTest,
+       CustomTileActionRetainsSubtypeAndRejectsUnavailableAssets) {
+  ScopedImGuiContext imgui;
+  auto& manager = zelda3::CustomObjectManager::Get();
+  manager.Initialize(root_.string());
+  core::FeatureFlags::get().kEnableCustomObjects = true;
+  const auto bytes = zelda3::EncodeCustomObjectBinary(
+      zelda3::CustomObject{.tiles = {{0, 0, 0x0986}}});
+  ASSERT_TRUE(bytes.ok()) << bytes.status();
+  for (const char* filename : {"track_corner_TR.bin", "track_LR.bin"}) {
+    std::ofstream asset(root_ / filename, std::ios::binary);
+    asset.write(reinterpret_cast<const char*>(bytes->data()), bytes->size());
+    ASSERT_TRUE(asset.good());
+  }
+  DungeonRoomStore rooms;
+  rooms[0].GetTileObjects() = {zelda3::RoomObject(0x31, 10, 10, 3, 1),
+                               zelda3::RoomObject(0x31, 12, 12, 4, 1),
+                               zelda3::RoomObject(0x31, 14, 14, 31, 1),
+                               zelda3::RoomObject(0x31, 16, 16, 32, 1)};
+  DungeonCanvasViewer viewer;
+  viewer.SetRooms(&rooms);
+  viewer.object_interaction().SetCurrentRoom(&rooms, 0);
+  int opened_subtype = -1;
+  viewer.SetEditObjectTilesCallback(
+      [&](int room_id, const zelda3::RoomObject& object) {
+        EXPECT_EQ(room_id, 0);
+        opened_subtype = object.size_;
+      });
+  viewer.object_interaction().SetSelectedObjects({0});
+  EXPECT_TRUE(DungeonCanvasViewerTestPeer::InvokeSelectionContextMenuItem(
+      viewer, 0, "Edit Object Tiles..."));
+  EXPECT_EQ(opened_subtype, 3);
+
+  for (size_t index : {size_t{1}, size_t{2}, size_t{3}}) {
+    viewer.object_interaction().SetSelectedObjects({index});
+    const auto labels =
+        DungeonCanvasViewerTestPeer::SelectionContextMenuLabels(viewer, 0);
+    EXPECT_EQ(FindLabelIndex(labels, "Edit Object Tiles..."), labels.size());
+  }
+  core::FeatureFlags::get().kEnableCustomObjects = false;
+  viewer.object_interaction().SetSelectedObjects({0});
+  const auto labels =
+      DungeonCanvasViewerTestPeer::SelectionContextMenuLabels(viewer, 0);
+  EXPECT_EQ(FindLabelIndex(labels, "Edit Object Tiles..."), labels.size());
+}
+
 TEST(DungeonCanvasViewerPingTest, TriggerCanvasPingRectClampsToCanvasBounds) {
   DungeonCanvasViewer viewer;
 

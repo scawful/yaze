@@ -9,9 +9,11 @@
 #include "app/editor/dungeon/dungeon_coordinates.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/platform_keys.h"
+#include "core/features.h"
 #include "imgui/imgui.h"
 #include "util/log.h"
 #include "zelda3/dungeon/chest_edit.h"
+#include "zelda3/dungeon/custom_object.h"
 #include "zelda3/dungeon/object_layer_semantics.h"
 #include "zelda3/dungeon/object_tile_editor.h"
 #include "zelda3/resource_labels.h"
@@ -270,9 +272,19 @@ DungeonCanvasViewer::BuildSelectionContextMenuItems(
           show_room_graphics_callback_();
         }
       };
+      auto& custom_objects = zelda3::CustomObjectManager::Get();
+      const bool custom_dispatch =
+          core::FeatureFlags::get().kEnableCustomObjects &&
+          zelda3::CustomObjectManager::RuntimeSubtypeCountForObject(
+              object.id_, custom_objects.GetMinecartRailProfile()) > 0;
+      const int subtype = object.size_;
       can_edit_selected_tiles =
           edit_object_tiles_callback_ != nullptr &&
-          zelda3::ObjectTileEditor::IsEditableStandardObject(object.id_);
+          (custom_dispatch
+               ? !custom_objects.ResolveFilename(object.id_, subtype).empty() &&
+                     custom_objects.GetObjectInternal(object.id_, subtype).ok()
+               : zelda3::ObjectTileEditor::IsEditableStandardObject(
+                     object.id_));
       edit_selected_tiles = [this, room_id, object]() {
         if (edit_object_tiles_callback_) {
           edit_object_tiles_callback_(room_id, object);

@@ -452,7 +452,7 @@ void DungeonWorkbenchContent::DrawInspectorShelfSelection(
         // Stream changes can reorder and replace the room's object vector.
         // Keep this frame's property values independent of that storage.
         const auto obj = objects[idx];
-        const std::string obj_name = zelda3::GetObjectName(obj.id_);
+        const std::string obj_name = workbench::RoomObjectDisplayName(obj);
         const bool uses_room_stream = zelda3::UsesRoomObjectStream(obj);
         int displayed_layer = obj.GetLayerValue();
         const auto chest_index = zelda3::ChestIndexForObject(objects, idx);

@@ -730,6 +730,68 @@ TEST(DungeonEditorV2ObjectTileEditorTest,
             default_group.GetColor(/*palette=*/2, /*color=*/1).snes());
 }
 
+TEST(DungeonEditorV2ObjectTileEditorTest,
+     PlacedCustomObjectOpensExactAssetAndPreservesAnUnappliedDraft) {
+  ScopedCustomObjectState custom_state(MakeTempDir("placed_custom_tiles"));
+  WriteCustomObjectAsset(custom_state.dir / "track_corner_TR.bin",
+                         zelda3::CustomObject{.tiles = {{0, 0, 0x0986}}});
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(MakeEditableStandardObjectRomData()).ok());
+  zelda3::GameData game_data(&rom);
+  ConfigureCoordinatorGameData(&game_data);
+  WorkspaceWindowManager window_manager;
+  window_manager.RegisterSession(0);
+  window_manager.SetActiveSession(0);
+  DungeonEditorV2 editor(&rom);
+  EditorDependencies dependencies;
+  dependencies.rom = &rom;
+  dependencies.game_data = &game_data;
+  dependencies.window_manager = &window_manager;
+  editor.SetDependencies(dependencies);
+  editor.SetGameData(&game_data);
+  PrepareCoordinatorRoom(&rom, &game_data, &editor, 0);
+  const std::vector<uint8_t> original_rom(rom.data(), rom.data() + rom.size());
+  auto panel = std::make_unique<ObjectTileEditorPanel>(nullptr, &rom);
+  auto* panel_ptr = panel.get();
+  window_manager.RegisterWindowContent(std::move(panel));
+  DungeonEditorV2ObjectTileEditorTestPeer::SetObjectTileEditorPanel(editor,
+                                                                    panel_ptr);
+
+  const zelda3::RoomObject object(0x31, 12, 14, 3, 1);
+  auto status =
+      DungeonEditorV2ObjectTileEditorTestPeer::OpenObjectTileEditorForObject(
+          editor, 0, object);
+  ASSERT_TRUE(status.ok()) << status;
+  ASSERT_TRUE(window_manager.IsWindowOpen(0, panel_ptr->GetId()));
+  const auto& layout = ObjectTileEditorPanelTestAccess::Layout(*panel_ptr);
+  EXPECT_TRUE(layout.is_custom);
+  EXPECT_EQ(layout.custom_subtype, 3);
+  EXPECT_EQ(layout.custom_filename, "track_corner_TR.bin");
+  EXPECT_FALSE(layout.source_provenance);
+
+  status =
+      DungeonEditorV2ObjectTileEditorTestPeer::OpenObjectTileEditorForObject(
+          editor, 0, zelda3::RoomObject(0x31, 0, 0, 32, 0));
+  EXPECT_TRUE(absl::IsOutOfRange(status)) << status;
+  EXPECT_EQ(ObjectTileEditorPanelTestAccess::Layout(*panel_ptr).custom_subtype,
+            3);
+
+  ObjectTileEditorPanelTestAccess::SetFirstCellTileAndPalette(*panel_ptr, 0x187,
+                                                              2);
+  ASSERT_TRUE(panel_ptr->HasUnappliedChanges());
+  status =
+      DungeonEditorV2ObjectTileEditorTestPeer::OpenObjectTileEditorForObject(
+          editor, 0, zelda3::RoomObject(0x31, 0, 0, 0, 0));
+  EXPECT_TRUE(absl::IsFailedPrecondition(status)) << status;
+  EXPECT_TRUE(panel_ptr->HasUnappliedChanges());
+  EXPECT_EQ(ObjectTileEditorPanelTestAccess::FirstCellTileId(*panel_ptr),
+            0x187);
+  EXPECT_EQ(ObjectTileEditorPanelTestAccess::Layout(*panel_ptr).custom_subtype,
+            3);
+  EXPECT_EQ(std::vector<uint8_t>(rom.data(), rom.data() + rom.size()),
+            original_rom);
+}
+
 class ObjectTileEditorSharedPaletteRefreshTest : public ::testing::Test {
  protected:
   void SetUp() override {

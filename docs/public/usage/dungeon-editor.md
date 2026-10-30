@@ -153,6 +153,45 @@ normally and use its assembled ROM in the emulator.
 `z3ed dungeon-render --project-context=/path/to/project.yaze` uses the same
 preview. Without a configured source, rendering continues to use ROM patterns.
 
+### Minecart rails and nodes
+
+1. Choose **Minecart** in the Workbench toolbar. In **Rails**, choose a floor
+   or pit rail and place it in the room. **Auto collision** pairs supported
+   rail behavior with placement and Undo while preserving other authored
+   collision.
+2. In **Nodes**, choose **Cart spawn**, **End stop**, **Switch**, or **Switch
+   track**. Set the cart ID or switch channel and departure/orientation before
+   placing. The selected node stays highlighted; **Cancel node** clears it.
+3. Use **Route rooms** to choose a cart and jump to its start or other rooms
+   containing that cart ID. The room buttons retain the selected placement
+   tool. **Scan project rooms** includes unopened rooms; otherwise the list
+   covers loaded rooms and includes their unsaved edits.
+4. Use **Overview** to choose another room, then continue placement in
+   **Room** view. Overview is a navigation view. Reopening the active Minecart
+   tool keeps the selected node or behavior tool.
+
+Cart placements identify matching route IDs. They do not establish that the
+rails connect or that a cart can complete the route in the game. Advanced
+source publishing, collision generation, and detailed checks remain under
+**Source and audit**.
+
+### Editing custom objects
+
+Choose **Custom assets** in the object browser to preview and place an existing
+asset. The available variants and names follow the project's admitted catalog,
+including expanded minecart T junctions and relocated props.
+
+After selecting a placed custom object, use **Selection → Variant** to change
+its asset. Missing or invalid assets are unavailable and show the reason. A
+room's existing unavailable variant stays unchanged until you choose a valid
+replacement.
+
+Right-click a selected object and choose **Edit Object Tiles…** to open its
+exact asset in the existing Object Tile Editor. The same action is available
+from the asset browser. Tile edits affect every placement using that asset;
+object position, layer, and variant remain room-instance properties. Apply or
+revert an unfinished tile draft before opening another asset.
+
 ### Saving
 
 - **File > Save ROM** persists dungeon data in this order: dungeon maps (when **Save Dungeon Maps** is enabled), then per-room **objects**, **sprites**, **room headers** (14-byte header + message IDs), **door pointers** (with `0xF0 0xFF` marker), then **palettes**, **torches**, **pits**, **blocks**, **chests**, **pot items**, and dirty **entrance/spawn-point metadata**. No need to save from the Dungeon Editor separately for ROM file writes.

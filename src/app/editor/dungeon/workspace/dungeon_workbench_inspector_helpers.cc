@@ -4,6 +4,7 @@
 #include <array>
 #include <filesystem>
 
+#include "absl/status/status.h"
 #include "absl/strings/str_format.h"
 #include "app/editor/dungeon/dungeon_object_selector.h"
 #include "app/gui/automation/widget_auto_register.h"
@@ -29,6 +30,24 @@ std::string FootprintLabel(const Dimensions& dimensions) {
   return absl::StrFormat("%d x %d tiles (%d x %d px)", dimensions.width_tiles,
                          dimensions.height_tiles, dimensions.width_pixels(),
                          dimensions.height_pixels());
+}
+
+std::string VariantName(int object_id, int subtype) {
+  auto& manager = zelda3::CustomObjectManager::Get();
+  const auto profile = manager.GetMinecartRailProfile();
+  if (zelda3::CustomObjectManager::RuntimeSubtypeCountForObject(object_id,
+                                                                profile) > 0)
+    return GetDungeonCustomObjectSlotName(object_id, subtype, profile);
+  const auto filename = manager.ResolveFilename(object_id, subtype);
+  return filename.empty() ? absl::StrFormat("Variant %d (unmapped)", subtype)
+                          : std::filesystem::path(filename).stem().string();
+}
+
+absl::Status VariantAssetStatus(int object_id, int subtype) {
+  auto& manager = zelda3::CustomObjectManager::Get();
+  if (manager.ResolveFilename(object_id, subtype).empty())
+    return absl::NotFoundError("This variant has no mapped editable asset");
+  return manager.GetObjectInternal(object_id, subtype).status();
 }
 
 }  // namespace
@@ -73,6 +92,13 @@ ObjectSizeDescription DescribeObjectSize(const zelda3::RoomObject& object) {
                                  : "Wheel: size.";
   }
   return description;
+}
+
+std::string RoomObjectDisplayName(const zelda3::RoomObject& object) {
+  if (core::FeatureFlags::get().kEnableCustomObjects &&
+      zelda3::CustomObjectManager::Get().GetSubtypeCount(object.id_) > 0)
+    return VariantName(object.id_, object.size_);
+  return zelda3::GetObjectName(object.id_);
 }
 
 bool DrawObjectSizeControls(const zelda3::RoomObject& object,
@@ -134,29 +160,19 @@ bool DrawObjectSizeControls(const zelda3::RoomObject& object,
                              ? std::min(manager.GetSubtypeCount(object.id_), 16)
                              : 0;
     if (variants > 0 && zelda3::IsRoomObjectSizeEditable(object.id_)) {
-      const auto variant_label = [&](int subtype) {
-        if (zelda3::CustomObjectManager::RuntimeSubtypeCountForObject(
-                object.id_) > 0) {
-          return GetDungeonCustomObjectSlotName(object.id_, subtype);
-        }
-        const auto filename = manager.ResolveFilename(object.id_, subtype);
-        return filename.empty()
-                   ? absl::StrFormat("Variant %d (unmapped)", subtype)
-                   : std::filesystem::path(filename).stem().string();
-      };
       gui::LayoutHelpers::PropertyRow("Variant", [&]() {
         const auto preview = size < variants
-                                 ? variant_label(size)
+                                 ? VariantName(object.id_, size)
                                  : absl::StrFormat("Invalid variant %d", size);
         ImGui::SetNextItemWidth(-1);
         const bool open = ImGui::BeginCombo("##SelObjVariant", preview.c_str());
         if (open) {
           for (int subtype = 0; subtype < variants; ++subtype) {
-            const auto label =
-                absl::StrFormat("%02X  %s", subtype, variant_label(subtype));
-            const bool mapped =
-                !manager.ResolveFilename(object.id_, subtype).empty();
-            ImGui::BeginDisabled(!mapped);
+            const auto status = VariantAssetStatus(object.id_, subtype);
+            const auto label = absl::StrFormat(
+                "%02X  %s%s", subtype, VariantName(object.id_, subtype),
+                status.ok() ? "" : " (unavailable)");
+            ImGui::BeginDisabled(!status.ok());
             if (ImGui::Selectable(label.c_str(), size == subtype)) {
               size = static_cast<uint8_t>(subtype);
             }
@@ -166,6 +182,9 @@ bool DrawObjectSizeControls(const zelda3::RoomObject& object,
                   "selectable", absl::StrFormat("object_variant_%d", subtype));
             }
             ImGui::EndDisabled();
+            if (!status.ok() &&
+                ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
+              ImGui::SetTooltip("%s", std::string(status.message()).c_str());
           }
           ImGui::EndCombo();
         }
@@ -175,6 +194,13 @@ bool DrawObjectSizeControls(const zelda3::RoomObject& object,
                                     "Selected custom object variant");
         }
       });
+      const auto current_asset = VariantAssetStatus(object.id_, object.size_);
+      if (!current_asset.ok()) {
+        gui::LayoutHelpers::PropertyRow("Asset", [&]() {
+          ImGui::TextWrapped("Unavailable: %s",
+                             std::string(current_asset.message()).c_str());
+        });
+      }
       gui::LayoutHelpers::PropertyRow("Variant ID", [&]() {
         int observed_variant = object.size_;
         ImGui::InputInt("##SelectedObjectVariantValue", &observed_variant, 0, 0,

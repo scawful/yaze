@@ -19,6 +19,8 @@
 #include "app/editor/dungeon/ui/minecart/minecart_canvas_tool.h"
 #include "app/editor/editor_manager.h"
 #include "app/gfx/backend/null_renderer.h"
+#include "app/gui/automation/widget_auto_register.h"
+#include "app/gui/automation/widget_id_registry.h"
 #include "core/features.h"
 #include "core/project.h"
 #include "editor_test_support.h"
@@ -239,6 +241,26 @@ class MinecartTrackEditorPanelTestPeer {
   static bool RouteSlotUsed(const MinecartTrackEditorPanel& panel,
                             int route_slot) {
     return panel.route_slot_used_.at(static_cast<size_t>(route_slot));
+  }
+
+  static std::vector<int> AuditedRoomIds(
+      const MinecartTrackEditorPanel& panel) {
+    return panel.AuditedRoomIds();
+  }
+
+  static std::vector<int> CartReferences(const MinecartTrackEditorPanel& panel,
+                                         int cart) {
+    const auto found = panel.route_usage_rooms_.find(cart);
+    return found == panel.route_usage_rooms_.end() ? std::vector<int>{}
+                                                   : found->second;
+  }
+
+  static bool AuditIncludesAllRooms(const MinecartTrackEditorPanel& panel) {
+    return panel.audit_includes_all_rooms_;
+  }
+
+  static void DrawRouteRooms(MinecartTrackEditorPanel& panel) {
+    panel.DrawRouteRooms();
   }
 };
 
@@ -1788,9 +1810,15 @@ TEST(MinecartTrackEditorPanelTest,
 
   MinecartTrackEditorPanel panel;
   panel.SetRooms(&rooms);
+  MinecartTrackEditorPanelTestPeer::RebuildAuditCache(panel);
+  EXPECT_FALSE(MinecartTrackEditorPanelTestPeer::AuditIncludesAllRooms(panel));
+  EXPECT_TRUE(MinecartTrackEditorPanelTestPeer::AuditedRoomIds(panel).empty());
   MinecartTrackEditorPanelTestPeer::RebuildAuditCache(
       panel, /*include_unmaterialized=*/true);
 
+  EXPECT_TRUE(MinecartTrackEditorPanelTestPeer::AuditIncludesAllRooms(panel));
+  EXPECT_EQ(MinecartTrackEditorPanelTestPeer::AuditedRoomIds(panel),
+            (std::vector<int>{kRoomId}));
   EXPECT_EQ(rooms.GetIfMaterialized(kRoomId), nullptr);
   EXPECT_EQ(
       MinecartTrackEditorPanelTestPeer::AuditTrackSubtypes(panel, kRoomId),
@@ -2014,6 +2042,134 @@ TEST(MinecartTrackEditorPanelTest,
       (std::vector<int>{14}));
   EXPECT_TRUE(MinecartTrackEditorPanelTestPeer::RouteSlotUsed(panel, 7));
   EXPECT_FALSE(MinecartTrackEditorPanelTestPeer::RouteSlotUsed(panel, 14));
+}
+
+TEST(MinecartTrackEditorPanelTest,
+     RouteRoomButtonsUseUnsavedCartReferencesAndPreserveNodeBrush) {
+  ScopedImGuiContext imgui;
+  auto& io = ImGui::GetIO();
+  io.IniFilename = nullptr;
+  io.DisplaySize = ImVec2(600, 1200);
+  io.DeltaTime = 1.0f / 60.0f;
+  ScopedTestProject fixture;
+  fixture.WriteSource(MakeFlatSource(32, 0));
+  const auto source_before = fixture.ReadSource();
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+  ASSERT_NO_FATAL_FAILURE(ConfigureMinecartAuditRom(&rom, 0x78));
+  const auto rom_before = rom.vector();
+  DungeonRoomStore rooms(&rom);
+  const std::vector<int> reference_rooms{0x98, 0x99, 0x9A, 0x9B, 0x9C, 0x120};
+  for (const int id : reference_rooms) {
+    auto& room = rooms[id];
+    room = zelda3::Room(id, &rom);
+    room.EnsureObjectsLoaded();
+    room.EnsureSpritesLoaded();
+    room.GetSprites() = {zelda3::Sprite(0xA3, 4, 5, 7, 0)};
+  }
+  // Duplicate references are one room button. Deleted/lower-plane carts are
+  // not route references; a rail graphic's subtype is not a cart identity.
+  rooms[0x98].GetSprites().push_back(zelda3::Sprite(0xA3, 8, 9, 7, 0));
+  rooms[0x98].AddTileObject(zelda3::RoomObject(0x31, 10, 10, 14, 0));
+  auto& ignored = rooms[0xA0];
+  ignored = zelda3::Room(0xA0, &rom);
+  ignored.EnsureSpritesLoaded();
+  ignored.GetSprites() = {zelda3::Sprite(0xA3, 4, 5, 7, 0),
+                          zelda3::Sprite(0xA3, 6, 7, 7, 0)};
+  ignored.GetSprites()[0].set_deleted(true);
+  ignored.GetSprites()[1].set_layer(1);
+
+  MinecartTrackEditorPanel panel;
+  ASSERT_TRUE(panel.SetProject(fixture.project()).ok());
+  const auto tracks_before = panel.GetTracks();
+  ASSERT_EQ(tracks_before.size(), 32);
+  panel.SetRooms(&rooms);
+  panel.SetActiveRoom(0x98);
+  panel.SelectTrack(7);
+  panel.SetPlacementBrush({{MinecartNodeKind::kSwitch, 12, 0}});
+  const auto old_brush = *panel.placement_brush();
+  int navigated = -1;
+  panel.SetRoomNavigationCallback([&](int room) {
+    navigated = room;
+    panel.SetActiveRoom(room);
+  });
+  MinecartTrackEditorPanelTestPeer::RebuildAuditCache(panel);
+  EXPECT_EQ(MinecartTrackEditorPanelTestPeer::CartReferences(panel, 7),
+            reference_rooms);
+  EXPECT_TRUE(
+      MinecartTrackEditorPanelTestPeer::CartReferences(panel, 14).empty());
+  EXPECT_EQ(MinecartTrackEditorPanelTestPeer::AuditedRoomIds(panel),
+            reference_rooms);
+
+  auto frame = [&] {
+    gui::WidgetIdRegistry::Instance().Clear();
+    ImGui::NewFrame();
+    ImGui::SetNextWindowPos(ImVec2(20, 20), ImGuiCond_Always);
+    ImGui::SetNextWindowSize(ImVec2(200, 1100), ImGuiCond_Always);
+    ImGui::Begin("RouteNavigationTest", nullptr,
+                 ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoMove |
+                     ImGuiWindowFlags_NoResize);
+    {
+      gui::AutoWidgetScope scope("RouteNavigationTest");
+      MinecartTrackEditorPanelTestPeer::DrawRouteRooms(panel);
+    }
+    ImGui::End();
+    ImGui::Render();
+  };
+  frame();
+  frame();
+  std::optional<ImVec2> target;
+  float first_room_y = -1, last_room_y = -1;
+  for (const auto& [path, widget] :
+       gui::WidgetIdRegistry::Instance().GetAllWidgets()) {
+    if (!path.starts_with("RouteNavigationTest/") || !widget.bounds.valid)
+      continue;
+    if (widget.label.starts_with("Cart placement ")) {
+      EXPECT_GE(widget.bounds.min_x, 20);
+      EXPECT_LE(widget.bounds.max_x, 220);
+      if (widget.label == "Cart placement 098")
+        first_room_y = widget.bounds.min_y;
+      if (widget.label == "Cart placement 120")
+        last_room_y = widget.bounds.min_y;
+    }
+    if (widget.label == "Cart placement 099" && widget.visible &&
+        widget.enabled) {
+      target = ImVec2((widget.bounds.min_x + widget.bounds.max_x) * 0.5f,
+                      (widget.bounds.min_y + widget.bounds.max_y) * 0.5f);
+    }
+  }
+  ASSERT_TRUE(target.has_value());
+  EXPECT_GT(last_room_y, first_room_y);  // Buttons wrap in a narrow inspector.
+  io.AddMousePosEvent(target->x, target->y);
+  frame();
+  io.AddMouseButtonEvent(ImGuiMouseButton_Left, true);
+  frame();
+  io.AddMouseButtonEvent(ImGuiMouseButton_Left, false);
+  frame();
+
+  EXPECT_EQ(navigated, 0x99);
+  ASSERT_TRUE(panel.placement_brush());
+  EXPECT_EQ(panel.placement_brush()->node.kind, MinecartNodeKind::kSwitch);
+  EXPECT_EQ(panel.placement_brush()->node.id, 12);
+  EXPECT_EQ(panel.placement_brush()->room_id, 0x99);
+  EXPECT_NE(panel.placement_brush()->revision, old_brush.revision);
+  EXPECT_FALSE(panel.canvas_editing());
+  EXPECT_FALSE(panel.HasUnpublishedChanges());
+  EXPECT_EQ(panel.GetTracks(), tracks_before);
+  EXPECT_EQ(rooms[0x98].GetSprites().size(), 2);
+  EXPECT_EQ(rooms[0x99].GetSprites().size(), 1);
+  EXPECT_EQ(fixture.ReadSource(), source_before);
+  EXPECT_EQ(rom.vector(), rom_before);
+  EXPECT_EQ(rooms.GetIfMaterialized(0x78), nullptr);
+  panel.SelectTrack(
+      0);  // Room 000 is an unplaced source slot, not a destination.
+  frame();
+  for (const auto& [path, widget] :
+       gui::WidgetIdRegistry::Instance().GetAllWidgets()) {
+    EXPECT_NE(widget.label, "Cart start 000");
+  }
+  EXPECT_EQ(panel.GetTracks(), tracks_before);
+  gui::WidgetIdRegistry::Instance().Clear();
 }
 
 class MinecartObjectCollisionWorkflowTest : public ::testing::Test {

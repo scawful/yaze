@@ -2617,7 +2617,13 @@ absl::Status DungeonEditorV2::OpenObjectTileEditorForObject(
   if (room_id < 0 || room_id >= static_cast<int>(rooms_.size())) {
     return absl::OutOfRangeError("Dungeon room id is outside the room store");
   }
-  if (!zelda3::ObjectTileEditor::IsEditableStandardObject(object.id_)) {
+  const auto& custom_objects = zelda3::CustomObjectManager::Get();
+  const bool custom_dispatch =
+      core::FeatureFlags::get().kEnableCustomObjects &&
+      zelda3::CustomObjectManager::RuntimeSubtypeCountForObject(
+          object.id_, custom_objects.GetMinecartRailProfile()) > 0;
+  if (!custom_dispatch &&
+      !zelda3::ObjectTileEditor::IsEditableStandardObject(object.id_)) {
     return absl::UnimplementedError(
         "Tile editing is not yet supported for this object layout");
   }
@@ -2644,8 +2650,12 @@ absl::Status DungeonEditorV2::OpenObjectTileEditorForObject(
   const auto palette_group = zelda3::BuildDungeonRenderPaletteGroupFromGameData(
       room_palette, game_data_);
 
-  const absl::Status open_status = object_tile_editor_panel_->OpenForObject(
-      object.id_, room_id, &rooms_, palette_group);
+  const absl::Status open_status =
+      custom_dispatch
+          ? object_tile_editor_panel_->OpenForCustomObject(
+                object.id_, object.size_, room_id, &rooms_, palette_group)
+          : object_tile_editor_panel_->OpenForObject(object.id_, room_id,
+                                                     &rooms_, palette_group);
   if (!open_status.ok()) {
     // A modified hidden session rejects replacement to prevent data loss.
     // Surface that existing session so the user can apply, revert, or use the

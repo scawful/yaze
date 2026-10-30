@@ -90,7 +90,11 @@ class MinecartPaletteWorkflowTest : public testing::Test {
                        ImGuiWindowFlags_NoResize);
       {
         gui::AutoWidgetScope scope("MinecartPaletteTest");
-        panel_.DrawNodeTools();
+        if (draw_full_tools_) {
+          panel_.DrawRailTools();
+        } else {
+          panel_.DrawNodeTools();
+        }
       }
       ImGui::End();
     }
@@ -225,6 +229,7 @@ class MinecartPaletteWorkflowTest : public testing::Test {
   std::vector<int> stamp_rooms_;
   std::vector<MinecartCollisionStamp> stamps_;
   bool draw_palette_ = true;
+  bool draw_full_tools_ = false;
   bool draw_other_canvas_ = false;
   bool owns_input_ = false;
   bool canvas_hovered_ = false;
@@ -355,6 +360,54 @@ TEST_F(MinecartPaletteWorkflowTest,
   EXPECT_EQ(nodes_[0].x, 10);
   EXPECT_EQ(nodes_[0].y, 12);
   EXPECT_TRUE(other_room_.GetSprites().empty());
+}
+
+TEST_F(MinecartPaletteWorkflowTest,
+       RoomNavigationRejectsOldDragAndCancelDisarmsReboundBrush) {
+  ASSERT_NO_FATAL_FAILURE(ClickPalette("Switch"));
+  ASSERT_TRUE(panel_.placement_brush());
+  const auto old_brush = *panel_.placement_brush();
+  ASSERT_NO_FATAL_FAILURE(BeginPaletteDrag("Switch"));
+  panel_.SetActiveRoom(kRoom + 1);
+  active_room_id_ = kRoom + 1;
+  draw_palette_ =
+      false;  // Preserve the old payload while its source disappears.
+  MoveCell(11, 13);
+  Frame();
+  Button(false);
+  EXPECT_TRUE(nodes_.empty());
+  EXPECT_TRUE(stamps_.empty());
+  ASSERT_TRUE(panel_.placement_brush());
+  EXPECT_EQ(panel_.placement_brush()->node.kind, old_brush.node.kind);
+  EXPECT_EQ(panel_.placement_brush()->node.id, old_brush.node.id);
+  EXPECT_EQ(panel_.placement_brush()->room_id, kRoom + 1);
+  EXPECT_NE(panel_.placement_brush()->revision, old_brush.revision);
+
+  // A fresh target-room click uses the rebound brush once, without reselecting.
+  MoveCell(11, 13);
+  Button(true);
+  Button(false);
+  ASSERT_EQ(nodes_.size(), 1);
+  EXPECT_EQ(nodes_[0].room, kRoom + 1);
+  EXPECT_EQ(nodes_[0].x, 10);
+  EXPECT_EQ(nodes_[0].y, 12);
+  EXPECT_TRUE(room_.GetSprites().empty());
+  EXPECT_EQ(other_room_.GetSprites().size(), 1);
+
+  draw_palette_ = true;
+  draw_full_tools_ = true;
+  Frame();
+  Frame();
+  ASSERT_NO_FATAL_FAILURE(ClickPalette("Cancel node"));
+  EXPECT_FALSE(panel_.placement_brush());
+  MoveCell(15, 15);
+  Button(true);
+  Button(false);
+  EXPECT_EQ(nodes_.size(), 1);
+  EXPECT_TRUE(stamps_.empty());
+  EXPECT_TRUE(room_.GetSprites().empty());
+  EXPECT_EQ(other_room_.GetSprites().size(), 1);
+  EXPECT_FALSE(other_room_.custom_collision().HasOverrides());
 }
 
 TEST_F(MinecartPaletteWorkflowTest,

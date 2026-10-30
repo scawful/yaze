@@ -15,6 +15,7 @@
 #include "absl/strings/match.h"
 #include "absl/strings/str_format.h"
 #include "absl/strings/str_split.h"
+#include "app/gui/automation/widget_auto_register.h"
 #include "core/source_artifact_publisher.h"
 #include "imgui/imgui.h"
 #include "imgui/misc/cpp/imgui_stdlib.h"
@@ -839,6 +840,7 @@ void MinecartTrackEditorPanel::RebuildAuditCache(bool include_unmaterialized) {
 
   if (!rooms_) {
     audit_dirty_ = false;
+    audit_includes_all_rooms_ = false;
     return;
   }
 
@@ -993,7 +995,152 @@ void MinecartTrackEditorPanel::RebuildAuditCache(bool include_unmaterialized) {
   }
 
   audit_dirty_ = false;
-  audit_includes_all_rooms_ = include_unmaterialized;
+  audit_includes_all_rooms_ =
+      include_unmaterialized && rooms_->rom() && rooms_->rom()->is_loaded();
+}
+
+std::vector<int> MinecartTrackEditorPanel::AuditedRoomIds() const {
+  std::vector<int> room_ids;
+  room_ids.reserve(room_audit_.size());
+  for (const auto& [room_id, audit] : room_audit_) {
+    room_ids.push_back(room_id);
+  }
+  std::sort(room_ids.begin(), room_ids.end());
+  return room_ids;
+}
+
+void MinecartTrackEditorPanel::DrawRouteRooms() {
+  ImGui::PushID("RouteRooms");
+  ImGui::SeparatorText("Route rooms");
+  if (active_room_ >= 0) {
+    ImGui::Text("Editing room %03X", active_room_);
+  }
+  ImGui::TextDisabled(
+      "%s", audit_includes_all_rooms_ ? "Project audit" : "Loaded rooms only");
+  if (ImGui::IsItemHovered()) {
+    ImGui::SetTooltip(
+        "Includes unsaved room edits. Scan project rooms to include unopened "
+        "rooms from the ROM.");
+  }
+  const bool can_scan = rooms_ && rooms_->rom() && rooms_->rom()->is_loaded();
+  ImGui::BeginDisabled(!can_scan);
+  if (ImGui::SmallButton("Scan project rooms")) {
+    RebuildAuditCache(/*include_unmaterialized=*/true);
+  }
+  gui::AutoRegisterLastItem("button", "Scan project rooms");
+  ImGui::EndDisabled();
+
+  auto selected = std::find_if(tracks_.begin(), tracks_.end(),
+                               [this](const MinecartTrack& track) {
+                                 return track.id == selected_track_;
+                               });
+  const std::string preview = selected == tracks_.end()
+                                  ? "Choose a cart"
+                                  : absl::StrFormat("Cart %d", selected->id);
+  ImGui::SetNextItemWidth(-1);
+  const bool cart_open = ImGui::BeginCombo("##RouteCart", preview.c_str());
+  gui::AutoRegisterLastItem("combo", "Route cart");
+  if (cart_open) {
+    for (const auto& track : tracks_) {
+      const auto label =
+          track.room_id == 0
+              ? absl::StrFormat("Cart %d - Not placed", track.id)
+              : absl::StrFormat("Cart %d - start %03X%s", track.id,
+                                track.room_id,
+                                IsDefaultTrack(track) ? " (default)" : "");
+      if (ImGui::Selectable(label.c_str(), selected_track_ == track.id)) {
+        selected_track_ = track.id;
+      }
+      gui::AutoRegisterLastItem("selectable", label);
+    }
+    ImGui::EndCombo();
+  }
+  // Selection and navigation never arm start editing or replace a node brush.
+  selected = std::find_if(tracks_.begin(), tracks_.end(),
+                          [this](const MinecartTrack& track) {
+                            return track.id == selected_track_;
+                          });
+  auto draw_rooms = [this](const std::vector<int>& rooms, const char* kind) {
+    const float right_edge =
+        ImGui::GetCursorScreenPos().x + ImGui::GetContentRegionAvail().x;
+    bool first = true;
+    ImGui::PushID(kind);
+    for (const int room_id : rooms) {
+      const auto label = absl::StrFormat("%03X", room_id);
+      const float width = ImGui::CalcTextSize(label.c_str()).x +
+                          2 * ImGui::GetStyle().FramePadding.x;
+      if (!first &&
+          ImGui::GetItemRectMax().x + ImGui::GetStyle().ItemSpacing.x + width <=
+              right_edge) {
+        ImGui::SameLine();
+      }
+      first = false;
+      const bool current = room_id == active_room_;
+      if (current) {
+        ImGui::PushStyleColor(ImGuiCol_Button,
+                              ImGui::GetStyleColorVec4(ImGuiCol_ButtonActive));
+      }
+      const bool can_navigate = room_navigation_callback_ && rooms_ &&
+                                room_id >= 0 &&
+                                room_id < static_cast<int>(rooms_->size());
+      ImGui::BeginDisabled(!can_navigate);
+      if (ImGui::SmallButton(label.c_str())) {
+        room_navigation_callback_(room_id);
+      }
+      gui::AutoRegisterLastItem("button",
+                                absl::StrFormat("%s %03X", kind, room_id));
+      ImGui::EndDisabled();
+      if (current) {
+        ImGui::PopStyleColor();
+      }
+      if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
+        ImGui::SetTooltip("Open room %03X%s; keep the selected tool", room_id,
+                          current ? " (current)" : "");
+      }
+    }
+    ImGui::PopID();
+  };
+  if (selected != tracks_.end()) {
+    if (selected->room_id == 0) {
+      ImGui::TextWrapped("Cart %d: Not placed", selected->id);
+    } else if (!rooms_ || selected->room_id < 0 ||
+               selected->room_id >= static_cast<int>(rooms_->size())) {
+      ImGui::TextWrapped("Cart %d: invalid start room %03X", selected->id,
+                         selected->room_id);
+    } else {
+      ImGui::TextWrapped("Cart %d start: room %03X%s%s", selected->id,
+                         selected->room_id,
+                         IsDefaultTrack(*selected) ? " (default slot)" : "",
+                         HasUnpublishedChanges() ? " (source draft)" : "");
+      draw_rooms({selected->room_id}, "Cart start");
+    }
+    ImGui::TextUnformatted("Cart placements");
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip(
+          "Rooms with placed carts sharing this cart ID (sprite route slot). "
+          "These references do not prove a connected or playable rail route.");
+    }
+    const auto references = route_usage_rooms_.find(selected->id);
+    if (references != route_usage_rooms_.end()) {
+      draw_rooms(references->second, "Cart placement");
+    } else {
+      ImGui::TextWrapped("None found in this audit scope.");
+    }
+  }
+  ImGui::TextUnformatted("Rooms with rails or carts");
+  const auto room_ids = AuditedRoomIds();
+  if (room_ids.empty()) {
+    ImGui::TextWrapped("None found in this audit scope.");
+  } else {
+    draw_rooms(room_ids, "Rail room");
+  }
+  ImGui::TextDisabled("Overview for room selection");
+  if (ImGui::IsItemHovered()) {
+    ImGui::SetTooltip(
+        "Choose a room in Overview, then place rails and nodes "
+        "in Room view. The selected tool stays armed.");
+  }
+  ImGui::PopID();
 }
 
 absl::StatusOr<zelda3::GeneratorOptions>
@@ -1166,6 +1313,7 @@ void MinecartTrackEditorPanel::Draw(bool* p_open) {
     ImGui::TextWrapped("%s", status_message_.c_str());
   }
   DrawRailTools();
+  DrawRouteRooms();
   ImGui::Separator();
   if (ImGui::CollapsingHeader("Cart starts")) {
     bool canvas_editing = canvas_editing_;

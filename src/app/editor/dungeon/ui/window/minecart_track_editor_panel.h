@@ -229,6 +229,8 @@ class MinecartTrackEditorPanel : public WindowContent {
   void StartCoordinatePicking(int track_index);
   void CancelCoordinatePicking();
   void RebuildAuditCache(bool include_unmaterialized = false);
+  void DrawRouteRooms();
+  std::vector<int> AuditedRoomIds() const;
   absl::Status BuildCollisionPreview(const std::vector<int>& room_ids);
   absl::Status BuildAllEligibleCollisionPreview();
   absl::Status ApplyCollisionPreview();

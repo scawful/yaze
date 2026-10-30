@@ -992,6 +992,12 @@ class DungeonWorkbenchObjectSizeUiTest : public ::testing::Test {
   void SetUp() override {
     previous_custom_ = core::FeatureFlags::get().kEnableCustomObjects;
     previous_manager_ = zelda3::CustomObjectManager::Get().SnapshotState();
+    custom_assets_ = MakeTempProjectRoot();
+    std::filesystem::create_directories(custom_assets_);
+    auto& manager = zelda3::CustomObjectManager::Get();
+    manager.Initialize(custom_assets_.string());
+    manager.ClearObjectFileMap();
+    manager.SetMinecartRailProfile(zelda3::MinecartRailProfile::kLegacy);
     core::FeatureFlags::get().kEnableCustomObjects = false;
     ImGui::CreateContext();
     auto& io = ImGui::GetIO();
@@ -1009,6 +1015,17 @@ class DungeonWorkbenchObjectSizeUiTest : public ::testing::Test {
     gui::WidgetIdRegistry::Instance().Clear();
     core::FeatureFlags::get().kEnableCustomObjects = previous_custom_;
     zelda3::CustomObjectManager::Get().RestoreState(previous_manager_);
+    std::error_code error;
+    std::filesystem::remove_all(custom_assets_, error);
+  }
+
+  void WriteCustomAssets(std::initializer_list<const char*> filenames) {
+    const std::vector<uint8_t> bytes = {0x01, 0x00, 0x10, 0x28, 0x00, 0x00};
+    for (const char* name : filenames) {
+      std::ofstream output(custom_assets_ / name, std::ios::binary);
+      output.write(reinterpret_cast<const char*>(bytes.data()), bytes.size());
+      ASSERT_TRUE(output.good()) << name;
+    }
   }
 
   void DrawFrame(float width = 240.0f) {
@@ -1063,6 +1080,7 @@ class DungeonWorkbenchObjectSizeUiTest : public ::testing::Test {
   std::string logged_text_;
   bool previous_custom_ = false;
   zelda3::CustomObjectManager::State previous_manager_;
+  std::filesystem::path custom_assets_;
 };
 
 TEST_F(DungeonWorkbenchObjectSizeUiTest, WidthAndHeightChangeIndependently) {
@@ -2265,6 +2283,8 @@ TEST_F(DungeonWorkbenchObjectSizeUiTest,
 
 TEST_F(DungeonWorkbenchObjectSizeUiTest,
        ConfiguredPlatformsOfferVariantsInsteadOfAxes) {
+  WriteCustomAssets({"closed_a.bin", "closed_b.bin", "open_a.bin", "open_b.bin",
+                     "rock_a.bin", "rock_b.bin"});
   core::FeatureFlags::get().kEnableCustomObjects = true;
   zelda3::CustomObjectManager::Get().SetObjectFileMap(
       {{0xC1, {"closed_a.bin", "closed_b.bin"}},
@@ -2286,6 +2306,7 @@ TEST_F(DungeonWorkbenchObjectSizeUiTest,
 
 TEST_F(DungeonWorkbenchObjectSizeUiTest,
        ComboRegistrationRemainsStableWhilePopupsAreOpen) {
+  WriteCustomAssets({"furnace.bin", "ice_chair.bin"});
   struct ComboCase {
     int object_id;
     bool custom;
@@ -2331,6 +2352,7 @@ TEST_F(DungeonWorkbenchObjectSizeUiTest,
 }
 
 TEST_F(DungeonWorkbenchObjectSizeUiTest, IcePropsOfferOnlyMappedVariants) {
+  WriteCustomAssets({"furnace.bin", "ice_chair.bin"});
   core::FeatureFlags::get().kEnableCustomObjects = true;
   zelda3::CustomObjectManager::Get().SetObjectFileMap(
       {{0x32, {"furnace.bin", "", "ice_chair.bin"}}});
@@ -2356,6 +2378,65 @@ TEST_F(DungeonWorkbenchObjectSizeUiTest, IcePropsOfferOnlyMappedVariants) {
   Click("selectable:object_variant_0");
   EXPECT_EQ(object_.size_, 0);
   EXPECT_EQ(changes_, 1);
+}
+
+TEST_F(DungeonWorkbenchObjectSizeUiTest,
+       ExpandedNamesAndDecodedAssetAdmissionPreserveUnavailableVariant) {
+  WriteCustomAssets({"track_custom.bin", "junction_n.bin"});
+  std::ofstream(custom_assets_ / "corrupt.bin", std::ios::binary).put('\x01');
+  auto& manager = zelda3::CustomObjectManager::Get();
+  manager.SetMinecartRailProfile(zelda3::MinecartRailProfile::kExpanded);
+  std::vector<std::string> files(16);
+  files[0] = "track_custom.bin";
+  files[1] = "missing.bin";
+  files[2] = "corrupt.bin";
+  files[13] = "junction_n.bin";
+  manager.SetObjectFileMap({{0x31, files}});
+  core::FeatureFlags::get().kEnableCustomObjects = true;
+  object_ = zelda3::RoomObject(0x31, 8, 9, 13, 1);
+  DrawFrame();
+  DrawFrame();
+  EXPECT_NE(logged_text_.find("Pit track T: north / east / west"),
+            std::string::npos);
+  EXPECT_EQ(workbench::RoomObjectDisplayName(object_),
+            "Pit track T: north / east / west");
+  EXPECT_EQ(object_.size_, 13);
+  EXPECT_EQ(changes_, 0);
+  // Loading a room with an unavailable current variant must not repair it by
+  // selecting another asset. Keep tested options within the visible popup.
+  object_.set_size(1);
+  DrawFrame();
+  EXPECT_NE(logged_text_.find("Unavailable:"), std::string::npos);
+  EXPECT_EQ(object_.size_, 1);
+  EXPECT_EQ(changes_, 0);
+  Click("combo:selected_object_variant");
+  for (const char* name :
+       {"selectable:object_variant_1", "selectable:object_variant_2"}) {
+    const auto unavailable = Widget(name);
+    ASSERT_TRUE(unavailable.has_value());
+    ASSERT_FALSE(unavailable->enabled);
+    const auto bounds = unavailable->bounds;
+    auto& io = ImGui::GetIO();
+    io.AddMousePosEvent((bounds.min_x + bounds.max_x) / 2,
+                        (bounds.min_y + bounds.max_y) / 2);
+    DrawFrame();
+    io.AddMouseButtonEvent(0, true);
+    DrawFrame();
+    io.AddMouseButtonEvent(0, false);
+    DrawFrame();
+    EXPECT_EQ(object_.size_, 1);
+    EXPECT_EQ(changes_, 0);
+  }
+  Click("selectable:object_variant_0");
+  EXPECT_EQ(object_.size_, 0);
+  EXPECT_EQ(changes_,
+            1);  // Only the valid choice requests normal caller mutation.
+  EXPECT_EQ(object_.x_, 8);
+  EXPECT_EQ(object_.y_, 9);
+  EXPECT_EQ(object_.GetLayerValue(), 1);
+  core::FeatureFlags::get().kEnableCustomObjects = false;
+  EXPECT_EQ(workbench::RoomObjectDisplayName(object_),
+            zelda3::GetObjectName(object_.id_));
 }
 
 TEST(DungeonWorkbenchContentLayoutTest,
@@ -2434,6 +2515,33 @@ TEST(DungeonWorkbenchContentLayoutTest, ToolRequestsOpenEmbeddedInspector) {
   EXPECT_TRUE(content.IsToolInspectorActiveForTesting());
   EXPECT_STREQ(content.GetInspectorModeIdForTesting(), "tools");
   EXPECT_STREQ(content.GetActiveToolIdForTesting(), "palette");
+}
+
+TEST(DungeonWorkbenchContentLayoutTest,
+     ReopeningMinecartPreservesPlacementToolUntilAnotherToolIsChosen) {
+  int current_room_id = 0x087;
+  const std::deque<int> recent_rooms;
+  auto content = MakeWorkbenchForToolStateTests(current_room_id, recent_rooms);
+  MinecartTrackEditorPanel panel;
+  content.SetEmbeddedToolPanels(nullptr, nullptr, nullptr, &panel);
+  content.OpenMinecartTool();
+  panel.SetActiveRoom(current_room_id);
+  panel.SetPlacementBrush({{MinecartNodeKind::kSwitch, 7, 0}});
+  ASSERT_TRUE(panel.placement_brush());
+  const auto revision = panel.canvas_revision();
+
+  content.OpenMinecartTool();
+  ASSERT_TRUE(panel.placement_brush());
+  EXPECT_EQ(panel.placement_brush()->node.kind, MinecartNodeKind::kSwitch);
+  EXPECT_EQ(panel.placement_brush()->node.id, 7);
+  EXPECT_EQ(panel.canvas_revision(), revision);
+
+  panel.set_collision_stamping(true);
+  content.OpenMinecartTool();
+  EXPECT_TRUE(panel.collision_stamping());
+  content.OpenPaletteTool();
+  EXPECT_FALSE(panel.placement_brush());
+  EXPECT_FALSE(panel.collision_stamping());
 }
 
 TEST(DungeonWorkbenchContentLayoutTest,

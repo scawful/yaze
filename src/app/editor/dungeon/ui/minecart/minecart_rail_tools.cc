@@ -8,6 +8,37 @@
 namespace yaze::editor {
 
 void MinecartTrackEditorPanel::DrawRailTools() {
+  if (placement_brush_) {
+    const auto& brush = *placement_brush_;
+    static constexpr const char* kDepartures[] = {"south", "north", "east",
+                                                  "west"};
+    const uint8_t collision =
+        brush.collision_only ? brush.collision : brush.node.collision;
+    const char* departure = collision >= 0xB7 && collision <= 0xBA
+                                ? kDepartures[collision - 0xB7]
+                                : "unknown";
+    if (brush.collision_only) {
+      ImGui::TextWrapped("End stop: depart %s - room %03X", departure,
+                         brush.room_id);
+    } else if (brush.node.kind == MinecartNodeKind::kCartStart) {
+      ImGui::TextWrapped("Cart %d: depart %s - room %03X", brush.node.id,
+                         departure, brush.room_id);
+    } else {
+      ImGui::TextWrapped("Active node: %s, channel %d - room %03X",
+                         brush.node.kind == MinecartNodeKind::kSwitch
+                             ? "switch"
+                             : "switch track",
+                         brush.node.id, brush.room_id);
+    }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("Selected node brush. Collision $%02X. Escape cancels.",
+                        collision);
+    }
+    if (ImGui::SmallButton("Cancel node")) {
+      CancelNodePlacement();
+    }
+    gui::AutoRegisterLastItem("button", "Cancel node");
+  }
   if (!ImGui::BeginTabBar("##RailTools")) {
     return;
   }
@@ -139,19 +170,45 @@ void MinecartTrackEditorPanel::DrawNodeTools() {
   }
   ImGui::EndDisabled();
   ImGui::SetNextItemWidth(-1);
-  ImGui::Combo("##Departure", &node_departure_,
-               "Depart south\0Depart north\0Depart east\0Depart west\0");
+  if (ImGui::Combo("##Departure", &node_departure_,
+                   "Depart south\0Depart north\0Depart east\0Depart west\0") &&
+      selected_placement_tool_ &&
+      (selected_placement_tool_->collision_only ||
+       selected_placement_tool_->kind == MinecartNodeKind::kCartStart)) {
+    CancelNodeDrag();
+    const auto stop = static_cast<uint8_t>(0xB7 + node_departure_);
+    selected_placement_tool_->collision = stop;
+    selected_placement_tool_->node_collision = stop;
+    BindPlacementBrushToRoom();
+  }
   gui::AutoRegisterLastItem("combo", "Departure");
   ImGui::SetNextItemWidth(-1);
-  ImGui::Combo("##SwitchOrientation", &node_switch_orientation_,
-               "Switch: right / down\0Switch: right / up\0"
-               "Switch: left / down\0Switch: left / up\0");
+  if (ImGui::Combo("##SwitchOrientation", &node_switch_orientation_,
+                   "Switch: right / down\0Switch: right / up\0"
+                   "Switch: left / down\0Switch: left / up\0") &&
+      selected_placement_tool_ && !selected_placement_tool_->collision_only &&
+      selected_placement_tool_->kind == MinecartNodeKind::kSwitchTrack) {
+    CancelNodeDrag();
+    selected_placement_tool_->node_collision =
+        static_cast<uint8_t>(0xD0 + node_switch_orientation_);
+    BindPlacementBrushToRoom();
+  }
   gui::AutoRegisterLastItem("combo", "Switch orientation");
   auto row = [&](const char* label, const char* help,
                  MinecartToolPayload payload) {
     ImGui::BeginDisabled(payload.collision_only ? !apply_collision_stamp_
                                                 : !place_node_);
-    if (ImGui::Selectable(label, false, 0,
+    const bool selected =
+        selected_placement_tool_ &&
+        selected_placement_tool_->collision_only == payload.collision_only &&
+        (payload.collision_only
+             ? selected_placement_tool_->collision == payload.collision &&
+                   selected_placement_tool_->size == payload.size
+             : selected_placement_tool_->kind == payload.node.kind &&
+                   selected_placement_tool_->id == payload.node.id &&
+                   selected_placement_tool_->node_collision ==
+                       payload.node.collision);
+    if (ImGui::Selectable(label, selected, 0,
                           ImVec2(0, ImGui::GetFrameHeight()))) {
       SetPlacementBrush(payload);
     }

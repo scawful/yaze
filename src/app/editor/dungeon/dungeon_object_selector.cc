@@ -1459,12 +1459,10 @@ void DungeonObjectSelector::DrawCustomObjectAssetBrowser() {
   ImGui::TextColored(theme.text_info,
                      ICON_MD_PRECISION_MANUFACTURING " Custom Assets");
   ImGui::PushTextWrapPos(0.0f);
-  ImGui::TextColored(
-      theme.text_secondary_gray,
-      tr("Manage the 21 fixed runtime assets used by Oracle custom objects."));
+  ImGui::TextColored(theme.text_secondary_gray,
+                     tr("Choose an existing custom object to place or edit."));
   ImGui::TextDisabled(
-      "%s", tr("New subtypes require an ASM dispatch-table change; this "
-               "browser edits or places existing slots only."));
+      "%s", tr("Tile edits affect every placement that uses the same asset."));
   ImGui::PopTextWrapPos();
   ImGui::Separator();
 
