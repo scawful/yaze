@@ -7,10 +7,13 @@
 
 #include "app/editor/dungeon/dungeon_canvas_transform.h"
 #include "app/editor/dungeon/ui/window/minecart_track_editor_panel.h"
+#include "app/gfx/resource/arena.h"
 #include "app/gui/core/agent_theme.h"
 #include "app/gui/core/drag_drop.h"
+#include "app/platform/sdl_compat.h"
 #include "imgui/imgui_internal.h"
 #include "zelda3/dungeon/custom_object.h"
+#include "zelda3/dungeon/object_drawer.h"
 
 namespace yaze::editor {
 
@@ -21,6 +24,129 @@ bool DungeonCanvasViewer::DrawMinecartNodePlacement(
   auto* panel = minecart_track_panel_;
   if (!panel || !object_interaction_enabled_ || header_read_only()) {
     return false;
+  }
+  if (panel->assembly_tool_active()) {
+    if (panel->active_room() != room_id)
+      return true;
+    if (room_canvas_shortcut_focus_ && ImGui::IsKeyPressed(ImGuiKey_Escape)) {
+      panel->CancelAssemblyPreview();
+      return true;
+    }
+    const DungeonCanvasTransform transform(rt.canvas_p0, rt.scrolling,
+                                           rt.scale);
+    const auto [mx, my] = transform.ScreenToRoomTiles(ImGui::GetMousePos(), 8);
+    if (rt.hovered && mx >= 0 && my >= 0 && mx < 64 && my < 64 &&
+        !ImGui::IsMouseDown(ImGuiMouseButton_Right) &&
+        !ImGui::IsMouseDown(ImGuiMouseButton_Middle)) {
+      panel->UpdateAssemblyPreview(
+          room_id, mx & ~1, my & ~1,
+          ImGui::IsMouseClicked(ImGuiMouseButton_Left));
+    }
+    const auto& preview = panel->assembly_preview();
+    if (preview && preview->selection.room_id == room_id && rt.draw_list) {
+      if (rom_ && rom_->is_loaded() && !room.get_gfx_buffer().empty()) {
+        if (!minecart_assembly_preview_buffer_)
+          minecart_assembly_preview_buffer_ =
+              std::make_unique<gfx::BackgroundBuffer>(512, 512);
+        auto& buffer = *minecart_assembly_preview_buffer_;
+        if (minecart_assembly_preview_revision_ !=
+                panel->assembly_preview_revision() ||
+            minecart_assembly_preview_room_ != room_id ||
+            minecart_assembly_graphics_revision_ != room.graphics_revision()) {
+          buffer.EnsureBitmapInitialized();
+          buffer.ClearBuffer();
+          auto& bitmap = buffer.bitmap();
+          std::fill(bitmap.mutable_data().begin(), bitmap.mutable_data().end(),
+                    255);
+          if (auto* palette = platform::GetSurfacePalette(
+                  room.bg1_buffer().bitmap().surface());
+              palette && palette->ncolors > 0) {
+            std::vector<SDL_Color> colors(256, {0, 0, 0, 0});
+            std::copy_n(palette->colors, std::min(palette->ncolors, 256),
+                        colors.begin());
+            colors[255] = {0, 0, 0, 0};
+            bitmap.SetPalette(colors);
+            SDL_SetColorKey(bitmap.surface(), SDL_TRUE, 255);
+            SDL_SetSurfaceBlendMode(bitmap.surface(), SDL_BLENDMODE_BLEND);
+          }
+          zelda3::ObjectDrawer drawer(rom_, room_id,
+                                      room.get_gfx_buffer().data());
+          drawer.InitializeDrawRoutines();
+          drawer.SetRoomFloorGraphics(room.floor1(), room.floor2());
+          for (size_t i = preview->selection.before.objects.size();
+               i < preview->selection.after.objects.size(); ++i)
+            (void)drawer.DrawObject(preview->selection.after.objects[i], buffer,
+                                    buffer, current_palette_group_);
+          bitmap.set_modified(true);
+          bitmap.UpdateSurfacePixels();
+          if (bitmap.texture())
+            gfx::Arena::Get().QueueTextureCommand(
+                gfx::Arena::TextureCommandType::UPDATE, &bitmap);
+          else if (!minecart_assembly_texture_queued_) {
+            gfx::Arena::Get().QueueTextureCommand(
+                gfx::Arena::TextureCommandType::CREATE, &bitmap);
+            minecart_assembly_texture_queued_ = true;
+          }
+          gfx::Arena::Get().ProcessTextureQueue(nullptr);
+          if (bitmap.texture())
+            minecart_assembly_texture_queued_ = false;
+          minecart_assembly_preview_revision_ =
+              panel->assembly_preview_revision();
+          minecart_assembly_preview_room_ = room_id;
+          minecart_assembly_graphics_revision_ = room.graphics_revision();
+        }
+        rt.draw_list->PushClipRect(
+            rt.canvas_p0,
+            ImVec2(rt.canvas_p0.x + rt.canvas_sz.x * rt.scale,
+                   rt.canvas_p0.y + rt.canvas_sz.y * rt.scale),
+            true);
+        if (buffer.bitmap().texture())
+          rt.draw_list->AddImage(
+              (ImTextureID)(intptr_t)buffer.bitmap().texture(),
+              transform.room_origin_screen(),
+              transform.RoomPixelsToScreen(ImVec2(512, 512)), ImVec2(0, 0),
+              ImVec2(1, 1), IM_COL32(255, 255, 255, 190));
+      }
+      for (size_t i = 0; i < preview->collision_after.tiles.size(); ++i) {
+        if (preview->collision_after.HasOverride(i) ==
+                preview->collision_before.HasOverride(i) &&
+            preview->collision_after.tiles[i] ==
+                preview->collision_before.tiles[i])
+          continue;
+        const auto p =
+            transform.RoomPixelsToScreen(ImVec2((i % 64) * 8, (i / 64) * 8));
+        const auto q = transform.RoomPixelsToScreen(
+            ImVec2((i % 64) * 8 + 8, (i / 64) * 8 + 8));
+        rt.draw_list->AddRect(p, q, IM_COL32(90, 230, 170, 210));
+        if (rt.scale >= 1.5f) {
+          const auto text = std::to_string(preview->collision_after.tiles[i]);
+          rt.draw_list->AddText(p, IM_COL32(255, 255, 255, 230), text.c_str());
+        }
+      }
+      for (size_t i = preview->selection.before.sprites.size();
+           i < preview->selection.after.sprites.size(); ++i) {
+        const auto& actor = preview->selection.after.sprites[i];
+        const auto p =
+            transform.RoomPixelsToScreen(ImVec2(actor.x * 16, actor.y * 16));
+        const auto q = transform.RoomPixelsToScreen(
+            ImVec2(actor.x * 16 + 16, actor.y * 16 + 16));
+        rt.draw_list->AddRect(p, q, IM_COL32(255, 210, 80, 255), 0, 2);
+        const auto label =
+            std::string(actor.id == 0xA3 ? "Cart " : "Channel ") +
+            std::to_string(actor.subtype);
+        rt.draw_list->AddText(p, IM_COL32(255, 220, 110, 255), label.c_str());
+      }
+      rt.draw_list->PopClipRect();
+    }
+    for (const auto& [x, y] : panel->path_waypoints()) {
+      if (rt.draw_list)
+        rt.draw_list->AddCircle(
+            transform.RoomPixelsToScreen(ImVec2(x * 8 + 8, y * 8 + 8)), 4,
+            IM_COL32(255, 210, 80, 255));
+    }
+    if (rt.hovered && !panel->assembly_error().empty())
+      ImGui::SetTooltip("%s", panel->assembly_error().c_str());
+    return true;
   }
   const auto* active = ImGui::GetDragDropPayload();
   bool node_drag = active && active->IsDataType(kMinecartNodeDragPayload) &&

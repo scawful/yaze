@@ -69,6 +69,7 @@ set(
   app/editor/dungeon/ui/minecart/minecart_canvas_tool.cc
   app/editor/dungeon/ui/minecart/minecart_collision_tool.cc
   app/editor/dungeon/ui/minecart/minecart_rail_tools.cc
+  app/editor/dungeon/ui/minecart/minecart_assembly.cc
   app/editor/dungeon/minecart_track_source.cc
   app/editor/dungeon/object_selection.cc
   app/editor/dungeon/selectors/object_selector_content.cc

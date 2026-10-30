@@ -1,13 +1,65 @@
 #include "app/editor/dungeon/dungeon_editor_v2.h"
 
+#include <set>
 #include "app/editor/dungeon/ui/minecart/minecart_canvas_tool.h"
 #include "app/editor/dungeon/ui/window/minecart_track_editor_panel.h"
+#include "app/editor/system/session/hack_manifest_save_validation.h"
 #include "core/features.h"
 #include "util/macro.h"
 #include "zelda3/dungeon/custom_object.h"
+#include "zelda3/dungeon/dungeon_stream_allocator.h"
 
 namespace yaze::editor {
 namespace {
+absl::Status UnusedAssemblyIds(const DungeonRoomStore& rooms, const Rom& rom,
+                               const std::set<int>& carts,
+                               const std::set<int>& channels,
+                               int skip_room = -1) {
+  if (carts.empty() && channels.empty())
+    return absl::OkStatus();
+  auto check = [&](int id, int subtype) -> absl::Status {
+    if ((id == 0xA3 && carts.contains(subtype)) ||
+        ((id == 0xAF || id == 0xB0) && channels.contains(subtype)))
+      return absl::FailedPreconditionError(
+          "Cart ID or switch channel is already used in the loaded/project "
+          "scope");
+    return absl::OkStatus();
+  };
+  for (int room = 0; room < zelda3::kNumberOfRooms; ++room) {
+    if (room == skip_room)
+      continue;
+    const auto* authored = rooms.GetIfMaterialized(room);
+    if (authored &&
+        (authored->AreSpritesLoaded() || authored->sprites_dirty())) {
+      for (const auto& sprite : authored->GetSprites())
+        if (!sprite.deleted())
+          RETURN_IF_ERROR(check(sprite.id(), sprite.subtype()));
+    } else {
+      ASSIGN_OR_RETURN(auto stream, zelda3::ReadDungeonSpriteStream(rom, room));
+      const auto& bytes = stream.encoded_stream;
+      for (size_t cursor = 1;
+           cursor + 2 < bytes.size() && bytes[cursor] != 0xFF; cursor += 3)
+        RETURN_IF_ERROR(check(
+            bytes[cursor + 2],
+            ((bytes[cursor + 1] & 0xE0) >> 5) | ((bytes[cursor] & 0x60) >> 2)));
+    }
+  }
+  return absl::OkStatus();
+}
+
+class RailAssemblyAction final : public UndoAction {
+ public:
+  RailAssemblyAction(std::function<absl::Status(bool)> restore,
+                     std::string description)
+      : restore_(std::move(restore)), description_(std::move(description)) {}
+  absl::Status Undo() override { return restore_(false); }
+  absl::Status Redo() override { return restore_(true); }
+  std::string Description() const override { return description_; }
+
+ private:
+  std::function<absl::Status(bool)> restore_;
+  std::string description_;
+};
 class CartStartAction final : public UndoAction {
  public:
   explicit CartStartAction(std::function<absl::Status(bool)> restore)
@@ -41,6 +93,192 @@ class RailObjectsAction final : public UndoAction {
   size_t collision_bytes_;
 };
 }  // namespace
+
+absl::Status DungeonEditorV2::ValidateMinecartAssemblyIdentities(
+    const MinecartAssemblyPlan& plan) const {
+  std::set<int> carts, channels;
+  for (size_t i = plan.selection.before.sprites.size();
+       i < plan.selection.after.sprites.size(); ++i) {
+    const auto& sprite = plan.selection.after.sprites[i];
+    (sprite.id == 0xA3 ? carts : channels).insert(sprite.subtype);
+  }
+  return UnusedAssemblyIds(rooms_, *rom_, carts, channels);
+}
+
+absl::Status DungeonEditorV2::PreflightMinecartAssembly(
+    const MinecartAssemblyPlan& plan, bool forward) {
+  RETURN_IF_ERROR(PreflightStreamMutation(
+      plan.selection.room_id,
+      forward ? plan.selection.after : plan.selection.before,
+      plan.selection.domains));
+  Rom scratch;
+  RETURN_IF_ERROR(scratch.LoadFromData(rom_->vector()));
+  RETURN_IF_ERROR(zelda3::WriteTrackCollision(
+      &scratch, plan.selection.room_id,
+      forward ? plan.collision_after : plan.collision_before));
+  if (dependencies_.project && dependencies_.project->hack_manifest.loaded()) {
+    std::vector<std::pair<uint32_t, uint32_t>> writes;
+    for (size_t i = 0; i < rom_->size();) {
+      if (rom_->vector()[i] == scratch.vector()[i]) {
+        ++i;
+        continue;
+      }
+      const auto begin = i++;
+      while (i < rom_->size() && rom_->vector()[i] != scratch.vector()[i])
+        ++i;
+      writes.emplace_back(begin, i);
+    }
+    RETURN_IF_ERROR(ValidateHackManifestSaveConflicts(
+        dependencies_.project->hack_manifest,
+        dependencies_.project->rom_metadata.write_policy, writes,
+        "minecart assembly collision", "DungeonEditorV2", nullptr));
+  }
+  return absl::OkStatus();
+}
+
+absl::StatusOr<DungeonSelectionClipboard>
+DungeonEditorV2::CaptureSelectedMinecartAssembly(int room_id) {
+  auto* room = rooms_.GetIfLoaded(room_id);
+  auto* viewer = GetViewerForRoom(room_id);
+  if (!room || !viewer || !rom_ || room->rom() != rom_ ||
+      !minecart_track_editor_panel_)
+    return absl::FailedPreconditionError(
+        "Select the rail assembly in a loaded Room view first");
+  auto& interaction = viewer->object_interaction();
+  const auto profile =
+      zelda3::CustomObjectManager::Get().GetMinecartRailProfile();
+  ASSIGN_OR_RETURN(
+      auto clipboard,
+      CaptureMinecartAssembly(
+          *room, interaction.GetSelectedObjectIndices(),
+          interaction.entity_coordinator().SelectedEntitiesForEdit(),
+          minecart_track_editor_panel_->GetTracks(), profile));
+  std::set<int> carts, channels;
+  for (const auto& sprite : clipboard.sprites)
+    (sprite.id == 0xA3 ? carts : channels).insert(sprite.subtype);
+  RETURN_IF_ERROR(UnusedAssemblyIds(rooms_, *rom_, carts, channels, room_id));
+  clipboard.minecart->source_rom = rom_;
+  clipboard.minecart->session_generation = minecart_collision_generation_;
+  selection_clipboard_ = clipboard;
+  return clipboard;
+}
+
+absl::StatusOr<MinecartAssemblyPlan> DungeonEditorV2::PreviewMinecartAssembly(
+    int room_id, const DungeonSelectionClipboard& clipboard, int x, int y,
+    const MinecartAssemblyMapping& mapping) {
+  auto* room = rooms_.GetIfLoaded(room_id);
+  auto* panel = minecart_track_editor_panel_;
+  if (!room || !rom_ || room->rom() != rom_ || !panel ||
+      !core::FeatureFlags::get().kEnableCustomObjects ||
+      (GetViewerForRoom(room_id) &&
+       GetViewerForRoom(room_id)->header_read_only()))
+    return absl::FailedPreconditionError(
+        "Load an editable custom-object room first");
+  if (clipboard.minecart && clipboard.minecart->source_room >= 0 &&
+      (clipboard.minecart->source_rom != rom_ ||
+       clipboard.minecart->session_generation !=
+           minecart_collision_generation_))
+    return absl::FailedPreconditionError(
+        "Assembly clipboard belongs to an earlier project");
+  auto& assets = zelda3::CustomObjectManager::Get();
+  for (const auto& object : clipboard.objects) {
+    ASSIGN_OR_RETURN(auto asset,
+                     assets.GetObjectInternal(object.id_, object.size_));
+    const auto bounds = asset->GetBoundingBox();
+    if (asset->IsEmpty() || bounds.min_x < 0 || bounds.min_y < 0 ||
+        bounds.max_x > 1 || bounds.max_y > 1)
+      return absl::FailedPreconditionError(
+          "Path tools require admitted rail art within its 2x2 footprint");
+  }
+  if (panel->GetTracks().size() != kMinecartTrackSlotCount)
+    return absl::FailedPreconditionError(
+        "Load the complete minecart source before rail planning");
+  const auto found = minecart_collision_ownership_.find(room_id);
+  const auto ownership = found == minecart_collision_ownership_.end()
+                             ? zelda3::MinecartTrackCollisionOwnership{}
+                             : found->second;
+  ASSIGN_OR_RETURN(
+      auto plan,
+      PlanMinecartAssembly(*room, clipboard, x, y, mapping, panel->GetTracks(),
+                           ownership, assets.GetMinecartRailProfile()));
+  RETURN_IF_ERROR(ValidateMinecartAssemblyIdentities(plan));
+  RETURN_IF_ERROR(PreflightMinecartAssembly(plan, true));
+  plan.source_rom = rom_;
+  plan.room_metadata = room->CaptureMetadataSnapshot();
+  plan.room_generation = minecart_collision_generation_;
+  plan.source_generation = panel->track_generation();
+  plan.asset_generation = assets.asset_generation();
+  return plan;
+}
+
+absl::Status DungeonEditorV2::ApplyMinecartAssembly(
+    const MinecartAssemblyPlan& input) {
+  const auto plan = input;
+  if (!plan.selection.changed() &&
+      plan.collision_before == plan.collision_after &&
+      plan.tracks_before == plan.tracks_after)
+    return absl::OkStatus();
+  if (HasPendingUndoSnapshot())
+    return absl::FailedPreconditionError(
+        "Finish the previous gesture before applying the rail assembly");
+  auto* panel = minecart_track_editor_panel_;
+  if (!panel)
+    return absl::FailedPreconditionError("Minecart source closed");
+  auto restore = [this, panel, plan](bool forward) -> absl::Status {
+    const int room_id = plan.selection.room_id;
+    auto* room = rooms_.GetIfLoaded(room_id);
+    auto& assets = zelda3::CustomObjectManager::Get();
+    if (!room || !rom_ || rom_ != plan.source_rom || room->rom() != rom_ ||
+        minecart_collision_generation_ != plan.room_generation ||
+        minecart_track_editor_panel_ != panel ||
+        panel->track_generation() != plan.source_generation ||
+        assets.asset_generation() != plan.asset_generation ||
+        assets.GetMinecartRailProfile() != plan.profile ||
+        (GetViewerForRoom(room_id) &&
+         GetViewerForRoom(room_id)->header_read_only()))
+      return absl::FailedPreconditionError(
+          "Rail preview belongs to an earlier room, asset or project "
+          "generation");
+    const auto& expected =
+        forward ? plan.selection.before : plan.selection.after;
+    const auto& replacement =
+        forward ? plan.selection.after : plan.selection.before;
+    const auto found = minecart_collision_ownership_.find(room_id);
+    const auto ownership = found == minecart_collision_ownership_.end()
+                               ? zelda3::MinecartTrackCollisionOwnership{}
+                               : found->second;
+    if (room->CaptureMetadataSnapshot() != plan.room_metadata ||
+        ChangedDungeonSelectionDomains(CaptureDungeonSelectionEditState(*room),
+                                       expected) ||
+        !(room->custom_collision() ==
+          (forward ? plan.collision_before : plan.collision_after)) ||
+        ownership != (forward ? plan.ownership_before : plan.ownership_after))
+      return absl::FailedPreconditionError(
+          "Room or collision ownership changed; preview the assembly again");
+    if (forward)
+      RETURN_IF_ERROR(ValidateMinecartAssemblyIdentities(plan));
+    RETURN_IF_ERROR(PreflightMinecartAssembly(plan, forward));
+    // Batch validates every source slot and renders the complete existing source
+    // document before publishing any draft. Nothing fallible follows it.
+    RETURN_IF_ERROR(panel->RestoreTrackDraftBatch(
+        plan.source_generation,
+        forward ? plan.tracks_before : plan.tracks_after,
+        forward ? plan.tracks_after : plan.tracks_before));
+    ApplyDungeonSelectionEditState(*room, replacement, plan.selection.domains);
+    RestoreRoomCustomCollision(
+        room_id, forward ? plan.collision_after : plan.collision_before);
+    minecart_collision_ownership_[room_id] =
+        forward ? plan.ownership_after : plan.ownership_before;
+    panel->MarkPairedTrackDraft();
+    RefreshSelectionEditViews(room_id, &replacement);
+    rom_->set_dirty(true);
+    return absl::OkStatus();
+  };
+  RETURN_IF_ERROR(restore(true));
+  undo_manager_.Push(
+      std::make_unique<RailAssemblyAction>(restore, plan.description));
+  return absl::OkStatus();
+}
 
 absl::Status DungeonEditorV2::PreflightMinecartObjectCollision(
     int room_id, const std::vector<zelda3::RoomObject>& objects) const {

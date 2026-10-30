@@ -180,6 +180,32 @@ rails connect or that a cart can complete the route in the game. Advanced
 source publishing, collision generation, and detailed checks remain under
 **Source and audit**.
 
+### Drawing and copying rail assemblies
+
+In **Minecart**, choose **Draw floor path** or **Draw pit path**. Click
+orthogonal waypoints on the room's 16px grid. The preview uses the admitted
+rail art and shows collision changes. **Apply assembly** commits the clicked
+path as one Undo action. **Cancel preview** or Escape discards it without
+changing room data. Crossings, retraced cells, unsupported layers, missing
+assets, and authored collision conflicts are refused. Existing stops and
+rotating-track collision are preserved.
+
+To copy an assembly, select its rails and all included cart/switch sprites in
+Room view. Choose **Capture selected assembly**. Each copied cart must include
+its matching source start and stop; each copied switch channel must include
+its lever and all rotating tracks. Incomplete or cross-room dependencies are
+refused. Assign explicit new **Cart** and **Channel** mappings, choose another
+room, and use **Place translated copy**. Click the target anchor to lock the
+preview, then choose **Apply assembly**. The editor checks identities across
+loaded and unopened rooms before applying. Ordinary Paste refuses this
+dependency-bearing clipboard; use the Assembly controls.
+
+Objects, collision, collision ownership, node sprites, and source-track drafts
+join the same Undo action. No ROM or source file is written by preview or Apply.
+The existing source-publish and Save gates still apply; publish paired source
+drafts through **Source and audit** before saving room data. Rotation, mirroring,
+moving the original assembly, and paths crossing room boundaries are deferred.
+
 ### Editing custom objects
 
 Choose **Custom assets** in the object browser to preview and place an existing

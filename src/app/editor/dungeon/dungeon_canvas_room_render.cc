@@ -232,7 +232,7 @@ bool DungeonCanvasViewer::DrawMinecartCanvas(const gui::CanvasRuntime& rt,
       static_cast<const MinecartToolPayload*>(payload->Data)->source_viewer ==
           this;
   if ((panel->canvas_editing() || panel->collision_stamping() ||
-       panel->placement_brush()) &&
+       panel->placement_brush() || panel->assembly_tool_active()) &&
       minecart_owned_input_ && object_interaction_enabled_ &&
       !object_interaction_.mode_manager().IsSelectMode() &&
       (!palette_drag || own_actor_drag)) {
@@ -243,7 +243,8 @@ bool DungeonCanvasViewer::DrawMinecartCanvas(const gui::CanvasRuntime& rt,
   }
   const bool owns_input =
       (panel->canvas_editing() || panel->collision_stamping() ||
-       panel->placement_brush() || palette_drag) &&
+       panel->placement_brush() || panel->assembly_tool_active() ||
+       palette_drag) &&
       object_interaction_enabled_ && !header_read_only();
   if (owns_input && !minecart_owned_input_) {
     object_interaction_.HandleMouseRelease();

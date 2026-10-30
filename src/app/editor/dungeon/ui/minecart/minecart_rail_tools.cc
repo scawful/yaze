@@ -4,10 +4,204 @@
 
 #include "app/gui/automation/widget_auto_register.h"
 #include "imgui/imgui.h"
+#include "zelda3/dungeon/custom_object.h"
 
 namespace yaze::editor {
 
+void MinecartTrackEditorPanel::CancelAssemblyPreview() {
+  drawing_path_ = placing_assembly_ = false;
+  path_waypoints_.clear();
+  assembly_preview_.reset();
+  assembly_room_ = preview_x_ = preview_y_ = -1;
+  assembly_hover_x_ = assembly_hover_y_ = -1;
+  assembly_error_.clear();
+  ++assembly_preview_revision_;
+}
+
+void MinecartTrackEditorPanel::BeginRailPath(bool pit) {
+  CancelNodePlacement();
+  set_canvas_editing(false);
+  collision_stamping_ = false;
+  drawing_path_ = true;
+  path_pit_ = pit;
+  assembly_room_ = active_room_;
+  assembly_revision_ = canvas_revision_;
+}
+
+void MinecartTrackEditorPanel::UpdateAssemblyPreview(int room, int x, int y,
+                                                     bool click) {
+  if (!assembly_tool_active() || !preview_assembly_)
+    return;
+  if (drawing_path_ &&
+      (room != assembly_room_ || canvas_revision_ != assembly_revision_)) {
+    CancelAssemblyPreview();
+    assembly_error_ = "Room changed; begin the path again";
+    return;
+  }
+  if (placing_assembly_ && room != assembly_room_) {
+    assembly_room_ = room;
+    assembly_revision_ = canvas_revision_;
+    preview_x_ = preview_y_ = -1;
+    assembly_hover_x_ = assembly_hover_y_ = -1;
+    assembly_preview_.reset();
+  }
+  if (placing_assembly_ && canvas_revision_ != assembly_revision_) {
+    CancelAssemblyPreview();
+    assembly_error_ = "Project or tool changed; choose the assembly again";
+    return;
+  }
+  if (drawing_path_ && !click)
+    return;
+  if (placing_assembly_ && !click && preview_x_ >= 0)
+    return;
+  if (placing_assembly_ && !click && x == assembly_hover_x_ &&
+      y == assembly_hover_y_)
+    return;
+  assembly_hover_x_ = x;
+  assembly_hover_y_ = y;
+  auto points = path_waypoints_;
+  std::optional<DungeonSelectionClipboard> clipboard;
+  if (drawing_path_) {
+    if (!points.empty() && points.back() == std::pair{x, y})
+      return;
+    points.emplace_back(x, y);
+    if (points.size() == 1) {
+      path_waypoints_ = points;
+      return;
+    }
+    auto built = BuildMinecartRailPath(
+        points,
+        path_pit_ ? zelda3::MinecartRailStyle::kPit
+                  : zelda3::MinecartRailStyle::kFloor,
+        zelda3::CustomObjectManager::Get().GetMinecartRailProfile());
+    if (!built.ok()) {
+      assembly_error_ = std::string(built.status().message());
+      assembly_preview_.reset();
+      return;
+    }
+    clipboard = std::move(*built);
+    x = points.front().first;
+    y = points.front().second;
+  } else {
+    clipboard = assembly_copy_;
+  }
+  if (!clipboard)
+    return;
+  auto plan = preview_assembly_(room, *clipboard, x, y, assembly_mapping_);
+  ++assembly_preview_revision_;
+  if (!plan.ok()) {
+    assembly_error_ = std::string(plan.status().message());
+    assembly_preview_.reset();
+    return;
+  }
+  assembly_error_.clear();
+  assembly_preview_ = std::move(*plan);
+  if (drawing_path_)
+    path_waypoints_ = std::move(points);
+  else if (click) {
+    preview_x_ = x;
+    preview_y_ = y;
+  }
+}
+
+absl::Status MinecartTrackEditorPanel::ApplyAssemblyPreview() {
+  if (!assembly_preview_ || !apply_assembly_)
+    return absl::FailedPreconditionError("Create a valid rail preview first");
+  const auto snapshot = *assembly_preview_;
+  auto result = apply_assembly_(snapshot);
+  if (result.ok())
+    CancelAssemblyPreview();
+  else {
+    assembly_error_ = std::string(result.message());
+    assembly_preview_.reset();
+  }
+  return result;
+}
+
+void MinecartTrackEditorPanel::DrawAssemblyTools() {
+  ImGui::BeginDisabled(!preview_assembly_);
+  if (ImGui::Button("Draw floor path"))
+    BeginRailPath(false);
+  gui::AutoRegisterLastItem("button", "Draw floor path");
+  ImGui::SameLine();
+  if (ImGui::Button("Draw pit path"))
+    BeginRailPath(true);
+  gui::AutoRegisterLastItem("button", "Draw pit path");
+  ImGui::EndDisabled();
+  ImGui::BeginDisabled(!capture_assembly_);
+  if (ImGui::Button("Capture selected assembly")) {
+    auto copied = capture_assembly_(active_room_);
+    if (!copied.ok())
+      assembly_error_ = std::string(copied.status().message());
+    else {
+      CancelAssemblyPreview();
+      assembly_copy_ = std::move(*copied);
+      assembly_mapping_ = {};
+      for (const auto& sprite : assembly_copy_->sprites)
+        (sprite.id == 0xA3 ? assembly_mapping_.carts
+                           : assembly_mapping_.channels)[sprite.subtype] = -1;
+    }
+  }
+  gui::AutoRegisterLastItem("button", "Capture selected assembly");
+  ImGui::EndDisabled();
+  if (assembly_copy_) {
+    ImGui::TextWrapped(
+        "Copied %zu rails and %zu nodes. Map new identities before preview.",
+        assembly_copy_->objects.size(), assembly_copy_->sprites.size());
+    auto mapping = [&](std::map<int, int>& ids, const char* label) {
+      for (auto& [source, target] : ids) {
+        const auto name = std::string(label) + " " + std::to_string(source) +
+                          " ->##" + label + std::to_string(source);
+        ImGui::SetNextItemWidth(68);
+        if (ImGui::InputInt(name.c_str(), &target, 0, 0)) {
+          target = std::clamp(target, -1, 31);
+          assembly_preview_.reset();
+          preview_x_ = preview_y_ = -1;
+          assembly_hover_x_ = assembly_hover_y_ = -1;
+        }
+        gui::AutoRegisterLastItem("input", name);
+      }
+    };
+    mapping(assembly_mapping_.carts, "Cart");
+    mapping(assembly_mapping_.channels, "Channel");
+    if (ImGui::Button("Place translated copy")) {
+      CancelNodePlacement();
+      set_canvas_editing(false);
+      collision_stamping_ = false;
+      placing_assembly_ = true;
+      assembly_room_ = active_room_;
+      assembly_revision_ = canvas_revision_;
+    }
+    gui::AutoRegisterLastItem("button", "Place translated copy");
+  }
+  if (assembly_tool_active()) {
+    ImGui::TextWrapped("%s", drawing_path_
+                                 ? "Click orthogonal waypoints on the 16px "
+                                   "grid. Apply commits the clicked path."
+                                 : "Click a target anchor. Preview includes "
+                                   "art, collision and mapped nodes.");
+    ImGui::BeginDisabled(!assembly_preview_ || !apply_assembly_);
+    if (ImGui::Button("Apply assembly"))
+      ReportToolStatus(ApplyAssemblyPreview());
+    gui::AutoRegisterLastItem("button", "Apply assembly");
+    ImGui::EndDisabled();
+    ImGui::SameLine();
+    if (ImGui::Button("Cancel preview"))
+      CancelAssemblyPreview();
+    gui::AutoRegisterLastItem("button", "Cancel preview");
+    if (assembly_preview_)
+      ImGui::Text("Preview: %zu new rails, %zu new nodes",
+                  assembly_preview_->selection.after.objects.size() -
+                      assembly_preview_->selection.before.objects.size(),
+                  assembly_preview_->selection.after.sprites.size() -
+                      assembly_preview_->selection.before.sprites.size());
+  }
+  if (!assembly_error_.empty())
+    ImGui::TextWrapped("%s", assembly_error_.c_str());
+}
+
 void MinecartTrackEditorPanel::DrawRailTools() {
+  DrawAssemblyTools();
   if (placement_brush_) {
     const auto& brush = *placement_brush_;
     static constexpr const char* kDepartures[] = {"south", "north", "east",

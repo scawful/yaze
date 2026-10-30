@@ -1131,6 +1131,11 @@ class DungeonCanvasViewer {
   bool show_connected_overview_ = false;
   bool show_connected_current_room_preview_ = false;
   bool show_connected_minecart_nodes_ = true;
+  std::unique_ptr<gfx::BackgroundBuffer> minecart_assembly_preview_buffer_;
+  uint64_t minecart_assembly_preview_revision_ = 0;
+  uint64_t minecart_assembly_graphics_revision_ = 0;
+  int minecart_assembly_preview_room_ = -1;
+  bool minecart_assembly_texture_queued_ = false;
   bool connected_controls_inline_ = false;
   bool connected_canvas_fit_requested_ = false;
   bool connected_canvas_reset_requested_ = false;

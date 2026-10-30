@@ -15,6 +15,7 @@
 #include "absl/status/statusor.h"
 #include "app/editor/dungeon/dungeon_room_store.h"
 #include "app/editor/dungeon/minecart_track_source.h"
+#include "app/editor/dungeon/ui/minecart/minecart_assembly.h"
 #include "app/editor/dungeon/ui/minecart/minecart_collision_tool.h"
 #include "app/editor/dungeon/ui/minecart/minecart_node_tool.h"
 #include "app/editor/system/workspace/editor_panel.h"
@@ -50,6 +51,8 @@ class MinecartTrackEditorPanel : public WindowContent {
   // Custom methods
   void SetRooms(DungeonRoomStore* rooms) {
     if (rooms_ != rooms) {
+      CancelAssemblyPreview();
+      assembly_copy_.reset();
       collision_preview_.clear();
       collision_preview_options_ = {};
     }
@@ -81,6 +84,41 @@ class MinecartTrackEditorPanel : public WindowContent {
   absl::Status RestoreTrackDraft(uint64_t generation,
                                  const MinecartTrack& expected,
                                  const MinecartTrack& replacement);
+  absl::Status RestoreTrackDraftBatch(
+      uint64_t generation, const std::vector<MinecartTrack>& expected,
+      const std::vector<MinecartTrack>& replacement);
+
+  using AssemblyPreview = std::function<absl::StatusOr<MinecartAssemblyPlan>(
+      int, const DungeonSelectionClipboard&, int, int,
+      const MinecartAssemblyMapping&)>;
+  using AssemblyApply =
+      std::function<absl::Status(const MinecartAssemblyPlan&)>;
+  using AssemblyCapture =
+      std::function<absl::StatusOr<DungeonSelectionClipboard>(int)>;
+  void SetAssemblyCallbacks(AssemblyPreview preview, AssemblyApply apply,
+                            AssemblyCapture capture) {
+    preview_assembly_ = std::move(preview);
+    apply_assembly_ = std::move(apply);
+    capture_assembly_ = std::move(capture);
+  }
+  void BeginRailPath(bool pit);
+  void CancelAssemblyPreview();
+  void UpdateAssemblyPreview(int room, int x, int y, bool click);
+  bool assembly_tool_active() const {
+    return drawing_path_ || placing_assembly_;
+  }
+  const std::optional<MinecartAssemblyPlan>& assembly_preview() const {
+    return assembly_preview_;
+  }
+  const std::string& assembly_error() const { return assembly_error_; }
+  uint64_t assembly_preview_revision() const {
+    return assembly_preview_revision_;
+  }
+  const std::vector<std::pair<int, int>>& path_waypoints() const {
+    return path_waypoints_;
+  }
+  absl::Status ApplyAssemblyPreview();
+  void DrawAssemblyTools();
   uint64_t track_generation() const { return track_generation_; }
   // Reload cancels an unfinished gesture even when Undo's source is unchanged.
   uint64_t canvas_revision() const { return canvas_revision_; }
@@ -91,6 +129,7 @@ class MinecartTrackEditorPanel : public WindowContent {
   int selected_track() const { return selected_track_; }
   void SelectTrack(int id) { selected_track_ = id; }
   void SetActiveRoom(int room);
+  int active_room() const { return active_room_; }
   void CancelPick() { CancelCoordinatePicking(); }
 
   void SetRailPaletteCallback(std::function<bool()> draw) {
@@ -157,6 +196,7 @@ class MinecartTrackEditorPanel : public WindowContent {
     }
   }
   void CancelNodePlacement() {
+    CancelAssemblyPreview();
     CancelNodeDrag();
     selected_placement_tool_.reset();
     placement_brush_.reset();
@@ -198,6 +238,11 @@ class MinecartTrackEditorPanel : public WindowContent {
     audit_includes_all_rooms_ = false;
   }
   void DetachRuntimeContext() {
+    CancelAssemblyPreview();
+    assembly_copy_.reset();
+    preview_assembly_ = {};
+    apply_assembly_ = {};
+    capture_assembly_ = {};
     room_navigation_callback_ = {};
     project_changed_callback_ = {};
     project_draft_changed_callback_ = {};
@@ -220,6 +265,19 @@ class MinecartTrackEditorPanel : public WindowContent {
   }
 
  private:
+  AssemblyPreview preview_assembly_;
+  AssemblyApply apply_assembly_;
+  AssemblyCapture capture_assembly_;
+  bool drawing_path_ = false, placing_assembly_ = false, path_pit_ = false;
+  int assembly_room_ = -1, preview_x_ = -1, preview_y_ = -1;
+  int assembly_hover_x_ = -1, assembly_hover_y_ = -1;
+  uint64_t assembly_revision_ = 0;
+  uint64_t assembly_preview_revision_ = 0;
+  std::vector<std::pair<int, int>> path_waypoints_;
+  std::optional<DungeonSelectionClipboard> assembly_copy_;
+  MinecartAssemblyMapping assembly_mapping_;
+  std::optional<MinecartAssemblyPlan> assembly_preview_;
+  std::string assembly_error_;
   friend class MinecartTrackEditorPanelTestPeer;
 
   absl::Status LoadTracks();

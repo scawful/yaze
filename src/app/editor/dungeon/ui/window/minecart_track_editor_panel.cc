@@ -158,6 +158,8 @@ absl::StatusOr<std::vector<uint16_t>> ParseHexList(const std::string& input) {
 }  // namespace
 
 void MinecartTrackEditorPanel::ResetTrackSession() {
+  CancelAssemblyPreview();
+  assembly_copy_.reset();
   selected_placement_tool_.reset();
   placement_brush_.reset();
   collision_stamping_ = false;
@@ -203,6 +205,11 @@ void MinecartTrackEditorPanel::SetActiveRoom(int room) {
     return;
   }
   CancelNodeDrag();
+  if (drawing_path_)
+    CancelAssemblyPreview();
+  assembly_preview_.reset();
+  preview_x_ = preview_y_ = -1;
+  assembly_hover_x_ = assembly_hover_y_ = -1;
   ++canvas_revision_;
   active_room_ = room;
   BindPlacementBrushToRoom();
@@ -447,11 +454,22 @@ absl::Status MinecartTrackEditorPanel::RestoreTrackDraft(
   }
   auto candidate = tracks_;
   candidate[expected.id] = replacement;
-  const auto validated = source_document_->Render(candidate);
+  RETURN_IF_ERROR(RestoreTrackDraftBatch(generation, tracks_, candidate));
+  selected_track_ = expected.id;
+  return absl::OkStatus();
+}
+
+absl::Status MinecartTrackEditorPanel::RestoreTrackDraftBatch(
+    uint64_t generation, const std::vector<MinecartTrack>& expected,
+    const std::vector<MinecartTrack>& replacement) {
+  if (generation != track_generation_ || !loaded_ || !source_document_ ||
+      tracks_ != expected)
+    return absl::FailedPreconditionError(
+        "Track source or draft changed; assembly cannot be replayed");
+  const auto validated = source_document_->Render(replacement);
   if (!validated.ok())
     return validated.status();
-  tracks_[expected.id] = replacement;
-  selected_track_ = expected.id;
+  tracks_ = replacement;
   audit_dirty_ = true;
   return absl::OkStatus();
 }

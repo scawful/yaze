@@ -3,11 +3,15 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <map>
 #include <optional>
 #include <vector>
 
 #include "absl/status/statusor.h"
 #include "app/editor/dungeon/interaction/interaction_context.h"
+#include "app/editor/dungeon/minecart_track_source.h"
+#include "zelda3/dungeon/custom_collision.h"
+#include "zelda3/dungeon/minecart_object_semantics.h"
 
 namespace yaze::editor {
 
@@ -34,6 +38,16 @@ struct DungeonSelectionEditState {
   std::vector<SelectedEntity> selected_entities;
 };
 
+// Transient clipboard dependency data. This never changes a project/file format.
+struct DungeonMinecartClipboardData {
+  const void* source_rom = nullptr;
+  uint64_t session_generation = 0;
+  int source_room = -1;
+  zelda3::MinecartRailProfile profile = zelda3::MinecartRailProfile::kLegacy;
+  std::map<size_t, uint8_t> collision;
+  std::vector<MinecartTrack> starts;
+};
+
 struct DungeonSelectionClipboard {
   std::vector<zelda3::RoomObject> objects;
   std::vector<std::optional<chest_data>> object_chests;
@@ -42,6 +56,7 @@ struct DungeonSelectionClipboard {
   std::vector<zelda3::PotItem> items;
   int origin_pixel_x = 0;
   int origin_pixel_y = 0;
+  std::optional<DungeonMinecartClipboardData> minecart;
   bool empty() const {
     return objects.empty() && doors.empty() && sprites.empty() && items.empty();
   }

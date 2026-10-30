@@ -154,6 +154,33 @@ void DungeonEditorV2::ConfigureMinecartProjectCallbacks() {
   auto* editor_manager = static_cast<EditorManager*>(dependencies_.custom_data);
   const size_t session_id = dependencies_.session_id;
   minecart_track_editor_panel_->SetActiveRoom(current_room_id_);
+  const auto assembly_context = [editor_manager, session_id]() {
+    return !editor_manager ||
+           editor_manager->IsCurrentProjectContextOwnedBySession(session_id);
+  };
+  minecart_track_editor_panel_->SetAssemblyCallbacks(
+      [this, assembly_context](
+          int room, const DungeonSelectionClipboard& clipboard, int x, int y,
+          const MinecartAssemblyMapping& mapping)
+          -> absl::StatusOr<MinecartAssemblyPlan> {
+        if (!assembly_context())
+          return absl::FailedPreconditionError(
+              "Activate this project before previewing rail assemblies");
+        return PreviewMinecartAssembly(room, clipboard, x, y, mapping);
+      },
+      [this, assembly_context](const MinecartAssemblyPlan& plan) {
+        if (!assembly_context())
+          return absl::FailedPreconditionError(
+              "Activate this project before applying rail assemblies");
+        return ApplyMinecartAssembly(plan);
+      },
+      [this, assembly_context](
+          int room) -> absl::StatusOr<DungeonSelectionClipboard> {
+        if (!assembly_context())
+          return absl::FailedPreconditionError(
+              "Activate this project before copying rail assemblies");
+        return CaptureSelectedMinecartAssembly(room);
+      });
   minecart_track_editor_panel_->SetTrackEditCallback(
       [this, editor_manager, session_id](const MinecartTrack& before,
                                          const MinecartTrack& after,

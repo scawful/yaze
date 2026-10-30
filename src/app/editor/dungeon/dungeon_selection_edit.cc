@@ -369,6 +369,11 @@ absl::StatusOr<DungeonSelectionEditPlan> PlanDungeonSelectionEdit(
     case DungeonSelectionEditKind::kPaste: {
       DungeonSelectionClipboard copied;
       const DungeonSelectionClipboard* clipboard = request.clipboard;
+      if (clipboard && clipboard->minecart) {
+        return absl::FailedPreconditionError(
+            "Use Minecart > Assembly to paste rails with their node "
+            "dependencies");
+      }
       if (request.kind == DungeonSelectionEditKind::kDuplicate) {
         ASSIGN_OR_RETURN(
             copied, CopyDungeonSelection(room, plan.before.selected_objects,

@@ -236,6 +236,56 @@ class MinecartPaletteWorkflowTest : public testing::Test {
 };
 
 TEST_F(MinecartPaletteWorkflowTest,
+       RailWaypointsUseCanvasGridAndApplyOnlyFromExplicitButton) {
+  int applied = 0;
+  panel_.SetAssemblyCallbacks(
+      [&](int room, const DungeonSelectionClipboard& clipboard, int x, int y,
+          const MinecartAssemblyMapping& mapping)
+          -> absl::StatusOr<MinecartAssemblyPlan> {
+        EXPECT_EQ(room, kRoom);
+        std::vector<MinecartTrack> tracks;
+        for (int i = 0; i < 32; ++i)
+          tracks.push_back({i, 0, 0, 0});
+        return PlanMinecartAssembly(room_, clipboard, x, y, mapping, tracks, {},
+                                    clipboard.minecart->profile);
+      },
+      [&](const MinecartAssemblyPlan& plan) {
+        ++applied;
+        EXPECT_EQ(plan.selection.after.objects.size(), 5u);
+        return absl::OkStatus();
+      },
+      {});
+  draw_full_tools_ = true;
+  Frame();
+  Frame();
+  ASSERT_NO_FATAL_FAILURE(ClickPalette("Draw pit path"));
+  EXPECT_TRUE(panel_.assembly_tool_active());
+  for (const auto& [x, y] :
+       std::vector<std::pair<int, int>>{{8, 8}, {12, 8}, {12, 12}}) {
+    MoveCell(x + 1, y + 1);
+    Button(true);
+    Button(false);
+  }
+  ASSERT_TRUE(panel_.assembly_preview());
+  EXPECT_EQ(panel_.path_waypoints(),
+            (std::vector<std::pair<int, int>>{{8, 8}, {12, 8}, {12, 12}}));
+  EXPECT_EQ(applied, 0);
+  EXPECT_TRUE(room_.GetTileObjects().empty());
+  ASSERT_NO_FATAL_FAILURE(ClickPalette("Apply assembly"));
+  EXPECT_EQ(applied, 1);
+  EXPECT_FALSE(panel_.assembly_tool_active());
+  ASSERT_NO_FATAL_FAILURE(ClickPalette("Draw floor path"));
+  MoveCell(8, 8);
+  Button(true);
+  Button(false);
+  Escape();
+  EXPECT_FALSE(panel_.assembly_tool_active());
+  EXPECT_EQ(applied, 1);
+  EXPECT_TRUE(room_.GetTileObjects().empty());
+  EXPECT_FALSE(room_.custom_collision().HasOverrides());
+}
+
+TEST_F(MinecartPaletteWorkflowTest,
        PaletteClickArmsSwitchAndCanvasClickUsesScrolledScaledSpriteGrid) {
   ASSERT_NO_FATAL_FAILURE(ClickPalette("Switch"));
   ASSERT_TRUE(panel_.placement_brush());

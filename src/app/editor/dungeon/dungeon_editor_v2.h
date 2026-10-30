@@ -16,6 +16,7 @@
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "absl/strings/str_format.h"
+#include "app/editor/dungeon/ui/minecart/minecart_assembly.h"
 #include "app/editor/editor.h"
 #include "app/editor/system/workspace/workspace_window_manager.h"
 #include "app/emu/render/emulator_render_service.h"
@@ -451,6 +452,16 @@ class DungeonEditorV2 : public Editor {
   void RefreshEntranceDirtyState(int slot_index);
   void WireViewerPanelCallbacks(DungeonCanvasViewer* viewer);
   void ConfigureMinecartProjectCallbacks();
+  absl::StatusOr<DungeonSelectionClipboard> CaptureSelectedMinecartAssembly(
+      int room_id);
+  absl::StatusOr<MinecartAssemblyPlan> PreviewMinecartAssembly(
+      int room_id, const DungeonSelectionClipboard& clipboard, int x, int y,
+      const MinecartAssemblyMapping& mapping);
+  absl::Status ApplyMinecartAssembly(const MinecartAssemblyPlan& plan);
+  absl::Status PreflightMinecartAssembly(const MinecartAssemblyPlan& plan,
+                                         bool forward);
+  absl::Status ValidateMinecartAssemblyIdentities(
+      const MinecartAssemblyPlan& plan) const;
   absl::Status ApplyMinecartTrackEdit(const MinecartTrack& before,
                                       const MinecartTrack& after,
                                       bool move_cart);
