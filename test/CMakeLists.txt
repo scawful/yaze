@@ -1058,6 +1058,8 @@ if(YAZE_BUILD_TESTS)
   # --- ROM Dependent Test Suite ---
   if(YAZE_ENABLE_ROM_TESTS)
     set(ROM_DEPENDENT_TEST_SOURCES
+        e2e/rom_dependent/save_trust_resources_test.cc
+        e2e/rom_dependent/save_trust_dungeon_test.cc
         e2e/rom_dependent/save_trust_tile16_test.cc
         e2e/rom_dependent/save_trust_tile32_test.cc
         e2e/rom_dependent/save_trust_entrances_test.cc
