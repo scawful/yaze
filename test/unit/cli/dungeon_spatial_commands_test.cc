@@ -183,6 +183,9 @@ TEST_F(DungeonSpatialCommandsTest,
       {"--room=0x01", "--spatial", "--spatial-strict-joins", "--format=json"},
       &rom_, &output);
   ASSERT_TRUE(absl::IsFailedPrecondition(status)) << status << output;
+  EXPECT_EQ(Json::parse(output).at("status"), "blocked");
+  EXPECT_THAT(output, ::testing::Not(HasSubstr("\"status\":\"success\"")));
+  EXPECT_THAT(output, ::testing::Not(HasSubstr("\"status\": \"success\"")));
   const auto joins = SpatialReport(output).at("retaining_wall_joins");
   EXPECT_EQ(joins.at("status"), "needs_reconnection");
   EXPECT_FALSE(joins.at("complete_room_qualification").get<bool>());
@@ -221,6 +224,28 @@ TEST_F(DungeonSpatialCommandsTest,
   EXPECT_FALSE(joins.at("complete_room_qualification").get<bool>());
   EXPECT_TRUE(absl::IsInvalidArgument(
       handler.Run({"--room=0x01", "--spatial-strict-joins"}, &rom_)));
+  EXPECT_EQ(rom_.vector(), before);
+}
+
+TEST_F(DungeonSpatialCommandsTest, StrictWallJoinsRejectUnreadableLayout) {
+  auto bytes = rom_.vector();
+  const int begin = SnesToPc(zelda3::kRoomLayoutPointers[0]);
+  const int end = SnesToPc(zelda3::kRoomLayoutPointers[1]);
+  std::fill(bytes.begin() + begin, bytes.begin() + end, 0);
+  ASSERT_TRUE(rom_.LoadFromData(bytes).ok());
+  const auto before = rom_.vector();
+  handlers::DungeonDescribeRoomCommandHandler handler;
+  std::string output;
+  const auto status = handler.Run(
+      {"--room=0x01", "--spatial", "--spatial-strict-joins", "--format=json"},
+      &rom_, &output);
+  ASSERT_TRUE(absl::IsFailedPrecondition(status)) << status << output;
+  EXPECT_EQ(Json::parse(output).at("status"), "blocked");
+  const auto spatial = SpatialReport(output);
+  EXPECT_FALSE(spatial.at("layout_loaded").get<bool>());
+  EXPECT_EQ(spatial.at("retaining_wall_joins").at("status"),
+            "incomplete_context");
+  EXPECT_FALSE(spatial.at("diagnostics").empty());
   EXPECT_EQ(rom_.vector(), before);
 }
 

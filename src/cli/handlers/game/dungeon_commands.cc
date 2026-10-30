@@ -383,14 +383,11 @@ absl::Status DungeonDescribeRoomCommandHandler::Execute(
     return absl::InvalidArgumentError("Invalid room ID format. Must be hex.");
   }
 
-  formatter.AddField("room_id", room_id);
-
   // Load full room to get objects, doors, and stairs
   zelda3::Room room = zelda3::LoadRoomFromRom(rom, room_id);
   const bool include_objects = parser.HasFlag("include-objects");
   const auto& tile_objects = room.GetTileObjects();
 
-  formatter.AddField("status", "success");
   formatter.AddField("name", absl::StrFormat("Room %d", room.id()));
   formatter.AddField("room_name", zelda3::GetRoomLabel(room.id()));
   formatter.AddField("room_id", room.id());
@@ -585,6 +582,7 @@ absl::Status DungeonDescribeRoomCommandHandler::Execute(
   if (parser.HasFlag("spatial")) {
     RETURN_IF_ERROR(WriteRoomSpatialReport(rom, room, parser, formatter));
   }
+  formatter.AddField("status", "success");
   return absl::OkStatus();
 }
 

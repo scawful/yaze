@@ -147,6 +147,7 @@ struct RoomSpatialOptions {
 struct RoomSpatialAnalysis {
   int room_id = 0;
   int layout_id = 0;
+  bool layout_loaded = false;
   int floor1 = 0;  // Yaze upper/BG1 graphics selector; not a collision type.
   int floor2 = 0;  // Yaze lower/BG2 graphics selector; not a gameplay floor ID.
   int layer2_mode = 0;

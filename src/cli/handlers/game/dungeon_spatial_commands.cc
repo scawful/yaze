@@ -242,6 +242,7 @@ absl::Status WriteRoomSpatialReport(Rom* rom, const zelda3::Room& room,
       {"rom_content_sha256", RomContentHash(*rom)},
       {"room_id", analysis.room_id},
       {"layout_id", analysis.layout_id},
+      {"layout_loaded", analysis.layout_loaded},
       {"floor1_graphics", analysis.floor1},
       {"floor2_graphics", analysis.floor2},
       {"layer2_mode", analysis.layer2_mode},
@@ -310,6 +311,9 @@ absl::Status WriteRoomSpatialReport(Rom* rom, const zelda3::Room& room,
       WallJoins(analysis.retaining_wall_join_issues,
                 analysis.retaining_wall_join_coverage,
                 analysis.retaining_wall_join_unassessed_objects);
+  report["retaining_wall_joins"]["layout_loaded"] = analysis.layout_loaded;
+  if (!analysis.layout_loaded)
+    report["retaining_wall_joins"]["status"] = "incomplete_context";
   report["collision"] = {
       {"computed", analysis.collision.has_value()},
       {"model",
@@ -357,14 +361,24 @@ absl::Status WriteRoomSpatialReport(Rom* rom, const zelda3::Room& room,
       analysis.retaining_wall_join_issues.size(),
       ". Upper/lower visibility and collision remain separate.\n"));
   if (parser.HasFlag("spatial-strict-joins")) {
-    if (!analysis.retaining_wall_join_issues.empty())
+    if (!analysis.layout_loaded) {
+      formatter.AddField("status", "blocked");
+      return absl::FailedPreconditionError(
+          "Retaining-wall inspection requires a decoded room layout; "
+          "inspect spatial.retaining_wall_joins");
+    }
+    if (!analysis.retaining_wall_join_issues.empty()) {
+      formatter.AddField("status", "blocked");
       return absl::FailedPreconditionError(
           "Known retaining-wall endpoint is occluded; inspect "
           "spatial.retaining_wall_joins");
-    if (analysis.retaining_wall_join_unassessed_objects != 0)
+    }
+    if (analysis.retaining_wall_join_unassessed_objects != 0) {
+      formatter.AddField("status", "blocked");
       return absl::FailedPreconditionError(
           "Retaining-wall inspection is incomplete; inspect "
           "spatial.retaining_wall_joins.unassessed_objects");
+    }
   }
   return absl::OkStatus();
 }

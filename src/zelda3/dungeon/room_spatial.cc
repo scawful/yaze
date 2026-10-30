@@ -401,10 +401,12 @@ absl::StatusOr<RoomSpatialAnalysis> AnalyzeRoomSpatial(
   };
   RoomLayout decoded_layout(rom);
   const std::vector<RoomObject>* layout = &room.GetLayout().GetObjects();
+  result.layout_loaded = !layout->empty();
   if (layout->empty()) {
     const auto loaded = decoded_layout.LoadLayout(room.layout_id());
     if (loaded.ok()) {
       layout = &decoded_layout.GetObjects();
+      result.layout_loaded = true;
     } else {
       result.diagnostics.emplace_back("Layout could not be decoded: " +
                                       std::string(loaded.message()));
