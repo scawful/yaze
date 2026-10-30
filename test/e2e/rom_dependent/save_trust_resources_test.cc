@@ -181,6 +181,14 @@ class SaveTrustResourcesTest
 
     const auto initialized = InitializeDomain();
     ASSERT_TRUE(initialized.ok()) << initialized;
+    if (Domain() == ResourceDomain::kExpandedMessages && messages_.empty()) {
+      const auto first = rom_.ReadByte(expanded_start_);
+      ASSERT_TRUE(first.ok()) << first.status();
+      if (*first != 0xFF) {
+        GTEST_SKIP() << "NOT-RUN: fixture has no terminated expanded message "
+                        "bank at the configured range";
+      }
+    }
     rom_.set_dirty(false);
   }
 

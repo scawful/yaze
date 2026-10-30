@@ -87,7 +87,9 @@ class SaveTrustTile32Test
       ASSERT_NE(profile.asm_version, 0xFF);
       ASSERT_TRUE(profile.has_expanded_tile32);
     }
-    ASSERT_TRUE(zelda3::LoadGameData(rom_, data_).ok());
+    ASSERT_TRUE(zelda3::LoadGameData(rom_, data_,
+                                     zelda3::LoadOptions{.expand_rom = false})
+                    .ok());
     world_ = std::make_unique<zelda3::Overworld>(&rom_, &data_);
     ASSERT_TRUE(world_->Load(&rom_).ok());
   }
@@ -137,7 +139,8 @@ class SaveTrustTile32Test
   absl::Status LoadFresh(Rom& rom, zelda3::GameData& data,
                          std::unique_ptr<zelda3::Overworld>& world) {
     RETURN_IF_ERROR(rom.LoadFromFile(test_rom_path_));
-    RETURN_IF_ERROR(zelda3::LoadGameData(rom, data));
+    RETURN_IF_ERROR(zelda3::LoadGameData(
+        rom, data, zelda3::LoadOptions{.expand_rom = false}));
     world = std::make_unique<zelda3::Overworld>(&rom, &data);
     return world->Load(&rom);
   }
