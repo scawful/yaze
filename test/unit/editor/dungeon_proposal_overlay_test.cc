@@ -1,12 +1,33 @@
 #include "app/editor/dungeon/dungeon_proposal_overlay.h"
 
 #include <cmath>
+#include <filesystem>
+#include <fstream>
+#include <iterator>
 #include <string>
 
 #include "gtest/gtest.h"
+#include "yaze_test_paths.h"
 
 namespace yaze::editor {
 namespace {
+
+TEST(DungeonProposalOverlayTest, LoadsBundledZoraRoomReview) {
+  const auto path =
+      std::filesystem::path(YAZE_TEST_FIXTURE_DIR).parent_path().parent_path() /
+      "assets/proposals/dungeon/zora-reservoir-review.json";
+  std::ifstream file(path, std::ios::binary);
+  ASSERT_TRUE(file.is_open()) << path;
+  const std::string document((std::istreambuf_iterator<char>(file)), {});
+  auto overlay = ParseDungeonProposalOverlay(document);
+  ASSERT_TRUE(overlay.ok()) << overlay.status();
+  ASSERT_EQ(overlay->rooms.size(), 2u);
+  EXPECT_EQ(overlay->rooms[0].room_id, 0x26);
+  EXPECT_EQ(overlay->rooms[1].room_id, 0x27);
+  ASSERT_FALSE(overlay->steps.empty());
+  EXPECT_TRUE(ProposalLayerInStep(*overlay, "current_bank_and_actors", 0));
+  EXPECT_FALSE(ProposalLayerInStep(*overlay, "proposed_lower_join", 0));
+}
 
 constexpr const char* kValidOverlay = R"json({
   "format": "yaze-dungeon-proposal-overlay",

@@ -303,7 +303,8 @@ class DungeonCanvasViewer {
   // visible layers drawn on top. Never edits room data.
   void DrawProposalPreview(const DungeonProposalOverlay& overlay,
                            const std::vector<char>& layer_visible,
-                           bool show_overlay, float scale);
+                           bool show_overlay, gui::Canvas& preview_canvas,
+                           bool show_grid, int grid_step, bool& auto_fit);
   ImVec2 GetProposalPreviewContentSize(const DungeonProposalOverlay& overlay,
                                        float scale) const;
   void DrawConnectedToolbarControls(int center_room_id);

@@ -8,6 +8,21 @@ namespace yaze::editor {
 
 class DungeonWorkbenchContentTestPeer {
  public:
+  static void DrawProposalPreview(DungeonWorkbenchContent& content,
+                                  DungeonCanvasViewer& viewer) {
+    content.DrawProposalPreviewWindow(viewer);
+  }
+  static gui::Canvas& ProposalCanvas(DungeonWorkbenchContent& content) {
+    return *content.proposal_canvas_;
+  }
+  static void SetProposalView(DungeonWorkbenchContent& content, bool overlay,
+                              bool auto_fit = false) {
+    content.proposal_show_overlay_ = overlay;
+    content.proposal_auto_fit_ = auto_fit;
+  }
+  static void SetProposalGrid(DungeonWorkbenchContent& content, bool visible) {
+    content.proposal_show_grid_ = visible;
+  }
   static const DungeonWorkbenchLayoutState& LayoutState(
       const DungeonWorkbenchContent& content) {
     return content.layout_state_;

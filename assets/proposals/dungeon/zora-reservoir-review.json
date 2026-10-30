@@ -1,0 +1,441 @@
+{
+  "format": "yaze-dungeon-proposal-overlay",
+  "version": 1,
+  "title": "Zora: dam, receiving bank, Princess and return",
+  "status": "Needs wall reconnection; connection, staging and runtime unqualified",
+  "notes": [
+    "This review keeps the complete loaded Room26 and Room27 renders beneath annotations. DeepAudit retains room authorship.",
+    "Human review rejected the left room's lower wall connection. The old horizontal wall's terminal corner is overwritten by the new bank side; this assembly is not accepted despite its earlier component checks.",
+    "Open the separately pinned corrected LOW or HIGH private ROM. Steps filter annotations only: they do not switch ROMs, raise water, operate the dam or prove a route.",
+    "The selected intent is initial LOW with all Room26 dry, then persistent post-dam HIGH with bidirectional swimming and a Princess bank inaccessible by LOW service walking. No player drain toggle is selected.",
+    "Existing actors are position markers. Future Princess/Link/Baby rectangles are feet-staging envelopes, not implemented actors, art, hitboxes or interaction proof.",
+    "All paths and connection envelopes are proposed intentions, not measured free floor, safe collision masks or controller-qualified travel.",
+    "The image underneath is the current loaded room model, not an immutable before snapshot. Use the separately bound full-room PNGs for the frozen comparison.",
+    "Exact ROM, image, source and overlay hashes are in the external ZORA_REVIEW_BINDING.json. Version1 does not validate those bindings or load native receipts."
+  ],
+  "rooms": [
+    {
+      "room": "0x26",
+      "label": "Receiving reservoir / corrected bank component"
+    },
+    {
+      "room": "0x27",
+      "label": "Existing Baby, dam puzzle and return assembly"
+    }
+  ],
+  "layers": [
+    {
+      "id": "current_bank_and_actors",
+      "label": "Existing bank / actor anchors",
+      "color": "#65BEAA55",
+      "visible": true,
+      "shapes": [
+        {
+          "room": "0x26",
+          "type": "rect",
+          "tiles": [
+            41,
+            39,
+            50,
+            46
+          ],
+          "label": "EXISTING deck",
+          "detail": "Corrected LOW and HIGH retain this north-attached bank interior. Static/pixel checks pass; not native or human acceptance."
+        },
+        {
+          "room": "0x26",
+          "type": "marker",
+          "tile": [
+            43,
+            42
+          ],
+          "label": "EXISTING Small Key chest",
+          "detail": "Same chest ordinal and reward; relocated as part of the private bank component."
+        },
+        {
+          "room": "0x26",
+          "type": "marker",
+          "tile": [
+            48,
+            41
+          ],
+          "label": "EXISTING bank pot",
+          "detail": "Existing pot relocated with its backing metadata preserved. No new resource is proposed."
+        },
+        {
+          "room": "0x26",
+          "type": "marker",
+          "tile": [
+            44,
+            47
+          ],
+          "label": "HIGH stair / LOW closed",
+          "detail": "Corrected HIGH has native reference object133 here; LOW closes the notch. Swim admission, active plane and reverse descent remain unqualified."
+        },
+        {
+          "room": "0x26",
+          "type": "marker",
+          "tile": [
+            2,
+            15
+          ],
+          "label": "EXISTING dry west port",
+          "detail": "Current upper-gallery access. The wider test-annex topology may be reshaped by the room owner."
+        },
+        {
+          "room": "0x26",
+          "type": "marker",
+          "tile": [
+            58,
+            15
+          ],
+          "label": "EXISTING dry east port",
+          "detail": "Normal00 door paired with Room27 west(2,15). A door pair does not establish inventory reachability or safe walking."
+        },
+        {
+          "room": "0x27",
+          "type": "marker",
+          "tile": [
+            2,
+            15
+          ],
+          "label": "EXISTING dry west port",
+          "detail": "Normal00 door paired with Room26 east(58,15). Preserve dry access in this bounded review."
+        },
+        {
+          "room": "0x27",
+          "type": "marker",
+          "tile": [
+            14,
+            10
+          ],
+          "label": "EXISTING Baby anchor",
+          "detail": "Sprite39 saved at Tile16(7,5), converted to Tile8(14,10). Marker only; facing, follower arrival and Healing staging are not proved."
+        },
+        {
+          "room": "0x27",
+          "type": "marker",
+          "tile": [
+            50,
+            14
+          ],
+          "label": "EXISTING switch anchor",
+          "detail": "Sprite04 saved at Tile16(25,7), converted to Tile8(50,14). Preserve the sealed Baby throw-switch pocket."
+        },
+        {
+          "room": "0x27",
+          "type": "marker",
+          "tile": [
+            39,
+            12
+          ],
+          "label": "EXISTING east dam",
+          "detail": "Stateful object137 is the intended meaningful water source. This overlay neither operates it nor implements downstream state."
+        },
+        {
+          "room": "0x27",
+          "type": "marker",
+          "tile": [
+            25,
+            39
+          ],
+          "label": "EXISTING return stair",
+          "detail": "Existing object133 and its water approach are retained. Native arrival plane and return to dry ground remain unqualified."
+        }
+      ]
+    },
+    {
+      "id": "proposed_lower_join",
+      "label": "Proposed lower swimming join",
+      "color": "#E9B35944",
+      "visible": true,
+      "shapes": [
+        {
+          "room": "0x27",
+          "type": "rect",
+          "tiles": [
+            9,
+            41,
+            12,
+            50
+          ],
+          "label": "PROPOSED riser",
+          "detail": "Intended four-tile-wide source-bar approach. This envelope is not an authored water mask; final walls, jambs and state profiles must be composed."
+        },
+        {
+          "room": "0x27",
+          "type": "rect",
+          "tiles": [
+            2,
+            47,
+            12,
+            50
+          ],
+          "label": "PROPOSED west mouth",
+          "detail": "Intended mouth joins the riser to a new west port. Current Room27 has no lower travel door."
+        },
+        {
+          "room": "0x27",
+          "type": "marker",
+          "tile": [
+            2,
+            47
+          ],
+          "label": "PROPOSED W port",
+          "detail": "Candidate west pos2 anchor; drawn bounds x2..4/y47..50. Type02 and exact arrival/active-plane behavior are not yet qualified."
+        },
+        {
+          "room": "0x26",
+          "type": "rect",
+          "tiles": [
+            55,
+            47,
+            61,
+            50
+          ],
+          "label": "PROPOSED east join",
+          "detail": "Existing HIGH lane reaches x55..58; the intended join extends through the future door's x59..61. Do not fill every envelope cell with water collision."
+        },
+        {
+          "room": "0x26",
+          "type": "marker",
+          "tile": [
+            58,
+            47
+          ],
+          "label": "PROPOSED E port",
+          "detail": "Candidate east pos8 anchor, intended to mate Room27 west(2,47). Drawn bounds differ from the anchor. No reciprocal lower door pair exists yet."
+        }
+      ]
+    },
+    {
+      "id": "future_princess_staging",
+      "label": "Future Princess / arrival staging",
+      "color": "#B794E866",
+      "visible": true,
+      "shapes": [
+        {
+          "room": "0x26",
+          "type": "rect",
+          "tiles": [
+            47,
+            44,
+            48,
+            45
+          ],
+          "label": "FUTURE Princess feet",
+          "detail": "Source-checked floor envelope only. Princess actor placement, full art, dialogue reach and Healing behavior have not been implemented."
+        },
+        {
+          "room": "0x26",
+          "type": "rect",
+          "tiles": [
+            45,
+            45,
+            46,
+            46
+          ],
+          "label": "FUTURE Link feet",
+          "detail": "Intended interaction stance. Actual body clearance, facing, input approach and transition landing remain to be checked."
+        },
+        {
+          "room": "0x26",
+          "type": "rect",
+          "tiles": [
+            49,
+            43,
+            50,
+            44
+          ],
+          "label": "FUTURE Baby feet",
+          "detail": "Intended visible Baby arrival beside the Princess. Follower swim, step-up and final staging are unqualified."
+        },
+        {
+          "room": "0x26",
+          "type": "marker",
+          "tile": [
+            45,
+            49
+          ],
+          "label": "INTENDED swim -> landing",
+          "detail": "HIGH approach should use the existing bank transition and reach dry deck. LOW service walking must not admit the bank. This marker proves neither condition."
+        }
+      ]
+    },
+    {
+      "id": "intended_return",
+      "label": "Intended HIGH return",
+      "color": "#65A9E6B0",
+      "visible": true,
+      "shapes": [
+        {
+          "room": "0x26",
+          "type": "path",
+          "tiles": [
+            [
+              45,
+              48
+            ],
+            [
+              45,
+              51
+            ],
+            [
+              55,
+              51
+            ],
+            [
+              56,
+              49
+            ],
+            [
+              60,
+              49
+            ]
+          ],
+          "label": "INTENDED bank -> east join",
+          "detail": "Review direction only: descend, swim around the bank and depart through the proposed east join. Not measured clearance, a controller route or a safe collision mask."
+        },
+        {
+          "room": "0x27",
+          "type": "path",
+          "tiles": [
+            [
+              3,
+              49
+            ],
+            [
+              10,
+              49
+            ],
+            [
+              10,
+              42
+            ],
+            [
+              25,
+              42
+            ],
+            [
+              26,
+              40
+            ]
+          ],
+          "label": "INTENDED mouth -> return stair",
+          "detail": "Review direction only: proposed west throat, existing southern source bar, then the preserved133 return assembly. Must bind native arrival and return to dry ground."
+        },
+        {
+          "room": "0x27",
+          "type": "marker",
+          "tile": [
+            26,
+            39
+          ],
+          "label": "INTENDED dry-bank return",
+          "detail": "Preserve a return without the later Mask or Hookshot. This is an acceptance requirement, not a completed native route."
+        }
+      ]
+    },
+    {
+      "id": "unresolved_corner",
+      "label": "Unresolved rim / door seams",
+      "color": "#E8797955",
+      "visible": true,
+      "shapes": [
+        {
+          "room": "0x26",
+          "type": "rect",
+          "tiles": [34, 36, 40, 55],
+          "label": "FAILED left wall connection",
+          "detail": "The new bank intersects the retained basin turn. Horizontal003(21,44,size7) still reaches corner10C(37,44), but064(37,43,size1) and10E(37,47) replace all16 terminal cells per buffer. Reconnect the complete wall/corner assembly; floor repaint cannot repair this join."
+        },
+        {
+          "room": "0x27",
+          "type": "rect",
+          "tiles": [
+            2,
+            48,
+            17,
+            57
+          ],
+          "label": "UNRESOLVED rim + ceiling",
+          "detail": "The proposed southwest corner bundle needs a composed private render. Upper rim and C0 clipping must join the retained room shell; painting over the old wall is insufficient."
+        },
+        {
+          "room": "0x27",
+          "type": "marker",
+          "tile": [
+            13,
+            51
+          ],
+          "label": "PROPOSED corner bundle",
+          "detail": "An ordered donor-based object proposal exists, but has not been rendered as an authored corner. Existing dam, puzzle, return, rewards and other rooms must stay intact."
+        },
+        {
+          "room": "0x26",
+          "type": "rect",
+          "tiles": [
+            59,
+            47,
+            61,
+            50
+          ],
+          "label": "UNRESOLVED door seam",
+          "detail": "Actual HIGH water ends at x58. This future door region needs composed art, jamb ownership, arrival and matching state on both sides."
+        }
+      ]
+    }
+  ],
+  "steps": [
+    {
+      "id": "existing_context",
+      "label": "1. Existing rooms and puzzle",
+      "detail": "Inspect the complete loaded rooms, corrected bank, actual Baby/switch anchors, east dam and return assembly. These annotations do not change room state.",
+      "layers": [
+        "current_bank_and_actors"
+      ]
+    },
+    {
+      "id": "intended_supply",
+      "label": "2. Intended dam-to-reservoir connection",
+      "detail": "Preserve the Baby throw-switch puzzle and make the east dam the cause of persistent HIGH. The lower join is proposed; no connected hydraulic implementation exists.",
+      "layers": [
+        "current_bank_and_actors",
+        "proposed_lower_join",
+        "unresolved_corner"
+      ]
+    },
+    {
+      "id": "future_arrival",
+      "label": "3. Future Princess and Baby arrival",
+      "detail": "Intended HIGH swim, native bank transition, visible Baby arrival and Healing interaction. Staging boxes are future feet envelopes, not implemented actors or art.",
+      "layers": [
+        "current_bank_and_actors",
+        "proposed_lower_join",
+        "future_princess_staging"
+      ]
+    },
+    {
+      "id": "intended_return_review",
+      "label": "4. Intended return without later items",
+      "detail": "Review bank descent and the proposed reciprocal swim connection back to Room27's existing return stair and dry source bank. Arrows are intentions, not qualified paths.",
+      "layers": [
+        "current_bank_and_actors",
+        "proposed_lower_join",
+        "intended_return"
+      ]
+    },
+    {
+      "id": "remaining_join_review",
+      "label": "5. Unresolved corner and acceptance",
+      "detail": "The left bank's wall connection failed human review: repair its retained face/corner relationship first. Then review the southwest rim and east seam in full-room context. Native arrival, LOW exclusion, HIGH return, Baby/Healing and save/re-entry remain open.",
+      "layers": [
+        "current_bank_and_actors",
+        "proposed_lower_join",
+        "future_princess_staging",
+        "intended_return",
+        "unresolved_corner"
+      ]
+    }
+  ]
+}

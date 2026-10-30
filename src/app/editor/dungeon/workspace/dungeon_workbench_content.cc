@@ -263,7 +263,15 @@ DungeonWorkbenchContent::DungeonWorkbenchContent(
       get_recent_rooms_(std::move(get_recent_rooms)),
       forget_recent_room_(std::move(forget_recent_room)),
       set_workflow_mode_(std::move(set_workflow_mode)),
-      rom_(rom) {}
+      rom_(rom) {
+  proposal_canvas_ = std::make_unique<gui::Canvas>("DungeonProposalCanvas");
+  gui::CanvasConfig config;
+  config.role = gui::CanvasRole::kPreviewOnly;
+  config.enable_context_menu = false;
+  config.show_builtin_context_menu = false;
+  config.is_draggable = true;
+  proposal_canvas_->Init(config);
+}
 
 DungeonWorkbenchContent::~DungeonWorkbenchContent() = default;
 
@@ -342,6 +350,7 @@ void DungeonWorkbenchContent::RequestDungeonMapPopup() {
 
 void DungeonWorkbenchContent::RequestProposalPreview() {
   show_proposal_preview_ = true;
+  focus_proposal_preview_ = true;
 }
 
 bool DungeonWorkbenchContent::LoadProposalOverlay(const std::string& path) {
@@ -365,6 +374,7 @@ bool DungeonWorkbenchContent::LoadProposalOverlay(const std::string& path) {
   }
   proposal_overlay_ = std::move(*overlay);
   loaded_proposal_path_ = path;
+  proposal_auto_fit_ = true;
   proposal_error_.clear();
   return true;
 }
@@ -375,6 +385,10 @@ void DungeonWorkbenchContent::DrawProposalPreviewWindow(
     return;
   }
   ImGui::SetNextWindowSize(ImVec2(1120.0f, 700.0f), ImGuiCond_FirstUseEver);
+  if (focus_proposal_preview_) {
+    ImGui::SetNextWindowFocus();
+    focus_proposal_preview_ = false;
+  }
   if (!ImGui::Begin(ICON_MD_PREVIEW " Proposal Preview##DungeonProposalPreview",
                     &show_proposal_preview_)) {
     ImGui::End();
@@ -409,6 +423,9 @@ void DungeonWorkbenchContent::DrawProposalPreviewWindow(
     gui::StyleColorGuard error_color(ImGuiCol_Text,
                                      ImVec4(1.0f, 0.45f, 0.4f, 1.0f));
     ImGui::TextWrapped("%s", proposal_error_.c_str());
+    if (!loaded_proposal_path_.empty())
+      ImGui::TextWrapped(tr("Still showing: %s"),
+                         loaded_proposal_path_.c_str());
   }
 
   if (!proposal_overlay_.has_value()) {
@@ -433,35 +450,59 @@ void DungeonWorkbenchContent::DrawProposalPreviewWindow(
   ImGui::TextDisabled("%s",
                       tr("Read-only preview. Nothing here edits the ROM."));
 
-  // Layer and view controls.
-  ImGui::Checkbox(tr("Show proposal"), &proposal_show_overlay_);
-  ImGui::BeginDisabled(!proposal_show_overlay_);
-  for (size_t i = 0; i < overlay.layers.size(); ++i) {
-    const auto& layer = overlay.layers[i];
-    ImGui::SameLine();
-    const uint32_t c = layer.color_rgba;
-    ImGui::ColorButton(
-        absl::StrFormat("##ProposalLayerSwatch%d", i).c_str(),
-        ImVec4(((c >> 24) & 0xFF) / 255.0f, ((c >> 16) & 0xFF) / 255.0f,
-               ((c >> 8) & 0xFF) / 255.0f, 1.0f),
-        ImGuiColorEditFlags_NoTooltip, ImVec2(12, 12));
-    ImGui::SameLine(0, 4);
-    bool visible =
-        i < proposal_layer_visible_.size() && proposal_layer_visible_[i] != 0;
-    if (ImGui::Checkbox(
-            absl::StrFormat("%s##ProposalLayer%d", layer.label, i).c_str(),
-            &visible) &&
-        i < proposal_layer_visible_.size()) {
-      proposal_layer_visible_[i] = visible ? 1 : 0;
-    }
+  // Comparison changes annotations only; both views share the same room image
+  // and dedicated navigation state.
+  if (ImGui::RadioButton(tr("Room"), !proposal_show_overlay_))
+    proposal_show_overlay_ = false;
+  ImGui::SameLine();
+  if (ImGui::RadioButton(tr("Room + proposal"), proposal_show_overlay_))
+    proposal_show_overlay_ = true;
+  ImGui::SameLine();
+  if (ImGui::Button(tr("Fit")))
+    proposal_auto_fit_ = true;
+  float scale = proposal_canvas_->global_scale();
+  ImGui::SetNextItemWidth(150.0f);
+  if (ImGui::SliderFloat(tr("Zoom"), &scale, 0.25f, 4.0f, "%.2fx")) {
+    proposal_canvas_->set_global_scale(scale);
+    proposal_auto_fit_ = false;
   }
+  ImGui::Checkbox(tr("Grid"), &proposal_show_grid_);
+  ImGui::SameLine();
+  ImGui::BeginDisabled(!proposal_show_grid_);
+  if (ImGui::RadioButton(tr("8 px"), proposal_grid_step_ == 8))
+    proposal_grid_step_ = 8;
+  ImGui::SameLine();
+  if (ImGui::RadioButton(tr("16 px"), proposal_grid_step_ == 16))
+    proposal_grid_step_ = 16;
   ImGui::EndDisabled();
+  ImGui::TextDisabled("%s", tr("Wheel: zoom  |  Right/middle drag: pan"));
 
-  ImGui::SetNextItemWidth(160.0f);
-  ImGui::SliderFloat(tr("Zoom"), &proposal_scale_, 0.5f, 2.0f, "%.2fx");
+  if (ImGui::CollapsingHeader(tr("Proposal layers"))) {
+    ImGui::BeginDisabled(!proposal_show_overlay_);
+    for (size_t i = 0; i < overlay.layers.size(); ++i) {
+      const auto& layer = overlay.layers[i];
+      // Each layer starts a row, avoiding controls beyond a narrow window edge.
+      const uint32_t c = layer.color_rgba;
+      ImGui::ColorButton(
+          absl::StrFormat("##ProposalLayerSwatch%d", i).c_str(),
+          ImVec4(((c >> 24) & 0xFF) / 255.0f, ((c >> 16) & 0xFF) / 255.0f,
+                 ((c >> 8) & 0xFF) / 255.0f, 1.0f),
+          ImGuiColorEditFlags_NoTooltip, ImVec2(12, 12));
+      ImGui::SameLine(0, 4);
+      bool visible =
+          i < proposal_layer_visible_.size() && proposal_layer_visible_[i] != 0;
+      if (ImGui::Checkbox(
+              absl::StrFormat("%s##ProposalLayer%d", layer.label, i).c_str(),
+              &visible) &&
+          i < proposal_layer_visible_.size()) {
+        proposal_layer_visible_[i] = visible ? 1 : 0;
+      }
+    }
+    ImGui::EndDisabled();
+  }
+
   if (on_room_selected_) {
     for (const auto& room : overlay.rooms) {
-      ImGui::SameLine();
       if (ImGui::SmallButton(
               absl::StrFormat("Open $%02X##ProposalOpenRoom", room.room_id)
                   .c_str())) {
@@ -470,26 +511,30 @@ void DungeonWorkbenchContent::DrawProposalPreviewWindow(
     }
   }
 
-  // Rooms with the overlay. Reserve space for notes below.
+  const bool show_notes =
+      !overlay.notes.empty() && ImGui::CollapsingHeader(tr("Proposal notes"));
+  // Rooms with the overlay. Expanded notes retain a bounded area below.
   const float notes_height =
-      overlay.notes.empty()
-          ? 0.0f
-          : std::min(140.0f, ImGui::GetTextLineHeightWithSpacing() *
-                                 (overlay.notes.size() + 1.5f));
-  if (ImGui::BeginChild("##ProposalPreviewBody", ImVec2(0.0f, -notes_height),
-                        true, ImGuiWindowFlags_HorizontalScrollbar)) {
+      !show_notes ? 0.0f
+                  : std::min(140.0f, ImGui::GetTextLineHeightWithSpacing() *
+                                         (overlay.notes.size() + 1.5f));
+  if (ImGui::BeginChild(
+          "##ProposalPreviewBody", ImVec2(0.0f, -notes_height), true,
+          ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse)) {
     viewer.DrawProposalPreview(overlay, proposal_layer_visible_,
-                               proposal_show_overlay_, proposal_scale_);
+                               proposal_show_overlay_, *proposal_canvas_,
+                               proposal_show_grid_, proposal_grid_step_,
+                               proposal_auto_fit_);
   }
   ImGui::EndChild();
 
-  if (!overlay.notes.empty() &&
+  if (show_notes &&
       ImGui::BeginChild("##ProposalPreviewNotes", ImVec2(0.0f, 0.0f), false)) {
     for (const auto& note : overlay.notes) {
       ImGui::BulletText("%s", note.c_str());
     }
   }
-  if (!overlay.notes.empty()) {
+  if (show_notes) {
     ImGui::EndChild();
   }
   ImGui::End();

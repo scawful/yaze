@@ -61,6 +61,10 @@ TEST(DungeonWorkbenchContentLayoutTest, NearbyPreviewsPreserveFittedRoomSize) {
 
 class DungeonCanvasViewerTestPeer {
  public:
+  static void SetRoomShortcutFocus(DungeonCanvasViewer& viewer) {
+    viewer.room_canvas_shortcut_focus_ = true;
+    viewer.room_canvas_last_draw_frame_ = ImGui::GetFrameCount();
+  }
   static void BindViewer(DungeonEditorV2& editor, Rom* rom,
                          DungeonCanvasViewer* viewer, int room_id) {
     editor.SetRom(rom);
@@ -2873,6 +2877,216 @@ TEST(DungeonWorkbenchContentTest,
   EXPECT_EQ(workbench.loaded_proposal_path(), b.string());
   EXPECT_FALSE(workbench.LoadProposalOverlay((root / "missing.json").string()));
   EXPECT_EQ(workbench.loaded_proposal_path(), b.string());
+}
+
+class DungeonProposalPreviewUiTest : public ::testing::Test {
+ protected:
+  void SetUp() override {
+    previous_ = ImGui::GetCurrentContext();
+    context_ = ImGui::CreateContext();
+    auto& io = ImGui::GetIO();
+    io.IniFilename = nullptr;
+    io.DisplaySize = ImVec2(1280, 900);
+    io.DeltaTime = 1.0f / 60;
+    io.ConfigInputTrickleEventQueue = false;
+    unsigned char* pixels;
+    int width, height;
+    io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
+    ASSERT_TRUE(rom_.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+    rooms_ = std::make_unique<DungeonRoomStore>(&rom_);
+    auto& room = (*rooms_)[0x104];
+    room.SetLoaded(true);
+    room.SetTileObjects({zelda3::RoomObject(1, 4, 4, 0, 0)});
+    room.ClearSaveDirtyState();
+    viewer_ = std::make_unique<DungeonCanvasViewer>(&rom_);
+    viewer_->SetRooms(rooms_.get());
+    viewer_->canvas().set_global_scale(1.75f);
+    viewer_->canvas().set_scrolling(ImVec2(11, 13));
+    root_ = MakeTempProjectRoot();
+    std::filesystem::create_directories(root_);
+    overlay_path_ = root_ / "preview.json";
+    std::ofstream(overlay_path_)
+        << R"({"format":"yaze-dungeon-proposal-overlay",
+      "version":1,"rooms":[{"room":260,"label":"Receiving reservoir / corrected bank component and a deliberately long review title"}],"layers":[{"id":"idea","label":"Idea",
+      "color":"#65B8E8","shapes":[{"room":260,"type":"marker",
+      "tile":[10,10],"label":"Proposed anchor"}]}]})";
+    content_ = std::make_unique<DungeonWorkbenchContent>(
+        nullptr, &room_id_, [](int) {}, [](int, RoomSelectionIntent) {},
+        [](int) {}, [] {}, [this] { return viewer_.get(); },
+        [](int) -> DungeonCanvasViewer* { return nullptr; },
+        [this]() -> const std::deque<int>& { return recent_; }, [](int) {},
+        [](bool) {}, &rom_);
+    ASSERT_TRUE(content_->LoadProposalOverlay(overlay_path_.string()));
+    content_->RequestProposalPreview();
+    DungeonWorkbenchContentTestPeer::SetProposalView(*content_, true);
+    auto& canvas = DungeonWorkbenchContentTestPeer::ProposalCanvas(*content_);
+    canvas.set_global_scale(1);
+    canvas.set_scrolling(ImVec2(20, 20));
+  }
+  void TearDown() override {
+    content_.reset();
+    viewer_.reset();
+    rooms_.reset();
+    gfx::Arena::Get().ClearTextureQueue();
+    ImGui::DestroyContext(context_);
+    ImGui::SetCurrentContext(previous_);
+    std::filesystem::remove_all(root_);
+  }
+  void Frame(bool focus_workbench = false) {
+    ImGui::NewFrame();
+    if (focus_workbench) {
+      ImGui::SetNextWindowFocus();
+      ImGui::SetNextWindowPos(ImVec2(0, 0));
+      ImGui::SetNextWindowSize(ImVec2(160, 120));
+      ImGui::Begin("Editable Workbench focus test");
+      ImGui::TextUnformatted("Editing remains available");
+      ImGui::End();
+    }
+    DungeonCanvasViewerTestPeer::SetRoomShortcutFocus(*viewer_);
+    DungeonWorkbenchContentTestPeer::DrawProposalPreview(*content_, *viewer_);
+    ImGui::Render();
+  }
+  gui::Canvas& PreviewCanvas() {
+    return DungeonWorkbenchContentTestPeer::ProposalCanvas(*content_);
+  }
+  Rom rom_;
+  std::unique_ptr<DungeonRoomStore> rooms_;
+  std::unique_ptr<DungeonCanvasViewer> viewer_;
+  std::unique_ptr<DungeonWorkbenchContent> content_;
+  ImGuiContext* previous_ = nullptr;
+  ImGuiContext* context_ = nullptr;
+  std::filesystem::path root_, overlay_path_;
+  int room_id_ = 0x104;
+  std::deque<int> recent_;
+};
+
+TEST_F(DungeonProposalPreviewUiTest,
+       ZoomAndBaseComparisonKeepEditorViewAndRoomDataUnchanged) {
+  const auto original_rom = rom_.vector();
+  Frame();
+  const auto origin = PreviewCanvas().zero_point();
+  ImGui::GetIO().AddMousePosEvent(origin.x + 140, origin.y + 140);
+  Frame();
+  ImGui::GetIO().AddMouseWheelEvent(0, 1);
+  Frame();
+  EXPECT_FLOAT_EQ(PreviewCanvas().global_scale(), 1.12f);
+  const auto scroll = PreviewCanvas().scrolling();
+  DungeonWorkbenchContentTestPeer::SetProposalView(*content_, false);
+  Frame();
+  EXPECT_FLOAT_EQ(PreviewCanvas().global_scale(), 1.12f);
+  EXPECT_FLOAT_EQ(PreviewCanvas().scrolling().x, scroll.x);
+  EXPECT_FLOAT_EQ(PreviewCanvas().scrolling().y, scroll.y);
+  EXPECT_FLOAT_EQ(viewer_->canvas().global_scale(), 1.75f);
+  EXPECT_FLOAT_EQ(viewer_->canvas().scrolling().x, 11);
+  EXPECT_FLOAT_EQ(viewer_->canvas().scrolling().y, 13);
+  EXPECT_FALSE(viewer_->CanHandleRoomCanvasShortcut());
+  EXPECT_EQ(rom_.vector(), original_rom);
+  EXPECT_EQ((*rooms_)[0x104].GetTileObjects().size(), 1);
+  EXPECT_FALSE((*rooms_)[0x104].HasUnsavedChanges());
+}
+
+TEST_F(DungeonProposalPreviewUiTest,
+       BaseOnlyRetainsCoordinateHoverAndRoomLocalGrid) {
+  DungeonWorkbenchContentTestPeer::SetProposalView(*content_, false);
+  Frame();
+  const auto origin = PreviewCanvas().zero_point();
+  const auto scroll = PreviewCanvas().scrolling();
+  ImGui::GetIO().AddMousePosEvent(origin.x + scroll.x + 80,
+                                  origin.y + scroll.y + 22 + 80);
+  Frame();
+  Frame();
+  bool tooltip = false;
+  for (auto* window : context_->Windows)
+    if (window->Active && (window->Flags & ImGuiWindowFlags_Tooltip) &&
+        window->DrawList->VtxBuffer.Size > 0)
+      tooltip = true;
+  EXPECT_TRUE(
+      tooltip);  // No proposal shapes are shown: this is room coordinates.
+  const int without_grid = PreviewCanvas().draw_list()->VtxBuffer.Size;
+  DungeonWorkbenchContentTestPeer::SetProposalGrid(*content_, true);
+  Frame();
+  EXPECT_GT(PreviewCanvas().draw_list()->VtxBuffer.Size, without_grid);
+  EXPECT_EQ(PreviewCanvas().GetConfig().role, gui::CanvasRole::kPreviewOnly);
+  EXPECT_FALSE(PreviewCanvas().GetConfig().enable_context_menu);
+}
+
+TEST_F(DungeonProposalPreviewUiTest,
+       InvalidReloadPreservesLastGoodOverlayAndIndependentView) {
+  Frame();
+  PreviewCanvas().set_global_scale(2);
+  PreviewCanvas().set_scrolling(ImVec2(-40, -55));
+  std::ofstream(root_ / "invalid.json") << "{invalid";
+  EXPECT_FALSE(
+      content_->LoadProposalOverlay((root_ / "invalid.json").string()));
+  Frame();
+  EXPECT_EQ(content_->loaded_proposal_path(), overlay_path_.string());
+  ASSERT_TRUE(content_->proposal_overlay());
+  EXPECT_EQ(content_->proposal_overlay()->rooms.front().room_id, 0x104);
+  EXPECT_FALSE(content_->proposal_error().empty());
+  EXPECT_FLOAT_EQ(PreviewCanvas().global_scale(), 2);
+  EXPECT_FLOAT_EQ(PreviewCanvas().scrolling().x, -40);
+  EXPECT_FLOAT_EQ(PreviewCanvas().scrolling().y, -55);
+}
+
+TEST_F(DungeonProposalPreviewUiTest,
+       UnfocusedPreviewPreservesWorkbenchShortcutOwnership) {
+  Frame();  // Consume the explicit one-shot Preview focus request.
+  Frame(true);
+  EXPECT_TRUE(viewer_->CanHandleRoomCanvasShortcut());
+  EXPECT_TRUE(viewer_->OwnsRoomNavigationShortcutFocus());
+}
+
+TEST_F(DungeonProposalPreviewUiTest,
+       QuarterScaleKeepsScreenHeightHeaderAndFullTitleHover) {
+  const float header = std::max(22.0f, ImGui::GetTextLineHeight() + 4);
+  const auto size = viewer_->GetProposalPreviewContentSize(
+      *content_->proposal_overlay(), 0.25f);
+  EXPECT_FLOAT_EQ(size.y, header + 128);
+  PreviewCanvas().set_global_scale(0.25f);
+  Frame();
+  const auto origin = PreviewCanvas().zero_point();
+  const auto scroll = PreviewCanvas().scrolling();
+  ImGui::GetIO().AddMousePosEvent(origin.x + scroll.x + 10,
+                                  origin.y + scroll.y + header / 2);
+  Frame();
+  Frame();
+  bool tooltip = false;
+  for (auto* window : context_->Windows)
+    if (window->Active && (window->Flags & ImGuiWindowFlags_Tooltip) &&
+        window->DrawList->VtxBuffer.Size > 0)
+      tooltip = true;
+  EXPECT_TRUE(tooltip);  // Header hover exposes the full unabridged title.
+}
+
+TEST_F(DungeonProposalPreviewUiTest,
+       TouchZoomLeavesAutomaticFitAndPersistsOnFollowingFrame) {
+  auto& io = ImGui::GetIO();
+  io.ConfigFlags |= ImGuiConfigFlags_IsTouchScreen;
+  DungeonWorkbenchContentTestPeer::SetProposalView(*content_, true, true);
+  Frame();
+  const auto origin = PreviewCanvas().zero_point();
+  io.AddMousePosEvent(origin.x + 100, origin.y + 100);
+  Frame();
+  const float before = PreviewCanvas().global_scale();
+  const auto scroll_before = PreviewCanvas().scrolling();
+  const float header = std::max(22.0f, ImGui::GetTextLineHeight() + 4);
+  const ImVec2 anchor(
+      (io.MousePos.x - origin.x - scroll_before.x) / before,
+      (io.MousePos.y - origin.y - header - scroll_before.y) / before);
+  io.AddKeyEvent(ImGuiMod_Ctrl, true);
+  io.AddMouseWheelEvent(0, 0.25f);
+  Frame();
+  const float after = PreviewCanvas().global_scale();
+  const auto scroll = PreviewCanvas().scrolling();
+  EXPECT_GT(after, before);
+  EXPECT_NEAR(origin.x + scroll.x + anchor.x * after, io.MousePos.x, 0.001f);
+  EXPECT_NEAR(origin.y + header + scroll.y + anchor.y * after, io.MousePos.y,
+              0.001f);
+  io.AddKeyEvent(ImGuiMod_Ctrl, false);
+  Frame();
+  EXPECT_FLOAT_EQ(PreviewCanvas().global_scale(), after);
+  EXPECT_FLOAT_EQ(PreviewCanvas().scrolling().x, scroll.x);
+  EXPECT_FLOAT_EQ(PreviewCanvas().scrolling().y, scroll.y);
 }
 
 TEST(DungeonRoomStoreCollisionTest,

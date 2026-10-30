@@ -14,7 +14,11 @@
 #include "app/editor/dungeon/dungeon_proposal_overlay.h"
 #include "app/editor/dungeon/ui_constants.h"
 #include "app/gfx/resource/arena.h"
+#include "app/gui/canvas/canvas_geometry.h"
+#include "app/gui/canvas/canvas_pipelines.h"
+#include "app/gui/canvas/canvas_utils.h"
 #include "imgui/imgui.h"
+#include "imgui/imgui_internal.h"
 
 namespace yaze::editor {
 namespace {
@@ -23,6 +27,12 @@ using dungeon_ui::kDungeonRoomPixelSize;
 
 constexpr float kProposalRoomGap = 24.0f;
 constexpr float kProposalLabelHeight = 22.0f;
+
+float ProposalHeaderHeight() {
+  if (!ImGui::GetCurrentContext())
+    return kProposalLabelHeight;
+  return std::max(kProposalLabelHeight, ImGui::GetTextLineHeight() + 4.0f);
+}
 
 ImU32 ToImColor(uint32_t rgba, float alpha_scale = 1.0f) {
   const int r = static_cast<int>((rgba >> 24) & 0xFF);
@@ -75,7 +85,7 @@ int DrawProposalStepSelector(const DungeonProposalOverlay& overlay) {
   int selected = storage->GetInt(key, -1);
   if (selected < -1 || static_cast<size_t>(selected) >= overlay.steps.size())
     selected = -1;
-  ImGui::SetNextItemWidth(260.0f);
+  ImGui::SetNextItemWidth(-1.0f);
   const char* label =
       selected < 0 ? tr("All steps") : overlay.steps[selected].label.c_str();
   if (ImGui::BeginCombo(tr("Preview step"), label)) {
@@ -91,7 +101,6 @@ int DrawProposalStepSelector(const DungeonProposalOverlay& overlay) {
     }
     ImGui::EndCombo();
   }
-  ImGui::SameLine();
   ImGui::BeginDisabled(selected <= 0);
   if (ImGui::Button(tr("Previous")))
     --selected;
@@ -247,12 +256,18 @@ ImVec2 DungeonCanvasViewer::GetProposalPreviewContentSize(
   const float width =
       ProposalRoomOriginX(count - 1, kProposalRoomGap) + kDungeonRoomPixelSize;
   return ImVec2(width * scale,
-                kProposalLabelHeight + kDungeonRoomPixelSize * scale);
+                ProposalHeaderHeight() + kDungeonRoomPixelSize * scale);
 }
 
 void DungeonCanvasViewer::DrawProposalPreview(
     const DungeonProposalOverlay& overlay,
-    const std::vector<char>& layer_visible, bool show_overlay, float scale) {
+    const std::vector<char>& layer_visible, bool show_overlay,
+    gui::Canvas& preview_canvas, bool show_grid, int grid_step,
+    bool& auto_fit) {
+  if (ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows)) {
+    // Preview focus must not preserve the editable room's keyboard ownership.
+    room_canvas_shortcut_focus_ = false;
+  }
   if (!rom_ || !rom_->is_loaded() || !rooms_) {
     ImGui::TextDisabled("%s", tr("Load a ROM to render the proposal rooms."));
     return;
@@ -275,12 +290,83 @@ void DungeonCanvasViewer::DrawProposalPreview(
   }
   gfx::Arena::Get().ProcessTextureQueue(renderer_);
 
-  const ImVec2 origin = ImGui::GetCursorScreenPos();
-  const ImVec2 content = GetProposalPreviewContentSize(overlay, scale);
-  ImGui::InvisibleButton("##DungeonProposalPreviewSurface", content);
-  const bool surface_hovered =
-      ImGui::IsItemHovered(ImGuiHoveredFlags_DelayNormal);
-  ImDrawList* draw_list = ImGui::GetWindowDrawList();
+  const ImVec2 content = GetProposalPreviewContentSize(overlay, 1.0f);
+  const ImVec2 available = ImGui::GetContentRegionAvail();
+  const ImVec2 viewport(std::max(1.0f, available.x),
+                        std::max(1.0f, available.y));
+  const float header_height = ProposalHeaderHeight();
+  if (auto_fit) {
+    const auto fit = gui::ComputeZoomToFit(
+        ImVec2(content.x, kDungeonRoomPixelSize),
+        ImVec2(viewport.x, std::max(1.0f, viewport.y - header_height)), 12.0f);
+    preview_canvas.set_global_scale(std::max(0.01f, fit.scale));
+    preview_canvas.set_scrolling(fit.scroll);
+  }
+  gui::CanvasFrameOptions options;
+  options.canvas_size = content;
+  options.viewport_size = viewport;
+  options.grid_step = static_cast<float>(grid_step);
+  // Room-local grids below avoid drawing lines through titles/inter-room gaps.
+  options.draw_grid = false;
+  options.draw_context_menu = false;
+  options.draw_overlay = false;
+  options.render_popups = false;
+  const float scale_before_begin = preview_canvas.global_scale();
+  const auto scroll_before_begin = preview_canvas.scrolling();
+  auto runtime = gui::BeginCanvas(preview_canvas, options);
+  if (preview_canvas.global_scale() != scale_before_begin) {
+    // Touch zoom in Canvas::Begin anchors at its viewport origin. The preview
+    // keeps a screen-height title above the room, so anchor the room pixels
+    // below that band using the same transform as desktop wheel zoom.
+    gui::CanvasGeometry geometry;
+    geometry.canvas_p0 =
+        ImVec2(runtime.canvas_p0.x, runtime.canvas_p0.y + header_height);
+    geometry.scrolling = scroll_before_begin;
+    preview_canvas.set_scrolling(gui::ComputeScrollForZoomAtScreenPos(
+        geometry, scale_before_begin, preview_canvas.global_scale(),
+        ImGui::GetMousePos()));
+  }
+  // BeginCanvas consumes touch wheel gestures itself. Preserve those changes
+  // instead of restoring automatic Fit on the following frame.
+  if (preview_canvas.global_scale() != scale_before_begin ||
+      preview_canvas.scrolling().x != scroll_before_begin.x ||
+      preview_canvas.scrolling().y != scroll_before_begin.y)
+    auto_fit = false;
+  auto& io = ImGui::GetIO();
+  if (runtime.hovered) {
+    if (io.MouseWheel != 0.0f) {
+      gui::CanvasGeometry geometry;
+      geometry.canvas_p0 =
+          ImVec2(runtime.canvas_p0.x, runtime.canvas_p0.y + header_height);
+      geometry.scrolling = runtime.scrolling;
+      const float old_scale = preview_canvas.global_scale();
+      const float new_scale =
+          std::clamp(old_scale * std::pow(1.12f, io.MouseWheel), 0.25f, 4.0f);
+      preview_canvas.set_scrolling(gui::ComputeScrollForZoomAtScreenPos(
+          geometry, old_scale, new_scale, io.MousePos));
+      preview_canvas.set_global_scale(new_scale);
+      io.MouseWheel = 0;
+      auto_fit = false;
+    }
+    if (ImGui::IsMouseDragging(ImGuiMouseButton_Middle)) {
+      const auto scroll = preview_canvas.scrolling();
+      preview_canvas.set_scrolling(
+          ImVec2(scroll.x + io.MouseDelta.x, scroll.y + io.MouseDelta.y));
+      auto_fit = false;
+    }
+    if (ImGui::IsMouseDragging(ImGuiMouseButton_Right))
+      auto_fit = false;  // Canvas::Begin already applies the maintained drag.
+  }
+  const float scale = preview_canvas.global_scale();
+  const ImVec2 scroll = preview_canvas.scrolling();
+  const ImVec2 origin(runtime.canvas_p0.x + scroll.x,
+                      runtime.canvas_p0.y + scroll.y);
+  const bool surface_hovered = runtime.hovered;
+  ImDrawList* draw_list = runtime.draw_list;
+  draw_list->PushClipRect(runtime.canvas_p0,
+                          ImVec2(runtime.canvas_p0.x + viewport.x,
+                                 runtime.canvas_p0.y + viewport.y),
+                          true);
   const ImVec2 mouse = ImGui::GetMousePos();
   const float room_size = kDungeonRoomPixelSize * scale;
 
@@ -290,15 +376,23 @@ void DungeonCanvasViewer::DrawProposalPreview(
     const float x =
         origin.x +
         ProposalRoomOriginX(static_cast<int>(i), kProposalRoomGap) * scale;
-    const ImVec2 room_min(x, origin.y + kProposalLabelHeight);
+    const ImVec2 room_min(x, origin.y + header_height);
     const ImVec2 room_max(room_min.x + room_size, room_min.y + room_size);
 
     const std::string title =
         room.label.empty()
             ? absl::StrFormat("Room $%02X", room.room_id)
             : absl::StrFormat("Room $%02X - %s", room.room_id, room.label);
-    draw_list->AddText(ImVec2(x, origin.y + 2),
-                       ImGui::GetColorU32(ImGuiCol_Text), title.c_str());
+    const ImVec2 title_min(x, origin.y + 2);
+    const ImVec2 title_max(x + room_size, origin.y + header_height);
+    const ImVec2 title_size = ImGui::CalcTextSize(title.c_str());
+    draw_list->PushClipRect(ImVec2(x, origin.y), title_max, true);
+    ImGui::RenderTextEllipsis(draw_list, title_min, title_max, title_max.x,
+                              title.c_str(), nullptr, &title_size);
+    draw_list->PopClipRect();
+    if (surface_hovered && mouse.x >= x && mouse.x < title_max.x &&
+        mouse.y >= origin.y && mouse.y < title_max.y)
+      hover_lines.push_back(title);
 
     if (bitmaps[i] && bitmaps[i]->texture()) {
       draw_list->AddImage((ImTextureID)(intptr_t)bitmaps[i]->texture(),
@@ -317,6 +411,21 @@ void DungeonCanvasViewer::DrawProposalPreview(
     const float local_x = (mouse.x - room_min.x) / scale;
     const float local_y = (mouse.y - room_min.y) / scale;
 
+    if (mouse_in_room) {
+      hover_lines.insert(
+          hover_lines.begin(),
+          absl::StrFormat(
+              "Room $%03X  Tile8 (%d, %d)  pixel (%d, %d)", room.room_id,
+              static_cast<int>(local_x) / 8, static_cast<int>(local_y) / 8,
+              static_cast<int>(local_x), static_cast<int>(local_y)));
+    }
+    if (show_grid) {
+      draw_list->PushClipRect(room_min, room_max, true);
+      gui::CanvasUtils::DrawCanvasGridLines(
+          draw_list, room_min, room_max, ImVec2(0, 0),
+          static_cast<float>(grid_step), scale);
+      draw_list->PopClipRect();
+    }
     if (!show_overlay) {
       continue;
     }
@@ -357,15 +466,9 @@ void DungeonCanvasViewer::DrawProposalPreview(
       }
     }
     draw_list->PopClipRect();
-
-    if (mouse_in_room) {
-      hover_lines.insert(
-          hover_lines.begin(),
-          absl::StrFormat("Room $%02X  tile (%d, %d)", room.room_id,
-                          static_cast<int>(local_x) / kProposalTilePixels,
-                          static_cast<int>(local_y) / kProposalTilePixels));
-    }
   }
+  draw_list->PopClipRect();
+  gui::EndCanvas(preview_canvas, runtime, options);
 
   if (!hover_lines.empty()) {
     const float wrap_width = std::max(

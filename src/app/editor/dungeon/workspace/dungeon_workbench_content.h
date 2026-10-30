@@ -24,6 +24,10 @@ namespace yaze::zelda3 {
 class PitDamageTable;
 }  // namespace yaze::zelda3
 
+namespace yaze::gui {
+class Canvas;
+}  // namespace yaze::gui
+
 namespace yaze::editor {
 
 class DungeonCanvasViewer;
@@ -363,13 +367,17 @@ class DungeonWorkbenchContent : public WindowContent {
 
   // Proposal Preview window state (read-only review of layout proposals).
   bool show_proposal_preview_ = false;
+  bool focus_proposal_preview_ = false;
   char proposal_path_[1024] = {};
   std::optional<DungeonProposalOverlay> proposal_overlay_;
   std::string proposal_error_;
   std::string loaded_proposal_path_;
   std::vector<char> proposal_layer_visible_;
   bool proposal_show_overlay_ = true;
-  float proposal_scale_ = 1.0f;
+  std::unique_ptr<gui::Canvas> proposal_canvas_;
+  bool proposal_show_grid_ = false;
+  int proposal_grid_step_ = 16;
+  bool proposal_auto_fit_ = true;
   uint16_t pit_damage_replacement_room_id_ = 0;
   uint16_t pit_damage_victim_room_id_ = 0;
   int pit_damage_chooser_room_id_ = -1;
