@@ -16,6 +16,9 @@
 #include "httplib.h"
 #include "nlohmann/json.hpp"
 #include "rom/rom.h"
+#ifdef ERROR
+#undef ERROR
+#endif
 #include "util/log.h"
 
 namespace yaze {
