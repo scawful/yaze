@@ -1,5 +1,6 @@
 #include "cli/handlers/game/dungeon_spatial_commands.h"
 
+#include <algorithm>
 #include <charconv>
 #include <fstream>
 #include <iterator>
@@ -8,6 +9,7 @@
 #include <string_view>
 
 #include "absl/strings/str_cat.h"
+#include "absl/strings/str_format.h"
 #include "absl/strings/str_split.h"
 #include "cli/util/hex_util.h"
 #include "core/source_artifact_publisher.h"
@@ -208,8 +210,132 @@ const char* ConflictName(zelda3::ObjectTemplatePlanConflictKind kind) {
       return "ordered_template_overlap";
     case Kind::kWallJoinLoss:
       return "wall_join_loss";
+    case Kind::kAssemblyConnection:
+      return "assembly_connection";
   }
   return "unknown";
+}
+
+// Use the maintained Proposal Preview payload rather than introducing another
+// review renderer. These are diagnostic annotations over the loaded room, not
+// a rendered candidate or a promise that its terrain is traversable.
+Json TemplateProposal(const zelda3::ObjectTemplatePlacementPlan& plan,
+                      const zelda3::ObjectTemplatePlanOptions& options,
+                      int room_id, const std::string& name) {
+  Json placements = Json::array();
+  Json reserved = Json::array();
+  Json issues = Json::array();
+  auto rectangle = [room_id](const zelda3::RoomSpatialBounds& bounds,
+                             const std::string& label,
+                             const std::string& detail) -> Json {
+    // Invalid user clearances also receive a blocked-plan preview. Widen
+    // before adding endpoints: their integer fields may span the int range.
+    const auto clip = [](int64_t value) {
+      return static_cast<int>(std::clamp<int64_t>(value, 0, 63));
+    };
+    const int x = clip(bounds.x);
+    const int y = clip(bounds.y);
+    const int right =
+        std::max(x, clip(static_cast<int64_t>(bounds.x) + bounds.width - 1));
+    const int bottom =
+        std::max(y, clip(static_cast<int64_t>(bounds.y) + bounds.height - 1));
+    return {{"type", "rect"},
+            {"room", room_id},
+            {"tiles", {x, y, right, bottom}},
+            {"label", label},
+            {"detail", detail}};
+  };
+  for (const auto& footprint : plan.footprints) {
+    if (!footprint.measured || footprint.bounds.width <= 0 ||
+        footprint.bounds.height <= 0)
+      continue;
+    placements.push_back(rectangle(
+        footprint.bounds,
+        absl::StrFormat("%d: $%03X", footprint.object_index,
+                        footprint.object_id),
+        "Measured proposed-object bounds, clipped to this room. Draw-list " +
+            std::to_string(footprint.list_index) +
+            "; not a collision or gameplay floor."));
+  }
+  for (size_t i = 0; i < options.clearance.size(); ++i) {
+    const auto& clearance = options.clearance[i];
+    reserved.push_back(rectangle(
+        clearance.bounds, absl::StrFormat("Reserved %d", i),
+        "Protected from new object writes; existing terrain and player "
+        "approach are not qualified. Plane: " +
+            std::string(!clearance.plane        ? "both"
+                        : *clearance.plane == 0 ? "upper"
+                                                : "lower")));
+  }
+  constexpr size_t kMaxPreviewConflicts = 64;
+  size_t blocking_count = 0;
+  for (const auto& conflict : plan.conflicts) {
+    if (!conflict.blocking)
+      continue;
+    if (++blocking_count > kMaxPreviewConflicts)
+      continue;
+    std::string detail = conflict.message;
+    if (conflict.existing_index)
+      detail +=
+          absl::StrFormat(" Existing index %d.", *conflict.existing_index);
+    if (conflict.expected_region) {
+      issues.push_back(rectangle(*conflict.expected_region,
+                                 ConflictName(conflict.kind), detail));
+    } else if (!conflict.cells.empty()) {
+      int x0 = 63, y0 = 63, x1 = 0, y1 = 0;
+      for (const auto& cell : conflict.cells) {
+        x0 = std::min(x0, cell.x);
+        y0 = std::min(y0, cell.y);
+        x1 = std::max(x1, cell.x);
+        y1 = std::max(y1, cell.y);
+      }
+      detail += absl::StrFormat(
+          " %d physical-plane cells; rectangle encloses at most the first "
+          "64 reported cells, not a filled collision region.",
+          conflict.cell_count);
+      issues.push_back(rectangle({x0, y0, x1 - x0 + 1, y1 - y0 + 1},
+                                 ConflictName(conflict.kind), detail));
+    } else {
+      int x = 0, y = 0;
+      if (conflict.template_index < plan.placements.size()) {
+        x = plan.placements[conflict.template_index].x();
+        y = plan.placements[conflict.template_index].y();
+      }
+      issues.push_back({{"type", "marker"},
+                        {"room", room_id},
+                        {"tile", {x, y}},
+                        {"label", ConflictName(conflict.kind)},
+                        {"detail", detail}});
+    }
+  }
+  return {{"format", "yaze-dungeon-proposal-overlay"},
+          {"version", 1},
+          {"title", name},
+          {"status", plan.valid ? "Geometry plan; gameplay unqualified"
+                                : "Blocked geometry plan"},
+          {"rooms", {{{"room", room_id}, {"label", name}}}},
+          {"notes",
+           {"Annotations show a proposed assembly over the loaded room. They "
+            "do not render or apply its object changes.",
+            absl::StrFormat(
+                "%d blocking conflicts; first 64 shown. Complete findings "
+                "remain in plan.conflicts.",
+                blocking_count),
+            "Reserved regions constrain new writes. They do not establish "
+            "existing floor, Link reachability or water-state behavior."}},
+          {"layers",
+           {{{"id", "planned-objects"},
+             {"label", "Proposed object bounds"},
+             {"color", "#62B6E8"},
+             {"shapes", placements}},
+            {{"id", "reserved-regions"},
+             {"label", "Reserved regions"},
+             {"color", "#C79EF2"},
+             {"shapes", reserved}},
+            {{"id", "blocking-conflicts"},
+             {"label", "Connections and placement needing repair"},
+             {"color", "#F36E67"},
+             {"shapes", issues}}}}};
 }
 }  // namespace
 
@@ -459,7 +585,8 @@ absl::Status DungeonTemplatePlanCommandHandler::Execute(
        "vector"},
       {"validation_scope",
        "isolated default-state geometry, baseline layout/object writes and "
-       "door editor bounds, plus known native retaining-wall endpoint loss"},
+       "door editor bounds, known native retaining-wall endpoint loss and "
+       "explicitly declared native retaining-wall cycles"},
       {"unverified_contracts",
        {"engine state and ordered registrations",
         "player approach and reachability", "target graphics compatibility",
@@ -475,6 +602,41 @@ absl::Status DungeonTemplatePlanCommandHandler::Execute(
       "existing_objects prefix, then template indices; draw-list sorting "
       "does not renumber these identities";
   result["retaining_wall_joins"]["template_index_base"] = existing.size();
+  Json loops = {
+      {"coverage", plan.retaining_wall_loop_coverage},
+      {"complete_room_qualification", false},
+      {"status", object_template.retaining_wall_loops.empty() ? "not_declared"
+                                                              : "not_assessed"},
+      {"checks", Json::array()}};
+  bool loops_blocked = false;
+  for (const auto& check : plan.retaining_wall_loop_checks) {
+    Json ports = Json::array();
+    for (const auto& port : check.required_ports) {
+      ports.push_back({{"template_index", port.template_index},
+                       {"object_id", port.object_id},
+                       {"straight_id", port.straight_id},
+                       {"direction", port.direction},
+                       {"x", port.x},
+                       {"y", port.y}});
+    }
+    loops["checks"].push_back(
+        {{"name", check.name},
+         {"status", check.status},
+         {"members", check.members},
+         {"matched_connection_count", check.matched_connection_count},
+         {"coordinate_space", "room_tile8_boundaries"},
+         {"required_ports", ports},
+         {"diagnostics", check.diagnostics}});
+    loops_blocked |= check.status == "blocked";
+  }
+  if (!plan.retaining_wall_loop_checks.empty()) {
+    loops["status"] = loops_blocked ? "blocked"
+                      : plan.retaining_wall_loop_checks.size() !=
+                              object_template.retaining_wall_loops.size()
+                          ? "incomplete_assessment"
+                          : "closed_ports_not_final_pixels";
+  }
+  result["retaining_wall_loops"] = std::move(loops);
   result["existing_objects"] = Json::array();
   for (size_t index = 0; index < existing.size(); ++index) {
     const auto& object = existing[index];
@@ -525,10 +687,21 @@ absl::Status DungeonTemplatePlanCommandHandler::Execute(
       item["existing_index"] = *conflict.existing_index;
     if (conflict.other_template_index)
       item["other_template_index"] = *conflict.other_template_index;
+    if (conflict.expected_region)
+      item["expected_region"] = Bounds(*conflict.expected_region);
     item["cells"] = Json::array();
     for (const auto& cell : conflict.cells)
       item["cells"].push_back(Cell(cell));
     result["conflicts"].push_back(std::move(item));
+  }
+  result["proposal_overlay"] =
+      TemplateProposal(plan, options, room_id, object_template.name);
+  for (const auto& check : plan.retaining_wall_loop_checks) {
+    result["proposal_overlay"]["notes"].push_back(
+        check.name + ": " + check.status +
+        ". Declared native wall "
+        "connections only; final water/ceiling pixels and playable space "
+        "remain separate requirements.");
   }
   formatter.AddRawJsonField("plan", result.dump());
   formatter.AddRawText(absl::StrCat(

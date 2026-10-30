@@ -85,7 +85,11 @@ struct DungeonProposalOverlay {
 
 // Parses and validates overlay JSON. Rejects unknown formats/versions,
 // out-of-range rooms or tiles, shapes on rooms not listed in "rooms", and
-// malformed colors. `max_room_id` is inclusive.
+// malformed colors. Also accepts an explicit yaze.dungeon_template_plan.v1
+// report containing proposal_overlay: raw plan, {plan:...}, or the formatter's
+// {Result:{plan:...}} wrapper. Producer hashes are displayed as unverified
+// provenance labels; loading a report does not bind it to the active ROM or
+// qualify runtime behavior. `max_room_id` is inclusive.
 absl::StatusOr<DungeonProposalOverlay> ParseDungeonProposalOverlay(
     std::string_view json_text, int max_room_id = kProposalDefaultMaxRoomId);
 

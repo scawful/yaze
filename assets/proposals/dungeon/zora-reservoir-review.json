@@ -2,13 +2,13 @@
   "format": "yaze-dungeon-proposal-overlay",
   "version": 1,
   "title": "Zora: dam, receiving bank, Princess and return",
-  "status": "Needs wall reconnection; connection, staging and runtime unqualified",
+  "status": "Room-building proof; BG2 floor/mask and landing review pending",
   "notes": [
     "This review keeps the complete loaded Room26 and Room27 renders beneath annotations. DeepAudit retains room authorship.",
-    "Human review rejected the left room's lower wall connection. The old horizontal wall's terminal corner is overwritten by the new bank side; this assembly is not accepted despite its earlier component checks.",
+    "Human geometry feedback: the dark retaining contour is a useful room-building proof. The landing is tight, BG2 masking and authored floor treatment need refinement, and the Princess final location is unselected.",
     "Open the separately pinned corrected LOW or HIGH private ROM. Steps filter annotations only: they do not switch ROMs, raise water, operate the dam or prove a route.",
-    "The selected intent is initial LOW with all Room26 dry, then persistent post-dam HIGH with bidirectional swimming and a Princess bank inaccessible by LOW service walking. No player drain toggle is selected.",
-    "Existing actors are position markers. Future Princess/Link/Baby rectangles are feet-staging envelopes, not implemented actors, art, hitboxes or interaction proof.",
+    "Persistent LOW-to-HIGH intent remains proposed. This bank is a proof of room construction, not a definitive Princess location or a completed hydraulic implementation.",
+    "Princess, Link and Baby staging coordinates from the previous wider deck have been removed. Future placement must reserve approach, chest-front and stair landing space together.",
     "All paths and connection envelopes are proposed intentions, not measured free floor, safe collision masks or controller-qualified travel.",
     "The image underneath is the current loaded room model, not an immutable before snapshot. Use the separately bound full-room PNGs for the frozen comparison.",
     "Exact ROM, image, source and overlay hashes are in the external ZORA_REVIEW_BINDING.json. Version1 does not validate those bindings or load native receipts."
@@ -36,41 +36,41 @@
           "tiles": [
             41,
             39,
-            50,
+            46,
             46
           ],
-          "label": "EXISTING deck",
-          "detail": "Corrected LOW and HIGH retain this north-attached bank interior. Static/pixel checks pass; not native or human acceptance."
+          "label": "CURRENT proof landing",
+          "detail": "Six by eight Tile8 deck in the dark-contour candidate. Human found it tight; it is not the final Princess location or a proved three-actor staging area."
         },
         {
           "room": "0x26",
           "type": "marker",
           "tile": [
-            43,
+            41,
             42
           ],
           "label": "EXISTING Small Key chest",
-          "detail": "Same chest ordinal and reward; relocated as part of the private bank component."
-        },
-        {
-          "room": "0x26",
-          "type": "marker",
-          "tile": [
-            48,
-            41
-          ],
-          "label": "EXISTING bank pot",
-          "detail": "Existing pot relocated with its backing metadata preserved. No new resource is proposed."
+          "detail": "Existing Small Key chest relocated with the dark-contour proof. Chest-front access remains an independent requirement."
         },
         {
           "room": "0x26",
           "type": "marker",
           "tile": [
             44,
+            41
+          ],
+          "label": "EXISTING bank pot",
+          "detail": "Existing bank pot in the dark-contour proof. Preserve its backing metadata when revising the landing."
+        },
+        {
+          "room": "0x26",
+          "type": "marker",
+          "tile": [
+            42,
             47
           ],
           "label": "HIGH stair / LOW closed",
-          "detail": "Corrected HIGH has native reference object133 here; LOW closes the notch. Swim admission, active plane and reverse descent remain unqualified."
+          "detail": "HIGH has native133 at42,47; LOW has a closed mouth. Layer-change, arrival and reverse descent remain unqualified."
         },
         {
           "room": "0x26",
@@ -210,55 +210,19 @@
     },
     {
       "id": "future_princess_staging",
-      "label": "Future Princess / arrival staging",
+      "label": "Princess location and staging unresolved",
       "color": "#B794E866",
       "visible": true,
       "shapes": [
         {
           "room": "0x26",
-          "type": "rect",
-          "tiles": [
-            47,
-            44,
-            48,
-            45
-          ],
-          "label": "FUTURE Princess feet",
-          "detail": "Source-checked floor envelope only. Princess actor placement, full art, dialogue reach and Healing behavior have not been implemented."
-        },
-        {
-          "room": "0x26",
-          "type": "rect",
-          "tiles": [
-            45,
-            45,
-            46,
-            46
-          ],
-          "label": "FUTURE Link feet",
-          "detail": "Intended interaction stance. Actual body clearance, facing, input approach and transition landing remain to be checked."
-        },
-        {
-          "room": "0x26",
-          "type": "rect",
-          "tiles": [
-            49,
-            43,
-            50,
-            44
-          ],
-          "label": "FUTURE Baby feet",
-          "detail": "Intended visible Baby arrival beside the Princess. Follower swim, step-up and final staging are unqualified."
-        },
-        {
-          "room": "0x26",
           "type": "marker",
           "tile": [
-            45,
-            49
+            43,
+            44
           ],
-          "label": "INTENDED swim -> landing",
-          "detail": "HIGH approach should use the existing bank transition and reach dry deck. LOW service walking must not admit the bank. This marker proves neither condition."
+          "label": "Temporary landing; Princess location open",
+          "detail": "This is a room-building proof. The Princess needs a more spacious, ceremonious location; no final coordinate is selected. Do not reuse old off-deck feet boxes."
         }
       ]
     },
@@ -273,15 +237,15 @@
           "type": "path",
           "tiles": [
             [
-              45,
+              43,
               48
             ],
             [
-              45,
+              43,
               51
             ],
             [
-              55,
+              54,
               51
             ],
             [
@@ -338,16 +302,21 @@
     },
     {
       "id": "unresolved_corner",
-      "label": "Unresolved rim / door seams",
+      "label": "BG2 composition and connection review",
       "color": "#E8797955",
       "visible": true,
       "shapes": [
         {
           "room": "0x26",
           "type": "rect",
-          "tiles": [34, 36, 40, 55],
-          "label": "FAILED left wall connection",
-          "detail": "The new bank intersects the retained basin turn. Horizontal003(21,44,size7) still reaches corner10C(37,44), but064(37,43,size1) and10E(37,47) replace all16 terminal cells per buffer. Reconnect the complete wall/corner assembly; floor repaint cannot repair this join."
+          "tiles": [
+            29,
+            39,
+            58,
+            58
+          ],
+          "label": "BG2 masking and floor art review",
+          "detail": "Dark shoulders now connect through003 straights after gray-wall restoration. The original cross-plane C5 floor treatment was lost; restore/adapt it with D9/C9 masking groups, phase, clipping and full-room composition proof. C4/DB are not visual substitutes."
         },
         {
           "room": "0x27",
@@ -390,7 +359,7 @@
     {
       "id": "existing_context",
       "label": "1. Existing rooms and puzzle",
-      "detail": "Inspect the complete loaded rooms, corrected bank, actual Baby/switch anchors, east dam and return assembly. These annotations do not change room state.",
+      "detail": "Inspect the complete room-building proof, actual Baby/switch anchors, east dam and return assembly. Positive geometry feedback does not establish BG2 composition or gameplay.",
       "layers": [
         "current_bank_and_actors"
       ]
@@ -407,8 +376,8 @@
     },
     {
       "id": "future_arrival",
-      "label": "3. Future Princess and Baby arrival",
-      "detail": "Intended HIGH swim, native bank transition, visible Baby arrival and Healing interaction. Staging boxes are future feet envelopes, not implemented actors or art.",
+      "label": "3. Princess placement requirements",
+      "detail": "Keep Healing and visible-Baby interaction requirements. The final Princess location and generous staging are open; the current small landing is a construction proof.",
       "layers": [
         "current_bank_and_actors",
         "proposed_lower_join",
@@ -427,8 +396,8 @@
     },
     {
       "id": "remaining_join_review",
-      "label": "5. Unresolved corner and acceptance",
-      "detail": "The left bank's wall connection failed human review: repair its retained face/corner relationship first. Then review the southwest rim and east seam in full-room context. Native arrival, LOW exclusion, HIGH return, Baby/Healing and save/re-entry remain open.",
+      "label": "5. BG2 composition and acceptance",
+      "detail": "Review the dark retaining rim together with upper floor art, lower masks, painter order and water. This proof is not final Princess staging. Native arrival, HIGH return, Healing and save/reentry remain open.",
       "layers": [
         "current_bank_and_actors",
         "proposed_lower_join",

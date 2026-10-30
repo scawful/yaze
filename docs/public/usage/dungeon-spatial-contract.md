@@ -96,7 +96,8 @@ Patterns use the existing `ObjectTemplate` payload:
 ```
 
 IDs and other JSON integers are decimal. Relative offsets are Tile8 coordinates.
-The strict reader requires these exact fields and rejects unknown rule keys,
+The strict reader requires these fields and accepts the optional
+`retaining_wall_loops` contract described below. It rejects other unknown keys,
 duplicate fields, partial objects, noninteger numbers and unsupported ranges.
 It accepts 1–512 objects and at most 1 MiB of input. A separate rule description
 must not be passed as if the template parser had validated it.
@@ -141,6 +142,87 @@ Important output contracts:
    Counts cover the complete intersection; a diagnostic keeps its first 64 cells.
    `--write` is rejected. No writer, partial insertion, generic rotation or
    procedural expansion is hidden behind this command.
+
+## Declare the complete retaining-wall assembly
+
+For a complete dark retaining contour, add an independent membership contract:
+
+```json
+"retaining_wall_loops": [
+  {"name": "Complete stepped perimeter", "members": [0, 1, 2, 3, 4, 5, 6, 7]}
+]
+```
+
+Member numbers refer to `objects` in this same template, before painter-order
+sorting. They are not room-object indices. Removing, moving or flipping a
+member must preserve the declared connections; deleting a corner cannot remove
+its missing-connection witness. Changing the membership is a change to the
+authored contract and template hash. No declaration means `not_declared`, not
+an assembly pass.
+
+The native profile covers `$003/$004/$063/$064` and `$108..$10F`. The dark
+wall's narrow rim is part of this family; gray `$001/$002/$061/$062` room walls
+are a different architectural material. Each member has two oriented ports
+with a required straight-wall family. Port coordinates lie on Tile8 boundaries,
+so a 4x4 corner's east port is `x+4`, not its last cell at `x+3`.
+
+The planner requires one closed connected cycle, matching families, opposite
+directions and supported boundary alignment. The source-qualified north
+`$063` approach to `$10C` may share one corner row. Other overlaps do not gain
+that exception. Direct corner-to-corner connections are unsupported by this
+profile: a rectangle touching another rectangle is insufficient evidence for
+the required straight shoulder. Unsupported connections block this contract;
+they are not a claim that every native corner-to-corner arrangement is invalid.
+
+The architectural check also detects later recognized gray-wall writes that
+replace declared dark-wall cells with different words. Painter order uses the
+serialized draw lists, not template array order alone. Floor, water and
+decoration repaint are excluded from this wall-stage check.
+
+`plan.retaining_wall_loops` reports coverage, every required port, matched
+connections and diagnostics. A successful result is
+`closed_ports_not_final_pixels`; `complete_room_qualification` remains false.
+`assembly_connection` conflicts block even with explicit overlap permissions.
+Their `expected_region` identifies the missing or incompatible connection on
+the room canvas. Final ceiling/water composition, target graphics, collision,
+standing space and state behavior remain separate requirements.
+
+`swamp-stepped-retaining-contour.json` supplies the complete 48-member dark
+stepped perimeter from clean USA room `$36`, original objects 10 through 57,
+at source origin `(5,7)`. It contains all eight corner orientations. It is a
+complete architectural reference rather than an isolated cap or a target-room
+replacement. The normal template manager preserves the membership on save and
+reload. The legacy direct insertion path refuses declared assemblies before
+creating Undo; use the planner and the reviewed room writer rather than losing
+the contract during insertion.
+
+## Open the planner diagnosis in Proposal Preview
+
+Save the normal JSON report and load that same file in the Dungeon Workbench's
+floating **Proposal Preview**:
+
+```sh
+z3ed --rom=game.sfc dungeon-template-plan --room=0x36 \
+  --template=assets/templates/dungeon/swamp-stepped-retaining-contour.json \
+  --x=5 --y=7 --format=json > retaining-plan.json
+```
+
+Preserve the command's exit status. A blocked report is still useful for visual
+review; it is not permission to apply the objects. Existing-room overlap may
+block this reference invocation and must be reviewed by identified indices.
+
+`plan.proposal_overlay` uses the existing overlay v1 schema. Preview accepts a
+raw plan, the normal `{ "plan": ... }` output, or its supported
+`{ "Result": { "plan": ... } }` formatter wrapper. Ambiguous reports,
+duplicate keys, unsupported wrappers, malformed provenance and room mismatches
+are rejected. ROM and template hashes are displayed as saved producer labels;
+they are not automatically matched to the current editor session.
+
+Blue rectangles show proposed measured bounds. Purple rectangles show reserved
+regions. Red annotations show blocked connections or placement conflicts; the
+first 64 blocking conflicts are displayed and the report retains every finding.
+The underlying room remains the loaded room. These annotations do not render or
+apply candidate objects, establish walkable floor, or change the ROM.
 
 ## Measured reference patterns
 

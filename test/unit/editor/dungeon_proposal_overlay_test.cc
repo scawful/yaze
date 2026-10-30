@@ -7,6 +7,7 @@
 #include <string>
 
 #include "gtest/gtest.h"
+#include "nlohmann/json.hpp"
 #include "yaze_test_paths.h"
 
 namespace yaze::editor {
@@ -85,6 +86,100 @@ std::string WithShape(const std::string& shape) {
   return R"({"format":"yaze-dungeon-proposal-overlay","version":1,
              "rooms":[119],"layers":[{"id":"l","shapes":[)" +
          shape + "]}]}";
+}
+
+nlohmann::json TemplatePlanReport(bool valid = true) {
+  return {
+      {"schema", "yaze.dungeon_template_plan.v1"},
+      {"status", valid ? "valid_geometry_plan" : "blocked_geometry_plan"},
+      {"valid", valid},
+      {"write_performed", false},
+      {"runtime_qualified", false},
+      {"room_id", 119},
+      {"rom_content_sha256", std::string(64, 'a')},
+      {"template_sha256", std::string(64, 'b')},
+      {"proposal_overlay",
+       nlohmann::json::parse(WithShape(
+           R"({"room":119,"type":"marker","tile":[12,13],"label":"Missing corner"})"))}};
+}
+
+TEST(DungeonProposalOverlayTest, LoadsKnownTemplatePlanReportForms) {
+  using json = nlohmann::json;
+  for (bool valid : {false, true}) {
+    const auto plan = TemplatePlanReport(valid);
+    for (const auto& document :
+         {plan, json{{"plan", plan}}, json{{"Result", {{"plan", plan}}}}}) {
+      auto overlay = ParseDungeonProposalOverlay(document.dump());
+      ASSERT_TRUE(overlay.ok()) << overlay.status();
+      ASSERT_EQ(overlay->rooms.size(), 1u);
+      EXPECT_EQ(overlay->rooms[0].room_id, 119);
+      EXPECT_EQ(overlay->layers[0].shapes[0].label, "Missing corner");
+      EXPECT_NE(overlay->status.find(valid ? "valid_geometry_plan"
+                                           : "blocked_geometry_plan"),
+                std::string::npos);
+      EXPECT_NE(overlay->status.find("runtime unqualified"), std::string::npos);
+      ASSERT_GE(overlay->notes.size(), 3u);
+      EXPECT_NE(overlay->notes[0].find("not been matched"), std::string::npos);
+      EXPECT_NE(overlay->notes[1].find(std::string(64, 'a')),
+                std::string::npos);
+      EXPECT_NE(overlay->notes[2].find(std::string(64, 'b')),
+                std::string::npos);
+    }
+  }
+}
+
+TEST(DungeonProposalOverlayTest, RejectsAmbiguousOrUnrelatedPlanEnvelopes) {
+  using json = nlohmann::json;
+  const auto plan = TemplatePlanReport();
+  const auto overlay = plan["proposal_overlay"];
+  const std::vector<json> documents = {
+      {{"plan", plan}, {"Result", {{"plan", plan}}}},
+      {{"unrelated", {{"plan", plan}}}},
+      {{"Result", {{"nested", {{"plan", plan}}}}}},
+      {{"plan", {{"nested", plan}}}},
+      {{"unrelated", {{"proposal_overlay", overlay}}}},
+      {{"proposal_overlay", overlay}},
+  };
+  for (const auto& document : documents)
+    EXPECT_FALSE(ParseDungeonProposalOverlay(document.dump()).ok())
+        << document.dump();
+  const auto duplicate = std::string("{\"plan\":") + plan.dump() +
+                         ",\"plan\":" + plan.dump() + "}";
+  EXPECT_FALSE(ParseDungeonProposalOverlay(duplicate).ok());
+}
+
+TEST(DungeonProposalOverlayTest,
+     RejectsMalformedPlanProvenanceAndRoomMismatch) {
+  using json = nlohmann::json;
+  const auto good = TemplatePlanReport();
+  for (const char* key :
+       {"valid", "status", "write_performed", "runtime_qualified", "room_id",
+        "rom_content_sha256", "template_sha256", "proposal_overlay"}) {
+    auto plan = good;
+    plan.erase(key);
+    EXPECT_FALSE(ParseDungeonProposalOverlay(plan.dump()).ok()) << key;
+  }
+  for (const auto& [key, value] : std::vector<std::pair<std::string, json>>{
+           {"valid", 1},
+           {"status", "runtime_pass"},
+           {"write_performed", true},
+           {"runtime_qualified", true},
+           {"room_id", 120},
+           {"room_id", "119"},
+           {"room_id", 296},
+           {"rom_content_sha256", std::string(64, 'z')},
+           {"template_sha256", "short"},
+           {"proposal_overlay", json::array()}}) {
+    auto plan = good;
+    plan[key] = value;
+    EXPECT_FALSE(ParseDungeonProposalOverlay(plan.dump()).ok()) << key;
+  }
+  auto multiple_rooms = good;
+  multiple_rooms["proposal_overlay"]["rooms"].push_back(120);
+  EXPECT_FALSE(ParseDungeonProposalOverlay(multiple_rooms.dump()).ok());
+  auto malformed_overlay = good;
+  malformed_overlay["proposal_overlay"]["layers"] = "not layers";
+  EXPECT_FALSE(ParseDungeonProposalOverlay(malformed_overlay.dump()).ok());
 }
 
 TEST(DungeonProposalOverlayTest, RejectsInvalidDocuments) {

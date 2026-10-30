@@ -1,0 +1,398 @@
+{
+  "name": "Swamp stepped retaining contour",
+  "description": "Complete 48-member native dark retaining contour from clean USA room36 original objects10..57. Source origin Tile8(5,7); rim and face belong to this family. Closed-port architectural reference; target art, ceiling/water composition, usable floor, states and gameplay require separate review.",
+  "category": "Measured reference",
+  "objects": [
+    {
+      "id": 264,
+      "rel_x": 0,
+      "rel_y": 14,
+      "size": 0,
+      "layer": 0
+    },
+    {
+      "id": 3,
+      "rel_x": 4,
+      "rel_y": 14,
+      "size": 3,
+      "layer": 0
+    },
+    {
+      "id": 268,
+      "rel_x": 12,
+      "rel_y": 14,
+      "size": 0,
+      "layer": 0
+    },
+    {
+      "id": 99,
+      "rel_x": 12,
+      "rel_y": 4,
+      "size": 4,
+      "layer": 0
+    },
+    {
+      "id": 264,
+      "rel_x": 12,
+      "rel_y": 0,
+      "size": 0,
+      "layer": 0
+    },
+    {
+      "id": 3,
+      "rel_x": 16,
+      "rel_y": 0,
+      "size": 0,
+      "layer": 0
+    },
+    {
+      "id": 266,
+      "rel_x": 18,
+      "rel_y": 0,
+      "size": 0,
+      "layer": 0
+    },
+    {
+      "id": 100,
+      "rel_x": 18,
+      "rel_y": 4,
+      "size": 1,
+      "layer": 0
+    },
+    {
+      "id": 270,
+      "rel_x": 18,
+      "rel_y": 8,
+      "size": 0,
+      "layer": 0
+    },
+    {
+      "id": 3,
+      "rel_x": 22,
+      "rel_y": 8,
+      "size": 4,
+      "layer": 0
+    },
+    {
+      "id": 268,
+      "rel_x": 32,
+      "rel_y": 8,
+      "size": 0,
+      "layer": 0
+    },
+    {
+      "id": 99,
+      "rel_x": 32,
+      "rel_y": 4,
+      "size": 1,
+      "layer": 0
+    },
+    {
+      "id": 264,
+      "rel_x": 32,
+      "rel_y": 0,
+      "size": 0,
+      "layer": 0
+    },
+    {
+      "id": 3,
+      "rel_x": 36,
+      "rel_y": 0,
+      "size": 3,
+      "layer": 0
+    },
+    {
+      "id": 266,
+      "rel_x": 44,
+      "rel_y": 0,
+      "size": 0,
+      "layer": 0
+    },
+    {
+      "id": 100,
+      "rel_x": 44,
+      "rel_y": 4,
+      "size": 4,
+      "layer": 0
+    },
+    {
+      "id": 270,
+      "rel_x": 44,
+      "rel_y": 14,
+      "size": 0,
+      "layer": 0
+    },
+    {
+      "id": 3,
+      "rel_x": 48,
+      "rel_y": 14,
+      "size": 0,
+      "layer": 0
+    },
+    {
+      "id": 266,
+      "rel_x": 50,
+      "rel_y": 14,
+      "size": 0,
+      "layer": 0
+    },
+    {
+      "id": 100,
+      "rel_x": 50,
+      "rel_y": 18,
+      "size": 0,
+      "layer": 0
+    },
+    {
+      "id": 267,
+      "rel_x": 50,
+      "rel_y": 20,
+      "size": 0,
+      "layer": 0
+    },
+    {
+      "id": 4,
+      "rel_x": 40,
+      "rel_y": 20,
+      "size": 4,
+      "layer": 0
+    },
+    {
+      "id": 271,
+      "rel_x": 36,
+      "rel_y": 20,
+      "size": 0,
+      "layer": 0
+    },
+    {
+      "id": 100,
+      "rel_x": 36,
+      "rel_y": 24,
+      "size": 1,
+      "layer": 0
+    },
+    {
+      "id": 270,
+      "rel_x": 36,
+      "rel_y": 28,
+      "size": 0,
+      "layer": 0
+    },
+    {
+      "id": 3,
+      "rel_x": 40,
+      "rel_y": 28,
+      "size": 4,
+      "layer": 0
+    },
+    {
+      "id": 266,
+      "rel_x": 50,
+      "rel_y": 28,
+      "size": 0,
+      "layer": 0
+    },
+    {
+      "id": 100,
+      "rel_x": 50,
+      "rel_y": 32,
+      "size": 0,
+      "layer": 0
+    },
+    {
+      "id": 267,
+      "rel_x": 50,
+      "rel_y": 34,
+      "size": 0,
+      "layer": 0
+    },
+    {
+      "id": 4,
+      "rel_x": 42,
+      "rel_y": 34,
+      "size": 3,
+      "layer": 0
+    },
+    {
+      "id": 271,
+      "rel_x": 38,
+      "rel_y": 34,
+      "size": 0,
+      "layer": 0
+    },
+    {
+      "id": 100,
+      "rel_x": 38,
+      "rel_y": 38,
+      "size": 4,
+      "layer": 0
+    },
+    {
+      "id": 267,
+      "rel_x": 38,
+      "rel_y": 48,
+      "size": 0,
+      "layer": 0
+    },
+    {
+      "id": 4,
+      "rel_x": 14,
+      "rel_y": 48,
+      "size": 11,
+      "layer": 0
+    },
+    {
+      "id": 265,
+      "rel_x": 10,
+      "rel_y": 48,
+      "size": 0,
+      "layer": 0
+    },
+    {
+      "id": 99,
+      "rel_x": 10,
+      "rel_y": 38,
+      "size": 4,
+      "layer": 0
+    },
+    {
+      "id": 269,
+      "rel_x": 10,
+      "rel_y": 34,
+      "size": 0,
+      "layer": 0
+    },
+    {
+      "id": 4,
+      "rel_x": 4,
+      "rel_y": 34,
+      "size": 2,
+      "layer": 0
+    },
+    {
+      "id": 265,
+      "rel_x": 0,
+      "rel_y": 34,
+      "size": 0,
+      "layer": 0
+    },
+    {
+      "id": 99,
+      "rel_x": 0,
+      "rel_y": 32,
+      "size": 0,
+      "layer": 0
+    },
+    {
+      "id": 264,
+      "rel_x": 0,
+      "rel_y": 28,
+      "size": 0,
+      "layer": 0
+    },
+    {
+      "id": 3,
+      "rel_x": 4,
+      "rel_y": 28,
+      "size": 3,
+      "layer": 0
+    },
+    {
+      "id": 268,
+      "rel_x": 12,
+      "rel_y": 28,
+      "size": 0,
+      "layer": 0
+    },
+    {
+      "id": 99,
+      "rel_x": 12,
+      "rel_y": 24,
+      "size": 1,
+      "layer": 0
+    },
+    {
+      "id": 269,
+      "rel_x": 12,
+      "rel_y": 20,
+      "size": 0,
+      "layer": 0
+    },
+    {
+      "id": 4,
+      "rel_x": 4,
+      "rel_y": 20,
+      "size": 3,
+      "layer": 0
+    },
+    {
+      "id": 265,
+      "rel_x": 0,
+      "rel_y": 20,
+      "size": 0,
+      "layer": 0
+    },
+    {
+      "id": 99,
+      "rel_x": 0,
+      "rel_y": 18,
+      "size": 0,
+      "layer": 0
+    }
+  ],
+  "retaining_wall_loops": [
+    {
+      "name": "Complete stepped perimeter",
+      "members": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31,
+        32,
+        33,
+        34,
+        35,
+        36,
+        37,
+        38,
+        39,
+        40,
+        41,
+        42,
+        43,
+        44,
+        45,
+        46,
+        47
+      ]
+    }
+  ]
+}

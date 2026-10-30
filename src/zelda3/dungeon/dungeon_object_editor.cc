@@ -760,6 +760,16 @@ absl::Status DungeonObjectEditor::InsertTemplate(const ObjectTemplate& tmpl,
     return absl::FailedPreconditionError("No room loaded");
   }
 
+  // This legacy insertion path predates complete-assembly planning. Refuse
+  // before creating Undo or adding any members rather than dropping the
+  // template's connection requirements or inserting an in-bounds subset.
+  if (!tmpl.retaining_wall_loops.empty()) {
+    return absl::FailedPreconditionError(
+        "Retaining-wall assemblies require dungeon-template-plan and "
+        "Proposal Preview review; legacy template insertion cannot apply "
+        "their connection contract");
+  }
+
   // Snap coordinates to grid if enabled
   if (config_.snap_to_grid) {
     x = SnapToGrid(x);

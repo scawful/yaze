@@ -26,16 +26,24 @@ struct TemplateObject {
   int layer;
 };
 
+struct ObjectTemplateRetainingWallLoop {
+  std::string name;
+  // Stable indices in objects, never painter-sort positions. Changing this
+  // declaration changes the authored contract; callers must pin the payload.
+  std::vector<size_t> members;
+};
+
 // Represents a reusable group of objects
 struct ObjectTemplate {
   std::string name;
   std::string description;
   std::string category;
   std::vector<TemplateObject> objects;
+  std::vector<ObjectTemplateRetainingWallLoop> retaining_wall_loops = {};
 };
 
-// Strict readers for one existing template payload. Unlike LoadTemplates(),
-// these reject unknown/missing/duplicate fields and never return a partial
+// Strict readers, also used by the manager, reject unknown/missing/duplicate
+// fields and never return a partial
 // template. Relative coordinates are tile8 offsets in -63..63.
 absl::StatusOr<ObjectTemplate> ParseObjectTemplateJson(
     std::string_view payload);
@@ -68,6 +76,7 @@ enum class ObjectTemplatePlanConflictKind {
   kExistingOverlap,
   kTemplateOverlap,
   kWallJoinLoss,
+  kAssemblyConnection,
 };
 
 struct ObjectTemplatePlanConflict {
@@ -82,6 +91,28 @@ struct ObjectTemplatePlanConflict {
   // Deterministically ordered physical-plane cells. Large intersections retain
   // the first 64 cells; cell_count always reports the complete intersection.
   std::vector<RoomSpatialCell> cells;
+  // Expected adjacent connection zone, not an asserted rendered footprint.
+  // It can extend outside the room so the failure location remains truthful.
+  std::optional<RoomSpatialBounds> expected_region;
+};
+
+struct ObjectTemplateWallPort {
+  size_t template_index = 0;
+  int object_id = 0;
+  int straight_id = 0;
+  std::string direction;
+  // Tile8 boundary origin, not the final written cell; the edge spans 4 tiles.
+  int x = 0;
+  int y = 0;
+};
+
+struct ObjectTemplateWallLoopCheck {
+  std::string name;
+  std::string status = "blocked";
+  std::vector<size_t> members;
+  size_t matched_connection_count = 0;
+  std::vector<ObjectTemplateWallPort> required_ports;
+  std::vector<std::string> diagnostics;
 };
 
 struct ObjectTemplatePlacementPlan {
@@ -97,6 +128,9 @@ struct ObjectTemplatePlacementPlan {
   // Newly affected endpoints only, with complete candidate issue counts.
   // Indices use existing[e], proposed[existing.size()+i], not sorted positions.
   std::vector<RoomWallJoinIssue> retaining_wall_join_issues;
+  std::string retaining_wall_loop_coverage =
+      "declared_native_retaining_wall_cycles_corner_straight_v1";
+  std::vector<ObjectTemplateWallLoopCheck> retaining_wall_loop_checks;
 };
 
 // Read-only planning through the same renderer footprints as spatial analysis.

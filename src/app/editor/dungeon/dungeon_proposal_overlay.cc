@@ -91,6 +91,71 @@ std::string OptionalString(const json& object, const char* key) {
   return it->get<std::string>();
 }
 
+absl::StatusOr<const json*> FindTemplatePlan(const json& document) {
+  constexpr std::string_view kSchema = "yaze.dungeon_template_plan.v1";
+  std::vector<const json*> candidates;
+  bool unsupported_wrapper = false;
+  const auto add = [&](const json& value) {
+    if (value.is_object() && OptionalString(value, "schema") == kSchema) {
+      candidates.push_back(&value);
+      return true;
+    }
+    return false;
+  };
+  add(document);
+  if (auto plan = document.find("plan"); plan != document.end())
+    add(*plan);
+  // The maintained command handler's default output title is Result. Inspect
+  // only this one wrapper level, never search an arbitrary nested document.
+  for (const auto& [key, value] : document.items()) {
+    if (key == "plan" || !value.is_object())
+      continue;
+    if (auto plan = value.find("plan"); plan != value.end() && add(*plan))
+      unsupported_wrapper |= key != "Result";
+  }
+  if (candidates.size() > 1)
+    return Invalid("plan", "multiple template plans are ambiguous");
+  if (unsupported_wrapper)
+    return Invalid("plan", "unsupported command wrapper (expected Result)");
+  if (candidates.empty())
+    return static_cast<const json*>(nullptr);
+  if (document.contains("format"))
+    return Invalid("plan", "cannot mix an overlay and a template plan");
+  return candidates.front();
+}
+
+bool IsSha256(const json& plan, const char* key) {
+  const auto text = OptionalString(plan, key);
+  return text.size() == 64 && std::all_of(text.begin(), text.end(), [](char c) {
+           return (c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') ||
+                  (c >= 'A' && c <= 'F');
+         });
+}
+
+absl::Status ValidateTemplatePlan(const json& plan, int max_room_id) {
+  for (const char* field : {"valid", "write_performed", "runtime_qualified"}) {
+    if (!plan.contains(field) || !plan[field].is_boolean())
+      return Invalid("plan", std::string("missing boolean ") + field);
+  }
+  const bool valid = plan["valid"].get<bool>();
+  if (OptionalString(plan, "status") !=
+      (valid ? "valid_geometry_plan" : "blocked_geometry_plan"))
+    return Invalid("plan", "status must agree with the geometry result");
+  if (plan["write_performed"].get<bool>() ||
+      plan["runtime_qualified"].get<bool>())
+    return Invalid("plan", "expected a read-only, runtime-unqualified plan");
+  if (!plan.contains("room_id") ||
+      !ParseInteger(plan["room_id"], "plan", "room_id", 0, max_room_id).ok())
+    return Invalid("plan", "missing or invalid integer room_id");
+  if (!IsSha256(plan, "rom_content_sha256") ||
+      !IsSha256(plan, "template_sha256"))
+    return Invalid("plan", "ROM and template SHA-256 labels are required");
+  if (!plan.contains("proposal_overlay") ||
+      !plan["proposal_overlay"].is_object())
+    return Invalid("plan", "missing proposal_overlay object");
+  return absl::OkStatus();
+}
+
 absl::StatusOr<ProposalShape> ParseShape(const json& value,
                                          const std::string& where,
                                          const std::set<int>& rooms,
@@ -271,14 +336,37 @@ absl::StatusOr<uint32_t> ParseProposalColor(std::string_view text) {
 
 absl::StatusOr<DungeonProposalOverlay> ParseDungeonProposalOverlay(
     std::string_view json_text, int max_room_id) {
-  json root = json::parse(json_text.begin(), json_text.end(), nullptr,
-                          /*allow_exceptions=*/false);
-  if (root.is_discarded()) {
+  bool duplicate = false;
+  std::vector<std::set<std::string>> keys;
+  const json document = json::parse(
+      json_text.begin(), json_text.end(),
+      [&](int, json::parse_event_t event, json& value) {
+        if (event == json::parse_event_t::object_start)
+          keys.emplace_back();
+        if (event == json::parse_event_t::key &&
+            !keys.back().insert(value.get<std::string>()).second)
+          duplicate = true;
+        if (event == json::parse_event_t::object_end)
+          keys.pop_back();
+        return true;
+      },
+      /*allow_exceptions=*/false);
+  if (document.is_discarded() || duplicate) {
     return absl::InvalidArgumentError("proposal overlay is not valid JSON");
   }
-  if (!root.is_object()) {
+  if (!document.is_object()) {
     return Invalid("root", "must be an object");
   }
+  const auto selected = FindTemplatePlan(document);
+  if (!selected.ok())
+    return selected.status();
+  const json* plan = *selected;
+  if (plan) {
+    const auto status = ValidateTemplatePlan(*plan, max_room_id);
+    if (!status.ok())
+      return status;
+  }
+  const json& root = plan ? (*plan)["proposal_overlay"] : document;
   if (OptionalString(root, "format") != kProposalOverlayFormat) {
     return Invalid("root",
                    absl::StrFormat("\"format\" must be \"%s\"",
@@ -410,6 +498,21 @@ absl::StatusOr<DungeonProposalOverlay> ParseDungeonProposalOverlay(
       }
       overlay.steps.push_back(std::move(step));
     }
+  }
+  if (plan) {
+    if (overlay.rooms.size() != 1 ||
+        overlay.rooms.front().room_id != (*plan)["room_id"].get<int>())
+      return Invalid("plan",
+                     "proposal rooms must match the single planned room");
+    overlay.status = "Producer " + OptionalString(*plan, "status") +
+                     "; read-only geometry, runtime unqualified";
+    overlay.notes.insert(
+        overlay.notes.begin(),
+        {"Saved producer report: hashes below have not been matched to the "
+         "active ROM/project or current template.",
+         "Producer ROM SHA-256: " + OptionalString(*plan, "rom_content_sha256"),
+         "Producer template SHA-256: " +
+             OptionalString(*plan, "template_sha256")});
   }
   return overlay;
 }

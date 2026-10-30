@@ -4,6 +4,7 @@
 #include <chrono>
 #include <filesystem>
 #include <fstream>
+#include <iterator>
 #include <limits>
 #include <set>
 #include <tuple>
@@ -26,6 +27,50 @@ bool HasConflict(const ObjectTemplatePlacementPlan& plan,
   return std::any_of(
       plan.conflicts.begin(), plan.conflicts.end(),
       [kind](const auto& conflict) { return conflict.kind == kind; });
+}
+
+ObjectTemplate DeclareLoop(ObjectTemplate object_template,
+                           const std::string& name = "dark_contour") {
+  ObjectTemplateRetainingWallLoop loop;
+  loop.name = name;
+  for (size_t i = 0; i < object_template.objects.size(); ++i)
+    loop.members.push_back(i);
+  object_template.retaining_wall_loops.push_back(std::move(loop));
+  return object_template;
+}
+
+ObjectTemplate IslandLoop() {
+  // Complete vanilla36 source58..65, relative to(23,21).
+  return DeclareLoop(Template({{0x10F, 0, 0, 0, 0},
+                               {0x004, 4, 0, 3, 0},
+                               {0x10D, 12, 0, 0, 0},
+                               {0x064, 0, 4, 7, 0},
+                               {0x10E, 0, 20, 0, 0},
+                               {0x003, 4, 20, 3, 0},
+                               {0x10C, 12, 20, 0, 0},
+                               {0x063, 12, 4, 7, 0}}));
+}
+
+ObjectTemplate SteppedLoop() {
+  // Existing vanilla36 full dark outer contour, source10..57 inclusive.
+  // Coordinates and order are retained, without a ROM or graphics fixture.
+  return DeclareLoop(Template(
+      {{0x108, 5, 21, 0, 0},   {0x003, 9, 21, 3, 0},  {0x10C, 17, 21, 0, 0},
+       {0x063, 17, 11, 4, 0},  {0x108, 17, 7, 0, 0},  {0x003, 21, 7, 0, 0},
+       {0x10A, 23, 7, 0, 0},   {0x064, 23, 11, 1, 0}, {0x10E, 23, 15, 0, 0},
+       {0x003, 27, 15, 4, 0},  {0x10C, 37, 15, 0, 0}, {0x063, 37, 11, 1, 0},
+       {0x108, 37, 7, 0, 0},   {0x003, 41, 7, 3, 0},  {0x10A, 49, 7, 0, 0},
+       {0x064, 49, 11, 4, 0},  {0x10E, 49, 21, 0, 0}, {0x003, 53, 21, 0, 0},
+       {0x10A, 55, 21, 0, 0},  {0x064, 55, 25, 0, 0}, {0x10B, 55, 27, 0, 0},
+       {0x004, 45, 27, 4, 0},  {0x10F, 41, 27, 0, 0}, {0x064, 41, 31, 1, 0},
+       {0x10E, 41, 35, 0, 0},  {0x003, 45, 35, 4, 0}, {0x10A, 55, 35, 0, 0},
+       {0x064, 55, 39, 0, 0},  {0x10B, 55, 41, 0, 0}, {0x004, 47, 41, 3, 0},
+       {0x10F, 43, 41, 0, 0},  {0x064, 43, 45, 4, 0}, {0x10B, 43, 55, 0, 0},
+       {0x004, 19, 55, 11, 0}, {0x109, 15, 55, 0, 0}, {0x063, 15, 45, 4, 0},
+       {0x10D, 15, 41, 0, 0},  {0x004, 9, 41, 2, 0},  {0x109, 5, 41, 0, 0},
+       {0x063, 5, 39, 0, 0},   {0x108, 5, 35, 0, 0},  {0x003, 9, 35, 3, 0},
+       {0x10C, 17, 35, 0, 0},  {0x063, 17, 31, 1, 0}, {0x10D, 17, 27, 0, 0},
+       {0x004, 9, 27, 3, 0},   {0x109, 5, 27, 0, 0},  {0x063, 5, 25, 0, 0}}));
 }
 
 class ObjectTemplatePlanTest : public testing::Test {
@@ -52,6 +97,205 @@ class ObjectTemplatePlanTest : public testing::Test {
   Rom rom_;
   core::FeatureFlags::Flags flags_;
 };
+
+TEST_F(ObjectTemplatePlanTest, DeclaredFullSteppedAndIslandCyclesPass) {
+  for (const auto& object_template : {SteppedLoop(), IslandLoop()}) {
+    const auto plan = Plan(object_template, {0, 0});
+    EXPECT_TRUE(plan.valid);
+    ASSERT_EQ(plan.retaining_wall_loop_checks.size(), 1);
+    const auto& check = plan.retaining_wall_loop_checks.front();
+    EXPECT_EQ(check.status, "closed_ports_not_final_pixels");
+    EXPECT_EQ(check.required_ports.size(), object_template.objects.size() * 2);
+    EXPECT_EQ(check.matched_connection_count, object_template.objects.size());
+  }
+}
+
+TEST_F(ObjectTemplatePlanTest, MissingMovedAndFlippedCornersKeepPortWitnesses) {
+  auto missing = IslandLoop();
+  missing.objects.erase(missing.objects.begin() + 6);
+  missing.retaining_wall_loops.clear();
+  missing = DeclareLoop(std::move(missing));
+  auto moved = IslandLoop();
+  moved.objects[6].rel_x += 1;
+  auto flipped = IslandLoop();
+  flipped.objects[6].id = 0x10E;
+  for (const auto& object_template : {missing, moved, flipped}) {
+    const auto plan = Plan(object_template, {23, 21});
+    EXPECT_FALSE(plan.valid);
+    EXPECT_TRUE(
+        HasConflict(plan, ObjectTemplatePlanConflictKind::kAssemblyConnection));
+    ASSERT_EQ(plan.retaining_wall_loop_checks.size(), 1);
+    EXPECT_EQ(plan.retaining_wall_loop_checks[0].status, "blocked");
+    EXPECT_EQ(plan.retaining_wall_loop_checks[0].required_ports.size(),
+              object_template.objects.size() * 2);
+    EXPECT_TRUE(std::any_of(
+        plan.conflicts.begin(), plan.conflicts.end(), [](const auto& conflict) {
+          return conflict.kind ==
+                     ObjectTemplatePlanConflictKind::kAssemblyConnection &&
+                 conflict.expected_region && conflict.expected_region->x > 0 &&
+                 conflict.expected_region->y > 0;
+        }));
+  }
+}
+
+TEST_F(ObjectTemplatePlanTest, CornerShortcutsAndDisjointCyclesAreBlocked) {
+  const auto shortcut = DeclareLoop(Template({{0x10F, 0, 0, 0, 0},
+                                              {0x10D, 4, 0, 0, 0},
+                                              {0x063, 4, 4, 1, 0},
+                                              {0x10C, 4, 8, 0, 0},
+                                              {0x10E, 0, 8, 0, 0},
+                                              {0x064, 0, 4, 1, 0}}));
+  const auto short_plan = Plan(shortcut, {10, 10});
+  EXPECT_FALSE(short_plan.valid);
+  ASSERT_EQ(short_plan.retaining_wall_loop_checks.size(), 1);
+  EXPECT_TRUE(std::any_of(
+      short_plan.retaining_wall_loop_checks[0].diagnostics.begin(),
+      short_plan.retaining_wall_loop_checks[0].diagnostics.end(),
+      [](const auto& message) {
+        return message.find("corner-to-corner") != std::string::npos;
+      }));
+  auto disjoint = IslandLoop();
+  auto second = disjoint.objects;
+  for (auto& object : second)
+    object.rel_x += 24;
+  disjoint.objects.insert(disjoint.objects.end(), second.begin(), second.end());
+  disjoint.retaining_wall_loops.clear();
+  disjoint = DeclareLoop(std::move(disjoint));
+  const auto plan = Plan(disjoint, {4, 4});
+  EXPECT_FALSE(plan.valid);
+  ASSERT_EQ(plan.retaining_wall_loop_checks.size(), 1);
+  EXPECT_EQ(plan.retaining_wall_loop_checks[0].matched_connection_count, 16);
+  EXPECT_EQ(plan.retaining_wall_loop_checks[0].status, "blocked");
+}
+
+TEST_F(ObjectTemplatePlanTest, DeclaredCyclesAllowProvenStraightContinuation) {
+  auto object_template = IslandLoop();
+  // Replace width8 bottom003 by two adjacent width4 members, retaining cycle.
+  object_template.objects[5].size = 1;
+  object_template.objects.push_back({0x003, 8, 20, 1, 0});
+  object_template.retaining_wall_loops[0].members.push_back(8);
+  const auto plan = Plan(object_template, {23, 21});
+  EXPECT_TRUE(plan.valid);
+  ASSERT_EQ(plan.retaining_wall_loop_checks.size(), 1);
+  EXPECT_EQ(plan.retaining_wall_loop_checks[0].matched_connection_count, 9);
+}
+
+TEST_F(ObjectTemplatePlanTest, APortClosedCycleStillRejectsAnInteriorCrossing) {
+  const auto crossed = DeclareLoop(Template({{0x10F, 5, 5, 0, 0},
+                                             {0x004, 9, 5, 12, 0},
+                                             {0x10D, 35, 5, 0, 0},
+                                             {0x063, 35, 9, 12, 0},
+                                             {0x10C, 35, 35, 0, 0},
+                                             {0x003, 19, 35, 7, 0},
+                                             {0x10E, 15, 35, 0, 0},
+                                             {0x064, 15, 19, 7, 0},
+                                             {0x10F, 15, 15, 0, 0},
+                                             {0x004, 19, 15, 12, 0},
+                                             {0x10D, 45, 15, 0, 0},
+                                             {0x063, 45, 19, 12, 0},
+                                             {0x10C, 45, 45, 0, 0},
+                                             {0x003, 9, 45, 8, 0},
+                                             {0x003, 27, 45, 8, 0},
+                                             {0x10E, 5, 45, 0, 0},
+                                             {0x064, 5, 9, 8, 0},
+                                             {0x064, 5, 27, 8, 0}}));
+  const auto plan = Plan(crossed, {0, 0});
+  EXPECT_FALSE(plan.valid);
+  ASSERT_EQ(plan.retaining_wall_loop_checks.size(), 1);
+  EXPECT_EQ(plan.retaining_wall_loop_checks[0].matched_connection_count, 18);
+  EXPECT_TRUE(std::any_of(
+      plan.conflicts.begin(), plan.conflicts.end(), [](const auto& conflict) {
+        return conflict.kind ==
+                   ObjectTemplatePlanConflictKind::kAssemblyConnection &&
+               conflict.cell_count != 0 && conflict.other_template_index &&
+               conflict.message.find("members overlap") != std::string::npos;
+      }));
+}
+
+TEST_F(ObjectTemplatePlanTest,
+       LaterGrayWallBlocksButEarlierGrayCanBeRepainted) {
+  auto bytes = rom_.vector();
+  // Distinct valid synthetic words make the gray001 repaint observably
+  // incompatible with the native dark003/108/10A shoulder of the full loop.
+  bytes[kRoomObjectSubtype1 + 2] = 0x40;
+  for (size_t i = 0; i < 64; ++i) {
+    bytes[kRoomObjectTileAddress + i * 2] = static_cast<uint8_t>(i + 1);
+    bytes[kRoomObjectTileAddress + i * 2 + 1] = 0x20;
+  }
+  ASSERT_TRUE(rom_.LoadFromData(bytes).ok());
+  auto later = SteppedLoop();
+  later.objects.push_back({0x001, 21, 7, 1, 2});
+  const auto blocked = Plan(later, {0, 0});
+  EXPECT_FALSE(blocked.valid);
+  EXPECT_TRUE(HasConflict(blocked,
+                          ObjectTemplatePlanConflictKind::kAssemblyConnection));
+  ASSERT_EQ(blocked.retaining_wall_loop_checks.size(), 1);
+  EXPECT_EQ(blocked.retaining_wall_loop_checks[0].matched_connection_count, 48);
+  EXPECT_EQ(blocked.retaining_wall_loop_checks[0].status, "blocked");
+  EXPECT_TRUE(std::any_of(
+      blocked.conflicts.begin(), blocked.conflicts.end(),
+      [](const auto& conflict) {
+        return conflict.kind ==
+                   ObjectTemplatePlanConflictKind::kAssemblyConnection &&
+               conflict.cell_count == 8 && conflict.other_template_index == 48;
+      }));
+  auto earlier = SteppedLoop();
+  earlier.objects.insert(earlier.objects.begin(), {0x001, 21, 7, 1, 0});
+  for (auto& member : earlier.retaining_wall_loops[0].members)
+    ++member;
+  const auto admitted = Plan(earlier, {0, 0});
+  EXPECT_TRUE(admitted.valid);
+  ASSERT_EQ(admitted.retaining_wall_loop_checks.size(), 1);
+  EXPECT_EQ(admitted.retaining_wall_loop_checks[0].status,
+            "closed_ports_not_final_pixels");
+}
+
+TEST_F(ObjectTemplatePlanTest,
+       LoopDeclarationsParseStrictlyAndManagerRoundTrips) {
+  const auto directory =
+      std::filesystem::temp_directory_path() /
+      ("retaining-loop-" +
+       std::to_string(
+           std::chrono::steady_clock::now().time_since_epoch().count()));
+  ASSERT_FALSE(std::filesystem::exists(directory));
+  ObjectTemplateManager writer;
+  auto source = IslandLoop();
+  source.name = "Retaining loop";
+  ASSERT_TRUE(writer.SaveTemplate(source, directory.string()).ok());
+  const auto filename = directory / "Retaining_loop.json";
+  const auto loaded = LoadObjectTemplateFile(filename.string());
+  ASSERT_TRUE(loaded.ok()) << loaded.status();
+  ASSERT_EQ(loaded->retaining_wall_loops.size(), 1);
+  EXPECT_EQ(loaded->retaining_wall_loops[0].members,
+            source.retaining_wall_loops[0].members);
+  ObjectTemplateManager reader;
+  ASSERT_TRUE(reader.LoadTemplates(directory.string()).ok());
+  ASSERT_EQ(reader.GetTemplates().size(), 1);
+  EXPECT_EQ(reader.GetTemplates()[0].retaining_wall_loops[0].name,
+            "dark_contour");
+  std::ifstream input(filename);
+  const std::string payload((std::istreambuf_iterator<char>(input)), {});
+  input.close();
+  for (const std::string& bad : {"true", "1.0", "-1", "99"}) {
+    auto invalid = payload;
+    const auto begin = invalid.find("\"members\"");
+    const auto member = invalid.find('0', begin);
+    ASSERT_NE(member, std::string::npos);
+    invalid.replace(member, 1, bad);
+    EXPECT_FALSE(ParseObjectTemplateJson(invalid).ok());
+  }
+  auto duplicate = source;
+  duplicate.retaining_wall_loops[0].members.push_back(0);
+  EXPECT_FALSE(Plan(duplicate, {23, 21}).valid);
+  auto excess = source;
+  for (int i = 1; i < 65; ++i)
+    excess.retaining_wall_loops.push_back(
+        {"loop_" + std::to_string(i), source.retaining_wall_loops[0].members});
+  EXPECT_FALSE(
+      Plan(excess, {23, 21}).valid);  // 520 memberships, under128 loops.
+  EXPECT_TRUE(std::filesystem::remove(filename));
+  EXPECT_TRUE(std::filesystem::remove(directory));
+}
 
 TEST_F(ObjectTemplatePlanTest, ZoraJoinLossCannotBeWaivedByOverlapPairs) {
   // Original vector identities differ from painter positions after list sort.

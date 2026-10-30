@@ -22,8 +22,24 @@ using json = nlohmann::json;
 // JSON serialization helpers
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(TemplateObject, id, rel_x, rel_y, size,
                                    layer)
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(ObjectTemplate, name, description, category,
-                                   objects)
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(ObjectTemplateRetainingWallLoop, name,
+                                   members)
+
+void to_json(json& value, const ObjectTemplate& object_template) {
+  value = {{"name", object_template.name},
+           {"description", object_template.description},
+           {"category", object_template.category},
+           {"objects", object_template.objects}};
+  if (!object_template.retaining_wall_loops.empty())
+    value["retaining_wall_loops"] = object_template.retaining_wall_loops;
+}
+
+void from_json(const json& value, ObjectTemplate& object_template) {
+  auto parsed = ParseObjectTemplateJson(value.dump());
+  if (!parsed.ok())
+    throw std::invalid_argument(std::string(parsed.status().message()));
+  object_template = std::move(*parsed);
+}
 
 namespace {
 
@@ -72,6 +88,29 @@ absl::Status ValidateTemplateContract(const ObjectTemplate& object_template) {
         object.layer > 2) {
       return absl::InvalidArgumentError(absl::StrFormat(
           "Template object %d has out-of-range integer fields", i));
+    }
+  }
+  if (object_template.retaining_wall_loops.size() > 128)
+    return absl::InvalidArgumentError("At most 128 retaining-wall loops");
+  std::set<std::string> loop_names;
+  size_t total_membership = 0;
+  for (const auto& loop : object_template.retaining_wall_loops) {
+    if (loop.name.empty() || loop.name.size() > 256 ||
+        loop.name.find('\0') != std::string::npos ||
+        !loop_names.insert(loop.name).second || loop.members.empty() ||
+        loop.members.size() > object_template.objects.size())
+      return absl::InvalidArgumentError(
+          "Invalid retaining-wall loop declaration");
+    if (loop.members.size() > kMaxTemplateObjects - total_membership)
+      return absl::InvalidArgumentError(
+          "At most 512 total retaining-wall memberships");
+    total_membership += loop.members.size();
+    std::set<size_t> members;
+    for (size_t member : loop.members) {
+      if (member >= object_template.objects.size() ||
+          !members.insert(member).second)
+        return absl::InvalidArgumentError(
+            "Retaining-wall loop members must be unique existing indices");
     }
   }
   return absl::OkStatus();
@@ -125,6 +164,306 @@ ObjectTemplatePlanConflict IntersectCells(const CellMap& first,
     }
   }
   return conflict;
+}
+
+bool IsRetainingStraight(int id) {
+  return id == 0x003 || id == 0x004 || id == 0x063 || id == 0x064;
+}
+
+bool IsRetainingMember(int id) {
+  return IsRetainingStraight(id) || (id >= 0x108 && id <= 0x10F);
+}
+
+bool IsGrayArchitecture(int id) {
+  return id == 0x001 || id == 0x002 || id == 0x061 || id == 0x062 ||
+         (id >= 0x100 && id <= 0x107);
+}
+
+std::vector<ObjectTemplateWallPort> RetainingPorts(
+    const RoomObjectFootprint& object, size_t member) {
+  std::vector<ObjectTemplateWallPort> ports;
+  const auto add = [&](const char* direction, int family) {
+    int x = object.anchor_x, y = object.anchor_y;
+    if (std::string_view(direction) == "east")
+      x = object.bounds.right();
+    if (std::string_view(direction) == "south")
+      y = object.bounds.bottom();
+    ports.push_back({member, object.object_id, family, direction, x, y});
+  };
+  switch (object.object_id) {
+    case 0x003:
+    case 0x004:
+      add("west", object.object_id);
+      add("east", object.object_id);
+      break;
+    case 0x063:
+    case 0x064:
+      add("north", object.object_id);
+      add("south", object.object_id);
+      break;
+    case 0x108:
+      add("east", 0x003);
+      add("south", 0x063);
+      break;
+    case 0x109:
+      add("east", 0x004);
+      add("north", 0x063);
+      break;
+    case 0x10A:
+      add("west", 0x003);
+      add("south", 0x064);
+      break;
+    case 0x10B:
+      add("west", 0x004);
+      add("north", 0x064);
+      break;
+    case 0x10C:
+      add("west", 0x003);
+      add("north", 0x063);
+      break;
+    case 0x10D:
+      add("west", 0x004);
+      add("south", 0x063);
+      break;
+    case 0x10E:
+      add("east", 0x003);
+      add("north", 0x064);
+      break;
+    case 0x10F:
+      add("east", 0x004);
+      add("south", 0x064);
+      break;
+  }
+  return ports;
+}
+
+bool OppositePorts(const ObjectTemplateWallPort& a,
+                   const ObjectTemplateWallPort& b) {
+  return (a.direction == "north" && b.direction == "south") ||
+         (a.direction == "south" && b.direction == "north") ||
+         (a.direction == "east" && b.direction == "west") ||
+         (a.direction == "west" && b.direction == "east");
+}
+
+bool MatchingPortLocations(const ObjectTemplateWallPort& a,
+                           const ObjectTemplateWallPort& b) {
+  if (a.x == b.x && a.y == b.y)
+    return true;
+  const auto north_overlap = [](const auto& wall, const auto& corner) {
+    return wall.object_id == 0x063 && wall.direction == "south" &&
+           corner.object_id == 0x10C && corner.direction == "north" &&
+           wall.x == corner.x && wall.y == corner.y + 1;
+  };
+  return north_overlap(a, b) || north_overlap(b, a);
+}
+
+RoomSpatialBounds ConnectionRegion(const ObjectTemplateWallPort& port) {
+  int x = port.x, y = port.y;
+  if (port.direction == "west")
+    x -= 4;
+  if (port.direction == "north")
+    y -= 4;
+  return {x, y, 4, 4};
+}
+
+void CheckRetainingWallLoops(ObjectTemplatePlacementPlan& plan,
+                             const ObjectTemplate& object_template,
+                             std::span<const RoomObjectFootprint> existing,
+                             size_t existing_count) {
+  if (object_template.retaining_wall_loops.empty())
+    return;
+  std::map<size_t, const RoomObjectFootprint*> measured;
+  for (const auto& footprint : plan.footprints)
+    measured[footprint.object_index] = &footprint;
+  std::vector<RoomObjectFootprint> combined(existing.begin(), existing.end());
+  for (auto footprint : plan.footprints) {
+    footprint.object_index += existing_count;
+    combined.push_back(std::move(footprint));
+  }
+  std::stable_sort(
+      combined.begin(), combined.end(),
+      [](const auto& a, const auto& b) { return a.list_index < b.list_index; });
+  // Only native architecture participates. This is deliberately not a final
+  // pixel replay: water, floors, masks and decorations retain their own rules.
+  std::map<CellKey, std::pair<size_t, uint16_t>> architecture;
+  for (size_t i = 0; i < combined.size(); ++i) {
+    const auto& footprint = combined[i];
+    if ((!IsRetainingMember(footprint.object_id) &&
+         !IsGrayArchitecture(footprint.object_id)) ||
+        !footprint.measured || !footprint.full_bounds_measured ||
+        footprint.outside_room || footprint.layers.custom_override_active)
+      continue;
+    for (const auto& cell : footprint.cells)
+      architecture[{cell.layer, cell.y, cell.x}] = {i, cell.word};
+  }
+  for (const auto& loop : object_template.retaining_wall_loops) {
+    ObjectTemplateWallLoopCheck report;
+    report.name = loop.name;
+    report.members = loop.members;
+    bool blocked = false;
+    const auto fail = [&](size_t member, const std::string& message,
+                          std::optional<RoomSpatialBounds> region =
+                              std::nullopt) {
+      blocked = true;
+      report.diagnostics.push_back(message);
+      auto& conflict =
+          AddConflict(plan, ObjectTemplatePlanConflictKind::kAssemblyConnection,
+                      member, loop.name + ": " + message);
+      conflict.expected_region = region;
+      if (!region && member < plan.placements.size())
+        conflict.expected_region = RoomSpatialBounds{
+            plan.placements[member].x_, plan.placements[member].y_, 4, 4};
+    };
+    for (size_t member : loop.members) {
+      const auto found = measured.find(member);
+      if (found == measured.end() ||
+          !IsRetainingMember(object_template.objects[member].id)) {
+        fail(member, "Unsupported or unmeasured native retaining-wall member");
+        continue;
+      }
+      const auto& footprint = *found->second;
+      if (CountUnassessedRetainingWallObjects({&footprint, 1}) != 0) {
+        fail(member,
+             "Native retaining-wall binding or complete trace is unqualified",
+             footprint.bounds);
+        continue;
+      }
+      const auto ports = RetainingPorts(footprint, member);
+      report.required_ports.insert(report.required_ports.end(), ports.begin(),
+                                   ports.end());
+    }
+    auto& ports = report.required_ports;
+    for (size_t i = 0; i < loop.members.size(); ++i) {
+      const auto first = measured.find(loop.members[i]);
+      if (first == measured.end())
+        continue;
+      for (size_t j = i + 1; j < loop.members.size(); ++j) {
+        const auto second = measured.find(loop.members[j]);
+        if (second == measured.end())
+          continue;
+        auto overlap = IntersectCells(UniqueCells(*first->second),
+                                      UniqueCells(*second->second));
+        if (overlap.cell_count == 0)
+          continue;
+        const auto proven_overlap = [](const auto& wall, const auto& corner) {
+          return wall.object_id == 0x063 && corner.object_id == 0x10C &&
+                 wall.anchor_x == corner.anchor_x &&
+                 wall.anchor_y < corner.anchor_y &&
+                 wall.bounds.bottom() == corner.anchor_y + 1;
+        };
+        if (overlap.cell_count == 8 &&
+            (proven_overlap(*first->second, *second->second) ||
+             proven_overlap(*second->second, *first->second)))
+          continue;
+        blocked = true;
+        overlap.kind = ObjectTemplatePlanConflictKind::kAssemblyConnection;
+        overlap.template_index = loop.members[i];
+        overlap.other_template_index = loop.members[j];
+        overlap.blocking = true;
+        overlap.expected_region = RoomSpatialBounds{
+            overlap.cells.front().x, overlap.cells.front().y, 1, 1};
+        overlap.message = loop.name +
+                          ": declared wall members overlap outside the proven "
+                          "native corner seam";
+        report.diagnostics.push_back(overlap.message);
+        plan.conflicts.push_back(std::move(overlap));
+      }
+    }
+    std::vector<std::vector<size_t>> matches(ports.size());
+    std::set<size_t> unsupported_corner_ports;
+    for (size_t i = 0; i < ports.size(); ++i) {
+      for (size_t j = i + 1; j < ports.size(); ++j) {
+        if (ports[i].template_index == ports[j].template_index ||
+            ports[i].straight_id != ports[j].straight_id ||
+            !OppositePorts(ports[i], ports[j]) ||
+            !MatchingPortLocations(ports[i], ports[j]))
+          continue;
+        if (!IsRetainingStraight(ports[i].object_id) &&
+            !IsRetainingStraight(ports[j].object_id)) {
+          unsupported_corner_ports.insert(i);
+          unsupported_corner_ports.insert(j);
+          continue;
+        }
+        matches[i].push_back(j);
+        matches[j].push_back(i);
+      }
+    }
+    std::map<size_t, std::set<size_t>> neighbors;
+    for (size_t i = 0; i < ports.size(); ++i) {
+      if (matches[i].size() != 1) {
+        const std::string reason =
+            unsupported_corner_ports.contains(i)
+                ? "Unsupported corner-to-corner connection; this profile "
+                  "requires a straight shoulder"
+                : "Expected exactly one opposite " + ports[i].direction +
+                      " port of native family " +
+                      std::to_string(ports[i].straight_id);
+        fail(ports[i].template_index, reason, ConnectionRegion(ports[i]));
+        continue;
+      }
+      const size_t j = matches[i].front();
+      if (matches[j].size() != 1)
+        continue;
+      neighbors[ports[i].template_index].insert(ports[j].template_index);
+      if (i < j)
+        ++report.matched_connection_count;
+    }
+    if (!blocked) {
+      std::set<size_t> visited;
+      std::vector<size_t> pending{loop.members.front()};
+      while (!pending.empty()) {
+        const size_t member = pending.back();
+        pending.pop_back();
+        if (!visited.insert(member).second)
+          continue;
+        for (size_t neighbor : neighbors[member])
+          pending.push_back(neighbor);
+      }
+      if (visited.size() != loop.members.size() ||
+          report.matched_connection_count != loop.members.size())
+        fail(loop.members.front(),
+             "Members must form one connected closed cycle");
+    }
+    for (size_t member : loop.members) {
+      const auto found = measured.find(member);
+      if (found == measured.end())
+        continue;
+      std::map<size_t, ObjectTemplatePlanConflict> gray_losses;
+      for (const auto& cell : found->second->cells) {
+        const auto owner = architecture.find({cell.layer, cell.y, cell.x});
+        if (owner == architecture.end())
+          continue;
+        const auto& writer = combined[owner->second.first];
+        if (IsGrayArchitecture(writer.object_id) &&
+            owner->second.second != cell.word)
+          AddCell(gray_losses[owner->second.first], cell);
+      }
+      for (auto& [position, conflict] : gray_losses) {
+        blocked = true;
+        const auto& writer = combined[position];
+        conflict.kind = ObjectTemplatePlanConflictKind::kAssemblyConnection;
+        conflict.template_index = member;
+        conflict.blocking = true;
+        conflict.expected_region = found->second->bounds;
+        if (writer.object_index < existing_count)
+          conflict.existing_index = writer.object_index;
+        else
+          conflict.other_template_index = writer.object_index - existing_count;
+        conflict.message = loop.name +
+                           ": later native gray architecture replaces declared "
+                           "dark retaining cells";
+        report.diagnostics.push_back(conflict.message);
+        plan.conflicts.push_back(std::move(conflict));
+      }
+    }
+    if (!blocked)
+      report.status = "closed_ports_not_final_pixels";
+    report.diagnostics.push_back(
+        "Source-bound native port cycle and gray-architecture survival only; "
+        "not full room, final pixels, collision, stairs or gameplay "
+        "qualification");
+    plan.retaining_wall_loop_checks.push_back(std::move(report));
+  }
 }
 
 void CheckNewWallJoinLosses(ObjectTemplatePlacementPlan& plan,
@@ -240,8 +579,10 @@ absl::StatusOr<ObjectTemplate> ParseObjectTemplateJson(
           return true;
         });
     if (duplicate_key ||
-        !HasExactFields(value,
-                        {"name", "description", "category", "objects"}) ||
+        !(HasExactFields(value,
+                         {"name", "description", "category", "objects"}) ||
+          HasExactFields(value, {"name", "description", "category", "objects",
+                                 "retaining_wall_loops"})) ||
         !value["name"].is_string() || !value["description"].is_string() ||
         !value["category"].is_string() || !value["objects"].is_array() ||
         value["objects"].empty() ||
@@ -266,6 +607,25 @@ absl::StatusOr<ObjectTemplate> ParseObjectTemplateJson(
           {entry["id"].get<int>(), entry["rel_x"].get<int>(),
            entry["rel_y"].get<int>(), entry["size"].get<int>(),
            entry["layer"].get<int>()});
+    }
+    if (value.contains("retaining_wall_loops")) {
+      const auto& loops = value["retaining_wall_loops"];
+      if (!loops.is_array() || loops.size() > 128)
+        return absl::InvalidArgumentError("Invalid retaining_wall_loops array");
+      for (const auto& entry : loops) {
+        if (!HasExactFields(entry, {"name", "members"}) ||
+            !entry["name"].is_string() || !entry["members"].is_array())
+          return absl::InvalidArgumentError(
+              "Invalid retaining-wall loop fields");
+        ObjectTemplateRetainingWallLoop loop;
+        loop.name = entry["name"].get<std::string>();
+        for (const auto& member : entry["members"]) {
+          if (!IsBoundedInteger(member, 0, object_template.objects.size() - 1))
+            return absl::InvalidArgumentError("Invalid loop member index");
+          loop.members.push_back(member.get<size_t>());
+        }
+        object_template.retaining_wall_loops.push_back(std::move(loop));
+      }
     }
     const auto status = ValidateTemplateContract(object_template);
     if (!status.ok())
@@ -469,6 +829,8 @@ ObjectTemplatePlacementPlan PlanObjectTemplatePlacement(
       plan.conflicts.push_back(std::move(conflict));
     }
   }
+  CheckRetainingWallLoops(plan, object_template, existing_footprints,
+                          existing_objects.size());
   CheckNewWallJoinLosses(plan, std::move(existing_footprints),
                          existing_objects.size());
   plan.valid =
@@ -493,17 +855,12 @@ absl::Status ObjectTemplateManager::LoadTemplates(
   for (const auto& entry :
        std::filesystem::directory_iterator(directory_path)) {
     if (entry.path().extension() == ".json") {
-      try {
-        std::ifstream i(entry.path());
-        json j;
-        i >> j;
-        ObjectTemplate tmpl = j.get<ObjectTemplate>();
-        templates_.push_back(tmpl);
-      } catch (const std::exception& e) {
+      auto object_template = LoadObjectTemplateFile(entry.path().string());
+      if (object_template.ok())
+        templates_.push_back(std::move(*object_template));
+      else
         std::cerr << "Failed to load template " << entry.path() << ": "
-                  << e.what() << std::endl;
-        // Continue loading other templates
-      }
+                  << object_template.status() << std::endl;
     }
   }
 
@@ -512,6 +869,9 @@ absl::Status ObjectTemplateManager::LoadTemplates(
 
 absl::Status ObjectTemplateManager::SaveTemplate(
     const ObjectTemplate& tmpl, const std::string& directory_path) {
+  const auto contract = ValidateTemplateContract(tmpl);
+  if (!contract.ok())
+    return contract;
   if (!std::filesystem::exists(directory_path)) {
     std::filesystem::create_directories(directory_path);
   }

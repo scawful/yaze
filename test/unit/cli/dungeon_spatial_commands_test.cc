@@ -8,6 +8,7 @@
 #include <string>
 #include <vector>
 
+#include "app/editor/dungeon/dungeon_proposal_overlay.h"
 #include "cli/handlers/game/dungeon_commands.h"
 #include "cli/service/command_registry.h"
 #include "gmock/gmock.h"
@@ -275,6 +276,16 @@ TEST_F(DungeonSpatialCommandsTest,
       layout_conflict = true;
   }
   EXPECT_TRUE(layout_conflict);
+  // The saved command output is itself a supported Proposal Preview input.
+  const auto preview = editor::ParseDungeonProposalOverlay(output);
+  ASSERT_TRUE(preview.ok()) << preview.status();
+  EXPECT_EQ(preview->rooms.front().room_id, 1);
+  EXPECT_THAT(preview->status, HasSubstr("blocked_geometry_plan"));
+  EXPECT_THAT(preview->status, HasSubstr("runtime unqualified"));
+  ASSERT_EQ(preview->layers.size(), 3);
+  ASSERT_FALSE(preview->layers[2].shapes.empty());
+  EXPECT_EQ(preview->layers[2].shapes.front().type,
+            editor::ProposalShapeType::kRect);
   EXPECT_EQ(rom_.vector(), before);
   EXPECT_EQ(rom_.dirty(), was_dirty);
 }
@@ -314,7 +325,31 @@ TEST_F(DungeonSpatialCommandsTest, ClearPlacementReturnsReadOnlyGeometryPlan) {
   ASSERT_EQ(report.at("placements").size(), 1);
   EXPECT_EQ(report.at("placements")[0].at("x"), 40);
   EXPECT_EQ(report.at("rom_content_sha256").get<std::string>().size(), 64);
+  const auto preview = editor::ParseDungeonProposalOverlay(output);
+  ASSERT_TRUE(preview.ok()) << preview.status();
+  EXPECT_THAT(preview->status, HasSubstr("valid_geometry_plan"));
+  EXPECT_THAT(preview->status, HasSubstr("runtime unqualified"));
+  ASSERT_EQ(preview->layers.size(), 3);
+  ASSERT_EQ(preview->layers.front().shapes.size(), 1);
+  const auto& shape = preview->layers.front().shapes.front();
+  EXPECT_EQ(shape.tiles[0], (editor::ProposalTile{40, 40}));
+  EXPECT_EQ(shape.tiles[1], (editor::ProposalTile{43, 43}));
+  EXPECT_TRUE(preview->layers[2].shapes.empty());
   EXPECT_EQ(rom_.vector(), before);
+}
+
+TEST_F(DungeonSpatialCommandsTest, InvalidClearanceStillHasSafeBlockedPreview) {
+  const auto before = rom_.vector();
+  for (const std::string& clearance :
+       {"2147483647,0,2147483647,1", "-2147483648,0,1,1"}) {
+    std::string output;
+    const auto status = Run(40, 40, {"--clearance=" + clearance}, &output);
+    ASSERT_TRUE(absl::IsFailedPrecondition(status)) << status << output;
+    const auto preview = editor::ParseDungeonProposalOverlay(output);
+    ASSERT_TRUE(preview.ok()) << preview.status();
+    EXPECT_THAT(preview->status, HasSubstr("blocked_geometry_plan"));
+    EXPECT_EQ(rom_.vector(), before);
+  }
 }
 
 }  // namespace
