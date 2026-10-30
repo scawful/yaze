@@ -125,6 +125,33 @@ class SaveTrustTile32Test
     return absl::OkStatus();
   }
 
+  ::testing::AssertionResult FileMatchesSource() {
+    const auto actual = FileBytes(test_rom_path_);
+    if (actual == source_bytes_) {
+      return ::testing::AssertionSuccess();
+    }
+    const size_t common = std::min(actual.size(), source_bytes_.size());
+    size_t first = common;
+    size_t differences = 0;
+    for (size_t offset = 0; offset < common; ++offset) {
+      if (actual[offset] != source_bytes_[offset]) {
+        if (first == common)
+          first = offset;
+        ++differences;
+      }
+    }
+    auto result = ::testing::AssertionFailure();
+    result << "Source bytes=" << source_bytes_.size()
+           << ", saved bytes=" << actual.size()
+           << ", changed common bytes=" << differences
+           << ", first differing PC=0x" << std::hex << first;
+    if (first < common) {
+      result << ", source=0x" << static_cast<int>(source_bytes_[first])
+             << ", saved=0x" << static_cast<int>(actual[first]);
+    }
+    return result;
+  }
+
   std::unique_ptr<editor::OverworldTilePaintAction> PaintOneTile() {
     auto& tiles = world_->GetMapTiles(0);
     const auto before = tiles[0][0];
@@ -268,8 +295,9 @@ class SaveTrustTile32Test
 };
 
 TEST_P(SaveTrustTile32Test, I1NoOpMapsPreserveFile) {
-  ASSERT_TRUE(SaveMaps().ok());
-  EXPECT_EQ(FileBytes(test_rom_path_), source_bytes_);
+  const auto saved = SaveMaps();
+  ASSERT_TRUE(saved.ok()) << saved;
+  EXPECT_TRUE(FileMatchesSource());
 }
 
 TEST_P(SaveTrustTile32Test, I2MapsRoundTripThroughFreshReader) {
@@ -278,7 +306,8 @@ TEST_P(SaveTrustTile32Test, I2MapsRoundTripThroughFreshReader) {
   const auto light = world_->GetMapTiles(0);
   const auto dark = world_->GetMapTiles(1);
   const auto special = world_->GetMapTiles(2);
-  ASSERT_TRUE(SaveMaps().ok());
+  const auto saved = SaveMaps();
+  ASSERT_TRUE(saved.ok()) << saved;
   EXPECT_TRUE(FreshTileEquals(expected));
   Rom fresh;
   zelda3::GameData data;
@@ -292,15 +321,17 @@ TEST_P(SaveTrustTile32Test, I2MapsRoundTripThroughFreshReader) {
 TEST_P(SaveTrustTile32Test, I3MapsUndoBeforeSavePreservesFile) {
   const auto action = PaintOneTile();
   ASSERT_TRUE(action->Undo().ok());
-  ASSERT_TRUE(SaveMaps().ok());
-  EXPECT_EQ(FileBytes(test_rom_path_), source_bytes_);
+  const auto saved = SaveMaps();
+  ASSERT_TRUE(saved.ok()) << saved;
+  EXPECT_TRUE(FileMatchesSource());
 }
 
 TEST_P(SaveTrustTile32Test, I4MapsStayWithinDeclaredRegions) {
   const auto before = rom_.vector();
   const auto ranges = MapWriteRanges();
   const auto action = PaintOneTile();
-  ASSERT_TRUE(SaveMaps().ok());
+  const auto saved = SaveMaps();
+  ASSERT_TRUE(saved.ok()) << saved;
   Rom fresh;
   ASSERT_TRUE(fresh.LoadFromFile(test_rom_path_).ok());
   EXPECT_TRUE(Contained(before, fresh.vector(), ranges));
@@ -311,7 +342,8 @@ TEST_P(SaveTrustTile32Test, OmittedMapDiskSaveFailsSameFreshAssertion) {
   const auto action = PaintOneTile();
   const uint16_t expected = world_->GetMapTiles(0)[0][0];
   ASSERT_NE(original, expected);
-  ASSERT_TRUE(SerializeMaps().ok());
+  const auto serialized = SerializeMaps();
+  ASSERT_TRUE(serialized.ok()) << serialized;
   // Only SaveRomToFile is omitted; the same fresh-reader assertion must fail.
   EXPECT_FALSE(FreshTileEquals(expected));
   EXPECT_TRUE(FreshTileEquals(original));
@@ -320,7 +352,7 @@ TEST_P(SaveTrustTile32Test, OmittedMapDiskSaveFailsSameFreshAssertion) {
 TEST_P(SaveTrustTile32Test, I1NoOpPropertiesPreserveFile) {
   ASSERT_TRUE(world_->SaveMapProperties().ok());
   ASSERT_TRUE(SaveRomToFile(&rom_, test_rom_path_).ok());
-  EXPECT_EQ(FileBytes(test_rom_path_), source_bytes_);
+  EXPECT_TRUE(FileMatchesSource());
 }
 
 TEST_P(SaveTrustTile32Test, I2PropertiesRoundTripThroughFreshReader) {
@@ -356,7 +388,7 @@ TEST_P(SaveTrustTile32Test, I3PropertiesUndoBeforeSavePreservesFile) {
   ASSERT_TRUE(action.Undo().ok());
   ASSERT_TRUE(world_->SaveMapProperties().ok());
   ASSERT_TRUE(SaveRomToFile(&rom_, test_rom_path_).ok());
-  EXPECT_EQ(FileBytes(test_rom_path_), source_bytes_);
+  EXPECT_TRUE(FileMatchesSource());
 }
 
 TEST_P(SaveTrustTile32Test, I4PropertyEditChangesOnlyItsField) {
