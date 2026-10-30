@@ -66,7 +66,9 @@ Ordinary `--spatial` reports the same findings without changing its inspection
 exit behavior.
 
 The first supported relation is a native horizontal `$003` face ending at an
-east `$10C` corner. The rejected Zora bank keeps `$003(21,44,size7)` and
+east `$10C` corner, including the compatible north-side `$063` approach that
+shares only the corner's top row. Mirrored, shifted or deeper wall replacement
+does not qualify as that approach. The rejected Zora bank keeps `$003(21,44,size7)` and
 `$10C(37,44)` in its stream, but new `$064(37,43,size1)` and `$10E(37,47)`
 replace all 16 corner cells on each buffer. Keeping the old corner record is
 insufficient: its architectural connection no longer survives.

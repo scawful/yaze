@@ -150,6 +150,19 @@ bool SameWallPlacement(const RoomObjectFootprint& a,
          a.bounds.height == b.bounds.height;
 }
 
+bool CompatibleNorthApproach(const RoomObjectFootprint& wall,
+                             const RoomObjectFootprint& corner,
+                             const RoomSpatialCell& cell) {
+  // Native right face 063 can finish one row into its 10C bottom corner.
+  // Original room26 uses 063(37,43,size0) ->10C(37,44). The top-row words
+  // need not be identical. This does not admit the mirrored 064, a shifted
+  // face, or a vertical wall that replaces any deeper corner row.
+  return wall.object_id == 0x063 && wall.anchor_x == corner.anchor_x &&
+         wall.anchor_y < corner.anchor_y &&
+         wall.bounds.bottom() == corner.anchor_y + 1 &&
+         cell.y == corner.anchor_y;
+}
+
 }  // namespace
 
 size_t CountUnassessedRetainingWallObjects(
@@ -208,6 +221,8 @@ std::vector<RoomWallJoinIssue> InspectRetainingWallJoins(
         const auto& owner = ordered_objects[owner_position];
         if (SameWallPlacement(corner, owner))
           continue;  // Equivalent native corner repaint preserves the role.
+        if (CompatibleNorthApproach(owner, corner, cell))
+          continue;
         if (!lost.emplace(WallCellKey{cell.layer, cell.y, cell.x}, cell).second)
           continue;
         ++(cell.layer == 0 ? issue.upper_cells : issue.lower_cells);

@@ -121,6 +121,40 @@ TEST_F(RoomSpatialTest, CompleteVanilla36DonorIgnoresWaterAndDecorationPaint) {
   EXPECT_EQ(CountUnassessedRetainingWallObjects(objects), 0);
 }
 
+TEST_F(RoomSpatialTest, NativeRightApproachMayShareOnlyTheCornerTopRow) {
+  // Original GEN14 room26: preserved28 ->3, then native right face48.
+  // Compatibility follows facing and the one-row junction, not word equality.
+  auto objects = WallFootprints({RoomObject(0x003, 21, 44, 7),
+                                 RoomObject(0x10C, 37, 44, 0),
+                                 RoomObject(0x063, 37, 43, 0)});
+  ASSERT_EQ(objects.size(), 3);
+  objects[0].object_index = 28;
+  objects[1].object_index = 3;
+  objects[2].object_index = 48;
+  EXPECT_EQ(objects[2].bounds.bottom(), 45);
+  EXPECT_EQ(std::count_if(objects[2].cells.begin(), objects[2].cells.end(),
+                          [](const auto& cell) { return cell.y == 44; }),
+            8);  // Four top-row cells per physical plane.
+  EXPECT_EQ(CountUnassessedRetainingWallObjects(objects), 0);
+  EXPECT_TRUE(InspectRetainingWallJoins(objects).empty());
+}
+
+TEST_F(RoomSpatialTest, NorthApproachDoesNotWaiveDeepMirroredOrShiftedPaint) {
+  for (const auto& [wall, lost_per_plane] :
+       std::vector<std::pair<RoomObject, size_t>>{
+           {RoomObject(0x063, 37, 43, 1), 12},
+           {RoomObject(0x064, 37, 43, 0), 4},
+           {RoomObject(0x063, 36, 43, 0), 3}}) {
+    const auto objects = WallFootprints(
+        {RoomObject(0x003, 21, 44, 7), RoomObject(0x10C, 37, 44, 0), wall});
+    ASSERT_EQ(objects.size(), 3);
+    const auto issues = InspectRetainingWallJoins(objects);
+    ASSERT_EQ(issues.size(), 1) << wall.id_;
+    EXPECT_EQ(issues[0].upper_cells, lost_per_plane);
+    EXPECT_EQ(issues[0].lower_cells, lost_per_plane);
+  }
+}
+
 TEST_F(RoomSpatialTest, JoinCoverageKeepsPartialLossAndNamespacesExplicit) {
   auto objects = WallFootprints({RoomObject(0x003, 21, 44, 7),
                                  RoomObject(0x10C, 37, 44, 0),
