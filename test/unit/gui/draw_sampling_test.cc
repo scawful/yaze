@@ -18,8 +18,10 @@ namespace {
 
 // Headless ImGui has no renderer, so these callbacks never run. Each one
 // writes a different value so the linker cannot fold them into one function,
-// which would make their pointers compare equal.
-int last_fake_callback = 0;
+// which would make their pointers compare equal. The value is volatile because
+// nothing reads it: MSVC /LTCG drops plain dead stores, leaving three empty
+// bodies that /OPT:ICF folds.
+volatile int last_fake_callback = 0;
 
 void FakeSetSamplerNearest(const ImDrawList*, const ImDrawCmd*) {
   last_fake_callback = 1;
