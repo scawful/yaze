@@ -3893,7 +3893,7 @@ absl::Status EditorManager::OpenRomOrProjectInternal(
                                          ApplyRememberedRomLoadChoice();
     // Ask only when nothing is remembered and no project owns the flags.
     const bool ask_for_load_options =
-        prompt == LoadOptionsPrompt::kAsk && allow_dialogs &&
+        prompt != LoadOptionsPrompt::kNoPrompt && allow_dialogs &&
         ui_coordinator_ != nullptr && !remembered_load_options &&
         !current_project_.project_opened();
 
@@ -3949,7 +3949,8 @@ absl::Status EditorManager::OpenRomOrProjectInternal(
 
     // Interactive opens (Recent Files, the WASM drop) record the ROM the way
     // File > Open ROM does, once the open has succeeded. kNoPrompt callers
-    // are scripts, automation, and project creation; they leave the list.
+    // are scripts, automation, and project creation; they leave the list, and
+    // so do backup copies.
     if (prompt == LoadOptionsPrompt::kAsk && allow_dialogs) {
       RecordRawRomOpen(filename);
     }

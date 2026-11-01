@@ -5610,8 +5610,10 @@ TEST(EditorManagerOpenPathTest, RawRomOpenRecordsRecentFileOnlyOnSuccess) {
   const auto opened_rom = directory.path / "opened.sfc";
   const auto missing_rom = directory.path / "missing.sfc";
   const auto scripted_rom = directory.path / "scripted.sfc";
+  const auto backup_rom = directory.path / "opened_backup.sfc";
   WriteRomFile(opened_rom, "RECENT OPENED");
   WriteRomFile(scripted_rom, "RECENT SCRIPTED");
+  WriteRomFile(backup_rom, "RECENT BACKUP");
 
   // A failed open leaves the list alone.
   EXPECT_FALSE(manager->OpenRomOrProject(missing_rom.string()).ok());
@@ -5628,6 +5630,12 @@ TEST(EditorManagerOpenPathTest, RawRomOpenRecordsRecentFileOnlyOnSuccess) {
   ASSERT_OK(manager->OpenRomOrProject(
       scripted_rom.string(), EditorManager::LoadOptionsPrompt::kNoPrompt));
   EXPECT_FALSE(InRecentFiles(scripted_rom));
+  EXPECT_EQ(list.front(), opened_rom.string());
+
+  // ROM Backups > Open leaves the list.
+  ASSERT_OK(manager->OpenRomOrProject(
+      backup_rom.string(), EditorManager::LoadOptionsPrompt::kAskBackupCopy));
+  EXPECT_FALSE(InRecentFiles(backup_rom));
   EXPECT_EQ(list.front(), opened_rom.string());
 }
 

@@ -238,8 +238,9 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
   // User opens (Open ROM, recent files, the web drop zone, backups) show ROM
   // load options for a raw ROM with no remembered choice. Startup,
   // test-harness, and automation opens pass kNoPrompt: they still apply a
-  // remembered choice but never wait on the dialog.
-  enum class LoadOptionsPrompt { kAsk, kNoPrompt };
+  // remembered choice but never wait on the dialog. Backup copies pass
+  // kAskBackupCopy: they ask like kAsk but stay out of Recent Files.
+  enum class LoadOptionsPrompt { kAsk, kAskBackupCopy, kNoPrompt };
 
   struct ProjectOpenAttention {
     enum class Kind { kRomIdentityMismatch, kGraphicsSpecSha1Mismatch };
