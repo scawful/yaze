@@ -52,6 +52,24 @@ absl::Status EnsureParentDirectory(const std::filesystem::path& path) {
   return util::PlatformPaths::EnsureDirectoryExists(parent);
 }
 
+UserSettings::WorkspaceOverrides CaptureWorkspaceFields(
+    const UserSettings::Preferences& prefs) {
+  UserSettings::WorkspaceOverrides values;
+  values.font_global_scale = prefs.font_global_scale;
+  values.autosave_enabled = prefs.autosave_enabled;
+  values.autosave_interval = prefs.autosave_interval;
+  values.backup_before_save = prefs.backup_before_save;
+  return values;
+}
+
+void WriteWorkspaceFields(const UserSettings::WorkspaceOverrides& values,
+                          UserSettings::Preferences* prefs) {
+  prefs->font_global_scale = values.font_global_scale;
+  prefs->autosave_enabled = values.autosave_enabled;
+  prefs->autosave_interval = values.autosave_interval;
+  prefs->backup_before_save = values.backup_before_save;
+}
+
 void EraseTransientPanelVisibility(
     std::unordered_map<std::string, bool>* panel_state) {
   if (!panel_state) {
@@ -471,6 +489,15 @@ absl::Status LoadPreferencesFromIni(const std::filesystem::path& path,
     } else if (key == "last_applied_layout_name") {
       prefs->last_applied_layout_name = val;
     }
+    // Remembered ROM load options (format: rom_load_choice=<choice>\t<path>).
+    // The choice comes first because it never holds a tab; the path may hold
+    // '=' or a tab, so it takes the rest of the line.
+    else if (key == "rom_load_choice") {
+      const size_t tab = val.find('\t');
+      if (tab != std::string::npos && tab + 1 < val.size()) {
+        prefs->rom_load_choices[val.substr(tab + 1)] = val.substr(0, tab);
+      }
+    }
   }
 
   return absl::OkStatus();
@@ -620,6 +647,16 @@ absl::Status SavePreferencesToIni(const std::filesystem::path& path,
       single_line.push_back(c);
     }
     ss << "named_layout." << layout_name << "=" << single_line << "\n";
+  }
+
+  // Remembered ROM load options. A newline in either part would split the
+  // line, and a tab in the choice would move the separator; skip both.
+  for (const auto& [rom_path, choice] : prefs.rom_load_choices) {
+    if (rom_path.find_first_of("\r\n") != std::string::npos ||
+        choice.find_first_of("\t\r\n") != std::string::npos) {
+      continue;
+    }
+    ss << "rom_load_choice=" << choice << "\t" << rom_path << "\n";
   }
 
   std::ofstream file(path);
@@ -1165,6 +1202,10 @@ absl::Status LoadPreferencesFromJson(const std::filesystem::path& path,
         "last_applied_layout_name", prefs->last_applied_layout_name);
   }
 
+  if (root.contains("rom_load_choices")) {
+    LoadStringMap(root["rom_load_choices"], &prefs->rom_load_choices);
+  }
+
   if (root.contains("filesystem")) {
     const auto& fs = root["filesystem"];
     if (fs.contains("project_root_paths") &&
@@ -1373,6 +1414,8 @@ absl::Status SavePreferencesToJson(const std::filesystem::path& path,
       {"named_layouts", std::move(named_layouts_json)},
       {"last_applied_layout_name", prefs.last_applied_layout_name},
   };
+
+  root["rom_load_choices"] = ToStringMap(prefs.rom_load_choices);
 
   root["filesystem"] = {
       {"project_root_paths", prefs.project_root_paths},
@@ -1941,16 +1984,44 @@ void UserSettings::SetDungeonInspectorSide(std::string side) {
   prefs_.dungeon_inspector_side = (side == "left") ? "left" : "right";
 }
 
+void UserSettings::ApplyWorkspaceOverrides(
+    const WorkspaceOverrides& overrides) {
+  if (!workspace_baseline_.has_value()) {
+    workspace_baseline_ = CaptureWorkspaceFields(prefs_);
+  }
+  WorkspaceOverrides values = overrides;
+  // Project files are hand-editable too; keep the font scale usable.
+  values.font_global_scale = SanitizeFontGlobalScale(values.font_global_scale);
+  WriteWorkspaceFields(values, &prefs_);
+}
+
+void UserSettings::ClearWorkspaceOverrides() {
+  if (!workspace_baseline_.has_value()) {
+    return;
+  }
+  WriteWorkspaceFields(*workspace_baseline_, &prefs_);
+  workspace_baseline_.reset();
+}
+
 absl::Status UserSettings::Save() {
   try {
+    // A project overlay stays out of the settings files: write the user's own
+    // values for the fields it replaced.
+    std::optional<Preferences> without_overlay;
+    if (workspace_baseline_.has_value()) {
+      without_overlay = prefs_;
+      WriteWorkspaceFields(*workspace_baseline_, &*without_overlay);
+    }
+    const Preferences& to_write =
+        without_overlay.has_value() ? *without_overlay : prefs_;
     absl::Status status = absl::OkStatus();
 #ifdef YAZE_WITH_JSON
-    status = SavePreferencesToJson(settings_file_path_, prefs_);
+    status = SavePreferencesToJson(settings_file_path_, to_write);
     if (!status.ok()) {
       return status;
     }
 #endif
-    status = SavePreferencesToIni(legacy_settings_file_path_, prefs_);
+    status = SavePreferencesToIni(legacy_settings_file_path_, to_write);
     if (!status.ok()) {
       return status;
     }

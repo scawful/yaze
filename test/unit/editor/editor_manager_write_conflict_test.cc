@@ -1387,6 +1387,70 @@ TEST(EditorManagerWriteConflictTest,
   EXPECT_TRUE(saved_b.workspace_settings.backup_on_save);
 }
 
+// Closing the last ROM must end the project's workspace overlay. Otherwise the
+// project's values stay live with no project open, and Save() keeps writing
+// the pre-project values over global changes made afterwards.
+TEST(EditorManagerWriteConflictTest,
+     ClosingLastProjectRomRestoresGlobalPreferences) {
+  ScopedImGuiContext imgui;
+
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  ::yaze::test::InitializeWithIsolatedSettings(*manager, renderer.get());
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+
+  auto& settings = manager->user_settings();
+  settings.prefs().font_global_scale = 1.0f;
+  settings.prefs().autosave_enabled = false;
+  settings.prefs().autosave_interval = 300.0f;
+  settings.prefs().backup_before_save = true;
+  ASSERT_OK(settings.Save());
+
+  const auto rom =
+      CreateMinimalRomFile("yaze_workspace_close.sfc", "WORKSPACE CLOSE");
+  const auto git = MakeTempFilePath("yaze_workspace_close_git");
+  ASSERT_TRUE(std::filesystem::create_directories(git));
+  project::WorkspaceSettings workspace;
+  workspace.font_global_scale = 1.5f;
+  workspace.autosave_enabled = true;
+  workspace.autosave_interval_secs = 120.0f;
+  workspace.backup_on_save = false;
+  const auto project_path = CreateProjectFile(
+      "yaze_workspace_close", "Workspace Close", rom, workspace, git);
+  ScopedFileCleanup cleanup_rom{rom};
+  ScopedFileCleanup cleanup_project{project_path};
+  ScopedDirectoryCleanup cleanup_git{git};
+
+  ASSERT_OK(manager->OpenRomOrProject(project_path.string()));
+  ASSERT_TRUE(settings.HasWorkspaceOverrides());
+  EXPECT_FLOAT_EQ(settings.prefs().font_global_scale, 1.5f);
+  EXPECT_TRUE(settings.prefs().autosave_enabled);
+  EXPECT_FLOAT_EQ(ImGui::GetIO().FontGlobalScale, 1.5f);
+
+  manager->CloseRom();
+  ASSERT_FALSE(manager->HasPendingUnsavedSessionAction());
+  ASSERT_FALSE(manager->CanCloseRom());
+  EXPECT_FALSE(settings.HasWorkspaceOverrides());
+  EXPECT_FLOAT_EQ(settings.prefs().font_global_scale, 1.0f);
+  EXPECT_FALSE(settings.prefs().autosave_enabled);
+  EXPECT_FLOAT_EQ(settings.prefs().autosave_interval, 300.0f);
+  EXPECT_TRUE(settings.prefs().backup_before_save);
+  EXPECT_FLOAT_EQ(ImGui::GetIO().FontGlobalScale, 1.0f);
+
+  // A global change made with no project open must reach the settings file.
+  settings.prefs().font_global_scale = 1.25f;
+  settings.prefs().autosave_interval = 45.0f;
+  ASSERT_OK(settings.Save());
+
+  UserSettings reloaded;
+  reloaded.SetSettingsFilePathForTesting(settings.settings_file_path());
+  ASSERT_OK(reloaded.Load());
+  EXPECT_FLOAT_EQ(reloaded.prefs().font_global_scale, 1.25f);
+  EXPECT_FLOAT_EQ(reloaded.prefs().autosave_interval, 45.0f);
+  EXPECT_FALSE(reloaded.prefs().autosave_enabled);
+  EXPECT_TRUE(reloaded.prefs().backup_before_save);
+}
+
 TEST(EditorManagerWriteConflictTest,
      MultiSessionQuitSavesEachRomWithItsOwnBackupContext) {
   FeatureFlagsGuard flags_guard;

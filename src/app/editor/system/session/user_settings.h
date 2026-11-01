@@ -1,6 +1,7 @@
 #ifndef YAZE_APP_EDITOR_SYSTEM_USER_SETTINGS_H_
 #define YAZE_APP_EDITOR_SYSTEM_USER_SETTINGS_H_
 
+#include <optional>
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
@@ -87,7 +88,8 @@ class UserSettings {
 
     // Editor Behavior
     bool backup_before_save = true;
-    int default_editor = 0;  // 0=None, 1=Overworld, 2=Dungeon, 3=Graphics
+    // 0=None, 1=Overworld, 2=Dungeon, 3=Graphics, 4=Messages (append only)
+    int default_editor = 0;
 
     // Performance
     bool vsync = true;
@@ -202,6 +204,11 @@ class UserSettings {
     // Empty string => nothing to auto-apply on startup. Mirrors the
     // `last_theme_name` persistence pattern.
     std::string last_applied_layout_name;
+
+    // Remembered ROM load options. Maps a RomLoadOptionsDialog::RomChoiceKey
+    // path -> that dialog's opaque encoding. A key that decodes and matches
+    // the ROM's ZSCustomOverworld byte skips the load options dialog.
+    std::unordered_map<std::string, std::string> rom_load_choices;
   };
 
   UserSettings();
@@ -223,6 +230,21 @@ class UserSettings {
 
   Preferences& prefs() { return prefs_; }
   const Preferences& prefs() const { return prefs_; }
+
+  // Project workspace values for font scale, autosave, and backup-on-save.
+  // While an overlay is active these values are live in prefs(), but Save()
+  // keeps writing the user's own values, so opening a project never rewrites
+  // the global defaults. Edits made during an overlay belong to the project;
+  // ClearWorkspaceOverrides() restores the user's values.
+  struct WorkspaceOverrides {
+    float font_global_scale = 1.0f;
+    bool autosave_enabled = true;
+    float autosave_interval = 300.0f;
+    bool backup_before_save = true;
+  };
+  void ApplyWorkspaceOverrides(const WorkspaceOverrides& overrides);
+  void ClearWorkspaceOverrides();
+  bool HasWorkspaceOverrides() const { return workspace_baseline_.has_value(); }
 
   // Dungeon workbench inspector placement. Returns the persisted value
   // verbatim ("right" / "left"), defaulting to "right" if the value is empty
@@ -246,6 +268,9 @@ class UserSettings {
 
  private:
   Preferences prefs_;
+  // The user's own values for the WorkspaceOverrides fields while a project
+  // overlay is active; empty when prefs() holds only the user's values.
+  std::optional<WorkspaceOverrides> workspace_baseline_;
   std::string settings_file_path_;
   std::string legacy_settings_file_path_;
 };
