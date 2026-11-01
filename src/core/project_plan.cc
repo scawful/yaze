@@ -53,14 +53,21 @@ absl::StatusOr<std::string> ReadSource(const std::string& path) {
 
 template <typename Entry>
 absl::Status ValidateIds(const std::vector<Entry>& entries, const char* kind) {
+  // AppleClang 17 rejects absl's SourceLocation default argument when the
+  // error is built inside a range-for in a template, so build it after.
   std::set<std::string> ids;
+  const Entry* invalid = nullptr;
   for (const auto& entry : entries) {
     if (entry.id.empty() || !ids.insert(entry.id).second) {
-      return absl::InvalidArgumentError(absl::StrFormat(
-          "%s IDs must be nonempty and unique: %s", kind, entry.id));
+      invalid = &entry;
+      break;
     }
   }
-  return absl::OkStatus();
+  if (invalid == nullptr) {
+    return absl::OkStatus();
+  }
+  return absl::InvalidArgumentError(absl::StrFormat(
+      "%s IDs must be nonempty and unique: %s", kind, invalid->id));
 }
 
 template <typename Entry>

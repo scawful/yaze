@@ -1,5 +1,5 @@
-#ifndef YAZE_APP_EDITOR_GRAPHICS_IMAGE_IMPORT_PANEL_H
-#define YAZE_APP_EDITOR_GRAPHICS_IMAGE_IMPORT_PANEL_H
+#ifndef YAZE_APP_EDITOR_GRAPHICS_UI_IMAGE_IMPORT_IMAGE_IMPORT_VIEW_H
+#define YAZE_APP_EDITOR_GRAPHICS_UI_IMAGE_IMPORT_IMAGE_IMPORT_VIEW_H
 
 #include <optional>
 #include <string>
@@ -14,7 +14,8 @@ namespace yaze::editor {
 class UndoManager;
 
 /**
- * @brief Graphics editor panel that imports a PNG file or the clipboard
+ * @brief Import view hosted by the existing graphics Image Import WindowContent.
+ * Imports a PNG file or the clipboard
  *        image with its own palette and indices (sheet_image_import.h).
  *
  * The imported art can be saved as 3bpp/4bpp tiles or an indexed PNG, or
@@ -22,9 +23,9 @@ class UndoManager;
  * written into the sheet's preview palette only when asked, after a
  * confirmation that lists each changed slot.
  */
-class ImageImportPanel {
+class ImageImportView {
  public:
-  ImageImportPanel(GraphicsEditorState* state, UndoManager* undo_manager)
+  ImageImportView(GraphicsEditorState* state, UndoManager* undo_manager)
       : state_(state), undo_manager_(undo_manager) {}
 
   absl::Status Update();
@@ -50,4 +51,4 @@ class ImageImportPanel {
 
 }  // namespace yaze::editor
 
-#endif  // YAZE_APP_EDITOR_GRAPHICS_IMAGE_IMPORT_PANEL_H
+#endif  // YAZE_APP_EDITOR_GRAPHICS_UI_IMAGE_IMPORT_IMAGE_IMPORT_VIEW_H

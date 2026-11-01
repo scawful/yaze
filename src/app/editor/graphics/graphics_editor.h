@@ -16,13 +16,13 @@
 #include "app/editor/graphics/graphics_editor_state.h"
 #include "app/editor/graphics/graphics_save_plan.h"
 #include "app/editor/graphics/graphics_sheet_sync.h"
-#include "app/editor/graphics/image_import_panel.h"
 #include "app/editor/graphics/link_sprite_panel.h"
 #include "app/editor/graphics/palette_controls_panel.h"
 #include "app/editor/graphics/paletteset_editor_panel.h"
 #include "app/editor/graphics/pixel_editor_panel.h"
 #include "app/editor/graphics/polyhedral_editor_panel.h"
 #include "app/editor/graphics/sheet_browser_panel.h"
+#include "app/editor/graphics/ui/image_import/image_import_view.h"
 #include "app/editor/graphics/ui/scratch/graphics_scratch_view.h"
 #include "app/editor/graphics/ui/usage/usage_preview_view.h"
 #include "app/gfx/core/bitmap.h"
@@ -287,7 +287,7 @@ class GraphicsEditor : public Editor {
   GfxGroupEditor::RoomsetUsageCallback roomset_graphics_usage_;
   std::unique_ptr<PalettesetEditorPanel> paletteset_panel_;
   std::unique_ptr<PolyhedralEditorPanel> polyhedral_panel_;
-  std::unique_ptr<ImageImportPanel> image_import_panel_;
+  std::unique_ptr<ImageImportView> image_import_view_;
   usage_preview::LiveRoomProvider room_usage_provider_;
   usage_preview::LiveOverworldProvider overworld_usage_provider_;
   std::unique_ptr<UsagePreviewView> usage_preview_view_;

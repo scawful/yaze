@@ -121,7 +121,7 @@ absl::StatusOr<ImportedSheetImage> ImportPaletteStrip(
         "This %dx%d image is RGB and has no usable palette strip (%s). Use "
         "an indexed PNG, or add an 8-pixel-tall strip under the art: 8x8 "
         "swatches, swatch k holding color k, left to right.",
-        png.width, png.height, why));
+        png.width, png.height, std::string(why)));
   };
   if (!CanHoldStrip(png.width, png.height)) {
     return no_strip("width and height must be multiples of 8, height 16+");

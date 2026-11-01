@@ -23,7 +23,6 @@
 #include "absl/status/status.h"
 #include "absl/strings/match.h"
 #include "absl/strings/str_format.h"
-#include "imgui/imgui.h"
 
 #include "app/editor/dungeon/dungeon_editor_v2.h"
 #include "app/editor/editor.h"
@@ -321,30 +320,65 @@ std::vector<std::string> ValidateRomAddressOverrides(
   return warnings;
 }
 
+// The ROM file's remembered load options, when its encoding decodes and the
+// ROM still has the ZSCustomOverworld byte the choice was made with.
+std::optional<RomLoadOptionsDialog::RememberedChoice>
+FindRememberedRomLoadChoice(const UserSettings& settings, const Rom* rom) {
+  if (rom == nullptr || !rom->is_loaded()) {
+    return std::nullopt;
+  }
+  const auto& choices = settings.prefs().rom_load_choices;
+  const auto it =
+      choices.find(RomLoadOptionsDialog::RomChoiceKey(rom->filename()));
+  if (it == choices.end()) {
+    return std::nullopt;
+  }
+  auto choice = RomLoadOptionsDialog::DecodeRememberedChoice(it->second);
+  if (!choice.has_value() ||
+      choice->zso_version_byte !=
+          zelda3::OverworldVersionHelper::GetAsmVersion(*rom)) {
+    return std::nullopt;
+  }
+  return choice;
+}
+
 }  // namespace
 
 void EditorManager::SetupDialogCallbacks() {
   // Initialize ROM load options dialog callbacks
   rom_load_options_dialog_.SetConfirmCallback(
       [this](const RomLoadOptionsDialog::LoadOptions& options) {
+        // The apply guard checked the owner. Release it before anything
+        // below can switch sessions, so that switch does not report this
+        // confirm as a dialog closed without changes.
+        rom_load_options_owner_.reset();
+
         // Apply feature flags from dialog
         auto& flags = core::FeatureFlags::get();
-        flags.overworld.kSaveOverworldMaps = options.save_overworld_maps;
-        flags.overworld.kSaveOverworldEntrances =
-            options.save_overworld_entrances;
-        flags.overworld.kSaveOverworldExits = options.save_overworld_exits;
-        flags.overworld.kSaveOverworldItems = options.save_overworld_items;
-        flags.overworld.kSaveOverworldSprites = options.save_overworld_sprites;
-        flags.overworld.kLoadCustomOverworld = options.enable_custom_overworld;
-        flags.overworld.kEnableSpecialWorldExpansion =
-            options.enable_tail_expansion;
-        flags.kSaveDungeonMaps = options.save_dungeon_maps;
-        flags.kSaveAllPalettes = options.save_all_palettes;
-        flags.kSaveGfxGroups = options.save_gfx_groups;
+        RomLoadOptionsDialog::ApplyToFeatureFlags(options, flags);
         if (session_coordinator_) {
           if (auto* session = session_coordinator_->GetActiveRomSession()) {
             session->feature_flags = flags;
           }
+        }
+        // Store them in the session's project context too, or the next
+        // ApplyCurrentProjectRuntimeContext() puts the old flags back.
+        CaptureRuntimeFeatureFlags();
+
+        // Remember or forget the choice for this ROM file.
+        const std::string rom_key = RomLoadOptionsDialog::RomChoiceKey(
+            rom_load_options_dialog_.rom_filename());
+        if (!rom_key.empty()) {
+          auto& choices = user_settings_.prefs().rom_load_choices;
+          const int zso_byte = rom_load_options_dialog_.zso_version_byte();
+          if (options.remember_for_rom && zso_byte >= 0) {
+            choices[rom_key] =
+                RomLoadOptionsDialog::EncodeRememberedChoice(options, zso_byte);
+          } else {
+            choices.erase(rom_key);
+          }
+          settings_dirty_ = true;
+          settings_dirty_timestamp_ = TimingManager::Get().GetElapsedTime();
         }
 
         // Create project if requested
@@ -362,13 +396,153 @@ void EditorManager::SetupDialogCallbacks() {
         }
 
         // Close dialog, then pick the post-load surface again: the options
-        // may have created a project, but an open editor still wins.
+        // may have created a project, but an open editor still wins. A
+        // review of an open ROM keeps the user where they are.
         show_rom_load_options_ = false;
-        ShowPostLoadSurface();
+        if (rom_load_options_dialog_.reviewing()) {
+          toast_manager_.Show(
+              options.remember_for_rom
+                  ? "ROM load options applied and remembered for this file"
+                  : "ROM load options applied",
+              ToastType::kSuccess);
+        } else {
+          ShowPostLoadSurface();
+        }
 
         LOG_INFO("EditorManager", "ROM load options applied: preset=%s",
                  options.selected_preset.c_str());
       });
+  // Cancel keeps the flags the session already has. After an open, it still
+  // has to leave the user on an editor or the picker.
+  rom_load_options_dialog_.SetCancelCallback([this]() {
+    show_rom_load_options_ = false;
+    rom_load_options_owner_.reset();
+    if (!rom_load_options_dialog_.reviewing()) {
+      ShowPostLoadSurface();
+    }
+  });
+  rom_load_options_dialog_.SetApplyGuard([this]() {
+    if (RomLoadOptionsMatchCurrentSession()) {
+      return true;
+    }
+    CloseRomLoadOptions("its session or ROM file is no longer active");
+    return false;
+  });
+}
+
+void EditorManager::BindRomLoadOptionsToCurrentSession() {
+  const auto* rom = GetCurrentRom();
+  if (!rom || !rom->is_loaded()) {
+    CloseRomLoadOptions("no ROM is loaded");
+    return;
+  }
+  rom_load_options_owner_ =
+      RomLoadOptionsOwner{GetCurrentSessionId(),
+                          RomLoadOptionsDialog::RomChoiceKey(rom->filename()),
+                          zelda3::OverworldVersionHelper::GetAsmVersion(*rom)};
+}
+
+bool EditorManager::RomLoadOptionsMatchCurrentSession() const {
+  return rom_load_options_owner_.has_value() &&
+         RomLoadOptionsOwnerMatchesCurrentSession(*rom_load_options_owner_);
+}
+
+bool EditorManager::RomLoadOptionsOwnerMatchesCurrentSession(
+    const RomLoadOptionsOwner& owner) const {
+  const auto* rom = GetCurrentRom();
+  return rom && rom->is_loaded() && !current_project_.project_opened() &&
+         GetCurrentSessionId() == owner.session_id &&
+         active_project_context_session_id_ == owner.session_id &&
+         runtime_feature_flags_session_id_ == owner.session_id &&
+         RomLoadOptionsDialog::RomChoiceKey(rom->filename()) == owner.rom_key &&
+         zelda3::OverworldVersionHelper::GetAsmVersion(*rom) ==
+             owner.zso_version_byte;
+}
+
+void EditorManager::CloseRomLoadOptions(const char* reason) {
+  const bool had_owner = rom_load_options_owner_.has_value();
+  show_rom_load_options_ = false;
+  rom_load_options_owner_.reset();
+  rom_load_options_dialog_.Close();
+  if (had_owner) {
+    toast_manager_.Show(
+        absl::StrFormat("ROM load options closed without changes because %s",
+                        reason),
+        ToastType::kInfo);
+  }
+}
+
+bool EditorManager::ApplyRememberedRomLoadChoice() {
+  if (current_project_.project_opened()) {
+    return false;
+  }
+  const auto choice =
+      FindRememberedRomLoadChoice(user_settings_, GetCurrentRom());
+  if (!choice.has_value()) {
+    return false;
+  }
+  RomLoadOptionsDialog::ApplyToFeatureFlags(choice->options,
+                                            core::FeatureFlags::get());
+  CaptureRuntimeFeatureFlags();
+  return true;
+}
+
+void EditorManager::AnnounceRememberedRomLoadChoice() {
+  const auto* rom = GetCurrentRom();
+  if (!rom || !rom->is_loaded()) {
+    return;
+  }
+  const RomLoadOptionsOwner owner{
+      GetCurrentSessionId(),
+      RomLoadOptionsDialog::RomChoiceKey(rom->filename()),
+      zelda3::OverworldVersionHelper::GetAsmVersion(*rom)};
+  toast_manager_.Show("Opened with this ROM's remembered load options",
+                      ToastType::kInfo, 6.0f, "Change…", [this, owner]() {
+                        if (RomLoadOptionsOwnerMatchesCurrentSession(owner)) {
+                          ShowRomLoadOptions();
+                        }
+                      });
+}
+
+void EditorManager::FinishRawRomOpen(bool remembered_load_options,
+                                     bool ask_for_load_options,
+                                     bool is_first_time_rom_path) {
+  if (ask_for_load_options && ui_coordinator_) {
+    // The dialog's confirm and cancel callbacks show the post-load surface.
+    // A path new to recent files leans toward creating a project.
+    ui_coordinator_->SetWelcomeScreenVisible(false);
+    rom_load_options_dialog_.Open(GetCurrentRom(), is_first_time_rom_path);
+    show_rom_load_options_ = true;
+    BindRomLoadOptionsToCurrentSession();
+    return;
+  }
+  ShowPostLoadSurface();
+  if (remembered_load_options) {
+    AnnounceRememberedRomLoadChoice();
+  }
+}
+
+void EditorManager::ShowRomLoadOptions() {
+  Rom* rom = GetCurrentRom();
+  if (rom == nullptr || !rom->is_loaded()) {
+    toast_manager_.Show("Open a ROM to review its load options",
+                        ToastType::kWarning);
+    return;
+  }
+  if (current_project_.project_opened()) {
+    toast_manager_.Show(
+        "This project's save options come from its project file",
+        ToastType::kInfo);
+    return;
+  }
+  const auto remembered = FindRememberedRomLoadChoice(user_settings_, rom);
+  rom_load_options_dialog_.OpenForReview(
+      rom, core::FeatureFlags::get(),
+      remembered.has_value() ? remembered->options.selected_preset
+                             : std::string(),
+      remembered.has_value());
+  show_rom_load_options_ = true;
+  BindRomLoadOptionsToCurrentSession();
 }
 
 void EditorManager::SetupSidebarCallbacks() {
@@ -529,6 +703,10 @@ absl::Status EditorManager::LoadRomInternal() {
     // Reapply it here rather than partially clearing global runtime state.
     ApplyCurrentProjectRuntimeContext();
     CaptureActiveProjectContext();
+    // Remembered load options have to be live before assets load. Without a
+    // UI there is no dialog to skip, so headless opens keep neutral flags.
+    const bool remembered_load_options =
+        ui_coordinator_ != nullptr && ApplyRememberedRomLoadChoice();
 
     // Keep ResourceLabelProvider in sync with the newly-active ROM session
     // before any editors/assets query room/sprite names.
@@ -560,11 +738,10 @@ absl::Status EditorManager::LoadRomInternal() {
     manager.Save();
 
     if (ui_coordinator_) {
-      ui_coordinator_->SetWelcomeScreenVisible(false);
-
-      // Show ROM load options and bias new ROM paths toward project creation.
-      rom_load_options_dialog_.Open(GetCurrentRom(), is_first_time_rom_path);
-      show_rom_load_options_ = true;
+      FinishRawRomOpen(
+          remembered_load_options,
+          !remembered_load_options && !current_project_.project_opened(),
+          is_first_time_rom_path);
     }
 
     return absl::OkStatus();
@@ -1592,17 +1769,8 @@ absl::Status EditorManager::LoadProjectWithRom(bool allow_dialogs) {
 
   MaybeEmitZScreamRomLoadHints();
 
-  // Apply workspace settings
-  user_settings_.prefs().font_global_scale =
-      current_project_.workspace_settings.font_global_scale;
-  user_settings_.prefs().autosave_enabled =
-      current_project_.workspace_settings.autosave_enabled;
-  user_settings_.prefs().autosave_interval =
-      current_project_.workspace_settings.autosave_interval_secs;
-  user_settings_.prefs().backup_before_save =
-      current_project_.workspace_settings.backup_on_save;
-  ImGui::GetIO().FontGlobalScale = user_settings_.prefs().font_global_scale;
-
+  // RestoreProjectContextForSession() already applied the project's workspace
+  // settings as a UserSettings overlay.
   CaptureActiveProjectContext();
   RefreshHackWorkflowBackend();
 

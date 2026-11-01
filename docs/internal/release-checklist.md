@@ -2,13 +2,28 @@
 
 This is the canonical pre-release checklist referenced by internal testing and architecture docs.
 
-Last reviewed: 2026-10-27. The
+Last reviewed: 2026-10-31. The
 [editor capability parity plan](plans/editor-capability-parity-plan.md) defines
 package scope and implementation gates. This checklist records release
 qualification of the final combined candidate.
 
 For one deferred user testing pass, use the
 [combined manual editor checklist](plans/manual-editor-checklist-2026-09-23.md).
+
+## Published prerelease record
+
+[v0.8.0-exp.1](https://github.com/scawful/yaze/releases/tag/v0.8.0-exp.1) was published
+from `cc673c04f5dae90d17bdc25d0923d540522340c0` on 2026-10-28 Eastern.
+[Dry run 40748726881](https://github.com/scawful/yaze/actions/runs/40748726881) and
+[publication run 40781419989](https://github.com/scawful/yaze/actions/runs/40781419989)
+passed the three-platform Release build/test matrix. Published
+[checksums](https://github.com/scawful/yaze/releases/download/v0.8.0-exp.1/checksums.txt)
+and the [status/source matrix](status.md) retain the exact scope, later failed
+tag sanitizer job and unchecked manual/package boundaries.
+
+This record does not check the boxes below for a changed candidate. Current
+mainline and the private Lyra source contain post-tag work; qualify the selected
+next source independently and keep publication as a separate action.
 
 ## v0.8.0 experimental release gate
 

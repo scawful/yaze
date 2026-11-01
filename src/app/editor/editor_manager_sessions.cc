@@ -60,14 +60,22 @@ void EditorManager::ApplyCurrentProjectRuntimeContext() {
   core::FeatureFlags::get() = current_project_.feature_flags;
   zelda3::DrawRoutineRegistry::Get().RefreshFeatureFlagMappings();
 
-  user_settings_.prefs().font_global_scale =
-      current_project_.workspace_settings.font_global_scale;
-  user_settings_.prefs().autosave_enabled =
-      current_project_.workspace_settings.autosave_enabled;
-  user_settings_.prefs().autosave_interval =
-      current_project_.workspace_settings.autosave_interval_secs;
-  user_settings_.prefs().backup_before_save =
-      current_project_.workspace_settings.backup_on_save;
+  if (current_project_.project_opened()) {
+    UserSettings::WorkspaceOverrides overrides;
+    overrides.font_global_scale =
+        current_project_.workspace_settings.font_global_scale;
+    overrides.autosave_enabled =
+        current_project_.workspace_settings.autosave_enabled;
+    overrides.autosave_interval =
+        current_project_.workspace_settings.autosave_interval_secs;
+    overrides.backup_before_save =
+        current_project_.workspace_settings.backup_on_save;
+    user_settings_.ApplyWorkspaceOverrides(overrides);
+  } else {
+    // A raw ROM has no workspace settings of its own. Copying the default
+    // project values here used to turn autosave on and save it globally.
+    user_settings_.ClearWorkspaceOverrides();
+  }
   if (ImGui::GetCurrentContext() != nullptr) {
     ImGui::GetIO().FontGlobalScale = user_settings_.prefs().font_global_scale;
   }
@@ -116,6 +124,14 @@ bool EditorManager::RestoreProjectContextForSession(RomSession* session) {
   if (!session || !session->project_context.has_value()) {
     if (!session) {
       current_project_ = project::YazeProject();
+      // Closing the last ROM ends the project's workspace overlay. Left
+      // active, Save() would keep writing the pre-project values over global
+      // changes made with no ROM open.
+      user_settings_.ClearWorkspaceOverrides();
+      if (ImGui::GetCurrentContext() != nullptr) {
+        ImGui::GetIO().FontGlobalScale =
+            user_settings_.prefs().font_global_scale;
+      }
       RestoreProjectEditingStateForSession(nullptr);
     }
     active_project_context_session_id_.reset();
@@ -170,6 +186,11 @@ void EditorManager::HandleSessionSwitched(size_t new_index, RomSession* session,
   // the request. Never carry them across a user session switch. Frame-level
   // context switches are temporary and must not consume the active request.
   if (!transient) {
+    if (rom_load_options_owner_ &&
+        (!session ||
+         session->session_id() != rom_load_options_owner_->session_id)) {
+      CloseRomLoadOptions("another session became active");
+    }
     ++project_rom_selection_generation_;
     pending_project_rom_selection_.reset();
     pending_project_open_transition_ = false;
@@ -342,6 +363,10 @@ void EditorManager::HandleSessionClosed(size_t index) {
         session_coordinator_->IsValidSessionIndex(index)
             ? static_cast<RomSession*>(session_coordinator_->GetSession(index))
             : nullptr;
+    if (closing_session && rom_load_options_owner_ &&
+        closing_session->session_id() == rom_load_options_owner_->session_id) {
+      CloseRomLoadOptions("its ROM was closed");
+    }
     if (closing_session != nullptr) {
       zelda3::CustomObjectManager::Get().RemoveRuntimeContext(
           closing_session->session_id());
@@ -390,6 +415,10 @@ void EditorManager::HandleSessionClosed(size_t index) {
 void EditorManager::HandleSessionRomLoaded(size_t index, Rom* rom) {
   auto* session =
       static_cast<RomSession*>(session_coordinator_->GetSession(index));
+  if (session && rom_load_options_owner_ &&
+      session->session_id() == rom_load_options_owner_->session_id) {
+    CloseRomLoadOptions("the ROM was reloaded");
+  }
   ResetAssetState(session);
 
   // Update ContentRegistry when ROM is loaded (if this is the active session)

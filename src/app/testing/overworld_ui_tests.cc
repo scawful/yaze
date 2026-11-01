@@ -1198,7 +1198,11 @@ static void RegisterLyraTerrainAcceptanceTest(ImGuiTestEngine* engine) {
     IM_CHECK(
         fs::copy_file(rom_path, second_rom_path, fs::copy_options::none, ec));
     IM_CHECK(!ec && read_file(second_rom_path) == rom_disk_before);
-    IM_CHECK(manager->OpenRomOrProject(second_rom_path.string()).ok());
+    IM_CHECK(manager
+                 ->OpenRomOrProject(
+                     second_rom_path.string(),
+                     editor::EditorManager::LoadOptionsPrompt::kNoPrompt)
+                 .ok());
     ctx->Yield(3);
     IM_CHECK(manager->GetCurrentSessionId() != project_session_id);
     auto* second_project = manager->GetCurrentProject();

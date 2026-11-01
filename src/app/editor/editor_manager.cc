@@ -1642,7 +1642,9 @@ void EditorManager::Initialize(gfx::IRenderer* renderer,
       }
     }
     ApplyStartupVisibilityOverrides();
-    PRINT_IF_ERROR(OpenRomOrProject(filename));
+    // Scripts and test launches pass --rom_file; they must not wait on the
+    // load options dialog.
+    PRINT_IF_ERROR(OpenRomOrProject(filename, LoadOptionsPrompt::kNoPrompt));
   }
 }
 
@@ -1920,6 +1922,9 @@ void EditorManager::ShowPostLoadSurface() {
         break;
       case 3:
         target = EditorType::kGraphics;
+        break;
+      case 4:
+        target = EditorType::kMessage;
         break;
       default:
         break;
@@ -3414,21 +3419,22 @@ bool EditorManager::ActivateExistingSessionForOpen(
   return false;
 }
 
-absl::Status EditorManager::OpenRomOrProject(const std::string& filename) {
+absl::Status EditorManager::OpenRomOrProject(const std::string& filename,
+                                             LoadOptionsPrompt prompt) {
   if (ActivateExistingSessionForOpen(filename)) {
     return absl::OkStatus();
   }
   if (!MaybeGuardPendingSessionAction(
           {PendingUnsavedSessionAction::Type::kOpenRomOrProjectPath,
-           GetCurrentSessionId(), SIZE_MAX, filename})) {
+           GetCurrentSessionId(), SIZE_MAX, filename, prompt})) {
     return absl::OkStatus();
   }
 
-  return OpenRomOrProjectInternal(filename);
+  return OpenRomOrProjectInternal(filename, /*allow_dialogs=*/true, prompt);
 }
 
 absl::Status EditorManager::OpenRomOrProjectInternal(
-    const std::string& filename, bool allow_dialogs) {
+    const std::string& filename, bool allow_dialogs, LoadOptionsPrompt prompt) {
   LOG_INFO("EditorManager", "OpenRomOrProject called with: '%s'",
            filename.c_str());
   if (filename.empty()) {
@@ -3513,6 +3519,16 @@ absl::Status EditorManager::OpenRomOrProjectInternal(
     session->feature_flags = current_project_.feature_flags;
     core::FeatureFlags::get() = current_project_.feature_flags;
     CaptureActiveProjectContext();
+    // A choice remembered for this file applies to prompted and unprompted
+    // opens alike, and has to be live before assets load.
+    const bool remembered_load_options = allow_dialogs &&
+                                         ui_coordinator_ != nullptr &&
+                                         ApplyRememberedRomLoadChoice();
+    // Ask only when nothing is remembered and no project owns the flags.
+    const bool ask_for_load_options =
+        prompt == LoadOptionsPrompt::kAsk && allow_dialogs &&
+        ui_coordinator_ != nullptr && !remembered_load_options &&
+        !current_project_.project_opened();
 
     // Keep ResourceLabelProvider in sync with the active ROM session before
     // editors register room/sprite labels.
@@ -3564,7 +3580,16 @@ absl::Status EditorManager::OpenRomOrProjectInternal(
       return asset_status;
     }
 
-    ShowPostLoadSurface();
+    bool is_first_time_rom_path = false;
+    if (ask_for_load_options) {
+      const auto& recent_files =
+          project::RecentFilesManager::GetInstance().GetRecentFiles();
+      is_first_time_rom_path =
+          std::find(recent_files.begin(), recent_files.end(), filename) ==
+          recent_files.end();
+    }
+    FinishRawRomOpen(remembered_load_options, ask_for_load_options,
+                     is_first_time_rom_path);
     MaybeEmitZScreamRomLoadHints();
   }
   return absl::OkStatus();
@@ -3636,7 +3661,9 @@ absl::Status EditorManager::CreateNewProjectFromRom(
   current_project_ = project_manager_.GetCurrentProject();
   SyncLayoutScopeFromCurrentProject();
 
-  auto open_status = OpenRomOrProjectInternal(rom_path);
+  // The new project, not the load options dialog, owns the flags.
+  auto open_status = OpenRomOrProjectInternal(rom_path, /*allow_dialogs=*/true,
+                                              LoadOptionsPrompt::kNoPrompt);
   if (!open_status.ok()) {
     project_manager_.CancelPendingProject();
     RestoreProjectContextAfterFailedOpen(previous_session_id);
@@ -5419,7 +5446,8 @@ void EditorManager::ExecutePendingUnsavedSessionAction(
       break;
     }
     case PendingUnsavedSessionAction::Type::kOpenRomOrProjectPath: {
-      auto status = OpenRomOrProjectInternal(action.path);
+      auto status = OpenRomOrProjectInternal(
+          action.path, /*allow_dialogs=*/true, action.load_options_prompt);
       if (!status.ok()) {
         toast_manager_.Show(absl::StrFormat("Failed to open ROM / project: %s",
                                             status.message()),

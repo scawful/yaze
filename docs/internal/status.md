@@ -1,24 +1,66 @@
-# Editor candidate status
+# Editor and release status
 
-## v0.8.0 experimental release (2026-10-27)
+## Published v0.8.0-exp.1
 
-Current release: v0.7.2. `VERSION` is `0.8.0`; nothing is tagged or published.
-On 2026-10-27 the v0.8.0 scope changed to an experimental Linux, macOS, and
-Windows release of merged work. Dungeon Editor completion (`DA-1` to `DA-5`)
-remains open roadmap work. Scope, gates, and the feature table:
-[release checklist](release-checklist.md) and
-[v0.8.0 release notes](../public/release-notes.md#v080).
+Latest experimental prerelease: [v0.8.0-exp.1](https://github.com/scawful/yaze/releases/tag/v0.8.0-exp.1), published
+2026-10-28 Eastern (2026-10-29 00:28 UTC). Latest stable release remains v0.7.2.
+`VERSION` is `0.8.0`; it is not proof that a new package has been published.
+Dungeon Editor completion remains separate roadmap work.
 
-| Item | State |
+| Evidence | Exact result |
 | --- | --- |
-| Base | `master` `5d4b39ae0` |
-| CI on base | Run 40567451155: every job passed except Memory Sanitizer (heap-use-after-free in `object_draw_code_test.cc:72`, a test-owned temporary) |
-| Sanitizer fix | Release-prep PR keeps the `ReadObjectDrawCode` result alive; sanitizer stays enabled |
-| HTTP API exposure | Release preset builds with `YAZE_ENABLE_HTTP_API` off (Release run 34817034857 logged `HTTP API Server: OFF` on all three platforms); [PR #312](https://github.com/scawful/yaze/pull/312) fixes source builds and is stacked on #308/#309 |
-| `Release` with `publish=false` on the candidate | Not dispatched |
-| Packaged startup, `z3ed` copy save/reopen, GUI save/reopen | Not run; [issue #107](https://github.com/scawful/yaze/issues/107) Windows GUI Save As stays with a person |
+| Published source | `cc673c04f5dae90d17bdc25d0923d540522340c0` (`cc673c04`) |
+| Release dry run | [40748726881](https://github.com/scawful/yaze/actions/runs/40748726881): all three platform build/test jobs PASS; publication skipped |
+| Publication run | [40781419989](https://github.com/scawful/yaze/actions/runs/40781419989): all three platform build/test jobs and Create Release PASS |
+| Artifacts | macOS DMG, Linux TGZ/DEB, Windows ZIP/installer, and [SHA-256 checksums](https://github.com/scawful/yaze/releases/download/v0.8.0-exp.1/checksums.txt) |
+| HTTP API | `HTTP API Server: OFF` in all three publication build logs |
+| Source CI | Candidate CI 40748775998 PASS; later [tag CI 40798319425](https://github.com/scawful/yaze/actions/runs/40798319425) FAILED in Memory Sanitizer Test; Windows/Linux/macOS test jobs passed |
+| Manual/package limits | This audit adds no fresh GUI/ROM save-reopen or clean-machine result. Interactive Windows Save As [#107](https://github.com/scawful/yaze/issues/107), macOS signing/notarization/Gatekeeper and clean-machine portability are not closed by package build jobs |
 
-## Earlier candidate notes
+The earlier temporary-lifetime sanitizer defect on `5d4b39ae0` was fixed before
+publication. It does not explain or waive the later tag-job failure. Preserve
+both results. Release scope and remaining qualification are in the
+[release notes](../public/release-notes.md#v080) and
+[release checklist](release-checklist.md).
+
+The checksum file's own digest matches GitHub asset metadata, and its five
+package digests match the published assets. One filename differs: the Debian
+row names `yaze_0.8.0~exp.1_amd64.deb`, while the download is
+`yaze_0.8.0.exp.1_amd64.deb`; both have SHA-256
+`a3b2d0eb04ffb04faea001157ad2e98436683adeae2436e93d79fe7ac3a470a5`.
+The source fix uses `yaze-<display-version>-Linux.deb` for future uploads and
+keeps `~` in the Debian control version. Published files are unchanged.
+
+## Development after the prerelease
+
+The audited mainline baseline is `86c9f5989f78b5ad7a248d0ba79635d1d1b9b593`.
+Its [CI 40939952551](https://github.com/scawful/yaze/actions/runs/40939952551)
+has GCC-12/older-Abseil compilation failures in `sheet_image_import.cc` and
+rejects new ad-hoc `image_import_panel` files. CodeQL stops at the same compiler
+error. Those are development-source results, not failures of the published
+package job. The release-hardening branch fixes the formatter argument and places
+the import view under the existing graphics feature-view composition; it does
+not loosen editor guardrails or add another window. Its exact-commit
+qualification belongs to that branch's CI and does not retag or republish exp.1.
+
+## Lyra source and qualification boundaries
+
+The tail-map page range is `$A0–$BF` (32 pages). It is not a synonym for a region
+or a guarantee of gameplay. Grouped gameplay areas are a separate model.
+
+| Source | Document model | Qualification boundary |
+| --- | --- | --- |
+| Published v0.8.0-exp.1, `cc673c04` | Schema 3, 32 tail-map pages | Experimental project authoring; no later gameplay-area, transport or persistent-reward model |
+| Mainline baseline `86c9f598` | Schema 5, 32 pages with gameplay areas; 192-map navigation | Later development source, not in exp.1 downloads; ordinary full-map Oracle Build/Test is not release-qualified |
+| Private Lyra candidate `690eb9c4cb7ac7171cc88e03f7ba9df339621ff4` | Schema 10 with gameplay areas, boat/whirlpool references and persistent-reward authoring | Local experimental source; host/source checks do not grant Oracle allocation/runtime admission or prove native gameplay |
+
+The coordinator's current copied Save input is schema 4. The approved 21-area
+schema-5 import is prepared but still needs an owned normal editor Save and
+fresh-process reopen, followed by its new genuine receipt/transfer. Never reuse
+an older Save generation or replay binding after those edits. Private source
+support does not imply that the current saved project contains those features.
+
+## Historical candidate notes
 
 The combined editor candidate brings together overworld/Tile16 changes from
 `0f3855d6f` and dungeon authoring from `804b32eea`. The combined application build

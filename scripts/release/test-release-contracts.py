@@ -63,10 +63,11 @@ set(YAZE_VERSION_MAJOR 0)
 set(YAZE_VERSION_MINOR 8)
 set(YAZE_VERSION_PATCH 0)
 include("{ROOT / 'cmake/packaging/version.cmake'}")
+include("{ROOT / 'cmake/packaging/linux.cmake'}")
 file(WRITE "{self.root / 'identity.txt'}"
-    "${{YAZE_VERSION}}|${{CPACK_PACKAGE_VERSION}}|${{CPACK_DEBIAN_PACKAGE_VERSION}}")
+    "${{YAZE_VERSION}}|${{CPACK_PACKAGE_VERSION}}|${{CPACK_DEBIAN_PACKAGE_VERSION}}|${{CPACK_DEBIAN_FILE_NAME}}")
 ''')
-        for suffix in ("", "-rc.1", "-experimental.1", "-feature-preview.2"):
+        for suffix in ("", "-exp.1", "-rc.1", "-experimental.1", "-feature-preview.2"):
             with self.subTest(suffix=suffix):
                 env = os.environ.copy()
                 env["YAZE_VERSION_SUFFIX"] = suffix
@@ -75,7 +76,8 @@ file(WRITE "{self.root / 'identity.txt'}"
                 self.assertEqual(result.returncode, 0, result.stderr)
                 display = "0.8.0" + suffix
                 self.assertEqual((self.root / "identity.txt").read_text(),
-                                 f"0.8.0|{display}|{display.replace('-', '~', 1)}")
+                                 f"0.8.0|{display}|{display.replace('-', '~', 1)}|"
+                                 f"yaze-{display}-Linux.deb")
         for invalid in ("-rc..1", "-feature-", "---"):
             env["YAZE_VERSION_SUFFIX"] = invalid
             result = run("cmake", "-P", str(script), env=env)
