@@ -25,6 +25,37 @@ set(YAZE_GRPC_TARGETS "")
 set(YAZE_FTXUI_TARGETS "")
 set(YAZE_TESTING_TARGETS "")
 
+# macOS release builds link OpenSSL and libpng from Homebrew's static archives,
+# so yaze.app and z3ed load no Homebrew dylib and z3ed runs on its own. gRPC is
+# then built against the same OpenSSL (grpc.cmake) instead of its bundled
+# BoringSSL, so the binaries carry one TLS library.
+option(YAZE_MACOS_STATIC_DEPS
+  "macOS: link OpenSSL and libpng statically and build gRPC against OpenSSL" OFF)
+if(APPLE AND YAZE_MACOS_STATIC_DEPS)
+  include(cmake/platform/homebrew.cmake)
+  set(OPENSSL_USE_STATIC_LIBS ON)
+  if(NOT OPENSSL_ROOT_DIR)
+    yaze_homebrew_find_package(openssl@3 RESULT_VAR _yaze_openssl_prefix)
+    if(_yaze_openssl_prefix)
+      set(OPENSSL_ROOT_DIR "${_yaze_openssl_prefix}")
+    endif()
+  endif()
+  find_package(OpenSSL REQUIRED)
+  if(NOT OPENSSL_SSL_LIBRARY MATCHES "\\.a$" OR NOT OPENSSL_CRYPTO_LIBRARY MATCHES "\\.a$")
+    message(FATAL_ERROR "YAZE_MACOS_STATIC_DEPS: OpenSSL is not static: "
+      "${OPENSSL_SSL_LIBRARY} ${OPENSSL_CRYPTO_LIBRARY}")
+  endif()
+
+  # FindPNG has no static switch; point it at the archive and matching headers.
+  yaze_homebrew_find_package(libpng RESULT_VAR _yaze_png_prefix)
+  if(NOT _yaze_png_prefix OR NOT EXISTS "${_yaze_png_prefix}/lib/libpng16.a")
+    message(FATAL_ERROR "YAZE_MACOS_STATIC_DEPS: Homebrew libpng16.a not found")
+  endif()
+  set(PNG_LIBRARY_RELEASE "${_yaze_png_prefix}/lib/libpng16.a" CACHE FILEPATH "" FORCE)
+  set(PNG_PNG_INCLUDE_DIR "${_yaze_png_prefix}/include" CACHE PATH "" FORCE)
+  message(STATUS "Static macOS deps: ${OPENSSL_SSL_LIBRARY} ${PNG_LIBRARY_RELEASE}")
+endif()
+
 # FindPNG searches frameworks first on macOS, and Mono.framework (present on
 # GitHub macOS runners) ships libpng 1.4 headers that would pair with the
 # libpng 1.6 library. Later find_package(PNG) calls reuse this result.

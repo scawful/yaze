@@ -247,4 +247,12 @@ run_smoke_test \
   "yaze ${expected_version#v}"
 run_smoke_test "z3ed --self-test" "$mount_dir" "$mount_dir/z3ed" --self-test
 
+# Users copy z3ed onto their PATH without yaze.app, so it must not depend on
+# the dylibs bundled in yaze.app/Contents/Frameworks.
+lone_z3ed_dir="$isolated_dir/z3ed-only"
+mkdir -p "$lone_z3ed_dir"
+/usr/bin/ditto "$mount_dir/z3ed" "$lone_z3ed_dir/z3ed"
+run_smoke_test "z3ed --self-test without yaze.app" "$lone_z3ed_dir" \
+  "$lone_z3ed_dir/z3ed" --self-test
+
 echo "DMG validation passed."
