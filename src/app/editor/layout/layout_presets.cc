@@ -512,10 +512,6 @@ PanelLayoutPreset LayoutPresets::GetOverworldArtistPreset() {
   return preset;
 }
 
-PanelLayoutPreset LayoutPresets::GetOverworldExpertPreset() {
-  return GetOverworldArtistPreset();
-}
-
 PanelLayoutPreset LayoutPresets::GetDungeonMasterPreset() {
   PanelLayoutPreset preset;
   preset.name = "Dungeon Master";
@@ -553,10 +549,6 @@ PanelLayoutPreset LayoutPresets::GetDungeonMasterPreset() {
   return preset;
 }
 
-PanelLayoutPreset LayoutPresets::GetDungeonExpertPreset() {
-  return GetDungeonMasterPreset();
-}
-
 PanelLayoutPreset LayoutPresets::GetLogicDebuggerPreset() {
   PanelLayoutPreset preset;
   preset.name = "Logic Debugger";
@@ -578,10 +570,6 @@ PanelLayoutPreset LayoutPresets::GetLogicDebuggerPreset() {
       Panels::kEmulatorAiAgent,
   };
   return preset;
-}
-
-PanelLayoutPreset LayoutPresets::GetTestingPreset() {
-  return GetLogicDebuggerPreset();
 }
 
 PanelLayoutPreset LayoutPresets::GetAudioEngineerPreset() {
@@ -615,10 +603,6 @@ PanelLayoutPreset LayoutPresets::GetAudioEngineerPreset() {
       {Panels::kEmulatorAudioMixer, DockPosition::RightTop},
   };
   return preset;
-}
-
-PanelLayoutPreset LayoutPresets::GetAudioPreset() {
-  return GetAudioEngineerPreset();
 }
 
 }  // namespace editor

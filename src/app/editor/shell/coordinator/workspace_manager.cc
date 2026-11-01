@@ -335,48 +335,5 @@ void WorkspaceManager::CloseCurrentWindow() {
   }
 }
 
-// Command execution for WhichKey integration
-void WorkspaceManager::ExecuteWorkspaceCommand(const std::string& command_id) {
-  // Window commands (Space + w)
-  if (command_id == "w.s") {
-    ShowAllWindows();
-  } else if (command_id == "w.h") {
-    HideAllWindows();
-  } else if (command_id == "w.m") {
-    MaximizeCurrentWindow();
-  } else if (command_id == "w.r") {
-    RestoreAllWindows();
-  } else if (command_id == "w.c") {
-    CloseCurrentWindow();
-  } else if (command_id == "w.f") {
-    CloseAllFloatingWindows();
-  } else if (command_id == "w.v") {
-    SplitWindowVertical();
-  } else if (command_id == "w.H") {
-    SplitWindowHorizontal();
-  }
-
-  // Layout commands (Space + l)
-  else if (command_id == "l.s") {
-    SaveWorkspaceLayout();
-  } else if (command_id == "l.l") {
-    LoadWorkspaceLayout();
-  } else if (command_id == "l.r") {
-    ResetWorkspaceLayout();
-  } else if (command_id == "l.d") {
-    LoadDeveloperLayout();
-  } else if (command_id == "l.g") {
-    LoadDesignerLayout();
-  } else if (command_id == "l.m") {
-    LoadModderLayout();
-  }
-
-  // Unknown command
-  else if (toast_manager_) {
-    toast_manager_->Show(absl::StrFormat("Unknown command: %s", command_id),
-                         ToastType::kWarning);
-  }
-}
-
 }  // namespace editor
 }  // namespace yaze

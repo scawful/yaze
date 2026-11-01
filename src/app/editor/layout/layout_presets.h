@@ -138,19 +138,9 @@ class LayoutPresets {
   static PanelLayoutPreset GetOverworldArtistPreset();
 
   /**
-   * @brief Legacy alias for GetOverworldArtistPreset()
-   */
-  static PanelLayoutPreset GetOverworldExpertPreset();
-
-  /**
    * @brief Get the "dungeon master" workspace preset
    */
   static PanelLayoutPreset GetDungeonMasterPreset();
-
-  /**
-   * @brief Legacy alias for GetDungeonMasterPreset()
-   */
-  static PanelLayoutPreset GetDungeonExpertPreset();
 
   /**
    * @brief Get the "logic debugger" workspace preset (QA and debug focused)
@@ -158,19 +148,9 @@ class LayoutPresets {
   static PanelLayoutPreset GetLogicDebuggerPreset();
 
   /**
-   * @brief Legacy alias for GetLogicDebuggerPreset()
-   */
-  static PanelLayoutPreset GetTestingPreset();
-
-  /**
    * @brief Get the "audio engineer" workspace preset (music focused)
    */
   static PanelLayoutPreset GetAudioEngineerPreset();
-
-  /**
-   * @brief Legacy alias for GetAudioEngineerPreset()
-   */
-  static PanelLayoutPreset GetAudioPreset();
 
   // ============================================================================
   // Panel ID Constants - synced with actual editor registrations

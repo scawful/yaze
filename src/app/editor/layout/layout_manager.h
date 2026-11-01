@@ -20,25 +20,6 @@ class WorkspaceWindowManager;
 class UserSettings;
 
 /**
- * @enum LayoutType
- * @brief Predefined layout types for different editor workflows
- */
-enum class LayoutType {
-  kDefault,
-  kOverworld,
-  kDungeon,
-  kGraphics,
-  kPalette,
-  kScreen,
-  kMusic,
-  kSprite,
-  kMessage,
-  kAssembly,
-  kSettings,
-  kEmulator
-};
-
-/**
  * @enum LayoutScope
  * @brief Storage scope for saved layouts
  */
@@ -282,17 +263,6 @@ class LayoutManager {
   void ClearInitializationFlags();
 
   /**
-   * @brief Set the current layout type for rebuild
-   * @param type The layout type to set
-   */
-  void SetLayoutType(LayoutType type) { current_layout_type_ = type; }
-
-  /**
-   * @brief Get the current layout type
-   */
-  LayoutType GetLayoutType() const { return current_layout_type_; }
-
-  /**
    * @brief Request a layout rebuild on next frame
    */
   void RequestRebuild() { rebuild_requested_ = true; }
@@ -460,27 +430,11 @@ class LayoutManager {
   void LoadLayoutsFromDiskInternal(LayoutScope scope, bool merge);
   void SaveLayoutsToDisk(LayoutScope scope) const;
 
-  // Deprecated individual builders - kept for compatibility or as wrappers
-  void BuildOverworldLayout(ImGuiID dockspace_id);
-  void BuildDungeonLayout(ImGuiID dockspace_id);
-  void BuildGraphicsLayout(ImGuiID dockspace_id);
-  void BuildPaletteLayout(ImGuiID dockspace_id);
-  void BuildScreenLayout(ImGuiID dockspace_id);
-  void BuildMusicLayout(ImGuiID dockspace_id);
-  void BuildSpriteLayout(ImGuiID dockspace_id);
-  void BuildMessageLayout(ImGuiID dockspace_id);
-  void BuildAssemblyLayout(ImGuiID dockspace_id);
-  void BuildSettingsLayout(ImGuiID dockspace_id);
-  void BuildEmulatorLayout(ImGuiID dockspace_id);
-
   // Track which layouts have been initialized
   std::unordered_map<EditorType, bool> layouts_initialized_;
 
   // Panel manager for window title lookups
   WorkspaceWindowManager* window_manager_ = nullptr;
-
-  // Current layout type
-  LayoutType current_layout_type_ = LayoutType::kDefault;
 
   // Rebuild flag
   bool rebuild_requested_ = false;

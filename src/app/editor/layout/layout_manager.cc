@@ -1011,41 +1011,6 @@ bool LayoutManager::DockPresetPositionOnFirstOpen(
   return true;
 }
 
-// Deprecated individual build methods - redirected to generic or kept empty
-void LayoutManager::BuildOverworldLayout(ImGuiID dockspace_id) {
-  BuildLayoutFromPreset(EditorType::kOverworld, dockspace_id);
-}
-void LayoutManager::BuildDungeonLayout(ImGuiID dockspace_id) {
-  BuildLayoutFromPreset(EditorType::kDungeon, dockspace_id);
-}
-void LayoutManager::BuildGraphicsLayout(ImGuiID dockspace_id) {
-  BuildLayoutFromPreset(EditorType::kGraphics, dockspace_id);
-}
-void LayoutManager::BuildPaletteLayout(ImGuiID dockspace_id) {
-  BuildLayoutFromPreset(EditorType::kPalette, dockspace_id);
-}
-void LayoutManager::BuildScreenLayout(ImGuiID dockspace_id) {
-  BuildLayoutFromPreset(EditorType::kScreen, dockspace_id);
-}
-void LayoutManager::BuildMusicLayout(ImGuiID dockspace_id) {
-  BuildLayoutFromPreset(EditorType::kMusic, dockspace_id);
-}
-void LayoutManager::BuildSpriteLayout(ImGuiID dockspace_id) {
-  BuildLayoutFromPreset(EditorType::kSprite, dockspace_id);
-}
-void LayoutManager::BuildMessageLayout(ImGuiID dockspace_id) {
-  BuildLayoutFromPreset(EditorType::kMessage, dockspace_id);
-}
-void LayoutManager::BuildAssemblyLayout(ImGuiID dockspace_id) {
-  BuildLayoutFromPreset(EditorType::kAssembly, dockspace_id);
-}
-void LayoutManager::BuildSettingsLayout(ImGuiID dockspace_id) {
-  BuildLayoutFromPreset(EditorType::kSettings, dockspace_id);
-}
-void LayoutManager::BuildEmulatorLayout(ImGuiID dockspace_id) {
-  BuildLayoutFromPreset(EditorType::kEmulator, dockspace_id);
-}
-
 void LayoutManager::SaveCurrentLayout(const std::string& name, bool persist) {
   if (!window_manager_) {
     LOG_WARN("LayoutManager",

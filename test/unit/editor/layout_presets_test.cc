@@ -91,8 +91,8 @@ TEST(LayoutPresetsTest, Tile16EditorHasUsableFirstUseSizeButIsOptional) {
 }
 
 TEST(LayoutPresetsTest,
-     OverworldExpertPositionsMapPropertiesAndGraphicsEditor) {
-  auto preset = LayoutPresets::GetOverworldExpertPreset();
+     OverworldArtistPositionsMapPropertiesAndGraphicsEditor) {
+  auto preset = LayoutPresets::GetOverworldArtistPreset();
 
   EXPECT_TRUE(ContainsPanel(preset.default_visible_panels,
                             LayoutPresets::Panels::kOverworldMapProperties));

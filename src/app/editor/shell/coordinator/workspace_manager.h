@@ -70,9 +70,6 @@ class WorkspaceManager {
   void SplitWindowVertical();
   void CloseCurrentWindow();
 
-  // Command execution (for WhichKey integration)
-  void ExecuteWorkspaceCommand(const std::string& command_id);
-
   // Session queries
   size_t GetActiveSessionCount() const;
   bool HasDuplicateSession(const std::string& filepath) const;
