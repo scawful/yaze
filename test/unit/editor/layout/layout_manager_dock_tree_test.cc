@@ -188,6 +188,36 @@ TEST_F(LayoutManagerDockTreeTest, ApplyEmptyLeafSucceeds) {
   EXPECT_TRUE(node->IsLeafNode());
 }
 
+TEST_F(LayoutManagerDockTreeTest, ApplyRestoresSelectedTabAfterDrawing) {
+  const auto title_a = window_manager_.GetWorkspaceWindowName(0, "a");
+  const auto title_b = window_manager_.GetWorkspaceWindowName(0, "b");
+  DockTree tree;
+  tree.root = DockNode::MakeLeaf({MakePanel("a"), MakePanel("b")});
+  tree.root->active_tab_index = 1;
+  ASSERT_TRUE(layout_manager_.ApplyDockTree(tree, kDockspaceId).ok());
+  ImGui::EndFrame();
+  ImGui::Render();
+
+  for (int frame = 0; frame < 3; ++frame) {
+    ImGui::NewFrame();
+    ImGui::Begin("Dock host");
+    ImGui::DockSpace(kDockspaceId, ImVec2(800, 600));
+    ImGui::End();
+    ImGui::Begin(title_a.c_str());
+    ImGui::End();
+    ImGui::Begin(title_b.c_str());
+    ImGui::End();
+    ImGui::EndFrame();
+    ImGui::Render();
+  }
+  ImGui::NewFrame();  // The fixture's teardown ends the active frame.
+  const ImGuiDockNode* node = ImGui::DockBuilderGetNode(kDockspaceId);
+  ASSERT_NE(node, nullptr);
+  const ImGuiWindow* selected = ImGui::FindWindowByName(title_b.c_str());
+  ASSERT_NE(selected, nullptr);
+  EXPECT_EQ(node->SelectedTabId, selected->TabId);
+}
+
 TEST_F(LayoutManagerDockTreeTest, DungeonDefaultBuildsSingleDockLeaf) {
   layout_manager_.InitializeEditorLayout(EditorType::kDungeon, kDockspaceId);
 
