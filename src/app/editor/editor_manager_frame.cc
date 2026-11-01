@@ -259,7 +259,7 @@ void EditorManager::DrawInterface() {
 
   // Draw ROM load options dialog (ZSCustomOverworld, feature flags, project)
   if (show_rom_load_options_ && !RomLoadOptionsMatchCurrentSession()) {
-    CloseRomLoadOptions();
+    CloseRomLoadOptions("its session or ROM file is no longer active");
   }
   if (show_rom_load_options_) {
     rom_load_options_dialog_.Draw(&show_rom_load_options_);

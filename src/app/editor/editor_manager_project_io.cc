@@ -348,6 +348,11 @@ void EditorManager::SetupDialogCallbacks() {
   // Initialize ROM load options dialog callbacks
   rom_load_options_dialog_.SetConfirmCallback(
       [this](const RomLoadOptionsDialog::LoadOptions& options) {
+        // The apply guard checked the owner. Release it before anything
+        // below can switch sessions, so that switch does not report this
+        // confirm as a dialog closed without changes.
+        rom_load_options_owner_.reset();
+
         // Apply feature flags from dialog
         auto& flags = core::FeatureFlags::get();
         RomLoadOptionsDialog::ApplyToFeatureFlags(options, flags);
@@ -394,7 +399,6 @@ void EditorManager::SetupDialogCallbacks() {
         // may have created a project, but an open editor still wins. A
         // review of an open ROM keeps the user where they are.
         show_rom_load_options_ = false;
-        rom_load_options_owner_.reset();
         if (rom_load_options_dialog_.reviewing()) {
           toast_manager_.Show(
               options.remember_for_rom
@@ -417,14 +421,19 @@ void EditorManager::SetupDialogCallbacks() {
       ShowPostLoadSurface();
     }
   });
-  rom_load_options_dialog_.SetApplyGuard(
-      [this]() { return RomLoadOptionsMatchCurrentSession(); });
+  rom_load_options_dialog_.SetApplyGuard([this]() {
+    if (RomLoadOptionsMatchCurrentSession()) {
+      return true;
+    }
+    CloseRomLoadOptions("its session or ROM file is no longer active");
+    return false;
+  });
 }
 
 void EditorManager::BindRomLoadOptionsToCurrentSession() {
   const auto* rom = GetCurrentRom();
   if (!rom || !rom->is_loaded()) {
-    CloseRomLoadOptions();
+    CloseRomLoadOptions("no ROM is loaded");
     return;
   }
   rom_load_options_owner_ =
@@ -448,10 +457,17 @@ bool EditorManager::RomLoadOptionsMatchCurrentSession() const {
              rom_load_options_owner_->zso_version_byte;
 }
 
-void EditorManager::CloseRomLoadOptions() {
+void EditorManager::CloseRomLoadOptions(const char* reason) {
+  const bool had_owner = rom_load_options_owner_.has_value();
   show_rom_load_options_ = false;
   rom_load_options_owner_.reset();
   rom_load_options_dialog_.Close();
+  if (had_owner) {
+    toast_manager_.Show(
+        absl::StrFormat("ROM load options closed without changes because %s",
+                        reason),
+        ToastType::kInfo);
+  }
 }
 
 bool EditorManager::ApplyRememberedRomLoadChoice() {
