@@ -4,12 +4,14 @@
 #include <string>
 #include <vector>
 
+#include "absl/cleanup/cleanup.h"
 #include "app/editor/layout/layout_designer/dock_tree.h"
 #include "app/editor/layout/layout_designer/dock_tree_json.h"
 #include "app/editor/layout/layout_manager.h"
 #include "app/editor/layout/layout_presets.h"
 #include "app/editor/system/session/user_settings.h"
 #include "app/editor/system/workspace/workspace_window_manager.h"
+#include "core/features.h"
 #include "imgui/imgui.h"
 #include "imgui/imgui_internal.h"
 #include "nlohmann/json.hpp"
@@ -194,6 +196,44 @@ TEST_F(LayoutManagerDockTreeTest, DungeonDefaultBuildsSingleDockLeaf) {
   EXPECT_TRUE(root->IsLeafNode())
       << "Workbench-only startup must not reserve empty side docks for "
          "optional tools";
+}
+
+TEST_F(LayoutManagerDockTreeTest,
+       SwitchingEditorsRebuildsSharedTreeOnlyOnFirstActivation) {
+  const auto old_flags = core::FeatureFlags::get().dungeon;
+  absl::Cleanup restore_flags = [&] {
+    core::FeatureFlags::get().dungeon = old_flags;
+  };
+  core::FeatureFlags::get().dungeon.kUseWorkbench = true;
+  layout_manager_.InitializeEditorLayout(EditorType::kOverworld, kDockspaceId);
+  ASSERT_TRUE(ImGui::DockBuilderGetNode(kDockspaceId)->IsSplitNode());
+
+  layout_manager_.InitializeEditorLayout(EditorType::kDungeon, kDockspaceId);
+  ASSERT_TRUE(ImGui::DockBuilderGetNode(kDockspaceId)->IsLeafNode());
+
+  layout_manager_.InitializeEditorLayout(EditorType::kOverworld, kDockspaceId);
+  EXPECT_TRUE(ImGui::DockBuilderGetNode(kDockspaceId)->IsLeafNode());
+}
+
+TEST_F(LayoutManagerDockTreeTest,
+       SwitchingEditorsAfterApplyingCustomTreeRebuildsSharedTree) {
+  const auto old_flags = core::FeatureFlags::get().dungeon;
+  absl::Cleanup restore_flags = [&] {
+    core::FeatureFlags::get().dungeon = old_flags;
+  };
+  core::FeatureFlags::get().dungeon.kUseWorkbench = true;
+  layout_manager_.InitializeEditorLayout(EditorType::kOverworld, kDockspaceId);
+  DockTree custom;
+  custom.root = DockNode::MakeSplit(SplitDirection::kLeft, 0.5f,
+                                    DockNode::MakeLeaf({MakePanel("a")}),
+                                    DockNode::MakeLeaf({MakePanel("b")}));
+  ASSERT_TRUE(layout_manager_.ApplyDockTree(custom, kDockspaceId).ok());
+  ASSERT_TRUE(ImGui::DockBuilderGetNode(kDockspaceId)->IsSplitNode());
+
+  layout_manager_.InitializeEditorLayout(EditorType::kDungeon, kDockspaceId);
+  ASSERT_TRUE(ImGui::DockBuilderGetNode(kDockspaceId)->IsLeafNode());
+  layout_manager_.InitializeEditorLayout(EditorType::kOverworld, kDockspaceId);
+  EXPECT_TRUE(ImGui::DockBuilderGetNode(kDockspaceId)->IsLeafNode());
 }
 
 TEST_F(LayoutManagerDockTreeTest,
