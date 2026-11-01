@@ -557,7 +557,11 @@ TEST_F(EditorManagerTest,
       windows.GetActiveSessionId(), LayoutPresets::Panels::kAssemblyEditor);
   ASSERT_NE(descriptor, nullptr);
   ASSERT_NE(descriptor->visibility_flag, nullptr);
-  ASSERT_FALSE(*descriptor->visibility_flag);
+  EXPECT_TRUE(*descriptor->visibility_flag);
+  EXPECT_TRUE(editor_manager_->user_settings()
+                  .prefs()
+                  .panel_visibility_state.at("Assembly")
+                  .at(LayoutPresets::Panels::kAssemblyEditor));
 
   auto& io = ImGui::GetIO();
   io.IniFilename = nullptr;
