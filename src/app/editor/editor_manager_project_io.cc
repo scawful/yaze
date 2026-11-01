@@ -434,18 +434,20 @@ void EditorManager::BindRomLoadOptionsToCurrentSession() {
 }
 
 bool EditorManager::RomLoadOptionsMatchCurrentSession() const {
+  return rom_load_options_owner_.has_value() &&
+         RomLoadOptionsOwnerMatchesCurrentSession(*rom_load_options_owner_);
+}
+
+bool EditorManager::RomLoadOptionsOwnerMatchesCurrentSession(
+    const RomLoadOptionsOwner& owner) const {
   const auto* rom = GetCurrentRom();
-  return rom_load_options_owner_.has_value() && rom && rom->is_loaded() &&
-         !current_project_.project_opened() &&
-         GetCurrentSessionId() == rom_load_options_owner_->session_id &&
-         active_project_context_session_id_ ==
-             rom_load_options_owner_->session_id &&
-         runtime_feature_flags_session_id_ ==
-             rom_load_options_owner_->session_id &&
-         RomLoadOptionsDialog::RomChoiceKey(rom->filename()) ==
-             rom_load_options_owner_->rom_key &&
+  return rom && rom->is_loaded() && !current_project_.project_opened() &&
+         GetCurrentSessionId() == owner.session_id &&
+         active_project_context_session_id_ == owner.session_id &&
+         runtime_feature_flags_session_id_ == owner.session_id &&
+         RomLoadOptionsDialog::RomChoiceKey(rom->filename()) == owner.rom_key &&
          zelda3::OverworldVersionHelper::GetAsmVersion(*rom) ==
-             rom_load_options_owner_->zso_version_byte;
+             owner.zso_version_byte;
 }
 
 void EditorManager::CloseRomLoadOptions() {
@@ -470,9 +472,20 @@ bool EditorManager::ApplyRememberedRomLoadChoice() {
 }
 
 void EditorManager::AnnounceRememberedRomLoadChoice() {
+  const auto* rom = GetCurrentRom();
+  if (!rom || !rom->is_loaded()) {
+    return;
+  }
+  const RomLoadOptionsOwner owner{
+      GetCurrentSessionId(),
+      RomLoadOptionsDialog::RomChoiceKey(rom->filename()),
+      zelda3::OverworldVersionHelper::GetAsmVersion(*rom)};
   toast_manager_.Show("Opened with this ROM's remembered load options",
-                      ToastType::kInfo, 6.0f, "Change…",
-                      [this]() { ShowRomLoadOptions(); });
+                      ToastType::kInfo, 6.0f, "Change…", [this, owner]() {
+                        if (RomLoadOptionsOwnerMatchesCurrentSession(owner)) {
+                          ShowRomLoadOptions();
+                        }
+                      });
 }
 
 void EditorManager::FinishRawRomOpen(bool remembered_load_options,

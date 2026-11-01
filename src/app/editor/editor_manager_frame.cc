@@ -259,7 +259,13 @@ void EditorManager::DrawInterface() {
 
   // Draw ROM load options dialog (ZSCustomOverworld, feature flags, project)
   if (show_rom_load_options_ && !RomLoadOptionsMatchCurrentSession()) {
+    const bool finish_current_open =
+        !rom_load_options_dialog_.reviewing() && rom_load_options_owner_ &&
+        rom_load_options_owner_->session_id == GetCurrentSessionId();
     CloseRomLoadOptions();
+    if (finish_current_open) {
+      ShowPostLoadSurface();
+    }
   }
   if (show_rom_load_options_) {
     rom_load_options_dialog_.Draw(&show_rom_load_options_);
