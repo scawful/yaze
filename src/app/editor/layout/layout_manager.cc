@@ -690,6 +690,28 @@ ImGuiID DockRootId(ImGuiID node_id) {
   return node ? node->ID : 0;
 }
 
+// Side of split node `parent` that its child `child` occupies.
+ImGuiDir ChildSide(const ImGuiDockNode* parent, const ImGuiDockNode* child) {
+  const bool first = parent->ChildNodes[0] == child;
+  if (parent->SplitAxis == ImGuiAxis_X) {
+    return first ? ImGuiDir_Left : ImGuiDir_Right;
+  }
+  return first ? ImGuiDir_Up : ImGuiDir_Down;
+}
+
+// A leaf split straight off a dockspace root is what an ImGui outer-edge drop
+// makes. Returns its side and its size along the split axis, else None.
+ImGuiDir DockspaceEdgeSide(const ImGuiDockNode* node, float* size) {
+  const ImGuiDockNode* root = node ? node->ParentNode : nullptr;
+  if (!root || root->ParentNode || !root->IsDockSpace() ||
+      !node->IsLeafNode() ||
+      (node->LocalFlags & ImGuiDockNodeFlags_CentralNode)) {
+    return ImGuiDir_None;
+  }
+  *size = node->Size[root->SplitAxis];
+  return ChildSide(root, node);
+}
+
 void LayoutIniClearAll(ImGuiContext*, ImGuiSettingsHandler* handler) {
   if (auto* manager = static_cast<LayoutManager*>(handler->UserData)) {
     manager->ResetLayoutIniSettings();
@@ -828,18 +850,38 @@ void LayoutManager::RecordPinSpot() {
   if (!outer || !pin) {
     return;
   }
-  const ImGuiAxis axis = outer->SplitAxis;
-  const float size = pin->Size[axis];
+  const float size = pin->Size[outer->SplitAxis];
   if (size <= 0.0f) {
     return;  // Split this frame; laid out on the next one.
   }
-  const bool first = outer->ChildNodes[0] == pin;
-  if (axis == ImGuiAxis_X) {
-    pin_dir_ = first ? ImGuiDir_Left : ImGuiDir_Right;
-  } else {
-    pin_dir_ = first ? ImGuiDir_Up : ImGuiDir_Down;
-  }
+  pin_dir_ = ChildSide(outer, pin);
   pin_size_ = size;
+}
+
+ImGuiID LayoutManager::MovePinSpot(ImGuiDir dir, float size) {
+  ImGuiID pin = FindPinNode();
+  if (pin != 0 && dir == pin_dir_) {
+    return pin;
+  }
+  // Rebuild the pin node on the new side and carry its panels over.
+  std::vector<std::string> moved;
+  if (ImGuiDockNode* node = ImGui::DockBuilderGetNode(pin)) {
+    for (ImGuiWindow* window : node->Windows) {
+      moved.emplace_back(window->Name);
+    }
+    ImGui::DockBuilderRemoveNode(pin);
+  }
+  pin_dir_ = dir;
+  if (size > 0.0f) {
+    pin_size_ = size;
+  }
+  pin = EnsurePinNode();
+  if (pin != 0) {
+    for (const std::string& name : moved) {
+      ImGui::DockBuilderDockWindow(name.c_str(), pin);
+    }
+  }
+  return pin;
 }
 
 ImVec2 LayoutManager::EditorDockspaceSize() const {
@@ -978,20 +1020,33 @@ void LayoutManager::EnforcePinnedPanels(ImGuiID pin_node) {
   };
 
   // Docked pinned panels belong in the pin node. Floating ones stay floating.
+  // A panel that was already pinned last frame and now sits on an editor's
+  // outer edge was dragged there: the pin spot moves to that side. A panel
+  // pinned this frame keeps the current side wherever it was docked.
+  std::unordered_set<std::string> pinned_now;
   for (const auto& panel_id : window_manager_->GetPinnedWindows(session_id)) {
     ImGuiWindow* window = find_window(panel_id);
-    if (!window || window->DockId == 0 ||
-        DockRootId(window->DockId) == outer_id) {
+    if (!window) {
       continue;
+    }
+    pinned_now.insert(window->Name);
+    if (window->DockId == 0 || DockRootId(window->DockId) == outer_id) {
+      continue;
+    }
+    float edge_size = 0.0f;
+    const ImGuiDir edge = DockspaceEdgeSide(
+        ImGui::DockBuilderGetNode(window->DockId), &edge_size);
+    if (edge != ImGuiDir_None && pinned_last_frame_.contains(window->Name)) {
+      pin_node = MovePinSpot(edge, edge_size);
     }
     if (pin_node == 0) {
       pin_node = EnsurePinNode();
     }
-    if (pin_node == 0) {
-      break;
+    if (pin_node != 0) {
+      ImGui::DockBuilderDockWindow(window->Name, pin_node);
     }
-    ImGui::DockBuilderDockWindow(window->Name, pin_node);
   }
+  pinned_last_frame_ = std::move(pinned_now);
 
   // An unpinned panel left in the pin node goes back to the active editor.
   const ImGuiID home_dockspace = ActiveEditorDockspaceId();

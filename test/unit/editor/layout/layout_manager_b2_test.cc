@@ -282,6 +282,89 @@ TEST_F(LayoutManagerB2Test, PinSpotLoadsSideAndSizeFromIni) {
   EXPECT_NEAR(outer->ChildNodes[0]->Size.x, 333.0f, 2.0f);
 }
 
+TEST_F(LayoutManagerB2Test, PinnedPanelDraggedToEditorEdgeMovesPinSpot) {
+  BuildPinnedPalette();
+  ASSERT_EQ(layout_manager_.pin_dir(), ImGuiDir_Right);
+  const ImGuiID dungeon =
+      LayoutManager::EditorDockspaceId(EditorType::kDungeon);
+  const auto panels = [&] {
+    SubmitPanel(palette_title_, dungeon);
+    SubmitPanel(objects_title_, dungeon);
+  };
+
+  // Stands in for dropping the pinned palette on the editor's left outer-edge
+  // marker: ImGui splits the dockspace root and docks it in the new leaf.
+  ImGuiID left = 0;
+  ImGuiID rest = 0;
+  ImGui::DockBuilderSplitNode(dungeon, ImGuiDir_Left, 0.25f, &left, &rest);
+  ImGui::DockBuilderDockWindow(palette_title_.c_str(), left);
+  RunFrames(3, panels);
+
+  const ImGuiID pin = layout_manager_.FindPinNode();
+  ASSERT_NE(pin, 0u);
+  EXPECT_EQ(layout_manager_.pin_dir(), ImGuiDir_Left);
+  ImGuiDockNode* outer =
+      ImGui::DockBuilderGetNode(LayoutManager::OuterDockspaceId());
+  ASSERT_TRUE(outer->IsSplitNode());
+  EXPECT_EQ(outer->ChildNodes[0]->ID, pin);
+  EXPECT_EQ(DockIdOf(palette_title_.c_str()), pin);
+  EXPECT_EQ(RootOf(objects_title_.c_str()), dungeon);
+  EXPECT_NE(SaveIni().find("PinSide=Left"), std::string::npos);
+}
+
+TEST_F(LayoutManagerB2Test, PinnedPanelDroppedInsideEditorKeepsPinSide) {
+  BuildPinnedPalette();
+  const ImGuiID pin = layout_manager_.FindPinNode();
+  ASSERT_NE(pin, 0u);
+  const ImGuiID dungeon =
+      LayoutManager::EditorDockspaceId(EditorType::kDungeon);
+
+  // A drop that is not on an outer edge (here, as a tab in the root leaf)
+  // sends the panel back to the pin spot it came from.
+  ImGui::DockBuilderDockWindow(palette_title_.c_str(), dungeon);
+  RunFrames(3, [&] {
+    SubmitPanel(palette_title_, dungeon);
+    SubmitPanel(objects_title_, dungeon);
+  });
+  EXPECT_EQ(layout_manager_.pin_dir(), ImGuiDir_Right);
+  EXPECT_EQ(RootOf(palette_title_.c_str()), LayoutManager::OuterDockspaceId());
+  EXPECT_EQ(ImGui::DockBuilderGetNode(LayoutManager::OuterDockspaceId())
+                ->ChildNodes[1]
+                ->ID,
+            layout_manager_.FindPinNode());
+}
+
+TEST_F(LayoutManagerB2Test, PanelPinnedOnEditorEdgeKeepsPinSide) {
+  layout_manager_.SetActiveEditorType(EditorType::kDungeon);
+  const ImGuiID dungeon =
+      LayoutManager::EditorDockspaceId(EditorType::kDungeon);
+  const auto panels = [&] {
+    SubmitPanel(palette_title_, dungeon);
+    SubmitPanel(objects_title_, dungeon);
+  };
+  RunFrames(2, panels);
+
+  // The palette sits in a left edge leaf before it is pinned.
+  ImGuiID left = 0;
+  ImGuiID rest = 0;
+  ImGui::DockBuilderSplitNode(dungeon, ImGuiDir_Left, 0.25f, &left, &rest);
+  ImGui::DockBuilderDockWindow(palette_title_.c_str(), left);
+  RunFrames(2, panels);
+  ASSERT_EQ(DockIdOf(palette_title_.c_str()), left);
+
+  // Pinning it there is not a drag: the pin spot stays on its saved side.
+  window_manager_.SetWindowPinned(0, kPaletteId, true);
+  RunFrames(3, panels);
+  const ImGuiID pin = layout_manager_.FindPinNode();
+  ASSERT_NE(pin, 0u);
+  EXPECT_EQ(layout_manager_.pin_dir(), ImGuiDir_Right);
+  EXPECT_EQ(ImGui::DockBuilderGetNode(LayoutManager::OuterDockspaceId())
+                ->ChildNodes[1]
+                ->ID,
+            pin);
+  EXPECT_EQ(DockIdOf(palette_title_.c_str()), pin);
+}
+
 TEST_F(LayoutManagerB2Test, IniRoundTripKeepsInitializedEditorTrees) {
   layout_manager_.SetActiveEditorType(EditorType::kDungeon);
   layout_manager_.MarkLayoutInitialized(EditorType::kDungeon);

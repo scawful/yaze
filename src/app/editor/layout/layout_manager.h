@@ -487,6 +487,9 @@ class LayoutManager {
   bool RestoreLazyDefaultDockState(EditorType type, ImGuiID dockspace_id);
   ImGuiID EnsurePinNode();
   void RecordPinSpot();
+  // Puts the pin node on side `dir` (size in pixels, 0 keeps the saved one)
+  // and moves the panels already pinned there. Returns the pin node.
+  ImGuiID MovePinSpot(ImGuiDir dir, float size);
   ImVec2 EditorDockspaceSize() const;
   void EnforcePinnedPanels(ImGuiID pin_node);
   void ProtectRestoredLayoutFromDefaultInitialization();
@@ -561,6 +564,10 @@ class LayoutManager {
   // when its last panel leaves, so the user's drag is kept here.
   ImGuiDir pin_dir_ = ImGuiDir_Right;
   float pin_size_ = 0.0f;
+
+  // Window names of the panels pinned at the last EnforcePinnedPanels. Tells
+  // a drag of a pinned panel apart from a panel pinned where it already sat.
+  std::unordered_set<std::string> pinned_last_frame_;
 
   // Default presets may omit hidden panels from the initial dock tree. Keep
   // enough state to create their preferred region lazily on first open.
