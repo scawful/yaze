@@ -242,6 +242,72 @@ TEST_F(LayoutManagerDockTreeTest, ApplyRestoresSelectedTabAfterDrawing) {
   EXPECT_EQ(node->SelectedTabId, selected->TabId);
 }
 
+TEST_F(LayoutManagerDockTreeTest, NewInputCancelsPendingTabRestore) {
+  const auto title_a = window_manager_.GetWorkspaceWindowName(0, "a");
+  const auto title_b = window_manager_.GetWorkspaceWindowName(0, "b");
+  DockTree tree;
+  tree.root = DockNode::MakeLeaf({MakePanel("a"), MakePanel("b")});
+  tree.root->active_tab_index = 0;
+  ASSERT_TRUE(layout_manager_.ApplyDockTree(tree, kDockspaceId).ok());
+  ImGui::EndFrame();
+  ImGui::Render();
+  ImGui::GetIO().AddKeyEvent(ImGuiKey_A, true);
+  for (int frame = 0; frame < 6; ++frame) {
+    ImGui::NewFrame();
+    layout_manager_.ProcessPendingDockTabSelections();
+    ImGui::Begin("Dock host");
+    ImGui::DockSpace(kDockspaceId, ImVec2(800, 600));
+    ImGui::End();
+    ImGui::Begin(title_a.c_str());
+    ImGui::End();
+    ImGui::Begin(title_b.c_str());
+    ImGui::End();
+    ImGui::EndFrame();
+    ImGui::Render();
+  }
+  ImGui::NewFrame();
+  const ImGuiDockNode* node = ImGui::DockBuilderGetNode(kDockspaceId);
+  ASSERT_NE(node, nullptr);
+  const ImGuiWindow* selected = ImGui::FindWindowByName(title_b.c_str());
+  ASSERT_NE(selected, nullptr);
+  EXPECT_EQ(node->SelectedTabId, selected->TabId);
+}
+
+TEST_F(LayoutManagerDockTreeTest, SessionSwitchCancelsPendingTabRestore) {
+  const auto title_a = window_manager_.GetWorkspaceWindowName(0, "a");
+  const auto title_b = window_manager_.GetWorkspaceWindowName(0, "b");
+  DockTree tree;
+  tree.root = DockNode::MakeLeaf({MakePanel("a"), MakePanel("b")});
+  tree.root->active_tab_index = 0;
+  ASSERT_TRUE(layout_manager_.ApplyDockTree(tree, kDockspaceId).ok());
+  window_manager_.RegisterSession(1);
+  window_manager_.SetActiveSession(1);
+  ImGui::EndFrame();
+  ImGui::Render();
+  for (int frame = 0; frame < 6; ++frame) {
+    ImGui::NewFrame();
+    layout_manager_.ProcessPendingDockTabSelections();
+    if (frame == 0) {
+      window_manager_.SetActiveSession(0);
+    }
+    ImGui::Begin("Dock host");
+    ImGui::DockSpace(kDockspaceId, ImVec2(800, 600));
+    ImGui::End();
+    ImGui::Begin(title_a.c_str());
+    ImGui::End();
+    ImGui::Begin(title_b.c_str());
+    ImGui::End();
+    ImGui::EndFrame();
+    ImGui::Render();
+  }
+  ImGui::NewFrame();
+  const ImGuiDockNode* node = ImGui::DockBuilderGetNode(kDockspaceId);
+  ASSERT_NE(node, nullptr);
+  const ImGuiWindow* selected = ImGui::FindWindowByName(title_b.c_str());
+  ASSERT_NE(selected, nullptr);
+  EXPECT_EQ(node->SelectedTabId, selected->TabId);
+}
+
 TEST_F(LayoutManagerDockTreeTest, DungeonDefaultBuildsSingleDockLeaf) {
   layout_manager_.InitializeEditorLayout(EditorType::kDungeon, kDockspaceId);
 
