@@ -71,9 +71,12 @@ Details:
   `Documents\Yaze\settings.json`, creates that folder, and skips every test.
   All test processes of one run share these dirs (the harness would give each
   process its own), so tests that write settings can interfere under `ctest -j`.
-- **Cleanup.** The newest `MM_MAX_WORKTREES` worktrees (default 8, by last
-  use) are kept; older ones and job dirs older than two days are removed.
-  `--clean` deletes one branch's build dir before building.
+- **Cleanup.** Remote worktrees and job directories are retained. They may
+  contain sources, ROMs, profiles or pending test evidence, so age and a cache
+  limit cannot authorize removal. Cleanup needs a separate owner review and
+  the inventory/capture/restore/freshness preservation gate. The runner removes
+  only its own lock-owner marker on completion. `--clean` still explicitly
+  deletes the selected branch's build directory; inspect its contents first.
 
 ## Configuration
 
@@ -82,7 +85,7 @@ Details:
 | `MM_HOST` | unset | SSH alias of one PC to use (key auth, default shell `cmd`); disables fallback |
 | `MM_HOSTS` | `mm` | Boxes tried in order when `MM_HOST` is unset: the first ready box with a free build lock runs the job; if all are busy, it waits on the first reachable one |
 | `MM_REMOTE_ROOT` | `src/yaze-remote` | Runner dir, relative to the remote home |
-| `MM_MAX_WORKTREES` | `8` | Worktrees kept on the PC |
+| `MM_MAX_WORKTREES` | `8` | Legacy job parameter, accepted for compatibility; automatic worktree/job removal is disabled |
 | `MM_LOCK_WAIT_MIN` | `120` | Minutes to wait for the build lock |
 
 The PC-side clone (`%USERPROFILE%\src\yaze`) and worktree root
