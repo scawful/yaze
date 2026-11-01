@@ -297,7 +297,7 @@ void PaletteGroupPanel::DrawToolbar() {
   // Discard button (danger action)
   ImGui::BeginDisabled(!has_changes);
   if (DangerButton(absl::StrFormat("%s Discard", ICON_MD_UNDO).c_str())) {
-    DiscardChanges();
+    reset_all_requested_ = true;  // same confirm as Reset All Palettes
   }
   ImGui::EndDisabled();
   if (!has_changes &&
@@ -318,7 +318,7 @@ void PaletteGroupPanel::DrawToolbar() {
         }
       }
     }
-    ImGui::TextColored(ImVec4(1.0f, 0.6f, 0.0f, 1.0f), tr("%s %zu modified"),
+    ImGui::TextColored(gui::GetWarningColor(), tr("%s %zu modified"),
                        ICON_MD_EDIT, modified_count);
   }
 

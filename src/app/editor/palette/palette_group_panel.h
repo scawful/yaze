@@ -305,7 +305,7 @@ class PaletteGroupPanel : public WindowContent {
 
   ToastManager* toast_manager_ = nullptr;
 
-  // Set by the batch popup; DrawContent opens the confirm modal next frame.
+  // Set by toolbar Discard or the batch popup; DrawContent opens the confirm.
   bool reset_all_requested_ = false;
   static constexpr const char* kResetAllPopupId = "Reset all palettes##confirm";
 };
