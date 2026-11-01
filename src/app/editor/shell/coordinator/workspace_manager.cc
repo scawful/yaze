@@ -45,38 +45,6 @@ absl::Status WorkspaceManager::LoadWorkspaceLayout(const std::string& name) {
   return absl::OkStatus();
 }
 
-absl::Status WorkspaceManager::ResetWorkspaceLayout() {
-  if (ImGui::GetCurrentContext()) {
-    static const char kEmptyIni[] = "\n";
-    ImGui::LoadIniSettingsFromMemory(kEmptyIni, sizeof(kEmptyIni) - 1);
-  }
-
-  if (auto ini_path = util::PlatformPaths::GetImGuiIniPath(); ini_path.ok()) {
-    std::error_code ec;
-    std::filesystem::remove(*ini_path, ec);
-    if (ec) {
-      LOG_WARN("WorkspaceManager", "Failed to remove ImGui ini: %s",
-               ec.message().c_str());
-    }
-  }
-
-  if (layout_manager_) {
-    layout_manager_->ClearInitializationFlags();
-
-    EditorType editor_type = EditorType::kSettings;
-    if (window_manager_) {
-      editor_type = EditorRegistry::GetEditorTypeFromCategory(
-          window_manager_->GetActiveCategory());
-    }
-    layout_manager_->ResetToDefaultLayout(editor_type);
-    layout_manager_->RequestRebuild();
-  }
-  if (toast_manager_) {
-    toast_manager_->Show("Layout reset to default", ToastType::kInfo);
-  }
-  return absl::OkStatus();
-}
-
 void WorkspaceManager::SaveWorkspacePreset(const std::string& name) {
   if (name.empty())
     return;

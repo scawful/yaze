@@ -1182,9 +1182,9 @@ void ConfigureMenuShortcuts(const ShortcutDependencies& deps,
   // Proposal Drawer
   RegisterIfValid(shortcut_manager, "Reset Layout",
                   {ImGuiMod_Ctrl, ImGuiMod_Alt, ImGuiKey_R},
-                  [workspace_manager]() {
-                    if (workspace_manager) {
-                      workspace_manager->ResetWorkspaceLayout();
+                  [menu_orchestrator]() {
+                    if (menu_orchestrator) {
+                      menu_orchestrator->OnResetWorkspaceLayout();
                     }
                   });
 

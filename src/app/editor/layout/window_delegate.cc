@@ -329,7 +329,8 @@ void WindowDelegate::ApplyLayoutToWindow(const std::string& window_id,
 
 void WindowDelegate::SaveWorkspaceLayout() {
   std::filesystem::path layout_path = "yaze_workspace.ini";
-  auto workspace_dir = util::PlatformPaths::GetAppDataSubdirectory("workspaces");
+  auto workspace_dir =
+      util::PlatformPaths::GetAppDataSubdirectory("workspaces");
   if (workspace_dir.ok()) {
     layout_path = *workspace_dir / "yaze_workspace.ini";
   }
@@ -340,19 +341,14 @@ void WindowDelegate::SaveWorkspaceLayout() {
 
 void WindowDelegate::LoadWorkspaceLayout() {
   std::filesystem::path layout_path = "yaze_workspace.ini";
-  auto workspace_dir = util::PlatformPaths::GetAppDataSubdirectory("workspaces");
+  auto workspace_dir =
+      util::PlatformPaths::GetAppDataSubdirectory("workspaces");
   if (workspace_dir.ok()) {
     layout_path = *workspace_dir / "yaze_workspace.ini";
   }
   ImGui::LoadIniSettingsFromDisk(layout_path.string().c_str());
   printf("[WindowDelegate] Workspace layout loaded from %s\n",
          layout_path.string().c_str());
-}
-
-void WindowDelegate::ResetWorkspaceLayout() {
-  // Request layout rebuild - the actual reset is handled by LayoutManager
-  // Do NOT use LoadIniSettingsFromMemory(nullptr) as it causes crashes
-  printf("[WindowDelegate] Workspace layout reset requested\n");
 }
 
 }  // namespace editor

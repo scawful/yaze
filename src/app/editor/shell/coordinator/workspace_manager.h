@@ -46,7 +46,6 @@ class WorkspaceManager {
   // Layout management
   absl::Status SaveWorkspaceLayout(const std::string& name = "");
   absl::Status LoadWorkspaceLayout(const std::string& name = "");
-  absl::Status ResetWorkspaceLayout();
 
   // Preset management
   void SaveWorkspacePreset(const std::string& name);
