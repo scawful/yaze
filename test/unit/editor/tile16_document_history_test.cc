@@ -1,14 +1,17 @@
 #include "app/editor/overworld/tile16/tile16_edit_session.h"
 
 #include <chrono>
+#include <cmath>
 #include <filesystem>
 #include <string>
+#include <vector>
 
 #include "app/editor/graphics/usage_preview.h"
 #include "app/editor/overworld/canvas/overworld_canvas_renderer.h"
 #include "app/editor/overworld/overworld_undo_actions.h"
 #include "app/gfx/resource/arena.h"
 #include "gtest/gtest.h"
+#include "zelda3/common.h"
 #include "zelda3/overworld/tile16_metadata.h"
 
 namespace yaze::editor {
@@ -223,6 +226,59 @@ TEST(Tile16RangePasteBlockerTest, NeedsTileIdOrderRomMapAndRoom) {
                                     false),
             "");
   EXPECT_NE(Tile16RangePasteBlocker(4, -1, false, false), "");
+}
+
+TEST(AreaGraphicsSelectorTest, CellIndexIsTile8Id) {
+  const auto config = AreaGraphicsSelectorConfig();
+  EXPECT_EQ(config.tile_size, 8);
+  EXPECT_EQ(config.tiles_per_row, 16);
+  EXPECT_EQ(config.total_tiles, 1024);
+  // Tile8 $123 is drawn from pixel (3 * 8, 0x12 * 8) of the 128px sheet.
+  EXPECT_EQ(0x123 % config.tiles_per_row * config.tile_size, 24);
+  EXPECT_EQ(0x123 / config.tiles_per_row * config.tile_size, 0x12 * 8);
+}
+
+TEST(AreaGraphicsSelectorTest, FitAndFixedZoomsUseWholePixelCells) {
+  ImGuiContext* context = ImGui::CreateContext();
+  const auto config = AreaGraphicsSelectorConfig();
+  gui::TileSelectorWidget selector("AreaGraphicsSelectorTest", config);
+  const float chrome = gui::TileSelectorWidget::CurrentScrollbarSize() +
+                       2.0f * config.draw_offset.x;
+  for (const float width : {150.0f, 233.0f, 344.0f, 517.0f, 700.0f}) {
+    for (const auto mode :
+         {gui::AdaptiveSheetScaleMode::kFit, gui::AdaptiveSheetScaleMode::k1x,
+          gui::AdaptiveSheetScaleMode::k2x, gui::AdaptiveSheetScaleMode::k4x}) {
+      selector.SetDisplayScale(
+          gui::ResolveAdaptiveSheetLayout(width, 0x80, 0x200, mode, 0.25f, 4.0f,
+                                          chrome)
+              .display_scale);
+      const float cell = selector.TileCellSize();
+      EXPECT_FLOAT_EQ(cell, std::floor(cell)) << width;
+      const ImVec2 grid = selector.GetGridContentSize();
+      // Every one of the 64 rows is inside the scrollable content.
+      EXPECT_GE(grid.y, 64.0f * cell) << width;
+      if (mode == gui::AdaptiveSheetScaleMode::kFit) {
+        EXPECT_LE(grid.x + gui::TileSelectorWidget::CurrentScrollbarSize(),
+                  width)
+            << width;
+      }
+    }
+  }
+  ImGui::DestroyContext(context);
+}
+
+TEST(AreaGraphicsSelectorTest, CollisionLabelNeverInventsNormal) {
+  std::vector<uint8_t> types(zelda3::kNumTileTypes, 0);
+  types[0x1F] = 0x20;
+  EXPECT_EQ(Tile8CollisionLabel(0x1F, types), zelda3::TileTypeNames[0x20]);
+  EXPECT_EQ(Tile8CollisionLabel(0, types), zelda3::TileTypeNames[0]);
+  // No table (project terrain, unknown layout): no zero-filled "Normal".
+  EXPECT_EQ(Tile8CollisionLabel(0x1F, {}), "unavailable for this map/layout");
+  // Sprite-sheet rows ($200+) are outside the collision table.
+  EXPECT_EQ(Tile8CollisionLabel(0x200, types),
+            "unknown (Tile8 ID outside collision table)");
+  EXPECT_EQ(Tile8CollisionLabel(-1, types),
+            "unknown (Tile8 ID outside collision table)");
 }
 
 TEST_F(Tile16DocumentHistoryTest, LargeDefinitionImportIsOneCompleteUndoStep) {

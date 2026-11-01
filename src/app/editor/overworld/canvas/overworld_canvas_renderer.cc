@@ -49,6 +49,7 @@
 #include "core/lyra_terrain_document.h"
 #include "rom/rom.h"
 #include "util/log.h"
+#include "zelda3/common.h"
 #include "zelda3/overworld/overworld.h"
 #include "zelda3/resource_labels.h"
 
@@ -128,6 +129,33 @@ void DrawSheetScaleControl(const char* id, gui::AdaptiveSheetScaleMode* mode) {
   if (ImGui::Combo(id, &selected, kLabels, IM_ARRAYSIZE(kLabels))) {
     *mode = static_cast<gui::AdaptiveSheetScaleMode>(selected);
   }
+}
+
+gui::TileSelectorWidget::Config AreaGraphicsSelectorConfig() {
+  // The area sheet is 0x80 pixels wide: Tile8 ID n sits at column n % 16,
+  // row n / 16 (see zelda3/overworld/graphics_preview.h).
+  constexpr int kTile8Size = 8;
+  constexpr int kColumns = 0x80 / kTile8Size;
+  gui::TileSelectorWidget::Config config;
+  config.tile_size = kTile8Size;
+  config.display_scale = 1.0f;
+  config.tiles_per_row = kColumns;
+  config.total_tiles =
+      kColumns * static_cast<int>(kOverworldMapSize) / kTile8Size;
+  config.draw_offset = ImVec2(kTile16SelectorDrawOffsetX, 0.0f);
+  config.show_hover_tooltip = true;
+  return config;
+}
+
+std::string Tile8CollisionLabel(int tile8_id, absl::Span<const uint8_t> types) {
+  // Same wording as the Tile16 workbench quadrant readout.
+  if (tile8_id < 0 || tile8_id >= zelda3::kNumTileTypes) {
+    return "unknown (Tile8 ID outside collision table)";
+  }
+  if (types.size() < static_cast<size_t>(zelda3::kNumTileTypes)) {
+    return "unavailable for this map/layout";
+  }
+  return zelda3::TileTypeNames[types[tile8_id]];
 }
 
 namespace {}  // namespace
@@ -1490,50 +1518,90 @@ absl::Status OverworldCanvasRenderer::DrawAreaGraphics() {
     }
   }
 
-  const float available_width = ImGui::GetContentRegionAvail().x;
   DrawSheetScaleControl("##AreaGraphicsScale", &area_graphics_scale_mode_);
-  const gui::AdaptiveSheetLayout sheet_layout = gui::ResolveAdaptiveSheetLayout(
-      available_width, 0x80, kOverworldMapSize, area_graphics_scale_mode_,
-      0.35f, 4.0f, ImGui::GetStyle().ScrollbarSize);
-  ImGui::SameLine();
-  ImGui::TextDisabled("%.2fx", sheet_layout.display_scale);
-
-  // Configure canvas frame options for area graphics
-  gui::CanvasFrameOptions frame_opts;
-  frame_opts.canvas_size = ImVec2(sheet_layout.displayed_width + 4.0f,
-                                  sheet_layout.displayed_height + 4.0f);
-  frame_opts.draw_grid = true;
-  frame_opts.grid_step = 16.0f * sheet_layout.display_scale;
-  frame_opts.draw_context_menu = true;
-  frame_opts.draw_overlay = true;
-  frame_opts.render_popups = true;
-  frame_opts.use_child_window = false;
-
-  gui::BeginPadding(3);
-  ImGui::BeginGroup();
-  gui::BeginChildWithScrollbar("##AreaGraphicsScrollRegion");
-
-  auto canvas_rt = gui::BeginCanvas(editor_->current_gfx_canvas_, frame_opts);
-  gui::EndPadding();
-
-  if (project_graphics &&
-      editor_->lyra_canvas_.MapGraphics(editor_->current_map_)) {
-    editor_->current_gfx_canvas_.DrawBitmap(
-        *editor_->lyra_canvas_.MapGraphics(editor_->current_map_), 2, 2,
-        sheet_layout.display_scale);
-  } else if (editor_->current_graphics_set_.contains(graphics_map) &&
-             editor_->current_graphics_set_[graphics_map]->is_active()) {
-    editor_->current_gfx_canvas_.DrawBitmap(
-        *editor_->current_graphics_set_[graphics_map], 2, 2,
-        sheet_layout.display_scale);
+  gfx::Bitmap* sheet = nullptr;
+  if (project_graphics) {
+    sheet = editor_->lyra_canvas_.MapGraphics(editor_->current_map_);
+  } else if (editor_->current_graphics_set_.contains(graphics_map)) {
+    sheet = editor_->current_graphics_set_[graphics_map].get();
   }
-  editor_->current_gfx_canvas_.DrawTileSelector(16.0f *
-                                                sheet_layout.display_scale);
-
-  gui::EndCanvas(editor_->current_gfx_canvas_, canvas_rt, frame_opts);
-  ImGui::EndChild();
-  ImGui::EndGroup();
+  if (sheet == nullptr) {
+    ImGui::TextDisabled("%s", tr("Area graphics are not loaded"));
+    return absl::OkStatus();
+  }
+  DrawAreaGraphicsSheet(*sheet, 0.0f);
   return absl::OkStatus();
+}
+
+void OverworldCanvasRenderer::DrawAreaGraphicsSheet(gfx::Bitmap& sheet,
+                                                    float grid_height) {
+  if (!area_graphics_selector_) {
+    auto config = AreaGraphicsSelectorConfig();
+    config.highlight_color = AgentUI::GetTheme().selection_primary;
+    area_graphics_selector_ = std::make_unique<gui::TileSelectorWidget>(
+        "OwAreaGraphicsSelector", config);
+    area_graphics_selector_->AttachCanvas(&editor_->current_gfx_canvas_);
+    // The canvas scale/grid items do not apply to a fixed tile grid.
+    editor_->current_gfx_canvas_.SetShowBuiltinContextMenu(false);
+    area_graphics_selector_->SetHoverDetailProvider([this](int tile8_id) {
+      return absl::StrFormat("Type: %s",
+                             Tile8CollisionLabel(tile8_id, area_tile8_types_));
+    });
+  }
+  auto* selector = area_graphics_selector_.get();
+  const auto config = AreaGraphicsSelectorConfig();
+  if (sheet.width() == config.tiles_per_row * config.tile_size &&
+      sheet.height() > 0) {
+    selector->SetTileCount(config.tiles_per_row *
+                           (sheet.height() / config.tile_size));
+  }
+
+  // Project terrain and unsupported layouts have no collision table; zeros
+  // there would read as real "Normal" types.
+  area_tile8_types_.clear();
+  if (!editor_->IsProjectTerrainMap(editor_->current_map_)) {
+    if (auto types =
+            editor_->overworld_.GetTile8CollisionTypes(editor_->current_map_);
+        types.ok()) {
+      area_tile8_types_.assign(types->begin(), types->end());
+    }
+  }
+
+  editor_->current_gfx_canvas_.ClearContextMenuItems();
+  editor_->current_gfx_canvas_.AddContextMenuItem(
+      selector->CopyTileIdMenuItem());
+
+  // Fit leaves room for the vertical scrollbar and both draw offsets, and the
+  // selector snaps the scale to whole-pixel cells, so the grid never needs a
+  // horizontal scrollbar at Fit. Fixed zooms scroll both ways.
+  const gui::AdaptiveSheetLayout layout = gui::ResolveAdaptiveSheetLayout(
+      ImGui::GetContentRegionAvail().x, config.tiles_per_row * config.tile_size,
+      (selector->GetMaxTileId() + 1) / config.tiles_per_row * config.tile_size,
+      area_graphics_scale_mode_, 0.25f, 4.0f,
+      gui::TileSelectorWidget::CurrentScrollbarSize() +
+          2.0f * config.draw_offset.x);
+  selector->SetDisplayScale(layout.display_scale);
+
+  const int selected = selector->GetSelectedTileID();
+  ImGui::Text("Tile8 $%03X; type: %s", selected,
+              Tile8CollisionLabel(selected, area_tile8_types_).c_str());
+
+  // Padding is read at BeginChild; pop it right away so the grid's tooltip
+  // and context menu keep normal popup padding.
+  ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
+  const bool grid_visible = ImGui::BeginChild(
+      "##AreaGraphicsGrid", ImVec2(0.0f, grid_height), ImGuiChildFlags_None,
+      ImGuiWindowFlags_AlwaysVerticalScrollbar |
+          ImGuiWindowFlags_HorizontalScrollbar);
+  ImGui::PopStyleVar();
+  if (grid_visible) {
+    const ImVec2 grid_size = selector->GetGridContentSize();
+    const float canvas_scale = editor_->current_gfx_canvas_.global_scale();
+    editor_->current_gfx_canvas_.SetCanvasSize(
+        ImVec2(grid_size.x / canvas_scale, grid_size.y / canvas_scale));
+    selector->Render(sheet, sheet.is_active());
+  }
+  ImGui::EndChild();
 }
 
 void OverworldCanvasRenderer::DrawV3Settings() {

@@ -3,15 +3,18 @@
 
 #include <algorithm>
 #include <cstdint>
+#include <memory>
 #include <optional>
 #include <string>
 #include <unordered_map>
 #include <vector>
 
 #include "absl/status/status.h"
+#include "absl/types/span.h"
 #include "app/gfx/core/bitmap.h"
 #include "app/gui/canvas/canvas_types.h"
 #include "app/gui/layout/adaptive_sheet_layout.h"
+#include "app/gui/widgets/tile_selector_widget.h"
 #include "imgui/imgui.h"
 #include "zelda3/overworld/tile16_usage_index.h"
 
@@ -27,6 +30,14 @@ std::string Tile16RangePasteBlocker(int count, int dest, bool has_display_order,
                                     bool project_terrain);
 
 void DrawSheetScaleControl(const char* id, gui::AdaptiveSheetScaleMode* mode);
+
+/// Area graphics grid: one cell per 8x8 tile, 16 per row, so a cell index is
+/// the Tile8 ID that Tile16 definitions use.
+gui::TileSelectorWidget::Config AreaGraphicsSelectorConfig();
+
+/// Collision type name for a Tile8, or why it has none. An empty table means
+/// this map or ROM layout has no collision data to read.
+std::string Tile8CollisionLabel(int tile8_id, absl::Span<const uint8_t> types);
 
 /**
  * @class OverworldCanvasRenderer
@@ -152,6 +163,10 @@ class OverworldCanvasRenderer {
   void DrawTile16RangeOverlay();
   void AddTile16DefinitionMenuItems();
 
+  /// Draws `sheet` as a Tile8 grid in a scrolling child `grid_height` tall
+  /// (0 fills the panel) and shows the selected tile's collision type.
+  void DrawAreaGraphicsSheet(gfx::Bitmap& sheet, float grid_height);
+
   // =========================================================================
   // Data
   // =========================================================================
@@ -165,6 +180,9 @@ class OverworldCanvasRenderer {
       gui::AdaptiveSheetScaleMode::kFit;
   gui::AdaptiveSheetScaleMode area_graphics_scale_mode_ =
       gui::AdaptiveSheetScaleMode::kFit;
+  std::unique_ptr<gui::TileSelectorWidget> area_graphics_selector_;
+  // Collision types for the current map's Tile8s; empty when unavailable.
+  std::vector<uint8_t> area_tile8_types_;
 
   zelda3::Tile16SortMode tile16_sort_ = zelda3::Tile16SortMode::kUsage;
   Tile16UsageScope tile16_scope_ = Tile16UsageScope::kAllMaps;
