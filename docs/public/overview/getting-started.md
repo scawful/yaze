@@ -10,9 +10,8 @@ YAZE is a ROM editor for "The Legend of Zelda: A Link to the Past" (US and JP ve
    is the published experimental prerelease. The stable release is v0.7.2;
    nightly/source builds can contain later features. Check the
    [version-specific release notes](../release-notes.md#v080).
-2. **Copy your ROM before opening it.** For a `.yazeproj` project, copy the
-   complete bundle with its assets, not just `project.yaze`.
-3. **Launch** and open the copy via `File > Open ROM / Project`. Start with
+2. **Copy your ROM into a separate folder**, outside a `.yazeproj` bundle.
+3. **Launch** and open that ROM file directly via `File > Open ROM / Project`. Start with
    one small Dungeon room edit so the first save is easy to check.
 4. **Save** with `File > Save ROM`, keeping backups enabled. If saving stops,
    resolve the named pending edit or validation error before continuing.
@@ -21,7 +20,10 @@ YAZE is a ROM editor for "The Legend of Zelda: A Link to the Past" (US and JP ve
 
 ### Experimental Lyra projects
 
-Use a copied project and an editor version that understands its document schema.
+Copy the complete `.yazeproj` bundle with its assets. Before opening the copy,
+check the paths in `project.yaze`: its ROM and writable assets must point into
+the copy. Legacy projects can keep external paths after a folder copy.
+Use an editor version that understands the project's document schema.
 The published prerelease has the schema-3, 32-page Lyra document model; later
 gameplay-area, transport and reward models belong to newer source candidates.
 The [source and qualification matrix](../../internal/status.md#lyra-source-and-qualification-boundaries)
