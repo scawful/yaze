@@ -186,6 +186,11 @@ void EditorManager::HandleSessionSwitched(size_t new_index, RomSession* session,
   // the request. Never carry them across a user session switch. Frame-level
   // context switches are temporary and must not consume the active request.
   if (!transient) {
+    if (rom_load_options_owner_ &&
+        (!session ||
+         session->session_id() != rom_load_options_owner_->session_id)) {
+      CloseRomLoadOptions();
+    }
     ++project_rom_selection_generation_;
     pending_project_rom_selection_.reset();
     pending_project_open_transition_ = false;
@@ -358,6 +363,10 @@ void EditorManager::HandleSessionClosed(size_t index) {
         session_coordinator_->IsValidSessionIndex(index)
             ? static_cast<RomSession*>(session_coordinator_->GetSession(index))
             : nullptr;
+    if (closing_session && rom_load_options_owner_ &&
+        closing_session->session_id() == rom_load_options_owner_->session_id) {
+      CloseRomLoadOptions();
+    }
     if (closing_session != nullptr) {
       zelda3::CustomObjectManager::Get().RemoveRuntimeContext(
           closing_session->session_id());
@@ -406,6 +415,10 @@ void EditorManager::HandleSessionClosed(size_t index) {
 void EditorManager::HandleSessionRomLoaded(size_t index, Rom* rom) {
   auto* session =
       static_cast<RomSession*>(session_coordinator_->GetSession(index));
+  if (session && rom_load_options_owner_ &&
+      session->session_id() == rom_load_options_owner_->session_id) {
+    CloseRomLoadOptions();
+  }
   ResetAssetState(session);
 
   // Update ContentRegistry when ROM is loaded (if this is the active session)

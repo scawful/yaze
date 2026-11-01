@@ -394,6 +394,7 @@ void EditorManager::SetupDialogCallbacks() {
         // may have created a project, but an open editor still wins. A
         // review of an open ROM keeps the user where they are.
         show_rom_load_options_ = false;
+        rom_load_options_owner_.reset();
         if (rom_load_options_dialog_.reviewing()) {
           toast_manager_.Show(
               options.remember_for_rom
@@ -411,10 +412,46 @@ void EditorManager::SetupDialogCallbacks() {
   // has to leave the user on an editor or the picker.
   rom_load_options_dialog_.SetCancelCallback([this]() {
     show_rom_load_options_ = false;
+    rom_load_options_owner_.reset();
     if (!rom_load_options_dialog_.reviewing()) {
       ShowPostLoadSurface();
     }
   });
+  rom_load_options_dialog_.SetApplyGuard(
+      [this]() { return RomLoadOptionsMatchCurrentSession(); });
+}
+
+void EditorManager::BindRomLoadOptionsToCurrentSession() {
+  const auto* rom = GetCurrentRom();
+  if (!rom || !rom->is_loaded()) {
+    CloseRomLoadOptions();
+    return;
+  }
+  rom_load_options_owner_ =
+      RomLoadOptionsOwner{GetCurrentSessionId(),
+                          RomLoadOptionsDialog::RomChoiceKey(rom->filename()),
+                          zelda3::OverworldVersionHelper::GetAsmVersion(*rom)};
+}
+
+bool EditorManager::RomLoadOptionsMatchCurrentSession() const {
+  const auto* rom = GetCurrentRom();
+  return rom_load_options_owner_.has_value() && rom && rom->is_loaded() &&
+         !current_project_.project_opened() &&
+         GetCurrentSessionId() == rom_load_options_owner_->session_id &&
+         active_project_context_session_id_ ==
+             rom_load_options_owner_->session_id &&
+         runtime_feature_flags_session_id_ ==
+             rom_load_options_owner_->session_id &&
+         RomLoadOptionsDialog::RomChoiceKey(rom->filename()) ==
+             rom_load_options_owner_->rom_key &&
+         zelda3::OverworldVersionHelper::GetAsmVersion(*rom) ==
+             rom_load_options_owner_->zso_version_byte;
+}
+
+void EditorManager::CloseRomLoadOptions() {
+  show_rom_load_options_ = false;
+  rom_load_options_owner_.reset();
+  rom_load_options_dialog_.Close();
 }
 
 bool EditorManager::ApplyRememberedRomLoadChoice() {
@@ -447,6 +484,7 @@ void EditorManager::FinishRawRomOpen(bool remembered_load_options,
     ui_coordinator_->SetWelcomeScreenVisible(false);
     rom_load_options_dialog_.Open(GetCurrentRom(), is_first_time_rom_path);
     show_rom_load_options_ = true;
+    BindRomLoadOptionsToCurrentSession();
     return;
   }
   ShowPostLoadSurface();
@@ -475,6 +513,7 @@ void EditorManager::ShowRomLoadOptions() {
                              : std::string(),
       remembered.has_value());
   show_rom_load_options_ = true;
+  BindRomLoadOptionsToCurrentSession();
 }
 
 void EditorManager::SetupSidebarCallbacks() {
