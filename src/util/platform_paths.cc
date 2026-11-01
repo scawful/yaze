@@ -596,7 +596,24 @@ absl::StatusOr<std::filesystem::path> PlatformPaths::FindAsset(
       }
     }
 
-    // 6. System-wide installation (Unix only)
+#ifdef __APPLE__
+    // 6. Installed yaze.app, for a z3ed copied onto PATH without the DMG's
+    //    assets/ directory beside it
+    try {
+      search_paths.push_back(
+          std::filesystem::path("/Applications/yaze.app/Contents/Resources") /
+          "assets" / relative_path);
+      if (!cached_home.empty() && cached_home != ".") {
+        search_paths.push_back(cached_home / "Applications" / "yaze.app" /
+                               "Contents" / "Resources" / "assets" /
+                               relative_path);
+      }
+    } catch (...) {
+      // Skip if path construction fails
+    }
+#endif
+
+    // 7. System-wide installation (Unix only)
 #ifndef _WIN32
     try {
       search_paths.push_back(

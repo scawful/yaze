@@ -24,8 +24,10 @@ ROMs are not included. You must supply a legally obtained A Link to the Past ROM
 ### macOS (DMG)
 1. Open the DMG and drag `yaze.app` to Applications (optional).
 2. Run `yaze.app`; all editor assets are embedded in the app bundle.
-3. For CLI use, keep `z3ed` beside the DMG's `assets/` directory and run
-   `./z3ed --help` from Terminal.
+3. For CLI use, run `./z3ed --help` from Terminal. A `z3ed` copied elsewhere
+   (for example onto your `PATH`) finds its assets in `yaze.app` when the app
+   is in `/Applications` or `~/Applications`; otherwise keep `z3ed` beside the
+   DMG's `assets/` directory.
 4. If Gatekeeper blocks the app, right-click and choose Open.
 
 ### Linux (tar.gz)
