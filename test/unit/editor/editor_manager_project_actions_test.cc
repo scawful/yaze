@@ -20,16 +20,20 @@
 #include "app/editor/editor_manager.h"
 #include "app/editor/message/message_editor.h"
 #include "app/editor/overworld/overworld_editor.h"
+#include "app/editor/shell/dialogs/rom_load_options_dialog.h"
 #include "app/editor/shell/feedback/toast_manager.h"
 #include "app/gfx/backend/null_renderer.h"
 #include "app/gfx/resource/arena.h"
 #include "app/gfx/util/palette_manager.h"
+#include "core/features.h"
 #include "core/native_save_receipt.h"
 #include "core/palette_catalog.h"
 #include "core/source_artifact_publisher.h"
 #include "editor_test_support.h"
+#include "rom/rom.h"
 #include "test_utils.h"
 #include "testing.h"
+#include "zelda3/overworld/overworld_version_helper.h"
 #include "zelda3/resource_labels.h"
 
 #include "imgui/imgui.h"
@@ -3064,6 +3068,142 @@ TEST(EditorManagerProjectActionsTest,
   EXPECT_NE(reopened.music_persistence.storage_key, "First_Project_music");
   EXPECT_TRUE(SessionCoordinator::PathsReferToSameBackingFile(
       reopened.rom_filename, second_rom_path.string()));
+}
+
+// Interactive opens (File > Open, Recent Files, drag and drop) ask for load
+// options. Startup files and automation pass kNoPrompt and never wait on the
+// dialog.
+TEST(EditorManagerProjectActionsTest,
+     RawRomOpenAsksForLoadOptionsOnlyWhenPrompted) {
+  ScopedImGuiContext imgui;
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  ::yaze::test::InitializeWithIsolatedSettings(*manager, renderer.get());
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+
+  // Reopening an open path only activates its session, so each open uses its
+  // own file.
+  ScopedTempDir temp_dir(MakeTempDir("yaze_load_options_prompt"));
+  const auto quiet_rom_path = temp_dir.path / "quiet.sfc";
+  const auto asked_rom_path = temp_dir.path / "asked.sfc";
+  WriteRomFile(quiet_rom_path, "QUIET ROM");
+  WriteRomFile(asked_rom_path, "ASKED ROM");
+
+  ASSERT_OK(manager->OpenRomOrProject(
+      quiet_rom_path.string(), EditorManager::LoadOptionsPrompt::kNoPrompt));
+  ASSERT_NE(manager->GetCurrentRom(), nullptr);
+  EXPECT_FALSE(manager->IsRomLoadOptionsOpen());
+
+  ASSERT_OK(manager->OpenRomOrProject(asked_rom_path.string()));
+  ASSERT_NE(manager->GetCurrentRom(), nullptr);
+  EXPECT_TRUE(SessionCoordinator::PathsReferToSameBackingFile(
+      manager->GetCurrentRom()->filename(), asked_rom_path.string()));
+  EXPECT_TRUE(manager->IsRomLoadOptionsOpen());
+}
+
+// A choice remembered for a ROM file applies before assets load and replaces
+// the dialog. It sets flags only; it never changes the ROM.
+TEST(EditorManagerProjectActionsTest,
+     RememberedRomLoadChoiceSkipsLoadOptionsAndLeavesRomUnchanged) {
+  ScopedImGuiContext imgui;
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  ::yaze::test::InitializeWithIsolatedSettings(*manager, renderer.get());
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+  const core::FeatureFlags::Flags saved_flags = core::FeatureFlags::get();
+  absl::Cleanup restore_flags = [&saved_flags] {
+    core::FeatureFlags::get() = saved_flags;
+  };
+
+  ScopedTempDir temp_dir(MakeTempDir("yaze_remembered_load_options"));
+  const auto rom_path = temp_dir.path / "remembered.sfc";
+  WriteRomFile(rom_path, "REMEMBERED ROM");
+
+  Rom probe;
+  ASSERT_OK(probe.LoadFromFile(rom_path.string()));
+  const int zso_byte = zelda3::OverworldVersionHelper::GetAsmVersion(probe);
+  RomLoadOptionsDialog::LoadOptions options;
+  options.enable_custom_overworld = true;
+  options.save_gfx_groups = true;
+  options.selected_preset = "ZSCustomOverworld v3 (Recommended)";
+  manager->user_settings()
+      .prefs()
+      .rom_load_choices[RomLoadOptionsDialog::RomChoiceKey(rom_path.string())] =
+      RomLoadOptionsDialog::EncodeRememberedChoice(options, zso_byte);
+
+  ASSERT_OK(manager->OpenRomOrProject(rom_path.string()));
+  Rom* const rom = manager->GetCurrentRom();
+  ASSERT_NE(rom, nullptr);
+  EXPECT_FALSE(manager->IsRomLoadOptionsOpen());
+  EXPECT_TRUE(core::FeatureFlags::get().overworld.kLoadCustomOverworld);
+  EXPECT_TRUE(core::FeatureFlags::get().kSaveGfxGroups);
+  EXPECT_FALSE(rom->dirty());
+  EXPECT_EQ(zelda3::OverworldVersionHelper::GetAsmVersion(*rom), zso_byte);
+}
+
+// A new project owns its feature flags, so creating one from a ROM never asks
+// for load options.
+TEST(EditorManagerProjectActionsTest, ProjectCreationFromRomSkipsLoadOptions) {
+  ScopedImGuiContext imgui;
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  ::yaze::test::InitializeWithIsolatedSettings(*manager, renderer.get());
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+
+  ScopedTempDir temp_dir(MakeTempDir("yaze_project_creation_load_options"));
+  const auto rom_path = temp_dir.path / "created.sfc";
+  const auto project_path = temp_dir.path / "created.yaze";
+  WriteRomFile(rom_path, "CREATED PROJECT ROM");
+
+  ASSERT_OK(manager->CreateNewProjectFromRom(
+      "Vanilla ROM Hack", rom_path.string(), "Created Project",
+      project_path.string()));
+  ASSERT_NE(manager->GetCurrentRom(), nullptr);
+  EXPECT_FALSE(manager->IsRomLoadOptionsOpen());
+}
+
+// The unsaved-work guard replays an open after the user decides. The replay
+// keeps the caller's prompt choice in both directions.
+TEST(EditorManagerProjectActionsTest,
+     GuardedRawRomOpenReplayKeepsPromptChoice) {
+  ScopedImGuiContext imgui;
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  ::yaze::test::InitializeWithIsolatedSettings(*manager, renderer.get());
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+
+  ScopedTempDir temp_dir(MakeTempDir("yaze_guarded_load_options"));
+  const auto first_rom_path = temp_dir.path / "first.sfc";
+  const auto quiet_rom_path = temp_dir.path / "quiet.sfc";
+  const auto asked_rom_path = temp_dir.path / "asked.sfc";
+  WriteRomFile(first_rom_path, "FIRST GUARDED ROM");
+  WriteRomFile(quiet_rom_path, "QUIET GUARDED ROM");
+  WriteRomFile(asked_rom_path, "ASKED GUARDED ROM");
+
+  ASSERT_OK(manager->OpenRomOrProject(
+      first_rom_path.string(), EditorManager::LoadOptionsPrompt::kNoPrompt));
+  ASSERT_NE(manager->GetCurrentRom(), nullptr);
+  manager->GetCurrentRom()->set_dirty(true);
+
+  ASSERT_OK(manager->OpenRomOrProject(
+      quiet_rom_path.string(), EditorManager::LoadOptionsPrompt::kNoPrompt));
+  ASSERT_TRUE(manager->HasPendingUnsavedSessionAction());
+  EXPECT_EQ(manager->session_coordinator()->GetTotalSessionCount(), 1u);
+  manager->ConfirmPendingUnsavedSessionActionDiscardAndContinue();
+  ASSERT_NE(manager->GetCurrentRom(), nullptr);
+  EXPECT_TRUE(SessionCoordinator::PathsReferToSameBackingFile(
+      manager->GetCurrentRom()->filename(), quiet_rom_path.string()));
+  EXPECT_FALSE(manager->IsRomLoadOptionsOpen());
+
+  manager->GetCurrentRom()->set_dirty(true);
+  ASSERT_OK(manager->OpenRomOrProject(asked_rom_path.string()));
+  ASSERT_TRUE(manager->HasPendingUnsavedSessionAction());
+  EXPECT_FALSE(manager->IsRomLoadOptionsOpen());
+  manager->ConfirmPendingUnsavedSessionActionDiscardAndContinue();
+  ASSERT_NE(manager->GetCurrentRom(), nullptr);
+  EXPECT_TRUE(SessionCoordinator::PathsReferToSameBackingFile(
+      manager->GetCurrentRom()->filename(), asked_rom_path.string()));
+  EXPECT_TRUE(manager->IsRomLoadOptionsOpen());
 }
 
 TEST(EditorManagerProjectActionsTest,

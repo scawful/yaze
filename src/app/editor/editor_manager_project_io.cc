@@ -438,6 +438,23 @@ void EditorManager::AnnounceRememberedRomLoadChoice() {
                       [this]() { ShowRomLoadOptions(); });
 }
 
+void EditorManager::FinishRawRomOpen(bool remembered_load_options,
+                                     bool ask_for_load_options,
+                                     bool is_first_time_rom_path) {
+  if (ask_for_load_options && ui_coordinator_) {
+    // The dialog's confirm and cancel callbacks show the post-load surface.
+    // A path new to recent files leans toward creating a project.
+    ui_coordinator_->SetWelcomeScreenVisible(false);
+    rom_load_options_dialog_.Open(GetCurrentRom(), is_first_time_rom_path);
+    show_rom_load_options_ = true;
+    return;
+  }
+  ShowPostLoadSurface();
+  if (remembered_load_options) {
+    AnnounceRememberedRomLoadChoice();
+  }
+}
+
 void EditorManager::ShowRomLoadOptions() {
   Rom* rom = GetCurrentRom();
   if (rom == nullptr || !rom->is_loaded()) {
@@ -653,17 +670,10 @@ absl::Status EditorManager::LoadRomInternal() {
     manager.Save();
 
     if (ui_coordinator_) {
-      ui_coordinator_->SetWelcomeScreenVisible(false);
-
-      if (remembered_load_options) {
-        AnnounceRememberedRomLoadChoice();
-        ShowPostLoadSurface();
-      } else {
-        // Show ROM load options and bias new ROM paths toward project
-        // creation.
-        rom_load_options_dialog_.Open(GetCurrentRom(), is_first_time_rom_path);
-        show_rom_load_options_ = true;
-      }
+      FinishRawRomOpen(
+          remembered_load_options,
+          !remembered_load_options && !current_project_.project_opened(),
+          is_first_time_rom_path);
     }
 
     return absl::OkStatus();

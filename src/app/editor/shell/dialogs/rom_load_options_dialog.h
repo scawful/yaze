@@ -19,29 +19,25 @@ class Rom;
 namespace editor {
 
 /**
- * @brief ROM load options and ZSCustomOverworld upgrade dialog
+ * @brief ROM load options dialog
  *
- * Shown after ROM detection to offer:
- * - ZSCustomOverworld version upgrade options
- * - Feature flag presets
+ * Shown after an interactive raw ROM open, and from the command palette to
+ * review the options a session uses now. It offers:
+ * - Overworld load options (custom overworld fields, special world tail)
+ * - Save flag presets based on the detected version
  * - Project creation integration
  *
- * Flow:
- * 1. ROM loaded -> Detect version
- * 2. If vanilla, offer upgrade to v2/v3
- * 3. Show feature flag presets based on version
- * 4. Optionally create associated project
+ * It never changes the ROM. ZSCustomOverworld ASM is applied from the
+ * Overworld toolbar's Upgrade button.
  */
 class RomLoadOptionsDialog {
  public:
   struct LoadOptions {
-    // ZSCustomOverworld options
-    bool upgrade_to_zscustom = false;
-    int target_zso_version = 3;          // 2 or 3
+    // Overworld load options. Both are read when the overworld loads.
+    bool enable_custom_overworld = false;
     bool enable_tail_expansion = false;  // Special world tail (0xA0-0xBF)
 
-    // Feature flags to apply
-    bool enable_custom_overworld = false;
+    // Save flags to apply
     bool save_overworld_maps = true;
     bool save_overworld_entrances = true;
     bool save_overworld_exits = true;
@@ -142,18 +138,6 @@ class RomLoadOptionsDialog {
   }
 
   /**
-   * @brief Set callback for ZSO upgrade
-   */
-  void SetUpgradeCallback(std::function<absl::Status(int version)> callback) {
-    upgrade_callback_ = callback;
-  }
-
-  /**
-   * @brief Check if ROM needs upgrade prompt
-   */
-  bool ShouldPromptUpgrade() const;
-
-  /**
    * @brief Get detected ROM version
    */
   zelda3::OverworldVersion GetDetectedVersion() const {
@@ -165,6 +149,10 @@ class RomLoadOptionsDialog {
   int zso_version_byte() const { return zso_version_byte_; }
   // True when opened through OpenForReview().
   bool reviewing() const { return reviewing_; }
+  // True when an overworld load option differs from the flag in effect when
+  // the dialog opened. The open ROM's overworld loaded with that flag, so the
+  // change needs a reopen.
+  bool OverworldLoadOptionsChanged() const;
 
   // Remembered choices are stored as "key=value;" text so UserSettings can
   // keep them as opaque strings in both settings.json and the legacy INI.
@@ -184,7 +172,7 @@ class RomLoadOptionsDialog {
 
  private:
   void DrawVersionInfo();
-  void DrawUpgradeOptions();
+  void DrawOverworldOptions();
   void DrawFeatureFlagPresets();
   void DrawFeatureFlagDetails();
   void DrawProjectOptions();
@@ -203,6 +191,9 @@ class RomLoadOptionsDialog {
   bool show_advanced_ = false;
   bool reviewing_ = false;
   int zso_version_byte_ = -1;
+  // Overworld load flags in effect when the dialog opened.
+  bool loaded_custom_overworld_ = false;
+  bool loaded_tail_expansion_ = false;
 
   // Options
   LoadOptions options_;
@@ -216,7 +207,6 @@ class RomLoadOptionsDialog {
   // Callbacks
   std::function<void(const LoadOptions&)> confirm_callback_;
   std::function<void()> cancel_callback_;
-  std::function<absl::Status(int version)> upgrade_callback_;
 
   // UI state
   char project_name_buffer_[256] = {};

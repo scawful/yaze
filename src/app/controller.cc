@@ -680,7 +680,8 @@ absl::Status Controller::LoadRomForTesting(const std::string& rom_path) {
   // 4. Updates UI state (hides welcome screen, etc.)
   auto previous_mode = editor_manager_.asset_load_mode();
   editor_manager_.SetAssetLoadMode(AssetLoadMode::kFull);
-  auto status = editor_manager_.OpenRomOrProject(rom_path);
+  auto status = editor_manager_.OpenRomOrProject(
+      rom_path, editor::EditorManager::LoadOptionsPrompt::kNoPrompt);
   editor_manager_.SetAssetLoadMode(previous_mode);
   return status;
 }

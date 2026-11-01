@@ -100,6 +100,10 @@ void RomLoadOptionsDialog::Open(Rom* rom, const std::string& rom_filename,
   confirmed_ = false;
   show_advanced_ = false;
   reviewing_ = false;
+  // The open ROM's overworld loaded with these flags.
+  const auto& loaded = core::FeatureFlags::get().overworld;
+  loaded_custom_overworld_ = loaded.kLoadCustomOverworld;
+  loaded_tail_expansion_ = loaded.kEnableSpecialWorldExpansion;
 
   // Reset options for each open so stale state from previous ROM loads does
   // not carry over.
@@ -136,12 +140,12 @@ void RomLoadOptionsDialog::Open(Rom* rom, const std::string& rom_filename,
   snprintf(project_name_buffer_, sizeof(project_name_buffer_), "%s_project",
            base_name.c_str());
 
-  // Auto-select preset based on detected version
+  // Auto-select preset based on detected version. A vanilla ROM gets the v3
+  // preset's flags; the ROM itself changes only through the Overworld
+  // toolbar's Upgrade button.
   switch (detected_version_) {
     case zelda3::OverworldVersion::kVanilla:
-      selected_preset_index_ = 2;  // Recommend v3 upgrade for vanilla
-      options_.upgrade_to_zscustom = true;
-      options_.target_zso_version = 3;
+      selected_preset_index_ = 2;
       break;
     case zelda3::OverworldVersion::kZSCustomV1:
     case zelda3::OverworldVersion::kZSCustomV2:
@@ -177,7 +181,8 @@ void RomLoadOptionsDialog::OpenForReview(
   for (const auto& flag : kRememberedFlags) {
     options_.*flag.member = current.*flag.member;
   }
-  options_.upgrade_to_zscustom = false;
+  loaded_custom_overworld_ = active.overworld.kLoadCustomOverworld;
+  loaded_tail_expansion_ = active.overworld.kEnableSpecialWorldExpansion;
   options_.create_project = false;
   options_.remember_for_rom = remembered;
   show_advanced_ = true;
@@ -207,7 +212,7 @@ bool RomLoadOptionsDialog::Show(bool* p_open) {
     }
     ImGui::Separator();
 
-    DrawUpgradeOptions();
+    DrawOverworldOptions();
     ImGui::Separator();
 
     DrawFeatureFlagPresets();
@@ -276,78 +281,51 @@ void RomLoadOptionsDialog::DrawVersionInfo() {
   ImGui::TextColored(version_color, tr("%s Detected: %s"), ICON_MD_VERIFIED,
                      version_name);
 
-  // Show feature availability
+  // The upgrade lives in the Overworld toolbar; this dialog only sets flags.
   if (detected_version_ == zelda3::OverworldVersion::kVanilla) {
-    ImGui::TextColored(gui::GetWarningColor(),
-                       tr("%s This ROM can be upgraded for expanded features"),
+    gui::StyleColorGuard hint_color(ImGuiCol_Text, gui::GetTextSecondaryVec4());
+    ImGui::TextWrapped(tr("%s To apply ZSCustomOverworld, use Upgrade in the "
+                          "Overworld toolbar. This dialog never changes the "
+                          "ROM."),
                        ICON_MD_UPGRADE);
   }
 }
 
-void RomLoadOptionsDialog::DrawUpgradeOptions() {
-  bool is_vanilla = (detected_version_ == zelda3::OverworldVersion::kVanilla);
-
-  ImGui::Text(tr("%s ZSCustomOverworld Options"), ICON_MD_AUTO_FIX_HIGH);
+void RomLoadOptionsDialog::DrawOverworldOptions() {
+  ImGui::Text(tr("%s Overworld Loading"), ICON_MD_AUTO_FIX_HIGH);
   ImGui::Spacing();
 
-  if (is_vanilla) {
-    ImGui::Checkbox(tr("Upgrade ROM to ZSCustomOverworld"),
-                    &options_.upgrade_to_zscustom);
-
-    if (options_.upgrade_to_zscustom) {
-      ImGui::Indent();
-
-      ImGui::Text(tr("Target Version:"));
-      ImGui::SameLine();
-
-      if (ImGui::RadioButton(tr("v2 (Basic)"),
-                             options_.target_zso_version == 2)) {
-        options_.target_zso_version = 2;
-      }
-      ImGui::SameLine();
-      if (ImGui::RadioButton(tr("v3 (Full)"),
-                             options_.target_zso_version == 3)) {
-        options_.target_zso_version = 3;
-      }
-
-      // Version comparison
-      ImGui::TextColored(gui::GetTextSecondaryVec4(),
-                         tr("v2: BG colors, main palettes, parent system"));
-      ImGui::TextColored(gui::GetTextSecondaryVec4(),
-                         tr("v3: + wide/tall areas, animated GFX, overlays"));
-
-      // Tail expansion option (only for v3)
-      if (options_.target_zso_version == 3) {
-        ImGui::Spacing();
-        ImGui::TextColored(gui::GetWarningColor(), tr("Experimental:"));
-        ImGui::Checkbox(tr("Enable special world tail (0xA0-0xBF)"),
-                        &options_.enable_tail_expansion);
-        if (ImGui::IsItemHovered()) {
-          ImGui::SetTooltip(
-              tr("Enables access to unused special world map slots.\n"
-                 "REQUIRES additional ASM patch for pointer table expansion.\n"
-                 "Without the patch, maps will show blank tiles (safe)."));
-        }
-      }
-
-      ImGui::Unindent();
-    }
-  } else {
-    ImGui::TextColored(
-        gui::GetSuccessColor(), tr("%s ROM already has ZSCustomOverworld %s"),
-        ICON_MD_CHECK_CIRCLE,
-        zelda3::OverworldVersionHelper::GetVersionName(detected_version_));
-  }
-
-  // Enable custom overworld features toggle
-  ImGui::Spacing();
   ImGui::Checkbox(tr("Enable custom overworld features in editor"),
                   &options_.enable_custom_overworld);
-
   if (ImGui::IsItemHovered()) {
     ImGui::SetTooltip(
-        tr("Enables ZSCustomOverworld-specific UI elements.\n"
-           "Auto-enabled if ASM is detected in ROM."));
+        "%s", tr("On a vanilla ROM, gives each area the ZSCustomOverworld "
+                 "fields (main palette, mosaic, animated GFX, overlay),\n"
+                 "filled with the values the vanilla game uses.\n"
+                 "A ZSCustomOverworld ROM always loads its own values, so "
+                 "this has no effect there."));
+  }
+
+  ImGui::Checkbox(tr("Enable special world tail (0xA0-0xBF)"),
+                  &options_.enable_tail_expansion);
+  if (ImGui::IsItemHovered()) {
+    ImGui::SetTooltip(
+        "%s", tr("Builds special world maps 0xA0-0xBF when the ROM has the "
+                 "TailMapExpansion patch.\n"
+                 "Without the patch, those maps stay blank."));
+  }
+
+  // The open ROM's overworld already loaded, so a change waits for a reopen.
+  if (OverworldLoadOptionsChanged()) {
+    gui::StyleColorGuard note_color(ImGuiCol_Text, gui::GetWarningColor());
+    ImGui::TextWrapped(tr("%s The open overworld loaded with different "
+                          "choices. Reopen the ROM to apply these."),
+                       ICON_MD_WARNING);
+  } else {
+    gui::StyleColorGuard note_color(ImGuiCol_Text, gui::GetTextSecondaryVec4());
+    ImGui::TextWrapped(tr("%s Both are read when the overworld loads. Reopen "
+                          "the ROM to apply a change."),
+                       ICON_MD_INFO);
   }
 }
 
@@ -491,11 +469,6 @@ void RomLoadOptionsDialog::DrawActionButtons() {
       confirmed_ = true;
       is_open_ = false;
 
-      // Call upgrade callback if needed
-      if (options_.upgrade_to_zscustom && upgrade_callback_) {
-        upgrade_callback_(options_.target_zso_version);
-      }
-
       // Call confirm callback
       if (confirm_callback_) {
         confirm_callback_(options_);
@@ -506,7 +479,6 @@ void RomLoadOptionsDialog::DrawActionButtons() {
 
 void RomLoadOptionsDialog::ApplyPreset(const std::string& preset_name) {
   if (preset_name == "Vanilla ROM Hack") {
-    options_.upgrade_to_zscustom = false;
     options_.enable_custom_overworld = false;
     options_.save_overworld_maps = true;
     options_.save_overworld_entrances = true;
@@ -517,9 +489,6 @@ void RomLoadOptionsDialog::ApplyPreset(const std::string& preset_name) {
     options_.save_all_palettes = false;
     options_.save_gfx_groups = false;
   } else if (preset_name == "ZSCustomOverworld v2") {
-    options_.upgrade_to_zscustom =
-        (detected_version_ == zelda3::OverworldVersion::kVanilla);
-    options_.target_zso_version = 2;
     options_.enable_custom_overworld = true;
     options_.save_overworld_maps = true;
     options_.save_overworld_entrances = true;
@@ -530,9 +499,6 @@ void RomLoadOptionsDialog::ApplyPreset(const std::string& preset_name) {
     options_.save_all_palettes = true;
     options_.save_gfx_groups = true;
   } else if (preset_name == "ZSCustomOverworld v3 (Recommended)") {
-    options_.upgrade_to_zscustom =
-        (detected_version_ == zelda3::OverworldVersion::kVanilla);
-    options_.target_zso_version = 3;
     options_.enable_custom_overworld = true;
     options_.save_overworld_maps = true;
     options_.save_overworld_entrances = true;
@@ -543,7 +509,6 @@ void RomLoadOptionsDialog::ApplyPreset(const std::string& preset_name) {
     options_.save_all_palettes = true;
     options_.save_gfx_groups = true;
   } else if (preset_name == "Randomizer Compatible") {
-    options_.upgrade_to_zscustom = false;
     options_.enable_custom_overworld = false;
     options_.save_overworld_maps = false;
     options_.save_overworld_entrances = false;
@@ -671,8 +636,9 @@ std::string RomLoadOptionsDialog::RomChoiceKey(const std::string& rom_path) {
   return path.lexically_normal().string();
 }
 
-bool RomLoadOptionsDialog::ShouldPromptUpgrade() const {
-  return detected_version_ == zelda3::OverworldVersion::kVanilla;
+bool RomLoadOptionsDialog::OverworldLoadOptionsChanged() const {
+  return options_.enable_custom_overworld != loaded_custom_overworld_ ||
+         options_.enable_tail_expansion != loaded_tail_expansion_;
 }
 
 }  // namespace editor

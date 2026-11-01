@@ -7,9 +7,11 @@
 #include <unordered_map>
 #include <vector>
 
+#include "absl/cleanup/cleanup.h"
 #include "app/editor/shell/dialogs/rom_load_options_dialog.h"
 #include "app/editor/system/session/user_settings.h"
 #include "core/features.h"
+#include "rom/rom.h"
 #include "unique_temp_path.h"
 
 namespace yaze::editor {
@@ -283,6 +285,47 @@ TEST(RomLoadChoiceCodecTest, FeatureFlagsRoundTripThroughOptions) {
   EXPECT_TRUE(applied.kSaveDungeonMaps);
   EXPECT_FALSE(applied.kSaveAllPalettes);
   EXPECT_TRUE(applied.kSaveGfxGroups);
+}
+
+// The overworld reads both load options when it loads. The dialog compares
+// its choices with the flags in effect when it opened, so it can say when a
+// choice waits for a reopen.
+TEST(RomLoadOptionsDialogTest, OverworldLoadOptionsChangedComparesOpenFlags) {
+  const core::FeatureFlags::Flags saved = core::FeatureFlags::get();
+  absl::Cleanup restore = [&saved] {
+    core::FeatureFlags::get() = saved;
+  };
+  auto& overworld = core::FeatureFlags::get().overworld;
+  RomLoadOptionsDialog dialog;
+
+  // With no ROM, Open() treats the file as vanilla and picks the v3 preset,
+  // which turns the custom overworld fields on.
+  overworld.kLoadCustomOverworld = false;
+  overworld.kEnableSpecialWorldExpansion = false;
+  dialog.Open(nullptr, "vanilla.sfc", false);
+  EXPECT_TRUE(dialog.GetOptions().enable_custom_overworld);
+  EXPECT_TRUE(dialog.OverworldLoadOptionsChanged());
+
+  overworld.kLoadCustomOverworld = true;
+  dialog.Open(nullptr, "vanilla.sfc", false);
+  EXPECT_FALSE(dialog.OverworldLoadOptionsChanged());
+
+  // No preset sets the tail, so a tail that loaded on differs from it.
+  overworld.kEnableSpecialWorldExpansion = true;
+  dialog.Open(nullptr, "vanilla.sfc", false);
+  EXPECT_FALSE(dialog.GetOptions().enable_tail_expansion);
+  EXPECT_TRUE(dialog.OverworldLoadOptionsChanged());
+
+  // Review shows the flags the session uses now, so nothing differs yet.
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(512 * 1024, 0x00)).ok());
+  core::FeatureFlags::Flags active;
+  active.overworld.kLoadCustomOverworld = false;
+  active.overworld.kEnableSpecialWorldExpansion = true;
+  dialog.OpenForReview(&rom, active, "", /*remembered=*/false);
+  EXPECT_FALSE(dialog.GetOptions().enable_custom_overworld);
+  EXPECT_TRUE(dialog.GetOptions().enable_tail_expansion);
+  EXPECT_FALSE(dialog.OverworldLoadOptionsChanged());
 }
 
 TEST_F(UserSettingsLoadValidationTest, RomLoadChoicesSurviveSaveAndReload) {

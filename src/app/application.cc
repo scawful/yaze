@@ -135,7 +135,8 @@ void Application::Initialize(const AppConfig& config) {
       auto rom_loader = [this](const std::string& path) -> bool {
         if (!controller_ || !controller_->editor_manager())
           return false;
-        auto status = controller_->editor_manager()->OpenRomOrProject(path);
+        auto status = controller_->editor_manager()->OpenRomOrProject(
+            path, editor::EditorManager::LoadOptionsPrompt::kNoPrompt);
         return status.ok();
       };
 
@@ -163,7 +164,8 @@ void Application::Initialize(const AppConfig& config) {
         adapter->SetRomLoader([this](const std::string& path) -> bool {
           if (!controller_ || !controller_->editor_manager())
             return false;
-          auto status = controller_->editor_manager()->OpenRomOrProject(path);
+          auto status = controller_->editor_manager()->OpenRomOrProject(
+              path, editor::EditorManager::LoadOptionsPrompt::kNoPrompt);
           return status.ok();
         });
 

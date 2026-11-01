@@ -448,7 +448,14 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
   absl::Status SaveRom();
   absl::Status SaveRomAs(const std::string& filename);
   absl::Status ResumePendingRomSave();
-  absl::Status OpenRomOrProject(const std::string& filename);
+  // User opens (Open ROM, recent files, the web drop zone, backups) show ROM
+  // load options for a raw ROM with no remembered choice. Startup,
+  // test-harness, and automation opens pass kNoPrompt: they still apply a
+  // remembered choice but never wait on the dialog.
+  enum class LoadOptionsPrompt { kAsk, kNoPrompt };
+  absl::Status OpenRomOrProject(
+      const std::string& filename,
+      LoadOptionsPrompt prompt = LoadOptionsPrompt::kAsk);
   // Main-thread semantic automation; returns JSON including actual identity.
   std::string ExecuteEditorControl(const std::string& request);
   absl::Status CreateNewProject(
@@ -474,6 +481,7 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
   absl::Status RunCurrentProject();
   // Reopens ROM load options for the active raw-ROM session.
   void ShowRomLoadOptions();
+  bool IsRomLoadOptionsOpen() const { return show_rom_load_options_; }
 
   bool HasPendingPotItemSaveConfirmation() const {
     return rom_lifecycle_.HasPendingPotItemSaveConfirmation();
@@ -575,6 +583,10 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
   // ZSCustomOverworld byte, or when a project owns the flags.
   bool ApplyRememberedRomLoadChoice();
   void AnnounceRememberedRomLoadChoice();
+  // Ends a raw ROM open: shows the load options dialog when asked to, or the
+  // post-load surface plus the remembered-choice toast.
+  void FinishRawRomOpen(bool remembered_load_options, bool ask_for_load_options,
+                        bool is_first_time_rom_path);
   void SetupDialogCallbacks();
   void MaybeEmitZScreamRomLoadHints();
   void SetupSidebarCallbacks();
@@ -770,8 +782,9 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
       const std::optional<std::string>& save_as_filename);
   absl::Status LoadRomInternal();
   bool ActivateExistingSessionForOpen(const std::string& filename);
-  absl::Status OpenRomOrProjectInternal(const std::string& filename,
-                                        bool allow_dialogs = true);
+  absl::Status OpenRomOrProjectInternal(
+      const std::string& filename, bool allow_dialogs = true,
+      LoadOptionsPrompt prompt = LoadOptionsPrompt::kAsk);
   absl::Status OpenProjectInternal();
   absl::Status ValidateLyraTerrainProjectContext() const;
   absl::Status ValidateProjectRomSelection(const std::string& rom_path);
@@ -792,6 +805,7 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
     size_t source_session_id = SIZE_MAX;
     size_t target_session_id = SIZE_MAX;
     std::string path;
+    LoadOptionsPrompt load_options_prompt = LoadOptionsPrompt::kAsk;
   };
 
   std::optional<size_t> ResolveSessionIndexById(size_t session_id) const;
