@@ -4,12 +4,14 @@
 #include <string>
 #include <vector>
 
+#include "absl/cleanup/cleanup.h"
 #include "app/editor/layout/layout_designer/dock_tree.h"
 #include "app/editor/layout/layout_designer/dock_tree_json.h"
 #include "app/editor/layout/layout_manager.h"
 #include "app/editor/layout/layout_presets.h"
 #include "app/editor/system/session/user_settings.h"
 #include "app/editor/system/workspace/workspace_window_manager.h"
+#include "core/features.h"
 #include "imgui/imgui.h"
 #include "imgui/imgui_internal.h"
 #include "nlohmann/json.hpp"
@@ -186,6 +188,164 @@ TEST_F(LayoutManagerDockTreeTest, ApplyEmptyLeafSucceeds) {
   EXPECT_TRUE(node->IsLeafNode());
 }
 
+TEST_F(LayoutManagerDockTreeTest, ApplyRestoresSelectedTabAfterDrawing) {
+  const auto title_a = window_manager_.GetWorkspaceWindowName(0, "a");
+  const auto title_b = window_manager_.GetWorkspaceWindowName(0, "b");
+  DockTree tree;
+  tree.root = DockNode::MakeLeaf({MakePanel("a"), MakePanel("b")});
+  tree.root->active_tab_index = 0;
+  ASSERT_TRUE(layout_manager_.ApplyDockTree(tree, kDockspaceId).ok());
+  ImGui::EndFrame();
+  ImGui::Render();
+
+  for (int frame = 0; frame < 6; ++frame) {
+    ImGui::NewFrame();
+    layout_manager_.ProcessPendingDockTabSelections();
+    ImGui::Begin("Dock host");
+    ImGui::DockSpace(kDockspaceId, ImVec2(800, 600));
+    ImGui::End();
+    ImGui::Begin(title_a.c_str());
+    ImGui::End();
+    ImGui::Begin(title_b.c_str());
+    ImGui::End();
+    ImGui::EndFrame();
+    ImGui::Render();
+  }
+  ImGui::NewFrame();  // The fixture's teardown ends the active frame.
+  const ImGuiDockNode* node = ImGui::DockBuilderGetNode(kDockspaceId);
+  ASSERT_NE(node, nullptr);
+  const ImGuiWindow* selected = ImGui::FindWindowByName(title_a.c_str());
+  ASSERT_NE(selected, nullptr);
+  EXPECT_EQ(node->SelectedTabId, selected->TabId);
+
+  ImGui::SetWindowFocus(title_b.c_str());
+  ImGui::EndFrame();
+  ImGui::Render();
+  for (int frame = 0; frame < 3; ++frame) {
+    ImGui::NewFrame();
+    layout_manager_.ProcessPendingDockTabSelections();
+    ImGui::Begin("Dock host");
+    ImGui::DockSpace(kDockspaceId, ImVec2(800, 600));
+    ImGui::End();
+    ImGui::Begin(title_a.c_str());
+    ImGui::End();
+    ImGui::Begin(title_b.c_str());
+    ImGui::End();
+    ImGui::EndFrame();
+    ImGui::Render();
+  }
+  ImGui::NewFrame();
+  node = ImGui::DockBuilderGetNode(kDockspaceId);
+  ASSERT_NE(node, nullptr);
+  selected = ImGui::FindWindowByName(title_b.c_str());
+  ASSERT_NE(selected, nullptr);
+  EXPECT_EQ(node->SelectedTabId, selected->TabId);
+}
+
+TEST_F(LayoutManagerDockTreeTest, NewInputCancelsPendingTabRestore) {
+  const auto title_a = window_manager_.GetWorkspaceWindowName(0, "a");
+  const auto title_b = window_manager_.GetWorkspaceWindowName(0, "b");
+  DockTree tree;
+  tree.root = DockNode::MakeLeaf({MakePanel("a"), MakePanel("b")});
+  tree.root->active_tab_index = 0;
+  ASSERT_TRUE(layout_manager_.ApplyDockTree(tree, kDockspaceId).ok());
+  ImGui::EndFrame();
+  ImGui::Render();
+  ImGui::GetIO().AddKeyEvent(ImGuiKey_A, true);
+  for (int frame = 0; frame < 6; ++frame) {
+    ImGui::NewFrame();
+    layout_manager_.ProcessPendingDockTabSelections();
+    ImGui::Begin("Dock host");
+    ImGui::DockSpace(kDockspaceId, ImVec2(800, 600));
+    ImGui::End();
+    ImGui::Begin(title_a.c_str());
+    ImGui::End();
+    ImGui::Begin(title_b.c_str());
+    ImGui::End();
+    ImGui::EndFrame();
+    ImGui::Render();
+  }
+  ImGui::NewFrame();
+  const ImGuiDockNode* node = ImGui::DockBuilderGetNode(kDockspaceId);
+  ASSERT_NE(node, nullptr);
+  const ImGuiWindow* selected = ImGui::FindWindowByName(title_b.c_str());
+  ASSERT_NE(selected, nullptr);
+  EXPECT_EQ(node->SelectedTabId, selected->TabId);
+}
+
+TEST_F(LayoutManagerDockTreeTest, TabRestoreDoesNotTakeFocusFromAnotherWindow) {
+  const auto title_a = window_manager_.GetWorkspaceWindowName(0, "a");
+  const auto title_b = window_manager_.GetWorkspaceWindowName(0, "b");
+  DockTree tree;
+  tree.root = DockNode::MakeLeaf({MakePanel("a"), MakePanel("b")});
+  tree.root->active_tab_index = 0;
+  ASSERT_TRUE(layout_manager_.ApplyDockTree(tree, kDockspaceId).ok());
+  ImGui::EndFrame();
+  ImGui::Render();
+  for (int frame = 0; frame < 6; ++frame) {
+    ImGui::NewFrame();
+    layout_manager_.ProcessPendingDockTabSelections();
+    ImGui::Begin("Dock host");
+    ImGui::DockSpace(kDockspaceId, ImVec2(800, 600));
+    ImGui::End();
+    ImGui::Begin(title_a.c_str());
+    ImGui::End();
+    ImGui::Begin(title_b.c_str());
+    ImGui::End();
+    if (frame == 0) {
+      ImGui::SetNextWindowFocus();
+    }
+    ImGui::Begin("Other window");
+    ImGui::End();
+    ImGui::EndFrame();
+    ImGui::Render();
+  }
+  ImGui::NewFrame();
+  const ImGuiDockNode* node = ImGui::DockBuilderGetNode(kDockspaceId);
+  const ImGuiWindow* selected = ImGui::FindWindowByName(title_a.c_str());
+  const ImGuiWindow* other = ImGui::FindWindowByName("Other window");
+  ASSERT_NE(node, nullptr);
+  ASSERT_NE(selected, nullptr);
+  ASSERT_NE(other, nullptr);
+  EXPECT_EQ(node->SelectedTabId, selected->TabId);
+  EXPECT_EQ(GImGui->NavWindow, other);
+}
+
+TEST_F(LayoutManagerDockTreeTest, SessionSwitchCancelsPendingTabRestore) {
+  const auto title_a = window_manager_.GetWorkspaceWindowName(0, "a");
+  const auto title_b = window_manager_.GetWorkspaceWindowName(0, "b");
+  DockTree tree;
+  tree.root = DockNode::MakeLeaf({MakePanel("a"), MakePanel("b")});
+  tree.root->active_tab_index = 0;
+  ASSERT_TRUE(layout_manager_.ApplyDockTree(tree, kDockspaceId).ok());
+  window_manager_.RegisterSession(1);
+  window_manager_.SetActiveSession(1);
+  ImGui::EndFrame();
+  ImGui::Render();
+  for (int frame = 0; frame < 6; ++frame) {
+    ImGui::NewFrame();
+    layout_manager_.ProcessPendingDockTabSelections();
+    if (frame == 0) {
+      window_manager_.SetActiveSession(0);
+    }
+    ImGui::Begin("Dock host");
+    ImGui::DockSpace(kDockspaceId, ImVec2(800, 600));
+    ImGui::End();
+    ImGui::Begin(title_a.c_str());
+    ImGui::End();
+    ImGui::Begin(title_b.c_str());
+    ImGui::End();
+    ImGui::EndFrame();
+    ImGui::Render();
+  }
+  ImGui::NewFrame();
+  const ImGuiDockNode* node = ImGui::DockBuilderGetNode(kDockspaceId);
+  ASSERT_NE(node, nullptr);
+  const ImGuiWindow* selected = ImGui::FindWindowByName(title_b.c_str());
+  ASSERT_NE(selected, nullptr);
+  EXPECT_EQ(node->SelectedTabId, selected->TabId);
+}
+
 TEST_F(LayoutManagerDockTreeTest, DungeonDefaultBuildsSingleDockLeaf) {
   layout_manager_.InitializeEditorLayout(EditorType::kDungeon, kDockspaceId);
 
@@ -194,6 +354,44 @@ TEST_F(LayoutManagerDockTreeTest, DungeonDefaultBuildsSingleDockLeaf) {
   EXPECT_TRUE(root->IsLeafNode())
       << "Workbench-only startup must not reserve empty side docks for "
          "optional tools";
+}
+
+TEST_F(LayoutManagerDockTreeTest,
+       SwitchingEditorsRebuildsSharedTreeOnlyOnFirstActivation) {
+  const auto old_flags = core::FeatureFlags::get().dungeon;
+  absl::Cleanup restore_flags = [&] {
+    core::FeatureFlags::get().dungeon = old_flags;
+  };
+  core::FeatureFlags::get().dungeon.kUseWorkbench = true;
+  layout_manager_.InitializeEditorLayout(EditorType::kOverworld, kDockspaceId);
+  ASSERT_TRUE(ImGui::DockBuilderGetNode(kDockspaceId)->IsSplitNode());
+
+  layout_manager_.InitializeEditorLayout(EditorType::kDungeon, kDockspaceId);
+  ASSERT_TRUE(ImGui::DockBuilderGetNode(kDockspaceId)->IsLeafNode());
+
+  layout_manager_.InitializeEditorLayout(EditorType::kOverworld, kDockspaceId);
+  EXPECT_TRUE(ImGui::DockBuilderGetNode(kDockspaceId)->IsLeafNode());
+}
+
+TEST_F(LayoutManagerDockTreeTest,
+       SwitchingEditorsAfterApplyingCustomTreeRebuildsSharedTree) {
+  const auto old_flags = core::FeatureFlags::get().dungeon;
+  absl::Cleanup restore_flags = [&] {
+    core::FeatureFlags::get().dungeon = old_flags;
+  };
+  core::FeatureFlags::get().dungeon.kUseWorkbench = true;
+  layout_manager_.InitializeEditorLayout(EditorType::kOverworld, kDockspaceId);
+  DockTree custom;
+  custom.root = DockNode::MakeSplit(SplitDirection::kLeft, 0.5f,
+                                    DockNode::MakeLeaf({MakePanel("a")}),
+                                    DockNode::MakeLeaf({MakePanel("b")}));
+  ASSERT_TRUE(layout_manager_.ApplyDockTree(custom, kDockspaceId).ok());
+  ASSERT_TRUE(ImGui::DockBuilderGetNode(kDockspaceId)->IsSplitNode());
+
+  layout_manager_.InitializeEditorLayout(EditorType::kDungeon, kDockspaceId);
+  ASSERT_TRUE(ImGui::DockBuilderGetNode(kDockspaceId)->IsLeafNode());
+  layout_manager_.InitializeEditorLayout(EditorType::kOverworld, kDockspaceId);
+  EXPECT_TRUE(ImGui::DockBuilderGetNode(kDockspaceId)->IsLeafNode());
 }
 
 TEST_F(LayoutManagerDockTreeTest,

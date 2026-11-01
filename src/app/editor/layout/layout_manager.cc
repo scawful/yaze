@@ -1,8 +1,12 @@
 #include "app/editor/layout/layout_manager.h"
 
 #include <algorithm>
+#include <array>
+#include <cstdio>
+#include <cstring>
 #include <filesystem>
 #include <fstream>
+#include <functional>
 #include <string>
 #include <unordered_set>
 #include <utility>
@@ -103,48 +107,6 @@ std::filesystem::path GetLayoutsFilePath(LayoutScope scope,
   return *layouts_dir / "layouts.json";
 }
 
-bool TryGetNamedPreset(const std::string& preset_name,
-                       PanelLayoutPreset* preset_out) {
-  if (!preset_out) {
-    return false;
-  }
-
-  if (preset_name == "Minimal") {
-    *preset_out = LayoutPresets::GetMinimalPreset();
-    return true;
-  }
-  if (preset_name == "Developer") {
-    *preset_out = LayoutPresets::GetDeveloperPreset();
-    return true;
-  }
-  if (preset_name == "Designer") {
-    *preset_out = LayoutPresets::GetDesignerPreset();
-    return true;
-  }
-  if (preset_name == "Modder") {
-    *preset_out = LayoutPresets::GetModderPreset();
-    return true;
-  }
-  if (preset_name == "Overworld Expert") {
-    *preset_out = LayoutPresets::GetOverworldArtistPreset();
-    return true;
-  }
-  if (preset_name == "Dungeon Expert") {
-    *preset_out = LayoutPresets::GetDungeonMasterPreset();
-    return true;
-  }
-  if (preset_name == "Testing") {
-    *preset_out = LayoutPresets::GetLogicDebuggerPreset();
-    return true;
-  }
-  if (preset_name == "Audio") {
-    *preset_out = LayoutPresets::GetAudioEngineerPreset();
-    return true;
-  }
-
-  return false;
-}
-
 std::string ResolveProfilePresetName(const std::string& profile_id,
                                      EditorType editor_type) {
   if (profile_id == "mapping") {
@@ -174,9 +136,12 @@ void LayoutManager::DisableLazyDefaultDocking() {
 void LayoutManager::RefreshLazyDefaultDockingContext(EditorType type,
                                                      ImGuiID dockspace_id) {
   const PanelLayoutPreset preset = LayoutPresets::GetDefaultPreset(type);
+  // Each editor owns its dockspace, so resume that editor's stashed geometry
+  // instead of treating another editor's state as stale.
+  const bool restored = RestoreLazyDefaultDockState(type, dockspace_id);
   auto& state = lazy_default_dock_state_;
-  if (!preset.dock_only_default_visible_panels || !window_manager_ ||
-      state.dockspace != dockspace_id ||
+  if (!restored || !preset.dock_only_default_visible_panels ||
+      !window_manager_ || state.dockspace != dockspace_id ||
       !ImGui::DockBuilderGetNode(state.dockspace) ||
       !ImGui::DockBuilderGetNode(state.center)) {
     state.enabled = false;
@@ -252,6 +217,7 @@ void LayoutManager::InitializeEditorLayout(EditorType type,
   // keeps its one-shot history scoped to this ROM session and editor.
   last_dockspace_id_ = dockspace_id;
   current_editor_type_ = type;
+  active_editor_type_ = type;
 
   // Don't reinitialize if already set up
   if (IsLayoutInitialized(type)) {
@@ -270,19 +236,11 @@ void LayoutManager::InitializeEditorLayout(EditorType type,
            static_cast<int>(type));
 
   // Clear existing layout for this dockspace
+  pending_dock_tab_selections_.clear();
   ImGui::DockBuilderRemoveNode(dockspace_id);
   ImGui::DockBuilderAddNode(dockspace_id, ImGuiDockNodeFlags_DockSpace);
 
-  ImVec2 dockspace_size = ImVec2(1280, 720);  // Safe default
-  if (auto* viewport = ImGui::GetMainViewport()) {
-    dockspace_size = viewport->WorkSize;
-  }
-
-  const ImVec2 last_size = gui::DockSpaceRenderer::GetLastDockspaceSize();
-  if (last_size.x > 0.0f && last_size.y > 0.0f) {
-    dockspace_size = last_size;
-  }
-  ImGui::DockBuilderSetNodeSize(dockspace_id, dockspace_size);
+  ImGui::DockBuilderSetNodeSize(dockspace_id, EditorDockspaceSize());
 
   // Build layout based on editor type using generic builder
   BuildLayoutFromPreset(type, dockspace_id);
@@ -302,6 +260,7 @@ void LayoutManager::InitializeEditorLayout(EditorType type,
 }
 
 void LayoutManager::RebuildLayout(EditorType type, ImGuiID dockspace_id) {
+  pending_dock_tab_selections_.clear();
   // Validate dockspace exists
   ImGuiDockNode* node = ImGui::DockBuilderGetNode(dockspace_id);
   if (!node) {
@@ -316,6 +275,7 @@ void LayoutManager::RebuildLayout(EditorType type, ImGuiID dockspace_id) {
   // Store dockspace ID and current editor type
   last_dockspace_id_ = dockspace_id;
   current_editor_type_ = type;
+  active_editor_type_ = type;
 
   // Clear the layout initialization flag to force rebuild
   layouts_initialized_[type] = false;
@@ -323,12 +283,7 @@ void LayoutManager::RebuildLayout(EditorType type, ImGuiID dockspace_id) {
   // Clear existing layout for this dockspace
   ImGui::DockBuilderRemoveNode(dockspace_id);
   ImGui::DockBuilderAddNode(dockspace_id, ImGuiDockNodeFlags_DockSpace);
-  ImVec2 dockspace_size = ImGui::GetMainViewport()->WorkSize;
-  const ImVec2 last_size = gui::DockSpaceRenderer::GetLastDockspaceSize();
-  if (last_size.x > 0.0f && last_size.y > 0.0f) {
-    dockspace_size = last_size;
-  }
-  ImGui::DockBuilderSetNodeSize(dockspace_id, dockspace_size);
+  ImGui::DockBuilderSetNodeSize(dockspace_id, EditorDockspaceSize());
 
   // Build layout based on editor type using generic builder
   BuildLayoutFromPreset(type, dockspace_id);
@@ -686,13 +641,599 @@ DockNodeIds BuildDockTree(ImGuiID dockspace_id, const DockSplitNeeds& needs,
 
 }  // namespace
 
+namespace {
+
+constexpr char kOuterDockspaceName[] = "yaze.MainDockSpace";
+constexpr char kEditorDockspacePrefix[] = "yaze.EditorDock/";
+constexpr char kEditorHostWindowName[] = "###YazeEditorHost";
+constexpr char kLayoutIniTypeName[] = "YazeLayout";
+constexpr char kLayoutIniInitializedKey[] = "Initialized=";
+constexpr char kLayoutIniPinSideKey[] = "PinSide=";
+
+// Share of the outer dockspace given to a new pin node with no saved size,
+// and the range a saved size is clamped to on a smaller window.
+constexpr float kPinRatio = 0.22f;
+constexpr float kPinMinRatio = 0.05f;
+constexpr float kPinMaxRatio = 0.6f;
+
+// imgui.ini names for ImGuiDir_Left..ImGuiDir_Down.
+constexpr std::array<const char*, 4> kPinSideNames = {"Left", "Right", "Up",
+                                                      "Down"};
+
+ImGuiAxis PinAxis(ImGuiDir dir) {
+  return (dir == ImGuiDir_Left || dir == ImGuiDir_Right) ? ImGuiAxis_X
+                                                         : ImGuiAxis_Y;
+}
+
+// Central leaf under `node`. Reads LocalFlags because ImGuiDockNode::
+// CentralNode on the root is only refreshed on the next frame after a split.
+ImGuiDockNode* FindCentralLeaf(ImGuiDockNode* node) {
+  if (!node) {
+    return nullptr;
+  }
+  if (node->LocalFlags & ImGuiDockNodeFlags_CentralNode) {
+    return node;
+  }
+  for (ImGuiDockNode* child : node->ChildNodes) {
+    if (ImGuiDockNode* found = FindCentralLeaf(child)) {
+      return found;
+    }
+  }
+  return nullptr;
+}
+
+ImGuiID DockRootId(ImGuiID node_id) {
+  ImGuiDockNode* node = ImGui::DockBuilderGetNode(node_id);
+  while (node && node->ParentNode) {
+    node = node->ParentNode;
+  }
+  return node ? node->ID : 0;
+}
+
+// Side of split node `parent` that its child `child` occupies.
+ImGuiDir ChildSide(const ImGuiDockNode* parent, const ImGuiDockNode* child) {
+  const bool first = parent->ChildNodes[0] == child;
+  if (parent->SplitAxis == ImGuiAxis_X) {
+    return first ? ImGuiDir_Left : ImGuiDir_Right;
+  }
+  return first ? ImGuiDir_Up : ImGuiDir_Down;
+}
+
+// A leaf split straight off a dockspace root is what an ImGui outer-edge drop
+// makes. Returns its side and its size along the split axis, else None.
+ImGuiDir DockspaceEdgeSide(const ImGuiDockNode* node, float* size) {
+  const ImGuiDockNode* root = node ? node->ParentNode : nullptr;
+  if (!root || root->ParentNode || !root->IsDockSpace() ||
+      !node->IsLeafNode() ||
+      (node->LocalFlags & ImGuiDockNodeFlags_CentralNode)) {
+    return ImGuiDir_None;
+  }
+  *size = node->Size[root->SplitAxis];
+  return ChildSide(root, node);
+}
+
+void LayoutIniClearAll(ImGuiContext*, ImGuiSettingsHandler* handler) {
+  if (auto* manager = static_cast<LayoutManager*>(handler->UserData)) {
+    manager->ResetLayoutIniSettings();
+  }
+}
+
+void* LayoutIniReadOpen(ImGuiContext*, ImGuiSettingsHandler* handler,
+                        const char* name) {
+  if (std::strcmp(name, "Data") != 0) {
+    return nullptr;
+  }
+  return handler->UserData;
+}
+
+void LayoutIniReadLine(ImGuiContext*, ImGuiSettingsHandler*, void* entry,
+                       const char* line) {
+  static_cast<LayoutManager*>(entry)->ReadLayoutIniLine(line);
+}
+
+void LayoutIniApplyAll(ImGuiContext*, ImGuiSettingsHandler* handler) {
+  if (auto* manager = static_cast<LayoutManager*>(handler->UserData)) {
+    manager->ApplyLayoutIniSettings();
+  }
+}
+
+void LayoutIniWriteAll(ImGuiContext*, ImGuiSettingsHandler* handler,
+                       ImGuiTextBuffer* buf) {
+  if (auto* manager = static_cast<LayoutManager*>(handler->UserData)) {
+    manager->WriteLayoutIniSettings(buf);
+  }
+}
+
+// Keep the pre-B2 imgui.ini once, before its dock trees are dropped.
+void BackupLegacyLayoutIni() {
+  const char* ini_path = ImGui::GetIO().IniFilename;
+  if (!ini_path || ini_path[0] == '\0') {
+    return;
+  }
+  std::error_code ec;
+  const std::filesystem::path source(ini_path);
+  const std::filesystem::path backup(std::string(ini_path) + ".pre-b2");
+  if (!std::filesystem::exists(source, ec) ||
+      std::filesystem::exists(backup, ec)) {
+    return;
+  }
+  std::filesystem::copy_file(source, backup, ec);
+  if (ec) {
+    LOG_WARN("LayoutManager", "Could not back up %s: %s", ini_path,
+             ec.message().c_str());
+  } else {
+    LOG_INFO("LayoutManager", "Backed up legacy layout to %s",
+             backup.string().c_str());
+  }
+}
+
+}  // namespace
+
+LayoutManager::~LayoutManager() {
+  if (!ImGui::GetCurrentContext()) {
+    return;
+  }
+  if (ImGuiSettingsHandler* handler =
+          ImGui::FindSettingsHandler(kLayoutIniTypeName);
+      handler && handler->UserData == this) {
+    handler->UserData = nullptr;
+  }
+}
+
+ImGuiID LayoutManager::OuterDockspaceId() {
+  return ImHashStr(kOuterDockspaceName);
+}
+
+ImGuiID LayoutManager::EditorDockspaceId(EditorType type) {
+  const size_t index = EditorTypeIndex(type);
+  const char* name = index < kEditorNames.size() ? kEditorNames[index] : "";
+  return ImHashStr(absl::StrCat(kEditorDockspacePrefix, name).c_str());
+}
+
+ImGuiID LayoutManager::ActiveEditorDockspaceId() const {
+  if (active_editor_type_ == EditorType::kUnknown) {
+    return 0;
+  }
+  return EditorDockspaceId(active_editor_type_);
+}
+
+ImGuiID LayoutManager::GetMainDockspaceId() const {
+  if (const ImGuiID active = ActiveEditorDockspaceId()) {
+    return active;
+  }
+  return main_dockspace_id_;
+}
+
+ImGuiID LayoutManager::FindPinNode() const {
+  ImGuiDockNode* outer = ImGui::DockBuilderGetNode(OuterDockspaceId());
+  if (!outer || !outer->IsSplitNode()) {
+    return 0;
+  }
+  for (ImGuiDockNode* child : outer->ChildNodes) {
+    if (child && child->IsLeafNode() && !FindCentralLeaf(child)) {
+      return child->ID;
+    }
+  }
+  return 0;
+}
+
+ImGuiID LayoutManager::EnsurePinNode() {
+  if (const ImGuiID pin = FindPinNode()) {
+    return pin;
+  }
+  const ImGuiID outer_id = OuterDockspaceId();
+  ImGuiDockNode* outer = ImGui::DockBuilderGetNode(outer_id);
+  // The outer dockspace takes no user splits, so a split root without a pin
+  // leaf is not a tree this code built. Leave it alone.
+  if (!outer || outer->IsSplitNode()) {
+    return 0;
+  }
+  // DockNodeTreeSplit sizes the new node from the outer size minus the
+  // separator, so the saved pixel size maps back to a ratio of that.
+  const ImGuiAxis axis = PinAxis(pin_dir_);
+  const float avail =
+      outer->Size[axis] - ImGui::GetStyle().DockingSeparatorSize;
+  float ratio = kPinRatio;
+  float size = 0.0f;
+  if (pin_size_ > 0.0f && avail > 0.0f) {
+    size = ImClamp(pin_size_, kPinMinRatio * avail, kPinMaxRatio * avail);
+    ratio = size / avail;
+  }
+  ImGuiID central = 0;
+  const ImGuiID pin =
+      ImGui::DockBuilderSplitNode(outer_id, pin_dir_, ratio, nullptr, &central);
+  // The split truncates from the far side, so a right or bottom pin can come
+  // out a pixel large. Layout keeps a non-central child's SizeRef exactly.
+  if (ImGuiDockNode* node = ImGui::DockBuilderGetNode(pin);
+      node && size > 0.0f) {
+    node->SizeRef[axis] = size;
+  }
+  ImGui::DockBuilderFinish(outer_id);
+  return pin;
+}
+
+void LayoutManager::RecordPinSpot() {
+  ImGuiDockNode* outer = ImGui::DockBuilderGetNode(OuterDockspaceId());
+  ImGuiDockNode* pin = ImGui::DockBuilderGetNode(FindPinNode());
+  if (!outer || !pin) {
+    return;
+  }
+  const float size = pin->Size[outer->SplitAxis];
+  if (size <= 0.0f) {
+    return;  // Split this frame; laid out on the next one.
+  }
+  pin_dir_ = ChildSide(outer, pin);
+  pin_size_ = size;
+}
+
+ImGuiID LayoutManager::MovePinSpot(ImGuiDir dir, float size) {
+  ImGuiID pin = FindPinNode();
+  if (pin != 0 && dir == pin_dir_) {
+    return pin;
+  }
+  // Rebuild the pin node on the new side and carry its panels over.
+  std::vector<std::string> moved;
+  if (ImGuiDockNode* node = ImGui::DockBuilderGetNode(pin)) {
+    for (ImGuiWindow* window : node->Windows) {
+      moved.emplace_back(window->Name);
+    }
+    ImGui::DockBuilderRemoveNode(pin);
+  }
+  pin_dir_ = dir;
+  if (size > 0.0f) {
+    pin_size_ = size;
+  }
+  pin = EnsurePinNode();
+  if (pin != 0) {
+    for (const std::string& name : moved) {
+      ImGui::DockBuilderDockWindow(name.c_str(), pin);
+    }
+  }
+  return pin;
+}
+
+ImVec2 LayoutManager::EditorDockspaceSize() const {
+  if (editor_host_size_.x > 0.0f && editor_host_size_.y > 0.0f) {
+    return editor_host_size_;
+  }
+  const ImVec2 last_size = gui::DockSpaceRenderer::GetLastDockspaceSize();
+  if (last_size.x > 0.0f && last_size.y > 0.0f) {
+    return last_size;
+  }
+  if (const ImGuiViewport* viewport = ImGui::GetMainViewport();
+      viewport && viewport->WorkSize.x > 0.0f && viewport->WorkSize.y > 0.0f) {
+    return viewport->WorkSize;
+  }
+  return ImVec2(1280.0f, 720.0f);
+}
+
+void LayoutManager::StashLazyDefaultDockState() {
+  const auto& state = lazy_default_dock_state_;
+  if (state.editor_type == EditorType::kUnknown || state.dockspace == 0) {
+    return;
+  }
+  lazy_states_by_type_[state.editor_type] = state;
+}
+
+bool LayoutManager::RestoreLazyDefaultDockState(EditorType type,
+                                                ImGuiID dockspace_id) {
+  auto& state = lazy_default_dock_state_;
+  // A dockspace shared by every editor (test override) keeps one live state.
+  if (dockspace_id != EditorDockspaceId(type) ||
+      (state.editor_type == type && state.dockspace == dockspace_id)) {
+    return true;
+  }
+
+  StashLazyDefaultDockState();
+  if (auto it = lazy_states_by_type_.find(type);
+      it != lazy_states_by_type_.end() &&
+      it->second.dockspace == dockspace_id &&
+      ImGui::DockBuilderGetNode(it->second.center)) {
+    state = it->second;
+    return true;
+  }
+
+  // No stash: the tree came from imgui.ini. Resume from its central leaf;
+  // optional panels split new regions off it on first open.
+  ImGuiDockNode* center =
+      FindCentralLeaf(ImGui::DockBuilderGetNode(dockspace_id));
+  if (!center) {
+    DisableLazyDefaultDocking();
+    return false;
+  }
+  const DockSplitConfig cfg = DockSplitConfig::ForEditor(type);
+  state = LazyDefaultDockState{};
+  state.enabled = true;
+  state.session_id =
+      window_manager_ ? window_manager_->GetActiveSessionId() : 0;
+  state.editor_type = type;
+  state.dockspace = dockspace_id;
+  state.center = center->ID;
+  state.left_ratio = cfg.left;
+  state.right_ratio = cfg.right;
+  state.bottom_ratio = cfg.bottom;
+  state.top_ratio = cfg.top;
+  state.vertical_split = cfg.vertical_split;
+  return true;
+}
+
+void LayoutManager::DrawEditorHost() {
+  ImGuiDockNode* central =
+      FindCentralLeaf(ImGui::DockBuilderGetNode(OuterDockspaceId()));
+  if (!central) {
+    return;  // DockSpaceWindow has not submitted the outer dockspace yet.
+  }
+
+  // Public and internal ImGuiDockNodeFlags are separate enums; combine them
+  // through the int typedef.
+  ImGuiDockNodeFlags host_node_flags =
+      ImGuiDockNodeFlags_NoUndocking | ImGuiDockNodeFlags_NoDockingSplit;
+  host_node_flags |= ImGuiDockNodeFlags_NoTabBar;
+  host_node_flags |= ImGuiDockNodeFlags_NoDockingOverMe;
+  host_node_flags |= ImGuiDockNodeFlags_NoWindowMenuButton;
+  host_node_flags |= ImGuiDockNodeFlags_NoCloseButton;
+  ImGuiWindowClass host_class;
+  host_class.DockNodeFlagsOverrideSet = host_node_flags;
+  ImGui::SetNextWindowClass(&host_class);
+  ImGui::SetNextWindowDockID(central->ID, ImGuiCond_Always);
+
+  // The host keeps its ini entry: the outer tree is pruned at boot when no
+  // saved window references it.
+  constexpr ImGuiWindowFlags kHostFlags =
+      ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse |
+      ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse |
+      ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoBringToFrontOnFocus |
+      ImGuiWindowFlags_NoNavFocus;
+  ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
+  ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+  ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+  if (ImGui::Begin(kEditorHostWindowName, nullptr, kHostFlags)) {
+    editor_host_size_ = ImGui::GetContentRegionAvail();
+  }
+  ImGui::PopStyleVar(3);
+
+  // Inactive editor trees stay alive so their panels keep their nodes.
+  const ImGuiID active_id = ActiveEditorDockspaceId();
+  for (size_t index = 1; index < kEditorTypeCount; ++index) {
+    const ImGuiID id = EditorDockspaceId(static_cast<EditorType>(index));
+    if (id != active_id && ImGui::DockBuilderGetNode(id)) {
+      ImGui::DockSpace(id, ImVec2(0.0f, 0.0f),
+                       ImGuiDockNodeFlags_KeepAliveOnly);
+    }
+  }
+  if (active_id != 0) {
+    ImGui::DockSpace(active_id, ImVec2(0.0f, 0.0f),
+                     ImGuiDockNodeFlags_PassthruCentralNode);
+  }
+  ImGui::End();
+
+  RecordPinSpot();
+  EnforcePinnedPanels(FindPinNode());
+}
+
+void LayoutManager::EnforcePinnedPanels(ImGuiID pin_node) {
+  if (!window_manager_) {
+    return;
+  }
+  const ImGuiID outer_id = OuterDockspaceId();
+  const size_t session_id = window_manager_->GetActiveSessionId();
+  const auto find_window = [&](const std::string& panel_id) -> ImGuiWindow* {
+    const WindowDescriptor* desc =
+        window_manager_->GetWindowDescriptor(session_id, panel_id);
+    if (!desc) {
+      return nullptr;
+    }
+    const std::string title = window_manager_->GetWorkspaceWindowName(*desc);
+    return title.empty() ? nullptr : ImGui::FindWindowByName(title.c_str());
+  };
+
+  // Docked pinned panels belong in the pin node. Floating ones stay floating.
+  // A panel that was already pinned last frame and now sits on an editor's
+  // outer edge was dragged there: the pin spot moves to that side. A panel
+  // pinned this frame keeps the current side wherever it was docked.
+  std::unordered_set<std::string> pinned_now;
+  for (const auto& panel_id : window_manager_->GetPinnedWindows(session_id)) {
+    ImGuiWindow* window = find_window(panel_id);
+    if (!window) {
+      continue;
+    }
+    pinned_now.insert(window->Name);
+    if (window->DockId == 0 || DockRootId(window->DockId) == outer_id) {
+      continue;
+    }
+    float edge_size = 0.0f;
+    const ImGuiDir edge = DockspaceEdgeSide(
+        ImGui::DockBuilderGetNode(window->DockId), &edge_size);
+    if (edge != ImGuiDir_None && pinned_last_frame_.contains(window->Name)) {
+      pin_node = MovePinSpot(edge, edge_size);
+    }
+    if (pin_node == 0) {
+      pin_node = EnsurePinNode();
+    }
+    if (pin_node != 0) {
+      ImGui::DockBuilderDockWindow(window->Name, pin_node);
+    }
+  }
+  pinned_last_frame_ = std::move(pinned_now);
+
+  // An unpinned panel left in the pin node goes back to the active editor.
+  const ImGuiID home_dockspace = ActiveEditorDockspaceId();
+  if (home_dockspace == 0) {
+    return;
+  }
+  // Preset regions are only valid while the live lazy state is this editor's.
+  const bool preset_regions_live =
+      lazy_default_dock_state_.editor_type == active_editor_type_ &&
+      lazy_default_dock_state_.dockspace == home_dockspace;
+  for (const auto& desc : window_manager_->GetWindowsInCategory(
+           session_id, window_manager_->GetActiveCategory())) {
+    if (window_manager_->IsWindowPinned(session_id, desc.card_id)) {
+      continue;
+    }
+    ImGuiWindow* window = find_window(desc.card_id);
+    if (!window || window->DockId == 0 ||
+        DockRootId(window->DockId) != outer_id) {
+      continue;
+    }
+    if (preset_regions_live &&
+        DockPresetPositionOnFirstOpen(session_id, desc.card_id,
+                                      /*include_default_visible=*/true,
+                                      /*allow_redock=*/true)) {
+      continue;
+    }
+    if (ImGuiDockNode* center =
+            FindCentralLeaf(ImGui::DockBuilderGetNode(home_dockspace))) {
+      ImGui::DockBuilderDockWindow(window->Name, center->ID);
+    }
+  }
+}
+
+void LayoutManager::RegisterLayoutIniHandler() {
+  if (!ImGui::GetCurrentContext()) {
+    return;
+  }
+  if (ImGuiSettingsHandler* existing =
+          ImGui::FindSettingsHandler(kLayoutIniTypeName)) {
+    existing->UserData = this;
+    return;
+  }
+  ImGuiSettingsHandler handler;
+  handler.TypeName = kLayoutIniTypeName;
+  handler.TypeHash = ImHashStr(kLayoutIniTypeName);
+  handler.ClearAllFn = LayoutIniClearAll;
+  handler.ReadInitFn = LayoutIniClearAll;
+  handler.ReadOpenFn = LayoutIniReadOpen;
+  handler.ReadLineFn = LayoutIniReadLine;
+  handler.ApplyAllFn = LayoutIniApplyAll;
+  handler.WriteAllFn = LayoutIniWriteAll;
+  handler.UserData = this;
+  ImGui::AddSettingsHandler(&handler);
+}
+
+void LayoutManager::ResetLayoutIniSettings() {
+  layout_ini_ = LayoutIniState{};
+}
+
+void LayoutManager::ReadLayoutIniLine(const char* line) {
+  if (!line) {
+    return;
+  }
+  layout_ini_.section_seen = true;
+  int revision = 0;
+  if (std::sscanf(line, "Revision=%d", &revision) == 1) {
+    layout_ini_.revision = revision;
+    return;
+  }
+  float pin_size = 0.0f;
+  if (std::sscanf(line, "PinSize=%f", &pin_size) == 1) {
+    layout_ini_.pin_size = pin_size;
+    return;
+  }
+  constexpr size_t kPinSideKeyLength = sizeof(kLayoutIniPinSideKey) - 1;
+  if (std::strncmp(line, kLayoutIniPinSideKey, kPinSideKeyLength) == 0) {
+    const char* side = line + kPinSideKeyLength;
+    for (size_t dir = 0; dir < kPinSideNames.size(); ++dir) {
+      if (std::strcmp(side, kPinSideNames[dir]) == 0) {
+        layout_ini_.pin_dir = static_cast<ImGuiDir>(dir);
+      }
+    }
+    return;
+  }
+  constexpr size_t kKeyLength = sizeof(kLayoutIniInitializedKey) - 1;
+  if (std::strncmp(line, kLayoutIniInitializedKey, kKeyLength) != 0) {
+    return;
+  }
+  const char* name = line + kKeyLength;
+  for (size_t index = 1; index < kEditorNames.size(); ++index) {
+    if (std::strcmp(name, kEditorNames[index]) == 0) {
+      layout_ini_.initialized.push_back(static_cast<EditorType>(index));
+      return;
+    }
+  }
+}
+
+void LayoutManager::ApplyLayoutIniSettings() {
+  ImGuiContext* ctx = ImGui::GetCurrentContext();
+  if (!ctx) {
+    return;
+  }
+  ClearInitializationFlags();
+  const bool first_load = !layout_ini_backup_checked_;
+  layout_ini_backup_checked_ = true;
+
+  // The pin spot is a preference, not a tree: keep it across a tree reset.
+  if (layout_ini_.pin_dir != ImGuiDir_None) {
+    pin_dir_ = layout_ini_.pin_dir;
+  }
+  if (layout_ini_.pin_size > 0.0f) {
+    pin_size_ = layout_ini_.pin_size;
+  }
+
+  if (layout_ini_.section_seen && layout_ini_.revision == kLayoutIniRevision) {
+    // Editors whose saved tree survived load skip the default preset build.
+    for (const EditorType type : layout_ini_.initialized) {
+      if (ImGui::DockContextFindNodeByID(ctx, EditorDockspaceId(type))) {
+        MarkLayoutInitialized(type);
+      }
+    }
+  } else {
+    // Older layouts docked every editor into one shared tree. Drop all dock
+    // trees so each editor starts from its default preset.
+    if (first_load) {
+      BackupLegacyLayoutIni();
+    }
+    ctx->DockContext.NodesSettings.clear();
+    ImGui::DockContextClearNodes(ctx, 0, true);
+    LOG_INFO("LayoutManager",
+             "Layout revision %d does not match %d; reset dock layouts",
+             layout_ini_.revision, kLayoutIniRevision);
+    // A mid-session load (reset, pre-B2 named layout) left the live editor
+    // without a tree. The boot load has no windows yet and needs no rebuild.
+    if (ctx->Windows.Size > 0) {
+      RequestRebuild();
+    }
+  }
+}
+
+void LayoutManager::WriteLayoutIniSettings(ImGuiTextBuffer* buf) const {
+  if (!buf) {
+    return;
+  }
+  buf->appendf("[%s][Data]\n", kLayoutIniTypeName);
+  buf->appendf("Revision=%d\n", kLayoutIniRevision);
+  for (size_t index = 1; index < kEditorTypeCount; ++index) {
+    const auto type = static_cast<EditorType>(index);
+    if (IsLayoutInitialized(type) &&
+        ImGui::DockBuilderGetNode(EditorDockspaceId(type))) {
+      buf->appendf("%s%s\n", kLayoutIniInitializedKey, kEditorNames[index]);
+    }
+  }
+  if (pin_dir_ >= 0 && static_cast<size_t>(pin_dir_) < kPinSideNames.size()) {
+    buf->appendf("%s%s\n", kLayoutIniPinSideKey,
+                 kPinSideNames[static_cast<size_t>(pin_dir_)]);
+  }
+  if (pin_size_ > 0.0f) {
+    buf->appendf("PinSize=%.0f\n", pin_size_);
+  }
+  buf->append("\n");
+}
+
 void LayoutManager::BuildLayoutFromPreset(EditorType type,
                                           ImGuiID dockspace_id) {
+  // Keep the outgoing editor's geometry; its dockspace is untouched by this
+  // build. Only this editor's first-open records point at destroyed nodes,
+  // unless every editor shares one dockspace (test override): then the build
+  // destroys all of them.
+  StashLazyDefaultDockState();
   DisableLazyDefaultDocking();
-  // Every preset build replaces the one shared DockBuilder tree. Any prior
-  // first-open record points at nodes that were just destroyed, including
-  // records belonging to another editor or ROM session.
-  lazy_default_dock_attempts_.clear();
+  lazy_states_by_type_.erase(type);
+  if (dockspace_id == EditorDockspaceId(type)) {
+    for (auto& [session, by_type] : lazy_default_dock_attempts_) {
+      by_type.erase(type);
+    }
+  } else {
+    lazy_default_dock_attempts_.clear();
+  }
   auto preset = LayoutPresets::GetDefaultPreset(type);
 
   if (!window_manager_) {
@@ -829,6 +1370,14 @@ void LayoutManager::BuildLayoutFromPreset(EditorType type,
       continue;
     }
 
+    // Pinned panels live in the shared pin node, never in an editor tree.
+    if (window_manager_->IsWindowPinned(session_id, panel_id)) {
+      if (const ImGuiID pin_node = EnsurePinNode()) {
+        ImGui::DockBuilderDockWindow(window_title.c_str(), pin_node);
+      }
+      continue;
+    }
+
     const ImGuiID dock_id = get_dock_id(position);
     ImGui::DockBuilderDockWindow(window_title.c_str(), dock_id);
 
@@ -856,12 +1405,15 @@ bool LayoutManager::DockPresetPositionOnPanelOpen(size_t session_id,
                                        /*include_default_visible=*/true);
 }
 
-bool LayoutManager::DockPresetPositionOnFirstOpen(
-    size_t session_id, const std::string& panel_id,
-    bool include_default_visible) {
+bool LayoutManager::DockPresetPositionOnFirstOpen(size_t session_id,
+                                                  const std::string& panel_id,
+                                                  bool include_default_visible,
+                                                  bool allow_redock) {
   auto& state = lazy_default_dock_state_;
-  if (!state.enabled || !window_manager_ || panel_id.empty() ||
-      session_id != state.session_id ||
+  // allow_redock sends a panel home from the pin node. The live geometry is
+  // kept for every preset, so it does not require lazy docking.
+  if ((!state.enabled && !allow_redock) || !window_manager_ ||
+      panel_id.empty() || session_id != state.session_id ||
       !ImGui::DockBuilderGetNode(state.dockspace)) {
     return false;
   }
@@ -872,14 +1424,14 @@ bool LayoutManager::DockPresetPositionOnFirstOpen(
       std::find(preset.default_visible_panels.begin(),
                 preset.default_visible_panels.end(),
                 panel_id) != preset.default_visible_panels.end();
-  if (!preset.dock_only_default_visible_panels ||
+  if ((!preset.dock_only_default_visible_panels && !allow_redock) ||
       (!include_default_visible && is_default_visible)) {
     return false;
   }
 
   const auto position_it = preset.panel_positions.find(panel_id);
   if (position_it == preset.panel_positions.end() ||
-      state.attempted_panels.contains(panel_id)) {
+      (!allow_redock && state.attempted_panels.contains(panel_id))) {
     return false;
   }
 
@@ -896,18 +1448,20 @@ bool LayoutManager::DockPresetPositionOnFirstOpen(
 
   // A panel restored into a valid dock node already has an intentional
   // position. Count that as its one shot without moving it.
-  if (ImGuiWindow* window = ImGui::FindWindowByName(window_title.c_str());
-      window && window->DockId != 0 &&
-      ImGui::DockBuilderGetNode(window->DockId)) {
-    MarkLazyDefaultDockAttempted(panel_id);
-    return false;
-  }
-  if (ImGuiWindowSettings* settings =
-          ImGui::FindWindowSettingsByID(ImHashStr(window_title.c_str()));
-      settings && settings->DockId != 0 &&
-      ImGui::DockBuilderGetNode(settings->DockId)) {
-    MarkLazyDefaultDockAttempted(panel_id);
-    return false;
+  if (!allow_redock) {
+    if (ImGuiWindow* window = ImGui::FindWindowByName(window_title.c_str());
+        window && window->DockId != 0 &&
+        ImGui::DockBuilderGetNode(window->DockId)) {
+      MarkLazyDefaultDockAttempted(panel_id);
+      return false;
+    }
+    if (ImGuiWindowSettings* settings =
+            ImGui::FindWindowSettingsByID(ImHashStr(window_title.c_str()));
+        settings && settings->DockId != 0 &&
+        ImGui::DockBuilderGetNode(settings->DockId)) {
+      MarkLazyDefaultDockAttempted(panel_id);
+      return false;
+    }
   }
 
   auto split_center = [&](ImGuiDir direction, float ratio,
@@ -1009,41 +1563,6 @@ bool LayoutManager::DockPresetPositionOnFirstOpen(
   }
   ImGui::DockBuilderFinish(state.dockspace);
   return true;
-}
-
-// Deprecated individual build methods - redirected to generic or kept empty
-void LayoutManager::BuildOverworldLayout(ImGuiID dockspace_id) {
-  BuildLayoutFromPreset(EditorType::kOverworld, dockspace_id);
-}
-void LayoutManager::BuildDungeonLayout(ImGuiID dockspace_id) {
-  BuildLayoutFromPreset(EditorType::kDungeon, dockspace_id);
-}
-void LayoutManager::BuildGraphicsLayout(ImGuiID dockspace_id) {
-  BuildLayoutFromPreset(EditorType::kGraphics, dockspace_id);
-}
-void LayoutManager::BuildPaletteLayout(ImGuiID dockspace_id) {
-  BuildLayoutFromPreset(EditorType::kPalette, dockspace_id);
-}
-void LayoutManager::BuildScreenLayout(ImGuiID dockspace_id) {
-  BuildLayoutFromPreset(EditorType::kScreen, dockspace_id);
-}
-void LayoutManager::BuildMusicLayout(ImGuiID dockspace_id) {
-  BuildLayoutFromPreset(EditorType::kMusic, dockspace_id);
-}
-void LayoutManager::BuildSpriteLayout(ImGuiID dockspace_id) {
-  BuildLayoutFromPreset(EditorType::kSprite, dockspace_id);
-}
-void LayoutManager::BuildMessageLayout(ImGuiID dockspace_id) {
-  BuildLayoutFromPreset(EditorType::kMessage, dockspace_id);
-}
-void LayoutManager::BuildAssemblyLayout(ImGuiID dockspace_id) {
-  BuildLayoutFromPreset(EditorType::kAssembly, dockspace_id);
-}
-void LayoutManager::BuildSettingsLayout(ImGuiID dockspace_id) {
-  BuildLayoutFromPreset(EditorType::kSettings, dockspace_id);
-}
-void LayoutManager::BuildEmulatorLayout(ImGuiID dockspace_id) {
-  BuildLayoutFromPreset(EditorType::kEmulator, dockspace_id);
 }
 
 void LayoutManager::SaveCurrentLayout(const std::string& name, bool persist) {
@@ -1357,7 +1876,7 @@ bool LayoutManager::ApplyBuiltInProfile(const std::string& profile_id,
   }
 
   PanelLayoutPreset preset;
-  if (!TryGetNamedPreset(matched_profile.preset_name, &preset)) {
+  if (!LayoutPresets::TryGetNamedPreset(matched_profile.preset_name, &preset)) {
     LOG_WARN("LayoutManager", "Unable to resolve preset '%s' for profile '%s'",
              matched_profile.preset_name.c_str(), profile_id.c_str());
     return false;
@@ -1566,6 +2085,7 @@ void LayoutManager::MarkLayoutInitialized(EditorType type) {
 
 void LayoutManager::ClearInitializationFlags() {
   DisableLazyDefaultDocking();
+  lazy_states_by_type_.clear();
   layouts_initialized_.clear();
   LOG_INFO("LayoutManager", "Cleared all layout initialization flags");
 }
@@ -1622,16 +2142,34 @@ std::string ResolveDockWindowTitle(const WorkspaceWindowManager* wm,
   return label.empty() ? panel.panel_id : (label + "##" + panel.panel_id);
 }
 
-void ApplyDockNodeRecursive(WorkspaceWindowManager* wm, size_t session_id,
-                            const layout_designer::DockNode& node,
-                            ImGuiID target_id) {
+void ApplyDockNodeRecursive(
+    WorkspaceWindowManager* wm, size_t session_id,
+    const layout_designer::DockNode& node, ImGuiID target_id,
+    const std::function<void(ImGuiID, ImGuiID, ImGuiID, std::vector<ImGuiID>)>&
+        queue_selection) {
   using NodeType = layout_designer::DockNode::Type;
   if (node.type == NodeType::kLeaf) {
+    std::vector<ImGuiID> tab_ids;
+    ImGuiID selected_id = 0;
+    ImGuiID selected_window_id = 0;
+    size_t index = 0;
     for (const auto& panel : node.panels) {
       const std::string title = ResolveDockWindowTitle(wm, session_id, panel);
       if (!title.empty()) {
         ImGui::DockBuilderDockWindow(title.c_str(), target_id);
+        const ImGuiID window_id = ImHashStr(title.c_str());
+        const ImGuiID tab_id = ImHashStr("#TAB", 0, window_id);
+        tab_ids.push_back(tab_id);
+        if (index == static_cast<size_t>(node.active_tab_index)) {
+          selected_id = tab_id;
+          selected_window_id = window_id;
+        }
       }
+      ++index;
+    }
+    if (selected_id && tab_ids.size() > 1) {
+      queue_selection(target_id, selected_id, selected_window_id,
+                      std::move(tab_ids));
     }
     return;
   }
@@ -1643,10 +2181,12 @@ void ApplyDockNodeRecursive(WorkspaceWindowManager* wm, size_t session_id,
   const ImGuiID id_at_dir =
       ImGui::DockBuilderSplitNode(target_id, dir, ratio, nullptr, &id_other);
   if (node.child_a) {
-    ApplyDockNodeRecursive(wm, session_id, *node.child_a, id_at_dir);
+    ApplyDockNodeRecursive(wm, session_id, *node.child_a, id_at_dir,
+                           queue_selection);
   }
   if (node.child_b) {
-    ApplyDockNodeRecursive(wm, session_id, *node.child_b, id_other);
+    ApplyDockNodeRecursive(wm, session_id, *node.child_b, id_other,
+                           queue_selection);
   }
 }
 
@@ -1745,6 +2285,7 @@ absl::Status LayoutManager::ApplyDockTree(const layout_designer::DockTree& tree,
   // A custom tree owns all panel placement. Disable default first-open
   // docking before the visibility pass publishes open events.
   DisableLazyDefaultDocking();
+  pending_dock_tab_selections_.clear();
 
   // Visibility pass (Phase 8 review 2026-04-24, refined 2026-04-25):
   //   - Open every panel referenced in the tree so users see what they
@@ -1793,15 +2334,17 @@ absl::Status LayoutManager::ApplyDockTree(const layout_designer::DockTree& tree,
   ImGui::DockBuilderRemoveNode(dockspace_id);
   ImGui::DockBuilderAddNode(dockspace_id, ImGuiDockNodeFlags_DockSpace);
 
-  ImVec2 size(1280.0f, 720.0f);
-  if (const ImGuiViewport* vp = ImGui::GetMainViewport()) {
-    if (vp->WorkSize.x > 0.0f && vp->WorkSize.y > 0.0f) {
-      size = vp->WorkSize;
-    }
-  }
-  ImGui::DockBuilderSetNodeSize(dockspace_id, size);
+  ImGui::DockBuilderSetNodeSize(dockspace_id, EditorDockspaceSize());
 
-  ApplyDockNodeRecursive(window_manager_, session_id, *tree.root, dockspace_id);
+  ApplyDockNodeRecursive(
+      window_manager_, session_id, *tree.root, dockspace_id,
+      [this, session_id](ImGuiID node_id, ImGuiID selected_id,
+                         ImGuiID selected_window_id,
+                         std::vector<ImGuiID> tab_ids) {
+        pending_dock_tab_selections_.push_back(
+            {node_id, selected_id, selected_window_id, std::move(tab_ids),
+             session_id, ImGui::GetFrameCount()});
+      });
   ImGui::DockBuilderFinish(dockspace_id);
 
   last_dockspace_id_ = dockspace_id;
@@ -1822,6 +2365,58 @@ absl::Status LayoutManager::ApplyDockTree(const layout_designer::DockTree& tree,
   return absl::OkStatus();
 }
 
+void LayoutManager::ProcessPendingDockTabSelections() {
+  const ImGuiContext* context = ImGui::GetCurrentContext();
+  if (pending_dock_tab_selections_.empty() || !context ||
+      !context->WithinFrameScope) {
+    return;
+  }
+  const ImGuiIO& io = ImGui::GetIO();
+  bool input = io.MouseWheel != 0.0f || io.MouseWheelH != 0.0f;
+  for (int button = 0; button < ImGuiMouseButton_COUNT; ++button) {
+    input |= ImGui::IsMouseClicked(button);
+  }
+  for (int key = ImGuiKey_NamedKey_BEGIN; key < ImGuiKey_NamedKey_END; ++key) {
+    input |= ImGui::IsKeyPressed(static_cast<ImGuiKey>(key), false);
+  }
+  const int frame = ImGui::GetFrameCount();
+  std::erase_if(pending_dock_tab_selections_, [&](const auto& pending) {
+    if (!window_manager_ ||
+        window_manager_->GetActiveSessionId() != pending.session_id ||
+        (frame > pending.applied_frame && input)) {
+      return true;
+    }
+    ImGuiDockNode* node = ImGui::DockBuilderGetNode(pending.node_id);
+    if (!node) {
+      return true;
+    }
+    if (frame <= pending.applied_frame || !node->TabBar ||
+        !node->TabBar->SelectedTabId) {
+      return false;
+    }
+    for (const ImGuiID tab_id : pending.tab_ids) {
+      if (!ImGui::TabBarFindTabByID(node->TabBar, tab_id)) {
+        return false;
+      }
+    }
+    ImGuiWindow* selected = ImGui::FindWindowByID(pending.selected_window_id);
+    if (!selected || selected->DockNode != node ||
+        selected->TabId != pending.selected_id) {
+      return false;
+    }
+    ImGuiWindow* focused = GImGui->NavWindow;
+    if (focused && focused->RootWindow->DockNode == node &&
+        focused->RootWindow != selected->RootWindow) {
+      if (!GImGui->OpenPopupStack.empty()) {
+        return false;
+      }
+      ImGui::FocusWindow(selected);
+    }
+    node->TabBar->NextSelectedTabId = selected->TabId;
+    return true;
+  });
+}
+
 absl::Status LayoutManager::MaybeReapplyStartupLayout(UserSettings* settings) {
   if (startup_layout_consumed_) {
     return absl::OkStatus();
@@ -1838,9 +2433,10 @@ absl::Status LayoutManager::MaybeReapplyStartupLayout(UserSettings* settings) {
     return absl::OkStatus();
   }
 
-  if (main_dockspace_id_ == 0) {
-    // The controller hasn't bound the main dockspace yet — try again
-    // next frame. Leave the flag clear.
+  const ImGuiID target_dockspace = GetMainDockspaceId();
+  if (target_dockspace == 0) {
+    // No editor dockspace is active yet. Named layouts apply to one editor
+    // tree, so wait for the first editor. Leave the flag clear.
     return absl::OkStatus();
   }
 
@@ -1884,7 +2480,7 @@ absl::Status LayoutManager::MaybeReapplyStartupLayout(UserSettings* settings) {
         "startup layout \"", name, "\" validation failed: ", validation_error));
   }
 
-  absl::Status apply_status = ApplyDockTree(*tree_or, main_dockspace_id_);
+  absl::Status apply_status = ApplyDockTree(*tree_or, target_dockspace);
   startup_layout_consumed_ = true;
   if (!apply_status.ok()) {
     util::logf("LayoutManager: startup layout '%s' ApplyDockTree failed: %s",

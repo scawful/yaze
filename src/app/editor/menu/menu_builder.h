@@ -90,6 +90,14 @@ class MenuBuilder {
   MenuBuilder& CustomMenu(const char* label, Callback draw_callback);
 
   /**
+   * @brief Add items drawn by a callback inside the current menu
+   *
+   * The callback runs where the item sits, inside the open menu scope, and
+   * draws its own ImGui menu items (or nothing).
+   */
+  MenuBuilder& CustomItems(Callback draw_callback);
+
+  /**
    * @brief Draw the menu bar (call in main menu bar)
    */
   void Draw();
@@ -106,7 +114,8 @@ class MenuBuilder {
       kSubMenuBegin,
       kSubMenuEnd,
       kSeparator,
-      kDisabled
+      kDisabled,
+      kCustom
     };
 
     Type type;

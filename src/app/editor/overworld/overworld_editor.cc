@@ -2594,6 +2594,11 @@ void OverworldEditor::DrawEditorMenu() {
     ImGui::EndMenu();
   }
 
+  if (ImGui::BeginMenu("Tile16", Tile16MenuEnabled())) {
+    tile16_editor_.DrawOverworldMenuItems();
+    ImGui::EndMenu();
+  }
+
   ImGui::Separator();
 
   if (ImGui::BeginMenu("Diagnostics")) {
@@ -2609,6 +2614,22 @@ void OverworldEditor::DrawEditorMenu() {
     }
     ImGui::EndMenu();
   }
+}
+
+void OverworldEditor::DrawEditMenuItems() {
+  ImGui::Separator();
+  ImGui::BeginDisabled(!Tile16MenuEnabled());
+  tile16_editor_.DrawEditMenuItems();
+  ImGui::EndDisabled();
+}
+
+// Tile16 menu actions act on the Tile16 editor's current tile, so offer them
+// only while that window is open and its blockset is loaded.
+bool OverworldEditor::Tile16MenuEnabled() const {
+  auto* window_manager = dependencies_.window_manager;
+  return window_manager && tile16_editor_.blockset_loaded() &&
+         window_manager->IsWindowOpen(window_manager->GetActiveSessionId(),
+                                      OverworldPanelIds::kTile16Editor);
 }
 
 void OverworldEditor::ContributeStatus(StatusBar* status_bar) {

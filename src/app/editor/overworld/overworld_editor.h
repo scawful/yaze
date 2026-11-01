@@ -225,6 +225,7 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   void ProjectSaveCommitted() { lyra_canvas_.ProjectSaveCommitted(); }
   void ContributeStatus(StatusBar* status_bar) override;
   void DrawEditorMenu() override;
+  void DrawEditMenuItems() override;
   EditorContextSnapshot BuildContextSnapshot() const override;
 
   /// @brief Access the underlying Overworld data
@@ -461,6 +462,7 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   void ToggleMapLock();
   void ToggleCanvasFullscreen();
   void ToggleTile16EditorWindow();
+  bool Tile16MenuEnabled() const;
   void ToggleItemListWindow();
   /// Tool change from the toolbar or keys 1/2: also leaves entity modes.
   void SetEditingMode(EditingMode mode);

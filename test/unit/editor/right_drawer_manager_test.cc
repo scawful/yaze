@@ -222,6 +222,60 @@ TEST_F(RightDrawerManagerTest, MainMenusAndCanvasPopupWorkWithSettingsOpen) {
             RightDrawerManager::DrawerType::kSettings);
 }
 
+// Editors add Edit-menu items through MenuBuilder::CustomItems; the callback
+// must draw in place inside the open menu and be skipped in closed submenus.
+TEST_F(RightDrawerManagerTest, MenuBuilderCustomItemsDrawInsideOpenMenu) {
+  MenuBuilder builder;
+  int open_calls = 0;
+  int closed_calls = 0;
+  int activated = 0;
+  ImRect custom_item;
+  builder.BeginMenu("Edit")
+      .Item("Undo", []() {})
+      .CustomItems([&]() {
+        ++open_calls;
+        if (ImGui::MenuItem("Editor action"))
+          ++activated;
+        custom_item = ImRect(ImGui::GetItemRectMin(), ImGui::GetItemRectMax());
+      })
+      .BeginSubMenu("Closed")
+      .CustomItems([&]() { ++closed_calls; })
+      .EndMenu()
+      .EndMenu();
+  ImRect trigger;
+  const auto frame = [&]() {
+    ImGui::NewFrame();
+    if (ImGui::BeginMainMenuBar()) {
+      const ImVec2 start = ImGui::GetCursorScreenPos();
+      builder.Draw();
+      trigger = ImRect(start, ImVec2(start.x + 30.0f, start.y + 16.0f));
+      ImGui::EndMainMenuBar();
+    }
+    ImGui::Render();
+  };
+  const auto click = [&](ImRect rect) {
+    const auto center = rect.GetCenter();
+    auto& io = ImGui::GetIO();
+    io.AddMousePosEvent(center.x, center.y);
+    frame();
+    io.AddMouseButtonEvent(0, true);
+    frame();
+    io.AddMouseButtonEvent(0, false);
+    frame();
+    frame();
+  };
+  for (int i = 0; i < 5; ++i)
+    frame();
+  EXPECT_EQ(open_calls, 0);
+  click(trigger);
+  ASSERT_FALSE(GImGui->OpenPopupStack.empty());
+  EXPECT_GT(open_calls, 0);
+  EXPECT_EQ(closed_calls, 0);
+  click(custom_item);
+  EXPECT_EQ(activated, 1);
+  EXPECT_EQ(closed_calls, 0);
+}
+
 TEST_F(RightDrawerManagerTest, CyclePanelNoopWhenNoPanelIsActive) {
   RightDrawerManager manager;
   EXPECT_EQ(manager.GetActiveDrawer(), RightDrawerManager::DrawerType::kNone);

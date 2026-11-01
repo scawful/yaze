@@ -258,6 +258,20 @@ TEST_F(ShortcutConfiguratorTest, DefaultBindingsHaveNoUnintendedConflicts) {
             (std::vector<ImGuiKey>{ImGuiMod_Ctrl, ImGuiMod_Alt, ImGuiKey_L}));
 }
 
+TEST_F(ShortcutConfiguratorTest, ResetLayoutShortcutQueuesMenuReset) {
+  const Shortcut* reset =
+      editor_manager_->shortcut_manager()->FindShortcut("Reset Layout");
+  ASSERT_NE(reset, nullptr);
+  ASSERT_TRUE(static_cast<bool>(reset->callback));
+  EXPECT_EQ(reset->keys,
+            (std::vector<ImGuiKey>{ImGuiMod_Ctrl, ImGuiMod_Alt, ImGuiKey_R}));
+  const int before =
+      editor_manager_->GetUiSyncStateSnapshot().pending_editor_actions;
+  reset->callback();
+  EXPECT_EQ(editor_manager_->GetUiSyncStateSnapshot().pending_editor_actions,
+            before + 1);
+}
+
 TEST_F(ShortcutConfiguratorTest, PanelHintDoesNotShadowGlobalChord) {
   auto* window_manager = editor_manager_->GetWindowManager();
   bool visible = false;

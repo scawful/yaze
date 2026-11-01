@@ -64,7 +64,7 @@ if (layout_designer.IsOpen()) {
 
 **DockBuilder Code:**
 ```cpp
-void LayoutManager::BuildDungeonExpertLayout(ImGuiID dockspace_id) {
+void BuildDungeonExpertExample(ImGuiID dockspace_id) {
   ImGui::DockBuilderRemoveNode(dockspace_id);
   ImGui::DockBuilderAddNode(dockspace_id, ImGuiDockNodeFlags_DockSpace);
   
@@ -81,7 +81,7 @@ void LayoutManager::BuildDungeonExpertLayout(ImGuiID dockspace_id) {
 
 **Layout Preset:**
 ```cpp
-PanelLayoutPreset LayoutPresets::GetDungeonExpertPreset() {
+PanelLayoutPreset MakeDungeonExpertExample() {
   return {
     .name = "Dungeon Expert",
     .description = "Optimized for advanced dungeon editing",

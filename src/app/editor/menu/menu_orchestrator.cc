@@ -340,6 +340,13 @@ void MenuOrchestrator::AddEditMenuItems() {
       "Find", ICON_MD_SEARCH, [this]() { OnFind(); },
       GetShortcutForAction("Find").c_str(),
       [this]() { return CurrentEditorCanFind(); });
+
+  menu_builder_.CustomItems([this]() {
+    if (Editor* editor =
+            editor_manager_ ? editor_manager_->GetCurrentEditor() : nullptr) {
+      editor->DrawEditMenuItems();
+    }
+  });
 }
 
 void MenuOrchestrator::BuildViewMenu() {

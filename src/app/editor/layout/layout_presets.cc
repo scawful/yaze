@@ -467,6 +467,33 @@ PanelLayoutPreset LayoutPresets::GetModderPreset() {
   return preset;
 }
 
+bool LayoutPresets::TryGetNamedPreset(const std::string& name,
+                                      PanelLayoutPreset* preset_out) {
+  if (!preset_out) {
+    return false;
+  }
+  if (name == "Minimal") {
+    *preset_out = GetMinimalPreset();
+  } else if (name == "Developer") {
+    *preset_out = GetDeveloperPreset();
+  } else if (name == "Designer") {
+    *preset_out = GetDesignerPreset();
+  } else if (name == "Modder") {
+    *preset_out = GetModderPreset();
+  } else if (name == "Overworld Expert") {
+    *preset_out = GetOverworldArtistPreset();
+  } else if (name == "Dungeon Expert") {
+    *preset_out = GetDungeonMasterPreset();
+  } else if (name == "Testing") {
+    *preset_out = GetLogicDebuggerPreset();
+  } else if (name == "Audio") {
+    *preset_out = GetAudioEngineerPreset();
+  } else {
+    return false;
+  }
+  return true;
+}
+
 PanelLayoutPreset LayoutPresets::GetOverworldArtistPreset() {
   PanelLayoutPreset preset;
   preset.name = "Overworld Artist";
@@ -512,10 +539,6 @@ PanelLayoutPreset LayoutPresets::GetOverworldArtistPreset() {
   return preset;
 }
 
-PanelLayoutPreset LayoutPresets::GetOverworldExpertPreset() {
-  return GetOverworldArtistPreset();
-}
-
 PanelLayoutPreset LayoutPresets::GetDungeonMasterPreset() {
   PanelLayoutPreset preset;
   preset.name = "Dungeon Master";
@@ -553,10 +576,6 @@ PanelLayoutPreset LayoutPresets::GetDungeonMasterPreset() {
   return preset;
 }
 
-PanelLayoutPreset LayoutPresets::GetDungeonExpertPreset() {
-  return GetDungeonMasterPreset();
-}
-
 PanelLayoutPreset LayoutPresets::GetLogicDebuggerPreset() {
   PanelLayoutPreset preset;
   preset.name = "Logic Debugger";
@@ -578,10 +597,6 @@ PanelLayoutPreset LayoutPresets::GetLogicDebuggerPreset() {
       Panels::kEmulatorAiAgent,
   };
   return preset;
-}
-
-PanelLayoutPreset LayoutPresets::GetTestingPreset() {
-  return GetLogicDebuggerPreset();
 }
 
 PanelLayoutPreset LayoutPresets::GetAudioEngineerPreset() {
@@ -615,10 +630,6 @@ PanelLayoutPreset LayoutPresets::GetAudioEngineerPreset() {
       {Panels::kEmulatorAudioMixer, DockPosition::RightTop},
   };
   return preset;
-}
-
-PanelLayoutPreset LayoutPresets::GetAudioPreset() {
-  return GetAudioEngineerPreset();
 }
 
 }  // namespace editor

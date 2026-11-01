@@ -20,25 +20,6 @@ class WorkspaceWindowManager;
 class UserSettings;
 
 /**
- * @enum LayoutType
- * @brief Predefined layout types for different editor workflows
- */
-enum class LayoutType {
-  kDefault,
-  kOverworld,
-  kDungeon,
-  kGraphics,
-  kPalette,
-  kScreen,
-  kMusic,
-  kSprite,
-  kMessage,
-  kAssembly,
-  kSettings,
-  kEmulator
-};
-
-/**
  * @enum LayoutScope
  * @brief Storage scope for saved layouts
  */
@@ -73,7 +54,7 @@ struct LayoutProfile {
 class LayoutManager {
  public:
   LayoutManager() = default;
-  ~LayoutManager() = default;
+  ~LayoutManager();
 
   /**
    * @brief Set the window manager for window title lookups
@@ -282,17 +263,6 @@ class LayoutManager {
   void ClearInitializationFlags();
 
   /**
-   * @brief Set the current layout type for rebuild
-   * @param type The layout type to set
-   */
-  void SetLayoutType(LayoutType type) { current_layout_type_ = type; }
-
-  /**
-   * @brief Get the current layout type
-   */
-  LayoutType GetLayoutType() const { return current_layout_type_; }
-
-  /**
    * @brief Request a layout rebuild on next frame
    */
   void RequestRebuild() { rebuild_requested_ = true; }
@@ -328,11 +298,9 @@ class LayoutManager {
    *   - Calls `WorkspaceWindowManager::OpenWindow(panel_id)` for every
    *     panel referenced in the tree, so the user actually sees the
    *     panels they docked rather than empty slots.
-   *   - Marks every `EditorType`'s layout as initialized so the lazy
-   *     `InitializeEditorLayout` path in EditorActivator doesn't blow
-   *     the custom layout away on the first panel-based editor
-   *     activation. The Layout Designer's apply is an explicit "this
-   *     is my workspace" — the per-editor preset must yield to it.
+   *   - Marks the active editor's layout initialized. If no editor is
+   *     active, protects the next editor's first initialization instead.
+   *     Other editors can still initialize their own defaults.
    *
    * Panels in the tree whose `panel_id` is not registered against the
    * bound WorkspaceWindowManager are skipped with a best-effort fallback
@@ -347,18 +315,15 @@ class LayoutManager {
   absl::Status ApplyDockTree(const layout_designer::DockTree& tree,
                              ImGuiID dockspace_id);
 
+  // Finish one-time saved tab selection after ImGui registers the windows.
+  void ProcessPendingDockTabSelections();
+
   /**
-   * @brief Record the ImGui ID of the main dockspace from its authoring
-   *        scope.
+   * @brief Record the outer dockspace ID (OuterDockspaceId() in the app).
    *
-   * ImGui IDs are salted by the current window's ID stack, so
-   * `ImGui::GetID("MainDockSpace")` only resolves to the live dockspace
-   * when called from inside the window that hosts it (see
-   * `controller.cc::Render`). Panels drawn in other windows (e.g. the
-   * Layout Designer, which lives in its own PanelWindow) would hash a
-   * different ID and end up driving an orphan dock node. The controller
-   * calls this setter every frame from the correct scope; consumers
-   * read via `GetMainDockspaceId()`.
+   * GetMainDockspaceId() returns the active editor's dockspace when one is
+   * set and falls back to this ID. Tests that drive a single dockspace set
+   * it directly.
    */
   void SetMainDockspaceId(ImGuiID id) { main_dockspace_id_ = id; }
 
@@ -367,7 +332,68 @@ class LayoutManager {
    * @return The ID cached by `SetMainDockspaceId`, or 0 before the first
    *         frame of the DockSpaceWindow has rendered.
    */
-  ImGuiID GetMainDockspaceId() const { return main_dockspace_id_; }
+  ImGuiID GetMainDockspaceId() const;
+
+  // ==========================================================================
+  // Per-editor dockspaces (B2)
+  // ==========================================================================
+
+  /**
+   * @brief Outer dockspace hosted by DockSpaceWindow.
+   *
+   * Hashed with a fixed seed, so the value does not depend on the calling
+   * window's ID stack. The outer root holds the shared pin node and the
+   * central node that hosts the editor host window.
+   */
+  static ImGuiID OuterDockspaceId();
+
+  /**
+   * @brief Dockspace that holds one editor's panels.
+   *
+   * Each editor keeps its own dock tree. Switching editors submits a different
+   * dockspace instead of rebuilding a shared one, so closed and moved panels
+   * survive a round trip.
+   */
+  static ImGuiID EditorDockspaceId(EditorType type);
+
+  /// Dockspace of the editor shown in the editor host, or 0 for kUnknown.
+  ImGuiID ActiveEditorDockspaceId() const;
+
+  void SetActiveEditorType(EditorType type) { active_editor_type_ = type; }
+  EditorType active_editor_type() const { return active_editor_type_; }
+
+  /**
+   * @brief Draw the editor host window and enforce the pin node.
+   *
+   * Call once per frame after the DockSpaceWindow ends and before editor
+   * panels are drawn. Splits the outer root into the pin node and central
+   * node on first use, docks the host into the central node, submits the
+   * active editor dockspace and keeps every other editor dockspace alive.
+   */
+  void DrawEditorHost();
+
+  /// Pin node under the outer root, or 0 before the first split.
+  ImGuiID FindPinNode() const;
+
+  /// Side and size (pixels along the split axis) the pin node is rebuilt
+  /// with. Follows the last pin node drawn; size 0 means the default share.
+  ImGuiDir pin_dir() const { return pin_dir_; }
+  float pin_size() const { return pin_size_; }
+
+  // ==========================================================================
+  // imgui.ini persistence (B2 layout revision)
+  // ==========================================================================
+
+  /// Layout revision written to imgui.ini. A mismatch resets dock trees.
+  static constexpr int kLayoutIniRevision = 1;
+
+  /// Register the "YazeLayout" ImGui settings handler on the current context.
+  void RegisterLayoutIniHandler();
+
+  void ResetLayoutIniSettings();
+  void ReadLayoutIniLine(const char* line);
+  void ApplyLayoutIniSettings();
+  void WriteLayoutIniSettings(ImGuiTextBuffer* buf) const;
 
   /**
    * @brief Test-only: reset the one-shot startup-reapply guard so a
@@ -387,6 +413,7 @@ class LayoutManager {
   void set_current_editor_type_for_test(EditorType type) {
     current_editor_type_ = type;
   }
+  void set_editor_host_size_for_test(ImVec2 size) { editor_host_size_ = size; }
 
   /**
    * @brief One-shot startup hook that re-applies the user's last
@@ -453,34 +480,38 @@ class LayoutManager {
   void DockOpenPresetPanels(EditorType type);
   bool DockPresetPositionOnFirstOpen(size_t session_id,
                                      const std::string& panel_id,
-                                     bool include_default_visible);
+                                     bool include_default_visible,
+                                     bool allow_redock = false);
   void MarkLazyDefaultDockAttempted(const std::string& panel_id);
+  void StashLazyDefaultDockState();
+  bool RestoreLazyDefaultDockState(EditorType type, ImGuiID dockspace_id);
+  ImGuiID EnsurePinNode();
+  void RecordPinSpot();
+  // Puts the pin node on side `dir` (size in pixels, 0 keeps the saved one)
+  // and moves the panels already pinned there. Returns the pin node.
+  ImGuiID MovePinSpot(ImGuiDir dir, float size);
+  ImVec2 EditorDockspaceSize() const;
+  void EnforcePinnedPanels(ImGuiID pin_node);
   void ProtectRestoredLayoutFromDefaultInitialization();
 
   void LoadLayoutsFromDiskInternal(LayoutScope scope, bool merge);
   void SaveLayoutsToDisk(LayoutScope scope) const;
 
-  // Deprecated individual builders - kept for compatibility or as wrappers
-  void BuildOverworldLayout(ImGuiID dockspace_id);
-  void BuildDungeonLayout(ImGuiID dockspace_id);
-  void BuildGraphicsLayout(ImGuiID dockspace_id);
-  void BuildPaletteLayout(ImGuiID dockspace_id);
-  void BuildScreenLayout(ImGuiID dockspace_id);
-  void BuildMusicLayout(ImGuiID dockspace_id);
-  void BuildSpriteLayout(ImGuiID dockspace_id);
-  void BuildMessageLayout(ImGuiID dockspace_id);
-  void BuildAssemblyLayout(ImGuiID dockspace_id);
-  void BuildSettingsLayout(ImGuiID dockspace_id);
-  void BuildEmulatorLayout(ImGuiID dockspace_id);
-
   // Track which layouts have been initialized
   std::unordered_map<EditorType, bool> layouts_initialized_;
 
+  struct PendingDockTabSelection {
+    ImGuiID node_id = 0;
+    ImGuiID selected_id = 0;
+    ImGuiID selected_window_id = 0;
+    std::vector<ImGuiID> tab_ids;
+    size_t session_id = 0;
+    int applied_frame = 0;
+  };
+  std::vector<PendingDockTabSelection> pending_dock_tab_selections_;
+
   // Panel manager for window title lookups
   WorkspaceWindowManager* window_manager_ = nullptr;
-
-  // Current layout type
-  LayoutType current_layout_type_ = LayoutType::kDefault;
 
   // Rebuild flag
   bool rebuild_requested_ = false;
@@ -511,6 +542,33 @@ class LayoutManager {
   // Current editor type being displayed
   EditorType current_editor_type_ = EditorType::kUnknown;
 
+  // Editor whose dockspace the editor host submits as active. Synced each
+  // frame by LayoutCoordinator::ProcessLayoutRebuild.
+  EditorType active_editor_type_ = EditorType::kUnknown;
+
+  // Content size of the editor host from the last frame; zero before it draws.
+  ImVec2 editor_host_size_ = ImVec2(0.0f, 0.0f);
+
+  // Parsed [YazeLayout][Data] section from imgui.ini.
+  struct LayoutIniState {
+    bool section_seen = false;
+    int revision = 0;
+    std::vector<EditorType> initialized;
+    ImGuiDir pin_dir = ImGuiDir_None;
+    float pin_size = 0.0f;
+  };
+  LayoutIniState layout_ini_;
+  bool layout_ini_backup_checked_ = false;
+
+  // Where the shared pin node goes when it is (re)built. The node is deleted
+  // when its last panel leaves, so the user's drag is kept here.
+  ImGuiDir pin_dir_ = ImGuiDir_Right;
+  float pin_size_ = 0.0f;
+
+  // Window names of the panels pinned at the last EnforcePinnedPanels. Tells
+  // a drag of a pinned panel apart from a panel pinned where it already sat.
+  std::unordered_set<std::string> pinned_last_frame_;
+
   // Default presets may omit hidden panels from the initial dock tree. Keep
   // enough state to create their preferred region lazily on first open.
   struct LazyDefaultDockState {
@@ -536,6 +594,8 @@ class LayoutManager {
     std::unordered_set<std::string> attempted_panels;
   };
   LazyDefaultDockState lazy_default_dock_state_;
+  // Lazy state stashed per editor so a switch back resumes first-open docking.
+  std::unordered_map<EditorType, LazyDefaultDockState> lazy_states_by_type_;
   std::unordered_map<
       size_t, std::unordered_map<EditorType, std::unordered_set<std::string>>>
       lazy_default_dock_attempts_;

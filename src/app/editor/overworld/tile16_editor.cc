@@ -130,13 +130,6 @@ absl::Status Tile16Editor::UpdateAsPanel() {
     }
   }
 
-  // Menu button for context menu
-  if (Button(ICON_MD_MENU " Menu")) {
-    OpenPopup("##Tile16EditorContextMenu");
-  }
-  SameLine();
-  TextDisabled(tr("Right-click for more options"));
-
   if (Button("Edit Graphics")) {
     graphics_open_status_ = OpenGraphicsForActiveQuadrant();
   }
@@ -145,27 +138,6 @@ absl::Status Tile16Editor::UpdateAsPanel() {
   if (!graphics_open_status_.ok()) {
     ImGui::TextWrapped("Graphics edit unavailable: %s",
                        graphics_open_status_.message().data());
-  }
-
-  // Context menu
-  DrawContextMenu();
-
-  // About popup
-  if (BeginPopupModal("About Tile16 Editor", NULL,
-                      ImGuiWindowFlags_AlwaysAutoResize)) {
-    Text(tr("Tile16 Editor for Link to the Past"));
-    Text(tr("This editor allows you to edit 16x16 tiles used in the game."));
-    Text(tr("Features:"));
-    BulletText(
-        tr("Edit Tile16 graphics by placing 8x8 tiles in the quadrants"));
-    BulletText(tr("Copy and paste Tile16 graphics"));
-    BulletText(tr("Save and load Tile16 graphics to/from scratch space"));
-    BulletText(tr("Preview Tile16 graphics at a larger size"));
-    Separator();
-    if (Button(tr("Close"))) {
-      CloseCurrentPopup();
-    }
-    EndPopup();
   }
 
   // Handle keyboard shortcuts (shared implementation)

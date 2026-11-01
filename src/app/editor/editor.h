@@ -336,6 +336,11 @@ class Editor {
   // Called when this editor is active. Runs inside an open BeginMenu scope.
   virtual void DrawEditorMenu() {}
 
+  // Push editor-specific items into the main Edit menu, after the shared
+  // items. Called when this editor is active, inside the open Edit menu.
+  // Draw a leading separator when adding anything.
+  virtual void DrawEditMenuItems() {}
+
   virtual EditorContextSnapshot BuildContextSnapshot() const {
     EditorContextSnapshot snapshot;
     const size_t index = EditorTypeIndex(type_);
