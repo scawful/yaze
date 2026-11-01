@@ -195,10 +195,11 @@ void WorkspaceManager::HideAllWindows() {
 void WorkspaceManager::MaximizeCurrentWindow() {
   // Use ImGui internal API to maximize current window
   ImGuiWindow* window = ImGui::GetCurrentWindowRead();
-  if (window && window->DockNode) {
-    ImGuiID central_node_id =
-        ImGui::DockBuilderGetCentralNode(ImGui::GetID("MainDockSpace"))->ID;
-    ImGui::DockBuilderDockWindow(window->Name, central_node_id);
+  if (window && window->DockNode && layout_manager_) {
+    if (ImGuiDockNode* central = ImGui::DockBuilderGetCentralNode(
+            layout_manager_->GetMainDockspaceId())) {
+      ImGui::DockBuilderDockWindow(window->Name, central->ID);
+    }
   }
   if (toast_manager_) {
     toast_manager_->Show("Window maximized", ToastType::kInfo);

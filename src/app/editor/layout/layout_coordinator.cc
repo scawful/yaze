@@ -134,11 +134,11 @@ void LayoutCoordinator::ResetWorkspaceLayout() {
   // Force immediate rebuild for active context
   ImGuiContext* imgui_ctx = ImGui::GetCurrentContext();
   if (imgui_ctx && imgui_ctx->WithinFrameScope) {
-    ImGuiID dockspace_id = ImGui::GetID("MainDockSpace");
-
     // Determine which layout to rebuild based on emulator visibility
     if (ui_coordinator_ && ui_coordinator_->IsEmulatorVisible()) {
-      layout_manager_->RebuildLayout(EditorType::kEmulator, dockspace_id);
+      layout_manager_->RebuildLayout(
+          EditorType::kEmulator,
+          LayoutManager::EditorDockspaceId(EditorType::kEmulator));
       LOG_INFO("LayoutCoordinator", "Emulator layout reset complete");
     }
     // Note: Current editor check would need to be passed in or stored
@@ -262,6 +262,19 @@ void LayoutCoordinator::ProcessLayoutRebuild(EditorType current_editor_type,
   if (!layout_manager_) {
     return;
   }
+
+  // The editor host shows this editor's dockspace. With no editor open the
+  // last one stays so its panels keep their dock nodes.
+  EditorType rebuild_type = EditorType::kUnknown;
+  if (is_emulator_visible) {
+    rebuild_type = EditorType::kEmulator;
+  } else if (current_editor_type != EditorType::kUnknown) {
+    rebuild_type = current_editor_type;
+  }
+  if (rebuild_type != EditorType::kUnknown) {
+    layout_manager_->SetActiveEditorType(rebuild_type);
+  }
+
   if (!layout_manager_->IsRebuildRequested()) {
     layout_manager_->ProcessPendingDockTabSelections();
     return;
@@ -273,19 +286,10 @@ void LayoutCoordinator::ProcessLayoutRebuild(EditorType current_editor_type,
     return;
   }
 
-  ImGuiID dockspace_id = ImGui::GetID("MainDockSpace");
-
-  // Determine which editor layout to rebuild
-  EditorType rebuild_type = EditorType::kUnknown;
-  if (is_emulator_visible) {
-    rebuild_type = EditorType::kEmulator;
-  } else if (current_editor_type != EditorType::kUnknown) {
-    rebuild_type = current_editor_type;
-  }
-
   // Execute rebuild if we have a valid editor type
   if (rebuild_type != EditorType::kUnknown) {
-    layout_manager_->RebuildLayout(rebuild_type, dockspace_id);
+    layout_manager_->RebuildLayout(
+        rebuild_type, LayoutManager::EditorDockspaceId(rebuild_type));
     LOG_INFO("LayoutCoordinator", "Layout rebuilt for editor type %d",
              static_cast<int>(rebuild_type));
   }
@@ -305,8 +309,8 @@ void LayoutCoordinator::InitializeEditorLayout(EditorType type) {
   // Defer layout initialization to ensure we are in the correct scope
   QueueDeferredAction([this, type]() {
     if (layout_manager_ && !layout_manager_->IsLayoutInitialized(type)) {
-      ImGuiID dockspace_id = ImGui::GetID("MainDockSpace");
-      layout_manager_->InitializeEditorLayout(type, dockspace_id);
+      layout_manager_->InitializeEditorLayout(
+          type, LayoutManager::EditorDockspaceId(type));
     }
   });
 }

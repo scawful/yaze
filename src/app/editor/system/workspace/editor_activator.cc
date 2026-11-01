@@ -256,11 +256,13 @@ void EditorActivator::HandleNonEditorClassSwitch(EditorType type,
             deps_.queue_deferred_action([this]() {
               ImGuiContext* ctx = ImGui::GetCurrentContext();
               if (deps_.layout_manager && ctx && ctx->WithinFrameScope) {
-                ImGuiID dockspace_id = ImGui::GetID("MainDockSpace");
+                deps_.layout_manager->SetActiveEditorType(
+                    EditorType::kEmulator);
                 if (!deps_.layout_manager->IsLayoutInitialized(
                         EditorType::kEmulator)) {
                   deps_.layout_manager->InitializeEditorLayout(
-                      EditorType::kEmulator, dockspace_id);
+                      EditorType::kEmulator,
+                      LayoutManager::EditorDockspaceId(EditorType::kEmulator));
                   LOG_INFO("EditorActivator", "Initialized emulator layout");
                 }
               }
@@ -309,8 +311,8 @@ void EditorActivator::InitializeEditorLayout(EditorType type) {
   }
 
   const bool was_initialized = deps_.layout_manager->IsLayoutInitialized(type);
-  ImGuiID dockspace_id = ImGui::GetID("MainDockSpace");
-  deps_.layout_manager->InitializeEditorLayout(type, dockspace_id);
+  deps_.layout_manager->InitializeEditorLayout(
+      type, LayoutManager::EditorDockspaceId(type));
   if (!was_initialized && deps_.layout_manager->IsLayoutInitialized(type)) {
     LOG_INFO("EditorActivator", "Initialized layout for editor type %d",
              static_cast<int>(type));

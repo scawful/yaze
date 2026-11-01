@@ -295,6 +295,12 @@ absl::Status Controller::OnEntry(std::string filename) {
   // Initialize editor manager with renderer
   editor_manager_.Initialize(renderer_.get(), filename);
 
+  // imgui.ini loads on the first NewFrame; the layout section needs its
+  // handler registered before then.
+  if (auto* mgr = editor::ContentRegistry::Context::layout_manager()) {
+    mgr->RegisterLayoutIniHandler();
+  }
+
   active_ = true;
   return absl::OkStatus();
 }
@@ -514,15 +520,12 @@ absl::Status Controller::OnLoad() {
   ImGui::Begin("DockSpaceWindow", nullptr, window_flags);
   ImGui::PopStyleVar(3);
 
-  // Create DockSpace with adjusted size.
-  // NOTE: ImGui IDs are salted by the current window's ID stack, so this
-  // particular `GetID("MainDockSpace")` is only meaningful while
-  // DockSpaceWindow is the active Begin. Cache it on LayoutManager so
-  // cross-scope callers (e.g. the Layout Designer panel, which lives in
-  // its own PanelWindow) can apply docktrees against the real dockspace
-  // instead of a differently-salted hash.
-  ImGuiID dockspace_id = ImGui::GetID("MainDockSpace");
-  if (auto* mgr = editor::ContentRegistry::Context::layout_manager()) {
+  // Outer dockspace: the editor host fills its central node and pinned
+  // panels share one node beside it. Its ID is a fixed hash (not salted by
+  // the window ID stack) so every caller resolves the same node.
+  const ImGuiID dockspace_id = editor::LayoutManager::OuterDockspaceId();
+  auto* layout_manager = editor::ContentRegistry::Context::layout_manager();
+  if (auto* mgr = layout_manager) {
     mgr->SetMainDockspaceId(dockspace_id);
     // Phase 8.2: one-shot startup reapply of the user's last applied
     // named layout. Idempotent — fires once per session on the first
@@ -533,8 +536,12 @@ absl::Status Controller::OnLoad() {
     (void)mgr->MaybeReapplyStartupLayout(
         editor::ContentRegistry::Context::user_settings());
   }
+  // NoDockingSplit: panels cannot split the outer tree; they dock inside an
+  // editor's dockspace or in the pin node.
   gui::DockSpaceRenderer::BeginEnhancedDockSpace(
-      dockspace_id, ImVec2(0.0f, 0.0f), ImGuiDockNodeFlags_PassthruCentralNode);
+      dockspace_id, ImVec2(0.0f, 0.0f),
+      ImGuiDockNodeFlags_PassthruCentralNode |
+          ImGuiDockNodeFlags_NoDockingSplit);
 
   if (show_menu_bar) {
     editor_manager_.DrawMainMenuBar();  // Draw the fixed menu bar at the top
@@ -546,6 +553,10 @@ absl::Status Controller::OnLoad() {
     bus->Publish(editor::FrameGuiBeginEvent::Create(ImGui::GetIO().DeltaTime));
   }
   ImGui::End();
+
+  if (layout_manager) {
+    layout_manager->DrawEditorHost();
+  }
 
 #if !defined(__APPLE__) || \
     (TARGET_OS_IPHONE != 1 && TARGET_IPHONE_SIMULATOR != 1)

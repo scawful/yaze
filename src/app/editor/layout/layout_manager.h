@@ -54,7 +54,7 @@ struct LayoutProfile {
 class LayoutManager {
  public:
   LayoutManager() = default;
-  ~LayoutManager() = default;
+  ~LayoutManager();
 
   /**
    * @brief Set the window manager for window title lookups
@@ -319,17 +319,11 @@ class LayoutManager {
   void ProcessPendingDockTabSelections();
 
   /**
-   * @brief Record the ImGui ID of the main dockspace from its authoring
-   *        scope.
+   * @brief Record the outer dockspace ID (OuterDockspaceId() in the app).
    *
-   * ImGui IDs are salted by the current window's ID stack, so
-   * `ImGui::GetID("MainDockSpace")` only resolves to the live dockspace
-   * when called from inside the window that hosts it (see
-   * `controller.cc::Render`). Panels drawn in other windows (e.g. the
-   * Layout Designer, which lives in its own PanelWindow) would hash a
-   * different ID and end up driving an orphan dock node. The controller
-   * calls this setter every frame from the correct scope; consumers
-   * read via `GetMainDockspaceId()`.
+   * GetMainDockspaceId() returns the active editor's dockspace when one is
+   * set and falls back to this ID. Tests that drive a single dockspace set
+   * it directly.
    */
   void SetMainDockspaceId(ImGuiID id) { main_dockspace_id_ = id; }
 
@@ -338,7 +332,63 @@ class LayoutManager {
    * @return The ID cached by `SetMainDockspaceId`, or 0 before the first
    *         frame of the DockSpaceWindow has rendered.
    */
-  ImGuiID GetMainDockspaceId() const { return main_dockspace_id_; }
+  ImGuiID GetMainDockspaceId() const;
+
+  // ==========================================================================
+  // Per-editor dockspaces (B2)
+  // ==========================================================================
+
+  /**
+   * @brief Outer dockspace hosted by DockSpaceWindow.
+   *
+   * Hashed with a fixed seed, so the value does not depend on the calling
+   * window's ID stack. The outer root holds the shared pin node and the
+   * central node that hosts the editor host window.
+   */
+  static ImGuiID OuterDockspaceId();
+
+  /**
+   * @brief Dockspace that holds one editor's panels.
+   *
+   * Each editor keeps its own dock tree. Switching editors submits a different
+   * dockspace instead of rebuilding a shared one, so closed and moved panels
+   * survive a round trip.
+   */
+  static ImGuiID EditorDockspaceId(EditorType type);
+
+  /// Dockspace of the editor shown in the editor host, or 0 for kUnknown.
+  ImGuiID ActiveEditorDockspaceId() const;
+
+  void SetActiveEditorType(EditorType type) { active_editor_type_ = type; }
+  EditorType active_editor_type() const { return active_editor_type_; }
+
+  /**
+   * @brief Draw the editor host window and enforce the pin node.
+   *
+   * Call once per frame after the DockSpaceWindow ends and before editor
+   * panels are drawn. Splits the outer root into the pin node and central
+   * node on first use, docks the host into the central node, submits the
+   * active editor dockspace and keeps every other editor dockspace alive.
+   */
+  void DrawEditorHost();
+
+  /// Pin node under the outer root, or 0 before the first split.
+  ImGuiID FindPinNode() const;
+
+  // ==========================================================================
+  // imgui.ini persistence (B2 layout revision)
+  // ==========================================================================
+
+  /// Layout revision written to imgui.ini. A mismatch resets dock trees.
+  static constexpr int kLayoutIniRevision = 1;
+
+  /// Register the "YazeLayout" ImGui settings handler on the current context.
+  void RegisterLayoutIniHandler();
+
+  void ResetLayoutIniSettings();
+  void ReadLayoutIniLine(const char* line);
+  void ApplyLayoutIniSettings();
+  void WriteLayoutIniSettings(ImGuiTextBuffer* buf) const;
 
   /**
    * @brief Test-only: reset the one-shot startup-reapply guard so a
@@ -358,6 +408,7 @@ class LayoutManager {
   void set_current_editor_type_for_test(EditorType type) {
     current_editor_type_ = type;
   }
+  void set_editor_host_size_for_test(ImVec2 size) { editor_host_size_ = size; }
 
   /**
    * @brief One-shot startup hook that re-applies the user's last
@@ -424,8 +475,14 @@ class LayoutManager {
   void DockOpenPresetPanels(EditorType type);
   bool DockPresetPositionOnFirstOpen(size_t session_id,
                                      const std::string& panel_id,
-                                     bool include_default_visible);
+                                     bool include_default_visible,
+                                     bool allow_redock = false);
   void MarkLazyDefaultDockAttempted(const std::string& panel_id);
+  void StashLazyDefaultDockState();
+  bool RestoreLazyDefaultDockState(EditorType type, ImGuiID dockspace_id);
+  ImGuiID EnsurePinNode();
+  ImVec2 EditorDockspaceSize() const;
+  void EnforcePinnedPanels(ImGuiID pin_node);
   void ProtectRestoredLayoutFromDefaultInitialization();
 
   void LoadLayoutsFromDiskInternal(LayoutScope scope, bool merge);
@@ -476,6 +533,22 @@ class LayoutManager {
   // Current editor type being displayed
   EditorType current_editor_type_ = EditorType::kUnknown;
 
+  // Editor whose dockspace the editor host submits as active. Synced each
+  // frame by LayoutCoordinator::ProcessLayoutRebuild.
+  EditorType active_editor_type_ = EditorType::kUnknown;
+
+  // Content size of the editor host from the last frame; zero before it draws.
+  ImVec2 editor_host_size_ = ImVec2(0.0f, 0.0f);
+
+  // Parsed [YazeLayout][Data] section from imgui.ini.
+  struct LayoutIniState {
+    bool section_seen = false;
+    int revision = 0;
+    std::vector<EditorType> initialized;
+  };
+  LayoutIniState layout_ini_;
+  bool layout_ini_backup_checked_ = false;
+
   // Default presets may omit hidden panels from the initial dock tree. Keep
   // enough state to create their preferred region lazily on first open.
   struct LazyDefaultDockState {
@@ -501,6 +574,8 @@ class LayoutManager {
     std::unordered_set<std::string> attempted_panels;
   };
   LazyDefaultDockState lazy_default_dock_state_;
+  // Lazy state stashed per editor so a switch back resumes first-open docking.
+  std::unordered_map<EditorType, LazyDefaultDockState> lazy_states_by_type_;
   std::unordered_map<
       size_t, std::unordered_map<EditorType, std::unordered_set<std::string>>>
       lazy_default_dock_attempts_;
