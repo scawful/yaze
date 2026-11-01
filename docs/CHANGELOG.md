@@ -3,12 +3,18 @@
 High-level release summary. For detailed notes, see
 `docs/public/reference/changelog.md`.
 
-## 0.8.0 (experimental, unreleased)
-- **Experimental release.** 0.8.0 packages the merged editor work for Linux,
-  macOS, and Windows instead of waiting for Dungeon Editor completion, which
-  continues as the next Dungeon milestone. The supported / experimental /
-  deferred table is in `docs/public/release-notes.md`. Release date, release
-  SHA, and packaged-candidate results are pending.
+## Unreleased (after v0.8.0-exp.1)
+
+These changes are on the development line after the published prerelease;
+they are not part of its existing downloads. See the
+[release/source matrix](internal/status.md#lyra-source-and-qualification-boundaries).
+
+- Lyra gameplay-area documents (schema 5), 192-map navigation, and later
+  Tile16 stroke/Undo integration are development work after the schema-3
+  prerelease. Full expanded-map Oracle Build/Test is not release-qualified.
+- PNG/palette-strip import and the Sheet Browser palette selector are later
+  graphics work. The release-hardening patch keeps the existing import window
+  and moves its drawing component into the graphics feature-view module.
 - `z3ed rom-write` and `hex-write` reported `bytes_written` without saving the
   ROM. They now preview by default and save only with `--write`, keeping a
   backup and verifying the reloaded file; writes into an Oracle checkout need
@@ -18,6 +24,33 @@ High-level release summary. For detailed notes, see
 - `scripts/dev/local-workflow.sh test` builds the suites behind the CTest
   preset and runs with the configuration and `--no-tests=error`; it previously
   found no tests and passed. `scripts/yaze` finds preset build directories.
+- `--export-schemas` now gives every command a JSON Schema `parameters`
+  object (flag names, required flags, booleans, and `<a|b>` choices) and a
+  `positional_arguments` list, parsed from its usage string.
+- Help and status output use color only on a terminal and honor `NO_COLOR`
+  and `TERM=dumb`; help captured by the HTTP API or agent tools is plain
+  text. `z3ed help <topic>` matches `--help`, and an unknown help topic exits
+  1.
+- `debug` with no topic no longer reads past its arguments, `rom` subcommand
+  errors print once, `--quiet=maybe` is rejected, and the HTTP API server
+  stops before the ROM it serves is freed.
+- The AI agent's tool schemas now use the flags each command reads.
+  Registered tools take their required and boolean flags from the command's
+  usage, the fallback `assets/agent/function_schemas.json` keeps only tools
+  the agent can dispatch, and the agent's `dungeon-set-room-property` tool
+  uses `--property`. A unit test checks registered tools, the prompt
+  catalogue, and the fallback list against each command.
+- The z3ed HTTP API binds `--http-host` (default `localhost`) instead of
+  every interface, and `POST /api/v1/command/execute` returns `403` unless
+  z3ed is started with `--http-allow-commands`.
+
+## 0.8.0 (experimental prerelease: v0.8.0-exp.1)
+- **Experimental release.** 0.8.0 packages the merged editor work for Linux,
+  macOS, and Windows instead of waiting for Dungeon Editor completion, which
+  continues as the next Dungeon milestone. The supported / experimental /
+  deferred table is in `docs/public/release-notes.md`. Published 2026-10-28 from `cc673c04f5dae90d17bdc25d0923d540522340c0`;
+  [release and packages](https://github.com/scawful/yaze/releases/tag/v0.8.0-exp.1),
+  [Release run](https://github.com/scawful/yaze/actions/runs/40781419989). Native GUI/package limitations remain explicit.
 - Fixed a use-after-free in `ObjectDrawCodeTest` found by the Memory Sanitizer
   job: the test kept a pointer into a temporary `ReadObjectDrawCode` result.
 - Dungeon pot-item edits now use the normal sparse save path without loading
@@ -125,25 +158,6 @@ High-level release summary. For detailed notes, see
   - Added `dungeon-remove-object` with exact index, ID, position, size, and
     layer guards, and made `project-bundle-verify --check-rom-hash` accept the
     iOS `romChecksum` manifest field.
-  - `--export-schemas` now gives every command a JSON Schema `parameters`
-    object (flag names, required flags, booleans, and `<a|b>` choices) and a
-    `positional_arguments` list, parsed from its usage string.
-  - Help and status output use color only on a terminal and honor `NO_COLOR`
-    and `TERM=dumb`; help captured by the HTTP API or agent tools is plain
-    text. `z3ed help <topic>` matches `--help`, and an unknown help topic exits
-    1.
-  - `debug` with no topic no longer reads past its arguments, `rom` subcommand
-    errors print once, `--quiet=maybe` is rejected, and the HTTP API server
-    stops before the ROM it serves is freed.
-  - The AI agent's tool schemas now use the flags each command reads.
-    Registered tools take their required and boolean flags from the command's
-    usage, the fallback `assets/agent/function_schemas.json` keeps only tools
-    the agent can dispatch, and the agent's `dungeon-set-room-property` tool
-    uses `--property`. A unit test checks registered tools, the prompt
-    catalogue, and the fallback list against each command.
-  - The z3ed HTTP API binds `--http-host` (default `localhost`) instead of
-    every interface, and `POST /api/v1/command/execute` returns `403` unless
-    z3ed is started with `--http-allow-commands`.
 - **Appearance and Editor Shell**:
   - Added five editor themes (Blood Moon, Catppuccin Mocha, Dracula, Rosé Pine,
     Temple of Time), with upstream MIT notices for Catppuccin, Dracula, and Rosé

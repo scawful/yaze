@@ -7,12 +7,27 @@ They take precedence over broad parity or completion claims in historical
 entries below. Historical entries record changes at their original scope;
 they do not establish current end-to-end or release qualification.
 
-## 0.8.0 (experimental, unreleased)
+## Unreleased (after v0.8.0-exp.1)
+
+These source changes are not in the published prerelease downloads.
+
+- **The z3ed HTTP API listens on localhost and refuses commands by default.**
+  `z3ed --http-port` now binds `--http-host`, which defaults to `localhost`, so
+  other machines can no longer connect; pass `--http-host=0.0.0.0` (or another
+  address) to restore network access. `POST /api/v1/command/execute` returns
+  `403` unless z3ed is started with `--http-allow-commands`. 0.7.2 listened on
+  every interface, served that endpoint unconditionally, and used
+  `--http-host` only in printed URLs. The desktop app's API server is
+  unchanged.
+
+## 0.8.0 (experimental prerelease: v0.8.0-exp.1)
 
 0.8.0 is an experimental release of the merged editor work, not the completed
 Dungeon Editor milestone. The supported / experimental / deferred table is in
-the [release notes](../release-notes.md#v080). Release date, final merge SHA,
-and packaged-candidate evidence are pending.
+the [release notes](../release-notes.md#v080). Published 2026-10-28 from `cc673c04f5dae90d17bdc25d0923d540522340c0`.
+[Packages](https://github.com/scawful/yaze/releases/tag/v0.8.0-exp.1) and the
+[publication run](https://github.com/scawful/yaze/actions/runs/40781419989) are available;
+manual GUI checks are not implied by a green package job.
 
 - Fixed white overworld map and subscreen overlay textures. Their indexed
   bitmaps now declare 8-bit depth, restoring palette application and pixel row
@@ -20,9 +35,8 @@ and packaged-candidate evidence are pending.
   textures against the model's pixel colors.
 
 ### Upgrading from 0.7.2
-Every item below was checked against the `v0.7.2` tag and current `master`: the
-behaviour is on master, was absent or different in 0.7.2, and a user, script,
-or project will notice it.
+Every item below describes release source `cc673c04f5dae90d17bdc25d0923d540522340c0`
+relative to `v0.7.2`. Later development changes are listed separately above.
 
 #### Saves that used to succeed now stop with an error
 - **Save scope must cover pending edits.** Supported Graphics sheet edits and
@@ -143,14 +157,6 @@ or project will notice it.
   the top level, and `entrance-info --spawn` drops `room_id_full`.
   `dungeon-group` now scans only those 7 spawn-point records (0.7.2 scanned
   `0x14` entrance records as spawns), so its room-to-dungeon mapping can differ.
-- **The z3ed HTTP API listens on localhost and refuses commands by default.**
-  `z3ed --http-port` now binds `--http-host`, which defaults to `localhost`, so
-  other machines can no longer connect; pass `--http-host=0.0.0.0` (or another
-  address) to restore network access. `POST /api/v1/command/execute` returns
-  `403` unless z3ed is started with `--http-allow-commands`. 0.7.2 listened on
-  every interface, served that endpoint unconditionally, and used
-  `--http-host` only in printed URLs. The desktop app's API server is
-  unchanged.
 - **`palette-set-color --write` is disabled.** With `--write` it fails argument
   validation; without it the command only previews and reports `status:
   dry_run`. Use `dungeon-set-palette-color` for dungeon palettes. Other palette

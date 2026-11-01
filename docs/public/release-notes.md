@@ -1,12 +1,24 @@
 # Release Notes
 
+## Unreleased development
+
+Current development includes gameplay-area authoring, 192-map navigation,
+later Tile16 Undo/save integration, and image-import/palette-selector work.
+These are not retroactive additions to the published downloads. The
+[release/source matrix](../internal/status.md#lyra-source-and-qualification-boundaries)
+names the exact public, mainline and private sources and their remaining checks.
+
+<a id="v080"></a>
+
 ## v0.8.0-exp.1
 
 **Type:** Experimental release — Dungeon rendering and authoring, save safety,
 graphics and project tooling
-**Status:** Release candidate in preparation; not tagged or published
-**Date:** pending
-**Release SHA:** pending
+**Status:** Published experimental prerelease
+**Date:** 2026-10-28 (Eastern; published 2026-10-29 00:28 UTC)
+**Release SHA:** `cc673c04f5dae90d17bdc25d0923d540522340c0`
+**Packages:** [Release downloads](https://github.com/scawful/yaze/releases/tag/v0.8.0-exp.1) and [SHA-256 checksums](https://github.com/scawful/yaze/releases/download/v0.8.0-exp.1/checksums.txt)
+**Release runs:** [Dry run](https://github.com/scawful/yaze/actions/runs/40748726881) and [publication](https://github.com/scawful/yaze/actions/runs/40781419989)
 
 v0.8.0 is an **experimental** release for Linux, macOS, and Windows. It
 packages the editor work merged since 0.7.2 so it can be tried on ROM copies.
@@ -35,7 +47,7 @@ are not part of 0.8.0.
 | Minecart tracks (Oracle projects) | Experimental | Track drafts, canvas controls, collision tools, and explicit **Publish Tracks** with rollback on all three platforms | Publishing writes project source; it reaches the game only after an Oracle build and in-game check |
 | Graphics sheet editing | Experimental | Shared sheet pixels, live dungeon/overworld previews, PNG/clipboard, guarded 3bpp write-back and relocation | Uses the 223-sheet table; a 256-sheet table and other bit depths are not supported |
 | Planning editor | Experimental | `yaze.plan/1` plans with goals, milestones, route, items, decisions, and notes; unknown keys preserved | Explicit Save/Reload only; no Planning Undo, and switching projects can lose unsaved plan edits |
-| Lyra project authoring | Experimental | Lyra project authoring merged for 0.8.0 | Producing a playable Oracle build is outside yaze |
+| Lyra project authoring | Experimental | Schema-3 project terrain document covering the 32 tail-map pages `$A0–$BF` | Later gameplay-area schemas and private transport/reward authoring are not in these downloads; a playable Oracle build requires separate qualification |
 | Overworld, Message, Palette | Experimental | Per-domain saves when their save flags are enabled | Status per domain is in the [coverage report](reference/feature-coverage-report.md) |
 | Screen, Music instruments/samples, Hex/Memory writes, emulator save states | Deferred | Viewing and partial editing | Blocked or not part of coordinated Save ROM |
 | HTTP API servers (`z3ed --http-port`, `yaze --enable_api`) | Not in release packages | Release packages are built with the HTTP API off | Source builds that enable it should use [PR #312](https://github.com/scawful/yaze/pull/312) once merged |
@@ -320,16 +332,19 @@ and every affected command, is in `docs/public/reference/changelog.md` under
   section is stale or an address disagrees.
 
 ### Validation Snapshot
-The figures below were added to these notes on 2026-09-13. They are not a run
-against the final release head, which is **pending**.
+The figures below were added on 2026-09-13. They predate the published release
+head and do not replace the exact-SHA workflow results linked below.
 - ROM parser/drawer parity and room fingerprint tests pass for the covered
   vanilla rooms and objects.
 - `z3ed dungeon-object-validate` reported `0` mismatches across `1190` validated
   objects for the canonical vanilla ROM used by the dungeon parity audit.
 - The Release test gate executed `3286` discovered stable tests locally on
   macOS instead of accepting an empty test run.
-- Final tag SHA, packaged-candidate digests, hosted `Release` workflow run links,
-  and a full-suite run against the release head are **pending**.
+- Published package digests are in [checksums.txt](https://github.com/scawful/yaze/releases/download/v0.8.0-exp.1/checksums.txt).
+  The [dry run](https://github.com/scawful/yaze/actions/runs/40748726881) and
+  [publication run](https://github.com/scawful/yaze/actions/runs/40781419989) passed
+  at the release SHA. A later [tag-triggered CI run](https://github.com/scawful/yaze/actions/runs/40798319425)
+  failed its Memory Sanitizer test job; that result remains recorded, not waived.
 - The Memory Sanitizer CI job failed on `5d4b39ae0` because one test read a
   pointer into a destroyed temporary in `object_draw_code_test.cc`. The test
   now keeps the result alive; the sanitizer remains enabled.
