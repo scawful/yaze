@@ -200,6 +200,7 @@ TEST_F(LayoutManagerDockTreeTest, ApplyRestoresSelectedTabAfterDrawing) {
 
   for (int frame = 0; frame < 3; ++frame) {
     ImGui::NewFrame();
+    layout_manager_.ProcessPendingDockTabSelections();
     ImGui::Begin("Dock host");
     ImGui::DockSpace(kDockspaceId, ImVec2(800, 600));
     ImGui::End();

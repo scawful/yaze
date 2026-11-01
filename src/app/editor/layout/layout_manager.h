@@ -315,6 +315,9 @@ class LayoutManager {
   absl::Status ApplyDockTree(const layout_designer::DockTree& tree,
                              ImGuiID dockspace_id);
 
+  // Finish one-time saved tab selection after ImGui registers the windows.
+  void ProcessPendingDockTabSelections();
+
   /**
    * @brief Record the ImGui ID of the main dockspace from its authoring
    *        scope.
@@ -430,6 +433,15 @@ class LayoutManager {
 
   // Track which layouts have been initialized
   std::unordered_map<EditorType, bool> layouts_initialized_;
+
+  struct PendingDockTabSelection {
+    ImGuiID node_id = 0;
+    ImGuiID selected_id = 0;
+    std::vector<ImGuiID> tab_ids;
+    size_t session_id = 0;
+    int applied_frame = 0;
+  };
+  std::vector<PendingDockTabSelection> pending_dock_tab_selections_;
 
   // Panel manager for window title lookups
   WorkspaceWindowManager* window_manager_ = nullptr;

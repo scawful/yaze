@@ -259,6 +259,9 @@ void LayoutCoordinator::ResetCurrentEditorLayout(EditorType editor_type,
 
 void LayoutCoordinator::ProcessLayoutRebuild(EditorType current_editor_type,
                                              bool is_emulator_visible) {
+  if (layout_manager_) {
+    layout_manager_->ProcessPendingDockTabSelections();
+  }
   if (!layout_manager_ || !layout_manager_->IsRebuildRequested()) {
     return;
   }

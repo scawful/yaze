@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <filesystem>
 #include <fstream>
+#include <functional>
 #include <string>
 #include <unordered_set>
 #include <utility>
@@ -228,6 +229,7 @@ void LayoutManager::InitializeEditorLayout(EditorType type,
            static_cast<int>(type));
 
   // Clear existing layout for this dockspace
+  pending_dock_tab_selections_.clear();
   ImGui::DockBuilderRemoveNode(dockspace_id);
   ImGui::DockBuilderAddNode(dockspace_id, ImGuiDockNodeFlags_DockSpace);
 
@@ -260,6 +262,7 @@ void LayoutManager::InitializeEditorLayout(EditorType type,
 }
 
 void LayoutManager::RebuildLayout(EditorType type, ImGuiID dockspace_id) {
+  pending_dock_tab_selections_.clear();
   // Validate dockspace exists
   ImGuiDockNode* node = ImGui::DockBuilderGetNode(dockspace_id);
   if (!node) {
@@ -1545,16 +1548,30 @@ std::string ResolveDockWindowTitle(const WorkspaceWindowManager* wm,
   return label.empty() ? panel.panel_id : (label + "##" + panel.panel_id);
 }
 
-void ApplyDockNodeRecursive(WorkspaceWindowManager* wm, size_t session_id,
-                            const layout_designer::DockNode& node,
-                            ImGuiID target_id) {
+void ApplyDockNodeRecursive(
+    WorkspaceWindowManager* wm, size_t session_id,
+    const layout_designer::DockNode& node, ImGuiID target_id,
+    const std::function<void(ImGuiID, ImGuiID, std::vector<ImGuiID>)>&
+        queue_selection) {
   using NodeType = layout_designer::DockNode::Type;
   if (node.type == NodeType::kLeaf) {
+    std::vector<ImGuiID> tab_ids;
+    ImGuiID selected_id = 0;
+    size_t index = 0;
     for (const auto& panel : node.panels) {
       const std::string title = ResolveDockWindowTitle(wm, session_id, panel);
       if (!title.empty()) {
         ImGui::DockBuilderDockWindow(title.c_str(), target_id);
+        const ImGuiID tab_id = ImHashStr(title.c_str());
+        tab_ids.push_back(tab_id);
+        if (index == static_cast<size_t>(node.active_tab_index)) {
+          selected_id = tab_id;
+        }
       }
+      ++index;
+    }
+    if (selected_id && tab_ids.size() > 1) {
+      queue_selection(target_id, selected_id, std::move(tab_ids));
     }
     return;
   }
@@ -1566,10 +1583,12 @@ void ApplyDockNodeRecursive(WorkspaceWindowManager* wm, size_t session_id,
   const ImGuiID id_at_dir =
       ImGui::DockBuilderSplitNode(target_id, dir, ratio, nullptr, &id_other);
   if (node.child_a) {
-    ApplyDockNodeRecursive(wm, session_id, *node.child_a, id_at_dir);
+    ApplyDockNodeRecursive(wm, session_id, *node.child_a, id_at_dir,
+                           queue_selection);
   }
   if (node.child_b) {
-    ApplyDockNodeRecursive(wm, session_id, *node.child_b, id_other);
+    ApplyDockNodeRecursive(wm, session_id, *node.child_b, id_other,
+                           queue_selection);
   }
 }
 
@@ -1668,6 +1687,7 @@ absl::Status LayoutManager::ApplyDockTree(const layout_designer::DockTree& tree,
   // A custom tree owns all panel placement. Disable default first-open
   // docking before the visibility pass publishes open events.
   DisableLazyDefaultDocking();
+  pending_dock_tab_selections_.clear();
 
   // Visibility pass (Phase 8 review 2026-04-24, refined 2026-04-25):
   //   - Open every panel referenced in the tree so users see what they
@@ -1724,7 +1744,14 @@ absl::Status LayoutManager::ApplyDockTree(const layout_designer::DockTree& tree,
   }
   ImGui::DockBuilderSetNodeSize(dockspace_id, size);
 
-  ApplyDockNodeRecursive(window_manager_, session_id, *tree.root, dockspace_id);
+  ApplyDockNodeRecursive(
+      window_manager_, session_id, *tree.root, dockspace_id,
+      [this, session_id](ImGuiID node_id, ImGuiID selected_id,
+                         std::vector<ImGuiID> tab_ids) {
+        pending_dock_tab_selections_.push_back({node_id, selected_id,
+                                                std::move(tab_ids), session_id,
+                                                ImGui::GetFrameCount()});
+      });
   ImGui::DockBuilderFinish(dockspace_id);
 
   last_dockspace_id_ = dockspace_id;
@@ -1743,6 +1770,45 @@ absl::Status LayoutManager::ApplyDockTree(const layout_designer::DockTree& tree,
   ProtectRestoredLayoutFromDefaultInitialization();
 
   return absl::OkStatus();
+}
+
+void LayoutManager::ProcessPendingDockTabSelections() {
+  const ImGuiContext* context = ImGui::GetCurrentContext();
+  if (pending_dock_tab_selections_.empty() || !context ||
+      !context->WithinFrameScope) {
+    return;
+  }
+  const ImGuiIO& io = ImGui::GetIO();
+  bool input = io.MouseWheel != 0.0f || io.MouseWheelH != 0.0f;
+  for (int button = 0; button < ImGuiMouseButton_COUNT; ++button) {
+    input |= ImGui::IsMouseClicked(button);
+  }
+  for (int key = ImGuiKey_NamedKey_BEGIN; key < ImGuiKey_NamedKey_END; ++key) {
+    input |= ImGui::IsKeyPressed(static_cast<ImGuiKey>(key), false);
+  }
+  const int frame = ImGui::GetFrameCount();
+  std::erase_if(pending_dock_tab_selections_, [&](const auto& pending) {
+    if (!window_manager_ ||
+        window_manager_->GetActiveSessionId() != pending.session_id ||
+        (frame > pending.applied_frame && input)) {
+      return true;
+    }
+    ImGuiDockNode* node = ImGui::DockBuilderGetNode(pending.node_id);
+    if (!node) {
+      return true;
+    }
+    if (frame <= pending.applied_frame || !node->TabBar ||
+        !node->TabBar->SelectedTabId) {
+      return false;
+    }
+    for (const ImGuiID tab_id : pending.tab_ids) {
+      if (!ImGui::TabBarFindTabByID(node->TabBar, tab_id)) {
+        return false;
+      }
+    }
+    node->TabBar->NextSelectedTabId = pending.selected_id;
+    return true;
+  });
 }
 
 absl::Status LayoutManager::MaybeReapplyStartupLayout(UserSettings* settings) {
