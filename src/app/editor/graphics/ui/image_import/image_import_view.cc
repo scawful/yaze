@@ -1,4 +1,4 @@
-#include "app/editor/graphics/image_import_panel.h"
+#include "app/editor/graphics/ui/image_import/image_import_view.h"
 
 #include <algorithm>
 #include <cmath>
@@ -47,13 +47,13 @@ void DrawSwatch(const char* id, const ImVec4& color, const std::string& tip) {
 
 }  // namespace
 
-void ImageImportPanel::SetStatus(std::string message, bool is_error) {
+void ImageImportView::SetStatus(std::string message, bool is_error) {
   status_ = std::move(message);
   status_is_error_ = is_error;
 }
 
-void ImageImportPanel::Load(absl::StatusOr<std::vector<uint8_t>> png_bytes,
-                            const std::string& source) {
+void ImageImportView::Load(absl::StatusOr<std::vector<uint8_t>> png_bytes,
+                           const std::string& source) {
   auto image = png_bytes.ok()
                    ? ImportSheetImagePng(*png_bytes)
                    : absl::StatusOr<ImportedSheetImage>(png_bytes.status());
@@ -69,7 +69,7 @@ void ImageImportPanel::Load(absl::StatusOr<std::vector<uint8_t>> png_bytes,
             false);
 }
 
-absl::Status ImageImportPanel::Update() {
+absl::Status ImageImportView::Update() {
   ImGui::TextWrapped(
       "Imports keep the image's palette order and pixel indices. Use an "
       "indexed PNG, or an RGB PNG with an 8-pixel palette strip under the "
@@ -128,7 +128,7 @@ absl::Status ImageImportPanel::Update() {
   return absl::OkStatus();
 }
 
-void ImageImportPanel::DrawImage() {
+void ImageImportView::DrawImage() {
   const auto& image = *image_;
   ImGui::Text("%s", DescribeImportedSheetImage(image).c_str());
   for (size_t i = 0; i < image.palette.size(); ++i) {
@@ -170,7 +170,7 @@ void ImageImportPanel::DrawImage() {
   ImGui::Dummy(size);
 }
 
-void ImageImportPanel::DrawSaveButtons() {
+void ImageImportView::DrawSaveButtons() {
   const auto& image = *image_;
   auto save_path = [this](const std::string& default_name,
                           const std::string& extension) {
@@ -216,7 +216,7 @@ void ImageImportPanel::DrawSaveButtons() {
   HOVER_HINT("The art without the strip, as an indexed PNG in index order.");
 }
 
-void ImageImportPanel::DrawWriteIntoSheet() {
+void ImageImportView::DrawWriteIntoSheet() {
   const auto& image = *image_;
   const uint16_t sheet_id = state_->current_sheet_id;
   const bool arena_is_ours =
@@ -259,7 +259,7 @@ void ImageImportPanel::DrawWriteIntoSheet() {
                      "The palette is not changed."));
 }
 
-void ImageImportPanel::DrawPaletteImport() {
+void ImageImportView::DrawPaletteImport() {
   const auto& image = *image_;
   const uint16_t sheet_id = state_->current_sheet_id;
   const GraphicsPaletteSelection* selection = state_->PreviewPalette(sheet_id);
