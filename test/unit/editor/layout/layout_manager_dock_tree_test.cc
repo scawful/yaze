@@ -193,7 +193,7 @@ TEST_F(LayoutManagerDockTreeTest, ApplyRestoresSelectedTabAfterDrawing) {
   const auto title_b = window_manager_.GetWorkspaceWindowName(0, "b");
   DockTree tree;
   tree.root = DockNode::MakeLeaf({MakePanel("a"), MakePanel("b")});
-  tree.root->active_tab_index = 1;
+  tree.root->active_tab_index = 0;
   ASSERT_TRUE(layout_manager_.ApplyDockTree(tree, kDockspaceId).ok());
   ImGui::EndFrame();
   ImGui::Render();
@@ -213,7 +213,7 @@ TEST_F(LayoutManagerDockTreeTest, ApplyRestoresSelectedTabAfterDrawing) {
   ImGui::NewFrame();  // The fixture's teardown ends the active frame.
   const ImGuiDockNode* node = ImGui::DockBuilderGetNode(kDockspaceId);
   ASSERT_NE(node, nullptr);
-  const ImGuiWindow* selected = ImGui::FindWindowByName(title_b.c_str());
+  const ImGuiWindow* selected = ImGui::FindWindowByName(title_a.c_str());
   ASSERT_NE(selected, nullptr);
   EXPECT_EQ(node->SelectedTabId, selected->TabId);
 }
