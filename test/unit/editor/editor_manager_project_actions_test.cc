@@ -3620,6 +3620,114 @@ TEST(EditorManagerProjectActionsTest,
   EXPECT_TRUE(manager->user_settings().prefs().rom_load_choices.empty());
 }
 
+TEST(EditorManagerProjectActionsTest,
+     LoadOptionsFirstOpenInterruptionKeepsFlagsAndRemembersNothing) {
+  ScopedImGuiContext imgui;
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  ::yaze::test::InitializeWithIsolatedSettings(*manager, renderer.get());
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+  LoadOptionsDialogFrames frames(*manager);
+  ScopedTempDir temp(MakeTempDir("yaze_load_options_first_open_interrupt"));
+  const auto rom_a = temp.path / "a.sfc";
+  const auto rom_b = temp.path / "b.sfc";
+  WriteRomFile(rom_a);
+  WriteRomFile(rom_b);
+  ASSERT_OK(manager->OpenRomOrProject(rom_a.string()));
+  const bool maps_a = core::FeatureFlags::get().overworld.kSaveOverworldMaps;
+  ASSERT_TRUE(frames.Run());
+
+  ASSERT_OK(manager->OpenRomOrProject(
+      rom_b.string(), EditorManager::LoadOptionsPrompt::kNoPrompt));
+
+  EXPECT_FALSE(manager->IsRomLoadOptionsOpen());
+  EXPECT_FALSE(frames.Run());
+  EXPECT_TRUE(manager->user_settings().prefs().rom_load_choices.empty());
+  manager->SwitchToSession(0);
+  EXPECT_EQ(core::FeatureFlags::get().overworld.kSaveOverworldMaps, maps_a);
+}
+
+TEST(EditorManagerProjectActionsTest,
+     LoadOptionsFirstOpenStaleOwnerShowsPostLoadPicker) {
+  ScopedImGuiContext imgui;
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  ::yaze::test::InitializeWithIsolatedSettings(*manager, renderer.get());
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+  manager->user_settings().prefs().default_editor = 0;
+  LoadOptionsDialogFrames frames(*manager);
+  ScopedTempDir temp(MakeTempDir("yaze_load_options_first_open_stale"));
+  const auto rom_a = temp.path / "a.sfc";
+  WriteRomFile(rom_a);
+  ASSERT_OK(manager->OpenRomOrProject(rom_a.string()));
+  ASSERT_TRUE(frames.Run());
+  manager->SetCurrentEditor(nullptr);
+  manager->ui_coordinator()->SetDashboardBehavior(StartupVisibility::kShow);
+  manager->ui_coordinator()->SetEditorSelectionVisible(false);
+
+  manager->GetCurrentRom()->set_filename((temp.path / "saved-as.sfc").string());
+
+  EXPECT_FALSE(frames.Run());
+  EXPECT_FALSE(manager->IsRomLoadOptionsOpen());
+  EXPECT_TRUE(manager->ui_coordinator()->IsEditorSelectionVisible());
+  EXPECT_TRUE(manager->user_settings().prefs().rom_load_choices.empty());
+}
+
+TEST(EditorManagerProjectActionsTest,
+     RememberedLoadOptionsToastCannotReviewAnotherRomOrReopenedSession) {
+  ScopedImGuiContext imgui;
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  ::yaze::test::InitializeWithIsolatedSettings(*manager, renderer.get());
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+  LoadOptionsDialogFrames frames(*manager);
+  ScopedTempDir temp(MakeTempDir("yaze_load_options_toast_owner"));
+  const auto rom_a = temp.path / "a.sfc";
+  const auto rom_b = temp.path / "b.sfc";
+  WriteRomFile(rom_a);
+  WriteRomFile(rom_b);
+  Rom probe;
+  ASSERT_OK(probe.LoadFromFile(rom_a.string()));
+  const auto key_a = RomLoadOptionsDialog::RomChoiceKey(rom_a.string());
+  const auto encoded = RomLoadOptionsDialog::EncodeRememberedChoice(
+      RomLoadOptionsDialog::LoadOptions{},
+      zelda3::OverworldVersionHelper::GetAsmVersion(probe));
+  manager->user_settings().prefs().rom_load_choices[key_a] = encoded;
+  ASSERT_OK(manager->OpenRomOrProject(rom_a.string()));
+  const auto owner_id = manager->GetCurrentSessionId();
+  std::function<void()> change;
+  for (size_t i = 0; i < manager->toast_manager()->pending_count(); ++i) {
+    const auto* toast = manager->toast_manager()->GetPendingToast(i);
+    if (toast->message == "Opened with this ROM's remembered load options") {
+      change = toast->on_action;
+    }
+  }
+  ASSERT_TRUE(static_cast<bool>(change));
+  change();
+  ASSERT_TRUE(frames.Run());
+  ASSERT_TRUE(frames.Press(tr("Cancel")));
+
+  ASSERT_OK(manager->OpenRomOrProject(
+      rom_b.string(), EditorManager::LoadOptionsPrompt::kNoPrompt));
+  const bool maps_b = core::FeatureFlags::get().overworld.kSaveOverworldMaps;
+  change();
+  EXPECT_FALSE(manager->IsRomLoadOptionsOpen());
+  EXPECT_EQ(core::FeatureFlags::get().overworld.kSaveOverworldMaps, maps_b);
+  EXPECT_EQ(manager->user_settings().prefs().rom_load_choices.size(), 1u);
+  EXPECT_EQ(manager->user_settings().prefs().rom_load_choices.at(key_a),
+            encoded);
+
+  manager->SwitchToSession(0);
+  change();
+  ASSERT_TRUE(frames.Run());
+  ASSERT_TRUE(frames.Press(tr("Cancel")));
+  manager->CloseRom();
+  ASSERT_OK(manager->OpenRomOrProject(rom_a.string()));
+  ASSERT_NE(manager->GetCurrentSessionId(), owner_id);
+  change();
+  EXPECT_FALSE(manager->IsRomLoadOptionsOpen());
+}
+
 // The dialog an interactive open shows belongs to the new session. Switching
 // to an older session closes it without changing either session. The tail
 // expansion checkbox is used because it draws at the dialog's root even when

@@ -587,8 +587,15 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
   // post-load surface plus the remembered-choice toast.
   void FinishRawRomOpen(bool remembered_load_options, bool ask_for_load_options,
                         bool is_first_time_rom_path);
+  struct RomLoadOptionsOwner {
+    size_t session_id;
+    std::string rom_key;
+    int zso_version_byte;
+  };
   void BindRomLoadOptionsToCurrentSession();
   bool RomLoadOptionsMatchCurrentSession() const;
+  bool RomLoadOptionsOwnerMatchesCurrentSession(
+      const RomLoadOptionsOwner& owner) const;
   // Closes the dialog without applying options. When it still had an owner,
   // a toast says why, so the dialog never disappears without a reason.
   void CloseRomLoadOptions(const char* reason);
@@ -638,11 +645,6 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
   std::unique_ptr<DashboardPanel> dashboard_panel_;
   RomLoadOptionsDialog rom_load_options_dialog_;
   bool show_rom_load_options_ = false;
-  struct RomLoadOptionsOwner {
-    size_t session_id;
-    std::string rom_key;
-    int zso_version_byte;
-  };
   std::optional<RomLoadOptionsOwner> rom_load_options_owner_;
   StartupVisibility welcome_mode_override_ = StartupVisibility::kAuto;
   // False while the previous frame drew the editor surface. Drawers left open
