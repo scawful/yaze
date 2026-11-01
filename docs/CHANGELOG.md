@@ -15,6 +15,24 @@ they are not part of its existing downloads. See the
 - PNG/palette-strip import and the Sheet Browser palette selector are later
   graphics work. The release-hardening patch keeps the existing import window
   and moves its drawing component into the graphics feature-view module.
+- Interactive raw-ROM opens share one path. File > Open ROM, Recent Files,
+  backup restores, iOS document opens, and the web build's drop zone and
+  picker show the ROM load options dialog only when no project is open and
+  the ROM has no remembered choice. "Remember for this ROM file" (on by
+  default) stores the custom overworld and special world tail (0xA0-0xBF)
+  choices for that ROM; a later open applies them and shows a toast with
+  "Change…", and the command palette's "ROM Load Options…" reopens the
+  dialog. A remembered choice never upgrades the ROM and is dropped when the
+  ROM's ZSCustomOverworld version byte changes. `--rom_file` and the gRPC and
+  emulator loaders apply a remembered choice but never wait on the dialog.
+- The ROM load options dialog no longer shows the "Upgrade ROM to
+  ZSCustomOverworld" checkbox, which nothing applied; Upgrade is in the
+  Overworld toolbar. A changed overworld load option applies when the ROM is
+  reopened.
+- Project font, autosave, and backup preferences apply only while the project
+  is open: they are never saved to global settings, and closing the last ROM
+  restores the global values. Opening a raw ROM no longer turns autosave on
+  globally.
 - `z3ed rom-write` and `hex-write` reported `bytes_written` without saving the
   ROM. They now preview by default and save only with `--write`, keeping a
   backup and verifying the reloaded file; writes into an Oracle checkout need
