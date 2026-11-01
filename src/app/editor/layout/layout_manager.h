@@ -298,11 +298,9 @@ class LayoutManager {
    *   - Calls `WorkspaceWindowManager::OpenWindow(panel_id)` for every
    *     panel referenced in the tree, so the user actually sees the
    *     panels they docked rather than empty slots.
-   *   - Marks every `EditorType`'s layout as initialized so the lazy
-   *     `InitializeEditorLayout` path in EditorActivator doesn't blow
-   *     the custom layout away on the first panel-based editor
-   *     activation. The Layout Designer's apply is an explicit "this
-   *     is my workspace" — the per-editor preset must yield to it.
+   *   - Marks the active editor's layout initialized. If no editor is
+   *     active, protects the next editor's first initialization instead.
+   *     Other editors can still initialize their own defaults.
    *
    * Panels in the tree whose `panel_id` is not registered against the
    * bound WorkspaceWindowManager are skipped with a best-effort fallback
