@@ -442,10 +442,7 @@ void RomLoadOptionsDialog::DrawActionButtons() {
     ImGui::PushTextWrapPos(0.0f);
     ImGui::TextColored(
         gui::GetTextSecondaryVec4(), "%s",
-        tr("Opening this ROM again skips this dialog. To change or forget "
-           "the choice, press Change… on the remembered-options notice or "
-           "run ROM Load Options… from the command palette, then clear this "
-           "box."));
+        tr("Next open skips this dialog. Undo with ROM Load Options…"));
     ImGui::PopTextWrapPos();
   }
   ImGui::Spacing();
