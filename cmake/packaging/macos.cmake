@@ -13,6 +13,13 @@ set(CPACK_BUNDLE_NAME "yaze")
 set(CPACK_BUNDLE_PACKAGE_TYPE "APPL")
 set(CPACK_BUNDLE_ICON "${CMAKE_SOURCE_DIR}/assets/yaze.icns")
 
+# Copy Homebrew dylibs (openssl@3, libpng) into yaze.app/Contents/Frameworks
+# and re-sign, so the DMG runs without Homebrew.
+set(CPACK_YAZE_BUNDLE_DYLIBS_SCRIPT
+    "${CMAKE_SOURCE_DIR}/scripts/release/bundle-macos-dylibs.sh")
+set(CPACK_PRE_BUILD_SCRIPTS
+    "${CMAKE_CURRENT_LIST_DIR}/macos_bundle_dylibs.cmake")
+
 # Code signing (if available)
 if(DEFINED ENV{CODESIGN_IDENTITY})
   set(CPACK_BUNDLE_APPLE_CERT_APP "$ENV{CODESIGN_IDENTITY}")

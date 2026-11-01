@@ -957,7 +957,8 @@
         "CMAKE_BUILD_TYPE": "Release",
         "YAZE_ENABLE_JSON": "ON",
         "YAZE_ENABLE_LTO": "ON",
-        "YAZE_ENABLE_REMOTE_AUTOMATION": "ON"
+        "YAZE_ENABLE_REMOTE_AUTOMATION": "ON",
+        "CMAKE_OSX_DEPLOYMENT_TARGET": "15.0"
       },
       "displayName": "Release Build",
       "name": "release",

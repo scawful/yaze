@@ -161,6 +161,15 @@ if ! codesign --verify --deep --strict "$isolated_app"; then
   exit 1
 fi
 
+# Matches CMAKE_OSX_DEPLOYMENT_TARGET in the release preset. Bundled Homebrew
+# dylibs carry the runner's macOS as their minimum, so this also catches a
+# runner image newer than the supported release.
+echo "Checking packaged binaries for unbundled dylibs and minimum macOS..."
+if ! "$(dirname "$0")/check-macos-portability.sh" "$mount_dir" --max-minos 15.0; then
+  echo "Packaged binaries are not portable to macOS 15 without Homebrew"
+  exit 1
+fi
+
 if [[ ! -x "$mount_dir/yaze.app/Contents/MacOS/yaze" ]]; then
   echo "yaze.app is missing executable Contents/MacOS/yaze"
   exit 1
