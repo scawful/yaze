@@ -348,17 +348,6 @@ void EditorManager::SetupDialogCallbacks() {
   // Initialize ROM load options dialog callbacks
   rom_load_options_dialog_.SetConfirmCallback(
       [this](const RomLoadOptionsDialog::LoadOptions& options) {
-        // DrawInterface() closes a stale dialog before drawing it, so this
-        // check is a backstop where the dialog's options reach the flags.
-        if (!RomLoadOptionsOwnerIsActive()) {
-          CloseRomLoadOptions("its session or ROM file is no longer active");
-          return;
-        }
-        // Release ownership before anything below can switch sessions, so
-        // the switch does not report this confirm as a dismissed dialog.
-        const std::string rom_filename = rom_load_options_owner_->rom_filename;
-        rom_load_options_owner_.reset();
-
         // Apply feature flags from dialog
         auto& flags = core::FeatureFlags::get();
         RomLoadOptionsDialog::ApplyToFeatureFlags(options, flags);
@@ -372,8 +361,8 @@ void EditorManager::SetupDialogCallbacks() {
         CaptureRuntimeFeatureFlags();
 
         // Remember or forget the choice for this ROM file.
-        const std::string rom_key =
-            RomLoadOptionsDialog::RomChoiceKey(rom_filename);
+        const std::string rom_key = RomLoadOptionsDialog::RomChoiceKey(
+            rom_load_options_dialog_.rom_filename());
         if (!rom_key.empty()) {
           auto& choices = user_settings_.prefs().rom_load_choices;
           const int zso_byte = rom_load_options_dialog_.zso_version_byte();
@@ -422,7 +411,6 @@ void EditorManager::SetupDialogCallbacks() {
   // has to leave the user on an editor or the picker.
   rom_load_options_dialog_.SetCancelCallback([this]() {
     show_rom_load_options_ = false;
-    rom_load_options_owner_.reset();
     if (!rom_load_options_dialog_.reviewing()) {
       ShowPostLoadSurface();
     }
@@ -459,7 +447,6 @@ void EditorManager::FinishRawRomOpen(bool remembered_load_options,
     ui_coordinator_->SetWelcomeScreenVisible(false);
     rom_load_options_dialog_.Open(GetCurrentRom(), is_first_time_rom_path);
     show_rom_load_options_ = true;
-    BindRomLoadOptionsToActiveSession();
     return;
   }
   ShowPostLoadSurface();
@@ -488,40 +475,6 @@ void EditorManager::ShowRomLoadOptions() {
                              : std::string(),
       remembered.has_value());
   show_rom_load_options_ = true;
-  BindRomLoadOptionsToActiveSession();
-}
-
-void EditorManager::BindRomLoadOptionsToActiveSession() {
-  const Rom* rom = GetCurrentRom();
-  rom_load_options_owner_ = RomLoadOptionsOwner{
-      GetCurrentSessionId(), rom != nullptr ? rom->filename() : std::string()};
-}
-
-bool EditorManager::RomLoadOptionsOwnerIsActive() const {
-  if (!rom_load_options_owner_ || !session_coordinator_ ||
-      session_coordinator_->GetActiveRomSession() == nullptr ||
-      GetCurrentSessionId() != rom_load_options_owner_->session_id) {
-    return false;
-  }
-  // Save As can rename the ROM in place; the choice belongs to the old file.
-  const Rom* rom = GetCurrentRom();
-  return rom != nullptr && rom->is_loaded() &&
-         rom->filename() == rom_load_options_owner_->rom_filename;
-}
-
-void EditorManager::CloseRomLoadOptions(const char* reason) {
-  if (!show_rom_load_options_ && !rom_load_options_owner_) {
-    return;
-  }
-  // No callback runs: cancel would show the post-load surface for whichever
-  // session is active now, which is not the one the dialog was for.
-  rom_load_options_dialog_.Dismiss();
-  show_rom_load_options_ = false;
-  rom_load_options_owner_.reset();
-  toast_manager_.Show(
-      absl::StrFormat("ROM load options closed without changes because %s",
-                      reason),
-      ToastType::kInfo);
 }
 
 void EditorManager::SetupSidebarCallbacks() {

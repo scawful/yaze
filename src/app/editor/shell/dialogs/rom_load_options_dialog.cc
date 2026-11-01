@@ -88,13 +88,6 @@ void RomLoadOptionsDialog::Draw(bool* p_open) {
   Show(p_open);
 }
 
-void RomLoadOptionsDialog::Dismiss() {
-  // confirmed_ stays as it is: a dismiss from inside the confirm callback must
-  // not turn that confirm into a cancel when Show() returns.
-  is_open_ = false;
-  rom_ = nullptr;
-}
-
 void RomLoadOptionsDialog::Open(Rom* rom, const std::string& rom_filename) {
   Open(rom, rom_filename, false);
 }
@@ -469,8 +462,8 @@ void RomLoadOptionsDialog::DrawActionButtons() {
         reviewing_ ? absl::StrFormat("%s Apply", ICON_MD_CHECK)
                    : absl::StrFormat("%s Continue", ICON_MD_CHECK);
     if (ImGui::Button(confirm_label.c_str(), ImVec2(button_width, 0))) {
-      // The confirm callback applies the options. The dialog never writes
-      // feature flags itself, so its owner can refuse a stale confirm.
+      // Apply options
+      ApplyOptionsToFeatureFlags();
       options_.selected_preset = kPresetNames[selected_preset_index_];
 
       confirmed_ = true;
@@ -526,6 +519,10 @@ void RomLoadOptionsDialog::ApplyPreset(const std::string& preset_name) {
     options_.save_all_palettes = false;
     options_.save_gfx_groups = false;
   }
+}
+
+void RomLoadOptionsDialog::ApplyOptionsToFeatureFlags() {
+  ApplyToFeatureFlags(options_, core::FeatureFlags::get());
 }
 
 void RomLoadOptionsDialog::ApplyToFeatureFlags(

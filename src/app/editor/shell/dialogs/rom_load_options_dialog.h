@@ -109,14 +109,6 @@ class RomLoadOptionsDialog {
   void Draw(bool* p_open);
 
   /**
-   * @brief Close the dialog without calling either callback
-   *
-   * For an owner that went away, such as a session that closed or stopped
-   * being the active one.
-   */
-  void Dismiss();
-
-  /**
    * @brief Get the selected load options
    */
   const LoadOptions& GetOptions() const { return options_; }
@@ -187,6 +179,7 @@ class RomLoadOptionsDialog {
   void DrawActionButtons();
 
   void ApplyPreset(const std::string& preset_name);
+  void ApplyOptionsToFeatureFlags();
 
   // State
   Rom* rom_ = nullptr;

@@ -257,12 +257,7 @@ void EditorManager::DrawInterface() {
     }
   }
 
-  // Draw ROM load options dialog (ZSCustomOverworld, feature flags, project).
-  // UpdateSessions() has restored the active session by now, so a dialog
-  // whose session or ROM file is no longer active closes before it draws.
-  if (show_rom_load_options_ && !RomLoadOptionsOwnerIsActive()) {
-    CloseRomLoadOptions("its session or ROM file is no longer active");
-  }
+  // Draw ROM load options dialog (ZSCustomOverworld, feature flags, project)
   if (show_rom_load_options_) {
     rom_load_options_dialog_.Draw(&show_rom_load_options_);
   }
