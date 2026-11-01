@@ -5522,4 +5522,113 @@ TEST_F(EditorControlRomSwapTest, CellsReadReportsLiveTilesWithoutWrites) {
 }
 
 }  // namespace
+
+class EditorManagerOpenPathTestPeer {
+ public:
+  // File > Open ROM after its picker returns `path`.
+  static absl::Status OpenRomFromPicker(EditorManager& manager,
+                                        const std::string& path) {
+    return manager.LoadRomFromPath(path);
+  }
+};
+
+namespace {
+
+// RecentFilesManager is a process-wide singleton; keep each case's list from
+// leaking into the next one.
+struct ScopedRecentFiles {
+  std::vector<std::string> saved;
+  ScopedRecentFiles() {
+    auto& recents = project::RecentFilesManager::GetInstance();
+    saved = recents.GetRecentFiles();
+    recents.Clear();
+  }
+  ~ScopedRecentFiles() {
+    auto& recents = project::RecentFilesManager::GetInstance();
+    recents.Clear();
+    for (auto it = saved.rbegin(); it != saved.rend(); ++it) {
+      recents.AddFile(*it);
+    }
+  }
+};
+
+bool InRecentFiles(const std::filesystem::path& path) {
+  const auto& recents =
+      project::RecentFilesManager::GetInstance().GetRecentFiles();
+  return std::find(recents.begin(), recents.end(), path.string()) !=
+         recents.end();
+}
+
+TEST(EditorManagerOpenPathTest, OpenRomRefusesProjectBuildOutputBeforeSwap) {
+  ScopedImGuiContext imgui;
+  ScopedRecentFiles recents;
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  ::yaze::test::InitializeWithIsolatedSettings(*manager, renderer.get());
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+
+  ScopedTempDir directory(::yaze::test::UniqueTempPath("yaze_open_policy"));
+  const auto source_rom = directory.path / "source.sfc";
+  const auto output_rom = directory.path / "output.sfc";
+  const auto project_path = directory.path / "game.yaze";
+  WriteRomFile(source_rom, "EDITING SOURCE");
+  WriteRomFile(output_rom, "BUILD OUTPUT");
+  WriteProjectFile(project_path, "Open Policy", source_rom);
+  ASSERT_OK(manager->OpenRomOrProject(project_path.string()));
+  ASSERT_TRUE(manager->GetCurrentProject()->project_opened());
+  manager->GetCurrentProject()->build_target = output_rom.string();
+  ASSERT_EQ(manager->GetCurrentProject()->rom_metadata.write_policy,
+            project::RomWritePolicy::kWarn);
+  Rom* const source_session_rom = manager->GetCurrentRom();
+  ASSERT_NE(source_session_rom, nullptr);
+  const size_t sessions_before = manager->GetActiveSessionCount();
+
+  const auto status = EditorManagerOpenPathTestPeer::OpenRomFromPicker(
+      *manager, output_rom.string());
+
+  EXPECT_TRUE(absl::IsFailedPrecondition(status)) << status;
+  EXPECT_NE(status.message().find("build output"), absl::string_view::npos)
+      << status;
+  EXPECT_EQ(manager->GetActiveSessionCount(), sessions_before);
+  EXPECT_EQ(manager->GetCurrentRom(), source_session_rom);
+  EXPECT_EQ(std::filesystem::path(manager->GetCurrentRom()->filename()),
+            source_rom);
+  EXPECT_EQ(manager->GetCurrentProject()->filepath, project_path.string());
+  EXPECT_FALSE(InRecentFiles(output_rom));
+}
+
+TEST(EditorManagerOpenPathTest, RawRomOpenRecordsRecentFileOnlyOnSuccess) {
+  ScopedImGuiContext imgui;
+  ScopedRecentFiles recents;
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  ::yaze::test::InitializeWithIsolatedSettings(*manager, renderer.get());
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+
+  ScopedTempDir directory(::yaze::test::UniqueTempPath("yaze_open_recents"));
+  const auto opened_rom = directory.path / "opened.sfc";
+  const auto missing_rom = directory.path / "missing.sfc";
+  const auto scripted_rom = directory.path / "scripted.sfc";
+  WriteRomFile(opened_rom, "RECENT OPENED");
+  WriteRomFile(scripted_rom, "RECENT SCRIPTED");
+
+  // A failed open leaves the list alone.
+  EXPECT_FALSE(manager->OpenRomOrProject(missing_rom.string()).ok());
+  EXPECT_FALSE(InRecentFiles(missing_rom));
+
+  // Menu Recent Files and the WASM drop use the default prompt.
+  ASSERT_OK(manager->OpenRomOrProject(opened_rom.string()));
+  const auto& list =
+      project::RecentFilesManager::GetInstance().GetRecentFiles();
+  ASSERT_FALSE(list.empty());
+  EXPECT_EQ(list.front(), opened_rom.string());
+
+  // Scripted and automation opens stay out of the list.
+  ASSERT_OK(manager->OpenRomOrProject(
+      scripted_rom.string(), EditorManager::LoadOptionsPrompt::kNoPrompt));
+  EXPECT_FALSE(InRecentFiles(scripted_rom));
+  EXPECT_EQ(list.front(), opened_rom.string());
+}
+
+}  // namespace
 }  // namespace yaze::editor

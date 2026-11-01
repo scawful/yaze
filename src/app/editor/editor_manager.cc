@@ -3770,6 +3770,20 @@ absl::Status EditorManager::OpenRomOrProject(const std::string& filename,
   return OpenRomOrProjectInternal(filename, /*allow_dialogs=*/true, prompt);
 }
 
+absl::Status EditorManager::LoadRawRomForOpen(const std::string& filename,
+                                              Rom* rom) {
+  RETURN_IF_ERROR(rom_file_manager_.LoadRom(rom, filename));
+  // Runs before the ROM replaces anything, so a refused build output leaves
+  // the open sessions as they were.
+  return rom_lifecycle_.CheckRomOpenPolicy(rom);
+}
+
+void EditorManager::RecordRawRomOpen(const std::string& filename) {
+  auto& manager = project::RecentFilesManager::GetInstance();
+  manager.AddFile(filename);
+  manager.Save();
+}
+
 absl::Status EditorManager::OpenRomOrProjectInternal(
     const std::string& filename, bool allow_dialogs, LoadOptionsPrompt prompt) {
   LOG_INFO("EditorManager", "OpenRomOrProject called with: '%s'",
@@ -3851,8 +3865,7 @@ absl::Status EditorManager::OpenRomOrProjectInternal(
 #endif
     Rom temp_rom;
     RETURN_IF_ERROR(session_coordinator_->CheckBackingFileAvailable(filename));
-    RETURN_IF_ERROR(rom_file_manager_.LoadRom(&temp_rom, filename));
-    RETURN_IF_ERROR(rom_lifecycle_.CheckRomOpenPolicy(&temp_rom));
+    RETURN_IF_ERROR(LoadRawRomForOpen(filename, &temp_rom));
 
     const std::optional<size_t> previous_session_id =
         active_project_context_session_id_;
@@ -3941,6 +3954,12 @@ absl::Status EditorManager::OpenRomOrProjectInternal(
       is_first_time_rom_path =
           std::find(recent_files.begin(), recent_files.end(), filename) ==
           recent_files.end();
+    }
+    // Interactive opens (Recent Files, the WASM drop) record the ROM the way
+    // File > Open ROM does, once the open has succeeded. kNoPrompt callers
+    // are scripts, automation, and project creation; they leave the list.
+    if (prompt == LoadOptionsPrompt::kAsk && allow_dialogs) {
+      RecordRawRomOpen(filename);
     }
     FinishRawRomOpen(remembered_load_options, ask_for_load_options,
                      is_first_time_rom_path);

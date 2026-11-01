@@ -921,6 +921,15 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
   absl::Status OpenRomOrProjectInternal(
       const std::string& filename, bool allow_dialogs = true,
       LoadOptionsPrompt prompt = LoadOptionsPrompt::kAsk);
+  // File > Open ROM once the picker returns a path.
+  absl::Status LoadRomFromPath(const std::string& file_name);
+  // Shared by File > Open ROM and the raw branch of OpenRomOrProject.
+  // LoadRawRomForOpen reads the file and applies the project's open policy
+  // before the ROM can replace a session. RecordRawRomOpen moves an opened ROM
+  // to the top of Recent Files.
+  absl::Status LoadRawRomForOpen(const std::string& filename, Rom* rom);
+  void RecordRawRomOpen(const std::string& filename);
+  friend class EditorManagerOpenPathTestPeer;
   absl::Status OpenProjectInternal();
   absl::Status ValidateLyraTerrainProjectContext() const;
   absl::Status ValidateProjectRomSelection(const std::string& rom_path);
