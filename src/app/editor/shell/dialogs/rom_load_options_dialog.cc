@@ -10,6 +10,7 @@
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
 #include "absl/strings/str_split.h"
+#include "absl/strings/string_view.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/style_guard.h"
 #include "app/gui/core/theme_manager.h"
@@ -585,9 +586,13 @@ std::string RomLoadOptionsDialog::EncodeRememberedChoice(
 
 std::optional<RomLoadOptionsDialog::RememberedChoice>
 RomLoadOptionsDialog::DecodeRememberedChoice(std::string_view encoded) {
+  const auto as_absl_view = [](std::string_view view) {
+    return absl::string_view(view.data(), view.size());
+  };
   std::unordered_map<std::string_view, std::string_view> fields;
-  for (std::string_view part :
-       absl::StrSplit(encoded, ';', absl::SkipEmpty())) {
+  for (absl::string_view absl_part :
+       absl::StrSplit(as_absl_view(encoded), ';', absl::SkipEmpty())) {
+    const std::string_view part(absl_part.data(), absl_part.size());
     const size_t eq = part.find('=');
     if (eq == std::string_view::npos) {
       continue;
@@ -597,7 +602,8 @@ RomLoadOptionsDialog::DecodeRememberedChoice(std::string_view encoded) {
 
   int version = 0;
   auto it = fields.find("v");
-  if (it == fields.end() || !absl::SimpleAtoi(it->second, &version) ||
+  if (it == fields.end() ||
+      !absl::SimpleAtoi(as_absl_view(it->second), &version) ||
       version != kRememberedChoiceVersion) {
     return std::nullopt;
   }
@@ -605,7 +611,7 @@ RomLoadOptionsDialog::DecodeRememberedChoice(std::string_view encoded) {
   RememberedChoice choice;
   it = fields.find("zso");
   if (it == fields.end() ||
-      !absl::SimpleAtoi(it->second, &choice.zso_version_byte) ||
+      !absl::SimpleAtoi(as_absl_view(it->second), &choice.zso_version_byte) ||
       choice.zso_version_byte < 0 || choice.zso_version_byte > 0xFF) {
     return std::nullopt;
   }
