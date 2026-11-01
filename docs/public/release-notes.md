@@ -350,6 +350,12 @@ head and do not replace the exact-SHA workflow results linked below.
   now keeps the result alive; the sanitizer remains enabled.
 
 ### Known Limits
+- The published Debian download is named `yaze_0.8.0.exp.1_amd64.deb`, while
+  `checksums.txt` names the same bytes `yaze_0.8.0~exp.1_amd64.deb`.
+  Its SHA-256 is `a3b2d0eb04ffb04faea001157ad2e98436683adeae2436e93d79fe7ac3a470a5`.
+  Use that digest when checking the downloaded file; the other package names
+  match their checksum rows. Future source uses an upload-safe filename and
+  preserves Debian's internal prerelease version separately.
 - Dungeon authoring remains Partial. Candidate `a730d6557` covers
   door/sprite/pot-item undo and shared properties, but header/chest transactions,
   atomic mixed-domain operations, clipboard capacity handling, and ROM/runtime

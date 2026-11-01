@@ -23,6 +23,14 @@ both results. Release scope and remaining qualification are in the
 [release notes](../public/release-notes.md#v080) and
 [release checklist](release-checklist.md).
 
+The checksum file's own digest matches GitHub asset metadata, and its five
+package digests match the published assets. One filename differs: the Debian
+row names `yaze_0.8.0~exp.1_amd64.deb`, while the download is
+`yaze_0.8.0.exp.1_amd64.deb`; both have SHA-256
+`a3b2d0eb04ffb04faea001157ad2e98436683adeae2436e93d79fe7ac3a470a5`.
+The source fix uses `yaze-<display-version>-Linux.deb` for future uploads and
+keeps `~` in the Debian control version. Published files are unchanged.
+
 ## Development after the prerelease
 
 The audited mainline baseline is `86c9f5989f78b5ad7a248d0ba79635d1d1b9b593`.
