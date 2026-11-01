@@ -375,6 +375,11 @@ class LayoutManager {
   /// Pin node under the outer root, or 0 before the first split.
   ImGuiID FindPinNode() const;
 
+  /// Side and size (pixels along the split axis) the pin node is rebuilt
+  /// with. Follows the last pin node drawn; size 0 means the default share.
+  ImGuiDir pin_dir() const { return pin_dir_; }
+  float pin_size() const { return pin_size_; }
+
   // ==========================================================================
   // imgui.ini persistence (B2 layout revision)
   // ==========================================================================
@@ -481,6 +486,7 @@ class LayoutManager {
   void StashLazyDefaultDockState();
   bool RestoreLazyDefaultDockState(EditorType type, ImGuiID dockspace_id);
   ImGuiID EnsurePinNode();
+  void RecordPinSpot();
   ImVec2 EditorDockspaceSize() const;
   void EnforcePinnedPanels(ImGuiID pin_node);
   void ProtectRestoredLayoutFromDefaultInitialization();
@@ -545,9 +551,16 @@ class LayoutManager {
     bool section_seen = false;
     int revision = 0;
     std::vector<EditorType> initialized;
+    ImGuiDir pin_dir = ImGuiDir_None;
+    float pin_size = 0.0f;
   };
   LayoutIniState layout_ini_;
   bool layout_ini_backup_checked_ = false;
+
+  // Where the shared pin node goes when it is (re)built. The node is deleted
+  // when its last panel leaves, so the user's drag is kept here.
+  ImGuiDir pin_dir_ = ImGuiDir_Right;
+  float pin_size_ = 0.0f;
 
   // Default presets may omit hidden panels from the initial dock tree. Keep
   // enough state to create their preferred region lazily on first open.

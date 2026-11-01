@@ -1,6 +1,7 @@
 #include "app/editor/layout/layout_manager.h"
 
 #include <algorithm>
+#include <array>
 #include <cstdio>
 #include <cstring>
 #include <filesystem>
@@ -647,10 +648,22 @@ constexpr char kEditorDockspacePrefix[] = "yaze.EditorDock/";
 constexpr char kEditorHostWindowName[] = "###YazeEditorHost";
 constexpr char kLayoutIniTypeName[] = "YazeLayout";
 constexpr char kLayoutIniInitializedKey[] = "Initialized=";
+constexpr char kLayoutIniPinSideKey[] = "PinSide=";
 
-// Side and share of the outer dockspace given to the shared pin node.
-constexpr ImGuiDir kPinDir = ImGuiDir_Right;
+// Share of the outer dockspace given to a new pin node with no saved size,
+// and the range a saved size is clamped to on a smaller window.
 constexpr float kPinRatio = 0.22f;
+constexpr float kPinMinRatio = 0.05f;
+constexpr float kPinMaxRatio = 0.6f;
+
+// imgui.ini names for ImGuiDir_Left..ImGuiDir_Down.
+constexpr std::array<const char*, 4> kPinSideNames = {"Left", "Right", "Up",
+                                                      "Down"};
+
+ImGuiAxis PinAxis(ImGuiDir dir) {
+  return (dir == ImGuiDir_Left || dir == ImGuiDir_Right) ? ImGuiAxis_X
+                                                         : ImGuiAxis_Y;
+}
 
 // Central leaf under `node`. Reads LocalFlags because ImGuiDockNode::
 // CentralNode on the root is only refreshed on the next frame after a split.
@@ -793,11 +806,40 @@ ImGuiID LayoutManager::EnsurePinNode() {
   if (!outer || outer->IsSplitNode()) {
     return 0;
   }
+  // DockNodeTreeSplit sizes the new node from the outer size minus the
+  // separator, so the saved pixel size maps back to a ratio of that.
+  const ImGuiAxis axis = PinAxis(pin_dir_);
+  const float avail =
+      outer->Size[axis] - ImGui::GetStyle().DockingSeparatorSize;
+  float ratio = kPinRatio;
+  if (pin_size_ > 0.0f && avail > 0.0f) {
+    ratio = ImClamp(pin_size_ / avail, kPinMinRatio, kPinMaxRatio);
+  }
   ImGuiID central = 0;
-  const ImGuiID pin = ImGui::DockBuilderSplitNode(outer_id, kPinDir, kPinRatio,
-                                                  nullptr, &central);
+  const ImGuiID pin =
+      ImGui::DockBuilderSplitNode(outer_id, pin_dir_, ratio, nullptr, &central);
   ImGui::DockBuilderFinish(outer_id);
   return pin;
+}
+
+void LayoutManager::RecordPinSpot() {
+  ImGuiDockNode* outer = ImGui::DockBuilderGetNode(OuterDockspaceId());
+  ImGuiDockNode* pin = ImGui::DockBuilderGetNode(FindPinNode());
+  if (!outer || !pin) {
+    return;
+  }
+  const ImGuiAxis axis = outer->SplitAxis;
+  const float size = pin->Size[axis];
+  if (size <= 0.0f) {
+    return;  // Split this frame; laid out on the next one.
+  }
+  const bool first = outer->ChildNodes[0] == pin;
+  if (axis == ImGuiAxis_X) {
+    pin_dir_ = first ? ImGuiDir_Left : ImGuiDir_Right;
+  } else {
+    pin_dir_ = first ? ImGuiDir_Up : ImGuiDir_Down;
+  }
+  pin_size_ = size;
 }
 
 ImVec2 LayoutManager::EditorDockspaceSize() const {
@@ -915,6 +957,7 @@ void LayoutManager::DrawEditorHost() {
   }
   ImGui::End();
 
+  RecordPinSpot();
   EnforcePinnedPanels(FindPinNode());
 }
 
@@ -1018,6 +1061,21 @@ void LayoutManager::ReadLayoutIniLine(const char* line) {
     layout_ini_.revision = revision;
     return;
   }
+  float pin_size = 0.0f;
+  if (std::sscanf(line, "PinSize=%f", &pin_size) == 1) {
+    layout_ini_.pin_size = pin_size;
+    return;
+  }
+  constexpr size_t kPinSideKeyLength = sizeof(kLayoutIniPinSideKey) - 1;
+  if (std::strncmp(line, kLayoutIniPinSideKey, kPinSideKeyLength) == 0) {
+    const char* side = line + kPinSideKeyLength;
+    for (size_t dir = 0; dir < kPinSideNames.size(); ++dir) {
+      if (std::strcmp(side, kPinSideNames[dir]) == 0) {
+        layout_ini_.pin_dir = static_cast<ImGuiDir>(dir);
+      }
+    }
+    return;
+  }
   constexpr size_t kKeyLength = sizeof(kLayoutIniInitializedKey) - 1;
   if (std::strncmp(line, kLayoutIniInitializedKey, kKeyLength) != 0) {
     return;
@@ -1039,6 +1097,14 @@ void LayoutManager::ApplyLayoutIniSettings() {
   ClearInitializationFlags();
   const bool first_load = !layout_ini_backup_checked_;
   layout_ini_backup_checked_ = true;
+
+  // The pin spot is a preference, not a tree: keep it across a tree reset.
+  if (layout_ini_.pin_dir != ImGuiDir_None) {
+    pin_dir_ = layout_ini_.pin_dir;
+  }
+  if (layout_ini_.pin_size > 0.0f) {
+    pin_size_ = layout_ini_.pin_size;
+  }
 
   if (layout_ini_.section_seen && layout_ini_.revision == kLayoutIniRevision) {
     // Editors whose saved tree survived load skip the default preset build.
@@ -1078,6 +1144,13 @@ void LayoutManager::WriteLayoutIniSettings(ImGuiTextBuffer* buf) const {
         ImGui::DockBuilderGetNode(EditorDockspaceId(type))) {
       buf->appendf("%s%s\n", kLayoutIniInitializedKey, kEditorNames[index]);
     }
+  }
+  if (pin_dir_ >= 0 && static_cast<size_t>(pin_dir_) < kPinSideNames.size()) {
+    buf->appendf("%s%s\n", kLayoutIniPinSideKey,
+                 kPinSideNames[static_cast<size_t>(pin_dir_)]);
+  }
+  if (pin_size_ > 0.0f) {
+    buf->appendf("PinSize=%.0f\n", pin_size_);
   }
   buf->append("\n");
 }

@@ -228,6 +228,60 @@ TEST_F(LayoutManagerB2Test, UnpinnedPanelDroppedOnPinNodeReturnsHome) {
   EXPECT_EQ(DockIdOf(palette_title_.c_str()), pin);
 }
 
+TEST_F(LayoutManagerB2Test, PinSpotKeepsDraggedSizeAfterItEmpties) {
+  BuildPinnedPalette();
+  const ImGuiID dungeon =
+      LayoutManager::EditorDockspaceId(EditorType::kDungeon);
+  const auto panels = [&] {
+    SubmitPanel(palette_title_, dungeon);
+    SubmitPanel(objects_title_, dungeon);
+  };
+  ImGuiDockNode* pin = ImGui::DockBuilderGetNode(layout_manager_.FindPinNode());
+  ASSERT_NE(pin, nullptr);
+
+  // Stands in for a splitter drag: ImGui keeps the non-central child's
+  // SizeRef and gives the rest to the central node.
+  pin->SizeRef.x = 400.0f;
+  RunFrames(2, panels);
+  EXPECT_EQ(layout_manager_.pin_dir(), ImGuiDir_Right);
+  EXPECT_NEAR(layout_manager_.pin_size(), 400.0f, 1.0f);
+
+  // The palette leaves: ImGui deletes the empty pin node.
+  window_manager_.SetWindowPinned(0, kPaletteId, false);
+  ImGui::DockBuilderDockWindow(palette_title_.c_str(), dungeon);
+  RunFrames(3, panels);
+  ASSERT_EQ(layout_manager_.FindPinNode(), 0u);
+
+  // Re-pinning rebuilds the pin node at the dragged size.
+  window_manager_.SetWindowPinned(0, kPaletteId, true);
+  RunFrames(3, panels);
+  pin = ImGui::DockBuilderGetNode(layout_manager_.FindPinNode());
+  ASSERT_NE(pin, nullptr);
+  EXPECT_EQ(DockIdOf(palette_title_.c_str()), pin->ID);
+  EXPECT_NEAR(pin->Size.x, 400.0f, 2.0f);
+
+  const std::string ini = SaveIni();
+  EXPECT_NE(ini.find("PinSide=Right"), std::string::npos);
+  EXPECT_NE(ini.find("PinSize=400"), std::string::npos);
+}
+
+TEST_F(LayoutManagerB2Test, PinSpotLoadsSideAndSizeFromIni) {
+  RestartWithIni(
+      "[YazeLayout][Data]\nRevision=1\nPinSide=Left\nPinSize=333\n\n");
+  EXPECT_EQ(layout_manager_.pin_dir(), ImGuiDir_Left);
+  EXPECT_FLOAT_EQ(layout_manager_.pin_size(), 333.0f);
+
+  BuildPinnedPalette();
+  ImGuiDockNode* outer =
+      ImGui::DockBuilderGetNode(LayoutManager::OuterDockspaceId());
+  ASSERT_NE(outer, nullptr);
+  ASSERT_TRUE(outer->IsSplitNode());
+  const ImGuiID pin = layout_manager_.FindPinNode();
+  EXPECT_EQ(outer->ChildNodes[0]->ID, pin);
+  EXPECT_EQ(DockIdOf(palette_title_.c_str()), pin);
+  EXPECT_NEAR(outer->ChildNodes[0]->Size.x, 333.0f, 2.0f);
+}
+
 TEST_F(LayoutManagerB2Test, IniRoundTripKeepsInitializedEditorTrees) {
   layout_manager_.SetActiveEditorType(EditorType::kDungeon);
   layout_manager_.MarkLayoutInitialized(EditorType::kDungeon);
