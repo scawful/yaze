@@ -55,7 +55,11 @@ class Tile16Editor : public gfx::GfxContext {
     return open_graphics_for_quadrant_(session_.current_tile16(),
                                        session_.active_quadrant());
   }
-  void DrawContextMenu();
+  // Main-menu items. The Overworld editor draws the edit actions in the main
+  // Edit menu and the view toggles and scratch slots in its own menu.
+  bool blockset_loaded() const { return session_.map_blockset_loaded(); }
+  void DrawEditMenuItems();
+  void DrawOverworldMenuItems();
   void DrawTile16Editor();
   absl::Status UpdateBlockset();
   void DrawScratchSpace();

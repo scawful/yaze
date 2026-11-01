@@ -68,72 +68,65 @@ using namespace ImGui;
 
 constexpr float kTile8DisplayScale = 4.0f;
 
-void Tile16Editor::DrawContextMenu() {
-  if (BeginPopup("##Tile16EditorContextMenu")) {
-    if (BeginMenu(tr("View"))) {
-      if (MenuItem(tr("Show Grid"), nullptr, session_.show_tile_grid())) {
-        *session_.mutable_show_tile_grid() = !session_.show_tile_grid();
-      }
-      if (MenuItem(tr("Show Collision IDs"), nullptr,
-                   session_.show_tile_collision_ids())) {
-        *session_.mutable_show_tile_collision_ids() =
-            !session_.show_tile_collision_ids();
-        *tile8_source_canvas_.custom_labels_enabled() =
-            session_.show_tile_collision_ids();
-      }
-      EndMenu();
-    }
-
-    if (BeginMenu(tr("Edit"))) {
-      if (MenuItem(tr("Copy Current Tile16"), "Ctrl+C")) {
-        status_ = CopyTile16ToClipboard(session_.current_tile16());
-      }
-      if (MenuItem(tr("Paste to Current Tile16"), "Ctrl+V")) {
-        status_ = PasteTile16FromClipboard();
-      }
-      Separator();
-      if (MenuItem(tr("Flip Horizontal"), "H")) {
-        status_ = FlipTile16Horizontal();
-      }
-      if (MenuItem(tr("Flip Vertical"), "V")) {
-        status_ = FlipTile16Vertical();
-      }
-      if (MenuItem(tr("Rotate"), "R")) {
-        status_ = RotateTile16();
-      }
-      if (MenuItem(tr("Clear"), "Delete")) {
-        status_ = ClearTile16();
-      }
-      EndMenu();
-    }
-
-    if (BeginMenu(tr("Scratch Space"))) {
-      for (int i = 0; i < 4; i++) {
-        std::string slot_name = "Slot " + std::to_string(i + 1);
-        if (session_.scratch_slot(i).has_data) {
-          if (MenuItem((slot_name + " (Load)").c_str())) {
-            status_ = LoadTile16FromScratchSpace(i);
-          }
-          if (MenuItem((slot_name + " (Save)").c_str())) {
-            status_ = SaveTile16ToScratchSpace(i);
-          }
-          if (MenuItem((slot_name + " (Clear)").c_str())) {
-            status_ = ClearScratchSpace(i);
-          }
-        } else {
-          if (MenuItem((slot_name + " (Save)").c_str())) {
-            status_ = SaveTile16ToScratchSpace(i);
-          }
-        }
-        if (i < 3)
-          Separator();
-      }
-      EndMenu();
-    }
-
-    EndPopup();
+void Tile16Editor::DrawEditMenuItems() {
+  if (MenuItem(tr("Copy Current Tile16"), "Ctrl+C")) {
+    status_ = CopyTile16ToClipboard(session_.current_tile16());
+  }
+  if (MenuItem(tr("Paste to Current Tile16"), "Ctrl+V")) {
+    status_ = PasteTile16FromClipboard();
+  }
+  Separator();
+  if (MenuItem(tr("Flip Tile16 Horizontal"), "H")) {
+    status_ = FlipTile16Horizontal();
+  }
+  if (MenuItem(tr("Flip Tile16 Vertical"), "V")) {
+    status_ = FlipTile16Vertical();
+  }
+  if (MenuItem(tr("Rotate Tile16"), "R")) {
+    status_ = RotateTile16();
+  }
+  if (MenuItem(tr("Clear Tile16"), "Delete")) {
+    status_ = ClearTile16();
   }
 }
+
+void Tile16Editor::DrawOverworldMenuItems() {
+  if (MenuItem(tr("Show Grid"), nullptr, session_.show_tile_grid())) {
+    *session_.mutable_show_tile_grid() = !session_.show_tile_grid();
+  }
+  if (MenuItem(tr("Show Collision IDs"), nullptr,
+               session_.show_tile_collision_ids())) {
+    *session_.mutable_show_tile_collision_ids() =
+        !session_.show_tile_collision_ids();
+    *tile8_source_canvas_.custom_labels_enabled() =
+        session_.show_tile_collision_ids();
+  }
+  Separator();
+  if (BeginMenu(tr("Scratch Slots"))) {
+    for (int i = 0; i < 4; i++) {
+      std::string slot_name = "Slot " + std::to_string(i + 1);
+      if (session_.scratch_slot(i).has_data) {
+        if (MenuItem((slot_name + " (Load)").c_str())) {
+          status_ = LoadTile16FromScratchSpace(i);
+        }
+        if (MenuItem((slot_name + " (Save)").c_str())) {
+          status_ = SaveTile16ToScratchSpace(i);
+        }
+        if (MenuItem((slot_name + " (Clear)").c_str())) {
+          status_ = ClearScratchSpace(i);
+        }
+      } else {
+        if (MenuItem((slot_name + " (Save)").c_str())) {
+          status_ = SaveTile16ToScratchSpace(i);
+        }
+      }
+      if (i < 3)
+        Separator();
+    }
+    EndMenu();
+  }
+}
+
 absl::Status Tile16Editor::UpdateTile16Edit() {
   absl::Status draw_status;
   static bool show_advanced_controls = false;
