@@ -1556,6 +1556,19 @@ void ApplyDockNodeRecursive(WorkspaceWindowManager* wm, size_t session_id,
         ImGui::DockBuilderDockWindow(title.c_str(), target_id);
       }
     }
+    if (!node.panels.empty()) {
+      const auto& active = node.panels[node.active_tab_index];
+      const std::string title = ResolveDockWindowTitle(wm, session_id, active);
+      if (!title.empty()) {
+        if (ImGuiDockNode* target = ImGui::DockBuilderGetNode(target_id)) {
+          target->SelectedTabId = ImHashStr(title.c_str());
+          if (target->TabBar) {
+            target->TabBar->SelectedTabId = target->SelectedTabId;
+            target->TabBar->NextSelectedTabId = target->SelectedTabId;
+          }
+        }
+      }
+    }
     return;
   }
 
