@@ -540,6 +540,36 @@ TEST_F(EditorManagerTest,
   EXPECT_FALSE(*descriptor->visibility_flag);
 }
 
+TEST_F(EditorManagerTest,
+       FirstNonStartupEditorActivationReopensSavedClosedDefaultPanel) {
+  ::yaze::test::InitializeWithIsolatedSettings(*editor_manager_,
+                                               renderer_.get());
+  editor_manager_->CreateNewSession();
+  auto& windows = editor_manager_->window_manager();
+  windows.SetActiveCategory("Overworld", /*notify=*/false);
+  editor_manager_->user_settings()
+      .prefs()
+      .panel_visibility_state["Assembly"]
+                             [LayoutPresets::Panels::kAssemblyEditor] = false;
+  ASSERT_TRUE(
+      editor_manager_->EnsureEditorAssetsLoaded(EditorType::kAssembly).ok());
+  const auto* descriptor = windows.GetWindowDescriptor(
+      windows.GetActiveSessionId(), LayoutPresets::Panels::kAssemblyEditor);
+  ASSERT_NE(descriptor, nullptr);
+  ASSERT_NE(descriptor->visibility_flag, nullptr);
+  ASSERT_FALSE(*descriptor->visibility_flag);
+
+  auto& io = ImGui::GetIO();
+  io.IniFilename = nullptr;
+  io.DisplaySize = ImVec2(1280, 720);
+  io.DeltaTime = 1.0f / 60.0f;
+  io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+  ImGui::NewFrame();
+  editor_manager_->SwitchToEditor(EditorType::kAssembly, true);
+  ImGui::EndFrame();
+  EXPECT_TRUE(*descriptor->visibility_flag);
+}
+
 TEST_F(EditorManagerTest, TransientFrameVisitKeepsClosedWindowHidden) {
   ::yaze::test::InitializeWithIsolatedSettings(*editor_manager_,
                                                renderer_.get());
