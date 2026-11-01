@@ -2,6 +2,7 @@
 #include "app/editor/overworld/ui/tiles/tile16_editor_view.h"
 
 #include <algorithm>
+#include <utility>
 #include <vector>
 
 #include "gtest/gtest.h"
@@ -113,6 +114,29 @@ TEST(LayoutPresetsTest,
       preset.panel_positions.find(LayoutPresets::Panels::kOverworldDebug);
   ASSERT_NE(debug_pos, preset.panel_positions.end());
   EXPECT_EQ(debug_pos->second, DockPosition::RightBottom);
+}
+
+TEST(LayoutPresetsTest, NamedPresetLookupPreservesMenuAndProfileNames) {
+  const std::pair<const char*, const char*> names[] = {
+      {"Minimal", "Minimal"},
+      {"Developer", "Developer"},
+      {"Designer", "Designer"},
+      {"Modder", "Modder"},
+      {"Overworld Expert", "Overworld Artist"},
+      {"Dungeon Expert", "Dungeon Master"},
+      {"Testing", "Logic Debugger"},
+      {"Audio", "Audio Engineer"},
+  };
+  for (const auto& [input, expected] : names) {
+    PanelLayoutPreset preset;
+    ASSERT_TRUE(LayoutPresets::TryGetNamedPreset(input, &preset)) << input;
+    EXPECT_EQ(preset.name, expected);
+  }
+  PanelLayoutPreset unchanged;
+  unchanged.name = "sentinel";
+  EXPECT_FALSE(LayoutPresets::TryGetNamedPreset("unknown", &unchanged));
+  EXPECT_EQ(unchanged.name, "sentinel");
+  EXPECT_FALSE(LayoutPresets::TryGetNamedPreset("Minimal", nullptr));
 }
 
 TEST(LayoutPresetsTest, DungeonWorkbenchDefaultKeepsStandaloneToolsOptional) {

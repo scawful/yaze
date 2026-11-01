@@ -103,48 +103,6 @@ std::filesystem::path GetLayoutsFilePath(LayoutScope scope,
   return *layouts_dir / "layouts.json";
 }
 
-bool TryGetNamedPreset(const std::string& preset_name,
-                       PanelLayoutPreset* preset_out) {
-  if (!preset_out) {
-    return false;
-  }
-
-  if (preset_name == "Minimal") {
-    *preset_out = LayoutPresets::GetMinimalPreset();
-    return true;
-  }
-  if (preset_name == "Developer") {
-    *preset_out = LayoutPresets::GetDeveloperPreset();
-    return true;
-  }
-  if (preset_name == "Designer") {
-    *preset_out = LayoutPresets::GetDesignerPreset();
-    return true;
-  }
-  if (preset_name == "Modder") {
-    *preset_out = LayoutPresets::GetModderPreset();
-    return true;
-  }
-  if (preset_name == "Overworld Expert") {
-    *preset_out = LayoutPresets::GetOverworldArtistPreset();
-    return true;
-  }
-  if (preset_name == "Dungeon Expert") {
-    *preset_out = LayoutPresets::GetDungeonMasterPreset();
-    return true;
-  }
-  if (preset_name == "Testing") {
-    *preset_out = LayoutPresets::GetLogicDebuggerPreset();
-    return true;
-  }
-  if (preset_name == "Audio") {
-    *preset_out = LayoutPresets::GetAudioEngineerPreset();
-    return true;
-  }
-
-  return false;
-}
-
 std::string ResolveProfilePresetName(const std::string& profile_id,
                                      EditorType editor_type) {
   if (profile_id == "mapping") {
@@ -1322,7 +1280,7 @@ bool LayoutManager::ApplyBuiltInProfile(const std::string& profile_id,
   }
 
   PanelLayoutPreset preset;
-  if (!TryGetNamedPreset(matched_profile.preset_name, &preset)) {
+  if (!LayoutPresets::TryGetNamedPreset(matched_profile.preset_name, &preset)) {
     LOG_WARN("LayoutManager", "Unable to resolve preset '%s' for profile '%s'",
              matched_profile.preset_name.c_str(), profile_id.c_str());
     return false;

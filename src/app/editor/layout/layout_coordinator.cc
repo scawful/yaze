@@ -156,24 +156,7 @@ void LayoutCoordinator::ApplyLayoutPreset(const std::string& preset_name,
 
   PanelLayoutPreset preset;
 
-  // Get the preset by name
-  if (preset_name == "Minimal") {
-    preset = LayoutPresets::GetMinimalPreset();
-  } else if (preset_name == "Developer") {
-    preset = LayoutPresets::GetDeveloperPreset();
-  } else if (preset_name == "Designer") {
-    preset = LayoutPresets::GetDesignerPreset();
-  } else if (preset_name == "Modder") {
-    preset = LayoutPresets::GetModderPreset();
-  } else if (preset_name == "Overworld Expert") {
-    preset = LayoutPresets::GetOverworldArtistPreset();
-  } else if (preset_name == "Dungeon Expert") {
-    preset = LayoutPresets::GetDungeonMasterPreset();
-  } else if (preset_name == "Testing") {
-    preset = LayoutPresets::GetLogicDebuggerPreset();
-  } else if (preset_name == "Audio") {
-    preset = LayoutPresets::GetAudioEngineerPreset();
-  } else {
+  if (!LayoutPresets::TryGetNamedPreset(preset_name, &preset)) {
     LOG_WARN("LayoutCoordinator", "Unknown layout preset: %s",
              preset_name.c_str());
     if (toast_manager_) {

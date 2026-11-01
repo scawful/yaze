@@ -57,6 +57,9 @@ using WorkspaceLayoutPreset = PanelLayoutPreset;
  */
 class LayoutPresets {
  public:
+  // Resolve the existing menu/profile names to their maintained presets.
+  static bool TryGetNamedPreset(const std::string& name,
+                                PanelLayoutPreset* preset_out);
   /**
    * @brief Get the default layout preset for an editor type
    * @param type The editor type
