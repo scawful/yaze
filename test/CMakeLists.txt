@@ -466,6 +466,7 @@ if(YAZE_BUILD_TESTS)
     unit/editor/palette_controls_panel_layout_test.cc
     unit/editor/palette_catalog_session_test.cc
     unit/editor/sprite_editor_preview_test.cc
+    unit/editor/memory_editor_compare_test.cc
     unit/editor/sprite_authoring_test.cc
     unit/editor/sprite_behavior_test.cc
     unit/editor/sprite_catalog_session_test.cc
