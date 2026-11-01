@@ -124,6 +124,14 @@ bool EditorManager::RestoreProjectContextForSession(RomSession* session) {
   if (!session || !session->project_context.has_value()) {
     if (!session) {
       current_project_ = project::YazeProject();
+      // Closing the last ROM ends the project's workspace overlay. Left
+      // active, Save() would keep writing the pre-project values over global
+      // changes made with no ROM open.
+      user_settings_.ClearWorkspaceOverrides();
+      if (ImGui::GetCurrentContext() != nullptr) {
+        ImGui::GetIO().FontGlobalScale =
+            user_settings_.prefs().font_global_scale;
+      }
       RestoreProjectEditingStateForSession(nullptr);
     }
     active_project_context_session_id_.reset();
