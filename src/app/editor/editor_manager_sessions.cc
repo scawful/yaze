@@ -191,6 +191,12 @@ void EditorManager::HandleSessionSwitched(size_t new_index, RomSession* session,
     pending_project_open_transition_ = false;
     pending_project_open_previous_session_id_.reset();
     CancelPendingRomSave(/*hide_popups=*/true);
+    // The ROM load options dialog applies only to the session it opened for.
+    if (rom_load_options_owner_.has_value() &&
+        (session == nullptr ||
+         session->session_id() != rom_load_options_owner_->session_id)) {
+      CloseRomLoadOptions("another session became active");
+    }
     CaptureRuntimeFeatureFlags();
     CaptureActiveProjectContext();
     if (!RestoreProjectContextForSession(session) && session != nullptr) {
@@ -361,6 +367,11 @@ void EditorManager::HandleSessionClosed(size_t index) {
     if (closing_session != nullptr) {
       zelda3::CustomObjectManager::Get().RemoveRuntimeContext(
           closing_session->session_id());
+      if (rom_load_options_owner_.has_value() &&
+          rom_load_options_owner_->session_id ==
+              closing_session->session_id()) {
+        CloseRomLoadOptions("its ROM was closed");
+      }
     }
     if (closing_session != nullptr &&
         active_project_context_session_id_ == closing_session->session_id()) {
@@ -406,6 +417,11 @@ void EditorManager::HandleSessionClosed(size_t index) {
 void EditorManager::HandleSessionRomLoaded(size_t index, Rom* rom) {
   auto* session =
       static_cast<RomSession*>(session_coordinator_->GetSession(index));
+  // A reload replaces the ROM the dialog was opened for.
+  if (session != nullptr && rom_load_options_owner_.has_value() &&
+      rom_load_options_owner_->session_id == session->session_id()) {
+    CloseRomLoadOptions("the ROM was reloaded");
+  }
   ResetAssetState(session);
 
   // Update ContentRegistry when ROM is loaded (if this is the active session)

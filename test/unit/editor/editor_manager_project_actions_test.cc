@@ -3398,6 +3398,337 @@ TEST(EditorManagerProjectActionsTest,
   EXPECT_TRUE(frames.Run());
 }
 
+// The tests below check that the load options dialog only ever applies to the
+// session and ROM file it opened for. They change the tail-expansion checkbox
+// because it is a root-level control whose flag Save reads.
+std::string TailExpansionLabel() {
+  return tr("Enable special world tail (0xA0-0xBF)");
+}
+
+std::string ApplyLabel() {
+  return absl::StrFormat("%s Apply", ICON_MD_CHECK);
+}
+
+RomSession* SessionAt(EditorManager& manager, size_t index) {
+  return static_cast<RomSession*>(
+      manager.session_coordinator()->GetSession(index));
+}
+
+bool TailExpansion(EditorManager& manager, size_t index) {
+  return SessionAt(manager, index)
+      ->feature_flags.overworld.kEnableSpecialWorldExpansion;
+}
+
+bool HasToast(EditorManager& manager, const std::string& message) {
+  const auto& history = manager.toast_manager()->GetHistory();
+  return std::any_of(
+      history.begin(), history.end(),
+      [&message](const auto& entry) { return entry.message == message; });
+}
+
+// A review opened for session A closes when session B becomes active, so an
+// Apply can never write A's options into B or remember them for B's file.
+TEST(EditorManagerProjectActionsTest,
+     LoadOptionsReviewClosesWhenAnotherRawSessionBecomesActive) {
+  ScopedImGuiContext imgui;
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  ::yaze::test::InitializeWithIsolatedSettings(*manager, renderer.get());
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+  const core::FeatureFlags::Flags saved_flags = core::FeatureFlags::get();
+  absl::Cleanup restore_flags = [&saved_flags] {
+    core::FeatureFlags::get() = saved_flags;
+  };
+  LoadOptionsDialogFrames frames(*manager);
+
+  ScopedTempDir temp_dir(MakeTempDir("yaze_load_options_switch_raw"));
+  const auto rom_a = temp_dir.path / "a.sfc";
+  const auto rom_b = temp_dir.path / "b.sfc";
+  WriteRomFile(rom_a, "SWITCH RAW A");
+  WriteRomFile(rom_b, "SWITCH RAW B");
+  ASSERT_OK(manager->OpenRomOrProject(
+      rom_a.string(), EditorManager::LoadOptionsPrompt::kNoPrompt));
+  ASSERT_OK(manager->OpenRomOrProject(
+      rom_b.string(), EditorManager::LoadOptionsPrompt::kNoPrompt));
+  manager->SwitchToSession(0);
+  ASSERT_EQ(manager->GetCurrentSessionIndex(), 0u);
+  EXPECT_FALSE(frames.Run());
+  const bool tail_a = TailExpansion(*manager, 0);
+  const bool tail_b = TailExpansion(*manager, 1);
+
+  manager->ShowRomLoadOptions();
+  ASSERT_TRUE(frames.Run());
+  ASSERT_TRUE(frames.Press(TailExpansionLabel()));
+  manager->SwitchToSession(1);
+  ASSERT_EQ(manager->GetCurrentSessionIndex(), 1u);
+
+  EXPECT_FALSE(manager->IsRomLoadOptionsOpen());
+  EXPECT_FALSE(frames.Press(ApplyLabel()));
+  EXPECT_EQ(TailExpansion(*manager, 0), tail_a);
+  EXPECT_EQ(TailExpansion(*manager, 1), tail_b);
+  EXPECT_EQ(core::FeatureFlags::get().overworld.kEnableSpecialWorldExpansion,
+            tail_b);
+  EXPECT_TRUE(manager->user_settings().prefs().rom_load_choices.empty());
+  EXPECT_TRUE(HasToast(*manager,
+                       "ROM load options closed without changes because "
+                       "another session became active"));
+
+  // Going back to A does not bring the dismissed dialog back.
+  manager->SwitchToSession(0);
+  EXPECT_FALSE(manager->IsRomLoadOptionsOpen());
+  EXPECT_FALSE(frames.Run());
+  EXPECT_EQ(TailExpansion(*manager, 0), tail_a);
+}
+
+// Same as above with a project session as B: neither B's session flags nor
+// its project context take A's options.
+TEST(EditorManagerProjectActionsTest,
+     LoadOptionsReviewClosesWhenAProjectSessionBecomesActive) {
+  ScopedImGuiContext imgui;
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  ::yaze::test::InitializeWithIsolatedSettings(*manager, renderer.get());
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+  const core::FeatureFlags::Flags saved_flags = core::FeatureFlags::get();
+  absl::Cleanup restore_flags = [&saved_flags] {
+    core::FeatureFlags::get() = saved_flags;
+  };
+  LoadOptionsDialogFrames frames(*manager);
+
+  ScopedTempDir temp_dir(MakeTempDir("yaze_load_options_switch_project"));
+  const auto rom_a = temp_dir.path / "a.sfc";
+  const auto rom_b = temp_dir.path / "b.sfc";
+  const auto project_b = temp_dir.path / "b.yaze";
+  WriteRomFile(rom_a, "SWITCH PROJ A");
+  WriteRomFile(rom_b, "SWITCH PROJ B");
+  WriteProjectFile(project_b, "Switch Project B", rom_b);
+  ASSERT_OK(manager->OpenRomOrProject(
+      rom_a.string(), EditorManager::LoadOptionsPrompt::kNoPrompt));
+  ASSERT_OK(manager->OpenRomOrProject(
+      project_b.string(), EditorManager::LoadOptionsPrompt::kNoPrompt));
+  manager->SwitchToSession(0);
+  ASSERT_EQ(manager->GetCurrentSessionIndex(), 0u);
+  EXPECT_FALSE(frames.Run());
+  RomSession* session_b = SessionAt(*manager, 1);
+  ASSERT_NE(session_b, nullptr);
+  ASSERT_TRUE(session_b->project_context.has_value());
+  const bool tail_a = TailExpansion(*manager, 0);
+  const bool tail_b = TailExpansion(*manager, 1);
+  const bool project_tail_b = session_b->project_context->feature_flags
+                                  .overworld.kEnableSpecialWorldExpansion;
+
+  manager->ShowRomLoadOptions();
+  ASSERT_TRUE(frames.Run());
+  ASSERT_TRUE(frames.Press(TailExpansionLabel()));
+  manager->SwitchToSession(1);
+  ASSERT_EQ(manager->GetCurrentSessionIndex(), 1u);
+
+  EXPECT_FALSE(manager->IsRomLoadOptionsOpen());
+  EXPECT_FALSE(frames.Press(ApplyLabel()));
+  EXPECT_EQ(TailExpansion(*manager, 0), tail_a);
+  EXPECT_EQ(TailExpansion(*manager, 1), tail_b);
+  ASSERT_TRUE(manager->GetCurrentProject()->project_opened());
+  EXPECT_EQ(manager->GetCurrentProject()
+                ->feature_flags.overworld.kEnableSpecialWorldExpansion,
+            project_tail_b);
+  EXPECT_TRUE(manager->user_settings().prefs().rom_load_choices.empty());
+  EXPECT_TRUE(HasToast(*manager,
+                       "ROM load options closed without changes because "
+                       "another session became active"));
+}
+
+// Closing the dialog's ROM while another session survives closes the dialog
+// before the surviving session becomes active.
+TEST(EditorManagerProjectActionsTest, LoadOptionsReviewClosesWhenItsRomCloses) {
+  ScopedImGuiContext imgui;
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  ::yaze::test::InitializeWithIsolatedSettings(*manager, renderer.get());
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+  const core::FeatureFlags::Flags saved_flags = core::FeatureFlags::get();
+  absl::Cleanup restore_flags = [&saved_flags] {
+    core::FeatureFlags::get() = saved_flags;
+  };
+  LoadOptionsDialogFrames frames(*manager);
+
+  ScopedTempDir temp_dir(MakeTempDir("yaze_load_options_close"));
+  const auto rom_a = temp_dir.path / "a.sfc";
+  const auto rom_b = temp_dir.path / "b.sfc";
+  WriteRomFile(rom_a, "CLOSE OWNER A");
+  WriteRomFile(rom_b, "CLOSE OWNER B");
+  ASSERT_OK(manager->OpenRomOrProject(
+      rom_a.string(), EditorManager::LoadOptionsPrompt::kNoPrompt));
+  ASSERT_OK(manager->OpenRomOrProject(
+      rom_b.string(), EditorManager::LoadOptionsPrompt::kNoPrompt));
+  manager->SwitchToSession(0);
+  ASSERT_EQ(manager->GetCurrentSessionIndex(), 0u);
+  EXPECT_FALSE(frames.Run());
+  const bool tail_b = TailExpansion(*manager, 1);
+
+  manager->ShowRomLoadOptions();
+  ASSERT_TRUE(frames.Run());
+  ASSERT_TRUE(frames.Press(TailExpansionLabel()));
+  manager->CloseRom();
+  ASSERT_EQ(manager->session_coordinator()->GetTotalSessionCount(), 1u);
+
+  EXPECT_FALSE(manager->IsRomLoadOptionsOpen());
+  EXPECT_FALSE(frames.Run());
+  ASSERT_NE(manager->GetCurrentRom(), nullptr);
+  EXPECT_TRUE(SessionCoordinator::PathsReferToSameBackingFile(
+      manager->GetCurrentRom()->filename(), rom_b.string()));
+  EXPECT_EQ(TailExpansion(*manager, 0), tail_b);
+  EXPECT_TRUE(manager->user_settings().prefs().rom_load_choices.empty());
+  EXPECT_TRUE(HasToast(
+      *manager,
+      "ROM load options closed without changes because its ROM was closed"));
+}
+
+// Per-frame session visits are transient. A review stays open across them and
+// its Apply changes only the session it opened for.
+TEST(EditorManagerProjectActionsTest,
+     LoadOptionsReviewSurvivesFramesAndAppliesToItsSession) {
+  ScopedImGuiContext imgui;
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  ::yaze::test::InitializeWithIsolatedSettings(*manager, renderer.get());
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+  const core::FeatureFlags::Flags saved_flags = core::FeatureFlags::get();
+  absl::Cleanup restore_flags = [&saved_flags] {
+    core::FeatureFlags::get() = saved_flags;
+  };
+  LoadOptionsDialogFrames frames(*manager);
+
+  ScopedTempDir temp_dir(MakeTempDir("yaze_load_options_apply_owner"));
+  const auto rom_a = temp_dir.path / "a.sfc";
+  const auto rom_b = temp_dir.path / "b.sfc";
+  WriteRomFile(rom_a, "APPLY OWNER A");
+  WriteRomFile(rom_b, "APPLY OWNER B");
+  ASSERT_OK(manager->OpenRomOrProject(
+      rom_a.string(), EditorManager::LoadOptionsPrompt::kNoPrompt));
+  ASSERT_OK(manager->OpenRomOrProject(
+      rom_b.string(), EditorManager::LoadOptionsPrompt::kNoPrompt));
+  manager->SwitchToSession(0);
+  ASSERT_EQ(manager->GetCurrentSessionIndex(), 0u);
+  EXPECT_FALSE(frames.Run());
+  const bool tail_a = TailExpansion(*manager, 0);
+  const bool tail_b = TailExpansion(*manager, 1);
+
+  manager->ShowRomLoadOptions();
+  for (int frame = 0; frame < 3; ++frame) {
+    ASSERT_TRUE(frames.Run()) << "frame " << frame;
+  }
+  ASSERT_TRUE(frames.Press(TailExpansionLabel()));
+  ASSERT_TRUE(frames.Press(tr("Remember for this ROM file")));
+  ASSERT_TRUE(frames.Press(ApplyLabel()));
+  EXPECT_FALSE(manager->IsRomLoadOptionsOpen());
+  EXPECT_FALSE(frames.Run());
+
+  EXPECT_EQ(manager->GetCurrentSessionIndex(), 0u);
+  EXPECT_EQ(TailExpansion(*manager, 0), !tail_a);
+  EXPECT_EQ(core::FeatureFlags::get().overworld.kEnableSpecialWorldExpansion,
+            !tail_a);
+  EXPECT_EQ(TailExpansion(*manager, 1), tail_b);
+  const auto& choices = manager->user_settings().prefs().rom_load_choices;
+  EXPECT_EQ(choices.size(), 1u);
+  EXPECT_TRUE(choices.contains(RomLoadOptionsDialog::RomChoiceKey(
+      SessionAt(*manager, 0)->rom.filename())));
+  EXPECT_TRUE(HasToast(
+      *manager, "ROM load options applied and remembered for this file"));
+  const auto& history = manager->toast_manager()->GetHistory();
+  EXPECT_FALSE(
+      std::any_of(history.begin(), history.end(), [](const auto& entry) {
+        return entry.message.rfind("ROM load options closed without changes",
+                                   0) == 0;
+      }));
+
+  manager->SwitchToSession(1);
+  EXPECT_EQ(TailExpansion(*manager, 1), tail_b);
+  EXPECT_EQ(core::FeatureFlags::get().overworld.kEnableSpecialWorldExpansion,
+            tail_b);
+}
+
+// The dialog an interactive open shows belongs to the new session. Switching
+// to an older session closes it without changing either session.
+TEST(EditorManagerProjectActionsTest,
+     LoadOptionsAfterOpenClosesWhenAnOlderSessionBecomesActive) {
+  ScopedImGuiContext imgui;
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  ::yaze::test::InitializeWithIsolatedSettings(*manager, renderer.get());
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+  const core::FeatureFlags::Flags saved_flags = core::FeatureFlags::get();
+  absl::Cleanup restore_flags = [&saved_flags] {
+    core::FeatureFlags::get() = saved_flags;
+  };
+  LoadOptionsDialogFrames frames(*manager);
+
+  ScopedTempDir temp_dir(MakeTempDir("yaze_load_options_open_switch"));
+  const auto rom_a = temp_dir.path / "a.sfc";
+  const auto rom_b = temp_dir.path / "b.sfc";
+  WriteRomFile(rom_a, "OPEN SWITCH A");
+  WriteRomFile(rom_b, "OPEN SWITCH B");
+  ASSERT_OK(manager->OpenRomOrProject(
+      rom_a.string(), EditorManager::LoadOptionsPrompt::kNoPrompt));
+  EXPECT_FALSE(frames.Run());
+  const bool tail_a = TailExpansion(*manager, 0);
+
+  ASSERT_OK(manager->OpenRomOrProject(rom_b.string()));
+  ASSERT_TRUE(manager->IsRomLoadOptionsOpen());
+  ASSERT_TRUE(frames.Run());
+  const bool tail_b = TailExpansion(*manager, 1);
+  ASSERT_TRUE(frames.Press(TailExpansionLabel()));
+
+  manager->SwitchToSession(0);
+  EXPECT_FALSE(manager->IsRomLoadOptionsOpen());
+  EXPECT_FALSE(frames.Run());
+  EXPECT_EQ(TailExpansion(*manager, 0), tail_a);
+  EXPECT_EQ(TailExpansion(*manager, 1), tail_b);
+  EXPECT_TRUE(manager->user_settings().prefs().rom_load_choices.empty());
+
+  manager->SwitchToSession(1);
+  EXPECT_FALSE(manager->IsRomLoadOptionsOpen());
+  EXPECT_FALSE(frames.Run());
+  EXPECT_EQ(TailExpansion(*manager, 1), tail_b);
+}
+
+// Save As renames the ROM in place. A review opened for the old file name
+// closes before it draws again, so its choice is never stored under either
+// name.
+TEST(EditorManagerProjectActionsTest, LoadOptionsReviewClosesWhenRomIsRenamed) {
+  ScopedImGuiContext imgui;
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  ::yaze::test::InitializeWithIsolatedSettings(*manager, renderer.get());
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+  const core::FeatureFlags::Flags saved_flags = core::FeatureFlags::get();
+  absl::Cleanup restore_flags = [&saved_flags] {
+    core::FeatureFlags::get() = saved_flags;
+  };
+  LoadOptionsDialogFrames frames(*manager);
+
+  ScopedTempDir temp_dir(MakeTempDir("yaze_load_options_rename"));
+  const auto rom_path = temp_dir.path / "before.sfc";
+  WriteRomFile(rom_path, "RENAME OWNER");
+  ASSERT_OK(manager->OpenRomOrProject(
+      rom_path.string(), EditorManager::LoadOptionsPrompt::kNoPrompt));
+  EXPECT_FALSE(frames.Run());
+  const bool tail = TailExpansion(*manager, 0);
+
+  manager->ShowRomLoadOptions();
+  ASSERT_TRUE(frames.Run());
+  ASSERT_TRUE(frames.Press(TailExpansionLabel()));
+  manager->GetCurrentRom()->set_filename(
+      (temp_dir.path / "after.sfc").string());
+
+  EXPECT_FALSE(frames.Run());
+  EXPECT_FALSE(manager->IsRomLoadOptionsOpen());
+  EXPECT_EQ(TailExpansion(*manager, 0), tail);
+  EXPECT_TRUE(manager->user_settings().prefs().rom_load_choices.empty());
+  EXPECT_TRUE(HasToast(*manager,
+                       "ROM load options closed without changes because its "
+                       "session or ROM file is no longer active"));
+}
+
 TEST(EditorManagerProjectActionsTest,
      FailedProjectAssetLoadRestoresInitiatingSession) {
   ScopedImGuiContext imgui;

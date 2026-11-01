@@ -587,6 +587,13 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
   // post-load surface plus the remembered-choice toast.
   void FinishRawRomOpen(bool remembered_load_options, bool ask_for_load_options,
                         bool is_first_time_rom_path);
+  // The ROM load options dialog belongs to the session and ROM file that were
+  // active when it opened. It is a normal window, so other session tabs stay
+  // usable; options apply only while that owner is still the active one.
+  void BindRomLoadOptionsToActiveSession();
+  bool RomLoadOptionsOwnerIsActive() const;
+  // Closes the dialog without applying options and says why in a toast.
+  void CloseRomLoadOptions(const char* reason);
   void SetupDialogCallbacks();
   void MaybeEmitZScreamRomLoadHints();
   void SetupSidebarCallbacks();
@@ -633,6 +640,13 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
   std::unique_ptr<DashboardPanel> dashboard_panel_;
   RomLoadOptionsDialog rom_load_options_dialog_;
   bool show_rom_load_options_ = false;
+  // Set while the dialog is open. The session ID is stable; the UI index is
+  // not. A session switch, a close, or a ROM reload of the owner clears it.
+  struct RomLoadOptionsOwner {
+    size_t session_id = 0;
+    std::string rom_filename;
+  };
+  std::optional<RomLoadOptionsOwner> rom_load_options_owner_;
   StartupVisibility welcome_mode_override_ = StartupVisibility::kAuto;
   // False while the previous frame drew the editor surface. Drawers left open
   // by an editor close when the Welcome screen replaces that surface; drawers
