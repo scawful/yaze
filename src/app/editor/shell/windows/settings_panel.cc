@@ -694,6 +694,11 @@ void SettingsPanel::DrawProjectSettings() {
   bool backup_on_save = project_->workspace_settings.backup_on_save;
   if (gui::DrawProperty("Backup Before Save", &backup_on_save)) {
     project_->workspace_settings.backup_on_save = backup_on_save;
+    // While a project is open the live preference is its overlay, and project
+    // saves copy the live value back. Keep both in step.
+    if (user_settings_ && user_settings_->HasWorkspaceOverrides()) {
+      user_settings_->prefs().backup_before_save = backup_on_save;
+    }
     project_->Save();
   }
 
@@ -1261,6 +1266,10 @@ void SettingsPanel::DrawEditorBehavior() {
 
   ImGui::Text(tr("%s Auto-Save"), ICON_MD_SAVE);
   ImGui::Separator();
+  if (user_settings_->HasWorkspaceOverrides()) {
+    ImGui::TextDisabled(
+        "%s", tr("These apply to the open project and save with it."));
+  }
 
   if (ImGui::Checkbox(tr("Enable Auto-Save"),
                       &user_settings_->prefs().autosave_enabled)) {
@@ -1274,12 +1283,13 @@ void SettingsPanel::DrawEditorBehavior() {
       user_settings_->prefs().autosave_interval = static_cast<float>(interval);
       user_settings_->Save();
     }
-
-    if (ImGui::Checkbox(tr("Backup Before Save"),
-                        &user_settings_->prefs().backup_before_save)) {
-      user_settings_->Save();
-    }
     ImGui::Unindent();
+  }
+
+  // Backups gate every ROM save, not only autosave.
+  if (ImGui::Checkbox(tr("Backup Before Save"),
+                      &user_settings_->prefs().backup_before_save)) {
+    user_settings_->Save();
   }
 
   ImGui::Spacing();
@@ -1295,11 +1305,15 @@ void SettingsPanel::DrawEditorBehavior() {
   ImGui::Text(tr("%s Default Editor"), ICON_MD_EDIT);
   ImGui::Separator();
 
-  const char* editors[] = {"None", "Overworld", "Dungeon", "Graphics"};
+  // Index order is persisted as default_editor; append new editors only.
+  const char* editors[] = {"None", "Overworld", "Dungeon", "Graphics",
+                           "Messages"};
   if (ImGui::Combo("##DefaultEditor", &user_settings_->prefs().default_editor,
                    editors, IM_ARRAYSIZE(editors))) {
     user_settings_->Save();
   }
+  ImGui::TextDisabled(
+      "%s", tr("Opens after a ROM or project loads. None shows the picker."));
 
   ImGui::Spacing();
   ImGui::Text(tr("%s Sprite Names"), ICON_MD_LABEL);

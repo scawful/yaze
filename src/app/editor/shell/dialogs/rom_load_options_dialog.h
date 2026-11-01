@@ -2,7 +2,10 @@
 #define YAZE_APP_EDITOR_SHELL_DIALOGS_ROM_LOAD_OPTIONS_DIALOG_H_
 
 #include <functional>
+#include <optional>
 #include <string>
+#include <string_view>
+#include <utility>
 
 #include "absl/status/status.h"
 #include "core/features.h"
@@ -55,6 +58,17 @@ class RomLoadOptionsDialog {
 
     // Preset name if selected
     std::string selected_preset;
+
+    // Skip this dialog the next time this ROM file opens. UserSettings keeps
+    // the choice beside its encoding; the encoding never stores this field.
+    bool remember_for_rom = true;
+  };
+
+  // A decoded remembered choice. zso_version_byte is the ZSCustomOverworld
+  // ASM byte the ROM had when the choice was made.
+  struct RememberedChoice {
+    LoadOptions options;
+    int zso_version_byte = -1;
   };
 
   RomLoadOptionsDialog();
@@ -75,6 +89,15 @@ class RomLoadOptionsDialog {
    */
   void Open(Rom* rom);
   void Open(Rom* rom, bool suggest_project_creation);
+
+  /**
+   * @brief Reopen the dialog for a ROM that is already loaded
+   * @param active Feature flags the session uses now (what Save writes)
+   * @param preset_name Remembered preset to select; empty keeps the default
+   * @param remembered Whether this ROM file has a remembered choice
+   */
+  void OpenForReview(Rom* rom, const core::FeatureFlags::Flags& active,
+                     const std::string& preset_name, bool remembered);
 
   /**
    * @brief Show the dialog
@@ -112,6 +135,13 @@ class RomLoadOptionsDialog {
   }
 
   /**
+   * @brief Set callback for Cancel or the title-bar close button
+   */
+  void SetCancelCallback(std::function<void()> callback) {
+    cancel_callback_ = std::move(callback);
+  }
+
+  /**
    * @brief Set callback for ZSO upgrade
    */
   void SetUpgradeCallback(std::function<absl::Status(int version)> callback) {
@@ -129,6 +159,28 @@ class RomLoadOptionsDialog {
   zelda3::OverworldVersion GetDetectedVersion() const {
     return detected_version_;
   }
+
+  const std::string& rom_filename() const { return rom_filename_; }
+  // ZSCustomOverworld ASM byte of the open ROM; -1 when no ROM is loaded.
+  int zso_version_byte() const { return zso_version_byte_; }
+  // True when opened through OpenForReview().
+  bool reviewing() const { return reviewing_; }
+
+  // Remembered choices are stored as "key=value;" text so UserSettings can
+  // keep them as opaque strings in both settings.json and the legacy INI.
+  static std::string EncodeRememberedChoice(const LoadOptions& options,
+                                            int zso_version_byte);
+  // Returns nullopt for any version, byte, or flag it does not understand.
+  static std::optional<RememberedChoice> DecodeRememberedChoice(
+      std::string_view encoded);
+  // Settings key for a ROM path: absolute and lexically normal. Symlinks are
+  // not resolved, so two links to one file remember separately.
+  static std::string RomChoiceKey(const std::string& rom_path);
+
+  static void ApplyToFeatureFlags(const LoadOptions& options,
+                                  core::FeatureFlags::Flags& flags);
+  static LoadOptions OptionsFromFeatureFlags(
+      const core::FeatureFlags::Flags& flags);
 
  private:
   void DrawVersionInfo();
@@ -149,6 +201,8 @@ class RomLoadOptionsDialog {
   bool is_open_ = false;
   bool confirmed_ = false;
   bool show_advanced_ = false;
+  bool reviewing_ = false;
+  int zso_version_byte_ = -1;
 
   // Options
   LoadOptions options_;
@@ -161,6 +215,7 @@ class RomLoadOptionsDialog {
 
   // Callbacks
   std::function<void(const LoadOptions&)> confirm_callback_;
+  std::function<void()> cancel_callback_;
   std::function<absl::Status(int version)> upgrade_callback_;
 
   // UI state

@@ -60,14 +60,22 @@ void EditorManager::ApplyCurrentProjectRuntimeContext() {
   core::FeatureFlags::get() = current_project_.feature_flags;
   zelda3::DrawRoutineRegistry::Get().RefreshFeatureFlagMappings();
 
-  user_settings_.prefs().font_global_scale =
-      current_project_.workspace_settings.font_global_scale;
-  user_settings_.prefs().autosave_enabled =
-      current_project_.workspace_settings.autosave_enabled;
-  user_settings_.prefs().autosave_interval =
-      current_project_.workspace_settings.autosave_interval_secs;
-  user_settings_.prefs().backup_before_save =
-      current_project_.workspace_settings.backup_on_save;
+  if (current_project_.project_opened()) {
+    UserSettings::WorkspaceOverrides overrides;
+    overrides.font_global_scale =
+        current_project_.workspace_settings.font_global_scale;
+    overrides.autosave_enabled =
+        current_project_.workspace_settings.autosave_enabled;
+    overrides.autosave_interval =
+        current_project_.workspace_settings.autosave_interval_secs;
+    overrides.backup_before_save =
+        current_project_.workspace_settings.backup_on_save;
+    user_settings_.ApplyWorkspaceOverrides(overrides);
+  } else {
+    // A raw ROM has no workspace settings of its own. Copying the default
+    // project values here used to turn autosave on and save it globally.
+    user_settings_.ClearWorkspaceOverrides();
+  }
   if (ImGui::GetCurrentContext() != nullptr) {
     ImGui::GetIO().FontGlobalScale = user_settings_.prefs().font_global_scale;
   }

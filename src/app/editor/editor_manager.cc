@@ -1921,6 +1921,9 @@ void EditorManager::ShowPostLoadSurface() {
       case 3:
         target = EditorType::kGraphics;
         break;
+      case 4:
+        target = EditorType::kMessage;
+        break;
       default:
         break;
     }
@@ -3513,6 +3516,11 @@ absl::Status EditorManager::OpenRomOrProjectInternal(
     session->feature_flags = current_project_.feature_flags;
     core::FeatureFlags::get() = current_project_.feature_flags;
     CaptureActiveProjectContext();
+    // Recents, drag-and-drop, and the command line never show the load
+    // options dialog, but they still honor a choice remembered for this file.
+    const bool remembered_load_options = allow_dialogs &&
+                                         ui_coordinator_ != nullptr &&
+                                         ApplyRememberedRomLoadChoice();
 
     // Keep ResourceLabelProvider in sync with the active ROM session before
     // editors register room/sprite labels.
@@ -3565,6 +3573,9 @@ absl::Status EditorManager::OpenRomOrProjectInternal(
     }
 
     ShowPostLoadSurface();
+    if (remembered_load_options) {
+      AnnounceRememberedRomLoadChoice();
+    }
     MaybeEmitZScreamRomLoadHints();
   }
   return absl::OkStatus();

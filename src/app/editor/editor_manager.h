@@ -472,6 +472,8 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
   void QueueBuildCurrentProject();
   void CancelQueuedProjectBuild();
   absl::Status RunCurrentProject();
+  // Reopens ROM load options for the active raw-ROM session.
+  void ShowRomLoadOptions();
 
   bool HasPendingPotItemSaveConfirmation() const {
     return rom_lifecycle_.HasPendingPotItemSaveConfirmation();
@@ -568,6 +570,11 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
   // After a ROM or project loads: stay in the open editor, open the Settings
   // default editor, or show the editor picker, in that order.
   void ShowPostLoadSurface();
+  // Applies load options remembered for the active ROM file to the runtime
+  // flags. Call before assets load. False when none match the file and its
+  // ZSCustomOverworld byte, or when a project owns the flags.
+  bool ApplyRememberedRomLoadChoice();
+  void AnnounceRememberedRomLoadChoice();
   void SetupDialogCallbacks();
   void MaybeEmitZScreamRomLoadHints();
   void SetupSidebarCallbacks();
