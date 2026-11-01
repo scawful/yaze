@@ -462,6 +462,10 @@ void RomLoadOptionsDialog::DrawActionButtons() {
         reviewing_ ? absl::StrFormat("%s Apply", ICON_MD_CHECK)
                    : absl::StrFormat("%s Continue", ICON_MD_CHECK);
     if (ImGui::Button(confirm_label.c_str(), ImVec2(button_width, 0))) {
+      if (apply_guard_ && !apply_guard_()) {
+        Close();
+        return;
+      }
       // Apply options
       ApplyOptionsToFeatureFlags();
       options_.selected_preset = kPresetNames[selected_preset_index_];

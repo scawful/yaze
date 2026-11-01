@@ -587,6 +587,9 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
   // post-load surface plus the remembered-choice toast.
   void FinishRawRomOpen(bool remembered_load_options, bool ask_for_load_options,
                         bool is_first_time_rom_path);
+  void BindRomLoadOptionsToCurrentSession();
+  bool RomLoadOptionsMatchCurrentSession() const;
+  void CloseRomLoadOptions();
   void SetupDialogCallbacks();
   void MaybeEmitZScreamRomLoadHints();
   void SetupSidebarCallbacks();
@@ -633,6 +636,12 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
   std::unique_ptr<DashboardPanel> dashboard_panel_;
   RomLoadOptionsDialog rom_load_options_dialog_;
   bool show_rom_load_options_ = false;
+  struct RomLoadOptionsOwner {
+    size_t session_id;
+    std::string rom_key;
+    int zso_version_byte;
+  };
+  std::optional<RomLoadOptionsOwner> rom_load_options_owner_;
   StartupVisibility welcome_mode_override_ = StartupVisibility::kAuto;
   // False while the previous frame drew the editor surface. Drawers left open
   // by an editor close when the Welcome screen replaces that surface; drawers

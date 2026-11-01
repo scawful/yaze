@@ -137,6 +137,15 @@ class RomLoadOptionsDialog {
     cancel_callback_ = std::move(callback);
   }
 
+  // Checked before any flag mutation, including the dialog's own application.
+  void SetApplyGuard(std::function<bool()> guard) {
+    apply_guard_ = std::move(guard);
+  }
+  void Close() {
+    is_open_ = false;
+    confirmed_ = false;
+  }
+
   /**
    * @brief Get detected ROM version
    */
@@ -207,6 +216,7 @@ class RomLoadOptionsDialog {
   // Callbacks
   std::function<void(const LoadOptions&)> confirm_callback_;
   std::function<void()> cancel_callback_;
+  std::function<bool()> apply_guard_;
 
   // UI state
   char project_name_buffer_[256] = {};
