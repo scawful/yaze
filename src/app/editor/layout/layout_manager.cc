@@ -834,12 +834,20 @@ ImGuiID LayoutManager::EnsurePinNode() {
   const float avail =
       outer->Size[axis] - ImGui::GetStyle().DockingSeparatorSize;
   float ratio = kPinRatio;
+  float size = 0.0f;
   if (pin_size_ > 0.0f && avail > 0.0f) {
-    ratio = ImClamp(pin_size_ / avail, kPinMinRatio, kPinMaxRatio);
+    size = ImClamp(pin_size_, kPinMinRatio * avail, kPinMaxRatio * avail);
+    ratio = size / avail;
   }
   ImGuiID central = 0;
   const ImGuiID pin =
       ImGui::DockBuilderSplitNode(outer_id, pin_dir_, ratio, nullptr, &central);
+  // The split truncates from the far side, so a right or bottom pin can come
+  // out a pixel large. Layout keeps a non-central child's SizeRef exactly.
+  if (ImGuiDockNode* node = ImGui::DockBuilderGetNode(pin);
+      node && size > 0.0f) {
+    node->SizeRef[axis] = size;
+  }
   ImGui::DockBuilderFinish(outer_id);
   return pin;
 }
@@ -1213,12 +1221,18 @@ void LayoutManager::WriteLayoutIniSettings(ImGuiTextBuffer* buf) const {
 void LayoutManager::BuildLayoutFromPreset(EditorType type,
                                           ImGuiID dockspace_id) {
   // Keep the outgoing editor's geometry; its dockspace is untouched by this
-  // build. Only this editor's first-open records point at destroyed nodes.
+  // build. Only this editor's first-open records point at destroyed nodes,
+  // unless every editor shares one dockspace (test override): then the build
+  // destroys all of them.
   StashLazyDefaultDockState();
   DisableLazyDefaultDocking();
   lazy_states_by_type_.erase(type);
-  for (auto& [session, by_type] : lazy_default_dock_attempts_) {
-    by_type.erase(type);
+  if (dockspace_id == EditorDockspaceId(type)) {
+    for (auto& [session, by_type] : lazy_default_dock_attempts_) {
+      by_type.erase(type);
+    }
+  } else {
+    lazy_default_dock_attempts_.clear();
   }
   auto preset = LayoutPresets::GetDefaultPreset(type);
 
