@@ -31,6 +31,7 @@
 #include "app/editor/overworld/ui/navigation/overworld_sidebar.h"
 #include "app/editor/overworld/ui/navigation/overworld_toolbar.h"
 #include "app/editor/overworld/ui/ui_constants.h"
+#include "app/editor/shell/feedback/toast_manager.h"
 #include "app/editor/system/workspace/workspace_window_manager.h"
 #include "app/gfx/core/bitmap.h"
 #include "app/gfx/render/tilemap.h"
@@ -915,6 +916,7 @@ absl::Status OverworldCanvasRenderer::DrawTile16Selector() {
   editor_->blockset_canvas_.AddContextMenuItem(std::move(graphics_item));
   editor_->blockset_canvas_.AddContextMenuItem(
       editor_->blockset_selector_->CopyTileIdMenuItem());
+  AddTile16DefinitionMenuItems();
 
   const float selector_available_width = ImGui::GetContentRegionAvail().x;
   DrawSheetScaleControl("##Tile16Scale", &tile16_scale_mode_);
@@ -940,6 +942,12 @@ absl::Status OverworldCanvasRenderer::DrawTile16Selector() {
   }
   DrawTile16ViewControls();
   RefreshTile16Order(tile16_grid_hovered_);
+  // A range exists only in Tile ID order and only around the current brush.
+  if (editor_->blockset_selector_->has_display_order() ||
+      tile16_range_.anchor != editor_->current_tile16_) {
+    tile16_range_ = {};
+  }
+  DrawTile16RangeStatus();
 
   // Padding is read at BeginChild; pop it right away so the grid's tooltip
   // and context menu keep normal popup padding.
@@ -967,8 +975,14 @@ absl::Status OverworldCanvasRenderer::DrawTile16Selector() {
   editor_->blockset_canvas_.SetCanvasSize(
       ImVec2(grid_size.x / canvas_scale, grid_size.y / canvas_scale));
   auto result = editor_->blockset_selector_->Render(atlas, atlas_ready);
+  DrawTile16RangeOverlay();
 
-  if (result.selection_changed) {
+  bool range_only = false;
+  if (result.tile_clicked || result.tile_right_clicked) {
+    range_only =
+        HandleTile16RangeClick(result.selected_tile, result.tile_right_clicked);
+  }
+  if (result.selection_changed && !range_only) {
     editor_->RequestTile16Selection(result.selected_tile);
     // Note: We do NOT auto-scroll here because it breaks user interaction.
     // The canvas should only scroll when explicitly requested (e.g., when
@@ -981,8 +995,190 @@ absl::Status OverworldCanvasRenderer::DrawTile16Selector() {
   }
 
   tile16_grid_hovered_ = ImGui::IsWindowHovered();
+  if (tile16_grid_hovered_ && !ImGui::GetIO().WantTextInput) {
+    if (tile16_range_.active() && ImGui::IsKeyPressed(ImGuiKey_Escape, false)) {
+      tile16_range_ = {};
+    }
+    if (ImGui::GetIO().KeyShift &&
+        editor_->blockset_selector_->has_display_order()) {
+      ImGui::SetTooltip(
+          "%s", tr("Range select works in Tile ID order. Sort by Tile ID to "
+                   "use it."));
+    }
+  }
   ImGui::EndChild();
   return absl::OkStatus();
+}
+
+bool OverworldCanvasRenderer::HandleTile16RangeClick(int tile_id,
+                                                     bool right_click) {
+  auto* selector = editor_->blockset_selector_.get();
+  if (tile_id < 0) {
+    return false;
+  }
+  if (right_click) {
+    // Right-click inside a range opens the menu for the whole range.
+    if (tile16_range_.count() > 1 && tile16_range_.Contains(tile_id)) {
+      selector->SetSelectedTile(tile16_range_.anchor);
+      return true;
+    }
+    tile16_range_ = {};
+    return false;
+  }
+  if (!ImGui::GetIO().KeyShift || selector->has_display_order()) {
+    tile16_range_ = {};
+    return false;
+  }
+  const int brush = editor_->current_tile16_;
+  if (tile16_range_.anchor != brush) {
+    tile16_range_ = {brush, brush};
+  }
+  tile16_range_.extent = tile_id;
+  selector->SetSelectedTile(brush);
+  return true;
+}
+
+void OverworldCanvasRenderer::DrawTile16RangeStatus() {
+  if (tile16_range_.count() < 2) {
+    return;
+  }
+  ImGui::SameLine();
+  ImGui::TextDisabled("$%03X-$%03X (%d)", tile16_range_.first(),
+                      tile16_range_.last(), tile16_range_.count());
+  if (ImGui::IsItemHovered()) {
+    ImGui::SetTooltip("%s", tr("Tile16 range for copying definitions. "
+                               "Shift+click extends it; Esc clears it."));
+  }
+}
+
+void OverworldCanvasRenderer::DrawTile16RangeOverlay() {
+  auto* selector = editor_->blockset_selector_.get();
+  ImDrawList* draw_list = editor_->blockset_canvas_.draw_list();
+  if (tile16_range_.count() < 2 || draw_list == nullptr) {
+    return;
+  }
+  const ImVec2 origin = editor_->blockset_canvas_.zero_point();
+  const ImVec2 scroll = editor_->blockset_canvas_.scrolling();
+  const float cell = selector->TileCellSize();
+  ImVec4 fill = AgentUI::GetTheme().selection_primary;
+  fill.w = 0.25f;
+  const ImU32 fill_color = ImGui::GetColorU32(fill);
+  for (int id = tile16_range_.first(); id <= tile16_range_.last(); ++id) {
+    const ImVec2 tile = selector->TileOrigin(id);
+    if (tile.x < 0.0f) {
+      continue;
+    }
+    const ImVec2 p0(origin.x + scroll.x + tile.x, origin.y + scroll.y + tile.y);
+    draw_list->AddRectFilled(p0, ImVec2(p0.x + cell, p0.y + cell), fill_color);
+  }
+}
+
+void OverworldCanvasRenderer::AddTile16DefinitionMenuItems() {
+  auto* selector = editor_->blockset_selector_.get();
+  const bool project_terrain =
+      editor_->IsProjectTerrainMap(editor_->current_map_);
+  const bool ranged = tile16_range_.count() > 1;
+  const int first =
+      ranged ? tile16_range_.first() : selector->GetSelectedTileID();
+  const int count = ranged ? tile16_range_.count() : 1;
+  auto show_toast = [this](const std::string& message, ToastType type) {
+    if (editor_->dependencies_.toast_manager) {
+      editor_->dependencies_.toast_manager->Show(message, type);
+    }
+  };
+
+  gui::CanvasMenuItem copy_item;
+  copy_item.label =
+      absl::StrFormat("%s (%d)", tr("Copy Tile16 definitions"), count);
+  copy_item.icon = ICON_MD_CONTENT_COPY;
+  const bool can_copy = !project_terrain && first >= 0;
+  copy_item.enabled_condition = [can_copy]() {
+    return can_copy;
+  };
+  if (project_terrain) {
+    copy_item.tooltip =
+        tr("This map uses project terrain. Tile16 definition copy works on ROM "
+           "maps.");
+  }
+  copy_item.callback = [this, first, count, show_toast]() {
+    const auto status =
+        editor_->tile16_editor_.CopyTile16RangeToClipboard(first, count);
+    if (!status.ok()) {
+      show_toast(std::string(status.message()), ToastType::kError);
+      return;
+    }
+    show_toast(absl::StrFormat("Copied %d Tile16 definitions ($%03X-$%03X)",
+                               count, first, first + count - 1),
+               ToastType::kSuccess);
+  };
+  editor_->blockset_canvas_.AddContextMenuItem(std::move(copy_item));
+
+  const auto& clipboard = editor_->tile16_editor_.range_clipboard();
+  const int paste_count = clipboard.count();
+  std::string blocker =
+      clipboard.has_data() ? Tile16RangePasteBlocker(
+                                 paste_count, first,
+                                 selector->has_display_order(), project_terrain)
+                           : std::string(tr("Copy Tile16 definitions first."));
+  gui::CanvasMenuItem paste_item;
+  paste_item.label =
+      clipboard.has_data()
+          ? absl::StrFormat("%s (%d, $%03X-$%03X)",
+                            tr("Paste Tile16 definitions"), paste_count, first,
+                            first + paste_count - 1)
+          : std::string(tr("Paste Tile16 definitions"));
+  paste_item.icon = ICON_MD_CONTENT_PASTE;
+  const bool can_paste = blocker.empty() && first >= 0;
+  paste_item.enabled_condition = [can_paste]() {
+    return can_paste;
+  };
+  paste_item.tooltip =
+      can_paste ? std::string(tr("Overwrites these definitions, so every "
+                                 "placement of them changes. One Undo "
+                                 "restores all of them."))
+                : blocker;
+  paste_item.callback = [this, first, paste_count, show_toast]() {
+    int placements = 0;
+    for (int id = first; id < first + paste_count; ++id) {
+      placements += tile16_usage_count(id);
+    }
+    const auto status = editor_->tile16_editor_.PasteTile16RangeAt(first);
+    if (!status.ok()) {
+      show_toast(std::string(status.message()), ToastType::kError);
+      return;
+    }
+    tile16_order_dirty_ = true;
+    show_toast(
+        absl::StrFormat("Pasted %d Tile16 over $%03X-$%03X (placed %d times "
+                        "in %s). Undo restores all %d.",
+                        paste_count, first, first + paste_count - 1, placements,
+                        Tile16ScopeLabel(), paste_count),
+        ToastType::kSuccess);
+  };
+  editor_->blockset_canvas_.AddContextMenuItem(std::move(paste_item));
+}
+
+std::string Tile16RangePasteBlocker(int count, int dest, bool has_display_order,
+                                    bool project_terrain) {
+  if (project_terrain) {
+    return tr(
+        "This map uses project terrain. Tile16 definition paste works "
+        "on ROM maps.");
+  }
+  if (has_display_order && count > 1) {
+    return tr(
+        "Paste writes consecutive Tile IDs. Sort by Tile ID and show "
+        "unused tiles to use it.");
+  }
+  if (count <= 0 || dest < 0) {
+    return tr("Select a destination Tile16.");
+  }
+  if (dest + count > zelda3::kNumTile16Individual) {
+    return absl::StrFormat("%s ($%03X)",
+                           tr("The pasted range runs past the last Tile16"),
+                           zelda3::kNumTile16Individual - 1);
+  }
+  return {};
 }
 
 std::string OverworldCanvasRenderer::Tile16ScopeLabel() const {

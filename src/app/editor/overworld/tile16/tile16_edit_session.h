@@ -33,6 +33,14 @@ struct GameData;
 
 namespace editor {
 
+// Definitions copied from a contiguous Tile16 ID range, in ID order.
+struct Tile16DefinitionClipboard {
+  int source_first = -1;
+  std::vector<gfx::Tile16> tiles;
+  bool has_data() const { return !tiles.empty(); }
+  int count() const { return static_cast<int>(tiles.size()); }
+};
+
 /**
  * @brief Domain session for Tile16 editing (no ImGui).
  *
@@ -82,6 +90,12 @@ class Tile16EditSession {
 
   absl::Status CopyTile16ToClipboard(int tile_id);
   absl::Status PasteTile16FromClipboard();
+  // Copies the definitions of Tile16 IDs [first, first + count), including
+  // unsaved edits. Copying adds no history entry.
+  absl::Status CopyTile16RangeToClipboard(int first, int count);
+  // Overwrites the definitions at [dest, dest + count) with the range
+  // clipboard as one Undo step. Every placement of those IDs changes.
+  absl::Status PasteTile16RangeAt(int dest);
   absl::Status SaveTile16ToScratchSpace(int slot);
   absl::Status LoadTile16FromScratchSpace(int slot);
   absl::Status ClearScratchSpace(int slot);
@@ -256,6 +270,9 @@ class Tile16EditSession {
   }
 
   const Tile16ClipboardData& clipboard() const { return clipboard_tile16_; }
+  const Tile16DefinitionClipboard& range_clipboard() const {
+    return range_clipboard_;
+  }
   Tile16ScratchData& scratch_slot(int i) { return scratch_space_[i]; }
   const Tile16ScratchData& scratch_slot(int i) const {
     return scratch_space_[i];
@@ -395,6 +412,7 @@ class Tile16EditSession {
   gfx::Bitmap tile8_preview_bmp_;
   gfx::Bitmap current_tile16_bmp_;
   Tile16ClipboardData clipboard_tile16_;
+  Tile16DefinitionClipboard range_clipboard_;
   zelda3::Tile8UsageIndex tile8_usage_cache_;
   std::array<Tile16ScratchData, 4> scratch_space_;
   int current_tile16_ = 0;

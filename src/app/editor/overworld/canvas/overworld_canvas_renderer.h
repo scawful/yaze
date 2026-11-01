@@ -1,6 +1,7 @@
 #ifndef YAZE_APP_EDITOR_OVERWORLD_OVERWORLD_CANVAS_RENDERER_H
 #define YAZE_APP_EDITOR_OVERWORLD_OVERWORLD_CANVAS_RENDERER_H
 
+#include <algorithm>
 #include <cstdint>
 #include <optional>
 #include <string>
@@ -18,6 +19,12 @@ namespace yaze {
 namespace editor {
 
 class OverworldEditor;
+
+/// Why pasting `count` copied Tile16 definitions at `dest` is blocked, or an
+/// empty string when it is allowed. Paste writes IDs dest..dest+count-1, so
+/// more than one definition needs the grid in Tile ID order.
+std::string Tile16RangePasteBlocker(int count, int dest, bool has_display_order,
+                                    bool project_terrain);
 
 void DrawSheetScaleControl(const char* id, gui::AdaptiveSheetScaleMode* mode);
 
@@ -126,6 +133,25 @@ class OverworldCanvasRenderer {
   /// Shows every tile in ID order and forces a recount on the next refresh.
   void ResetTile16Order();
 
+  // Contiguous Tile16 IDs for definition copy/paste. The anchor is the painting
+  // brush; Shift+click moves the extent.
+  struct Tile16SelectorRange {
+    int anchor = -1;
+    int extent = -1;
+    bool active() const { return anchor >= 0 && extent >= 0; }
+    int first() const { return std::min(anchor, extent); }
+    int last() const { return std::max(anchor, extent); }
+    int count() const { return active() ? last() - first() + 1 : 0; }
+    bool Contains(int id) const {
+      return active() && id >= first() && id <= last();
+    }
+  };
+  /// Returns true when the click only changed the range, so the brush stays.
+  bool HandleTile16RangeClick(int tile_id, bool right_click);
+  void DrawTile16RangeStatus();
+  void DrawTile16RangeOverlay();
+  void AddTile16DefinitionMenuItems();
+
   // =========================================================================
   // Data
   // =========================================================================
@@ -146,6 +172,7 @@ class OverworldCanvasRenderer {
   bool tile16_hide_unused_ = false;
   bool tile16_order_dirty_ = true;
   bool tile16_grid_hovered_ = false;
+  Tile16SelectorRange tile16_range_;
   double tile16_last_count_time_ = -1.0;
   // Scope inputs the cached counts were built for.
   int tile16_counted_world_ = -1;

@@ -5,6 +5,7 @@
 #include <string>
 
 #include "app/editor/graphics/usage_preview.h"
+#include "app/editor/overworld/canvas/overworld_canvas_renderer.h"
 #include "app/editor/overworld/overworld_undo_actions.h"
 #include "app/gfx/resource/arena.h"
 #include "gtest/gtest.h"
@@ -166,6 +167,62 @@ TEST_F(Tile16DocumentHistoryTest, FourDefinitionStampIsOneCompleteUndoStep) {
   ASSERT_TRUE(history_.Redo().ok());
   for (int id : {0, 1, 8, 9})
     ExpectDefinition(overworld_.tiles16()[id], after[id]);
+}
+
+TEST_F(Tile16DocumentHistoryTest, RangePasteIsOneCompleteUndoStep) {
+  auto* definitions = overworld_.mutable_tiles16();
+  for (int id = 1; id <= 4; ++id) {
+    (*definitions)[id] = initial_;
+    (*definitions)[id].tile0_.id_ = id + 16;
+    (*definitions)[id].tile2_.palette_ = 3;
+  }
+  const auto before = overworld_.tiles16();
+  ASSERT_TRUE(session_.CopyTile16RangeToClipboard(1, 4).ok());
+  EXPECT_EQ(history_.UndoStackSize(), 0u);
+  EXPECT_EQ(session_.range_clipboard().source_first, 1);
+  ASSERT_EQ(session_.range_clipboard().count(), 4);
+
+  ASSERT_TRUE(session_.PasteTile16RangeAt(0x100).ok());
+  EXPECT_EQ(history_.UndoStackSize(), 1u);
+  EXPECT_EQ(history_.GetUndoDescription(), "Paste 4 Tile16 definitions");
+  for (int i = 0; i < 4; ++i)
+    ExpectDefinition(overworld_.tiles16()[0x100 + i], before[1 + i]);
+  ASSERT_TRUE(history_.Undo().ok());
+  for (int i = 0; i < 4; ++i)
+    ExpectDefinition(overworld_.tiles16()[0x100 + i], before[0x100 + i]);
+  ASSERT_TRUE(history_.Redo().ok());
+  for (int i = 0; i < 4; ++i)
+    ExpectDefinition(overworld_.tiles16()[0x100 + i], before[1 + i]);
+}
+
+TEST_F(Tile16DocumentHistoryTest, RangePasteRejectsOverflowWithoutChanges) {
+  EXPECT_FALSE(session_.PasteTile16RangeAt(0x100).ok());  // Nothing copied.
+  ASSERT_TRUE(session_.CopyTile16RangeToClipboard(0, 4).ok());
+  const auto before = overworld_.tiles16();
+  const auto status =
+      session_.PasteTile16RangeAt(zelda3::kNumTile16Individual - 2);
+  EXPECT_EQ(status.code(), absl::StatusCode::kOutOfRange);
+  EXPECT_EQ(history_.UndoStackSize(), 0u);
+  for (int id = zelda3::kNumTile16Individual - 2;
+       id < zelda3::kNumTile16Individual; ++id)
+    ExpectDefinition(overworld_.tiles16()[id], before[id]);
+  EXPECT_FALSE(
+      session_.CopyTile16RangeToClipboard(zelda3::kNumTile16Individual - 1, 2)
+          .ok());
+}
+
+TEST(Tile16RangePasteBlockerTest, NeedsTileIdOrderRomMapAndRoom) {
+  EXPECT_EQ(Tile16RangePasteBlocker(4, 0x100, false, false), "");
+  EXPECT_NE(Tile16RangePasteBlocker(4, 0x100, true, false), "");
+  EXPECT_EQ(Tile16RangePasteBlocker(1, 0x100, true, false), "");
+  EXPECT_NE(Tile16RangePasteBlocker(4, 0x100, false, true), "");
+  EXPECT_NE(Tile16RangePasteBlocker(4, zelda3::kNumTile16Individual - 3, false,
+                                    false),
+            "");
+  EXPECT_EQ(Tile16RangePasteBlocker(4, zelda3::kNumTile16Individual - 4, false,
+                                    false),
+            "");
+  EXPECT_NE(Tile16RangePasteBlocker(4, -1, false, false), "");
 }
 
 TEST_F(Tile16DocumentHistoryTest, LargeDefinitionImportIsOneCompleteUndoStep) {
