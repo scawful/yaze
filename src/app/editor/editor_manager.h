@@ -596,7 +596,9 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
   bool RomLoadOptionsMatchCurrentSession() const;
   bool RomLoadOptionsOwnerMatchesCurrentSession(
       const RomLoadOptionsOwner& owner) const;
-  void CloseRomLoadOptions();
+  // Closes the dialog without applying options. When it still had an owner,
+  // a toast says why, so the dialog never disappears without a reason.
+  void CloseRomLoadOptions(const char* reason);
   void SetupDialogCallbacks();
   void MaybeEmitZScreamRomLoadHints();
   void SetupSidebarCallbacks();

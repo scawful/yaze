@@ -3400,6 +3400,13 @@ TEST(EditorManagerProjectActionsTest,
   EXPECT_TRUE(frames.Run());
 }
 
+bool HasToast(EditorManager& manager, const std::string& message) {
+  const auto& history = manager.toast_manager()->GetHistory();
+  return std::any_of(
+      history.begin(), history.end(),
+      [&message](const auto& entry) { return entry.message == message; });
+}
+
 TEST(EditorManagerProjectActionsTest,
      LoadOptionsReviewCannotApplyAcrossExplicitSessionSwitch) {
   for (bool project_target : {false, true}) {
@@ -3434,6 +3441,9 @@ TEST(EditorManagerProjectActionsTest,
     manager->SwitchToSession(1);
 
     EXPECT_FALSE(manager->IsRomLoadOptionsOpen());
+    EXPECT_TRUE(HasToast(*manager,
+                         "ROM load options closed without changes because "
+                         "another session became active"));
     EXPECT_FALSE(frames.Press(absl::StrFormat("%s Apply", ICON_MD_CHECK)));
     EXPECT_EQ(core::FeatureFlags::get().overworld.kSaveOverworldMaps, maps_b);
     EXPECT_EQ(session_b->feature_flags.overworld.kSaveOverworldMaps, maps_b);
@@ -3506,6 +3516,9 @@ TEST(EditorManagerProjectActionsTest,
 
   EXPECT_FALSE(frames.Press(absl::StrFormat("%s Apply", ICON_MD_CHECK)));
   EXPECT_FALSE(manager->IsRomLoadOptionsOpen());
+  EXPECT_TRUE(HasToast(*manager,
+                       "ROM load options closed without changes because its "
+                       "session or ROM file is no longer active"));
   EXPECT_EQ(core::FeatureFlags::get().overworld.kSaveOverworldMaps, maps);
   EXPECT_TRUE(manager->user_settings().prefs().rom_load_choices.empty());
 }
@@ -3555,6 +3568,9 @@ TEST(EditorManagerProjectActionsTest,
   ASSERT_TRUE(visited_b);
   EXPECT_EQ(manager->GetCurrentSessionId(), owner_id);
   ASSERT_TRUE(frames.Press(tr("Save overworld maps"), "Overworld"));
+  // A review starts with Remember ticked only when the file already has a
+  // stored choice, and this one has none.
+  ASSERT_TRUE(frames.Press(tr("Remember for this ROM file")));
   ASSERT_TRUE(frames.Press(absl::StrFormat("%s Apply", ICON_MD_CHECK)));
 
   EXPECT_FALSE(manager->IsRomLoadOptionsOpen());
@@ -3710,6 +3726,59 @@ TEST(EditorManagerProjectActionsTest,
   ASSERT_NE(manager->GetCurrentSessionId(), owner_id);
   change();
   EXPECT_FALSE(manager->IsRomLoadOptionsOpen());
+}
+
+// The dialog an interactive open shows belongs to the new session. Switching
+// to an older session closes it without changing either session. The tail
+// expansion checkbox is used because it draws at the dialog's root even when
+// the advanced sections are collapsed.
+TEST(EditorManagerProjectActionsTest,
+     LoadOptionsAfterOpenClosesWhenAnOlderSessionBecomesActive) {
+  ScopedImGuiContext imgui;
+  const core::FeatureFlags::Flags saved_flags = core::FeatureFlags::get();
+  absl::Cleanup restore_flags = [&]() {
+    core::FeatureFlags::get() = saved_flags;
+  };
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  ::yaze::test::InitializeWithIsolatedSettings(*manager, renderer.get());
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+  LoadOptionsDialogFrames frames(*manager);
+  ScopedTempDir temp(MakeTempDir("yaze_load_options_open_switch"));
+  const auto rom_a = temp.path / "a.sfc";
+  const auto rom_b = temp.path / "b.sfc";
+  WriteRomFile(rom_a, "OPEN SWITCH A");
+  WriteRomFile(rom_b, "OPEN SWITCH B");
+  ASSERT_OK(manager->OpenRomOrProject(
+      rom_a.string(), EditorManager::LoadOptionsPrompt::kNoPrompt));
+  EXPECT_FALSE(frames.Run());
+  auto tail = [&manager](size_t index) {
+    return static_cast<RomSession*>(
+               manager->session_coordinator()->GetSession(index))
+        ->feature_flags.overworld.kEnableSpecialWorldExpansion;
+  };
+  const bool tail_a = tail(0);
+
+  ASSERT_OK(manager->OpenRomOrProject(rom_b.string()));
+  ASSERT_TRUE(manager->IsRomLoadOptionsOpen());
+  ASSERT_TRUE(frames.Run());
+  const bool tail_b = tail(1);
+  ASSERT_TRUE(frames.Press(tr("Enable special world tail (0xA0-0xBF)")));
+
+  manager->SwitchToSession(0);
+  EXPECT_FALSE(manager->IsRomLoadOptionsOpen());
+  EXPECT_FALSE(frames.Run());
+  EXPECT_EQ(tail(0), tail_a);
+  EXPECT_EQ(tail(1), tail_b);
+  EXPECT_TRUE(manager->user_settings().prefs().rom_load_choices.empty());
+  EXPECT_TRUE(HasToast(*manager,
+                       "ROM load options closed without changes because "
+                       "another session became active"));
+
+  manager->SwitchToSession(1);
+  EXPECT_FALSE(manager->IsRomLoadOptionsOpen());
+  EXPECT_FALSE(frames.Run());
+  EXPECT_EQ(tail(1), tail_b);
 }
 
 TEST(RomLoadOptionsDialogTest, ApplyGuardRejectsBeforeAnyFlagMutation) {

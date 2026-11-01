@@ -262,7 +262,7 @@ void EditorManager::DrawInterface() {
     const bool finish_current_open =
         !rom_load_options_dialog_.reviewing() && rom_load_options_owner_ &&
         rom_load_options_owner_->session_id == GetCurrentSessionId();
-    CloseRomLoadOptions();
+    CloseRomLoadOptions("its session or ROM file is no longer active");
     if (finish_current_open) {
       ShowPostLoadSurface();
     }
