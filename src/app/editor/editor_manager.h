@@ -589,7 +589,9 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
                         bool is_first_time_rom_path);
   void BindRomLoadOptionsToCurrentSession();
   bool RomLoadOptionsMatchCurrentSession() const;
-  void CloseRomLoadOptions();
+  // Closes the dialog without applying options. When it still had an owner,
+  // a toast says why, so the dialog never disappears without a reason.
+  void CloseRomLoadOptions(const char* reason);
   void SetupDialogCallbacks();
   void MaybeEmitZScreamRomLoadHints();
   void SetupSidebarCallbacks();

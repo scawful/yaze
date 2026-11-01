@@ -189,7 +189,7 @@ void EditorManager::HandleSessionSwitched(size_t new_index, RomSession* session,
     if (rom_load_options_owner_ &&
         (!session ||
          session->session_id() != rom_load_options_owner_->session_id)) {
-      CloseRomLoadOptions();
+      CloseRomLoadOptions("another session became active");
     }
     ++project_rom_selection_generation_;
     pending_project_rom_selection_.reset();
@@ -365,7 +365,7 @@ void EditorManager::HandleSessionClosed(size_t index) {
             : nullptr;
     if (closing_session && rom_load_options_owner_ &&
         closing_session->session_id() == rom_load_options_owner_->session_id) {
-      CloseRomLoadOptions();
+      CloseRomLoadOptions("its ROM was closed");
     }
     if (closing_session != nullptr) {
       zelda3::CustomObjectManager::Get().RemoveRuntimeContext(
@@ -417,7 +417,7 @@ void EditorManager::HandleSessionRomLoaded(size_t index, Rom* rom) {
       static_cast<RomSession*>(session_coordinator_->GetSession(index));
   if (session && rom_load_options_owner_ &&
       session->session_id() == rom_load_options_owner_->session_id) {
-    CloseRomLoadOptions();
+    CloseRomLoadOptions("the ROM was reloaded");
   }
   ResetAssetState(session);
 
