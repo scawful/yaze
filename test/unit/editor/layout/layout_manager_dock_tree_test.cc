@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 
+#include <cstdio>
 #include <memory>
 #include <string>
 #include <vector>
@@ -209,6 +210,16 @@ TEST_F(LayoutManagerDockTreeTest, ApplyRestoresSelectedTabAfterDrawing) {
     ImGui::End();
     ImGui::EndFrame();
     ImGui::Render();
+    const auto* trace = ImGui::DockBuilderGetNode(kDockspaceId);
+    if (trace) {
+      std::fprintf(
+          stderr,
+          "TABTRACE frame=%d node=%u windows=%d bar=%p selected=%u next=%u\n",
+          frame, trace->SelectedTabId, trace->Windows.Size,
+          static_cast<const void*>(trace->TabBar),
+          trace->TabBar ? trace->TabBar->SelectedTabId : 0,
+          trace->TabBar ? trace->TabBar->NextSelectedTabId : 0);
+    }
   }
   ImGui::NewFrame();  // The fixture's teardown ends the active frame.
   const ImGuiDockNode* node = ImGui::DockBuilderGetNode(kDockspaceId);
