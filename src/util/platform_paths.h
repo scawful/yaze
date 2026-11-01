@@ -166,7 +166,9 @@ class PlatformPaths {
    * 5. Executable-relative usr/share/yaze/assets/ (Linux packages)
    * 6. macOS app Resources/assets/ or sibling assets/
    * 7. ~/.yaze/assets/ + relative_path (user-installed assets)
-   * 8. /usr/local/share/yaze/assets/ + relative_path (system-wide on Unix)
+   * 8. /Applications/yaze.app and ~/Applications/yaze.app Resources/assets/
+   *    (macOS; lets a z3ed on PATH use the installed app's assets)
+   * 9. /usr/local/share/yaze/assets/ + relative_path (system-wide on Unix)
    *
    * @param relative_path Path relative to assets directory (e.g.,
    * "agent/prompt_catalogue.yaml")

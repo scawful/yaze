@@ -437,6 +437,12 @@ set(gRPC_BENCHMARK_PROVIDER "none" CACHE STRING "" FORCE)
 set(gRPC_ZLIB_PROVIDER "module" CACHE STRING "" FORCE)
 set(gRPC_PROTOBUF_PROVIDER "module" CACHE STRING "" FORCE)
 set(gRPC_ABSL_PROVIDER "module" CACHE STRING "" FORCE)
+if(APPLE AND YAZE_MACOS_STATIC_DEPS)
+  # Link the static OpenSSL found in dependencies.cmake rather than BoringSSL;
+  # both define SSL_*, and httplib would otherwise pair OpenSSL's TLS_method()
+  # with BoringSSL's SSL_CTX_new.
+  set(gRPC_SSL_PROVIDER "package" CACHE STRING "" FORCE)
+endif()
 set(protobuf_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 set(protobuf_BUILD_CONFORMANCE OFF CACHE BOOL "" FORCE)
 set(protobuf_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)

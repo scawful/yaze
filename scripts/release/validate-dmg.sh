@@ -161,6 +161,15 @@ if ! codesign --verify --deep --strict "$isolated_app"; then
   exit 1
 fi
 
+# Matches CMAKE_OSX_DEPLOYMENT_TARGET in the release preset. Bundled Homebrew
+# dylibs carry the runner's macOS as their minimum, so this also catches a
+# runner image newer than the supported release.
+echo "Checking packaged binaries for unbundled dylibs and minimum macOS..."
+if ! "$(dirname "$0")/check-macos-portability.sh" "$mount_dir" --max-minos 15.0; then
+  echo "Packaged binaries are not portable to macOS 15 without Homebrew"
+  exit 1
+fi
+
 if [[ ! -x "$mount_dir/yaze.app/Contents/MacOS/yaze" ]]; then
   echo "yaze.app is missing executable Contents/MacOS/yaze"
   exit 1
@@ -237,5 +246,14 @@ run_smoke_test \
   --version \
   "yaze ${expected_version#v}"
 run_smoke_test "z3ed --self-test" "$mount_dir" "$mount_dir/z3ed" --self-test
+
+# Users copy z3ed onto their PATH without yaze.app, so it must load without
+# the dylibs bundled in yaze.app/Contents/Frameworks. --self-test also checks
+# for the DMG assets/ tree, which a lone copy does not have, so run --version.
+lone_z3ed_dir="$isolated_dir/z3ed-only"
+mkdir -p "$lone_z3ed_dir"
+/usr/bin/ditto "$mount_dir/z3ed" "$lone_z3ed_dir/z3ed"
+run_smoke_test "z3ed --version without yaze.app" "$lone_z3ed_dir" \
+  "$lone_z3ed_dir/z3ed" --version
 
 echo "DMG validation passed."
