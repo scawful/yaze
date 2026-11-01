@@ -69,25 +69,33 @@ using namespace ImGui;
 constexpr float kTile8DisplayScale = 4.0f;
 
 void Tile16Editor::DrawEditMenuItems() {
-  if (MenuItem(tr("Copy Current Tile16"), "Ctrl+C")) {
+  // These keys work only while the Tile16 panel has focus, so they are tooltips
+  // instead of menu hints that would read as global (and clash with Copy/Paste).
+  if (MenuItem(tr("Copy Current Tile16"))) {
     status_ = CopyTile16ToClipboard(session_.current_tile16());
   }
-  if (MenuItem(tr("Paste to Current Tile16"), "Ctrl+V")) {
+  SetItemTooltip("%s", tr("Ctrl+C in the Tile16 panel"));
+  if (MenuItem(tr("Paste to Current Tile16"))) {
     status_ = PasteTile16FromClipboard();
   }
+  SetItemTooltip("%s", tr("Ctrl+V in the Tile16 panel"));
   Separator();
-  if (MenuItem(tr("Flip Tile16 Horizontal"), "H")) {
+  if (MenuItem(tr("Flip Tile16 Horizontal"))) {
     status_ = FlipTile16Horizontal();
   }
-  if (MenuItem(tr("Flip Tile16 Vertical"), "V")) {
+  SetItemTooltip("%s", tr("H in the Tile16 panel"));
+  if (MenuItem(tr("Flip Tile16 Vertical"))) {
     status_ = FlipTile16Vertical();
   }
-  if (MenuItem(tr("Rotate Tile16"), "R")) {
+  SetItemTooltip("%s", tr("V in the Tile16 panel"));
+  if (MenuItem(tr("Rotate Tile16"))) {
     status_ = RotateTile16();
   }
-  if (MenuItem(tr("Clear Tile16"), "Delete")) {
+  SetItemTooltip("%s", tr("R in the Tile16 panel"));
+  if (MenuItem(tr("Clear Tile16"))) {
     status_ = ClearTile16();
   }
+  SetItemTooltip("%s", tr("Delete in the Tile16 panel"));
 }
 
 void Tile16Editor::DrawOverworldMenuItems() {
