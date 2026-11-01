@@ -437,6 +437,7 @@ class LayoutManager {
   struct PendingDockTabSelection {
     ImGuiID node_id = 0;
     ImGuiID selected_id = 0;
+    ImGuiID selected_window_id = 0;
     std::vector<ImGuiID> tab_ids;
     size_t session_id = 0;
     int applied_frame = 0;

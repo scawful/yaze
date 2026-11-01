@@ -198,7 +198,7 @@ TEST_F(LayoutManagerDockTreeTest, ApplyRestoresSelectedTabAfterDrawing) {
   ImGui::EndFrame();
   ImGui::Render();
 
-  for (int frame = 0; frame < 3; ++frame) {
+  for (int frame = 0; frame < 6; ++frame) {
     ImGui::NewFrame();
     layout_manager_.ProcessPendingDockTabSelections();
     ImGui::Begin("Dock host");
@@ -215,6 +215,29 @@ TEST_F(LayoutManagerDockTreeTest, ApplyRestoresSelectedTabAfterDrawing) {
   const ImGuiDockNode* node = ImGui::DockBuilderGetNode(kDockspaceId);
   ASSERT_NE(node, nullptr);
   const ImGuiWindow* selected = ImGui::FindWindowByName(title_a.c_str());
+  ASSERT_NE(selected, nullptr);
+  EXPECT_EQ(node->SelectedTabId, selected->TabId);
+
+  ImGui::SetWindowFocus(title_b.c_str());
+  ImGui::EndFrame();
+  ImGui::Render();
+  for (int frame = 0; frame < 3; ++frame) {
+    ImGui::NewFrame();
+    layout_manager_.ProcessPendingDockTabSelections();
+    ImGui::Begin("Dock host");
+    ImGui::DockSpace(kDockspaceId, ImVec2(800, 600));
+    ImGui::End();
+    ImGui::Begin(title_a.c_str());
+    ImGui::End();
+    ImGui::Begin(title_b.c_str());
+    ImGui::End();
+    ImGui::EndFrame();
+    ImGui::Render();
+  }
+  ImGui::NewFrame();
+  node = ImGui::DockBuilderGetNode(kDockspaceId);
+  ASSERT_NE(node, nullptr);
+  selected = ImGui::FindWindowByName(title_b.c_str());
   ASSERT_NE(selected, nullptr);
   EXPECT_EQ(node->SelectedTabId, selected->TabId);
 }

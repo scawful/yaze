@@ -1551,27 +1551,31 @@ std::string ResolveDockWindowTitle(const WorkspaceWindowManager* wm,
 void ApplyDockNodeRecursive(
     WorkspaceWindowManager* wm, size_t session_id,
     const layout_designer::DockNode& node, ImGuiID target_id,
-    const std::function<void(ImGuiID, ImGuiID, std::vector<ImGuiID>)>&
+    const std::function<void(ImGuiID, ImGuiID, ImGuiID, std::vector<ImGuiID>)>&
         queue_selection) {
   using NodeType = layout_designer::DockNode::Type;
   if (node.type == NodeType::kLeaf) {
     std::vector<ImGuiID> tab_ids;
     ImGuiID selected_id = 0;
+    ImGuiID selected_window_id = 0;
     size_t index = 0;
     for (const auto& panel : node.panels) {
       const std::string title = ResolveDockWindowTitle(wm, session_id, panel);
       if (!title.empty()) {
         ImGui::DockBuilderDockWindow(title.c_str(), target_id);
-        const ImGuiID tab_id = ImHashStr(title.c_str());
+        const ImGuiID window_id = ImHashStr(title.c_str());
+        const ImGuiID tab_id = ImHashStr("#TAB", 0, window_id);
         tab_ids.push_back(tab_id);
         if (index == static_cast<size_t>(node.active_tab_index)) {
           selected_id = tab_id;
+          selected_window_id = window_id;
         }
       }
       ++index;
     }
     if (selected_id && tab_ids.size() > 1) {
-      queue_selection(target_id, selected_id, std::move(tab_ids));
+      queue_selection(target_id, selected_id, selected_window_id,
+                      std::move(tab_ids));
     }
     return;
   }
@@ -1747,10 +1751,11 @@ absl::Status LayoutManager::ApplyDockTree(const layout_designer::DockTree& tree,
   ApplyDockNodeRecursive(
       window_manager_, session_id, *tree.root, dockspace_id,
       [this, session_id](ImGuiID node_id, ImGuiID selected_id,
+                         ImGuiID selected_window_id,
                          std::vector<ImGuiID> tab_ids) {
-        pending_dock_tab_selections_.push_back({node_id, selected_id,
-                                                std::move(tab_ids), session_id,
-                                                ImGui::GetFrameCount()});
+        pending_dock_tab_selections_.push_back(
+            {node_id, selected_id, selected_window_id, std::move(tab_ids),
+             session_id, ImGui::GetFrameCount()});
       });
   ImGui::DockBuilderFinish(dockspace_id);
 
@@ -1806,7 +1811,17 @@ void LayoutManager::ProcessPendingDockTabSelections() {
         return false;
       }
     }
-    node->TabBar->NextSelectedTabId = pending.selected_id;
+    ImGuiWindow* selected = ImGui::FindWindowByID(pending.selected_window_id);
+    if (!selected || selected->DockNode != node ||
+        selected->TabId != pending.selected_id) {
+      return false;
+    }
+    node->TabBar->NextSelectedTabId = selected->TabId;
+    ImGuiWindow* focused = GImGui->NavWindow;
+    if (focused && focused->RootWindow->DockNode == node &&
+        focused->RootWindow != selected->RootWindow) {
+      ImGui::FocusWindow(selected);
+    }
     return true;
   });
 }
