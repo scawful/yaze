@@ -669,8 +669,8 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
   void AnnounceRememberedRomLoadChoice();
   // Ends a raw ROM open: shows the load options dialog when asked to, or the
   // post-load surface plus the remembered-choice toast.
-  void FinishRawRomOpen(bool remembered_load_options, bool ask_for_load_options,
-                        bool is_first_time_rom_path);
+  void FinishRawRomOpen(bool remembered_load_options,
+                        bool ask_for_load_options);
   struct RomLoadOptionsOwner {
     size_t session_id;
     std::string rom_key;

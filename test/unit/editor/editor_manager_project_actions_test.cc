@@ -4078,9 +4078,9 @@ TEST(EditorManagerProjectActionsTest,
     EXPECT_FALSE(ui->ShouldShowDashboard());
     EXPECT_FALSE(ui->IsEditorSelectionVisible());
 
-    // Match the existing Continue test's ROM-only path. This checkbox uses
-    // the existing helper; the confirmation itself must accept mouse input.
-    ASSERT_TRUE(frames.Press(tr("Create associated project file")));
+    // "Create associated project file" starts cleared, so ClickContinue
+    // takes the ROM-only path; the confirmation itself must accept mouse
+    // input.
     ASSERT_TRUE(frames.ClickContinue());
     EXPECT_FALSE(manager->IsRomLoadOptionsOpen());
     EXPECT_TRUE(ui->IsEditorSelectionVisible());
@@ -4091,9 +4091,10 @@ TEST(EditorManagerProjectActionsTest,
 }
 
 // The load options dialog draws in real frames after an interactive open and
-// never after a kNoPrompt open. "Remember for this ROM file" starts checked,
-// so Continue closes the dialog, stores a choice for that file only, and
-// leaves the ROM unchanged. The next interactive open of the file skips the
+// never after a kNoPrompt open. "Remember for this ROM file" starts checked
+// and "Create associated project file" starts cleared, even for a path new to
+// Recent Files, so Continue closes the dialog, stores a choice for that file
+// only, writes nothing beside the ROM, and leaves the ROM unchanged. The next interactive open of the file skips the
 // dialog and shows the remembered-options toast.
 TEST(EditorManagerProjectActionsTest,
      LoadOptionsDialogContinueRemembersChoiceAcrossFrames) {
@@ -4123,9 +4124,6 @@ TEST(EditorManagerProjectActionsTest,
 
   ASSERT_OK(manager->OpenRomOrProject(asked_rom_path.string()));
   EXPECT_TRUE(frames.Run());
-  // A path new to recent files starts with "Create associated project file"
-  // checked. Clear it so Continue creates nothing.
-  ASSERT_TRUE(frames.Press(tr("Create associated project file")));
   ASSERT_TRUE(frames.Press(absl::StrFormat("%s Continue", ICON_MD_CHECK)));
   EXPECT_FALSE(manager->IsRomLoadOptionsOpen());
   EXPECT_FALSE(frames.Run());
@@ -4222,7 +4220,6 @@ TEST(EditorManagerProjectActionsTest,
 
   ASSERT_OK(manager->OpenRomOrProject(rom_path.string()));
   EXPECT_TRUE(frames.Run());
-  ASSERT_TRUE(frames.Press(tr("Create associated project file")));
   ASSERT_TRUE(frames.Press(tr("Remember for this ROM file")));
   ASSERT_TRUE(frames.Press(absl::StrFormat("%s Continue", ICON_MD_CHECK)));
   EXPECT_FALSE(manager->IsRomLoadOptionsOpen());
@@ -5530,6 +5527,10 @@ class EditorManagerOpenPathTestPeer {
                                         const std::string& path) {
     return manager.LoadRomFromPath(path);
   }
+  static const RomLoadOptionsDialog::LoadOptions& LoadOptions(
+      const EditorManager& manager) {
+    return manager.rom_load_options_dialog_.GetOptions();
+  }
 };
 
 namespace {
@@ -5628,6 +5629,65 @@ TEST(EditorManagerOpenPathTest, RawRomOpenRecordsRecentFileOnlyOnSuccess) {
       scripted_rom.string(), EditorManager::LoadOptionsPrompt::kNoPrompt));
   EXPECT_FALSE(InRecentFiles(scripted_rom));
   EXPECT_EQ(list.front(), opened_rom.string());
+}
+
+// A first open of a ROM path that is not in Recent Files asks for load
+// options with "Create associated project file" cleared and "Remember for this
+// ROM file" checked, through File > Open ROM and through OpenRomOrProject.
+TEST(EditorManagerOpenPathTest, FirstOpenOfNewPathLeavesCreateProjectCleared) {
+  for (const bool from_picker : {true, false}) {
+    SCOPED_TRACE(from_picker ? "File > Open ROM" : "OpenRomOrProject");
+    ScopedImGuiContext imgui;
+    ScopedRecentFiles recents;
+    auto renderer = std::make_unique<gfx::NullRenderer>();
+    auto manager = std::make_unique<EditorManager>();
+    ::yaze::test::InitializeWithIsolatedSettings(*manager, renderer.get());
+    manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+
+    ScopedTempDir directory(
+        ::yaze::test::UniqueTempPath("yaze_open_first_time"));
+    const auto rom_path = directory.path / "first.sfc";
+    WriteRomFile(rom_path, "FIRST TIME PATH");
+    ASSERT_FALSE(InRecentFiles(rom_path));
+
+    if (from_picker) {
+      ASSERT_OK(EditorManagerOpenPathTestPeer::OpenRomFromPicker(
+          *manager, rom_path.string()));
+    } else {
+      ASSERT_OK(manager->OpenRomOrProject(rom_path.string()));
+    }
+    ASSERT_TRUE(manager->IsRomLoadOptionsOpen());
+    const auto& options = EditorManagerOpenPathTestPeer::LoadOptions(*manager);
+    EXPECT_FALSE(options.create_project);
+    EXPECT_TRUE(options.remember_for_rom);
+  }
+}
+
+// The path the load options dialog shows under "Create associated project
+// file" is the file FinalizeNewProject writes for that ROM.
+TEST(EditorManagerOpenPathTest, ShownProjectPathIsTheFileFinalizeWrites) {
+  ScopedImGuiContext imgui;
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  ::yaze::test::InitializeWithIsolatedSettings(*manager, renderer.get());
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+
+  ScopedTempDir directory(::yaze::test::UniqueTempPath("yaze_shown_path"));
+  const auto rom_path = directory.path / "shown.sfc";
+  WriteRomFile(rom_path, "SHOWN PATH ROM");
+  ASSERT_OK(manager->OpenRomOrProject(
+      rom_path.string(), EditorManager::LoadOptionsPrompt::kNoPrompt));
+  ASSERT_NE(manager->GetCurrentRom(), nullptr);
+
+  const std::string shown = ProjectManager::ProjectCreationPathFor(
+      "Shown Project", "", manager->GetCurrentRom()->filename());
+  const auto expected = directory.path / "Shown_Project.yaze";
+  EXPECT_FALSE(std::filesystem::exists(shown));
+
+  ASSERT_OK(manager->FinalizeNewProject("Shown Project", ""));
+  EXPECT_TRUE(std::filesystem::exists(shown));
+  EXPECT_TRUE(SessionCoordinator::PathsReferToSameBackingFile(
+      shown, expected.string()));
 }
 
 }  // namespace

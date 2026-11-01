@@ -558,14 +558,14 @@ void EditorManager::AnnounceRememberedRomLoadChoice() {
 }
 
 void EditorManager::FinishRawRomOpen(bool remembered_load_options,
-                                     bool ask_for_load_options,
-                                     bool is_first_time_rom_path) {
+                                     bool ask_for_load_options) {
   status_bar_.ClearNotification();
   if (ask_for_load_options && ui_coordinator_) {
     // The dialog's confirm and cancel callbacks show the post-load surface.
-    // A path new to recent files leans toward creating a project.
+    // "Create associated project file" starts cleared on every open, so
+    // Continue writes nothing beside the ROM unless the user asks for it.
     ui_coordinator_->SetWelcomeScreenVisible(false);
-    rom_load_options_dialog_.Open(GetCurrentRom(), is_first_time_rom_path);
+    rom_load_options_dialog_.Open(GetCurrentRom(), false);
     show_rom_load_options_ = true;
     BindRomLoadOptionsToCurrentSession();
     return;
@@ -769,11 +769,6 @@ absl::Status EditorManager::LoadRomFromPath(const std::string& file_name) {
   test::TestManager::Get().SetCurrentRom(GetCurrentRom());
 #endif
 
-  const auto& recent_files =
-      project::RecentFilesManager::GetInstance().GetRecentFiles();
-  const bool is_first_time_rom_path =
-      std::find(recent_files.begin(), recent_files.end(), file_name) ==
-      recent_files.end();
   auto asset_status = LoadAssetsForMode();
   if (!asset_status.ok()) {
     auto rollback_status =
@@ -792,8 +787,7 @@ absl::Status EditorManager::LoadRomFromPath(const std::string& file_name) {
   if (ui_coordinator_) {
     FinishRawRomOpen(
         remembered_load_options,
-        !remembered_load_options && !current_project_.project_opened(),
-        is_first_time_rom_path);
+        !remembered_load_options && !current_project_.project_opened());
   }
 
   return absl::OkStatus();

@@ -3947,22 +3947,13 @@ absl::Status EditorManager::OpenRomOrProjectInternal(
       return asset_status;
     }
 
-    bool is_first_time_rom_path = false;
-    if (ask_for_load_options) {
-      const auto& recent_files =
-          project::RecentFilesManager::GetInstance().GetRecentFiles();
-      is_first_time_rom_path =
-          std::find(recent_files.begin(), recent_files.end(), filename) ==
-          recent_files.end();
-    }
     // Interactive opens (Recent Files, the WASM drop) record the ROM the way
     // File > Open ROM does, once the open has succeeded. kNoPrompt callers
     // are scripts, automation, and project creation; they leave the list.
     if (prompt == LoadOptionsPrompt::kAsk && allow_dialogs) {
       RecordRawRomOpen(filename);
     }
-    FinishRawRomOpen(remembered_load_options, ask_for_load_options,
-                     is_first_time_rom_path);
+    FinishRawRomOpen(remembered_load_options, ask_for_load_options);
     MaybeEmitZScreamRomLoadHints();
   }
   return absl::OkStatus();

@@ -251,7 +251,7 @@ absl::Status ProjectManager::CreateFromTemplate(
 }
 
 std::string ProjectManager::GenerateProjectFilename(
-    const std::string& project_name) const {
+    const std::string& project_name) {
   // Convert project name to valid filename
   std::string filename = project_name;
   std::replace(filename.begin(), filename.end(), ' ', '_');
@@ -343,6 +343,13 @@ absl::Status ProjectManager::SetProjectRom(const std::string& rom_path) {
 
 std::string ProjectManager::ResolveProjectCreationPath(
     const std::string& project_name, const std::string& project_path) const {
+  return ProjectCreationPathFor(project_name, project_path,
+                                current_project_.rom_filename);
+}
+
+std::string ProjectManager::ProjectCreationPathFor(
+    const std::string& project_name, const std::string& project_path,
+    const std::string& rom_filename) {
   if (!project_path.empty()) {
 #ifndef __EMSCRIPTEN__
     const std::filesystem::path requested_path(project_path);
@@ -354,8 +361,8 @@ std::string ProjectManager::ResolveProjectCreationPath(
 #endif
     return project_path;
   }
-  if (!current_project_.rom_filename.empty()) {
-    return (std::filesystem::path(current_project_.rom_filename).parent_path() /
+  if (!rom_filename.empty()) {
+    return (std::filesystem::path(rom_filename).parent_path() /
             GenerateProjectFilename(project_name))
         .string();
   }
