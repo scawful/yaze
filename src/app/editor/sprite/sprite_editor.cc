@@ -144,19 +144,18 @@ absl::Status SpriteEditor::Update() {
 }
 
 void SpriteEditor::HandleEditorShortcuts() {
-  // Animation playback shortcuts (when custom sprite panel is active)
-  if (ImGui::IsKeyPressed(ImGuiKey_Space, false) &&
-      !ImGui::GetIO().WantTextInput) {
-    animation_playing_ = !animation_playing_;
-  }
-
-  // The keys below are editor-wide, so they act only while one of this
-  // editor's panels has focus and no text field is taking input.
+  // These keys are editor-wide, so they act only while one of this editor's
+  // panels has focus and no text field is taking input.
   const bool panel_focused = shortcut_focus_;
   shortcut_focus_ = false;
   const ImGuiIO& io = ImGui::GetIO();
   if (!panel_focused || io.WantTextInput) {
     return;
+  }
+
+  // Animation playback
+  if (ImGui::IsKeyPressed(ImGuiKey_Space, false)) {
+    animation_playing_ = !animation_playing_;
   }
 
   // Frame navigation

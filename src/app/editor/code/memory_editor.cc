@@ -59,7 +59,11 @@ bool MemoryEditor::LoadComparisonRom(const std::string& path) {
   if (path.empty()) {
     return false;
   }
-  PRINT_IF_ERROR(comparison_rom_.LoadFromFile(path));
+  const absl::Status status = comparison_rom_.LoadFromFile(path);
+  if (!status.ok()) {
+    PRINT_IF_ERROR(status);
+    return false;
+  }
   show_compare_rom_ = true;
   return true;
 }

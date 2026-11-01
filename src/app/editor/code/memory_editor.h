@@ -52,8 +52,8 @@ class MemoryEditor : public Editor {
   // Get the ROM pointer
   Rom* rom() const { return rom_; }
 
-  // Loads the comparison ROM and shows it. Returns false without changing
-  // anything when `path` is empty (a cancelled file dialog).
+  // Loads the comparison ROM and shows it. Returns false and leaves the view
+  // hidden when `path` is empty (a cancelled file dialog) or fails to load.
   bool LoadComparisonRom(const std::string& path);
   bool show_compare_rom() const { return show_compare_rom_; }
 
