@@ -1816,12 +1816,15 @@ void LayoutManager::ProcessPendingDockTabSelections() {
         selected->TabId != pending.selected_id) {
       return false;
     }
-    node->TabBar->NextSelectedTabId = selected->TabId;
     ImGuiWindow* focused = GImGui->NavWindow;
     if (focused && focused->RootWindow->DockNode == node &&
         focused->RootWindow != selected->RootWindow) {
+      if (!GImGui->OpenPopupStack.empty()) {
+        return false;
+      }
       ImGui::FocusWindow(selected);
     }
+    node->TabBar->NextSelectedTabId = selected->TabId;
     return true;
   });
 }
