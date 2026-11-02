@@ -224,7 +224,7 @@ paths, and its Goron Mines data already lives in
 | `ai/` | Model evaluation suite (`run-model-eval.sh`, `eval-runner.py`, `compare-models.py`, `eval-tasks.yaml`) plus agent research tools (navigator, map compiler, profiler, asm tuner) |
 | `cloud/` | Cloud agent bootstrap and its tests |
 | `dev/` | Local developer workflows: `local-workflow.sh` (canonical build + deploy), iPad deployment, guardrail and smoke loops |
-| `graphics/` | Art catalog packaging and `snes_fx.js` (SNES OBJ effect frames as indexed PNGs for `z3ed gfx-import`) — see [graphics/README.md](graphics/README.md) |
+| `graphics/` | Art catalog packaging and `snes_fx.js` (SNES OBJ effect frames as indexed PNGs for `z3ed gfx-import`), `sprite_gfx_audit.py` (dungeon sprite sheet and palette audit) — see [graphics/README.md](graphics/README.md) |
 | `i18n/` | Translation catalog extraction and validation |
 | `package/` | Packaging entry point (`release.sh`) |
 | `profiles/` | ROM profile definitions consumed by `location_mapper.py` and `discover_rooms.py` |
