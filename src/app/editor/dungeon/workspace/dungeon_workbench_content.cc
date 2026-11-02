@@ -1082,8 +1082,17 @@ void DungeonWorkbenchContent::DrawInspectorPane(float width, float height,
     const bool navigation_visible =
         show_room_matrix_ ||
         (show_entrance_list_ && entrance_navigator_content_);
+    const float navigation_header_reserve =
+        2.0f * ImGui::GetFrameHeightWithSpacing() + spacing +
+        (show_entrance_list_ && !entrance_navigator_content_
+             ? ImGui::GetTextLineHeightWithSpacing()
+             : 0.0f);
+    const float selection_available =
+        std::max(1.0f, available - navigation_header_reserve);
     const float selection_limit =
-        navigation_visible ? available * navigator_tools_fraction_ : available;
+        navigation_visible ? std::min(available * navigator_tools_fraction_,
+                                      selection_available)
+                           : selection_available;
     // Empty selections fit their content; long inspectors scroll within the
     // user-resizable limit instead of displacing room navigation.
     ImGui::SetNextWindowSizeConstraints(
