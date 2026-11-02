@@ -157,6 +157,17 @@ nlohmann::json RunCommand(cli::resources::CommandHandler& handler,
              : nlohmann::json::parse(out.substr(brace), nullptr, false);
 }
 
+TEST(GfxSheetPngTest, HighHalfSheetsMatchVanillaLoadSpriteGraphics) {
+  // usdasm LoadSpriteGraphics ($00:E590) sends spriteset values $52, $53,
+  // $5A-$5C, $5E and $5F to the high-half 3bpp->4bpp expansion.
+  std::vector<int> high;
+  for (int sheet = 0; sheet < zelda3::kGfxSheetCount; ++sheet) {
+    if (zelda3::IsHighHalfSpriteSheet(sheet))
+      high.push_back(sheet);
+  }
+  EXPECT_EQ(high, (std::vector<int>{0xC5, 0xC6, 0xCD, 0xCE, 0xCF, 0xD1, 0xD2}));
+}
+
 TEST(GfxSheetPngCommandTest, RefusesJapaneseTableRoms) {
   // The fixture leaves $7FD9 = 0, which LoadGameData reads as a Japanese ROM
   // with other pointer tables; the gfx commands must not guess.
@@ -203,12 +214,48 @@ TEST(GfxSheetPngCommandTest, DryRunShowsExactChangesAndWriteSavesACopy) {
 
   cli::GfxImportCommandHandler importer;
   // Without registered free space a grown sheet cannot be written; the dry
-  // run still previews the change and says why.
-  const auto refused = RunCommand(importer,
-                                  {"--sheet=0x40", "--png=" + png_path.string(),
-                                   "--dry-run", "--format=json"},
-                                  rom);
+  // run still previews the change and says why, and fails like the write.
+  const auto diff_path = UniqueTempPath("sheet_edit_diff", ".png");
+  absl::Status refused_status;
+  const auto refused =
+      RunCommand(importer,
+                 {"--sheet=0x40", "--png=" + png_path.string(), "--dry-run",
+                  "--diff-png=" + diff_path.string(), "--format=json"},
+                 rom, &refused_status);
+  EXPECT_EQ(refused_status.code(), absl::StatusCode::kFailedPrecondition)
+      << refused_status;
+  EXPECT_EQ(refused.value("mode", ""), "dry-run") << refused.dump(2);
   EXPECT_EQ(refused.value("changed_blocks", ""), "9") << refused.dump(2);
+  EXPECT_TRUE(refused.contains("shared_by") && refused["shared_by"].is_object())
+      << refused.dump(2);
+  EXPECT_FALSE(refused.contains("shared_by_error")) << refused.dump(2);
+  EXPECT_FALSE(refused.contains("palette_half"));
+
+  // Diff image: before, after, then the changed pixels in index 8.
+  const auto before_sheet = zelda3::ReadGfxSheetData(rom, 0x40);
+  ASSERT_TRUE(before_sheet.ok());
+  const auto before_pixels = gfx::SnesTo8bppSheet(*before_sheet, 3);
+  const auto diff_bytes = util::ReadBinaryFile(diff_path.string());
+  ASSERT_TRUE(diff_bytes.ok()) << diff_bytes.status();
+  const auto diff = Decode(*diff_bytes);
+  ASSERT_EQ(diff.width, 128);
+  ASSERT_EQ(diff.height, 96);
+  int highlighted = 0;
+  for (int y = 0; y < 32; ++y) {
+    for (int x = 0; x < 128; ++x) {
+      const int i = y * 128 + x;
+      const bool in_block9 = x >= 16 && x < 32 && y >= 16;
+      const uint8_t before = before_pixels[i] & 0x07;
+      const uint8_t after = in_block9 ? 6 : before;
+      ASSERT_EQ(diff.indices[i], before) << x << "," << y;
+      ASSERT_EQ(diff.indices[4096 + i], after) << x << "," << y;
+      ASSERT_EQ(diff.indices[8192 + i], before != after ? 8 : 0)
+          << x << "," << y;
+      highlighted += before != after;
+    }
+  }
+  EXPECT_GT(highlighted, 0);
+  std::filesystem::remove(diff_path);
   EXPECT_NE(refused.value("write_status", "").find("free space"),
             std::string::npos)
       << refused.dump(2);
@@ -624,6 +671,41 @@ TEST_P(RoomSheetPaletteRomTest,
     }
   }
   EXPECT_EQ(rom_.vector(), before);
+}
+
+TEST_P(RoomSheetPaletteRomTest, SpritePaletteHalvesMatchRoomCgram) {
+  for (int room_id : {0x12, 0x89}) {
+    auto room = zelda3::LoadRoomFromRom(&rom_, room_id);
+    room.SetGameData(&data_);
+    const auto cgram = zelda3::BuildDungeonSpriteRenderPalette(room, &data_);
+    for (int row : {0, 5, 6}) {
+      for (bool high : {false, true}) {
+        SCOPED_TRACE(::testing::Message()
+                     << room_id << ":" << row << (high ? " high" : " low"));
+        auto palette =
+            zelda3::RoomSpriteSheetPalette(rom_, data_, room_id, row, high);
+        ASSERT_TRUE(palette.ok()) << palette.status();
+        for (int i = 0; i < 8; ++i) {
+          const auto& color = cgram[(8 + row) * 16 + (high ? 8 : 0) + i];
+          EXPECT_EQ((*palette)[i],
+                    (zelda3::SheetColor{color.r, color.g, color.b}));
+        }
+      }
+    }
+  }
+  // The CLI picks the half from the sheet.
+  cli::GfxExportCommandHandler exporter;
+  for (const auto& [sheet, half] :
+       std::vector<std::pair<std::string, std::string>>{
+           {"0xC5", "high (columns 8-15)"}, {"0xC4", "low (columns 0-7)"}}) {
+    const auto png_path = directory_ / ("sprite" + sheet + ".png");
+    const auto out =
+        RunCommand(exporter,
+                   {"--sheet=" + sheet, "--png=" + png_path.string(),
+                    "--palette=room-sprite:0x12:5", "--format=json"},
+                   rom_);
+    EXPECT_EQ(out.value("palette_half", ""), half) << out.dump(2);
+  }
 }
 
 TEST_P(RoomSheetPaletteRomTest, GroupSwitchChangesHalfAndRecordsFallback) {

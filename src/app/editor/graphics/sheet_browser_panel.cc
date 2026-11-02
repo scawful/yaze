@@ -412,8 +412,9 @@ absl::StatusOr<zelda3::SheetPalette> SheetBrowserPanel::PngPalette(
   return png_palette_mode_ == 1
              ? zelda3::RoomBackgroundSheetPalette(*rom_, *game_data_, png_room_,
                                                   png_palette_row_)
-             : zelda3::RoomSpriteSheetPalette(*rom_, *game_data_, png_room_,
-                                              png_palette_row_);
+             : zelda3::RoomSpriteSheetPalette(
+                   *rom_, *game_data_, png_room_, png_palette_row_,
+                   zelda3::IsHighHalfSpriteSheet(sheet_id));
 }
 
 void SheetBrowserPanel::DrawPngTransfer(uint16_t sheet_id) {

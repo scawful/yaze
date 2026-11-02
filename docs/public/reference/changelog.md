@@ -19,6 +19,11 @@ These source changes are not in the published prerelease downloads.
   every interface, served that endpoint unconditionally, and used
   `--http-host` only in printed URLs. The desktop app's API server is
   unchanged.
+- **`gfx-import` and `gfx-room-import` dry runs exit nonzero when the write
+  would be refused.** They still print the full preview. Before, a refused dry
+  run exited 0. `gfx-import` also reports `shared_by` (who loads the sheet),
+  writes `--diff-png`, and reads the high palette half for the seven sprite
+  sheets vanilla loads there when given `room-sprite:`.
 
 ## 0.8.0 (experimental prerelease: v0.8.0-exp.1)
 
