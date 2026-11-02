@@ -4,6 +4,7 @@
 |--------|---------|
 | `package_art_catalog.py` | Package verified indexed art kits for the Graphics Catalog reader |
 | `snes_fx.js` | Render an effect module to SNES OBJ frames and an indexed PNG for `z3ed gfx-import` |
+| `sprite_gfx_audit.py` | Flag dungeon rooms whose spriteset sheets or OBJ palettes differ from where vanilla places a sprite |
 
 ## SNES effect frames
 
@@ -88,3 +89,35 @@ Ideas kept from pixelfx (MIT, github.com/patch-gg/pixelfx): seeded
 closed-form particles, dither fades, dark-to-bright ramps, a check pass.
 Dropped as not SNES-safe: translucency, additive light, arbitrary rotation,
 120 Hz simulation, free-size canvases.
+
+## Sprite sheet and palette audit
+
+`sprite_gfx_audit.py` (Python 3, no packages) flags dungeon rooms where a
+placed sprite would draw from the wrong sheet or palette. No ROM table says
+which sheets a sprite uses, so the rules come from a reference ROM, normally
+vanilla:
+
+- A sprite id placed in `--min-rooms` (default 3) or more reference rooms
+  needs a spriteset slot's sheet when all of those rooms load the same sheet
+  in that slot. A different sheet with identical bytes passes.
+- OBJ palettes 0, 5 and 6 come from the room's palette set (`sprites_aux1`,
+  `sprites_aux3`, `sprites_aux3`); 1..4 and 7 are global. The sprite's OBJ
+  palette is its `SpriteData_OAMProp` byte (`$0D:B359`) in the audited ROM, so
+  audit a patched ROM when ASM sets custom sprite properties. A different
+  palette index with the same colors passes.
+- `--sprite-registry` takes a CSV with an `id` column (Oracle's
+  `Sprites/registry.csv`); those ids have custom art, so vanilla rules skip
+  them.
+
+```sh
+python3 scripts/graphics/sprite_gfx_audit.py --rom hack.sfc --reference vanilla.sfc \
+  --sprite-registry Sprites/registry.csv --out audit.json
+```
+
+Each flag is one room and sprite: `room 0x013  sprite 0x91 StalfosKnight
+spriteset 38  slot 2 $27 (usually $26); OBJ palette 5 sprites_aux3:7 (usually
+:4)`. A flag means "check this room", not a proven bug: a draw routine can set
+its own per-tile palette, and a hack can copy a sprite's tiles into another
+sheet. Sprites seen in fewer reference rooms, overlords and overworld areas are
+not checked. The run reads every room through z3ed (about 600 calls, 30 s with
+`--jobs 8`) and exits 1 only when a z3ed call fails.
