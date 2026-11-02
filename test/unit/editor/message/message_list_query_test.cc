@@ -241,6 +241,18 @@ TEST(MessageListQueryTest, MatchesTextIdAndAddress) {
                                        MessageBankFilter::kAll, "ganon"));
 }
 
+TEST(MessageListQueryTest, FilterMatchesVisibleProseAndRawControls) {
+  constexpr std::string_view text = "[S:00]Hello[2]world [L]";
+  EXPECT_TRUE(MessageListQueryMatches(1, 0, text, false,
+                                      MessageBankFilter::kAll, "hello world"));
+  EXPECT_TRUE(MessageListQueryMatches(1, 0, text, false,
+                                      MessageBankFilter::kAll, "[S:00]"));
+  EXPECT_TRUE(MessageListQueryMatches(1, 0, text, false,
+                                      MessageBankFilter::kAll, "world [L]"));
+  EXPECT_FALSE(MessageListQueryMatches(1, 0, text, false,
+                                       MessageBankFilter::kAll, "hello moon"));
+}
+
 TEST(MessageListQueryTest, FindNextRespectsCaseAndWholeWord) {
   const std::string_view text = "The cat catalogs a cat";
   auto loose = FindNextTextMatch(text, "cat", 0, false, false);
@@ -277,9 +289,34 @@ TEST(MessageListQueryTest, FindPreviousStopsBeforeCursor) {
   EXPECT_FALSE(FindNextTextMatch(text, "", 0, false, false).has_value());
 }
 
-TEST(MessageListQueryTest, PreviewKeepsTheFirstLineShort) {
-  EXPECT_EQ(MessageListPreview("Hello\nWorld", 96), "Hello");
+TEST(MessageListQueryTest, PreviewShowsProseWithoutFormattingCommands) {
+  EXPECT_EQ(MessageListPreview("[S:00]\n[2]Hello\n[3]World", 96),
+            "Hello World");
+  EXPECT_EQ(MessageListPreview("Hello[SFX:01]! [L] [B]", 96), "Hello! [L] [B]");
+  EXPECT_EQ(MessageListPreview("[Not a command] hello", 96),
+            "[Not a command] hello");
   EXPECT_EQ(MessageListPreview("abcdef", 4), "abcd...");
+  EXPECT_EQ(MessageListPreview("abcd", 4), "abcd");
+  EXPECT_EQ(MessageListPreview("A\xC3\xA9Z", 2), "A...");
+  EXPECT_TRUE(MessageListPreview("hello", 0).empty());
+}
+
+TEST(MessageListQueryTest, FindsMultilineProseInsteadOfMenuFragments) {
+  EXPECT_FALSE(HasMultilineMessageProse("[S:00][3]     [2] >[CH2I]"));
+  EXPECT_FALSE(HasMultilineMessageProse("[S:00]A long line without a break"));
+  EXPECT_TRUE(HasMultilineMessageProse(
+      "[S:00]This is a long line\n[2]and another line."));
+}
+
+TEST(MessagePreviewTest, DialogueGlyphUsesBg3PaletteSix) {
+  MessagePreview preview;
+  preview.font_gfx16_data_.assign(128 * 16, 0);
+  preview.font_gfx16_data_[0] = 1;
+  preview.font_gfx16_data_[1] = 2;
+  preview.width_array[0] = 8;
+  preview.DrawCharacterToPreview(std::vector<uint8_t>{0});
+  EXPECT_EQ(preview.current_preview_data_[0], 25);
+  EXPECT_EQ(preview.current_preview_data_[1], 26);
 }
 
 }  // namespace

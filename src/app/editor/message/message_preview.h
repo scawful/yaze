@@ -11,6 +11,8 @@ namespace editor {
 
 constexpr int kCurrentMessageWidth = 172;
 constexpr int kCurrentMessageHeight = 4096;
+// Dialogue uses BG3 palette 6; the HUD palette contains eight 4-color rows.
+constexpr int kDialogueFontPalette = 6;
 
 struct MessagePreview {
   MessagePreview() {

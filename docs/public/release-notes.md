@@ -8,9 +8,24 @@ These are not retroactive additions to the published downloads. The
 [release/source matrix](../internal/status.md#lyra-source-and-qualification-boundaries)
 names the exact public, mainline and private sources and their remaining checks.
 
-<a id="v080"></a>
+## v0.8.0-exp.2
 
-## v0.8.0-exp.1
+**Type:** Experimental prerelease candidate
+
+**Status:** In preparation; packages and release validation are pending.
+
+This candidate covers development after v0.8.0-exp.1. Test with copies of
+your ROMs and projects. The final package contents and validation depend on
+the release commit and its package checks.
+
+Mainline changes include Lyra gameplay-area document tooling and 192-map
+navigation, Tile16 editing and Undo work, graphics image import and palette
+selection, per-editor layout improvements, ROM-load options, and safer z3ed
+ROM writes. These remain subject to the scope and limits in the
+[release/source matrix](https://github.com/scawful/yaze/blob/master/docs/internal/status.md#lyra-source-and-qualification-boundaries);
+full expanded-map Oracle Build/Test is not release-qualified.
+
+## v0.8.0-exp.1 <a id="v080"></a>
 
 **Type:** Experimental release — Dungeon rendering and authoring, save safety,
 graphics and project tooling
