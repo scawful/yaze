@@ -535,10 +535,7 @@ absl::Status GfxImportCommandHandler::Execute(
   }
   bool reserved = false;
   const auto shared_by = SheetSharedBy(
-      *rom, sheet,
-      project_ != nullptr ? core::BuildGfxSheetInventoryOptions(*project_)
-                          : zelda3::GfxSheetInventoryOptions{},
-      &reserved);
+      *rom, sheet, core::BuildGfxSheetInventoryOptions(project_), &reserved);
 
   // Run the real writer on a copy of the ROM buffer; the diff is exactly
   // what --write would change.
