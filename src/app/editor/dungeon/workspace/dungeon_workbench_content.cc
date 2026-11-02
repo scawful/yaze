@@ -8,6 +8,7 @@
 #include <cstdio>
 #include <cstring>
 #include <fstream>
+#include <limits>
 #include <sstream>
 #include <utility>
 #include <vector>
@@ -1078,28 +1079,31 @@ void DungeonWorkbenchContent::DrawInspectorPane(float width, float height,
     DrawInspectorHeader(button_size, compact);
     const float available = std::max(1.0f, ImGui::GetContentRegionAvail().y);
     const float spacing = ImGui::GetStyle().ItemSpacing.y;
-    const float toggle_height = ImGui::GetFrameHeight();
-    const float selection_height =
-        show_room_matrix_
-            ? std::max(1.0f, available * navigator_tools_fraction_)
-            : std::max(1.0f, available - toggle_height - 2.0f * spacing);
-    if (ImGui::BeginChild("##WorkbenchSelection", ImVec2(0, selection_height),
-                          false)) {
+    const bool navigation_visible =
+        show_room_matrix_ ||
+        (show_entrance_list_ && entrance_navigator_content_);
+    const float selection_limit =
+        navigation_visible ? available * navigator_tools_fraction_ : available;
+    // Empty selections fit their content; long inspectors scroll within the
+    // user-resizable limit instead of displacing room navigation.
+    ImGui::SetNextWindowSizeConstraints(
+        ImVec2(0, 0), ImVec2(std::numeric_limits<float>::max(),
+                             std::max(1.0f, selection_limit)));
+    if (ImGui::BeginChild("##WorkbenchSelection", ImVec2(0, 0),
+                          ImGuiChildFlags_AutoResizeY)) {
       if (viewer)
         DrawInspector(*viewer, compact);
       else
         ImGui::TextDisabled("No active room");
     }
     ImGui::EndChild();
-    if (!show_room_matrix_) {
-      if (ImGui::Button(ICON_MD_GRID_VIEW " Show Room Matrix",
-                        ImVec2(-1, toggle_height)))
-        show_room_matrix_ = true;
-    } else {
+    if (navigation_visible) {
       const ImVec2 divider = ImGui::GetCursorScreenPos();
       ImGui::InvisibleButton("##NavigatorSplit", ImVec2(-1, 6));
       if (ImGui::IsItemHovered() || ImGui::IsItemActive())
         ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeNS);
+      if (ImGui::IsItemHovered())
+        ImGui::SetTooltip("Drag to change the maximum Selection height");
       if (ImGui::IsItemActive())
         navigator_tools_fraction_ = std::clamp(
             navigator_tools_fraction_ + ImGui::GetIO().MouseDelta.y / available,
@@ -1108,11 +1112,35 @@ void DungeonWorkbenchContent::DrawInspectorPane(float width, float height,
           ImVec2(divider.x, divider.y + 3),
           ImVec2(ImGui::GetItemRectMax().x, divider.y + 3),
           ImGui::GetColorU32(ImGuiCol_Separator));
-      if (ImGui::SmallButton(ICON_MD_EXPAND_MORE "##CollapseMatrix"))
-        show_room_matrix_ = false;
+    }
+    const auto header = [](const char* id, const char* label, bool& expanded) {
+      ImGui::PushID(id);
+      if (ImGui::SmallButton(expanded ? ICON_MD_EXPAND_MORE
+                                      : ICON_MD_CHEVRON_RIGHT))
+        expanded = !expanded;
+      gui::AutoRegisterLastItem("button", id);
       ImGui::SameLine();
-      ImGui::TextDisabled("Room Matrix");
-      if (ImGui::BeginChild("##NavigatorMatrix", ImVec2(0, 0), false,
+      ImGui::TextDisabled("%s", label);
+      ImGui::PopID();
+    };
+    header("room_matrix_toggle", "Room Matrix", show_room_matrix_);
+    if (show_room_matrix_) {
+      const bool entrance_body =
+          show_entrance_list_ && entrance_navigator_content_;
+      const float entrance_header = ImGui::GetFrameHeightWithSpacing();
+      const float unavailable_height =
+          show_entrance_list_ && !entrance_navigator_content_
+              ? ImGui::GetTextLineHeightWithSpacing()
+              : 0.0f;
+      const float navigation_space =
+          std::max(1.0f, ImGui::GetContentRegionAvail().y - entrance_header -
+                             unavailable_height - spacing -
+                             (entrance_body ? 6.0f + spacing : 0.0f));
+      const float matrix_height =
+          entrance_body ? navigation_space * navigator_matrix_fraction_
+                        : navigation_space;
+      if (ImGui::BeginChild("##NavigatorMatrix", ImVec2(0, matrix_height),
+                            false,
                             ImGuiWindowFlags_NoScrollbar |
                                 ImGuiWindowFlags_NoScrollWithMouse)) {
         if (is_standalone_tool_open_ &&
@@ -1121,12 +1149,44 @@ void DungeonWorkbenchContent::DrawInspectorPane(float width, float height,
               open_and_focus_standalone_tool_)
             open_and_focus_standalone_tool_("dungeon.room_matrix");
         } else if (room_matrix_content_) {
-          room_matrix_content_->DrawInWorkbench(144.0f);
+          room_matrix_content_->DrawInWorkbench(
+              std::min(144.0f, matrix_height * .30f));
         } else {
           ImGui::TextDisabled("Room Matrix unavailable");
         }
       }
       ImGui::EndChild();
+      if (entrance_body) {
+        ImGui::InvisibleButton("##MatrixEntranceSplit", ImVec2(-1, 6));
+        if (ImGui::IsItemHovered() || ImGui::IsItemActive())
+          ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeNS);
+        if (ImGui::IsItemActive())
+          navigator_matrix_fraction_ =
+              std::clamp(navigator_matrix_fraction_ +
+                             ImGui::GetIO().MouseDelta.y / navigation_space,
+                         .50f, .85f);
+      }
+    }
+    header("entrance_list_toggle", "Entrances", show_entrance_list_);
+    if (show_entrance_list_) {
+      if (!entrance_navigator_content_) {
+        ImGui::TextDisabled("Entrance list unavailable");
+      } else {
+        if (ImGui::BeginChild("##NavigatorEntrances", ImVec2(0, 0), false,
+                              ImGuiWindowFlags_NoScrollbar |
+                                  ImGuiWindowFlags_NoScrollWithMouse)) {
+          if (is_standalone_tool_open_ &&
+              is_standalone_tool_open_(entrance_navigator_content_->GetId())) {
+            if (ImGui::Button("Focus Entrance Window") &&
+                open_and_focus_standalone_tool_)
+              open_and_focus_standalone_tool_(
+                  entrance_navigator_content_->GetId());
+          } else {
+            entrance_navigator_content_->DrawInWorkbench();
+          }
+        }
+        ImGui::EndChild();
+      }
     }
   }
   ImGui::EndChild();
@@ -1141,7 +1201,7 @@ void DungeonWorkbenchContent::DrawInspectorHeader(float button_size,
       [&]() {
         if (workbench::DrawHeaderIconAction(
                 "CollapseInspector", ICON_MD_CHEVRON_RIGHT, button_size,
-                "Collapse selection and room matrix"))
+                "Collapse selection and navigation"))
           layout_state_.show_right_inspector = false;
       });
 }

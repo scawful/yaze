@@ -2,6 +2,8 @@
 
 #include <gtest/gtest.h>
 
+#include <algorithm>
+#include <array>
 #include <chrono>
 #include <cstdlib>
 #include <deque>
@@ -610,7 +612,8 @@ TEST(DungeonWorkbenchNavigatorUiTest,
   EXPECT_GT(objects.draw_count, 0);
 }
 
-TEST(DungeonWorkbenchNavigatorUiTest, CollapsedMatrixDoesNotOverflowInspector) {
+TEST(DungeonWorkbenchNavigatorUiTest,
+     CollapsedMatrixKeepsEmptySelectionCompact) {
   auto* previous_context = ImGui::GetCurrentContext();
   auto* context = ImGui::CreateContext();
   absl::Cleanup cleanup = [&] {
@@ -634,7 +637,15 @@ TEST(DungeonWorkbenchNavigatorUiTest, CollapsedMatrixDoesNotOverflowInspector) {
   ImVector<int> active_rooms;
   RoomMatrixContent matrix(&room_id, &active_rooms, [](int) {});
   FakeWorkbenchToolContent objects("dungeon.object_selector");
-  content.SetNavigationPanels(&matrix, nullptr);
+  std::array<zelda3::RoomEntrance, zelda3::kNumDungeonEntranceSlots> records{};
+  std::array<zelda3::DungeonSpawnPoint, zelda3::kNumDungeonSpawnPoints>
+      spawns{};
+  int selected_entrance = 0;
+  int navigated_entrance = -1;
+  DungeonEntrancesPanel entrances(
+      &records, &spawns, &selected_entrance,
+      [&](int entrance) { navigated_entrance = entrance; });
+  content.SetNavigationPanels(&matrix, &entrances);
   content.SetEmbeddedEditorPanels(&objects, nullptr, nullptr, nullptr, nullptr,
                                   nullptr);
 
@@ -678,6 +689,9 @@ TEST(DungeonWorkbenchNavigatorUiTest, CollapsedMatrixDoesNotOverflowInspector) {
     ASSERT_NE(sidebar, nullptr);
     ASSERT_NE(tools, nullptr);
     ASSERT_NE(active_child("##NavigatorMatrix"), nullptr);
+    ASSERT_NE(active_child("##NavigatorEntrances"), nullptr);
+    ASSERT_NE(active_child("##EntrancesList"), nullptr);
+    EXPECT_LT(tools->Size.y, sidebar->Size.y * .25f);
     EXPECT_EQ(sidebar->ScrollMax.y, 0.0f);
     EXPECT_FALSE(sidebar->ScrollbarY);
     const float expanded_tools_height = tools->Size.y;
@@ -689,7 +703,8 @@ TEST(DungeonWorkbenchNavigatorUiTest, CollapsedMatrixDoesNotOverflowInspector) {
     ASSERT_NE(sidebar, nullptr);
     ASSERT_NE(tools, nullptr);
     EXPECT_EQ(active_child("##NavigatorMatrix"), nullptr);
-    EXPECT_GT(tools->Size.y, expanded_tools_height);
+    EXPECT_NEAR(tools->Size.y, expanded_tools_height, 1.0f);
+    ASSERT_NE(active_child("##EntrancesList"), nullptr);
     EXPECT_EQ(sidebar->ScrollMax.y, 0.0f);
     EXPECT_FALSE(sidebar->ScrollbarY);
 
@@ -701,6 +716,25 @@ TEST(DungeonWorkbenchNavigatorUiTest, CollapsedMatrixDoesNotOverflowInspector) {
     EXPECT_EQ(sidebar->ScrollMax.y, 0.0f);
     EXPECT_FALSE(sidebar->ScrollbarY);
   }
+
+  // The embedded list must use the maintained selection callback, not a
+  // second navigation model. The second spawn entry is visible without scroll.
+  const auto widgets = gui::WidgetIdRegistry::Instance().GetAllWidgets();
+  const auto target = std::find_if(
+      widgets.begin(), widgets.end(),
+      [](const auto& entry) { return entry.second.label == "entrance_001"; });
+  ASSERT_NE(target, widgets.end());
+  ASSERT_TRUE(target->second.visible);
+  const auto bounds = target->second.bounds;
+  io.AddMousePosEvent((bounds.min_x + bounds.max_x) * .5f,
+                      (bounds.min_y + bounds.max_y) * .5f);
+  frame();
+  io.AddMouseButtonEvent(0, true);
+  frame();
+  io.AddMouseButtonEvent(0, false);
+  frame();
+  EXPECT_EQ(selected_entrance, 1);
+  EXPECT_EQ(navigated_entrance, 1);
 }
 
 // Exercise the real matrix drawing and its registered input rectangles. This
