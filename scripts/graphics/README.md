@@ -44,6 +44,32 @@ node scripts/graphics/snes_fx.js --fx scripts/graphics/fx/poof.js --out /tmp/poo
   --rom game.sfc --palette sprites_aux3:0 --slot 1 --oam-palette 5
 ```
 
+### Spriteset and gfx sheet
+
+`--rom game.sfc --slot S` with one of `--room ID`, `--area ID[:STATE]` or
+`--spriteset ROW` finds the gfx sheet in that slot from the ROM (via
+`z3ed gfx-sheet-inventory`) instead of a hand-picked `--sheet` id:
+
+- A room uses its header spriteset (row = spriteset + $40) and palette set.
+  An area needs `:STATE` (0..2) when its game states load different rows.
+- Sheet id = spriteset value + $73. The JSON `spriteset` block lists all four
+  slots, the target sheet's free blocks, and the spritesets that share its art.
+- Without `--block`, cells go to the first run of free blocks. The run exits 1
+  when no run fits or `--block` lands on a used block, because `gfx-import`
+  overwrites every cell's block and other spritesets load that art.
+- With `--room` and no `--palette`, the ROM palette is the one the room loads
+  for `--oam-palette` (from its palette set, same table as the dungeon editor).
+  Values $52, $53, $5A..$5C, $5E, $5F load into the high half of a palette, so
+  colors 1..7 show as columns 9..15; the tool picks that half's palette.
+- The stdout summary and JSON carry the `gfxImport` command (sheet and block)
+  when the cells fit. `gfx-import --write` may still need hack free space for
+  the bigger compressed sheet (`--project-context`).
+
+```sh
+node scripts/graphics/snes_fx.js --fx scripts/graphics/fx/poof.js --out /tmp/poof-c8 \
+  --rom game.sfc --room 0xC8 --slot 3 --oam-palette 6
+```
+
 An effect exports `name`, `size`, `origin`, `holds` (60 Hz game frames per
 frame), a `palette` of up to 7 `#rrggbb` colors for OBJ indices 1..7 (sheets
 are 3bpp), a `seed`, and `draw(p, k, t, rng)`. The painter writes palette
@@ -53,8 +79,8 @@ numbers in the same order each frame.
 
 The run exits 1 on pixels outside the OBJ, an index past the palette, unseeded
 randomness, more cells than the sheet has blocks after `--block`, or (with
-`--slot`) a frame with no tiles. It warns
-when a palette color changes on BGR555 snapping and when a frame touches the
+`--slot`) a frame with no tiles, or (with a spriteset) blocks that are not
+free in the target sheet. It warns when a palette color changes on BGR555 snapping and when a frame touches the
 OBJ edge. The JSON also reports colors used and OAM objects per frame, and
 8x8 tiles that stay unique after H/V flips.
 
