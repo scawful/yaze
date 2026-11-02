@@ -2,11 +2,17 @@
 
 ## 0.8.0 release candidate
 
-The clean release cut starts from application code
-`14c11882498549dfb5b069dea65e531587846a4f`, plus a nonthrowing project-integer
-parser fix and release metadata on
-`codex/release-0.8.0-20261102`. `VERSION` remains `0.8.0`; the new package run
-uses `v0.8.0` with no prerelease suffix and `publish=false`.
+The clean release cut combines application baseline
+`14c11882498549dfb5b069dea65e531587846a4f`, a nonthrowing project-integer parser
+fix and the requested Dungeon Workbench cleanup. The object browser has List
+and Icons views with shared filters and placement actions. Compact Selection,
+a larger Room Matrix and the entrance list give the right side a navigation
+focus. `VERSION` remains `0.8.0`; the package qualification uses `v0.8.0` with no
+prerelease suffix and `publish=false`.
+
+The release validation record binds the final source, package hashes and
+checks. Source builds and focused UI tests do not establish packaged native
+editing, Save/reopen or public release acceptance.
 
 The earlier application-code baseline passed all Linux/macOS/Windows package and
 Release-test jobs in [run 41496853533](https://github.com/scawful/yaze/actions/runs/41496853533),

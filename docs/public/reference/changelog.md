@@ -9,13 +9,21 @@ they do not establish current end-to-end or release qualification.
 
 ## 0.8.0
 
-The unsuffixed release starts from application code `14c118824` and adds
-nonthrowing validation for project integer settings. It includes the
-Workbench workspace/rail and Room Matrix improvements, PNG/palette import,
-message-editor preview and list changes, safer file operations and package
-portability repairs. The following historical entries retain their original
-scope; the current [release notes](../release-notes.md#v080) and
+The unsuffixed release adds the Workbench updates below and nonthrowing
+validation for project integer settings to the application baseline
+`14c118824`. It also includes PNG/palette import, message-editor preview and
+list changes, safer file operations and package portability repairs. The
+following historical entries retain their original scope; the current
+[release notes](../release-notes.md#v080) and
 [coverage report](feature-coverage-report.md) define the supported boundaries.
+
+- **Object browser views:** switch between **List** rows and **Icons** cards.
+  Both views use the same search/category filters, standard and custom object
+  entries, selection and placement actions.
+- **Workbench navigation:** Selection fits its content and scrolls when needed,
+  leaving the remaining right-side space for a larger Room Matrix and the
+  existing entrance list. Matrix and entrances can collapse independently, and
+  their split can be resized. Room settings stay in their existing controls.
 
 ## Unreleased (after v0.8.0-exp.1)
 

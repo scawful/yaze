@@ -22,9 +22,12 @@ beyond this release.
 
 ### Highlights
 
-- **Dungeon Workbench:** room settings, the room canvas and Room Matrix share
-  one workspace, with a clearer tool rail and room previews. Object, sprite,
-  door and pot-item edits use the existing Undo/Redo and guarded save paths.
+- **Dungeon Workbench:** the object browser offers **List** and **Icons** views
+  with shared filters and placement actions. A compact Selection panel leaves
+  more space on the right for Room Matrix and an entrance list, with collapsible
+  navigation sections and a resizable split. Room settings stay in their
+  existing controls. Object, sprite, door and pot-item edits use the existing
+  Undo/Redo and guarded save paths.
 - **Graphics editing:** PNG and palette-strip import, Sheet Browser palette
   selection and live previews join the existing sheet editor. Graphics
   write-back remains experimental and supports the documented 3bpp sheet table;

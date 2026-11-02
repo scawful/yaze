@@ -5,12 +5,17 @@ High-level release summary. For detailed notes, see
 
 ## 0.8.0
 
-- Prepared the unsuffixed desktop release from application code `14c118824`
-  plus a fix that rejects malformed project integer settings without crashing.
-  It includes the Dungeon Workbench rail/Room Matrix updates, graphics import
+- Prepared the unsuffixed desktop release with fixes made after the first
+  experimental download. It includes Dungeon Workbench updates, graphics import
   and palette selection, message-editor preview/list improvements, safer file
-  operations and portable package fixes made after the first experimental
-  download. See `docs/public/release-notes.md` for the shipped scope and limits.
+  operations, portable package fixes and project-integer validation that reports
+  malformed settings without crashing. See `docs/public/release-notes.md` for
+  the shipped scope and limits.
+- Added **List** and **Icons** views to the Workbench object browser. Both views
+  share the existing filters, selection and placement actions.
+- Made the Workbench's right side focus on navigation: Selection fits its
+  content, leaving more space for Room Matrix and the entrance list. The
+  navigation sections can collapse, and their split can be resized.
 - Kept the remaining Dungeon completion roadmap and Oracle expanded-map
   Build/Test qualification separate from the 0.8.0 package release.
 
