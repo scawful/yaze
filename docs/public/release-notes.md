@@ -33,6 +33,9 @@ beyond this release.
   textbox palette and a three-line black textbox, and keeps its grid optional.
   The editor restores the last message, accepts `--message`, and puts prose
   ahead of bank/address metadata in the message list.
+- **Project loading:** malformed integer settings return a project error instead
+  of aborting the editor or CLI. Empty, nonnumeric and overflowing values are
+  rejected before the project is accepted.
 - **Safer file operations:** shared ROM-load options, project-scoped autosave
   preferences, staged backup restore and guarded z3ed writes preserve the
   existing backup, manifest and reopen contracts.

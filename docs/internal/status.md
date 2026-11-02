@@ -2,12 +2,13 @@
 
 ## 0.8.0 release candidate
 
-The clean release cut uses application code
-`14c11882498549dfb5b069dea65e531587846a4f`, with release metadata on
+The clean release cut starts from application code
+`14c11882498549dfb5b069dea65e531587846a4f`, plus a nonthrowing project-integer
+parser fix and release metadata on
 `codex/release-0.8.0-20261102`. `VERSION` remains `0.8.0`; the new package run
 uses `v0.8.0` with no prerelease suffix and `publish=false`.
 
-The same application-code baseline passed all Linux/macOS/Windows package and
+The earlier application-code baseline passed all Linux/macOS/Windows package and
 Release-test jobs in [run 41496853533](https://github.com/scawful/yaze/actions/runs/41496853533),
 which used the earlier exp.2 package suffix. That result is reused only at its
 actual scope. The unsuffixed artifacts, exact metadata commit, package smoke,

@@ -9,7 +9,8 @@ they do not establish current end-to-end or release qualification.
 
 ## 0.8.0
 
-The unsuffixed release uses application code `14c118824`, including the
+The unsuffixed release starts from application code `14c118824` and adds
+nonthrowing validation for project integer settings. It includes the
 Workbench workspace/rail and Room Matrix improvements, PNG/palette import,
 message-editor preview and list changes, safer file operations and package
 portability repairs. The following historical entries retain their original

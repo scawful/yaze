@@ -429,5 +429,71 @@ TEST(ProjectFilePassthroughTest,
   EXPECT_EQ(project.rom_metadata.write_policy, RomWritePolicy::kWarn);
 }
 
+TEST(ProjectFilePassthroughTest, MalformedIntegerFieldsReturnProjectError) {
+  ScopedDir dir(yaze::test::UniqueTempPath("project_invalid_integer"));
+  const fs::path source = dir.path() / "Invalid.yaze";
+  struct Field {
+    const char* section;
+    const char* key;
+  };
+  const Field fields[] = {
+      {"workspace", "backup_retention_count"},
+      {"workspace", "backup_keep_daily_days"},
+      {"agent_settings", "max_tool_iterations"},
+      {"agent_settings", "max_retry_attempts"},
+      {"agent_settings", "max_output_tokens"},
+      {"agent_settings", "chain_mode"},
+      {"build", "build_number"},
+  };
+  for (const auto& field : fields) {
+    for (const std::string value :
+         {"", "invalid", "2147483648", "-2147483649", "12suffix", "0x10"}) {
+      SCOPED_TRACE(std::string(field.section) + "/" + field.key + "=" + value);
+      const std::string content = std::string("[project]\nname=Invalid\n[") +
+                                  field.section + "]\n" + field.key + "=" +
+                                  value + "\n";
+      WriteFile(source, content);
+      YazeProject from_file;
+      absl::Status file_status;
+      EXPECT_NO_THROW(file_status = from_file.Open(source.string()));
+      EXPECT_EQ(file_status.code(), absl::StatusCode::kInvalidArgument);
+      EXPECT_THAT(file_status.message(), HasSubstr(field.section));
+      EXPECT_THAT(file_status.message(), HasSubstr(field.key));
+      EXPECT_EQ(ReadFile(source), content);
+
+      YazeProject from_string;
+      const auto string_status =
+          from_string.LoadFromString(content, source.string());
+      EXPECT_EQ(string_status.code(), absl::StatusCode::kInvalidArgument);
+      EXPECT_THAT(string_status.message(), HasSubstr(field.key));
+    }
+  }
+}
+
+TEST(ProjectFilePassthroughTest, ValidIntegerFieldsSurviveSaveAndReopen) {
+  ScopedDir dir(yaze::test::UniqueTempPath("project_valid_integer"));
+  const fs::path source = dir.path() / "Valid.yaze";
+  const fs::path saved = dir.path() / "Saved.yaze";
+  WriteFile(source,
+            "[project]\nname=Valid\n"
+            "[workspace]\nbackup_retention_count=12\n"
+            "backup_keep_daily_days=7\n"
+            "[agent_settings]\nmax_tool_iterations=15\n"
+            "max_retry_attempts=3\nmax_output_tokens=4096\n"
+            "chain_mode=0\n[build]\nbuild_number=2147483647\n");
+  YazeProject project;
+  ASSERT_TRUE(project.Open(source.string()).ok());
+  ASSERT_TRUE(project.SaveAs(saved.string()).ok());
+  YazeProject reopened;
+  ASSERT_TRUE(reopened.Open(saved.string()).ok());
+  EXPECT_EQ(reopened.workspace_settings.backup_retention_count, 12);
+  EXPECT_EQ(reopened.workspace_settings.backup_keep_daily_days, 7);
+  EXPECT_EQ(reopened.agent_settings.max_tool_iterations, 15);
+  EXPECT_EQ(reopened.agent_settings.max_retry_attempts, 3);
+  EXPECT_EQ(reopened.agent_settings.max_output_tokens, 4096);
+  EXPECT_EQ(reopened.agent_settings.chain_mode, 0);
+  EXPECT_EQ(reopened.build_number, 2147483647);
+}
+
 }  // namespace
 }  // namespace yaze::project

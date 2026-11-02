@@ -5,7 +5,8 @@ High-level release summary. For detailed notes, see
 
 ## 0.8.0
 
-- Prepared the unsuffixed desktop release from application code `14c118824`.
+- Prepared the unsuffixed desktop release from application code `14c118824`
+  plus a fix that rejects malformed project integer settings without crashing.
   It includes the Dungeon Workbench rail/Room Matrix updates, graphics import
   and palette selection, message-editor preview/list improvements, safer file
   operations and portable package fixes made after the first experimental
