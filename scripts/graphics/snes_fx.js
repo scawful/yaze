@@ -9,6 +9,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const zlib = require('node:zlib');
 const crypto = require('node:crypto');
+const { execFileSync } = require('node:child_process');
 
 const fail = message => { throw new Error(message); };
 const integer = n => Number.isSafeInteger(n);
@@ -19,6 +20,10 @@ const hex2 = n => n.toString(16).toUpperCase().padStart(2, '0');
 const MAX_INDEX = 7;
 // A sheet holds 16 blocks of 16x16 (zelda3/gfx_sheet_png.h); one block is one 16x16 OBJ cell.
 const SHEET_BLOCKS = 16;
+// A spriteset slot is one sheet: 64 8x8 tiles in the second OBJ name table (OAM prop bit 0).
+const SLOT_TILES = 64;
+// A ROM color further than this (redmean RGB distance, 0..765) from the effect color it replaces gets a warning.
+const FAR_COLOR = 80;
 // 4x4 ordered (Bayer) thresholds: a pixel at alpha a is drawn when a is above its cell's threshold.
 const BAYER = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5].map(v => (v + 0.5) / 16);
 const TAU = Math.PI * 2;
@@ -41,6 +46,44 @@ function toBgr555(hexColor) {
   const v = parseInt(hexColor.slice(1), 16), rgb = [(v >> 16) & 255, (v >> 8) & 255, v & 255];
   const c5 = rgb.map(c => c >> 3), back = c5.map(c => (c << 3) | (c >> 2));
   return { source: hexColor, word: (c5[2] << 10) | (c5[1] << 5) | c5[0], rgb: back, exact: back.every((c, i) => c === rgb[i]) };
+}
+
+function fromBgr555(word) {
+  const rgb = [word & 31, (word >> 5) & 31, (word >> 10) & 31].map(c => (c << 3) | (c >> 2));
+  return { source: `#${rgb.map(hex2).join('')}`, word, rgb, exact: true };
+}
+
+// Redmean distance: cheap and closer to how far apart two colors look than plain RGB distance.
+function colorDistance(a, b) {
+  const r = (a[0] + b[0]) / 2, [dr, dg, db] = a.map((c, i) => c - b[i]);
+  return Math.sqrt((2 + r / 256) * dr * dr + 4 * dg * dg + (2 + (255 - r) / 256) * db * db);
+}
+
+// Up to 7 colors of a ROM palette, read with `z3ed palette-get-colors`. spec is GROUP:INDEX[:FIRST]; FIRST picks
+// where the 7 colors start in a group with longer palettes (global_sprites has 60). Color k becomes OBJ index k+1.
+function readRomPalette(rom, spec, z3ed = 'z3ed') {
+  const m = /^([a-z0-9_]+):(\d+)(?::(\d+))?$/.exec(spec);
+  if (!m) fail(`--palette: expected GROUP:INDEX[:FIRST], got ${spec}`);
+  const [, group, index, first = '0'] = m;
+  let out;
+  try {
+    out = execFileSync(z3ed, ['palette-get-colors', `--rom=${rom}`, '--group', group, '--index', index, '--format', 'json'], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
+  } catch (error) {
+    fail(`--palette: ${z3ed} palette-get-colors failed: ${(error.stderr || error.message).trim().split('\n')[0]}`);
+  }
+  const words = (JSON.parse(out)['Palette Colors']?.colors ?? []).map(c => /SNES=0x([0-9A-Fa-f]{4})/.exec(c)?.[1]);
+  if (!words.length || words.some(w => !w)) fail(`--palette: no colors in z3ed output for ${group}:${index}`);
+  const colors = words.slice(Number(first), Number(first) + MAX_INDEX).map(w => fromBgr555(parseInt(w, 16)));
+  if (!colors.length) fail(`--palette: ${group}:${index} has ${words.length} colors; FIRST ${first} is past the end`);
+  return { group, index: Number(index), first: Number(first), colors };
+}
+
+// Map each effect color to the nearest ROM color, so the frames use colors the game already loads.
+function remapToRom(palette, rom) {
+  return palette.map((c, i) => {
+    const d = rom.colors.map(r => colorDistance(c.rgb, r.rgb)), j = d.indexOf(Math.min(...d));
+    return { from: i + 1, source: c.source, to: j + 1, rom: rom.colors[j].source, distance: Math.round(d[j]) };
+  });
 }
 
 // Draws palette indices at local coordinates around the effect's origin. No blending: alpha below 1 is an
@@ -130,17 +173,32 @@ function layoutBlocks(firstBlock, count) {
   });
 }
 
-function evaluateEffect(fx, { firstBlock = 0 } = {}) {
+function evaluateEffect(fx, { firstBlock = 0, romPalette = null } = {}) {
   validateEffect(fx);
   const errors = [], warnings = [];
-  const palette = fx.palette.map(toBgr555);
-  palette.forEach((c, i) => { if (!c.exact) warnings.push(`palette ${i + 1}: ${c.source} snaps to #${c.rgb.map(hex2).join('')}`); });
+  const fxPalette = fx.palette.map(toBgr555);
   const frames = renderFrames(fx, false);
   const again = renderFrames(fx, false);
   frames.forEach((f, k) => {
     if (f.spill) errors.push(`frame ${k}: ${f.spill} pixels outside the ${fx.size.join('x')} OBJ (they would be cut off)`);
     if (sha256(f.pixels) !== sha256(again[k].pixels)) errors.push(`frame ${k}: not deterministic (unseeded randomness)`);
   });
+  let palette = fxPalette, remap = null;
+  if (romPalette) {
+    remap = remapToRom(fxPalette, romPalette);
+    const lut = Uint8Array.from([0, ...remap.map(r => r.to)]);
+    frames.forEach(f => { f.pixels = f.pixels.map(i => lut[i]); });
+    palette = romPalette.colors;
+    remap.forEach(r => {
+      if (r.distance > FAR_COLOR) warnings.push(`palette ${r.from}: ${r.source} -> ROM ${r.to} ${r.rom} is far (distance ${r.distance})`);
+    });
+    for (let to = 1; to <= palette.length; to++) {
+      const merged = remap.filter(r => r.to === to).map(r => r.from);
+      if (merged.length > 1) warnings.push(`palette ${merged.join(', ')}: all map to ROM ${to}, so their shading merges`);
+    }
+  } else {
+    palette.forEach((c, i) => { if (!c.exact) warnings.push(`palette ${i + 1}: ${c.source} snaps to #${c.rgb.map(hex2).join('')}`); });
+  }
   const [w, h] = fx.size, seen = new Map();
   let tiles = 0, emptyTiles = 0, edgeFrames = 0;
   const report = frames.map((f, k) => {
@@ -166,14 +224,10 @@ function evaluateEffect(fx, { firstBlock = 0 } = {}) {
     for (let i = 0; i < h; i++) edge ||= !!(f.pixels[i * w] || f.pixels[i * w + w - 1]);
     if (edge) edgeFrames++;
     if (objects.every(o => o.empty)) warnings.push(`frame ${k}: empty`);
-    return { frame: k, hold: f.hold, colors: used, oam: objects.filter(o => !o.empty).length, touchesEdge: edge, pixelSha256: sha256(f.pixels) };
+    return { frame: k, hold: f.hold, colors: used, oam: objects.filter(o => !o.empty).length, touchesEdge: edge, pixelSha256: sha256(f.pixels), objects };
   });
   if (edgeFrames) warnings.push(`${edgeFrames} frame(s) touch the OBJ edge: an outline there is cut`);
-  const cells = frames.flatMap((f, k) => {
-    const out = [];
-    for (let cy = 0; cy < h; cy += 16) for (let cx = 0; cx < w; cx += 16) out.push({ frame: k, cx, cy });
-    return out;
-  });
+  const cells = frames.flatMap((f, k) => report[k].objects.map(o => ({ frame: k, cx: o.x, cy: o.y, empty: o.empty })));
   layoutBlocks(firstBlock, cells.length).forEach((at, i) => Object.assign(cells[i], at));
   return {
     frames,
@@ -185,9 +239,10 @@ function evaluateEffect(fx, { firstBlock = 0 } = {}) {
       seed: fx.seed,
       gameFrames: fx.holds.reduce((a, b) => a + b, 0),
       palette: palette.map((c, i) => ({ index: i + 1, source: c.source, bgr555: `$${c.word.toString(16).toUpperCase().padStart(4, '0')}`, exact: c.exact })),
+      ...(romPalette && { romPalette: { group: romPalette.group, index: romPalette.index, first: romPalette.first }, remap }),
       tiles: { total: tiles, empty: emptyTiles, uniqueWithFlips: seen.size },
-      frames: report,
-      cells: cells.map(c => ({ frame: c.frame, x: c.cx, y: c.cy, block: c.block, tiles: c.tiles.map(t => `$${hex2(t)}`) })),
+      frames: report.map(({ objects, ...r }) => r),
+      cells: cells.map(c => ({ frame: c.frame, x: c.cx, y: c.cy, empty: c.empty, block: c.block, tiles: c.tiles.map(t => `$${hex2(t)}`) })),
       errors,
       warnings,
     },
@@ -269,23 +324,59 @@ function contactSheet(fx, frames, paletteRgb, scale) {
   return encodeIndexedPng(width, height, indices, palette);
 }
 
+// Draw tables for Oracle's %DrawSprite() (Core/sprite_macros.asm): frame k is SprGfx+SprFrame = k, one 16x16 OAM
+// object per non-empty cell. Offsets are from the sprite position, where a 16x16 body sits at 0,0, so the
+// effect origin lands on the body's center.
+function drawTables(fx, cells, result, { slot, oamPalette, priority }) {
+  const sx = n => (n < 0 ? `-${-n}` : `${n}`);
+  const props = `$${hex2((priority << 4) | (oamPalette << 1) | 1)}`;
+  const frames = fx.holds.map((_, k) => cells.filter(c => c.frame === k && !c.empty));
+  const empty = frames.flatMap((f, k) => (f.length ? [] : [k]));
+  if (empty.length) fail(`--slot: frame(s) ${empty.join(', ')} have no tiles; %DrawSprite needs at least one object per frame`);
+  const all = frames.flat(), starts = frames.map((_, k) => frames.slice(0, k).reduce((n, f) => n + f.length, 0));
+  const first = cells[0].block, last = cells[cells.length - 1].block;
+  const row = (dir, values) => `  ${dir} ${values.join(', ')}`;
+  return [
+    `; Generated by yaze scripts/graphics/snes_fx.js from ${fx.name}; do not edit by hand.`,
+    `; Tiles: sheet blocks ${first}..${last} in spriteset slot ${slot} (chr $${hex2(slot * SLOT_TILES)}+).`,
+    `; OAM palette ${oamPalette}, priority ${priority}${result.romPalette ? `, colors from ROM ${result.romPalette.group}:${result.romPalette.index}` : ''}.`,
+    `; incsrc right after %DrawSprite(). Frame k = SprGfx+SprFrame k; hold frame k for .holds[k] game frames.`,
+    row('.start_index  db', starts.map(n => `$${hex2(n)}`)),
+    row('.nbr_of_tiles db', frames.map(f => f.length - 1)),
+    row('.x_offsets    dw', all.map(c => sx(c.cx - fx.origin[0] + 8))),
+    row('.y_offsets    dw', all.map(c => sx(c.cy - fx.origin[1] + 8))),
+    row('.chr          db', all.map(c => `$${hex2(slot * SLOT_TILES + c.tiles[0])}`)),
+    row('.properties   db', all.map(() => props)),
+    row('.sizes        db', all.map(() => '$02')),
+    row('.holds        db', fx.holds),
+    '',
+  ].join('\n');
+}
+
 function usage() {
   return `usage: snes_fx.js --fx scripts/graphics/fx/poof.js --out DIR [--block 0] [--scale 8]
+                  [--rom game.sfc --palette GROUP:INDEX[:FIRST] [--z3ed z3ed]]
+                  [--slot 0..3 --oam-palette 0..7 [--priority 3]]
 
 Renders an effect module to indexed frames, checks them against SNES OBJ limits, and writes into a new DIR:
-  <name>.png   one row of 16x16 blocks for: z3ed gfx-import --sheet <id> --png <name>.png --block <n> --dry-run
-  contact.png  frames side by side at --scale, for review
-  <name>.json  checks, palette as BGR555, and the sheet block and 8x8 tiles of every cell
+  <name>.png      one row of 16x16 blocks for: z3ed gfx-import --sheet <id> --png <name>.png --block <n> --dry-run
+  contact.png     frames side by side at --scale, for review
+  <name>.json     checks, palette as BGR555, and the sheet block and 8x8 tiles of every cell
+  <name>_oam.asm  with --slot: %DrawSprite() tables (Oracle Core/sprite_macros.asm) for the frames
+--palette reads a ROM palette with z3ed palette-get-colors (e.g. sprites_aux1:0) and moves every effect
+color to the nearest ROM color, so the frames use colors the game already loads. Warns on far colors
+and on effect colors that merge into one ROM color.
 Exit 1 when a check fails: index outside 1..${MAX_INDEX}, pixels outside the OBJ, unseeded randomness,
-or more cells than the sheet has blocks after --block.\n`;
+more cells than the sheet has blocks after --block, or (with --slot) a frame with no tiles.\n`;
 }
 
 function main(argv) {
-  const options = { scale: '8', block: '0' };
+  const options = { scale: '8', block: '0', priority: '3', z3ed: process.env.Z3ED || 'z3ed' };
+  const FLAGS = ['--fx', '--out', '--block', '--scale', '--rom', '--palette', '--z3ed', '--slot', '--oam-palette', '--priority'];
   for (let i = 0; i < argv.length; i++) {
     const flag = argv[i];
     if (flag === '--help' || flag === '-h') { process.stdout.write(usage()); return; }
-    if (!['--fx', '--out', '--block', '--scale'].includes(flag)) fail(`Unknown option: ${flag}`);
+    if (!FLAGS.includes(flag)) fail(`Unknown option: ${flag}`);
     if (!argv[i + 1] || argv[i + 1].startsWith('--')) fail(`${flag}: missing value`);
     options[flag.slice(2)] = argv[++i];
   }
@@ -293,21 +384,31 @@ function main(argv) {
   const scale = Number(options.scale), firstBlock = Number(options.block);
   if (!integer(scale) || scale < 1 || scale > 32) fail('--scale: expected integer 1..32');
   if (!/^\d+$/.test(options.block) || firstBlock >= SHEET_BLOCKS) fail(`--block: expected 0..${SHEET_BLOCKS - 1}`);
+  if (!!options.rom !== !!options.palette) fail('--rom and --palette go together');
+  const oam = options.slot === undefined ? null : { slot: Number(options.slot), oamPalette: Number(options['oam-palette']), priority: Number(options.priority) };
+  if (oam) {
+    if (!/^[0-3]$/.test(options.slot)) fail('--slot: expected 0..3');
+    if (!/^[0-7]$/.test(options['oam-palette'] ?? '')) fail('--oam-palette: expected 0..7 (required with --slot)');
+    if (!/^[0-3]$/.test(options.priority)) fail('--priority: expected 0..3');
+  } else if (options['oam-palette'] !== undefined) fail('--oam-palette needs --slot');
   const outputPath = path.resolve(options.out);
   if (fs.existsSync(outputPath)) fail('--out: path already exists; choose a new directory');
   const fx = require(fs.realpathSync(options.fx));
-  const { frames, cells, result } = evaluateEffect(fx, { firstBlock });
-  const paletteRgb = result.palette.map(c => toBgr555(c.source).rgb);
+  const romPalette = options.rom ? readRomPalette(options.rom, options.palette, options.z3ed) : null;
+  const { frames, cells, result } = evaluateEffect(fx, { firstBlock, romPalette });
+  const asm = oam && drawTables(fx, cells, result, oam);
+  const paletteRgb = (romPalette ? romPalette.colors : result.palette.map(c => toBgr555(c.source))).map(c => c.rgb);
   fs.mkdirSync(outputPath); // No recursive or replace mode.
   fs.writeFileSync(path.join(outputPath, `${fx.name}.png`), blockStrip(fx, frames, cells, paletteRgb), { flag: 'wx' });
   fs.writeFileSync(path.join(outputPath, 'contact.png'), contactSheet(fx, frames, paletteRgb, scale), { flag: 'wx' });
   fs.writeFileSync(path.join(outputPath, `${fx.name}.json`), JSON.stringify(result, null, 2) + '\n', { flag: 'wx' });
+  if (asm) fs.writeFileSync(path.join(outputPath, `${fx.name}_oam.asm`), asm, { flag: 'wx' });
   process.stdout.write(JSON.stringify({ output: outputPath, gameFrames: result.gameFrames, blocks: cells.length, tiles: result.tiles, errors: result.errors, warnings: result.warnings }, null, 2) + '\n');
   if (result.errors.length) process.exitCode = 1;
 }
 
 // Exports come before the CLI runs: effect modules require this file for TAU while main() loads them.
-module.exports = { Painter, rng, toBgr555, evaluateEffect, layoutBlocks, encodeIndexedPng, TAU, BAYER, main };
+module.exports = { Painter, rng, toBgr555, fromBgr555, readRomPalette, remapToRom, evaluateEffect, layoutBlocks, drawTables, encodeIndexedPng, TAU, BAYER, main };
 if (require.main === module) {
   try { main(process.argv.slice(2)); } catch (error) { process.stderr.write(`snes_fx: ${error.message}\n`); process.exitCode = 1; }
 }
