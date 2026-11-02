@@ -911,11 +911,25 @@ TEST(DungeonWorkbenchNavigatorUiTest,
          gui::WidgetIdRegistry::Instance().GetAllWidgets()) {
       if (widget.label != label)
         continue;
-      auto* window = ImGui::FindWindowByName("PaletteMatrix");
-      for (const auto& vertex : window->DrawList->VtxBuffer)
-        if (vertex.pos.x == widget.bounds.min_x &&
-            vertex.pos.y == widget.bounds.min_y)
+      auto* window = ImGui::FindWindowByName(widget.window_name.c_str());
+      if (!window) {
+        ADD_FAILURE() << "Missing registered matrix window "
+                      << widget.window_name;
+        return 0;
+      }
+      // Fractional rectangles use antialiased fills: their opaque corner is
+      // half a fringe inside the logical widget edge. Integer-aligned fills
+      // retain an opaque vertex exactly on the edge.
+      const float inset = window->DrawList->_FringeScale * 0.5f;
+      for (const auto& vertex : window->DrawList->VtxBuffer) {
+        const bool edge = vertex.pos.x == widget.bounds.min_x &&
+                          vertex.pos.y == widget.bounds.min_y;
+        const bool inner = vertex.pos.x == widget.bounds.min_x + inset &&
+                           vertex.pos.y == widget.bounds.min_y + inset;
+        if ((edge || inner) &&
+            (vertex.col & IM_COL32_A_MASK) == IM_COL32_A_MASK)
           return vertex.col;
+      }
     }
     ADD_FAILURE() << "Missing rendered room fill " << label;
     return 0;
