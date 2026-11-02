@@ -8,6 +8,58 @@ These are not retroactive additions to the published downloads. The
 [release/source matrix](../internal/status.md#lyra-source-and-qualification-boundaries)
 names the exact public, mainline and private sources and their remaining checks.
 
+## v0.8.0
+
+**Type:** Desktop editor release
+
+**Status:** Release candidate; package and native validation are recorded before publication.
+
+Yaze 0.8.0 brings the Dungeon Workbench, shared editing history, graphics import
+and safer ROM/project saves to Linux, macOS and Windows. It packages the editor
+work since 0.7.2 and the fixes made after the first 0.8.0 experimental download.
+Dungeon rendering parity and the remaining Dungeon completion roadmap continue
+beyond this release.
+
+### Highlights
+
+- **Dungeon Workbench:** room settings, the room canvas and Room Matrix share
+  one workspace, with a clearer tool rail and room previews. Object, sprite,
+  door and pot-item edits use the existing Undo/Redo and guarded save paths.
+- **Graphics editing:** PNG and palette-strip import, Sheet Browser palette
+  selection and live previews join the existing sheet editor. Graphics
+  write-back remains experimental and supports the documented 3bpp sheet table;
+  source publishing and arbitrary bit depths are not claimed.
+- **Message editing:** the preview fits the panel at integer zoom, uses the
+  textbox palette and a three-line black textbox, and keeps its grid optional.
+  The editor restores the last message, accepts `--message`, and puts prose
+  ahead of bank/address metadata in the message list.
+- **Safer file operations:** shared ROM-load options, project-scoped autosave
+  preferences, staged backup restore and guarded z3ed writes preserve the
+  existing backup, manifest and reopen contracts.
+- **Portable packages:** the macOS bundle carries its OpenSSL/libpng
+  dependencies and requires macOS 15 or newer. Linux TGZ/DEB and Windows
+  ZIP/installer packages use the existing layout, startup and version checks.
+
+### Scope and remaining limits
+
+Use copies of ROMs and projects. A release version is not a claim of emulator
+rendering parity or support for every hack-specific format. The
+[feature coverage report](reference/feature-coverage-report.md) records the
+supported editing and save domains. Gameplay-area/Lyra authoring and later
+Oracle expanded-map Build/Test remain experimental and are not runtime-qualified
+by this release. Screen, Music sample/instrument, Hex/Memory and emulator-state
+persistence remain outside coordinated Save ROM where the coverage report says
+so. The Windows interactive Save As check in issue #107 and unexecuted native
+platform checks stay explicit in the release validation record.
+
+HTTP API servers are compiled out of production packages. Private source builds
+and internal automation builds have separate options and are not the downloaded
+release package.
+
+The exact source, package hashes and platform checks belong to the release
+record. Read [Upgrading from 0.7.2](#upgrading-from-072) below before moving an
+existing project or script.
+
 ## v0.8.0-exp.2
 
 **Type:** Experimental prerelease candidate
@@ -25,7 +77,7 @@ ROM writes. These remain subject to the scope and limits in the
 [release/source matrix](https://github.com/scawful/yaze/blob/master/docs/internal/status.md#lyra-source-and-qualification-boundaries);
 full expanded-map Oracle Build/Test is not release-qualified.
 
-## v0.8.0-exp.1 <a id="v080"></a>
+## v0.8.0-exp.1 <a id="v080-exp1"></a>
 
 **Type:** Experimental release — Dungeon rendering and authoring, save safety,
 graphics and project tooling

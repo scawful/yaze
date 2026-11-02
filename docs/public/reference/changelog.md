@@ -7,6 +7,15 @@ They take precedence over broad parity or completion claims in historical
 entries below. Historical entries record changes at their original scope;
 they do not establish current end-to-end or release qualification.
 
+## 0.8.0
+
+The unsuffixed release uses application code `14c118824`, including the
+Workbench workspace/rail and Room Matrix improvements, PNG/palette import,
+message-editor preview and list changes, safer file operations and package
+portability repairs. The following historical entries retain their original
+scope; the current [release notes](../release-notes.md#v080) and
+[coverage report](feature-coverage-report.md) define the supported boundaries.
+
 ## Unreleased (after v0.8.0-exp.1)
 
 These source changes are not in the published prerelease downloads.

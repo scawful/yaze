@@ -3,6 +3,16 @@
 High-level release summary. For detailed notes, see
 `docs/public/reference/changelog.md`.
 
+## 0.8.0
+
+- Prepared the unsuffixed desktop release from application code `14c118824`.
+  It includes the Dungeon Workbench rail/Room Matrix updates, graphics import
+  and palette selection, message-editor preview/list improvements, safer file
+  operations and portable package fixes made after the first experimental
+  download. See `docs/public/release-notes.md` for the shipped scope and limits.
+- Kept the remaining Dungeon completion roadmap and Oracle expanded-map
+  Build/Test qualification separate from the 0.8.0 package release.
+
 ## Unreleased (after v0.8.0-exp.1)
 
 These changes are on the development line after the published prerelease;
