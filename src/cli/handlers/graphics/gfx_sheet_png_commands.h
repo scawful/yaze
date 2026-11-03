@@ -11,7 +11,8 @@ namespace cli {
 //   rgb:#RRGGBB,...           exactly 8 colors for indices 0-7
 //   room-bg:<room>:<row>      explicit LEFT half of background CGRAM row 0-7
 //   room-slot:<room>:<slot>:<row>  loaded slot's palette half (single sheet)
-//   room-sprite:<room>:<row>  dungeon room sprite palette (OAM row 0-7)
+//   room-sprite:<room>:<row>  dungeon room sprite palette (OAM row 0-7);
+//                             the high half for sheets vanilla loads there
 
 /**
  * @brief Export 16x16 blocks of a 3bpp graphics sheet to an indexed PNG.
@@ -43,17 +44,21 @@ class GfxExportCommandHandler : public resources::CommandHandler {
 
 /**
  * @brief Import an indexed PNG into a sheet at a 16x16 block. --dry-run
- * reports the blocks, tiles and ROM bytes that would change; --write saves
- * the result through the sheet writer to --out (never the input ROM). A sheet
- * that compresses larger than its current stream can move only into the
- * free space of the hack manifest loaded by --project-context.
+ * reports the blocks, tiles and ROM bytes that would change and the groups,
+ * areas and rooms that load the sheet (shared_by); --diff-png writes a
+ * before/after/changed-pixel image. --write saves the result through the
+ * sheet writer to --out (never the input ROM). A sheet that compresses larger
+ * than its current stream can move only into the free space of the hack
+ * manifest loaded by --project-context. A dry run whose write would be
+ * refused still prints the preview and exits nonzero.
  */
 class GfxImportCommandHandler : public resources::CommandHandler {
  public:
   std::string GetName() const override { return "gfx-import"; }
   std::string GetUsage() const override {
     return "gfx-import --sheet <id> --png <file> [--block <0-15>] "
-           "[--palette ...] [--project-context <path.yaze>] "
+           "[--palette ...] [--diff-png <file>] "
+           "[--project-context <path.yaze>] "
            "(--dry-run | --write --out <rom file>)";
   }
   std::string GetDefaultFormat() const override { return "json"; }
@@ -108,7 +113,8 @@ class GfxRoomExportCommandHandler : public resources::CommandHandler {
 
 /**
  * @brief Import an edited room background PNG: only sheets whose pixels
- * changed are written, each through the sheet writer.
+ * changed are written, each through the sheet writer. A dry run whose write
+ * would be refused still prints the preview and exits nonzero.
  */
 class GfxRoomImportCommandHandler : public resources::CommandHandler {
  public:

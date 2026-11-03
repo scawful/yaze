@@ -64,7 +64,9 @@ node scripts/graphics/snes_fx.js --fx scripts/graphics/fx/poof.js --out /tmp/poo
   colors 1..7 show as columns 9..15; the tool picks that half's palette.
 - The stdout summary and JSON carry the `gfxImport` command (sheet and block)
   when the cells fit. `gfx-import --write` may still need hack free space for
-  the bigger compressed sheet (`--project-context`).
+  the bigger compressed sheet (`--project-context`); the dry run says so and
+  exits nonzero. Its `shared_by` field lists who else loads the sheet, and
+  `--diff-png` writes a before/after image.
 
 ```sh
 node scripts/graphics/snes_fx.js --fx scripts/graphics/fx/poof.js --out /tmp/poof-c8 \

@@ -65,7 +65,21 @@ into graphics free space from the project's hack manifest
 (`graphics_sheet_regions.allocation_regions`). Load it with
 `--project-context /path/to/project.yaze`; `gfx-import` and `gfx-room-import`
 refuse `--project` and `--manifest`, which they do not read. Without a project
-context the dry run reports the size refusal and a `hint` field.
+context the dry run reports the size refusal and a `hint` field. A dry run whose
+write would be refused still prints its preview, then exits nonzero like the
+write.
+
+The `gfx-import` dry run also lists in `shared_by` the blocksets, spritesets,
+overworld areas and rooms that load the sheet, so an edit to shared art is
+visible before the write; `reserved_sheet` appears when the project reserves
+the sheet. `--diff-png /path/to/diff.png` writes a 128x96 image: the sheet
+before (top), after (middle), and the changed pixels in magenta (bottom).
+
+`room-sprite:<room>:<row>` reads OAM palette `row` of the room. Sprite sheets
+that vanilla loads into the high half of a palette (spriteset values `$52`,
+`$53`, `$5A`–`$5C`, `$5E`, `$5F`: sheets `0xC5`, `0xC6`, `0xCD`–`0xCF`, `0xD1`,
+`0xD2`) get columns 8–15; other sheets get columns 0–7. The output's
+`palette_half` field names the half.
 
 `room-slot:<room>:<slot>:<row>` uses destination slots 0–7 (`tile ID / 64`),
 not the reversed runtime upload counter. The command refuses a sheet that the

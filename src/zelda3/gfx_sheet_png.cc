@@ -77,8 +77,24 @@ absl::StatusOr<SheetPalette> RoomBackgroundSheetPalette(Rom& rom,
   return palette;
 }
 
+bool IsHighHalfSpriteSheet(int sheet) {
+  switch (sheet - kSpriteSheetBase) {
+    case 0x52:
+    case 0x53:
+    case 0x5A:
+    case 0x5B:
+    case 0x5C:
+    case 0x5E:
+    case 0x5F:
+      return true;
+    default:
+      return false;
+  }
+}
+
 absl::StatusOr<SheetPalette> RoomSpriteSheetPalette(Rom& rom, GameData& data,
-                                                    int room, int row) {
+                                                    int room, int row,
+                                                    bool high_half) {
   if (row < 0 || row > 7) {
     return absl::InvalidArgumentError("Sprite palette row must be 0-7");
   }
@@ -86,7 +102,7 @@ absl::StatusOr<SheetPalette> RoomSpriteSheetPalette(Rom& rom, GameData& data,
   const auto cgram = BuildDungeonSpriteRenderPalette(loaded, &data);
   SheetPalette palette;
   for (int i = 0; i < 8; ++i) {
-    palette[i] = ToSheetColor(cgram[(8 + row) * 16 + i]);
+    palette[i] = ToSheetColor(cgram[(8 + row) * 16 + (high_half ? 8 : 0) + i]);
   }
   return palette;
 }
@@ -126,6 +142,34 @@ absl::StatusOr<std::vector<uint8_t>> ExportSheetBlocksPng(
                            static_cast<uint8_t>(i == 0 ? 0 : 255)});
   }
   return util::EncodeIndexedPng(width, height, indices, png_palette);
+}
+
+absl::StatusOr<std::vector<uint8_t>> ExportSheetDiffPng(
+    const std::vector<uint8_t>& before_3bpp,
+    const std::vector<uint8_t>& after_3bpp, const SheetPalette& palette) {
+  if (before_3bpp.size() != kGfxSheet3bppBytes ||
+      after_3bpp.size() != kGfxSheet3bppBytes) {
+    return absl::InvalidArgumentError("A 3bpp sheet is 0x600 bytes");
+  }
+  constexpr int kPanel = kSheetWidth * kSheetHeight;
+  constexpr uint8_t kHighlight = 8;
+  const auto before = gfx::SnesTo8bppSheet(before_3bpp, 3);
+  const auto after = gfx::SnesTo8bppSheet(after_3bpp, 3);
+  std::vector<uint8_t> indices(static_cast<size_t>(kPanel) * 3, 0);
+  for (int i = 0; i < kPanel; ++i) {
+    indices[i] = before[i] & 0x07;
+    indices[kPanel + i] = after[i] & 0x07;
+    if (indices[i] != indices[kPanel + i])
+      indices[2 * kPanel + i] = kHighlight;
+  }
+  std::vector<std::array<uint8_t, 4>> png_palette;
+  for (int i = 0; i < 8; ++i) {
+    png_palette.push_back({palette[i][0], palette[i][1], palette[i][2],
+                           static_cast<uint8_t>(i == 0 ? 0 : 255)});
+  }
+  png_palette.push_back({255, 0, 255, 255});
+  return util::EncodeIndexedPng(kSheetWidth, kSheetHeight * 3, indices,
+                                png_palette);
 }
 
 absl::StatusOr<SheetImportResult> ImportSheetBlocksPng(

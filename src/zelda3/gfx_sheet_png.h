@@ -38,9 +38,24 @@ absl::StatusOr<SheetPalette> RoomBackgroundSheetPalette(Rom& rom,
                                                         GameData& data,
                                                         int room, int row);
 
-/// Sprite palette `row` (OAM palette 0-7, CGRAM row 8 + row) of room `room`.
+/// True for the sprite sheets vanilla decompresses into the high half of each
+/// palette (LoadSpriteGraphics, $00:E590): spriteset values $52, $53, $5A-$5C,
+/// $5E and $5F, i.e. sheets 0xC5, 0xC6, 0xCD-0xCF, 0xD1 and 0xD2. Their
+/// colors 1-7 show as CGRAM columns 9-15.
+bool IsHighHalfSpriteSheet(int sheet);
+
+/// Sprite palette `row` (OAM palette 0-7, CGRAM row 8 + row) of room `room`:
+/// columns 0-7, or 8-15 when `high_half` (see IsHighHalfSpriteSheet).
 absl::StatusOr<SheetPalette> RoomSpriteSheetPalette(Rom& rom, GameData& data,
-                                                    int room, int row);
+                                                    int room, int row,
+                                                    bool high_half = false);
+
+/// 128x96 indexed PNG comparing two 0x600-byte 3bpp sheets: the before sheet
+/// (rows 0-31), the after sheet (rows 32-63), and the pixels that differ in
+/// highlight color index 8 (rows 64-95).
+absl::StatusOr<std::vector<uint8_t>> ExportSheetDiffPng(
+    const std::vector<uint8_t>& before_3bpp,
+    const std::vector<uint8_t>& after_3bpp, const SheetPalette& palette);
 
 /// Indexed PNG of `block_count` blocks from `first_block` of a 0x600-byte
 /// SNES 3bpp sheet.
