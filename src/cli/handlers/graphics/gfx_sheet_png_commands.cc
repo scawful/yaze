@@ -521,13 +521,20 @@ absl::Status GfxImportCommandHandler::Execute(
   }
   ASSIGN_OR_RETURN(const auto current, zelda3::ReadGfxSheetData(*rom, sheet));
   const std::string png_path = *parser.GetString("png");
+  const auto diff_png = parser.GetString("diff-png");
+  std::vector<std::string> paths = {png_path};
+  if (project_ != nullptr && !project_->filepath.empty())
+    paths.push_back(project_->filepath);
+  if (parser.HasFlag("write"))
+    paths.push_back(*parser.GetString("out"));
+  if (diff_png.has_value())
+    paths.push_back(*diff_png);
+  RETURN_IF_ERROR(ValidateExportPaths(*rom, paths));
   ASSIGN_OR_RETURN(const auto png_bytes, util::ReadBinaryFile(png_path));
   ASSIGN_OR_RETURN(const auto png, util::DecodePng(png_bytes));
   ASSIGN_OR_RETURN(const auto imported,
                    zelda3::ImportSheetBlocksPng(current, png, block, palette));
-  const auto diff_png = parser.GetString("diff-png");
   if (diff_png.has_value()) {
-    RETURN_IF_ERROR(ValidateExportPaths(*rom, {*diff_png, png_path}));
     ASSIGN_OR_RETURN(
         const auto diff,
         zelda3::ExportSheetDiffPng(current, imported.snes_3bpp, palette));

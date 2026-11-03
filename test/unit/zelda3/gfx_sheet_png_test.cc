@@ -277,6 +277,52 @@ TEST(GfxSheetPngCommandTest, DryRunShowsExactChangesAndWriteSavesACopy) {
   }
   const std::string project_arg =
       "--project-context=" + (project_dir / "gfx.yaze").string();
+  // An output must never replace the other output or any command input.
+  const auto project_path = project_dir / "gfx.yaze";
+  const auto collision = project_dir / "collision.sfc";
+  const std::vector<uint8_t> sentinel = {'k', 'e', 'e', 'p'};
+  ASSERT_TRUE(util::WriteBinaryFile(collision.string(), sentinel).ok());
+  const auto project_before = util::ReadBinaryFile(project_path.string());
+  const auto png_before = util::ReadBinaryFile(png_path.string());
+  ASSERT_TRUE(project_before.ok());
+  ASSERT_TRUE(png_before.ok());
+  std::vector<std::pair<std::filesystem::path, std::filesystem::path>> aliases =
+      {{collision, collision},
+       {out_path, project_path},
+       {project_path, diff_path},
+       {png_path, diff_path}};
+  std::error_code link_error;
+  const auto collision_link = project_dir / "collision-link.png";
+  std::filesystem::create_hard_link(collision, collision_link, link_error);
+  if (!link_error)
+    aliases.emplace_back(collision, collision_link);
+  link_error.clear();
+  const auto project_link = project_dir / "project-link.png";
+  std::filesystem::create_hard_link(project_path, project_link, link_error);
+  if (!link_error)
+    aliases.emplace_back(out_path, project_link);
+  for (const auto& [output, diff] : aliases) {
+    SCOPED_TRACE(output.string() + " / " + diff.string());
+    absl::Status alias_status;
+    RunCommand(importer,
+               {"--sheet=0x40", "--png=" + png_path.string(), "--write",
+                "--out=" + output.string(), "--diff-png=" + diff.string(),
+                project_arg, "--format=json"},
+               rom, &alias_status);
+    EXPECT_EQ(alias_status.code(), absl::StatusCode::kInvalidArgument);
+    const auto collision_after = util::ReadBinaryFile(collision.string());
+    const auto project_after = util::ReadBinaryFile(project_path.string());
+    const auto png_after = util::ReadBinaryFile(png_path.string());
+    ASSERT_TRUE(collision_after.ok());
+    ASSERT_TRUE(project_after.ok());
+    ASSERT_TRUE(png_after.ok());
+    EXPECT_EQ(*collision_after, sentinel);
+    EXPECT_EQ(*project_after, *project_before);
+    EXPECT_EQ(*png_after, *png_before);
+    EXPECT_FALSE(std::filesystem::exists(out_path));
+    EXPECT_FALSE(std::filesystem::exists(diff_path));
+    EXPECT_EQ(rom.vector(), fixture.bytes);
+  }
   // --project and --manifest are not read; refusing them keeps a grown sheet
   // from being reported as having no free space when the manifest has some.
   for (const std::string& unread :
