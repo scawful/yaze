@@ -743,8 +743,14 @@ absl::Status GfxRoomImportCommandHandler::Execute(
         "Graphics import is disabled by the project's read-only policy");
   }
   RETURN_IF_ERROR(RequireUsGfxTables(*rom));
-  ASSIGN_OR_RETURN(auto context, LoadRoomContext(*rom, parser));
   const std::string png_path = *parser.GetString("png");
+  std::vector<std::string> paths = {png_path};
+  if (project_ != nullptr && !project_->filepath.empty())
+    paths.push_back(project_->filepath);
+  if (parser.HasFlag("write"))
+    paths.push_back(*parser.GetString("out"));
+  RETURN_IF_ERROR(ValidateExportPaths(*rom, paths));
+  ASSIGN_OR_RETURN(auto context, LoadRoomContext(*rom, parser));
   ASSIGN_OR_RETURN(const auto png_bytes, util::ReadBinaryFile(png_path));
   ASSIGN_OR_RETURN(const auto png, util::DecodePng(png_bytes));
   ASSIGN_OR_RETURN(
