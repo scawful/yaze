@@ -702,13 +702,144 @@ ParseDungeonStreamLayouts(const Json& root) {
   return layouts;
 }
 
+absl::StatusOr<std::string> ParseGraphicsSheetSha1(const Json& value,
+                                                   const std::string& field) {
+  if (!value.is_string()) {
+    return absl::InvalidArgumentError(
+        absl::StrFormat("%s must be exactly 40 hexadecimal digits", field));
+  }
+  std::string sha1 = value.get<std::string>();
+  if (sha1.size() != 40) {
+    return absl::InvalidArgumentError(
+        absl::StrFormat("%s must be exactly 40 hexadecimal digits", field));
+  }
+  for (char& digit : sha1) {
+    if (digit >= 'A' && digit <= 'F') {
+      digit = static_cast<char>(digit - 'A' + 'a');
+    } else if (!((digit >= '0' && digit <= '9') ||
+                 (digit >= 'a' && digit <= 'f'))) {
+      return absl::InvalidArgumentError(
+          absl::StrFormat("%s must be exactly 40 hexadecimal digits", field));
+    }
+  }
+  return sha1;
+}
+
+absl::StatusOr<GraphicsSheetPointerLayout> ParseGraphicsSheetPointerLayout(
+    const Json& json) {
+  constexpr const char* kPath = "graphics_sheet_regions.pointer_layout";
+  constexpr std::array<const char*, 10> kFields = {"bank_pc",
+                                                   "high_pc",
+                                                   "low_pc",
+                                                   "physical_table_rows",
+                                                   "usable_sheet_count",
+                                                   "default_sheet_id",
+                                                   "rom_sha1",
+                                                   "rom_role",
+                                                   "source_path",
+                                                   "source_sha1"};
+  if (!json.is_object()) {
+    return absl::InvalidArgumentError(
+        absl::StrFormat("%s must be an object", kPath));
+  }
+  for (const char* field : kFields) {
+    if (!json.contains(field)) {
+      return absl::InvalidArgumentError(
+          absl::StrFormat("%s.%s is required", kPath, field));
+    }
+  }
+  for (const auto& item : json.items()) {
+    if (std::none_of(kFields.begin(), kFields.end(),
+                     [&](const char* field) { return item.key() == field; })) {
+      return absl::InvalidArgumentError(
+          absl::StrFormat("%s contains unknown key '%s'", kPath, item.key()));
+    }
+  }
+
+  GraphicsSheetPointerLayout layout;
+  ASSIGN_OR_RETURN(
+      layout.bank_pc,
+      ParseStrictHexValue(json["bank_pc"], std::string(kPath) + ".bank_pc",
+                          0xFFFFFF));
+  ASSIGN_OR_RETURN(
+      layout.high_pc,
+      ParseStrictHexValue(json["high_pc"], std::string(kPath) + ".high_pc",
+                          0xFFFFFF));
+  ASSIGN_OR_RETURN(
+      layout.low_pc,
+      ParseStrictHexValue(json["low_pc"], std::string(kPath) + ".low_pc",
+                          0xFFFFFF));
+  ASSIGN_OR_RETURN(const int rows,
+                   ParseBoundedNonnegativeInteger(
+                       json["physical_table_rows"],
+                       std::string(kPath) + ".physical_table_rows", 256));
+  ASSIGN_OR_RETURN(const int usable,
+                   ParseBoundedNonnegativeInteger(
+                       json["usable_sheet_count"],
+                       std::string(kPath) + ".usable_sheet_count", 255));
+  ASSIGN_OR_RETURN(const int sentinel,
+                   ParseBoundedNonnegativeInteger(
+                       json["default_sheet_id"],
+                       std::string(kPath) + ".default_sheet_id", 255));
+  if (!((rows == 223 && usable == 223) || (rows == 256 && usable == 255))) {
+    return absl::InvalidArgumentError(absl::StrFormat(
+        "%s requires physical_table_rows/usable_sheet_count of 223/223 or "
+        "256/255",
+        kPath));
+  }
+  if (sentinel != 255) {
+    return absl::InvalidArgumentError(absl::StrFormat(
+        "%s.default_sheet_id must be 255 (the default-sheet sentinel)", kPath));
+  }
+  layout.physical_table_rows = static_cast<uint16_t>(rows);
+  layout.usable_sheet_count = static_cast<uint16_t>(usable);
+  layout.default_sheet_id = static_cast<uint16_t>(sentinel);
+
+  std::vector<NamedPcRange> table_ranges;
+  for (const auto& [field, begin] :
+       {std::pair<const char*, uint32_t>{"bank_pc", layout.bank_pc},
+        {"high_pc", layout.high_pc},
+        {"low_pc", layout.low_pc}}) {
+    const uint32_t end = begin + layout.physical_table_rows;
+    if (end > 0x1000000) {
+      return absl::InvalidArgumentError(absl::StrFormat(
+          "%s.%s table span exceeds the 24-bit PC address range", kPath,
+          field));
+    }
+    table_ranges.push_back({begin, end, std::string(kPath) + "." + field});
+  }
+  RETURN_IF_ERROR(ValidateDisjointRanges(std::move(table_ranges),
+                                         std::string(kPath) + " table spans"));
+
+  ASSIGN_OR_RETURN(layout.rom_sha1,
+                   ParseGraphicsSheetSha1(json["rom_sha1"],
+                                          std::string(kPath) + ".rom_sha1"));
+  if (!json["rom_role"].is_string() ||
+      (json["rom_role"] != "development" && json["rom_role"] != "compiled")) {
+    return absl::InvalidArgumentError(absl::StrFormat(
+        "%s.rom_role must be 'development' or 'compiled'", kPath));
+  }
+  layout.rom_role = json["rom_role"].get<std::string>();
+  constexpr const char* kSourcePath = "Data/graphics/source_sprite_sheets.json";
+  if (!json["source_path"].is_string() || json["source_path"] != kSourcePath) {
+    return absl::InvalidArgumentError(
+        absl::StrFormat("%s.source_path must be '%s'", kPath, kSourcePath));
+  }
+  layout.source_path = kSourcePath;
+  ASSIGN_OR_RETURN(layout.source_sha1,
+                   ParseGraphicsSheetSha1(json["source_sha1"],
+                                          std::string(kPath) + ".source_sha1"));
+  return layout;
+}
+
 absl::StatusOr<GraphicsSheetLayout> ParseGraphicsSheetLayout(
     const Json& root, int manifest_version,
     const std::unordered_map<DungeonStreamType, DungeonStreamLayout>&
         dungeon_stream_layouts) {
   constexpr const char* kSection = "graphics_sheet_regions";
-  // Matches zelda3::kGfxSheetCount; core cannot include zelda3 headers.
-  constexpr uint32_t kGraphicsSheetCount = 223;
+  // Legacy default when no descriptor is present. Core does not depend on
+  // zelda3's graphics models or their maximum storage capacity.
+  constexpr uint32_t kLegacyGraphicsSheetCount = 223;
   GraphicsSheetLayout layout;
   if (!root.contains(kSection)) {
     return layout;
@@ -725,10 +856,15 @@ absl::StatusOr<GraphicsSheetLayout> ParseGraphicsSheetLayout(
   }
   for (const auto& item : section.items()) {
     if (item.key() != "allocation_regions" && item.key() != "reserved_sheets" &&
-        item.key() != "description") {
+        item.key() != "description" && item.key() != "pointer_layout") {
       return absl::InvalidArgumentError(absl::StrFormat(
           "graphics_sheet_regions contains unknown key '%s'", item.key()));
     }
+  }
+
+  if (section.contains("pointer_layout")) {
+    ASSIGN_OR_RETURN(layout.pointer_layout, ParseGraphicsSheetPointerLayout(
+                                                section["pointer_layout"]));
   }
 
   if (section.contains("allocation_regions")) {
@@ -774,7 +910,9 @@ absl::StatusOr<GraphicsSheetLayout> ParseGraphicsSheetLayout(
                      value,
                      absl::StrFormat(
                          "graphics_sheet_regions.reserved_sheets[%zu]", index),
-                     kGraphicsSheetCount - 1));
+                     layout.pointer_layout.has_value()
+                         ? layout.pointer_layout->usable_sheet_count - 1
+                         : kLegacyGraphicsSheetCount - 1));
       layout.reserved_sheets.push_back(static_cast<uint16_t>(sheet));
       ++index;
     }

@@ -7,13 +7,16 @@
 #include <filesystem>
 #include <fstream>
 #include <iterator>
+#include <limits>
 #include <random>
+#include <utility>
 #include <vector>
 
 #include "absl/status/status.h"
 #include "rom/rom.h"
 #include "unique_temp_path.h"
 #include "unit/zelda3/gfx_sheet_test_rom.h"
+#include "util/rom_hash.h"
 
 namespace yaze::test {
 namespace {
@@ -57,6 +60,246 @@ void ExpectOtherSheetsUnchanged(
   }
 }
 
+constexpr zelda3::GfxSheetPointerTables kExpandedTestTables = {0x70000, 0x70100,
+                                                               0x70200};
+
+GfxSheetTestRom BuildExpandedSheetTestRom() {
+  auto fixture = BuildGfxSheetTestRom();
+  const zelda3::GfxSheetPointerTables legacy;
+  // The new rows deliberately alias valid 3bpp streams. Their contents are
+  // distinct from the font/UI sheets immediately before the new ID range.
+  for (uint16_t sheet = 0; sheet < 256; ++sheet) {
+    const uint16_t source =
+        sheet < zelda3::kGfxSheetCount ? sheet : (sheet == 0xFE ? 0x21 : 0x20);
+    fixture.bytes[kExpandedTestTables.bank + sheet] =
+        fixture.bytes[legacy.bank + source];
+    fixture.bytes[kExpandedTestTables.high + sheet] =
+        fixture.bytes[legacy.high + source];
+    fixture.bytes[kExpandedTestTables.low + sheet] =
+        fixture.bytes[legacy.low + source];
+    if (sheet >= zelda3::kGfxSheetCount) {
+      fixture.sheets[sheet] = fixture.sheets.at(source);
+    }
+  }
+  return fixture;
+}
+
+zelda3::ResolvedGfxSheetLayout ExpandedLayoutFor(const Rom& rom) {
+  zelda3::ResolvedGfxSheetLayout layout;
+  layout.tables = kExpandedTestTables;
+  layout.physical_table_rows = 256;
+  layout.usable_sheet_count = 255;
+  layout.explicit_layout = true;
+  layout.rom_sha1 = util::ComputeSha1Hex(rom.data(), rom.size());
+  layout.rom_role = "compiled";
+  layout.source_path = "Data/graphics/source_sprite_sheets.json";
+  // Reader tests declare the origin. File-content verification belongs to
+  // the project adapter, not this storage-only contract.
+  layout.source_sha1 = std::string(40, 'a');
+  return layout;
+}
+
+TEST(GfxSheetResolvedLayoutTest,
+     LegacyControlKeepsExistingReadsAndWriterLimit) {
+  const auto fixture = BuildGfxSheetTestRom();
+  const Rom rom = LoadTestRom(fixture.bytes);
+  const zelda3::ResolvedGfxSheetLayout layout;
+  ASSERT_TRUE(zelda3::ValidateResolvedGfxSheetLayout(rom, layout).ok());
+  EXPECT_FALSE(layout.write_authorized());
+  EXPECT_EQ(zelda3::kGfxSheetCount, 223);
+  for (uint16_t sheet : {0x20, 0x71, 0x73, 0xDA, 0xDE}) {
+    SCOPED_TRACE(sheet);
+    const auto pc = zelda3::ReadGfxSheetPcResolved(rom, sheet, layout);
+    const auto legacy_pc = zelda3::ReadGfxSheetPc(rom, sheet);
+    ASSERT_TRUE(pc.ok()) << pc.status();
+    ASSERT_TRUE(legacy_pc.ok()) << legacy_pc.status();
+    EXPECT_EQ(*pc, *legacy_pc);
+    const auto data = zelda3::ReadGfxSheetDataResolved(rom, sheet, layout);
+    ASSERT_TRUE(data.ok()) << data.status();
+    EXPECT_EQ(*data, fixture.sheets.at(sheet));
+  }
+  EXPECT_EQ(zelda3::ReadGfxSheetPcResolved(rom, 0xDF, layout).status().code(),
+            absl::StatusCode::kInvalidArgument);
+}
+
+TEST(GfxSheetResolvedLayoutTest, ReadsNewDfAndFeAsCompressed3bpp) {
+  const auto fixture = BuildExpandedSheetTestRom();
+  Rom rom = LoadTestRom(fixture.bytes);
+  const auto layout = ExpandedLayoutFor(rom);
+  ASSERT_TRUE(zelda3::ValidateResolvedGfxSheetLayout(rom, layout).ok());
+  EXPECT_FALSE(layout.write_authorized());
+  for (uint16_t sheet : {0xDF, 0xFE}) {
+    SCOPED_TRACE(sheet);
+    const auto extent = zelda3::ReadGfxSheetExtentResolved(rom, sheet, layout);
+    ASSERT_TRUE(extent.ok()) << extent.status();
+    EXPECT_EQ(extent->kind, zelda3::GfxSheetStorageKind::kCompressed3bpp);
+    EXPECT_EQ(extent->decoded_size, zelda3::kGfxSheet3bppBytes);
+    const auto data = zelda3::ReadGfxSheetDataResolved(rom, sheet, layout);
+    ASSERT_TRUE(data.ok()) << data.status();
+    EXPECT_EQ(*data, fixture.sheets.at(sheet));
+    // An explicit reader contract never expands the old writer's admission.
+    EXPECT_EQ(zelda3::ReadGfxSheetPc(rom, sheet, layout.tables).status().code(),
+              absl::StatusCode::kInvalidArgument);
+    const auto written = zelda3::WriteGfxSheet(
+        rom, sheet, fixture.sheets.at(sheet), {}, layout.tables);
+    EXPECT_EQ(written.status().code(), absl::StatusCode::kInvalidArgument);
+  }
+  EXPECT_EQ(rom.vector(), fixture.bytes);
+}
+
+TEST(GfxSheetResolvedLayoutTest, RejectsFfSentinelAndIdsPastUsableRows) {
+  const auto fixture = BuildExpandedSheetTestRom();
+  const Rom rom = LoadTestRom(fixture.bytes);
+  const auto layout = ExpandedLayoutFor(rom);
+  for (uint16_t sheet : {0xFF, 0x100, 0xFFFF}) {
+    SCOPED_TRACE(sheet);
+    EXPECT_EQ(
+        zelda3::ReadGfxSheetPcResolved(rom, sheet, layout).status().code(),
+        absl::StatusCode::kInvalidArgument);
+    EXPECT_EQ(
+        zelda3::ReadGfxSheetExtentResolved(rom, sheet, layout).status().code(),
+        absl::StatusCode::kInvalidArgument);
+    EXPECT_EQ(
+        zelda3::ReadGfxSheetDataResolved(rom, sheet, layout).status().code(),
+        absl::StatusCode::kInvalidArgument);
+  }
+}
+
+TEST(GfxSheetResolvedLayoutTest, RequiresSupportedCountsDefaultAndLoadedRom) {
+  const auto fixture = BuildExpandedSheetTestRom();
+  const Rom rom = LoadTestRom(fixture.bytes);
+  const auto original = ExpandedLayoutFor(rom);
+  for (const auto& counts : std::vector<std::pair<uint16_t, uint16_t>>{
+           {0, 0}, {223, 255}, {255, 255}, {256, 256}, {256, 223}}) {
+    auto layout = original;
+    layout.physical_table_rows = counts.first;
+    layout.usable_sheet_count = counts.second;
+    EXPECT_EQ(zelda3::ValidateResolvedGfxSheetLayout(rom, layout).code(),
+              absl::StatusCode::kInvalidArgument);
+  }
+  auto layout = original;
+  layout.default_sheet_id = 0;
+  EXPECT_EQ(zelda3::ValidateResolvedGfxSheetLayout(rom, layout).code(),
+            absl::StatusCode::kInvalidArgument);
+  EXPECT_EQ(zelda3::ValidateResolvedGfxSheetLayout(Rom{}, original).code(),
+            absl::StatusCode::kFailedPrecondition);
+}
+
+TEST(GfxSheetResolvedLayoutTest, ChecksFullPhysicalSpansAndDisjointTables) {
+  const auto fixture = BuildExpandedSheetTestRom();
+  const Rom rom = LoadTestRom(fixture.bytes);
+  auto layout = ExpandedLayoutFor(rom);
+  // All usable rows fit, but the physical sentinel row is truncated.
+  layout.tables.low = static_cast<uint32_t>(rom.size() - 255);
+  EXPECT_EQ(zelda3::ValidateResolvedGfxSheetLayout(rom, layout).code(),
+            absl::StatusCode::kOutOfRange);
+  layout.tables.low = std::numeric_limits<uint32_t>::max();
+  EXPECT_EQ(zelda3::ValidateResolvedGfxSheetLayout(rom, layout).code(),
+            absl::StatusCode::kOutOfRange);
+  layout = ExpandedLayoutFor(rom);
+  layout.tables.high = layout.tables.bank + 255;
+  EXPECT_EQ(zelda3::ValidateResolvedGfxSheetLayout(rom, layout).code(),
+            absl::StatusCode::kInvalidArgument);
+  layout.tables.high = layout.tables.bank;
+  EXPECT_EQ(zelda3::ValidateResolvedGfxSheetLayout(rom, layout).code(),
+            absl::StatusCode::kInvalidArgument);
+}
+
+TEST(GfxSheetResolvedLayoutTest, ExplicitLayoutsRequireCurrentRomIdentity) {
+  const auto fixture = BuildExpandedSheetTestRom();
+  Rom rom = LoadTestRom(fixture.bytes);
+  auto layout = ExpandedLayoutFor(rom);
+  layout.explicit_layout = false;
+  EXPECT_EQ(zelda3::ValidateResolvedGfxSheetLayout(rom, layout).code(),
+            absl::StatusCode::kFailedPrecondition);
+  layout = ExpandedLayoutFor(rom);
+  layout.rom_sha1.clear();
+  EXPECT_EQ(zelda3::ValidateResolvedGfxSheetLayout(rom, layout).code(),
+            absl::StatusCode::kFailedPrecondition);
+  layout = ExpandedLayoutFor(rom);
+  rom.mutable_vector()[0] ^= 1;
+  EXPECT_EQ(zelda3::ReadGfxSheetPcResolved(rom, 0xDF, layout).status().code(),
+            absl::StatusCode::kFailedPrecondition);
+  // Explicit legacy dimensions also require a matching identity.
+  layout = {};
+  layout.explicit_layout = true;
+  EXPECT_EQ(zelda3::ValidateResolvedGfxSheetLayout(rom, layout).code(),
+            absl::StatusCode::kFailedPrecondition);
+  layout.rom_sha1 = util::ComputeSha1Hex(rom.data(), rom.size());
+  layout.rom_role = "development";
+  layout.source_path = "Data/graphics/source_sprite_sheets.json";
+  layout.source_sha1 = std::string(40, 'a');
+  EXPECT_TRUE(zelda3::ValidateResolvedGfxSheetLayout(rom, layout).ok());
+  layout.rom_sha1[0] = layout.rom_sha1[0] == '0' ? '1' : '0';
+  EXPECT_EQ(zelda3::ValidateResolvedGfxSheetLayout(rom, layout).code(),
+            absl::StatusCode::kFailedPrecondition);
+}
+
+TEST(GfxSheetResolvedLayoutTest, RequiresExplicitDeclaredSourceProvenance) {
+  const auto fixture = BuildExpandedSheetTestRom();
+  const Rom rom = LoadTestRom(fixture.bytes);
+  const auto original = ExpandedLayoutFor(rom);
+  auto layout = original;
+  layout.rom_role = "dev";
+  EXPECT_EQ(zelda3::ValidateResolvedGfxSheetLayout(rom, layout).code(),
+            absl::StatusCode::kInvalidArgument);
+  layout = original;
+  layout.source_path = "elsewhere/source_sprite_sheets.json";
+  EXPECT_EQ(zelda3::ValidateResolvedGfxSheetLayout(rom, layout).code(),
+            absl::StatusCode::kInvalidArgument);
+  for (const auto& sha1 :
+       {std::string(), std::string(39, 'a'), std::string(40, 'g')}) {
+    layout = original;
+    layout.source_sha1 = sha1;
+    EXPECT_EQ(zelda3::ValidateResolvedGfxSheetLayout(rom, layout).code(),
+              absl::StatusCode::kInvalidArgument);
+  }
+}
+
+TEST(GfxSheetResolvedLayoutTest, RefusesWramBanksWithoutChangingLegacyReader) {
+  auto bytes = BuildGfxSheetTestRom().bytes;
+  bytes.resize(0x400000, 0);
+  const zelda3::GfxSheetPointerTables tables;
+  for (uint8_t bank : {0x7E, 0x7F}) {
+    bytes[tables.bank + 0x20] = bank;
+    bytes[tables.high + 0x20] = 0x80;
+    bytes[tables.low + 0x20] = 0;
+    const Rom rom = LoadTestRom(bytes);
+    // The legacy API's historical acceptance is deliberately preserved.
+    EXPECT_TRUE(zelda3::ReadGfxSheetPc(rom, 0x20).ok());
+    EXPECT_EQ(zelda3::ReadGfxSheetPcResolved(rom, 0x20, {}).status().code(),
+              absl::StatusCode::kDataLoss);
+  }
+}
+
+TEST(GfxSheetResolvedLayoutTest, RejectsWrong3bppSizeAndTruncatedStreams) {
+  const auto fixture = BuildGfxSheetTestRom();
+  auto bytes = fixture.bytes;
+  const zelda3::GfxSheetPointerTables tables;
+  // A valid 2bpp-sized stream remains readable by the legacy measuring API,
+  // but cannot be accepted as a resolved 3bpp sheet.
+  for (uint32_t table : {tables.bank, tables.high, tables.low}) {
+    bytes[table + 0x20] = bytes[table + 0x71];
+  }
+  Rom rom = LoadTestRom(bytes);
+  const zelda3::ResolvedGfxSheetLayout legacy;
+  ASSERT_TRUE(zelda3::ReadGfxSheetExtent(rom, 0x20).ok());
+  EXPECT_EQ(
+      zelda3::ReadGfxSheetExtentResolved(rom, 0x20, legacy).status().code(),
+      absl::StatusCode::kDataLoss);
+  EXPECT_EQ(zelda3::ReadGfxSheetDataResolved(rom, 0x20, legacy).status().code(),
+            absl::StatusCode::kDataLoss);
+  // A byte-fill command without its operand/terminator runs off the ROM.
+  SetTestSheetPointer(bytes, 0x20, static_cast<uint32_t>(bytes.size() - 1),
+                      /*fast_rom=*/false);
+  bytes.back() = 0x20;
+  const Rom truncated_rom = LoadTestRom(bytes);
+  EXPECT_FALSE(
+      zelda3::ReadGfxSheetExtentResolved(truncated_rom, 0x20, legacy).ok());
+  EXPECT_FALSE(
+      zelda3::ReadGfxSheetDataResolved(truncated_rom, 0x20, legacy).ok());
+}
+
 TEST(GfxSheetStorageTest, ClassifiesSheetKinds) {
   using zelda3::GfxSheetStorageKind;
   EXPECT_EQ(zelda3::GetGfxSheetStorageKind(0),
@@ -73,6 +316,12 @@ TEST(GfxSheetStorageTest, ClassifiesSheetKinds) {
             GfxSheetStorageKind::kCompressed3bpp);
   EXPECT_EQ(zelda3::GetGfxSheetStorageKind(218),
             GfxSheetStorageKind::kCompressed2bpp);
+  EXPECT_EQ(zelda3::GetGfxSheetStorageKind(0xDE),
+            GfxSheetStorageKind::kCompressed2bpp);
+  EXPECT_EQ(zelda3::GetGfxSheetStorageKind(0xDF),
+            GfxSheetStorageKind::kCompressed3bpp);
+  EXPECT_EQ(zelda3::GetGfxSheetStorageKind(0xFE),
+            GfxSheetStorageKind::kCompressed3bpp);
 }
 
 TEST(GfxSheetStorageTest, ReadsEveryTestSheet) {

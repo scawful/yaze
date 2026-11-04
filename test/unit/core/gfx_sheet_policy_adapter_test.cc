@@ -13,6 +13,7 @@
 #include "core/hack_manifest.h"
 #include "core/project.h"
 #include "unique_temp_path.h"
+#include "util/rom_hash.h"
 
 namespace yaze::core {
 namespace {
@@ -28,6 +29,140 @@ constexpr const char* kManifest = R"json({
     "regions": [{"start": "0x1C8100", "end": "0x1C8200", "module": "Hook"}]
   }
 })json";
+
+std::vector<uint8_t> MakeLayoutRomBytes() {
+  std::vector<uint8_t> bytes(0x120000, 0);
+  bytes[0x7FD9] = 1;  // US legacy tables when no explicit layout is present.
+  return bytes;
+}
+
+std::string ExpandedLayoutManifest(const Rom& rom,
+                                   const std::string& role = "compiled") {
+  return R"json({"manifest_version":3,"graphics_sheet_regions":{
+    "pointer_layout":{
+      "bank_pc":"0x11FD00","high_pc":"0x11FE00","low_pc":"0x11FF00",
+      "physical_table_rows":256,"usable_sheet_count":255,"default_sheet_id":255,
+      "rom_sha1":")json" +
+         util::ComputeSha1Hex(rom.data(), rom.size()) +
+         R"json(","rom_role":")json" + role +
+         R"json(","source_path":"Data/graphics/source_sprite_sheets.json",
+      "source_sha1":"0123456789abcdef0123456789abcdef01234567"
+    }}})json";
+}
+
+TEST(GfxSheetPolicyAdapterTest, ResolvesLegacyWithoutExpandingDefaultBounds) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(MakeLayoutRomBytes()).ok());
+  HackManifest manifest;
+  const auto resolved = ResolveGfxSheetLayout(rom, manifest);
+  ASSERT_TRUE(resolved.ok()) << resolved.status();
+  EXPECT_EQ(resolved->physical_table_rows, 223);
+  EXPECT_EQ(resolved->usable_sheet_count, 223);
+  EXPECT_EQ(resolved->tables.bank, 0x4F80u);
+  EXPECT_FALSE(resolved->explicit_layout);
+  EXPECT_FALSE(resolved->write_authorized());
+}
+
+TEST(GfxSheetPolicyAdapterTest, ResolvesExpandedOnlyForMatchingLoadedBytes) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(MakeLayoutRomBytes()).ok());
+  HackManifest manifest;
+  ASSERT_TRUE(manifest.LoadFromString(ExpandedLayoutManifest(rom)).ok());
+  const auto resolved = ResolveGfxSheetLayout(rom, manifest);
+  ASSERT_TRUE(resolved.ok()) << resolved.status();
+  EXPECT_EQ(resolved->physical_table_rows, 256);
+  EXPECT_EQ(resolved->usable_sheet_count, 255);
+  EXPECT_EQ(resolved->default_sheet_id, 0xFF);
+  EXPECT_EQ(resolved->tables.bank, 0x11FD00u);
+  EXPECT_EQ(resolved->rom_role, "compiled");
+  EXPECT_EQ(resolved->source_path, "Data/graphics/source_sprite_sheets.json");
+  EXPECT_FALSE(resolved->write_authorized());
+
+  auto changed = MakeLayoutRomBytes();
+  changed[0x100] ^= 1;
+  Rom different_rom;
+  ASSERT_TRUE(different_rom.LoadFromData(changed).ok());
+  EXPECT_EQ(ResolveGfxSheetLayout(different_rom, manifest).status().code(),
+            absl::StatusCode::kFailedPrecondition);
+}
+
+TEST(GfxSheetPolicyAdapterTest, RejectsPartialAndConflictingPointerOverrides) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(MakeLayoutRomBytes()).ok());
+  HackManifest manifest;
+  ASSERT_TRUE(manifest.LoadFromString(ExpandedLayoutManifest(rom)).ok());
+  RomAddressOverrides overrides;
+  overrides.addresses[RomAddressKey::kOverworldGfxPtr1] = 0x11FD00;
+  EXPECT_FALSE(ResolveGfxSheetLayout(rom, manifest, overrides).ok());
+  overrides.addresses[RomAddressKey::kOverworldGfxPtr2] = 0x11FE00;
+  overrides.addresses[RomAddressKey::kOverworldGfxPtr3] = 0x11FF00;
+  EXPECT_TRUE(ResolveGfxSheetLayout(rom, manifest, overrides).ok());
+  overrides.addresses[RomAddressKey::kOverworldGfxPtr3] = 0x513E;
+  EXPECT_FALSE(ResolveGfxSheetLayout(rom, manifest, overrides).ok());
+}
+
+TEST(GfxSheetPolicyAdapterTest, LegacyOverridesNeverEnableExpandedIds) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(MakeLayoutRomBytes()).ok());
+  HackManifest manifest;
+  RomAddressOverrides overrides;
+  overrides.addresses = {{RomAddressKey::kOverworldGfxPtr1, 0x11FD00},
+                         {RomAddressKey::kOverworldGfxPtr2, 0x11FE00},
+                         {RomAddressKey::kOverworldGfxPtr3, 0x11FF00}};
+  const auto resolved = ResolveGfxSheetLayout(rom, manifest, overrides);
+  ASSERT_TRUE(resolved.ok()) << resolved.status();
+  EXPECT_EQ(resolved->usable_sheet_count, 223);
+  EXPECT_FALSE(zelda3::ReadGfxSheetPcResolved(rom, 0xDF, *resolved).ok());
+  EXPECT_FALSE(resolved->write_authorized());
+}
+
+TEST(GfxSheetPolicyAdapterTest, JapaneseRomCannotSilentlyUseUsDefaultTables) {
+  auto bytes = MakeLayoutRomBytes();
+  bytes[0x7FD9] = 0;
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(bytes).ok());
+  HackManifest manifest;
+  EXPECT_FALSE(ResolveGfxSheetLayout(rom, manifest).ok());
+  RomAddressOverrides overrides;
+  overrides.addresses = {{RomAddressKey::kOverworldGfxPtr1, 0x11FD00},
+                         {RomAddressKey::kOverworldGfxPtr2, 0x11FE00},
+                         {RomAddressKey::kOverworldGfxPtr3, 0x11FF00}};
+  const auto resolved = ResolveGfxSheetLayout(rom, manifest, overrides);
+  ASSERT_TRUE(resolved.ok()) << resolved.status();
+  EXPECT_EQ(resolved->usable_sheet_count, 223);
+}
+
+TEST(GfxSheetPolicyAdapterTest,
+     ProjectIdentityAndRoleCannotGrantWriteAuthority) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(MakeLayoutRomBytes()).ok());
+  project::YazeProject project;
+  ASSERT_TRUE(
+      project.hack_manifest.LoadFromString(ExpandedLayoutManifest(rom)).ok());
+  // Matching bytes alone do not make a compiled descriptor a development ROM.
+  EXPECT_FALSE(ResolveGfxSheetLayout(rom, project).ok());
+  project.rom_metadata.role = project::RomRole::kPatched;
+  project.rom_metadata.expected_hash =
+      util::ComputeSha1Hex(rom.data(), rom.size());
+  const auto resolved = ResolveGfxSheetLayout(rom, project);
+  ASSERT_TRUE(resolved.ok()) << resolved.status();
+  EXPECT_FALSE(resolved->write_authorized());
+  project.rom_metadata.expected_hash = std::string(40, '0');
+  EXPECT_FALSE(ResolveGfxSheetLayout(rom, project).ok());
+}
+
+TEST(GfxSheetPolicyAdapterTest,
+     MissingSourceOriginCannotResolveExpandedLayout) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(MakeLayoutRomBytes()).ok());
+  std::string json = ExpandedLayoutManifest(rom);
+  const std::string path = "Data/graphics/source_sprite_sheets.json";
+  json.erase(json.find(path), path.size());
+  HackManifest manifest;
+  EXPECT_FALSE(manifest.LoadFromString(json).ok());
+  EXPECT_FALSE(manifest.loaded());
+  EXPECT_FALSE(manifest.graphics_sheet_layout().pointer_layout.has_value());
+}
 
 TEST(GfxSheetPolicyAdapterTest, ParsesGraphicsSheetRegions) {
   HackManifest manifest;

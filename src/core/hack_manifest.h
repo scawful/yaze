@@ -207,6 +207,27 @@ struct DungeonStreamLayout {
 };
 
 /**
+ * @brief Identity-bound graphics pointer-table declaration, not write authority.
+ *
+ * PC offsets address three parallel byte arrays. physical_table_rows includes
+ * the default-sheet sentinel row when present; usable_sheet_count excludes it.
+ * The source identity declares the canonical build input without authorizing
+ * writes to that file or to protected ROM bytes.
+ */
+struct GraphicsSheetPointerLayout {
+  uint32_t bank_pc = 0;
+  uint32_t high_pc = 0;
+  uint32_t low_pc = 0;
+  uint16_t physical_table_rows = 0;
+  uint16_t usable_sheet_count = 0;
+  uint16_t default_sheet_id = 0xFF;
+  std::string rom_sha1;
+  std::string rom_role;
+  std::string source_path;
+  std::string source_sha1;
+};
+
+/**
  * @brief Graphics-sheet storage rules declared by the hack
  * (`graphics_sheet_regions`).
  *
@@ -218,6 +239,7 @@ struct DungeonStreamLayout {
 struct GraphicsSheetLayout {
   std::vector<SnesAddressRange> allocation_regions;
   std::vector<uint16_t> reserved_sheets;
+  std::optional<GraphicsSheetPointerLayout> pointer_layout;
 };
 
 /**

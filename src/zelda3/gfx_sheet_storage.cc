@@ -9,6 +9,7 @@
 #include "rom/snes.h"
 #include "util/log.h"
 #include "util/macro.h"
+#include "util/rom_hash.h"
 
 namespace yaze::zelda3 {
 
@@ -25,6 +26,79 @@ constexpr size_t kMeasureDecodeLimit = 0x8000;
 size_t ExpectedDecodedSize(GfxSheetStorageKind kind) {
   return kind == GfxSheetStorageKind::kCompressed2bpp ? kGfxSheet2bppBytes
                                                       : kGfxSheet3bppBytes;
+}
+
+// Callers validate their own table dimensions and sheet bounds first. Keep
+// pointer decoding shared without changing the legacy reader's admission.
+absl::StatusOr<uint32_t> ReadSheetPcAt(const Rom& rom, uint16_t sheet_id,
+                                       const GfxSheetPointerTables& tables,
+                                       bool reject_wram) {
+  const uint32_t snes = (rom.data()[tables.bank + sheet_id] << 16) |
+                        (rom.data()[tables.high + sheet_id] << 8) |
+                        rom.data()[tables.low + sheet_id];
+  if ((snes & 0xFFFF) < 0x8000) {
+    return absl::DataLossError(
+        absl::StrFormat("Sheet 0x%02X pointer $%06X is not a LoROM ROM address",
+                        sheet_id, snes));
+  }
+  const uint8_t bank = static_cast<uint8_t>(snes >> 16);
+  if (reject_wram && (bank == 0x7E || bank == 0x7F)) {
+    return absl::DataLossError(absl::StrFormat(
+        "Sheet 0x%02X pointer $%06X names WRAM, not ROM", sheet_id, snes));
+  }
+  const uint32_t pc = SnesToPc(snes);
+  if (pc >= rom.size()) {
+    return absl::OutOfRangeError(absl::StrFormat(
+        "Sheet 0x%02X pointer $%06X (PC 0x%06X) is past the ROM end", sheet_id,
+        snes, pc));
+  }
+  return pc;
+}
+
+absl::StatusOr<GfxSheetExtent> ReadSheetExtentAt(const Rom& rom,
+                                                 uint16_t sheet_id, uint32_t pc,
+                                                 bool require_3bpp_size) {
+  GfxSheetExtent extent;
+  extent.sheet_id = sheet_id;
+  extent.kind = GetGfxSheetStorageKind(sheet_id);
+  extent.pc = pc;
+  if (extent.kind == GfxSheetStorageKind::kRaw3bpp) {
+    if (static_cast<size_t>(pc) + kGfxSheet3bppBytes > rom.size()) {
+      return absl::OutOfRangeError(absl::StrFormat(
+          "Raw sheet 0x%02X at 0x%06X runs past the ROM end", sheet_id, pc));
+    }
+    extent.stored_size = kGfxSheet3bppBytes;
+    extent.decoded_size = kGfxSheet3bppBytes;
+    return extent;
+  }
+  ASSIGN_OR_RETURN(auto decoded,
+                   gfx::lc_lz2::DecompressExact(rom.data(), rom.size(), pc,
+                                                kMeasureDecodeLimit,
+                                                /*big_endian_copy=*/false));
+  extent.stored_size = decoded.compressed_size;
+  extent.decoded_size = decoded.data.size();
+  if (require_3bpp_size &&
+      extent.kind == GfxSheetStorageKind::kCompressed3bpp &&
+      extent.decoded_size != kGfxSheet3bppBytes) {
+    return absl::DataLossError(absl::StrFormat(
+        "Sheet 0x%02X decodes to 0x%zX bytes; a 3bpp sheet needs 0x%zX",
+        sheet_id, extent.decoded_size, kGfxSheet3bppBytes));
+  }
+  return extent;
+}
+
+absl::StatusOr<std::vector<uint8_t>> ReadSheetDataAt(
+    const Rom& rom, const GfxSheetExtent& extent) {
+  if (extent.kind == GfxSheetStorageKind::kRaw3bpp) {
+    return std::vector<uint8_t>(
+        rom.vector().begin() + extent.pc,
+        rom.vector().begin() + extent.pc + kGfxSheet3bppBytes);
+  }
+  ASSIGN_OR_RETURN(auto decoded,
+                   gfx::lc_lz2::DecompressExact(rom.data(), rom.size(),
+                                                extent.pc, kMeasureDecodeLimit,
+                                                /*big_endian_copy=*/false));
+  return std::move(decoded.data);
 }
 
 bool Overlaps(uint32_t a_begin, uint32_t a_end, uint32_t b_begin,
@@ -217,7 +291,8 @@ GfxSheetStorageKind GetGfxSheetStorageKind(uint16_t sheet_id) {
   if (sheet_id >= 115 && sheet_id <= 126) {
     return GfxSheetStorageKind::kRaw3bpp;
   }
-  if (sheet_id == 113 || sheet_id == 114 || sheet_id >= 218) {
+  if (sheet_id == 113 || sheet_id == 114 ||
+      (sheet_id >= 218 && sheet_id <= 222)) {
     return GfxSheetStorageKind::kCompressed2bpp;
   }
   return GfxSheetStorageKind::kCompressed3bpp;
@@ -248,64 +323,116 @@ absl::StatusOr<uint32_t> ReadGfxSheetPc(const Rom& rom, uint16_t sheet_id,
           "Graphics pointer table at 0x%06X is past the ROM end", table));
     }
   }
-  const uint32_t snes = (rom.data()[tables.bank + sheet_id] << 16) |
-                        (rom.data()[tables.high + sheet_id] << 8) |
-                        rom.data()[tables.low + sheet_id];
-  if ((snes & 0xFFFF) < 0x8000) {
-    return absl::DataLossError(
-        absl::StrFormat("Sheet 0x%02X pointer $%06X is not a LoROM ROM address",
-                        sheet_id, snes));
-  }
-  const uint32_t pc = SnesToPc(snes);
-  if (pc >= rom.size()) {
-    return absl::OutOfRangeError(absl::StrFormat(
-        "Sheet 0x%02X pointer $%06X (PC 0x%06X) is past the ROM end", sheet_id,
-        snes, pc));
-  }
-  return pc;
+  return ReadSheetPcAt(rom, sheet_id, tables, /*reject_wram=*/false);
 }
 
 absl::StatusOr<GfxSheetExtent> ReadGfxSheetExtent(
     const Rom& rom, uint16_t sheet_id, const GfxSheetPointerTables& tables) {
-  GfxSheetExtent extent;
-  extent.sheet_id = sheet_id;
-  extent.kind = GetGfxSheetStorageKind(sheet_id);
-  ASSIGN_OR_RETURN(extent.pc, ReadGfxSheetPc(rom, sheet_id, tables));
-
-  if (extent.kind == GfxSheetStorageKind::kRaw3bpp) {
-    if (static_cast<size_t>(extent.pc) + kGfxSheet3bppBytes > rom.size()) {
-      return absl::OutOfRangeError(
-          absl::StrFormat("Raw sheet 0x%02X at 0x%06X runs past the ROM end",
-                          sheet_id, extent.pc));
-    }
-    extent.stored_size = kGfxSheet3bppBytes;
-    extent.decoded_size = kGfxSheet3bppBytes;
-    return extent;
-  }
-
-  ASSIGN_OR_RETURN(auto decoded,
-                   gfx::lc_lz2::DecompressExact(rom.data(), rom.size(),
-                                                extent.pc, kMeasureDecodeLimit,
-                                                /*big_endian_copy=*/false));
-  extent.stored_size = decoded.compressed_size;
-  extent.decoded_size = decoded.data.size();
-  return extent;
+  ASSIGN_OR_RETURN(const uint32_t pc, ReadGfxSheetPc(rom, sheet_id, tables));
+  return ReadSheetExtentAt(rom, sheet_id, pc, /*require_3bpp_size=*/false);
 }
 
 absl::StatusOr<std::vector<uint8_t>> ReadGfxSheetData(
     const Rom& rom, uint16_t sheet_id, const GfxSheetPointerTables& tables) {
   ASSIGN_OR_RETURN(const GfxSheetExtent extent,
                    ReadGfxSheetExtent(rom, sheet_id, tables));
-  if (extent.kind == GfxSheetStorageKind::kRaw3bpp) {
-    return std::vector<uint8_t>(
-        rom.vector().begin() + extent.pc,
-        rom.vector().begin() + extent.pc + kGfxSheet3bppBytes);
+  return ReadSheetDataAt(rom, extent);
+}
+
+absl::Status ValidateResolvedGfxSheetLayout(
+    const Rom& rom, const ResolvedGfxSheetLayout& layout) {
+  if (!rom.is_loaded()) {
+    return absl::FailedPreconditionError("ROM not loaded");
   }
-  ASSIGN_OR_RETURN(auto decoded,
-                   gfx::lc_lz2::DecompressExact(rom.data(), rom.size(),
-                                                extent.pc, kMeasureDecodeLimit,
-                                                /*big_endian_copy=*/false));
-  return std::move(decoded.data);
+  const bool legacy =
+      layout.physical_table_rows == 223 && layout.usable_sheet_count == 223;
+  const bool expanded =
+      layout.physical_table_rows == 256 && layout.usable_sheet_count == 255;
+  if ((!legacy && !expanded) || layout.default_sheet_id != 255) {
+    return absl::InvalidArgumentError(
+        "Graphics layout requires rows/sheets 223/223 or 256/255 and "
+        "default sheet 255");
+  }
+  if (expanded && !layout.explicit_layout) {
+    return absl::FailedPreconditionError(
+        "Expanded graphics layout requires an explicit ROM-bound layout");
+  }
+  if (layout.explicit_layout && layout.rom_sha1.empty()) {
+    return absl::FailedPreconditionError(
+        "Explicit graphics layout requires the loaded ROM SHA1");
+  }
+  if (layout.explicit_layout) {
+    if (layout.rom_role != "development" && layout.rom_role != "compiled") {
+      return absl::InvalidArgumentError(
+          "Explicit graphics layout requires development or compiled ROM role");
+    }
+    if (layout.source_path != "Data/graphics/source_sprite_sheets.json") {
+      return absl::InvalidArgumentError(
+          "Explicit graphics layout requires canonical source sprite path");
+    }
+    const bool valid_source_sha1 =
+        layout.source_sha1.size() == 40 &&
+        std::all_of(layout.source_sha1.begin(), layout.source_sha1.end(),
+                    [](char c) {
+                      return (c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') ||
+                             (c >= 'A' && c <= 'F');
+                    });
+    if (!valid_source_sha1) {
+      return absl::InvalidArgumentError(
+          "Explicit graphics layout requires a 40-digit hexadecimal source "
+          "SHA1");
+    }
+  }
+  if (!layout.rom_sha1.empty() &&
+      layout.rom_sha1 != util::ComputeSha1Hex(rom.data(), rom.size())) {
+    return absl::FailedPreconditionError(
+        "Graphics layout SHA1 does not match the loaded ROM");
+  }
+  const std::array<uint32_t, 3> starts = {
+      layout.tables.bank, layout.tables.high, layout.tables.low};
+  for (size_t i = 0; i < starts.size(); ++i) {
+    const uint64_t end =
+        static_cast<uint64_t>(starts[i]) + layout.physical_table_rows;
+    if (end > rom.size()) {
+      return absl::OutOfRangeError(absl::StrFormat(
+          "Graphics pointer table at 0x%06X with %u rows is past the ROM end",
+          starts[i], layout.physical_table_rows));
+    }
+    for (size_t j = 0; j < i; ++j) {
+      const uint64_t prior_end =
+          static_cast<uint64_t>(starts[j]) + layout.physical_table_rows;
+      if (starts[i] < prior_end && starts[j] < end) {
+        return absl::InvalidArgumentError(
+            "Graphics pointer table spans overlap");
+      }
+    }
+  }
+  return absl::OkStatus();
+}
+
+absl::StatusOr<uint32_t> ReadGfxSheetPcResolved(
+    const Rom& rom, uint16_t sheet_id, const ResolvedGfxSheetLayout& layout) {
+  RETURN_IF_ERROR(ValidateResolvedGfxSheetLayout(rom, layout));
+  if (sheet_id == layout.default_sheet_id ||
+      sheet_id >= layout.usable_sheet_count) {
+    return absl::InvalidArgumentError(absl::StrFormat(
+        "Graphics sheet 0x%02X is not usable in this layout", sheet_id));
+  }
+  return ReadSheetPcAt(rom, sheet_id, layout.tables, /*reject_wram=*/true);
+}
+
+absl::StatusOr<GfxSheetExtent> ReadGfxSheetExtentResolved(
+    const Rom& rom, uint16_t sheet_id, const ResolvedGfxSheetLayout& layout) {
+  ASSIGN_OR_RETURN(const uint32_t pc,
+                   ReadGfxSheetPcResolved(rom, sheet_id, layout));
+  return ReadSheetExtentAt(rom, sheet_id, pc, /*require_3bpp_size=*/true);
+}
+
+absl::StatusOr<std::vector<uint8_t>> ReadGfxSheetDataResolved(
+    const Rom& rom, uint16_t sheet_id, const ResolvedGfxSheetLayout& layout) {
+  ASSIGN_OR_RETURN(const GfxSheetExtent extent,
+                   ReadGfxSheetExtentResolved(rom, sheet_id, layout));
+  return ReadSheetDataAt(rom, extent);
 }
 
 absl::StatusOr<GfxSheetWriteResult> WriteGfxSheet(

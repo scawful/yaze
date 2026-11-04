@@ -22,7 +22,7 @@ namespace yaze::zelda3 {
  *
  * Sheet N is addressed by three byte tables (bank, high, low) at PC 0x4F80,
  * 0x505F and 0x513E. Sheets 115-126 are raw 3bpp (0x600 bytes). Sheets
- * 113-114 and 218+ are LC-LZ2 compressed 2bpp. Every other sheet is LC-LZ2
+ * 113-114 and 218-222 are LC-LZ2 compressed 2bpp. Every other sheet is LC-LZ2
  * compressed 3bpp that must decode to exactly 0x600 bytes: the game
  * decompresses sprite sheets to $7F:4000 and $7F:4600, so a longer stream
  * overwrites the neighbouring sheet in WRAM.
@@ -47,6 +47,32 @@ struct GfxSheetPointerTables {
   uint32_t high = 0x505F;
   uint32_t low = 0x513E;
 };
+
+/// A reader layout resolved for one ROM identity. Physical rows include the
+/// expanded table's $FF sentinel; usable sheets never include that sentinel.
+/// This contract does not authorize writes through the relocated tables.
+struct ResolvedGfxSheetLayout {
+  GfxSheetPointerTables tables;
+  uint16_t physical_table_rows = 223;
+  uint16_t usable_sheet_count = 223;
+  uint16_t default_sheet_id = 255;
+  std::string rom_sha1;
+  bool explicit_layout = false;
+  // Declared origin, supplied by the project adapter. The reader validates
+  // these fields' shape, not the source file's contents or writer authority.
+  std::string rom_role;
+  std::string source_path;
+  std::string source_sha1;
+
+  bool write_authorized() const { return false; }
+};
+
+/// Validate legacy (223/223) or expanded (256/255) table dimensions, complete
+/// disjoint PC spans and the loaded ROM identity. Explicit layouts require an
+/// exact ROM SHA1 and declared source provenance; expanded layouts must be
+/// explicit. Source contents are not verified here. No writer admission is made.
+absl::Status ValidateResolvedGfxSheetLayout(
+    const Rom& rom, const ResolvedGfxSheetLayout& layout);
 
 /// True when LoadGameData would read this ROM with the Japanese pointer
 /// tables (header byte $7FD9 == 0). The default GfxSheetPointerTables are the
@@ -86,6 +112,15 @@ absl::StatusOr<GfxSheetExtent> ReadGfxSheetExtent(
 absl::StatusOr<std::vector<uint8_t>> ReadGfxSheetData(
     const Rom& rom, uint16_t sheet_id,
     const GfxSheetPointerTables& tables = {});
+
+/// Reader-only counterparts using an explicit resolved layout. Each call
+/// validates its layout and ROM identity and refuses $FF or an unusable ID.
+absl::StatusOr<uint32_t> ReadGfxSheetPcResolved(
+    const Rom& rom, uint16_t sheet_id, const ResolvedGfxSheetLayout& layout);
+absl::StatusOr<GfxSheetExtent> ReadGfxSheetExtentResolved(
+    const Rom& rom, uint16_t sheet_id, const ResolvedGfxSheetLayout& layout);
+absl::StatusOr<std::vector<uint8_t>> ReadGfxSheetDataResolved(
+    const Rom& rom, uint16_t sheet_id, const ResolvedGfxSheetLayout& layout);
 
 /// 16x16 blocks per sheet: 8 columns x 2 rows over the 128x32 sheet.
 constexpr int kGfxSheetBlockCount = 16;

@@ -11,6 +11,7 @@
 #include "core/dungeon_stream_layout_adapter.h"
 #include "gtest/gtest.h"
 #include "rom/snes.h"
+#include "util/json.h"
 #include "zelda3/dungeon/dungeon_rom_addresses.h"
 
 namespace yaze::core {
@@ -72,6 +73,26 @@ std::string ManifestWithDungeonStreams(const std::string& streams) {
   return "{\"manifest_version\":2,\"dungeon_stream_regions\":" + streams + "}";
 }
 
+Json ManifestWithExpandedGraphicsPointers() {
+  return Json::parse(R"json({
+    "manifest_version": 3,
+    "graphics_sheet_regions": {
+      "pointer_layout": {
+        "bank_pc": "0x11FD00",
+        "high_pc": "0x11FE00",
+        "low_pc": "0x11FF00",
+        "physical_table_rows": 256,
+        "usable_sheet_count": 255,
+        "default_sheet_id": 255,
+        "rom_sha1": "ABCDEF0123456789ABCDEF0123456789ABCDEF01",
+        "rom_role": "compiled",
+        "source_path": "Data/graphics/source_sprite_sheets.json",
+        "source_sha1": "0123456789ABCDEF0123456789ABCDEF01234567"
+      }
+    }
+  })json");
+}
+
 void ExpectManifestLoadFailure(const std::string& json,
                                const std::string& message_fragment) {
   HackManifest manifest;
@@ -82,6 +103,7 @@ void ExpectManifestLoadFailure(const std::string& json,
   EXPECT_TRUE(manifest.protected_regions().empty());
   EXPECT_TRUE(manifest.editor_managed_regions().empty());
   EXPECT_FALSE(manifest.minecart_track_layout().source.has_value());
+  EXPECT_FALSE(manifest.graphics_sheet_layout().pointer_layout.has_value());
   EXPECT_FALSE(manifest.IsEditorManaged(0x228880));
   EXPECT_NE(std::string(status.message()).find(message_fragment),
             std::string::npos)
@@ -657,6 +679,195 @@ TEST(HackManifestTest, RejectsModuloNarrowingMessageLayoutCounts) {
     SCOPED_TRACE(json);
     ExpectManifestLoadFailure(json, expected_message);
   }
+}
+
+TEST(HackManifestTest, ParsesExpandedGraphicsPointerLayout) {
+  HackManifest manifest;
+  ASSERT_TRUE(
+      manifest.LoadFromString(ManifestWithExpandedGraphicsPointers().dump())
+          .ok());
+  ASSERT_TRUE(manifest.graphics_sheet_layout().pointer_layout.has_value());
+  const auto& layout = *manifest.graphics_sheet_layout().pointer_layout;
+  EXPECT_EQ(layout.bank_pc, 0x11FD00u);
+  EXPECT_EQ(layout.high_pc, 0x11FE00u);
+  EXPECT_EQ(layout.low_pc, 0x11FF00u);
+  EXPECT_EQ(layout.physical_table_rows, 256);
+  EXPECT_EQ(layout.usable_sheet_count, 255);
+  EXPECT_EQ(layout.default_sheet_id, 255);
+  EXPECT_EQ(layout.rom_sha1, "abcdef0123456789abcdef0123456789abcdef01");
+  EXPECT_EQ(layout.rom_role, "compiled");
+  EXPECT_EQ(layout.source_path, "Data/graphics/source_sprite_sheets.json");
+  EXPECT_EQ(layout.source_sha1, "0123456789abcdef0123456789abcdef01234567");
+}
+
+TEST(HackManifestTest, GraphicsPointerLayoutIsOptionalAndClearsOnReload) {
+  HackManifest manifest;
+  ASSERT_TRUE(
+      manifest.LoadFromString(ManifestWithExpandedGraphicsPointers().dump())
+          .ok());
+  ASSERT_TRUE(manifest.graphics_sheet_layout().pointer_layout.has_value());
+  ASSERT_TRUE(manifest
+                  .LoadFromString(R"json({
+    "manifest_version": 3,
+    "graphics_sheet_regions": {
+      "allocation_regions": [{"start":"0x238000","end":"0x23FC00"}],
+      "reserved_sheets": ["0x7B", "0x7C"]
+    }
+  })json")
+                  .ok());
+  EXPECT_FALSE(manifest.graphics_sheet_layout().pointer_layout.has_value());
+  ASSERT_EQ(manifest.graphics_sheet_layout().allocation_regions.size(), 1u);
+  EXPECT_EQ(manifest.graphics_sheet_layout().reserved_sheets,
+            (std::vector<uint16_t>{0x7B, 0x7C}));
+
+  ASSERT_TRUE(manifest.LoadFromString("{\"manifest_version\":3}").ok());
+  EXPECT_FALSE(manifest.graphics_sheet_layout().pointer_layout.has_value());
+}
+
+TEST(HackManifestTest, ParsesIdentityBoundLegacyGraphicsPointers) {
+  auto document = ManifestWithExpandedGraphicsPointers();
+  auto& pointer = document["graphics_sheet_regions"]["pointer_layout"];
+  pointer["bank_pc"] = "0x004F80";
+  pointer["high_pc"] = "0x00505F";
+  pointer["low_pc"] = "0x00513E";
+  pointer["physical_table_rows"] = 223;
+  pointer["usable_sheet_count"] = 223;
+  pointer["rom_role"] = "development";
+  HackManifest manifest;
+  ASSERT_TRUE(manifest.LoadFromString(document.dump()).ok());
+  ASSERT_TRUE(manifest.graphics_sheet_layout().pointer_layout.has_value());
+  const auto& layout = *manifest.graphics_sheet_layout().pointer_layout;
+  EXPECT_EQ(layout.bank_pc, 0x4F80u);
+  EXPECT_EQ(layout.physical_table_rows, 223);
+  EXPECT_EQ(layout.usable_sheet_count, 223);
+  EXPECT_EQ(layout.rom_role, "development");
+}
+
+TEST(HackManifestTest, RejectsGraphicsPointerCountsAndInvalidSentinel) {
+  const std::vector<std::pair<const char*, Json>> invalid = {
+      {"physical_table_rows", 0},     {"physical_table_rows", 255},
+      {"physical_table_rows", 257},   {"physical_table_rows", -1},
+      {"physical_table_rows", 256.0}, {"physical_table_rows", true},
+      {"usable_sheet_count", 223},    {"usable_sheet_count", 256},
+      {"usable_sheet_count", "255"},  {"usable_sheet_count", 255.0},
+      {"default_sheet_id", 254},      {"default_sheet_id", 256},
+      {"default_sheet_id", "0xFF"},   {"default_sheet_id", 255.0}};
+  for (const auto& [field, value] : invalid) {
+    SCOPED_TRACE(std::string(field) + "=" + value.dump());
+    auto document = ManifestWithExpandedGraphicsPointers();
+    document["graphics_sheet_regions"]["pointer_layout"][field] = value;
+    ExpectManifestLoadFailure(document.dump(),
+                              "graphics_sheet_regions.pointer_layout");
+  }
+  auto mismatched = ManifestWithExpandedGraphicsPointers();
+  mismatched["graphics_sheet_regions"]["pointer_layout"]
+            ["physical_table_rows"] = 223;
+  ExpectManifestLoadFailure(mismatched.dump(), "223/223 or 256/255");
+}
+
+TEST(HackManifestTest, RequiresEveryGraphicsPointerIdentityField) {
+  for (const char* field :
+       {"bank_pc", "high_pc", "low_pc", "physical_table_rows",
+        "usable_sheet_count", "default_sheet_id", "rom_sha1", "rom_role",
+        "source_path", "source_sha1"}) {
+    SCOPED_TRACE(field);
+    auto document = ManifestWithExpandedGraphicsPointers();
+    document["graphics_sheet_regions"]["pointer_layout"].erase(field);
+    ExpectManifestLoadFailure(document.dump(),
+                              std::string(field) + " is required");
+  }
+  auto legacy = ManifestWithExpandedGraphicsPointers();
+  auto& pointer = legacy["graphics_sheet_regions"]["pointer_layout"];
+  pointer["physical_table_rows"] = 223;
+  pointer["usable_sheet_count"] = 223;
+  pointer.erase("source_sha1");
+  ExpectManifestLoadFailure(legacy.dump(), "source_sha1 is required");
+}
+
+TEST(HackManifestTest, RejectsMalformedGraphicsPointerSourceIdentity) {
+  const std::vector<std::pair<const char*, Json>> invalid = {
+      {"rom_sha1", "abcdef"},
+      {"rom_sha1", "g123456789abcdef0123456789abcdef01234567"},
+      {"rom_sha1", 123},
+      {"rom_role", "dev"},
+      {"rom_role", true},
+      {"source_path", "../Data/graphics/source_sprite_sheets.json"},
+      {"source_path", "Data/graphics/other.json"},
+      {"source_path", nullptr},
+      {"source_sha1", "0123456789abcdef0123456789abcdef0123456 "},
+      {"source_sha1", nullptr}};
+  for (const auto& [field, value] : invalid) {
+    SCOPED_TRACE(std::string(field) + "=" + value.dump());
+    auto document = ManifestWithExpandedGraphicsPointers();
+    document["graphics_sheet_regions"]["pointer_layout"][field] = value;
+    ExpectManifestLoadFailure(document.dump(), field);
+  }
+}
+
+TEST(HackManifestTest, RejectsGraphicsPointerOffsetsAndPhysicalSpanOverlap) {
+  const std::vector<Json> invalid_offsets = {
+      0x11FD00, -1, 1.5, true, "0x1000000", "0x11FD00junk"};
+  for (const auto& value : invalid_offsets) {
+    SCOPED_TRACE(value.dump());
+    auto document = ManifestWithExpandedGraphicsPointers();
+    document["graphics_sheet_regions"]["pointer_layout"]["bank_pc"] = value;
+    ExpectManifestLoadFailure(document.dump(), "bank_pc");
+  }
+  for (const auto& value : {"0x11FD00", "0x11FDFF", "0x11FF00"}) {
+    SCOPED_TRACE(value);
+    auto document = ManifestWithExpandedGraphicsPointers();
+    document["graphics_sheet_regions"]["pointer_layout"]["high_pc"] = value;
+    // At FDFF the usable 255 rows do not overlap, but the physical FF row does.
+    ExpectManifestLoadFailure(document.dump(), "table spans overlap");
+  }
+  auto past_pc_limit = ManifestWithExpandedGraphicsPointers();
+  past_pc_limit["graphics_sheet_regions"]["pointer_layout"]["bank_pc"] =
+      "0xFFFFFF";
+  ExpectManifestLoadFailure(past_pc_limit.dump(), "24-bit PC address range");
+}
+
+TEST(HackManifestTest, RejectsUnknownAndNonobjectGraphicsPointerLayout) {
+  auto unknown = ManifestWithExpandedGraphicsPointers();
+  unknown["graphics_sheet_regions"]["pointer_layout"]["allow_writes"] = true;
+  ExpectManifestLoadFailure(unknown.dump(), "unknown key 'allow_writes'");
+  for (const auto& value : {Json(nullptr), Json::array(), Json("layout")}) {
+    auto document = ManifestWithExpandedGraphicsPointers();
+    document["graphics_sheet_regions"]["pointer_layout"] = value;
+    ExpectManifestLoadFailure(document.dump(),
+                              "pointer_layout must be an object");
+  }
+}
+
+TEST(HackManifestTest, GraphicsReservationsFollowUsableCountAndExcludeDefault) {
+  auto document = ManifestWithExpandedGraphicsPointers();
+  document["graphics_sheet_regions"]["reserved_sheets"] = {"0xDF", "0xFE"};
+  HackManifest manifest;
+  ASSERT_TRUE(manifest.LoadFromString(document.dump()).ok());
+  EXPECT_EQ(manifest.graphics_sheet_layout().reserved_sheets,
+            (std::vector<uint16_t>{0xDF, 0xFE}));
+
+  document["graphics_sheet_regions"]["reserved_sheets"] = {"0xFF"};
+  ExpectManifestLoadFailure(document.dump(), "reserved_sheets[0]");
+  document["graphics_sheet_regions"]["reserved_sheets"] = {"0xDF"};
+  document["graphics_sheet_regions"]["pointer_layout"]["physical_table_rows"] =
+      223;
+  document["graphics_sheet_regions"]["pointer_layout"]["usable_sheet_count"] =
+      223;
+  ExpectManifestLoadFailure(document.dump(), "reserved_sheets[0]");
+  document["graphics_sheet_regions"].erase("pointer_layout");
+  ExpectManifestLoadFailure(document.dump(), "reserved_sheets[0]");
+}
+
+TEST(HackManifestTest, GraphicsPointerDeclarationDoesNotGrantWritePermission) {
+  auto document = ManifestWithExpandedGraphicsPointers();
+  document["protected_regions"] = Json::parse(R"json({"regions":[{
+    "start":"0x23FC00", "end":"0x248000", "hook_count":1, "module":"Core"
+  }]})json");
+  HackManifest manifest;
+  ASSERT_TRUE(manifest.LoadFromString(document.dump()).ok());
+  EXPECT_EQ(manifest.ClassifyAddress(0x23FC00), AddressOwnership::kHookPatched);
+  EXPECT_EQ(manifest.ClassifyAddress(0x23FD00), AddressOwnership::kHookPatched);
+  EXPECT_TRUE(manifest.IsWriteOverwritten(0x23FFFE));
 }
 
 TEST(HackManifestTest, ParsesDungeonStreamLayouts) {
