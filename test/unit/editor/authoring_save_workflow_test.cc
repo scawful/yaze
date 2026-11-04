@@ -698,7 +698,7 @@ class AuthoringSaveWorkflowTest : public ::testing::Test {
         ASSERT_OK(png.status());
         ASSERT_OK(util::WriteBinaryFile((directory / name).string(), *png));
       } else {
-        std::ofstream output(directory / name);
+        std::ofstream output(directory / name, std::ios::binary);
         output << core::GfxSheetSource::EncodeText(pixels);
       }
       spec["sheets"].push_back({{"sprite_sheet", id},
@@ -709,7 +709,7 @@ class AuthoringSaveWorkflowTest : public ::testing::Test {
     }
     for (int id = 0xDF; id <= 0xE4; ++id) {
       const auto name = "global-" + std::to_string(id) + ".txt";
-      std::ofstream output(directory / name);
+      std::ofstream output(directory / name, std::ios::binary);
       output << core::GfxSheetSource::EncodeText(pixels);
       output.close();
       spec["sheets"].push_back(
@@ -719,7 +719,8 @@ class AuthoringSaveWorkflowTest : public ::testing::Test {
            {"why", "Existing source-backed global fixture"}});
     }
     const auto text = spec.dump(2) + "\n";
-    std::ofstream output(directory / "source_sprite_sheets.json");
+    std::ofstream output(directory / "source_sprite_sheets.json",
+                         std::ios::binary);
     output << text;
     output.close();
     project::YazeProject source_project;
@@ -7280,7 +7281,7 @@ TEST_F(AuthoringSaveWorkflowTest,
   AuthoringSaveWorkflowTestPeer::PaintGraphicsPixel(*graphics, 0, 0, 5);
   const auto dirty_revision = state.game_data->sheet_store.Revision(0xDF);
   EXPECT_FALSE(
-      manager_->LoadAssets().ok());  // Dirty model refuses before reset.
+      manager_->ReloadProjectRom().ok());  // Dirty model refuses before reset.
   EXPECT_EQ(state.game_data->sheet_store.Revision(0xDF), dirty_revision);
   EXPECT_TRUE(state.HasUnsavedChanges());
   ASSERT_OK(manager_->SaveCurrentSession());
@@ -7292,7 +7293,16 @@ TEST_F(AuthoringSaveWorkflowTest,
     std::ofstream output(fixture.root / "Data/graphics/global-223.txt");
     output << "malformed";
   }
-  const auto failed = manager_->LoadAssets();
+  // Prove the public reload reaches source validation, not only its dirty guard.
+  ASSERT_FALSE(graphics->HasPendingSourceChanges());
+  ASSERT_FALSE(graphics->HasPendingRomGraphicsChanges());
+  ASSERT_FALSE(manager_->IsCurrentProjectDirty());
+  ASSERT_FALSE(manager_->GetCurrentRom()->dirty());
+  ASSERT_FALSE(manager_->session_coordinator()
+                   ->GetActiveRomSession()
+                   ->HasPendingGfxGroupChanges());
+  ASSERT_FALSE(gfx::PaletteManager::Get().HasUnsavedChanges(state.game_data));
+  const auto failed = manager_->ReloadProjectRom();
   EXPECT_FALSE(failed.ok());
   EXPECT_NE(failed.message().find("128 columns"), absl::string_view::npos);
   EXPECT_EQ(state.game_data->sheet_store.Sheet(0xDF)[0], 5);
@@ -7451,7 +7461,7 @@ TEST_F(AuthoringSaveWorkflowTest,
        "Core/Generated/source_sprite_sheets/sheet_overrides.asm"}};
   const auto refreshed = manifest.dump(2) + "\n";
   {
-    std::ofstream output(manifest_path);
+    std::ofstream output(manifest_path, std::ios::binary);
     output << refreshed;
     ASSERT_TRUE(output.good());
   }
