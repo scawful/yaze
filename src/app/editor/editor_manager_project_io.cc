@@ -94,6 +94,17 @@ std::map<std::string, std::string> ProjectSaveSources(
   add("dependency.sprite_catalog_file", project.sprite_catalog_file);
   add("dependency.terrain_catalog_file", project.terrain_catalog_file);
   add("dependency.palette_catalog_file", project.palette_catalog_file);
+  if (core::GfxSheetSource::Selected(project)) {
+    add("dependency.graphics_source_spec",
+        (std::filesystem::path(project.GetAbsolutePath(project.code_folder)) /
+         project.graphics_sheets.source_spec)
+            .string());
+    const auto source = core::GfxSheetSource::Load(project);
+    if (source.ok())
+      for (const auto& [path, bytes] : source->inputs())
+        add("dependency.graphics_source_" + std::to_string(sources.size()),
+            path);
+  }
   // Planning is a live project reference, not a build input: its own CAS
   // save owns it, and agent status edits must not invalidate a native Save.
   add("dependency.atlas_symbols", project.atlas.symbols);
@@ -808,6 +819,10 @@ absl::Status EditorManager::SaveRomInternal(
 
   ASSIGN_OR_RETURN(const project::YazeProject* save_project,
                    PrepareActiveProjectContextForSave());
+  if (core::GfxSheetSource::Selected(*save_project))
+    return absl::FailedPreconditionError(
+        "Source-owned graphics use normal Save Project; ROM serialization is "
+        "unavailable");
   // This first consumer slice is read-only for the entire expanded layout,
   // including legacy-numbered sheet IDs. Refuse before any serializer runs.
   const auto& graphics_layout =
@@ -1235,6 +1250,12 @@ absl::Status EditorManager::RecordCompletedNativeSave(
     if (project.project_opened()) {
       bind("project", project.filepath);
       const auto live_sources = ProjectSaveSources(project);
+      if (core::GfxSheetSource::Selected(project)) {
+        const auto source = core::GfxSheetSource::Load(project);
+        if (!source.ok())
+          request.binding_errors.push_back(
+              std::string(source.status().message()));
+      }
       std::ifstream descriptor(project.filepath, std::ios::binary);
       if (descriptor) {
         const std::string bytes{std::istreambuf_iterator<char>(descriptor), {}};
@@ -1855,6 +1876,15 @@ absl::Status EditorManager::ReplaceActiveSessionRom(
                                              rom, *session->project_context));
   }
 
+  std::optional<core::GfxSheetSource> replacement_source;
+  if (session->project_context &&
+      core::GfxSheetSource::Selected(*session->project_context)) {
+    RETURN_IF_ERROR(
+        core::ResolveGfxSheetLayout(rom, *session->project_context).status());
+    ASSIGN_OR_RETURN(replacement_source,
+                     core::GfxSheetSource::Load(*session->project_context));
+  }
+
   // Lazy asset loading can defer OverworldEditor::Load after replacement.
   // Refuse a changed image while its read-only canvas still owns ROM-backed
   // maps and textures, before changing bytes, dirty state or undo history.
@@ -1868,16 +1898,18 @@ absl::Status EditorManager::ReplaceActiveSessionRom(
   // model-only edits. Keep this preflight CPU-only and leave lazy, unloaded
   // sessions lazy; editor-specific refresh failures still use rollback below.
   if (session->game_data_loaded || asset_load_mode_ != AssetLoadMode::kLazy ||
-      replacement_layout) {
+      replacement_layout || replacement_source) {
     zelda3::GameData replacement_data;
     zelda3::LoadOptions options;
     options.gfx_sheet_layout = replacement_layout;
-    options.load_graphics = replacement_layout.has_value();
+    options.gfx_sheet_source = replacement_source;
+    options.load_graphics =
+        replacement_layout.has_value() || replacement_source.has_value();
     options.expand_rom = false;
     RETURN_IF_ERROR(zelda3::LoadGameData(rom, replacement_data, options));
     // Validation creates CPU bitmaps; their scoped model does not own Arena
     // surface destruction. Retire them before discarding the preflight data.
-    if (replacement_layout) {
+    if (replacement_layout || replacement_source) {
       for (auto& bitmap : replacement_data.gfx_bitmaps) {
         gfx::Arena::Get().RetireBitmap(bitmap);
       }

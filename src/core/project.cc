@@ -766,6 +766,15 @@ absl::Status YazeProject::Save() {
   return SaveToYazeFormat();
 }
 
+absl::StatusOr<std::string> YazeProject::SaveWithSourceArtifacts(
+    std::vector<core::SourceArtifactUpdate> updates,
+    core::SourceArtifactReadbackValidator validator,
+    const std::string& expected_descriptor) {
+  RETURN_IF_ERROR(SaveToYazeFormat(true, std::move(updates),
+                                   std::move(validator), expected_descriptor));
+  return SerializeToString();
+}
+
 absl::Status YazeProject::SaveNew() {
   return SaveToYazeFormat(false);
 }
@@ -1193,6 +1202,17 @@ YazeProject::ResolveExpandedBuildRunTarget(
 #endif
 }
 absl::Status YazeProject::SaveAs(const std::string& new_path) {
+  if (!graphics_sheets.source_spec.empty() ||
+      !graphics_sheets.source_spec_sha1.empty()) {
+    std::error_code old_error, new_error;
+    const auto old_owner =
+        std::filesystem::weakly_canonical(filepath, old_error);
+    const auto new_owner =
+        std::filesystem::weakly_canonical(new_path, new_error);
+    if (old_error || new_error || old_owner != new_owner)
+      return absl::FailedPreconditionError(
+          "Graphics source Save As requires an independent source owner");
+  }
   std::string old_filepath = filepath;
   filepath = new_path;
 
@@ -1214,6 +1234,10 @@ bool YazeProject::IsOracleCompatible() const {
 absl::Status YazeProject::SaveAsWithLyraTerrain(
     const std::string& new_path, const core::LyraTerrainDocument& terrain,
     const std::optional<std::string>& expected_source_bytes) {
+  if (!graphics_sheets.source_spec.empty() ||
+      !graphics_sheets.source_spec_sha1.empty())
+    return absl::FailedPreconditionError(
+        "Graphics source Save As requires an independent source owner");
 #ifdef __EMSCRIPTEN__
   return absl::UnimplementedError(
       "Saving an independent Lyra project copy requires filesystem storage");
@@ -1818,6 +1842,10 @@ absl::StatusOr<std::string> YazeProject::SerializeToString() const {
 
   if (!graphics_sheets.empty()) {
     file << "[graphics_sheets]\n";
+    if (!graphics_sheets.source_spec.empty())
+      file << "source_spec=" << graphics_sheets.source_spec << "\n";
+    if (!graphics_sheets.source_spec_sha1.empty())
+      file << "source_spec_sha1=" << graphics_sheets.source_spec_sha1 << "\n";
     file << "reserved_sheets="
          << FormatHexUintList(graphics_sheets.reserved_sheets) << "\n";
     file << "flagged_sheets="
@@ -2254,7 +2282,11 @@ absl::Status YazeProject::ParseFromString(const std::string& content) {
       else
         understood = false;
     } else if (current_section == "graphics_sheets") {
-      if (key == "reserved_sheets")
+      if (key == "source_spec")
+        graphics_sheets.source_spec = value;
+      else if (key == "source_spec_sha1")
+        graphics_sheets.source_spec_sha1 = value;
+      else if (key == "reserved_sheets")
         graphics_sheets.reserved_sheets = ParseHexUintList(value);
       else if (key == "flagged_sheets")
         graphics_sheets.flagged_sheets = ParseHexUintList(value);
@@ -2447,7 +2479,10 @@ absl::Status YazeProject::LoadFromYazeFormat(const std::string& project_path) {
   return ParseFromString(buffer.str());
 }
 
-absl::Status YazeProject::SaveToYazeFormat(bool replace_existing) {
+absl::Status YazeProject::SaveToYazeFormat(
+    bool replace_existing, std::vector<core::SourceArtifactUpdate> updates,
+    core::SourceArtifactReadbackValidator validator,
+    std::optional<std::string> expected_descriptor) {
   // Update last modified timestamp
   auto now = std::chrono::system_clock::now();
   auto time_t = std::chrono::system_clock::to_time_t(now);
@@ -2465,13 +2500,54 @@ absl::Status YazeProject::SaveToYazeFormat(bool replace_existing) {
   ASSIGN_OR_RETURN(auto serialized, SerializeToString());
 
 #ifdef __EMSCRIPTEN__
+  if (!updates.empty())
+    return absl::UnimplementedError(
+        "Source publication requires filesystem storage");
   auto storage_status = platform::WasmStorage::SaveProject(
       MakeStorageKey("project"), serialized, replace_existing);
   if (!storage_status.ok()) {
     return storage_status;
   }
 #else
-  if (!filepath.empty()) {
+  if (!updates.empty()) {
+    if (filepath.empty())
+      return absl::FailedPreconditionError(
+          "Save the project before source publication");
+    std::vector<std::filesystem::path> targets{filepath}, protected_inputs;
+    for (const auto& update : updates) {
+      if (update.before && *update.before == update.after)
+        protected_inputs.push_back(update.target);
+      else
+        targets.push_back(update.target);
+    }
+    ASSIGN_OR_RETURN(
+        auto lock, core::AcquireSourceArtifactPublicationLock(
+                       targets, {"graphics source", "project graphics source"},
+                       protected_inputs));
+    std::error_code descriptor_error;
+    if (!std::filesystem::is_regular_file(filepath, descriptor_error) ||
+        descriptor_error ||
+        std::filesystem::file_size(filepath, descriptor_error) >
+            16 * 1024 * 1024 ||
+        descriptor_error)
+      return absl::FailedPreconditionError(
+          "Project descriptor is missing, unreadable or oversized");
+    std::ifstream input(filepath, std::ios::binary);
+    if (!input)
+      return absl::FailedPreconditionError(
+          "Project descriptor is missing or unreadable");
+    std::string before{std::istreambuf_iterator<char>(input), {}};
+    if (input.bad())
+      return absl::DataLossError("Cannot read project descriptor");
+    if (expected_descriptor && before != *expected_descriptor)
+      return absl::FailedPreconditionError(
+          "Project descriptor changed on disk; source draft retained");
+    updates.insert(updates.begin(),
+                   {std::filesystem::absolute(filepath), before, serialized});
+    RETURN_IF_ERROR(core::PublishSourceArtifacts(
+        *lock, std::move(updates), core::ComputeSourceArtifactSha256(before),
+        std::move(validator)));
+  } else if (!filepath.empty()) {
     RETURN_IF_ERROR(
         WriteProjectFileAtomically(filepath, serialized, replace_existing));
   }

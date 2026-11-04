@@ -120,6 +120,12 @@ class GraphicsEditor : public Editor {
   absl::Status Save() override;
   // Detached assets save independently of ROM sheet serialization settings.
   absl::Status SaveScratchAssets();
+  bool HasPendingSourceChanges() const;
+  bool HasPendingRomGraphicsChanges() const;
+  absl::Status PrepareProjectSave();
+  absl::StatusOr<core::GfxSheetSource::Plan> PrepareSourceProjectSave();
+  void ProjectSourceSaveCommitted(core::GfxSheetSource::Plan plan,
+                                  std::string descriptor);
   absl::Status Update() override;
   // Cut, Copy and Paste use the system clipboard as PNG (pixel editor).
   /**

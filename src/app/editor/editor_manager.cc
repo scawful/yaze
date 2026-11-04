@@ -2533,11 +2533,19 @@ absl::Status EditorManager::EnsureGameDataLoaded() {
 
   zelda3::LoadOptions graphics_options;
   if (session->project_context &&
-      session->project_context->hack_manifest.graphics_sheet_layout()
-          .pointer_layout) {
+      (session->project_context->hack_manifest.graphics_sheet_layout()
+           .pointer_layout ||
+       core::GfxSheetSource::Selected(*session->project_context))) {
     ASSIGN_OR_RETURN(
         graphics_options.gfx_sheet_layout,
         core::ResolveGfxSheetLayout(session->rom, *session->project_context));
+    if (core::GfxSheetSource::Selected(*session->project_context)) {
+      ASSIGN_OR_RETURN(graphics_options.gfx_sheet_source,
+                       core::GfxSheetSource::Load(*session->project_context));
+    }
+    if (!graphics_options.gfx_sheet_layout->explicit_layout)
+      graphics_options.gfx_sheet_layout
+          .reset();  // Keep legacy ROM decoding semantics.
     graphics_options.expand_rom = false;
   }
   RETURN_IF_ERROR(
@@ -2681,8 +2689,9 @@ absl::Status EditorManager::LoadAssets(uint64_t passed_handle) {
   }
   zelda3::LoadOptions graphics_options;
   if (current_session->project_context &&
-      current_session->project_context->hack_manifest.graphics_sheet_layout()
-          .pointer_layout) {
+      (current_session->project_context->hack_manifest.graphics_sheet_layout()
+           .pointer_layout ||
+       core::GfxSheetSource::Selected(*current_session->project_context))) {
     if (current_session->editors.HasPendingGraphicsChanges() ||
         current_session->HasPendingGfxGroupChanges() ||
         gfx::PaletteManager::Get().HasUnsavedChanges(
@@ -2695,16 +2704,26 @@ absl::Status EditorManager::LoadAssets(uint64_t passed_handle) {
         graphics_options.gfx_sheet_layout,
         core::ResolveGfxSheetLayout(current_session->rom,
                                     *current_session->project_context));
+    if (core::GfxSheetSource::Selected(*current_session->project_context)) {
+      ASSIGN_OR_RETURN(
+          graphics_options.gfx_sheet_source,
+          core::GfxSheetSource::Load(*current_session->project_context));
+    }
+    if (!graphics_options.gfx_sheet_layout->explicit_layout)
+      graphics_options.gfx_sheet_layout
+          .reset();  // Keep legacy ROM decoding semantics.
     graphics_options.expand_rom = false;
-  } else if (current_session->game_data.gfx_sheet_layout &&
-             current_session->game_data.gfx_sheet_layout->explicit_layout) {
+  } else if ((current_session->game_data.gfx_sheet_source ||
+              (current_session->game_data.gfx_sheet_layout &&
+               current_session->game_data.gfx_sheet_layout->explicit_layout))) {
     return absl::FailedPreconditionError(
         "Explicit graphics layout reload requires its bound project "
         "declaration");
   }
   const bool explicit_graphics_load =
-      graphics_options.gfx_sheet_layout &&
-      graphics_options.gfx_sheet_layout->explicit_layout;
+      graphics_options.gfx_sheet_source.has_value() ||
+      (graphics_options.gfx_sheet_layout &&
+       graphics_options.gfx_sheet_layout->explicit_layout);
   if (explicit_graphics_load) {
     // LoadGameData stages explicit layouts. A stream failure must precede
     // display retirement, palette release and editor initialization/reset.
@@ -2879,8 +2898,9 @@ absl::Status EditorManager::LoadAssetsLazy(uint64_t passed_handle) {
   }
   bool explicit_graphics_loaded = false;
   if (current_session->project_context &&
-      current_session->project_context->hack_manifest.graphics_sheet_layout()
-          .pointer_layout) {
+      (current_session->project_context->hack_manifest.graphics_sheet_layout()
+           .pointer_layout ||
+       core::GfxSheetSource::Selected(*current_session->project_context))) {
     if (current_session->editors.HasPendingGraphicsChanges() ||
         current_session->HasPendingGfxGroupChanges() ||
         gfx::PaletteManager::Get().HasUnsavedChanges(
@@ -2894,12 +2914,21 @@ absl::Status EditorManager::LoadAssetsLazy(uint64_t passed_handle) {
         graphics_options.gfx_sheet_layout,
         core::ResolveGfxSheetLayout(current_session->rom,
                                     *current_session->project_context));
+    if (core::GfxSheetSource::Selected(*current_session->project_context)) {
+      ASSIGN_OR_RETURN(
+          graphics_options.gfx_sheet_source,
+          core::GfxSheetSource::Load(*current_session->project_context));
+    }
+    if (!graphics_options.gfx_sheet_layout->explicit_layout)
+      graphics_options.gfx_sheet_layout
+          .reset();  // Keep legacy ROM decoding semantics.
     graphics_options.expand_rom = false;
     RETURN_IF_ERROR(zelda3::LoadGameData(
         *current_rom, current_session->game_data, graphics_options));
     explicit_graphics_loaded = true;
-  } else if (current_session->game_data.gfx_sheet_layout &&
-             current_session->game_data.gfx_sheet_layout->explicit_layout) {
+  } else if ((current_session->game_data.gfx_sheet_source ||
+              (current_session->game_data.gfx_sheet_layout &&
+               current_session->game_data.gfx_sheet_layout->explicit_layout))) {
     return absl::FailedPreconditionError(
         "Explicit graphics layout reload requires its bound project "
         "declaration");
@@ -4129,6 +4158,46 @@ absl::Status EditorManager::SaveProject() {
     // whole Save, leaving the descriptor and native receipt untouched.
     return save_session->editors.SavePlanningProjectDraft();
   }
+  std::optional<core::GfxSheetSource> source_without_editor;
+  core::GfxSheetSource* graphics_source = nullptr;
+  GraphicsEditor* source_editor = nullptr;
+  std::optional<core::GfxSheetSource::Plan> source_plan;
+  if (core::GfxSheetSource::Selected(current_project_)) {
+    if (!save_session)
+      return absl::FailedPreconditionError(
+          "Source save needs its owning session");
+    auto& editors = save_session->editors;
+    const auto* dungeon = static_cast<DungeonEditorV2*>(
+        editors.GetExistingEditor(EditorType::kDungeon));
+    const auto* overworld = static_cast<OverworldEditor*>(
+        editors.GetExistingEditor(EditorType::kOverworld));
+    if (SessionHasPendingRomWork(GetCurrentSessionIndex()) ||
+        editors.HasPendingSpriteChanges() ||
+        editors.HasPendingPlanningProjectDraftChanges() ||
+        (dungeon && dungeon->HasPendingProjectDraftChanges()) ||
+        (overworld && overworld->HasPendingProjectDraftChanges()))
+      return absl::FailedPreconditionError(
+          "Save or discard other ROM/project-source drafts before graphics "
+          "source Save Project; nothing published");
+    RETURN_IF_ERROR(
+        core::ResolveGfxSheetLayout(save_session->rom, current_project_)
+            .status());
+    source_editor = static_cast<GraphicsEditor*>(
+        editors.GetExistingEditor(EditorType::kGraphics));
+    if (save_session->game_data.gfx_sheet_source) {
+      graphics_source = &*save_session->game_data.gfx_sheet_source;
+    } else {
+      ASSIGN_OR_RETURN(source_without_editor,
+                       core::GfxSheetSource::Load(current_project_));
+      graphics_source = &*source_without_editor;
+    }
+    if (source_editor && save_session->game_data.gfx_sheet_source) {
+      ASSIGN_OR_RETURN(source_plan, source_editor->PrepareSourceProjectSave());
+    } else {
+      ASSIGN_OR_RETURN(source_plan,
+                       graphics_source->Prepare(current_project_, {}));
+    }
+  }
   // Every other project Save commits build-owned work: the descriptor and
   // any terrain/sprite/dungeon drafts. Retire the prior native commit before
   // any of those bytes change.
@@ -4143,9 +4212,65 @@ absl::Status EditorManager::SaveProject() {
     return CreateNewProject();
   }
 
-  ApplyProjectSaveSettings(&current_project_, /*include_recent_files=*/true);
-
-  auto status = current_project_.Save();
+  absl::Status status;
+  if (source_plan) {
+    auto candidate = current_project_;
+    ApplyProjectSaveSettings(&candidate, /*include_recent_files=*/true);
+    candidate.graphics_sheets.source_spec_sha1 = source_plan->sha1;
+    auto updates = source_plan->updates;
+    // The ROM/manifest are protected inputs, never publication outputs.
+    for (const auto& path :
+         {candidate.rom_filename, candidate.hack_manifest_file}) {
+      if (path.empty())
+        continue;
+      const auto absolute = candidate.GetAbsolutePath(path);
+      std::error_code input_error;
+      if (!std::filesystem::is_regular_file(absolute, input_error) ||
+          input_error ||
+          std::filesystem::file_size(absolute, input_error) >
+              64 * 1024 * 1024 ||
+          input_error)
+        return absl::FailedPreconditionError(
+            "Graphics source protected input is not a bounded regular file");
+      std::ifstream input(absolute, std::ios::binary);
+      if (!input)
+        return absl::FailedPreconditionError(
+            "Graphics source protected input is unreadable");
+      std::string bytes{std::istreambuf_iterator<char>(input), {}};
+      if (input.bad())
+        return absl::DataLossError(
+            "Graphics source protected input read failed");
+      if (path == candidate.rom_filename) {
+        size_t offset = bytes.size() % 0x8000 == 0x200 ? 0x200 : 0;
+        if (bytes.size() < offset ||
+            bytes.size() - offset != save_session->rom.size() ||
+            !std::equal(
+                bytes.begin() + offset, bytes.end(),
+                save_session->rom.vector().begin(),
+                [](char a, uint8_t b) { return static_cast<uint8_t>(a) == b; }))
+          return absl::FailedPreconditionError(
+              "ROM backing file differs from the loaded source project; draft "
+              "retained");
+      }
+      updates.push_back({absolute, bytes, bytes});
+    }
+    auto saved = candidate.SaveWithSourceArtifacts(
+        std::move(updates),
+        [&]() { return core::GfxSheetSource::Load(candidate).status(); },
+        source_plan->descriptor);
+    status = saved.status();
+    if (saved.ok()) {
+      current_project_ = std::move(candidate);
+      if (source_editor && save_session->game_data.gfx_sheet_source)
+        source_editor->ProjectSourceSaveCommitted(std::move(*source_plan),
+                                                  std::move(*saved));
+      else
+        graphics_source->Commit(std::move(*source_plan), std::move(*saved));
+    }
+  } else {
+    ApplyProjectSaveSettings(&current_project_, /*include_recent_files=*/true);
+    status = current_project_.Save();
+  }
   if (status.ok()) {
     if (auto* editors = GetCurrentEditorSet())
       editors->ProjectSaveCommitted();
@@ -4261,6 +4386,12 @@ absl::Status EditorManager::SaveActiveProjectEditingWork(bool allow_dialogs) {
     return absl::FailedPreconditionError("No active ROM session");
   }
 
+  if (core::GfxSheetSource::Selected(current_project_) &&
+      (SessionHasPendingRomWork(GetCurrentSessionIndex()) ||
+       session->editors.HasPendingSpriteChanges()))
+    return absl::FailedPreconditionError(
+        "Save or discard other ROM/source drafts before graphics source Save; "
+        "nothing published");
   if (auto* graphics = static_cast<GraphicsEditor*>(
           session->editors.GetExistingEditor(EditorType::kGraphics))) {
     RETURN_IF_ERROR(graphics->SaveScratchAssets());
@@ -4383,6 +4514,10 @@ absl::Status EditorManager::SaveProjectAs(const std::string& filepath) {
                                                       file_path)) {
     return SaveProject();
   }
+  if (core::GfxSheetSource::Selected(current_project_))
+    return absl::FailedPreconditionError(
+        "Graphics source Save As requires an independent source owner; save "
+        "this project normally");
   if (auto* editors = GetCurrentEditorSet();
       editors && editors->HasPendingPlanningProjectDraftChanges()) {
     return absl::FailedPreconditionError(
@@ -5633,8 +5768,11 @@ bool EditorManager::SessionHasPendingRomWork(size_t session_index) const {
   auto* session =
       static_cast<RomSession*>(session_coordinator_->GetSession(session_index));
   return session != nullptr &&
-         ((session->rom.is_loaded() && session->rom.dirty()) ||
-          session->editors.HasPendingGraphicsChanges() ||
+         ((session->rom.is_loaded() && session->rom.dirty()) || ([&]() {
+            const auto* graphics = static_cast<GraphicsEditor*>(
+                session->editors.GetExistingEditor(EditorType::kGraphics));
+            return graphics && graphics->HasPendingRomGraphicsChanges();
+          }()) ||
           session->HasPendingGfxGroupChanges() ||
           session->editors.HasPendingScreenChanges() ||
           HasPendingDungeonChangesForSession(session_index) ||

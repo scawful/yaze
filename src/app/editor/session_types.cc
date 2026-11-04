@@ -362,6 +362,10 @@ bool EditorSet::HasPendingProjectDraftChanges() const {
 }
 
 bool EditorSet::HasPendingBuildProjectDraftChanges() const {
+  if (auto* graphics =
+          static_cast<GraphicsEditor*>(FindEditor(EditorType::kGraphics));
+      graphics && graphics->HasPendingSourceChanges())
+    return true;
   if (HasPendingSpriteChanges())
     return true;
   if (auto* editor =
@@ -389,6 +393,9 @@ absl::Status EditorSet::SavePlanningProjectDraft() {
 }
 
 absl::Status EditorSet::PrepareProjectSave(bool publish_lyra) {
+  if (auto* graphics =
+          static_cast<GraphicsEditor*>(FindEditor(EditorType::kGraphics)))
+    RETURN_IF_ERROR(graphics->PrepareProjectSave());
   if (auto* editor =
           static_cast<SpriteEditor*>(FindEditor(EditorType::kSprite)))
     RETURN_IF_ERROR(editor->PrepareProjectSave());

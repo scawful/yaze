@@ -215,6 +215,16 @@ void SheetBrowserPanel::DrawSelectedSheetInfo() {
   ImGui::Checkbox(tr("Show free 16x16"), &show_free_blocks_);
   HOVER_HINT("Outline empty, unreserved 16x16 blocks on the thumbnails");
 
+  if (game_data_ && game_data_->gfx_sheet_source &&
+      game_data_->gfx_sheet_source->sheets().contains(sheet_id)) {
+    ImGui::TextWrapped(
+        "Project source: %s",
+        game_data_->gfx_sheet_source->sheets().at(sheet_id).path.c_str());
+    ImGui::TextUnformatted(
+        "Saved by normal Save Project. Native ROM pointer bytes are "
+        "unchanged.");
+    return;
+  }
   if (!inventory_.has_value()) {
     ImGui::TextColored(gui::GetWarningColor(), "%s",
                        inventory_error_.empty() ? "Inventory not built"
@@ -339,15 +349,15 @@ void SheetBrowserPanel::DrawPendingSave() {
     }
   }
   HOVER_HINT(
-      "Writes every dirty sheet to a scratch copy of the ROM and decodes it "
-      "back. Saving the ROM does the same for real, and writes nothing if any "
-      "sheet fails.");
+      "Checks every dirty sheet against its source or ROM save contract. "
+      "Source sheets are published by normal Save Project; compiled ROM bytes "
+      "stay unchanged.");
   if (!save_plan_error_.empty()) {
     ImGui::TextColored(gui::GetErrorColor(), "%s", save_plan_error_.c_str());
     return;
   }
   if (save_plan_.empty()) {
-    ImGui::TextDisabled("%s", tr("Check the plan before saving the ROM."));
+    ImGui::TextDisabled("%s", tr("Check the plan before saving graphics."));
     return;
   }
   if (save_plan_sheets_ != state_->modified_sheets) {
@@ -688,12 +698,14 @@ void SheetBrowserPanel::DrawSearchBar() {
     // Parse hex input for sheet number
     if (strlen(search_buffer_) > 0) {
       int value = static_cast<int>(strtol(search_buffer_, nullptr, 16));
-      if (value >= 0 && value <= 222) {
+      if (value >= 0 && value < static_cast<int>(gfx::kGraphicsSheetCapacity) &&
+          game_data_ && game_data_->sheet_store.HasSheet(value) &&
+          game_data_->gfx_bitmaps[value].is_active()) {
         state_->SelectSheet(static_cast<uint16_t>(value));
       }
     }
   }
-  HOVER_HINT("Enter hex sheet number (00-DE)");
+  HOVER_HINT("Enter a loaded hex sheet number (00-FE; FF is reserved)");
 
   ImGui::SameLine();
   if (ImGui::Button(ICON_MD_TUNE "##SheetFilters")) {
@@ -703,11 +715,15 @@ void SheetBrowserPanel::DrawSearchBar() {
   HOVER_HINT("Filter range, modified sheets, and thumbnail size");
   if (ImGui::BeginPopup("Sheet filters")) {
     ImGui::SetNextItemWidth(70);
-    ImGui::DragInt("First", &filter_min_, 1.0f, 0, 222, "%02X");
+    ImGui::DragInt("First", &filter_min_, 1.0f, 0,
+                   gfx::kGraphicsSheetCapacity - 1, "%02X");
     ImGui::SetNextItemWidth(70);
-    ImGui::DragInt("Last", &filter_max_, 1.0f, 0, 222, "%02X");
-    filter_min_ = std::clamp(filter_min_, 0, 222);
-    filter_max_ = std::clamp(filter_max_, filter_min_, 222);
+    ImGui::DragInt("Last", &filter_max_, 1.0f, 0,
+                   gfx::kGraphicsSheetCapacity - 1, "%02X");
+    filter_min_ = std::clamp(filter_min_, 0,
+                             static_cast<int>(gfx::kGraphicsSheetCapacity) - 1);
+    filter_max_ = std::clamp(filter_max_, filter_min_,
+                             static_cast<int>(gfx::kGraphicsSheetCapacity) - 1);
     ImGui::Checkbox(tr("Modified only"), &show_only_modified_);
     ImGui::Separator();
     DrawBatchOperations();
@@ -770,6 +786,8 @@ void SheetBrowserPanel::DrawSheetGrid() {
   int col = 0;
   for (int i = filter_min_; i <= filter_max_ && i < zelda3::kNumGfxSheets;
        i++) {
+    if (!sheets[i].is_active())
+      continue;
     // Filter by modification state if enabled
     if (show_only_modified_ &&
         state_->modified_sheets.find(static_cast<uint16_t>(i)) ==

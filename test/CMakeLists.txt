@@ -324,6 +324,7 @@ if(YAZE_BUILD_TESTS)
   set(QUICK_UNIT_CORE_TEST_SOURCES
     unit/core/hack_manifest_test.cc
     unit/core/gfx_sheet_policy_adapter_test.cc
+    unit/core/gfx_sheet_source_test.cc
     unit/core/oracle_progression_test.cc
     unit/core/oracle_progression_loader_test.cc
     unit/core/story_event_graph_test.cc

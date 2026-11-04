@@ -35,7 +35,7 @@ class UndoManager;
 /**
  * @brief WindowContent for browsing and selecting graphics sheets
  *
- * Displays a grid view of all 223 graphics sheets from the ROM.
+ * Displays loaded ROM and explicitly source-backed graphics sheets through FE.
  * Supports single/multi-select, search/filter, and batch operations.
  */
 class SheetBrowserPanel : public WindowContent {
@@ -133,7 +133,7 @@ class SheetBrowserPanel : public WindowContent {
 
   /**
    * @brief Draw a single sheet thumbnail
-   * @param sheet_id Sheet index (0-222)
+   * @param sheet_id Loaded sheet index (00-FE; FF is reserved)
    * @param bitmap The bitmap to display
    */
   void DrawSheetThumbnail(int sheet_id, gfx::Bitmap& bitmap);
@@ -155,7 +155,7 @@ class SheetBrowserPanel : public WindowContent {
   // Search/filter state
   char search_buffer_[16] = {0};
   int filter_min_ = 0;
-  int filter_max_ = 222;
+  int filter_max_ = gfx::kGraphicsSheetCapacity - 1;
   bool show_only_modified_ = false;
 
   // Grid layout

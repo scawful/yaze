@@ -17,7 +17,8 @@ namespace editor {
 /// it, measured on a scratch copy of the ROM, or why it refuses.
 struct GraphicsSavePlanEntry {
   uint16_t sheet_id = 0;
-  std::string refusal;  // empty when the sheet can be saved
+  std::string source_path;  // Nonempty means project-source publication.
+  std::string refusal;      // empty when the sheet can be saved
   zelda3::GfxSheetPlacement placement = zelda3::GfxSheetPlacement::kInPlace;
   uint32_t old_pc = 0;
   uint32_t new_pc = 0;

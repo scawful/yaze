@@ -15,6 +15,7 @@
 #include "core/features.h"
 #include "core/hack_manifest.h"
 #include "core/rom_settings.h"
+#include "core/source_artifact_publisher.h"
 #include "core/sprite_asset.h"
 #include "zelda3/resource_labels.h"
 
@@ -115,12 +116,16 @@ struct DungeonOverlaySettings {
  * the 8x2 block grid) that must keep their current pixels.
  */
 struct GraphicsSheetSettings {
+  // Explicit current authoring state, rooted in code_folder.
+  std::string source_spec;
+  std::string source_spec_sha1;
   std::vector<uint16_t> reserved_sheets;
   std::vector<uint16_t> flagged_sheets;
   std::map<uint16_t, std::vector<uint16_t>> reserved_blocks;
 
   bool empty() const {
-    return reserved_sheets.empty() && flagged_sheets.empty() &&
+    return source_spec.empty() && source_spec_sha1.empty() &&
+           reserved_sheets.empty() && flagged_sheets.empty() &&
            reserved_blocks.empty();
   }
 };
@@ -472,6 +477,10 @@ struct YazeProject {
   // Create a new descriptor without replacing a file that appeared after the
   // caller's preflight check.
   absl::Status SaveNew();
+  absl::StatusOr<std::string> SaveWithSourceArtifacts(
+      std::vector<core::SourceArtifactUpdate> updates,
+      core::SourceArtifactReadbackValidator validator,
+      const std::string& expected_descriptor);
   absl::Status SaveAs(const std::string& new_path);
   // Saves an independent project-owned terrain copy without modifying the
   // original terrain. Both destination files roll back together on failure.
@@ -548,7 +557,11 @@ struct YazeProject {
  private:
   absl::Status ParseFromString(const std::string& content);
   absl::Status LoadFromYazeFormat(const std::string& project_path);
-  absl::Status SaveToYazeFormat(bool replace_existing = true);
+  absl::Status SaveToYazeFormat(
+      bool replace_existing = true,
+      std::vector<core::SourceArtifactUpdate> updates = {},
+      core::SourceArtifactReadbackValidator validator = {},
+      std::optional<std::string> expected_descriptor = std::nullopt);
   absl::Status ImportFromZScreamFormat(const std::string& project_path);
 
 #ifdef YAZE_ENABLE_JSON_PROJECT_FORMAT

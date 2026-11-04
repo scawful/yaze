@@ -130,10 +130,16 @@ absl::Status LoadGameData(Rom& rom, GameData& data,
   if (layout) {
     RETURN_IF_ERROR(ValidateResolvedGfxSheetLayout(rom, *layout));
   }
+  const auto source = options.gfx_sheet_source;
+  if (source)
+    RETURN_IF_ERROR(source->CheckDisk());
+  const bool staged_graphics =
+      source.has_value() || (layout && layout->explicit_layout);
   auto load = [&](GameData& target) -> absl::Status {
     target.Clear();
     target.set_rom(&rom);
     target.gfx_sheet_layout = layout;
+    target.gfx_sheet_source = source;
 
     if (options.populate_metadata) {
       RETURN_IF_ERROR(LoadMetadata(rom, target));
@@ -149,12 +155,12 @@ absl::Status LoadGameData(Rom& rom, GameData& data,
 
     // Preserve legacy load order. Explicit loads materialize surfaces only
     // after every fallible non-graphics table load has succeeded below.
-    if (options.load_graphics && !(layout && layout->explicit_layout)) {
+    if (options.load_graphics && !staged_graphics) {
       RETURN_IF_ERROR(LoadGraphics(rom, target));
     }
 
     // An identity-bound read-only load must preserve the validated ROM body.
-    if (options.expand_rom && !(layout && layout->explicit_layout)) {
+    if (options.expand_rom && !staged_graphics) {
       if (rom.size() < 1048576 * 2) {
         rom.Expand(1048576 * 2);
       }
@@ -165,12 +171,12 @@ absl::Status LoadGameData(Rom& rom, GameData& data,
 
     target.room_default_entrances = ComputeRoomDefaultEntrances(rom);
 
-    if (options.load_graphics && layout && layout->explicit_layout) {
+    if (options.load_graphics && staged_graphics) {
       RETURN_IF_ERROR(LoadGraphics(rom, target));
     }
     return absl::OkStatus();
   };
-  if (layout && layout->explicit_layout) {
+  if (staged_graphics) {
     // Do not copy live bitmaps/resources merely to validate a replacement.
     // Clear() retains these metadata/group fields, so seed only those fields.
     auto staged = std::make_unique<GameData>(&rom);
@@ -683,6 +689,26 @@ absl::Status LoadGraphics(Rom& rom, GameData& data) {
     }
   }
 
+  if (data.gfx_sheet_source) {
+    // Source rows extend the editor store only; no native pointer declaration.
+    const auto& source_sheets = data.gfx_sheet_source->sheets();
+    const size_t count = source_sheets.rbegin()->first + 1;
+    data.graphics_buffer.resize(
+        std::max(data.graphics_buffer.size(), count * 4096), 0);
+    for (const auto& [id, sheet] : source_sheets) {
+      data.raw_gfx_sheets[id] = sheet.pixels;
+      std::copy(sheet.pixels.begin(), sheet.pixels.end(),
+                data.graphics_buffer.begin() + id * 4096);
+      if (data.gfx_bitmaps[id].is_active())
+        data.gfx_bitmaps[id].set_data(sheet.pixels);
+      else
+        data.gfx_bitmaps[id].Create(gfx::kTilesheetWidth, gfx::kTilesheetHeight,
+                                    gfx::kTilesheetDepth, sheet.pixels);
+      if (data.palette_groups.hud.size() > 0)
+        ApplyDefaultPalette(data.gfx_bitmaps[id],
+                            data.palette_groups.hud.palette(0));
+    }
+  }
   // The sheets were appended through the graphics_buffer alias.
   data.sheet_store.MarkAllSheetsChanged();
   diag.Analyze();

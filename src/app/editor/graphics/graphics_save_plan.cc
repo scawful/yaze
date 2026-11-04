@@ -51,6 +51,9 @@ std::string DescribeGraphicsSavePlanEntry(const GraphicsSavePlanEntry& entry) {
     return absl::StrFormat("Sheet 0x%02X: refused (%s)", entry.sheet_id,
                            entry.refusal);
   }
+  if (!entry.source_path.empty())
+    return absl::StrFormat("Sheet 0x%02X: project source %s", entry.sheet_id,
+                           entry.source_path);
   if (entry.placement == zelda3::GfxSheetPlacement::kRelocated) {
     return absl::StrFormat(
         "Sheet 0x%02X: relocated 0x%06X -> 0x%06X, %zu -> %zu bytes",

@@ -484,6 +484,57 @@ absl::Status GraphicsEditor::SaveScratchAssets() {
   return scratch_view_->Flush();
 }
 
+bool GraphicsEditor::HasPendingSourceChanges() const {
+  return game_data() && game_data()->gfx_sheet_source &&
+         HasPendingGraphicsChanges();
+}
+
+bool GraphicsEditor::HasPendingRomGraphicsChanges() const {
+  if (!game_data() || !game_data()->gfx_sheet_source)
+    return HasPendingGraphicsChanges();
+  if (scratch_view_ && scratch_view_->HasPendingChanges())
+    return true;
+  for (uint16_t id : state_.modified_sheets)
+    if (!game_data()->gfx_sheet_source->sheets().contains(id))
+      return true;
+  return false;
+}
+
+absl::Status GraphicsEditor::PrepareProjectSave() {
+  if (!game_data() || !game_data()->gfx_sheet_source)
+    return absl::OkStatus();
+  RETURN_IF_ERROR(BeginSaveTransaction());
+  // No source or dirty baseline is advanced by preflight.
+  RollbackSaveTransaction();
+  return absl::OkStatus();
+}
+
+absl::StatusOr<core::GfxSheetSource::Plan>
+GraphicsEditor::PrepareSourceProjectSave() {
+  RETURN_IF_ERROR(PrepareProjectSave());
+  if (!game_data() || !game_data()->gfx_sheet_source || !project())
+    return absl::FailedPreconditionError(
+        "Open the explicitly bound graphics source project");
+  if (gfx::Arena::Get().gfx_sheets_owner() != game_data())
+    return absl::FailedPreconditionError(
+        "Graphics source belongs to another active session");
+  std::map<uint16_t, std::vector<uint8_t>> edited;
+  for (uint16_t id : state_.modified_sheets) {
+    const auto pixels = game_data()->sheet_store.Sheet(id);
+    edited[id] = std::vector<uint8_t>(pixels.begin(), pixels.end());
+  }
+  return game_data()->gfx_sheet_source->Prepare(*project(), edited);
+}
+
+void GraphicsEditor::ProjectSourceSaveCommitted(core::GfxSheetSource::Plan plan,
+                                                std::string descriptor) {
+  std::set<uint16_t> saved;
+  for (const auto& [id, sheet] : plan.sheets)
+    saved.insert(id);
+  game_data()->gfx_sheet_source->Commit(std::move(plan), std::move(descriptor));
+  state_.ClearModifiedSheets(saved);
+}
+
 absl::Status GraphicsEditor::Save() {
   RETURN_IF_ERROR(SaveScratchAssets());
   if (state_.selection.is_floating)
@@ -502,6 +553,9 @@ absl::Status GraphicsEditor::Save() {
     LOG_INFO("GraphicsEditor", "No modified sheets to save");
     return absl::OkStatus();
   }
+  if (game_data() && game_data()->gfx_sheet_source)
+    return absl::FailedPreconditionError(
+        "Source graphics use normal Save Project; ROM bytes are unchanged");
   ASSIGN_OR_RETURN(PreparedGraphicsSave prepared, PrepareGraphicsSave());
 
   // Refuse the whole batch before writing when any sheet cannot be saved, so
@@ -572,6 +626,17 @@ absl::Status GraphicsEditor::Save() {
 
 absl::StatusOr<std::vector<GraphicsSavePlanEntry>>
 GraphicsEditor::PlanGraphicsSave() {
+  if (game_data() && game_data()->gfx_sheet_source) {
+    ASSIGN_OR_RETURN(auto plan, PrepareSourceProjectSave());
+    std::vector<GraphicsSavePlanEntry> entries;
+    for (uint16_t id : state_.modified_sheets) {
+      GraphicsSavePlanEntry entry;
+      entry.sheet_id = id;
+      entry.source_path = plan.sheets.at(id).path;
+      entries.push_back(std::move(entry));
+    }
+    return entries;
+  }
   ASSIGN_OR_RETURN(PreparedGraphicsSave prepared, PrepareGraphicsSave());
   std::vector<GraphicsSavePlanEntry> entries;
   for (const auto& [sheet_id, reason] : prepared.refusals) {

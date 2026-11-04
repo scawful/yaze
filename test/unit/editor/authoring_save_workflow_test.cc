@@ -55,16 +55,20 @@
 #include "app/gui/automation/widget_id_registry.h"
 #include "app/gui/core/background_renderer.h"
 #include "core/features.h"
+#include "core/gfx_sheet_policy_adapter.h"
+#include "core/gfx_sheet_source.h"
 #include "core/hack_manifest.h"
 #include "editor_test_support.h"
 #include "framework/rom_save_fault.h"
 #include "imgui/imgui.h"
 #include "imgui/imgui_internal.h"
+#include "nlohmann/json.hpp"
 #include "oracle_rom_fixture.h"
 #include "rom/snes.h"
 #include "test_utils.h"
 #include "testing.h"
 #include "unique_temp_path.h"
+#include "util/indexed_png.h"
 #include "util/rom_hash.h"
 #include "zelda3/dungeon/draw_routines/draw_routine_registry.h"
 #include "zelda3/dungeon/room.h"
@@ -174,6 +178,11 @@ class AuthoringSaveWorkflowTestPeer {
     view.dirty_ = true;
   }
 
+  static void MarkPendingOverworldScratch(OverworldEditor& editor,
+                                          const std::filesystem::path& path) {
+    editor.scratch_path_ = path;
+    editor.scratch_space_dirty_ = true;
+  }
   static GraphicsEditorState& GraphicsState(GraphicsEditor& editor) {
     return editor.state_;
   }
@@ -668,6 +677,58 @@ class AuthoringSaveWorkflowTest : public ::testing::Test {
   DisposableOracleProject CopyProject(const char* name) {
     return CopyProjectFrom(name, kSharedRom, kSharedProject, kSharedManifest,
                            kSharedCollision);
+  }
+
+  void BindGraphicsSources(const DisposableOracleProject& fixture) {
+    const auto directory = fixture.root / "Data/graphics";
+    std::filesystem::create_directories(directory);
+    const std::vector<uint8_t> pixels(4096, 0);
+    nlohmann::json spec = {{"schema_version", 2},
+                           {"start", "0x40D000"},
+                           {"capacity", "0x3000"},
+                           {"encoding", "lz2"},
+                           {"sheets", nlohmann::json::array()}};
+    for (int id : {0x64, 0x40, 0x43, 0x47}) {
+      const auto name =
+          "legacy-" + std::to_string(id) + (id == 0x64 ? ".png" : ".txt");
+      if (id == 0x64) {
+        auto png = util::EncodeIndexedPng(
+            128, 32, pixels,
+            std::vector<std::array<uint8_t, 4>>(8, {0, 0, 0, 255}));
+        ASSERT_OK(png.status());
+        ASSERT_OK(util::WriteBinaryFile((directory / name).string(), *png));
+      } else {
+        std::ofstream output(directory / name);
+        output << core::GfxSheetSource::EncodeText(pixels);
+      }
+      spec["sheets"].push_back({{"sprite_sheet", id},
+                                {"source", name},
+                                {"base_sha256", std::string(64, 'a')},
+                                {"identity", false},
+                                {"why", "Preserved legacy fixture"}});
+    }
+    for (int id = 0xDF; id <= 0xE4; ++id) {
+      const auto name = "global-" + std::to_string(id) + ".txt";
+      std::ofstream output(directory / name);
+      output << core::GfxSheetSource::EncodeText(pixels);
+      output.close();
+      spec["sheets"].push_back(
+          {{"global_sheet", id},
+           {"source", name},
+           {"decoded_sha256", core::GfxSheetSource::DecodedSha256(pixels)},
+           {"why", "Existing source-backed global fixture"}});
+    }
+    const auto text = spec.dump(2) + "\n";
+    std::ofstream output(directory / "source_sprite_sheets.json");
+    output << text;
+    output.close();
+    project::YazeProject source_project;
+    ASSERT_OK(source_project.Open(fixture.project.string()));
+    source_project.graphics_sheets.source_spec =
+        "Data/graphics/source_sprite_sheets.json";
+    source_project.graphics_sheets.source_spec_sha1 =
+        core::GfxSheetSource::SpecSha1(text);
+    ASSERT_OK(source_project.Save());
   }
 
   void Open(const DisposableOracleProject& fixture) {
@@ -7086,6 +7147,341 @@ void AuthoringSaveWorkflowTest::QualifyGoronRouteBuild(bool floor_art) {
                           }),
             1);
   std::cout << "Authored runtime ROM: " << output << std::endl;
+}
+
+TEST_F(AuthoringSaveWorkflowTest,
+       SourceDfNormalSaveUndoAndFreshReopenKeepLegacyRom) {
+  const auto fixture = CopyProject("source-df-normal-save");
+  BindGraphicsSources(fixture);
+  const auto rom_before = ReadFile(fixture.rom);
+  const auto manifest_before = ReadFile(fixture.root / "hack_manifest.json");
+  const auto png_before =
+      ReadFile(fixture.root / "Data/graphics/legacy-100.png");
+  const auto spec_path =
+      fixture.root / "Data/graphics/source_sprite_sheets.json";
+  const auto spec_before_bytes = ReadFile(spec_path);
+  const auto spec_before = nlohmann::json::parse(spec_before_bytes);
+  Open(fixture);
+  ASSERT_OK(manager_->EnsureEditorAssetsLoaded(EditorType::kGraphics));
+  auto* graphics = manager_->GetCurrentEditorSet()->GetGraphicsEditor();
+  auto& state = AuthoringSaveWorkflowTestPeer::GraphicsState(*graphics);
+  ASSERT_TRUE(state.game_data->gfx_sheet_source);
+  ASSERT_TRUE(state.game_data->sheet_store.HasSheet(0xDF));
+  EXPECT_TRUE(state.game_data->gfx_bitmaps[0xDF].is_active());
+  EXPECT_FALSE(manager_->GetCurrentProject()
+                   ->hack_manifest.graphics_sheet_layout()
+                   .pointer_layout);
+  state.SelectSheet(0xDF);
+  AuthoringSaveWorkflowTestPeer::PaintGraphicsPixel(*graphics, 0, 0, 6);
+  EXPECT_TRUE(manager_->IsCurrentProjectDirty());
+  auto plan = graphics->PlanGraphicsSave();
+  ASSERT_OK(plan.status());
+  ASSERT_EQ(plan->size(), 1u);
+  EXPECT_FALSE(plan->front().source_path.empty());
+  ASSERT_OK(manager_->SaveCurrentSession());
+  EXPECT_FALSE(state.HasUnsavedChanges());
+  EXPECT_EQ(state.game_data->sheet_store.Sheet(0xDF)[0], 6);
+  ASSERT_OK(graphics->Undo());
+  EXPECT_TRUE(state.HasUnsavedChanges());
+  ASSERT_OK(manager_->SaveCurrentSession());
+  EXPECT_EQ(state.game_data->sheet_store.Sheet(0xDF)[0], 0);
+  ASSERT_OK(graphics->Redo());
+  ASSERT_OK(manager_->SaveCurrentSession());
+  EXPECT_EQ(ReadFile(fixture.rom), rom_before);
+  EXPECT_EQ(ReadFile(fixture.root / "hack_manifest.json"), manifest_before);
+  EXPECT_EQ(ReadFile(fixture.root / "Data/graphics/legacy-100.png"),
+            png_before);
+  const auto spec_after = nlohmann::json::parse(ReadFile(spec_path));
+  ASSERT_EQ(spec_after["sheets"].size(), 10u);
+  for (int entry = 0; entry < 4; ++entry)
+    EXPECT_EQ(spec_after["sheets"][entry], spec_before["sheets"][entry]);
+  manager_.reset();
+  Open(fixture);
+  ASSERT_OK(manager_->EnsureEditorAssetsLoaded(EditorType::kGraphics));
+  auto& reopened = AuthoringSaveWorkflowTestPeer::GraphicsState(
+      *manager_->GetCurrentEditorSet()->GetGraphicsEditor());
+  EXPECT_EQ(reopened.game_data->sheet_store.Sheet(0xDF)[0], 6);
+  EXPECT_EQ(reopened.game_data->sheet_store.Sheet(0xE4)[0], 0);
+  EXPECT_FALSE(reopened.game_data->sheet_store.HasSheet(0xFF));
+  EXPECT_FALSE(reopened.HasUnsavedChanges());
+  EXPECT_EQ(ReadFile(fixture.rom), rom_before);
+}
+
+TEST_F(AuthoringSaveWorkflowTest,
+       SourceCasFailureKeepsPixelsUndoAndLiveBaseline) {
+  const auto fixture = CopyProject("source-df-cas-failure");
+  BindGraphicsSources(fixture);
+  Open(fixture);
+  ASSERT_OK(manager_->EnsureEditorAssetsLoaded(EditorType::kGraphics));
+  auto* graphics = manager_->GetCurrentEditorSet()->GetGraphicsEditor();
+  auto& state = AuthoringSaveWorkflowTestPeer::GraphicsState(*graphics);
+  state.SelectSheet(0xDF);
+  AuthoringSaveWorkflowTestPeer::PaintGraphicsPixel(*graphics, 0, 0, 3);
+  const auto before_project = ReadFile(fixture.project);
+  const auto baseline =
+      manager_->GetCurrentProject()->graphics_sheets.source_spec_sha1;
+  const auto source = fixture.root / "Data/graphics/global-223.txt";
+  const auto before_source = ReadFile(source);
+  {
+    std::ofstream output(source, std::ios::app);
+    output << "# external writer\n";
+  }
+  const auto external = ReadFile(source);
+  EXPECT_FALSE(manager_->SaveCurrentSession().ok());
+  EXPECT_EQ(ReadFile(source), external);
+  EXPECT_EQ(ReadFile(fixture.project), before_project);
+  EXPECT_EQ(manager_->GetCurrentProject()->graphics_sheets.source_spec_sha1,
+            baseline);
+  EXPECT_TRUE(state.HasUnsavedChanges());
+  EXPECT_EQ(state.game_data->sheet_store.Sheet(0xDF)[0], 3);
+  ASSERT_OK(graphics->Undo());
+  EXPECT_EQ(state.game_data->sheet_store.Sheet(0xDF)[0], 0);
+  EXPECT_NE(before_source, external);
+}
+
+TEST_F(AuthoringSaveWorkflowTest,
+       SourceMixedRomAndSaveAsRefuseBeforeAnySourceWrite) {
+  const auto fixture = CopyProject("source-df-mixed-stop");
+  BindGraphicsSources(fixture);
+  Open(fixture);
+  ASSERT_OK(manager_->EnsureEditorAssetsLoaded(EditorType::kGraphics));
+  auto* graphics = manager_->GetCurrentEditorSet()->GetGraphicsEditor();
+  auto& state = AuthoringSaveWorkflowTestPeer::GraphicsState(*graphics);
+  state.SelectSheet(0xDF);
+  AuthoringSaveWorkflowTestPeer::PaintGraphicsPixel(*graphics, 0, 0, 4);
+  const auto before_project = ReadFile(fixture.project);
+  const auto spec = fixture.root / "Data/graphics/source_sprite_sheets.json";
+  const auto before_spec = ReadFile(spec);
+  const auto source = fixture.root / "Data/graphics/global-223.txt";
+  const auto before_source = ReadFile(source);
+  const auto destination = fixture.root / "independent.yaze";
+  EXPECT_FALSE(manager_->SaveProjectAs(destination.string()).ok());
+  EXPECT_FALSE(std::filesystem::exists(destination));
+  ASSERT_OK(manager_->GetCurrentRom()->WriteByte(
+      0x200, manager_->GetCurrentRom()->vector()[0x200] ^ 1));
+  EXPECT_FALSE(manager_->SaveCurrentSession().ok());
+  EXPECT_TRUE(manager_->GetCurrentRom()->dirty());
+  EXPECT_TRUE(state.HasUnsavedChanges());
+  EXPECT_EQ(ReadFile(fixture.project), before_project);
+  EXPECT_EQ(ReadFile(spec), before_spec);
+  EXPECT_EQ(ReadFile(source), before_source);
+  EXPECT_FALSE(std::filesystem::exists(destination));
+}
+
+TEST_F(AuthoringSaveWorkflowTest,
+       SourceFailedReloadPreservesDirtyPixelsAndSurfaces) {
+  const auto fixture = CopyProject("source-df-reload-stop");
+  BindGraphicsSources(fixture);
+  Open(fixture);
+  ASSERT_OK(manager_->EnsureEditorAssetsLoaded(EditorType::kGraphics));
+  auto* graphics = manager_->GetCurrentEditorSet()->GetGraphicsEditor();
+  auto& state = AuthoringSaveWorkflowTestPeer::GraphicsState(*graphics);
+  state.SelectSheet(0xDF);
+  AuthoringSaveWorkflowTestPeer::PaintGraphicsPixel(*graphics, 0, 0, 5);
+  const auto dirty_revision = state.game_data->sheet_store.Revision(0xDF);
+  EXPECT_FALSE(
+      manager_->LoadAssets().ok());  // Dirty model refuses before reset.
+  EXPECT_EQ(state.game_data->sheet_store.Revision(0xDF), dirty_revision);
+  EXPECT_TRUE(state.HasUnsavedChanges());
+  ASSERT_OK(manager_->SaveCurrentSession());
+  const auto revision = state.game_data->sheet_store.Revision(0xDF);
+  const auto source_hash = state.game_data->gfx_sheet_source->spec_sha1();
+  const auto unpooled = gfx::Arena::Get().GetSurfaceCount() -
+                        gfx::Arena::Get().GetPooledSurfaceCount();
+  {
+    std::ofstream output(fixture.root / "Data/graphics/global-223.txt");
+    output << "malformed";
+  }
+  const auto failed = manager_->LoadAssets();
+  EXPECT_FALSE(failed.ok());
+  EXPECT_NE(failed.message().find("128 columns"), absl::string_view::npos);
+  EXPECT_EQ(state.game_data->sheet_store.Sheet(0xDF)[0], 5);
+  EXPECT_EQ(state.game_data->sheet_store.Revision(0xDF), revision);
+  EXPECT_EQ(state.game_data->gfx_sheet_source->spec_sha1(), source_hash);
+  EXPECT_FALSE(state.HasUnsavedChanges());
+  EXPECT_EQ(gfx::Arena::Get().GetSurfaceCount() -
+                gfx::Arena::Get().GetPooledSurfaceCount(),
+            unpooled);
+  ASSERT_OK(graphics->Undo());
+  EXPECT_EQ(state.game_data->sheet_store.Sheet(0xDF)[0], 0);
+}
+
+TEST_F(AuthoringSaveWorkflowTest,
+       SourceRefusesOtherProjectDraftBeforeCasOrPreparation) {
+  const auto fixture = CopyProject("source-df-other-draft-stop");
+  BindGraphicsSources(fixture);
+  Open(fixture);
+  ASSERT_OK(manager_->EnsureEditorAssetsLoaded(EditorType::kOverworld));
+  ASSERT_OK(manager_->EnsureEditorAssetsLoaded(EditorType::kGraphics));
+  auto* graphics = manager_->GetCurrentEditorSet()->GetGraphicsEditor();
+  auto& state = AuthoringSaveWorkflowTestPeer::GraphicsState(*graphics);
+  state.SelectSheet(0xDF);
+  AuthoringSaveWorkflowTestPeer::PaintGraphicsPixel(*graphics, 0, 0, 4);
+  auto* overworld =
+      manager_->GetCurrentEditorSet()->GetEditorAs<OverworldEditor>(
+          EditorType::kOverworld);
+  const auto scratch = fixture.root / "other-project-draft.json";
+  AuthoringSaveWorkflowTestPeer::MarkPendingOverworldScratch(*overworld,
+                                                             scratch);
+  const auto before_project = ReadFile(fixture.project);
+  const auto source = fixture.root / "Data/graphics/global-223.txt";
+  {
+    std::ofstream output(source, std::ios::app);
+    output << "# external writer makes later CAS fail\n";
+  }
+  const auto external = ReadFile(source);
+  const auto refused = manager_->SaveCurrentSession();
+  EXPECT_FALSE(refused.ok());
+  EXPECT_NE(refused.message().find("other ROM/project-source drafts"),
+            absl::string_view::npos);
+  EXPECT_TRUE(overworld->HasPendingProjectDraftChanges());
+  EXPECT_TRUE(state.HasUnsavedChanges());
+  EXPECT_FALSE(std::filesystem::exists(scratch));
+  EXPECT_EQ(ReadFile(source), external);
+  EXPECT_EQ(ReadFile(fixture.project), before_project);
+}
+
+TEST_F(AuthoringSaveWorkflowTest,
+       SourceActivePasteAndHeldStrokeAreNotDroppedBySave) {
+  const auto fixture = CopyProject("source-df-gesture-stop");
+  BindGraphicsSources(fixture);
+  Open(fixture);
+  ASSERT_OK(manager_->EnsureEditorAssetsLoaded(EditorType::kGraphics));
+  auto* graphics = manager_->GetCurrentEditorSet()->GetGraphicsEditor();
+  auto& state = AuthoringSaveWorkflowTestPeer::GraphicsState(*graphics);
+  state.SelectSheet(0xDF);
+  const auto source = fixture.root / "Data/graphics/global-223.txt";
+  const auto before = ReadFile(source), descriptor = ReadFile(fixture.project);
+  state.selection.is_floating = true;
+  EXPECT_FALSE(manager_->SaveCurrentSession().ok());
+  EXPECT_TRUE(state.selection.is_floating);
+  state.selection.is_floating = false;
+  ImGui::GetIO().MouseDown[0] = true;
+  auto mouse_restore =
+      absl::MakeCleanup([] { ImGui::GetIO().MouseDown[0] = false; });
+  AuthoringSaveWorkflowTestPeer::PaintGraphicsPixel(*graphics, 0, 0, 2, false);
+  EXPECT_FALSE(manager_->SaveCurrentSession().ok());
+  EXPECT_TRUE(
+      AuthoringSaveWorkflowTestPeer::HasActiveGraphicsStroke(*graphics));
+  EXPECT_EQ(state.game_data->sheet_store.Sheet(0xDF)[0], 2);
+  EXPECT_EQ(ReadFile(source), before);
+  EXPECT_EQ(ReadFile(fixture.project), descriptor);
+  ImGui::GetIO().MouseDown[0] = false;
+  AuthoringSaveWorkflowTestPeer::EndGraphicsStroke(*graphics);
+}
+
+TEST_F(AuthoringSaveWorkflowTest,
+       SourceArenaOwnerCannotPublishAnotherSessionsStore) {
+  const auto fixture = CopyProject("source-df-owner-stop");
+  BindGraphicsSources(fixture);
+  Open(fixture);
+  ASSERT_OK(manager_->EnsureEditorAssetsLoaded(EditorType::kGraphics));
+  auto* graphics = manager_->GetCurrentEditorSet()->GetGraphicsEditor();
+  auto& state = AuthoringSaveWorkflowTestPeer::GraphicsState(*graphics);
+  state.SelectSheet(0xDF);
+  AuthoringSaveWorkflowTestPeer::PaintGraphicsPixel(*graphics, 0, 0, 3);
+  const auto before = ReadFile(fixture.root / "Data/graphics/global-223.txt");
+  auto& arena = gfx::Arena::Get();
+  const auto owner = arena.gfx_sheets_owner();
+  auto owner_restore =
+      absl::MakeCleanup([&] { arena.set_gfx_sheets_owner(owner); });
+  zelda3::GameData other_session;
+  arena.set_gfx_sheets_owner(&other_session);
+  EXPECT_FALSE(graphics->PrepareSourceProjectSave().ok());
+  EXPECT_EQ(ReadFile(fixture.root / "Data/graphics/global-223.txt"), before);
+  EXPECT_EQ(state.game_data->sheet_store.Sheet(0xDF)[0], 3);
+  EXPECT_TRUE(state.HasUnsavedChanges());
+}
+
+TEST_F(AuthoringSaveWorkflowTest,
+       SourceSaveAfterGeneratorManifestRefreshRemainsEditable) {
+  const auto fixture = CopyProject("source-df-generated-reservations");
+  BindGraphicsSources(fixture);
+  Open(fixture);
+  ASSERT_OK(manager_->EnsureEditorAssetsLoaded(EditorType::kGraphics));
+  auto* graphics = manager_->GetCurrentEditorSet()->GetGraphicsEditor();
+  auto& first_state = AuthoringSaveWorkflowTestPeer::GraphicsState(*graphics);
+  first_state.SelectSheet(0xDF);
+  AuthoringSaveWorkflowTestPeer::PaintGraphicsPixel(*graphics, 0, 0, 6);
+  ASSERT_OK(manager_->SaveCurrentSession());
+  const auto rom_before = ReadFile(fixture.rom);
+  const auto spec_path =
+      fixture.root / "Data/graphics/source_sprite_sheets.json";
+  const auto spec_bytes = ReadFile(spec_path);
+  const auto spec = nlohmann::json::parse(spec_bytes);
+  const auto manifest_path = fixture.root / "hack_manifest.json";
+  auto manifest = nlohmann::json::parse(ReadFile(manifest_path));
+  auto global_ids = nlohmann::json::array(),
+       sprite_ids = nlohmann::json::array();
+  for (const auto& entry : spec["sheets"]) {
+    const int id = entry.contains("global_sheet")
+                       ? entry["global_sheet"].get<int>()
+                       : entry["sprite_sheet"].get<int>() + 0x73;
+    const auto global = absl::StrFormat("0x%02X", id);
+    global_ids.push_back(global);
+    sprite_ids.push_back(absl::StrFormat("0x%02X", id - 0x73));
+    manifest["graphics_sheet_regions"]["reserved_sheets"].push_back(global);
+  }
+  // Exact producer field shape: build-output provenance and ROM reservations,
+  // never a source write grant or a manufactured native pointer_layout.
+  manifest["source_sprite_sheets"] = {
+      {"schema_version", 1},
+      {"spec", "Data/graphics/source_sprite_sheets.json"},
+      {"spec_sha256", core::ComputeSourceArtifactSha256(
+                          std::string(spec_bytes.begin(), spec_bytes.end()))},
+      {"feature_flag", "ENABLE_SOURCE_SPRITE_SHEETS"},
+      {"sprite_sheet_ids", sprite_ids},
+      {"global_sheet_ids", global_ids},
+      {"owned_region",
+       {{"start", "0x40D000"},
+        {"end", "0x418000"},
+        {"end_exclusive", true},
+        {"pc_start", "0x205000"},
+        {"pc_end", "0x208000"},
+        {"size", 0x3000}}},
+      {"global_region",
+       {{"start", "0x478000"},
+        {"end", "0x480000"},
+        {"end_exclusive", true},
+        {"pc_start", "0x238000"},
+        {"pc_end", "0x240000"},
+        {"size", 0x8000},
+        {"global_sheet_ids", "0xDF-0xFE"}}},
+      {"generated_include",
+       "Core/Generated/source_sprite_sheets/sheet_overrides.asm"}};
+  const auto refreshed = manifest.dump(2) + "\n";
+  {
+    std::ofstream output(manifest_path);
+    output << refreshed;
+    ASSERT_TRUE(output.good());
+  }
+  manager_.reset();
+  Open(fixture);
+  ASSERT_OK(manager_->EnsureEditorAssetsLoaded(EditorType::kGraphics));
+  graphics = manager_->GetCurrentEditorSet()->GetGraphicsEditor();
+  auto& second_state = AuthoringSaveWorkflowTestPeer::GraphicsState(*graphics);
+  ASSERT_EQ(second_state.game_data->sheet_store.Sheet(0xDF)[0], 6);
+  auto raw_policy =
+      core::BuildGfxSheetWritePolicy(*manager_->GetCurrentProject());
+  ASSERT_OK(raw_policy.status());
+  EXPECT_EQ(raw_policy->reserved_sheets.count(0xDF), 1u);
+  EXPECT_FALSE(manager_->GetCurrentProject()
+                   ->hack_manifest.graphics_sheet_layout()
+                   .pointer_layout);
+  second_state.SelectSheet(0xDF);
+  AuthoringSaveWorkflowTestPeer::PaintGraphicsPixel(*graphics, 0, 0, 7);
+  ASSERT_OK(manager_->SaveCurrentSession());
+  EXPECT_EQ(ReadFile(fixture.rom), rom_before);
+  EXPECT_EQ(ReadFile(manifest_path),
+            std::vector<uint8_t>(refreshed.begin(), refreshed.end()));
+  auto current_source =
+      core::GfxSheetSource::Load(*manager_->GetCurrentProject());
+  ASSERT_OK(current_source.status());
+  EXPECT_EQ(current_source->sheets().at(0xDF).pixels[0], 7);
+  auto after_policy =
+      core::BuildGfxSheetWritePolicy(*manager_->GetCurrentProject());
+  ASSERT_OK(after_policy.status());
+  EXPECT_EQ(after_policy->reserved_sheets.count(0xDF), 1u);
 }
 
 }  // namespace

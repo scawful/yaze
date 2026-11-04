@@ -12,6 +12,7 @@
 #include "app/gfx/core/bitmap.h"
 #include "app/gfx/types/graphics_sheet_constants.h"
 #include "app/gfx/types/snes_palette.h"
+#include "core/gfx_sheet_source.h"
 #include "rom/rom.h"
 #include "rom/rom_diagnostics.h"
 #include "zelda.h"
@@ -91,6 +92,7 @@ struct GameData : GraphicsSheetStoreHolder {
   // The same explicit layout used at load. It remains strict against current
   // ROM bytes; retaining it does not admit dirty reloads or expanded writes.
   std::optional<ResolvedGfxSheetLayout> gfx_sheet_layout;
+  std::optional<core::GfxSheetSource> gfx_sheet_source;
 
   // Graphics Resources (`graphics_buffer` and `sheet_store` are inherited)
   std::array<std::vector<uint8_t>, kNumGfxSheets>
@@ -135,6 +137,7 @@ struct GameData : GraphicsSheetStoreHolder {
     for (auto& bitmap : gfx_bitmaps)
       bitmap = gfx::Bitmap();
     gfx_sheet_layout.reset();
+    gfx_sheet_source.reset();
     palette_groups.clear();
     pit_damage_table = PitDamageTable();
   }
@@ -144,6 +147,7 @@ struct GameData : GraphicsSheetStoreHolder {
 };
 
 struct LoadOptions {
+  std::optional<core::GfxSheetSource> gfx_sheet_source;
   // Supplied by the canonical project resolver before any live state is cleared.
   std::optional<ResolvedGfxSheetLayout> gfx_sheet_layout;
   bool load_graphics = true;
