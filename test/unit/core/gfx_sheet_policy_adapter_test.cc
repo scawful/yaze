@@ -164,6 +164,24 @@ TEST(GfxSheetPolicyAdapterTest,
   EXPECT_FALSE(manifest.graphics_sheet_layout().pointer_layout.has_value());
 }
 
+TEST(GfxSheetPolicyAdapterTest,
+     ExpandedLayoutRefusesCentralWritePolicyForAllIds) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(MakeLayoutRomBytes()).ok());
+  project::YazeProject project;
+  ASSERT_TRUE(
+      project.hack_manifest.LoadFromString(ExpandedLayoutManifest(rom)).ok());
+  const auto before = rom.vector();
+  for (const auto& policy : {BuildGfxSheetWritePolicy(project.hack_manifest),
+                             BuildGfxSheetWritePolicy(project)}) {
+    EXPECT_EQ(policy.status().code(), absl::StatusCode::kFailedPrecondition);
+    EXPECT_NE(std::string(policy.status().message()).find("read-only"),
+              std::string::npos);
+  }
+  EXPECT_EQ(rom.vector(), before);
+  EXPECT_FALSE(rom.dirty());
+}
+
 TEST(GfxSheetPolicyAdapterTest, ParsesGraphicsSheetRegions) {
   HackManifest manifest;
   const absl::Status status = manifest.LoadFromString(kManifest);

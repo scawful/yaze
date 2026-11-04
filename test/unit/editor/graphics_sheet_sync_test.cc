@@ -82,6 +82,35 @@ class SheetSyncTest : public ::testing::Test {
   const void* saved_owner_ = nullptr;
 };
 
+TEST_F(SheetSyncTest, ExpandedSheetCommitRefreshesArenaRevision) {
+  constexpr uint16_t expanded = 0xFE;
+  data_->graphics_buffer.resize(255 * kSheetBytes, 0);
+  data_->sheet_store.MarkAllSheetsChanged();
+  auto& bitmap = gfx::Arena::Get().mutable_gfx_sheets()->at(expanded);
+  auto previous = std::move(bitmap);
+  auto restore = absl::MakeCleanup([&] { bitmap = std::move(previous); });
+  bitmap.Create(128, 32, 8, std::vector<uint8_t>(kSheetBytes, 0));
+  AttachSheetStore(state_, data_.get());
+  ASSERT_EQ(state_.arena_revisions.size(), 255u);
+  const auto before = data_->sheet_store.Revision(expanded);
+  const auto legacy = data_->sheet_store.Revision(kSheet);
+  auto edited = Pattern();
+  edited[9] = 7;
+  ASSERT_TRUE(CommitSheetPixels(state_, expanded, edited).ok());
+  const auto pixels = data_->sheet_store.Sheet(expanded);
+  ASSERT_EQ(pixels.size(), edited.size());
+  EXPECT_TRUE(std::equal(pixels.begin(), pixels.end(), edited.begin()));
+  EXPECT_EQ(bitmap.vector(), edited);
+  EXPECT_NE(data_->sheet_store.Revision(expanded), before);
+  EXPECT_EQ(state_.arena_revisions.at(expanded),
+            data_->sheet_store.Revision(expanded));
+  EXPECT_TRUE(state_.modified_sheets.contains(expanded));
+  EXPECT_EQ(data_->sheet_store.Revision(kSheet), legacy);
+  EXPECT_EQ(state_.arena_revisions.at(kSheet), legacy);
+  EXPECT_EQ(StoreSheet(), Pattern());
+  EXPECT_EQ(bitmap_->vector(), Pattern());
+}
+
 TEST_F(SheetSyncTest, CommitWritesTheStoreThenTheArena) {
   auto edited = Pattern();
   edited[5] = 7;

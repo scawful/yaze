@@ -4,17 +4,20 @@
 #include <array>
 #include <cstdint>
 #include <map>
+#include <optional>
 #include <vector>
 
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "app/gfx/core/bitmap.h"
+#include "app/gfx/types/graphics_sheet_constants.h"
 #include "app/gfx/types/snes_palette.h"
 #include "rom/rom.h"
 #include "rom/rom_diagnostics.h"
 #include "zelda.h"
 #include "zelda3/dungeon/pit_damage_table.h"
 #include "zelda3/dungeon/room_default_entrance.h"
+#include "zelda3/gfx_sheet_storage.h"
 #include "zelda3/graphics_sheet_store.h"
 
 namespace yaze {
@@ -24,8 +27,9 @@ namespace zelda3 {
 // Graphics Constants
 // ============================================================================
 
-// Sheet counts
-constexpr uint32_t kNumGfxSheets = 223;
+// Storage capacity excludes the $FF sentinel; each loaded layout sets the count.
+constexpr uint32_t kNumGfxSheets = gfx::kGraphicsSheetCapacity;
+constexpr uint32_t kLegacyNumGfxSheets = gfx::kLegacyGraphicsSheetCount;
 constexpr uint32_t kNumLinkSheets = 14;
 
 // Blockset/Group counts
@@ -84,6 +88,10 @@ struct GameData : GraphicsSheetStoreHolder {
   zelda3_version version = zelda3_version::US;
   std::string title;
 
+  // The same explicit layout used at load. It remains strict against current
+  // ROM bytes; retaining it does not admit dirty reloads or expanded writes.
+  std::optional<ResolvedGfxSheetLayout> gfx_sheet_layout;
+
   // Graphics Resources (`graphics_buffer` and `sheet_store` are inherited)
   std::array<std::vector<uint8_t>, kNumGfxSheets>
       raw_gfx_sheets;                                  // 8BPP indexed
@@ -124,7 +132,9 @@ struct GameData : GraphicsSheetStoreHolder {
     sheet_store.Clear();
     for (auto& sheet : raw_gfx_sheets)
       sheet.clear();
-    // gfx_bitmaps don't need explicit clearing if reloaded
+    for (auto& bitmap : gfx_bitmaps)
+      bitmap = gfx::Bitmap();
+    gfx_sheet_layout.reset();
     palette_groups.clear();
     pit_damage_table = PitDamageTable();
   }
@@ -134,6 +144,8 @@ struct GameData : GraphicsSheetStoreHolder {
 };
 
 struct LoadOptions {
+  // Supplied by the canonical project resolver before any live state is cleared.
+  std::optional<ResolvedGfxSheetLayout> gfx_sheet_layout;
   bool load_graphics = true;
   bool load_palettes = true;
   bool load_gfx_groups = true;

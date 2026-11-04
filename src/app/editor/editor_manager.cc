@@ -101,6 +101,7 @@
 #include "app/platform/timing.h"
 #include "app/testing/test_manager.h"
 #include "core/features.h"
+#include "core/gfx_sheet_policy_adapter.h"
 #include "core/native_save_receipt.h"
 #include "core/palette_catalog.h"
 #include "core/project.h"
@@ -2530,7 +2531,17 @@ absl::Status EditorManager::EnsureGameDataLoaded() {
     return absl::FailedPreconditionError("ROM not loaded");
   }
 
-  RETURN_IF_ERROR(zelda3::LoadGameData(session->rom, session->game_data));
+  zelda3::LoadOptions graphics_options;
+  if (session->project_context &&
+      session->project_context->hack_manifest.graphics_sheet_layout()
+          .pointer_layout) {
+    ASSIGN_OR_RETURN(
+        graphics_options.gfx_sheet_layout,
+        core::ResolveGfxSheetLayout(session->rom, *session->project_context));
+    graphics_options.expand_rom = false;
+  }
+  RETURN_IF_ERROR(
+      zelda3::LoadGameData(session->rom, session->game_data, graphics_options));
   session->ReloadGraphicsDisplay();
 
   auto* game_data = &session->game_data;
@@ -2668,6 +2679,38 @@ absl::Status EditorManager::LoadAssets(uint64_t passed_handle) {
   if (!current_session) {
     return absl::FailedPreconditionError("No active ROM session");
   }
+  zelda3::LoadOptions graphics_options;
+  if (current_session->project_context &&
+      current_session->project_context->hack_manifest.graphics_sheet_layout()
+          .pointer_layout) {
+    if (current_session->editors.HasPendingGraphicsChanges() ||
+        current_session->HasPendingGfxGroupChanges() ||
+        gfx::PaletteManager::Get().HasUnsavedChanges(
+            &current_session->game_data)) {
+      return absl::FailedPreconditionError(
+          "Explicit graphics layout reload refused while model edits are "
+          "pending");
+    }
+    ASSIGN_OR_RETURN(
+        graphics_options.gfx_sheet_layout,
+        core::ResolveGfxSheetLayout(current_session->rom,
+                                    *current_session->project_context));
+    graphics_options.expand_rom = false;
+  } else if (current_session->game_data.gfx_sheet_layout &&
+             current_session->game_data.gfx_sheet_layout->explicit_layout) {
+    return absl::FailedPreconditionError(
+        "Explicit graphics layout reload requires its bound project "
+        "declaration");
+  }
+  const bool explicit_graphics_load =
+      graphics_options.gfx_sheet_layout &&
+      graphics_options.gfx_sheet_layout->explicit_layout;
+  if (explicit_graphics_load) {
+    // LoadGameData stages explicit layouts. A stream failure must precede
+    // display retirement, palette release and editor initialization/reset.
+    RETURN_IF_ERROR(zelda3::LoadGameData(
+        *current_rom, current_session->game_data, graphics_options));
+  }
   ResetAssetState(current_session);
 
   auto start_time = std::chrono::steady_clock::now();
@@ -2751,8 +2794,10 @@ absl::Status EditorManager::LoadAssets(uint64_t passed_handle) {
 #endif
   // Load all Zelda3-specific data (metadata, palettes, gfx groups, graphics)
   gfx::PaletteManager::Get().ReleaseSession(&current_session->game_data);
-  RETURN_IF_ERROR(
-      zelda3::LoadGameData(*current_rom, current_session->game_data));
+  if (!explicit_graphics_load) {
+    RETURN_IF_ERROR(zelda3::LoadGameData(
+        *current_rom, current_session->game_data, graphics_options));
+  }
   current_session->game_data_loaded = true;
 
   current_session->ReloadGraphicsDisplay();
@@ -2832,7 +2877,42 @@ absl::Status EditorManager::LoadAssetsLazy(uint64_t passed_handle) {
   if (!current_session) {
     return absl::FailedPreconditionError("No active ROM session");
   }
+  bool explicit_graphics_loaded = false;
+  if (current_session->project_context &&
+      current_session->project_context->hack_manifest.graphics_sheet_layout()
+          .pointer_layout) {
+    if (current_session->editors.HasPendingGraphicsChanges() ||
+        current_session->HasPendingGfxGroupChanges() ||
+        gfx::PaletteManager::Get().HasUnsavedChanges(
+            &current_session->game_data)) {
+      return absl::FailedPreconditionError(
+          "Explicit graphics layout reload refused while model edits are "
+          "pending");
+    }
+    zelda3::LoadOptions graphics_options;
+    ASSIGN_OR_RETURN(
+        graphics_options.gfx_sheet_layout,
+        core::ResolveGfxSheetLayout(current_session->rom,
+                                    *current_session->project_context));
+    graphics_options.expand_rom = false;
+    RETURN_IF_ERROR(zelda3::LoadGameData(
+        *current_rom, current_session->game_data, graphics_options));
+    explicit_graphics_loaded = true;
+  } else if (current_session->game_data.gfx_sheet_layout &&
+             current_session->game_data.gfx_sheet_layout->explicit_layout) {
+    return absl::FailedPreconditionError(
+        "Explicit graphics layout reload requires its bound project "
+        "declaration");
+  }
   ResetAssetState(current_session);
+  if (explicit_graphics_loaded) {
+    gfx::PaletteManager::Get().ReleaseSession(&current_session->game_data);
+    current_session->game_data_loaded = true;
+    current_session->ReloadGraphicsDisplay();
+    current_editor_set->SetGameData(&current_session->game_data);
+    gfx::PaletteManager::Get().Initialize(&current_session->game_data);
+    ContentRegistry::Context::SetGameData(&current_session->game_data);
+  }
 
 #ifdef __EMSCRIPTEN__
   // Use passed handle if provided, otherwise create new one

@@ -530,7 +530,8 @@ void Arena::BindGraphicsSheets(GraphicsSheets* sheets, const void* owner) {
 }
 
 void Arena::NotifySheetModified(int sheet_index) {
-  if (sheet_index < 0 || sheet_index >= 223) {
+  if (sheet_index < 0 ||
+      sheet_index >= static_cast<int>(kGraphicsSheetCapacity)) {
     LOG_WARN("Arena", "Invalid sheet index %d, ignoring notification",
              sheet_index);
     return;
@@ -595,7 +596,8 @@ void Arena::UnregisterPaletteListener(int listener_id) {
 // ========== LRU Sheet Texture Cache ==========
 
 void Arena::TouchSheet(int sheet_index) {
-  if (sheet_index < 0 || sheet_index >= 223) {
+  if (sheet_index < 0 ||
+      sheet_index >= static_cast<int>(kGraphicsSheetCapacity)) {
     return;
   }
 
@@ -613,7 +615,8 @@ void Arena::TouchSheet(int sheet_index) {
 }
 
 Bitmap* Arena::GetSheetWithCache(int sheet_index) {
-  if (sheet_index < 0 || sheet_index >= 223) {
+  if (sheet_index < 0 ||
+      sheet_index >= static_cast<int>(kGraphicsSheetCapacity)) {
     return nullptr;
   }
 
@@ -647,7 +650,8 @@ Bitmap* Arena::GetSheetWithCache(int sheet_index) {
 
 void Arena::SetSheetCacheSize(size_t max_size) {
   // Clamp to valid range
-  sheet_cache_max_size_ = std::clamp(max_size, size_t{16}, size_t{223});
+  sheet_cache_max_size_ =
+      std::clamp(max_size, size_t{16}, kGraphicsSheetCapacity);
 
   // Evict if current cache exceeds new size
   if (sheet_lru_map_.size() > sheet_cache_max_size_) {

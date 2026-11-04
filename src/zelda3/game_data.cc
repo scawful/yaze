@@ -8,6 +8,8 @@
 #include "zelda3/dungeon/dungeon_rom_addresses.h"
 
 #include <algorithm>
+#include <memory>
+#include <utility>
 
 #ifdef __EMSCRIPTEN__
 #include "app/platform/wasm/wasm_loading_manager.h"
@@ -122,36 +124,71 @@ uint32_t GetGraphicsAddress(const uint8_t* data, uint8_t addr, uint32_t ptr1,
 
 absl::Status LoadGameData(Rom& rom, GameData& data,
                           const LoadOptions& options) {
-  data.Clear();
-  data.set_rom(&rom);
-
-  if (options.populate_metadata) {
-    RETURN_IF_ERROR(LoadMetadata(rom, data));
+  // Refuse stale/dirty explicit layouts before touching live pixels or models.
+  const auto layout = options.gfx_sheet_layout ? options.gfx_sheet_layout
+                                               : data.gfx_sheet_layout;
+  if (layout) {
+    RETURN_IF_ERROR(ValidateResolvedGfxSheetLayout(rom, *layout));
   }
+  auto load = [&](GameData& target) -> absl::Status {
+    target.Clear();
+    target.set_rom(&rom);
+    target.gfx_sheet_layout = layout;
 
-  if (options.load_palettes) {
-    RETURN_IF_ERROR(LoadPalettes(rom, data));
-  }
-
-  if (options.load_gfx_groups) {
-    RETURN_IF_ERROR(LoadGfxGroups(rom, data));
-  }
-
-  if (options.load_graphics) {
-    RETURN_IF_ERROR(LoadGraphics(rom, data));
-  }
-
-  if (options.expand_rom) {
-    if (rom.size() < 1048576 * 2) {
-      rom.Expand(1048576 * 2);
+    if (options.populate_metadata) {
+      RETURN_IF_ERROR(LoadMetadata(rom, target));
     }
+
+    if (options.load_palettes) {
+      RETURN_IF_ERROR(LoadPalettes(rom, target));
+    }
+
+    if (options.load_gfx_groups) {
+      RETURN_IF_ERROR(LoadGfxGroups(rom, target));
+    }
+
+    // Preserve legacy load order. Explicit loads materialize surfaces only
+    // after every fallible non-graphics table load has succeeded below.
+    if (options.load_graphics && !(layout && layout->explicit_layout)) {
+      RETURN_IF_ERROR(LoadGraphics(rom, target));
+    }
+
+    // An identity-bound read-only load must preserve the validated ROM body.
+    if (options.expand_rom && !(layout && layout->explicit_layout)) {
+      if (rom.size() < 1048576 * 2) {
+        rom.Expand(1048576 * 2);
+      }
+    }
+
+    RETURN_IF_ERROR(
+        PitDamageTable::LoadFromRom(&rom, &target.pit_damage_table));
+
+    target.room_default_entrances = ComputeRoomDefaultEntrances(rom);
+
+    if (options.load_graphics && layout && layout->explicit_layout) {
+      RETURN_IF_ERROR(LoadGraphics(rom, target));
+    }
+    return absl::OkStatus();
+  };
+  if (layout && layout->explicit_layout) {
+    // Do not copy live bitmaps/resources merely to validate a replacement.
+    // Clear() retains these metadata/group fields, so seed only those fields.
+    auto staged = std::make_unique<GameData>(&rom);
+    staged->version = data.version;
+    staged->title = data.title;
+    staged->main_blockset_ids = data.main_blockset_ids;
+    staged->room_blockset_ids = data.room_blockset_ids;
+    staged->spriteset_ids = data.spriteset_ids;
+    staged->paletteset_ids = data.paletteset_ids;
+    RETURN_IF_ERROR(load(*staged));
+    // Independent resources are retained by Clear(); move them only after
+    // every requested load succeeds, leaving failure paths fully untouched.
+    staged->link_graphics = std::move(data.link_graphics);
+    staged->font_graphics = std::move(data.font_graphics);
+    data = std::move(*staged);
+    return absl::OkStatus();
   }
-
-  RETURN_IF_ERROR(PitDamageTable::LoadFromRom(&rom, &data.pit_damage_table));
-
-  data.room_default_entrances = ComputeRoomDefaultEntrances(rom);
-
-  return absl::OkStatus();
+  return load(data);
 }
 
 absl::Status SaveGameData(Rom& rom, GameData& data) {
@@ -381,7 +418,7 @@ absl::Status SaveGfxGroups(Rom& rom, const GameData& data) {
 // Main Graphics Loading
 // ============================================================================
 
-/// Loads all 223 graphics sheets from the ROM into bitmap format.
+/// Loads the active layout's graphics sheets into bitmap format.
 ///
 /// ALTTP uses 223 graphics sheets (kNumGfxSheets) stored in three formats:
 ///
@@ -390,7 +427,8 @@ absl::Status SaveGfxGroups(Rom& rom, const GameData& data) {
 /// - Sheets 113-114: 2BPP sheets (skipped here, loaded separately)
 /// - Sheets 115-126: Uncompressed 3BPP (special graphics)
 /// - Sheets 127-217: Compressed 3BPP (additional graphics)
-/// - Sheets 218+:    2BPP sheets (skipped here)
+/// - Sheets 218-222: 2BPP sheets (skipped here)
+/// - Sheets 223-254: Compressed 3BPP (explicit expanded layouts only)
 ///
 /// Compression Format:
 /// Graphics data is compressed using Nintendo's LC-LZ2 algorithm. Each sheet
@@ -418,13 +456,33 @@ struct SheetLoadResult {
   uint32_t pc_offset = 0;
 };
 
-SheetLoadResult LoadSheetRaw(const Rom& rom, uint32_t i, uint32_t ptr1,
-                             uint32_t ptr2, uint32_t ptr3) {
+absl::StatusOr<SheetLoadResult> LoadSheetRaw(
+    const Rom& rom, uint32_t i, uint32_t ptr1, uint32_t ptr2, uint32_t ptr3,
+    const ResolvedGfxSheetLayout* layout) {
   SheetLoadResult result;
   result.data.assign(zelda3::kUncompressedSheetSize, 0);  // Default empty
 
+  const auto kind = GetGfxSheetStorageKind(i);
+  if (layout) {
+    result.is_compressed = kind != GfxSheetStorageKind::kRaw3bpp;
+    if (kind == GfxSheetStorageKind::kCompressed2bpp) {
+      return result;  // Native 2bpp sheets retain their separate loader.
+    }
+    ASSIGN_OR_RETURN(result.pc_offset, ReadGfxSheetPcResolved(rom, i, *layout));
+    auto decoded = ReadGfxSheetDataResolved(rom, i, *layout);
+    if (!decoded.ok()) {
+      return absl::Status(decoded.status().code(),
+                          absl::StrFormat("Graphics sheet 0x%02X: %s", i,
+                                          decoded.status().message()));
+    }
+    result.data = std::move(*decoded);
+    result.decompression_succeeded = true;
+    result.is_bpp3 = true;
+    return result;
+  }
+
   // Uncompressed 3BPP (115-126)
-  if (i >= 115 && i <= 126) {
+  if (kind == GfxSheetStorageKind::kRaw3bpp) {
     result.is_compressed = false;
     result.pc_offset =
         GetGraphicsAddress(rom.data(), i, ptr1, ptr2, ptr3, rom.size());
@@ -439,8 +497,8 @@ SheetLoadResult LoadSheetRaw(const Rom& rom, uint32_t i, uint32_t ptr1,
       result.decompression_succeeded = false;
     }
   }
-  // 2BPP (113-114, 218+) - Skipped in main loop
-  else if (i == 113 || i == 114 || i >= 218) {
+  // Native 2BPP (113-114, 218-222) - Skipped in main loop.
+  else if (kind == GfxSheetStorageKind::kCompressed2bpp) {
     result.is_compressed = true;
     result.is_bpp3 = false;
   }
@@ -543,7 +601,33 @@ absl::Status LoadGraphics(Rom& rom, GameData& data) {
       core::RomAddressKey::kOverworldGfxPtr3,
       version_constants.kOverworldGfxPtr3);
 
+  const auto* layout =
+      data.gfx_sheet_layout ? &*data.gfx_sheet_layout : nullptr;
+  if (layout) {
+    RETURN_IF_ERROR(ValidateResolvedGfxSheetLayout(rom, *layout));
+  }
+  const size_t sheet_count =
+      layout ? layout->usable_sheet_count : kLegacyNumGfxSheets;
+  const auto tables = layout
+                          ? layout->tables
+                          : GfxSheetPointerTables{gfx_ptr1, gfx_ptr2, gfx_ptr3};
+  // A matching body hash does not prove the streams are valid. Decode every
+  // requested explicit 3bpp sheet before replacing pixels/revisions/diagnostics.
+  std::vector<SheetLoadResult> decoded_sheets;
+  if (layout) {
+    decoded_sheets.reserve(sheet_count);
+    for (uint32_t i = 0; i < sheet_count; ++i) {
+      ASSIGN_OR_RETURN(
+          auto decoded,
+          LoadSheetRaw(rom, i, tables.bank, tables.high, tables.low, layout));
+      decoded_sheets.push_back(std::move(decoded));
+    }
+  }
   data.sheet_store.Clear();
+  for (size_t i = sheet_count; i < data.raw_gfx_sheets.size(); ++i) {
+    data.raw_gfx_sheets[i].clear();
+    data.gfx_bitmaps[i] = gfx::Bitmap();
+  }
 
 #ifdef __EMSCRIPTEN__
   auto loading_handle =
@@ -553,20 +637,27 @@ absl::Status LoadGraphics(Rom& rom, GameData& data) {
   // Initialize Diagnostics
   auto& diag = data.diagnostics;
   diag.rom_size = rom.size();
-  diag.ptr1_loc = gfx_ptr1;
-  diag.ptr2_loc = gfx_ptr2;
-  diag.ptr3_loc = gfx_ptr3;
+  diag.ptr1_loc = tables.bank;
+  diag.ptr2_loc = tables.high;
+  diag.ptr3_loc = tables.low;
+  diag.sheets.assign(sheet_count, {});
 
-  LOG_INFO("Graphics", "Loading %d graphics sheets...", kNumGfxSheets);
+  LOG_INFO("Graphics", "Loading %zu graphics sheets...", sheet_count);
 
-  for (uint32_t i = 0; i < kNumGfxSheets; i++) {
+  for (uint32_t i = 0; i < sheet_count; i++) {
 #ifdef __EMSCRIPTEN__
     app::platform::WasmLoadingManager::UpdateProgress(
-        loading_handle, static_cast<float>(i) / kNumGfxSheets);
+        loading_handle, static_cast<float>(i) / sheet_count);
 #endif
 
-    // Inside LoadGraphics loop:
-    auto result = LoadSheetRaw(rom, i, gfx_ptr1, gfx_ptr2, gfx_ptr3);
+    SheetLoadResult result;
+    if (layout) {
+      result = std::move(decoded_sheets[i]);
+    } else {
+      // Legacy loads retain their diagnostic-only placeholder behavior.
+      ASSIGN_OR_RETURN(result, LoadSheetRaw(rom, i, tables.bank, tables.high,
+                                            tables.low, nullptr));
+    }
 
     // Update Diagnostics
     auto& sd = diag.sheets[i];
@@ -585,7 +676,7 @@ absl::Status LoadGraphics(Rom& rom, GameData& data) {
 
     ProcessSheetBitmap(data, i, result);
 
-    if (i % 50 == 0 || i == kNumGfxSheets - 1) {
+    if (i % 50 == 0 || i == sheet_count - 1) {
       LOG_DEBUG("Graphics", "Sheet %d: offset=0x%06X, size=%zu, %s", i,
                 result.pc_offset, result.data.size(),
                 result.decompression_succeeded ? "OK" : "FAILED");
@@ -595,8 +686,8 @@ absl::Status LoadGraphics(Rom& rom, GameData& data) {
   // The sheets were appended through the graphics_buffer alias.
   data.sheet_store.MarkAllSheetsChanged();
   diag.Analyze();
-  LOG_INFO("Graphics", "Graphics loading complete. Sheets processed: %d",
-           kNumGfxSheets);
+  LOG_INFO("Graphics", "Graphics loading complete. Sheets processed: %zu",
+           sheet_count);
 
 #ifdef __EMSCRIPTEN__
   app::platform::WasmLoadingManager::EndLoading(loading_handle);

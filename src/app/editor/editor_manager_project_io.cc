@@ -42,6 +42,7 @@
 #include "app/platform/ios/ios_platform_state.h"
 #include "app/platform/timing.h"
 #include "core/features.h"
+#include "core/gfx_sheet_policy_adapter.h"
 #include "core/native_save_receipt.h"
 #include "core/project.h"
 #include "core/rom_settings.h"
@@ -806,6 +807,22 @@ absl::Status EditorManager::SaveRomInternal(
 
   ASSIGN_OR_RETURN(const project::YazeProject* save_project,
                    PrepareActiveProjectContextForSave());
+  // This first consumer slice is read-only for the entire expanded layout,
+  // including legacy-numbered sheet IDs. Refuse before any serializer runs.
+  const auto& graphics_layout =
+      save_project->hack_manifest.graphics_sheet_layout().pointer_layout;
+  if (graphics_layout &&
+      graphics_layout->physical_table_rows != zelda3::kGfxSheetCount) {
+    RETURN_IF_ERROR(core::BuildGfxSheetWritePolicy(*save_project).status());
+  }
+  auto* graphics_session = session_coordinator_->GetActiveRomSession();
+  if (graphics_session && graphics_session->game_data.gfx_sheet_layout &&
+      graphics_session->game_data.gfx_sheet_layout->physical_table_rows !=
+          zelda3::kGfxSheetCount) {
+    return absl::FailedPreconditionError(
+        "Expanded graphics layouts are read-only; normal ROM save is "
+        "unavailable");
+  }
   // Hash/write/safety checks must read the same immutable session snapshot as
   // the rest of this save, never a process-global project left by another ROM.
   rom_lifecycle_.SetProjectContext(save_project);
@@ -1829,6 +1846,14 @@ absl::Status EditorManager::ReplaceActiveSessionRom(
     return absl::FailedPreconditionError("No active ROM session");
   }
 
+  std::optional<zelda3::ResolvedGfxSheetLayout> replacement_layout;
+  if (session->project_context &&
+      session->project_context->hack_manifest.graphics_sheet_layout()
+          .pointer_layout) {
+    ASSIGN_OR_RETURN(replacement_layout, core::ResolveGfxSheetLayout(
+                                             rom, *session->project_context));
+  }
+
   // Lazy asset loading can defer OverworldEditor::Load after replacement.
   // Refuse a changed image while its read-only canvas still owns ROM-backed
   // maps and textures, before changing bytes, dirty state or undo history.
@@ -1841,10 +1866,12 @@ absl::Status EditorManager::ReplaceActiveSessionRom(
   // their Undo histories. Rebuilding the old ROM on failure cannot recover
   // model-only edits. Keep this preflight CPU-only and leave lazy, unloaded
   // sessions lazy; editor-specific refresh failures still use rollback below.
-  if (session->game_data_loaded || asset_load_mode_ != AssetLoadMode::kLazy) {
+  if (session->game_data_loaded || asset_load_mode_ != AssetLoadMode::kLazy ||
+      replacement_layout) {
     zelda3::GameData replacement_data;
     zelda3::LoadOptions options;
-    options.load_graphics = false;
+    options.gfx_sheet_layout = replacement_layout;
+    options.load_graphics = replacement_layout.has_value();
     options.expand_rom = false;
     RETURN_IF_ERROR(zelda3::LoadGameData(rom, replacement_data, options));
   }

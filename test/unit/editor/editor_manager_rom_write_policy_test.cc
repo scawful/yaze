@@ -44,6 +44,7 @@
 #include "app/gui/core/color.h"
 #include "app/platform/sdl_compat.h"
 #include "core/features.h"
+#include "core/gfx_sheet_policy_adapter.h"
 #include "core/native_save_receipt.h"
 #include "core/source_artifact_publisher.h"
 #include "editor_test_support.h"
@@ -67,6 +68,16 @@
 #include "imgui/imgui.h"
 
 namespace yaze::editor {
+
+class ExpandedGraphicsLoadTestPeer {
+ public:
+  static absl::Status ReloadEager(EditorManager& manager) {
+    return manager.LoadAssets();
+  }
+  static absl::Status ReloadLazy(EditorManager& manager) {
+    return manager.LoadAssetsLazy();
+  }
+};
 
 class GraphicsEditorSaveStoplossTestPeer {
  public:
@@ -3504,6 +3515,200 @@ TEST(GraphicsSaveStoplossTest,
             dungeon_existed);
   EXPECT_EQ(editor_set->GetExistingEditor(EditorType::kOverworld) != nullptr,
             overworld_existed);
+}
+
+TEST(GraphicsSaveStoplossTest,
+     ExpandedLayoutLoadsReadOnlyAndRefusesReloadAndSaveWithoutLosingEdits) {
+  FeatureFlagsGuard guard;
+  ScopedImGuiContext imgui;
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  InitializeWithIsolatedSettings(*manager, renderer.get());
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+  manager->user_settings().prefs().backup_before_save = false;
+  const auto fixture = test::BuildOracleGfxSheetTestRom();
+  const auto rom_path = MakeTempFilePath("yaze_expanded_read_only.sfc");
+  const auto save_as = MakeTempFilePath("yaze_expanded_refused.sfc");
+  ScopedFileCleanup cleanup{rom_path};
+  ScopedFileCleanup target_cleanup{save_as};
+  {
+    std::ofstream out(rom_path, std::ios::binary);
+    out.write(reinterpret_cast<const char*>(fixture.bytes.data()),
+              fixture.bytes.size());
+    ASSERT_TRUE(out.good());
+  }
+  ASSERT_OK(manager->OpenRomOrProject(rom_path.string()));
+  DisableRomWritesForTest();
+  core::FeatureFlags::get().kSaveGraphicsSheet = true;
+  auto* session = manager->session_coordinator()->GetActiveRomSession();
+  ASSERT_NE(session, nullptr);
+  auto* project = manager->GetCurrentProject();
+  project->rom_metadata.expected_hash.clear();
+  project->rom_metadata.role = project::RomRole::kDev;
+  project->workspace_settings.backup_on_save = false;
+  ASSERT_OK(project->hack_manifest.LoadFromString(
+      test::ExpandedGfxSheetTestManifest(session->rom)));
+  session->project_context = *project;
+  const auto baseline = *session->rom_baseline;
+  const auto rom_before = session->rom.vector();
+  const auto disk_hash = util::ComputeFileSha1Hex(rom_path.string());
+  ASSERT_OK(manager->EnsureGameDataLoaded());
+  ASSERT_TRUE(session->game_data.gfx_sheet_layout.has_value());
+  EXPECT_EQ(session->game_data.diagnostics.sheets.size(), 255u);
+  EXPECT_EQ(session->rom.vector(), rom_before);
+  auto* graphics = manager->GetCurrentEditorSet()->GetEditorAs<GraphicsEditor>(
+      EditorType::kGraphics);
+  ASSERT_NE(graphics, nullptr);
+  for (uint16_t id : {0x20, 0xFE}) {
+    GraphicsEditorSaveStoplossTestPeer::MarkSheetModified(graphics, id);
+  }
+  auto edited = std::vector<uint8_t>(4096, 3);
+  ASSERT_OK(session->game_data.sheet_store.WriteSheet(0xFE, edited));
+  session
+      ->ReloadGraphicsDisplay();  // Rehydrate from decoded store, no ROM reload.
+  const auto revision = session->game_data.sheet_store.Revision(0xFE);
+  const auto pixels = session->game_data.graphics_buffer;
+  auto* display = gfx::Arena::Get().mutable_gfx_sheet(0xFE);
+  ASSERT_NE(display, nullptr);
+  EXPECT_EQ(display->vector(), edited);
+  session->ActivateGraphicsDisplay();
+  EXPECT_EQ(gfx::Arena::Get().mutable_gfx_sheet(0xFE), display);
+  EXPECT_EQ(graphics->PlanGraphicsSave().status().code(),
+            absl::StatusCode::kFailedPrecondition);
+  EXPECT_EQ(ExpandedGraphicsLoadTestPeer::ReloadEager(*manager).code(),
+            absl::StatusCode::kFailedPrecondition);
+  EXPECT_TRUE(session->game_data_loaded);
+  EXPECT_TRUE(manager->GetCurrentEditorSet()->HasPendingGraphicsChanges());
+  ASSERT_OK(session->rom.WriteByte(0x100, 0xA5));
+  const auto dirty_rom = session->rom.vector();
+  EXPECT_EQ(manager->SaveRom().code(), absl::StatusCode::kFailedPrecondition);
+  EXPECT_EQ(manager->SaveRomAs(save_as.string()).code(),
+            absl::StatusCode::kFailedPrecondition);
+  EXPECT_EQ(session->rom.vector(), dirty_rom);
+  EXPECT_TRUE(session->rom.dirty());
+  EXPECT_EQ(session->game_data.graphics_buffer, pixels);
+  EXPECT_EQ(session->game_data.sheet_store.Revision(0xFE), revision);
+  EXPECT_EQ(util::ComputeFileSha1Hex(rom_path.string()), disk_hash);
+  EXPECT_FALSE(std::filesystem::exists(save_as));
+  EXPECT_EQ(session->rom_baseline->hashes.sha1, baseline.hashes.sha1);
+  EXPECT_EQ(session->rom_baseline->editing_source_path,
+            baseline.editing_source_path);
+}
+
+TEST(GraphicsSaveStoplossTest,
+     CurrentIdentityMalformedDfPreservesEagerAndLazySessionState) {
+  using Failure = test::ExpandedDfStreamFailure;
+  for (const bool eager : {true, false}) {
+    for (const auto failure :
+         {Failure::kMalformedCopy, Failure::kTruncated, Failure::kWrongSize}) {
+      SCOPED_TRACE(eager ? "eager" : "lazy");
+      SCOPED_TRACE(static_cast<int>(failure));
+      FeatureFlagsGuard guard;
+      ScopedImGuiContext imgui;
+      auto renderer = std::make_unique<gfx::NullRenderer>();
+      auto manager = std::make_unique<EditorManager>();
+      InitializeWithIsolatedSettings(*manager, renderer.get());
+      manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+      auto fixture = test::BuildOracleGfxSheetTestRom();
+      const auto rom_path = MakeTempFilePath("yaze_expanded_bad_df.sfc");
+      ScopedFileCleanup cleanup{rom_path};
+      {
+        std::ofstream out(rom_path, std::ios::binary);
+        out.write(reinterpret_cast<const char*>(fixture.bytes.data()),
+                  fixture.bytes.size());
+        ASSERT_TRUE(out.good());
+      }
+      ASSERT_OK(manager->OpenRomOrProject(rom_path.string()));
+      DisableRomWritesForTest();
+      auto* session = manager->session_coordinator()->GetActiveRomSession();
+      ASSERT_NE(session, nullptr);
+      auto* project = manager->GetCurrentProject();
+      project->rom_metadata.expected_hash.clear();
+      project->rom_metadata.role = project::RomRole::kDev;
+      ASSERT_OK(project->hack_manifest.LoadFromString(
+          test::ExpandedGfxSheetTestManifest(session->rom)));
+      session->project_context = *project;
+      ASSERT_OK(manager->EnsureEditorAssetsLoaded(EditorType::kGraphics));
+      auto* graphics = manager->GetCurrentEditorSet()->GetGraphicsEditor();
+      ASSERT_NE(graphics, nullptr);
+      auto& state = GraphicsEditorSaveStoplossTestPeer::State(graphics);
+      ASSERT_TRUE(state.modified_sheets.empty());
+      state.current_sheet_id = 0xFE;
+      state.current_color_index = 5;
+      const std::vector<uint8_t> edited(4096, 3);
+      ASSERT_OK(session->game_data.sheet_store.WriteSheet(0xFE, edited));
+      session->ReloadGraphicsDisplay();
+      auto* const display = gfx::Arena::Get().mutable_gfx_sheet(0xFE);
+      ASSERT_NE(display, nullptr);
+      ASSERT_EQ(display->vector(), edited);
+      const auto pixels = session->game_data.graphics_buffer;
+      const auto revision = session->game_data.sheet_store.Revision(0xFE);
+      const auto state_revisions = state.arena_revisions;
+      const auto diagnostics = session->game_data.diagnostics.ToJson();
+      const auto editor_initialized = session->editor_initialized;
+      const auto editor_loaded = session->editor_assets_loaded;
+      const auto original_layout_sha1 =
+          session->game_data.gfx_sheet_layout->rom_sha1;
+      const auto baseline = *session->rom_baseline;
+      const auto disk_hash = util::ComputeFileSha1Hex(rom_path.string());
+      auto& palettes = gfx::PaletteManager::Get();
+      ASSERT_TRUE(palettes.IsManaging(&session->game_data));
+      const auto palette_revision = palettes.ColorRevision(&session->game_data);
+      test::CorruptExpandedDfStream(fixture, failure);
+      for (size_t i = 0; i < fixture.bytes.size(); ++i) {
+        if (fixture.bytes[i] != session->rom.data()[i])
+          ASSERT_OK(session->rom.WriteByte(i, fixture.bytes[i]));
+      }
+      // Avoid the fixture's main-group table at PC000000..000127, so this
+      // control reaches stream decoding rather than the pending-group guard.
+      ASSERT_OK(session->rom.WriteByte(0x1000, 0xA5));
+      ASSERT_FALSE(session->HasPendingGfxGroupChanges());
+      ASSERT_FALSE(session->editors.HasPendingGraphicsChanges());
+      const auto dirty_rom = session->rom.vector();
+      ASSERT_OK(project->hack_manifest.LoadFromString(
+          test::ExpandedGfxSheetTestManifest(session->rom)));
+      session->project_context = *project;
+      const auto resolved = core::ResolveGfxSheetLayout(session->rom, *project);
+      ASSERT_TRUE(resolved.ok()) << resolved.status();
+      EXPECT_EQ(resolved->rom_sha1,
+                util::ComputeSha1Hex(session->rom.data(), session->rom.size()));
+      const auto status =
+          eager ? ExpandedGraphicsLoadTestPeer::ReloadEager(*manager)
+                : ExpandedGraphicsLoadTestPeer::ReloadLazy(*manager);
+      const auto expected_code = failure == Failure::kMalformedCopy
+                                     ? absl::StatusCode::kInvalidArgument
+                                 : failure == Failure::kTruncated
+                                     ? absl::StatusCode::kOutOfRange
+                                     : absl::StatusCode::kDataLoss;
+      EXPECT_EQ(status.code(), expected_code);
+      EXPECT_NE(std::string(status.message()).find("Graphics sheet 0xDF"),
+                std::string::npos)
+          << status;
+      EXPECT_TRUE(session->game_data_loaded);
+      EXPECT_EQ(session->editor_initialized, editor_initialized);
+      EXPECT_EQ(session->editor_assets_loaded, editor_loaded);
+      EXPECT_EQ(session->game_data.graphics_buffer, pixels);
+      EXPECT_EQ(session->game_data.sheet_store.Revision(0xFE), revision);
+      EXPECT_EQ(session->game_data.gfx_sheet_layout->rom_sha1,
+                original_layout_sha1);
+      EXPECT_EQ(session->game_data.diagnostics.ToJson(), diagnostics);
+      EXPECT_EQ(state.arena_revisions, state_revisions);
+      EXPECT_EQ(state.current_sheet_id, 0xFE);
+      EXPECT_EQ(state.current_color_index, 5);
+      EXPECT_TRUE(state.modified_sheets.empty());
+      EXPECT_EQ(gfx::Arena::Get().gfx_sheets_owner(), &session->game_data);
+      EXPECT_EQ(gfx::Arena::Get().mutable_gfx_sheet(0xFE), display);
+      EXPECT_EQ(display->vector(), edited);
+      EXPECT_TRUE(palettes.IsManaging(&session->game_data));
+      EXPECT_EQ(palettes.ColorRevision(&session->game_data), palette_revision);
+      EXPECT_EQ(session->rom.vector(), dirty_rom);
+      EXPECT_TRUE(session->rom.dirty());
+      EXPECT_EQ(session->rom_baseline->hashes.sha1, baseline.hashes.sha1);
+      EXPECT_EQ(session->rom_baseline->editing_source_path,
+                baseline.editing_source_path);
+      EXPECT_EQ(util::ComputeFileSha1Hex(rom_path.string()), disk_hash);
+    }
+  }
 }
 
 TEST(GraphicsSaveStoplossTest, EnabledSaveWritesTheEditedSheetToDisk) {

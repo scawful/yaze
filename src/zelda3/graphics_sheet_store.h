@@ -9,6 +9,7 @@
 
 #include "absl/status/status.h"
 #include "absl/types/span.h"
+#include "app/gfx/types/graphics_sheet_constants.h"
 
 namespace yaze {
 namespace zelda3 {
@@ -17,7 +18,7 @@ namespace zelda3 {
  * @file graphics_sheet_store.h
  * @brief One ROM session's graphics sheet pixels, with a revision per sheet.
  *
- * The pixels use the legacy `GameData::graphics_buffer` layout: 223 sheets of
+ * The pixels use the legacy `GameData::graphics_buffer` layout: up to 255 sheets of
  * 128x32 8bpp indices, sheet `i` at byte `i * 4096`. `graphics_buffer` is an
  * alias of this buffer, so Room, OverworldMap and the title screen read it
  * unchanged.
@@ -32,12 +33,13 @@ namespace zelda3 {
  */
 class GraphicsSheetStore {
  public:
-  static constexpr uint16_t kSheetCount = 223;
+  static constexpr uint16_t kSheetCount = gfx::kGraphicsSheetCapacity;
   static constexpr size_t kSheetWidth = 128;
   static constexpr size_t kSheetHeight = 32;
   static constexpr size_t kSheetBytes = kSheetWidth * kSheetHeight;
 
-  /// The whole buffer, `graphics_buffer` layout. May hold fewer than 223
+  /// The whole buffer, `graphics_buffer` layout. Holds 223 legacy sheets or
+  /// 255 explicitly expanded sheets, and may hold fewer
   /// sheets while a load is in progress or after Clear().
   const std::vector<uint8_t>& pixels() const { return pixels_; }
   /// For the `graphics_buffer` alias and the loader only.

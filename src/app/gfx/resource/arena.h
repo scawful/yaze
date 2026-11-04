@@ -14,6 +14,7 @@
 
 #include "app/gfx/core/bitmap.h"
 #include "app/gfx/render/background_buffer.h"
+#include "app/gfx/types/graphics_sheet_constants.h"
 #include "util/sdl_deleter.h"
 
 namespace yaze {
@@ -29,7 +30,7 @@ namespace gfx {
  * - Singleton pattern for global access across all graphics components
  * - Automatic resource cleanup with RAII-style management
  * - Memory pooling to reduce allocation overhead
- * - Support for 223 graphics sheets (YAZE's full graphics space)
+ * - Capacity for graphics sheets 00..FE (FF remains the default sentinel)
  * - Background buffer management for SNES layer rendering
  *
  * Performance Optimizations:
@@ -39,7 +40,7 @@ namespace gfx {
  * - Pre-allocated graphics sheet array for fast access
  *
  * ROM Hacking Specific:
- * - Fixed-size graphics sheet array (223 sheets) matching YAZE's graphics space
+ * - Fixed-size display storage for legacy and explicitly expanded sheets
  * - Background buffer support for SNES layer 1 and layer 2 rendering
  * - Tile buffer management for 64x64 tile grids
  * - Integration with SNES graphics format requirements
@@ -169,39 +170,39 @@ class Arena {
     return retired_texture_handles_.size();
   }
 
-  // Graphics sheet access (223 total sheets in YAZE)
+  // Graphics sheet capacity; unloaded sheets remain inactive.
   /**
    * @brief Get reference to all graphics sheets
-   * @return Reference to array of 223 Bitmap objects
+   * @return Reference to the graphics display array
    */
-  using GraphicsSheets = std::array<gfx::Bitmap, 223>;
+  using GraphicsSheets = std::array<gfx::Bitmap, kGraphicsSheetCapacity>;
   GraphicsSheets& gfx_sheets() { return *active_gfx_sheets_; }
 
   /**
    * @brief Get a specific graphics sheet by index
-   * @param i Sheet index (0-222)
+   * @param i Sheet index (00-FE)
    * @return Copy of the Bitmap at index i, or empty Bitmap if out of bounds
    */
   auto gfx_sheet(int i) {
-    if (i < 0 || i >= 223)
+    if (i < 0 || i >= static_cast<int>(kGraphicsSheetCapacity))
       return gfx::Bitmap{};
     return gfx_sheets()[i];
   }
 
   /**
    * @brief Get mutable reference to a specific graphics sheet
-   * @param i Sheet index (0-222)
+   * @param i Sheet index (00-FE)
    * @return Pointer to mutable Bitmap at index i, or nullptr if out of bounds
    */
   auto mutable_gfx_sheet(int i) {
-    if (i < 0 || i >= 223)
+    if (i < 0 || i >= static_cast<int>(kGraphicsSheetCapacity))
       return static_cast<gfx::Bitmap*>(nullptr);
     return &gfx_sheets()[i];
   }
 
   /**
    * @brief Get mutable reference to all graphics sheets
-   * @return Pointer to mutable array of 223 Bitmap objects
+   * @return Pointer to the graphics display array
    */
   auto mutable_gfx_sheets() { return active_gfx_sheets_; }
 

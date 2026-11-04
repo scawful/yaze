@@ -12,6 +12,7 @@
 
 #include "app/editor/graphics/graphics_edit_context.h"
 #include "app/gfx/core/bitmap.h"
+#include "app/gfx/types/graphics_sheet_constants.h"
 #include "app/gfx/types/snes_palette.h"
 #include "imgui/imgui.h"
 
@@ -184,7 +185,7 @@ class GraphicsEditorState {
     ++source_context_revision;
   }
   // Store revision each Arena sheet was last refreshed from.
-  std::array<uint64_t, 223> arena_revisions{};
+  std::array<uint64_t, gfx::kGraphicsSheetCapacity> arena_revisions{};
 
   // --- Callbacks for cross-panel communication ---
   std::function<void()> on_before_sheet_selected;

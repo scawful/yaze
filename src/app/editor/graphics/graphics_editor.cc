@@ -429,6 +429,14 @@ GraphicsEditor::PrepareGraphicsSave() {
         "graphics");
   }
 
+  if (game_data()->gfx_sheet_layout &&
+      game_data()->gfx_sheet_layout->physical_table_rows !=
+          zelda3::kGfxSheetCount) {
+    return absl::FailedPreconditionError(
+        "Expanded graphics layouts are read-only; graphics save is "
+        "unavailable");
+  }
+
   PreparedGraphicsSave prepared;
   if (const auto* project = this->project(); project != nullptr) {
     ASSIGN_OR_RETURN(prepared.policy, core::BuildGfxSheetWritePolicy(*project));

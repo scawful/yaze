@@ -61,6 +61,42 @@ void LoadGroups(Rom& rom, GameData& data) {
   ASSERT_TRUE(data.gfx_groups_loaded);
 }
 
+TEST(GraphicsSheetRevisionRefreshTest,
+     ExpandedSheetEditRefreshesOnlyItsBuiltAndCachedMaps) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+  auto data = LoadedGameData(1);
+  OverworldMap built(0, &rom, data.get());
+  OverworldMap cached(1, &rom, data.get());
+  OverworldMap other(2, &rom, data.get());
+  for (int slot = 0; slot < 16; ++slot) {
+    *built.mutable_static_graphics(slot) = static_cast<uint8_t>(0x30 + slot);
+    *cached.mutable_static_graphics(slot) = static_cast<uint8_t>(0x30 + slot);
+    *other.mutable_static_graphics(slot) = static_cast<uint8_t>(0x50 + slot);
+  }
+  *built.mutable_static_graphics(1) = 0xFE;
+  *cached.mutable_static_graphics(1) = 0xFE;
+  ASSERT_TRUE(built.BuildTileset().ok());
+  ASSERT_TRUE(other.BuildTileset().ok());
+  cached.UseCachedTileset(built.current_graphics());
+  const auto before_fe = data->sheet_store.Revision(0xFE);
+  const auto before_fd = data->sheet_store.Revision(0xFD);
+  ASSERT_TRUE(data->sheet_store.WriteSheet(0xFE, Sheet(3)).ok());
+  EXPECT_NE(data->sheet_store.Revision(0xFE), before_fe);
+  EXPECT_EQ(data->sheet_store.Revision(0xFD), before_fd);
+  EXPECT_TRUE(built.SourceSheetsChanged());
+  EXPECT_TRUE(cached.SourceSheetsChanged());
+  EXPECT_FALSE(other.SourceSheetsChanged());
+  ASSERT_TRUE(built.BuildTileset().ok());
+  EXPECT_EQ(built.current_graphics()[kSheetBytes + 9], 3);
+  EXPECT_FALSE(built.SourceSheetsChanged());
+  EXPECT_TRUE(cached.SourceSheetsChanged());
+  cached.UseCachedTileset(built.current_graphics());
+  EXPECT_FALSE(cached.SourceSheetsChanged());
+  EXPECT_FALSE(data->sheet_store.WriteSheet(0xFF, Sheet(3)).ok());
+  EXPECT_EQ(data->sheet_store.Revision(0xFF), 0u);
+}
+
 TEST(GraphicsSheetRevisionRefreshTest, StoreEditDirtiesOnlyRoomsUsingTheSheet) {
   Rom rom;
   ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());

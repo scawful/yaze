@@ -81,6 +81,7 @@ namespace editor {
 
 std::optional<EditorType> ParseEditorTypeFromString(absl::string_view name);
 class EditorManagerLayoutTestPeer;
+class ExpandedGraphicsLoadTestPeer;
 
 /**
  * @class EditorManager
@@ -98,6 +99,7 @@ class EditorManagerLayoutTestPeer;
  */
 class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
   friend class EditorManagerLayoutTestPeer;
+  friend class ExpandedGraphicsLoadTestPeer;
 
  public:
   struct UiSyncState {

@@ -92,6 +92,13 @@ absl::StatusOr<zelda3::ResolvedGfxSheetLayout> ResolveGfxSheetLayout(
 
 absl::StatusOr<zelda3::GfxSheetWritePolicy> BuildGfxSheetWritePolicy(
     const HackManifest& manifest) {
+  const auto& declared = manifest.graphics_sheet_layout().pointer_layout;
+  if (declared && (declared->physical_table_rows != zelda3::kGfxSheetCount ||
+                   declared->usable_sheet_count != zelda3::kGfxSheetCount)) {
+    return absl::FailedPreconditionError(
+        "Expanded graphics layouts are read-only; graphics sheet writes "
+        "require full physical-row alias accounting and source publication");
+  }
   zelda3::GfxSheetWritePolicy policy;
   if (!manifest.loaded()) {
     return policy;
