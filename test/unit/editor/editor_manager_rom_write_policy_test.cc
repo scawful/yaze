@@ -77,6 +77,10 @@ class ExpandedGraphicsLoadTestPeer {
   static absl::Status ReloadLazy(EditorManager& manager) {
     return manager.LoadAssetsLazy();
   }
+  static absl::Status Replace(EditorManager& manager, Rom&& rom,
+                              const std::string& filepath) {
+    return manager.ReplaceActiveSessionRom(std::move(rom), filepath);
+  }
 };
 
 class GraphicsEditorSaveStoplossTestPeer {
@@ -3708,6 +3712,80 @@ TEST(GraphicsSaveStoplossTest,
                 baseline.editing_source_path);
       EXPECT_EQ(util::ComputeFileSha1Hex(rom_path.string()), disk_hash);
     }
+  }
+}
+
+TEST(GraphicsSaveStoplossTest,
+     RepeatedExpandedReplacementRetiresTemporaryPreflightSurfaces) {
+  FeatureFlagsGuard guard;
+  ScopedImGuiContext imgui;
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  InitializeWithIsolatedSettings(*manager, renderer.get());
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+  const auto fixture = test::BuildOracleGfxSheetTestRom();
+  const auto rom_path = MakeTempFilePath("yaze_expanded_replacement.sfc");
+  ScopedFileCleanup cleanup{rom_path};
+  {
+    std::ofstream out(rom_path, std::ios::binary);
+    out.write(reinterpret_cast<const char*>(fixture.bytes.data()),
+              fixture.bytes.size());
+    ASSERT_TRUE(out.good());
+  }
+  ASSERT_OK(manager->OpenRomOrProject(rom_path.string()));
+  DisableRomWritesForTest();
+  auto* session = manager->session_coordinator()->GetActiveRomSession();
+  ASSERT_NE(session, nullptr);
+  auto* project = manager->GetCurrentProject();
+  project->rom_metadata.expected_hash.clear();
+  project->rom_metadata.role = project::RomRole::kDev;
+  project->rom_filename = rom_path.string();
+  ASSERT_OK(project->hack_manifest.LoadFromString(
+      test::ExpandedGfxSheetTestManifest(session->rom)));
+  session->project_context = *project;
+  ASSERT_OK(manager->EnsureGameDataLoaded());
+  const auto expected_sha1 =
+      util::ComputeSha1Hex(session->rom.data(), session->rom.size());
+  const auto disk_sha1 = util::ComputeFileSha1Hex(rom_path.string());
+  const auto session_id = session->session_id();
+  auto& arena = gfx::Arena::Get();
+  const auto active_surfaces =
+      arena.GetSurfaceCount() - arena.GetPooledSurfaceCount();
+  for (int iteration = 0; iteration < 3; ++iteration) {
+    SCOPED_TRACE(iteration);
+    Rom replacement;
+    ASSERT_OK(replacement.LoadFromFile(rom_path.string()));
+    ASSERT_OK(ExpandedGraphicsLoadTestPeer::Replace(
+        *manager, std::move(replacement), rom_path.string()));
+    ASSERT_EQ(manager->session_coordinator()->GetActiveRomSession(), session);
+    EXPECT_EQ(session->session_id(), session_id);
+    EXPECT_TRUE(session->game_data_loaded);
+    ASSERT_TRUE(session->game_data.gfx_sheet_layout.has_value());
+    EXPECT_TRUE(session->game_data.gfx_sheet_layout->explicit_layout);
+    EXPECT_EQ(session->game_data.gfx_sheet_layout->rom_sha1, expected_sha1);
+    EXPECT_EQ(session->game_data.diagnostics.sheets.size(), 255u);
+    EXPECT_EQ(session->rom.vector(), fixture.bytes);
+    EXPECT_FALSE(session->rom.dirty());
+    EXPECT_EQ(session->rom_baseline->hashes.sha1, expected_sha1);
+    EXPECT_EQ(arena.gfx_sheets_owner(), &session->game_data);
+    for (uint16_t id : {0xDF, 0xFE}) {
+      const std::vector<uint8_t> expected(4096, static_cast<uint8_t>(id & 7));
+      EXPECT_EQ(session->game_data.raw_gfx_sheets[id], expected);
+      EXPECT_EQ(session->game_data.gfx_bitmaps[id].vector(), expected);
+      const auto pixels = session->game_data.sheet_store.Sheet(id);
+      ASSERT_EQ(pixels.size(), expected.size());
+      EXPECT_TRUE(std::equal(pixels.begin(), pixels.end(), expected.begin()));
+      ASSERT_NE(arena.mutable_gfx_sheet(id), nullptr);
+      EXPECT_EQ(arena.mutable_gfx_sheet(id)->vector(), expected);
+    }
+    EXPECT_FALSE(session->game_data.sheet_store.HasSheet(0xFF));
+    // Pool warmup may retain reusable surfaces. The unpooled population must
+    // remain constant on every success; repeated validation cannot accumulate.
+    EXPECT_EQ(arena.GetSurfaceCount() - arena.GetPooledSurfaceCount(),
+              active_surfaces)
+        << "total=" << arena.GetSurfaceCount()
+        << " pooled=" << arena.GetPooledSurfaceCount();
+    EXPECT_EQ(util::ComputeFileSha1Hex(rom_path.string()), disk_sha1);
   }
 }
 

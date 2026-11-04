@@ -38,6 +38,7 @@
 #include "app/editor/system/editor_registry.h"
 #include "app/editor/system/project_workflow_status.h"
 #include "app/editor/system/workspace/workspace_window_manager.h"
+#include "app/gfx/resource/arena.h"
 #include "app/gfx/util/palette_manager.h"
 #include "app/platform/ios/ios_platform_state.h"
 #include "app/platform/timing.h"
@@ -1874,6 +1875,13 @@ absl::Status EditorManager::ReplaceActiveSessionRom(
     options.load_graphics = replacement_layout.has_value();
     options.expand_rom = false;
     RETURN_IF_ERROR(zelda3::LoadGameData(rom, replacement_data, options));
+    // Validation creates CPU bitmaps; their scoped model does not own Arena
+    // surface destruction. Retire them before discarding the preflight data.
+    if (replacement_layout) {
+      for (auto& bitmap : replacement_data.gfx_bitmaps) {
+        gfx::Arena::Get().RetireBitmap(bitmap);
+      }
+    }
   }
 
   Rom previous_rom = session->rom;
