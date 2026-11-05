@@ -42,8 +42,10 @@ class EditorManager;
 #include "app/testing/overworld_ui_tests.h"
 #if __has_include("imgui_test_engine/imgui_te_engine.h")
 #include "imgui_test_engine/imgui_te_engine.h"
+#include "imgui_test_engine/imgui_te_ui.h"
 #elif __has_include("imgui_te_engine.h")
 #include "imgui_te_engine.h"
+#include "imgui_te_ui.h"
 #else
 #error "ImGui Test Engine headers not found"
 #endif
@@ -485,6 +487,12 @@ void TestManager::TrimResourceHistory() {
 
 void TestManager::DrawTestDashboard(bool* show_dashboard) {
   bool* dashboard_flag = show_dashboard ? show_dashboard : &show_dashboard_;
+
+#if defined(YAZE_ENABLE_IMGUI_TEST_ENGINE) && YAZE_ENABLE_IMGUI_TEST_ENGINE
+  if (ui_test_engine_) {
+    ImGuiTestEngine_ShowTestEngineWindows(ui_test_engine_, dashboard_flag);
+  }
+#endif
 
   // Set a larger default window size
   ImGui::SetNextWindowSize(ImVec2(900, 700), ImGuiCond_FirstUseEver);

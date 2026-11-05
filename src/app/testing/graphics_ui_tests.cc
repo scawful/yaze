@@ -489,7 +489,7 @@ void RegisterGraphicsSourceUITests(ImGuiTestEngine* engine) {
       RunGraphicsSourceTest(ctx, true);
     };
   }
-  ImGuiTestEngine_QueueTest(engine, test, ImGuiTestRunFlags_RunFromCommandLine);
+  // Start the registered test from the engine GUI after window observation.
 }
 
 }  // namespace yaze::test

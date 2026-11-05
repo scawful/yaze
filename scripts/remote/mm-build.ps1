@@ -112,7 +112,7 @@ $env:CCACHE_DIR = Join-Path $Root 'ccache'
 # relativized CPM include paths overflow MAX_PATH in ninja's /showIncludes parsing.
 $env:CCACHE_BASEDIR = $WtRoot
 $env:CCACHE_NOHASHDIR = '1'
-$env:CCACHE_MAXSIZE = '40G'
+$env:CCACHE_MAXSIZE = '10GiB'
 $env:CCACHE_SLOPPINESS = 'pch_defines,time_macros'
 if ($job.ccache -eq '0') { $env:CCACHE_DISABLE = '1' }
 
