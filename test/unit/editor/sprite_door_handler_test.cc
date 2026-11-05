@@ -235,6 +235,81 @@ TEST_F(SpriteInteractionHandlerTest,
   EXPECT_EQ(invalidate_count_, 2);
 }
 
+class SpriteMoveFeedbackTest : public SpriteInteractionHandlerTest,
+                               public ::testing::WithParamInterface<bool> {};
+
+TEST_P(SpriteMoveFeedbackTest, ReservedMoveReportsOnceAndValidMoveCanRetry) {
+  auto& room = rooms_[0];
+  room.GetSprites().emplace_back(0x42, 5, 30, 24, 1);
+  room.GetSprites()[0].set_key_drop(2);
+  handler_.SelectSprite(0);
+  room.ClearSaveDirtyState();
+  room.MarkPotItemsDirty();  // Preserve another domain's pending edit.
+  const auto before = room.GetSprites()[0];
+  int error_count = 0;
+  absl::Status reported;
+  handler_.SetMutationErrorCallback([&](const absl::Status& status) {
+    ++error_count;
+    reported = status;
+  });
+
+  const auto move_to_y = [&](int y) {
+    if (GetParam()) {
+      EXPECT_TRUE(handler_.HandleClick(5 * 16, room.GetSprites()[0].y() * 16));
+      handler_.HandleDrag(ImVec2(5 * 16, y * 16), ImVec2(0, 0));
+      handler_.HandleRelease();
+    } else {
+      const bool moved =
+          handler_.NudgeSelected(0, y - room.GetSprites()[0].y());
+      EXPECT_EQ(moved, y != 31);
+    }
+  };
+
+  // Lower-layer subtype 24 at Y31 would encode FF, the stream terminator.
+  move_to_y(31);
+
+  EXPECT_EQ(handler_.mutation_status().code(),
+            absl::StatusCode::kInvalidArgument);
+  EXPECT_EQ(error_count, 1);
+  EXPECT_EQ(reported, handler_.mutation_status());
+  EXPECT_NE(std::string(reported.message()).find("end of the sprite list"),
+            std::string::npos);
+  ASSERT_EQ(room.GetSprites().size(), 1u);
+  const auto& rejected = room.GetSprites()[0];
+  EXPECT_EQ(rejected.id(), before.id());
+  EXPECT_EQ(rejected.x(), before.x());
+  EXPECT_EQ(rejected.y(), before.y());
+  EXPECT_EQ(rejected.subtype(), before.subtype());
+  EXPECT_EQ(rejected.layer(), before.layer());
+  EXPECT_EQ(rejected.key_drop(), before.key_drop());
+  EXPECT_EQ(rejected.deleted(), before.deleted());
+  EXPECT_EQ(handler_.GetSelectedIndex(), 0u);
+  EXPECT_FALSE(room.sprites_dirty());
+  EXPECT_TRUE(room.pot_items_dirty());
+  // on_mutation is the editor's before-snapshot/Undo notification.
+  EXPECT_EQ(mutation_count_, 0);
+  EXPECT_EQ(invalidate_count_, 0);
+  handler_.HandleRelease();
+  EXPECT_EQ(error_count,
+            1);  // Releasing again must not report the refusal twice.
+
+  move_to_y(29);
+
+  EXPECT_TRUE(handler_.mutation_status().ok());
+  EXPECT_EQ(error_count, 1);
+  EXPECT_EQ(room.GetSprites()[0].y(), 29);
+  EXPECT_EQ(room.GetSprites()[0].subtype(), 24);
+  EXPECT_EQ(room.GetSprites()[0].layer(), 1);
+  EXPECT_EQ(room.GetSprites()[0].key_drop(), 2);
+  EXPECT_TRUE(room.sprites_dirty());
+  EXPECT_TRUE(room.pot_items_dirty());
+  EXPECT_EQ(mutation_count_, 1);
+  EXPECT_EQ(invalidate_count_, 1);
+}
+
+INSTANTIATE_TEST_SUITE_P(DragAndNudge, SpriteMoveFeedbackTest,
+                         ::testing::Values(false, true));
+
 // ============================================================================
 // Door Interaction Handler Tests
 // ============================================================================
