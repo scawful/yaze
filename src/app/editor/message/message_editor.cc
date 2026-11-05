@@ -98,6 +98,8 @@ void MessageEditor::Initialize() {
   window_manager->RegisterWindowContent(
       std::make_unique<MessageEditorPanel>([this]() { DrawCurrentMessage(); }));
   window_manager->RegisterWindowContent(
+      std::make_unique<MessagePreviewPanel>([this]() { DrawPreviewPanel(); }));
+  window_manager->RegisterWindowContent(
       std::make_unique<FontAtlasPanel>([this]() {
         DrawFontAtlas();
         DrawExpandedMessageSettings();
@@ -1543,25 +1545,43 @@ void MessageEditor::DrawCurrentMessage() {
   DrawMessageHeader();
   DrawFindBar();
 
+  // When the standalone preview window is open, the editor gives its whole
+  // height to the text and does not draw a second preview.
+  const bool writer = dependencies_.window_manager &&
+                      dependencies_.window_manager->IsWindowOpen(
+                          dependencies_.session_id, "message.preview");
+  const auto line_warnings = ValidateMessageLineWidths(message_text_box_.text);
+  const bool has_diagnostics =
+      !current_parse_errors_.empty() || !current_parse_warnings_.empty();
   const float available = ImGui::GetContentRegionAvail().y;
   const float max_editor = std::max(96.0f, available - 160.0f);
   editor_pane_height_ = std::clamp(editor_pane_height_, 96.0f, max_editor);
+  const float footer_height =
+      ImGui::GetFrameHeightWithSpacing() +
+      (has_diagnostics ? 72.0f + ImGui::GetStyle().ItemSpacing.y : 0.0f) +
+      (line_warnings.empty() ? 0.0f
+                             : (line_warnings.size() + 1) *
+                                   ImGui::GetTextLineHeightWithSpacing());
+  const float text_pane_height =
+      writer ? std::max(96.0f, available - footer_height) : editor_pane_height_;
 
-  if (ImGui::BeginChild("##MessageTextPane", ImVec2(0, editor_pane_height_),
+  if (ImGui::BeginChild("##MessageTextPane", ImVec2(0, text_pane_height),
                         true)) {
     DrawDialogueTextPane(ImGui::GetContentRegionAvail().y);
   }
   ImGui::EndChild();
 
-  ImGui::InvisibleButton("##message_editor_split", ImVec2(-1.0f, 6.0f));
-  if (ImGui::IsItemHovered() || ImGui::IsItemActive()) {
-    ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeNS);
-  }
-  if (ImGui::IsItemActive()) {
-    editor_pane_height_ += ImGui::GetIO().MouseDelta.y;
+  if (!writer) {
+    ImGui::InvisibleButton("##message_editor_split", ImVec2(-1.0f, 6.0f));
+    if (ImGui::IsItemHovered() || ImGui::IsItemActive()) {
+      ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeNS);
+    }
+    if (ImGui::IsItemActive()) {
+      editor_pane_height_ += ImGui::GetIO().MouseDelta.y;
+    }
   }
 
-  if (!current_parse_errors_.empty() || !current_parse_warnings_.empty()) {
+  if (has_diagnostics) {
     if (ImGui::BeginChild("##MessageDiagnostics", ImVec2(0, 72), true)) {
       if (!current_parse_errors_.empty()) {
         ImGui::TextColored(gui::GetErrorColor(), tr("Message parse errors"));
@@ -1579,7 +1599,6 @@ void MessageEditor::DrawCurrentMessage() {
     }
     ImGui::EndChild();
   }
-  const auto line_warnings = ValidateMessageLineWidths(message_text_box_.text);
   if (!line_warnings.empty()) {
     ImGui::TextColored(gui::GetWarningColor(), tr("Line width warnings"));
     for (const auto& warning : line_warnings) {
@@ -1589,6 +1608,12 @@ void MessageEditor::DrawCurrentMessage() {
 
   gui::MemoryEditorPopup("Message Data", current_message_.Data);
 
+  if (!writer) {
+    DrawPreviewPanel();
+  }
+}
+
+void MessageEditor::DrawPreviewPanel() {
   if (ImGui::BeginChild("##MessagePreview", ImVec2(0, 0), true)) {
     EnsureFontTexturesReady();
     Text(tr("Message Preview"));
