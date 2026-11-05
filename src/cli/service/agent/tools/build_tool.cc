@@ -598,7 +598,7 @@ std::string BuildTool::GetProjectRoot() const {
   while (!root.empty() && root != root.root_path()) {
     // Check for yaze-specific markers
     if (fs::exists(root / "CMakeLists.txt") &&
-        fs::exists(root / "src" / "yaze.cc") &&
+        fs::exists(root / "src" / "app") &&
         fs::exists(root / "CMakePresets.json")) {
       return root.string();
     }
