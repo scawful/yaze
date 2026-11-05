@@ -1,15 +1,27 @@
 #include <gtest/gtest.h>
 
 #include <algorithm>
+#include <chrono>
 #include <cstdint>
+#include <filesystem>
+#include <fstream>
+#include <map>
 #include <memory>
+#include <string>
 #include <vector>
+
+#include "absl/cleanup/cleanup.h"
 
 #include "app/gfx/core/bitmap.h"
 #include "app/gfx/resource/arena.h"
 #include "app/gfx/types/sheet_role_palette_table.h"
+#include "core/gfx_sheet_policy_adapter.h"
+#include "core/gfx_sheet_source.h"
+#include "core/project.h"
+#include "nlohmann/json.hpp"
 #include "rom/rom.h"
 #include "rom/snes.h"
+#include "unit/zelda3/gfx_sheet_test_rom.h"
 #include "zelda3/dungeon/palette_debug.h"
 #include "zelda3/dungeon/room.h"
 #include "zelda3/game_data.h"
@@ -53,6 +65,99 @@ void PopulateDistinctSpritePaletteData(GameData& game_data) {
                            0x4000);
   AddDistinctPaletteSeries(game_data.palette_groups.sprites_aux3, 24, 7,
                            0x5000);
+}
+
+// A real current-source binding, using the production text codec and loader.
+// The files stay alive through LoadGameData's binding checks and are private to
+// one case; none of these test IDs is an allocation for a project ROM.
+class RoomGraphicsSourceFiles {
+ public:
+  RoomGraphicsSourceFiles()
+      : root_(
+            std::filesystem::temp_directory_path() /
+            ("yaze-room-src-" + std::to_string(std::chrono::steady_clock::now()
+                                                   .time_since_epoch()
+                                                   .count()))) {}
+  ~RoomGraphicsSourceFiles() {
+    if (owns_root_) {
+      std::error_code ec;
+      std::filesystem::remove_all(root_, ec);
+    }
+  }
+
+  absl::StatusOr<core::GfxSheetSource> Load(
+      const std::map<uint16_t, std::vector<uint8_t>>& sheets) {
+    std::error_code ec;
+    if (!std::filesystem::create_directory(root_, ec) || ec) {
+      return absl::InternalError(
+          "Private room source fixture path already exists");
+    }
+    owns_root_ = true;
+    if (!std::filesystem::create_directories(root_ / "Data/graphics", ec) ||
+        ec) {
+      return absl::InternalError("Cannot create private room source fixture");
+    }
+    nlohmann::json spec = {{"schema_version", 2},
+                           {"start", "0x40D000"},
+                           {"capacity", "0x3000"},
+                           {"encoding", "lz2"},
+                           {"sheets", nlohmann::json::array()}};
+    for (const auto& [id, pixels] : sheets) {
+      const std::string name = std::to_string(id) + ".txt";
+      std::ofstream output(root_ / "Data/graphics" / name, std::ios::binary);
+      output << core::GfxSheetSource::EncodeText(pixels);
+      output.close();
+      if (!output.good()) {
+        return absl::InternalError("Cannot write private room source pixels");
+      }
+      spec["sheets"].push_back(
+          {{"global_sheet", id},
+           {"source", name},
+           {"decoded_sha256", core::GfxSheetSource::DecodedSha256(pixels)},
+           {"why", "Private room decoded-consumer fixture"}});
+    }
+    const std::string bytes = spec.dump(2) + "\n";
+    std::ofstream output(root_ / "Data/graphics/source_sprite_sheets.json",
+                         std::ios::binary);
+    output << bytes;
+    output.close();
+    if (!output.good()) {
+      return absl::InternalError("Cannot write private room source spec");
+    }
+    project::YazeProject project;
+    project.filepath = (root_ / "room.yaze").string();
+    project.code_folder = root_.string();
+    project.name = "Room decoded-consumer fixture";
+    project.graphics_sheets.source_spec =
+        "Data/graphics/source_sprite_sheets.json";
+    project.graphics_sheets.source_spec_sha1 =
+        core::GfxSheetSource::SpecSha1(bytes);
+    const auto saved = project.Save();
+    if (!saved.ok()) {
+      return saved;
+    }
+    return core::GfxSheetSource::Load(project);
+  }
+
+ private:
+  std::filesystem::path root_;
+  bool owns_root_ = false;
+};
+
+std::vector<uint8_t> RoomSourcePixels(uint8_t color) {
+  std::vector<uint8_t> pixels(4096, color);
+  pixels[0] = 0;
+  pixels[136] = 7;
+  return pixels;
+}
+
+void ExpectRoomBlock(const Room& room, int block,
+                     const std::vector<uint8_t>& expected) {
+  ASSERT_EQ(expected.size(), 4096u);
+  const auto& pixels = room.get_gfx_buffer();
+  EXPECT_TRUE(std::equal(expected.begin(), expected.end(),
+                         pixels.begin() + block * 4096))
+      << "destination block " << block;
 }
 
 }  // namespace
@@ -178,6 +283,171 @@ TEST(RoomGraphicsPaletteTest,
   EXPECT_EQ(gfx[6 * 4096 + 1], 1);
   EXPECT_EQ(gfx[7 * 4096 + 1], 1);
   EXPECT_EQ(gfx[8 * 4096 + 1], 1);
+}
+
+TEST(RoomGraphicsPaletteTest, LegacyCopyRejectsExpandedBufferWithoutBinding) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+  auto data = std::make_unique<GameData>();
+  // Deliberately oversized storage must not declare logical DF/FE or sentinelFF.
+  data->graphics_buffer.assign(256 * 4096, 4);
+  std::fill_n(data->graphics_buffer.begin() + 0xDE * 4096, 4096, 3);
+  Room room(0, &rom, data.get());
+  room.mutable_blocks().fill(0);
+  room.mutable_blocks()[3] = 0xDE;
+  room.mutable_blocks()[4] = 0xDF;
+  room.mutable_blocks()[5] = 0xFE;
+  room.mutable_blocks()[2] = 0xFF;
+  room.CopyRoomGraphicsToBuffer();
+  ExpectRoomBlock(room, 3, std::vector<uint8_t>(4096, 11));
+  for (int block : {2, 4, 5}) {
+    ExpectRoomBlock(room, block, std::vector<uint8_t>(4096, 0));
+  }
+  EXPECT_FALSE(data->gfx_sheet_layout.has_value());
+  EXPECT_FALSE(data->gfx_sheet_source.has_value());
+}
+
+TEST(RoomGraphicsPaletteTest, ExplicitExpandedCopyUsesValidatedReaderRows) {
+  const auto fixture = ::yaze::test::BuildOracleGfxSheetTestRom();
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(fixture.bytes).ok());
+  core::HackManifest manifest;
+  ASSERT_TRUE(
+      manifest.LoadFromString(::yaze::test::ExpandedGfxSheetTestManifest(rom))
+          .ok());
+  auto layout = core::ResolveGfxSheetLayout(rom, manifest);
+  ASSERT_TRUE(layout.ok()) << layout.status();
+  auto data = std::make_unique<GameData>();
+  const absl::Cleanup retire = [&] {
+    for (auto& bitmap : data->gfx_bitmaps) {
+      gfx::Arena::Get().RetireBitmap(bitmap);
+    }
+  };
+  LoadOptions options;
+  options.gfx_sheet_layout = *layout;
+  options.load_palettes = false;
+  options.load_gfx_groups = false;
+  options.populate_metadata = false;
+  options.expand_rom = false;
+  ASSERT_TRUE(LoadGameData(rom, *data, options).ok());
+  ASSERT_TRUE(data->gfx_sheet_layout.has_value());
+  ASSERT_EQ(data->gfx_sheet_layout->usable_sheet_count, 255);
+  const auto before = rom.vector();
+  Room room(0, &rom, data.get());
+  room.mutable_blocks().fill(0);
+  room.mutable_blocks()[3] = 0xFE;
+  room.mutable_blocks()[4] = 0xDF;
+  room.mutable_blocks()[5] = 0xFF;
+  room.CopyRoomGraphicsToBuffer();
+  ExpectRoomBlock(room, 3, std::vector<uint8_t>(4096, 14));
+  ExpectRoomBlock(room, 4, std::vector<uint8_t>(4096, 7));
+  ExpectRoomBlock(room, 5, std::vector<uint8_t>(4096, 0));
+  // Admitting decoded reads does not admit the existing native ROM writer.
+  EXPECT_FALSE(WriteGfxSheet(rom, 0xFE, fixture.sheets.at(0xFE), {}).ok());
+  EXPECT_EQ(rom.vector(), before);
+}
+
+TEST(RoomGraphicsPaletteTest, SourceOverlayCopyUsesOnlyDeclaredRows) {
+  for (bool sparse : {false, true}) {
+    SCOPED_TRACE(sparse ? "FE only" : "DF and FE");
+    RoomGraphicsSourceFiles files;
+    const auto df = RoomSourcePixels(2);
+    const auto fe = RoomSourcePixels(5);
+    std::map<uint16_t, std::vector<uint8_t>> declared = {{0xFE, fe}};
+    if (!sparse) {
+      declared.emplace(0xDF, df);
+    }
+    auto source = files.Load(declared);
+    ASSERT_TRUE(source.ok()) << source.status();
+    auto fixture = ::yaze::test::BuildGfxSheetTestRom();
+    fixture.bytes[0x7FD9] = 1;
+    Rom rom;
+    ASSERT_TRUE(rom.LoadFromData(fixture.bytes).ok());
+    const auto before = rom.vector();
+    auto data = std::make_unique<GameData>();
+    const absl::Cleanup retire = [&] {
+      for (auto& bitmap : data->gfx_bitmaps) {
+        gfx::Arena::Get().RetireBitmap(bitmap);
+      }
+    };
+    LoadOptions options;
+    options.gfx_sheet_source = *source;
+    options.load_palettes = false;
+    options.load_gfx_groups = false;
+    options.populate_metadata = false;
+    options.expand_rom = false;
+    ASSERT_TRUE(LoadGameData(rom, *data, options).ok());
+    ASSERT_FALSE(data->gfx_sheet_layout.has_value());
+    ASSERT_TRUE(data->gfx_sheet_source.has_value());
+    if (sparse) {
+      // Poison the physically present hole: buffer extent alone must not admit it.
+      ASSERT_TRUE(
+          data->sheet_store.WriteSheet(0xDF, std::vector<uint8_t>(4096, 7))
+              .ok());
+    }
+    Room room(0, &rom, data.get());
+    room.mutable_blocks().fill(0);
+    room.mutable_blocks()[3] = 0xDF;
+    room.mutable_blocks()[4] = 0xFE;
+    room.mutable_blocks()[5] = 0xFF;
+    room.CopyRoomGraphicsToBuffer();
+    auto df_right = std::vector<uint8_t>(4096, sparse ? 0 : 10);
+    df_right[0] = 0;
+    df_right[136] = sparse ? 0 : 15;
+    ExpectRoomBlock(room, 3, df_right);
+    ExpectRoomBlock(room, 4, fe);
+    ExpectRoomBlock(room, 5, std::vector<uint8_t>(4096, 0));
+    EXPECT_EQ(rom.vector(), before);
+    EXPECT_FALSE(rom.dirty());
+  }
+}
+
+TEST(RoomGraphicsPaletteTest,
+     EligibleSourceCopyPreservesOverrideAndExtentChecks) {
+  RoomGraphicsSourceFiles files;
+  const auto fe = RoomSourcePixels(3);
+  auto source = files.Load({{0xFE, fe}});
+  ASSERT_TRUE(source.ok()) << source.status();
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+  auto data = std::make_unique<GameData>();
+  data->gfx_sheet_source = *source;
+  data->graphics_buffer.assign(255 * 4096, 0);
+  ASSERT_TRUE(data->sheet_store.WriteSheet(0xFE, fe).ok());
+  Room room(0, &rom, data.get());
+  room.mutable_blocks().fill(0);
+  room.mutable_blocks()[2] =
+      0xDF;  // A preview override cannot declare this row.
+  room.mutable_blocks()[3] = 0xFE;
+  room.mutable_blocks()[4] = 0xFE;
+  room.mutable_blocks()[5] = 0xFF;
+  room.SetGraphicsSheetOverrides({{0xDF, std::vector<uint8_t>(4096, 7)},
+                                  {0xFE, std::vector<uint8_t>(4096, 6)},
+                                  {0xFF, std::vector<uint8_t>(4096, 7)}});
+  room.CopyRoomGraphicsToBuffer();
+  ExpectRoomBlock(room, 2, std::vector<uint8_t>(4096, 0));
+  ExpectRoomBlock(room, 3, std::vector<uint8_t>(4096, 14));
+  ExpectRoomBlock(room, 4, std::vector<uint8_t>(4096, 6));
+  ExpectRoomBlock(room, 5, std::vector<uint8_t>(4096, 0));
+
+  room.SetGraphicsSheetOverrides({{0xFE, std::vector<uint8_t>(4095, 6)}});
+  room.CopyRoomGraphicsToBuffer();
+  auto fe_right = std::vector<uint8_t>(4096, 11);
+  fe_right[0] = 0;
+  fe_right[136] = 15;
+  ExpectRoomBlock(room, 3, fe_right);
+  ExpectRoomBlock(room, 4, fe);
+
+  // One missing byte must refuse the entire sheet, rather than overread/copy it.
+  data->graphics_buffer.resize(0xFE * 4096 + 4095);
+  room.CopyRoomGraphicsToBuffer();
+  ExpectRoomBlock(room, 3, std::vector<uint8_t>(4096, 0));
+  ExpectRoomBlock(room, 4, std::vector<uint8_t>(4096, 0));
+  // A complete eligible preview keeps the existing precedence even with a short store.
+  room.SetGraphicsSheetOverrides({{0xFE, std::vector<uint8_t>(4096, 6)}});
+  room.CopyRoomGraphicsToBuffer();
+  ExpectRoomBlock(room, 3, std::vector<uint8_t>(4096, 14));
+  ExpectRoomBlock(room, 4, std::vector<uint8_t>(4096, 6));
 }
 
 TEST(RoomGraphicsPaletteTest,
@@ -626,6 +896,49 @@ TEST_F(RoomRenderLifecycleTest, GraphicsOnlyRefreshRerendersObjectPixels) {
   const uint8_t full_refresh_pixel = bitmap.data()[kSample];
   ASSERT_NE(full_refresh_pixel, before);
   EXPECT_EQ(graphics_refresh_pixel, full_refresh_pixel);
+}
+
+TEST_F(RoomRenderLifecycleTest, SourceOverlayRevisionRefreshesRoomPixels) {
+  RoomGraphicsSourceFiles files;
+  const auto original = RoomSourcePixels(2);
+  auto source = files.Load({{0xFE, original}});
+  ASSERT_TRUE(source.ok()) << source.status();
+  game_data_.gfx_sheet_source = *source;
+  ASSERT_TRUE(game_data_.sheet_store.WriteSheet(0xFE, original).ok());
+  game_data_.main_blockset_ids[0][3] = 0xFE;
+  game_data_.main_blockset_ids[0][5] = 0xFE;
+  room_->SetBlockset(0);
+  room_->SetRenderEntranceBlockset(0);
+  room_->PrepareForRender();
+  auto right = std::vector<uint8_t>(4096, 10);
+  right[0] = 0;
+  right[136] = 15;
+  ExpectRoomBlock(*room_, 3, right);
+  ExpectRoomBlock(*room_, 5, original);
+  ASSERT_FALSE(room_->SourceSheetsChanged());
+  const auto before = room_->graphics_revision();
+
+  auto other_data = std::make_unique<GameData>(game_data_);
+  Room other_room(0, &rom_, other_data.get());
+  other_room.SetBlockset(0);
+  other_room.LoadRoomGraphics(/*entrance_blockset=*/0);
+  other_room.CopyRoomGraphicsToBuffer();
+  const auto other_before = other_room.graphics_revision();
+  const auto changed = RoomSourcePixels(4);
+  ASSERT_TRUE(game_data_.sheet_store.WriteSheet(0xFE, changed).ok());
+  ASSERT_TRUE(room_->SourceSheetsChanged());
+  EXPECT_FALSE(other_room.SourceSheetsChanged());
+  // No explicit MarkGraphicsDirty: the existing source revision path must notice.
+  room_->PrepareForRender();
+  right.assign(4096, 12);
+  right[0] = 0;
+  right[136] = 15;
+  ExpectRoomBlock(*room_, 3, right);
+  ExpectRoomBlock(*room_, 5, changed);
+  EXPECT_NE(room_->graphics_revision(), before);
+  EXPECT_FALSE(room_->SourceSheetsChanged());
+  ExpectRoomBlock(other_room, 5, original);
+  EXPECT_EQ(other_room.graphics_revision(), other_before);
 }
 
 TEST_F(RoomRenderLifecycleTest, FloorChangeRerendersFloorDependentObjects) {

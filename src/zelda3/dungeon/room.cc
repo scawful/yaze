@@ -1129,12 +1129,27 @@ void Room::CopyRoomGraphicsToBuffer() {
   std::fill(current_gfx16_.begin(), current_gfx16_.end(), 0);
   source_sheet_revisions_.clear();
 
+  // The loader validates native rows against the ROM; source overlays declare
+  // their own logical rows without expanding the native pointer layout.
+  const size_t native_sheet_count =
+      game_data_->gfx_sheet_layout
+          ? game_data_->gfx_sheet_layout->usable_sheet_count
+          : kLegacyNumGfxSheets;
+
   // Process each of the 16 graphics blocks
   for (int block = 0; block < 16; block++) {
-    int sheet_id = blocks_[block];
+    const int sheet_id = blocks_[block];
+    const bool valid_sheet_id =
+        sheet_id >= 0 &&
+        static_cast<size_t>(sheet_id) < gfx::kGraphicsSheetCapacity;
+    const bool source_sheet = valid_sheet_id && game_data_->gfx_sheet_source &&
+                              game_data_->gfx_sheet_source->sheets().count(
+                                  static_cast<uint16_t>(sheet_id)) != 0;
 
-    // Validate block index
-    if (sheet_id >= 223) {  // kNumGfxSheets
+    // Buffer size and preview overrides do not grant undeclared rows or $FF.
+    if (!valid_sheet_id ||
+        (static_cast<size_t>(sheet_id) >= native_sheet_count &&
+         !source_sheet)) {
       LOG_WARN("Room", "Invalid sheet index %d for block %d", sheet_id, block);
       continue;
     }
