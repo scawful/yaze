@@ -304,8 +304,12 @@ void DrawProjectBuildFields(ImGuiTestContext*) {
   if (!state.active) {
     return;
   }
-  ImGui::SetNextWindowPos(ImVec2(20, 20), ImGuiCond_Always);
-  ImGui::SetNextWindowSize(ImVec2(720, 640), ImGuiCond_Always);
+  const ImGuiViewport* viewport = ImGui::GetMainViewport();
+  const ImVec2 margin(20, 20);
+  ImGui::SetNextWindowPos(viewport->WorkPos + margin, ImGuiCond_Always);
+  ImGui::SetNextWindowSize(
+      ImMin(ImVec2(720, 640), viewport->WorkSize - margin * 2.0f),
+      ImGuiCond_Always);
   if (ImGui::Begin("Project Build Fields", nullptr,
                    ImGuiWindowFlags_NoSavedSettings)) {
     state.panel.Draw();
