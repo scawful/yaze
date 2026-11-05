@@ -323,6 +323,30 @@ TEST(GfxSheetPngCommandTest, DryRunShowsExactChangesAndWriteSavesACopy) {
     EXPECT_FALSE(std::filesystem::exists(diff_path));
     EXPECT_EQ(rom.vector(), fixture.bytes);
   }
+  // gfx-room-import refuses the same aliases before reading the room.
+  cli::GfxRoomImportCommandHandler alias_room_importer;
+  std::vector<std::filesystem::path> room_outputs = {png_path, project_path};
+  if (std::filesystem::exists(project_link))
+    room_outputs.push_back(project_link);
+  for (const auto& output : room_outputs) {
+    SCOPED_TRACE(output.string());
+    absl::Status alias_status;
+    RunCommand(alias_room_importer,
+               {"--room=0", "--png=" + png_path.string(), "--write",
+                "--out=" + output.string(), project_arg, "--format=json"},
+               rom, &alias_status);
+    EXPECT_EQ(alias_status.code(), absl::StatusCode::kInvalidArgument);
+    EXPECT_NE(std::string(alias_status.message()).find("must differ"),
+              std::string::npos)
+        << alias_status;
+    const auto project_after = util::ReadBinaryFile(project_path.string());
+    const auto png_after = util::ReadBinaryFile(png_path.string());
+    ASSERT_TRUE(project_after.ok());
+    ASSERT_TRUE(png_after.ok());
+    EXPECT_EQ(*project_after, *project_before);
+    EXPECT_EQ(*png_after, *png_before);
+    EXPECT_EQ(rom.vector(), fixture.bytes);
+  }
   // --project and --manifest are not read; refusing them keeps a grown sheet
   // from being reported as having no free space when the manifest has some.
   for (const std::string& unread :
