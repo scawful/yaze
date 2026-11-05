@@ -5737,6 +5737,9 @@ TEST_F(SessionRomIdentityTest,
   ASSERT_OK(manager->EnsureEditorAssetsLoaded(EditorType::kScreen));
   auto* screen = manager->GetCurrentEditorSet()->GetScreenEditor();
   ASSERT_NE(screen, nullptr);
+  // Load a valid model before injecting the unsupported Save layout.
+  ASSERT_OK(
+      manager->GetCurrentRom()->WriteByte(zelda3::kDungeonMapExpCheck, 0xEA));
   const auto baseline = *Session()->rom_baseline;
   const auto raw = manager->GetCurrentRom()->vector();
   const uint16_t before =
