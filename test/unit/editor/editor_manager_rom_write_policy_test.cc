@@ -5738,8 +5738,12 @@ TEST_F(SessionRomIdentityTest,
   auto* screen = manager->GetCurrentEditorSet()->GetScreenEditor();
   ASSERT_NE(screen, nullptr);
   // Load a valid model before injecting the unsupported Save layout.
+  ASSERT_FALSE(manager->GetCurrentRom()->dirty());
   ASSERT_OK(
       manager->GetCurrentRom()->WriteByte(zelda3::kDungeonMapExpCheck, 0xEA));
+  // Fault setup must not turn this model-only scenario into raw ROM work.
+  manager->GetCurrentRom()->ClearDirty();
+  ASSERT_FALSE(manager->GetCurrentRom()->dirty());
   const auto baseline = *Session()->rom_baseline;
   const auto raw = manager->GetCurrentRom()->vector();
   const uint16_t before =
@@ -5748,6 +5752,7 @@ TEST_F(SessionRomIdentityTest,
   ScreenEditorSaveStoplossTestPeer::EditLoadedBossRoom(screen, 0x0123);
   ASSERT_TRUE(screen->HasPendingScreenChanges());
   ASSERT_TRUE(screen->CanUndo());
+  EXPECT_FALSE(manager->GetCurrentRom()->dirty());
   EXPECT_EQ(manager->GetCurrentRom()->vector(), raw);
   core::FeatureFlags::get().kSaveDungeonMaps = true;
   Switch(1);
