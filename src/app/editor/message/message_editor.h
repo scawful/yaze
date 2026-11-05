@@ -15,6 +15,7 @@
 #include "app/editor/editor.h"
 #include "app/editor/message/message_data.h"
 #include "app/editor/message/message_preview.h"
+#include "app/editor/message/message_review.h"
 #include "app/editor/message/message_undo_actions.h"
 #include "app/editor/message/panels/message_editor_panels.h"
 #include "app/gfx/core/bitmap.h"
@@ -69,6 +70,7 @@ class MessageEditor : public Editor {
   void DrawDictionary();
   void DrawMessageTools();
   void DrawMessagePreview();
+  void DrawReviewPanel();
   void UpdateCurrentMessageFromText(const std::string& text);
   void ContributeStatus(StatusBar* status_bar) override;
 
@@ -252,6 +254,50 @@ class MessageEditor : public Editor {
   // Replace helpers
   int ReplaceCurrentMatch();
   int ReplaceAllMatches();
+
+  // Dialogue review (message_editor_review.cc)
+  enum class ReviewListFilter {
+    kAll = 0,
+    kToReview,
+    kNeedsChanges,
+    kApproved,
+    kChangedSinceReview,
+    kEditedThisSession,
+    kPlaceholders,
+  };
+  void EnsureReviewContextLoaded();
+  void ReloadReviewContext();
+  std::optional<std::filesystem::path> ProjectRootPath() const;
+  std::optional<std::filesystem::path> ReviewDirectory() const;
+  void OpenReviewFile(const std::filesystem::path& path);
+  void CreateReviewFile(const std::string& reviewer);
+  void SaveReview();
+  void SetReviewStatus(int display_id, ReviewStatus status);
+  void CommitReviewComment(int display_id);
+  std::string SceneLabelFor(int display_id) const;
+  bool RowPassesReviewFilter(const MessageRow& row) const;
+  bool IsDisplayIdEdited(int display_id) const;
+  bool IsReviewStale(int display_id) const;
+  std::vector<int> EditedDisplayIds() const;
+  void DrawReviewListFilter();
+  void DrawReviewCell(int display_id);
+  void DrawReviewerPicker();
+  void DrawMessageContext(int display_id);
+  void ExportForReview();
+  absl::Status ExportReviewBundleToFile(const std::string& path) const;
+
+  MessageCatalog catalog_;
+  bool review_context_loaded_ = false;
+  std::string review_context_project_path_;
+  std::string catalog_status_;
+  MessageReviewFile review_;
+  std::filesystem::path review_path_;
+  std::string review_status_;
+  bool review_status_error_ = false;
+  std::string review_comment_buffer_;
+  int review_comment_id_ = -1;
+  int list_review_filter_ = 0;
+  std::string new_reviewer_name_;
 
   std::array<uint8_t, 0x4000> raw_font_gfx_data_;
   std::vector<std::string> parsed_messages_;

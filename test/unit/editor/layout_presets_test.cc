@@ -221,7 +221,7 @@ TEST(LayoutPresetsTest, AssemblyDefaultIncludesSupportingToolWindows) {
   EXPECT_EQ(disassembly_pos->second, DockPosition::RightBottom);
 }
 
-TEST(LayoutPresetsTest, WriterContainsOnlyFourPositionedMessageWindows) {
+TEST(LayoutPresetsTest, WriterContainsOnlyFivePositionedMessageWindows) {
   const auto preset = LayoutPresets::GetWriterPreset();
   EXPECT_EQ(preset.name, "Writer");
   EXPECT_EQ(preset.editor_type, EditorType::kMessage);
@@ -229,6 +229,7 @@ TEST(LayoutPresetsTest, WriterContainsOnlyFourPositionedMessageWindows) {
       LayoutPresets::Panels::kMessageList,
       LayoutPresets::Panels::kMessageEditor,
       LayoutPresets::Panels::kMessagePreview,
+      LayoutPresets::Panels::kMessageReview,
       LayoutPresets::Panels::kMessageDictionary,
   };
   EXPECT_EQ(preset.default_visible_panels, expected);
@@ -241,6 +242,8 @@ TEST(LayoutPresetsTest, WriterContainsOnlyFourPositionedMessageWindows) {
             DockPosition::Center);
   EXPECT_EQ(preset.panel_positions.at(LayoutPresets::Panels::kMessagePreview),
             DockPosition::RightTop);
+  EXPECT_EQ(preset.panel_positions.at(LayoutPresets::Panels::kMessageReview),
+            DockPosition::RightBottom);
   EXPECT_EQ(
       preset.panel_positions.at(LayoutPresets::Panels::kMessageDictionary),
       DockPosition::RightBottom);

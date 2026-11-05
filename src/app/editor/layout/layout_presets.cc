@@ -435,16 +435,18 @@ PanelLayoutPreset LayoutPresets::GetDesignerPreset() {
 PanelLayoutPreset LayoutPresets::GetWriterPreset() {
   PanelLayoutPreset preset;
   preset.name = "Writer";
-  preset.description = "Dialogue list, text editor, preview, and dictionary";
+  preset.description =
+      "Dialogue list, text editor, preview, review notes, and dictionary";
   preset.editor_type = EditorType::kMessage;
-  preset.default_visible_panels = {Panels::kMessageList, Panels::kMessageEditor,
-                                   Panels::kMessagePreview,
-                                   Panels::kMessageDictionary};
+  preset.default_visible_panels = {
+      Panels::kMessageList, Panels::kMessageEditor, Panels::kMessagePreview,
+      Panels::kMessageReview, Panels::kMessageDictionary};
   preset.dock_only_default_visible_panels = true;
   preset.panel_positions = {
       {Panels::kMessageList, DockPosition::Left},
       {Panels::kMessageEditor, DockPosition::Center},
       {Panels::kMessagePreview, DockPosition::RightTop},
+      {Panels::kMessageReview, DockPosition::RightBottom},
       {Panels::kMessageDictionary, DockPosition::RightBottom},
   };
   return preset;
