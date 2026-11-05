@@ -771,7 +771,8 @@ void ScreenEditor::DrawDungeonMapsRoomGfx() {
     return;
   }
 
-  if (ImGui::BeginChild("##DungeonMapTiles", ImVec2(0, 0), true)) {
+  if (ImGui::BeginChild("##DungeonMapTiles", ImVec2(0, 0), true,
+                        ImGuiWindowFlags_HorizontalScrollbar)) {
     // Enhanced tilesheet canvas with BeginCanvas/EndCanvas pattern
     {
       gui::CanvasFrameOptions tilesheet_opts;
@@ -786,8 +787,7 @@ void ScreenEditor::DrawDungeonMapsRoomGfx() {
       auto tilesheet_rt = gui::BeginCanvas(tilesheet_canvas_, tilesheet_opts);
 
       // Interactive tile16 selector with grid snapping
-      ImVec2 selected_pos;
-      if (gui::DrawTileSelector(tilesheet_rt, 32, 0, &selected_pos)) {
+      if (tilesheet_canvas_.DrawTileSelector(32)) {
         // Double-click detected - handle tile confirmation if needed
       }
 
