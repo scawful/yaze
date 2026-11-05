@@ -618,7 +618,8 @@ void MenuOrchestrator::AddToolsMenuItems() {
 
   AddDevelopmentMenuItems();
 
-#ifdef YAZE_ENABLE_TESTING
+#if defined(YAZE_ENABLE_TESTING) || \
+    (defined(IMGUI_ENABLE_TEST_ENGINE) && IMGUI_ENABLE_TEST_ENGINE)
   AddTestingMenuItems();
 #endif
 
@@ -784,7 +785,8 @@ void MenuOrchestrator::AddDevelopmentMenuItems() {
 void MenuOrchestrator::AddTestingMenuItems() {
   // Testing (moved from Debug menu)
   menu_builder_.BeginSubMenu("Testing", ICON_MD_SCIENCE);
-#ifdef YAZE_ENABLE_TESTING
+#if defined(YAZE_ENABLE_TESTING) || \
+    (defined(IMGUI_ENABLE_TEST_ENGINE) && IMGUI_ENABLE_TEST_ENGINE)
   menu_builder_
       // Test suites run from the dashboard; the former "Run All/Unit/
       // Integration/E2E" items only showed toasts and were removed.
@@ -1818,7 +1820,8 @@ void MenuOrchestrator::OnShowResourceLabelManager() {
   }
 }
 
-#ifdef YAZE_ENABLE_TESTING
+#if defined(YAZE_ENABLE_TESTING) || \
+    (defined(IMGUI_ENABLE_TEST_ENGINE) && IMGUI_ENABLE_TEST_ENGINE)
 void MenuOrchestrator::OnShowTestDashboard() {
   if (editor_manager_) {
     editor_manager_->ShowTestDashboard();

@@ -425,8 +425,12 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
       ui_coordinator_->SetImGuiMetricsVisible(true);
   }
 
-#ifdef YAZE_ENABLE_TESTING
-  void ShowTestDashboard() { show_test_dashboard_ = true; }
+#if defined(YAZE_ENABLE_TESTING) || \
+    (defined(IMGUI_ENABLE_TEST_ENGINE) && IMGUI_ENABLE_TEST_ENGINE)
+  void ShowTestDashboard() {
+    if (ui_coordinator_)
+      ui_coordinator_->SetTestDashboardVisible(true);
+  }
 #endif
 
 #ifdef YAZE_BUILD_AGENT_UI

@@ -173,7 +173,8 @@ class MenuOrchestrator {
   // Editor launch actions
   void OnShowAssemblyEditor();
 
-#ifdef YAZE_ENABLE_TESTING
+#if defined(YAZE_ENABLE_TESTING) || \
+    (defined(IMGUI_ENABLE_TEST_ENGINE) && IMGUI_ENABLE_TEST_ENGINE)
   void OnShowTestDashboard();
 #endif
 

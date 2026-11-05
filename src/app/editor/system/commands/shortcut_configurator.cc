@@ -1198,7 +1198,8 @@ void ConfigureMenuShortcuts(const ShortcutDependencies& deps,
                     }
                   });
 
-#ifdef YAZE_ENABLE_TESTING
+#if defined(YAZE_ENABLE_TESTING) || \
+    (defined(IMGUI_ENABLE_TEST_ENGINE) && IMGUI_ENABLE_TEST_ENGINE)
   RegisterIfValid(shortcut_manager, "Test Dashboard",
                   {ImGuiMod_Ctrl, ImGuiKey_T}, [menu_orchestrator]() {
                     if (menu_orchestrator) {

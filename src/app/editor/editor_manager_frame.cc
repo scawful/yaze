@@ -587,10 +587,13 @@ void EditorManager::DrawSecondaryWindows() {
     }
   }
 
-#ifdef YAZE_ENABLE_TESTING
-  if (show_test_dashboard_) {
+#if defined(YAZE_ENABLE_TESTING) || \
+    (defined(IMGUI_ENABLE_TEST_ENGINE) && IMGUI_ENABLE_TEST_ENGINE)
+  if (ui_coordinator_ && ui_coordinator_->IsTestDashboardVisible()) {
+    bool visible = true;
     test::TestManager::Get().UpdateResourceStats();
-    test::TestManager::Get().DrawTestDashboard(&show_test_dashboard_);
+    test::TestManager::Get().DrawTestDashboard(&visible);
+    ui_coordinator_->SetTestDashboardVisible(visible);
   }
 #endif
 }

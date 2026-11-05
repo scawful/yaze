@@ -178,6 +178,7 @@ class UICoordinator {
   bool IsPerformanceDashboardVisible() const {
     return show_performance_dashboard_;
   }
+  bool IsTestDashboardVisible() const { return show_test_dashboard_; }
   bool IsWindowBrowserVisible() const { return show_panel_browser_; }
   bool IsCommandPaletteVisible() const { return show_command_palette_; }
   // Sidebar visibility delegates to WorkspaceWindowManager (single source of truth)
@@ -221,6 +222,7 @@ class UICoordinator {
   void SetPerformanceDashboardVisible(bool visible) {
     show_performance_dashboard_ = visible;
   }
+  void SetTestDashboardVisible(bool visible) { show_test_dashboard_ = visible; }
   void SetWindowBrowserVisible(bool visible) { show_panel_browser_ = visible; }
   void SetCommandPaletteVisible(bool visible);
   // Sidebar visibility delegates to WorkspaceWindowManager (single source of truth)
