@@ -233,6 +233,132 @@ TEST_P(DungeonEntityUndoLifecycleTest,
   EXPECT_TRUE(room_->GetSprites()[0].IsOverlord());
 }
 
+class DungeonEntityUndoPersistenceTest : public DungeonEntityUndoLifecycleTest {
+ protected:
+  void SetUp() override {
+    DungeonEntityUndoLifecycleTest::SetUp();
+    previous_flags_ = core::FeatureFlags::get().dungeon;
+    auto& flags = core::FeatureFlags::get().dungeon;
+    flags.kSaveObjects = flags.kSaveSprites = true;
+    flags.kSaveChests = flags.kSavePotItems = flags.kSaveRoomHeaders = false;
+    flags.kSaveTorches = flags.kSavePits = flags.kSaveBlocks = false;
+    flags.kSaveCollision = flags.kSaveWaterFillZones = false;
+    flags.kSaveEntrances = flags.kSavePalettes = false;
+
+    room_->GetSprites().emplace_back(0x09, 4, 6, 3, 0);
+    room_->GetSprites()[0].set_key_drop(1);
+    room_->GetDoors().push_back(zelda3::Room::Door::FromRomBytes(0x04, 0x00));
+    room_->MarkSpritesDirty();
+    room_->MarkObjectStreamDirty();
+    const auto saved = editor_->Save();
+    ASSERT_TRUE(saved.ok()) << saved;
+    ASSERT_FALSE(room_->sprites_dirty());
+    ASSERT_FALSE(room_->object_stream_dirty());
+    ASSERT_EQ(UndoDepth(), 0u);
+  }
+
+  void TearDown() override {
+    core::FeatureFlags::get().dungeon = previous_flags_;
+    DungeonEntityUndoLifecycleTest::TearDown();
+  }
+
+  void ExpectPersistedEntities(const zelda3::Sprite& expected_sprite,
+                               const zelda3::Room::Door& expected_door) {
+    const auto path = yaze::test::UniqueTempPath("entity-undo", ".sfc");
+    absl::Cleanup remove_file = [&] {
+      std::error_code error;
+      std::filesystem::remove(path, error);
+    };
+    const auto saved = rom_.SaveToFile({.filename = path.string()});
+    ASSERT_TRUE(saved.ok()) << saved;
+    Rom reopened;
+    const auto loaded = reopened.LoadFromFile(path.string());
+    ASSERT_TRUE(loaded.ok()) << loaded;
+    EXPECT_EQ(reopened.vector(), rom_.vector());
+
+    zelda3::Room persisted(0, &reopened);
+    persisted.LoadObjects();
+    persisted.LoadSprites();
+    ASSERT_EQ(persisted.GetSprites().size(), 1u);
+    const auto& sprite = persisted.GetSprites()[0];
+    EXPECT_EQ(sprite.id(), expected_sprite.id());
+    EXPECT_EQ(sprite.x(), expected_sprite.x());
+    EXPECT_EQ(sprite.y(), expected_sprite.y());
+    EXPECT_EQ(sprite.subtype(), expected_sprite.subtype());
+    EXPECT_EQ(sprite.layer(), expected_sprite.layer());
+    EXPECT_EQ(sprite.key_drop(), expected_sprite.key_drop());
+    ASSERT_EQ(persisted.GetDoors().size(), 1u);
+    EXPECT_EQ(persisted.GetDoors()[0].EncodeBytes(),
+              expected_door.EncodeBytes());
+  }
+
+  decltype(core::FeatureFlags::get().dungeon) previous_flags_;
+};
+
+TEST_P(DungeonEntityUndoPersistenceTest,
+       SpritePropertiesSaveUndoSaveFreshReopenRestoresOriginal) {
+  const auto original_sprite = room_->GetSprites()[0];
+  const auto original_door = room_->GetDoors()[0];
+  const auto original_rom = rom_.vector();
+  ASSERT_NO_FATAL_FAILURE(
+      ExpectPersistedEntities(original_sprite, original_door));
+
+  coordinator().SelectEntity(EntityType::Sprite, 0);
+  ASSERT_TRUE(
+      coordinator().sprite_handler().UpdateSprite(0, 0x0A, 8, 9, 7, 1, 2));
+  ASSERT_EQ(UndoDepth(), 1u);
+  const auto changed_sprite = room_->GetSprites()[0];
+  const auto saved = editor_->Save();
+  ASSERT_TRUE(saved.ok()) << saved;
+  EXPECT_FALSE(room_->sprites_dirty());
+  EXPECT_FALSE(room_->object_stream_dirty());
+  EXPECT_NE(rom_.vector(), original_rom);
+  ASSERT_NO_FATAL_FAILURE(
+      ExpectPersistedEntities(changed_sprite, original_door));
+
+  ASSERT_TRUE(editor_->Undo().ok());
+  EXPECT_TRUE(room_->sprites_dirty());
+  EXPECT_FALSE(room_->object_stream_dirty());
+  const auto restored = editor_->Save();
+  ASSERT_TRUE(restored.ok()) << restored;
+  EXPECT_FALSE(room_->sprites_dirty());
+  EXPECT_EQ(rom_.vector(), original_rom);
+  ASSERT_NO_FATAL_FAILURE(
+      ExpectPersistedEntities(original_sprite, original_door));
+}
+
+TEST_P(DungeonEntityUndoPersistenceTest,
+       DoorPropertiesSaveUndoSaveFreshReopenRestoresOriginal) {
+  const auto original_sprite = room_->GetSprites()[0];
+  const auto original_door = room_->GetDoors()[0];
+  const auto original_rom = rom_.vector();
+  ASSERT_NO_FATAL_FAILURE(
+      ExpectPersistedEntities(original_sprite, original_door));
+
+  coordinator().SelectEntity(EntityType::Door, 0);
+  ASSERT_TRUE(coordinator().door_handler().UpdateDoor(
+      0, zelda3::DoorType::SmallKeyDoor, zelda3::DoorDirection::South, 1));
+  ASSERT_EQ(UndoDepth(), 1u);
+  const auto changed_door = room_->GetDoors()[0];
+  const auto saved = editor_->Save();
+  ASSERT_TRUE(saved.ok()) << saved;
+  EXPECT_FALSE(room_->object_stream_dirty());
+  EXPECT_FALSE(room_->sprites_dirty());
+  EXPECT_NE(rom_.vector(), original_rom);
+  ASSERT_NO_FATAL_FAILURE(
+      ExpectPersistedEntities(original_sprite, changed_door));
+
+  ASSERT_TRUE(editor_->Undo().ok());
+  EXPECT_TRUE(room_->object_stream_dirty());
+  EXPECT_FALSE(room_->sprites_dirty());
+  const auto restored = editor_->Save();
+  ASSERT_TRUE(restored.ok()) << restored;
+  EXPECT_FALSE(room_->object_stream_dirty());
+  EXPECT_EQ(rom_.vector(), original_rom);
+  ASSERT_NO_FATAL_FAILURE(
+      ExpectPersistedEntities(original_sprite, original_door));
+}
+
 TEST_P(DungeonEntityUndoLifecycleTest, DoorAndItemEditsRestoreOnlyTheirDomain) {
   const auto original = zelda3::Room::Door::FromRomBytes(0x04, 0x00);
   room_->GetDoors().push_back(original);
@@ -902,6 +1028,11 @@ INSTANTIATE_TEST_SUITE_P(ViewerModes, DungeonWaterFillPanelTest,
                          });
 
 INSTANTIATE_TEST_SUITE_P(ViewerModes, DungeonEntityUndoLifecycleTest,
+                         ::testing::Bool(), [](const auto& param) {
+                           return param.param ? "Workbench" : "Standalone";
+                         });
+
+INSTANTIATE_TEST_SUITE_P(ViewerModes, DungeonEntityUndoPersistenceTest,
                          ::testing::Bool(), [](const auto& param) {
                            return param.param ? "Workbench" : "Standalone";
                          });
