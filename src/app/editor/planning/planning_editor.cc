@@ -147,12 +147,13 @@ constexpr const char* kRemoveConfirmPopupId = "Remove entry##confirm";
 absl::Status ValidateStepIdEdit(const core::ProjectPlan& plan,
                                 std::string_view current_id,
                                 std::string_view proposed_id) {
-  if (absl::StripAsciiWhitespace(proposed_id).empty()) {
+  const std::string proposed(proposed_id);
+  if (absl::StripAsciiWhitespace(proposed).empty()) {
     return absl::InvalidArgumentError("Step Id cannot be empty");
   }
   if (proposed_id != current_id && plan.FindStep(proposed_id) >= 0) {
     return absl::AlreadyExistsError(
-        absl::StrFormat("Another step already uses Id \"%s\"", proposed_id));
+        absl::StrFormat("Another step already uses Id \"%s\"", proposed));
   }
   return absl::OkStatus();
 }
