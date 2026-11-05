@@ -87,6 +87,25 @@ z3ed help dungeon
 z3ed help dungeon-list-sprites
 ```
 
+### Paired Dungeon Chest Placement
+
+Stateful small (`0xF99`) and big (`0xFB1`) chests require an explicit
+`--chest-item` receipt. The command plans the object and its contents together,
+checks room-state slots and global chest-table capacity, and saves both through
+the normal transaction and backup path. Other objects reject this option.
+
+```bash
+# Preview a Map chest on a private Oracle ROM copy.
+z3ed dungeon-place-object --rom=/tmp/oos-work.sfc --room=0xCB \
+  --id=0xF99 --x=20 --y=52 --layer=0 --chest-item=0x33 \
+  --manifest=hack_manifest.json --format=json
+```
+
+Dry-run leaves the ROM unchanged. Add `--write` to apply the same preflighted
+operation. A manifest with object copy-on-write allocation is needed when the
+existing room stream has no space to grow. The result reports `chest_item` and
+the chest's zero-based `chest_index` in encoded object-list order.
+
 ### Safe Dungeon Palette Color Edits
 
 Dungeon palettes are global, shared resources: a room header stores a full
