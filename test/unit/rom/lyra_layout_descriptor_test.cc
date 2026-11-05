@@ -327,8 +327,12 @@ TEST_F(LyraA0EditorTest, EditorMutationUndoSaveAsAndFreshReopenPreserveRom) {
   const auto target = test::UniqueTempPath("lyra_a0_editor_saved", ".sfc");
   WriteBytes(source, original);
   const auto cleanup = absl::MakeCleanup([&] {
-    std::filesystem::remove(source);
-    std::filesystem::remove(target);
+    std::error_code error;
+    std::filesystem::remove(source, error);
+    EXPECT_FALSE(error) << source.string() << ": " << error.message();
+    error.clear();
+    std::filesystem::remove(target, error);
+    EXPECT_FALSE(error) << target.string() << ": " << error.message();
   });
   auto manager = std::make_unique<editor::EditorManager>();
   test::InitializeWithIsolatedSettings(*manager, renderer_.get());
