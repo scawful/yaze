@@ -61,6 +61,7 @@ class MessageEditor : public Editor {
 
   void DrawMessageList();
   void DrawCurrentMessage();
+  void DrawPreviewPanel();
   void DrawFontAtlas();
   void DrawTextCommands();
   void DrawSpecialCharacters();

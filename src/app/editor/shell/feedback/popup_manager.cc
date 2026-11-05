@@ -1317,35 +1317,28 @@ void PopupManager::DrawLayoutPresetsPopup() {
     const char* name;
     const char* icon;
     const char* description;
-    std::function<PanelLayoutPreset()> getter;
   };
 
   PresetInfo presets[] = {
       {"Minimal", ICON_MD_CROP_FREE,
-       "Essential cards only - maximum editing space",
-       []() { return LayoutPresets::GetMinimalPreset(); }},
+       "Essential cards only - maximum editing space"},
       {"Developer", ICON_MD_BUG_REPORT,
-       "Debug and development focused - CPU/Memory/Breakpoints",
-       []() { return LayoutPresets::GetDeveloperPreset(); }},
+       "Debug and development focused - CPU/Memory/Breakpoints"},
       {"Designer", ICON_MD_PALETTE,
-       "Visual and artistic focused - Graphics/Palettes/Sprites",
-       []() { return LayoutPresets::GetDesignerPreset(); }},
+       "Visual and artistic focused - Graphics/Palettes/Sprites"},
+      {"Writer", ICON_MD_CHAT,
+       "Write dialogue with the list, editor, preview, and dictionary"},
       {"Modder", ICON_MD_BUILD,
-       "Full-featured - All tools available for comprehensive editing",
-       []() { return LayoutPresets::GetModderPreset(); }},
+       "Full-featured - All tools available for comprehensive editing"},
       {"Overworld Expert", ICON_MD_MAP,
-       "Complete overworld editing toolkit with all map tools",
-       []() { return LayoutPresets::GetOverworldArtistPreset(); }},
+       "Complete overworld editing toolkit with all map tools"},
       {"Dungeon Expert", ICON_MD_DOOR_SLIDING,
-       "Complete dungeon editing toolkit with room tools",
-       []() { return LayoutPresets::GetDungeonMasterPreset(); }},
-      {"Testing", ICON_MD_SCIENCE, "Quality assurance and ROM testing layout",
-       []() { return LayoutPresets::GetLogicDebuggerPreset(); }},
-      {"Audio", ICON_MD_MUSIC_NOTE, "Music and sound editing layout",
-       []() { return LayoutPresets::GetAudioEngineerPreset(); }},
+       "Complete dungeon editing toolkit with room tools"},
+      {"Testing", ICON_MD_SCIENCE, "Quality assurance and ROM testing layout"},
+      {"Audio", ICON_MD_MUSIC_NOTE, "Music and sound editing layout"},
   };
 
-  constexpr int kPresetCount = 8;
+  constexpr int kPresetCount = IM_ARRAYSIZE(presets);
 
   // Draw preset buttons in a grid
   float button_width = 200.0f;
@@ -1361,15 +1354,7 @@ void PopupManager::DrawLayoutPresetsPopup() {
       if (Button(absl::StrFormat("%s %s", presets[i].icon, presets[i].name)
                      .c_str(),
                  ImVec2(button_width, button_height))) {
-        // Apply the preset
-        auto preset = presets[i].getter();
-        auto& window_manager = editor_manager_->window_manager();
-        // Hide all panels first
-        window_manager.HideAll();
-        // Show preset panels
-        for (const auto& panel_id : preset.default_visible_panels) {
-          window_manager.OpenWindow(panel_id);
-        }
+        editor_manager_->ApplyLayoutPreset(presets[i].name);
         Hide(PopupID::kLayoutPresets);
       }
     }
