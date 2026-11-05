@@ -140,7 +140,22 @@ std::string JsonString(const core::PlanJson& obj, const char* key,
                                             : std::string(fallback);
 }
 
+constexpr const char* kRemoveConfirmPopupId = "Remove entry##confirm";
+
 }  // namespace
+
+absl::Status ValidateStepIdEdit(const core::ProjectPlan& plan,
+                                std::string_view current_id,
+                                std::string_view proposed_id) {
+  if (absl::StripAsciiWhitespace(proposed_id).empty()) {
+    return absl::InvalidArgumentError("Step Id cannot be empty");
+  }
+  if (proposed_id != current_id && plan.FindStep(proposed_id) >= 0) {
+    return absl::AlreadyExistsError(
+        absl::StrFormat("Another step already uses Id \"%s\"", proposed_id));
+  }
+  return absl::OkStatus();
+}
 
 void PlanningEditor::Initialize() {
   if (panels_registered_ || !dependencies_.window_manager) {
@@ -231,6 +246,8 @@ absl::Status PlanningEditor::Reload(bool discard_changes) {
   loaded_source_ = std::move(source);
   load_error_.clear();
   save_error_.clear();
+  step_id_edit_for_.clear();
+  step_id_error_.clear();
   dirty_ = false;
   if (selected_step_ >= static_cast<int>(plan_->route_steps.size())) {
     selected_step_ = -1;
@@ -248,6 +265,8 @@ void PlanningEditor::DiscardProjectDraftChanges() {
   project_path_.clear();
   loaded_source_.clear();
   save_error_.clear();
+  step_id_edit_for_.clear();
+  step_id_error_.clear();
   (void)SyncWithProject();
 }
 
@@ -649,6 +668,79 @@ void PlanningEditor::DrawStepList() {
   ImGui::TextDisabled("Drag steps to reorder");
 }
 
+void PlanningEditor::CommitStepIdEdit(std::string step_id) {
+  if (!plan_.has_value() || plan_->FindStep(step_id) < 0) {
+    return;
+  }
+  const std::string proposed(absl::StripAsciiWhitespace(step_id_edit_));
+  absl::Status status = ValidateStepIdEdit(*plan_, step_id, proposed);
+  std::string current = step_id;
+  if (status.ok() && proposed != step_id) {
+    status = plan_->RenameStep(step_id, proposed);
+    if (status.ok()) {
+      current = proposed;
+      MarkDirty();
+    }
+  }
+  // A rejected Id leaves the old Id in place and shows the reason inline.
+  step_id_edit_ = current;
+  step_id_edit_for_ = current;
+  step_id_error_ = status.ok() ? "" : std::string(status.message());
+}
+
+void PlanningEditor::RequestRemoval(RemovalKind kind, const std::string& id,
+                                    std::string label) {
+  pending_removal_ = kind;
+  pending_removal_id_ = id;
+  pending_removal_label_ = std::move(label);
+}
+
+void PlanningEditor::CancelPendingRemoval() {
+  pending_removal_ = RemovalKind::kNone;
+  pending_removal_id_.clear();
+  pending_removal_label_.clear();
+}
+
+bool PlanningEditor::ConfirmPendingRemoval() {
+  bool removed = false;
+  if (plan_.has_value() && pending_removal_ == RemovalKind::kStep) {
+    const int index = plan_->FindStep(pending_removal_id_);
+    if (index >= 0) {
+      auto& steps = plan_->route_steps;
+      steps.erase(steps.begin() + index);
+      selected_step_ =
+          std::min<int>(selected_step_, static_cast<int>(steps.size()) - 1);
+      removed = true;
+    }
+  } else if (plan_.has_value() && pending_removal_ == RemovalKind::kItem) {
+    auto& items = plan_->route_items;
+    const auto it = std::find_if(
+        items.begin(), items.end(),
+        [&](const auto& item) { return item.id == pending_removal_id_; });
+    if (it != items.end()) {
+      items.erase(it);
+      selected_item_ = -1;
+      removed = true;
+    }
+  }
+  if (removed) {
+    MarkDirty();
+  }
+  CancelPendingRemoval();
+  return removed;
+}
+
+void PlanningEditor::DrawRemovalConfirm() {
+  const std::string message = absl::StrFormat(
+      "Remove %s? Planning edits have no undo; reloading the saved plan is "
+      "the only way back.",
+      pending_removal_label_);
+  if (gui::ConfirmationDialog(kRemoveConfirmPopupId, "Remove from plan?",
+                              message.c_str(), "Remove", "Cancel")) {
+    ConfirmPendingRemoval();
+  }
+}
+
 void PlanningEditor::DrawStepDetail() {
   auto& steps = plan_->route_steps;
   if (selected_step_ < 0 || selected_step_ >= static_cast<int>(steps.size())) {
@@ -657,15 +749,27 @@ void PlanningEditor::DrawStepDetail() {
   }
   auto& step = steps[selected_step_];
   ImGui::PushID("step_detail");
-  std::string edited_id = step.id;
-  if (ImGui::InputText("Id", &edited_id)) {
-    const auto status = plan_->RenameStep(step.id, std::move(edited_id));
-    if (status.ok()) {
-      save_error_.clear();
-      MarkDirty();
-    } else {
-      save_error_ = std::string(status.message());
+  if (step_id_edit_for_ != step.id) {
+    // A different step is selected. Commit an edit still pending on the old
+    // one (focus left the field by selecting another step), then reseed.
+    if (!step_id_edit_for_.empty() && step_id_edit_ != step_id_edit_for_) {
+      CommitStepIdEdit(step_id_edit_for_);
     }
+    if (step_id_edit_for_ != step.id) {
+      step_id_edit_ = step.id;
+      step_id_edit_for_ = step.id;
+      step_id_error_.clear();
+    }
+  }
+  ImGui::InputText("Id", &step_id_edit_);
+  if (ImGui::IsItemActivated()) {
+    step_id_error_.clear();
+  }
+  if (ImGui::IsItemDeactivatedAfterEdit()) {
+    CommitStepIdEdit(step.id);
+  }
+  if (!step_id_error_.empty()) {
+    gui::ColoredText(step_id_error_.c_str(), gui::GetErrorColor());
   }
   if (ImGui::InputText("Code", &step.code)) {
     MarkDirty();
@@ -692,11 +796,12 @@ void PlanningEditor::DrawStepDetail() {
   }
   DrawAgentObservation("step:" + step.id);
   if (ImGui::SmallButton(ICON_MD_DELETE " Remove step")) {
-    steps.erase(steps.begin() + selected_step_);
-    selected_step_ =
-        std::min<int>(selected_step_, static_cast<int>(steps.size()) - 1);
-    MarkDirty();
+    RequestRemoval(
+        RemovalKind::kStep, step.id,
+        absl::StrFormat("step \"%s\" (Id %s)", StepLabel(step), step.id));
+    ImGui::OpenPopup(kRemoveConfirmPopupId);
   }
+  DrawRemovalConfirm();
   ImGui::PopID();
 }
 
@@ -807,10 +912,11 @@ void PlanningEditor::DrawItems() {
                       need.what.c_str());
   }
   if (ImGui::SmallButton(ICON_MD_DELETE " Remove item")) {
-    items.erase(items.begin() + selected_item_);
-    selected_item_ = -1;
-    MarkDirty();
+    RequestRemoval(RemovalKind::kItem, item.id,
+                   absl::StrFormat("item \"%s\" (Id %s)", item.name, item.id));
+    ImGui::OpenPopup(kRemoveConfirmPopupId);
   }
+  DrawRemovalConfirm();
   ImGui::PopID();
 }
 

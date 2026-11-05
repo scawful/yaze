@@ -15,6 +15,8 @@ table lists what is left. Structure rules stay in
 
 `Checked` means the cited lines were re-read at the base commit. `Audit` means
 the finding comes from the audit pass and needs a re-read before a fix.
+Rows checked on 2026-11-01 were re-read at `f29d77fd4`, whose copies of those
+files match the base.
 
 ## Fixed in this pass
 
@@ -55,15 +57,31 @@ the finding comes from the audit pass and needs a re-read before a fix.
 - Windows (medical-mechanica, `scripts/remote/mm-test.sh`): the focused run on
   `88e418cbb` passed 126 tests; the run on `f3c7851b8` passed 129 with 0
   failures, the three flow tests included (ci-windows RelWithDebInfo).
-- Not run: clang-format 22.1.5 (the CI pin) on `826553df7`, `88e418cbb`, and
-  `f3c7851b8`; local checks used 23.1.4. Codex's 22.1.5 check covered
-  `319a2643a`.
+- clang-format 22.1.5 (the CI pin): Codex's check passed all 16 changed
+  C/C++ files at `523be87d4`, after an earlier pass on `319a2643a`. Files
+  changed by the P1 repair below have only the local 23.1.4 check.
 - Known failures that predate this pass, in `yaze_test_focus_graphics_art`:
   `InitializedOverworldPreservesUneditedBytesDuringDungeonSave` and
   `RailPaletteStampUndoSaveAsReopens` (`f7f857887`),
   `FailedRevertKeepsDungeonObjectAndUndo` (`3ccd53a5a`).
-- Release baseline (master or `codex/release-080-hardening-20261031`) is not
-  chosen.
+- Release baseline: scawful chose C on 2026-11-01. The five commits go into
+  #338 (`codex/release-080-hardening-20261031`) through the local branch
+  `claude/release-080-ux-candidate-20261101` at `523be87d4` (merge
+  `e38aa7f5e` plus a CHANGELOG commit). It is not pushed. It waits on the end
+  of scawful's training hold and on the Codex-Oracle-Coordinator's OK. The
+  merged tree has not been built or tested.
+- Codex review of `523be87d4`, P1: the load options dialog is a normal
+  window, so the user could switch session tabs while it was open, and Apply
+  then wrote session A's options into session B and remembered them for B's
+  file. Repair: the dialog binds the stable session ID and ROM file name when
+  it opens (interactive open and review). A non-transient switch, a close, a
+  reload, or a rename of that ROM closes it without changes and says why in
+  a toast; `DrawInterface()` and the confirm callback both refuse a stale
+  owner. Per-frame transient session visits leave it open. The dialog no
+  longer writes feature flags itself. Regressions:
+  `EditorManagerProjectActionsTest.LoadOptions{ReviewClosesWhenAnotherRawSessionBecomesActive,ReviewClosesWhenAProjectSessionBecomesActive,ReviewClosesWhenItsRomCloses,ReviewSurvivesFramesAndAppliesToItsSession,AfterOpenClosesWhenAnOlderSessionBecomesActive,ReviewClosesWhenRomIsRenamed}`.
+  Not built and not run: written under the training hold. The reload path
+  (`ReplaceActiveSessionRom`) has no test.
 
 ## Remaining findings
 
@@ -72,19 +90,20 @@ the finding comes from the audit pass and needs a re-read before a fix.
 | Dungeon | Shortcut help lists `G` (grid) and `L` (layers); neither key is bound | `menu/right_drawer_manager.cc:1875-1876` | 10 | Codex shell | Checked |
 | Dungeon | `P` place tool registered without a handler; `D` deletes with no confirm or undo | dungeon shortcuts | 5, 9 | Codex sequence | Audit |
 | Screen | Draw/Edit buttons in the dungeon-map toolbar set a mode that only the title-screen and overworld-map canvases read | `graphics/screen_editor.cc:962-968` | 4 | open | Checked |
-| Screen | Dungeon-map Save is always disabled (has a reason tooltip); Copy/Paste Floor do nothing | `graphics/screen_editor.cc:970-977` | 4 | open | Checked (Save), Audit (floor) |
+| Screen | Dungeon-map Save is always disabled (has a reason tooltip); Copy/Paste Floor set flags nothing reads | `graphics/screen_editor.cc:970-977`, `:734-739` | 4 | open | Checked |
 | Palette | Reset All Palettes discards every change with no confirm; Apply has no outcome toast | `palette/palette_group_panel.cc:652-655` | 5, 6 | open | Checked |
-| Message | Sync status computes an error/success color and never uses it | `message/message_editor.cc:1191-1193` | 1, 6 | open | Checked |
-| Message | Editing tools sit inside the Font Atlas window | `message/message_editor.cc` | — | open | Audit |
-| Music | Note keys fire without checking modifiers | `music/tracker_view.cc:618` | 9 | open | Checked |
-| Music | Popups re-seed every frame and cannot commit; Space, Esc, `=`, `-` run twice | `music/` | 9, 11 | open | Audit |
-| Sprite | Editor shortcuts are not focus-gated | `sprite/` | 9 | open | Audit |
-| Graphics | Pending-save strip omits the sheet-save state; tooltip always on; no wheel zoom; no list clipper; file dialog results unchecked | `graphics/` | 6, 12 | open | Audit |
-| Emulator | Ctrl+R, Ctrl+Tab, F1 collide with global bindings; two breakpoint lists; "Coming Soon" controls | `emu/` | 4, 10 | open | Audit |
-| Assembly | Ctrl+B collides with the activity-bar toggle; no dirty tracking; Find does nothing; `.IgnoreError()` on user actions | `code/` | 6, 7, 10 | open | Audit |
-| Hex | Search not implemented; toolbar drawn before `Begin`; a cancelled Compare loads an empty path | hex editor | 4, 6 | open | Audit |
+| Message | Sync status computes an error/success color and never uses it | `message/message_editor.cc:1191-1193` | 1, 6 | Codex Y15 | Checked |
+| Message | Editing tools sit inside the Font Atlas window | `message/message_editor.cc` | — | Codex Y15 | Audit |
+| Music | Note keys fire with Ctrl, Alt, or Super held, so Ctrl+Z also enters a note | `music/tracker_view.cc:617-619` | 9 | codex-music-workstation: guarded on unmerged `codex/music-workstation-20261026` | Checked |
+| Music | The note popup re-seeds pitch and duration every frame, so Apply writes the old values; Space, Esc, `=`, `-` each have two handlers (Space three) | `music/tracker_view.cc:399-400`, `:711`; `music/music_editor.cc:882-892`; `system/commands/shortcut_configurator.cc:104-110` | 9, 11 | codex-music-workstation: both reworked on its branch; recheck after merge | Checked |
+| Music | Export/Import ASM menu items do nothing: no caller sets their callbacks | `music/song_browser_view.cc:277-288` | 4 | codex-music-workstation: still unset on its branch | Checked |
+| Sprite | `[`, `]`, Ctrl+Up/Down run every frame with no focus or text-input check, so typing `[` or `]` in the routine ASM box changes the frame; `]` has no upper bound | `sprite/sprite_editor.cc:132`, `:143-172`, `:1526` | 9 | open | Checked |
+| Graphics | Pixel tooltip always on with no toggle; no wheel zoom (canvas wheel zoom is touch-only); sheet browser draws up to 223 thumbnails a frame with no clipper; CGX/SCR/COL/BIN dialogs do not check for an empty path | `graphics/pixel_editor_panel.cc:553-554`; `gui/canvas/canvas.cc:770`; `graphics/sheet_browser_panel.cc:770-771`; `graphics/graphics_editor.cc:759,794,837,927` | 6, 12 | open | Checked |
+| Emulator | Tooltip promises Ctrl+R reset but nothing handles it (global Ctrl+R loads the last ROM); F1/Tab handlers sit in an uncalled function; the Breakpoints panel lists a set the CPU never checks and has no Add; "Save States - Coming Soon" | `emu/ui/emulator_ui.cc:112,708,728,737`; `emu/ui/debugger_ui.cc:246,281`; `emu/emulator.cc:1107,1319` | 4, 10 | open | Checked |
+| Assembly | Ctrl+B shown for Validate, but the global activity-bar toggle owns it; edits are not unsaved work (tabs close without a prompt; Ctrl+S saves the session, not the file); Find is a TODO; 10 `.IgnoreError()` calls on user actions | `code/assembly_editor.cc:1921,1973-1974,2133,2159-2160`; `editor_manager.cc:5530` | 6, 7, 10 | open | Checked |
+| Hex | Search popup shows "not implemented" and a disabled button; toolbar drawn before `Begin`; a cancelled Compare loads an empty path | `code/memory_editor.cc:81,170,191-192`, `:20-23` | 4, 6 | open | Checked (Search, toolbar); Audit (Compare) |
 | Agent | LLM call blocks the UI thread; Clear has no confirm; 46 color literals | `agent/` | 1, 5 | in-flight WIP (z3cli) | Audit |
-| Planning | Removals have no confirm; the ID field renames on every keystroke | `planning/` | 5, 11 | open | Audit |
+| Planning | Remove step/item act on one click with no confirm or undo; the Id field renames on every keystroke | `planning/planning_editor.cc:694-695,809-810`, `:661-662` | 5, 11 | open | Checked |
 | Settings | Search covers only the active tab; sliders call `Save()` every tick; API keys stored in plain text | `shell/windows/settings_panel.cc` | 6 | Codex shell | Audit |
 | Overworld | Keys not hover-gated, disabled controls without reasons, raw errors in the Tile16 editor, about 53 color literals | `overworld/` | 1, 4, 6, 9 | needs green light | Audit |
 | Overworld (Tile16) | Copy and paste take one tile at a time; no range select, move/swap, or reorder | `overworld/tile16/*`, `overworld/tile16_editor.*`, `overworld/ui/tiles/tile16_*_view.*` | — | bounded green light for one workflow, after the live owner agrees on files | Checked |
@@ -111,8 +130,25 @@ Dungeon maps lose data on any save. The repack writes each floor word as
 which zeroes the high byte; the loader reads only the low byte
 (`dungeon_map.cc:44`, `:47`). In `roms/alttp_vanilla.sfc` the high byte is 02
 for dungeons 7 and 9 and 01 for dungeons 10, 12, and 13, so a save zeroes
-0x575E8, 0x575EC, 0x575EE, 0x575F2, and 0x575F4. What the high byte means is
-not traced. `ScreenEditorSaveTest.RoundTrip_NoModification` compares decoded
+0x575E8, 0x575EC, 0x575EE, 0x575F2, and 0x575F4.
+
+The high byte holds pause-map backdrop flags (traced in usdasm `d53311a`,
+`bank_0A.asm:4351-4493` and `:7504-7518`). The table is
+`DungeonMapFloorCountData` ($0A:F5D9).
+`Module0E_03_01_02_DrawFloorsBackdrop` ($0A:E1F3) reads each entry as a word:
+
+- Bit 0 (`AND #$0100` at $0A:E207) draws mountain stripes behind the floors
+  (`DungeonMap_MountainStripes`). Vanilla sets it for Tower of Hera, Turtle
+  Rock, and Ganon's Tower (dungeons 10, 12, 13).
+- Bit 1 (`AND #$0200` at $0A:E29B) adds $0400 to each floor-gradient tile,
+  which moves the tile to the next palette. The disassembly names the branch
+  `.not_ocean`. Vanilla sets it for Misery Mire and Ice Palace (dungeons 7, 9).
+
+A yaze save therefore removes those backdrops from the pause-menu map.
+ZScream writes the same word (`ZeldaFullEditor/Gui/MainTabs/ScreenEditor.cs:2313-2315`,
+`ROM.WriteShort`), so a ZScream save loses them too. Not run in an emulator.
+
+`ScreenEditorSaveTest.RoundTrip_NoModification` compares decoded
 rooms for three dungeons, not bytes, so it cannot see the loss. ZScream's
 boss floors differ from yaze's in 9 dungeons (scratch Python model of the
 repack, not a yaze test).
@@ -129,8 +165,10 @@ Needed before a default change:
    byte compare of the room, sprite, and palette tables.
 2. Graphics sheets: open the saved copy in ZScream, or add a sheet comparison
    to ZScreamCLI.
-3. Dungeon maps: keep the floor-word high byte (or show it is unused). Then a
-   byte-level Save/reopen test and a ZScream open of the saved copy.
+3. Dungeon maps: load the high byte into `DungeonMap` and write it back. Then
+   a byte-level Save/reopen test that checks 0x575E8-0x575F4, and a ZScream
+   open of the saved copy. Whether the Screen editor shows the two flags as a
+   backdrop control is scawful's call.
 4. All palettes and change queue: remove or merge; the owner decides.
 
 ## Cross-cutting

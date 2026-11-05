@@ -304,6 +304,10 @@ class PaletteGroupPanel : public WindowContent {
   bool show_hex_format_ = true;   // Show #xxxxxx hex in info
 
   ToastManager* toast_manager_ = nullptr;
+
+  // Set by toolbar Discard or the batch popup; DrawContent opens the confirm.
+  bool reset_all_requested_ = false;
+  static constexpr const char* kResetAllPopupId = "Reset all palettes##confirm";
 };
 
 // ============================================================================
