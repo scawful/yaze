@@ -2532,13 +2532,17 @@ absl::Status YazeProject::SaveToYazeFormat(
         descriptor_error)
       return absl::FailedPreconditionError(
           "Project descriptor is missing, unreadable or oversized");
-    std::ifstream input(filepath, std::ios::binary);
-    if (!input)
-      return absl::FailedPreconditionError(
-          "Project descriptor is missing or unreadable");
-    std::string before{std::istreambuf_iterator<char>(input), {}};
-    if (input.bad())
-      return absl::DataLossError("Cannot read project descriptor");
+    std::string before;
+    {
+      std::ifstream input(filepath, std::ios::binary);
+      if (!input)
+        return absl::FailedPreconditionError(
+            "Project descriptor is missing or unreadable");
+      before.assign(std::istreambuf_iterator<char>(input),
+                    std::istreambuf_iterator<char>());
+      if (input.bad())
+        return absl::DataLossError("Cannot read project descriptor");
+    }
     if (expected_descriptor && before != *expected_descriptor)
       return absl::FailedPreconditionError(
           "Project descriptor changed on disk; source draft retained");

@@ -655,7 +655,9 @@ class AuthoringSaveWorkflowTest : public ::testing::Test {
     ReplaceAssignment(&text, "output_folder", ".");
     ReplaceAssignment(&text, "build_target", "patched-output.sfc");
     ReplaceAssignment(&text, "rom_backup_folder", "Backups");
-    ReplaceAssignment(&text, "cutscene_shots", "");
+    if (text.find("cutscene_shots=") != std::string::npos) {
+      ReplaceAssignment(&text, "cutscene_shots", "");
+    }
     if (text.find("dungeon_tile_patterns=") != std::string::npos) {
       ReplaceAssignment(&text, "dungeon_tile_patterns", "");
     }
@@ -7467,6 +7469,7 @@ TEST_F(AuthoringSaveWorkflowTest,
   }
   manager_.reset();
   Open(fixture);
+  ASSERT_TRUE(manager_->GetCurrentProject()->hack_manifest.loaded());
   ASSERT_OK(manager_->EnsureEditorAssetsLoaded(EditorType::kGraphics));
   graphics = manager_->GetCurrentEditorSet()->GetGraphicsEditor();
   auto& second_state = AuthoringSaveWorkflowTestPeer::GraphicsState(*graphics);

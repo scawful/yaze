@@ -858,6 +858,107 @@ TEST(HackManifestTest, GraphicsReservationsFollowUsableCountAndExcludeDefault) {
   ExpectManifestLoadFailure(document.dump(), "reserved_sheets[0]");
 }
 
+TEST(HackManifestTest, SourceReservationsKeepLegacyNativeLayoutUnchanged) {
+  auto document = Json::parse(R"json({
+    "manifest_version": 3,
+    "graphics_sheet_regions": {"reserved_sheets": ["0xD7", "0xDF", "0xFE"]},
+    "source_sprite_sheets": {
+      "schema_version": 1,
+      "spec": "Data/graphics/source_sprite_sheets.json",
+      "global_sheet_ids": ["0xD7", "0xDF", "0xFE"]
+    }
+  })json");
+  HackManifest manifest;
+  auto status = manifest.LoadFromString(document.dump());
+  ASSERT_TRUE(status.ok()) << status;
+  EXPECT_FALSE(manifest.graphics_sheet_layout().pointer_layout);
+  EXPECT_EQ(manifest.graphics_sheet_layout().reserved_sheets,
+            (std::vector<uint16_t>{0xD7, 0xDF, 0xFE}));
+
+  for (const auto& path :
+       {"source/Data/graphics/source_sprite_sheets.json",
+        "/private/source/Data/graphics/source_sprite_sheets.json",
+        "C:\\private\\source\\Data\\graphics\\source_sprite_sheets.json"}) {
+    document["source_sprite_sheets"]["spec"] = path;
+    status = manifest.LoadFromString(document.dump());
+    ASSERT_TRUE(status.ok()) << status;
+    EXPECT_FALSE(manifest.graphics_sheet_layout().pointer_layout);
+  }
+
+  auto legacy = ManifestWithExpandedGraphicsPointers()["graphics_sheet_regions"]
+                                                      ["pointer_layout"];
+  legacy["bank_pc"] = "0x004F80";
+  legacy["high_pc"] = "0x00505F";
+  legacy["low_pc"] = "0x00513E";
+  legacy["physical_table_rows"] = 223;
+  legacy["usable_sheet_count"] = 223;
+  document["graphics_sheet_regions"]["pointer_layout"] = legacy;
+  status = manifest.LoadFromString(document.dump());
+  ASSERT_TRUE(status.ok()) << status;
+  ASSERT_TRUE(manifest.graphics_sheet_layout().pointer_layout);
+  EXPECT_EQ(
+      manifest.graphics_sheet_layout().pointer_layout->physical_table_rows,
+      223);
+  EXPECT_EQ(manifest.graphics_sheet_layout().pointer_layout->usable_sheet_count,
+            223);
+  EXPECT_EQ(manifest.graphics_sheet_layout().pointer_layout->default_sheet_id,
+            255);
+}
+
+TEST(HackManifestTest,
+     SourceReservationsRejectUnclaimedMalformedAndSentinelIds) {
+  const auto original = Json::parse(R"json({
+    "manifest_version": 3,
+    "graphics_sheet_regions": {"reserved_sheets": ["0xDF"]},
+    "source_sprite_sheets": {
+      "schema_version": 1,
+      "spec": "Data/graphics/source_sprite_sheets.json",
+      "global_sheet_ids": ["0xDF"]
+    }
+  })json");
+  auto document = original;
+  document.erase("source_sprite_sheets");
+  ExpectManifestLoadFailure(document.dump(), "reserved_sheets[0]");
+  for (const auto& value : std::vector<Json>{0, 2, 1.0, true, "1", nullptr,
+                                             Json(uint64_t{4294967297ULL})}) {
+    SCOPED_TRACE(value.dump());
+    document = original;
+    document["source_sprite_sheets"]["schema_version"] = value;
+    ExpectManifestLoadFailure(document.dump(), "source_sprite_sheets");
+  }
+  for (const char* key : {"schema_version", "spec", "global_sheet_ids"}) {
+    document = original;
+    document["source_sprite_sheets"].erase(key);
+    ExpectManifestLoadFailure(document.dump(), "source_sprite_sheets");
+  }
+  for (const auto& value :
+       std::vector<Json>{"", std::string("bad\0path", 8), 1, nullptr}) {
+    document = original;
+    document["source_sprite_sheets"]["spec"] = value;
+    ExpectManifestLoadFailure(document.dump(), "source_sprite_sheets");
+  }
+  for (const auto& value : std::vector<Json>{
+           Json::object(), nullptr, "0xDF", 223, Json::array({"0xDF", "0xDF"}),
+           Json::array({"0xFF"}), Json::array({"0x100"}),
+           Json::array({"0xDFjunk"}), Json::array({223}), Json::array({223.0}),
+           Json::array({true}), Json::array({-1}),
+           Json::array({Json(uint64_t{4294967519ULL})})}) {
+    SCOPED_TRACE(value.dump());
+    document = original;
+    document["source_sprite_sheets"]["global_sheet_ids"] = value;
+    ExpectManifestLoadFailure(document.dump(), "source_sprite_sheets");
+  }
+  document = original;
+  document["graphics_sheet_regions"]["reserved_sheets"] = {"0xFE"};
+  ExpectManifestLoadFailure(document.dump(), "reserved_sheets[0]");
+  for (const char* id : {"0xFF", "0x100"}) {
+    document = original;
+    document["graphics_sheet_regions"]["reserved_sheets"] = {id};
+    document["source_sprite_sheets"]["global_sheet_ids"] = {id};
+    ExpectManifestLoadFailure(document.dump(), "reserved_sheets[0]");
+  }
+}
+
 TEST(HackManifestTest, GraphicsPointerDeclarationDoesNotGrantWritePermission) {
   auto document = ManifestWithExpandedGraphicsPointers();
   document["protected_regions"] = Json::parse(R"json({"regions":[{

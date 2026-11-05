@@ -832,6 +832,44 @@ absl::StatusOr<GraphicsSheetPointerLayout> ParseGraphicsSheetPointerLayout(
   return layout;
 }
 
+// These IDs protect logical source sheets against ROM writes. They do not
+// declare native pointer rows or authorize a source publication. The producer's
+// spec path is provenance in the manifest namespace; it is never opened here.
+absl::StatusOr<std::vector<uint32_t>> ParseSourceGraphicsReservationIds(
+    const Json& source) {
+  constexpr const char* kSection = "source_sprite_sheets";
+  if (!source.is_object() || !source.contains("schema_version") ||
+      !source["schema_version"].is_number_integer() ||
+      source["schema_version"] != 1 || !source.contains("spec") ||
+      !source["spec"].is_string() ||
+      source["spec"].get<std::string>().empty() ||
+      source["spec"].get<std::string>().find('\0') != std::string::npos ||
+      !source.contains("global_sheet_ids") ||
+      !source["global_sheet_ids"].is_array()) {
+    return absl::InvalidArgumentError(
+        absl::StrFormat("%s requires integer schema_version 1, nonempty spec "
+                        "provenance and global_sheet_ids array",
+                        kSection));
+  }
+  std::vector<uint32_t> ids;
+  size_t index = 0;
+  for (const Json& value : source["global_sheet_ids"]) {
+    uint32_t id = 0;
+    ASSIGN_OR_RETURN(
+        id,
+        ParseStrictHexValue(
+            value, absl::StrFormat("%s.global_sheet_ids[%zu]", kSection, index),
+            /*maximum=*/0xFE));
+    if (std::find(ids.begin(), ids.end(), id) != ids.end()) {
+      return absl::InvalidArgumentError(absl::StrFormat(
+          "%s.global_sheet_ids contains duplicate sheet 0x%02X", kSection, id));
+    }
+    ids.push_back(id);
+    ++index;
+  }
+  return ids;
+}
+
 absl::StatusOr<GraphicsSheetLayout> ParseGraphicsSheetLayout(
     const Json& root, int manifest_version,
     const std::unordered_map<DungeonStreamType, DungeonStreamLayout>&
@@ -902,17 +940,35 @@ absl::StatusOr<GraphicsSheetLayout> ParseGraphicsSheetLayout(
       return absl::InvalidArgumentError(
           "graphics_sheet_regions.reserved_sheets must be an array");
     }
+    const uint32_t native_count =
+        layout.pointer_layout.has_value()
+            ? layout.pointer_layout->usable_sheet_count
+            : kLegacyGraphicsSheetCount;
+    std::optional<std::vector<uint32_t>> source_ids;
     size_t index = 0;
     for (const Json& value : reserved) {
+      const auto field =
+          absl::StrFormat("graphics_sheet_regions.reserved_sheets[%zu]", index);
       uint32_t sheet = 0;
-      ASSIGN_OR_RETURN(
-          sheet, ParseStrictHexValue(
-                     value,
-                     absl::StrFormat(
-                         "graphics_sheet_regions.reserved_sheets[%zu]", index),
-                     layout.pointer_layout.has_value()
-                         ? layout.pointer_layout->usable_sheet_count - 1
-                         : kLegacyGraphicsSheetCount - 1));
+      ASSIGN_OR_RETURN(sheet,
+                       ParseStrictHexValue(value, field, /*maximum=*/0xFE));
+      if (sheet >= native_count) {
+        if (!root.contains("source_sprite_sheets")) {
+          return absl::InvalidArgumentError(absl::StrFormat(
+              "%s exceeds native graphics rows without a source declaration",
+              field));
+        }
+        if (!source_ids) {
+          ASSIGN_OR_RETURN(source_ids, ParseSourceGraphicsReservationIds(
+                                           root["source_sprite_sheets"]));
+        }
+        if (std::find(source_ids->begin(), source_ids->end(), sheet) ==
+            source_ids->end()) {
+          return absl::InvalidArgumentError(absl::StrFormat(
+              "%s is not declared by source_sprite_sheets.global_sheet_ids",
+              field));
+        }
+      }
       layout.reserved_sheets.push_back(static_cast<uint16_t>(sheet));
       ++index;
     }

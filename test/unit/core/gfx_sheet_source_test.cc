@@ -176,9 +176,11 @@ TEST_F(GfxSheetSourceTest,
   const auto before_descriptor = Read(project.filepath);
   auto candidate = project;
   candidate.graphics_sheets.source_spec_sha1 = plan->sha1;
+  bool readback_reached = false;
   auto saved = candidate.SaveWithSourceArtifacts(
       plan->updates,
       [&]() {
+        readback_reached = true;
         EXPECT_NE(Read(Spec()), before_spec);
         EXPECT_NE(Read(Sheet()), before_df);
         EXPECT_NE(Read(Sheet(0xFE)), before_fe);
@@ -187,6 +189,7 @@ TEST_F(GfxSheetSourceTest,
       },
       plan->descriptor);
   EXPECT_FALSE(saved.ok());
+  EXPECT_TRUE(readback_reached);
   EXPECT_EQ(Read(Spec()), before_spec);
   EXPECT_EQ(Read(Sheet()), before_df);
   EXPECT_EQ(Read(Sheet(0xFE)), before_fe);
@@ -270,12 +273,13 @@ TEST_F(GfxSheetSourceTest,
 }
 TEST_F(GfxSheetSourceTest,
        SourceOwnershipKeepsProjectProtectionAndRomReservationsSeparate) {
-  ASSERT_TRUE(project.hack_manifest
-                  .LoadFromString(R"json({"manifest_version":3,
+  const auto manifest_status =
+      project.hack_manifest.LoadFromString(R"json({"manifest_version":3,
     "graphics_sheet_regions":{"reserved_sheets":["0xDF","0xFE"]},
     "source_sprite_sheets":{"schema_version":1,"spec":"Data/graphics/source_sprite_sheets.json",
-      "global_sheet_ids":["0xDF","0xFE"]}})json")
-                  .ok());
+      "global_sheet_ids":["0xDF","0xFE"]}})json");
+  ASSERT_TRUE(manifest_status.ok()) << manifest_status;
+  EXPECT_FALSE(project.hack_manifest.graphics_sheet_layout().pointer_layout);
   auto source = GfxSheetSource::Load(project);
   ASSERT_TRUE(source.ok());
   auto edited = pixels;
