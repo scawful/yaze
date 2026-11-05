@@ -19,6 +19,35 @@
 
 namespace yaze::zelda3 {
 
+absl::StatusOr<DungeonMapTile16Layout> ResolveDungeonMapTile16Layout(
+    const Rom& rom) {
+  ASSIGN_OR_RETURN(auto marker, rom.ReadByte(kDungeonMapExpCheck));
+  if (marker != 0xB9 && marker != 0x20) {
+    return absl::FailedPreconditionError(
+        "Unsupported dungeon map Tile16 layout");
+  }
+  const bool relocated = marker == 0x20;
+  const int address =
+      relocated ? GetDungeonMapTile16Expanded() : kDungeonMapTile16;
+  const int count =
+      relocated ? kNumDungeonMapTile16Expanded : kNumDungeonMapTile16;
+  const int64_t end = static_cast<int64_t>(address) + count * 8;
+  auto overlaps = [&](int begin, int limit) {
+    return address < limit && end > begin;
+  };
+  if (address < 0 || end > static_cast<int64_t>(rom.size()) ||
+      (relocated && (overlaps(kDungeonMapDataStart, kDungeonMapDataLimit) ||
+                     overlaps(kDungeonMapBossRooms,
+                              kDungeonMapBossRooms + 2 * kNumDungeons) ||
+                     overlaps(kDungeonMapBossFloors,
+                              kDungeonMapBossFloors + 2 * kNumDungeons)))) {
+    return absl::FailedPreconditionError(
+        relocated ? "Invalid relocated dungeon map Tile16 extent"
+                  : "Invalid vanilla dungeon map Tile16 extent");
+  }
+  return DungeonMapTile16Layout{address, count, relocated};
+}
+
 absl::StatusOr<std::vector<DungeonMap>> LoadDungeonMaps(
     Rom& rom, DungeonMapLabels& dungeon_map_labels) {
   std::vector<DungeonMap> dungeon_maps;
@@ -96,6 +125,17 @@ absl::StatusOr<DungeonMapWritePlan> BuildDungeonMapWritePlan(
         map.floor_rooms.size() != count || map.floor_gfx.size() != count) {
       return absl::InvalidArgumentError(
           absl::StrFormat("Invalid floor dimensions for dungeon %d", d));
+    }
+    const int template_count =
+        relocated_tile16 ? kNumDungeonMapTile16Expanded : kNumDungeonMapTile16;
+    for (size_t f = 0; f < count; ++f) {
+      for (int r = 0; r < kNumRooms; ++r) {
+        if (map.floor_rooms[f][r] != 0x0F &&
+            map.floor_gfx[f][r] >= template_count) {
+          return absl::InvalidArgumentError(absl::StrFormat(
+              "Dungeon map template exceeds layout count for dungeon %d", d));
+        }
+      }
     }
     if (map.boss_room == 0x000F || map.boss_room == 0xFFFF)
       continue;
@@ -219,25 +259,13 @@ absl::StatusOr<DungeonMapWritePlan> BuildDungeonMapWritePlan(
 
 absl::StatusOr<DungeonMapWritePlan> BuildDungeonMapWritePlan(
     Rom& rom, const std::vector<DungeonMap>& dungeon_maps) {
-  ASSIGN_OR_RETURN(auto marker, rom.ReadByte(kDungeonMapExpCheck));
-  if (marker != 0xB9 && marker != 0x20) {
-    return absl::FailedPreconditionError(
-        "Unsupported dungeon map Tile16 layout");
-  }
-  const bool relocated_tile16 = marker == 0x20;
-  const int tile16 = GetDungeonMapTile16Expanded();
+  ASSIGN_OR_RETURN(auto layout, ResolveDungeonMapTile16Layout(rom));
+  const int tile16 = layout.pc_address;
   const int64_t tile16_end =
-      static_cast<int64_t>(tile16) + kNumDungeonMapTile16 * 8;
-  if (relocated_tile16) {
-    if (tile16 < 0 || tile16_end > rom.size() ||
-        (tile16 < kDungeonMapDataLimit && tile16_end > kDungeonMapDataStart)) {
-      return absl::FailedPreconditionError(
-          "Invalid relocated dungeon map Tile16 extent");
-    }
-  }
+      static_cast<int64_t>(tile16) + layout.template_count * 8;
   ASSIGN_OR_RETURN(auto plan, BuildDungeonMapWritePlan(dungeon_maps, rom.size(),
-                                                       relocated_tile16));
-  if (relocated_tile16) {
+                                                       layout.relocated));
+  if (layout.relocated) {
     for (const auto& write : plan.writes) {
       const int64_t write_end = static_cast<int64_t>(write.pc_address) +
                                 static_cast<int64_t>(write.data.size());
@@ -264,34 +292,27 @@ absl::Status LoadDungeonMapTile16(gfx::Tilemap& tile16_blockset, Rom& rom,
                                   GameData* game_data,
                                   const std::vector<uint8_t>& gfx_data,
                                   bool bin_mode) {
+  ASSIGN_OR_RETURN(auto layout, ResolveDungeonMapTile16Layout(rom));
+  std::vector<std::array<gfx::TileInfo, 4>> templates(layout.template_count);
+  for (int i = 0; i < layout.template_count; ++i) {
+    for (int q = 0; q < 4; ++q) {
+      ASSIGN_OR_RETURN(auto word,
+                       rom.ReadWord(layout.pc_address + i * 8 + q * 2));
+      templates[i][q] = gfx::WordToTileInfo(word);
+    }
+  }
+  constexpr int kAtlasWidth = 256;
+  const int atlas_height = ((layout.template_count + 15) / 16) * 16;
   tile16_blockset.tile_size = {16, 16};
-  tile16_blockset.map_size = {186, 186};
-  tile16_blockset.atlas.Create(256, 192, 8,
-                               std::vector<uint8_t>(256 * 192, 0x00));
-
-  for (int i = 0; i < kNumDungeonMapTile16; i++) {
-    int addr = kDungeonMapTile16;
-    if (rom.data()[kDungeonMapExpCheck] != 0xB9) {
-      addr = GetDungeonMapTile16Expanded();
-    }
-
-    ASSIGN_OR_RETURN(auto tl, rom.ReadWord(addr + (i * 8)));
-    gfx::TileInfo t1 = gfx::WordToTileInfo(tl);  // Top left
-
-    ASSIGN_OR_RETURN(auto tr, rom.ReadWord(addr + 2 + (i * 8)));
-    gfx::TileInfo t2 = gfx::WordToTileInfo(tr);  // Top right
-
-    ASSIGN_OR_RETURN(auto bl, rom.ReadWord(addr + 4 + (i * 8)));
-    gfx::TileInfo t3 = gfx::WordToTileInfo(bl);  // Bottom left
-
-    ASSIGN_OR_RETURN(auto br, rom.ReadWord(addr + 6 + (i * 8)));
-    gfx::TileInfo t4 = gfx::WordToTileInfo(br);  // Bottom right
-
-    int sheet_offset = 212;
-    if (bin_mode) {
-      sheet_offset = 0;
-    }
-    ComposeTile16(tile16_blockset, gfx_data, t1, t2, t3, t4, sheet_offset);
+  tile16_blockset.map_size = {layout.template_count, layout.template_count};
+  tile16_blockset.atlas.Create(
+      kAtlasWidth, atlas_height, 8,
+      std::vector<uint8_t>(kAtlasWidth * atlas_height, 0x00));
+  tile16_blockset.tile_info.clear();
+  tile16_blockset.tile_info.reserve(layout.template_count);
+  for (const auto& tile : templates) {
+    ComposeTile16(tile16_blockset, gfx_data, tile[0], tile[1], tile[2], tile[3],
+                  bin_mode ? 0 : 212);
   }
 
   if (game_data) {
@@ -307,11 +328,15 @@ absl::Status LoadDungeonMapTile16(gfx::Tilemap& tile16_blockset, Rom& rom,
 }
 
 absl::Status SaveDungeonMapTile16(gfx::Tilemap& tile16_blockset, Rom& rom) {
-  for (int i = 0; i < kNumDungeonMapTile16; i++) {
-    int addr = kDungeonMapTile16;
-    if (rom.data()[kDungeonMapExpCheck] != 0xB9) {
-      addr = GetDungeonMapTile16Expanded();
-    }
+  ASSIGN_OR_RETURN(auto layout, ResolveDungeonMapTile16Layout(rom));
+  if (tile16_blockset.tile_info.size() !=
+      static_cast<size_t>(layout.template_count)) {
+    return absl::InvalidArgumentError(
+        "Dungeon map Tile16 count does not match ROM layout");
+  }
+  ScopedRomTransaction transaction(rom);
+  for (int i = 0; i < layout.template_count; i++) {
+    const int addr = layout.pc_address;
 
     gfx::TileInfo t1 = tile16_blockset.tile_info[i][0];
     gfx::TileInfo t2 = tile16_blockset.tile_info[i][1];
@@ -330,6 +355,7 @@ absl::Status SaveDungeonMapTile16(gfx::Tilemap& tile16_blockset, Rom& rom) {
     auto br = gfx::TileInfoToWord(t4);
     RETURN_IF_ERROR(rom.WriteWord(addr + 6 + (i * 8), br));
   }
+  transaction.Commit();
   return absl::OkStatus();
 }
 

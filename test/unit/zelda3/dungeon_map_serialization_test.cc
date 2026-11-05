@@ -6,6 +6,7 @@
 #include <cstdlib>
 
 #include <vector>
+#include "app/gfx/resource/arena.h"
 #include "rom/snes.h"
 #include "rom/write_fence.h"
 
@@ -303,6 +304,244 @@ TEST(DungeonMapSerializationTest, InvalidRelocatedArtworkRefusesWithoutWrites) {
     EXPECT_EQ(rom.vector(), before);
     EXPECT_FALSE(rom.dirty());
   }
+}
+
+class DungeonMapTile16Test : public ::testing::Test {
+ protected:
+  void SetUp() override {
+    previous_overrides_ = core::RomSettings::Get().address_overrides();
+    core::RomSettings::Get().SetAddressOverrides({});
+  }
+  void TearDown() override {
+    gfx::Arena::Get().RetireBitmap(tiles_.atlas);
+    core::RomSettings::Get().SetAddressOverrides(previous_overrides_);
+  }
+  void FillTiles(int count) {
+    const auto blank = gfx::WordToTileInfo(0x0B00);
+    tiles_.tile_info.assign(count, {blank, blank, blank, blank});
+  }
+  static std::vector<uint8_t> GraphicsPixels() {
+    std::vector<uint8_t> pixels(4 * 128 * 32);
+    for (int tile = 0; tile < 256; ++tile) {
+      const int x = (tile % 16) * 8;
+      const int y = (tile / 64) * 32 + ((tile % 64) / 16) * 8;
+      for (int dy = 0; dy < 8; ++dy) {
+        for (int dx = 0; dx < 8; ++dx) {
+          pixels[(y + dy) * 128 + x + dx] = tile & 0x0F;
+        }
+      }
+    }
+    return pixels;
+  }
+  static void SeedWords(std::vector<uint8_t>& bytes, int address, int count) {
+    for (int i = 0; i < count * 4; ++i) {
+      bytes[address + i * 2] = 0;
+      bytes[address + i * 2 + 1] = 0x0B;
+    }
+  }
+  gfx::Tilemap tiles_{};
+  core::RomAddressOverrides previous_overrides_;
+};
+
+TEST_F(DungeonMapTile16Test, ResolvesValidatedCountAndAddressOverride) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(MapRomBytes()).ok());
+  auto expanded = ResolveDungeonMapTile16Layout(rom);
+  ASSERT_TRUE(expanded.ok());
+  EXPECT_EQ(expanded->template_count, 256);
+  EXPECT_EQ(expanded->pc_address, kDungeonMapTile16Expanded);
+  EXPECT_TRUE(expanded->relocated);
+  core::RomAddressOverrides overrides;
+  overrides.addresses[core::RomAddressKey::kDungeonMapTile16Expanded] =
+      0x180000;
+  core::RomSettings::Get().SetAddressOverrides(overrides);
+  auto moved = ResolveDungeonMapTile16Layout(rom);
+  ASSERT_TRUE(moved.ok());
+  EXPECT_EQ(moved->pc_address, 0x180000);
+  EXPECT_EQ(moved->template_count, 256);
+  ASSERT_TRUE(rom.WriteByte(kDungeonMapExpCheck, 0xB9).ok());
+  auto vanilla = ResolveDungeonMapTile16Layout(rom);
+  ASSERT_TRUE(vanilla.ok());
+  EXPECT_EQ(vanilla->pc_address, kDungeonMapTile16);
+  EXPECT_EQ(vanilla->template_count, 186);
+  EXPECT_FALSE(vanilla->relocated);
+}
+
+TEST_F(DungeonMapTile16Test, LastExpandedSlotRendersAndReloadReplacesModel) {
+  auto bytes = MapRomBytes();
+  SeedWords(bytes, kDungeonMapTile16Expanded, 256);
+  SeedWords(bytes, kDungeonMapTile16, 186);
+  const uint16_t words[] = {0x0B01, 0x4B02, 0x8B03, 0xCB04};
+  for (int q = 0; q < 4; ++q) {
+    bytes[kDungeonMapTile16Expanded + 255 * 8 + q * 2] = words[q] & 0xFF;
+    bytes[kDungeonMapTile16Expanded + 255 * 8 + q * 2 + 1] = words[q] >> 8;
+    bytes[kDungeonMapTile16 + q * 2] = words[q] & 0xFF;
+    bytes[kDungeonMapTile16 + q * 2 + 1] = words[q] >> 8;
+  }
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(bytes).ok());
+  for (int reload = 0; reload < 2; ++reload) {
+    ASSERT_TRUE(
+        LoadDungeonMapTile16(tiles_, rom, nullptr, GraphicsPixels(), true)
+            .ok());
+    ASSERT_EQ(tiles_.tile_info.size(), 256u);
+    EXPECT_EQ(tiles_.atlas.width(), 256);
+    EXPECT_EQ(tiles_.atlas.height(), 256);
+    for (int q = 0; q < 4; ++q) {
+      EXPECT_EQ(gfx::TileInfoToWord(tiles_.tile_info[255][q]), words[q]);
+    }
+    const auto pixels = gfx::GetTilemapData(tiles_, 255);
+    ASSERT_EQ(pixels.size(), 256u);
+    EXPECT_EQ(pixels[0], 1);
+    EXPECT_EQ(pixels[8], 2);
+    EXPECT_EQ(pixels[8 * 16], 3);
+    EXPECT_EQ(pixels[8 * 16 + 8], 4);
+  }
+  ASSERT_TRUE(rom.WriteByte(kDungeonMapExpCheck, 0xB9).ok());
+  ASSERT_TRUE(
+      LoadDungeonMapTile16(tiles_, rom, nullptr, GraphicsPixels(), true).ok());
+  ASSERT_EQ(tiles_.tile_info.size(), 186u);
+  EXPECT_EQ(tiles_.atlas.height(), 192);
+  EXPECT_EQ(gfx::GetTilemapData(tiles_, 0)[0], 1);
+}
+
+TEST_F(DungeonMapTile16Test, ExpandedSavePersistsLastSlotAndPreservesOutside) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(MapRomBytes()).ok());
+  FillTiles(256);
+  const uint16_t words[] = {0x0B01, 0x4B02, 0x8B03, 0xCB04};
+  for (int q = 0; q < 4; ++q) {
+    tiles_.tile_info[255][q] = gfx::WordToTileInfo(words[q]);
+  }
+  const auto before = rom.vector();
+  ASSERT_TRUE(SaveDungeonMapTile16(tiles_, rom).ok());
+  const int end = kDungeonMapTile16Expanded + 256 * 8;
+  EXPECT_TRUE(std::equal(before.begin(),
+                         before.begin() + kDungeonMapTile16Expanded,
+                         rom.vector().begin()));
+  EXPECT_TRUE(std::equal(before.begin() + end, before.end(),
+                         rom.vector().begin() + end));
+  Rom reopened;
+  ASSERT_TRUE(reopened.LoadFromData(rom.vector()).ok());
+  for (int q = 0; q < 4; ++q) {
+    EXPECT_EQ(*reopened.ReadWord(kDungeonMapTile16Expanded + 255 * 8 + q * 2),
+              words[q]);
+  }
+}
+
+TEST_F(DungeonMapTile16Test, VanillaSaveKeepsLowSlotAndStopsBeforeTables) {
+  auto bytes = MapRomBytes();
+  bytes[kDungeonMapExpCheck] = 0xB9;
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(bytes).ok());
+  FillTiles(186);
+  tiles_.tile_info[0][0] = gfx::WordToTileInfo(0xCB55);
+  ASSERT_TRUE(SaveDungeonMapTile16(tiles_, rom).ok());
+  EXPECT_EQ(*rom.ReadWord(kDungeonMapTile16), 0xCB55);
+  EXPECT_TRUE(std::equal(bytes.begin(), bytes.begin() + kDungeonMapTile16,
+                         rom.vector().begin()));
+  EXPECT_TRUE(std::equal(bytes.begin() + kDungeonMapDataReservedStart,
+                         bytes.end(),
+                         rom.vector().begin() + kDungeonMapDataReservedStart));
+}
+
+TEST_F(DungeonMapTile16Test, WrongModelCountRefusesBeforeWrite) {
+  for (bool expanded : {false, true}) {
+    for (int delta : {-1, 1}) {
+      Rom rom;
+      auto bytes = MapRomBytes();
+      bytes[kDungeonMapExpCheck] = expanded ? 0x20 : 0xB9;
+      ASSERT_TRUE(rom.LoadFromData(bytes).ok());
+      FillTiles((expanded ? 256 : 186) + delta);
+      rom.set_dirty(false);
+      EXPECT_EQ(SaveDungeonMapTile16(tiles_, rom).code(),
+                absl::StatusCode::kInvalidArgument);
+      EXPECT_EQ(rom.vector(), bytes);
+      EXPECT_FALSE(rom.dirty());
+    }
+  }
+}
+
+TEST_F(DungeonMapTile16Test, UnknownMarkerKeepsModelAndRomUnchanged) {
+  Rom rom;
+  auto bytes = MapRomBytes();
+  bytes[kDungeonMapExpCheck] = 0xEA;
+  ASSERT_TRUE(rom.LoadFromData(bytes).ok());
+  FillTiles(4);
+  const auto before = tiles_.tile_info;
+  EXPECT_EQ(
+      LoadDungeonMapTile16(tiles_, rom, nullptr, GraphicsPixels(), true).code(),
+      absl::StatusCode::kFailedPrecondition);
+  EXPECT_EQ(tiles_.tile_info, before);
+  EXPECT_EQ(SaveDungeonMapTile16(tiles_, rom).code(),
+            absl::StatusCode::kFailedPrecondition);
+  EXPECT_EQ(rom.vector(), bytes);
+}
+
+TEST_F(DungeonMapTile16Test, ExpandedTailBoundsAndMetadataOverlapRefuse) {
+  FillTiles(256);
+  for (bool overlap : {false, true}) {
+    auto bytes =
+        MapRomBytes(overlap ? 0x200000 : kDungeonMapTile16Expanded + 186 * 8);
+    core::RomAddressOverrides overrides;
+    if (overlap) {
+      // The old186-record extent stopped exactly before the boss table;
+      // the newly supported tail must not silently overwrite that table.
+      overrides.addresses[core::RomAddressKey::kDungeonMapTile16Expanded] =
+          kDungeonMapBossRooms - 186 * 8;
+    }
+    core::RomSettings::Get().SetAddressOverrides(overrides);
+    Rom rom;
+    ASSERT_TRUE(rom.LoadFromData(bytes).ok());
+    rom.set_dirty(false);
+    EXPECT_EQ(SaveDungeonMapTile16(tiles_, rom).code(),
+              absl::StatusCode::kFailedPrecondition);
+    auto maps = FullMaps();
+    EXPECT_EQ(SaveDungeonMaps(rom, maps).code(),
+              absl::StatusCode::kFailedPrecondition);
+    EXPECT_EQ(rom.vector(), bytes);
+    EXPECT_FALSE(rom.dirty());
+  }
+}
+
+TEST_F(DungeonMapTile16Test, ArtworkFenceFailureRollsBackPartialWrite) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(MapRomBytes()).ok());
+  FillTiles(256);
+  rom::WriteFence fence;
+  ASSERT_TRUE(fence
+                  .Allow(kDungeonMapTile16Expanded,
+                         kDungeonMapTile16Expanded + 2, "first word only")
+                  .ok());
+  const auto before = rom.vector();
+  rom.set_dirty(false);
+  rom::ScopedWriteFence scoped(&rom, &fence);
+  EXPECT_EQ(SaveDungeonMapTile16(tiles_, rom).code(),
+            absl::StatusCode::kPermissionDenied);
+  EXPECT_FALSE(fence.written_ranges().empty());
+  EXPECT_EQ(rom.vector(), before);
+  EXPECT_FALSE(rom.dirty());
+}
+
+TEST_F(DungeonMapTile16Test, ExpandedAssignment255RoundTripsAndVanillaRefuses) {
+  auto maps = FullMaps();
+  maps[0].floor_rooms[0][0] = 0x42;
+  maps[0].floor_gfx[0][0] = 0xFF;
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(MapRomBytes()).ok());
+  const auto before = rom.vector();
+  ASSERT_TRUE(SaveDungeonMaps(rom, maps).ok());
+  DungeonMapLabels labels;
+  auto loaded = LoadDungeonMaps(rom, labels);
+  ASSERT_TRUE(loaded.ok());
+  ASSERT_EQ(loaded->size(), kNumDungeons);
+  EXPECT_EQ((*loaded)[0].floor_rooms[0][0], 0x42);
+  EXPECT_EQ((*loaded)[0].floor_gfx[0][0], 0xFF);
+  EXPECT_TRUE(std::equal(before.begin() + kDungeonMapTile16Expanded,
+                         before.begin() + kDungeonMapTile16Expanded + 256 * 8,
+                         rom.vector().begin() + kDungeonMapTile16Expanded));
+  EXPECT_EQ(BuildDungeonMapWritePlan(maps, 0x200000, false).status().code(),
+            absl::StatusCode::kInvalidArgument);
 }
 
 TEST(DungeonMapSerializationTest,

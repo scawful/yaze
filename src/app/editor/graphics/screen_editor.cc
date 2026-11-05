@@ -573,7 +573,8 @@ void ScreenEditor::DrawDungeonMapScreen(int i) {
     const int tiles_per_row = tile16_blockset_.atlas.width() / 16;
     const int tiles_per_column = tile16_blockset_.atlas.height() / 16;
     if (tiles_per_row <= 0 || tiles_per_column <= 0 || tile16_id < 0 ||
-        tile16_id >= tiles_per_row * tiles_per_column) {
+        tile16_id >= tiles_per_row * tiles_per_column ||
+        tile16_id >= static_cast<int>(tile16_blockset_.tile_info.size())) {
       continue;
     }
     const int tile_x = (tile16_id % tiles_per_row) * 16;
@@ -774,7 +775,9 @@ void ScreenEditor::DrawDungeonMapsRoomGfx() {
     // Enhanced tilesheet canvas with BeginCanvas/EndCanvas pattern
     {
       gui::CanvasFrameOptions tilesheet_opts;
-      tilesheet_opts.canvas_size = ImVec2((256 * 2) + 2, (192 * 2) + 4);
+      tilesheet_opts.canvas_size =
+          ImVec2(tile16_blockset_.atlas.width() * 2.0F + 2.0F,
+                 tile16_blockset_.atlas.height() * 2.0F + 4.0F);
       tilesheet_opts.draw_grid = true;
       tilesheet_opts.grid_step = 32.0f;
       tilesheet_opts.render_popups = true;
@@ -792,9 +795,10 @@ void ScreenEditor::DrawDungeonMapsRoomGfx() {
       if (tilesheet_canvas_.IsMouseHovering() &&
           ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
         if (!tilesheet_canvas_.points().empty()) {
-          const int selected_tile16 = static_cast<int>(
-              tilesheet_canvas_.points().front().x / 32 +
-              (tilesheet_canvas_.points().front().y / 32) * 16);
+          const int selected_tile16 =
+              static_cast<int>(tilesheet_canvas_.points().front().x / 32 +
+                               (tilesheet_canvas_.points().front().y / 32) *
+                                   (tile16_blockset_.atlas.width() / 16));
 
           if (selected_tile16 >= 0 &&
               selected_tile16 <
@@ -815,7 +819,9 @@ void ScreenEditor::DrawDungeonMapsRoomGfx() {
     }
 
     if (!tilesheet_canvas_.points().empty() &&
-        !screen_canvas_.points().empty()) {
+        !screen_canvas_.points().empty() && selected_tile16_ >= 0 &&
+        selected_tile16_ <
+            static_cast<int>(tile16_blockset_.tile_info.size())) {
       SaveDungeonMapUndoState("Place tile on dungeon map");
       dungeon_maps_[selected_dungeon].floor_gfx[floor_number][selected_room] =
           selected_tile16_;

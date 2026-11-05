@@ -47,6 +47,18 @@ constexpr int kCrystalVertices = 0x04FF98;
 constexpr int kNumDungeons = 14;
 constexpr int kNumRooms = 25;
 constexpr int kNumDungeonMapTile16 = 186;
+constexpr int kNumDungeonMapTile16Expanded = 256;
+
+struct DungeonMapTile16Layout {
+  int pc_address;
+  int template_count;
+  bool relocated;
+};
+
+// Validate the ROM marker, complete artwork extent and fixed map-table owners.
+// Loaders, selectors and writers must use the same resolved template count.
+absl::StatusOr<DungeonMapTile16Layout> ResolveDungeonMapTile16Layout(
+    const Rom& rom);
 
 /**
  * @brief DungeonMap represents the map menu for a dungeon.
