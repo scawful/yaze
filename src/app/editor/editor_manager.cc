@@ -350,6 +350,21 @@ void EditorManager::ResetWorkspaceLayout() {
 }
 
 void EditorManager::ApplyLayoutPreset(const std::string& preset_name) {
+  // Writer's windows belong to the Message editor. Activate it first and apply
+  // the preset after the switch, or its windows would open in a hidden
+  // category.
+  if (preset_name == "Writer" &&
+      window_manager_.GetActiveCategory() != "Message") {
+    SwitchToEditor(EditorType::kMessage, /*force_visible=*/true);
+    QueueDeferredAction(
+        [this, preset_name, session_id = GetCurrentSessionId()] {
+          if (GetCurrentSessionId() == session_id &&
+              window_manager_.GetActiveCategory() == "Message") {
+            layout_coordinator_.ApplyLayoutPreset(preset_name, session_id);
+          }
+        });
+    return;
+  }
   layout_coordinator_.ApplyLayoutPreset(preset_name, GetCurrentSessionId());
 }
 
