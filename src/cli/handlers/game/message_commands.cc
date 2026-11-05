@@ -47,6 +47,16 @@ std::string BankLabel(editor::MessageBank bank) {
   return editor::MessageBankToString(bank);
 }
 
+std::vector<editor::MessageData> ReadVanillaMessages(const Rom& rom) {
+  if (rom.size() <= static_cast<size_t>(editor::kTextData)) {
+    return {};
+  }
+  const int end = static_cast<int>(std::min(
+      rom.size(), static_cast<size_t>(std::numeric_limits<int>::max())));
+  return editor::ReadAllTextData(const_cast<uint8_t*>(rom.data()),
+                                 editor::kTextData, end);
+}
+
 std::vector<editor::MessageData> ReadExpandedMessages(const Rom& rom) {
   const int start = editor::GetExpandedTextDataStart();
   if (start < 0 || static_cast<size_t>(start) >= rom.size()) {
@@ -741,8 +751,7 @@ absl::Status MessageListCommandHandler::Execute(
     limit = 0;
   }
 
-  auto messages = editor::ReadAllTextData(const_cast<uint8_t*>(rom->data()),
-                                          editor::kTextData);
+  auto messages = ReadVanillaMessages(*rom);
   if (limit > static_cast<int>(messages.size())) {
     limit = static_cast<int>(messages.size());
   }
@@ -777,8 +786,7 @@ absl::Status MessageReadCommandHandler::Execute(
   }
   int message_id = message_id_or.value();
 
-  auto messages = editor::ReadAllTextData(const_cast<uint8_t*>(rom->data()),
-                                          editor::kTextData);
+  auto messages = ReadVanillaMessages(*rom);
   if (message_id < 0 || message_id >= static_cast<int>(messages.size())) {
     return absl::NotFoundError(
         absl::StrFormat("Message ID %d not found (max: %d)", message_id,
@@ -806,8 +814,7 @@ absl::Status MessageSearchCommandHandler::Execute(
     limit = 0;
   }
 
-  auto messages = editor::ReadAllTextData(const_cast<uint8_t*>(rom->data()),
-                                          editor::kTextData);
+  auto messages = ReadVanillaMessages(*rom);
 
   formatter.BeginObject("Message Search Results");
   formatter.AddField("query", query);
@@ -1039,8 +1046,7 @@ absl::Status MessageExportOrgCommandHandler::Execute(
     resources::OutputFormatter& formatter) {
   auto output_path = parser.GetString("output").value();
 
-  auto messages = editor::ReadAllTextData(const_cast<uint8_t*>(rom->data()),
-                                          editor::kTextData);
+  auto messages = ReadVanillaMessages(*rom);
 
   // Build message pairs and labels
   std::vector<std::pair<int, std::string>> msg_pairs;
@@ -1088,8 +1094,7 @@ absl::Status MessageExportBundleCommandHandler::Execute(
   std::vector<editor::MessageData> expanded;
 
   if (IncludeVanilla(range)) {
-    vanilla = editor::ReadAllTextData(const_cast<uint8_t*>(rom->data()),
-                                      editor::kTextData);
+    vanilla = ReadVanillaMessages(*rom);
   }
 
   if (IncludeExpanded(range)) {
@@ -1774,19 +1779,16 @@ absl::Status MessageExportAsmCommandHandler::Execute(
   auto output_path = parser.GetString("output").value();
   auto range = parser.GetString("range").value_or("expanded");
 
-  int start;
   uint32_t snes_addr;
   if (range == "expanded") {
-    start = editor::GetExpandedTextDataStart();
     snes_addr = 0x2F8000;
   } else {
-    start = editor::kTextData;
     snes_addr = 0x1C0000;
   }
 
   // Read messages from the specified region
-  auto messages =
-      editor::ReadAllTextData(const_cast<uint8_t*>(rom->data()), start);
+  auto messages = range == "expanded" ? ReadExpandedMessages(*rom)
+                                      : ReadVanillaMessages(*rom);
 
   std::ofstream file(output_path);
   if (!file.is_open()) {

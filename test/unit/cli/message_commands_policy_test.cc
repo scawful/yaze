@@ -6,6 +6,7 @@
 #include <filesystem>
 #include <fstream>
 #include <iterator>
+#include <memory>
 #include <string>
 #include <tuple>
 #include <utility>
@@ -164,6 +165,150 @@ Rom LoadRom(const fs::path& path) {
   auto status = rom.LoadFromFile(path.string());
   EXPECT_TRUE(status.ok()) << status;
   return rom;
+}
+
+enum class MessageReadCommand { kList, kRead, kSearch, kOrg, kBundle, kAsm };
+
+class MessageReadBoundsTest
+    : public ::testing::TestWithParam<MessageReadCommand> {
+ protected:
+  void ExpectMessageCount(const std::vector<uint8_t>& data, int count) {
+    ScopedTempDir temp;
+    const fs::path output_path = temp.path() / "messages.out";
+    Rom rom;
+    ASSERT_TRUE(rom.LoadFromData(data).ok());
+    const auto before = rom.vector();
+    std::unique_ptr<resources::CommandHandler> handler;
+    std::vector<std::string> args = {"--format=json"};
+    std::string object;
+    std::string count_field;
+    switch (GetParam()) {
+      case MessageReadCommand::kList:
+        handler = std::make_unique<handlers::MessageListCommandHandler>();
+        object = "Message List";
+        count_field = "total_messages";
+        break;
+      case MessageReadCommand::kRead:
+        handler = std::make_unique<handlers::MessageReadCommandHandler>();
+        args.push_back("--id=0");
+        object = "Message";
+        break;
+      case MessageReadCommand::kSearch:
+        handler = std::make_unique<handlers::MessageSearchCommandHandler>();
+        args.push_back("--query=A");
+        object = "Message Search Results";
+        count_field = "matches_found";
+        break;
+      case MessageReadCommand::kOrg:
+        handler = std::make_unique<handlers::MessageExportOrgCommandHandler>();
+        object = "Org Export Results";
+        count_field = "messages_exported";
+        break;
+      case MessageReadCommand::kBundle:
+        handler =
+            std::make_unique<handlers::MessageExportBundleCommandHandler>();
+        object = "Message Bundle Export";
+        count_field = "vanilla_count";
+        args.push_back("--range=vanilla");
+        break;
+      case MessageReadCommand::kAsm:
+        handler = std::make_unique<handlers::MessageExportAsmCommandHandler>();
+        object = "ASM Export Result";
+        count_field = "messages_exported";
+        args.push_back("--range=vanilla");
+        break;
+    }
+    args.push_back("--output=" + output_path.string());
+    std::string output;
+    const auto status = handler->Run(args, &rom, &output);
+    EXPECT_EQ(rom.vector(), before);
+    if (GetParam() == MessageReadCommand::kRead && count == 0) {
+      EXPECT_EQ(status.code(), absl::StatusCode::kNotFound);
+      return;
+    }
+    ASSERT_TRUE(status.ok()) << status << "\n" << output;
+    const auto result = nlohmann::json::parse(output).at(object);
+    if (GetParam() == MessageReadCommand::kRead) {
+      EXPECT_EQ(result.at("text"), "A");
+    } else {
+      EXPECT_EQ(result.at(count_field), count);
+    }
+  }
+};
+
+TEST_P(MessageReadBoundsTest, RomEndingBeforeTextRegionHasNoMessages) {
+  ExpectMessageCount(std::vector<uint8_t>(0x10000, 0x00), 0);
+}
+
+TEST_P(MessageReadBoundsTest, UnterminatedStreamStopsAtRomEnd) {
+  std::vector<uint8_t> data(editor::kTextData + 3, 0xFF);
+  data[editor::kTextData] = editor::FindMatchingCharacter('A');
+  data[editor::kTextData + 1] = editor::kMessageTerminator;
+  // The final incomplete message has neither a terminator nor an FF marker.
+  data[editor::kTextData + 2] = editor::FindMatchingCharacter('B');
+  ExpectMessageCount(data, 1);
+}
+
+TEST_P(MessageReadBoundsTest, TerminatedStreamKeepsExistingMessage) {
+  std::vector<uint8_t> data(editor::kTextData + 3, 0xFF);
+  data[editor::kTextData] = editor::FindMatchingCharacter('A');
+  data[editor::kTextData + 1] = editor::kMessageTerminator;
+  ExpectMessageCount(data, 1);
+}
+
+INSTANTIATE_TEST_SUITE_P(
+    ReadOnlyCommands, MessageReadBoundsTest,
+    ::testing::Values(MessageReadCommand::kList, MessageReadCommand::kRead,
+                      MessageReadCommand::kSearch, MessageReadCommand::kOrg,
+                      MessageReadCommand::kBundle, MessageReadCommand::kAsm));
+
+TEST(MessageExportAsmBoundsTest,
+     ExpandedRegionMissingFromRomExportsNoMessages) {
+  ScopedTempDir temp;
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x10000, 0x00)).ok());
+  handlers::MessageExportAsmCommandHandler handler;
+  std::string output;
+  const auto status =
+      handler.Run({"--output=" + (temp.path() / "messages.asm").string(),
+                   "--range=expanded", "--format=json"},
+                  &rom, &output);
+  ASSERT_TRUE(status.ok()) << status << "\n" << output;
+  EXPECT_EQ(nlohmann::json::parse(output)
+                .at("ASM Export Result")
+                .at("messages_exported"),
+            0);
+}
+
+TEST(MessageExportAsmBoundsTest, ExpandedBankTokenDoesNotReadVanillaRegion) {
+  ScopedTempDir temp;
+  const int start = editor::GetExpandedTextDataStart();
+  ASSERT_GT(start, editor::kTextData2 + 3);
+  std::vector<uint8_t> data(start + 3, 0xFF);
+  // BANK is a local token in the expanded region, not a vanilla stream jump.
+  data[start] = editor::kBankSwitchCommand;
+  data[start + 1] = editor::kMessageTerminator;
+  data[editor::kTextData2] = editor::FindMatchingCharacter('B');
+  data[editor::kTextData2 + 1] = editor::kMessageTerminator;
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(data).ok());
+  const auto before = rom.vector();
+  const fs::path output_path = temp.path() / "messages.asm";
+  handlers::MessageExportAsmCommandHandler handler;
+  std::string output;
+  const auto status = handler.Run(
+      {"--output=" + output_path.string(), "--range=expanded", "--format=json"},
+      &rom, &output);
+  ASSERT_TRUE(status.ok()) << status << "\n" << output;
+  EXPECT_EQ(rom.vector(), before);
+  EXPECT_EQ(nlohmann::json::parse(output)
+                .at("ASM Export Result")
+                .at("messages_exported"),
+            1);
+  const auto bytes = ReadBinaryFile(output_path);
+  const std::string text(bytes.begin(), bytes.end());
+  EXPECT_THAT(text, HasSubstr("db $80, $7F"));
+  EXPECT_THAT(text, Not(HasSubstr("db $01, $7F")));
 }
 
 TEST(MessageCommandsPolicyTest, MessageWriteWithoutProjectFailsClosed) {
