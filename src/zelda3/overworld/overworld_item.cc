@@ -59,11 +59,10 @@ absl::StatusOr<std::vector<OverworldItem>> LoadItems(
     while (true) {
       ASSIGN_OR_RETURN(uint8_t b1, rom->ReadByte(addr));
       ASSIGN_OR_RETURN(uint8_t b2, rom->ReadByte(addr + 1));
-      ASSIGN_OR_RETURN(uint8_t b3, rom->ReadByte(addr + 2));
-
       if (b1 == 0xFF && b2 == 0xFF) {
         break;
       }
+      ASSIGN_OR_RETURN(uint8_t b3, rom->ReadByte(addr + 2));
 
       int p = (((b2 & 0x1F) << 8) + b1) >> 1;
 
