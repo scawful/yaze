@@ -16,6 +16,8 @@
 #include "absl/flags/flag.h"
 #include "app/service/render_service.h"
 #include "cli/service/rom/rom_sandbox_manager.h"
+#include "zelda3/dungeon/entrance_layout.h"
+#include "zelda3/dungeon/room_entrance.h"
 
 ABSL_DECLARE_FLAG(bool, sandbox);
 
@@ -274,6 +276,105 @@ TEST_F(DungeonRenderCommandsTest, MalformedScaleDoesNotTouchExistingOutput) {
     EXPECT_EQ(ReadBytes(output),
               (std::vector<uint8_t>(sentinel.begin(), sentinel.end())));
   }
+  EXPECT_EQ(ReadBytes(source_), original_bytes_);
+}
+
+TEST(DungeonRenderEntranceTest, AcceptsOptionalRegularHexEntranceIds) {
+  handlers::DungeonRenderCommandHandler handler;
+  resources::ArgumentParser defaults({"--room=0", "--output=room.png"});
+  EXPECT_TRUE(handler.ValidateArgs(defaults).ok());
+  for (const char* value : {"0", "79", "0x79", "84", "0x84"}) {
+    SCOPED_TRACE(value);
+    resources::ArgumentParser parser(
+        {"--room=0", "--output=room.png", "--entrance", value});
+    EXPECT_TRUE(handler.ValidateArgs(parser).ok());
+  }
+}
+
+TEST_F(DungeonRenderCommandsTest,
+       InvalidEntranceWithValidScalePreservesExistingOutput) {
+  const auto output = directory_ / "output.png";
+  const std::string sentinel = "existing image must survive";
+  {
+    std::ofstream out(output, std::ios::binary);
+    out << sentinel;
+    ASSERT_TRUE(out.good());
+  }
+  handlers::DungeonRenderCommandHandler handler;
+  for (const char* value :
+       {"", "nope", "0x79junk", "-1", "0x100000000", "85", "0xFF"}) {
+    SCOPED_TRACE(value);
+    std::string formatted;
+    const auto status = handler.Run({"--room=0", "--output", output.string(),
+                                     "--scale=1", "--entrance", value},
+                                    nullptr, &formatted);
+    EXPECT_TRUE(absl::IsInvalidArgument(status) || absl::IsOutOfRange(status))
+        << status;
+    EXPECT_EQ(ReadBytes(output),
+              (std::vector<uint8_t>(sentinel.begin(), sentinel.end())));
+  }
+  std::string formatted;
+  const auto missing =
+      handler.Run({"--room=0", "--output", output.string(), "--entrance"},
+                  nullptr, &formatted);
+  EXPECT_TRUE(absl::IsInvalidArgument(missing)) << missing;
+  EXPECT_EQ(ReadBytes(output),
+            (std::vector<uint8_t>(sentinel.begin(), sentinel.end())));
+  EXPECT_EQ(ReadBytes(source_), original_bytes_);
+}
+
+TEST_F(DungeonRenderCommandsTest, ServiceRejectsInvalidRegularEntranceIds) {
+  zelda3::GameData game_data;
+  app::service::RenderService service(&rom_, &game_data);
+  const auto before = rom_.vector();
+  for (int entrance_id : {-1, zelda3::kNumRegularDungeonEntrances, 0xFF}) {
+    SCOPED_TRACE(entrance_id);
+    app::service::RenderRequest request;
+    request.entrance_id = entrance_id;
+    EXPECT_TRUE(
+        absl::IsOutOfRange(service.RenderDungeonRoom(request).status()));
+  }
+  EXPECT_EQ(rom_.vector(), before);
+  EXPECT_EQ(ReadBytes(source_), original_bytes_);
+}
+
+TEST_F(DungeonRenderCommandsTest, ServiceRejectsEntranceRoomMismatch) {
+  const zelda3::RoomEntrance entrance(&rom_, 0, false);
+  ASSERT_TRUE(entrance.load_status().ok()) << entrance.load_status();
+  zelda3::GameData game_data;
+  app::service::RenderService service(&rom_, &game_data);
+  const auto before = rom_.vector();
+  app::service::RenderRequest request;
+  request.room_id = entrance.room_ + 1;
+  request.entrance_id = 0;
+  const auto result = service.RenderDungeonRoom(request);
+  EXPECT_TRUE(absl::IsInvalidArgument(result.status())) << result.status();
+  EXPECT_NE(result.status().message().find("leads to room"),
+            absl::string_view::npos);
+  EXPECT_EQ(rom_.vector(), before);
+  EXPECT_EQ(ReadBytes(source_), original_bytes_);
+}
+
+TEST_F(DungeonRenderCommandsTest, ServiceRejectsInvalidEntranceMainBlockset) {
+  const auto layout = zelda3::ResolveEntranceLayout(rom_.vector());
+  ASSERT_TRUE(layout.ok()) << layout.status();
+  ASSERT_TRUE(
+      rom_.WriteByte(layout->address(zelda3::EntranceField::kBlockset, 0), 0xFF)
+          .ok());
+  const zelda3::RoomEntrance entrance(&rom_, 0, false);
+  ASSERT_TRUE(entrance.load_status().ok()) << entrance.load_status();
+  ASSERT_EQ(entrance.blockset_, 0xFF);
+  zelda3::GameData game_data;
+  app::service::RenderService service(&rom_, &game_data);
+  const auto before = rom_.vector();
+  app::service::RenderRequest request;
+  request.room_id = entrance.room_;
+  request.entrance_id = 0;
+  const auto result = service.RenderDungeonRoom(request);
+  EXPECT_TRUE(absl::IsOutOfRange(result.status())) << result.status();
+  EXPECT_NE(result.status().message().find("main blockset"),
+            absl::string_view::npos);
+  EXPECT_EQ(rom_.vector(), before);
   EXPECT_EQ(ReadBytes(source_), original_bytes_);
 }
 

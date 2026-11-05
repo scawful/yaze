@@ -16,6 +16,7 @@
 #include "zelda3/dungeon/game_tilemap_comparison.h"
 #include "zelda3/dungeon/room.h"
 #include "zelda3/dungeon/room_collision.h"
+#include "zelda3/dungeon/room_entrance.h"
 #include "zelda3/dungeon/room_layer_manager.h"
 #include "zelda3/overworld/overworld.h"
 #include "zelda3/overworld/overworld_map.h"
@@ -175,15 +176,40 @@ absl::StatusOr<RenderResult> RenderService::RenderDungeonRoom(
         absl::StrFormat("Invalid room_id 0x%02X", req.room_id));
   }
 
+  std::lock_guard<std::mutex> lock(mu_);
+  std::optional<uint8_t> entrance_blockset;
+  if (req.entrance_id.has_value()) {
+    const int entrance_id = *req.entrance_id;
+    if (entrance_id < 0 || entrance_id >= zelda3::kNumRegularDungeonEntrances) {
+      return absl::OutOfRangeError(
+          "Regular dungeon entrance ID is out of range");
+    }
+    const zelda3::RoomEntrance entrance(rom_, static_cast<uint8_t>(entrance_id),
+                                        false);
+    RETURN_IF_ERROR(entrance.load_status());
+    if (entrance.room_ != req.room_id) {
+      return absl::InvalidArgumentError(absl::StrFormat(
+          "Entrance 0x%02X leads to room 0x%03X, not requested room 0x%03X",
+          entrance_id, entrance.room_, req.room_id));
+    }
+    if (entrance.blockset_ >= game_data_->main_blockset_ids.size()) {
+      return absl::OutOfRangeError(absl::StrFormat(
+          "Entrance 0x%02X main blockset 0x%02X is outside the loaded table",
+          entrance_id, entrance.blockset_));
+    }
+    entrance_blockset = entrance.blockset_;
+  }
+
 #ifndef YAZE_CLI_HAS_PNG
   return absl::UnimplementedError("PNG encoding unavailable (libpng missing)");
 #endif
 
-  std::lock_guard<std::mutex> lock(mu_);
-
   // Load room data from ROM (header, objects, pots, torches, blocks, pits).
   zelda3::Room room = zelda3::LoadRoomFromRom(rom_, req.room_id);
   room.SetGameData(game_data_);
+  if (entrance_blockset.has_value()) {
+    room.SetRenderEntranceBlockset(*entrance_blockset);
+  }
   if (!req.sheet_overrides.empty()) {
     room.SetGraphicsSheetOverrides(req.sheet_overrides);
   }
@@ -230,6 +256,10 @@ absl::StatusOr<RenderResult> RenderService::RenderDungeonRoom(
   result.png_data = std::move(png_or).value();
   result.width = out_w;
   result.height = out_h;
+  result.main_blockset = room.resolved_main_blockset();
+  const auto blocks = room.blocks();
+  std::copy_n(blocks.begin(), result.graphics_sheets.size(),
+              result.graphics_sheets.begin());
   return result;
 }
 

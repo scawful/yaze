@@ -1,9 +1,11 @@
 #ifndef YAZE_APP_SERVICE_RENDER_SERVICE_H_
 #define YAZE_APP_SERVICE_RENDER_SERVICE_H_
 
+#include <array>
 #include <cstdint>
 #include <map>
 #include <mutex>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -89,6 +91,9 @@ struct RenderRequest {
   // Unsaved sheet pixels (8bpp, 4096 bytes per sheet) to render instead of
   // GameData::graphics_buffer. See Room::SetGraphicsSheetOverrides().
   std::map<uint16_t, std::vector<uint8_t>> sheet_overrides;
+  // Actual regular entrance ID in the selected ROM. When supplied, its room
+  // must match room_id and its main graphics set supplies the render context.
+  std::optional<int> entrance_id;
 };
 
 // Shared strict parser for CLI/API scale input. Rejects malformed, non-finite,
@@ -99,6 +104,9 @@ struct RenderResult {
   std::vector<uint8_t> png_data;
   int width = 0;
   int height = 0;
+  // Actual resolved context, captured after the room has rendered.
+  int main_blockset = -1;
+  std::array<uint16_t, 8> graphics_sheets{};
 };
 
 // Metadata about a dungeon room — no rendering required.

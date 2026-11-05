@@ -13,7 +13,8 @@ namespace handlers {
 //   dungeon-render --room=<id> --output=<path.png>
 //           [--overlays=collision,track,sprites,objects,grid,camera,tiletype,
 //                       all]
-//           [--scale=<float>]
+//           [--scale=<float>] [--entrance=<hex_id>]
+// Example: dungeon-render --room=0x056 --entrance=0x79 --output=castle79.png
 //
 // Writes a PNG file to --output. Exits non-zero on failure.
 // Designed for agentic workflows where a long-lived server is inconvenient.
@@ -24,7 +25,7 @@ class DungeonRenderCommandHandler : public resources::CommandHandler {
     return "dungeon-render --room=<id> --output=<path.png> "
            "[--overlays=collision,track,sprites,objects,grid,camera,tiletype,"
            "all] "
-           "[--scale=<float>]";
+           "[--scale=<float>] [--entrance=<hex_id>]";
   }
 
   absl::Status ValidateArgs(const resources::ArgumentParser& parser) override;

@@ -1,6 +1,7 @@
 #include "cli/handlers/game/dungeon_render_commands.h"
 
 #include <fstream>
+#include <optional>
 #include <sstream>
 #include <string>
 #include <vector>
@@ -10,6 +11,7 @@
 #include "cli/service/resources/command_context.h"
 #include "rom/rom.h"
 #include "util/macro.h"
+#include "zelda3/dungeon/room_entrance.h"
 #include "zelda3/game_data.h"
 
 namespace yaze {
@@ -17,6 +19,22 @@ namespace cli {
 namespace handlers {
 
 namespace {
+
+absl::StatusOr<std::optional<int>> ParseOptionalEntranceId(
+    const resources::ArgumentParser& parser) {
+  if (!parser.GetString("entrance").has_value()) {
+    if (parser.HasFlag("entrance")) {
+      return absl::InvalidArgumentError(
+          "--entrance requires a hexadecimal regular entrance ID");
+    }
+    return std::optional<int>();
+  }
+  ASSIGN_OR_RETURN(const int entrance_id, parser.GetHex("entrance"));
+  if (entrance_id < 0 || entrance_id >= zelda3::kNumRegularDungeonEntrances) {
+    return absl::OutOfRangeError("Regular dungeon entrance ID is out of range");
+  }
+  return std::optional<int>(entrance_id);
+}
 
 // Parse overlays from a comma-separated string into RenderOverlay flags.
 uint32_t ParseOverlays(const std::string& s) {
@@ -58,9 +76,9 @@ absl::Status DungeonRenderCommandHandler::ValidateArgs(
     return absl::InvalidArgumentError("--output cannot be empty");
   }
   if (const auto scale = parser.GetString("scale"); scale.has_value()) {
-    return app::service::ParseRenderScale(*scale).status();
+    RETURN_IF_ERROR(app::service::ParseRenderScale(*scale).status());
   }
-  return absl::OkStatus();
+  return ParseOptionalEntranceId(parser).status();
 }
 
 absl::Status DungeonRenderCommandHandler::Execute(
@@ -126,6 +144,7 @@ absl::Status DungeonRenderCommandHandler::ExecuteWithContext(
   req.room_id = room_id;
   req.overlay_flags = overlay_flags;
   req.scale = scale;
+  ASSIGN_OR_RETURN(req.entrance_id, ParseOptionalEntranceId(parser));
 
   auto result_or = render_service.RenderDungeonRoom(req);
   if (!result_or.ok())
@@ -159,6 +178,18 @@ absl::Status DungeonRenderCommandHandler::ExecuteWithContext(
   formatter.AddField("width", result.width);
   formatter.AddField("height", result.height);
   formatter.AddField("size_bytes", static_cast<int>(result.png_data.size()));
+  if (req.entrance_id.has_value()) {
+    formatter.AddHexField("entrance_id", *req.entrance_id, 2);
+    formatter.AddHexField("main_blockset", result.main_blockset, 2);
+    formatter.BeginArray("slots");
+    for (size_t slot = 0; slot < result.graphics_sheets.size(); ++slot) {
+      formatter.BeginObject();
+      formatter.AddField("slot", static_cast<int>(slot));
+      formatter.AddHexField("sheet", result.graphics_sheets[slot], 2);
+      formatter.EndObject();
+    }
+    formatter.EndArray();
+  }
   return absl::OkStatus();
 }
 
