@@ -659,6 +659,8 @@ void WriteTestRom(const std::filesystem::path& path,
 void WriteScreenModelTestRom(const std::filesystem::path& path,
                              const std::string& title = "SCREEN MODEL TEST") {
   std::vector<uint8_t> rom_data(1024 * 1024, 0x00);
+  // Successful Screen loads require an explicit, supported Tile16 layout.
+  rom_data[zelda3::kDungeonMapExpCheck] = 0xB9;
   for (size_t i = 0; i < title.size() && i < 20; ++i) {
     rom_data[0x7FC0 + i] = static_cast<uint8_t>(title[i]);
   }
