@@ -319,7 +319,8 @@ void EditorManager::HandleSessionSwitched(size_t new_index, RomSession* session,
 }
 
 void EditorManager::HandleSessionCreated(size_t index, RomSession* session) {
-  if (pending_rom_save_.has_value() && !PendingRomSaveMatchesActiveSession()) {
+  if (rom_lifecycle_.HasPendingRomSave() &&
+      !PendingRomSaveMatchesActiveSession()) {
     CancelPendingRomSave(/*hide_popups=*/true);
   }
   CaptureActiveProjectContext();

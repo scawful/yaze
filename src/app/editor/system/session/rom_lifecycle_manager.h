@@ -1,6 +1,8 @@
 #ifndef YAZE_APP_EDITOR_SYSTEM_ROM_LIFECYCLE_MANAGER_H_
 #define YAZE_APP_EDITOR_SYSTEM_ROM_LIFECYCLE_MANAGER_H_
 
+#include <cstddef>
+#include <cstdint>
 #include <optional>
 #include <string>
 #include <vector>
@@ -171,6 +173,33 @@ class RomLifecycleManager {
   }
 
   // =========================================================================
+  // Pending ROM save request (target/session/ROM binding)
+  // =========================================================================
+
+  bool HasPendingRomSave() const { return pending_rom_save_.has_value(); }
+
+  bool HasPendingRomSaveConfirmation() const {
+    return IsRomWriteConfirmPending() || HasPendingPotItemSaveConfirmation() ||
+           !pending_write_conflicts_.empty();
+  }
+
+  bool HasBlockingSaveConfirmation() const {
+    return IsRomWriteConfirmPending() || HasPendingPotItemSaveConfirmation() ||
+           (!pending_write_conflicts_.empty() && !ShouldBypassWriteConflict());
+  }
+
+  bool PendingRomSaveMatchesSession(size_t session_index, Rom* rom) const;
+
+  void CancelPendingRomSaveRequest();
+
+  void StartPendingRomSave(const std::optional<std::string>& save_as_filename,
+                           size_t session_index, Rom* rom);
+
+  void FinishPendingRomSaveAttempt(const absl::Status& status);
+
+  std::optional<std::string> pending_rom_save_as_filename() const;
+
+  // =========================================================================
   // Backup Management (delegates to RomFileManager)
   // =========================================================================
 
@@ -183,6 +212,12 @@ class RomLifecycleManager {
                                 int keep_daily_days);
 
  private:
+  struct PendingRomSaveRequest {
+    std::optional<std::string> save_as_filename;
+    size_t session_index = SIZE_MAX;
+    Rom* rom = nullptr;
+  };
+
   bool HasEditableSource(const std::string& source_path) const;
 
   // Dependencies (non-owning pointers)
@@ -212,6 +247,8 @@ class RomLifecycleManager {
   // Write conflict state (ASM-owned address protection)
   std::vector<core::WriteConflict> pending_write_conflicts_;
   bool bypass_write_conflict_once_ = false;
+
+  std::optional<PendingRomSaveRequest> pending_rom_save_;
 };
 
 }  // namespace yaze::editor

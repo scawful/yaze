@@ -852,12 +852,6 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
   // ROM lifecycle state (hash, write policy, confirmation dialogs, backups)
   // Mutable because some const accessors delegate to it.
   mutable RomLifecycleManager rom_lifecycle_;
-  struct PendingRomSave {
-    std::optional<std::string> save_as_filename;
-    size_t session_index = SIZE_MAX;
-    Rom* rom = nullptr;
-  };
-  std::optional<PendingRomSave> pending_rom_save_;
   // Set while Save Current Session persists project work ahead of a ROM save
   // whose own native receipt will complete that project Save.
   bool defer_project_native_completion_ = false;

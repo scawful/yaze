@@ -3016,23 +3016,19 @@ absl::Status EditorManager::CheckOracleRomSafetyPreSave(Rom* rom) {
 }
 
 bool EditorManager::HasPendingRomSaveConfirmation() const {
-  return rom_lifecycle_.IsRomWriteConfirmPending() ||
-         rom_lifecycle_.HasPendingPotItemSaveConfirmation() ||
-         !rom_lifecycle_.pending_write_conflicts().empty();
+  return rom_lifecycle_.HasPendingRomSaveConfirmation();
 }
 
 bool EditorManager::PendingRomSaveMatchesActiveSession() const {
-  if (!pending_rom_save_.has_value() || !session_coordinator_) {
+  if (!session_coordinator_) {
     return false;
   }
-  return pending_rom_save_->session_index == GetCurrentSessionIndex() &&
-         pending_rom_save_->rom != nullptr &&
-         pending_rom_save_->rom == GetCurrentRom();
+  return rom_lifecycle_.PendingRomSaveMatchesSession(GetCurrentSessionIndex(),
+                                                     GetCurrentRom());
 }
 
 void EditorManager::CancelPendingRomSave(bool hide_popups) {
-  pending_rom_save_.reset();
-  rom_lifecycle_.ResetPendingSaveState();
+  rom_lifecycle_.CancelPendingRomSaveRequest();
 
   if (!hide_popups || !popup_manager_) {
     return;
@@ -3054,25 +3050,18 @@ absl::Status EditorManager::StartPendingRomSave(
     return absl::FailedPreconditionError("No active ROM session");
   }
 
-  CancelPendingRomSave();
-  pending_rom_save_ =
-      PendingRomSave{save_as_filename, GetCurrentSessionIndex(), rom};
+  rom_lifecycle_.StartPendingRomSave(save_as_filename, GetCurrentSessionIndex(),
+                                     rom);
   return absl::OkStatus();
 }
 
 void EditorManager::FinishPendingRomSaveAttempt(const absl::Status& status) {
-  // A Cancelled status is resumable only while one of this request's explicit
-  // confirmation dialogs is pending. Every other outcome is terminal and must
-  // consume all one-shot bypasses so a later Ctrl+S cannot inherit consent.
-  if (status.ok() || !absl::IsCancelled(status) ||
-      !HasPendingRomSaveConfirmation()) {
-    CancelPendingRomSave();
-  }
+  rom_lifecycle_.FinishPendingRomSaveAttempt(status);
 }
 
 absl::Status EditorManager::SaveCurrentSession() {
   // An established ROM save owns its confirmation and one-shot exemptions.
-  if (pending_rom_save_.has_value()) {
+  if (rom_lifecycle_.HasPendingRomSave()) {
     return SaveRom();
   }
   if (!session_coordinator_ || !session_coordinator_->GetActiveRomSession()) {
@@ -3104,8 +3093,9 @@ absl::Status EditorManager::CompletePendingProjectNativeSave() {
                       : nullptr;
   const auto* rom = GetCurrentRom();
   if (session == nullptr || !session->native_save_completion_pending ||
-      pending_rom_save_.has_value() || !current_project_.project_opened() ||
-      rom == nullptr || !rom->is_loaded() || rom->filename().empty()) {
+      rom_lifecycle_.HasPendingRomSave() ||
+      !current_project_.project_opened() || rom == nullptr ||
+      !rom->is_loaded() || rom->filename().empty()) {
     return absl::OkStatus();
   }
   return RecordCompletedNativeSave(current_project_, rom->filename(),
@@ -3125,13 +3115,8 @@ absl::Status EditorManager::SaveProjectWorkBeforeRomSave(bool allow_dialogs) {
 absl::Status EditorManager::SaveRom() {
   // Do not let an autosave or an unrelated Ctrl+S replace a Save As request
   // while one of its confirmation dialogs is still open.
-  if (pending_rom_save_.has_value()) {
-    const bool unresolved_confirmation =
-        rom_lifecycle_.IsRomWriteConfirmPending() ||
-        rom_lifecycle_.HasPendingPotItemSaveConfirmation() ||
-        (!rom_lifecycle_.pending_write_conflicts().empty() &&
-         !rom_lifecycle_.ShouldBypassWriteConflict());
-    if (unresolved_confirmation) {
+  if (rom_lifecycle_.HasPendingRomSave()) {
+    if (rom_lifecycle_.HasBlockingSaveConfirmation()) {
       return absl::CancelledError("Save pending confirmation");
     }
     // Preserve the established request after programmatic confirmation too.
@@ -3149,7 +3134,8 @@ absl::Status EditorManager::SaveRomAs(const std::string& filename) {
   if (filename.empty()) {
     return absl::InvalidArgumentError("No filename provided for save as");
   }
-  if (pending_rom_save_.has_value() && HasPendingRomSaveConfirmation()) {
+  if (rom_lifecycle_.HasPendingRomSave() &&
+      rom_lifecycle_.HasPendingRomSaveConfirmation()) {
     return absl::CancelledError("Save pending confirmation");
   }
   RETURN_IF_ERROR(StartPendingRomSave(filename));
@@ -3159,7 +3145,7 @@ absl::Status EditorManager::SaveRomAs(const std::string& filename) {
 }
 
 absl::Status EditorManager::ResumePendingRomSave() {
-  if (!pending_rom_save_.has_value()) {
+  if (!rom_lifecycle_.HasPendingRomSave()) {
     rom_lifecycle_.ResetPendingSaveState();
     return absl::FailedPreconditionError("No pending ROM save to resume");
   }
@@ -3169,7 +3155,7 @@ absl::Status EditorManager::ResumePendingRomSave() {
         "Pending ROM save belongs to a different session");
   }
 
-  const auto save_as_filename = pending_rom_save_->save_as_filename;
+  const auto save_as_filename = rom_lifecycle_.pending_rom_save_as_filename();
   auto status = SaveRomInternal(save_as_filename);
   FinishPendingRomSaveAttempt(status);
   return status;

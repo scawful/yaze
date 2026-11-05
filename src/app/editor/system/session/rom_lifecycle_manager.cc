@@ -386,6 +386,51 @@ absl::Status RomLifecycleManager::CheckOracleRomSafetyPreSave(Rom* rom) {
 // ROM Write Confirmation State Machine
 // =============================================================================
 
+// =============================================================================
+// Pending ROM save request
+// =============================================================================
+
+bool RomLifecycleManager::PendingRomSaveMatchesSession(size_t session_index,
+                                                       Rom* rom) const {
+  if (!pending_rom_save_.has_value()) {
+    return false;
+  }
+  return pending_rom_save_->session_index == session_index &&
+         pending_rom_save_->rom != nullptr && pending_rom_save_->rom == rom;
+}
+
+void RomLifecycleManager::CancelPendingRomSaveRequest() {
+  pending_rom_save_.reset();
+  ResetPendingSaveState();
+}
+
+void RomLifecycleManager::StartPendingRomSave(
+    const std::optional<std::string>& save_as_filename, size_t session_index,
+    Rom* rom) {
+  CancelPendingRomSaveRequest();
+  pending_rom_save_ =
+      PendingRomSaveRequest{save_as_filename, session_index, rom};
+}
+
+void RomLifecycleManager::FinishPendingRomSaveAttempt(
+    const absl::Status& status) {
+  // A Cancelled status is resumable only while one of this request's explicit
+  // confirmation dialogs is pending. Every other outcome is terminal and must
+  // consume all one-shot bypasses so a later Ctrl+S cannot inherit consent.
+  if (status.ok() || !absl::IsCancelled(status) ||
+      !HasPendingRomSaveConfirmation()) {
+    CancelPendingRomSaveRequest();
+  }
+}
+
+std::optional<std::string> RomLifecycleManager::pending_rom_save_as_filename()
+    const {
+  if (!pending_rom_save_.has_value()) {
+    return std::nullopt;
+  }
+  return pending_rom_save_->save_as_filename;
+}
+
 void RomLifecycleManager::ConfirmRomWrite() {
   bypass_rom_write_confirm_once_ = true;
   pending_rom_write_confirm_ = false;
