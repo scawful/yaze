@@ -147,7 +147,11 @@ TEST_F(PixelIndexCommandTest,
       MakePixelIndexRectangleSelection(kFirstSheet, 127, 0, 2, 8).ok());
   EXPECT_FALSE(MakePixelIndexRectangleSelection(kFirstSheet, 0, 31, 8, 2).ok());
   EXPECT_FALSE(MakePixelIndexRectangleSelection(kFirstSheet, 0, 0, 0, 8).ok());
-  EXPECT_FALSE(MakePixelIndexRectangleSelection(223, 0, 0, 8, 8).ok());
+  EXPECT_TRUE(MakePixelIndexRectangleSelection(223, 0, 0, 8, 8).ok());
+  EXPECT_TRUE(MakePixelIndexRectangleSelection(254, 0, 0, 8, 8).ok());
+  EXPECT_FALSE(MakePixelIndexRectangleSelection(
+                   zelda3::GraphicsSheetStore::kSheetCount, 0, 0, 8, 8)
+                   .ok());
 }
 
 TEST_F(PixelIndexCommandTest, ArbitraryMasksUnionNormalAndFlippedAliasesOnce) {

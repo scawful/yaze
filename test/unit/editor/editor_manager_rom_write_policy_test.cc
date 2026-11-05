@@ -857,6 +857,17 @@ class NativeSaveReceiptIntegrationTest : public ::testing::Test {
 
   void SetUp() override {
     std::filesystem::create_directory(cleanup_.path);
+    if (const char* previous = std::getenv("YAZE_APP_DATA_DIR")) {
+      had_app_data_override_ = true;
+      previous_app_data_ = previous;
+    }
+    const auto app_data = (cleanup_.path / "appdata").string();
+#if defined(_WIN32)
+    ASSERT_EQ(_putenv_s("YAZE_APP_DATA_DIR", app_data.c_str()), 0);
+#else
+    ASSERT_EQ(setenv("YAZE_APP_DATA_DIR", app_data.c_str(), 1), 0);
+#endif
+    app_data_redirected_ = true;
     source_ = cleanup_.path / "source.sfc";
     WriteTestRom(source_, "NATIVE RECEIPT TEST");
     manager_ = std::make_unique<EditorManager>();
@@ -865,6 +876,25 @@ class NativeSaveReceiptIntegrationTest : public ::testing::Test {
     manager_->user_settings().prefs().backup_before_save = false;
     ASSERT_OK(manager_->OpenRomOrProject(source_.string()));
     DisableRomWritesForTest();
+  }
+
+  void TearDown() override {
+    manager_.reset();
+    if (!app_data_redirected_) {
+      return;
+    }
+#if defined(_WIN32)
+    EXPECT_EQ(
+        _putenv_s("YAZE_APP_DATA_DIR",
+                  had_app_data_override_ ? previous_app_data_.c_str() : ""),
+        0);
+#else
+    if (had_app_data_override_) {
+      EXPECT_EQ(setenv("YAZE_APP_DATA_DIR", previous_app_data_.c_str(), 1), 0);
+    } else {
+      EXPECT_EQ(unsetenv("YAZE_APP_DATA_DIR"), 0);
+    }
+#endif
   }
 
   void BindProject() {
@@ -935,6 +965,9 @@ class NativeSaveReceiptIntegrationTest : public ::testing::Test {
   gfx::NullRenderer renderer_;
   std::unique_ptr<EditorManager> manager_;
   std::filesystem::path source_, receipt_, context_;
+  std::string previous_app_data_;
+  bool had_app_data_override_ = false;
+  bool app_data_redirected_ = false;
 };
 
 TEST_F(NativeSaveReceiptIntegrationTest,
