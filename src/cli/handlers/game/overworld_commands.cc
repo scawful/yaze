@@ -808,9 +808,10 @@ absl::Status OverworldGetEntranceCommandHandler::Execute(
   auto entrance_id_str = parser.GetString("entrance").value();
 
   int entrance_id;
-  if (!ParseHexString(entrance_id_str, &entrance_id)) {
+  if (!ParseHexString(entrance_id_str, &entrance_id) || entrance_id < 0 ||
+      entrance_id > 0xFF) {
     return absl::InvalidArgumentError(
-        "Invalid entrance ID format. Must be hex.");
+        "Invalid entrance ID. Must be hex in 0x00-0xFF.");
   }
 
   // Load the Overworld from ROM
@@ -831,6 +832,7 @@ absl::Status OverworldGetEntranceCommandHandler::Execute(
   formatter.BeginObject("Overworld Entrance");
   formatter.AddField("entrance_id",
                      absl::StrFormat("0x%02X", details.entrance_id));
+  formatter.AddField("marker_index", details.marker_index);
   formatter.AddField("map_id", absl::StrFormat("0x%02X", details.map_id));
   formatter.AddField("world", overworld::WorldName(details.world));
   formatter.AddField("position",
@@ -843,6 +845,17 @@ absl::Status OverworldGetEntranceCommandHandler::Execute(
   if (details.entrance_name.has_value()) {
     formatter.AddField("name", details.entrance_name.value());
   }
+
+  formatter.BeginArray("markers");
+  for (const int index : details.marker_indices) {
+    const auto& marker = overworld.entrances()[index];
+    formatter.BeginObject();
+    formatter.AddField("marker_index", index);
+    formatter.AddField("map_id", absl::StrFormat("0x%02X", marker.map_id_));
+    formatter.AddField("map_pos", absl::StrFormat("0x%04X", marker.map_pos_));
+    formatter.EndObject();
+  }
+  formatter.EndArray();
 
   formatter.EndObject();
 

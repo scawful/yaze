@@ -191,7 +191,7 @@ class OverworldGetEntranceCommandHandler : public resources::CommandHandler {
  public:
   std::string GetName() const { return "overworld-get-entrance"; }
   std::string GetDescription() const {
-    return "Get entrance information from overworld";
+    return "Find the overworld markers that lead to an entrance ID";
   }
   std::string GetUsage() const {
     return "overworld-get-entrance --entrance <entrance_id> [--format "

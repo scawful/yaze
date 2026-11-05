@@ -168,6 +168,8 @@ struct SpriteQuery {
 
 struct EntranceDetails {
   uint8_t entrance_id;
+  int marker_index;
+  std::vector<int> marker_indices;
   int map_id;
   int world;
   int x;
