@@ -1695,19 +1695,6 @@ void MessageEditor::DrawCurrentMessage() {
   ImGui::EndChild();
 }
 
-void MessageEditor::DrawFontAtlas() {
-  gui::SectionHeader(ICON_MD_FONT_DOWNLOAD, tr("Font Atlas"),
-                     gui::GetInfoColor());
-  EnsureFontTexturesReady();
-  font_gfx_canvas_.GetConfig().role = gui::CanvasRole::kSelectionSource;
-  gui::BeginCanvas(font_gfx_canvas_, ImVec2(256, 256));
-  font_gfx_canvas_.DrawBitmap(font_gfx_bitmap_, 0, 0, 2.0f);
-  font_gfx_canvas_.DrawTileSelector(16, 32);
-  gui::EndCanvas(font_gfx_canvas_);
-  ImGui::TextDisabled(
-      tr("2bpp dialogue font at $070000. Click a tile to inspect it."));
-}
-
 void MessageEditor::DrawExpandedMessageSettings() {
   ImGui::Separator();
   gui::SectionHeader(ICON_MD_LIBRARY_ADD, tr("Expanded Messages"),

@@ -6,7 +6,11 @@
 
 #include "app/gfx/resource/arena.h"
 #include "app/gfx/types/snes_tile.h"
+#include "app/gui/canvas/canvas.h"
+#include "app/gui/core/icons.h"
+#include "app/gui/core/ui_helpers.h"
 #include "imgui.h"
+#include "util/i18n/tr.h"
 #include "util/log.h"
 #include "zelda3/game_data.h"
 
@@ -157,6 +161,19 @@ void MessageEditor::EnsureFontTexturesReady() {
     gfx::Arena::Get().QueueTextureCommand(
         gfx::Arena::TextureCommandType::CREATE, &current_font_gfx16_bitmap_);
   }
+}
+
+void MessageEditor::DrawFontAtlas() {
+  gui::SectionHeader(ICON_MD_FONT_DOWNLOAD, tr("Font Atlas"),
+                     gui::GetInfoColor());
+  EnsureFontTexturesReady();
+  font_gfx_canvas_.GetConfig().role = gui::CanvasRole::kSelectionSource;
+  gui::BeginCanvas(font_gfx_canvas_, ImVec2(256, 256));
+  font_gfx_canvas_.DrawBitmap(font_gfx_bitmap_, 0, 0, 2.0f);
+  font_gfx_canvas_.DrawTileSelector(16, 32);
+  gui::EndCanvas(font_gfx_canvas_);
+  ImGui::TextDisabled(
+      tr("2bpp dialogue font at $070000. Click a tile to inspect it."));
 }
 
 }  // namespace yaze::editor
