@@ -385,8 +385,15 @@ bool SpriteInteractionHandler::UpdateSprite(size_t index, uint8_t id, int x,
                                             int y, int subtype, int layer,
                                             int key_drop) {
   mutation_status_ = absl::OkStatus();
-  if (!HasValidContext() ||
-      !ValidateSpriteProperties(id, x, y, subtype, layer, key_drop).ok()) {
+  if (!HasValidContext()) {
+    return false;
+  }
+  mutation_status_ =
+      ValidateSpriteProperties(id, x, y, subtype, layer, key_drop);
+  if (!mutation_status_.ok()) {
+    if (mutation_error_callback_) {
+      mutation_error_callback_(mutation_status_);
+    }
     return false;
   }
   auto* room = GetCurrentRoom();
