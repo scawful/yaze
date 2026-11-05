@@ -6,6 +6,9 @@
 #include "util/log.h"
 
 #include "httplib.h"
+#ifdef ERROR
+#undef ERROR
+#endif
 
 namespace yaze {
 namespace cli {

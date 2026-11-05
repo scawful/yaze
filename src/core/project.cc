@@ -43,6 +43,9 @@
 #include "app/platform/wasm/wasm_storage.h"
 #elif defined(_WIN32)
 #include <windows.h>
+#ifdef ERROR
+#undef ERROR
+#endif
 #else
 #include <unistd.h>
 #endif
