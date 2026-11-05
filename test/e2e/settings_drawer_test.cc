@@ -2,12 +2,21 @@
 
 #include "e2e/settings_drawer_test.h"
 
+#include <chrono>
+#include <filesystem>
+#include <fstream>
+#include <iterator>
+#include <memory>
 #include <string>
+#include <utility>
+
+#include "absl/cleanup/cleanup.h"
 
 #include "app/controller.h"
 #include "app/editor/editor_manager.h"
 #include "app/editor/menu/right_drawer_manager.h"
 #include "app/editor/shell/coordinator/ui_coordinator.h"
+#include "app/editor/shell/windows/project_management_panel.h"
 #include "app/gui/core/icons.h"
 #include "imgui/imgui_internal.h"
 #include "imgui_test_engine/imgui_te_context.h"
@@ -274,6 +283,142 @@ void E2ETest_SettingsDrawerMainMenus(ImGuiTestContext* ctx) {
   CloseDrawers(ctx, drawers);
 }
 
+namespace {
+
+struct ProjectBuildFieldsState {
+  std::unique_ptr<yaze::project::YazeProject> project;
+  yaze::editor::ProjectManagementPanel panel;
+  std::filesystem::path root;
+  bool active = false;
+  bool fail_save = false;
+  int save_count = 0;
+};
+
+ProjectBuildFieldsState& BuildFieldsState() {
+  static ProjectBuildFieldsState state;
+  return state;
+}
+
+void DrawProjectBuildFields(ImGuiTestContext*) {
+  auto& state = BuildFieldsState();
+  if (!state.active) {
+    return;
+  }
+  ImGui::SetNextWindowPos(ImVec2(20, 20), ImGuiCond_Always);
+  ImGui::SetNextWindowSize(ImVec2(720, 640), ImGuiCond_Always);
+  if (ImGui::Begin("Project Build Fields", nullptr,
+                   ImGuiWindowFlags_NoSavedSettings)) {
+    state.panel.Draw();
+  }
+  ImGui::End();
+}
+
+void LongProjectBuildFieldsRoundtrip(ImGuiTestContext* ctx) {
+  auto& state = BuildFieldsState();
+  state.root =
+      std::filesystem::temp_directory_path() /
+      ("yaze-long-build-fields-" +
+       std::to_string(
+           std::chrono::steady_clock::now().time_since_epoch().count()));
+  std::error_code error;
+  std::filesystem::create_directories(state.root, error);
+  IM_CHECK(!error);
+  absl::Cleanup cleanup = [&] {
+    state.active = false;
+    state.panel.SetProject(nullptr);
+    state.panel.SetSaveProjectCallback({});
+    state.project.reset();
+    if (ctx->IsError()) {
+      ctx->LogInfo("Retained failed project fixture: %s",
+                   state.root.string().c_str());
+    } else {
+      std::filesystem::remove_all(state.root, error);
+    }
+  };
+  const auto project_path = state.root / "project.yaze";
+  const std::string initial_script =
+      "echo '" + std::string(4096, 'a') + " initial-script-tail'";
+  std::string initial_target = "output/";
+  for (int part = 0; part < 36; ++part) {
+    initial_target += "expanded-data/";
+  }
+  initial_target += "candidatex.sfc";
+  IM_CHECK_GT(initial_script.size(), 511u);
+  IM_CHECK_GT(initial_target.size(), 255u);
+
+  state.project = std::make_unique<yaze::project::YazeProject>();
+  state.project->name = "Long build fields";
+  state.project->filepath = project_path.string();
+  state.project->build_script = initial_script;
+  state.project->build_target = initial_target;
+  IM_CHECK(state.project->Save().ok());
+  const auto read_project = [&] {
+    std::ifstream input(project_path, std::ios::binary);
+    return std::string(std::istreambuf_iterator<char>(input), {});
+  };
+  const std::string before = read_project();
+  state.fail_save = true;
+  state.save_count = 0;
+  state.panel.SetProject(state.project.get());
+  state.panel.SetSaveProjectCallback([&state] {
+    ++state.save_count;
+    return state.fail_save
+               ? absl::InternalError("Expected build-fields save failure")
+               : state.project->Save();
+  });
+  state.active = true;
+  ctx->Yield(2);
+  ctx->SetRef("Project Build Fields");
+
+  // Append to a loaded long value: replacing the whole field would miss
+  // truncation during SetProject/ReloadProjectBuffers.
+  const std::string script_edit = " && echo edited-script-tail";
+  const std::string target_edit = ".edited";
+  ctx->ItemInput("##build_script");
+  ctx->KeyCharsAppendEnter(script_edit.c_str());
+  ctx->ItemInput("##build_target");
+  ctx->KeyCharsAppendEnter(target_edit.c_str());
+  IM_CHECK(state.project->build_script == initial_script + script_edit);
+  IM_CHECK(state.project->build_target == initial_target + target_edit);
+  IM_CHECK(state.panel.IsProjectDirty());
+
+  ctx->ItemClick(ICON_MD_SAVE " Save Project");
+  IM_CHECK_EQ(state.save_count, 1);
+  IM_CHECK(state.panel.IsProjectDirty());
+  IM_CHECK(read_project() == before);
+  state.fail_save = false;
+  ctx->ItemClick(ICON_MD_SAVE " Save Project");
+  IM_CHECK_EQ(state.save_count, 2);
+  IM_CHECK(!state.panel.IsProjectDirty());
+
+  auto reopened = std::make_unique<yaze::project::YazeProject>();
+  IM_CHECK(reopened->Open(project_path.string()).ok());
+  IM_CHECK(reopened->build_script == initial_script + script_edit);
+  IM_CHECK(reopened->build_target == initial_target + target_edit);
+  state.project = std::move(reopened);
+  state.panel.SetProject(state.project.get());
+  ctx->Yield(2);
+
+  // Exercise the actual inputs again after persistence and buffer reload.
+  const std::string second_script_edit = " && echo reopened-script-tail";
+  const std::string second_target_edit = ".reopened";
+  ctx->ItemInput("##build_script");
+  ctx->KeyCharsAppendEnter(second_script_edit.c_str());
+  ctx->ItemInput("##build_target");
+  ctx->KeyCharsAppendEnter(second_target_edit.c_str());
+  ctx->ItemClick(ICON_MD_SAVE " Save Project");
+  IM_CHECK_EQ(state.save_count, 3);
+  IM_CHECK(!state.panel.IsProjectDirty());
+  yaze::project::YazeProject final_project;
+  IM_CHECK(final_project.Open(project_path.string()).ok());
+  IM_CHECK(final_project.build_script ==
+           initial_script + script_edit + second_script_edit);
+  IM_CHECK(final_project.build_target ==
+           initial_target + target_edit + second_target_edit);
+}
+
+}  // namespace
+
 namespace yaze {
 namespace test {
 namespace e2e {
@@ -299,6 +444,10 @@ void RegisterSettingsDrawerTests(ImGuiTestEngine* engine,
     t->TestFunc = e.func;
     t->UserData = controller;
   }
+  ImGuiTest* build_fields =
+      IM_REGISTER_TEST(engine, "ProjectManagement", "LongBuildFieldsRoundtrip");
+  build_fields->GuiFunc = DrawProjectBuildFields;
+  build_fields->TestFunc = LongProjectBuildFieldsRoundtrip;
 }
 
 }  // namespace e2e

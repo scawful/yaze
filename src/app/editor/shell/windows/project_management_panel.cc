@@ -10,6 +10,7 @@
 #include "app/gui/core/theme_manager.h"
 #include "app/gui/core/ui_helpers.h"
 #include "imgui/imgui.h"
+#include "imgui/misc/cpp/imgui_stdlib.h"
 #include "rom/rom.h"
 #include "util/platform_paths.h"
 #include "yaze_config.h"
@@ -90,8 +91,8 @@ void ProjectManagementPanel::ReloadProjectBuffers() {
     description_buffer_.fill('\0');
     code_buffer_.fill('\0');
     assets_buffer_.fill('\0');
-    build_buffer_.fill('\0');
-    script_buffer_.fill('\0');
+    build_buffer_.clear();
+    script_buffer_.clear();
     return;
   }
 
@@ -100,8 +101,8 @@ void ProjectManagementPanel::ReloadProjectBuffers() {
   CopyToBuffer(&description_buffer_, project_->metadata.description);
   CopyToBuffer(&code_buffer_, project_->code_folder);
   CopyToBuffer(&assets_buffer_, project_->assets_folder);
-  CopyToBuffer(&build_buffer_, project_->build_target);
-  CopyToBuffer(&script_buffer_, project_->build_script);
+  build_buffer_ = project_->build_target;
+  script_buffer_ = project_->build_script;
 }
 
 absl::Status ProjectManagementPanel::SaveProjectEdits() {
@@ -574,18 +575,16 @@ void ProjectManagementPanel::DrawQuickActions() {
   // Editable Build target
   ImGui::TextColored(gui::GetTextSecondaryVec4(), tr("Build Target:"));
   ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-  if (ImGui::InputText("##build_target", build_buffer_.data(),
-                       build_buffer_.size())) {
-    project_->build_target = build_buffer_.data();
+  if (ImGui::InputText("##build_target", &build_buffer_)) {
+    project_->build_target = build_buffer_;
     project_dirty_ = true;
   }
 
   // Build script
   ImGui::TextColored(gui::GetTextSecondaryVec4(), tr("Build Script:"));
   ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-  if (ImGui::InputText("##build_script", script_buffer_.data(),
-                       script_buffer_.size())) {
-    project_->build_script = script_buffer_.data();
+  if (ImGui::InputText("##build_script", &script_buffer_)) {
+    project_->build_script = script_buffer_;
     project_dirty_ = true;
   }
 }

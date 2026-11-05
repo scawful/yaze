@@ -124,8 +124,8 @@ class ProjectManagementPanel {
   std::array<char, 1024> description_buffer_{};
   std::array<char, 512> code_buffer_{};
   std::array<char, 512> assets_buffer_{};
-  std::array<char, 256> build_buffer_{};
-  std::array<char, 512> script_buffer_{};
+  std::string build_buffer_;
+  std::string script_buffer_;
 
   ProjectWorkflowStatus build_status_;
   ProjectWorkflowStatus run_status_;
