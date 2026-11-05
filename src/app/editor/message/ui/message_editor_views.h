@@ -188,6 +188,35 @@ class DictionaryPanel : public WindowContent {
   DrawCallback draw_callback_;
 };
 
+/**
+ * @brief WindowContent for per-message review status, comments and context
+ */
+class MessageReviewPanel : public WindowContent {
+ public:
+  using DrawCallback = std::function<void()>;
+
+  explicit MessageReviewPanel(DrawCallback draw_callback)
+      : draw_callback_(std::move(draw_callback)) {}
+
+  std::string GetId() const override { return "message.review"; }
+  std::string GetDisplayName() const override { return "Dialogue Review"; }
+  std::string GetIcon() const override { return ICON_MD_RATE_REVIEW; }
+  std::string GetEditorCategory() const override { return "Message"; }
+  WindowPresentationPolicy GetPresentationPolicy() const override {
+    return WindowPresentationPolicy::OptionalPopOut();
+  }
+  int GetPriority() const override { return 22; }
+
+  void Draw(bool* p_open) override {
+    if (draw_callback_) {
+      draw_callback_();
+    }
+  }
+
+ private:
+  DrawCallback draw_callback_;
+};
+
 }  // namespace editor
 }  // namespace yaze
 

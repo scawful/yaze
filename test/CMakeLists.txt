@@ -365,6 +365,7 @@ if(YAZE_BUILD_TESTS)
     unit/editor/editor_activator_test.cc
     unit/editor/story_event_graph_navigation_test.cc
     unit/editor/message/message_list_query_test.cc
+    unit/editor/message/message_review_test.cc
     unit/editor/message/message_expanded_write_test.cc
     unit/editor/message/message_source_publish_guard_test.cc
     unit/editor/message/message_source_sync_test.cc

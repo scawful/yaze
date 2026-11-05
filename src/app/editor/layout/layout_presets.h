@@ -247,6 +247,7 @@ class LayoutPresets {
     static constexpr const char* kMessageList = "message.message_list";
     static constexpr const char* kMessageEditor = "message.message_editor";
     static constexpr const char* kMessagePreview = "message.preview";
+    static constexpr const char* kMessageReview = "message.review";
     static constexpr const char* kMessageFontAtlas = "message.font_atlas";
     static constexpr const char* kMessageDictionary = "message.dictionary";
 
