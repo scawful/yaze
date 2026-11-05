@@ -1327,7 +1327,7 @@ void PopupManager::DrawLayoutPresetsPopup() {
       {"Designer", ICON_MD_PALETTE,
        "Visual and artistic focused - Graphics/Palettes/Sprites"},
       {"Writer", ICON_MD_CHAT,
-       "Write dialogue with the list, editor, preview, and dictionary"},
+       "Write and review dialogue: list, editor, preview, review notes"},
       {"Modder", ICON_MD_BUILD,
        "Full-featured - All tools available for comprehensive editing"},
       {"Overworld Expert", ICON_MD_MAP,

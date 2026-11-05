@@ -131,6 +131,41 @@ class MessageEditorPublishGuardTestPeer {
     editor.message_preview_.width_array[0] = 0x0C;
     editor.MarkDomainDirty(MessageEditor::SaveDomain::kFontWidths);
   }
+
+  static absl::Status ExportReview(const MessageEditor& editor,
+                                   const std::string& path) {
+    return editor.ExportReviewBundleToFile(path);
+  }
+
+  static void EnsureReviewContext(MessageEditor& editor) {
+    editor.EnsureReviewContextLoaded();
+  }
+
+  static std::string SceneLabel(const MessageEditor& editor, int display_id) {
+    return editor.SceneLabelFor(display_id);
+  }
+
+  static void CreateReviewer(MessageEditor& editor, const std::string& name) {
+    editor.CreateReviewFile(name);
+  }
+
+  static const std::filesystem::path& ReviewPath(const MessageEditor& editor) {
+    return editor.review_path_;
+  }
+
+  static void SetReview(MessageEditor& editor, int display_id,
+                        ReviewStatus status) {
+    editor.SetReviewStatus(display_id, status);
+  }
+
+  static bool ReviewStale(const MessageEditor& editor, int display_id) {
+    return editor.IsReviewStale(display_id);
+  }
+
+  static void SetParsedText(MessageEditor& editor, int display_id,
+                            const std::string& text) {
+    editor.parsed_messages_[display_id] = text;
+  }
 };
 
 namespace {
@@ -971,6 +1006,66 @@ TEST(MessageSourcePublishGuardTest, RomInspectionUsesTheManifestDataStart) {
   EXPECT_EQ(MessageEditorPublishGuardTestPeer::ExpandedText(editor, 0),
             "Hello");
   EXPECT_FALSE(MessageEditorPublishGuardTestPeer::Ready(editor));
+}
+
+TEST(MessageReviewWorkflowTest, ExportForReviewNeverWritesTheCanonicalSource) {
+  PublishFixture fixture;
+  MessageEditor editor(&fixture.rom, fixture.dependencies);
+  ASSERT_TRUE(MessageEditorPublishGuardTestPeer::LoadCanonical(editor).ok());
+  const auto source_before = ReadText(fixture.canonical);
+
+  const auto refused = MessageEditorPublishGuardTestPeer::ExportReview(
+      editor, fixture.canonical.string());
+  EXPECT_EQ(refused.code(), absl::StatusCode::kPermissionDenied);
+  EXPECT_EQ(ReadText(fixture.canonical), source_before);
+
+  const auto out = fixture.root.path() / "for-review.json";
+  ASSERT_TRUE(
+      MessageEditorPublishGuardTestPeer::ExportReview(editor, out.string())
+          .ok());
+  const std::string exported = ReadText(out);
+  EXPECT_NE(exported.find("Alpha"), std::string::npos);
+  EXPECT_NE(exported.find("Beta"), std::string::npos);
+  EXPECT_EQ(ReadText(fixture.canonical), source_before);
+}
+
+TEST(MessageReviewWorkflowTest, ReviewContextLabelsMessagesAndSavesSidecar) {
+  PublishFixture fixture;
+  WriteText(fixture.canonical.parent_path() / "message_registry.json",
+            R"({"format":"oos-message-registry","version":1,"ranges":[
+                {"start":"0x18D","end":"0x18E","status":"occupied",
+                 "owner":"test-owner","purpose":"Fixture messages"}]})");
+  WriteText(fixture.root.path() / "Core/messages.org",
+            "* Dialogue\n** 18D - Alpha Scene\nAlpha\n");
+  MessageEditor editor(&fixture.rom, fixture.dependencies);
+  ASSERT_TRUE(MessageEditorPublishGuardTestPeer::LoadCanonical(editor).ok());
+  MessageEditorPublishGuardTestPeer::EnsureReviewContext(editor);
+
+  EXPECT_EQ(MessageEditorPublishGuardTestPeer::SceneLabel(editor, 0x18D),
+            "Alpha Scene");
+  EXPECT_EQ(MessageEditorPublishGuardTestPeer::SceneLabel(editor, 0x18E),
+            "test-owner");
+
+  MessageEditorPublishGuardTestPeer::CreateReviewer(editor, "Ridoyie");
+  const fs::path expected =
+      fs::canonical(fixture.canonical.parent_path()) / "review/ridoyie.json";
+  EXPECT_EQ(MessageEditorPublishGuardTestPeer::ReviewPath(editor), expected);
+
+  MessageEditorPublishGuardTestPeer::SetReview(editor, 0x18D,
+                                               ReviewStatus::kNeedsChanges);
+  auto saved = LoadMessageReviewFile(expected);
+  ASSERT_TRUE(saved.ok()) << saved.status();
+  EXPECT_EQ(saved->reviewer, "Ridoyie");
+  ASSERT_NE(saved->Find(0x18D), nullptr);
+  EXPECT_EQ(saved->Find(0x18D)->status, ReviewStatus::kNeedsChanges);
+  EXPECT_FALSE(saved->Find(0x18D)->text_sha256.empty());
+  EXPECT_FALSE(MessageEditorPublishGuardTestPeer::ReviewStale(editor, 0x18D));
+
+  MessageEditorPublishGuardTestPeer::SetParsedText(editor, 0x18D,
+                                                   "Alpha\nrevised");
+  EXPECT_TRUE(MessageEditorPublishGuardTestPeer::ReviewStale(editor, 0x18D));
+  MessageEditorPublishGuardTestPeer::SetParsedText(editor, 0x18D, "Al\npha");
+  EXPECT_FALSE(MessageEditorPublishGuardTestPeer::ReviewStale(editor, 0x18D));
 }
 
 }  // namespace yaze::editor

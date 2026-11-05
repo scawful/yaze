@@ -100,6 +100,8 @@ void MessageEditor::Initialize() {
   window_manager->RegisterWindowContent(
       std::make_unique<MessagePreviewPanel>([this]() { DrawPreviewPanel(); }));
   window_manager->RegisterWindowContent(
+      std::make_unique<MessageReviewPanel>([this]() { DrawReviewPanel(); }));
+  window_manager->RegisterWindowContent(
       std::make_unique<FontAtlasPanel>([this]() { DrawFontAtlas(); }));
   window_manager->RegisterWindowContent(std::make_unique<ExpandedSourcePanel>(
       [this]() { DrawExpandedMessageSettings(); }));
@@ -434,13 +436,21 @@ std::vector<MessageEditor::MessageRow> MessageEditor::CollectMessageRows(
   rows.reserve(list_of_texts_.size() + expanded_messages_.size());
   const auto bank = static_cast<MessageBankFilter>(list_bank_filter_);
   const auto consider = [&](int display_id, bool expanded, uint32_t address) {
-    if (apply_filter &&
-        !MessageListQueryMatches(display_id, address,
-                                 ContentsForDisplayId(display_id), expanded,
-                                 bank, list_filter_)) {
-      return;
+    const MessageRow row{display_id, expanded, address};
+    if (apply_filter) {
+      const bool query_matches =
+          MessageListQueryMatches(display_id, address,
+                                  ContentsForDisplayId(display_id), expanded,
+                                  bank, list_filter_) ||
+          (!list_filter_.empty() &&
+           MessageListQueryMatches(display_id, address,
+                                   SceneLabelFor(display_id), expanded, bank,
+                                   list_filter_));
+      if (!query_matches || !RowPassesReviewFilter(row)) {
+        return;
+      }
     }
-    rows.push_back(MessageRow{display_id, expanded, address});
+    rows.push_back(row);
   };
   for (const auto& message : list_of_texts_) {
     consider(message.ID, false, static_cast<uint32_t>(message.Address));
@@ -1237,6 +1247,11 @@ void MessageEditor::DrawMessageHeader() {
 
   ImGui::SameLine();
   ImGui::Text("$%04X", CurrentDisplayId() & 0xFFFF);
+  const std::string scene = SceneLabelFor(CurrentDisplayId());
+  if (!scene.empty()) {
+    ImGui::SameLine();
+    ImGui::TextUnformatted(scene.c_str());
+  }
   ImGui::SameLine();
   gui::StatusBadge(
       current_message_is_expanded_ ? tr("Expanded") : tr("Vanilla"),
@@ -1295,6 +1310,7 @@ void MessageEditor::DrawMessageHeader() {
 }
 
 void MessageEditor::DrawMessageList() {
+  EnsureReviewContextLoaded();
   DrawExpandedSourceBanner();
   gui::LayoutHelpers::BeginToolbar("##MessageListTools");
   if (gui::LayoutHelpers::ToolbarButton(ICON_MD_UPLOAD)) {
@@ -1308,22 +1324,10 @@ void MessageEditor::DrawMessageList() {
   }
   ImGui::SameLine();
   if (gui::LayoutHelpers::ToolbarButton(ICON_MD_DOWNLOAD)) {
-    const std::string path = util::FileDialogWrapper::ShowSaveFileDialog();
-    if (!path.empty()) {
-      auto status =
-          ExportMessageBundleToJson(path, list_of_texts_, expanded_messages_);
-      if (!status.ok()) {
-        message_bundle_status_ =
-            absl::StrFormat("Export failed: %s", status.message());
-        message_bundle_status_error_ = true;
-      } else {
-        message_bundle_status_ = absl::StrFormat("Exported bundle: %s", path);
-        message_bundle_status_error_ = false;
-      }
-    }
+    ExportForReview();
   }
   if (ImGui::IsItemHovered()) {
-    ImGui::SetTooltip("Export message bundle");
+    ImGui::SetTooltip("Export message bundle for review");
   }
   gui::LayoutHelpers::EndToolbar();
 
@@ -1353,6 +1357,8 @@ void MessageEditor::DrawMessageList() {
 
   const std::vector<MessageRow> rows = CollectMessageRows(true);
   const int total = static_cast<int>(CollectMessageRows(false).size());
+  DrawReviewListFilter();
+  ImGui::SameLine();
   ImGui::TextDisabled("%d / %d", static_cast<int>(rows.size()), total);
 
   if (list_of_texts_.empty() && expanded_messages_.empty()) {
@@ -1371,6 +1377,7 @@ void MessageEditor::DrawMessageList() {
     empty.on_action = [this]() {
       list_filter_.clear();
       list_bank_filter_ = 0;
+      list_review_filter_ = 0;
     };
     gui::DrawEmptyState(empty);
     return;
@@ -1380,7 +1387,7 @@ void MessageEditor::DrawMessageList() {
       ImGuiTableFlags_Hideable | ImGuiTableFlags_Borders |
       ImGuiTableFlags_Resizable | ImGuiTableFlags_RowBg |
       ImGuiTableFlags_ScrollY;
-  if (!BeginTable("##MessagesTable", 4, kListFlags, ImVec2(0, 0))) {
+  if (!BeginTable("##MessagesTable", 6, kListFlags, ImVec2(0, 0))) {
     return;
   }
   TableSetupColumn("ID", ImGuiTableColumnFlags_WidthFixed, 64);
@@ -1388,7 +1395,9 @@ void MessageEditor::DrawMessageList() {
       ImGuiTableColumnFlags_WidthFixed |
       (expanded_messages_.empty() ? ImGuiTableColumnFlags_DefaultHide : 0);
   TableSetupColumn("Bank", bank_flags, 84);
-  TableSetupColumn("Contents", ImGuiTableColumnFlags_WidthStretch);
+  TableSetupColumn("Scene", ImGuiTableColumnFlags_WidthStretch, 0.35f);
+  TableSetupColumn("Contents", ImGuiTableColumnFlags_WidthStretch, 0.65f);
+  TableSetupColumn("Review", ImGuiTableColumnFlags_WidthFixed, 44);
   TableSetupColumn(
       "Address",
       ImGuiTableColumnFlags_WidthFixed | ImGuiTableColumnFlags_DefaultHide, 90);
@@ -1473,9 +1482,16 @@ void MessageEditor::DrawMessageList() {
       }
 
       TableNextColumn();
+      const std::string scene = SceneLabelFor(message.display_id);
+      ImGui::TextUnformatted(scene.c_str());
+
+      TableNextColumn();
       const std::string preview =
           MessageListPreview(ContentsForDisplayId(message.display_id));
       ImGui::TextUnformatted(preview.c_str());
+
+      TableNextColumn();
+      DrawReviewCell(message.display_id);
 
       TableNextColumn();
       ImGui::TextUnformatted(util::HexLong(message.address).c_str());
@@ -1814,11 +1830,16 @@ void MessageEditor::DrawExpandedMessageSettings() {
       OpenMessageById(display_id);
     }
   }
-  ImGui::SameLine();
-  if (ImGui::Button(tr("Export to JSON"))) {
-    std::string path = util::FileDialogWrapper::ShowSaveFileDialog();
-    if (!path.empty()) {
-      PRINT_IF_ERROR(ExportMessagesToJson(path, expanded_messages_));
+  if (ImGui::CollapsingHeader(tr("Advanced"))) {
+    if (ImGui::Button(tr("Legacy JSON export"))) {
+      std::string path = util::FileDialogWrapper::ShowSaveFileDialog();
+      if (!path.empty()) {
+        PRINT_IF_ERROR(ExportMessagesToJson(path, expanded_messages_));
+      }
+    }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip(
+          "Older expanded-only format. Use Export for review for handoffs.");
     }
   }
 
