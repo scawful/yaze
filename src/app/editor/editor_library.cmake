@@ -147,6 +147,7 @@ set(
   app/editor/message/message_editor.cc
   app/editor/message/message_editor_font.cc
   app/editor/message/message_editor_review.cc
+  app/editor/message/message_editor_source_ui.cc
   app/editor/message/message_preview.cc
   app/editor/message/message_review.cc
   app/editor/message/message_source_sync.cc
