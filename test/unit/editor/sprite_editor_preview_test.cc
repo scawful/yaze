@@ -459,5 +459,24 @@ TEST_F(RegisteredSpritePreviewTest,
   EXPECT_EQ(SpriteEditorPreviewTestPeer::Sheet(*editor_, 4), 0x92);
 }
 
+TEST(SpriteFrameStepTest, ClampsToLastFrame) {
+  EXPECT_EQ(internal::StepFrameIndex(0, 1, 3), 1);
+  EXPECT_EQ(internal::StepFrameIndex(1, 1, 3), 2);
+  EXPECT_EQ(internal::StepFrameIndex(2, 1, 3), 2);
+  EXPECT_EQ(internal::StepFrameIndex(0, 1, 1), 0);
+}
+
+TEST(SpriteFrameStepTest, ClampsToFirstFrame) {
+  EXPECT_EQ(internal::StepFrameIndex(1, -1, 3), 0);
+  EXPECT_EQ(internal::StepFrameIndex(0, -1, 3), 0);
+  // A stale -1 (sprite without frames earlier) lands on the first frame.
+  EXPECT_EQ(internal::StepFrameIndex(-1, 1, 3), 0);
+}
+
+TEST(SpriteFrameStepTest, NoFramesLeavesIndexAlone) {
+  EXPECT_EQ(internal::StepFrameIndex(0, 1, 0), 0);
+  EXPECT_EQ(internal::StepFrameIndex(-1, 1, 0), -1);
+}
+
 }  // namespace
 }  // namespace yaze::editor

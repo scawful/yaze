@@ -82,6 +82,7 @@ void SpriteEditor::Initialize() {
   // EditorPanels provide both metadata (icon, name, priority) and drawing logic
   window_manager->RegisterWindowContent(
       std::make_unique<VanillaSpriteEditorPanel>([this]() {
+        NoteShortcutFocus();
         if (rom_ && rom_->is_loaded()) {
           DrawVanillaSpriteEditor();
         } else {
@@ -90,8 +91,10 @@ void SpriteEditor::Initialize() {
       }));
 
   window_manager->RegisterWindowContent(
-      std::make_unique<CustomSpriteEditorPanel>(
-          [this]() { DrawCustomSprites(); }));
+      std::make_unique<CustomSpriteEditorPanel>([this]() {
+        NoteShortcutFocus();
+        DrawCustomSprites();
+      }));
   window_manager->RegisterWindowContent(
       std::make_unique<SpriteCatalogPanel>([this]() { DrawSpriteCatalog(); }));
 }
@@ -141,32 +144,45 @@ absl::Status SpriteEditor::Update() {
 }
 
 void SpriteEditor::HandleEditorShortcuts() {
-  // Animation playback shortcuts (when custom sprite panel is active)
-  if (ImGui::IsKeyPressed(ImGuiKey_Space, false) &&
-      !ImGui::GetIO().WantTextInput) {
+  // These keys are editor-wide, so they act only while one of this editor's
+  // panels has focus and no text field is taking input.
+  const bool panel_focused = shortcut_focus_;
+  shortcut_focus_ = false;
+  const ImGuiIO& io = ImGui::GetIO();
+  if (!panel_focused || io.WantTextInput) {
+    return;
+  }
+
+  // Animation playback
+  if (ImGui::IsKeyPressed(ImGuiKey_Space, false)) {
     animation_playing_ = !animation_playing_;
   }
 
   // Frame navigation
-  if (ImGui::IsKeyPressed(ImGuiKey_LeftBracket, false)) {
-    if (current_frame_ > 0) {
-      current_frame_--;
+  const bool bare_keys = !io.KeyCtrl && !io.KeyAlt && !io.KeySuper;
+  if (const auto* sprite = current_custom_sprite(); sprite && bare_keys) {
+    const int frame_count = static_cast<int>(sprite->editor.Frames.size());
+    int step = 0;
+    if (ImGui::IsKeyPressed(ImGuiKey_LeftBracket, false)) {
+      step = -1;
+    } else if (ImGui::IsKeyPressed(ImGuiKey_RightBracket, false)) {
+      step = 1;
+    }
+    const int next =
+        internal::StepFrameIndex(current_frame_, step, frame_count);
+    if (step != 0 && next != current_frame_) {
+      current_frame_ = next;
       preview_needs_update_ = true;
     }
   }
-  if (ImGui::IsKeyPressed(ImGuiKey_RightBracket, false)) {
-    current_frame_++;
-    preview_needs_update_ = true;
-  }
 
   // Sprite navigation
-  if (ImGui::GetIO().KeyCtrl && ImGui::IsKeyPressed(ImGuiKey_UpArrow, false)) {
+  if (io.KeyCtrl && ImGui::IsKeyPressed(ImGuiKey_UpArrow, false)) {
     if (current_sprite_id_ > 0) {
       SelectVanillaSprite(current_sprite_id_ - 1);
     }
   }
-  if (ImGui::GetIO().KeyCtrl &&
-      ImGui::IsKeyPressed(ImGuiKey_DownArrow, false)) {
+  if (io.KeyCtrl && ImGui::IsKeyPressed(ImGuiKey_DownArrow, false)) {
     SelectVanillaSprite(current_sprite_id_ + 1);
   }
 }
