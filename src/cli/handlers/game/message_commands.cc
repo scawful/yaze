@@ -51,8 +51,8 @@ std::vector<editor::MessageData> ReadVanillaMessages(const Rom& rom) {
   if (rom.size() <= static_cast<size_t>(editor::kTextData)) {
     return {};
   }
-  const int end = static_cast<int>(std::min(
-      rom.size(), static_cast<size_t>(std::numeric_limits<int>::max())));
+  const int end = static_cast<int>(
+      std::min<size_t>(rom.size(), std::numeric_limits<int>::max()));
   return editor::ReadAllTextData(const_cast<uint8_t*>(rom.data()),
                                  editor::kTextData, end);
 }
