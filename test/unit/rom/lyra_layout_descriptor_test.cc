@@ -860,7 +860,7 @@ TEST(LyraLayoutDescriptorTest, Revision4AppearanceRecordSealAndPaletteWords) {
   EXPECT_EQ((*saved)[f], 3);
   EXPECT_EQ((*saved)[fixture.Entry(411).pc_address + (0xBF - 0x80) * 256 + 2],
             0x34);
-  gfx::SnesPalette palette(256);
+  gfx::SnesPalette palette(std::vector<uint16_t>(256, 0));
   std::array<uint16_t, 128> words{};
   const uint8_t* row =
       saved->data() + fixture.Entry(411).pc_address + (0xBF - 0x80) * 256;
@@ -1917,10 +1917,14 @@ TEST_F(NativeSpecialOverworldEditorTest, ScreenAppearanceSaveUndoAndReopen) {
         fixture.bytes[fixture.Entry(30).pc_address + member] = 1;
         fixture.bytes[fixture.Entry(410).pc_address + member] = 1;
         fixture.bytes[fixture.Entry(2).pc_address + member] = member & 1;
+        fixture.bytes[fixture.Entry(27).pc_address + member] = member & 1;
+        fixture.bytes[fixture.Entry(31).pc_address + member] = member & 1;
       }
     }
     fixture.bytes[fixture.Entry(410).pc_address + page] = 1;
     fixture.bytes[fixture.Entry(2).pc_address + page] = 1;
+    fixture.bytes[fixture.Entry(27).pc_address + page] = 1;
+    fixture.bytes[fixture.Entry(31).pc_address + page] = 1;
     fixture.Word(fixture.Entry(411).pc_address + (page - 0x80) * 256 + 10,
                  0x1234);
     fixture.Seal();
@@ -1955,10 +1959,18 @@ TEST_F(NativeSpecialOverworldEditorTest, ScreenAppearanceSaveUndoAndReopen) {
     }
     ASSERT_TRUE(apply(Field::kMainPalette, 0, 2).ok());
     EXPECT_EQ(screen->main_palette(), 2);
+    ASSERT_TRUE(apply(Field::kAreaPalette, 0, 2).ok());
+    ASSERT_TRUE(apply(Field::kAreaGraphics, 0, 2).ok());
+    EXPECT_EQ(screen->area_palette(), 2);
+    EXPECT_EQ(screen->area_graphics(), 2);
     if (capacity == 192) {
       EXPECT_EQ(world.overworld_map(0xB0)->main_palette(), 0);
       EXPECT_EQ(world.overworld_map(0xB8)->main_palette(), 0);
       EXPECT_EQ(world.overworld_map(0xB9)->main_palette(), 1);
+      for (int other : {0xB0, 0xB8, 0xB9}) {
+        EXPECT_EQ(world.overworld_map(other)->area_palette(), other & 1);
+        EXPECT_EQ(world.overworld_map(other)->area_graphics(), other & 1);
+      }
     }
     ASSERT_TRUE(apply(Field::kScreenColor, 5, 0x3210).ok());
     const auto changed = world.CaptureNativeAreaSnapshot();
@@ -2006,10 +2018,14 @@ TEST_F(NativeSpecialOverworldEditorTest, ScreenAppearanceSaveUndoAndReopen) {
     EXPECT_EQ(restored->pages[page].appearance_flags, 3);
     EXPECT_EQ(restored->pages[page].appearance_bg_palette[5], 0x3210);
     EXPECT_EQ(restored->pages[page].main_palette, 2);
+    EXPECT_EQ(restored->profiles[page].palette, 2);
+    EXPECT_EQ(restored->profiles[page].graphics, 2);
     EXPECT_EQ(restored->geometry, before->geometry);
     for (int other = 0; other < capacity; ++other)
-      if (other != page)
+      if (other != page) {
         EXPECT_EQ(restored->pages[other], before->pages[other]);
+        EXPECT_EQ(restored->profiles[other], before->profiles[other]);
+      }
     ASSERT_TRUE(editor->Redo().ok());
     const auto cleared = manager->SaveCurrentSession(false);
     ASSERT_TRUE(cleared.ok()) << cleared;

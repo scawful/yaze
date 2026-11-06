@@ -683,8 +683,10 @@ void MapRefreshCoordinator::RefreshMapProperties(int map_id) {
           continue;
         }
         auto& map = *ctx_.overworld->mutable_overworld_map(sibling_index);
-        map.set_area_graphics(current_ow_map.area_graphics());
-        map.set_area_palette(current_ow_map.area_palette());
+        if (!map.uses_native_screen_appearance()) {
+          map.set_area_graphics(current_ow_map.area_graphics());
+          map.set_area_palette(current_ow_map.area_palette());
+        }
         map.set_sprite_graphics(game_state,
                                 current_ow_map.sprite_graphics(game_state));
         map.set_sprite_palette(game_state,
