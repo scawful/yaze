@@ -19,66 +19,6 @@
 
 using namespace yaze::editor;
 
-namespace {
-
-// Convert 8BPP linear tile data to 4BPP SNES planar format
-// Input: 64 bytes per tile (1 byte per pixel, linear row-major order)
-// Output: 32 bytes per tile (4 bitplanes interleaved per SNES 4BPP format)
-std::vector<uint8_t> ConvertLinear8bppToPlanar4bpp(
-    const std::vector<uint8_t>& linear_data) {
-  size_t num_tiles = linear_data.size() / 64;        // 64 bytes per 8x8 tile
-  std::vector<uint8_t> planar_data(num_tiles * 32);  // 32 bytes per tile
-
-  for (size_t tile = 0; tile < num_tiles; ++tile) {
-    const uint8_t* src = linear_data.data() + tile * 64;
-    uint8_t* dst = planar_data.data() + tile * 32;
-
-    for (int row = 0; row < 8; ++row) {
-      uint8_t bp0 = 0, bp1 = 0, bp2 = 0, bp3 = 0;
-
-      for (int col = 0; col < 8; ++col) {
-        uint8_t pixel = src[row * 8 + col] & 0x0F;  // Low 4 bits only
-        int bit = 7 - col;                          // MSB first
-
-        bp0 |= ((pixel >> 0) & 1) << bit;
-        bp1 |= ((pixel >> 1) & 1) << bit;
-        bp2 |= ((pixel >> 2) & 1) << bit;
-        bp3 |= ((pixel >> 3) & 1) << bit;
-      }
-
-      // SNES 4BPP interleaving: bp0,bp1 for rows 0-7 first, then bp2,bp3
-      dst[row * 2] = bp0;
-      dst[row * 2 + 1] = bp1;
-      dst[16 + row * 2] = bp2;
-      dst[16 + row * 2 + 1] = bp3;
-    }
-  }
-
-  return planar_data;
-}
-
-// Convert SNES LoROM address to PC (file) offset
-// ALTTP uses LoROM mapping:
-// - Banks $00-$3F: Address $8000-$FFFF maps to ROM
-// - Each bank contributes 32KB ($8000 bytes) of ROM data
-// - PC = (bank & 0x7F) * 0x8000 + (addr - 0x8000)
-// Takes a 24-bit SNES address (e.g., 0x018200 = bank $01, addr $8200)
-uint32_t SnesToPc(uint32_t snes_addr) {
-  uint8_t bank = (snes_addr >> 16) & 0xFF;
-  uint16_t addr = snes_addr & 0xFFFF;
-
-  // LoROM: banks $00-$3F map to ROM ($8000-$FFFF only)
-  // Each bank = 32KB of ROM, so multiply bank by 0x8000
-  // Formula: PC = (bank & 0x7F) * 0x8000 + (addr - 0x8000)
-  if (addr >= 0x8000) {
-    return (bank & 0x7F) * 0x8000 + (addr - 0x8000);
-  }
-  // For addresses below $8000, return as-is (WRAM/hardware regs)
-  return snes_addr;
-}
-
-}  // namespace
-
 namespace yaze {
 namespace gui {
 
@@ -86,11 +26,7 @@ DungeonObjectEmulatorPreview::DungeonObjectEmulatorPreview() {
   // Defer SNES initialization until actually needed to reduce startup memory
 }
 
-DungeonObjectEmulatorPreview::~DungeonObjectEmulatorPreview() {
-  // if (object_texture_) {
-  //   renderer_->DestroyTexture(object_texture_);
-  // }
-}
+DungeonObjectEmulatorPreview::~DungeonObjectEmulatorPreview() {}
 
 void DungeonObjectEmulatorPreview::Initialize(
     gfx::IRenderer* renderer, Rom* rom, zelda3::GameData* game_data,
@@ -101,7 +37,6 @@ void DungeonObjectEmulatorPreview::Initialize(
   render_service_ = render_service;
   // Defer SNES initialization until EnsureInitialized() is called
   // This avoids a ~2MB ROM copy during startup
-  // object_texture_ = renderer_->CreateTexture(256, 256);
 }
 
 void DungeonObjectEmulatorPreview::EnsureInitialized() {
@@ -428,7 +363,7 @@ void DungeonObjectEmulatorPreview::TriggerEmulatedRender() {
   constexpr uint32_t kSpriteAuxPaletteSnes =
       0x0DD308;  // SNES: bank $0D, addr $D308
   const uint32_t kSpriteAuxPalettePc =
-      SnesToPc(kSpriteAuxPaletteSnes);  // PC: $65308
+      emu::render::SnesToPc(kSpriteAuxPaletteSnes);  // PC: $65308
   for (int i = 0; i < 30; ++i) {
     uint32_t addr = kSpriteAuxPalettePc + i * 2;
     if (addr + 1 < rom_->size()) {
@@ -445,9 +380,8 @@ void DungeonObjectEmulatorPreview::TriggerEmulatedRender() {
   default_room.CopyRoomGraphicsToBuffer();
   const auto& gfx_buffer = default_room.get_gfx_buffer();
 
-  // Convert 8BPP linear to 4BPP SNES planar format using local function
   std::vector<uint8_t> linear_data(gfx_buffer.begin(), gfx_buffer.end());
-  auto planar_data = ConvertLinear8bppToPlanar4bpp(linear_data);
+  auto planar_data = emu::render::ConvertLinear8bppToPlanar4bpp(linear_data);
 
   // Copy 4BPP planar data to VRAM (32 bytes = 16 words per tile)
   for (size_t i = 0; i < planar_data.size() / 2 && i < 0x8000; ++i) {
@@ -577,8 +511,8 @@ void DungeonObjectEmulatorPreview::TriggerEmulatedRender() {
   }
 
   // Convert SNES addresses to PC offsets for ROM reads
-  uint32_t data_table_pc = SnesToPc(data_table_snes);
-  uint32_t handler_table_pc = SnesToPc(handler_table_snes);
+  uint32_t data_table_pc = emu::render::SnesToPc(data_table_snes);
+  uint32_t handler_table_pc = emu::render::SnesToPc(handler_table_snes);
 
   uint16_t data_offset = 0;
   uint16_t handler_addr = 0;
@@ -831,7 +765,7 @@ void DungeonObjectEmulatorPreview::TriggerStaticRender() {
   constexpr uint32_t kSpriteAuxPaletteSnes =
       0x0DD308;  // SNES: bank $0D, addr $D308
   const uint32_t kSpriteAuxPalettePc =
-      SnesToPc(kSpriteAuxPaletteSnes);  // PC: $65308
+      emu::render::SnesToPc(kSpriteAuxPaletteSnes);  // PC: $65308
   for (int i = 0; i < 30; ++i) {
     uint32_t addr = kSpriteAuxPalettePc + i * 2;
     if (addr + 1 < rom_->size()) {
