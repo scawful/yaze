@@ -6,7 +6,9 @@
 #include <string>
 #include <vector>
 
+#include "absl/cleanup/cleanup.h"
 #include "absl/status/status.h"
+#include "absl/status/statusor.h"
 #include "absl/strings/ascii.h"
 #include "absl/strings/match.h"
 #include "absl/strings/str_format.h"
@@ -504,6 +506,238 @@ void RomLifecycleManager::ApplyDefaultBackupPolicy(bool enabled,
   rom_file_manager_->SetBackupRetentionCount(retention_count);
   rom_file_manager_->SetBackupKeepDaily(keep_daily);
   rom_file_manager_->SetBackupKeepDailyDays(keep_daily_days);
+}
+
+// =============================================================================
+// Project editing work before ROM
+// =============================================================================
+
+namespace {
+
+absl::Status CompareRomBaselineIdentity(
+    const std::optional<RomBaselineIdentity>& captured,
+    const std::optional<RomBaselineIdentity>& current) {
+  if (!captured.has_value() && !current.has_value()) {
+    return absl::OkStatus();
+  }
+  if (captured.has_value() != current.has_value()) {
+    return absl::FailedPreconditionError(
+        "The ROM session baseline changed while saving");
+  }
+  const RomBaselineIdentity& lhs = *captured;
+  const RomBaselineIdentity& rhs = *current;
+  if (lhs.hashes.crc32 != rhs.hashes.crc32 ||
+      lhs.hashes.legacy_crc32 != rhs.hashes.legacy_crc32 ||
+      lhs.hashes.sha1 != rhs.hashes.sha1 ||
+      lhs.normalized_path != rhs.normalized_path ||
+      lhs.editing_source_path != rhs.editing_source_path ||
+      lhs.backing_sha256 != rhs.backing_sha256) {
+    return absl::FailedPreconditionError(
+        "The ROM session baseline changed while saving");
+  }
+  return absl::OkStatus();
+}
+
+}  // namespace
+
+absl::Status RomLifecycleManager::CompareBoundProjectPaths(
+    const std::string& lhs, const std::string& rhs) {
+  const bool lhs_empty = lhs.empty();
+  const bool rhs_empty = rhs.empty();
+  if (lhs_empty && rhs_empty) {
+    return absl::OkStatus();
+  }
+  if (lhs_empty != rhs_empty) {
+    return absl::FailedPreconditionError(
+        "Project identity changed while saving");
+  }
+  if (!SessionCoordinator::PathsReferToSameBackingFile(lhs, rhs)) {
+    return absl::FailedPreconditionError(
+        "Project identity changed while saving");
+  }
+  return absl::OkStatus();
+}
+
+absl::StatusOr<RomLifecycleManager::ProjectEditingSaveBinding>
+RomLifecycleManager::CaptureProjectEditingSaveBinding(
+    size_t session_id, bool session_has_pending_rom_work,
+    const project::YazeProject& live_project) const {
+  if (!session_coordinator_) {
+    return absl::FailedPreconditionError("No session coordinator");
+  }
+  if (session_coordinator_->GetActiveSessionId() != session_id) {
+    return absl::FailedPreconditionError(
+        "Project save must start on the active session");
+  }
+  auto* session = session_coordinator_->GetActiveRomSession();
+  if (session == nullptr || session->session_id() != session_id) {
+    return absl::FailedPreconditionError("No active ROM session");
+  }
+
+  ProjectEditingSaveBinding binding;
+  binding.session_id = session_id;
+  binding.project_snapshot = live_project;
+  binding.session_has_pending_rom_work = session_has_pending_rom_work;
+  binding.rom_object = &session->rom;
+  binding.rom_baseline = session->rom_baseline;
+  binding.rom_was_loaded_at_capture = session->rom.is_loaded();
+  if (binding.rom_was_loaded_at_capture) {
+    binding.rom_backing_path = session->rom.filename();
+  }
+  return binding;
+}
+
+absl::Status RomLifecycleManager::ValidateLiveProjectIdentity(
+    const ProjectEditingSaveBinding& binding,
+    const project::YazeProject& live_project) const {
+  RETURN_IF_ERROR(CompareBoundProjectPaths(live_project.filepath,
+                                           binding.project_snapshot.filepath));
+  return ReacquireActiveProjectEditingSaveSession(binding).status();
+}
+
+absl::Status RomLifecycleManager::ValidateProjectEditingSaveBinding(
+    const RomSession& session, const ProjectEditingSaveBinding& binding) {
+  if (session.session_id() != binding.session_id) {
+    return absl::FailedPreconditionError(
+        "The requested ROM session is no longer available");
+  }
+  if (binding.rom_object == nullptr || &session.rom != binding.rom_object) {
+    return absl::FailedPreconditionError(
+        "The ROM session object changed while saving");
+  }
+  if (session.rom.is_loaded() != binding.rom_was_loaded_at_capture) {
+    return absl::FailedPreconditionError(
+        "The ROM session load state changed while saving");
+  }
+  if (binding.rom_was_loaded_at_capture) {
+    RETURN_IF_ERROR(CompareBoundProjectPaths(session.rom.filename(),
+                                             binding.rom_backing_path));
+  }
+  RETURN_IF_ERROR(
+      CompareRomBaselineIdentity(binding.rom_baseline, session.rom_baseline));
+  if (session.project_context.has_value()) {
+    RETURN_IF_ERROR(CompareBoundProjectPaths(
+        session.project_context->filepath, binding.project_snapshot.filepath));
+  }
+  return absl::OkStatus();
+}
+
+absl::StatusOr<RomSession*>
+RomLifecycleManager::ReacquireActiveProjectEditingSaveSession(
+    const ProjectEditingSaveBinding& binding) const {
+  if (!session_coordinator_) {
+    return absl::FailedPreconditionError("No session coordinator");
+  }
+  if (session_coordinator_->GetActiveSessionId() != binding.session_id) {
+    return absl::FailedPreconditionError(
+        "The active session changed while saving project work");
+  }
+  auto* session = session_coordinator_->GetActiveRomSession();
+  if (session == nullptr || session->session_id() != binding.session_id) {
+    return absl::FailedPreconditionError(
+        "The ROM session is no longer available");
+  }
+  RETURN_IF_ERROR(ValidateProjectEditingSaveBinding(*session, binding));
+  return session;
+}
+
+absl::Status RomLifecycleManager::SaveActiveProjectEditingWorkImpl(
+    const ProjectEditingSaveBinding& binding, bool allow_dialogs,
+    const ActiveProjectEditingSaveCallbacks& callbacks) {
+  if (!callbacks.capture_editing_state || !callbacks.save_project_descriptor ||
+      !callbacks.save_raw_project_file ||
+      !callbacks.raw_draft_targets_current_project) {
+    return absl::FailedPreconditionError(
+        "Project editing save callbacks are incomplete");
+  }
+
+  ASSIGN_OR_RETURN(RomSession * session,
+                   ReacquireActiveProjectEditingSaveSession(binding));
+
+  RETURN_IF_ERROR(session->editors.CheckGfxSourceBlocksOtherDrafts(
+      binding.project_snapshot, binding.session_has_pending_rom_work));
+  ASSIGN_OR_RETURN(session, ReacquireActiveProjectEditingSaveSession(binding));
+
+  RETURN_IF_ERROR(session->editors.SaveGraphicsScratchAssets());
+  ASSIGN_OR_RETURN(session, ReacquireActiveProjectEditingSaveSession(binding));
+
+  RETURN_IF_ERROR(session->editors.SavePendingSpriteWork(allow_dialogs));
+  ASSIGN_OR_RETURN(session, ReacquireActiveProjectEditingSaveSession(binding));
+
+  RETURN_IF_ERROR(callbacks.capture_editing_state(binding));
+  ASSIGN_OR_RETURN(session, ReacquireActiveProjectEditingSaveSession(binding));
+
+  const bool project_dirty = session->project_dirty ||
+                             session->editors.HasPendingProjectDraftChanges();
+  const bool project_file_dirty =
+      session->project_file_editor_state.initialized &&
+      session->project_file_editor_state.modified;
+
+  if (project_dirty && project_file_dirty) {
+    ASSIGN_OR_RETURN(const bool targets_current,
+                     callbacks.raw_draft_targets_current_project(binding));
+    if (targets_current) {
+      return absl::FailedPreconditionError(
+          "Project settings and raw project file both have unsaved changes; "
+          "use raw Save As to preserve the draft, then save project settings");
+    }
+  }
+
+  if (project_dirty) {
+    if (!binding.project_snapshot.project_opened() ||
+        binding.project_snapshot.filepath.empty()) {
+      return absl::FailedPreconditionError(
+          "Project settings have no project file to save");
+    }
+    ASSIGN_OR_RETURN(session,
+                     ReacquireActiveProjectEditingSaveSession(binding));
+    RETURN_IF_ERROR(callbacks.save_project_descriptor(binding));
+    ASSIGN_OR_RETURN(session,
+                     ReacquireActiveProjectEditingSaveSession(binding));
+  }
+
+  if (project_file_dirty) {
+    ASSIGN_OR_RETURN(session,
+                     ReacquireActiveProjectEditingSaveSession(binding));
+    RETURN_IF_ERROR(callbacks.save_raw_project_file(binding));
+    ASSIGN_OR_RETURN(session,
+                     ReacquireActiveProjectEditingSaveSession(binding));
+  }
+
+  return absl::OkStatus();
+}
+
+absl::Status RomLifecycleManager::SaveActiveProjectEditingWork(
+    const ProjectEditingSaveBinding& binding, bool allow_dialogs,
+    const ActiveProjectEditingSaveCallbacks& callbacks) {
+  if (project_save_sequence_active_) {
+    return absl::FailedPreconditionError(
+        "A project save sequence is already in progress");
+  }
+  const bool saved_defer = defer_project_native_completion_;
+  project_save_sequence_active_ = true;
+  const absl::Cleanup cleanup = [this, saved_defer] {
+    defer_project_native_completion_ = saved_defer;
+    project_save_sequence_active_ = false;
+  };
+  return SaveActiveProjectEditingWorkImpl(binding, allow_dialogs, callbacks);
+}
+
+absl::Status RomLifecycleManager::SaveProjectWorkBeforeRomSave(
+    const ProjectEditingSaveBinding& binding, bool allow_dialogs,
+    const ActiveProjectEditingSaveCallbacks& callbacks) {
+  if (project_save_sequence_active_) {
+    return absl::FailedPreconditionError(
+        "A project save sequence is already in progress");
+  }
+  const bool saved_defer = defer_project_native_completion_;
+  project_save_sequence_active_ = true;
+  defer_project_native_completion_ = binding.session_has_pending_rom_work;
+  const absl::Cleanup cleanup = [this, saved_defer] {
+    defer_project_native_completion_ = saved_defer;
+    project_save_sequence_active_ = false;
+  };
+  return SaveActiveProjectEditingWorkImpl(binding, allow_dialogs, callbacks);
 }
 
 }  // namespace yaze::editor

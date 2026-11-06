@@ -109,6 +109,13 @@ class EditorSet {
   // than a build input.
   bool HasPendingBuildProjectDraftChanges() const;
   bool HasPendingPlanningProjectDraftChanges() const;
+  // Refuses session save when graphics-source mode is active but ROM/sprite
+  // drafts would be published alongside a graphics-source save.
+  absl::Status CheckGfxSourceBlocksOtherDrafts(
+      const project::YazeProject& project,
+      bool session_has_pending_rom_work) const;
+  absl::Status SaveGraphicsScratchAssets();
+  absl::Status SavePendingSpriteWork(bool allow_dialogs);
   absl::Status SavePlanningProjectDraft();
   absl::Status PrepareProjectSave(bool publish_lyra = true);
   void ProjectSaveCommitted();

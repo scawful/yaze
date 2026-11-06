@@ -100,6 +100,7 @@ class ExpandedGraphicsLoadTestPeer;
 class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
   friend class EditorManagerLayoutTestPeer;
   friend class ExpandedGraphicsLoadTestPeer;
+  friend class EditorManagerProjectSaveBindingTestPeer;
 
  public:
   struct UiSyncState {
@@ -747,9 +748,8 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
   bool RestoreProjectContextForSession(RomSession* session);
   void RestoreProjectEditingStateForSession(RomSession* session);
   absl::Status SaveActiveProjectEditingWork(bool allow_dialogs = true);
-  // Saves project work; when ROM work is also pending, the ROM save that
-  // follows publishes the one native-save receipt for both.
-  absl::Status SaveProjectWorkBeforeRomSave(bool allow_dialogs);
+  RomLifecycleManager::ActiveProjectEditingSaveCallbacks
+  MakeActiveProjectEditingSaveCallbacks();
   void ApplyProjectSaveSettings(project::YazeProject* project,
                                 bool include_recent_files);
   bool ProjectDescriptorMatchesDisk();
@@ -852,9 +852,6 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
   // ROM lifecycle state (hash, write policy, confirmation dialogs, backups)
   // Mutable because some const accessors delegate to it.
   mutable RomLifecycleManager rom_lifecycle_;
-  // Set while Save Current Session persists project work ahead of a ROM save
-  // whose own native receipt will complete that project Save.
-  bool defer_project_native_completion_ = false;
 
   // Deferred action queue - executed at the start of each frame
   std::vector<std::function<void()>> deferred_actions_;

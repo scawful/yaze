@@ -3,11 +3,14 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <functional>
 #include <optional>
 #include <string>
 #include <vector>
 
 #include "absl/status/status.h"
+#include "absl/status/statusor.h"
+#include "app/editor/session_types.h"
 #include "app/editor/system/session/rom_file_manager.h"
 #include "core/hack_manifest.h"
 #include "core/project.h"
@@ -200,6 +203,51 @@ class RomLifecycleManager {
   std::optional<std::string> pending_rom_save_as_filename() const;
 
   // =========================================================================
+  // Project editing work before ROM (session-owned sequencing)
+  // =========================================================================
+
+  struct ProjectEditingSaveBinding {
+    size_t session_id = SIZE_MAX;
+    project::YazeProject project_snapshot;
+    Rom* rom_object = nullptr;
+    std::optional<RomBaselineIdentity> rom_baseline;
+    std::string rom_backing_path;
+    bool rom_was_loaded_at_capture = false;
+    bool session_has_pending_rom_work = false;
+  };
+
+  struct ActiveProjectEditingSaveCallbacks {
+    std::function<absl::Status(const ProjectEditingSaveBinding&)>
+        capture_editing_state;
+    std::function<absl::Status(const ProjectEditingSaveBinding&)>
+        save_project_descriptor;
+    std::function<absl::Status(const ProjectEditingSaveBinding&)>
+        save_raw_project_file;
+    std::function<absl::StatusOr<bool>(const ProjectEditingSaveBinding&)>
+        raw_draft_targets_current_project;
+  };
+
+  bool ShouldDeferProjectNativeCompletion() const {
+    return defer_project_native_completion_;
+  }
+
+  absl::StatusOr<ProjectEditingSaveBinding> CaptureProjectEditingSaveBinding(
+      size_t session_id, bool session_has_pending_rom_work,
+      const project::YazeProject& live_project) const;
+
+  absl::Status ValidateLiveProjectIdentity(
+      const ProjectEditingSaveBinding& binding,
+      const project::YazeProject& live_project) const;
+
+  absl::Status SaveActiveProjectEditingWork(
+      const ProjectEditingSaveBinding& binding, bool allow_dialogs,
+      const ActiveProjectEditingSaveCallbacks& callbacks);
+
+  absl::Status SaveProjectWorkBeforeRomSave(
+      const ProjectEditingSaveBinding& binding, bool allow_dialogs,
+      const ActiveProjectEditingSaveCallbacks& callbacks);
+
+  // =========================================================================
   // Backup Management (delegates to RomFileManager)
   // =========================================================================
 
@@ -212,6 +260,19 @@ class RomLifecycleManager {
                                 int keep_daily_days);
 
  private:
+  static absl::Status CompareBoundProjectPaths(const std::string& lhs,
+                                               const std::string& rhs);
+
+  static absl::Status ValidateProjectEditingSaveBinding(
+      const RomSession& session, const ProjectEditingSaveBinding& binding);
+
+  absl::StatusOr<RomSession*> ReacquireActiveProjectEditingSaveSession(
+      const ProjectEditingSaveBinding& binding) const;
+
+  absl::Status SaveActiveProjectEditingWorkImpl(
+      const ProjectEditingSaveBinding& binding, bool allow_dialogs,
+      const ActiveProjectEditingSaveCallbacks& callbacks);
+
   struct PendingRomSaveRequest {
     std::optional<std::string> save_as_filename;
     size_t session_index = SIZE_MAX;
@@ -249,6 +310,11 @@ class RomLifecycleManager {
   bool bypass_write_conflict_once_ = false;
 
   std::optional<PendingRomSaveRequest> pending_rom_save_;
+
+  // While project work runs ahead of a ROM save, defer the native receipt until
+  // the ROM write publishes one receipt for both.
+  bool defer_project_native_completion_ = false;
+  bool project_save_sequence_active_ = false;
 };
 
 }  // namespace yaze::editor

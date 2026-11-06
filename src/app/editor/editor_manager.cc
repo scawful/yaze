@@ -3076,7 +3076,15 @@ absl::Status EditorManager::SaveCurrentSession() {
   }
   CaptureActiveProjectEditingState();
   const size_t session_id = GetCurrentSessionId();
-  RETURN_IF_ERROR(SaveProjectWorkBeforeRomSave(/*allow_dialogs=*/true));
+  const size_t session_index = GetCurrentSessionIndex();
+  CaptureActiveProjectContext();
+  ASSIGN_OR_RETURN(const auto binding,
+                   rom_lifecycle_.CaptureProjectEditingSaveBinding(
+                       session_id, SessionHasPendingRomWork(session_index),
+                       current_project_));
+  RETURN_IF_ERROR(rom_lifecycle_.SaveProjectWorkBeforeRomSave(
+      binding, /*allow_dialogs=*/true,
+      MakeActiveProjectEditingSaveCallbacks()));
   if (GetCurrentSessionId() != session_id) {
     return absl::FailedPreconditionError(
         "The active session changed while saving project work");
@@ -3101,15 +3109,6 @@ absl::Status EditorManager::CompletePendingProjectNativeSave() {
   return RecordCompletedNativeSave(current_project_, rom->filename(),
                                    session->native_save_completion_save_as,
                                    /*rom_written=*/false);
-}
-
-absl::Status EditorManager::SaveProjectWorkBeforeRomSave(bool allow_dialogs) {
-  // A project-only receipt failure must not block the following ROM save.
-  defer_project_native_completion_ =
-      SessionHasPendingRomWork(GetCurrentSessionIndex());
-  const auto status = SaveActiveProjectEditingWork(allow_dialogs);
-  defer_project_native_completion_ = false;
-  return status;
 }
 
 absl::Status EditorManager::SaveRom() {
@@ -4275,7 +4274,7 @@ absl::Status EditorManager::SaveProject() {
     return status;
   }
   save_session->native_save_completion_pending = true;
-  if (defer_project_native_completion_) {
+  if (rom_lifecycle_.ShouldDeferProjectNativeCompletion()) {
     return absl::OkStatus();
   }
   return CompletePendingProjectNativeSave();
@@ -4363,65 +4362,70 @@ bool EditorManager::IsCurrentProjectDirty() const {
           session->editors.HasPendingProjectDraftChanges());
 }
 
+RomLifecycleManager::ActiveProjectEditingSaveCallbacks
+EditorManager::MakeActiveProjectEditingSaveCallbacks() {
+  return RomLifecycleManager::ActiveProjectEditingSaveCallbacks{
+      .capture_editing_state =
+          [this](
+              const RomLifecycleManager::ProjectEditingSaveBinding& binding) {
+            RETURN_IF_ERROR(rom_lifecycle_.ValidateLiveProjectIdentity(
+                binding, current_project_));
+            CaptureActiveProjectEditingState();
+            return rom_lifecycle_.ValidateLiveProjectIdentity(binding,
+                                                              current_project_);
+          },
+      .save_project_descriptor =
+          [this](
+              const RomLifecycleManager::ProjectEditingSaveBinding& binding) {
+            RETURN_IF_ERROR(rom_lifecycle_.ValidateLiveProjectIdentity(
+                binding, current_project_));
+            const auto status = SaveProject();
+            RETURN_IF_ERROR(rom_lifecycle_.ValidateLiveProjectIdentity(
+                binding, current_project_));
+            return status;
+          },
+      .save_raw_project_file =
+          [this](const RomLifecycleManager::ProjectEditingSaveBinding& binding)
+          -> absl::Status {
+        RETURN_IF_ERROR(rom_lifecycle_.ValidateLiveProjectIdentity(
+            binding, current_project_));
+        if (project_file_editor_.filepath().empty()) {
+          return absl::FailedPreconditionError(
+              "Project file draft has no destination; use Save As first");
+        }
+        RETURN_IF_ERROR(project_file_editor_.SaveFile());
+        RETURN_IF_ERROR(rom_lifecycle_.ValidateLiveProjectIdentity(
+            binding, current_project_));
+        auto* session = session_coordinator_->GetActiveRomSession();
+        session->project_file_editor_state =
+            project_file_editor_.CaptureState();
+        RETURN_IF_ERROR(rom_lifecycle_.ValidateLiveProjectIdentity(
+            binding, current_project_));
+        return absl::OkStatus();
+      },
+      .raw_draft_targets_current_project =
+          [this](const RomLifecycleManager::ProjectEditingSaveBinding& binding)
+          -> absl::StatusOr<bool> {
+        RETURN_IF_ERROR(rom_lifecycle_.ValidateLiveProjectIdentity(
+            binding, current_project_));
+        return ProjectFileDraftTargetsCurrentProject();
+      },
+  };
+}
+
 absl::Status EditorManager::SaveActiveProjectEditingWork(bool allow_dialogs) {
   if (!session_coordinator_) {
     return absl::FailedPreconditionError("No session coordinator");
   }
-  auto* session = session_coordinator_->GetActiveRomSession();
-  if (!session) {
-    return absl::FailedPreconditionError("No active ROM session");
-  }
-
-  if (core::GfxSheetSource::Selected(current_project_) &&
-      (SessionHasPendingRomWork(GetCurrentSessionIndex()) ||
-       session->editors.HasPendingSpriteChanges()))
-    return absl::FailedPreconditionError(
-        "Save or discard other ROM/source drafts before graphics source Save; "
-        "nothing published");
-  if (auto* graphics = static_cast<GraphicsEditor*>(
-          session->editors.GetExistingEditor(EditorType::kGraphics))) {
-    RETURN_IF_ERROR(graphics->SaveScratchAssets());
-  }
-
-  if (session->editors.HasPendingSpriteChanges()) {
-    auto* sprite = static_cast<SpriteEditor*>(
-        session->editors.GetExistingEditor(EditorType::kSprite));
-    RETURN_IF_ERROR(allow_dialogs ? sprite->Save() : sprite->SaveForAutosave());
-  }
-
-  CaptureActiveProjectEditingState();
-  const bool project_dirty = session->project_dirty ||
-                             session->editors.HasPendingProjectDraftChanges();
-  const bool project_file_dirty =
-      session->project_file_editor_state.initialized &&
-      session->project_file_editor_state.modified;
-
-  if (project_dirty && project_file_dirty &&
-      ProjectFileDraftTargetsCurrentProject()) {
-    return absl::FailedPreconditionError(
-        "Project settings and raw project file both have unsaved changes; "
-        "use raw Save As to preserve the draft, then save project settings");
-  }
-
-  if (project_dirty) {
-    if (!current_project_.project_opened() ||
-        current_project_.filepath.empty()) {
-      return absl::FailedPreconditionError(
-          "Project settings have no project file to save");
-    }
-    RETURN_IF_ERROR(SaveProject());
-  }
-
-  if (project_file_dirty) {
-    if (project_file_editor_.filepath().empty()) {
-      return absl::FailedPreconditionError(
-          "Project file draft has no destination; use Save As first");
-    }
-    RETURN_IF_ERROR(project_file_editor_.SaveFile());
-    session->project_file_editor_state = project_file_editor_.CaptureState();
-  }
-
-  return absl::OkStatus();
+  const size_t session_id = GetCurrentSessionId();
+  const size_t session_index = GetCurrentSessionIndex();
+  CaptureActiveProjectContext();
+  ASSIGN_OR_RETURN(const auto binding,
+                   rom_lifecycle_.CaptureProjectEditingSaveBinding(
+                       session_id, SessionHasPendingRomWork(session_index),
+                       current_project_));
+  return rom_lifecycle_.SaveActiveProjectEditingWork(
+      binding, allow_dialogs, MakeActiveProjectEditingSaveCallbacks());
 }
 
 absl::Status EditorManager::AutosaveActiveSession() {
@@ -4429,8 +4433,20 @@ absl::Status EditorManager::AutosaveActiveSession() {
     return absl::FailedPreconditionError("No session coordinator");
   }
   const size_t session_index = GetCurrentSessionIndex();
-  RETURN_IF_ERROR(SaveProjectWorkBeforeRomSave(/*allow_dialogs=*/false));
-  const auto* session = session_coordinator_->GetActiveRomSession();
+  const size_t session_id = GetCurrentSessionId();
+  CaptureActiveProjectContext();
+  ASSIGN_OR_RETURN(const auto binding,
+                   rom_lifecycle_.CaptureProjectEditingSaveBinding(
+                       session_id, SessionHasPendingRomWork(session_index),
+                       current_project_));
+  RETURN_IF_ERROR(rom_lifecycle_.SaveProjectWorkBeforeRomSave(
+      binding, /*allow_dialogs=*/false,
+      MakeActiveProjectEditingSaveCallbacks()));
+  if (GetCurrentSessionId() != session_id) {
+    return absl::FailedPreconditionError(
+        "The active session changed while saving project work");
+  }
+  auto* session = session_coordinator_->GetActiveRomSession();
   if (session != nullptr && session->backup_restore_pending) {
     return absl::CancelledError(
         "Staged backup restore requires an explicit Save ROM");

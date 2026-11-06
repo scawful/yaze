@@ -23,6 +23,7 @@
 #include "app/editor/system/session/user_settings.h"
 #include "app/gfx/resource/arena.h"
 #include "app/gfx/util/palette_manager.h"
+#include "core/gfx_sheet_source.h"
 #include "core/source_artifact_publisher.h"
 #include "core/version_manager.h"
 
@@ -384,6 +385,39 @@ bool EditorSet::HasPendingPlanningProjectDraftChanges() const {
   auto* editor =
       static_cast<PlanningEditor*>(FindEditor(EditorType::kPlanning));
   return editor && editor->HasPendingProjectDraftChanges();
+}
+
+absl::Status EditorSet::CheckGfxSourceBlocksOtherDrafts(
+    const project::YazeProject& project,
+    bool session_has_pending_rom_work) const {
+  if (!core::GfxSheetSource::Selected(project)) {
+    return absl::OkStatus();
+  }
+  if (session_has_pending_rom_work || HasPendingSpriteChanges()) {
+    return absl::FailedPreconditionError(
+        "Save or discard other ROM/source drafts before graphics source Save; "
+        "nothing published");
+  }
+  return absl::OkStatus();
+}
+
+absl::Status EditorSet::SaveGraphicsScratchAssets() {
+  if (auto* graphics =
+          static_cast<GraphicsEditor*>(FindEditor(EditorType::kGraphics))) {
+    RETURN_IF_ERROR(graphics->SaveScratchAssets());
+  }
+  return absl::OkStatus();
+}
+
+absl::Status EditorSet::SavePendingSpriteWork(bool allow_dialogs) {
+  if (!HasPendingSpriteChanges()) {
+    return absl::OkStatus();
+  }
+  auto* sprite = static_cast<SpriteEditor*>(FindEditor(EditorType::kSprite));
+  if (!sprite) {
+    return absl::OkStatus();
+  }
+  return allow_dialogs ? sprite->Save() : sprite->SaveForAutosave();
 }
 
 absl::Status EditorSet::SavePlanningProjectDraft() {

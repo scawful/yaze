@@ -83,6 +83,24 @@ class ExpandedGraphicsLoadTestPeer {
   }
 };
 
+class EditorManagerProjectSaveBindingTestPeer {
+ public:
+  static RomLifecycleManager& Lifecycle(EditorManager& manager) {
+    return manager.rom_lifecycle_;
+  }
+  static absl::StatusOr<RomLifecycleManager::ProjectEditingSaveBinding>
+  CaptureBinding(EditorManager& manager, size_t session_id,
+                 bool session_has_pending_rom_work) {
+    manager.CaptureActiveProjectContext();
+    return manager.rom_lifecycle_.CaptureProjectEditingSaveBinding(
+        session_id, session_has_pending_rom_work, *manager.GetCurrentProject());
+  }
+  static RomLifecycleManager::ActiveProjectEditingSaveCallbacks MakeCallbacks(
+      EditorManager& manager) {
+    return manager.MakeActiveProjectEditingSaveCallbacks();
+  }
+};
+
 class GraphicsEditorSaveStoplossTestPeer {
  public:
   // Tests place a session's sheet in the shared Arena by hand, so claim the
@@ -1808,6 +1826,398 @@ TEST_F(RomLifecycleRebindPolicyTest, NoFixedManifestRetainsGenericRebind) {
       R"json({"manifest_version":2,"hack_name":"No fixed development ROM"})json"));
   project_.rom_metadata.write_policy = project::RomWritePolicy::kBlock;
   EXPECT_TRUE(lifecycle_.CheckRomRebindPolicy(&rom_).ok());
+}
+
+TEST(RomLifecycleProjectSaveOrchestrationTest,
+     CaptureRequiresSessionCoordinator) {
+  RomLifecycleManager lifecycle;
+  project::YazeProject project;
+  EXPECT_FALSE(lifecycle
+                   .CaptureProjectEditingSaveBinding(
+                       1, /*session_has_pending_rom_work=*/false, project)
+                   .ok());
+}
+
+TEST_F(NativeSaveReceiptIntegrationTest,
+       SaveProjectWorkBeforeRomSaveDefersDuringDescriptorWrite) {
+  ASSERT_NO_FATAL_FAILURE(BindProject());
+  manager_->GetCurrentProject()->name = "Defer during descriptor";
+  manager_->MarkCurrentProjectDirty();
+  ASSERT_OK(manager_->GetCurrentRom()->WriteByte(0x1234, 0xA5));
+  const size_t session_id = manager_->GetCurrentSessionId();
+  ASSERT_OK_AND_ASSIGN(const auto binding,
+                       EditorManagerProjectSaveBindingTestPeer::CaptureBinding(
+                           *manager_, session_id, true));
+
+  auto& lifecycle =
+      EditorManagerProjectSaveBindingTestPeer::Lifecycle(*manager_);
+  auto callbacks =
+      EditorManagerProjectSaveBindingTestPeer::MakeCallbacks(*manager_);
+  const auto save_descriptor = callbacks.save_project_descriptor;
+  bool defer_visible_during_descriptor = false;
+  callbacks.save_project_descriptor =
+      [&](const RomLifecycleManager::ProjectEditingSaveBinding& bound) {
+        defer_visible_during_descriptor =
+            lifecycle.ShouldDeferProjectNativeCompletion();
+        return save_descriptor(bound);
+      };
+
+  ASSERT_OK(lifecycle.SaveProjectWorkBeforeRomSave(binding, true, callbacks));
+  EXPECT_TRUE(defer_visible_during_descriptor);
+  EXPECT_FALSE(lifecycle.ShouldDeferProjectNativeCompletion());
+}
+
+TEST_F(NativeSaveReceiptIntegrationTest,
+       RejectsNestedSaveProjectWorkBeforeRomSaveWithoutClearingDefer) {
+  ASSERT_NO_FATAL_FAILURE(BindProject());
+  manager_->GetCurrentProject()->name = "Nested guard";
+  manager_->MarkCurrentProjectDirty();
+  ASSERT_OK(manager_->GetCurrentRom()->WriteByte(0x1234, 0xA5));
+  const size_t session_id = manager_->GetCurrentSessionId();
+  ASSERT_OK_AND_ASSIGN(const auto binding,
+                       EditorManagerProjectSaveBindingTestPeer::CaptureBinding(
+                           *manager_, session_id, true));
+
+  auto& lifecycle =
+      EditorManagerProjectSaveBindingTestPeer::Lifecycle(*manager_);
+  auto callbacks =
+      EditorManagerProjectSaveBindingTestPeer::MakeCallbacks(*manager_);
+  const auto save_descriptor = callbacks.save_project_descriptor;
+  bool outer_defer_during_nested = false;
+  callbacks.save_project_descriptor =
+      [&](const RomLifecycleManager::ProjectEditingSaveBinding& bound) {
+        outer_defer_during_nested =
+            lifecycle.ShouldDeferProjectNativeCompletion();
+        const auto nested =
+            lifecycle.SaveProjectWorkBeforeRomSave(bound, true, callbacks);
+        EXPECT_FALSE(nested.ok());
+        EXPECT_NE(nested.message().find("already in progress"),
+                  std::string::npos)
+            << nested;
+        EXPECT_TRUE(lifecycle.ShouldDeferProjectNativeCompletion());
+        return save_descriptor(bound);
+      };
+
+  ASSERT_OK(lifecycle.SaveProjectWorkBeforeRomSave(binding, true, callbacks));
+  EXPECT_TRUE(outer_defer_during_nested);
+  EXPECT_FALSE(lifecycle.ShouldDeferProjectNativeCompletion());
+}
+
+TEST_F(NativeSaveReceiptIntegrationTest,
+       ProjectSaveAbortsWhenSessionChangesDuringCapture) {
+  const auto second = cleanup_.path / "second_session.sfc";
+  WriteTestRom(second, "SECOND SESSION ROM");
+  ASSERT_OK(manager_->OpenRomOrProject(second.string()));
+  const size_t other_session_index = manager_->GetCurrentSessionIndex();
+
+  manager_->SwitchToSession(0);
+  ASSERT_NO_FATAL_FAILURE(BindProject());
+  const auto descriptor_before =
+      ReadText(manager_->GetCurrentProject()->filepath);
+  manager_->GetCurrentProject()->name = "Session switch guard";
+  manager_->MarkCurrentProjectDirty();
+
+  const size_t bound_session_id = manager_->GetCurrentSessionId();
+  ASSERT_OK_AND_ASSIGN(const auto binding,
+                       EditorManagerProjectSaveBindingTestPeer::CaptureBinding(
+                           *manager_, bound_session_id, false));
+
+  auto& lifecycle =
+      EditorManagerProjectSaveBindingTestPeer::Lifecycle(*manager_);
+  auto callbacks =
+      EditorManagerProjectSaveBindingTestPeer::MakeCallbacks(*manager_);
+  const auto capture = callbacks.capture_editing_state;
+  const auto save_descriptor = callbacks.save_project_descriptor;
+  bool descriptor_called = false;
+  size_t active_id_inside_capture = bound_session_id;
+  callbacks.capture_editing_state =
+      [&](const RomLifecycleManager::ProjectEditingSaveBinding& bound) {
+        manager_->session_coordinator()->SwitchToSession(other_session_index);
+        active_id_inside_capture = manager_->GetCurrentSessionId();
+        return capture(bound);
+      };
+  callbacks.save_project_descriptor =
+      [&](const RomLifecycleManager::ProjectEditingSaveBinding& bound) {
+        descriptor_called = true;
+        return save_descriptor(bound);
+      };
+
+  const auto status =
+      lifecycle.SaveActiveProjectEditingWork(binding, true, callbacks);
+  EXPECT_FALSE(status.ok());
+  EXPECT_NE(active_id_inside_capture, bound_session_id);
+  EXPECT_FALSE(descriptor_called);
+  EXPECT_EQ(ReadText(binding.project_snapshot.filepath), descriptor_before);
+}
+
+TEST_F(NativeSaveReceiptIntegrationTest,
+       ProjectSaveFailsWhenOriginSessionRemovedDuringCapture) {
+  const auto second = cleanup_.path / "second_session_close.sfc";
+  WriteTestRom(second, "SECOND CLOSE ROM");
+  ASSERT_OK(manager_->OpenRomOrProject(second.string()));
+  const size_t other_session_index = manager_->GetCurrentSessionIndex();
+
+  manager_->SwitchToSession(0);
+  ASSERT_NO_FATAL_FAILURE(BindProject());
+  manager_->GetCurrentProject()->name = "Origin removed guard";
+  manager_->MarkCurrentProjectDirty();
+  const size_t bound_session_id = manager_->GetCurrentSessionId();
+  const size_t origin_session_index = 0;
+
+  ASSERT_OK_AND_ASSIGN(const auto binding,
+                       EditorManagerProjectSaveBindingTestPeer::CaptureBinding(
+                           *manager_, bound_session_id, false));
+
+  auto& lifecycle =
+      EditorManagerProjectSaveBindingTestPeer::Lifecycle(*manager_);
+  auto callbacks =
+      EditorManagerProjectSaveBindingTestPeer::MakeCallbacks(*manager_);
+  const auto capture = callbacks.capture_editing_state;
+  const auto save_descriptor = callbacks.save_project_descriptor;
+  bool descriptor_called = false;
+  size_t active_id_after_close = bound_session_id;
+  callbacks.capture_editing_state =
+      [&](const RomLifecycleManager::ProjectEditingSaveBinding& bound) {
+        manager_->session_coordinator()->SwitchToSession(other_session_index);
+        manager_->session_coordinator()->CloseSessionAllowingEmpty(
+            origin_session_index);
+        active_id_after_close = manager_->GetCurrentSessionId();
+        EXPECT_EQ(manager_->session_coordinator()->GetTotalSessionCount(), 1u);
+        EXPECT_NE(active_id_after_close, bound_session_id);
+        return capture(bound);
+      };
+  callbacks.save_project_descriptor =
+      [&](const RomLifecycleManager::ProjectEditingSaveBinding& bound) {
+        descriptor_called = true;
+        return save_descriptor(bound);
+      };
+
+  const auto status =
+      lifecycle.SaveActiveProjectEditingWork(binding, true, callbacks);
+  EXPECT_FALSE(status.ok());
+  EXPECT_NE(active_id_after_close, bound_session_id);
+  EXPECT_FALSE(descriptor_called);
+}
+
+TEST_F(NativeSaveReceiptIntegrationTest,
+       ProjectSaveRefusesWhenLiveProjectIdentityChanges) {
+  ASSERT_NO_FATAL_FAILURE(BindProject());
+  const auto descriptor_before =
+      ReadText(manager_->GetCurrentProject()->filepath);
+  manager_->GetCurrentProject()->name = "Identity guard";
+  manager_->MarkCurrentProjectDirty();
+  const size_t session_id = manager_->GetCurrentSessionId();
+  ASSERT_OK_AND_ASSIGN(const auto binding,
+                       EditorManagerProjectSaveBindingTestPeer::CaptureBinding(
+                           *manager_, session_id, false));
+
+  auto& lifecycle =
+      EditorManagerProjectSaveBindingTestPeer::Lifecycle(*manager_);
+  auto callbacks =
+      EditorManagerProjectSaveBindingTestPeer::MakeCallbacks(*manager_);
+  const auto save_descriptor = callbacks.save_project_descriptor;
+  callbacks.save_project_descriptor =
+      [&](const RomLifecycleManager::ProjectEditingSaveBinding& bound) {
+        manager_->GetCurrentProject()->filepath =
+            (cleanup_.path / "other_project.yaze").string();
+        return save_descriptor(bound);
+      };
+
+  const auto status =
+      lifecycle.SaveActiveProjectEditingWork(binding, true, callbacks);
+  EXPECT_FALSE(status.ok());
+  EXPECT_NE(status.message().find("Project identity changed"),
+            std::string::npos)
+      << status;
+  EXPECT_EQ(ReadText(binding.project_snapshot.filepath), descriptor_before);
+}
+
+TEST_F(NativeSaveReceiptIntegrationTest,
+       ProjectSaveAbortsAfterDescriptorCallbackSwitchesSession) {
+  const auto second = cleanup_.path / "second_session_desc.sfc";
+  WriteTestRom(second, "SECOND DESC ROM");
+  ASSERT_OK(manager_->OpenRomOrProject(second.string()));
+  const size_t other_session_index = manager_->GetCurrentSessionIndex();
+
+  manager_->SwitchToSession(0);
+  ASSERT_NO_FATAL_FAILURE(BindProject());
+  const auto descriptor_before =
+      ReadText(manager_->GetCurrentProject()->filepath);
+  manager_->GetCurrentProject()->name = "Descriptor switch guard";
+  manager_->MarkCurrentProjectDirty();
+  const size_t bound_session_id = manager_->GetCurrentSessionId();
+
+  ASSERT_OK_AND_ASSIGN(const auto binding,
+                       EditorManagerProjectSaveBindingTestPeer::CaptureBinding(
+                           *manager_, bound_session_id, false));
+
+  auto& lifecycle =
+      EditorManagerProjectSaveBindingTestPeer::Lifecycle(*manager_);
+  auto callbacks =
+      EditorManagerProjectSaveBindingTestPeer::MakeCallbacks(*manager_);
+  const auto capture = callbacks.capture_editing_state;
+  callbacks.capture_editing_state =
+      [&](const RomLifecycleManager::ProjectEditingSaveBinding& bound)
+      -> absl::Status {
+    RETURN_IF_ERROR(capture(bound));
+    auto* session = manager_->session_coordinator()->GetActiveRomSession();
+    // Make a distinct raw-file save eligible after the descriptor step.
+    session->project_file_editor_state.initialized = true;
+    session->project_file_editor_state.modified = true;
+    return absl::OkStatus();
+  };
+  bool raw_called = false;
+  callbacks.save_project_descriptor =
+      [&](const RomLifecycleManager::ProjectEditingSaveBinding& bound) {
+        manager_->session_coordinator()->SwitchToSession(other_session_index);
+        EXPECT_NE(manager_->GetCurrentSessionId(), bound.session_id);
+        return absl::OkStatus();
+      };
+  callbacks.save_raw_project_file =
+      [&](const RomLifecycleManager::ProjectEditingSaveBinding& bound) {
+        raw_called = true;
+        return absl::OkStatus();
+      };
+
+  const auto status =
+      lifecycle.SaveActiveProjectEditingWork(binding, true, callbacks);
+  EXPECT_FALSE(status.ok());
+  EXPECT_FALSE(raw_called);
+  EXPECT_EQ(ReadText(binding.project_snapshot.filepath), descriptor_before);
+}
+
+TEST_F(NativeSaveReceiptIntegrationTest,
+       RejectsNestedSaveActiveProjectEditingWorkDuringCombinedSave) {
+  ASSERT_NO_FATAL_FAILURE(BindProject());
+  manager_->GetCurrentProject()->name = "Nested active guard";
+  manager_->MarkCurrentProjectDirty();
+  ASSERT_OK(manager_->GetCurrentRom()->WriteByte(0x1234, 0xA5));
+  const size_t session_id = manager_->GetCurrentSessionId();
+  ASSERT_OK_AND_ASSIGN(const auto binding,
+                       EditorManagerProjectSaveBindingTestPeer::CaptureBinding(
+                           *manager_, session_id, true));
+
+  auto& lifecycle =
+      EditorManagerProjectSaveBindingTestPeer::Lifecycle(*manager_);
+  auto callbacks =
+      EditorManagerProjectSaveBindingTestPeer::MakeCallbacks(*manager_);
+  const auto save_descriptor = callbacks.save_project_descriptor;
+  callbacks.save_project_descriptor =
+      [&](const RomLifecycleManager::ProjectEditingSaveBinding& bound) {
+        const auto nested =
+            lifecycle.SaveActiveProjectEditingWork(bound, true, callbacks);
+        EXPECT_FALSE(nested.ok());
+        EXPECT_TRUE(lifecycle.ShouldDeferProjectNativeCompletion());
+        return save_descriptor(bound);
+      };
+
+  ASSERT_OK(lifecycle.SaveProjectWorkBeforeRomSave(binding, true, callbacks));
+  EXPECT_FALSE(lifecycle.ShouldDeferProjectNativeCompletion());
+}
+
+TEST_F(NativeSaveReceiptIntegrationTest,
+       CombinedProjectSaveRestoresDeferralAfterDescriptorFailure) {
+  ASSERT_NO_FATAL_FAILURE(BindProject());
+  manager_->GetCurrentProject()->name = "Defer cleanup on failure";
+  manager_->MarkCurrentProjectDirty();
+  ASSERT_OK(manager_->GetCurrentRom()->WriteByte(0x1234, 0xA5));
+  const size_t session_id = manager_->GetCurrentSessionId();
+  ASSERT_OK_AND_ASSIGN(const auto binding,
+                       EditorManagerProjectSaveBindingTestPeer::CaptureBinding(
+                           *manager_, session_id, true));
+
+  auto& lifecycle =
+      EditorManagerProjectSaveBindingTestPeer::Lifecycle(*manager_);
+  auto callbacks =
+      EditorManagerProjectSaveBindingTestPeer::MakeCallbacks(*manager_);
+  const auto save_descriptor = callbacks.save_project_descriptor;
+  callbacks.save_project_descriptor =
+      [](const RomLifecycleManager::ProjectEditingSaveBinding&) {
+        return absl::InternalError("descriptor failed");
+      };
+
+  const auto status =
+      lifecycle.SaveProjectWorkBeforeRomSave(binding, true, callbacks);
+  EXPECT_FALSE(status.ok());
+  EXPECT_FALSE(lifecycle.ShouldDeferProjectNativeCompletion());
+  callbacks.save_project_descriptor = save_descriptor;
+  ASSERT_OK(lifecycle.SaveProjectWorkBeforeRomSave(binding, true, callbacks));
+  EXPECT_FALSE(lifecycle.ShouldDeferProjectNativeCompletion());
+}
+
+TEST_F(NativeSaveReceiptIntegrationTest,
+       RawRomSaveCurrentSessionAllowsEmptyProjectPaths) {
+  ASSERT_TRUE(manager_->GetCurrentProject()->filepath.empty());
+  ASSERT_OK(manager_->GetCurrentRom()->WriteByte(0x1234, 0xA5));
+  ASSERT_OK(manager_->SaveCurrentSession());
+  EXPECT_EQ(ReadByteAt(source_, 0x1234), 0xA5);
+  EXPECT_FALSE(manager_->GetCurrentRom()->dirty());
+}
+
+TEST_F(NativeSaveReceiptIntegrationTest,
+       DirtyRomBaselineChangeStopsBeforeProjectWrite) {
+  ASSERT_NO_FATAL_FAILURE(BindProject());
+  const auto descriptor_before =
+      ReadText(manager_->GetCurrentProject()->filepath);
+  manager_->MarkCurrentProjectDirty();
+  ASSERT_OK(manager_->GetCurrentRom()->WriteByte(0x1234, 0xA5));
+  ASSERT_OK_AND_ASSIGN(const auto binding,
+                       EditorManagerProjectSaveBindingTestPeer::CaptureBinding(
+                           *manager_, manager_->GetCurrentSessionId(), true));
+  auto& lifecycle =
+      EditorManagerProjectSaveBindingTestPeer::Lifecycle(*manager_);
+  auto callbacks =
+      EditorManagerProjectSaveBindingTestPeer::MakeCallbacks(*manager_);
+  const auto capture = callbacks.capture_editing_state;
+  bool descriptor_called = false;
+  callbacks.capture_editing_state =
+      [&](const RomLifecycleManager::ProjectEditingSaveBinding& bound)
+      -> absl::Status {
+    RETURN_IF_ERROR(capture(bound));
+    auto* session = manager_->session_coordinator()->GetActiveRomSession();
+    EXPECT_TRUE(session->rom.dirty());
+    EXPECT_TRUE(session->rom_baseline.has_value());
+    session->rom_baseline->hashes.sha1 = "replacement-baseline";
+    return absl::OkStatus();
+  };
+  callbacks.save_project_descriptor =
+      [&](const RomLifecycleManager::ProjectEditingSaveBinding&) {
+        descriptor_called = true;
+        return absl::OkStatus();
+      };
+  const auto status =
+      lifecycle.SaveProjectWorkBeforeRomSave(binding, true, callbacks);
+  EXPECT_TRUE(absl::IsFailedPrecondition(status)) << status;
+  EXPECT_FALSE(descriptor_called);
+  EXPECT_TRUE(manager_->GetCurrentRom()->dirty());
+  EXPECT_TRUE(manager_->IsCurrentProjectDirty());
+  EXPECT_FALSE(lifecycle.ShouldDeferProjectNativeCompletion());
+  EXPECT_EQ(ReadText(binding.project_snapshot.filepath), descriptor_before);
+}
+
+TEST_F(NativeSaveReceiptIntegrationTest,
+       UnloadedSessionProjectEditingPhaseDoesNotRequireRom) {
+  manager_->CreateNewSession();
+  ASSERT_NE(manager_->GetCurrentRom(), nullptr);
+  ASSERT_FALSE(manager_->GetCurrentRom()->is_loaded());
+  ASSERT_OK_AND_ASSIGN(const auto binding,
+                       EditorManagerProjectSaveBindingTestPeer::CaptureBinding(
+                           *manager_, manager_->GetCurrentSessionId(), false));
+  auto& lifecycle =
+      EditorManagerProjectSaveBindingTestPeer::Lifecycle(*manager_);
+  ASSERT_OK(lifecycle.SaveActiveProjectEditingWork(
+      binding, false,
+      EditorManagerProjectSaveBindingTestPeer::MakeCallbacks(*manager_)));
+  EXPECT_FALSE(manager_->GetCurrentRom()->is_loaded());
+}
+
+TEST_F(NativeSaveReceiptIntegrationTest,
+       RawRomAutosaveAllowsEmptyProjectPaths) {
+  ASSERT_TRUE(manager_->GetCurrentProject()->filepath.empty());
+  ASSERT_OK(manager_->GetCurrentRom()->WriteByte(0x1234, 0xA5));
+  ASSERT_OK(manager_->AutosaveActiveSession());
+  EXPECT_EQ(ReadByteAt(source_, 0x1234), 0xA5);
+  EXPECT_FALSE(manager_->GetCurrentRom()->dirty());
 }
 
 TEST_F(RomLifecycleRebindPolicyTest, GuardedManifestRequiresExactBackingFile) {
