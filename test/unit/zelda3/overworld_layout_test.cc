@@ -160,6 +160,22 @@ TEST(OverworldLayoutTest, EaDictionaryWritersRefuseBeforeAnyMutation) {
   EXPECT_EQ(rom.vector(), before);
 }
 
+TEST(OverworldLayoutTest, MissingEaMarkerDoesNotRestoreLegacyWriterPermission) {
+  Rom rom = MakeZsV3AllocationRom();
+  InstallValidatedEaTail(rom);
+  rom[kExpandedPtrTableMarker] = 0;
+  const auto before = rom.vector();
+  const auto layout =
+      InspectOverworldLayout(rom, OverworldLayoutOptions::Defaults());
+  ASSERT_TRUE(layout.ea_loader_operands_present);
+  EXPECT_FALSE(layout.has_validated_ea_tail());
+  Overworld overworld(&rom);
+  EXPECT_FALSE(overworld.SaveOverworldMaps().ok());
+  EXPECT_FALSE(overworld.SaveMap32Expanded().ok());
+  EXPECT_FALSE(overworld.SaveMap16Expanded().ok());
+  EXPECT_EQ(rom.vector(), before);
+}
+
 TEST(OverworldLayoutTest, RejectsInvalidSnesPointersAndOverlongMapStreams) {
   Rom rom = MakeZsV3AllocationRom();
   InstallValidatedEaTail(rom);

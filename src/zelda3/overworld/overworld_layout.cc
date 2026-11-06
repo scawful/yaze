@@ -180,7 +180,8 @@ LayoutTableStatus SpanStatus(const Rom& rom, int pc, int bytes) {
 
 absl::Status RefusePartialEa(const OverworldLayout& layout,
                              OverworldLayoutOperation operation) {
-  if (layout.ea_marker_byte_present && !layout.has_validated_ea_tail() &&
+  if ((layout.ea_marker_byte_present || layout.ea_loader_operands_present) &&
+      !layout.has_validated_ea_tail() &&
       operation != OverworldLayoutOperation::kInspect) {
     return absl::FailedPreconditionError(
         "EA tail marker or loader state is incomplete; refusing terrain "
@@ -551,6 +552,20 @@ OverworldLayout InspectOverworldLayout(const Rom& rom,
   }
 
   const TailMapExpansionPlan plan;
+  // Loader operands remain authoritative when the marker is removed. Do not
+  // revert to legacy writes while any loader still reads the relocated tables.
+  if (layout.supports_area_enum && zscream::CanUseTailExpansion(rom) &&
+      ValidateEaPointerTableSpan(rom, high_pc, low_pc, kExpandedMapCount)) {
+    for (size_t i = 0; i < plan.operand_snes.size(); ++i) {
+      const uint32_t current =
+          ReadLongOrZero(rom, static_cast<int>(SnesToPc(plan.operand_snes[i])));
+      const int expected = (i % 4 < 2 ? high_pc : low_pc) + (i % 2);
+      if (IsRomSnesAddress(current) &&
+          SnesToPc(current) == static_cast<uint32_t>(expected)) {
+        layout.ea_loader_operands_present = true;
+      }
+    }
+  }
   layout.ea_tail_tables_in_rom =
       layout.ea_marker_byte_present &&
       ValidateEaPointerTableSpan(rom, high_pc, low_pc, kExpandedMapCount);
@@ -564,6 +579,10 @@ OverworldLayout InspectOverworldLayout(const Rom& rom,
   if (layout.ea_marker_byte_present && !layout.ea_tail_operands_validated) {
     AppendDiagnostic(&layout,
                      "EA tail marker without validated loader operands");
+  }
+  if (!layout.ea_marker_byte_present && layout.ea_loader_operands_present) {
+    AppendDiagnostic(&layout,
+                     "Relocated map loaders remain without the EA marker");
   }
   if (layout.ea_marker_byte_present && !layout.ea_tail_tables_in_rom) {
     AppendDiagnostic(&layout, "EA relocated pointer tables truncated in ROM");
@@ -592,7 +611,8 @@ OverworldLayout InspectOverworldLayout(const Rom& rom,
   const int terrain_entries =
       layout.has_validated_ea_tail() ? kExpandedMapCount : kNumOverworldMaps;
   const LayoutTableStatus terrain_status =
-      layout.ea_marker_byte_present && !layout.has_validated_ea_tail()
+      (layout.ea_marker_byte_present || layout.ea_loader_operands_present) &&
+              !layout.has_validated_ea_tail()
           ? LayoutTableStatus::kTruncated
           : (ValidateEaPointerTableSpan(rom, layout.terrain_high_table_pc.value,
                                         layout.terrain_low_table_pc.value,

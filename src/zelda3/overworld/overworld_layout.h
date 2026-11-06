@@ -130,6 +130,7 @@ struct OverworldLayout {
   std::optional<uint16_t> descriptor_active_count;
 
   bool ea_marker_byte_present = false;
+  bool ea_loader_operands_present = false;
   bool tail_marker_present = false;
   bool ea_tail_operands_validated = false;
   bool ea_tail_tables_in_rom = false;
