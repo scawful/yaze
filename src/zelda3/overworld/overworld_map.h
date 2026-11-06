@@ -234,6 +234,8 @@ using OverworldTilesetKey = std::array<uint8_t, 17>;
  * @brief Represents a single Overworld map screen.
  */
 class OverworldMap : public gfx::GfxContext {
+  friend class OverworldModelTestPeer;
+
  public:
   OverworldMap() = default;
   OverworldMap(int index, Rom* rom, GameData* game_data = nullptr);
