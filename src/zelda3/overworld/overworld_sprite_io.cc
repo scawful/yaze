@@ -4,6 +4,7 @@
 #include <map>
 #include "absl/strings/str_format.h"
 #include "rom/lyra_layout_descriptor.h"
+#include "rom/native_overworld_authoring_metadata.h"
 #include "rom/transaction.h"
 #include "rom/write_fence.h"
 #include "util/macro.h"
@@ -321,7 +322,8 @@ absl::StatusOr<OverworldSpriteListEditPlan> PlanOverworldSpriteListEdit(
 }
 
 absl::StatusOr<OverworldSpriteSavePlan> PlanOverworldSpriteSave(
-    const Rom& rom, const OverworldSpriteEdits& edits) {
+    const Rom& rom, const OverworldSpriteEdits& edits,
+    const rom::NativeOverworldAuthoringMetadata* placement_witness) {
   const auto ow_layout =
       InspectOverworldLayout(rom, OverworldLayoutOptions::Defaults());
   if (rom::IsNativeSpecialOverworldLayout(ow_layout.lyra_layout)) {
@@ -330,7 +332,8 @@ absl::StatusOr<OverworldSpriteSavePlan> PlanOverworldSpriteSave(
       for (uint16_t map = 0; map < edits[phase].size(); ++map)
         if (edits[phase][map])
           native.push_back({phase, map, *edits[phase][map]});
-    return rom::PlanNativeOverworldSpriteSave(rom.vector(), native);
+    return rom::PlanNativeOverworldSpriteSave(rom.vector(), native,
+                                              placement_witness);
   }
   RETURN_IF_ERROR(ow_layout.CheckOperation(OverworldLayoutDomain::kSprites,
                                            OverworldLayoutOperation::kSerialize,

@@ -1,6 +1,7 @@
 #ifndef YAZE_APP_EDITOR_OVERWORLD_UNDO_ACTIONS_H_
 #define YAZE_APP_EDITOR_OVERWORLD_UNDO_ACTIONS_H_
 
+#include <algorithm>
 #include <array>
 #include <chrono>
 #include <cstddef>
@@ -254,6 +255,43 @@ class OverworldRecordEditAction final : public UndoAction {
   RestoreFn restore_;
   std::string description_;
 };
+
+// Record identity survives vector reallocation and area regrouping. Legacy
+// untracked rows retain their existing row contract; they cannot replace a
+// tracked row. Insertion Undo keeps a deleted row so its ID is never reused.
+inline OverworldRecordEditAction<zelda3::Sprite>::RestoreFn
+MakeOverworldSpriteRestore(zelda3::Overworld& world, int phase, size_t row,
+                           std::optional<uint32_t> identity,
+                           std::function<void(zelda3::Sprite*)> notify) {
+  return [&world, phase, row, identity, notify](const zelda3::Sprite& value) {
+    if (!world.rom() || value.placement_id() != identity)
+      return absl::FailedPreconditionError("Sprite history identity changed");
+    RETURN_IF_ERROR(world.rom()->CheckLayoutSaveable());
+    auto* records = world.mutable_sprites(phase);
+    if (!records)
+      return absl::FailedPreconditionError("Sprite history phase is gone");
+    size_t target = row;
+    if (identity) {
+      target = records->size();
+      for (size_t i = 0; i < records->size(); ++i) {
+        if ((*records)[i].placement_id() != identity)
+          continue;
+        if (target != records->size())
+          return absl::FailedPreconditionError(
+              "Sprite history identity is duplicated");
+        target = i;
+      }
+    }
+    if (target >= records->size() ||
+        (*records)[target].placement_id() != identity)
+      return absl::FailedPreconditionError(
+          "Sprite history row is gone or replaced");
+    (*records)[target] = value;
+    if (notify)
+      notify(&(*records)[target]);
+    return absl::OkStatus();
+  };
+}
 
 /**
  * @class OverworldItemsEditAction

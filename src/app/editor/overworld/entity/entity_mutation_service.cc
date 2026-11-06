@@ -1,16 +1,24 @@
 #include "app/editor/overworld/entity/entity_mutation_service.h"
 
 #include <algorithm>
+#include <memory>
+#include <utility>
 
+#include "app/editor/core/undo_manager.h"
 #include "app/editor/overworld/entity/entity_operations.h"
+#include "app/editor/overworld/overworld_undo_actions.h"
 #include "rom/lyra_layout_descriptor.h"
 #include "zelda3/overworld/overworld.h"
 
 namespace yaze {
 namespace editor {
 
-EntityMutationService::EntityMutationService(zelda3::Overworld& overworld)
-    : overworld_(overworld) {}
+EntityMutationService::EntityMutationService(
+    zelda3::Overworld& overworld, UndoManager* history,
+    std::function<void(zelda3::Sprite*)> notify)
+    : overworld_(overworld),
+      history_(history),
+      sprite_notify_(std::move(notify)) {}
 
 EntityMutationService::MutationResult EntityMutationService::InsertEntity(
     const std::string& type, const OverworldContextTarget& target,
@@ -76,6 +84,22 @@ EntityMutationService::MutationResult EntityMutationService::InsertEntity(
     auto res = editor::InsertSprite(&overworld_, pos, map_id, game_state, 0x00);
     if (res.ok()) {
       result.entity = *res;
+      if (history_) {
+        auto after = **res;
+        auto before = after;
+        before.set_deleted(true);
+        const size_t row =
+            *res - overworld_.mutable_sprites(game_state)->data();
+        history_->Push(
+            std::make_unique<OverworldRecordEditAction<zelda3::Sprite>>(
+                before, after,
+                MakeOverworldSpriteRestore(overworld_, game_state, row,
+                                           after.placement_id(),
+                                           sprite_notify_),
+                "Insert overworld sprite"));
+      }
+      if (sprite_notify_)
+        sprite_notify_(*res);
     } else {
       result.status = res.status();
       result.error_message =
@@ -141,8 +165,17 @@ EntityMutationService::MutationResult EntityMutationService::DeleteSprite(
       result.status = overworld_.rom()->CheckLayoutSaveable();
     if (!result.status.ok())
       return result;
-    // Preserve row identity for property and drag Undo actions.
-    it->set_deleted(true);
+    const auto before = *it;
+    auto after = before;
+    after.set_deleted(true);
+    const size_t row = it - sprites.begin();
+    auto restore = MakeOverworldSpriteRestore(
+        overworld_, game_state, row, after.placement_id(), sprite_notify_);
+    result.status = restore(after);
+    if (result.status.ok() && history_ && !before.deleted())
+      history_->Push(
+          std::make_unique<OverworldRecordEditAction<zelda3::Sprite>>(
+              before, after, std::move(restore), "Delete overworld sprite"));
   } else {
     result.status =
         absl::NotFoundError("Sprite not found in current game state");

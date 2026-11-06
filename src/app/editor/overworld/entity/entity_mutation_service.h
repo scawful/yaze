@@ -2,6 +2,7 @@
 #define YAZE_APP_EDITOR_OVERWORLD_ENTITY_ENTITY_MUTATION_SERVICE_H
 
 #include <cstdint>
+#include <functional>
 #include <string>
 
 #include "absl/status/status.h"
@@ -21,6 +22,7 @@ class Sprite;
 }  // namespace zelda3
 
 namespace editor {
+class UndoManager;
 
 /**
  * @brief Editor-level service responsible for overworld entity mutations.
@@ -38,7 +40,9 @@ class EntityMutationService {
     bool ok() const { return status.ok(); }
   };
 
-  explicit EntityMutationService(zelda3::Overworld& overworld);
+  explicit EntityMutationService(
+      zelda3::Overworld& overworld, UndoManager* history = nullptr,
+      std::function<void(zelda3::Sprite*)> notify = {});
 
   /**
    * @brief Dispatches entity insertion based on type string.
@@ -65,6 +69,8 @@ class EntityMutationService {
 
  private:
   zelda3::Overworld& overworld_;
+  UndoManager* history_ = nullptr;
+  std::function<void(zelda3::Sprite*)> sprite_notify_;
 };
 
 }  // namespace editor

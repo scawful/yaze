@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <memory>
 #include <tuple>
+#include <type_traits>
 #include <vector>
 
 #include "absl/strings/str_format.h"
@@ -51,7 +52,8 @@ bool SameRecord(const zelda3::Sprite& a, const zelda3::Sprite& b) {
   return a.map_id() == b.map_id() && a.id() == b.id() && a.x() == b.x() &&
          a.y() == b.y() && a.deleted() == b.deleted() &&
          a.overworld_x_flags() == b.overworld_x_flags() &&
-         a.overworld_y_flags() == b.overworld_y_flags();
+         a.overworld_y_flags() == b.overworld_y_flags() &&
+         a.placement_id() == b.placement_id();
 }
 
 template <typename Record>
@@ -67,18 +69,29 @@ std::optional<size_t> FindRecordRow(const std::vector<Record>& records,
 template <typename Record, typename Notify>
 absl::Status CommitRecordEdit(std::vector<Record>& records, size_t row,
                               const Record& after, UndoManager& history,
-                              Notify notify, const char* description) {
+                              Notify notify, const char* description,
+                              zelda3::Overworld* world = nullptr,
+                              int phase = 0) {
   const Record before = records[row];
   if (SameRecord(before, after))
     return absl::OkStatus();
-  auto restore = [&records, row, notify](const Record& value) -> absl::Status {
-    if (row >= records.size()) {
-      return absl::FailedPreconditionError("The edited table row is gone");
-    }
-    records[row] = value;
-    notify(&records[row]);
-    return absl::OkStatus();
-  };
+  typename OverworldRecordEditAction<Record>::RestoreFn restore;
+  if constexpr (std::is_same_v<Record, zelda3::Sprite>) {
+    if (!world)
+      return absl::FailedPreconditionError(
+          "Sprite history owner is unavailable");
+    restore = MakeOverworldSpriteRestore(*world, phase, row,
+                                         before.placement_id(), notify);
+  } else {
+    restore = [&records, row, notify](const Record& value) -> absl::Status {
+      if (row >= records.size()) {
+        return absl::FailedPreconditionError("The edited table row is gone");
+      }
+      records[row] = value;
+      notify(&records[row]);
+      return absl::OkStatus();
+    };
+  }
   RETURN_IF_ERROR(restore(after));
   history.Push(std::make_unique<OverworldRecordEditAction<Record>>(
       before, after, std::move(restore), description));
@@ -130,6 +143,9 @@ absl::Status OverworldEditor::ValidateSpriteEdit(zelda3::Sprite* target,
   if (draft.map_id() != target->map_id() || draft.x() % 16 || draft.y() % 16)
     return absl::InvalidArgumentError(
         "Keep the sprite on its area's 16-pixel grid");
+  if (draft.placement_id() != target->placement_id())
+    return absl::InvalidArgumentError(
+        "Native stable placement identity cannot change");
   const int screen =
       (draft.map_id() / 64) * 64 + draft.x() / 512 + (draft.y() / 512) * 8;
   ASSIGN_OR_RETURN(auto position,
@@ -155,7 +171,7 @@ absl::Status OverworldEditor::ApplySpriteEdit(zelda3::Sprite* target,
           edit_sprite_ = *value;
         NotifyEntityModified(value);
       },
-      "Edit overworld sprite");
+      "Edit overworld sprite", &overworld_, game_state_);
 }
 
 absl::Status OverworldEditor::ApplyEntranceEdit(

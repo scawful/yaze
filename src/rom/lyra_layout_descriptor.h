@@ -11,6 +11,8 @@
 
 #include "absl/status/statusor.h"
 
+#include "rom/native_overworld_authoring_metadata.h"
+
 namespace yaze::rom {
 
 // This is the proposed overworld ROM format, not the separate SRAM event format.
@@ -96,8 +98,10 @@ struct NativeOverworldSpriteWrite {
 // Shared by normal native Save and the existing overworld sprite planner.
 // Inventory both banks and preserve unloaded lists; no ROM mutation occurs.
 absl::StatusOr<std::vector<NativeOverworldSpriteWrite>>
-PlanNativeOverworldSpriteSave(const std::vector<uint8_t>& baseline,
-                              std::span<const NativeOverworldSpriteEdit> edits);
+PlanNativeOverworldSpriteSave(
+    const std::vector<uint8_t>& baseline,
+    std::span<const NativeOverworldSpriteEdit> edits,
+    const NativeOverworldAuthoringMetadata* placement_witness = nullptr);
 
 // Explicit property edits are applied only after the terrain candidate passes
 // its ownership check. Existing native map slots are mirrored atomically;
@@ -108,7 +112,9 @@ PlanNativeOverworldSpriteSave(const std::vector<uint8_t>& baseline,
 absl::StatusOr<std::vector<uint8_t>> SealNativeOverworldTerrain(
     const std::vector<uint8_t>& baseline, std::vector<uint8_t> candidate,
     std::span<const NativeOverworldPropertyEdit> properties = {},
-    std::span<const NativeOverworldSpriteEdit> sprites = {});
+    std::span<const NativeOverworldSpriteEdit> sprites = {},
+    const NativeOverworldAuthoringMetadata* baseline_metadata = nullptr,
+    const NativeOverworldAuthoringMetadata* publish_metadata = nullptr);
 
 inline constexpr uint32_t kLyraA0HighStreamPc = 0x132000;
 inline constexpr uint32_t kLyraA0LowStreamPc = 0x132200;

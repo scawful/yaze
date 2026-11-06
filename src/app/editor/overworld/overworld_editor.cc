@@ -215,8 +215,9 @@ void OverworldEditor::Initialize() {
   if (rom_) {
     upgrade_system_ = std::make_unique<zelda3::OverworldUpgradeSystem>(*rom_);
   }
-  entity_mutation_service_ =
-      std::make_unique<EntityMutationService>(overworld_);
+  entity_mutation_service_ = std::make_unique<EntityMutationService>(
+      overworld_, &undo_manager_,
+      [this](zelda3::Sprite* value) { NotifyEntityModified(value); });
 
   InitInteractionCoordinator();
 

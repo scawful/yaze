@@ -189,9 +189,13 @@ Overworld::NativeModelState Overworld::CaptureNativeNonTerrainState() const {
             e.deleted});
   for (const auto& list : all_sprites_) {
     add(4, {static_cast<int64_t>(list.size())});
-    for (const auto& e : list)
+    for (const auto& e : list) {
       add(4, {e.map_id(), e.id(), e.x(), e.y(), e.deleted(),
-              e.overworld_x_flags(), e.overworld_y_flags()});
+              e.overworld_x_flags(), e.overworld_y_flags(),
+              e.placement_id().has_value()
+                  ? static_cast<int64_t>(*e.placement_id())
+                  : static_cast<int64_t>(-1)});
+    }
   }
   state[5].insert(state[5].end(), all_tiles_types_.begin(),
                   all_tiles_types_.end());

@@ -73,6 +73,7 @@ set(
   zelda3/overworld/overworld_geometry.cc
   zelda3/overworld/overworld_native_properties.cc
   zelda3/overworld/overworld_native_sprites.cc
+  zelda3/overworld/overworld_native_placement.cc
   zelda3/overworld/overworld_layout.cc
   zelda3/overworld/overworld.cc
   zelda3/overworld/overworld_allocation.cc

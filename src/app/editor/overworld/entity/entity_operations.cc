@@ -404,9 +404,9 @@ absl::StatusOr<zelda3::Sprite*> InsertSprite(zelda3::Overworld* overworld,
   // Add new sprite to the game state array (ZScream: SpriteMode.cs:34-35)
   auto& sprites = *overworld->mutable_sprites(game_state);
 
+  RETURN_IF_ERROR(overworld->ReserveNativeAuthoringSpritePlacement(
+      game_state, sprite->map_id(), &*sprite));
   sprites.push_back(std::move(*sprite));
-
-  // Return pointer to the newly added sprite
   zelda3::Sprite* inserted_sprite = &sprites.back();
 
   LOG_DEBUG(

@@ -66,6 +66,71 @@ TEST(NativeOverworldAuthoringMetadataTest,
   EXPECT_EQ(*DecodeNativeOverworldAuthoringMetadata(*zero, 192), data);
 }
 
+TEST(NativeOverworldAuthoringMetadataTest,
+     SpriteTransitionsKeepIdentityAndPermitUndo) {
+  const auto before = Placements();
+  auto moved = before;
+  std::get<NativeAuthoringSpritePlacement>(moved.placements[0].value)
+      .packed[1]++;
+  EXPECT_TRUE(ValidateNativeAuthoringSpriteTransition(before, moved, 192).ok());
+  auto deleted = before;
+  deleted.placements[1].state = NativePlacementState::kDeleted;
+  EXPECT_TRUE(
+      ValidateNativeAuthoringSpriteTransition(before, deleted, 192).ok());
+  EXPECT_TRUE(
+      ValidateNativeAuthoringSpriteTransition(deleted, before, 192).ok());
+  auto added = before;
+  added.placements.push_back(
+      {0x6003, NativePlacementState::kDeleted,
+       NativeAuthoringSpritePlacement{1, 0xB0, 5, {1, 1, 0x52}}});
+  added.next_placement_id = 0x6004;
+  EXPECT_TRUE(ValidateNativeAuthoringSpriteTransition(before, added, 192).ok());
+  auto redone = added;
+  redone.placements.back().state = NativePlacementState::kBound;
+  EXPECT_TRUE(ValidateNativeAuthoringSpriteTransition(added, redone, 192).ok());
+}
+
+TEST(NativeOverworldAuthoringMetadataTest,
+     SpriteTransitionsRefuseUnownedMetadataReplacement) {
+  auto before = Placements();
+  before.next_placement_id = 0x7000;
+  for (int variant = 0; variant < 8; ++variant) {
+    SCOPED_TRACE(variant);
+    auto after = before;
+    if (variant == 0)
+      after.placements.pop_back();
+    if (variant == 1)
+      std::swap(after.placements[0], after.placements[1]);
+    if (variant == 2)
+      std::get<NativeAuthoringDoorPlacement>(after.placements[5].value)
+          .entrance_id = 0;
+    if (variant == 3)
+      after.next_placement_id = 0x6003;
+    if (variant == 4) {
+      after.placements.push_back(
+          {0x6003, NativePlacementState::kDeleted,
+           NativeAuthoringSpritePlacement{1, 0xB0, 5, {1, 1, 0x52}}});
+    }
+    if (variant == 5) {
+      after.placements.push_back({0x7000, NativePlacementState::kPending,
+                                  NativeAuthoringDoorPlacement{
+                                      0xB0, 1, 1, std::nullopt, std::nullopt}});
+      after.next_placement_id = 0x7001;
+    }
+    if (variant == 6) {
+      after.placements[1].state = NativePlacementState::kDeleted;
+      std::get<NativeAuthoringSpritePlacement>(after.placements[1].value)
+          .ordinal = 0;
+    }
+    if (variant == 7)
+      std::get<NativeAuthoringSpritePlacement>(after.placements[0].value)
+          .phase = 0;
+    ASSERT_TRUE(EncodeNativeOverworldAuthoringMetadata(after, 192).ok());
+    EXPECT_FALSE(
+        ValidateNativeAuthoringSpriteTransition(before, after, 192).ok());
+  }
+}
+
 TEST(NativeOverworldAuthoringMetadataTest, TombstoneAllowsReusedLiveOrdinal) {
   auto data = Placements();
   data.placements[1].state = NativePlacementState::kDeleted;

@@ -16,6 +16,7 @@
 #include "app/gfx/types/snes_tile.h"
 #include "core/project.h"
 #include "rom/lyra_layout_descriptor.h"
+#include "rom/native_overworld_authoring_metadata.h"
 #include "rom/rom_diagnostics.h"
 
 namespace yaze {
@@ -238,7 +239,9 @@ class Rom {
   absl::Status CommitNativeTerrainImage(
       const std::vector<uint8_t>& baseline, std::vector<uint8_t> candidate,
       std::span<const rom::NativeOverworldPropertyEdit> properties = {},
-      std::span<const rom::NativeOverworldSpriteEdit> sprites = {});
+      std::span<const rom::NativeOverworldSpriteEdit> sprites = {},
+      const rom::NativeOverworldAuthoringMetadata* baseline_metadata = nullptr,
+      const rom::NativeOverworldAuthoringMetadata* publish_metadata = nullptr);
 
   // Sticky, value-owned exact-save reservation. No public detach capability.
   absl::Status AttachLyraPrivateReservation(const core::HackManifest& manifest);

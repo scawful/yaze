@@ -6,6 +6,7 @@
 #include <utility>
 #include <vector>
 
+#include "rom/native_overworld_authoring_metadata.h"
 #include "rom/native_overworld_storage.h"
 
 namespace yaze::rom {
@@ -61,14 +62,49 @@ absl::Status CheckStorage(const LyraLayoutInspection& layout, size_t start,
   }
   return absl::OkStatus();
 }
+
+absl::Status ValidateSpritePlacementWitnessForPartition(
+    const NativeOverworldAuthoringMetadata& witness,
+    const std::array<std::vector<std::vector<uint8_t>>, 3>& lists, size_t first,
+    size_t count, uint16_t capacity) {
+  for (const auto& placement : witness.placements) {
+    if (placement.state != NativePlacementState::kBound)
+      continue;
+    const auto* sprite =
+        std::get_if<NativeAuthoringSpritePlacement>(&placement.value);
+    if (!sprite)
+      continue;
+    if (sprite->phase > 2 || sprite->owner_map >= capacity)
+      return absl::FailedPreconditionError(
+          "Native placement witness references a map outside the current "
+          "sprite partition");
+    if (sprite->owner_map < first || sprite->owner_map >= first + count)
+      continue;
+    const auto& list = lists[sprite->phase][sprite->owner_map - first];
+    if (list.empty() || list.back() != 0xFF)
+      return absl::FailedPreconditionError(
+          "Native sprite stream missing terminator for placement witness");
+    const size_t triples = (list.size() - 1) / 3;
+    if (sprite->ordinal >= triples)
+      return absl::FailedPreconditionError(
+          "Native placement ordinal exceeds proposed sprite stream");
+    for (int i = 0; i < 3; ++i) {
+      if (list[sprite->ordinal * 3 + i] != sprite->packed[i])
+        return absl::FailedPreconditionError(
+            "Native placement witness disagrees with proposed sprite stream");
+    }
+  }
+  return absl::OkStatus();
+}
 }  // namespace
 
 absl::StatusOr<std::vector<NativeOverworldSpriteWrite>>
 PlanNativeOverworldSpriteSave(
     const std::vector<uint8_t>& baseline,
-    std::span<const NativeOverworldSpriteEdit> edits) {
+    std::span<const NativeOverworldSpriteEdit> edits,
+    const NativeOverworldAuthoringMetadata* placement_witness) {
   std::vector<NativeOverworldSpriteWrite> plan;
-  if (edits.empty())
+  if (edits.empty() && !placement_witness)
     return plan;
   const auto layout = InspectLyraLayout(baseline.data(), baseline.size());
   if (layout.presence != LyraLayoutPresence::kValid ||
@@ -76,6 +112,21 @@ PlanNativeOverworldSpriteSave(
     return absl::FailedPreconditionError(
         "Native sprite planning requires a valid native special-overworld "
         "directory");
+  if (placement_witness && !layout.has_authoring_metadata)
+    return absl::InvalidArgumentError(
+        "Native placement witness requires authoring metadata in layout");
+  if (placement_witness) {
+    const auto encoded = EncodeNativeOverworldAuthoringMetadata(
+        *placement_witness, layout.capacity);
+    if (!encoded.ok())
+      return encoded.status();
+    const auto& metadata = Entry(layout, kNativeAuthoringMetadataTableId);
+    const auto storage =
+        CheckStorage(layout, metadata.pc_address, kNativeAuthoringMetadataSize,
+                     metadata.id, false);
+    if (!storage.ok())
+      return storage;
+  }
   std::map<std::pair<uint16_t, uint16_t>, const std::vector<uint8_t>*> changed;
   for (const auto& edit : edits) {
     if (edit.phase >= 3 || edit.map_id >= layout.capacity ||
@@ -147,14 +198,18 @@ PlanNativeOverworldSpriteSave(
         lists[phase].push_back(std::move(bytes));
       }
     }
-    if (!any_change)
-      continue;
-    // Loaded, identical lists participate in ordinary Save. Refuse only a
-    // changed batch until the model and writer update its placement witnesses.
-    if (layout.has_authoring_metadata)
+    if (placement_witness) {
+      auto status = ValidateSpritePlacementWitnessForPartition(
+          *placement_witness, lists, first, count, layout.capacity);
+      if (!status.ok())
+        return status;
+    }
+    if (layout.has_authoring_metadata && any_change && !placement_witness)
       return absl::FailedPreconditionError(
           "Authoring metadata sprite Save requires stable placement-ID "
           "binding");
+    if (!any_change)
+      continue;
     const auto data_status = CheckStorage(layout, begin, end - begin,
                                           partition == 0 ? 0 : 100, false);
     if (!data_status.ok())

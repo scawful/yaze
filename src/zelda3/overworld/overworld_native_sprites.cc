@@ -73,8 +73,9 @@ absl::Status Overworld::BindNativeSpritePlacements() {
   }
   // Validate the complete set before assigning any identity. Tombstones and
   // pending endpoints never bind; untracked legacy sprites remain unbound.
-  for (const auto& [sprite, id] : bindings)
+  for (const auto& [sprite, id] : bindings) {
     sprite->set_placement_id(id);
+  }
   return absl::OkStatus();
 }
 
@@ -93,7 +94,7 @@ absl::StatusOr<OverworldSpriteEdits> Overworld::PrepareSpriteEdits() const {
             ? static_cast<size_t>(baseline[baseline_cursor++])
             : 0;
     const size_t old_begin = baseline_cursor;
-    baseline_cursor += old_count * 7;
+    baseline_cursor += old_count * 8;
     size_t row = 0;
     for (int map = 0; map < materialized_map_count(); ++map) {
       if (sprite_maps_loaded_[state][map]) {
@@ -102,12 +103,12 @@ absl::StatusOr<OverworldSpriteEdits> Overworld::PrepareSpriteEdits() const {
       }
     }
     for (const auto& sprite : all_sprites_[state]) {
-      const size_t old = old_begin + row++ * 7;
+      const size_t old = old_begin + row++ * 8;
       // Existing bank09 data can contain offscreen legacy placements.
       // Preserve an unchanged prefix position; new or moved positions must fit.
       const bool retained_position =
           sprite.map_id() < 160 && row <= old_count &&
-          old + 6 < baseline.size() && baseline[old] == sprite.map_id() &&
+          old + 7 < baseline.size() && baseline[old] == sprite.map_id() &&
           baseline[old + 2] == sprite.x() && baseline[old + 3] == sprite.y();
       if (sprite.deleted())
         continue;
@@ -179,7 +180,7 @@ absl::StatusOr<OverworldSpriteSavePlan> Overworld::PrepareSpriteSave() const {
                            [](const auto& entry) { return entry.has_value(); });
       }))
     return OverworldSpriteSavePlan{};
-  return PlanOverworldSpriteSave(*rom_, edits);
+  return PlanOverworldSpriteSave(*rom_, edits, nullptr);
 }
 
 }  // namespace yaze::zelda3

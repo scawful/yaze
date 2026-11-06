@@ -138,7 +138,7 @@ absl::StatusOr<OverworldAreaSnapshot> Overworld::CaptureNativeAreaSnapshot()
   for (int phase = 0; phase < 3; ++phase) {
     for (const auto& sprite : all_sprites_[phase])
       snapshot.sprites[phase].push_back(
-          {sprite.map_id(), sprite.nx(), sprite.ny()});
+          {sprite.map_id(), sprite.nx(), sprite.ny(), sprite.placement_id()});
     snapshot.loaded_sprite_maps[phase].assign(
         sprite_maps_loaded_[phase].begin(),
         sprite_maps_loaded_[phase].begin() + materialized_map_count());
@@ -170,20 +170,48 @@ absl::Status Overworld::RestoreNativeAreaSnapshot(
       return absl::InvalidArgumentError(
           "Invalid native screen appearance snapshot");
   }
+  std::array<std::vector<size_t>, 3> sprite_rows;
   for (int phase = 0; phase < 3; ++phase) {
-    if (snapshot.sprites[phase].size() != all_sprites_[phase].size() ||
+    if (snapshot.sprites[phase].size() > all_sprites_[phase].size() ||
         snapshot.loaded_sprite_maps[phase].size() != overworld_maps_.size())
       return absl::FailedPreconditionError(
           "Native sprite row identity changed after resizing");
     for (size_t row = 0; row < snapshot.sprites[phase].size(); ++row) {
       const auto& sprite = snapshot.sprites[phase][row];
+      size_t target = row;
+      if (sprite.placement_id) {
+        target = all_sprites_[phase].size();
+        for (size_t i = 0; i < all_sprites_[phase].size(); ++i) {
+          if (all_sprites_[phase][i].placement_id() != sprite.placement_id)
+            continue;
+          if (target != all_sprites_[phase].size())
+            return absl::FailedPreconditionError(
+                "Duplicate sprite identity in area history");
+          target = i;
+        }
+      }
+      if (target >= all_sprites_[phase].size() ||
+          all_sprites_[phase][target].placement_id() != sprite.placement_id ||
+          std::find(sprite_rows[phase].begin(), sprite_rows[phase].end(),
+                    target) != sprite_rows[phase].end())
+        return absl::FailedPreconditionError(
+            "Sprite identity changed after area snapshot");
+      sprite_rows[phase].push_back(target);
       if (sprite.owner >= snapshot.geometry.size() || sprite.x >= 64 ||
           sprite.y >= 64 ||
-          (!all_sprites_[phase][row].deleted() &&
+          (!all_sprites_[phase][target].deleted() &&
            (snapshot.geometry[sprite.owner].parent != sprite.owner ||
             !snapshot.loaded_sprite_maps[phase][sprite.owner])))
         return absl::InvalidArgumentError(
             "Invalid native sprite ownership snapshot");
+    }
+    for (size_t row = 0; row < all_sprites_[phase].size(); ++row) {
+      if (std::find(sprite_rows[phase].begin(), sprite_rows[phase].end(),
+                    row) == sprite_rows[phase].end() &&
+          (!all_sprites_[phase][row].deleted() ||
+           !all_sprites_[phase][row].placement_id()))
+        return absl::FailedPreconditionError(
+            "A new live sprite prevents restoring this area snapshot");
     }
   }
   // No allocation, reader or file is mutated here. All checks precede the
@@ -211,9 +239,10 @@ absl::Status Overworld::RestoreNativeAreaSnapshot(
     sprite_maps_loaded_[phase] = {};
     for (size_t map = 0; map < snapshot.geometry.size(); ++map)
       sprite_maps_loaded_[phase][map] = snapshot.loaded_sprite_maps[phase][map];
-    for (size_t row = 0; row < all_sprites_[phase].size(); ++row) {
+    for (size_t row = 0; row < snapshot.sprites[phase].size(); ++row) {
       const auto& value = snapshot.sprites[phase][row];
-      all_sprites_[phase][row].SetOverworldArea(value.owner, value.x, value.y);
+      all_sprites_[phase][sprite_rows[phase][row]].SetOverworldArea(
+          value.owner, value.x, value.y);
     }
   }
   ApplyNativeAreaProfiles();

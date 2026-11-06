@@ -3,6 +3,7 @@
 
 #include <array>
 #include <cstdint>
+#include <optional>
 #include <span>
 #include <vector>
 
@@ -30,6 +31,7 @@ struct OverworldSpriteArea {
   uint8_t owner;
   uint8_t x;
   uint8_t y;
+  std::optional<uint32_t> placement_id = std::nullopt;
   bool operator==(const OverworldSpriteArea&) const = default;
 };
 struct OverworldPageProperties {

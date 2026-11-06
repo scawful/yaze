@@ -855,7 +855,9 @@ std::optional<std::array<uint16_t, 256>> LyraMapTile32(
 absl::StatusOr<std::vector<uint8_t>> SealNativeOverworldTerrain(
     const std::vector<uint8_t>& baseline, std::vector<uint8_t> candidate,
     std::span<const NativeOverworldPropertyEdit> properties,
-    std::span<const NativeOverworldSpriteEdit> sprites) {
+    std::span<const NativeOverworldSpriteEdit> sprites,
+    const NativeOverworldAuthoringMetadata* baseline_metadata,
+    const NativeOverworldAuthoringMetadata* publish_metadata) {
   const auto layout = InspectLyraLayout(baseline.data(), baseline.size());
   if (layout.presence != LyraLayoutPresence::kValid ||
       !IsNativeSpecialOverworldLayout(layout) ||
@@ -863,6 +865,16 @@ absl::StatusOr<std::vector<uint8_t>> SealNativeOverworldTerrain(
     return absl::FailedPreconditionError(
         "Native terrain publication requires a valid unchanged image extent");
   }
+  if (publish_metadata && !layout.has_authoring_metadata)
+    return absl::InvalidArgumentError(
+        "Native placement publication requires authoring metadata in layout");
+  if (baseline_metadata && !layout.has_authoring_metadata)
+    return absl::InvalidArgumentError(
+        "Native baseline metadata witness requires authoring metadata in "
+        "layout");
+  if ((baseline_metadata == nullptr) != (publish_metadata == nullptr))
+    return absl::InvalidArgumentError(
+        "Native metadata Save requires both expected and proposed values");
   auto writable_table = [](uint16_t id) {
     return id == 20 || id == 21 || (id >= 210 && id <= 213) ||
            (id >= 400 && id <= 404);
@@ -1055,7 +1067,44 @@ absl::StatusOr<std::vector<uint8_t>> SealNativeOverworldTerrain(
     std::copy_n(candidate.begin() + at, entry.stride,
                 candidate.begin() + native);
   }
-  auto sprite_plan = PlanNativeOverworldSpriteSave(baseline, sprites);
+  if (layout.has_authoring_metadata) {
+    const auto* meta_entry = FindEntry(layout, kNativeAuthoringMetadataTableId);
+    if (!meta_entry ||
+        meta_entry->count * meta_entry->stride != kNativeAuthoringMetadataSize)
+      return absl::FailedPreconditionError(
+          "Native authoring metadata record size mismatch");
+    if (baseline_metadata) {
+      ASSIGN_OR_RETURN(auto decoded,
+                       DecodeNativeOverworldAuthoringMetadata(
+                           {baseline.data() + meta_entry->pc_address,
+                            kNativeAuthoringMetadataSize},
+                           layout.capacity));
+      if (decoded != *baseline_metadata)
+        return absl::FailedPreconditionError(
+            "Native authoring metadata baseline witness disagrees with ROM");
+      RETURN_IF_ERROR(ValidateNativeAuthoringSpriteTransition(
+          *baseline_metadata, *publish_metadata, layout.capacity));
+      const auto old_witness =
+          PlanNativeOverworldSpriteSave(baseline, {}, baseline_metadata);
+      if (!old_witness.ok())
+        return old_witness.status();
+    }
+    if (publish_metadata) {
+      ASSIGN_OR_RETURN(auto encoded, EncodeNativeOverworldAuthoringMetadata(
+                                         *publish_metadata, layout.capacity));
+      if (!std::equal(encoded.begin(), encoded.end(),
+                      baseline.begin() + meta_entry->pc_address))
+        changed(kNativeAuthoringMetadataTableId);
+      std::copy(encoded.begin(), encoded.end(),
+                candidate.begin() + meta_entry->pc_address);
+    }
+  } else if (baseline_metadata || publish_metadata) {
+    return absl::InvalidArgumentError(
+        "Native layout has no authoring metadata table");
+  }
+  const NativeOverworldAuthoringMetadata* sprite_witness = publish_metadata;
+  auto sprite_plan =
+      PlanNativeOverworldSpriteSave(baseline, sprites, sprite_witness);
   if (!sprite_plan.ok())
     return sprite_plan.status();
   for (const auto& write : *sprite_plan)
@@ -1070,7 +1119,8 @@ absl::StatusOr<std::vector<uint8_t>> SealNativeOverworldTerrain(
     if (writable_table(e.id) ||
         (!sprites.empty() && (e.id == 100 || (e.id >= 16 && e.id <= 18))) ||
         std::find(changed_properties.begin(), changed_properties.end(), e.id) !=
-            changed_properties.end())
+            changed_properties.end() ||
+        (publish_metadata && e.id == kNativeAuthoringMetadataTableId))
       put32(kDescriptorPc + kHeaderSize + i * kEntrySize + 12,
             Crc32(candidate.data() + e.pc_address, e.count * e.stride));
   }
@@ -1082,6 +1132,27 @@ absl::StatusOr<std::vector<uint8_t>> SealNativeOverworldTerrain(
       !IsNativeSpecialOverworldLayout(checked))
     return absl::FailedPreconditionError(
         "Native terrain candidate is invalid: " + checked.error);
+  if (publish_metadata) {
+    for (const auto* metadata : {baseline_metadata, publish_metadata}) {
+      const auto& image = metadata == baseline_metadata ? baseline : candidate;
+      const auto& descriptor = metadata == baseline_metadata ? layout : checked;
+      for (const auto& placement : metadata->placements) {
+        const auto* sprite =
+            std::get_if<NativeAuthoringSpritePlacement>(&placement.value);
+        if (!sprite || placement.state != NativePlacementState::kBound)
+          continue;
+        const auto owner = LyraLayoutRecord(descriptor, image.data(),
+                                            image.size(), 7, sprite->owner_map);
+        if (!owner || (*owner)[0] != sprite->owner_map)
+          return absl::FailedPreconditionError(
+              "Native placement witness must reference an owning area");
+      }
+    }
+    const auto final_witness =
+        PlanNativeOverworldSpriteSave(candidate, {}, publish_metadata);
+    if (!final_witness.ok())
+      return final_witness.status();
+  }
   return candidate;
 }
 

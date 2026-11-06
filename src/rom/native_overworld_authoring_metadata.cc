@@ -9,6 +9,57 @@
 #include "absl/status/status.h"
 
 namespace yaze::rom {
+
+absl::Status ValidateNativeAuthoringSpriteTransition(
+    const NativeOverworldAuthoringMetadata& expected,
+    const NativeOverworldAuthoringMetadata& proposed,
+    uint16_t materialized_count) {
+  const auto before =
+      EncodeNativeOverworldAuthoringMetadata(expected, materialized_count);
+  const auto after =
+      EncodeNativeOverworldAuthoringMetadata(proposed, materialized_count);
+  if (!before.ok())
+    return before.status();
+  if (!after.ok())
+    return after.status();
+  if (proposed.placements.size() < expected.placements.size() ||
+      proposed.next_placement_id < expected.next_placement_id)
+    return absl::FailedPreconditionError(
+        "Native placement identities cannot be removed or reused");
+  uint32_t next = expected.next_placement_id;
+  for (size_t i = 0; i < proposed.placements.size(); ++i) {
+    const auto& value = proposed.placements[i];
+    const auto* sprite =
+        std::get_if<NativeAuthoringSpritePlacement>(&value.value);
+    if (i >= expected.placements.size()) {
+      if (!sprite || value.id < next)
+        return absl::FailedPreconditionError(
+            "New native sprite identities must append monotonically");
+      next = value.id + 1;  // Codec proves id < nonzero nextID, so no overflow.
+      continue;
+    }
+    const auto& old = expected.placements[i];
+    if (value.id != old.id || value.value.index() != old.value.index())
+      return absl::FailedPreconditionError(
+          "Native placement order, identity and kind are immutable");
+    if (!sprite) {
+      if (value != old)
+        return absl::FailedPreconditionError(
+            "Sprite Save cannot change pending endpoints");
+    } else {
+      const auto& previous =
+          std::get<NativeAuthoringSpritePlacement>(old.value);
+      if (sprite->phase != previous.phase ||
+          (value.state == NativePlacementState::kDeleted &&
+           value.value != old.value))
+        return absl::FailedPreconditionError(
+            "Native sprite phase and saved tombstone witness must be "
+            "preserved");
+    }
+  }
+  return absl::OkStatus();
+}
+
 namespace {
 
 constexpr char kMagic[8] = {'O', 'W', 'P', 'L', 'A', 'C', '1', '\0'};

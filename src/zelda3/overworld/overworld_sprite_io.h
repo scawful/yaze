@@ -7,6 +7,7 @@
 #include <utility>
 #include <vector>
 #include "absl/status/statusor.h"
+#include "rom/native_overworld_authoring_metadata.h"
 #include "rom/rom.h"
 
 namespace yaze::zelda3 {
@@ -44,7 +45,8 @@ absl::StatusOr<OverworldSpriteBytes> ReadOverworldSpriteList(
 // Preserve every untouched list, including entries outside the editor's loaded
 // maps. Deduplicate exact ordered streams; reject overflow before any mutation.
 absl::StatusOr<OverworldSpriteSavePlan> PlanOverworldSpriteSave(
-    const Rom& rom, const OverworldSpriteEdits& edits);
+    const Rom& rom, const OverworldSpriteEdits& edits,
+    const rom::NativeOverworldAuthoringMetadata* placement_witness = nullptr);
 // Minimal-diff edit of one (game state, map) list: rewrite in place when the
 // list is unshared and fits (or the bytes after it are unreferenced), else
 // copy the list into unreferenced region bytes and repoint only this slot.

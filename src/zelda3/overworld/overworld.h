@@ -17,6 +17,7 @@
 #include "core/rom_settings.h"
 #include "imgui.h"
 #include "rom/lyra_layout_descriptor.h"
+#include "rom/native_overworld_authoring_metadata.h"
 #include "rom/rom.h"
 #include "zelda3/common.h"
 #include "zelda3/game_data.h"
@@ -499,6 +500,10 @@ class Overworld {
   absl::StatusOr<OverworldSpriteEdits> PrepareSpriteEdits() const;
   absl::StatusOr<std::vector<rom::NativeOverworldSpriteEdit>>
   PrepareNativeSpriteSave() const;
+  absl::StatusOr<rom::NativeOverworldAuthoringMetadata>
+  ProposeNativeAuthoringMetadataForSave() const;
+  absl::Status ReserveNativeAuthoringSpritePlacement(int phase, int map_id,
+                                                     Sprite* sprite);
   absl::StatusOr<OverworldSpriteSavePlan> PrepareSpriteSave() const;
   absl::Status SaveSprites();
 
@@ -736,6 +741,9 @@ class Overworld {
     native_area_profiles_.clear();
     native_effective_area_profiles_.clear();
     native_geometry_baseline_.clear();
+    native_authoring_metadata_draft_.reset();
+    native_authoring_metadata_baseline_.reset();
+    staged_native_authoring_metadata_.reset();
     RollbackSavedMapTiles();
     tiles32_.clear();
     tiles32_unique_.clear();
@@ -965,6 +973,12 @@ class Overworld {
   NativeModelState native_nonterrain_baseline_;
   std::optional<std::vector<int64_t>> staged_native_properties_;
   std::optional<std::vector<int64_t>> staged_native_sprites_;
+  std::optional<rom::NativeOverworldAuthoringMetadata>
+      native_authoring_metadata_draft_;
+  std::optional<rom::NativeOverworldAuthoringMetadata>
+      native_authoring_metadata_baseline_;
+  std::optional<rom::NativeOverworldAuthoringMetadata>
+      staged_native_authoring_metadata_;
   std::vector<gfx::Tile32> staged_tiles32_unique_;
   std::vector<uint16_t> staged_tiles32_list_;
   std::vector<uint8_t> private_loaded_overlays_;

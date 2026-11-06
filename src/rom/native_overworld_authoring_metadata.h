@@ -94,6 +94,14 @@ EncodeNativeOverworldAuthoringMetadata(
     const NativeOverworldAuthoringMetadata& metadata,
     uint16_t materialized_count);
 
+// Sprite-only normal Save preserves existing identities, order and endpoints.
+// Reactivating an existing sprite identity supports Undo after Save; allocating
+// a new identity must append above the saved allocator watermark.
+absl::Status ValidateNativeAuthoringSpriteTransition(
+    const NativeOverworldAuthoringMetadata& expected,
+    const NativeOverworldAuthoringMetadata& proposed,
+    uint16_t materialized_count);
+
 }  // namespace yaze::rom
 
 #endif  // YAZE_ROM_NATIVE_OVERWORLD_AUTHORING_METADATA_H_
