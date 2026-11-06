@@ -349,6 +349,13 @@ TEST(OverworldAllocationTest, MarkerPresentReadsTheRelocatedTables) {
   const std::vector<uint8_t> blank = {0xE4, 0xFF, 0x00, 0xFF};
   std::copy(blank.begin(), blank.end(), bytes.begin() + 0x180000);
   std::copy(blank.begin(), blank.end(), bytes.begin() + 0x181000);
+  const TailMapExpansionPlan plan;
+  for (size_t i = 0; i < plan.operand_snes.size(); ++i) {
+    const uint32_t pc = (plan.operand_snes[i] & 0x7F0000u) / 2u +
+                        (plan.operand_snes[i] & 0x7FFFu);
+    bytes[pc - 1] = 0xBF;
+    test::TestWriteLong(bytes, pc, plan.operand_patched[i]);
+  }
   Rom rom = LoadRom(bytes);
 
   const auto check = CheckTailMapExpansion(rom);
@@ -359,6 +366,7 @@ TEST(OverworldAllocationTest, MarkerPresentReadsTheRelocatedTables) {
   }
 
   const auto report = BuildReport(rom);
+  ASSERT_EQ(report.areas.size(), static_cast<size_t>(kAllocationAreaCount));
   EXPECT_TRUE(report.tail_marker_present);
   EXPECT_EQ(report.areas[0xA0].map_pointer_source, "tail_table");
   EXPECT_TRUE(report.areas[0xA0].map_pointer_valid);
@@ -380,7 +388,14 @@ TEST(OverworldAllocationTest, CustomCollisionMarkerCannotBypassApplyGuard) {
     EXPECT_EQ(TailMapExpansionApplyGuard(rom).code(),
               absl::StatusCode::kFailedPrecondition);
     EXPECT_EQ(rom.vector(), before);
-    EXPECT_FALSE(BuildReport(rom).tail_marker_present);
+    const auto report = BuildOverworldAllocationReport(&rom);
+    if (marker == 0x05) {
+      ASSERT_TRUE(report.ok()) << report.status();
+      EXPECT_FALSE(report->tail_marker_present);
+    } else {
+      // An unknown dialect must not scan legacy metadata as if it were bound.
+      EXPECT_EQ(report.status().code(), absl::StatusCode::kFailedPrecondition);
+    }
   }
 }
 
