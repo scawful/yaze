@@ -1183,7 +1183,7 @@ TEST_F(NativeSpecialOverworldEditorTest, NormalSaveUndoFailureAndDiskReopen) {
       absl::MakeCleanup([&] { core::FeatureFlags::get() = flags; });
   Rom legacy;
   ASSERT_TRUE(legacy.LoadFromData(ReadBytes(path)).ok());
-  zelda3::Overworld reference;
+  zelda3::Overworld reference(&legacy);
   ASSERT_TRUE(reference.Load(&legacy).ok());
   NativeDirectoryFixture fixture;
   fixture.SeedLoadedLegacyForModelTest(legacy, reference);
@@ -1283,7 +1283,7 @@ TEST_F(NativeSpecialOverworldEditorTest, NormalSaveUndoFailureAndDiskReopen) {
   EXPECT_EQ(ReadBytes(target), persisted);
   // A disabled property domain stays unsaved. Re-enabling it must still
   // notice the edit instead of silently accepting a new baseline.
-  auto* map = world.overworld_map(0xBF);
+  auto* map = world.mutable_overworld_map(0xBF);
   const auto old_message = map->message_id();
   map->set_message_id(old_message ^ 1);
   EXPECT_FALSE(manager->SaveRom().ok());
@@ -1298,7 +1298,7 @@ TEST_F(NativeSpecialOverworldEditorTest, NormalSaveUndoFailureAndDiskReopen) {
   ASSERT_TRUE(reopened.LoadFromFile(target.string()).ok());
   ASSERT_EQ(reopened.InspectLyraLayout().presence,
             rom::LyraLayoutPresence::kValid);
-  zelda3::Overworld fresh;
+  zelda3::Overworld fresh(&reopened);
   const auto loaded = fresh.Load(&reopened);
   ASSERT_TRUE(loaded.ok()) << loaded;
   EXPECT_EQ(fresh.materialized_map_count(), 192);
