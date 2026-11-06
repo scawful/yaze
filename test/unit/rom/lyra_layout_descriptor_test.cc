@@ -646,6 +646,70 @@ TEST(LyraLayoutDescriptorTest, SyntheticTerrainVectorsNeedNoGameGraphics) {
   EXPECT_FALSE(lyra.CheckLayoutWritable().ok());
 }
 
+TEST(LyraLayoutDescriptorTest, LayoutMapConstructionAndEdgeAreasCover192Slots) {
+  const auto bytes = ReadBytes("OFFLINE_ONLY.bin");
+  ASSERT_FALSE(bytes.empty());
+  Rom image;
+  ASSERT_TRUE(image.LoadFromData(bytes).ok());
+  const auto layout = image.InspectLyraLayout();
+  ASSERT_EQ(layout.presence, rom::LyraLayoutPresence::kValid) << layout.error;
+  std::vector<zelda3::OverworldMap> maps;
+  for (int map_id = 0; map_id < layout.capacity; ++map_id) {
+    auto map = zelda3::OverworldMap::CreateFromLayout(map_id, &image, nullptr,
+                                                      &layout);
+    ASSERT_TRUE(map.ok()) << map.status();
+    maps.push_back(std::move(*map));
+  }
+  ASSERT_EQ(maps.size(), 192u);
+  EXPECT_FALSE(
+      zelda3::OverworldMap::CreateFromLayout(0xC0, &image, nullptr, &layout)
+          .ok());
+  zelda3::Overworld world(&image);
+  const auto reset_models = [&maps] {
+    for (int map_id = 0; map_id < static_cast<int>(maps.size()); ++map_id)
+      maps[map_id].SetAsSmallMap(map_id);
+  };
+  reset_models();
+  maps[0xBE].SetAreaSize(zelda3::AreaSizeEnum::WideArea);
+  world.AssignMapSizes(maps);
+  EXPECT_EQ(maps[0xBF].parent(), 0xBE);
+  EXPECT_EQ(maps[0xBF].large_index(), 1);
+  reset_models();
+  maps[0xB7].SetAreaSize(zelda3::AreaSizeEnum::TallArea);
+  world.AssignMapSizes(maps);
+  EXPECT_EQ(maps[0xBF].parent(), 0xB7);
+  EXPECT_EQ(maps[0xBF].large_index(), 2);
+  reset_models();
+  maps[0xB6].SetAreaSize(zelda3::AreaSizeEnum::LargeArea);
+  world.AssignMapSizes(maps);
+  EXPECT_EQ(maps[0xBF].parent(), 0xB6);
+  EXPECT_EQ(maps[0xBF].large_index(), 3);
+  EXPECT_EQ(image.vector(), bytes);
+}
+
+TEST(LyraLayoutDescriptorTest,
+     MaterializedMapCountAndUnloadBoundsFollowTheModel) {
+  Rom image;
+  ASSERT_TRUE(image.LoadFromData(ReadBytes("OFFLINE_ONLY.bin")).ok());
+  zelda3::Overworld world(&image);
+  EXPECT_EQ(world.materialized_map_count(), 0);
+  ASSERT_TRUE(world.LoadLyraTerrainPreview(&image).ok());
+  EXPECT_EQ(world.materialized_map_count(), 192);
+  EXPECT_NE(world.overworld_map(0xBF), nullptr);
+  EXPECT_EQ(world.overworld_map(0xC0), nullptr);
+  const auto before = image.vector();
+  const auto parent = world.overworld_map(0xA1)->parent();
+  const auto size = world.overworld_map(0xA0)->area_size();
+  EXPECT_FALSE(
+      world.ConfigureMultiAreaMap(0xA0, zelda3::AreaSizeEnum::WideArea).ok());
+  EXPECT_EQ(world.overworld_map(0xA1)->parent(), parent);
+  EXPECT_EQ(world.overworld_map(0xA0)->area_size(), size);
+  EXPECT_EQ(image.vector(), before);
+  world.Destroy();
+  EXPECT_EQ(world.materialized_map_count(), 0);
+  EXPECT_FALSE(world.EnsureMapBuilt(0).ok());
+}
+
 TEST(LyraLayoutDescriptorTest, InactiveA0A1TerrainUsesDescriptorRenderPath) {
   const auto fixture = FixtureDir() / "LYRA_PREVIEW_A0_A1.bin";
   if (!std::filesystem::exists(fixture)) {

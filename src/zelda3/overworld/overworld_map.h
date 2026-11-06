@@ -238,9 +238,15 @@ class OverworldMap : public gfx::GfxContext {
   OverworldMap(int index, Rom* rom, GameData* game_data = nullptr);
   OverworldMap(int index, Rom* rom, GameData* game_data,
                const core::RomAddressOverrides& addresses);
-  static absl::StatusOr<OverworldMap> CreateLyraPreview(
+  static absl::StatusOr<OverworldMap> CreateFromLayout(
       int index, Rom* rom, GameData* game_data,
       const rom::LyraLayoutInspection* layout);
+  // Searchable compatibility entry point for existing descriptor previews.
+  static absl::StatusOr<OverworldMap> CreateLyraPreview(
+      int index, Rom* rom, GameData* game_data,
+      const rom::LyraLayoutInspection* layout) {
+    return CreateFromLayout(index, rom, game_data, layout);
+  }
 
   void SetGraphicsPreview(const AreaGraphicsPreview& preview) {
     if (graphics_preview_ == preview)
@@ -534,7 +540,7 @@ class OverworldMap : public gfx::GfxContext {
   OverworldMap(int index, Rom* rom, GameData* game_data, bool seed_area_parent,
                bool skip_legacy_data = false,
                const core::RomAddressOverrides* addresses = nullptr);
-  absl::Status LoadLyraPreviewProperties();
+  absl::Status LoadLayoutProperties();
   void CopyAnimatedSheetIntoSlot7();
   void LoadAreaInfo();
   void CaptureAreaInfoBaseline();

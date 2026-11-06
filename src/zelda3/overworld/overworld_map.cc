@@ -162,7 +162,7 @@ OverworldMap::OverworldMap(int index, Rom* rom, GameData* game_data,
   CaptureAreaInfoBaseline();
 }
 
-absl::StatusOr<OverworldMap> OverworldMap::CreateLyraPreview(
+absl::StatusOr<OverworldMap> OverworldMap::CreateFromLayout(
     int index, Rom* rom, GameData* game_data,
     const rom::LyraLayoutInspection* layout) {
   if (rom == nullptr || layout == nullptr ||
@@ -173,11 +173,11 @@ absl::StatusOr<OverworldMap> OverworldMap::CreateLyraPreview(
   OverworldMap map(index, rom, game_data, /*seed_area_parent=*/false,
                    /*skip_legacy_data=*/true);
   map.descriptor_layout_ = layout;
-  RETURN_IF_ERROR(map.LoadLyraPreviewProperties());
+  RETURN_IF_ERROR(map.LoadLayoutProperties());
   return map;
 }
 
-absl::Status OverworldMap::LoadLyraPreviewProperties() {
+absl::Status OverworldMap::LoadLayoutProperties() {
   auto read = [this](uint16_t id,
                      size_t index) -> absl::StatusOr<std::span<const uint8_t>> {
     auto record = rom::LyraLayoutRecord(*descriptor_layout_, rom_->data(),

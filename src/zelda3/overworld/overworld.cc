@@ -232,12 +232,18 @@ absl::Status Overworld::Load(Rom* rom) {
   // Phase 3: Map Object Creation (fast)
   {
     gfx::ScopedTimer map_creation_timer("CreateOverworldMapObjects");
-    for (int map_index = 0; map_index < kNumOverworldMaps; ++map_index)
+    const int map_count = resolved_layout_.materialized_model_slots;
+    if (map_count != kNumOverworldMaps && map_count != kExpandedMapCount) {
+      return absl::FailedPreconditionError(
+          "Unsupported overworld model capacity");
+    }
+    map_parent_.assign(map_count, 0);
+    for (int map_index = 0; map_index < map_count; ++map_index)
       overworld_maps_.emplace_back(map_index, rom_, game_data_,
                                    layout_inspect_options_.address_overrides);
 
     // Populate map_parent_ array with parent information from each map
-    for (int map_index = 0; map_index < kNumOverworldMaps; ++map_index) {
+    for (int map_index = 0; map_index < map_count; ++map_index) {
       map_parent_[map_index] = overworld_maps_[map_index].parent();
     }
   }
@@ -344,6 +350,7 @@ absl::Status Overworld::BuildLyraTerrainPreview(
   tileset_cache_.clear();
   RETURN_IF_ERROR(AssembleMap32Tiles());
   RETURN_IF_ERROR(AssembleMap16Tiles());
+  map_parent_.assign(descriptor_layout_.capacity, 0);
   for (int map_index = 0; map_index < descriptor_layout_.capacity;
        ++map_index) {
     auto tiles = rom::LyraMapTile32(descriptor_layout_, rom_->data(),
@@ -369,13 +376,11 @@ absl::Status Overworld::BuildLyraTerrainPreview(
         AssignWorldTiles(x, y, sx, sy, tile, world);
       }
     }
-    ASSIGN_OR_RETURN(
-        auto map, OverworldMap::CreateLyraPreview(map_index, rom_, game_data_,
-                                                  &descriptor_layout_));
+    ASSIGN_OR_RETURN(auto map,
+                     OverworldMap::CreateFromLayout(map_index, rom_, game_data_,
+                                                    &descriptor_layout_));
     overworld_maps_.push_back(std::move(map));
-    if (map_index < kNumOverworldMaps) {
-      map_parent_[map_index] = overworld_maps_.back().parent();
-    }
+    map_parent_[map_index] = overworld_maps_.back().parent();
   }
   loaded_map_tiles_ = map_tiles_;
   loaded_map_tiles_valid_ = true;
@@ -414,7 +419,7 @@ void Overworld::FetchLargeMaps() {
   // between map index and its parent, rather than grid-walking.
 
   // First pass: Set up special world maps using ROM data
-  for (int i = 128; i < kNumOverworldMaps; i++) {
+  for (int i = 128; i < materialized_map_count(); i++) {
     int parent = overworld_maps_[i].parent();
 
     if (overworld_maps_[i].is_large_map()) {
@@ -437,8 +442,7 @@ void Overworld::FetchLargeMaps() {
   }
 
   // Track visited maps across LW/DW (0x00-0x7F)
-  std::array<bool, kNumOverworldMaps> map_checked{};
-  std::ranges::fill(map_checked, false);
+  std::vector<bool> map_checked(materialized_map_count(), false);
 
   // Second pass: Process LW/DW maps using ROM parent values
   for (int world_offset = 0; world_offset < 128; world_offset += 64) {
@@ -499,7 +503,7 @@ void Overworld::FetchLargeMaps() {
  * @param maps The maps to update (passed by reference)
  */
 void Overworld::AssignMapSizes(std::vector<OverworldMap>& maps) {
-  std::vector<bool> map_checked(kNumOverworldMaps, false);
+  std::vector<bool> map_checked(maps.size(), false);
 
   int xx = 0;
   int yy = 0;
@@ -584,10 +588,14 @@ void Overworld::AssignMapSizes(std::vector<OverworldMap>& maps) {
 
 absl::Status Overworld::ConfigureMultiAreaMap(int parent_index,
                                               AreaSizeEnum size) {
-  if (parent_index < 0 || parent_index >= kNumOverworldMaps) {
+  if (parent_index < 0 || parent_index >= materialized_map_count()) {
     return absl::InvalidArgumentError(
         absl::StrFormat("Invalid parent index: %d", parent_index));
   }
+  RETURN_IF_ERROR(PreflightLayoutOperation(
+      OverworldLayoutDomain::kGeometry, OverworldLayoutOperation::kMutateModel,
+      parent_index));
+  RETURN_IF_ERROR(rom_->CheckLayoutWritable());
 
   // Version requirements:
   // - Vanilla (0xFF): Supports Small and Large only
@@ -652,7 +660,7 @@ absl::Status Overworld::ConfigureMultiAreaMap(int parent_index,
       break;
   }
   for (int sibling : new_siblings) {
-    if (sibling < 0 || sibling >= kNumOverworldMaps ||
+    if (sibling < 0 || sibling >= materialized_map_count() ||
         !IsSameOverworldWorld(parent_index, sibling)) {
       return absl::FailedPreconditionError(
           absl::StrFormat("Area size crosses an overworld boundary: parent=%d "
@@ -663,7 +671,7 @@ absl::Status Overworld::ConfigureMultiAreaMap(int parent_index,
 
   // Reset all old siblings to SmallArea first (clean slate).
   for (int old_sibling : old_siblings) {
-    if (old_sibling >= 0 && old_sibling < kNumOverworldMaps) {
+    if (old_sibling >= 0 && old_sibling < materialized_map_count()) {
       overworld_maps_[old_sibling].SetAsSmallMap(old_sibling);
     }
   }
@@ -704,7 +712,7 @@ absl::Status Overworld::ConfigureMultiAreaMap(int parent_index,
   if (OverworldVersionHelper::SupportsAreaEnum(cached_version_)) {
     // v3+: Update expanded tables
     for (int sibling : all_affected) {
-      if (sibling < 0 || sibling >= kNumOverworldMaps)
+      if (sibling < 0 || sibling >= materialized_map_count())
         continue;
 
       RETURN_IF_ERROR(
@@ -987,7 +995,7 @@ absl::Status Overworld::DecompressAllMapTilesParallel() {
     ptr_low_base = resolved_layout_.terrain_low_table_pc.value;
   }
 
-  for (int i = 0; i < kNumOverworldMaps; i++) {
+  for (int i = 0; i < resolved_layout_.materialized_model_slots; i++) {
     // Guard: skip building tail special maps unless expansion is available
     if (!allow_special_tail &&
         i >= kSpecialWorldMapIdStart + 0x20) {  // 0xA0-0xBF
@@ -1096,7 +1104,7 @@ absl::Status Overworld::LoadOverworldMaps() {
   // and blocking the main thread. std::async creates new pthreads which
   // become Web Workers, and future.wait() blocks the main thread which
   // is dangerous in browsers.
-  for (int i = 0; i < kNumOverworldMaps; ++i) {
+  for (int i = 0; i < materialized_map_count(); ++i) {
     bool is_essential = false;
 
     if (i < kLightWorldEssential) {
@@ -1161,7 +1169,7 @@ absl::Status Overworld::LoadOverworldMaps() {
   std::vector<std::future<absl::Status>> futures;
 
   // Build essential maps only
-  for (int i = 0; i < kNumOverworldMaps; ++i) {
+  for (int i = 0; i < materialized_map_count(); ++i) {
     bool is_essential = false;
 
     // Check if this is an essential map
@@ -1211,8 +1219,7 @@ absl::Status Overworld::LoadOverworldMaps() {
 
 absl::Status Overworld::EnsureMapBuilt(int map_index) {
   const bool descriptor_preview = is_lyra_preview();
-  const int map_count =
-      descriptor_preview ? descriptor_layout_.capacity : kNumOverworldMaps;
+  const int map_count = materialized_map_count();
   if (map_index < 0 || map_index >= map_count) {
     return absl::InvalidArgumentError("Invalid map index");
   }
@@ -1297,9 +1304,7 @@ absl::Status Overworld::EnsureMapBuilt(int map_index) {
   }
 
   // Child screens render with the area parent's settings (game reads $8A).
-  if (map_index < kNumOverworldMaps) {
-    SyncAreaProperties(map_index);
-  }
+  SyncAreaProperties(map_index);
 
   auto status = BuildMapWithTilesetCache(map_index, world_type);
   if (status.ok()) {
@@ -1442,7 +1447,7 @@ void Overworld::SyncAreaProperties(int map_index) {
 
 absl::StatusOr<Overworld::SubscreenOverlayLayer>
 Overworld::BuildSubscreenOverlayLayer(int map_index) {
-  if (map_index < 0 || map_index >= kNumOverworldMaps) {
+  if (map_index < 0 || map_index >= materialized_map_count()) {
     return absl::InvalidArgumentError("Invalid map index");
   }
   RETURN_IF_ERROR(EnsureMapBuilt(map_index));
@@ -1450,7 +1455,7 @@ Overworld::BuildSubscreenOverlayLayer(int map_index) {
   SubscreenOverlayLayer layer;
   layer.overlay_id = map.render_subscreen_overlay();
   const int screen = SubscreenOverlayScreen(layer.overlay_id);
-  if (screen < 0 || screen >= kNumOverworldMaps || screen == map_index) {
+  if (screen < 0 || screen >= materialized_map_count() || screen == map_index) {
     return layer;
   }
   layer.overlay_screen = screen;
@@ -1526,7 +1531,7 @@ Overworld::GetTile8CollisionTypes(int map_id) const {
 }
 
 void Overworld::InvalidateMapCache(int map_index) {
-  if (map_index < 0 || map_index >= kNumOverworldMaps) {
+  if (map_index < 0 || map_index >= materialized_map_count()) {
     return;
   }
 
@@ -1543,7 +1548,7 @@ void Overworld::InvalidateMapCache(int map_index) {
 }
 
 void Overworld::InvalidateSiblingMapCaches(int map_index) {
-  if (map_index < 0 || map_index >= kNumOverworldMaps) {
+  if (map_index < 0 || map_index >= materialized_map_count()) {
     return;
   }
 
@@ -1584,7 +1589,7 @@ void Overworld::InvalidateSiblingMapCaches(int map_index) {
 
   // Invalidate cache for all siblings
   for (int sibling : siblings) {
-    if (sibling >= 0 && sibling < kNumOverworldMaps) {
+    if (sibling >= 0 && sibling < materialized_map_count()) {
       InvalidateMapCache(sibling);
     }
   }
