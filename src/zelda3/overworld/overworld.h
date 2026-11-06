@@ -731,7 +731,6 @@ class Overworld {
       map.Destroy();
     }
     overworld_maps_.clear();
-    map_parent_.clear();
     all_entrances_.clear();
     all_exits_.clear();
     all_items_.clear();
@@ -1005,7 +1004,6 @@ class Overworld {
   std::vector<uint16_t> tiles32_list_;
   std::vector<uint64_t> deleted_entrances_;
 
-  std::vector<uint8_t> map_parent_;
   std::array<uint8_t, kNumTileTypes> all_tiles_types_ = {0};
   std::array<std::vector<Sprite>, 3> all_sprites_;
   std::array<std::array<bool, 160>, 3> sprite_maps_loaded_{};

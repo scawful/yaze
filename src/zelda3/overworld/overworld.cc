@@ -237,15 +237,9 @@ absl::Status Overworld::Load(Rom* rom) {
       return absl::FailedPreconditionError(
           "Unsupported overworld model capacity");
     }
-    map_parent_.assign(map_count, 0);
     for (int map_index = 0; map_index < map_count; ++map_index)
       overworld_maps_.emplace_back(map_index, rom_, game_data_,
                                    layout_inspect_options_.address_overrides);
-
-    // Populate map_parent_ array with parent information from each map
-    for (int map_index = 0; map_index < map_count; ++map_index) {
-      map_parent_[map_index] = overworld_maps_[map_index].parent();
-    }
   }
 
   // Phase 4: Map Configuration (uses cached_version_ for performance)
@@ -350,7 +344,6 @@ absl::Status Overworld::BuildLyraTerrainPreview(
   tileset_cache_.clear();
   RETURN_IF_ERROR(AssembleMap32Tiles());
   RETURN_IF_ERROR(AssembleMap16Tiles());
-  map_parent_.assign(descriptor_layout_.capacity, 0);
   for (int map_index = 0; map_index < descriptor_layout_.capacity;
        ++map_index) {
     auto tiles = rom::LyraMapTile32(descriptor_layout_, rom_->data(),
@@ -380,7 +373,6 @@ absl::Status Overworld::BuildLyraTerrainPreview(
                      OverworldMap::CreateFromLayout(map_index, rom_, game_data_,
                                                     &descriptor_layout_));
     overworld_maps_.push_back(std::move(map));
-    map_parent_[map_index] = overworld_maps_.back().parent();
   }
   loaded_map_tiles_ = map_tiles_;
   loaded_map_tiles_valid_ = true;
@@ -1638,7 +1630,7 @@ absl::Status Overworld::LoadSpritesFromMap(int sprites_per_gamestate_ptr,
   std::vector<Sprite> loaded;
   std::array<bool, 160> loaded_maps{};
   for (int i = 0; i < num_maps_per_gamestate; ++i) {
-    if (map_parent_[i] != i)
+    if (overworld_maps_[i].parent() != i)
       continue;
     ASSIGN_OR_RETURN(auto bytes, ReadOverworldSpriteList(
                                      *rom_, sprites_per_gamestate_ptr + i * 2));
