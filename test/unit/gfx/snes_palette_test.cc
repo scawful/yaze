@@ -356,6 +356,8 @@ TEST(PaletteRecordResolverTest, RejectsExactAndPartialRelocatedStorageOverlap) {
        {std::pair{core::RomAddressKey::kOverworldMap16Expanded, 32768u},
         std::pair{core::RomAddressKey::kOverworldMap32TrExpanded, 0x67E0u},
         std::pair{core::RomAddressKey::kOverworldExpandedPtrHigh, 576u},
+        std::pair{core::RomAddressKey::kOverworldExpandedPtrMarker, 1u},
+        std::pair{core::RomAddressKey::kOverworldEntranceFlagExpanded, 1u},
         std::pair{core::RomAddressKey::kOverworldGfxPtr1, 256u}}) {
     for (uint32_t other : {0x22F900u, 0x22F900u - span + 1, 0x22FE3Fu}) {
       auto overrides = AuxExtension();
