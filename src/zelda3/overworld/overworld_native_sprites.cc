@@ -11,15 +11,18 @@ namespace yaze::zelda3 {
 absl::Status Overworld::BindNativeSpritePlacements() {
   if (!descriptor_layout_.has_authoring_metadata)
     return absl::OkStatus();
-  const auto record =
-      rom::LyraLayoutRecord(descriptor_layout_, rom_->data(), rom_->size(),
-                            rom::kNativeAuthoringMetadataTableId, 0);
-  const auto entry =
-      std::find_if(descriptor_layout_.entries.begin(),
-                   descriptor_layout_.entries.end(), [](const auto& e) {
-                     return e.id == rom::kNativeAuthoringMetadataTableId;
-                   });
-  if (!record || entry == descriptor_layout_.entries.end() ||
+  // Metadata is one bounded block, not an indexed property row supported by
+  // LyraLayoutRecord. Reinspect its complete CRC/extent before reading it.
+  const auto layout = rom_->InspectLyraLayout();
+  if (layout.presence != rom::LyraLayoutPresence::kValid ||
+      !layout.has_authoring_metadata)
+    return absl::FailedPreconditionError(
+        "Native sprite placement metadata directory changed after load");
+  const auto entry = std::find_if(
+      layout.entries.begin(), layout.entries.end(), [](const auto& e) {
+        return e.id == rom::kNativeAuthoringMetadataTableId;
+      });
+  if (entry == layout.entries.end() ||
       entry->pc_address + rom::kNativeAuthoringMetadataSize > rom_->size())
     return absl::FailedPreconditionError(
         "Native sprite placement metadata is unavailable");

@@ -109,6 +109,25 @@ use_remote_proof() {
     clean="$(tr -d '\r' < "$summary")"
     if grep -qx "sha=$head" <<< "$clean" && grep -qx "exit=0" <<< "$clean" \
         && ! grep -qx "mode=build" <<< "$clean"; then
+      # A successful remote process can still select zero tests. Check actual
+      # cases, including older receipts produced before that harness guard.
+      if ! python3 - "${summary%/summary.txt}/junit.xml" <<'PY'
+import sys
+import xml.etree.ElementTree as ET
+try:
+    cases = list(ET.parse(sys.argv[1]).getroot().iter("testcase"))
+    failed = any(c.find("failure") is not None or c.find("error") is not None
+                 or c.get("status") == "fail" for c in cases)
+    passed = any(c.find("skipped") is None
+                 and c.get("status") not in ("notrun", "disabled")
+                 and c.get("result") != "skipped" for c in cases)
+    sys.exit(0 if passed and not failed else 1)
+except (OSError, ET.ParseError):
+    sys.exit(1)
+PY
+      then
+        continue
+      fi
       print_ok "Remote proof for ${head:0:9}: ${summary%/summary.txt} ($(grep -m1 '^mode=' <<< "$clean"))"
       return 0
     fi

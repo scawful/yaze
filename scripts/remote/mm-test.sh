@@ -208,8 +208,8 @@ for f in failures[:40]:
 if len(failures) > 40:
     print(f"[mac]   ... {len(failures) - 40} more")
 passed = total - failed - skipped
-if total and passed == 0:
-    print("[mac] ERROR: no test actually ran (all skipped); see test.log")
+if failed or passed == 0:
+    print("[mac] ERROR: test selection failed or no test passed; see test.log")
     sys.exit(1)
 if skipped * 4 > total:
     print(f"[mac] WARNING: {skipped} of {total} tests skipped; see test.log")
@@ -217,6 +217,9 @@ PY
   py_rc=$?
   set -e
   [[ $rc -eq 0 && $py_rc -ne 0 ]] && rc=1
+elif [[ "$mode" != build && $rc -eq 0 ]]; then
+  echo "[mac] ERROR: test run has no junit.xml evidence"
+  rc=1
 fi
 echo "[mac] results: $out_dir (summary.txt, build.log, test.log, junit.xml)"
 echo "[mac] $( [[ $rc -eq 0 ]] && echo PASS || echo "FAIL (exit $rc)" ) in $((SECONDS - start))s"
