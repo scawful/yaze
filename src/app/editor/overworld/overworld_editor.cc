@@ -784,7 +784,7 @@ void OverworldEditor::SetPreviewStoryState(int state) {
   }
   game_state_ = state;
   overworld_.set_game_state(state);
-  for (int id = 0; id < zelda3::kNumOverworldMaps; ++id) {
+  for (int id = 0; id < overworld_.materialized_map_count(); ++id) {
     if (auto* map = overworld_.mutable_overworld_map(id)) {
       map->set_game_state(state);
       ForceRefreshGraphics(id);
@@ -799,7 +799,7 @@ void OverworldEditor::SetPreviewStoryState(int state) {
 void OverworldEditor::RefreshMapsForSheetEdits() {
   overworld_.set_game_state(game_state_);
   bool refresh_selection = false;
-  for (int map = 0; map < zelda3::kNumOverworldMaps; ++map) {
+  for (int map = 0; map < overworld_.materialized_map_count(); ++map) {
     auto* overworld_map = overworld_.mutable_overworld_map(map);
     if (overworld_map != nullptr) {
       overworld_map->set_game_state(std::clamp(game_state_, 0, 2));
@@ -1501,7 +1501,7 @@ absl::StatusOr<int> OverworldEditor::ApplyTile16Stencil(
   if (!overworld_.is_loaded() || !tile_painting_) {
     return absl::FailedPreconditionError("Overworld is not loaded");
   }
-  if (map_id < 0 || map_id >= zelda3::kNumOverworldMaps ||
+  if (map_id < 0 || map_id >= overworld_.materialized_map_count() ||
       IsProjectTerrainMap(map_id)) {
     return absl::OutOfRangeError("Stencil map must be a ROM overworld map");
   }
@@ -2091,7 +2091,7 @@ void OverworldEditor::ProcessDeferredTextures() {
 }
 
 const gfx::Bitmap* OverworldEditor::AreaScreenBitmap(int map_id) {
-  if (map_id < 0 || map_id >= zelda3::kNumOverworldMaps) {
+  if (map_id < 0 || map_id >= overworld_.materialized_map_count()) {
     return nullptr;
   }
   EnsureMapTexture(map_id);

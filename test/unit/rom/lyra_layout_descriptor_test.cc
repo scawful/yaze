@@ -1029,6 +1029,10 @@ TEST_F(NativeSpecialOverworldEditorTest,
   EXPECT_EQ(editor->DisplayedMapCount(), 192);
   editor->SelectMapForEditing(0xBF, false);
   EXPECT_TRUE(editor->map_bitmap(0xBF).is_active());
+  editor->SetPreviewStoryState(1);
+  EXPECT_EQ(editor->overworld().overworld_map(0xBF)->game_state(), 1);
+  editor->SetPreviewStoryState(2);
+  EXPECT_EQ(editor->overworld().overworld_map(0xBF)->game_state(), 2);
   EXPECT_FALSE(editor->CreateLyraTerrain().ok());
   EXPECT_FALSE(editor->OpenLyraTerrain(sidecar).ok());
   EXPECT_FALSE(editor->lyra_canvas_.loaded());

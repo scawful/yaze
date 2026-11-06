@@ -115,7 +115,7 @@ void MapRefreshCoordinator::InvalidateGraphicsCache(int map_id) {
 
 void MapRefreshCoordinator::InvalidateTile16Definitions() {
   InvalidateGraphicsCache();
-  for (int id = 0; id < zelda3::kNumOverworldMaps; ++id) {
+  for (int id = 0; id < ctx_.overworld->materialized_map_count(); ++id) {
     if (auto* map = ctx_.overworld->mutable_overworld_map(id)) {
       map->SetNotBuilt();
     }
@@ -155,7 +155,7 @@ void MapRefreshCoordinator::RefreshOverworldMap() {
  * expensive full rebuilds when possible.
  */
 void MapRefreshCoordinator::RefreshOverworldMapOnDemand(int map_index) {
-  if (map_index < 0 || map_index >= zelda3::kNumOverworldMaps) {
+  if (map_index < 0 || map_index >= ctx_.overworld->materialized_map_count()) {
     return;
   }
 
@@ -340,7 +340,7 @@ void MapRefreshCoordinator::RefreshMultiAreaMapsSafely(
     }
 
     // Bounds check
-    if (sibling < 0 || sibling >= zelda3::kNumOverworldMaps) {
+    if (sibling < 0 || sibling >= ctx_.overworld->materialized_map_count()) {
       continue;
     }
 
@@ -431,7 +431,7 @@ absl::Status MapRefreshCoordinator::RefreshPaletteUsers(
     return absl::OkStatus();
   }
   bool refreshed = false;
-  for (int id = 0; id < zelda3::kNumOverworldMaps; ++id) {
+  for (int id = 0; id < ctx_.overworld->materialized_map_count(); ++id) {
     auto* map = ctx_.overworld->mutable_overworld_map(id);
     if (!map || map->current_palette().empty()) {
       continue;
@@ -500,7 +500,8 @@ absl::Status MapRefreshCoordinator::RefreshMapPalette(int map_id) {
 
       // Update palette for all siblings - each uses its own loaded palette
       for (int sibling_index : sibling_maps) {
-        if (sibling_index < 0 || sibling_index >= zelda3::kNumOverworldMaps) {
+        if (sibling_index < 0 ||
+            sibling_index >= ctx_.overworld->materialized_map_count()) {
           continue;
         }
         auto* sibling_map =
@@ -557,7 +558,7 @@ absl::Status MapRefreshCoordinator::RefreshMapPalette(int map_id) {
 
 void MapRefreshCoordinator::ForceRefreshGraphics(int map_index) {
   // Mark the bitmap as modified to force refresh on next update
-  if (map_index >= 0 && map_index < zelda3::kNumOverworldMaps) {
+  if (map_index >= 0 && map_index < ctx_.overworld->materialized_map_count()) {
     (*ctx_.maps_bmp)[map_index].set_modified(true);
 
     // Clear blockset cache
@@ -574,7 +575,7 @@ void MapRefreshCoordinator::ForceRefreshGraphics(int map_index) {
 
 void MapRefreshCoordinator::RefreshSiblingMapGraphics(int map_index,
                                                       bool include_self) {
-  if (map_index < 0 || map_index >= zelda3::kNumOverworldMaps) {
+  if (map_index < 0 || map_index >= ctx_.overworld->materialized_map_count()) {
     return;
   }
 
@@ -601,7 +602,7 @@ void MapRefreshCoordinator::RefreshSiblingMapGraphics(int map_index,
   }
 
   for (int sibling : siblings) {
-    if (sibling >= 0 && sibling < zelda3::kNumOverworldMaps) {
+    if (sibling >= 0 && sibling < ctx_.overworld->materialized_map_count()) {
       // Skip self unless include_self is true
       if (sibling == map_index && !include_self) {
         continue;
@@ -677,7 +678,8 @@ void MapRefreshCoordinator::RefreshMapProperties(int map_id) {
       // Copy properties from parent map to all siblings
       const int game_state = CurrentGameState(ctx_);
       for (int sibling_index : sibling_maps) {
-        if (sibling_index < 0 || sibling_index >= zelda3::kNumOverworldMaps) {
+        if (sibling_index < 0 ||
+            sibling_index >= ctx_.overworld->materialized_map_count()) {
           continue;
         }
         auto& map = *ctx_.overworld->mutable_overworld_map(sibling_index);
