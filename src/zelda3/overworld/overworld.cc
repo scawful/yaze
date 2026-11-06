@@ -1251,6 +1251,9 @@ absl::Status Overworld::LoadOverworldMaps() {
 
 absl::Status Overworld::EnsureMapBuilt(int map_index) {
   const bool descriptor_preview = is_lyra_preview();
+  const bool native =
+      descriptor_layout_.presence == rom::LyraLayoutPresence::kValid &&
+      descriptor_layout_.revision == 3;
   const int map_count = materialized_map_count();
   if (map_index < 0 || map_index >= map_count) {
     return absl::InvalidArgumentError("Invalid map index");
@@ -1262,7 +1265,7 @@ absl::Status Overworld::EnsureMapBuilt(int map_index) {
   const bool allow_special_tail =
       core::FeatureFlags::get().overworld.kEnableSpecialWorldExpansion &&
       HasExpandedPointerTables();
-  if (!descriptor_preview && !allow_special_tail &&
+  if (!descriptor_preview && !native && !allow_special_tail &&
       map_index >= kSpecialWorldMapIdStart + 0x20) {  // 0xA0-0xBF
     // Do not attempt to build disabled special-tail maps; keep them blank-safe.
     // This prevents pointer table corruption from attempting to access

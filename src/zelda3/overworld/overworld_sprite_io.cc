@@ -73,7 +73,9 @@ absl::StatusOr<ListSpan> ReadListSpan(const std::vector<uint8_t>& data,
                                       int region_end, int bank_base = 0x40000) {
   if (pointer_address < 0 ||
       pointer_address > static_cast<int>(data.size()) - 2 ||
-      static_cast<int>(data.size()) < kOverworldSpriteDataEnd) {
+      static_cast<int>(data.size()) < kOverworldSpriteDataEnd ||
+      data_start < 0 || region_end < data_start ||
+      region_end > static_cast<int>(data.size())) {
     return absl::FailedPreconditionError(
         "Overworld sprite region is truncated");
   }
@@ -128,8 +130,12 @@ absl::StatusOr<OverworldSpriteBytes> ReadOverworldSpriteList(
                      [](const auto& e) { return e.id == 100; });
     if (actor == layout.entries.end())
       return absl::FailedPreconditionError("Native actor storage unavailable");
+    const size_t length = static_cast<size_t>(actor->count) * actor->stride;
+    if (actor->pc_address > rom.vector().size() ||
+        length > rom.vector().size() - actor->pc_address)
+      return absl::FailedPreconditionError("Native actor storage is truncated");
     begin = actor->pc_address;
-    end = begin + actor->count * actor->stride;
+    end = begin + length;
     bank_base = (layout.tail_actor_bank & 0x7F) * 0x8000 - 0x8000;
   }
   ASSIGN_OR_RETURN(

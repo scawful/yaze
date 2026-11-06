@@ -183,6 +183,15 @@ absl::StatusOr<OverworldMap> OverworldMap::CreateFromLayout(
                    /*skip_legacy_data=*/true);
   map.descriptor_layout_ = std::move(layout);
   RETURN_IF_ERROR(map.LoadLayoutProperties());
+  if (map.descriptor_layout_->revision == 3 && map.parent_ != index) {
+    OverworldMap parent(map.parent_, rom, game_data, /*seed_area_parent=*/false,
+                        /*skip_legacy_data=*/true);
+    parent.descriptor_layout_ = map.descriptor_layout_;
+    RETURN_IF_ERROR(parent.LoadLayoutProperties());
+    if (parent.parent_ != map.parent_)
+      return absl::FailedPreconditionError("Native area parent is not a root");
+    map.InheritAreaProperties(parent);
+  }
   return map;
 }
 
@@ -207,22 +216,23 @@ absl::Status OverworldMap::LoadLayoutProperties() {
   }
   area_size_ = static_cast<AreaSizeEnum>(size[0]);
   large_map_ = area_size_ == AreaSizeEnum::LargeArea;
-  ASSIGN_OR_RETURN(auto bg, read(1, parent_));
+  const bool native = descriptor_layout_->revision == 3;
+  const size_t persistent = native ? index_ : parent_;
+  ASSIGN_OR_RETURN(auto bg, read(1, persistent));
   area_specific_bg_color_ = static_cast<uint16_t>(bg[0] | (bg[1] << 8));
-  ASSIGN_OR_RETURN(auto palette, read(2, parent_));
+  ASSIGN_OR_RETURN(auto palette, read(2, persistent));
   main_palette_ = palette[0];
-  ASSIGN_OR_RETURN(auto mosaic, read(3, parent_));
+  ASSIGN_OR_RETURN(auto mosaic, read(3, persistent));
   mosaic_ = mosaic[0] != 0;
   for (int i = 0; i < 4; ++i) {
     mosaic_expanded_[i] = (mosaic[0] & (0x08 >> i)) != 0;
   }
-  ASSIGN_OR_RETURN(auto animated, read(4, parent_));
+  ASSIGN_OR_RETURN(auto animated, read(4, persistent));
   animated_gfx_ = animated[0];
-  ASSIGN_OR_RETURN(auto overlay, read(5, parent_));
+  ASSIGN_OR_RETURN(auto overlay, read(5, persistent));
   subscreen_overlay_ = static_cast<uint16_t>(overlay[0] | (overlay[1] << 8));
-  ASSIGN_OR_RETURN(auto gfx, read(6, parent_));
+  ASSIGN_OR_RETURN(auto gfx, read(6, persistent));
   std::copy_n(gfx.begin(), custom_gfx_ids_.size(), custom_gfx_ids_.begin());
-  const bool native = descriptor_layout_->revision == 3;
   ASSIGN_OR_RETURN(
       auto area_gfx,
       read(native && parent_ >= kSpecialWorldMapIdStart ? 27 : 26, parent_));
@@ -230,7 +240,7 @@ absl::Status OverworldMap::LoadLayoutProperties() {
   ASSIGN_OR_RETURN(auto palette_set, read(31, parent_));
   area_palette_ = palette_set[0];
   if (native) {
-    ASSIGN_OR_RETURN(auto message, read(19, parent_));
+    ASSIGN_OR_RETURN(auto message, read(19, index_));
     message_id_ = static_cast<uint16_t>(message[0] | (message[1] << 8));
     for (int phase = 0; phase < 4; ++phase) {
       ASSIGN_OR_RETURN(auto music, read(32 + phase, parent_));

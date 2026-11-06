@@ -578,6 +578,9 @@ void OverworldEditor::NotifyEntityModified(zelda3::GameEntity*) {
 
 absl::Status OverworldEditor::CheckRomReplacement(
     const Rom& replacement) const {
+  if (lyra_canvas_.dirty())
+    return absl::FailedPreconditionError(
+        "Save the Lyra terrain draft before replacing ROM data");
   const auto layout = replacement.InspectLyraLayout();
   if (!overworld_.is_loaded() ||
       (!is_lyra_preview() &&
