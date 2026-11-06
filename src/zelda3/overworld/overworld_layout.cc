@@ -319,10 +319,12 @@ absl::Status OverworldLayout::CheckOperation(OverworldLayoutDomain domain,
           "Lyra descriptor overworld layout is inspection-only for this "
           "operation");
     }
-    if (domain == OverworldLayoutDomain::kTerrainPointers ||
-        domain == OverworldLayoutDomain::kTile16 ||
-        domain == OverworldLayoutDomain::kTile32) {
+    if (domain == OverworldLayoutDomain::kTerrainPointers) {
       return absl::OkStatus();
+    }
+    if (domain == OverworldLayoutDomain::kTile16 ||
+        domain == OverworldLayoutDomain::kTile32) {
+      return RefuseDomainTable(*this, domain);
     }
     return absl::FailedPreconditionError(
         "Descriptor preview does not provide this overworld domain");
@@ -464,6 +466,42 @@ OverworldLayout InspectOverworldLayout(const Rom& rom,
   layout.terrain_low_table_pc =
       RomPcOffset(static_cast<int>(kVanillaMap32LowPc));
 
+  const int map16_pc =
+      ResolvePc(options.map16_expanded_pc, kMap16TilesExpanded);
+  const int tile16_bytes = layout.has_expanded_tile16
+                               ? NumberOfMap16Ex * 8
+                               : kNumTile16Individual * 8;
+  const int tile16_pc = layout.has_expanded_tile16 ? map16_pc : kMap16Tiles;
+  layout.tile16_pc = RomPcOffset(tile16_pc);
+  SetTableRecord(
+      &layout, OverworldLayoutDomain::kTile16, tile16_pc, 0,
+      layout.has_expanded_tile16 ? NumberOfMap16Ex : kNumTile16Individual, 8,
+      SpanStatus(rom, tile16_pc, tile16_bytes));
+
+  const int map32_tr =
+      ResolvePc(options.map32_tr_expanded_pc, kMap32TileTRExpanded);
+  const int map32_bl =
+      ResolvePc(options.map32_bl_expanded_pc, kMap32TileBLExpanded);
+  const int map32_br =
+      ResolvePc(options.map32_br_expanded_pc, kMap32TileBRExpanded);
+  const int map32_bytes = layout.has_expanded_tile32
+                              ? kMap32TileStorageBytesExpanded
+                              : kMap32TileStorageBytesVanilla;
+  const auto& constants = kVersionConstantsMap.at(options.rom_version);
+  layout.tile32_pcs = {
+      RomPcOffset(constants.kMap32TileTL),
+      RomPcOffset(layout.has_expanded_tile32 ? map32_tr
+                                             : constants.kMap32TileTR),
+      RomPcOffset(layout.has_expanded_tile32 ? map32_bl
+                                             : constants.kMap32TileBL),
+      RomPcOffset(layout.has_expanded_tile32 ? map32_br
+                                             : constants.kMap32TileBR)};
+  for (const auto pc : layout.tile32_pcs) {
+    SetTableRecord(&layout, OverworldLayoutDomain::kTile32, pc.value, 0,
+                   map32_bytes / kMap32BytesPerPackedGroup, 6,
+                   SpanStatus(rom, pc.value, map32_bytes));
+  }
+
   if (layout.lyra_layout.presence != rom::LyraLayoutPresence::kAbsent) {
     layout.layout_kind = OverworldLayout::LayoutKind::kLyraOffline;
     layout.map_storage = MapSlotStorage::kExpanded192;
@@ -550,42 +588,6 @@ OverworldLayout InspectOverworldLayout(const Rom& rom,
   }
 
   layout.tail_marker_present = layout.has_validated_ea_tail();
-
-  const int map16_pc =
-      ResolvePc(options.map16_expanded_pc, kMap16TilesExpanded);
-  const int tile16_bytes = layout.has_expanded_tile16
-                               ? NumberOfMap16Ex * 8
-                               : kNumTile16Individual * 8;
-  const int tile16_pc = layout.has_expanded_tile16 ? map16_pc : kMap16Tiles;
-  layout.tile16_pc = RomPcOffset(tile16_pc);
-  SetTableRecord(
-      &layout, OverworldLayoutDomain::kTile16, tile16_pc, 0,
-      layout.has_expanded_tile16 ? NumberOfMap16Ex : kNumTile16Individual, 8,
-      SpanStatus(rom, tile16_pc, tile16_bytes));
-
-  const int map32_tr =
-      ResolvePc(options.map32_tr_expanded_pc, kMap32TileTRExpanded);
-  const int map32_bl =
-      ResolvePc(options.map32_bl_expanded_pc, kMap32TileBLExpanded);
-  const int map32_br =
-      ResolvePc(options.map32_br_expanded_pc, kMap32TileBRExpanded);
-  const int map32_bytes = layout.has_expanded_tile32
-                              ? kMap32TileStorageBytesExpanded
-                              : kMap32TileStorageBytesVanilla;
-  const auto& constants = kVersionConstantsMap.at(options.rom_version);
-  layout.tile32_pcs = {
-      RomPcOffset(constants.kMap32TileTL),
-      RomPcOffset(layout.has_expanded_tile32 ? map32_tr
-                                             : constants.kMap32TileTR),
-      RomPcOffset(layout.has_expanded_tile32 ? map32_bl
-                                             : constants.kMap32TileBL),
-      RomPcOffset(layout.has_expanded_tile32 ? map32_br
-                                             : constants.kMap32TileBR)};
-  for (const auto pc : layout.tile32_pcs) {
-    SetTableRecord(&layout, OverworldLayoutDomain::kTile32, pc.value, 0,
-                   map32_bytes / kMap32BytesPerPackedGroup, 6,
-                   SpanStatus(rom, pc.value, map32_bytes));
-  }
 
   const int terrain_entries =
       layout.has_validated_ea_tail() ? kExpandedMapCount : kNumOverworldMaps;
