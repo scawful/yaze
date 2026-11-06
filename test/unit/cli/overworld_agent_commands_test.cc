@@ -193,6 +193,17 @@ TEST(LyraVerifyProjectCommandTest,
     EXPECT_EQ(described["palette"]["background_override_uint16le_sha256"],
               WordFingerprint(background));
     EXPECT_EQ(described["palette"]["runtime_consumer"], "unsupported");
+    const auto& import_plan = described["palette"]["native_import_plan"];
+    EXPECT_EQ(import_plan["assignment"], "unassigned");
+    EXPECT_FALSE(import_plan["uniform_background_color"].get<bool>());
+    EXPECT_FALSE(import_plan["shared_hud_matches"].get<bool>());
+    ASSERT_EQ(import_plan["components"].size(), 4u);
+    EXPECT_EQ(import_plan["components"][0]["colors"].size(), 35u);
+    EXPECT_EQ(import_plan["components"][1]["colors"].size(), 7u);
+    EXPECT_EQ(import_plan["components"][2]["colors"].size(), 21u);
+    EXPECT_EQ(import_plan["components"][3]["colors"].size(), 21u);
+    EXPECT_EQ(import_plan["components"][0]["colors"][0], background[33]);
+    EXPECT_EQ(import_plan["components"][3]["colors"][20], background[127]);
     EXPECT_EQ(described["effective_sprite_graphics"],
               assets->source.sprite_graphics(state));
     EXPECT_EQ(described["effective_sprite_palette"],

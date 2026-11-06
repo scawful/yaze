@@ -1,6 +1,11 @@
 #ifndef YAZE_ZELDA3_OVERWORLD_LYRA_TERRAIN_SOURCE_H_
 #define YAZE_ZELDA3_OVERWORLD_LYRA_TERRAIN_SOURCE_H_
 
+#include <array>
+#include <cstdint>
+#include <string>
+#include <vector>
+
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "core/lyra_terrain_document.h"
@@ -9,6 +14,7 @@
 namespace yaze::gfx {
 class Bitmap;
 class SnesPalette;
+struct PaletteGroupMap;
 }  // namespace yaze::gfx
 namespace yaze::zelda3 {
 class Overworld;
@@ -27,6 +33,26 @@ std::string LyraMapAssetKey(const core::LyraMapProperties& properties,
 // changes native groups, ROM storage, or the upper 128 OBJ colors.
 absl::Status ApplyLyraBackgroundPaletteOverride(
     const core::LyraMapProperties& properties, gfx::SnesPalette& palette);
+// Temporary import data, not a second palette store or allocation grant.
+// A match identifies an existing record; selecting a set or reserving new
+// storage still belongs to the normal palette assignment service.
+struct OverworldBackgroundPaletteComponent {
+  std::string group;
+  std::vector<uint16_t> colors;
+  std::vector<int> matching_records;
+};
+struct OverworldBackgroundPaletteImportPlan {
+  uint16_t background_color = 0;
+  bool uniform_background_color = false;
+  bool shared_hud_matches = false;
+  // Native compositor order: main35, animated7, aux1/aux2 each21 colors.
+  std::array<OverworldBackgroundPaletteComponent, 4> components;
+};
+absl::StatusOr<OverworldBackgroundPaletteImportPlan>
+PlanLegacyOverworldBackgroundPalette(
+    const std::array<uint16_t, 128>& colors,
+    const gfx::PaletteGroupMap& native_palettes);
+
 struct LyraNativeMapAssets {
   OverworldMap source;
   std::string binding;

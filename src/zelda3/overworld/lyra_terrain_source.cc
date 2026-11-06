@@ -1,5 +1,6 @@
 #include "zelda3/overworld/lyra_terrain_source.h"
 
+#include <algorithm>
 #include <string>
 #include <utility>
 #include <vector>
@@ -12,6 +13,7 @@
 #include "zelda3/game_data.h"
 #include "zelda3/graphics/resolved_graphics_context.h"
 #include "zelda3/overworld/overworld.h"
+#include "zelda3/palette_constants.h"
 
 namespace yaze::zelda3 {
 namespace {
@@ -154,6 +156,61 @@ absl::Status ApplyLyraBackgroundPaletteOverride(
     palette[i] = color;
   }
   return absl::OkStatus();
+}
+
+absl::StatusOr<OverworldBackgroundPaletteImportPlan>
+PlanLegacyOverworldBackgroundPalette(
+    const std::array<uint16_t, 128>& colors,
+    const gfx::PaletteGroupMap& native_palettes) {
+  if (std::any_of(colors.begin(), colors.end(),
+                  [](uint16_t color) { return color > 0x7FFF; }))
+    return absl::InvalidArgumentError(
+        "Background palette import requires BGR555 colors 0..32767");
+  if (native_palettes.hud.empty() || native_palettes.hud[0].size() != 32 ||
+      native_palettes.overworld_main.empty() ||
+      native_palettes.overworld_animated.empty() ||
+      native_palettes.overworld_aux.empty())
+    return absl::FailedPreconditionError(
+        "Load native palette groups before planning background import");
+  OverworldBackgroundPaletteImportPlan plan;
+  plan.background_color = colors[0];
+  plan.uniform_background_color = true;
+  plan.shared_hud_matches = true;
+  for (size_t i = 0; i < colors.size(); ++i) {
+    // The native compositor supplies one area background color at both
+    // transparent positions in every row, including the two HUD rows.
+    if (i % 8 == 0)
+      plan.uniform_background_color &= colors[i] == plan.background_color;
+    else if (i < 32)
+      plan.shared_hud_matches &= colors[i] == native_palettes.hud[0][i].snes();
+  }
+  plan.components[0].group = PaletteGroupName::kOverworldMain;
+  plan.components[1].group = PaletteGroupName::kOverworldAnimated;
+  plan.components[2].group = plan.components[3].group =
+      PaletteGroupName::kOverworldAux;
+  for (size_t y = 2; y < 8; ++y)
+    for (size_t x = 1; x < 8; ++x) {
+      plan.components[y < 7 ? 0 : 1].colors.push_back(colors[y * 16 + x]);
+      plan.components[y < 5 ? 2 : 3].colors.push_back(colors[y * 16 + x + 8]);
+    }
+  const std::array<const gfx::PaletteGroup*, 4> groups = {
+      &native_palettes.overworld_main, &native_palettes.overworld_animated,
+      &native_palettes.overworld_aux, &native_palettes.overworld_aux};
+  for (size_t i = 0; i < plan.components.size(); ++i) {
+    auto& component = plan.components[i];
+    const auto& group = *groups[i];
+    for (size_t record = 0; record < group.size(); ++record) {
+      const auto& palette = group[record];
+      if (palette.size() != component.colors.size())
+        continue;
+      bool equal = true;
+      for (size_t color = 0; color < component.colors.size(); ++color)
+        equal &= palette[color].snes() == component.colors[color];
+      if (equal)
+        component.matching_records.push_back(static_cast<int>(record));
+    }
+  }
+  return plan;
 }
 
 absl::StatusOr<LyraNativeMapAssets> ResolveLyraMapAssets(
@@ -378,6 +435,29 @@ absl::StatusOr<std::string> DescribeLyraNativeMapAssets(
     bg_words = *p.background_palette;
     bg_hash = core::ComputeSourceArtifactSha256(bg_bytes);
   }
+  nlohmann::json background_import = nullptr;
+  if (p.background_palette) {
+    ASSIGN_OR_RETURN(
+        auto plan, PlanLegacyOverworldBackgroundPalette(*p.background_palette,
+                                                        data->palette_groups));
+    auto components = nlohmann::json::array();
+    for (size_t i = 0; i < plan.components.size(); ++i) {
+      const auto& component = plan.components[i];
+      components.push_back(
+          {{"component",
+            std::array<const char*, 4>{"main", "animated", "aux1", "aux2"}[i]},
+           {"group", component.group},
+           {"colors", component.colors},
+           {"matching_records", component.matching_records},
+           {"requires_owned_record", component.matching_records.empty()}});
+    }
+    background_import = {
+        {"assignment", "unassigned"},
+        {"background_color", plan.background_color},
+        {"uniform_background_color", plan.uniform_background_color},
+        {"shared_hud_matches", plan.shared_hud_matches},
+        {"components", std::move(components)}};
+  }
   nlohmann::json document = {
       {"schema", "yaze.lyra-native-resolution.v1"},
       {"resolution_mode", "native-only"},
@@ -408,6 +488,7 @@ absl::StatusOr<std::string> DescribeLyraNativeMapAssets(
         {"background_override_words", std::move(bg_words)},
         {"background_override_uint16le_sha256", std::move(bg_hash)},
         {"background_source", p.background_palette ? "saved_bg128" : "native"},
+        {"native_import_plan", std::move(background_import)},
         {"runtime_consumer",
          p.background_palette ? "unsupported" : "unassigned"}}},
       {"animation",

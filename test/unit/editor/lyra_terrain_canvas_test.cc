@@ -6,6 +6,7 @@
 #include <fstream>
 #include <iterator>
 #include <memory>
+#include <utility>
 #include <vector>
 
 #include "app/gfx/types/snes_palette.h"
@@ -55,6 +56,111 @@ core::LyraTerrainProfile FixtureProfile() {
   profile.palette_fingerprint = "palette:fixture";
   profile.animation_fingerprint = "animation:fixture";
   return profile;
+}
+
+struct BackgroundImportFixture {
+  gfx::PaletteGroupMap native;
+  std::array<uint16_t, 128> colors{};
+  BackgroundImportFixture() {
+    auto sequence = [](size_t size, uint16_t first) {
+      std::vector<uint16_t> words;
+      for (size_t i = 0; i < size; ++i)
+        words.push_back(first + i);
+      return gfx::SnesPalette(words);
+    };
+    native.overworld_main.AddPalette(sequence(35, 0x100));
+    native.overworld_animated.AddPalette(sequence(7, 0x200));
+    native.overworld_animated.AddPalette(sequence(7, 0x200));
+    native.overworld_aux.AddPalette(sequence(21, 0x300));
+    native.overworld_aux.AddPalette(sequence(21, 0x400));
+    native.hud.AddPalette(sequence(32, 0x500));
+    colors.fill(0x2669);
+    for (size_t i = 0; i < 32; ++i)
+      if (i % 8 != 0)
+        colors[i] = native.hud[0][i].snes();
+    // Construct the documented compositor's four record placements.
+    for (size_t y = 2; y < 7; ++y)
+      for (size_t x = 1; x < 8; ++x)
+        colors[y * 16 + x] = 0x100 + (y - 2) * 7 + x - 1;
+    for (size_t x = 1; x < 8; ++x)
+      colors[112 + x] = 0x200 + x - 1;
+    for (size_t y = 2; y < 5; ++y)
+      for (size_t x = 9; x < 16; ++x)
+        colors[y * 16 + x] = 0x300 + (y - 2) * 7 + x - 9;
+    for (size_t y = 5; y < 8; ++y)
+      for (size_t x = 9; x < 16; ++x)
+        colors[y * 16 + x] = 0x400 + (y - 5) * 7 + x - 9;
+  }
+};
+
+TEST(LyraBackgroundPaletteTest,
+     ImportPlanFindsExactRecordsAndIgnoresBackgroundHudSlots) {
+  BackgroundImportFixture fixture;
+  const auto before = fixture.colors;
+  const auto result = zelda3::PlanLegacyOverworldBackgroundPalette(
+      fixture.colors, fixture.native);
+  ASSERT_TRUE(result.ok()) << result.status();
+  EXPECT_TRUE(result->uniform_background_color);
+  EXPECT_TRUE(result->shared_hud_matches);
+  EXPECT_EQ(result->background_color, 0x2669);
+  const std::array<size_t, 4> sizes = {35, 7, 21, 21};
+  const std::array<uint16_t, 4> first = {0x100, 0x200, 0x300, 0x400};
+  for (size_t i = 0; i < 4; ++i) {
+    EXPECT_EQ(result->components[i].colors.size(), sizes[i]);
+    EXPECT_EQ(result->components[i].colors.front(), first[i]);
+    EXPECT_EQ(result->components[i].colors.back(), first[i] + sizes[i] - 1);
+  }
+  EXPECT_EQ(result->components[0].matching_records, std::vector<int>{0});
+  EXPECT_EQ(result->components[1].matching_records, (std::vector<int>{0, 1}));
+  EXPECT_EQ(result->components[2].matching_records, std::vector<int>{0});
+  EXPECT_EQ(result->components[3].matching_records, std::vector<int>{1});
+  EXPECT_EQ(fixture.colors, before);
+  EXPECT_EQ(fixture.native.hud[0][0].snes(), 0x500);
+}
+
+TEST(LyraBackgroundPaletteTest,
+     ImportPlanDistinguishesEachMissingRecordFromSharedColorConflicts) {
+  BackgroundImportFixture fixture;
+  for (const auto [component, color] : std::array<std::pair<int, int>, 4>{
+           {{0, 33}, {1, 113}, {2, 41}, {3, 89}}}) {
+    auto changed = fixture.colors;
+    changed[color] = 0x7777;
+    const auto result =
+        zelda3::PlanLegacyOverworldBackgroundPalette(changed, fixture.native);
+    ASSERT_TRUE(result.ok()) << result.status();
+    for (int i = 0; i < 4; ++i)
+      EXPECT_EQ(result->components[i].matching_records.empty(), i == component);
+    EXPECT_TRUE(result->shared_hud_matches);
+    EXPECT_TRUE(result->uniform_background_color);
+  }
+  auto changed = fixture.colors;
+  changed[17] ^= 1;
+  changed[120] ^= 1;
+  const auto result =
+      zelda3::PlanLegacyOverworldBackgroundPalette(changed, fixture.native);
+  ASSERT_TRUE(result.ok()) << result.status();
+  EXPECT_FALSE(result->shared_hud_matches);
+  EXPECT_FALSE(result->uniform_background_color);
+  for (const auto& component : result->components)
+    EXPECT_FALSE(component.matching_records.empty());
+}
+
+TEST(LyraBackgroundPaletteTest,
+     ImportPlanRefusesInvalidColorsAndMissingNativeGroups) {
+  BackgroundImportFixture fixture;
+  auto changed = fixture.colors;
+  changed.back() = 0x8000;
+  EXPECT_EQ(
+      zelda3::PlanLegacyOverworldBackgroundPalette(changed, fixture.native)
+          .status()
+          .code(),
+      absl::StatusCode::kInvalidArgument);
+  fixture.native.overworld_animated.clear();
+  EXPECT_EQ(zelda3::PlanLegacyOverworldBackgroundPalette(fixture.colors,
+                                                         fixture.native)
+                .status()
+                .code(),
+            absl::StatusCode::kFailedPrecondition);
 }
 
 TEST(LyraBackgroundPaletteTest, AppliesOnlyBackgroundToResolvedCopy) {
