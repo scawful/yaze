@@ -135,7 +135,7 @@ class ProjectBuildWorkflowStateTest : public ::testing::Test {
     project::YazeProject project;
     project.name = name;
     project.filepath = files.descriptor.string();
-    project.rom_filename = files.source.filename().string();
+    project.rom_filename = files.source.string();
     project.build_target =
         output_configured ? files.output.filename().string() : "";
     project.build_script = output_configured
@@ -145,6 +145,9 @@ class ProjectBuildWorkflowStateTest : public ::testing::Test {
       project.build_script = DelayCommand() + " && " + project.build_script;
     }
     EXPECT_OK(project.Save());
+    project::YazeProject saved;
+    EXPECT_OK(saved.Open(files.descriptor.string()));
+    EXPECT_EQ(std::filesystem::path(saved.rom_filename), files.source);
     return files;
   }
 
@@ -229,7 +232,7 @@ TEST_F(ProjectBuildWorkflowStateTest, NoOpBuildDoesNotAdoptPreexistingOutput) {
   ASSERT_OK(manager_->OpenRomOrProject(files.descriptor.string()));
   const auto status = manager_->BuildCurrentProject();
   EXPECT_FALSE(status.ok());
-  EXPECT_NE(status.message().find("refresh"), std::string::npos);
+  EXPECT_NE(status.message().find("unchanged output"), std::string::npos);
   EXPECT_FALSE(manager_->RunCurrentProject().ok());
 }
 

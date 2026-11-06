@@ -23,6 +23,7 @@
 #include "app/editor/overworld/overworld_editor.h"
 #include "app/editor/shell/dialogs/rom_load_options_dialog.h"
 #include "app/editor/shell/feedback/toast_manager.h"
+#include "app/editor/system/session/project_build_workflow.h"
 #include "app/gfx/backend/null_renderer.h"
 #include "app/gfx/resource/arena.h"
 #include "app/gfx/util/palette_manager.h"
@@ -988,6 +989,7 @@ TEST(EditorManagerProjectActionsTest,
   auto renderer = std::make_unique<gfx::NullRenderer>();
   auto manager = std::make_unique<EditorManager>();
   ::yaze::test::InitializeWithIsolatedSettings(*manager, renderer.get());
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
   ScopedTempDir dir(MakeTempDir("yaze_readonly_build"));
   const auto project_path = dir.path / "project.yaze";
   WriteRomFile(dir.path / "source.sfc");
@@ -995,7 +997,7 @@ TEST(EditorManagerProjectActionsTest,
   ASSERT_NE(project, nullptr);
   project->name = "ReadOnlyReference";
   project->filepath = project_path.string();
-  project->rom_filename = "source.sfc";
+  project->rom_filename = (project_path.parent_path() / "source.sfc").string();
   project->rom_metadata.write_policy = project::RomWritePolicy::kReadOnly;
   project->build_script = "must-not-execute";
   ASSERT_OK(project->Save());
@@ -1041,7 +1043,7 @@ TEST(EditorManagerProjectActionsTest,
   ASSERT_NE(project, nullptr);
   project->name = "BuildProjectScript";
   project->filepath = project_path.string();
-  project->rom_filename = "source.sfc";
+  project->rom_filename = (project_path.parent_path() / "source.sfc").string();
   project->build_script = "./build_ok.sh";
   ASSERT_OK(project->Save());
   ASSERT_OK(manager->OpenRomOrProject(project_path.string()));
@@ -1053,16 +1055,7 @@ TEST(EditorManagerProjectActionsTest,
 }
 
 TEST(EditorManagerProjectActionsTest,
-     SyncAndQueuedBuildsUseRelocatedProjectContextWithoutChangingRequest) {
-#if defined(_WIN32) || defined(__EMSCRIPTEN__) || \
-    (defined(__APPLE__) && TARGET_OS_IPHONE)
-  GTEST_SKIP() << "Background commands require a POSIX desktop";
-#else
-  ScopedImGuiContext imgui;
-  auto renderer = std::make_unique<gfx::NullRenderer>();
-  auto manager = std::make_unique<EditorManager>();
-  test::InitializeWithIsolatedSettings(*manager, renderer.get());
-  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+     BuildEnvironmentUsesRelocatedProjectContextWithoutChangingRequest) {
   ScopedTempDir temp(MakeTempDir("yaze_project_build_context"));
   const auto original = temp.path / "original";
   const auto relocated = temp.path / "copy with 'quotes'";
@@ -1076,85 +1069,48 @@ TEST(EditorManagerProjectActionsTest,
   WriteRomFile(rom);
   std::ofstream(terrain) << "terrain context canary";
   std::ofstream(request) << "request context canary";
-  auto* project = manager->GetCurrentProject();
-  project->name = "Build context";
-  project->filepath = original_project.string();
-  project->rom_filename = "source.sfc";
-  project->code_folder = (original / "code folder").string();
-  project->lyra_terrain_file = terrain.string();
-  project->lyra_build_request_file = request.string();
-  project->build_script = "./build_context.sh";
-  ASSERT_OK(project->Save());
-  ASSERT_OK(project->Open(original_project.string()));
+  project::YazeProject model;
+  model.name = "Build context";
+  model.filepath = original_project.string();
+  model.rom_filename = rom.string();
+  model.code_folder = (original / "code folder").string();
+  model.lyra_terrain_file = terrain.string();
+  model.lyra_build_request_file = request.string();
+  model.build_script = "./build_context.sh";
+  ASSERT_OK(model.Save());
+  ASSERT_OK(model.Open(original_project.string()));
   const auto original_bytes = ReadFile(original_project);
-  ASSERT_OK(project->SaveAs(copied_project.string()));
-  ASSERT_EQ(project->lyra_build_request_file, request.string());
+  ASSERT_OK(model.SaveAs(copied_project.string()));
+  ASSERT_EQ(model.lyra_build_request_file, request.string());
 
-  const auto script_path = relocated / "build_context.sh";
-  {
-    std::ofstream script(script_path);
-    ASSERT_TRUE(script.is_open());
-    script << R"sh(#!/bin/sh
-printf '%s\n' "$YAZE_PROJECT_FILE" "$YAZE_PROJECT_CODE_FOLDER" \
-  "$YAZE_PROJECT_ROM" "$YAZE_LYRA_TERRAIN_FILE" "$OOS_LYRA_PROJECT" \
-  "$OOS_LYRA_REQUEST" > build.context
-printf '%s\n' "${YAZE_PROJECT_FILE+set}" "${YAZE_PROJECT_CODE_FOLDER+set}" \
-  "${YAZE_PROJECT_ROM+set}" "${YAZE_LYRA_TERRAIN_FILE+set}" \
-  "${OOS_LYRA_PROJECT+set}" "${OOS_LYRA_REQUEST+set}" > build.presence
-)sh";
-    ASSERT_TRUE(script.good());
-  }
-  std::filesystem::permissions(
-      script_path,
-      std::filesystem::perms::owner_exec | std::filesystem::perms::owner_read,
-      std::filesystem::perm_options::add);
-  ASSERT_OK(manager->OpenRomOrProject(copied_project.string()));
-  const std::string expected =
-      copied_project.string() + "\n" + (original / "code folder").string() +
-      "\n" + rom.string() + "\n" + terrain.string() + "\n" +
-      copied_project.string() + "\n" + request.string() + "\n";
-  for (bool queued : {false, true}) {
-    SCOPED_TRACE(queued ? "queued" : "synchronous");
-    std::filesystem::remove(relocated / "build.context");
-    if (queued) {
-      manager->QueueBuildCurrentProject();
-      const auto deadline =
-          std::chrono::steady_clock::now() + std::chrono::seconds(5);
-      while (ContentRegistry::Context::build_workflow_status().state ==
-                 ProjectWorkflowState::kRunning &&
-             std::chrono::steady_clock::now() < deadline) {
-        std::this_thread::sleep_for(std::chrono::milliseconds(20));
-        ImGui::GetIO().DisplaySize = ImVec2(1280, 720);
-        ImGui::NewFrame();
-        const auto status = manager->Update();
-        ImGui::Render();
-        ASSERT_OK(status);
-      }
-      const auto status = ContentRegistry::Context::build_workflow_status();
-      ASSERT_EQ(status.state, ProjectWorkflowState::kSuccess) << status.detail;
-    } else {
-      ASSERT_OK(manager->BuildCurrentProject());
-    }
-    EXPECT_EQ(ReadFile(relocated / "build.context"), expected);
-    EXPECT_EQ(ReadFile(relocated / "build.presence"),
-              "set\nset\nset\nset\nset\nset\n");
-  }
+  // A context canary is deliberately not an admitted expanded build. Exercise
+  // environment construction directly; process/receipt admission has separate
+  // real saved-project controls and must not accept this fake request.
+  const auto environment = BuildProjectCommandEnvironment(model, rom.string());
+  ASSERT_TRUE(environment.ok()) << environment.status();
+  EXPECT_EQ(environment->at("YAZE_PROJECT_FILE"), copied_project.string());
+  EXPECT_EQ(environment->at("YAZE_PROJECT_CODE_FOLDER"),
+            (original / "code folder").string());
+  EXPECT_EQ(environment->at("YAZE_PROJECT_ROM"), rom.string());
+  EXPECT_EQ(environment->at("YAZE_LYRA_TERRAIN_FILE"), terrain.string());
+  EXPECT_EQ(environment->at("OOS_LYRA_PROJECT"), copied_project.string());
+  EXPECT_EQ(environment->at("OOS_LYRA_REQUEST"), request.string());
 
-  // Every known name remains an explicit override when its binding is absent.
-  project->code_folder.clear();
-  project->rom_filename.clear();
-  project->lyra_terrain_file.clear();
-  project->lyra_build_request_file.clear();
-  ASSERT_OK(project->Save());
-  ASSERT_OK(manager->BuildCurrentProject());
-  EXPECT_EQ(ReadFile(relocated / "build.context"),
-            copied_project.string() + "\n\n\n\n\n\n");
-  EXPECT_EQ(ReadFile(relocated / "build.presence"),
-            "set\nset\nset\nset\nset\nset\n");
+  model.code_folder.clear();
+  model.rom_filename.clear();
+  model.lyra_terrain_file.clear();
+  model.lyra_build_request_file.clear();
+  const auto empty_bindings =
+      BuildProjectCommandEnvironment(model, rom.string());
+  ASSERT_TRUE(empty_bindings.ok()) << empty_bindings.status();
+  for (const char* key :
+       {"YAZE_PROJECT_CODE_FOLDER", "YAZE_PROJECT_ROM",
+        "YAZE_LYRA_TERRAIN_FILE", "OOS_LYRA_PROJECT", "OOS_LYRA_REQUEST"}) {
+    EXPECT_EQ(empty_bindings->at(key), "") << key;
+  }
   EXPECT_EQ(ReadFile(original_project), original_bytes);
   EXPECT_EQ(ReadFile(request), "request context canary");
   EXPECT_EQ(ReadFile(terrain), "terrain context canary");
-#endif
 }
 
 TEST(EditorManagerProjectActionsTest,
@@ -1204,7 +1160,7 @@ TEST(EditorManagerProjectActionsTest,
   ASSERT_NE(project, nullptr);
   project->name = "BuildManifestScript";
   project->filepath = project_path.string();
-  project->rom_filename = "source.sfc";
+  project->rom_filename = (project_path.parent_path() / "source.sfc").string();
   project->build_script.clear();
   project->hack_manifest_file = "hack_manifest.json";
   ASSERT_OK(project->Save());
@@ -1247,7 +1203,7 @@ TEST(EditorManagerProjectActionsTest,
   ASSERT_NE(project, nullptr);
   project->name = "BuildUnsavedRom";
   project->filepath = project_path.string();
-  project->rom_filename = "source.sfc";
+  project->rom_filename = (project_path.parent_path() / "source.sfc").string();
   project->build_script = "./build_ok.sh";
   ASSERT_OK(project->Save());
   ASSERT_OK(manager->OpenRomOrProject(project_path.string()));
@@ -1297,7 +1253,7 @@ TEST(EditorManagerProjectActionsTest,
   ASSERT_NE(project, nullptr);
   project->name = "BuildSavedCopy";
   project->filepath = project_path.string();
-  project->rom_filename = "source.sfc";
+  project->rom_filename = (project_path.parent_path() / "source.sfc").string();
   project->build_script = "./build_ok.sh";
   ASSERT_OK(project->Save());
   ASSERT_OK(manager->OpenRomOrProject(project_path.string()));
@@ -1369,7 +1325,7 @@ TEST(EditorManagerProjectActionsTest,
   ASSERT_NE(project, nullptr);
   project->name = "EditorOnlyProject";
   project->filepath = project_path.string();
-  project->rom_filename = "source.sfc";
+  project->rom_filename = (project_path.parent_path() / "source.sfc").string();
   project->build_script.clear();
   project->hack_manifest_file = "hack_manifest.json";
   ASSERT_OK(project->Save());
@@ -1427,7 +1383,7 @@ TEST(EditorManagerProjectActionsTest,
   ASSERT_NE(project, nullptr);
   project->name = "ManifestSourceMismatch";
   project->filepath = project_path.string();
-  project->rom_filename = "source.sfc";
+  project->rom_filename = (project_path.parent_path() / "source.sfc").string();
   project->build_script.clear();
   project->hack_manifest_file = "hack_manifest.json";
   ASSERT_OK(project->Save());
@@ -1560,7 +1516,7 @@ TEST(EditorManagerProjectActionsTest,
   ASSERT_NE(project, nullptr);
   project->name = "RunProjectOutput";
   project->filepath = project_path.string();
-  project->rom_filename = "editing_source.sfc";
+  project->rom_filename = source_rom.string();
   project->build_target = "missing_output.sfc";
   project->hack_manifest_file = "hack_manifest.json";
   project->build_script = "./build_run.sh";
@@ -1688,7 +1644,7 @@ struct ExpandedRunFixture {
     ASSERT_NE(model, nullptr);
     model->name = "Expanded Run generation";
     model->filepath = project.string();
-    model->rom_filename = "editing.sfc";
+    model->rom_filename = source.string();
     model->code_folder = (root / "engine").string();
     model->lyra_terrain_file = terrain.string();
     model->lyra_build_request_file = request.string();
@@ -2272,7 +2228,7 @@ TEST(EditorManagerProjectActionsTest,
   ASSERT_NE(project, nullptr);
   project->name = "WorkflowCallbacks";
   project->filepath = project_path.string();
-  project->rom_filename = "editing_source.sfc";
+  project->rom_filename = source_rom.string();
   project->build_script = "./build_ok.sh";
   project->hack_manifest_file = "hack_manifest.json";
   ASSERT_OK(project->Save());

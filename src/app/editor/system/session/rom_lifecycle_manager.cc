@@ -814,11 +814,22 @@ absl::StatusOr<ProjectSavedInputIdentity> CaptureGenericSavedBuildInputIdentity(
         "Save the project before building or running");
   }
   std::string canonical = "generic:";
-  ASSIGN_OR_RETURN(const auto descriptor_hash,
-                   core::ComputeSourceArtifactFileSha256(project.filepath));
-  canonical += descriptor_hash;
-  ASSIGN_OR_RETURN(const auto serialized, project.SerializeToString());
-  canonical += "|" + core::ComputeSourceArtifactSha256(serialized);
+  std::ifstream descriptor_input(project.filepath, std::ios::binary);
+  if (!descriptor_input.is_open()) {
+    return absl::FailedPreconditionError(
+        "Cannot read saved project descriptor");
+  }
+  const std::string saved_descriptor{
+      std::istreambuf_iterator<char>(descriptor_input),
+      std::istreambuf_iterator<char>()};
+  if (descriptor_input.bad()) {
+    return absl::DataLossError("Failed to read saved project descriptor");
+  }
+  RETURN_IF_ERROR(project.ValidateSavedSourceBindings(saved_descriptor));
+  // Bind persisted inputs, not workspace overlays or load-time UI metadata.
+  canonical += core::ComputeSourceArtifactSha256(saved_descriptor);
+  RETURN_IF_ERROR(AppendConfiguredInputHash(canonical, project,
+                                            project.hack_manifest_file));
   if (!project.rom_filename.empty()) {
     const std::string rom_path = project.GetAbsolutePath(project.rom_filename);
     if (!std::filesystem::is_regular_file(rom_path, ec) || ec) {

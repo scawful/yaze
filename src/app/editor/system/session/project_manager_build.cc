@@ -381,7 +381,8 @@ absl::StatusOr<ProjectBuildAttemptResult> ProjectManager::CompleteBuildAttempt(
         live_project.lyra_build_request_file.empty()) {
       result.terminal_state = ProjectBuildTerminalState::kFailed;
       result.process_status = absl::FailedPreconditionError(
-          "Build did not refresh the configured run target output");
+          "Build completed, but unchanged output cannot be verified for these "
+          "saved inputs");
       return result;
     }
   }
