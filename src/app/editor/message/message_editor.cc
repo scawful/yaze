@@ -1320,14 +1320,15 @@ void MessageEditor::DrawMessageList() {
   if (!BeginTable("##MessagesTable", 6, kListFlags, ImVec2(0, 0))) {
     return;
   }
-  TableSetupColumn("ID", ImGuiTableColumnFlags_WidthFixed, 64);
-  const ImGuiTableColumnFlags bank_flags =
-      ImGuiTableColumnFlags_WidthFixed |
-      (expanded_messages_.empty() ? ImGuiTableColumnFlags_DefaultHide : 0);
-  TableSetupColumn("Bank", bank_flags, 84);
+  // Bank and address stay one right-click away; the docked list is too narrow
+  // for them alongside the scene and review columns.
+  TableSetupColumn("ID", ImGuiTableColumnFlags_WidthFixed, 56);
+  TableSetupColumn(
+      "Bank",
+      ImGuiTableColumnFlags_WidthFixed | ImGuiTableColumnFlags_DefaultHide, 84);
   TableSetupColumn("Scene", ImGuiTableColumnFlags_WidthStretch, 0.35f);
   TableSetupColumn("Contents", ImGuiTableColumnFlags_WidthStretch, 0.65f);
-  TableSetupColumn("Review", ImGuiTableColumnFlags_WidthFixed, 44);
+  TableSetupColumn("Review", ImGuiTableColumnFlags_WidthFixed, 40);
   TableSetupColumn(
       "Address",
       ImGuiTableColumnFlags_WidthFixed | ImGuiTableColumnFlags_DefaultHide, 90);
