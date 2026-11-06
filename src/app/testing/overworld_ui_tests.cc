@@ -13,19 +13,25 @@
 #include <memory>
 #include <optional>
 #include <string>
+#include <vector>
 
 #include "absl/status/status.h"
 #include "app/application.h"
 #include "app/editor/dungeon/dungeon_editor_v2.h"
 #include "app/editor/dungeon/dungeon_project_labels.h"
+#include "app/editor/editor_manager.h"
 #include "app/editor/overworld/overworld_editor.h"
 #include "app/editor/overworld/ui/ui_constants.h"
+#include "app/editor/registry/content_registry.h"
+#include "app/editor/system/session/project_workflow_status.h"
 #include "app/gui/automation/widget_id_registry.h"
 #include "app/service/screenshot_utils.h"
 #include "core/source_artifact_publisher.h"
 #include "imgui.h"
 #include "nlohmann/json.hpp"
+#include "rom/rom.h"
 #include "zelda3/game_data.h"
+#include "zelda3/overworld/overworld.h"
 #include "zelda3/resource_labels.h"
 #if __has_include("imgui_test_engine/imgui_te_context.h")
 #include "imgui_test_engine/imgui_te_context.h"
@@ -1534,6 +1540,388 @@ static void RegisterLyraTerrainReopenTest(ImGuiTestEngine* engine) {
   ImGuiTestEngine_QueueTest(engine, test, ImGuiTestRunFlags_RunFromCommandLine);
 }
 
+// Optional native P0: normal-map ROM paint, save, build/run via project drawer.
+// Root drives startup via YAZE_BUILD_RUN_ACCEPTANCE_PROJECT and
+// build-run-native.json (phase edit|reopen); receipts live in the project dir.
+static void RegisterBuildRunAcceptanceTest(ImGuiTestEngine* engine) {
+  const char* requested = std::getenv("YAZE_BUILD_RUN_ACCEPTANCE_PROJECT");
+  if (!requested || !*requested)
+    return;
+  ImGuiTestEngine_GetIO(engine).ConfigLogToTTY = true;
+  ImGuiTest* test = IM_REGISTER_TEST(engine, "build_run_acceptance",
+                                     "normal_overworld_paint_build_run");
+  test->TestFunc = [](ImGuiTestContext* ctx) {
+    namespace fs = std::filesystem;
+    using editor::ContentRegistry::Context;
+    using editor::ProjectWorkflowState;
+    const char* requested = std::getenv("YAZE_BUILD_RUN_ACCEPTANCE_PROJECT");
+    IM_CHECK(requested && *requested);
+    IM_CHECK(fs::path(requested).is_absolute());
+    std::error_code ec;
+    const auto expected_project = fs::canonical(requested, ec);
+    IM_CHECK(!ec);
+    const auto project_directory = expected_project.parent_path();
+    const auto fixture_path = project_directory / "build-run-native.json";
+    const auto read_file =
+        [](const fs::path& path) -> std::optional<std::string> {
+      std::ifstream file(path, std::ios::binary);
+      if (!file)
+        return std::nullopt;
+      std::string bytes{std::istreambuf_iterator<char>(file), {}};
+      return file.bad() ? std::nullopt
+                        : std::optional<std::string>(std::move(bytes));
+    };
+    const auto fixture_bytes = read_file(fixture_path);
+    IM_CHECK(fixture_bytes.has_value());
+    const auto fixture = nlohmann::json::parse(*fixture_bytes, nullptr, false);
+    IM_CHECK(fixture.is_object());
+    const std::string phase = fixture.value("phase", "");
+    IM_CHECK(phase == "edit" || phase == "reopen");
+    const int map_id = fixture.value("map_id", -1);
+    const int local_x = fixture.value("x", -1);
+    const int local_y = fixture.value("y", -1);
+    const int brush_id = fixture.value("brush_id", -1);
+    const int original_tile = fixture.value("original_tile", -1);
+    IM_CHECK(map_id >= 0 && map_id <= 0x7F);
+    IM_CHECK(local_x >= 0 && local_x < 32 && local_y >= 0 && local_y < 32);
+    IM_CHECK(brush_id >= 0 && brush_id <= 0xFFF);
+    IM_CHECK(original_tile >= 0 && original_tile <= 0xFFF);
+    const int world_x = (map_id % 8) * 32 + local_x;
+    const int world_y = ((map_id % 0x40) / 8) * 32 + local_y;
+
+    editor::EditorManager* manager = nullptr;
+    project::YazeProject* current_project = nullptr;
+    for (int frame = 0; frame < 200; ++frame) {
+      auto* controller = Application::Instance().GetController();
+      manager = controller ? controller->editor_manager() : nullptr;
+      current_project = manager ? manager->GetCurrentProject() : nullptr;
+      if (current_project && current_project->project_opened() &&
+          fs::weakly_canonical(current_project->filepath, ec) ==
+              expected_project &&
+          !ec)
+        break;
+      ctx->Yield(1);
+    }
+    IM_CHECK(manager && current_project && current_project->project_opened());
+    IM_CHECK(fs::canonical(current_project->filepath, ec) == expected_project &&
+             !ec);
+    IM_CHECK(current_project->name.find("[Build Run acceptance]") !=
+             std::string::npos);
+    const auto rom_path = fs::canonical(
+        current_project->GetAbsolutePath(current_project->rom_filename), ec);
+    IM_CHECK(!ec && rom_path.parent_path() == project_directory);
+    IM_CHECK(rom_path.filename() == "editing.sfc");
+    auto* rom = manager->GetCurrentRom();
+    IM_CHECK(rom && rom->is_loaded());
+    IM_CHECK(fs::canonical(rom->filename(), ec) == rom_path && !ec);
+    const auto rom_disk = read_file(rom_path);
+    IM_CHECK(rom_disk.has_value());
+    const auto rom_sha256 = core::ComputeSourceArtifactSha256(*rom_disk);
+    const auto rom_view = [&]() -> std::string_view {
+      return {reinterpret_cast<const char*>(rom->data()), rom->size()};
+    };
+    const auto loaded_sha256 = core::ComputeSourceArtifactSha256(rom_view());
+
+    const auto tile_from_loaded = [&](editor::OverworldEditor* ow) -> uint16_t {
+      auto& model = ow->overworld();
+      model.set_current_world(std::clamp(map_id / 0x40, 0, 2));
+      model.set_current_map(map_id);
+      return model.GetTile(world_x, world_y);
+    };
+    const auto tile_from_disk_bytes =
+        [&](const std::string& bytes) -> uint16_t {
+      const std::vector<uint8_t> data(bytes.begin(), bytes.end());
+      Rom disk_rom;
+      IM_CHECK(disk_rom.LoadFromData(data).ok());
+      zelda3::GameData game_data;
+      IM_CHECK(zelda3::LoadGameData(disk_rom, game_data).ok());
+      zelda3::Overworld model(&disk_rom, &game_data);
+      IM_CHECK(model.Load(&disk_rom).ok());
+      model.set_current_world(std::clamp(map_id / 0x40, 0, 2));
+      model.set_current_map(map_id);
+      return model.GetTile(world_x, world_y);
+    };
+
+    nlohmann::json prior;
+    if (phase == "edit") {
+      const std::string input_hash = fixture.value("input_rom_sha256", "");
+      IM_CHECK(!input_hash.empty());
+      IM_CHECK(rom_sha256 == input_hash);
+      IM_CHECK(loaded_sha256 == input_hash);
+      IM_CHECK(!rom->dirty() && !manager->IsCurrentProjectDirty());
+      IM_CHECK(!manager->HasAnySessionPendingUnsavedWork());
+    } else {
+      const auto prior_path = project_directory / "native-edit-result.json";
+      const auto prior_bytes = read_file(prior_path);
+      IM_CHECK(prior_bytes.has_value());
+      prior = nlohmann::json::parse(*prior_bytes, nullptr, false);
+      IM_CHECK(prior.is_object() && prior.value("result", "") == "PASS");
+      IM_CHECK(prior.value("project", "") == expected_project.string());
+      IM_CHECK(prior.value("map_id", -1) == map_id);
+      IM_CHECK(prior.value("local_x", -1) == local_x);
+      IM_CHECK(prior.value("local_y", -1) == local_y);
+      IM_CHECK(prior.value("brush_id", -1) == brush_id);
+      IM_CHECK(rom_sha256 == prior.value("rom_sha256", ""));
+      IM_CHECK(loaded_sha256 == prior.value("rom_sha256", ""));
+      IM_CHECK(!rom->dirty());
+      IM_CHECK(tile_from_disk_bytes(*rom_disk) ==
+               prior.value("saved_tile", static_cast<uint16_t>(0)));
+    }
+
+    manager->OpenEditorAndPanelsFromFlags(
+        "Overworld", "overworld.canvas,overworld.tile16_selector");
+    auto& widgets = gui::WidgetIdRegistry::Instance();
+    editor::OverworldEditor* overworld = nullptr;
+    for (int frame = 0; frame < 200; ++frame) {
+      auto* editors = manager->GetCurrentEditorSet();
+      overworld = editors ? editors->GetEditorAs<editor::OverworldEditor>(
+                                editor::EditorType::kOverworld)
+                          : nullptr;
+      if (overworld && overworld->overworld().is_loaded() &&
+          ctx->ItemExists("**/OwMap"))
+        break;
+      ctx->Yield(1);
+    }
+    IM_CHECK(overworld && overworld->overworld().is_loaded());
+    IM_CHECK(!overworld->lyra_canvas_.loaded());
+
+    auto& canvas = overworld->ow_map_canvas();
+    canvas.set_global_scale(0.25f);
+    overworld->LocateOverworldTile(map_id, world_x, world_y);
+    ctx->Yield(3);
+    const auto cell_center = [&]() {
+      const auto origin = canvas.zero_point();
+      const auto scrolling = canvas.scrolling();
+      const float cell = 16.0f * canvas.global_scale();
+      return ImVec2(origin.x + scrolling.x + (world_x + 0.5f) * cell,
+                    origin.y + scrolling.y + (world_y + 0.5f) * cell);
+    };
+    auto terrain = ctx->ItemInfo("**/OwMap");
+    IM_CHECK(terrain.ID != 0 && terrain.Window != nullptr);
+    IM_CHECK(terrain.RectClipped.Contains(cell_center()));
+
+    auto* toasts = manager->toast_manager();
+    IM_CHECK(toasts != nullptr);
+    if (toasts->pending_count() != 0) {
+      ctx->MouseSetViewport(terrain.Window);
+      ctx->MouseMoveToPos(cell_center());
+      const auto deadline =
+          std::chrono::steady_clock::now() + std::chrono::seconds(15);
+      while (toasts->pending_count() != 0 &&
+             std::chrono::steady_clock::now() < deadline && !ctx->IsError())
+        ctx->Yield(1);
+      IM_CHECK_EQ(toasts->pending_count(), 0);
+      ctx->Yield(2);
+    }
+
+    const auto visible_widget = [&](const std::string& suffix) -> ImGuiID {
+      const std::string tail = "/" + suffix;
+      for (const auto& path : widgets.FindWidgets("*" + suffix)) {
+        const bool match =
+            path == suffix ||
+            (path.size() > tail.size() &&
+             path.compare(path.size() - tail.size(), tail.size(), tail) == 0);
+        const ImGuiID id = match ? widgets.GetWidgetId(path) : 0;
+        if (id != 0 && ctx->ItemExists(id))
+          return id;
+      }
+      return 0;
+    };
+
+#ifdef YAZE_WITH_GRPC
+    const auto queue_capture = [&](const fs::path& path) -> bool {
+      auto result =
+          std::make_shared<std::optional<absl::StatusOr<ScreenshotArtifact>>>();
+      auto* controller = Application::Instance().GetController();
+      if (!controller)
+        return false;
+      controller->RequestScreenshot(
+          {.preferred_path = path.string(),
+           .format = ScreenshotFormat::kPng,
+           .reveal_to_user = false,
+           .callback = [result](absl::StatusOr<ScreenshotArtifact> image) {
+             *result = std::move(image);
+           }});
+      for (int frame = 0; frame < 200 && !result->has_value(); ++frame)
+        ctx->Yield(1);
+      return result->has_value() && result->value().ok() &&
+             fs::is_regular_file(path);
+    };
+#else
+    const auto queue_capture = [&](const fs::path&) -> bool {
+      return false;
+    };
+#endif
+
+    bool undo_ok = false;
+    bool redo_ok = false;
+    bool save_ok = false;
+    uint16_t saved_tile = static_cast<uint16_t>(original_tile);
+    std::string saved_rom_sha256 = rom_sha256;
+
+    if (phase == "edit") {
+      IM_CHECK_EQ(tile_from_loaded(overworld),
+                  static_cast<uint16_t>(original_tile));
+      const auto before_png = project_directory / "build-run-canvas-before.png";
+      const bool shot_before = queue_capture(before_png);
+
+      const ImGuiID lookup = visible_widget("OwBlocksetSelector/button:Lookup");
+      IM_CHECK(lookup != 0);
+      ctx->ItemClick(lookup);
+      ctx->Yield(2);
+      const ImGuiID tile_input =
+          visible_widget("OwBlocksetSelector/input:TileID");
+      IM_CHECK(tile_input != 0);
+      char hex[8];
+      std::snprintf(hex, sizeof(hex), "%X", brush_id);
+      ctx->ItemInputValue(tile_input, hex);
+      ctx->Yield(2);
+      IM_CHECK_EQ(overworld->current_tile16_id(), brush_id);
+
+      ImGuiID paint = visible_widget("OverworldToolbar/button:Paint");
+      if (paint == 0) {
+        const ImGuiID tools = visible_widget("OverworldToolbar/button:Tools");
+        IM_CHECK(tools != 0);
+        ctx->ItemClick(tools);
+        ctx->Yield(2);
+        paint = visible_widget("OverworldToolbar/button:Paint");
+      }
+      IM_CHECK(paint != 0);
+      ctx->ItemClick(paint);
+      ctx->Yield(2);
+
+      const size_t undo_before = overworld->undo_manager().UndoStackSize();
+      terrain = ctx->ItemInfo("**/OwMap");
+      ctx->MouseSetViewport(terrain.Window);
+      ctx->MouseMoveToPos(cell_center());
+      ctx->MouseClick(ImGuiMouseButton_Left);
+      ctx->Yield(3);
+      IM_CHECK_EQ(overworld->undo_manager().UndoStackSize(), undo_before + 1);
+      IM_CHECK_EQ(tile_from_loaded(overworld), static_cast<uint16_t>(brush_id));
+      IM_CHECK(rom->dirty() || manager->IsCurrentProjectDirty());
+
+      const auto after_png = project_directory / "build-run-canvas-after.png";
+      const bool shot_after = queue_capture(after_png);
+      (void)shot_before;
+      (void)shot_after;
+
+      ctx->KeyPress(ImGuiMod_Ctrl | ImGuiKey_Z);
+      ctx->Yield(2);
+      undo_ok =
+          tile_from_loaded(overworld) == static_cast<uint16_t>(original_tile);
+      IM_CHECK(undo_ok);
+      ctx->KeyPress(ImGuiMod_Ctrl | ImGuiMod_Shift | ImGuiKey_Z);
+      ctx->Yield(2);
+      redo_ok = tile_from_loaded(overworld) == static_cast<uint16_t>(brush_id);
+      IM_CHECK(redo_ok);
+
+      ctx->KeyPress(ImGuiMod_Ctrl | ImGuiKey_S);
+      const auto save_deadline =
+          std::chrono::steady_clock::now() + std::chrono::seconds(30);
+      while ((!save_ok) && std::chrono::steady_clock::now() < save_deadline &&
+             !ctx->IsError()) {
+        ctx->Yield(1);
+        save_ok = !rom->dirty() && !manager->IsCurrentProjectDirty() &&
+                  !manager->HasAnySessionPendingUnsavedWork();
+      }
+      IM_CHECK(save_ok);
+      const auto rom_disk_after = read_file(rom_path);
+      IM_CHECK(rom_disk_after.has_value());
+      saved_tile = tile_from_disk_bytes(*rom_disk_after);
+      IM_CHECK_EQ(saved_tile, static_cast<uint16_t>(brush_id));
+      saved_rom_sha256 = core::ComputeSourceArtifactSha256(*rom_disk_after);
+      IM_CHECK(saved_rom_sha256 ==
+               core::ComputeSourceArtifactSha256(rom_view()));
+    } else {
+      IM_CHECK_EQ(tile_from_loaded(overworld), prior.value("saved_tile", 0));
+      const auto reopen_png = project_directory / "build-run-canvas-reopen.png";
+      (void)queue_capture(reopen_png);
+      saved_tile = static_cast<uint16_t>(prior.value("saved_tile", 0));
+      saved_rom_sha256 = prior.value("rom_sha256", "");
+      undo_ok = prior.value("undo_verified", false);
+      redo_ok = prior.value("redo_verified", false);
+      save_ok = prior.value("save_verified", false);
+    }
+
+    terrain = ctx->ItemInfo("**/OwMap");
+    ctx->SetRef(terrain.Window);
+    ctx->WindowFocus("");
+    ctx->Yield(2);
+
+    const auto wait_workflow_success = [&](auto getter) {
+      const auto deadline =
+          std::chrono::steady_clock::now() + std::chrono::seconds(120);
+      while (std::chrono::steady_clock::now() < deadline && !ctx->IsError()) {
+        const auto status = getter();
+        if (status.state == ProjectWorkflowState::kFailure)
+          IM_CHECK(false);
+        if (status.state == ProjectWorkflowState::kSuccess)
+          return status;
+        ctx->Yield(1);
+      }
+      IM_CHECK(false);
+      return getter();
+    };
+
+    manager->ShowProjectManagement();
+    ctx->Yield(3);
+    const ImGuiID build_btn = visible_widget("button:Build Project");
+    const ImGuiID run_btn = visible_widget("button:Run Project Output");
+    IM_CHECK(build_btn != 0 && run_btn != 0);
+    ctx->ItemClick(build_btn);
+    const auto build_status =
+        wait_workflow_success([] { return Context::build_workflow_status(); });
+    ctx->ItemClick(run_btn);
+    const auto run_status =
+        wait_workflow_success([] { return Context::run_workflow_status(); });
+
+    std::string build_output_path;
+    if (const auto attempt = manager->project_manager_.GetBuildStatusForOwner(
+            manager->GetCurrentSessionId(), expected_project.string())) {
+      if (attempt->terminal_state ==
+          editor::ProjectBuildTerminalState::kSucceeded)
+        build_output_path = attempt->output_path;
+    }
+
+    const nlohmann::json receipt = {
+        {"test", "build_run_acceptance/normal_overworld_paint_build_run"},
+        {"result", "PASS"},
+        {"proof", "native editor controls"},
+        {"phase", phase},
+        {"project", expected_project.string()},
+        {"rom", rom_path.string()},
+        {"rom_sha256", saved_rom_sha256},
+        {"loaded_rom_sha256", core::ComputeSourceArtifactSha256(rom_view())},
+        {"map_id", map_id},
+        {"local_x", local_x},
+        {"local_y", local_y},
+        {"world_x", world_x},
+        {"world_y", world_y},
+        {"original_tile", original_tile},
+        {"brush_id", brush_id},
+        {"saved_tile", saved_tile},
+        {"undo_verified", undo_ok},
+        {"redo_verified", redo_ok},
+        {"save_verified", save_ok},
+        {"build_state", editor::ProjectWorkflowStateName(build_status.state)},
+        {"build_summary", build_status.summary},
+        {"run_state", editor::ProjectWorkflowStateName(run_status.state)},
+        {"run_summary", run_status.summary},
+        {"build_output_path", build_output_path}};
+    const fs::path receipt_path =
+        project_directory / (phase == "edit" ? "native-edit-result.json"
+                                             : "native-reopen-result.json");
+    std::ofstream output(receipt_path, std::ios::binary);
+    IM_CHECK(output.is_open());
+    output << receipt.dump(2) << '\n';
+    output.close();
+    IM_CHECK(!output.fail());
+    ctx->LogInfo("Build/run native %s PASS; receipt: %s", phase.c_str(),
+                 receipt_path.string().c_str());
+  };
+  ImGuiTestEngine_QueueTest(engine, test, ImGuiTestRunFlags_RunFromCommandLine);
+}
+
 // ============================================================================
 // Public registration entry point
 // ============================================================================
@@ -1736,6 +2124,7 @@ void RegisterOverworldUITests(ImGuiTestEngine* engine) {
   RegisterWorldSelectorTests(engine);
   RegisterLyraTerrainAcceptanceTest(engine);
   RegisterLyraTerrainReopenTest(engine);
+  RegisterBuildRunAcceptanceTest(engine);
   RegisterProjectGraphicsImportPreviewTest(engine);
 }
 
