@@ -322,6 +322,12 @@ absl::Status OverworldLayout::CheckOperation(OverworldLayoutDomain domain,
       return absl::OkStatus();
     }
     if (lyra_layout.revision == 3 &&
+        operation == OverworldLayoutOperation::kMutateModel &&
+        (domain == OverworldLayoutDomain::kMapProperties ||
+         domain == OverworldLayoutDomain::kMessages ||
+         domain == OverworldLayoutDomain::kMusic))
+      return absl::OkStatus();
+    if (lyra_layout.revision == 3 &&
         (domain == OverworldLayoutDomain::kTerrainPointers ||
          domain == OverworldLayoutDomain::kTile16 ||
          domain == OverworldLayoutDomain::kTile32))

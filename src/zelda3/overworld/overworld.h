@@ -961,9 +961,14 @@ class Overworld {
   // both on disk. The staged copy is not this identity: a failed save rolls
   // the ROM back and must not treat the unsaved edit as already written.
   std::vector<gfx::Tile16> loaded_tiles16_;
-  using NativeModelState = std::array<std::vector<int64_t>, 6>;
+  using NativeModelState = std::array<std::vector<int64_t>, 7>;
+  std::vector<rom::NativeOverworldPropertyEdit> CaptureNativePropertyRecords()
+      const;
+  absl::StatusOr<std::vector<rom::NativeOverworldPropertyEdit>>
+  PrepareNativePropertySave() const;
   NativeModelState CaptureNativeNonTerrainState() const;
   NativeModelState native_nonterrain_baseline_;
+  std::optional<std::vector<int64_t>> staged_native_properties_;
   std::vector<gfx::Tile32> staged_tiles32_unique_;
   std::vector<uint16_t> staged_tiles32_list_;
   std::vector<uint8_t> private_loaded_overlays_;

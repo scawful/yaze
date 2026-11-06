@@ -1859,6 +1859,10 @@ void Overworld::StageSavedMapTiles() {
 }
 
 void Overworld::CommitSavedMapTiles() {
+  if (staged_native_properties_) {
+    native_nonterrain_baseline_[0] = std::move(*staged_native_properties_);
+    staged_native_properties_.reset();
+  }
   if (!staged_map_tiles_valid_) {
     return;
   }
@@ -1874,6 +1878,7 @@ void Overworld::CommitSavedMapTiles() {
 }
 
 void Overworld::RollbackSavedMapTiles() {
+  staged_native_properties_.reset();
   staged_map_tiles_ = OverworldMapTiles{};
   staged_map_tiles_valid_ = false;
   staged_tiles32_unique_.clear();
@@ -1932,16 +1937,38 @@ std::vector<std::pair<uint32_t, uint32_t>> Overworld::GetProjectedWriteRanges()
     const {
   std::vector<std::pair<uint32_t, uint32_t>> ranges;
   if (resolved_layout_.lyra_layout.revision == 3) {
-    ranges = {{0x1794D, 0x1794D + 160 * 3},
-              {0x17B2D, 0x17B2D + 160 * 3},
-              {0x14701C, 0x147020}};
-    const auto& entries = resolved_layout_.lyra_layout.entries;
-    for (size_t i = 0; i < entries.size(); ++i) {
-      const auto& e = entries[i];
-      if (e.id == 20 || e.id == 21 || (e.id >= 210 && e.id <= 213) ||
-          (e.id >= 400 && e.id <= 404)) {
-        ranges.emplace_back(e.pc_address, e.pc_address + e.count * e.stride);
-        ranges.emplace_back(0x147020 + i * 16 + 12, 0x147020 + i * 16 + 16);
+    if (core::FeatureFlags::get().overworld.kSaveOverworldMaps) {
+      ranges = {{0x1794D, 0x1794D + 160 * 3},
+                {0x17B2D, 0x17B2D + 160 * 3},
+                {0x14701C, 0x147020}};
+      const auto& entries = resolved_layout_.lyra_layout.entries;
+      for (size_t i = 0; i < entries.size(); ++i) {
+        const auto& e = entries[i];
+        if (e.id == 20 || e.id == 21 || (e.id >= 210 && e.id <= 213) ||
+            (e.id >= 400 && e.id <= 404)) {
+          ranges.emplace_back(e.pc_address, e.pc_address + e.count * e.stride);
+          ranges.emplace_back(0x147020 + i * 16 + 12, 0x147020 + i * 16 + 16);
+        }
+      }
+    }
+    if (core::FeatureFlags::get().overworld.kSaveOverworldProperties) {
+      const auto edits = PrepareNativePropertySave();
+      if (edits.ok() && !edits->empty()) {
+        const auto candidate = rom::SealNativeOverworldTerrain(
+            rom_->vector(), rom_->vector(), *edits);
+        if (candidate.ok()) {
+          for (size_t pc = 0; pc < candidate->size();) {
+            if ((*candidate)[pc] == rom_->vector()[pc]) {
+              ++pc;
+              continue;
+            }
+            const size_t begin = pc++;
+            while (pc < candidate->size() &&
+                   (*candidate)[pc] != rom_->vector()[pc])
+              ++pc;
+            ranges.emplace_back(begin, pc);
+          }
+        }
       }
     }
     return ranges;
@@ -3045,71 +3072,6 @@ std::vector<uint64_t> GetAllTile16(const OverworldMapTiles& map_tiles_,
 }
 }  // namespace
 
-Overworld::NativeModelState Overworld::CaptureNativeNonTerrainState() const {
-  NativeModelState state;
-  auto add = [&](int group, std::initializer_list<int64_t> values) {
-    state[group].insert(state[group].end(), values.begin(), values.end());
-  };
-  add(0, {materialized_map_count()});
-  for (const auto& m : overworld_maps_) {
-    add(0, {m.index(), m.parent(), static_cast<int>(m.area_size()),
-            m.large_index(), m.message_id(), m.area_specific_bg_color(),
-            m.main_palette(), m.animated_gfx(), m.subscreen_overlay(),
-            m.area_graphics(), m.area_palette()});
-    for (bool bit : m.mosaic_expanded())
-      add(0, {bit});
-    for (int i = 0; i < 8; ++i)
-      add(0, {m.custom_tileset(i)});
-    for (int i = 0; i < 3; ++i)
-      add(0, {m.sprite_graphics(i), m.sprite_palette(i)});
-    for (int i = 0; i < 4; ++i)
-      add(0, {m.area_music(i)});
-  }
-  for (const auto* list : {&all_entrances_, &all_holes_}) {
-    add(1, {static_cast<int64_t>(list->size())});
-    for (const auto& e : *list)
-      add(1, {e.map_id_, e.map_pos_, e.entrance_id_, e.is_hole_, e.deleted,
-              e.x_, e.y_, e.game_x_, e.game_y_});
-  }
-  add(2, {static_cast<int64_t>(all_exits_.size())});
-  for (const auto& e : all_exits_)
-    add(2, {e.map_id_,
-            e.room_id_,
-            e.map_pos_,
-            e.y_scroll_,
-            e.x_scroll_,
-            e.y_player_,
-            e.x_player_,
-            e.y_camera_,
-            e.x_camera_,
-            e.scroll_mod_y_,
-            e.scroll_mod_x_,
-            e.door_type_1_,
-            e.door_type_2_,
-            e.is_hole_,
-            e.deleted_,
-            e.is_automatic_,
-            e.x_,
-            e.y_,
-            e.game_x_,
-            e.game_y_});
-  add(3, {static_cast<int64_t>(all_items_.size())});
-  for (const auto& e : all_items_)
-    add(3, {e.room_map_id_, e.id_, e.game_x_, e.game_y_, e.x_, e.y_, e.bg2_,
-            e.deleted});
-  for (const auto& list : all_sprites_) {
-    add(4, {static_cast<int64_t>(list.size())});
-    for (const auto& e : list)
-      add(4, {e.map_id(), e.id(), e.x(), e.y(), e.deleted(),
-              e.overworld_x_flags(), e.overworld_y_flags()});
-  }
-  state[5].insert(state[5].end(), all_tiles_types_.begin(),
-                  all_tiles_types_.end());
-  const auto& diggable = diggable_tiles_.GetRawData();
-  state[5].insert(state[5].end(), diggable.begin(), diggable.end());
-  return state;
-}
-
 absl::Status Overworld::SaveNativeTerrain() {
   if (!rom_ || !is_loaded_ || descriptor_layout_.revision != 3)
     return absl::FailedPreconditionError(
@@ -3119,21 +3081,33 @@ absl::Status Overworld::SaveNativeTerrain() {
   if (materialized_map_count() != layout.capacity || tiles16_.size() != 4096)
     return absl::FailedPreconditionError("Native terrain model is incomplete");
   const auto& flags = core::FeatureFlags::get().overworld;
-  const std::array<bool, 6> enabled = {
-      flags.kSaveOverworldProperties, flags.kSaveOverworldEntrances,
-      flags.kSaveOverworldExits,      flags.kSaveOverworldItems,
-      flags.kSaveOverworldSprites,    flags.kSaveOverworldProperties};
+  const std::array<bool, 7> enabled = {false,
+                                       flags.kSaveOverworldEntrances,
+                                       flags.kSaveOverworldExits,
+                                       flags.kSaveOverworldItems,
+                                       flags.kSaveOverworldSprites,
+                                       flags.kSaveOverworldProperties,
+                                       flags.kSaveOverworldProperties};
   const auto current = CaptureNativeNonTerrainState();
   for (size_t i = 0; i < enabled.size(); ++i)
     if (enabled[i] && current[i] != native_nonterrain_baseline_[i])
       return absl::FailedPreconditionError(
-          "Native terrain save cannot publish pending properties or entities");
+          "Native overworld save cannot publish pending geometry, inherited "
+          "properties or entities");
   RollbackSavedMapTiles();
-  if (!flags.kSaveOverworldMaps)
-    return absl::OkStatus();
+  std::vector<rom::NativeOverworldPropertyEdit> property_edits;
+  if (flags.kSaveOverworldProperties) {
+    ASSIGN_OR_RETURN(property_edits, PrepareNativePropertySave());
+  }
   const bool changed_maps = !MapTilesUnchanged();
-  if (!changed_maps && tiles16_ == loaded_tiles16_) {
-    StageSavedMapTiles();
+  if (!flags.kSaveOverworldMaps ||
+      (!changed_maps && tiles16_ == loaded_tiles16_)) {
+    RETURN_IF_ERROR(rom_->CommitNativeTerrainImage(
+        rom_->vector(), rom_->vector(), property_edits));
+    if (flags.kSaveOverworldMaps)
+      StageSavedMapTiles();
+    if (flags.kSaveOverworldProperties)
+      staged_native_properties_ = current[0];
     return absl::OkStatus();
   }
   auto candidate = rom_->vector();
@@ -3212,9 +3186,11 @@ absl::Status Overworld::SaveNativeTerrain() {
       std::copy(write.after.begin(), write.after.end(),
                 candidate.begin() + write.pc);
   }
-  RETURN_IF_ERROR(
-      rom_->CommitNativeTerrainImage(rom_->vector(), std::move(candidate)));
+  RETURN_IF_ERROR(rom_->CommitNativeTerrainImage(
+      rom_->vector(), std::move(candidate), property_edits));
   StageSavedMapTiles();
+  if (flags.kSaveOverworldProperties)
+    staged_native_properties_ = current[0];
   staged_tiles32_unique_ = std::move(definitions);
   staged_tiles32_list_ = std::move(indices);
   return absl::OkStatus();
