@@ -974,12 +974,12 @@ TEST(LyraA0TerrainTest, AtomicSaveAsGuardsSourceSnapshotAndEntryAnchors) {
 
 class NativeSpecialOverworldEditorTest : public test::HeadlessEditorTest {};
 
-TEST_F(NativeSpecialOverworldEditorTest,
-       DirtyDraftRefusesReplacementAndCleanSidecarStaysInactive) {
+TEST_F(NativeSpecialOverworldEditorTest, SidecarLifecycle) {
   const char* path = std::getenv("YAZE_TEST_ROM_OOS");
   if (!path || !std::filesystem::exists(path))
     GTEST_SKIP() << "Set YAZE_TEST_ROM_OOS for native editor lifecycle";
-  const auto root = test::UniqueTempPath("native_editor_sidecar");
+  // Keep sibling atomic-save names below the Windows legacy path limit.
+  const auto root = test::UniqueTempPath("ow3");
   std::filesystem::create_directories(root);
   auto cleanup = absl::MakeCleanup([&] { std::filesystem::remove_all(root); });
   project::YazeProject project;
