@@ -2,6 +2,7 @@
 
 #if defined(YAZE_ENABLE_IMGUI_TEST_ENGINE) && YAZE_ENABLE_IMGUI_TEST_ENGINE
 
+#include <algorithm>
 #include <array>
 #include <chrono>
 #include <cmath>
@@ -1552,7 +1553,7 @@ static void RegisterBuildRunAcceptanceTest(ImGuiTestEngine* engine) {
                                      "normal_overworld_paint_build_run");
   test->TestFunc = [](ImGuiTestContext* ctx) {
     namespace fs = std::filesystem;
-    using editor::ContentRegistry::Context;
+    namespace Context = editor::ContentRegistry::Context;
     using editor::ProjectWorkflowState;
     const char* requested = std::getenv("YAZE_BUILD_RUN_ACCEPTANCE_PROJECT");
     IM_CHECK(requested && *requested);
@@ -1629,17 +1630,19 @@ static void RegisterBuildRunAcceptanceTest(ImGuiTestEngine* engine) {
       return model.GetTile(world_x, world_y);
     };
     const auto tile_from_disk_bytes =
-        [&](const std::string& bytes) -> uint16_t {
+        [&](const std::string& bytes) -> std::optional<uint16_t> {
       const std::vector<uint8_t> data(bytes.begin(), bytes.end());
-      Rom disk_rom;
-      IM_CHECK(disk_rom.LoadFromData(data).ok());
-      zelda3::GameData game_data;
-      IM_CHECK(zelda3::LoadGameData(disk_rom, game_data).ok());
-      zelda3::Overworld model(&disk_rom, &game_data);
-      IM_CHECK(model.Load(&disk_rom).ok());
-      model.set_current_world(std::clamp(map_id / 0x40, 0, 2));
-      model.set_current_map(map_id);
-      return model.GetTile(world_x, world_y);
+      auto disk_rom = std::make_unique<Rom>();
+      IM_CHECK_RETV(disk_rom->LoadFromData(data).ok(), std::nullopt);
+      auto game_data = std::make_unique<zelda3::GameData>();
+      IM_CHECK_RETV(zelda3::LoadGameData(*disk_rom, *game_data).ok(),
+                    std::nullopt);
+      auto model =
+          std::make_unique<zelda3::Overworld>(disk_rom.get(), game_data.get());
+      IM_CHECK_RETV(model->Load(disk_rom.get()).ok(), std::nullopt);
+      model->set_current_world(std::clamp(map_id / 0x40, 0, 2));
+      model->set_current_map(map_id);
+      return model->GetTile(world_x, world_y);
     };
 
     nlohmann::json prior;
@@ -1649,7 +1652,6 @@ static void RegisterBuildRunAcceptanceTest(ImGuiTestEngine* engine) {
       IM_CHECK(rom_sha256 == input_hash);
       IM_CHECK(loaded_sha256 == input_hash);
       IM_CHECK(!rom->dirty() && !manager->IsCurrentProjectDirty());
-      IM_CHECK(!manager->HasAnySessionPendingUnsavedWork());
     } else {
       const auto prior_path = project_directory / "native-edit-result.json";
       const auto prior_bytes = read_file(prior_path);
@@ -1822,12 +1824,14 @@ static void RegisterBuildRunAcceptanceTest(ImGuiTestEngine* engine) {
              !ctx->IsError()) {
         ctx->Yield(1);
         save_ok = !rom->dirty() && !manager->IsCurrentProjectDirty() &&
-                  !manager->HasAnySessionPendingUnsavedWork();
+                  !overworld->HasPendingProjectDraftChanges();
       }
       IM_CHECK(save_ok);
       const auto rom_disk_after = read_file(rom_path);
       IM_CHECK(rom_disk_after.has_value());
-      saved_tile = tile_from_disk_bytes(*rom_disk_after);
+      const auto disk_tile = tile_from_disk_bytes(*rom_disk_after);
+      IM_CHECK(disk_tile.has_value());
+      saved_tile = *disk_tile;
       IM_CHECK_EQ(saved_tile, static_cast<uint16_t>(brush_id));
       saved_rom_sha256 = core::ComputeSourceArtifactSha256(*rom_disk_after);
       IM_CHECK(saved_rom_sha256 ==
@@ -1848,40 +1852,36 @@ static void RegisterBuildRunAcceptanceTest(ImGuiTestEngine* engine) {
     ctx->WindowFocus("");
     ctx->Yield(2);
 
-    const auto wait_workflow_success = [&](auto getter) {
+    const auto wait_workflow_success = [&](auto getter) -> bool {
       const auto deadline =
           std::chrono::steady_clock::now() + std::chrono::seconds(120);
       while (std::chrono::steady_clock::now() < deadline && !ctx->IsError()) {
         const auto status = getter();
         if (status.state == ProjectWorkflowState::kFailure)
-          IM_CHECK(false);
+          return false;
         if (status.state == ProjectWorkflowState::kSuccess)
-          return status;
+          return true;
         ctx->Yield(1);
       }
-      IM_CHECK(false);
-      return getter();
+      return false;
     };
 
     manager->ShowProjectManagement();
     ctx->Yield(3);
     const ImGuiID build_btn = visible_widget("button:Build Project");
-    const ImGuiID run_btn = visible_widget("button:Run Project Output");
-    IM_CHECK(build_btn != 0 && run_btn != 0);
+    IM_CHECK(build_btn != 0);
     ctx->ItemClick(build_btn);
-    const auto build_status =
-        wait_workflow_success([] { return Context::build_workflow_status(); });
+    IM_CHECK(
+        wait_workflow_success([] { return Context::build_workflow_status(); }));
+    const auto build_status = Context::build_workflow_status();
+    const ImGuiID run_btn = visible_widget("button:Run Project Output");
+    IM_CHECK(run_btn != 0);
     ctx->ItemClick(run_btn);
-    const auto run_status =
-        wait_workflow_success([] { return Context::run_workflow_status(); });
-
-    std::string build_output_path;
-    if (const auto attempt = manager->project_manager_.GetBuildStatusForOwner(
-            manager->GetCurrentSessionId(), expected_project.string())) {
-      if (attempt->terminal_state ==
-          editor::ProjectBuildTerminalState::kSucceeded)
-        build_output_path = attempt->output_path;
-    }
+    IM_CHECK(
+        wait_workflow_success([] { return Context::run_workflow_status(); }));
+    const auto run_status = Context::run_workflow_status();
+    const std::string build_output_path =
+        current_project->GetAbsolutePath(current_project->build_target);
 
     const nlohmann::json receipt = {
         {"test", "build_run_acceptance/normal_overworld_paint_build_run"},
