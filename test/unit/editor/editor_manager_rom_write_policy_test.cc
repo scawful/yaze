@@ -6671,7 +6671,8 @@ TEST_F(PaletteWorkspaceTest, LegacyAuxiliaryNavigationUsesAllTwentyOneColors) {
 
 TEST_F(PaletteWorkspaceTest,
        BoundAuxiliaryRecordUsesNormalColorHistorySaveAndFreshReopen) {
-  const auto fixture = test::BuildOracleGfxSheetTestRom();
+  auto fixture = test::BuildOracleGfxSheetTestRom();
+  fixture.bytes.resize(4 * 1024 * 1024, 0);
   const auto path = root / "bound-aux.sfc";
   {
     std::ofstream out(path, std::ios::binary);
