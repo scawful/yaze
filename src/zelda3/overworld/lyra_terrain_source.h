@@ -27,11 +27,11 @@ struct SpecialOverworldTerrainImportPlan {
   std::vector<OverworldGeometryRow> geometry;
   OverworldTerrainSavePlan terrain;
 };
-// Consume a freshly loaded legacy model and source-bound document once. Keep
+// Load a private model from saved legacy ROM bytes and consume its document once.
 // all160 original terrain grids and explicit32-map area assignments. Asset,
 // entity and complete-directory publication belong to the full import owner.
 absl::StatusOr<SpecialOverworldTerrainImportPlan>
-PlanSpecialOverworldTerrainImport(Overworld& original,
+PlanSpecialOverworldTerrainImport(const Rom& source,
                                   const core::LyraTerrainDocument& document,
                                   const OverworldTerrainStorage& destination);
 

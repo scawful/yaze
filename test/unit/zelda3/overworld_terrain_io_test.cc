@@ -221,7 +221,7 @@ TEST(SpecialOverworldTerrainImportTest,
         "original overflow"}},
       OverworldTerrainPointerTables{0x1794D, 0x17B2D, 160}};
   const auto unassigned =
-      PlanSpecialOverworldTerrainImport(world, *document, storage);
+      PlanSpecialOverworldTerrainImport(source, *document, storage);
   EXPECT_FALSE(unassigned.ok());
   EXPECT_NE(unassigned.status().message().find("Assign added map"),
             absl::string_view::npos)
@@ -244,9 +244,13 @@ TEST(SpecialOverworldTerrainImportTest,
   }
   ASSERT_EQ(authored.gameplay_areas.size(), 21u);
   ASSERT_TRUE(document->SetAuthoring(document->authoring(), authored).ok());
+  // A clean ROM does not imply a clean editor model. Import derives its
+  // preserved prefix from saved bytes even if the editor has pending edits.
+  world.GetMapTiles(0)[0][0] ^= 1;
+  const auto edited_model = world.GetMapTiles(0);
   ScopedRomReadOnly source_read_only(source);
   const auto plan =
-      PlanSpecialOverworldTerrainImport(world, *document, storage);
+      PlanSpecialOverworldTerrainImport(source, *document, storage);
   ASSERT_TRUE(plan.ok()) << plan.status();
   EXPECT_TRUE(plan->terrain.initial_import);
   EXPECT_EQ(plan->terrain.baseline.size(), 0x400000u);
@@ -280,7 +284,8 @@ TEST(SpecialOverworldTerrainImportTest,
   }
   EXPECT_EQ(source.vector(), before);
   EXPECT_FALSE(source.dirty());
-  for (int kind = 0; kind < 3; ++kind)
+  EXPECT_EQ(world.GetMapTiles(0), edited_model);
+  for (int kind = 1; kind < 3; ++kind)
     EXPECT_EQ(world.GetMapTiles(kind), original[kind]);
   EXPECT_EQ(document->authoring(), authored);
   auto stale_profile = profile;
@@ -288,7 +293,7 @@ TEST(SpecialOverworldTerrainImportTest,
   const auto stale = core::LyraTerrainDocument::Create(stale_profile, 0);
   ASSERT_TRUE(stale.ok());
   const auto refused =
-      PlanSpecialOverworldTerrainImport(world, *stale, storage);
+      PlanSpecialOverworldTerrainImport(source, *stale, storage);
   EXPECT_FALSE(refused.ok());
   EXPECT_NE(refused.status().message().find("binding"),
             absl::string_view::npos);

@@ -33,16 +33,28 @@ std::string Tile16Fingerprint(const Overworld& overworld) {
 }  // namespace
 
 absl::StatusOr<SpecialOverworldTerrainImportPlan>
-PlanSpecialOverworldTerrainImport(Overworld& original,
+PlanSpecialOverworldTerrainImport(const Rom& source,
                                   const core::LyraTerrainDocument& document,
                                   const OverworldTerrainStorage& destination) {
-  if (!original.is_loaded() || !original.rom() ||
-      original.materialized_map_count() != 160 ||
-      destination.map_count != 192 || original.rom()->dirty() ||
-      original.rom()->InspectLyraLayout().presence !=
-          rom::LyraLayoutPresence::kAbsent)
+  if (!source.is_loaded() || destination.map_count != 192 || source.dirty() ||
+      source.InspectLyraLayout().presence != rom::LyraLayoutPresence::kAbsent)
     return absl::FailedPreconditionError(
         "Initial expansion requires a saved original160-map overworld");
+  auto expanded = source.vector();
+  if (expanded.size() > 0x400000)
+    return absl::FailedPreconditionError(
+        "Initial terrain source exceeds 4 MiB");
+  expanded.resize(0x400000);
+  Rom image;
+  RETURN_IF_ERROR(image.LoadFromData(expanded));
+  Overworld original(&image);
+  {
+    ScopedRomReadOnly read_only(image);
+    RETURN_IF_ERROR(original.Load(&image));
+  }
+  if (original.materialized_map_count() != 160)
+    return absl::FailedPreconditionError(
+        "Initial expansion requires the original160-map model");
   if (document.profile().tile_count != original.tiles16().size() ||
       document.profile().tile16_definition_fingerprint !=
           Tile16Fingerprint(original))
@@ -90,13 +102,6 @@ PlanSpecialOverworldTerrainImport(Overworld& original,
         tiles.special_world[map % 8 * 32 + x][map % 64 / 8 * 32 + y] =
             document.maps()[map - 160][y * 32 + x];
   ASSIGN_OR_RETURN(plan.tile32, PlanOverworldTile32Packing(tiles, 192, 17728));
-  auto expanded = original.rom()->vector();
-  if (expanded.size() > 0x400000)
-    return absl::FailedPreconditionError(
-        "Initial terrain source exceeds 4 MiB");
-  expanded.resize(0x400000);
-  Rom image;
-  RETURN_IF_ERROR(image.LoadFromData(expanded));
   ASSIGN_OR_RETURN(plan.terrain, PlanInitialOverworldTerrainImport(
                                      image, destination, plan.tile32.pages));
   return plan;
