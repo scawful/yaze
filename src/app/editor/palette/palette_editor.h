@@ -187,6 +187,7 @@ class PaletteEditor : public Editor {
   bool show_control_panel_ = true;
   // Palette panel visibility flags
   bool show_ow_main_panel_ = false;
+  bool show_ow_aux_panel_ = false;
   bool show_ow_animated_panel_ = false;
   bool show_dungeon_main_panel_ = false;
   bool show_sprite_panel_ = false;
@@ -200,6 +201,7 @@ class PaletteEditor : public Editor {
   // Palette Panels (formerly Cards)
   // Non-owning references refreshed through WorkspaceWindowManager before use.
   OverworldMainPalettePanel* ow_main_panel_ = nullptr;
+  OverworldAuxPalettePanel* ow_aux_panel_ = nullptr;
   OverworldAnimatedPalettePanel* ow_anim_panel_ = nullptr;
   DungeonMainPalettePanel* dungeon_main_panel_ = nullptr;
   SpritePalettePanel* sprite_global_panel_ = nullptr;

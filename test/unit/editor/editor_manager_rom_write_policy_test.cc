@@ -6657,6 +6657,77 @@ TEST_F(PaletteWorkspaceTest, ColorInputUndoAndOriginalUseTheSameModel) {
   EXPECT_EQ(manager->GetCurrentRom()->vector(), bytes);
 }
 
+TEST_F(PaletteWorkspaceTest, LegacyAuxiliaryNavigationUsesAllTwentyOneColors) {
+  auto& pm = gfx::PaletteManager::Get();
+  ASSERT_EQ(Session()->game_data.palette_groups.overworld_aux.size(), 20);
+  Click("Overworld Auxiliary");
+  Click("Palette color 20");
+  EnterColor("1234");
+  EXPECT_EQ(pm.GetColor("ow_aux", 0, 20).snes(), 0x1234);
+  Click("Undo palette edit");
+  EXPECT_EQ(pm.GetColor("ow_aux", 0, 20).snes(), 0);
+  EXPECT_FALSE(manager->window_manager().IsWindowOpen(0, "palette.ow_aux"));
+}
+
+TEST_F(PaletteWorkspaceTest,
+       BoundAuxiliaryRecordUsesNormalColorHistorySaveAndFreshReopen) {
+  const auto fixture = test::BuildOracleGfxSheetTestRom();
+  const auto path = root / "bound-aux.sfc";
+  {
+    std::ofstream out(path, std::ios::binary);
+    out.write(reinterpret_cast<const char*>(fixture.bytes.data()),
+              fixture.bytes.size());
+    ASSERT_TRUE(out.good());
+  }
+  ASSERT_OK(manager->OpenRomOrProject(path.string()));
+  StrictProject();
+  auto* project = manager->GetCurrentProject();
+  project->rom_address_overrides.addresses = {
+      {core::RomAddressKey::kOverworldAuxPaletteExtensionPc, 0x22F900},
+      {core::RomAddressKey::kOverworldAuxPaletteExtensionCount, 32},
+      {core::RomAddressKey::kOverworldAuxPaletteExtensionAbi, 1}};
+  Session()->project_context = *project;
+  ASSERT_OK(manager->EnsureGameDataLoaded());
+  ASSERT_OK(manager->EnsureEditorAssetsLoaded(EditorType::kPalette));
+  palette = manager->GetCurrentEditorSet()->GetEditorAs<PaletteEditor>(
+      EditorType::kPalette);
+  ASSERT_NE(palette, nullptr);
+  workspace = manager->window_manager().GetWindowContent(
+      manager->GetCurrentSessionId(), "palette.control_panel");
+  ASSERT_NE(workspace, nullptr);
+  ASSERT_EQ(Session()->game_data.palette_groups.overworld_aux.size(), 52);
+  Frame();
+  Frame();
+  Click("Overworld Auxiliary");
+  palette->JumpToPalette("ow_aux", 21);
+  Frame();
+  Click("Palette color 20");
+  auto& pm = gfx::PaletteManager::Get();
+  const auto original = pm.GetColor("ow_aux", 21, 20).snes();
+  EnterColor("1234");
+  ASSERT_EQ(pm.GetColor("ow_aux", 21, 20).snes(), 0x1234);
+  Click("Undo palette edit");
+  EXPECT_EQ(pm.GetColor("ow_aux", 21, 20).snes(), original);
+  Click("Redo palette edit");
+  EXPECT_EQ(pm.GetColor("ow_aux", 21, 20).snes(), 0x1234);
+  auto expected = manager->GetCurrentRom()->vector();
+  constexpr uint32_t kColorPc = 0x22F900 + 42 + 40;
+  expected[kColorPc] = 0x34;
+  expected[kColorPc + 1] = 0x12;
+  const auto layout = *Session()->game_data.overworld_palette_layout;
+  core::FeatureFlags::get().kSaveAllPalettes = true;
+  project->feature_flags = core::FeatureFlags::get();
+  Click("Save ROM");
+  ASSERT_FALSE(pm.HasUnsavedChanges());
+  Rom reopened;
+  ASSERT_OK(reopened.LoadFromFile(path.string()));
+  EXPECT_EQ(reopened.vector(), expected);
+  gfx::PaletteGroupMap groups;
+  ASSERT_OK(gfx::LoadAllPalettes(reopened.vector(), groups, layout));
+  ASSERT_EQ(groups.overworld_aux.size(), 52);
+  EXPECT_EQ(groups.overworld_aux.palette_ref(21)[20].snes(), 0x1234);
+}
+
 TEST_F(PaletteWorkspaceTest, WheelDragCommitsOneUndoAndKeepsLiveColors) {
   Click("Dungeon Main");
   Click("Palette color 3");

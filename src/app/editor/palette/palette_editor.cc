@@ -324,6 +324,18 @@ void PaletteEditor::Initialize() {
        .disabled_tooltip = "Load a ROM first"});
 
   window_manager->RegisterPanel(
+      {.card_id = "palette.ow_aux",
+       .display_name = "Overworld Auxiliary",
+       .window_title = " Overworld Auxiliary",
+       .icon = ICON_MD_LANDSCAPE,
+       .category = "Palette",
+       .presentation = WindowPresentationPolicy::OptionalPopOut(),
+       .visibility_flag = &show_ow_aux_panel_,
+       .priority = 25,
+       .enabled_condition = [this]() { return rom_ && rom_->is_loaded(); },
+       .disabled_tooltip = "Load a ROM first"});
+
+  window_manager->RegisterPanel(
       {.card_id = "palette.ow_animated",
        .display_name = "Overworld Animated",
        .window_title = " Overworld Animated",
@@ -547,6 +559,7 @@ void PaletteEditor::RefreshPanelReferences() {
   auto* window_manager = dependencies_.window_manager;
   if (window_manager == nullptr) {
     ow_main_panel_ = nullptr;
+    ow_aux_panel_ = nullptr;
     ow_anim_panel_ = nullptr;
     dungeon_main_panel_ = nullptr;
     sprite_global_panel_ = nullptr;
@@ -560,6 +573,8 @@ void PaletteEditor::RefreshPanelReferences() {
   const size_t session_id = dependencies_.session_id;
   ow_main_panel_ = ResolveSessionPalettePanel<OverworldMainPalettePanel>(
       window_manager, session_id, "palette.ow_main", rom_);
+  ow_aux_panel_ = ResolveSessionPalettePanel<OverworldAuxPalettePanel>(
+      window_manager, session_id, "palette.ow_aux", rom_);
   ow_anim_panel_ = ResolveSessionPalettePanel<OverworldAnimatedPalettePanel>(
       window_manager, session_id, "palette.ow_animated", rom_);
   dungeon_main_panel_ = ResolveSessionPalettePanel<DungeonMainPalettePanel>(
@@ -588,6 +603,7 @@ void PaletteEditor::ApplyPanelDependencies() {
     panel->SetProject(dependencies_.project);
   };
   apply(ow_main_panel_);
+  apply(ow_aux_panel_);
   apply(ow_anim_panel_);
   apply(dungeon_main_panel_);
   apply(sprite_global_panel_);
@@ -632,6 +648,11 @@ absl::Status PaletteEditor::Load() {
         std::make_unique<OverworldMainPalettePanel>(rom_, game_data());
     ow_main_panel_ = ow_main.get();
     window_manager->RegisterWindowContent(std::move(ow_main));
+
+    // Overworld Auxiliary
+    auto ow_aux = std::make_unique<OverworldAuxPalettePanel>(rom_, game_data());
+    ow_aux_panel_ = ow_aux.get();
+    window_manager->RegisterWindowContent(std::move(ow_aux));
 
     // Overworld Animated
     auto ow_anim =
@@ -1357,6 +1378,8 @@ void PaletteEditor::DrawCustomPalettePanel() {
 PaletteGroupPanel* PaletteEditor::GetPanelForGroup(const std::string& group) {
   if (group == "ow_main")
     return ow_main_panel_;
+  if (group == "ow_aux")
+    return ow_aux_panel_;
   if (group == "ow_animated")
     return ow_anim_panel_;
   if (group == "dungeon_main")

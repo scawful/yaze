@@ -344,10 +344,26 @@ class OverworldMainPalettePanel : public PaletteGroupPanel {
 };
 
 /**
- * @brief Overworld Animated palette group panel
- *
- * Manages animated palettes for water, lava, and other effects
+ * @brief Auxiliary palettes from the session's resolved overworld layout.
  */
+class OverworldAuxPalettePanel : public PaletteGroupPanel {
+ public:
+  explicit OverworldAuxPalettePanel(Rom* rom,
+                                    zelda3::GameData* game_data = nullptr);
+
+ protected:
+  gfx::PaletteGroup* GetPaletteGroup() override;
+  const gfx::PaletteGroup* GetPaletteGroup() const override;
+  const PaletteGroupMetadata& GetMetadata() const override;
+  int GetColorsPerRow() const override { return 7; }
+  std::string GetIcon() const override { return ICON_MD_LANDSCAPE; }
+  int GetPriority() const override { return 25; }
+
+ private:
+  mutable PaletteGroupMetadata metadata_;
+};
+
+/** @brief Animated palettes for water, lava, and other effects. */
 class OverworldAnimatedPalettePanel : public PaletteGroupPanel {
  public:
   explicit OverworldAnimatedPalettePanel(Rom* rom,

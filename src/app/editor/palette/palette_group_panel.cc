@@ -1139,6 +1139,45 @@ const gfx::PaletteGroup* OverworldMainPalettePanel::GetPaletteGroup() const {
       ->palette_groups.get_group("ow_main");
 }
 
+// ========== Overworld Auxiliary Palette Panel ==========
+
+OverworldAuxPalettePanel::OverworldAuxPalettePanel(Rom* rom,
+                                                   zelda3::GameData* game_data)
+    : PaletteGroupPanel("ow_aux", "Overworld Auxiliary Palettes", rom,
+                        game_data) {}
+
+gfx::PaletteGroup* OverworldAuxPalettePanel::GetPaletteGroup() {
+  return game_data_ ? game_data_->palette_groups.get_group("ow_aux") : nullptr;
+}
+
+const gfx::PaletteGroup* OverworldAuxPalettePanel::GetPaletteGroup() const {
+  return game_data_ ? game_data_->palette_groups.get_group("ow_aux") : nullptr;
+}
+
+const PaletteGroupMetadata& OverworldAuxPalettePanel::GetMetadata() const {
+  metadata_ = {"ow_aux", "Overworld Auxiliary Palettes", {}, 21, 7};
+  const auto* group = GetPaletteGroup();
+  if (!group || !rom_)
+    return metadata_;
+
+  using gfx::palette_group_internal::OverworldPaletteKind;
+  using gfx::palette_group_internal::OverworldPaletteLayout;
+  const auto layout = game_data_->overworld_palette_layout.value_or(
+      OverworldPaletteLayout::Legacy());
+  for (int i = 0; i < group->size(); ++i) {
+    const auto record =
+        layout.Resolve(OverworldPaletteKind::kAuxiliary, i, rom_->size());
+    if (!record.ok())
+      break;
+    metadata_.palettes.push_back(
+        {i, absl::StrFormat("Overworld Auxiliary %02d", i),
+         "Auxiliary palette record (3 sub-palettes of 7 colors)",
+         record->pc_address(), 0,
+         "Uses the open session's resolved overworld palette layout."});
+  }
+  return metadata_;
+}
+
 // ========== Overworld Animated Palette Panel ==========
 
 const PaletteGroupMetadata OverworldAnimatedPalettePanel::metadata_ =
