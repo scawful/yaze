@@ -601,6 +601,18 @@ TEST(LyraLayoutDescriptorTest, NativeGeometryBatchMirrorsAndReopensAtomically) {
   for (int capacity : {160, 192}) {
     SCOPED_TRACE(capacity);
     NativeDirectoryFixture fixture(capacity);
+    const std::array<size_t, 10> mirrors = {
+        0x140998, 0x1788D,  0x140A38, 0x140B78, 0x140CB8,
+        0x140DF8, 0x140F38, 0x141078, 0x1411B8, 0x1412F8};
+    constexpr std::array<uint16_t, 10> ids = {7,  30, 8,  9,  10,
+                                              11, 12, 13, 14, 15};
+    // Start with coherent original-prefix mirrors. An unchanged row must not
+    // repair unrelated baseline bytes as a side effect of another map's edit.
+    for (size_t i = 0; i < ids.size(); ++i) {
+      const auto& table = fixture.Entry(ids[i]);
+      std::copy_n(fixture.bytes.begin() + table.pc_address, 160 * table.stride,
+                  fixture.bytes.begin() + mirrors[i]);
+    }
     Rom image;
     ASSERT_TRUE(image.LoadFromData(fixture.bytes).ok());
     const auto layout = image.InspectLyraLayout();
@@ -625,11 +637,9 @@ TEST(LyraLayoutDescriptorTest, NativeGeometryBatchMirrorsAndReopensAtomically) {
     const auto checked = rom::InspectLyraLayout(saved->data(), saved->size());
     ASSERT_EQ(checked.presence, rom::LyraLayoutPresence::kValid)
         << checked.error;
-    const std::array<size_t, 10> mirrors = {
-        0x140998, 0x1788D,  0x140A38, 0x140B78, 0x140CB8,
-        0x140DF8, 0x140F38, 0x141078, 0x1411B8, 0x1412F8};
     for (size_t n = 0; n < edits.size(); ++n) {
       const auto& edit = edits[n];
+      SCOPED_TRACE(::testing::Message() << edit.table_id << ":" << edit.map_id);
       const auto& table = fixture.Entry(edit.table_id);
       const size_t at = table.pc_address + edit.map_id * table.stride;
       EXPECT_TRUE(std::equal(edit.value.begin(), edit.value.end(),
@@ -638,6 +648,14 @@ TEST(LyraLayoutDescriptorTest, NativeGeometryBatchMirrorsAndReopensAtomically) {
         const size_t mirror = mirrors[n % 10] + edit.map_id * table.stride;
         EXPECT_TRUE(std::equal(edit.value.begin(), edit.value.end(),
                                saved->begin() + mirror));
+      }
+    }
+    if (capacity == 192) {
+      for (size_t i = 0; i < ids.size(); ++i) {
+        const size_t end = mirrors[i] + 160 * fixture.Entry(ids[i]).stride;
+        EXPECT_TRUE(std::equal(original.begin() + mirrors[i],
+                               original.begin() + end,
+                               saved->begin() + mirrors[i]));
       }
     }
     auto repeated = rom::SealNativeOverworldTerrain(*saved, *saved, edits);
