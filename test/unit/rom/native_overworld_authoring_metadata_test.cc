@@ -7,6 +7,8 @@
 #include <limits>
 #include <utility>
 
+#include "core/source_artifact_publisher.h"
+
 namespace yaze::rom {
 namespace {
 
@@ -38,6 +40,10 @@ TEST(NativeOverworldAuthoringMetadataTest,
   auto data = Placements();
   const auto encoded = EncodeNativeOverworldAuthoringMetadata(data, 192);
   ASSERT_TRUE(encoded.ok()) << encoded.status();
+  EXPECT_EQ(
+      core::ComputeSourceArtifactSha256(
+          {reinterpret_cast<const char*>(encoded->data()), encoded->size()}),
+      "f4a8e2cd3c1fede254883fc646b0faa6d9c93389cb85b71c74e8fe58a7597781");
   EXPECT_EQ((*encoded)[32], 1);  // ID5001, little endian.
   EXPECT_EQ((*encoded)[33], 0x50);
   EXPECT_EQ((*encoded)[32 * 6 + 7], 1);  // Door target, no runtime row.
