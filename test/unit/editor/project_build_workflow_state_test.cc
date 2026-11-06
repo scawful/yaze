@@ -10,6 +10,7 @@
 #include <thread>
 #include <vector>
 
+#include "absl/cleanup/cleanup.h"
 #include "app/editor/core/content_registry.h"
 #include "app/editor/editor_manager.h"
 #include "app/editor/sprite/sprite_editor.h"
@@ -17,6 +18,7 @@
 #include "app/editor/system/session/rom_lifecycle_manager.h"
 #include "app/editor/system/session/session_coordinator.h"
 #include "app/gfx/backend/null_renderer.h"
+#include "core/features.h"
 #include "core/native_save_receipt.h"
 #include "core/project.h"
 #include "core/source_artifact_publisher.h"
@@ -601,7 +603,28 @@ TEST_F(ProjectBuildWorkflowStateTest, BackgroundBuildKeepsUnsavedRomGuard) {
 }
 
 TEST_F(ProjectBuildWorkflowStateTest, BackgroundSavePersistsRomEdits) {
+  const auto previous_flags = core::FeatureFlags::get();
+  const absl::Cleanup restore_flags = [previous_flags] {
+    core::FeatureFlags::get() = previous_flags;
+  };
   const auto files = CreateProject("BackgroundRomSave");
+  // This blank ROM exercises raw-buffer persistence, not asset serialization.
+  project::YazeProject project;
+  ASSERT_OK(project.Open(files.descriptor.string()));
+  project.feature_flags.kSaveMessages = false;
+  project.feature_flags.dungeon = {.kSaveObjects = false,
+                                   .kSaveSprites = false,
+                                   .kSaveRoomHeaders = false,
+                                   .kSaveTorches = false,
+                                   .kSavePits = false,
+                                   .kSaveBlocks = false,
+                                   .kSaveCollision = false,
+                                   .kSaveWaterFillZones = false,
+                                   .kSaveChests = false,
+                                   .kSavePotItems = false,
+                                   .kSaveEntrances = false,
+                                   .kSavePalettes = false};
+  ASSERT_OK(project.Save());
   ASSERT_OK(OpenProject(files));
   ASSERT_OK(manager_->GetCurrentRom()->WriteByte(0, 0x01));
   const auto saved = Control("project.save", ExpectedEditor());

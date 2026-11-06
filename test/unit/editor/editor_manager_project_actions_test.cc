@@ -1664,7 +1664,7 @@ struct ExpandedRunFixture {
     model->native_save_transfer_proof_file = proof.string();
     model->native_save_receipt_file = (root / "legacy-receipt.json").string();
     model->build_target = target.string();
-    model->hack_manifest_file = "hack_manifest.json";
+    model->hack_manifest_file = (root / "hack_manifest.json").string();
 #ifdef _WIN32
     model->build_script = "build-fixture.cmd";
 #else
@@ -1675,6 +1675,8 @@ struct ExpandedRunFixture {
     const auto descriptor = model->SerializeToString();
     ASSERT_TRUE(descriptor.ok()) << descriptor.status();
     ASSERT_OK(model->LoadFromString(*descriptor, project.string()));
+    ASSERT_TRUE(SessionCoordinator::PathsReferToSameBackingFile(
+        model->hack_manifest_file, (root / "hack_manifest.json").string()));
     ASSERT_OK(model->Save());
     const Json producer_identity{
         {"kind", "yaze.native_save_producer_identity.v1"},
@@ -2304,7 +2306,7 @@ TEST(EditorManagerProjectActionsTest,
   project->rom_filename = source_rom.string();
   project->build_script = CopyCommand(marker_seed, marker_path) + " && " +
                           CopyCommand(build_artifact, valid_rom);
-  project->hack_manifest_file = "hack_manifest.json";
+  project->hack_manifest_file = manifest_path.string();
   ASSERT_OK(SaveProjectFixture(*project));
   ASSERT_OK(manager->OpenRomOrProject(project_path.string()));
 
