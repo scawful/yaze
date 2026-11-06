@@ -59,9 +59,23 @@ std::string WinCopyRomCommand(const std::filesystem::path& source,
 
 std::string WinCaptureProjectOutputCommand(
     const std::filesystem::path& capture_path) {
-  return "cmd /c \"(echo %YAZE_PROJECT_OUTPUT%)>\\\"" + capture_path.string() +
-         "\\\"\"";
+  const auto script = capture_path.parent_path() / "capture-output.ps1";
+  std::string quoted_name;
+  for (char character : capture_path.filename().string()) {
+    quoted_name += character;
+    if (character == '\'')
+      quoted_name += '\'';
+  }
+  std::ofstream out(script);
+  out << "[IO.File]::WriteAllText((Join-Path $PSScriptRoot '" << quoted_name
+      << "'), $env:YAZE_PROJECT_OUTPUT)\n";
+  out.close();
+  EXPECT_FALSE(out.fail());
+  return "powershell.exe -NoLogo -NoProfile -NonInteractive "
+         "-ExecutionPolicy Bypass -File \"" +
+         script.string() + "\"";
 }
+
 #endif
 
 struct ScopedImGuiContext {
@@ -2427,6 +2441,13 @@ TEST(EditorManagerProjectActionsTest, RunScriptRoundTripsThroughProjectFile) {
   EXPECT_EQ(persisted.run_script, "./updated-run.sh");
 }
 
+TEST(EditorManagerProjectActionsTest, DefaultsClearPreviousRunLauncher) {
+  project::YazeProject reused;
+  reused.run_script = "./previous-project-launcher.sh";
+  reused.InitializeDefaults();
+  EXPECT_TRUE(reused.run_script.empty());
+}
+
 TEST(EditorManagerProjectActionsTest,
      RunScriptClearsWhenOpeningProjectWithoutField) {
   ScopedTempDir temp(MakeTempDir("yaze_run_script_clear"));
@@ -2558,7 +2579,7 @@ TEST(EditorManagerProjectActionsTest, ExternalRunRequiresSavedProjectSettings) {
 #ifdef _WIN32
   const std::string build_command = WinCopyRomCommand(source_rom, output_rom);
   const std::string run_command = "cmd /c exit 0";
-  const std::string alternate_run = "cmd /c exit 0";
+  const std::string alternate_run = "cmd /c exit 7";
 #else
   const auto build_script = temp.path / "build.sh";
   const auto run_script = temp.path / "run.sh";
@@ -2585,6 +2606,7 @@ TEST(EditorManagerProjectActionsTest, ExternalRunRequiresSavedProjectSettings) {
 #endif
 
   auto* project = manager->GetCurrentProject();
+  project->name = "External run unsaved settings";
   project->filepath = project_path.string();
   project->rom_filename = source_rom.string();
   project->build_target = output_rom.filename().string();

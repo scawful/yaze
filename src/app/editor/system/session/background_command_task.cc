@@ -324,13 +324,13 @@ void BackgroundCommandTask::WorkerMain(std::string command,
     setpgid(0, 0);
     if (detached_launcher) {
       const int null_fd = open("/dev/null", O_RDWR);
-      if (null_fd >= 0) {
-        dup2(null_fd, STDIN_FILENO);
-        dup2(null_fd, STDOUT_FILENO);
-        dup2(null_fd, STDERR_FILENO);
-        if (null_fd > STDERR_FILENO) {
-          close(null_fd);
-        }
+      if (null_fd < 0 || dup2(null_fd, STDIN_FILENO) < 0 ||
+          dup2(null_fd, STDOUT_FILENO) < 0 ||
+          dup2(null_fd, STDERR_FILENO) < 0) {
+        _exit(126);
+      }
+      if (null_fd > STDERR_FILENO) {
+        close(null_fd);
       }
     } else {
       dup2(pipe_fds[1], STDOUT_FILENO);
@@ -421,15 +421,18 @@ void BackgroundCommandTask::WorkerMain(std::string command,
   if (!detached_launcher) {
     close(pipe_fds[0]);
   }
+  bool cancel_requested;
   {
     std::lock_guard<std::mutex> lock(mutex_);
+    cancel_requested = cancel_requested_;
+    if (detached_launcher && (cancel_requested || !WIFEXITED(wait_status) ||
+                              WEXITSTATUS(wait_status) != 0)) {
+      // The shell may have exited before its children; retain the group until
+      // outcome and stop even children that ignore the initial cancellation.
+      kill(-pid, SIGKILL);
+    }
     child_pid_ = -1;
   }
-
-  const bool cancel_requested = [this]() {
-    std::lock_guard<std::mutex> lock(mutex_);
-    return cancel_requested_;
-  }();
   if (cancel_requested) {
     Finalize(absl::CancelledError("Background command cancelled"), -1);
     return;
@@ -559,156 +562,32 @@ void BackgroundCommandTask::WorkerMainWindows(
     return;
   }
 
-  const auto finish_detached_job = [](ScopedWindowsHandle& job_handle,
-                                      bool terminate) {
-    if (!job_handle.valid()) {
-      return;
-    }
-    if (terminate) {
-      if (!TerminateJobObject(job_handle.get(), 1)) {
-        job_handle.Reset();
-        return;
-      }
-      job_handle.Reset();
-      return;
-    }
-    JOBOBJECT_EXTENDED_LIMIT_INFORMATION cleared{};
-    cleared.BasicLimitInformation.LimitFlags = 0;
-    if (!SetInformationJobObject(job_handle.get(),
-                                 JobObjectExtendedLimitInformation, &cleared,
-                                 sizeof(cleared))) {
-      TerminateJobObject(job_handle.get(), 1);
-    }
-    job_handle.Reset();
-  };
-
-  if (detached_launcher) {
-    SECURITY_ATTRIBUTES security{};
-    security.nLength = sizeof(security);
-    security.bInheritHandle = TRUE;
-    ScopedWindowsHandle input(
-        CreateFileW(L"NUL", GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE,
-                    &security, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr));
-    ScopedWindowsHandle output(
-        CreateFileW(L"NUL", GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE,
-                    &security, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr));
-    if (!input.valid() || !output.valid()) {
-      fail("Cannot open detached launcher standard handles", GetLastError());
-      return;
-    }
-    ScopedWindowsHandle job(CreateJobObjectW(nullptr, nullptr));
-    if (!job.valid()) {
-      fail("Cannot create background command job", GetLastError());
-      return;
-    }
-    JOBOBJECT_EXTENDED_LIMIT_INFORMATION limits{};
-    limits.BasicLimitInformation.LimitFlags =
-        JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE;
-    if (!SetInformationJobObject(job.get(), JobObjectExtendedLimitInformation,
-                                 &limits, sizeof(limits))) {
-      fail("Cannot contain background command job", GetLastError());
-      return;
-    }
-    STARTUPINFOEXW startup{};
-    startup.StartupInfo.cb = sizeof(startup);
-    startup.StartupInfo.dwFlags = STARTF_USESTDHANDLES;
-    startup.StartupInfo.hStdInput = input.get();
-    startup.StartupInfo.hStdOutput = output.get();
-    startup.StartupInfo.hStdError = output.get();
-    PROCESS_INFORMATION process_info{};
-    if (cancelled()) {
-      Finalize(absl::CancelledError("Background command cancelled"), -1);
-      return;
-    }
-    if (!CreateProcessW(
-            shell.c_str(), command_line.data(), nullptr, nullptr, TRUE,
-            CREATE_SUSPENDED | CREATE_NO_WINDOW | CREATE_UNICODE_ENVIRONMENT,
-            environment_block.data(),
-            wide_directory->empty() ? nullptr : wide_directory->c_str(),
-            &startup.StartupInfo, &process_info)) {
-      fail("Cannot start background command", GetLastError());
-      return;
-    }
-    ScopedWindowsHandle process(process_info.hProcess);
-    ScopedWindowsHandle primary_thread(process_info.hThread);
-    if (!AssignProcessToJobObject(job.get(), process.get())) {
-      const DWORD assignment_error = GetLastError();
-      TerminateProcess(process.get(), 1);
-      WaitForSingleObject(process.get(), INFINITE);
-      fail("Cannot assign background command to its job", assignment_error);
-      return;
-    }
-    if (cancelled()) {
-      finish_detached_job(job, /*terminate=*/true);
-      WaitForSingleObject(process.get(), INFINITE);
-      Finalize(absl::CancelledError("Background command cancelled"), -1);
-      return;
-    }
-    if (ResumeThread(primary_thread.get()) == static_cast<DWORD>(-1)) {
-      const DWORD resume_error = GetLastError();
-      finish_detached_job(job, /*terminate=*/true);
-      WaitForSingleObject(process.get(), INFINITE);
-      fail("Cannot resume background command", resume_error);
-      return;
-    }
-    primary_thread.Reset();
-    input.Reset();
-    output.Reset();
-    DWORD exit_code = STILL_ACTIVE;
-    bool job_terminated = false;
-    while (exit_code == STILL_ACTIVE) {
-      if (cancelled() && !job_terminated) {
-        finish_detached_job(job, /*terminate=*/true);
-        job_terminated = true;
-        WaitForSingleObject(process.get(), INFINITE);
-        break;
-      }
-      const DWORD wait = WaitForSingleObject(process.get(), kPollIntervalMs);
-      if (wait == WAIT_OBJECT_0) {
-        if (!GetExitCodeProcess(process.get(), &exit_code)) {
-          finish_detached_job(job, /*terminate=*/true);
-          WaitForSingleObject(process.get(), INFINITE);
-          fail("Cannot read background command exit code", GetLastError());
-          return;
-        }
-      } else if (wait == WAIT_FAILED) {
-        finish_detached_job(job, /*terminate=*/true);
-        WaitForSingleObject(process.get(), INFINITE);
-        fail("Cannot wait for background command", GetLastError());
-        return;
-      }
-    }
-    if (cancelled() || job_terminated) {
-      Finalize(absl::CancelledError("Background command cancelled"), -1);
-      return;
-    }
-    if (exit_code != 0) {
-      finish_detached_job(job, /*terminate=*/true);
-      WaitForSingleObject(process.get(), INFINITE);
-      Finalize(absl::InternalError(absl::StrCat(
-                   "Background command failed (exit ", exit_code, ")")),
-               static_cast<int>(exit_code));
-      return;
-    }
-    finish_detached_job(job, /*terminate=*/false);
-    Finalize(absl::OkStatus(), 0);
-    return;
-  }
-
   SECURITY_ATTRIBUTES security{};
   security.nLength = sizeof(security);
   security.bInheritHandle = TRUE;
-  HANDLE raw_read = nullptr;
-  HANDLE raw_write = nullptr;
-  if (!CreatePipe(&raw_read, &raw_write, &security, 0)) {
-    fail("Failed to create process pipe", GetLastError());
-    return;
-  }
-  ScopedWindowsHandle pipe_read(raw_read);
-  ScopedWindowsHandle pipe_write(raw_write);
-  if (!SetHandleInformation(pipe_read.get(), HANDLE_FLAG_INHERIT, 0)) {
-    fail("Cannot protect parent process pipe", GetLastError());
-    return;
+  ScopedWindowsHandle pipe_read;
+  ScopedWindowsHandle pipe_write;
+  if (detached_launcher) {
+    pipe_write.Reset(
+        CreateFileW(L"NUL", GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE,
+                    &security, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr));
+    if (!pipe_write.valid()) {
+      fail("Cannot open detached launcher output", GetLastError());
+      return;
+    }
+  } else {
+    HANDLE raw_read = nullptr;
+    HANDLE raw_write = nullptr;
+    if (!CreatePipe(&raw_read, &raw_write, &security, 0)) {
+      fail("Failed to create process pipe", GetLastError());
+      return;
+    }
+    pipe_read.Reset(raw_read);
+    pipe_write.Reset(raw_write);
+    if (!SetHandleInformation(pipe_read.get(), HANDLE_FLAG_INHERIT, 0)) {
+      fail("Cannot protect parent process pipe", GetLastError());
+      return;
+    }
   }
   ScopedWindowsHandle input(
       CreateFileW(L"NUL", GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE,
@@ -810,7 +689,7 @@ void BackgroundCommandTask::WorkerMainWindows(
 
   std::array<char, 4096> buffer{};
   bool process_exited = false;
-  bool pipe_closed = false;
+  bool pipe_closed = detached_launcher;
   bool job_terminated = false;
   bool job_empty = false;
   DWORD exit_code = 0;
@@ -872,6 +751,18 @@ void BackgroundCommandTask::WorkerMainWindows(
       }
     } else if (!read_output) {
       std::this_thread::sleep_for(std::chrono::milliseconds(kPollIntervalMs));
+    }
+    // Only a successful launcher releases its intentionally surviving runtime.
+    // Builds and failed/cancelled launchers retain the existing cleanup policy.
+    if (detached_launcher && process_exited && exit_code == 0 &&
+        transport_status.ok() && !cancelled()) {
+      limits.BasicLimitInformation.LimitFlags = 0;
+      if (!SetInformationJobObject(job.get(), JobObjectExtendedLimitInformation,
+                                   &limits, sizeof(limits))) {
+        transport_status =
+            WindowsError("Cannot release run launcher job", GetLastError());
+      }
+      break;
     }
     // A completed shell must not leave descendants or inherited pipe writers.
     if ((process_exited || !transport_status.ok()) && !job_terminated) {

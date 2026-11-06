@@ -3276,6 +3276,7 @@ void YazeProject::InitializeDefaults() {
   // Initialize default build configurations
   build_configurations = {"Debug", "Release", "Distribution"};
   build_target.clear();
+  run_script.clear();
   asm_entry_point = "asm/main.asm";
   asm_sources = {"asm"};
   last_build_hash.clear();
