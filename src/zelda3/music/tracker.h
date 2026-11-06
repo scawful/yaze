@@ -201,10 +201,6 @@ class Tracker {
   short SaveSpcCommand(Rom& rom, short num, short songtime, short endtr);
   short LoadSpcCommand(Rom& rom, unsigned short addr, short bank, int t);
 
-  void SaveSongs(Rom& rom);
-
-  void LoadSongs(Rom& rom);
-
   int WriteSpcData(Rom& rom, void* buf, int len, int addr, int spc, int limit);
 
   void EditTrack(Rom& rom, short i);
