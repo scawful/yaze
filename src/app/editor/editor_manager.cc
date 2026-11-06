@@ -3011,9 +3011,11 @@ void EditorManager::FinishPendingRomSaveAttempt(const absl::Status& status) {
   rom_lifecycle_.FinishPendingRomSaveAttempt(status);
 }
 
-absl::Status EditorManager::SaveCurrentSession() {
+absl::Status EditorManager::SaveCurrentSession(bool allow_dialogs) {
   // An established ROM save owns its confirmation and one-shot exemptions.
   if (rom_lifecycle_.HasPendingRomSave()) {
+    if (!allow_dialogs)
+      return absl::FailedPreconditionError("A ROM save is already pending");
     return SaveRom();
   }
   if (!session_coordinator_ || !session_coordinator_->GetActiveRomSession()) {
@@ -3035,16 +3037,20 @@ absl::Status EditorManager::SaveCurrentSession() {
                        session_id, SessionHasPendingRomWork(session_index),
                        current_project_));
   RETURN_IF_ERROR(rom_lifecycle_.SaveProjectWorkBeforeRomSave(
-      binding, /*allow_dialogs=*/true,
-      MakeActiveProjectEditingSaveCallbacks()));
+      binding, allow_dialogs, MakeActiveProjectEditingSaveCallbacks()));
   if (GetCurrentSessionId() != session_id) {
     return absl::FailedPreconditionError(
         "The active session changed while saving project work");
   }
   if (SessionHasPendingRomWork(GetCurrentSessionIndex())) {
-    return SaveRom();
+    RETURN_IF_ERROR(SaveRom());
+  } else {
+    RETURN_IF_ERROR(CompletePendingProjectNativeSave());
   }
-  return CompletePendingProjectNativeSave();
+  if (!allow_dialogs && SessionHasPendingUnsavedWork(session_index))
+    return absl::FailedPreconditionError(
+        "Save left unsaved project or ROM work");
+  return absl::OkStatus();
 }
 
 absl::Status EditorManager::CompletePendingProjectNativeSave() {
@@ -3238,8 +3244,9 @@ std::string EditorManager::ExecuteEditorControl(const std::string& request) {
           CancelQueuedProjectBuild();
         }
       } else {
-        const auto status =
-            command == "project.save" ? SaveProject() : RunCurrentProject();
+        const auto status = command == "project.save"
+                                ? SaveCurrentSession(/*allow_dialogs=*/false)
+                                : RunCurrentProject();
         if (!status.ok()) {
           fail(422, std::string(status.message()));
         }
@@ -3439,9 +3446,30 @@ std::string EditorManager::ExecuteEditorControl(const std::string& request) {
                 {"can_cancel", workflow.can_cancel}};
   };
   state["workflow"] = {
+      {"presentation_only", true},
       {"build",
        workflow_json(ContentRegistry::Context::build_workflow_status())},
       {"run", workflow_json(ContentRegistry::Context::run_workflow_status())}};
+  state["build_attempt"] = nullptr;
+  if (const auto attempt = project_manager_.GetBuildStatusForOwner(
+          GetCurrentSessionId(), current_project_.filepath)) {
+    const char* terminal = "running";
+    if (attempt->terminal_state == ProjectBuildTerminalState::kSucceeded)
+      terminal = "success";
+    else if (attempt->terminal_state == ProjectBuildTerminalState::kFailed)
+      terminal = "failure";
+    else if (attempt->terminal_state == ProjectBuildTerminalState::kCancelled)
+      terminal = "cancelled";
+    state["build_attempt"] = {
+        {"attempt_id", attempt->attempt_id},
+        {"session_id", attempt->origin.session_id},
+        {"project_path", attempt->origin.project_descriptor_path},
+        {"state", terminal},
+        {"run_eligible", attempt->run_eligible},
+        {"output_path", attempt->output_path},
+        {"output_sha256", attempt->output_sha256},
+        {"detail", std::string(attempt->process_status.message())}};
+  }
   state["visible_panels"] = json::array();
   for (const auto& id :
        window_manager_.GetWindowsInSession(GetCurrentSessionId())) {

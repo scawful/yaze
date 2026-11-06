@@ -188,6 +188,11 @@ void SpriteEditor::HandleEditorShortcuts() {
 }
 
 absl::Status SpriteEditor::SaveForAutosave() {
+  RETURN_IF_ERROR(ValidateSaveDestinations());
+  return Save();
+}
+
+absl::Status SpriteEditor::ValidateSaveDestinations() const {
   // Inspect every pending document before Save can write any named asset.
   for (const int index : dirty_sprite_indices_) {
     if (index < 0 || index >= static_cast<int>(custom_sprite_paths_.size()) ||
@@ -197,7 +202,7 @@ absl::Status SpriteEditor::SaveForAutosave() {
           "Save As to choose their destinations");
     }
   }
-  return Save();
+  return absl::OkStatus();
 }
 
 absl::Status SpriteEditor::Save() {

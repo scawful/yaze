@@ -537,6 +537,23 @@ ProjectManager::GetLastBuildResultForOwner(
   return it->second;
 }
 
+std::optional<ProjectBuildAttemptResult> ProjectManager::GetBuildStatusForOwner(
+    size_t owner_session_id, const std::string& descriptor_path) const {
+  if (active_build_request_ &&
+      active_build_request_->origin.session_id == owner_session_id &&
+      ProjectBuildResultKey(owner_session_id, descriptor_path) ==
+          ProjectBuildResultKey(
+              owner_session_id,
+              active_build_request_->origin.project_descriptor_path)) {
+    ProjectBuildAttemptResult result;
+    result.attempt_id = active_build_request_->attempt_id;
+    result.origin = active_build_request_->origin;
+    result.terminal_state = ProjectBuildTerminalState::kRunning;
+    return result;
+  }
+  return GetLastBuildResultForOwner(owner_session_id, descriptor_path);
+}
+
 absl::StatusOr<ProjectValidatedRunSelection>
 ProjectManager::ValidateProjectRunSelection(
     const ProjectRunPrepareInputs& inputs) {

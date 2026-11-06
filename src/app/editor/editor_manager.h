@@ -450,7 +450,7 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
   // ROM and Project operations (public for MenuOrchestrator)
   absl::Status LoadRom();
   // Normal Save includes project drafts. Explicit ROM writes remain SaveRom.
-  absl::Status SaveCurrentSession();
+  absl::Status SaveCurrentSession(bool allow_dialogs = true);
   absl::Status SaveCurrentSessionAs();
   absl::Status SaveRom();
   absl::Status SaveRomAs(const std::string& filename);

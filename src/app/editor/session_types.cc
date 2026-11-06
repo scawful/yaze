@@ -409,6 +409,11 @@ absl::Status EditorSet::SaveGraphicsScratchAssets() {
   return absl::OkStatus();
 }
 
+absl::Status EditorSet::ValidateSaveWithoutDialogs() const {
+  auto* sprite = static_cast<SpriteEditor*>(FindEditor(EditorType::kSprite));
+  return sprite ? sprite->ValidateSaveDestinations() : absl::OkStatus();
+}
+
 absl::Status EditorSet::SavePendingSpriteWork(bool allow_dialogs) {
   if (!HasPendingSpriteChanges()) {
     return absl::OkStatus();

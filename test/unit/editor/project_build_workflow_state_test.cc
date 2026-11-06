@@ -12,6 +12,7 @@
 
 #include "app/editor/core/content_registry.h"
 #include "app/editor/editor_manager.h"
+#include "app/editor/sprite/sprite_editor.h"
 #include "app/editor/system/session/project_manager.h"
 #include "app/editor/system/session/rom_lifecycle_manager.h"
 #include "app/editor/system/session/session_coordinator.h"
@@ -561,7 +562,8 @@ TEST_F(ProjectBuildWorkflowStateTest,
   ASSERT_TRUE(after.ok());
   EXPECT_EQ(*after, *before);
 
-  const auto saved = Control("project.save", expected);
+  manager_->MarkCurrentProjectDirty();
+  const auto saved = Control("project.save", ExpectedEditor());
   ASSERT_EQ(saved.at("status"), "ok") << saved.dump();
   EXPECT_TRUE(std::filesystem::is_regular_file(files.descriptor.string() +
                                                ".native-save.json"));
@@ -569,7 +571,14 @@ TEST_F(ProjectBuildWorkflowStateTest,
   ASSERT_EQ(queued.at("status"), "ok") << queued.dump();
   EXPECT_EQ(queued.at("state").at("workflow").at("build").at("state"),
             "running");
+  const auto attempt = queued.at("state").at("build_attempt");
+  EXPECT_EQ(attempt.at("state"), "running");
+  EXPECT_EQ(attempt.at("session_id"), expected.at("session_id"));
   ASSERT_TRUE(WaitFor(ProjectWorkflowState::kSuccess));
+  const auto completed = ControlStatus().at("state").at("build_attempt");
+  EXPECT_EQ(completed.at("attempt_id"), attempt.at("attempt_id"));
+  EXPECT_EQ(completed.at("state"), "success");
+  EXPECT_TRUE(completed.at("run_eligible").get<bool>());
   const auto ran = Control("project.run", ExpectedEditor());
   ASSERT_EQ(ran.at("status"), "ok") << ran.dump();
   EXPECT_EQ(ran.at("state").at("workflow").at("run").at("state"), "success");
@@ -591,6 +600,38 @@ TEST_F(ProjectBuildWorkflowStateTest, BackgroundBuildKeepsUnsavedRomGuard) {
   EXPECT_FALSE(manager_->RunCurrentProject().ok());
 }
 
+TEST_F(ProjectBuildWorkflowStateTest, BackgroundSavePersistsRomEdits) {
+  const auto files = CreateProject("BackgroundRomSave");
+  ASSERT_OK(OpenProject(files));
+  ASSERT_OK(manager_->GetCurrentRom()->WriteByte(0, 0x01));
+  const auto saved = Control("project.save", ExpectedEditor());
+  ASSERT_EQ(saved.at("status"), "ok") << saved.dump();
+  std::ifstream persisted(files.source, std::ios::binary);
+  ASSERT_TRUE(persisted.is_open());
+  EXPECT_EQ(persisted.get(), 0x01);
+  EXPECT_FALSE(manager_->GetCurrentRom()->dirty());
+}
+
+TEST_F(ProjectBuildWorkflowStateTest, BackgroundSaveRetainsUntitledSprite) {
+  const auto files = CreateProject("BackgroundUntitled");
+  ASSERT_OK(OpenProject(files));
+  auto* sprite = manager_->GetCurrentEditorSet()->GetEditorAs<SpriteEditor>(
+      EditorType::kSprite);
+  ASSERT_NE(sprite, nullptr);
+  ASSERT_OK(sprite->CreateSpriteAssetFromVanilla(0));
+  manager_->MarkCurrentProjectDirty();
+  const auto before = core::ComputeSourceArtifactFileSha256(files.descriptor);
+  ASSERT_TRUE(before.ok());
+  const auto saved = Control("project.save", ExpectedEditor());
+  EXPECT_EQ(saved.at("http_status"), 422) << saved.dump();
+  EXPECT_TRUE(sprite->HasPendingSpriteChanges());
+  const auto after = core::ComputeSourceArtifactFileSha256(files.descriptor);
+  ASSERT_TRUE(after.ok());
+  EXPECT_EQ(*after, *before);
+  EXPECT_FALSE(
+      std::filesystem::exists(files.descriptor.string() + ".native-save.json"));
+}
+
 TEST_F(ProjectBuildWorkflowStateTest, BackgroundCancelRefusesForeignOwner) {
   const auto a = CreateProject("BackgroundOwner", true);
   const auto b = CreateProject("BackgroundViewer");
@@ -599,6 +640,9 @@ TEST_F(ProjectBuildWorkflowStateTest, BackgroundCancelRefusesForeignOwner) {
   const auto owner_expected = ExpectedEditor();
   ASSERT_EQ(Control("project.build", owner_expected).at("status"), "ok");
   ASSERT_OK(OpenProject(b));
+  EXPECT_TRUE(ControlStatus().at("state").at("build_attempt").is_null());
+  EXPECT_TRUE(
+      ControlStatus().at("state").at("workflow").at("presentation_only"));
   const auto stale = Control("project.build.cancel", owner_expected);
   EXPECT_EQ(stale.at("http_status"), 409);
   const auto foreign = Control("project.build.cancel", ExpectedEditor());

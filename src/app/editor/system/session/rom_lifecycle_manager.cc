@@ -664,6 +664,9 @@ absl::Status RomLifecycleManager::SaveActiveProjectEditingWorkImpl(
       binding.project_snapshot, binding.session_has_pending_rom_work));
   ASSIGN_OR_RETURN(session, ReacquireActiveProjectEditingSaveSession(binding));
 
+  if (!allow_dialogs) {
+    RETURN_IF_ERROR(session->editors.ValidateSaveWithoutDialogs());
+  }
   RETURN_IF_ERROR(session->editors.SaveGraphicsScratchAssets());
   ASSIGN_OR_RETURN(session, ReacquireActiveProjectEditingSaveSession(binding));
 

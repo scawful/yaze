@@ -164,6 +164,9 @@ class ProjectManager {
 
   std::optional<ProjectBuildAttemptResult> GetLastBuildResultForOwner(
       size_t owner_session_id, const std::string& descriptor_path) const;
+  // Read-only: active attempts remain running until normal terminal validation.
+  std::optional<ProjectBuildAttemptResult> GetBuildStatusForOwner(
+      size_t owner_session_id, const std::string& descriptor_path) const;
 
  private:
   project::YazeProject current_project_;

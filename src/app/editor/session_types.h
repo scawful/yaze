@@ -116,6 +116,7 @@ class EditorSet {
       bool session_has_pending_rom_work) const;
   absl::Status SaveGraphicsScratchAssets();
   absl::Status SavePendingSpriteWork(bool allow_dialogs);
+  absl::Status ValidateSaveWithoutDialogs() const;
   absl::Status SavePlanningProjectDraft();
   absl::Status PrepareProjectSave(bool publish_lyra = true);
   absl::Status ValidateBuildRunEditorReadiness() const;
