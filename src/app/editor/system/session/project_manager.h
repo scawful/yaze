@@ -204,6 +204,8 @@ class ProjectManager {
   bool active_build_reported_ = false;
   uint64_t next_build_attempt_id_ = 1;
   std::map<std::string, ProjectBuildAttemptResult> terminal_build_results_;
+  std::map<std::string, ProjectBuildAttemptResult> verified_build_provenance_;
+  std::map<std::string, ProjectBuildAttemptResult> pending_owner_completions_;
 };
 
 }  // namespace editor

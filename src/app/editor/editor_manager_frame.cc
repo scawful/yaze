@@ -202,6 +202,17 @@ void EditorManager::PollProjectWorkflowTasks() {
     return;
   }
 
+  if (!poll.has_active_operation &&
+      ContentRegistry::Context::build_workflow_status().summary ==
+          "Build running elsewhere") {
+    if (!poll.owner_last_result.has_value()) {
+      UpdateBuildWorkflowStatus(
+          &status_bar_, project_management_panel_.get(),
+          ProjectWorkflowStatus{.visible = false,
+                                .state = ProjectWorkflowState::kIdle});
+    }
+  }
+
   if (poll.has_active_operation &&
       poll.owner_session_id == *active_project_context_session_id_) {
     const auto& snapshot = poll.task_snapshot;

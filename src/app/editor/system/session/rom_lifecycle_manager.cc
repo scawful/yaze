@@ -748,13 +748,13 @@ absl::Status RomLifecycleManager::SaveProjectWorkBeforeRomSave(
 
 namespace {
 
-#if defined(YAZE_WITH_JSON) && !defined(__EMSCRIPTEN__)
 bool ProjectRequiresNativeSaveIdentity(const project::YazeProject& project) {
   return !project.native_save_producer_file.empty() ||
          !project.native_save_transfer_proof_file.empty() ||
          !project.lyra_build_request_file.empty();
 }
 
+#if defined(YAZE_WITH_JSON) && !defined(__EMSCRIPTEN__)
 absl::StatusOr<ProjectSavedInputIdentity> CaptureNativeSavedBuildInputIdentity(
     const project::YazeProject& project,
     const std::string& editing_source_path) {
@@ -762,9 +762,14 @@ absl::StatusOr<ProjectSavedInputIdentity> CaptureNativeSavedBuildInputIdentity(
     return absl::FailedPreconditionError(
         "Native saved-input identity requires a project and editing source");
   }
-  ASSIGN_OR_RETURN(const auto verified,
-                   core::ReadVerifiedCommittedNativeSaveIdentity(
-                       editing_source_path, project.filepath));
+  std::optional<std::string> expected_editable_rom;
+  if (!project.rom_filename.empty()) {
+    expected_editable_rom = project.GetAbsolutePath(project.rom_filename);
+  }
+  ASSIGN_OR_RETURN(
+      const auto verified,
+      core::ReadVerifiedCommittedNativeSaveIdentity(
+          editing_source_path, project.filepath, expected_editable_rom));
   std::string canonical = absl::StrFormat("native:%llu:%s", verified.generation,
                                           verified.operation_id.c_str());
   ASSIGN_OR_RETURN(const auto descriptor_hash,
@@ -923,8 +928,13 @@ RomLifecycleManager::CaptureSavedBuildInputIdentity(
     return CaptureGenericSavedBuildInputIdentity(project);
   }
   return native_identity.status();
-#endif
+#else
+  if (ProjectRequiresNativeSaveIdentity(project)) {
+    return absl::UnimplementedError(
+        "Native save receipts require JSON support");
+  }
   return CaptureGenericSavedBuildInputIdentity(project);
+#endif
 }
 
 absl::Status RomLifecycleManager::SavedBuildInputIdentityMatchesLive(

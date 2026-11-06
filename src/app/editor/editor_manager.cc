@@ -88,6 +88,7 @@
 #include "app/editor/system/workspace/panel_visibility.h"
 #include "app/editor/system/workspace/workspace_window_manager.h"
 #include "app/emu/emulator.h"
+#include "app/emu/i_emulator.h"
 #include "app/gfx/debug/performance/performance_dashboard.h"
 #include "app/gfx/debug/performance/performance_profiler.h"
 #include "app/gfx/resource/arena.h"
@@ -177,6 +178,42 @@ std::string LastNonEmptyLine(const std::string& text) {
     }
   }
   return "";
+}
+
+absl::Status VerifyBackendLoadedLoRomBytes(emu::IEmulator* backend,
+                                           const Rom& verified_rom) {
+  if (backend == nullptr) {
+    return absl::FailedPreconditionError("Emulator backend is unavailable");
+  }
+  std::string expected;
+  expected.append(
+      reinterpret_cast<const char*>(verified_rom.copier_header().data()),
+      verified_rom.copier_header().size());
+  expected.append(reinterpret_cast<const char*>(verified_rom.data()),
+                  verified_rom.size());
+  if (expected.size() < 0x7FD9) {
+    return absl::FailedPreconditionError(
+        "Run target ROM layout is not LoROM-authenticatable");
+  }
+  constexpr size_t kChunk = 0x8000;
+  for (size_t offset = 0; offset < expected.size(); offset += kChunk) {
+    const size_t chunk = std::min(kChunk, expected.size() - offset);
+    const uint8_t bank = static_cast<uint8_t>(offset / 0x8000);
+    const uint16_t adr = static_cast<uint16_t>(0x8000 | (offset & 0x7fff));
+    const uint32_t snes_addr = (static_cast<uint32_t>(bank) << 16) | adr;
+    ASSIGN_OR_RETURN(const auto block, backend->ReadBlock(snes_addr, chunk));
+    if (block.size() != chunk) {
+      return absl::FailedPreconditionError(
+          "Backend ROM read-back is unsupported for this mapper");
+    }
+    for (size_t i = 0; i < chunk; ++i) {
+      if (block[i] != static_cast<uint8_t>(expected[offset + i])) {
+        return absl::FailedPreconditionError(
+            "Backend loaded ROM bytes do not match the verified run target");
+      }
+    }
+  }
+  return absl::OkStatus();
 }
 
 void UpdateBuildWorkflowStatus(StatusBar* status_bar,
@@ -4826,11 +4863,27 @@ absl::Status EditorManager::RunCurrentProject() {
   }
   const ProjectValidatedRunSelection selection = *selection_or;
   const std::string run_target = selection.absolute_path;
-  ASSIGN_OR_RETURN(const auto load_boundary_hash,
-                   core::ComputeSourceArtifactFileSha256(run_target));
-  if (load_boundary_hash != selection.sha256) {
+
+  Rom temp_rom;
+  auto load_rom_status = rom_file_manager_.LoadRom(&temp_rom, run_target);
+  if (!load_rom_status.ok()) {
+    UpdateRunWorkflowStatus(
+        &status_bar_, project_management_panel_.get(),
+        MakeRunStatus("Run load failed", std::string(load_rom_status.message()),
+                      ProjectWorkflowState::kFailure));
+    toast_manager_.Show(absl::StrFormat("Failed to load run target ROM: %s",
+                                        load_rom_status.message()),
+                        ToastType::kError);
+    return load_rom_status;
+  }
+
+  RETURN_IF_ERROR(
+      rom_lifecycle_.ValidateActiveProjectOrigin(selection.origin.session_id));
+
+  const std::string loaded_hash = ComputeRomFileBytesSha256(temp_rom);
+  if (loaded_hash != selection.sha256) {
     const auto status = absl::FailedPreconditionError(
-        "Run target changed before emulator reload");
+        "Run target bytes changed before emulator reload");
     UpdateRunWorkflowStatus(
         &status_bar_, project_management_panel_.get(),
         MakeRunStatus("Run unavailable", std::string(status.message()),
@@ -4842,6 +4895,30 @@ absl::Status EditorManager::RunCurrentProject() {
   if (auto* emulator_backend = Application::Instance().GetEmulatorBackend()) {
     auto load_status = emulator_backend->LoadRom(run_target);
     if (load_status.ok()) {
+      const std::string backend_path = emulator_backend->GetLoadedRomPath();
+      if (!SessionCoordinator::PathsReferToSameBackingFile(backend_path,
+                                                           run_target)) {
+        const auto status = absl::FailedPreconditionError(
+            "Backend loaded a different ROM path than the verified run target");
+        UpdateRunWorkflowStatus(
+            &status_bar_, project_management_panel_.get(),
+            MakeRunStatus("Run unavailable", std::string(status.message()),
+                          ProjectWorkflowState::kFailure));
+        return status;
+      }
+      const auto verify_status =
+          VerifyBackendLoadedLoRomBytes(emulator_backend, temp_rom);
+      if (!verify_status.ok()) {
+        UpdateRunWorkflowStatus(
+            &status_bar_, project_management_panel_.get(),
+            MakeRunStatus("Run unavailable",
+                          std::string(verify_status.message()),
+                          ProjectWorkflowState::kFailure));
+        toast_manager_.Show(
+            absl::StrFormat("Run unavailable: %s", verify_status.message()),
+            ToastType::kWarning);
+        return verify_status;
+      }
       AppendWorkflowHistoryEntry(
           "Run",
           MakeRunStatus("Reloaded in backend", run_target,
@@ -4861,31 +4938,6 @@ absl::Status EditorManager::RunCurrentProject() {
     }
   }
 #endif
-
-  Rom temp_rom;
-  auto load_rom_status = rom_file_manager_.LoadRom(&temp_rom, run_target);
-  if (!load_rom_status.ok()) {
-    UpdateRunWorkflowStatus(
-        &status_bar_, project_management_panel_.get(),
-        MakeRunStatus("Run load failed", std::string(load_rom_status.message()),
-                      ProjectWorkflowState::kFailure));
-    toast_manager_.Show(absl::StrFormat("Failed to load run target ROM: %s",
-                                        load_rom_status.message()),
-                        ToastType::kError);
-    return load_rom_status;
-  }
-
-  const std::string loaded_hash =
-      core::ComputeSourceArtifactSha256(temp_rom.vector());
-  if (loaded_hash != selection.sha256) {
-    const auto status = absl::FailedPreconditionError(
-        "Run target bytes changed before emulator reload");
-    UpdateRunWorkflowStatus(
-        &status_bar_, project_management_panel_.get(),
-        MakeRunStatus("Run unavailable", std::string(status.message()),
-                      ProjectWorkflowState::kFailure));
-    return status;
-  }
 
   auto reload_status = emulator_.ReloadRuntimeRom(temp_rom.vector());
   if (!reload_status.ok()) {

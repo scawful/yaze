@@ -81,7 +81,9 @@ struct VerifiedNativeSaveIdentity {
 absl::StatusOr<VerifiedNativeSaveIdentity>
 ReadVerifiedCommittedNativeSaveIdentity(
     const std::string& editing_source_path,
-    const std::string& project_descriptor_path);
+    const std::string& project_descriptor_path,
+    const std::optional<std::string>& expected_editable_rom_path =
+        std::nullopt);
 
 }  // namespace yaze::core
 

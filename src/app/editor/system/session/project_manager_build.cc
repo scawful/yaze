@@ -124,11 +124,19 @@ ProjectManager::PrepareProjectBuildRequest(
                        project, inputs.editing_source_path,
                        inputs.native_save_completion_pending));
 
+  const bool requires_configured_output =
+      !project.lyra_build_request_file.empty() ||
+      !project.build_target.empty() ||
+      (project.hack_manifest.loaded() &&
+       !project.hack_manifest.build_pipeline().patched_rom.empty());
   std::string resolved_output;
-  if (auto target = ResolveConfiguredProjectRunTargetPath(
-          project, inputs.editing_source_path);
-      target.ok()) {
-    resolved_output = *target;
+  if (requires_configured_output) {
+    ASSIGN_OR_RETURN(resolved_output, ResolveConfiguredProjectRunTargetPath(
+                                          project, inputs.editing_source_path));
+  } else if (auto target = ResolveConfiguredProjectRunTargetPath(
+                 project, inputs.editing_source_path);
+             target.ok()) {
+    resolved_output = std::move(*target);
   }
 
   ProjectBuildPreparedRequest request;
@@ -327,10 +335,22 @@ absl::StatusOr<ProjectBuildAttemptResult> ProjectManager::CompleteBuildAttempt(
   if (request.output_existed_at_prepare &&
       result.output_sha256 == request.output_preimage_sha256 &&
       result.output_size == request.output_preimage_size) {
-    result.terminal_state = ProjectBuildTerminalState::kFailed;
-    result.process_status = absl::FailedPreconditionError(
-        "Build did not refresh the configured run target output");
-    return result;
+    const std::string key = ProjectBuildResultKey(
+        request.origin.session_id, request.origin.project_descriptor_path);
+    const auto prior = verified_build_provenance_.find(key);
+    const bool deterministic_rebuild =
+        prior != verified_build_provenance_.end() &&
+        prior->second.saved_input.fingerprint_sha256 ==
+            request.saved_input.fingerprint_sha256 &&
+        prior->second.output_path == request.resolved_output_path &&
+        prior->second.output_sha256 == result.output_sha256 &&
+        prior->second.output_size == result.output_size;
+    if (!deterministic_rebuild) {
+      result.terminal_state = ProjectBuildTerminalState::kFailed;
+      result.process_status = absl::FailedPreconditionError(
+          "Build did not refresh the configured run target output");
+      return result;
+    }
   }
 
   project::YazeProject live_project;
@@ -355,6 +375,9 @@ absl::StatusOr<ProjectBuildAttemptResult> ProjectManager::CompleteBuildAttempt(
 
   result.terminal_state = ProjectBuildTerminalState::kSucceeded;
   result.run_eligible = true;
+  verified_build_provenance_[ProjectBuildResultKey(
+      request.origin.session_id, request.origin.project_descriptor_path)] =
+      result;
   return result;
 }
 
@@ -397,6 +420,13 @@ ProjectBuildPollUpdate ProjectManager::PollProjectBuildForViewer(
   ProjectBuildPollUpdate update;
   const std::string viewer_key =
       ProjectBuildResultKey(viewer_session_id, viewer_descriptor_path);
+  if (const auto pending = pending_owner_completions_.find(viewer_key);
+      pending != pending_owner_completions_.end()) {
+    update.newly_finished = true;
+    update.finished = pending->second;
+    update.owner_session_id = pending->second.origin.session_id;
+    pending_owner_completions_.erase(pending);
+  }
   if (const auto it = terminal_build_results_.find(viewer_key);
       it != terminal_build_results_.end()) {
     update.owner_last_result = it->second;
@@ -434,6 +464,8 @@ ProjectBuildPollUpdate ProjectManager::PollProjectBuildForViewer(
   terminal_build_results_[key] = update.finished;
   if (viewer_key == key) {
     update.owner_last_result = update.finished;
+  } else {
+    pending_owner_completions_[key] = update.finished;
   }
   active_project_build_.reset();
   active_build_request_.reset();
@@ -466,6 +498,22 @@ void ProjectManager::ResetProjectBuildPresentationForDescriptor(
        it != terminal_build_results_.end();) {
     if (it->second.origin.project_descriptor_path == descriptor_path) {
       it = terminal_build_results_.erase(it);
+    } else {
+      ++it;
+    }
+  }
+  for (auto it = verified_build_provenance_.begin();
+       it != verified_build_provenance_.end();) {
+    if (it->second.origin.project_descriptor_path == descriptor_path) {
+      it = verified_build_provenance_.erase(it);
+    } else {
+      ++it;
+    }
+  }
+  for (auto it = pending_owner_completions_.begin();
+       it != pending_owner_completions_.end();) {
+    if (it->second.origin.project_descriptor_path == descriptor_path) {
+      it = pending_owner_completions_.erase(it);
     } else {
       ++it;
     }
@@ -526,8 +574,6 @@ ProjectManager::ValidateProjectRunSelection(
                    ResolveConfiguredProjectRunTargetPath(
                        project, inputs.editing_source_path));
 
-  const std::string result_key =
-      ProjectBuildResultKey(inputs.origin_session_id, project.filepath);
   const auto last_result =
       GetLastBuildResultForOwner(inputs.origin_session_id, project.filepath);
 
@@ -550,24 +596,6 @@ ProjectManager::ValidateProjectRunSelection(
       attempt_id = last_result->attempt_id;
       expected_hash = last_result->output_sha256;
       expected_size = last_result->output_size;
-    }
-  }
-
-  if (!authorized && !project.lyra_build_request_file.empty()) {
-    const bool recent_terminal_failure =
-        last_result.has_value() &&
-        last_result->terminal_state != ProjectBuildTerminalState::kSucceeded;
-    if (recent_terminal_failure) {
-      return absl::FailedPreconditionError(
-          "Build the project before running this expanded output");
-    }
-    ASSIGN_OR_RETURN(const auto expanded, project.ResolveExpandedBuildRunTarget(
-                                              inputs.editing_source_path));
-    if (expanded && *expanded == run_target) {
-      authorized = true;
-    } else {
-      return absl::FailedPreconditionError(
-          "Build the project before running this expanded output");
     }
   }
 
