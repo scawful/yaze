@@ -343,43 +343,6 @@ absl::Status AppendNativeImportPlan(Rom& rom,
   return absl::OkStatus();
 }
 
-absl::StatusOr<OverworldRenderGraphicsPreview>
-ResolveOverworldRenderGraphicsPreview(const project::YazeProject* project,
-                                      const std::optional<std::string>& flag) {
-  OverworldRenderGraphicsPreview result;
-  const std::string value = flag.value_or("");
-  if (value == "off" || value == "false" || value == "0") {
-    result.mode = "off";
-    return result;
-  }
-  const bool required = value == "on" || value == "true" || value == "1";
-  if (!value.empty() && !required) {
-    result.mode = "file";
-    result.manifest = value;
-  } else if (project != nullptr &&
-             !project->overworld_graphics_preview.empty()) {
-    result.mode = "project";
-    result.manifest =
-        project->GetAbsolutePath(project->overworld_graphics_preview);
-  } else if (required) {
-    return absl::FailedPreconditionError(
-        "--graphics-preview=on needs --project-context with [files] "
-        "overworld_graphics_preview");
-  } else {
-    result.mode = "none";
-    return result;
-  }
-  auto preview = core::LoadOverworldGraphicsPreview(result.manifest);
-  if (!preview.ok()) {
-    return absl::Status(
-        preview.status().code(),
-        absl::StrFormat("--graphics-preview %s: %s", result.manifest,
-                        preview.status().message()));
-  }
-  result.preview = std::move(preview).value();
-  return result;
-}
-
 }  // namespace
 
 absl::Status OverworldExportNativeSourceCommandHandler::Execute(
