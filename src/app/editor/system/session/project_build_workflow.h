@@ -39,6 +39,9 @@ struct ProjectBuildPreparedRequest {
   std::map<std::string, std::string> environment;
   std::string resolved_output_path;
   ProjectSavedInputIdentity saved_input;
+  bool output_existed_at_prepare = false;
+  std::string output_preimage_sha256;
+  uint64_t output_preimage_size = 0;
 };
 
 enum class ProjectBuildTerminalState {
@@ -98,6 +101,7 @@ struct ProjectRunPrepareInputs {
   bool build_running_for_origin = false;
   const project::YazeProject* project = nullptr;
   std::string editing_source_path;
+  std::function<absl::Status()> validate_readiness;
 };
 
 std::string ProjectBuildResultKey(size_t session_id,

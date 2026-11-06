@@ -118,6 +118,7 @@ class EditorSet {
   absl::Status SavePendingSpriteWork(bool allow_dialogs);
   absl::Status SavePlanningProjectDraft();
   absl::Status PrepareProjectSave(bool publish_lyra = true);
+  absl::Status ValidateBuildRunEditorReadiness() const;
   void ProjectSaveCommitted();
   void DiscardPlanningProjectDraft();
   zelda3::Overworld* GetOverworldData() const;

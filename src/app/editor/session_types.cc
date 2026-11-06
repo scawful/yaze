@@ -426,6 +426,27 @@ absl::Status EditorSet::SavePlanningProjectDraft() {
   return editor ? editor->Save() : absl::OkStatus();
 }
 
+absl::Status EditorSet::ValidateBuildRunEditorReadiness() const {
+  if (auto* dungeon =
+          static_cast<DungeonEditorV2*>(FindEditor(EditorType::kDungeon))) {
+    if (dungeon->HasUnpublishedMinecartTrackChanges()) {
+      return absl::FailedPreconditionError(
+          "Minecart tracks have unpublished changes. Use Publish Tracks, then "
+          "save remaining project and ROM changes before Build Project. "
+          "Undo the track edits if you do not want to publish them.");
+    }
+  }
+  if (auto* message =
+          static_cast<MessageEditor*>(FindEditor(EditorType::kMessage))) {
+    if (message->HasUnpublishedMessageSourceChanges()) {
+      return absl::FailedPreconditionError(
+          "Publish or revert message source changes before building or "
+          "running");
+    }
+  }
+  return absl::OkStatus();
+}
+
 absl::Status EditorSet::PrepareProjectSave(bool publish_lyra) {
   if (auto* graphics =
           static_cast<GraphicsEditor*>(FindEditor(EditorType::kGraphics)))

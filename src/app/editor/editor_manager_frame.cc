@@ -191,11 +191,9 @@ void EditorManager::PollProjectWorkflowTasks() {
 
   const auto poll = project_manager_.PollProjectBuildForViewer(
       *active_project_context_session_id_, current_project_.filepath);
-  if (!poll.has_active_operation) {
-    return;
-  }
 
-  if (poll.owner_session_id != *active_project_context_session_id_) {
+  if (poll.has_active_operation &&
+      poll.owner_session_id != *active_project_context_session_id_) {
     UpdateBuildWorkflowStatus(
         &status_bar_, project_management_panel_.get(),
         MakeBuildStatus("Build running elsewhere",
@@ -204,30 +202,58 @@ void EditorManager::PollProjectWorkflowTasks() {
     return;
   }
 
-  const auto& snapshot = poll.task_snapshot;
-  UpdateBuildWorkflowStatus(
-      &status_bar_, project_management_panel_.get(),
-      MakeBuildStatus(
-          snapshot.running
-              ? "Build running"
-              : (snapshot.status.ok() ? "Build succeeded" : "Build failed"),
-          snapshot.output_tail.empty()
-              ? (snapshot.running
-                     ? std::string(
-                           "Running the configured project build command")
-                     : std::string(snapshot.status.message()))
-              : snapshot.output_tail,
-          snapshot.running
-              ? ProjectWorkflowState::kRunning
-              : (snapshot.status.ok() ? ProjectWorkflowState::kSuccess
-                                      : ProjectWorkflowState::kFailure),
-          snapshot.output_tail, snapshot.running));
-  if (project_management_panel_) {
-    project_management_panel_->SetBuildLogOutput(snapshot.output);
+  if (poll.has_active_operation &&
+      poll.owner_session_id == *active_project_context_session_id_) {
+    const auto& snapshot = poll.task_snapshot;
+    const bool verified_success =
+        poll.newly_finished &&
+        poll.finished.terminal_state == ProjectBuildTerminalState::kSucceeded;
+    const bool verified_failure =
+        poll.newly_finished &&
+        poll.finished.terminal_state != ProjectBuildTerminalState::kSucceeded;
+    UpdateBuildWorkflowStatus(
+        &status_bar_, project_management_panel_.get(),
+        MakeBuildStatus(
+            snapshot.running       ? "Build running"
+            : verified_success     ? "Build succeeded"
+            : verified_failure     ? "Build failed"
+            : snapshot.status.ok() ? "Build running"
+                                   : "Build failed",
+            snapshot.output_tail.empty()
+                ? (snapshot.running
+                       ? std::string(
+                             "Running the configured project build command")
+                       : std::string(snapshot.status.message()))
+                : snapshot.output_tail,
+            snapshot.running       ? ProjectWorkflowState::kRunning
+            : verified_success     ? ProjectWorkflowState::kSuccess
+            : verified_failure     ? ProjectWorkflowState::kFailure
+            : snapshot.status.ok() ? ProjectWorkflowState::kRunning
+                                   : ProjectWorkflowState::kFailure,
+            snapshot.output_tail, snapshot.running));
+    if (project_management_panel_) {
+      project_management_panel_->SetBuildLogOutput(snapshot.output);
+    }
+    ContentRegistry::Context::SetBuildWorkflowLog(snapshot.output);
+  } else if (poll.owner_last_result.has_value()) {
+    const auto& finished = *poll.owner_last_result;
+    const bool succeeded =
+        finished.terminal_state == ProjectBuildTerminalState::kSucceeded;
+    UpdateBuildWorkflowStatus(
+        &status_bar_, project_management_panel_.get(),
+        MakeBuildStatus(succeeded ? "Build succeeded" : "Build failed",
+                        std::string(finished.process_status.message()),
+                        succeeded ? ProjectWorkflowState::kSuccess
+                                  : ProjectWorkflowState::kFailure,
+                        finished.output_tail, false));
+    if (project_management_panel_) {
+      project_management_panel_->SetBuildLogOutput(finished.output_log);
+    }
+    ContentRegistry::Context::SetBuildWorkflowLog(finished.output_log);
   }
-  ContentRegistry::Context::SetBuildWorkflowLog(snapshot.output);
 
-  if (!poll.newly_finished) {
+  if (!poll.newly_finished ||
+      poll.owner_session_id != *active_project_context_session_id_) {
     return;
   }
 

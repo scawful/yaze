@@ -12,6 +12,19 @@ namespace editor {
 
 namespace {
 
+bool RomBaselinesMatch(const std::optional<RomBaselineIdentity>& left,
+                       const std::optional<RomBaselineIdentity>& right) {
+  if (!left.has_value() != !right.has_value()) {
+    return false;
+  }
+  if (!left.has_value()) {
+    return true;
+  }
+  return left->editing_source_path == right->editing_source_path &&
+         left->backing_sha256 == right->backing_sha256 &&
+         left->normalized_path == right->normalized_path;
+}
+
 std::string LastNonEmptyLine(const std::string& text) {
   size_t end = text.size();
   while (end > 0) {
@@ -47,6 +60,20 @@ void ProjectManager::SetBuildWorkflowServices(
 
 bool ProjectManager::HasActiveProjectBuild() const {
   return active_project_build_ != nullptr;
+}
+
+bool ProjectManager::HasActiveProjectBuildForOrigin(
+    size_t owner_session_id, const std::string& descriptor_path) const {
+  if (!active_project_build_ || !active_build_request_.has_value()) {
+    return false;
+  }
+  const auto snapshot = active_project_build_->GetSnapshot();
+  if (!snapshot.running) {
+    return false;
+  }
+  return active_build_request_->origin.session_id == owner_session_id &&
+         active_build_request_->origin.project_descriptor_path ==
+             descriptor_path;
 }
 
 absl::Status ProjectManager::ValidatePreparedBuildDoesNotOverlap(
@@ -114,24 +141,113 @@ ProjectManager::PrepareProjectBuildRequest(
   request.command = command;
   request.project_root =
       std::filesystem::path(project.filepath).parent_path().string();
-  request.environment = std::move(*environment);
+  request.environment = std::move(environment);
   request.resolved_output_path = std::move(resolved_output);
-  request.saved_input = std::move(*saved_input);
+  request.saved_input = std::move(saved_input);
+  if (!request.resolved_output_path.empty()) {
+    std::error_code ec;
+    if (std::filesystem::is_regular_file(request.resolved_output_path, ec) &&
+        !ec) {
+      request.output_existed_at_prepare = true;
+      request.output_preimage_size =
+          std::filesystem::file_size(request.resolved_output_path, ec);
+      ASSIGN_OR_RETURN(
+          request.output_preimage_sha256,
+          core::ComputeSourceArtifactFileSha256(request.resolved_output_path));
+    }
+  }
   RETURN_IF_ERROR(ValidatePreparedBuildDoesNotOverlap(request));
   return request;
+}
+
+absl::Status ProjectManager::ValidatePreparedBuildOriginBinding(
+    const ProjectBuildPreparedRequest& request,
+    bool require_active_origin) const {
+  if (rom_lifecycle_ == nullptr) {
+    return absl::FailedPreconditionError("Build workflow is not initialized");
+  }
+  if (require_active_origin) {
+    RETURN_IF_ERROR(
+        rom_lifecycle_->ValidateActiveProjectOrigin(request.origin.session_id));
+  }
+  ASSIGN_OR_RETURN(
+      const auto origin_snapshot,
+      rom_lifecycle_->ResolveProjectOriginSnapshot(request.origin.session_id));
+  if (!origin_snapshot.session_open) {
+    return absl::FailedPreconditionError(
+        "Build origin session is no longer available");
+  }
+  if (origin_snapshot.project_descriptor_path !=
+      request.origin.project_descriptor_path) {
+    return absl::FailedPreconditionError(
+        "Project binding changed since the build was prepared");
+  }
+  if (origin_snapshot.editing_source_path !=
+      request.origin.editing_source_path) {
+    return absl::FailedPreconditionError(
+        "Editing source changed since the build was prepared");
+  }
+  if (!RomBaselinesMatch(origin_snapshot.rom_baseline,
+                         request.origin.rom_baseline)) {
+    return absl::FailedPreconditionError(
+        "ROM baseline changed since the build was prepared");
+  }
+  project::YazeProject live_project;
+  RETURN_IF_ERROR(
+      live_project.LoadFromYazeFormat(request.origin.project_descriptor_path));
+  return rom_lifecycle_->SavedBuildInputIdentityMatchesLive(
+      request.saved_input, live_project, request.origin.editing_source_path,
+      /*native_save_completion_pending=*/false);
+}
+
+void ProjectManager::RevokeRunEligibilityForOwner(
+    size_t owner_session_id, const std::string& descriptor) {
+  const std::string key = ProjectBuildResultKey(owner_session_id, descriptor);
+  const auto it = terminal_build_results_.find(key);
+  if (it != terminal_build_results_.end()) {
+    it->second.run_eligible = false;
+  }
+}
+
+ProjectBuildAttemptResult ProjectManager::MakeTerminalBuildFailure(
+    const ProjectBuildPreparedRequest& request,
+    const BackgroundCommandTask::Snapshot& snapshot,
+    absl::Status status) const {
+  ProjectBuildAttemptResult result;
+  result.attempt_id = request.attempt_id;
+  result.origin = request.origin;
+  result.saved_input = request.saved_input;
+  result.output_log = snapshot.output;
+  result.output_tail = snapshot.output_tail;
+  result.process_status = std::move(status);
+  result.terminal_state = snapshot.status.code() == absl::StatusCode::kCancelled
+                              ? ProjectBuildTerminalState::kCancelled
+                              : ProjectBuildTerminalState::kFailed;
+  result.run_eligible = false;
+  return result;
 }
 
 absl::Status ProjectManager::StartPreparedProjectBuild(
     const ProjectBuildPreparedRequest& request, bool synchronous) {
   RETURN_IF_ERROR(ValidatePreparedBuildDoesNotOverlap(request));
+  RETURN_IF_ERROR(ValidatePreparedBuildOriginBinding(request, true));
+  RevokeRunEligibilityForOwner(request.origin.session_id,
+                               request.origin.project_descriptor_path);
   active_build_request_ = request;
   active_build_reported_ = false;
   active_project_build_ = std::make_unique<BackgroundCommandTask>();
   auto start_status = active_project_build_->Start(
       request.command, request.project_root, request.environment);
   if (!start_status.ok()) {
+    const auto snapshot = active_project_build_->GetSnapshot();
+    const auto failure =
+        MakeTerminalBuildFailure(request, snapshot, start_status);
+    terminal_build_results_[ProjectBuildResultKey(
+        request.origin.session_id, request.origin.project_descriptor_path)] =
+        failure;
     active_project_build_.reset();
     active_build_request_.reset();
+    active_build_reported_ = true;
     return start_status;
   }
   if (synchronous) {
@@ -169,6 +285,7 @@ absl::StatusOr<ProjectBuildAttemptResult> ProjectManager::CompleteBuildAttempt(
   result.output_log = snapshot.output;
   result.output_tail = snapshot.output_tail;
   result.process_status = snapshot.status;
+  result.run_eligible = false;
 
   if (snapshot.status.code() == absl::StatusCode::kCancelled) {
     result.terminal_state = ProjectBuildTerminalState::kCancelled;
@@ -176,6 +293,14 @@ absl::StatusOr<ProjectBuildAttemptResult> ProjectManager::CompleteBuildAttempt(
   }
   if (!snapshot.status.ok()) {
     result.terminal_state = ProjectBuildTerminalState::kFailed;
+    return result;
+  }
+
+  if (const auto origin_status =
+          ValidatePreparedBuildOriginBinding(request, false);
+      !origin_status.ok()) {
+    result.terminal_state = ProjectBuildTerminalState::kFailed;
+    result.process_status = origin_status;
     return result;
   }
 
@@ -198,6 +323,36 @@ absl::StatusOr<ProjectBuildAttemptResult> ProjectManager::CompleteBuildAttempt(
   result.output_size =
       std::filesystem::file_size(request.resolved_output_path, ec);
   result.output_path = request.resolved_output_path;
+
+  if (request.output_existed_at_prepare &&
+      result.output_sha256 == request.output_preimage_sha256 &&
+      result.output_size == request.output_preimage_size) {
+    result.terminal_state = ProjectBuildTerminalState::kFailed;
+    result.process_status = absl::FailedPreconditionError(
+        "Build did not refresh the configured run target output");
+    return result;
+  }
+
+  project::YazeProject live_project;
+  if (const auto load_status = live_project.LoadFromYazeFormat(
+          request.origin.project_descriptor_path);
+      !load_status.ok()) {
+    result.terminal_state = ProjectBuildTerminalState::kFailed;
+    result.process_status = load_status;
+    return result;
+  }
+  if (!live_project.lyra_build_request_file.empty()) {
+    ASSIGN_OR_RETURN(const auto expanded,
+                     live_project.ResolveExpandedBuildRunTarget(
+                         request.origin.editing_source_path));
+    if (!expanded || *expanded != request.resolved_output_path) {
+      result.terminal_state = ProjectBuildTerminalState::kFailed;
+      result.process_status = absl::FailedPreconditionError(
+          "Build output does not match the expanded run target contract");
+      return result;
+    }
+  }
+
   result.terminal_state = ProjectBuildTerminalState::kSucceeded;
   result.run_eligible = true;
   return result;
@@ -207,17 +362,29 @@ absl::Status ProjectManager::FinalizeActiveProjectBuild(bool synchronous_wait) {
   if (!active_project_build_ || !active_build_request_.has_value()) {
     return absl::FailedPreconditionError("No active project build");
   }
+  absl::Status wait_status = absl::OkStatus();
   if (synchronous_wait) {
-    RETURN_IF_ERROR(active_project_build_->Wait());
+    wait_status = active_project_build_->Wait();
   }
   const auto snapshot = active_project_build_->GetSnapshot();
   if (snapshot.running) {
-    return absl::OkStatus();
+    return wait_status;
   }
-  ASSIGN_OR_RETURN(auto result,
-                   CompleteBuildAttempt(*active_build_request_, snapshot));
+  const ProjectBuildPreparedRequest request = *active_build_request_;
   const std::string key = ProjectBuildResultKey(
-      result.origin.session_id, result.origin.project_descriptor_path);
+      request.origin.session_id, request.origin.project_descriptor_path);
+  ProjectBuildAttemptResult result;
+  if (!wait_status.ok()) {
+    result = MakeTerminalBuildFailure(request, snapshot, wait_status);
+  } else {
+    auto finished_or = CompleteBuildAttempt(request, snapshot);
+    if (!finished_or.ok()) {
+      result =
+          MakeTerminalBuildFailure(request, snapshot, finished_or.status());
+    } else {
+      result = *finished_or;
+    }
+  }
   terminal_build_results_[key] = result;
   active_project_build_.reset();
   active_build_request_.reset();
@@ -252,18 +419,21 @@ ProjectBuildPollUpdate ProjectManager::PollProjectBuildForViewer(
   }
 
   active_build_reported_ = true;
-  auto finished_or =
-      CompleteBuildAttempt(*active_build_request_, update.task_snapshot);
+  const ProjectBuildPreparedRequest request = *active_build_request_;
+  auto finished_or = CompleteBuildAttempt(request, update.task_snapshot);
   if (finished_or.ok()) {
     update.finished = *finished_or;
-    update.newly_finished = true;
-    const std::string key =
-        ProjectBuildResultKey(update.finished.origin.session_id,
-                              update.finished.origin.project_descriptor_path);
-    terminal_build_results_[key] = update.finished;
-    if (viewer_key == key) {
-      update.owner_last_result = update.finished;
-    }
+  } else {
+    update.finished = MakeTerminalBuildFailure(request, update.task_snapshot,
+                                               finished_or.status());
+  }
+  update.newly_finished = true;
+  const std::string key =
+      ProjectBuildResultKey(update.finished.origin.session_id,
+                            update.finished.origin.project_descriptor_path);
+  terminal_build_results_[key] = update.finished;
+  if (viewer_key == key) {
+    update.owner_last_result = update.finished;
   }
   active_project_build_.reset();
   active_build_request_.reset();
@@ -340,6 +510,9 @@ ProjectManager::ValidateProjectRunSelection(
     return absl::FailedPreconditionError(
         "Wait for the active project build to finish before running");
   }
+  if (inputs.validate_readiness) {
+    RETURN_IF_ERROR(inputs.validate_readiness());
+  }
   RETURN_IF_ERROR(
       rom_lifecycle_->ValidateActiveProjectOrigin(inputs.origin_session_id));
 
@@ -381,6 +554,13 @@ ProjectManager::ValidateProjectRunSelection(
   }
 
   if (!authorized && !project.lyra_build_request_file.empty()) {
+    const bool recent_terminal_failure =
+        last_result.has_value() &&
+        last_result->terminal_state != ProjectBuildTerminalState::kSucceeded;
+    if (recent_terminal_failure) {
+      return absl::FailedPreconditionError(
+          "Build the project before running this expanded output");
+    }
     ASSIGN_OR_RETURN(const auto expanded, project.ResolveExpandedBuildRunTarget(
                                               inputs.editing_source_path));
     if (expanded && *expanded == run_target) {

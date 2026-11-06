@@ -749,19 +749,10 @@ absl::Status RomLifecycleManager::SaveProjectWorkBeforeRomSave(
 namespace {
 
 #if defined(YAZE_WITH_JSON) && !defined(__EMSCRIPTEN__)
-using Json = nlohmann::json;
-
-absl::StatusOr<Json> ReadJsonObject(const std::filesystem::path& path) {
-  std::error_code ec;
-  if (!std::filesystem::is_regular_file(path, ec) || ec) {
-    return absl::NotFoundError("JSON file is missing");
-  }
-  std::ifstream stream(path, std::ios::binary);
-  Json value = Json::parse(stream, nullptr, false);
-  if (!value.is_object()) {
-    return absl::FailedPreconditionError("JSON root must be an object");
-  }
-  return value;
+bool ProjectRequiresNativeSaveIdentity(const project::YazeProject& project) {
+  return !project.native_save_producer_file.empty() ||
+         !project.native_save_transfer_proof_file.empty() ||
+         !project.lyra_build_request_file.empty();
 }
 
 absl::StatusOr<ProjectSavedInputIdentity> CaptureNativeSavedBuildInputIdentity(
@@ -771,46 +762,40 @@ absl::StatusOr<ProjectSavedInputIdentity> CaptureNativeSavedBuildInputIdentity(
     return absl::FailedPreconditionError(
         "Native saved-input identity requires a project and editing source");
   }
-  ASSIGN_OR_RETURN(
-      const auto context,
-      core::GetNativeSaveContext(editing_source_path, project.filepath));
-  ASSIGN_OR_RETURN(const auto context_json, ReadJsonObject(context.path));
-  if (context_json.value("kind", Json()) != "yaze.native_save_context.v1" ||
-      context_json.value("state", Json()) != "committed") {
-    return absl::FailedPreconditionError(
-        "Native save completion is required before building or running");
-  }
-  const auto& commit = context_json.at("native_commit");
-  const uint64_t generation = commit.at("generation").get<uint64_t>();
-  const std::string operation_id =
-      commit.at("operation_id").get_ref<const std::string&>();
-  const std::string receipt_path =
-      commit.at("receipt_path").get_ref<const std::string&>();
-  ASSIGN_OR_RETURN(const auto receipt_json, ReadJsonObject(receipt_path));
-  if (receipt_json.value("kind", Json()) != "yaze.native_save.v1" ||
-      !receipt_json.value("bindings_complete", false)) {
-    return absl::FailedPreconditionError(
-        "Native save receipt is incomplete for this project");
-  }
-  if (receipt_json.at("generation").get<uint64_t>() != generation ||
-      receipt_json.at("operation_id").get_ref<const std::string&>() !=
-          operation_id) {
-    return absl::FailedPreconditionError(
-        "Native save receipt does not match the committed save context");
-  }
-  std::string canonical =
-      absl::StrFormat("native:%llu:%s", generation, operation_id.c_str());
+  ASSIGN_OR_RETURN(const auto verified,
+                   core::ReadVerifiedCommittedNativeSaveIdentity(
+                       editing_source_path, project.filepath));
+  std::string canonical = absl::StrFormat("native:%llu:%s", verified.generation,
+                                          verified.operation_id.c_str());
   ASSIGN_OR_RETURN(const auto descriptor_hash,
                    core::ComputeSourceArtifactFileSha256(project.filepath));
-  canonical += "|" + *descriptor_hash;
+  canonical += "|" + descriptor_hash;
   ProjectSavedInputIdentity identity;
   identity.uses_native_receipt = true;
-  identity.native_generation = generation;
-  identity.native_operation_id = operation_id;
+  identity.native_generation = verified.generation;
+  identity.native_operation_id = verified.operation_id;
   identity.fingerprint_sha256 = core::ComputeSourceArtifactSha256(canonical);
   return identity;
 }
 #endif
+
+absl::Status AppendConfiguredInputHash(std::string& canonical,
+                                       const project::YazeProject& project,
+                                       const std::string& relative_path) {
+  if (relative_path.empty()) {
+    return absl::OkStatus();
+  }
+  const std::string absolute = project.GetAbsolutePath(relative_path);
+  std::error_code ec;
+  if (!std::filesystem::is_regular_file(absolute, ec) || ec) {
+    return absl::FailedPreconditionError(absl::StrFormat(
+        "Configured build input is missing or unreadable: %s", absolute));
+  }
+  ASSIGN_OR_RETURN(const auto hash,
+                   core::ComputeSourceArtifactFileSha256(absolute));
+  canonical += "|" + hash;
+  return absl::OkStatus();
+}
 
 absl::StatusOr<ProjectSavedInputIdentity> CaptureGenericSavedBuildInputIdentity(
     const project::YazeProject& project) {
@@ -818,45 +803,46 @@ absl::StatusOr<ProjectSavedInputIdentity> CaptureGenericSavedBuildInputIdentity(
     return absl::FailedPreconditionError(
         "Save the project before building or running");
   }
-  std::string canonical = "generic:";
   std::error_code ec;
-  if (std::filesystem::is_regular_file(project.filepath, ec) && !ec) {
-    ASSIGN_OR_RETURN(const auto descriptor_hash,
-                     core::ComputeSourceArtifactFileSha256(project.filepath));
-    canonical += *descriptor_hash;
-  } else {
-    canonical += project.filepath;
+  if (!std::filesystem::is_regular_file(project.filepath, ec) || ec) {
+    return absl::FailedPreconditionError(
+        "Save the project before building or running");
   }
+  std::string canonical = "generic:";
+  ASSIGN_OR_RETURN(const auto descriptor_hash,
+                   core::ComputeSourceArtifactFileSha256(project.filepath));
+  canonical += descriptor_hash;
   ASSIGN_OR_RETURN(const auto serialized, project.SerializeToString());
   canonical += "|" + core::ComputeSourceArtifactSha256(serialized);
   if (!project.rom_filename.empty()) {
     const std::string rom_path = project.GetAbsolutePath(project.rom_filename);
-    std::error_code ec;
-    if (std::filesystem::is_regular_file(rom_path, ec) && !ec) {
-      ASSIGN_OR_RETURN(const auto rom_hash,
-                       core::ComputeSourceArtifactFileSha256(rom_path));
-      canonical += "|" + *rom_hash;
+    if (!std::filesystem::is_regular_file(rom_path, ec) || ec) {
+      return absl::FailedPreconditionError(absl::StrFormat(
+          "Project ROM is missing or unreadable: %s", rom_path));
+    }
+    ASSIGN_OR_RETURN(const auto rom_hash,
+                     core::ComputeSourceArtifactFileSha256(rom_path));
+    canonical += "|" + rom_hash;
+  }
+  RETURN_IF_ERROR(AppendConfiguredInputHash(canonical, project,
+                                            project.lyra_build_request_file));
+  if (project.hack_manifest.loaded()) {
+    RETURN_IF_ERROR(AppendConfiguredInputHash(
+        canonical, project, project.hack_manifest.build_pipeline().dev_rom));
+    const std::string& manifest_script =
+        project.hack_manifest.build_pipeline().build_script;
+    if (!manifest_script.empty()) {
+      const std::string absolute = project.GetAbsolutePath(manifest_script);
+      std::error_code ec;
+      if (std::filesystem::is_regular_file(absolute, ec) && !ec) {
+        RETURN_IF_ERROR(
+            AppendConfiguredInputHash(canonical, project, manifest_script));
+      }
     }
   }
   ProjectSavedInputIdentity identity;
   identity.fingerprint_sha256 = core::ComputeSourceArtifactSha256(canonical);
   return identity;
-}
-
-bool NativeSaveContextExistsForProject(const project::YazeProject& project,
-                                       const std::string& editing_source_path) {
-#if defined(YAZE_WITH_JSON) && !defined(__EMSCRIPTEN__)
-  if (project.filepath.empty() || editing_source_path.empty()) {
-    return false;
-  }
-  const auto context =
-      core::GetNativeSaveContext(editing_source_path, project.filepath);
-  return context.ok();
-#else
-  (void)project;
-  (void)editing_source_path;
-  return false;
-#endif
 }
 
 }  // namespace
@@ -914,9 +900,29 @@ RomLifecycleManager::CaptureSavedBuildInputIdentity(
         "Finish native save completion before building or running");
   }
 #if defined(YAZE_WITH_JSON) && !defined(__EMSCRIPTEN__)
-  if (NativeSaveContextExistsForProject(project, editing_source_path)) {
-    return CaptureNativeSavedBuildInputIdentity(project, editing_source_path);
+  if (editing_source_path.empty()) {
+    if (ProjectRequiresNativeSaveIdentity(project)) {
+      return absl::FailedPreconditionError(
+          "Native save completion is required before building or running");
+    }
+    return CaptureGenericSavedBuildInputIdentity(project);
   }
+  const auto native_identity =
+      CaptureNativeSavedBuildInputIdentity(project, editing_source_path);
+  if (native_identity.ok()) {
+    return native_identity;
+  }
+  if (ProjectRequiresNativeSaveIdentity(project)) {
+    if (absl::IsNotFound(native_identity.status())) {
+      return absl::FailedPreconditionError(
+          "Native save completion is required before building or running");
+    }
+    return native_identity.status();
+  }
+  if (absl::IsNotFound(native_identity.status())) {
+    return CaptureGenericSavedBuildInputIdentity(project);
+  }
+  return native_identity.status();
 #endif
   return CaptureGenericSavedBuildInputIdentity(project);
 }

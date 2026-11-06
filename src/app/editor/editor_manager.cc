@@ -4589,14 +4589,7 @@ absl::Status EditorManager::SaveProjectAs(const std::string& filepath) {
 absl::Status EditorManager::ValidateProjectBuildEditorReadiness() const {
   const_cast<EditorManager*>(this)->CaptureActiveProjectEditingState();
   if (auto* editors = GetCurrentEditorSet()) {
-    const auto* dungeon =
-        editors->GetEditorAs<DungeonEditorV2>(EditorType::kDungeon);
-    if (dungeon && dungeon->HasUnpublishedMinecartTrackChanges()) {
-      return absl::FailedPreconditionError(
-          "Minecart tracks have unpublished changes. Use Publish Tracks, then "
-          "save remaining project and ROM changes before Build Project. "
-          "Undo the track edits if you do not want to publish them.");
-    }
+    RETURN_IF_ERROR(editors->ValidateBuildRunEditorReadiness());
   }
   const size_t session_index = GetCurrentSessionIndex();
   if (SessionHasPendingUnsavedWork(session_index)) {
@@ -4654,7 +4647,13 @@ ProjectRunPrepareInputs EditorManager::MakeProjectRunPrepareInputs() const {
   inputs.origin_session_active =
       IsCurrentProjectContextOwnedBySession(inputs.origin_session_id);
   inputs.editing_source_path = NativeSaveEditingSourcePath();
-  inputs.build_running_for_origin = project_manager_.HasActiveProjectBuild();
+  inputs.build_running_for_origin =
+      inputs.project != nullptr &&
+      project_manager_.HasActiveProjectBuildForOrigin(inputs.origin_session_id,
+                                                      inputs.project->filepath);
+  inputs.validate_readiness = [this]() {
+    return ValidateProjectBuildEditorReadiness();
+  };
   return inputs;
 }
 
@@ -4874,6 +4873,18 @@ absl::Status EditorManager::RunCurrentProject() {
                                         load_rom_status.message()),
                         ToastType::kError);
     return load_rom_status;
+  }
+
+  const std::string loaded_hash =
+      core::ComputeSourceArtifactSha256(temp_rom.vector());
+  if (loaded_hash != selection.sha256) {
+    const auto status = absl::FailedPreconditionError(
+        "Run target bytes changed before emulator reload");
+    UpdateRunWorkflowStatus(
+        &status_bar_, project_management_panel_.get(),
+        MakeRunStatus("Run unavailable", std::string(status.message()),
+                      ProjectWorkflowState::kFailure));
+    return status;
   }
 
   auto reload_status = emulator_.ReloadRuntimeRom(temp_rom.vector());

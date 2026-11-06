@@ -69,6 +69,20 @@ struct NativeSaveReceipt {
 absl::StatusOr<NativeSaveReceipt> PublishNativeSaveReceipt(
     const NativeSaveReceiptRequest& request);
 
+struct VerifiedNativeSaveIdentity {
+  uint64_t generation = 0;
+  std::string operation_id;
+};
+
+// Reads and verifies a committed native save context plus its receipt and live
+// artifact bindings for the given editing source and project descriptor.
+// Returns NotFound when the context file is absent. Propagates malformed,
+// rebound, stale, or hash/path mismatch failures without downgrade.
+absl::StatusOr<VerifiedNativeSaveIdentity>
+ReadVerifiedCommittedNativeSaveIdentity(
+    const std::string& editing_source_path,
+    const std::string& project_descriptor_path);
+
 }  // namespace yaze::core
 
 #endif  // YAZE_CORE_NATIVE_SAVE_RECEIPT_H_

@@ -292,6 +292,84 @@ absl::Status VerifyBinding(const ArtifactBinding& binding) {
   return absl::OkStatus();
 }
 
+absl::Status VerifyReceiptArtifactsLive(const Json& receipt) {
+  for (const auto& artifact : receipt.at("artifacts")) {
+    NativeSaveArtifact binding;
+    binding.role = artifact.at("role").get<std::string>();
+    binding.path = fs::u8path(artifact.at("path").get<std::string>());
+    binding.expected_sha256 = artifact.at("sha256").get<std::string>();
+    const uint64_t bytes = artifact.at("bytes").get<uint64_t>();
+    ASSIGN_OR_RETURN(const auto resolved, ResolveRegularFile(binding.path));
+    ASSIGN_OR_RETURN(const auto size, FileSize(resolved));
+    ASSIGN_OR_RETURN(const auto hash,
+                     ComputeSourceArtifactFileSha256(resolved));
+    if (size != bytes || hash != binding.expected_sha256) {
+      return absl::FailedPreconditionError(
+          "Native save receipt artifact no longer matches its saved identity");
+    }
+    (void)resolved;
+  }
+  return absl::OkStatus();
+}
+
+absl::StatusOr<VerifiedNativeSaveIdentity>
+ReadVerifiedCommittedNativeSaveIdentityImpl(
+    const std::string& editing_source_path,
+    const std::string& project_descriptor_path) {
+  ASSIGN_OR_RETURN(
+      const auto context,
+      GetNativeSaveContext(editing_source_path, project_descriptor_path));
+  ASSIGN_OR_RETURN(const auto existing, ReadOptionalOutput(context.path));
+  if (!existing.has_value()) {
+    return absl::NotFoundError("Native save context is absent");
+  }
+  const Json value = Json::parse(*existing, nullptr, false);
+  if (value.is_discarded() || !value.is_object()) {
+    return absl::FailedPreconditionError("Native save context is unreadable");
+  }
+  RETURN_IF_ERROR(ValidatePreviousContext(value, context));
+  if (value.value("state", Json()) != "committed") {
+    return absl::FailedPreconditionError(
+        "Native save completion is required before building or running");
+  }
+  if (!project_descriptor_path.empty() && !context.project_path.empty()) {
+    std::error_code error;
+    const auto expected = PathText(
+        fs::weakly_canonical(fs::u8path(project_descriptor_path), error));
+    if (error || context.project_path != expected) {
+      return absl::FailedPreconditionError(
+          "Native save context project binding mismatch");
+    }
+  }
+  const auto& commit = value.at("native_commit");
+  const uint64_t generation = commit.at("generation").get<uint64_t>();
+  const std::string operation_id =
+      commit.at("operation_id").get_ref<const std::string&>();
+  const fs::path receipt_path =
+      fs::u8path(commit.at("receipt_path").get<std::string>());
+  ASSIGN_OR_RETURN(const auto resolved_receipt,
+                   ResolveRegularFile(receipt_path));
+  ASSIGN_OR_RETURN(const auto receipt_bytes,
+                   ReadBoundedFile(resolved_receipt, kMaxReceiptBytes));
+  const Json receipt = Json::parse(receipt_bytes, nullptr, false);
+  if (receipt.is_discarded() || !receipt.is_object()) {
+    return absl::FailedPreconditionError("Native save receipt is unreadable");
+  }
+  RETURN_IF_ERROR(ValidatePreviousReceipt(receipt, receipt_path));
+  if (receipt.at("generation").get<uint64_t>() != generation ||
+      receipt.at("operation_id").get_ref<const std::string&>() !=
+          operation_id) {
+    return absl::FailedPreconditionError(
+        "Native save receipt does not match the committed save context");
+  }
+  if (!receipt.value("bindings_complete", false)) {
+    return absl::FailedPreconditionError(
+        "Native save receipt is incomplete for this project");
+  }
+  RETURN_IF_ERROR(VerifyReceiptArtifactsLive(receipt));
+  return VerifiedNativeSaveIdentity{generation, operation_id};
+}
+
 }  // namespace
 
 absl::StatusOr<NativeSaveContext> GetNativeSaveContext(
@@ -590,6 +668,14 @@ absl::StatusOr<NativeSaveReceipt> PublishNativeSaveReceipt(
   return NativeSaveReceipt{generation, std::move(text)};
 }
 
+absl::StatusOr<VerifiedNativeSaveIdentity>
+ReadVerifiedCommittedNativeSaveIdentity(
+    const std::string& editing_source_path,
+    const std::string& project_descriptor_path) {
+  return ReadVerifiedCommittedNativeSaveIdentityImpl(editing_source_path,
+                                                     project_descriptor_path);
+}
+
 }  // namespace yaze::core
 
 #else
@@ -608,6 +694,12 @@ absl::Status RetireNativeSaveContext(const NativeSaveContext&,
 
 absl::StatusOr<NativeSaveReceipt> PublishNativeSaveReceipt(
     const NativeSaveReceiptRequest&) {
+  return absl::UnimplementedError("Native save receipts require JSON support");
+}
+
+absl::StatusOr<VerifiedNativeSaveIdentity>
+ReadVerifiedCommittedNativeSaveIdentity(const std::string&,
+                                        const std::string&) {
   return absl::UnimplementedError("Native save receipts require JSON support");
 }
 

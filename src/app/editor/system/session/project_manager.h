@@ -137,6 +137,8 @@ class ProjectManager {
   void SetBuildWorkflowServices(RomLifecycleManager* rom_lifecycle);
 
   bool HasActiveProjectBuild() const;
+  bool HasActiveProjectBuildForOrigin(size_t owner_session_id,
+                                      const std::string& descriptor_path) const;
 
   absl::StatusOr<ProjectBuildPreparedRequest> PrepareProjectBuildRequest(
       const ProjectBuildPrepareInputs& inputs);
@@ -186,6 +188,15 @@ class ProjectManager {
       const BackgroundCommandTask::Snapshot& snapshot);
   absl::Status ValidatePreparedBuildDoesNotOverlap(
       const ProjectBuildPreparedRequest& request) const;
+  absl::Status ValidatePreparedBuildOriginBinding(
+      const ProjectBuildPreparedRequest& request,
+      bool require_active_origin) const;
+  void RevokeRunEligibilityForOwner(size_t owner_session_id,
+                                    const std::string& descriptor_path);
+  ProjectBuildAttemptResult MakeTerminalBuildFailure(
+      const ProjectBuildPreparedRequest& request,
+      const BackgroundCommandTask::Snapshot& snapshot,
+      absl::Status status) const;
 
   RomLifecycleManager* rom_lifecycle_ = nullptr;
   std::unique_ptr<BackgroundCommandTask> active_project_build_;
