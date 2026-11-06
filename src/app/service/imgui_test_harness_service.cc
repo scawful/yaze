@@ -1342,7 +1342,25 @@ absl::Status ImGuiTestHarnessServiceImpl::Type(const TypeRequest* request,
 
       if (widget_type == "combo") {
         ctx->ItemClick(ImGuiTestRef(item.ID));
-        const std::string option = "//$FOCUSED/**/" + text;
+        auto* popup = ctx->GetWindowByRef("//$FOCUSED");
+        if (!popup) {
+          rpc_state->SetResult(false, "Combo popup did not open");
+          manager->MarkHarnessTestCompleted(captured_id,
+                                            HarnessTestStatus::kFailed,
+                                            "Combo popup did not open");
+          return;
+        }
+        const std::string option =
+            std::string("//") + popup->Name + "/**/" + text;
+        // Clipped rows do not exist until the popup scrolls to draw them.
+        const float page = std::max(1.f, popup->InnerRect.GetHeight() * 0.8f);
+        for (float y = 0; !ctx->ItemExists(option.c_str()); y += page) {
+          ctx->ScrollTo(popup->ID, ImGuiAxis_Y,
+                        std::min(y, popup->ScrollMax.y));
+          ctx->Yield(2);
+          if (y >= popup->ScrollMax.y)
+            break;
+        }
         ctx->ItemClick(option.c_str());
       } else {
         ctx->ItemClick(ImGuiTestRef(item.ID));
