@@ -45,6 +45,8 @@
 #include "zelda3/dungeon/object_drawer.h"
 #include "zelda3/dungeon/room_object.h"
 
+#include "zelda3/dungeon/door_surround_policy.h"
+
 namespace yaze::zelda3 {
 namespace {
 
@@ -6729,6 +6731,129 @@ TEST(ObjectDrawerRegistryReplayTest, DownwardsBarUsesUsdasmTopThenBodyRows) {
       }
     }
   }
+}
+
+// Versioned policy fixture: this uses the same bank-$01 descriptor and
+// Glacia inward-contact profile as the compiled Oracle prototype.
+void InstallDoorSurroundPolicy(
+    std::vector<uint8_t>& data,
+    const std::vector<std::pair<uint16_t, uint16_t>>& exceptions = {}) {
+  const std::array<uint8_t, 7> hook{0x22, 0x00, 0xC0, 0x2C, 0xEA, 0xEA, 0xEA};
+  std::copy(hook.begin(), hook.end(), data.begin() + 0x890D);
+  const std::array<uint8_t, 8> bridge{0x20, 0x16, 0x89, 0x6B,
+                                      0x00, 0xF0, 0x2C, 0x01};
+  std::copy(bridge.begin(), bridge.end(), data.begin() + 0xB558);
+  constexpr int kPolicy = 0x16F000;  // SNES $2CF000.
+  data[kPolicy] = 'D';
+  data[kPolicy + 1] = 'S';
+  data[kPolicy + 2] = 'R';
+  data[kPolicy + 3] = '1';
+  WriteWord(data, kPolicy + 4, 296);
+  data[kPolicy + 6 + 0x9E] = 1;
+  WriteWord(data, kPolicy + 302, exceptions.size());
+  int entry = kPolicy + 304;
+  for (const auto& [room, face] : exceptions) {
+    WriteWord(data, entry, room);
+    WriteWord(data, entry + 2, face);
+    entry += 4;
+  }
+  WriteWord(data, entry, 0xFFFF);
+  WriteWord(data, entry + 2, 0xFFFF);
+}
+
+TEST(ObjectDrawerRegistryReplayTest,
+     AutoSurroundsDrawBothNorthFacesBeforeDoorPanels) {
+  ScopedCustomObjectsFlag disable_custom(false);
+  std::vector<uint8_t> data(2 * 1024 * 1024, 0);
+  InstallDoorSurroundPolicy(data);
+  WriteWord(data, 0x4D9E + 0x1C, 0x1000);
+  WriteWord(data, 0x4E06 + 0x1C, 0x1100);
+  WriteDoorObjectDataWords(data, 0x1000, 0x0300, 12);
+  WriteDoorObjectDataWords(data, 0x1100, 0x0320, 12);
+  WriteDoorObjectDataWords(data, 0x1F52 - 0x1B52, 0x2100, 8);
+  WriteDoorObjectDataWords(data, 0x1F62 - 0x1B52, 0x2120, 8);
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(data).ok());
+  auto graphics = MakeOpaqueDoorGfx();
+  ObjectDrawer drawer(&rom, 0x9E, graphics.data());
+  gfx::BackgroundBuffer bg1(512, 512), bg2(512, 512);
+  InitializeEmptyDoorBuffer(bg1);
+  InitializeEmptyDoorBuffer(bg2);
+  const ObjectDrawer::DoorDef door{DoorType::SmallKeyDoor, DoorDirection::North,
+                                   8};
+  drawer.DrawDoor(door, 0, bg1, bg2);
+  EXPECT_EQ(bg1.GetTileAt(45, 36), 0x2100);
+  EXPECT_EQ(bg1.GetTileAt(45, 37), 0x2101);  // Column-major.
+  EXPECT_EQ(bg1.GetTileAt(45, 39), 0x2103);
+  EXPECT_EQ(bg1.GetTileAt(45, 26), 0x2120);  // Paired south face.
+  EXPECT_EQ(bg1.GetTileAt(46, 36), 0x0300);  // Door drawn last.
+  EXPECT_EQ(bg1.GetTileAt(46, 27), 0x0320);
+  EXPECT_FALSE(TileHasCoverage(bg2, 45, 36));
+}
+
+TEST(ObjectDrawerRegistryReplayTest, AutoSurroundPolicyRejectsBankCrossing) {
+  std::vector<uint8_t> data(2 * 1024 * 1024, 0);
+  InstallDoorSurroundPolicy(data);
+  ASSERT_TRUE(DoorSurroundPolicy::Decode(data).has_value());
+  std::copy_n(data.begin() + 0x16F000, 308, data.begin() + 0x16FF00);
+  data[0xB55C] = 0;
+  data[0xB55D] = 0xFF;
+  EXPECT_FALSE(DoorSurroundPolicy::Decode(data).has_value());
+}
+
+TEST(ObjectDrawerRegistryReplayTest,
+     AutoSurroundExceptionSkipsOnlyTheAuthoredPhysicalFace) {
+  ScopedCustomObjectsFlag disable_custom(false);
+  std::vector<uint8_t> data(2 * 1024 * 1024, 0);
+  InstallDoorSurroundPolicy(data, {{0x9E, 0x80}});
+  WriteWord(data, 0x4D9E + 0x1C, 0x1000);
+  WriteWord(data, 0x4E06 + 0x1C, 0x1100);
+  WriteDoorObjectDataWords(data, 0x1000, 0x0300, 12);
+  WriteDoorObjectDataWords(data, 0x1100, 0x0320, 12);
+  WriteDoorObjectDataWords(data, 0x1F62 - 0x1B52, 0x2120, 8);
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(data).ok());
+  auto graphics = MakeOpaqueDoorGfx();
+  ObjectDrawer drawer(&rom, 0x9E, graphics.data());
+  gfx::BackgroundBuffer bg1(512, 512), bg2(512, 512);
+  InitializeEmptyDoorBuffer(bg1);
+  InitializeEmptyDoorBuffer(bg2);
+  const ObjectDrawer::DoorDef door{DoorType::SmallKeyDoor, DoorDirection::North,
+                                   8};
+  drawer.DrawDoor(door, 0, bg1, bg2);
+  EXPECT_FALSE(TileHasCoverage(bg1, 45, 36));
+  EXPECT_EQ(bg1.GetTileAt(45, 26), 0x2120);
+  EXPECT_EQ(bg1.GetTileAt(46, 36), 0x0300);
+}
+
+TEST(ObjectDrawerRegistryReplayTest,
+     AutoSurroundWestPairUsesRowMajorSideOrnaments) {
+  ScopedCustomObjectsFlag disable_custom(false);
+  std::vector<uint8_t> data(2 * 1024 * 1024, 0);
+  InstallDoorSurroundPolicy(data);
+  WriteWord(data, 0x4E66, 0x1000);
+  WriteWord(data, 0x4EC6, 0x1100);
+  WriteDoorObjectDataWords(data, 0x1000, 0x0300, 12);
+  WriteDoorObjectDataWords(data, 0x1100, 0x0320, 12);
+  WriteDoorObjectDataWords(data, 0x1F32 - 0x1B52, 0x2140, 8);
+  WriteDoorObjectDataWords(data, 0x1F42 - 0x1B52, 0x2160, 8);
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(data).ok());
+  auto graphics = MakeOpaqueDoorGfx();
+  ObjectDrawer drawer(&rom, 0x9E, graphics.data());
+  gfx::BackgroundBuffer bg1(512, 512), bg2(512, 512);
+  InitializeEmptyDoorBuffer(bg1);
+  InitializeEmptyDoorBuffer(bg2);
+  const ObjectDrawer::DoorDef door{DoorType::NormalDoor, DoorDirection::West,
+                                   6};
+  drawer.DrawDoor(door, 0, bg1, bg2);
+  EXPECT_EQ(bg1.GetTileAt(34, 14), 0x2140);
+  EXPECT_EQ(bg1.GetTileAt(35, 14), 0x2141);  // Row-major.
+  EXPECT_EQ(bg1.GetTileAt(37, 14), 0x2143);
+  EXPECT_EQ(bg1.GetTileAt(26, 14), 0x2160);  // Paired east face.
+  EXPECT_EQ(bg1.GetTileAt(27, 14), 0x2161);
+  EXPECT_EQ(bg1.GetTileAt(34, 15), 0x0300);
+  EXPECT_EQ(bg1.GetTileAt(27, 15), 0x0320);
 }
 
 }  // namespace

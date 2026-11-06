@@ -13,6 +13,7 @@
 #include "rom/snes.h"
 #include "util/log.h"
 #include "zelda3/dungeon/dimension_service.h"
+#include "zelda3/dungeon/door_surround_policy.h"
 #include "zelda3/dungeon/draw_routines/draw_routine_registry.h"
 #include "zelda3/dungeon/draw_routines/draw_routine_types.h"
 #include "zelda3/dungeon/draw_routines/special_routines.h"
@@ -1924,6 +1925,33 @@ void ObjectDrawer::DrawDoor(const DoorDef& door, int door_index,
   };
   const int position_index = std::min<int>(door.position & 0x0F, 11);
 
+  const auto surround_policy = DoorSurroundPolicy::Decode(rom_data);
+  auto draw_auto_surround = [&](DoorDirection direction, uint8_t position,
+                                int x, int y) {
+    if (door.position >= 12 || !surround_policy ||
+        !surround_policy->Applies(room_id_, door.type, direction, position)) {
+      return;
+    }
+    switch (direction) {
+      case DoorDirection::North:
+        draw_from_object_data(bg1, x - 1, y, 2, 4, 0x1F52);
+        draw_from_object_data(bg1, x + 3, y, 2, 4, 0x1F52);
+        break;
+      case DoorDirection::South:
+        draw_from_object_data(bg1, x - 1, y - 1, 2, 4, 0x1F62);
+        draw_from_object_data(bg1, x + 3, y - 1, 2, 4, 0x1F62);
+        break;
+      case DoorDirection::West:
+        draw_from_object_data_row_major(bg1, x, y - 1, 4, 2, 0x1F32);
+        draw_from_object_data_row_major(bg1, x, y + 3, 4, 2, 0x1F32);
+        break;
+      case DoorDirection::East:
+        draw_from_object_data_row_major(bg1, x - 1, y - 1, 4, 2, 0x1F42);
+        draw_from_object_data_row_major(bg1, x - 1, y + 3, 4, 2, 0x1F42);
+        break;
+    }
+  };
+
   enum class DoorPrioritySpan {
     // RoomDraw_MakeDoorPartsHighPriority_{Vertical,Horizontal}.
     kNormalLower,
@@ -2554,10 +2582,14 @@ void ObjectDrawer::DrawDoor(const DoorDef& door, int door_index,
     const auto [counterpart_tile_x, counterpart_tile_y] =
         DoorPositionManager::PositionToRenderTileCoords(
             static_cast<uint8_t>(position_index - 6), counterpart_direction);
+    draw_auto_surround(counterpart_direction,
+                       static_cast<uint8_t>(position_index - 6),
+                       counterpart_tile_x, counterpart_tile_y);
     (void)draw_ranged_door(counterpart_direction, counterpart_tile_x,
                            counterpart_tile_y, door.type, effective_door_type);
   }
 
+  draw_auto_surround(door.direction, door.position, tile_x, tile_y);
   const bool drew_current = draw_ranged_door(door.direction, tile_x, tile_y,
                                              door.type, effective_door_type);
   if (!drew_current) {
