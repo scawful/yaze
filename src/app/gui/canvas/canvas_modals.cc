@@ -233,7 +233,9 @@ void CanvasModals::RenderAdvancedPropertiesModal(const std::string& canvas_id,
       }
       ImGui::SameLine();
 
-      if (ImGui::Button(tr("Center View")) && bitmap) {
+      ImGui::BeginDisabled(!config.enable_center_view || !bitmap);
+      if (ImGui::Button(tr("Center View")) && config.enable_center_view &&
+          bitmap) {
         config.scrolling = ImVec2(
             -(bitmap->width() * config.global_scale - config.canvas_size.x) /
                 2.0f,
@@ -241,6 +243,7 @@ void CanvasModals::RenderAdvancedPropertiesModal(const std::string& canvas_id,
                 2.0f);
         DispatchConfig(config.on_config_changed, config);
       }
+      ImGui::EndDisabled();
     }
 
     // Performance Integration Section

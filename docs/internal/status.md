@@ -1,5 +1,32 @@
 # Editor and release status
 
+## 0.8.0 release candidate
+
+The clean release cut combines application baseline
+`14c11882498549dfb5b069dea65e531587846a4f`, a nonthrowing project-integer parser
+fix and the requested Dungeon Workbench cleanup. The object browser has List
+and Icons views with shared filters and placement actions. Compact Selection,
+a larger Room Matrix and the entrance list give the right side a navigation
+focus. `VERSION` remains `0.8.0`; the package qualification uses `v0.8.0` with no
+prerelease suffix and `publish=false`.
+
+The release validation record binds the final source, package hashes and
+checks. Source builds and focused UI tests do not establish packaged native
+editing, Save/reopen or public release acceptance.
+
+The earlier application-code baseline passed all Linux/macOS/Windows package and
+Release-test jobs in [run 41496853533](https://github.com/scawful/yaze/actions/runs/41496853533),
+which used the earlier exp.2 package suffix. That result is reused only at its
+actual scope. The unsuffixed artifacts, exact metadata commit, package smoke,
+and native editing/save/reopen checks are recorded separately before
+publication. No public 0.8.0 tag or release has been created by this preparation.
+
+This cut does not absorb unrelated private Lyra writer branches or treat
+Dungeon completion and the 1.0 roadmap as 0.8.0 release prerequisites. The
+[release checklist](release-checklist.md) and
+[release notes](../public/release-notes.md#v080) retain the actual supported,
+experimental and unchecked paths.
+
 ## Published v0.8.0-exp.1
 
 Latest experimental prerelease: [v0.8.0-exp.1](https://github.com/scawful/yaze/releases/tag/v0.8.0-exp.1), published

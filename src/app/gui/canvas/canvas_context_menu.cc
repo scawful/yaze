@@ -222,7 +222,8 @@ void CanvasContextMenu::RenderViewControlsMenu(
     if (ImGui::MenuItem(tr("Reset View"), "Ctrl+R")) {
       Dispatch(command_handler, Command::kResetView, current_config);
     }
-    if (ImGui::MenuItem(tr("Zoom to Fit"), "Ctrl+F")) {
+    if (ImGui::MenuItem(tr("Zoom to Fit"), "Ctrl+F", false,
+                        current_config.enable_zoom_to_fit)) {
       Dispatch(command_handler, Command::kZoomToFit, current_config);
     }
     if (ImGui::BeginMenu(ICON_MD_ZOOM_IN " Zoom")) {

@@ -336,7 +336,9 @@ class DungeonWorkbenchContent : public WindowContent {
   };
   SidebarMode sidebar_mode_ = SidebarMode::Room;
   float navigator_tools_fraction_ = 0.30f;
+  float navigator_matrix_fraction_ = 0.80f;
   bool show_room_matrix_ = true;
+  bool show_entrance_list_ = true;
 
   RoomInspectorSubTab room_inspector_sub_tab_ = RoomInspectorSubTab::Mechanics;
 

@@ -31,6 +31,16 @@ inline std::vector<int> FrameTiles8x8(const zsprite::Frame& frame) {
   return tiles;
 }
 
+// Frame index after stepping by `delta`, clamped to [0, frame_count - 1].
+// Returns `current` unchanged when the sprite has no frames, so a key repeat
+// cannot walk past the last frame.
+inline int StepFrameIndex(int current, int delta, int frame_count) {
+  if (frame_count <= 0) {
+    return current;
+  }
+  return std::clamp(current + delta, 0, frame_count - 1);
+}
+
 // The preview palettes SpriteEditor uses without a binding: the global
 // sprite palettes, then aux1/aux2/aux3 palettes until there are 8 rows.
 inline gfx::PaletteGroup DefaultSpritePreviewPalettes(

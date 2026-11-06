@@ -866,7 +866,7 @@ void Canvas::DrawContextMenu() {
               ResetView();
               break;
             case CanvasContextMenu::Command::kZoomToFit:
-              if (bitmap_) {
+              if (config_.enable_zoom_to_fit && bitmap_) {
                 SetZoomToFit(*bitmap_);
               }
               break;
@@ -1719,6 +1719,7 @@ void Canvas::ShowAdvancedCanvasProperties() {
   ext.InitializeModals();
   if (ext.modals) {
     CanvasConfig modal_config;
+    modal_config.enable_center_view = config_.enable_center_view;
     modal_config.canvas_size = canvas_sz_;
     modal_config.content_size = config_.content_size;
     modal_config.global_scale = global_scale_;
@@ -1818,8 +1819,9 @@ void Canvas::ShowAdvancedCanvasProperties() {
       scrolling_ = ImVec2(0, 0);
     }
     ImGui::SameLine();
+    ImGui::BeginDisabled(!config_.enable_center_view || !bitmap_);
     if (ImGui::Button(tr("Center View"))) {
-      if (bitmap_) {
+      if (config_.enable_center_view && bitmap_) {
         scrolling_ = ImVec2(
             -(bitmap_->width() * config_.global_scale - config_.canvas_size.x) /
                 2.0f,
@@ -1828,6 +1830,7 @@ void Canvas::ShowAdvancedCanvasProperties() {
                 2.0f);
       }
     }
+    ImGui::EndDisabled();
 
     if (ImGui::Button(tr("Close"))) {
       ImGui::CloseCurrentPopup();

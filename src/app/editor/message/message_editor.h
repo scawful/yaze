@@ -162,7 +162,8 @@ class MessageEditor : public Editor {
   std::string dictionary_filter_;
   std::vector<std::string> baseline_messages_;
   std::string reference_view_text_;
-  bool show_reference_ = true;
+  bool show_reference_ = false;
+  bool reference_visibility_explicit_ = false;
   bool project_source_load_attempted_ = false;
   bool source_sync_ready_ = false;
   bool source_sync_changed_ = false;

@@ -200,21 +200,21 @@ class DungeonEntrancesPanel : public WindowContent {
       DrawSelectedProperties();
   }
 
+  // Navigation-only embedding: reuse the list and selection callback without
+  // duplicating the entrance property editor in the Workbench inspector.
+  void DrawInWorkbench() {
+    if (PrepareNavigation())
+      DrawEntranceList();
+  }
+
   // ==========================================================================
   // WindowContent Drawing
   // ==========================================================================
 
   void Draw(bool* p_open) override {
     (void)p_open;
-    if (!entrances_ || !spawn_points_ || !current_entrance_id_)
+    if (!PrepareNavigation())
       return;
-    if (*current_entrance_id_ < 0 ||
-        *current_entrance_id_ >= static_cast<int>(entrances_->size())) {
-      *current_entrance_id_ = 0;
-    }
-    navigation_shortcut_last_draw_frame_ = ImGui::GetFrameCount();
-    navigation_shortcut_focus_ =
-        ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows);
 
     const bool split_layout = ImGui::GetContentRegionAvail().x >= 620.0f;
     if (split_layout &&
@@ -248,6 +248,18 @@ class DungeonEntrancesPanel : public WindowContent {
   }
 
  private:
+  bool PrepareNavigation() {
+    if (!entrances_ || !spawn_points_ || !current_entrance_id_)
+      return false;
+    if (*current_entrance_id_ < 0 ||
+        *current_entrance_id_ >= static_cast<int>(entrances_->size()))
+      *current_entrance_id_ = 0;
+    navigation_shortcut_last_draw_frame_ = ImGui::GetFrameCount();
+    navigation_shortcut_focus_ =
+        ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows);
+    return true;
+  }
+
   float HexPropertyWidth(int digits) const {
     constexpr char hexadecimal[] = "0123456789ABCDEF";
     float glyph_width = 0.0f;
@@ -562,6 +574,10 @@ class DungeonEntrancesPanel : public WindowContent {
             on_entrance_selected_(i);
           }
         }
+        gui::AutoRegisterLastItem("selectable",
+                                  absl::StrFormat("entrance_%03X", i));
+        if (ImGui::IsItemHovered())
+          ImGui::SetTooltip("%s", label.c_str());
       }
     }
     ImGui::EndChild();

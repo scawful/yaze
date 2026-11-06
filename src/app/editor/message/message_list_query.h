@@ -87,6 +87,8 @@ inline bool DecimalContains(int value, std::string_view query) {
       std::string_view(buf, static_cast<size_t>(written)), query);
 }
 
+inline std::string MessageListPreview(std::string_view text, size_t max_chars);
+
 // True when a list row should stay visible for the current bank + text filter.
 inline bool MessageListQueryMatches(int display_id, uint32_t address,
                                     std::string_view contents, bool expanded,
@@ -102,6 +104,12 @@ inline bool MessageListQueryMatches(int display_id, uint32_t address,
     return true;
   }
   if (ContainsCaseInsensitive(contents, query)) {
+    return true;
+  }
+  // Also search the same normalized prose shown in the list, without its
+  // display truncation. Raw matching above keeps control-token searches.
+  if (ContainsCaseInsensitive(MessageListPreview(contents, contents.size()),
+                              query)) {
     return true;
   }
   if (DecimalContains(display_id, query)) {
@@ -184,22 +192,100 @@ inline std::optional<size_t> FindPreviousTextMatch(std::string_view text,
   return last;
 }
 
-// First physical line, capped, so the message list stays one row tall.
+// Formatting commands do not contribute visible text to a list preview.
+// Keep placeholders such as [L] and button glyphs: they represent game text.
+inline bool IsMessagePreviewControl(std::string_view token) {
+  if (token == "1" || token == "2" || token == "3" || token == "V" ||
+      token == "K" || token == "CH3" || token == "CH2" || token == "CH2L" ||
+      token == "CH2I" || token == "CHI" || token == "IMG" || token == "BANK") {
+    return true;
+  }
+  const size_t colon = token.find(':');
+  if (colon == std::string_view::npos) {
+    return false;
+  }
+  const auto name = token.substr(0, colon);
+  return name == "S" || name == "W" || name == "P" || name == "SPD" ||
+         name == "C" || name == "WT" || name == "SFX";
+}
+
+// A compact single line of visible text, with formatting commands removed.
 inline std::string MessageListPreview(std::string_view text,
                                       size_t max_chars = 96) {
+  if (max_chars == 0) {
+    return {};
+  }
   std::string line;
-  line.reserve(std::min(text.size(), max_chars + 3));
-  for (char c : text) {
-    if (c == '\n' || c == '\r') {
-      break;
+  line.reserve(std::min(text.size(), max_chars));
+  bool pending_space = false;
+  for (size_t i = 0; i < text.size(); ++i) {
+    if (text[i] == '[') {
+      const size_t end = text.find(']', i + 1);
+      if (end != std::string_view::npos) {
+        const auto token = text.substr(i + 1, end - i - 1);
+        if (IsMessagePreviewControl(token)) {
+          if (token == "1" || token == "2" || token == "3" || token == "V" ||
+              token == "K") {
+            pending_space = pending_space || !line.empty();
+          }
+          i = end;
+          continue;
+        }
+      }
+    }
+    const char c = text[i];
+    if (std::isspace(static_cast<unsigned char>(c))) {
+      pending_space = pending_space || !line.empty();
+      continue;
+    }
+    if (pending_space) {
+      line.push_back(' ');
+      pending_space = false;
     }
     line.push_back(c);
-    if (line.size() >= max_chars) {
-      line.append("...");
-      break;
+  }
+  if (line.size() > max_chars) {
+    size_t end = max_chars;
+    while (end > 0 && (static_cast<unsigned char>(line[end]) & 0xC0) == 0x80) {
+      --end;
     }
+    line.resize(end);
+    line.append("...");
   }
   return line;
+}
+
+// Prefer an actual multi-line dialogue over menu fragments on first open.
+inline bool HasMultilineMessageProse(std::string_view text) {
+  int nonempty_lines = 0;
+  int line_letters = 0;
+  int total_letters = 0;
+  for (size_t i = 0; i < text.size(); ++i) {
+    if (text[i] == '[') {
+      const size_t end = text.find(']', i + 1);
+      if (end != std::string_view::npos) {
+        const auto token = text.substr(i + 1, end - i - 1);
+        if (token == "2" || token == "3" || token == "V") {
+          if (line_letters > 0)
+            ++nonempty_lines;
+          line_letters = 0;
+        }
+        i = end;
+        continue;
+      }
+    }
+    if (text[i] == '\n' || text[i] == '\r') {
+      if (line_letters > 0)
+        ++nonempty_lines;
+      line_letters = 0;
+    } else if (std::isalnum(static_cast<unsigned char>(text[i]))) {
+      ++line_letters;
+      ++total_letters;
+    }
+  }
+  if (line_letters > 0)
+    ++nonempty_lines;
+  return nonempty_lines >= 2 && total_letters >= 20;
 }
 
 }  // namespace editor

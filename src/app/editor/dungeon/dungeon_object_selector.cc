@@ -413,6 +413,10 @@ void DungeonObjectSelector::DrawWorkbenchBrowser() {
       "All objects", "Walls", "Floors", "Decorations", "Interactive",
       "Stairs",      "Doors", "Chests", "Special",     "Custom assets"};
   workbench::DrawDungeonBrowserControls(browser_state_, categories);
+  workbench::DrawDungeonBrowserViewControls(browser_state_);
+  const bool icons =
+      browser_state_.view == workbench::DungeonBrowserView::kIcons;
+  const float spacing = ImGui::GetStyle().ItemSpacing.x;
   if (browser_state_.category == 9) {
     if (!core::FeatureFlags::get().kEnableCustomObjects) {
       ImGui::TextDisabled("Custom objects are disabled");
@@ -445,21 +449,35 @@ void DungeonObjectSelector::DrawWorkbenchBrowser() {
                                 workbench::DungeonBrowserFold(b.name);
                        });
     if (ImGui::BeginChild("##CustomLibrary", ImVec2(0, 0), false)) {
+      const auto layout = ResolveDungeonObjectSelectorGridLayout(
+          ImGui::GetContentRegionAvail().x,
+          GetObjectGridItemSize(object_grid_density_), spacing);
+      int column = 0;
       for (const auto& asset : assets) {
+        if (icons) {
+          if (column > 0)
+            ImGui::SameLine(0.0f, spacing);
+          else
+            ImGui::SetCursorPosX(ImGui::GetCursorPosX() + layout.leading_inset);
+        }
         ImGui::PushID(asset.id * 1000 + asset.slot);
         const auto status = GetCustomObjectAssetStatus(asset.id, asset.slot);
         ImGui::BeginDisabled(!status.ok());
-        const bool picked = workbench::DrawDungeonBrowserRow(
-            asset.id, asset.name,
-            selected_object_id_ == asset.id &&
-                preview_object_.size_ == asset.slot,
-            [&](ImVec2 pos, ImVec2 size) {
-              auto object = MakePreviewObject(asset.id);
-              object.size_ = zelda3::CanonicalRoomObjectSize(
-                  asset.id, static_cast<uint8_t>(asset.slot));
-              return DrawObjectPreview(object, pos, size);
-            },
-            absl::StrFormat("%02X:%02X", asset.id, asset.slot));
+        const bool selected = selected_object_id_ == asset.id &&
+                              preview_object_.size_ == asset.slot;
+        const auto preview = [&](ImVec2 pos, ImVec2 size) {
+          auto object = MakePreviewObject(asset.id);
+          object.size_ = zelda3::CanonicalRoomObjectSize(
+              asset.id, static_cast<uint8_t>(asset.slot));
+          return DrawObjectPreview(object, pos, size);
+        };
+        const auto badge = absl::StrFormat("%02X:%02X", asset.id, asset.slot);
+        const bool picked =
+            icons ? workbench::DrawDungeonBrowserIcon(
+                        asset.id, asset.name, selected, layout.item_size,
+                        preview, badge)
+                  : workbench::DrawDungeonBrowserRow(asset.id, asset.name,
+                                                     selected, preview, badge);
         ImGui::EndDisabled();
         if (!status.ok() &&
             ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
@@ -473,6 +491,7 @@ void DungeonObjectSelector::DrawWorkbenchBrowser() {
               zelda3::CanonicalRoomObjectSize(
                   asset.id, static_cast<uint8_t>(asset.slot)));
         ImGui::PopID();
+        column = (column + 1) % layout.columns;
       }
       if (assets.empty())
         ImGui::TextDisabled("No matches");
@@ -504,13 +523,28 @@ void DungeonObjectSelector::DrawWorkbenchBrowser() {
                               workbench::DungeonBrowserFold(b.second);
                      });
   if (ImGui::BeginChild("##ObjectLibrary", ImVec2(0, 0), false)) {
+    const auto layout = ResolveDungeonObjectSelectorGridLayout(
+        ImGui::GetContentRegionAvail().x,
+        GetObjectGridItemSize(object_grid_density_), spacing);
+    int column = 0;
     for (const auto& [id, name] : entries) {
+      if (icons) {
+        if (column > 0)
+          ImGui::SameLine(0.0f, spacing);
+        else
+          ImGui::SetCursorPosX(ImGui::GetCursorPosX() + layout.leading_inset);
+      }
       ImGui::PushID(id);
-      if (workbench::DrawDungeonBrowserRow(
-              id, name, selected_object_id_ == id,
-              [&, id = id](ImVec2 pos, ImVec2 size) {
-                return DrawObjectPreview(MakePreviewObject(id), pos, size);
-              }))
+      const auto preview = [&, id = id](ImVec2 pos, ImVec2 size) {
+        return DrawObjectPreview(MakePreviewObject(id), pos, size);
+      };
+      const bool picked =
+          icons ? workbench::DrawDungeonBrowserIcon(id, name,
+                                                    selected_object_id_ == id,
+                                                    layout.item_size, preview)
+                : workbench::DrawDungeonBrowserRow(
+                      id, name, selected_object_id_ == id, preview);
+      if (picked)
         SelectObject(id);
       gui::AutoRegisterLastItem("selectable",
                                 absl::StrFormat("place_object_%03X", id));
@@ -519,6 +553,7 @@ void DungeonObjectSelector::DrawWorkbenchBrowser() {
           static_cast<uint16_t>(id), current_room_id_, 0, 0,
           zelda3::DefaultRoomObjectSizeForPlacement(id));
       ImGui::PopID();
+      column = (column + 1) % layout.columns;
     }
     if (entries.empty())
       ImGui::TextDisabled("No matches");

@@ -390,6 +390,10 @@ class Canvas {
     config_.custom_canvas_size = true;
   }
   float GetGlobalScale() const { return config_.global_scale; }
+  void SetGridEnabled(bool enabled) {
+    config_.enable_grid = enabled;
+    enable_grid_ = enabled;
+  }
   // COMPAT: prefer CanvasRuntime.scale for per-frame scale control
   void SetGlobalScale(float scale) { config_.global_scale = scale; }
   bool* GetCustomLabelsEnabled() { return &config_.enable_custom_labels; }
