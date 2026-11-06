@@ -31,6 +31,7 @@
 #include "zelda3/overworld/overworld_exit.h"
 #include "zelda3/overworld/overworld_item.h"
 #include "zelda3/overworld/overworld_map.h"
+#include "zelda3/overworld/overworld_terrain_io.h"
 #include "zelda3/overworld/overworld_version_helper.h"
 #include "zelda3/overworld/zscream_custom_layout.h"
 #include "zelda3/resource_labels.h"
@@ -1833,139 +1834,30 @@ absl::Status Overworld::SaveOverworldMaps() {
     RETURN_IF_ERROR(CreateTile32Tilemap())
   }
 
-  // Initialize map pointers
-  std::fill(map_pointers1_id.begin(), map_pointers1_id.end(), -1);
-  std::fill(map_pointers2_id.begin(), map_pointers2_id.end(), -1);
-
-  // Compress and save each map
-  int pos = kOverworldCompressedMapPos;
-  for (int i = 0; i < kNumOverworldMaps; i++) {
-    std::vector<uint8_t> single_map_1(512);
-    std::vector<uint8_t> single_map_2(512);
-
-    // Copy tiles32 data to single_map_1 and single_map_2
-    int npos = 0;
-    for (int y = 0; y < 16; y++) {
-      for (int x = 0; x < 16; x++) {
-        auto packed = tiles32_list_[npos + (i * 256)];
-        single_map_1[npos] = packed & 0xFF;         // Lower 8 bits
-        single_map_2[npos] = (packed >> 8) & 0xFF;  // Next 8 bits
-        npos++;
-      }
-    }
-
-    int size_a, size_b;
-    // Compress single_map_1 and single_map_2
-    auto a = gfx::HyruleMagicCompress(single_map_1.data(), 256, &size_a, 1);
-    auto b = gfx::HyruleMagicCompress(single_map_2.data(), 256, &size_b, 1);
-    if (a.empty() || b.empty()) {
-      return absl::AbortedError("Error compressing map gfx.");
-    }
-
-    // Save compressed data and pointers
-    map_data_p1[i] = std::vector<uint8_t>(size_a);
-    map_data_p2[i] = std::vector<uint8_t>(size_b);
-
-    if ((pos + size_a) >= 0x5FE70 && (pos + size_a) <= 0x60000) {
-      pos = 0x60000;
-    }
-
-    if ((pos + size_a) >= 0x6411F && (pos + size_a) <= 0x70000) {
-      util::logf("Pos set to overflow region for map %s at %s",
-                 std::to_string(i), util::HexLong(pos));
-      pos = kOverworldMapDataOverflow;  // 0x0F8780;
-    }
-
-    const auto compare_array = [](const std::vector<uint8_t>& array1,
-                                  const std::vector<uint8_t>& array2) -> bool {
-      if (array1.size() != array2.size()) {
-        return false;
-      }
-
-      for (size_t i = 0; i < array1.size(); i++) {
-        if (array1[i] != array2[i]) {
-          return false;
-        }
-      }
-
-      return true;
-    };
-
-    for (int j = 0; j < i; j++) {
-      if (compare_array(a, map_data_p1[j])) {
-        // Reuse pointer id j for P1 (a)
-        map_pointers1_id[i] = j;
-      }
-
-      if (compare_array(b, map_data_p2[j])) {
-        map_pointers2_id[i] = j;
-        // Reuse pointer id j for P2 (b)
-      }
-    }
-
-    if (map_pointers1_id[i] == -1) {
-      // Save compressed data and pointer for map1
-      std::copy(a.begin(), a.end(), map_data_p1[i].begin());
-      int snes_pos = PcToSnes(pos);
-      map_pointers1[i] = snes_pos;
-      util::logf("Saving map pointers1 and compressed data for map %s at %s",
-                 util::HexByte(i), util::HexLong(snes_pos));
-      RETURN_IF_ERROR(rom()->WriteLong(
-          version_constants().kCompressedAllMap32PointersLow + (3 * i),
-          snes_pos));
-      RETURN_IF_ERROR(rom()->WriteVector(pos, a));
-      pos += size_a;
-    } else {
-      // Save pointer for map1
-      int snes_pos = map_pointers1[map_pointers1_id[i]];
-      util::logf("Saving map pointers1 for map %s at %s", util::HexByte(i),
-                 util::HexLong(snes_pos));
-      RETURN_IF_ERROR(rom()->WriteLong(
-          version_constants().kCompressedAllMap32PointersLow + (3 * i),
-          snes_pos));
-    }
-
-    if ((pos + b.size()) >= 0x5FE70 && (pos + b.size()) <= 0x60000) {
-      pos = 0x60000;
-    }
-
-    if ((pos + b.size()) >= 0x6411F && (pos + b.size()) <= 0x70000) {
-      util::logf("Pos set to overflow region for map %s at %s",
-                 util::HexByte(i), util::HexLong(pos));
-      pos = kOverworldMapDataOverflow;
-    }
-
-    if (map_pointers2_id[i] == -1) {
-      // Save compressed data and pointer for map2
-      std::copy(b.begin(), b.end(), map_data_p2[i].begin());
-      int snes_pos = PcToSnes(pos);
-      map_pointers2[i] = snes_pos;
-      util::logf("Saving map pointers2 and compressed data for map %s at %s",
-                 util::HexByte(i), util::HexLong(snes_pos));
-      RETURN_IF_ERROR(rom()->WriteLong(
-          version_constants().kCompressedAllMap32PointersHigh + (3 * i),
-          snes_pos));
-      RETURN_IF_ERROR(rom()->WriteVector(pos, b));
-      pos += size_b;
-    } else {
-      // Save pointer for map2
-      int snes_pos = map_pointers2[map_pointers2_id[i]];
-      util::logf("Saving map pointers2 for map %s at %s", util::HexByte(i),
-                 util::HexLong(snes_pos));
-      RETURN_IF_ERROR(rom()->WriteLong(
-          version_constants().kCompressedAllMap32PointersHigh + (3 * i),
-          snes_pos));
-    }
+  const int map_count = resolved_layout_.materialized_model_slots;
+  if (tiles32_list_.size() < static_cast<size_t>(map_count) * 256) {
+    return absl::FailedPreconditionError(
+        "Overworld terrain model is incomplete");
   }
-
-  // Check if too many maps data
-  if (pos > kOverworldCompressedOverflowPos) {
-    util::logf("Too many maps data %s", util::HexLong(pos));
-    return absl::AbortedError("Too many maps data " + std::to_string(pos));
+  std::vector<OverworldTerrainPage> pages(map_count);
+  for (int map = 0; map < map_count; ++map) {
+    std::copy_n(tiles32_list_.begin() + map * 256, 256, pages[map].begin());
   }
-
+  OverworldTerrainStorage storage;
+  storage.high_table_pc = resolved_layout_.terrain_high_table_pc.value;
+  storage.low_table_pc = resolved_layout_.terrain_low_table_pc.value;
+  storage.map_count = map_count;
+  storage.stream_regions = {
+      {kOverworldCompressedMapPos, 0x5FE70, "overworld bank0B streams"},
+      {0x60000, 0x6411F, "overworld bank0C streams"},
+      {kOverworldMapDataOverflow, kOverworldCompressedOverflowPos,
+       "overworld overflow streams"}};
+  ASSIGN_OR_RETURN(auto plan, PlanOverworldTerrainSave(*rom_, storage, pages));
+  ScopedRomTransaction transaction(*rom_);
+  RETURN_IF_ERROR(ApplyOverworldTerrainSave(*rom_, plan));
   RETURN_IF_ERROR(SaveLargeMaps());
   StageSavedMapTiles();
+  transaction.Commit();
   return absl::OkStatus();
 }
 

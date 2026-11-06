@@ -1006,12 +1006,6 @@ class Overworld {
   std::array<std::vector<Sprite>, 3> all_sprites_;
   std::array<std::array<bool, 160>, 3> sprite_maps_loaded_{};
   DiggableTiles diggable_tiles_;
-  std::array<std::vector<uint8_t>, kNumOverworldMaps> map_data_p1;
-  std::array<std::vector<uint8_t>, kNumOverworldMaps> map_data_p2;
-  std::array<int, kNumOverworldMaps> map_pointers1_id;
-  std::array<int, kNumOverworldMaps> map_pointers2_id;
-  std::array<int, kNumOverworldMaps> map_pointers1;
-  std::array<int, kNumOverworldMaps> map_pointers2;
 };
 
 }  // namespace yaze::zelda3

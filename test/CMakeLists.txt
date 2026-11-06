@@ -656,6 +656,7 @@ if(YAZE_BUILD_TESTS)
     unit/editor/overworld_item_operations_test.cc
     unit/editor/overworld_editor_state_test.cc
     unit/zelda3/overworld_sprite_io_test.cc
+    unit/zelda3/overworld_terrain_io_test.cc
     unit/zelda3/cutscene_shot_test.cc
     unit/zelda3/gfx_group_persistence_test.cc
     unit/zelda3/gfx_sheet_inventory_test.cc
