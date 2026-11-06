@@ -50,6 +50,7 @@
 #include "core/rom_settings.h"
 #include "core/source_artifact_publisher.h"
 #include "editor/core/content_registry.h"
+#include "rom/lyra_layout_descriptor.h"
 #include "rom/rom.h"
 #include "rom/rom_diff.h"
 #include "rom/transaction.h"
@@ -800,7 +801,7 @@ absl::Status EditorManager::SaveRomInternal(
       lyra_layout.a0_terrain_write_supported;
   const bool native_terrain_save =
       lyra_layout.presence == rom::LyraLayoutPresence::kValid &&
-      lyra_layout.revision == 3;
+      rom::IsNativeSpecialOverworldLayout(lyra_layout);
   if (!lyra_terrain_save) {
     RETURN_IF_ERROR(current_rom->CheckLayoutSaveable());
   } else if (!save_as_filename.has_value()) {

@@ -4,6 +4,7 @@
 #include <iterator>
 #include <utility>
 
+#include "rom/lyra_layout_descriptor.h"
 #include "util/macro.h"
 
 namespace yaze::zelda3 {
@@ -49,6 +50,19 @@ Overworld::CaptureNativePropertyRecords() const {
       for (int phase = 0; phase < 3; ++phase) {
         add(kGraphics[phase], index, profile.sprite_graphics[phase]);
         add(kPalettes[phase], index, profile.sprite_palettes[phase]);
+      }
+    }
+    if (rom::IsNativeSpecialOverworldLayout(descriptor_layout_) &&
+        descriptor_layout_.revision == 4) {
+      add(410, index, map.native_appearance_flags());
+      if (index >= 0x80) {
+        std::vector<uint8_t> pal(256);
+        for (size_t i = 0; i < 128; ++i) {
+          const uint16_t w = map.native_appearance_bg_palette()[i];
+          pal[i * 2] = static_cast<uint8_t>(w);
+          pal[i * 2 + 1] = static_cast<uint8_t>(w >> 8);
+        }
+        records.push_back({411, static_cast<uint16_t>(index), std::move(pal)});
       }
     }
   }
@@ -121,8 +135,13 @@ Overworld::NativeModelState Overworld::CaptureNativeNonTerrainState() const {
       // changes the child's cached raw slot. Other child mutations stay refused.
       add(6, {child && value != loaded && value != parent_value ? value : -1});
     };
-    inherited(m.area_graphics(), old.graphics, parent.graphics);
-    inherited(m.area_palette(), old.palette, parent.palette);
+    if (m.uses_native_screen_appearance()) {
+      add(6, {-1});
+      add(6, {-1});
+    } else {
+      inherited(m.area_graphics(), old.graphics, parent.graphics);
+      inherited(m.area_palette(), old.palette, parent.palette);
+    }
     for (int phase = 0; phase < 4; ++phase)
       inherited(m.area_music(phase), old.music[phase], parent.music[phase]);
     for (int phase = 0; phase < 3; ++phase) {

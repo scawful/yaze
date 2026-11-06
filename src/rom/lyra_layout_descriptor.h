@@ -16,6 +16,8 @@ namespace yaze::rom {
 // This is the proposed overworld ROM format, not the separate SRAM event format.
 // Validation describes the stored layout; runtime and writer admission are
 // separate. Revisions 1/2 retain their original inspection/pilot contracts.
+// Revisions 3 and 4 share the native special-overworld descriptor at 0x147000;
+// revision 4 adds appearance records 410/411 (producer-defined addresses).
 enum class LyraLayoutPresence { kAbsent, kValid, kInvalid };
 
 struct LyraLayoutEntry {
@@ -43,6 +45,11 @@ struct LyraLayoutInspection {
   std::string error;
   std::vector<LyraLayoutEntry> entries;
 };
+
+inline bool IsNativeSpecialOverworldLayout(const LyraLayoutInspection& layout) {
+  return layout.presence == LyraLayoutPresence::kValid &&
+         (layout.revision == 3 || layout.revision == 4);
+}
 
 // The input is a headerless ROM image. The caller owns session attribution:
 // an attributed image remains protected even if a later in-memory edit removes

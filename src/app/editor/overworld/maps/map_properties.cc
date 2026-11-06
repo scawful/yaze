@@ -23,6 +23,7 @@
 #include "app/gui/core/ui_helpers.h"
 #include "app/gui/widgets/themed_widgets.h"
 #include "imgui/imgui.h"
+#include "rom/lyra_layout_descriptor.h"
 #include "util/macro.h"
 #include "zelda3/overworld/overworld_layout.h"
 #include "zelda3/overworld/overworld_map.h"
@@ -45,13 +46,33 @@ bool IsValidMapId(int map_id, const zelda3::Overworld* overworld) {
          map_id < overworld->materialized_map_count();
 }
 
-int EffectivePropertyMapId(zelda3::Overworld* overworld, int map_id) {
+int EffectivePropertyMapId(
+    zelda3::Overworld* overworld, int map_id,
+    OverworldPropertyField field = OverworldPropertyField::kAreaSize) {
   if (!overworld || !IsValidMapId(map_id, overworld)) {
     return map_id;
   }
   auto* map = overworld->mutable_overworld_map(map_id);
   if (!map) {
     return map_id;
+  }
+  if (field == OverworldPropertyField::kScreenAppearance ||
+      field == OverworldPropertyField::kScreenColor)
+    return map_id;
+  if (map->uses_native_screen_appearance()) {
+    switch (field) {
+      case OverworldPropertyField::kAreaGraphics:
+      case OverworldPropertyField::kAreaPalette:
+      case OverworldPropertyField::kMainPalette:
+      case OverworldPropertyField::kAnimatedGraphics:
+      case OverworldPropertyField::kCustomTileset:
+      case OverworldPropertyField::kAreaSpecificBgColor:
+      case OverworldPropertyField::kSubscreenOverlay:
+      case OverworldPropertyField::kMosaicExpanded:
+        return map_id;
+      default:
+        break;
+    }
   }
   const int parent = map->parent();
   if (!IsValidMapId(parent, overworld)) {
@@ -73,14 +94,31 @@ absl::Status CheckFieldSupported(const Rom* rom,
   RETURN_IF_ERROR(layout.CheckOperation(
       zelda3::OverworldLayoutDomain::kMapProperties,
       zelda3::OverworldLayoutOperation::kMutateModel, edit.map_id, 0));
-  if (layout.lyra_layout.revision == 3) {
+  if (edit.field == OverworldPropertyField::kScreenAppearance ||
+      edit.field == OverworldPropertyField::kScreenColor) {
+    RETURN_IF_ERROR(rom->CheckLayoutSaveable());
+    if (!rom::IsNativeSpecialOverworldLayout(layout.lyra_layout) ||
+        layout.lyra_layout.revision != 4 || edit.map_id < 0x80)
+      return absl::FailedPreconditionError(
+          "This ROM has no screen appearance source records");
+    if (edit.field == OverworldPropertyField::kScreenAppearance) {
+      if (edit.value != 0 && edit.value != 1 && edit.value != 3)
+        return absl::InvalidArgumentError("Invalid screen appearance mode");
+    } else if (edit.index < 0 || edit.index >= 128 || edit.value < 0 ||
+               edit.value > 0x7FFF) {
+      return absl::InvalidArgumentError(
+          "Screen colors require a background index and BGR555 value");
+    }
+    return absl::OkStatus();
+  }
+  if (rom::IsNativeSpecialOverworldLayout(layout.lyra_layout)) {
     RETURN_IF_ERROR(rom->CheckLayoutSaveable());
 
     if (edit.field == OverworldPropertyField::kMosaic)
       return absl::FailedPreconditionError(
           "Edit native mosaic quadrants instead of the legacy mosaic flag");
     const int owner = EffectivePropertyMapId(
-        const_cast<zelda3::Overworld*>(overworld), edit.map_id);
+        const_cast<zelda3::Overworld*>(overworld), edit.map_id, edit.field);
     if (owner < 128 && (edit.field == OverworldPropertyField::kSpriteGraphics ||
                         edit.field == OverworldPropertyField::kSpritePalette))
       return absl::FailedPreconditionError(
@@ -301,11 +339,13 @@ void MapPropertiesSystem::DrawCustomBackgroundColorEditor(
   // Read enable flag from ROM (not static - must reflect current ROM state)
   bool use_area_specific_bg_color =
       (*rom_)[zelda3::OverworldCustomAreaSpecificBGEnabled] != 0x00;
-  ImGui::BeginDisabled(overworld_->resolved_layout().lyra_layout.revision == 3);
+  ImGui::BeginDisabled(rom::IsNativeSpecialOverworldLayout(
+      overworld_->resolved_layout().lyra_layout));
   if (ImGui::Checkbox(tr("Use Area-Specific Background Color"),
                       &use_area_specific_bg_color)) {
     // Update ROM data when checkbox is toggled
-    if (overworld_->resolved_layout().lyra_layout.revision != 3)
+    if (!rom::IsNativeSpecialOverworldLayout(
+            overworld_->resolved_layout().lyra_layout))
       (*rom_)[zelda3::OverworldCustomAreaSpecificBGEnabled] =
           use_area_specific_bg_color ? 0x01 : 0x00;
   }
@@ -314,7 +354,8 @@ void MapPropertiesSystem::DrawCustomBackgroundColorEditor(
 
   if (use_area_specific_bg_color) {
     // The edit targets the area parent; display that same persistent value.
-    const int property_map = EffectivePropertyMapId(overworld_, current_map);
+    const int property_map = EffectivePropertyMapId(
+        overworld_, current_map, OverworldPropertyField::kAreaSpecificBgColor);
     const auto* map = overworld_->overworld_map(property_map);
     if (!map) {
       return;
@@ -390,11 +431,13 @@ void MapPropertiesSystem::DrawOverlayEditor(int current_map,
   // Read enable flag from ROM (not static - must reflect current ROM state)
   bool use_subscreen_overlay =
       (*rom_)[zelda3::OverworldCustomSubscreenOverlayEnabled] != 0x00;
-  ImGui::BeginDisabled(overworld_->resolved_layout().lyra_layout.revision == 3);
+  ImGui::BeginDisabled(rom::IsNativeSpecialOverworldLayout(
+      overworld_->resolved_layout().lyra_layout));
   if (ImGui::Checkbox(ICON_MD_VISIBILITY " Enable Visual Effect for This Area",
                       &use_subscreen_overlay)) {
     // Update ROM data when checkbox is toggled
-    if (overworld_->resolved_layout().lyra_layout.revision != 3)
+    if (!rom::IsNativeSpecialOverworldLayout(
+            overworld_->resolved_layout().lyra_layout))
       (*rom_)[zelda3::OverworldCustomSubscreenOverlayEnabled] =
           use_subscreen_overlay ? 0x01 : 0x00;
   }
@@ -802,7 +845,7 @@ absl::StatusOr<int> MapPropertiesSystem::ReadPropertyValue(
     return absl::FailedPreconditionError("Overworld is not available");
   }
   const int map_id = EffectivePropertyMapId(
-      const_cast<zelda3::Overworld*>(overworld_), edit.map_id);
+      const_cast<zelda3::Overworld*>(overworld_), edit.map_id, edit.field);
   if (!IsValidMapId(map_id, overworld_)) {
     return absl::InvalidArgumentError(
         absl::StrFormat("Invalid overworld map: %d", edit.map_id));
@@ -814,6 +857,13 @@ absl::StatusOr<int> MapPropertiesSystem::ReadPropertyValue(
   }
 
   switch (edit.field) {
+    case OverworldPropertyField::kScreenAppearance:
+      return map->native_appearance_flags();
+    case OverworldPropertyField::kScreenColor:
+      if (edit.index < 0 || edit.index >= 128)
+        return absl::InvalidArgumentError(
+            "Invalid screen background color index");
+      return map->native_appearance_bg_palette()[edit.index];
     case OverworldPropertyField::kAreaSize:
       return static_cast<int>(map->area_size());
     case OverworldPropertyField::kAreaGraphics:
@@ -852,7 +902,8 @@ absl::Status MapPropertiesSystem::ApplyPropertyEditDirect(
     return absl::FailedPreconditionError(
         "Overworld property editing requires loaded overworld data and ROM");
   }
-  const int map_id = EffectivePropertyMapId(overworld_, edit.map_id);
+  const int map_id =
+      EffectivePropertyMapId(overworld_, edit.map_id, edit.field);
   if (!IsValidMapId(map_id, overworld_)) {
     return absl::InvalidArgumentError(
         absl::StrFormat("Invalid overworld map: %d", edit.map_id));
@@ -869,8 +920,26 @@ absl::Status MapPropertiesSystem::ApplyPropertyEditDirect(
   }
 
   const int game_state = std::clamp(edit.index, 0, 2);
-  const bool native = overworld_->resolved_layout().lyra_layout.revision == 3;
+  const bool native = rom::IsNativeSpecialOverworldLayout(
+      overworld_->resolved_layout().lyra_layout);
   switch (edit.field) {
+    case OverworldPropertyField::kScreenAppearance: {
+      ASSIGN_OR_RETURN(auto snapshot, overworld_->CaptureNativeAreaSnapshot());
+      snapshot.pages[map_id].appearance_flags =
+          static_cast<uint8_t>(edit.value);
+      RETURN_IF_ERROR(overworld_->RestoreNativeAreaSnapshot(snapshot));
+      RefreshMapProperties(map_id);
+      RefreshOverworldMap();
+      break;
+    }
+    case OverworldPropertyField::kScreenColor: {
+      auto colors = map->native_appearance_bg_palette();
+      colors[edit.index] = static_cast<uint16_t>(edit.value);
+      map->set_native_appearance_bg_palette(colors);
+      RETURN_IF_ERROR(RefreshMapPalette(map_id));
+      RefreshOverworldMap();
+      break;
+    }
     case OverworldPropertyField::kAreaSize: {
       const auto size = static_cast<zelda3::AreaSizeEnum>(edit.value);
       auto status = overworld_->ConfigureMultiAreaMap(map_id, size);
@@ -952,7 +1021,8 @@ absl::Status MapPropertiesSystem::ApplyPropertyEditDirect(
       if (native && map_id >= 64 && map_id < 160)
         for (int phase = 0; phase < 4; ++phase)
           *map->mutable_area_music(phase) = static_cast<uint8_t>(edit.value);
-      if (overworld_->resolved_layout().lyra_layout.revision != 3)
+      if (!rom::IsNativeSpecialOverworldLayout(
+              overworld_->resolved_layout().lyra_layout))
         WriteRomByteIfValid(rom_,
                             MusicRomAddressForMapState(map_id, music_state),
                             static_cast<uint8_t>(edit.value));
@@ -971,7 +1041,8 @@ absl::Status MapPropertiesSystem::ApplyPropertyEditDirect(
       break;
     case OverworldPropertyField::kAreaSpecificBgColor:
       map->set_area_specific_bg_color(static_cast<uint16_t>(edit.value));
-      if (overworld_->resolved_layout().lyra_layout.revision != 3)
+      if (!rom::IsNativeSpecialOverworldLayout(
+              overworld_->resolved_layout().lyra_layout))
         WriteRomWordIfValid(
             rom_, zelda3::OverworldCustomAreaSpecificBGPalette + (map_id * 2),
             static_cast<uint16_t>(edit.value));
@@ -980,7 +1051,8 @@ absl::Status MapPropertiesSystem::ApplyPropertyEditDirect(
       break;
     case OverworldPropertyField::kSubscreenOverlay:
       map->set_subscreen_overlay(static_cast<uint16_t>(edit.value));
-      if (overworld_->resolved_layout().lyra_layout.revision != 3)
+      if (!rom::IsNativeSpecialOverworldLayout(
+              overworld_->resolved_layout().lyra_layout))
         WriteRomWordIfValid(
             rom_, zelda3::OverworldCustomSubscreenOverlayArray + (map_id * 2),
             static_cast<uint16_t>(edit.value));

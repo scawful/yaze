@@ -125,7 +125,7 @@ bool InStreamWindow(uint32_t pc) {
 
 bool StreamPointerPc(size_t size, uint32_t snes, uint32_t* pc,
                      const LyraLayoutInspection* layout = nullptr) {
-  if (layout != nullptr && layout->revision == 3) {
+  if (layout != nullptr && IsNativeSpecialOverworldLayout(*layout)) {
     if (!NativeToPc(snes, pc) || *pc >= size)
       return false;
     return std::any_of(layout->entries.begin(), layout->entries.end(),
@@ -144,7 +144,7 @@ bool DecodeStream(const uint8_t* image, size_t size, uint32_t start,
                   size_t* consumed_end = nullptr,
                   const LyraLayoutInspection* layout = nullptr) {
   size_t limit = std::min<size_t>(size, ((start / 0x8000) + 1) * 0x8000);
-  if (layout != nullptr && layout->revision == 3) {
+  if (layout != nullptr && IsNativeSpecialOverworldLayout(*layout)) {
     bool found = false;
     for (const auto& e : layout->entries) {
       if (e.kind == 3 && start >= e.pc_address &&
@@ -253,7 +253,8 @@ bool CheckSpritePointer(const uint8_t* image, size_t size, uint16_t word) {
   return false;
 }
 
-std::optional<EntrySpec> NativeSpec(uint16_t id, uint16_t capacity) {
+std::optional<EntrySpec> NativeSpec(uint16_t id, uint16_t capacity,
+                                    uint16_t revision) {
   constexpr std::array<uint16_t, 39> kStrides = {
       2, 1, 1, 1, 2, 8, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3,
       3, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
@@ -275,24 +276,29 @@ std::optional<EntrySpec> NativeSpec(uint16_t id, uint16_t capacity) {
     return EntrySpec{id, 7, 4096, 8};
   if (id >= 401 && id <= 404)
     return EntrySpec{id, 7, 4432, 6};
+  if (revision == 4 && id == 410)
+    return EntrySpec{id, 8, capacity, 1};
+  if (revision == 4 && id == 411)
+    return EntrySpec{id, 8, 64, 256};
   return std::nullopt;
 }
 
 LyraLayoutInspection InspectNativeLayout(const uint8_t* image, size_t size,
-                                         const uint8_t* d) {
+                                         const uint8_t* d, uint16_t revision) {
   const uint16_t capacity = U16(d + 0x0E);
   const uint16_t materialized = U16(d + 0x10);
   auto bad = [&](std::string error) {
-    return Invalid(std::move(error), 3, capacity, materialized);
+    return Invalid(std::move(error), revision, capacity, materialized);
   };
-  constexpr size_t kNativeEntryCount = 54;
-  constexpr size_t kUsedSize = kHeaderSize + kNativeEntryCount * kEntrySize;
-  if (U16(d + 0x0A) != kHeaderSize || U16(d + 0x0C) != kUsedSize ||
-      U16(d + 0x12) != kNativeEntryCount) {
+  const size_t kNativeEntryCount = revision == 4 ? 56 : 54;
+  const size_t kUsedSize = kHeaderSize + kNativeEntryCount * kEntrySize;
+  const uint8_t expected_flags = revision == 4 ? 0x1C : 0x0C;
+  if (U16(d + 8) != revision || U16(d + 0x0A) != kHeaderSize ||
+      U16(d + 0x0C) != kUsedSize || U16(d + 0x12) != kNativeEntryCount) {
     return bad("Invalid native special-overworld directory size");
   }
   if ((capacity != 160 && capacity != 192) || materialized != capacity ||
-      d[0x15] != 0x0C || U16(d + 0x16) != 2 * capacity) {
+      d[0x15] != expected_flags || U16(d + 0x16) != 2 * capacity) {
     return bad(
         "Invalid native special-overworld capacity, flags or phase stride");
   }
@@ -312,7 +318,7 @@ LyraLayoutInspection InspectNativeLayout(const uint8_t* image, size_t size,
   }
   LyraLayoutInspection result;
   result.presence = LyraLayoutPresence::kValid;
-  result.revision = 3;
+  result.revision = revision;
   result.capacity = capacity;
   result.active_count = materialized;
   result.tail_actor_bank = d[0x14];
@@ -323,7 +329,7 @@ LyraLayoutInspection InspectNativeLayout(const uint8_t* image, size_t size,
     const uint8_t* p = d + kHeaderSize + i * kEntrySize;
     LyraLayoutEntry e{U16(p),     U16(p + 2),  U32(p + 4), 0,
                       U16(p + 8), U16(p + 10), U32(p + 12)};
-    const auto spec = NativeSpec(e.id, capacity);
+    const auto spec = NativeSpec(e.id, capacity, revision);
     if (!spec || e.kind != spec->kind || e.stride != spec->stride ||
         e.count == 0 || (spec->count != 0 && e.count != spec->count) ||
         FindEntry(result, e.id) != nullptr) {
@@ -488,6 +494,30 @@ LyraLayoutInspection InspectNativeLayout(const uint8_t* image, size_t size,
                     image + prefix))
       return bad("Native terrain pointer mirrors disagree");
   }
+  if (revision == 4) {
+    const auto* appear = FindEntry(result, 410);
+    const auto* pal_rows = FindEntry(result, 411);
+    if (!appear || !pal_rows)
+      return bad("Native revision-4 appearance directory entries missing");
+    if (appear->kind != 8 || appear->stride != 1 || appear->count != capacity ||
+        pal_rows->kind != 8 || pal_rows->stride != 256 || pal_rows->count != 64)
+      return bad("Native revision-4 appearance entry shape invalid");
+    for (size_t map = 0; map < capacity; ++map) {
+      const uint8_t flags = image[appear->pc_address + map];
+      if (flags > 3)
+        return bad("Native revision-4 appearance flags invalid");
+      if ((flags & 2) != 0 && (flags & 1) == 0)
+        return bad("Native revision-4 fullBG requires physical BG profile");
+      if (map >= materialized && flags != 0)
+        return bad("Native revision-4 inactive screen appearance nonzero");
+      if (map < 0x80 && flags != 0)
+        return bad("Native revision-4 rough area appearance flags nonzero");
+    }
+    // Dormant colors remain authored data, including unused physical slots.
+    for (size_t word = 0; word < 64 * 128; ++word)
+      if (U16(image + pal_rows->pc_address + word * 2) > 0x7FFF)
+        return bad("Native revision-4 palette word out of range");
+  }
   return result;
 }
 
@@ -509,13 +539,18 @@ LyraLayoutInspection InspectLyraLayout(const uint8_t* image, size_t size) {
       U16(d + 0x0E) == 192 && (U16(d + 0x10) == 160 || U16(d + 0x10) == 161) &&
       (U16(d + 0x12) == kRevision1EntryCount || U16(d + 0x12) == kEntryCount) &&
       U16(d + kHeaderSize) == 1 && U16(d + kHeaderSize + 2) == 1;
-  const bool native_header =
+  const bool native_header_rev3 =
       available == kDescriptorSize && U16(d + 8) == 3 &&
       U16(d + 0x0A) == kHeaderSize && U16(d + 0x0C) == 896 &&
       (U16(d + 0x0E) == 160 || U16(d + 0x0E) == 192) &&
-      U16(d + 0x10) == U16(d + 0x0E) && U16(d + 0x12) == 54;
+      U16(d + 0x10) == U16(d + 0x0E) && U16(d + 0x12) == 54 && d[0x15] == 0x0C;
+  const bool native_header_rev4 =
+      available == kDescriptorSize && U16(d + 8) == 4 &&
+      U16(d + 0x0A) == kHeaderSize && U16(d + 0x0C) == 928 &&
+      (U16(d + 0x0E) == 160 || U16(d + 0x0E) == 192) &&
+      U16(d + 0x10) == U16(d + 0x0E) && U16(d + 0x12) == 56 && d[0x15] == 0x1C;
   bool native_fingerprint = false;
-  if (native_header) {
+  if (native_header_rev3 || native_header_rev4) {
     auto has_record = [&](uint16_t id, uint16_t kind, uint16_t count,
                           uint16_t stride) {
       for (size_t i = 0; i < U16(d + 0x12); ++i) {
@@ -526,9 +561,14 @@ LyraLayoutInspection InspectLyraLayout(const uint8_t* image, size_t size) {
       }
       return false;
     };
-    native_fingerprint = has_record(1, 1, U16(d + 0x0E), 2) &&
-                         has_record(20, 1, U16(d + 0x0E), 3) &&
+    const uint16_t cap = U16(d + 0x0E);
+    native_fingerprint = has_record(1, 1, cap, 2) &&
+                         has_record(20, 1, cap, 3) &&
                          has_record(400, 7, 4096, 8);
+    if (native_header_rev4) {
+      native_fingerprint = native_fingerprint && has_record(410, 8, cap, 1) &&
+                           has_record(411, 8, 64, 256);
+    }
   }
   if (!signature_prefix && !legacy_fingerprint && !native_fingerprint) {
     return absent;
@@ -543,8 +583,8 @@ LyraLayoutInspection InspectLyraLayout(const uint8_t* image, size_t size) {
   const uint16_t revision = U16(d + 8);
   const uint16_t capacity = U16(d + 0x0E);
   const uint16_t active = U16(d + 0x10);
-  if (revision == 3)
-    return InspectNativeLayout(image, size, d);
+  if (revision == 3 || revision == 4)
+    return InspectNativeLayout(image, size, d, revision);
   auto bad = [&](std::string error) {
     return Invalid(std::move(error), revision, capacity, active);
   };
@@ -743,7 +783,10 @@ std::optional<std::span<const uint8_t>> LyraLayoutRecord(
     if (entry.id != table_id) {
       continue;
     }
-    if (entry.kind != 1 || index >= entry.count) {
+    if (index >= entry.count) {
+      return std::nullopt;
+    }
+    if (entry.kind != 1 && entry.kind != 8) {
       return std::nullopt;
     }
     const size_t start = entry.pc_address + index * entry.stride;
@@ -789,19 +832,20 @@ absl::StatusOr<std::vector<uint8_t>> SealNativeOverworldTerrain(
     std::span<const NativeOverworldPropertyEdit> properties,
     std::span<const NativeOverworldSpriteEdit> sprites) {
   const auto layout = InspectLyraLayout(baseline.data(), baseline.size());
-  if (layout.presence != LyraLayoutPresence::kValid || layout.revision != 3 ||
+  if (layout.presence != LyraLayoutPresence::kValid ||
+      !IsNativeSpecialOverworldLayout(layout) ||
       candidate.size() != baseline.size()) {
     return absl::FailedPreconditionError(
         "Native terrain publication requires a valid unchanged image extent");
   }
-  auto writable = [](uint16_t id) {
+  auto writable_table = [](uint16_t id) {
     return id == 20 || id == 21 || (id >= 210 && id <= 213) ||
            (id >= 400 && id <= 404);
   };
   std::vector<std::pair<size_t, size_t>> ranges = {
       {0x1794D, 0x1794D + 160 * 3}, {0x17B2D, 0x17B2D + 160 * 3}};
   for (const auto& e : layout.entries)
-    if (writable(e.id))
+    if (writable_table(e.id))
       ranges.emplace_back(e.pc_address, e.pc_address + e.count * e.stride);
   for (size_t pc = 0; pc < baseline.size(); ++pc) {
     if (baseline[pc] == candidate[pc])
@@ -860,8 +904,44 @@ absl::StatusOr<std::vector<uint8_t>> SealNativeOverworldTerrain(
             edited_slots.end())
       return absl::InvalidArgumentError(
           "Invalid, unsupported or duplicate native property edit");
+    if (layout.revision == 3 &&
+        (edit.table_id == 410 || edit.table_id == 411)) {
+      return absl::FailedPreconditionError(
+          "Native revision-3 layout has no appearance tables 410/411");
+    }
+    if (edit.table_id == 410) {
+      const uint8_t f = edit.value[0];
+      if (edit.map_id >= layout.active_count)
+        return absl::InvalidArgumentError(
+            "Native appearance edit beyond materialized map capacity");
+      if (f > 3)
+        return absl::InvalidArgumentError(
+            "Native appearance flags use only bits 0..1");
+      if ((f & 2) != 0 && (f & 1) == 0)
+        return absl::InvalidArgumentError(
+            "Native appearance fullBG requires physical BG profile (bit0)");
+      if (edit.map_id < 0x80 && f != 0)
+        return absl::InvalidArgumentError(
+            "Native appearance flags are reserved for maps 0x80 and above");
+    }
+    if (edit.table_id == 411) {
+      for (size_t c = 0; c < 128; ++c) {
+        const uint16_t word = static_cast<uint16_t>(
+            edit.value[c * 2] | (edit.value[c * 2 + 1] << 8));
+        if (word > 0x7FFF)
+          return absl::InvalidArgumentError(
+              "Native appearance palette uses BGR555 words 0..32767");
+      }
+      if (edit.map_id >= layout.active_count || edit.map_id < 0x80)
+        return absl::InvalidArgumentError(
+            "Native appearance palette row index invalid for materialized map");
+    }
     edited_slots.push_back(key);
-    const size_t at = entry->pc_address + edit.map_id * entry->stride;
+    const size_t row = edit.table_id == 411 ? edit.map_id - 0x80 : edit.map_id;
+    if (row >= entry->count)
+      return absl::InvalidArgumentError(
+          "Native property row is outside its table");
+    const size_t at = entry->pc_address + row * entry->stride;
     // A valid directory may relocate a full-capacity table onto an original
     // shorter table. Its tail must not become permission to change the next
     // native family, even when all directory CRCs would still validate.
@@ -869,6 +949,8 @@ absl::StatusOr<std::vector<uint8_t>> SealNativeOverworldTerrain(
          {std::span<const PropertyStorage>(kProperties),
           std::span<const PropertyStorage>(kOtherNativeStorage)}) {
       for (const auto& native : native_ranges) {
+        if (native.native_pc == 0)
+          continue;
         const size_t stride =
             native.id >= 500 ? 1 : FindEntry(layout, native.id)->stride;
         const size_t end = native.native_pc + native.native_count * stride;
@@ -895,7 +977,8 @@ absl::StatusOr<std::vector<uint8_t>> SealNativeOverworldTerrain(
   }
   for (const auto& edit : properties) {
     const auto& entry = *FindEntry(layout, edit.table_id);
-    const size_t at = entry.pc_address + edit.map_id * entry.stride;
+    const size_t row = edit.table_id == 411 ? edit.map_id - 0x80 : edit.map_id;
+    const size_t at = entry.pc_address + row * entry.stride;
     if (std::equal(candidate.begin() + at,
                    candidate.begin() + at + entry.stride,
                    baseline.begin() + at))
@@ -930,7 +1013,8 @@ absl::StatusOr<std::vector<uint8_t>> SealNativeOverworldTerrain(
         return absl::FailedPreconditionError(
             "Native property phases share one legacy slot");
     }
-    if (edit.map_id >= storage.native_first + storage.native_count)
+    if (storage.native_pc == 0 || storage.native_count == 0 ||
+        edit.map_id >= storage.native_first + storage.native_count)
       continue;
     const size_t native =
         storage.native_pc + (edit.map_id - storage.native_first) * entry.stride;
@@ -958,7 +1042,7 @@ absl::StatusOr<std::vector<uint8_t>> SealNativeOverworldTerrain(
   };
   for (size_t i = 0; i < layout.entries.size(); ++i) {
     const auto& e = layout.entries[i];
-    if (writable(e.id) ||
+    if (writable_table(e.id) ||
         (!sprites.empty() && (e.id == 100 || (e.id >= 16 && e.id <= 18))) ||
         std::find(changed_properties.begin(), changed_properties.end(), e.id) !=
             changed_properties.end())
@@ -969,7 +1053,8 @@ absl::StatusOr<std::vector<uint8_t>> SealNativeOverworldTerrain(
   put32(kDescriptorPc + 28,
         Crc32(candidate.data() + kDescriptorPc, kDescriptorSize));
   const auto checked = InspectLyraLayout(candidate.data(), candidate.size());
-  if (checked.presence != LyraLayoutPresence::kValid || checked.revision != 3)
+  if (checked.presence != LyraLayoutPresence::kValid ||
+      !IsNativeSpecialOverworldLayout(checked))
     return absl::FailedPreconditionError(
         "Native terrain candidate is invalid: " + checked.error);
   return candidate;

@@ -3,6 +3,7 @@
 #include <algorithm>
 
 #include "app/editor/overworld/entity/entity_operations.h"
+#include "rom/lyra_layout_descriptor.h"
 #include "zelda3/overworld/overworld.h"
 
 namespace yaze {
@@ -135,8 +136,8 @@ EntityMutationService::MutationResult EntityMutationService::DeleteSprite(
         zelda3::OverworldLayoutDomain::kSprites,
         zelda3::OverworldLayoutOperation::kMutateModel, sprite->map_id(),
         game_state);
-    if (result.status.ok() &&
-        overworld_.rom()->InspectLyraLayout().revision == 3)
+    if (result.status.ok() && rom::IsNativeSpecialOverworldLayout(
+                                  overworld_.rom()->InspectLyraLayout()))
       result.status = overworld_.rom()->CheckLayoutSaveable();
     if (!result.status.ok())
       return result;

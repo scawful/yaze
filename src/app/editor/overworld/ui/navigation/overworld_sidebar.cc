@@ -100,10 +100,12 @@ void OverworldSidebar::Draw(int& current_world, int& current_map,
     // Multi-area maps store their properties on the parent.
     const int parent = selected->parent();
     const int property_map =
-        (parent >= 0 && parent < zelda3::kNumOverworldMaps &&
+        (parent >= 0 && parent < overworld_->materialized_map_count() &&
          overworld_->overworld_map(parent))
             ? parent
             : current_map;
+    const int appearance_map =
+        selected->uses_native_screen_appearance() ? current_map : property_map;
     if (edit_error_map_ != property_map) {
       edit_error_map_ = property_map;
       edit_error_.clear();
@@ -117,17 +119,18 @@ void OverworldSidebar::Draw(int& current_world, int& current_map,
     }
     if (ImGui::CollapsingHeader(tr("Graphics"),
                                 ImGuiTreeNodeFlags_DefaultOpen)) {
-      DrawGraphicsSection(property_map, game_state);
+      DrawGraphicsSection(appearance_map, game_state);
     }
     if (ImGui::CollapsingHeader(tr("Palettes"),
                                 ImGuiTreeNodeFlags_DefaultOpen)) {
-      DrawPaletteSection(property_map, game_state, show_custom_bg_color_editor);
+      DrawPaletteSection(appearance_map, game_state,
+                         show_custom_bg_color_editor);
     }
     if (ImGui::CollapsingHeader(tr("Music"))) {
       DrawMusicSection(property_map);
     }
     if (ImGui::CollapsingHeader(tr("Effects"))) {
-      DrawEffectsSection(property_map, show_overlay_editor);
+      DrawEffectsSection(appearance_map, show_overlay_editor);
     }
 
     if (!edit_error_.empty()) {

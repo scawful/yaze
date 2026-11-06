@@ -14,6 +14,7 @@
 #include "app/gfx/types/snes_palette.h"
 #include "app/gfx/types/snes_tile.h"
 #include "core/rom_settings.h"
+#include "rom/lyra_layout_descriptor.h"
 #include "rom/rom.h"
 #include "zelda3/game_data.h"
 #include "zelda3/graphics/resolved_graphics_context.h"
@@ -423,6 +424,21 @@ class OverworldMap : public gfx::GfxContext {
   uint16_t render_subscreen_overlay() const {
     return area_render_properties().subscreen_overlay;
   }
+  /// Native revision-4 per-physical-page appearance flags (table 410); 0 if absent.
+  uint8_t native_appearance_flags() const { return appearance_flags_; }
+  bool uses_native_screen_appearance() const {
+    return descriptor_layout_ &&
+           rom::IsNativeSpecialOverworldLayout(*descriptor_layout_) &&
+           descriptor_layout_->revision == 4 && (appearance_flags_ & 1) != 0;
+  }
+  void set_native_appearance_flags(uint8_t flags) { appearance_flags_ = flags; }
+  /// Raw authored colors persist independently of the override presence flag.
+  void set_native_appearance_bg_palette(std::array<uint16_t, 128> row) {
+    appearance_bg_palette_ = std::move(row);
+  }
+  const std::array<uint16_t, 128>& native_appearance_bg_palette() const {
+    return appearance_bg_palette_;
+  }
 
   /// Sheet whose top half is shown in graphics slot 7 (animated water/lava
   /// frame 0). Resolved by LoadAreaGraphics().
@@ -613,6 +629,9 @@ class OverworldMap : public gfx::GfxContext {
   uint8_t animated_sheet_ = 0;  // Sheet for the top half of slot 7
   uint64_t bitmap_serial_ = 0;
   std::optional<AreaRenderProperties> inherited_area_;
+  /// Table 410 byte: bit0 = physical-page BG profile; bit1 = full BG128 palette row.
+  uint8_t appearance_flags_ = 0;
+  std::array<uint16_t, 128> appearance_bg_palette_{};
   std::array<uint8_t, 8> loaded_area_info_{};
   std::array<uint8_t, 8> raw_area_info_{};
   int loaded_area_info_parent_ = -1;

@@ -5,6 +5,7 @@
 #include <atomic>
 #include <cstddef>
 #include <cstdint>
+#include <span>
 #include <unordered_map>
 #include <vector>
 
@@ -14,9 +15,11 @@
 #include "app/gfx/types/snes_palette.h"
 #include "app/gfx/types/snes_tile.h"
 #include "core/features.h"
+#include "rom/lyra_layout_descriptor.h"
 #include "rom/rom.h"
 #include "util/macro.h"
 #include "zelda3/common.h"
+#include "zelda3/overworld/lyra_terrain_source.h"
 #include "zelda3/overworld/overworld.h"
 #include "zelda3/overworld/overworld_version_helper.h"
 
@@ -183,7 +186,8 @@ absl::StatusOr<OverworldMap> OverworldMap::CreateFromLayout(
                    /*skip_legacy_data=*/true);
   map.descriptor_layout_ = std::move(layout);
   RETURN_IF_ERROR(map.LoadLayoutProperties());
-  if (map.descriptor_layout_->revision == 3 && map.parent_ != index) {
+  if (rom::IsNativeSpecialOverworldLayout(*map.descriptor_layout_) &&
+      map.parent_ != index) {
     OverworldMap parent(map.parent_, rom, game_data, /*seed_area_parent=*/false,
                         /*skip_legacy_data=*/true);
     parent.descriptor_layout_ = map.descriptor_layout_;
@@ -216,8 +220,27 @@ absl::Status OverworldMap::LoadLayoutProperties() {
   }
   area_size_ = static_cast<AreaSizeEnum>(size[0]);
   large_map_ = area_size_ == AreaSizeEnum::LargeArea;
-  const bool native = descriptor_layout_->revision == 3;
-  const size_t persistent = native ? index_ : parent_;
+  const bool native_special =
+      rom::IsNativeSpecialOverworldLayout(*descriptor_layout_);
+  appearance_flags_ = 0;
+  appearance_bg_palette_.fill(0);
+  if (native_special && descriptor_layout_->revision == 4) {
+    auto appear = rom::LyraLayoutRecord(*descriptor_layout_, rom_->data(),
+                                        rom_->size(), 410, index_);
+    if (!appear || appear->size() < 1) {
+      return absl::FailedPreconditionError(
+          "Native revision-4 appearance flags unavailable");
+    }
+    appearance_flags_ = (*appear)[0];
+    if (index_ >= 0x80) {
+      ASSIGN_OR_RETURN(auto row, read(411, index_ - 0x80));
+      for (size_t color = 0; color < appearance_bg_palette_.size(); ++color)
+        appearance_bg_palette_[color] =
+            static_cast<uint16_t>(row[color * 2] | (row[color * 2 + 1] << 8));
+    }
+  }
+  // Native source slots stay raw; render inheritance is resolved separately.
+  const size_t persistent = native_special ? index_ : parent_;
   ASSIGN_OR_RETURN(auto bg, read(1, persistent));
   area_specific_bg_color_ = static_cast<uint16_t>(bg[0] | (bg[1] << 8));
   ASSIGN_OR_RETURN(auto palette, read(2, persistent));
@@ -233,13 +256,15 @@ absl::Status OverworldMap::LoadLayoutProperties() {
   subscreen_overlay_ = static_cast<uint16_t>(overlay[0] | (overlay[1] << 8));
   ASSIGN_OR_RETURN(auto gfx, read(6, persistent));
   std::copy_n(gfx.begin(), custom_gfx_ids_.size(), custom_gfx_ids_.begin());
+  const size_t bg_source = uses_native_screen_appearance() ? index_ : parent_;
   ASSIGN_OR_RETURN(
       auto area_gfx,
-      read(native && parent_ >= kSpecialWorldMapIdStart ? 27 : 26, parent_));
+      read(native_special && bg_source >= kSpecialWorldMapIdStart ? 27 : 26,
+           bg_source));
   area_graphics_ = area_gfx[0];
-  ASSIGN_OR_RETURN(auto palette_set, read(31, parent_));
+  ASSIGN_OR_RETURN(auto palette_set, read(31, bg_source));
   area_palette_ = palette_set[0];
-  if (native) {
+  if (native_special) {
     ASSIGN_OR_RETURN(auto message, read(19, index_));
     message_id_ = static_cast<uint16_t>(message[0] | (message[1] << 8));
     for (int phase = 0; phase < 4; ++phase) {
@@ -275,16 +300,21 @@ absl::Status OverworldMap::LoadLayoutProperties() {
 }
 
 AreaRenderProperties OverworldMap::area_render_properties() const {
+  auto physical = [&]() -> AreaRenderProperties {
+    AreaRenderProperties p;
+    p.main_palette = main_palette_;
+    p.animated_gfx = animated_gfx_;
+    p.custom_gfx_ids = custom_gfx_ids_;
+    p.subscreen_overlay = subscreen_overlay_;
+    p.area_specific_bg_color = area_specific_bg_color_;
+    return p;
+  };
   if (inherited_area_.has_value()) {
+    if (uses_native_screen_appearance())
+      return physical();
     return *inherited_area_;
   }
-  AreaRenderProperties props;
-  props.main_palette = main_palette_;
-  props.animated_gfx = animated_gfx_;
-  props.custom_gfx_ids = custom_gfx_ids_;
-  props.subscreen_overlay = subscreen_overlay_;
-  props.area_specific_bg_color = area_specific_bg_color_;
-  return props;
+  return physical();
 }
 
 void OverworldMap::InheritAreaProperties(const OverworldMap& area_parent) {
@@ -1341,8 +1371,9 @@ absl::Status OverworldMap::LoadPalette() {
   if (index_ > 0 && (descriptor_layout_ == nullptr || parent_ > 0)) {
     // Load previous palette ID based on ASM version
     if (descriptor_layout_ != nullptr) {
-      auto previous = rom::LyraLayoutRecord(*descriptor_layout_, rom_->data(),
-                                            rom_->size(), 31, parent_ - 1);
+      auto previous = rom::LyraLayoutRecord(
+          *descriptor_layout_, rom_->data(), rom_->size(), 31,
+          (uses_native_screen_appearance() ? index_ : parent_) - 1);
       if (!previous) {
         return absl::FailedPreconditionError(
             "Lyra preview previous palette unavailable");
@@ -1350,7 +1381,8 @@ absl::Status OverworldMap::LoadPalette() {
       previous_pal_id = (*previous)[0];
       if (parent_ > kSpecialWorldMapIdStart) {
         constexpr std::array<uint16_t, 3> kPaletteIds = {25, 37, 38};
-        const bool native = descriptor_layout_->revision == 3;
+        const bool native =
+            rom::IsNativeSpecialOverworldLayout(*descriptor_layout_);
         auto previous_sprite = rom::LyraLayoutRecord(
             *descriptor_layout_, rom_->data(), rom_->size(),
             native ? kPaletteIds[game_state_] : 25,
@@ -1360,7 +1392,7 @@ absl::Status OverworldMap::LoadPalette() {
               "Lyra preview previous sprite palette unavailable");
         }
         previous_spr_pal_id = (*previous_sprite)[0];
-      } else if (descriptor_layout_->revision == 3 &&
+      } else if (rom::IsNativeSpecialOverworldLayout(*descriptor_layout_) &&
                  parent_ <= kSpecialWorldMapIdStart) {
         ASSIGN_OR_RETURN(
             previous_spr_pal_id,
@@ -1501,6 +1533,10 @@ absl::Status OverworldMap::LoadPalette() {
   RETURN_IF_ERROR(palette_internal::SetColorsPalette(
       *rom_, game_data_, parent_, current_palette_, main, animated, aux1, aux2,
       hud, bgr, spr, spr2, &palette_addresses_, palette_ids));
+
+  if (uses_native_screen_appearance() && (appearance_flags_ & 2) != 0)
+    RETURN_IF_ERROR(ApplyLyraBackgroundPaletteWords128(current_palette_,
+                                                       appearance_bg_palette_));
 
   // current_palette_ is this map's resolved palette. Do not populate the
   // unused process-wide GfxContext cache here: maps load concurrently, and

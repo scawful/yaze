@@ -22,6 +22,7 @@
 #include "app/editor/overworld/overworld_undo_actions.h"
 #include "app/editor/system/session/collision_source_pairing.h"
 #include "app/editor/system/session/rom_file_manager.h"
+#include "app/gfx/types/snes_palette.h"
 #include "app/gui/automation/widget_id_registry.h"
 #include "cli/handlers/rom/rom_commands.h"
 #include "editor_test_support.h"
@@ -39,6 +40,7 @@
 #include "zelda3/dungeon/custom_collision.h"
 #include "zelda3/dungeon/dungeon_rom_addresses.h"
 #include "zelda3/game_data.h"
+#include "zelda3/overworld/lyra_terrain_source.h"
 #include "zelda3/overworld/overworld.h"
 #include "zelda3/overworld/overworld_geometry.h"
 #include "zelda3/overworld/overworld_sprite_io.h"
@@ -262,6 +264,19 @@ struct NativeDirectoryFixture {
         Word(mirrors[phase] + map * 2, 0xC881);
       }
     }
+    Seal();
+  }
+  // In-place revision-3 → revision-4 upgrade for tests (synthetic allocation).
+  void UpgradeToRevision4() {
+    const uint16_t capacity = rows.entries.empty() ? 192 : Entry(1).count;
+    Add(410, 8, 0x2B0000, capacity, 1);
+    Add(411, 8, 0x2B1000, 64, 256);
+    std::fill_n(bytes.begin() + Entry(410).pc_address, capacity, 0);
+    std::fill_n(bytes.begin() + Entry(411).pc_address, 64 * 256, 0);
+    Word(0x147008, 4);
+    Word(0x14700C, 928);
+    Word(0x147012, 56);
+    bytes[0x147015] = 0x1C;
     Seal();
   }
   explicit NativeDirectoryFixture(uint16_t capacity = 192) {
@@ -774,6 +789,84 @@ TEST(LyraLayoutDescriptorTest, NativePropertiesPreserveLegacyPhaseAliases) {
   EXPECT_EQ((*saved)[fixture.Entry(36).pc_address + 0xBF], 11);
   EXPECT_EQ(rom::InspectLyraLayout(saved->data(), saved->size()).presence,
             rom::LyraLayoutPresence::kValid);
+}
+
+TEST(LyraLayoutDescriptorTest,
+     Revision4LayoutValidatesAndRefusesInvalidAppearance) {
+  NativeDirectoryFixture fixture;
+  fixture.UpgradeToRevision4();
+  const auto ok =
+      rom::InspectLyraLayout(fixture.bytes.data(), fixture.bytes.size());
+  ASSERT_EQ(ok.presence, rom::LyraLayoutPresence::kValid) << ok.error;
+  EXPECT_EQ(ok.revision, 4);
+
+  auto rejects = [&](const char* label, auto mutate) {
+    SCOPED_TRACE(label);
+    auto changed = fixture.bytes;
+    mutate(changed);
+    Reseal(&changed, fixture.rows);
+    const auto bad = rom::InspectLyraLayout(changed.data(), changed.size());
+    EXPECT_EQ(bad.presence, rom::LyraLayoutPresence::kInvalid);
+  };
+  rejects("invalid flags byte",
+          [&](auto& b) { b[fixture.Entry(410).pc_address + 0x50] = 4; });
+  rejects("fullBG without bit0",
+          [&](auto& b) { b[fixture.Entry(410).pc_address + 0x90] = 2; });
+  rejects("rough21 nonzero flags",
+          [&](auto& b) { b[fixture.Entry(410).pc_address + 0x3F] = 1; });
+  rejects("palette word range", [&](auto& b) {
+    const size_t row = (0xBF - 0x80) * 256;
+    b[fixture.Entry(411).pc_address + row + 1] = 0x80;
+  });
+}
+
+TEST(LyraLayoutDescriptorTest,
+     Revision4PropertySealRejectsAppearanceEditOnRev3) {
+  NativeDirectoryFixture fixture;
+  std::vector<uint8_t> pal(256, 0);
+  const std::vector<rom::NativeOverworldPropertyEdit> edits = {
+      {410, 0xA0, {3}}, {411, 0xBF, pal}};
+  EXPECT_FALSE(
+      rom::SealNativeOverworldTerrain(fixture.bytes, fixture.bytes, edits)
+          .ok());
+}
+
+TEST(LyraLayoutDescriptorTest,
+     Revision4SourceChangesRequireExplicitPropertyEdits) {
+  NativeDirectoryFixture fixture;
+  fixture.UpgradeToRevision4();
+  auto candidate = fixture.bytes;
+  candidate[fixture.Entry(411).pc_address + 2] = 1;
+  EXPECT_FALSE(rom::SealNativeOverworldTerrain(fixture.bytes, candidate).ok());
+  candidate = fixture.bytes;
+  candidate[fixture.Entry(410).pc_address + 0xA0] = 1;
+  EXPECT_FALSE(rom::SealNativeOverworldTerrain(fixture.bytes, candidate).ok());
+}
+
+TEST(LyraLayoutDescriptorTest, Revision4AppearanceRecordSealAndPaletteWords) {
+  NativeDirectoryFixture fixture;
+  fixture.UpgradeToRevision4();
+  const auto original = fixture.bytes;
+  std::vector<uint8_t> pal(256);
+  pal[2] = 0x34;
+  pal[3] = 0x12;
+  const std::vector<rom::NativeOverworldPropertyEdit> edits = {
+      {410, 0xA0, {3}},
+      {411, 0xBF, std::move(pal)},
+  };
+  auto saved = rom::SealNativeOverworldTerrain(original, original, edits);
+  ASSERT_TRUE(saved.ok()) << saved.status();
+  const size_t f = fixture.Entry(410).pc_address + 0xA0;
+  EXPECT_EQ((*saved)[f], 3);
+  EXPECT_EQ((*saved)[fixture.Entry(411).pc_address + (0xBF - 0x80) * 256 + 2],
+            0x34);
+  gfx::SnesPalette palette(256);
+  std::array<uint16_t, 128> words{};
+  const uint8_t* row =
+      saved->data() + fixture.Entry(411).pc_address + (0xBF - 0x80) * 256;
+  for (size_t i = 0; i < 128; ++i)
+    words[i] = static_cast<uint16_t>(row[i * 2] | (row[i * 2 + 1] << 8));
+  ASSERT_TRUE(zelda3::ApplyLyraBackgroundPaletteWords128(palette, words).ok());
 }
 
 TEST(LyraLayoutDescriptorTest, NativePropertyCapabilityKeepsPublicationGuards) {
@@ -1799,6 +1892,136 @@ TEST_F(NativeSpecialOverworldEditorTest, SidecarLifecycle) {
   EXPECT_EQ(ReadBytes(sidecar), sidecar_before);
   EXPECT_EQ(project.lyra_terrain_file, sidecar);
   EXPECT_EQ(document.vector(), fixture.bytes);
+}
+
+TEST_F(NativeSpecialOverworldEditorTest, ScreenAppearanceSaveUndoAndReopen) {
+  const char* path = std::getenv("YAZE_TEST_ROM_OOS");
+  if (!path || !std::filesystem::exists(path))
+    GTEST_SKIP() << "Set YAZE_TEST_ROM_OOS for native appearance Save/reopen";
+  const auto flags = core::FeatureFlags::get();
+  auto restore_flags =
+      absl::MakeCleanup([&] { core::FeatureFlags::get() = flags; });
+  for (int capacity : {160, 192}) {
+    SCOPED_TRACE(capacity);
+    Rom legacy;
+    ASSERT_TRUE(legacy.LoadFromData(ReadBytes(path)).ok());
+    zelda3::Overworld reference(&legacy);
+    ASSERT_TRUE(reference.Load(&legacy).ok());
+    NativeDirectoryFixture fixture(capacity);
+    fixture.SeedLoadedLegacyForModelTest(legacy, reference);
+    fixture.UpgradeToRevision4();
+    const int page = capacity == 192 ? 0xB1 : 0x9F;
+    if (capacity == 192) {
+      for (int member : {0xB0, 0xB1, 0xB8, 0xB9}) {
+        fixture.bytes[fixture.Entry(7).pc_address + member] = 0xB0;
+        fixture.bytes[fixture.Entry(30).pc_address + member] = 1;
+        fixture.bytes[fixture.Entry(410).pc_address + member] = 1;
+        fixture.bytes[fixture.Entry(2).pc_address + member] = member & 1;
+      }
+    }
+    fixture.bytes[fixture.Entry(410).pc_address + page] = 1;
+    fixture.bytes[fixture.Entry(2).pc_address + page] = 1;
+    fixture.Word(fixture.Entry(411).pc_address + (page - 0x80) * 256 + 10,
+                 0x1234);
+    fixture.Seal();
+    const auto root = test::UniqueTempPath("ap");
+    std::filesystem::create_directories(root);
+    auto cleanup =
+        absl::MakeCleanup([&] { std::filesystem::remove_all(root); });
+    const auto source = root / "in.sfc";
+    WriteBytes(source, fixture.bytes);
+    auto manager = std::make_unique<editor::EditorManager>();
+    test::InitializeWithIsolatedSettings(*manager, renderer_.get());
+    manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+    manager->user_settings().prefs().backup_before_save = false;
+    ASSERT_TRUE(manager->OpenRomOrProject(source.string()).ok());
+    ASSERT_TRUE(
+        manager->EnsureEditorAssetsLoaded(editor::EditorType::kOverworld).ok());
+    auto* editor = manager->GetCurrentEditorSet()->GetOverworldEditor();
+    auto& world = editor->overworld();
+    auto* document = manager->GetCurrentRom();
+    auto* screen = world.mutable_overworld_map(page);
+    ASSERT_EQ(screen->native_appearance_bg_palette()[5], 0x1234);
+    const auto before = world.CaptureNativeAreaSnapshot();
+    ASSERT_TRUE(before.ok()) << before.status();
+    using Field = editor::OverworldPropertyField;
+    auto apply = [&](Field field, int index, int value) {
+      return editor::NativePropertySaveTestPeer::Apply(
+          *editor, {page, field, index, value});
+    };
+    {
+      ScopedRomReadOnly readonly(*document);
+      EXPECT_FALSE(apply(Field::kScreenColor, 5, 0x3210).ok());
+    }
+    ASSERT_TRUE(apply(Field::kMainPalette, 0, 2).ok());
+    EXPECT_EQ(screen->main_palette(), 2);
+    if (capacity == 192) {
+      EXPECT_EQ(world.overworld_map(0xB0)->main_palette(), 0);
+      EXPECT_EQ(world.overworld_map(0xB8)->main_palette(), 0);
+      EXPECT_EQ(world.overworld_map(0xB9)->main_palette(), 1);
+    }
+    ASSERT_TRUE(apply(Field::kScreenColor, 5, 0x3210).ok());
+    const auto changed = world.CaptureNativeAreaSnapshot();
+    ASSERT_TRUE(changed.ok()) << changed.status();
+    EXPECT_EQ(changed->pages[page].appearance_bg_palette[5], 0x3210);
+    ASSERT_TRUE(editor->Undo().ok());
+    EXPECT_EQ(screen->native_appearance_bg_palette()[5], 0x1234);
+    ASSERT_TRUE(editor->Redo().ok());
+    EXPECT_EQ(screen->native_appearance_bg_palette()[5], 0x3210);
+    ASSERT_TRUE(screen->LoadPalette().ok());
+    const auto source_palette = screen->current_palette();
+    ASSERT_TRUE(apply(Field::kScreenAppearance, 0, 3).ok());
+    ASSERT_TRUE(screen->LoadPalette().ok());
+    EXPECT_EQ(screen->current_palette()[5].snes(), 0x3210);
+    for (int color = 128; color < 256; ++color)
+      EXPECT_EQ(screen->current_palette()[color].snes(),
+                source_palette[color].snes());
+    ASSERT_TRUE(apply(Field::kScreenAppearance, 0, 1).ok());
+    EXPECT_EQ(screen->native_appearance_bg_palette()[5], 0x3210);
+    ASSERT_TRUE(screen->LoadPalette().ok());
+    EXPECT_EQ(screen->current_palette()[5].snes(), source_palette[5].snes());
+    ASSERT_TRUE(editor->Undo().ok());
+    EXPECT_EQ(screen->native_appearance_flags(), 3);
+    core::FeatureFlags::get().overworld.kSaveOverworldProperties = false;
+    EXPECT_FALSE(manager->SaveCurrentSession(false).ok());
+    core::FeatureFlags::get().overworld.kSaveOverworldProperties = true;
+    {
+      test::ScopedRomStagingFailure fault;
+      EXPECT_FALSE(manager->SaveCurrentSession(false).ok());
+    }
+    EXPECT_EQ(document->vector(), fixture.bytes);
+    EXPECT_EQ(screen->native_appearance_bg_palette()[5], 0x3210);
+    const auto saved = manager->SaveCurrentSession(false);
+    ASSERT_TRUE(saved.ok()) << saved;
+    const auto persisted = ReadBytes(source);
+    ASSERT_TRUE(manager->SaveCurrentSession(false).ok());
+    EXPECT_EQ(ReadBytes(source), persisted);
+    Rom reopened;
+    ASSERT_TRUE(reopened.LoadFromFile(source.string()).ok());
+    zelda3::Overworld fresh(&reopened);
+    const auto loaded = fresh.Load(&reopened);
+    ASSERT_TRUE(loaded.ok()) << loaded;
+    const auto restored = fresh.CaptureNativeAreaSnapshot();
+    ASSERT_TRUE(restored.ok()) << restored.status();
+    EXPECT_EQ(restored->pages[page].appearance_flags, 3);
+    EXPECT_EQ(restored->pages[page].appearance_bg_palette[5], 0x3210);
+    EXPECT_EQ(restored->pages[page].main_palette, 2);
+    EXPECT_EQ(restored->geometry, before->geometry);
+    for (int other = 0; other < capacity; ++other)
+      if (other != page)
+        EXPECT_EQ(restored->pages[other], before->pages[other]);
+    ASSERT_TRUE(editor->Redo().ok());
+    const auto cleared = manager->SaveCurrentSession(false);
+    ASSERT_TRUE(cleared.ok()) << cleared;
+    Rom clear_reopen;
+    ASSERT_TRUE(clear_reopen.LoadFromFile(source.string()).ok());
+    zelda3::Overworld clear_world(&clear_reopen);
+    ASSERT_TRUE(clear_world.Load(&clear_reopen).ok());
+    EXPECT_EQ(clear_world.overworld_map(page)->native_appearance_flags(), 1);
+    EXPECT_EQ(
+        clear_world.overworld_map(page)->native_appearance_bg_palette()[5],
+        0x3210);
+  }
 }
 
 TEST_F(NativeSpecialOverworldEditorTest, NormalSaveUndoFailureAndDiskReopen) {

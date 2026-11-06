@@ -17,6 +17,7 @@
 #include "app/gui/canvas/item_context_menu.h"
 #include "app/gui/core/popup_id.h"
 #include "imgui/imgui.h"
+#include "rom/lyra_layout_descriptor.h"
 #include "zelda3/zelda3_labels.h"
 
 namespace yaze {
@@ -124,7 +125,7 @@ absl::Status OverworldEditor::ValidateSpriteEdit(zelda3::Sprite* target,
       zelda3::OverworldLayoutDomain::kSprites,
       zelda3::OverworldLayoutOperation::kMutateModel, target->map_id(),
       game_state_));
-  if (rom_->InspectLyraLayout().revision == 3)
+  if (rom::IsNativeSpecialOverworldLayout(rom_->InspectLyraLayout()))
     RETURN_IF_ERROR(rom_->CheckLayoutSaveable());
   if (draft.map_id() != target->map_id() || draft.x() % 16 || draft.y() % 16)
     return absl::InvalidArgumentError(

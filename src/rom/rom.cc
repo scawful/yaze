@@ -454,7 +454,7 @@ absl::Status Rom::CheckLayoutSaveable() const {
         "ROM save refused by read_only project policy");
   const auto layout = InspectLyraLayout();
   if (layout.presence == rom::LyraLayoutPresence::kValid &&
-      layout.revision == 3)
+      rom::IsNativeSpecialOverworldLayout(layout))
     return absl::OkStatus();
   return CheckLayoutWritable();
 }

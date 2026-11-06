@@ -4,6 +4,7 @@
 
 #include "absl/strings/str_format.h"
 #include "core/rom_settings.h"
+#include "rom/lyra_layout_descriptor.h"
 #include "rom/snes.h"
 #include "util/macro.h"
 #include "zelda3/common.h"
@@ -321,7 +322,7 @@ absl::Status OverworldLayout::CheckOperation(OverworldLayoutDomain domain,
         lyra_layout.a0_terrain_write_supported && map_id == 0xA0) {
       return absl::OkStatus();
     }
-    if (lyra_layout.revision == 3 &&
+    if (rom::IsNativeSpecialOverworldLayout(lyra_layout) &&
         operation == OverworldLayoutOperation::kMutateModel &&
         (domain == OverworldLayoutDomain::kMapProperties ||
          domain == OverworldLayoutDomain::kMessages ||
@@ -329,7 +330,7 @@ absl::Status OverworldLayout::CheckOperation(OverworldLayoutDomain domain,
          domain == OverworldLayoutDomain::kSprites ||
          domain == OverworldLayoutDomain::kGeometry))
       return absl::OkStatus();
-    if (lyra_layout.revision == 3 &&
+    if (rom::IsNativeSpecialOverworldLayout(lyra_layout) &&
         (domain == OverworldLayoutDomain::kTerrainPointers ||
          domain == OverworldLayoutDomain::kTile16 ||
          domain == OverworldLayoutDomain::kTile32))
@@ -346,7 +347,7 @@ absl::Status OverworldLayout::CheckOperation(OverworldLayoutDomain domain,
         domain == OverworldLayoutDomain::kTile32) {
       return RefuseDomainTable(*this, domain);
     }
-    if (lyra_layout.revision == 3 &&
+    if (rom::IsNativeSpecialOverworldLayout(lyra_layout) &&
         (domain == OverworldLayoutDomain::kMapProperties ||
          domain == OverworldLayoutDomain::kGeometry ||
          domain == OverworldLayoutDomain::kMessages ||
@@ -533,7 +534,7 @@ OverworldLayout InspectOverworldLayout(const Rom& rom,
   }
 
   if (layout.lyra_layout.presence != rom::LyraLayoutPresence::kAbsent) {
-    const bool native = layout.lyra_layout.revision == 3;
+    const bool native = rom::IsNativeSpecialOverworldLayout(layout.lyra_layout);
     layout.layout_kind =
         native ? OverworldLayout::LayoutKind::kNativeSpecialOverworld
                : OverworldLayout::LayoutKind::kLyraOffline;

@@ -6,6 +6,7 @@
 
 #include "absl/strings/str_format.h"
 #include "app/gfx/util/compression.h"
+#include "rom/lyra_layout_descriptor.h"
 #include "rom/transaction.h"
 #include "util/macro.h"
 #include "zelda3/overworld/overworld_allocation.h"
@@ -117,8 +118,7 @@ void AddWrite(OverworldTerrainSavePlan* plan, std::vector<uint8_t>* staged,
 absl::StatusOr<OverworldTerrainStorage> ResolveNativeOverworldTerrainStorage(
     const Rom& rom) {
   const auto layout = rom.InspectLyraLayout();
-  if (layout.presence != rom::LyraLayoutPresence::kValid ||
-      layout.revision != 3)
+  if (!rom::IsNativeSpecialOverworldLayout(layout))
     return absl::FailedPreconditionError("Native terrain directory required");
   auto entry = [&](int id) -> const rom::LyraLayoutEntry& {
     return *std::find_if(layout.entries.begin(), layout.entries.end(),
@@ -144,7 +144,7 @@ absl::StatusOr<OverworldTerrainStorage> ResolveNativeOverworldTerrainStorage(
 namespace {
 absl::Status CheckNativeStorage(const Rom& rom,
                                 const OverworldTerrainStorage& storage) {
-  if (rom.InspectLyraLayout().revision != 3)
+  if (!rom::IsNativeSpecialOverworldLayout(rom.InspectLyraLayout()))
     return absl::OkStatus();
   ASSIGN_OR_RETURN(auto expected, ResolveNativeOverworldTerrainStorage(rom));
   auto equal_ranges = [](const auto& a, const auto& b) {
@@ -340,7 +340,7 @@ absl::Status ApplyOverworldTerrainSave(Rom& rom,
   }
   if (ordered.empty())
     return absl::OkStatus();
-  if (rom.InspectLyraLayout().revision == 3) {
+  if (rom::IsNativeSpecialOverworldLayout(rom.InspectLyraLayout())) {
     auto candidate = plan.baseline;
     for (const auto& write : ordered)
       std::copy(write.after.begin(), write.after.end(),

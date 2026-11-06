@@ -6,6 +6,7 @@
 #include <utility>
 
 #include "absl/strings/str_format.h"
+#include "rom/lyra_layout_descriptor.h"
 #include "util/log.h"
 
 namespace yaze {
@@ -388,7 +389,8 @@ absl::StatusOr<zelda3::Sprite*> InsertSprite(zelda3::Overworld* overworld,
       zelda3::OverworldLayoutOperation::kMutateModel, current_map, game_state);
   if (!allowed.ok())
     return allowed;
-  if (overworld->rom()->InspectLyraLayout().revision == 3) {
+  if (rom::IsNativeSpecialOverworldLayout(
+          overworld->rom()->InspectLyraLayout())) {
     const auto writable = overworld->rom()->CheckLayoutSaveable();
     if (!writable.ok())
       return writable;

@@ -1,6 +1,7 @@
 #include "zelda3/overworld/lyra_terrain_source.h"
 
 #include <algorithm>
+#include <span>
 #include <string>
 #include <utility>
 #include <vector>
@@ -136,26 +137,34 @@ std::string LyraMapAssetKey(const core::LyraMapProperties& p, int state) {
   return key;
 }
 
-absl::Status ApplyLyraBackgroundPaletteOverride(
-    const core::LyraMapProperties& properties, gfx::SnesPalette& palette) {
-  if (!properties.background_palette)
-    return absl::OkStatus();
+absl::Status ApplyLyraBackgroundPaletteWords128(
+    gfx::SnesPalette& palette, std::span<const uint16_t> words) {
   if (palette.size() != 256)
     return absl::FailedPreconditionError("Lyra resolved palette is incomplete");
-  // Validate the complete override before changing even the palette copy.
-  for (const auto color : *properties.background_palette) {
-    if (color > 0x7FFF)
+  if (words.size() != 128)
+    return absl::InvalidArgumentError(
+        "A screen background palette requires 128 colors");
+  const size_t n = 128;
+  for (size_t i = 0; i < n; ++i) {
+    if (words[i] > 0x7FFF)
       return absl::InvalidArgumentError(
           "Lyra background palette colors require BGR555 values 0..32767");
   }
-  for (size_t i = 0; i < properties.background_palette->size(); ++i) {
-    gfx::SnesColor color((*properties.background_palette)[i]);
-    // These are display colors; retain native transparency and edit metadata.
+  for (size_t i = 0; i < n; ++i) {
+    gfx::SnesColor color(words[i]);
     color.set_transparent(palette[i].is_transparent());
     color.set_modified(palette[i].is_modified());
     palette[i] = color;
   }
   return absl::OkStatus();
+}
+
+absl::Status ApplyLyraBackgroundPaletteOverride(
+    const core::LyraMapProperties& properties, gfx::SnesPalette& palette) {
+  if (!properties.background_palette)
+    return absl::OkStatus();
+  return ApplyLyraBackgroundPaletteWords128(palette,
+                                            *properties.background_palette);
 }
 
 absl::StatusOr<OverworldBackgroundPaletteImportPlan>

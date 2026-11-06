@@ -20,6 +20,7 @@
 #include "app/gfx/types/snes_tile.h"
 #include "app/gfx/util/compression.h"
 #include "core/features.h"
+#include "rom/lyra_layout_descriptor.h"
 #include "rom/rom.h"
 #include "rom/snes.h"
 #include "rom/transaction.h"
@@ -174,7 +175,7 @@ absl::Status Overworld::Load(Rom* rom) {
         "Invalid Lyra descriptor; overworld loading refused");
   }
   const bool native = layout.presence == rom::LyraLayoutPresence::kValid &&
-                      layout.revision == 3;
+                      rom::IsNativeSpecialOverworldLayout(layout);
   if (layout.presence == yaze::rom::LyraLayoutPresence::kValid && !native) {
     return absl::FailedPreconditionError(
         "Lyra descriptor canvas loading is not yet supported");
@@ -346,7 +347,7 @@ absl::Status Overworld::LoadLyraTerrainPreview(Rom* rom) {
     return absl::FailedPreconditionError(
         "Valid Lyra descriptor required for terrain preview");
   }
-  if (layout.revision == 3) {
+  if (rom::IsNativeSpecialOverworldLayout(layout)) {
     return absl::FailedPreconditionError(
         "Native special overworld requires normal model integration; the "
         "revision-1/2 preview path does not apply");
@@ -616,7 +617,7 @@ absl::Status Overworld::ConfigureMultiAreaMap(int parent_index,
   RETURN_IF_ERROR(PreflightLayoutOperation(
       OverworldLayoutDomain::kGeometry, OverworldLayoutOperation::kMutateModel,
       parent_index));
-  if (descriptor_layout_.revision == 3) {
+  if (rom::IsNativeSpecialOverworldLayout(descriptor_layout_)) {
     RETURN_IF_ERROR(rom_->CheckLayoutSaveable());
     return ConfigureNativeMultiAreaMap(parent_index, size);
   }
@@ -990,7 +991,7 @@ void Overworld::OrganizeMapTiles(std::vector<uint8_t>& bytes,
 
 absl::Status Overworld::DecompressAllMapTilesParallel() {
   if (descriptor_layout_.presence == rom::LyraLayoutPresence::kValid &&
-      descriptor_layout_.revision == 3) {
+      rom::IsNativeSpecialOverworldLayout(descriptor_layout_)) {
     for (int map = 0; map < descriptor_layout_.capacity; ++map) {
       const auto page = rom::LyraMapTile32(descriptor_layout_, rom_->data(),
                                            rom_->size(), map);
@@ -1263,7 +1264,7 @@ absl::Status Overworld::EnsureMapBuilt(int map_index) {
   const bool descriptor_preview = is_lyra_preview();
   const bool native =
       descriptor_layout_.presence == rom::LyraLayoutPresence::kValid &&
-      descriptor_layout_.revision == 3;
+      rom::IsNativeSpecialOverworldLayout(descriptor_layout_);
   const int map_count = materialized_map_count();
   if (map_index < 0 || map_index >= map_count) {
     return absl::InvalidArgumentError("Invalid map index");
@@ -1681,7 +1682,7 @@ absl::Status Overworld::LoadSpritesFromMap(int sprites_per_gamestate_ptr,
     return absl::FailedPreconditionError(
         "Sprite loading requires initialized maps");
   }
-  if (descriptor_layout_.revision == 3) {
+  if (rom::IsNativeSpecialOverworldLayout(descriptor_layout_)) {
     const auto first = rom::LyraLayoutRecord(descriptor_layout_, rom_->data(),
                                              rom_->size(), 16 + game_state, 0);
     if (!first || first->data() - rom_->data() != sprites_per_gamestate_ptr)
@@ -1695,7 +1696,7 @@ absl::Status Overworld::LoadSpritesFromMap(int sprites_per_gamestate_ptr,
       continue;
     ASSIGN_OR_RETURN(
         auto bytes,
-        descriptor_layout_.revision == 3
+        rom::IsNativeSpecialOverworldLayout(descriptor_layout_)
             ? ReadOverworldSpriteList(*rom_, descriptor_layout_, game_state, i)
             : ReadOverworldSpriteList(*rom_,
                                       sprites_per_gamestate_ptr + i * 2));
@@ -1752,7 +1753,7 @@ absl::Status Overworld::Save(Rom* rom) {
   if (rom == nullptr) {
     return absl::FailedPreconditionError("No ROM for overworld sprites");
   }
-  if (rom->InspectLyraLayout().revision == 3) {
+  if (rom::IsNativeSpecialOverworldLayout(rom->InspectLyraLayout())) {
     if (rom != rom_)
       return absl::FailedPreconditionError(
           "Native model belongs to another ROM");
@@ -1909,7 +1910,7 @@ absl::Status Overworld::SaveOverworldMaps() {
 std::vector<std::pair<uint32_t, uint32_t>> Overworld::GetProjectedWriteRanges()
     const {
   std::vector<std::pair<uint32_t, uint32_t>> ranges;
-  if (resolved_layout_.lyra_layout.revision == 3) {
+  if (rom::IsNativeSpecialOverworldLayout(resolved_layout_.lyra_layout)) {
     if (core::FeatureFlags::get().overworld.kSaveOverworldMaps) {
       ranges = {{0x1794D, 0x1794D + 160 * 3},
                 {0x17B2D, 0x17B2D + 160 * 3},
@@ -2461,7 +2462,8 @@ std::vector<uint64_t> GetAllTile16(const OverworldMapTiles& map_tiles_,
 }  // namespace
 
 absl::Status Overworld::SaveNativeTerrain() {
-  if (!rom_ || !is_loaded_ || descriptor_layout_.revision != 3)
+  if (!rom_ || !is_loaded_ ||
+      !rom::IsNativeSpecialOverworldLayout(descriptor_layout_))
     return absl::FailedPreconditionError(
         "Load the native overworld before saving");
   RETURN_IF_ERROR(rom_->CheckLayoutSaveable());

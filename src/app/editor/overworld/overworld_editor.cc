@@ -84,6 +84,7 @@
 #include "core/features.h"
 #include "core/overworld_graphics_preview.h"
 #include "core/project.h"
+#include "rom/lyra_layout_descriptor.h"
 #include "rom/rom.h"
 #include "util/file_util.h"
 #include "util/hex.h"
@@ -592,7 +593,7 @@ absl::Status OverworldEditor::CheckRomReplacement(
       (!is_lyra_preview() &&
        (layout.presence == rom::LyraLayoutPresence::kAbsent ||
         (layout.presence == rom::LyraLayoutPresence::kValid &&
-         layout.revision == 3))) ||
+         rom::IsNativeSpecialOverworldLayout(layout)))) ||
       (is_lyra_preview() &&
        util::ComputeSha1Hex(replacement.data(), replacement.size()) ==
            lyra_loaded_rom_sha1_)) {
@@ -748,7 +749,7 @@ absl::Status OverworldEditor::Load() {
 
   all_gfx_loaded_ = true;
 
-  if (lyra.revision == 3) {
+  if (rom::IsNativeSpecialOverworldLayout(lyra)) {
     // Native terrain belongs to the ROM document. An old sidecar must not
     // replace that data during ordinary loading.
     lyra_canvas_.Reset();
@@ -997,7 +998,8 @@ absl::Status OverworldEditor::PrepareProjectSave() {
 }
 
 absl::Status OverworldEditor::CreateLyraTerrain() {
-  if (overworld_.resolved_layout().lyra_layout.revision == 3)
+  if (rom::IsNativeSpecialOverworldLayout(
+          overworld_.resolved_layout().lyra_layout))
     return absl::FailedPreconditionError(
         "Native special-overworld terrain belongs to the ROM document");
   const auto* previous = lyra_canvas_.document();
@@ -1010,7 +1012,8 @@ absl::Status OverworldEditor::CreateLyraTerrain() {
 }
 
 absl::Status OverworldEditor::OpenLyraTerrain(const std::string& path) {
-  if (overworld_.resolved_layout().lyra_layout.revision == 3)
+  if (rom::IsNativeSpecialOverworldLayout(
+          overworld_.resolved_layout().lyra_layout))
     return absl::FailedPreconditionError(
         "Native special overworld requires terrain import, not an active "
         "sidecar");
@@ -1583,7 +1586,8 @@ absl::Status OverworldEditor::Save() {
         dependencies_.project->hack_manifest));
   }
   RETURN_IF_ERROR(overworld_.ValidatePrivateNativeTerrainSave());
-  if (overworld_.resolved_layout().lyra_layout.revision == 3) {
+  if (rom::IsNativeSpecialOverworldLayout(
+          overworld_.resolved_layout().lyra_layout)) {
     if (dependencies_.project && dependencies_.project->hack_manifest.loaded())
       RETURN_IF_ERROR(ValidateHackManifestSaveConflicts(
           dependencies_.project->hack_manifest,
@@ -1812,7 +1816,8 @@ absl::Status OverworldEditor::ApplyOverworldPropertyEdit(
     return absl::FailedPreconditionError("MapPropertiesSystem not initialized");
   }
 
-  if (overworld_.resolved_layout().lyra_layout.revision == 3 &&
+  if (rom::IsNativeSpecialOverworldLayout(
+          overworld_.resolved_layout().lyra_layout) &&
       edit.field == OverworldPropertyField::kAreaSize)
     return ApplyOverworldPropertyEdits(
         {edit}, DescribeOverworldPropertyEdit(edit), record_undo);
@@ -1859,7 +1864,8 @@ absl::Status OverworldEditor::ApplyOverworldPropertyEdits(
     return absl::OkStatus();
   }
 
-  if (overworld_.resolved_layout().lyra_layout.revision == 3) {
+  if (rom::IsNativeSpecialOverworldLayout(
+          overworld_.resolved_layout().lyra_layout)) {
     RETURN_IF_ERROR(overworld_.rom()->CheckLayoutSaveable());
     FinalizePaintOperation();
     if (is_dragging_entity_)

@@ -22,6 +22,8 @@ enum class OverworldPropertyField {
   kMosaicExpanded,
   kAreaSpecificBgColor,
   kSubscreenOverlay,
+  kScreenAppearance,
+  kScreenColor,
 };
 
 enum class OverworldMapMetadataClipboardScope {

@@ -3,6 +3,7 @@
 
 #include <array>
 #include <cstdint>
+#include <span>
 #include <string>
 #include <vector>
 
@@ -33,6 +34,9 @@ std::string LyraMapAssetKey(const core::LyraMapProperties& properties,
 // changes native groups, ROM storage, or the upper 128 OBJ colors.
 absl::Status ApplyLyraBackgroundPaletteOverride(
     const core::LyraMapProperties& properties, gfx::SnesPalette& palette);
+// Array path for native revision-4 table 411 and tests: BG colors 0..127 only.
+absl::Status ApplyLyraBackgroundPaletteWords128(
+    gfx::SnesPalette& palette, std::span<const uint16_t> words);
 // Temporary import data, not a second palette store or allocation grant.
 // A match identifies an existing record; selecting a set or reserving new
 // storage still belongs to the normal palette assignment service.

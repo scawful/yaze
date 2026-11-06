@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <map>
 #include "absl/strings/str_format.h"
+#include "rom/lyra_layout_descriptor.h"
 #include "rom/transaction.h"
 #include "rom/write_fence.h"
 #include "util/macro.h"
@@ -17,8 +18,7 @@ OverworldSpriteLayout GetOverworldSpriteLayout(const Rom& rom) {
 
 OverworldSpriteLayout ResolveOverworldSpriteLayout(
     const OverworldLayout& layout) {
-  if (layout.lyra_layout.presence == rom::LyraLayoutPresence::kValid &&
-      layout.lyra_layout.revision == 3) {
+  if (rom::IsNativeSpecialOverworldLayout(layout.lyra_layout)) {
     OverworldSpriteLayout result{{}, {}, 0x4C881};
     for (int state = 0; state < 3; ++state) {
       for (const auto& e : layout.lyra_layout.entries) {
@@ -111,8 +111,8 @@ absl::StatusOr<OverworldSpriteBytes> ReadOverworldSpriteList(
 absl::StatusOr<OverworldSpriteBytes> ReadOverworldSpriteList(
     const Rom& rom, const rom::LyraLayoutInspection& layout, int state,
     int map) {
-  if (layout.revision != 3 || state < 0 || state >= 3 || map < 0 ||
-      map >= layout.capacity) {
+  if (!rom::IsNativeSpecialOverworldLayout(layout) || state < 0 || state >= 3 ||
+      map < 0 || map >= layout.capacity) {
     return absl::FailedPreconditionError(
         "Native sprite map or phase unavailable");
   }
@@ -324,8 +324,7 @@ absl::StatusOr<OverworldSpriteSavePlan> PlanOverworldSpriteSave(
     const Rom& rom, const OverworldSpriteEdits& edits) {
   const auto ow_layout =
       InspectOverworldLayout(rom, OverworldLayoutOptions::Defaults());
-  if (ow_layout.lyra_layout.presence == rom::LyraLayoutPresence::kValid &&
-      ow_layout.lyra_layout.revision == 3) {
+  if (rom::IsNativeSpecialOverworldLayout(ow_layout.lyra_layout)) {
     std::vector<rom::NativeOverworldSpriteEdit> native;
     for (uint16_t phase = 0; phase < 3; ++phase)
       for (uint16_t map = 0; map < edits[phase].size(); ++map)

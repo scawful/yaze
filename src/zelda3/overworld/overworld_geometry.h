@@ -40,6 +40,9 @@ struct OverworldPageProperties {
   uint8_t animated = 0;
   std::array<uint8_t, 8> graphics{};
   std::array<bool, 4> mosaic{};
+  // Revision-4 native appearance (compact snapshots; no GPU buffers).
+  uint8_t appearance_flags = 0;
+  std::array<uint16_t, 128> appearance_bg_palette{};
   bool operator==(const OverworldPageProperties&) const = default;
 };
 struct OverworldAreaSnapshot {

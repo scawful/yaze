@@ -5,6 +5,7 @@
 
 #include "absl/strings/str_format.h"
 #include "core/features.h"
+#include "rom/lyra_layout_descriptor.h"
 #include "rom/snes.h"
 #include "util/macro.h"
 
@@ -84,12 +85,20 @@ std::vector<OverworldAreaProfile> Overworld::CaptureNativeAreaProfiles() const {
   for (const auto& map : overworld_maps_)
     if (map.parent() == map.index())
       profiles[map.index()] = ProfileFromMap(map);
+    else if (map.uses_native_screen_appearance()) {
+      profiles[map.index()].graphics = map.area_graphics();
+      profiles[map.index()].palette = map.area_palette();
+    }
   return profiles;
 }
 
 void Overworld::ApplyNativeAreaProfiles() {
   for (auto& map : overworld_maps_) {
     SetProfile(map, native_area_profiles_[map.parent()]);
+    if (map.uses_native_screen_appearance()) {
+      map.set_area_graphics(native_area_profiles_[map.index()].graphics);
+      map.set_area_palette(native_area_profiles_[map.index()].palette);
+    }
     native_effective_area_profiles_[map.index()] = ProfileFromMap(map);
     SyncAreaProperties(map.index());
     map.SetNotBuilt();
@@ -99,7 +108,7 @@ void Overworld::ApplyNativeAreaProfiles() {
 
 absl::StatusOr<OverworldAreaSnapshot> Overworld::CaptureNativeAreaSnapshot()
     const {
-  if (!is_loaded_ || descriptor_layout_.revision != 3 ||
+  if (!is_loaded_ || !rom::IsNativeSpecialOverworldLayout(descriptor_layout_) ||
       native_area_profiles_.size() != overworld_maps_.size())
     return absl::FailedPreconditionError(
         "Load the native overworld before resizing");
@@ -121,6 +130,8 @@ absl::StatusOr<OverworldAreaSnapshot> Overworld::CaptureNativeAreaSnapshot()
     page.mosaic = map.mosaic_expanded();
     for (int slot = 0; slot < 8; ++slot)
       page.graphics[slot] = map.custom_tileset(slot);
+    page.appearance_flags = map.native_appearance_flags();
+    page.appearance_bg_palette = map.native_appearance_bg_palette();
     snapshot.pages.push_back(page);
   }
 
@@ -137,7 +148,7 @@ absl::StatusOr<OverworldAreaSnapshot> Overworld::CaptureNativeAreaSnapshot()
 
 absl::Status Overworld::RestoreNativeAreaSnapshot(
     const OverworldAreaSnapshot& snapshot) {
-  if (!is_loaded_ || descriptor_layout_.revision != 3 ||
+  if (!is_loaded_ || !rom::IsNativeSpecialOverworldLayout(descriptor_layout_) ||
       snapshot.geometry.size() != overworld_maps_.size() ||
       snapshot.profiles.size() != overworld_maps_.size() ||
       snapshot.pages.size() != overworld_maps_.size())
@@ -147,6 +158,18 @@ absl::Status Overworld::RestoreNativeAreaSnapshot(
   const auto checked = PlanExpandedOverworldGeometry(snapshot.geometry);
   if (!checked.ok())
     return checked.status();
+  for (size_t map = 0; map < snapshot.pages.size(); ++map) {
+    const auto& page = snapshot.pages[map];
+    const bool has_appearance = descriptor_layout_.revision == 4 && map >= 0x80;
+    if ((!has_appearance && page.appearance_flags != 0) ||
+        (page.appearance_flags != 0 && page.appearance_flags != 1 &&
+         page.appearance_flags != 3) ||
+        std::any_of(page.appearance_bg_palette.begin(),
+                    page.appearance_bg_palette.end(),
+                    [](uint16_t color) { return color > 0x7FFF; }))
+      return absl::InvalidArgumentError(
+          "Invalid native screen appearance snapshot");
+  }
   for (int phase = 0; phase < 3; ++phase) {
     if (snapshot.sprites[phase].size() != all_sprites_[phase].size() ||
         snapshot.loaded_sprite_maps[phase].size() != overworld_maps_.size())
@@ -181,6 +204,8 @@ absl::Status Overworld::RestoreNativeAreaSnapshot(
       map.set_custom_tileset(slot, page.graphics[slot]);
     for (int q = 0; q < 4; ++q)
       map.set_mosaic_expanded(q, page.mosaic[q]);
+    map.set_native_appearance_flags(page.appearance_flags);
+    map.set_native_appearance_bg_palette(page.appearance_bg_palette);
   }
   for (int phase = 0; phase < 3; ++phase) {
     sprite_maps_loaded_[phase] = {};

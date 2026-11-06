@@ -6,6 +6,7 @@
 
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
+#include "rom/lyra_layout_descriptor.h"
 #include "rom/rom.h"
 #include "rom/snes.h"
 #include "util/log.h"
@@ -29,8 +30,9 @@ absl::StatusOr<std::vector<OverworldItem>> LoadItems(
   int max_ow = OverworldVersionHelper::SupportsAreaEnum(version)
                    ? kNumOverworldMaps
                    : 0x80;
-  const bool native = layout && layout->revision == 3 &&
-                      layout->presence == rom::LyraLayoutPresence::kValid;
+  const bool native = layout &&
+                      layout->presence == rom::LyraLayoutPresence::kValid &&
+                      rom::IsNativeSpecialOverworldLayout(*layout);
   if (native)
     max_ow = layout->capacity;
   if (static_cast<int>(overworld_maps.size()) < max_ow)

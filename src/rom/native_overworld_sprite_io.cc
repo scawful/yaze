@@ -34,6 +34,8 @@ absl::Status CheckStorage(const LyraLayoutInspection& layout, size_t start,
         std::span<const internal::NativeOverworldTableStorage>(
             internal::kOtherNativeStorage)}) {
     for (const auto& native : native_ranges) {
+      if (native.native_pc == 0)
+        continue;
       const size_t stride =
           native.id >= 500 ? 1 : Entry(layout, native.id).stride;
       const size_t size = native.native_count * stride;
@@ -69,9 +71,11 @@ PlanNativeOverworldSpriteSave(
   if (edits.empty())
     return plan;
   const auto layout = InspectLyraLayout(baseline.data(), baseline.size());
-  if (layout.presence != LyraLayoutPresence::kValid || layout.revision != 3)
+  if (layout.presence != LyraLayoutPresence::kValid ||
+      !IsNativeSpecialOverworldLayout(layout))
     return absl::FailedPreconditionError(
-        "Native sprite planning requires a valid revision-3 directory");
+        "Native sprite planning requires a valid native special-overworld "
+        "directory");
   std::map<std::pair<uint16_t, uint16_t>, const std::vector<uint8_t>*> changed;
   for (const auto& edit : edits) {
     if (edit.phase >= 3 || edit.map_id >= layout.capacity ||

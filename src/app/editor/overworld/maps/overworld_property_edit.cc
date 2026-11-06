@@ -6,6 +6,10 @@ namespace yaze::editor {
 
 const char* OverworldPropertyFieldName(OverworldPropertyField field) {
   switch (field) {
+    case OverworldPropertyField::kScreenAppearance:
+      return "Screen appearance";
+    case OverworldPropertyField::kScreenColor:
+      return "Screen color";
     case OverworldPropertyField::kAreaSize:
       return "Area size";
     case OverworldPropertyField::kAreaGraphics:

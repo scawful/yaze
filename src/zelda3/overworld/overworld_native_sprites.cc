@@ -2,6 +2,7 @@
 
 #include <algorithm>
 
+#include "rom/lyra_layout_descriptor.h"
 #include "util/macro.h"
 
 namespace yaze::zelda3 {
@@ -52,7 +53,7 @@ absl::StatusOr<OverworldSpriteEdits> Overworld::PrepareSpriteEdits() const {
             "Overworld sprite must be on a 16-pixel grid within its parent "
             "area");
       }
-      if (descriptor_layout_.revision == 3) {
+      if (rom::IsNativeSpecialOverworldLayout(descriptor_layout_)) {
         const auto& area = overworld_maps_[map];
         const auto size = area.area_size();
         const int width =

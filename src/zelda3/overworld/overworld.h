@@ -15,6 +15,7 @@
 #include "app/gfx/types/snes_tile.h"
 #include "core/rom_settings.h"
 #include "imgui.h"
+#include "rom/lyra_layout_descriptor.h"
 #include "rom/rom.h"
 #include "zelda3/common.h"
 #include "zelda3/game_data.h"
@@ -455,11 +456,11 @@ class Overworld {
     set_layout_inspect_options(options);
     return Load(rom);
   }
-  // Historical revision-1/2 inspection path. Revision 3 uses normal Load.
+  // Historical revision-1/2 inspection path. Native special overworld uses normal Load.
   absl::Status LoadLyraTerrainPreview(Rom* rom);
   bool is_lyra_preview() const {
     return descriptor_layout_.presence == rom::LyraLayoutPresence::kValid &&
-           descriptor_layout_.revision < 3;
+           !rom::IsNativeSpecialOverworldLayout(descriptor_layout_);
   }
   int materialized_map_count() const {
     return static_cast<int>(overworld_maps_.size());
