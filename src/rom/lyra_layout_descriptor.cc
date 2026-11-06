@@ -439,10 +439,10 @@ LyraLayoutInspection InspectNativeLayout(const uint8_t* image, size_t size,
     const auto* table = FindEntry(result, U16(p + 8));
     const uint8_t kind = p[10];
     if (!NativeToPc(U32(p), &site) || !NativeToPc(U32(p + 4), &target) ||
-        site > size || 4 > size - site || target < code.pc_address ||
-        target - code.pc_address >= code.count || table == nullptr ||
-        table->kind != 1 || table->id == 29 || kind < 1 || kind > 5 ||
-        p[11] != 0 || (p[12] != 0x22 && p[12] != 0x5C) ||
+        (U32(p) & 0xFFFF) + 4 > 0x10000 || site > size || 4 > size - site ||
+        target < code.pc_address || target - code.pc_address >= code.count ||
+        table == nullptr || table->kind != 1 || table->id == 29 || kind < 1 ||
+        kind > 5 || p[11] != 0 || (p[12] != 0x22 && p[12] != 0x5C) ||
         U24(p + 13) != U32(p + 4) || U32(image + site) != U32(p + 12)) {
       return bad("Native special-overworld reader binding invalid");
     }
@@ -501,12 +501,27 @@ LyraLayoutInspection InspectLyraLayout(const uint8_t* image, size_t size) {
       U16(d + 0x0E) == 192 && (U16(d + 0x10) == 160 || U16(d + 0x10) == 161) &&
       (U16(d + 0x12) == kRevision1EntryCount || U16(d + 0x12) == kEntryCount) &&
       U16(d + kHeaderSize) == 1 && U16(d + kHeaderSize + 2) == 1;
-  const bool native_fingerprint =
+  const bool native_header =
       available == kDescriptorSize && U16(d + 8) == 3 &&
       U16(d + 0x0A) == kHeaderSize && U16(d + 0x0C) == 896 &&
       (U16(d + 0x0E) == 160 || U16(d + 0x0E) == 192) &&
-      U16(d + 0x10) == U16(d + 0x0E) && U16(d + 0x12) == 54 &&
-      U16(d + kHeaderSize) == 1 && U16(d + kHeaderSize + 2) == 1;
+      U16(d + 0x10) == U16(d + 0x0E) && U16(d + 0x12) == 54;
+  bool native_fingerprint = false;
+  if (native_header) {
+    auto has_record = [&](uint16_t id, uint16_t kind, uint16_t count,
+                          uint16_t stride) {
+      for (size_t i = 0; i < U16(d + 0x12); ++i) {
+        const auto* p = d + kHeaderSize + i * kEntrySize;
+        if (U16(p) == id && U16(p + 2) == kind && U16(p + 8) == count &&
+            U16(p + 10) == stride)
+          return true;
+      }
+      return false;
+    };
+    native_fingerprint = has_record(1, 1, U16(d + 0x0E), 2) &&
+                         has_record(20, 1, U16(d + 0x0E), 3) &&
+                         has_record(400, 7, 4096, 8);
+  }
   if (!signature_prefix && !legacy_fingerprint && !native_fingerprint) {
     return absent;
   }
