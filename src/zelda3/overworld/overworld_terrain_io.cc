@@ -47,12 +47,12 @@ absl::StatusOr<MapStreamScan> ReadPlane(const std::vector<uint8_t>& image,
                                         const OverworldTerrainStorage& storage,
                                         uint32_t pointer_slot) {
   const uint32_t pointer = Pointer(image, pointer_slot);
-  const uint32_t bank = (pointer >> 16) & 0x7F;
-  if ((pointer & 0x8000) == 0 || bank >= 0x7E) {
+  const uint32_t raw_bank = pointer >> 16;
+  if ((pointer & 0x8000) == 0 || raw_bank == 0x7E || raw_bank == 0x7F) {
     return absl::FailedPreconditionError(
         "Invalid terrain LoROM stream pointer");
   }
-  const uint32_t pc = bank * 0x8000 + (pointer & 0x7FFF);
+  const uint32_t pc = (raw_bank & 0x7F) * 0x8000 + (pointer & 0x7FFF);
   for (const auto& region : storage.stream_regions) {
     if (pc < region.start || pc >= region.end)
       continue;

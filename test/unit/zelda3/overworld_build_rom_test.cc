@@ -166,6 +166,50 @@ TEST(OverworldRomBuildTest,
   }
 }
 
+TEST(OverworldRomBuildTest,
+     ChangedNativeTerrainNormalSaveFreshReopenPreservesAllMaps) {
+  const auto paths = OverworldRomPaths();
+  if (paths.empty())
+    GTEST_SKIP() << "Set YAZE_TEST_ROM_OOS or YAZE_TEST_ROM_VANILLA";
+  for (const auto& path : paths) {
+    SCOPED_TRACE(path);
+    Rom rom;
+    ASSERT_TRUE(LoadOverworldTestRom(path, rom));
+    GameData game_data;
+    ASSERT_TRUE(LoadGameData(rom, game_data).ok());
+    Overworld overworld(&rom, &game_data);
+    ASSERT_TRUE(overworld.Load(&rom).ok());
+    for (int map : {0x00, 0x40, 0x80, 0x9F}) {
+      overworld.set_current_world(WorldOf(map));
+      const int x = (map % 8) * 32 + 8;
+      const int y = ((map % 64) / 8) * 32 + 8;
+      const auto replacement = static_cast<uint16_t>(
+          (overworld.GetTile(x, y) + 1) % overworld.tiles16().size());
+      overworld.SetTile(x, y, replacement);
+    }
+    const auto expected_light = overworld.GetMapTiles(0);
+    const auto expected_dark = overworld.GetMapTiles(1);
+    const auto expected_special = overworld.GetMapTiles(2);
+    ASSERT_TRUE(overworld.CreateTile32Tilemap().ok());
+    if (DetectOverworldRomProfile(rom).has_expanded_tile32)
+      ASSERT_TRUE(overworld.SaveMap32Expanded().ok());
+    else
+      ASSERT_TRUE(overworld.SaveMap32Tiles().ok());
+    const auto saved = overworld.SaveOverworldMaps();
+    ASSERT_TRUE(saved.ok()) << saved;
+    Rom cold;
+    ASSERT_TRUE(cold.LoadFromData(rom.vector()).ok());
+    GameData cold_game_data;
+    ASSERT_TRUE(LoadGameData(cold, cold_game_data).ok());
+    Overworld reopened(&cold, &cold_game_data);
+    ASSERT_TRUE(reopened.Load(&cold).ok());
+    EXPECT_EQ(reopened.overworld_maps().size(), 160u);
+    EXPECT_EQ(reopened.GetMapTiles(0), expected_light);
+    EXPECT_EQ(reopened.GetMapTiles(1), expected_dark);
+    EXPECT_EQ(reopened.GetMapTiles(2), expected_special);
+  }
+}
+
 // Times each build phase for every map and the Overworld::EnsureMapBuilt path
 // used by the editor and render service. Prints a table; asserts only that
 // every map builds.

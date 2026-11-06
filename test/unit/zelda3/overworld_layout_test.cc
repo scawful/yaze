@@ -74,6 +74,22 @@ TEST(OverworldLayoutTest, VanillaUses32SpecialSlotsAnd160Model) {
   EXPECT_FALSE(layout.has_validated_ea_tail());
 }
 
+TEST(OverworldLayoutTest, JapaneseTerrainTablesFollowSelectedRomVersion) {
+  Rom rom;
+  ASSERT_TRUE(
+      rom.LoadFromData(yaze::test::BuildOverworldAllocationTestRom(false))
+          .ok());
+  auto options = OverworldLayoutOptions::Defaults();
+  options.rom_version = zelda3_version::JP;
+  const auto japanese = InspectOverworldLayout(rom, options);
+  EXPECT_EQ(japanese.terrain_high_table_pc.value, 0x176B1);
+  EXPECT_EQ(japanese.terrain_low_table_pc.value, 0x17891);
+  options.rom_version = zelda3_version::US;
+  const auto us = InspectOverworldLayout(rom, options);
+  EXPECT_EQ(us.terrain_high_table_pc.value, 0x1794D);
+  EXPECT_EQ(us.terrain_low_table_pc.value, 0x17B2D);
+}
+
 TEST(OverworldLayoutTest, MarkerWithoutOperandsDoesNotGrantEaTail) {
   Rom rom = MakeZsV3AllocationRom();
   rom[kExpandedPtrTableMarker] = kExpandedPtrTableMagic;

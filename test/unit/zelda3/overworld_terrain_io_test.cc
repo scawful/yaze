@@ -137,6 +137,67 @@ TEST_F(OverworldTerrainIoTest, ReclaimsStreamsOnlyWhenEveryUserMoves) {
   CheckColdReadback();
 }
 
+TEST_F(OverworldTerrainIoTest, FastRomLastBanksPreserveAndPlaceChangedPlanes) {
+  MakeRom();
+  auto bytes = rom.vector();
+  bytes.resize(0x400000);
+  storage.stream_regions = {{0x3F0000, 0x3F0004, "FE stream"},
+                            {0x3F8000, 0x400000, "FF streams"}};
+  for (uint32_t pc : {0x3F0000U, 0x3F8000U})
+    std::copy_n(bytes.begin() + 0x10000, 4, bytes.begin() + pc);
+  for (int map = 0; map < 192; ++map) {
+    PutPointer(&bytes, storage.high_table_pc + map * 3, 0x3F0000);
+    PutPointer(&bytes, storage.low_table_pc + map * 3, 0x3F8000);
+  }
+  ASSERT_TRUE(rom.LoadFromData(bytes).ok());
+  auto no_op = PlanOverworldTerrainSave(rom, storage, pages);
+  ASSERT_TRUE(no_op.ok()) << no_op.status();
+  EXPECT_TRUE(no_op->writes.empty());
+  pages[0xBF][0] = 0x0101;
+  auto plan = PlanOverworldTerrainSave(rom, storage, pages);
+  ASSERT_TRUE(plan.ok()) << plan.status();
+  ASSERT_TRUE(ApplyOverworldTerrainSave(rom, *plan).ok());
+  EXPECT_GE(StreamPc(storage.low_table_pc + 0xBF * 3), 0x3F8004u);
+  CheckColdReadback();
+  for (uint32_t raw_bank : {0x7EU, 0x7FU}) {
+    ASSERT_TRUE(
+        rom.WriteLong(storage.low_table_pc + 0xBF * 3, raw_bank << 16 | 0x8000)
+            .ok());
+    EXPECT_FALSE(PlanOverworldTerrainSave(rom, storage, pages).ok());
+  }
+}
+
+TEST_F(OverworldTerrainIoTest, PointerInsideAnotherStreamKeepsBothLiveSpans) {
+  MakeRom();
+  auto bytes = rom.vector();
+  // The outer literal256 contains a valid inner fill256 in its first4 bytes.
+  bytes[0x10000] = 0xE0;
+  bytes[0x10001] = 0xFF;
+  std::fill_n(bytes.begin() + 0x10002, 256, 0);
+  bytes[0x10002] = 0xE4;
+  bytes[0x10003] = 0xFF;
+  bytes[0x10004] = 0;
+  bytes[0x10005] = 0xFF;
+  bytes[0x10102] = 0xFF;
+  for (int map = 0; map < 192; ++map) {
+    PutPointer(&bytes, storage.high_table_pc + map * 3, 0x10002);
+    PutPointer(&bytes, storage.low_table_pc + map * 3, 0x10000);
+    pages[map][0] = 0xE4;
+    pages[map][1] = 0xFF;
+    pages[map][3] = 0xFF;
+  }
+  ASSERT_TRUE(rom.LoadFromData(bytes).ok());
+  pages[0xBF][0] = 0xE5;
+  auto plan = PlanOverworldTerrainSave(rom, storage, pages);
+  ASSERT_TRUE(plan.ok()) << plan.status();
+  ASSERT_TRUE(ApplyOverworldTerrainSave(rom, *plan).ok());
+  EXPECT_TRUE(std::equal(bytes.begin() + 0x10000, bytes.begin() + 0x10103,
+                         rom.vector().begin() + 0x10000));
+  EXPECT_EQ(StreamPc(storage.high_table_pc), 0x10002u);
+  EXPECT_EQ(StreamPc(storage.low_table_pc), 0x10000u);
+  CheckColdReadback();
+}
+
 TEST_F(OverworldTerrainIoTest, FullPoolFailsWithoutChangingSource) {
   MakeRom(192, 0x10008);
   const auto before = rom.vector();

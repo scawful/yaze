@@ -7,6 +7,7 @@
 #include "rom/snes.h"
 #include "util/macro.h"
 #include "zelda3/common.h"
+#include "zelda3/game_data.h"
 #include "zelda3/overworld/overworld.h"
 #include "zelda3/overworld/overworld_allocation.h"
 #include "zelda3/overworld/overworld_entrance.h"
@@ -15,8 +16,6 @@
 namespace yaze::zelda3 {
 namespace {
 
-constexpr uint32_t kVanillaMap32HighPc = 0x1794D;
-constexpr uint32_t kVanillaMap32LowPc = 0x17B2D;
 constexpr uint32_t kPoolParentPc = 0x140998;
 constexpr int kPoolParentSpan = 0xC0;
 
@@ -463,10 +462,11 @@ OverworldLayout InspectOverworldLayout(const Rom& rom,
   layout.map_storage = MapSlotStorage::kStandard160;
   layout.terrain_table_entries = kNumOverworldMaps;
   layout.terrain_pointer_source = TerrainPointerSource::kVanilla160EntryTables;
-  layout.terrain_high_table_pc =
-      RomPcOffset(static_cast<int>(kVanillaMap32HighPc));
-  layout.terrain_low_table_pc =
-      RomPcOffset(static_cast<int>(kVanillaMap32LowPc));
+  const auto& version_constants = kVersionConstantsMap.at(options.rom_version);
+  layout.terrain_high_table_pc = RomPcOffset(
+      static_cast<int>(version_constants.kCompressedAllMap32PointersHigh));
+  layout.terrain_low_table_pc = RomPcOffset(
+      static_cast<int>(version_constants.kCompressedAllMap32PointersLow));
 
   const int map16_pc =
       ResolvePc(options.map16_expanded_pc, kMap16TilesExpanded);
