@@ -29,12 +29,32 @@ absl::StatusOr<rom::WriteFence> StorageFence(
   ranges.push_back({storage.low_table_pc,
                     storage.low_table_pc + storage.map_count * 3,
                     "terrain low pointers"});
+  if (storage.native_prefix) {
+    const auto& prefix = *storage.native_prefix;
+    if (prefix.map_count != 160 || prefix.map_count > storage.map_count) {
+      return absl::InvalidArgumentError("Invalid native terrain prefix count");
+    }
+    ranges.push_back({prefix.high_table_pc,
+                      prefix.high_table_pc + prefix.map_count * 3,
+                      "native high pointers"});
+    ranges.push_back({prefix.low_table_pc,
+                      prefix.low_table_pc + prefix.map_count * 3,
+                      "native low pointers"});
+  }
   rom::WriteFence fence;
+  rom::WriteFence all_storage;
   for (const auto& range : ranges) {
     if (range.start >= range.end || range.end > image_size) {
       return absl::OutOfRangeError("Overworld terrain storage outside ROM");
     }
     RETURN_IF_ERROR(fence.Allow(range.start, range.end, range.label));
+    RETURN_IF_ERROR(all_storage.Allow(range.start, range.end, range.label));
+  }
+  for (const auto& range : storage.read_only_stream_regions) {
+    if (range.start >= range.end || range.end > image_size) {
+      return absl::OutOfRangeError("Read-only terrain storage outside ROM");
+    }
+    RETURN_IF_ERROR(all_storage.Allow(range.start, range.end, range.label));
   }
   return fence;
 }
@@ -53,11 +73,17 @@ absl::StatusOr<MapStreamScan> ReadPlane(const std::vector<uint8_t>& image,
         "Invalid terrain LoROM stream pointer");
   }
   const uint32_t pc = (raw_bank & 0x7F) * 0x8000 + (pointer & 0x7FFF);
-  for (const auto& region : storage.stream_regions) {
-    if (pc < region.start || pc >= region.end)
-      continue;
+  const rom::WriteRange* containing = nullptr;
+  for (const auto* regions :
+       {&storage.stream_regions, &storage.read_only_stream_regions}) {
+    for (const auto& region : *regions) {
+      if (pc >= region.start && pc < region.end)
+        containing = &region;
+    }
+  }
+  if (containing) {
     const size_t limit =
-        std::min<uint32_t>(region.end, (pc / 0x8000 + 1) * 0x8000);
+        std::min<uint32_t>(containing->end, (pc / 0x8000 + 1) * 0x8000);
     auto scan = ScanMapStream(image.data(), limit, pc, 256);
     if (!scan.error.empty() || !scan.terminated || scan.decoded_bytes != 256) {
       return absl::FailedPreconditionError(absl::StrFormat(
@@ -99,6 +125,18 @@ absl::StatusOr<OverworldTerrainSavePlan> PlanOverworldTerrainSave(
   }
   OverworldTerrainSavePlan plan{storage, rom.vector(), {}};
   auto staged = plan.baseline;
+  if (storage.native_prefix) {
+    const auto& prefix = *storage.native_prefix;
+    for (int map = 0; map < prefix.map_count; ++map) {
+      if (Pointer(staged, prefix.high_table_pc + map * 3) !=
+              Pointer(staged, storage.high_table_pc + map * 3) ||
+          Pointer(staged, prefix.low_table_pc + map * 3) !=
+              Pointer(staged, storage.low_table_pc + map * 3)) {
+        return absl::FailedPreconditionError(
+            "Native terrain pointers disagree with directory prefix");
+      }
+    }
+  }
   struct Request {
     uint32_t slot;
     MapStreamScan old;
@@ -183,6 +221,24 @@ absl::StatusOr<OverworldTerrainSavePlan> PlanOverworldTerrainSave(
           &plan, &staged, request.slot,
           {static_cast<uint8_t>(pointer), static_cast<uint8_t>(pointer >> 8),
            static_cast<uint8_t>(pointer >> 16)});
+    }
+  }
+  if (storage.native_prefix) {
+    const auto& prefix = *storage.native_prefix;
+    for (int map = 0; map < prefix.map_count; ++map) {
+      for (bool high : {true, false}) {
+        const uint32_t from =
+            (high ? storage.high_table_pc : storage.low_table_pc) + map * 3;
+        const uint32_t to =
+            (high ? prefix.high_table_pc : prefix.low_table_pc) + map * 3;
+        AddWrite(&plan, &staged, to,
+                 {staged.begin() + from, staged.begin() + from + 3});
+        ASSIGN_OR_RETURN(auto mirror, ReadPlane(staged, storage, to));
+        if (mirror.decoded != PagePlane(pages[map], high)) {
+          return absl::InternalError(
+              "Staged native terrain prefix readback differs");
+        }
+      }
     }
   }
   for (const auto& request : requests) {

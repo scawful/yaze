@@ -1,6 +1,7 @@
 #include "zelda3/overworld/overworld_terrain_io.h"
 
 #include <algorithm>
+#include <utility>
 #include <vector>
 
 #include "app/gfx/util/compression.h"
@@ -35,6 +36,19 @@ class OverworldTerrainIoTest : public testing::Test {
     const uint32_t address = PcToSnes(pc) | 0x800000;
     for (int i = 0; i < 3; ++i)
       (*data)[slot + i] = static_cast<uint8_t>(address >> (i * 8));
+  }
+
+  void AddNativePrefix() {
+    storage.native_prefix = OverworldTerrainPointerTables{0x2000, 0x2300, 160};
+    auto data = rom.vector();
+    std::copy_n(data.begin() + storage.high_table_pc, 160 * 3,
+                data.begin() + 0x2000);
+    std::copy_n(data.begin() + storage.low_table_pc, 160 * 3,
+                data.begin() + 0x2300);
+    data[0x21E0] = 0x77;
+    data[0x24E0] = 0x66;
+    ASSERT_TRUE(rom.LoadFromData(data).ok());
+    rom.set_dirty(false);
   }
 
   uint32_t StreamPc(uint32_t slot) const {
@@ -271,6 +285,96 @@ TEST_F(OverworldTerrainIoTest, CapacityMismatchAndStorageOverlapAreRejected) {
   storage.map_count = 192;
   storage.low_table_pc = storage.high_table_pc + 3;
   EXPECT_FALSE(PlanOverworldTerrainSave(rom, storage, pages).ok());
+}
+
+TEST_F(OverworldTerrainIoTest, NativePrefixAndTailPublishInOnePlan) {
+  MakeRom();
+  AddNativePrefix();
+  pages[0x80][0] = 0x0101;
+  pages[0x9F][12] = 0x0222;
+  pages[0xA0][100] = 0x0333;
+  pages[0xBF][255] = 0x0444;
+  auto plan = PlanOverworldTerrainSave(rom, storage, pages);
+  ASSERT_TRUE(plan.ok()) << plan.status();
+  ASSERT_TRUE(ApplyOverworldTerrainSave(rom, *plan).ok());
+  CheckColdReadback();
+  for (auto [primary, mirror] : {std::pair{storage.high_table_pc, 0x2000U},
+                                 std::pair{storage.low_table_pc, 0x2300U}}) {
+    EXPECT_TRUE(std::equal(rom.vector().begin() + primary,
+                           rom.vector().begin() + primary + 160 * 3,
+                           rom.vector().begin() + mirror));
+  }
+  EXPECT_EQ(rom.vector()[0x21E0], 0x77);
+  EXPECT_EQ(rom.vector()[0x24E0], 0x66);
+  // Decode through the roots read by the retained game engine as well.
+  storage.high_table_pc = 0x2000;
+  storage.low_table_pc = 0x2300;
+  storage.map_count = 160;
+  pages.resize(160);
+  CheckColdReadback();
+}
+
+TEST_F(OverworldTerrainIoTest, DivergentNativePrefixRefusesBeforeMutation) {
+  MakeRom();
+  AddNativePrefix();
+  ASSERT_TRUE(rom.WriteLong(0x2300, PcToSnes(0x10000) | 0x800000).ok());
+  const auto before = rom.vector();
+  auto plan = PlanOverworldTerrainSave(rom, storage, pages);
+  EXPECT_EQ(plan.status().code(), absl::StatusCode::kFailedPrecondition);
+  EXPECT_EQ(rom.vector(), before);
+}
+
+TEST_F(OverworldTerrainIoTest, NativePrefixFenceFailureRollsBackAllTables) {
+  MakeRom();
+  AddNativePrefix();
+  pages[0x9F][0] = 0x0123;
+  auto plan = PlanOverworldTerrainSave(rom, storage, pages);
+  ASSERT_TRUE(plan.ok()) << plan.status();
+  const auto before = rom.vector();
+  rom::WriteFence outer;
+  ASSERT_TRUE(outer
+                  .Allow(storage.high_table_pc, storage.high_table_pc + 192 * 3,
+                         "directory high")
+                  .ok());
+  ASSERT_TRUE(outer
+                  .Allow(storage.low_table_pc, storage.low_table_pc + 192 * 3,
+                         "directory low")
+                  .ok());
+  ASSERT_TRUE(outer.Allow(0x10000, 0x18000, "streams").ok());
+  rom::ScopedWriteFence scope(&rom, &outer);
+  EXPECT_EQ(ApplyOverworldTerrainSave(rom, *plan).code(),
+            absl::StatusCode::kPermissionDenied);
+  EXPECT_EQ(rom.vector(), before);
+  EXPECT_FALSE(rom.dirty());
+}
+
+TEST_F(OverworldTerrainIoTest, ReadOnlyStreamsRemainIntactAfterEveryUserMoves) {
+  MakeRom(160, 0x10008);
+  storage.read_only_stream_regions = storage.stream_regions;
+  storage.stream_regions = {{0x18000, 0x18100, "new writable pool"}};
+  const auto before = rom.vector();
+  for (auto& page : pages)
+    page.fill(0x0101);
+  auto plan = PlanOverworldTerrainSave(rom, storage, pages);
+  ASSERT_TRUE(plan.ok()) << plan.status();
+  ASSERT_TRUE(ApplyOverworldTerrainSave(rom, *plan).ok());
+  EXPECT_TRUE(std::equal(before.begin() + 0x10000, before.begin() + 0x10008,
+                         rom.vector().begin() + 0x10000));
+  EXPECT_GE(StreamPc(storage.high_table_pc), 0x18000u);
+  CheckColdReadback();
+}
+
+TEST_F(OverworldTerrainIoTest, ReadOnlyPoolCannotHideWritableExhaustion) {
+  MakeRom();
+  AddNativePrefix();
+  storage.read_only_stream_regions = storage.stream_regions;
+  storage.stream_regions = {{0x18000, 0x18003, "too small writable pool"}};
+  pages[0x9F][0] = 0x0101;
+  const auto before = rom.vector();
+  auto plan = PlanOverworldTerrainSave(rom, storage, pages);
+  EXPECT_EQ(plan.status().code(), absl::StatusCode::kResourceExhausted);
+  EXPECT_EQ(rom.vector(), before);
+  EXPECT_FALSE(rom.dirty());
 }
 
 }  // namespace

@@ -3,6 +3,7 @@
 
 #include <array>
 #include <cstdint>
+#include <optional>
 #include <span>
 #include <vector>
 
@@ -14,6 +15,12 @@ namespace yaze::zelda3 {
 
 using OverworldTerrainPage = std::array<uint16_t, 256>;
 
+struct OverworldTerrainPointerTables {
+  uint32_t high_table_pc = 0;
+  uint32_t low_table_pc = 0;
+  int map_count = 160;
+};
+
 // Physical storage supplied by the resolved format, not by canvas selection.
 // This does not establish engine or model support for the requested capacity.
 struct OverworldTerrainStorage {
@@ -21,6 +28,11 @@ struct OverworldTerrainStorage {
   uint32_t low_table_pc = 0;
   int map_count = 160;
   std::vector<rom::WriteRange> stream_regions;
+  // Existing streams may remain readable without becoming allocation space.
+  std::vector<rom::WriteRange> read_only_stream_regions;
+  // Retained native readers use these original 00–9F pointer slots. Both
+  // copies must agree on load and are published in the same transaction.
+  std::optional<OverworldTerrainPointerTables> native_prefix;
 };
 
 struct OverworldTerrainWrite {
