@@ -991,6 +991,32 @@ TEST_P(DungeonSelectionEditsLifecycleTest,
 }
 
 TEST_P(DungeonSelectionEditsLifecycleTest,
+       ProtectedUnchangedChestItemRejectsLogicalTailRemoval) {
+  // Deleting the sole record only changes the length operand; its physical
+  // item byte stays untouched. Identity protection must still catch it before
+  // objects, selection or history change in either viewer mode.
+  project::YazeProject project;
+  ASSERT_TRUE(project.hack_manifest
+                  .LoadFromString(absl::StrFormat(
+                      R"({"manifest_version":3,"protected_regions":{
+                        "total_hooks":1,"regions":[{
+                        "start":"0x%06X","end":"0x%06X","size":1,
+                        "hook_count":1,"module":"PinnedChestItem"}]}})",
+                      PcToSnes(kChestPc + 2), PcToSnes(kChestPc + 3)))
+                  .ok());
+  project.rom_metadata.write_policy = project::RomWritePolicy::kBlock;
+  EditorDependencies dependencies;
+  dependencies.rom = &rom_;
+  dependencies.project = &project;
+  editor_->SetDependencies(dependencies);
+  SelectMixed(true);
+  ExpectRejectedWithoutChanges(
+      [&] { return interaction().HandleDeleteSelected(); });
+  dependencies.project = nullptr;
+  editor_->SetDependencies(dependencies);
+}
+
+TEST_P(DungeonSelectionEditsLifecycleTest,
        InvalidCopyPreservesClipboardAndInvalidCutPreservesAllData) {
   SelectMixed();
   ASSERT_TRUE(editor_->Copy().ok());

@@ -42,6 +42,7 @@ set(
   zelda3/dungeon/pit_damage_table.cc
   zelda3/dungeon/room_census.cc
   zelda3/dungeon/room_census_vanilla_fingerprints.cc
+  zelda3/dungeon/chest_io.cc
   zelda3/dungeon/room.cc
   zelda3/dungeon/room_collision.cc
   zelda3/dungeon/room_layer_manager.cc

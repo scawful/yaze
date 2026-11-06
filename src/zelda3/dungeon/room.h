@@ -4,6 +4,7 @@
 #include <yaze.h>
 #include "zelda3/dungeon/pot_item_position.h"
 
+#include <algorithm>
 #include <array>
 #include <cstdint>
 #include <functional>
@@ -1423,6 +1424,11 @@ struct ChestSavePlan {
   uint16_t original_byte_length = 0;
   std::vector<uint8_t> original_capacity_bytes;
   std::vector<ChestWriteRun> writes;
+  /// Semantic guard ranges (full three-byte chest records) for removed,
+  /// reassigned, newly activated, or logically excluded records. Used only for manifest /
+  /// mutation preflight conflict analysis; they are not ROM write permissions
+  /// and may include bytes left physically unchanged (obsolete tail).
+  std::vector<std::pair<uint32_t, uint32_t>> identity_guard_ranges;
   std::vector<ChestDirtyRoomState> dirty_rooms;
 
   bool operator==(const ChestSavePlan&) const = default;
@@ -1435,6 +1441,24 @@ struct ChestSavePlan {
     }
     return ranges;
   }
+
+  /// Union of exact write runs and identity guard ranges for save preflight /
+  /// hack-manifest analysis (matches SaveRoom and CLI manifest checks).
+  std::vector<std::pair<uint32_t, uint32_t>> protection_ranges() const {
+    std::vector<std::pair<uint32_t, uint32_t>> ranges = write_ranges();
+    ranges.insert(ranges.end(), identity_guard_ranges.begin(),
+                  identity_guard_ranges.end());
+    std::sort(ranges.begin(), ranges.end());
+    std::vector<std::pair<uint32_t, uint32_t>> merged;
+    for (const auto& seg : ranges) {
+      if (merged.empty() || merged.back().second < seg.first) {
+        merged.push_back(seg);
+      } else {
+        merged.back().second = std::max(merged.back().second, seg.second);
+      }
+    }
+    return merged;
+  }
 };
 
 absl::StatusOr<ChestSavePlan> BuildChestSavePlan(
@@ -1444,19 +1468,21 @@ absl::Status ApplyChestSavePlan(
     Rom* rom, const ChestSavePlan& plan,
     const std::function<const Room*(int)>& room_lookup);
 
-// Plan the exact PC ranges changed by the current dirty-room chest state.
-// One-for-one edits return only the affected record bytes; growth/removal may
-// return wider runs plus the two-byte runtime length operand. The same plan is
-// used by manifest preflight and SaveAllChests so protected bytes that are not
-// actually changing do not block an otherwise safe edit.
+// Exact physical write ranges for serialization/fences. Manifest and mutation
+// preflight use ChestSavePlan::protection_ranges() instead: changing a record's
+// identity must protect its complete footprint, including unchanged item bytes
+// or logically removed tail records. Neither helper grants ROM write authority.
 absl::StatusOr<std::vector<std::pair<uint32_t, uint32_t>>>
 GetDirtyChestWriteRanges(const Rom* rom, int room_count,
                          const std::function<const Room*(int)>& room_lookup);
 
 // Aggregate chests from all rooms and write to ROM. Dirty rooms replace their
 // existing occurrences one-for-one in physical-table order. Untouched and
-// unknown-room records retain their exact bytes and relative order; surplus
-// occurrences are removed and additional records are appended by room ID.
+// unknown-room records retain their exact slots. Interior deletion holes are
+// filled from surviving tail records; growth retains append-by-room ordering.
+// Every final per-room reward sequence is validated before publication. Unsafe
+// donor order or opaque relocation refuses atomically. Obsolete physical tail
+// bytes are retained, independently of the declared runtime length.
 absl::Status SaveAllChests(Rom* rom, absl::Span<const Room> rooms);
 absl::Status SaveAllChests(Rom* rom, int room_count,
                            const std::function<const Room*(int)>& room_lookup);

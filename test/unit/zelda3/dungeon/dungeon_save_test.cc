@@ -2232,6 +2232,9 @@ TEST_F(DungeonSaveTest,
   rooms[1].LoadChests();
   rooms[1].GetChests().clear();
   rooms[1].MarkChestsDirty();
+  // Surplus room-1 slot is the first physical record; tail-fill copies the
+  // final room-3 record into that hole and shortens the length. Slot 1 (room 2)
+  // is unchanged; obsolete bytes at the old room-3 slot stay physical.
   const std::array<uint8_t, 3> obsolete_tail = {0x03, 0x00, 0x30};
 
   auto plan =
@@ -2242,12 +2245,23 @@ TEST_F(DungeonSaveTest,
             (std::vector<std::pair<uint32_t, uint32_t>>{
                 {kChestsLengthPointer, kChestsLengthPointer + 1},
                 {kChestDataPc, kChestDataPc + 1},
-                {kChestDataPc + 2, kChestDataPc + 4},
-                {kChestDataPc + 5, kChestDataPc + 6},
+                {kChestDataPc + 2, kChestDataPc + 3},
             }));
   for (const auto& [begin, end] : plan->write_ranges()) {
     EXPECT_TRUE(end <= kChestDataPc + 6 || begin >= kChestDataPc + 9);
   }
+  auto prot = plan->protection_ranges();
+  EXPECT_FALSE(prot.empty());
+  // Manifest protection sees full-record footprints for the hole, donor, and
+  // logically excluded obsolete tail (no overlap with exact writes required).
+  bool covers_obsolete = false;
+  for (const auto& [begin, end] : prot) {
+    if (begin <= kChestDataPc + 6 && end > kChestDataPc + 6) {
+      covers_obsolete = true;
+      break;
+    }
+  }
+  EXPECT_TRUE(covers_obsolete);
 
   yaze::rom::WriteFence exact_delta_fence;
   for (const auto& [begin, end] : plan->write_ranges()) {
@@ -2261,9 +2275,21 @@ TEST_F(DungeonSaveTest,
 
   ASSERT_TRUE(status.ok()) << status.message();
   EXPECT_EQ(rom_->data()[kChestsLengthPointer], 0x06);
+  EXPECT_EQ(rom_->data()[kChestDataPc + 0], 0x03);
+  EXPECT_EQ(rom_->data()[kChestDataPc + 1], 0x00);
+  EXPECT_EQ(rom_->data()[kChestDataPc + 2], 0x30);
+  EXPECT_EQ(rom_->data()[kChestDataPc + 3], 0x02);
+  EXPECT_EQ(rom_->data()[kChestDataPc + 4], 0x00);
+  EXPECT_EQ(rom_->data()[kChestDataPc + 5], 0x20);
   EXPECT_TRUE(std::equal(obsolete_tail.begin(), obsolete_tail.end(),
                          rom_->vector().begin() + kChestDataPc + 6));
   EXPECT_FALSE(rooms[1].chests_dirty());
+
+  Room r3(3, rom_.get());
+  r3.LoadChests();
+  ASSERT_EQ(r3.GetChests().size(), 1u);
+  EXPECT_EQ(r3.GetChests()[0].id, 0x30);
+  EXPECT_FALSE(r3.GetChests()[0].size);
 }
 
 TEST_F(DungeonSaveTest,
@@ -2429,15 +2455,143 @@ TEST_F(DungeonSaveTest,
   const std::array<uint8_t, 18> expected = {
       0x02, 0x00, 0x22,  // room 2 retained in its first physical slot
       0x01, 0x00, 0x10,  // untouched room 1
-      0x3D, 0x01, 0x7A,  // unknown record retained exactly
-      0x03, 0x00, 0x30,  // room 3's existing occurrence
-      0x00, 0x00, 0x01,  // room 0 growth appended first by room ID
-      0x03, 0x80, 0x31,  // then room 3 growth
+      0x00, 0x00, 0x01,  // room 0 growth uses the explicit deletion hole
+      0x3D, 0x01, 0x7A,  // opaque record retains its original slot
+      0x03, 0x00, 0x30,  // room 3's existing occurrence stays in place
+      0x03, 0x80, 0x31,  // room 3 growth follows its earlier occurrence
   };
   EXPECT_TRUE(std::equal(expected.begin(), expected.end(),
                          rom_->vector().begin() + kChestDataPc));
   EXPECT_EQ(rom_->data()[kChestsLengthPointer], expected.size());
   EXPECT_EQ(rom_->data()[kChestsLengthPointer + 1], 0);
+}
+
+TEST_F(DungeonSaveTest,
+       BuildChestSavePlan_MixedDeletionGrowthUsesExplicitHole) {
+  SetupChestTable();
+  SeedChestRecords({{2, 0x20, false}, {1, 0x10, false}, {2, 0x21, true}});
+  std::vector<Room> rooms(kNumberOfRooms);
+  rooms[0].GetChests().push_back({0x01, false});
+  rooms[0].MarkChestsDirty();
+  rooms[2] = Room(2, rom_.get());
+  rooms[2].LoadChests();
+  rooms[2].GetChests().resize(1);
+  rooms[2].MarkChestsDirty();
+  ASSERT_TRUE(SaveAllChests(rom_.get(), rooms).ok());
+  const std::array<uint8_t, 9> expected = {2, 0, 0x20, 1, 0, 0x10, 0, 0, 1};
+  EXPECT_TRUE(std::equal(expected.begin(), expected.end(),
+                         rom_->data() + kChestDataPc));
+  EXPECT_EQ(rom_->data()[kChestsLengthPointer], 9);
+}
+
+TEST_F(DungeonSaveTest,
+       ApplyChestSavePlan_TailFillHoleBeforeMiddleRecordsMovesDonorOnly) {
+  // Physical order: room A, room B, surplus room A (hole), unique tail donor
+  // room C. Middle room B must stay byte-identical; hole filled from tail;
+  // obsolete C bytes at end stay physical.
+  SetupChestTable();
+  SeedChestRecords({
+      {0x0008, 0xAA, false},
+      {0x0009, 0xBB, false},
+      {0x0008, 0xCC, false},
+      {0x000A, 0xDD, false},
+  });
+  std::vector<Room> rooms(kNumberOfRooms);
+  rooms[8] = Room(8, rom_.get());
+  rooms[8].LoadChests();
+  rooms[8].GetChests().resize(1);
+  rooms[8].GetChests()[0].id = 0xAA;
+  rooms[8].MarkChestsDirty();
+
+  auto plan =
+      BuildChestSavePlan(rom_.get(), static_cast<int>(rooms.size()),
+                         [&rooms](int room_id) { return &rooms[room_id]; });
+  ASSERT_TRUE(plan.ok()) << plan.status().message();
+
+  yaze::rom::WriteFence fence;
+  for (const auto& [begin, end] : plan->write_ranges()) {
+    ASSERT_TRUE(fence.Allow(begin, end, "ChestTailFill").ok());
+  }
+  yaze::rom::ScopedWriteFence scope(rom_.get(), &fence);
+  ASSERT_TRUE(ApplyChestSavePlan(rom_.get(), *plan, [&rooms](int id) {
+                return &rooms[id];
+              }).ok());
+
+  EXPECT_EQ(rom_->data()[kChestsLengthPointer], 9);
+  const std::array<uint8_t, 12> expected = {8,    0, 0xAA, 9,    0, 0xBB,
+                                            0x0A, 0, 0xDD, 0x0A, 0, 0xDD};
+  EXPECT_TRUE(std::equal(expected.begin(), expected.end(),
+                         rom_->data() + kChestDataPc));
+
+  rooms[9] = Room(9, rom_.get());
+  rooms[9].SetLoaded(true);
+  rooms[9].LoadChests();
+  ASSERT_EQ(rooms[9].GetChests().size(), 1u);
+  EXPECT_EQ(rooms[9].GetChests()[0].id, 0xBB);
+  Room r8(8, rom_.get());
+  r8.LoadChests();
+  ASSERT_EQ(r8.GetChests().size(), 1u);
+  EXPECT_EQ(r8.GetChests()[0].id, 0xAA);
+  Room ra(0x0A, rom_.get());
+  ra.LoadChests();
+  ASSERT_EQ(ra.GetChests().size(), 1u);
+  EXPECT_EQ(ra.GetChests()[0].id, 0xDD);
+}
+
+TEST_F(DungeonSaveTest, BuildChestSavePlan_RefusesUnsafeSameRoomDonor) {
+  SetupChestTable();
+  SeedChestRecords({{6, 0x30, false}, {5, 0x10, false}, {5, 0x20, false}});
+  std::vector<Room> rooms(kNumberOfRooms);
+  rooms[6] = Room(6, rom_.get());
+  rooms[6].LoadChests();
+  rooms[6].GetChests().clear();
+  rooms[6].MarkChestsDirty();
+  const auto before = rom_->vector();
+  const auto status = SaveAllChests(rom_.get(), rooms);
+  EXPECT_EQ(status.code(), absl::StatusCode::kFailedPrecondition) << status;
+  EXPECT_EQ(rom_->vector(), before);
+  EXPECT_TRUE(rooms[6].chests_dirty());
+}
+
+TEST_F(DungeonSaveTest, BuildChestSavePlan_RefusesOpaqueTailRelocation) {
+  SetupChestTable();
+  SeedChestRecords({{1, 0x10, false}, {0x13D, 0x7A, false}});
+  std::vector<Room> rooms(kNumberOfRooms);
+  rooms[1] = Room(1, rom_.get());
+  rooms[1].LoadChests();
+  rooms[1].GetChests().clear();
+  rooms[1].MarkChestsDirty();
+  const auto before = rom_->vector();
+  EXPECT_FALSE(SaveAllChests(rom_.get(), rooms).ok());
+  EXPECT_EQ(rom_->vector(), before);
+  EXPECT_TRUE(rooms[1].chests_dirty());
+}
+
+TEST_F(DungeonSaveTest,
+       ChestIdentityGuardsCoverUnchangedItemAndRejectTampering) {
+  SetupChestTable();
+  SeedChestRecords({{2, 0x20, false}});
+  std::vector<Room> rooms(kNumberOfRooms);
+  rooms[2] = Room(2, rom_.get());
+  rooms[2].LoadChests();
+  rooms[2].GetChests()[0].size = true;
+  rooms[2].MarkChestsDirty();
+  auto lookup = [&rooms](int id) -> const Room* {
+    return &rooms[id];
+  };
+  const auto plan = BuildChestSavePlan(rom_.get(), rooms.size(), lookup);
+  ASSERT_TRUE(plan.ok()) << plan.status();
+  EXPECT_EQ(plan->write_ranges(), (std::vector<std::pair<uint32_t, uint32_t>>{
+                                      {kChestDataPc + 1, kChestDataPc + 2}}));
+  EXPECT_EQ(plan->identity_guard_ranges,
+            (std::vector<std::pair<uint32_t, uint32_t>>{
+                {kChestDataPc, kChestDataPc + 3}}));
+  auto forged = *plan;
+  forged.identity_guard_ranges.clear();
+  const auto before = rom_->vector();
+  EXPECT_FALSE(ApplyChestSavePlan(rom_.get(), forged, lookup).ok());
+  EXPECT_EQ(rom_->vector(), before);
+  EXPECT_TRUE(rooms[2].chests_dirty());
 }
 
 TEST_F(DungeonSaveTest, SaveAllChests_AtCapacityWrites01F8ByteLength) {

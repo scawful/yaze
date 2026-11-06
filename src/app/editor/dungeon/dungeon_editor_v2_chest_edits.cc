@@ -254,8 +254,9 @@ absl::Status DungeonEditorV2::PreflightObjectMutation(
   if (dependencies_.project && dependencies_.project->hack_manifest.loaded()) {
     RETURN_IF_ERROR(ValidateHackManifestSaveConflicts(
         dependencies_.project->hack_manifest,
-        dependencies_.project->rom_metadata.write_policy, plan.write_ranges(),
-        "chest authoring", "DungeonEditorV2", nullptr));
+        dependencies_.project->rom_metadata.write_policy,
+        plan.protection_ranges(), "chest authoring", "DungeonEditorV2",
+        nullptr));
   }
   return absl::OkStatus();
 }

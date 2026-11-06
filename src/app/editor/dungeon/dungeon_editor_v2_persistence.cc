@@ -417,7 +417,7 @@ absl::Status ValidateChestManifestConflicts(const project::YazeProject* project,
                                             const zelda3::ChestSavePlan& plan,
                                             absl::string_view save_scope,
                                             ToastManager* toast_manager) {
-  const auto ranges = plan.write_ranges();
+  const auto ranges = plan.protection_ranges();
   if (ranges.empty() || project == nullptr ||
       !project->hack_manifest.loaded()) {
     return absl::OkStatus();

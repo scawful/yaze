@@ -338,7 +338,7 @@ absl::Status SavePlacedObject(
     }
   }
   if (manifest_context != nullptr &&
-      !manifest_context->manifest.AnalyzePcWriteRanges(plan.write_ranges())
+      !manifest_context->manifest.AnalyzePcWriteRanges(plan.protection_ranges())
            .empty()) {
     return absl::PermissionDeniedError("Write conflict with Hack Manifest");
   }
