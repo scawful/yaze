@@ -30,8 +30,8 @@ namespace {
 
 constexpr int kRoomCount = kNumberOfRooms;
 constexpr int kWaterFillRuntimeRoomCount = 0x100;
-constexpr int kGridSize = 64;
-constexpr int kGridTiles = kGridSize * kGridSize;
+constexpr int kGridTiles = kWaterFillMaxTiles;
+constexpr uint8_t kWaterFillV2 = 0x80;
 constexpr uint16_t kCollisionSingleTileMarker = 0xF0F0;
 constexpr uint16_t kCollisionEndMarker = 0xFFFF;
 
@@ -52,9 +52,9 @@ absl::Status ValidateZone(const WaterFillZoneEntry& z) {
     return absl::InvalidArgumentError(
         "WaterFillZoneEntry sram_bit_mask must be a single bit");
   }
-  if (z.fill_offsets.size() > 255) {
+  if (z.fill_offsets.size() > kGridTiles) {
     return absl::InvalidArgumentError(
-        "WaterFillZoneEntry fill_offsets exceeds 255 tiles (db count limit)");
+        "WaterFillZoneEntry fill_offsets exceeds the 64x64 collision grid");
   }
   for (uint16_t off : z.fill_offsets) {
     if (off >= kGridTiles) {
@@ -203,7 +203,9 @@ absl::StatusOr<std::vector<WaterFillZoneEntry>> LoadWaterFillTable(Rom* rom) {
   // editor from presenting potentially invalid authoring state.
   RETURN_IF_ERROR(ValidateCustomCollisionDoesNotOverlapWaterFillReserved(data));
 
-  const uint8_t zone_count = data[static_cast<size_t>(kWaterFillTableStart)];
+  const uint8_t header = data[static_cast<size_t>(kWaterFillTableStart)];
+  const bool version2 = (header & kWaterFillV2) != 0;
+  const uint8_t zone_count = header & ~kWaterFillV2;
   if (zone_count == 0) {
     return std::vector<WaterFillZoneEntry>{};
   }
@@ -279,11 +281,17 @@ absl::StatusOr<std::vector<WaterFillZoneEntry>> LoadWaterFillTable(Rom* rom) {
       return absl::FailedPreconditionError(
           "WaterFill entry data_pos out of range");
     }
-    const uint8_t tile_count = data[data_pos];
-    if (tile_count > 255) {
+    const size_t count_bytes = version2 ? 2u : 1u;
+    if (data_pos + count_bytes > static_cast<size_t>(kWaterFillTableEnd)) {
+      return absl::FailedPreconditionError(
+          "WaterFill tile count exceeds reserved region");
+    }
+    const uint16_t tile_count =
+        data[data_pos] | (version2 ? data[data_pos + 1] << 8 : 0);
+    if (tile_count > kGridTiles) {
       return absl::FailedPreconditionError("WaterFill tile_count invalid");
     }
-    const size_t needed = 1u + static_cast<size_t>(tile_count) * 2u;
+    const size_t needed = count_bytes + static_cast<size_t>(tile_count) * 2u;
     if (data_pos + needed > static_cast<size_t>(kWaterFillTableEnd)) {
       return absl::FailedPreconditionError(
           "WaterFill entry tile data exceeds reserved region");
@@ -294,7 +302,7 @@ absl::StatusOr<std::vector<WaterFillZoneEntry>> LoadWaterFillTable(Rom* rom) {
     z.sram_bit_mask = e.mask;
     z.fill_offsets.reserve(tile_count);
     for (size_t i = 0; i < tile_count; ++i) {
-      const size_t o = data_pos + 1u + (i * 2u);
+      const size_t o = data_pos + count_bytes + (i * 2u);
       uint16_t off = static_cast<uint16_t>(data[o] | (data[o + 1] << 8));
       if (off >= kGridTiles) {
         return absl::FailedPreconditionError(
@@ -314,7 +322,8 @@ absl::StatusOr<std::vector<WaterFillZoneEntry>> LoadWaterFillTable(Rom* rom) {
 }
 
 absl::Status WriteWaterFillTable(Rom* rom,
-                                 const std::vector<WaterFillZoneEntry>& zones) {
+                                 const std::vector<WaterFillZoneEntry>& zones,
+                                 WaterFillTableFormat format) {
   if (!rom || !rom->is_loaded()) {
     return absl::InvalidArgumentError("ROM not loaded");
   }
@@ -323,6 +332,13 @@ absl::Status WriteWaterFillTable(Rom* rom,
   if (kWaterFillTableEnd > static_cast<int>(rom_data.size())) {
     return absl::OutOfRangeError(
         "WaterFill reserved region not present in this ROM");
+  }
+
+  const bool word_count = format == WaterFillTableFormat::kV2;
+  if (!word_count && (rom_data[kWaterFillTableStart] & kWaterFillV2) != 0) {
+    return absl::FailedPreconditionError(
+        "Water Fill v2 table requires a project with ENABLE_WATER_FILL_V2; "
+        "refusing to downgrade the saved table");
   }
 
   // Safety: never clobber legacy/custom collision data that might already
@@ -342,6 +358,11 @@ absl::Status WriteWaterFillTable(Rom* rom,
   std::unordered_map<uint8_t, int> seen_masks;
   for (const auto& z : normalized) {
     RETURN_IF_ERROR(ValidateZone(z));
+    if (!word_count && z.fill_offsets.size() > 255) {
+      return absl::FailedPreconditionError(
+          "Water Fill zones above 255 tiles require a project with "
+          "ENABLE_WATER_FILL_V2 and its matching runtime build");
+    }
     if (seen_rooms.contains(z.room_id)) {
       return absl::InvalidArgumentError(absl::StrFormat(
           "Duplicate water fill zone for room 0x%02X", z.room_id));
@@ -357,7 +378,8 @@ absl::Status WriteWaterFillTable(Rom* rom,
 
   std::vector<uint8_t> bytes;
   bytes.reserve(static_cast<size_t>(kWaterFillTableReservedSize));
-  bytes.push_back(static_cast<uint8_t>(normalized.size()));
+  bytes.push_back((word_count ? kWaterFillV2 : 0) |
+                  static_cast<uint8_t>(normalized.size()));
 
   // Header entries with placeholder offsets.
   for (const auto& z : normalized) {
@@ -375,7 +397,9 @@ absl::Status WriteWaterFillTable(Rom* rom,
     bytes[entry_off + 2] = data_off & 0xFF;
     bytes[entry_off + 3] = (data_off >> 8) & 0xFF;
 
-    bytes.push_back(static_cast<uint8_t>(z.fill_offsets.size()));
+    bytes.push_back(z.fill_offsets.size() & 0xFF);
+    if (word_count)
+      bytes.push_back((z.fill_offsets.size() >> 8) & 0xFF);
     for (uint16_t off : z.fill_offsets) {
       bytes.push_back(off & 0xFF);
       bytes.push_back((off >> 8) & 0xFF);
@@ -723,9 +747,10 @@ LoadWaterFillZonesFromJsonString(const std::string& json_content) {
             absl::StrFormat("Invalid offset for room 0x%02X", room_id));
       }
       z.fill_offsets.push_back(static_cast<uint16_t>(*o_opt));
-      if (z.fill_offsets.size() > 255) {
+      if (z.fill_offsets.size() > kGridTiles) {
         return absl::InvalidArgumentError(absl::StrFormat(
-            "WaterFill offsets exceed 255 tiles for room 0x%02X", room_id));
+            "WaterFill offsets exceed the 64x64 grid for room 0x%02X",
+            room_id));
       }
     }
 

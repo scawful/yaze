@@ -54,6 +54,24 @@ TEST(OracleRomSafetyPreflightTest, FailsWhenWaterFillRegionMissing) {
   EXPECT_TRUE(HasErrorCode(result, "ORACLE_WATER_FILL_REGION_MISSING"));
 }
 
+TEST(OracleRomSafetyPreflightTest, AcceptsV2WaterFillTable) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+  WaterFillZoneEntry zone{0x25, 2, {}};
+  for (int i = 0; i < 594; ++i)
+    zone.fill_offsets.push_back(static_cast<uint16_t>(i));
+  ASSERT_TRUE(
+      WriteWaterFillTable(&rom, {zone}, WaterFillTableFormat::kV2).ok());
+  OracleRomSafetyPreflightOptions options;
+  options.validate_custom_collision_maps = false;
+  options.room_ids_requiring_water_fill_zones = {0x25};
+  const auto result = RunOracleRomSafetyPreflight(&rom, options);
+  EXPECT_TRUE(result.ok());
+  ASSERT_TRUE(WriteWaterFillTable(&rom, {}, WaterFillTableFormat::kV2).ok());
+  options.room_ids_requiring_water_fill_zones.clear();
+  EXPECT_TRUE(RunOracleRomSafetyPreflight(&rom, options).ok());
+}
+
 TEST(OracleRomSafetyPreflightTest, FailsWhenWaterFillHeaderIsCorrupt) {
   Rom rom;
   ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());

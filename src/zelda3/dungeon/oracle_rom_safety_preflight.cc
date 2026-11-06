@@ -120,7 +120,7 @@ OracleRomSafetyPreflightResult RunOracleRomSafetyPreflight(
       HasWaterFillReservedRegion(rom_size)) {
     const auto& data = rom->vector();
     const uint8_t zone_count =
-        data[static_cast<std::size_t>(kWaterFillTableStart)];
+        data[static_cast<std::size_t>(kWaterFillTableStart)] & 0x7F;
     if (zone_count > 8) {
       AddError(
           &result, "ORACLE_WATER_FILL_HEADER_CORRUPT",

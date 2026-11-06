@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 
+#include <algorithm>
 #include <array>
 #include <chrono>
 #include <cstdint>
@@ -173,19 +174,126 @@ TEST(WaterFillZoneTest, WriteRejectsTooManyZones) {
   EXPECT_FALSE(status.ok());
 }
 
-TEST(WaterFillZoneTest, WriteRejectsTileCountLimit) {
+TEST(WaterFillZoneTest, FullD4PoolsUseWordCountsAndRoundTrip) {
   auto rom = MakeDummyRom(0x200000);
 
   WaterFillZoneEntry z;
   z.room_id = 0x25;
-  z.sram_bit_mask = 0x01;
-  z.fill_offsets.resize(256);
-  for (int i = 0; i < 256; ++i) {
+  z.sram_bit_mask = 0x02;
+  z.fill_offsets.resize(594);
+  for (int i = 0; i < 594; ++i) {
     z.fill_offsets[i] = static_cast<uint16_t>(i);
   }
 
-  auto status = WriteWaterFillTable(rom.get(), {z});
-  EXPECT_FALSE(status.ok());
+  WaterFillZoneEntry peer{0x27, 0x01, {}};
+  for (int i = 0; i < 296; ++i)
+    peer.fill_offsets.push_back(static_cast<uint16_t>(i));
+  const auto before = rom->vector();
+  ASSERT_TRUE(
+      WriteWaterFillTable(rom.get(), {z, peer}, WaterFillTableFormat::kV2)
+          .ok());
+  EXPECT_EQ(rom->vector()[kWaterFillTableStart], 0x82);
+  EXPECT_EQ(rom->vector()[kWaterFillTableStart + 9], 0x52);
+  EXPECT_EQ(rom->vector()[kWaterFillTableStart + 10], 0x02);
+  const auto loaded = LoadWaterFillTable(rom.get());
+  ASSERT_TRUE(loaded.ok()) << loaded.status();
+  ASSERT_EQ(loaded->size(), 2u);
+  EXPECT_EQ((*loaded)[0].fill_offsets, z.fill_offsets);
+  EXPECT_EQ((*loaded)[1].fill_offsets, peer.fill_offsets);
+  TempFile saved;
+  ASSERT_FALSE(saved.path.empty());
+  ASSERT_TRUE(rom->SaveToFile({.save_new = true, .filename = saved.path}).ok());
+  Rom reopened;
+  ASSERT_TRUE(reopened.LoadFromFile(saved.path).ok());
+  const auto from_disk = LoadWaterFillTable(&reopened);
+  ASSERT_TRUE(from_disk.ok()) << from_disk.status();
+  ASSERT_EQ(from_disk->size(), 2u);
+  EXPECT_EQ((*from_disk)[0].fill_offsets, z.fill_offsets);
+  EXPECT_EQ((*from_disk)[1].fill_offsets, peer.fill_offsets);
+  EXPECT_TRUE(std::equal(before.begin(), before.begin() + kWaterFillTableStart,
+                         rom->vector().begin()));
+  EXPECT_TRUE(std::equal(before.begin() + kWaterFillTableEnd, before.end(),
+                         rom->vector().begin() + kWaterFillTableEnd));
+}
+
+TEST(WaterFillZoneTest, DefaultWriterKeepsLegacyRuntimeCompatible) {
+  auto rom = MakeDummyRom(0x200000);
+  WaterFillZoneEntry z{0x25, 2, {0, 4095}};
+  ASSERT_TRUE(WriteWaterFillTable(rom.get(), {z}).ok());
+  const std::vector<uint8_t> expected{1, 0x25, 2, 5, 0, 2, 0, 0, 0xFF, 0x0F};
+  EXPECT_TRUE(std::equal(expected.begin(), expected.end(),
+                         rom->vector().begin() + kWaterFillTableStart));
+  ASSERT_TRUE(WriteWaterFillTable(rom.get(), {}).ok());
+  EXPECT_EQ(rom->vector()[kWaterFillTableStart], 0);
+}
+
+TEST(WaterFillZoneTest, LegacyWriterRejectsLargeZonesAndV2Downgrade) {
+  auto rom = MakeDummyRom(0x200000);
+  WaterFillZoneEntry z{0x25, 2, {}};
+  for (int i = 0; i < 594; ++i)
+    z.fill_offsets.push_back(static_cast<uint16_t>(i));
+  const auto before = rom->vector();
+  EXPECT_EQ(WriteWaterFillTable(rom.get(), {z}).code(),
+            absl::StatusCode::kFailedPrecondition);
+  EXPECT_EQ(rom->vector(), before);
+  ASSERT_TRUE(
+      WriteWaterFillTable(rom.get(), {z}, WaterFillTableFormat::kV2).ok());
+  const auto saved = rom->vector();
+  EXPECT_EQ(WriteWaterFillTable(rom.get(), {}).code(),
+            absl::StatusCode::kFailedPrecondition);
+  EXPECT_EQ(rom->vector(), saved);
+  ASSERT_TRUE(
+      WriteWaterFillTable(rom.get(), {z}, WaterFillTableFormat::kV2).ok());
+  EXPECT_EQ(rom->vector(), saved);
+}
+
+TEST(WaterFillZoneTest, LegacyByteCountTableStillLoads) {
+  auto rom = MakeDummyRom(0x200000);
+  ASSERT_TRUE(rom->WriteVector(kWaterFillTableStart,
+                               {1, 0x25, 2, 5, 0, 2, 0, 0, 0xFF, 0x0F})
+                  .ok());
+  const auto loaded = LoadWaterFillTable(rom.get());
+  ASSERT_TRUE(loaded.ok()) << loaded.status();
+  ASSERT_EQ(loaded->size(), 1u);
+  EXPECT_EQ(loaded->front().fill_offsets, (std::vector<uint16_t>{0, 4095}));
+}
+
+TEST(WaterFillZoneTest, V2CountCannotCrossReservedEnd) {
+  auto rom = MakeDummyRom(0x200000);
+  ASSERT_TRUE(
+      rom->WriteVector(kWaterFillTableStart, {0x81, 0x25, 2, 0xFF, 0x1F}).ok());
+  const auto loaded = LoadWaterFillTable(rom.get());
+  EXPECT_FALSE(loaded.ok());
+}
+
+TEST(WaterFillZoneTest, V2RejectsCountBeyondCollisionGrid) {
+  auto rom = MakeDummyRom(0x200000);
+  ASSERT_TRUE(
+      rom->WriteVector(kWaterFillTableStart, {0x81, 0x25, 2, 5, 0, 1, 0x10})
+          .ok());
+  EXPECT_FALSE(LoadWaterFillTable(rom.get()).ok());
+}
+
+TEST(WaterFillZoneTest, OversizedV2TableRefusesWithoutMutation) {
+  auto rom = MakeDummyRom(0x200000);
+  WaterFillZoneEntry z{0x25, 2, {}};
+  for (int i = 0; i < 4096; ++i)
+    z.fill_offsets.push_back(static_cast<uint16_t>(i));
+  const auto before = rom->vector();
+  EXPECT_EQ(
+      WriteWaterFillTable(rom.get(), {z}, WaterFillTableFormat::kV2).code(),
+      absl::StatusCode::kResourceExhausted);
+  EXPECT_EQ(rom->vector(), before);
+}
+
+TEST(WaterFillZoneTest, SavedEmptyV2SetHasAnExplicitHeader) {
+  auto rom = MakeDummyRom(0x200000);
+  ASSERT_TRUE(
+      WriteWaterFillTable(rom.get(), {}, WaterFillTableFormat::kV2).ok());
+  EXPECT_EQ(rom->vector()[kWaterFillTableStart], 0x80);
+  const auto loaded = LoadWaterFillTable(rom.get());
+  ASSERT_TRUE(loaded.ok()) << loaded.status();
+  EXPECT_TRUE(loaded->empty());
 }
 
 TEST(WaterFillZoneTest, LoadReturnsEmptyWhenAbsent) {
@@ -470,6 +578,19 @@ TEST(WaterFillZoneTest, NormalizeMasksRejectsRoomIdOutsideRuntimeByteRange) {
 }
 
 #if defined(YAZE_WITH_JSON)
+
+TEST(WaterFillZoneTest, FullPoolJsonKeepsAllOffsets) {
+  WaterFillZoneEntry zone{0x25, 2, {}};
+  for (int i = 0; i < 594; ++i) {
+    zone.fill_offsets.push_back(static_cast<uint16_t>(i));
+  }
+  const auto json = DumpWaterFillZonesToJsonString({zone});
+  ASSERT_TRUE(json.ok()) << json.status();
+  const auto zones = LoadWaterFillZonesFromJsonString(*json);
+  ASSERT_TRUE(zones.ok()) << zones.status();
+  ASSERT_EQ(zones->size(), 1u);
+  EXPECT_EQ(zones->front().fill_offsets, zone.fill_offsets);
+}
 
 TEST(WaterFillZoneTest, JsonDumpThenLoadRoundTripNormalizes) {
   std::vector<WaterFillZoneEntry> zones;

@@ -2427,6 +2427,60 @@ TEST(DungeonEditorV2RomSafetyTest,
 }
 
 TEST(DungeonEditorV2RomSafetyTest,
+     FullWaterFillPoolsSaveAndKeepDirtyStateOnCapacityFailure) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+  auto editor = std::make_unique<DungeonEditorV2>(&rom);
+  for (int i = 0; i < 594; ++i) {
+    editor->rooms()[0x25].SetWaterFillTile(i % 64, i / 64, true);
+  }
+  for (int i = 0; i < 296; ++i) {
+    editor->rooms()[0x27].SetWaterFillTile(i % 64, i / 64, true);
+  }
+  editor->rooms()[0x25].set_water_fill_sram_bit_mask(0x02);
+  editor->rooms()[0x27].set_water_fill_sram_bit_mask(0x01);
+  DungeonSaveFlagsGuard guard;
+  ConfigureMinimalDungeonSave();
+  auto& flags = core::FeatureFlags::get().dungeon;
+  flags.kSaveObjects = false;
+  flags.kSaveCollision = false;
+  flags.kSaveWaterFillZones = true;
+  const auto before = rom.vector();
+  EXPECT_EQ(editor->Save().code(), absl::StatusCode::kFailedPrecondition);
+  EXPECT_EQ(rom.vector(), before);
+  EXPECT_TRUE(editor->rooms()[0x25].water_fill_dirty());
+  auto project = MakeProjectWithManifest(R"json({
+    "version": "1.0",
+    "feature_flags": {"flags": [{"name": "!ENABLE_WATER_FILL_V2",
+      "value": 1, "enabled": true, "source": "Config/feature_flags.asm"}]}
+  })json");
+  EditorDependencies dependencies;
+  dependencies.project = &project;
+  editor->SetDependencies(dependencies);
+  ASSERT_TRUE(editor->Save().ok());
+  EXPECT_FALSE(editor->rooms()[0x25].water_fill_dirty());
+  const auto loaded = zelda3::LoadWaterFillTable(&rom);
+  ASSERT_TRUE(loaded.ok()) << loaded.status();
+  ASSERT_EQ(loaded->size(), 2u);
+  EXPECT_EQ((*loaded)[0].fill_offsets.size(), 594u);
+  EXPECT_EQ((*loaded)[1].fill_offsets.size(), 296u);
+
+  const auto saved = rom.vector();
+  for (int i = 594; i < 4096; ++i) {
+    editor->rooms()[0x25].SetWaterFillTile(i % 64, i / 64, true);
+  }
+  EXPECT_EQ(editor->Save().code(), absl::StatusCode::kResourceExhausted);
+  EXPECT_EQ(rom.vector(), saved);
+  EXPECT_TRUE(editor->rooms()[0x25].water_fill_dirty());
+  for (int i = 594; i < 4096; ++i) {
+    editor->rooms()[0x25].SetWaterFillTile(i % 64, i / 64, false);
+  }
+  ASSERT_TRUE(editor->Save().ok());
+  EXPECT_FALSE(editor->rooms()[0x25].water_fill_dirty());
+  EXPECT_EQ(rom.vector(), saved);
+}
+
+TEST(DungeonEditorV2RomSafetyTest,
      SaveNormalizesDuplicateWaterFillMasksInsteadOfFailing) {
   Rom rom;
   ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());

@@ -107,7 +107,8 @@ absl::Status ValidateChestObjectSaveCoupling(const DungeonRoomStore& rooms,
   return status;
 }
 
-absl::Status SaveWaterFillZones(Rom* rom, DungeonRoomStore& rooms) {
+absl::Status SaveWaterFillZones(Rom* rom, DungeonRoomStore& rooms,
+                                const project::YazeProject* project) {
   if (!rom || !rom->is_loaded()) {
     return absl::FailedPreconditionError("ROM not loaded");
   }
@@ -142,10 +143,10 @@ absl::Status SaveWaterFillZones(Rom* rom, DungeonRoomStore& rooms) {
     if (tile_count <= 0) {
       continue;
     }
-    if (tile_count > 255) {
+    if (tile_count > zelda3::kWaterFillMaxTiles) {
       return absl::InvalidArgumentError(absl::StrFormat(
-          "Water fill zone in room 0x%02X has %d tiles (max 255)", room_id,
-          tile_count));
+          "Water fill zone in room 0x%02X has %d tiles (max %d)", room_id,
+          tile_count, zelda3::kWaterFillMaxTiles));
     }
 
     zelda3::WaterFillZoneEntry z;
@@ -181,7 +182,13 @@ absl::Status SaveWaterFillZones(Rom* rom, DungeonRoomStore& rooms) {
     }
   }
 
-  RETURN_IF_ERROR(zelda3::WriteWaterFillTable(rom, zones));
+  const bool supports_v2 =
+      project && project->hack_manifest.loaded() &&
+      project->hack_manifest.IsFeatureEnabled("!ENABLE_WATER_FILL_V2");
+  RETURN_IF_ERROR(zelda3::WriteWaterFillTable(
+      rom, zones,
+      supports_v2 ? zelda3::WaterFillTableFormat::kV2
+                  : zelda3::WaterFillTableFormat::kLegacy));
   rooms.ForEachMaterialized(
       [](int, zelda3::Room& room) { room.ClearWaterFillDirty(); });
 
@@ -914,7 +921,7 @@ absl::Status DungeonEditorV2::Save() {
   }
 
   if (flags.kSaveWaterFillZones) {
-    auto status = SaveWaterFillZones(rom_, rooms_);
+    auto status = SaveWaterFillZones(rom_, rooms_, dependencies_.project);
     if (!status.ok()) {
       LOG_ERROR("DungeonEditorV2", "Failed to save water fill zones: %s",
                 status.message().data());
@@ -1191,7 +1198,7 @@ absl::Status DungeonEditorV2::SaveRoomImpl(int room_id, bool room_data_only) {
           [this](int id) { return rooms_.GetIfMaterialized(id); }));
     }
     if (flags.kSaveWaterFillZones) {
-      RETURN_IF_ERROR(SaveWaterFillZones(rom_, rooms_));
+      RETURN_IF_ERROR(SaveWaterFillZones(rom_, rooms_, dependencies_.project));
     }
     if (flags.kSaveChests) {
       RETURN_IF_ERROR(zelda3::ApplyChestSavePlan(

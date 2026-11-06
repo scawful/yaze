@@ -18,6 +18,7 @@
 #include "util/file_util.h"
 #include "util/i18n/tr.h"
 #include "zelda3/dungeon/dungeon_rom_addresses.h"
+#include "zelda3/dungeon/water_fill_zone.h"
 
 namespace yaze::editor {
 
@@ -223,9 +224,9 @@ void WaterFillPanel::Draw(bool* p_open) {
     const int tile_count = room.WaterFillTileCount();
     ImGui::Separator();
     ImGui::Text(tr("Zone Tiles: %d"), tile_count);
-    if (tile_count > 255) {
+    if (tile_count > zelda3::kWaterFillMaxTiles) {
       ImGui::TextColored(theme.status_error,
-                         ICON_MD_ERROR " Too many tiles (max 255 per room)");
+                         ICON_MD_ERROR " Zone exceeds the 64x64 room grid");
     }
 
     if (room_loaded) {
@@ -292,7 +293,8 @@ void WaterFillPanel::Draw(bool* p_open) {
 
     ImGui::TextWrapped(
         tr("Water fill zones are serialized as compact tile offset lists. "
-           "Keep zones under 255 tiles per room."));
+           "Up to 8 zones must fit the shared 8 KiB table. "
+           "Large zones require Oracle's water-fill v2 runtime."));
   }
 
   // Overview: show all rooms that currently have zone data, plus global
@@ -324,7 +326,7 @@ void WaterFillPanel::Draw(bool* p_open) {
       }
       rows.push_back(ZoneRow{rid, tiles, r->water_fill_sram_bit_mask(),
                              r->water_fill_dirty()});
-      if (tiles > 255) {
+      if (tiles > zelda3::kWaterFillMaxTiles) {
         rooms_over_tile_limit++;
       }
       if (r->water_fill_sram_bit_mask() == 0) {
@@ -352,7 +354,7 @@ void WaterFillPanel::Draw(bool* p_open) {
     }
     if (rooms_over_tile_limit > 0) {
       ImGui::TextColored(theme.status_error,
-                         ICON_MD_ERROR " %d room(s) exceed 255 tiles",
+                         ICON_MD_ERROR " %d room(s) exceed the 64x64 grid",
                          rooms_over_tile_limit);
     }
     if (duplicate_masks > 0) {

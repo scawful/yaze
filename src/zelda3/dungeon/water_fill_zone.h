@@ -14,6 +14,10 @@ class Rom;
 
 namespace yaze::zelda3 {
 
+inline constexpr int kWaterFillMaxTiles = 64 * 64;
+
+enum class WaterFillTableFormat { kLegacy, kV2 };
+
 struct WaterFillZoneEntry {
   int room_id = -1;
   uint8_t sram_bit_mask = 0;           // Bit in $7EF411 (e.g. 0x01)
@@ -21,14 +25,19 @@ struct WaterFillZoneEntry {
 };
 
 // Load the editor-authored water fill table from the reserved ROM region.
+// Accepts legacy byte counts and v2 word counts (header bit 7).
 // Returns an empty list if the table is not present.
 absl::StatusOr<std::vector<WaterFillZoneEntry>> LoadWaterFillTable(Rom* rom);
 
 // Write the editor-authored water fill table into the reserved ROM region.
+// Defaults to legacy byte counts. V2 must be selected by a caller whose project
+// declares ENABLE_WATER_FILL_V2; it also preserves an explicitly empty zone set.
+// Refuses a v2-to-legacy downgrade or a large legacy write without changing ROM.
 // This overwrites the reserved region (kWaterFillTableStart..kWaterFillTableEnd)
 // and leaves collision data untouched.
-absl::Status WriteWaterFillTable(Rom* rom,
-                                 const std::vector<WaterFillZoneEntry>& zones);
+absl::Status WriteWaterFillTable(
+    Rom* rom, const std::vector<WaterFillZoneEntry>& zones,
+    WaterFillTableFormat format = WaterFillTableFormat::kLegacy);
 
 // Best-effort import of legacy WaterGate_* tables from an asar-generated .sym
 // file (WLA symbol format). This is intended as a one-time migration aid.
@@ -53,8 +62,8 @@ absl::StatusOr<std::vector<WaterFillZoneEntry>> LoadLegacyWaterGateZones(
 absl::StatusOr<std::string> DumpWaterFillZonesToJsonString(
     const std::vector<WaterFillZoneEntry>& zones);
 
-absl::StatusOr<std::vector<WaterFillZoneEntry>> LoadWaterFillZonesFromJsonString(
-    const std::string& json_content);
+absl::StatusOr<std::vector<WaterFillZoneEntry>>
+LoadWaterFillZonesFromJsonString(const std::string& json_content);
 
 // Assigns deterministic, unique SRAM bit masks (0x01..0x80) to all zones.
 //
