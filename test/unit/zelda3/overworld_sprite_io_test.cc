@@ -17,6 +17,11 @@ class OverworldSpriteIoTest : public ::testing::TestWithParam<bool> {
   void SetUp() override {
     std::vector<uint8_t> data(0x200000, 0xA5);
     data[0x140145] = GetParam() ? 3 : 0xFF;
+    // Model tests construct maps from these parent rows without a full Load.
+    for (int map = 0; map < 64; ++map)
+      data[kOverworldMapParentId + map] = static_cast<uint8_t>(map);
+    for (int map = 0; map < kNumOverworldMaps; ++map)
+      data[kOverworldMapParentIdExpanded + map] = static_cast<uint8_t>(map);
     ASSERT_TRUE(rom_.LoadFromData(data).ok());
     layout_ = GetOverworldSpriteLayout(rom_);
     ASSERT_TRUE(rom_.WriteByte(layout_.data_start, 0xFF).ok());
@@ -187,6 +192,35 @@ TEST_P(OverworldSpriteIoTest, ModelSaveUsesMovedPositionAndPreservesFlags) {
   world->mutable_sprites(0)->clear();
   ASSERT_TRUE(world->SaveSprites().ok());
   EXPECT_EQ(Read(0, 0), OverworldSpriteBytes{0xFF});
+}
+TEST_P(OverworldSpriteIoTest, ModelLoadUsesCurrentParentsAfterGeometryChanges) {
+  OverworldSpriteEdits edits;
+  edits[0][0] = {1, 2, 0x11, 0xFF};
+  edits[0][1] = {3, 4, 0x22, 0xFF};
+  Save(edits);
+  auto world = std::make_unique<Overworld>(&rom_);
+  auto& maps = const_cast<std::vector<OverworldMap>&>(world->overworld_maps());
+  maps.emplace_back(0, &rom_);
+  maps.emplace_back(1, &rom_);
+  ASSERT_EQ(maps[0].parent(), 0);
+  ASSERT_EQ(maps[1].parent(), 1);
+  const auto before = rom_.vector();
+  rom_.set_dirty(false);
+  ASSERT_TRUE(world->LoadSpritesFromMap(layout_.tables[0], 2, 0).ok());
+  ASSERT_EQ(world->sprites(0).size(), 2);
+  EXPECT_EQ(world->sprites(0)[1].id(), 0x22);
+
+  maps[1].SetAsWideMap(0, 1);
+  ASSERT_TRUE(world->LoadSpritesFromMap(layout_.tables[0], 2, 0).ok());
+  ASSERT_EQ(world->sprites(0).size(), 1);
+  EXPECT_EQ(world->sprites(0)[0].id(), 0x11);
+
+  maps[1].SetAsSmallMap();
+  ASSERT_TRUE(world->LoadSpritesFromMap(layout_.tables[0], 2, 0).ok());
+  ASSERT_EQ(world->sprites(0).size(), 2);
+  EXPECT_EQ(world->sprites(0)[1].id(), 0x22);
+  EXPECT_EQ(rom_.vector(), before);
+  EXPECT_FALSE(rom_.dirty());
 }
 TEST_P(OverworldSpriteIoTest, EditorSavePersistsSpritesWithMapSavingDisabled) {
   const auto saved_flags = core::FeatureFlags::get().overworld;
