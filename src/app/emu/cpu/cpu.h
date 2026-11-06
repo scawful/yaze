@@ -38,7 +38,7 @@ class Cpu {
  public:
   explicit Cpu(Memory& mem) : memory(mem) {}
   void Reset(bool hard = false);
-  
+
   void SaveState(std::ostream& stream);
   void LoadState(std::istream& stream);
 
@@ -55,7 +55,6 @@ class Cpu {
   void Nmi() { nmi_wanted_ = true; }
 
   std::vector<uint32_t> breakpoints_;
-  // REMOVED: instruction_log_ - replaced by efficient DisassemblyViewer
 
   // Disassembly viewer (always enabled, uses sparse address map)
   debug::DisassemblyViewer& disassembly_viewer();
@@ -789,9 +788,6 @@ class Cpu {
 
   bool stopped() const { return stopped_; }
 
-  // REMOVED: SetInstructionLogging - DisassemblyViewer is always active
-  // Use disassembly_viewer().SetRecording(bool) for runtime control
-
  private:
   void compare(uint16_t register_value, uint16_t memory_value) {
     uint16_t result;
@@ -819,8 +815,6 @@ class Cpu {
   }
 
   bool GetFlag(uint8_t mask) const { return (status & mask) != 0; }
-
-  // REMOVED: log_instructions_ flag - no longer needed
 
   bool waiting_ = false;
   bool stopped_ = false;

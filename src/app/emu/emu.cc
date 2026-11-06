@@ -1,7 +1,3 @@
-#if __APPLE__
-// #include "app/platform/app_delegate.h"
-#endif
-
 #include "app/platform/sdl_compat.h"
 
 #include <memory>

@@ -87,7 +87,6 @@ class WasmAudioBackend : public IAudioBackend {
   };
 
   // Helper functions
-  void ProcessAudioQueue();
   bool ConvertToFloat32(const int16_t* input, float* output, int num_samples);
   void ApplyVolumeToBuffer(float* buffer, int num_samples);
 
