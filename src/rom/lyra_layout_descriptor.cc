@@ -832,6 +832,19 @@ absl::StatusOr<std::vector<uint8_t>> SealNativeOverworldTerrain(
         changed_properties.end())
       changed_properties.push_back(id);
   };
+  // Geometry is one complete row, including parent, size and all navigation
+  // values. A property edit cannot grant an isolated parent or camera write.
+  std::array<uint16_t, 192> geometry_fields{};
+  for (const auto& edit : properties) {
+    const int bit = edit.table_id == 30 ? 9 : edit.table_id - 7;
+    if (((edit.table_id >= 7 && edit.table_id <= 15) || edit.table_id == 30) &&
+        edit.map_id < geometry_fields.size())
+      geometry_fields[edit.map_id] |= 1 << bit;
+  }
+  for (uint16_t fields : geometry_fields)
+    if (fields != 0 && fields != 0x3FF)
+      return absl::InvalidArgumentError(
+          "Native geometry requires parent, size and all navigation values");
   // Validate the whole batch before publishing anything to the caller.
   std::vector<std::pair<uint16_t, uint16_t>> edited_slots;
   for (const auto& edit : properties) {

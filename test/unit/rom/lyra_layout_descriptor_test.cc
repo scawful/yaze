@@ -40,6 +40,7 @@
 #include "zelda3/dungeon/dungeon_rom_addresses.h"
 #include "zelda3/game_data.h"
 #include "zelda3/overworld/overworld.h"
+#include "zelda3/overworld/overworld_geometry.h"
 #include "zelda3/overworld/overworld_sprite_io.h"
 #include "zelda3/overworld/overworld_terrain_io.h"
 
@@ -508,6 +509,173 @@ TEST(LyraLayoutDescriptorTest,
   rejects(
       "Tile32 exceeds dictionary", [&](auto& b) { b[0x24000A] = 0xFF; },
       "Tile32");
+}
+
+std::vector<rom::NativeOverworldPropertyEdit> GeometryEdits(
+    std::span<const zelda3::OverworldGeometryRow> rows,
+    std::span<const int> map_ids) {
+  std::vector<rom::NativeOverworldPropertyEdit> edits;
+  for (int map : map_ids) {
+    edits.push_back({7, static_cast<uint16_t>(map), {rows[map].parent}});
+    edits.push_back({30,
+                     static_cast<uint16_t>(map),
+                     {static_cast<uint8_t>(rows[map].size)}});
+    for (size_t i = 0; i < rows[map].words.size(); ++i) {
+      const uint16_t value = rows[map].words[i];
+      edits.push_back(
+          {static_cast<uint16_t>(8 + i),
+           static_cast<uint16_t>(map),
+           {static_cast<uint8_t>(value), static_cast<uint8_t>(value >> 8)}});
+    }
+  }
+  return edits;
+}
+
+TEST(LyraLayoutDescriptorTest, NativeGeometryPlansAcceptedAreasAndAllSizes) {
+  NativeDirectoryFixture fixture;
+  Rom image;
+  ASSERT_TRUE(image.LoadFromData(fixture.bytes).ok());
+  const auto layout = image.InspectLyraLayout();
+  std::vector<zelda3::OverworldMap> maps;
+  for (int i = 0; i < layout.capacity; ++i) {
+    auto map =
+        zelda3::OverworldMap::CreateFromLayout(i, &image, nullptr, &layout);
+    ASSERT_TRUE(map.ok()) << map.status();
+    maps.push_back(std::move(*map));
+  }
+  for (int parent : {0xA0, 0xBE}) {
+    maps[parent].SetAsWideMap(parent, 0);
+    maps[parent + 1].SetAsWideMap(parent, 1);
+  }
+  for (int parent : {0xA6, 0xB0, 0xB3}) {
+    for (int q = 0; q < 4; ++q)
+      maps[parent + q / 2 * 8 + q % 2].SetAsLargeMap(parent, q);
+  }
+  auto plan = zelda3::PlanExpandedOverworldGeometry(maps);
+  ASSERT_TRUE(plan.ok()) << plan.status();
+  ASSERT_EQ(plan->size(), 192u);
+  int tail_areas = 0;
+  for (int map = 0xA0; map < 0xC0; ++map) {
+    const auto& row = (*plan)[map];
+    tail_areas += row.parent == map;
+    const int x = row.parent % 8;
+    const int y = row.parent % 64 / 8;
+    EXPECT_EQ(row.words[4], y * 0x200);
+    EXPECT_EQ(row.words[5], x * 0x200);
+    EXPECT_EQ(row.words[6], static_cast<uint16_t>(y * 0x200 - 0xE0));
+    EXPECT_EQ(row.words[7], static_cast<uint16_t>(x * 0x200 - 0x100));
+  }
+  EXPECT_EQ(tail_areas, 21);
+  EXPECT_EQ((*plan)[0xBF].parent, 0xBE);
+  EXPECT_EQ((*plan)[0xBF].size, zelda3::AreaSizeEnum::WideArea);
+  EXPECT_EQ((*plan)[0xB9].parent, 0xB0);
+  EXPECT_EQ((*plan)[0xB9].size, zelda3::AreaSizeEnum::LargeArea);
+  // A8 is small below A0/A1 wide; B8/B9 are the lower half of B0 large.
+  EXPECT_EQ((*plan)[0xA8].words[0], 0x0060);
+  EXPECT_EQ((*plan)[0xA9].words[2], 0x17C0);
+  EXPECT_EQ((*plan)[0xB9].words[0], 0x1060);
+  EXPECT_EQ((*plan)[0xB9].words[2], 0x1840);
+  // A tall area uses 2x2 quadrant numbering (bottom=2), including the BF edge.
+  maps[0xBE].SetAsSmallMap(0xBE);
+  maps[0xBF].SetAsSmallMap(0xBF);
+  maps[0xB7].SetAsTallMap(0xB7, 0);
+  maps[0xBF].SetAsTallMap(0xB7, 2);
+  plan = zelda3::PlanExpandedOverworldGeometry(maps);
+  ASSERT_TRUE(plan.ok()) << plan.status();
+  EXPECT_EQ((*plan)[0xBF].parent, 0xB7);
+  EXPECT_EQ((*plan)[0xBF].words[0], 0x1060);
+  EXPECT_EQ((*plan)[0xBF].words[3], 0x2000);
+  EXPECT_EQ(image.vector(), fixture.bytes);
+  // Crossing a row or leaving a partial child group is refused as a whole.
+  maps[0xA7].SetAsWideMap(0xA7, 0);
+  maps[0xA8].SetAsWideMap(0xA7, 1);
+  EXPECT_FALSE(zelda3::PlanExpandedOverworldGeometry(maps).ok());
+}
+
+TEST(LyraLayoutDescriptorTest, NativeGeometryBatchMirrorsAndReopensAtomically) {
+  for (int capacity : {160, 192}) {
+    SCOPED_TRACE(capacity);
+    NativeDirectoryFixture fixture(capacity);
+    Rom image;
+    ASSERT_TRUE(image.LoadFromData(fixture.bytes).ok());
+    const auto layout = image.InspectLyraLayout();
+    std::vector<zelda3::OverworldMap> maps;
+    for (int i = 0; i < capacity; ++i) {
+      auto map =
+          zelda3::OverworldMap::CreateFromLayout(i, &image, nullptr, &layout);
+      ASSERT_TRUE(map.ok()) << map.status();
+      maps.push_back(std::move(*map));
+    }
+    const int parent = capacity - 10;
+    const std::array<int, 4> members = {parent, parent + 1, parent + 8,
+                                        parent + 9};
+    for (int q = 0; q < 4; ++q)
+      maps[members[q]].SetAsLargeMap(parent, q);
+    const auto plan = zelda3::PlanExpandedOverworldGeometry(maps);
+    ASSERT_TRUE(plan.ok()) << plan.status();
+    auto edits = GeometryEdits(*plan, members);
+    const auto original = image.vector();
+    auto saved = rom::SealNativeOverworldTerrain(original, original, edits);
+    ASSERT_TRUE(saved.ok()) << saved.status();
+    const auto checked = rom::InspectLyraLayout(saved->data(), saved->size());
+    ASSERT_EQ(checked.presence, rom::LyraLayoutPresence::kValid)
+        << checked.error;
+    const std::array<size_t, 10> mirrors = {
+        0x140998, 0x1788D,  0x140A38, 0x140B78, 0x140CB8,
+        0x140DF8, 0x140F38, 0x141078, 0x1411B8, 0x1412F8};
+    for (size_t n = 0; n < edits.size(); ++n) {
+      const auto& edit = edits[n];
+      const auto& table = fixture.Entry(edit.table_id);
+      const size_t at = table.pc_address + edit.map_id * table.stride;
+      EXPECT_TRUE(std::equal(edit.value.begin(), edit.value.end(),
+                             saved->begin() + at));
+      if (edit.map_id < 160) {
+        const size_t mirror = mirrors[n % 10] + edit.map_id * table.stride;
+        EXPECT_TRUE(std::equal(edit.value.begin(), edit.value.end(),
+                               saved->begin() + mirror));
+      }
+    }
+    auto repeated = rom::SealNativeOverworldTerrain(*saved, *saved, edits);
+    ASSERT_TRUE(repeated.ok()) << repeated.status();
+    EXPECT_EQ(*repeated, *saved);
+    // The ordinary atomic publisher retains read-only, fence and stale guards.
+    {
+      rom::ScopedRomReadOnly readonly(image);
+      EXPECT_FALSE(
+          image.CommitNativeTerrainImage(original, original, edits).ok());
+    }
+    {
+      rom::WriteFence fence;
+      rom::ScopedWriteFence scope(&image, &fence);
+      EXPECT_FALSE(
+          image.CommitNativeTerrainImage(original, original, edits).ok());
+    }
+    EXPECT_EQ(image.vector(), original);
+    auto partial = edits;
+    partial.pop_back();
+    EXPECT_FALSE(
+        rom::SealNativeOverworldTerrain(original, original, partial).ok());
+    auto inconsistent = edits;
+    inconsistent[10].value[0] = members[1];
+    EXPECT_FALSE(
+        rom::SealNativeOverworldTerrain(original, original, inconsistent).ok());
+    auto duplicate = edits;
+    duplicate.push_back(edits.front());
+    EXPECT_FALSE(
+        rom::SealNativeOverworldTerrain(original, original, duplicate).ok());
+    ASSERT_TRUE(image.CommitNativeTerrainImage(original, original, edits).ok());
+    EXPECT_EQ(image.vector(), *saved);
+    EXPECT_FALSE(
+        image.CommitNativeTerrainImage(original, original, edits).ok());
+    Rom reopened;
+    ASSERT_TRUE(reopened.LoadFromData(image.vector()).ok());
+    const auto reopened_layout = reopened.InspectLyraLayout();
+    auto child = zelda3::OverworldMap::CreateFromLayout(
+        members[3], &reopened, nullptr, &reopened_layout);
+    ASSERT_TRUE(child.ok()) << child.status();
+    EXPECT_EQ(child->parent(), parent);
+    EXPECT_EQ(child->area_size(), zelda3::AreaSizeEnum::LargeArea);
+  }
 }
 
 TEST(LyraLayoutDescriptorTest, NativePropertiesMirrorOnlyEditedSlots) {

@@ -602,34 +602,6 @@ class Overworld {
   /// @brief Save expanded large map data (v1+ ROMs)
   absl::Status SaveLargeMapsExpanded();
 
-  /// @brief Save screen transition data for small (1x1) areas
-  absl::Status SaveSmallAreaTransitions(
-      int i, int parent_x_pos, int parent_y_pos, int transition_target_north,
-      int transition_target_west, int transition_pos_x, int transition_pos_y,
-      int screen_change_1, int screen_change_2, int screen_change_3,
-      int screen_change_4);
-
-  /// @brief Save screen transition data for large (2x2) areas
-  absl::Status SaveLargeAreaTransitions(
-      int i, int parent_x_pos, int parent_y_pos, int transition_target_north,
-      int transition_target_west, int transition_pos_x, int transition_pos_y,
-      int screen_change_1, int screen_change_2, int screen_change_3,
-      int screen_change_4);
-
-  /// @brief Save screen transition data for wide (2x1) areas (v3+ only)
-  absl::Status SaveWideAreaTransitions(
-      int i, int parent_x_pos, int parent_y_pos, int transition_target_north,
-      int transition_target_west, int transition_pos_x, int transition_pos_y,
-      int screen_change_1, int screen_change_2, int screen_change_3,
-      int screen_change_4);
-
-  /// @brief Save screen transition data for tall (1x2) areas (v3+ only)
-  absl::Status SaveTallAreaTransitions(
-      int i, int parent_x_pos, int parent_y_pos, int transition_target_north,
-      int transition_target_west, int transition_pos_x, int transition_pos_y,
-      int screen_change_1, int screen_change_2, int screen_change_3,
-      int screen_change_4);
-
   // ===========================================================================
   // Save Methods - Entities (Independent, any order)
   // ===========================================================================
