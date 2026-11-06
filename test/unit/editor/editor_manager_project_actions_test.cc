@@ -1527,7 +1527,11 @@ TEST(EditorManagerProjectActionsTest,
   project->rom_filename = source_rom.string();
   project->build_target = "missing_output.sfc";
   project->hack_manifest_file = "hack_manifest.json";
+#ifdef _WIN32
+  project->build_script = CopyCommand(build_artifact, valid_rom);
+#else
   project->build_script = "./build_run.sh";
+#endif
   ASSERT_OK(SaveProjectFixture(*project));
   ASSERT_OK(manager->OpenRomOrProject(project_path.string()));
   ASSERT_OK(manager->BuildCurrentProject());
@@ -2040,7 +2044,6 @@ TEST(EditorManagerProjectActionsTest,
          {"hack_name", "Oracle of Secrets"},
          {"build_pipeline",
           {{"dev_rom", "rom"}, {"patched_rom", "project/Roms/oos168x.sfc"}}}});
-    const auto descriptor_before = ReadFile(descriptor);
     const auto manifest_before = ReadFile(manifest);
     const auto source_before = core::ComputeSourceArtifactFileSha256(source);
     const auto target_hash =
@@ -2065,6 +2068,20 @@ TEST(EditorManagerProjectActionsTest,
     }
     PublishProjectFixtureNativeSave(saved_project, source, producer);
     ASSERT_FALSE(::testing::Test::HasFatalFailure());
+    const auto descriptor_before = ReadFile(descriptor);
+    const auto context =
+        core::GetNativeSaveContext(source.string(), descriptor.string());
+    ASSERT_TRUE(context.ok()) << context.status();
+    std::vector<std::pair<std::filesystem::path, std::string>> native_before;
+    for (const std::filesystem::path& path : std::vector<std::filesystem::path>{
+             descriptor.string() + ".native-save.json", context->path,
+             saved_project.GetAbsolutePath(saved_project.lyra_terrain_file),
+             saved_project.GetAbsolutePath(
+                 saved_project.native_save_producer_file),
+             saved_project.GetAbsolutePath(
+                 saved_project.native_save_transfer_proof_file)}) {
+      native_before.emplace_back(path, ReadFile(path));
+    }
     ASSERT_OK(manager->OpenRomOrProject(descriptor.string()));
     const auto* project = manager->GetCurrentProject();
     ASSERT_NE(project, nullptr);
@@ -2091,9 +2108,9 @@ TEST(EditorManagerProjectActionsTest,
     EXPECT_EQ(*source_after, *source_before);
     EXPECT_EQ(ReadFile(descriptor), descriptor_before);
     EXPECT_EQ(ReadFile(manifest), manifest_before);
-    EXPECT_FALSE(std::filesystem::exists(bundle / "transfer"));
-    EXPECT_FALSE(
-        std::filesystem::exists(bundle / "project.yaze.native-save.json"));
+    for (const auto& [path, before] : native_before) {
+      EXPECT_EQ(ReadFile(path), before) << path;
+    }
   }
 }
 
