@@ -295,13 +295,6 @@ void Snes::HandleInput() {
     // port_auto_read_[2/3] remain 0 as standard controllers don't use them
   }
 
-  // Debug: Log input state when buttons are pressed
-  static int input_log_count = 0;
-  if (latched1 != 0 && input_log_count++ < 50) {
-    LOG_INFO("Input", "current_state=0x%04X -> $4218=0x%02X $4219=0x%02X",
-             latched1, port_auto_read_[0] & 0xFF, port_auto_read_[0] >> 8);
-  }
-
   // Store previous state for edge detection
   // Do this here instead of after a destructive latch sequence
   input1.previous_state_ = input1.current_state_;
@@ -386,9 +379,6 @@ void Snes::RunCycle() {
               memory_.v_pos() == 263) {
             memory_.set_v_pos(0);
             frames_++;
-            static int frame_log = 0;
-            if (++frame_log % 60 == 0)
-              LOG_INFO("SNES", "Frames incremented 60 times");
           }
         } else {
           // even interlace frame is 313 lines
@@ -397,9 +387,6 @@ void Snes::RunCycle() {
               memory_.v_pos() == 313) {
             memory_.set_v_pos(0);
             frames_++;
-            static int frame_log_pal = 0;
-            if (++frame_log_pal % 60 == 0)
-              LOG_INFO("SNES", "Frames (PAL) incremented 60 times");
           }
         }
 
