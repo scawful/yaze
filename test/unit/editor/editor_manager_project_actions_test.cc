@@ -1846,6 +1846,10 @@ struct ExpandedRunFixture {
     script += "printf 'fixture-build-complete\\n'\n";
     Write(root / "build-fixture.sh", script);
 #endif
+    project::YazeProject checked;
+    ASSERT_OK(checked.Open(project.string()));
+    ASSERT_FALSE(checked.rom_filename.empty());
+    ASSERT_TRUE(std::filesystem::is_regular_file(checked.rom_filename));
     ASSERT_OK(manager.OpenRomOrProject(project.string()));
     ASSERT_TRUE(manager.GetCurrentProject()->project_opened());
     ASSERT_TRUE(manager.GetCurrentProject()->hack_manifest.loaded());

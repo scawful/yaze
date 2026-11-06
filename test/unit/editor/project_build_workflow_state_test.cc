@@ -85,7 +85,11 @@ struct ProjectFiles {
 class ProjectBuildWorkflowStateTest : public ::testing::Test {
  protected:
   void SetUp() override {
-    temp_ = test::UniqueTempPath("yaze_build_workflow", "");
+    const auto unique = test::UniqueTempPath("yaze_build_workflow", "");
+    temp_ =
+        unique.parent_path() /
+        ("yaze_bwf_" +
+         std::to_string(std::hash<std::string>{}(unique.filename().string())));
     std::filesystem::create_directories(temp_);
     const char* previous = std::getenv("YAZE_APP_DATA_DIR");
     if (previous != nullptr) {
@@ -151,6 +155,20 @@ class ProjectBuildWorkflowStateTest : public ::testing::Test {
     return files;
   }
 
+  absl::Status OpenProject(const ProjectFiles& files) {
+    project::YazeProject saved;
+    const auto status = saved.Open(files.descriptor.string());
+    if (!status.ok()) {
+      return status;
+    }
+    if (saved.rom_filename.empty() ||
+        !std::filesystem::is_regular_file(saved.rom_filename)) {
+      return absl::FailedPreconditionError(
+          "Test project must have an existing ROM; never open a file picker");
+    }
+    return manager_->OpenRomOrProject(files.descriptor.string());
+  }
+
   bool PumpUntil(const std::function<bool()>& finished) {
     const auto deadline =
         std::chrono::steady_clock::now() + std::chrono::seconds(10);
@@ -206,7 +224,7 @@ class ProjectBuildWorkflowStateTest : public ::testing::Test {
 
 TEST_F(ProjectBuildWorkflowStateTest, RunRequiresSuccessfulBuildIdentity) {
   const auto files = CreateProject("BuildRunIdentity");
-  ASSERT_OK(manager_->OpenRomOrProject(files.descriptor.string()));
+  ASSERT_OK(OpenProject(files));
   EXPECT_FALSE(manager_->RunCurrentProject().ok());
   ASSERT_OK(manager_->BuildCurrentProject());
   const auto hash = core::ComputeSourceArtifactFileSha256(files.output);
@@ -229,7 +247,7 @@ TEST_F(ProjectBuildWorkflowStateTest, NoOpBuildDoesNotAdoptPreexistingOutput) {
   project.build_script = "true";
 #endif
   ASSERT_OK(project.Save());
-  ASSERT_OK(manager_->OpenRomOrProject(files.descriptor.string()));
+  ASSERT_OK(OpenProject(files));
   const auto status = manager_->BuildCurrentProject();
   EXPECT_FALSE(status.ok());
   EXPECT_NE(status.message().find("unchanged output"), std::string::npos);
@@ -238,7 +256,7 @@ TEST_F(ProjectBuildWorkflowStateTest, NoOpBuildDoesNotAdoptPreexistingOutput) {
 
 TEST_F(ProjectBuildWorkflowStateTest, DeterministicRepeatBuildRetainsProof) {
   const auto files = CreateProject("RepeatBuild");
-  ASSERT_OK(manager_->OpenRomOrProject(files.descriptor.string()));
+  ASSERT_OK(OpenProject(files));
   ASSERT_OK(manager_->BuildCurrentProject());
   const auto first = core::ComputeSourceArtifactFileSha256(files.output);
   ASSERT_TRUE(first.ok());
@@ -251,7 +269,7 @@ TEST_F(ProjectBuildWorkflowStateTest, DeterministicRepeatBuildRetainsProof) {
 
 TEST_F(ProjectBuildWorkflowStateTest, OverlappingQueuedAndSyncBuildsRefused) {
   const auto files = CreateProject("BuildOverlap", false, false);
-  ASSERT_OK(manager_->OpenRomOrProject(files.descriptor.string()));
+  ASSERT_OK(OpenProject(files));
   manager_->QueueBuildCurrentProject();
   EXPECT_EQ(manager_->BuildCurrentProject().code(),
             absl::StatusCode::kAlreadyExists);
@@ -260,7 +278,7 @@ TEST_F(ProjectBuildWorkflowStateTest, OverlappingQueuedAndSyncBuildsRefused) {
 
 TEST_F(ProjectBuildWorkflowStateTest, RunWhileBuildRunningIsRefused) {
   const auto files = CreateProject("RunDuringBuild", true);
-  ASSERT_OK(manager_->OpenRomOrProject(files.descriptor.string()));
+  ASSERT_OK(OpenProject(files));
   manager_->QueueBuildCurrentProject();
   EXPECT_FALSE(manager_->RunCurrentProject().ok());
   ASSERT_TRUE(WaitFor(ProjectWorkflowState::kSuccess));
@@ -269,7 +287,7 @@ TEST_F(ProjectBuildWorkflowStateTest, RunWhileBuildRunningIsRefused) {
 
 TEST_F(ProjectBuildWorkflowStateTest, FailedBuildRevokesPriorRunEligibility) {
   const auto files = CreateProject("FailedRevokesRun");
-  ASSERT_OK(manager_->OpenRomOrProject(files.descriptor.string()));
+  ASSERT_OK(OpenProject(files));
   ASSERT_OK(manager_->BuildCurrentProject());
   const auto marker = temp_ / "failed-child-started.txt";
 #ifdef _WIN32
@@ -289,7 +307,7 @@ TEST_F(ProjectBuildWorkflowStateTest, FailedBuildRevokesPriorRunEligibility) {
 
 TEST_F(ProjectBuildWorkflowStateTest, RunRefusesDirtyRomWithoutSavedChanges) {
   const auto files = CreateProject("DirtyRun");
-  ASSERT_OK(manager_->OpenRomOrProject(files.descriptor.string()));
+  ASSERT_OK(OpenProject(files));
   ASSERT_OK(manager_->BuildCurrentProject());
   ASSERT_OK(manager_->GetCurrentRom()->WriteByte(0, 0x01));
   EXPECT_FALSE(manager_->RunCurrentProject().ok());
@@ -298,11 +316,11 @@ TEST_F(ProjectBuildWorkflowStateTest, RunRefusesDirtyRomWithoutSavedChanges) {
 TEST_F(ProjectBuildWorkflowStateTest, ForeignViewerCannotCancelOrAdoptBuild) {
   const auto a = CreateProject("ProjectA", true);
   const auto b = CreateProject("ProjectB");
-  ASSERT_OK(manager_->OpenRomOrProject(a.descriptor.string()));
+  ASSERT_OK(OpenProject(a));
   const auto owner_id = manager_->GetCurrentSessionId();
   const auto owner_index = manager_->GetCurrentSessionIndex();
   manager_->QueueBuildCurrentProject();
-  ASSERT_OK(manager_->OpenRomOrProject(b.descriptor.string()));
+  ASSERT_OK(OpenProject(b));
   ASSERT_NE(manager_->GetCurrentSessionId(), owner_id);
   manager_->CancelQueuedProjectBuild();
   EXPECT_FALSE(manager_->RunCurrentProject().ok());
@@ -318,10 +336,10 @@ TEST_F(ProjectBuildWorkflowStateTest,
        OwnerCompletionSurvivesAnotherProjectBuild) {
   const auto a = CreateProject("HistoryOwnerA", true);
   const auto b = CreateProject("HistoryOwnerB", true);
-  ASSERT_OK(manager_->OpenRomOrProject(a.descriptor.string()));
+  ASSERT_OK(OpenProject(a));
   const auto a_index = manager_->GetCurrentSessionIndex();
   manager_->QueueBuildCurrentProject();
-  ASSERT_OK(manager_->OpenRomOrProject(b.descriptor.string()));
+  ASSERT_OK(OpenProject(b));
   const auto b_index = manager_->GetCurrentSessionIndex();
   ASSERT_TRUE(PumpUntil([] {
     return ContentRegistry::Context::build_workflow_status().state ==
@@ -348,14 +366,14 @@ TEST_F(ProjectBuildWorkflowStateTest,
 TEST_F(ProjectBuildWorkflowStateTest, ClosedOwnerCannotTransferResultToReopen) {
   const auto a = CreateProject("ClosedOwner", true);
   const auto b = CreateProject("RemainingViewer");
-  ASSERT_OK(manager_->OpenRomOrProject(a.descriptor.string()));
+  ASSERT_OK(OpenProject(a));
   const auto owner_id = manager_->GetCurrentSessionId();
   const auto owner_index = manager_->GetCurrentSessionIndex();
   manager_->QueueBuildCurrentProject();
-  ASSERT_OK(manager_->OpenRomOrProject(b.descriptor.string()));
+  ASSERT_OK(OpenProject(b));
   manager_->session_coordinator()->CloseSession(owner_index);
   ASSERT_TRUE(WaitForCopiedOutput(a));
-  ASSERT_OK(manager_->OpenRomOrProject(a.descriptor.string()));
+  ASSERT_OK(OpenProject(a));
   EXPECT_NE(manager_->GetCurrentSessionId(), owner_id);
   EXPECT_FALSE(manager_->RunCurrentProject().ok());
   EXPECT_TRUE(std::filesystem::exists(a.output));
@@ -363,7 +381,7 @@ TEST_F(ProjectBuildWorkflowStateTest, ClosedOwnerCannotTransferResultToReopen) {
 
 TEST_F(ProjectBuildWorkflowStateTest, OwnerCancelRevokesRunAndRetainsOutput) {
   const auto files = CreateProject("OwnerCancel");
-  ASSERT_OK(manager_->OpenRomOrProject(files.descriptor.string()));
+  ASSERT_OK(OpenProject(files));
   ASSERT_OK(manager_->BuildCurrentProject());
   manager_->GetCurrentProject()->build_script =
       DelayCommand() + " && " + CopyCommand(files.source, files.output);
@@ -380,7 +398,7 @@ TEST_F(ProjectBuildWorkflowStateTest, OwnerCancelRevokesRunAndRetainsOutput) {
 
 TEST_F(ProjectBuildWorkflowStateTest, ChangedSourceDuringBuildFailsCompletion) {
   const auto files = CreateProject("InputChanged", true);
-  ASSERT_OK(manager_->OpenRomOrProject(files.descriptor.string()));
+  ASSERT_OK(OpenProject(files));
   manager_->QueueBuildCurrentProject();
   WriteRomFile(files.source, "CHANGED SOURCE");
   ASSERT_TRUE(WaitFor(ProjectWorkflowState::kFailure));
@@ -389,7 +407,7 @@ TEST_F(ProjectBuildWorkflowStateTest, ChangedSourceDuringBuildFailsCompletion) {
 
 TEST_F(ProjectBuildWorkflowStateTest, MissingConfiguredSourceRefusesBuild) {
   const auto files = CreateProject("MissingSource");
-  ASSERT_OK(manager_->OpenRomOrProject(files.descriptor.string()));
+  ASSERT_OK(OpenProject(files));
   std::filesystem::rename(files.source, files.source.string() + ".retained");
   EXPECT_FALSE(manager_->BuildCurrentProject().ok());
   EXPECT_FALSE(manager_->RunCurrentProject().ok());
@@ -397,7 +415,7 @@ TEST_F(ProjectBuildWorkflowStateTest, MissingConfiguredSourceRefusesBuild) {
 
 TEST_F(ProjectBuildWorkflowStateTest, NewNativeSaveGenerationFailsCompletion) {
   const auto files = CreateProject("NativeGeneration", true);
-  ASSERT_OK(manager_->OpenRomOrProject(files.descriptor.string()));
+  ASSERT_OK(OpenProject(files));
   ASSERT_OK(manager_->SaveProject());
   const auto first = core::ReadVerifiedCommittedNativeSaveIdentity(
       EditingSource(), files.descriptor.string());
@@ -416,7 +434,7 @@ TEST_F(ProjectBuildWorkflowStateTest, NewNativeSaveGenerationFailsCompletion) {
 
 TEST_F(ProjectBuildWorkflowStateTest, ReboundNativeContextCannotBecomeGeneric) {
   const auto files = CreateProject("ReboundNative");
-  ASSERT_OK(manager_->OpenRomOrProject(files.descriptor.string()));
+  ASSERT_OK(OpenProject(files));
   ASSERT_OK(manager_->SaveProject());
   const auto context =
       core::GetNativeSaveContext(EditingSource(), files.descriptor.string());
@@ -429,7 +447,7 @@ TEST_F(ProjectBuildWorkflowStateTest, ReboundNativeContextCannotBecomeGeneric) {
 TEST_F(ProjectBuildWorkflowStateTest,
        MalformedNativeContextCannotBecomeGeneric) {
   const auto files = CreateProject("MalformedNative");
-  ASSERT_OK(manager_->OpenRomOrProject(files.descriptor.string()));
+  ASSERT_OK(OpenProject(files));
   ASSERT_OK(manager_->SaveProject());
   const auto context =
       core::GetNativeSaveContext(EditingSource(), files.descriptor.string());
