@@ -111,34 +111,46 @@ void ThemedText(const char* text, SemanticColor color) {
 // Button Color Sets
 // ============================================================================
 
-ButtonColorSet GetPrimaryButtonColors() {
-  const auto& theme = ThemeManager::Get().GetCurrentTheme();
-  ImVec4 base = ConvertColorToImVec4(theme.primary);
+namespace {
+
+ButtonColorSet ButtonColorsFrom(const ImVec4& base) {
   return {
       base,
       ImVec4(base.x * 1.2f, base.y * 1.2f, base.z * 1.2f, base.w),
       ImVec4(base.x * 0.8f, base.y * 0.8f, base.z * 0.8f, base.w),
   };
+}
+
+ImVec4 ButtonTypeColor(ButtonType type, ImGuiCol fallback) {
+  switch (type) {
+    case ButtonType::Success:
+      return GetSuccessColor();
+    case ButtonType::Warning:
+      return GetWarningColor();
+    case ButtonType::Error:
+      return GetErrorColor();
+    case ButtonType::Info:
+      return GetInfoColor();
+    default:
+      return GetThemeColor(fallback);
+  }
+}
+
+}  // namespace
+
+ButtonColorSet GetPrimaryButtonColors() {
+  const auto& theme = ThemeManager::Get().GetCurrentTheme();
+  return ButtonColorsFrom(ConvertColorToImVec4(theme.primary));
 }
 
 ButtonColorSet GetSuccessButtonColors() {
   const auto& theme = ThemeManager::Get().GetCurrentTheme();
-  ImVec4 base = ConvertColorToImVec4(theme.success);
-  return {
-      base,
-      ImVec4(base.x * 1.2f, base.y * 1.2f, base.z * 1.2f, base.w),
-      ImVec4(base.x * 0.8f, base.y * 0.8f, base.z * 0.8f, base.w),
-  };
+  return ButtonColorsFrom(ConvertColorToImVec4(theme.success));
 }
 
 ButtonColorSet GetWarningButtonColors() {
   const auto& theme = ThemeManager::Get().GetCurrentTheme();
-  ImVec4 base = ConvertColorToImVec4(theme.warning);
-  return {
-      base,
-      ImVec4(base.x * 1.2f, base.y * 1.2f, base.z * 1.2f, base.w),
-      ImVec4(base.x * 0.8f, base.y * 0.8f, base.z * 0.8f, base.w),
-  };
+  return ButtonColorsFrom(ConvertColorToImVec4(theme.warning));
 }
 
 // ============================================================================
@@ -231,33 +243,11 @@ bool IconButton(const char* icon, const char* tooltip) {
   return clicked;
 }
 
-bool ColoredButton(const char* label, ButtonType type, const ImVec2& size) {
-  ImVec4 color;
-  switch (type) {
-    case ButtonType::Success:
-      color = GetSuccessColor();
-      break;
-    case ButtonType::Warning:
-      color = GetWarningColor();
-      break;
-    case ButtonType::Error:
-      color = GetErrorColor();
-      break;
-    case ButtonType::Info:
-      color = GetInfoColor();
-      break;
-    default:
-      color = GetThemeColor(ImGuiCol_Button);
-      break;
-  }
-
-  ImGui::PushStyleColor(ImGuiCol_Button, color);
-  ImGui::PushStyleColor(
-      ImGuiCol_ButtonHovered,
-      ImVec4(color.x * 1.2f, color.y * 1.2f, color.z * 1.2f, color.w));
-  ImGui::PushStyleColor(
-      ImGuiCol_ButtonActive,
-      ImVec4(color.x * 0.8f, color.y * 0.8f, color.z * 0.8f, color.w));
+bool StyledButton(const char* label, const ImVec4& color, const ImVec2& size) {
+  const ButtonColorSet colors = ButtonColorsFrom(color);
+  ImGui::PushStyleColor(ImGuiCol_Button, colors.button);
+  ImGui::PushStyleColor(ImGuiCol_ButtonHovered, colors.hovered);
+  ImGui::PushStyleColor(ImGuiCol_ButtonActive, colors.active);
 
   bool result = ImGui::Button(label, size);
 
@@ -265,19 +255,8 @@ bool ColoredButton(const char* label, ButtonType type, const ImVec2& size) {
   return result;
 }
 
-bool StyledButton(const char* label, const ImVec4& color, const ImVec2& size) {
-  ImGui::PushStyleColor(ImGuiCol_Button, color);
-  ImGui::PushStyleColor(
-      ImGuiCol_ButtonHovered,
-      ImVec4(color.x * 1.2f, color.y * 1.2f, color.z * 1.2f, color.w));
-  ImGui::PushStyleColor(
-      ImGuiCol_ButtonActive,
-      ImVec4(color.x * 0.8f, color.y * 0.8f, color.z * 0.8f, color.w));
-
-  bool result = ImGui::Button(label, size);
-
-  ImGui::PopStyleColor(3);
-  return result;
+bool ColoredButton(const char* label, ButtonType type, const ImVec2& size) {
+  return StyledButton(label, ButtonTypeColor(type, ImGuiCol_Button), size);
 }
 
 bool ToggleIconButton(const char* icon_on, const char* icon_off, bool* state,
@@ -331,26 +310,7 @@ void SeparatorText(const char* label) {
 }
 
 void StatusBadge(const char* text, ButtonType type) {
-  ImVec4 color;
-  switch (type) {
-    case ButtonType::Success:
-      color = GetSuccessColor();
-      break;
-    case ButtonType::Warning:
-      color = GetWarningColor();
-      break;
-    case ButtonType::Error:
-      color = GetErrorColor();
-      break;
-    case ButtonType::Info:
-      color = GetInfoColor();
-      break;
-    default:
-      color = GetThemeColor(ImGuiCol_Text);
-      break;
-  }
-
-  ImGui::PushStyleColor(ImGuiCol_Button, color);
+  ImGui::PushStyleColor(ImGuiCol_Button, ButtonTypeColor(type, ImGuiCol_Text));
   ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 10.0f);
   ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(8, 3));
   ImGui::SmallButton(text);
