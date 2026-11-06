@@ -199,6 +199,8 @@ CreateCliCommandHandlers() {
   handlers.push_back(std::make_unique<OverworldTileStatsCommandHandler>());
   handlers.push_back(std::make_unique<OverworldExportGraphCommandHandler>());
   handlers.push_back(std::make_unique<OverworldRenderCommandHandler>());
+  handlers.push_back(
+      std::make_unique<OverworldExportNativeSourceCommandHandler>());
   handlers.push_back(std::make_unique<LyraVerifyProjectCommandHandler>());
   handlers.push_back(std::make_unique<LyraInspectProjectCommandHandler>());
 

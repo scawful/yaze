@@ -444,6 +444,10 @@ class OverworldMap : public gfx::GfxContext {
   /// frame 0). Resolved by LoadAreaGraphics().
   uint8_t animated_sheet() const { return animated_sheet_; }
   OverworldTilesetKey tileset_key() const;
+  /// Whether static slot 0..15 reads a sheet, including explicit BG sheet zero.
+  bool GraphicsSlotHasSource(int slot) const;
+  /// BG slots explicitly selecting real sheet zero rather than an empty slot.
+  uint8_t explicit_zero_bg_mask() const;
 
   // Overlay accessors (interactive overlays)
   auto overlay_id() const { return overlay_id_; }
@@ -664,7 +668,9 @@ class OverworldMap : public gfx::GfxContext {
   static constexpr int kNumSourceSheets = 17;  // 16 slots + animated sheet
   std::array<uint64_t, kNumSourceSheets> source_sheet_revisions_{};
   bool source_assignments_recorded_ = false;
+  uint8_t source_explicit_zero_bg_mask_ = 0;
   uint16_t SourceSheetForRevision(int i) const;
+  bool HasSourceSheet(int i) const;
   void RecordSourceSheetRevisions();
 };
 

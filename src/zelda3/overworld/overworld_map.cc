@@ -340,6 +340,23 @@ OverworldTilesetKey OverworldMap::tileset_key() const {
   return key;
 }
 
+bool OverworldMap::GraphicsSlotHasSource(int slot) const {
+  return slot >= 0 && slot < 16 &&
+         (static_graphics_[slot] != 0 ||
+          (slot < 8 && (explicit_zero_bg_mask() & (1U << slot)) != 0));
+}
+
+uint8_t OverworldMap::explicit_zero_bg_mask() const {
+  if (roomset_source() != OverworldRoomsetSource::kCustomTileGroups)
+    return 0;
+  const auto properties = area_render_properties();
+  uint8_t mask = 0;
+  for (int slot = 0; slot < 8; ++slot)
+    if (properties.custom_gfx_ids[slot] == 0)
+      mask |= static_cast<uint8_t>(1U << slot);
+  return mask;
+}
+
 absl::Status OverworldMap::BuildMap(int count, int game_state, int world,
                                     std::vector<gfx::Tile16>& tiles16,
                                     OverworldBlockset& world_blockset) {
@@ -1688,12 +1705,17 @@ uint16_t OverworldMap::SourceSheetForRevision(int i) const {
   return i < 16 ? static_graphics_[i] : animated_sheet_;
 }
 
+bool OverworldMap::HasSourceSheet(int i) const {
+  return i < 16 ? GraphicsSlotHasSource(i) : animated_sheet_ != 0;
+}
+
 void OverworldMap::RecordSourceSheetRevisions() {
   source_assignments_recorded_ = true;
+  source_explicit_zero_bg_mask_ = explicit_zero_bg_mask();
   for (int i = 0; i < kNumSourceSheets; i++) {
     const uint16_t sheet = SourceSheetForRevision(i);
     source_sheet_revisions_[i] =
-        game_data_ != nullptr && sheet != 0 &&
+        game_data_ != nullptr && HasSourceSheet(i) &&
                 graphics_sheet_overrides_.count(sheet) == 0
             ? game_data_->sheet_store.Revision(sheet)
             : 0;
@@ -1701,17 +1723,18 @@ void OverworldMap::RecordSourceSheetRevisions() {
 }
 
 bool OverworldMap::SourceSheetsChanged() const {
-  if (game_data_ == nullptr) {
+  if (game_data_ == nullptr || !source_assignments_recorded_) {
     return false;
   }
-  if (source_assignments_recorded_ && rom_ && game_data_->gfx_groups_loaded &&
+  if (source_explicit_zero_bg_mask_ != explicit_zero_bg_mask())
+    return true;
+  if (rom_ && game_data_->gfx_groups_loaded &&
       ResolveStaticGraphics() != static_graphics_) {
     return true;
   }
   for (int i = 0; i < kNumSourceSheets; i++) {
     const uint16_t sheet = SourceSheetForRevision(i);
-    if (source_sheet_revisions_[i] != 0 && sheet != 0 &&
-        graphics_sheet_overrides_.count(sheet) == 0 &&
+    if (HasSourceSheet(i) && graphics_sheet_overrides_.count(sheet) == 0 &&
         game_data_->sheet_store.Revision(sheet) != source_sheet_revisions_[i]) {
       return true;
     }
@@ -1762,7 +1785,7 @@ absl::Status OverworldMap::BuildTileset() {
 
   // Process the 8 main graphics sheets (slots 0-7)
   for (int i = 0; i < 8; i++) {
-    if (static_graphics_[i] != 0) {
+    if (HasSourceSheet(i)) {
       ProcessGraphicsBuffer(i, static_graphics_[i], 0x1000,
                             game_data_->graphics_buffer.data());
     }
@@ -1770,7 +1793,7 @@ absl::Status OverworldMap::BuildTileset() {
 
   // Process sprite graphics (slots 8-15)
   for (int i = 8; i < 16; i++) {
-    if (static_graphics_[i] != 0) {
+    if (GraphicsSlotHasSource(i)) {
       ProcessGraphicsBuffer(i, static_graphics_[i], 0x1000,
                             game_data_->graphics_buffer.data());
     }

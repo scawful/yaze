@@ -538,6 +538,9 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
       canvas_renderer_->DrawMapProperties();
   }
 
+  /// Clears in-progress native screen color picker state (map reload, etc.).
+  void CancelScreenColorEdit();
+
   /// @brief Invalidate cached graphics for a specific map or all maps
   /// @param map_id The map to invalidate (-1 to invalidate all maps)
   /// Call this when palette or graphics settings change.

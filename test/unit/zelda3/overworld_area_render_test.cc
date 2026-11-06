@@ -205,6 +205,139 @@ TEST(OverworldAreaRenderTest, Slot7TopHalfComesFromAnimatedSheet) {
   EXPECT_EQ(gfx[kSlot7 + 0xFFF], 0x05);
 }
 
+TEST(OverworldAreaRenderTest,
+     ExplicitSheetZeroLoadsBgAndPreservesAnimationAndEmptySprites) {
+  auto bytes = MakeV3Rom();
+  for (int slot : {0, 1, 3, 7})
+    bytes[OverworldCustomTileGFXGroupArray + kParent * 8 + slot] = 0;
+  // The legacy sprite group representation can resolve to its zero sentinel.
+  bytes[zelda3_us_pointers.kSpriteBlocksetPointer] = 0x8D;
+  auto rom = LoadRom(bytes);
+  GameData data;
+  data.graphics_buffer.assign(0x100 * 0x1000, 0);
+  std::fill_n(data.graphics_buffer.begin(), 0x1000, 3);
+  std::fill_n(data.graphics_buffer.begin() + 0x5B * 0x1000, 0x1000, 10);
+  OverworldMap map(kParent, rom.get(), &data);
+  map.set_sprite_graphics(0, 0);
+  map.LoadAreaGraphics();
+  ASSERT_TRUE(map.BuildTileset().ok());
+  const auto& pixels = map.current_graphics();
+  for (int slot : {0, 1, 3, 7}) {
+    EXPECT_EQ(map.static_graphics(slot), 0);
+    EXPECT_TRUE(map.GraphicsSlotHasSource(slot));
+    const size_t begin = slot * 0x1000 + (slot == 7 ? 0x800 : 0);
+    const uint8_t expected = slot == 0 || slot == 3 ? 0x8B : 3;
+    EXPECT_TRUE(std::all_of(
+        pixels.begin() + begin, pixels.begin() + (slot + 1) * 0x1000,
+        [expected](uint8_t value) { return value == expected; }));
+  }
+  EXPECT_TRUE(std::all_of(pixels.begin() + 7 * 0x1000,
+                          pixels.begin() + 7 * 0x1000 + 0x800,
+                          [](uint8_t value) { return value == 10; }));
+  ASSERT_EQ(map.static_graphics(12), 0);
+  EXPECT_FALSE(map.GraphicsSlotHasSource(12));
+  EXPECT_TRUE(std::all_of(pixels.begin() + 12 * 0x1000,
+                          pixels.begin() + 13 * 0x1000,
+                          [](uint8_t value) { return value == 0; }));
+  EXPECT_FALSE(map.GraphicsSlotHasSource(-1));
+  EXPECT_FALSE(map.GraphicsSlotHasSource(16));
+}
+
+TEST(OverworldAreaRenderTest, EmptyZeroAndCustomDefaultFallbackStayDistinct) {
+  for (bool custom_groups : {false, true}) {
+    SCOPED_TRACE(custom_groups);
+    auto bytes = MakeV3Rom();
+    bytes[OverworldCustomTileGFXGroupEnabled] = custom_groups ? 0xFF : 0;
+    bytes[OverworldCustomTileGFXGroupArray + kParent * 8] = 0xFF;
+    bytes[OverworldCustomTileGFXGroupArray + kParent * 8 + 1] = 0xFF;
+    bytes[OverworldCustomDefaultGFXGroups + 8] = 0;
+    bytes[OverworldCustomDefaultGFXGroups + 8 + 1] = 6;
+    auto rom = LoadRom(bytes);
+    GameData data;
+    data.graphics_buffer.assign(0x100 * 0x1000, 0);
+    std::fill_n(data.graphics_buffer.begin(), 0x1000, 3);
+    std::fill_n(data.graphics_buffer.begin() + 6 * 0x1000, 0x1000, 4);
+    OverworldMap map(kParent, rom.get(), &data);
+    map.LoadAreaGraphics();
+    ASSERT_EQ(map.static_graphics(0), 0);
+    EXPECT_FALSE(map.GraphicsSlotHasSource(0));
+    ASSERT_TRUE(map.BuildTileset().ok());
+    EXPECT_TRUE(std::all_of(map.current_graphics().begin(),
+                            map.current_graphics().begin() + 0x1000,
+                            [](uint8_t value) { return value == 0; }));
+    if (custom_groups) {
+      EXPECT_EQ(map.static_graphics(1), 6);
+      EXPECT_TRUE(map.GraphicsSlotHasSource(1));
+      EXPECT_EQ(map.current_graphics()[0x1000], 4);
+    }
+  }
+}
+
+TEST(OverworldAreaRenderTest,
+     ExplicitSheetZeroRevisionAndPresenceChangesInvalidateMapSources) {
+  auto bytes = MakeV3Rom();
+  bytes[OverworldCustomTileGFXGroupArray + kParent * 8] = 0;
+  auto rom = LoadRom(bytes);
+  GameData data;
+  data.graphics_buffer.assign(0x100 * 0x1000, 0);
+  OverworldMap map(kParent, rom.get(), &data);
+  map.LoadAreaGraphics();
+  ASSERT_TRUE(map.BuildTileset().ok());
+  EXPECT_FALSE(map.SourceSheetsChanged());
+  // The first tracked write must invalidate even when the loaded revision was0.
+  std::vector<uint8_t> sheet(0x1000, 5);
+  ASSERT_TRUE(data.sheet_store.WriteSheet(0, sheet).ok());
+  EXPECT_TRUE(map.SourceSheetsChanged());
+  ASSERT_TRUE(map.BuildTileset().ok());
+  EXPECT_FALSE(map.SourceSheetsChanged());
+  EXPECT_EQ(map.current_graphics()[0], 0x8D);
+  // Same numeric sheet ID, different meaning: FF resolves to an empty default0.
+  map.set_custom_tileset(0, 0xFF);
+  EXPECT_TRUE(map.SourceSheetsChanged());
+  map.LoadAreaGraphics();
+  ASSERT_TRUE(map.BuildTileset().ok());
+  EXPECT_EQ(map.current_graphics()[0], 0);
+  EXPECT_FALSE(map.SourceSheetsChanged());
+  std::fill(sheet.begin(), sheet.end(), 6);
+  ASSERT_TRUE(data.sheet_store.WriteSheet(0, sheet).ok());
+  EXPECT_FALSE(map.SourceSheetsChanged());
+}
+
+TEST(OverworldAreaRenderTest,
+     SharedCacheSeparatesExplicitZeroAndTracksSheetZeroEdits) {
+  auto bytes = MakeV3Rom();
+  for (int map : {0, 1})
+    for (int slot = 0; slot < 8; ++slot)
+      bytes[OverworldCustomTileGFXGroupArray + map * 8 + slot] = 0xFF;
+  bytes[OverworldCustomTileGFXGroupArray] = 0;
+  auto rom = LoadRom(bytes);
+  GameData data(rom.get());
+  ASSERT_TRUE(LoadPalettes(*rom, data).ok());
+  data.graphics_buffer.assign(0x100 * 0x1000, 0);
+  std::fill_n(data.graphics_buffer.begin(), 0x1000, 3);
+  Overworld world(rom.get(), &data);
+  auto& maps = const_cast<std::vector<OverworldMap>&>(world.overworld_maps());
+  for (int map : {0, 1})
+    maps.emplace_back(map, rom.get(), &data);
+  ASSERT_TRUE(world.EnsureMapBuilt(0).ok());
+  ASSERT_TRUE(world.EnsureMapBuilt(1).ok());
+  EXPECT_EQ(maps[0].tileset_key(), maps[1].tileset_key());
+  EXPECT_EQ(maps[0].current_graphics()[0], 0x8B);
+  EXPECT_EQ(maps[1].current_graphics()[0], 0);
+  EXPECT_EQ(world.tileset_cache_size(), 2u);
+  std::vector<uint8_t> sheet(0x1000, 5);
+  ASSERT_TRUE(data.sheet_store.WriteSheet(0, sheet).ok());
+  maps[0].SetNotBuilt();
+  ASSERT_TRUE(world.EnsureMapBuilt(0).ok());
+  EXPECT_EQ(maps[0].current_graphics()[0], 0x8D);
+  EXPECT_EQ(maps[1].current_graphics()[0], 0);
+  EXPECT_EQ(world.tileset_cache_size(), 2u);
+  world.InvalidateTilesetCacheForSheet(0);
+  EXPECT_EQ(world.tileset_cache_size(), 1u);
+  world.InvalidateMapCache(1);
+  EXPECT_EQ(world.tileset_cache_size(), 0u);
+}
+
 TEST(OverworldAreaRenderTest, VanillaAnimatedSheetAndOverlays) {
   std::vector<uint8_t> bytes(0x200000, 0x00);
   bytes[OverworldCustomASMHasBeenApplied] = 0xFF;

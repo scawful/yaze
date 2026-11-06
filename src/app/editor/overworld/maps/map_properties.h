@@ -183,6 +183,12 @@ class MapPropertiesSystem {
   absl::StatusOr<int> ReadPropertyValue(
       const OverworldPropertyEdit& edit) const;
 
+  /// Revision-4 native special: one batch that clears screen BG override and
+  /// reapplies the first 128 SNES palette words from the area resolver (same
+  /// path as `OverworldMap::LoadPalette` without the appearance custom row).
+  absl::StatusOr<std::vector<OverworldPropertyEdit>>
+  BuildNativeScreenColorsResetFromSource(int map_id) const;
+
   // Utility methods - now call the callbacks
   void RefreshMapProperties(int map_id);
   void RefreshOverworldMap();

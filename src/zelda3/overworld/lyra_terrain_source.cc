@@ -281,18 +281,6 @@ absl::StatusOr<LyraNativeMapAssets> ResolveLyraMapAssets(
       data.graphics_buffer.size())
     return absl::OutOfRangeError("Lyra animated sheet is unavailable");
   RETURN_IF_ERROR(source.BuildTileset());
-  // BuildTileset's legacy zero sentinel predates explicit v3 sheet selectors.
-  // Project $00 selects real sheet zero; preserve slot 7's animated top half.
-  for (int slot = 0; slot < 8; ++slot) {
-    if (p.graphics_sheets[slot] != 0)
-      continue;
-    auto* pixels = source.mutable_current_graphics();
-    for (int offset = slot == 7 ? 0x800 : 0; offset < 0x1000; ++offset) {
-      const int bias =
-          (slot == 0 || slot == 3 || slot == 4 || slot == 5) ? 0x88 : 0;
-      (*pixels)[slot * 0x1000 + offset] = data.graphics_buffer[offset] + bias;
-    }
-  }
   RETURN_IF_ERROR(source.LoadPalette());
   if (source.current_palette().size() != 256)
     return absl::FailedPreconditionError("Lyra resolved palette is incomplete");
@@ -336,7 +324,7 @@ absl::StatusOr<std::string> DescribeLyraNativeMapAssets(
     return absl::FailedPreconditionError(
         "Lyra inspection has no resolved animation sheet");
   const auto effective_sheet = [&](int slot) {
-    // The resolver's explicit-zero repair wins over the legacy loader's slot.
+    // Explicit custom BG sheet zero is a real source, not an empty slot.
     return slot < 8 && p.graphics_sheets[slot] == 0
                ? 0
                : static_cast<int>(source.static_graphics(slot));
@@ -362,7 +350,7 @@ absl::StatusOr<std::string> DescribeLyraNativeMapAssets(
                                   offset];
       } else if (sheet != 0 || (slot < 8 && p.graphics_sheets[slot] == 0)) {
         // Explicit saved BG sheet zero is real, unlike BuildTileset's legacy
-        // empty-slot sentinel; ResolveLyraMapAssets repairs it after the build.
+        // empty-slot sentinel; the shared loader resolves it directly.
         expected = static_cast<uint8_t>(
             data->graphics_buffer[sheet * 0x1000 + offset] + bias);
       }

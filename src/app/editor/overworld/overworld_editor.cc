@@ -655,6 +655,7 @@ absl::Status OverworldEditor::Load() {
   // Clear undo/redo state when loading new ROM data
   current_paint_operation_.reset();
   undo_manager_.Clear();
+  CancelScreenColorEdit();
 
   RETURN_IF_ERROR(LoadGraphics());
   if (overworld_.is_lyra_preview()) {
@@ -2424,6 +2425,7 @@ void OverworldEditor::RequestTile16Selection(int tile_id) {
 }
 
 absl::Status OverworldEditor::Clear() {
+  CancelScreenColorEdit();
   graphics_source_.reset();
   graphics_source_project_ = nullptr;
   graphics_source_open_ = false;
@@ -2466,6 +2468,12 @@ void OverworldEditor::CycleTileSelection(int delta) {
 
 void OverworldEditor::ToggleMapLock() {
   current_map_lock_ = !current_map_lock_;
+}
+
+void OverworldEditor::CancelScreenColorEdit() {
+  if (sidebar_) {
+    sidebar_->CancelScreenColorEdit();
+  }
 }
 
 void OverworldEditor::ToggleCanvasFullscreen() {

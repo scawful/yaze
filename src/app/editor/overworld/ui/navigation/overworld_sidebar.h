@@ -2,8 +2,10 @@
 #define YAZE_APP_EDITOR_OVERWORLD_SIDEBAR_H
 
 #include <array>
+#include <cstdint>
 #include <functional>
 #include <string>
+#include <vector>
 
 #include "absl/status/status.h"
 #include "app/editor/overworld/maps/map_properties.h"
@@ -43,6 +45,9 @@ class OverworldSidebar {
     rename_label_ = std::move(callback);
   }
 
+  /// Discards an in-progress screen color picker draft (ROM reload, etc.).
+  void CancelScreenColorEdit();
+
  private:
   struct LabelTarget {
     std::string title;
@@ -55,7 +60,7 @@ class OverworldSidebar {
                   bool& current_map_lock, int game_state);
   void DrawAreaSection(int property_map, int& game_state);
   void DrawGraphicsSection(int property_map, int game_state);
-  void DrawPaletteSection(int property_map, int game_state,
+  void DrawPaletteSection(int property_map, int current_map, int game_state,
                           bool& show_custom_bg_color_editor);
   void DrawMusicSection(int property_map);
   void DrawEffectsSection(int property_map, bool& show_overlay_editor);
@@ -76,6 +81,15 @@ class OverworldSidebar {
   MapPropertiesSystem* map_properties_system_;
   project::YazeProject* project_ = nullptr;
   RenameLabelCallback rename_label_;
+
+  // Native revision-4 screen appearance colors: committed only on picker
+  // release; one undo step per committed change.
+  bool screen_color_picker_open_ = false;
+  int screen_color_picker_map_ = -1;
+  int screen_color_picker_index_ = -1;
+  std::vector<uint16_t> screen_color_picker_source_;
+  uint16_t screen_color_picker_original_bgr_ = 0;
+  uint16_t screen_color_picker_draft_bgr_ = 0;
 
   std::string edit_error_;
   int edit_error_map_ = -1;

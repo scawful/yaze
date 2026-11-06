@@ -4,17 +4,23 @@
 
 #include <algorithm>
 #include <cfloat>
+#include <cstdint>
 #include <cstring>
 
 #include "absl/strings/str_format.h"
 #include "app/editor/overworld/maps/overworld_map_metadata.h"
 #include "app/editor/overworld/ui/ui_constants.h"
+#include "app/gfx/types/snes_palette.h"
+#include "app/gui/core/color.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/input.h"
 #include "app/gui/core/ui_helpers.h"
 #include "app/gui/widgets/themed_widgets.h"
 #include "imgui/imgui.h"
+#include "rom/lyra_layout_descriptor.h"
 #include "zelda3/common.h"
+#include "zelda3/overworld/overworld.h"
+#include "zelda3/overworld/overworld_layout.h"
 #include "zelda3/overworld/overworld_map.h"
 #include "zelda3/overworld/overworld_version_helper.h"
 
@@ -40,6 +46,27 @@ std::string FormatId(int id, int width) {
                     : absl::StrFormat("0x%04X", id);
 }
 
+std::vector<uint16_t> NativeScreenColorContext(
+    const rom::LyraLayoutInspection& lyra, const zelda3::OverworldMap& map,
+    int game_state) {
+  std::vector<uint16_t> values = {lyra.revision,
+                                  lyra.capacity,
+                                  static_cast<uint16_t>(map.parent()),
+                                  static_cast<uint16_t>(map.area_size()),
+                                  static_cast<uint16_t>(game_state),
+                                  map.native_appearance_flags(),
+                                  map.area_specific_bg_color(),
+                                  map.main_palette(),
+                                  map.area_palette(),
+                                  map.area_graphics(),
+                                  map.animated_gfx()};
+  for (int slot = 0; slot < 8; ++slot)
+    values.push_back(map.custom_tileset(slot));
+  const auto& row = map.native_appearance_bg_palette();
+  values.insert(values.end(), row.begin(), row.end());
+  return values;
+}
+
 }  // namespace
 
 OverworldSidebar::OverworldSidebar(zelda3::Overworld* overworld, Rom* rom,
@@ -63,7 +90,8 @@ void OverworldSidebar::Draw(int& current_world, int& current_map,
     ImGui::PushID("OverworldSidebar");
     if (!overworld_->is_lyra_preview() && project &&
         !project->lyra_terrain_file.empty() && current_map >= 0xA0 &&
-        current_map < 0xC0) {
+        current_map < 0xC0 &&
+        !rom::IsNativeSpecialOverworldLayout(rom_->InspectLyraLayout())) {
       const auto metadata = BuildOverworldMapMetadata(
           *overworld_, rom_, project, current_map, game_state);
       ImGui::TextUnformatted(metadata.map_title.c_str());
@@ -123,7 +151,7 @@ void OverworldSidebar::Draw(int& current_world, int& current_map,
     }
     if (ImGui::CollapsingHeader(tr("Palettes"),
                                 ImGuiTreeNodeFlags_DefaultOpen)) {
-      DrawPaletteSection(appearance_map, game_state,
+      DrawPaletteSection(appearance_map, current_map, game_state,
                          show_custom_bg_color_editor);
     }
     if (ImGui::CollapsingHeader(tr("Music"))) {
@@ -513,7 +541,15 @@ void OverworldSidebar::DrawGraphicsSection(int property_map, int game_state) {
   }
 }
 
-void OverworldSidebar::DrawPaletteSection(int property_map, int game_state,
+void OverworldSidebar::CancelScreenColorEdit() {
+  screen_color_picker_open_ = false;
+  screen_color_picker_map_ = -1;
+  screen_color_picker_index_ = -1;
+  screen_color_picker_source_.clear();
+}
+
+void OverworldSidebar::DrawPaletteSection(int property_map, int current_map,
+                                          int game_state,
                                           bool& show_custom_bg_color_editor) {
   const auto* map = overworld_->overworld_map(property_map);
   if (!map || !BeginFieldTable("PaletteFields")) {
@@ -551,6 +587,237 @@ void OverworldSidebar::DrawPaletteSection(int property_map, int game_state,
                       ImVec2(-FLT_MIN, 0))) {
       show_custom_bg_color_editor = true;
     }
+  }
+
+  const auto layout = zelda3::InspectOverworldLayout(
+      *rom_, overworld_->layout_inspect_options());
+  if (!rom::IsNativeSpecialOverworldLayout(layout.lyra_layout) ||
+      layout.lyra_layout.revision != 4 || current_map < 0x80 ||
+      current_map >= overworld_->materialized_map_count())
+    return;
+  // Native appearance belongs to the selected physical screen even while its
+  // effective graphics and palette still inherit from the area owner.
+  property_map = current_map;
+  map = overworld_->overworld_map(current_map);
+  if (!map)
+    return;
+  const auto admission = map_properties_system_->CheckPropertyEditSupported(
+      {current_map, OverworldPropertyField::kScreenColor, 0, 0});
+  const bool read_only_layout = !admission.ok();
+  const auto map_context =
+      NativeScreenColorContext(layout.lyra_layout, *map, state);
+
+  ImGui::Spacing();
+  ImGui::TextWrapped("%s",
+                     tr("Saved for editing; game build support is pending."));
+  if (read_only_layout) {
+    ImGui::TextColored(gui::GetWarningColor(), "%s",
+                       tr("Layout is read-only; screen color edits are "
+                          "disabled for this session."));
+  }
+
+  const uint8_t flags = map->native_appearance_flags();
+  int appearance_mode = (flags & 1) == 0 ? 0 : ((flags & 2) != 0 ? 2 : 1);
+  const char* mode_labels[] = {tr("Use area appearance"),
+                               tr("Use screen appearance (source palette)"),
+                               tr("Use screen appearance (customize colors)")};
+  ImGui::AlignTextToFramePadding();
+  ImGui::TextUnformatted(tr("Screen BG (physical screen)"));
+  if (ImGui::IsItemHovered()) {
+    ImGui::SetTooltip(
+        "%s",
+        tr("Applies to the selected screen. Music and sprite settings still "
+           "follow the gameplay area."));
+  }
+  ImGui::PushItemWidth(-FLT_MIN);
+  if (read_only_layout) {
+    ImGui::BeginDisabled();
+  }
+  if (ImGui::Combo("##ScreenAppearMode", &appearance_mode, mode_labels, 3)) {
+    if (!read_only_layout) {
+      const int value =
+          appearance_mode == 0 ? 0 : (appearance_mode == 2 ? 3 : 1);
+      Apply(OverworldPropertyField::kScreenAppearance, 0, property_map, value);
+    }
+  }
+  gui::WidgetIdRegistry::Instance().RegisterWidget(
+      absl::StrFormat("OverworldSidebar/native_screen/m%02X/mode",
+                      property_map),
+      "combo", ImGui::GetItemID());
+  if (read_only_layout) {
+    ImGui::EndDisabled();
+  }
+  ImGui::PopItemWidth();
+
+  if (appearance_mode == 0) {
+    return;
+  }
+
+  if (read_only_layout) {
+    ImGui::BeginDisabled();
+  }
+  if (ImGui::Button(tr(ICON_MD_RESTORE " Reset screen colors from source"),
+                    ImVec2(-FLT_MIN, 0))) {
+    if (!read_only_layout) {
+      const auto batch =
+          map_properties_system_->BuildNativeScreenColorsResetFromSource(
+              property_map);
+      if (!batch.ok()) {
+        edit_error_ = std::string(batch.status().message());
+      } else if (!batch->empty()) {
+        const auto status = map_properties_system_->ApplyPropertyEdits(
+            *batch, tr("Reset native screen colors from source"));
+        edit_error_ = status.ok() ? "" : std::string(status.message());
+      }
+    }
+  }
+  if (read_only_layout) {
+    ImGui::EndDisabled();
+  }
+  if (ImGui::IsItemHovered()) {
+    ImGui::SetTooltip(
+        "%s",
+        tr("Copies this screen's source palette into its saved colors and "
+           "selects the source palette. Undo restores the previous colors."));
+  }
+  gui::WidgetIdRegistry::Instance().RegisterWidget(
+      absl::StrFormat("OverworldSidebar/native_screen/m%02X/reset_source",
+                      property_map),
+      "button", ImGui::GetItemID());
+
+  const bool customize = appearance_mode == 2;
+  if (!customize) {
+    CancelScreenColorEdit();
+    return;
+  }
+
+  constexpr int kCols = 16;
+  constexpr int kRows = 8;
+  constexpr float kSwatch = 20.0f;
+  const auto& row = map->native_appearance_bg_palette();
+
+  if (screen_color_picker_map_ != property_map ||
+      (screen_color_picker_open_ &&
+       screen_color_picker_source_ != map_context)) {
+    CancelScreenColorEdit();
+  }
+
+  bool open_color_picker = false;
+  for (int r = 0; r < kRows; ++r) {
+    ImGui::PushID(r);
+    for (int c = 0; c < kCols; ++c) {
+      if (c > 0) {
+        ImGui::SameLine(0.0f, 2.0f);
+      }
+      const int idx = r * kCols + c;
+      const std::string path = absl::StrFormat(
+          "OverworldSidebar/native_screen/m%02X/swatch%02X", property_map, idx);
+      ImGui::PushID(idx);
+      gfx::SnesColor snes(row[idx]);
+      const bool selected = screen_color_picker_open_ &&
+                            screen_color_picker_index_ == idx &&
+                            screen_color_picker_map_ == property_map;
+      if (read_only_layout) {
+        ImGui::BeginDisabled();
+      }
+      if (gui::PaletteColorButton(
+              "##sw", snes, selected, false, ImVec2(kSwatch, kSwatch),
+              ImGuiColorEditFlags_NoAlpha | ImGuiColorEditFlags_NoPicker)) {
+        if (!read_only_layout) {
+          screen_color_picker_map_ = property_map;
+          screen_color_picker_index_ = idx;
+          screen_color_picker_source_ = map_context;
+          screen_color_picker_original_bgr_ = row[idx];
+          screen_color_picker_draft_bgr_ = row[idx];
+          screen_color_picker_open_ = true;
+          open_color_picker = true;
+        }
+      }
+      if (read_only_layout) {
+        ImGui::EndDisabled();
+      }
+      gui::WidgetIdRegistry::Instance().RegisterWidget(path, "button",
+                                                       ImGui::GetItemID());
+      ImGui::PopID();
+    }
+    ImGui::PopID();
+  }
+
+  if (open_color_picker)
+    ImGui::OpenPopup("##NativeScreenColorPicker");
+  ImGui::SetNextWindowSize(ImVec2(320, 360), ImGuiCond_FirstUseEver);
+  if (ImGui::BeginPopup("##NativeScreenColorPicker",
+                        ImGuiWindowFlags_NoSavedSettings)) {
+    const bool context_ok = screen_color_picker_map_ == property_map &&
+                            screen_color_picker_index_ >= 0 &&
+                            screen_color_picker_index_ < 128 &&
+                            screen_color_picker_source_ == map_context;
+
+    if (!context_ok) {
+      ImGui::CloseCurrentPopup();
+      CancelScreenColorEdit();
+    } else {
+      ImGui::Text("%s",
+                  absl::StrFormat("%s 0x%02X  [%d]", tr("Screen color"),
+                                  property_map, screen_color_picker_index_)
+                      .c_str());
+      ImGui::TextDisabled("%s", tr("Enter commits; Escape cancels the draft."));
+      ImVec4 im = gui::ConvertSnesColorToImVec4(
+          gfx::SnesColor(screen_color_picker_draft_bgr_));
+      ImGuiColorEditFlags picker_flags = ImGuiColorEditFlags_DisplayHSV |
+                                         ImGuiColorEditFlags_PickerHueBar |
+                                         ImGuiColorEditFlags_NoAlpha;
+
+      const int idx = screen_color_picker_index_;
+      ImGui::BeginDisabled(read_only_layout);
+      if (ImGui::ColorPicker4("##picker", reinterpret_cast<float*>(&im),
+                              picker_flags)) {
+        screen_color_picker_draft_bgr_ =
+            gui::ConvertImVec4ToSnesColor(im).snes();
+      }
+      gui::WidgetIdRegistry::Instance().RegisterWidget(
+          absl::StrFormat("OverworldSidebar/native_screen/m%02X/color_picker",
+                          property_map),
+          "color_picker", ImGui::GetItemID());
+      const bool picker_deactivated = ImGui::IsItemDeactivatedAfterEdit();
+      const auto hex = gui::InputHexWordEx(
+          "SNES (BGR555)", &screen_color_picker_draft_bgr_, 90.0f, true);
+      gui::WidgetIdRegistry::Instance().RegisterWidget(
+          absl::StrFormat("OverworldSidebar/native_screen/m%02X/color_value",
+                          property_map),
+          "input", ImGui::GetItemID());
+      ImGui::EndDisabled();
+
+      if (ImGui::IsKeyPressed(ImGuiKey_Escape)) {
+        ImGui::CloseCurrentPopup();
+        CancelScreenColorEdit();
+      }
+
+      auto record_matches = [&]() -> bool {
+        const auto* m = overworld_->overworld_map(property_map);
+        return m && screen_color_picker_source_ == map_context &&
+               m->native_appearance_bg_palette()[idx] ==
+                   screen_color_picker_original_bgr_;
+      };
+
+      const bool deactivated = picker_deactivated || hex.ShouldApply();
+      const bool enter = ImGui::IsKeyPressed(ImGuiKey_Enter);
+
+      const bool commit_now =
+          (deactivated || enter) && record_matches() && !read_only_layout &&
+          screen_color_picker_draft_bgr_ != screen_color_picker_original_bgr_;
+
+      if (commit_now) {
+        Apply(OverworldPropertyField::kScreenColor, idx, property_map,
+              screen_color_picker_draft_bgr_);
+        ImGui::CloseCurrentPopup();
+        CancelScreenColorEdit();
+      } else if (deactivated || enter) {
+        ImGui::CloseCurrentPopup();
+        CancelScreenColorEdit();
+      }
+    }
+    ImGui::EndPopup();
   }
 }
 

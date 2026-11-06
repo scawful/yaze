@@ -1,9 +1,11 @@
 #include "cli/handlers/game/overworld_render_commands.h"
 
+#include <algorithm>
 #include <array>
 #include <filesystem>
 #include <fstream>
 #include <iterator>
+#include <map>
 #include <optional>
 #include <sstream>
 #include <string>
@@ -94,6 +96,194 @@ std::optional<std::string> OutputArg(const resources::ArgumentParser& parser) {
 }
 
 }  // namespace
+
+absl::Status OverworldExportNativeSourceCommandHandler::Execute(
+    Rom* rom, const resources::ArgumentParser&,
+    resources::OutputFormatter& formatter) {
+  if (!rom || !rom->is_loaded())
+    return absl::FailedPreconditionError("Load a saved native ROM first");
+  if (rom->dirty())
+    return absl::FailedPreconditionError(
+        "Save the ROM before exporting compiler input");
+  const auto layout = rom->InspectLyraLayout();
+  if (!rom::IsNativeSpecialOverworldLayout(layout))
+    return absl::FailedPreconditionError(
+        "Native compiler input requires a valid native special overworld");
+
+  const auto hash = [](const uint8_t* data, size_t length) {
+    return core::ComputeSourceArtifactSha256(
+        {reinterpret_cast<const char*>(data), length});
+  };
+  const auto source_hash = hash(rom->data(), rom->size());
+  ScopedRomReadOnly read_only(*rom);
+  const auto overrides = project_
+                             ? project_->rom_address_overrides
+                             : core::RomSettings::Get().address_overrides();
+  ScopedLyraRomAddresses addresses(overrides);
+  zelda3::GameData game_data;
+  zelda3::LoadOptions options;
+  options.expand_rom = false;
+  RETURN_IF_ERROR(zelda3::LoadGameData(*rom, game_data, options));
+  zelda3::Overworld world(rom, &game_data);
+  RETURN_IF_ERROR(world.Load(rom));
+  ASSIGN_OR_RETURN(const auto snapshot, world.CaptureNativeAreaSnapshot());
+  const auto& grid = world.GetMapTiles(2);
+  const size_t rows = (layout.capacity - 128) / 8 * 32;
+  if (grid.size() < 256 ||
+      std::any_of(grid.begin(), grid.begin() + 256,
+                  [rows](const auto& column) { return column.size() < rows; }))
+    return absl::FailedPreconditionError(
+        "Native special-overworld terrain grid is incomplete");
+
+  auto pages = nlohmann::json::array();
+  std::map<int, nlohmann::json> areas;
+  for (int map_id = 128; map_id < layout.capacity; ++map_id) {
+    const auto* map = world.overworld_map(map_id);
+    const auto& raw = snapshot.pages[map_id];
+    const auto& profile = snapshot.profiles[map_id];
+    const auto role =
+        rom::LyraLayoutRecord(layout, rom->data(), rom->size(), 29, map_id);
+    if (!map || !role || role->size() != 1)
+      return absl::FailedPreconditionError(
+          "Native physical map source is unavailable");
+    auto terrain = nlohmann::json::array();
+    for (int y = 0; y < 32; ++y)
+      for (int x = 0; x < 32; ++x)
+        terrain.push_back(
+            grid[(map_id % 8) * 32 + x][((map_id % 64) / 8) * 32 + y]);
+    nlohmann::json source_profile = {
+        {"background_color", raw.background},
+        {"main_palette", raw.main_palette},
+        {"palette_set", profile.palette},
+        {"area_graphics", profile.graphics},
+        {"graphics_sheets", raw.graphics},
+        {"animated_sheet", raw.animated},
+        {"subscreen_overlay", raw.overlay},
+        {"mosaic", raw.mosaic},
+        {"appearance_flags", raw.appearance_flags},
+        {"background_palette_words",
+         layout.revision == 4 ? nlohmann::json(raw.appearance_bg_palette)
+                              : nlohmann::json(nullptr)}};
+    auto states = nlohmann::json::array();
+    for (int state = 0; state < 3; ++state) {
+      auto resolved = *map;
+      resolved.set_game_state(state);
+      resolved.LoadAreaGraphics();
+      RETURN_IF_ERROR(resolved.LoadPalette());
+      for (int slot = 0; slot < 16; ++slot) {
+        if ((static_cast<size_t>(resolved.static_graphics(slot)) + 1) * 0x1000 >
+            game_data.graphics_buffer.size())
+          return absl::OutOfRangeError(
+              "A resolved native graphics sheet is unavailable");
+      }
+      const size_t animation = resolved.animated_sheet();
+      if ((animation + 1) * 0x1000 > game_data.graphics_buffer.size())
+        return absl::OutOfRangeError(
+            "A resolved native animation sheet is unavailable");
+      RETURN_IF_ERROR(resolved.BuildTileset());
+      const auto& pixels = resolved.current_graphics();
+      const auto& palette = resolved.current_palette();
+      if (resolved.HasGraphicsPreview() || pixels.size() != 0x10000 ||
+          palette.size() != 256)
+        return absl::FailedPreconditionError(
+            "Native compiler input needs complete ROM-resolved graphics and "
+            "palettes");
+      auto slots = nlohmann::json::array();
+      for (int slot = 0; slot < 16; ++slot) {
+        const size_t sheet = resolved.static_graphics(slot);
+        slots.push_back(
+            {{"slot", slot},
+             {"sheet_id", sheet},
+             {"decoded_sheet_sha256",
+              hash(game_data.graphics_buffer.data() + sheet * 0x1000, 0x1000)},
+             {"resolved_slot_sha256",
+              hash(pixels.data() + slot * 0x1000, 0x1000)},
+             {"empty", !resolved.GraphicsSlotHasSource(slot)}});
+      }
+      std::array<uint16_t, 256> words{};
+      std::string palette_bytes;
+      palette_bytes.reserve(512);
+      for (size_t color = 0; color < words.size(); ++color) {
+        words[color] = palette[color].snes();
+        palette_bytes.push_back(static_cast<char>(words[color]));
+        palette_bytes.push_back(static_cast<char>(words[color] >> 8));
+      }
+      states.push_back(
+          {{"state", state},
+           {"slots", std::move(slots)},
+           {"palette",
+            {{"words", words},
+             {"uint16le_sha256",
+              core::ComputeSourceArtifactSha256(palette_bytes)}}},
+           {"graphics_sha256", hash(pixels.data(), pixels.size())},
+           {"animation",
+            {{"sheet_id", animation},
+             {"decoded_sheet_sha256",
+              hash(game_data.graphics_buffer.data() + animation * 0x1000,
+                   0x1000)}}},
+           {"sprite_graphics", resolved.sprite_graphics(state)},
+           {"sprite_palette", resolved.sprite_palette(state)}});
+    }
+    pages.push_back({{"map_id", map_id},
+                     {"parent_map_id", map->parent()},
+                     {"role", (*role)[0]},
+                     {"source_profile", std::move(source_profile)},
+                     {"tiles", std::move(terrain)},
+                     {"resolved_states", std::move(states)}});
+    auto& area = areas[map->parent()];
+    if (area.is_null()) {
+      constexpr std::array<const char*, 4> sizes = {"small", "large", "wide",
+                                                    "tall"};
+      area = {{"parent_map_id", map->parent()},
+              {"size", sizes[static_cast<size_t>(map->area_size())]},
+              {"maps", nlohmann::json::array()},
+              {"resident_required", false}};
+    }
+    area["maps"].push_back(map_id);
+    if (raw.appearance_flags != 0)
+      area["resident_required"] = true;
+  }
+  auto gameplay_areas = nlohmann::json::array();
+  for (auto& [id, area] : areas)
+    gameplay_areas.push_back(std::move(area));
+  const auto definition =
+      std::find_if(layout.entries.begin(), layout.entries.end(),
+                   [](const auto& entry) { return entry.id == 400; });
+  if (definition == layout.entries.end())
+    return absl::FailedPreconditionError(
+        "Native Tile16 source dictionary is unavailable");
+  nlohmann::json override_values = nlohmann::json::object();
+  for (const auto& [key, value] : overrides.addresses)
+    override_values[key] = value;
+  constexpr size_t kDirectoryPc = 0x147000;
+  constexpr size_t kDirectorySize = 1024;
+  nlohmann::json result = {
+      {"schema", "yaze.special-overworld-native-source.v1"},
+      {"source_rom_sha256", source_hash},
+      {"source_byte_count", rom->size()},
+      {"directory_revision", layout.revision},
+      {"materialized_map_count", layout.capacity},
+      {"first_special_map", 128},
+      {"special_map_count", layout.capacity - 128},
+      {"directory_sha256", hash(rom->data() + kDirectoryPc, kDirectorySize)},
+      {"rom_address_overrides", std::move(override_values)},
+      {"tile16_dictionary",
+       {{"snes_address", definition->snes_address},
+        {"pc_address", definition->pc_address},
+        {"count", definition->count},
+        {"stride", definition->stride},
+        {"sha256", hash(rom->data() + definition->pc_address,
+                        definition->count * definition->stride)}}},
+      {"gameplay_areas", std::move(gameplay_areas)},
+      {"pages", std::move(pages)}};
+  if (source_hash != hash(rom->data(), rom->size()))
+    return absl::DataLossError("Native source export changed the ROM");
+  const auto encoded = result.dump();
+  formatter.AddField("native_source_sha256",
+                     core::ComputeSourceArtifactSha256(encoded));
+  formatter.AddRawJsonField("native_source", encoded);
+  return absl::OkStatus();
+}
 
 absl::Status LyraVerifyProjectCommandHandler::Execute(
     Rom* rom, const resources::ArgumentParser&,

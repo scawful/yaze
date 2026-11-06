@@ -57,6 +57,20 @@ TEST(LyraNativeAssetDescriptionTest, RejectsIncompleteSourceWithoutRom) {
   }
 }
 
+TEST(OverworldExportNativeSourceCommandTest,
+     RequiresSavedNativeRomWithoutWrites) {
+  handlers::OverworldExportNativeSourceCommandHandler command;
+  resources::ArgumentParser args({});
+  resources::OutputFormatter out(resources::OutputFormatter::Format::kJson);
+  EXPECT_TRUE(command.ValidateArgs(args).ok());
+  EXPECT_TRUE(absl::IsFailedPrecondition(command.Execute(nullptr, args, out)));
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+  const auto before = rom.vector();
+  EXPECT_TRUE(absl::IsFailedPrecondition(command.Execute(&rom, args, out)));
+  EXPECT_EQ(rom.vector(), before);
+}
+
 TEST(LyraVerifyProjectCommandTest, RequiresLoadedRomAndProjectContext) {
   handlers::LyraVerifyProjectCommandHandler command;
   resources::ArgumentParser args({});

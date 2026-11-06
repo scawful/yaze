@@ -8,6 +8,7 @@
 #include <map>
 #include <mutex>
 #include <unordered_map>
+#include <utility>
 #include <vector>
 
 #include "absl/status/status.h"
@@ -546,10 +547,10 @@ class Overworld {
   // ---------------------------------------------------------------------------
   // Shared tileset cache
   //
-  // Maps whose 17 sheet ids match (OverworldMap::tileset_key(): 16 static
-  // sheets + animated sheet) share the same 64KB tileset and, for the same
-  // tile16 definitions, the same 1MB tile16 blockset. The cache keeps both so
-  // a map build only redoes the palette and its own 512x512 bitmap.
+  // Maps with matching 17 sheet ids (16 static + animated) and explicit-zero
+  // BG presence share the same 64KB tileset. With matching tile16 definitions
+  // they also share the 1MB tile16 blockset, so a map build only redoes its
+  // palette and its own 512x512 bitmap.
   // ---------------------------------------------------------------------------
 
   /// @brief Drop every cached tileset/blockset. Call after graphics buffer or
@@ -985,7 +986,8 @@ class Overworld {
   // GraphicsSheetStore revision of each sheet in an OverworldTilesetKey.
   using TilesetRevisions =
       std::array<uint64_t, std::tuple_size_v<OverworldTilesetKey>>;
-  TilesetRevisions SheetRevisionsForKey(const OverworldTilesetKey& key) const;
+  using TilesetCacheKey = std::pair<OverworldTilesetKey, uint8_t>;
+  TilesetRevisions SheetRevisionsForKey(const TilesetCacheKey& key) const;
 
   struct TilesetCacheEntry {
     TilesetRevisions sheet_revisions{};    // store revisions when built
@@ -994,7 +996,7 @@ class Overworld {
     uint64_t tiles16_fingerprint = 0;      // tile16 defs the blockset used
     uint64_t last_use = 0;
   };
-  std::map<OverworldTilesetKey, TilesetCacheEntry> tileset_cache_;
+  std::map<TilesetCacheKey, TilesetCacheEntry> tileset_cache_;
   uint64_t tileset_cache_clock_ = 0;
 #ifdef __EMSCRIPTEN__
   static constexpr size_t kMaxCachedTilesets = 8;  // ~8.5MB

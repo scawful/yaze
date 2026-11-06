@@ -12,6 +12,31 @@ namespace yaze {
 namespace cli {
 namespace handlers {
 
+// Read-only compiler input from the saved native ROM. No project-side terrain
+// document or graphics-preview file participates in this resolution.
+class OverworldExportNativeSourceCommandHandler
+    : public resources::CommandHandler {
+ public:
+  std::string GetName() const override {
+    return "overworld-export-native-source";
+  }
+  std::string GetUsage() const override {
+    return "overworld-export-native-source --rom=<saved-native-rom> "
+           "--format=json";
+  }
+  absl::Status ValidateArgs(const resources::ArgumentParser&) override {
+    return absl::OkStatus();
+  }
+  absl::Status Execute(Rom* rom, const resources::ArgumentParser& parser,
+                       resources::OutputFormatter& formatter) override;
+
+ private:
+  std::string GetDefaultFormat() const override { return "json"; }
+  std::string GetOutputTitle() const override {
+    return "Native Overworld Source";
+  }
+};
+
 // Raw runtime graphics an overworld render applies before drawing.
 struct OverworldRenderGraphicsPreview {
   std::string mode;      // project, file, off, none

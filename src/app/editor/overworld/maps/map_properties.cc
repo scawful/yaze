@@ -819,6 +819,49 @@ absl::Status MapPropertiesSystem::ApplyPropertyEdit(
   return ApplyPropertyEditDirect(edit);
 }
 
+absl::StatusOr<std::vector<OverworldPropertyEdit>>
+MapPropertiesSystem::BuildNativeScreenColorsResetFromSource(int map_id) const {
+  if (!overworld_ || !rom_) {
+    return absl::FailedPreconditionError(
+        "Overworld property editing requires loaded overworld data and ROM");
+  }
+  if (!IsValidMapId(map_id, overworld_)) {
+    return absl::InvalidArgumentError(
+        absl::StrFormat("Invalid overworld map: %d", map_id));
+  }
+  OverworldPropertyEdit probe{map_id, OverworldPropertyField::kScreenColor, 0,
+                              0};
+  RETURN_IF_ERROR(CheckFieldSupported(rom_, overworld_, probe));
+  auto* map = overworld_->mutable_overworld_map(map_id);
+  if (!map) {
+    return absl::NotFoundError(
+        absl::StrFormat("Overworld map 0x%02X is unavailable", map_id));
+  }
+
+  // Resolve a copy: preparing a command must not alter the live render state.
+  // A child in area mode still has its own dormant BG profile in the snapshot.
+  ASSIGN_OR_RETURN(const auto snapshot,
+                   overworld_->CaptureNativeAreaSnapshot());
+  auto source = *map;
+  source.set_native_appearance_flags(1);
+  source.set_area_graphics(snapshot.profiles[map_id].graphics);
+  source.set_area_palette(snapshot.profiles[map_id].palette);
+  RETURN_IF_ERROR(source.LoadPalette());
+  const auto& pal = source.current_palette();
+  if (pal.size() < 128) {
+    return absl::FailedPreconditionError(
+        "Resolved overworld palette is incomplete");
+  }
+  std::vector<OverworldPropertyEdit> edits;
+  edits.reserve(129);
+  for (int i = 0; i < 128; ++i) {
+    edits.push_back({map_id, OverworldPropertyField::kScreenColor, i,
+                     static_cast<int>(pal[i].snes())});
+  }
+  edits.push_back({map_id, OverworldPropertyField::kScreenAppearance, 0, 1});
+  return edits;
+}
+
 absl::Status MapPropertiesSystem::ApplyPropertyEdits(
     const std::vector<OverworldPropertyEdit>& edits,
     const std::string& description) {

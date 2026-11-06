@@ -1391,7 +1391,7 @@ absl::Status Overworld::BuildMapWithTilesetCache(int map_index,
                                  world_type, tiles16_, GetMapTiles(world_type),
                                  nullptr);
   }
-  const OverworldTilesetKey key = map.tileset_key();
+  const TilesetCacheKey key{map.tileset_key(), map.explicit_zero_bg_mask()};
   const uint64_t fingerprint = Tiles16Fingerprint();
 
   const TilesetRevisions revisions = SheetRevisionsForKey(key);
@@ -1440,14 +1440,14 @@ absl::Status Overworld::BuildMapWithTilesetCache(int map_index,
 }
 
 Overworld::TilesetRevisions Overworld::SheetRevisionsForKey(
-    const OverworldTilesetKey& key) const {
+    const TilesetCacheKey& key) const {
   TilesetRevisions revisions{};
   if (game_data_ == nullptr) {
     return revisions;
   }
-  for (size_t i = 0; i < key.size(); ++i) {
-    if (key[i] != 0) {
-      revisions[i] = game_data_->sheet_store.Revision(key[i]);
+  for (size_t i = 0; i < key.first.size(); ++i) {
+    if (key.first[i] != 0 || (i < 8 && (key.second & (1U << i)) != 0)) {
+      revisions[i] = game_data_->sheet_store.Revision(key.first[i]);
     }
   }
   return revisions;
@@ -1456,8 +1456,10 @@ Overworld::TilesetRevisions Overworld::SheetRevisionsForKey(
 void Overworld::InvalidateTilesetCacheForSheet(int sheet) {
   for (auto it = tileset_cache_.begin(); it != tileset_cache_.end();) {
     const auto& key = it->first;
-    if (std::find(key.begin(), key.end(), static_cast<uint8_t>(sheet)) !=
-        key.end()) {
+    if ((sheet == 0 && key.second != 0) ||
+        (sheet != 0 &&
+         std::find(key.first.begin(), key.first.end(),
+                   static_cast<uint8_t>(sheet)) != key.first.end())) {
       it = tileset_cache_.erase(it);
     } else {
       ++it;
@@ -1584,7 +1586,9 @@ void Overworld::InvalidateMapCache(int map_index) {
   // Drop the shared tileset entry for this map's sheet set so the next build
   // re-reads the graphics buffer.
   if (static_cast<size_t>(map_index) < overworld_maps_.size()) {
-    tileset_cache_.erase(overworld_maps_[map_index].tileset_key());
+    const auto& map = overworld_maps_[map_index];
+    tileset_cache_.erase(
+        TilesetCacheKey{map.tileset_key(), map.explicit_zero_bg_mask()});
   }
 
   // Also mark the map as needing rebuild

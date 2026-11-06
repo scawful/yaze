@@ -1,5 +1,9 @@
 #include <gtest/gtest.h>
 
+#include "absl/strings/str_format.h"
+#include "imgui/imgui.h"
+#include "imgui/imgui_internal.h"
+
 #include <algorithm>
 #include <array>
 #include <cstdlib>
@@ -24,7 +28,10 @@
 #include "app/editor/system/session/rom_file_manager.h"
 #include "app/gfx/types/snes_palette.h"
 #include "app/gui/automation/widget_id_registry.h"
+#include "cli/handlers/game/overworld_render_commands.h"
 #include "cli/handlers/rom/rom_commands.h"
+#include "core/rom_settings.h"
+#include "core/source_artifact_publisher.h"
 #include "editor_test_support.h"
 #include "fixtures/lyra/synthetic_fixture_data.h"
 #include "framework/headless_editor_test.h"
@@ -1670,6 +1677,143 @@ TEST(LyraLayoutDescriptorTest,
 
 class NativeSpecialOverworldEditorTest : public test::HeadlessEditorTest {};
 
+TEST_F(NativeSpecialOverworldEditorTest, SavedNativeSourceExport) {
+  const char* path = std::getenv("YAZE_TEST_ROM_OOS");
+  if (!path || !std::filesystem::exists(path))
+    GTEST_SKIP() << "Set YAZE_TEST_ROM_OOS for saved native source export";
+  Rom legacy;
+  ASSERT_TRUE(legacy.LoadFromData(ReadBytes(path)).ok());
+  zelda3::Overworld reference(&legacy);
+  ASSERT_TRUE(reference.Load(&legacy).ok());
+  const auto old_addresses = core::RomSettings::Get().address_overrides();
+  auto restore = absl::MakeCleanup(
+      [&] { core::RomSettings::Get().SetAddressOverrides(old_addresses); });
+  core::RomSettings::Get().ClearOverrides();
+  for (int capacity : {160, 192}) {
+    for (int revision : {3, 4}) {
+      SCOPED_TRACE(
+          absl::StrFormat("capacity%d revision%d", capacity, revision));
+      NativeDirectoryFixture fixture(capacity);
+      fixture.SeedLoadedLegacyForModelTest(legacy, reference);
+      for (int map = 128; map < capacity; ++map) {
+        fixture.bytes[fixture.Entry(7).pc_address + map] = map;
+        fixture.bytes[fixture.Entry(30).pc_address + map] = 0;
+      }
+      const int selected = capacity == 192 ? 0xB1 : 0x91;
+      const int parent = selected - 1;
+      for (int member : {parent, selected}) {
+        fixture.bytes[fixture.Entry(7).pc_address + member] = parent;
+        fixture.bytes[fixture.Entry(30).pc_address + member] = 2;
+      }
+      for (const auto [id, graphics] :
+           {std::pair{24, 1}, std::pair{36, 2}, std::pair{39, 3}})
+        fixture.bytes[fixture.Entry(id).pc_address + parent] = graphics;
+      if (revision == 4) {
+        fixture.UpgradeToRevision4();
+        fixture.bytes[fixture.Entry(410).pc_address + selected] = 3;
+        fixture.Word(
+            fixture.Entry(411).pc_address + (selected - 128) * 256 + 254,
+            0x3210);
+      }
+      fixture.Seal();
+      Rom document;
+      ASSERT_TRUE(document.LoadFromData(fixture.bytes).ok());
+      const auto before = document.vector();
+      cli::handlers::OverworldExportNativeSourceCommandHandler command;
+      cli::resources::ArgumentParser args({});
+      auto run = [&]() -> absl::StatusOr<nlohmann::json> {
+        cli::resources::OutputFormatter out(
+            cli::resources::OutputFormatter::Format::kJson);
+        out.BeginObject();
+        const auto result = command.Execute(&document, args, out);
+        if (!result.ok())
+          return result;
+        out.EndObject();
+        return nlohmann::json::parse(out.GetOutput());
+      };
+      const auto exported = run();
+      ASSERT_TRUE(exported.ok()) << exported.status();
+      const auto& source = exported->at("native_source");
+      EXPECT_EQ(source["schema"], "yaze.special-overworld-native-source.v1");
+      EXPECT_EQ(source["directory_revision"], revision);
+      EXPECT_EQ(source["materialized_map_count"], capacity);
+      EXPECT_EQ(source["pages"].size(), capacity - 128);
+      EXPECT_EQ(
+          source["source_rom_sha256"],
+          core::ComputeSourceArtifactSha256(
+              {reinterpret_cast<const char*>(before.data()), before.size()}));
+      EXPECT_EQ(exported->at("native_source_sha256"),
+                core::ComputeSourceArtifactSha256(source.dump()));
+      const auto& page = source["pages"][selected - 128];
+      EXPECT_EQ(page["parent_map_id"], parent);
+      EXPECT_EQ(page["tiles"].size(), 1024);
+      EXPECT_EQ(page["resolved_states"].size(), 3);
+      zelda3::GameData data;
+      zelda3::LoadOptions options;
+      options.expand_rom = false;
+      ASSERT_TRUE(zelda3::LoadGameData(document, data, options).ok());
+      zelda3::Overworld expected(&document, &data);
+      ASSERT_TRUE(expected.Load(&document).ok());
+      EXPECT_EQ(
+          page["tiles"][19 * 32 + 7],
+          expected.GetMapTiles(
+              2)[(selected % 8) * 32 + 7][((selected % 64) / 8) * 32 + 19]);
+      const auto area = std::find_if(source["gameplay_areas"].begin(),
+                                     source["gameplay_areas"].end(),
+                                     [parent](const auto& item) {
+                                       return item["parent_map_id"] == parent;
+                                     });
+      ASSERT_NE(area, source["gameplay_areas"].end());
+      EXPECT_EQ((*area)["size"], "wide");
+      EXPECT_EQ((*area)["maps"], nlohmann::json::array({parent, selected}));
+      for (int phase = 0; phase < 3; ++phase) {
+        const auto& state = page["resolved_states"][phase];
+        EXPECT_EQ(state["sprite_graphics"], phase + 1);
+        std::vector<uint8_t> pixels(0x10000, 0);
+        for (int slot = 0; slot < 16; ++slot) {
+          const auto& description = state["slots"][slot];
+          if (description["empty"].get<bool>())
+            continue;
+          const size_t sheet = description["sheet_id"].get<size_t>();
+          for (int pixel = 0; pixel < 0x1000; ++pixel)
+            pixels[slot * 0x1000 + pixel] = static_cast<uint8_t>(
+                data.graphics_buffer[sheet * 0x1000 + pixel] +
+                ((slot == 0 || slot == 3 || slot == 4 || slot == 5) ? 0x88
+                                                                    : 0));
+        }
+        const size_t animated = state["animation"]["sheet_id"].get<size_t>();
+        if (animated != 0)
+          std::copy_n(data.graphics_buffer.begin() + animated * 0x1000, 0x800,
+                      pixels.begin() + 7 * 0x1000);
+        EXPECT_EQ(
+            state["graphics_sha256"],
+            core::ComputeSourceArtifactSha256(
+                {reinterpret_cast<const char*>(pixels.data()), pixels.size()}));
+      }
+      EXPECT_NE(page["resolved_states"][0]["graphics_sha256"],
+                page["resolved_states"][1]["graphics_sha256"]);
+      if (revision == 4) {
+        EXPECT_EQ(page["source_profile"]["appearance_flags"], 3);
+        EXPECT_EQ(page["source_profile"]["background_palette_words"][127],
+                  0x3210);
+        for (const auto& state : page["resolved_states"])
+          EXPECT_EQ(state["palette"]["words"][127], 0x3210);
+      } else {
+        EXPECT_TRUE(
+            page["source_profile"]["background_palette_words"].is_null());
+      }
+      const auto repeated = run();
+      ASSERT_TRUE(repeated.ok()) << repeated.status();
+      EXPECT_EQ(*repeated, *exported);
+      EXPECT_EQ(document.vector(), before);
+      EXPECT_FALSE(document.dirty());
+      ASSERT_TRUE(document.WriteByte(0x100, document.vector()[0x100] ^ 1).ok());
+      const auto refused = run();
+      EXPECT_TRUE(absl::IsFailedPrecondition(refused.status()));
+    }
+  }
+}
+
 TEST_F(NativeSpecialOverworldEditorTest,
        SpriteSaveEditorUndoFailureRetryAndFreshReopen) {
   const char* path = std::getenv("YAZE_TEST_ROM_OOS");
@@ -2038,6 +2182,228 @@ TEST_F(NativeSpecialOverworldEditorTest, ScreenAppearanceSaveUndoAndReopen) {
         clear_world.overworld_map(page)->native_appearance_bg_palette()[5],
         0x3210);
   }
+}
+
+TEST_F(NativeSpecialOverworldEditorTest,
+       ScreenColorsSidebarWidgetsRevision4Headless) {
+  const char* path = std::getenv("YAZE_TEST_ROM_OOS");
+  if (!path || !std::filesystem::exists(path))
+    GTEST_SKIP() << "Set YAZE_TEST_ROM_OOS for native screen color UI harness";
+  Rom legacy;
+  ASSERT_TRUE(legacy.LoadFromData(ReadBytes(path)).ok());
+  zelda3::Overworld reference(&legacy);
+  ASSERT_TRUE(reference.Load(&legacy).ok());
+  NativeDirectoryFixture fixture(192);
+  fixture.SeedLoadedLegacyForModelTest(legacy, reference);
+  fixture.UpgradeToRevision4();
+  const int page = 0xB1;
+  for (int member : {0xB0, 0xB1, 0xB8, 0xB9}) {
+    fixture.bytes[fixture.Entry(7).pc_address + member] = 0xB0;
+    fixture.bytes[fixture.Entry(30).pc_address + member] = 1;
+    fixture.bytes[fixture.Entry(410).pc_address + member] = 1;
+    fixture.bytes[fixture.Entry(2).pc_address + member] = member & 1;
+    fixture.bytes[fixture.Entry(27).pc_address + member] = member & 1;
+    fixture.bytes[fixture.Entry(31).pc_address + member] = member & 1;
+  }
+  fixture.bytes[fixture.Entry(410).pc_address + page] = 3;
+  fixture.bytes[fixture.Entry(2).pc_address + page] = 1;
+  fixture.bytes[fixture.Entry(27).pc_address + page] = 1;
+  fixture.bytes[fixture.Entry(31).pc_address + page] = 1;
+  fixture.Word(fixture.Entry(411).pc_address + (page - 0x80) * 256 + 10,
+               0x1234);
+  fixture.Seal();
+  const auto root = test::UniqueTempPath("ow_sc");
+  std::filesystem::create_directories(root);
+  auto cleanup = absl::MakeCleanup([&] { std::filesystem::remove_all(root); });
+  const auto source = root / "in.sfc";
+  WriteBytes(source, fixture.bytes);
+  auto manager = std::make_unique<editor::EditorManager>();
+  test::InitializeWithIsolatedSettings(*manager, renderer_.get());
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+  manager->user_settings().prefs().backup_before_save = false;
+  ASSERT_TRUE(manager->OpenRomOrProject(source.string()).ok());
+  ASSERT_TRUE(
+      manager->EnsureEditorAssetsLoaded(editor::EditorType::kOverworld).ok());
+  auto* editor = manager->GetCurrentEditorSet()->GetOverworldEditor();
+  auto* document = manager->GetCurrentRom();
+  auto& world = editor->overworld();
+  project::YazeProject project;
+  project.name = "Native screen colors";
+  project.lyra_terrain_file = "legacy-import-only.lyra-terrain.json";
+  editor->SetProjectContextProvider([&] { return &project; });
+  editor->SelectMapForEditing(page, true);
+  auto* main_screen = world.mutable_overworld_map(page);
+  ASSERT_TRUE(main_screen->LoadPalette().ok());
+  const uint16_t obj_sample_before = main_screen->current_palette()[200].snes();
+  const uint16_t neighbor_color5 =
+      world.overworld_map(0xB0)->native_appearance_bg_palette()[5];
+
+  auto frame = [&] {
+    ImGui::EndFrame();
+    ImGui::GetIO().DisplaySize = ImVec2(1920, 2400);
+    gui::WidgetIdRegistry::Instance().Clear();
+    ImGui::NewFrame();
+    ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiCond_Always);
+    ImGui::SetNextWindowSize(ImVec2(1400, 2200), ImGuiCond_Always);
+    ImGui::Begin("OwNativeScreenUi", nullptr,
+                 ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoMove);
+    editor->DrawMapProperties();
+    ImGui::End();
+  };
+
+  auto click_widget = [&](const std::string& path) {
+    auto info = gui::WidgetIdRegistry::Instance().GetWidgetInfo(path);
+    ASSERT_TRUE(info.has_value()) << path;
+    ASSERT_TRUE(info->bounds.valid) << path;
+    auto& io = ImGui::GetIO();
+    io.AddMousePosEvent((info->bounds.min_x + info->bounds.max_x) * 0.5f,
+                        (info->bounds.min_y + info->bounds.max_y) * 0.5f);
+    frame();
+    io.AddMouseButtonEvent(ImGuiMouseButton_Left, true);
+    frame();
+    io.AddMouseButtonEvent(ImGuiMouseButton_Left, false);
+    frame();
+  };
+
+  for (int i = 0; i < 3; ++i) {
+    frame();
+  }
+
+  click_widget(
+      absl::StrFormat("OverworldSidebar/native_screen/m%02X/swatch7F", page));
+  ASSERT_FALSE(ImGui::GetCurrentContext()->OpenPopupStack.empty());
+  auto key = [&](ImGuiKey code) {
+    auto& io = ImGui::GetIO();
+    io.AddKeyEvent(code, true);
+    frame();
+    io.AddKeyEvent(code, false);
+    frame();
+  };
+  auto enter_color = [&](const char* text, bool commit) {
+    click_widget(absl::StrFormat(
+        "OverworldSidebar/native_screen/m%02X/color_value", page));
+    auto& io = ImGui::GetIO();
+    const auto modifier =
+        io.ConfigMacOSXBehaviors ? ImGuiMod_Super : ImGuiMod_Ctrl;
+    io.AddKeyEvent(modifier, true);
+    key(ImGuiKey_A);
+    io.AddKeyEvent(modifier, false);
+    frame();
+    io.AddInputCharactersUTF8(text);
+    frame();
+    if (commit)
+      key(ImGuiKey_Enter);
+  };
+  enter_color("3210", true);
+  EXPECT_TRUE(ImGui::GetCurrentContext()->OpenPopupStack.empty());
+  const uint16_t after_edit = main_screen->native_appearance_bg_palette()[127];
+  EXPECT_EQ(after_edit, 0x3210);
+  ASSERT_TRUE(editor->Undo().ok());
+  EXPECT_EQ(main_screen->native_appearance_bg_palette()[127], 0x0000);
+  ASSERT_TRUE(editor->Redo().ok());
+  EXPECT_EQ(main_screen->native_appearance_bg_palette()[127], 0x3210);
+  ASSERT_TRUE(manager->SaveCurrentSession(false).ok());
+  const auto persisted = ReadBytes(source);
+  Rom reopened;
+  ASSERT_TRUE(reopened.LoadFromFile(source.string()).ok());
+  zelda3::Overworld saved_world(&reopened);
+  ASSERT_TRUE(saved_world.Load(&reopened).ok());
+  EXPECT_EQ(
+      saved_world.overworld_map(page)->native_appearance_bg_palette()[127],
+      0x3210);
+  ASSERT_TRUE(manager->SaveCurrentSession(false).ok());
+  EXPECT_EQ(ReadBytes(source), persisted);
+
+  click_widget(
+      absl::StrFormat("OverworldSidebar/native_screen/m%02X/swatch05", page));
+  ASSERT_FALSE(ImGui::GetCurrentContext()->OpenPopupStack.empty());
+  {
+    auto& io = ImGui::GetIO();
+    io.AddKeyEvent(ImGuiKey_Escape, true);
+    frame();
+    io.AddKeyEvent(ImGuiKey_Escape, false);
+    frame();
+  }
+  EXPECT_TRUE(ImGui::GetCurrentContext()->OpenPopupStack.empty());
+  EXPECT_EQ(main_screen->native_appearance_bg_palette()[5], 0x1234);
+
+  using Field = editor::OverworldPropertyField;
+  {
+    ScopedRomReadOnly read_only(*document);
+    EXPECT_FALSE(editor::NativePropertySaveTestPeer::Apply(
+                     *editor, {page, Field::kScreenColor, 10, 0x3210})
+                     .ok());
+  }
+
+  click_widget(absl::StrFormat(
+      "OverworldSidebar/native_screen/m%02X/reset_source", page));
+  EXPECT_EQ(main_screen->native_appearance_flags() & 3, 1);
+  ASSERT_TRUE(editor->Undo().ok());
+  EXPECT_EQ(main_screen->native_appearance_flags(), 3);
+
+  // A draft cannot follow a changed physical selection or a ROM reload.
+  click_widget(
+      absl::StrFormat("OverworldSidebar/native_screen/m%02X/swatch05", page));
+  enter_color("1111", false);
+  editor->SelectMapForEditing(0xB0, true);
+  frame();
+  key(ImGuiKey_Enter);
+  EXPECT_EQ(main_screen->native_appearance_bg_palette()[5], 0x1234);
+  EXPECT_EQ(world.overworld_map(0xB0)->native_appearance_bg_palette()[5],
+            neighbor_color5);
+  editor->SelectMapForEditing(page, true);
+  frame();
+  click_widget(
+      absl::StrFormat("OverworldSidebar/native_screen/m%02X/swatch05", page));
+  enter_color("1111", false);
+  // Both changed words cancelled the former XOR generation fingerprint.
+  auto external = main_screen->native_appearance_bg_palette();
+  external[0] ^= 0x0100;
+  external[1] ^= 0x0001;
+  main_screen->set_native_appearance_bg_palette(external);
+  frame();
+  key(ImGuiKey_Enter);
+  EXPECT_EQ(main_screen->native_appearance_bg_palette()[5], 0x1234);
+  click_widget(
+      absl::StrFormat("OverworldSidebar/native_screen/m%02X/swatch05", page));
+  enter_color("1111", false);
+  ASSERT_TRUE(editor->Load().ok());
+  frame();
+  key(ImGuiKey_Enter);
+  EXPECT_EQ(world.overworld_map(page)->native_appearance_bg_palette()[5],
+            0x1234);
+  main_screen = world.mutable_overworld_map(page);
+  {
+    ScopedRomReadOnly read_only(*document);
+    frame();
+    click_widget(
+        absl::StrFormat("OverworldSidebar/native_screen/m%02X/swatch05", page));
+    EXPECT_TRUE(ImGui::GetCurrentContext()->OpenPopupStack.empty());
+    EXPECT_EQ(main_screen->native_appearance_bg_palette()[5], 0x1234);
+  }
+  frame();
+
+  // Enabling screen appearance on an inherited child must keep its parent exact.
+  ASSERT_TRUE(editor::NativePropertySaveTestPeer::Apply(
+                  *editor, {page, Field::kScreenAppearance, 0, 0})
+                  .ok());
+  frame();
+  click_widget(
+      absl::StrFormat("OverworldSidebar/native_screen/m%02X/mode", page));
+  key(ImGuiKey_Home);
+  key(ImGuiKey_DownArrow);
+  key(ImGuiKey_Enter);
+  EXPECT_EQ(main_screen->native_appearance_flags(), 1);
+  EXPECT_EQ(world.overworld_map(0xB0)->native_appearance_flags(), 1);
+  ASSERT_TRUE(editor->Undo().ok());
+  EXPECT_EQ(main_screen->native_appearance_flags(), 0);
+  ASSERT_TRUE(editor->Redo().ok());
+  EXPECT_EQ(main_screen->native_appearance_flags(), 1);
+
+  ASSERT_TRUE(main_screen->LoadPalette().ok());
+  EXPECT_EQ(main_screen->current_palette()[200].snes(), obj_sample_before);
+  EXPECT_EQ(world.overworld_map(0xB0)->native_appearance_bg_palette()[5],
+            neighbor_color5);
 }
 
 TEST_F(NativeSpecialOverworldEditorTest, NormalSaveUndoFailureAndDiskReopen) {
