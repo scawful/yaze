@@ -178,7 +178,12 @@ absl::Status OverworldExportNativeSourceCommandHandler::Execute(
       auto resolved = *map;
       resolved.set_game_state(state);
       resolved.LoadAreaGraphics();
-      RETURN_IF_ERROR(resolved.LoadPalette());
+      const auto palette_status = resolved.LoadPalette();
+      if (!palette_status.ok())
+        return absl::Status(
+            palette_status.code(),
+            absl::StrFormat("Special overworld map $%02X phase %d: %s", map_id,
+                            state, palette_status.message()));
       for (int slot = 0; slot < 16; ++slot) {
         if ((static_cast<size_t>(resolved.static_graphics(slot)) + 1) * 0x1000 >
             game_data.graphics_buffer.size())

@@ -1710,6 +1710,10 @@ TEST_F(NativeSpecialOverworldEditorTest, SavedNativeSourceExport) {
       for (const auto [id, graphics] :
            {std::pair{24, 1}, std::pair{36, 2}, std::pair{39, 3}})
         fixture.bytes[fixture.Entry(id).pc_address + parent] = graphics;
+      // Legacy unused special maps can contain code bytes in their sprite
+      // palette slots. This synthetic active area supplies a valid selector.
+      for (const int id : {25, 37, 38})
+        fixture.bytes[fixture.Entry(id).pc_address + parent] = 1;
       if (revision == 4) {
         fixture.UpgradeToRevision4();
         fixture.bytes[fixture.Entry(410).pc_address + selected] = 3;
