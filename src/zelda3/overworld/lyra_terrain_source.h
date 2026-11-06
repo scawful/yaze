@@ -10,7 +10,9 @@
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "core/lyra_terrain_document.h"
+#include "zelda3/overworld/overworld_geometry.h"
 #include "zelda3/overworld/overworld_map.h"
+#include "zelda3/overworld/overworld_terrain_io.h"
 
 namespace yaze::gfx {
 class Bitmap;
@@ -19,6 +21,19 @@ struct PaletteGroupMap;
 }  // namespace yaze::gfx
 namespace yaze::zelda3 {
 class Overworld;
+
+struct SpecialOverworldTerrainImportPlan {
+  OverworldTile32Packing tile32;
+  std::vector<OverworldGeometryRow> geometry;
+  OverworldTerrainSavePlan terrain;
+};
+// Consume a freshly loaded legacy model and source-bound document once. Keep
+// all160 original terrain grids and explicit32-map area assignments. Asset,
+// entity and complete-directory publication belong to the full import owner.
+absl::StatusOr<SpecialOverworldTerrainImportPlan>
+PlanSpecialOverworldTerrainImport(Overworld& original,
+                                  const core::LyraTerrainDocument& document,
+                                  const OverworldTerrainStorage& destination);
 
 // Resolve the native Loom render profile without changing the active map or ROM.
 // The optional atlas is used only by the editor; build verification stays headless.

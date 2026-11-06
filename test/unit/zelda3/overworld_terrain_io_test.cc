@@ -1,12 +1,17 @@
 #include "zelda3/overworld/overworld_terrain_io.h"
 
 #include <algorithm>
+#include <cstdlib>
+#include <filesystem>
 #include <utility>
 #include <vector>
 
 #include "app/gfx/util/compression.h"
+#include "core/source_artifact_publisher.h"
 #include "gtest/gtest.h"
 #include "rom/snes.h"
+#include "zelda3/overworld/lyra_terrain_source.h"
+#include "zelda3/overworld/overworld.h"
 #include "zelda3/overworld/overworld_map.h"
 
 namespace yaze::zelda3 {
@@ -169,6 +174,124 @@ TEST(OverworldTile32PackingTest,
   EXPECT_EQ(PlanOverworldTile32Packing(tiles, 160, 17728).status().code(),
             absl::StatusCode::kInvalidArgument);
   EXPECT_EQ(tiles.light_world[31][31], 4096);
+}
+
+TEST(SpecialOverworldTerrainImportTest,
+     RealLegacyTerrainAndAssignedDocumentSharePackingAndGeometry) {
+  const char* path = std::getenv("YAZE_TEST_ROM_OOS");
+  if (!path || !std::filesystem::exists(path))
+    GTEST_SKIP() << "Set YAZE_TEST_ROM_OOS";
+  Rom source;
+  ASSERT_TRUE(source.LoadFromFile(path).ok());
+  Overworld world(&source);
+  ASSERT_TRUE(world.Load(&source).ok());
+  const auto before = source.vector();
+  const std::array<OverworldBlockset, 3> original = {
+      world.GetMapTiles(0), world.GetMapTiles(1), world.GetMapTiles(2)};
+  core::LyraTerrainProfile profile;
+  profile.tile_count = world.tiles16().size();
+  std::string definitions;
+  for (const auto& tile : world.tiles16())
+    for (const auto& quadrant : tile.tiles_info) {
+      const uint16_t word = gfx::TileInfoToWord(quadrant);
+      definitions.push_back(static_cast<char>(word));
+      definitions.push_back(static_cast<char>(word >> 8));
+    }
+  profile.tile16_definition_fingerprint =
+      core::ComputeSourceArtifactSha256(definitions);
+  // This test covers terrain/geometry; full asset authentication is the
+  // caller's separate normal native resolver operation.
+  profile.graphics_fingerprint = "graphics:terrain-fixture";
+  profile.palette_fingerprint = "palette:terrain-fixture";
+  profile.animation_fingerprint = "animation:terrain-fixture";
+  auto document = core::LyraTerrainDocument::Create(profile, 0);
+  ASSERT_TRUE(document.ok()) << document.status();
+  ASSERT_TRUE(document->BeginStroke().ok());
+  ASSERT_TRUE(document->Paint(0, 0, 1).ok());
+  ASSERT_TRUE(document->Paint(255, 127, 2).ok());
+  ASSERT_TRUE(document->EndStroke().ok());
+  OverworldTerrainStorage storage{
+      0x260000,
+      0x260300,
+      192,
+      {{0x240000, 0x260000, "new streams"}},
+      {{kOverworldCompressedMapPos, 0x5FE70, "original bank0B"},
+       {0x60000, 0x6411F, "original bank0C"},
+       {kOverworldMapDataOverflow, kOverworldCompressedOverflowPos,
+        "original overflow"}},
+      OverworldTerrainPointerTables{0x1794D, 0x17B2D, 160}};
+  const auto unassigned =
+      PlanSpecialOverworldTerrainImport(world, *document, storage);
+  EXPECT_FALSE(unassigned.ok());
+  EXPECT_NE(unassigned.status().message().find("Assign added map"),
+            absl::string_view::npos)
+      << unassigned.status();
+  auto authored = document->authoring();
+  std::array<bool, 32> covered{};
+  for (int parent = 0xA0; parent < 0xC0; ++parent) {
+    if (covered[parent - 0xA0])
+      continue;
+    const auto size = parent == 0xA0 || parent == 0xBE
+                          ? core::LyraGameplayAreaSize::kWide
+                      : parent == 0xA6 || parent == 0xB0 || parent == 0xB3
+                          ? core::LyraGameplayAreaSize::kLarge
+                          : core::LyraGameplayAreaSize::kSmall;
+    const auto maps = core::LyraGameplayAreaFootprint(parent, size);
+    ASSERT_TRUE(maps.ok());
+    authored.gameplay_areas.push_back({parent, size, *maps});
+    for (int map : *maps)
+      covered[map - 0xA0] = true;
+  }
+  ASSERT_EQ(authored.gameplay_areas.size(), 21u);
+  ASSERT_TRUE(document->SetAuthoring(document->authoring(), authored).ok());
+  ScopedRomReadOnly source_read_only(source);
+  const auto plan =
+      PlanSpecialOverworldTerrainImport(world, *document, storage);
+  ASSERT_TRUE(plan.ok()) << plan.status();
+  EXPECT_TRUE(plan->terrain.initial_import);
+  EXPECT_EQ(plan->terrain.baseline.size(), 0x400000u);
+  ASSERT_EQ(plan->geometry.size(), 192u);
+  for (int map = 0; map < 192; ++map) {
+    if (map < 160) {
+      EXPECT_EQ(plan->geometry[map].parent, world.overworld_map(map)->parent());
+      EXPECT_EQ(plan->geometry[map].size,
+                world.overworld_map(map)->area_size());
+    } else {
+      const auto* area = document->GameplayAreaForMap(map);
+      ASSERT_NE(area, nullptr);
+      EXPECT_EQ(plan->geometry[map].parent, area->parent_map_id);
+      EXPECT_EQ(static_cast<int>(plan->geometry[map].size),
+                static_cast<int>(area->size));
+    }
+    for (int y = 0; y < 32; ++y)
+      for (int x = 0; x < 32; ++x) {
+        const auto& definition =
+            plan->tile32
+                .definitions[plan->tile32.pages[map][y / 2 * 16 + x / 2]];
+        const std::array<uint16_t, 4> quadrants = {
+            definition.tile0_, definition.tile1_, definition.tile2_,
+            definition.tile3_};
+        const uint16_t expected =
+            map < 160
+                ? original[map / 64][map % 8 * 32 + x][map % 64 / 8 * 32 + y]
+                : document->maps()[map - 160][y * 32 + x];
+        ASSERT_EQ(quadrants[y % 2 * 2 + x % 2], expected) << map;
+      }
+  }
+  EXPECT_EQ(source.vector(), before);
+  EXPECT_FALSE(source.dirty());
+  for (int kind = 0; kind < 3; ++kind)
+    EXPECT_EQ(world.GetMapTiles(kind), original[kind]);
+  EXPECT_EQ(document->authoring(), authored);
+  auto stale_profile = profile;
+  stale_profile.tile16_definition_fingerprint = "changed:definitions";
+  const auto stale = core::LyraTerrainDocument::Create(stale_profile, 0);
+  ASSERT_TRUE(stale.ok());
+  const auto refused =
+      PlanSpecialOverworldTerrainImport(world, *stale, storage);
+  EXPECT_FALSE(refused.ok());
+  EXPECT_NE(refused.status().message().find("binding"),
+            absl::string_view::npos);
 }
 
 TEST_F(OverworldTerrainIoTest,

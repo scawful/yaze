@@ -22,7 +22,85 @@ void AddWord(std::string& bytes, uint16_t word) {
   bytes.push_back(static_cast<char>(word));
   bytes.push_back(static_cast<char>(word >> 8));
 }
+
+std::string Tile16Fingerprint(const Overworld& overworld) {
+  std::string definitions;
+  for (const auto& tile : overworld.tiles16())
+    for (const auto& quadrant : tile.tiles_info)
+      AddWord(definitions, gfx::TileInfoToWord(quadrant));
+  return core::ComputeSourceArtifactSha256(definitions);
+}
 }  // namespace
+
+absl::StatusOr<SpecialOverworldTerrainImportPlan>
+PlanSpecialOverworldTerrainImport(Overworld& original,
+                                  const core::LyraTerrainDocument& document,
+                                  const OverworldTerrainStorage& destination) {
+  if (!original.is_loaded() || !original.rom() ||
+      original.materialized_map_count() != 160 ||
+      destination.map_count != 192 || original.rom()->dirty() ||
+      original.rom()->InspectLyraLayout().presence !=
+          rom::LyraLayoutPresence::kAbsent)
+    return absl::FailedPreconditionError(
+        "Initial expansion requires a saved original160-map overworld");
+  if (document.profile().tile_count != original.tiles16().size() ||
+      document.profile().tile16_definition_fingerprint !=
+          Tile16Fingerprint(original))
+    return absl::FailedPreconditionError(
+        "Initial terrain import Tile16 source binding changed");
+  std::vector<OverworldAreaGeometry> geometry;
+  for (const auto& map : original.overworld_maps())
+    geometry.push_back({map.parent(), map.area_size(), map.large_index()});
+  geometry.resize(192, {-1, AreaSizeEnum::SmallArea, 0});
+  for (const auto& area : document.authoring().gameplay_areas) {
+    ASSIGN_OR_RETURN(const auto footprint, core::LyraGameplayAreaFootprint(
+                                               area.parent_map_id, area.size));
+    if (footprint != area.maps)
+      return absl::FailedPreconditionError(
+          "Initial terrain import area footprint changed");
+    for (int map : footprint) {
+      if (geometry[map].parent != -1)
+        return absl::FailedPreconditionError(
+            "Initial terrain import area assignments overlap");
+      const int offset = map - area.parent_map_id;
+      geometry[map] = {area.parent_map_id, static_cast<AreaSizeEnum>(area.size),
+                       offset / 8 * 2 + offset % 8};
+    }
+  }
+  for (int map = 160; map < 192; ++map)
+    if (geometry[map].parent == -1)
+      return absl::FailedPreconditionError(absl::StrFormat(
+          "Assign added map $%02X before the initial terrain import", map));
+  SpecialOverworldTerrainImportPlan plan;
+  ASSIGN_OR_RETURN(plan.geometry, PlanExpandedOverworldGeometry(geometry));
+  OverworldMapTiles tiles{original.GetMapTiles(0), original.GetMapTiles(1),
+                          original.GetMapTiles(2)};
+  if (tiles.special_world.size() < 256)
+    return absl::FailedPreconditionError(
+        "Original special terrain is incomplete");
+  for (auto& column : tiles.special_world) {
+    if (column.size() < 128)
+      return absl::FailedPreconditionError(
+          "Original special terrain is incomplete");
+    column.resize(256);
+  }
+  for (int map = 160; map < 192; ++map)
+    for (int y = 0; y < 32; ++y)
+      for (int x = 0; x < 32; ++x)
+        tiles.special_world[map % 8 * 32 + x][map % 64 / 8 * 32 + y] =
+            document.maps()[map - 160][y * 32 + x];
+  ASSIGN_OR_RETURN(plan.tile32, PlanOverworldTile32Packing(tiles, 192, 17728));
+  auto expanded = original.rom()->vector();
+  if (expanded.size() > 0x400000)
+    return absl::FailedPreconditionError(
+        "Initial terrain source exceeds 4 MiB");
+  expanded.resize(0x400000);
+  Rom image;
+  RETURN_IF_ERROR(image.LoadFromData(expanded));
+  ASSIGN_OR_RETURN(plan.terrain, PlanInitialOverworldTerrainImport(
+                                     image, destination, plan.tile32.pages));
+  return plan;
+}
 
 absl::Status BindLyraTerrainSource(Overworld& overworld,
                                    core::LyraTerrainProfile* profile,
@@ -77,12 +155,7 @@ absl::Status BindLyraTerrainSource(Overworld& overworld,
     return absl::FailedPreconditionError(
         "Loom Tile16 definitions exceed native atlas capacity");
   profile->tile_count = overworld.tiles16().size();
-  std::string definitions;
-  for (const auto& tile : overworld.tiles16())
-    for (const auto& quadrant : tile.tiles_info)
-      AddWord(definitions, gfx::TileInfoToWord(quadrant));
-  profile->tile16_definition_fingerprint =
-      core::ComputeSourceArtifactSha256(definitions);
+  profile->tile16_definition_fingerprint = Tile16Fingerprint(overworld);
   const auto& pixels = source.current_graphics();
   profile->graphics_fingerprint = core::ComputeSourceArtifactSha256(
       {reinterpret_cast<const char*>(pixels.data()), pixels.size()});
