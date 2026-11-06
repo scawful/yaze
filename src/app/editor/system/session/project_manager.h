@@ -1,6 +1,7 @@
 #ifndef YAZE_APP_EDITOR_SYSTEM_PROJECT_MANAGER_H_
 #define YAZE_APP_EDITOR_SYSTEM_PROJECT_MANAGER_H_
 
+#include <deque>
 #include <functional>
 #include <map>
 #include <memory>
@@ -201,11 +202,11 @@ class ProjectManager {
   RomLifecycleManager* rom_lifecycle_ = nullptr;
   std::unique_ptr<BackgroundCommandTask> active_project_build_;
   std::optional<ProjectBuildPreparedRequest> active_build_request_;
-  bool active_build_reported_ = false;
   uint64_t next_build_attempt_id_ = 1;
   std::map<std::string, ProjectBuildAttemptResult> terminal_build_results_;
   std::map<std::string, ProjectBuildAttemptResult> verified_build_provenance_;
-  std::map<std::string, ProjectBuildAttemptResult> pending_owner_completions_;
+  std::map<std::string, std::deque<ProjectBuildAttemptResult>>
+      pending_owner_completions_;
 };
 
 }  // namespace editor

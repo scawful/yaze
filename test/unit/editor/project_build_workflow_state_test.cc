@@ -12,6 +12,8 @@
 
 #include "app/editor/core/content_registry.h"
 #include "app/editor/editor_manager.h"
+#include "app/editor/system/session/project_manager.h"
+#include "app/editor/system/session/rom_lifecycle_manager.h"
 #include "app/editor/system/session/session_coordinator.h"
 #include "app/gfx/backend/null_renderer.h"
 #include "core/native_save_receipt.h"
@@ -362,6 +364,58 @@ TEST_F(ProjectBuildWorkflowStateTest,
   // Another idle frame must not deliver either terminal event twice.
   ASSERT_TRUE(PumpUntil([] { return true; }));
   EXPECT_EQ(ContentRegistry::Context::workflow_history().size(), 2u);
+}
+
+TEST_F(ProjectBuildWorkflowStateTest,
+       StartingNextBuildPreservesUnpolledTerminalResult) {
+  const auto a = CreateProject("UnpolledA");
+  const auto b = CreateProject("UnpolledB", true);
+  ASSERT_OK(OpenProject(a));
+  RomLifecycleManager lifecycle(
+      {.session_coordinator = manager_->session_coordinator()});
+  ProjectManager workflow(nullptr);
+  workflow.SetBuildWorkflowServices(&lifecycle);
+  const auto prepare = [&] {
+    const auto* session =
+        manager_->session_coordinator()->GetActiveRomSession();
+    ProjectBuildPrepareInputs inputs;
+    inputs.origin_session_id = manager_->GetCurrentSessionId();
+    inputs.origin_session_active = true;
+    inputs.project = manager_->GetCurrentProject();
+    inputs.editing_source_path = session->rom_baseline->editing_source_path;
+    inputs.rom_baseline = session->rom_baseline;
+    return workflow.PrepareProjectBuildRequest(inputs);
+  };
+  const auto first = prepare();
+  ASSERT_TRUE(first.ok()) << first.status();
+  ASSERT_OK(workflow.StartPreparedProjectBuild(*first, false));
+  const auto deadline =
+      std::chrono::steady_clock::now() + std::chrono::seconds(10);
+  while (workflow.HasActiveProjectBuildForOrigin(first->origin.session_id,
+                                                 a.descriptor.string()) &&
+         std::chrono::steady_clock::now() < deadline) {
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+  }
+  ASSERT_FALSE(workflow.HasActiveProjectBuildForOrigin(first->origin.session_id,
+                                                       a.descriptor.string()));
+  ASSERT_OK(OpenProject(b));
+  const auto second = prepare();
+  ASSERT_TRUE(second.ok()) << second.status();
+  ASSERT_OK(workflow.StartPreparedProjectBuild(*second, false));
+  const auto delivered = workflow.PollProjectBuildForViewer(
+      first->origin.session_id, a.descriptor.string());
+  ASSERT_TRUE(delivered.newly_finished);
+  EXPECT_EQ(delivered.finished.attempt_id, first->attempt_id);
+  EXPECT_EQ(delivered.finished.terminal_state,
+            ProjectBuildTerminalState::kSucceeded);
+  EXPECT_TRUE(workflow.HasActiveProjectBuildForOrigin(second->origin.session_id,
+                                                      b.descriptor.string()));
+  EXPECT_FALSE(workflow
+                   .PollProjectBuildForViewer(first->origin.session_id,
+                                              a.descriptor.string())
+                   .newly_finished);
+  ASSERT_OK(workflow.CancelProjectBuildForOwner(second->origin.session_id,
+                                                b.descriptor.string()));
 }
 
 TEST_F(ProjectBuildWorkflowStateTest, ClosedOwnerCannotTransferResultToReopen) {

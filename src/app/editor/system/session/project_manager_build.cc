@@ -251,10 +251,14 @@ absl::Status ProjectManager::StartPreparedProjectBuild(
     const ProjectBuildPreparedRequest& request, bool synchronous) {
   RETURN_IF_ERROR(ValidatePreparedBuildDoesNotOverlap(request));
   RETURN_IF_ERROR(ValidatePreparedBuildOriginBinding(request, true));
+  if (active_project_build_) {
+    // A child can finish between UI polls. Preserve its result before replacing
+    // the task; its failure must not prevent a later valid attempt.
+    (void)FinalizeActiveProjectBuild(false);
+  }
   RevokeRunEligibilityForOwner(request.origin.session_id,
                                request.origin.project_descriptor_path);
   active_build_request_ = request;
-  active_build_reported_ = false;
   active_project_build_ = std::make_unique<BackgroundCommandTask>();
   auto start_status = active_project_build_->Start(
       request.command, request.project_root, request.environment);
@@ -267,7 +271,6 @@ absl::Status ProjectManager::StartPreparedProjectBuild(
         failure;
     active_project_build_.reset();
     active_build_request_.reset();
-    active_build_reported_ = true;
     return start_status;
   }
   if (synchronous) {
@@ -423,9 +426,9 @@ absl::Status ProjectManager::FinalizeActiveProjectBuild(bool synchronous_wait) {
     }
   }
   terminal_build_results_[key] = result;
+  pending_owner_completions_[key].push_back(result);
   active_project_build_.reset();
   active_build_request_.reset();
-  active_build_reported_ = true;
   return result.process_status;
 }
 
@@ -437,55 +440,32 @@ ProjectBuildPollUpdate ProjectManager::PollProjectBuildForViewer(
   if (const auto pending = pending_owner_completions_.find(viewer_key);
       pending != pending_owner_completions_.end()) {
     update.newly_finished = true;
-    update.finished = pending->second;
-    update.owner_session_id = pending->second.origin.session_id;
-    update.owner_last_result = pending->second;
-    pending_owner_completions_.erase(pending);
+    update.finished = pending->second.front();
+    update.owner_session_id = update.finished.origin.session_id;
+    update.owner_last_result = update.finished;
+    pending->second.pop_front();
+    if (pending->second.empty()) {
+      pending_owner_completions_.erase(pending);
+    }
     return update;
   }
   if (const auto it = terminal_build_results_.find(viewer_key);
       it != terminal_build_results_.end()) {
     update.owner_last_result = it->second;
   }
-
-  if (!active_project_build_ || !active_build_request_.has_value()) {
+  if (!active_project_build_ || !active_build_request_) {
     return update;
   }
-
+  update.task_snapshot = active_project_build_->GetSnapshot();
+  if (!update.task_snapshot.running) {
+    // Finalization queues a terminal event for its owner. A second observation
+    // cannot recurse again because finalization releases the active task.
+    (void)FinalizeActiveProjectBuild(false);
+    return PollProjectBuildForViewer(viewer_session_id, viewer_descriptor_path);
+  }
   update.has_active_operation = true;
   update.owner_session_id = active_build_request_->origin.session_id;
   update.attempt_id = active_build_request_->attempt_id;
-  update.task_snapshot = active_project_build_->GetSnapshot();
-
-  if (update.task_snapshot.running) {
-    return update;
-  }
-  if (active_build_reported_) {
-    return update;
-  }
-
-  active_build_reported_ = true;
-  const ProjectBuildPreparedRequest request = *active_build_request_;
-  auto finished_or = CompleteBuildAttempt(request, update.task_snapshot);
-  if (finished_or.ok()) {
-    update.finished = *finished_or;
-  } else {
-    update.finished = MakeTerminalBuildFailure(request, update.task_snapshot,
-                                               finished_or.status());
-  }
-  update.newly_finished = true;
-  const std::string key =
-      ProjectBuildResultKey(update.finished.origin.session_id,
-                            update.finished.origin.project_descriptor_path);
-  terminal_build_results_[key] = update.finished;
-  if (viewer_key == key) {
-    update.owner_last_result = update.finished;
-  } else {
-    pending_owner_completions_[key] = update.finished;
-  }
-  active_project_build_.reset();
-  active_build_request_.reset();
-  update.has_active_operation = false;
   return update;
 }
 
@@ -529,7 +509,7 @@ void ProjectManager::ResetProjectBuildPresentationForDescriptor(
   }
   for (auto it = pending_owner_completions_.begin();
        it != pending_owner_completions_.end();) {
-    if (it->second.origin.project_descriptor_path == descriptor_path) {
+    if (it->second.front().origin.project_descriptor_path == descriptor_path) {
       it = pending_owner_completions_.erase(it);
     } else {
       ++it;
@@ -543,7 +523,6 @@ void ProjectManager::ResetProjectBuildPresentationForDescriptor(
     }
     active_project_build_.reset();
     active_build_request_.reset();
-    active_build_reported_ = false;
   }
 }
 
