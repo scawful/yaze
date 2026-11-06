@@ -75,8 +75,8 @@ TEST_F(OracleChestRecoverySaveTest,
   const auto root = test::UniqueTempPath("ocr");
   std::filesystem::create_directories(root);
   auto cleanup = absl::MakeCleanup([&] { std::filesystem::remove_all(root); });
-  const auto source = root / "in.sfc", target = root / "saved.sfc";
-  WriteRecoveryBytes(source, source_bytes);
+  const auto target = root / "saved.sfc";
+  WriteRecoveryBytes(target, source_bytes);
   const auto manifest_path = root / "hack_manifest.json";
   {
     std::ofstream manifest(manifest_path);
@@ -87,7 +87,7 @@ TEST_F(OracleChestRecoverySaveTest,
   project::YazeProject project;
   project.name = "Private Oracle chest recovery";
   project.filepath = (root / "p.yaze").string();
-  project.rom_filename = source.string();
+  project.rom_filename = target.string();
   project.hack_manifest_file = manifest_path.string();
   project.rom_metadata.write_policy = project::RomWritePolicy::kBlock;
   ASSERT_TRUE(project.Save().ok());
@@ -151,10 +151,10 @@ TEST_F(OracleChestRecoverySaveTest,
   flags.overworld.kSaveOverworldItems = false;
   {
     test::ScopedRomStagingFailure fault;
-    EXPECT_FALSE(manager->SaveRomAs(target.string()).ok());
+    EXPECT_FALSE(manager->SaveCurrentSession(false).ok());
   }
   EXPECT_EQ(manager->GetCurrentRom()->vector(), source_bytes);
-  const auto saved = manager->SaveRomAs(target.string());
+  const auto saved = manager->SaveCurrentSession(false);
   ASSERT_TRUE(saved.ok()) << saved;
   const auto persisted = ReadRecoveryBytes(target);
   ASSERT_EQ(persisted.size(), source_bytes.size());
@@ -174,7 +174,7 @@ TEST_F(OracleChestRecoverySaveTest,
   EXPECT_TRUE(fresh.GetChests().empty());
   EXPECT_EQ(fresh.EncodeObjects(), room.EncodeObjects());
   EXPECT_EQ(fresh.GetTileObjects().size(), 128u);
-  ASSERT_TRUE(manager->SaveRom().ok());
+  ASSERT_TRUE(manager->SaveCurrentSession(false).ok());
   EXPECT_EQ(ReadRecoveryBytes(target), persisted);
   // Retain the first normal Save output only in MM's explicitly owned output
   // directory. It is a private qualification artifact, never a bundled ROM.
@@ -192,11 +192,11 @@ TEST_F(OracleChestRecoverySaveTest,
                    .dump(2);
   }
   ASSERT_TRUE(dungeon->Undo().ok());
-  ASSERT_TRUE(manager->SaveRom().ok());
+  ASSERT_TRUE(manager->SaveCurrentSession(false).ok());
   EXPECT_EQ(RecoveryRewards(ReadRecoveryBytes(target)),
             RecoveryRewards(source_bytes));
   ASSERT_TRUE(dungeon->Redo().ok());
-  ASSERT_TRUE(manager->SaveRom().ok());
+  ASSERT_TRUE(manager->SaveCurrentSession(false).ok());
   EXPECT_EQ(RecoveryRewards(ReadRecoveryBytes(target)), expected_rewards);
   EXPECT_EQ(ReadRecoveryBytes(fixture_path), source_bytes);
 }
