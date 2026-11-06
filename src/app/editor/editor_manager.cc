@@ -3119,13 +3119,11 @@ std::string EditorManager::ExecuteEditorControl(const std::string& request) {
   json response = {{"protocol", "yaze-editor-control/v1"},
                    {"status", "ok"},
                    {"http_status", 200}};
-  response["capabilities"]["commands"] = {"status",
-                                          "project.open",
-                                          "project.rom.swap",
-                                          "dungeon.select",
-                                          "proposal.load",
-                                          "panel.hide",
-                                          "overworld.stencil.apply"};
+  response["capabilities"]["commands"] = {
+      "status",       "project.open",           "project.rom.swap",
+      "project.save", "project.build",          "project.build.cancel",
+      "project.run",  "dungeon.select",         "proposal.load",
+      "panel.hide",   "overworld.stencil.apply"};
 #ifdef _WIN32
   const auto pid = _getpid();
 #else
@@ -3217,6 +3215,34 @@ std::string EditorManager::ExecuteEditorControl(const std::string& request) {
         const auto status = OpenRomOrProjectInternal(path, false);
         if (!status.ok())
           fail(422, std::string(status.message()));
+      }
+    } else if (command == "project.save" || command == "project.build" ||
+               command == "project.build.cancel" || command == "project.run") {
+      if (!expected_editor_matches(body.at("expected"))) {
+        fail(409,
+             "Project command expected identity does not match the active "
+             "editor");
+      } else if (HasPendingUnsavedSessionAction()) {
+        fail(409, "Finish the pending session action before a project command");
+      } else if (command == "project.build") {
+        QueueBuildCurrentProject();
+        const auto queued = ContentRegistry::Context::build_workflow_status();
+        if (queued.state == ProjectWorkflowState::kFailure) {
+          fail(422, queued.detail);
+        }
+      } else if (command == "project.build.cancel") {
+        if (!project_manager_.HasActiveProjectBuildForOrigin(
+                GetCurrentSessionId(), current_project_.filepath)) {
+          fail(409, "No running build belongs to this project session");
+        } else {
+          CancelQueuedProjectBuild();
+        }
+      } else {
+        const auto status =
+            command == "project.save" ? SaveProject() : RunCurrentProject();
+        if (!status.ok()) {
+          fail(422, std::string(status.message()));
+        }
       }
     } else if (command == "project.rom.swap") {
       const auto path = path_argument();
@@ -3406,6 +3432,16 @@ std::string EditorManager::ExecuteEditorControl(const std::string& request) {
       state["proposal_path"] = dungeon->proposal_review_path();
     }
   }
+  const auto workflow_json = [](const ProjectWorkflowStatus& workflow) {
+    return json{{"state", ProjectWorkflowStateName(workflow.state)},
+                {"summary", workflow.summary},
+                {"detail", workflow.detail},
+                {"can_cancel", workflow.can_cancel}};
+  };
+  state["workflow"] = {
+      {"build",
+       workflow_json(ContentRegistry::Context::build_workflow_status())},
+      {"run", workflow_json(ContentRegistry::Context::run_workflow_status())}};
   state["visible_panels"] = json::array();
   for (const auto& id :
        window_manager_.GetWindowsInSession(GetCurrentSessionId())) {

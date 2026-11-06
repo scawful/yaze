@@ -25,6 +25,10 @@
 #include "testing.h"
 #include "unique_temp_path.h"
 
+#ifdef YAZE_WITH_JSON
+#include "nlohmann/json.hpp"
+#endif
+
 namespace yaze::editor {
 namespace {
 
@@ -217,6 +221,31 @@ class ProjectBuildWorkflowStateTest : public ::testing::Test {
                ? session->rom_baseline->editing_source_path
                : "";
   }
+
+#ifdef YAZE_WITH_JSON
+  nlohmann::json ControlStatus() {
+    return nlohmann::json::parse(
+        manager_->ExecuteEditorControl(R"({"command":"status"})"));
+  }
+
+  nlohmann::json ExpectedEditor() {
+    const auto state = ControlStatus().at("state");
+    nlohmann::json expected;
+    for (const char* key :
+         {"pid", "session_id", "project_path", "rom_path", "rom_sha256"}) {
+      expected[key] = state.at(key);
+    }
+    return expected;
+  }
+
+  nlohmann::json Control(const std::string& command,
+                         const nlohmann::json& expected) {
+    return nlohmann::json::parse(manager_->ExecuteEditorControl(nlohmann::json{
+        {"command", command},
+        { "expected",
+          expected }}.dump()));
+  }
+#endif
 
   std::filesystem::path temp_;
   std::optional<std::string> previous_app_data_;
@@ -515,6 +544,71 @@ TEST_F(ProjectBuildWorkflowStateTest,
   EXPECT_FALSE(manager_->BuildCurrentProject().ok());
   EXPECT_FALSE(manager_->RunCurrentProject().ok());
 }
+
+#ifdef YAZE_WITH_JSON
+TEST_F(ProjectBuildWorkflowStateTest,
+       BackgroundCommandsUseGuardedNormalWorkflow) {
+  const auto files = CreateProject("BackgroundWorkflow");
+  ASSERT_OK(OpenProject(files));
+  const auto expected = ExpectedEditor();
+  auto wrong = expected;
+  wrong["pid"] = expected.at("pid").get<int64_t>() + 1;
+  const auto before = core::ComputeSourceArtifactFileSha256(files.output);
+  ASSERT_TRUE(before.ok());
+  const auto rejected = Control("project.build", wrong);
+  EXPECT_EQ(rejected.at("http_status"), 409);
+  EXPECT_EQ(core::ComputeSourceArtifactFileSha256(files.output).value(),
+            *before);
+
+  const auto saved = Control("project.save", expected);
+  ASSERT_EQ(saved.at("status"), "ok") << saved.dump();
+  EXPECT_TRUE(std::filesystem::is_regular_file(files.descriptor.string() +
+                                               ".native-save.json"));
+  const auto queued = Control("project.build", ExpectedEditor());
+  ASSERT_EQ(queued.at("status"), "ok") << queued.dump();
+  EXPECT_EQ(queued.at("state").at("workflow").at("build").at("state"),
+            "running");
+  ASSERT_TRUE(WaitFor(ProjectWorkflowState::kSuccess));
+  const auto ran = Control("project.run", ExpectedEditor());
+  ASSERT_EQ(ran.at("status"), "ok") << ran.dump();
+  EXPECT_EQ(ran.at("state").at("workflow").at("run").at("state"), "success");
+  const auto hash = core::ComputeSourceArtifactFileSha256(files.output);
+  ASSERT_TRUE(hash.ok());
+  EXPECT_EQ(
+      LoadedLoRomSha256(*manager_, std::filesystem::file_size(files.output)),
+      *hash);
+}
+
+TEST_F(ProjectBuildWorkflowStateTest, BackgroundBuildKeepsUnsavedRomGuard) {
+  const auto files = CreateProject("BackgroundDirty");
+  ASSERT_OK(OpenProject(files));
+  ASSERT_OK(manager_->GetCurrentRom()->WriteByte(0, 0x01));
+  const auto rejected = Control("project.build", ExpectedEditor());
+  EXPECT_EQ(rejected.at("http_status"), 422) << rejected.dump();
+  EXPECT_EQ(rejected.at("state").at("workflow").at("build").at("state"),
+            "failure");
+  EXPECT_FALSE(manager_->RunCurrentProject().ok());
+}
+
+TEST_F(ProjectBuildWorkflowStateTest, BackgroundCancelRefusesForeignOwner) {
+  const auto a = CreateProject("BackgroundOwner", true);
+  const auto b = CreateProject("BackgroundViewer");
+  ASSERT_OK(OpenProject(a));
+  const auto owner_index = manager_->GetCurrentSessionIndex();
+  const auto owner_expected = ExpectedEditor();
+  ASSERT_EQ(Control("project.build", owner_expected).at("status"), "ok");
+  ASSERT_OK(OpenProject(b));
+  const auto stale = Control("project.build.cancel", owner_expected);
+  EXPECT_EQ(stale.at("http_status"), 409);
+  const auto foreign = Control("project.build.cancel", ExpectedEditor());
+  EXPECT_EQ(foreign.at("http_status"), 409);
+  manager_->SwitchToSession(owner_index);
+  const auto cancelled = Control("project.build.cancel", ExpectedEditor());
+  ASSERT_EQ(cancelled.at("status"), "ok") << cancelled.dump();
+  ASSERT_TRUE(WaitFor(ProjectWorkflowState::kFailure));
+  EXPECT_FALSE(manager_->RunCurrentProject().ok());
+}
+#endif
 
 }  // namespace
 }  // namespace yaze::editor

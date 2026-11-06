@@ -14,6 +14,20 @@ enum class ProjectWorkflowState {
   kFailure,
 };
 
+inline const char* ProjectWorkflowStateName(ProjectWorkflowState state) {
+  switch (state) {
+    case ProjectWorkflowState::kIdle:
+      return "idle";
+    case ProjectWorkflowState::kRunning:
+      return "running";
+    case ProjectWorkflowState::kSuccess:
+      return "success";
+    case ProjectWorkflowState::kFailure:
+      return "failure";
+  }
+  return "unknown";
+}
+
 struct ProjectWorkflowStatus {
   bool visible = false;
   bool can_cancel = false;
