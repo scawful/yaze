@@ -606,6 +606,10 @@ OverworldLayout InspectOverworldLayout(const Rom& rom,
   }
 
   layout.tail_marker_present = layout.has_validated_ea_tail();
+  if (layout.ea_marker_byte_present || layout.ea_loader_operands_present) {
+    // Family attribution is distinct from validated capacity and write support.
+    layout.layout_kind = OverworldLayout::LayoutKind::kOlderTailEa;
+  }
 
   const int terrain_entries =
       layout.has_validated_ea_tail() ? kExpandedMapCount : kNumOverworldMaps;

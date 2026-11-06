@@ -537,8 +537,8 @@ TEST(LyraLayoutDescriptorTest, PortableVectorsPreserveProductCompatibility) {
       EXPECT_EQ(result.entries.size(), 35u);
     } else if (expected == "legacy_160" ||
                name == "old_tail_marker_without_descriptor") {
-      // The Oracle fixture detector rejects the older $EA format. Yaze's
-      // established marker detector still owns and accepts that format.
+      // The descriptor parser leaves the older EA family to Yaze. A marker
+      // alone identifies that family but cannot validate its runtime tables.
       EXPECT_EQ(result.presence, rom::LyraLayoutPresence::kAbsent);
       if (name == "old_tail_marker_without_descriptor") {
         Rom older;
@@ -546,7 +546,16 @@ TEST(LyraLayoutDescriptorTest, PortableVectorsPreserveProductCompatibility) {
         const auto profile = zelda3::DetectOverworldRomProfile(older);
         EXPECT_EQ(profile.layout_kind,
                   zelda3::OverworldRomProfile::LayoutKind::kOlderTailEa);
-        EXPECT_EQ(profile.editable_map_count, 192);
+        EXPECT_EQ(profile.editable_map_count, 160);
+        EXPECT_FALSE(profile.has_tail_map_expansion);
+        const auto layout = zelda3::InspectOverworldLayout(
+            older, zelda3::OverworldLayoutOptions::Defaults());
+        EXPECT_FALSE(
+            layout
+                .CheckOperation(zelda3::OverworldLayoutDomain::kTerrainPointers,
+                                zelda3::OverworldLayoutOperation::kSerialize,
+                                -1, 0)
+                .ok());
       }
     } else {
       EXPECT_EQ(result.presence, rom::LyraLayoutPresence::kInvalid)

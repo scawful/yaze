@@ -23,10 +23,22 @@ void PatchEaTailOperands(Rom& rom) {
   for (size_t i = 0; i < plan.operand_snes.size(); ++i) {
     const uint32_t pc = SnesToPc(plan.operand_snes[i]);
     ASSERT_LT(pc + 2, rom.size());
+    rom[pc - 1] = 0xBF;
     const uint32_t patched = plan.operand_patched[i];
     rom[pc] = static_cast<uint8_t>(patched & 0xFF);
     rom[pc + 1] = static_cast<uint8_t>((patched >> 8) & 0xFF);
     rom[pc + 2] = static_cast<uint8_t>((patched >> 16) & 0xFF);
+  }
+  constexpr uint32_t stream_pc = 0x058000;
+  const std::vector<uint8_t> stream = {0xE4, 0xFF, 0x00, 0xFF};
+  std::copy(stream.begin(), stream.end(), rom.begin() + stream_pc);
+  for (int map = 0; map < kExpandedMapCount; ++map) {
+    ASSERT_TRUE(
+        rom.WriteLong(kExpandedPtrTableHigh + map * 3, PcToSnes(stream_pc))
+            .ok());
+    ASSERT_TRUE(
+        rom.WriteLong(kExpandedPtrTableLow + map * 3, PcToSnes(stream_pc))
+            .ok());
   }
 }
 
