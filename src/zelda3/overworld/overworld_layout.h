@@ -73,6 +73,7 @@ enum class LayoutTableStatus {
 };
 
 struct OverworldLayoutTableRecord {
+  std::string id;
   OverworldLayoutDomain domain = OverworldLayoutDomain::kTerrainPointers;
   LayoutTableAddressSpace address_space = LayoutTableAddressSpace::kRomPc;
   RomPcOffset pc;

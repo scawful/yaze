@@ -234,17 +234,79 @@ TEST(OverworldLayoutTest, TwoModelsRetainAddressesThroughDictionarySaves) {
   auto options_b = OverworldLayoutOptions::Defaults();
   options_a.map16_expanded_pc = 0x1E8000;
   options_b.map16_expanded_pc = 0x1E0000;
+  options_a.address_overrides
+      .addresses[core::RomAddressKey::kOverworldMapParentExpanded] = 0x150000;
+  options_b.address_overrides
+      .addresses[core::RomAddressKey::kOverworldMapParentExpanded] = 0x152000;
+  options_a.address_overrides
+      .addresses[core::RomAddressKey::kOverworldMessagesExpanded] = 0x150200;
+  options_b.address_overrides
+      .addresses[core::RomAddressKey::kOverworldMessagesExpanded] = 0x152200;
+  for (int map = 0; map < kNumOverworldMaps; ++map) {
+    a[0x150000 + map] = a[kOverworldMapParentIdExpanded + map];
+    b[0x152000 + map] = b[kOverworldMapParentIdExpanded + map];
+  }
+  ASSERT_TRUE(a.WriteShort(0x150200 + 0x3E * 2, 0x123).ok());
+  ASSERT_TRUE(b.WriteShort(0x152200 + 0x3E * 2, 0x234).ok());
   auto first = std::make_unique<Overworld>(&a);
   auto second = std::make_unique<Overworld>(&b);
   first->set_layout_inspect_options(options_a);
   second->set_layout_inspect_options(options_b);
   ASSERT_TRUE(first->Load(&a, options_a).ok());
   ASSERT_TRUE(second->Load(&b, options_b).ok());
+  EXPECT_EQ(first->overworld_map(0x3E)->message_id(), 0x123);
+  EXPECT_EQ(second->overworld_map(0x3E)->message_id(), 0x234);
   ASSERT_TRUE(first->SaveMap16Expanded().ok());
   ASSERT_TRUE(second->SaveMap16Expanded().ok());
   ASSERT_TRUE(first->SaveMap16Expanded().ok());
   EXPECT_EQ(*a.ReadLong(SnesToPc(0x008865)), PcToSnes(0x1E8000));
   EXPECT_EQ(*b.ReadLong(SnesToPc(0x008865)), PcToSnes(0x1E0000));
+  OverworldAllocationOptions report_options;
+  report_options.scan_entities = false;
+  report_options.scan_sprites = false;
+  report_options.layout_options = options_a;
+  const auto report = BuildOverworldAllocationReport(&a, report_options);
+  ASSERT_TRUE(report.ok()) << report.status();
+  EXPECT_EQ(report->areas[0x3E].parent, first->overworld_map(0x3E)->parent());
+  bool found_messages = false;
+  for (const auto& table : report->tables) {
+    if (table.id == "pool_sign_message") {
+      EXPECT_EQ(table.pc, 0x150200u);
+      found_messages = true;
+    }
+  }
+  EXPECT_TRUE(found_messages);
+  auto reopened = std::make_unique<Overworld>(&a);
+  ASSERT_TRUE(reopened->Load(&a, options_a).ok());
+  EXPECT_EQ(reopened->overworld_map(0x3E)->message_id(), 0x123);
+}
+
+TEST(OverworldLayoutTest,
+     EntranceWriterUsesCapturedAddressesAndChecksFullTables) {
+  Rom rom = MakeZsV3AllocationRom();
+  rom[kOverworldEntranceExpandedFlagPos] = 0;
+  core::RomAddressOverrides addresses;
+  addresses.addresses[core::RomAddressKey::kOverworldEntranceMapExpanded] =
+      0x150000;
+  addresses.addresses[core::RomAddressKey::kOverworldEntrancePosExpanded] =
+      0x150200;
+  addresses.addresses[core::RomAddressKey::kOverworldEntranceIdExpanded] =
+      0x150400;
+  const auto original_default = *rom.ReadWord(kOverworldEntranceMapExpanded);
+  const std::vector<OverworldEntrance> records = {
+      OverworldEntrance(0, 0, 7, 0x81, 0, false)};
+  ASSERT_TRUE(SaveEntrances(&rom, records, true, addresses).ok());
+  EXPECT_EQ(*rom.ReadWord(0x150000), 0x81);
+  EXPECT_EQ(*rom.ReadByte(0x150400), 7);
+  EXPECT_EQ(*rom.ReadWord(kOverworldEntranceMapExpanded), original_default);
+  auto loaded = LoadEntrances(&rom, addresses);
+  ASSERT_TRUE(loaded.ok());
+  EXPECT_EQ(loaded->front().map_id_, 0x81);
+  addresses.addresses[core::RomAddressKey::kOverworldEntranceMapExpanded] =
+      static_cast<uint32_t>(rom.size()) - 4;
+  const auto before = rom.vector();
+  EXPECT_FALSE(SaveEntrances(&rom, records, true, addresses).ok());
+  EXPECT_EQ(rom.vector(), before);
 }
 
 }  // namespace yaze::zelda3

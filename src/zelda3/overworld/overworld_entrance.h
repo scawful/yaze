@@ -190,6 +190,10 @@ absl::StatusOr<std::vector<OverworldEntrance>> LoadHoles(Rom* rom);
 absl::Status SaveEntrances(Rom* rom,
                            const std::vector<OverworldEntrance>& entrances,
                            bool expanded_entrances);
+absl::Status SaveEntrances(Rom* rom,
+                           const std::vector<OverworldEntrance>& entrances,
+                           bool expanded_entrances,
+                           const core::RomAddressOverrides& addresses);
 absl::Status SaveHoles(Rom* rom, const std::vector<OverworldEntrance>& holes);
 
 inline absl::StatusOr<OverworldEntranceTileTypes> LoadEntranceTileTypes(

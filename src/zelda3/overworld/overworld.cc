@@ -183,7 +183,10 @@ absl::Status Overworld::Load(Rom* rom) {
   const auto next_layout = InspectOverworldLayout(*rom, next_options);
   for (const auto domain :
        {OverworldLayoutDomain::kTerrainPointers, OverworldLayoutDomain::kTile16,
-        OverworldLayoutDomain::kTile32}) {
+        OverworldLayoutDomain::kTile32, OverworldLayoutDomain::kMapProperties,
+        OverworldLayoutDomain::kGeometry, OverworldLayoutDomain::kMessages,
+        OverworldLayoutDomain::kSprites, OverworldLayoutDomain::kMusic,
+        OverworldLayoutDomain::kEntities}) {
     RETURN_IF_ERROR(next_layout.CheckOperation(
         domain, OverworldLayoutOperation::kInspect, -1, 0));
   }
@@ -229,7 +232,8 @@ absl::Status Overworld::Load(Rom* rom) {
   {
     gfx::ScopedTimer map_creation_timer("CreateOverworldMapObjects");
     for (int map_index = 0; map_index < kNumOverworldMaps; ++map_index)
-      overworld_maps_.emplace_back(map_index, rom_, game_data_);
+      overworld_maps_.emplace_back(map_index, rom_, game_data_,
+                                   layout_inspect_options_.address_overrides);
 
     // Populate map_parent_ array with parent information from each map
     for (int map_index = 0; map_index < kNumOverworldMaps; ++map_index) {
@@ -260,7 +264,9 @@ absl::Status Overworld::Load(Rom* rom) {
 
     {
       gfx::ScopedTimer entrances_timer("LoadEntrances");
-      ASSIGN_OR_RETURN(all_entrances_, LoadEntrances(rom_));
+      ASSIGN_OR_RETURN(
+          all_entrances_,
+          LoadEntrances(rom_, layout_inspect_options_.address_overrides));
     }
 
     {
@@ -3571,7 +3577,7 @@ absl::Status Overworld::SaveEntrances() {
   if (!rom_) {
     return absl::InvalidArgumentError("Cannot save entrances without a ROM");
   }
-  const bool expanded = DetectOverworldRomProfile(*rom_).has_expanded_entrances;
+  const bool expanded = resolved_layout_.has_expanded_entrances;
   if (expanded) {
     if (all_holes_.size() != kNumOverworldHoles) {
       return absl::FailedPreconditionError(
@@ -3585,7 +3591,8 @@ absl::Status Overworld::SaveEntrances() {
     }
   }
   RETURN_IF_ERROR(
-      ::yaze::zelda3::SaveEntrances(rom_, all_entrances_, expanded));
+      ::yaze::zelda3::SaveEntrances(rom_, all_entrances_, expanded,
+                                    layout_inspect_options_.address_overrides));
   if (!expanded) {
     RETURN_IF_ERROR(SaveHoles(rom_, all_holes_));
   }

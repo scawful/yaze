@@ -82,8 +82,20 @@ OverworldMap::OverworldMap(int index, Rom* rom, GameData* game_data)
     : OverworldMap(index, rom, game_data, /*seed_area_parent=*/true) {}
 
 OverworldMap::OverworldMap(int index, Rom* rom, GameData* game_data,
-                           bool seed_area_parent, bool skip_legacy_data)
-    : index_(index), parent_(index), rom_(rom), game_data_(game_data) {
+                           const core::RomAddressOverrides& addresses)
+    : OverworldMap(index, rom, game_data, /*seed_area_parent=*/true,
+                   /*skip_legacy_data=*/false, &addresses) {}
+
+OverworldMap::OverworldMap(int index, Rom* rom, GameData* game_data,
+                           bool seed_area_parent, bool skip_legacy_data,
+                           const core::RomAddressOverrides* addresses)
+    : index_(index),
+      parent_(index),
+      rom_(rom),
+      game_data_(game_data),
+      address_overrides_(addresses
+                             ? *addresses
+                             : core::RomSettings::Get().address_overrides()) {
   if (skip_legacy_data) {
     return;
   }
@@ -92,7 +104,11 @@ OverworldMap::OverworldMap(int index, Rom* rom, GameData* game_data,
   auto version = OverworldVersionHelper::GetVersion(*rom_);
   if (OverworldVersionHelper::SupportsAreaEnum(version)) {
     // For v3+, parent ID is stored in expanded table (0x140998) with 160 entries
-    parent_ = (*rom_)[GetOverworldMapParentIdExpanded() + index_];
+    parent_ = (*rom_)[address_overrides_
+                          .GetAddress(
+                              core::RomAddressKey::kOverworldMapParentExpanded)
+                          .value_or(kOverworldMapParentIdExpanded) +
+                      index_];
   } else {
     // For vanilla/v1/v2, parent ID table at 0x125EC only has 64 entries (LW only)
     // DW maps mirror LW parents with +0x40 offset
@@ -334,8 +350,16 @@ void OverworldMap::LoadAreaInfo() {
     // Keep persistent per-screen metadata separate from parent-derived display
     // state. Unused child slots can contain distinct authored values.
     message_id_ =
-        (*rom_)[GetOverworldMessagesExpanded() + (index_ * 2)] |
-        ((*rom_)[GetOverworldMessagesExpanded() + (index_ * 2) + 1] << 8);
+        (*rom_)[address_overrides_
+                    .GetAddress(core::RomAddressKey::kOverworldMessagesExpanded)
+                    .value_or(kOverworldMessagesExpanded) +
+                (index_ * 2)] |
+        ((*rom_)[address_overrides_
+                     .GetAddress(
+                         core::RomAddressKey::kOverworldMessagesExpanded)
+                     .value_or(kOverworldMessagesExpanded) +
+                 (index_ * 2) + 1]
+         << 8);
   } else {
     message_id_ = (*rom_)[kOverworldMessageIds + (parent_ * 2)] |
                   ((*rom_)[kOverworldMessageIds + (parent_ * 2) + 1] << 8);

@@ -12,6 +12,7 @@
 
 #include "absl/status/statusor.h"
 #include "rom/rom.h"
+#include "zelda3/overworld/overworld_layout.h"
 
 namespace yaze::zelda3 {
 
@@ -139,6 +140,7 @@ struct OverworldAllocationOptions {
   bool scan_entities = true;  // Entrances, holes and exits.
   bool scan_sprites = true;   // Overworld sprite lists (ZS v3 only).
   std::map<int, std::string> area_names;
+  std::optional<OverworldLayoutOptions> layout_options;
 };
 
 struct OverworldAllocationReport {

@@ -60,12 +60,15 @@ int EffectivePropertyMapId(zelda3::Overworld* overworld, int map_id) {
 }
 
 absl::Status CheckFieldSupported(const Rom* rom,
+                                 const zelda3::Overworld* overworld,
                                  const OverworldPropertyEdit& edit) {
   if (!rom || !rom->is_loaded()) {
     return absl::FailedPreconditionError("ROM is not loaded");
   }
   const auto layout = zelda3::InspectOverworldLayout(
-      *rom, zelda3::OverworldLayoutOptions::WithProjectRomSettings());
+      *rom, overworld
+                ? overworld->layout_inspect_options()
+                : zelda3::OverworldLayoutOptions::WithProjectRomSettings());
   RETURN_IF_ERROR(layout.CheckOperation(
       zelda3::OverworldLayoutDomain::kMapProperties,
       zelda3::OverworldLayoutOperation::kMutateModel, edit.map_id, 0));
@@ -728,7 +731,7 @@ absl::Status MapPropertiesSystem::ApplyPropertyEdits(
 
 absl::Status MapPropertiesSystem::CheckPropertyEditSupported(
     const OverworldPropertyEdit& edit) const {
-  return CheckFieldSupported(rom_, edit);
+  return CheckFieldSupported(rom_, overworld_, edit);
 }
 
 absl::StatusOr<int> MapPropertiesSystem::ReadPropertyValue(
@@ -798,7 +801,7 @@ absl::Status MapPropertiesSystem::ApplyPropertyEditDirect(
         absl::StrFormat("Overworld map 0x%02X is unavailable", map_id));
   }
 
-  const absl::Status supported = CheckFieldSupported(rom_, edit);
+  const absl::Status supported = CheckFieldSupported(rom_, overworld_, edit);
   if (!supported.ok()) {
     return supported;
   }

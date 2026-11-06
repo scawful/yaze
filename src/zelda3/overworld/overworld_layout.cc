@@ -161,8 +161,9 @@ void AppendDiagnostic(OverworldLayout* layout, std::string message) {
 
 void SetTableRecord(OverworldLayout* layout, OverworldLayoutDomain domain,
                     int pc, int first_id, int count, int stride,
-                    LayoutTableStatus status) {
+                    LayoutTableStatus status, std::string id = {}) {
   OverworldLayoutTableRecord record;
+  record.id = std::move(id);
   record.domain = domain;
   record.address_space = LayoutTableAddressSpace::kRomPc;
   record.pc = RomPcOffset(pc);
@@ -694,14 +695,32 @@ OverworldLayout InspectOverworldLayout(const Rom& rom,
     else if (table.id == "pool_trans_pos_y")
       pc = options.Address(
           core::RomAddressKey::kOverworldTransitionPosYExpanded, pc);
-    const int count = table.last_area - table.first_area + 1;
+    int count = table.last_area - table.first_area + 1;
+    if (table.group == "text" && layout.supports_expanded_space) {
+      pc = options.Address(core::RomAddressKey::kOverworldMessagesExpanded,
+                           kOverworldMessagesExpanded);
+      count = kNumOverworldMaps;
+    }
     SetTableRecord(&layout, *domain, pc, table.first_area, count,
                    table.entry_bytes,
-                   SpanStatus(rom, pc, count * table.entry_bytes));
+                   SpanStatus(rom, pc, count * table.entry_bytes), table.id);
     if (table.id == "music_lw") {
       for (int phase = 1; phase < 4; ++phase)
         SetTableRecord(&layout, *domain, pc + phase * count, 0, count, 1,
                        SpanStatus(rom, pc + phase * count, count));
+    }
+  }
+  if (layout.supports_custom_bg_colors && !layout.uses_zs_v3_catalogue()) {
+    for (const auto& table : OverworldAreaTableCatalogue(0x03)) {
+      if (table.group != "gfx" || table.id.rfind("pool_", 0) != 0)
+        continue;
+      const int count = table.last_area - table.first_area + 1;
+      SetTableRecord(&layout, OverworldLayoutDomain::kMapProperties,
+                     static_cast<int>(table.pc), table.first_area, count,
+                     table.entry_bytes,
+                     SpanStatus(rom, static_cast<int>(table.pc),
+                                count * table.entry_bytes),
+                     table.id);
     }
   }
   const int entrance_count = layout.has_expanded_entrances ? 256 : 129;

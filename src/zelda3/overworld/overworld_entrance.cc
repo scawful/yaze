@@ -9,6 +9,7 @@
 #include "absl/status/statusor.h"
 #include "rom/rom.h"
 #include "util/macro.h"
+#include "zelda3/overworld/overworld_layout.h"
 #include "zelda3/overworld/overworld_version_helper.h"
 
 namespace yaze::zelda3 {
@@ -117,8 +118,25 @@ absl::StatusOr<std::vector<OverworldEntrance>> LoadHoles(Rom* rom) {
 absl::Status SaveEntrances(Rom* rom,
                            const std::vector<OverworldEntrance>& entrances,
                            bool expanded_entrances) {
+  return SaveEntrances(rom, entrances, expanded_entrances,
+                       core::RomSettings::Get().address_overrides());
+}
+
+absl::Status SaveEntrances(Rom* rom,
+                           const std::vector<OverworldEntrance>& entrances,
+                           bool expanded_entrances,
+                           const core::RomAddressOverrides& addresses) {
   if (!rom)
     return absl::InvalidArgumentError("Cannot save entrances without a ROM");
+  auto options = OverworldLayoutOptions::Defaults();
+  options.address_overrides = addresses;
+  options.entrance_expanded_flag_pc = static_cast<int>(
+      addresses.GetAddress(core::RomAddressKey::kOverworldEntranceFlagExpanded)
+          .value_or(kOverworldEntranceExpandedFlagPos));
+  const auto layout = InspectOverworldLayout(*rom, options);
+  RETURN_IF_ERROR(layout.CheckOperation(OverworldLayoutDomain::kEntities,
+                                        OverworldLayoutOperation::kSerialize,
+                                        -1, 0));
   if (entrances.size() > (expanded_entrances
                               ? 256u
                               : static_cast<size_t>(kNumOverworldEntrances))) {
@@ -127,12 +145,24 @@ absl::Status SaveEntrances(Rom* rom,
   }
   const size_t count = std::min<size_t>(
       expanded_entrances ? 256 : kNumOverworldEntrances, entrances.size());
-  const size_t map_base = expanded_entrances ? GetOverworldEntranceMapExpanded()
-                                             : kOverworldEntranceMap;
-  const size_t pos_base = expanded_entrances ? GetOverworldEntrancePosExpanded()
-                                             : kOverworldEntrancePos;
-  const size_t id_base = expanded_entrances ? GetOverworldEntranceIdExpanded()
-                                            : kOverworldEntranceEntranceId;
+  const size_t map_base =
+      expanded_entrances
+          ? addresses
+                .GetAddress(core::RomAddressKey::kOverworldEntranceMapExpanded)
+                .value_or(kOverworldEntranceMapExpanded)
+          : kOverworldEntranceMap;
+  const size_t pos_base =
+      expanded_entrances
+          ? addresses
+                .GetAddress(core::RomAddressKey::kOverworldEntrancePosExpanded)
+                .value_or(kOverworldEntrancePosExpanded)
+          : kOverworldEntrancePos;
+  const size_t id_base =
+      expanded_entrances
+          ? addresses
+                .GetAddress(core::RomAddressKey::kOverworldEntranceIdExpanded)
+                .value_or(kOverworldEntranceEntranceIdExpanded)
+          : kOverworldEntranceEntranceId;
   const size_t size = rom->vector().size();
   for (const auto& range : {std::pair<size_t, size_t>{map_base, count * 2},
                             {pos_base, count * 2},

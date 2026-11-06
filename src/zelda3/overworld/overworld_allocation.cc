@@ -11,6 +11,7 @@
 #include "absl/strings/str_format.h"
 #include "absl/strings/str_join.h"
 #include "nlohmann/json.hpp"
+#include "util/macro.h"
 #include "zelda3/overworld/overworld_entrance.h"
 #include "zelda3/overworld/overworld_exit.h"
 #include "zelda3/overworld/overworld_layout.h"
@@ -595,12 +596,47 @@ absl::StatusOr<OverworldAllocationReport> BuildOverworldAllocationReport(
   OverworldAllocationReport report;
   report.rom_name = std::filesystem::path(rom->filename()).filename().string();
   report.rom_size = rom->size();
-  const auto layout = InspectOverworldLayout(
-      *rom, OverworldLayoutOptions::WithProjectRomSettings());
-  report.asm_version = layout.catalogue_asm_version();
+  const auto layout_options =
+      options.layout_options ? *options.layout_options
+                             : OverworldLayoutOptions::WithProjectRomSettings();
+  const auto layout = InspectOverworldLayout(*rom, layout_options);
+  for (const auto domain : {OverworldLayoutDomain::kTerrainPointers,
+                            OverworldLayoutDomain::kGeometry,
+                            OverworldLayoutDomain::kMapProperties}) {
+    RETURN_IF_ERROR(layout.CheckOperation(
+        domain, OverworldLayoutOperation::kInspect, -1, 0));
+  }
+  report.asm_version = layout.asm_version;
   const bool zs_v3 = layout.uses_zs_v3_catalogue();
   report.catalogue = zs_v3 ? "zscustom_v3" : "vanilla";
-  report.tables = OverworldAreaTableCatalogue(report.asm_version);
+  report.tables = OverworldAreaTableCatalogue(layout.catalogue_asm_version());
+  for (auto& table : report.tables) {
+    if (!table.in_rom)
+      continue;
+    if (table.id == "map32_high" || table.id == "map32_low") {
+      table.pc = static_cast<uint32_t>(table.id == "map32_high"
+                                           ? layout.terrain_high_table_pc.value
+                                           : layout.terrain_low_table_pc.value);
+      table.last_area = layout.terrain_table_entries - 1;
+    } else {
+      for (const auto& record : layout.table_records) {
+        if (record.id == table.id) {
+          table.pc = static_cast<uint32_t>(record.pc.value);
+          table.first_area = record.first_id;
+          table.last_area = record.first_id + record.entry_count - 1;
+          break;
+        }
+      }
+    }
+    table.snes = LoRomPcToSnes(table.pc);
+  }
+  const auto catalogue_pc = [&report](const std::string& id,
+                                      uint32_t fallback) {
+    for (const auto& table : report.tables)
+      if (table.id == id)
+        return table.pc;
+    return fallback;
+  };
   const TailMapExpansionPlan plan;
   report.tail_marker_present = layout.has_validated_ea_tail();
 
@@ -620,7 +656,7 @@ absl::StatusOr<OverworldAllocationReport> BuildOverworldAllocationReport(
 
     // Parent.
     if (zs_v3) {
-      const uint32_t pc = kPoolParentPc + id;
+      const uint32_t pc = catalogue_pc("pool_parent", kPoolParentPc) + id;
       if (pc < rom->size()) {
         if (id <= 0x9F) {
           area.parent = rom->data()[pc];
@@ -654,7 +690,9 @@ absl::StatusOr<OverworldAllocationReport> BuildOverworldAllocationReport(
           static_cast<uint32_t>(layout.terrain_low_table_pc.value), id, &area);
     } else if (id <= 0x9F) {
       area.map_pointer_source = "vanilla_table";
-      ScanAreaMap(*rom, kMap32HighPc, kMap32LowPc, id, &area);
+      ScanAreaMap(
+          *rom, static_cast<uint32_t>(layout.terrain_high_table_pc.value),
+          static_cast<uint32_t>(layout.terrain_low_table_pc.value), id, &area);
     }
     if (area.map_pointer_source != "none") {
       for (int lower = 0; lower < id; ++lower) {
@@ -692,7 +730,8 @@ absl::StatusOr<OverworldAllocationReport> BuildOverworldAllocationReport(
 
   // Entities.
   if (options.scan_entities) {
-    if (auto entrances = LoadEntrances(rom); entrances.ok()) {
+    if (auto entrances = LoadEntrances(rom, layout_options.address_overrides);
+        entrances.ok()) {
       for (const auto& entrance : *entrances) {
         // LoadEntrances passes its deleted flag into is_hole_, so test the
         // position: $FFFF marks an unused slot.
