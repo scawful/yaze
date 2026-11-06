@@ -218,6 +218,9 @@ absl::Status RomInfoCommandHandler::Execute(
              zelda3::OverworldRomProfile::LayoutKind::kLyraOffline) {
     format_name = "lyra_descriptor";
   } else if (profile.layout_kind ==
+             zelda3::OverworldRomProfile::LayoutKind::kNativeSpecialOverworld) {
+    format_name = "special_overworld_native";
+  } else if (profile.layout_kind ==
              zelda3::OverworldRomProfile::LayoutKind::kZScreamPerSheet) {
     format_name = "zscream_per_sheet";
   } else if (profile.layout_kind ==

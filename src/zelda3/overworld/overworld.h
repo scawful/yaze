@@ -276,6 +276,7 @@ struct OverworldRomProfile {
     kLegacy,
     kOlderTailEa,
     kLyraOffline,
+    kNativeSpecialOverworld,
     kZScreamPerSheet,
     kUnknownCustom,
   };
@@ -350,6 +351,10 @@ inline OverworldRomProfile ToOverworldRomProfile(
       break;
     case OverworldLayout::LayoutKind::kLyraOffline:
       profile.layout_kind = OverworldRomProfile::LayoutKind::kLyraOffline;
+      break;
+    case OverworldLayout::LayoutKind::kNativeSpecialOverworld:
+      profile.layout_kind =
+          OverworldRomProfile::LayoutKind::kNativeSpecialOverworld;
       break;
     case OverworldLayout::LayoutKind::kZScreamPerSheet:
       profile.layout_kind = OverworldRomProfile::LayoutKind::kZScreamPerSheet;

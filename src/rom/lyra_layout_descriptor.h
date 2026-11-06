@@ -14,7 +14,8 @@
 namespace yaze::rom {
 
 // This is the proposed overworld ROM format, not the separate SRAM event format.
-// A valid revision-1 image is readable for inspection but has no Yaze writer.
+// Validation describes the stored layout; runtime and writer admission are
+// separate. Revisions 1/2 retain their original inspection/pilot contracts.
 enum class LyraLayoutPresence { kAbsent, kValid, kInvalid };
 
 struct LyraLayoutEntry {
@@ -32,9 +33,11 @@ struct LyraLayoutInspection {
   uint16_t revision = 0;
   uint16_t capacity = 0;
   uint16_t active_count = 0;
+  uint8_t tail_actor_bank = 0;
   bool write_supported = true;
   // A revision-2 capability permits only the dedicated A0 terrain Save As.
-  // Generic ROM writes remain refused for every Lyra revision.
+  // Generic ROM writes remain refused until the corresponding normal writer
+  // is integrated, including for a structurally valid revision-3 directory.
   bool a0_terrain_write_supported = false;
   bool offline_only = true;
   std::string error;

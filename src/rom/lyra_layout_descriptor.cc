@@ -85,6 +85,22 @@ bool ToPc(uint32_t snes, uint32_t* pc) {
   return true;
 }
 
+bool NativeToPc(uint32_t snes, uint32_t* pc) {
+  const uint32_t bank = snes >> 16;
+  if (bank > 0xFF || bank == 0x7E || bank == 0x7F || (snes & 0x8000) == 0) {
+    return false;
+  }
+  *pc = (bank & 0x7F) * 0x8000 + (snes & 0x7FFF);
+  return true;
+}
+
+const LyraLayoutEntry* FindEntry(const LyraLayoutInspection& layout,
+                                 uint16_t id) {
+  const auto it = std::find_if(layout.entries.begin(), layout.entries.end(),
+                               [id](const auto& e) { return e.id == id; });
+  return it == layout.entries.end() ? nullptr : &*it;
+}
+
 LyraLayoutInspection Invalid(std::string error, uint16_t revision = 0,
                              uint16_t capacity = 0, uint16_t active = 0) {
   LyraLayoutInspection result;
@@ -106,7 +122,17 @@ bool InStreamWindow(uint32_t pc) {
   return false;
 }
 
-bool StreamPointerPc(size_t size, uint32_t snes, uint32_t* pc) {
+bool StreamPointerPc(size_t size, uint32_t snes, uint32_t* pc,
+                     const LyraLayoutInspection* layout = nullptr) {
+  if (layout != nullptr && layout->revision == 3) {
+    if (!NativeToPc(snes, pc) || *pc >= size)
+      return false;
+    return std::any_of(layout->entries.begin(), layout->entries.end(),
+                       [pc](const auto& e) {
+                         return e.kind == 3 && *pc >= e.pc_address &&
+                                *pc - e.pc_address < e.count * e.stride;
+                       });
+  }
   // Existing stream tables use $8B/$8C/$A6 cartridge mirrors. Only bit 23
   // is normalized; every result must still land in a declared stream window.
   return ToPc(snes & 0x7FFFFF, pc) && *pc < size && InStreamWindow(*pc);
@@ -114,12 +140,27 @@ bool StreamPointerPc(size_t size, uint32_t snes, uint32_t* pc) {
 
 bool DecodeStream(const uint8_t* image, size_t size, uint32_t start,
                   std::array<uint8_t, 256>* decoded,
-                  size_t* consumed_end = nullptr) {
+                  size_t* consumed_end = nullptr,
+                  const LyraLayoutInspection* layout = nullptr) {
   size_t limit = std::min<size_t>(size, ((start / 0x8000) + 1) * 0x8000);
-  for (const auto& [begin, end] : kStreamWindows) {
-    if (start >= begin && start < end) {
-      limit = std::min<size_t>(limit, end);
-      break;
+  if (layout != nullptr && layout->revision == 3) {
+    bool found = false;
+    for (const auto& e : layout->entries) {
+      if (e.kind == 3 && start >= e.pc_address &&
+          start - e.pc_address < e.count * e.stride) {
+        limit = std::min<size_t>(limit, e.pc_address + e.count * e.stride);
+        found = true;
+        break;
+      }
+    }
+    if (!found)
+      return false;
+  } else {
+    for (const auto& [begin, end] : kStreamWindows) {
+      if (start >= begin && start < end) {
+        limit = std::min<size_t>(limit, end);
+        break;
+      }
     }
   }
   size_t p = start;
@@ -211,6 +252,237 @@ bool CheckSpritePointer(const uint8_t* image, size_t size, uint16_t word) {
   return false;
 }
 
+std::optional<EntrySpec> NativeSpec(uint16_t id, uint16_t capacity) {
+  constexpr std::array<uint16_t, 39> kStrides = {
+      2, 1, 1, 1, 2, 8, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3,
+      3, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
+  if (id >= 1 && id <= kStrides.size())
+    return EntrySpec{id, 1, capacity, kStrides[id - 1]};
+  if (id == 100)
+    return EntrySpec{id, 2, 0, 1};
+  if (id >= 200 && id <= 202) {
+    const auto [begin, end] = kStreamWindows[id - 200];
+    return EntrySpec{id, 3, static_cast<uint16_t>(end - begin), 1};
+  }
+  if (id >= 210 && id <= 213)
+    return EntrySpec{id, 3, 32768, 1};
+  if (id == 300)
+    return EntrySpec{id, 5, 0, 1};
+  if (id == 301)
+    return EntrySpec{id, 6, 0, 16};
+  if (id == 400)
+    return EntrySpec{id, 7, 4096, 8};
+  if (id >= 401 && id <= 404)
+    return EntrySpec{id, 7, 4432, 6};
+  return std::nullopt;
+}
+
+LyraLayoutInspection InspectNativeLayout(const uint8_t* image, size_t size,
+                                         const uint8_t* d) {
+  const uint16_t capacity = U16(d + 0x0E);
+  const uint16_t materialized = U16(d + 0x10);
+  auto bad = [&](std::string error) {
+    return Invalid(std::move(error), 3, capacity, materialized);
+  };
+  constexpr size_t kNativeEntryCount = 54;
+  constexpr size_t kUsedSize = kHeaderSize + kNativeEntryCount * kEntrySize;
+  if (U16(d + 0x0A) != kHeaderSize || U16(d + 0x0C) != kUsedSize ||
+      U16(d + 0x12) != kNativeEntryCount) {
+    return bad("Invalid native special-overworld directory size");
+  }
+  if ((capacity != 160 && capacity != 192) || materialized != capacity ||
+      d[0x15] != 0x0C || U16(d + 0x16) != 2 * capacity) {
+    return bad(
+        "Invalid native special-overworld capacity, flags or phase stride");
+  }
+  if (size > 0x400000 || U32(d + 0x18) != size) {
+    return bad("Native special-overworld image length mismatch");
+  }
+  if (image[0x140145] != 3 || image[0x1423FF] == 0xEA) {
+    return bad("Conflicting ZS version or older $EA tail identity");
+  }
+  std::array<uint8_t, kDescriptorSize> checked;
+  std::copy_n(d, checked.size(), checked.begin());
+  std::fill_n(checked.begin() + 0x1C, 4, 0);
+  if (Crc32(checked.data(), checked.size()) != U32(d + 0x1C) ||
+      std::any_of(d + kUsedSize, d + kDescriptorSize,
+                  [](uint8_t byte) { return byte != 0; })) {
+    return bad("Native special-overworld descriptor CRC or padding invalid");
+  }
+  LyraLayoutInspection result;
+  result.presence = LyraLayoutPresence::kValid;
+  result.revision = 3;
+  result.capacity = capacity;
+  result.active_count = materialized;
+  result.tail_actor_bank = d[0x14];
+  result.write_supported = false;
+  result.offline_only = false;
+  result.entries.reserve(kNativeEntryCount);
+  for (size_t i = 0; i < kNativeEntryCount; ++i) {
+    const uint8_t* p = d + kHeaderSize + i * kEntrySize;
+    LyraLayoutEntry e{U16(p),     U16(p + 2),  U32(p + 4), 0,
+                      U16(p + 8), U16(p + 10), U32(p + 12)};
+    const auto spec = NativeSpec(e.id, capacity);
+    if (!spec || e.kind != spec->kind || e.stride != spec->stride ||
+        e.count == 0 || (spec->count != 0 && e.count != spec->count) ||
+        FindEntry(result, e.id) != nullptr) {
+      return bad("Invalid or duplicate native special-overworld entry");
+    }
+    const uint32_t length = static_cast<uint32_t>(e.count) * e.stride;
+    if (!NativeToPc(e.snes_address, &e.pc_address) ||
+        (e.snes_address & 0xFFFF) + length > 0x10000 || e.pc_address > size ||
+        length > size - e.pc_address) {
+      return bad("Native special-overworld entry outside bank or image");
+    }
+    if (e.pc_address < kDescriptorPc + kDescriptorSize &&
+        kDescriptorPc < e.pc_address + length) {
+      return bad("Native special-overworld entry overlaps descriptor");
+    }
+    if (e.id >= 200 && e.id <= 202 &&
+        e.pc_address != kStreamWindows[e.id - 200].first) {
+      return bad("Native special-overworld source stream pool changed");
+    }
+    if (e.id >= 210 && e.id <= 213 && (e.snes_address & 0xFFFF) != 0x8000) {
+      return bad("Native special-overworld writable pool is not bank-aligned");
+    }
+    if (e.id == 100 && (e.snes_address >> 16) != result.tail_actor_bank) {
+      return bad("Native special-overworld actor bank mismatch");
+    }
+    for (const auto& prior : result.entries) {
+      if (e.pc_address < prior.pc_address + prior.count * prior.stride &&
+          prior.pc_address < e.pc_address + length) {
+        return bad("Native special-overworld directory overlap");
+      }
+    }
+    if (Crc32(image + e.pc_address, length) != e.crc32)
+      return bad("Native special-overworld data CRC mismatch");
+    result.entries.push_back(e);
+  }
+  // All 54 unique recognized IDs are required; directory order is not an ABI.
+  const auto& parents = *FindEntry(result, 7);
+  const auto& roles = *FindEntry(result, 29);
+  const auto& sizes = *FindEntry(result, 30);
+  const auto& actors = *FindEntry(result, 100);
+  const auto& high_table = *FindEntry(result, 20);
+  const auto& low_table = *FindEntry(result, 21);
+  for (size_t map = 0; map < capacity; ++map) {
+    const auto parent = image[parents.pc_address + map];
+    const auto area_size = image[sizes.pc_address + map];
+    const auto role = image[roles.pc_address + map];
+    if (parent >= capacity || area_size > 3 || (role > 3 && role != 0xFF) ||
+        image[parents.pc_address + parent] != parent ||
+        image[sizes.pc_address + parent] != area_size) {
+      return bad("Native special-overworld parent, size or role invalid");
+    }
+    // ZSCustomOverworld enum: small=0, large=1, wide=2, tall=3.
+    const size_t width = (area_size == 1 || area_size == 2) ? 2 : 1;
+    const size_t height = (area_size == 1 || area_size == 3) ? 2 : 1;
+    if (parent / 64 != map / 64 || parent % 8 + width > 8 ||
+        (parent % 64) / 8 + height > 8 || map < parent ||
+        map - parent >= 8 * height || (map - parent) % 8 >= width) {
+      return bad("Native special-overworld area footprint invalid");
+    }
+    for (size_t y = 0; y < height; ++y) {
+      for (size_t x = 0; x < width; ++x) {
+        const size_t child = parent + y * 8 + x;
+        if (child >= capacity || image[parents.pc_address + child] != parent ||
+            image[sizes.pc_address + child] != area_size) {
+          return bad("Native special-overworld area child mismatch");
+        }
+      }
+    }
+    std::array<uint8_t, 256> high{}, low{};
+    for (const auto* table : {&high_table, &low_table}) {
+      uint32_t pc = 0;
+      if (!StreamPointerPc(size, U24(image + table->pc_address + map * 3), &pc,
+                           &result) ||
+          !DecodeStream(image, size, pc, table == &high_table ? &high : &low,
+                        nullptr, &result)) {
+        return bad("Native special-overworld terrain stream invalid");
+      }
+    }
+    for (size_t tile = 0; tile < high.size(); ++tile) {
+      if ((static_cast<uint16_t>(high[tile]) << 8 | low[tile]) >= 17728)
+        return bad("Native special-overworld Tile32 reference out of range");
+    }
+    if (map < 0xA0)
+      continue;
+    for (uint16_t id : {16, 17, 18}) {
+      const auto& pointers = *FindEntry(result, id);
+      uint32_t pc = 0;
+      if (!NativeToPc((result.tail_actor_bank << 16) |
+                          U16(image + pointers.pc_address + map * 2),
+                      &pc) ||
+          pc < actors.pc_address || pc - actors.pc_address >= actors.count) {
+        return bad("Native special-overworld actor pointer outside storage");
+      }
+      const size_t end = actors.pc_address + actors.count;
+      size_t count = 0;
+      while (pc < end && image[pc] != 0xFF && count < 128) {
+        if (end - pc < 3)
+          return bad("Native special-overworld actor record truncated");
+        pc += 3;
+        ++count;
+      }
+      if (pc >= end || image[pc] != 0xFF)
+        return bad("Native special-overworld actor list unterminated");
+    }
+  }
+  const auto& code = *FindEntry(result, 300);
+  const auto& bindings = *FindEntry(result, 301);
+  std::array<bool, 4> terrain_bound{};
+  bool actor_bound = false;
+  std::vector<uint32_t> sites;
+  for (size_t i = 0; i < bindings.count; ++i) {
+    const uint8_t* p = image + bindings.pc_address + i * bindings.stride;
+    uint32_t site = 0, target = 0;
+    const auto* table = FindEntry(result, U16(p + 8));
+    const uint8_t kind = p[10];
+    if (!NativeToPc(U32(p), &site) || !NativeToPc(U32(p + 4), &target) ||
+        site > size || 4 > size - site || target < code.pc_address ||
+        target - code.pc_address >= code.count || table == nullptr ||
+        table->kind != 1 || table->id == 29 || kind < 1 || kind > 5 ||
+        p[11] != 0 || (p[12] != 0x22 && p[12] != 0x5C) ||
+        U24(p + 13) != U32(p + 4) || U32(image + site) != U32(p + 12)) {
+      return bad("Native special-overworld reader binding invalid");
+    }
+    if ((site < kDescriptorPc + kDescriptorSize && kDescriptorPc < site + 4) ||
+        std::any_of(result.entries.begin(), result.entries.end(),
+                    [site](const auto& e) {
+                      return site < e.pc_address + e.count * e.stride &&
+                             e.pc_address < site + 4;
+                    }) ||
+        std::any_of(sites.begin(), sites.end(), [site](uint32_t prior) {
+          return site < prior + 4 && prior < site + 4;
+        })) {
+      return bad("Native special-overworld reader site overlap");
+    }
+    sites.push_back(site);
+    if (kind == 1 || kind == 2) {
+      constexpr std::array<uint32_t, 4> kSites = {0x02F59D, 0x02F5C8, 0x02F7E3,
+                                                  0x02F80E};
+      const auto it = std::find(kSites.begin(), kSites.end(), U32(p));
+      if (it == kSites.end())
+        return bad("Native special-overworld terrain reader site changed");
+      const size_t index = it - kSites.begin();
+      if (kind != (index < 2 ? 1 : 2) || table->id != 20 + index % 2 ||
+          p[12] != 0x22)
+        return bad("Native special-overworld terrain reader ABI mismatch");
+      terrain_bound[index] = true;
+    }
+    if (kind == 4) {
+      if (table->id < 16 || table->id > 18 || p[12] != 0x5C)
+        return bad("Native special-overworld actor reader ABI mismatch");
+      actor_bound = true;
+    }
+  }
+  if (!actor_bound || std::any_of(terrain_bound.begin(), terrain_bound.end(),
+                                  [](bool bound) { return !bound; })) {
+    return bad("Native special-overworld required reader binding missing");
+  }
+  return result;
+}
+
 }  // namespace
 
 LyraLayoutInspection InspectLyraLayout(const uint8_t* image, size_t size) {
@@ -224,12 +496,18 @@ LyraLayoutInspection InspectLyraLayout(const uint8_t* image, size_t size) {
       available >= 5 && std::memcmp(d, "OOSOW", 5) == 0;
   // A damaged magic still belongs to this format when its independent header
   // and directory fingerprint survive. Nonblank bytes alone mean nothing.
-  const bool directory_fingerprint =
+  const bool legacy_fingerprint =
       available >= kRevision1UsedSize && U16(d + 0x0A) == kHeaderSize &&
       U16(d + 0x0E) == 192 && (U16(d + 0x10) == 160 || U16(d + 0x10) == 161) &&
       (U16(d + 0x12) == kRevision1EntryCount || U16(d + 0x12) == kEntryCount) &&
       U16(d + kHeaderSize) == 1 && U16(d + kHeaderSize + 2) == 1;
-  if (!signature_prefix && !directory_fingerprint) {
+  const bool native_fingerprint =
+      available == kDescriptorSize && U16(d + 8) == 3 &&
+      U16(d + 0x0A) == kHeaderSize && U16(d + 0x0C) == 896 &&
+      (U16(d + 0x0E) == 160 || U16(d + 0x0E) == 192) &&
+      U16(d + 0x10) == U16(d + 0x0E) && U16(d + 0x12) == 54 &&
+      U16(d + kHeaderSize) == 1 && U16(d + kHeaderSize + 2) == 1;
+  if (!signature_prefix && !legacy_fingerprint && !native_fingerprint) {
     return absent;
   }
   if (available != kDescriptorSize) {
@@ -242,6 +520,8 @@ LyraLayoutInspection InspectLyraLayout(const uint8_t* image, size_t size) {
   const uint16_t revision = U16(d + 8);
   const uint16_t capacity = U16(d + 0x0E);
   const uint16_t active = U16(d + 0x10);
+  if (revision == 3)
+    return InspectNativeLayout(image, size, d);
   auto bad = [&](std::string error) {
     return Invalid(std::move(error), revision, capacity, active);
   };
@@ -287,6 +567,7 @@ LyraLayoutInspection InspectLyraLayout(const uint8_t* image, size_t size) {
   result.revision = revision;
   result.capacity = capacity;
   result.active_count = active;
+  result.tail_actor_bank = d[0x14];
   result.write_supported = false;
   result.a0_terrain_write_supported = supported_revision2 && offline_only;
   result.offline_only = offline_only;
@@ -464,10 +745,10 @@ std::optional<std::array<uint16_t, 256>> LyraMapTile32(
   std::array<uint8_t, 256> low{};
   uint32_t high_pc = 0;
   uint32_t low_pc = 0;
-  if (!StreamPointerPc(size, U24(high_record->data()), &high_pc) ||
-      !StreamPointerPc(size, U24(low_record->data()), &low_pc) ||
-      !DecodeStream(image, size, high_pc, &high) ||
-      !DecodeStream(image, size, low_pc, &low)) {
+  if (!StreamPointerPc(size, U24(high_record->data()), &high_pc, &layout) ||
+      !StreamPointerPc(size, U24(low_record->data()), &low_pc, &layout) ||
+      !DecodeStream(image, size, high_pc, &high, nullptr, &layout) ||
+      !DecodeStream(image, size, low_pc, &low, nullptr, &layout)) {
     return std::nullopt;
   }
   std::array<uint16_t, 256> tiles{};

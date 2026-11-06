@@ -323,6 +323,11 @@ absl::Status Overworld::LoadLyraTerrainPreview(Rom* rom) {
     return absl::FailedPreconditionError(
         "Valid Lyra descriptor required for terrain preview");
   }
+  if (layout.revision == 3) {
+    return absl::FailedPreconditionError(
+        "Native special overworld requires normal model integration; the "
+        "revision-1/2 preview path does not apply");
+  }
   return BuildLyraTerrainPreview(rom, std::move(layout));
 }
 

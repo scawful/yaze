@@ -106,6 +106,7 @@ struct OverworldLayout {
     kLegacy,
     kOlderTailEa,
     kLyraOffline,
+    kNativeSpecialOverworld,
     kZScreamPerSheet,
     kUnknownCustom,
   };

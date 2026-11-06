@@ -1,11 +1,13 @@
 #include <gtest/gtest.h>
 
 #include <algorithm>
+#include <array>
 #include <cstdlib>
 #include <cstring>
 #include <filesystem>
 #include <fstream>
 #include <iterator>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -90,6 +92,360 @@ void Reseal(std::vector<uint8_t>* bytes,
   Put32(bytes, kDescriptorPc + 28, 0);
   Put32(bytes, kDescriptorPc + 28,
         mz_crc32(MZ_CRC32_INIT, bytes->data() + kDescriptorPc, 1024));
+}
+
+// Hermetic directory/codec fixture. These synthetic helper bytes exercise
+// binding encoding only; they do not implement or qualify game readers.
+struct NativeDirectoryFixture {
+  std::vector<uint8_t> bytes = std::vector<uint8_t>(0x300000, 0);
+  rom::LyraLayoutInspection rows;
+
+  static uint32_t Snes(uint32_t pc) {
+    uint32_t bank = pc / 0x8000;
+    if (bank >= 0x7E)
+      bank |= 0x80;
+    return (bank << 16) | 0x8000 | (pc & 0x7FFF);
+  }
+  void Word(size_t pc, uint16_t value) {
+    bytes[pc] = static_cast<uint8_t>(value);
+    bytes[pc + 1] = static_cast<uint8_t>(value >> 8);
+  }
+  void Long(size_t pc, uint32_t value) {
+    Word(pc, static_cast<uint16_t>(value));
+    bytes[pc + 2] = static_cast<uint8_t>(value >> 16);
+  }
+  rom::LyraLayoutEntry& Entry(uint16_t id) {
+    return *std::find_if(rows.entries.begin(), rows.entries.end(),
+                         [id](const auto& e) { return e.id == id; });
+  }
+  size_t EntryPc(uint16_t id) {
+    return 0x147020 + (&Entry(id) - rows.entries.data()) * 16;
+  }
+  void Add(uint16_t id, uint16_t kind, uint32_t pc, uint16_t count,
+           uint16_t stride) {
+    rows.entries.push_back({id, kind, Snes(pc), pc, count, stride, 0});
+  }
+  void Seal() {
+    for (const auto& e : rows.entries) {
+      const size_t at = EntryPc(e.id);
+      Word(at, e.id);
+      Word(at + 2, e.kind);
+      Put32(&bytes, at + 4, e.snes_address);
+      Word(at + 8, e.count);
+      Word(at + 10, e.stride);
+    }
+    Put32(&bytes, 0x147018, static_cast<uint32_t>(bytes.size()));
+    Reseal(&bytes, rows);
+  }
+  explicit NativeDirectoryFixture(uint16_t capacity = 192) {
+    std::memcpy(bytes.data() + 0x147000, "OOSOW192", 8);
+    Word(0x147008, 3);
+    Word(0x14700A, 32);
+    Word(0x14700C, 896);
+    Word(0x14700E, capacity);
+    Word(0x147010, capacity);
+    Word(0x147012, 54);
+    bytes[0x147014] = 0x4C;
+    bytes[0x147015] = 0x0C;
+    Word(0x147016, 2 * capacity);
+    bytes[0x140145] = 3;
+    uint32_t table_pc = 0x230000;
+    for (uint16_t id = 1; id <= 39; ++id) {
+      const uint16_t stride = id == 6                  ? 8
+                              : (id == 20 || id == 21) ? 3
+                              : (id == 1 || id == 5 || (id >= 8 && id <= 19) ||
+                                 id == 22 || id == 23)
+                                  ? 2
+                                  : 1;
+      Add(id, 1, table_pc, capacity, stride);
+      table_pc += capacity * stride;
+    }
+    Add(100, 2, 0x260000, 16, 1);
+    Add(200, 3, 0x58000, 0x7E70, 1);
+    Add(201, 3, 0x60000, 0x411F, 1);
+    Add(202, 3, 0x130000, 0x8000, 1);
+    for (uint16_t id = 210; id <= 213; ++id)
+      Add(id, 3, 0x240000 + (id - 210) * 0x8000, 0x8000, 1);
+    Add(300, 5, 0x234000, 64, 1);
+    Add(301, 6, 0x233800, 5, 16);
+    Add(400, 7, 0x280000, 4096, 8);
+    for (uint16_t id = 401; id <= 404; ++id)
+      Add(id, 7, 0x288000 + (id - 401) * 0x8000, 4432, 6);
+    auto fill_stream = [&](size_t pc, uint8_t value) {
+      bytes[pc] = 0xE4;
+      bytes[pc + 1] = 0xFF;
+      bytes[pc + 2] = value;
+      bytes[pc + 3] = 0xFF;
+    };
+    fill_stream(0x58000, 0);
+    fill_stream(0x240000, 0x11);
+    fill_stream(0x240004, 0x34);
+    fill_stream(0x240008, 0x12);
+    fill_stream(0x24000C, 0x56);
+    bytes[0x260000] = 0xFF;
+    for (size_t map = 0; map < capacity; ++map) {
+      bytes[Entry(7).pc_address + map] = static_cast<uint8_t>(map);
+      bytes[Entry(29).pc_address + map] = 0xFF;
+      Long(Entry(20).pc_address + map * 3,
+           Snes(map == 0xA0 ? 0x240008 : 0x58000));
+      Long(Entry(21).pc_address + map * 3, Snes(map == 0xA0   ? 0x240004
+                                                : map == 0xBF ? 0x24000C
+                                                              : 0x240000));
+      for (uint16_t id : {16, 17, 18})
+        Word(Entry(id).pc_address + map * 2, 0x8000);
+    }
+    constexpr std::array<uint32_t, 5> sites = {0x02F59D, 0x02F5C8, 0x02F7E3,
+                                               0x02F80E, 0x09C500};
+    for (size_t i = 0; i < sites.size(); ++i) {
+      const size_t pc = Entry(301).pc_address + i * 16;
+      const uint32_t target = 0x46C000 + static_cast<uint32_t>(i) * 4;
+      Put32(&bytes, pc, sites[i]);
+      Put32(&bytes, pc + 4, target);
+      Word(pc + 8, i < 4 ? 20 + i % 2 : 16);
+      bytes[pc + 10] = i < 2 ? 1 : i < 4 ? 2 : 4;
+      const uint32_t instruction = (target << 8) | (i < 4 ? 0x22 : 0x5C);
+      Put32(&bytes, pc + 12, instruction);
+      Put32(&bytes, (sites[i] >> 16) * 0x8000 + (sites[i] & 0x7FFF),
+            instruction);
+      bytes[Entry(300).pc_address + i * 4] = 0x6B;
+    }
+    Seal();
+  }
+};
+
+TEST(LyraLayoutDescriptorTest, NativeDirectoryDecodesBothCapacitiesById) {
+  for (uint16_t capacity : {160, 192}) {
+    NativeDirectoryFixture fixture(capacity);
+    // Directory order is independent of table identity and physical order.
+    std::reverse(fixture.rows.entries.begin(), fixture.rows.entries.end());
+    fixture.Seal();
+    const auto layout =
+        rom::InspectLyraLayout(fixture.bytes.data(), fixture.bytes.size());
+    ASSERT_EQ(layout.presence, rom::LyraLayoutPresence::kValid) << layout.error;
+    EXPECT_EQ(layout.capacity, capacity);
+    EXPECT_EQ(layout.active_count, capacity);
+    EXPECT_EQ(layout.tail_actor_bank, 0x4C);
+    EXPECT_FALSE(layout.offline_only);
+    EXPECT_FALSE(layout.write_supported);
+    EXPECT_FALSE(layout.a0_terrain_write_supported);
+    for (size_t map = 0; map < capacity; ++map) {
+      const auto page = rom::LyraMapTile32(layout, fixture.bytes.data(),
+                                           fixture.bytes.size(), map);
+      ASSERT_TRUE(page.has_value());
+      const uint16_t expected = map == 0xA0   ? 0x1234
+                                : map == 0xBF ? 0x56
+                                              : 0x11;
+      EXPECT_TRUE(
+          std::all_of(page->begin(), page->end(),
+                      [expected](uint16_t tile) { return tile == expected; }));
+      const auto role = rom::LyraLayoutRecord(layout, fixture.bytes.data(),
+                                              fixture.bytes.size(), 29, map);
+      ASSERT_TRUE(role.has_value());
+      EXPECT_EQ((*role)[0], 0xFF);
+    }
+    EXPECT_FALSE(rom::LyraMapTile32(layout, fixture.bytes.data(),
+                                    fixture.bytes.size(), capacity));
+    Rom loaded;
+    ASSERT_TRUE(loaded.LoadFromData(fixture.bytes).ok());
+    auto options = zelda3::OverworldLayoutOptions::Defaults();
+    options.map16_expanded_pc = 0x10000;
+    const auto resolved = zelda3::InspectOverworldLayout(loaded, options);
+    EXPECT_EQ(resolved.layout_kind,
+              zelda3::OverworldLayout::LayoutKind::kNativeSpecialOverworld);
+    EXPECT_EQ(resolved.special_storage_slots, capacity - 128);
+    EXPECT_EQ(resolved.terrain_table_entries, capacity);
+    EXPECT_EQ(resolved.tile16_pc.value, fixture.Entry(400).pc_address);
+    for (size_t i = 0; i < 4; ++i)
+      EXPECT_EQ(resolved.tile32_pcs[i].value,
+                fixture.Entry(401 + i).pc_address);
+    EXPECT_EQ(resolved.terrain_high_table_pc.value,
+              fixture.Entry(20).pc_address);
+    EXPECT_FALSE(loaded.CheckLayoutWritable().ok());
+    auto world = std::make_unique<zelda3::Overworld>(&loaded);
+    EXPECT_FALSE(world->LoadLyraTerrainPreview(&loaded).ok());
+    EXPECT_EQ(world->materialized_map_count(), 0);
+  }
+}
+
+TEST(LyraLayoutDescriptorTest,
+     NativeDirectoryRejectsResealedShapeAndOwnershipDamage) {
+  NativeDirectoryFixture fixture;
+  auto rejects = [&](const char* label, auto mutate, const char* error) {
+    SCOPED_TRACE(label);
+    auto changed = fixture.bytes;
+    mutate(changed);
+    Reseal(&changed, fixture.rows);
+    const auto layout = rom::InspectLyraLayout(changed.data(), changed.size());
+    EXPECT_EQ(layout.presence, rom::LyraLayoutPresence::kInvalid);
+    EXPECT_NE(layout.error.find(error), std::string::npos) << layout.error;
+  };
+  rejects("unsupported flags", [](auto& b) { b[0x147015] = 0x0F; }, "flags");
+  rejects("materialized count", [](auto& b) { b[0x147010] = 160; }, "capacity");
+  rejects(
+      "duplicate ID", [&](auto& b) { b[fixture.EntryPc(39)] = 38; },
+      "duplicate");
+  rejects(
+      "old compact family", [&](auto& b) { b[fixture.EntryPc(24) + 8] = 64; },
+      "entry");
+  rejects(
+      "dictionary width", [&](auto& b) { b[fixture.EntryPc(401) + 10] = 8; },
+      "entry");
+  rejects(
+      "physical alias",
+      [&](auto& b) {
+        Put32(&b, fixture.EntryPc(401) + 4, fixture.Entry(400).snes_address);
+      },
+      "overlap");
+  rejects(
+      "descriptor alias",
+      [&](auto& b) { Put32(&b, fixture.EntryPc(1) + 4, 0x28F000); },
+      "descriptor");
+  rejects(
+      "WRAM entry",
+      [&](auto& b) { Put32(&b, fixture.EntryPc(210) + 4, 0x7E8000); },
+      "outside bank");
+  rejects(
+      "short pool", [&](auto& b) { b[fixture.EntryPc(210) + 9] = 0x40; },
+      "entry");
+}
+
+TEST(LyraLayoutDescriptorTest,
+     NativeDirectoryValidatesTailActorsAndAreaFootprints) {
+  NativeDirectoryFixture fixture;
+  auto rejects = [&](auto mutate, const char* error) {
+    auto changed = fixture.bytes;
+    mutate(changed);
+    Reseal(&changed, fixture.rows);
+    const auto layout = rom::InspectLyraLayout(changed.data(), changed.size());
+    EXPECT_EQ(layout.presence, rom::LyraLayoutPresence::kInvalid);
+    EXPECT_NE(layout.error.find(error), std::string::npos) << layout.error;
+  };
+  rejects([&](auto& b) { b[fixture.Entry(7).pc_address + 0xBF] = 0xC0; },
+          "parent");
+  rejects([&](auto& b) { b[fixture.Entry(29).pc_address + 0xBF] = 4; }, "role");
+  rejects([&](auto& b) { b[fixture.Entry(30).pc_address + 0xBF] = 2; },
+          "footprint");
+  rejects([](auto& b) { b[0x147014] = 0x4D; }, "actor bank");
+  rejects(
+      [&](auto& b) { b[fixture.Entry(16).pc_address + 0xA0 * 2 + 1] = 0x7F; },
+      "actor pointer");
+  rejects(
+      [&](auto& b) {
+        std::fill_n(b.begin() + fixture.Entry(100).pc_address, 16, 0);
+      },
+      "actor record");
+  for (size_t map : {0xB6, 0xB7, 0xBE, 0xBF}) {
+    fixture.bytes[fixture.Entry(7).pc_address + map] = 0xB6;
+    fixture.bytes[fixture.Entry(30).pc_address + map] = 1;
+  }
+  fixture.Seal();
+  const auto large =
+      rom::InspectLyraLayout(fixture.bytes.data(), fixture.bytes.size());
+  EXPECT_EQ(large.presence, rom::LyraLayoutPresence::kValid) << large.error;
+}
+
+TEST(LyraLayoutDescriptorTest,
+     NativeDirectoryRejectsCorruptBindingsAndBoundedStreams) {
+  NativeDirectoryFixture fixture;
+  auto rejects = [&](const char* label, auto mutate, const char* error) {
+    SCOPED_TRACE(label);
+    auto changed = fixture.bytes;
+    mutate(changed);
+    Reseal(&changed, fixture.rows);
+    const auto layout = rom::InspectLyraLayout(changed.data(), changed.size());
+    EXPECT_EQ(layout.presence, rom::LyraLayoutPresence::kInvalid);
+    EXPECT_NE(layout.error.find(error), std::string::npos) << layout.error;
+  };
+  const size_t binding = fixture.Entry(301).pc_address;
+  rejects(
+      "installed hook mismatch", [](auto& b) { b[0x1759D] = 0xEA; }, "binding");
+  rejects("wrong table", [&](auto& b) { b[binding + 8] = 21; }, "ABI");
+  rejects(
+      "missing full reader", [&](auto& b) { b[binding + 10] = 3; },
+      "required reader");
+  rejects("nonzero reserved", [&](auto& b) { b[binding + 11] = 1; }, "binding");
+  rejects(
+      "WRAM stream",
+      [&](auto& b) { b[fixture.Entry(20).pc_address + 2] = 0x7E; },
+      "terrain stream");
+  rejects(
+      "bank-end stream",
+      [&](auto& b) {
+        const size_t pc = fixture.Entry(20).pc_address;
+        b[pc] = 0xFE;
+        b[pc + 1] = 0xFF;
+        b[pc + 2] = 0x48;
+        b[0x247FFE] = 0xE4;
+        b[0x247FFF] = 0xFF;
+      },
+      "terrain stream");
+  rejects(
+      "Tile32 exceeds dictionary", [&](auto& b) { b[0x24000A] = 0xFF; },
+      "Tile32");
+}
+
+TEST(LyraLayoutDescriptorTest,
+     NativeDirectoryKeepsAttributionAndCrcFailuresDistinct) {
+  NativeDirectoryFixture fixture;
+  const auto baseline = fixture.bytes;
+  fixture.bytes[fixture.Entry(300).pc_address] ^= 1;
+  EXPECT_EQ(
+      rom::InspectLyraLayout(fixture.bytes.data(), fixture.bytes.size()).error,
+      "Native special-overworld data CRC mismatch");
+  fixture.bytes = baseline;
+  fixture.bytes[0x147000] = 'X';
+  EXPECT_EQ(rom::InspectLyraLayout(fixture.bytes.data(), fixture.bytes.size())
+                .presence,
+            rom::LyraLayoutPresence::kInvalid);
+  Rom loaded;
+  ASSERT_TRUE(loaded.LoadFromData(baseline).ok());
+  std::fill_n(loaded.mutable_vector().begin() + 0x147000, 1024, 0);
+  EXPECT_EQ(loaded.InspectLyraLayout().presence,
+            rom::LyraLayoutPresence::kInvalid);
+  EXPECT_FALSE(loaded.CheckLayoutWritable().ok());
+}
+
+TEST(LyraLayoutDescriptorTest,
+     NativeDirectoryAcceptsFeFfPoolsWithoutAcceptingWram) {
+  NativeDirectoryFixture fixture;
+  fixture.bytes.resize(0x400000);
+  std::copy_n(fixture.bytes.begin() + 0x240000, 0x8000,
+              fixture.bytes.begin() + 0x3F0000);
+  for (uint16_t id : {210, 211}) {
+    auto& entry = fixture.Entry(id);
+    entry.pc_address = id == 210 ? 0x3F0000 : 0x3F8000;
+    entry.snes_address = NativeDirectoryFixture::Snes(entry.pc_address);
+  }
+  for (uint16_t id : {20, 21}) {
+    for (size_t map = 0; map < 192; ++map) {
+      const size_t at = fixture.Entry(id).pc_address + map * 3;
+      if (fixture.bytes[at + 2] == 0x48)
+        fixture.bytes[at + 2] = 0xFE;
+    }
+  }
+  fixture.bytes[0x3F8000] = 0xE4;
+  fixture.bytes[0x3F8001] = 0xFF;
+  fixture.bytes[0x3F8002] = 0;
+  fixture.bytes[0x3F8003] = 0xFF;
+  const size_t bf_high = fixture.Entry(20).pc_address + 0xBF * 3;
+  fixture.Long(bf_high, 0xFF8000);
+  fixture.Seal();
+  const auto layout =
+      rom::InspectLyraLayout(fixture.bytes.data(), fixture.bytes.size());
+  ASSERT_EQ(layout.presence, rom::LyraLayoutPresence::kValid) << layout.error;
+  const auto bf = rom::LyraMapTile32(layout, fixture.bytes.data(),
+                                     fixture.bytes.size(), 0xBF);
+  ASSERT_TRUE(bf.has_value());
+  EXPECT_EQ((*bf)[0], 0x56);
+  const auto a0 = rom::LyraMapTile32(layout, fixture.bytes.data(),
+                                     fixture.bytes.size(), 0xA0);
+  ASSERT_TRUE(a0.has_value());
+  EXPECT_EQ((*a0)[0], 0x1234);
+  fixture.bytes[bf_high + 2] = 0x7F;
+  Reseal(&fixture.bytes, fixture.rows);
+  EXPECT_EQ(rom::InspectLyraLayout(fixture.bytes.data(), fixture.bytes.size())
+                .presence,
+            rom::LyraLayoutPresence::kInvalid);
 }
 
 std::array<uint16_t, 256> DecodePilotLiterals(

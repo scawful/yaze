@@ -505,16 +505,46 @@ OverworldLayout InspectOverworldLayout(const Rom& rom,
   }
 
   if (layout.lyra_layout.presence != rom::LyraLayoutPresence::kAbsent) {
-    layout.layout_kind = OverworldLayout::LayoutKind::kLyraOffline;
-    layout.map_storage = MapSlotStorage::kExpanded192;
+    const bool native = layout.lyra_layout.revision == 3;
+    layout.layout_kind =
+        native ? OverworldLayout::LayoutKind::kNativeSpecialOverworld
+               : OverworldLayout::LayoutKind::kLyraOffline;
+    layout.map_storage = layout.lyra_layout.capacity == 160
+                             ? MapSlotStorage::kStandard160
+                             : MapSlotStorage::kExpanded192;
     layout.storage_slot_capacity = layout.lyra_layout.capacity;
     layout.materialized_model_slots = layout.lyra_layout.capacity;
-    layout.special_storage_slots = 0x40;
+    layout.special_storage_slots = layout.lyra_layout.capacity > 0x80
+                                       ? layout.lyra_layout.capacity - 0x80
+                                       : 0;
     layout.descriptor_active_count = layout.lyra_layout.active_count;
     layout.terrain_pointer_source =
         TerrainPointerSource::kLyraDescriptorStreams;
     if (layout.lyra_layout.presence == rom::LyraLayoutPresence::kInvalid) {
       AppendDiagnostic(&layout, layout.lyra_layout.error);
+    } else if (native) {
+      // A native directory owns these addresses; project overrides cannot
+      // silently redirect its dictionaries or terrain pointer tables.
+      layout.table_records.clear();
+      for (const auto& e : layout.lyra_layout.entries) {
+        if (e.id == 20 || e.id == 21) {
+          (e.id == 20 ? layout.terrain_high_table_pc
+                      : layout.terrain_low_table_pc) =
+              RomPcOffset(e.pc_address);
+          SetTableRecord(&layout, OverworldLayoutDomain::kTerrainPointers,
+                         e.pc_address, 0, e.count, e.stride,
+                         LayoutTableStatus::kValid);
+        } else if (e.id == 400) {
+          layout.tile16_pc = RomPcOffset(e.pc_address);
+          SetTableRecord(&layout, OverworldLayoutDomain::kTile16, e.pc_address,
+                         0, e.count, e.stride, LayoutTableStatus::kValid);
+        } else if (e.id >= 401 && e.id <= 404) {
+          layout.tile32_pcs[e.id - 401] = RomPcOffset(e.pc_address);
+          SetTableRecord(&layout, OverworldLayoutDomain::kTile32, e.pc_address,
+                         0, e.count, e.stride, LayoutTableStatus::kValid);
+        }
+      }
+      layout.terrain_table_entries = layout.lyra_layout.capacity;
     }
     return layout;
   }
