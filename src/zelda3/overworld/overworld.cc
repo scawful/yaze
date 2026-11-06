@@ -2480,6 +2480,10 @@ absl::Status Overworld::SaveNativeTerrain() {
                                        flags.kSaveOverworldProperties};
   RETURN_IF_ERROR(ValidateNativeGeometrySaveFlags());
   const auto current = CaptureNativeNonTerrainState();
+  if (layout.revision == 4 && !flags.kSaveOverworldProperties &&
+      current[0] != native_nonterrain_baseline_[0])
+    return absl::FailedPreconditionError(
+        "Enable property saving to publish pending screen appearance");
   for (size_t i = 0; i < enabled.size(); ++i)
     if (enabled[i] && current[i] != native_nonterrain_baseline_[i])
       return absl::FailedPreconditionError(

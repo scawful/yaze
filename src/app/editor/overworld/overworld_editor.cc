@@ -1818,7 +1818,9 @@ absl::Status OverworldEditor::ApplyOverworldPropertyEdit(
 
   if (rom::IsNativeSpecialOverworldLayout(
           overworld_.resolved_layout().lyra_layout) &&
-      edit.field == OverworldPropertyField::kAreaSize)
+      (edit.field == OverworldPropertyField::kAreaSize ||
+       edit.field == OverworldPropertyField::kScreenAppearance ||
+       edit.field == OverworldPropertyField::kScreenColor))
     return ApplyOverworldPropertyEdits(
         {edit}, DescribeOverworldPropertyEdit(edit), record_undo);
 
