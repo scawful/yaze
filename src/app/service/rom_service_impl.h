@@ -142,9 +142,6 @@ class RomServiceImpl final : public proto::RomService::Service {
   RomVersionManager* version_mgr_;         // Not owned, may be null
   ProposalApprovalManager* approval_mgr_;  // Not owned, may be null
 
-  // Helper to check if ROM is loaded
-  grpc::Status ValidateRomLoaded();
-
   // Helper to create snapshot before write operations
   absl::Status MaybeCreateSnapshot(const std::string& description);
 };

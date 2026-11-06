@@ -89,6 +89,14 @@ std::string BuildRoomRawJson(const zelda3::Room& room) {
   return payload.dump();
 }
 
+grpc::Status ValidateRomLoaded(const Rom* rom) {
+  if (!rom || !rom->is_loaded()) {
+    return grpc::Status(grpc::StatusCode::FAILED_PRECONDITION,
+                        "ROM not loaded");
+  }
+  return grpc::Status::OK;
+}
+
 absl::Status LoadGameDataForRom(Rom* rom, zelda3::GameData* data,
                                 const zelda3::LoadOptions& options) {
   if (!rom || !rom->is_loaded()) {
@@ -129,9 +137,8 @@ grpc::Status RomServiceImpl::ReadBytes(grpc::ServerContext* context,
                                        const rom_svc::ReadBytesRequest* request,
                                        rom_svc::ReadBytesResponse* response) {
   Rom* rom = rom_getter_();
-  if (!rom || !rom->is_loaded()) {
-    return grpc::Status(grpc::StatusCode::FAILED_PRECONDITION,
-                        "ROM not loaded");
+  if (grpc::Status status = ValidateRomLoaded(rom); !status.ok()) {
+    return status;
   }
 
   uint32_t offset = request->offset();
@@ -176,9 +183,8 @@ grpc::Status RomServiceImpl::WriteBytes(
   }
 
   Rom* rom = rom_getter_();
-  if (!rom || !rom->is_loaded()) {
-    return grpc::Status(grpc::StatusCode::FAILED_PRECONDITION,
-                        "ROM not loaded");
+  if (grpc::Status status = ValidateRomLoaded(rom); !status.ok()) {
+    return status;
   }
 
   uint32_t offset = request->offset();
@@ -251,9 +257,8 @@ grpc::Status RomServiceImpl::GetRomInfo(
     grpc::ServerContext* context, const rom_svc::GetRomInfoRequest* request,
     rom_svc::GetRomInfoResponse* response) {
   Rom* rom = rom_getter_();
-  if (!rom || !rom->is_loaded()) {
-    return grpc::Status(grpc::StatusCode::FAILED_PRECONDITION,
-                        "ROM not loaded");
+  if (grpc::Status status = ValidateRomLoaded(rom); !status.ok()) {
+    return status;
   }
 
   response->set_title(rom->title());
@@ -274,9 +279,8 @@ grpc::Status RomServiceImpl::ReadOverworldMap(
     const rom_svc::ReadOverworldMapRequest* request,
     rom_svc::ReadOverworldMapResponse* response) {
   Rom* rom = rom_getter_();
-  if (!rom || !rom->is_loaded()) {
-    return grpc::Status(grpc::StatusCode::FAILED_PRECONDITION,
-                        "ROM not loaded");
+  if (grpc::Status status = ValidateRomLoaded(rom); !status.ok()) {
+    return status;
   }
 
   uint32_t map_id = request->map_id();
@@ -354,9 +358,8 @@ grpc::Status RomServiceImpl::WriteOverworldTile(
     const rom_svc::WriteOverworldTileRequest* request,
     rom_svc::WriteOverworldTileResponse* response) {
   Rom* rom = rom_getter_();
-  if (!rom || !rom->is_loaded()) {
-    return grpc::Status(grpc::StatusCode::FAILED_PRECONDITION,
-                        "ROM not loaded");
+  if (grpc::Status status = ValidateRomLoaded(rom); !status.ok()) {
+    return status;
   }
 
   uint32_t map_id = request->map_id();
@@ -467,9 +470,8 @@ grpc::Status RomServiceImpl::ReadDungeonRoom(
     const rom_svc::ReadDungeonRoomRequest* request,
     rom_svc::ReadDungeonRoomResponse* response) {
   Rom* rom = rom_getter_();
-  if (!rom || !rom->is_loaded()) {
-    return grpc::Status(grpc::StatusCode::FAILED_PRECONDITION,
-                        "ROM not loaded");
+  if (grpc::Status status = ValidateRomLoaded(rom); !status.ok()) {
+    return status;
   }
 
   uint32_t room_id = request->room_id();
@@ -556,9 +558,8 @@ grpc::Status RomServiceImpl::ReadSprite(
     grpc::ServerContext* context, const rom_svc::ReadSpriteRequest* request,
     rom_svc::ReadSpriteResponse* response) {
   Rom* rom = rom_getter_();
-  if (!rom || !rom->is_loaded()) {
-    return grpc::Status(grpc::StatusCode::FAILED_PRECONDITION,
-                        "ROM not loaded");
+  if (grpc::Status status = ValidateRomLoaded(rom); !status.ok()) {
+    return status;
   }
 
   uint32_t sprite_id = request->sprite_id();
@@ -774,15 +775,6 @@ grpc::Status RomServiceImpl::ListSnapshots(
     info->set_size_bytes(snapshot.rom_data.size());
   }
 
-  return grpc::Status::OK;
-}
-
-grpc::Status RomServiceImpl::ValidateRomLoaded() {
-  Rom* rom = rom_getter_();
-  if (!rom || !rom->is_loaded()) {
-    return grpc::Status(grpc::StatusCode::FAILED_PRECONDITION,
-                        "ROM not loaded");
-  }
   return grpc::Status::OK;
 }
 
