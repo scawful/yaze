@@ -1724,8 +1724,13 @@ static void RegisterBuildRunAcceptanceTest(ImGuiTestEngine* engine) {
             (path.size() > tail.size() &&
              path.compare(path.size() - tail.size(), tail.size(), tail) == 0);
         const ImGuiID id = match ? widgets.GetWidgetId(path) : 0;
-        if (id != 0 && ctx->ItemExists(id))
-          return id;
+        if (id != 0) {
+          const auto info = widgets.GetWidgetInfo(path);
+          if (info && !info->window_name.empty())
+            ctx->SetRef(info->window_name.c_str());
+          if (ctx->ItemExists(id))
+            return id;
+        }
       }
       return 0;
     };
@@ -1806,7 +1811,11 @@ static void RegisterBuildRunAcceptanceTest(ImGuiTestEngine* engine) {
       ctx->Yield(2);
 
       const size_t undo_before = overworld->undo_manager().UndoStackSize();
+      ctx->SetRef(terrain.Window);
+      ctx->WindowFocus("");
+      ctx->Yield(2);
       terrain = ctx->ItemInfo("**/OwMap");
+      IM_CHECK(terrain.RectClipped.Contains(cell_center()));
       ctx->MouseSetViewport(terrain.Window);
       ctx->MouseMoveToPos(cell_center());
       ctx->MouseClick(ImGuiMouseButton_Left);
