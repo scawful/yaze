@@ -6,6 +6,7 @@
 
 #include "app/editor/core/undo_manager.h"
 #include "gtest/gtest.h"
+#include "test_utils/overworld_model_test_peer.h"
 
 namespace yaze::editor {
 namespace {
@@ -14,6 +15,8 @@ class OverworldTilePaintActionTest : public ::testing::Test {
  protected:
   void SetUp() override {
     overworld_ = std::make_unique<zelda3::Overworld>(&rom_);
+    zelda3::OverworldModelTestPeer::InitializeMapSlots(
+        *overworld_, zelda3::kNumOverworldMaps);
     for (int world = 0; world < 3; ++world) {
       overworld_->GetMapTiles(world).assign(256, std::vector<uint16_t>(256, 0));
     }

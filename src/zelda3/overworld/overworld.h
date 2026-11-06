@@ -430,6 +430,8 @@ absl::StatusOr<std::vector<gfx::Tile16>> ReadMap16Tiles(
     const Rom& rom, const OverworldLayoutOptions& options, bool* expanded);
 
 class Overworld {
+  friend class OverworldModelTestPeer;
+
  public:
   Overworld(Rom* rom, GameData* game_data = nullptr)
       : rom_(rom), game_data_(game_data) {}

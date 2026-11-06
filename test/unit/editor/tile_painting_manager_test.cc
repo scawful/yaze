@@ -13,6 +13,7 @@
 #include "core/lyra_terrain_document.h"
 #include "gtest/gtest.h"
 #include "imgui/imgui.h"
+#include "test_utils/overworld_model_test_peer.h"
 
 namespace yaze::editor {
 namespace {
@@ -236,6 +237,8 @@ class TilePaintingManagerGestureTest : public ::testing::Test {
     canvas_.Init("PaintGestureCanvas", ImVec2(256, 256));
     canvas_.GetConfig().is_draggable = false;
     overworld_ = std::make_unique<zelda3::Overworld>(&rom_);
+    zelda3::OverworldModelTestPeer::InitializeMapSlots(
+        *overworld_, zelda3::kNumOverworldMaps);
     auto& tiles = *overworld_->mutable_map_tiles();
     tiles.light_world.assign(256, std::vector<uint16_t>(256, 0));
     tiles.dark_world = tiles.light_world;
