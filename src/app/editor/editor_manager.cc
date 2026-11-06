@@ -2484,16 +2484,8 @@ absl::Status EditorManager::EnsureGameDataLoaded() {
   }
 
   zelda3::LoadOptions graphics_options;
-  if (session->project_context) {
-    ASSIGN_OR_RETURN(
-        graphics_options.overworld_palette_layout,
-        gfx::palette_group_internal::OverworldPaletteLayout::FromOverrides(
-            session->project_context->rom_address_overrides,
-            session->rom.size()));
-  } else {
-    graphics_options.overworld_palette_layout =
-        gfx::palette_group_internal::OverworldPaletteLayout::Legacy();
-  }
+  ASSIGN_OR_RETURN(graphics_options.overworld_palette_layout,
+                   session->ResolveOverworldPaletteLayout());
   if (session->project_context &&
       (session->project_context->hack_manifest.graphics_sheet_layout()
            .pointer_layout ||
@@ -2650,16 +2642,10 @@ absl::Status EditorManager::LoadAssets(uint64_t passed_handle) {
     return absl::FailedPreconditionError("No active ROM session");
   }
   zelda3::LoadOptions graphics_options;
-  if (current_session->project_context) {
-    ASSIGN_OR_RETURN(
-        graphics_options.overworld_palette_layout,
-        gfx::palette_group_internal::OverworldPaletteLayout::FromOverrides(
-            current_session->project_context->rom_address_overrides,
-            current_session->rom.size()));
-  } else {
-    graphics_options.overworld_palette_layout =
-        gfx::palette_group_internal::OverworldPaletteLayout::Legacy();
-  }
+  ASSIGN_OR_RETURN(graphics_options.overworld_palette_layout,
+                   current_session->ResolveOverworldPaletteLayout());
+  RETURN_IF_ERROR(current_session->CheckPaletteBoundAssetReload(
+      *graphics_options.overworld_palette_layout));
   if (current_session->project_context &&
       (current_session->project_context->hack_manifest.graphics_sheet_layout()
            .pointer_layout ||
@@ -2870,16 +2856,10 @@ absl::Status EditorManager::LoadAssetsLazy(uint64_t passed_handle) {
     return absl::FailedPreconditionError("No active ROM session");
   }
   zelda3::LoadOptions graphics_options;
-  if (current_session->project_context) {
-    ASSIGN_OR_RETURN(
-        graphics_options.overworld_palette_layout,
-        gfx::palette_group_internal::OverworldPaletteLayout::FromOverrides(
-            current_session->project_context->rom_address_overrides,
-            current_session->rom.size()));
-  } else {
-    graphics_options.overworld_palette_layout =
-        gfx::palette_group_internal::OverworldPaletteLayout::Legacy();
-  }
+  ASSIGN_OR_RETURN(graphics_options.overworld_palette_layout,
+                   current_session->ResolveOverworldPaletteLayout());
+  RETURN_IF_ERROR(current_session->CheckPaletteBoundAssetReload(
+      *graphics_options.overworld_palette_layout));
   bool explicit_graphics_loaded = false;
   if (graphics_options.overworld_palette_layout->has_aux_extension() ||
       (current_session->project_context &&

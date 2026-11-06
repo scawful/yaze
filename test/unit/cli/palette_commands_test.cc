@@ -1,5 +1,7 @@
 #include "cli/handlers/graphics/palette_commands.h"
 
+#include <chrono>
+#include <filesystem>
 #include <string>
 #include <vector>
 
@@ -8,7 +10,10 @@
 
 #include "absl/status/status.h"
 #include "cli/service/command_registry.h"
+#include "core/project.h"
+#include "core/rom_settings.h"
 #include "rom/rom.h"
+#include "zelda3/resource_labels.h"
 
 namespace yaze::cli {
 namespace {
@@ -165,6 +170,54 @@ TEST(PaletteCommandsTest, GetColorsWithoutIndexStillSucceeds) {
   absl::Status status = handler.Run({"--group", "ow_main"}, &rom, &output);
   EXPECT_TRUE(status.ok()) << status.message();
   EXPECT_THAT(output, HasSubstr("ow_main"));
+}
+
+TEST(PaletteCommandsTest, ProjectContextBindsAuxiliaryRowAndRestoresCaller) {
+  const auto root =
+      std::filesystem::temp_directory_path() /
+      ("yaze_palette_binding_" +
+       std::to_string(
+           std::chrono::steady_clock::now().time_since_epoch().count()));
+  const auto previous_addresses = core::RomSettings::Get().address_overrides();
+  const auto previous_labels = zelda3::GetResourceLabels().SnapshotState();
+  struct Restore {
+    std::filesystem::path root;
+    core::RomAddressOverrides addresses;
+    zelda3::ResourceLabelProvider::State labels;
+    ~Restore() {
+      core::RomSettings::Get().SetAddressOverrides(addresses);
+      zelda3::GetResourceLabels().RestoreState(labels);
+      std::filesystem::remove_all(root);
+    }
+  } restore{root, previous_addresses, previous_labels};
+  project::YazeProject project;
+  ASSERT_TRUE(project.Create("bound", root.string()).ok());
+  project.rom_address_overrides.addresses = {
+      {core::RomAddressKey::kOverworldAuxPaletteExtensionPc, 0x22F900},
+      {core::RomAddressKey::kOverworldAuxPaletteExtensionCount, 32},
+      {core::RomAddressKey::kOverworldAuxPaletteExtensionAbi, 1}};
+  ASSERT_TRUE(project.Save().ok());
+  Rom rom;
+  auto bytes = std::vector<uint8_t>(0x240000, 0);
+  bytes[0x22F900 + 42] = 0x34;
+  bytes[0x22F900 + 43] = 0x12;
+  ASSERT_TRUE(rom.LoadFromData(bytes).ok());
+  const auto before = rom.vector();
+  core::RomSettings::Get().ClearOverrides();
+  handlers::PaletteGetColorsCommandHandler handler;
+  std::string output;
+  const auto status =
+      handler.Run({"--group=ow_aux", "--index=21",
+                   "--project-context=" + project.filepath, "--format=json"},
+                  &rom, &output);
+  ASSERT_TRUE(status.ok()) << status;
+  EXPECT_THAT(output, HasSubstr("SNES=0x1234"));
+  EXPECT_THAT(output, HasSubstr("\"palette_count\": 52"));
+  EXPECT_TRUE(core::RomSettings::Get().address_overrides().empty());
+  EXPECT_EQ(rom.vector(), before);
+  EXPECT_FALSE(
+      handler.Run({"--group=ow_aux", "--index=21"}, &rom, &output).ok());
+  EXPECT_TRUE(core::RomSettings::Get().address_overrides().empty());
 }
 
 TEST(PaletteCommandsTest, LegacySetColorPreviewRemainsReadOnly) {

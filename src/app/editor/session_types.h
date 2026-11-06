@@ -230,6 +230,10 @@ struct RomSession {
   // game_data differ from the ROM buffer. Derived from the data, so every
   // edit path counts without extra dirty flags.
   bool HasPendingGfxGroupChanges() const;
+  absl::StatusOr<gfx::palette_group_internal::OverworldPaletteLayout>
+  ResolveOverworldPaletteLayout() const;
+  absl::Status CheckPaletteBoundAssetReload(
+      const gfx::palette_group_internal::OverworldPaletteLayout& next) const;
   // A restored backup is staged for inspection and must never be committed by
   // the periodic autosave path. Explicit Save ROM / Save As clears this flag.
   bool backup_restore_pending = false;

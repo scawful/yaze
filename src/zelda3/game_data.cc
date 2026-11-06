@@ -151,6 +151,22 @@ absl::Status LoadGameData(Rom& rom, GameData& data,
   if (layout) {
     RETURN_IF_ERROR(ValidateResolvedGfxSheetLayout(rom, *layout));
   }
+  if (layout && palette_layout->has_aux_extension()) {
+    ASSIGN_OR_RETURN(const auto aux,
+                     palette_layout->Resolve(OverworldPaletteKind::kAuxiliary,
+                                             20, rom.size()));
+    const uint64_t end = static_cast<uint64_t>(aux.pc_address()) + 32 * 42;
+    for (const uint32_t table :
+         {layout->tables.bank, layout->tables.high, layout->tables.low}) {
+      if (aux.pc_address() <
+              static_cast<uint64_t>(table) + layout->physical_table_rows &&
+          table < end) {
+        return absl::FailedPreconditionError(
+            "Auxiliary palette storage overlaps a bound graphics pointer "
+            "table");
+      }
+    }
+  }
   const auto source = options.gfx_sheet_source;
   if (source)
     RETURN_IF_ERROR(source->CheckDisk());
@@ -245,7 +261,9 @@ absl::Status SaveGameData(Rom& rom, GameData& data) {
           return absl::OkStatus();
         }));
     for (const auto& [pc, color] : writes) {
-      RETURN_IF_ERROR(rom.WriteColor(pc, *color));
+      // SnesColor already owns the exact BGR555 word. Rom::WriteColor uses
+      // a different legacy conversion and does not preserve this value.
+      RETURN_IF_ERROR(rom.WriteWord(pc, color->snes()));
     }
     for (const auto& [pc, color] : writes) {
       color->set_modified(false);

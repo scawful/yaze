@@ -3987,6 +3987,75 @@ TEST(GraphicsSaveStoplossTest,
 }
 
 TEST(GraphicsSaveStoplossTest,
+     PaletteOnlyBindingReloadPreservesGroupAndGraphicsEditsWhenRemoved) {
+  FeatureFlagsGuard guard;
+  ScopedImGuiContext imgui;
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  InitializeWithIsolatedSettings(*manager, renderer.get());
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+  auto fixture = test::BuildOracleGfxSheetTestRom();
+  fixture.bytes.resize(0x240000, 0);
+  const auto path = MakeTempFilePath("yaze_palette_only_reload.sfc");
+  ScopedFileCleanup cleanup{path};
+  {
+    std::ofstream out(path, std::ios::binary);
+    out.write(reinterpret_cast<const char*>(fixture.bytes.data()),
+              fixture.bytes.size());
+    ASSERT_TRUE(out.good());
+  }
+  ASSERT_OK(manager->OpenRomOrProject(path.string()));
+  auto* session = manager->session_coordinator()->GetActiveRomSession();
+  ASSERT_NE(session, nullptr);
+  auto* project = manager->GetCurrentProject();
+  project->rom_address_overrides.addresses = {
+      {core::RomAddressKey::kOverworldAuxPaletteExtensionPc, 0x22F900},
+      {core::RomAddressKey::kOverworldAuxPaletteExtensionCount, 32},
+      {core::RomAddressKey::kOverworldAuxPaletteExtensionAbi, 1}};
+  session->project_context = *project;
+  ASSERT_OK(manager->EnsureGameDataLoaded());
+  ASSERT_EQ(session->game_data.palette_groups.overworld_aux.size(), 52);
+  ASSERT_FALSE(session->HasPendingGfxGroupChanges());
+  const auto original = session->game_data.main_blockset_ids[0][0];
+  session->game_data.main_blockset_ids[0][0] ^= 1;
+  ASSERT_TRUE(session->HasPendingGfxGroupChanges());
+  const auto before = session->rom.vector();
+  for (bool eager : {true, false}) {
+    const auto status =
+        eager ? ExpandedGraphicsLoadTestPeer::ReloadEager(*manager)
+              : ExpandedGraphicsLoadTestPeer::ReloadLazy(*manager);
+    EXPECT_EQ(status.code(), absl::StatusCode::kFailedPrecondition);
+    EXPECT_EQ(session->game_data.main_blockset_ids[0][0], (original ^ 1));
+    EXPECT_EQ(session->rom.vector(), before);
+  }
+  session->game_data.main_blockset_ids[0][0] = original;
+  auto* graphics =
+      session->editors.GetEditorAs<GraphicsEditor>(EditorType::kGraphics);
+  ASSERT_NE(graphics, nullptr);
+  GraphicsEditorSaveStoplossTestPeer::MarkSheetModified(graphics, 0x20);
+  ASSERT_TRUE(session->editors.HasPendingGraphicsChanges());
+  const auto revision = session->game_data.sheet_store.Revision(0x20);
+  for (bool remove_binding : {false, true}) {
+    if (remove_binding) {
+      project->rom_address_overrides.addresses.clear();
+      session->project_context = *project;
+    }
+    for (bool eager : {true, false}) {
+      const auto status =
+          eager ? ExpandedGraphicsLoadTestPeer::ReloadEager(*manager)
+                : ExpandedGraphicsLoadTestPeer::ReloadLazy(*manager);
+      EXPECT_EQ(status.code(), absl::StatusCode::kFailedPrecondition);
+      EXPECT_TRUE(session->editors.HasPendingGraphicsChanges());
+      EXPECT_EQ(session->game_data.sheet_store.Revision(0x20), revision);
+      EXPECT_EQ(session->rom.vector(), before);
+      ASSERT_TRUE(session->game_data.overworld_palette_layout);
+      EXPECT_TRUE(
+          session->game_data.overworld_palette_layout->has_aux_extension());
+    }
+  }
+}
+
+TEST(GraphicsSaveStoplossTest,
      ExpandedLayoutLoadsReadOnlyAndRefusesReloadAndSaveWithoutLosingEdits) {
   FeatureFlagsGuard guard;
   ScopedImGuiContext imgui;

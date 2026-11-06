@@ -93,6 +93,7 @@ class CommandContext {
   emu::debug::SymbolProvider symbol_provider_;
   std::optional<project::YazeProject> loaded_project_;
   std::optional<core::FeatureFlags::Flags> previous_feature_flags_;
+  std::optional<core::RomAddressOverrides> previous_address_overrides_;
   std::optional<zelda3::ResourceLabelProvider::State> previous_label_state_;
   std::optional<zelda3::CustomObjectManager::State>
       previous_custom_object_state_;

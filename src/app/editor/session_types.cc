@@ -29,6 +29,28 @@
 
 namespace yaze::editor {
 
+absl::StatusOr<gfx::palette_group_internal::OverworldPaletteLayout>
+RomSession::ResolveOverworldPaletteLayout() const {
+  return gfx::palette_group_internal::OverworldPaletteLayout::FromOverrides(
+      project_context ? project_context->rom_address_overrides
+                      : core::RomAddressOverrides{},
+      rom.size());
+}
+
+absl::Status RomSession::CheckPaletteBoundAssetReload(
+    const gfx::palette_group_internal::OverworldPaletteLayout& next) const {
+  const bool was_bound =
+      game_data.overworld_palette_layout &&
+      game_data.overworld_palette_layout->has_aux_extension();
+  if ((next.has_aux_extension() || was_bound) &&
+      (editors.HasPendingGraphicsChanges() || HasPendingGfxGroupChanges() ||
+       gfx::PaletteManager::Get().HasUnsavedChanges(&game_data))) {
+    return absl::FailedPreconditionError(
+        "Palette-bound asset reload refused while model edits are pending");
+  }
+  return absl::OkStatus();
+}
+
 EditorSet::EditorSet(Rom* rom, zelda3::GameData* game_data,
                      UserSettings* user_settings, size_t session_id,
                      EditorRegistry* editor_registry)

@@ -4,8 +4,10 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
+#include <chrono>
 #include <cstddef>
 #include <cstdint>
+#include <filesystem>
 #include <limits>
 #include <optional>
 #include <vector>
@@ -315,9 +317,26 @@ TEST(PaletteRecordResolverTest,
   expected[expected_pc + 1] = 0x12;
   EXPECT_EQ(rom.vector(), expected);
   EXPECT_FALSE((*palette)[20].is_modified());
-  zelda3::GameData reopened(&rom);
+  const auto disk_path =
+      std::filesystem::temp_directory_path() /
+      ("yaze_aux_roundtrip_" +
+       std::to_string(
+           std::chrono::steady_clock::now().time_since_epoch().count()) +
+       ".sfc");
+  struct RemoveFile {
+    std::filesystem::path path;
+    ~RemoveFile() { std::filesystem::remove(path); }
+  } remove_file{disk_path};
+  Rom::SaveSettings save;
+  save.filename = disk_path.string();
+  save.save_new = true;
+  ASSERT_TRUE(rom.SaveToFile(save).ok());
+  Rom reopened_rom;
+  ASSERT_TRUE(reopened_rom.LoadFromFile(disk_path.string()).ok());
+  EXPECT_EQ(reopened_rom.vector(), expected);
+  zelda3::GameData reopened(&reopened_rom);
   reopened.overworld_palette_layout = *layout;
-  ASSERT_TRUE(zelda3::LoadPalettes(rom, reopened).ok());
+  ASSERT_TRUE(zelda3::LoadPalettes(reopened_rom, reopened).ok());
   EXPECT_EQ(reopened.palette_groups.overworld_aux.palette_ref(21)[20].snes(),
             0x1234);
 
@@ -330,6 +349,55 @@ TEST(PaletteRecordResolverTest,
   EXPECT_FALSE(zelda3::SaveGameData(rom, data).ok());
   EXPECT_EQ(rom.vector(), expected);
   EXPECT_TRUE((*palette)[20].is_modified());
+}
+
+TEST(PaletteRecordResolverTest, RejectsExactAndPartialRelocatedStorageOverlap) {
+  for (const auto& [key, span] :
+       {std::pair{core::RomAddressKey::kOverworldMap16Expanded, 32768u},
+        std::pair{core::RomAddressKey::kOverworldMap32TrExpanded, 0x67E0u},
+        std::pair{core::RomAddressKey::kOverworldExpandedPtrHigh, 576u},
+        std::pair{core::RomAddressKey::kOverworldGfxPtr1, 256u}}) {
+    for (uint32_t other : {0x22F900u, 0x22F900u - span + 1, 0x22FE3Fu}) {
+      auto overrides = AuxExtension();
+      overrides.addresses[key] = other;
+      EXPECT_EQ(OverworldPaletteLayout::FromOverrides(overrides, 0x240000)
+                    .status()
+                    .code(),
+                absl::StatusCode::kFailedPrecondition)
+          << key;
+    }
+    for (uint32_t other : {0x22F900u - span, 0x22FE40u}) {
+      auto overrides = AuxExtension();
+      overrides.addresses[key] = other;
+      EXPECT_TRUE(
+          OverworldPaletteLayout::FromOverrides(overrides, 0x240000).ok())
+          << key;
+    }
+  }
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x240000, 0)).ok());
+  zelda3::GameData data(&rom);
+  gfx::SnesPalette old;
+  old.AddColor(gfx::SnesColor(0x1234));
+  data.palette_groups.overworld_aux.AddPalette(old);
+  const auto before = rom.vector();
+  const auto previous = core::RomSettings::Get().address_overrides();
+  struct RestoreSettings {
+    core::RomAddressOverrides value;
+    ~RestoreSettings() { core::RomSettings::Get().SetAddressOverrides(value); }
+  } restore{previous};
+  auto overlap = AuxExtension();
+  overlap.addresses[core::RomAddressKey::kOverworldMap16Expanded] = 0x22F900;
+  core::RomSettings::Get().SetAddressOverrides(overlap);
+  zelda3::LoadOptions options;
+  options.load_graphics = false;
+  options.load_gfx_groups = false;
+  options.expand_rom = false;
+  EXPECT_FALSE(zelda3::LoadGameData(rom, data, options).ok());
+  ASSERT_EQ(data.palette_groups.overworld_aux.size(), 1);
+  EXPECT_EQ(data.palette_groups.overworld_aux.palette_ref(0)[0].snes(), 0x1234);
+  EXPECT_EQ(rom.vector(), before);
+  EXPECT_FALSE(data.overworld_palette_layout.has_value());
 }
 
 TEST(PaletteRecordResolverTest, LegacyRecordsHaveExactAddressesAndColorRanges) {

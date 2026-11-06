@@ -178,6 +178,37 @@ absl::StatusOr<OverworldPaletteLayout> OverworldPaletteLayout::FromOverrides(
     return absl::OutOfRangeError(
         "Auxiliary palette extension exceeds its ROM bank or body");
   }
+  // These are byte extents, not selector counts. Check the project's existing
+  // relocated dictionaries and tables before admitting writable palette data.
+  const std::pair<const char*, uint32_t> relocated_spans[] = {
+      {kOverworldMap16Expanded, 4096 * 8},
+      {kOverworldMap32TrExpanded, 0x67E0},
+      {kOverworldMap32BlExpanded, 0x67E0},
+      {kOverworldMap32BrExpanded, 0x67E0},
+      {kOverworldExpandedPtrHigh, 192 * 3},
+      {kOverworldExpandedPtrLow, 192 * 3},
+      {kOverworldEntranceMapExpanded, 256 * 2},
+      {kOverworldEntrancePosExpanded, 256 * 2},
+      {kOverworldEntranceIdExpanded, 256},
+      {kOverworldMessagesExpanded, 160 * 2},
+      {kOverworldMapParentExpanded, 160},
+      {kOverworldTransitionPosXExpanded, 160 * 2},
+      {kOverworldTransitionPosYExpanded, 160 * 2},
+      {kOverworldScreenChange1Expanded, 160 * 2},
+      {kOverworldScreenChange2Expanded, 160 * 2},
+      {kOverworldScreenChange3Expanded, 160 * 2},
+      {kOverworldScreenChange4Expanded, 160 * 2},
+      {kOverworldGfxPtr1, 256},
+      {kOverworldGfxPtr2, 256},
+      {kOverworldGfxPtr3, 256}};
+  const uint64_t end = static_cast<uint64_t>(*pc) + kExtensionBytes;
+  for (const auto& [key, bytes] : relocated_spans) {
+    const auto other = overrides.GetAddress(key);
+    if (other && *pc < static_cast<uint64_t>(*other) + bytes && *other < end) {
+      return absl::FailedPreconditionError(
+          absl::StrFormat("Auxiliary palette storage overlaps '%s'", key));
+    }
+  }
   auto layout = Legacy();
   layout.aux_extension_pc_ = *pc;
   return layout;

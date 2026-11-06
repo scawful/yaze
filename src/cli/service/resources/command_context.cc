@@ -238,6 +238,7 @@ absl::Status CommandContext::ApplyProjectRuntimeContext() {
 
   loaded_project_ = std::move(project);
   previous_feature_flags_ = core::FeatureFlags::get();
+  previous_address_overrides_ = core::RomSettings::Get().address_overrides();
   previous_custom_object_state_ =
       zelda3::CustomObjectManager::Get().SnapshotState();
 
@@ -247,6 +248,8 @@ absl::Status CommandContext::ApplyProjectRuntimeContext() {
   previous_label_state_ = label_state;
   active_project.InitializeResourceLabelProvider();
   core::FeatureFlags::get() = active_project.feature_flags;
+  core::RomSettings::Get().SetAddressOverrides(
+      active_project.rom_address_overrides);
   zelda3::DrawRoutineRegistry::Get().RefreshFeatureFlagMappings();
 
   if (!active_project.custom_object_files.empty()) {
@@ -285,6 +288,10 @@ void CommandContext::RestoreProjectRuntimeContext() {
     return;
   }
 
+  if (previous_address_overrides_) {
+    core::RomSettings::Get().SetAddressOverrides(*previous_address_overrides_);
+  }
+
   if (previous_custom_object_state_.has_value()) {
     zelda3::CustomObjectManager::Get().RestoreState(
         *previous_custom_object_state_);
@@ -301,6 +308,7 @@ void CommandContext::RestoreProjectRuntimeContext() {
 
   previous_custom_object_state_.reset();
   previous_feature_flags_.reset();
+  previous_address_overrides_.reset();
   previous_label_state_.reset();
   loaded_project_.reset();
   project_runtime_applied_ = false;
