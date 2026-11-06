@@ -47,20 +47,6 @@ namespace agent {
 
 namespace {
 
-std::string TrimWhitespace(const std::string& input) {
-  auto begin =
-      std::find_if_not(input.begin(), input.end(),
-                       [](unsigned char c) { return std::isspace(c); });
-  auto end =
-      std::find_if_not(input.rbegin(), input.rend(), [](unsigned char c) {
-        return std::isspace(c);
-      }).base();
-  if (begin >= end) {
-    return "";
-  }
-  return std::string(begin, end);
-}
-
 std::string JsonValueToString(const nlohmann::json& value) {
   if (value.is_string()) {
     return value.get<std::string>();
@@ -283,7 +269,7 @@ ChatMessage CreateMessage(ChatMessage::Sender sender,
   message.timestamp = absl::Now();
 
   if (sender == ChatMessage::Sender::kAgent) {
-    const std::string trimmed = TrimWhitespace(content);
+    const std::string trimmed(absl::StripAsciiWhitespace(content));
     if (!trimmed.empty() &&
         (trimmed.front() == '{' || trimmed.front() == '[')) {
       try {
@@ -301,35 +287,15 @@ ChatMessage CreateMessage(ChatMessage::Sender sender,
 
 }  // namespace
 
-ConversationalAgentService::ConversationalAgentService() {
-  // Default to a lightweight mock provider to avoid slow network checks during
-  // startup (especially on mac-ai builds). The real provider is created when
-  // ConfigureProvider is called from the UI.
-  provider_config_.provider = kProviderMock;
-  ai_service_ = std::make_unique<MockAIService>();
-  tool_dispatcher_.SetToolPreferences(tool_preferences_);
-
-#ifdef Z3ED_AI
-  // Initialize advanced features
-  auto learn_status = learned_knowledge_.Initialize();
-  if (!learn_status.ok() && config_.verbose) {
-    std::cerr << "Warning: Failed to initialize learned knowledge: "
-              << learn_status.message() << std::endl;
-  }
-
-  auto todo_status = todo_manager_.Initialize();
-  if (!todo_status.ok() && config_.verbose) {
-    std::cerr << "Warning: Failed to initialize TODO manager: "
-              << todo_status.message() << std::endl;
-  }
-#endif
-}
+ConversationalAgentService::ConversationalAgentService()
+    : ConversationalAgentService(AgentConfig{}) {}
 
 ConversationalAgentService::ConversationalAgentService(
     const AgentConfig& config)
     : config_(config) {
-  // Avoid auto-detecting providers (which can block on network) until the UI
-  // applies an explicit configuration.
+  // Default to a lightweight mock provider: auto-detecting providers can block
+  // on network checks. The real provider is created when ConfigureProvider is
+  // called from the UI.
   provider_config_.provider = kProviderMock;
   ai_service_ = std::make_unique<MockAIService>();
   tool_dispatcher_.SetToolPreferences(tool_preferences_);

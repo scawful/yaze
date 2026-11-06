@@ -32,6 +32,42 @@ std::string CurrentTimestamp() {
   return absl::FormatTime("%Y-%m-%d %H:%M:%S", now, absl::LocalTimeZone());
 }
 
+#ifdef YAZE_WITH_JSON
+json TodosToJson(const std::vector<TodoItem>& todos) {
+  json j_todos = json::array();
+  for (const auto& item : todos) {
+    json j_item;
+    j_item["id"] = item.id;
+    j_item["description"] = item.description;
+    j_item["status"] = item.StatusToString();
+    j_item["category"] = item.category;
+    j_item["priority"] = item.priority;
+    j_item["dependencies"] = item.dependencies;
+    j_item["tools_needed"] = item.tools_needed;
+    j_item["created_at"] = item.created_at;
+    j_item["updated_at"] = item.updated_at;
+    j_item["notes"] = item.notes;
+    j_todos.push_back(j_item);
+  }
+  return j_todos;
+}
+
+TodoItem TodoItemFromJson(const json& j_item) {
+  TodoItem item;
+  item.id = j_item.value("id", "");
+  item.description = j_item.value("description", "");
+  item.status = TodoItem::StringToStatus(j_item.value("status", "pending"));
+  item.category = j_item.value("category", "");
+  item.priority = j_item.value("priority", 0);
+  item.dependencies = j_item.value("dependencies", std::vector<std::string>{});
+  item.tools_needed = j_item.value("tools_needed", std::vector<std::string>{});
+  item.created_at = j_item.value("created_at", "");
+  item.updated_at = j_item.value("updated_at", "");
+  item.notes = j_item.value("notes", "");
+  return item;
+}
+#endif
+
 }  // namespace
 
 std::string TodoItem::StatusToString() const {
@@ -310,23 +346,7 @@ absl::StatusOr<std::vector<TodoItem>> TodoManager::GenerateExecutionPlan()
 
 absl::Status TodoManager::Save() {
 #ifdef YAZE_WITH_JSON
-  json j_todos = json::array();
-
-  for (const auto& item : todos_) {
-    json j_item;
-    j_item["id"] = item.id;
-    j_item["description"] = item.description;
-    j_item["status"] = item.StatusToString();
-    j_item["category"] = item.category;
-    j_item["priority"] = item.priority;
-    j_item["dependencies"] = item.dependencies;
-    j_item["tools_needed"] = item.tools_needed;
-    j_item["created_at"] = item.created_at;
-    j_item["updated_at"] = item.updated_at;
-    j_item["notes"] = item.notes;
-
-    j_todos.push_back(j_item);
-  }
+  json j_todos = TodosToJson(todos_);
 
 #ifdef __EMSCRIPTEN__
   // For WASM, save to IndexedDB via WasmStorage
@@ -389,20 +409,7 @@ absl::Status TodoManager::Load() {
 
   todos_.clear();
   for (const auto& j_item : j_todos) {
-    TodoItem item;
-    item.id = j_item.value("id", "");
-    item.description = j_item.value("description", "");
-    item.status = TodoItem::StringToStatus(j_item.value("status", "pending"));
-    item.category = j_item.value("category", "");
-    item.priority = j_item.value("priority", 0);
-    item.dependencies =
-        j_item.value("dependencies", std::vector<std::string>{});
-    item.tools_needed =
-        j_item.value("tools_needed", std::vector<std::string>{});
-    item.created_at = j_item.value("created_at", "");
-    item.updated_at = j_item.value("updated_at", "");
-    item.notes = j_item.value("notes", "");
-
+    TodoItem item = TodoItemFromJson(j_item);
     todos_.push_back(item);
 
     // Update next_id_
@@ -422,25 +429,7 @@ absl::Status TodoManager::Load() {
 
 std::string TodoManager::ExportAsJson() const {
 #ifdef YAZE_WITH_JSON
-  json j_todos = json::array();
-
-  for (const auto& item : todos_) {
-    json j_item;
-    j_item["id"] = item.id;
-    j_item["description"] = item.description;
-    j_item["status"] = item.StatusToString();
-    j_item["category"] = item.category;
-    j_item["priority"] = item.priority;
-    j_item["dependencies"] = item.dependencies;
-    j_item["tools_needed"] = item.tools_needed;
-    j_item["created_at"] = item.created_at;
-    j_item["updated_at"] = item.updated_at;
-    j_item["notes"] = item.notes;
-
-    j_todos.push_back(j_item);
-  }
-
-  return j_todos.dump(2);
+  return TodosToJson(todos_).dump(2);
 #else
   return "{}";
 #endif
@@ -453,21 +442,7 @@ absl::Status TodoManager::ImportFromJson(const std::string& json_str) {
 
     todos_.clear();
     for (const auto& j_item : j_todos) {
-      TodoItem item;
-      item.id = j_item.value("id", "");
-      item.description = j_item.value("description", "");
-      item.status = TodoItem::StringToStatus(j_item.value("status", "pending"));
-      item.category = j_item.value("category", "");
-      item.priority = j_item.value("priority", 0);
-      item.dependencies =
-          j_item.value("dependencies", std::vector<std::string>{});
-      item.tools_needed =
-          j_item.value("tools_needed", std::vector<std::string>{});
-      item.created_at = j_item.value("created_at", "");
-      item.updated_at = j_item.value("updated_at", "");
-      item.notes = j_item.value("notes", "");
-
-      todos_.push_back(item);
+      todos_.push_back(TodoItemFromJson(j_item));
     }
 
     return Save();
