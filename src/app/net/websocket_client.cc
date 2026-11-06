@@ -41,10 +41,6 @@ class WebSocketClient::Impl {
     port_ = port;
 
     try {
-      // httplib WebSocket connection (cross-platform)
-      std::string url = absl::StrFormat("ws://%s:%d", host, port);
-
-      // Create WebSocket connection
       client_ = std::make_unique<httplib::Client>(host, port);
       client_->set_connection_timeout(5, 0);  // 5 seconds
       client_->set_read_timeout(30, 0);       // 30 seconds
@@ -52,7 +48,6 @@ class WebSocketClient::Impl {
       connected_ = true;
       should_stop_ = false;
 
-      // Start receive thread
       receive_thread_ = std::thread([this]() { ReceiveLoop(); });
 
       return absl::OkStatus();

@@ -10,6 +10,22 @@
 namespace yaze {
 namespace net {
 
+namespace {
+
+absl::Status CheckSendResult(const httplib::Result& res,
+                             const char* failure_message) {
+  if (!res) {
+    return absl::UnavailableError(failure_message);
+  }
+  if (res->status != 200) {
+    return absl::InternalError("Server returned status " +
+                               std::to_string(res->status));
+  }
+  return absl::OkStatus();
+}
+
+}  // namespace
+
 HttpLibWebSocket::HttpLibWebSocket() : stop_receive_(false) {
   state_ = WebSocketState::kDisconnected;
 }
@@ -53,7 +69,6 @@ absl::Status HttpLibWebSocket::Connect(const std::string& url) {
 
   state_ = WebSocketState::kConnecting;
 
-  // Convert WebSocket URL to HTTP URL
   RETURN_IF_ERROR(ParseWebSocketUrl(url, http_endpoint_));
 
   // Parse HTTP URL to extract host and port
@@ -70,7 +85,6 @@ absl::Status HttpLibWebSocket::Connect(const std::string& url) {
   int port = matches[3].matched ? std::stoi(matches[3].str())
                                 : (scheme == "https" ? 443 : 80);
 
-  // Create HTTP client
   if (scheme == "https") {
 #ifdef CPPHTTPLIB_OPENSSL_SUPPORT
     client_ = std::make_shared<httplib::Client>(host, port);
@@ -89,7 +103,6 @@ absl::Status HttpLibWebSocket::Connect(const std::string& url) {
     return absl::InternalError("Failed to create HTTP client");
   }
 
-  // Set reasonable timeouts
   client_->set_connection_timeout(10);
   client_->set_read_timeout(30);
 
@@ -97,18 +110,15 @@ absl::Status HttpLibWebSocket::Connect(const std::string& url) {
   // would perform the WebSocket handshake here. For now, we'll use HTTP
   // long-polling as a fallback.
 
-  // Generate session ID for this connection
   session_id_ = "session_" + std::to_string(
       std::chrono::system_clock::now().time_since_epoch().count());
 
   state_ = WebSocketState::kConnected;
 
-  // Call open callback if set
   if (open_callback_) {
     open_callback_();
   }
 
-  // Start receive loop in background thread
   stop_receive_ = false;
   receive_thread_ = std::thread([this]() { ReceiveLoop(); });
 
@@ -132,18 +142,8 @@ absl::Status HttpLibWebSocket::Send(const std::string& message) {
       {"X-Session-Id", session_id_}
   };
 
-  auto res = client_->Post("/send", headers, message, "text/plain");
-
-  if (!res) {
-    return absl::UnavailableError("Failed to send message");
-  }
-
-  if (res->status != 200) {
-    return absl::InternalError("Server returned status " +
-                              std::to_string(res->status));
-  }
-
-  return absl::OkStatus();
+  return CheckSendResult(client_->Post("/send", headers, message, "text/plain"),
+                         "Failed to send message");
 }
 
 absl::Status HttpLibWebSocket::SendBinary(const uint8_t* data, size_t length) {
@@ -155,7 +155,6 @@ absl::Status HttpLibWebSocket::SendBinary(const uint8_t* data, size_t length) {
     return absl::InternalError("HTTP client not initialized");
   }
 
-  // Convert binary data to string for HTTP transport
   std::string body(reinterpret_cast<const char*>(data), length);
 
   httplib::Headers headers = {
@@ -163,19 +162,9 @@ absl::Status HttpLibWebSocket::SendBinary(const uint8_t* data, size_t length) {
       {"X-Session-Id", session_id_}
   };
 
-  auto res = client_->Post("/send-binary", headers, body,
-                          "application/octet-stream");
-
-  if (!res) {
-    return absl::UnavailableError("Failed to send binary data");
-  }
-
-  if (res->status != 200) {
-    return absl::InternalError("Server returned status " +
-                              std::to_string(res->status));
-  }
-
-  return absl::OkStatus();
+  return CheckSendResult(
+      client_->Post("/send-binary", headers, body, "application/octet-stream"),
+      "Failed to send binary data");
 }
 
 absl::Status HttpLibWebSocket::Close(int code, const std::string& reason) {
@@ -186,7 +175,6 @@ absl::Status HttpLibWebSocket::Close(int code, const std::string& reason) {
 
   state_ = WebSocketState::kClosing;
 
-  // Stop receive loop
   StopReceiveLoop();
 
   if (client_) {
@@ -203,7 +191,6 @@ absl::Status HttpLibWebSocket::Close(int code, const std::string& reason) {
 
   state_ = WebSocketState::kClosed;
 
-  // Call close callback if set
   if (close_callback_) {
     close_callback_(code, reason);
   }
@@ -231,7 +218,6 @@ void HttpLibWebSocket::ReceiveLoop() {
     }
 
     if (!res) {
-      // Connection error
       if (error_callback_) {
         error_callback_("Connection lost");
       }
@@ -239,15 +225,12 @@ void HttpLibWebSocket::ReceiveLoop() {
     }
 
     if (res->status == 200 && !res->body.empty()) {
-      // Received a message
       if (message_callback_) {
         message_callback_(res->body);
       }
     } else if (res->status == 204) {
-      // No content - continue polling
       continue;
     } else if (res->status >= 400) {
-      // Error from server
       if (error_callback_) {
         error_callback_("Server error: " + std::to_string(res->status));
       }

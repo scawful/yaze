@@ -61,49 +61,38 @@ std::string GetFileName(const std::string& filename) {
 }
 
 std::string LoadFile(const std::string& filename) {
-  std::string contents;
   std::ifstream file(filename);
-  if (file.is_open()) {
-    std::stringstream buffer;
-    buffer << file.rdbuf();
-    contents = buffer.str();
-    file.close();
-  } else {
-    // Throw an exception
+  if (!file.is_open()) {
     throw std::runtime_error("Could not open file: " + filename);
   }
-  return contents;
+  std::stringstream buffer;
+  buffer << file.rdbuf();
+  return buffer.str();
 }
 
 std::string LoadFileFromConfigDir(const std::string& filename) {
   auto config_dir = PlatformPaths::GetConfigDirectory();
   if (!config_dir.ok()) {
-    return "";  // Or handle error appropriately
+    return "";
   }
 
-  fs::path filepath = *config_dir / filename;
-  std::string contents;
-  std::ifstream file(filepath);
-  if (file.is_open()) {
-    std::stringstream buffer;
-    buffer << file.rdbuf();
-    contents = buffer.str();
-    file.close();
+  std::ifstream file(*config_dir / filename);
+  if (!file.is_open()) {
+    return "";
   }
-  return contents;
+  std::stringstream buffer;
+  buffer << file.rdbuf();
+  return buffer.str();
 }
 
 void SaveFile(const std::string& filename, const std::string& contents) {
   auto config_dir = PlatformPaths::GetConfigDirectory();
   if (!config_dir.ok()) {
-    // Or handle error appropriately
     return;
   }
-  fs::path filepath = *config_dir / filename;
-  std::ofstream file(filepath);
+  std::ofstream file(*config_dir / filename);
   if (file.is_open()) {
     file << contents;
-    file.close();
   }
 }
 

@@ -177,15 +177,7 @@ absl::Status CollaborationService::SubmitChangesAsProposal(
                                   {"from_hash", last_sync_hash_},
                                   {"to_hash", current_hash}};
 
-  // Submit to server
-  auto status = client_->ShareProposal(proposal_data, username);
-
-  if (status.ok() && config_.require_approval_for_sync) {
-    // Proposal submitted, waiting for approval
-    // The actual application will happen when approved
-  }
-
-  return status;
+  return client_->ShareProposal(proposal_data, username);
 }
 
 absl::Status CollaborationService::ApplyRomSync(const std::string& diff_data,
