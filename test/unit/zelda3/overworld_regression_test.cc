@@ -758,6 +758,7 @@ void UseV3SmallScreenSizes(Rom& rom) {
   rom[OverworldCustomASMHasBeenApplied] = 0x03;
   for (int i = 0; i < kSpecialWorldMapIdStart + 0x20; i++) {
     rom[kOverworldScreenSize + i] = 0x00;
+    rom[GetOverworldMapParentIdExpanded() + i] = static_cast<uint8_t>(i);
   }
 }
 }  // namespace
@@ -805,7 +806,8 @@ TEST_F(OverworldRegressionTest,
   overworld_->AssignMapSizes(
       const_cast<std::vector<OverworldMap>&>(overworld_->overworld_maps()));
 
-  ASSERT_TRUE(overworld_->SaveLargeMapsExpanded().ok());
+  const auto status = overworld_->SaveLargeMapsExpanded();
+  ASSERT_TRUE(status.ok()) << status;
 
   auto read_word = [&](int address) {
     return static_cast<uint16_t>((*rom_)[address] |
