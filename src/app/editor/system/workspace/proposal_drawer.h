@@ -57,7 +57,6 @@ class ProposalDrawer {
 
   void DrawProposalList();
   void DrawProposalDetail();
-  void DrawPolicyStatus();  // NEW: Display policy evaluation results
   void DrawStatusFilter();
   void DrawActionButtons();
   void DrawConfirmationDialog();

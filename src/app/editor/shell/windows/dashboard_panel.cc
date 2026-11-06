@@ -8,7 +8,7 @@
 
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
-#include "app/editor/system/workspace/editor_manager_interfaces.h"
+#include "app/editor/system/editor_manager_interfaces.h"
 #include "app/gui/core/color.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/platform_keys.h"

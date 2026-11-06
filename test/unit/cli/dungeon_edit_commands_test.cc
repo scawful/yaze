@@ -509,6 +509,37 @@ void InitializeStatefulChestObjectRom(Rom* rom) {
   rom->set_dirty(false);
 }
 
+void InitializePairedChestPlacementRom(Rom* rom, int existing_records = 1) {
+  InitializeDoorTypeRom(rom);
+  // Keep another room on the selected stream so placement must detach through
+  // COW, retaining both the alias and its real door record.
+  SetRoomObjectPointer(rom, 2, kObjectDataPc);
+  WriteLong(rom, zelda3::kDoorPointers + 2 * 3, PcToSnes(kDoorEntryPc));
+
+  constexpr int kOtherChestObjectPc = kObjectDataPc + 0x40;
+  SetRoomObjectPointer(rom, 1, kOtherChestObjectPc);
+  const auto encoded =
+      zelda3::RoomObject(0xF99, 3, 4, 6, 0).EncodeObjectToBytes();
+  ASSERT_TRUE(rom->WriteVector(kOtherChestObjectPc,
+                               {0x00, 0x00, encoded.b1, encoded.b2, encoded.b3,
+                                0xFF, 0xFF, 0xFF, 0xFF, 0xF0, 0xFF, 0xFF, 0xFF})
+                  .ok());
+  WriteLong(rom, zelda3::kDoorPointers + 3, PcToSnes(kOtherChestObjectPc + 11));
+
+  WriteLong(rom, zelda3::kChestsDataPointer1, PcToSnes(kChestTableDataPc));
+  const int length = existing_records * zelda3::kChestTableRecordSize;
+  rom->mutable_data()[zelda3::kChestsLengthPointer] = length & 0xFF;
+  rom->mutable_data()[zelda3::kChestsLengthPointer + 1] = (length >> 8) & 0xFF;
+  for (int index = 0; index < existing_records; ++index) {
+    const int record =
+        kChestTableDataPc + index * zelda3::kChestTableRecordSize;
+    rom->mutable_data()[record] = static_cast<uint8_t>(index + 1);
+    rom->mutable_data()[record + 1] = 0x00;
+    rom->mutable_data()[record + 2] = 0x24;
+  }
+  rom->set_dirty(false);
+}
+
 void WriteObjectCowManifest(const std::filesystem::path& path,
                             bool protect_allocation = false,
                             int protected_pc = -1,
@@ -1448,13 +1479,15 @@ TEST(DungeonEditCommandsTest, PlaceObjectDefaultsOmittedType2Size) {
 TEST(DungeonEditCommandsTest, PlaceObjectDefaultsOmittedType3Size) {
   Rom rom;
   InitializeDescribeRoomObjectsRom(&rom);
+  WriteLong(&rom, zelda3::kChestsDataPointer1, PcToSnes(kChestTableDataPc));
   const std::vector<uint8_t> before = rom.vector();
 
   handlers::DungeonPlaceObjectCommandHandler handler;
   std::string output;
-  const auto status = handler.Run(
-      {"--room=0x00", "--id=0xF99", "--x=1", "--y=2", "--format=json"}, &rom,
-      &output);
+  const auto status =
+      handler.Run({"--room=0x00", "--id=0xF99", "--x=1", "--y=2",
+                   "--chest-item=0x33", "--format=json"},
+                  &rom, &output);
 
   ASSERT_TRUE(status.ok()) << status;
   const auto result = nlohmann::json::parse(output);
@@ -2667,6 +2700,337 @@ TEST(DungeonEditCommandsTest,
   zelda3::Room untouched = zelda3::LoadRoomFromRom(&reopened, 1);
   EXPECT_TRUE(untouched.GetTileObjects().empty());
   EXPECT_EQ(ReadRoomObjectPointerPc(reopened, 1), kObjectDataPc + 10);
+}
+
+TEST(DungeonEditCommandsTest,
+     PlaceChestObjectDryRunAndWritePairsRewardAtFinalGlobalSlot) {
+  for (const int object_id : {0xF99, 0xFB1}) {
+    SCOPED_TRACE(object_id);
+    Rom rom;
+    InitializePairedChestPlacementRom(&rom,
+                                      zelda3::kChestTableCapacityRecords - 1);
+    ScopedRomArtifactsCleanup cleanup(MakeUniqueTempRomPath());
+    ScopedFileCleanup manifest_cleanup(cleanup.rom_path.string() +
+                                       ".manifest.json");
+    WriteRomFile(rom, cleanup.rom_path);
+    WriteObjectCowManifest(manifest_cleanup.file_path);
+    rom.set_filename(cleanup.rom_path.string());
+    const auto baseline = CaptureRomFailClosedBaseline(rom, cleanup.rom_path);
+    handlers::DungeonPlaceObjectCommandHandler handler;
+    const std::vector<std::string> args = {
+        "--room=0x00",
+        absl::StrFormat("--id=0x%03X", object_id),
+        "--x=20",
+        "--y=52",
+        "--layer=0",
+        "--chest-item=0x33",
+        absl::StrFormat("--manifest=%s", manifest_cleanup.file_path.string()),
+        "--format=json"};
+
+    std::string dry_output;
+    ASSERT_TRUE(handler.Run(args, &rom, &dry_output).ok()) << dry_output;
+    const auto dry = ExpectRomFailedClosed(dry_output, rom, baseline);
+    EXPECT_EQ(dry.at("Place Object").at("mode"), "dry-run");
+    EXPECT_EQ(dry.at("Place Object").at("chest_item"), "0x33");
+    EXPECT_EQ(dry.at("Place Object").at("chest_index"), 0);
+    EXPECT_EQ(dry.at("Place Object").at("preflight_status"), "success");
+
+    auto write_args = args;
+    write_args.push_back("--write");
+    std::string output;
+    const auto status = handler.Run(write_args, &rom, &output);
+    ASSERT_TRUE(status.ok()) << status << output;
+    const auto result = nlohmann::json::parse(output).at("Place Object");
+    EXPECT_EQ(result.at("write_status"), "success");
+    EXPECT_EQ(result.at("save_status"), "saved");
+    EXPECT_EQ(result.at("chest_index"), 0);
+    EXPECT_EQ(ReadRoomObjectPointerPc(rom, 0), kObjectAllocationPc);
+    EXPECT_EQ(rom.data()[kObjectAllocationPc], kObjectHeaderByte0);
+    EXPECT_EQ(rom.data()[kObjectAllocationPc + 1], kObjectHeaderByte1);
+    const auto door_pointer = rom.ReadLong(zelda3::kDoorPointers);
+    ASSERT_TRUE(door_pointer.ok()) << door_pointer.status();
+    EXPECT_EQ(SnesToPc(*door_pointer), kObjectAllocationPc + 11);
+    EXPECT_EQ(rom.data()[kObjectAllocationPc + 11], 0x81);
+    EXPECT_EQ(rom.data()[kObjectAllocationPc + 12], 0x18);
+
+    constexpr int kOldChestBytes = (zelda3::kChestTableCapacityRecords - 1) *
+                                   zelda3::kChestTableRecordSize;
+    EXPECT_EQ(
+        std::vector<uint8_t>(rom.data() + kChestTableDataPc,
+                             rom.data() + kChestTableDataPc + kOldChestBytes),
+        std::vector<uint8_t>(
+            baseline.bytes.begin() + kChestTableDataPc,
+            baseline.bytes.begin() + kChestTableDataPc + kOldChestBytes));
+    EXPECT_EQ(rom.data()[kChestTableDataPc + kOldChestBytes], 0x00);
+    EXPECT_EQ(rom.data()[kChestTableDataPc + kOldChestBytes + 1],
+              object_id == 0xFB1 ? 0x80 : 0x00);
+    EXPECT_EQ(rom.data()[kChestTableDataPc + kOldChestBytes + 2], 0x33);
+    EXPECT_EQ(rom.data()[zelda3::kChestsLengthPointer], 0xF8);
+    EXPECT_EQ(rom.data()[zelda3::kChestsLengthPointer + 1], 0x01);
+    EXPECT_EQ(
+        std::vector<uint8_t>(rom.data() + kObjectDataPc,
+                             rom.data() + kObjectDataPc + 12),
+        std::vector<uint8_t>(baseline.bytes.begin() + kObjectDataPc,
+                             baseline.bytes.begin() + kObjectDataPc + 12));
+    EXPECT_EQ(
+        std::vector<uint8_t>(
+            rom.data() + kObjectPointerTablePc + 3,
+            rom.data() + kObjectPointerTablePc + zelda3::kNumberOfRooms * 3),
+        std::vector<uint8_t>(baseline.bytes.begin() + kObjectPointerTablePc + 3,
+                             baseline.bytes.begin() + kObjectPointerTablePc +
+                                 zelda3::kNumberOfRooms * 3));
+    EXPECT_EQ(
+        std::vector<uint8_t>(
+            rom.data() + zelda3::kDoorPointers + 3,
+            rom.data() + zelda3::kDoorPointers + zelda3::kNumberOfRooms * 3),
+        std::vector<uint8_t>(baseline.bytes.begin() + zelda3::kDoorPointers + 3,
+                             baseline.bytes.begin() + zelda3::kDoorPointers +
+                                 zelda3::kNumberOfRooms * 3));
+    const auto backups = FindBackupArtifacts(cleanup.rom_path);
+    ASSERT_EQ(backups.size(), 1u);
+    EXPECT_EQ(ReadFile(backups.front()), baseline.disk_bytes);
+
+    Rom reopened;
+    ASSERT_TRUE(reopened.LoadFromFile(cleanup.rom_path.string()).ok());
+    const auto reopened_door_pointer = reopened.ReadLong(zelda3::kDoorPointers);
+    ASSERT_TRUE(reopened_door_pointer.ok()) << reopened_door_pointer.status();
+    EXPECT_EQ(SnesToPc(*reopened_door_pointer), kObjectAllocationPc + 11);
+    auto room = zelda3::LoadRoomFromRom(&reopened, 0);
+    ASSERT_EQ(room.GetTileObjects().size(), 1u);
+    EXPECT_EQ(room.GetTileObjects().front().id_, object_id);
+    EXPECT_EQ(room.GetTileObjects().front().x(), 20);
+    EXPECT_EQ(room.GetTileObjects().front().y(), 52);
+    EXPECT_EQ(room.GetTileObjects().front().GetLayerValue(), 0);
+    ASSERT_EQ(room.GetChests().size(), 1u);
+    EXPECT_EQ(room.GetChests().front().id, 0x33);
+    EXPECT_EQ(room.GetChests().front().size, object_id == 0xFB1);
+    ASSERT_EQ(room.GetDoors().size(), 1u);
+    EXPECT_EQ(room.GetDoors().front().type,
+              zelda3::DoorType::DoubleSidedShutter);
+    auto other = zelda3::LoadRoomFromRom(&reopened, 1);
+    ASSERT_EQ(other.GetChests().size(), 1u);
+    EXPECT_EQ(other.GetChests().front().id, 0x24);
+    EXPECT_FALSE(other.GetChests().front().size);
+    EXPECT_EQ(ReadRoomObjectPointerPc(reopened, 2), kObjectDataPc);
+  }
+}
+
+TEST(DungeonEditCommandsTest,
+     PlaceChestObjectRejectsMissingOrMisappliedReceiptWithoutMutation) {
+  const std::vector<std::pair<std::vector<std::string>, std::string>> cases = {
+      {{"--id=0xF99"}, "requires --chest-item"},
+      {{"--id=0xFB1"}, "requires --chest-item"},
+      {{"--id=0x031", "--chest-item=0x33"}, "only valid for stateful chest"}};
+  for (const auto& [options, error] : cases) {
+    for (const bool write : {false, true}) {
+      SCOPED_TRACE(error);
+      SCOPED_TRACE(write);
+      Rom rom;
+      InitializePairedChestPlacementRom(&rom);
+      ScopedRomArtifactsCleanup cleanup(MakeUniqueTempRomPath());
+      WriteRomFile(rom, cleanup.rom_path);
+      rom.set_filename(cleanup.rom_path.string());
+      const auto baseline = CaptureRomFailClosedBaseline(rom, cleanup.rom_path);
+      std::vector<std::string> args = {"--room=0x00", "--x=20", "--y=52",
+                                       "--format=json"};
+      args.insert(args.end(), options.begin(), options.end());
+      if (write)
+        args.push_back("--write");
+      handlers::DungeonPlaceObjectCommandHandler handler;
+      std::string output;
+      const auto status = handler.Run(args, &rom, &output);
+      ExpectInvalidArgument(status, error);
+      ExpectRomFailedClosed(output, rom, baseline);
+    }
+  }
+}
+
+TEST(DungeonEditCommandsTest,
+     PlaceChestObjectFullGlobalTableRejectsBothModesWithoutMutation) {
+  Rom rom;
+  InitializePairedChestPlacementRom(&rom, zelda3::kChestTableCapacityRecords);
+  ScopedRomArtifactsCleanup cleanup(MakeUniqueTempRomPath());
+  ScopedFileCleanup manifest_cleanup(cleanup.rom_path.string() +
+                                     ".manifest.json");
+  WriteRomFile(rom, cleanup.rom_path);
+  WriteObjectCowManifest(manifest_cleanup.file_path);
+  rom.set_filename(cleanup.rom_path.string());
+  const auto baseline = CaptureRomFailClosedBaseline(rom, cleanup.rom_path);
+  for (const bool write : {false, true}) {
+    auto args = std::vector<std::string>{
+        "--room=0x00",
+        "--id=0xF99",
+        "--x=20",
+        "--y=52",
+        "--chest-item=0x33",
+        absl::StrFormat("--manifest=%s", manifest_cleanup.file_path.string()),
+        "--format=json"};
+    if (write)
+      args.push_back("--write");
+    handlers::DungeonPlaceObjectCommandHandler handler;
+    std::string output;
+    const auto status = handler.Run(args, &rom, &output);
+    EXPECT_TRUE(absl::IsResourceExhausted(status)) << status;
+    EXPECT_THAT(std::string(status.message()), HasSubstr("capacity is 168"));
+    ExpectRomFailedClosed(output, rom, baseline);
+  }
+}
+
+TEST(DungeonEditCommandsTest,
+     PlaceChestObjectProtectedRewardRejectsBothModesBeforeSave) {
+  Rom rom;
+  InitializePairedChestPlacementRom(&rom);
+  ScopedRomArtifactsCleanup cleanup(MakeUniqueTempRomPath());
+  ScopedFileCleanup manifest_cleanup(cleanup.rom_path.string() +
+                                     ".manifest.json");
+  WriteRomFile(rom, cleanup.rom_path);
+  WriteObjectCowManifest(manifest_cleanup.file_path, false,
+                         kChestTableDataPc + zelda3::kChestTableRecordSize + 2);
+  rom.set_filename(cleanup.rom_path.string());
+  const auto baseline = CaptureRomFailClosedBaseline(rom, cleanup.rom_path);
+  for (const bool write : {false, true}) {
+    std::vector<std::string> args = {
+        "--room=0x00",
+        "--id=0xF99",
+        "--x=20",
+        "--y=52",
+        "--chest-item=0x33",
+        absl::StrFormat("--manifest=%s", manifest_cleanup.file_path.string()),
+        "--format=json"};
+    if (write)
+      args.push_back("--write");
+    handlers::DungeonPlaceObjectCommandHandler handler;
+    std::string output;
+    const auto status = handler.Run(args, &rom, &output);
+    EXPECT_TRUE(absl::IsPermissionDenied(status)) << status;
+    EXPECT_THAT(std::string(status.message()), HasSubstr("Hack Manifest"));
+    ExpectRomFailedClosed(output, rom, baseline);
+  }
+}
+
+TEST(DungeonEditCommandsTest,
+     PlaceChestObjectOverlappingCowAndTableRejectsBothModes) {
+  Rom rom;
+  InitializePairedChestPlacementRom(&rom);
+  rom.mutable_data()[zelda3::kChestsLengthPointer] = 0;
+  rom.mutable_data()[zelda3::kChestsLengthPointer + 1] = 0;
+  ASSERT_TRUE(rom.WriteVector(kChestTableDataPc,
+                              std::vector<uint8_t>(
+                                  zelda3::kChestTableCapacityBytes, 0xFF))
+                  .ok());
+  rom.set_dirty(false);
+  ScopedRomArtifactsCleanup cleanup(MakeUniqueTempRomPath());
+  ScopedFileCleanup manifest_cleanup(cleanup.rom_path.string() +
+                                     ".manifest.json");
+  WriteRomFile(rom, cleanup.rom_path);
+  WriteObjectCowManifest(manifest_cleanup.file_path);
+  {
+    std::ifstream input(manifest_cleanup.file_path);
+    auto manifest = nlohmann::json::parse(input);
+    // The 15-byte object stream would end with FF FF at the table's first
+    // two FF bytes, so stale-preimage comparison alone cannot detect aliasing.
+    const auto overlap = nlohmann::json{
+        {"start", absl::StrFormat("0x%06X", PcToSnes(kChestTableDataPc - 13))},
+        {"end", absl::StrFormat("0x%06X", PcToSnes(kChestTableDataPc + 2))}};
+    auto& objects = manifest["dungeon_stream_regions"]["objects"];
+    objects["data_regions"].push_back(overlap);
+    objects["allocation_regions"] = nlohmann::json::array({overlap});
+    std::ofstream output(manifest_cleanup.file_path, std::ios::trunc);
+    output << manifest;
+    ASSERT_TRUE(output.good());
+  }
+  rom.set_filename(cleanup.rom_path.string());
+  const auto baseline = CaptureRomFailClosedBaseline(rom, cleanup.rom_path);
+  for (const bool write : {false, true}) {
+    std::vector<std::string> args = {
+        "--room=0x00",
+        "--id=0xF99",
+        "--x=20",
+        "--y=52",
+        "--chest-item=0x33",
+        absl::StrFormat("--manifest=%s", manifest_cleanup.file_path.string()),
+        "--format=json"};
+    if (write)
+      args.push_back("--write");
+    handlers::DungeonPlaceObjectCommandHandler handler;
+    std::string output;
+    const auto status = handler.Run(args, &rom, &output);
+    EXPECT_TRUE(absl::IsFailedPrecondition(status)) << status;
+    EXPECT_THAT(std::string(status.message()),
+                HasSubstr("Object and chest save ranges overlap"));
+    ExpectRomFailedClosed(output, rom, baseline);
+  }
+}
+
+TEST(DungeonEditCommandsTest,
+     PlaceChestObjectSaveFailureRollsBackObjectRewardAndCallerState) {
+  Rom rom;
+  InitializePairedChestPlacementRom(&rom);
+  ScopedRomArtifactsCleanup cleanup(MakeUniqueTempRomPath());
+  ScopedFileCleanup manifest_cleanup(cleanup.rom_path.string() +
+                                     ".manifest.json");
+  WriteRomFile(rom, cleanup.rom_path);
+  WriteObjectCowManifest(manifest_cleanup.file_path);
+  rom.set_filename(cleanup.rom_path.string());
+  const auto baseline = CaptureRomFailClosedBaseline(rom, cleanup.rom_path);
+  yaze::test::ScopedRomStagingFailure staging_failure;
+  handlers::DungeonPlaceObjectCommandHandler handler;
+  std::string output;
+  const auto status = handler.Run(
+      {"--room=0x00", "--id=0xF99", "--x=20", "--y=52", "--chest-item=0x33",
+       absl::StrFormat("--manifest=%s", manifest_cleanup.file_path.string()),
+       "--write", "--format=json"},
+      &rom, &output);
+  EXPECT_TRUE(absl::IsInternal(status)) << status;
+  EXPECT_THAT(output, HasSubstr("\"write_status\": \"success\""));
+  EXPECT_THAT(output, HasSubstr("\"save_error\""));
+  EXPECT_EQ(rom.vector(), baseline.bytes);
+  EXPECT_EQ(rom.size(), baseline.size);
+  EXPECT_EQ(rom.dirty(), baseline.dirty);
+  EXPECT_EQ(rom.filename(), baseline.filename);
+  EXPECT_EQ(ReadFile(cleanup.rom_path), baseline.disk_bytes);
+  const auto backups = FindBackupArtifacts(cleanup.rom_path);
+  ASSERT_EQ(backups.size(), 1u);
+  EXPECT_EQ(ReadFile(backups.front()), baseline.disk_bytes);
+}
+
+TEST(DungeonEditCommandsTest,
+     PlaceChestObjectRequiredBackupFailureLeavesObjectAndRewardUnchanged) {
+#if defined(_WIN32)
+  GTEST_SKIP() << "NAME_MAX backup failure fixture is POSIX-only";
+#else
+  Rom rom;
+  InitializePairedChestPlacementRom(&rom);
+  const auto parent = std::filesystem::temp_directory_path();
+  const long name_max = pathconf(parent.c_str(), _PC_NAME_MAX);
+  if (name_max < 128) {
+    GTEST_SKIP() << "Filesystem does not expose a usable NAME_MAX";
+  }
+  std::string filename =
+      "yaze_paired_chest_backup_" +
+      std::to_string(
+          std::chrono::steady_clock::now().time_since_epoch().count());
+  const size_t target_length = static_cast<size_t>(name_max) - 4;
+  ASSERT_LT(filename.size(), target_length);
+  filename.append(target_length - filename.size(), 'c');
+  ScopedRomArtifactsCleanup cleanup(parent / filename);
+  ScopedFileCleanup manifest_cleanup(MakeUniqueTempRomPath().string() +
+                                     ".manifest.json");
+  WriteRomFile(rom, cleanup.rom_path);
+  WriteObjectCowManifest(manifest_cleanup.file_path);
+  rom.set_filename(cleanup.rom_path.string());
+  const auto baseline = CaptureRomFailClosedBaseline(rom, cleanup.rom_path);
+  handlers::DungeonPlaceObjectCommandHandler handler;
+  std::string output;
+  const auto status = handler.Run(
+      {"--room=0x00", "--id=0xF99", "--x=20", "--y=52", "--chest-item=0x33",
+       absl::StrFormat("--manifest=%s", manifest_cleanup.file_path.string()),
+       "--write", "--format=json"},
+      &rom, &output);
+  EXPECT_FALSE(status.ok());
+  EXPECT_THAT(std::string(status.message()), HasSubstr("required ROM backup"));
+  ExpectRomFailedClosed(output, rom, baseline);
+#endif
 }
 
 TEST(DungeonEditCommandsTest,

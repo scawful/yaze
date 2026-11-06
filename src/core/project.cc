@@ -17,6 +17,7 @@
 #include <stdexcept>
 
 #include "absl/strings/match.h"
+#include "absl/strings/numbers.h"
 #include "absl/strings/str_format.h"
 #include "absl/strings/str_join.h"
 #include "absl/strings/str_split.h"
@@ -42,6 +43,9 @@
 #include "app/platform/wasm/wasm_storage.h"
 #elif defined(_WIN32)
 #include <windows.h>
+#ifdef ERROR
+#undef ERROR
+#endif
 #else
 #include <unistd.h>
 #endif
@@ -78,6 +82,18 @@ std::pair<std::string, std::string> ParseKeyValue(const std::string& line) {
   value.erase(value.find_last_not_of(" \t") + 1);
 
   return {key, value};
+}
+
+absl::Status ParseProjectInteger(const std::string& value,
+                                 const std::string& section,
+                                 const std::string& key, int* output) {
+  int parsed;
+  if (!absl::SimpleAtoi(value, &parsed)) {
+    return absl::InvalidArgumentError(absl::StrFormat(
+        "Invalid integer value for [%s] %s: '%s'", section, key, value));
+  }
+  *output = parsed;
+  return absl::OkStatus();
 }
 
 bool ParseBool(const std::string& value) {
@@ -2220,13 +2236,17 @@ absl::Status YazeProject::ParseFromString(const std::string& content) {
         workspace_settings.autosave_interval_secs = ParseFloat(value);
       else if (key == "backup_on_save")
         workspace_settings.backup_on_save = ParseBool(value);
-      else if (key == "backup_retention_count")
-        workspace_settings.backup_retention_count = std::stoi(value);
-      else if (key == "backup_keep_daily")
+      else if (key == "backup_retention_count") {
+        RETURN_IF_ERROR(
+            ParseProjectInteger(value, current_section, key,
+                                &workspace_settings.backup_retention_count));
+      } else if (key == "backup_keep_daily")
         workspace_settings.backup_keep_daily = ParseBool(value);
-      else if (key == "backup_keep_daily_days")
-        workspace_settings.backup_keep_daily_days = std::stoi(value);
-      else if (key == "show_grid")
+      else if (key == "backup_keep_daily_days") {
+        RETURN_IF_ERROR(
+            ParseProjectInteger(value, current_section, key,
+                                &workspace_settings.backup_keep_daily_days));
+      } else if (key == "show_grid")
         workspace_settings.show_grid = ParseBool(value);
       else if (key == "show_collision")
         workspace_settings.show_collision = ParseBool(value);
@@ -2314,25 +2334,29 @@ absl::Status YazeProject::ParseFromString(const std::string& content) {
         agent_settings.show_reasoning = ParseBool(value);
       else if (key == "verbose")
         agent_settings.verbose = ParseBool(value);
-      else if (key == "max_tool_iterations")
-        agent_settings.max_tool_iterations = std::stoi(value);
-      else if (key == "max_retry_attempts")
-        agent_settings.max_retry_attempts = std::stoi(value);
-      else if (key == "temperature")
+      else if (key == "max_tool_iterations") {
+        RETURN_IF_ERROR(ParseProjectInteger(
+            value, current_section, key, &agent_settings.max_tool_iterations));
+      } else if (key == "max_retry_attempts") {
+        RETURN_IF_ERROR(ParseProjectInteger(
+            value, current_section, key, &agent_settings.max_retry_attempts));
+      } else if (key == "temperature")
         agent_settings.temperature = ParseFloat(value);
       else if (key == "top_p")
         agent_settings.top_p = ParseFloat(value);
-      else if (key == "max_output_tokens")
-        agent_settings.max_output_tokens = std::stoi(value);
-      else if (key == "stream_responses")
+      else if (key == "max_output_tokens") {
+        RETURN_IF_ERROR(ParseProjectInteger(value, current_section, key,
+                                            &agent_settings.max_output_tokens));
+      } else if (key == "stream_responses")
         agent_settings.stream_responses = ParseBool(value);
       else if (key == "favorite_models")
         agent_settings.favorite_models = ParseStringList(value);
       else if (key == "model_chain")
         agent_settings.model_chain = ParseStringList(value);
-      else if (key == "chain_mode")
-        agent_settings.chain_mode = std::stoi(value);
-      else if (key == "enable_tool_resources")
+      else if (key == "chain_mode") {
+        RETURN_IF_ERROR(ParseProjectInteger(value, current_section, key,
+                                            &agent_settings.chain_mode));
+      } else if (key == "enable_tool_resources")
         agent_settings.enable_tool_resources = ParseBool(value);
       else if (key == "enable_tool_dungeon")
         agent_settings.enable_tool_dungeon = ParseBool(value);
@@ -2375,9 +2399,10 @@ absl::Status YazeProject::ParseFromString(const std::string& content) {
         asm_sources = ParseStringList(value);
       else if (key == "last_build_hash")
         last_build_hash = value;
-      else if (key == "build_number")
-        build_number = std::stoi(value);
-      else
+      else if (key == "build_number") {
+        RETURN_IF_ERROR(
+            ParseProjectInteger(value, current_section, key, &build_number));
+      } else
         understood = false;
     } else if (current_section.rfind("labels_", 0) == 0) {
       std::string label_type = current_section.substr(7);

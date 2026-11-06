@@ -32,8 +32,8 @@ absl::StatusOr<BuildTool::BuildResult> BuildTool::Build(const std::string&,
   return BuildToolUnavailableStatus();
 }
 
-absl::StatusOr<BuildTool::BuildResult> BuildTool::RunTests(
-    const std::string&, const std::string&) {
+absl::StatusOr<BuildTool::BuildResult> BuildTool::RunTests(const std::string&,
+                                                           const std::string&) {
   return BuildToolUnavailableStatus();
 }
 
@@ -122,8 +122,9 @@ absl::Status BuildTestCommandHandler::ValidateArgs(
   return absl::OkStatus();
 }
 
-absl::Status BuildTestCommandHandler::Execute(
-    Rom*, const resources::ArgumentParser&, resources::OutputFormatter&) {
+absl::Status BuildTestCommandHandler::Execute(Rom*,
+                                              const resources::ArgumentParser&,
+                                              resources::OutputFormatter&) {
   return BuildToolUnavailableStatus();
 }
 
@@ -133,7 +134,8 @@ absl::Status BuildStatusCommandHandler::ValidateArgs(
 }
 
 absl::Status BuildStatusCommandHandler::Execute(
-    Rom*, const resources::ArgumentParser&, resources::OutputFormatter& formatter) {
+    Rom*, const resources::ArgumentParser&,
+    resources::OutputFormatter& formatter) {
   formatter.BeginObject("Build Status");
   formatter.AddField("available", false);
   formatter.AddField("message",
@@ -598,7 +600,7 @@ std::string BuildTool::GetProjectRoot() const {
   while (!root.empty() && root != root.root_path()) {
     // Check for yaze-specific markers
     if (fs::exists(root / "CMakeLists.txt") &&
-        fs::exists(root / "src" / "yaze.cc") &&
+        fs::exists(root / "src" / "app") &&
         fs::exists(root / "CMakePresets.json")) {
       return root.string();
     }

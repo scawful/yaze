@@ -39,6 +39,43 @@ class PlanningEditorTestPeer {
   static absl::Status Reload(PlanningEditor* editor, bool discard = false) {
     return editor->Reload(discard);
   }
+  static void AddStep(PlanningEditor* editor, const std::string& id) {
+    core::PlanRouteStep step;
+    step.id = id;
+    step.title = "Step " + id;
+    step.kind = "story";
+    editor->plan_->route_steps.push_back(std::move(step));
+  }
+  static void AddItem(PlanningEditor* editor, const std::string& id) {
+    core::PlanRouteItem item;
+    item.id = id;
+    item.name = "Item " + id;
+    item.status = "proposed";
+    editor->plan_->route_items.push_back(std::move(item));
+  }
+  static void TypeStepId(PlanningEditor* editor, const std::string& step_id,
+                         const std::string& typed) {
+    editor->step_id_edit_ = typed;
+    editor->CommitStepIdEdit(step_id);
+  }
+  static const std::string& StepIdBuffer(PlanningEditor* editor) {
+    return editor->step_id_edit_;
+  }
+  static const std::string& StepIdError(PlanningEditor* editor) {
+    return editor->step_id_error_;
+  }
+  static void RequestRemoveStep(PlanningEditor* editor, const std::string& id) {
+    editor->RequestRemoval(PlanningEditor::RemovalKind::kStep, id, "step");
+  }
+  static void RequestRemoveItem(PlanningEditor* editor, const std::string& id) {
+    editor->RequestRemoval(PlanningEditor::RemovalKind::kItem, id, "item");
+  }
+  static bool ConfirmRemoval(PlanningEditor* editor) {
+    return editor->ConfirmPendingRemoval();
+  }
+  static void CancelRemoval(PlanningEditor* editor) {
+    editor->CancelPendingRemoval();
+  }
 };
 
 namespace {
@@ -101,6 +138,71 @@ TEST_F(PlanningEditorTest, DraftQueryAndProjectSaveIncludePlanning) {
   auto saved = core::ProjectPlan::LoadFromFile(plan_path_.string());
   ASSERT_TRUE(saved.ok());
   EXPECT_EQ(saved->goal.title, "Edited");
+}
+
+TEST_F(PlanningEditorTest, StepIdEditValidationRejectsEmptyAndDuplicate) {
+  PlanningEditorTestPeer::AddStep(editor_, "S1");
+  PlanningEditorTestPeer::AddStep(editor_, "S2");
+  const auto& plan = *editor_->plan();
+  EXPECT_TRUE(ValidateStepIdEdit(plan, "S1", "S1").ok());
+  EXPECT_TRUE(ValidateStepIdEdit(plan, "S1", "intro").ok());
+  EXPECT_EQ(ValidateStepIdEdit(plan, "S1", "").code(),
+            absl::StatusCode::kInvalidArgument);
+  EXPECT_EQ(ValidateStepIdEdit(plan, "S1", "  ").code(),
+            absl::StatusCode::kInvalidArgument);
+  const auto duplicate = ValidateStepIdEdit(plan, "S1", "S2");
+  EXPECT_EQ(duplicate.code(), absl::StatusCode::kAlreadyExists);
+  EXPECT_NE(std::string(duplicate.message()).find("S2"), std::string::npos);
+}
+
+TEST_F(PlanningEditorTest, StepIdCommitRenamesOnlyWhenValid) {
+  PlanningEditorTestPeer::AddStep(editor_, "S1");
+  PlanningEditorTestPeer::AddStep(editor_, "S2");
+  PlanningEditorTestPeer::TypeStepId(editor_, "S1", "S2");
+  EXPECT_EQ(editor_->plan()->route_steps[0].id, "S1");
+  EXPECT_EQ(PlanningEditorTestPeer::StepIdBuffer(editor_), "S1");
+  EXPECT_FALSE(PlanningEditorTestPeer::StepIdError(editor_).empty());
+  EXPECT_FALSE(editor_->dirty());
+  PlanningEditorTestPeer::TypeStepId(editor_, "S1", "");
+  EXPECT_EQ(editor_->plan()->route_steps[0].id, "S1");
+  EXPECT_FALSE(PlanningEditorTestPeer::StepIdError(editor_).empty());
+  EXPECT_FALSE(editor_->dirty());
+  PlanningEditorTestPeer::TypeStepId(editor_, "S1", " intro ");
+  EXPECT_EQ(editor_->plan()->route_steps[0].id, "intro");
+  EXPECT_EQ(PlanningEditorTestPeer::StepIdBuffer(editor_), "intro");
+  EXPECT_TRUE(PlanningEditorTestPeer::StepIdError(editor_).empty());
+  EXPECT_TRUE(editor_->dirty());
+}
+
+TEST_F(PlanningEditorTest, RemovalChangesNothingUntilConfirmed) {
+  PlanningEditorTestPeer::AddStep(editor_, "S1");
+  PlanningEditorTestPeer::AddStep(editor_, "S2");
+  PlanningEditorTestPeer::AddItem(editor_, "bow");
+  PlanningEditorTestPeer::RequestRemoveStep(editor_, "S1");
+  PlanningEditorTestPeer::RequestRemoveItem(editor_, "bow");
+  EXPECT_EQ(editor_->plan()->route_steps.size(), 2u);
+  EXPECT_EQ(editor_->plan()->route_items.size(), 1u);
+  EXPECT_FALSE(editor_->dirty());
+  PlanningEditorTestPeer::CancelRemoval(editor_);
+  EXPECT_FALSE(PlanningEditorTestPeer::ConfirmRemoval(editor_));
+  EXPECT_EQ(editor_->plan()->route_items.size(), 1u);
+  EXPECT_FALSE(editor_->dirty());
+}
+
+TEST_F(PlanningEditorTest, ConfirmedRemovalRemovesNamedEntryAndMarksDirty) {
+  PlanningEditorTestPeer::AddStep(editor_, "S1");
+  PlanningEditorTestPeer::AddStep(editor_, "S2");
+  PlanningEditorTestPeer::AddItem(editor_, "bow");
+  PlanningEditorTestPeer::RequestRemoveStep(editor_, "S1");
+  ASSERT_TRUE(PlanningEditorTestPeer::ConfirmRemoval(editor_));
+  ASSERT_EQ(editor_->plan()->route_steps.size(), 1u);
+  EXPECT_EQ(editor_->plan()->route_steps[0].id, "S2");
+  EXPECT_TRUE(editor_->dirty());
+  // One confirmation removes one entry; the request is consumed.
+  EXPECT_FALSE(PlanningEditorTestPeer::ConfirmRemoval(editor_));
+  PlanningEditorTestPeer::RequestRemoveItem(editor_, "bow");
+  ASSERT_TRUE(PlanningEditorTestPeer::ConfirmRemoval(editor_));
+  EXPECT_TRUE(editor_->plan()->route_items.empty());
 }
 
 TEST_F(PlanningEditorTest, FailedSaveAndReloadKeepDraftAndRecoveryBytes) {

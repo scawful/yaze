@@ -2,6 +2,7 @@
 #include "util/i18n/tr.h"
 
 #include <algorithm>
+#include <cmath>
 #include <cstdio>
 #include <cstring>
 #include <filesystem>
@@ -27,6 +28,8 @@
 #include "app/gfx/resource/arena.h"
 #include "app/gfx/types/snes_palette.h"
 #include "app/gfx/types/snes_tile.h"
+#include "app/gui/automation/widget_auto_register.h"
+#include "app/gui/automation/widget_id_registry.h"
 #include "app/gui/canvas/canvas.h"
 #include "app/gui/canvas/item_context_menu.h"
 #include "app/gui/core/icons.h"
@@ -72,6 +75,10 @@ constexpr ImGuiTableFlags kMessageTableFlags = ImGuiTableFlags_Hideable |
 
 void MessageEditor::Initialize() {
   font_graphics_loaded_ = false;
+  current_font_gfx16_canvas_.SetGridEnabled(false);
+  // The backing texture contains hidden message lines, not the viewport.
+  current_font_gfx16_canvas_.GetConfig().enable_zoom_to_fit = false;
+  current_font_gfx16_canvas_.GetConfig().enable_center_view = false;
   project_source_load_attempted_ = false;
   dirty_state_ = {};
   transaction_dirty_snapshot_ = {};
@@ -126,8 +133,17 @@ void MessageEditor::Initialize() {
   expanded_message_base_id_ = ResolveExpandedMessageBaseId();
 
   if (!list_of_texts_.empty()) {
-    // Default to message 1 if available, otherwise 0
+    // Prefer a complete dialogue over the menu fragments at the start of a
+    // typical ROM. Keep the historical fallback for unusual message sets.
     size_t default_idx = list_of_texts_.size() > 1 ? 1 : 0;
+    for (size_t i = 0; i < list_of_texts_.size(); ++i) {
+      const int id = list_of_texts_[i].ID;
+      if (id >= 0 && static_cast<size_t>(id) < parsed_messages_.size() &&
+          HasMultilineMessageProse(parsed_messages_[id])) {
+        default_idx = i;
+        break;
+      }
+    }
     current_message_ = list_of_texts_[default_idx];
     current_message_index_ = current_message_.ID;
     current_message_is_expanded_ = false;
@@ -737,7 +753,10 @@ void MessageEditor::DrawDialogueTextPane(float height) {
   if (reference != reference_view_text_) {
     reference_view_text_ = reference;
   }
-  const bool show_reference = show_reference_ && !reference_view_text_.empty();
+  const bool edited = reference_view_text_ != message_text_box_.text;
+  const bool show_reference =
+      !reference_view_text_.empty() &&
+      (show_reference_ || (!reference_visibility_explicit_ && edited));
   const float label_h = ImGui::GetFrameHeightWithSpacing();
   const float text_h = std::max(48.0f, height - label_h);
 
@@ -768,14 +787,13 @@ void MessageEditor::DrawDialogueTextPane(float height) {
                             ImGuiTableColumnFlags_WidthStretch, 0.45f);
     ImGui::TableSetupColumn(gui::ColumnLabel(tr("Editing"), "editing").c_str(),
                             ImGuiTableColumnFlags_WidthStretch, 0.55f);
+    ImGui::TableHeadersRow();
     ImGui::TableNextRow();
     ImGui::TableNextColumn();
-    ImGui::TextDisabled(tr("Loaded"));
     ImGui::InputTextMultiline("##MessageReference", &reference_view_text_,
                               ImVec2(-1.0f, text_h),
                               ImGuiInputTextFlags_ReadOnly);
     ImGui::TableNextColumn();
-    ImGui::TextDisabled(tr("Editing"));
     draw_editor(text_h);
     ImGui::EndTable();
     return;
@@ -1200,6 +1218,7 @@ void MessageEditor::DrawMessageHeader() {
   if (ImGui::Button(ICON_MD_NAVIGATE_BEFORE "##prev_message")) {
     SelectAdjacentMessage(-1);
   }
+  gui::AutoRegisterLastItem("button", "MessagePrev");
   ImGui::EndDisabled();
   if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
     ImGui::SetTooltip("Previous message (Alt+Up)");
@@ -1209,6 +1228,7 @@ void MessageEditor::DrawMessageHeader() {
   if (ImGui::Button(ICON_MD_NAVIGATE_NEXT "##next_message")) {
     SelectAdjacentMessage(1);
   }
+  gui::AutoRegisterLastItem("button", "MessageNext");
   ImGui::EndDisabled();
   if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
     ImGui::SetTooltip("Next message (Alt+Down)");
@@ -1232,9 +1252,14 @@ void MessageEditor::DrawMessageHeader() {
     gui::StatusBadge(tr("Edited"), gui::ButtonType::Warning);
     ImGui::SameLine();
   }
-  if (ImGui::Button(show_reference_ ? tr("Hide reference")
-                                    : tr("Show reference"))) {
-    show_reference_ = !show_reference_;
+  const bool reference_visible =
+      !reference_now.empty() &&
+      (show_reference_ || (!reference_visibility_explicit_ &&
+                           reference_now != message_text_box_.text));
+  if (ImGui::Button(reference_visible ? tr("Hide reference")
+                                      : tr("Show reference"))) {
+    show_reference_ = !reference_visible;
+    reference_visibility_explicit_ = true;
   }
   if (ImGui::IsItemHovered()) {
     ImGui::SetTooltip("Show the text from when this message was loaded.");
@@ -1300,19 +1325,28 @@ void MessageEditor::DrawMessageList() {
   }
   gui::LayoutHelpers::EndToolbar();
 
+  const float filter_row_width = ImGui::GetContentRegionAvail().x;
+  const bool stack_filters = filter_row_width < 260.0f;
+  const float bank_filter_width = std::min(110.0f, filter_row_width);
   ImGui::SetNextItemWidth(
-      std::max(120.0f, ImGui::GetContentRegionAvail().x - 120.0f));
+      stack_filters ? filter_row_width
+                    : std::max(1.0f, filter_row_width - bank_filter_width -
+                                         ImGui::GetStyle().ItemSpacing.x));
   ImGui::InputTextWithHint("##message_filter", "Filter by text, ID, or address",
                            &list_filter_);
-  ImGui::SameLine();
-  ImGui::SetNextItemWidth(110.0f);
+  if (!stack_filters) {
+    ImGui::SameLine();
+  }
+  ImGui::SetNextItemWidth(bank_filter_width);
   ImGui::Combo("##message_bank", &list_bank_filter_,
                "All\0Vanilla\0Expanded\0");
 
   if (!message_bundle_status_.empty()) {
     const ImVec4 color = message_bundle_status_error_ ? gui::GetErrorColor()
                                                       : gui::GetSuccessColor();
+    ImGui::PushStyleColor(ImGuiCol_Text, color);
     ImGui::TextWrapped("%s", message_bundle_status_.c_str());
+    ImGui::PopStyleColor();
   }
 
   const std::vector<MessageRow> rows = CollectMessageRows(true);
@@ -1348,9 +1382,14 @@ void MessageEditor::DrawMessageList() {
     return;
   }
   TableSetupColumn("ID", ImGuiTableColumnFlags_WidthFixed, 64);
-  TableSetupColumn("Bank", ImGuiTableColumnFlags_WidthFixed, 84);
+  const ImGuiTableColumnFlags bank_flags =
+      ImGuiTableColumnFlags_WidthFixed |
+      (expanded_messages_.empty() ? ImGuiTableColumnFlags_DefaultHide : 0);
+  TableSetupColumn("Bank", bank_flags, 84);
   TableSetupColumn("Contents", ImGuiTableColumnFlags_WidthStretch);
-  TableSetupColumn("Address", ImGuiTableColumnFlags_WidthFixed, 90);
+  TableSetupColumn(
+      "Address",
+      ImGuiTableColumnFlags_WidthFixed | ImGuiTableColumnFlags_DefaultHide, 90);
   TableHeadersRow();
 
   const int current_id = CurrentDisplayId();
@@ -1425,9 +1464,11 @@ void MessageEditor::DrawMessageList() {
         scroll_list_to_selection_ = false;
       }
       TableNextColumn();
-      gui::StatusBadge(
-          message.expanded ? tr("Expanded") : tr("Vanilla"),
-          message.expanded ? gui::ButtonType::Warning : gui::ButtonType::Info);
+      if (message.expanded) {
+        gui::StatusBadge(tr("Expanded"), gui::ButtonType::Warning);
+      } else {
+        ImGui::TextDisabled("%s", tr("Vanilla"));
+      }
 
       TableNextColumn();
       const std::string preview =
@@ -1560,88 +1601,98 @@ void MessageEditor::DrawCurrentMessage() {
       ImGui::EndPopup();
     }
     ImGui::SameLine();
-    ImGui::TextDisabled(tr("Scroll the preview with the mouse wheel"));
+    bool show_preview_grid = current_font_gfx16_canvas_.GetConfig().enable_grid;
+    if (ImGui::Checkbox(tr("Grid"), &show_preview_grid)) {
+      current_font_gfx16_canvas_.SetGridEnabled(show_preview_grid);
+    }
 
     gui::BeginPadding(1);
-    BeginChild("CurrentGfxFont", ImVec2(0, 200), true,
+    const float available_width = ImGui::GetContentRegionAvail().x;
+    const float scale =
+        std::max(1.0f, std::floor(std::max(1.0f, available_width - 4.0f) /
+                                  static_cast<float>(kCurrentMessageWidth)));
+    const ImVec2 preview_size(kCurrentMessageWidth * scale,
+                              3.0f * 16.0f * scale);
+    BeginChild("CurrentGfxFont", ImVec2(0, preview_size.y + 4.0f), true,
                ImGuiWindowFlags_NoScrollWithMouse);
     current_font_gfx16_canvas_.GetConfig().role =
         gui::CanvasRole::kSelectionSource;
-    current_font_gfx16_canvas_.DrawBackground();
+    const float zoom = current_font_gfx16_canvas_.GetGlobalScale();
+    // Context-menu zoom can update the config before the legacy canvas scale.
+    current_font_gfx16_canvas_.set_global_scale(zoom);
+    const ImVec2 frame_size(preview_size.x * zoom, preview_size.y * zoom);
+    const float inset = std::max(
+        0.0f, (ImGui::GetContentRegionAvail().x - frame_size.x) * 0.5f);
+    ImGui::SetCursorPosX(ImGui::GetCursorPosX() + inset);
+    // The viewport claims the wheel before the parent can scroll it.
+    current_font_gfx16_canvas_.DrawBackground(preview_size, frame_size);
+    const bool preview_hovered = ImGui::IsItemHovered();
     gui::EndPadding();
     current_font_gfx16_canvas_.DrawContextMenu();
 
-    if (ImGui::IsWindowHovered()) {
+    const int last_visible_line =
+        std::min(std::max(0, message_preview_.text_line - 2),
+                 kCurrentMessageHeight / 16 - 3);
+    message_preview_.shown_lines =
+        std::clamp(message_preview_.shown_lines, 0, last_visible_line);
+    if (preview_hovered) {
       const float wheel = ImGui::GetIO().MouseWheel;
       if (wheel > 0 && message_preview_.shown_lines > 0) {
         message_preview_.shown_lines--;
-      } else if (wheel < 0 && message_preview_.shown_lines <
-                                  message_preview_.text_line - 2) {
+      } else if (wheel < 0 &&
+                 message_preview_.shown_lines < last_visible_line) {
         message_preview_.shown_lines++;
       }
+      ImGui::SetTooltip("Scroll the preview with the mouse wheel");
     }
 
-    const ImVec2 preview_canvas_size = current_font_gfx16_canvas_.canvas_size();
-    const float dest_width = std::max(0.0f, preview_canvas_size.x - 8.0f);
-    const float dest_height = std::max(0.0f, preview_canvas_size.y - 8.0f);
-    float src_height = 0.0f;
-    if (dest_width > 0.0f && dest_height > 0.0f) {
-      const float src_width =
-          std::min(dest_width * 0.5f, static_cast<float>(kCurrentMessageWidth));
-      src_height = std::min(dest_height * 0.5f,
-                            static_cast<float>(kCurrentMessageHeight));
-      current_font_gfx16_canvas_.DrawBitmap(
-          current_font_gfx16_bitmap_, ImVec2(0, 0),
-          ImVec2(dest_width, dest_height),
-          ImVec2(0, message_preview_.shown_lines * 16),
-          ImVec2(src_width, src_height));
-    }
+    const ImVec2 frame_origin = current_font_gfx16_canvas_.zero_point();
+    const ImVec2 scroll = current_font_gfx16_canvas_.scrolling();
+    const ImVec2 preview_origin(frame_origin.x + scroll.x,
+                                frame_origin.y + scroll.y);
+    ImDrawList* preview_draw_list = ImGui::GetWindowDrawList();
+    preview_draw_list->PushClipRect(
+        frame_origin,
+        ImVec2(frame_origin.x + frame_size.x, frame_origin.y + frame_size.y),
+        true);
+    preview_draw_list->AddRectFilled(preview_origin,
+                                     ImVec2(preview_origin.x + frame_size.x,
+                                            preview_origin.y + frame_size.y),
+                                     IM_COL32(0, 0, 0, 255));
+    current_font_gfx16_canvas_.DrawBitmap(
+        current_font_gfx16_bitmap_, scroll, frame_size,
+        ImVec2(0, message_preview_.shown_lines * 16.0f),
+        ImVec2(static_cast<float>(kCurrentMessageWidth), 3.0f * 16.0f));
 
-    {
+    if (current_font_gfx16_canvas_.GetConfig().enable_grid) {
       ImDrawList* overlay_draw_list = ImGui::GetWindowDrawList();
-      const ImVec2 canvas_p0 = current_font_gfx16_canvas_.zero_point();
-      const ImVec2 canvas_sz = current_font_gfx16_canvas_.canvas_size();
       const float line_height = 16.0f;
-      float scale_y = 1.0f;
-      if (dest_height > 0.0f && src_height > 0.0f) {
-        scale_y = dest_height / src_height;
-      }
       const ImU32 marker_color =
           ImGui::ColorConvertFloat4ToU32(gui::GetInfoColor());
       for (int marker_line : message_preview_.scroll_marker_lines) {
         const float src_y =
             (marker_line - message_preview_.shown_lines) * line_height;
-        const float y = canvas_p0.y + src_y * scale_y;
-        if (y >= canvas_p0.y && y <= canvas_p0.y + canvas_sz.y) {
-          overlay_draw_list->AddLine(ImVec2(canvas_p0.x, y),
-                                     ImVec2(canvas_p0.x + canvas_sz.x, y),
+        const float y = preview_origin.y + src_y * scale * zoom;
+        if (y >= frame_origin.y && y <= frame_origin.y + frame_size.y) {
+          overlay_draw_list->AddLine(ImVec2(preview_origin.x, y),
+                                     ImVec2(preview_origin.x + frame_size.x, y),
                                      marker_color, 1.5f);
           overlay_draw_list->AddText(
-              ImVec2(canvas_p0.x + canvas_sz.x + 4, y - 6), marker_color,
+              ImVec2(preview_origin.x + frame_size.x - 20, y - 6), marker_color,
               "[V]");
         }
       }
     }
+    preview_draw_list->PopClipRect();
 
-    current_font_gfx16_canvas_.DrawGrid();
+    if (current_font_gfx16_canvas_.GetConfig().enable_grid) {
+      current_font_gfx16_canvas_.DrawGrid();
+    }
     current_font_gfx16_canvas_.DrawOverlay();
     EndChild();
     DrawMessageStructure();
   }
   ImGui::EndChild();
-}
-
-void MessageEditor::DrawFontAtlas() {
-  gui::SectionHeader(ICON_MD_FONT_DOWNLOAD, tr("Font Atlas"),
-                     gui::GetInfoColor());
-  EnsureFontTexturesReady();
-  font_gfx_canvas_.GetConfig().role = gui::CanvasRole::kSelectionSource;
-  gui::BeginCanvas(font_gfx_canvas_, ImVec2(256, 256));
-  font_gfx_canvas_.DrawBitmap(font_gfx_bitmap_, 0, 0, 2.0f);
-  font_gfx_canvas_.DrawTileSelector(16, 32);
-  gui::EndCanvas(font_gfx_canvas_);
-  ImGui::TextDisabled(
-      tr("2bpp dialogue font at $070000. Click a tile to inspect it."));
 }
 
 void MessageEditor::DrawExpandedMessageSettings() {

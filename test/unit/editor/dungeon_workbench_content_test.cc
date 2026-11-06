@@ -2,6 +2,8 @@
 
 #include <gtest/gtest.h>
 
+#include <algorithm>
+#include <array>
 #include <chrono>
 #include <cstdlib>
 #include <deque>
@@ -610,7 +612,8 @@ TEST(DungeonWorkbenchNavigatorUiTest,
   EXPECT_GT(objects.draw_count, 0);
 }
 
-TEST(DungeonWorkbenchNavigatorUiTest, CollapsedMatrixDoesNotOverflowInspector) {
+TEST(DungeonWorkbenchNavigatorUiTest,
+     CollapsedMatrixKeepsEmptySelectionCompact) {
   auto* previous_context = ImGui::GetCurrentContext();
   auto* context = ImGui::CreateContext();
   absl::Cleanup cleanup = [&] {
@@ -629,15 +632,25 @@ TEST(DungeonWorkbenchNavigatorUiTest, CollapsedMatrixDoesNotOverflowInspector) {
   int room_id = 0;
   const std::deque<int> recent;
   auto content = MakeWorkbenchForToolStateTests(room_id, recent);
+  DungeonRoomStore rooms;
   DungeonCanvasViewer viewer;
   DungeonWorkbenchContentTestPeer::SetViewer(content, &viewer);
   ImVector<int> active_rooms;
   RoomMatrixContent matrix(&room_id, &active_rooms, [](int) {});
   FakeWorkbenchToolContent objects("dungeon.object_selector");
-  content.SetNavigationPanels(&matrix, nullptr);
+  std::array<zelda3::RoomEntrance, zelda3::kNumDungeonEntranceSlots> records{};
+  std::array<zelda3::DungeonSpawnPoint, zelda3::kNumDungeonSpawnPoints>
+      spawns{};
+  int selected_entrance = 0;
+  int navigated_entrance = -1;
+  DungeonEntrancesPanel entrances(
+      &records, &spawns, &selected_entrance,
+      [&](int entrance) { navigated_entrance = entrance; });
+  content.SetNavigationPanels(&matrix, &entrances);
   content.SetEmbeddedEditorPanels(&objects, nullptr, nullptr, nullptr, nullptr,
                                   nullptr);
 
+  float inspector_height = 640;
   const auto frame = [&]() {
     gui::WidgetIdRegistry::Instance().Clear();
     ImGui::NewFrame();
@@ -646,7 +659,7 @@ TEST(DungeonWorkbenchNavigatorUiTest, CollapsedMatrixDoesNotOverflowInspector) {
     ImGui::Begin("CollapsedMatrixHost", nullptr,
                  ImGuiWindowFlags_NoSavedSettings);
     DungeonWorkbenchContentTestPeer::DrawInspectorPane(content, viewer, 280,
-                                                       640);
+                                                       inspector_height);
     ImGui::End();
     ImGui::Render();
   };
@@ -678,6 +691,9 @@ TEST(DungeonWorkbenchNavigatorUiTest, CollapsedMatrixDoesNotOverflowInspector) {
     ASSERT_NE(sidebar, nullptr);
     ASSERT_NE(tools, nullptr);
     ASSERT_NE(active_child("##NavigatorMatrix"), nullptr);
+    ASSERT_NE(active_child("##NavigatorEntrances"), nullptr);
+    ASSERT_NE(active_child("##EntrancesList"), nullptr);
+    EXPECT_LT(tools->Size.y, sidebar->Size.y * .25f);
     EXPECT_EQ(sidebar->ScrollMax.y, 0.0f);
     EXPECT_FALSE(sidebar->ScrollbarY);
     const float expanded_tools_height = tools->Size.y;
@@ -689,7 +705,8 @@ TEST(DungeonWorkbenchNavigatorUiTest, CollapsedMatrixDoesNotOverflowInspector) {
     ASSERT_NE(sidebar, nullptr);
     ASSERT_NE(tools, nullptr);
     EXPECT_EQ(active_child("##NavigatorMatrix"), nullptr);
-    EXPECT_GT(tools->Size.y, expanded_tools_height);
+    EXPECT_NEAR(tools->Size.y, expanded_tools_height, 1.0f);
+    ASSERT_NE(active_child("##EntrancesList"), nullptr);
     EXPECT_EQ(sidebar->ScrollMax.y, 0.0f);
     EXPECT_FALSE(sidebar->ScrollbarY);
 
@@ -701,6 +718,64 @@ TEST(DungeonWorkbenchNavigatorUiTest, CollapsedMatrixDoesNotOverflowInspector) {
     EXPECT_EQ(sidebar->ScrollMax.y, 0.0f);
     EXPECT_FALSE(sidebar->ScrollbarY);
   }
+
+  const auto find_widget = [](const char* label)
+      -> std::optional<gui::WidgetIdRegistry::WidgetInfo> {
+    const auto widgets = gui::WidgetIdRegistry::Instance().GetAllWidgets();
+    for (const auto& [path, widget] : widgets)
+      if (widget.label == label)
+        return widget;
+    return std::nullopt;
+  };
+  const auto click = [&](const char* label) {
+    const auto widget = find_widget(label);
+    ASSERT_TRUE(widget.has_value()) << label;
+    ASSERT_TRUE(widget->visible) << label;
+    const auto bounds = widget->bounds;
+    io.AddMousePosEvent((bounds.min_x + bounds.max_x) * .5f,
+                        (bounds.min_y + bounds.max_y) * .5f);
+    frame();
+    io.AddMouseButtonEvent(0, true);
+    frame();
+    io.AddMouseButtonEvent(0, false);
+    frame();
+    settle();
+  };
+  // The embedded list must use the maintained selection callback, not a
+  // second navigation model. The second spawn entry is visible without scroll.
+  ASSERT_NO_FATAL_FAILURE(click("entrance_001"));
+  EXPECT_EQ(selected_entrance, 1);
+  EXPECT_EQ(navigated_entrance, 1);
+
+  // Both reopen controls must remain reachable even with a long selection in
+  // a short pane. The outer pane cannot scroll to recover clipped controls.
+  ASSERT_NO_FATAL_FAILURE(click("entrance_list_toggle"));
+  DungeonWorkbenchContentTestPeer::SetRoomMatrixVisible(content, false);
+  rooms[0].SetLoaded(true);
+  for (int index = 0; index < 10; ++index)
+    rooms[0].GetTileObjects().emplace_back(0x001, index + 4, 8, 3, 0);
+  viewer.RefreshRomBackedState(nullptr, nullptr, &rooms, 0);
+  viewer.object_interaction().SetCurrentRoom(&rooms, 0);
+  viewer.object_interaction().SetSelectedObjects(
+      {0, 1, 2, 3, 4, 5, 6, 7, 8, 9});
+  inspector_height = 240;
+  settle();
+  auto* sidebar = active_child("##DungeonWorkbenchInspector");
+  auto* selection = active_child("##WorkbenchSelection");
+  ASSERT_NE(sidebar, nullptr);
+  ASSERT_NE(selection, nullptr);
+  EXPECT_GT(selection->ScrollMax.y, 0);
+  EXPECT_EQ(sidebar->ScrollMax.y, 0);
+  EXPECT_FALSE(sidebar->ScrollbarY);
+  for (const char* label : {"room_matrix_toggle", "entrance_list_toggle"}) {
+    const auto widget = find_widget(label);
+    ASSERT_TRUE(widget.has_value()) << label;
+    EXPECT_TRUE(widget->visible) << label;
+    EXPECT_GE(widget->bounds.min_y, sidebar->InnerClipRect.Min.y) << label;
+    EXPECT_LE(widget->bounds.max_y, sidebar->InnerClipRect.Max.y) << label;
+  }
+  ASSERT_NO_FATAL_FAILURE(click("room_matrix_toggle"));
+  EXPECT_TRUE(DungeonWorkbenchContentTestPeer::IsRoomMatrixVisible(content));
 }
 
 // Exercise the real matrix drawing and its registered input rectangles. This
@@ -836,11 +911,25 @@ TEST(DungeonWorkbenchNavigatorUiTest,
          gui::WidgetIdRegistry::Instance().GetAllWidgets()) {
       if (widget.label != label)
         continue;
-      auto* window = ImGui::FindWindowByName("PaletteMatrix");
-      for (const auto& vertex : window->DrawList->VtxBuffer)
-        if (vertex.pos.x == widget.bounds.min_x &&
-            vertex.pos.y == widget.bounds.min_y)
+      auto* window = ImGui::FindWindowByName(widget.window_name.c_str());
+      if (!window) {
+        ADD_FAILURE() << "Missing registered matrix window "
+                      << widget.window_name;
+        return 0;
+      }
+      // Fractional rectangles use antialiased fills: their opaque corner is
+      // half a fringe inside the logical widget edge. Integer-aligned fills
+      // retain an opaque vertex exactly on the edge.
+      const float inset = window->DrawList->_FringeScale * 0.5f;
+      for (const auto& vertex : window->DrawList->VtxBuffer) {
+        const bool edge = vertex.pos.x == widget.bounds.min_x &&
+                          vertex.pos.y == widget.bounds.min_y;
+        const bool inner = vertex.pos.x == widget.bounds.min_x + inset &&
+                           vertex.pos.y == widget.bounds.min_y + inset;
+        if ((edge || inner) &&
+            (vertex.col & IM_COL32_A_MASK) == IM_COL32_A_MASK)
           return vertex.col;
+      }
     }
     ADD_FAILURE() << "Missing rendered room fill " << label;
     return 0;

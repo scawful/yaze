@@ -71,6 +71,7 @@ class DungeonPlaceObjectCommandHandler : public resources::CommandHandler {
   std::string GetUsage() const override {
     return "dungeon-place-object --room <hex> --id <hex> --x <int> --y <int> "
            "[--size <int>] [--layer <0|1|2>] "
+           "[--chest-item <hex>] "
            "[--manifest <path>] "
            "[--write] [--format <json|text>]";
   }

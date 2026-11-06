@@ -56,8 +56,7 @@ void MessagePreview::DrawTileToPreview(int x, int y, int srcx, int srcy,
           const int dst_x = x + tile_x * tile_size + px;
           const int dst_y = y + tile_y * tile_size + py;
           const int dst_index = dst_x + (dst_y * kCurrentMessageWidth);
-          if (dst_index < 0 ||
-              static_cast<size_t>(dst_index) >= preview_size) {
+          if (dst_index < 0 || static_cast<size_t>(dst_index) >= preview_size) {
             continue;
           }
 
@@ -97,7 +96,8 @@ void MessagePreview::DrawCharacterToPreview(const std::vector<uint8_t>& text) {
         text_line++;
       }
 
-      DrawTileToPreview(text_position, text_line * 16, srcx, srcy, 0, 1, 2);
+      DrawTileToPreview(text_position, text_line * 16, srcx, srcy,
+                        kDialogueFontPalette, 1, 2);
       text_position += width_array[value];
     } else if (value == kLine1) {
       text_position = 0;
@@ -145,6 +145,7 @@ void MessagePreview::DrawCharacterToPreview(const std::vector<uint8_t>& text) {
 void MessagePreview::DrawMessagePreview(const MessageData& message) {
   // From Parsing.
   text_line = 0;
+  skip_next = false;
   std::fill(current_preview_data_.begin(), current_preview_data_.end(), 0);
   text_position = 0;
   scroll_marker_lines.clear();

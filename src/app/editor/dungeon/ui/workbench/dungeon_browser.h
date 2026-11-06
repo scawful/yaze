@@ -13,12 +13,15 @@
 
 namespace yaze::editor::workbench {
 
+enum class DungeonBrowserView { kList, kIcons };
+
 // Presentation state only. Each browser keeps its domain's existing placement
 // callback, categories and asset identity.
 struct DungeonBrowserState {
   char search[64] = {};
   int category = 0;
   int sort = 0;
+  DungeonBrowserView view = DungeonBrowserView::kList;
 };
 
 inline void DrawDungeonBrowserControls(
@@ -42,6 +45,24 @@ inline void DrawDungeonBrowserControls(
   gui::AutoRegisterLastItem("combo", "sort");
   if (ImGui::IsItemHovered())
     ImGui::SetTooltip("Sort by ID or name.");
+}
+
+inline void DrawDungeonBrowserViewControls(DungeonBrowserState& state) {
+  if (ImGui::BeginTable(
+          "##BrowserView", 2,
+          ImGuiTableFlags_SizingStretchSame | ImGuiTableFlags_NoPadOuterX)) {
+    ImGui::TableNextColumn();
+    if (ImGui::Selectable("List", state.view == DungeonBrowserView::kList, 0,
+                          ImVec2(ImGui::GetContentRegionAvail().x, 0)))
+      state.view = DungeonBrowserView::kList;
+    gui::AutoRegisterLastItem("selectable", "view_list");
+    ImGui::TableNextColumn();
+    if (ImGui::Selectable("Icons", state.view == DungeonBrowserView::kIcons, 0,
+                          ImVec2(ImGui::GetContentRegionAvail().x, 0)))
+      state.view = DungeonBrowserView::kIcons;
+    gui::AutoRegisterLastItem("selectable", "view_icons");
+    ImGui::EndTable();
+  }
 }
 
 inline std::string DungeonBrowserFold(std::string_view value) {
@@ -100,6 +121,46 @@ bool DrawDungeonBrowserRow(int id, const std::string& name, bool selected,
   }
   if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
     ImGui::SetTooltip("%s ($%03X)", name.c_str(), id);
+  ImGui::LogText("%03X  %s\n", id, name.c_str());
+  return pressed;
+}
+
+template <typename DrawPreview>
+bool DrawDungeonBrowserIcon(int id, const std::string& name, bool selected,
+                            float width, DrawPreview preview,
+                            std::string_view badge = {}) {
+  width = std::max(width, 1.0f);
+  const float line_height = ImGui::GetTextLineHeight();
+  const float padding = std::min(3.0f, width * 0.08f);
+  const ImVec2 pos = ImGui::GetCursorScreenPos();
+  const ImVec2 size(width, width + line_height * 2.0f + padding);
+  // Keep the entry ID stable when the browser changes presentation.
+  const bool pressed = ImGui::Selectable("##row", selected, 0, size);
+  if (ImGui::IsItemVisible()) {
+    char hex[16];
+    std::snprintf(hex, sizeof(hex), "%03X", id);
+    const std::string id_text =
+        badge.empty() ? std::string(hex) : std::string(badge);
+    const ImVec2 preview_size(std::max(1.0f, width - padding * 2.0f),
+                              std::max(1.0f, width - padding * 2.0f));
+    auto* draw = ImGui::GetWindowDrawList();
+    draw->PushClipRect(pos, ImVec2(pos.x + size.x, pos.y + size.y), true);
+    if (!preview(ImVec2(pos.x + padding, pos.y + padding), preview_size)) {
+      const ImVec2 label_size = ImGui::CalcTextSize(id_text.c_str());
+      draw->AddText(ImVec2(pos.x + (width - label_size.x) * 0.5f,
+                           pos.y + (width - line_height) * 0.5f),
+                    ImGui::GetColorU32(ImGuiCol_TextDisabled), id_text.c_str());
+    }
+    draw->AddText(ImVec2(pos.x + padding, pos.y + width),
+                  ImGui::GetColorU32(ImGuiCol_Text), name.c_str());
+    draw->AddText(ImVec2(pos.x + padding, pos.y + width + line_height),
+                  ImGui::GetColorU32(ImGuiCol_TextDisabled), id_text.c_str());
+    draw->PopClipRect();
+  }
+  if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
+    ImGui::SetTooltip("%s ($%03X)%s%s", name.c_str(), id,
+                      badge.empty() ? "" : " - ",
+                      badge.empty() ? "" : std::string(badge).c_str());
   ImGui::LogText("%03X  %s\n", id, name.c_str());
   return pressed;
 }

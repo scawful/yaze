@@ -466,6 +466,7 @@ if(YAZE_BUILD_TESTS)
     unit/editor/palette_controls_panel_layout_test.cc
     unit/editor/palette_catalog_session_test.cc
     unit/editor/sprite_editor_preview_test.cc
+    unit/editor/memory_editor_compare_test.cc
     unit/editor/sprite_authoring_test.cc
     unit/editor/sprite_behavior_test.cc
     unit/editor/sprite_catalog_session_test.cc
@@ -1059,6 +1060,11 @@ if(YAZE_BUILD_TESTS)
   # --- ROM Dependent Test Suite ---
   if(YAZE_ENABLE_ROM_TESTS)
     set(ROM_DEPENDENT_TEST_SOURCES
+        e2e/rom_dependent/save_trust_resources_test.cc
+        e2e/rom_dependent/save_trust_dungeon_test.cc
+        e2e/rom_dependent/save_trust_tile16_test.cc
+        e2e/rom_dependent/save_trust_tile32_test.cc
+        e2e/rom_dependent/save_trust_entrances_test.cc
       integration/asar_rom_test.cc
       integration/zelda3/dungeon_graphics_transparency_test.cc
       integration/zelda3/dungeon_object_rom_validation_test.cc

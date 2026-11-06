@@ -6,7 +6,11 @@
 
 #include "app/gfx/resource/arena.h"
 #include "app/gfx/types/snes_tile.h"
+#include "app/gui/canvas/canvas.h"
+#include "app/gui/core/icons.h"
+#include "app/gui/core/ui_helpers.h"
 #include "imgui.h"
+#include "util/i18n/tr.h"
 #include "util/log.h"
 #include "zelda3/game_data.h"
 
@@ -17,18 +21,22 @@ void MessageEditor::ResolveFontPalette() {
     font_preview_colors_ = game_data()->palette_groups.hud.palette(0);
   }
 
-  if (font_preview_colors_.empty()) {
+  if (font_preview_colors_.size() < (kDialogueFontPalette + 1) * 4) {
     font_preview_colors_ = BuildFallbackFontPalette();
   }
 }
 
 gfx::SnesPalette MessageEditor::BuildFallbackFontPalette() const {
   std::vector<gfx::SnesColor> colors;
-  colors.reserve(16);
-  for (int i = 0; i < 16; ++i) {
-    const float value = static_cast<float>(i) / 15.0f;
+  colors.reserve(32);
+  for (int i = 0; i < 32; ++i) {
+    const float value = static_cast<float>(i % 16) / 15.0f;
     colors.emplace_back(ImVec4(value, value, value, 1.0f));
   }
+
+  colors[25] = gfx::SnesColor(ImVec4(0.0f, 0.0f, 0.44f, 1.0f));
+  colors[26] = gfx::SnesColor(ImVec4(0.97f, 0.97f, 0.97f, 1.0f));
+  colors[27] = gfx::SnesColor(ImVec4(0.75f, 0.0f, 0.0f, 1.0f));
 
   if (!colors.empty()) {
     colors[0].set_transparent(true);
@@ -153,6 +161,19 @@ void MessageEditor::EnsureFontTexturesReady() {
     gfx::Arena::Get().QueueTextureCommand(
         gfx::Arena::TextureCommandType::CREATE, &current_font_gfx16_bitmap_);
   }
+}
+
+void MessageEditor::DrawFontAtlas() {
+  gui::SectionHeader(ICON_MD_FONT_DOWNLOAD, tr("Font Atlas"),
+                     gui::GetInfoColor());
+  EnsureFontTexturesReady();
+  font_gfx_canvas_.GetConfig().role = gui::CanvasRole::kSelectionSource;
+  gui::BeginCanvas(font_gfx_canvas_, ImVec2(256, 256));
+  font_gfx_canvas_.DrawBitmap(font_gfx_bitmap_, 0, 0, 2.0f);
+  font_gfx_canvas_.DrawTileSelector(16, 32);
+  gui::EndCanvas(font_gfx_canvas_);
+  ImGui::TextDisabled(
+      tr("2bpp dialogue font at $070000. Click a tile to inspect it."));
 }
 
 }  // namespace yaze::editor

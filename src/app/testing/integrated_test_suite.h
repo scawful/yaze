@@ -11,10 +11,6 @@
 #include "app/testing/test_manager.h"
 #include "rom/rom.h"
 
-#ifdef YAZE_ENABLE_GTEST
-#include <gtest/gtest.h>
-#endif
-
 namespace yaze {
 namespace test {
 

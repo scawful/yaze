@@ -101,13 +101,17 @@ void CommandRegistry::RegisterHandlers(
             "--rom=/tmp/oos-work.sfc --format=json"};
       } else if (name == "dungeon-place-object") {
         metadata.description =
-            "Place a dungeon object with immutable capacity/COW preflight "
+            "Place a dungeon object or paired chest/reward with capacity/COW "
+            "preflight "
             "(dry-run by default)";
         metadata.examples = {
             "z3ed dungeon-place-object --room=0x98 --id=0x0031 --x=20 --y=20 "
             "--size=4 --rom=/tmp/oos-work.sfc --format=json",
             "z3ed dungeon-place-object --room=0x98 --id=0x0031 --x=20 --y=20 "
             "--size=4 --manifest=hack_manifest.json --write "
+            "--rom=/tmp/oos-work.sfc --format=json",
+            "z3ed dungeon-place-object --room=0xCB --id=0xF99 --x=20 --y=52 "
+            "--layer=0 --chest-item=0x33 --manifest=hack_manifest.json "
             "--rom=/tmp/oos-work.sfc --format=json"};
       } else if (name == "dungeon-remove-object") {
         metadata.description =

@@ -169,6 +169,12 @@ class SpriteEditor : public Editor {
   // Editor-Level Methods
   // ============================================================
   void HandleEditorShortcuts();
+  // Called from inside a panel window: records that this editor has focus for
+  // the next HandleEditorShortcuts().
+  void NoteShortcutFocus() {
+    shortcut_focus_ |=
+        ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows);
+  }
 
   // ============================================================
   // Vanilla Sprite Editor Methods
@@ -266,6 +272,7 @@ class SpriteEditor : public Editor {
 
   // Animation playback state
   bool animation_playing_ = false;
+  bool shortcut_focus_ = false;  // a sprite panel was focused this frame
   int current_frame_ = 0;
   int current_animation_index_ = 0;
   float frame_timer_ = 0.0f;

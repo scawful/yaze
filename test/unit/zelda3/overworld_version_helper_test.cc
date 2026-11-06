@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <vector>
 
+#include "absl/status/status.h"
 #include "gtest/gtest.h"
 #include "rom/rom.h"
 #include "rom/snes.h"
@@ -22,6 +23,25 @@ void InitOverworldTestRom(Rom& rom, uint8_t asm_version = 0xFF) {
   data[kMap32ExpandedFlagPos] = 0x04;
   data[kOverworldEntranceExpandedFlagPos] = 0xB8;
   EXPECT_TRUE(rom.LoadFromData(data).ok());
+}
+
+// Point every map at the same synthetic item stream in the last ROM bank.
+bool PointItemsAtRomEnd(Rom& rom, uint32_t stream_pc) {
+  const uint32_t stream_snes = PcToSnes(stream_pc);
+  if (!rom.WriteLong(overworldItemsAddress,
+                     PcToSnes(kOverworldItemsPointersNew))
+           .ok() ||
+      !rom.WriteByte(overworldItemsAddressBank, stream_snes >> 16).ok()) {
+    return false;
+  }
+  for (int i = 0; i < kNumOverworldMaps; ++i) {
+    if (!rom.WriteShort(kOverworldItemsPointersNew + i * 2,
+                        stream_snes & 0xFFFF)
+             .ok()) {
+      return false;
+    }
+  }
+  return true;
 }
 
 void PopulateUniqueTile32Maps(OverworldMapTiles* maps,
@@ -592,6 +612,74 @@ TEST(OverworldEntranceCompatibilityTest,
   EXPECT_FALSE(LoadEntrances(nullptr).ok());
   EXPECT_FALSE(LoadHoles(nullptr).ok());
   EXPECT_FALSE(SaveEntrances(nullptr, {}, false).ok());
+}
+
+TEST(OverworldItemCompatibilityTest, LoadTerminatorAtExactRomEnd) {
+  Rom rom;
+  InitOverworldTestRom(rom, 0x03);
+  constexpr uint32_t kRomSize = 2 * 1024 * 1024;
+  ASSERT_EQ(rom.vector().size(), kRomSize);
+  ASSERT_TRUE(PointItemsAtRomEnd(rom, kRomSize - 2));
+  ASSERT_TRUE(rom.WriteShort(kRomSize - 2, 0xFFFF).ok());
+  std::vector<OverworldMap> maps;
+  for (int i = 0; i < kNumOverworldMaps; ++i) {
+    maps.emplace_back(i, &rom);
+    maps.back().SetAsSmallMap(i);
+  }
+  auto loaded = LoadItems(&rom, maps);
+  ASSERT_TRUE(loaded.ok()) << loaded.status();
+  EXPECT_TRUE(loaded->empty());
+}
+
+TEST(OverworldItemCompatibilityTest, LoadRecordBeforeTerminatorAtRomEnd) {
+  Rom rom;
+  InitOverworldTestRom(rom, 0x03);
+  constexpr uint32_t kRomSize = 2 * 1024 * 1024;
+  ASSERT_EQ(rom.vector().size(), kRomSize);
+  ASSERT_TRUE(PointItemsAtRomEnd(rom, kRomSize - 2));
+  ASSERT_TRUE(rom.WriteShort(kRomSize - 2, 0xFFFF).ok());
+  ASSERT_TRUE(rom.WriteShort(kOverworldItemsPointersNew,
+                             PcToSnes(kRomSize - 5) & 0xFFFF)
+                  .ok());
+  ASSERT_TRUE(rom.WriteByte(kRomSize - 5, 2).ok());
+  ASSERT_TRUE(rom.WriteByte(kRomSize - 4, 0).ok());
+  ASSERT_TRUE(rom.WriteByte(kRomSize - 3, 0x2A).ok());
+  std::vector<OverworldMap> maps;
+  for (int i = 0; i < kNumOverworldMaps; ++i) {
+    maps.emplace_back(i, &rom);
+    maps.back().SetAsSmallMap(i);
+  }
+  auto loaded = LoadItems(&rom, maps);
+  ASSERT_TRUE(loaded.ok()) << loaded.status();
+  ASSERT_EQ(loaded->size(), 1u);
+  EXPECT_EQ((*loaded)[0].room_map_id_, 0);
+  EXPECT_EQ((*loaded)[0].game_x_, 1);
+  EXPECT_EQ((*loaded)[0].game_y_, 0);
+  EXPECT_EQ((*loaded)[0].id_, 0x2A);
+}
+
+TEST(OverworldItemCompatibilityTest, RejectTruncatedItemStreamAtRomEnd) {
+  for (const bool truncated_terminator : {false, true}) {
+    SCOPED_TRACE(truncated_terminator);
+    Rom rom;
+    InitOverworldTestRom(rom, 0x03);
+    constexpr uint32_t kRomSize = 2 * 1024 * 1024;
+    ASSERT_EQ(rom.vector().size(), kRomSize);
+    const uint32_t stream = kRomSize - (truncated_terminator ? 1 : 2);
+    ASSERT_TRUE(PointItemsAtRomEnd(rom, stream));
+    ASSERT_TRUE(rom.WriteByte(stream, truncated_terminator ? 0xFF : 0).ok());
+    if (!truncated_terminator) {
+      ASSERT_TRUE(rom.WriteByte(stream + 1, 0).ok());
+    }
+    std::vector<OverworldMap> maps;
+    for (int i = 0; i < kNumOverworldMaps; ++i) {
+      maps.emplace_back(i, &rom);
+      maps.back().SetAsSmallMap(i);
+    }
+    const auto loaded = LoadItems(&rom, maps);
+    EXPECT_FALSE(loaded.ok());
+    EXPECT_EQ(loaded.status().code(), absl::StatusCode::kOutOfRange);
+  }
 }
 
 TEST(OverworldItemCompatibilityTest,
