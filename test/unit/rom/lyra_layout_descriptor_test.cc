@@ -846,6 +846,7 @@ TEST(LyraLayoutDescriptorTest,
   for (uint16_t capacity : {160, 192}) {
     SCOPED_TRACE(capacity);
     NativeDirectoryFixture fixture(capacity);
+    fixture.SeedNativeSpritePrefix();
     auto inspected =
         rom::InspectLyraLayout(fixture.bytes.data(), fixture.bytes.size());
     ASSERT_EQ(inspected.presence, rom::LyraLayoutPresence::kValid)
@@ -906,7 +907,16 @@ TEST(LyraLayoutDescriptorTest,
     const auto sprite_refused =
         rom::PlanNativeOverworldSpriteSave(fixture.bytes, sprite_edits);
     EXPECT_TRUE(absl::IsFailedPrecondition(sprite_refused.status()));
+    EXPECT_NE(
+        sprite_refused.status().message().find("stable placement-ID binding"),
+        std::string::npos);
     EXPECT_TRUE(rom::PlanNativeOverworldSpriteSave(fixture.bytes, {}).ok());
+    const std::vector<rom::NativeOverworldSpriteEdit> same_lists = {
+        {0, 0x80, {0xFF}}, {1, 0, {0xFF}}};
+    const auto unchanged =
+        rom::PlanNativeOverworldSpriteSave(fixture.bytes, same_lists);
+    ASSERT_TRUE(unchanged.ok()) << unchanged.status();
+    EXPECT_TRUE(unchanged->empty());
   }
 }
 
@@ -1809,6 +1819,78 @@ TEST(LyraLayoutDescriptorTest,
 }
 
 class NativeSpecialOverworldEditorTest : public test::HeadlessEditorTest {};
+
+TEST_F(NativeSpecialOverworldEditorTest,
+       AuthoringMetadataOrdinarySaveKeepsUnchangedSpriteLists) {
+  const char* path = std::getenv("YAZE_TEST_ROM_OOS");
+  if (!path || !std::filesystem::exists(path))
+    GTEST_SKIP() << "Set YAZE_TEST_ROM_OOS for authoring metadata Save/reopen";
+  const auto flags = core::FeatureFlags::get();
+  auto restore_flags =
+      absl::MakeCleanup([&] { core::FeatureFlags::get() = flags; });
+  core::FeatureFlags::get().overworld.kSaveOverworldSprites = true;
+  core::FeatureFlags::get().overworld.kSaveOverworldProperties = true;
+  Rom legacy;
+  ASSERT_TRUE(legacy.LoadFromData(ReadBytes(path)).ok());
+  zelda3::Overworld reference(&legacy);
+  ASSERT_TRUE(reference.Load(&legacy).ok());
+  for (int capacity : {160, 192}) {
+    SCOPED_TRACE(capacity);
+    NativeDirectoryFixture fixture(capacity);
+    fixture.SeedLoadedLegacyForModelTest(legacy, reference);
+    fixture.UpgradeToRevision4();
+    fixture.AddAuthoringMetadata();
+    const auto root = test::UniqueTempPath("om");
+    std::filesystem::create_directories(root);
+    auto cleanup =
+        absl::MakeCleanup([&] { std::filesystem::remove_all(root); });
+    const auto source = root / "in.sfc";
+    WriteBytes(source, fixture.bytes);
+    auto manager = std::make_unique<editor::EditorManager>();
+    test::InitializeWithIsolatedSettings(*manager, renderer_.get());
+    manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+    manager->user_settings().prefs().backup_before_save = false;
+    ASSERT_TRUE(manager->OpenRomOrProject(source.string()).ok());
+    ASSERT_TRUE(
+        manager->EnsureEditorAssetsLoaded(editor::EditorType::kOverworld).ok());
+    auto* editor = manager->GetCurrentEditorSet()->GetOverworldEditor();
+    auto& world = editor->overworld();
+    ASSERT_TRUE(world.LoadSprites().ok());
+    const auto lists = world.PrepareNativeSpriteSave();
+    ASSERT_TRUE(lists.ok()) << lists.status();
+    ASSERT_FALSE(lists->empty());
+    const auto plan = rom::PlanNativeOverworldSpriteSave(fixture.bytes, *lists);
+    ASSERT_TRUE(plan.ok()) << plan.status();
+    EXPECT_TRUE(plan->empty());
+    ASSERT_TRUE(manager->SaveCurrentSession(false).ok());
+    EXPECT_EQ(ReadBytes(source), fixture.bytes);
+    const auto old_message = world.overworld_map(0x80)->message_id();
+    ASSERT_TRUE(editor::NativePropertySaveTestPeer::Apply(
+                    *editor, {0x80, editor::OverworldPropertyField::kMessageId,
+                              0, old_message ^ 1})
+                    .ok());
+    {
+      test::ScopedRomStagingFailure fault;
+      EXPECT_FALSE(manager->SaveCurrentSession(false).ok());
+    }
+    EXPECT_EQ(ReadBytes(source), fixture.bytes);
+    ASSERT_TRUE(manager->SaveCurrentSession(false).ok());
+    Rom reopened;
+    ASSERT_TRUE(reopened.LoadFromFile(source.string()).ok());
+    const auto inspected = reopened.InspectLyraLayout();
+    ASSERT_EQ(inspected.presence, rom::LyraLayoutPresence::kValid)
+        << inspected.error;
+    EXPECT_TRUE(inspected.has_authoring_metadata);
+    const auto metadata = fixture.Entry(412);
+    EXPECT_TRUE(std::equal(fixture.bytes.begin() + metadata.pc_address,
+                           fixture.bytes.begin() + metadata.pc_address +
+                               metadata.count * metadata.stride,
+                           reopened.vector().begin() + metadata.pc_address));
+    zelda3::Overworld fresh(&reopened);
+    ASSERT_TRUE(fresh.Load(&reopened).ok());
+    EXPECT_EQ(fresh.overworld_map(0x80)->message_id(), old_message ^ 1);
+  }
+}
 
 TEST_F(NativeSpecialOverworldEditorTest, SavedNativeSourceExport) {
   const char* path = std::getenv("YAZE_TEST_ROM_OOS");
