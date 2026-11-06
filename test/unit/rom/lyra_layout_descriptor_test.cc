@@ -1415,6 +1415,13 @@ TEST_F(NativeSpecialOverworldEditorTest, NormalSaveUndoFailureAndDiskReopen) {
     auto& definition = world.mutable_tiles16()->at(1);
     definition.tile0_.horizontal_mirror_ =
         !definition.tile0_.horizontal_mirror_;
+    const int property_map = world.overworld_map(capacity - 1)->parent();
+    const int message = world.overworld_map(property_map)->message_id() ^ 1;
+    ASSERT_TRUE(
+        editor::NativePropertySaveTestPeer::Apply(
+            *editor, {capacity - 1, editor::OverworldPropertyField::kMessageId,
+                      0, message})
+            .ok());
     const auto expected_tile16 = world.tiles16();
     const std::array<zelda3::OverworldBlockset, 3> expected = {
         world.GetMapTiles(0), world.GetMapTiles(1), world.GetMapTiles(2)};
@@ -1449,14 +1456,17 @@ TEST_F(NativeSpecialOverworldEditorTest, NormalSaveUndoFailureAndDiskReopen) {
         return true;
       for (size_t i = 0; i < fixture.rows.entries.size(); ++i) {
         const auto& e = fixture.rows.entries[i];
-        if (e.id == 20 || e.id == 21 || (e.id >= 210 && e.id <= 213) ||
-            (e.id >= 400 && e.id <= 404)) {
+        if (e.id == 19 || e.id == 20 || e.id == 21 ||
+            (e.id >= 210 && e.id <= 213) || (e.id >= 400 && e.id <= 404)) {
           if (pc >= e.pc_address && pc < e.pc_address + e.count * e.stride)
             return true;
           if (pc >= 0x147020 + i * 16 + 12 && pc < 0x147020 + i * 16 + 16)
             return true;
         }
       }
+      if (property_map < 160 && pc >= 0x1417F8 + property_map * 2 &&
+          pc < 0x1417F8 + property_map * 2 + 2)
+        return true;
       return false;
     };
     for (size_t pc = 0; pc < persisted.size(); ++pc)
@@ -1488,6 +1498,7 @@ TEST_F(NativeSpecialOverworldEditorTest, NormalSaveUndoFailureAndDiskReopen) {
     const auto loaded = fresh.Load(&reopened);
     ASSERT_TRUE(loaded.ok()) << loaded;
     EXPECT_EQ(fresh.materialized_map_count(), capacity);
+    EXPECT_EQ(fresh.overworld_map(property_map)->message_id(), message);
     EXPECT_EQ(fresh.tiles16(), expected_tile16);
     for (int i = 0; i < 3; ++i)
       EXPECT_EQ(fresh.GetMapTiles(i), expected[i]);
