@@ -1845,9 +1845,11 @@ TEST_F(NativeSaveReceiptIntegrationTest,
   manager_->MarkCurrentProjectDirty();
   ASSERT_OK(manager_->GetCurrentRom()->WriteByte(0x1234, 0xA5));
   const size_t session_id = manager_->GetCurrentSessionId();
-  ASSERT_OK_AND_ASSIGN(const auto binding,
-                       EditorManagerProjectSaveBindingTestPeer::CaptureBinding(
-                           *manager_, session_id, true));
+  const auto binding_result =
+      EditorManagerProjectSaveBindingTestPeer::CaptureBinding(*manager_,
+                                                              session_id, true);
+  ASSERT_OK(binding_result.status());
+  const auto& binding = *binding_result;
 
   auto& lifecycle =
       EditorManagerProjectSaveBindingTestPeer::Lifecycle(*manager_);
@@ -1874,9 +1876,11 @@ TEST_F(NativeSaveReceiptIntegrationTest,
   manager_->MarkCurrentProjectDirty();
   ASSERT_OK(manager_->GetCurrentRom()->WriteByte(0x1234, 0xA5));
   const size_t session_id = manager_->GetCurrentSessionId();
-  ASSERT_OK_AND_ASSIGN(const auto binding,
-                       EditorManagerProjectSaveBindingTestPeer::CaptureBinding(
-                           *manager_, session_id, true));
+  const auto binding_result =
+      EditorManagerProjectSaveBindingTestPeer::CaptureBinding(*manager_,
+                                                              session_id, true);
+  ASSERT_OK(binding_result.status());
+  const auto& binding = *binding_result;
 
   auto& lifecycle =
       EditorManagerProjectSaveBindingTestPeer::Lifecycle(*manager_);
@@ -1918,9 +1922,11 @@ TEST_F(NativeSaveReceiptIntegrationTest,
   manager_->MarkCurrentProjectDirty();
 
   const size_t bound_session_id = manager_->GetCurrentSessionId();
-  ASSERT_OK_AND_ASSIGN(const auto binding,
-                       EditorManagerProjectSaveBindingTestPeer::CaptureBinding(
-                           *manager_, bound_session_id, false));
+  const auto binding_result =
+      EditorManagerProjectSaveBindingTestPeer::CaptureBinding(
+          *manager_, bound_session_id, false);
+  ASSERT_OK(binding_result.status());
+  const auto& binding = *binding_result;
 
   auto& lifecycle =
       EditorManagerProjectSaveBindingTestPeer::Lifecycle(*manager_);
@@ -1964,9 +1970,11 @@ TEST_F(NativeSaveReceiptIntegrationTest,
   const size_t bound_session_id = manager_->GetCurrentSessionId();
   const size_t origin_session_index = 0;
 
-  ASSERT_OK_AND_ASSIGN(const auto binding,
-                       EditorManagerProjectSaveBindingTestPeer::CaptureBinding(
-                           *manager_, bound_session_id, false));
+  const auto binding_result =
+      EditorManagerProjectSaveBindingTestPeer::CaptureBinding(
+          *manager_, bound_session_id, false);
+  ASSERT_OK(binding_result.status());
+  const auto& binding = *binding_result;
 
   auto& lifecycle =
       EditorManagerProjectSaveBindingTestPeer::Lifecycle(*manager_);
@@ -2007,9 +2015,11 @@ TEST_F(NativeSaveReceiptIntegrationTest,
   manager_->GetCurrentProject()->name = "Identity guard";
   manager_->MarkCurrentProjectDirty();
   const size_t session_id = manager_->GetCurrentSessionId();
-  ASSERT_OK_AND_ASSIGN(const auto binding,
-                       EditorManagerProjectSaveBindingTestPeer::CaptureBinding(
-                           *manager_, session_id, false));
+  const auto binding_result =
+      EditorManagerProjectSaveBindingTestPeer::CaptureBinding(
+          *manager_, session_id, false);
+  ASSERT_OK(binding_result.status());
+  const auto& binding = *binding_result;
 
   auto& lifecycle =
       EditorManagerProjectSaveBindingTestPeer::Lifecycle(*manager_);
@@ -2047,9 +2057,11 @@ TEST_F(NativeSaveReceiptIntegrationTest,
   manager_->MarkCurrentProjectDirty();
   const size_t bound_session_id = manager_->GetCurrentSessionId();
 
-  ASSERT_OK_AND_ASSIGN(const auto binding,
-                       EditorManagerProjectSaveBindingTestPeer::CaptureBinding(
-                           *manager_, bound_session_id, false));
+  const auto binding_result =
+      EditorManagerProjectSaveBindingTestPeer::CaptureBinding(
+          *manager_, bound_session_id, false);
+  ASSERT_OK(binding_result.status());
+  const auto& binding = *binding_result;
 
   auto& lifecycle =
       EditorManagerProjectSaveBindingTestPeer::Lifecycle(*manager_);
@@ -2093,9 +2105,11 @@ TEST_F(NativeSaveReceiptIntegrationTest,
   manager_->MarkCurrentProjectDirty();
   ASSERT_OK(manager_->GetCurrentRom()->WriteByte(0x1234, 0xA5));
   const size_t session_id = manager_->GetCurrentSessionId();
-  ASSERT_OK_AND_ASSIGN(const auto binding,
-                       EditorManagerProjectSaveBindingTestPeer::CaptureBinding(
-                           *manager_, session_id, true));
+  const auto binding_result =
+      EditorManagerProjectSaveBindingTestPeer::CaptureBinding(*manager_,
+                                                              session_id, true);
+  ASSERT_OK(binding_result.status());
+  const auto& binding = *binding_result;
 
   auto& lifecycle =
       EditorManagerProjectSaveBindingTestPeer::Lifecycle(*manager_);
@@ -2122,9 +2136,11 @@ TEST_F(NativeSaveReceiptIntegrationTest,
   manager_->MarkCurrentProjectDirty();
   ASSERT_OK(manager_->GetCurrentRom()->WriteByte(0x1234, 0xA5));
   const size_t session_id = manager_->GetCurrentSessionId();
-  ASSERT_OK_AND_ASSIGN(const auto binding,
-                       EditorManagerProjectSaveBindingTestPeer::CaptureBinding(
-                           *manager_, session_id, true));
+  const auto binding_result =
+      EditorManagerProjectSaveBindingTestPeer::CaptureBinding(*manager_,
+                                                              session_id, true);
+  ASSERT_OK(binding_result.status());
+  const auto& binding = *binding_result;
 
   auto& lifecycle =
       EditorManagerProjectSaveBindingTestPeer::Lifecycle(*manager_);
@@ -2161,9 +2177,11 @@ TEST_F(NativeSaveReceiptIntegrationTest,
       ReadText(manager_->GetCurrentProject()->filepath);
   manager_->MarkCurrentProjectDirty();
   ASSERT_OK(manager_->GetCurrentRom()->WriteByte(0x1234, 0xA5));
-  ASSERT_OK_AND_ASSIGN(const auto binding,
-                       EditorManagerProjectSaveBindingTestPeer::CaptureBinding(
-                           *manager_, manager_->GetCurrentSessionId(), true));
+  const auto binding_result =
+      EditorManagerProjectSaveBindingTestPeer::CaptureBinding(
+          *manager_, manager_->GetCurrentSessionId(), true);
+  ASSERT_OK(binding_result.status());
+  const auto& binding = *binding_result;
   auto& lifecycle =
       EditorManagerProjectSaveBindingTestPeer::Lifecycle(*manager_);
   auto callbacks =
@@ -2200,9 +2218,11 @@ TEST_F(NativeSaveReceiptIntegrationTest,
   manager_->CreateNewSession();
   ASSERT_NE(manager_->GetCurrentRom(), nullptr);
   ASSERT_FALSE(manager_->GetCurrentRom()->is_loaded());
-  ASSERT_OK_AND_ASSIGN(const auto binding,
-                       EditorManagerProjectSaveBindingTestPeer::CaptureBinding(
-                           *manager_, manager_->GetCurrentSessionId(), false));
+  const auto binding_result =
+      EditorManagerProjectSaveBindingTestPeer::CaptureBinding(
+          *manager_, manager_->GetCurrentSessionId(), false);
+  ASSERT_OK(binding_result.status());
+  const auto& binding = *binding_result;
   auto& lifecycle =
       EditorManagerProjectSaveBindingTestPeer::Lifecycle(*manager_);
   ASSERT_OK(lifecycle.SaveActiveProjectEditingWork(
