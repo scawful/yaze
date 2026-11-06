@@ -193,13 +193,14 @@ class OverworldTilePaintAction : public UndoAction {
       return;
     }
     // Derive this set at replay time: MergeWith can add changes on other maps.
-    std::array<bool, zelda3::kNumOverworldMaps> changed_maps{};
+    std::array<bool, zelda3::kExpandedMapCount> changed_maps{};
     for (const auto& change : tile_changes_) {
       const int map_id = world_ * 0x40 + change.x / 32 + (change.y / 32) * 8;
-      if (map_id >= 0 && map_id < zelda3::kNumOverworldMaps)
+      if (map_id >= 0 && map_id < overworld_->materialized_map_count())
         changed_maps[map_id] = true;
     }
-    for (int map_id = 0; map_id < zelda3::kNumOverworldMaps; ++map_id) {
+    for (int map_id = 0; map_id < overworld_->materialized_map_count();
+         ++map_id) {
       if (changed_maps[map_id])
         refresh_map_fn_(map_id);
     }

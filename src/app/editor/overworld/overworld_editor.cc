@@ -501,7 +501,12 @@ void OverworldEditor::InitTilePaintingManager() {
     return lyra_canvas_.loaded() ? &lyra_canvas_.MapAtlas(map_id) : nullptr;
   };
   callbacks.allocated_rows = [this](int world) {
-    return world == 2 && !lyra_canvas_.loaded() ? 4 : 8;
+    if (world == 2 && lyra_canvas_.loaded())
+      return 8;
+    return (std::clamp(overworld_.materialized_map_count() - world * 0x40, 0,
+                       0x40) +
+            7) /
+           8;
   };
 
   tile_painting_ = std::make_unique<TilePaintingManager>(deps, callbacks);
@@ -1577,6 +1582,15 @@ absl::Status OverworldEditor::Save() {
         dependencies_.project->hack_manifest));
   }
   RETURN_IF_ERROR(overworld_.ValidatePrivateNativeTerrainSave());
+  if (overworld_.resolved_layout().lyra_layout.revision == 3) {
+    if (dependencies_.project && dependencies_.project->hack_manifest.loaded())
+      RETURN_IF_ERROR(ValidateHackManifestSaveConflicts(
+          dependencies_.project->hack_manifest,
+          dependencies_.project->rom_metadata.write_policy,
+          overworld_.GetProjectedWriteRanges(), "native overworld terrain",
+          "OverworldEditor", dependencies_.toast_manager));
+    return overworld_.SaveNativeTerrain();
+  }
   RETURN_IF_ERROR(rom_->CheckLayoutWritable());
   // A disabled save domain must neither validate nor serialize staged edits.
   const bool saving_sprites =

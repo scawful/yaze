@@ -17,9 +17,9 @@ namespace {
 
 constexpr int kTilesPerMap = kOverworldMapSize / kTile16Size;
 
-int LegacyAllocatedRowsForWorld(int world) {
+int AllocatedRowsForMapCount(int world, int map_count) {
   const int world_start = std::clamp(world, 0, 2) * 0x40;
-  return (std::clamp(zelda3::kNumOverworldMaps - world_start, 0, 0x40) + 7) / 8;
+  return (std::clamp(map_count - world_start, 0, 0x40) + 7) / 8;
 }
 
 int MapIndexForGridPosition(int world, int map_x, int map_y) {
@@ -57,7 +57,8 @@ TilePaintingManager::TilePosition TilePaintingManager::HoveredTile() const {
 int TilePaintingManager::AllocatedRowsForWorld(int world) const {
   return callbacks_.allocated_rows
              ? std::clamp(callbacks_.allocated_rows(world), 0, 8)
-             : LegacyAllocatedRowsForWorld(world);
+             : AllocatedRowsForMapCount(
+                   world, deps_.overworld->materialized_map_count());
 }
 
 bool TilePaintingManager::IsValidMapGridPosition(int world, int map_x,
@@ -87,7 +88,7 @@ absl::StatusOr<uint16_t> TilePaintingManager::ReadTile(
   }
   if (MapIndexForGridPosition(*deps_.current_world, position.x / kTilesPerMap,
                               position.y / kTilesPerMap) >=
-      zelda3::kNumOverworldMaps) {
+      deps_.overworld->materialized_map_count()) {
     return absl::OutOfRangeError("Tile is outside the ROM map model");
   }
   const auto& tiles = WorldTiles();
@@ -287,7 +288,7 @@ absl::Status TilePaintingManager::PaintPattern(const TileBrush& brush,
 
 absl::StatusOr<int> TilePaintingManager::ApplyGuardedCells(
     int map_id, const std::vector<GuardedTileCell>& cells) {
-  if (map_id < 0 || map_id >= zelda3::kNumOverworldMaps) {
+  if (map_id < 0 || map_id >= deps_.overworld->materialized_map_count()) {
     return absl::OutOfRangeError("Stencil map is outside the ROM map model");
   }
   if (map_id / 0x40 != *deps_.current_world) {
@@ -358,7 +359,7 @@ absl::StatusOr<int> TilePaintingManager::ApplyGuardedCells(
 }
 
 void TilePaintingManager::RefreshChangedMaps(const ChangedMaps& changed_maps) {
-  for (int map = 0; map < zelda3::kNumOverworldMaps; ++map) {
+  for (int map = 0; map < deps_.overworld->materialized_map_count(); ++map) {
     if (changed_maps[map]) {
       if ((*deps_.maps_bmp)[map].is_active()) {
         gfx::Arena::Get().QueueTextureCommand(
@@ -441,7 +442,7 @@ void TilePaintingManager::RenderUpdatedMapBitmap(
                  static_cast<int>(std::floor(position.y / kTile16Size))},
                 tile_data);
   if (*deps_.current_map >= 0 &&
-      *deps_.current_map < zelda3::kNumOverworldMaps &&
+      *deps_.current_map < deps_.overworld->materialized_map_count() &&
       (*deps_.maps_bmp)[*deps_.current_map].is_active()) {
     gfx::Arena::Get().QueueTextureCommand(
         gfx::Arena::TextureCommandType::UPDATE,
@@ -548,8 +549,8 @@ void TilePaintingManager::DrawBrushPreview(const TileBrush& brush,
 
   // Build each destination piece once. The selected/pinned map's atlas is
   // only a fallback for synthetic or unavailable map data.
-  std::array<MapBrushPreview, zelda3::kNumOverworldMaps> pieces;
-  std::array<bool, zelda3::kNumOverworldMaps> has_piece{};
+  std::array<MapBrushPreview, zelda3::kExpandedMapCount> pieces;
+  std::array<bool, zelda3::kExpandedMapCount> has_piece{};
   const int world = *deps_.current_world;
   const int first_x = std::max(0, anchor.x) / kTilesPerMap;
   const int first_y = std::max(0, anchor.y) / kTilesPerMap;
@@ -561,7 +562,7 @@ void TilePaintingManager::DrawBrushPreview(const TileBrush& brush,
         continue;
       const int map_id = MapIndexForGridPosition(world, mx, my);
       if (IsProjectTile({mx * kTilesPerMap, my * kTilesPerMap}) ||
-          map_id >= zelda3::kNumOverworldMaps)
+          map_id >= deps_.overworld->materialized_map_count())
         continue;
       const auto* map = deps_.overworld->overworld_map(map_id);
       if (!map)

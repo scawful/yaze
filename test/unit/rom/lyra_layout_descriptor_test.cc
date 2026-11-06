@@ -24,17 +24,20 @@
 #include "editor_test_support.h"
 #include "fixtures/lyra/synthetic_fixture_data.h"
 #include "framework/headless_editor_test.h"
+#include "framework/rom_save_fault.h"
 #define MINIZ_NO_ZLIB_COMPATIBLE_NAMES
 #include "miniz/miniz.h"
 #undef MINIZ_NO_ZLIB_COMPATIBLE_NAMES
 #include "rom/lyra_layout_descriptor.h"
 #include "rom/rom.h"
 #include "rom/snes.h"
+#include "rom/write_fence.h"
 #include "unique_temp_path.h"
 #include "zelda3/dungeon/custom_collision.h"
 #include "zelda3/dungeon/dungeon_rom_addresses.h"
 #include "zelda3/game_data.h"
 #include "zelda3/overworld/overworld.h"
+#include "zelda3/overworld/overworld_terrain_io.h"
 
 namespace yaze {
 namespace {
@@ -126,6 +129,11 @@ struct NativeDirectoryFixture {
     rows.entries.push_back({id, kind, Snes(pc), pc, count, stride, 0});
   }
   void Seal() {
+    for (uint16_t id : {20, 21}) {
+      const size_t prefix = id == 20 ? 0x1794D : 0x17B2D;
+      std::copy_n(bytes.begin() + Entry(id).pc_address, 160 * 3,
+                  bytes.begin() + prefix);
+    }
     for (const auto& e : rows.entries) {
       const size_t at = EntryPc(e.id);
       Word(at, e.id);
@@ -972,6 +980,125 @@ TEST(LyraA0TerrainTest, AtomicSaveAsGuardsSourceSnapshotAndEntryAnchors) {
   EXPECT_EQ(ReadBytes(target), bytes);
 }
 
+TEST(LyraLayoutDescriptorTest, NativeTerrainPublicationKeepsGuardsAndMirrors) {
+  NativeDirectoryFixture fixture;
+  Rom document;
+  ASSERT_TRUE(document.LoadFromData(fixture.bytes).ok());
+  const auto original = document.vector();
+  ASSERT_TRUE(document.CheckLayoutSaveable().ok());
+  EXPECT_FALSE(document.CheckLayoutWritable().ok());
+  EXPECT_FALSE(document.WriteByte(fixture.Entry(400).pc_address, 1).ok());
+  EXPECT_FALSE(document.WriteWord(fixture.Entry(400).pc_address, 1).ok());
+  EXPECT_EQ(document.vector(), original);
+  for (size_t pc : {size_t{0x1234}, size_t{fixture.Entry(200).pc_address},
+                    size_t{fixture.Entry(300).pc_address}, size_t{0x14701C},
+                    fixture.EntryPc(20) + 4}) {
+    auto candidate = original;
+    candidate[pc] ^= 1;
+    EXPECT_FALSE(document.CommitNativeTerrainImage(original, candidate).ok())
+        << std::hex << pc;
+    EXPECT_EQ(document.vector(), original);
+    EXPECT_FALSE(document.dirty());
+  }
+  auto candidate = original;
+  candidate[fixture.Entry(400).pc_address] ^= 1;
+  {
+    ScopedRomReadOnly read_only(document);
+    EXPECT_FALSE(document.CommitNativeTerrainImage(original, candidate).ok());
+    EXPECT_FALSE(document.CheckLayoutSaveable().ok());
+  }
+  {
+    rom::WriteFence fence;
+    ASSERT_TRUE(fence
+                    .Allow(fixture.Entry(400).pc_address,
+                           fixture.Entry(400).pc_address + 32768,
+                           "dictionary only, no CRC permission")
+                    .ok());
+    rom::ScopedWriteFence scope(&document, &fence);
+    EXPECT_FALSE(document.CommitNativeTerrainImage(original, candidate).ok());
+    EXPECT_TRUE(fence.written_ranges().empty());
+  }
+  EXPECT_EQ(document.vector(), original);
+  auto stale = original;
+  stale[0x1234] ^= 1;
+  EXPECT_FALSE(document.CommitNativeTerrainImage(stale, candidate).ok());
+  auto divergent = original;
+  divergent[fixture.Entry(20).pc_address] ^= 1;
+  EXPECT_FALSE(document.CommitNativeTerrainImage(original, divergent).ok());
+  auto broken = original;
+  // Both tables agree but the stream is outside all declared pools.
+  for (size_t pc : {size_t{0x1794D}, size_t{fixture.Entry(20).pc_address}}) {
+    broken[pc] = 0;
+    broken[pc + 1] = 0x80;
+    broken[pc + 2] = 0x7E;
+  }
+  EXPECT_FALSE(document.CommitNativeTerrainImage(original, broken).ok());
+  EXPECT_EQ(document.vector(), original);
+  ASSERT_TRUE(document.CommitNativeTerrainImage(original, candidate).ok());
+  EXPECT_TRUE(document.dirty());
+  EXPECT_EQ(document.InspectLyraLayout().presence,
+            rom::LyraLayoutPresence::kValid);
+  const auto saved = document.vector();
+  auto damaged_crc = saved;
+  damaged_crc[0x14701C] ^= 1;
+  Rom invalid;
+  ASSERT_TRUE(invalid.LoadFromData(damaged_crc).ok());
+  EXPECT_FALSE(invalid.CheckLayoutSaveable().ok());
+}
+
+TEST(LyraLayoutDescriptorTest, NativeTerrainPlannerUsesCompleteDirectory) {
+  for (int capacity : {160, 192}) {
+    NativeDirectoryFixture fixture(capacity);
+    Rom document;
+    ASSERT_TRUE(document.LoadFromData(fixture.bytes).ok());
+    auto storage = zelda3::ResolveNativeOverworldTerrainStorage(document);
+    ASSERT_TRUE(storage.ok()) << storage.status();
+    std::vector<zelda3::OverworldTerrainPage> pages(capacity);
+    const auto layout = document.InspectLyraLayout();
+    for (int map = 0; map < capacity; ++map) {
+      const auto decoded =
+          rom::LyraMapTile32(document.data(), document.size(), layout, map);
+      ASSERT_TRUE(decoded.has_value());
+      pages[map] = *decoded;
+    }
+    pages[0][5] = 0x1234;
+    pages[0x9F][7] = 0x1234;
+    if (capacity == 192) {
+      pages[0xA0][9] = 0x0056;
+      pages[0xBF][11] = 0x1234;
+      auto partial = *storage;
+      partial.map_count = 160;
+      EXPECT_FALSE(
+          zelda3::PlanOverworldTerrainSave(document, partial, pages).ok());
+    }
+    auto wrong_pool = *storage;
+    wrong_pool.stream_regions[0].start += 4;
+    EXPECT_FALSE(
+        zelda3::PlanOverworldTerrainSave(document, wrong_pool, pages).ok());
+    auto plan = zelda3::PlanOverworldTerrainSave(document, *storage, pages);
+    ASSERT_TRUE(plan.ok()) << plan.status();
+    const auto applied = zelda3::ApplyOverworldTerrainSave(document, *plan);
+    ASSERT_TRUE(applied.ok()) << applied;
+    const auto saved_layout = document.InspectLyraLayout();
+    ASSERT_EQ(saved_layout.presence, rom::LyraLayoutPresence::kValid);
+    for (int map = 0; map < capacity; ++map) {
+      const auto decoded = rom::LyraMapTile32(document.data(), document.size(),
+                                              saved_layout, map);
+      ASSERT_TRUE(decoded.has_value());
+      EXPECT_EQ(*decoded, pages[map]) << map;
+    }
+    for (int id : {200, 201, 202}) {
+      const auto& e = fixture.Entry(id);
+      EXPECT_TRUE(std::equal(fixture.bytes.begin() + e.pc_address,
+                             fixture.bytes.begin() + e.pc_address + e.count,
+                             document.vector().begin() + e.pc_address));
+    }
+    auto noop = zelda3::PlanOverworldTerrainSave(document, *storage, pages);
+    ASSERT_TRUE(noop.ok()) << noop.status();
+    EXPECT_TRUE(noop->writes.empty());
+  }
+}
+
 class NativeSpecialOverworldEditorTest : public test::HeadlessEditorTest {};
 
 TEST_F(NativeSpecialOverworldEditorTest, SidecarLifecycle) {
@@ -1045,6 +1172,140 @@ TEST_F(NativeSpecialOverworldEditorTest, SidecarLifecycle) {
   EXPECT_EQ(ReadBytes(sidecar), sidecar_before);
   EXPECT_EQ(project.lyra_terrain_file, sidecar);
   EXPECT_EQ(document.vector(), fixture.bytes);
+}
+
+TEST_F(NativeSpecialOverworldEditorTest, NormalSaveUndoFailureAndDiskReopen) {
+  const char* path = std::getenv("YAZE_TEST_ROM_OOS");
+  if (!path || !std::filesystem::exists(path))
+    GTEST_SKIP() << "Set YAZE_TEST_ROM_OOS for native Save/reopen";
+  const auto flags = core::FeatureFlags::get();
+  auto restore_flags =
+      absl::MakeCleanup([&] { core::FeatureFlags::get() = flags; });
+  Rom legacy;
+  ASSERT_TRUE(legacy.LoadFromData(ReadBytes(path)).ok());
+  zelda3::Overworld reference;
+  ASSERT_TRUE(reference.Load(&legacy).ok());
+  NativeDirectoryFixture fixture;
+  fixture.SeedLoadedLegacyForModelTest(legacy, reference);
+  const auto root = test::UniqueTempPath("ow3");
+  std::filesystem::create_directories(root);
+  auto cleanup = absl::MakeCleanup([&] { std::filesystem::remove_all(root); });
+  const auto source = root / "in.sfc";
+  const auto target = root / "out.sfc";
+  WriteBytes(source, fixture.bytes);
+  auto manager = std::make_unique<editor::EditorManager>();
+  test::InitializeWithIsolatedSettings(*manager, renderer_.get());
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+  manager->user_settings().prefs().backup_before_save = false;
+  const auto opened = manager->OpenRomOrProject(source.string());
+  ASSERT_TRUE(opened.ok()) << opened;
+  const auto assets =
+      manager->EnsureEditorAssetsLoaded(editor::EditorType::kOverworld);
+  ASSERT_TRUE(assets.ok()) << assets;
+  auto* editor = manager->GetCurrentEditorSet()->GetOverworldEditor();
+  ASSERT_NE(editor, nullptr);
+  ASSERT_TRUE(editor->overworld().is_loaded());
+  auto* document = manager->GetCurrentRom();
+  auto& world = editor->overworld();
+  editor->SetPreviewStoryState(1);
+  editor->SetPreviewStoryState(2);
+  const auto noop = manager->SaveRom();
+  ASSERT_TRUE(noop.ok()) << noop;
+  EXPECT_EQ(ReadBytes(source), fixture.bytes);
+  const auto initial_definitions = world.tiles32_unique();
+  auto cell = [&](int map) -> uint16_t& {
+    return world.GetMapTiles(map /
+                             64)[(map % 8) * 32 + 5][((map % 64) / 8) * 32 + 5];
+  };
+  for (int map : {0x00, 0x9F, 0xA0, 0xBF}) {
+    const uint16_t old = cell(map);
+    const uint16_t next = old == 1 ? 2 : 1;
+    const auto painted = editor->ApplyTile16Stencil(map, {{5, 5, old, next}});
+    ASSERT_TRUE(painted.ok()) << std::hex << map << ": " << painted.status();
+    ASSERT_EQ(*painted, 1);
+    EXPECT_EQ(cell(map), next);
+    ASSERT_TRUE(editor->Undo().ok());
+    EXPECT_EQ(cell(map), old);
+    ASSERT_TRUE(editor->Redo().ok());
+    EXPECT_EQ(cell(map), next);
+  }
+  auto& definition = world.mutable_tiles16()->at(1);
+  definition.tile0_.horizontal_mirror_ = !definition.tile0_.horizontal_mirror_;
+  const auto expected_tile16 = world.tiles16();
+  const std::array<zelda3::OverworldBlockset, 3> expected = {
+      world.GetMapTiles(0), world.GetMapTiles(1), world.GetMapTiles(2)};
+  const auto pending = document->vector();
+  const auto filename = document->filename();
+  {
+    test::ScopedRomStagingFailure fault;
+    const auto failed = manager->SaveRomAs(target.string());
+    EXPECT_FALSE(failed.ok());
+    EXPECT_NE(failed.message().find("staging failure injected for testing"),
+              absl::string_view::npos)
+        << failed;
+  }
+  EXPECT_EQ(document->vector(), pending);
+  EXPECT_EQ(document->filename(), filename);
+  EXPECT_TRUE(document->dirty());
+  EXPECT_FALSE(std::filesystem::exists(target));
+  EXPECT_EQ(world.tiles32_unique(), initial_definitions);
+  EXPECT_EQ(world.tiles16(), expected_tile16);
+  for (int i = 0; i < 3; ++i)
+    EXPECT_EQ(world.GetMapTiles(i), expected[i]);
+  const auto saved = manager->SaveRomAs(target.string());
+  ASSERT_TRUE(saved.ok()) << saved;
+  EXPECT_FALSE(document->dirty());
+  const auto persisted = ReadBytes(target);
+  EXPECT_EQ(ReadBytes(source), fixture.bytes);
+  EXPECT_NE(persisted, fixture.bytes);
+  auto mutable_byte = [&](size_t pc) {
+    if ((pc >= 0x1794D && pc < 0x1794D + 480) ||
+        (pc >= 0x17B2D && pc < 0x17B2D + 480) ||
+        (pc >= 0x14701C && pc < 0x147020))
+      return true;
+    for (size_t i = 0; i < fixture.rows.entries.size(); ++i) {
+      const auto& e = fixture.rows.entries[i];
+      if (e.id == 20 || e.id == 21 || (e.id >= 210 && e.id <= 213) ||
+          (e.id >= 400 && e.id <= 404)) {
+        if (pc >= e.pc_address && pc < e.pc_address + e.count * e.stride)
+          return true;
+        if (pc >= 0x147020 + i * 16 + 12 && pc < 0x147020 + i * 16 + 16)
+          return true;
+      }
+    }
+    return false;
+  };
+  for (size_t pc = 0; pc < persisted.size(); ++pc)
+    if (persisted[pc] != fixture.bytes[pc])
+      ASSERT_TRUE(mutable_byte(pc)) << std::hex << pc;
+  const auto second = manager->SaveRom();
+  ASSERT_TRUE(second.ok()) << second;
+  EXPECT_EQ(ReadBytes(target), persisted);
+  // A disabled property domain stays unsaved. Re-enabling it must still
+  // notice the edit instead of silently accepting a new baseline.
+  auto* map = world.overworld_map(0xBF);
+  const auto old_message = map->message_id();
+  map->set_message_id(old_message ^ 1);
+  EXPECT_FALSE(manager->SaveRom().ok());
+  core::FeatureFlags::get().overworld.kSaveOverworldProperties = false;
+  const auto disabled = manager->SaveRom();
+  ASSERT_TRUE(disabled.ok()) << disabled;
+  core::FeatureFlags::get().overworld.kSaveOverworldProperties = true;
+  EXPECT_FALSE(manager->SaveRom().ok());
+  EXPECT_EQ(ReadBytes(target), persisted);
+  manager.reset();
+  Rom reopened;
+  ASSERT_TRUE(reopened.LoadFromFile(target.string()).ok());
+  ASSERT_EQ(reopened.InspectLyraLayout().presence,
+            rom::LyraLayoutPresence::kValid);
+  zelda3::Overworld fresh;
+  const auto loaded = fresh.Load(&reopened);
+  ASSERT_TRUE(loaded.ok()) << loaded;
+  EXPECT_EQ(fresh.materialized_map_count(), 192);
+  EXPECT_EQ(fresh.tiles16(), expected_tile16);
+  for (int i = 0; i < 3; ++i)
+    EXPECT_EQ(fresh.GetMapTiles(i), expected[i]);
+  EXPECT_EQ(reopened.vector(), persisted);
 }
 
 class LyraA0EditorTest : public test::HeadlessEditorTest {};

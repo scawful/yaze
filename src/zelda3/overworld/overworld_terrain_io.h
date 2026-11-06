@@ -41,6 +41,9 @@ struct OverworldTerrainWrite {
   std::vector<uint8_t> after;
 };
 
+absl::StatusOr<OverworldTerrainStorage> ResolveNativeOverworldTerrainStorage(
+    const Rom& rom);
+
 struct OverworldTerrainSavePlan {
   OverworldTerrainStorage storage;
   // The complete read set includes other maps' aliases and pointer slots.

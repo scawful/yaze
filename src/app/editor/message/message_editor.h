@@ -83,6 +83,10 @@ class MessageEditor : public Editor {
   absl::Status LoadExpandedMessagesFromRom();
   absl::Status LoadCanonicalExpandedSource();
   bool HasUnpublishedMessageSourceChanges() const;
+  bool HasPendingMessageChanges() const {
+    return pending_undo_before_.has_value() || dirty_state_.vanilla_messages ||
+           dirty_state_.expanded_messages || dirty_state_.font_widths;
+  }
   int CalculateExpandedBankUsage() const;
 
   absl::Status Cut() override;

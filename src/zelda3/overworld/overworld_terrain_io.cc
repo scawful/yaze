@@ -114,10 +114,71 @@ void AddWrite(OverworldTerrainSavePlan* plan, std::vector<uint8_t>* staged,
 
 }  // namespace
 
+absl::StatusOr<OverworldTerrainStorage> ResolveNativeOverworldTerrainStorage(
+    const Rom& rom) {
+  const auto layout = rom.InspectLyraLayout();
+  if (layout.presence != rom::LyraLayoutPresence::kValid ||
+      layout.revision != 3)
+    return absl::FailedPreconditionError("Native terrain directory required");
+  auto entry = [&](int id) -> const rom::LyraLayoutEntry& {
+    return *std::find_if(layout.entries.begin(), layout.entries.end(),
+                         [id](const auto& e) { return e.id == id; });
+  };
+  OverworldTerrainStorage result;
+  result.high_table_pc = entry(20).pc_address;
+  result.low_table_pc = entry(21).pc_address;
+  result.map_count = layout.capacity;
+  for (int id : {200, 201, 202, 210, 211, 212, 213}) {
+    const auto& e = entry(id);
+    auto& ranges =
+        id < 210 ? result.read_only_stream_regions : result.stream_regions;
+    ranges.push_back(
+        {e.pc_address, e.pc_address + e.count * e.stride,
+         id < 210 ? "native source streams" : "native terrain streams"});
+  }
+  if (result.high_table_pc != 0x1794D || result.low_table_pc != 0x17B2D)
+    result.native_prefix = OverworldTerrainPointerTables{0x1794D, 0x17B2D, 160};
+  return result;
+}
+
+namespace {
+absl::Status CheckNativeStorage(const Rom& rom,
+                                const OverworldTerrainStorage& storage) {
+  if (rom.InspectLyraLayout().revision != 3)
+    return absl::OkStatus();
+  ASSIGN_OR_RETURN(auto expected, ResolveNativeOverworldTerrainStorage(rom));
+  auto equal_ranges = [](const auto& a, const auto& b) {
+    return a.size() == b.size() && std::equal(a.begin(), a.end(), b.begin(),
+                                              [](const auto& x, const auto& y) {
+                                                return x.start == y.start &&
+                                                       x.end == y.end;
+                                              });
+  };
+  const bool prefix_matches =
+      storage.native_prefix.has_value() == expected.native_prefix.has_value() &&
+      (!expected.native_prefix ||
+       (storage.native_prefix->high_table_pc ==
+            expected.native_prefix->high_table_pc &&
+        storage.native_prefix->low_table_pc ==
+            expected.native_prefix->low_table_pc &&
+        storage.native_prefix->map_count == expected.native_prefix->map_count));
+  if (storage.high_table_pc != expected.high_table_pc ||
+      storage.low_table_pc != expected.low_table_pc ||
+      storage.map_count != expected.map_count || !prefix_matches ||
+      !equal_ranges(storage.stream_regions, expected.stream_regions) ||
+      !equal_ranges(storage.read_only_stream_regions,
+                    expected.read_only_stream_regions))
+    return absl::FailedPreconditionError(
+        "Terrain storage differs from the native directory");
+  return absl::OkStatus();
+}
+}  // namespace
+
 absl::StatusOr<OverworldTerrainSavePlan> PlanOverworldTerrainSave(
     const Rom& rom, const OverworldTerrainStorage& storage,
     std::span<const OverworldTerrainPage> pages) {
-  RETURN_IF_ERROR(rom.CheckLayoutWritable());
+  RETURN_IF_ERROR(rom.CheckLayoutSaveable());
+  RETURN_IF_ERROR(CheckNativeStorage(rom, storage));
   ASSIGN_OR_RETURN(auto fence, StorageFence(storage, rom.size()));
   if (pages.size() != static_cast<size_t>(storage.map_count)) {
     return absl::InvalidArgumentError(
@@ -253,7 +314,8 @@ absl::StatusOr<OverworldTerrainSavePlan> PlanOverworldTerrainSave(
 
 absl::Status ApplyOverworldTerrainSave(Rom& rom,
                                        const OverworldTerrainSavePlan& plan) {
-  RETURN_IF_ERROR(rom.CheckLayoutWritable());
+  RETURN_IF_ERROR(rom.CheckLayoutSaveable());
+  RETURN_IF_ERROR(CheckNativeStorage(rom, plan.storage));
   ASSIGN_OR_RETURN(auto fence, StorageFence(plan.storage, rom.size()));
   if (rom.vector() != plan.baseline) {
     return absl::FailedPreconditionError(
@@ -278,6 +340,13 @@ absl::Status ApplyOverworldTerrainSave(Rom& rom,
   }
   if (ordered.empty())
     return absl::OkStatus();
+  if (rom.InspectLyraLayout().revision == 3) {
+    auto candidate = plan.baseline;
+    for (const auto& write : ordered)
+      std::copy(write.after.begin(), write.after.end(),
+                candidate.begin() + write.pc);
+    return rom.CommitNativeTerrainImage(plan.baseline, std::move(candidate));
+  }
   ScopedRomTransaction transaction(rom);
   rom::ScopedWriteFence scope(&rom, &fence);
   for (const auto& write : ordered)

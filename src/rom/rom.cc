@@ -448,6 +448,58 @@ absl::Status Rom::CheckLayoutWritable() const {
                          "; save refused"));
 }
 
+absl::Status Rom::CheckLayoutSaveable() const {
+  if (read_only_scope_depth_ != 0)
+    return absl::PermissionDeniedError(
+        "ROM save refused by read_only project policy");
+  const auto layout = InspectLyraLayout();
+  if (layout.presence == rom::LyraLayoutPresence::kValid &&
+      layout.revision == 3)
+    return absl::OkStatus();
+  return CheckLayoutWritable();
+}
+
+absl::Status Rom::CommitNativeTerrainImage(const std::vector<uint8_t>& baseline,
+                                           std::vector<uint8_t> candidate) {
+  RETURN_IF_ERROR(CheckLayoutSaveable());
+  if (baseline != rom_data_)
+    return absl::FailedPreconditionError(
+        "ROM changed after native terrain planning");
+  ASSIGN_OR_RETURN(candidate, rom::SealNativeOverworldTerrain(
+                                  baseline, std::move(candidate)));
+  std::vector<std::pair<uint32_t, uint32_t>> changed;
+  for (size_t pc = 0; pc < candidate.size();) {
+    if (candidate[pc] == rom_data_[pc]) {
+      ++pc;
+      continue;
+    }
+    const size_t begin = pc++;
+    while (pc < candidate.size() && candidate[pc] != rom_data_[pc])
+      ++pc;
+    for (auto* fence : write_fence_stack_)
+      RETURN_IF_ERROR(fence->Check(begin, pc - begin, "native terrain save"));
+    RETURN_IF_ERROR(
+        CheckPrivateLyraWrite(begin, candidate.data() + begin, pc - begin));
+    changed.emplace_back(begin, pc - begin);
+  }
+  if (changed.empty())
+    return absl::OkStatus();
+  rom_data_.swap(candidate);
+  dirty_ = true;
+  for (const auto& [pc, count] : changed) {
+#ifdef __EMSCRIPTEN__
+    MaybeBroadcastChange(pc,
+                         std::vector<uint8_t>(candidate.begin() + pc,
+                                              candidate.begin() + pc + count),
+                         std::vector<uint8_t>(rom_data_.begin() + pc,
+                                              rom_data_.begin() + pc + count));
+#endif
+    for (auto* fence : write_fence_stack_)
+      fence->RecordWrite(pc, count);
+  }
+  return absl::OkStatus();
+}
+
 absl::Status Rom::CapturePrivateLyraReservation() {
   if (private_lyra_attached_)
     return ValidateLyraPrivateReservation();
@@ -891,7 +943,7 @@ absl::Status Rom::SaveLyraA0TerrainAs(const std::array<uint16_t, 256>& tiles,
 }
 
 absl::Status Rom::SaveToFile(const SaveSettings& settings) {
-  RETURN_IF_ERROR(CheckLayoutWritable());
+  RETURN_IF_ERROR(CheckLayoutSaveable());
   RETURN_IF_ERROR(ValidateLyraPrivateReservation());
   return SaveToFileUnchecked(settings);
 }

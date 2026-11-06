@@ -133,7 +133,7 @@ absl::Status SaveRomWithCollisionSource(Rom* rom, const fs::path& json_path) {
   if (rom == nullptr || !rom->is_loaded() || rom->filename().empty()) {
     return absl::FailedPreconditionError("No ROM file to save");
   }
-  RETURN_IF_ERROR(rom->CheckLayoutWritable());
+  RETURN_IF_ERROR(rom->CheckLayoutSaveable());
   const fs::path rom_path(rom->filename());
 
   ASSIGN_OR_RETURN(const std::string new_json,

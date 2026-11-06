@@ -60,6 +60,12 @@ std::optional<std::array<uint16_t, 256>> LyraMapTile32(
     const LyraLayoutInspection& layout, const uint8_t* image, size_t size,
     size_t map_index);
 
+// Seal a terrain-only candidate. Its directory identity, code, source pools
+// and every unrelated byte must still match baseline. Pointer mirrors and
+// decoded pages are validated after updating the affected CRC fields.
+absl::StatusOr<std::vector<uint8_t>> SealNativeOverworldTerrain(
+    const std::vector<uint8_t>& baseline, std::vector<uint8_t> candidate);
+
 inline constexpr uint32_t kLyraA0HighStreamPc = 0x132000;
 inline constexpr uint32_t kLyraA0LowStreamPc = 0x132200;
 inline constexpr size_t kLyraA0StreamSlotSize = 512;

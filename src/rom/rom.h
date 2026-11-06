@@ -232,6 +232,11 @@ class Rom {
   // captured at load prevents a damaged/erased signature from enabling saves.
   rom::LyraLayoutInspection InspectLyraLayout() const;
   absl::Status CheckLayoutWritable() const;
+  // File publication accepts a fully validated native image. Individual
+  // WriteByte/Word/Vector operations retain the stricter generic-write policy.
+  absl::Status CheckLayoutSaveable() const;
+  absl::Status CommitNativeTerrainImage(const std::vector<uint8_t>& baseline,
+                                        std::vector<uint8_t> candidate);
 
   // Sticky, value-owned exact-save reservation. No public detach capability.
   absl::Status AttachLyraPrivateReservation(const core::HackManifest& manifest);

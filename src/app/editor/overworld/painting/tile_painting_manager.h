@@ -135,7 +135,7 @@ class TilePaintingManager {
     int x;
     int y;
   };
-  using ChangedMaps = std::array<bool, zelda3::kNumOverworldMaps>;
+  using ChangedMaps = std::array<bool, zelda3::kExpandedMapCount>;
 
   TilePosition HoveredTile() const;
   int AllocatedRowsForWorld(int world) const;
@@ -171,7 +171,7 @@ class TilePaintingManager {
   bool selection_gesture_owned_ = false;
   bool external_brush_active_ = false;
   TileBrush brush_;
-  std::array<gfx::Bitmap, zelda3::kNumOverworldMaps> map_brush_previews_;
+  std::array<gfx::Bitmap, zelda3::kExpandedMapCount> map_brush_previews_;
 };
 
 }  // namespace editor

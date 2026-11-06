@@ -321,6 +321,11 @@ absl::Status OverworldLayout::CheckOperation(OverworldLayoutDomain domain,
         lyra_layout.a0_terrain_write_supported && map_id == 0xA0) {
       return absl::OkStatus();
     }
+    if (lyra_layout.revision == 3 &&
+        (domain == OverworldLayoutDomain::kTerrainPointers ||
+         domain == OverworldLayoutDomain::kTile16 ||
+         domain == OverworldLayoutDomain::kTile32))
+      return RefuseDomainTable(*this, domain);
     if (operation != OverworldLayoutOperation::kInspect) {
       return absl::FailedPreconditionError(
           "Lyra descriptor overworld layout is inspection-only for this "

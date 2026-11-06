@@ -578,6 +578,7 @@ class Overworld {
 
   /// @brief Master save method (calls sub-methods in correct order)
   absl::Status Save(Rom* rom);
+  absl::Status SaveNativeTerrain();
 
   /// @brief Save compressed map tile data to ROM
   absl::Status SaveOverworldMaps();
@@ -748,6 +749,9 @@ class Overworld {
     descriptor_layout_ = {};
     loaded_map_tiles_valid_ = false;
     tiles16_.clear();
+    loaded_tiles16_.clear();
+    native_nonterrain_baseline_ = {};
+    RollbackSavedMapTiles();
     tiles32_.clear();
     tiles32_unique_.clear();
     is_loaded_ = false;
@@ -954,7 +958,12 @@ class Overworld {
   // resaving tile32 reorders expanded definitions. An unchanged grid leaves
   // both on disk. The staged copy is not this identity: a failed save rolls
   // the ROM back and must not treat the unsaved edit as already written.
-  std::vector<gfx::Tile16> private_loaded_tiles16_;
+  std::vector<gfx::Tile16> loaded_tiles16_;
+  using NativeModelState = std::array<std::vector<int64_t>, 6>;
+  NativeModelState CaptureNativeNonTerrainState() const;
+  NativeModelState native_nonterrain_baseline_;
+  std::vector<gfx::Tile32> staged_tiles32_unique_;
+  std::vector<uint16_t> staged_tiles32_list_;
   std::vector<uint8_t> private_loaded_overlays_;
   OverworldMapTiles loaded_map_tiles_;
   bool loaded_map_tiles_valid_ = false;

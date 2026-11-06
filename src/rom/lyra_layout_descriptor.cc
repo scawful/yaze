@@ -480,6 +480,13 @@ LyraLayoutInspection InspectNativeLayout(const uint8_t* image, size_t size,
                                   [](bool bound) { return !bound; })) {
     return bad("Native special-overworld required reader binding missing");
   }
+  for (uint16_t id : {20, 21}) {
+    const auto& e = *FindEntry(result, id);
+    const size_t prefix = id == 20 ? 0x1794D : 0x17B2D;
+    if (!std::equal(image + e.pc_address, image + e.pc_address + 160 * 3,
+                    image + prefix))
+      return bad("Native terrain pointer mirrors disagree");
+  }
   return result;
 }
 
@@ -774,6 +781,63 @@ std::optional<std::array<uint16_t, 256>> LyraMapTile32(
     }
   }
   return tiles;
+}
+
+absl::StatusOr<std::vector<uint8_t>> SealNativeOverworldTerrain(
+    const std::vector<uint8_t>& baseline, std::vector<uint8_t> candidate) {
+  const auto layout = InspectLyraLayout(baseline.data(), baseline.size());
+  if (layout.presence != LyraLayoutPresence::kValid || layout.revision != 3 ||
+      candidate.size() != baseline.size()) {
+    return absl::FailedPreconditionError(
+        "Native terrain publication requires a valid unchanged image extent");
+  }
+  auto writable = [](uint16_t id) {
+    return id == 20 || id == 21 || (id >= 210 && id <= 213) ||
+           (id >= 400 && id <= 404);
+  };
+  std::vector<std::pair<size_t, size_t>> ranges = {
+      {0x1794D, 0x1794D + 160 * 3}, {0x17B2D, 0x17B2D + 160 * 3}};
+  for (const auto& e : layout.entries)
+    if (writable(e.id))
+      ranges.emplace_back(e.pc_address, e.pc_address + e.count * e.stride);
+  for (size_t pc = 0; pc < baseline.size(); ++pc) {
+    if (baseline[pc] == candidate[pc])
+      continue;
+    if (std::none_of(ranges.begin(), ranges.end(), [pc](const auto& r) {
+          return pc >= r.first && pc < r.second;
+        })) {
+      return absl::PermissionDeniedError(
+          "Native terrain candidate changes an unowned byte");
+    }
+  }
+  for (uint16_t id : {20, 21}) {
+    const auto& e = *FindEntry(layout, id);
+    const size_t prefix = id == 20 ? 0x1794D : 0x17B2D;
+    if (!std::equal(candidate.begin() + e.pc_address,
+                    candidate.begin() + e.pc_address + 160 * 3,
+                    candidate.begin() + prefix)) {
+      return absl::FailedPreconditionError(
+          "Native terrain pointer mirrors disagree");
+    }
+  }
+  auto put32 = [&](size_t pc, uint32_t value) {
+    for (int i = 0; i < 4; ++i)
+      candidate[pc + i] = static_cast<uint8_t>(value >> (i * 8));
+  };
+  for (size_t i = 0; i < layout.entries.size(); ++i) {
+    const auto& e = layout.entries[i];
+    if (writable(e.id))
+      put32(kDescriptorPc + kHeaderSize + i * kEntrySize + 12,
+            Crc32(candidate.data() + e.pc_address, e.count * e.stride));
+  }
+  put32(kDescriptorPc + 28, 0);
+  put32(kDescriptorPc + 28,
+        Crc32(candidate.data() + kDescriptorPc, kDescriptorSize));
+  const auto checked = InspectLyraLayout(candidate.data(), candidate.size());
+  if (checked.presence != LyraLayoutPresence::kValid || checked.revision != 3)
+    return absl::FailedPreconditionError(
+        "Native terrain candidate is invalid: " + checked.error);
+  return candidate;
 }
 
 absl::StatusOr<std::vector<uint8_t>> SerializeLyraA0Terrain(

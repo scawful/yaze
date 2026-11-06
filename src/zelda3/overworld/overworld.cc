@@ -320,7 +320,9 @@ absl::Status Overworld::Load(Rom* rom) {
       RETURN_IF_ERROR(map.LoadOverlay());
     private_loaded_overlays_ = PrivateOverlaySnapshot(overworld_maps_);
   }
-  private_loaded_tiles16_ = tiles16_;
+  loaded_tiles16_ = tiles16_;
+  if (native)
+    native_nonterrain_baseline_ = CaptureNativeNonTerrainState();
   loaded_map_tiles_ = map_tiles_;
   loaded_map_tiles_valid_ = true;
   is_loaded_ = true;
@@ -1787,6 +1789,12 @@ absl::Status Overworld::Save(Rom* rom) {
   if (rom == nullptr) {
     return absl::FailedPreconditionError("No ROM for overworld sprites");
   }
+  if (rom->InspectLyraLayout().revision == 3) {
+    if (rom != rom_)
+      return absl::FailedPreconditionError(
+          "Native model belongs to another ROM");
+    return SaveNativeTerrain();
+  }
   RETURN_IF_ERROR(rom->CheckLayoutWritable());
   rom_ = rom;
   ReResolveLayoutFromRom();
@@ -1825,7 +1833,7 @@ absl::Status Overworld::ValidatePrivateNativeTerrainSave() const {
   if (!rom_ || !rom_->has_lyra_private_reservation())
     return absl::OkStatus();
   RETURN_IF_ERROR(rom_->ValidateLyraPrivateReservation());
-  if (!MapTilesUnchanged() || tiles16_ != private_loaded_tiles16_) {
+  if (!MapTilesUnchanged() || tiles16_ != loaded_tiles16_) {
     return absl::FailedPreconditionError(
         "Private Lyra producer reservation refuses changed native terrain "
         "before serialization");
@@ -1856,6 +1864,11 @@ void Overworld::CommitSavedMapTiles() {
   }
   loaded_map_tiles_ = std::move(staged_map_tiles_);
   loaded_map_tiles_valid_ = true;
+  loaded_tiles16_ = tiles16_;
+  if (!staged_tiles32_unique_.empty()) {
+    tiles32_unique_ = std::move(staged_tiles32_unique_);
+    tiles32_list_ = std::move(staged_tiles32_list_);
+  }
   staged_map_tiles_ = OverworldMapTiles{};
   staged_map_tiles_valid_ = false;
 }
@@ -1863,6 +1876,8 @@ void Overworld::CommitSavedMapTiles() {
 void Overworld::RollbackSavedMapTiles() {
   staged_map_tiles_ = OverworldMapTiles{};
   staged_map_tiles_valid_ = false;
+  staged_tiles32_unique_.clear();
+  staged_tiles32_list_.clear();
 }
 
 absl::Status Overworld::SaveOverworldMaps() {
@@ -1916,6 +1931,21 @@ absl::Status Overworld::SaveOverworldMaps() {
 std::vector<std::pair<uint32_t, uint32_t>> Overworld::GetProjectedWriteRanges()
     const {
   std::vector<std::pair<uint32_t, uint32_t>> ranges;
+  if (resolved_layout_.lyra_layout.revision == 3) {
+    ranges = {{0x1794D, 0x1794D + 160 * 3},
+              {0x17B2D, 0x17B2D + 160 * 3},
+              {0x14701C, 0x147020}};
+    const auto& entries = resolved_layout_.lyra_layout.entries;
+    for (size_t i = 0; i < entries.size(); ++i) {
+      const auto& e = entries[i];
+      if (e.id == 20 || e.id == 21 || (e.id >= 210 && e.id <= 213) ||
+          (e.id >= 400 && e.id <= 404)) {
+        ranges.emplace_back(e.pc_address, e.pc_address + e.count * e.stride);
+        ranges.emplace_back(0x147020 + i * 16 + 12, 0x147020 + i * 16 + 16);
+      }
+    }
+    return ranges;
+  }
 
   // 1) Map32 Tiles (4 quadrants)
   uint32_t map32address[4] = {
@@ -2968,29 +2998,30 @@ absl::Status Overworld::SaveLargeMapsExpanded() {
 }
 
 namespace {
-std::vector<uint64_t> GetAllTile16(OverworldMapTiles& map_tiles_) {
+std::vector<uint64_t> GetAllTile16(const OverworldMapTiles& map_tiles_,
+                                   int map_count) {
   std::vector<uint64_t> all_tile_16;  // Ensure it's 64 bits
 
   int sx = 0;
   int sy = 0;
   int c = 0;
-  OverworldBlockset tiles_used;
-  for (int i = 0; i < kNumOverworldMaps; i++) {
+  for (int i = 0; i < map_count; i++) {
+    const OverworldBlockset* tiles_used = nullptr;
     if (i < kDarkWorldMapIdStart) {
-      tiles_used = map_tiles_.light_world;
+      tiles_used = &map_tiles_.light_world;
     } else if (i < kSpecialWorldMapIdStart && i >= kDarkWorldMapIdStart) {
-      tiles_used = map_tiles_.dark_world;
+      tiles_used = &map_tiles_.dark_world;
     } else {
-      tiles_used = map_tiles_.special_world;
+      tiles_used = &map_tiles_.special_world;
     }
 
     for (int y = 0; y < 32; y += 2) {
       for (int x = 0; x < 32; x += 2) {
         gfx::Tile32 current_tile(
-            tiles_used[x + (sx * 32)][y + (sy * 32)],
-            tiles_used[x + 1 + (sx * 32)][y + (sy * 32)],
-            tiles_used[x + (sx * 32)][y + 1 + (sy * 32)],
-            tiles_used[x + 1 + (sx * 32)][y + 1 + (sy * 32)]);
+            (*tiles_used)[x + (sx * 32)][y + (sy * 32)],
+            (*tiles_used)[x + 1 + (sx * 32)][y + (sy * 32)],
+            (*tiles_used)[x + (sx * 32)][y + 1 + (sy * 32)],
+            (*tiles_used)[x + 1 + (sx * 32)][y + 1 + (sy * 32)]);
 
         all_tile_16.emplace_back(current_tile.GetPackedValue());
       }
@@ -3014,6 +3045,181 @@ std::vector<uint64_t> GetAllTile16(OverworldMapTiles& map_tiles_) {
 }
 }  // namespace
 
+Overworld::NativeModelState Overworld::CaptureNativeNonTerrainState() const {
+  NativeModelState state;
+  auto add = [&](int group, std::initializer_list<int64_t> values) {
+    state[group].insert(state[group].end(), values.begin(), values.end());
+  };
+  add(0, {materialized_map_count()});
+  for (const auto& m : overworld_maps_) {
+    add(0, {m.index(), m.parent(), static_cast<int>(m.area_size()),
+            m.large_index(), m.message_id(), m.area_specific_bg_color(),
+            m.main_palette(), m.animated_gfx(), m.subscreen_overlay(),
+            m.area_graphics(), m.area_palette()});
+    for (bool bit : m.mosaic_expanded())
+      add(0, {bit});
+    for (int i = 0; i < 8; ++i)
+      add(0, {m.custom_tileset(i)});
+    for (int i = 0; i < 3; ++i)
+      add(0, {m.sprite_graphics(i), m.sprite_palette(i)});
+    for (int i = 0; i < 4; ++i)
+      add(0, {m.area_music(i)});
+  }
+  for (const auto* list : {&all_entrances_, &all_holes_}) {
+    add(1, {static_cast<int64_t>(list->size())});
+    for (const auto& e : *list)
+      add(1, {e.map_id_, e.map_pos_, e.entrance_id_, e.is_hole_, e.deleted,
+              e.x_, e.y_, e.game_x_, e.game_y_});
+  }
+  add(2, {static_cast<int64_t>(all_exits_.size())});
+  for (const auto& e : all_exits_)
+    add(2, {e.map_id_,
+            e.room_id_,
+            e.map_pos_,
+            e.y_scroll_,
+            e.x_scroll_,
+            e.y_player_,
+            e.x_player_,
+            e.y_camera_,
+            e.x_camera_,
+            e.scroll_mod_y_,
+            e.scroll_mod_x_,
+            e.door_type_1_,
+            e.door_type_2_,
+            e.is_hole_,
+            e.deleted_,
+            e.is_automatic_,
+            e.x_,
+            e.y_,
+            e.game_x_,
+            e.game_y_});
+  add(3, {static_cast<int64_t>(all_items_.size())});
+  for (const auto& e : all_items_)
+    add(3, {e.room_map_id_, e.id_, e.game_x_, e.game_y_, e.x_, e.y_, e.bg2_,
+            e.deleted});
+  for (const auto& list : all_sprites_) {
+    add(4, {static_cast<int64_t>(list.size())});
+    for (const auto& e : list)
+      add(4, {e.map_id(), e.id(), e.x(), e.y(), e.deleted(),
+              e.overworld_x_flags(), e.overworld_y_flags()});
+  }
+  state[5].insert(state[5].end(), all_tiles_types_.begin(),
+                  all_tiles_types_.end());
+  const auto& diggable = diggable_tiles_.GetRawData();
+  state[5].insert(state[5].end(), diggable.begin(), diggable.end());
+  return state;
+}
+
+absl::Status Overworld::SaveNativeTerrain() {
+  if (!rom_ || !is_loaded_ || descriptor_layout_.revision != 3)
+    return absl::FailedPreconditionError(
+        "Load the native overworld before saving");
+  RETURN_IF_ERROR(rom_->CheckLayoutSaveable());
+  const auto layout = rom_->InspectLyraLayout();
+  if (materialized_map_count() != layout.capacity || tiles16_.size() != 4096)
+    return absl::FailedPreconditionError("Native terrain model is incomplete");
+  const auto& flags = core::FeatureFlags::get().overworld;
+  const std::array<bool, 6> enabled = {
+      flags.kSaveOverworldProperties, flags.kSaveOverworldEntrances,
+      flags.kSaveOverworldExits,      flags.kSaveOverworldItems,
+      flags.kSaveOverworldSprites,    flags.kSaveOverworldProperties};
+  const auto current = CaptureNativeNonTerrainState();
+  for (size_t i = 0; i < enabled.size(); ++i)
+    if (enabled[i] && current[i] != native_nonterrain_baseline_[i])
+      return absl::FailedPreconditionError(
+          "Native terrain save cannot publish pending properties or entities");
+  RollbackSavedMapTiles();
+  if (!flags.kSaveOverworldMaps)
+    return absl::OkStatus();
+  const bool changed_maps = !MapTilesUnchanged();
+  if (!changed_maps && tiles16_ == loaded_tiles16_) {
+    StageSavedMapTiles();
+    return absl::OkStatus();
+  }
+  auto candidate = rom_->vector();
+  auto entry = [&](int id) -> const rom::LyraLayoutEntry& {
+    return *std::find_if(layout.entries.begin(), layout.entries.end(),
+                         [id](const auto& e) { return e.id == id; });
+  };
+  auto word = [&](size_t pc, uint16_t value) {
+    candidate[pc] = static_cast<uint8_t>(value);
+    candidate[pc + 1] = static_cast<uint8_t>(value >> 8);
+  };
+  const size_t definitions_pc = entry(400).pc_address;
+  for (size_t i = 0; i < tiles16_.size(); ++i) {
+    const auto& t = tiles16_[i];
+    const std::array<uint16_t, 4> values = {
+        gfx::TileInfoToWord(t.tile0_), gfx::TileInfoToWord(t.tile1_),
+        gfx::TileInfoToWord(t.tile2_), gfx::TileInfoToWord(t.tile3_)};
+    for (size_t q = 0; q < values.size(); ++q)
+      word(definitions_pc + i * 8 + q * 2, values[q]);
+  }
+  std::vector<gfx::Tile32> definitions;
+  std::vector<uint16_t> indices;
+  if (changed_maps) {
+    for (int kind = 0; kind < 3; ++kind) {
+      const auto& grid = GetMapTiles(kind);
+      const size_t rows = kind == 2 ? (layout.capacity - 128) / 8 * 32 : 256;
+      if (grid.size() < 256 || std::any_of(grid.begin(), grid.begin() + 256,
+                                           [rows](const auto& column) {
+                                             return column.size() < rows;
+                                           }))
+        return absl::FailedPreconditionError(
+            "Native terrain grid is incomplete");
+    }
+    const auto packed = GetAllTile16(map_tiles_, layout.capacity);
+    std::set<uint64_t> unique(packed.begin(), packed.end());
+    if ((unique.size() + 3) / 4 * 4 > 17728)
+      return absl::ResourceExhaustedError("Native Tile32 dictionary is full");
+    std::unordered_map<uint64_t, uint16_t> ids;
+    for (uint64_t value : unique) {
+      const gfx::Tile32 tile(value);
+      if (tile.tile0_ >= 4096 || tile.tile1_ >= 4096 || tile.tile2_ >= 4096 ||
+          tile.tile3_ >= 4096)
+        return absl::InvalidArgumentError(
+            "Native terrain uses an undefined Tile16");
+      ids.emplace(value, static_cast<uint16_t>(definitions.size()));
+      definitions.push_back(tile);
+    }
+    for (uint64_t value : packed)
+      indices.push_back(ids.at(value));
+    while (definitions.size() % 4)
+      definitions.emplace_back(0, 0, 0, 0);
+    for (int q = 0; q < 4; ++q) {
+      const size_t pc = entry(401 + q).pc_address;
+      for (size_t i = 0; i < definitions.size(); i += 4) {
+        std::array<uint16_t, 4> values;
+        for (size_t n = 0; n < 4; ++n) {
+          const auto& t = definitions[i + n];
+          const std::array<uint16_t, 4> quadrants = {t.tile0_, t.tile1_,
+                                                     t.tile2_, t.tile3_};
+          values[n] = quadrants[q];
+          candidate[pc + i / 4 * 6 + n] = static_cast<uint8_t>(values[n]);
+        }
+        candidate[pc + i / 4 * 6 + 4] =
+            ((values[0] >> 4) & 0xF0) | ((values[1] >> 8) & 0xF);
+        candidate[pc + i / 4 * 6 + 5] =
+            ((values[2] >> 4) & 0xF0) | ((values[3] >> 8) & 0xF);
+      }
+    }
+    std::vector<OverworldTerrainPage> pages(layout.capacity);
+    for (size_t map = 0; map < pages.size(); ++map)
+      std::copy_n(indices.begin() + map * 256, 256, pages[map].begin());
+    ASSIGN_OR_RETURN(auto storage, ResolveNativeOverworldTerrainStorage(*rom_));
+    ASSIGN_OR_RETURN(auto plan,
+                     PlanOverworldTerrainSave(*rom_, storage, pages));
+    for (const auto& write : plan.writes)
+      std::copy(write.after.begin(), write.after.end(),
+                candidate.begin() + write.pc);
+  }
+  RETURN_IF_ERROR(
+      rom_->CommitNativeTerrainImage(rom_->vector(), std::move(candidate)));
+  StageSavedMapTiles();
+  staged_tiles32_unique_ = std::move(definitions);
+  staged_tiles32_list_ = std::move(indices);
+  return absl::OkStatus();
+}
+
 absl::Status Overworld::CreateTile32Tilemap() {
   RETURN_IF_ERROR(PreflightLayoutOperation(
       OverworldLayoutDomain::kTile32, OverworldLayoutOperation::kMutateModel));
@@ -3028,7 +3234,8 @@ absl::Status Overworld::CreateTile32Tilemap() {
                                              layout_inspect_options_));
 
   // Get all tiles16 and packs them into tiles32
-  std::vector<uint64_t> all_tile_16 = GetAllTile16(map_tiles_);
+  std::vector<uint64_t> all_tile_16 =
+      GetAllTile16(map_tiles_, materialized_map_count());
 
   // Convert to set then back to vector
   std::set<uint64_t> unique_tiles_set(all_tile_16.begin(), all_tile_16.end());
@@ -3045,7 +3252,7 @@ absl::Status Overworld::CreateTile32Tilemap() {
 
   // Add all tiles32 from all maps.
   // Convert all tiles32 non-unique IDs into unique array of IDs.
-  for (int j = 0; j < NumberOfMap32; j++) {
+  for (size_t j = 0; j < all_tile_16.size(); j++) {
     tiles32_list_.emplace_back(all_tiles_indexed[all_tile_16[j]]);
   }
 

@@ -28,6 +28,7 @@
 #include "app/editor/editor.h"
 #include "app/editor/graphics/screen_editor.h"
 #include "app/editor/layout/layout_presets.h"
+#include "app/editor/message/message_editor.h"
 #include "app/editor/overworld/overworld_editor.h"
 #include "app/editor/session_types.h"
 #include "app/editor/shell/coordinator/ui_coordinator.h"
@@ -797,8 +798,11 @@ absl::Status EditorManager::SaveRomInternal(
   const bool lyra_terrain_save =
       lyra_layout.presence == rom::LyraLayoutPresence::kValid &&
       lyra_layout.a0_terrain_write_supported;
+  const bool native_terrain_save =
+      lyra_layout.presence == rom::LyraLayoutPresence::kValid &&
+      lyra_layout.revision == 3;
   if (!lyra_terrain_save) {
-    RETURN_IF_ERROR(current_rom->CheckLayoutWritable());
+    RETURN_IF_ERROR(current_rom->CheckLayoutSaveable());
   } else if (!save_as_filename.has_value()) {
     return absl::FailedPreconditionError("Lyra A0 terrain requires Save As");
   }
@@ -897,9 +901,29 @@ absl::Status EditorManager::SaveRomInternal(
   // is unavailable. Never materialize an unopened Screen editor here.
   auto* screen_editor = static_cast<ScreenEditor*>(
       current_editor_set->GetExistingEditor(EditorType::kScreen));
+  if (native_terrain_save) {
+    auto* dungeon = static_cast<DungeonEditorV2*>(
+        current_editor_set->GetExistingEditor(EditorType::kDungeon));
+    auto* message = static_cast<MessageEditor*>(
+        current_editor_set->GetExistingEditor(EditorType::kMessage));
+    if (pending_palettes || pending_gfx_groups ||
+        current_editor_set->HasPendingGraphicsChanges() ||
+        (screen_editor && screen_editor->HasPendingScreenChanges()) ||
+        (dungeon && dungeon->HasPendingDungeonChanges()) ||
+        (message && message->HasPendingMessageChanges()))
+      return absl::FailedPreconditionError(
+          "Native terrain save cannot publish pending changes in other "
+          "editors");
+    auto* overworld = static_cast<OverworldEditor*>(
+        current_editor_set->GetExistingEditor(EditorType::kOverworld));
+    if (!overworld || !overworld->overworld().is_loaded())
+      return absl::FailedPreconditionError(
+          "Load native overworld terrain before saving");
+  }
   std::vector<std::pair<uint32_t, uint32_t>> predicted_screen_write_ranges;
-  if (screen_editor != nullptr && (screen_editor->IsRomBackedStateValid() ||
-                                   screen_editor->HasPendingScreenChanges())) {
+  if (!native_terrain_save && screen_editor != nullptr &&
+      (screen_editor->IsRomBackedStateValid() ||
+       screen_editor->HasPendingScreenChanges())) {
     ASSIGN_OR_RETURN(auto plan, screen_editor->PrepareDungeonMapSave());
     for (const auto& write : plan.writes) {
       predicted_screen_write_ranges.emplace_back(
@@ -1006,15 +1030,17 @@ absl::Status EditorManager::SaveRomInternal(
   // --- Save editor-specific data ---
   // A failed lazy Screen load leaves an invalid, clean editor behind. It has
   // nothing to serialize and must not poison unrelated ROM saves.
-  if (screen_editor != nullptr && (screen_editor->IsRomBackedStateValid() ||
-                                   screen_editor->HasPendingScreenChanges())) {
+  if (!native_terrain_save && screen_editor != nullptr &&
+      (screen_editor->IsRomBackedStateValid() ||
+       screen_editor->HasPendingScreenChanges())) {
     RETURN_IF_ERROR(save_editor(screen_editor));
   }
   // A coordinated save must not materialize an unrelated lazy editor. Its
   // serializer can project broad writes (and correctly trip manifest guards)
   // even though the user never opened or edited that domain.
-  RETURN_IF_ERROR(
-      save_editor(current_editor_set->GetExistingEditor(EditorType::kDungeon)));
+  if (!native_terrain_save)
+    RETURN_IF_ERROR(save_editor(
+        current_editor_set->GetExistingEditor(EditorType::kDungeon)));
   // Project context binding creates an Overworld editor before its model is
   // loaded. Its empty caches are not ROM edits and must not be serialized.
   if (auto* overworld = static_cast<OverworldEditor*>(
@@ -1032,7 +1058,7 @@ absl::Status EditorManager::SaveRomInternal(
         current_editor_set->GetExistingEditor(EditorType::kPalette)));
   }
 
-  if (core::FeatureFlags::get().kSaveMessages) {
+  if (!native_terrain_save && core::FeatureFlags::get().kSaveMessages) {
     RETURN_IF_ERROR(EnsureEditorAssetsLoaded(EditorType::kMessage));
     RETURN_IF_ERROR(
         save_editor(current_editor_set->GetEditor(EditorType::kMessage)));
@@ -1041,7 +1067,7 @@ absl::Status EditorManager::SaveRomInternal(
   // Graphics sheets are written through zelda3::WriteGfxSheet (in place, or
   // relocated into manifest-registered free space) before the write-conflict
   // check below diffs the ROM against disk.
-  if (core::FeatureFlags::get().kSaveGraphicsSheet) {
+  if (!native_terrain_save && core::FeatureFlags::get().kSaveGraphicsSheet) {
     RETURN_IF_ERROR(save_editor(
         current_editor_set->GetExistingEditor(EditorType::kGraphics)));
   }
