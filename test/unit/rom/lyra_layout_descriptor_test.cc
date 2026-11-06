@@ -406,6 +406,52 @@ TEST(LyraLayoutDescriptorTest,
 }
 
 TEST(LyraLayoutDescriptorTest,
+     NativeDirectoryReorderedDamagedMagicRefusesFreshLoadWrites) {
+  for (uint16_t capacity : {160, 192}) {
+    NativeDirectoryFixture fixture(capacity);
+    std::reverse(fixture.rows.entries.begin(), fixture.rows.entries.end());
+    fixture.Seal();
+    fixture.bytes[0x147000] = 'X';
+    EXPECT_EQ(rom::InspectLyraLayout(fixture.bytes.data(), fixture.bytes.size())
+                  .presence,
+              rom::LyraLayoutPresence::kInvalid);
+    Rom loaded;
+    ASSERT_TRUE(loaded.LoadFromData(fixture.bytes).ok());
+    const auto before = loaded.vector();
+    EXPECT_EQ(loaded.InspectLyraLayout().presence,
+              rom::LyraLayoutPresence::kInvalid);
+    EXPECT_FALSE(loaded.CheckLayoutWritable().ok());
+    EXPECT_FALSE(loaded.WriteByte(0x100, 1).ok());
+    EXPECT_FALSE(loaded.WriteWord(0x100, 1).ok());
+    EXPECT_EQ(loaded.vector(), before);
+    EXPECT_FALSE(loaded.dirty());
+  }
+}
+
+TEST(LyraLayoutDescriptorTest, NativeDirectoryReaderInstructionFitsTheCpuBank) {
+  for (uint32_t site : {0x03FFFC, 0x03FFFE, 0x03FFFF}) {
+    SCOPED_TRACE(site);
+    NativeDirectoryFixture fixture;
+    const size_t actor = fixture.Entry(301).pc_address + 4 * 16;
+    Put32(&fixture.bytes, actor, site);
+    const size_t pc = (site >> 16) * 0x8000 + (site & 0x7FFF);
+    std::copy_n(fixture.bytes.begin() + actor + 12, 4,
+                fixture.bytes.begin() + pc);
+    fixture.Seal();
+    const auto layout =
+        rom::InspectLyraLayout(fixture.bytes.data(), fixture.bytes.size());
+    if (site == 0x03FFFC) {
+      EXPECT_EQ(layout.presence, rom::LyraLayoutPresence::kValid)
+          << layout.error;
+    } else {
+      EXPECT_EQ(layout.presence, rom::LyraLayoutPresence::kInvalid);
+      EXPECT_EQ(layout.error,
+                "Native special-overworld reader binding invalid");
+    }
+  }
+}
+
+TEST(LyraLayoutDescriptorTest,
      NativeDirectoryAcceptsFeFfPoolsWithoutAcceptingWram) {
   NativeDirectoryFixture fixture;
   fixture.bytes.resize(0x400000);
