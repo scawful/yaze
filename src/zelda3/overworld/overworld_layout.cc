@@ -30,7 +30,7 @@ bool IsValidSpan(const Rom& rom, int pc, int bytes) {
 }
 
 bool IsRomSnesAddress(uint32_t address) {
-  const uint32_t bank = (address >> 16) & 0x7F;
+  const uint32_t bank = address >> 16;
   return address <= 0xFFFFFF && (address & 0x8000) != 0 && bank != 0x7E &&
          bank != 0x7F;
 }

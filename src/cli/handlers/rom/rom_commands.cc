@@ -244,7 +244,8 @@ absl::Status RomInfoCommandHandler::Execute(
                                0)
                .ok()));
   if (!terrain_serialize.ok()) {
-    formatter.AddField("overworld_layout_refusal", terrain_serialize.message());
+    formatter.AddField("overworld_layout_refusal",
+                       std::string(terrain_serialize.message()));
   }
   formatter.AddField("overworld_format_revision", layout.revision);
   formatter.AddField("overworld_storage_slot_capacity",
