@@ -10,7 +10,6 @@
 #include <ostream>
 #include <set>
 #include <string>
-#include <unordered_map>
 #include <vector>
 
 #include "absl/status/status.h"
@@ -2460,54 +2459,6 @@ absl::Status Overworld::SaveLargeMapsExpanded() {
   return absl::OkStatus();
 }
 
-namespace {
-std::vector<uint64_t> GetAllTile16(const OverworldMapTiles& map_tiles_,
-                                   int map_count) {
-  std::vector<uint64_t> all_tile_16;  // Ensure it's 64 bits
-
-  int sx = 0;
-  int sy = 0;
-  int c = 0;
-  for (int i = 0; i < map_count; i++) {
-    const OverworldBlockset* tiles_used = nullptr;
-    if (i < kDarkWorldMapIdStart) {
-      tiles_used = &map_tiles_.light_world;
-    } else if (i < kSpecialWorldMapIdStart && i >= kDarkWorldMapIdStart) {
-      tiles_used = &map_tiles_.dark_world;
-    } else {
-      tiles_used = &map_tiles_.special_world;
-    }
-
-    for (int y = 0; y < 32; y += 2) {
-      for (int x = 0; x < 32; x += 2) {
-        gfx::Tile32 current_tile(
-            (*tiles_used)[x + (sx * 32)][y + (sy * 32)],
-            (*tiles_used)[x + 1 + (sx * 32)][y + (sy * 32)],
-            (*tiles_used)[x + (sx * 32)][y + 1 + (sy * 32)],
-            (*tiles_used)[x + 1 + (sx * 32)][y + 1 + (sy * 32)]);
-
-        all_tile_16.emplace_back(current_tile.GetPackedValue());
-      }
-    }
-
-    sx++;
-    if (sx >= 8) {
-      sy++;
-      sx = 0;
-    }
-
-    c++;
-    if (c >= 64) {
-      sx = 0;
-      sy = 0;
-      c = 0;
-    }
-  }
-
-  return all_tile_16;
-}
-}  // namespace
-
 absl::Status Overworld::SaveNativeTerrain() {
   if (!rom_ || !is_loaded_ ||
       !rom::IsNativeSpecialOverworldLayout(descriptor_layout_))
@@ -2601,54 +2552,17 @@ absl::Status Overworld::SaveNativeTerrain() {
   std::vector<gfx::Tile32> definitions;
   std::vector<uint16_t> indices;
   if (changed_maps) {
-    for (int kind = 0; kind < 3; ++kind) {
-      const auto& grid = GetMapTiles(kind);
-      const size_t rows = kind == 2 ? (layout.capacity - 128) / 8 * 32 : 256;
-      if (grid.size() < 256 || std::any_of(grid.begin(), grid.begin() + 256,
-                                           [rows](const auto& column) {
-                                             return column.size() < rows;
-                                           }))
-        return absl::FailedPreconditionError(
-            "Native terrain grid is incomplete");
-    }
-    const auto packed = GetAllTile16(map_tiles_, layout.capacity);
-    std::set<uint64_t> unique(packed.begin(), packed.end());
-    if ((unique.size() + 3) / 4 * 4 > 17728)
-      return absl::ResourceExhaustedError("Native Tile32 dictionary is full");
-    std::unordered_map<uint64_t, uint16_t> ids;
-    for (uint64_t value : unique) {
-      const gfx::Tile32 tile(value);
-      if (tile.tile0_ >= 4096 || tile.tile1_ >= 4096 || tile.tile2_ >= 4096 ||
-          tile.tile3_ >= 4096)
-        return absl::InvalidArgumentError(
-            "Native terrain uses an undefined Tile16");
-      ids.emplace(value, static_cast<uint16_t>(definitions.size()));
-      definitions.push_back(tile);
-    }
-    for (uint64_t value : packed)
-      indices.push_back(ids.at(value));
-    while (definitions.size() % 4)
-      definitions.emplace_back(0, 0, 0, 0);
+    ASSIGN_OR_RETURN(auto packing, PlanOverworldTile32Packing(
+                                       map_tiles_, layout.capacity, 17728));
+    definitions = std::move(packing.definitions);
+    for (const auto& page : packing.pages)
+      indices.insert(indices.end(), page.begin(), page.end());
     for (int q = 0; q < 4; ++q) {
-      const size_t pc = entry(401 + q).pc_address;
-      for (size_t i = 0; i < definitions.size(); i += 4) {
-        std::array<uint16_t, 4> values;
-        for (size_t n = 0; n < 4; ++n) {
-          const auto& t = definitions[i + n];
-          const std::array<uint16_t, 4> quadrants = {t.tile0_, t.tile1_,
-                                                     t.tile2_, t.tile3_};
-          values[n] = quadrants[q];
-          candidate[pc + i / 4 * 6 + n] = static_cast<uint8_t>(values[n]);
-        }
-        candidate[pc + i / 4 * 6 + 4] =
-            ((values[0] >> 4) & 0xF0) | ((values[1] >> 8) & 0xF);
-        candidate[pc + i / 4 * 6 + 5] =
-            ((values[2] >> 4) & 0xF0) | ((values[3] >> 8) & 0xF);
-      }
+      const auto& bytes = packing.quadrant_bytes[q];
+      std::copy(bytes.begin(), bytes.end(),
+                candidate.begin() + entry(401 + q).pc_address);
     }
-    std::vector<OverworldTerrainPage> pages(layout.capacity);
-    for (size_t map = 0; map < pages.size(); ++map)
-      std::copy_n(indices.begin() + map * 256, 256, pages[map].begin());
+    const auto& pages = packing.pages;
     ASSIGN_OR_RETURN(auto storage, ResolveNativeOverworldTerrainStorage(*rom_));
     ASSIGN_OR_RETURN(auto plan,
                      PlanOverworldTerrainSave(*rom_, storage, pages));
@@ -2688,38 +2602,12 @@ absl::Status Overworld::CreateTile32Tilemap() {
                    ResolveMap32StorageLayout(*rom(), version_constants(),
                                              layout_inspect_options_));
 
-  // Get all tiles16 and packs them into tiles32
-  std::vector<uint64_t> all_tile_16 =
-      GetAllTile16(map_tiles_, materialized_map_count());
-
-  // Convert to set then back to vector
-  std::set<uint64_t> unique_tiles_set(all_tile_16.begin(), all_tile_16.end());
-
-  std::vector<uint64_t> unique_tiles(all_tile_16);
-  unique_tiles.assign(unique_tiles_set.begin(), unique_tiles_set.end());
-
-  // Create the indexed tiles list
-  std::unordered_map<uint64_t, uint16_t> all_tiles_indexed;
-  for (size_t tile32_id = 0; tile32_id < unique_tiles.size(); tile32_id++) {
-    all_tiles_indexed.insert(
-        {unique_tiles[tile32_id], static_cast<uint16_t>(tile32_id)});
-  }
-
-  // Add all tiles32 from all maps.
-  // Convert all tiles32 non-unique IDs into unique array of IDs.
-  for (size_t j = 0; j < all_tile_16.size(); j++) {
-    tiles32_list_.emplace_back(all_tiles_indexed[all_tile_16[j]]);
-  }
-
-  // Create the unique tiles list
-  for (size_t i = 0; i < unique_tiles.size(); ++i) {
-    tiles32_unique_.emplace_back(gfx::Tile32(unique_tiles[i]));
-  }
-
-  while (tiles32_unique_.size() % 4 != 0) {
-    gfx::Tile32 padding_tile(0, 0, 0, 0);
-    tiles32_unique_.emplace_back(padding_tile.GetPackedValue());
-  }
+  ASSIGN_OR_RETURN(auto packing, PlanOverworldTile32Packing(
+                                     map_tiles_, materialized_map_count(),
+                                     storage_layout.definition_capacity));
+  tiles32_unique_ = std::move(packing.definitions);
+  for (const auto& page : packing.pages)
+    tiles32_list_.insert(tiles32_list_.end(), page.begin(), page.end());
 
   RETURN_IF_ERROR(
       ValidateMap32DefinitionCount(tiles32_unique_.size(), storage_layout));

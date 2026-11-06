@@ -2,18 +2,31 @@
 #define YAZE_ZELDA3_OVERWORLD_OVERWORLD_TERRAIN_IO_H_
 
 #include <array>
+#include <cstddef>
 #include <cstdint>
 #include <optional>
 #include <span>
 #include <vector>
 
 #include "absl/status/statusor.h"
+#include "app/gfx/types/snes_tile.h"
 #include "rom/rom.h"
 #include "rom/write_fence.h"
 
 namespace yaze::zelda3 {
 
 using OverworldTerrainPage = std::array<uint16_t, 256>;
+struct OverworldMapTiles;
+
+// One deterministic dictionary/index plan shared by ordinary Save and the
+// first expanded-map import. Four definitions share each packed 6-byte row.
+struct OverworldTile32Packing {
+  std::vector<gfx::Tile32> definitions;
+  std::vector<OverworldTerrainPage> pages;
+  std::array<std::vector<uint8_t>, 4> quadrant_bytes;
+};
+absl::StatusOr<OverworldTile32Packing> PlanOverworldTile32Packing(
+    const OverworldMapTiles& tiles, int map_count, size_t definition_capacity);
 
 struct OverworldTerrainPointerTables {
   uint32_t high_table_pc = 0;
@@ -50,12 +63,22 @@ struct OverworldTerrainSavePlan {
   // A change outside the planned writes can invalidate allocation ownership.
   std::vector<uint8_t> baseline;
   std::vector<OverworldTerrainWrite> writes;
+  // Import writes are consumed by the complete dictionary/directory image
+  // planner; ApplyOverworldTerrainSave must not publish this partial image.
+  bool initial_import = false;
 };
 
 // Preserve unchanged streams/pointers, share identical decoded planes, and
 // place changed streams without overwriting any stream still in use. All
 // pointers and independently scanned output pages are checked before mutation.
 absl::StatusOr<OverworldTerrainSavePlan> PlanOverworldTerrainSave(
+    const Rom& rom, const OverworldTerrainStorage& storage,
+    std::span<const OverworldTerrainPage> pages);
+
+// Read the original 160 streams and allocate the complete desired 160/192-map
+// image without inventing old streams for new maps. The editable ROM copy has
+// no native directory yet and includes the declared destination storage.
+absl::StatusOr<OverworldTerrainSavePlan> PlanInitialOverworldTerrainImport(
     const Rom& rom, const OverworldTerrainStorage& storage,
     std::span<const OverworldTerrainPage> pages);
 

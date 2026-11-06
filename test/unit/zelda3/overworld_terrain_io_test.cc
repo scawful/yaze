@@ -7,6 +7,7 @@
 #include "app/gfx/util/compression.h"
 #include "gtest/gtest.h"
 #include "rom/snes.h"
+#include "zelda3/overworld/overworld_map.h"
 
 namespace yaze::zelda3 {
 namespace {
@@ -51,6 +52,28 @@ class OverworldTerrainIoTest : public testing::Test {
     rom.set_dirty(false);
   }
 
+  void MakeInitialImport(int count) {
+    MakeRom(count);
+    auto data = rom.vector();
+    data.resize(0x400000);
+    storage.native_prefix =
+        OverworldTerrainPointerTables{0x1794D, 0x17B2D, 160};
+    std::copy_n(data.begin() + storage.high_table_pc, 160 * 3,
+                data.begin() + 0x1794D);
+    std::copy_n(data.begin() + storage.low_table_pc, 160 * 3,
+                data.begin() + 0x17B2D);
+    storage.high_table_pc = 0x260000;
+    storage.low_table_pc = 0x260300;
+    // No source pointers exist at the destination, including the added maps.
+    // Deliberately invalid bytes ensure the planner cannot read fake old rows.
+    for (uint32_t table : {storage.high_table_pc, storage.low_table_pc})
+      std::fill_n(data.begin() + table, count * 3, 0x7E);
+    storage.read_only_stream_regions = {{0x10000, 0x10008, "original streams"}};
+    storage.stream_regions = {{0x240000, 0x260000, "import streams"}};
+    ASSERT_TRUE(rom.LoadFromData(data).ok());
+    rom.set_dirty(false);
+  }
+
   uint32_t StreamPc(uint32_t slot) const {
     const auto& data = rom.vector();
     return SnesToPc(data[slot] | (data[slot + 1] << 8) |
@@ -86,6 +109,139 @@ class OverworldTerrainIoTest : public testing::Test {
   OverworldTerrainStorage storage;
   std::vector<OverworldTerrainPage> pages;
 };
+
+TEST(OverworldTile32PackingTest,
+     PackedDictionariesReconstructEveryOriginalCell) {
+  OverworldMapTiles tiles;
+  std::array<OverworldBlockset*, 3> grids = {
+      &tiles.light_world, &tiles.dark_world, &tiles.special_world};
+  for (auto* grid : grids)
+    grid->assign(256, std::vector<uint16_t>(256));
+  for (int map = 0; map < 192; ++map) {
+    auto& grid = *grids[map / 64];
+    for (int y = 0; y < 32; ++y)
+      for (int x = 0; x < 32; ++x)
+        grid[map % 8 * 32 + x][map % 64 / 8 * 32 + y] =
+            (map * 7 + x * 3 + y * 5) % 4096;
+  }
+  tiles.special_world[255][255] = 4095;
+  const auto plan = PlanOverworldTile32Packing(tiles, 192, 17728);
+  ASSERT_TRUE(plan.ok()) << plan.status();
+  ASSERT_EQ(plan->pages.size(), 192u);
+  EXPECT_EQ(plan->definitions.size() % 4, 0u);
+  for (int map = 0; map < 192; ++map)
+    for (int y = 0; y < 32; ++y)
+      for (int x = 0; x < 32; ++x) {
+        const size_t id = plan->pages[map][y / 2 * 16 + x / 2];
+        ASSERT_LT(id, plan->definitions.size());
+        const auto& bytes = plan->quadrant_bytes[y % 2 * 2 + x % 2];
+        const size_t row = id / 4 * 6, lane = id % 4;
+        // Decode the game-format 12-bit word, independently of Tile32 values.
+        const uint16_t word =
+            bytes[row + lane] |
+            (((bytes[row + 4 + lane / 2] >> (lane % 2 == 0 ? 4 : 0)) & 15)
+             << 8);
+        ASSERT_EQ(word,
+                  (*grids[map / 64])[map % 8 * 32 + x][map % 64 / 8 * 32 + y]);
+      }
+  const auto again = PlanOverworldTile32Packing(tiles, 192, 17728);
+  ASSERT_TRUE(again.ok());
+  EXPECT_EQ(again->pages, plan->pages);
+  EXPECT_EQ(again->quadrant_bytes, plan->quadrant_bytes);
+  EXPECT_EQ(PlanOverworldTile32Packing(tiles, 192, 4).status().code(),
+            absl::StatusCode::kResourceExhausted);
+}
+
+TEST(OverworldTile32PackingTest,
+     CapacityGridAndTile16BoundsRefuseBeforePacking) {
+  OverworldMapTiles tiles;
+  tiles.light_world.assign(256, std::vector<uint16_t>(256));
+  tiles.dark_world = tiles.light_world;
+  tiles.special_world.assign(256, std::vector<uint16_t>(128));
+  const auto original = PlanOverworldTile32Packing(tiles, 160, 17728);
+  ASSERT_TRUE(original.ok()) << original.status();
+  EXPECT_EQ(original->definitions.size(), 4u);
+  EXPECT_EQ(PlanOverworldTile32Packing(tiles, 192, 17728).status().code(),
+            absl::StatusCode::kFailedPrecondition);
+  EXPECT_FALSE(PlanOverworldTile32Packing(tiles, 159, 17728).ok());
+  EXPECT_FALSE(PlanOverworldTile32Packing(tiles, 160, 0).ok());
+  tiles.light_world[31][31] = 4096;
+  EXPECT_EQ(PlanOverworldTile32Packing(tiles, 160, 17728).status().code(),
+            absl::StatusCode::kInvalidArgument);
+  EXPECT_EQ(tiles.light_world[31][31], 4096);
+}
+
+TEST_F(OverworldTerrainIoTest,
+       InitialImportHasOnly160OldMapsAndReadsAllOutputs) {
+  for (int count : {160, 192}) {
+    SCOPED_TRACE(count);
+    MakeInitialImport(count);
+    const auto before = rom.vector();
+    // Repacking a dictionary may renumber every original map's Tile32 IDs.
+    for (auto& page : pages)
+      page.fill(0x0102);
+    pages.back()[255] = 0x0321;
+    EXPECT_FALSE(PlanOverworldTerrainSave(rom, storage, pages).ok());
+    const auto plan = PlanInitialOverworldTerrainImport(rom, storage, pages);
+    ASSERT_TRUE(plan.ok()) << plan.status();
+    EXPECT_TRUE(plan->initial_import);
+    EXPECT_FALSE(ApplyOverworldTerrainSave(rom, *plan).ok());
+    EXPECT_EQ(rom.vector(), before);
+    EXPECT_FALSE(rom.dirty());
+    auto staged = before;
+    for (const auto& write : plan->writes) {
+      ASSERT_TRUE(std::equal(write.before.begin(), write.before.end(),
+                             before.begin() + write.pc));
+      std::copy(write.after.begin(), write.after.end(),
+                staged.begin() + write.pc);
+    }
+    EXPECT_TRUE(std::equal(before.begin() + 0x10000, before.begin() + 0x10008,
+                           staged.begin() + 0x10000));
+    for (auto [primary, mirror] : {std::pair{storage.high_table_pc, 0x1794DU},
+                                   std::pair{storage.low_table_pc, 0x17B2DU}})
+      EXPECT_TRUE(std::equal(staged.begin() + primary,
+                             staged.begin() + primary + 160 * 3,
+                             staged.begin() + mirror));
+    // Test-only staging: production must join dictionaries/directory before
+    // publishing this plan. Independently decompress every desired page here.
+    ASSERT_TRUE(rom.LoadFromData(staged).ok());
+    CheckColdReadback();
+    const auto no_op = PlanOverworldTerrainSave(rom, storage, pages);
+    ASSERT_TRUE(no_op.ok()) << no_op.status();
+    EXPECT_TRUE(no_op->writes.empty());
+  }
+}
+
+TEST_F(OverworldTerrainIoTest,
+       InitialImportRefusesBadSourceAndExhaustedOwnership) {
+  MakeInitialImport(192);
+  const auto before = rom.vector();
+  storage.native_prefix->map_count = 159;
+  EXPECT_FALSE(PlanInitialOverworldTerrainImport(rom, storage, pages).ok());
+  storage.native_prefix->map_count = 160;
+  storage.native_prefix->low_table_pc++;
+  EXPECT_FALSE(PlanInitialOverworldTerrainImport(rom, storage, pages).ok());
+  storage.native_prefix->low_table_pc--;
+  storage.stream_regions = {{0x240000, 0x240004, "too small"}};
+  for (auto& page : pages)
+    page.fill(0x0102);
+  EXPECT_EQ(
+      PlanInitialOverworldTerrainImport(rom, storage, pages).status().code(),
+      absl::StatusCode::kResourceExhausted);
+  EXPECT_EQ(rom.vector(), before);
+  storage.stream_regions = {{0x240000, 0x260000, "import streams"}};
+  auto bytes = before;
+  bytes[0x17B2D + 0x9F * 3 + 2] = 0x7E;
+  ASSERT_TRUE(rom.LoadFromData(bytes).ok());
+  EXPECT_FALSE(PlanInitialOverworldTerrainImport(rom, storage, pages).ok());
+  EXPECT_EQ(rom.vector(), bytes);
+  ASSERT_TRUE(rom.LoadFromData(before).ok());
+  storage.read_only_stream_regions.clear();
+  storage.stream_regions.push_back(
+      {0x10000, 0x10008, "wrongly writable source"});
+  EXPECT_FALSE(PlanInitialOverworldTerrainImport(rom, storage, pages).ok());
+  EXPECT_EQ(rom.vector(), before);
+}
 
 TEST_F(OverworldTerrainIoTest, NoOpPreservesExactPointersAndDirtyState) {
   MakeRom(160);

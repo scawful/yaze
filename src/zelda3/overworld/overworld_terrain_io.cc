@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <map>
+#include <set>
 #include <utility>
 
 #include "absl/strings/str_format.h"
@@ -10,6 +11,7 @@
 #include "rom/transaction.h"
 #include "util/macro.h"
 #include "zelda3/overworld/overworld_allocation.h"
+#include "zelda3/overworld/overworld_map.h"
 
 namespace yaze::zelda3 {
 namespace {
@@ -115,6 +117,73 @@ void AddWrite(OverworldTerrainSavePlan* plan, std::vector<uint8_t>* staged,
 
 }  // namespace
 
+absl::StatusOr<OverworldTile32Packing> PlanOverworldTile32Packing(
+    const OverworldMapTiles& tiles, int map_count, size_t definition_capacity) {
+  if ((map_count != 160 && map_count != 192) || definition_capacity < 4 ||
+      definition_capacity > 65536)
+    return absl::InvalidArgumentError("Invalid Tile32 packing capacity");
+  const std::array<const OverworldBlockset*, 3> grids = {
+      &tiles.light_world, &tiles.dark_world, &tiles.special_world};
+  for (size_t kind = 0; kind < grids.size(); ++kind) {
+    const size_t rows = kind == 2 ? (map_count - 128) / 8 * 32 : 256;
+    const auto& grid = *grids[kind];
+    if (grid.size() < 256 || std::any_of(grid.begin(), grid.begin() + 256,
+                                         [rows](const auto& column) {
+                                           return column.size() < rows;
+                                         }))
+      return absl::FailedPreconditionError(
+          "Overworld terrain grid is incomplete");
+  }
+  std::vector<uint64_t> packed;
+  packed.reserve(map_count * 256);
+  for (int map = 0; map < map_count; ++map) {
+    const auto& grid = *grids[map / 64];
+    const int sx = map % 8 * 32, sy = map % 64 / 8 * 32;
+    for (int y = 0; y < 32; y += 2)
+      for (int x = 0; x < 32; x += 2) {
+        const gfx::Tile32 tile(grid[sx + x][sy + y], grid[sx + x + 1][sy + y],
+                               grid[sx + x][sy + y + 1],
+                               grid[sx + x + 1][sy + y + 1]);
+        if (tile.tile0_ >= 4096 || tile.tile1_ >= 4096 || tile.tile2_ >= 4096 ||
+            tile.tile3_ >= 4096)
+          return absl::InvalidArgumentError(
+              "Overworld terrain uses an undefined Tile16");
+        packed.push_back(tile.GetPackedValue());
+      }
+  }
+  const std::set<uint64_t> unique(packed.begin(), packed.end());
+  if ((unique.size() + 3) / 4 * 4 > definition_capacity)
+    return absl::ResourceExhaustedError("Tile32 dictionary is full");
+  OverworldTile32Packing plan;
+  std::map<uint64_t, uint16_t> ids;
+  for (uint64_t value : unique) {
+    ids.emplace(value, static_cast<uint16_t>(plan.definitions.size()));
+    plan.definitions.emplace_back(value);
+  }
+  while (plan.definitions.size() % 4)
+    plan.definitions.emplace_back(0, 0, 0, 0);
+  plan.pages.resize(map_count);
+  for (size_t i = 0; i < packed.size(); ++i)
+    plan.pages[i / 256][i % 256] = ids.at(packed[i]);
+  for (int q = 0; q < 4; ++q) {
+    auto& bytes = plan.quadrant_bytes[q];
+    bytes.reserve(plan.definitions.size() / 4 * 6);
+    for (size_t i = 0; i < plan.definitions.size(); i += 4) {
+      std::array<uint16_t, 4> values;
+      for (size_t n = 0; n < 4; ++n) {
+        const auto& t = plan.definitions[i + n];
+        const std::array<uint16_t, 4> quadrants = {t.tile0_, t.tile1_, t.tile2_,
+                                                   t.tile3_};
+        values[n] = quadrants[q];
+        bytes.push_back(static_cast<uint8_t>(values[n]));
+      }
+      bytes.push_back(((values[0] >> 4) & 0xF0) | ((values[1] >> 8) & 0xF));
+      bytes.push_back(((values[2] >> 4) & 0xF0) | ((values[3] >> 8) & 0xF));
+    }
+  }
+  return plan;
+}
+
 absl::StatusOr<OverworldTerrainStorage> ResolveNativeOverworldTerrainStorage(
     const Rom& rom) {
   const auto layout = rom.InspectLyraLayout();
@@ -174,19 +243,31 @@ absl::Status CheckNativeStorage(const Rom& rom,
 }
 }  // namespace
 
-absl::StatusOr<OverworldTerrainSavePlan> PlanOverworldTerrainSave(
+namespace {
+absl::StatusOr<OverworldTerrainSavePlan> PlanTerrainSave(
     const Rom& rom, const OverworldTerrainStorage& storage,
-    std::span<const OverworldTerrainPage> pages) {
+    std::span<const OverworldTerrainPage> pages, bool initial_import) {
   RETURN_IF_ERROR(rom.CheckLayoutSaveable());
-  RETURN_IF_ERROR(CheckNativeStorage(rom, storage));
+  if (initial_import) {
+    if (rom.InspectLyraLayout().presence != rom::LyraLayoutPresence::kAbsent ||
+        !storage.native_prefix ||
+        storage.native_prefix->high_table_pc != 0x1794D ||
+        storage.native_prefix->low_table_pc != 0x17B2D ||
+        storage.native_prefix->map_count != 160)
+      return absl::FailedPreconditionError(
+          "Initial terrain import requires the original 160-map pointer tables "
+          "and no existing native directory");
+  } else {
+    RETURN_IF_ERROR(CheckNativeStorage(rom, storage));
+  }
   ASSIGN_OR_RETURN(auto fence, StorageFence(storage, rom.size()));
   if (pages.size() != static_cast<size_t>(storage.map_count)) {
     return absl::InvalidArgumentError(
         "Terrain page count differs from storage");
   }
-  OverworldTerrainSavePlan plan{storage, rom.vector(), {}};
+  OverworldTerrainSavePlan plan{storage, rom.vector(), {}, initial_import};
   auto staged = plan.baseline;
-  if (storage.native_prefix) {
+  if (storage.native_prefix && !initial_import) {
     const auto& prefix = *storage.native_prefix;
     for (int map = 0; map < prefix.map_count; ++map) {
       if (Pointer(staged, prefix.high_table_pc + map * 3) !=
@@ -200,7 +281,7 @@ absl::StatusOr<OverworldTerrainSavePlan> PlanOverworldTerrainSave(
   }
   struct Request {
     uint32_t slot;
-    MapStreamScan old;
+    std::optional<MapStreamScan> old;
     Plane wanted;
   };
   std::vector<Request> requests;
@@ -210,9 +291,28 @@ absl::StatusOr<OverworldTerrainSavePlan> PlanOverworldTerrainSave(
     for (bool high : {true, false}) {
       const uint32_t slot =
           (high ? storage.high_table_pc : storage.low_table_pc) + map * 3;
-      ASSIGN_OR_RETURN(auto old, ReadPlane(plan.baseline, storage, slot));
-      existing.try_emplace(old.decoded, old.pc);
-      stream_sizes.emplace(old.pc, old.compressed_bytes);
+      std::optional<MapStreamScan> old;
+      if (!initial_import || map < 160) {
+        const uint32_t source_slot =
+            initial_import ? (high ? storage.native_prefix->high_table_pc
+                                   : storage.native_prefix->low_table_pc) +
+                                 map * 3
+                           : slot;
+        ASSIGN_OR_RETURN(auto scan,
+                         ReadPlane(plan.baseline, storage, source_slot));
+        if (initial_import &&
+            std::none_of(storage.read_only_stream_regions.begin(),
+                         storage.read_only_stream_regions.end(),
+                         [&](const auto& region) {
+                           return scan.pc >= region.start &&
+                                  scan.pc + scan.compressed_bytes <= region.end;
+                         }))
+          return absl::FailedPreconditionError(
+              "Initial terrain source stream must be read-only");
+        existing.try_emplace(scan.decoded, scan.pc);
+        stream_sizes.emplace(scan.pc, scan.compressed_bytes);
+        old = std::move(scan);
+      }
       requests.push_back({slot, std::move(old), PagePlane(pages[map], high)});
     }
   }
@@ -222,8 +322,9 @@ absl::StatusOr<OverworldTerrainSavePlan> PlanOverworldTerrainSave(
   std::vector<bool> occupied(rom.size(), false);
   std::vector<bool> reusable(rom.size(), false);
   for (const auto& request : requests) {
-    std::fill_n(reusable.begin() + request.old.pc, request.old.compressed_bytes,
-                true);
+    if (request.old)
+      std::fill_n(reusable.begin() + request.old->pc,
+                  request.old->compressed_bytes, true);
   }
   std::map<Plane, uint32_t> placements;
   for (const auto& request : requests) {
@@ -231,15 +332,18 @@ absl::StatusOr<OverworldTerrainSavePlan> PlanOverworldTerrainSave(
     if (match == existing.end())
       continue;
     // A no-op keeps its own pointer even when another identical stream exists.
-    const uint32_t pc =
-        request.old.decoded == request.wanted ? request.old.pc : match->second;
+    const uint32_t pc = request.old && request.old->decoded == request.wanted
+                            ? request.old->pc
+                            : match->second;
     placements.try_emplace(request.wanted, pc);
     std::fill_n(occupied.begin() + pc, stream_sizes.at(pc), true);
   }
 
   for (const auto& request : requests) {
-    uint32_t pc = request.old.pc;
-    if (request.old.decoded != request.wanted) {
+    uint32_t pc = request.old ? request.old->pc : 0;
+    const bool unchanged =
+        request.old && request.old->decoded == request.wanted;
+    if (!unchanged) {
       auto match = placements.find(request.wanted);
       if (match != placements.end()) {
         pc = match->second;
@@ -277,6 +381,8 @@ absl::StatusOr<OverworldTerrainSavePlan> PlanOverworldTerrainSave(
           return absl::ResourceExhaustedError(
               "Assigned overworld terrain stream storage is full");
       }
+    }
+    if (initial_import || !unchanged) {
       const uint32_t pointer = 0x808000 | ((pc / 0x8000) << 16) | (pc & 0x7FFF);
       AddWrite(
           &plan, &staged, request.slot,
@@ -311,9 +417,26 @@ absl::StatusOr<OverworldTerrainSavePlan> PlanOverworldTerrainSave(
     RETURN_IF_ERROR(fence.Check(write.pc, write.after.size(), "terrain plan"));
   return plan;
 }
+}  // namespace
+
+absl::StatusOr<OverworldTerrainSavePlan> PlanOverworldTerrainSave(
+    const Rom& rom, const OverworldTerrainStorage& storage,
+    std::span<const OverworldTerrainPage> pages) {
+  return PlanTerrainSave(rom, storage, pages, false);
+}
+
+absl::StatusOr<OverworldTerrainSavePlan> PlanInitialOverworldTerrainImport(
+    const Rom& rom, const OverworldTerrainStorage& storage,
+    std::span<const OverworldTerrainPage> pages) {
+  return PlanTerrainSave(rom, storage, pages, true);
+}
 
 absl::Status ApplyOverworldTerrainSave(Rom& rom,
                                        const OverworldTerrainSavePlan& plan) {
+  if (plan.initial_import)
+    return absl::FailedPreconditionError(
+        "Initial terrain import must publish with its complete dictionaries "
+        "and native directory");
   RETURN_IF_ERROR(rom.CheckLayoutSaveable());
   RETURN_IF_ERROR(CheckNativeStorage(rom, plan.storage));
   ASSIGN_OR_RETURN(auto fence, StorageFence(plan.storage, rom.size()));
