@@ -243,6 +243,7 @@ TEST_F(NativePlacementSaveTest, HistoryFailureRetryAndColdReopen) {
   ASSERT_EQ(new_id, 0x6003);
   ASSERT_TRUE(editor->Undo().ok());
   ASSERT_TRUE(FindId(world, *new_id)->deleted());
+  EXPECT_TRUE(world.HasPendingNativeSpriteChanges());
   ASSERT_TRUE(manager->SaveCurrentSession(false).ok());
   EXPECT_EQ(cold().placements.back().state,
             rom::NativePlacementState::kDeleted);
@@ -273,10 +274,23 @@ TEST_F(NativePlacementSaveTest, HistoryFailureRetryAndColdReopen) {
   const auto message = world.overworld_map(0x80)->message_id() ^ 1;
   world.mutable_overworld_map(0x80)->set_message_id(message);
   document->set_dirty(true);
-  ASSERT_TRUE(manager->SaveCurrentSession(false).ok());
+  const auto partial_save = manager->SaveCurrentSession(false);
+  EXPECT_EQ(partial_save.code(), absl::StatusCode::kFailedPrecondition)
+      << partial_save;
+  EXPECT_NE(partial_save.message().find("unsaved"), absl::string_view::npos);
   EXPECT_EQ(cold(), persisted);
+  EXPECT_FALSE(document->dirty());
+  EXPECT_TRUE(world.HasPendingNativeSpriteChanges());
+  Rom property_saved;
+  ASSERT_TRUE(property_saved.LoadFromFile(source.string()).ok());
+  const auto message_record = rom::LyraLayoutRecord(
+      property_saved.InspectLyraLayout(), property_saved.data(),
+      property_saved.size(), 19, 0x80);
+  ASSERT_TRUE(message_record.has_value());
+  EXPECT_EQ((*message_record)[0] | ((*message_record)[1] << 8), message);
   core::FeatureFlags::get().overworld.kSaveOverworldSprites = true;
   ASSERT_TRUE(manager->SaveCurrentSession(false).ok());
+  EXPECT_FALSE(world.HasPendingNativeSpriteChanges());
   EXPECT_EQ(
       std::get<rom::NativeAuthoringSpritePlacement>(cold().placements[0].value)
           .packed[2],
@@ -285,8 +299,9 @@ TEST_F(NativePlacementSaveTest, HistoryFailureRetryAndColdReopen) {
   // extra deleted ID must remain reserved while the old geometry is restored.
   const auto area = world.CaptureNativeAreaSnapshot();
   ASSERT_TRUE(area.ok()) << area.status();
-  ASSERT_TRUE(
-      world.ConfigureMultiAreaMap(0xB0, zelda3::AreaSizeEnum::SmallArea).ok());
+  const auto resize =
+      world.ConfigureMultiAreaMap(0xB0, zelda3::AreaSizeEnum::SmallArea);
+  ASSERT_TRUE(resize.ok()) << resize;
   auto later = service->InsertEntity("sprite", ImVec2(48, 3120), 0xB0, 1);
   ASSERT_TRUE(later.ok()) << later.status;
   const auto later_id =

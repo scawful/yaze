@@ -592,6 +592,7 @@ class Overworld {
   /// @brief Master save method (calls sub-methods in correct order)
   absl::Status Save(Rom* rom);
   absl::Status SaveNativeTerrain();
+  bool HasPendingNativeSpriteChanges() const;
 
   /// @brief Save compressed map tile data to ROM
   absl::Status SaveOverworldMaps();
@@ -958,6 +959,7 @@ class Overworld {
   absl::StatusOr<std::vector<rom::NativeOverworldPropertyEdit>>
   PrepareNativePropertySave() const;
   NativeModelState CaptureNativeNonTerrainState() const;
+  std::vector<int64_t> CaptureNativeSpriteState() const;
   absl::Status BindNativeSpritePlacements();
   absl::Status LoadNativeAreaProfiles();
   std::vector<OverworldAreaProfile> CaptureNativeAreaProfiles() const;

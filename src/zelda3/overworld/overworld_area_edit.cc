@@ -350,9 +350,9 @@ absl::Status Overworld::ConfigureNativeMultiAreaMap(int parent,
       const int owner = after.geometry[page].parent;
       const int x = (sprite.x() - owner % 8 * 512) / 16;
       const int y = (sprite.y() - owner % 64 / 8 * 512) / 16;
-      after.sprites[phase][row] = {static_cast<uint8_t>(owner),
-                                   static_cast<uint8_t>(x),
-                                   static_cast<uint8_t>(y)};
+      after.sprites[phase][row] = {
+          static_cast<uint8_t>(owner), static_cast<uint8_t>(x),
+          static_cast<uint8_t>(y), sprite.placement_id()};
     }
     for (size_t i = 0; i < before.size(); ++i) {
       if (!affected[i] || !after.loaded_sprite_maps[phase][i] ||

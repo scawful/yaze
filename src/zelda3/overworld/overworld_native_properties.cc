@@ -187,21 +187,38 @@ Overworld::NativeModelState Overworld::CaptureNativeNonTerrainState() const {
   for (const auto& e : all_items_)
     add(3, {e.room_map_id_, e.id_, e.game_x_, e.game_y_, e.x_, e.y_, e.bg2_,
             e.deleted});
-  for (const auto& list : all_sprites_) {
-    add(4, {static_cast<int64_t>(list.size())});
-    for (const auto& e : list) {
-      add(4, {e.map_id(), e.id(), e.x(), e.y(), e.deleted(),
-              e.overworld_x_flags(), e.overworld_y_flags(),
-              e.placement_id().has_value()
-                  ? static_cast<int64_t>(*e.placement_id())
-                  : static_cast<int64_t>(-1)});
-    }
-  }
+  state[4] = CaptureNativeSpriteState();
   state[5].insert(state[5].end(), all_tiles_types_.begin(),
                   all_tiles_types_.end());
   const auto& diggable = diggable_tiles_.GetRawData();
   state[5].insert(state[5].end(), diggable.begin(), diggable.end());
   return state;
+}
+
+std::vector<int64_t> Overworld::CaptureNativeSpriteState() const {
+  std::vector<int64_t> state;
+  for (const auto& list : all_sprites_) {
+    state.push_back(static_cast<int64_t>(list.size()));
+    for (const auto& e : list) {
+      state.insert(state.end(), {e.map_id(), e.id(), e.x(), e.y(), e.deleted(),
+                                 e.overworld_x_flags(), e.overworld_y_flags(),
+                                 e.placement_id().has_value()
+                                     ? static_cast<int64_t>(*e.placement_id())
+                                     : static_cast<int64_t>(-1)});
+    }
+  }
+  return state;
+}
+
+bool Overworld::HasPendingNativeSpriteChanges() const {
+  if (!loaded_map_tiles_valid_ ||
+      !rom::IsNativeSpecialOverworldLayout(descriptor_layout_))
+    return false;
+  // Disabled sprite saving must not make the session forget edits or newly
+  // reserved identities after another domain has cleared the ROM dirty flag.
+  return CaptureNativeSpriteState() != native_nonterrain_baseline_[4] ||
+         native_authoring_metadata_draft_ !=
+             native_authoring_metadata_baseline_;
 }
 
 }  // namespace yaze::zelda3

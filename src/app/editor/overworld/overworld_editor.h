@@ -207,6 +207,9 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
     return lyra_canvas_.dirty() || scratch_space_dirty_ ||
            (graphics_source_ && graphics_source_->any_dirty());
   }
+  bool HasPendingNativeSpriteChanges() const {
+    return overworld_.HasPendingNativeSpriteChanges();
+  }
   bool HasUnpublishedProjectGraphics() const {
     return graphics_source_ && graphics_source_->any_dirty();
   }
