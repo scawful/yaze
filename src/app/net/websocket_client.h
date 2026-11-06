@@ -110,13 +110,6 @@ class WebSocketClient {
                            const std::string& sender);
 
   /**
-   * Share snapshot
-   */
-  absl::Status ShareSnapshot(const std::string& snapshot_data,
-                             const std::string& snapshot_type,
-                             const std::string& sender);
-
-  /**
    * Share proposal for approval
    */
   absl::Status ShareProposal(const nlohmann::json& proposal_data,

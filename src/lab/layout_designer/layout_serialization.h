@@ -50,9 +50,6 @@ class LayoutSerializer {
   // Helper methods for converting individual components
   static std::string SerializePanel(const LayoutPanel& panel);
   static std::string SerializeDockNode(const DockNode& node);
-  
-  static LayoutPanel DeserializePanel(const std::string& json);
-  static std::unique_ptr<DockNode> DeserializeDockNode(const std::string& json);
 };
 
 }  // namespace layout_designer

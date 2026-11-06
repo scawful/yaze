@@ -3,11 +3,8 @@
 #include <chrono>
 #include <regex>
 
-#include "util/macro.h"  // For RETURN_IF_ERROR
+#include "util/macro.h"
 
-#ifdef CPPHTTPLIB_OPENSSL_SUPPORT
-#define CPPHTTPLIB_OPENSSL_SUPPORT
-#endif
 #include "httplib.h"
 
 namespace yaze {

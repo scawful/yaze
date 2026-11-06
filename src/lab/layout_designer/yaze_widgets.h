@@ -43,11 +43,6 @@ enum class YazeWidgetType {
 };
 
 /**
- * @brief Convert YazeWidgetType to WidgetType (for base widget system)
- */
-WidgetType ToWidgetType(YazeWidgetType type);
-
-/**
  * @brief Get human-readable name for yaze widget type
  */
 const char* GetYazeWidgetTypeName(YazeWidgetType type);

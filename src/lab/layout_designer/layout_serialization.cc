@@ -61,18 +61,6 @@ std::string DirToString(ImGuiDir dir) {
   }
 }
 
-ImGuiDir StringToDir(const std::string& str) {
-  if (str == "left")
-    return ImGuiDir_Left;
-  if (str == "right")
-    return ImGuiDir_Right;
-  if (str == "up")
-    return ImGuiDir_Up;
-  if (str == "down")
-    return ImGuiDir_Down;
-  return ImGuiDir_None;
-}
-
 std::string NodeTypeToString(DockNodeType type) {
   switch (type) {
     case DockNodeType::Root:
@@ -84,16 +72,6 @@ std::string NodeTypeToString(DockNodeType type) {
     default:
       return "leaf";
   }
-}
-
-DockNodeType StringToNodeType(const std::string& str) {
-  if (str == "root")
-    return DockNodeType::Root;
-  if (str == "split")
-    return DockNodeType::Split;
-  if (str == "leaf")
-    return DockNodeType::Leaf;
-  return DockNodeType::Leaf;
 }
 
 }  // namespace

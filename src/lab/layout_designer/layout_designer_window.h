@@ -136,14 +136,12 @@ class LayoutDesignerWindow {
   void DrawWidgetPalette();
   void DrawWidgetCanvas();
   void DrawWidgetProperties();
-  void DrawWidgetTree();
   void DrawWidgetCodePreview();
   
   // Theme UI
   void DrawThemeProperties();
   
   // Canvas interaction
-  void HandleCanvasDragDrop();
   void DrawDockNode(DockNode* node, const ImVec2& pos, const ImVec2& size);
   void DrawDropZones(const ImVec2& pos, const ImVec2& size, DockNode* target_node);
   bool IsMouseOverRect(const ImVec2& rect_min, const ImVec2& rect_max) const;
@@ -179,7 +177,6 @@ class LayoutDesignerWindow {
   static constexpr size_t kMaxUndoSteps = 50;
   
   std::vector<PalettePanel> GetAvailablePanels() const;
-  void RefreshPanelCache();
   bool MatchesSearchFilter(const PalettePanel& panel) const;
   
   // State

@@ -1415,10 +1415,6 @@ LayoutDesignerWindow::GetAvailablePanels() const {
   return panel_cache_;
 }
 
-void LayoutDesignerWindow::RefreshPanelCache() {
-  panel_cache_dirty_ = true;
-}
-
 bool LayoutDesignerWindow::MatchesSearchFilter(
     const PalettePanel& panel) const {
   if (search_filter_[0] == '\0') {
@@ -2178,28 +2174,6 @@ void LayoutDesignerWindow::DrawWidgetProperties() {
     // TODO(scawful): Implement widget deletion
     LOG_INFO("LayoutDesigner", "Delete widget: %s",
              selected_widget_->id.c_str());
-  }
-}
-
-void LayoutDesignerWindow::DrawWidgetTree() {
-  ImGui::Text(ICON_MD_ACCOUNT_TREE " Widget Tree");
-  ImGui::Separator();
-
-  if (!current_panel_design_) {
-    ImGui::TextWrapped("No panel design loaded");
-    return;
-  }
-
-  // Show widget hierarchy
-  for (const auto& widget : current_panel_design_->widgets) {
-    bool is_selected = (selected_widget_ == widget.get());
-    if (ImGui::Selectable(
-            absl::StrFormat("%s %s", GetWidgetTypeIcon(widget->type),
-                            widget->id)
-                .c_str(),
-            is_selected)) {
-      selected_widget_ = widget.get();
-    }
   }
 }
 

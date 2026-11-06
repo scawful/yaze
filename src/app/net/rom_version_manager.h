@@ -131,17 +131,6 @@ class RomVersionManager {
   absl::Status AutoRecover();
 
   /**
-   * Export snapshot to file
-   */
-  absl::Status ExportSnapshot(const std::string& snapshot_id,
-                              const std::string& filepath);
-
-  /**
-   * Import snapshot from file
-   */
-  absl::Status ImportSnapshot(const std::string& filepath);
-
-  /**
    * Get current ROM hash
    */
   std::string GetCurrentHash() const;
@@ -179,7 +168,6 @@ class RomVersionManager {
       const std::vector<uint8_t>& compressed) const;
   absl::Status ValidateRomIntegrity() const;
   size_t GetTotalStorageUsed() const;
-  void PruneOldSnapshots();
 };
 
 /**
@@ -262,11 +250,6 @@ class ProposalApprovalManager {
    * Check if proposal is approved
    */
   bool IsProposalApproved(const std::string& proposal_id) const;
-
-  /**
-   * Get audit log
-   */
-  std::vector<ApprovalStatus> GetAuditLog() const;
 
  private:
   RomVersionManager* version_mgr_;

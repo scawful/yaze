@@ -42,11 +42,6 @@ endif()
 # Combine all sources
 set(YAZE_NET_SRC ${YAZE_NET_BASE_SRC} ${YAZE_NET_PLATFORM_SRC})
 
-if(YAZE_WITH_GRPC)
-  # Add ROM service implementation (disabled - proto field mismatch)
-  # list(APPEND YAZE_NET_SRC app/net/rom_service_impl.cc)
-endif()
-
 add_library(yaze_net STATIC ${YAZE_NET_SRC})
 
 target_precompile_headers(yaze_net PRIVATE
