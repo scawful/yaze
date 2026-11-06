@@ -985,6 +985,9 @@ TEST_F(NativeSpecialOverworldEditorTest,
   project::YazeProject project;
   project.name = "Native editor lifecycle fixture";
   project.filepath = (root / "fixture.yaze").string();
+  project.rom_filename = path;
+  const auto created = project.SaveNew();
+  ASSERT_TRUE(created.ok()) << created;
   Rom document;
   ASSERT_TRUE(document.LoadFromData(ReadBytes(path)).ok());
   zelda3::GameData data;
@@ -1012,7 +1015,10 @@ TEST_F(NativeSpecialOverworldEditorTest,
   EXPECT_TRUE(editor->lyra_canvas_.dirty());
   EXPECT_EQ(document.vector(), before);
 
-  ASSERT_TRUE(editor->lyra_canvas_.Save(&project, editor->overworld()).ok());
+  const auto saved = editor->lyra_canvas_.Save(&project, editor->overworld());
+  ASSERT_TRUE(saved.ok()) << saved;
+  const auto project_saved = project.Save();
+  ASSERT_TRUE(project_saved.ok()) << project_saved;
   editor->ProjectSaveCommitted();
   ASSERT_FALSE(editor->lyra_canvas_.dirty());
   const auto sidecar = project.lyra_terrain_file;
