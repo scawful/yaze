@@ -40,12 +40,13 @@ using ImGui::Text;
 // Using centralized UI constants
 namespace {
 
-bool IsValidMapId(int map_id) {
-  return map_id >= 0 && map_id < zelda3::kNumOverworldMaps;
+bool IsValidMapId(int map_id, const zelda3::Overworld* overworld) {
+  return overworld && map_id >= 0 &&
+         map_id < overworld->materialized_map_count();
 }
 
 int EffectivePropertyMapId(zelda3::Overworld* overworld, int map_id) {
-  if (!overworld || !IsValidMapId(map_id)) {
+  if (!overworld || !IsValidMapId(map_id, overworld)) {
     return map_id;
   }
   auto* map = overworld->mutable_overworld_map(map_id);
@@ -53,7 +54,7 @@ int EffectivePropertyMapId(zelda3::Overworld* overworld, int map_id) {
     return map_id;
   }
   const int parent = map->parent();
-  if (!IsValidMapId(parent)) {
+  if (!IsValidMapId(parent, overworld)) {
     return map_id;
   }
   return parent;
@@ -72,6 +73,47 @@ absl::Status CheckFieldSupported(const Rom* rom,
   RETURN_IF_ERROR(layout.CheckOperation(
       zelda3::OverworldLayoutDomain::kMapProperties,
       zelda3::OverworldLayoutOperation::kMutateModel, edit.map_id, 0));
+  if (layout.lyra_layout.revision == 3) {
+    RETURN_IF_ERROR(rom->CheckLayoutSaveable());
+    if (edit.field == OverworldPropertyField::kAreaSize)
+      return absl::FailedPreconditionError(
+          "Native area geometry editing is not available");
+    if (edit.field == OverworldPropertyField::kMosaic)
+      return absl::FailedPreconditionError(
+          "Edit native mosaic quadrants instead of the legacy mosaic flag");
+    const int owner = EffectivePropertyMapId(
+        const_cast<zelda3::Overworld*>(overworld), edit.map_id);
+    if (owner < 128 && (edit.field == OverworldPropertyField::kSpriteGraphics ||
+                        edit.field == OverworldPropertyField::kSpritePalette))
+      return absl::FailedPreconditionError(
+          "Native light/dark world sprite selector editing is not available");
+    if (owner >= 64 && owner < 160 &&
+        edit.field == OverworldPropertyField::kMusic && edit.index != 0)
+      return absl::FailedPreconditionError(
+          "This map shares one music setting; edit phase 0");
+    if (owner >= 128 && owner < 160 &&
+        (edit.field == OverworldPropertyField::kSpriteGraphics ||
+         edit.field == OverworldPropertyField::kSpritePalette) &&
+        edit.index != 0)
+      return absl::FailedPreconditionError(
+          "This map shares one sprite setting; edit phase 0");
+    const auto* map = overworld ? overworld->overworld_map(owner) : nullptr;
+    if (map && owner < 160) {
+      const int phases = edit.field == OverworldPropertyField::kMusic ? 4 : 3;
+      for (int phase = 1; phase < phases; ++phase) {
+        if ((edit.field == OverworldPropertyField::kMusic && owner >= 64 &&
+             map->area_music(phase) != map->area_music(0)) ||
+            (edit.field == OverworldPropertyField::kSpriteGraphics &&
+             owner >= 128 &&
+             map->sprite_graphics(phase) != map->sprite_graphics(0)) ||
+            (edit.field == OverworldPropertyField::kSpritePalette &&
+             owner >= 128 &&
+             map->sprite_palette(phase) != map->sprite_palette(0)))
+          return absl::FailedPreconditionError(
+              "Stored phases differ; an explicit phase conversion is required");
+      }
+    }
+  }
   const auto version = layout.version;
   const auto* map = overworld ? overworld->overworld_map(edit.map_id) : nullptr;
   const auto* data = map ? map->game_data() : nullptr;
@@ -168,7 +210,7 @@ void WriteRomWordIfValid(Rom* rom, int address, uint16_t value) {
 OverworldMapMetadataClipboard CaptureMapMetadataClipboard(
     const zelda3::Overworld& overworld, int map_id) {
   OverworldMapMetadataClipboard clipboard;
-  if (!IsValidMapId(map_id)) {
+  if (!IsValidMapId(map_id, &overworld)) {
     return clipboard;
   }
 
@@ -178,7 +220,7 @@ OverworldMapMetadataClipboard CaptureMapMetadataClipboard(
   }
 
   int source_map_id = map_id;
-  if (IsValidMapId(selected_map->parent())) {
+  if (IsValidMapId(selected_map->parent(), &overworld)) {
     source_map_id = selected_map->parent();
   }
   const auto* map = overworld.overworld_map(source_map_id);
@@ -230,7 +272,8 @@ void MapPropertiesSystem::SetCurrentGameState(int game_state) {
 }
 
 void MapPropertiesSystem::PrepareMapForGraphicsRefresh(int map_index) {
-  if (!overworld_ || map_index < 0 || map_index >= zelda3::kNumOverworldMaps) {
+  if (!overworld_ || map_index < 0 ||
+      map_index >= overworld_->materialized_map_count()) {
     return;
   }
   auto* map = overworld_->mutable_overworld_map(map_index);
@@ -260,12 +303,16 @@ void MapPropertiesSystem::DrawCustomBackgroundColorEditor(
   // Read enable flag from ROM (not static - must reflect current ROM state)
   bool use_area_specific_bg_color =
       (*rom_)[zelda3::OverworldCustomAreaSpecificBGEnabled] != 0x00;
+  ImGui::BeginDisabled(overworld_->resolved_layout().lyra_layout.revision == 3);
   if (ImGui::Checkbox(tr("Use Area-Specific Background Color"),
                       &use_area_specific_bg_color)) {
     // Update ROM data when checkbox is toggled
-    (*rom_)[zelda3::OverworldCustomAreaSpecificBGEnabled] =
-        use_area_specific_bg_color ? 0x01 : 0x00;
+    if (overworld_->resolved_layout().lyra_layout.revision != 3)
+      (*rom_)[zelda3::OverworldCustomAreaSpecificBGEnabled] =
+          use_area_specific_bg_color ? 0x01 : 0x00;
   }
+
+  ImGui::EndDisabled();
 
   if (use_area_specific_bg_color) {
     // The edit targets the area parent; display that same persistent value.
@@ -345,12 +392,15 @@ void MapPropertiesSystem::DrawOverlayEditor(int current_map,
   // Read enable flag from ROM (not static - must reflect current ROM state)
   bool use_subscreen_overlay =
       (*rom_)[zelda3::OverworldCustomSubscreenOverlayEnabled] != 0x00;
+  ImGui::BeginDisabled(overworld_->resolved_layout().lyra_layout.revision == 3);
   if (ImGui::Checkbox(ICON_MD_VISIBILITY " Enable Visual Effect for This Area",
                       &use_subscreen_overlay)) {
     // Update ROM data when checkbox is toggled
-    (*rom_)[zelda3::OverworldCustomSubscreenOverlayEnabled] =
-        use_subscreen_overlay ? 0x01 : 0x00;
+    if (overworld_->resolved_layout().lyra_layout.revision != 3)
+      (*rom_)[zelda3::OverworldCustomSubscreenOverlayEnabled] =
+          use_subscreen_overlay ? 0x01 : 0x00;
   }
+  ImGui::EndDisabled();
   if (ImGui::IsItemHovered()) {
     ImGui::SetTooltip(
         tr("Enable/disable visual effect overlay for this map area"));
@@ -510,7 +560,7 @@ void MapPropertiesSystem::SetupCanvasContextMenu(
     if (current == target.map_id) {
       return false;
     }
-    const auto* current_map = overworld_ && IsValidMapId(current)
+    const auto* current_map = overworld_ && IsValidMapId(current, overworld_)
                                   ? overworld_->overworld_map(current)
                                   : nullptr;
     return !(current_map && current_map->parent() == target.parent_map_id);
@@ -570,7 +620,7 @@ void MapPropertiesSystem::SetupCanvasContextMenu(
     };
     const int world_start = target.world * 0x40;
     const int world_end =
-        std::min(world_start + 0x40, zelda3::kNumOverworldMaps);
+        std::min(world_start + 0x40, overworld_->materialized_map_count());
     for (int id = world_start; id < world_end; ++id) {
       const auto* member = overworld_->overworld_map(id);
       if (id == map_id || !member || member->parent() != target.parent_map_id) {
@@ -583,7 +633,8 @@ void MapPropertiesSystem::SetupCanvasContextMenu(
     }
     if (target.world < 2) {
       const int counterpart = target.world == 0 ? map_id + 0x40 : map_id - 0x40;
-      if (IsValidMapId(counterpart) && overworld_->overworld_map(counterpart)) {
+      if (IsValidMapId(counterpart, overworld_) &&
+          overworld_->overworld_map(counterpart)) {
         if (!related_menu.subitems.empty()) {
           related_menu.subitems.back().separator_after = true;
         }
@@ -754,7 +805,7 @@ absl::StatusOr<int> MapPropertiesSystem::ReadPropertyValue(
   }
   const int map_id = EffectivePropertyMapId(
       const_cast<zelda3::Overworld*>(overworld_), edit.map_id);
-  if (!IsValidMapId(map_id)) {
+  if (!IsValidMapId(map_id, overworld_)) {
     return absl::InvalidArgumentError(
         absl::StrFormat("Invalid overworld map: %d", edit.map_id));
   }
@@ -804,7 +855,7 @@ absl::Status MapPropertiesSystem::ApplyPropertyEditDirect(
         "Overworld property editing requires loaded overworld data and ROM");
   }
   const int map_id = EffectivePropertyMapId(overworld_, edit.map_id);
-  if (!IsValidMapId(map_id)) {
+  if (!IsValidMapId(map_id, overworld_)) {
     return absl::InvalidArgumentError(
         absl::StrFormat("Invalid overworld map: %d", edit.map_id));
   }
@@ -820,6 +871,7 @@ absl::Status MapPropertiesSystem::ApplyPropertyEditDirect(
   }
 
   const int game_state = std::clamp(edit.index, 0, 2);
+  const bool native = overworld_->resolved_layout().lyra_layout.revision == 3;
   switch (edit.field) {
     case OverworldPropertyField::kAreaSize: {
       const auto size = static_cast<zelda3::AreaSizeEnum>(edit.value);
@@ -857,12 +909,18 @@ absl::Status MapPropertiesSystem::ApplyPropertyEditDirect(
       break;
     case OverworldPropertyField::kSpriteGraphics:
       map->set_sprite_graphics(game_state, static_cast<uint8_t>(edit.value));
+      if (native && map_id < 160)
+        for (int phase = 0; phase < 3; ++phase)
+          map->set_sprite_graphics(phase, static_cast<uint8_t>(edit.value));
       ForceRefreshGraphics(map_id);
       RefreshMapProperties(map_id);
       RefreshOverworldMap();
       break;
     case OverworldPropertyField::kSpritePalette:
       map->set_sprite_palette(game_state, static_cast<uint8_t>(edit.value));
+      if (native && map_id < 160)
+        for (int phase = 0; phase < 3; ++phase)
+          map->set_sprite_palette(phase, static_cast<uint8_t>(edit.value));
       RefreshMapProperties(map_id);
       RefreshOverworldMap();
       break;
@@ -893,8 +951,13 @@ absl::Status MapPropertiesSystem::ApplyPropertyEditDirect(
     case OverworldPropertyField::kMusic: {
       const int music_state = std::clamp(edit.index, 0, 3);
       *map->mutable_area_music(music_state) = static_cast<uint8_t>(edit.value);
-      WriteRomByteIfValid(rom_, MusicRomAddressForMapState(map_id, music_state),
-                          static_cast<uint8_t>(edit.value));
+      if (native && map_id >= 64 && map_id < 160)
+        for (int phase = 0; phase < 4; ++phase)
+          *map->mutable_area_music(phase) = static_cast<uint8_t>(edit.value);
+      if (overworld_->resolved_layout().lyra_layout.revision != 3)
+        WriteRomByteIfValid(rom_,
+                            MusicRomAddressForMapState(map_id, music_state),
+                            static_cast<uint8_t>(edit.value));
       RefreshMapProperties(map_id);
       break;
     }
@@ -910,17 +973,19 @@ absl::Status MapPropertiesSystem::ApplyPropertyEditDirect(
       break;
     case OverworldPropertyField::kAreaSpecificBgColor:
       map->set_area_specific_bg_color(static_cast<uint16_t>(edit.value));
-      WriteRomWordIfValid(
-          rom_, zelda3::OverworldCustomAreaSpecificBGPalette + (map_id * 2),
-          static_cast<uint16_t>(edit.value));
+      if (overworld_->resolved_layout().lyra_layout.revision != 3)
+        WriteRomWordIfValid(
+            rom_, zelda3::OverworldCustomAreaSpecificBGPalette + (map_id * 2),
+            static_cast<uint16_t>(edit.value));
       RefreshMapProperties(map_id);
       RefreshOverworldMap();
       break;
     case OverworldPropertyField::kSubscreenOverlay:
       map->set_subscreen_overlay(static_cast<uint16_t>(edit.value));
-      WriteRomWordIfValid(
-          rom_, zelda3::OverworldCustomSubscreenOverlayArray + (map_id * 2),
-          static_cast<uint16_t>(edit.value));
+      if (overworld_->resolved_layout().lyra_layout.revision != 3)
+        WriteRomWordIfValid(
+            rom_, zelda3::OverworldCustomSubscreenOverlayArray + (map_id * 2),
+            static_cast<uint16_t>(edit.value));
       RefreshMapProperties(map_id);
       RefreshOverworldMap();
       break;
@@ -965,7 +1030,7 @@ void MapPropertiesSystem::ForceRefreshGraphics(int map_index) {
 void MapPropertiesSystem::RefreshSiblingMapGraphics(int map_index,
                                                     bool include_self) {
   if (!overworld_ || !maps_bmp_ || map_index < 0 ||
-      map_index >= zelda3::kNumOverworldMaps) {
+      map_index >= overworld_->materialized_map_count()) {
     return;
   }
 
@@ -992,7 +1057,7 @@ void MapPropertiesSystem::RefreshSiblingMapGraphics(int map_index,
   }
 
   for (int sibling : siblings) {
-    if (sibling >= 0 && sibling < zelda3::kNumOverworldMaps) {
+    if (sibling >= 0 && sibling < overworld_->materialized_map_count()) {
       // Skip self unless include_self is true
       if (sibling == map_index && !include_self) {
         continue;
@@ -1076,7 +1141,8 @@ void MapPropertiesSystem::DrawOverlayPreviewOnMap(int current_map,
     overlay_map_index = overlay_id;
   }
 
-  if (overlay_map_index < 0 || overlay_map_index >= zelda3::kNumOverworldMaps)
+  if (overlay_map_index < 0 ||
+      overlay_map_index >= overworld_->materialized_map_count())
     return;
 
   // Get the subscreen overlay map's bitmap

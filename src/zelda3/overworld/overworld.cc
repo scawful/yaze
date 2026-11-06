@@ -321,8 +321,10 @@ absl::Status Overworld::Load(Rom* rom) {
     private_loaded_overlays_ = PrivateOverlaySnapshot(overworld_maps_);
   }
   loaded_tiles16_ = tiles16_;
-  if (native)
+  if (native) {
+    native_nonterrain_baseline_ = {};
     native_nonterrain_baseline_ = CaptureNativeNonTerrainState();
+  }
   loaded_map_tiles_ = map_tiles_;
   loaded_map_tiles_valid_ = true;
   is_loaded_ = true;

@@ -95,6 +95,17 @@ Overworld::NativeModelState Overworld::CaptureNativeNonTerrainState() const {
     state[0].insert(state[0].end(), edit.value.begin(), edit.value.end());
   }
   add(6, {materialized_map_count()});
+  auto inherited = [&](int value, int parent_value) {
+    const size_t offset = state[6].size();
+    const auto& loaded = native_nonterrain_baseline_[6];
+    // Refresh may copy an edited parent's effective selector into children.
+    // Accept that model propagation without making the child's dormant raw
+    // slot writable. Unchanged child values also retain their load baseline.
+    if (value == parent_value && offset < loaded.size())
+      add(6, {loaded[offset]});
+    else
+      add(6, {value});
+  };
   for (const auto& m : overworld_maps_) {
     add(6, {m.index(), m.parent(), static_cast<int>(m.area_size()),
             m.large_index()});
@@ -102,13 +113,26 @@ Overworld::NativeModelState Overworld::CaptureNativeNonTerrainState() const {
     // Retain the native child's original slots until an area-level edit owns
     // both the parent mutation and the corresponding model propagation.
     if (m.parent() != m.index()) {
-      add(6, {m.area_graphics(), m.area_palette()});
+      const auto* parent = overworld_map(m.parent());
+      if (!parent) {
+        add(6, {-1});
+        continue;
+      }
+      inherited(m.area_graphics(), parent->area_graphics());
+      inherited(m.area_palette(), parent->area_palette());
       for (int phase = 0; phase < 4; ++phase)
-        add(6, {m.area_music(phase)});
+        inherited(m.area_music(phase), parent->area_music(phase));
     }
     if (m.parent() != m.index() || m.index() < 128) {
-      for (int phase = 0; phase < 3; ++phase)
-        add(6, {m.sprite_graphics(phase), m.sprite_palette(phase)});
+      for (int phase = 0; phase < 3; ++phase) {
+        const auto* parent = overworld_map(m.parent());
+        if (m.parent() != m.index() && parent) {
+          inherited(m.sprite_graphics(phase), parent->sprite_graphics(phase));
+          inherited(m.sprite_palette(phase), parent->sprite_palette(phase));
+        } else {
+          add(6, {m.sprite_graphics(phase), m.sprite_palette(phase)});
+        }
+      }
     }
   }
   for (const auto* list : {&all_entrances_, &all_holes_}) {

@@ -593,6 +593,7 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   friend class AuthoringSaveWorkflowTestPeer;
   friend class ProjectGraphicsImportSaveTestPeer;
   friend class ProjectGraphicsImportWorkflowTestPeer;
+  friend class NativePropertySaveTestPeer;
   void DrawProjectGraphicsSource();
   void DrawProjectGraphicsImport();
   std::string ProjectGraphicsPath() const;

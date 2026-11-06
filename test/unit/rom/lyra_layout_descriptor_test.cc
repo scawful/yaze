@@ -16,6 +16,7 @@
 #include "absl/cleanup/cleanup.h"
 #include "app/editor/editor_manager.h"
 #include "app/editor/overworld/canvas/overworld_context_target.h"
+#include "app/editor/overworld/maps/map_properties.h"
 #include "app/editor/overworld/overworld_editor.h"
 #include "app/editor/overworld/overworld_undo_actions.h"
 #include "app/editor/system/session/collision_source_pairing.h"
@@ -39,6 +40,16 @@
 #include "zelda3/game_data.h"
 #include "zelda3/overworld/overworld.h"
 #include "zelda3/overworld/overworld_terrain_io.h"
+
+namespace yaze::editor {
+class NativePropertySaveTestPeer {
+ public:
+  static absl::Status Apply(OverworldEditor& editor,
+                            const OverworldPropertyEdit& edit) {
+    return editor.map_properties_system_->ApplyPropertyEdit(edit);
+  }
+};
+}  // namespace yaze::editor
 
 namespace yaze {
 namespace {
@@ -1503,7 +1514,8 @@ TEST_F(NativeSpecialOverworldEditorTest,
     NativeDirectoryFixture fixture(capacity);
     fixture.SeedLoadedLegacyForModelTest(legacy, reference);
     const int last = capacity - 1;
-    fixture.bytes[fixture.Entry(3).pc_address + last] |= 0xA0;
+    const int owner = fixture.bytes[fixture.Entry(7).pc_address + last];
+    fixture.bytes[fixture.Entry(3).pc_address + owner] |= 0xA0;
     fixture.Seal();
     const auto root = test::UniqueTempPath("owp");
     std::filesystem::create_directories(root);
@@ -1521,23 +1533,34 @@ TEST_F(NativeSpecialOverworldEditorTest,
     auto* editor = manager->GetCurrentEditorSet()->GetOverworldEditor();
     auto& world = editor->overworld();
     auto* document = manager->GetCurrentRom();
-    auto* map = world.mutable_overworld_map(last);
-    const uint16_t old_message = world.overworld_map(0x9F)->message_id();
-    auto restore = [&](const uint16_t& message) -> absl::Status {
-      world.mutable_overworld_map(0x9F)->set_message_id(message);
-      document->set_dirty(true);
-      return absl::OkStatus();
+    auto* map = world.mutable_overworld_map(owner);
+    const uint16_t old_message = world.overworld_map(owner)->message_id();
+    auto apply = [&](editor::OverworldPropertyField field, int value,
+                     int index = 0) {
+      return editor::NativePropertySaveTestPeer::Apply(
+          *editor, {last, field, index, value});
     };
-    editor::OverworldRecordEditAction<uint16_t> action(
-        old_message, old_message ^ 1, restore, "Edit native message");
-    ASSERT_TRUE(restore(old_message ^ 1).ok());
+    using Field = editor::OverworldPropertyField;
+    {
+      ScopedRomReadOnly read_only(*document);
+      EXPECT_FALSE(apply(Field::kMessageId, old_message ^ 1).ok());
+      EXPECT_EQ(map->message_id(), old_message);
+      EXPECT_EQ(document->vector(), fixture.bytes);
+    }
+    EXPECT_FALSE(apply(Field::kMosaic, 1).ok());
+    ASSERT_TRUE(apply(Field::kMessageId, old_message ^ 1).ok());
     const uint8_t palette = map->main_palette() ^ 1;
-    map->set_main_palette(palette);
+    ASSERT_TRUE(apply(Field::kMainPalette, palette).ok());
     const uint16_t background = map->area_specific_bg_color() ^ 1;
-    map->set_area_specific_bg_color(background);
+    ASSERT_TRUE(apply(Field::kAreaSpecificBgColor, background).ok());
     const uint8_t graphic = map->custom_tileset(0) == 0x3A ? 0x3B : 0x3A;
-    map->set_custom_tileset(0, graphic);
-    map->set_mosaic_expanded(0, !map->mosaic_expanded()[0]);
+    ASSERT_TRUE(apply(Field::kCustomTileset, graphic).ok());
+    ASSERT_TRUE(apply(Field::kMosaicExpanded, !map->mosaic_expanded()[0]).ok());
+    const int music = map->area_music(0) ^ 1;
+    ASSERT_TRUE(apply(Field::kMusic, music).ok());
+    if (capacity == 192)
+      ASSERT_TRUE(apply(Field::kMusic, music ^ 2, 1).ok());
+    EXPECT_EQ(document->vector(), fixture.bytes);
     const auto mosaic = map->mosaic_expanded();
     const auto projected = world.GetProjectedWriteRanges();
     const auto pending = document->vector();
@@ -1559,13 +1582,13 @@ TEST_F(NativeSpecialOverworldEditorTest,
     EXPECT_TRUE(document->dirty());
     EXPECT_FALSE(std::filesystem::exists(target));
     EXPECT_EQ(map->main_palette(), palette);
-    EXPECT_EQ(world.overworld_map(0x9F)->message_id(), old_message ^ 1);
+    EXPECT_EQ(world.overworld_map(owner)->message_id(), old_message ^ 1);
     const auto saved = manager->SaveRomAs(target.string());
     ASSERT_TRUE(saved.ok()) << saved;
     auto persisted = ReadBytes(target);
     EXPECT_FALSE(document->dirty());
     EXPECT_NE(persisted, fixture.bytes);
-    EXPECT_EQ(persisted[fixture.Entry(3).pc_address + last] & 0xF0, 0xA0);
+    EXPECT_EQ(persisted[fixture.Entry(3).pc_address + owner] & 0xF0, 0xA0);
     for (size_t pc = 0; pc < persisted.size(); ++pc) {
       if (persisted[pc] != fixture.bytes[pc])
         ASSERT_TRUE(std::any_of(
@@ -1578,11 +1601,13 @@ TEST_F(NativeSpecialOverworldEditorTest,
                            fixture.bytes.begin() + definitions.pc_address +
                                definitions.count * definitions.stride,
                            persisted.begin() + definitions.pc_address));
-    const size_t message_at = 0x1417F8 + 0x9F * 2;
+    const size_t message_at = owner < 160
+                                  ? 0x1417F8 + owner * 2
+                                  : fixture.Entry(19).pc_address + owner * 2;
     EXPECT_EQ(persisted[message_at] | (persisted[message_at + 1] << 8),
               old_message ^ 1);
     core::FeatureFlags::get().overworld.kSaveOverworldProperties = false;
-    ASSERT_TRUE(restore(old_message ^ 2).ok());
+    ASSERT_TRUE(apply(Field::kMessageId, old_message ^ 2).ok());
     ASSERT_TRUE(manager->SaveRom().ok());
     EXPECT_EQ(ReadBytes(target), persisted);
     core::FeatureFlags::get().overworld.kSaveOverworldProperties = true;
@@ -1590,12 +1615,12 @@ TEST_F(NativeSpecialOverworldEditorTest,
     persisted = ReadBytes(target);
     EXPECT_EQ(persisted[message_at] | (persisted[message_at + 1] << 8),
               old_message ^ 2);
-    ASSERT_TRUE(action.Undo().ok());
+    ASSERT_TRUE(editor->Undo().ok());
     ASSERT_TRUE(manager->SaveRom().ok());
     persisted = ReadBytes(target);
     EXPECT_EQ(persisted[message_at] | (persisted[message_at + 1] << 8),
-              old_message);
-    ASSERT_TRUE(action.Redo().ok());
+              old_message ^ 1);
+    ASSERT_TRUE(editor->Redo().ok());
     ASSERT_TRUE(manager->SaveRom().ok());
     persisted = ReadBytes(target);
     ASSERT_TRUE(manager->SaveRom().ok());
@@ -1607,11 +1632,14 @@ TEST_F(NativeSpecialOverworldEditorTest,
     zelda3::Overworld fresh(&reopened);
     const auto loaded = fresh.Load(&reopened);
     ASSERT_TRUE(loaded.ok()) << loaded;
-    EXPECT_EQ(fresh.overworld_map(0x9F)->message_id(), old_message ^ 1);
-    EXPECT_EQ(fresh.overworld_map(last)->main_palette(), palette);
-    EXPECT_EQ(fresh.overworld_map(last)->area_specific_bg_color(), background);
-    EXPECT_EQ(fresh.overworld_map(last)->custom_tileset(0), graphic);
-    EXPECT_EQ(fresh.overworld_map(last)->mosaic_expanded(), mosaic);
+    EXPECT_EQ(fresh.overworld_map(owner)->message_id(), old_message ^ 2);
+    EXPECT_EQ(fresh.overworld_map(owner)->main_palette(), palette);
+    EXPECT_EQ(fresh.overworld_map(owner)->area_specific_bg_color(), background);
+    EXPECT_EQ(fresh.overworld_map(owner)->custom_tileset(0), graphic);
+    EXPECT_EQ(fresh.overworld_map(owner)->mosaic_expanded(), mosaic);
+    EXPECT_EQ(fresh.overworld_map(owner)->area_music(0), music);
+    if (capacity == 192)
+      EXPECT_EQ(fresh.overworld_map(owner)->area_music(1), music ^ 2);
     EXPECT_EQ(reopened.vector(), persisted);
   }
 }
