@@ -238,8 +238,8 @@ TEST(OverworldLayoutTest, TwoModelsRetainAddressesThroughDictionarySaves) {
   auto second = std::make_unique<Overworld>(&b);
   first->set_layout_inspect_options(options_a);
   second->set_layout_inspect_options(options_b);
-  ASSERT_TRUE(first->AssembleMap16Tiles().ok());
-  ASSERT_TRUE(second->AssembleMap16Tiles().ok());
+  ASSERT_TRUE(first->Load(&a, options_a).ok());
+  ASSERT_TRUE(second->Load(&b, options_b).ok());
   ASSERT_TRUE(first->SaveMap16Expanded().ok());
   ASSERT_TRUE(second->SaveMap16Expanded().ok());
   ASSERT_TRUE(first->SaveMap16Expanded().ok());
