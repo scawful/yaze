@@ -109,7 +109,11 @@ std::string ProjectBuildResultKey(size_t session_id,
 
 absl::StatusOr<std::map<std::string, std::string>>
 BuildProjectCommandEnvironment(const project::YazeProject& project,
-                               const std::string& editing_source_path);
+                               const std::string& editing_source_path,
+                               const std::string& project_output_path = {});
+
+absl::StatusOr<std::string> ResolveConfiguredProjectRunCommand(
+    const project::YazeProject& project);
 
 absl::StatusOr<std::string> ResolveConfiguredProjectBuildCommand(
     const project::YazeProject& project);

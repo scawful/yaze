@@ -11,6 +11,14 @@
 
 namespace yaze::editor {
 
+// kContainedChildTree keeps the owned child tree alive for the task lifetime
+// (Windows job kill-on-close). kDetachedLauncher waits only for the launcher
+// process exit so intentionally detached emulator children can survive.
+enum class BackgroundCommandLifetime {
+  kContainedChildTree,
+  kDetachedLauncher,
+};
+
 class BackgroundCommandTask {
  public:
   struct Snapshot {
@@ -35,19 +43,22 @@ class BackgroundCommandTask {
 
   // Overrides affect only the child. An empty value replaces any inherited
   // value with an empty string.
-  absl::Status Start(
-      const std::string& command, const std::string& directory,
-      const std::map<std::string, std::string>& environment = {});
+  absl::Status Start(const std::string& command, const std::string& directory,
+                     const std::map<std::string, std::string>& environment = {},
+                     BackgroundCommandLifetime lifetime =
+                         BackgroundCommandLifetime::kContainedChildTree);
   void Cancel();
   Snapshot GetSnapshot() const;
   absl::Status Wait();
 
  private:
   void WorkerMain(std::string command, std::string directory,
-                  std::vector<std::string> environment);
+                  std::vector<std::string> environment,
+                  BackgroundCommandLifetime lifetime);
 #ifdef _WIN32
   void WorkerMainWindows(std::string command, std::string directory,
-                         std::vector<std::string> environment);
+                         std::vector<std::string> environment,
+                         BackgroundCommandLifetime lifetime);
 #endif
   void AppendOutput(const char* data, size_t size);
   void Finalize(absl::Status status, int exit_code);
@@ -68,6 +79,8 @@ class BackgroundCommandTask {
   std::string output_;
   std::string output_tail_;
   absl::Status status_ = absl::UnknownError("Task not started");
+  BackgroundCommandLifetime lifetime_ =
+      BackgroundCommandLifetime::kContainedChildTree;
 };
 
 }  // namespace yaze::editor

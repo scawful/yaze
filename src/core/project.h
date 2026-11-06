@@ -385,6 +385,8 @@ struct YazeProject {
 
   // Build and deployment
   std::string build_script;
+  // Optional external Run launcher (project root cwd; receives YAZE_PROJECT_OUTPUT).
+  std::string run_script;
   std::string output_folder;
   std::vector<std::string> build_configurations;
   std::string build_target;

@@ -1982,6 +1982,7 @@ absl::StatusOr<std::string> YazeProject::SerializeToString() const {
   // Build settings section
   file << "[build]\n";
   file << "build_script=" << build_script << "\n";
+  file << "run_script=" << run_script << "\n";
   file << "output_folder=" << GetRelativePath(output_folder) << "\n";
   file << "git_repository=" << git_repository << "\n";
   file << "track_changes=" << (track_changes ? "true" : "false") << "\n";
@@ -2415,6 +2416,8 @@ absl::Status YazeProject::ParseFromString(const std::string& content) {
     } else if (current_section == "build") {
       if (key == "build_script")
         build_script = value;
+      else if (key == "run_script")
+        run_script = value;
       else if (key == "output_folder")
         output_folder = value;
       else if (key == "git_repository")
@@ -4196,6 +4199,8 @@ absl::Status YazeProject::LoadFromJsonFormat(const std::string& project_path) {
       // Build settings
       if (proj.contains("build_script"))
         build_script = proj["build_script"].get<std::string>();
+      if (proj.contains("run_script"))
+        run_script = proj["run_script"].get<std::string>();
       if (proj.contains("output_folder"))
         output_folder = proj["output_folder"].get<std::string>();
       if (proj.contains("git_repository"))
@@ -4392,6 +4397,7 @@ absl::Status YazeProject::SaveToJsonFormat() {
 
   // Build settings
   proj["build_script"] = build_script;
+  proj["run_script"] = run_script;
   proj["git_repository"] = git_repository;
   proj["track_changes"] = track_changes;
 

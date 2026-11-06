@@ -4892,6 +4892,38 @@ absl::Status EditorManager::RunCurrentProject() {
   const ProjectValidatedRunSelection selection = *selection_or;
   const std::string run_target = selection.absolute_path;
 
+  if (!current_project_.run_script.empty()) {
+    const auto launch_status = project_manager_.ExecuteProjectRunLauncher(
+        selection, current_project_, NativeSaveEditingSourcePath());
+    if (!launch_status.ok()) {
+      UpdateRunWorkflowStatus(
+          &status_bar_, project_management_panel_.get(),
+          MakeRunStatus("Run launcher failed",
+                        std::string(launch_status.message()),
+                        ProjectWorkflowState::kFailure));
+      toast_manager_.Show(absl::StrFormat("Project run launcher failed: %s",
+                                          launch_status.message()),
+                          ToastType::kError);
+      return launch_status;
+    }
+    AppendWorkflowHistoryEntry(
+        "Run",
+        MakeRunStatus("External launcher finished", run_target,
+                      ProjectWorkflowState::kSuccess),
+        "");
+    UpdateRunWorkflowStatus(
+        &status_bar_, project_management_panel_.get(),
+        MakeRunStatus("External launcher finished", run_target,
+                      ProjectWorkflowState::kSuccess));
+    toast_manager_.Show(
+        absl::StrFormat(
+            "Started external run launcher for %s (emulator runtime was not "
+            "reloaded inside YAZE)",
+            run_target),
+        ToastType::kInfo);
+    return absl::OkStatus();
+  }
+
   Rom temp_rom;
   auto load_rom_status = rom_file_manager_.LoadRom(&temp_rom, run_target);
   if (!load_rom_status.ok()) {

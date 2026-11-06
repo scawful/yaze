@@ -450,6 +450,7 @@ theme=dark
 
 [build]
 build_script=
+run_script=
 output_folder=build
 build_target=
 asm_entry_point=asm/main.asm

@@ -272,21 +272,35 @@ TEST_F(ProjectBuildWorkflowStateTest, RunRequiresSuccessfulBuildIdentity) {
   EXPECT_FALSE(manager_->RunCurrentProject().ok());
 }
 
-TEST_F(ProjectBuildWorkflowStateTest, NoOpBuildDoesNotAdoptPreexistingOutput) {
-  const auto files = CreateProject("NoOpOutput");
-  project::YazeProject project;
-  ASSERT_OK(project.Open(files.descriptor.string()));
-#ifdef _WIN32
-  project.build_script = "cmd /c exit 0";
-#else
-  project.build_script = "true";
-#endif
-  ASSERT_OK(project.Save());
+TEST_F(ProjectBuildWorkflowStateTest, GenericRepeatBuildAdmitsUnchangedOutput) {
+  const auto files = CreateProject("UnchangedOutput");
   ASSERT_OK(OpenProject(files));
-  const auto status = manager_->BuildCurrentProject();
-  EXPECT_FALSE(status.ok());
-  EXPECT_NE(status.message().find("unchanged output"), std::string::npos);
-  EXPECT_FALSE(manager_->RunCurrentProject().ok());
+  ASSERT_OK(manager_->BuildCurrentProject());
+  const auto first = core::ComputeSourceArtifactFileSha256(files.output);
+  ASSERT_TRUE(first.ok());
+  ASSERT_OK(manager_->BuildCurrentProject());
+  const auto second = core::ComputeSourceArtifactFileSha256(files.output);
+  ASSERT_TRUE(second.ok());
+  EXPECT_EQ(*first, *second);
+  ASSERT_OK(manager_->RunCurrentProject());
+}
+
+TEST_F(ProjectBuildWorkflowStateTest, ColdReopenAdmitsUnchangedGenericBuild) {
+  const auto files = CreateProject("ColdReopenBuild");
+  ASSERT_OK(OpenProject(files));
+  ASSERT_OK(manager_->BuildCurrentProject());
+  const auto first = core::ComputeSourceArtifactFileSha256(files.output);
+  ASSERT_TRUE(first.ok());
+  manager_.reset();
+  manager_ = std::make_unique<EditorManager>();
+  test::InitializeWithIsolatedSettings(*manager_, renderer_.get());
+  manager_->SetAssetLoadMode(AssetLoadMode::kLazy);
+  ASSERT_OK(OpenProject(files));
+  ASSERT_OK(manager_->BuildCurrentProject());
+  const auto second = core::ComputeSourceArtifactFileSha256(files.output);
+  ASSERT_TRUE(second.ok());
+  EXPECT_EQ(*first, *second);
+  ASSERT_OK(manager_->RunCurrentProject());
 }
 
 TEST_F(ProjectBuildWorkflowStateTest, DeterministicRepeatBuildRetainsProof) {

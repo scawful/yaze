@@ -162,6 +162,11 @@ class ProjectManager {
   absl::StatusOr<ProjectValidatedRunSelection> ValidateProjectRunSelection(
       const ProjectRunPrepareInputs& inputs);
 
+  absl::Status ExecuteProjectRunLauncher(
+      const ProjectValidatedRunSelection& selection,
+      const project::YazeProject& project,
+      const std::string& editing_source_path);
+
   std::optional<ProjectBuildAttemptResult> GetLastBuildResultForOwner(
       size_t owner_session_id, const std::string& descriptor_path) const;
   // Read-only: active attempts remain running until normal terminal validation.

@@ -191,7 +191,8 @@ BackgroundCommandTask::~BackgroundCommandTask() {
 
 absl::Status BackgroundCommandTask::Start(
     const std::string& command, const std::string& directory,
-    const std::map<std::string, std::string>& environment) {
+    const std::map<std::string, std::string>& environment,
+    BackgroundCommandLifetime lifetime) {
   std::lock_guard<std::mutex> lock(mutex_);
   if (started_ && !finished_) {
     return absl::FailedPreconditionError("Task is already running");
@@ -232,8 +233,9 @@ absl::Status BackgroundCommandTask::Start(
   output_.clear();
   output_tail_.clear();
   status_ = absl::UnknownError("Task is running");
+  lifetime_ = lifetime;
   worker_ = std::thread(&BackgroundCommandTask::WorkerMain, this, command,
-                        directory, std::move(*child_environment));
+                        directory, std::move(*child_environment), lifetime);
   return absl::OkStatus();
 }
 
@@ -277,10 +279,11 @@ absl::Status BackgroundCommandTask::Wait() {
 
 void BackgroundCommandTask::WorkerMain(std::string command,
                                        std::string directory,
-                                       std::vector<std::string> environment) {
+                                       std::vector<std::string> environment,
+                                       BackgroundCommandLifetime lifetime) {
 #if defined(_WIN32)
   WorkerMainWindows(std::move(command), std::move(directory),
-                    std::move(environment));
+                    std::move(environment), lifetime);
   return;
 #elif defined(__EMSCRIPTEN__) || (defined(__APPLE__) && TARGET_OS_IPHONE)
   Finalize(absl::UnimplementedError(
@@ -446,7 +449,9 @@ void BackgroundCommandTask::WorkerMain(std::string command,
 #ifdef _WIN32
 void BackgroundCommandTask::WorkerMainWindows(
     std::string command, std::string directory,
-    std::vector<std::string> environment) {
+    std::vector<std::string> environment, BackgroundCommandLifetime lifetime) {
+  const bool contain_child_tree =
+      lifetime == BackgroundCommandLifetime::kContainedChildTree;
   const auto cancelled = [this] {
     std::lock_guard<std::mutex> lock(mutex_);
     return cancel_requested_;
@@ -549,17 +554,21 @@ void BackgroundCommandTask::WorkerMainWindows(
     fail("Cannot open background command input", GetLastError());
     return;
   }
-  ScopedWindowsHandle job(CreateJobObjectW(nullptr, nullptr));
-  if (!job.valid()) {
-    fail("Cannot create background command job", GetLastError());
-    return;
-  }
-  JOBOBJECT_EXTENDED_LIMIT_INFORMATION limits{};
-  limits.BasicLimitInformation.LimitFlags = JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE;
-  if (!SetInformationJobObject(job.get(), JobObjectExtendedLimitInformation,
-                               &limits, sizeof(limits))) {
-    fail("Cannot contain background command job", GetLastError());
-    return;
+  ScopedWindowsHandle job;
+  if (contain_child_tree) {
+    job.Reset(CreateJobObjectW(nullptr, nullptr));
+    if (!job.valid()) {
+      fail("Cannot create background command job", GetLastError());
+      return;
+    }
+    JOBOBJECT_EXTENDED_LIMIT_INFORMATION limits{};
+    limits.BasicLimitInformation.LimitFlags =
+        JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE;
+    if (!SetInformationJobObject(job.get(), JobObjectExtendedLimitInformation,
+                                 &limits, sizeof(limits))) {
+      fail("Cannot contain background command job", GetLastError());
+      return;
+    }
   }
 
   SIZE_T attribute_bytes = 0;
@@ -611,29 +620,42 @@ void BackgroundCommandTask::WorkerMainWindows(
   ScopedWindowsHandle primary_thread(process_info.hThread);
   pipe_write.Reset();
   input.Reset();
-  if (!AssignProcessToJobObject(job.get(), process.get())) {
-    const DWORD assignment_error = GetLastError();
-    if (!TerminateProcess(process.get(), 1)) {
-      fail(absl::StrCat("Cannot stop uncontained suspended command PID ",
-                        process_info.dwProcessId),
-           GetLastError());
+  if (contain_child_tree) {
+    if (!AssignProcessToJobObject(job.get(), process.get())) {
+      const DWORD assignment_error = GetLastError();
+      if (!TerminateProcess(process.get(), 1)) {
+        fail(absl::StrCat("Cannot stop uncontained suspended command PID ",
+                          process_info.dwProcessId),
+             GetLastError());
+        return;
+      }
+      WaitForSingleObject(process.get(), INFINITE);
+      fail("Cannot assign background command to its job", assignment_error);
       return;
     }
-    WaitForSingleObject(process.get(), INFINITE);
-    fail("Cannot assign background command to its job", assignment_error);
-    return;
   }
   if (cancelled()) {
-    if (!TerminateJobObject(job.get(), 1))
-      job.Reset();
+    if (contain_child_tree) {
+      if (!TerminateJobObject(job.get(), 1))
+        job.Reset();
+    } else if (!TerminateProcess(process.get(), 1)) {
+      fail("Cannot cancel background command", GetLastError());
+      return;
+    }
     WaitForSingleObject(process.get(), INFINITE);
     Finalize(absl::CancelledError("Background command cancelled"), -1);
     return;
   }
   if (ResumeThread(primary_thread.get()) == static_cast<DWORD>(-1)) {
     const DWORD resume_error = GetLastError();
-    if (!TerminateJobObject(job.get(), 1))
-      job.Reset();
+    if (contain_child_tree) {
+      if (!TerminateJobObject(job.get(), 1))
+        job.Reset();
+    } else if (!TerminateProcess(process.get(), 1)) {
+      fail("Cannot stop background command after resume failure",
+           GetLastError());
+      return;
+    }
     WaitForSingleObject(process.get(), INFINITE);
     fail("Cannot resume background command", resume_error);
     return;
@@ -647,12 +669,20 @@ void BackgroundCommandTask::WorkerMainWindows(
   bool job_empty = false;
   DWORD exit_code = 0;
   absl::Status transport_status = absl::OkStatus();
-  while (!process_exited || !pipe_closed || !job_empty) {
+  while (!process_exited || !pipe_closed ||
+         (contain_child_tree && !job_empty)) {
     if (cancelled() && !job_terminated) {
-      if (!TerminateJobObject(job.get(), 1)) {
-        transport_status = WindowsError("Cannot cancel background command job",
-                                        GetLastError());
-        job.Reset();
+      if (contain_child_tree) {
+        if (!TerminateJobObject(job.get(), 1)) {
+          transport_status = WindowsError(
+              "Cannot cancel background command job", GetLastError());
+          job.Reset();
+          WaitForSingleObject(process.get(), INFINITE);
+          break;
+        }
+      } else if (!TerminateProcess(process.get(), 1)) {
+        transport_status =
+            WindowsError("Cannot cancel background command", GetLastError());
         WaitForSingleObject(process.get(), INFINITE);
         break;
       }
@@ -705,8 +735,9 @@ void BackgroundCommandTask::WorkerMainWindows(
     } else if (!read_output) {
       std::this_thread::sleep_for(std::chrono::milliseconds(kPollIntervalMs));
     }
-    // A completed shell must not leave descendants or inherited pipe writers.
-    if ((process_exited || !transport_status.ok()) && !job_terminated) {
+    // A completed contained shell must not leave descendants or pipe writers.
+    if (contain_child_tree && (process_exited || !transport_status.ok()) &&
+        !job_terminated) {
       if (!TerminateJobObject(job.get(), exit_code)) {
         transport_status = WindowsError("Cannot finish background command job",
                                         GetLastError());
@@ -716,18 +747,20 @@ void BackgroundCommandTask::WorkerMainWindows(
       }
       job_terminated = true;
     }
-    JOBOBJECT_BASIC_ACCOUNTING_INFORMATION accounting{};
-    if (!QueryInformationJobObject(job.get(),
-                                   JobObjectBasicAccountingInformation,
-                                   &accounting, sizeof(accounting), nullptr)) {
-      transport_status = WindowsError(
-          "Cannot verify background command job cleanup", GetLastError());
-      // Closing the sole kill-on-close handle still terminates the owned tree.
-      job.Reset();
-      WaitForSingleObject(process.get(), INFINITE);
-      break;
+    if (contain_child_tree) {
+      JOBOBJECT_BASIC_ACCOUNTING_INFORMATION accounting{};
+      if (!QueryInformationJobObject(
+              job.get(), JobObjectBasicAccountingInformation, &accounting,
+              sizeof(accounting), nullptr)) {
+        transport_status = WindowsError(
+            "Cannot verify background command job cleanup", GetLastError());
+        // Closing the sole kill-on-close handle still terminates the owned tree.
+        job.Reset();
+        WaitForSingleObject(process.get(), INFINITE);
+        break;
+      }
+      job_empty = accounting.ActiveProcesses == 0;
     }
-    job_empty = accounting.ActiveProcesses == 0;
   }
   if (cancelled()) {
     Finalize(absl::CancelledError("Background command cancelled"), -1);

@@ -23,6 +23,7 @@
 #include "app/editor/overworld/overworld_editor.h"
 #include "app/editor/shell/dialogs/rom_load_options_dialog.h"
 #include "app/editor/shell/feedback/toast_manager.h"
+#include "app/editor/shell/windows/project_management_panel.h"
 #include "app/editor/system/session/project_build_workflow.h"
 #include "app/gfx/backend/null_renderer.h"
 #include "app/gfx/resource/arena.h"
@@ -2376,6 +2377,149 @@ TEST(EditorManagerProjectActionsTest,
   panel.SetSaveProjectCallback([]() { return absl::OkStatus(); });
   EXPECT_TRUE(panel.SaveProjectEdits().ok());
   EXPECT_FALSE(panel.IsProjectDirty());
+}
+
+TEST(EditorManagerProjectActionsTest, RunScriptRoundTripsThroughProjectFile) {
+  ScopedTempDir temp(MakeTempDir("yaze_run_script_roundtrip"));
+  const auto project_path = temp.path / "project.yaze";
+  project::YazeProject model;
+  model.name = "Run script roundtrip";
+  model.filepath = project_path.string();
+  model.build_script = "./build.sh";
+  model.run_script = "./run with spaces.sh";
+  ASSERT_OK(model.Save());
+  project::YazeProject reopened;
+  ASSERT_OK(reopened.Open(project_path.string()));
+  EXPECT_EQ(reopened.run_script, "./run with spaces.sh");
+
+  ProjectManagementPanel panel;
+  panel.SetProject(&reopened);
+  EXPECT_EQ(reopened.run_script, "./run with spaces.sh");
+  reopened.run_script = "./updated-run.sh";
+  panel.SetProject(&reopened, /*dirty=*/true);
+  EXPECT_EQ(reopened.run_script, "./updated-run.sh");
+  EXPECT_TRUE(panel.IsProjectDirty());
+  panel.SetSaveProjectCallback([&reopened]() { return reopened.Save(); });
+  ASSERT_OK(panel.SaveProjectEdits());
+  EXPECT_FALSE(panel.IsProjectDirty());
+  project::YazeProject persisted;
+  ASSERT_OK(persisted.Open(project_path.string()));
+  EXPECT_EQ(persisted.run_script, "./updated-run.sh");
+}
+
+TEST(EditorManagerProjectActionsTest,
+     ExternalRunLauncherReceivesExactProjectOutputPath) {
+#ifdef _WIN32
+  GTEST_SKIP() << "POSIX launcher script fixture";
+#else
+  ScopedImGuiContext imgui;
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  ::yaze::test::InitializeWithIsolatedSettings(*manager, renderer.get());
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+
+  ScopedTempDir temp(MakeTempDir("yaze_external_run_launcher"));
+  const auto spaced_root = temp.path / "project root with spaces";
+  std::filesystem::create_directories(spaced_root);
+  const auto project_path = spaced_root / "project.yaze";
+  const auto source_rom = spaced_root / "source.sfc";
+  const auto output_rom = spaced_root / "built output.sfc";
+  const auto capture_path = spaced_root / "launcher-output.txt";
+  const auto build_script = spaced_root / "build.sh";
+  const auto run_script = spaced_root / "run_launcher.sh";
+  WriteRomFile(source_rom, "SOURCE");
+  WriteRomFile(output_rom, "STALE");
+  {
+    std::ofstream build(build_script);
+    build << "#!/bin/sh\n";
+    build << "cp \"" << source_rom.string() << "\" \"" << output_rom.string()
+          << "\"\n";
+  }
+  {
+    std::ofstream run(run_script);
+    run << "#!/bin/sh\n";
+    run << "printf '%s' \"$YAZE_PROJECT_OUTPUT\" > \"" << capture_path.string()
+        << "\"\n";
+  }
+  for (const auto& script : {build_script, run_script}) {
+    std::filesystem::permissions(script,
+                                 std::filesystem::perms::owner_exec |
+                                     std::filesystem::perms::owner_read |
+                                     std::filesystem::perms::owner_write,
+                                 std::filesystem::perm_options::add);
+  }
+
+  auto* project = manager->GetCurrentProject();
+  ASSERT_NE(project, nullptr);
+  project->name = "External run";
+  project->filepath = project_path.string();
+  project->rom_filename = source_rom.string();
+  project->build_target = output_rom.filename().string();
+  project->build_script = "./build.sh";
+  project->run_script = "./run_launcher.sh";
+  ASSERT_OK(SaveProjectFixture(*project));
+  ASSERT_OK(manager->OpenRomOrProject(project_path.string()));
+  ASSERT_OK(manager->BuildCurrentProject());
+  ASSERT_OK(manager->RunCurrentProject());
+  ASSERT_TRUE(std::filesystem::exists(capture_path));
+  EXPECT_EQ(ReadFile(capture_path), output_rom.string());
+  const auto run_status = ContentRegistry::Context::run_workflow_status();
+  EXPECT_EQ(run_status.state, ProjectWorkflowState::kSuccess);
+  EXPECT_NE(run_status.summary.find("External launcher"), std::string::npos);
+#endif
+}
+
+TEST(EditorManagerProjectActionsTest, ExternalRunRequiresSavedProjectSettings) {
+#ifdef _WIN32
+  GTEST_SKIP() << "POSIX launcher script fixture";
+#else
+  ScopedImGuiContext imgui;
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  ::yaze::test::InitializeWithIsolatedSettings(*manager, renderer.get());
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+
+  ScopedTempDir temp(MakeTempDir("yaze_external_run_unsaved"));
+  const auto project_path = temp.path / "project.yaze";
+  const auto source_rom = temp.path / "source.sfc";
+  const auto output_rom = temp.path / "output.sfc";
+  const auto build_script = temp.path / "build.sh";
+  const auto run_script = temp.path / "run.sh";
+  WriteRomFile(source_rom);
+  WriteRomFile(output_rom, "STALE");
+  {
+    std::ofstream build(build_script);
+    build << "#!/bin/sh\n";
+    build << "cp \"" << source_rom.string() << "\" \"" << output_rom.string()
+          << "\"\n";
+  }
+  {
+    std::ofstream run(run_script);
+    run << "#!/bin/sh\nexit 0\n";
+  }
+  for (const auto& script : {build_script, run_script}) {
+    std::filesystem::permissions(script,
+                                 std::filesystem::perms::owner_exec |
+                                     std::filesystem::perms::owner_read |
+                                     std::filesystem::perms::owner_write,
+                                 std::filesystem::perm_options::add);
+  }
+
+  auto* project = manager->GetCurrentProject();
+  project->filepath = project_path.string();
+  project->rom_filename = source_rom.string();
+  project->build_target = output_rom.filename().string();
+  project->build_script = "./build.sh";
+  project->run_script = "./run.sh";
+  ASSERT_OK(SaveProjectFixture(*project));
+  ASSERT_OK(manager->OpenRomOrProject(project_path.string()));
+  ASSERT_OK(manager->BuildCurrentProject());
+  project->run_script = "./different-run.sh";
+  manager->MarkCurrentProjectDirty();
+  const auto status = manager->RunCurrentProject();
+  EXPECT_FALSE(status.ok());
+  EXPECT_NE(status.message().find("Save project"), std::string::npos);
+#endif
 }
 
 TEST(EditorManagerProjectActionsTest,

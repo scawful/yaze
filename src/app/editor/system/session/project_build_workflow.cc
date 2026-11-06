@@ -19,7 +19,8 @@ std::string ProjectBuildResultKey(size_t session_id,
 
 absl::StatusOr<std::map<std::string, std::string>>
 BuildProjectCommandEnvironment(const project::YazeProject& project,
-                               const std::string& editing_source_path) {
+                               const std::string& editing_source_path,
+                               const std::string& project_output_path) {
   if (project.filepath.empty()) {
     return absl::FailedPreconditionError("Save the project before building");
   }
@@ -48,7 +49,7 @@ BuildProjectCommandEnvironment(const project::YazeProject& project,
     save_context_path = save_context.path.string();
   }
 #endif
-  return std::map<std::string, std::string>{
+  auto environment = std::map<std::string, std::string>{
       {"YAZE_PROJECT_FILE", project_file.string()},
       {"YAZE_PROJECT_CODE_FOLDER", absolute(project.code_folder)},
       {"YAZE_PROJECT_ROM", absolute(project.rom_filename)},
@@ -58,6 +59,22 @@ BuildProjectCommandEnvironment(const project::YazeProject& project,
       {"OOS_LYRA_PROJECT",
        project.lyra_terrain_file.empty() ? "" : project_file.string()},
       {"OOS_LYRA_REQUEST", absolute(project.lyra_build_request_file)}};
+  if (!project_output_path.empty()) {
+    environment["YAZE_PROJECT_OUTPUT"] = project_output_path;
+  }
+  return environment;
+}
+
+absl::StatusOr<std::string> ResolveConfiguredProjectRunCommand(
+    const project::YazeProject& project) {
+  if (!project.project_opened()) {
+    return absl::FailedPreconditionError("No project open");
+  }
+  if (project.run_script.empty()) {
+    return absl::NotFoundError(
+        "Project does not define a run launcher command");
+  }
+  return project.run_script;
 }
 
 absl::StatusOr<std::string> ResolveConfiguredProjectBuildCommand(

@@ -367,29 +367,6 @@ absl::StatusOr<ProjectBuildAttemptResult> ProjectManager::CompleteBuildAttempt(
     }
   }
 
-  if (request.output_existed_at_prepare &&
-      result.output_sha256 == request.output_preimage_sha256 &&
-      result.output_size == request.output_preimage_size) {
-    const std::string key = ProjectBuildResultKey(
-        request.origin.session_id, request.origin.project_descriptor_path);
-    const auto prior = verified_build_provenance_.find(key);
-    const bool deterministic_rebuild =
-        prior != verified_build_provenance_.end() &&
-        prior->second.saved_input.fingerprint_sha256 ==
-            request.saved_input.fingerprint_sha256 &&
-        prior->second.output_path == request.resolved_output_path &&
-        prior->second.output_sha256 == result.output_sha256 &&
-        prior->second.output_size == result.output_size;
-    if (!deterministic_rebuild &&
-        live_project.lyra_build_request_file.empty()) {
-      result.terminal_state = ProjectBuildTerminalState::kFailed;
-      result.process_status = absl::FailedPreconditionError(
-          "Build completed, but unchanged output cannot be verified for these "
-          "saved inputs");
-      return result;
-    }
-  }
-
   result.terminal_state = ProjectBuildTerminalState::kSucceeded;
   result.run_eligible = true;
   verified_build_provenance_[ProjectBuildResultKey(
@@ -660,6 +637,27 @@ ProjectManager::ValidateProjectRunSelection(
   selection.saved_input = std::move(saved_input);
   selection.build_attempt_id = attempt_id;
   return selection;
+}
+
+absl::Status ProjectManager::ExecuteProjectRunLauncher(
+    const ProjectValidatedRunSelection& selection,
+    const project::YazeProject& project,
+    const std::string& editing_source_path) {
+  ASSIGN_OR_RETURN(const std::string command,
+                   ResolveConfiguredProjectRunCommand(project));
+  ASSIGN_OR_RETURN(auto environment,
+                   BuildProjectCommandEnvironment(project, editing_source_path,
+                                                  selection.absolute_path));
+  const std::string project_root =
+      std::filesystem::path(project.filepath).parent_path().string();
+  BackgroundCommandTask launcher;
+  RETURN_IF_ERROR(launcher.Start(command, project_root, environment,
+                                 BackgroundCommandLifetime::kDetachedLauncher));
+  const absl::Status wait_status = launcher.Wait();
+  if (!wait_status.ok()) {
+    return wait_status;
+  }
+  return absl::OkStatus();
 }
 
 }  // namespace editor

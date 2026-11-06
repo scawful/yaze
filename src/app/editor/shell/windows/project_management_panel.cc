@@ -94,6 +94,7 @@ void ProjectManagementPanel::ReloadProjectBuffers() {
     assets_buffer_.fill('\0');
     build_buffer_.clear();
     script_buffer_.clear();
+    run_buffer_.clear();
     return;
   }
 
@@ -104,6 +105,7 @@ void ProjectManagementPanel::ReloadProjectBuffers() {
   CopyToBuffer(&assets_buffer_, project_->assets_folder);
   build_buffer_ = project_->build_target;
   script_buffer_ = project_->build_script;
+  run_buffer_ = project_->run_script;
 }
 
 absl::Status ProjectManagementPanel::SaveProjectEdits() {
@@ -590,6 +592,20 @@ void ProjectManagementPanel::DrawQuickActions() {
   if (ImGui::InputText("##build_script", &script_buffer_)) {
     project_->build_script = script_buffer_;
     project_dirty_ = true;
+  }
+
+  ImGui::TextColored(gui::GetTextSecondaryVec4(), tr("Run Command:"));
+  ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+  if (ImGui::InputText("##run_script", &run_buffer_)) {
+    project_->run_script = run_buffer_;
+    project_dirty_ = true;
+  }
+  if (ImGui::IsItemHovered()) {
+    ImGui::SetTooltip(
+        tr("Optional launcher command run from the project root after a "
+           "successful build. The selected project output ROM path is passed "
+           "in YAZE_PROJECT_OUTPUT (quote it in the script). Leave empty to "
+           "reload the built-in emulator."));
   }
 }
 

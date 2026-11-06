@@ -6,9 +6,16 @@
 #include <chrono>
 #include <cstdlib>
 #include <filesystem>
+#include <fstream>
 #include <optional>
 #include <string>
 #include <thread>
+
+#include <signal.h>
+#include <sys/types.h>
+#include <unistd.h>
+
+#include "absl/cleanup/cleanup.h"
 
 #include "absl/strings/str_cat.h"
 
@@ -298,6 +305,33 @@ TEST(BackgroundCommandTaskTest, SignalFailureReportsSignal) {
 // print the second one.
 constexpr char kStartMarker[] = "yaze-bg-cancel-start";
 constexpr char kAfterSleepMarker[] = "yaze-bg-cancel-after-sleep";
+
+TEST(BackgroundCommandTaskTest, DetachedLauncherChildSurvivesOnPosix) {
+  const auto root =
+      std::filesystem::temp_directory_path() /
+      ("yaze-bg-detached-" +
+       std::to_string(
+           std::chrono::steady_clock::now().time_since_epoch().count()));
+  std::filesystem::create_directories(root);
+  const auto pid_file = root / "child.pid";
+  absl::Cleanup cleanup = [&] {
+    std::error_code ec;
+    std::filesystem::remove_all(root, ec);
+  };
+  const std::string command = "nohup sleep 30 >/dev/null 2>&1 & echo $! > \"" +
+                              pid_file.string() + "\"";
+  BackgroundCommandTask task;
+  ASSERT_TRUE(task.Start(command, root.string(), {},
+                         BackgroundCommandLifetime::kDetachedLauncher)
+                  .ok());
+  ASSERT_TRUE(task.Wait().ok()) << task.GetSnapshot().status;
+  std::ifstream pid_in(pid_file);
+  pid_t child_pid = 0;
+  pid_in >> child_pid;
+  ASSERT_GT(child_pid, 0);
+  EXPECT_EQ(kill(child_pid, 0), 0);
+  EXPECT_EQ(kill(child_pid, SIGTERM), 0);
+}
 
 TEST(BackgroundCommandTaskTest, CancelStopsRunningCommand) {
   BackgroundCommandTask task;
@@ -657,6 +691,30 @@ TEST(BackgroundCommandTaskTest, WindowsCancelTerminatesOwnedChildTree) {
   EXPECT_EQ(WaitForSingleObject(child.get(), 5000), WAIT_OBJECT_0);
   EXPECT_TRUE(task.GetSnapshot().finished);
   EXPECT_FALSE(task.GetSnapshot().running);
+}
+
+TEST(BackgroundCommandTaskTest,
+     DetachedLauncherChildSurvivesSuccessfulShortLauncher) {
+  ScopedWindowsTestDirectory root;
+  const auto pid_file = root.path() / "child.pid";
+  const auto release_parent = root.path() / "release-parent";
+  BackgroundCommandTask task;
+  ASSERT_TRUE(task.Start(WindowsTreeCommand(pid_file, release_parent), ".", {},
+                         BackgroundCommandLifetime::kDetachedLauncher)
+                  .ok());
+  ASSERT_TRUE(WaitForWindowsOutput(task, "yaze-win-tree-ready"));
+  ScopedWindowsTestHandle child(
+      OpenProcess(SYNCHRONIZE, FALSE, ReadWindowsChildPid(pid_file)));
+  ASSERT_NE(child.get(), nullptr);
+  EXPECT_EQ(WaitForSingleObject(child.get(), 0), WAIT_TIMEOUT);
+  {
+    std::ofstream release_file(release_parent, std::ios::binary);
+    ASSERT_TRUE(release_file.is_open());
+  }
+  ASSERT_TRUE(task.Wait().ok()) << task.GetSnapshot().status;
+  EXPECT_EQ(WaitForSingleObject(child.get(), 5000), WAIT_TIMEOUT);
+  TerminateProcess(child.get(), 0);
+  WaitForSingleObject(child.get(), INFINITE);
 }
 
 TEST(BackgroundCommandTaskTest, WindowsShellCompletionLeavesNoOwnedChild) {
