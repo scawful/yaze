@@ -6743,7 +6743,7 @@ void InstallDoorSurroundPolicy(
   const std::array<uint8_t, 8> bridge{0x20, 0x16, 0x89, 0x6B,
                                       0x00, 0xF0, 0x2C, 0x01};
   std::copy(bridge.begin(), bridge.end(), data.begin() + 0xB558);
-  constexpr int kPolicy = 0x16F000;  // SNES $2CF000.
+  const uint32_t kPolicy = SnesToPc(0x2CF000);
   data[kPolicy] = 'D';
   data[kPolicy + 1] = 'S';
   data[kPolicy + 2] = 'R';
@@ -6795,7 +6795,8 @@ TEST(ObjectDrawerRegistryReplayTest, AutoSurroundPolicyRejectsBankCrossing) {
   std::vector<uint8_t> data(2 * 1024 * 1024, 0);
   InstallDoorSurroundPolicy(data);
   ASSERT_TRUE(DoorSurroundPolicy::Decode(data).has_value());
-  std::copy_n(data.begin() + 0x16F000, 308, data.begin() + 0x16FF00);
+  std::copy_n(data.begin() + SnesToPc(0x2CF000), 308,
+              data.begin() + SnesToPc(0x2CFF00));
   data[0xB55C] = 0;
   data[0xB55D] = 0xFF;
   EXPECT_FALSE(DoorSurroundPolicy::Decode(data).has_value());
