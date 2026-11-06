@@ -81,6 +81,11 @@ class OverworldCanvasRenderer {
   }
   std::string Tile16ScopeLabel() const;
 
+  void CancelEntityDrag() {
+    entity_drag_origin_.reset();
+    entity_drag_position_.reset();
+  }
+
  private:
   // =========================================================================
   // Internal Canvas Drawing Helpers

@@ -1977,6 +1977,160 @@ TEST_F(NativeSpecialOverworldEditorTest, NormalSaveUndoFailureAndDiskReopen) {
 }
 
 TEST_F(NativeSpecialOverworldEditorTest,
+       AreaResizePreservesRawProfilesSpritesUndoAndDiskReopen) {
+  const char* path = std::getenv("YAZE_TEST_ROM_OOS");
+  if (!path || !std::filesystem::exists(path))
+    GTEST_SKIP() << "Set YAZE_TEST_ROM_OOS for native area editing";
+  const auto flags = core::FeatureFlags::get();
+  auto restore_flags =
+      absl::MakeCleanup([&] { core::FeatureFlags::get() = flags; });
+  core::FeatureFlags::get().overworld.kSaveOverworldMaps = false;
+  core::FeatureFlags::get().overworld.kSaveOverworldProperties = true;
+  core::FeatureFlags::get().overworld.kSaveOverworldSprites = true;
+  Rom legacy;
+  ASSERT_TRUE(legacy.LoadFromData(ReadBytes(path)).ok());
+  zelda3::Overworld reference(&legacy);
+  ASSERT_TRUE(reference.Load(&legacy).ok());
+  for (bool dormant_conflict : {false, true}) {
+    SCOPED_TRACE(dormant_conflict);
+    NativeDirectoryFixture fixture;
+    fixture.SeedLoadedLegacyForModelTest(legacy, reference);
+    for (int parent : {0xB0, 0xB8}) {
+      fixture.bytes[fixture.Entry(7).pc_address + parent] = parent;
+      fixture.bytes[fixture.Entry(7).pc_address + parent + 1] = parent;
+      fixture.bytes[fixture.Entry(30).pc_address + parent] = 2;
+      fixture.bytes[fixture.Entry(30).pc_address + parent + 1] = 2;
+    }
+    fixture.bytes[fixture.Entry(27).pc_address + 0xB1] ^= 1;
+    fixture.bytes[fixture.Entry(31).pc_address + 0xB1] = 1;
+    fixture.bytes[fixture.Entry(32).pc_address + 0xB1] = 7;
+    fixture.bytes[fixture.Entry(33).pc_address + 0xB1] = 8;
+    fixture.Entry(100).count = 64;
+    const size_t pool = fixture.Entry(100).pc_address;
+    const std::vector<uint8_t> top = {14,   0x80 | 23, 0x52, 21,   15,
+                                      0x52, 12,        40,   0x52, 0xFF};
+    const std::vector<uint8_t> bottom = {0x40 | 11, 13,   0x52, 13,
+                                         37,        0x52, 0xFF};
+    std::copy(top.begin(), top.end(), fixture.bytes.begin() + pool + 1);
+    std::copy(bottom.begin(), bottom.end(), fixture.bytes.begin() + pool + 11);
+    fixture.Word(fixture.Entry(17).pc_address + 0xB0 * 2, 0x8001);
+    fixture.Word(fixture.Entry(17).pc_address + 0xB8 * 2, 0x800B);
+    if (dormant_conflict) {
+      const std::array<uint8_t, 4> dormant = {1, 1, 0x53, 0xFF};
+      std::copy(dormant.begin(), dormant.end(),
+                fixture.bytes.begin() + pool + 18);
+      fixture.Word(fixture.Entry(17).pc_address + 0xB1 * 2, 0x8012);
+    }
+    fixture.Seal();
+    const auto root = test::UniqueTempPath("owarea");
+    std::filesystem::create_directories(root);
+    auto cleanup =
+        absl::MakeCleanup([&] { std::filesystem::remove_all(root); });
+    const auto source = root / "in.sfc", target = root / "out.sfc";
+    WriteBytes(source, fixture.bytes);
+    auto manager = std::make_unique<editor::EditorManager>();
+    test::InitializeWithIsolatedSettings(*manager, renderer_.get());
+    manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+    manager->user_settings().prefs().backup_before_save = false;
+    ASSERT_TRUE(manager->OpenRomOrProject(source.string()).ok());
+    ASSERT_TRUE(
+        manager->EnsureEditorAssetsLoaded(editor::EditorType::kOverworld).ok());
+    auto* editor = manager->GetCurrentEditorSet()->GetOverworldEditor();
+    auto& world = editor->overworld();
+    auto* document = manager->GetCurrentRom();
+    const auto before = world.CaptureNativeAreaSnapshot();
+    ASSERT_TRUE(before.ok()) << before.status();
+    using Field = editor::OverworldPropertyField;
+    auto resize = [&](zelda3::AreaSizeEnum size) {
+      return editor::NativePropertySaveTestPeer::Apply(
+          *editor, {0xB0, Field::kAreaSize, 0, static_cast<int>(size)});
+    };
+    if (dormant_conflict) {
+      const auto refused = resize(zelda3::AreaSizeEnum::SmallArea);
+      EXPECT_FALSE(refused.ok());
+      EXPECT_NE(refused.message().find("distinct dormant sprites"),
+                absl::string_view::npos)
+          << refused;
+      const auto unchanged = world.CaptureNativeAreaSnapshot();
+      ASSERT_TRUE(unchanged.ok());
+      EXPECT_EQ(*unchanged, *before);
+      EXPECT_EQ(document->vector(), fixture.bytes);
+      continue;
+    }
+    {
+      ScopedRomReadOnly readonly(*document);
+      EXPECT_FALSE(resize(zelda3::AreaSizeEnum::LargeArea).ok());
+    }
+    ASSERT_TRUE(resize(zelda3::AreaSizeEnum::LargeArea).ok());
+    const auto large = world.CaptureNativeAreaSnapshot();
+    ASSERT_TRUE(large.ok()) << large.status();
+    EXPECT_EQ(large->profiles, before->profiles);
+    EXPECT_EQ(document->vector(), fixture.bytes);
+    for (int member : {0xB0, 0xB1, 0xB8, 0xB9})
+      EXPECT_EQ(world.overworld_map(member)->parent(), 0xB0);
+    ASSERT_TRUE(editor->Undo().ok());
+    auto undone = world.CaptureNativeAreaSnapshot();
+    ASSERT_TRUE(undone.ok());
+    EXPECT_EQ(*undone, *before);
+    EXPECT_EQ(world.overworld_map(0xB8)->area_size(),
+              zelda3::AreaSizeEnum::WideArea);
+    ASSERT_TRUE(editor->Redo().ok());
+    auto redone = world.CaptureNativeAreaSnapshot();
+    ASSERT_TRUE(redone.ok());
+    EXPECT_EQ(*redone, *large);
+    core::FeatureFlags::get().overworld.kSaveOverworldSprites = false;
+    EXPECT_FALSE(manager->SaveRomAs(target.string()).ok());
+    EXPECT_EQ(document->vector(), fixture.bytes);
+    core::FeatureFlags::get().overworld.kSaveOverworldSprites = true;
+    {
+      test::ScopedRomStagingFailure fault;
+      EXPECT_FALSE(manager->SaveRomAs(target.string()).ok());
+    }
+    EXPECT_EQ(document->vector(), fixture.bytes);
+    const auto saved = manager->SaveRomAs(target.string());
+    ASSERT_TRUE(saved.ok()) << saved;
+    const auto persisted = ReadBytes(target);
+    Rom reopened;
+    ASSERT_TRUE(reopened.LoadFromFile(target.string()).ok());
+    zelda3::Overworld fresh(&reopened);
+    ASSERT_TRUE(fresh.Load(&reopened).ok());
+    const auto fresh_snapshot = fresh.CaptureNativeAreaSnapshot();
+    ASSERT_TRUE(fresh_snapshot.ok()) << fresh_snapshot.status();
+    EXPECT_EQ(fresh_snapshot->geometry, large->geometry);
+    EXPECT_EQ(fresh_snapshot->profiles, before->profiles);
+    const auto packed = zelda3::ReadOverworldSpriteList(
+        reopened, reopened.InspectLyraLayout(), 1, 0xB0);
+    ASSERT_TRUE(packed.ok()) << packed.status();
+    EXPECT_EQ(*packed, (std::vector<uint8_t>{14, 0x80 | 23, 0x52, 21, 15, 0x52,
+                                             12, 40, 0x52, 0x40 | 43, 13, 0x52,
+                                             45, 37, 0x52, 0xFF}));
+    const auto cold_split =
+        fresh.ConfigureMultiAreaMap(0xB0, zelda3::AreaSizeEnum::SmallArea);
+    ASSERT_TRUE(cold_split.ok()) << cold_split;
+    EXPECT_EQ(fresh.overworld_map(0xB1)->area_music(0), 7);
+    const auto second = manager->SaveRom();
+    ASSERT_TRUE(second.ok()) << second;
+    EXPECT_EQ(ReadBytes(target), persisted);
+    ASSERT_TRUE(editor->Undo().ok());
+    ASSERT_TRUE(manager->SaveRom().ok());
+    ASSERT_TRUE(editor->Redo().ok());
+    ASSERT_TRUE(manager->SaveRom().ok());
+    EXPECT_EQ(ReadBytes(target), persisted);
+    // A split restores the raw child selector/music values rather than copying
+    // the former parent's effective settings into the new gameplay area.
+    const auto split = resize(zelda3::AreaSizeEnum::SmallArea);
+    ASSERT_TRUE(split.ok()) << split;
+    EXPECT_EQ(world.overworld_map(0xB1)->area_graphics(),
+              before->profiles[0xB1].graphics);
+    EXPECT_EQ(world.overworld_map(0xB1)->area_music(0), 7);
+    EXPECT_EQ(world.overworld_map(0xB1)->area_music(1), 8);
+    ASSERT_TRUE(editor->Undo().ok());
+    ASSERT_TRUE(manager->SaveRom().ok());
+    EXPECT_EQ(ReadBytes(target), persisted);
+  }
+}
+
+TEST_F(NativeSpecialOverworldEditorTest,
        PropertyOnlySaveFailureRetryUndoAndFreshReopen) {
   const char* path = std::getenv("YAZE_TEST_ROM_OOS");
   if (!path || !std::filesystem::exists(path))

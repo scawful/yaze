@@ -310,6 +310,46 @@ class OverworldItemsEditAction : public UndoAction {
   std::string description_;
 };
 
+// Geometry and metadata paste replay exact authoring values and sprite owners.
+// They never repeat a resize command against a potentially different topology.
+class OverworldAreaEditAction : public UndoAction {
+ public:
+  using ApplyFn =
+      std::function<absl::Status(const zelda3::OverworldAreaSnapshot&)>;
+  OverworldAreaEditAction(zelda3::OverworldAreaSnapshot before,
+                          zelda3::OverworldAreaSnapshot after, ApplyFn apply,
+                          std::string description)
+      : before_(std::move(before)),
+        after_(std::move(after)),
+        apply_(std::move(apply)),
+        description_(std::move(description)) {}
+  absl::Status Undo() override { return apply_(before_); }
+  absl::Status Redo() override { return apply_(after_); }
+  std::string Description() const override { return description_; }
+  size_t MemoryUsage() const override {
+    auto bytes = [](const zelda3::OverworldAreaSnapshot& value) {
+      size_t result =
+          value.geometry.capacity() * sizeof(zelda3::OverworldAreaGeometry) +
+          value.profiles.capacity() * sizeof(zelda3::OverworldAreaProfile) +
+          value.pages.capacity() * sizeof(zelda3::OverworldPageProperties);
+      for (int phase = 0; phase < 3; ++phase)
+        result += value.sprites[phase].capacity() *
+                      sizeof(zelda3::OverworldSpriteArea) +
+                  (value.loaded_sprite_maps[phase].capacity() + 7) / 8;
+      return result;
+    };
+    return sizeof(*this) + bytes(before_) + bytes(after_) +
+           description_.capacity();
+  }
+  bool CanMergeWith(const UndoAction&) const override { return false; }
+
+ private:
+  zelda3::OverworldAreaSnapshot before_;
+  zelda3::OverworldAreaSnapshot after_;
+  ApplyFn apply_;
+  std::string description_;
+};
+
 class OverworldMapPropertyEditAction : public UndoAction {
  public:
   using ApplyFn = std::function<absl::Status(const OverworldPropertyEdit&)>;

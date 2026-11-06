@@ -111,6 +111,14 @@ class Sprite : public GameEntity {
   auto nx() const { return nx_; }
   auto ny() const { return ny_; }
   auto map_id() const { return map_id_; }
+  // Ownership-only change for a validated overworld geometry transaction.
+  // World position, row identity, packed flags and preview buffers stay intact.
+  void SetOverworldArea(uint8_t owner, uint8_t x, uint8_t y) {
+    map_id_ = owner;
+    nx_ = x;
+    ny_ = y;
+  }
+
   auto map_x() const { return map_x_; }
   auto map_y() const { return map_y_; }
   // Preserve packed coordinate bits not exposed by the overworld editor.

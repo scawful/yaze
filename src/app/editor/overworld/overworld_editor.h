@@ -798,6 +798,7 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   void RestoreItemUndoSnapshot(const OverworldItemsSnapshot& snapshot);
   void PushItemUndoAction(OverworldItemsSnapshot before,
                           std::string description);
+  void RefreshNativeAreaEditState();
   absl::Status ApplyOverworldPropertyEdit(const OverworldPropertyEdit& edit,
                                           bool record_undo = true);
   absl::Status ApplyOverworldPropertyEdits(

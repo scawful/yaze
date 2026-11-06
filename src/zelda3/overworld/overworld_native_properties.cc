@@ -1,7 +1,10 @@
 #include "zelda3/overworld/overworld.h"
 
 #include <algorithm>
+#include <iterator>
 #include <utility>
+
+#include "util/macro.h"
 
 namespace yaze::zelda3 {
 
@@ -14,6 +17,9 @@ Overworld::CaptureNativePropertyRecords() const {
       bytes.push_back(static_cast<uint8_t>(value >> 8));
     records.push_back({table, static_cast<uint16_t>(map), std::move(bytes)});
   };
+  const auto profiles = CaptureNativeAreaProfiles();
+  if (profiles.size() != overworld_maps_.size())
+    return {};
   for (const auto& map : overworld_maps_) {
     const int index = map.index();
     add(1, index, map.area_specific_bg_color(), true);
@@ -30,20 +36,19 @@ Overworld::CaptureNativePropertyRecords() const {
       graphics.push_back(map.custom_tileset(slot));
     records.push_back({6, static_cast<uint16_t>(index), std::move(graphics)});
     add(19, index, map.message_id(), true);
-    if (map.parent() != index)
-      continue;
-    add(index >= 128 ? 27 : 26, index, map.area_graphics());
-    add(31, index, map.area_palette());
+    const auto& profile = profiles[index];
+    add(index >= 128 ? 27 : 26, index, profile.graphics);
+    add(31, index, profile.palette);
     for (int phase = 0; phase < 4; ++phase)
-      add(32 + phase, index, map.area_music(phase));
+      add(32 + phase, index, profile.music[phase]);
     if (index >= 64 && index < 160)
-      add(28, index, map.area_music(0));
+      add(28, index, profile.music[0]);
     if (index >= 128) {
       constexpr std::array<uint16_t, 3> kGraphics = {24, 36, 39};
       constexpr std::array<uint16_t, 3> kPalettes = {25, 37, 38};
       for (int phase = 0; phase < 3; ++phase) {
-        add(kGraphics[phase], index, map.sprite_graphics(phase));
-        add(kPalettes[phase], index, map.sprite_palette(phase));
+        add(kGraphics[phase], index, profile.sprite_graphics[phase]);
+        add(kPalettes[phase], index, profile.sprite_palettes[phase]);
       }
     }
   }
@@ -81,6 +86,9 @@ Overworld::PrepareNativePropertySave() const {
   if (cursor != baseline.size())
     return absl::FailedPreconditionError(
         "Native property baseline is incomplete");
+  ASSIGN_OR_RETURN(auto geometry, PrepareNativeGeometrySave());
+  edits.insert(edits.end(), std::make_move_iterator(geometry.begin()),
+               std::make_move_iterator(geometry.end()));
   return edits;
 }
 
@@ -95,44 +103,37 @@ Overworld::NativeModelState Overworld::CaptureNativeNonTerrainState() const {
     state[0].insert(state[0].end(), edit.value.begin(), edit.value.end());
   }
   add(6, {materialized_map_count()});
-  auto inherited = [&](int value, int parent_value) {
-    const size_t offset = state[6].size();
-    const auto& loaded = native_nonterrain_baseline_[6];
-    // Refresh may copy an edited parent's effective selector into children.
-    // Accept that model propagation without making the child's dormant raw
-    // slot writable. Unchanged child values also retain their load baseline.
-    if (value == parent_value && offset < loaded.size())
-      add(6, {loaded[offset]});
-    else
-      add(6, {value});
-  };
+  const auto profiles = CaptureNativeAreaProfiles();
   for (const auto& m : overworld_maps_) {
-    add(6, {m.index(), m.parent(), static_cast<int>(m.area_size()),
-            m.large_index()});
-    // Parent-owned fields on a child cannot be serialized as its own raw row.
-    // Retain the native child's original slots until an area-level edit owns
-    // both the parent mutation and the corresponding model propagation.
-    if (m.parent() != m.index()) {
-      const auto* parent = overworld_map(m.parent());
-      if (!parent) {
-        add(6, {-1});
-        continue;
-      }
-      inherited(m.area_graphics(), parent->area_graphics());
-      inherited(m.area_palette(), parent->area_palette());
-      for (int phase = 0; phase < 4; ++phase)
-        inherited(m.area_music(phase), parent->area_music(phase));
+    const int i = m.index();
+    const bool child = m.parent() != i;
+    if (profiles.size() != overworld_maps_.size() ||
+        native_effective_area_profiles_.size() != overworld_maps_.size() ||
+        m.parent() < 0 || m.parent() >= materialized_map_count()) {
+      add(6, {-2});
+      continue;
     }
-    if (m.parent() != m.index() || m.index() < 128) {
-      for (int phase = 0; phase < 3; ++phase) {
-        const auto* parent = overworld_map(m.parent());
-        if (m.parent() != m.index() && parent) {
-          inherited(m.sprite_graphics(phase), parent->sprite_graphics(phase));
-          inherited(m.sprite_palette(phase), parent->sprite_palette(phase));
-        } else {
-          add(6, {m.sprite_graphics(phase), m.sprite_palette(phase)});
-        }
-      }
+    const auto& old = native_effective_area_profiles_[i];
+    const auto& parent = profiles[m.parent()];
+    auto inherited = [&](int value, int loaded, int parent_value) {
+      // Existing children may be refreshed lazily after a parent property edit.
+      // Neither their unchanged effective value nor the propagated parent value
+      // changes the child's cached raw slot. Other child mutations stay refused.
+      add(6, {child && value != loaded && value != parent_value ? value : -1});
+    };
+    inherited(m.area_graphics(), old.graphics, parent.graphics);
+    inherited(m.area_palette(), old.palette, parent.palette);
+    for (int phase = 0; phase < 4; ++phase)
+      inherited(m.area_music(phase), old.music[phase], parent.music[phase]);
+    for (int phase = 0; phase < 3; ++phase) {
+      inherited(m.sprite_graphics(phase), old.sprite_graphics[phase],
+                parent.sprite_graphics[phase]);
+      inherited(m.sprite_palette(phase), old.sprite_palettes[phase],
+                parent.sprite_palettes[phase]);
+      // Original LW/DW sprite selector editing remains a separate capability.
+      if (i < 128)
+        add(6, {profiles[i].sprite_graphics[phase],
+                profiles[i].sprite_palettes[phase]});
     }
   }
   for (const auto* list : {&all_entrances_, &all_holes_}) {

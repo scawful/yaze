@@ -323,6 +323,7 @@ absl::Status Overworld::Load(Rom* rom) {
   }
   loaded_tiles16_ = tiles16_;
   if (native) {
+    RETURN_IF_ERROR(LoadNativeAreaProfiles());
     native_nonterrain_baseline_ = {};
     native_nonterrain_baseline_ = CaptureNativeNonTerrainState();
   }
@@ -615,6 +616,10 @@ absl::Status Overworld::ConfigureMultiAreaMap(int parent_index,
   RETURN_IF_ERROR(PreflightLayoutOperation(
       OverworldLayoutDomain::kGeometry, OverworldLayoutOperation::kMutateModel,
       parent_index));
+  if (descriptor_layout_.revision == 3) {
+    RETURN_IF_ERROR(rom_->CheckLayoutSaveable());
+    return ConfigureNativeMultiAreaMap(parent_index, size);
+  }
   RETURN_IF_ERROR(rom_->CheckLayoutWritable());
 
   // Version requirements:
@@ -1817,6 +1822,10 @@ void Overworld::StageSavedMapTiles() {
 }
 
 void Overworld::CommitSavedMapTiles() {
+  if (staged_native_geometry_) {
+    native_geometry_baseline_ = std::move(*staged_native_geometry_);
+    staged_native_geometry_.reset();
+  }
   if (staged_native_sprites_) {
     native_nonterrain_baseline_[4] = std::move(*staged_native_sprites_);
     staged_native_sprites_.reset();
@@ -1840,6 +1849,7 @@ void Overworld::CommitSavedMapTiles() {
 }
 
 void Overworld::RollbackSavedMapTiles() {
+  staged_native_geometry_.reset();
   staged_native_sprites_.reset();
   staged_native_properties_.reset();
   staged_map_tiles_ = OverworldMapTiles{};
@@ -2466,6 +2476,7 @@ absl::Status Overworld::SaveNativeTerrain() {
                                        false,
                                        flags.kSaveOverworldProperties,
                                        flags.kSaveOverworldProperties};
+  RETURN_IF_ERROR(ValidateNativeGeometrySaveFlags());
   const auto current = CaptureNativeNonTerrainState();
   for (size_t i = 0; i < enabled.size(); ++i)
     if (enabled[i] && current[i] != native_nonterrain_baseline_[i])
@@ -2488,8 +2499,11 @@ absl::Status Overworld::SaveNativeTerrain() {
         rom_->vector(), rom_->vector(), property_edits, sprite_edits));
     if (flags.kSaveOverworldMaps)
       StageSavedMapTiles();
-    if (flags.kSaveOverworldProperties)
+    if (flags.kSaveOverworldProperties) {
       staged_native_properties_ = current[0];
+      ASSIGN_OR_RETURN(staged_native_geometry_,
+                       PlanExpandedOverworldGeometry(overworld_maps_));
+    }
     if (flags.kSaveOverworldSprites)
       staged_native_sprites_ = current[4];
     return absl::OkStatus();
@@ -2573,8 +2587,11 @@ absl::Status Overworld::SaveNativeTerrain() {
   RETURN_IF_ERROR(rom_->CommitNativeTerrainImage(
       rom_->vector(), std::move(candidate), property_edits, sprite_edits));
   StageSavedMapTiles();
-  if (flags.kSaveOverworldProperties)
+  if (flags.kSaveOverworldProperties) {
     staged_native_properties_ = current[0];
+    ASSIGN_OR_RETURN(staged_native_geometry_,
+                     PlanExpandedOverworldGeometry(overworld_maps_));
+  }
   if (flags.kSaveOverworldSprites)
     staged_native_sprites_ = current[4];
   staged_tiles32_unique_ = std::move(definitions);

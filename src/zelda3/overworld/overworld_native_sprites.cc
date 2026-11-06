@@ -63,7 +63,11 @@ absl::StatusOr<OverworldSpriteEdits> Overworld::PrepareSpriteEdits() const {
             (size == AreaSizeEnum::LargeArea || size == AreaSizeEnum::TallArea)
                 ? 1024
                 : 512;
-        if (!retained_position &&
+        const bool unchanged_geometry =
+            map < static_cast<int>(native_geometry_baseline_.size()) &&
+            native_geometry_baseline_[map].parent == area.parent() &&
+            native_geometry_baseline_[map].size == area.area_size();
+        if ((!retained_position || !unchanged_geometry) &&
             (area.parent() != map || x >= width || y >= height))
           return absl::InvalidArgumentError(
               "Native sprite is outside its owning area");

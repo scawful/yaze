@@ -68,6 +68,7 @@ set(
   zelda3/overworld/lyra_terrain_source.cc
   zelda3/overworld/overworld_sprite_io.cc
   zelda3/overworld/overworld_terrain_io.cc
+  zelda3/overworld/overworld_area_edit.cc
   zelda3/overworld/overworld_geometry.cc
   zelda3/overworld/overworld_native_properties.cc
   zelda3/overworld/overworld_native_sprites.cc

@@ -33,6 +33,7 @@
 
 // Third-party library headers
 #include "absl/status/status.h"
+#include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
 #include "imgui/imgui.h"
 
@@ -1784,6 +1785,24 @@ void OverworldEditor::FinalizePaintOperation() {
   current_paint_operation_.reset();
 }
 
+void OverworldEditor::RefreshNativeAreaEditState() {
+  is_dragging_entity_ = false;
+  dragged_entity_ = nullptr;
+  dragged_entity_free_movement_ = false;
+  drag_item_snapshot_.reset();
+  current_entity_ = nullptr;
+  editing_target_.reset();
+  pending_entity_insertion_.reset();
+  item_insert_target_.reset();
+  if (canvas_renderer_)
+    canvas_renderer_->CancelEntityDrag();
+  if (entity_renderer_)
+    entity_renderer_->ResetHoveredEntity();
+  for (int i = 0; i < overworld_.materialized_map_count(); ++i)
+    maps_bmp_[i].set_modified(true);
+  RefreshOverworldMap();
+}
+
 absl::Status OverworldEditor::ApplyOverworldPropertyEdit(
     const OverworldPropertyEdit& edit, bool record_undo) {
   if (is_lyra_preview()) {
@@ -1792,6 +1811,11 @@ absl::Status OverworldEditor::ApplyOverworldPropertyEdit(
   if (!map_properties_system_) {
     return absl::FailedPreconditionError("MapPropertiesSystem not initialized");
   }
+
+  if (overworld_.resolved_layout().lyra_layout.revision == 3 &&
+      edit.field == OverworldPropertyField::kAreaSize)
+    return ApplyOverworldPropertyEdits(
+        {edit}, DescribeOverworldPropertyEdit(edit), record_undo);
 
   if (!record_undo) {
     return map_properties_system_->ApplyPropertyEditDirect(edit);
@@ -1832,6 +1856,47 @@ absl::Status OverworldEditor::ApplyOverworldPropertyEdits(
     return absl::FailedPreconditionError("MapPropertiesSystem not initialized");
   }
   if (edits.empty()) {
+    return absl::OkStatus();
+  }
+
+  if (overworld_.resolved_layout().lyra_layout.revision == 3) {
+    RETURN_IF_ERROR(overworld_.rom()->CheckLayoutSaveable());
+    FinalizePaintOperation();
+    if (is_dragging_entity_)
+      return absl::FailedPreconditionError(
+          "Finish the entity drag before changing map properties");
+    ASSIGN_OR_RETURN(auto before, overworld_.CaptureNativeAreaSnapshot());
+    for (const auto& edit : edits) {
+      if (!map_properties_system_->CheckPropertyEditSupported(edit).ok())
+        continue;
+      const auto applied =
+          map_properties_system_->ApplyPropertyEditDirect(edit);
+      if (!applied.ok()) {
+        const auto restored = overworld_.RestoreNativeAreaSnapshot(before);
+        RefreshNativeAreaEditState();
+        if (!restored.ok())
+          return absl::InternalError(absl::StrCat(
+              applied.message(), "; rollback: ", restored.message()));
+        return applied;
+      }
+    }
+    ASSIGN_OR_RETURN(auto after, overworld_.CaptureNativeAreaSnapshot());
+    if (after == before)
+      return absl::OkStatus();
+    RefreshNativeAreaEditState();
+    if (record_undo) {
+      undo_manager_.Push(std::make_unique<OverworldAreaEditAction>(
+          std::move(before), std::move(after),
+          [this](const zelda3::OverworldAreaSnapshot& snapshot) {
+            if (is_dragging_entity_)
+              return absl::FailedPreconditionError(
+                  "Finish the entity drag before Undo/Redo");
+            RETURN_IF_ERROR(overworld_.RestoreNativeAreaSnapshot(snapshot));
+            RefreshNativeAreaEditState();
+            return absl::OkStatus();
+          },
+          description.empty() ? "Edit overworld area" : description));
+    }
     return absl::OkStatus();
   }
 

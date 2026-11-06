@@ -75,9 +75,7 @@ absl::Status CheckFieldSupported(const Rom* rom,
       zelda3::OverworldLayoutOperation::kMutateModel, edit.map_id, 0));
   if (layout.lyra_layout.revision == 3) {
     RETURN_IF_ERROR(rom->CheckLayoutSaveable());
-    if (edit.field == OverworldPropertyField::kAreaSize)
-      return absl::FailedPreconditionError(
-          "Native area geometry editing is not available");
+
     if (edit.field == OverworldPropertyField::kMosaic)
       return absl::FailedPreconditionError(
           "Edit native mosaic quadrants instead of the legacy mosaic flag");

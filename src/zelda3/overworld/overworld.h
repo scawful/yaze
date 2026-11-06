@@ -21,6 +21,7 @@
 #include "zelda3/overworld/diggable_tiles.h"
 #include "zelda3/overworld/overworld_entrance.h"
 #include "zelda3/overworld/overworld_exit.h"
+#include "zelda3/overworld/overworld_geometry.h"
 #include "zelda3/overworld/overworld_item.h"
 #include "zelda3/overworld/overworld_layout.h"
 #include "zelda3/overworld/overworld_map.h"
@@ -684,6 +685,8 @@ class Overworld {
    * Properly sets up sibling relationships and updates ROM data for v3+.
    */
   absl::Status ConfigureMultiAreaMap(int parent_index, AreaSizeEnum size);
+  absl::StatusOr<OverworldAreaSnapshot> CaptureNativeAreaSnapshot() const;
+  absl::Status RestoreNativeAreaSnapshot(const OverworldAreaSnapshot& snapshot);
 
   auto rom() const { return rom_; }
   auto mutable_rom() { return rom_; }
@@ -728,6 +731,9 @@ class Overworld {
     tiles16_.clear();
     loaded_tiles16_.clear();
     native_nonterrain_baseline_ = {};
+    native_area_profiles_.clear();
+    native_effective_area_profiles_.clear();
+    native_geometry_baseline_.clear();
     RollbackSavedMapTiles();
     tiles32_.clear();
     tiles32_unique_.clear();
@@ -942,6 +948,17 @@ class Overworld {
   absl::StatusOr<std::vector<rom::NativeOverworldPropertyEdit>>
   PrepareNativePropertySave() const;
   NativeModelState CaptureNativeNonTerrainState() const;
+  absl::Status LoadNativeAreaProfiles();
+  std::vector<OverworldAreaProfile> CaptureNativeAreaProfiles() const;
+  void ApplyNativeAreaProfiles();
+  absl::Status ConfigureNativeMultiAreaMap(int parent, AreaSizeEnum size);
+  absl::StatusOr<std::vector<rom::NativeOverworldPropertyEdit>>
+  PrepareNativeGeometrySave() const;
+  absl::Status ValidateNativeGeometrySaveFlags() const;
+  std::vector<OverworldAreaProfile> native_area_profiles_;
+  std::vector<OverworldAreaProfile> native_effective_area_profiles_;
+  std::vector<OverworldGeometryRow> native_geometry_baseline_;
+  std::optional<std::vector<OverworldGeometryRow>> staged_native_geometry_;
   NativeModelState native_nonterrain_baseline_;
   std::optional<std::vector<int64_t>> staged_native_properties_;
   std::optional<std::vector<int64_t>> staged_native_sprites_;
