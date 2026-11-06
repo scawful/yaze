@@ -4,6 +4,7 @@
 
 #include "absl/strings/str_format.h"
 #include "app/editor/system/session/rom_lifecycle_manager.h"
+#include "app/editor/system/session/session_coordinator.h"
 #include "core/source_artifact_publisher.h"
 #include "util/macro.h"
 
@@ -643,6 +644,19 @@ absl::Status ProjectManager::ExecuteProjectRunLauncher(
     const ProjectValidatedRunSelection& selection,
     const project::YazeProject& project,
     const std::string& editing_source_path) {
+  if (project.filepath.empty()) {
+    return absl::FailedPreconditionError(
+        "Run launcher requires a saved project descriptor path");
+  }
+  if (!SessionCoordinator::PathsReferToSameBackingFile(
+          selection.origin.project_descriptor_path, project.filepath)) {
+    return absl::FailedPreconditionError(
+        "Run launcher project binding does not match the active project");
+  }
+  if (rom_lifecycle_ != nullptr) {
+    RETURN_IF_ERROR(rom_lifecycle_->ValidateActiveProjectOrigin(
+        selection.origin.session_id));
+  }
   ASSIGN_OR_RETURN(const std::string command,
                    ResolveConfiguredProjectRunCommand(project));
   ASSIGN_OR_RETURN(auto environment,

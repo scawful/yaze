@@ -11,12 +11,6 @@
 #include <string>
 #include <thread>
 
-#include <signal.h>
-#include <sys/types.h>
-#include <unistd.h>
-
-#include "absl/cleanup/cleanup.h"
-
 #include "absl/strings/str_cat.h"
 
 // This suite uses POSIX shell syntax. Windows has a native suite below;
@@ -29,6 +23,12 @@
 #endif
 
 #if YAZE_BACKGROUND_COMMANDS_SUPPORTED
+
+#include <signal.h>
+#include <sys/types.h>
+#include <unistd.h>
+
+#include "absl/cleanup/cleanup.h"
 
 namespace yaze::editor {
 namespace {
@@ -306,6 +306,46 @@ TEST(BackgroundCommandTaskTest, SignalFailureReportsSignal) {
 constexpr char kStartMarker[] = "yaze-bg-cancel-start";
 constexpr char kAfterSleepMarker[] = "yaze-bg-cancel-after-sleep";
 
+TEST(BackgroundCommandTaskTest,
+     DetachedLauncherReturnsWhileInheritedChildWouldBlock) {
+  const auto root =
+      std::filesystem::temp_directory_path() /
+      ("yaze-bg-inherited-" +
+       std::to_string(
+           std::chrono::steady_clock::now().time_since_epoch().count()));
+  std::filesystem::create_directories(root);
+  const auto pid_file = root / "child.pid";
+  absl::Cleanup cleanup = [&] {
+    std::error_code ec;
+    std::filesystem::remove_all(root, ec);
+  };
+  const std::string command =
+      "(sleep 30 & echo $! > \"" + pid_file.string() + "\"); exit 0";
+  BackgroundCommandTask task;
+  ASSERT_TRUE(task.Start(command, root.string(), {},
+                         BackgroundCommandLifetime::kDetachedLauncher)
+                  .ok());
+  const auto deadline =
+      std::chrono::steady_clock::now() + std::chrono::seconds(3);
+  absl::Status status = absl::UnknownError("pending");
+  while (std::chrono::steady_clock::now() < deadline) {
+    const auto snapshot = task.GetSnapshot();
+    if (snapshot.finished) {
+      status = task.Wait();
+      break;
+    }
+    std::this_thread::sleep_for(std::chrono::milliseconds(25));
+  }
+  ASSERT_TRUE(status.ok()) << status;
+  std::ifstream pid_in(pid_file);
+  pid_t child_pid = 0;
+  pid_in >> child_pid;
+  if (child_pid > 0) {
+    kill(child_pid, SIGTERM);
+    waitpid(child_pid, nullptr, 0);
+  }
+}
+
 TEST(BackgroundCommandTaskTest, DetachedLauncherChildSurvivesOnPosix) {
   const auto root =
       std::filesystem::temp_directory_path() /
@@ -395,6 +435,29 @@ class ScopedWindowsTestHandle {
   ScopedWindowsTestHandle& operator=(const ScopedWindowsTestHandle&) = delete;
 
  private:
+  HANDLE handle_;
+};
+
+class ScopedWindowsChildProcess {
+ public:
+  explicit ScopedWindowsChildProcess(DWORD pid)
+      : handle_(OpenProcess(PROCESS_TERMINATE | SYNCHRONIZE, FALSE, pid)) {}
+  ~ScopedWindowsChildProcess() { TerminateAndClose(); }
+  bool valid() const {
+    return handle_ != nullptr && handle_ != INVALID_HANDLE_VALUE;
+  }
+  HANDLE get() const { return handle_; }
+
+ private:
+  void TerminateAndClose() {
+    if (handle_ != nullptr && handle_ != INVALID_HANDLE_VALUE) {
+      TerminateProcess(handle_, 0);
+      WaitForSingleObject(handle_, 5000);
+      CloseHandle(handle_);
+      handle_ = nullptr;
+    }
+  }
+
   HANDLE handle_;
 };
 
@@ -489,6 +552,17 @@ std::string PowerShellCommand(const std::string& script) {
          EncodedPowerShell(
              "[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false); " +
              script);
+}
+
+bool WaitForWindowsPidFile(const std::filesystem::path& pid_file) {
+  const auto deadline =
+      std::chrono::steady_clock::now() + std::chrono::seconds(10);
+  while (std::chrono::steady_clock::now() < deadline) {
+    if (std::filesystem::exists(pid_file))
+      return true;
+    std::this_thread::sleep_for(std::chrono::milliseconds(25));
+  }
+  return false;
 }
 
 bool WaitForWindowsOutput(BackgroundCommandTask& task,
@@ -694,6 +768,37 @@ TEST(BackgroundCommandTaskTest, WindowsCancelTerminatesOwnedChildTree) {
 }
 
 TEST(BackgroundCommandTaskTest,
+     DetachedLauncherReturnsWhileInheritedChildWouldBlock) {
+  ScopedWindowsTestDirectory root;
+  const auto pid_file = root.path() / "child.pid";
+  const auto release_parent = root.path() / "release-parent";
+  BackgroundCommandTask task;
+  ASSERT_TRUE(task.Start(WindowsTreeCommand(pid_file, release_parent), ".", {},
+                         BackgroundCommandLifetime::kDetachedLauncher)
+                  .ok());
+  ASSERT_TRUE(WaitForWindowsPidFile(pid_file));
+  ScopedWindowsChildProcess child(ReadWindowsChildPid(pid_file));
+  ASSERT_TRUE(child.valid());
+  EXPECT_EQ(WaitForSingleObject(child.get(), 0), WAIT_TIMEOUT);
+  {
+    std::ofstream release_file(release_parent, std::ios::binary);
+    ASSERT_TRUE(release_file.is_open());
+  }
+  const auto deadline =
+      std::chrono::steady_clock::now() + std::chrono::seconds(3);
+  absl::Status status = absl::UnknownError("pending");
+  while (std::chrono::steady_clock::now() < deadline) {
+    if (task.GetSnapshot().finished) {
+      status = task.Wait();
+      break;
+    }
+    std::this_thread::sleep_for(std::chrono::milliseconds(25));
+  }
+  ASSERT_TRUE(status.ok()) << status;
+  EXPECT_EQ(WaitForSingleObject(child.get(), 5000), WAIT_TIMEOUT);
+}
+
+TEST(BackgroundCommandTaskTest,
      DetachedLauncherChildSurvivesSuccessfulShortLauncher) {
   ScopedWindowsTestDirectory root;
   const auto pid_file = root.path() / "child.pid";
@@ -702,10 +807,9 @@ TEST(BackgroundCommandTaskTest,
   ASSERT_TRUE(task.Start(WindowsTreeCommand(pid_file, release_parent), ".", {},
                          BackgroundCommandLifetime::kDetachedLauncher)
                   .ok());
-  ASSERT_TRUE(WaitForWindowsOutput(task, "yaze-win-tree-ready"));
-  ScopedWindowsTestHandle child(
-      OpenProcess(SYNCHRONIZE, FALSE, ReadWindowsChildPid(pid_file)));
-  ASSERT_NE(child.get(), nullptr);
+  ASSERT_TRUE(WaitForWindowsPidFile(pid_file));
+  ScopedWindowsChildProcess child(ReadWindowsChildPid(pid_file));
+  ASSERT_TRUE(child.valid());
   EXPECT_EQ(WaitForSingleObject(child.get(), 0), WAIT_TIMEOUT);
   {
     std::ofstream release_file(release_parent, std::ios::binary);
@@ -713,8 +817,35 @@ TEST(BackgroundCommandTaskTest,
   }
   ASSERT_TRUE(task.Wait().ok()) << task.GetSnapshot().status;
   EXPECT_EQ(WaitForSingleObject(child.get(), 5000), WAIT_TIMEOUT);
-  TerminateProcess(child.get(), 0);
-  WaitForSingleObject(child.get(), INFINITE);
+}
+
+TEST(BackgroundCommandTaskTest,
+     DetachedLauncherFailureTerminatesOwnedChildTree) {
+  ScopedWindowsTestDirectory root;
+  const auto pid_file = root.path() / "child.pid";
+  const std::string command = PowerShellCommand(
+      "$start = [Diagnostics.ProcessStartInfo]::new(); "
+      "$start.FileName = " +
+      QuotePowerShell(WindowsPathUtf8(WindowsPowerShellPath())) +
+      "; $start.Arguments = " +
+      QuotePowerShell("-NoLogo -NoProfile -NonInteractive -Command "
+                      "\"Start-Sleep -Seconds 30\"") +
+      "; $start.UseShellExecute = $false; $start.CreateNoWindow = $true; "
+      "$child = [Diagnostics.Process]::Start($start); "
+      "[IO.File]::WriteAllText(" +
+      QuotePowerShell(WindowsPathUtf8(pid_file)) +
+      ", [string]$child.Id); exit 9");
+  BackgroundCommandTask task;
+  ASSERT_TRUE(
+      task.Start(command, ".", {}, BackgroundCommandLifetime::kDetachedLauncher)
+          .ok());
+  ASSERT_TRUE(WaitForWindowsPidFile(pid_file));
+  const DWORD child_pid = ReadWindowsChildPid(pid_file);
+  const auto status = task.Wait();
+  EXPECT_EQ(status.code(), absl::StatusCode::kInternal);
+  ScopedWindowsChildProcess child(child_pid);
+  ASSERT_TRUE(child.valid());
+  EXPECT_EQ(WaitForSingleObject(child.get(), 5000), WAIT_OBJECT_0);
 }
 
 TEST(BackgroundCommandTaskTest, WindowsShellCompletionLeavesNoOwnedChild) {

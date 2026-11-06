@@ -31,6 +31,7 @@ class ToastManager;
  */
 class ProjectManagementPanel {
   friend class ProjectUiTestPeer;
+  friend class ProjectManagementPanelBufferTestPeer;
 
  public:
   ProjectManagementPanel() = default;

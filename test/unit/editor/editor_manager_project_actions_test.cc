@@ -35,6 +35,7 @@
 #include "core/project.h"
 #include "core/source_artifact_publisher.h"
 #include "editor_test_support.h"
+#include "project_management_panel_test_peer.h"
 #include "rom/rom.h"
 #include "test_utils.h"
 #include "testing.h"
@@ -48,6 +49,20 @@
 
 namespace yaze::editor {
 namespace {
+
+#ifdef _WIN32
+std::string WinCopyRomCommand(const std::filesystem::path& source,
+                              const std::filesystem::path& output) {
+  return "cmd /c copy /Y \"" + source.string() + "\" \"" + output.string() +
+         "\" >nul";
+}
+
+std::string WinCaptureProjectOutputCommand(
+    const std::filesystem::path& capture_path) {
+  return "cmd /c \"(echo %YAZE_PROJECT_OUTPUT%)>\\\"" + capture_path.string() +
+         "\\\"\"";
+}
+#endif
 
 struct ScopedImGuiContext {
   ImGuiContext* ctx = nullptr;
@@ -2394,24 +2409,70 @@ TEST(EditorManagerProjectActionsTest, RunScriptRoundTripsThroughProjectFile) {
 
   ProjectManagementPanel panel;
   panel.SetProject(&reopened);
-  EXPECT_EQ(reopened.run_script, "./run with spaces.sh");
+  EXPECT_EQ(ProjectManagementPanelBufferTestPeer::RunScriptBuffer(panel),
+            "./run with spaces.sh");
   reopened.run_script = "./updated-run.sh";
   panel.SetProject(&reopened, /*dirty=*/true);
-  EXPECT_EQ(reopened.run_script, "./updated-run.sh");
+  EXPECT_EQ(ProjectManagementPanelBufferTestPeer::RunScriptBuffer(panel),
+            "./updated-run.sh");
   EXPECT_TRUE(panel.IsProjectDirty());
   panel.SetSaveProjectCallback([&reopened]() { return reopened.Save(); });
   ASSERT_OK(panel.SaveProjectEdits());
   EXPECT_FALSE(panel.IsProjectDirty());
+  ProjectManagementPanelBufferTestPeer::ReloadProjectBuffers(panel);
+  EXPECT_EQ(ProjectManagementPanelBufferTestPeer::RunScriptBuffer(panel),
+            "./updated-run.sh");
   project::YazeProject persisted;
   ASSERT_OK(persisted.Open(project_path.string()));
   EXPECT_EQ(persisted.run_script, "./updated-run.sh");
 }
 
 TEST(EditorManagerProjectActionsTest,
+     RunScriptClearsWhenOpeningProjectWithoutField) {
+  ScopedTempDir temp(MakeTempDir("yaze_run_script_clear"));
+  const auto project_a = temp.path / "with_run.yaze";
+  const auto project_b = temp.path / "without_run.yaze";
+  project::YazeProject first;
+  first.name = "With run";
+  first.filepath = project_a.string();
+  first.run_script = "./keep-me.sh";
+  ASSERT_OK(first.Save());
+  {
+    std::ofstream out(project_b);
+    out << "[project]\nname=Without run\n\n[build]\nbuild_script=./build.sh\n";
+  }
+  project::YazeProject reused;
+  ASSERT_OK(reused.Open(project_a.string()));
+  EXPECT_EQ(reused.run_script, "./keep-me.sh");
+  ASSERT_OK(reused.Open(project_b.string()));
+  EXPECT_TRUE(reused.run_script.empty());
+}
+
+#ifdef YAZE_ENABLE_JSON_PROJECT_FORMAT
+TEST(EditorManagerProjectActionsTest,
+     RunScriptClearsWhenOpeningJsonProjectWithoutField) {
+  ScopedTempDir temp(MakeTempDir("yaze_run_script_json_clear"));
+  const auto json_a = temp.path / "with_run.yaze";
+  const auto json_b = temp.path / "without_run.yaze";
+  project::YazeProject first;
+  first.name = "Json with run";
+  first.filepath = json_a.string();
+  first.run_script = "./json-run.sh";
+  ASSERT_OK(first.SaveToJsonFormat());
+  {
+    std::ofstream out(json_b);
+    out << R"({"yaze_project":{"name":"Json without run","build_script":"./b.sh"}})";
+  }
+  project::YazeProject reused;
+  ASSERT_OK(reused.Open(json_a.string()));
+  EXPECT_EQ(reused.run_script, "./json-run.sh");
+  ASSERT_OK(reused.Open(json_b.string()));
+  EXPECT_TRUE(reused.run_script.empty());
+}
+#endif
+
+TEST(EditorManagerProjectActionsTest,
      ExternalRunLauncherReceivesExactProjectOutputPath) {
-#ifdef _WIN32
-  GTEST_SKIP() << "POSIX launcher script fixture";
-#else
   ScopedImGuiContext imgui;
   auto renderer = std::make_unique<gfx::NullRenderer>();
   auto manager = std::make_unique<EditorManager>();
@@ -2425,10 +2486,14 @@ TEST(EditorManagerProjectActionsTest,
   const auto source_rom = spaced_root / "source.sfc";
   const auto output_rom = spaced_root / "built output.sfc";
   const auto capture_path = spaced_root / "launcher-output.txt";
-  const auto build_script = spaced_root / "build.sh";
-  const auto run_script = spaced_root / "run_launcher.sh";
   WriteRomFile(source_rom, "SOURCE");
   WriteRomFile(output_rom, "STALE");
+#ifdef _WIN32
+  const std::string build_command = WinCopyRomCommand(source_rom, output_rom);
+  const std::string run_command = WinCaptureProjectOutputCommand(capture_path);
+#else
+  const auto build_script = spaced_root / "build.sh";
+  const auto run_script = spaced_root / "run_launcher.sh";
   {
     std::ofstream build(build_script);
     build << "#!/bin/sh\n";
@@ -2448,6 +2513,9 @@ TEST(EditorManagerProjectActionsTest,
                                      std::filesystem::perms::owner_write,
                                  std::filesystem::perm_options::add);
   }
+  const std::string build_command = "./build.sh";
+  const std::string run_command = "./run_launcher.sh";
+#endif
 
   auto* project = manager->GetCurrentProject();
   ASSERT_NE(project, nullptr);
@@ -2455,24 +2523,26 @@ TEST(EditorManagerProjectActionsTest,
   project->filepath = project_path.string();
   project->rom_filename = source_rom.string();
   project->build_target = output_rom.filename().string();
-  project->build_script = "./build.sh";
-  project->run_script = "./run_launcher.sh";
+  project->build_script = build_command;
+  project->run_script = run_command;
   ASSERT_OK(SaveProjectFixture(*project));
   ASSERT_OK(manager->OpenRomOrProject(project_path.string()));
   ASSERT_OK(manager->BuildCurrentProject());
   ASSERT_OK(manager->RunCurrentProject());
   ASSERT_TRUE(std::filesystem::exists(capture_path));
-  EXPECT_EQ(ReadFile(capture_path), output_rom.string());
+  std::string captured = ReadFile(capture_path);
+  while (!captured.empty() &&
+         (captured.back() == '\r' || captured.back() == '\n' ||
+          captured.back() == ' ')) {
+    captured.pop_back();
+  }
+  EXPECT_EQ(captured, output_rom.string());
   const auto run_status = ContentRegistry::Context::run_workflow_status();
   EXPECT_EQ(run_status.state, ProjectWorkflowState::kSuccess);
   EXPECT_NE(run_status.summary.find("External launcher"), std::string::npos);
-#endif
 }
 
 TEST(EditorManagerProjectActionsTest, ExternalRunRequiresSavedProjectSettings) {
-#ifdef _WIN32
-  GTEST_SKIP() << "POSIX launcher script fixture";
-#else
   ScopedImGuiContext imgui;
   auto renderer = std::make_unique<gfx::NullRenderer>();
   auto manager = std::make_unique<EditorManager>();
@@ -2483,10 +2553,15 @@ TEST(EditorManagerProjectActionsTest, ExternalRunRequiresSavedProjectSettings) {
   const auto project_path = temp.path / "project.yaze";
   const auto source_rom = temp.path / "source.sfc";
   const auto output_rom = temp.path / "output.sfc";
-  const auto build_script = temp.path / "build.sh";
-  const auto run_script = temp.path / "run.sh";
   WriteRomFile(source_rom);
   WriteRomFile(output_rom, "STALE");
+#ifdef _WIN32
+  const std::string build_command = WinCopyRomCommand(source_rom, output_rom);
+  const std::string run_command = "cmd /c exit 0";
+  const std::string alternate_run = "cmd /c exit 0";
+#else
+  const auto build_script = temp.path / "build.sh";
+  const auto run_script = temp.path / "run.sh";
   {
     std::ofstream build(build_script);
     build << "#!/bin/sh\n";
@@ -2504,22 +2579,25 @@ TEST(EditorManagerProjectActionsTest, ExternalRunRequiresSavedProjectSettings) {
                                      std::filesystem::perms::owner_write,
                                  std::filesystem::perm_options::add);
   }
+  const std::string build_command = "./build.sh";
+  const std::string run_command = "./run.sh";
+  const std::string alternate_run = "./different-run.sh";
+#endif
 
   auto* project = manager->GetCurrentProject();
   project->filepath = project_path.string();
   project->rom_filename = source_rom.string();
   project->build_target = output_rom.filename().string();
-  project->build_script = "./build.sh";
-  project->run_script = "./run.sh";
+  project->build_script = build_command;
+  project->run_script = run_command;
   ASSERT_OK(SaveProjectFixture(*project));
   ASSERT_OK(manager->OpenRomOrProject(project_path.string()));
   ASSERT_OK(manager->BuildCurrentProject());
-  project->run_script = "./different-run.sh";
+  project->run_script = alternate_run;
   manager->MarkCurrentProjectDirty();
   const auto status = manager->RunCurrentProject();
   EXPECT_FALSE(status.ok());
   EXPECT_NE(status.message().find("Save project"), std::string::npos);
-#endif
 }
 
 TEST(EditorManagerProjectActionsTest,

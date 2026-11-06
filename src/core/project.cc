@@ -2035,6 +2035,7 @@ absl::Status YazeProject::ParseFromString(const std::string& content) {
         "Project file contains unsupported lone carriage returns");
   }
 
+  run_script.clear();
   rom_metadata.write_policy = RomWritePolicy::kWarn;
   feature_flags.overworld.kSaveOverworldSprites = true;
   feature_flags.overworld.kEnableSpecialWorldExpansion = false;
@@ -3890,6 +3891,7 @@ absl::Status YazeProject::LoadFromJsonFormat(const std::string& project_path) {
     sprite_catalog_file.clear();
     sprite_source_root.clear();
     sprite_assets.clear();
+    run_script.clear();
 
     // Parse project metadata
     if (j.contains("yaze_project")) {
