@@ -32,7 +32,7 @@ class OverworldTerrainIoTest : public testing::Test {
 
   static void PutPointer(std::vector<uint8_t>* data, uint32_t slot,
                          uint32_t pc) {
-    const uint32_t address = PcToSnes(pc);
+    const uint32_t address = PcToSnes(pc) | 0x800000;
     for (int i = 0; i < 3; ++i)
       (*data)[slot + i] = static_cast<uint8_t>(address >> (i * 8));
   }
@@ -149,6 +149,8 @@ TEST_F(OverworldTerrainIoTest, FastRomLastBanksPreserveAndPlaceChangedPlanes) {
     PutPointer(&bytes, storage.high_table_pc + map * 3, 0x3F0000);
     PutPointer(&bytes, storage.low_table_pc + map * 3, 0x3F8000);
   }
+  ASSERT_EQ(bytes[storage.high_table_pc + 2], 0xFE);
+  ASSERT_EQ(bytes[storage.low_table_pc + 2], 0xFF);
   ASSERT_TRUE(rom.LoadFromData(bytes).ok());
   auto no_op = PlanOverworldTerrainSave(rom, storage, pages);
   ASSERT_TRUE(no_op.ok()) << no_op.status();
