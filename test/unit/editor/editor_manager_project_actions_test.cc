@@ -1946,6 +1946,19 @@ void PublishProjectFixtureNativeSave(const project::YazeProject& project,
     ASSERT_TRUE(hash.ok()) << hash.status();
     request.artifacts.push_back({role, path, *hash});
   }
+  for (const auto& [role, reference] :
+       std::vector<std::pair<std::string, std::string>>{
+           {"sidecar", project.lyra_terrain_file},
+           {"producer_identity", project.native_save_producer_file},
+           {"transfer_proof", project.native_save_transfer_proof_file}}) {
+    if (reference.empty()) {
+      continue;
+    }
+    const auto path = project.GetAbsolutePath(reference);
+    const auto hash = core::ComputeSourceArtifactFileSha256(path);
+    ASSERT_TRUE(hash.ok()) << hash.status();
+    request.artifacts.push_back({role, path, *hash});
+  }
   const auto receipt = core::PublishNativeSaveReceipt(request);
   ASSERT_TRUE(receipt.ok()) << receipt.status();
 }
@@ -2042,6 +2055,14 @@ TEST(EditorManagerProjectActionsTest,
     ASSERT_OK(saved_project.Save());
     const auto producer = bundle / "selected-editor.bin";
     ExpandedRunFixture::Write(producer, "selected generic producer fixture");
+    // These capability documents are bound inputs, not expanded admission.
+    for (const auto& reference :
+         {saved_project.lyra_terrain_file,
+          saved_project.native_save_producer_file,
+          saved_project.native_save_transfer_proof_file}) {
+      ExpandedRunFixture::Write(saved_project.GetAbsolutePath(reference),
+                                "{}\n");
+    }
     PublishProjectFixtureNativeSave(saved_project, source, producer);
     ASSERT_FALSE(::testing::Test::HasFatalFailure());
     ASSERT_OK(manager->OpenRomOrProject(descriptor.string()));
