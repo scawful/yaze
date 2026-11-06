@@ -160,7 +160,7 @@ void Overworld::set_game_state(int state) {
 absl::Status Overworld::Load(Rom* rom) {
   gfx::ScopedTimer timer("Overworld::Load");
 
-  if (rom->size() == 0) {
+  if (!rom || rom->size() == 0) {
     return absl::InvalidArgumentError("ROM file not loaded");
   }
   if (const auto* manifest = GetResourceLabels().hack_manifest()) {
@@ -175,6 +175,18 @@ absl::Status Overworld::Load(Rom* rom) {
     return absl::FailedPreconditionError(
         "Lyra descriptor canvas loading is not yet supported");
   }
+  auto next_options = layout_options_bound_
+                          ? layout_inspect_options_
+                          : OverworldLayoutOptions::WithProjectRomSettings();
+  if (game_data_)
+    next_options.rom_version = game_data_->version;
+  const auto next_layout = InspectOverworldLayout(*rom, next_options);
+  for (const auto domain :
+       {OverworldLayoutDomain::kTerrainPointers, OverworldLayoutDomain::kTile16,
+        OverworldLayoutDomain::kTile32}) {
+    RETURN_IF_ERROR(next_layout.CheckOperation(
+        domain, OverworldLayoutOperation::kInspect, -1, 0));
+  }
   // Reload replaces ROM-derived state. In particular, CreateTile32Tilemap()
   // may have reordered the in-memory definitions during an unchanged save;
   // appending the ROM definitions would retain that stale index prefix.
@@ -188,6 +200,8 @@ absl::Status Overworld::Load(Rom* rom) {
   expanded_tile32_ = false;
   descriptor_layout_ = {};
   rom_ = rom;
+  layout_inspect_options_ = std::move(next_options);
+  layout_options_bound_ = true;
   ReResolveLayoutFromRom();
   RETURN_IF_ERROR(resolved_layout_.CheckOperation(
       OverworldLayoutDomain::kTerrainPointers,

@@ -19,12 +19,14 @@ namespace yaze::zelda3 {
 
 struct RomPcOffset {
   int value = -1;
-  explicit RomPcOffset(int pc = -1) : value(pc) {}
+  RomPcOffset() = default;
+  explicit RomPcOffset(int pc) : value(pc) {}
 };
 
 struct SnesLoRomAddress {
   uint32_t value = 0;
-  explicit SnesLoRomAddress(uint32_t snes = 0) : value(snes) {}
+  SnesLoRomAddress() = default;
+  explicit SnesLoRomAddress(uint32_t snes) : value(snes) {}
 };
 
 enum class OverworldLayoutDomain {
