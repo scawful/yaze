@@ -1458,8 +1458,9 @@ TEST_F(NativeSpecialOverworldEditorTest,
     ASSERT_TRUE(added.ok()) << added.status();
     const auto old_id = (*added)->id();
     const size_t row = *added - world.mutable_sprites(1)->data();
+    const auto& model_sprites = *world.mutable_sprites(1);
     const size_t owner_row =
-        std::count_if(world.sprites(1).begin(), world.sprites(1).begin() + row,
+        std::count_if(model_sprites.begin(), model_sprites.begin() + row,
                       [owner](const auto& sprite) {
                         return sprite.map_id() == owner && !sprite.deleted();
                       });
