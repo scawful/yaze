@@ -14,6 +14,7 @@
 #include "app/gfx/types/snes_palette.h"
 #include "gtest/gtest.h"
 #include "rom/rom.h"
+#include "test_utils/overworld_model_test_peer.h"
 #include "zelda3/common.h"
 #include "zelda3/overworld/overworld.h"
 #include "zelda3/overworld/overworld_map.h"
@@ -26,8 +27,8 @@ namespace {
 //
 // The coordinator operates entirely through its MapRefreshContext struct.
 // We construct a lightweight context with:
-//   - A real `maps_bmp` array (160 default Bitmaps).
-//   - A dummy Rom + Overworld (no ROM loaded, maps vector empty).
+//   - A real expanded bitmap array and 160 synthetic map records.
+//   - A dummy Rom + Overworld with fixture graphics instead of a ROM load.
 //   - Scalar state backing for current_world, current_map, etc.
 //
 // Methods that need a fully loaded Overworld (e.g. RefreshChildMap) are
@@ -39,6 +40,8 @@ class MapRefreshCoordinatorTest : public ::testing::Test {
  protected:
   void SetUp() override {
     overworld_ = std::make_unique<zelda3::Overworld>(&rom_);
+    zelda3::OverworldModelTestPeer::InitializeMapSlots(
+        *overworld_, zelda3::kNumOverworldMaps);
 
     ctx_.rom = &rom_;
     ctx_.overworld = overworld_.get();

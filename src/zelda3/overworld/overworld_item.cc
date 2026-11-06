@@ -79,15 +79,18 @@ absl::StatusOr<std::vector<OverworldItem>> LoadItems(
                : rom->size();
     while (true) {
       if (addr > limit || limit - addr < 2)
-        return absl::FailedPreconditionError(
-            "Item list has no bounded terminator");
+        return absl::Status(native ? absl::StatusCode::kFailedPrecondition
+                                   : absl::StatusCode::kOutOfRange,
+                            "Item list has no bounded terminator");
       ASSIGN_OR_RETURN(uint8_t b1, rom->ReadByte(addr));
       ASSIGN_OR_RETURN(uint8_t b2, rom->ReadByte(addr + 1));
       if (b1 == 0xFF && b2 == 0xFF) {
         break;
       }
       if (limit - addr < 3)
-        return absl::FailedPreconditionError("Item record is truncated");
+        return absl::Status(native ? absl::StatusCode::kFailedPrecondition
+                                   : absl::StatusCode::kOutOfRange,
+                            "Item record is truncated");
       ASSIGN_OR_RETURN(uint8_t b3, rom->ReadByte(addr + 2));
 
       int p = (((b2 & 0x1F) << 8) + b1) >> 1;

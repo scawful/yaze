@@ -7,6 +7,7 @@
 #include "gtest/gtest.h"
 #include "rom/rom.h"
 #include "rom/snes.h"
+#include "test_utils/overworld_model_test_peer.h"
 #include "zelda3/overworld/overworld.h"
 #include "zelda3/overworld/overworld_allocation.h"
 #include "zelda3/overworld/overworld_layout.h"
@@ -338,6 +339,7 @@ TEST(OverworldMap32StorageTest, ExpandedSaveKeepsOperandsThatAlreadyMatch) {
   Rom rom;
   InitOverworldTestRom(rom, 0x03);
   Overworld overworld(&rom);
+  OverworldModelTestPeer::InitializeMapSlots(overworld, kNumOverworldMaps);
   PopulateUniqueTile32Maps(overworld.mutable_map_tiles(), 64);
   ASSERT_TRUE(overworld.CreateTile32Tilemap().ok());
 
@@ -358,6 +360,7 @@ TEST(OverworldMap32StorageTest, ExpandedOverflowFailsBeforeAnyRomWrite) {
   Rom rom;
   InitOverworldTestRom(rom, 0x03);
   Overworld overworld(&rom);
+  OverworldModelTestPeer::InitializeMapSlots(overworld, kNumOverworldMaps);
   PopulateUniqueTile32Maps(overworld.mutable_map_tiles());
   const auto before = rom.vector();
 
@@ -380,6 +383,7 @@ TEST(OverworldMap32StorageTest, JapaneseLayoutUsesAdjacentTableCapacity) {
   GameData game_data(&rom);
   game_data.version = zelda3_version::JP;
   Overworld overworld(&rom, &game_data);
+  OverworldModelTestPeer::InitializeMapSlots(overworld, kNumOverworldMaps);
 
   // 8,832 nonzero definitions plus the shared zero definition pad to 8,836.
   // This fits the historical US limit (8,864) but exceeds the JP quadrant
