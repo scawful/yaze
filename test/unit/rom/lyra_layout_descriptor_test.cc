@@ -1421,7 +1421,8 @@ TEST_F(NativeSpecialOverworldEditorTest,
     auto& world = editor->overworld();
     auto* document = manager->GetCurrentRom();
     editor->SetPreviewStoryState(1);
-    const int owner = world.overworld_map(capacity - 1)->parent();
+    const int owner =
+        capacity == 192 ? world.overworld_map(capacity - 1)->parent() : 0;
     const ImVec2 position((owner % 8) * 512 + 16,
                           ((owner % 64) / 8) * 512 + 16);
     const auto original_count = world.sprites(1).size();
@@ -1430,19 +1431,53 @@ TEST_F(NativeSpecialOverworldEditorTest,
       EXPECT_FALSE(editor::InsertSprite(&world, position, owner, 1, 0x52).ok());
       EXPECT_EQ(world.sprites(1).size(), original_count);
     }
-    const auto added = editor::InsertSprite(&world, position, owner, 1, 0x52);
+    if (capacity == 160) {
+      ASSERT_TRUE(editor::InsertSprite(&world, position, owner, 1, 0x52).ok());
+      const auto overflow = manager->SaveRomAs(target.string());
+      EXPECT_EQ(overflow.code(), absl::StatusCode::kResourceExhausted)
+          << overflow;
+      EXPECT_EQ(document->vector(), fixture.bytes);
+      EXPECT_FALSE(std::filesystem::exists(target));
+      world.mutable_sprites(1)->pop_back();
+    }
+    auto existing = std::find_if(
+        world.mutable_sprites(1)->begin(), world.mutable_sprites(1)->end(),
+        [owner](const auto& sprite) { return sprite.map_id() == owner; });
+    if (capacity == 160)
+      ASSERT_NE(existing, world.mutable_sprites(1)->end());
+    // The real bank09 fixture is full (2609/2609 bytes); edit its existing
+    // unique map0 stream. Added maps use the separately declared tail pool.
+    const auto added =
+        capacity == 192 ? editor::InsertSprite(&world, position, owner, 1, 0x52)
+                        : absl::StatusOr<zelda3::Sprite*>(&*existing);
     ASSERT_TRUE(added.ok()) << added.status();
+    const auto old_id = (*added)->id();
+    const size_t row = *added - world.mutable_sprites(1)->data();
+    const size_t owner_row =
+        std::count_if(world.sprites(1).begin(), world.sprites(1).begin() + row,
+                      [owner](const auto& sprite) {
+                        return sprite.map_id() == owner && !sprite.deleted();
+                      });
     auto draft = **added;
+    if (capacity == 192) {
+      auto outside = draft;
+      outside.set_x((owner % 8) * 512 + 512);
+      EXPECT_FALSE(editor->ValidateSpriteEdit(*added, outside).ok());
+      const int old_x = (*added)->x();
+      (*added)->set_x(outside.x());
+      EXPECT_FALSE(world.PrepareNativeSpriteSave().ok());
+      (*added)->set_x(old_x);
+    }
     draft.set_id(0x53);
     draft.set_x(draft.x() + 16);
     {
       ScopedRomReadOnly read_only(*document);
       EXPECT_FALSE(editor->ApplySpriteEdit(*added, draft).ok());
-      EXPECT_EQ((*added)->id(), 0x52);
+      EXPECT_EQ((*added)->id(), old_id);
     }
     ASSERT_TRUE(editor->ApplySpriteEdit(*added, draft).ok());
     ASSERT_TRUE(editor->Undo().ok());
-    EXPECT_EQ((*added)->id(), 0x52);
+    EXPECT_EQ((*added)->id(), old_id);
     ASSERT_TRUE(editor->Redo().ok());
     EXPECT_EQ((*added)->id(), 0x53);
     EXPECT_EQ(document->vector(), fixture.bytes);
@@ -1459,16 +1494,18 @@ TEST_F(NativeSpecialOverworldEditorTest,
     }
     EXPECT_EQ(document->vector(), fixture.bytes);
     EXPECT_FALSE(std::filesystem::exists(target));
-    ASSERT_TRUE(manager->SaveRomAs(target.string()).ok());
+    const auto saved_status = manager->SaveRomAs(target.string());
+    ASSERT_TRUE(saved_status.ok()) << saved_status;
     const auto saved = ReadBytes(target);
     ASSERT_NE(saved, fixture.bytes);
     ASSERT_TRUE(manager->SaveRom().ok());
     EXPECT_EQ(ReadBytes(target), saved);
     // Disabling a domain leaves its edits pending for a later enabled Save.
-    auto later = world.mutable_sprites(1)->back();
+    auto later = world.mutable_sprites(1)->at(row);
     later.set_id(0x54);
     ASSERT_TRUE(
-        editor->ApplySpriteEdit(&world.mutable_sprites(1)->back(), later).ok());
+        editor->ApplySpriteEdit(&world.mutable_sprites(1)->at(row), later)
+            .ok());
     core::FeatureFlags::get().overworld.kSaveOverworldSprites = false;
     ASSERT_TRUE(manager->SaveRom().ok());
     EXPECT_EQ(ReadBytes(target), saved);
@@ -1485,7 +1522,7 @@ TEST_F(NativeSpecialOverworldEditorTest,
         zelda3::ReadOverworldSpriteList(reopened, layout, 1, owner);
     ASSERT_TRUE(bytes.ok()) << bytes.status();
     auto final_expected = expected->value;
-    final_expected[final_expected.size() - 2] = 0x54;
+    final_expected[owner_row * 3 + 2] = 0x54;
     EXPECT_EQ(*bytes, final_expected);
     zelda3::Overworld fresh(&reopened);
     ASSERT_TRUE(fresh.Load(&reopened).ok());
@@ -1638,6 +1675,24 @@ TEST_F(NativeSpecialOverworldEditorTest, NormalSaveUndoFailureAndDiskReopen) {
             *editor, {capacity - 1, editor::OverworldPropertyField::kMessageId,
                       0, message})
             .ok());
+    editor->SetPreviewStoryState(1);
+    if (capacity == 192) {
+      const int actor_map = world.overworld_map(0xBF)->parent();
+      const auto actor = editor::InsertSprite(
+          &world,
+          ImVec2((actor_map % 8) * 512 + 16, ((actor_map % 64) / 8) * 512 + 16),
+          actor_map, 1, 0x52);
+      ASSERT_TRUE(actor.ok()) << actor.status();
+    } else {
+      auto& sprites = *world.mutable_sprites(1);
+      const auto actor =
+          std::find_if(sprites.begin(), sprites.end(),
+                       [](const auto& value) { return value.map_id() == 0; });
+      ASSERT_NE(actor, sprites.end());
+      auto draft = *actor;
+      draft.set_id(draft.id() ^ 1);
+      ASSERT_TRUE(editor->ApplySpriteEdit(&*actor, draft).ok());
+    }
     const auto expected_tile16 = world.tiles16();
     const std::array<zelda3::OverworldBlockset, 3> expected = {
         world.GetMapTiles(0), world.GetMapTiles(1), world.GetMapTiles(2)};
@@ -1672,7 +1727,7 @@ TEST_F(NativeSpecialOverworldEditorTest, NormalSaveUndoFailureAndDiskReopen) {
         return true;
       for (size_t i = 0; i < fixture.rows.entries.size(); ++i) {
         const auto& e = fixture.rows.entries[i];
-        if (e.id == 19 || e.id == 20 || e.id == 21 ||
+        if ((e.id >= 16 && e.id <= 21) || e.id == 100 ||
             (e.id >= 210 && e.id <= 213) || (e.id >= 400 && e.id <= 404)) {
           if (pc >= e.pc_address && pc < e.pc_address + e.count * e.stride)
             return true;
@@ -1680,6 +1735,8 @@ TEST_F(NativeSpecialOverworldEditorTest, NormalSaveUndoFailureAndDiskReopen) {
             return true;
         }
       }
+      if ((pc >= 0x4C881 && pc < 0x4D62E) || (pc >= 0x141438 && pc < 0x1417F8))
+        return true;
       if (property_map < 160 && pc >= 0x1417F8 + property_map * 2 &&
           pc < 0x1417F8 + property_map * 2 + 2)
         return true;

@@ -111,8 +111,8 @@ const char* GetEntityTypeLabel(zelda3::GameEntity::EntityType type) {
 
 }  // namespace
 
-absl::Status OverworldEditor::ApplySpriteEdit(zelda3::Sprite* target,
-                                              const zelda3::Sprite& draft) {
+absl::Status OverworldEditor::ValidateSpriteEdit(zelda3::Sprite* target,
+                                                 const zelda3::Sprite& draft) {
   if (!target || !rom_)
     return absl::FailedPreconditionError("Select a current sprite");
   auto& records = *overworld_.mutable_sprites(game_state_);
@@ -139,6 +139,14 @@ absl::Status OverworldEditor::ApplySpriteEdit(zelda3::Sprite* target,
       ((position.ny() & 0x3F) | draft.overworld_y_flags()) == 0xFF)
     return absl::InvalidArgumentError(
         "Sprite position is outside its parent area");
+  return absl::OkStatus();
+}
+
+absl::Status OverworldEditor::ApplySpriteEdit(zelda3::Sprite* target,
+                                              const zelda3::Sprite& draft) {
+  RETURN_IF_ERROR(ValidateSpriteEdit(target, draft));
+  auto& records = *overworld_.mutable_sprites(game_state_);
+  const auto row = FindRecordRow(records, target);
   return CommitRecordEdit(
       records, *row, draft, undo_manager_,
       [this](zelda3::Sprite* value) {

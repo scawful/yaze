@@ -36,6 +36,21 @@ absl::StatusOr<OverworldSpriteEdits> Overworld::PrepareSpriteEdits() const {
             "Overworld sprite must be on a 16-pixel grid within its parent "
             "area");
       }
+      if (descriptor_layout_.revision == 3) {
+        const auto& area = overworld_maps_[map];
+        const auto size = area.area_size();
+        const int width =
+            (size == AreaSizeEnum::LargeArea || size == AreaSizeEnum::WideArea)
+                ? 1024
+                : 512;
+        const int height =
+            (size == AreaSizeEnum::LargeArea || size == AreaSizeEnum::TallArea)
+                ? 1024
+                : 512;
+        if (area.parent() != map || x >= width || y >= height)
+          return absl::InvalidArgumentError(
+              "Native sprite is outside its owning area");
+      }
       auto& bytes = *edits[state][map];
       bytes.push_back(static_cast<uint8_t>(y / 16) |
                       sprite.overworld_y_flags());

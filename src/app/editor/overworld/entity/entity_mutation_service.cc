@@ -140,7 +140,8 @@ EntityMutationService::MutationResult EntityMutationService::DeleteSprite(
       result.status = overworld_.rom()->CheckLayoutSaveable();
     if (!result.status.ok())
       return result;
-    sprites.erase(it);
+    // Preserve row identity for property and drag Undo actions.
+    it->set_deleted(true);
   } else {
     result.status =
         absl::NotFoundError("Sprite not found in current game state");
