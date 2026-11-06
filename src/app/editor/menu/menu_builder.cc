@@ -259,7 +259,8 @@ void MenuBuilder::DrawMenuItem(const MenuItem& item) {
 
       const bool activated =
           ImGui::MenuItem(label.c_str(), shortcut_str, checked, enabled);
-      if (item.label == "Save ROM" || item.label == "Quit") {
+      if (item.label == "Save ROM" || item.label == "Quit" ||
+          item.label == "Project Management...") {
         gui::AutoRegisterLastItem("menuitem", item.label,
                                   "Stable file-menu harness action");
       }

@@ -5,6 +5,7 @@
 
 #include "absl/strings/str_format.h"
 #include "app/editor/shell/feedback/toast_manager.h"
+#include "app/gui/automation/widget_auto_register.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/style_guard.h"
 #include "app/gui/core/theme_manager.h"
@@ -489,12 +490,14 @@ void ProjectManagementPanel::DrawQuickActions() {
   if (ImGui::Button(ICON_MD_SAVE " Save Project", ImVec2(button_width, 0))) {
     (void)SaveProjectEdits();
   }
+  gui::AutoRegisterLastItem("button", "Save Project");
 
   if (ImGui::Button(ICON_MD_BUILD " Build Project", ImVec2(button_width, 0))) {
     if (build_project_callback_) {
       build_project_callback_();
     }
   }
+  gui::AutoRegisterLastItem("button", "Build Project");
 
   if (build_status_.state == ProjectWorkflowState::kRunning &&
       cancel_build_callback_) {
@@ -510,6 +513,7 @@ void ProjectManagementPanel::DrawQuickActions() {
       run_project_callback_();
     }
   }
+  gui::AutoRegisterLastItem("button", "Run Project Output");
 
   if (build_status_.visible || run_status_.visible) {
     ImGui::Spacing();
