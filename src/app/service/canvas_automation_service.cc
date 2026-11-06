@@ -17,7 +17,6 @@ namespace yaze {
 
 namespace {
 
-// Helper to convert absl::Status to grpc::Status
 grpc::Status ConvertStatus(const absl::Status& status) {
   if (status.ok()) {
     return grpc::Status::OK;
@@ -62,6 +61,14 @@ grpc::Status ConvertStatus(const absl::Status& status) {
       code, std::string(status.message().data(), status.message().size()));
 }
 
+// Marks the response failed and returns the matching NotFound status.
+template <typename Response>
+absl::Status CanvasNotFound(const std::string& canvas_id, Response* response) {
+  response->set_success(false);
+  response->set_error("Canvas not found: " + canvas_id);
+  return absl::NotFoundError(response->error());
+}
+
 }  // namespace
 
 void CanvasAutomationServiceImpl::RegisterCanvas(const std::string& canvas_id,
@@ -100,9 +107,7 @@ absl::Status CanvasAutomationServiceImpl::SetTile(
     const proto::SetTileRequest* request, proto::SetTileResponse* response) {
   auto* canvas = GetCanvas(request->canvas_id());
   if (!canvas) {
-    response->set_success(false);
-    response->set_error("Canvas not found: " + request->canvas_id());
-    return absl::NotFoundError(response->error());
+    return CanvasNotFound(request->canvas_id(), response);
   }
 
   auto* api = canvas->GetAutomationAPI();
@@ -121,9 +126,7 @@ absl::Status CanvasAutomationServiceImpl::GetTile(
     const proto::GetTileRequest* request, proto::GetTileResponse* response) {
   auto* canvas = GetCanvas(request->canvas_id());
   if (!canvas) {
-    response->set_success(false);
-    response->set_error("Canvas not found: " + request->canvas_id());
-    return absl::NotFoundError(response->error());
+    return CanvasNotFound(request->canvas_id(), response);
   }
 
   auto* api = canvas->GetAutomationAPI();
@@ -144,9 +147,7 @@ absl::Status CanvasAutomationServiceImpl::SetTiles(
     const proto::SetTilesRequest* request, proto::SetTilesResponse* response) {
   auto* canvas = GetCanvas(request->canvas_id());
   if (!canvas) {
-    response->set_success(false);
-    response->set_error("Canvas not found: " + request->canvas_id());
-    return absl::NotFoundError(response->error());
+    return CanvasNotFound(request->canvas_id(), response);
   }
 
   auto* api = canvas->GetAutomationAPI();
@@ -172,9 +173,7 @@ absl::Status CanvasAutomationServiceImpl::SelectTile(
     proto::SelectTileResponse* response) {
   auto* canvas = GetCanvas(request->canvas_id());
   if (!canvas) {
-    response->set_success(false);
-    response->set_error("Canvas not found: " + request->canvas_id());
-    return absl::NotFoundError(response->error());
+    return CanvasNotFound(request->canvas_id(), response);
   }
 
   auto* api = canvas->GetAutomationAPI();
@@ -189,9 +188,7 @@ absl::Status CanvasAutomationServiceImpl::SelectTileRect(
     proto::SelectTileRectResponse* response) {
   auto* canvas = GetCanvas(request->canvas_id());
   if (!canvas) {
-    response->set_success(false);
-    response->set_error("Canvas not found: " + request->canvas_id());
-    return absl::NotFoundError(response->error());
+    return CanvasNotFound(request->canvas_id(), response);
   }
 
   auto* api = canvas->GetAutomationAPI();
@@ -260,9 +257,7 @@ absl::Status CanvasAutomationServiceImpl::ScrollToTile(
     proto::ScrollToTileResponse* response) {
   auto* canvas = GetCanvas(request->canvas_id());
   if (!canvas) {
-    response->set_success(false);
-    response->set_error("Canvas not found: " + request->canvas_id());
-    return absl::NotFoundError(response->error());
+    return CanvasNotFound(request->canvas_id(), response);
   }
 
   auto* api = canvas->GetAutomationAPI();
@@ -276,9 +271,7 @@ absl::Status CanvasAutomationServiceImpl::CenterOn(
     const proto::CenterOnRequest* request, proto::CenterOnResponse* response) {
   auto* canvas = GetCanvas(request->canvas_id());
   if (!canvas) {
-    response->set_success(false);
-    response->set_error("Canvas not found: " + request->canvas_id());
-    return absl::NotFoundError(response->error());
+    return CanvasNotFound(request->canvas_id(), response);
   }
 
   auto* api = canvas->GetAutomationAPI();
@@ -292,9 +285,7 @@ absl::Status CanvasAutomationServiceImpl::SetZoom(
     const proto::SetZoomRequest* request, proto::SetZoomResponse* response) {
   auto* canvas = GetCanvas(request->canvas_id());
   if (!canvas) {
-    response->set_success(false);
-    response->set_error("Canvas not found: " + request->canvas_id());
-    return absl::NotFoundError(response->error());
+    return CanvasNotFound(request->canvas_id(), response);
   }
 
   auto* api = canvas->GetAutomationAPI();
@@ -386,9 +377,7 @@ absl::Status CanvasAutomationServiceImpl::ScreenToTile(
     proto::ScreenToTileResponse* response) {
   auto* canvas = GetCanvas(request->canvas_id());
   if (!canvas) {
-    response->set_success(false);
-    response->set_error("Canvas not found: " + request->canvas_id());
-    return absl::NotFoundError(response->error());
+    return CanvasNotFound(request->canvas_id(), response);
   }
 
   // Create a CoordinateMapper and configure it from canvas state
