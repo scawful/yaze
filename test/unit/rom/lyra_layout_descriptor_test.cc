@@ -1057,7 +1057,7 @@ TEST(LyraLayoutDescriptorTest, NativeTerrainPlannerUsesCompleteDirectory) {
     const auto layout = document.InspectLyraLayout();
     for (int map = 0; map < capacity; ++map) {
       const auto decoded =
-          rom::LyraMapTile32(document.data(), document.size(), layout, map);
+          rom::LyraMapTile32(layout, document.data(), document.size(), map);
       ASSERT_TRUE(decoded.has_value());
       pages[map] = *decoded;
     }
@@ -1082,8 +1082,8 @@ TEST(LyraLayoutDescriptorTest, NativeTerrainPlannerUsesCompleteDirectory) {
     const auto saved_layout = document.InspectLyraLayout();
     ASSERT_EQ(saved_layout.presence, rom::LyraLayoutPresence::kValid);
     for (int map = 0; map < capacity; ++map) {
-      const auto decoded = rom::LyraMapTile32(document.data(), document.size(),
-                                              saved_layout, map);
+      const auto decoded = rom::LyraMapTile32(saved_layout, document.data(),
+                                              document.size(), map);
       ASSERT_TRUE(decoded.has_value());
       EXPECT_EQ(*decoded, pages[map]) << map;
     }
