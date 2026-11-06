@@ -2441,10 +2441,12 @@ TEST(EditorManagerProjectActionsTest, RunScriptRoundTripsThroughProjectFile) {
   EXPECT_EQ(persisted.run_script, "./updated-run.sh");
 }
 
-TEST(EditorManagerProjectActionsTest, DefaultsClearPreviousRunLauncher) {
+TEST(EditorManagerProjectActionsTest,
+     RecreatingProjectClearsPreviousRunLauncher) {
+  ScopedTempDir temp(MakeTempDir("yaze_run_script_recreate"));
   project::YazeProject reused;
   reused.run_script = "./previous-project-launcher.sh";
-  reused.InitializeDefaults();
+  ASSERT_OK(reused.Create("Fresh", temp.path.string()));
   EXPECT_TRUE(reused.run_script.empty());
 }
 
