@@ -115,6 +115,14 @@ std::string CopyCommand(const std::filesystem::path& source,
 #endif
 }
 
+absl::Status SaveProjectFixture(project::YazeProject& project) {
+  if (project.metadata.project_id.empty()) {
+    project.metadata.project_id =
+        "fixture_" + std::to_string(std::hash<std::string>{}(project.filepath));
+  }
+  return project.Save();
+}
+
 std::string ReadFile(const std::filesystem::path& path) {
   std::ifstream in(path);
   EXPECT_TRUE(in.is_open());
@@ -1000,7 +1008,7 @@ TEST(EditorManagerProjectActionsTest,
   project->rom_filename = (project_path.parent_path() / "source.sfc").string();
   project->rom_metadata.write_policy = project::RomWritePolicy::kReadOnly;
   project->build_script = "must-not-execute";
-  ASSERT_OK(project->Save());
+  ASSERT_OK(SaveProjectFixture(*project));
   ASSERT_OK(manager->OpenRomOrProject(project_path.string()));
   EXPECT_EQ(manager->BuildCurrentProject().code(),
             absl::StatusCode::kPermissionDenied);
@@ -1045,7 +1053,7 @@ TEST(EditorManagerProjectActionsTest,
   project->filepath = project_path.string();
   project->rom_filename = (project_path.parent_path() / "source.sfc").string();
   project->build_script = "./build_ok.sh";
-  ASSERT_OK(project->Save());
+  ASSERT_OK(SaveProjectFixture(*project));
   ASSERT_OK(manager->OpenRomOrProject(project_path.string()));
 
   ASSERT_OK(manager->BuildCurrentProject());
@@ -1163,7 +1171,7 @@ TEST(EditorManagerProjectActionsTest,
   project->rom_filename = (project_path.parent_path() / "source.sfc").string();
   project->build_script.clear();
   project->hack_manifest_file = "hack_manifest.json";
-  ASSERT_OK(project->Save());
+  ASSERT_OK(SaveProjectFixture(*project));
   ASSERT_OK(manager->OpenRomOrProject(project_path.string()));
 
   ASSERT_OK(manager->BuildCurrentProject());
@@ -1205,7 +1213,7 @@ TEST(EditorManagerProjectActionsTest,
   project->filepath = project_path.string();
   project->rom_filename = (project_path.parent_path() / "source.sfc").string();
   project->build_script = "./build_ok.sh";
-  ASSERT_OK(project->Save());
+  ASSERT_OK(SaveProjectFixture(*project));
   ASSERT_OK(manager->OpenRomOrProject(project_path.string()));
   ASSERT_NE(manager->GetCurrentRom(), nullptr);
   ASSERT_OK(manager->GetCurrentRom()->WriteByte(0x1234, 0xA5));
@@ -1255,7 +1263,7 @@ TEST(EditorManagerProjectActionsTest,
   project->filepath = project_path.string();
   project->rom_filename = (project_path.parent_path() / "source.sfc").string();
   project->build_script = "./build_ok.sh";
-  ASSERT_OK(project->Save());
+  ASSERT_OK(SaveProjectFixture(*project));
   ASSERT_OK(manager->OpenRomOrProject(project_path.string()));
   ASSERT_OK(manager->BuildCurrentProject());
   ASSERT_TRUE(std::filesystem::exists(marker_path));
@@ -1328,7 +1336,7 @@ TEST(EditorManagerProjectActionsTest,
   project->rom_filename = (project_path.parent_path() / "source.sfc").string();
   project->build_script.clear();
   project->hack_manifest_file = "hack_manifest.json";
-  ASSERT_OK(project->Save());
+  ASSERT_OK(SaveProjectFixture(*project));
   ASSERT_OK(manager->OpenRomOrProject(project_path.string()));
 
   manager->QueueBuildCurrentProject();
@@ -1386,7 +1394,7 @@ TEST(EditorManagerProjectActionsTest,
   project->rom_filename = (project_path.parent_path() / "source.sfc").string();
   project->build_script.clear();
   project->hack_manifest_file = "hack_manifest.json";
-  ASSERT_OK(project->Save());
+  ASSERT_OK(SaveProjectFixture(*project));
   ASSERT_OK(manager->OpenRomOrProject(project_path.string()));
 
   const auto status = manager->BuildCurrentProject();
@@ -1520,7 +1528,7 @@ TEST(EditorManagerProjectActionsTest,
   project->build_target = "missing_output.sfc";
   project->hack_manifest_file = "hack_manifest.json";
   project->build_script = "./build_run.sh";
-  ASSERT_OK(project->Save());
+  ASSERT_OK(SaveProjectFixture(*project));
   ASSERT_OK(manager->OpenRomOrProject(project_path.string()));
   ASSERT_OK(manager->BuildCurrentProject());
   ASSERT_OK(manager->RunCurrentProject());
@@ -1918,6 +1926,30 @@ TEST(EditorManagerProjectActionsTest,
   EXPECT_FALSE(std::filesystem::exists(fixture.proof.parent_path()));
 }
 
+void PublishProjectFixtureNativeSave(const project::YazeProject& project,
+                                     const std::filesystem::path& rom,
+                                     const std::filesystem::path& producer) {
+  core::NativeSaveReceiptRequest request;
+  request.receipt_path = project.filepath + ".native-save.json";
+  request.operation = "save";
+  request.operation_id = "generic-fixture-current-save";
+  const auto context =
+      core::GetNativeSaveContext(rom.string(), project.filepath);
+  ASSERT_TRUE(context.ok()) << context.status();
+  request.context = *context;
+  for (const auto& [role, path] :
+       std::vector<std::pair<std::string, std::filesystem::path>>{
+           {"project", project.filepath},
+           {"rom", rom},
+           {"producer", producer}}) {
+    const auto hash = core::ComputeSourceArtifactFileSha256(path);
+    ASSERT_TRUE(hash.ok()) << hash.status();
+    request.artifacts.push_back({role, path, *hash});
+  }
+  const auto receipt = core::PublishNativeSaveReceipt(request);
+  ASSERT_TRUE(receipt.ok()) << receipt.status();
+}
+
 TEST(EditorManagerProjectActionsTest,
      RunWithoutExpandedAdmissionRetainsManifestTarget) {
   ScopedImGuiContext imgui;
@@ -1936,6 +1968,10 @@ TEST(EditorManagerProjectActionsTest,
   project->lyra_build_request_file.clear();
   ASSERT_FALSE(project->lyra_terrain_file.empty());
   ASSERT_FALSE(std::filesystem::exists(fixture.target));
+  project->build_script = CopyCommand(fixture.seed, fixture.stale);
+  ASSERT_OK(SaveProjectFixture(*project));
+  PublishProjectFixtureNativeSave(*project, fixture.source, fixture.editor);
+  ASSERT_FALSE(::testing::Test::HasFatalFailure());
   ASSERT_OK(manager->BuildCurrentProject());
   ASSERT_OK(manager->RunCurrentProject());
   EXPECT_EQ(std::filesystem::path(
@@ -2000,6 +2036,14 @@ TEST(EditorManagerProjectActionsTest,
     ASSERT_TRUE(target_hash.ok()) << target_hash.status();
     ASSERT_NE(*source_before, *target_hash);
 
+    project::YazeProject saved_project;
+    ASSERT_OK(saved_project.Open(descriptor.string()));
+    saved_project.build_script = CopyCommand(build_artifact, target);
+    ASSERT_OK(saved_project.Save());
+    const auto producer = bundle / "selected-editor.bin";
+    ExpandedRunFixture::Write(producer, "selected generic producer fixture");
+    PublishProjectFixtureNativeSave(saved_project, source, producer);
+    ASSERT_FALSE(::testing::Test::HasFatalFailure());
     ASSERT_OK(manager->OpenRomOrProject(descriptor.string()));
     const auto* project = manager->GetCurrentProject();
     ASSERT_NE(project, nullptr);
@@ -2008,10 +2052,6 @@ TEST(EditorManagerProjectActionsTest,
     ASSERT_FALSE(project->native_save_transfer_proof_file.empty());
     ASSERT_TRUE(project->lyra_build_request_file.empty());
     ASSERT_TRUE(project->hack_manifest.loaded());
-    manager->GetCurrentProject()->build_script =
-        CopyCommand(build_artifact, target);
-    manager->MarkCurrentProjectDirty();
-    ASSERT_OK(manager->SaveProject());
     ASSERT_OK(manager->BuildCurrentProject());
     const auto result = manager->RunCurrentProject();
     EXPECT_TRUE(result.ok()) << result;
@@ -2235,7 +2275,7 @@ TEST(EditorManagerProjectActionsTest,
   project->rom_filename = source_rom.string();
   project->build_script = "./build_ok.sh";
   project->hack_manifest_file = "hack_manifest.json";
-  ASSERT_OK(project->Save());
+  ASSERT_OK(SaveProjectFixture(*project));
   ASSERT_OK(manager->OpenRomOrProject(project_path.string()));
 
   auto show_output = ContentRegistry::Context::show_workflow_output_callback();

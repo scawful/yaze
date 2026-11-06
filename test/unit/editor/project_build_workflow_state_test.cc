@@ -138,6 +138,7 @@ class ProjectBuildWorkflowStateTest : public ::testing::Test {
     WriteRomFile(files.output, "STALE OUTPUT");
     project::YazeProject project;
     project.name = name;
+    project.metadata.project_id = "workflow_" + name;
     project.filepath = files.descriptor.string();
     project.rom_filename = files.source.string();
     project.build_target =
