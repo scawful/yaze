@@ -203,6 +203,8 @@ CreateCliCommandHandlers() {
       std::make_unique<OverworldExportNativeSourceCommandHandler>());
   handlers.push_back(std::make_unique<LyraVerifyProjectCommandHandler>());
   handlers.push_back(std::make_unique<LyraInspectProjectCommandHandler>());
+  handlers.push_back(
+      std::make_unique<OverworldPlanNativeImportCommandHandler>());
 
   // Overworld editing (dry-run by default; --write commits)
   handlers.push_back(std::make_unique<OverworldAddSpriteCommandHandler>());

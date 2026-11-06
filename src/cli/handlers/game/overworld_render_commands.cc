@@ -2,6 +2,8 @@
 
 #include <algorithm>
 #include <array>
+#include <cctype>
+#include <cstdint>
 #include <filesystem>
 #include <fstream>
 #include <iterator>
@@ -14,6 +16,7 @@
 
 #include "absl/strings/numbers.h"
 #include "absl/strings/str_format.h"
+#include "absl/strings/string_view.h"
 #include "app/service/render_service.h"
 #include "cli/util/hex_util.h"
 #include "core/lyra_terrain_document.h"
@@ -26,6 +29,7 @@
 #include "zelda3/game_data.h"
 #include "zelda3/overworld/lyra_terrain_source.h"
 #include "zelda3/overworld/overworld.h"
+#include "zelda3/overworld/overworld_terrain_io.h"
 
 namespace yaze {
 namespace cli {
@@ -94,6 +98,286 @@ std::optional<std::string> OutputArg(const resources::ArgumentParser& parser) {
   if (auto out = parser.GetString("out"); out.has_value())
     return out;
   return parser.GetString("output");
+}
+
+bool IsLowerHexSha256(absl::string_view s) {
+  if (s.size() != 64)
+    return false;
+  for (unsigned char c : s) {
+    if (!std::isxdigit(c) || std::isupper(c))
+      return false;
+  }
+  return true;
+}
+
+const char* AreaSizeEnumJsonName(zelda3::AreaSizeEnum size) {
+  switch (size) {
+    case zelda3::AreaSizeEnum::SmallArea:
+      return "small";
+    case zelda3::AreaSizeEnum::LargeArea:
+      return "large";
+    case zelda3::AreaSizeEnum::WideArea:
+      return "wide";
+    case zelda3::AreaSizeEnum::TallArea:
+      return "tall";
+  }
+  return "unknown";
+}
+
+nlohmann::json ByteArrayJson(const std::vector<uint8_t>& bytes) {
+  nlohmann::json a = nlohmann::json::array();
+  for (uint8_t b : bytes)
+    a.push_back(static_cast<int>(b));
+  return a;
+}
+
+nlohmann::json GameplayAreasJson(
+    const std::vector<core::LyraGameplayArea>& areas) {
+  auto out = nlohmann::json::array();
+  for (const auto& a : areas) {
+    const char* size_name = nullptr;
+    switch (a.size) {
+      case core::LyraGameplayAreaSize::kSmall:
+        size_name = "small";
+        break;
+      case core::LyraGameplayAreaSize::kLarge:
+        size_name = "large";
+        break;
+      case core::LyraGameplayAreaSize::kWide:
+        size_name = "wide";
+        break;
+      case core::LyraGameplayAreaSize::kTall:
+        size_name = "tall";
+        break;
+    }
+    auto maps = nlohmann::json::array();
+    for (int m : a.maps)
+      maps.push_back(m);
+    out.push_back({{"parent_map_id", a.parent_map_id},
+                   {"size", size_name},
+                   {"maps", maps}});
+  }
+  return out;
+}
+
+absl::StatusOr<uint32_t> ParsePcHex(const std::optional<std::string>& value,
+                                    absl::string_view flag) {
+  if (!value.has_value() || value->empty()) {
+    return absl::InvalidArgumentError(absl::StrFormat("%s is required", flag));
+  }
+  uint32_t pc = 0;
+  if (!util::ParseHexString(*value, &pc)) {
+    return absl::InvalidArgumentError(
+        absl::StrFormat("%s must be a PC address (hex)", flag));
+  }
+  return pc;
+}
+
+absl::StatusOr<core::LyraTerrainDocument> PrepareNativeImportDocument(
+    const resources::ArgumentParser& parser, const std::string& saved_text,
+    const core::LyraTerrainProfile& profile, core::LyraTerrainDocument in) {
+  const auto expected_terrain_hash = parser.GetString("source-terrain-sha256");
+  if (!expected_terrain_hash.has_value() || expected_terrain_hash->empty()) {
+    return absl::InvalidArgumentError("--source-terrain-sha256 is required");
+  }
+  if (!IsLowerHexSha256(*expected_terrain_hash)) {
+    return absl::InvalidArgumentError(
+        "--source-terrain-sha256 must be 64 lowercase hex digits");
+  }
+  if (*expected_terrain_hash != core::ComputeSourceArtifactSha256(saved_text)) {
+    return absl::FailedPreconditionError(
+        "--source-terrain-sha256 does not match the project's saved Lyra "
+        "terrain");
+  }
+
+  const auto areas_path_opt = parser.GetString("gameplay-areas");
+  if (!areas_path_opt.has_value() || areas_path_opt->empty()) {
+    return absl::InvalidArgumentError("--gameplay-areas is required");
+  }
+  const std::filesystem::path areas_path(*areas_path_opt);
+  std::error_code ec;
+  const auto fsize = std::filesystem::file_size(areas_path, ec);
+  if (ec || fsize > 1024 * 1024)
+    return absl::FailedPreconditionError(
+        "gameplay_areas JSON is missing or exceeds 1 MiB");
+  std::ifstream areas_file(areas_path, std::ios::binary);
+  if (!areas_file)
+    return absl::PermissionDeniedError("Cannot read gameplay_areas file");
+  const std::string areas_text{std::istreambuf_iterator<char>(areas_file), {}};
+  if (areas_file.bad())
+    return absl::DataLossError("Cannot finish reading gameplay_areas file");
+
+  const auto expected_areas_hash = parser.GetString("gameplay-areas-sha256");
+  if (!expected_areas_hash.has_value() || expected_areas_hash->empty()) {
+    return absl::InvalidArgumentError("--gameplay-areas-sha256 is required");
+  }
+  if (!IsLowerHexSha256(*expected_areas_hash)) {
+    return absl::InvalidArgumentError(
+        "--gameplay-areas-sha256 must be 64 lowercase hex digits");
+  }
+  if (*expected_areas_hash != core::ComputeSourceArtifactSha256(areas_text)) {
+    return absl::FailedPreconditionError(
+        "--gameplay-areas-sha256 does not match --gameplay-areas file");
+  }
+
+  nlohmann::json areas_json;
+  try {
+    areas_json = nlohmann::json::parse(areas_text);
+  } catch (const nlohmann::json::exception& e) {
+    return absl::InvalidArgumentError(
+        absl::StrFormat("gameplay_areas JSON: %s", e.what()));
+  }
+  if (!areas_json.is_array() || areas_json.empty() ||
+      areas_json.size() > core::LyraTerrainDocument::kMapCount) {
+    return absl::InvalidArgumentError(
+        "gameplay_areas must be a non-empty JSON array (max 32 areas)");
+  }
+
+  const std::string reparse = [&]() {
+    nlohmann::json root = nlohmann::json::parse(in.Serialize());
+    root["schema_version"] = core::LyraTerrainDocument::kSchemaVersion;
+    root["gameplay_areas"] = areas_json;
+    return root.dump();
+  }();
+  ASSIGN_OR_RETURN(auto out,
+                   core::LyraTerrainDocument::Parse(reparse, profile));
+  return out;
+}
+
+absl::Status AppendNativeImportPlan(Rom& rom,
+                                    const core::LyraTerrainDocument& document,
+                                    const resources::ArgumentParser& parser,
+                                    resources::OutputFormatter& formatter) {
+  ASSIGN_OR_RETURN(
+      const uint32_t high_pc,
+      ParsePcHex(parser.GetString("high-table-pc"), "--high-table-pc"));
+  ASSIGN_OR_RETURN(
+      const uint32_t low_pc,
+      ParsePcHex(parser.GetString("low-table-pc"), "--low-table-pc"));
+  ASSIGN_OR_RETURN(
+      const uint32_t stream_first,
+      ParsePcHex(parser.GetString("stream-first-pc"), "--stream-first-pc"));
+  ASSIGN_OR_RETURN(
+      const uint32_t stream_end,
+      ParsePcHex(parser.GetString("stream-end-pc"), "--stream-end-pc"));
+  if (stream_first >= stream_end) {
+    return absl::InvalidArgumentError(
+        "--stream-first-pc must be less than --stream-end-pc");
+  }
+
+  zelda3::OverworldTerrainStorage storage;
+  storage.high_table_pc = high_pc;
+  storage.low_table_pc = low_pc;
+  storage.map_count = 192;
+  storage.stream_regions = {
+      {stream_first, stream_end, "plan candidate stream"}};
+  storage.read_only_stream_regions = {
+      {zelda3::kOverworldCompressedMapPos, 0x5FE70, "original bank0B streams"},
+      {0x60000, 0x6411F, "original bank0C streams"},
+      {zelda3::kOverworldMapDataOverflow,
+       zelda3::kOverworldCompressedOverflowPos, "original overflow streams"}};
+  storage.native_prefix =
+      zelda3::OverworldTerrainPointerTables{0x1794DU, 0x17B2DU, 160};
+
+  ASSIGN_OR_RETURN(auto plan, zelda3::PlanSpecialOverworldTerrainImport(
+                                  rom, document, storage));
+
+  const auto& terrain = plan.terrain;
+  const auto baseline_hash = core::ComputeSourceArtifactSha256(
+      {reinterpret_cast<const char*>(terrain.baseline.data()),
+       terrain.baseline.size()});
+
+  nlohmann::json geom = nlohmann::json::array();
+  for (const auto& row : plan.geometry) {
+    nlohmann::json words = nlohmann::json::array();
+    for (uint16_t w : row.words)
+      words.push_back(w);
+    geom.push_back({{"parent", row.parent},
+                    {"size", AreaSizeEnumJsonName(row.size)},
+                    {"words", std::move(words)}});
+  }
+
+  nlohmann::json q = nlohmann::json::array();
+  for (const auto& qb : plan.tile32.quadrant_bytes)
+    q.push_back(ByteArrayJson(qb));
+
+  nlohmann::json writes = nlohmann::json::array();
+  for (const auto& w : terrain.writes) {
+    writes.push_back({{"pc", w.pc},
+                      {"before", ByteArrayJson(w.before)},
+                      {"after", ByteArrayJson(w.after)}});
+  }
+
+  nlohmann::json out = {
+      {"schema", "yaze.special-overworld-terrain-import.v1"},
+      {"source_rom_sha256",
+       core::ComputeSourceArtifactSha256(
+           {reinterpret_cast<const char*>(rom.data()), rom.size()})},
+      {"source_terrain_sha256",
+       parser.GetString("source-terrain-sha256").value_or("")},
+      {"gameplay_areas_sha256",
+       parser.GetString("gameplay-areas-sha256").value_or("")},
+      {"initial_image_sha256", baseline_hash},
+      {"capacity", storage.map_count},
+      {"dictionary_definition_count",
+       static_cast<int>(plan.tile32.definitions.size())},
+      {"quadrant_bytes", std::move(q)},
+      {"geometry", std::move(geom)},
+      {"terrain_writes", std::move(writes)},
+      {"complete_image", false},
+      {"allocation_granted", false},
+      {"high_table_pc", storage.high_table_pc},
+      {"low_table_pc", storage.low_table_pc},
+      {"stream_start", stream_first},
+      {"stream_end", stream_end},
+      {"gameplay_areas",
+       GameplayAreasJson(document.authoring().gameplay_areas)}};
+  if (storage.native_prefix.has_value()) {
+    out["native_prefix"] = {
+        {"high_table_pc", storage.native_prefix->high_table_pc},
+        {"low_table_pc", storage.native_prefix->low_table_pc},
+        {"map_count", storage.native_prefix->map_count}};
+  }
+
+  formatter.AddRawJsonField("native_import_plan", out.dump());
+  return absl::OkStatus();
+}
+
+absl::StatusOr<OverworldRenderGraphicsPreview>
+ResolveOverworldRenderGraphicsPreview(const project::YazeProject* project,
+                                      const std::optional<std::string>& flag) {
+  OverworldRenderGraphicsPreview result;
+  const std::string value = flag.value_or("");
+  if (value == "off" || value == "false" || value == "0") {
+    result.mode = "off";
+    return result;
+  }
+  const bool required = value == "on" || value == "true" || value == "1";
+  if (!value.empty() && !required) {
+    result.mode = "file";
+    result.manifest = value;
+  } else if (project != nullptr &&
+             !project->overworld_graphics_preview.empty()) {
+    result.mode = "project";
+    result.manifest =
+        project->GetAbsolutePath(project->overworld_graphics_preview);
+  } else if (required) {
+    return absl::FailedPreconditionError(
+        "--graphics-preview=on needs --project-context with [files] "
+        "overworld_graphics_preview");
+  } else {
+    result.mode = "none";
+    return result;
+  }
+  auto preview = core::LoadOverworldGraphicsPreview(result.manifest);
+  if (!preview.ok()) {
+    return absl::Status(
+        preview.status().code(),
+        absl::StrFormat("--graphics-preview %s: %s", result.manifest,
+                        preview.status().message()));
+  }
+  result.preview = std::move(preview).value();
+  return result;
 }
 
 }  // namespace
@@ -301,7 +585,7 @@ absl::Status OverworldExportNativeSourceCommandHandler::Execute(
 }
 
 absl::Status LyraVerifyProjectCommandHandler::Execute(
-    Rom* rom, const resources::ArgumentParser&,
+    Rom* rom, const resources::ArgumentParser& parser,
     resources::OutputFormatter& formatter) {
   if (!rom || !rom->is_loaded())
     return absl::FailedPreconditionError("ROM not loaded");
@@ -341,6 +625,10 @@ absl::Status LyraVerifyProjectCommandHandler::Execute(
   RETURN_IF_ERROR(zelda3::BindLyraTerrainSource(overworld, &profile));
   ASSIGN_OR_RETURN(auto document,
                    core::LyraTerrainDocument::Parse(text, profile));
+  if (PlanNativeImport()) {
+    ASSIGN_OR_RETURN(document, PrepareNativeImportDocument(
+                                   parser, text, profile, std::move(document)));
+  }
   std::unordered_map<std::string, std::string> native_bindings;
   std::unordered_map<std::string, std::array<uint16_t, 256>> resolved_palettes;
   std::unordered_map<std::string, nlohmann::json> resolved_assets;
@@ -462,6 +750,9 @@ absl::Status LyraVerifyProjectCommandHandler::Execute(
     return absl::OkStatus();
   }
 
+  if (PlanNativeImport())
+    return AppendNativeImportPlan(*rom, document, parser, formatter);
+
   auto native_99 = *overworld.mutable_overworld_map(0x99);
   native_99.set_game_state(0);
   native_99.LoadAreaGraphics();
@@ -544,6 +835,13 @@ ResolveOverworldRenderGraphicsPreview(const project::YazeProject* project,
   }
   result.preview = std::move(preview).value();
   return result;
+}
+
+absl::Status OverworldPlanNativeImportCommandHandler::ValidateArgs(
+    const resources::ArgumentParser& parser) {
+  return parser.RequireArgs(
+      {"source-terrain-sha256", "gameplay-areas", "gameplay-areas-sha256",
+       "high-table-pc", "low-table-pc", "stream-first-pc", "stream-end-pc"});
 }
 
 absl::Status OverworldRenderCommandHandler::ValidateArgs(

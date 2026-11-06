@@ -112,6 +112,7 @@ class LyraVerifyProjectCommandHandler : public resources::CommandHandler {
 
  protected:
   virtual bool InspectAssets() const { return false; }
+  virtual bool PlanNativeImport() const { return false; }
 
  private:
   std::string GetDefaultFormat() const override { return "json"; }
@@ -134,6 +135,31 @@ class LyraInspectProjectCommandHandler
  private:
   std::string GetOutputTitle() const override {
     return "Lyra Asset Inspection";
+  }
+};
+
+// Read-only initial terrain/dictionary/geometry inputs, not ROM publication.
+class OverworldPlanNativeImportCommandHandler
+    : public LyraVerifyProjectCommandHandler {
+ public:
+  std::string GetName() const override {
+    return "overworld-plan-native-import";
+  }
+  std::string GetUsage() const override {
+    return "overworld-plan-native-import --project-context=<project.yaze> "
+           "--rom=<source> --source-terrain-sha256=<hex> "
+           "--gameplay-areas=<areas.json> --gameplay-areas-sha256=<hex> "
+           "--high-table-pc=<hex> --low-table-pc=<hex> "
+           "--stream-first-pc=<hex> --stream-end-pc=<hex>";
+  }
+  absl::Status ValidateArgs(const resources::ArgumentParser& parser) override;
+
+ protected:
+  bool PlanNativeImport() const override { return true; }
+
+ private:
+  std::string GetOutputTitle() const override {
+    return "Native Overworld Import Plan";
   }
 };
 
