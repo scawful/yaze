@@ -5,6 +5,7 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <optional>
 #include <span>
 #include <string>
 #include <vector>
@@ -70,6 +71,7 @@ class Sprite : public GameEntity {
 
   void InitSprite(const std::vector<uint8_t>& src, uint8_t overworld_map_id,
                   uint8_t id, uint8_t x, uint8_t y, int map_x, int map_y) {
+    placement_id_.reset();
     current_gfx_ = src;
     overworld_ = true;
     map_id_ = static_cast<int>(overworld_map_id);
@@ -106,6 +108,10 @@ class Sprite : public GameEntity {
   SDL_Rect preview_bounds() const { return preview_bounds_; }
   auto id() const { return id_; }
   auto set_id(uint8_t id) { id_ = id; }
+  // Optional ROM authoring identity, distinct from runtime code and UI row.
+  // Value copies retain it; a new/reinitialized sprite starts unbound.
+  std::optional<uint32_t> placement_id() const { return placement_id_; }
+  void set_placement_id(std::optional<uint32_t> id) { placement_id_ = id; }
   auto x() const { return x_; }
   auto y() const { return y_; }
   auto nx() const { return nx_; }
@@ -150,6 +156,7 @@ class Sprite : public GameEntity {
   void set_layer(int layer) { layer_ = layer; }
 
  private:
+  std::optional<uint32_t> placement_id_;
   uint8_t overworld_x_flags_ = 0;
   uint8_t overworld_y_flags_ = 0;
   uint8_t map_id_ = 0;

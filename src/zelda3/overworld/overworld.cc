@@ -1673,7 +1673,9 @@ absl::Status Overworld::LoadSprites() {
     RETURN_IF_ERROR(future.get());
   }
 #endif
-  return absl::OkStatus();
+  // Bind only after all phase workers have joined. Metadata never mutates
+  // shared state from those workers, and a stale witness grants no identity.
+  return BindNativeSpritePlacements();
 }
 
 absl::Status Overworld::LoadSpritesFromMap(int sprites_per_gamestate_ptr,

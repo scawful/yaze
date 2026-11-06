@@ -1,11 +1,80 @@
 #include "zelda3/overworld/overworld.h"
 
 #include <algorithm>
+#include <map>
 
 #include "rom/lyra_layout_descriptor.h"
+#include "rom/native_overworld_authoring_metadata.h"
 #include "util/macro.h"
 
 namespace yaze::zelda3 {
+absl::Status Overworld::BindNativeSpritePlacements() {
+  if (!descriptor_layout_.has_authoring_metadata)
+    return absl::OkStatus();
+  const auto record =
+      rom::LyraLayoutRecord(descriptor_layout_, rom_->data(), rom_->size(),
+                            rom::kNativeAuthoringMetadataTableId, 0);
+  const auto entry =
+      std::find_if(descriptor_layout_.entries.begin(),
+                   descriptor_layout_.entries.end(), [](const auto& e) {
+                     return e.id == rom::kNativeAuthoringMetadataTableId;
+                   });
+  if (!record || entry == descriptor_layout_.entries.end() ||
+      entry->pc_address + rom::kNativeAuthoringMetadataSize > rom_->size())
+    return absl::FailedPreconditionError(
+        "Native sprite placement metadata is unavailable");
+  ASSIGN_OR_RETURN(
+      const auto metadata,
+      rom::DecodeNativeOverworldAuthoringMetadata(
+          {rom_->data() + entry->pc_address, rom::kNativeAuthoringMetadataSize},
+          descriptor_layout_.capacity));
+  using Locator = std::array<uint8_t, 3>;  // Phase, owning map, list ordinal.
+  std::map<Locator, Sprite*> loaded;
+  for (uint8_t phase = 0; phase < 3; ++phase) {
+    std::array<size_t, kExpandedMapCount> ordinal{};
+    for (auto& sprite : all_sprites_[phase]) {
+      const auto map = sprite.map_id();
+      const auto row = ordinal[map]++;
+      if (row >= 128)
+        return absl::FailedPreconditionError(
+            "Native sprite list exceeds placement metadata row domain");
+      loaded.emplace(
+          Locator{phase, static_cast<uint8_t>(map), static_cast<uint8_t>(row)},
+          &sprite);
+    }
+  }
+  std::vector<std::pair<Sprite*, uint32_t>> bindings;
+  for (const auto& placement : metadata.placements) {
+    if (placement.state != rom::NativePlacementState::kBound)
+      continue;
+    const auto* value =
+        std::get_if<rom::NativeAuthoringSpritePlacement>(&placement.value);
+    if (!value)
+      return absl::FailedPreconditionError(
+          "Native bound placement is not a sprite");
+    const auto found =
+        loaded.find({value->phase, value->owner_map, value->ordinal});
+    if (found == loaded.end() ||
+        overworld_maps_[value->owner_map].parent() != value->owner_map)
+      return absl::FailedPreconditionError(
+          "Native sprite placement references an unloaded owner or row");
+    const Sprite& sprite = *found->second;
+    const std::array<uint8_t, 3> packed = {
+        static_cast<uint8_t>(sprite.ny() | sprite.overworld_y_flags()),
+        static_cast<uint8_t>(sprite.nx() | sprite.overworld_x_flags()),
+        sprite.id()};
+    if (packed != value->packed)
+      return absl::FailedPreconditionError(
+          "Native sprite placement witness differs from its saved row");
+    bindings.emplace_back(found->second, placement.id);
+  }
+  // Validate the complete set before assigning any identity. Tombstones and
+  // pending endpoints never bind; untracked legacy sprites remain unbound.
+  for (const auto& [sprite, id] : bindings)
+    sprite->set_placement_id(id);
+  return absl::OkStatus();
+}
+
 absl::StatusOr<OverworldSpriteEdits> Overworld::PrepareSpriteEdits() const {
   if (!rom_)
     return absl::FailedPreconditionError("No ROM for overworld sprites");

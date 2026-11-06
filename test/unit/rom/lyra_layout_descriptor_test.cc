@@ -287,9 +287,10 @@ struct NativeDirectoryFixture {
     bytes[0x147015] = 0x1C;
     Seal();
   }
-  void AddAuthoringMetadata() {
-    const auto encoded = rom::EncodeNativeOverworldAuthoringMetadata(
-        rom::NativeOverworldAuthoringMetadata{}, Entry(1).count);
+  void AddAuthoringMetadata(
+      const rom::NativeOverworldAuthoringMetadata& metadata = {}) {
+    const auto encoded =
+        rom::EncodeNativeOverworldAuthoringMetadata(metadata, Entry(1).count);
     ASSERT_TRUE(encoded.ok()) << encoded.status();
     // Caller-supplied synthetic storage, not a production allocation grant.
     Add(412, 9, 0x2B6000, 256, 32);
@@ -299,6 +300,44 @@ struct NativeDirectoryFixture {
     Word(0x147012, 57);
     bytes[0x147015] = 0x3C;
     Seal();
+  }
+  rom::NativeOverworldAuthoringMetadata SeedCanonicalPlacementRows() {
+    // Canonical identities/order on a synthetic model allocation; this is
+    // not the one-time project importer or runtime qualification.
+    rom::NativeOverworldAuthoringMetadata metadata;
+    metadata.next_placement_id = 0x6003;
+    metadata.placements = {
+        {0x5001, rom::NativePlacementState::kBound,
+         rom::NativeAuthoringSpritePlacement{1, 0xB0, 0, {14, 23, 0x52}}},
+        {0x5002, rom::NativePlacementState::kBound,
+         rom::NativeAuthoringSpritePlacement{1, 0xB0, 1, {21, 15, 0x52}}},
+        {0x5005, rom::NativePlacementState::kBound,
+         rom::NativeAuthoringSpritePlacement{1, 0xB0, 2, {12, 40, 0x52}}},
+        {0x5003, rom::NativePlacementState::kBound,
+         rom::NativeAuthoringSpritePlacement{1, 0xB0, 3, {43, 13, 0x52}}},
+        {0x5004, rom::NativePlacementState::kBound,
+         rom::NativeAuthoringSpritePlacement{1, 0xB0, 4, {45, 37, 0x52}}},
+        {0x6001, rom::NativePlacementState::kPending,
+         rom::NativeAuthoringDoorPlacement{0xB0, 21, 9, 0x0B, std::nullopt}},
+        {0x6002, rom::NativePlacementState::kPending,
+         rom::NativeAuthoringReturnPlacement{0xB0, 22, 11, 0x83,
+                                             std::nullopt}}};
+    const auto actors = Entry(100).pc_address;
+    EXPECT_EQ(Entry(100).count, 16);
+    const std::array<uint8_t, 16> bytes = {14, 23, 0x52, 21,  15, 0x52,
+                                           12, 40, 0x52, 43,  13, 0x52,
+                                           45, 37, 0x52, 0xFF};
+    std::copy(bytes.begin(), bytes.end(), this->bytes.begin() + actors);
+    for (int phase = 0; phase < 3; ++phase)
+      for (int map = 160; map < 192; ++map)
+        Word(Entry(16 + phase).pc_address + map * 2, 0x800F);
+    Word(Entry(17).pc_address + 0xB0 * 2, 0x8000);
+    for (int map : {0xB0, 0xB1, 0xB8, 0xB9}) {
+      this->bytes[Entry(7).pc_address + map] = 0xB0;
+      this->bytes[Entry(30).pc_address + map] = 1;
+    }
+    AddAuthoringMetadata(metadata);
+    return metadata;
   }
   explicit NativeDirectoryFixture(uint16_t capacity = 192) {
     std::memcpy(bytes.data() + 0x147000, "OOSOW192", 8);
@@ -1821,6 +1860,85 @@ TEST(LyraLayoutDescriptorTest,
 class NativeSpecialOverworldEditorTest : public test::HeadlessEditorTest {};
 
 TEST_F(NativeSpecialOverworldEditorTest,
+       AuthoringSpriteLoadRequiresExactSavedWitness) {
+  const char* path = std::getenv("YAZE_TEST_ROM_OOS");
+  if (!path || !std::filesystem::exists(path))
+    GTEST_SKIP() << "Set YAZE_TEST_ROM_OOS for placement model binding";
+  Rom legacy;
+  ASSERT_TRUE(legacy.LoadFromData(ReadBytes(path)).ok());
+  zelda3::Overworld reference(&legacy);
+  ASSERT_TRUE(reference.Load(&legacy).ok());
+  for (int variant = 0; variant < 6; ++variant) {
+    SCOPED_TRACE(variant);
+    NativeDirectoryFixture fixture;
+    fixture.SeedLoadedLegacyForModelTest(legacy, reference);
+    fixture.UpgradeToRevision4();
+    auto metadata = fixture.SeedCanonicalPlacementRows();
+    // Change the LAST binding so a failure must not assign earlier IDs.
+    auto& last = std::get<rom::NativeAuthoringSpritePlacement>(
+        metadata.placements[4].value);
+    if (variant == 1)
+      last.packed[2] ^= 1;
+    if (variant == 2)
+      last.ordinal = 127;
+    if (variant == 3)
+      last.owner_map = 0xB1;
+    if (variant == 4) {
+      metadata.placements[4].state = rom::NativePlacementState::kDeleted;
+      last.packed[2] ^= 1;  // A tombstone deliberately binds no live row.
+    }
+    if (variant == 5)
+      last.phase = 0;
+    const auto encoded = rom::EncodeNativeOverworldAuthoringMetadata(
+        metadata, fixture.Entry(1).count);
+    ASSERT_TRUE(encoded.ok()) << encoded.status();
+    std::copy(encoded->begin(), encoded->end(),
+              fixture.bytes.begin() + fixture.Entry(412).pc_address);
+    fixture.Seal();
+    Rom document;
+    ASSERT_TRUE(document.LoadFromData(fixture.bytes).ok());
+    ASSERT_EQ(document.InspectLyraLayout().presence,
+              rom::LyraLayoutPresence::kValid);
+    zelda3::Overworld world(&document);
+    const auto loaded = world.Load(&document);
+    if (variant != 0 && variant != 4) {
+      ASSERT_FALSE(loaded.ok());
+      EXPECT_NE(loaded.message().find("Native sprite placement"),
+                absl::string_view::npos)
+          << loaded;
+      for (const auto& sprite : world.sprites(1))
+        EXPECT_FALSE(sprite.placement_id().has_value());
+    } else {
+      ASSERT_TRUE(loaded.ok()) << loaded;
+      std::vector<uint32_t> identities;
+      for (const auto& sprite : world.sprites(1)) {
+        if (sprite.placement_id())
+          identities.push_back(*sprite.placement_id());
+        if (sprite.map_id() < 160)
+          EXPECT_FALSE(sprite.placement_id().has_value());
+      }
+      auto expected = std::vector<uint32_t>{0x5001, 0x5002, 0x5005, 0x5003};
+      if (variant == 0)
+        expected.push_back(0x5004);
+      EXPECT_EQ(identities, expected);
+      const auto sprites = world.sprites(1);
+      const auto found = std::find_if(
+          sprites.begin(), sprites.end(),
+          [](const auto& sprite) { return sprite.placement_id() == 0x5001; });
+      ASSERT_NE(found, sprites.end());
+      auto copied = *found;
+      copied.set_id(0x53);
+      copied.set_deleted(true);
+      EXPECT_EQ(copied.placement_id(), 0x5001);
+      copied.InitSprite({}, 0xB0, 0x52, 1, 1, 16, 16);
+      EXPECT_FALSE(copied.placement_id().has_value());
+    }
+    EXPECT_EQ(document.vector(), fixture.bytes);
+    EXPECT_FALSE(document.dirty());
+  }
+}
+
+TEST_F(NativeSpecialOverworldEditorTest,
        AuthoringMetadataOrdinarySaveKeepsUnchangedSpriteLists) {
   const char* path = std::getenv("YAZE_TEST_ROM_OOS");
   if (!path || !std::filesystem::exists(path))
@@ -1839,7 +1957,10 @@ TEST_F(NativeSpecialOverworldEditorTest,
     NativeDirectoryFixture fixture(capacity);
     fixture.SeedLoadedLegacyForModelTest(legacy, reference);
     fixture.UpgradeToRevision4();
-    fixture.AddAuthoringMetadata();
+    if (capacity == 192)
+      fixture.SeedCanonicalPlacementRows();
+    else
+      fixture.AddAuthoringMetadata();
     const auto root = test::UniqueTempPath("om");
     std::filesystem::create_directories(root);
     auto cleanup =
@@ -1889,6 +2010,14 @@ TEST_F(NativeSpecialOverworldEditorTest,
     zelda3::Overworld fresh(&reopened);
     ASSERT_TRUE(fresh.Load(&reopened).ok());
     EXPECT_EQ(fresh.overworld_map(0x80)->message_id(), old_message ^ 1);
+    if (capacity == 192) {
+      std::vector<uint32_t> identities;
+      for (const auto& sprite : fresh.sprites(1))
+        if (sprite.placement_id())
+          identities.push_back(*sprite.placement_id());
+      EXPECT_EQ(identities, (std::vector<uint32_t>{0x5001, 0x5002, 0x5005,
+                                                   0x5003, 0x5004}));
+    }
   }
 }
 

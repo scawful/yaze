@@ -950,6 +950,7 @@ class Overworld {
   absl::StatusOr<std::vector<rom::NativeOverworldPropertyEdit>>
   PrepareNativePropertySave() const;
   NativeModelState CaptureNativeNonTerrainState() const;
+  absl::Status BindNativeSpritePlacements();
   absl::Status LoadNativeAreaProfiles();
   std::vector<OverworldAreaProfile> CaptureNativeAreaProfiles() const;
   void ApplyNativeAreaProfiles();
