@@ -30,6 +30,7 @@
 #include "core/features.h"
 #include "core/native_save_receipt.h"
 #include "core/palette_catalog.h"
+#include "core/project.h"
 #include "core/source_artifact_publisher.h"
 #include "editor_test_support.h"
 #include "rom/rom.h"
@@ -101,6 +102,16 @@ void WriteRomFile(const std::filesystem::path& path,
   out.write(reinterpret_cast<const char*>(rom_data.data()),
             static_cast<std::streamsize>(rom_data.size()));
   ASSERT_TRUE(out.good());
+}
+
+std::string CopyCommand(const std::filesystem::path& source,
+                        const std::filesystem::path& output) {
+#ifdef _WIN32
+  return "cmd /c copy /Y \"" + source.string() + "\" \"" + output.string() +
+         "\" >nul";
+#else
+  return "cp \"" + source.string() + "\" \"" + output.string() + "\"";
+#endif
 }
 
 std::string ReadFile(const std::filesystem::path& path) {
@@ -978,12 +989,17 @@ TEST(EditorManagerProjectActionsTest,
   auto manager = std::make_unique<EditorManager>();
   ::yaze::test::InitializeWithIsolatedSettings(*manager, renderer.get());
   ScopedTempDir dir(MakeTempDir("yaze_readonly_build"));
+  const auto project_path = dir.path / "project.yaze";
+  WriteRomFile(dir.path / "source.sfc");
   auto* project = manager->GetCurrentProject();
   ASSERT_NE(project, nullptr);
   project->name = "ReadOnlyReference";
-  project->filepath = (dir.path / "project.yaze").string();
+  project->filepath = project_path.string();
+  project->rom_filename = "source.sfc";
   project->rom_metadata.write_policy = project::RomWritePolicy::kReadOnly;
   project->build_script = "must-not-execute";
+  ASSERT_OK(project->Save());
+  ASSERT_OK(manager->OpenRomOrProject(project_path.string()));
   EXPECT_EQ(manager->BuildCurrentProject().code(),
             absl::StatusCode::kPermissionDenied);
   manager->QueueBuildCurrentProject();
@@ -1007,6 +1023,7 @@ TEST(EditorManagerProjectActionsTest,
   const auto project_path = temp_dir.path / "project.yaze";
   const auto marker_path = temp_dir.path / "build.marker";
   const auto script_path = temp_dir.path / "build_ok.sh";
+  WriteRomFile(temp_dir.path / "source.sfc");
 
   {
     std::ofstream script(script_path);
@@ -1024,7 +1041,10 @@ TEST(EditorManagerProjectActionsTest,
   ASSERT_NE(project, nullptr);
   project->name = "BuildProjectScript";
   project->filepath = project_path.string();
+  project->rom_filename = "source.sfc";
   project->build_script = "./build_ok.sh";
+  ASSERT_OK(project->Save());
+  ASSERT_OK(manager->OpenRomOrProject(project_path.string()));
 
   ASSERT_OK(manager->BuildCurrentProject());
   ASSERT_TRUE(std::filesystem::exists(marker_path));
@@ -1059,7 +1079,7 @@ TEST(EditorManagerProjectActionsTest,
   auto* project = manager->GetCurrentProject();
   project->name = "Build context";
   project->filepath = original_project.string();
-  project->rom_filename = rom.string();
+  project->rom_filename = "source.sfc";
   project->code_folder = (original / "code folder").string();
   project->lyra_terrain_file = terrain.string();
   project->lyra_build_request_file = request.string();
@@ -1088,6 +1108,7 @@ printf '%s\n' "${YAZE_PROJECT_FILE+set}" "${YAZE_PROJECT_CODE_FOLDER+set}" \
       script_path,
       std::filesystem::perms::owner_exec | std::filesystem::perms::owner_read,
       std::filesystem::perm_options::add);
+  ASSERT_OK(manager->OpenRomOrProject(copied_project.string()));
   const std::string expected =
       copied_project.string() + "\n" + (original / "code folder").string() +
       "\n" + rom.string() + "\n" + terrain.string() + "\n" +
@@ -1151,6 +1172,8 @@ TEST(EditorManagerProjectActionsTest,
   const auto project_path = temp_dir.path / "project.yaze";
   const auto marker_path = temp_dir.path / "manifest.marker";
   const auto script_path = temp_dir.path / "manifest_build.sh";
+  const auto manifest_path = temp_dir.path / "hack_manifest.json";
+  WriteRomFile(temp_dir.path / "source.sfc");
 
   {
     std::ofstream script(script_path);
@@ -1163,14 +1186,10 @@ TEST(EditorManagerProjectActionsTest,
                                    std::filesystem::perms::owner_read |
                                    std::filesystem::perms::owner_write,
                                std::filesystem::perm_options::add);
-
-  auto* project = manager->GetCurrentProject();
-  ASSERT_NE(project, nullptr);
-  project->name = "BuildManifestScript";
-  project->filepath = project_path.string();
-  project->build_script.clear();
-  ASSERT_TRUE(project->hack_manifest
-                  .LoadFromString(R"json(
+  {
+    std::ofstream manifest(manifest_path);
+    ASSERT_TRUE(manifest.is_open());
+    manifest << R"json(
 {
   "manifest_version": 2,
   "hack_name": "Generic Hack",
@@ -1178,8 +1197,18 @@ TEST(EditorManagerProjectActionsTest,
     "build_script": "./manifest_build.sh"
   }
 }
-)json")
-                  .ok());
+)json";
+  }
+
+  auto* project = manager->GetCurrentProject();
+  ASSERT_NE(project, nullptr);
+  project->name = "BuildManifestScript";
+  project->filepath = project_path.string();
+  project->rom_filename = "source.sfc";
+  project->build_script.clear();
+  project->hack_manifest_file = "hack_manifest.json";
+  ASSERT_OK(project->Save());
+  ASSERT_OK(manager->OpenRomOrProject(project_path.string()));
 
   ASSERT_OK(manager->BuildCurrentProject());
   ASSERT_TRUE(std::filesystem::exists(marker_path));
@@ -1213,13 +1242,15 @@ TEST(EditorManagerProjectActionsTest,
       std::filesystem::perms::owner_exec | std::filesystem::perms::owner_read,
       std::filesystem::perm_options::add);
 
-  ASSERT_OK(manager->OpenRomOrProject(rom_path.string()));
+  const auto project_path = temp_dir.path / "project.yaze";
   auto* project = manager->GetCurrentProject();
   ASSERT_NE(project, nullptr);
   project->name = "BuildUnsavedRom";
-  project->filepath = (temp_dir.path / "project.yaze").string();
-  project->rom_filename = rom_path.string();
+  project->filepath = project_path.string();
+  project->rom_filename = "source.sfc";
   project->build_script = "./build_ok.sh";
+  ASSERT_OK(project->Save());
+  ASSERT_OK(manager->OpenRomOrProject(project_path.string()));
   ASSERT_NE(manager->GetCurrentRom(), nullptr);
   ASSERT_OK(manager->GetCurrentRom()->WriteByte(0x1234, 0xA5));
 
@@ -1261,13 +1292,15 @@ TEST(EditorManagerProjectActionsTest,
       std::filesystem::perms::owner_exec | std::filesystem::perms::owner_read,
       std::filesystem::perm_options::add);
 
-  ASSERT_OK(manager->OpenRomOrProject(rom_path.string()));
+  const auto project_path = temp_dir.path / "project.yaze";
   auto* project = manager->GetCurrentProject();
   ASSERT_NE(project, nullptr);
   project->name = "BuildSavedCopy";
-  project->filepath = (temp_dir.path / "project.yaze").string();
-  project->rom_filename = rom_path.string();
+  project->filepath = project_path.string();
+  project->rom_filename = "source.sfc";
   project->build_script = "./build_ok.sh";
+  ASSERT_OK(project->Save());
+  ASSERT_OK(manager->OpenRomOrProject(project_path.string()));
   ASSERT_OK(manager->BuildCurrentProject());
   ASSERT_TRUE(std::filesystem::exists(marker_path));
   ASSERT_TRUE(std::filesystem::remove(marker_path));
@@ -1316,12 +1349,13 @@ TEST(EditorManagerProjectActionsTest,
   manager->SetAssetLoadMode(AssetLoadMode::kLazy);
 
   ScopedTempDir temp_dir(MakeTempDir("yaze_build_missing_manifest_script"));
-  auto* project = manager->GetCurrentProject();
-  ASSERT_NE(project, nullptr);
-  project->name = "EditorOnlyProject";
-  project->filepath = (temp_dir.path / "project.yaze").string();
-  project->build_script.clear();
-  ASSERT_OK(project->hack_manifest.LoadFromString(R"json(
+  const auto project_path = temp_dir.path / "project.yaze";
+  const auto manifest_path = temp_dir.path / "hack_manifest.json";
+  WriteRomFile(temp_dir.path / "source.sfc");
+  {
+    std::ofstream manifest(manifest_path);
+    ASSERT_TRUE(manifest.is_open());
+    manifest << R"json(
 {
   "manifest_version": 2,
   "hack_name": "Editor-only fixture",
@@ -1329,7 +1363,17 @@ TEST(EditorManagerProjectActionsTest,
     "build_script": "Scripts/Build/build_rom.sh"
   }
 }
-)json"));
+)json";
+  }
+  auto* project = manager->GetCurrentProject();
+  ASSERT_NE(project, nullptr);
+  project->name = "EditorOnlyProject";
+  project->filepath = project_path.string();
+  project->rom_filename = "source.sfc";
+  project->build_script.clear();
+  project->hack_manifest_file = "hack_manifest.json";
+  ASSERT_OK(project->Save());
+  ASSERT_OK(manager->OpenRomOrProject(project_path.string()));
 
   manager->QueueBuildCurrentProject();
   const auto status = ContentRegistry::Context::build_workflow_status();
@@ -1350,8 +1394,25 @@ TEST(EditorManagerProjectActionsTest,
   manager->SetAssetLoadMode(AssetLoadMode::kLazy);
 
   ScopedTempDir temp_dir(MakeTempDir("yaze_build_manifest_source"));
+  const auto project_path = temp_dir.path / "project.yaze";
+  const auto manifest_path = temp_dir.path / "hack_manifest.json";
   const auto marker_path = temp_dir.path / "build.marker";
   const auto script_path = temp_dir.path / "build_ok.sh";
+  WriteRomFile(temp_dir.path / "source.sfc");
+  {
+    std::ofstream manifest(manifest_path);
+    ASSERT_TRUE(manifest.is_open());
+    manifest << R"json(
+{
+  "manifest_version": 2,
+  "hack_name": "Manifest source fixture",
+  "build_pipeline": {
+    "dev_rom": "other.sfc",
+    "build_script": "./build_ok.sh"
+  }
+}
+)json";
+  }
   {
     std::ofstream script(script_path);
     ASSERT_TRUE(script.is_open());
@@ -1365,19 +1426,12 @@ TEST(EditorManagerProjectActionsTest,
   auto* project = manager->GetCurrentProject();
   ASSERT_NE(project, nullptr);
   project->name = "ManifestSourceMismatch";
-  project->filepath = (temp_dir.path / "project.yaze").string();
+  project->filepath = project_path.string();
   project->rom_filename = "source.sfc";
   project->build_script.clear();
-  ASSERT_OK(project->hack_manifest.LoadFromString(R"json(
-{
-  "manifest_version": 2,
-  "hack_name": "Manifest source fixture",
-  "build_pipeline": {
-    "dev_rom": "other.sfc",
-    "build_script": "./build_ok.sh"
-  }
-}
-)json"));
+  project->hack_manifest_file = "hack_manifest.json";
+  ASSERT_OK(project->Save());
+  ASSERT_OK(manager->OpenRomOrProject(project_path.string()));
 
   const auto status = manager->BuildCurrentProject();
   EXPECT_EQ(status.code(), absl::StatusCode::kFailedPrecondition);
@@ -1465,23 +1519,16 @@ TEST(EditorManagerProjectActionsTest,
   const auto project_path = temp_dir.path / "project.yaze";
   const auto source_rom = temp_dir.path / "editing_source.sfc";
   const auto valid_rom = temp_dir.path / "patched_valid.sfc";
+  const auto manifest_path = temp_dir.path / "hack_manifest.json";
+  const auto build_artifact = temp_dir.path / "run_target_artifact.sfc";
+  const auto script_path = temp_dir.path / "build_run.sh";
   WriteRomFile(source_rom, "EDITING SOURCE ROM");
-  WriteRomFile(valid_rom, "RUN TARGET ROM");
-  ASSERT_OK(manager->OpenRomOrProject(source_rom.string()));
-  const auto source_sha256 = core::ComputeSourceArtifactFileSha256(source_rom);
-  ASSERT_TRUE(source_sha256.ok()) << source_sha256.status();
-  const auto target_sha256 = core::ComputeSourceArtifactFileSha256(valid_rom);
-  ASSERT_TRUE(target_sha256.ok()) << target_sha256.status();
-  ASSERT_NE(*source_sha256, *target_sha256);
-
-  auto* project = manager->GetCurrentProject();
-  ASSERT_NE(project, nullptr);
-  project->name = "RunProjectOutput";
-  project->filepath = project_path.string();
-  project->rom_filename = source_rom.string();
-  project->build_target = "missing_output.sfc";
-  ASSERT_TRUE(project->hack_manifest
-                  .LoadFromString(R"json(
+  WriteRomFile(build_artifact, "RUN TARGET ROM");
+  WriteRomFile(valid_rom, "STALE RUN OUTPUT");
+  {
+    std::ofstream manifest(manifest_path);
+    ASSERT_TRUE(manifest.is_open());
+    manifest << R"json(
 {
   "manifest_version": 2,
   "hack_name": "Generic Hack",
@@ -1489,13 +1536,36 @@ TEST(EditorManagerProjectActionsTest,
     "patched_rom": "patched_valid.sfc"
   }
 }
-)json")
-                  .ok());
-#ifdef _WIN32
-  project->build_script = "cmd /c exit 0";
-#else
-  project->build_script = "true";
-#endif
+)json";
+  }
+  {
+    std::ofstream script(script_path);
+    ASSERT_TRUE(script.is_open());
+    script << "#!/bin/sh\n";
+    script << CopyCommand(build_artifact, valid_rom) << "\n";
+  }
+  std::filesystem::permissions(script_path,
+                               std::filesystem::perms::owner_exec |
+                                   std::filesystem::perms::owner_read |
+                                   std::filesystem::perms::owner_write,
+                               std::filesystem::perm_options::add);
+  const auto source_sha256 = core::ComputeSourceArtifactFileSha256(source_rom);
+  ASSERT_TRUE(source_sha256.ok()) << source_sha256.status();
+  const auto target_sha256 =
+      core::ComputeSourceArtifactFileSha256(build_artifact);
+  ASSERT_TRUE(target_sha256.ok()) << target_sha256.status();
+  ASSERT_NE(*source_sha256, *target_sha256);
+
+  auto* project = manager->GetCurrentProject();
+  ASSERT_NE(project, nullptr);
+  project->name = "RunProjectOutput";
+  project->filepath = project_path.string();
+  project->rom_filename = "editing_source.sfc";
+  project->build_target = "missing_output.sfc";
+  project->hack_manifest_file = "hack_manifest.json";
+  project->build_script = "./build_run.sh";
+  ASSERT_OK(project->Save());
+  ASSERT_OK(manager->OpenRomOrProject(project_path.string()));
   ASSERT_OK(manager->BuildCurrentProject());
   ASSERT_OK(manager->RunCurrentProject());
   EXPECT_TRUE(manager->emulator().is_snes_initialized());
@@ -1610,12 +1680,15 @@ struct ExpandedRunFixture {
     Write(ledger, "{}\n");
     const auto terrain = root / "terrain.json";
     Write(terrain, "{}\n");
-    ASSERT_OK(manager.OpenRomOrProject(source.string()));
+    WriteJson(root / "hack_manifest.json",
+              {{"manifest_version", 2},
+               {"hack_name", "Run target fixture"},
+               {"build_pipeline", {{"patched_rom", "stale.sfc"}}}});
     auto* model = manager.GetCurrentProject();
     ASSERT_NE(model, nullptr);
     model->name = "Expanded Run generation";
     model->filepath = project.string();
-    model->rom_filename = source.string();
+    model->rom_filename = "editing.sfc";
     model->code_folder = (root / "engine").string();
     model->lyra_terrain_file = terrain.string();
     model->lyra_build_request_file = request.string();
@@ -1623,6 +1696,7 @@ struct ExpandedRunFixture {
     model->native_save_transfer_proof_file = proof.string();
     model->native_save_receipt_file = (root / "legacy-receipt.json").string();
     model->build_target = target.string();
+    model->hack_manifest_file = "hack_manifest.json";
 #ifdef _WIN32
     model->build_script = "build-fixture.cmd";
 #else
@@ -1633,11 +1707,6 @@ struct ExpandedRunFixture {
     const auto descriptor = model->SerializeToString();
     ASSERT_TRUE(descriptor.ok()) << descriptor.status();
     ASSERT_OK(model->LoadFromString(*descriptor, project.string()));
-    ASSERT_OK(model->hack_manifest.LoadFromString(Json{
-        {"manifest_version", 2},
-        {"hack_name", "Run target fixture"},
-        {"build_pipeline",
-         {{"patched_rom", stale.string()}}}}.dump()));
     ASSERT_OK(model->Save());
     const Json producer_identity{
         {"kind", "yaze.native_save_producer_identity.v1"},
@@ -1821,6 +1890,9 @@ struct ExpandedRunFixture {
     script += "printf 'fixture-build-complete\\n'\n";
     Write(root / "build-fixture.sh", script);
 #endif
+    ASSERT_OK(manager.OpenRomOrProject(project.string()));
+    ASSERT_TRUE(manager.GetCurrentProject()->project_opened());
+    ASSERT_TRUE(manager.GetCurrentProject()->hack_manifest.loaded());
   }
 
   void RefreshBuildEvidence() {
@@ -1934,8 +2006,10 @@ TEST(EditorManagerProjectActionsTest,
     const auto target = bundle / "project" / "Roms" / "oos168x.sfc";
     const auto manifest = target.parent_path() / "hack_manifest.json";
     std::filesystem::create_directories(target.parent_path());
+    const auto build_artifact = target.parent_path() / "daily_run_artifact.sfc";
     WriteRomFile(source, "DAILY EDITING SOURCE");
-    WriteRomFile(target, "DAILY MANIFEST OUTPUT");
+    WriteRomFile(build_artifact, "DAILY MANIFEST OUTPUT");
+    WriteRomFile(target, "STALE DAILY OUTPUT");
     ExpandedRunFixture::Write(
         descriptor,
         "[project]\nname=" + std::string(name) +
@@ -1960,7 +2034,8 @@ TEST(EditorManagerProjectActionsTest,
     const auto descriptor_before = ReadFile(descriptor);
     const auto manifest_before = ReadFile(manifest);
     const auto source_before = core::ComputeSourceArtifactFileSha256(source);
-    const auto target_hash = core::ComputeSourceArtifactFileSha256(target);
+    const auto target_hash =
+        core::ComputeSourceArtifactFileSha256(build_artifact);
     ASSERT_TRUE(source_before.ok()) << source_before.status();
     ASSERT_TRUE(target_hash.ok()) << target_hash.status();
     ASSERT_NE(*source_before, *target_hash);
@@ -1973,11 +2048,10 @@ TEST(EditorManagerProjectActionsTest,
     ASSERT_FALSE(project->native_save_transfer_proof_file.empty());
     ASSERT_TRUE(project->lyra_build_request_file.empty());
     ASSERT_TRUE(project->hack_manifest.loaded());
-#ifdef _WIN32
-    manager->GetCurrentProject()->build_script = "cmd /c exit 0";
-#else
-    manager->GetCurrentProject()->build_script = "true";
-#endif
+    manager->GetCurrentProject()->build_script =
+        CopyCommand(build_artifact, target);
+    manager->MarkCurrentProjectDirty();
+    ASSERT_OK(manager->SaveProject());
     ASSERT_OK(manager->BuildCurrentProject());
     const auto result = manager->RunCurrentProject();
     EXPECT_TRUE(result.ok()) << result;
@@ -2161,28 +2235,17 @@ TEST(EditorManagerProjectActionsTest,
   const auto project_path = temp_dir.path / "project.yaze";
   const auto marker_path = temp_dir.path / "build.marker";
   const auto script_path = temp_dir.path / "build_ok.sh";
+  const auto manifest_path = temp_dir.path / "hack_manifest.json";
+  const auto source_rom = temp_dir.path / "editing_source.sfc";
   const auto valid_rom = temp_dir.path / "patched_valid.sfc";
-
+  const auto build_artifact = temp_dir.path / "callback_run_artifact.sfc";
+  WriteRomFile(source_rom, "CALLBACK EDITING SOURCE");
+  WriteRomFile(build_artifact, "CALLBACK RUN ROM");
+  WriteRomFile(valid_rom, "STALE CALLBACK OUTPUT");
   {
-    std::ofstream script(script_path);
-    ASSERT_TRUE(script.is_open());
-    script << "#!/bin/sh\n";
-    script << "printf 'callback-build' > build.marker\n";
-  }
-  std::filesystem::permissions(script_path,
-                               std::filesystem::perms::owner_exec |
-                                   std::filesystem::perms::owner_read |
-                                   std::filesystem::perms::owner_write,
-                               std::filesystem::perm_options::add);
-  WriteRomFile(valid_rom, "CALLBACK RUN ROM");
-
-  auto* project = manager->GetCurrentProject();
-  ASSERT_NE(project, nullptr);
-  project->name = "WorkflowCallbacks";
-  project->filepath = project_path.string();
-  project->build_script = "./build_ok.sh";
-  ASSERT_TRUE(project->hack_manifest
-                  .LoadFromString(R"json(
+    std::ofstream manifest(manifest_path);
+    ASSERT_TRUE(manifest.is_open());
+    manifest << R"json(
 {
   "manifest_version": 2,
   "hack_name": "Generic Hack",
@@ -2190,8 +2253,30 @@ TEST(EditorManagerProjectActionsTest,
     "patched_rom": "patched_valid.sfc"
   }
 }
-)json")
-                  .ok());
+)json";
+  }
+  {
+    std::ofstream script(script_path);
+    ASSERT_TRUE(script.is_open());
+    script << "#!/bin/sh\n";
+    script << "printf 'callback-build' > build.marker\n";
+    script << CopyCommand(build_artifact, valid_rom) << "\n";
+  }
+  std::filesystem::permissions(script_path,
+                               std::filesystem::perms::owner_exec |
+                                   std::filesystem::perms::owner_read |
+                                   std::filesystem::perms::owner_write,
+                               std::filesystem::perm_options::add);
+
+  auto* project = manager->GetCurrentProject();
+  ASSERT_NE(project, nullptr);
+  project->name = "WorkflowCallbacks";
+  project->filepath = project_path.string();
+  project->rom_filename = "editing_source.sfc";
+  project->build_script = "./build_ok.sh";
+  project->hack_manifest_file = "hack_manifest.json";
+  ASSERT_OK(project->Save());
+  ASSERT_OK(manager->OpenRomOrProject(project_path.string()));
 
   auto show_output = ContentRegistry::Context::show_workflow_output_callback();
   ASSERT_TRUE(show_output);
