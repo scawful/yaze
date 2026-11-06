@@ -16,6 +16,7 @@
 #include "absl/cleanup/cleanup.h"
 #include "app/editor/editor_manager.h"
 #include "app/editor/overworld/canvas/overworld_context_target.h"
+#include "app/editor/overworld/entity/entity_operations.h"
 #include "app/editor/overworld/maps/map_properties.h"
 #include "app/editor/overworld/overworld_editor.h"
 #include "app/editor/overworld/overworld_undo_actions.h"
@@ -39,6 +40,7 @@
 #include "zelda3/dungeon/dungeon_rom_addresses.h"
 #include "zelda3/game_data.h"
 #include "zelda3/overworld/overworld.h"
+#include "zelda3/overworld/overworld_sprite_io.h"
 #include "zelda3/overworld/overworld_terrain_io.h"
 
 namespace yaze::editor {
@@ -247,6 +249,17 @@ struct NativeDirectoryFixture {
           bytes[at] | (bytes[at + 1] << 8) | (bytes[at + 2] << 16);
       std::copy_n(bytes.begin() + at + 12, 4,
                   bytes.begin() + (site >> 16) * 0x8000 + (site & 0x7FFF));
+    }
+    Seal();
+  }
+  void SeedNativeSpritePrefix() {
+    bytes[0x4C881] = 0xFF;
+    for (int phase = 0; phase < 3; ++phase) {
+      constexpr std::array<size_t, 3> mirrors = {0x141438, 0x141578, 0x1416B8};
+      for (size_t map = 0; map < 160; ++map) {
+        Word(Entry(16 + phase).pc_address + map * 2, 0xC881);
+        Word(mirrors[phase] + map * 2, 0xC881);
+      }
     }
     Seal();
   }
@@ -1276,7 +1289,210 @@ TEST(LyraLayoutDescriptorTest, NativeTerrainPlannerUsesCompleteDirectory) {
   }
 }
 
+TEST(LyraLayoutDescriptorTest,
+     NativeSpriteSavePartitionsMirrorsAndPreservesUnloadedLists) {
+  for (uint16_t capacity : {160, 192}) {
+    NativeDirectoryFixture fixture(capacity);
+    fixture.SeedNativeSpritePrefix();
+    const std::vector<uint8_t> untouched = {0xC1, 0x82, 0x52, 2, 3, 0x53, 0xFF};
+    std::copy(untouched.begin(), untouched.end(),
+              fixture.bytes.begin() + 0x4C882);
+    fixture.Word(fixture.Entry(17).pc_address + 10, 0xC882);
+    fixture.Word(0x141578 + 10, 0xC882);
+    fixture.Seal();
+    const auto before = fixture.bytes;
+    std::vector<rom::NativeOverworldSpriteEdit> edits = {
+        {0, 0, {0x81, 0xC2, 0x54, 0xFF}}, {2, 0x9F, {2, 3, 0x55, 0xFF}}};
+    if (capacity == 192) {
+      edits.push_back({1, 0xA0, {0x81, 0xC2, 0x54, 0xFF}});
+      edits.push_back({2, 0xBF, {3, 4, 0x56, 0xFF}});
+    }
+    Rom document;
+    ASSERT_TRUE(document.LoadFromData(before).ok());
+    ASSERT_TRUE(
+        document.CommitNativeTerrainImage(before, before, {}, edits).ok());
+    const auto layout = document.InspectLyraLayout();
+    ASSERT_EQ(layout.presence, rom::LyraLayoutPresence::kValid) << layout.error;
+    for (const auto& edit : edits) {
+      const auto bytes = zelda3::ReadOverworldSpriteList(
+          document, layout, edit.phase, edit.map_id);
+      ASSERT_TRUE(bytes.ok()) << bytes.status();
+      EXPECT_EQ(*bytes, edit.value);
+    }
+    EXPECT_EQ(*zelda3::ReadOverworldSpriteList(document, layout, 1, 5),
+              untouched);
+    for (int phase = 0; phase < 3; ++phase) {
+      constexpr std::array<size_t, 3> mirrors = {0x141438, 0x141578, 0x1416B8};
+      EXPECT_TRUE(std::equal(
+          document.vector().begin() + fixture.Entry(16 + phase).pc_address,
+          document.vector().begin() + fixture.Entry(16 + phase).pc_address +
+              320,
+          document.vector().begin() + mirrors[phase]));
+    }
+    const auto saved = document.vector();
+    document.set_dirty(false);
+    ASSERT_TRUE(
+        document.CommitNativeTerrainImage(saved, saved, {}, edits).ok());
+    EXPECT_EQ(document.vector(), saved);
+    EXPECT_FALSE(document.dirty());
+    EXPECT_EQ(fixture.bytes, before);
+  }
+}
+
+TEST(LyraLayoutDescriptorTest,
+     NativeSpriteSaveRefusesOverflowAliasesAndReadOnlyWithoutMutation) {
+  NativeDirectoryFixture fixture;
+  fixture.SeedNativeSpritePrefix();
+  Rom document;
+  ASSERT_TRUE(document.LoadFromData(fixture.bytes).ok());
+  const auto before = document.vector();
+  std::vector<rom::NativeOverworldSpriteEdit> edits = {
+      {0, 0xA0, {1, 2, 3, 4, 5, 6, 0xFF}},
+      {1, 0xA1, {1, 2, 4, 4, 5, 7, 0xFF}},
+      {2, 0xBF, {1, 2, 5, 4, 5, 8, 0xFF}}};
+  EXPECT_EQ(document.CommitNativeTerrainImage(before, before, {}, edits).code(),
+            absl::StatusCode::kResourceExhausted);
+  EXPECT_EQ(document.vector(), before);
+  edits.resize(1);
+  {
+    ScopedRomReadOnly read_only(document);
+    EXPECT_FALSE(
+        document.CommitNativeTerrainImage(before, before, {}, edits).ok());
+  }
+  {
+    rom::WriteFence fence;
+    ASSERT_TRUE(fence.Allow(0x147000, 0x147400, "directory only").ok());
+    rom::ScopedWriteFence scoped(&document, &fence);
+    EXPECT_FALSE(
+        document.CommitNativeTerrainImage(before, before, {}, edits).ok());
+  }
+  EXPECT_EQ(document.vector(), before);
+  EXPECT_FALSE(document.dirty());
+  // A resealed actor allocation must not borrow the original bank09 pool.
+  fixture.rows.tail_actor_bank = fixture.bytes[0x147014] = 9;
+  auto& actor = fixture.Entry(100);
+  actor.pc_address = 0x4C881;
+  actor.snes_address = NativeDirectoryFixture::Snes(actor.pc_address);
+  for (int phase = 0; phase < 3; ++phase)
+    for (int map = 160; map < 192; ++map)
+      fixture.Word(fixture.Entry(16 + phase).pc_address + map * 2, 0xC881);
+  fixture.Seal();
+  ASSERT_EQ(rom::InspectLyraLayout(fixture.bytes.data(), fixture.bytes.size())
+                .presence,
+            rom::LyraLayoutPresence::kValid);
+  const auto refused = rom::PlanNativeOverworldSpriteSave(fixture.bytes, edits);
+  EXPECT_EQ(refused.status().code(), absl::StatusCode::kPermissionDenied);
+}
+
 class NativeSpecialOverworldEditorTest : public test::HeadlessEditorTest {};
+
+TEST_F(NativeSpecialOverworldEditorTest,
+       SpriteSaveEditorUndoFailureRetryAndFreshReopen) {
+  const char* path = std::getenv("YAZE_TEST_ROM_OOS");
+  if (!path || !std::filesystem::exists(path))
+    GTEST_SKIP() << "Set YAZE_TEST_ROM_OOS for native sprite Save/reopen";
+  for (uint16_t capacity : {160, 192}) {
+    SCOPED_TRACE(capacity);
+    const auto flags = core::FeatureFlags::get();
+    auto restore_flags =
+        absl::MakeCleanup([&] { core::FeatureFlags::get() = flags; });
+    core::FeatureFlags::get().overworld.kSaveOverworldMaps = false;
+    core::FeatureFlags::get().overworld.kSaveOverworldSprites = true;
+    Rom legacy;
+    ASSERT_TRUE(legacy.LoadFromData(ReadBytes(path)).ok());
+    zelda3::Overworld reference(&legacy);
+    ASSERT_TRUE(reference.Load(&legacy).ok());
+    NativeDirectoryFixture fixture(capacity);
+    fixture.SeedLoadedLegacyForModelTest(legacy, reference);
+    const auto root = test::UniqueTempPath("ows");
+    std::filesystem::create_directories(root);
+    auto cleanup =
+        absl::MakeCleanup([&] { std::filesystem::remove_all(root); });
+    const auto source = root / "in.sfc", target = root / "out.sfc";
+    WriteBytes(source, fixture.bytes);
+    auto manager = std::make_unique<editor::EditorManager>();
+    test::InitializeWithIsolatedSettings(*manager, renderer_.get());
+    manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+    manager->user_settings().prefs().backup_before_save = false;
+    ASSERT_TRUE(manager->OpenRomOrProject(source.string()).ok());
+    ASSERT_TRUE(
+        manager->EnsureEditorAssetsLoaded(editor::EditorType::kOverworld).ok());
+    auto* editor = manager->GetCurrentEditorSet()->GetOverworldEditor();
+    auto& world = editor->overworld();
+    auto* document = manager->GetCurrentRom();
+    editor->SetPreviewStoryState(1);
+    const int owner = world.overworld_map(capacity - 1)->parent();
+    const ImVec2 position((owner % 8) * 512 + 16,
+                          ((owner % 64) / 8) * 512 + 16);
+    const auto original_count = world.sprites(1).size();
+    {
+      ScopedRomReadOnly read_only(*document);
+      EXPECT_FALSE(editor::InsertSprite(&world, position, owner, 1, 0x52).ok());
+      EXPECT_EQ(world.sprites(1).size(), original_count);
+    }
+    const auto added = editor::InsertSprite(&world, position, owner, 1, 0x52);
+    ASSERT_TRUE(added.ok()) << added.status();
+    auto draft = **added;
+    draft.set_id(0x53);
+    draft.set_x(draft.x() + 16);
+    {
+      ScopedRomReadOnly read_only(*document);
+      EXPECT_FALSE(editor->ApplySpriteEdit(*added, draft).ok());
+      EXPECT_EQ((*added)->id(), 0x52);
+    }
+    ASSERT_TRUE(editor->ApplySpriteEdit(*added, draft).ok());
+    ASSERT_TRUE(editor->Undo().ok());
+    EXPECT_EQ((*added)->id(), 0x52);
+    ASSERT_TRUE(editor->Redo().ok());
+    EXPECT_EQ((*added)->id(), 0x53);
+    EXPECT_EQ(document->vector(), fixture.bytes);
+    const auto planned = world.PrepareNativeSpriteSave();
+    ASSERT_TRUE(planned.ok()) << planned.status();
+    const auto expected = std::find_if(
+        planned->begin(), planned->end(), [owner](const auto& edit) {
+          return edit.phase == 1 && edit.map_id == owner;
+        });
+    ASSERT_NE(expected, planned->end());
+    {
+      test::ScopedRomStagingFailure fault;
+      EXPECT_FALSE(manager->SaveRomAs(target.string()).ok());
+    }
+    EXPECT_EQ(document->vector(), fixture.bytes);
+    EXPECT_FALSE(std::filesystem::exists(target));
+    ASSERT_TRUE(manager->SaveRomAs(target.string()).ok());
+    const auto saved = ReadBytes(target);
+    ASSERT_NE(saved, fixture.bytes);
+    ASSERT_TRUE(manager->SaveRom().ok());
+    EXPECT_EQ(ReadBytes(target), saved);
+    // Disabling a domain leaves its edits pending for a later enabled Save.
+    auto later = world.mutable_sprites(1)->back();
+    later.set_id(0x54);
+    ASSERT_TRUE(
+        editor->ApplySpriteEdit(&world.mutable_sprites(1)->back(), later).ok());
+    core::FeatureFlags::get().overworld.kSaveOverworldSprites = false;
+    ASSERT_TRUE(manager->SaveRom().ok());
+    EXPECT_EQ(ReadBytes(target), saved);
+    core::FeatureFlags::get().overworld.kSaveOverworldSprites = true;
+    ASSERT_TRUE(manager->SaveRom().ok());
+    const auto final = ReadBytes(target);
+    EXPECT_NE(final, saved);
+    manager.reset();
+    Rom reopened;
+    ASSERT_TRUE(reopened.LoadFromFile(target.string()).ok());
+    const auto layout = reopened.InspectLyraLayout();
+    ASSERT_EQ(layout.presence, rom::LyraLayoutPresence::kValid);
+    const auto bytes =
+        zelda3::ReadOverworldSpriteList(reopened, layout, 1, owner);
+    ASSERT_TRUE(bytes.ok()) << bytes.status();
+    auto final_expected = expected->value;
+    final_expected[final_expected.size() - 2] = 0x54;
+    EXPECT_EQ(*bytes, final_expected);
+    zelda3::Overworld fresh(&reopened);
+    ASSERT_TRUE(fresh.Load(&reopened).ok());
+    EXPECT_EQ(fresh.materialized_map_count(), capacity);
+    EXPECT_EQ(reopened.vector(), final);
+  }
+}
 
 TEST_F(NativeSpecialOverworldEditorTest, SidecarLifecycle) {
   const char* path = std::getenv("YAZE_TEST_ROM_OOS");

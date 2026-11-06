@@ -358,6 +358,8 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
                                  const zelda3::OverworldEntrance& draft);
   absl::Status ApplyExitEdit(zelda3::OverworldExit* target,
                              const zelda3::OverworldExit& draft);
+  absl::Status ApplySpriteEdit(zelda3::Sprite* target,
+                               const zelda3::Sprite& draft);
   void OpenEntityEditor(zelda3::GameEntity* entity);
 
   /// @brief Trigger a jump to a dungeon room

@@ -32,11 +32,8 @@ constexpr int kRoomSpritePointerTableOperand = 0x4C298;
 int GetOverworldSpriteRegionEnd(const Rom& rom);
 using OverworldSpriteBytes = std::vector<uint8_t>;  // y, x, id; final FF
 using OverworldSpriteEdits =
-    std::array<std::array<std::optional<OverworldSpriteBytes>, 160>, 3>;
-struct OverworldSpriteWrite {
-  int address;
-  std::vector<uint8_t> bytes;
-};
+    std::array<std::array<std::optional<OverworldSpriteBytes>, 192>, 3>;
+using OverworldSpriteWrite = rom::NativeOverworldSpriteWrite;
 using OverworldSpriteSavePlan = std::vector<OverworldSpriteWrite>;
 
 absl::StatusOr<OverworldSpriteBytes> ReadOverworldSpriteList(

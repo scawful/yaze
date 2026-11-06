@@ -325,7 +325,8 @@ absl::Status OverworldLayout::CheckOperation(OverworldLayoutDomain domain,
         operation == OverworldLayoutOperation::kMutateModel &&
         (domain == OverworldLayoutDomain::kMapProperties ||
          domain == OverworldLayoutDomain::kMessages ||
-         domain == OverworldLayoutDomain::kMusic))
+         domain == OverworldLayoutDomain::kMusic ||
+         domain == OverworldLayoutDomain::kSprites))
       return absl::OkStatus();
     if (lyra_layout.revision == 3 &&
         (domain == OverworldLayoutDomain::kTerrainPointers ||

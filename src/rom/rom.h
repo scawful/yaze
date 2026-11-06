@@ -237,7 +237,8 @@ class Rom {
   absl::Status CheckLayoutSaveable() const;
   absl::Status CommitNativeTerrainImage(
       const std::vector<uint8_t>& baseline, std::vector<uint8_t> candidate,
-      std::span<const rom::NativeOverworldPropertyEdit> properties = {});
+      std::span<const rom::NativeOverworldPropertyEdit> properties = {},
+      std::span<const rom::NativeOverworldSpriteEdit> sprites = {});
 
   // Sticky, value-owned exact-save reservation. No public detach capability.
   absl::Status AttachLyraPrivateReservation(const core::HackManifest& manifest);

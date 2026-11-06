@@ -163,6 +163,9 @@ absl::StatusOr<OverworldSpriteListEditPlan> PlanOverworldSpriteListEdit(
     const OverworldSpriteBytes& replacement) {
   const auto ow_layout =
       InspectOverworldLayout(rom, OverworldLayoutOptions::Defaults());
+  if (ow_layout.lyra_layout.presence != rom::LyraLayoutPresence::kAbsent)
+    return absl::FailedPreconditionError(
+        "Native sprite edits must use the normal overworld Save transaction");
   RETURN_IF_ERROR(ow_layout.CheckOperation(
       OverworldLayoutDomain::kSprites, OverworldLayoutOperation::kMutateModel,
       map, state));
@@ -321,6 +324,15 @@ absl::StatusOr<OverworldSpriteSavePlan> PlanOverworldSpriteSave(
     const Rom& rom, const OverworldSpriteEdits& edits) {
   const auto ow_layout =
       InspectOverworldLayout(rom, OverworldLayoutOptions::Defaults());
+  if (ow_layout.lyra_layout.presence == rom::LyraLayoutPresence::kValid &&
+      ow_layout.lyra_layout.revision == 3) {
+    std::vector<rom::NativeOverworldSpriteEdit> native;
+    for (uint16_t phase = 0; phase < 3; ++phase)
+      for (uint16_t map = 0; map < edits[phase].size(); ++map)
+        if (edits[phase][map])
+          native.push_back({phase, map, *edits[phase][map]});
+    return rom::PlanNativeOverworldSpriteSave(rom.vector(), native);
+  }
   RETURN_IF_ERROR(ow_layout.CheckOperation(OverworldLayoutDomain::kSprites,
                                            OverworldLayoutOperation::kSerialize,
                                            -1, 0));
@@ -329,7 +341,7 @@ absl::StatusOr<OverworldSpriteSavePlan> PlanOverworldSpriteSave(
   std::vector<OverworldSpriteBytes> lists;
   bool changed = false;
   for (int state = 0; state < 3; ++state) {
-    for (int map = 0; map < 160; ++map) {
+    for (int map = 0; map < static_cast<int>(edits[state].size()); ++map) {
       if (map >= layout.counts[state]) {
         if (edits[state][map])
           return absl::InvalidArgumentError(

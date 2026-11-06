@@ -69,12 +69,30 @@ struct NativeOverworldPropertyEdit {
   std::vector<uint8_t> value;
 };
 
+// Ordered packed sprite stream: y, x, sprite code, with a final FF. Placement
+// IDs remain project metadata; they are not runtime sprite codes.
+struct NativeOverworldSpriteEdit {
+  uint16_t phase = 0;
+  uint16_t map_id = 0;
+  std::vector<uint8_t> value;
+};
+struct NativeOverworldSpriteWrite {
+  int address = 0;
+  std::vector<uint8_t> bytes;
+};
+// Shared by normal native Save and the existing overworld sprite planner.
+// Inventory both banks and preserve unloaded lists; no ROM mutation occurs.
+absl::StatusOr<std::vector<NativeOverworldSpriteWrite>>
+PlanNativeOverworldSpriteSave(const std::vector<uint8_t>& baseline,
+                              std::span<const NativeOverworldSpriteEdit> edits);
+
 // Explicit property edits are applied only after the terrain candidate passes
 // its ownership check. Existing native map slots are mirrored atomically;
 // geometry, roles and entity pointers are not property-write capabilities.
 absl::StatusOr<std::vector<uint8_t>> SealNativeOverworldTerrain(
     const std::vector<uint8_t>& baseline, std::vector<uint8_t> candidate,
-    std::span<const NativeOverworldPropertyEdit> properties = {});
+    std::span<const NativeOverworldPropertyEdit> properties = {},
+    std::span<const NativeOverworldSpriteEdit> sprites = {});
 
 inline constexpr uint32_t kLyraA0HighStreamPc = 0x132000;
 inline constexpr uint32_t kLyraA0LowStreamPc = 0x132200;

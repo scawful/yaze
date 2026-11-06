@@ -12,6 +12,7 @@ set(YAZE_ROM_LIB_SOURCES
   rom_diff.cc
   rom_diagnostics.cc
   lyra_layout_descriptor.cc
+  native_overworld_sprite_io.cc
   hm_support.cc
 )
 

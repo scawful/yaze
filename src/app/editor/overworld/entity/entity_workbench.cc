@@ -46,6 +46,13 @@ bool SameRecord(const zelda3::OverworldExit& a,
                   b.is_automatic_, b.is_hole_, b.deleted_);
 }
 
+bool SameRecord(const zelda3::Sprite& a, const zelda3::Sprite& b) {
+  return a.map_id() == b.map_id() && a.id() == b.id() && a.x() == b.x() &&
+         a.y() == b.y() && a.deleted() == b.deleted() &&
+         a.overworld_x_flags() == b.overworld_x_flags() &&
+         a.overworld_y_flags() == b.overworld_y_flags();
+}
+
 template <typename Record>
 std::optional<size_t> FindRecordRow(const std::vector<Record>& records,
                                     const Record* target) {
@@ -103,6 +110,44 @@ const char* GetEntityTypeLabel(zelda3::GameEntity::EntityType type) {
 }
 
 }  // namespace
+
+absl::Status OverworldEditor::ApplySpriteEdit(zelda3::Sprite* target,
+                                              const zelda3::Sprite& draft) {
+  if (!target || !rom_)
+    return absl::FailedPreconditionError("Select a current sprite");
+  auto& records = *overworld_.mutable_sprites(game_state_);
+  const auto row = FindRecordRow(records, target);
+  if (!row)
+    return absl::NotFoundError(
+        "The selected sprite is no longer in this phase");
+  RETURN_IF_ERROR(overworld_.PreflightLayoutOperation(
+      zelda3::OverworldLayoutDomain::kSprites,
+      zelda3::OverworldLayoutOperation::kMutateModel, target->map_id(),
+      game_state_));
+  if (rom_->InspectLyraLayout().revision == 3)
+    RETURN_IF_ERROR(rom_->CheckLayoutSaveable());
+  if (draft.map_id() != target->map_id() || draft.x() % 16 || draft.y() % 16)
+    return absl::InvalidArgumentError(
+        "Keep the sprite on its area's 16-pixel grid");
+  const int screen =
+      (draft.map_id() / 64) * 64 + draft.x() / 512 + (draft.y() / 512) * 8;
+  ASSIGN_OR_RETURN(auto position,
+                   BuildOverworldSpriteForInsertion(
+                       overworld_.overworld_maps(),
+                       ImVec2(draft.x(), draft.y()), screen, draft.id()));
+  if (position.map_id() != target->map_id() ||
+      ((position.ny() & 0x3F) | draft.overworld_y_flags()) == 0xFF)
+    return absl::InvalidArgumentError(
+        "Sprite position is outside its parent area");
+  return CommitRecordEdit(
+      records, *row, draft, undo_manager_,
+      [this](zelda3::Sprite* value) {
+        if (current_entity_ == value)
+          edit_sprite_ = *value;
+        NotifyEntityModified(value);
+      },
+      "Edit overworld sprite");
+}
 
 absl::Status OverworldEditor::ApplyEntranceEdit(
     zelda3::OverworldEntrance* target, const zelda3::OverworldEntrance& draft) {
@@ -404,8 +449,12 @@ void OverworldEntityWorkbench::DrawPopups() {
   if (DrawSpriteEditorPopup(editor->edit_sprite())) {
     if (editing_entity && editing_entity->entity_type_ ==
                               zelda3::GameEntity::EntityType::kSprite) {
-      *static_cast<zelda3::Sprite*>(editing_entity) = editor->edit_sprite();
-      editor->NotifyEntityModified(editing_entity);
+      const auto status = editor->ApplySpriteEdit(
+          static_cast<zelda3::Sprite*>(editing_entity), editor->edit_sprite());
+      if (!status.ok()) {
+        editor->insert_error() = std::string(status.message());
+        ImGui::OpenPopup("Entity Edit Error");
+      }
     }
   }
 

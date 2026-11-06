@@ -383,6 +383,16 @@ absl::StatusOr<zelda3::Sprite*> InsertSprite(zelda3::Overworld* overworld,
     return absl::InvalidArgumentError("Invalid game state (must be 0-2)");
   }
 
+  const auto allowed = overworld->PreflightLayoutOperation(
+      zelda3::OverworldLayoutDomain::kSprites,
+      zelda3::OverworldLayoutOperation::kMutateModel, current_map, game_state);
+  if (!allowed.ok())
+    return allowed;
+  if (overworld->rom()->InspectLyraLayout().revision == 3) {
+    const auto writable = overworld->rom()->CheckLayoutSaveable();
+    if (!writable.ok())
+      return writable;
+  }
   auto sprite = BuildOverworldSpriteForInsertion(
       overworld->overworld_maps(), mouse_pos, current_map, sprite_id);
   if (!sprite.ok()) {

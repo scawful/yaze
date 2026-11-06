@@ -1712,51 +1712,6 @@ absl::Status Overworld::LoadSpritesFromMap(int sprites_per_gamestate_ptr,
   return absl::OkStatus();
 }
 
-absl::StatusOr<OverworldSpriteSavePlan> Overworld::PrepareSpriteSave() const {
-  if (!rom_)
-    return absl::FailedPreconditionError("No ROM for overworld sprites");
-  OverworldSpriteEdits edits;
-  bool loaded = false;
-  for (int state = 0; state < 3; ++state) {
-    for (int map = 0; map < 160; ++map) {
-      if (sprite_maps_loaded_[state][map]) {
-        edits[state][map] = OverworldSpriteBytes{};
-        loaded = true;
-      }
-    }
-    for (const auto& sprite : all_sprites_[state]) {
-      if (sprite.deleted())
-        continue;
-      const int map = sprite.map_id();
-      if (map >= 160 || !edits[state][map]) {
-        return absl::FailedPreconditionError(
-            "Sprite belongs to an unloaded or unsupported map/game state");
-      }
-      // World-space position is authoritative: drag/property edits do not
-      // update Sprite::nx()/ny(). Encode relative to the owning parent map.
-      const int x = sprite.x() - (map % 8) * 512;
-      const int y = sprite.y() - ((map % 64) / 8) * 512;
-      if (x < 0 || x >= 1024 || y < 0 || y >= 1024 || x % 16 || y % 16) {
-        return absl::InvalidArgumentError(
-            "Overworld sprite must be on a 16-pixel grid within its parent "
-            "area");
-      }
-      auto& bytes = *edits[state][map];
-      bytes.push_back(static_cast<uint8_t>(y / 16) |
-                      sprite.overworld_y_flags());
-      bytes.push_back(static_cast<uint8_t>(x / 16) |
-                      sprite.overworld_x_flags());
-      bytes.push_back(sprite.id());
-    }
-    for (auto& bytes : edits[state])
-      if (bytes)
-        bytes->push_back(0xFF);
-  }
-  if (!loaded)
-    return OverworldSpriteSavePlan{};
-  return PlanOverworldSpriteSave(*rom_, edits);
-}
-
 absl::Status Overworld::SaveSprites() {
   RETURN_IF_ERROR(PreflightLayoutOperation(
       OverworldLayoutDomain::kSprites, OverworldLayoutOperation::kSerialize));
@@ -1861,6 +1816,10 @@ void Overworld::StageSavedMapTiles() {
 }
 
 void Overworld::CommitSavedMapTiles() {
+  if (staged_native_sprites_) {
+    native_nonterrain_baseline_[4] = std::move(*staged_native_sprites_);
+    staged_native_sprites_.reset();
+  }
   if (staged_native_properties_) {
     native_nonterrain_baseline_[0] = std::move(*staged_native_properties_);
     staged_native_properties_.reset();
@@ -1880,6 +1839,7 @@ void Overworld::CommitSavedMapTiles() {
 }
 
 void Overworld::RollbackSavedMapTiles() {
+  staged_native_sprites_.reset();
   staged_native_properties_.reset();
   staged_map_tiles_ = OverworldMapTiles{};
   staged_map_tiles_valid_ = false;
@@ -1953,23 +1913,31 @@ std::vector<std::pair<uint32_t, uint32_t>> Overworld::GetProjectedWriteRanges()
         }
       }
     }
-    if (core::FeatureFlags::get().overworld.kSaveOverworldProperties) {
-      const auto edits = PrepareNativePropertySave();
-      if (edits.ok() && !edits->empty()) {
-        const auto candidate = rom::SealNativeOverworldTerrain(
-            rom_->vector(), rom_->vector(), *edits);
-        if (candidate.ok()) {
-          for (size_t pc = 0; pc < candidate->size();) {
-            if ((*candidate)[pc] == rom_->vector()[pc]) {
-              ++pc;
-              continue;
-            }
-            const size_t begin = pc++;
-            while (pc < candidate->size() &&
-                   (*candidate)[pc] != rom_->vector()[pc])
-              ++pc;
-            ranges.emplace_back(begin, pc);
+    const auto& flags = core::FeatureFlags::get().overworld;
+    const auto properties =
+        flags.kSaveOverworldProperties
+            ? PrepareNativePropertySave()
+            : absl::StatusOr<std::vector<rom::NativeOverworldPropertyEdit>>(
+                  std::vector<rom::NativeOverworldPropertyEdit>{});
+    const auto sprites =
+        flags.kSaveOverworldSprites
+            ? PrepareNativeSpriteSave()
+            : absl::StatusOr<std::vector<rom::NativeOverworldSpriteEdit>>(
+                  std::vector<rom::NativeOverworldSpriteEdit>{});
+    if (properties.ok() && sprites.ok()) {
+      const auto candidate = rom::SealNativeOverworldTerrain(
+          rom_->vector(), rom_->vector(), *properties, *sprites);
+      if (candidate.ok()) {
+        for (size_t pc = 0; pc < candidate->size();) {
+          if ((*candidate)[pc] == rom_->vector()[pc]) {
+            ++pc;
+            continue;
           }
+          const size_t begin = pc++;
+          while (pc < candidate->size() &&
+                 (*candidate)[pc] != rom_->vector()[pc])
+            ++pc;
+          ranges.emplace_back(begin, pc);
         }
       }
     }
@@ -3087,7 +3055,7 @@ absl::Status Overworld::SaveNativeTerrain() {
                                        flags.kSaveOverworldEntrances,
                                        flags.kSaveOverworldExits,
                                        flags.kSaveOverworldItems,
-                                       flags.kSaveOverworldSprites,
+                                       false,
                                        flags.kSaveOverworldProperties,
                                        flags.kSaveOverworldProperties};
   const auto current = CaptureNativeNonTerrainState();
@@ -3101,15 +3069,21 @@ absl::Status Overworld::SaveNativeTerrain() {
   if (flags.kSaveOverworldProperties) {
     ASSIGN_OR_RETURN(property_edits, PrepareNativePropertySave());
   }
+  std::vector<rom::NativeOverworldSpriteEdit> sprite_edits;
+  if (flags.kSaveOverworldSprites) {
+    ASSIGN_OR_RETURN(sprite_edits, PrepareNativeSpriteSave());
+  }
   const bool changed_maps = !MapTilesUnchanged();
   if (!flags.kSaveOverworldMaps ||
       (!changed_maps && tiles16_ == loaded_tiles16_)) {
     RETURN_IF_ERROR(rom_->CommitNativeTerrainImage(
-        rom_->vector(), rom_->vector(), property_edits));
+        rom_->vector(), rom_->vector(), property_edits, sprite_edits));
     if (flags.kSaveOverworldMaps)
       StageSavedMapTiles();
     if (flags.kSaveOverworldProperties)
       staged_native_properties_ = current[0];
+    if (flags.kSaveOverworldSprites)
+      staged_native_sprites_ = current[4];
     return absl::OkStatus();
   }
   auto candidate = rom_->vector();
@@ -3189,10 +3163,12 @@ absl::Status Overworld::SaveNativeTerrain() {
                 candidate.begin() + write.pc);
   }
   RETURN_IF_ERROR(rom_->CommitNativeTerrainImage(
-      rom_->vector(), std::move(candidate), property_edits));
+      rom_->vector(), std::move(candidate), property_edits, sprite_edits));
   StageSavedMapTiles();
   if (flags.kSaveOverworldProperties)
     staged_native_properties_ = current[0];
+  if (flags.kSaveOverworldSprites)
+    staged_native_sprites_ = current[4];
   staged_tiles32_unique_ = std::move(definitions);
   staged_tiles32_list_ = std::move(indices);
   return absl::OkStatus();

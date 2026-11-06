@@ -461,13 +461,15 @@ absl::Status Rom::CheckLayoutSaveable() const {
 
 absl::Status Rom::CommitNativeTerrainImage(
     const std::vector<uint8_t>& baseline, std::vector<uint8_t> candidate,
-    std::span<const rom::NativeOverworldPropertyEdit> properties) {
+    std::span<const rom::NativeOverworldPropertyEdit> properties,
+    std::span<const rom::NativeOverworldSpriteEdit> sprites) {
   RETURN_IF_ERROR(CheckLayoutSaveable());
   if (baseline != rom_data_)
     return absl::FailedPreconditionError(
         "ROM changed after native terrain planning");
-  ASSIGN_OR_RETURN(candidate, rom::SealNativeOverworldTerrain(
-                                  baseline, std::move(candidate), properties));
+  ASSIGN_OR_RETURN(
+      candidate, rom::SealNativeOverworldTerrain(baseline, std::move(candidate),
+                                                 properties, sprites));
   std::vector<std::pair<uint32_t, uint32_t>> changed;
   for (size_t pc = 0; pc < candidate.size();) {
     if (candidate[pc] == rom_data_[pc]) {

@@ -121,12 +121,25 @@ EntityMutationService::MutationResult EntityMutationService::DeleteSprite(
     return result;
   }
 
+  if (game_state < 0 || game_state >= 3) {
+    result.status = absl::InvalidArgumentError("Invalid sprite game state");
+    return result;
+  }
   auto& sprites = *overworld_.mutable_sprites(game_state);
   auto it =
       std::find_if(sprites.begin(), sprites.end(),
                    [sprite](const zelda3::Sprite& s) { return &s == sprite; });
 
   if (it != sprites.end()) {
+    result.status = overworld_.PreflightLayoutOperation(
+        zelda3::OverworldLayoutDomain::kSprites,
+        zelda3::OverworldLayoutOperation::kMutateModel, sprite->map_id(),
+        game_state);
+    if (result.status.ok() &&
+        overworld_.rom()->InspectLyraLayout().revision == 3)
+      result.status = overworld_.rom()->CheckLayoutSaveable();
+    if (!result.status.ok())
+      return result;
     sprites.erase(it);
   } else {
     result.status =
