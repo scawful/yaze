@@ -1286,12 +1286,18 @@ void MessageEditor::DrawMessageList() {
   if (!BeginTable("##MessagesTable", 6, kListFlags, ImVec2(0, 0))) {
     return;
   }
-  TableSetupColumn("ID", ImGuiTableColumnFlags_WidthFixed, 64);
-  TableSetupColumn("Bank", ImGuiTableColumnFlags_WidthFixed, 84);
+  // Bank and address stay one right-click away; the docked list is too narrow
+  // for them alongside the scene and review columns.
+  TableSetupColumn("ID", ImGuiTableColumnFlags_WidthFixed, 56);
+  TableSetupColumn(
+      "Bank",
+      ImGuiTableColumnFlags_WidthFixed | ImGuiTableColumnFlags_DefaultHide, 84);
   TableSetupColumn("Scene", ImGuiTableColumnFlags_WidthStretch, 0.35f);
   TableSetupColumn("Contents", ImGuiTableColumnFlags_WidthStretch, 0.65f);
-  TableSetupColumn("Review", ImGuiTableColumnFlags_WidthFixed, 44);
-  TableSetupColumn("Address", ImGuiTableColumnFlags_WidthFixed, 90);
+  TableSetupColumn("Review", ImGuiTableColumnFlags_WidthFixed, 40);
+  TableSetupColumn(
+      "Address",
+      ImGuiTableColumnFlags_WidthFixed | ImGuiTableColumnFlags_DefaultHide, 90);
   TableHeadersRow();
 
   const int current_id = CurrentDisplayId();
