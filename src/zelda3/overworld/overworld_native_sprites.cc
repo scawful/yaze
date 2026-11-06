@@ -12,7 +12,16 @@ absl::StatusOr<OverworldSpriteEdits> Overworld::PrepareSpriteEdits() const {
     return absl::FailedPreconditionError("Unsupported sprite map capacity");
   OverworldSpriteEdits edits;
   bool loaded = false;
+  const auto& baseline = native_nonterrain_baseline_[4];
+  size_t baseline_cursor = 0;
   for (int state = 0; state < 3; ++state) {
+    const size_t old_count =
+        baseline_cursor < baseline.size()
+            ? static_cast<size_t>(baseline[baseline_cursor++])
+            : 0;
+    const size_t old_begin = baseline_cursor;
+    baseline_cursor += old_count * 7;
+    size_t row = 0;
     for (int map = 0; map < materialized_map_count(); ++map) {
       if (sprite_maps_loaded_[state][map]) {
         edits[state][map] = OverworldSpriteBytes{};
@@ -20,6 +29,13 @@ absl::StatusOr<OverworldSpriteEdits> Overworld::PrepareSpriteEdits() const {
       }
     }
     for (const auto& sprite : all_sprites_[state]) {
+      const size_t old = old_begin + row++ * 7;
+      // Existing bank09 data can contain offscreen legacy placements.
+      // Preserve an unchanged prefix position; new or moved positions must fit.
+      const bool retained_position =
+          sprite.map_id() < 160 && row <= old_count &&
+          old + 6 < baseline.size() && baseline[old] == sprite.map_id() &&
+          baseline[old + 2] == sprite.x() && baseline[old + 3] == sprite.y();
       if (sprite.deleted())
         continue;
       const int map = sprite.map_id();
@@ -47,7 +63,8 @@ absl::StatusOr<OverworldSpriteEdits> Overworld::PrepareSpriteEdits() const {
             (size == AreaSizeEnum::LargeArea || size == AreaSizeEnum::TallArea)
                 ? 1024
                 : 512;
-        if (area.parent() != map || x >= width || y >= height)
+        if (!retained_position &&
+            (area.parent() != map || x >= width || y >= height))
           return absl::InvalidArgumentError(
               "Native sprite is outside its owning area");
       }

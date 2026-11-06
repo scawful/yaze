@@ -305,6 +305,7 @@ void OverworldCanvasRenderer::DrawOverworldCanvas() {
       auto hovered_entity = editor_->entity_renderer_->hovered_entity();
 
       if (hovered_entity && !editor_->is_dragging_entity_ &&
+          ImGui::IsMouseClicked(ImGuiMouseButton_Left) &&
           hovered_entity->entity_type_ ==
               zelda3::GameEntity::EntityType::kSprite) {
         auto* sprite = static_cast<zelda3::Sprite*>(hovered_entity);
@@ -349,7 +350,8 @@ void OverworldCanvasRenderer::DrawOverworldCanvas() {
             auto draft = *sprite;
             draft.set_x(static_cast<int>(entity_drag_position_->x / 16) * 16);
             draft.set_y(static_cast<int>(entity_drag_position_->y / 16) * 16);
-            if (editor_->ValidateSpriteEdit(sprite, draft).ok())
+            if ((draft.x() != sprite->x() || draft.y() != sprite->y()) &&
+                editor_->ValidateSpriteEdit(sprite, draft).ok())
               *sprite = std::move(draft);
           } else {
             editor_->dragged_entity_->x_ += mouse_delta.x / scale;

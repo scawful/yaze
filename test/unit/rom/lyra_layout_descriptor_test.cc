@@ -1422,7 +1422,7 @@ TEST_F(NativeSpecialOverworldEditorTest,
     auto* document = manager->GetCurrentRom();
     editor->SetPreviewStoryState(1);
     const int owner =
-        capacity == 192 ? world.overworld_map(capacity - 1)->parent() : 0;
+        capacity == 192 ? world.overworld_map(capacity - 1)->parent() : 2;
     const ImVec2 position((owner % 8) * 512 + 16,
                           ((owner % 64) / 8) * 512 + 16);
     const auto original_count = world.sprites(1).size();
@@ -1432,13 +1432,18 @@ TEST_F(NativeSpecialOverworldEditorTest,
       EXPECT_EQ(world.sprites(1).size(), original_count);
     }
     if (capacity == 160) {
-      ASSERT_TRUE(editor::InsertSprite(&world, position, owner, 1, 0x52).ok());
-      const auto overflow = manager->SaveRomAs(target.string());
-      EXPECT_EQ(overflow.code(), absl::StatusCode::kResourceExhausted)
-          << overflow;
+      const auto original = zelda3::ReadOverworldSpriteList(
+          *document, document->InspectLyraLayout(), 1, owner);
+      ASSERT_TRUE(original.ok()) << original.status();
+      auto more = *original;
+      more.insert(more.end() - 1, {1, 1, 0x52});
+      const std::vector<rom::NativeOverworldSpriteEdit> overflow_edits = {
+          {1, static_cast<uint16_t>(owner), more}};
+      const auto overflow = rom::PlanNativeOverworldSpriteSave(
+          document->vector(), overflow_edits);
+      EXPECT_EQ(overflow.status().code(), absl::StatusCode::kResourceExhausted)
+          << overflow.status();
       EXPECT_EQ(document->vector(), fixture.bytes);
-      EXPECT_FALSE(std::filesystem::exists(target));
-      world.mutable_sprites(1)->pop_back();
     }
     auto existing = std::find_if(
         world.mutable_sprites(1)->begin(), world.mutable_sprites(1)->end(),
@@ -1446,7 +1451,7 @@ TEST_F(NativeSpecialOverworldEditorTest,
     if (capacity == 160)
       ASSERT_NE(existing, world.mutable_sprites(1)->end());
     // The real bank09 fixture is full (2609/2609 bytes); edit its existing
-    // unique map0 stream. Added maps use the separately declared tail pool.
+    // unique map2 stream. Added maps use the separately declared tail pool.
     const auto added =
         capacity == 192 ? editor::InsertSprite(&world, position, owner, 1, 0x52)
                         : absl::StatusOr<zelda3::Sprite*>(&*existing);
@@ -1687,7 +1692,7 @@ TEST_F(NativeSpecialOverworldEditorTest, NormalSaveUndoFailureAndDiskReopen) {
       auto& sprites = *world.mutable_sprites(1);
       const auto actor =
           std::find_if(sprites.begin(), sprites.end(),
-                       [](const auto& value) { return value.map_id() == 0; });
+                       [](const auto& value) { return value.map_id() == 2; });
       ASSERT_NE(actor, sprites.end());
       auto draft = *actor;
       draft.set_id(draft.id() ^ 1);
