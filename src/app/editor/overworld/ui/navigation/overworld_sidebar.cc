@@ -633,17 +633,29 @@ void OverworldSidebar::DrawPaletteSection(int property_map, int current_map,
   if (read_only_layout) {
     ImGui::BeginDisabled();
   }
-  if (ImGui::Combo("##ScreenAppearMode", &appearance_mode, mode_labels, 3)) {
-    if (!read_only_layout) {
-      const int value =
-          appearance_mode == 0 ? 0 : (appearance_mode == 2 ? 3 : 1);
-      Apply(OverworldPropertyField::kScreenAppearance, 0, property_map, value);
-    }
-  }
+  const bool mode_open =
+      ImGui::BeginCombo("##ScreenAppearMode", mode_labels[appearance_mode]);
   gui::WidgetIdRegistry::Instance().RegisterWidget(
       absl::StrFormat("OverworldSidebar/native_screen/m%02X/mode",
                       property_map),
       "combo", ImGui::GetItemID());
+  if (mode_open) {
+    for (int mode = 0; mode < 3; ++mode) {
+      const bool selected = appearance_mode == mode;
+      if (ImGui::Selectable(mode_labels[mode], selected) && !read_only_layout) {
+        appearance_mode = mode;
+        Apply(OverworldPropertyField::kScreenAppearance, 0, property_map,
+              mode == 0 ? 0 : (mode == 2 ? 3 : 1));
+      }
+      gui::WidgetIdRegistry::Instance().RegisterWidget(
+          absl::StrFormat("OverworldSidebar/native_screen/m%02X/mode_option%d",
+                          property_map, mode),
+          "selectable", ImGui::GetItemID());
+      if (selected)
+        ImGui::SetItemDefaultFocus();
+    }
+    ImGui::EndCombo();
+  }
   if (read_only_layout) {
     ImGui::EndDisabled();
   }

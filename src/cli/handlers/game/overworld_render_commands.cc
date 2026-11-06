@@ -7,6 +7,7 @@
 #include <iterator>
 #include <map>
 #include <optional>
+#include <set>
 #include <sstream>
 #include <string>
 #include <unordered_map>
@@ -137,6 +138,10 @@ absl::Status OverworldExportNativeSourceCommandHandler::Execute(
 
   auto pages = nlohmann::json::array();
   std::map<int, nlohmann::json> areas;
+  std::set<int> resident_areas;
+  for (int map_id = 128; map_id < layout.capacity; ++map_id)
+    if (snapshot.pages[map_id].appearance_flags != 0)
+      resident_areas.insert(snapshot.geometry[map_id].parent);
   for (int map_id = 128; map_id < layout.capacity; ++map_id) {
     const auto* map = world.overworld_map(map_id);
     const auto& raw = snapshot.pages[map_id];
@@ -165,7 +170,11 @@ absl::Status OverworldExportNativeSourceCommandHandler::Execute(
          layout.revision == 4 ? nlohmann::json(raw.appearance_bg_palette)
                               : nlohmann::json(nullptr)}};
     auto states = nlohmann::json::array();
-    for (int state = 0; state < 3; ++state) {
+    // Untouched legacy special maps can contain unused palette selectors.
+    // Resolve whole gameplay areas requiring native appearance resources;
+    // retain the raw source of every materialized special map below.
+    for (int state = 0; resident_areas.contains(map->parent()) && state < 3;
+         ++state) {
       auto resolved = *map;
       resolved.set_game_state(state);
       resolved.LoadAreaGraphics();
@@ -259,6 +268,7 @@ absl::Status OverworldExportNativeSourceCommandHandler::Execute(
   constexpr size_t kDirectorySize = 1024;
   nlohmann::json result = {
       {"schema", "yaze.special-overworld-native-source.v1"},
+      {"resolution_scope", "resident_gameplay_areas"},
       {"source_rom_sha256", source_hash},
       {"source_byte_count", rom->size()},
       {"directory_revision", layout.revision},

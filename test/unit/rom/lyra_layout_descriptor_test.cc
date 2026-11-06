@@ -1704,6 +1704,8 @@ TEST_F(NativeSpecialOverworldEditorTest, SavedNativeSourceExport) {
       for (int member : {parent, selected}) {
         fixture.bytes[fixture.Entry(7).pc_address + member] = parent;
         fixture.bytes[fixture.Entry(30).pc_address + member] = 2;
+        fixture.bytes[fixture.Entry(2).pc_address + member] = 2;
+        fixture.bytes[fixture.Entry(31).pc_address + member] = 2;
       }
       for (const auto [id, graphics] :
            {std::pair{24, 1}, std::pair{36, 2}, std::pair{39, 3}})
@@ -1747,7 +1749,7 @@ TEST_F(NativeSpecialOverworldEditorTest, SavedNativeSourceExport) {
       const auto& page = source["pages"][selected - 128];
       EXPECT_EQ(page["parent_map_id"], parent);
       EXPECT_EQ(page["tiles"].size(), 1024);
-      EXPECT_EQ(page["resolved_states"].size(), 3);
+      EXPECT_EQ(page["resolved_states"].size(), revision == 4 ? 3 : 0);
       zelda3::GameData data;
       zelda3::LoadOptions options;
       options.expand_rom = false;
@@ -1766,7 +1768,7 @@ TEST_F(NativeSpecialOverworldEditorTest, SavedNativeSourceExport) {
       ASSERT_NE(area, source["gameplay_areas"].end());
       EXPECT_EQ((*area)["size"], "wide");
       EXPECT_EQ((*area)["maps"], nlohmann::json::array({parent, selected}));
-      for (int phase = 0; phase < 3; ++phase) {
+      for (int phase = 0; revision == 4 && phase < 3; ++phase) {
         const auto& state = page["resolved_states"][phase];
         EXPECT_EQ(state["sprite_graphics"], phase + 1);
         std::vector<uint8_t> pixels(0x10000, 0);
@@ -1790,8 +1792,9 @@ TEST_F(NativeSpecialOverworldEditorTest, SavedNativeSourceExport) {
             core::ComputeSourceArtifactSha256(
                 {reinterpret_cast<const char*>(pixels.data()), pixels.size()}));
       }
-      EXPECT_NE(page["resolved_states"][0]["graphics_sha256"],
-                page["resolved_states"][1]["graphics_sha256"]);
+      if (revision == 4)
+        EXPECT_NE(page["resolved_states"][0]["graphics_sha256"],
+                  page["resolved_states"][1]["graphics_sha256"]);
       if (revision == 4) {
         EXPECT_EQ(page["source_profile"]["appearance_flags"], 3);
         EXPECT_EQ(page["source_profile"]["background_palette_words"][127],
@@ -2390,9 +2393,8 @@ TEST_F(NativeSpecialOverworldEditorTest,
   frame();
   click_widget(
       absl::StrFormat("OverworldSidebar/native_screen/m%02X/mode", page));
-  key(ImGuiKey_Home);
-  key(ImGuiKey_DownArrow);
-  key(ImGuiKey_Enter);
+  click_widget(absl::StrFormat(
+      "OverworldSidebar/native_screen/m%02X/mode_option1", page));
   EXPECT_EQ(main_screen->native_appearance_flags(), 1);
   EXPECT_EQ(world.overworld_map(0xB0)->native_appearance_flags(), 1);
   ASSERT_TRUE(editor->Undo().ok());

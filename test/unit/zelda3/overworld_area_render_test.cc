@@ -316,11 +316,16 @@ TEST(OverworldAreaRenderTest,
   data.graphics_buffer.assign(0x100 * 0x1000, 0);
   std::fill_n(data.graphics_buffer.begin(), 0x1000, 3);
   Overworld world(rom.get(), &data);
+  world.GetMapTiles(0).assign(64, std::vector<uint16_t>(32, 0));
+  const auto tile = gfx::WordToTileInfo(0);
+  world.mutable_tiles16()->emplace_back(tile, tile, tile, tile);
   auto& maps = const_cast<std::vector<OverworldMap>&>(world.overworld_maps());
   for (int map : {0, 1})
     maps.emplace_back(map, rom.get(), &data);
-  ASSERT_TRUE(world.EnsureMapBuilt(0).ok());
-  ASSERT_TRUE(world.EnsureMapBuilt(1).ok());
+  const auto built0 = world.EnsureMapBuilt(0);
+  ASSERT_TRUE(built0.ok()) << built0;
+  const auto built1 = world.EnsureMapBuilt(1);
+  ASSERT_TRUE(built1.ok()) << built1;
   EXPECT_EQ(maps[0].tileset_key(), maps[1].tileset_key());
   EXPECT_EQ(maps[0].current_graphics()[0], 0x8B);
   EXPECT_EQ(maps[1].current_graphics()[0], 0);
