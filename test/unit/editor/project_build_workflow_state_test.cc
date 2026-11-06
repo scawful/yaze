@@ -311,6 +311,37 @@ TEST_F(ProjectBuildWorkflowStateTest, ForeignViewerCannotCancelOrAdoptBuild) {
   ASSERT_OK(manager_->RunCurrentProject());
 }
 
+TEST_F(ProjectBuildWorkflowStateTest,
+       OwnerCompletionSurvivesAnotherProjectBuild) {
+  const auto a = CreateProject("HistoryOwnerA", true);
+  const auto b = CreateProject("HistoryOwnerB", true);
+  ASSERT_OK(manager_->OpenRomOrProject(a.descriptor.string()));
+  const auto a_index = manager_->GetCurrentSessionIndex();
+  manager_->QueueBuildCurrentProject();
+  ASSERT_OK(manager_->OpenRomOrProject(b.descriptor.string()));
+  const auto b_index = manager_->GetCurrentSessionIndex();
+  ASSERT_TRUE(PumpUntil([] {
+    return ContentRegistry::Context::build_workflow_status().state ==
+           ProjectWorkflowState::kIdle;
+  }));
+  EXPECT_TRUE(ContentRegistry::Context::workflow_history().empty());
+  manager_->QueueBuildCurrentProject();
+  manager_->SwitchToSession(a_index);
+  ASSERT_TRUE(PumpUntil(
+      [] { return ContentRegistry::Context::workflow_history().size() == 1; }));
+  EXPECT_EQ(ContentRegistry::Context::workflow_history()[0].status.state,
+            ProjectWorkflowState::kSuccess);
+  ASSERT_TRUE(WaitForCopiedOutput(b));
+  manager_->SwitchToSession(b_index);
+  ASSERT_TRUE(PumpUntil(
+      [] { return ContentRegistry::Context::workflow_history().size() == 2; }));
+  EXPECT_EQ(ContentRegistry::Context::workflow_history()[1].status.state,
+            ProjectWorkflowState::kSuccess);
+  // Another idle frame must not deliver either terminal event twice.
+  ASSERT_TRUE(PumpUntil([] { return true; }));
+  EXPECT_EQ(ContentRegistry::Context::workflow_history().size(), 2u);
+}
+
 TEST_F(ProjectBuildWorkflowStateTest, ClosedOwnerCannotTransferResultToReopen) {
   const auto a = CreateProject("ClosedOwner", true);
   const auto b = CreateProject("RemainingViewer");

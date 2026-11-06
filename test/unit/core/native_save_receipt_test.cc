@@ -1031,6 +1031,66 @@ TEST_F(NativeSaveReceiptTest, ContextLockDirectoryFailurePreservesPublication) {
   EXPECT_TRUE(fs::is_directory(lock_path));
 }
 
+TEST_F(NativeSaveReceiptTest,
+       CommittedReaderRejectsForeignOriginAndProjectRole) {
+  ScopedAppDataOverride app_data(temp_.path() / "app-data");
+  ASSERT_TRUE(app_data.ok());
+  AddInput("project", "project.yaze", "name=BoundProject\n");
+  const auto project = request_.artifacts.back().path;
+  receipt_path_ = project.string() + ".native-save.json";
+  request_.receipt_path = receipt_path_;
+  const auto context = GetNativeSaveContext(request_.artifacts[0].path.string(),
+                                            project.string());
+  ASSERT_TRUE(context.ok()) << context.status();
+  request_.context = *context;
+  ASSERT_NO_FATAL_FAILURE(SeedReceipt());
+  const auto read = [&] {
+    return ReadVerifiedCommittedNativeSaveIdentity(
+        request_.artifacts[0].path.string(), project.string(),
+        request_.artifacts[0].path.string());
+  };
+  ASSERT_TRUE(read().ok()) << read().status();
+  const auto original_context = ReadBytes(context->path);
+  const auto original_receipt = ReadBytes(receipt_path_);
+  auto foreign_origin = json::parse(original_context);
+  foreign_origin["editing_source_path"] =
+      JsonPathText(fs::canonical(request_.artifacts[2].path));
+  WriteBytes(context->path, foreign_origin.dump());
+  EXPECT_FALSE(read().ok());
+  WriteBytes(context->path, original_context);
+
+  auto missing = json::parse(original_receipt);
+  missing["artifacts"].erase(missing["artifacts"].end() - 1);
+  WriteBytes(receipt_path_, missing.dump());
+  EXPECT_FALSE(read().ok());
+  auto wrong = json::parse(original_receipt);
+  auto foreign_project = wrong["artifacts"][2];
+  foreign_project["role"] = "project";
+  wrong["artifacts"].back() = foreign_project;
+  WriteBytes(receipt_path_, wrong.dump());
+  EXPECT_FALSE(read().ok());
+  WriteBytes(receipt_path_, original_receipt);
+  EXPECT_TRUE(read().ok()) << read().status();
+  ExpectInputsUnchanged();
+}
+
+TEST_F(NativeSaveReceiptTest, CommittedReaderAllowsProjectlessRawRomSave) {
+  ScopedAppDataOverride app_data(temp_.path() / "app-data");
+  ASSERT_TRUE(app_data.ok());
+  const auto context =
+      GetNativeSaveContext(request_.artifacts[0].path.string(), "");
+  ASSERT_TRUE(context.ok()) << context.status();
+  request_.context = *context;
+  ASSERT_NO_FATAL_FAILURE(SeedReceipt());
+  const auto identity = ReadVerifiedCommittedNativeSaveIdentity(
+      request_.artifacts[0].path.string(), "",
+      request_.artifacts[0].path.string());
+  ASSERT_TRUE(identity.ok()) << identity.status();
+  EXPECT_EQ(identity->generation, 1u);
+  EXPECT_EQ(identity->operation_id, request_.operation_id);
+  ExpectInputsUnchanged();
+}
+
 #endif  // defined(__EMSCRIPTEN__)
 
 }  // namespace

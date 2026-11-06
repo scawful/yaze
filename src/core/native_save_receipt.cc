@@ -351,12 +351,10 @@ absl::Status VerifyCommittedNativeContextDocument(
     const std::optional<std::string>& expected_editable_rom_path) {
   ASSIGN_OR_RETURN(const auto expected_descriptor,
                    CanonicalDescriptorPath(project_descriptor_path));
-  if (!expected_descriptor.empty()) {
-    const auto& stored_project = value.at("project_path").get<std::string>();
-    if (!PathsMatchCanonical(stored_project, expected_descriptor)) {
-      return absl::FailedPreconditionError(
-          "Native save context project binding mismatch");
-    }
+  const auto& stored_project = value.at("project_path").get<std::string>();
+  if (!PathsMatchCanonical(stored_project, expected_descriptor)) {
+    return absl::FailedPreconditionError(
+        "Native save context project binding mismatch");
   }
   const auto& commit = value.at("native_commit");
   if (!expected_descriptor.empty()) {

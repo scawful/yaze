@@ -214,8 +214,7 @@ absl::Status ProjectManager::ValidatePreparedBuildOriginBinding(
         "ROM baseline changed since the build was prepared");
   }
   project::YazeProject live_project;
-  RETURN_IF_ERROR(
-      live_project.LoadFromYazeFormat(request.origin.project_descriptor_path));
+  RETURN_IF_ERROR(live_project.Open(request.origin.project_descriptor_path));
   return rom_lifecycle_->SavedBuildInputIdentityMatchesLive(
       request.saved_input, live_project, request.origin.editing_source_path,
       /*native_save_completion_pending=*/false);
@@ -346,8 +345,8 @@ absl::StatusOr<ProjectBuildAttemptResult> ProjectManager::CompleteBuildAttempt(
   result.output_path = request.resolved_output_path;
 
   project::YazeProject live_project;
-  if (const auto load_status = live_project.LoadFromYazeFormat(
-          request.origin.project_descriptor_path);
+  if (const auto load_status =
+          live_project.Open(request.origin.project_descriptor_path);
       !load_status.ok()) {
     result.terminal_state = ProjectBuildTerminalState::kFailed;
     result.process_status = load_status;
