@@ -586,7 +586,12 @@ TEST(LyraLayoutDescriptorTest, NativeGeometryPlansAcceptedAreasAndAllSizes) {
   EXPECT_EQ((*plan)[0xBF].words[0], 0x1060);
   EXPECT_EQ((*plan)[0xBF].words[3], 0x2000);
   EXPECT_EQ(image.vector(), fixture.bytes);
-  // Crossing a row or leaving a partial child group is refused as a whole.
+  // A partial old group is refused before planning any writes.
+  maps[0xB9].SetAsSmallMap(0xB9);
+  EXPECT_FALSE(zelda3::PlanExpandedOverworldGeometry(maps).ok());
+  // A horizontal area cannot wrap into the next physical row.
+  for (int i = 0; i < static_cast<int>(maps.size()); ++i)
+    maps[i].SetAsSmallMap(i);
   maps[0xA7].SetAsWideMap(0xA7, 0);
   maps[0xA8].SetAsWideMap(0xA7, 1);
   EXPECT_FALSE(zelda3::PlanExpandedOverworldGeometry(maps).ok());
@@ -640,7 +645,7 @@ TEST(LyraLayoutDescriptorTest, NativeGeometryBatchMirrorsAndReopensAtomically) {
     EXPECT_EQ(*repeated, *saved);
     // The ordinary atomic publisher retains read-only, fence and stale guards.
     {
-      rom::ScopedRomReadOnly readonly(image);
+      ScopedRomReadOnly readonly(image);
       EXPECT_FALSE(
           image.CommitNativeTerrainImage(original, original, edits).ok());
     }

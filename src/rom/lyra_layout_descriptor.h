@@ -91,7 +91,9 @@ PlanNativeOverworldSpriteSave(const std::vector<uint8_t>& baseline,
 // Explicit property edits are applied only after the terrain candidate passes
 // its ownership check. Existing native map slots are mirrored atomically;
 // Geometry requires a complete parent/size/navigation row for every changed
-// map. Roles and entity pointers are not property-write capabilities.
+// map; this low-level ownership check does not derive navigation values.
+// Model editors supply the shared geometry planner's output. Roles and entity
+// pointers are not property-write capabilities.
 absl::StatusOr<std::vector<uint8_t>> SealNativeOverworldTerrain(
     const std::vector<uint8_t>& baseline, std::vector<uint8_t> candidate,
     std::span<const NativeOverworldPropertyEdit> properties = {},
