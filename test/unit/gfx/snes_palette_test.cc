@@ -329,10 +329,10 @@ TEST(PaletteRecordResolverTest,
   } remove_file{disk_path};
   Rom::SaveSettings save;
   save.filename = disk_path.string();
-  save.save_new = true;
   ASSERT_TRUE(rom.SaveToFile(save).ok());
   Rom reopened_rom;
-  ASSERT_TRUE(reopened_rom.LoadFromFile(disk_path.string()).ok());
+  const auto reopen_status = reopened_rom.LoadFromFile(disk_path.string());
+  ASSERT_TRUE(reopen_status.ok()) << reopen_status;
   EXPECT_EQ(reopened_rom.vector(), expected);
   zelda3::GameData reopened(&reopened_rom);
   reopened.overworld_palette_layout = *layout;
