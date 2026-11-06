@@ -1178,134 +1178,142 @@ TEST_F(NativeSpecialOverworldEditorTest, NormalSaveUndoFailureAndDiskReopen) {
   const char* path = std::getenv("YAZE_TEST_ROM_OOS");
   if (!path || !std::filesystem::exists(path))
     GTEST_SKIP() << "Set YAZE_TEST_ROM_OOS for native Save/reopen";
-  const auto flags = core::FeatureFlags::get();
-  auto restore_flags =
-      absl::MakeCleanup([&] { core::FeatureFlags::get() = flags; });
-  Rom legacy;
-  ASSERT_TRUE(legacy.LoadFromData(ReadBytes(path)).ok());
-  zelda3::Overworld reference(&legacy);
-  ASSERT_TRUE(reference.Load(&legacy).ok());
-  NativeDirectoryFixture fixture;
-  fixture.SeedLoadedLegacyForModelTest(legacy, reference);
-  const auto root = test::UniqueTempPath("ow3");
-  std::filesystem::create_directories(root);
-  auto cleanup = absl::MakeCleanup([&] { std::filesystem::remove_all(root); });
-  const auto source = root / "in.sfc";
-  const auto target = root / "out.sfc";
-  WriteBytes(source, fixture.bytes);
-  auto manager = std::make_unique<editor::EditorManager>();
-  test::InitializeWithIsolatedSettings(*manager, renderer_.get());
-  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
-  manager->user_settings().prefs().backup_before_save = false;
-  const auto opened = manager->OpenRomOrProject(source.string());
-  ASSERT_TRUE(opened.ok()) << opened;
-  const auto assets =
-      manager->EnsureEditorAssetsLoaded(editor::EditorType::kOverworld);
-  ASSERT_TRUE(assets.ok()) << assets;
-  auto* editor = manager->GetCurrentEditorSet()->GetOverworldEditor();
-  ASSERT_NE(editor, nullptr);
-  ASSERT_TRUE(editor->overworld().is_loaded());
-  auto* document = manager->GetCurrentRom();
-  auto& world = editor->overworld();
-  editor->SetPreviewStoryState(1);
-  editor->SetPreviewStoryState(2);
-  const auto noop = manager->SaveRom();
-  ASSERT_TRUE(noop.ok()) << noop;
-  EXPECT_EQ(ReadBytes(source), fixture.bytes);
-  const auto initial_definitions = world.tiles32_unique();
-  auto cell = [&](int map) -> uint16_t& {
-    return world.GetMapTiles(map /
-                             64)[(map % 8) * 32 + 5][((map % 64) / 8) * 32 + 5];
-  };
-  for (int map : {0x00, 0x9F, 0xA0, 0xBF}) {
-    const uint16_t old = cell(map);
-    const uint16_t next = old == 1 ? 2 : 1;
-    const auto painted = editor->ApplyTile16Stencil(map, {{5, 5, old, next}});
-    ASSERT_TRUE(painted.ok()) << std::hex << map << ": " << painted.status();
-    ASSERT_EQ(*painted, 1);
-    EXPECT_EQ(cell(map), next);
-    ASSERT_TRUE(editor->Undo().ok());
-    EXPECT_EQ(cell(map), old);
-    ASSERT_TRUE(editor->Redo().ok());
-    EXPECT_EQ(cell(map), next);
-  }
-  auto& definition = world.mutable_tiles16()->at(1);
-  definition.tile0_.horizontal_mirror_ = !definition.tile0_.horizontal_mirror_;
-  const auto expected_tile16 = world.tiles16();
-  const std::array<zelda3::OverworldBlockset, 3> expected = {
-      world.GetMapTiles(0), world.GetMapTiles(1), world.GetMapTiles(2)};
-  const auto pending = document->vector();
-  const auto filename = document->filename();
-  {
-    test::ScopedRomStagingFailure fault;
-    const auto failed = manager->SaveRomAs(target.string());
-    EXPECT_FALSE(failed.ok());
-    EXPECT_NE(failed.message().find("staging failure injected for testing"),
-              absl::string_view::npos)
-        << failed;
-  }
-  EXPECT_EQ(document->vector(), pending);
-  EXPECT_EQ(document->filename(), filename);
-  EXPECT_TRUE(document->dirty());
-  EXPECT_FALSE(std::filesystem::exists(target));
-  EXPECT_EQ(world.tiles32_unique(), initial_definitions);
-  EXPECT_EQ(world.tiles16(), expected_tile16);
-  for (int i = 0; i < 3; ++i)
-    EXPECT_EQ(world.GetMapTiles(i), expected[i]);
-  const auto saved = manager->SaveRomAs(target.string());
-  ASSERT_TRUE(saved.ok()) << saved;
-  EXPECT_FALSE(document->dirty());
-  const auto persisted = ReadBytes(target);
-  EXPECT_EQ(ReadBytes(source), fixture.bytes);
-  EXPECT_NE(persisted, fixture.bytes);
-  auto mutable_byte = [&](size_t pc) {
-    if ((pc >= 0x1794D && pc < 0x1794D + 480) ||
-        (pc >= 0x17B2D && pc < 0x17B2D + 480) ||
-        (pc >= 0x14701C && pc < 0x147020))
-      return true;
-    for (size_t i = 0; i < fixture.rows.entries.size(); ++i) {
-      const auto& e = fixture.rows.entries[i];
-      if (e.id == 20 || e.id == 21 || (e.id >= 210 && e.id <= 213) ||
-          (e.id >= 400 && e.id <= 404)) {
-        if (pc >= e.pc_address && pc < e.pc_address + e.count * e.stride)
-          return true;
-        if (pc >= 0x147020 + i * 16 + 12 && pc < 0x147020 + i * 16 + 16)
-          return true;
-      }
+  for (int capacity : {160, 192}) {
+    SCOPED_TRACE(capacity);
+    const auto flags = core::FeatureFlags::get();
+    auto restore_flags =
+        absl::MakeCleanup([&] { core::FeatureFlags::get() = flags; });
+    Rom legacy;
+    ASSERT_TRUE(legacy.LoadFromData(ReadBytes(path)).ok());
+    zelda3::Overworld reference(&legacy);
+    ASSERT_TRUE(reference.Load(&legacy).ok());
+    NativeDirectoryFixture fixture(capacity);
+    fixture.SeedLoadedLegacyForModelTest(legacy, reference);
+    const auto root = test::UniqueTempPath("ow3");
+    std::filesystem::create_directories(root);
+    auto cleanup =
+        absl::MakeCleanup([&] { std::filesystem::remove_all(root); });
+    const auto source = root / "in.sfc";
+    const auto target = root / "out.sfc";
+    WriteBytes(source, fixture.bytes);
+    auto manager = std::make_unique<editor::EditorManager>();
+    test::InitializeWithIsolatedSettings(*manager, renderer_.get());
+    manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+    manager->user_settings().prefs().backup_before_save = false;
+    const auto opened = manager->OpenRomOrProject(source.string());
+    ASSERT_TRUE(opened.ok()) << opened;
+    const auto assets =
+        manager->EnsureEditorAssetsLoaded(editor::EditorType::kOverworld);
+    ASSERT_TRUE(assets.ok()) << assets;
+    auto* editor = manager->GetCurrentEditorSet()->GetOverworldEditor();
+    ASSERT_NE(editor, nullptr);
+    ASSERT_TRUE(editor->overworld().is_loaded());
+    auto* document = manager->GetCurrentRom();
+    auto& world = editor->overworld();
+    editor->SetPreviewStoryState(1);
+    editor->SetPreviewStoryState(2);
+    const auto noop = manager->SaveRom();
+    ASSERT_TRUE(noop.ok()) << noop;
+    EXPECT_EQ(ReadBytes(source), fixture.bytes);
+    const auto initial_definitions = world.tiles32_unique();
+    auto cell = [&](int map) -> uint16_t& {
+      return world.GetMapTiles(
+          map / 64)[(map % 8) * 32 + 5][((map % 64) / 8) * 32 + 5];
+    };
+    const std::vector<int> edited_maps =
+        capacity == 192 ? std::vector<int>{0x00, 0x9F, 0xA0, 0xBF}
+                        : std::vector<int>{0x00, 0x80, 0x9F};
+    for (int map : edited_maps) {
+      const uint16_t old = cell(map);
+      const uint16_t next = old == 1 ? 2 : 1;
+      const auto painted = editor->ApplyTile16Stencil(map, {{5, 5, old, next}});
+      ASSERT_TRUE(painted.ok()) << std::hex << map << ": " << painted.status();
+      ASSERT_EQ(*painted, 1);
+      EXPECT_EQ(cell(map), next);
+      ASSERT_TRUE(editor->Undo().ok());
+      EXPECT_EQ(cell(map), old);
+      ASSERT_TRUE(editor->Redo().ok());
+      EXPECT_EQ(cell(map), next);
     }
-    return false;
-  };
-  for (size_t pc = 0; pc < persisted.size(); ++pc)
-    if (persisted[pc] != fixture.bytes[pc])
-      ASSERT_TRUE(mutable_byte(pc)) << std::hex << pc;
-  const auto second = manager->SaveRom();
-  ASSERT_TRUE(second.ok()) << second;
-  EXPECT_EQ(ReadBytes(target), persisted);
-  // A disabled property domain stays unsaved. Re-enabling it must still
-  // notice the edit instead of silently accepting a new baseline.
-  auto* map = world.mutable_overworld_map(0xBF);
-  const auto old_message = map->message_id();
-  map->set_message_id(old_message ^ 1);
-  EXPECT_FALSE(manager->SaveRom().ok());
-  core::FeatureFlags::get().overworld.kSaveOverworldProperties = false;
-  const auto disabled = manager->SaveRom();
-  ASSERT_TRUE(disabled.ok()) << disabled;
-  core::FeatureFlags::get().overworld.kSaveOverworldProperties = true;
-  EXPECT_FALSE(manager->SaveRom().ok());
-  EXPECT_EQ(ReadBytes(target), persisted);
-  manager.reset();
-  Rom reopened;
-  ASSERT_TRUE(reopened.LoadFromFile(target.string()).ok());
-  ASSERT_EQ(reopened.InspectLyraLayout().presence,
-            rom::LyraLayoutPresence::kValid);
-  zelda3::Overworld fresh(&reopened);
-  const auto loaded = fresh.Load(&reopened);
-  ASSERT_TRUE(loaded.ok()) << loaded;
-  EXPECT_EQ(fresh.materialized_map_count(), 192);
-  EXPECT_EQ(fresh.tiles16(), expected_tile16);
-  for (int i = 0; i < 3; ++i)
-    EXPECT_EQ(fresh.GetMapTiles(i), expected[i]);
-  EXPECT_EQ(reopened.vector(), persisted);
+    auto& definition = world.mutable_tiles16()->at(1);
+    definition.tile0_.horizontal_mirror_ =
+        !definition.tile0_.horizontal_mirror_;
+    const auto expected_tile16 = world.tiles16();
+    const std::array<zelda3::OverworldBlockset, 3> expected = {
+        world.GetMapTiles(0), world.GetMapTiles(1), world.GetMapTiles(2)};
+    const auto pending = document->vector();
+    const auto filename = document->filename();
+    {
+      test::ScopedRomStagingFailure fault;
+      const auto failed = manager->SaveRomAs(target.string());
+      EXPECT_FALSE(failed.ok());
+      EXPECT_NE(failed.message().find("staging failure injected for testing"),
+                absl::string_view::npos)
+          << failed;
+    }
+    EXPECT_EQ(document->vector(), pending);
+    EXPECT_EQ(document->filename(), filename);
+    EXPECT_TRUE(document->dirty());
+    EXPECT_FALSE(std::filesystem::exists(target));
+    EXPECT_EQ(world.tiles32_unique(), initial_definitions);
+    EXPECT_EQ(world.tiles16(), expected_tile16);
+    for (int i = 0; i < 3; ++i)
+      EXPECT_EQ(world.GetMapTiles(i), expected[i]);
+    const auto saved = manager->SaveRomAs(target.string());
+    ASSERT_TRUE(saved.ok()) << saved;
+    EXPECT_FALSE(document->dirty());
+    const auto persisted = ReadBytes(target);
+    EXPECT_EQ(ReadBytes(source), fixture.bytes);
+    EXPECT_NE(persisted, fixture.bytes);
+    auto mutable_byte = [&](size_t pc) {
+      if ((pc >= 0x1794D && pc < 0x1794D + 480) ||
+          (pc >= 0x17B2D && pc < 0x17B2D + 480) ||
+          (pc >= 0x14701C && pc < 0x147020))
+        return true;
+      for (size_t i = 0; i < fixture.rows.entries.size(); ++i) {
+        const auto& e = fixture.rows.entries[i];
+        if (e.id == 20 || e.id == 21 || (e.id >= 210 && e.id <= 213) ||
+            (e.id >= 400 && e.id <= 404)) {
+          if (pc >= e.pc_address && pc < e.pc_address + e.count * e.stride)
+            return true;
+          if (pc >= 0x147020 + i * 16 + 12 && pc < 0x147020 + i * 16 + 16)
+            return true;
+        }
+      }
+      return false;
+    };
+    for (size_t pc = 0; pc < persisted.size(); ++pc)
+      if (persisted[pc] != fixture.bytes[pc])
+        ASSERT_TRUE(mutable_byte(pc)) << std::hex << pc;
+    const auto second = manager->SaveRom();
+    ASSERT_TRUE(second.ok()) << second;
+    EXPECT_EQ(ReadBytes(target), persisted);
+    // A disabled property domain stays unsaved. Re-enabling it must still
+    // notice the edit instead of silently accepting a new baseline.
+    auto* map = world.mutable_overworld_map(capacity - 1);
+    const auto old_message = map->message_id();
+    map->set_message_id(old_message ^ 1);
+    EXPECT_FALSE(manager->SaveRom().ok());
+    core::FeatureFlags::get().overworld.kSaveOverworldProperties = false;
+    const auto disabled = manager->SaveRom();
+    ASSERT_TRUE(disabled.ok()) << disabled;
+    core::FeatureFlags::get().overworld.kSaveOverworldProperties = true;
+    EXPECT_FALSE(manager->SaveRom().ok());
+    EXPECT_EQ(ReadBytes(target), persisted);
+    manager.reset();
+    Rom reopened;
+    ASSERT_TRUE(reopened.LoadFromFile(target.string()).ok());
+    ASSERT_EQ(reopened.InspectLyraLayout().presence,
+              rom::LyraLayoutPresence::kValid);
+    zelda3::Overworld fresh(&reopened);
+    const auto loaded = fresh.Load(&reopened);
+    ASSERT_TRUE(loaded.ok()) << loaded;
+    EXPECT_EQ(fresh.materialized_map_count(), capacity);
+    EXPECT_EQ(fresh.tiles16(), expected_tile16);
+    for (int i = 0; i < 3; ++i)
+      EXPECT_EQ(fresh.GetMapTiles(i), expected[i]);
+    EXPECT_EQ(reopened.vector(), persisted);
+  }
 }
 
 class LyraA0EditorTest : public test::HeadlessEditorTest {};
