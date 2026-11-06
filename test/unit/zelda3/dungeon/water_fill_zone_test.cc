@@ -202,9 +202,13 @@ TEST(WaterFillZoneTest, FullD4PoolsUseWordCountsAndRoundTrip) {
   EXPECT_EQ((*loaded)[1].fill_offsets, peer.fill_offsets);
   TempFile saved;
   ASSERT_FALSE(saved.path.empty());
-  ASSERT_TRUE(rom->SaveToFile({.save_new = true, .filename = saved.path}).ok());
+  // save_new selects a different timestamped destination. This round trip
+  // writes the explicit owned path that the fresh ROM instance will reopen.
+  ASSERT_TRUE(rom->SaveToFile({.filename = saved.path}).ok());
+  ASSERT_EQ(std::filesystem::file_size(saved.path), rom->size());
   Rom reopened;
-  ASSERT_TRUE(reopened.LoadFromFile(saved.path).ok());
+  const auto reopen_status = reopened.LoadFromFile(saved.path);
+  ASSERT_TRUE(reopen_status.ok()) << reopen_status;
   const auto from_disk = LoadWaterFillTable(&reopened);
   ASSERT_TRUE(from_disk.ok()) << from_disk.status();
   ASSERT_EQ(from_disk->size(), 2u);
