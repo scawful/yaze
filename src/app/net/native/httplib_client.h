@@ -104,13 +104,6 @@ class HttpLibClient : public IHttpClient {
       const std::string& host,
       int port);
 
-  /**
-   * @brief Convert httplib headers to our Headers type
-   * @param httplib_headers httplib header structure
-   * @return Headers map
-   */
-  Headers ConvertHeaders(const void* httplib_headers) const;
-
   // Cache clients per host to avoid reconnection overhead
   std::map<std::string, std::shared_ptr<httplib::Client>> client_cache_;
 };

@@ -2,32 +2,53 @@
 
 #include <regex>
 
-#include "util/macro.h"  // For RETURN_IF_ERROR and ASSIGN_OR_RETURN
+#include "util/macro.h"
 
-// Include httplib with appropriate settings
-#ifdef CPPHTTPLIB_OPENSSL_SUPPORT
-#define CPPHTTPLIB_OPENSSL_SUPPORT
-#endif
 #include "httplib.h"
 
 namespace yaze {
 namespace net {
 
-HttpLibClient::HttpLibClient() {
-  // Constructor
+namespace {
+
+httplib::Headers ToHttplibHeaders(const Headers& headers) {
+  httplib::Headers result;
+  for (const auto& [key, value] : headers) {
+    result.emplace(key, value);
+  }
+  return result;
 }
 
-HttpLibClient::~HttpLibClient() {
-  // Cleanup cached clients
-  client_cache_.clear();
+// Returns the request's Content-Type, adding application/json when absent.
+std::string EnsureContentType(httplib::Headers& headers) {
+  auto it = headers.find("Content-Type");
+  if (it == headers.end()) {
+    it = headers.emplace("Content-Type", "application/json");
+  }
+  return it->second;
 }
+
+HttpResponse ToHttpResponse(const httplib::Response& res) {
+  HttpResponse response;
+  response.status_code = res.status;
+  response.body = res.body;
+  for (const auto& header : res.headers) {
+    response.headers[header.first] = header.second;
+  }
+  return response;
+}
+
+}  // namespace
+
+HttpLibClient::HttpLibClient() = default;
+
+HttpLibClient::~HttpLibClient() = default;
 
 absl::Status HttpLibClient::ParseUrl(const std::string& url,
                                      std::string& scheme,
                                      std::string& host,
                                      int& port,
                                      std::string& path) const {
-  // Basic URL regex pattern
   std::regex url_regex(R"(^(https?):\/\/([^:\/\s]+)(?::(\d+))?(\/.*)?$)");
   std::smatch matches;
 
@@ -38,14 +59,12 @@ absl::Status HttpLibClient::ParseUrl(const std::string& url,
   scheme = matches[1].str();
   host = matches[2].str();
 
-  // Parse port or use defaults
   if (matches[3].matched) {
     port = std::stoi(matches[3].str());
   } else {
     port = (scheme == "https") ? 443 : 80;
   }
 
-  // Parse path (default to "/" if empty)
   path = matches[4].matched ? matches[4].str() : "/";
 
   return absl::OkStatus();
@@ -55,17 +74,13 @@ absl::StatusOr<std::shared_ptr<httplib::Client>> HttpLibClient::GetOrCreateClien
     const std::string& scheme,
     const std::string& host,
     int port) {
-
-  // Create cache key
   std::string cache_key = scheme + "://" + host + ":" + std::to_string(port);
 
-  // Check if client exists in cache
   auto it = client_cache_.find(cache_key);
   if (it != client_cache_.end() && it->second) {
     return it->second;
   }
 
-  // Create new client
   std::shared_ptr<httplib::Client> client;
 
   if (scheme == "https") {
@@ -86,180 +101,85 @@ absl::StatusOr<std::shared_ptr<httplib::Client>> HttpLibClient::GetOrCreateClien
     return absl::InternalError("Failed to create HTTP client");
   }
 
-  // Set timeout from base class
   client->set_connection_timeout(timeout_seconds_);
   client->set_read_timeout(timeout_seconds_);
   client->set_write_timeout(timeout_seconds_);
 
-  // Cache the client
   client_cache_[cache_key] = client;
 
   return client;
 }
 
-Headers HttpLibClient::ConvertHeaders(const void* httplib_headers) const {
-  Headers result;
-
-  if (httplib_headers) {
-    const auto& headers = *static_cast<const httplib::Headers*>(httplib_headers);
-    for (const auto& header : headers) {
-      result[header.first] = header.second;
-    }
-  }
-
-  return result;
-}
-
 absl::StatusOr<HttpResponse> HttpLibClient::Get(
     const std::string& url,
     const Headers& headers) {
-
   std::string scheme, host, path;
   int port;
-
   RETURN_IF_ERROR(ParseUrl(url, scheme, host, port, path));
+  ASSIGN_OR_RETURN(auto client, GetOrCreateClient(scheme, host, port));
 
-  auto client_or = GetOrCreateClient(scheme, host, port);
-  ASSIGN_OR_RETURN(auto client, client_or);
-
-  // Convert headers to httplib format
-  httplib::Headers httplib_headers;
-  for (const auto& [key, value] : headers) {
-    httplib_headers.emplace(key, value);
-  }
-
-  // Perform GET request
-  auto res = client->Get(path.c_str(), httplib_headers);
-
+  auto res = client->Get(path.c_str(), ToHttplibHeaders(headers));
   if (!res) {
     return absl::UnavailableError("HTTP GET request failed: " + url);
   }
-
-  HttpResponse response;
-  response.status_code = res->status;
-  response.body = res->body;
-  response.headers = ConvertHeaders(&res->headers);
-
-  return response;
+  return ToHttpResponse(*res);
 }
 
 absl::StatusOr<HttpResponse> HttpLibClient::Post(
     const std::string& url,
     const std::string& body,
     const Headers& headers) {
-
   std::string scheme, host, path;
   int port;
-
   RETURN_IF_ERROR(ParseUrl(url, scheme, host, port, path));
+  ASSIGN_OR_RETURN(auto client, GetOrCreateClient(scheme, host, port));
 
-  auto client_or = GetOrCreateClient(scheme, host, port);
-  ASSIGN_OR_RETURN(auto client, client_or);
-
-  // Convert headers to httplib format
-  httplib::Headers httplib_headers;
-  for (const auto& [key, value] : headers) {
-    httplib_headers.emplace(key, value);
-  }
-
-  // Set Content-Type if not provided
-  if (httplib_headers.find("Content-Type") == httplib_headers.end()) {
-    httplib_headers.emplace("Content-Type", "application/json");
-  }
-
-  // Perform POST request
-  auto res = client->Post(path.c_str(), httplib_headers, body,
-                         httplib_headers.find("Content-Type")->second);
-
+  httplib::Headers httplib_headers = ToHttplibHeaders(headers);
+  std::string content_type = EnsureContentType(httplib_headers);
+  auto res = client->Post(path.c_str(), httplib_headers, body, content_type);
   if (!res) {
     return absl::UnavailableError("HTTP POST request failed: " + url);
   }
-
-  HttpResponse response;
-  response.status_code = res->status;
-  response.body = res->body;
-  response.headers = ConvertHeaders(&res->headers);
-
-  return response;
+  return ToHttpResponse(*res);
 }
 
 absl::StatusOr<HttpResponse> HttpLibClient::Put(
     const std::string& url,
     const std::string& body,
     const Headers& headers) {
-
   std::string scheme, host, path;
   int port;
-
   RETURN_IF_ERROR(ParseUrl(url, scheme, host, port, path));
+  ASSIGN_OR_RETURN(auto client, GetOrCreateClient(scheme, host, port));
 
-  auto client_or = GetOrCreateClient(scheme, host, port);
-  ASSIGN_OR_RETURN(auto client, client_or);
-
-  // Convert headers to httplib format
-  httplib::Headers httplib_headers;
-  for (const auto& [key, value] : headers) {
-    httplib_headers.emplace(key, value);
-  }
-
-  // Set Content-Type if not provided
-  if (httplib_headers.find("Content-Type") == httplib_headers.end()) {
-    httplib_headers.emplace("Content-Type", "application/json");
-  }
-
-  // Perform PUT request
-  auto res = client->Put(path.c_str(), httplib_headers, body,
-                        httplib_headers.find("Content-Type")->second);
-
+  httplib::Headers httplib_headers = ToHttplibHeaders(headers);
+  std::string content_type = EnsureContentType(httplib_headers);
+  auto res = client->Put(path.c_str(), httplib_headers, body, content_type);
   if (!res) {
     return absl::UnavailableError("HTTP PUT request failed: " + url);
   }
-
-  HttpResponse response;
-  response.status_code = res->status;
-  response.body = res->body;
-  response.headers = ConvertHeaders(&res->headers);
-
-  return response;
+  return ToHttpResponse(*res);
 }
 
 absl::StatusOr<HttpResponse> HttpLibClient::Delete(
     const std::string& url,
     const Headers& headers) {
-
   std::string scheme, host, path;
   int port;
-
   RETURN_IF_ERROR(ParseUrl(url, scheme, host, port, path));
+  ASSIGN_OR_RETURN(auto client, GetOrCreateClient(scheme, host, port));
 
-  auto client_or = GetOrCreateClient(scheme, host, port);
-  ASSIGN_OR_RETURN(auto client, client_or);
-
-  // Convert headers to httplib format
-  httplib::Headers httplib_headers;
-  for (const auto& [key, value] : headers) {
-    httplib_headers.emplace(key, value);
-  }
-
-  // Perform DELETE request
-  auto res = client->Delete(path.c_str(), httplib_headers);
-
+  auto res = client->Delete(path.c_str(), ToHttplibHeaders(headers));
   if (!res) {
     return absl::UnavailableError("HTTP DELETE request failed: " + url);
   }
-
-  HttpResponse response;
-  response.status_code = res->status;
-  response.body = res->body;
-  response.headers = ConvertHeaders(&res->headers);
-
-  return response;
+  return ToHttpResponse(*res);
 }
 
 void HttpLibClient::SetTimeout(int timeout_seconds) {
   IHttpClient::SetTimeout(timeout_seconds);
 
-  // Clear client cache to force recreation with new timeout
+  // Cached clients keep the timeout they were created with.
   client_cache_.clear();
 }
 
