@@ -50,6 +50,7 @@ $checks = @{
   jobs = '^[0-9]*$'; clean = '^[01]$'; ccache = '^[01]?$'
   bundle = '^[A-Za-z0-9._-]*$'; bundle_ref = '^(refs/[A-Za-z0-9._/-]+)?$'
   origin = '^(https://[A-Za-z0-9._/-]+)?$'; max_worktrees = '^[0-9]+$'; lock_wait_min = '^[0-9]+$'
+  oos_rom_sha = '^([0-9a-f]{64})?$'
 }
 foreach ($k in $checks.Keys) {
   if (-not $job.ContainsKey($k)) { $job[$k] = '' }
@@ -64,6 +65,21 @@ $Tools = Join-Path $Home_ 'tools'
 $Wt = Join-Path $WtRoot $job.slug
 $BuildDir = Join-Path $Wt "build\presets\$($job.preset)"
 $times = [ordered]@{}
+
+# Verify the job-owned fixture before sync/compilation; never a user project.
+$oosRom = $null
+if ($job.oos_rom_sha) {
+  $oosRom = Join-Path $JobDir 'test-rom.sfc'
+  if (-not (Test-Path -LiteralPath $oosRom -PathType Leaf)) { Fail 3 'Oracle test fixture missing' }
+  try { $oosHash = (Get-FileHash -LiteralPath $oosRom -Algorithm SHA256 -ErrorAction Stop).Hash.ToLowerInvariant() }
+  catch { Fail 3 'Oracle test fixture could not be read' }
+  if ($oosHash -ne $job.oos_rom_sha) {
+    Fail 3 'Oracle test fixture SHA-256 mismatch'
+  }
+  [ordered]@{path = $oosRom; sha256 = $job.oos_rom_sha} | ConvertTo-Json |
+    Set-Content (Join-Path $Out 'oos-rom.json')
+  Say "Oracle test fixture verified: $($job.oos_rom_sha)"
+}
 
 # --- lock: one build at a time on this machine ---------------------------------
 # An exclusive file handle; Windows releases it when this process exits.
@@ -228,6 +244,7 @@ $env:TEMP = $env:TMP = $testHome          # the isolation test wants docs under 
 $env:YAZE_USER_DOCUMENTS_DIR = Join-Path $testHome 'documents'
 $env:YAZE_APP_DATA_DIR = Join-Path $testHome 'appdata'
 New-Item -ItemType Directory -Force -Path $env:YAZE_USER_DOCUMENTS_DIR, $env:YAZE_APP_DATA_DIR | Out-Null
+if ($oosRom) { $env:YAZE_TEST_ROM_OOS = $oosRom }
 $junit = Join-Path $Out 'junit.xml'
 $sw.Restart()
 if ($job.mode -eq 'unit' -or $job.mode -eq 'stable') {
@@ -252,6 +269,11 @@ if ($job.mode -eq 'unit' -or $job.mode -eq 'stable') {
   Pop-Location
 }
 $times.test_s = [math]::Round($sw.Elapsed.TotalSeconds, 1)
+if ($oosRom) {
+  try { $oosHash = (Get-FileHash -LiteralPath $oosRom -Algorithm SHA256 -ErrorAction Stop).Hash.ToLowerInvariant() }
+  catch { Fail 1 'Oracle test fixture could not be read after testing' }
+  if ($oosHash -ne $job.oos_rom_sha) { Fail 1 'Tests changed the supplied Oracle fixture' }
+}
 if ($job.mode -ne 'build') {
   $tail = Select-String -Path $testLog -CaseSensitive -Pattern '% tests passed|\[  PASSED  \]|\[  FAILED  \] \d' |
     Select-Object -Last 1

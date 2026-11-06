@@ -15,6 +15,8 @@ scripts/remote/mm-test.sh <branch> \
   --gtest-args '--gtest_shuffle --gtest_random_seed=1'           # whole binary, one process, shuffled
 scripts/remote/mm-test.sh <branch> --full                        # ctest label "stable" (unit + integration)
 scripts/remote/mm-test.sh <branch> --target z3ed                 # build only
+scripts/remote/mm-test.sh <branch> --oos-rom /private/candidate.sfc \
+  --filter 'OverworldRomBuildTest.ChangedNativeTerrainNormalSaveFreshReopenPreservesAllMaps'
 scripts/remote/mm-test.sh <branch> --clean --no-ccache           # cold rebuild (timings)
 scripts/remote/mm-test.sh --help
 ```
@@ -32,6 +34,13 @@ script prints which box it picked; the result paths are the same either way.
 Exit codes: `0` pass, `1` test failures (or every test skipped), `2` configure
 or build failure, `3` setup/usage/SSH error or build-lock timeout. A cold first build of a new branch takes several
 minutes; run it in the background rather than inside a short tool timeout.
+
+`--oos-rom` copies the selected ROM directly to the private remote job directory
+as `test-rom.sfc`, sets `YAZE_TEST_ROM_OOS` for that job, and records its SHA-256
+in `out/oos-rom.json`. The runner checks the copied bytes before compilation
+and checks they remain unchanged after testing. It does not edit the source ROM
+or stage a playtest. ROM fixtures and their evidence are retained under the
+existing protected-data policy.
 
 ## How it works
 

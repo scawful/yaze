@@ -17,6 +17,7 @@
 #   --no-ccache              compile without ccache (cold timings, cache debugging)
 #   --preset <name>          CMake configure preset (default: ci-windows)
 #   --out <dir>              local results dir (default: build/remote-mm/<slug>)
+#   --oos-rom <path>         copy a SHA-256-bound private Oracle test fixture
 # Default (no options): build yaze_test_unit and run ctest label "unit".
 #
 # Works for local-only branches: the commits the PC lacks travel as a git bundle.
@@ -36,6 +37,7 @@ host="${MM_HOST:-}"
 remote_root="${MM_REMOTE_ROOT:-src/yaze-remote}"
 preset="ci-windows"
 ref="" filter="" gtest_args="" full=0 clean=0 ccache=1 jobs="" out_dir="" targets=()
+oos_rom="" oos_rom_sha256=""
 while [[ $# -gt 0 ]]; do
   case "$1" in
     -h|--help) usage 0 ;;
@@ -48,6 +50,7 @@ while [[ $# -gt 0 ]]; do
     --no-ccache) ccache=0; shift ;;
     --preset) preset="${2:?--preset needs a value}"; shift 2 ;;
     --out) out_dir="${2:?--out needs a value}"; shift 2 ;;
+    --oos-rom) oos_rom="${2:?--oos-rom needs a path}"; shift 2 ;;
     -*) die "unknown option $1 (see --help)" ;;
     *) [[ -z "$ref" ]] || die "only one ref allowed"; ref="$1"; shift ;;
   esac
@@ -57,6 +60,15 @@ done
 gtest_args_re='^[A-Za-z0-9_=,.:/ -]*$'
 [[ "$gtest_args" =~ $gtest_args_re ]] || die "gtest-args may only use [A-Za-z0-9_=,.:/ -]"
 [[ "$jobs" =~ ^[0-9]*$ ]] || die "--jobs must be a number"
+if [[ -n "$oos_rom" ]]; then
+  [[ -f "$oos_rom" ]] || die "Oracle test fixture not found: $oos_rom"
+  oos_rom_sha256="$(python3 - "$oos_rom" <<'PY'
+import hashlib, sys
+with open(sys.argv[1], 'rb') as source:
+    print(hashlib.file_digest(source, 'sha256').hexdigest())
+PY
+)"
+fi
 
 # Prints FREE or BUSY for a box's build lock; UNPREPARED if build tools are missing;
 # fails if the box is unreachable.
@@ -147,11 +159,16 @@ bundle_ref=${bundle:+$tmp_ref}
 origin=$origin
 max_worktrees=${MM_MAX_WORKTREES:-8}
 lock_wait_min=${MM_LOCK_WAIT_MIN:-120}
+oos_rom_sha=$oos_rom_sha256
 who=$(whoami)@$(hostname -s)
 EOF
 files=("$(dirname "$0")/mm-build.ps1" "$tmp/job.txt")
 [[ -n "$bundle" ]] && files+=("$tmp/mm.bundle")
 scp -q -o BatchMode=yes -o LogLevel=ERROR "${files[@]}" "$host:$remote_job/" || die "scp to $host failed"
+if [[ -n "$oos_rom" ]]; then
+  scp -q -o BatchMode=yes -o LogLevel=ERROR "$oos_rom" "$host:$remote_job/test-rom.sfc" \
+    || die "Oracle fixture copy to $host failed"
+fi
 
 # 2. Sync, build and test on the PC (holds the PC-side lock).
 echo "[mac] $ref -> $slug @ ${sha:0:12} on $host (mode=$mode, targets=${targets[*]})"
