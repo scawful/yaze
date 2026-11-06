@@ -58,8 +58,6 @@ DRY_RUN=false
 legacy_app_aliases=(
   "/Applications/Yaze.app"
   "$HOME/Applications/Yaze.app"
-  "$HOME/Applications/Yaze Nightly.app"
-  "$HOME/Applications/yaze nightly.app"
 )
 
 while [[ $# -gt 0 ]]; do

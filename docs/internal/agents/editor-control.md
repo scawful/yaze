@@ -46,6 +46,11 @@ and `--editor_control`; follow the native isolation policy and use background
 launch (`open -g` on macOS), without activation or Space focus. Do not use the
 client's ordinary `--launch` as a background-launch guarantee.
 
+On macOS, also pass `--env SDL_MAC_BACKGROUND_APP=1` to `open`. SDL2 otherwise
+activates the Dock and its application during startup, even with `open -g`.
+For native window checks, retain a regular app bundle with a unique executable
+name so the exact-app floating/below rule can match its accessible window.
+
 Each workflow request requires an `expected` object copied from a retained
 successful status response: `pid`, `session_id`, `project_path`, `rom_path` and
 `rom_sha256`. Paths are absolute and the hash is lowercase SHA-256. A stale
@@ -98,7 +103,7 @@ build admission without its own successful build for the current saved inputs.
 Example Oracle Mesen launcher (private instance; adjust profile/socket paths):
 
 ```ini
-run_script=./Scripts/Mesen2/mesen2_launch_instance.sh --load "$YAZE_PROJECT_OUTPUT"
+run_script=./Scripts/Mesen2/mesen2_launch_instance.sh --instance yaze-project --rom "$YAZE_PROJECT_OUTPUT" --home "$HOME/Library/Application Support/Mesen2-instances/yaze-project" --socket /tmp/mesen2-yaze-project.sock
 ```
 
 A command waiting more than five seconds to begin is cancelled and cannot run
