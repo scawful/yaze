@@ -719,9 +719,7 @@ absl::StatusOr<ChatMessage> ConversationalAgentService::SendMessage(
       }
 
       if (executed_tool) {
-        // Now we're waiting for the LLM to provide a text response
         waiting_for_text_response = true;
-        // Re-query the AI with updated context.
         continue;
       }
     }
@@ -984,11 +982,8 @@ std::string ConversationalAgentService::InjectLearnedContext(
     context << absl::StrJoin(pref_strings, ", ") << "]\n";
   }
 
-  // Add ROM-specific patterns
-  if (rom_context_ && rom_context_->is_loaded()) {
-    // TODO: Get ROM hash
-    // auto patterns = learned_knowledge_.QueryPatterns("", rom_hash);
-  }
+  // TODO: Add ROM-specific patterns via learned_knowledge_.QueryPatterns()
+  // once a ROM hash is available here.
 
   // Add recent relevant memories
   std::vector<std::string> keywords;
@@ -1032,11 +1027,7 @@ std::string ConversationalAgentService::InjectPretraining() {
 
 ChatMessage ConversationalAgentService::EnhanceResponse(
     const ChatMessage& response, const std::string& user_message) {
-  // Use AdvancedRouter to enhance tool-based responses
-  // This would synthesize multi-tool results into coherent insights
-
-  // For now, return response as-is
-  // TODO: Integrate AdvancedRouter here
+  // TODO: Integrate AdvancedRouter to synthesize multi-tool results.
   return response;
 }
 #endif  // Z3ED_AI

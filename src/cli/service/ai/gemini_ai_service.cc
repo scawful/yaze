@@ -408,11 +408,9 @@ absl::StatusOr<AgentResponse> GeminiAIService::GenerateResponse(
   // Gemini supports multi-turn conversations via the contents array
   std::string prompt = prompt_builder_.BuildPromptFromHistory(history);
 
-  // Skip availability check - causes segfault with current SSL setup
+  // CheckAvailability() is not called here: it segfaults with the current
+  // SSL/TLS setup.
   // TODO: Fix SSL/TLS initialization issue
-  // if (auto status = CheckAvailability(); !status.ok()) {
-  //   return status;
-  // }
 
   if (config_.api_key.empty()) {
     return absl::FailedPreconditionError("Gemini API key not configured");

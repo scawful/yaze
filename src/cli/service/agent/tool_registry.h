@@ -34,7 +34,7 @@ struct ToolDefinition {
   std::string usage;
   std::vector<std::string> examples;
   bool requires_rom = false;
-  bool requires_project = false;  // New: distinguish project vs ROM dependency
+  bool requires_project = false;
   ToolAccess access = ToolAccess::kReadOnly;
   std::vector<std::string> required_args;
   std::vector<std::string> flag_args;

@@ -19,18 +19,14 @@ class Rom;
 namespace cli {
 namespace agent {
 
-// ToolCallType enum (moved to ToolRegistry for better cohesion)
-// Removed here.
-
 class ToolDispatcher {
  public:
-  // ToolPreferences (remains here)
   struct ToolPreferences {
     bool resources = true;
     bool dungeon = true;
     bool overworld = true;
     bool messages = true;
-    bool dialogue = true;  // Added missing dialogue
+    bool dialogue = true;
     bool gui = true;
     bool music = true;
     bool sprite = true;
@@ -40,7 +36,7 @@ class ToolDispatcher {
     bool emulator = false;
 #endif
     bool filesystem = true;
-    bool build = true;  // Placeholder for future build tools
+    bool build = true;
     bool memory_inspector = true;
     bool test_helpers = true;
     bool meta_tools = true;  // tools-list, tools-describe, tools-search
@@ -60,7 +56,7 @@ class ToolDispatcher {
     std::string usage;
     std::vector<std::string> examples;
     bool requires_rom;
-    bool requires_project;  // New: distinguish project vs ROM dependency
+    bool requires_project;
     bool requires_authorization;
     std::vector<std::string> required_args;
     std::vector<std::string> flag_args;
@@ -141,8 +137,8 @@ class ToolDispatcher {
   absl::StatusOr<std::string> DispatchMetaTool(const ToolCall& call) const;
 
   Rom* rom_context_ = nullptr;
-  project::YazeProject* project_context_ = nullptr;  // New: Project context
-  core::AsarWrapper* asar_wrapper_ = nullptr;  // New: Asar wrapper context
+  project::YazeProject* project_context_ = nullptr;
+  core::AsarWrapper* asar_wrapper_ = nullptr;
   const std::map<std::string, core::AsarSymbol>* assembly_symbol_table_ =
       nullptr;  // Backend-agnostic symbol source (preferred)
   // Lazy snapshot of asar_wrapper_->GetSymbolTable() used when no explicit
