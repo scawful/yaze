@@ -1866,6 +1866,7 @@ absl::Status OverworldEditor::ApplyOverworldPropertyEdits(
       return absl::FailedPreconditionError(
           "Finish the entity drag before changing map properties");
     ASSIGN_OR_RETURN(auto before, overworld_.CaptureNativeAreaSnapshot());
+    const bool dirty_before = overworld_.rom()->dirty();
     for (const auto& edit : edits) {
       if (!map_properties_system_->CheckPropertyEditSupported(edit).ok())
         continue;
@@ -1877,12 +1878,15 @@ absl::Status OverworldEditor::ApplyOverworldPropertyEdits(
         if (!restored.ok())
           return absl::InternalError(absl::StrCat(
               applied.message(), "; rollback: ", restored.message()));
+        overworld_.rom()->set_dirty(dirty_before);
         return applied;
       }
     }
     ASSIGN_OR_RETURN(auto after, overworld_.CaptureNativeAreaSnapshot());
-    if (after == before)
+    if (after == before) {
+      overworld_.rom()->set_dirty(dirty_before);
       return absl::OkStatus();
+    }
     RefreshNativeAreaEditState();
     if (record_undo) {
       undo_manager_.Push(std::make_unique<OverworldAreaEditAction>(

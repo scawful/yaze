@@ -152,13 +152,16 @@ absl::Status Overworld::RestoreNativeAreaSnapshot(
         snapshot.loaded_sprite_maps[phase].size() != overworld_maps_.size())
       return absl::FailedPreconditionError(
           "Native sprite row identity changed after resizing");
-    for (const auto& sprite : snapshot.sprites[phase])
+    for (size_t row = 0; row < snapshot.sprites[phase].size(); ++row) {
+      const auto& sprite = snapshot.sprites[phase][row];
       if (sprite.owner >= snapshot.geometry.size() || sprite.x >= 64 ||
           sprite.y >= 64 ||
-          snapshot.geometry[sprite.owner].parent != sprite.owner ||
-          !snapshot.loaded_sprite_maps[phase][sprite.owner])
+          (!all_sprites_[phase][row].deleted() &&
+           (snapshot.geometry[sprite.owner].parent != sprite.owner ||
+            !snapshot.loaded_sprite_maps[phase][sprite.owner])))
         return absl::InvalidArgumentError(
             "Invalid native sprite ownership snapshot");
+    }
   }
   // No allocation, reader or file is mutated here. All checks precede the
   // synchronous model change, so a refused Undo leaves the current edit intact.
@@ -189,6 +192,7 @@ absl::Status Overworld::RestoreNativeAreaSnapshot(
     }
   }
   ApplyNativeAreaProfiles();
+  rom_->set_dirty(true);
   return absl::OkStatus();
 }
 
@@ -277,7 +281,7 @@ absl::Status Overworld::ConfigureNativeMultiAreaMap(int parent,
     }
     for (size_t row = 0; row < all_sprites_[phase].size(); ++row) {
       const auto& sprite = all_sprites_[phase][row];
-      if (!touches(sprite.map_id()))
+      if (sprite.deleted() || !touches(sprite.map_id()))
         continue;
       if (sprite.x() < 0 || sprite.x() >= 4096 || sprite.y() < 0 ||
           sprite.y() >= 4096 || sprite.x() % 16 || sprite.y() % 16)
@@ -314,7 +318,7 @@ absl::Status Overworld::ConfigureNativeMultiAreaMap(int parent,
         for (size_t row = 0; row < all_sprites_[phase].size(); ++row) {
           const auto& sprite = all_sprites_[phase][row];
           if (!matched[row] && !sprite.deleted() &&
-              sprite.map_id() / 64 == i / 64 && sprite.x() == x &&
+              sprite.map_id() == before[i].parent && sprite.x() == x &&
               sprite.y() == y && sprite.id() == dormant[pos + 2] &&
               sprite.overworld_x_flags() == (dormant[pos + 1] & 0xC0) &&
               sprite.overworld_y_flags() == (dormant[pos] & 0xC0)) {
@@ -365,13 +369,12 @@ Overworld::PrepareNativeGeometrySave() const {
 
 absl::Status Overworld::ValidateNativeGeometrySaveFlags() const {
   const auto& flags = core::FeatureFlags::get().overworld;
-  if (!flags.kSaveOverworldProperties && !flags.kSaveOverworldSprites)
-    return absl::OkStatus();
   ASSIGN_OR_RETURN(const auto geometry, PrepareNativeGeometrySave());
   if (!geometry.empty() &&
-      flags.kSaveOverworldProperties != flags.kSaveOverworldSprites)
+      (!flags.kSaveOverworldProperties || !flags.kSaveOverworldSprites))
     return absl::FailedPreconditionError(
-        "Save area geometry and sprites together, or leave both pending");
+        "Enable both area-property and sprite saving to publish pending "
+        "geometry");
   return absl::OkStatus();
 }
 }  // namespace yaze::zelda3

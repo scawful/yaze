@@ -1945,8 +1945,8 @@ TEST_F(NativeSpecialOverworldEditorTest, NormalSaveUndoFailureAndDiskReopen) {
     const auto second = manager->SaveRom();
     ASSERT_TRUE(second.ok()) << second;
     EXPECT_EQ(ReadBytes(target), persisted);
-    // A disabled property domain stays unsaved. Re-enabling it must still
-    // notice the edit instead of silently accepting a new baseline.
+    // Geometry cannot be masked by disabling its property writer. It must
+    // stay pending and refuse publication until the coupled edit is valid.
     auto* map = world.mutable_overworld_map(capacity - 1);
     const auto old_size = map->area_size();
     map->SetAreaSize(old_size == zelda3::AreaSizeEnum::SmallArea
@@ -1955,7 +1955,7 @@ TEST_F(NativeSpecialOverworldEditorTest, NormalSaveUndoFailureAndDiskReopen) {
     EXPECT_FALSE(manager->SaveRom().ok());
     core::FeatureFlags::get().overworld.kSaveOverworldProperties = false;
     const auto disabled = manager->SaveRom();
-    ASSERT_TRUE(disabled.ok()) << disabled;
+    EXPECT_FALSE(disabled.ok()) << disabled;
     core::FeatureFlags::get().overworld.kSaveOverworldProperties = true;
     EXPECT_FALSE(manager->SaveRom().ok());
     EXPECT_EQ(ReadBytes(target), persisted);
@@ -2020,6 +2020,12 @@ TEST_F(NativeSpecialOverworldEditorTest,
       std::copy(dormant.begin(), dormant.end(),
                 fixture.bytes.begin() + pool + 18);
       fixture.Word(fixture.Entry(17).pc_address + 0xB1 * 2, 0x8012);
+      // Same world pixels/code/flags, but owned by an unrelated area. Its
+      // offscreen placement is not evidence that B1's dormant actor survived.
+      const std::array<uint8_t, 4> unrelated = {33, 1, 0x53, 0xFF};
+      std::copy(unrelated.begin(), unrelated.end(),
+                fixture.bytes.begin() + pool + 22);
+      fixture.Word(fixture.Entry(17).pc_address + 0xA9 * 2, 0x8016);
     }
     fixture.Seal();
     const auto root = test::UniqueTempPath("owarea");
@@ -2055,6 +2061,7 @@ TEST_F(NativeSpecialOverworldEditorTest,
       ASSERT_TRUE(unchanged.ok());
       EXPECT_EQ(*unchanged, *before);
       EXPECT_EQ(document->vector(), fixture.bytes);
+      EXPECT_FALSE(document->dirty());
       continue;
     }
     {
@@ -2081,6 +2088,11 @@ TEST_F(NativeSpecialOverworldEditorTest,
     core::FeatureFlags::get().overworld.kSaveOverworldSprites = false;
     EXPECT_FALSE(manager->SaveRomAs(target.string()).ok());
     EXPECT_EQ(document->vector(), fixture.bytes);
+    core::FeatureFlags::get().overworld.kSaveOverworldProperties = false;
+    EXPECT_FALSE(manager->SaveRomAs(target.string()).ok());
+    EXPECT_TRUE(document->dirty());
+    EXPECT_EQ(document->vector(), fixture.bytes);
+    core::FeatureFlags::get().overworld.kSaveOverworldProperties = true;
     core::FeatureFlags::get().overworld.kSaveOverworldSprites = true;
     {
       test::ScopedRomStagingFailure fault;
@@ -2112,8 +2124,13 @@ TEST_F(NativeSpecialOverworldEditorTest,
     ASSERT_TRUE(second.ok()) << second;
     EXPECT_EQ(ReadBytes(target), persisted);
     ASSERT_TRUE(editor->Undo().ok());
+    EXPECT_TRUE(document->dirty());
+    EXPECT_EQ(nlohmann::json::parse(manager->ExecuteEditorControl(
+                  R"({"command":"status"})"))["state"]["unsaved"],
+              true);
     ASSERT_TRUE(manager->SaveRom().ok());
     ASSERT_TRUE(editor->Redo().ok());
+    EXPECT_TRUE(document->dirty());
     ASSERT_TRUE(manager->SaveRom().ok());
     EXPECT_EQ(ReadBytes(target), persisted);
     // A split restores the raw child selector/music values rather than copying
