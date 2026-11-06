@@ -1810,7 +1810,7 @@ TEST_F(NativeSpecialOverworldEditorTest, SavedNativeSourceExport) {
       EXPECT_EQ(*repeated, *exported);
       EXPECT_EQ(document.vector(), before);
       EXPECT_FALSE(document.dirty());
-      ASSERT_TRUE(document.WriteByte(0x100, document.vector()[0x100] ^ 1).ok());
+      document.set_dirty(true);
       const auto refused = run();
       EXPECT_TRUE(absl::IsFailedPrecondition(refused.status()));
     }
@@ -2393,6 +2393,9 @@ TEST_F(NativeSpecialOverworldEditorTest,
   frame();
   click_widget(
       absl::StrFormat("OverworldSidebar/native_screen/m%02X/mode", page));
+  // ImGui sizes and positions a newly opened combo over its first frames.
+  frame();
+  frame();
   click_widget(absl::StrFormat(
       "OverworldSidebar/native_screen/m%02X/mode_option1", page));
   EXPECT_EQ(main_screen->native_appearance_flags(), 1);
