@@ -74,12 +74,9 @@ Details:
   core count capped by free RAM (about 1.2 GB per job); override with `--jobs`.
 - **Test isolation.** Tests run with `YAZE_USER_DOCUMENTS_DIR`,
   `YAZE_APP_DATA_DIR`, `TEMP` and `TMP` pointing into the job dir.
-  `test/yaze_test.cc` sets the first two with `SDL_setenv`, which on Windows
-  calls `SetEnvironmentVariableA` and does not reach `std::getenv`; without the
-  runner's values the harness resolves the PC user's real
-  `Documents\Yaze\settings.json`, creates that folder, and skips every test.
-  All test processes of one run share these dirs (the harness would give each
-  process its own), so tests that write settings can interfere under `ctest -j`.
+  `test/yaze_test.cc` then gives each test process its own documents and
+  app-data dirs under `TEMP`, replacing the inherited two, so parallel ctest
+  shards never share settings files or native-save publication locks.
 - **Cleanup.** Remote worktrees and job directories are retained. They may
   contain sources, ROMs, profiles or pending test evidence, so age and a cache
   limit cannot authorize removal. Cleanup needs a separate owner review and
