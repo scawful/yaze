@@ -928,11 +928,11 @@ absl::StatusOr<std::vector<uint8_t>> SealNativeOverworldTerrain(
     const bool shared_music =
         edit.map_id >= 64 && edit.map_id < 160 &&
         (edit.table_id == 28 || (edit.table_id >= 32 && edit.table_id <= 35));
-    std::array<uint16_t, 4> aliases{};
+    std::array<uint16_t, 5> aliases{};
     size_t alias_count = 0;
     if (shared_music) {
-      aliases = {32, 33, 34, 35};
-      alias_count = 4;
+      aliases = {28, 32, 33, 34, 35};
+      alias_count = 5;
       storage = {28, 0x14403, 64, 96};
     } else if (edit.map_id < 160) {
       if (edit.table_id == 24 || edit.table_id == 36 || edit.table_id == 39) {
@@ -949,11 +949,6 @@ absl::StatusOr<std::vector<uint8_t>> SealNativeOverworldTerrain(
       if (candidate[alias.pc_address + edit.map_id] != candidate[at])
         return absl::FailedPreconditionError(
             "Native property phases share one legacy slot");
-    }
-    if (shared_music && edit.table_id != 28) {
-      const auto& packed = *FindEntry(layout, 28);
-      candidate[packed.pc_address + edit.map_id] = candidate[at];
-      changed(28);
     }
     if (edit.map_id >= storage.native_first + storage.native_count)
       continue;

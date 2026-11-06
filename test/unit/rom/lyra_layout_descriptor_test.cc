@@ -544,9 +544,9 @@ TEST(LyraLayoutDescriptorTest, NativePropertiesPreserveLegacyPhaseAliases) {
             .ok());
   }
   const std::vector<rom::NativeOverworldPropertyEdit> edits = {
-      {32, 0x90, {7}},  {33, 0x90, {7}}, {34, 0x90, {7}}, {35, 0x90, {7}},
-      {24, 0x90, {8}},  {36, 0x90, {8}}, {39, 0x90, {8}}, {32, 0xBF, {9}},
-      {33, 0xBF, {10}}, {36, 0xBF, {11}}};
+      {28, 0x90, {7}}, {32, 0x90, {7}},  {33, 0x90, {7}}, {34, 0x90, {7}},
+      {35, 0x90, {7}}, {24, 0x90, {8}},  {36, 0x90, {8}}, {39, 0x90, {8}},
+      {32, 0xBF, {9}}, {33, 0xBF, {10}}, {36, 0xBF, {11}}};
   auto saved =
       rom::SealNativeOverworldTerrain(fixture.bytes, fixture.bytes, edits);
   ASSERT_TRUE(saved.ok()) << saved.status();
@@ -626,6 +626,28 @@ TEST(LyraLayoutDescriptorTest, NativePropertyTailCannotAliasNativePrefix) {
   EXPECT_EQ(loaded.vector(), original);
   EXPECT_FALSE(loaded.dirty());
   EXPECT_EQ(loaded.vector()[0x140200], original[0x140200]);
+}
+
+TEST(LyraLayoutDescriptorTest, NativePropertyPhaseAliasesCannotHideWrites) {
+  NativeDirectoryFixture fixture;
+  auto& packed = fixture.Entry(28);
+  packed.pc_address = 0x140170;
+  packed.snes_address = NativeDirectoryFixture::Snes(packed.pc_address);
+  fixture.Seal();
+  ASSERT_EQ(rom::InspectLyraLayout(fixture.bytes.data(), fixture.bytes.size())
+                .presence,
+            rom::LyraLayoutPresence::kValid);
+  Rom loaded;
+  ASSERT_TRUE(loaded.LoadFromData(fixture.bytes).ok());
+  const auto original = loaded.vector();
+  std::vector<rom::NativeOverworldPropertyEdit> edits = {
+      {32, 0x90, {7}}, {33, 0x90, {7}}, {34, 0x90, {7}}, {35, 0x90, {7}}};
+  EXPECT_FALSE(loaded.CommitNativeTerrainImage(original, original, edits).ok());
+  // The packed row is explicit, so it cannot bypass the same ownership check.
+  edits.push_back({28, 0x90, {7}});
+  EXPECT_FALSE(loaded.CommitNativeTerrainImage(original, original, edits).ok());
+  EXPECT_EQ(loaded.vector(), original);
+  EXPECT_FALSE(loaded.dirty());
 }
 
 TEST(LyraLayoutDescriptorTest,
