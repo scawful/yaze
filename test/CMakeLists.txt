@@ -632,6 +632,7 @@ if(YAZE_BUILD_TESTS)
     unit/editor/screen_editor_undo_test.cc
     unit/editor/dashboard_panel_test.cc
     unit/editor/authoring_save_workflow_test.cc
+    unit/editor/oracle_chest_recovery_save_test.cc
     unit/editor/oracle_hack_workflow_backend_test.cc
     unit/editor/dungeon_canvas_transform_test.cc
     unit/editor/map_properties_context_menu_test.cc
