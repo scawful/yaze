@@ -137,6 +137,100 @@ struct NativeDirectoryFixture {
     Put32(&bytes, 0x147018, static_cast<uint32_t>(bytes.size()));
     Reseal(&bytes, rows);
   }
+  // A model fixture, not a migration/ROM producer: preserve the test ROM's
+  // existing pages/resources and explicitly supply synthetic tail content.
+  void SeedLoadedLegacyForModelTest(const Rom& source,
+                                    const zelda3::Overworld& world) {
+    ASSERT_LE(source.size(), 0x200000);
+    std::array<uint8_t, 32> header;
+    std::copy_n(bytes.begin() + 0x147000, header.size(), header.begin());
+    std::copy(source.vector().begin(), source.vector().end(), bytes.begin());
+    std::fill_n(bytes.begin() + 0x147000, 1024, 0);
+    std::copy(header.begin(), header.end(), bytes.begin() + 0x147000);
+    const auto& original = world.resolved_layout();
+    std::copy_n(source.vector().begin() + original.tile16_pc.value, 4096 * 8,
+                bytes.begin() + Entry(400).pc_address);
+    for (int i = 0; i < 4; ++i)
+      std::copy_n(source.vector().begin() + original.tile32_pcs[i].value,
+                  4432 * 6, bytes.begin() + Entry(401 + i).pc_address);
+    // A stale legacy TL address must not accidentally satisfy the new reader.
+    bytes[original.tile32_pcs[0].value] ^= 0x10;
+    const auto sprites = zelda3::GetOverworldSpriteLayout(source);
+    const auto item_root = source.ReadLong(zelda3::overworldItemsAddress);
+    ASSERT_TRUE(item_root.ok());
+    const size_t item_table = SnesToPc(*item_root);
+    std::optional<uint16_t> empty_items;
+    const auto item_bank = *source.ReadByte(zelda3::overworldItemsAddressBank);
+    for (size_t map = 0; map < 160; ++map) {
+      for (uint16_t id : {20, 21}) {
+        const auto table = id == 20 ? original.terrain_high_table_pc.value
+                                    : original.terrain_low_table_pc.value;
+        std::copy_n(source.vector().begin() + table + map * 3, 3,
+                    bytes.begin() + Entry(id).pc_address + map * 3);
+      }
+      for (int phase = 0; phase < 3; ++phase)
+        std::copy_n(source.vector().begin() + sprites.tables[phase] + map * 2,
+                    2, bytes.begin() + Entry(16 + phase).pc_address + map * 2);
+      const uint16_t word = *source.ReadWord(item_table + map * 2);
+      Word(Entry(23).pc_address + map * 2, word);
+      if (word >= 0x8000) {
+        const auto terminator =
+            source.ReadWord(SnesToPc((item_bank << 16) | word));
+        if (terminator.ok() && *terminator == 0xFFFF)
+          empty_items = word;
+      }
+    }
+    ASSERT_TRUE(empty_items.has_value());
+    bytes[0x240010] = 0xE4;
+    bytes[0x240011] = 0xFF;
+    bytes[0x240012] = 0;
+    bytes[0x240013] = 0xFF;
+    for (size_t map = 0; map < Entry(7).count; ++map) {
+      const auto& m = *world.overworld_map(map < 160 ? map : 0x80);
+      const auto props = m.area_render_properties();
+      Word(Entry(1).pc_address + map * 2, props.area_specific_bg_color);
+      bytes[Entry(2).pc_address + map] = props.main_palette;
+      bytes[Entry(3).pc_address + map] = 0;
+      for (int quadrant = 0; quadrant < 4; ++quadrant)
+        if (m.mosaic_expanded()[quadrant])
+          bytes[Entry(3).pc_address + map] |= 0x08 >> quadrant;
+      bytes[Entry(4).pc_address + map] = props.animated_gfx;
+      Word(Entry(5).pc_address + map * 2, props.subscreen_overlay);
+      std::copy(props.custom_gfx_ids.begin(), props.custom_gfx_ids.end(),
+                bytes.begin() + Entry(6).pc_address + map * 8);
+      bytes[Entry(7).pc_address + map] = map < 160 ? m.parent() : map;
+      bytes[Entry(30).pc_address + map] =
+          map < 160 ? static_cast<uint8_t>(m.area_size()) : 0;
+      Word(Entry(19).pc_address + map * 2, m.message_id());
+      bytes[Entry(26).pc_address + map] = m.area_graphics();
+      bytes[Entry(27).pc_address + map] = m.area_graphics();
+      bytes[Entry(31).pc_address + map] = m.area_palette();
+      for (int phase = 0; phase < 4; ++phase)
+        bytes[Entry(32 + phase).pc_address + map] = m.area_music(phase);
+      for (int phase = 0; phase < 3; ++phase) {
+        constexpr std::array<uint16_t, 3> gfx = {24, 36, 39};
+        constexpr std::array<uint16_t, 3> palettes = {25, 37, 38};
+        bytes[Entry(gfx[phase]).pc_address + map] = m.sprite_graphics(phase);
+        bytes[Entry(palettes[phase]).pc_address + map] =
+            m.sprite_palette(phase);
+      }
+      if (map >= 160) {
+        if (map != 0xA0)
+          Long(Entry(20).pc_address + map * 3, Snes(0x240010));
+        Word(Entry(23).pc_address + map * 2, *empty_items);
+      }
+    }
+    // Restore only the five synthetic binding instructions after copying the
+    // real resource data. No fixture claims runtime helper correctness.
+    for (size_t i = 0; i < 5; ++i) {
+      const size_t at = Entry(301).pc_address + i * 16;
+      const uint32_t site =
+          bytes[at] | (bytes[at + 1] << 8) | (bytes[at + 2] << 16);
+      std::copy_n(bytes.begin() + at + 12, 4,
+                  bytes.begin() + (site >> 16) * 0x8000 + (site & 0x7FFF));
+    }
+    Seal();
+  }
   explicit NativeDirectoryFixture(uint16_t capacity = 192) {
     std::memcpy(bytes.data() + 0x147000, "OOSOW192", 8);
     Word(0x147008, 3);
@@ -492,6 +586,177 @@ TEST(LyraLayoutDescriptorTest,
   EXPECT_EQ(rom::InspectLyraLayout(fixture.bytes.data(), fixture.bytes.size())
                 .presence,
             rom::LyraLayoutPresence::kInvalid);
+}
+
+TEST(LyraLayoutDescriptorTest, NativeMapOwnsLayoutAndUsesAbsolutePhaseRecords) {
+  NativeDirectoryFixture fixture;
+  constexpr size_t parent = 0xB6;
+  for (size_t map : {0xB6, 0xB7, 0xBE, 0xBF}) {
+    fixture.bytes[fixture.Entry(7).pc_address + map] = parent;
+    fixture.bytes[fixture.Entry(30).pc_address + map] = 1;
+  }
+  fixture.bytes[fixture.Entry(26).pc_address + parent] = 3;
+  fixture.bytes[fixture.Entry(27).pc_address + parent] = 9;
+  fixture.Word(fixture.Entry(19).pc_address + parent * 2, 0x1234);
+  for (int phase = 0; phase < 3; ++phase) {
+    constexpr std::array<uint16_t, 3> gfx = {24, 36, 39};
+    constexpr std::array<uint16_t, 3> palettes = {25, 37, 38};
+    fixture.bytes[fixture.Entry(gfx[phase]).pc_address + parent] = 11 + phase;
+    fixture.bytes[fixture.Entry(palettes[phase]).pc_address + parent] =
+        21 + phase;
+  }
+  for (int phase = 0; phase < 4; ++phase)
+    fixture.bytes[fixture.Entry(32 + phase).pc_address + parent] = 31 + phase;
+  fixture.Seal();
+  Rom loaded;
+  ASSERT_TRUE(loaded.LoadFromData(fixture.bytes).ok());
+  auto owner = std::make_shared<const rom::LyraLayoutInspection>(
+      loaded.InspectLyraLayout());
+  ASSERT_EQ(owner->presence, rom::LyraLayoutPresence::kValid) << owner->error;
+  std::weak_ptr<const rom::LyraLayoutInspection> weak = owner;
+  {
+    auto map =
+        zelda3::OverworldMap::CreateFromLayout(0xBF, &loaded, nullptr, owner);
+    ASSERT_TRUE(map.ok()) << map.status();
+    owner.reset();
+    EXPECT_FALSE(weak.expired());
+    EXPECT_EQ(map->parent(), parent);
+    EXPECT_EQ(map->area_graphics(), 9);
+    EXPECT_EQ(map->message_id(), 0x1234);
+    for (int phase = 0; phase < 3; ++phase) {
+      EXPECT_EQ(map->sprite_graphics(phase), 11 + phase);
+      EXPECT_EQ(map->sprite_palette(phase), 21 + phase);
+    }
+    for (int phase = 0; phase < 4; ++phase)
+      EXPECT_EQ(map->area_music(phase), 31 + phase);
+  }
+  EXPECT_TRUE(weak.expired());
+}
+
+TEST(LyraLayoutDescriptorTest,
+     NativeTailActorPhasesUseDeclaredBankAndKeepFlags) {
+  NativeDirectoryFixture fixture;
+  for (int phase = 0; phase < 3; ++phase) {
+    const size_t at = fixture.Entry(100).pc_address + 4 + phase * 4;
+    fixture.bytes[at] = 0x81 + phase;
+    fixture.bytes[at + 1] = 0xC2 + phase;
+    fixture.bytes[at + 2] = 0xA0 + phase;
+    fixture.bytes[at + 3] = 0xFF;
+    fixture.Word(fixture.Entry(16 + phase).pc_address + 0xBF * 2,
+                 0x8004 + phase * 4);
+  }
+  fixture.Seal();
+  Rom loaded;
+  ASSERT_TRUE(loaded.LoadFromData(fixture.bytes).ok());
+  const auto layout = loaded.InspectLyraLayout();
+  ASSERT_EQ(layout.presence, rom::LyraLayoutPresence::kValid) << layout.error;
+  for (int phase = 0; phase < 3; ++phase) {
+    auto list = zelda3::ReadOverworldSpriteList(loaded, layout, phase, 0xBF);
+    ASSERT_TRUE(list.ok()) << list.status();
+    EXPECT_EQ(*list,
+              (std::vector<uint8_t>{static_cast<uint8_t>(0x81 + phase),
+                                    static_cast<uint8_t>(0xC2 + phase),
+                                    static_cast<uint8_t>(0xA0 + phase), 0xFF}));
+  }
+  EXPECT_FALSE(zelda3::ReadOverworldSpriteList(loaded, layout, 3, 0xBF).ok());
+  EXPECT_FALSE(zelda3::ReadOverworldSpriteList(loaded, layout, 0, 0xC0).ok());
+  EXPECT_EQ(loaded.vector(), fixture.bytes);
+}
+
+TEST(LyraLayoutDescriptorTest,
+     NativeItemListsFollowAbsolutePointersAndBankLimits) {
+  NativeDirectoryFixture fixture;
+  fixture.bytes[zelda3::overworldItemsAddressBank] = 0x1B;
+  for (size_t map = 0; map < 192; ++map)
+    fixture.Word(fixture.Entry(23).pc_address + map * 2, 0xC2F9);
+  fixture.Word(0xDC2F9, 0xFFFF);
+  fixture.Word(fixture.Entry(23).pc_address + 0xBF * 2, 0xC300);
+  fixture.Word(0xDC300, 2 * (3 + 2 * 64));
+  fixture.bytes[0xDC302] = 0x42;
+  fixture.Word(0xDC303, 0xFFFF);
+  fixture.Seal();
+  Rom loaded;
+  ASSERT_TRUE(loaded.LoadFromData(fixture.bytes).ok());
+  const auto layout = std::make_shared<const rom::LyraLayoutInspection>(
+      loaded.InspectLyraLayout());
+  ASSERT_EQ(layout->presence, rom::LyraLayoutPresence::kValid) << layout->error;
+  std::vector<zelda3::OverworldMap> maps;
+  for (int map = 0; map < 192; ++map) {
+    auto m =
+        zelda3::OverworldMap::CreateFromLayout(map, &loaded, nullptr, layout);
+    ASSERT_TRUE(m.ok()) << m.status();
+    maps.push_back(std::move(*m));
+  }
+  auto items = zelda3::LoadItems(&loaded, maps, layout.get());
+  ASSERT_TRUE(items.ok()) << items.status();
+  ASSERT_EQ(items->size(), 1);
+  EXPECT_EQ(items->at(0).room_map_id_, 0xBF);
+  EXPECT_EQ(items->at(0).id_, 0x42);
+  EXPECT_EQ(items->at(0).game_x_, 3);
+  EXPECT_EQ(items->at(0).game_y_, 2);
+  EXPECT_EQ(loaded.vector(), fixture.bytes);
+  const size_t pointer = fixture.Entry(23).pc_address + 0xBF * 2;
+  loaded.mutable_vector()[pointer] = 0xFF;
+  loaded.mutable_vector()[pointer + 1] = 0xFF;
+  EXPECT_FALSE(zelda3::LoadItems(&loaded, maps, layout.get()).ok());
+}
+
+TEST(LyraLayoutDescriptorTest,
+     NativeNormalLoadUsesDeclaredDictionariesAndAllPages) {
+  const char* path = std::getenv("YAZE_TEST_ROM_OOS");
+  if (!path || !std::filesystem::exists(path))
+    GTEST_SKIP() << "Set YAZE_TEST_ROM_OOS for normal-model native fixture";
+  Rom original;
+  ASSERT_TRUE(original.LoadFromData(ReadBytes(path)).ok());
+  zelda3::GameData original_data;
+  ASSERT_TRUE(zelda3::LoadGameData(original, original_data).ok());
+  auto reference =
+      std::make_unique<zelda3::Overworld>(&original, &original_data);
+  ASSERT_TRUE(reference->Load(&original).ok());
+  const auto source_before = original.vector();
+  for (uint16_t capacity : {160, 192}) {
+    SCOPED_TRACE(capacity);
+    NativeDirectoryFixture fixture(capacity);
+    fixture.SeedLoadedLegacyForModelTest(original, *reference);
+    Rom loaded;
+    ASSERT_TRUE(loaded.LoadFromData(fixture.bytes).ok());
+    const auto layout = loaded.InspectLyraLayout();
+    ASSERT_EQ(layout.presence, rom::LyraLayoutPresence::kValid) << layout.error;
+    zelda3::GameData data;
+    ASSERT_TRUE(zelda3::LoadGameData(loaded, data).ok());
+    auto world = std::make_unique<zelda3::Overworld>(&loaded, &data);
+    const auto status = world->Load(&loaded);
+    ASSERT_TRUE(status.ok()) << status;
+    EXPECT_FALSE(world->is_lyra_preview());
+    EXPECT_EQ(world->materialized_map_count(), capacity);
+    EXPECT_EQ(world->inspected_map_count(), capacity);
+    ASSERT_EQ(world->tiles32_unique().size(),
+              reference->tiles32_unique().size());
+    EXPECT_EQ(world->tiles32_unique()[0].tile0_,
+              reference->tiles32_unique()[0].tile0_);
+    EXPECT_EQ(world->tiles16(), reference->tiles16());
+    for (int map = 0; map < 160; ++map) {
+      const int kind = map < 0x40 ? 0 : map < 0x80 ? 1 : 2;
+      const auto& actual = world->GetMapTiles(kind);
+      const auto& expected = reference->GetMapTiles(kind);
+      const int x = map % 8 * 32, y = (map % 64) / 8 * 32;
+      for (int dx = 0; dx < 32; ++dx)
+        for (int dy = 0; dy < 32; ++dy)
+          ASSERT_EQ(actual[x + dx][y + dy], expected[x + dx][y + dy]);
+    }
+    if (capacity == 192) {
+      ASSERT_TRUE(world->EnsureMapBuilt(0xBF).ok());
+      EXPECT_FALSE(world->overworld_map(0xBF)->bitmap_data().empty());
+      const auto& tile = reference->tiles32_unique()[0x56];
+      EXPECT_EQ(world->GetMapTiles(2)[7 * 32][7 * 32], tile.tile0_);
+      EXPECT_FALSE(world->overworld_map(0xC0));
+    }
+    EXPECT_EQ(loaded.vector(), fixture.bytes);
+    ASSERT_TRUE(world->Load(&loaded).ok());
+    EXPECT_EQ(world->materialized_map_count(), capacity);
+    EXPECT_EQ(loaded.vector(), fixture.bytes);
+  }
+  EXPECT_EQ(original.vector(), source_before);
 }
 
 std::array<uint16_t, 256> DecodePilotLiterals(

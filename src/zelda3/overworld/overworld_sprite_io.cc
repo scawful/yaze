@@ -17,6 +17,20 @@ OverworldSpriteLayout GetOverworldSpriteLayout(const Rom& rom) {
 
 OverworldSpriteLayout ResolveOverworldSpriteLayout(
     const OverworldLayout& layout) {
+  if (layout.lyra_layout.presence == rom::LyraLayoutPresence::kValid &&
+      layout.lyra_layout.revision == 3) {
+    OverworldSpriteLayout result{{}, {}, 0x4C881};
+    for (int state = 0; state < 3; ++state) {
+      for (const auto& e : layout.lyra_layout.entries) {
+        if (e.id == 16 + state) {
+          result.tables[state] = e.pc_address;
+          result.counts[state] = e.count;
+          break;
+        }
+      }
+    }
+    return result;
+  }
   if (layout.supports_area_enum || layout.uses_zs_v3_catalogue()) {
     return {{{0x141438, 0x141578, 0x1416B8}}, {{160, 160, 160}}, 0x4C881};
   }
@@ -25,8 +39,8 @@ OverworldSpriteLayout ResolveOverworldSpriteLayout(
           kOverworldSpriteDataStart};
 }
 
-int GetOverworldSpriteRegionEnd(const Rom& rom) {
-  const auto layout = GetOverworldSpriteLayout(rom);
+namespace {
+int SpriteRegionEnd(const Rom& rom, int data_start) {
   if (rom.size() < kOverworldSpriteDataEnd)
     return kOverworldSpriteDataEnd;
   const auto& data = rom.vector();
@@ -36,11 +50,16 @@ int GetOverworldSpriteRegionEnd(const Rom& rom) {
   // A table at data_start leaves no overworld sprite region: return that
   // empty end so every read and write fails closed, instead of falling back
   // to kOverworldSpriteDataEnd and letting sprite writes overwrite the table.
-  if (pointer >= 0x8000 && table_pc >= layout.data_start &&
+  if (pointer >= 0x8000 && table_pc >= data_start &&
       table_pc < kOverworldSpriteDataEnd) {
     return table_pc;
   }
   return kOverworldSpriteDataEnd;
+}
+}  // namespace
+
+int GetOverworldSpriteRegionEnd(const Rom& rom) {
+  return SpriteRegionEnd(rom, GetOverworldSpriteLayout(rom).data_start);
 }
 
 namespace {
@@ -51,7 +70,7 @@ struct ListSpan {
 
 absl::StatusOr<ListSpan> ReadListSpan(const std::vector<uint8_t>& data,
                                       int pointer_address, int data_start,
-                                      int region_end) {
+                                      int region_end, int bank_base = 0x40000) {
   if (pointer_address < 0 ||
       pointer_address > static_cast<int>(data.size()) - 2 ||
       static_cast<int>(data.size()) < kOverworldSpriteDataEnd) {
@@ -59,7 +78,7 @@ absl::StatusOr<ListSpan> ReadListSpan(const std::vector<uint8_t>& data,
         "Overworld sprite region is truncated");
   }
   const int pointer = data[pointer_address] | (data[pointer_address + 1] << 8);
-  const int start = 0x40000 + pointer;  // bank $09, ROM half $8000..$FFFF
+  const int start = bank_base + pointer;
   if (pointer < 0x8000 || start < data_start || start >= region_end) {
     return absl::FailedPreconditionError(
         "Overworld sprite pointer outside reserved region");
@@ -85,6 +104,38 @@ absl::StatusOr<OverworldSpriteBytes> ReadOverworldSpriteList(
   const auto& data = rom.vector();
   return OverworldSpriteBytes(data.begin() + span.start,
                               data.begin() + span.start + span.size);
+}
+
+absl::StatusOr<OverworldSpriteBytes> ReadOverworldSpriteList(
+    const Rom& rom, const rom::LyraLayoutInspection& layout, int state,
+    int map) {
+  if (layout.revision != 3 || state < 0 || state >= 3 || map < 0 ||
+      map >= layout.capacity) {
+    return absl::FailedPreconditionError(
+        "Native sprite map or phase unavailable");
+  }
+  const auto record =
+      rom::LyraLayoutRecord(layout, rom.data(), rom.size(), 16 + state, map);
+  if (!record || record->size() != 2)
+    return absl::FailedPreconditionError("Native sprite pointer unavailable");
+  const int pointer_pc = static_cast<int>(record->data() - rom.data());
+  int begin = 0x4C881;
+  int end = SpriteRegionEnd(rom, begin);
+  int bank_base = 0x40000;
+  if (map >= 0xA0) {
+    const auto actor =
+        std::find_if(layout.entries.begin(), layout.entries.end(),
+                     [](const auto& e) { return e.id == 100; });
+    if (actor == layout.entries.end())
+      return absl::FailedPreconditionError("Native actor storage unavailable");
+    begin = actor->pc_address;
+    end = begin + actor->count * actor->stride;
+    bank_base = (layout.tail_actor_bank & 0x7F) * 0x8000 - 0x8000;
+  }
+  ASSIGN_OR_RETURN(
+      auto span, ReadListSpan(rom.vector(), pointer_pc, begin, end, bank_base));
+  return OverworldSpriteBytes(rom.vector().begin() + span.start,
+                              rom.vector().begin() + span.start + span.size);
 }
 
 const char* OverworldSpriteEditStrategyName(OverworldSpriteEditStrategy s) {

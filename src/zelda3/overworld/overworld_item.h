@@ -129,7 +129,8 @@ inline bool CompareItemsArrays(std::vector<OverworldItem> item_array1,
 }
 
 absl::StatusOr<std::vector<OverworldItem>> LoadItems(
-    Rom* rom, std::vector<OverworldMap>& overworld_maps);
+    Rom* rom, std::vector<OverworldMap>& overworld_maps,
+    const rom::LyraLayoutInspection* layout = nullptr);
 absl::Status SaveItems(Rom* rom, const std::vector<OverworldItem>& items);
 
 const std::vector<std::string> kSecretItemNames = {

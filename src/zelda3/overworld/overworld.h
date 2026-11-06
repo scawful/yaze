@@ -452,17 +452,17 @@ class Overworld {
     set_layout_inspect_options(options);
     return Load(rom);
   }
-  // Explicit descriptor terrain path. The normal model loader remains
-  // legacy-only; the editor admits this path only to its read-only canvas.
+  // Historical revision-1/2 inspection path. Revision 3 uses normal Load.
   absl::Status LoadLyraTerrainPreview(Rom* rom);
   bool is_lyra_preview() const {
-    return descriptor_layout_.presence == rom::LyraLayoutPresence::kValid;
+    return descriptor_layout_.presence == rom::LyraLayoutPresence::kValid &&
+           descriptor_layout_.revision < 3;
   }
   int materialized_map_count() const {
     return static_cast<int>(overworld_maps_.size());
   }
   int inspected_map_count() const {
-    if (is_lyra_preview()) {
+    if (descriptor_layout_.presence == rom::LyraLayoutPresence::kValid) {
       return descriptor_layout_.capacity;
     }
     if (has_tail_map_expansion_) {
@@ -1011,7 +1011,7 @@ class Overworld {
 
   std::array<uint8_t, kNumTileTypes> all_tiles_types_ = {0};
   std::array<std::vector<Sprite>, 3> all_sprites_;
-  std::array<std::array<bool, 160>, 3> sprite_maps_loaded_{};
+  std::array<std::array<bool, kExpandedMapCount>, 3> sprite_maps_loaded_{};
   DiggableTiles diggable_tiles_;
 };
 

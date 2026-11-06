@@ -5,6 +5,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <map>
+#include <memory>
 #include <optional>
 #include <vector>
 
@@ -241,6 +242,9 @@ class OverworldMap : public gfx::GfxContext {
   static absl::StatusOr<OverworldMap> CreateFromLayout(
       int index, Rom* rom, GameData* game_data,
       const rom::LyraLayoutInspection* layout);
+  static absl::StatusOr<OverworldMap> CreateFromLayout(
+      int index, Rom* rom, GameData* game_data,
+      std::shared_ptr<const rom::LyraLayoutInspection> layout);
   // Searchable compatibility entry point for existing descriptor previews.
   static absl::StatusOr<OverworldMap> CreateLyraPreview(
       int index, Rom* rom, GameData* game_data,
@@ -581,7 +585,7 @@ class OverworldMap : public gfx::GfxContext {
   Rom* rom_ = nullptr;
   GameData* game_data_ = nullptr;
   core::RomAddressOverrides address_overrides_;
-  const rom::LyraLayoutInspection* descriptor_layout_ = nullptr;
+  std::shared_ptr<const rom::LyraLayoutInspection> descriptor_layout_;
 
   bool built_ = false;
   bool large_map_ = false;

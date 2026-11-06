@@ -17,7 +17,8 @@
 namespace yaze::zelda3 {
 
 absl::StatusOr<std::vector<OverworldItem>> LoadItems(
-    Rom* rom, std::vector<OverworldMap>& overworld_maps) {
+    Rom* rom, std::vector<OverworldMap>& overworld_maps,
+    const rom::LyraLayoutInspection* layout) {
   std::vector<OverworldItem> items;
 
   // Version 0x03 of the OW ASM added item support for the SW.
@@ -28,13 +29,33 @@ absl::StatusOr<std::vector<OverworldItem>> LoadItems(
   int max_ow = OverworldVersionHelper::SupportsAreaEnum(version)
                    ? kNumOverworldMaps
                    : 0x80;
+  const bool native = layout && layout->revision == 3 &&
+                      layout->presence == rom::LyraLayoutPresence::kValid;
+  if (native)
+    max_ow = layout->capacity;
+  if (static_cast<int>(overworld_maps.size()) < max_ow)
+    return absl::FailedPreconditionError(
+        "Item loading requires initialized maps");
 
   ASSIGN_OR_RETURN(uint32_t pointer_snes,
                    rom->ReadLong(zelda3::overworldItemsAddress));
   uint32_t item_pointer_address =
       SnesToPc(pointer_snes);  // 0x1BC2F9 -> 0x0DC2F9
+  if (native) {
+    const auto record =
+        rom::LyraLayoutRecord(*layout, rom->data(), rom->size(), 23, 0);
+    if (!record)
+      return absl::FailedPreconditionError(
+          "Native item pointer table unavailable");
+    item_pointer_address = static_cast<uint32_t>(record->data() - rom->data());
+  }
 
   for (int i = 0; i < max_ow; i++) {
+    // Child pages do not own separate item lists, including their unused raw
+    // pointer slots in a native directory.
+    if (overworld_maps[i].area_size() != AreaSizeEnum::SmallArea &&
+        overworld_maps[i].parent() != i)
+      continue;
     ASSIGN_OR_RETURN(uint8_t bank_byte,
                      rom->ReadByte(zelda3::overworldItemsAddressBank));
     int bank = bank_byte & 0x7F;
@@ -47,21 +68,26 @@ absl::StatusOr<std::vector<OverworldItem>> LoadItems(
     uint32_t addr = (bank << 16) +      // 1B
                     (addr_high << 8) +  // F9
                     addr_low;           // 3C
+    if (native &&
+        (bank_byte == 0x7E || bank_byte == 0x7F || (addr & 0x8000) == 0))
+      return absl::FailedPreconditionError(
+          "Native item pointer is not ROM data");
     addr = SnesToPc(addr);
 
-    // Check if this is a large map and skip if not the parent
-    if (overworld_maps[i].area_size() != zelda3::AreaSizeEnum::SmallArea) {
-      if (overworld_maps[i].parent() != (uint8_t)i) {
-        continue;
-      }
-    }
-
+    const size_t limit =
+        native ? std::min<size_t>(rom->size(), (addr / 0x8000 + 1) * 0x8000)
+               : rom->size();
     while (true) {
+      if (addr > limit || limit - addr < 2)
+        return absl::FailedPreconditionError(
+            "Item list has no bounded terminator");
       ASSIGN_OR_RETURN(uint8_t b1, rom->ReadByte(addr));
       ASSIGN_OR_RETURN(uint8_t b2, rom->ReadByte(addr + 1));
       if (b1 == 0xFF && b2 == 0xFF) {
         break;
       }
+      if (limit - addr < 3)
+        return absl::FailedPreconditionError("Item record is truncated");
       ASSIGN_OR_RETURN(uint8_t b3, rom->ReadByte(addr + 2));
 
       int p = (((b2 & 0x1F) << 8) + b1) >> 1;

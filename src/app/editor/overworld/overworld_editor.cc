@@ -578,9 +578,12 @@ void OverworldEditor::NotifyEntityModified(zelda3::GameEntity*) {
 
 absl::Status OverworldEditor::CheckRomReplacement(
     const Rom& replacement) const {
+  const auto layout = replacement.InspectLyraLayout();
   if (!overworld_.is_loaded() ||
-      (!is_lyra_preview() && replacement.InspectLyraLayout().presence ==
-                                 rom::LyraLayoutPresence::kAbsent) ||
+      (!is_lyra_preview() &&
+       (layout.presence == rom::LyraLayoutPresence::kAbsent ||
+        (layout.presence == rom::LyraLayoutPresence::kValid &&
+         layout.revision == 3))) ||
       (is_lyra_preview() &&
        util::ComputeSha1Hex(replacement.data(), replacement.size()) ==
            lyra_loaded_rom_sha1_)) {
@@ -618,7 +621,8 @@ absl::Status OverworldEditor::Load() {
     return absl::OkStatus();
   }
   if (overworld_.is_loaded() &&
-      (lyra.presence == rom::LyraLayoutPresence::kValid ||
+      ((lyra.presence == rom::LyraLayoutPresence::kValid &&
+        lyra.revision < 3) ||
        overworld_.is_lyra_preview())) {
     return absl::FailedPreconditionError(
         "Lyra canvas session replacement requires a fresh editor session");
@@ -735,7 +739,14 @@ absl::Status OverworldEditor::Load() {
 
   all_gfx_loaded_ = true;
 
-  lyra_canvas_status_ = lyra_canvas_.Load(TerrainProject(), overworld_);
+  if (lyra.revision == 3) {
+    // Native terrain belongs to the ROM document. An old sidecar must not
+    // replace that data during ordinary loading.
+    lyra_canvas_.Reset();
+    lyra_canvas_status_ = absl::OkStatus();
+  } else {
+    lyra_canvas_status_ = lyra_canvas_.Load(TerrainProject(), overworld_);
+  }
   if (IsProjectTerrainMap(0xA0)) {
     SelectMapForEditing(0xA0, false);
     hovered_map_ = -1;
@@ -977,6 +988,9 @@ absl::Status OverworldEditor::PrepareProjectSave() {
 }
 
 absl::Status OverworldEditor::CreateLyraTerrain() {
+  if (overworld_.resolved_layout().lyra_layout.revision == 3)
+    return absl::FailedPreconditionError(
+        "Native special-overworld terrain belongs to the ROM document");
   const auto* previous = lyra_canvas_.document();
   RETURN_IF_ERROR(lyra_canvas_.Create(TerrainProject(), overworld_));
   if (previous && previous != lyra_canvas_.document())
@@ -987,6 +1001,10 @@ absl::Status OverworldEditor::CreateLyraTerrain() {
 }
 
 absl::Status OverworldEditor::OpenLyraTerrain(const std::string& path) {
+  if (overworld_.resolved_layout().lyra_layout.revision == 3)
+    return absl::FailedPreconditionError(
+        "Native special overworld requires terrain import, not an active "
+        "sidecar");
   const auto* previous = lyra_canvas_.document();
   RETURN_IF_ERROR(lyra_canvas_.Open(TerrainProject(), path, overworld_));
   if (previous && previous != lyra_canvas_.document())
@@ -1945,7 +1963,9 @@ absl::Status OverworldEditor::LoadGraphics() {
   gfx::ScopedTimer timer("LoadGraphics");
 
   LOG_DEBUG("OverworldEditor", "Loading overworld.");
-  if (rom_->InspectLyraLayout().presence == rom::LyraLayoutPresence::kValid) {
+  const auto layout = rom_->InspectLyraLayout();
+  if (layout.presence == rom::LyraLayoutPresence::kValid &&
+      layout.revision < 3) {
     // The model can inspect legacy overlays, but the read-only canvas does not
     // yet qualify their final compositing for this descriptor format.
     show_overlay_preview_ = false;

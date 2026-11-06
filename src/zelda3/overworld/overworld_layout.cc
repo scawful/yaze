@@ -306,6 +306,12 @@ absl::Status OverworldLayout::CheckOperation(OverworldLayoutDomain domain,
                                   : lyra_layout.error);
   }
   if (lyra_layout.presence == rom::LyraLayoutPresence::kValid) {
+    if (map_id >= lyra_layout.capacity || phase < 0 ||
+        (domain == OverworldLayoutDomain::kSprites && phase >= 3) ||
+        (domain == OverworldLayoutDomain::kMusic && phase >= 4)) {
+      return absl::FailedPreconditionError(
+          "Descriptor map or phase is outside the declared capacity");
+    }
     if (domain == OverworldLayoutDomain::kLyraDescriptor &&
         operation == OverworldLayoutOperation::kInspect) {
       return absl::OkStatus();
@@ -326,6 +332,15 @@ absl::Status OverworldLayout::CheckOperation(OverworldLayoutDomain domain,
     if (domain == OverworldLayoutDomain::kTile16 ||
         domain == OverworldLayoutDomain::kTile32) {
       return RefuseDomainTable(*this, domain);
+    }
+    if (lyra_layout.revision == 3 &&
+        (domain == OverworldLayoutDomain::kMapProperties ||
+         domain == OverworldLayoutDomain::kGeometry ||
+         domain == OverworldLayoutDomain::kMessages ||
+         domain == OverworldLayoutDomain::kSprites ||
+         domain == OverworldLayoutDomain::kMusic ||
+         domain == OverworldLayoutDomain::kEntities)) {
+      return absl::OkStatus();
     }
     return absl::FailedPreconditionError(
         "Descriptor preview does not provide this overworld domain");

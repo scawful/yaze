@@ -165,6 +165,15 @@ OverworldMap::OverworldMap(int index, Rom* rom, GameData* game_data,
 absl::StatusOr<OverworldMap> OverworldMap::CreateFromLayout(
     int index, Rom* rom, GameData* game_data,
     const rom::LyraLayoutInspection* layout) {
+  return CreateFromLayout(
+      index, rom, game_data,
+      layout ? std::make_shared<const rom::LyraLayoutInspection>(*layout)
+             : std::shared_ptr<const rom::LyraLayoutInspection>{});
+}
+
+absl::StatusOr<OverworldMap> OverworldMap::CreateFromLayout(
+    int index, Rom* rom, GameData* game_data,
+    std::shared_ptr<const rom::LyraLayoutInspection> layout) {
   if (rom == nullptr || layout == nullptr ||
       layout->presence != rom::LyraLayoutPresence::kValid || index < 0 ||
       index >= layout->capacity) {
@@ -172,7 +181,7 @@ absl::StatusOr<OverworldMap> OverworldMap::CreateFromLayout(
   }
   OverworldMap map(index, rom, game_data, /*seed_area_parent=*/false,
                    /*skip_legacy_data=*/true);
-  map.descriptor_layout_ = layout;
+  map.descriptor_layout_ = std::move(layout);
   RETURN_IF_ERROR(map.LoadLayoutProperties());
   return map;
 }
@@ -213,11 +222,39 @@ absl::Status OverworldMap::LoadLayoutProperties() {
   subscreen_overlay_ = static_cast<uint16_t>(overlay[0] | (overlay[1] << 8));
   ASSIGN_OR_RETURN(auto gfx, read(6, parent_));
   std::copy_n(gfx.begin(), custom_gfx_ids_.size(), custom_gfx_ids_.begin());
-  ASSIGN_OR_RETURN(auto area_gfx, read(26, parent_));
+  const bool native = descriptor_layout_->revision == 3;
+  ASSIGN_OR_RETURN(
+      auto area_gfx,
+      read(native && parent_ >= kSpecialWorldMapIdStart ? 27 : 26, parent_));
   area_graphics_ = area_gfx[0];
   ASSIGN_OR_RETURN(auto palette_set, read(31, parent_));
   area_palette_ = palette_set[0];
-  if (parent_ >= kSpecialWorldMapIdStart) {
+  if (native) {
+    ASSIGN_OR_RETURN(auto message, read(19, parent_));
+    message_id_ = static_cast<uint16_t>(message[0] | (message[1] << 8));
+    for (int phase = 0; phase < 4; ++phase) {
+      ASSIGN_OR_RETURN(auto music, read(32 + phase, parent_));
+      area_music_[phase] = music[0];
+    }
+    for (int phase = 0; phase < 3; ++phase) {
+      if (parent_ < kSpecialWorldMapIdStart) {
+        const int index = parent_ < kDarkWorldMapIdStart
+                              ? parent_ + phase * kDarkWorldMapIdStart
+                              : parent_ + kSpecialWorldMapIdStart;
+        ASSIGN_OR_RETURN(sprite_graphics_[phase],
+                         rom_->ReadByte(kOverworldSpriteset + index));
+        ASSIGN_OR_RETURN(sprite_palette_[phase],
+                         rom_->ReadByte(kOverworldSpritePaletteIds + index));
+      } else {
+        constexpr std::array<uint16_t, 3> kGfxIds = {24, 36, 39};
+        constexpr std::array<uint16_t, 3> kPaletteIds = {25, 37, 38};
+        ASSIGN_OR_RETURN(auto gfx_phase, read(kGfxIds[phase], parent_));
+        ASSIGN_OR_RETURN(auto palette_phase, read(kPaletteIds[phase], parent_));
+        sprite_graphics_[phase] = gfx_phase[0];
+        sprite_palette_[phase] = palette_phase[0];
+      }
+    }
+  } else if (parent_ >= kSpecialWorldMapIdStart) {
     const size_t special = parent_ - kSpecialWorldMapIdStart;
     ASSIGN_OR_RETURN(auto sprite_gfx, read(24, special));
     ASSIGN_OR_RETURN(auto sprite_palette, read(25, special));
@@ -1302,14 +1339,22 @@ absl::Status OverworldMap::LoadPalette() {
       }
       previous_pal_id = (*previous)[0];
       if (parent_ > kSpecialWorldMapIdStart) {
+        constexpr std::array<uint16_t, 3> kPaletteIds = {25, 37, 38};
+        const bool native = descriptor_layout_->revision == 3;
         auto previous_sprite = rom::LyraLayoutRecord(
-            *descriptor_layout_, rom_->data(), rom_->size(), 25,
-            parent_ - kSpecialWorldMapIdStart - 1);
+            *descriptor_layout_, rom_->data(), rom_->size(),
+            native ? kPaletteIds[game_state_] : 25,
+            native ? parent_ - 1 : parent_ - kSpecialWorldMapIdStart - 1);
         if (!previous_sprite) {
           return absl::FailedPreconditionError(
               "Lyra preview previous sprite palette unavailable");
         }
         previous_spr_pal_id = (*previous_sprite)[0];
+      } else if (descriptor_layout_->revision == 3 &&
+                 parent_ <= kSpecialWorldMapIdStart) {
+        ASSIGN_OR_RETURN(
+            previous_spr_pal_id,
+            rom_->ReadByte(kOverworldSpritePaletteIds + parent_ - 1));
       }
     } else if (OverworldVersionHelper::SupportsAreaEnum(version)) {
       // v3 uses expanded palette table

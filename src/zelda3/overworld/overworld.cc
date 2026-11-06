@@ -172,7 +172,9 @@ absl::Status Overworld::Load(Rom* rom) {
     return absl::FailedPreconditionError(
         "Invalid Lyra descriptor; overworld loading refused");
   }
-  if (layout.presence == yaze::rom::LyraLayoutPresence::kValid) {
+  const bool native = layout.presence == rom::LyraLayoutPresence::kValid &&
+                      layout.revision == 3;
+  if (layout.presence == yaze::rom::LyraLayoutPresence::kValid && !native) {
     return absl::FailedPreconditionError(
         "Lyra descriptor canvas loading is not yet supported");
   }
@@ -203,6 +205,8 @@ absl::Status Overworld::Load(Rom* rom) {
   expanded_tile16_ = false;
   expanded_tile32_ = false;
   descriptor_layout_ = {};
+  if (native)
+    descriptor_layout_ = layout;
   rom_ = rom;
   layout_inspect_options_ = std::move(next_options);
   layout_options_bound_ = true;
@@ -237,9 +241,20 @@ absl::Status Overworld::Load(Rom* rom) {
       return absl::FailedPreconditionError(
           "Unsupported overworld model capacity");
     }
-    for (int map_index = 0; map_index < map_count; ++map_index)
-      overworld_maps_.emplace_back(map_index, rom_, game_data_,
-                                   layout_inspect_options_.address_overrides);
+    const auto model_layout =
+        native ? std::make_shared<const rom::LyraLayoutInspection>(layout)
+               : nullptr;
+    for (int map_index = 0; map_index < map_count; ++map_index) {
+      if (native) {
+        ASSIGN_OR_RETURN(
+            auto map, OverworldMap::CreateFromLayout(map_index, rom_,
+                                                     game_data_, model_layout));
+        overworld_maps_.push_back(std::move(map));
+      } else {
+        overworld_maps_.emplace_back(map_index, rom_, game_data_,
+                                     layout_inspect_options_.address_overrides);
+      }
+    }
   }
 
   // Phase 4: Map Configuration (uses cached_version_ for performance)
@@ -282,7 +297,9 @@ absl::Status Overworld::Load(Rom* rom) {
 
     {
       gfx::ScopedTimer items_timer("LoadItems");
-      ASSIGN_OR_RETURN(all_items_, LoadItems(rom_, overworld_maps_));
+      ASSIGN_OR_RETURN(all_items_,
+                       LoadItems(rom_, overworld_maps_,
+                                 native ? &descriptor_layout_ : nullptr));
     }
 
     {
@@ -349,6 +366,8 @@ absl::Status Overworld::BuildLyraTerrainPreview(
   tileset_cache_.clear();
   RETURN_IF_ERROR(AssembleMap32Tiles());
   RETURN_IF_ERROR(AssembleMap16Tiles());
+  const auto model_layout =
+      std::make_shared<const rom::LyraLayoutInspection>(descriptor_layout_);
   for (int map_index = 0; map_index < descriptor_layout_.capacity;
        ++map_index) {
     auto tiles = rom::LyraMapTile32(descriptor_layout_, rom_->data(),
@@ -374,9 +393,8 @@ absl::Status Overworld::BuildLyraTerrainPreview(
         AssignWorldTiles(x, y, sx, sy, tile, world);
       }
     }
-    ASSIGN_OR_RETURN(auto map,
-                     OverworldMap::CreateFromLayout(map_index, rom_, game_data_,
-                                                    &descriptor_layout_));
+    ASSIGN_OR_RETURN(auto map, OverworldMap::CreateFromLayout(
+                                   map_index, rom_, game_data_, model_layout));
     overworld_maps_.push_back(std::move(map));
   }
   loaded_map_tiles_ = map_tiles_;
@@ -786,7 +804,7 @@ absl::Status Overworld::AssembleMap32Tiles() {
   util::logf("Expanded tile32 flag: %d", expanded_flag);
   if (profile.has_expanded_tile32) {
     // ROM has expanded tile32 data - use expanded addresses
-    map32address[0] = version_constants().kMap32TileTL;
+    map32address[0] = resolved_layout_.tile32_pcs[0].value;
     map32address[1] = resolved_layout_.tile32_pcs[1].value;
     map32address[2] = resolved_layout_.tile32_pcs[2].value;
     map32address[3] = resolved_layout_.tile32_pcs[3].value;
@@ -961,6 +979,23 @@ void Overworld::OrganizeMapTiles(std::vector<uint8_t>& bytes,
 }
 
 absl::Status Overworld::DecompressAllMapTilesParallel() {
+  if (descriptor_layout_.presence == rom::LyraLayoutPresence::kValid &&
+      descriptor_layout_.revision == 3) {
+    for (int map = 0; map < descriptor_layout_.capacity; ++map) {
+      const auto page = rom::LyraMapTile32(descriptor_layout_, rom_->data(),
+                                           rom_->size(), map);
+      if (!page)
+        return absl::FailedPreconditionError(
+            "Native special-overworld terrain stream is invalid");
+      const int local = map % 64;
+      auto& world = SelectWorldBlockset(WorldForOverworldMap(map));
+      for (int y = 0; y < 16; ++y)
+        for (int x = 0; x < 16; ++x)
+          AssignWorldTiles(x, y, local % 8, local / 8, (*page)[y * 16 + x],
+                           world);
+    }
+    return absl::OkStatus();
+  }
   const auto get_ow_map_gfx_ptr = [this](int index, uint32_t map_ptr) {
     int p = (rom()->data()[map_ptr + 2 + (3 * index)] << 16) +
             (rom()->data()[map_ptr + 1 + (3 * index)] << 8) +
@@ -1627,18 +1662,30 @@ absl::Status Overworld::LoadSpritesFromMap(int sprites_per_gamestate_ptr,
                                            int num_maps_per_gamestate,
                                            int game_state) {
   if (!rom_ || game_state < 0 || game_state >= 3 ||
-      num_maps_per_gamestate < 0 || num_maps_per_gamestate > 160 ||
+      num_maps_per_gamestate < 0 ||
+      num_maps_per_gamestate > kExpandedMapCount ||
       overworld_maps_.size() < static_cast<size_t>(num_maps_per_gamestate)) {
     return absl::FailedPreconditionError(
         "Sprite loading requires initialized maps");
   }
+  if (descriptor_layout_.revision == 3) {
+    const auto first = rom::LyraLayoutRecord(descriptor_layout_, rom_->data(),
+                                             rom_->size(), 16 + game_state, 0);
+    if (!first || first->data() - rom_->data() != sprites_per_gamestate_ptr)
+      return absl::FailedPreconditionError(
+          "Sprite table differs from the loaded native directory");
+  }
   std::vector<Sprite> loaded;
-  std::array<bool, 160> loaded_maps{};
+  std::array<bool, kExpandedMapCount> loaded_maps{};
   for (int i = 0; i < num_maps_per_gamestate; ++i) {
     if (overworld_maps_[i].parent() != i)
       continue;
-    ASSIGN_OR_RETURN(auto bytes, ReadOverworldSpriteList(
-                                     *rom_, sprites_per_gamestate_ptr + i * 2));
+    ASSIGN_OR_RETURN(
+        auto bytes,
+        descriptor_layout_.revision == 3
+            ? ReadOverworldSpriteList(*rom_, descriptor_layout_, game_state, i)
+            : ReadOverworldSpriteList(*rom_,
+                                      sprites_per_gamestate_ptr + i * 2));
     loaded_maps[i] = true;
     const int screen = i % 64;
     for (size_t pos = 0; pos + 1 < bytes.size(); pos += 3) {

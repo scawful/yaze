@@ -41,6 +41,9 @@ using OverworldSpriteSavePlan = std::vector<OverworldSpriteWrite>;
 
 absl::StatusOr<OverworldSpriteBytes> ReadOverworldSpriteList(
     const Rom& rom, int pointer_address);
+absl::StatusOr<OverworldSpriteBytes> ReadOverworldSpriteList(
+    const Rom& rom, const rom::LyraLayoutInspection& layout, int state,
+    int map);
 // Preserve every untouched list, including entries outside the editor's loaded
 // maps. Deduplicate exact ordered streams; reject overflow before any mutation.
 absl::StatusOr<OverworldSpriteSavePlan> PlanOverworldSpriteSave(
