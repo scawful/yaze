@@ -2,16 +2,24 @@
 #define YAZE_APP_EDITOR_SYSTEM_PROJECT_MANAGER_H_
 
 #include <functional>
+#include <map>
+#include <memory>
+#include <optional>
 #include <string>
 #include <vector>
 
+#include "app/editor/system/session/background_command_task.h"
+
 #include "absl/status/status.h"
+#include "absl/status/statusor.h"
+#include "app/editor/system/session/project_build_workflow.h"
 #include "core/project.h"
 
 namespace yaze {
 namespace editor {
 
 class ToastManager;
+class RomLifecycleManager;
 
 /**
  * @class ProjectManager
@@ -122,6 +130,38 @@ class ProjectManager {
    */
   absl::Status ApplyZsoPreset(const std::string& preset_name);
 
+  // ============================================================================
+  // Project Build / Run workflow (identity-aware)
+  // ============================================================================
+
+  void SetBuildWorkflowServices(RomLifecycleManager* rom_lifecycle);
+
+  bool HasActiveProjectBuild() const;
+
+  absl::StatusOr<ProjectBuildPreparedRequest> PrepareProjectBuildRequest(
+      const ProjectBuildPrepareInputs& inputs);
+
+  absl::Status StartPreparedProjectBuild(
+      const ProjectBuildPreparedRequest& request, bool synchronous);
+
+  absl::StatusOr<std::string> WaitForPreparedProjectBuild(
+      const ProjectBuildPreparedRequest& request);
+
+  ProjectBuildPollUpdate PollProjectBuildForViewer(
+      size_t viewer_session_id, const std::string& viewer_descriptor_path);
+
+  absl::Status CancelProjectBuildForOwner(size_t owner_session_id,
+                                          const std::string& descriptor_path);
+
+  void ResetProjectBuildPresentationForDescriptor(
+      const std::string& descriptor_path);
+
+  absl::StatusOr<ProjectValidatedRunSelection> ValidateProjectRunSelection(
+      const ProjectRunPrepareInputs& inputs);
+
+  std::optional<ProjectBuildAttemptResult> GetLastBuildResultForOwner(
+      size_t owner_session_id, const std::string& descriptor_path) const;
+
  private:
   project::YazeProject current_project_;
   ToastManager* toast_manager_ = nullptr;
@@ -139,6 +179,20 @@ class ProjectManager {
   std::string GenerateProjectFilename(const std::string& project_name) const;
   bool IsValidProjectFile(const std::string& filename) const;
   absl::Status InitializeProjectStructure(const std::string& project_path);
+
+  absl::Status FinalizeActiveProjectBuild(bool synchronous_wait);
+  absl::StatusOr<ProjectBuildAttemptResult> CompleteBuildAttempt(
+      const ProjectBuildPreparedRequest& request,
+      const BackgroundCommandTask::Snapshot& snapshot);
+  absl::Status ValidatePreparedBuildDoesNotOverlap(
+      const ProjectBuildPreparedRequest& request) const;
+
+  RomLifecycleManager* rom_lifecycle_ = nullptr;
+  std::unique_ptr<BackgroundCommandTask> active_project_build_;
+  std::optional<ProjectBuildPreparedRequest> active_build_request_;
+  bool active_build_reported_ = false;
+  uint64_t next_build_attempt_id_ = 1;
+  std::map<std::string, ProjectBuildAttemptResult> terminal_build_results_;
 };
 
 }  // namespace editor

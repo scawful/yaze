@@ -184,11 +184,27 @@ void EditorManager::UpdateEditorState() {
 }
 
 void EditorManager::PollProjectWorkflowTasks() {
-  if (!active_project_build_) {
+  if (!active_project_context_session_id_.has_value() ||
+      current_project_.filepath.empty()) {
     return;
   }
 
-  const auto snapshot = active_project_build_->GetSnapshot();
+  const auto poll = project_manager_.PollProjectBuildForViewer(
+      *active_project_context_session_id_, current_project_.filepath);
+  if (!poll.has_active_operation) {
+    return;
+  }
+
+  if (poll.owner_session_id != *active_project_context_session_id_) {
+    UpdateBuildWorkflowStatus(
+        &status_bar_, project_management_panel_.get(),
+        MakeBuildStatus("Build running elsewhere",
+                        "Another project session is building in the background",
+                        ProjectWorkflowState::kRunning, "", false));
+    return;
+  }
+
+  const auto& snapshot = poll.task_snapshot;
   UpdateBuildWorkflowStatus(
       &status_bar_, project_management_panel_.get(),
       MakeBuildStatus(
@@ -211,21 +227,21 @@ void EditorManager::PollProjectWorkflowTasks() {
   }
   ContentRegistry::Context::SetBuildWorkflowLog(snapshot.output);
 
-  if (snapshot.running || active_project_build_reported_) {
+  if (!poll.newly_finished) {
     return;
   }
 
-  active_project_build_reported_ = true;
-  if (!snapshot.status.ok()) {
+  const auto& finished = poll.finished;
+  if (finished.terminal_state != ProjectBuildTerminalState::kSucceeded) {
     AppendWorkflowHistoryEntry(
         "Build",
-        MakeBuildStatus("Build failed", std::string(snapshot.status.message()),
-                        ProjectWorkflowState::kFailure, snapshot.output_tail,
-                        false),
-        snapshot.output);
+        MakeBuildStatus(
+            "Build failed", std::string(finished.process_status.message()),
+            ProjectWorkflowState::kFailure, finished.output_tail, false),
+        finished.output_log);
     toast_manager_.Show(
-        absl::StrFormat("Build failed: %s", snapshot.status.message()),
-        snapshot.status.code() == absl::StatusCode::kCancelled
+        absl::StrFormat("Build failed: %s", finished.process_status.message()),
+        finished.process_status.code() == absl::StatusCode::kCancelled
             ? ToastType::kInfo
             : ToastType::kError);
     return;
@@ -235,14 +251,14 @@ void EditorManager::PollProjectWorkflowTasks() {
       "Build",
       MakeBuildStatus(
           "Build succeeded",
-          snapshot.output_tail.empty() ? std::string("Project build completed")
-                                       : snapshot.output_tail,
-          ProjectWorkflowState::kSuccess, snapshot.output_tail, false),
-      snapshot.output);
-  toast_manager_.Show(snapshot.output_tail.empty()
+          finished.output_tail.empty() ? std::string("Project build completed")
+                                       : finished.output_tail,
+          ProjectWorkflowState::kSuccess, finished.output_tail, false),
+      finished.output_log);
+  toast_manager_.Show(finished.output_tail.empty()
                           ? "Project build completed"
                           : absl::StrFormat("Project build completed: %s",
-                                            snapshot.output_tail),
+                                            finished.output_tail),
                       ToastType::kSuccess);
 }
 

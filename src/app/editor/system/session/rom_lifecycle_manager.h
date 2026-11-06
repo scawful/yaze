@@ -11,6 +11,7 @@
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "app/editor/session_types.h"
+#include "app/editor/system/session/project_build_workflow.h"
 #include "app/editor/system/session/rom_file_manager.h"
 #include "core/hack_manifest.h"
 #include "core/project.h"
@@ -246,6 +247,34 @@ class RomLifecycleManager {
   absl::Status SaveProjectWorkBeforeRomSave(
       const ProjectEditingSaveBinding& binding, bool allow_dialogs,
       const ActiveProjectEditingSaveCallbacks& callbacks);
+
+  // =========================================================================
+  // Saved-input identity for Build / Run freshness joins
+  // =========================================================================
+
+  struct ProjectOriginSnapshot {
+    size_t session_id = SIZE_MAX;
+    std::string project_descriptor_path;
+    std::string editing_source_path;
+    std::optional<RomBaselineIdentity> rom_baseline;
+    bool session_open = false;
+  };
+
+  absl::StatusOr<ProjectOriginSnapshot> ResolveProjectOriginSnapshot(
+      size_t session_id) const;
+
+  absl::Status ValidateActiveProjectOrigin(size_t expected_session_id) const;
+
+  absl::StatusOr<ProjectSavedInputIdentity> CaptureSavedBuildInputIdentity(
+      const project::YazeProject& project,
+      const std::string& editing_source_path,
+      bool native_save_completion_pending) const;
+
+  absl::Status SavedBuildInputIdentityMatchesLive(
+      const ProjectSavedInputIdentity& captured,
+      const project::YazeProject& project,
+      const std::string& editing_source_path,
+      bool native_save_completion_pending) const;
 
   // =========================================================================
   // Backup Management (delegates to RomFileManager)

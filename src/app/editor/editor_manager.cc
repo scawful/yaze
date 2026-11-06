@@ -166,48 +166,6 @@
 namespace yaze::editor {
 
 namespace {
-absl::StatusOr<std::map<std::string, std::string>> ProjectBuildEnvironment(
-    const project::YazeProject& project,
-    const std::string& editing_source_path) {
-  if (project.filepath.empty()) {
-    return absl::FailedPreconditionError("Save the project before building");
-  }
-  std::error_code error;
-  const auto project_file =
-      std::filesystem::absolute(project.filepath, error).lexically_normal();
-  if (error) {
-    return absl::FailedPreconditionError(
-        "Cannot resolve the project build context: " + error.message());
-  }
-  const auto absolute = [&project_file](const std::string& value) {
-    if (value.empty()) {
-      return std::string();
-    }
-    const std::filesystem::path path(value);
-    return (path.is_absolute() ? path : project_file.parent_path() / path)
-        .lexically_normal()
-        .string();
-  };
-  std::string save_context_path;
-#if defined(YAZE_WITH_JSON) && !defined(__EMSCRIPTEN__)
-  if (!editing_source_path.empty()) {
-    ASSIGN_OR_RETURN(
-        auto save_context,
-        core::GetNativeSaveContext(editing_source_path, project_file.string()));
-    save_context_path = save_context.path.string();
-  }
-#endif
-  return std::map<std::string, std::string>{
-      {"YAZE_PROJECT_FILE", project_file.string()},
-      {"YAZE_PROJECT_CODE_FOLDER", absolute(project.code_folder)},
-      {"YAZE_PROJECT_ROM", absolute(project.rom_filename)},
-      {"YAZE_NATIVE_SAVE_RECEIPT", project_file.string() + ".native-save.json"},
-      {"YAZE_NATIVE_SAVE_CONTEXT", save_context_path},
-      {"YAZE_LYRA_TERRAIN_FILE", absolute(project.lyra_terrain_file)},
-      {"OOS_LYRA_PROJECT",
-       project.lyra_terrain_file.empty() ? "" : project_file.string()},
-      {"OOS_LYRA_REQUEST", absolute(project.lyra_build_request_file)}};
-}
 
 std::string LastNonEmptyLine(const std::string& text) {
   std::vector<std::string> lines = absl::StrSplit(text, '\n');
@@ -644,6 +602,7 @@ void EditorManager::InitializeSubsystems() {
       .popup_manager = popup_manager_.get(),
       .project = &current_project_,
   });
+  project_manager_.SetBuildWorkflowServices(&rom_lifecycle_);
 
   // STEP 4: Initialize UICoordinator (depends on popup_manager_,
   // session_coordinator_, window_manager_)
@@ -4627,19 +4586,8 @@ absl::Status EditorManager::SaveProjectAs(const std::string& filepath) {
   return CompletePendingProjectNativeSave();
 }
 
-absl::StatusOr<std::string> EditorManager::ResolveProjectBuildCommand() {
-  if (!current_project_.project_opened()) {
-    return absl::FailedPreconditionError("No project open");
-  }
-  if (current_project_.rom_metadata.write_policy ==
-      project::RomWritePolicy::kReadOnly) {
-    return absl::PermissionDeniedError(
-        "Build Project is disabled by the project's read-only policy");
-  }
-
-  // A Build button can run during the panel's Draw() before the frame-end
-  // project draft capture. Read the live panel and raw editor state now.
-  CaptureActiveProjectEditingState();
+absl::Status EditorManager::ValidateProjectBuildEditorReadiness() const {
+  const_cast<EditorManager*>(this)->CaptureActiveProjectEditingState();
   if (auto* editors = GetCurrentEditorSet()) {
     const auto* dungeon =
         editors->GetEditorAs<DungeonEditorV2>(EditorType::kDungeon);
@@ -4670,69 +4618,63 @@ absl::StatusOr<std::string> EditorManager::ResolveProjectBuildCommand() {
         active_rom->filename(),
         current_project_.GetAbsolutePath(current_project_.rom_filename)));
   }
+  return absl::OkStatus();
+}
 
-  std::string command = current_project_.build_script;
-  if (command.empty() && current_project_.hack_manifest.loaded()) {
-    const auto& pipeline = current_project_.hack_manifest.build_pipeline();
-    if (!pipeline.dev_rom.empty() && !current_project_.rom_filename.empty() &&
-        !SessionCoordinator::PathsReferToSameBackingFile(
-            current_project_.GetAbsolutePath(pipeline.dev_rom),
-            current_project_.GetAbsolutePath(current_project_.rom_filename))) {
-      return absl::FailedPreconditionError(absl::StrFormat(
-          "Build source mismatch: manifest development ROM %s differs from "
-          "project ROM %s.",
-          current_project_.GetAbsolutePath(pipeline.dev_rom),
-          current_project_.GetAbsolutePath(current_project_.rom_filename)));
-    }
-    command = pipeline.build_script;
-    // Manifest build_script is normally a path. Do not parse arbitrary shell
-    // commands here; only check a single, unquoted file-path token.
-    if (!command.empty() &&
-        command.find_first_of(" \t\r\n|&;<>()$`'\"\\") == std::string::npos) {
-      const std::filesystem::path script_path(command);
-      if (script_path.is_absolute() || script_path.has_parent_path() ||
-          script_path.extension() == ".sh") {
-        const std::string absolute_script =
-            current_project_.GetAbsolutePath(command);
-        std::error_code ec;
-        if (!std::filesystem::is_regular_file(absolute_script, ec)) {
-          return absl::FailedPreconditionError(absl::StrFormat(
-              "Manifest build script is unavailable: %s. Configure a build "
-              "script for this project before building.",
-              absolute_script));
-        }
-      }
+ProjectBuildPrepareInputs EditorManager::MakeProjectBuildPrepareInputs() const {
+  ProjectBuildPrepareInputs inputs;
+  inputs.project = &current_project_;
+  if (session_coordinator_) {
+    if (auto* session = session_coordinator_->GetActiveRomSession()) {
+      inputs.origin_session_id = session->session_id();
+      inputs.rom_baseline = session->rom_baseline;
+      inputs.native_save_completion_pending =
+          session->native_save_completion_pending;
     }
   }
-  if (command.empty()) {
-    return absl::NotFoundError("Project does not define a build command");
+  inputs.origin_session_active =
+      IsCurrentProjectContextOwnedBySession(inputs.origin_session_id);
+  inputs.editing_source_path = NativeSaveEditingSourcePath();
+  inputs.validate_readiness = [this]() {
+    return ValidateProjectBuildEditorReadiness();
+  };
+  return inputs;
+}
+
+ProjectRunPrepareInputs EditorManager::MakeProjectRunPrepareInputs() const {
+  ProjectRunPrepareInputs inputs;
+  inputs.project = &current_project_;
+  if (session_coordinator_) {
+    if (auto* session = session_coordinator_->GetActiveRomSession()) {
+      inputs.origin_session_id = session->session_id();
+      inputs.native_save_completion_pending =
+          session->native_save_completion_pending;
+    }
   }
-  return command;
+  inputs.origin_session_active =
+      IsCurrentProjectContextOwnedBySession(inputs.origin_session_id);
+  inputs.editing_source_path = NativeSaveEditingSourcePath();
+  inputs.build_running_for_origin = project_manager_.HasActiveProjectBuild();
+  return inputs;
+}
+
+absl::StatusOr<std::string> EditorManager::ResolveProjectBuildCommand() {
+  ProjectBuildPrepareInputs inputs = MakeProjectBuildPrepareInputs();
+  if (inputs.validate_readiness) {
+    RETURN_IF_ERROR(inputs.validate_readiness());
+  }
+  if (inputs.project == nullptr) {
+    return absl::FailedPreconditionError("No project open");
+  }
+  return ResolveConfiguredProjectBuildCommand(*inputs.project);
 }
 
 absl::StatusOr<std::string> EditorManager::ResolveProjectRunTarget() const {
   if (!current_project_.project_opened()) {
     return absl::FailedPreconditionError("No project open");
   }
-
-  ASSIGN_OR_RETURN(const auto expanded,
-                   current_project_.ResolveExpandedBuildRunTarget(
-                       NativeSaveEditingSourcePath()));
-  if (expanded) {
-    return *expanded;
-  }
-
-  std::string target;
-  if (current_project_.hack_manifest.loaded()) {
-    target = current_project_.hack_manifest.build_pipeline().patched_rom;
-  }
-  if (target.empty()) {
-    target = current_project_.build_target;
-  }
-  if (target.empty()) {
-    return absl::NotFoundError("Project does not define a run target ROM");
-  }
-  return current_project_.GetAbsolutePath(target);
+  return ResolveConfiguredProjectRunTargetPath(current_project_,
+                                               NativeSaveEditingSourcePath());
 }
 
 ProjectWorkflowStatus EditorManager::MakeBuildStatus(
@@ -4759,29 +4701,12 @@ ProjectWorkflowStatus EditorManager::MakeRunStatus(
 }
 
 absl::StatusOr<std::string> EditorManager::RunProjectBuildCommand() {
-  auto command_or = ResolveProjectBuildCommand();
-  if (!command_or.ok()) {
-    return command_or.status();
-  }
-
-  const std::string command = *command_or;
-  const std::filesystem::path project_root =
-      std::filesystem::path(current_project_.filepath).parent_path();
-  ASSIGN_OR_RETURN(
-      auto environment,
-      ProjectBuildEnvironment(current_project_, NativeSaveEditingSourcePath()));
-  BackgroundCommandTask task;
-  auto start_status = task.Start(command, project_root.string(), environment);
-  if (!start_status.ok()) {
-    return start_status;
-  }
-  auto wait_status = task.Wait();
-  const auto snapshot = task.GetSnapshot();
-  if (!wait_status.ok()) {
-    return wait_status;
-  }
-  const std::string summary = LastNonEmptyLine(snapshot.output);
-  return summary.empty() ? command : summary;
+  ASSIGN_OR_RETURN(const auto request,
+                   project_manager_.PrepareProjectBuildRequest(
+                       MakeProjectBuildPrepareInputs()));
+  RETURN_IF_ERROR(project_manager_.StartPreparedProjectBuild(
+      request, /*synchronous=*/true));
+  return project_manager_.WaitForPreparedProjectBuild(request);
 }
 
 absl::Status EditorManager::BuildCurrentProject() {
@@ -4823,37 +4748,22 @@ absl::Status EditorManager::BuildCurrentProject() {
 }
 
 void EditorManager::QueueBuildCurrentProject() {
-  if (active_project_build_) {
-    const auto snapshot = active_project_build_->GetSnapshot();
-    if (snapshot.running) {
-      toast_manager_.Show("A project build is already running",
-                          ToastType::kInfo);
-      return;
-    }
-  }
-
-  auto command_or = ResolveProjectBuildCommand();
-  if (!command_or.ok()) {
+  auto request_or = project_manager_.PrepareProjectBuildRequest(
+      MakeProjectBuildPrepareInputs());
+  if (!request_or.ok()) {
     UpdateBuildWorkflowStatus(
         &status_bar_, project_management_panel_.get(),
         MakeBuildStatus("Build unavailable",
-                        std::string(command_or.status().message()),
+                        std::string(request_or.status().message()),
                         ProjectWorkflowState::kFailure));
     toast_manager_.Show(
-        absl::StrFormat("Build unavailable: %s", command_or.status().message()),
+        absl::StrFormat("Build unavailable: %s", request_or.status().message()),
         ToastType::kWarning);
     return;
   }
 
-  const std::filesystem::path project_root =
-      std::filesystem::path(current_project_.filepath).parent_path();
-  auto environment =
-      ProjectBuildEnvironment(current_project_, NativeSaveEditingSourcePath());
-  active_project_build_ = std::make_unique<BackgroundCommandTask>();
-  auto start_status =
-      environment.ok() ? active_project_build_->Start(
-                             *command_or, project_root.string(), *environment)
-                       : environment.status();
+  auto start_status = project_manager_.StartPreparedProjectBuild(
+      *request_or, /*synchronous=*/false);
   if (!start_status.ok()) {
     UpdateBuildWorkflowStatus(
         &status_bar_, project_management_panel_.get(),
@@ -4863,11 +4773,9 @@ void EditorManager::QueueBuildCurrentProject() {
     toast_manager_.Show(
         absl::StrFormat("Build unavailable: %s", start_status.message()),
         ToastType::kWarning);
-    active_project_build_.reset();
     return;
   }
 
-  active_project_build_reported_ = false;
   UpdateBuildWorkflowStatus(
       &status_bar_, project_management_panel_.get(),
       MakeBuildStatus("Build running",
@@ -4880,21 +4788,21 @@ void EditorManager::QueueBuildCurrentProject() {
 }
 
 void EditorManager::CancelQueuedProjectBuild() {
-  if (!active_project_build_) {
+  if (!active_project_context_session_id_.has_value()) {
     return;
   }
-
-  const auto snapshot = active_project_build_->GetSnapshot();
-  if (!snapshot.running) {
+  if (!project_manager_.HasActiveProjectBuild()) {
     return;
   }
-
-  active_project_build_->Cancel();
+  const auto cancel_status = project_manager_.CancelProjectBuildForOwner(
+      *active_project_context_session_id_, current_project_.filepath);
+  if (!cancel_status.ok()) {
+    return;
+  }
   UpdateBuildWorkflowStatus(
       &status_bar_, project_management_panel_.get(),
       MakeBuildStatus("Cancelling build", "Stopping the active project build",
-                      ProjectWorkflowState::kRunning, snapshot.output_tail,
-                      false));
+                      ProjectWorkflowState::kRunning, "", false));
 }
 
 absl::Status EditorManager::RunCurrentProject() {
@@ -4904,26 +4812,31 @@ absl::Status EditorManager::RunCurrentProject() {
                     "Preparing the project output for emulator reload",
                     ProjectWorkflowState::kRunning));
 
-  auto run_target_or = ResolveProjectRunTarget();
-  if (!run_target_or.ok()) {
+  auto selection_or = project_manager_.ValidateProjectRunSelection(
+      MakeProjectRunPrepareInputs());
+  if (!selection_or.ok()) {
     UpdateRunWorkflowStatus(
         &status_bar_, project_management_panel_.get(),
         MakeRunStatus("Run unavailable",
-                      std::string(run_target_or.status().message()),
+                      std::string(selection_or.status().message()),
                       ProjectWorkflowState::kFailure));
-    toast_manager_.Show(absl::StrFormat("Run unavailable: %s",
-                                        run_target_or.status().message()),
-                        ToastType::kWarning);
-    return run_target_or.status();
+    toast_manager_.Show(
+        absl::StrFormat("Run unavailable: %s", selection_or.status().message()),
+        ToastType::kWarning);
+    return selection_or.status();
   }
-  const std::string run_target = *run_target_or;
-  if (!std::filesystem::exists(run_target)) {
-    UpdateRunWorkflowStatus(&status_bar_, project_management_panel_.get(),
-                            MakeRunStatus("Run target missing", run_target,
-                                          ProjectWorkflowState::kFailure));
-    toast_manager_.Show("Run target ROM not found. Build the project first.",
-                        ToastType::kWarning);
-    return absl::NotFoundError("Run target ROM not found");
+  const ProjectValidatedRunSelection selection = *selection_or;
+  const std::string run_target = selection.absolute_path;
+  ASSIGN_OR_RETURN(const auto load_boundary_hash,
+                   core::ComputeSourceArtifactFileSha256(run_target));
+  if (load_boundary_hash != selection.sha256) {
+    const auto status = absl::FailedPreconditionError(
+        "Run target changed before emulator reload");
+    UpdateRunWorkflowStatus(
+        &status_bar_, project_management_panel_.get(),
+        MakeRunStatus("Run unavailable", std::string(status.message()),
+                      ProjectWorkflowState::kFailure));
+    return status;
   }
 
 #ifdef YAZE_WITH_GRPC

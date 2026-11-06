@@ -275,6 +275,8 @@ set(
   app/editor/system/session/collision_source_pairing.cc
   app/editor/system/session/extension_manager.cc
   app/editor/system/session/project_manager.cc
+  app/editor/system/session/project_manager_build.cc
+  app/editor/system/session/project_build_workflow.cc
   app/editor/system/session/rom_file_manager.cc
   app/editor/system/session/rom_lifecycle_manager.cc
   app/editor/system/session/session_coordinator.cc

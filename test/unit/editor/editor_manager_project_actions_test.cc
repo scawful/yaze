@@ -1491,7 +1491,12 @@ TEST(EditorManagerProjectActionsTest,
 }
 )json")
                   .ok());
-
+#ifdef _WIN32
+  project->build_script = "cmd /c exit 0";
+#else
+  project->build_script = "true";
+#endif
+  ASSERT_OK(manager->BuildCurrentProject());
   ASSERT_OK(manager->RunCurrentProject());
   EXPECT_TRUE(manager->emulator().is_snes_initialized());
   EXPECT_TRUE(manager->emulator().running());
@@ -1899,6 +1904,7 @@ TEST(EditorManagerProjectActionsTest,
   project->lyra_build_request_file.clear();
   ASSERT_FALSE(project->lyra_terrain_file.empty());
   ASSERT_FALSE(std::filesystem::exists(fixture.target));
+  ASSERT_OK(manager->BuildCurrentProject());
   ASSERT_OK(manager->RunCurrentProject());
   EXPECT_EQ(std::filesystem::path(
                 ContentRegistry::Context::run_workflow_status().detail),
@@ -1967,6 +1973,12 @@ TEST(EditorManagerProjectActionsTest,
     ASSERT_FALSE(project->native_save_transfer_proof_file.empty());
     ASSERT_TRUE(project->lyra_build_request_file.empty());
     ASSERT_TRUE(project->hack_manifest.loaded());
+#ifdef _WIN32
+    manager->GetCurrentProject()->build_script = "cmd /c exit 0";
+#else
+    manager->GetCurrentProject()->build_script = "true";
+#endif
+    ASSERT_OK(manager->BuildCurrentProject());
     const auto result = manager->RunCurrentProject();
     EXPECT_TRUE(result.ok()) << result;
     if (!result.ok()) {

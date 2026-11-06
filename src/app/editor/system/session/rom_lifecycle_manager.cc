@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <cctype>
 #include <filesystem>
+#include <fstream>
 #include <string>
 #include <vector>
 
@@ -18,8 +19,13 @@
 #include "app/editor/system/session/rom_file_manager.h"
 #include "app/editor/system/session/session_coordinator.h"
 #include "core/hack_manifest.h"
+#include "core/native_save_receipt.h"
 #include "core/project.h"
+#include "core/source_artifact_publisher.h"
 #include "rom/rom.h"
+#if defined(YAZE_WITH_JSON) && !defined(__EMSCRIPTEN__)
+#include <nlohmann/json.hpp>
+#endif
 #include "util/rom_hash.h"
 #include "zelda3/dungeon/oracle_rom_safety_preflight.h"
 
@@ -738,6 +744,196 @@ absl::Status RomLifecycleManager::SaveProjectWorkBeforeRomSave(
     project_save_sequence_active_ = false;
   };
   return SaveActiveProjectEditingWorkImpl(binding, allow_dialogs, callbacks);
+}
+
+namespace {
+
+#if defined(YAZE_WITH_JSON) && !defined(__EMSCRIPTEN__)
+using Json = nlohmann::json;
+
+absl::StatusOr<Json> ReadJsonObject(const std::filesystem::path& path) {
+  std::error_code ec;
+  if (!std::filesystem::is_regular_file(path, ec) || ec) {
+    return absl::NotFoundError("JSON file is missing");
+  }
+  std::ifstream stream(path, std::ios::binary);
+  Json value = Json::parse(stream, nullptr, false);
+  if (!value.is_object()) {
+    return absl::FailedPreconditionError("JSON root must be an object");
+  }
+  return value;
+}
+
+absl::StatusOr<ProjectSavedInputIdentity> CaptureNativeSavedBuildInputIdentity(
+    const project::YazeProject& project,
+    const std::string& editing_source_path) {
+  if (project.filepath.empty() || editing_source_path.empty()) {
+    return absl::FailedPreconditionError(
+        "Native saved-input identity requires a project and editing source");
+  }
+  ASSIGN_OR_RETURN(
+      const auto context,
+      core::GetNativeSaveContext(editing_source_path, project.filepath));
+  ASSIGN_OR_RETURN(const auto context_json, ReadJsonObject(context.path));
+  if (context_json.value("kind", Json()) != "yaze.native_save_context.v1" ||
+      context_json.value("state", Json()) != "committed") {
+    return absl::FailedPreconditionError(
+        "Native save completion is required before building or running");
+  }
+  const auto& commit = context_json.at("native_commit");
+  const uint64_t generation = commit.at("generation").get<uint64_t>();
+  const std::string operation_id =
+      commit.at("operation_id").get_ref<const std::string&>();
+  const std::string receipt_path =
+      commit.at("receipt_path").get_ref<const std::string&>();
+  ASSIGN_OR_RETURN(const auto receipt_json, ReadJsonObject(receipt_path));
+  if (receipt_json.value("kind", Json()) != "yaze.native_save.v1" ||
+      !receipt_json.value("bindings_complete", false)) {
+    return absl::FailedPreconditionError(
+        "Native save receipt is incomplete for this project");
+  }
+  if (receipt_json.at("generation").get<uint64_t>() != generation ||
+      receipt_json.at("operation_id").get_ref<const std::string&>() !=
+          operation_id) {
+    return absl::FailedPreconditionError(
+        "Native save receipt does not match the committed save context");
+  }
+  std::string canonical =
+      absl::StrFormat("native:%llu:%s", generation, operation_id.c_str());
+  ASSIGN_OR_RETURN(const auto descriptor_hash,
+                   core::ComputeSourceArtifactFileSha256(project.filepath));
+  canonical += "|" + *descriptor_hash;
+  ProjectSavedInputIdentity identity;
+  identity.uses_native_receipt = true;
+  identity.native_generation = generation;
+  identity.native_operation_id = operation_id;
+  identity.fingerprint_sha256 = core::ComputeSourceArtifactSha256(canonical);
+  return identity;
+}
+#endif
+
+absl::StatusOr<ProjectSavedInputIdentity> CaptureGenericSavedBuildInputIdentity(
+    const project::YazeProject& project) {
+  if (project.filepath.empty()) {
+    return absl::FailedPreconditionError(
+        "Save the project before building or running");
+  }
+  std::string canonical = "generic:";
+  std::error_code ec;
+  if (std::filesystem::is_regular_file(project.filepath, ec) && !ec) {
+    ASSIGN_OR_RETURN(const auto descriptor_hash,
+                     core::ComputeSourceArtifactFileSha256(project.filepath));
+    canonical += *descriptor_hash;
+  } else {
+    canonical += project.filepath;
+  }
+  ASSIGN_OR_RETURN(const auto serialized, project.SerializeToString());
+  canonical += "|" + core::ComputeSourceArtifactSha256(serialized);
+  if (!project.rom_filename.empty()) {
+    const std::string rom_path = project.GetAbsolutePath(project.rom_filename);
+    std::error_code ec;
+    if (std::filesystem::is_regular_file(rom_path, ec) && !ec) {
+      ASSIGN_OR_RETURN(const auto rom_hash,
+                       core::ComputeSourceArtifactFileSha256(rom_path));
+      canonical += "|" + *rom_hash;
+    }
+  }
+  ProjectSavedInputIdentity identity;
+  identity.fingerprint_sha256 = core::ComputeSourceArtifactSha256(canonical);
+  return identity;
+}
+
+bool NativeSaveContextExistsForProject(const project::YazeProject& project,
+                                       const std::string& editing_source_path) {
+#if defined(YAZE_WITH_JSON) && !defined(__EMSCRIPTEN__)
+  if (project.filepath.empty() || editing_source_path.empty()) {
+    return false;
+  }
+  const auto context =
+      core::GetNativeSaveContext(editing_source_path, project.filepath);
+  return context.ok();
+#else
+  (void)project;
+  (void)editing_source_path;
+  return false;
+#endif
+}
+
+}  // namespace
+
+absl::StatusOr<RomLifecycleManager::ProjectOriginSnapshot>
+RomLifecycleManager::ResolveProjectOriginSnapshot(size_t session_id) const {
+  if (!session_coordinator_ || session_id == SIZE_MAX) {
+    return absl::FailedPreconditionError("Invalid build origin session");
+  }
+  for (size_t index = 0; index < session_coordinator_->GetTotalSessionCount();
+       ++index) {
+    if (session_coordinator_->GetSessionId(index) != session_id) {
+      continue;
+    }
+    auto* session =
+        static_cast<RomSession*>(session_coordinator_->GetSession(index));
+    if (session == nullptr) {
+      break;
+    }
+    ProjectOriginSnapshot snapshot;
+    snapshot.session_id = session_id;
+    snapshot.session_open = true;
+    snapshot.rom_baseline = session->rom_baseline;
+    if (session->rom_baseline.has_value()) {
+      snapshot.editing_source_path = session->rom_baseline->editing_source_path;
+    } else if (session->rom.is_loaded()) {
+      snapshot.editing_source_path = session->rom.filename();
+    }
+    if (session->project_context.has_value()) {
+      snapshot.project_descriptor_path = session->project_context->filepath;
+    }
+    return snapshot;
+  }
+  return absl::NotFoundError("Build origin session is no longer available");
+}
+
+absl::Status RomLifecycleManager::ValidateActiveProjectOrigin(
+    size_t expected_session_id) const {
+  if (!session_coordinator_) {
+    return absl::FailedPreconditionError("No session coordinator");
+  }
+  if (session_coordinator_->GetActiveSessionId() != expected_session_id) {
+    return absl::FailedPreconditionError(
+        "Build and Run require the originating project session to be active");
+  }
+  return absl::OkStatus();
+}
+
+absl::StatusOr<ProjectSavedInputIdentity>
+RomLifecycleManager::CaptureSavedBuildInputIdentity(
+    const project::YazeProject& project, const std::string& editing_source_path,
+    bool native_save_completion_pending) const {
+  if (native_save_completion_pending) {
+    return absl::FailedPreconditionError(
+        "Finish native save completion before building or running");
+  }
+#if defined(YAZE_WITH_JSON) && !defined(__EMSCRIPTEN__)
+  if (NativeSaveContextExistsForProject(project, editing_source_path)) {
+    return CaptureNativeSavedBuildInputIdentity(project, editing_source_path);
+  }
+#endif
+  return CaptureGenericSavedBuildInputIdentity(project);
+}
+
+absl::Status RomLifecycleManager::SavedBuildInputIdentityMatchesLive(
+    const ProjectSavedInputIdentity& captured,
+    const project::YazeProject& project, const std::string& editing_source_path,
+    bool native_save_completion_pending) const {
+  ASSIGN_OR_RETURN(const auto live, CaptureSavedBuildInputIdentity(
+                                        project, editing_source_path,
+                                        native_save_completion_pending));
+  if (live.uses_native_receipt != captured.uses_native_receipt ||
+      live.fingerprint_sha256 != captured.fingerprint_sha256) {
+    return absl::FailedPreconditionError(
+        "Saved project inputs changed since the last build attempt");
+  }
+  return absl::OkStatus();
 }
 
 }  // namespace yaze::editor

@@ -779,6 +779,9 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
   absl::StatusOr<std::string> RunProjectBuildCommand();
   absl::StatusOr<std::string> ResolveProjectBuildCommand();
   absl::StatusOr<std::string> ResolveProjectRunTarget() const;
+  absl::Status ValidateProjectBuildEditorReadiness() const;
+  ProjectBuildPrepareInputs MakeProjectBuildPrepareInputs() const;
+  ProjectRunPrepareInputs MakeProjectRunPrepareInputs() const;
   absl::Status CheckRomWritePolicy(
       const std::optional<std::string>& target_filename = std::nullopt);
   absl::Status CheckOracleRomSafetyPreSave(Rom* rom);
@@ -857,9 +860,6 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
   std::vector<std::function<void()>> deferred_actions_;
   std::atomic<int> pending_editor_deferred_actions_{0};
   std::atomic<uint64_t> ui_sync_frame_id_{0};
-  std::unique_ptr<BackgroundCommandTask> active_project_build_;
-  bool active_project_build_reported_ = false;
-
   // Core Event Bus and Context
   EventBus event_bus_;
   std::unique_ptr<GlobalEditorContext> editor_context_;

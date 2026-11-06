@@ -1823,8 +1823,8 @@ absl::Status EditorManager::LoadProjectWithRom(bool allow_dialogs) {
     project_management_panel_->SetBuildLogOutput("");
   }
   ContentRegistry::Context::SetBuildWorkflowLog("");
-  active_project_build_.reset();
-  active_project_build_reported_ = false;
+  project_manager_.ResetProjectBuildPresentationForDescriptor(
+      current_project_.filepath);
 
   // Publish project context for hack workflow panels and other consumers
   ContentRegistry::Context::SetCurrentProject(&current_project_);
