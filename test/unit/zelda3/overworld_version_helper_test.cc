@@ -8,6 +8,8 @@
 #include "rom/rom.h"
 #include "rom/snes.h"
 #include "zelda3/overworld/overworld.h"
+#include "zelda3/overworld/overworld_allocation.h"
+#include "zelda3/overworld/overworld_layout.h"
 #include "zelda3/overworld/overworld_map.h"
 #include "zelda3/overworld/overworld_upgrade_system.h"
 #include "zelda3/overworld/terrain_graphics.h"
@@ -15,6 +17,18 @@
 namespace yaze::zelda3 {
 
 namespace {
+
+void PatchEaTailOperands(Rom& rom) {
+  const TailMapExpansionPlan plan;
+  for (size_t i = 0; i < plan.operand_snes.size(); ++i) {
+    const uint32_t pc = SnesToPc(plan.operand_snes[i]);
+    ASSERT_LT(pc + 2, rom.size());
+    const uint32_t patched = plan.operand_patched[i];
+    rom[pc] = static_cast<uint8_t>(patched & 0xFF);
+    rom[pc + 1] = static_cast<uint8_t>((patched >> 8) & 0xFF);
+    rom[pc + 2] = static_cast<uint8_t>((patched >> 16) & 0xFF);
+  }
+}
 
 void InitOverworldTestRom(Rom& rom, uint8_t asm_version = 0xFF) {
   std::vector<uint8_t> data(2 * 1024 * 1024, 0);
@@ -238,9 +252,11 @@ TEST(OverworldRomProfileTest, V3ForcesExpandedTilesAndRequiresTailMarker) {
   EXPECT_EQ(profile.editable_map_count, kNumOverworldMaps);
 
   rom[GetExpandedPtrTableMarker()] = GetExpandedPtrTableMagic();
+  PatchEaTailOperands(rom);
   profile = DetectOverworldRomProfile(rom);
   EXPECT_TRUE(profile.has_tail_map_expansion);
   EXPECT_EQ(profile.editable_map_count, kExpandedMapCount);
+  EXPECT_EQ(profile.materialized_map_count, kNumOverworldMaps);
 }
 
 TEST(OverworldRomProfileTest, V5CollisionByteCannotMasqueradeAsTailMarker) {

@@ -13,6 +13,7 @@
 #include "nlohmann/json.hpp"
 #include "zelda3/overworld/overworld_entrance.h"
 #include "zelda3/overworld/overworld_exit.h"
+#include "zelda3/overworld/overworld_layout.h"
 #include "zelda3/overworld/zscream_custom_layout.h"
 
 namespace yaze::zelda3 {
@@ -594,15 +595,14 @@ absl::StatusOr<OverworldAllocationReport> BuildOverworldAllocationReport(
   OverworldAllocationReport report;
   report.rom_name = std::filesystem::path(rom->filename()).filename().string();
   report.rom_size = rom->size();
-  report.asm_version = ReadAsmVersion(*rom);
-  const bool zs_v3 = IsZsV3(report.asm_version);
+  const auto layout = InspectOverworldLayout(
+      *rom, OverworldLayoutOptions::WithProjectRomSettings());
+  report.asm_version = layout.catalogue_asm_version();
+  const bool zs_v3 = layout.uses_zs_v3_catalogue();
   report.catalogue = zs_v3 ? "zscustom_v3" : "vanilla";
   report.tables = OverworldAreaTableCatalogue(report.asm_version);
   const TailMapExpansionPlan plan;
-  const uint32_t marker_pc = LoRomSnesToPc(plan.marker_snes);
-  report.tail_marker_present = zscream::CanUseTailExpansion(*rom) &&
-                               marker_pc < rom->size() &&
-                               rom->data()[marker_pc] == plan.marker_value;
+  report.tail_marker_present = layout.has_validated_ea_tail();
 
   report.areas.resize(kAllocationAreaCount);
   for (int id = 0; id < kAllocationAreaCount; ++id) {
@@ -647,10 +647,11 @@ absl::StatusOr<OverworldAllocationReport> BuildOverworldAllocationReport(
 
     // Map data. Once the tail marker is present the game reads the
     // relocated 192-entry tables; otherwise only $00-$9F have pointers.
-    if (report.tail_marker_present) {
+    if (layout.has_validated_ea_tail()) {
       area.map_pointer_source = "tail_table";
-      ScanAreaMap(*rom, LoRomSnesToPc(plan.high_table_snes),
-                  LoRomSnesToPc(plan.low_table_snes), id, &area);
+      ScanAreaMap(
+          *rom, static_cast<uint32_t>(layout.terrain_high_table_pc.value),
+          static_cast<uint32_t>(layout.terrain_low_table_pc.value), id, &area);
     } else if (id <= 0x9F) {
       area.map_pointer_source = "vanilla_table";
       ScanAreaMap(*rom, kMap32HighPc, kMap32LowPc, id, &area);

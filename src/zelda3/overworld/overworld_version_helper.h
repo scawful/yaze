@@ -168,7 +168,11 @@ class OverworldVersionHelper {
     if (asm_version == 2) {
       return OverworldVersion::kZSCustomV2;
     }
-    if (asm_version >= 3) {
+    // Raw markers above 0x03 (for example V5 collision 0x05) must use
+    // zscream::DetectLayout / InspectOverworldLayout for feature policy.
+    // V5 retains the existing non-collision V3 codecs. Raw dialect policy
+    // separately gates its per-sheet collisions and allocation capabilities.
+    if (asm_version == 3 || asm_version == 5) {
       return OverworldVersion::kZSCustomV3;
     }
 

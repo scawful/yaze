@@ -22,6 +22,7 @@
 #include "zelda3/overworld/overworld_entrance.h"
 #include "zelda3/overworld/overworld_exit.h"
 #include "zelda3/overworld/overworld_item.h"
+#include "zelda3/overworld/overworld_layout.h"
 #include "zelda3/overworld/overworld_map.h"
 #include "zelda3/overworld/overworld_sprite_io.h"
 #include "zelda3/overworld/overworld_version_helper.h"
@@ -291,7 +292,10 @@ struct OverworldRomProfile {
   bool has_expanded_tile32 = false;
   bool has_expanded_entrances = false;
   bool has_tail_map_expansion = false;
+  // Detected ROM map-slot storage (160 or 192). Not write authority.
   int editable_map_count = kSpecialWorldMapIdStart + 0x20;
+  int materialized_map_count = kNumOverworldMaps;
+  int special_storage_slots = 0x20;
 };
 
 inline int Map32StorageBytesForProfile(const OverworldRomProfile& profile) {
@@ -317,53 +321,52 @@ inline uint8_t ReadRomByteOr(const Rom& rom, int address, uint8_t fallback) {
 }
 
 inline bool IsSpecialTailMapExpansionEnabled(const Rom& rom) {
-  return zscream::CanUseTailExpansion(rom) &&
-         ReadRomByteOr(rom, GetExpandedPtrTableMarker(), 0x00) ==
-             GetExpandedPtrTableMagic();
+  return InspectOverworldLayout(
+             rom, OverworldLayoutOptions::WithProjectRomSettings())
+      .has_validated_ea_tail();
+}
+
+inline OverworldRomProfile ToOverworldRomProfile(
+    const OverworldLayout& layout) {
+  OverworldRomProfile profile;
+  profile.zscream_layout = layout.zscream_layout;
+  profile.lyra_layout = layout.lyra_layout;
+  profile.asm_version = layout.asm_version;
+  profile.version = layout.version;
+  profile.is_vanilla = layout.is_vanilla;
+  profile.supports_expanded_space = layout.supports_expanded_space;
+  profile.supports_area_enum = layout.supports_area_enum;
+  profile.supports_custom_bg_colors = layout.supports_custom_bg_colors;
+  profile.has_expanded_tile16 = layout.has_expanded_tile16;
+  profile.has_expanded_tile32 = layout.has_expanded_tile32;
+  profile.has_expanded_entrances = layout.has_expanded_entrances;
+  profile.has_tail_map_expansion = layout.has_validated_ea_tail();
+  switch (layout.layout_kind) {
+    case OverworldLayout::LayoutKind::kLegacy:
+      profile.layout_kind = OverworldRomProfile::LayoutKind::kLegacy;
+      break;
+    case OverworldLayout::LayoutKind::kOlderTailEa:
+      profile.layout_kind = OverworldRomProfile::LayoutKind::kOlderTailEa;
+      break;
+    case OverworldLayout::LayoutKind::kLyraOffline:
+      profile.layout_kind = OverworldRomProfile::LayoutKind::kLyraOffline;
+      break;
+    case OverworldLayout::LayoutKind::kZScreamPerSheet:
+      profile.layout_kind = OverworldRomProfile::LayoutKind::kZScreamPerSheet;
+      break;
+    case OverworldLayout::LayoutKind::kUnknownCustom:
+      profile.layout_kind = OverworldRomProfile::LayoutKind::kUnknownCustom;
+      break;
+  }
+  profile.editable_map_count = layout.storage_slot_capacity;
+  profile.materialized_map_count = layout.materialized_model_slots;
+  profile.special_storage_slots = layout.special_storage_slots;
+  return profile;
 }
 
 inline OverworldRomProfile DetectOverworldRomProfile(const Rom& rom) {
-  OverworldRomProfile profile;
-  profile.zscream_layout = zscream::DetectLayout(rom);
-  profile.lyra_layout = rom.InspectLyraLayout();
-  profile.asm_version = OverworldVersionHelper::GetAsmVersion(rom);
-  profile.version = OverworldVersionHelper::GetVersion(rom);
-  profile.is_vanilla = profile.version == OverworldVersion::kVanilla;
-  profile.supports_expanded_space =
-      OverworldVersionHelper::SupportsExpandedSpace(profile.version);
-  profile.supports_area_enum =
-      OverworldVersionHelper::SupportsAreaEnum(profile.version);
-  profile.supports_custom_bg_colors =
-      OverworldVersionHelper::SupportsCustomBGColors(profile.version);
-
-  const uint8_t tile16_flag = ReadRomByteOr(rom, kMap16ExpandedFlagPos, 0x0F);
-  const uint8_t tile32_flag = ReadRomByteOr(rom, kMap32ExpandedFlagPos, 0x04);
-  const uint8_t entrance_flag =
-      ReadRomByteOr(rom, GetOverworldEntranceFlagExpanded(), 0xB8);
-
-  profile.has_expanded_tile16 =
-      !profile.is_vanilla &&
-      (profile.supports_area_enum || tile16_flag != 0x0F);
-  profile.has_expanded_tile32 =
-      !profile.is_vanilla &&
-      (profile.supports_area_enum || tile32_flag != 0x04);
-  profile.has_expanded_entrances = !profile.is_vanilla && entrance_flag != 0xB8;
-  profile.has_tail_map_expansion =
-      profile.supports_area_enum && IsSpecialTailMapExpansionEnabled(rom);
-  if (profile.lyra_layout.presence != yaze::rom::LyraLayoutPresence::kAbsent) {
-    profile.layout_kind = OverworldRomProfile::LayoutKind::kLyraOffline;
-    // The 192-record descriptor is not the older editable $EA tail format.
-    profile.has_tail_map_expansion = false;
-  } else if (profile.has_tail_map_expansion) {
-    profile.layout_kind = OverworldRomProfile::LayoutKind::kOlderTailEa;
-  } else if (profile.zscream_layout == zscream::LayoutDialect::kZScreamV5) {
-    profile.layout_kind = OverworldRomProfile::LayoutKind::kZScreamPerSheet;
-  } else if (profile.zscream_layout == zscream::LayoutDialect::kUnknown) {
-    profile.layout_kind = OverworldRomProfile::LayoutKind::kUnknownCustom;
-  }
-  profile.editable_map_count =
-      profile.has_tail_map_expansion ? kExpandedMapCount : kNumOverworldMaps;
-  return profile;
+  return ToOverworldRomProfile(InspectOverworldLayout(
+      rom, OverworldLayoutOptions::WithProjectRomSettings()));
 }
 
 inline int WorldForOverworldMap(int map_index) {
@@ -418,6 +421,8 @@ inline int LegacyScreenSizeTableIndexForMap(int map_index) {
 /// expanded table when the ROM has one). `expanded` reports which was read.
 absl::StatusOr<std::vector<gfx::Tile16>> ReadMap16Tiles(
     const Rom& rom, bool* expanded = nullptr);
+absl::StatusOr<std::vector<gfx::Tile16>> ReadMap16Tiles(
+    const Rom& rom, const OverworldLayoutOptions& options, bool* expanded);
 
 class Overworld {
  public:
@@ -438,6 +443,10 @@ class Overworld {
 
   /// @brief Load all overworld data from ROM
   absl::Status Load(Rom* rom);
+  absl::Status Load(Rom* rom, const OverworldLayoutOptions& options) {
+    set_layout_inspect_options(options);
+    return Load(rom);
+  }
   // Explicit descriptor terrain path. The normal model loader remains
   // legacy-only; the editor admits this path only to its read-only canvas.
   absl::Status LoadLyraTerrainPreview(Rom* rom);
@@ -711,12 +720,7 @@ class Overworld {
    * marker byte at 0x1423FF being 0xEA.
    */
   bool HasExpandedPointerTables() const {
-    const int marker_addr = GetExpandedPtrTableMarker();
-    if (!rom_ || !zscream::CanUseTailExpansion(*rom_) ||
-        marker_addr >= rom_->size()) {
-      return false;
-    }
-    return rom_->data()[marker_addr] == GetExpandedPtrTableMagic();
+    return resolved_layout_.has_validated_ea_tail();
   }
 
   void Destroy() {
@@ -839,6 +843,18 @@ class Overworld {
   auto expanded_entrances() const { return expanded_entrances_; }
   bool has_tail_map_expansion() const { return has_tail_map_expansion_; }
   void set_has_tail_map_expansion(bool v) { has_tail_map_expansion_ = v; }
+  const OverworldLayout& resolved_layout() const { return resolved_layout_; }
+  const OverworldLayoutOptions& layout_inspect_options() const {
+    return layout_inspect_options_;
+  }
+  void set_layout_inspect_options(OverworldLayoutOptions options) {
+    layout_inspect_options_ = std::move(options);
+    layout_options_bound_ = true;
+  }
+  void ReResolveLayoutFromRom();
+  absl::Status PreflightLayoutOperation(OverworldLayoutDomain domain,
+                                        OverworldLayoutOperation operation,
+                                        int map_id = -1, int phase = 0);
   int current_map_id() const { return current_map_; }
   int current_world() const { return current_world_; }
   void set_current_map(int i) { current_map_ = i; }
@@ -911,6 +927,9 @@ class Overworld {
   bool expanded_tile32_ = false;
   bool expanded_entrances_ = false;
   bool has_tail_map_expansion_ = false;
+  OverworldLayoutOptions layout_inspect_options_;
+  bool layout_options_bound_ = false;
+  OverworldLayout resolved_layout_;
 
   int game_state_ = 0;
   int current_map_ = 0;

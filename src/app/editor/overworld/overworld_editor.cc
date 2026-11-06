@@ -93,6 +93,7 @@
 #include "zelda3/overworld/overworld_entrance.h"
 #include "zelda3/overworld/overworld_exit.h"
 #include "zelda3/overworld/overworld_item.h"
+#include "zelda3/overworld/overworld_layout.h"
 #include "zelda3/overworld/overworld_map.h"
 #include "zelda3/overworld/overworld_version_helper.h"
 #include "zelda3/sprite/sprite.h"
@@ -1594,7 +1595,12 @@ absl::Status OverworldEditor::Save() {
   }
 
   if (saving_maps) {
-    const auto profile = zelda3::DetectOverworldRomProfile(*rom_);
+    overworld_.ReResolveLayoutFromRom();
+    RETURN_IF_ERROR(overworld_.resolved_layout().CheckOperation(
+        zelda3::OverworldLayoutDomain::kTerrainPointers,
+        zelda3::OverworldLayoutOperation::kSerialize, -1, 0));
+    const auto profile =
+        zelda3::ToOverworldRomProfile(overworld_.resolved_layout());
     RETURN_IF_ERROR(overworld_.CreateTile32Tilemap());
     if (profile.has_expanded_tile32) {
       RETURN_IF_ERROR(overworld_.SaveMap32Expanded());

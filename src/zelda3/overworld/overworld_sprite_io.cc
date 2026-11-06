@@ -6,12 +6,18 @@
 #include "rom/transaction.h"
 #include "rom/write_fence.h"
 #include "util/macro.h"
+#include "zelda3/overworld/overworld_layout.h"
 #include "zelda3/overworld/overworld_version_helper.h"
 
 namespace yaze::zelda3 {
 OverworldSpriteLayout GetOverworldSpriteLayout(const Rom& rom) {
-  if (OverworldVersionHelper::SupportsAreaEnum(
-          OverworldVersionHelper::GetVersion(rom))) {
+  return ResolveOverworldSpriteLayout(
+      InspectOverworldLayout(rom, OverworldLayoutOptions::Defaults()));
+}
+
+OverworldSpriteLayout ResolveOverworldSpriteLayout(
+    const OverworldLayout& layout) {
+  if (layout.supports_area_enum || layout.uses_zs_v3_catalogue()) {
     return {{{0x141438, 0x141578, 0x1416B8}}, {{160, 160, 160}}, 0x4C881};
   }
   return {{{0x4C881, 0x4C901, 0x4CA21}},
@@ -98,7 +104,12 @@ const char* OverworldSpriteEditStrategyName(OverworldSpriteEditStrategy s) {
 absl::StatusOr<OverworldSpriteListEditPlan> PlanOverworldSpriteListEdit(
     const Rom& rom, int state, int map,
     const OverworldSpriteBytes& replacement) {
-  const auto layout = GetOverworldSpriteLayout(rom);
+  const auto ow_layout =
+      InspectOverworldLayout(rom, OverworldLayoutOptions::Defaults());
+  RETURN_IF_ERROR(ow_layout.CheckOperation(
+      OverworldLayoutDomain::kSprites, OverworldLayoutOperation::kMutateModel,
+      map, state));
+  const auto layout = ResolveOverworldSpriteLayout(ow_layout);
   if (state < 0 || state >= 3 || map < 0 || map >= layout.counts[state]) {
     return absl::InvalidArgumentError(
         "Sprite map is not supported in this game state");
@@ -251,7 +262,12 @@ absl::StatusOr<OverworldSpriteListEditPlan> PlanOverworldSpriteListEdit(
 
 absl::StatusOr<OverworldSpriteSavePlan> PlanOverworldSpriteSave(
     const Rom& rom, const OverworldSpriteEdits& edits) {
-  const auto layout = GetOverworldSpriteLayout(rom);
+  const auto ow_layout =
+      InspectOverworldLayout(rom, OverworldLayoutOptions::Defaults());
+  RETURN_IF_ERROR(ow_layout.CheckOperation(OverworldLayoutDomain::kSprites,
+                                           OverworldLayoutOperation::kSerialize,
+                                           -1, 0));
+  const auto layout = ResolveOverworldSpriteLayout(ow_layout);
   const int region_end = GetOverworldSpriteRegionEnd(rom);
   std::vector<OverworldSpriteBytes> lists;
   bool changed = false;
@@ -318,7 +334,12 @@ absl::Status ApplyOverworldSpriteSave(Rom& rom,
                                       const OverworldSpriteSavePlan& plan) {
   if (plan.empty())
     return absl::OkStatus();
-  const auto layout = GetOverworldSpriteLayout(rom);
+  const auto ow_layout =
+      InspectOverworldLayout(rom, OverworldLayoutOptions::Defaults());
+  RETURN_IF_ERROR(ow_layout.CheckOperation(OverworldLayoutDomain::kSprites,
+                                           OverworldLayoutOperation::kSerialize,
+                                           -1, 0));
+  const auto layout = ResolveOverworldSpriteLayout(ow_layout);
   rom::WriteFence fence;
   RETURN_IF_ERROR(fence.Allow(layout.data_start,
                               GetOverworldSpriteRegionEnd(rom),

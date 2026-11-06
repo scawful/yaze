@@ -17,6 +17,7 @@
 #include "util/macro.h"
 #include "zelda3/overworld/overworld.h"
 #include "zelda3/overworld/overworld_item.h"
+#include "zelda3/overworld/overworld_layout.h"
 #include "zelda3/overworld/special_entrance_inspector.h"
 #include "zelda3/zelda3_labels.h"
 
@@ -96,7 +97,12 @@ void AddTileLocationFields(resources::OutputFormatter& formatter,
 // edited tile16 grid, then write tile32 definitions (vanilla or expanded
 // layout) and the compressed screens. Tile16 definitions are untouched.
 absl::Status SaveOverworldTileGrid(Rom& rom, zelda3::Overworld& overworld) {
-  const auto profile = zelda3::DetectOverworldRomProfile(rom);
+  overworld.ReResolveLayoutFromRom();
+  const auto& layout = overworld.resolved_layout();
+  RETURN_IF_ERROR(layout.CheckOperation(
+      zelda3::OverworldLayoutDomain::kTerrainPointers,
+      zelda3::OverworldLayoutOperation::kSerialize, -1, 0));
+  const auto profile = zelda3::ToOverworldRomProfile(layout);
   RETURN_IF_ERROR(overworld.CreateTile32Tilemap());
   if (profile.has_expanded_tile32) {
     RETURN_IF_ERROR(overworld.SaveMap32Expanded());
@@ -161,6 +167,10 @@ absl::Status ApplyTileEdit(Rom& rom, zelda3::Overworld& overworld,
   }
 
   const std::vector<uint8_t> before_rom = rom.vector();
+  overworld.ReResolveLayoutFromRom();
+  RETURN_IF_ERROR(overworld.resolved_layout().CheckOperation(
+      zelda3::OverworldLayoutDomain::kTerrainPointers,
+      zelda3::OverworldLayoutOperation::kMutateModel, location.map_id, 0));
   ScopedRomTransaction transaction(rom);
   RETURN_IF_ERROR(overworld::WriteAreaTile(overworld, location, tile_id));
   RETURN_IF_ERROR(SaveOverworldTileGrid(rom, overworld));

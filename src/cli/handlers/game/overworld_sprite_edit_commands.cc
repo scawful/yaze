@@ -14,6 +14,7 @@
 #include "rom/transaction.h"
 #include "util/macro.h"
 #include "zelda3/overworld/overworld.h"
+#include "zelda3/overworld/overworld_layout.h"
 #include "zelda3/overworld/overworld_map.h"
 #include "zelda3/overworld/overworld_sprite_io.h"
 #include "zelda3/overworld/overworld_version_helper.h"
@@ -203,6 +204,11 @@ absl::Status OverworldSpriteEditCommandHandler::ExecuteWithContext(
 
   zelda3::Overworld overworld(rom);
   RETURN_IF_ERROR(overworld.Load(rom));
+  RETURN_IF_ERROR(overworld.resolved_layout().CheckOperation(
+      zelda3::OverworldLayoutDomain::kSprites,
+      do_write ? zelda3::OverworldLayoutOperation::kMutateModel
+               : zelda3::OverworldLayoutOperation::kInspect,
+      screen, phase));
   const auto* map = overworld.overworld_map(screen);
   if (map == nullptr)
     return absl::InvalidArgumentError(

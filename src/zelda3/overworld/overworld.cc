@@ -67,18 +67,20 @@ struct Map32StorageLayout {
 };
 
 absl::StatusOr<Map32StorageLayout> ResolveMap32StorageLayout(
-    const Rom& rom, const zelda3_version_pointers& version_constants) {
-  const auto profile = DetectOverworldRomProfile(rom);
+    const Rom& rom, const zelda3_version_pointers& version_constants,
+    const OverworldLayoutOptions& options) {
+  const auto resolved = InspectOverworldLayout(rom, options);
+  const auto profile = ToOverworldRomProfile(resolved);
 
   Map32StorageLayout layout;
   layout.expanded = profile.has_expanded_tile32;
   layout.destinations = {
       static_cast<int>(version_constants.kMap32TileTL),
-      layout.expanded ? GetMap32TileTRExpanded()
+      layout.expanded ? resolved.tile32_pcs[1].value
                       : static_cast<int>(version_constants.kMap32TileTR),
-      layout.expanded ? GetMap32TileBLExpanded()
+      layout.expanded ? resolved.tile32_pcs[2].value
                       : static_cast<int>(version_constants.kMap32TileBL),
-      layout.expanded ? GetMap32TileBRExpanded()
+      layout.expanded ? resolved.tile32_pcs[3].value
                       : static_cast<int>(version_constants.kMap32TileBR),
   };
 
@@ -186,8 +188,11 @@ absl::Status Overworld::Load(Rom* rom) {
   expanded_tile32_ = false;
   descriptor_layout_ = {};
   rom_ = rom;
-
-  const auto profile = DetectOverworldRomProfile(*rom_);
+  ReResolveLayoutFromRom();
+  RETURN_IF_ERROR(resolved_layout_.CheckOperation(
+      OverworldLayoutDomain::kTerrainPointers,
+      OverworldLayoutOperation::kInspect, -1, 0));
+  const auto profile = ToOverworldRomProfile(resolved_layout_);
   // Cache ROM version to avoid repeated detection (called 160+ times otherwise)
   cached_version_ = profile.version;
   expanded_entrances_ = profile.has_expanded_entrances;
@@ -306,7 +311,8 @@ absl::Status Overworld::BuildLyraTerrainPreview(
   // Sprite display and every serializer remain unavailable for this format.
   rom_ = rom;
   descriptor_layout_ = std::move(layout);
-  const auto profile = DetectOverworldRomProfile(*rom_);
+  ReResolveLayoutFromRom();
+  const auto profile = ToOverworldRomProfile(resolved_layout_);
   cached_version_ = profile.version;
   expanded_entrances_ = profile.has_expanded_entrances;
   has_tail_map_expansion_ = profile.has_tail_map_expansion;
@@ -681,7 +687,10 @@ absl::Status Overworld::ConfigureMultiAreaMap(int parent_index,
         continue;
 
       RETURN_IF_ERROR(
-          rom()->WriteByte(GetOverworldMapParentIdExpanded() + sibling,
+          rom()->WriteByte(layout_inspect_options_.Address(
+                               core::RomAddressKey::kOverworldMapParentExpanded,
+                               kOverworldMapParentIdExpanded) +
+                               sibling,
                            overworld_maps_[sibling].parent()));
       RETURN_IF_ERROR(rom()->WriteByte(
           kOverworldScreenSize + sibling,
@@ -735,6 +744,8 @@ absl::StatusOr<uint16_t> Overworld::GetTile16ForTile32(
 }
 
 absl::Status Overworld::AssembleMap32Tiles() {
+  RETURN_IF_ERROR(PreflightLayoutOperation(OverworldLayoutDomain::kTile32,
+                                           OverworldLayoutOperation::kInspect));
   constexpr int kMap32TilesLength = 0x33F0;
   int num_tile32 = kMap32TilesLength;
   uint32_t map32address[4] = {
@@ -744,15 +755,15 @@ absl::Status Overworld::AssembleMap32Tiles() {
   // Check if expanded tile32 data is actually present in ROM
   // The flag position should contain 0x04 for vanilla, something else for
   // expanded
-  const auto profile = DetectOverworldRomProfile(*rom());
+  const auto profile = ToOverworldRomProfile(resolved_layout_);
   uint8_t expanded_flag = ReadRomByteOr(*rom(), kMap32ExpandedFlagPos, 0x04);
   util::logf("Expanded tile32 flag: %d", expanded_flag);
   if (profile.has_expanded_tile32) {
     // ROM has expanded tile32 data - use expanded addresses
     map32address[0] = version_constants().kMap32TileTL;
-    map32address[1] = GetMap32TileTRExpanded();
-    map32address[2] = GetMap32TileBLExpanded();
-    map32address[3] = GetMap32TileBRExpanded();
+    map32address[1] = resolved_layout_.tile32_pcs[1].value;
+    map32address[2] = resolved_layout_.tile32_pcs[2].value;
+    map32address[3] = resolved_layout_.tile32_pcs[3].value;
     num_tile32 = kMap32TileCountExpanded;
     expanded_tile32_ = true;
   }
@@ -796,13 +807,23 @@ absl::Status Overworld::AssembleMap32Tiles() {
 
 absl::StatusOr<std::vector<gfx::Tile16>> ReadMap16Tiles(const Rom& rom,
                                                         bool* expanded) {
+  return ReadMap16Tiles(rom, OverworldLayoutOptions::WithProjectRomSettings(),
+                        expanded);
+}
+
+absl::StatusOr<std::vector<gfx::Tile16>> ReadMap16Tiles(
+    const Rom& rom, const OverworldLayoutOptions& options, bool* expanded) {
   int tpos = kMap16Tiles;
   int num_tile16 = kNumTile16Individual;
 
   // Check if expanded tile16 data is actually present in ROM
   // The flag position should contain 0x0F for vanilla, something else for
   // expanded
-  const auto profile = DetectOverworldRomProfile(rom);
+  const auto layout = InspectOverworldLayout(rom, options);
+  RETURN_IF_ERROR(layout.CheckOperation(OverworldLayoutDomain::kTile16,
+                                        OverworldLayoutOperation::kInspect, -1,
+                                        0));
+  const auto profile = ToOverworldRomProfile(layout);
   uint8_t expanded_flag = ReadRomByteOr(rom, kMap16ExpandedFlagPos, 0x0F);
   util::logf("Expanded tile16 flag: %d", expanded_flag);
   if (expanded != nullptr) {
@@ -810,7 +831,7 @@ absl::StatusOr<std::vector<gfx::Tile16>> ReadMap16Tiles(const Rom& rom,
   }
   if (profile.has_expanded_tile16) {
     // ROM has expanded tile16 data - use expanded addresses
-    tpos = GetMap16TilesExpanded();
+    tpos = layout.tile16_pc.value;
     num_tile16 = NumberOfMap16Ex;
   }
   // Otherwise use vanilla addresses (already set above)
@@ -837,7 +858,8 @@ absl::StatusOr<std::vector<gfx::Tile16>> ReadMap16Tiles(const Rom& rom,
 
 absl::Status Overworld::AssembleMap16Tiles() {
   bool expanded = false;
-  ASSIGN_OR_RETURN(auto tiles16, ReadMap16Tiles(*rom(), &expanded));
+  ASSIGN_OR_RETURN(auto tiles16,
+                   ReadMap16Tiles(*rom(), layout_inspect_options_, &expanded));
   if (expanded) {
     expanded_tile16_ = true;
   }
@@ -935,6 +957,15 @@ absl::Status Overworld::DecompressAllMapTilesParallel() {
       core::FeatureFlags::get().overworld.kEnableSpecialWorldExpansion &&
       HasExpandedPointerTables();
 
+  int ptr_high_base =
+      static_cast<int>(version_constants().kCompressedAllMap32PointersHigh);
+  int ptr_low_base =
+      static_cast<int>(version_constants().kCompressedAllMap32PointersLow);
+  if (resolved_layout_.has_validated_ea_tail()) {
+    ptr_high_base = resolved_layout_.terrain_high_table_pc.value;
+    ptr_low_base = resolved_layout_.terrain_low_table_pc.value;
+  }
+
   for (int i = 0; i < kNumOverworldMaps; i++) {
     // Guard: skip building tail special maps unless expansion is available
     if (!allow_special_tail &&
@@ -954,10 +985,8 @@ absl::Status Overworld::DecompressAllMapTilesParallel() {
       continue;
     }
 
-    auto p1 = get_ow_map_gfx_ptr(
-        i, version_constants().kCompressedAllMap32PointersHigh);
-    auto p2 = get_ow_map_gfx_ptr(
-        i, version_constants().kCompressedAllMap32PointersLow);
+    auto p1 = get_ow_map_gfx_ptr(i, static_cast<uint32_t>(ptr_high_base));
+    auto p2 = get_ow_map_gfx_ptr(i, static_cast<uint32_t>(ptr_low_base));
 
     int ttpos = 0;
 
@@ -1652,8 +1681,33 @@ absl::StatusOr<OverworldSpriteSavePlan> Overworld::PrepareSpriteSave() const {
 }
 
 absl::Status Overworld::SaveSprites() {
+  RETURN_IF_ERROR(PreflightLayoutOperation(
+      OverworldLayoutDomain::kSprites, OverworldLayoutOperation::kSerialize));
   ASSIGN_OR_RETURN(auto plan, PrepareSpriteSave());
   return ApplyOverworldSpriteSave(*rom_, plan);
+}
+
+void Overworld::ReResolveLayoutFromRom() {
+  if (!rom_ || rom_->size() == 0) {
+    resolved_layout_ = OverworldLayout{};
+    has_tail_map_expansion_ = false;
+    return;
+  }
+  if (!layout_options_bound_) {
+    layout_inspect_options_ = OverworldLayoutOptions::WithProjectRomSettings();
+    layout_options_bound_ = true;
+  }
+  if (game_data_)
+    layout_inspect_options_.rom_version = game_data_->version;
+  resolved_layout_ = InspectOverworldLayout(*rom_, layout_inspect_options_);
+  has_tail_map_expansion_ = resolved_layout_.has_validated_ea_tail();
+}
+
+absl::Status Overworld::PreflightLayoutOperation(
+    OverworldLayoutDomain domain, OverworldLayoutOperation operation,
+    int map_id, int phase) {
+  ReResolveLayoutFromRom();
+  return resolved_layout_.CheckOperation(domain, operation, map_id, phase);
 }
 
 absl::Status Overworld::Save(Rom* rom) {
@@ -1662,6 +1716,10 @@ absl::Status Overworld::Save(Rom* rom) {
   }
   RETURN_IF_ERROR(rom->CheckLayoutWritable());
   rom_ = rom;
+  ReResolveLayoutFromRom();
+  RETURN_IF_ERROR(resolved_layout_.CheckOperation(
+      OverworldLayoutDomain::kTerrainPointers,
+      OverworldLayoutOperation::kSerialize, -1, 0));
   RETURN_IF_ERROR(ValidatePrivateNativeTerrainSave());
   ASSIGN_OR_RETURN(auto sprite_plan, PrepareSpriteSave());
   ScopedRomTransaction transaction(*rom_);
@@ -1738,6 +1796,10 @@ absl::Status Overworld::SaveOverworldMaps() {
   RETURN_IF_ERROR(ValidatePrivateNativeTerrainSave());
   if (rom_ && rom_->has_lyra_private_reservation())
     return absl::OkStatus();
+  ReResolveLayoutFromRom();
+  RETURN_IF_ERROR(resolved_layout_.CheckOperation(
+      OverworldLayoutDomain::kTerrainPointers,
+      OverworldLayoutOperation::kSerialize, -1, 0));
   util::logf("Saving Overworld Maps");
 
   if (MapTilesUnchanged()) {
@@ -1900,9 +1962,9 @@ std::vector<std::pair<uint32_t, uint32_t>> Overworld::GetProjectedWriteRanges()
   // Mirror AssembleMap32Tiles() logic: if expanded tile32 is present, the three
   // non-TL quadrants are relocated and the logical length changes.
   if (expanded_tile32_) {
-    map32address[1] = GetMap32TileTRExpanded();
-    map32address[2] = GetMap32TileBLExpanded();
-    map32address[3] = GetMap32TileBRExpanded();
+    map32address[1] = resolved_layout_.tile32_pcs[1].value;
+    map32address[2] = resolved_layout_.tile32_pcs[2].value;
+    map32address[3] = resolved_layout_.tile32_pcs[3].value;
     map32_len = kMap32TileCountExpanded;
   }
 
@@ -1916,7 +1978,7 @@ std::vector<std::pair<uint32_t, uint32_t>> Overworld::GetProjectedWriteRanges()
   int map16_addr = kMap16Tiles;
   int map16_len = kNumTile16Individual * 8;  // Vanilla: 4096 * 8 = 32KB
   if (expanded_tile16_) {
-    map16_addr = GetMap16TilesExpanded();
+    map16_addr = resolved_layout_.tile16_pc.value;
     map16_len = NumberOfMap16Ex * 8;
   }
   ranges.emplace_back(map16_addr, map16_addr + map16_len);
@@ -1944,6 +2006,8 @@ std::vector<std::pair<uint32_t, uint32_t>> Overworld::GetProjectedWriteRanges()
 }
 
 absl::Status Overworld::SaveLargeMaps() {
+  RETURN_IF_ERROR(PreflightLayoutOperation(
+      OverworldLayoutDomain::kGeometry, OverworldLayoutOperation::kSerialize));
   util::logf("Saving Large Maps");
 
   // Check if this is a v3+ ROM to use expanded transition system
@@ -2841,17 +2905,31 @@ absl::Status Overworld::SaveTallAreaTransitions(
 }
 
 absl::Status Overworld::SaveLargeMapsExpanded() {
+  RETURN_IF_ERROR(PreflightLayoutOperation(
+      OverworldLayoutDomain::kGeometry, OverworldLayoutOperation::kSerialize));
   util::logf("Saving Large Maps (v3+ Expanded)");
 
   // Use expanded memory locations for v3+
   int transition_target_north = zelda3::transition_target_northExpanded;
   int transition_target_west = zelda3::transition_target_westExpanded;
-  int transition_pos_x = zelda3::GetOverworldTransitionPositionXExpanded();
-  int transition_pos_y = zelda3::GetOverworldTransitionPositionYExpanded();
-  int screen_change_1 = zelda3::GetOverworldScreenChange1Expanded();
-  int screen_change_2 = zelda3::GetOverworldScreenChange2Expanded();
-  int screen_change_3 = zelda3::GetOverworldScreenChange3Expanded();
-  int screen_change_4 = zelda3::GetOverworldScreenChange4Expanded();
+  int transition_pos_x = layout_inspect_options_.Address(
+      core::RomAddressKey::kOverworldTransitionPosXExpanded,
+      kOverworldTransitionPositionXExpanded);
+  int transition_pos_y = layout_inspect_options_.Address(
+      core::RomAddressKey::kOverworldTransitionPosYExpanded,
+      kOverworldTransitionPositionYExpanded);
+  int screen_change_1 = layout_inspect_options_.Address(
+      core::RomAddressKey::kOverworldScreenChange1Expanded,
+      kOverworldScreenTileMapChangeByScreen1Expanded);
+  int screen_change_2 = layout_inspect_options_.Address(
+      core::RomAddressKey::kOverworldScreenChange2Expanded,
+      kOverworldScreenTileMapChangeByScreen2Expanded);
+  int screen_change_3 = layout_inspect_options_.Address(
+      core::RomAddressKey::kOverworldScreenChange3Expanded,
+      kOverworldScreenTileMapChangeByScreen3Expanded);
+  int screen_change_4 = layout_inspect_options_.Address(
+      core::RomAddressKey::kOverworldScreenChange4Expanded,
+      kOverworldScreenTileMapChangeByScreen4Expanded);
 
   std::vector<uint8_t> checked_map;
 
@@ -2868,7 +2946,10 @@ absl::Status Overworld::SaveLargeMapsExpanded() {
 
     // Write the map parent ID to expanded parent table
     RETURN_IF_ERROR(
-        rom()->WriteByte(zelda3::GetOverworldMapParentIdExpanded() + i,
+        rom()->WriteByte(layout_inspect_options_.Address(
+                             core::RomAddressKey::kOverworldMapParentExpanded,
+                             kOverworldMapParentIdExpanded) +
+                             i,
                          overworld_maps_[i].parent()));
 
     // Handle transitions based on area size
@@ -2970,6 +3051,8 @@ std::vector<uint64_t> GetAllTile16(OverworldMapTiles& map_tiles_) {
 }  // namespace
 
 absl::Status Overworld::CreateTile32Tilemap() {
+  RETURN_IF_ERROR(PreflightLayoutOperation(
+      OverworldLayoutDomain::kTile32, OverworldLayoutOperation::kMutateModel));
   RETURN_IF_ERROR(ValidatePrivateNativeTerrainSave());
   if (rom_ && rom_->has_lyra_private_reservation())
     return absl::OkStatus();
@@ -2977,7 +3060,8 @@ absl::Status Overworld::CreateTile32Tilemap() {
   tiles32_list_.clear();
 
   ASSIGN_OR_RETURN(const auto storage_layout,
-                   ResolveMap32StorageLayout(*rom(), version_constants()));
+                   ResolveMap32StorageLayout(*rom(), version_constants(),
+                                             layout_inspect_options_));
 
   // Get all tiles16 and packs them into tiles32
   std::vector<uint64_t> all_tile_16 = GetAllTile16(map_tiles_);
@@ -3024,6 +3108,8 @@ absl::Status Overworld::CreateTile32Tilemap() {
 }
 
 absl::Status Overworld::SaveMap32Expanded() {
+  RETURN_IF_ERROR(PreflightLayoutOperation(
+      OverworldLayoutDomain::kTile32, OverworldLayoutOperation::kSerialize));
   RETURN_IF_ERROR(ValidatePrivateNativeTerrainSave());
   if (rom_ && rom_->has_lyra_private_reservation())
     return absl::OkStatus();
@@ -3032,7 +3118,8 @@ absl::Status Overworld::SaveMap32Expanded() {
     return absl::OkStatus();
   }
   ASSIGN_OR_RETURN(const auto storage_layout,
-                   ResolveMap32StorageLayout(*rom(), version_constants()));
+                   ResolveMap32StorageLayout(*rom(), version_constants(),
+                                             layout_inspect_options_));
   if (!storage_layout.expanded) {
     return absl::FailedPreconditionError(
         "Expanded Tile32 save requested for a vanilla Tile32 layout");
@@ -3042,9 +3129,9 @@ absl::Status Overworld::SaveMap32Expanded() {
   RETURN_IF_ERROR(
       ValidateMap32DefinitionCount(tiles32_unique_.size(), storage_layout));
 
-  const int bottomLeft = GetMap32TileBLExpanded();
-  const int bottomRight = GetMap32TileBRExpanded();
-  const int topRight = GetMap32TileTRExpanded();
+  const int bottomLeft = resolved_layout_.tile32_pcs[2].value;
+  const int bottomRight = resolved_layout_.tile32_pcs[3].value;
+  const int topRight = resolved_layout_.tile32_pcs[1].value;
 
   // Point the bank $02 tile32 loaders at the expanded quadrants. An operand
   // that already addresses its target is left alone: ZScream and Oracle of
@@ -3190,6 +3277,8 @@ absl::Status Overworld::SaveMap32Expanded() {
 }
 
 absl::Status Overworld::SaveMap32Tiles() {
+  RETURN_IF_ERROR(PreflightLayoutOperation(
+      OverworldLayoutDomain::kTile32, OverworldLayoutOperation::kSerialize));
   RETURN_IF_ERROR(ValidatePrivateNativeTerrainSave());
   if (rom_ && rom_->has_lyra_private_reservation())
     return absl::OkStatus();
@@ -3199,7 +3288,8 @@ absl::Status Overworld::SaveMap32Tiles() {
   }
   util::logf("Saving Map32 Tiles");
   ASSIGN_OR_RETURN(const auto storage_layout,
-                   ResolveMap32StorageLayout(*rom(), version_constants()));
+                   ResolveMap32StorageLayout(*rom(), version_constants(),
+                                             layout_inspect_options_));
   if (storage_layout.expanded) {
     return absl::FailedPreconditionError(
         "Vanilla Tile32 save requested for an expanded Tile32 layout");
@@ -3329,10 +3419,12 @@ absl::Status Overworld::SaveMap32Tiles() {
 }
 
 absl::Status Overworld::SaveMap16Expanded() {
+  RETURN_IF_ERROR(PreflightLayoutOperation(
+      OverworldLayoutDomain::kTile16, OverworldLayoutOperation::kSerialize));
   RETURN_IF_ERROR(ValidatePrivateNativeTerrainSave());
   if (rom_ && rom_->has_lyra_private_reservation())
     return absl::OkStatus();
-  const int map16_expanded = GetMap16TilesExpanded();
+  const int map16_expanded = resolved_layout_.tile16_pc.value;
   const auto write_pointer = [this](int address,
                                     uint32_t target) -> absl::Status {
     ASSIGN_OR_RETURN(auto current, rom()->ReadLong(address));
@@ -3434,6 +3526,8 @@ absl::Status Overworld::SaveMap16Expanded() {
 }
 
 absl::Status Overworld::SaveMap16Tiles() {
+  RETURN_IF_ERROR(PreflightLayoutOperation(
+      OverworldLayoutDomain::kTile16, OverworldLayoutOperation::kSerialize));
   RETURN_IF_ERROR(ValidatePrivateNativeTerrainSave());
   if (rom_ && rom_->has_lyra_private_reservation())
     return absl::OkStatus();
@@ -3458,6 +3552,8 @@ absl::Status Overworld::SaveMap16Tiles() {
 }
 
 absl::Status Overworld::SaveEntrances() {
+  RETURN_IF_ERROR(PreflightLayoutOperation(
+      OverworldLayoutDomain::kEntities, OverworldLayoutOperation::kSerialize));
   if (!rom_) {
     return absl::InvalidArgumentError("Cannot save entrances without a ROM");
   }
@@ -3483,11 +3579,15 @@ absl::Status Overworld::SaveEntrances() {
 }
 
 absl::Status Overworld::SaveExits() {
+  RETURN_IF_ERROR(PreflightLayoutOperation(
+      OverworldLayoutDomain::kEntities, OverworldLayoutOperation::kSerialize));
   RETURN_IF_ERROR(::yaze::zelda3::SaveExits(rom_, all_exits_));
   return absl::OkStatus();
 }
 
 absl::Status Overworld::SaveItems() {
+  RETURN_IF_ERROR(PreflightLayoutOperation(
+      OverworldLayoutDomain::kEntities, OverworldLayoutOperation::kSerialize));
   // A no-op item save must retain the existing allocation and pointer aliases.
   // Compare serialized fields (including duplicates and map identity). Record
   // order within each map controls the first matching secret, while
@@ -3523,6 +3623,9 @@ absl::Status Overworld::SaveItems() {
 }
 
 absl::Status Overworld::SaveMapOverlays() {
+  RETURN_IF_ERROR(
+      PreflightLayoutOperation(OverworldLayoutDomain::kMapProperties,
+                               OverworldLayoutOperation::kSerialize));
   if (rom_ && rom_->has_lyra_private_reservation()) {
     // This private transfer does not admit the legacy renderer generator.
     // Preserve a loaded no-op and reject edits rather than installing code.
@@ -3602,6 +3705,9 @@ absl::Status Overworld::SaveMapOverlays() {
 }
 
 absl::Status Overworld::SaveOverworldTilesType() {
+  RETURN_IF_ERROR(
+      PreflightLayoutOperation(OverworldLayoutDomain::kCollisions,
+                               OverworldLayoutOperation::kSerialize));
   if (!rom_) {
     return absl::FailedPreconditionError("No ROM for collision save");
   }
@@ -3639,6 +3745,9 @@ absl::Status Overworld::LoadDiggableTiles() {
 }
 
 absl::Status Overworld::SaveDiggableTiles() {
+  RETURN_IF_ERROR(
+      PreflightLayoutOperation(OverworldLayoutDomain::kMapProperties,
+                               OverworldLayoutOperation::kSerialize));
   // Later steps of Save() read cached_version_.
   cached_version_ = OverworldVersionHelper::GetVersion(*rom_);
   // Writing the diggable table would overwrite the ZSCustomOverworld v3
@@ -3762,6 +3871,9 @@ absl::Status Overworld::SaveCustomOverworldASM(bool enable_bg_color,
 }
 
 absl::Status Overworld::SaveAreaSpecificBGColors() {
+  RETURN_IF_ERROR(
+      PreflightLayoutOperation(OverworldLayoutDomain::kMapProperties,
+                               OverworldLayoutOperation::kSerialize));
   // Only write to custom address space for v2+ ROMs
   if (!OverworldVersionHelper::SupportsCustomBGColors(cached_version_)) {
     return absl::OkStatus();  // Vanilla/v1 ROM - skip custom address writes
@@ -3780,6 +3892,9 @@ absl::Status Overworld::SaveAreaSpecificBGColors() {
 }
 
 absl::Status Overworld::SaveCustomOverworldData() {
+  RETURN_IF_ERROR(
+      PreflightLayoutOperation(OverworldLayoutDomain::kMapProperties,
+                               OverworldLayoutOperation::kSerialize));
   if (!rom_ || !rom_->is_loaded()) {
     return absl::FailedPreconditionError("ROM not loaded");
   }
@@ -3811,6 +3926,9 @@ absl::Status Overworld::SaveCustomOverworldData() {
 }
 
 absl::Status Overworld::SaveMapProperties() {
+  RETURN_IF_ERROR(
+      PreflightLayoutOperation(OverworldLayoutDomain::kMapProperties,
+                               OverworldLayoutOperation::kSerialize));
   util::logf("Saving Map Properties");
   const auto version = OverworldVersionHelper::GetVersion(*rom_);
   const bool use_zscustom_palette_table =
@@ -3890,6 +4008,8 @@ absl::Status Overworld::SaveMapProperties() {
 }
 
 absl::Status Overworld::SaveMusic() {
+  RETURN_IF_ERROR(PreflightLayoutOperation(
+      OverworldLayoutDomain::kMusic, OverworldLayoutOperation::kSerialize));
   util::logf("Saving Music Data");
 
   // Music is loaded and played by parent screen. A child of a large, wide, or
@@ -3930,6 +4050,10 @@ absl::Status Overworld::SaveMusic() {
 }
 
 absl::Status Overworld::SaveAreaSizes() {
+  RETURN_IF_ERROR(PreflightLayoutOperation(
+      OverworldLayoutDomain::kMessages, OverworldLayoutOperation::kSerialize));
+  RETURN_IF_ERROR(PreflightLayoutOperation(
+      OverworldLayoutDomain::kGeometry, OverworldLayoutOperation::kSerialize));
   util::logf("Saving V3 Area Sizes");
 
   // Check if this is a v3 ROM
@@ -3948,8 +4072,12 @@ absl::Status Overworld::SaveAreaSizes() {
   // Save message IDs to expanded table
   for (int i = 0; i < kNumOverworldMaps; i++) {
     uint16_t message_id = overworld_maps_[i].message_id();
-    RETURN_IF_ERROR(rom()->WriteShort(GetOverworldMessagesExpanded() + (i * 2),
-                                      message_id));
+    RETURN_IF_ERROR(
+        rom()->WriteShort(layout_inspect_options_.Address(
+                              core::RomAddressKey::kOverworldMessagesExpanded,
+                              kOverworldMessagesExpanded) +
+                              (i * 2),
+                          message_id));
   }
 
   return absl::OkStatus();

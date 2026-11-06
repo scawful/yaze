@@ -206,8 +206,10 @@ absl::Status RomInfoCommandHandler::Execute(
   formatter.AddField("file_size",
                      absl::StrFormat("0x%X", rom->size() + header_size));
 
-  const auto profile = zelda3::DetectOverworldRomProfile(*rom);
-  const auto& layout = profile.lyra_layout;
+  const auto ow_layout = zelda3::InspectOverworldLayout(
+      *rom, zelda3::OverworldLayoutOptions::WithProjectRomSettings());
+  const auto profile = zelda3::ToOverworldRomProfile(ow_layout);
+  const auto& layout = ow_layout.lyra_layout;
   const char* format_name = "legacy";
   if (profile.layout_kind ==
       zelda3::OverworldRomProfile::LayoutKind::kOlderTailEa) {
@@ -229,21 +231,49 @@ absl::Status RomInfoCommandHandler::Execute(
                      static_cast<int>(profile.asm_version));
   formatter.AddField("tail_expansion_layout_compatible",
                      zelda3::zscream::CanUseTailExpansion(*rom));
+  const auto terrain_serialize = ow_layout.CheckOperation(
+      zelda3::OverworldLayoutDomain::kTerrainPointers,
+      zelda3::OverworldLayoutOperation::kSerialize, -1, 0);
   formatter.AddField(
       "overworld_format_valid",
-      layout.presence != yaze::rom::LyraLayoutPresence::kInvalid);
+      layout.presence != yaze::rom::LyraLayoutPresence::kInvalid &&
+          (layout.presence == yaze::rom::LyraLayoutPresence::kValid ||
+           ow_layout
+               .CheckOperation(zelda3::OverworldLayoutDomain::kTerrainPointers,
+                               zelda3::OverworldLayoutOperation::kInspect, -1,
+                               0)
+               .ok()));
+  if (!terrain_serialize.ok()) {
+    formatter.AddField("overworld_layout_refusal", terrain_serialize.message());
+  }
   formatter.AddField("overworld_format_revision", layout.revision);
+  formatter.AddField("overworld_storage_slot_capacity",
+                     ow_layout.storage_slot_capacity);
+  formatter.AddField("overworld_materialized_model_slots",
+                     ow_layout.materialized_model_slots);
+  formatter.AddField("overworld_special_storage_slots",
+                     ow_layout.special_storage_slots);
   const int area_capacity =
       layout.presence == yaze::rom::LyraLayoutPresence::kAbsent
-          ? profile.editable_map_count
+          ? ow_layout.storage_slot_capacity
           : layout.capacity;
   const int active_areas =
       layout.presence == yaze::rom::LyraLayoutPresence::kAbsent
-          ? profile.editable_map_count
+          ? ow_layout.materialized_model_slots
           : layout.active_count;
   formatter.AddField("overworld_area_capacity", area_capacity);
   formatter.AddField("overworld_active_areas", active_areas);
-  formatter.AddField("overworld_write_supported", layout.write_supported);
+  formatter.AddField("overworld_area_capacity_legacy",
+                     profile.editable_map_count);
+  formatter.AddField(
+      "overworld_write_supported",
+      layout.presence == yaze::rom::LyraLayoutPresence::kAbsent
+          ? ow_layout
+                .CheckOperation(zelda3::OverworldLayoutDomain::kTerrainPointers,
+                                zelda3::OverworldLayoutOperation::kSerialize,
+                                -1, 0)
+                .ok()
+          : layout.write_supported);
   if (!layout.error.empty()) {
     formatter.AddField("overworld_format_error", layout.error);
   }

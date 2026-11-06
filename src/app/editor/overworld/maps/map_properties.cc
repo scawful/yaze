@@ -24,6 +24,7 @@
 #include "app/gui/widgets/themed_widgets.h"
 #include "imgui/imgui.h"
 #include "util/macro.h"
+#include "zelda3/overworld/overworld_layout.h"
 #include "zelda3/overworld/overworld_map.h"
 #include "zelda3/overworld/overworld_version_helper.h"
 
@@ -63,7 +64,12 @@ absl::Status CheckFieldSupported(const Rom* rom,
   if (!rom || !rom->is_loaded()) {
     return absl::FailedPreconditionError("ROM is not loaded");
   }
-  const auto version = zelda3::OverworldVersionHelper::GetVersion(*rom);
+  const auto layout = zelda3::InspectOverworldLayout(
+      *rom, zelda3::OverworldLayoutOptions::WithProjectRomSettings());
+  RETURN_IF_ERROR(layout.CheckOperation(
+      zelda3::OverworldLayoutDomain::kMapProperties,
+      zelda3::OverworldLayoutOperation::kMutateModel, edit.map_id, 0));
+  const auto version = layout.version;
   switch (edit.field) {
     case OverworldPropertyField::kAreaSize:
       if ((edit.value == static_cast<int>(zelda3::AreaSizeEnum::WideArea) ||

@@ -20,6 +20,10 @@ struct OverworldSpriteLayout {
   int data_start;
 };
 OverworldSpriteLayout GetOverworldSpriteLayout(const Rom& rom);
+
+struct OverworldLayout;
+OverworldSpriteLayout ResolveOverworldSpriteLayout(
+    const OverworldLayout& layout);
 // Operand of the room sprite pointer-table load in bank $09 (vanilla
 // LDA $09D62E,X at $09:C298). ZScream can move that table below $09:D62E, so
 // the overworld region ends at whichever comes first.
