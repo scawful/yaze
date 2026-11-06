@@ -2260,9 +2260,7 @@ TEST(EditorManagerProjectActionsTest,
 
 TEST(EditorManagerProjectActionsTest,
      WorkflowCallbacksTriggerBuildRunAndOpenOutputPanel) {
-#ifdef _WIN32
-  GTEST_SKIP() << "Test uses #!/bin/sh shebang + chmod exec, POSIX-only";
-#else
+
   ScopedImGuiContext imgui;
   auto renderer = std::make_unique<gfx::NullRenderer>();
   auto manager = std::make_unique<EditorManager>();
@@ -2272,7 +2270,7 @@ TEST(EditorManagerProjectActionsTest,
   ScopedTempDir temp_dir(MakeTempDir("yaze_workflow_callbacks"));
   const auto project_path = temp_dir.path / "project.yaze";
   const auto marker_path = temp_dir.path / "build.marker";
-  const auto script_path = temp_dir.path / "build_ok.sh";
+  const auto marker_seed = temp_dir.path / "marker.seed";
   const auto manifest_path = temp_dir.path / "hack_manifest.json";
   const auto source_rom = temp_dir.path / "editing_source.sfc";
   const auto valid_rom = temp_dir.path / "patched_valid.sfc";
@@ -2294,24 +2292,18 @@ TEST(EditorManagerProjectActionsTest,
 )json";
   }
   {
-    std::ofstream script(script_path);
-    ASSERT_TRUE(script.is_open());
-    script << "#!/bin/sh\n";
-    script << "printf 'callback-build' > build.marker\n";
-    script << CopyCommand(build_artifact, valid_rom) << "\n";
+    std::ofstream seed(marker_seed);
+    seed << "callback-build";
+    ASSERT_TRUE(seed.good());
   }
-  std::filesystem::permissions(script_path,
-                               std::filesystem::perms::owner_exec |
-                                   std::filesystem::perms::owner_read |
-                                   std::filesystem::perms::owner_write,
-                               std::filesystem::perm_options::add);
 
   auto* project = manager->GetCurrentProject();
   ASSERT_NE(project, nullptr);
   project->name = "WorkflowCallbacks";
   project->filepath = project_path.string();
   project->rom_filename = source_rom.string();
-  project->build_script = "./build_ok.sh";
+  project->build_script = CopyCommand(marker_seed, marker_path) + " && " +
+                          CopyCommand(build_artifact, valid_rom);
   project->hack_manifest_file = "hack_manifest.json";
   ASSERT_OK(SaveProjectFixture(*project));
   ASSERT_OK(manager->OpenRomOrProject(project_path.string()));
@@ -2331,27 +2323,39 @@ TEST(EditorManagerProjectActionsTest,
   EXPECT_TRUE(build_status.can_cancel);
   EXPECT_EQ(build_status.state, ProjectWorkflowState::kRunning);
 
-  bool build_completed = false;
-  for (int i = 0; i < 40; ++i) {
-    if (std::filesystem::exists(marker_path)) {
-      build_completed = true;
-      break;
-    }
-    std::this_thread::sleep_for(std::chrono::milliseconds(50));
+  const auto deadline =
+      std::chrono::steady_clock::now() + std::chrono::seconds(10);
+  while (ContentRegistry::Context::build_workflow_status().state ==
+             ProjectWorkflowState::kRunning &&
+         std::chrono::steady_clock::now() < deadline) {
+    ImGui::GetIO().DisplaySize = ImVec2(1280, 720);
+    ImGui::NewFrame();
+    const auto status = manager->Update();
+    ImGui::Render();
+    ASSERT_OK(status);
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
   }
-
-  ASSERT_TRUE(build_completed);
+  const auto completed = ContentRegistry::Context::build_workflow_status();
+  ASSERT_EQ(completed.state, ProjectWorkflowState::kSuccess)
+      << completed.detail;
+  ASSERT_TRUE(std::filesystem::exists(marker_path));
   EXPECT_EQ(ReadFile(marker_path), "callback-build");
 
   auto run_project = ContentRegistry::Context::run_project_workflow_callback();
   ASSERT_TRUE(run_project);
   run_project();
+  const auto run_status = ContentRegistry::Context::run_workflow_status();
+  ASSERT_EQ(run_status.state, ProjectWorkflowState::kSuccess)
+      << run_status.detail;
+  const auto output_hash = core::ComputeSourceArtifactFileSha256(valid_rom);
+  ASSERT_TRUE(output_hash.ok()) << output_hash.status();
+  EXPECT_EQ(LoadedLoRomSha256(*manager, std::filesystem::file_size(valid_rom)),
+            *output_hash);
 
   EXPECT_TRUE(manager->emulator().is_snes_initialized());
   EXPECT_TRUE(manager->emulator().running());
   ASSERT_FALSE(ContentRegistry::Context::workflow_history().empty());
   EXPECT_EQ(ContentRegistry::Context::workflow_history().front().kind, "Run");
-#endif  // _WIN32
 }
 
 TEST(EditorManagerProjectActionsTest,
