@@ -1925,7 +1925,7 @@ void ObjectDrawer::DrawDoor(const DoorDef& door, int door_index,
   };
   const int position_index = std::min<int>(door.position & 0x0F, 11);
 
-  const auto surround_policy = DoorSurroundPolicy::Decode(rom_data);
+  const auto surround_policy = DoorSurroundPolicy::Decode(rom_->vector());
   auto draw_auto_surround = [&](DoorDirection direction, uint8_t position,
                                 int x, int y) {
     if (door.position >= 12 || !surround_policy ||
