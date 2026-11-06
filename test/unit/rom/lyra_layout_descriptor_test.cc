@@ -187,17 +187,16 @@ struct NativeDirectoryFixture {
     bytes[0x240013] = 0xFF;
     for (size_t map = 0; map < Entry(7).count; ++map) {
       const auto& m = *world.overworld_map(map < 160 ? map : 0x80);
-      const auto props = m.area_render_properties();
-      Word(Entry(1).pc_address + map * 2, props.area_specific_bg_color);
-      bytes[Entry(2).pc_address + map] = props.main_palette;
+      Word(Entry(1).pc_address + map * 2, m.area_specific_bg_color());
+      bytes[Entry(2).pc_address + map] = m.main_palette();
       bytes[Entry(3).pc_address + map] = 0;
       for (int quadrant = 0; quadrant < 4; ++quadrant)
         if (m.mosaic_expanded()[quadrant])
           bytes[Entry(3).pc_address + map] |= 0x08 >> quadrant;
-      bytes[Entry(4).pc_address + map] = props.animated_gfx;
-      Word(Entry(5).pc_address + map * 2, props.subscreen_overlay);
-      std::copy(props.custom_gfx_ids.begin(), props.custom_gfx_ids.end(),
-                bytes.begin() + Entry(6).pc_address + map * 8);
+      bytes[Entry(4).pc_address + map] = m.animated_gfx();
+      Word(Entry(5).pc_address + map * 2, m.subscreen_overlay());
+      for (int slot = 0; slot < 8; ++slot)
+        bytes[Entry(6).pc_address + map * 8 + slot] = m.custom_tileset(slot);
       bytes[Entry(7).pc_address + map] = map < 160 ? m.parent() : map;
       bytes[Entry(30).pc_address + map] =
           map < 160 ? static_cast<uint8_t>(m.area_size()) : 0;
@@ -598,6 +597,19 @@ TEST(LyraLayoutDescriptorTest, NativeMapOwnsLayoutAndUsesAbsolutePhaseRecords) {
   fixture.bytes[fixture.Entry(26).pc_address + parent] = 3;
   fixture.bytes[fixture.Entry(27).pc_address + parent] = 9;
   fixture.Word(fixture.Entry(19).pc_address + parent * 2, 0x1234);
+  fixture.Word(fixture.Entry(19).pc_address + 0xBF * 2, 0x5678);
+  fixture.Word(fixture.Entry(1).pc_address + parent * 2, 0x1111);
+  fixture.Word(fixture.Entry(1).pc_address + 0xBF * 2, 0x2222);
+  fixture.bytes[fixture.Entry(2).pc_address + parent] = 1;
+  fixture.bytes[fixture.Entry(2).pc_address + 0xBF] = 2;
+  fixture.bytes[fixture.Entry(3).pc_address + parent] = 0;
+  fixture.bytes[fixture.Entry(3).pc_address + 0xBF] = 0x0F;
+  fixture.bytes[fixture.Entry(4).pc_address + parent] = 3;
+  fixture.bytes[fixture.Entry(4).pc_address + 0xBF] = 4;
+  fixture.Word(fixture.Entry(5).pc_address + parent * 2, 0x95);
+  fixture.Word(fixture.Entry(5).pc_address + 0xBF * 2, 0x9D);
+  fixture.bytes[fixture.Entry(6).pc_address + parent * 8] = 5;
+  fixture.bytes[fixture.Entry(6).pc_address + 0xBF * 8] = 6;
   for (int phase = 0; phase < 3; ++phase) {
     constexpr std::array<uint16_t, 3> gfx = {24, 36, 39};
     constexpr std::array<uint16_t, 3> palettes = {25, 37, 38};
@@ -622,7 +634,20 @@ TEST(LyraLayoutDescriptorTest, NativeMapOwnsLayoutAndUsesAbsolutePhaseRecords) {
     EXPECT_FALSE(weak.expired());
     EXPECT_EQ(map->parent(), parent);
     EXPECT_EQ(map->area_graphics(), 9);
-    EXPECT_EQ(map->message_id(), 0x1234);
+    EXPECT_EQ(map->message_id(), 0x5678);
+    EXPECT_EQ(map->area_specific_bg_color(), 0x2222);
+    EXPECT_EQ(map->main_palette(), 2);
+    EXPECT_EQ(map->animated_gfx(), 4);
+    EXPECT_EQ(map->subscreen_overlay(), 0x9D);
+    EXPECT_EQ(map->custom_tileset(0), 6);
+    EXPECT_TRUE(std::all_of(map->mosaic_expanded().begin(),
+                            map->mosaic_expanded().end(),
+                            [](bool set) { return set; }));
+    EXPECT_EQ(map->area_render_properties().area_specific_bg_color, 0x1111);
+    EXPECT_EQ(map->render_main_palette(), 1);
+    EXPECT_EQ(map->area_render_properties().animated_gfx, 3);
+    EXPECT_EQ(map->render_subscreen_overlay(), 0x95);
+    EXPECT_EQ(map->area_render_properties().custom_gfx_ids[0], 5);
     for (int phase = 0; phase < 3; ++phase) {
       EXPECT_EQ(map->sprite_graphics(phase), 11 + phase);
       EXPECT_EQ(map->sprite_palette(phase), 21 + phase);
@@ -661,6 +686,8 @@ TEST(LyraLayoutDescriptorTest,
   EXPECT_FALSE(zelda3::ReadOverworldSpriteList(loaded, layout, 3, 0xBF).ok());
   EXPECT_FALSE(zelda3::ReadOverworldSpriteList(loaded, layout, 0, 0xC0).ok());
   EXPECT_EQ(loaded.vector(), fixture.bytes);
+  loaded.mutable_vector().resize(0x250000);
+  EXPECT_FALSE(zelda3::ReadOverworldSpriteList(loaded, layout, 0, 0xBF).ok());
 }
 
 TEST(LyraLayoutDescriptorTest,
@@ -718,6 +745,16 @@ TEST(LyraLayoutDescriptorTest,
     SCOPED_TRACE(capacity);
     NativeDirectoryFixture fixture(capacity);
     fixture.SeedLoadedLegacyForModelTest(original, *reference);
+    if (capacity == 192) {
+      fixture.bytes[fixture.Entry(7).pc_address + 0xBF] = 0xB7;
+      fixture.bytes[fixture.Entry(30).pc_address + 0xB7] = 3;
+      fixture.bytes[fixture.Entry(30).pc_address + 0xBF] = 3;
+      fixture.Word(fixture.Entry(1).pc_address + 0xB7 * 2, 0x5678);
+      fixture.Word(fixture.Entry(1).pc_address + 0xBF * 2, 0x1234);
+      fixture.Word(fixture.Entry(19).pc_address + 0xB7 * 2, 0xFEED);
+      fixture.Word(fixture.Entry(19).pc_address + 0xBF * 2, 0xBEEF);
+      fixture.Seal();
+    }
     Rom loaded;
     ASSERT_TRUE(loaded.LoadFromData(fixture.bytes).ok());
     const auto layout = loaded.InspectLyraLayout();
@@ -736,6 +773,10 @@ TEST(LyraLayoutDescriptorTest,
               reference->tiles32_unique()[0].tile0_);
     EXPECT_EQ(world->tiles16(), reference->tiles16());
     for (int map = 0; map < 160; ++map) {
+      EXPECT_EQ(world->overworld_map(map)->message_id(),
+                reference->overworld_map(map)->message_id());
+      EXPECT_EQ(world->overworld_map(map)->area_specific_bg_color(),
+                reference->overworld_map(map)->area_specific_bg_color());
       const int kind = map < 0x40 ? 0 : map < 0x80 ? 1 : 2;
       const auto& actual = world->GetMapTiles(kind);
       const auto& expected = reference->GetMapTiles(kind);
@@ -745,15 +786,29 @@ TEST(LyraLayoutDescriptorTest,
           ASSERT_EQ(actual[x + dx][y + dy], expected[x + dx][y + dy]);
     }
     if (capacity == 192) {
+      const auto special_before = world->GetMapTiles(2);
       ASSERT_TRUE(world->EnsureMapBuilt(0xBF).ok());
+      EXPECT_EQ(world->GetMapTiles(2), special_before);
       EXPECT_FALSE(world->overworld_map(0xBF)->bitmap_data().empty());
+      EXPECT_EQ(world->overworld_map(0xBF)->message_id(), 0xBEEF);
+      EXPECT_EQ(world->overworld_map(0xBF)->area_specific_bg_color(), 0x1234);
+      EXPECT_EQ(world->overworld_map(0xBF)
+                    ->area_render_properties()
+                    .area_specific_bg_color,
+                0x5678);
       const auto& tile = reference->tiles32_unique()[0x56];
       EXPECT_EQ(world->GetMapTiles(2)[7 * 32][7 * 32], tile.tile0_);
       EXPECT_FALSE(world->overworld_map(0xC0));
+    } else {
+      EXPECT_FALSE(world->EnsureMapBuilt(0xA0).ok());
     }
     EXPECT_EQ(loaded.vector(), fixture.bytes);
     ASSERT_TRUE(world->Load(&loaded).ok());
     EXPECT_EQ(world->materialized_map_count(), capacity);
+    if (capacity == 192) {
+      EXPECT_EQ(world->overworld_map(0xBF)->message_id(), 0xBEEF);
+      EXPECT_EQ(world->overworld_map(0xBF)->area_specific_bg_color(), 0x1234);
+    }
     EXPECT_EQ(loaded.vector(), fixture.bytes);
   }
   EXPECT_EQ(original.vector(), source_before);
@@ -915,6 +970,71 @@ TEST(LyraA0TerrainTest, AtomicSaveAsGuardsSourceSnapshotAndEntryAnchors) {
   EXPECT_TRUE(loaded.dirty());
   EXPECT_EQ(ReadBytes(source), bytes);
   EXPECT_EQ(ReadBytes(target), bytes);
+}
+
+class NativeSpecialOverworldEditorTest : public test::HeadlessEditorTest {};
+
+TEST_F(NativeSpecialOverworldEditorTest,
+       DirtyDraftRefusesReplacementAndCleanSidecarStaysInactive) {
+  const char* path = std::getenv("YAZE_TEST_ROM_OOS");
+  if (!path || !std::filesystem::exists(path))
+    GTEST_SKIP() << "Set YAZE_TEST_ROM_OOS for native editor lifecycle";
+  const auto root = test::UniqueTempPath("native_editor_sidecar");
+  std::filesystem::create_directories(root);
+  auto cleanup = absl::MakeCleanup([&] { std::filesystem::remove_all(root); });
+  project::YazeProject project;
+  project.name = "Native editor lifecycle fixture";
+  project.filepath = (root / "fixture.yaze").string();
+  Rom document;
+  ASSERT_TRUE(document.LoadFromData(ReadBytes(path)).ok());
+  zelda3::GameData data;
+  ASSERT_TRUE(zelda3::LoadGameData(document, data).ok());
+  editor::EditorDependencies deps;
+  deps.rom = &document;
+  deps.project = &project;
+  deps.renderer = renderer_.get();
+  deps.window_manager = window_manager_.get();
+  auto editor = std::make_unique<editor::OverworldEditor>(&document, deps);
+  editor->SetGameData(&data);
+  editor->Initialize();
+  ASSERT_TRUE(editor->Load().ok());
+  NativeDirectoryFixture fixture;
+  fixture.SeedLoadedLegacyForModelTest(document, editor->overworld());
+  Rom replacement;
+  ASSERT_TRUE(replacement.LoadFromData(fixture.bytes).ok());
+  ASSERT_TRUE(editor->CreateLyraTerrain().ok());
+  ASSERT_TRUE(editor->lyra_canvas_.dirty());
+  const auto* draft = editor->lyra_canvas_.document();
+  const auto before = document.vector();
+  EXPECT_FALSE(editor->CheckRomReplacement(replacement).ok());
+  EXPECT_FALSE(editor->Load().ok());
+  EXPECT_EQ(editor->lyra_canvas_.document(), draft);
+  EXPECT_TRUE(editor->lyra_canvas_.dirty());
+  EXPECT_EQ(document.vector(), before);
+
+  ASSERT_TRUE(editor->lyra_canvas_.Save(&project, editor->overworld()).ok());
+  editor->ProjectSaveCommitted();
+  ASSERT_FALSE(editor->lyra_canvas_.dirty());
+  const auto sidecar = project.lyra_terrain_file;
+  const auto sidecar_before = ReadBytes(sidecar);
+  ASSERT_FALSE(sidecar_before.empty());
+  ASSERT_TRUE(editor->CheckRomReplacement(replacement).ok());
+  ASSERT_TRUE(document.LoadFromData(fixture.bytes).ok());
+  ASSERT_TRUE(zelda3::LoadGameData(document, data).ok());
+  const auto loaded = editor->Load();
+  ASSERT_TRUE(loaded.ok()) << loaded;
+  EXPECT_FALSE(editor->is_lyra_preview());
+  EXPECT_FALSE(editor->lyra_canvas_.loaded());
+  EXPECT_FALSE(editor->IsProjectTerrainMap(0xBF));
+  EXPECT_EQ(editor->DisplayedMapCount(), 192);
+  editor->SelectMapForEditing(0xBF, false);
+  EXPECT_TRUE(editor->map_bitmap(0xBF).is_active());
+  EXPECT_FALSE(editor->CreateLyraTerrain().ok());
+  EXPECT_FALSE(editor->OpenLyraTerrain(sidecar).ok());
+  EXPECT_FALSE(editor->lyra_canvas_.loaded());
+  EXPECT_EQ(ReadBytes(sidecar), sidecar_before);
+  EXPECT_EQ(project.lyra_terrain_file, sidecar);
+  EXPECT_EQ(document.vector(), fixture.bytes);
 }
 
 class LyraA0EditorTest : public test::HeadlessEditorTest {};
