@@ -172,7 +172,8 @@ var palette = {
     this.hide();
     switch(action) {
       case 'open-rom': document.getElementById('rom-input').click(); break;
-      case 'save': if(Module && Module._saveRom) Module._saveRom(); break;
+      case 'save': saveRom(false); break;
+      case 'download-rom': saveRom(true); break;
       case 'settings': showSettings(); break;
       case 'fullscreen': window.toggleFullscreen(); break;
       case 'terminal': toggleTerminal(); break;

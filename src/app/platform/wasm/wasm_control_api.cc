@@ -1429,6 +1429,8 @@ std::string WasmControlApi::SaveRom() {
   result["success"] = status.ok();
   if (!status.ok()) {
     result["error"] = status.ToString();
+  } else if (auto* rom = editor_manager_->GetCurrentRom()) {
+    result["path"] = rom->filename();
   }
 
   return result.dump();
@@ -2590,5 +2592,13 @@ EMSCRIPTEN_BINDINGS(wasm_control_api) {
 }  // namespace platform
 }  // namespace app
 }  // namespace yaze
+
+// Saving can suspend through Asyncify, which embind calls cannot survive, so
+// the web toolbar calls this with Module.ccall(..., {async: true}).
+extern "C" EMSCRIPTEN_KEEPALIVE const char* SaveRomFromWeb() {
+  static std::string result;
+  result = yaze::app::platform::WasmControlApi::SaveRom();
+  return result.c_str();
+}
 
 #endif  // __EMSCRIPTEN__

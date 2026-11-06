@@ -532,6 +532,33 @@ var FilesystemManager = {
   },
 
   /**
+   * Saves the current ROM through the editor's save pipeline and, when
+   * download is true, downloads the saved file to the visitor's disk.
+   * @param {boolean} download
+   * @returns {Promise<boolean>} true when the save succeeded
+   */
+  saveRom: async function(download) {
+    if (!this.ensureReady() || !Module.ccall) return false;
+    var result;
+    try {
+      // async: true is required; the save path can suspend through Asyncify.
+      result = JSON.parse(await Module.ccall('SaveRomFromWeb', 'string', [], [], {async: true}));
+    } catch (e) {
+      console.error('[FilesystemManager] SaveRomFromWeb failed:', e);
+      alert('Save failed: ' + (e.message || e));
+      return false;
+    }
+    if (!result.success) {
+      alert('Save failed: ' + (result.error || 'unknown error'));
+      return false;
+    }
+    if (download && result.path) {
+      this.downloadFile(result.path);
+    }
+    return true;
+  },
+
+  /**
    * Downloads save files from the virtual filesystem.
    */
   downloadSaves: function() {
@@ -1278,4 +1305,5 @@ waitForModule(() => {
 window.FilesystemManager = FilesystemManager;
 window.ensureFSReady = FilesystemManager.ensureReady.bind(FilesystemManager);
 window.downloadSaves = FilesystemManager.downloadSaves.bind(FilesystemManager);
+window.saveRom = FilesystemManager.saveRom.bind(FilesystemManager);
 window.flushSaves = FilesystemManager.flushSaves.bind(FilesystemManager);
