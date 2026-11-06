@@ -42,18 +42,7 @@ ImVec4 GetErrorColor();
 ImVec4 GetInfoColor();
 ImVec4 GetAccentColor();
 ImVec4 GetDisabledColor();
-
-// Entity/Map marker colors (for overworld, dungeon)
-ImVec4 GetEntranceColor();
-ImVec4 GetExitColor();
-ImVec4 GetItemColor();
-ImVec4 GetSpriteColor();
 ImVec4 GetSelectedColor();
-ImVec4 GetLockedColor();
-
-// Status colors
-ImVec4 GetVanillaRomColor();
-ImVec4 GetCustomRomColor();
 ImVec4 GetModifiedColor();
 
 // ============================================================================
@@ -70,9 +59,6 @@ void ColoredTextF(const ImVec4& color, const char* fmt, ...) IM_FMTARGS(2);
 // Render text with a SemanticColor from the current theme.
 void ThemedText(const char* text, SemanticColor color);
 
-// Render formatted text with a SemanticColor from the current theme.
-void ThemedTextF(SemanticColor color, const char* fmt, ...) IM_FMTARGS(2);
-
 // ============================================================================
 // Button Color Sets
 // ============================================================================
@@ -85,16 +71,8 @@ struct ButtonColorSet {
 };
 
 ButtonColorSet GetPrimaryButtonColors();
-ButtonColorSet GetDangerButtonColors();
 ButtonColorSet GetSuccessButtonColors();
 ButtonColorSet GetWarningButtonColors();
-
-// ============================================================================
-// Themed Separator
-// ============================================================================
-
-// Draw a separator using the theme's separator/border color.
-void ThemedSeparator();
 
 // ============================================================================
 // Layout Helpers
@@ -160,13 +138,6 @@ void StatusBadge(const char* text, ButtonType type = ButtonType::Default);
 // Editor-Specific Patterns
 // ============================================================================
 
-// Canvas container patterns
-void BeginCanvasContainer(const char* id, bool scrollable = true);
-void EndCanvasContainer();
-
-// Tab pattern for editor modes
-bool EditorTabItem(const char* icon, const char* label, bool* p_open = nullptr);
-
 // Modal confirmation dialog
 bool ConfirmationDialog(const char* id, const char* title, const char* message,
                         const char* confirm_text = "OK",
@@ -176,18 +147,11 @@ bool ConfirmationDialog(const char* id, const char* title, const char* message,
 // Visual Indicators
 // ============================================================================
 
-// Status indicator dot + label
-void StatusIndicator(const char* label, bool active,
-                     const char* tooltip = nullptr);
-
 // Provider badge (AgentUI style)
 void RenderProviderBadge(const char* provider);
 
 // ROM version badge
 void RomVersionBadge(const char* version, bool is_vanilla);
-
-// Locked/Unlocked indicator
-void LockIndicator(bool locked, const char* label);
 
 // ============================================================================
 // Spacing and Alignment
@@ -196,39 +160,6 @@ void LockIndicator(bool locked, const char* label);
 void VerticalSpacing(float pixels = 8.0f);
 void HorizontalSpacing(float pixels = 8.0f);
 void CenterText(const char* text);
-void RightAlign(float width);
-
-// ============================================================================
-// Animation Helpers
-// ============================================================================
-
-// Pulsing alpha animation (for loading indicators, etc.)
-float GetPulseAlpha(float speed = 1.0f);
-
-// Fade-in animation (for panel transitions)
-float GetFadeIn(float duration = 0.3f);
-
-// Apply pulsing effect to next widget
-void PushPulseEffect(float speed = 1.0f);
-void PopPulseEffect();
-
-// Loading spinner (animated circle)
-void LoadingSpinner(const char* label = nullptr, float radius = 10.0f);
-
-// ============================================================================
-// Responsive Layout Helpers
-// ============================================================================
-
-// Get responsive width based on available space
-float GetResponsiveWidth(float min_width, float max_width, float ratio = 0.5f);
-
-// Auto-fit table columns
-void SetupResponsiveColumns(int count, float min_col_width = 100.0f);
-
-// Responsive two-column layout
-void BeginTwoColumns(const char* id, float split_ratio = 0.6f);
-void SwitchColumn();
-void EndTwoColumns();
 
 // ============================================================================
 // Input Helpers (complement existing gui::InputHex functions)
@@ -237,10 +168,6 @@ void EndTwoColumns();
 // Labeled hex input with automatic formatting
 bool LabeledInputHex(const char* label, uint8_t* value);
 bool LabeledInputHex(const char* label, uint16_t* value);
-
-// Combo with icon
-bool IconCombo(const char* icon, const char* label, int* current,
-               const char* const items[], int count);
 
 // Helper to create consistent card titles
 std::string MakePanelTitle(const std::string& title);

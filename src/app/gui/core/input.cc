@@ -10,7 +10,6 @@
 #include <unordered_map>
 #include <variant>
 
-#include "absl/strings/string_view.h"
 #include "app/gfx/types/snes_tile.h"
 #include "app/gui/imgui_memory_editor.h"
 #include "imgui/imgui.h"
@@ -453,12 +452,6 @@ bool InputHex(const char* label, int* data, int num_digits, float input_width) {
   return changed || wheel_changed;
 }
 
-bool InputHexShort(const char* label, uint32_t* data) {
-  return ImGui::InputScalar(label, ImGuiDataType_U32, data, &kStepOneHex,
-                            &kStepFastHex, "%06X",
-                            ImGuiInputTextFlags_CharsHexadecimal);
-}
-
 bool InputHexWord(const char* label, uint16_t* data, float input_width,
                   bool no_step) {
   bool changed = ImGui::InputScalarLeft(
@@ -557,110 +550,6 @@ InputHexResult InputHexWordEx(const char* label, uint16_t* data,
   hex_result.immediate = result.immediate;
   hex_result.text_committed = result.text_committed;
   return hex_result;
-}
-
-void Paragraph(const std::string& text) {
-  ImGui::TextWrapped("%s", text.c_str());
-}
-
-// TODO: Setup themes and text/clickable colors
-bool ClickableText(const std::string& text) {
-  ImGui::BeginGroup();
-  ImGui::PushID(text.c_str());
-
-  // Calculate text size
-  ImVec2 text_size = ImGui::CalcTextSize(text.c_str());
-
-  // Get cursor position for hover detection
-  ImVec2 pos = ImGui::GetCursorScreenPos();
-  ImRect bb(pos, ImVec2(pos.x + text_size.x, pos.y + text_size.y));
-
-  // Add item
-  const ImGuiID id = ImGui::GetID(text.c_str());
-  bool result = false;
-  if (ImGui::ItemAdd(bb, id)) {
-    bool hovered = ImGui::IsItemHovered();
-    bool clicked = ImGui::IsItemClicked();
-
-    // Render text with high-contrast appropriate color
-    ImVec4 link_color = ImGui::GetStyleColorVec4(ImGuiCol_TextLink);
-    ImVec4 bg_color = ImGui::GetStyleColorVec4(ImGuiCol_WindowBg);
-
-    // Ensure good contrast against background
-    float contrast_factor =
-        (bg_color.x + bg_color.y + bg_color.z) < 1.5f ? 1.0f : 0.3f;
-
-    ImVec4 color;
-    if (hovered) {
-      // Brighter color on hover for better visibility
-      color = ImVec4(std::min(1.0f, link_color.x + 0.3f),
-                     std::min(1.0f, link_color.y + 0.3f),
-                     std::min(1.0f, link_color.z + 0.3f), 1.0f);
-    } else {
-      // Ensure link color has good contrast
-      color = ImVec4(std::max(contrast_factor, link_color.x),
-                     std::max(contrast_factor, link_color.y),
-                     std::max(contrast_factor, link_color.z), 1.0f);
-    }
-
-    ImGui::GetWindowDrawList()->AddText(
-        pos, ImGui::ColorConvertFloat4ToU32(color), text.c_str());
-
-    result = clicked;
-  }
-
-  ImGui::PopID();
-
-  // Advance cursor past the text
-  ImGui::Dummy(text_size);
-  ImGui::EndGroup();
-
-  return result;
-}
-
-void ItemLabel(absl::string_view title, ItemLabelFlags flags) {
-  ImGuiWindow* window = ImGui::GetCurrentWindow();
-  const ImVec2 lineStart = ImGui::GetCursorScreenPos();
-  const ImGuiStyle& style = ImGui::GetStyle();
-  float fullWidth = ImGui::GetContentRegionAvail().x;
-  float itemWidth = ImGui::CalcItemWidth() + style.ItemSpacing.x;
-  ImVec2 textSize =
-      ImGui::CalcTextSize(title.data(), title.data() + title.size());
-  ImRect textRect;
-  textRect.Min = ImGui::GetCursorScreenPos();
-  if (flags & ItemLabelFlag::Right)
-    textRect.Min.x = textRect.Min.x + itemWidth;
-  textRect.Max = textRect.Min;
-  textRect.Max.x += fullWidth - itemWidth;
-  textRect.Max.y += textSize.y;
-
-  ImGui::SetCursorScreenPos(textRect.Min);
-
-  ImGui::AlignTextToFramePadding();
-  // Adjust text rect manually because we render it directly into a drawlist
-  // instead of using public functions.
-  textRect.Min.y += window->DC.CurrLineTextBaseOffset;
-  textRect.Max.y += window->DC.CurrLineTextBaseOffset;
-
-  ImGui::ItemSize(textRect);
-  if (ImGui::ItemAdd(
-          textRect, window->GetID(title.data(), title.data() + title.size()))) {
-    ImGui::RenderTextEllipsis(ImGui::GetWindowDrawList(), textRect.Min,
-                              textRect.Max, textRect.Max.x, title.data(),
-                              title.data() + title.size(), &textSize);
-
-    if (textRect.GetWidth() < textSize.x && ImGui::IsItemHovered())
-      ImGui::SetTooltip("%.*s", (int)title.size(), title.data());
-  }
-  if (flags & ItemLabelFlag::Left) {
-    ImVec2 result;
-    auto other = ImVec2{0, textSize.y + window->DC.CurrLineTextBaseOffset};
-    result.x = textRect.Max.x - other.x;
-    result.y = textRect.Max.y - other.y;
-    ImGui::SetCursorScreenPos(result);
-    ImGui::SameLine();
-  } else if (flags & ItemLabelFlag::Right)
-    ImGui::SetCursorScreenPos(lineStart);
 }
 
 bool ListBox(const char* label, int* current_item,
@@ -823,30 +712,6 @@ void MemoryEditorPopup(const std::string& label, std::span<uint8_t> memory) {
     editor.DrawContents(memory.data(), memory.size());
     ImGui::End();
   }
-}
-
-// Custom hex input functions that properly respect width
-bool InputHexByteCustom(const char* label, uint8_t* data, float input_width) {
-  ImGui::PushID(label);
-
-  // Create a simple hex input that respects width
-  char buf[8];
-  snprintf(buf, sizeof(buf), "%02X", *data);
-
-  ImGui::SetNextItemWidth(input_width);
-  bool changed = ImGui::InputText(
-      label, buf, sizeof(buf),
-      ImGuiInputTextFlags_CharsHexadecimal | ImGuiInputTextFlags_AutoSelectAll);
-
-  if (changed) {
-    unsigned int temp;
-    if (sscanf(buf, "%X", &temp) == 1) {
-      *data = static_cast<uint8_t>(temp & 0xFF);
-    }
-  }
-
-  ImGui::PopID();
-  return changed;
 }
 
 bool InputHexWordCustom(const char* label, uint16_t* data, float input_width) {

@@ -118,46 +118,6 @@ IMGUI_API bool SnesColorEdit4(absl::string_view label, gfx::SnesColor* color,
 // New Standardized Palette Widgets
 // ============================================================================
 
-IMGUI_API bool InlinePaletteSelector(gfx::SnesPalette& palette, int num_colors,
-                                     int* selected_index) {
-  bool selection_made = false;
-  int colors_to_show = std::min(num_colors, static_cast<int>(palette.size()));
-
-  ImGui::BeginGroup();
-  for (int n = 0; n < colors_to_show; n++) {
-    ImGui::PushID(n);
-    if (n > 0 && (n % 8) != 0) {
-      ImGui::SameLine(0.0f, ImGui::GetStyle().ItemSpacing.y);
-    }
-
-    bool is_selected = selected_index && (*selected_index == n);
-    if (is_selected) {
-      ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(1.0f, 1.0f, 0.0f, 1.0f));
-      ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 2.0f);
-    }
-
-    if (SnesColorButton(
-            "##palettesel", palette[n],
-            ImGuiColorEditFlags_NoAlpha | ImGuiColorEditFlags_NoPicker,
-            ImVec2(20, 20))) {
-      if (selected_index) {
-        *selected_index = n;
-        selection_made = true;
-      }
-    }
-
-    if (is_selected) {
-      ImGui::PopStyleVar();
-      ImGui::PopStyleColor();
-    }
-
-    ImGui::PopID();
-  }
-  ImGui::EndGroup();
-
-  return selection_made;
-}
-
 IMGUI_API absl::Status InlinePaletteEditor(gfx::SnesPalette& palette,
                                            const std::string& title,
                                            ImGuiColorEditFlags flags) {
@@ -207,53 +167,6 @@ IMGUI_API absl::Status InlinePaletteEditor(gfx::SnesPalette& palette,
   ImGui::EndGroup();
 
   return absl::OkStatus();
-}
-
-IMGUI_API bool PopupPaletteEditor(const char* popup_id,
-                                  gfx::SnesPalette& palette,
-                                  ImGuiColorEditFlags flags) {
-  bool modified = false;
-
-  if (ImGui::BeginPopup(popup_id)) {
-    static int selected_color = 0;
-    static ImVec4 current_color = ImVec4(0, 0, 0, 1.0f);
-
-    // Compact color picker
-    if (ImGui::ColorPicker4("##popuppicker", (float*)&current_color,
-                            ImGuiColorEditFlags_NoSidePreview |
-                                ImGuiColorEditFlags_NoSmallPreview)) {
-      gfx::SnesColor snes_color(current_color);
-      palette.UpdateColor(selected_color, snes_color);
-      modified = true;
-    }
-
-    ImGui::Separator();
-
-    // Palette grid
-    ImGui::BeginGroup();
-    for (int n = 0; n < palette.size() && n < 64;
-         n++) {  // Limit to 64 for popup
-      ImGui::PushID(n);
-      if ((n % 8) != 0) {
-        ImGui::SameLine(0.0f, ImGui::GetStyle().ItemSpacing.y);
-      }
-
-      if (SnesColorButton(
-              "##popuppal", palette[n],
-              ImGuiColorEditFlags_NoAlpha | ImGuiColorEditFlags_NoPicker,
-              ImVec2(20, 20))) {
-        selected_color = n;
-        current_color = ConvertSnesColorToImVec4(palette[n]);
-      }
-
-      ImGui::PopID();
-    }
-    ImGui::EndGroup();
-
-    ImGui::EndPopup();
-  }
-
-  return modified;
 }
 
 // ============================================================================

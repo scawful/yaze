@@ -88,22 +88,6 @@ struct Color {
     return result;
   }
 
-  // Derive a new color by adjusting HSL components
-  Color WithHue(float new_hue) const {
-    HSL hsl = ToHSL();
-    return FromHSL(new_hue, hsl.s, hsl.l, alpha);
-  }
-
-  Color WithSaturation(float new_sat) const {
-    HSL hsl = ToHSL();
-    return FromHSL(hsl.h, std::clamp(new_sat, 0.0f, 1.0f), hsl.l, alpha);
-  }
-
-  Color WithLightness(float new_light) const {
-    HSL hsl = ToHSL();
-    return FromHSL(hsl.h, hsl.s, std::clamp(new_light, 0.0f, 1.0f), alpha);
-  }
-
   Color Lighter(float amount) const {
     HSL hsl = ToHSL();
     return FromHSL(hsl.h, hsl.s, std::clamp(hsl.l + amount, 0.0f, 1.0f), alpha);
@@ -141,13 +125,6 @@ inline ImVec4 ConvertColorToImVec4(const Color& color) {
   return ImVec4(color.red, color.green, color.blue, color.alpha);
 }
 
-inline std::string ColorToHexString(const Color& color) {
-  return absl::StrFormat("%02X%02X%02X%02X", static_cast<int>(color.red * 255),
-                         static_cast<int>(color.green * 255),
-                         static_cast<int>(color.blue * 255),
-                         static_cast<int>(color.alpha * 255));
-}
-
 // A utility function to convert an SnesColor object to an ImVec4 with
 // normalized color values
 ImVec4 ConvertSnesColorToImVec4(const gfx::SnesColor& color);
@@ -177,17 +154,6 @@ IMGUI_API bool SnesColorEdit4(absl::string_view label, gfx::SnesColor* color,
 // ============================================================================
 
 /**
- * @brief Small inline palette selector - just color buttons for selection
- * @param palette Palette to display
- * @param num_colors Number of colors to show (default 8)
- * @param selected_index Pointer to store selected color index (optional)
- * @return True if a color was selected
- */
-IMGUI_API bool InlinePaletteSelector(gfx::SnesPalette& palette,
-                                     int num_colors = 8,
-                                     int* selected_index = nullptr);
-
-/**
  * @brief Full inline palette editor with color picker and copy options
  * @param palette Palette to edit
  * @param title Display title
@@ -197,17 +163,6 @@ IMGUI_API bool InlinePaletteSelector(gfx::SnesPalette& palette,
 IMGUI_API absl::Status InlinePaletteEditor(gfx::SnesPalette& palette,
                                            const std::string& title = "",
                                            ImGuiColorEditFlags flags = 0);
-
-/**
- * @brief Popup palette editor - same as inline but in a popup
- * @param popup_id ID for the popup window
- * @param palette Palette to edit
- * @param flags ImGui color edit flags
- * @return True if palette was modified
- */
-IMGUI_API bool PopupPaletteEditor(const char* popup_id,
-                                  gfx::SnesPalette& palette,
-                                  ImGuiColorEditFlags flags = 0);
 
 // Legacy functions (kept for compatibility, will be deprecated)
 IMGUI_API bool DisplayPalette(gfx::SnesPalette& palette, bool loaded);

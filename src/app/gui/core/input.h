@@ -25,7 +25,6 @@ IMGUI_API bool InputHex(const char* label, uint64_t* data);
 IMGUI_API bool InputHex(const char* label, int* data, int num_digits = 4,
                         float input_width = 50.f);
 
-IMGUI_API bool InputHexShort(const char* label, uint32_t* data);
 IMGUI_API bool InputHexWord(const char* label, uint16_t* data,
                             float input_width = 50.f, bool no_step = false);
 IMGUI_API bool InputHexWord(const char* label, int16_t* data,
@@ -102,29 +101,15 @@ IMGUI_API InputHexResult InputHexWordEx(const char* label, uint16_t* data,
                                         float input_width = 50.f,
                                         bool no_step = false);
 
-// Custom hex input functions that properly respect width
-IMGUI_API bool InputHexByteCustom(const char* label, uint8_t* data,
-                                  float input_width = 50.f);
+// Custom hex input that properly respects width
 IMGUI_API bool InputHexWordCustom(const char* label, uint16_t* data,
                                   float input_width = 70.f);
-
-IMGUI_API void Paragraph(const std::string& text);
-
-IMGUI_API bool ClickableText(const std::string& text);
 
 IMGUI_API bool ListBox(const char* label, int* current_item,
                        const std::vector<std::string>& items,
                        int height_in_items = -1);
 
 bool InputTileInfo(const char* label, gfx::TileInfo* tile_info);
-
-using ItemLabelFlags = enum ItemLabelFlag {
-  Left = 1u << 0u,
-  Right = 1u << 1u,
-  Default = Left,
-};
-
-void ItemLabel(absl::string_view title, ItemLabelFlags flags);
 
 ImGuiID GetID(const std::string& id);
 

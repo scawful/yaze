@@ -44,11 +44,6 @@ class LayoutHelpers {
   static float GetCompactInputWidth();
   static float GetButtonPadding();
   static float GetTableRowHeight();
-  static float GetCanvasToolbarHeight();
-
-  // Layout utilities
-  static void BeginPaddedPanel(const char* label, float padding = -1.0f);
-  static void EndPaddedPanel();
 
   // Call EndTableWithTheming() only when BeginTableWithTheming() returns
   // true, the same rule as ImGui::BeginTable(). On false the theme pushes
@@ -69,26 +64,13 @@ class LayoutHelpers {
                                 ImGuiWindowFlags flags = 0);
   static void EndContentChild() { ImGui::EndChild(); }
 
-  // Input field helpers
-  static bool AutoSizedInputField(const char* label, char* buf, size_t buf_size,
-                                  ImGuiInputTextFlags flags = 0);
-  static bool AutoSizedInputInt(const char* label, int* v, int step = 1,
-                                int step_fast = 100,
-                                ImGuiInputTextFlags flags = 0);
-  static bool AutoSizedInputFloat(const char* label, float* v,
-                                  float step = 0.0f, float step_fast = 0.0f,
-                                  const char* format = "%.3f",
-                                  ImGuiInputTextFlags flags = 0);
-
   // Input preset functions for common patterns
   static bool InputHexRow(const char* label, uint8_t* data);
   static bool InputHexRow(const char* label, uint16_t* data);
-  static bool InputToolbarField(const char* label, char* buf, size_t buf_size);
 
   // Toolbar helpers
   static void BeginToolbar(const char* label);
   static void EndToolbar();
-  static void ToolbarSeparator();
   static bool ToolbarButton(const char* label,
                             const ImVec2& size = ImVec2(0, 0));
 
@@ -121,9 +103,6 @@ class LayoutHelpers {
 
  private:
   static float GetBaseFontSize() { return ImGui::GetFontSize(); }
-  static float ApplyCompactFactor(float base_value) {
-    return base_value * GetTheme().compact_factor;
-  }
 };
 
 // Returns "text###stable_id" for ImGui::TableSetupColumn(). ImGui matches

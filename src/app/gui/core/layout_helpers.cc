@@ -98,12 +98,6 @@ float LayoutHelpers::GetTableRowHeight() {
          theme.compact_factor;
 }
 
-float LayoutHelpers::GetCanvasToolbarHeight() {
-  const auto& theme = GetTheme();
-  return GetBaseFontSize() * theme.canvas_toolbar_multiplier *
-         theme.compact_factor;
-}
-
 LayoutHelpers::SafeAreaInsets LayoutHelpers::GetSafeAreaInsets() {
   SafeAreaInsets insets{};
 #if defined(__APPLE__) && TARGET_OS_IOS == 1
@@ -168,26 +162,6 @@ LayoutHelpers::WindowClampResult LayoutHelpers::ClampWindowToRect(
   result.pos.y = std::clamp(pos.y, min_y, max_y);
   result.clamped = (result.pos.x != pos.x) || (result.pos.y != pos.y);
   return result;
-}
-
-// Layout utilities
-void LayoutHelpers::BeginPaddedPanel(const char* label, float padding) {
-  if (padding < 0.0f) {
-    padding = GetPanelPadding();
-  }
-  ImGui::BeginChild(label, ImVec2(0, 0), true);
-  ImGui::Dummy(ImVec2(padding, padding));
-  ImGui::SameLine();
-  ImGui::BeginGroup();
-  ImGui::Dummy(ImVec2(0, padding));
-}
-
-void LayoutHelpers::EndPaddedPanel() {
-  ImGui::Dummy(ImVec2(0, GetPanelPadding()));
-  ImGui::EndGroup();
-  ImGui::SameLine();
-  ImGui::Dummy(ImVec2(GetPanelPadding(), 0));
-  ImGui::EndChild();
 }
 
 bool LayoutHelpers::BeginTableWithTheming(const char* str_id, int columns,
@@ -260,28 +234,6 @@ bool LayoutHelpers::BeginContentChild(const char* id, const ImVec2& min_size,
   return ImGui::BeginChild(id, size, border, flags);
 }
 
-// Input field helpers
-bool LayoutHelpers::AutoSizedInputField(const char* label, char* buf,
-                                        size_t buf_size,
-                                        ImGuiInputTextFlags flags) {
-  ImGui::SetNextItemWidth(GetStandardInputWidth());
-  return ImGui::InputText(label, buf, buf_size, flags);
-}
-
-bool LayoutHelpers::AutoSizedInputInt(const char* label, int* v, int step,
-                                      int step_fast,
-                                      ImGuiInputTextFlags flags) {
-  ImGui::SetNextItemWidth(GetStandardInputWidth());
-  return ImGui::InputInt(label, v, step, step_fast, flags);
-}
-
-bool LayoutHelpers::AutoSizedInputFloat(const char* label, float* v, float step,
-                                        float step_fast, const char* format,
-                                        ImGuiInputTextFlags flags) {
-  ImGui::SetNextItemWidth(GetStandardInputWidth());
-  return ImGui::InputFloat(label, v, step, step_fast, format, flags);
-}
-
 // Input preset functions for common patterns
 bool LayoutHelpers::InputHexRow(const char* label, uint8_t* data) {
   float input_width = GetHexInputWidth();
@@ -337,17 +289,6 @@ bool LayoutHelpers::InputHexRow(const char* label, uint16_t* data) {
   return changed;
 }
 
-bool LayoutHelpers::InputToolbarField(const char* label, char* buf,
-                                      size_t buf_size) {
-  // Compact input field for toolbars
-  float compact_width =
-      GetStandardInputWidth() * 0.8f * GetTheme().compact_factor;
-  ImGui::SetNextItemWidth(compact_width);
-
-  return ImGui::InputText(label, buf, buf_size,
-                          ImGuiInputTextFlags_AutoSelectAll);
-}
-
 // Toolbar helpers
 void LayoutHelpers::BeginToolbar(const char* label) {
   const auto& theme = GetTheme();
@@ -386,16 +327,6 @@ void LayoutHelpers::EndToolbar() {
   if (ctx != nullptr && ctx->ColorStack.Size > 0) {
     ImGui::PopStyleColor(1);
   }
-}
-
-void LayoutHelpers::ToolbarSeparator() {
-  ImGui::SameLine();
-  ImGui::Dummy(ImVec2(GetStandardSpacing(), 0));
-  ImGui::SameLine();
-  ImGui::SeparatorEx(ImGuiSeparatorFlags_Vertical);
-  ImGui::SameLine();
-  ImGui::Dummy(ImVec2(GetStandardSpacing(), 0));
-  ImGui::SameLine();
 }
 
 bool LayoutHelpers::ToolbarButton(const char* label, const ImVec2& size) {
