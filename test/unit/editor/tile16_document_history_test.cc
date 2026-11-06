@@ -375,6 +375,13 @@ TEST_F(Tile16DocumentHistoryTest,
 
 TEST_F(Tile16DocumentHistoryTest,
        SavedExpandedEditSurvivesReopenAndUndoAfterSaveRedirtiesDocument) {
+  ASSERT_TRUE(
+      rom_.WriteByte(zelda3::OverworldCustomASMHasBeenApplied, 0x03).ok());
+  const auto options = zelda3::OverworldLayoutOptions::Defaults();
+  overworld_.set_layout_inspect_options(options);
+  const auto layout = zelda3::InspectOverworldLayout(rom_, options);
+  ASSERT_TRUE(layout.has_expanded_tile16);
+  ASSERT_EQ(layout.tile16_pc.value, zelda3::kMap16TilesExpanded);
   const auto path =
       std::filesystem::temp_directory_path() /
       ("yaze_tile16_exp_reopen_" +
@@ -393,11 +400,21 @@ TEST_F(Tile16DocumentHistoryTest,
   ASSERT_TRUE(rom_.SaveToFile(settings).ok());
   EXPECT_FALSE(rom_.dirty());
 
-  const int map16_expanded = zelda3::GetMap16TilesExpanded();
+  const int map16_expanded = layout.tile16_pc.value;
   auto saved_word = rom_.ReadWord(map16_expanded + 4);
   ASSERT_TRUE(saved_word.ok());
   EXPECT_EQ(gfx::GetTilesInfo(*saved_word).palette_, 5);
   EXPECT_TRUE(gfx::GetTilesInfo(*saved_word).horizontal_mirror_);
+  const auto read_expanded = [&]() {
+    Rom reopened;
+    EXPECT_TRUE(reopened.LoadFromFile(path.string()).ok());
+    bool expanded = false;
+    auto tiles = zelda3::ReadMap16Tiles(reopened, options, &expanded);
+    EXPECT_TRUE(tiles.ok()) << tiles.status();
+    EXPECT_TRUE(expanded);
+    return tiles.ok() && !tiles->empty() ? (*tiles)[0] : gfx::Tile16{};
+  };
+  ExpectDefinition(read_expanded(), edited);
 
   // Undo after Save must re-dirty the document
   ASSERT_TRUE(history_.Undo().ok());
@@ -409,12 +426,27 @@ TEST_F(Tile16DocumentHistoryTest,
   saved_word = rom_.ReadWord(map16_expanded + 4);
   ASSERT_TRUE(saved_word.ok());
   EXPECT_EQ(gfx::GetTilesInfo(*saved_word).palette_, initial_.tile2_.palette_);
+  ExpectDefinition(read_expanded(), initial_);
 
   ASSERT_TRUE(history_.Redo().ok());
   EXPECT_TRUE(rom_.dirty());
   ExpectDefinition(overworld_.tiles16()[0], edited);
   std::error_code ec;
   std::filesystem::remove(path, ec);
+}
+
+TEST_F(Tile16DocumentHistoryTest,
+       ExpandedWriterRefusesUnmarkedVanillaBeforeWrites) {
+  overworld_.set_layout_inspect_options(
+      zelda3::OverworldLayoutOptions::Defaults());
+  const auto before = rom_.vector();
+  const auto definitions = overworld_.tiles16();
+  EXPECT_EQ(overworld_.SaveMap16Expanded().code(),
+            absl::StatusCode::kFailedPrecondition);
+  EXPECT_EQ(rom_.vector(), before);
+  EXPECT_FALSE(rom_.dirty());
+  ASSERT_EQ(overworld_.tiles16().size(), definitions.size());
+  ExpectDefinition(overworld_.tiles16()[0], definitions[0]);
 }
 
 TEST_F(Tile16DocumentHistoryTest, GroupedPropertyEditsAreOneSharedUndoStep) {

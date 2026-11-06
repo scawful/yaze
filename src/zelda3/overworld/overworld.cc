@@ -3444,6 +3444,10 @@ absl::Status Overworld::SaveMap16Expanded() {
   RETURN_IF_ERROR(ValidatePrivateNativeTerrainSave());
   if (rom_ && rom_->has_lyra_private_reservation())
     return absl::OkStatus();
+  if (!resolved_layout_.has_expanded_tile16) {
+    return absl::FailedPreconditionError(
+        "Expanded Tile16 save requested for a vanilla Tile16 layout");
+  }
   const int map16_expanded = resolved_layout_.tile16_pc.value;
   const auto write_pointer = [this](int address,
                                     uint32_t target) -> absl::Status {
