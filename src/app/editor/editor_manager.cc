@@ -2484,6 +2484,16 @@ absl::Status EditorManager::EnsureGameDataLoaded() {
   }
 
   zelda3::LoadOptions graphics_options;
+  if (session->project_context) {
+    ASSIGN_OR_RETURN(
+        graphics_options.overworld_palette_layout,
+        gfx::palette_group_internal::OverworldPaletteLayout::FromOverrides(
+            session->project_context->rom_address_overrides,
+            session->rom.size()));
+  } else {
+    graphics_options.overworld_palette_layout =
+        gfx::palette_group_internal::OverworldPaletteLayout::Legacy();
+  }
   if (session->project_context &&
       (session->project_context->hack_manifest.graphics_sheet_layout()
            .pointer_layout ||
@@ -2640,6 +2650,16 @@ absl::Status EditorManager::LoadAssets(uint64_t passed_handle) {
     return absl::FailedPreconditionError("No active ROM session");
   }
   zelda3::LoadOptions graphics_options;
+  if (current_session->project_context) {
+    ASSIGN_OR_RETURN(
+        graphics_options.overworld_palette_layout,
+        gfx::palette_group_internal::OverworldPaletteLayout::FromOverrides(
+            current_session->project_context->rom_address_overrides,
+            current_session->rom.size()));
+  } else {
+    graphics_options.overworld_palette_layout =
+        gfx::palette_group_internal::OverworldPaletteLayout::Legacy();
+  }
   if (current_session->project_context &&
       (current_session->project_context->hack_manifest.graphics_sheet_layout()
            .pointer_layout ||
@@ -2673,6 +2693,7 @@ absl::Status EditorManager::LoadAssets(uint64_t passed_handle) {
         "declaration");
   }
   const bool explicit_graphics_load =
+      graphics_options.overworld_palette_layout->has_aux_extension() ||
       graphics_options.gfx_sheet_source.has_value() ||
       (graphics_options.gfx_sheet_layout &&
        graphics_options.gfx_sheet_layout->explicit_layout);
@@ -2848,11 +2869,23 @@ absl::Status EditorManager::LoadAssetsLazy(uint64_t passed_handle) {
   if (!current_session) {
     return absl::FailedPreconditionError("No active ROM session");
   }
+  zelda3::LoadOptions graphics_options;
+  if (current_session->project_context) {
+    ASSIGN_OR_RETURN(
+        graphics_options.overworld_palette_layout,
+        gfx::palette_group_internal::OverworldPaletteLayout::FromOverrides(
+            current_session->project_context->rom_address_overrides,
+            current_session->rom.size()));
+  } else {
+    graphics_options.overworld_palette_layout =
+        gfx::palette_group_internal::OverworldPaletteLayout::Legacy();
+  }
   bool explicit_graphics_loaded = false;
-  if (current_session->project_context &&
-      (current_session->project_context->hack_manifest.graphics_sheet_layout()
-           .pointer_layout ||
-       core::GfxSheetSource::Selected(*current_session->project_context))) {
+  if (graphics_options.overworld_palette_layout->has_aux_extension() ||
+      (current_session->project_context &&
+       (current_session->project_context->hack_manifest.graphics_sheet_layout()
+            .pointer_layout ||
+        core::GfxSheetSource::Selected(*current_session->project_context)))) {
     if (current_session->editors.HasPendingGraphicsChanges() ||
         current_session->HasPendingGfxGroupChanges() ||
         gfx::PaletteManager::Get().HasUnsavedChanges(
@@ -2861,7 +2894,6 @@ absl::Status EditorManager::LoadAssetsLazy(uint64_t passed_handle) {
           "Explicit graphics layout reload refused while model edits are "
           "pending");
     }
-    zelda3::LoadOptions graphics_options;
     ASSIGN_OR_RETURN(
         graphics_options.gfx_sheet_layout,
         core::ResolveGfxSheetLayout(current_session->rom,

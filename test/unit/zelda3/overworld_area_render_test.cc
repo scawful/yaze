@@ -85,6 +85,60 @@ TEST(OverworldAreaRenderTest, ChildScreensRenderWithParentAreaSettings) {
   EXPECT_EQ(parent.render_subscreen_overlay(), 0x009F);
 }
 
+TEST(OverworldAreaRenderTest,
+     BoundAuxiliaryRowRendersAndUnavailableRowsRefuse) {
+  auto bytes = MakeV3Rom();
+  bytes.resize(0x240000, 0);
+  // Palette set13 selects the new docks row15 (21), aux2 0D and animation06.
+  const auto descriptor =
+      zelda3_us_pointers.kOverworldMapPaletteGroup + 0x13 * 4;
+  bytes[descriptor] = 0x15;
+  bytes[descriptor + 1] = 0x0D;
+  bytes[descriptor + 2] = 0x06;
+  const uint32_t color_pc = 0x22F900 + 42 + 40;
+  bytes[color_pc] = 0x34;
+  bytes[color_pc + 1] = 0x12;
+  auto rom = LoadRom(bytes);
+  GameData data(rom.get());
+  core::RomAddressOverrides overrides;
+  overrides.addresses = {
+      {core::RomAddressKey::kOverworldAuxPaletteExtensionPc, 0x22F900},
+      {core::RomAddressKey::kOverworldAuxPaletteExtensionCount, 32},
+      {core::RomAddressKey::kOverworldAuxPaletteExtensionAbi, 1}};
+  auto layout =
+      gfx::palette_group_internal::OverworldPaletteLayout::FromOverrides(
+          overrides, rom->size());
+  ASSERT_TRUE(layout.ok()) << layout.status();
+  data.overworld_palette_layout = *layout;
+  ASSERT_TRUE(LoadPalettes(*rom, data).ok());
+  OverworldMap map(0x30, rom.get(), &data);
+  map.set_area_palette(0x13);
+  ASSERT_TRUE(map.LoadPalette().ok());
+  EXPECT_EQ(map.current_palette()[4 * 16 + 15].snes(), 0x1234);
+  // FF inherits the previous map's descriptor field without aliasing row13.
+  (*rom)[kOverworldPalettesScreenToSetNew + 0x2F] = 0x12;
+  (*rom)[descriptor] = 0xFF;
+  (*rom)[zelda3_us_pointers.kOverworldMapPaletteGroup + 0x12 * 4] = 0x15;
+  ASSERT_TRUE(map.LoadPalette().ok());
+  EXPECT_EQ(map.current_palette()[4 * 16 + 15].snes(), 0x1234);
+  (*rom)[descriptor] = 0x34;
+  EXPECT_FALSE(map.LoadPalette().ok());
+  (*rom)[descriptor] = 0x15;
+  map.set_area_palette(0x1F);
+  EXPECT_FALSE(map.LoadPalette().ok());
+  map.set_area_palette(0x13);
+  data.overworld_palette_layout =
+      gfx::palette_group_internal::OverworldPaletteLayout::Legacy();
+  // No provider declaration means no usable extension, even if old colors linger.
+  data.palette_groups.overworld_aux.clear();
+  ASSERT_TRUE(gfx::palette_group_internal::LoadOverworldPaletteRecords(
+                  gfx::palette_group_internal::OverworldPaletteKind::kAuxiliary,
+                  *data.overworld_palette_layout, rom->vector(),
+                  data.palette_groups.overworld_aux)
+                  .ok());
+  EXPECT_FALSE(map.LoadPalette().ok());
+}
+
 TEST(OverworldAreaRenderTest, AllQuadrantsResolveTheSameGraphics) {
   auto rom = LoadRom(MakeV3Rom());
   OverworldMap parent(kParent, rom.get());

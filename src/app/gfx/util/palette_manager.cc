@@ -502,30 +502,11 @@ absl::StatusOr<uint32_t> PaletteManager::ResolveColorAddress(
     return absl::OutOfRangeError("Modified palette color no longer exists");
   }
 
-  const size_t rom_size = game_data->rom()->vector().size();
-  if (group_name == "ow_main" || group_name == "ow_aux") {
-    using palette_group_internal::OverworldPaletteKind;
-    const auto kind = group_name == "ow_main"
-                          ? OverworldPaletteKind::kMain
-                          : OverworldPaletteKind::kAuxiliary;
-    ASSIGN_OR_RETURN(
-        const auto record,
-        palette_group_internal::OverworldPaletteLayout::Legacy().Resolve(
-            kind, palette_index, rom_size));
-    return record.ColorAddress(color_index);
-  }
-
-  // Other groups retain their existing address layout.
-  uint32_t address;
-  try {
-    address = GetPaletteAddress(group_name, palette_index, color_index);
-  } catch (const std::out_of_range& e) {
-    return absl::InvalidArgumentError(e.what());
-  }
-  if (address > rom_size || rom_size - address < 2) {
-    return absl::OutOfRangeError("Modified palette color exceeds ROM bounds");
-  }
-  return address;
+  return palette_group_internal::ResolvePaletteColorAddress(
+      game_data->overworld_palette_layout.value_or(
+          palette_group_internal::OverworldPaletteLayout::Legacy()),
+      group_name, palette_index, color_index,
+      game_data->rom()->vector().size());
 }
 
 absl::StatusOr<std::vector<std::pair<uint32_t, uint32_t>>>

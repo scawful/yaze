@@ -93,6 +93,8 @@ struct GameData : GraphicsSheetStoreHolder {
   // ROM bytes; retaining it does not admit dirty reloads or expanded writes.
   std::optional<ResolvedGfxSheetLayout> gfx_sheet_layout;
   std::optional<core::GfxSheetSource> gfx_sheet_source;
+  std::optional<gfx::palette_group_internal::OverworldPaletteLayout>
+      overworld_palette_layout;
 
   // Graphics Resources (`graphics_buffer` and `sheet_store` are inherited)
   std::array<std::vector<uint8_t>, kNumGfxSheets>
@@ -138,6 +140,7 @@ struct GameData : GraphicsSheetStoreHolder {
       bitmap = gfx::Bitmap();
     gfx_sheet_layout.reset();
     gfx_sheet_source.reset();
+    overworld_palette_layout.reset();
     palette_groups.clear();
     pit_damage_table = PitDamageTable();
   }
@@ -147,6 +150,8 @@ struct GameData : GraphicsSheetStoreHolder {
 };
 
 struct LoadOptions {
+  std::optional<gfx::palette_group_internal::OverworldPaletteLayout>
+      overworld_palette_layout;
   std::optional<core::GfxSheetSource> gfx_sheet_source;
   // Supplied by the canonical project resolver before any live state is cleared.
   std::optional<ResolvedGfxSheetLayout> gfx_sheet_layout;

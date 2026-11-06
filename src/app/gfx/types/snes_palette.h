@@ -12,6 +12,7 @@
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "app/gfx/types/snes_color.h"
+#include "app/gfx/types/snes_palette_layout.h"
 #include "imgui/imgui.h"
 #include "snes_color.h"
 #include "util/macro.h"
@@ -466,8 +467,10 @@ absl::StatusOr<PaletteGroup> CreatePaletteGroupFromLargePalette(
  * groups.
  *
  */
-absl::Status LoadAllPalettes(const std::vector<uint8_t>& rom_data,
-                             PaletteGroupMap& groups);
+absl::Status LoadAllPalettes(
+    const std::vector<uint8_t>& rom_data, PaletteGroupMap& groups,
+    const palette_group_internal::OverworldPaletteLayout& layout =
+        palette_group_internal::OverworldPaletteLayout::Legacy());
 
 /**
  * @brief Represents a set of palettes used in a SNES graphics system.

@@ -12,7 +12,9 @@
 
 #include "app/gfx/types/snes_color.h"
 #include "app/gfx/types/snes_color_math.h"
+#include "core/features.h"
 #include "rom/snes.h"
+#include "zelda3/game_data.h"
 
 namespace yaze {
 namespace test {
@@ -214,7 +216,121 @@ using gfx::palette_group_internal::ResolvePaletteRecord;
 constexpr size_t kPaletteTestRomSize = 0x100000;
 constexpr uint32_t kExpectedMainPc = 0xDE6C8;
 constexpr uint32_t kExpectedAuxPc = 0xDE86C;
+
+core::RomAddressOverrides AuxExtension(uint32_t pc = 0x22F900) {
+  core::RomAddressOverrides overrides;
+  overrides.addresses = {
+      {core::RomAddressKey::kOverworldAuxPaletteExtensionPc, pc},
+      {core::RomAddressKey::kOverworldAuxPaletteExtensionCount, 32},
+      {core::RomAddressKey::kOverworldAuxPaletteExtensionAbi, 1}};
+  return overrides;
+}
 }  // namespace
+
+TEST(PaletteRecordResolverTest, BoundAuxExtensionPreservesLegacyAndExactRows) {
+  const auto layout =
+      OverworldPaletteLayout::FromOverrides(AuxExtension(), 0x240000);
+  ASSERT_TRUE(layout.ok()) << layout.status();
+  EXPECT_EQ(layout->RecordCount(OverworldPaletteKind::kMain), 6);
+  EXPECT_EQ(layout->RecordCount(OverworldPaletteKind::kAuxiliary), 52);
+  for (int i = 0; i < 52; ++i) {
+    const auto record =
+        layout->Resolve(OverworldPaletteKind::kAuxiliary, i, 0x240000);
+    ASSERT_TRUE(record.ok()) << record.status();
+    EXPECT_EQ(record->pc_address(),
+              i < 20 ? kExpectedAuxPc + i * 42 : 0x22F900 + (i - 20) * 42);
+    EXPECT_EQ(record->color_count(), 21);
+  }
+  EXPECT_FALSE(layout->Resolve(OverworldPaletteKind::kMain, 6, 0x240000).ok());
+  EXPECT_FALSE(
+      layout->Resolve(OverworldPaletteKind::kAuxiliary, 52, 0x240000).ok());
+  EXPECT_FALSE(
+      layout->Resolve(OverworldPaletteKind::kAuxiliary, 20, 0x22FE3F).ok());
+  // The legacy public resolver still refuses a long-bank address without ABI binding.
+  EXPECT_FALSE(ResolvePaletteRecord(0x45F900, 21, 0x240000).ok());
+}
+
+TEST(PaletteRecordResolverTest, BindingRequiresCompleteAbiAndOwnedBankShape) {
+  auto absent = OverworldPaletteLayout::FromOverrides({}, 0x240000);
+  ASSERT_TRUE(absent.ok());
+  EXPECT_FALSE(absent->has_aux_extension());
+  for (const auto* key :
+       {core::RomAddressKey::kOverworldAuxPaletteExtensionPc,
+        core::RomAddressKey::kOverworldAuxPaletteExtensionCount,
+        core::RomAddressKey::kOverworldAuxPaletteExtensionAbi}) {
+    auto partial = AuxExtension();
+    partial.addresses.erase(key);
+    EXPECT_FALSE(OverworldPaletteLayout::FromOverrides(partial, 0x240000).ok());
+  }
+  for (uint32_t pc : {0xDE86Cu, 0x22FF00u, 0x3F0000u, 0xFFFFFFFFu}) {
+    EXPECT_FALSE(
+        OverworldPaletteLayout::FromOverrides(AuxExtension(pc), 0x400000).ok());
+  }
+  for (const auto* key :
+       {core::RomAddressKey::kOverworldAuxPaletteExtensionCount,
+        core::RomAddressKey::kOverworldAuxPaletteExtensionAbi}) {
+    auto wrong = AuxExtension();
+    wrong.addresses[key] = 2;
+    EXPECT_FALSE(OverworldPaletteLayout::FromOverrides(wrong, 0x240000).ok());
+  }
+  EXPECT_FALSE(
+      OverworldPaletteLayout::FromOverrides(AuxExtension(), 0x22FE3F).ok());
+}
+
+TEST(PaletteRecordResolverTest,
+     GeneralSaveUsesSessionBindingAndPreflightsAllColors) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x240000, 0)).ok());
+  zelda3::GameData data(&rom);
+  auto layout =
+      OverworldPaletteLayout::FromOverrides(AuxExtension(), rom.size());
+  ASSERT_TRUE(layout.ok());
+  data.overworld_palette_layout = *layout;
+  ASSERT_TRUE(zelda3::LoadPalettes(rom, data).ok());
+  ASSERT_EQ(data.palette_groups.overworld_aux.size(), 52);
+  auto* palette = data.palette_groups.overworld_aux.mutable_palette(21);
+  (*palette)[20] = gfx::SnesColor(0x1234);
+  (*palette)[20].set_modified(true);
+  const uint32_t expected_pc = 0x22F900 + 42 + 40;
+  const auto before = rom.vector();
+  auto& flag = core::FeatureFlags::get().kSaveAllPalettes;
+  const bool previous = flag;
+  struct RestoreFlag {
+    bool& flag;
+    bool value;
+    ~RestoreFlag() { flag = value; }
+  } restore{flag, previous};
+  flag = true;
+  // Changing the process-wide project cannot redirect an already loaded session.
+  const auto settings_before = core::RomSettings::Get().address_overrides();
+  struct RestoreSettings {
+    core::RomAddressOverrides value;
+    ~RestoreSettings() { core::RomSettings::Get().SetAddressOverrides(value); }
+  } settings{settings_before};
+  core::RomSettings::Get().SetAddressOverrides(AuxExtension(0x218000));
+  ASSERT_TRUE(zelda3::SaveGameData(rom, data).ok());
+  EXPECT_EQ(*rom.ReadWord(expected_pc), 0x1234);
+  auto expected = before;
+  expected[expected_pc] = 0x34;
+  expected[expected_pc + 1] = 0x12;
+  EXPECT_EQ(rom.vector(), expected);
+  EXPECT_FALSE((*palette)[20].is_modified());
+  zelda3::GameData reopened(&rom);
+  reopened.overworld_palette_layout = *layout;
+  ASSERT_TRUE(zelda3::LoadPalettes(rom, reopened).ok());
+  EXPECT_EQ(reopened.palette_groups.overworld_aux.palette_ref(21)[20].snes(),
+            0x1234);
+
+  // An unbound high selector refuses all writes, including earlier legacy edits.
+  (*data.palette_groups.overworld_aux.mutable_palette(0))[0] =
+      gfx::SnesColor(0x1111);
+  (*data.palette_groups.overworld_aux.mutable_palette(0))[0].set_modified(true);
+  (*palette)[20].set_modified(true);
+  data.overworld_palette_layout = OverworldPaletteLayout::Legacy();
+  EXPECT_FALSE(zelda3::SaveGameData(rom, data).ok());
+  EXPECT_EQ(rom.vector(), expected);
+  EXPECT_TRUE((*palette)[20].is_modified());
+}
 
 TEST(PaletteRecordResolverTest, LegacyRecordsHaveExactAddressesAndColorRanges) {
   const auto layout = OverworldPaletteLayout::Legacy();

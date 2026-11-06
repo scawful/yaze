@@ -121,6 +121,61 @@ TEST_F(PaletteManagerTest, TracksModifiedGroups) {
   EXPECT_TRUE(modified_groups.empty());
 }
 
+TEST_F(PaletteManagerTest, BoundAuxiliarySessionsUndoSaveAndColdReload) {
+  Rom first_rom;
+  Rom second_rom;
+  ASSERT_TRUE(first_rom.LoadFromData(std::vector<uint8_t>(0x240000, 0)).ok());
+  ASSERT_TRUE(second_rom.LoadFromData(std::vector<uint8_t>(0x240000, 0)).ok());
+  zelda3::GameData first(&first_rom), second(&second_rom);
+  auto bind = [](zelda3::GameData& data, uint32_t pc) -> absl::Status {
+    core::RomAddressOverrides overrides;
+    overrides.addresses = {
+        {core::RomAddressKey::kOverworldAuxPaletteExtensionPc, pc},
+        {core::RomAddressKey::kOverworldAuxPaletteExtensionCount, 32},
+        {core::RomAddressKey::kOverworldAuxPaletteExtensionAbi, 1}};
+    ASSIGN_OR_RETURN(
+        data.overworld_palette_layout,
+        palette_group_internal::OverworldPaletteLayout::FromOverrides(
+            overrides, data.rom()->size()));
+    return zelda3::LoadPalettes(*data.rom(), data);
+  };
+  ASSERT_TRUE(bind(first, 0x22F900).ok());
+  ASSERT_TRUE(bind(second, 0x218000).ok());
+  auto& manager = PaletteManager::Get();
+  manager.Initialize(&first);
+  ASSERT_TRUE(manager.SetColor("ow_aux", 21, 20, SnesColor(0x1234)).ok());
+  const uint32_t first_pc = 0x22F900 + 42 + 40;
+  ExpectPaletteWriteRanges(manager.GetModifiedColorWriteRanges(),
+                           {{first_pc, first_pc + 2}});
+  manager.Undo();
+  EXPECT_EQ(manager.GetColor("ow_aux", 21, 20).snes(), 0);
+  manager.Redo();
+  EXPECT_EQ(manager.GetColor("ow_aux", 21, 20).snes(), 0x1234);
+  manager.Initialize(&second);
+  ASSERT_TRUE(manager.SetColor("ow_aux", 21, 20, SnesColor(0x4321)).ok());
+  manager.ActivateSession(&first);
+  const auto before = first_rom.vector();
+  ASSERT_TRUE(manager.SaveAllToRom().ok());
+  auto expected = before;
+  expected[first_pc] = 0x34;
+  expected[first_pc + 1] = 0x12;
+  EXPECT_EQ(first_rom.vector(), expected);
+  EXPECT_EQ(*second_rom.ReadWord(0x218000 + 42 + 40), 0);
+  EXPECT_TRUE(manager.HasUnsavedChanges(&second));
+  zelda3::GameData reopened(&first_rom);
+  ASSERT_TRUE(bind(reopened, 0x22F900).ok());
+  EXPECT_EQ(reopened.palette_groups.overworld_aux.palette_ref(21)[20].snes(),
+            0x1234);
+  manager.ActivateSession(&second);
+  // Stale/unbound metadata cannot redirect this pending write to legacy data.
+  second.overworld_palette_layout =
+      palette_group_internal::OverworldPaletteLayout::Legacy();
+  const auto second_before = second_rom.vector();
+  EXPECT_FALSE(manager.SaveAllToRom().ok());
+  EXPECT_EQ(second_rom.vector(), second_before);
+  EXPECT_TRUE(manager.HasUnsavedChanges(&second));
+}
+
 TEST_F(PaletteManagerTest, GetModifiedColorCount) {
   auto& manager = PaletteManager::Get();
 

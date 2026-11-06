@@ -124,6 +124,27 @@ uint32_t GetGraphicsAddress(const uint8_t* data, uint8_t addr, uint32_t ptr1,
 
 absl::Status LoadGameData(Rom& rom, GameData& data,
                           const LoadOptions& options) {
+  using gfx::palette_group_internal::OverworldPaletteKind;
+  using gfx::palette_group_internal::OverworldPaletteLayout;
+  auto palette_layout = options.overworld_palette_layout
+                            ? options.overworld_palette_layout
+                            : data.overworld_palette_layout;
+  if (!palette_layout) {
+    // Compatibility adapter at load only; all later reads/writes use the
+    // captured session value, never the current process-wide project.
+    ASSIGN_OR_RETURN(
+        palette_layout,
+        OverworldPaletteLayout::FromOverrides(
+            core::RomSettings::Get().address_overrides(), rom.size()));
+  }
+  if (options.load_palettes || palette_layout->has_aux_extension()) {
+    for (auto kind :
+         {OverworldPaletteKind::kMain, OverworldPaletteKind::kAuxiliary}) {
+      for (int i = 0; i < palette_layout->RecordCount(kind); ++i) {
+        RETURN_IF_ERROR(palette_layout->Resolve(kind, i, rom.size()).status());
+      }
+    }
+  }
   // Refuse stale/dirty explicit layouts before touching live pixels or models.
   const auto layout = options.gfx_sheet_layout ? options.gfx_sheet_layout
                                                : data.gfx_sheet_layout;
@@ -133,13 +154,15 @@ absl::Status LoadGameData(Rom& rom, GameData& data,
   const auto source = options.gfx_sheet_source;
   if (source)
     RETURN_IF_ERROR(source->CheckDisk());
-  const bool staged_graphics =
-      source.has_value() || (layout && layout->explicit_layout);
+  const bool staged_graphics = source.has_value() ||
+                               (layout && layout->explicit_layout) ||
+                               palette_layout->has_aux_extension();
   auto load = [&](GameData& target) -> absl::Status {
     target.Clear();
     target.set_rom(&rom);
     target.gfx_sheet_layout = layout;
     target.gfx_sheet_source = source;
+    target.overworld_palette_layout = palette_layout;
 
     if (options.populate_metadata) {
       RETURN_IF_ERROR(LoadMetadata(rom, target));
@@ -199,23 +222,35 @@ absl::Status LoadGameData(Rom& rom, GameData& data,
 
 absl::Status SaveGameData(Rom& rom, GameData& data) {
   if (core::FeatureFlags::get().kSaveAllPalettes) {
-    // TODO: Implement SaveAllPalettes logic using Rom::WriteColor
-    // This was previously in Rom::SaveAllPalettes
-    return data.palette_groups.for_each(
+    const auto layout = data.overworld_palette_layout.value_or(
+        gfx::palette_group_internal::OverworldPaletteLayout::Legacy());
+    std::vector<std::pair<uint32_t, gfx::SnesColor*>> writes;
+    // Resolve every dirty color before the first write. In particular, an
+    // unbound extension must never spill into adjacent legacy palettes.
+    RETURN_IF_ERROR(data.palette_groups.for_each(
         [&](gfx::PaletteGroup& group) -> absl::Status {
           for (size_t i = 0; i < group.size(); ++i) {
             auto* palette = group.mutable_palette(i);
             for (size_t j = 0; j < palette->size(); ++j) {
-              gfx::SnesColor color = (*palette)[j];
+              auto& color = (*palette)[j];
               if (color.is_modified()) {
-                RETURN_IF_ERROR(rom.WriteColor(
-                    gfx::GetPaletteAddress(group.name(), i, j), color));
-                color.set_modified(false);
+                ASSIGN_OR_RETURN(
+                    const auto pc,
+                    gfx::palette_group_internal::ResolvePaletteColorAddress(
+                        layout, group.name(), i, j, rom.size()));
+                writes.emplace_back(pc, &color);
               }
             }
           }
           return absl::OkStatus();
-        });
+        }));
+    for (const auto& [pc, color] : writes) {
+      RETURN_IF_ERROR(rom.WriteColor(pc, *color));
+    }
+    for (const auto& [pc, color] : writes) {
+      color->set_modified(false);
+    }
+    return absl::OkStatus();
   }
 
   if (core::FeatureFlags::get().kSaveGfxGroups) {
@@ -253,7 +288,10 @@ absl::Status LoadMetadata(const Rom& rom, GameData& data) {
 absl::Status LoadPalettes(const Rom& rom, GameData& data) {
   // Create a vector from rom data for palette loading
   const std::vector<uint8_t>& rom_vec = rom.vector();
-  return gfx::LoadAllPalettes(rom_vec, data.palette_groups);
+  return gfx::LoadAllPalettes(
+      rom_vec, data.palette_groups,
+      data.overworld_palette_layout.value_or(
+          gfx::palette_group_internal::OverworldPaletteLayout::Legacy()));
 }
 
 absl::Status LoadGfxGroups(Rom& rom, GameData& data) {

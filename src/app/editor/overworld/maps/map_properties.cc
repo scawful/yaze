@@ -73,6 +73,19 @@ absl::Status CheckFieldSupported(const Rom* rom,
       zelda3::OverworldLayoutDomain::kMapProperties,
       zelda3::OverworldLayoutOperation::kMutateModel, edit.map_id, 0));
   const auto version = layout.version;
+  const auto* map = overworld ? overworld->overworld_map(edit.map_id) : nullptr;
+  const auto* data = map ? map->game_data() : nullptr;
+  if (data && data->overworld_palette_layout &&
+      data->overworld_palette_layout->has_aux_extension()) {
+    if (edit.field == OverworldPropertyField::kAreaPalette &&
+        (edit.value < 0 || edit.value > 0x1E)) {
+      return absl::OutOfRangeError("Oracle palette set must be in 00–1E");
+    }
+    if (edit.field == OverworldPropertyField::kMainPalette &&
+        (edit.value < 0 || edit.value >= 6)) {
+      return absl::OutOfRangeError("Oracle main palette must be in 00–05");
+    }
+  }
   switch (edit.field) {
     case OverworldPropertyField::kAreaSize:
       if ((edit.value == static_cast<int>(zelda3::AreaSizeEnum::WideArea) ||

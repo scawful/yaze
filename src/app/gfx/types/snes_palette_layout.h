@@ -4,11 +4,13 @@
 #include <cstddef>
 #include <cstdint>
 #include <optional>
+#include <string>
 #include <utility>
 #include <vector>
 
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
+#include "core/rom_settings.h"
 
 namespace yaze::gfx {
 
@@ -31,6 +33,7 @@ class ResolvedPaletteRecord {
       int color_index) const;
 
  private:
+  friend class OverworldPaletteLayout;
   friend absl::StatusOr<ResolvedPaletteRecord> ResolvePaletteRecord(
       std::optional<uint32_t>, uint64_t, size_t);
   ResolvedPaletteRecord(uint32_t pc, uint32_t snes, int colors)
@@ -49,6 +52,11 @@ class OverworldPaletteLayout {
  public:
   static OverworldPaletteLayout Legacy();
   static OverworldPaletteLayout ProposedUnbound();
+  // Explicit project binding for the Oracle long-address, tint-preserving ABI.
+  // Missing keys retain Legacy; incomplete declarations fail closed.
+  static absl::StatusOr<OverworldPaletteLayout> FromOverrides(
+      const core::RomAddressOverrides& overrides, size_t normalized_rom_size);
+  bool has_aux_extension() const { return aux_extension_pc_.has_value(); }
   // Includes unbound declared slots; Resolve is required before any use.
   int RecordCount(OverworldPaletteKind kind) const;
   absl::StatusOr<ResolvedPaletteRecord> Resolve(
@@ -58,7 +66,12 @@ class OverworldPaletteLayout {
  private:
   explicit OverworldPaletteLayout(bool proposed) : proposed_(proposed) {}
   bool proposed_;
+  std::optional<uint32_t> aux_extension_pc_;
 };
+
+absl::StatusOr<uint32_t> ResolvePaletteColorAddress(
+    const OverworldPaletteLayout& layout, const std::string& group,
+    int palette_index, int color_index, size_t normalized_rom_size);
 
 absl::Status LoadOverworldPaletteRecords(
     OverworldPaletteKind kind, const OverworldPaletteLayout& layout,

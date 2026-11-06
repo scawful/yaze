@@ -156,13 +156,42 @@ OverworldPaletteLayout OverworldPaletteLayout::ProposedUnbound() {
   return OverworldPaletteLayout(true);
 }
 
+absl::StatusOr<OverworldPaletteLayout> OverworldPaletteLayout::FromOverrides(
+    const core::RomAddressOverrides& overrides, size_t normalized_rom_size) {
+  using namespace core::RomAddressKey;
+  const auto pc = overrides.GetAddress(kOverworldAuxPaletteExtensionPc);
+  const auto count = overrides.GetAddress(kOverworldAuxPaletteExtensionCount);
+  const auto abi = overrides.GetAddress(kOverworldAuxPaletteExtensionAbi);
+  if (!pc && !count && !abi) {
+    return Legacy();
+  }
+  if (!pc || !count || !abi || *abi != 1 || *count != 32) {
+    return absl::FailedPreconditionError(
+        "Auxiliary palette extension requires PC, count 32 and ABI 1");
+  }
+  constexpr uint32_t kExtensionBytes = 32 * 21 * 2;
+  // ABI 1 binds an upper LoROM ROM bank, never a legacy table or WRAM bank.
+  if (*pc < 0x200000u || *pc >= 0x3F0000u ||
+      (*pc & 0x7FFFu) + kExtensionBytes > 0x8000u ||
+      *pc > normalized_rom_size ||
+      kExtensionBytes > normalized_rom_size - *pc) {
+    return absl::OutOfRangeError(
+        "Auxiliary palette extension exceeds its ROM bank or body");
+  }
+  auto layout = Legacy();
+  layout.aux_extension_pc_ = *pc;
+  return layout;
+}
+
 int OverworldPaletteLayout::RecordCount(OverworldPaletteKind kind) const {
   const auto* metadata = OverworldMetadata(kind);
   if (!metadata) {
     return 0;
   }
   return metadata->palette_count +
-         (proposed_ ? (kind == OverworldPaletteKind::kMain ? 1 : 2) : 0);
+         (proposed_ ? (kind == OverworldPaletteKind::kMain ? 1 : 2) : 0) +
+         (aux_extension_pc_ && kind == OverworldPaletteKind::kAuxiliary ? 32
+                                                                        : 0);
 }
 
 absl::StatusOr<ResolvedPaletteRecord> OverworldPaletteLayout::Resolve(
@@ -176,6 +205,19 @@ absl::StatusOr<ResolvedPaletteRecord> OverworldPaletteLayout::Resolve(
         "Palette record selector is outside its layout");
   }
   if (selector >= metadata->palette_count) {
+    if (aux_extension_pc_ && kind == OverworldPaletteKind::kAuxiliary) {
+      constexpr uint32_t kRecordBytes = 21 * 2;
+      // Revalidate the whole binding against the current body on every use.
+      constexpr uint32_t kExtensionBytes = 32 * kRecordBytes;
+      if (*aux_extension_pc_ > normalized_rom_size ||
+          kExtensionBytes > normalized_rom_size - *aux_extension_pc_) {
+        return absl::OutOfRangeError(
+            "Auxiliary palette extension was truncated");
+      }
+      const uint32_t pc = *aux_extension_pc_ +
+                          (selector - metadata->palette_count) * kRecordBytes;
+      return ResolvedPaletteRecord(pc, yaze::PcToSnes(pc), 21);
+    }
     return ResolvePaletteRecord(std::nullopt, metadata->colors_per_palette,
                                 normalized_rom_size);
   }
@@ -188,6 +230,33 @@ absl::StatusOr<ResolvedPaletteRecord> OverworldPaletteLayout::Resolve(
   return ResolvePaletteRecord(yaze::PcToSnes(static_cast<uint32_t>(pc)),
                               metadata->colors_per_palette,
                               normalized_rom_size);
+}
+
+absl::StatusOr<uint32_t> ResolvePaletteColorAddress(
+    const OverworldPaletteLayout& layout, const std::string& group,
+    int palette_index, int color_index, size_t normalized_rom_size) {
+  if (palette_index < 0 || color_index < 0) {
+    return absl::OutOfRangeError("Negative palette selector");
+  }
+  if (group == "ow_main" || group == "ow_aux") {
+    const auto record =
+        layout.Resolve(group == "ow_main" ? OverworldPaletteKind::kMain
+                                          : OverworldPaletteKind::kAuxiliary,
+                       palette_index, normalized_rom_size);
+    if (!record.ok())
+      return record.status();
+    return record->ColorAddress(color_index);
+  }
+  uint32_t pc;
+  try {
+    pc = GetPaletteAddress(group, palette_index, color_index);
+  } catch (const std::out_of_range& e) {
+    return absl::InvalidArgumentError(e.what());
+  }
+  if (pc > normalized_rom_size || normalized_rom_size - pc < 2) {
+    return absl::OutOfRangeError("Palette color exceeds ROM body");
+  }
+  return pc;
 }
 
 absl::Status LoadOverworldPaletteRecords(
@@ -686,9 +755,12 @@ using namespace palette_group_internal;
 
 // TODO: Refactor LoadAllPalettes to use group names, move to zelda3 namespace
 absl::Status LoadAllPalettes(const std::vector<uint8_t>& rom_data,
-                             PaletteGroupMap& groups) {
-  RETURN_IF_ERROR(LoadOverworldMainPalettes(rom_data, groups))
-  RETURN_IF_ERROR(LoadOverworldAuxiliaryPalettes(rom_data, groups))
+                             PaletteGroupMap& groups,
+                             const OverworldPaletteLayout& layout) {
+  RETURN_IF_ERROR(LoadOverworldPaletteRecords(
+      OverworldPaletteKind::kMain, layout, rom_data, groups.overworld_main))
+  RETURN_IF_ERROR(LoadOverworldPaletteRecords(
+      OverworldPaletteKind::kAuxiliary, layout, rom_data, groups.overworld_aux))
   RETURN_IF_ERROR(LoadOverworldAnimatedPalettes(rom_data, groups))
   RETURN_IF_ERROR(LoadHUDPalettes(rom_data, groups))
   RETURN_IF_ERROR(LoadGlobalSpritePalettes(rom_data, groups))

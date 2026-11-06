@@ -8,6 +8,12 @@
 namespace yaze::core {
 
 namespace RomAddressKey {
+constexpr char kOverworldAuxPaletteExtensionPc[] =
+    "overworld_aux_palette_extension_pc";
+constexpr char kOverworldAuxPaletteExtensionCount[] =
+    "overworld_aux_palette_extension_count";
+constexpr char kOverworldAuxPaletteExtensionAbi[] =
+    "overworld_aux_palette_extension_abi";
 constexpr char kExpandedMessageStart[] = "expanded_message_start";
 constexpr char kExpandedMessageEnd[] = "expanded_message_end";
 constexpr char kExpandedMusicHook[] = "expanded_music_hook";

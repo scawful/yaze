@@ -1903,6 +1903,13 @@ absl::Status EditorManager::ReplaceActiveSessionRom(
     zelda3::LoadOptions options;
     options.gfx_sheet_layout = replacement_layout;
     options.gfx_sheet_source = replacement_source;
+    ASSIGN_OR_RETURN(
+        options.overworld_palette_layout,
+        gfx::palette_group_internal::OverworldPaletteLayout::FromOverrides(
+            session->project_context
+                ? session->project_context->rom_address_overrides
+                : core::RomAddressOverrides{},
+            rom.size()));
     options.load_graphics =
         replacement_layout.has_value() || replacement_source.has_value();
     options.expand_rom = false;

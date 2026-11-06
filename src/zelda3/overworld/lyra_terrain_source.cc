@@ -164,8 +164,14 @@ absl::StatusOr<LyraNativeMapAssets> ResolveLyraMapAssets(
   if (!donor || state < 0 || state > 2 || !donor->game_data())
     return absl::FailedPreconditionError("Lyra native source is unavailable");
   const auto& data = *donor->game_data();
+  const int max_palette_set =
+      data.overworld_palette_layout &&
+              data.overworld_palette_layout->has_aux_extension()
+          ? 0x1E
+          : 0xA3;
   if (p.main_palette >= data.palette_groups.overworld_main.size() ||
-      p.palette_set > 0xA3 || data.palette_groups.overworld_aux.size() < 20 ||
+      p.palette_set > max_palette_set ||
+      data.palette_groups.overworld_aux.size() < 20 ||
       data.palette_groups.overworld_animated.size() < 14 ||
       data.palette_groups.sprites_aux3.size() < 24 ||
       data.palette_groups.armors.empty() ||

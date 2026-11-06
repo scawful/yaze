@@ -1269,8 +1269,9 @@ absl::StatusOr<gfx::SnesPalette> OverworldMap::GetPalette(
     index = (*rom_)[version_constants().kOverworldMapPaletteGroup +
                     (previous_index * 4)];
   }
-  if (index >= limit) {
-    index = limit - 1;
+  if (index < 0 || index >= limit || index >= palette_group.size()) {
+    return absl::OutOfRangeError(
+        "Palette selector is unavailable in this session");
   }
   if (resolved_index)
     *resolved_index = index;
@@ -1322,6 +1323,12 @@ absl::Status OverworldMap::LoadPalette() {
     }
   }
 
+  const bool bound_aux =
+      game_data_->overworld_palette_layout &&
+      game_data_->overworld_palette_layout->has_aux_extension();
+  if (bound_aux && area_palette_ > 0x1E) {
+    return absl::OutOfRangeError("Oracle palette set must be in 00–1E");
+  }
   const int render_area_palette = std::min((int)area_palette_, 0xA3);
 
   uint8_t pal0 = 0;
@@ -1331,6 +1338,10 @@ absl::Status OverworldMap::LoadPalette() {
                          (render_area_palette * 4) + 1];
   uint8_t pal3 = (*rom_)[version_constants().kOverworldMapPaletteGroup +
                          (render_area_palette * 4) + 2];
+  if (bound_aux && previous_pal_id > 0x1E &&
+      (pal1 == 0xFF || pal2 == 0xFF || pal3 == 0xFF)) {
+    return absl::OutOfRangeError("Inherited Oracle palette set is unavailable");
+  }
   uint8_t pal4 = (*rom_)[kOverworldSpritePaletteGroup +
                          (sprite_palette_[game_state_] * 2)];
   uint8_t pal5 = (*rom_)[kOverworldSpritePaletteGroup +
@@ -1358,12 +1369,12 @@ absl::Status OverworldMap::LoadPalette() {
   std::array<int, 3>
       palette_ids{};  // Main, aux1, aux2 after all loader fallbacks.
   auto& ow_aux_pal_group = game_data_->palette_groups.overworld_aux;
-  ASSIGN_OR_RETURN(
-      gfx::SnesPalette aux1,
-      GetPalette(ow_aux_pal_group, pal1, previous_pal_id, 20, &palette_ids[1]));
-  ASSIGN_OR_RETURN(
-      gfx::SnesPalette aux2,
-      GetPalette(ow_aux_pal_group, pal2, previous_pal_id, 20, &palette_ids[2]));
+  ASSIGN_OR_RETURN(gfx::SnesPalette aux1,
+                   GetPalette(ow_aux_pal_group, pal1, previous_pal_id,
+                              ow_aux_pal_group.size(), &palette_ids[1]));
+  ASSIGN_OR_RETURN(gfx::SnesPalette aux2,
+                   GetPalette(ow_aux_pal_group, pal2, previous_pal_id,
+                              ow_aux_pal_group.size(), &palette_ids[2]));
 
   // Set background color based on world type and area-specific settings
   bool use_area_specific_bg =
