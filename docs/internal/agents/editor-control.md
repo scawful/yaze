@@ -21,8 +21,10 @@ An existing process without this interface requires a deliberate restart after
 preserving its work. `--executable` and `--port` support an isolated qualification
 build. Legacy `--rom_file`, `--editor`, and `--room` startup flags remain usable.
 
-The five commands are `status`, `project.open`, `dungeon.select`, `proposal.load`,
-and `panel.hide`. Send JSON to `POST /api/v1/editor/control` with
+Discover supported commands in `capabilities.commands` from `status`. In addition
+to the navigation commands above, current builds expose `project.rom.swap`,
+`overworld.stencil.apply`, `project.save`, `project.build`,
+`project.build.cancel`, and `project.run`. Send JSON to `POST /api/v1/editor/control` with
 `X-Yaze-Control: 1`; requests with a browser `Origin`, nonlocal source, or bodies
 over 16 KiB are rejected. Project/proposal paths must be absolute. Room IDs are
 JSON integers `0..295`; the Python client also parses `0x65`.
@@ -34,6 +36,54 @@ room, palette, project settings, or raw project draft with HTTP 409. It never
 saves/discards work or falls back to a file dialog for missing project ROMs.
 A failed project load restores the previous context. Proposal loading is a
 read-only preview; it does not apply a proposal to the ROM.
+
+## Background Save, Build and Run
+
+These commands run on the existing editor thread and call the normal session
+Save, queued Build, cancellation and Run methods. They do not require a focused
+window or OS input. For an isolated hidden-window worker, launch with `--service`
+and `--editor_control`; follow the native isolation policy and use background
+launch (`open -g` on macOS), without activation or Space focus. Do not use the
+client's ordinary `--launch` as a background-launch guarantee.
+
+Each workflow request requires an `expected` object copied from a retained
+successful status response: `pid`, `session_id`, `project_path`, `rom_path` and
+`rom_sha256`. Paths are absolute and the hash is lowercase SHA-256. A stale
+identity returns HTTP 409; never retry it automatically with a different identity.
+The Python client currently exposes navigation and ROM swap subcommands; use its
+existing `command` function for workflow requests, for example from the repo root:
+
+```python
+from scripts.yaze_editor_control import command
+
+receipt = command(18095, {"command": "status"})
+assert receipt["status"] == "ok"
+expected = {key: receipt["state"][key] for key in
+            ("pid", "session_id", "project_path", "rom_path", "rom_sha256")}
+saved = command(18095, {"command": "project.save", "expected": expected})
+assert saved["status"] == "ok", saved
+```
+
+Save uses the normal project-work-before-ROM sequence with dialogs disabled.
+Untitled sprite assets refuse before any writer runs. Pending interactive saves,
+write-policy refusals and incomplete saves return errors; no confirmation is
+accepted automatically. Save can change the ROM hash, so explicitly obtain a new
+status receipt before requesting Build.
+
+Build queues the real configured producer. Poll read-only `status` and correlate
+`state.build_attempt.attempt_id`, `session_id` and `project_path` with the response
+to that Build. Its states are `running`, `success`, `failure` and `cancelled`; an
+active attempt stays running until normal completion validates its output.
+`build_attempt` is null when this session has no attempt. Successful results
+include `output_path`, `output_sha256` and `run_eligible`. The separate
+`state.workflow` object is explicitly `presentation_only`: its global UI messages
+must not be used as another project's completion proof.
+
+Run is synchronous and returns success only after the normal verified-output
+reload succeeds. The supported consumer is the built-in emulator. Generic output
+identical to an existing file without matching prior provenance stays unverified;
+external backend loading remains deferred. A cold editor cannot inherit another
+process's generic build admission merely because the output file exists.
 
 A command waiting more than five seconds to begin is cancelled and cannot run
 later. Once it begins, the response waits for completion. If a client itself
