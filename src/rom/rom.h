@@ -235,8 +235,9 @@ class Rom {
   // File publication accepts a fully validated native image. Individual
   // WriteByte/Word/Vector operations retain the stricter generic-write policy.
   absl::Status CheckLayoutSaveable() const;
-  absl::Status CommitNativeTerrainImage(const std::vector<uint8_t>& baseline,
-                                        std::vector<uint8_t> candidate);
+  absl::Status CommitNativeTerrainImage(
+      const std::vector<uint8_t>& baseline, std::vector<uint8_t> candidate,
+      std::span<const rom::NativeOverworldPropertyEdit> properties = {});
 
   // Sticky, value-owned exact-save reservation. No public detach capability.
   absl::Status AttachLyraPrivateReservation(const core::HackManifest& manifest);

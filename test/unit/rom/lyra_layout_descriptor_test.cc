@@ -485,6 +485,149 @@ TEST(LyraLayoutDescriptorTest,
       "Tile32");
 }
 
+TEST(LyraLayoutDescriptorTest, NativePropertiesMirrorOnlyEditedSlots) {
+  for (uint16_t capacity : {160, 192}) {
+    SCOPED_TRACE(capacity);
+    NativeDirectoryFixture fixture(capacity);
+    const uint16_t map = capacity - 1;
+    const std::vector<rom::NativeOverworldPropertyEdit> edits = {
+        {2, 0x9F, {5}},
+        {19, map, {0x34, 0x12}},
+        {6, map, {1, 2, 3, 4, 5, 6, 7, 8}}};
+    const auto original = fixture.bytes;
+    auto saved = rom::SealNativeOverworldTerrain(original, original, edits);
+    ASSERT_TRUE(saved.ok()) << saved.status();
+    EXPECT_EQ(rom::InspectLyraLayout(saved->data(), saved->size()).presence,
+              rom::LyraLayoutPresence::kValid);
+    EXPECT_EQ((*saved)[fixture.Entry(2).pc_address + 0x9F], 5);
+    EXPECT_EQ((*saved)[0x140160 + 0x9F], 5);
+    EXPECT_EQ((*saved)[fixture.Entry(19).pc_address + map * 2], 0x34);
+    if (capacity == 160) {
+      EXPECT_EQ((*saved)[0x1417F8 + map * 2], 0x34);
+      EXPECT_EQ((*saved)[0x140480 + map * 8], 1);
+    } else {
+      EXPECT_EQ((*saved)[0x1417F8 + map * 2], original[0x1417F8 + map * 2]);
+      EXPECT_EQ((*saved)[0x140480 + map * 8], original[0x140480 + map * 8]);
+    }
+    for (size_t pc = 0; pc < original.size(); ++pc) {
+      if (original[pc] == (*saved)[pc])
+        continue;
+      bool allowed = pc >= 0x14701C && pc < 0x147020;
+      for (uint16_t id : {2, 6, 19}) {
+        const auto& e = fixture.Entry(id);
+        allowed |= pc >= e.pc_address && pc < e.pc_address + e.count * e.stride;
+        allowed |=
+            pc >= fixture.EntryPc(id) + 12 && pc < fixture.EntryPc(id) + 16;
+      }
+      allowed |= pc == 0x140160 + 0x9F;
+      if (capacity == 160) {
+        allowed |= pc >= 0x1417F8 + map * 2 && pc < 0x1417F8 + map * 2 + 2;
+        allowed |= pc >= 0x140480 + map * 8 && pc < 0x140480 + map * 8 + 8;
+      }
+      ASSERT_TRUE(allowed) << std::hex << pc;
+    }
+    const auto repeated =
+        rom::SealNativeOverworldTerrain(*saved, *saved, edits);
+    ASSERT_TRUE(repeated.ok()) << repeated.status();
+    EXPECT_EQ(*repeated, *saved);
+    EXPECT_EQ(fixture.bytes, original);
+  }
+}
+
+TEST(LyraLayoutDescriptorTest, NativePropertiesPreserveLegacyPhaseAliases) {
+  NativeDirectoryFixture fixture;
+  for (const auto& edits :
+       std::vector<std::vector<rom::NativeOverworldPropertyEdit>>{
+           {{32, 0x90, {7}}}, {{36, 0x90, {7}}}, {{38, 0x90, {7}}}}) {
+    EXPECT_FALSE(
+        rom::SealNativeOverworldTerrain(fixture.bytes, fixture.bytes, edits)
+            .ok());
+  }
+  const std::vector<rom::NativeOverworldPropertyEdit> edits = {
+      {32, 0x90, {7}},  {33, 0x90, {7}}, {34, 0x90, {7}}, {35, 0x90, {7}},
+      {24, 0x90, {8}},  {36, 0x90, {8}}, {39, 0x90, {8}}, {32, 0xBF, {9}},
+      {33, 0xBF, {10}}, {36, 0xBF, {11}}};
+  auto saved =
+      rom::SealNativeOverworldTerrain(fixture.bytes, fixture.bytes, edits);
+  ASSERT_TRUE(saved.ok()) << saved.status();
+  EXPECT_EQ((*saved)[0x14403 + 0x90 - 64], 7);
+  EXPECT_EQ((*saved)[fixture.Entry(28).pc_address + 0x90], 7);
+  EXPECT_EQ((*saved)[0x166E1 + 0x90 - 128], 8);
+  EXPECT_EQ((*saved)[fixture.Entry(32).pc_address + 0xBF], 9);
+  EXPECT_EQ((*saved)[fixture.Entry(33).pc_address + 0xBF], 10);
+  EXPECT_EQ((*saved)[fixture.Entry(36).pc_address + 0xBF], 11);
+  EXPECT_EQ(rom::InspectLyraLayout(saved->data(), saved->size()).presence,
+            rom::LyraLayoutPresence::kValid);
+}
+
+TEST(LyraLayoutDescriptorTest, NativePropertyCapabilityKeepsPublicationGuards) {
+  NativeDirectoryFixture fixture;
+  Rom loaded;
+  ASSERT_TRUE(loaded.LoadFromData(fixture.bytes).ok());
+  const std::vector<rom::NativeOverworldPropertyEdit> edits = {{2, 0xBF, {5}}};
+  const auto original = loaded.vector();
+  {
+    ScopedRomReadOnly read_only(loaded);
+    EXPECT_FALSE(
+        loaded.CommitNativeTerrainImage(original, original, edits).ok());
+  }
+  {
+    rom::WriteFence fence;
+    const auto& table = fixture.Entry(2);
+    ASSERT_TRUE(fence
+                    .Allow(table.pc_address, table.pc_address + table.count,
+                           "property bytes without CRC grant")
+                    .ok());
+    rom::ScopedWriteFence scope(&loaded, &fence);
+    EXPECT_FALSE(
+        loaded.CommitNativeTerrainImage(original, original, edits).ok());
+  }
+  EXPECT_EQ(loaded.vector(), original);
+  EXPECT_FALSE(loaded.dirty());
+  for (auto edit :
+       std::vector<rom::NativeOverworldPropertyEdit>{{7, 0xBF, {0xBE}},
+                                                     {29, 0xBF, {0}},
+                                                     {16, 0xBF, {0, 0}},
+                                                     {24, 0x7F, {1}},
+                                                     {2, 192, {1}},
+                                                     {2, 0xBF, {1, 2}}}) {
+    EXPECT_FALSE(
+        rom::SealNativeOverworldTerrain(original, original, std::span(&edit, 1))
+            .ok());
+  }
+  const std::vector<rom::NativeOverworldPropertyEdit> duplicates = {
+      {2, 0xBF, {1}}, {2, 0xBF, {2}}};
+  EXPECT_FALSE(
+      rom::SealNativeOverworldTerrain(original, original, duplicates).ok());
+  auto unowned = original;
+  unowned[fixture.Entry(2).pc_address + 0xBF] = 5;
+  EXPECT_FALSE(rom::SealNativeOverworldTerrain(original, unowned, edits).ok());
+  ASSERT_TRUE(loaded.CommitNativeTerrainImage(original, original, edits).ok());
+  EXPECT_TRUE(loaded.dirty());
+  const auto committed = loaded.vector();
+  EXPECT_FALSE(loaded.CommitNativeTerrainImage(original, original, edits).ok());
+  EXPECT_EQ(loaded.vector(), committed);
+}
+
+TEST(LyraLayoutDescriptorTest, NativePropertyTailCannotAliasNativePrefix) {
+  NativeDirectoryFixture fixture;
+  auto& palette = fixture.Entry(2);
+  palette.pc_address = 0x140160;
+  palette.snes_address = NativeDirectoryFixture::Snes(palette.pc_address);
+  fixture.Seal();
+  const auto layout =
+      rom::InspectLyraLayout(fixture.bytes.data(), fixture.bytes.size());
+  ASSERT_EQ(layout.presence, rom::LyraLayoutPresence::kValid) << layout.error;
+  Rom loaded;
+  ASSERT_TRUE(loaded.LoadFromData(fixture.bytes).ok());
+  const auto original = loaded.vector();
+  const std::vector<rom::NativeOverworldPropertyEdit> edits = {{2, 0xA0, {5}}};
+  EXPECT_FALSE(loaded.CommitNativeTerrainImage(original, original, edits).ok());
+  EXPECT_EQ(loaded.vector(), original);
+  EXPECT_FALSE(loaded.dirty());
+  EXPECT_EQ(loaded.vector()[0x140200], original[0x140200]);
+}
+
 TEST(LyraLayoutDescriptorTest,
      NativeDirectoryKeepsAttributionAndCrcFailuresDistinct) {
   NativeDirectoryFixture fixture;

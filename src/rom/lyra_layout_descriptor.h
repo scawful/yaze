@@ -63,8 +63,18 @@ std::optional<std::array<uint16_t, 256>> LyraMapTile32(
 // Seal a terrain-only candidate. Its directory identity, code, source pools
 // and every unrelated byte must still match baseline. Pointer mirrors and
 // decoded pages are validated after updating the affected CRC fields.
+struct NativeOverworldPropertyEdit {
+  uint16_t table_id = 0;
+  uint16_t map_id = 0;
+  std::vector<uint8_t> value;
+};
+
+// Explicit property edits are applied only after the terrain candidate passes
+// its ownership check. Existing native map slots are mirrored atomically;
+// geometry, roles and entity pointers are not property-write capabilities.
 absl::StatusOr<std::vector<uint8_t>> SealNativeOverworldTerrain(
-    const std::vector<uint8_t>& baseline, std::vector<uint8_t> candidate);
+    const std::vector<uint8_t>& baseline, std::vector<uint8_t> candidate,
+    std::span<const NativeOverworldPropertyEdit> properties = {});
 
 inline constexpr uint32_t kLyraA0HighStreamPc = 0x132000;
 inline constexpr uint32_t kLyraA0LowStreamPc = 0x132200;

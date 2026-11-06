@@ -784,7 +784,8 @@ std::optional<std::array<uint16_t, 256>> LyraMapTile32(
 }
 
 absl::StatusOr<std::vector<uint8_t>> SealNativeOverworldTerrain(
-    const std::vector<uint8_t>& baseline, std::vector<uint8_t> candidate) {
+    const std::vector<uint8_t>& baseline, std::vector<uint8_t> candidate,
+    std::span<const NativeOverworldPropertyEdit> properties) {
   const auto layout = InspectLyraLayout(baseline.data(), baseline.size());
   if (layout.presence != LyraLayoutPresence::kValid || layout.revision != 3 ||
       candidate.size() != baseline.size()) {
@@ -820,13 +821,165 @@ absl::StatusOr<std::vector<uint8_t>> SealNativeOverworldTerrain(
           "Native terrain pointer mirrors disagree");
     }
   }
+  struct PropertyStorage {
+    uint16_t id;
+    size_t native_pc;
+    uint16_t native_first;
+    uint16_t native_count;
+  };
+  // Existing reader storage, not allocation inferred from unreferenced bytes.
+  constexpr std::array<PropertyStorage, 21> kProperties = {{
+      {1, 0x140000, 0, 160},  {2, 0x140160, 0, 160},  {3, 0x140200, 0, 160},
+      {4, 0x1402A0, 0, 160},  {5, 0x140340, 0, 160},  {6, 0x140480, 0, 160},
+      {19, 0x1417F8, 0, 160}, {24, 0x166E1, 128, 32}, {25, 0x16701, 128, 32},
+      {26, 0x7C9C, 0, 160},   {27, 0x16821, 128, 32}, {28, 0x14403, 64, 96},
+      {31, 0x4C635, 0, 160},  {32, 0x14303, 0, 64},   {33, 0x14343, 0, 64},
+      {34, 0x14383, 0, 64},   {35, 0x143C3, 0, 64},   {36, 0x166E1, 128, 32},
+      {37, 0x16701, 128, 32}, {38, 0x16701, 128, 32}, {39, 0x166E1, 128, 32},
+  }};
+  constexpr std::array<PropertyStorage, 19> kOtherNativeStorage = {{
+      {7, 0x140998, 0, 160},
+      {8, 0x140A38, 0, 160},
+      {9, 0x140B78, 0, 160},
+      {10, 0x140CB8, 0, 160},
+      {11, 0x140DF8, 0, 160},
+      {12, 0x140F38, 0, 160},
+      {13, 0x141078, 0, 160},
+      {14, 0x1411B8, 0, 160},
+      {15, 0x1412F8, 0, 160},
+      {16, 0x141438, 0, 160},
+      {17, 0x141578, 0, 160},
+      {18, 0x1416B8, 0, 160},
+      {20, 0x1794D, 0, 160},
+      {21, 0x17B2D, 0, 160},
+      {22, 0x12644, 0, 160},
+      {23, 0x12784, 0, 160},
+      {30, 0x1788D, 0, 160},
+      // Native LW/DW actor selectors are not expanded directory properties.
+      {500, 0x7A41, 0, 256},
+      {501, 0x7B41, 0, 256},
+  }};
+  std::vector<uint16_t> changed_properties;
+  auto changed = [&](uint16_t id) {
+    if (std::find(changed_properties.begin(), changed_properties.end(), id) ==
+        changed_properties.end())
+      changed_properties.push_back(id);
+  };
+  // Validate the whole batch before publishing anything to the caller.
+  std::vector<std::pair<uint16_t, uint16_t>> edited_slots;
+  for (const auto& edit : properties) {
+    const auto storage =
+        std::find_if(kProperties.begin(), kProperties.end(),
+                     [&](const auto& p) { return p.id == edit.table_id; });
+    const auto* entry = FindEntry(layout, edit.table_id);
+    const auto key = std::pair{edit.table_id, edit.map_id};
+    if (storage == kProperties.end() || entry == nullptr ||
+        edit.map_id >= layout.capacity || edit.map_id < storage->native_first ||
+        edit.value.size() != entry->stride ||
+        std::find(edited_slots.begin(), edited_slots.end(), key) !=
+            edited_slots.end())
+      return absl::InvalidArgumentError(
+          "Invalid, unsupported or duplicate native property edit");
+    edited_slots.push_back(key);
+    const size_t at = entry->pc_address + edit.map_id * entry->stride;
+    // A valid directory may relocate a full-capacity table onto an original
+    // shorter table. Its tail must not become permission to change the next
+    // native family, even when all directory CRCs would still validate.
+    for (const auto& native_ranges :
+         {std::span<const PropertyStorage>(kProperties),
+          std::span<const PropertyStorage>(kOtherNativeStorage)}) {
+      for (const auto& native : native_ranges) {
+        const size_t stride =
+            native.id >= 500 ? 1 : FindEntry(layout, native.id)->stride;
+        const size_t end = native.native_pc + native.native_count * stride;
+        if (at >= end || native.native_pc >= at + entry->stride)
+          continue;
+        const bool exact_mirror =
+            edit.map_id < storage->native_first + storage->native_count &&
+            native.native_pc == storage->native_pc &&
+            native.native_first == storage->native_first &&
+            native.native_count == storage->native_count &&
+            stride == entry->stride &&
+            at == storage->native_pc +
+                      (edit.map_id - storage->native_first) * entry->stride;
+        if (!exact_mirror)
+          return absl::PermissionDeniedError(
+              "Native property allocation aliases another native table");
+      }
+    }
+    if (!std::equal(edit.value.begin(), edit.value.end(),
+                    candidate.begin() + at)) {
+      std::copy(edit.value.begin(), edit.value.end(), candidate.begin() + at);
+      changed(edit.table_id);
+    }
+  }
+  for (const auto& edit : properties) {
+    const auto& entry = *FindEntry(layout, edit.table_id);
+    const size_t at = entry.pc_address + edit.map_id * entry.stride;
+    if (std::equal(candidate.begin() + at,
+                   candidate.begin() + at + entry.stride,
+                   baseline.begin() + at))
+      continue;
+    auto storage =
+        *std::find_if(kProperties.begin(), kProperties.end(),
+                      [&](const auto& p) { return p.id == edit.table_id; });
+    // Native dark/special music has one slot, unlike the tail's four phases.
+    // Do not silently collapse an authored phase difference into that slot.
+    const bool shared_music =
+        edit.map_id >= 64 && edit.map_id < 160 &&
+        (edit.table_id == 28 || (edit.table_id >= 32 && edit.table_id <= 35));
+    std::array<uint16_t, 4> aliases{};
+    size_t alias_count = 0;
+    if (shared_music) {
+      aliases = {32, 33, 34, 35};
+      alias_count = 4;
+      storage = {28, 0x14403, 64, 96};
+    } else if (edit.map_id < 160) {
+      if (edit.table_id == 24 || edit.table_id == 36 || edit.table_id == 39) {
+        aliases = {24, 36, 39, 0};
+        alias_count = 3;
+      } else if (edit.table_id == 25 || edit.table_id == 37 ||
+                 edit.table_id == 38) {
+        aliases = {25, 37, 38, 0};
+        alias_count = 3;
+      }
+    }
+    for (size_t i = 0; i < alias_count; ++i) {
+      const auto& alias = *FindEntry(layout, aliases[i]);
+      if (candidate[alias.pc_address + edit.map_id] != candidate[at])
+        return absl::FailedPreconditionError(
+            "Native property phases share one legacy slot");
+    }
+    if (shared_music && edit.table_id != 28) {
+      const auto& packed = *FindEntry(layout, 28);
+      candidate[packed.pc_address + edit.map_id] = candidate[at];
+      changed(28);
+    }
+    if (edit.map_id >= storage.native_first + storage.native_count)
+      continue;
+    const size_t native =
+        storage.native_pc + (edit.map_id - storage.native_first) * entry.stride;
+    if (native > candidate.size() || entry.stride > candidate.size() - native)
+      return absl::OutOfRangeError("Native property mirror is outside ROM");
+    for (const auto& other : layout.entries) {
+      const size_t end = other.pc_address + other.count * other.stride;
+      if (native < end && other.pc_address < native + entry.stride &&
+          (other.id != edit.table_id || native != at))
+        return absl::PermissionDeniedError(
+            "Native property mirror overlaps another directory allocation");
+    }
+    std::copy_n(candidate.begin() + at, entry.stride,
+                candidate.begin() + native);
+  }
   auto put32 = [&](size_t pc, uint32_t value) {
     for (int i = 0; i < 4; ++i)
       candidate[pc + i] = static_cast<uint8_t>(value >> (i * 8));
   };
   for (size_t i = 0; i < layout.entries.size(); ++i) {
     const auto& e = layout.entries[i];
-    if (writable(e.id))
+    if (writable(e.id) ||
+        std::find(changed_properties.begin(), changed_properties.end(), e.id) !=
+            changed_properties.end())
       put32(kDescriptorPc + kHeaderSize + i * kEntrySize + 12,
             Crc32(candidate.data() + e.pc_address, e.count * e.stride));
   }
