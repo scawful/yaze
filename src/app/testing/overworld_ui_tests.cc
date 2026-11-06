@@ -1688,7 +1688,7 @@ static void RegisterBuildRunAcceptanceTest(ImGuiTestEngine* engine) {
     IM_CHECK(!overworld->lyra_canvas_.loaded());
 
     auto& canvas = overworld->ow_map_canvas();
-    canvas.set_global_scale(0.25f);
+    canvas.set_global_scale(1.0f);
     overworld->LocateOverworldTile(map_id, world_x, world_y);
     ctx->Yield(3);
     const auto cell_center = [&]() {
@@ -1767,6 +1767,16 @@ static void RegisterBuildRunAcceptanceTest(ImGuiTestEngine* engine) {
       const auto before_png = project_directory / "build-run-canvas-before.png";
       const bool shot_before = queue_capture(before_png);
 
+      manager->OpenEditorAndPanelsFromFlags("Overworld",
+                                            "overworld.tile16_selector");
+      ctx->Yield(3);
+      const auto selector_window =
+          manager->window_manager().GetWorkspaceWindowName(
+              manager->GetCurrentSessionId(), "overworld.tile16_selector");
+      ctx->SetRef(selector_window.c_str());
+      IM_CHECK(ctx->GetWindowByRef("") != nullptr);
+      ctx->WindowFocus("");
+      ctx->Yield(3);
       const ImGuiID lookup = visible_widget("OwBlocksetSelector/button:Lookup");
       IM_CHECK(lookup != 0);
       ctx->ItemClick(lookup);
@@ -1781,7 +1791,8 @@ static void RegisterBuildRunAcceptanceTest(ImGuiTestEngine* engine) {
       IM_CHECK_EQ(overworld->current_tile16_id(), brush_id);
 
       ImGuiID paint = visible_widget("OverworldToolbar/button:Paint");
-      if (paint == 0) {
+      const bool tools_overflow = paint == 0;
+      if (tools_overflow) {
         const ImGuiID tools = visible_widget("OverworldToolbar/button:Tools");
         IM_CHECK(tools != 0);
         ctx->ItemClick(tools);
@@ -1790,6 +1801,8 @@ static void RegisterBuildRunAcceptanceTest(ImGuiTestEngine* engine) {
       }
       IM_CHECK(paint != 0);
       ctx->ItemClick(paint);
+      if (tools_overflow)
+        ctx->KeyPress(ImGuiKey_Escape);
       ctx->Yield(2);
 
       const size_t undo_before = overworld->undo_manager().UndoStackSize();
