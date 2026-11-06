@@ -200,6 +200,7 @@ absl::Status ValidatePreviousContext(const Json& value,
       value.value("kind", Json()) != kContextKind ||
       !value.contains("editing_source_path") ||
       !value["editing_source_path"].is_string() ||
+      value["editing_source_path"] != context.editing_source_path ||
       !IsAbsolutePath(
           fs::u8path(value["editing_source_path"].get<std::string>())) ||
       !value.contains("project_path") || !value["project_path"].is_string() ||
@@ -406,12 +407,15 @@ absl::Status VerifyCommittedNativeReceiptDocument(
   }
   const Json* rom_artifact = nullptr;
   const Json* producer_artifact = nullptr;
+  const Json* project_artifact = nullptr;
   for (const auto& artifact : receipt.at("artifacts")) {
     const auto& role = artifact.at("role").get_ref<const std::string&>();
     if (role == "rom") {
       rom_artifact = &artifact;
     } else if (role == "producer") {
       producer_artifact = &artifact;
+    } else if (role == "project") {
+      project_artifact = &artifact;
     }
   }
   if (rom_artifact == nullptr || producer_artifact == nullptr) {
@@ -421,6 +425,14 @@ absl::Status VerifyCommittedNativeReceiptDocument(
                            context.at("rom_path").get<std::string>())) {
     return absl::FailedPreconditionError(
         "Native save receipt ROM binding does not match the save context");
+  }
+  const auto project_path = context.at("project_path").get<std::string>();
+  if (!project_path.empty() &&
+      (project_artifact == nullptr ||
+       !PathsMatchCanonical(project_artifact->at("path").get<std::string>(),
+                            project_path))) {
+    return absl::FailedPreconditionError(
+        "Native save receipt project does not match the save context");
   }
   if (*producer_artifact != context.at("producer")) {
     return absl::FailedPreconditionError(

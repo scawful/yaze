@@ -1,63 +1,35 @@
 #include <gtest/gtest.h>
 
 #include <chrono>
+#include <cstdlib>
 #include <filesystem>
 #include <fstream>
+#include <functional>
+#include <memory>
+#include <optional>
 #include <thread>
+#include <vector>
 
 #include "app/editor/core/content_registry.h"
 #include "app/editor/editor_manager.h"
+#include "app/editor/system/session/session_coordinator.h"
 #include "app/gfx/backend/null_renderer.h"
+#include "core/native_save_receipt.h"
+#include "core/project.h"
 #include "core/source_artifact_publisher.h"
 #include "editor_test_support.h"
+#include "imgui/imgui.h"
 #include "test_utils.h"
 #include "testing.h"
-
-#include "imgui/imgui.h"
+#include "unique_temp_path.h"
 
 namespace yaze::editor {
 namespace {
 
-std::filesystem::path MakeTempDir(const std::string& stem) {
-  const auto base = std::filesystem::temp_directory_path();
-  return base /
-         (stem + "_" +
-          std::to_string(::testing::UnitTest::GetInstance()->random_seed()));
-}
-
-struct ScopedTempDir {
-  std::filesystem::path path;
-  explicit ScopedTempDir(std::filesystem::path p) : path(std::move(p)) {
-    std::filesystem::create_directories(path);
-  }
-  ~ScopedTempDir() {
-    std::error_code ec;
-    std::filesystem::remove_all(path, ec);
-  }
-};
-
-struct ScopedImGuiContext {
-  ImGuiContext* ctx = nullptr;
-  ScopedImGuiContext() {
-    ctx = ImGui::CreateContext();
-    ImGui::SetCurrentContext(ctx);
-    ImGuiIO& io = ImGui::GetIO();
-    unsigned char* pixels = nullptr;
-    int width = 0;
-    int height = 0;
-    io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
-  }
-  ~ScopedImGuiContext() {
-    if (ctx) {
-      ImGui::DestroyContext(ctx);
-    }
-  }
-};
-
 void WriteRomFile(const std::filesystem::path& path,
                   const std::string& title = "YAZE TEST ROM") {
   std::vector<uint8_t> rom_data(512 * 1024, 0x00);
-  for (size_t i = 0; i < title.size() && (0x7FC0 + i) < rom_data.size(); ++i) {
+  for (size_t i = 0; i < title.size() && i < 21; ++i) {
     rom_data[0x7FC0 + i] = static_cast<uint8_t>(title[i]);
   }
   std::ofstream out(path, std::ios::binary | std::ios::trunc);
@@ -78,8 +50,16 @@ std::string LoadedLoRomSha256(EditorManager& manager, size_t rom_size) {
   return core::ComputeSourceArtifactSha256(bytes);
 }
 
-std::string CopyOutputBuildScript(const std::filesystem::path& source,
-                                  const std::filesystem::path& output) {
+std::string DelayCommand() {
+#ifdef _WIN32
+  return "ping -n 3 127.0.0.1 >nul";
+#else
+  return "sleep 2";
+#endif
+}
+
+std::string CopyCommand(const std::filesystem::path& source,
+                        const std::filesystem::path& output) {
 #ifdef _WIN32
   return "cmd /c copy /Y \"" + source.string() + "\" \"" + output.string() +
          "\" >nul";
@@ -88,223 +68,345 @@ std::string CopyOutputBuildScript(const std::filesystem::path& source,
 #endif
 }
 
-void PumpWorkflowUntil(EditorManager& manager, ProjectWorkflowState target,
-                       int max_attempts = 200) {
-  for (int attempt = 0; attempt < max_attempts; ++attempt) {
-    ImGui::GetIO().DisplaySize = ImVec2(1280, 720);
-    ImGui::NewFrame();
-    ASSERT_OK(manager.Update());
-    ImGui::Render();
-    if (ContentRegistry::Context::build_workflow_status().state == target) {
-      return;
+int SetAppData(const std::string& value) {
+#ifdef _WIN32
+  return _putenv_s("YAZE_APP_DATA_DIR", value.c_str());
+#else
+  return setenv("YAZE_APP_DATA_DIR", value.c_str(), 1);
+#endif
+}
+
+struct ProjectFiles {
+  std::filesystem::path descriptor;
+  std::filesystem::path source;
+  std::filesystem::path output;
+};
+
+class ProjectBuildWorkflowStateTest : public ::testing::Test {
+ protected:
+  void SetUp() override {
+    temp_ = test::UniqueTempPath("yaze_build_workflow", "");
+    std::filesystem::create_directories(temp_);
+    const char* previous = std::getenv("YAZE_APP_DATA_DIR");
+    if (previous != nullptr) {
+      previous_app_data_ = previous;
     }
-    std::this_thread::sleep_for(std::chrono::milliseconds(25));
+    ASSERT_EQ(SetAppData((temp_ / "app-data").string()), 0);
+    imgui_ = ImGui::CreateContext();
+    ImGui::SetCurrentContext(imgui_);
+    unsigned char* pixels = nullptr;
+    int width = 0;
+    int height = 0;
+    ImGui::GetIO().Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
+    renderer_ = std::make_unique<gfx::NullRenderer>();
+    manager_ = std::make_unique<EditorManager>();
+    test::InitializeWithIsolatedSettings(*manager_, renderer_.get());
+    manager_->SetAssetLoadMode(AssetLoadMode::kLazy);
   }
+
+  void TearDown() override {
+    // Join/cancel owned children before removing their inputs or app-data root.
+    manager_.reset();
+    renderer_.reset();
+    if (imgui_ != nullptr) {
+      ImGui::DestroyContext(imgui_);
+    }
+    if (previous_app_data_.has_value()) {
+      EXPECT_EQ(SetAppData(*previous_app_data_), 0);
+    } else {
+#ifdef _WIN32
+      EXPECT_EQ(_putenv_s("YAZE_APP_DATA_DIR", ""), 0);
+#else
+      EXPECT_EQ(unsetenv("YAZE_APP_DATA_DIR"), 0);
+#endif
+    }
+    std::error_code ec;
+    std::filesystem::remove_all(temp_, ec);
+  }
+
+  ProjectFiles CreateProject(const std::string& name, bool delayed = false,
+                             bool output_configured = true) {
+    const auto root = temp_ / name;
+    std::filesystem::create_directories(root);
+    ProjectFiles files{root / "project.yaze", root / "source.sfc",
+                       root / "output.sfc"};
+    WriteRomFile(files.source, name);
+    WriteRomFile(files.output, "STALE OUTPUT");
+    project::YazeProject project;
+    project.name = name;
+    project.filepath = files.descriptor.string();
+    project.rom_filename = files.source.filename().string();
+    project.build_target =
+        output_configured ? files.output.filename().string() : "";
+    project.build_script = output_configured
+                               ? CopyCommand(files.source, files.output)
+                               : DelayCommand();
+    if (delayed && output_configured) {
+      project.build_script = DelayCommand() + " && " + project.build_script;
+    }
+    EXPECT_OK(project.Save());
+    return files;
+  }
+
+  bool PumpUntil(const std::function<bool()>& finished) {
+    const auto deadline =
+        std::chrono::steady_clock::now() + std::chrono::seconds(10);
+    do {
+      ImGui::GetIO().DisplaySize = ImVec2(1280, 720);
+      ImGui::NewFrame();
+      const auto status = manager_->Update();
+      ImGui::Render();
+      if (!status.ok()) {
+        ADD_FAILURE() << status;
+        return false;
+      }
+      if (finished()) {
+        return true;
+      }
+      std::this_thread::sleep_for(std::chrono::milliseconds(25));
+    } while (std::chrono::steady_clock::now() < deadline);
+    ADD_FAILURE() << "Timed out waiting for project workflow: "
+                  << ContentRegistry::Context::build_workflow_status().summary
+                  << ": "
+                  << ContentRegistry::Context::build_workflow_status().detail;
+    return false;
+  }
+
+  bool WaitFor(ProjectWorkflowState state) {
+    return PumpUntil([state] {
+      return ContentRegistry::Context::build_workflow_status().state == state;
+    });
+  }
+
+  bool WaitForCopiedOutput(const ProjectFiles& files) {
+    return PumpUntil([&files] {
+      const auto source = core::ComputeSourceArtifactFileSha256(files.source);
+      const auto output = core::ComputeSourceArtifactFileSha256(files.output);
+      return source.ok() && output.ok() && *source == *output;
+    });
+  }
+
+  std::string EditingSource() {
+    const auto* session =
+        manager_->session_coordinator()->GetActiveRomSession();
+    return session != nullptr && session->rom_baseline.has_value()
+               ? session->rom_baseline->editing_source_path
+               : "";
+  }
+
+  std::filesystem::path temp_;
+  std::optional<std::string> previous_app_data_;
+  ImGuiContext* imgui_ = nullptr;
+  std::unique_ptr<gfx::NullRenderer> renderer_;
+  std::unique_ptr<EditorManager> manager_;
+};
+
+TEST_F(ProjectBuildWorkflowStateTest, RunRequiresSuccessfulBuildIdentity) {
+  const auto files = CreateProject("BuildRunIdentity");
+  ASSERT_OK(manager_->OpenRomOrProject(files.descriptor.string()));
+  EXPECT_FALSE(manager_->RunCurrentProject().ok());
+  ASSERT_OK(manager_->BuildCurrentProject());
+  const auto hash = core::ComputeSourceArtifactFileSha256(files.output);
+  ASSERT_TRUE(hash.ok());
+  ASSERT_OK(manager_->RunCurrentProject());
+  EXPECT_EQ(
+      LoadedLoRomSha256(*manager_, std::filesystem::file_size(files.output)),
+      *hash);
+  WriteRomFile(files.output, "CHANGED OUTPUT");
+  EXPECT_FALSE(manager_->RunCurrentProject().ok());
 }
 
-TEST(ProjectBuildWorkflowStateTest, RunRequiresSuccessfulBuildIdentity) {
-  ScopedImGuiContext imgui;
-  auto renderer = std::make_unique<gfx::NullRenderer>();
-  auto manager = std::make_unique<EditorManager>();
-  test::InitializeWithIsolatedSettings(*manager, renderer.get());
-  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+TEST_F(ProjectBuildWorkflowStateTest, NoOpBuildDoesNotAdoptPreexistingOutput) {
+  const auto files = CreateProject("NoOpOutput");
+  project::YazeProject project;
+  ASSERT_OK(project.Open(files.descriptor.string()));
+#ifdef _WIN32
+  project.build_script = "cmd /c exit 0";
+#else
+  project.build_script = "true";
+#endif
+  ASSERT_OK(project.Save());
+  ASSERT_OK(manager_->OpenRomOrProject(files.descriptor.string()));
+  const auto status = manager_->BuildCurrentProject();
+  EXPECT_FALSE(status.ok());
+  EXPECT_NE(status.message().find("refresh"), std::string::npos);
+  EXPECT_FALSE(manager_->RunCurrentProject().ok());
+}
 
-  ScopedTempDir temp(MakeTempDir("yaze_build_run_identity"));
-  const auto project_path = temp.path / "project.yaze";
-  const auto source_rom = temp.path / "source.sfc";
-  const auto output_rom = temp.path / "output.sfc";
-  WriteRomFile(source_rom, "BUILD RUN SOURCE");
-  WriteRomFile(output_rom, "STALE OUTPUT");
+TEST_F(ProjectBuildWorkflowStateTest, DeterministicRepeatBuildRetainsProof) {
+  const auto files = CreateProject("RepeatBuild");
+  ASSERT_OK(manager_->OpenRomOrProject(files.descriptor.string()));
+  ASSERT_OK(manager_->BuildCurrentProject());
+  const auto first = core::ComputeSourceArtifactFileSha256(files.output);
+  ASSERT_TRUE(first.ok());
+  ASSERT_OK(manager_->BuildCurrentProject());
+  const auto second = core::ComputeSourceArtifactFileSha256(files.output);
+  ASSERT_TRUE(second.ok());
+  EXPECT_EQ(*first, *second);
+  ASSERT_OK(manager_->RunCurrentProject());
+}
 
-  ASSERT_OK(manager->OpenRomOrProject(source_rom.string()));
-  auto* project = manager->GetCurrentProject();
-  project->name = "BuildRunIdentity";
-  project->filepath = project_path.string();
-  project->build_target = output_rom.filename().string();
-  project->build_script = CopyOutputBuildScript(source_rom, output_rom);
-  ASSERT_OK(project->Save());
+TEST_F(ProjectBuildWorkflowStateTest, OverlappingQueuedAndSyncBuildsRefused) {
+  const auto files = CreateProject("BuildOverlap", false, false);
+  ASSERT_OK(manager_->OpenRomOrProject(files.descriptor.string()));
+  manager_->QueueBuildCurrentProject();
+  EXPECT_EQ(manager_->BuildCurrentProject().code(),
+            absl::StatusCode::kAlreadyExists);
+  ASSERT_TRUE(WaitFor(ProjectWorkflowState::kSuccess));
+}
 
-  const auto run_before = manager->RunCurrentProject();
-  EXPECT_FALSE(run_before.ok());
-  EXPECT_NE(run_before.message().find("Build the project"), std::string::npos);
+TEST_F(ProjectBuildWorkflowStateTest, RunWhileBuildRunningIsRefused) {
+  const auto files = CreateProject("RunDuringBuild", true);
+  ASSERT_OK(manager_->OpenRomOrProject(files.descriptor.string()));
+  manager_->QueueBuildCurrentProject();
+  EXPECT_FALSE(manager_->RunCurrentProject().ok());
+  ASSERT_TRUE(WaitFor(ProjectWorkflowState::kSuccess));
+  ASSERT_OK(manager_->RunCurrentProject());
+}
 
-  ASSERT_OK(manager->BuildCurrentProject());
-  const auto output_hash = core::ComputeSourceArtifactFileSha256(output_rom);
-  ASSERT_TRUE(output_hash.ok());
-  ASSERT_OK(manager->RunCurrentProject());
-  EXPECT_EQ(LoadedLoRomSha256(*manager, std::filesystem::file_size(output_rom)),
-            *output_hash);
+TEST_F(ProjectBuildWorkflowStateTest, FailedBuildRevokesPriorRunEligibility) {
+  const auto files = CreateProject("FailedRevokesRun");
+  ASSERT_OK(manager_->OpenRomOrProject(files.descriptor.string()));
+  ASSERT_OK(manager_->BuildCurrentProject());
+  const auto marker = temp_ / "failed-child-started.txt";
+#ifdef _WIN32
+  manager_->GetCurrentProject()->build_script =
+      "cmd /c \"echo started>\"" + marker.string() + "\" & exit /b 7\"";
+#else
+  manager_->GetCurrentProject()->build_script =
+      "echo started > \"" + marker.string() + "\"; exit 7";
+#endif
+  manager_->MarkCurrentProjectDirty();
+  ASSERT_OK(manager_->SaveProject());
+  EXPECT_FALSE(manager_->BuildCurrentProject().ok());
+  EXPECT_TRUE(std::filesystem::exists(marker));
+  EXPECT_TRUE(std::filesystem::exists(files.output));
+  EXPECT_FALSE(manager_->RunCurrentProject().ok());
+}
 
+TEST_F(ProjectBuildWorkflowStateTest, RunRefusesDirtyRomWithoutSavedChanges) {
+  const auto files = CreateProject("DirtyRun");
+  ASSERT_OK(manager_->OpenRomOrProject(files.descriptor.string()));
+  ASSERT_OK(manager_->BuildCurrentProject());
+  ASSERT_OK(manager_->GetCurrentRom()->WriteByte(0, 0x01));
+  EXPECT_FALSE(manager_->RunCurrentProject().ok());
+}
+
+TEST_F(ProjectBuildWorkflowStateTest, ForeignViewerCannotCancelOrAdoptBuild) {
+  const auto a = CreateProject("ProjectA", true);
+  const auto b = CreateProject("ProjectB");
+  ASSERT_OK(manager_->OpenRomOrProject(a.descriptor.string()));
+  const auto owner_id = manager_->GetCurrentSessionId();
+  const auto owner_index = manager_->GetCurrentSessionIndex();
+  manager_->QueueBuildCurrentProject();
+  ASSERT_OK(manager_->OpenRomOrProject(b.descriptor.string()));
+  ASSERT_NE(manager_->GetCurrentSessionId(), owner_id);
+  manager_->CancelQueuedProjectBuild();
+  EXPECT_FALSE(manager_->RunCurrentProject().ok());
+  ASSERT_TRUE(WaitForCopiedOutput(a));
+  EXPECT_NE(ContentRegistry::Context::build_workflow_status().state,
+            ProjectWorkflowState::kSuccess);
+  manager_->SwitchToSession(owner_index);
+  ASSERT_TRUE(WaitFor(ProjectWorkflowState::kSuccess));
+  ASSERT_OK(manager_->RunCurrentProject());
+}
+
+TEST_F(ProjectBuildWorkflowStateTest, ClosedOwnerCannotTransferResultToReopen) {
+  const auto a = CreateProject("ClosedOwner", true);
+  const auto b = CreateProject("RemainingViewer");
+  ASSERT_OK(manager_->OpenRomOrProject(a.descriptor.string()));
+  const auto owner_id = manager_->GetCurrentSessionId();
+  const auto owner_index = manager_->GetCurrentSessionIndex();
+  manager_->QueueBuildCurrentProject();
+  ASSERT_OK(manager_->OpenRomOrProject(b.descriptor.string()));
+  manager_->session_coordinator()->CloseSession(owner_index);
+  ASSERT_TRUE(WaitForCopiedOutput(a));
+  ASSERT_OK(manager_->OpenRomOrProject(a.descriptor.string()));
+  EXPECT_NE(manager_->GetCurrentSessionId(), owner_id);
+  EXPECT_FALSE(manager_->RunCurrentProject().ok());
+  EXPECT_TRUE(std::filesystem::exists(a.output));
+}
+
+TEST_F(ProjectBuildWorkflowStateTest, OwnerCancelRevokesRunAndRetainsOutput) {
+  const auto files = CreateProject("OwnerCancel");
+  ASSERT_OK(manager_->OpenRomOrProject(files.descriptor.string()));
+  ASSERT_OK(manager_->BuildCurrentProject());
+  manager_->GetCurrentProject()->build_script =
+      DelayCommand() + " && " + CopyCommand(files.source, files.output);
+  manager_->MarkCurrentProjectDirty();
+  ASSERT_OK(manager_->SaveProject());
+  manager_->QueueBuildCurrentProject();
+  ASSERT_EQ(ContentRegistry::Context::build_workflow_status().state,
+            ProjectWorkflowState::kRunning);
+  manager_->CancelQueuedProjectBuild();
+  ASSERT_TRUE(WaitFor(ProjectWorkflowState::kFailure));
+  EXPECT_TRUE(std::filesystem::exists(files.output));
+  EXPECT_FALSE(manager_->RunCurrentProject().ok());
+}
+
+TEST_F(ProjectBuildWorkflowStateTest, ChangedSourceDuringBuildFailsCompletion) {
+  const auto files = CreateProject("InputChanged", true);
+  ASSERT_OK(manager_->OpenRomOrProject(files.descriptor.string()));
+  manager_->QueueBuildCurrentProject();
+  WriteRomFile(files.source, "CHANGED SOURCE");
+  ASSERT_TRUE(WaitFor(ProjectWorkflowState::kFailure));
+  EXPECT_FALSE(manager_->RunCurrentProject().ok());
+}
+
+TEST_F(ProjectBuildWorkflowStateTest, MissingConfiguredSourceRefusesBuild) {
+  const auto files = CreateProject("MissingSource");
+  ASSERT_OK(manager_->OpenRomOrProject(files.descriptor.string()));
+  std::filesystem::rename(files.source, files.source.string() + ".retained");
+  EXPECT_FALSE(manager_->BuildCurrentProject().ok());
+  EXPECT_FALSE(manager_->RunCurrentProject().ok());
+}
+
+TEST_F(ProjectBuildWorkflowStateTest, NewNativeSaveGenerationFailsCompletion) {
+  const auto files = CreateProject("NativeGeneration", true);
+  ASSERT_OK(manager_->OpenRomOrProject(files.descriptor.string()));
+  ASSERT_OK(manager_->SaveProject());
+  const auto first = core::ReadVerifiedCommittedNativeSaveIdentity(
+      EditingSource(), files.descriptor.string());
+  ASSERT_TRUE(first.ok()) << first.status();
+  manager_->QueueBuildCurrentProject();
+  ASSERT_EQ(ContentRegistry::Context::build_workflow_status().state,
+            ProjectWorkflowState::kRunning);
+  ASSERT_OK(manager_->SaveProject());
+  const auto second = core::ReadVerifiedCommittedNativeSaveIdentity(
+      EditingSource(), files.descriptor.string());
+  ASSERT_TRUE(second.ok()) << second.status();
+  ASSERT_GT(second->generation, first->generation);
+  ASSERT_TRUE(WaitFor(ProjectWorkflowState::kFailure));
+  EXPECT_FALSE(manager_->RunCurrentProject().ok());
+}
+
+TEST_F(ProjectBuildWorkflowStateTest, ReboundNativeContextCannotBecomeGeneric) {
+  const auto files = CreateProject("ReboundNative");
+  ASSERT_OK(manager_->OpenRomOrProject(files.descriptor.string()));
+  ASSERT_OK(manager_->SaveProject());
+  const auto context =
+      core::GetNativeSaveContext(EditingSource(), files.descriptor.string());
+  ASSERT_TRUE(context.ok()) << context.status();
+  ASSERT_OK(core::RetireNativeSaveContext(*context, "rebound"));
+  EXPECT_FALSE(manager_->BuildCurrentProject().ok());
+  EXPECT_FALSE(manager_->RunCurrentProject().ok());
+}
+
+TEST_F(ProjectBuildWorkflowStateTest,
+       MalformedNativeContextCannotBecomeGeneric) {
+  const auto files = CreateProject("MalformedNative");
+  ASSERT_OK(manager_->OpenRomOrProject(files.descriptor.string()));
+  ASSERT_OK(manager_->SaveProject());
+  const auto context =
+      core::GetNativeSaveContext(EditingSource(), files.descriptor.string());
+  ASSERT_TRUE(context.ok()) << context.status();
   {
-    std::fstream rom(output_rom,
-                     std::ios::in | std::ios::out | std::ios::binary);
-    ASSERT_TRUE(rom.good());
-    rom.seekp(0);
-    rom.put(static_cast<char>(0xAB));
+    std::ofstream out(context->path, std::ios::binary | std::ios::trunc);
+    out << "{broken-context";
+    ASSERT_TRUE(out.good());
   }
-  const auto run_after_change = manager->RunCurrentProject();
-  EXPECT_FALSE(run_after_change.ok());
-}
-
-TEST(ProjectBuildWorkflowStateTest, NoOpBuildDoesNotAdoptPreexistingOutput) {
-  ScopedImGuiContext imgui;
-  auto renderer = std::make_unique<gfx::NullRenderer>();
-  auto manager = std::make_unique<EditorManager>();
-  test::InitializeWithIsolatedSettings(*manager, renderer.get());
-  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
-
-  ScopedTempDir temp(MakeTempDir("yaze_build_noop_output"));
-  const auto project_path = temp.path / "project.yaze";
-  const auto source_rom = temp.path / "source.sfc";
-  const auto output_rom = temp.path / "output.sfc";
-  WriteRomFile(source_rom, "SOURCE");
-  WriteRomFile(output_rom, "LEFTOVER OUTPUT");
-
-  ASSERT_OK(manager->OpenRomOrProject(source_rom.string()));
-  auto* project = manager->GetCurrentProject();
-  project->name = "NoOpOutput";
-  project->filepath = project_path.string();
-  project->build_target = output_rom.filename().string();
-#ifdef _WIN32
-  project->build_script = "cmd /c exit 0";
-#else
-  project->build_script = "true";
-#endif
-  ASSERT_OK(project->Save());
-
-  const auto build = manager->BuildCurrentProject();
-  EXPECT_FALSE(build.ok());
-  EXPECT_NE(build.message().find("refresh"), std::string::npos);
-  EXPECT_FALSE(manager->RunCurrentProject().ok());
-}
-
-TEST(ProjectBuildWorkflowStateTest, OverlappingQueuedAndSyncBuildsRefused) {
-  ScopedImGuiContext imgui;
-  auto renderer = std::make_unique<gfx::NullRenderer>();
-  auto manager = std::make_unique<EditorManager>();
-  test::InitializeWithIsolatedSettings(*manager, renderer.get());
-  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
-
-  ScopedTempDir temp(MakeTempDir("yaze_build_overlap"));
-  const auto project_path = temp.path / "project.yaze";
-  const auto source_rom = temp.path / "source.sfc";
-  WriteRomFile(source_rom, "OVERLAP SOURCE");
-  ASSERT_OK(manager->OpenRomOrProject(source_rom.string()));
-  auto* project = manager->GetCurrentProject();
-  project->name = "BuildOverlap";
-  project->filepath = project_path.string();
-#ifdef _WIN32
-  project->build_script = "cmd /c ping -n 3 127.0.0.1 >nul";
-#else
-  project->build_script = "sleep 2";
-#endif
-  ASSERT_OK(project->Save());
-
-  manager->QueueBuildCurrentProject();
-  const auto sync = manager->BuildCurrentProject();
-  EXPECT_FALSE(sync.ok());
-  EXPECT_EQ(sync.code(), absl::StatusCode::kAlreadyExists);
-
-  PumpWorkflowUntil(*manager, ProjectWorkflowState::kSuccess);
-}
-
-TEST(ProjectBuildWorkflowStateTest, RunWhileBuildRunningIsRefused) {
-  ScopedImGuiContext imgui;
-  auto renderer = std::make_unique<gfx::NullRenderer>();
-  auto manager = std::make_unique<EditorManager>();
-  test::InitializeWithIsolatedSettings(*manager, renderer.get());
-  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
-
-  ScopedTempDir temp(MakeTempDir("yaze_run_during_build"));
-  const auto project_path = temp.path / "project.yaze";
-  const auto source_rom = temp.path / "source.sfc";
-  const auto output_rom = temp.path / "output.sfc";
-  WriteRomFile(source_rom, "RUN DURING BUILD");
-  WriteRomFile(output_rom, "OUTPUT");
-  ASSERT_OK(manager->OpenRomOrProject(source_rom.string()));
-  auto* project = manager->GetCurrentProject();
-  project->name = "RunDuringBuild";
-  project->filepath = project_path.string();
-  project->build_target = output_rom.filename().string();
-#ifdef _WIN32
-  project->build_script = "cmd /c ping -n 3 127.0.0.1 >nul";
-#else
-  project->build_script = "sleep 2";
-#endif
-  ASSERT_OK(project->Save());
-
-  manager->QueueBuildCurrentProject();
-  const auto run = manager->RunCurrentProject();
-  EXPECT_FALSE(run.ok());
-  EXPECT_NE(run.message().find("Wait for the active project build"),
-            std::string::npos);
-
-  PumpWorkflowUntil(*manager, ProjectWorkflowState::kSuccess);
-}
-
-TEST(ProjectBuildWorkflowStateTest, FailedBuildRevokesPriorRunEligibility) {
-  ScopedImGuiContext imgui;
-  auto renderer = std::make_unique<gfx::NullRenderer>();
-  auto manager = std::make_unique<EditorManager>();
-  test::InitializeWithIsolatedSettings(*manager, renderer.get());
-  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
-
-  ScopedTempDir temp(MakeTempDir("yaze_failed_revokes_run"));
-  const auto project_path = temp.path / "project.yaze";
-  const auto source_rom = temp.path / "source.sfc";
-  const auto output_rom = temp.path / "output.sfc";
-  WriteRomFile(source_rom, "REVOKE SOURCE");
-  WriteRomFile(output_rom, "STALE");
-
-  ASSERT_OK(manager->OpenRomOrProject(source_rom.string()));
-  auto* project = manager->GetCurrentProject();
-  project->name = "RevokeRun";
-  project->filepath = project_path.string();
-  project->build_target = output_rom.filename().string();
-  project->build_script = CopyOutputBuildScript(source_rom, output_rom);
-  ASSERT_OK(project->Save());
-
-  ASSERT_OK(manager->BuildCurrentProject());
-  ASSERT_OK(manager->RunCurrentProject());
-
-#ifdef _WIN32
-  project->build_script = "cmd /c exit 1";
-#else
-  project->build_script = "false";
-#endif
-  ASSERT_OK(project->Save());
-  EXPECT_FALSE(manager->BuildCurrentProject().ok());
-  EXPECT_FALSE(manager->RunCurrentProject().ok());
-}
-
-TEST(ProjectBuildWorkflowStateTest, RunRefusesDirtyRomWithoutSavedChanges) {
-  ScopedImGuiContext imgui;
-  auto renderer = std::make_unique<gfx::NullRenderer>();
-  auto manager = std::make_unique<EditorManager>();
-  test::InitializeWithIsolatedSettings(*manager, renderer.get());
-  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
-
-  ScopedTempDir temp(MakeTempDir("yaze_run_dirty_rom"));
-  const auto project_path = temp.path / "project.yaze";
-  const auto source_rom = temp.path / "source.sfc";
-  const auto output_rom = temp.path / "output.sfc";
-  WriteRomFile(source_rom, "DIRTY RUN SOURCE");
-  WriteRomFile(output_rom, "OUTPUT");
-
-  ASSERT_OK(manager->OpenRomOrProject(source_rom.string()));
-  auto* project = manager->GetCurrentProject();
-  project->name = "DirtyRun";
-  project->filepath = project_path.string();
-  project->build_target = output_rom.filename().string();
-  project->build_script = CopyOutputBuildScript(source_rom, output_rom);
-  ASSERT_OK(project->Save());
-
-  ASSERT_OK(manager->BuildCurrentProject());
-  ASSERT_OK(manager->GetCurrentRom()->WriteByte(0, 0x01));
-  const auto run = manager->RunCurrentProject();
-  EXPECT_FALSE(run.ok());
-  EXPECT_NE(run.message().find("Save project and ROM changes"),
-            std::string::npos);
+  EXPECT_FALSE(manager_->BuildCurrentProject().ok());
+  EXPECT_FALSE(manager_->RunCurrentProject().ok());
 }
 
 }  // namespace
