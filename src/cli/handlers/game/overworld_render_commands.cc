@@ -8,10 +8,12 @@
 #include <fstream>
 #include <iterator>
 #include <map>
+#include <memory>
 #include <optional>
 #include <set>
 #include <sstream>
 #include <string>
+#include <string_view>
 #include <unordered_map>
 
 #include "absl/strings/numbers.h"
@@ -173,9 +175,20 @@ absl::StatusOr<uint32_t> ParsePcHex(const std::optional<std::string>& value,
   return pc;
 }
 
-absl::StatusOr<core::LyraTerrainDocument> PrepareNativeImportDocument(
-    const resources::ArgumentParser& parser, const std::string& saved_text,
-    const core::LyraTerrainProfile& profile, core::LyraTerrainDocument in) {
+absl::StatusOr<std::unique_ptr<core::LyraTerrainDocument>> ParseTerrainDocument(
+    std::string_view text, const core::LyraTerrainProfile& profile) {
+  // The document contains two inline32-map grids. Keep only the parser's one
+  // return value on the Windows CLI stack, rather than several caller copies.
+  ASSIGN_OR_RETURN(auto parsed,
+                   core::LyraTerrainDocument::Parse(text, profile));
+  return std::make_unique<core::LyraTerrainDocument>(std::move(parsed));
+}
+
+absl::StatusOr<std::unique_ptr<core::LyraTerrainDocument>>
+PrepareNativeImportDocument(const resources::ArgumentParser& parser,
+                            const std::string& saved_text,
+                            const core::LyraTerrainProfile& profile,
+                            const core::LyraTerrainDocument& in) {
   const auto expected_terrain_hash = parser.GetString("source-terrain-sha256");
   if (!expected_terrain_hash.has_value() || expected_terrain_hash->empty()) {
     return absl::InvalidArgumentError("--source-terrain-sha256 is required");
@@ -239,9 +252,7 @@ absl::StatusOr<core::LyraTerrainDocument> PrepareNativeImportDocument(
     root["gameplay_areas"] = areas_json;
     return root.dump();
   }();
-  ASSIGN_OR_RETURN(auto out,
-                   core::LyraTerrainDocument::Parse(reparse, profile));
-  return out;
+  return ParseTerrainDocument(reparse, profile);
 }
 
 absl::Status AppendNativeImportPlan(Rom& rom,
@@ -586,11 +597,10 @@ absl::Status LyraVerifyProjectCommandHandler::Execute(
   RETURN_IF_ERROR(overworld.Load(rom));
   core::LyraTerrainProfile profile;
   RETURN_IF_ERROR(zelda3::BindLyraTerrainSource(overworld, &profile));
-  ASSIGN_OR_RETURN(auto document,
-                   core::LyraTerrainDocument::Parse(text, profile));
+  ASSIGN_OR_RETURN(auto document, ParseTerrainDocument(text, profile));
   if (PlanNativeImport()) {
-    ASSIGN_OR_RETURN(document, PrepareNativeImportDocument(
-                                   parser, text, profile, std::move(document)));
+    ASSIGN_OR_RETURN(document, PrepareNativeImportDocument(parser, text,
+                                                           profile, *document));
   }
   std::unordered_map<std::string, std::string> native_bindings;
   std::unordered_map<std::string, std::array<uint16_t, 256>> resolved_palettes;
@@ -600,7 +610,7 @@ absl::Status LyraVerifyProjectCommandHandler::Execute(
   std::array<std::array<std::string, 3>, core::LyraTerrainDocument::kMapCount>
       verified_bindings;
   for (int i = 0; i < core::LyraTerrainDocument::kMapCount; ++i) {
-    const auto& map = document.authoring().maps[i];
+    const auto& map = document->authoring().maps[i];
     for (int state = 0; state < 3; ++state) {
       const auto key = zelda3::LyraMapAssetKey(map.properties, state);
       auto found = native_bindings.find(key);
@@ -714,7 +724,7 @@ absl::Status LyraVerifyProjectCommandHandler::Execute(
   }
 
   if (PlanNativeImport())
-    return AppendNativeImportPlan(*rom, document, parser, formatter);
+    return AppendNativeImportPlan(*rom, *document, parser, formatter);
 
   auto native_99 = *overworld.mutable_overworld_map(0x99);
   native_99.set_game_state(0);
