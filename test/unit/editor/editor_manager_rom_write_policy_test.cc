@@ -6661,6 +6661,7 @@ TEST_F(PaletteWorkspaceTest, LegacyAuxiliaryNavigationUsesAllTwentyOneColors) {
   auto& pm = gfx::PaletteManager::Get();
   ASSERT_EQ(Session()->game_data.palette_groups.overworld_aux.size(), 20);
   Click("Overworld Auxiliary");
+  ASSERT_TRUE(Widget("Palette record"));
   Click("Palette color 20");
   EnterColor("1234");
   EXPECT_EQ(pm.GetColor("ow_aux", 0, 20).snes(), 0x1234);

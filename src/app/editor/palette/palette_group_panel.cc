@@ -382,9 +382,11 @@ void PaletteGroupPanel::DrawPaletteSelector() {
   ImGui::SameLine();
 
   ImGui::SetNextItemWidth(LayoutHelpers::GetStandardInputWidth());
-  if (ImGui::BeginCombo(
-          "##PaletteSelect",
-          absl::StrFormat("Palette %d", selected_palette_).c_str())) {
+  const bool selector_open = ImGui::BeginCombo(
+      "##PaletteSelect",
+      absl::StrFormat("Palette %d", selected_palette_).c_str());
+  gui::AutoRegisterLastItem("combo", "Palette record");
+  if (selector_open) {
     const float item_height = ImGui::GetTextLineHeightWithSpacing();
     ImGuiListClipper clipper;
     clipper.Begin(num_palettes, item_height);

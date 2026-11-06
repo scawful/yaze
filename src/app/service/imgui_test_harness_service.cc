@@ -1340,13 +1340,18 @@ absl::Status ImGuiTestHarnessServiceImpl::Type(const TypeRequest* request,
         return;
       }
 
-      ctx->ItemClick(ImGuiTestRef(item.ID));
-      if (clear_first) {
-        ctx->KeyPress(ImGuiMod_Shortcut | ImGuiKey_A);
-        ctx->KeyPress(ImGuiKey_Delete);
+      if (widget_type == "combo") {
+        ctx->ItemClick(ImGuiTestRef(item.ID));
+        const std::string option = "//$FOCUSED/**/" + text;
+        ctx->ItemClick(option.c_str());
+      } else {
+        ctx->ItemClick(ImGuiTestRef(item.ID));
+        if (clear_first) {
+          ctx->KeyPress(ImGuiMod_Shortcut | ImGuiKey_A);
+          ctx->KeyPress(ImGuiKey_Delete);
+        }
+        ctx->ItemInputValue(ImGuiTestRef(item.ID), text.c_str());
       }
-
-      ctx->ItemInputValue(ImGuiTestRef(item.ID), text.c_str());
       ctx->Yield();
       if (ctx->IsError()) {
         const std::string error_message =
