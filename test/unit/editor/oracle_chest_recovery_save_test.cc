@@ -72,7 +72,7 @@ TEST_F(OracleChestRecoverySaveTest,
     GTEST_SKIP() << "This case requires the SHA256-bound room26 recovery ROM";
   ASSERT_EQ(source_bytes.size(), 0x200000u);
   ASSERT_EQ(source_bytes[0xEBF6] | (source_bytes[0xEBF7] << 8), 501);
-  const auto root = test::UniqueTempPath("oracle-chest-recovery");
+  const auto root = test::UniqueTempPath("ocr");
   std::filesystem::create_directories(root);
   auto cleanup = absl::MakeCleanup([&] { std::filesystem::remove_all(root); });
   const auto source = root / "in.sfc", target = root / "saved.sfc";
@@ -86,7 +86,7 @@ TEST_F(OracleChestRecoverySaveTest,
   }
   project::YazeProject project;
   project.name = "Private Oracle chest recovery";
-  project.filepath = (root / "recovery.yaze").string();
+  project.filepath = (root / "p.yaze").string();
   project.rom_filename = source.string();
   project.hack_manifest_file = manifest_path.string();
   project.rom_metadata.write_policy = project::RomWritePolicy::kBlock;
