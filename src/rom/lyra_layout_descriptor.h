@@ -17,7 +17,8 @@ namespace yaze::rom {
 // Validation describes the stored layout; runtime and writer admission are
 // separate. Revisions 1/2 retain their original inspection/pilot contracts.
 // Revisions 3 and 4 share the native special-overworld descriptor at 0x147000;
-// revision 4 adds appearance records 410/411 (producer-defined addresses).
+// revision 4 adds appearance records 410/411 (producer-defined addresses),
+// optionally record 412 with the explicit authoring-metadata flag 0x20.
 enum class LyraLayoutPresence { kAbsent, kValid, kInvalid };
 
 struct LyraLayoutEntry {
@@ -44,6 +45,9 @@ struct LyraLayoutInspection {
   bool offline_only = true;
   std::string error;
   std::vector<LyraLayoutEntry> entries;
+  // Structural codec validation only; actual sprite-list binding and metadata
+  // mutation are separate capabilities, not admitted by this inspection.
+  bool has_authoring_metadata = false;
 };
 
 inline bool IsNativeSpecialOverworldLayout(const LyraLayoutInspection& layout) {
@@ -79,7 +83,7 @@ struct NativeOverworldPropertyEdit {
 };
 
 // Ordered packed sprite stream: y, x, sprite code, with a final FF. Placement
-// IDs remain project metadata; they are not runtime sprite codes.
+// IDs, when present in optional record 412, are not runtime sprite codes.
 struct NativeOverworldSpriteEdit {
   uint16_t phase = 0;
   uint16_t map_id = 0;

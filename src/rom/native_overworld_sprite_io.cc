@@ -76,6 +76,11 @@ PlanNativeOverworldSpriteSave(
     return absl::FailedPreconditionError(
         "Native sprite planning requires a valid native special-overworld "
         "directory");
+  // The metadata codec does not yet bind placement IDs to this ordered save
+  // batch. Preserve its witnesses until the model and writer update both.
+  if (layout.has_authoring_metadata)
+    return absl::FailedPreconditionError(
+        "Authoring metadata sprite Save requires stable placement-ID binding");
   std::map<std::pair<uint16_t, uint16_t>, const std::vector<uint8_t>*> changed;
   for (const auto& edit : edits) {
     if (edit.phase >= 3 || edit.map_id >= layout.capacity ||

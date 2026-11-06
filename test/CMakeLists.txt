@@ -539,6 +539,7 @@ if(YAZE_BUILD_TESTS)
     unit/core/story_event_graph_query_test.cc
     unit/core/rom_hash_test.cc
     unit/rom/lyra_layout_descriptor_test.cc
+    unit/rom/native_overworld_authoring_metadata_test.cc
     unit/core/oracle_rom_fixture_test.cc
     unit/core/project_file_passthrough_test.cc
     unit/core/project_atlas_settings_test.cc

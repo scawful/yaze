@@ -40,6 +40,7 @@
 #include "miniz/miniz.h"
 #undef MINIZ_NO_ZLIB_COMPATIBLE_NAMES
 #include "rom/lyra_layout_descriptor.h"
+#include "rom/native_overworld_authoring_metadata.h"
 #include "rom/rom.h"
 #include "rom/snes.h"
 #include "rom/write_fence.h"
@@ -284,6 +285,19 @@ struct NativeDirectoryFixture {
     Word(0x14700C, 928);
     Word(0x147012, 56);
     bytes[0x147015] = 0x1C;
+    Seal();
+  }
+  void AddAuthoringMetadata() {
+    const auto encoded = rom::EncodeNativeOverworldAuthoringMetadata(
+        rom::NativeOverworldAuthoringMetadata{}, Entry(1).count);
+    ASSERT_TRUE(encoded.ok()) << encoded.status();
+    // Caller-supplied synthetic storage, not a production allocation grant.
+    Add(412, 9, 0x2B6000, 256, 32);
+    std::copy(encoded->begin(), encoded->end(),
+              bytes.begin() + Entry(412).pc_address);
+    Word(0x14700C, 0x03B0);
+    Word(0x147012, 57);
+    bytes[0x147015] = 0x3C;
     Seal();
   }
   explicit NativeDirectoryFixture(uint16_t capacity = 192) {
@@ -825,6 +839,125 @@ TEST(LyraLayoutDescriptorTest,
     const size_t row = (0xBF - 0x80) * 256;
     b[fixture.Entry(411).pc_address + row + 1] = 0x80;
   });
+}
+
+TEST(LyraLayoutDescriptorTest,
+     Revision4AuthoringCapabilityPreservesExistingFormatBytes) {
+  for (uint16_t capacity : {160, 192}) {
+    SCOPED_TRACE(capacity);
+    NativeDirectoryFixture fixture(capacity);
+    auto inspected =
+        rom::InspectLyraLayout(fixture.bytes.data(), fixture.bytes.size());
+    ASSERT_EQ(inspected.presence, rom::LyraLayoutPresence::kValid)
+        << inspected.error;
+    EXPECT_FALSE(inspected.has_authoring_metadata);
+    EXPECT_EQ(fixture.bytes[0x147015], 0x0C);
+    EXPECT_EQ(inspected.entries.size(), 54);
+    const auto old3 =
+        rom::SealNativeOverworldTerrain(fixture.bytes, fixture.bytes);
+    ASSERT_TRUE(old3.ok()) << old3.status();
+    EXPECT_EQ(*old3, fixture.bytes);
+    fixture.UpgradeToRevision4();
+    inspected =
+        rom::InspectLyraLayout(fixture.bytes.data(), fixture.bytes.size());
+    ASSERT_EQ(inspected.presence, rom::LyraLayoutPresence::kValid)
+        << inspected.error;
+    EXPECT_FALSE(inspected.has_authoring_metadata);
+    EXPECT_EQ(fixture.bytes[0x147015], 0x1C);
+    EXPECT_EQ(inspected.entries.size(), 56);
+    const auto old4 =
+        rom::SealNativeOverworldTerrain(fixture.bytes, fixture.bytes);
+    ASSERT_TRUE(old4.ok()) << old4.status();
+    EXPECT_EQ(*old4, fixture.bytes);
+    const auto before = fixture.bytes;
+    const auto original_entries = fixture.rows.entries;
+    fixture.AddAuthoringMetadata();
+    inspected =
+        rom::InspectLyraLayout(fixture.bytes.data(), fixture.bytes.size());
+    ASSERT_EQ(inspected.presence, rom::LyraLayoutPresence::kValid)
+        << inspected.error;
+    EXPECT_TRUE(inspected.has_authoring_metadata);
+    EXPECT_FALSE(inspected.write_supported);
+    EXPECT_EQ(inspected.entries.size(), 57);
+    EXPECT_EQ(fixture.bytes[0x147015], 0x3C);
+    EXPECT_EQ(fixture.bytes[0x14700C], 0xB0);
+    EXPECT_EQ(fixture.bytes[0x14700D], 3);
+    for (const auto& entry : original_entries) {
+      EXPECT_TRUE(std::equal(
+          before.begin() + entry.pc_address,
+          before.begin() + entry.pc_address + entry.count * entry.stride,
+          fixture.bytes.begin() + entry.pc_address));
+    }
+    const auto saved =
+        rom::SealNativeOverworldTerrain(fixture.bytes, fixture.bytes);
+    ASSERT_TRUE(saved.ok()) << saved.status();
+    EXPECT_EQ(*saved, fixture.bytes);
+    auto changed = fixture.bytes;
+    Put32(&changed, fixture.Entry(412).pc_address + 16, 2);
+    // Metadata is readable but has no mutation grant in the terrain sealer.
+    EXPECT_FALSE(rom::SealNativeOverworldTerrain(fixture.bytes, changed).ok());
+    const std::vector<rom::NativeOverworldPropertyEdit> unsupported = {
+        {412, 0, std::vector<uint8_t>(32, 0)}};
+    EXPECT_FALSE(rom::SealNativeOverworldTerrain(fixture.bytes, fixture.bytes,
+                                                 unsupported)
+                     .ok());
+    const std::vector<rom::NativeOverworldSpriteEdit> sprite_edits = {
+        {0, 0x80, {0x01, 0x02, 0x52, 0xFF}}};
+    const auto sprite_refused =
+        rom::PlanNativeOverworldSpriteSave(fixture.bytes, sprite_edits);
+    EXPECT_TRUE(absl::IsFailedPrecondition(sprite_refused.status()));
+    EXPECT_TRUE(rom::PlanNativeOverworldSpriteSave(fixture.bytes, {}).ok());
+  }
+}
+
+TEST(LyraLayoutDescriptorTest,
+     Revision4AuthoringCapabilityRefusesMismatchedAndMalformedRecords) {
+  NativeDirectoryFixture fixture;
+  fixture.UpgradeToRevision4();
+  // Flag alone cannot grant a new capability on the old directory shape.
+  auto changed = fixture.bytes;
+  changed[0x147015] = 0x3C;
+  Reseal(&changed, fixture.rows);
+  EXPECT_EQ(rom::InspectLyraLayout(changed.data(), changed.size()).presence,
+            rom::LyraLayoutPresence::kInvalid);
+  fixture.AddAuthoringMetadata();
+  auto rejects = [&](const char* label, auto mutate) {
+    SCOPED_TRACE(label);
+    auto bad = fixture.bytes;
+    mutate(bad);
+    Reseal(&bad, fixture.rows);
+    EXPECT_EQ(rom::InspectLyraLayout(bad.data(), bad.size()).presence,
+              rom::LyraLayoutPresence::kInvalid);
+  };
+  rejects("metadata without flag", [](auto& b) { b[0x147015] = 0x1C; });
+  rejects("unknown flag", [](auto& b) { b[0x147015] |= 0x40; });
+  rejects("native3 cannot acquire metadata", [&](auto& b) { b[0x147008] = 3; });
+  rejects("wrong kind", [&](auto& b) { b[fixture.EntryPc(412) + 2] = 8; });
+  rejects("wrong count", [&](auto& b) { b[fixture.EntryPc(412) + 8] = 0xFF; });
+  rejects("wrong stride", [&](auto& b) { b[fixture.EntryPc(412) + 10] = 31; });
+  rejects("malformed codec with valid CRC",
+          [&](auto& b) { b[fixture.Entry(412).pc_address + 20] = 1; });
+  rejects("metadata aliases appearance", [&](auto& b) {
+    Put32(&b, fixture.EntryPc(412) + 4, fixture.Entry(411).snes_address);
+  });
+}
+
+TEST(LyraLayoutDescriptorTest,
+     Revision4AuthoringDamagedMagicRemainsAttributedAfterReorder) {
+  for (uint16_t capacity : {160, 192}) {
+    NativeDirectoryFixture fixture(capacity);
+    fixture.UpgradeToRevision4();
+    fixture.AddAuthoringMetadata();
+    std::reverse(fixture.rows.entries.begin(), fixture.rows.entries.end());
+    fixture.Seal();
+    const auto ok =
+        rom::InspectLyraLayout(fixture.bytes.data(), fixture.bytes.size());
+    ASSERT_EQ(ok.presence, rom::LyraLayoutPresence::kValid) << ok.error;
+    fixture.bytes[0x147000] = 'X';
+    const auto bad =
+        rom::InspectLyraLayout(fixture.bytes.data(), fixture.bytes.size());
+    EXPECT_EQ(bad.presence, rom::LyraLayoutPresence::kInvalid);
+  }
 }
 
 TEST(LyraLayoutDescriptorTest,

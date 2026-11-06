@@ -1,4 +1,5 @@
 #include "rom/lyra_layout_descriptor.h"
+#include "rom/native_overworld_authoring_metadata.h"
 #include "rom/native_overworld_storage.h"
 
 #include <algorithm>
@@ -254,7 +255,7 @@ bool CheckSpritePointer(const uint8_t* image, size_t size, uint16_t word) {
 }
 
 std::optional<EntrySpec> NativeSpec(uint16_t id, uint16_t capacity,
-                                    uint16_t revision) {
+                                    uint16_t revision, bool authoring) {
   constexpr std::array<uint16_t, 39> kStrides = {
       2, 1, 1, 1, 2, 8, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3,
       3, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
@@ -280,6 +281,8 @@ std::optional<EntrySpec> NativeSpec(uint16_t id, uint16_t capacity,
     return EntrySpec{id, 8, capacity, 1};
   if (revision == 4 && id == 411)
     return EntrySpec{id, 8, 64, 256};
+  if (revision == 4 && authoring && id == kNativeAuthoringMetadataTableId)
+    return EntrySpec{id, 9, 256, kNativeAuthoringMetadataStride};
   return std::nullopt;
 }
 
@@ -290,9 +293,12 @@ LyraLayoutInspection InspectNativeLayout(const uint8_t* image, size_t size,
   auto bad = [&](std::string error) {
     return Invalid(std::move(error), revision, capacity, materialized);
   };
-  const size_t kNativeEntryCount = revision == 4 ? 56 : 54;
+  const bool authoring =
+      revision == 4 && (d[0x15] & kNativeAuthoringMetadataFlag) != 0;
+  const size_t kNativeEntryCount = revision == 4 ? (authoring ? 57 : 56) : 54;
   const size_t kUsedSize = kHeaderSize + kNativeEntryCount * kEntrySize;
-  const uint8_t expected_flags = revision == 4 ? 0x1C : 0x0C;
+  const uint8_t expected_flags =
+      revision == 4 ? (authoring ? 0x3C : 0x1C) : 0x0C;
   if (U16(d + 8) != revision || U16(d + 0x0A) != kHeaderSize ||
       U16(d + 0x0C) != kUsedSize || U16(d + 0x12) != kNativeEntryCount) {
     return bad("Invalid native special-overworld directory size");
@@ -329,7 +335,7 @@ LyraLayoutInspection InspectNativeLayout(const uint8_t* image, size_t size,
     const uint8_t* p = d + kHeaderSize + i * kEntrySize;
     LyraLayoutEntry e{U16(p),     U16(p + 2),  U32(p + 4), 0,
                       U16(p + 8), U16(p + 10), U32(p + 12)};
-    const auto spec = NativeSpec(e.id, capacity, revision);
+    const auto spec = NativeSpec(e.id, capacity, revision, authoring);
     if (!spec || e.kind != spec->kind || e.stride != spec->stride ||
         e.count == 0 || (spec->count != 0 && e.count != spec->count) ||
         FindEntry(result, e.id) != nullptr) {
@@ -365,7 +371,8 @@ LyraLayoutInspection InspectNativeLayout(const uint8_t* image, size_t size,
       return bad("Native special-overworld data CRC mismatch");
     result.entries.push_back(e);
   }
-  // All 54 unique recognized IDs are required; directory order is not an ABI.
+  // The exact capability-specific set of unique IDs is required; directory
+  // order is not an ABI.
   const auto& parents = *FindEntry(result, 7);
   const auto& roles = *FindEntry(result, 29);
   const auto& sizes = *FindEntry(result, 30);
@@ -517,6 +524,18 @@ LyraLayoutInspection InspectNativeLayout(const uint8_t* image, size_t size,
     for (size_t word = 0; word < 64 * 128; ++word)
       if (U16(image + pal_rows->pc_address + word * 2) > 0x7FFF)
         return bad("Native revision-4 palette word out of range");
+    if (authoring) {
+      const auto* metadata = FindEntry(result, kNativeAuthoringMetadataTableId);
+      if (!metadata)
+        return bad("Native authoring metadata record missing");
+      const auto decoded = DecodeNativeOverworldAuthoringMetadata(
+          {image + metadata->pc_address,
+           static_cast<size_t>(metadata->count) * metadata->stride},
+          materialized);
+      if (!decoded.ok())
+        return bad(std::string(decoded.status().message()));
+      result.has_authoring_metadata = true;
+    }
   }
   return result;
 }
@@ -546,9 +565,11 @@ LyraLayoutInspection InspectLyraLayout(const uint8_t* image, size_t size) {
       U16(d + 0x10) == U16(d + 0x0E) && U16(d + 0x12) == 54 && d[0x15] == 0x0C;
   const bool native_header_rev4 =
       available == kDescriptorSize && U16(d + 8) == 4 &&
-      U16(d + 0x0A) == kHeaderSize && U16(d + 0x0C) == 928 &&
+      U16(d + 0x0A) == kHeaderSize &&
       (U16(d + 0x0E) == 160 || U16(d + 0x0E) == 192) &&
-      U16(d + 0x10) == U16(d + 0x0E) && U16(d + 0x12) == 56 && d[0x15] == 0x1C;
+      U16(d + 0x10) == U16(d + 0x0E) &&
+      ((U16(d + 0x0C) == 928 && U16(d + 0x12) == 56 && d[0x15] == 0x1C) ||
+       (U16(d + 0x0C) == 944 && U16(d + 0x12) == 57 && d[0x15] == 0x3C));
   bool native_fingerprint = false;
   if (native_header_rev3 || native_header_rev4) {
     auto has_record = [&](uint16_t id, uint16_t kind, uint16_t count,
@@ -568,6 +589,10 @@ LyraLayoutInspection InspectLyraLayout(const uint8_t* image, size_t size) {
     if (native_header_rev4) {
       native_fingerprint = native_fingerprint && has_record(410, 8, cap, 1) &&
                            has_record(411, 8, 64, 256);
+      if ((d[0x15] & kNativeAuthoringMetadataFlag) != 0)
+        native_fingerprint = native_fingerprint &&
+                             has_record(kNativeAuthoringMetadataTableId, 9, 256,
+                                        kNativeAuthoringMetadataStride);
     }
   }
   if (!signature_prefix && !legacy_fingerprint && !native_fingerprint) {
