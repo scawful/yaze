@@ -74,6 +74,37 @@ absl::StatusOr<nlohmann::json> BuildGeminiToolPayload(
   return ToolSchemaBuilder::BuildGeminiTools(*declarations_or);
 }
 
+#if defined(YAZE_WITH_JSON) && !defined(YAZE_AI_IOS_URLSESSION)
+struct CurlResult {
+  std::string output;
+  int exit_status = 0;
+};
+
+absl::StatusOr<CurlResult> RunCurlCommand(const std::string& curl_cmd) {
+#ifdef _WIN32
+  FILE* pipe = _popen(curl_cmd.c_str(), "r");
+#else
+  FILE* pipe = popen(curl_cmd.c_str(), "r");
+#endif
+  if (!pipe) {
+    return absl::InternalError("Failed to execute curl command");
+  }
+
+  CurlResult result;
+  char buffer[4096];
+  while (fgets(buffer, sizeof(buffer), pipe) != nullptr) {
+    result.output += buffer;
+  }
+
+#ifdef _WIN32
+  result.exit_status = _pclose(pipe);
+#else
+  result.exit_status = pclose(pipe);
+#endif
+  return result;
+}
+#endif
+
 }  // namespace
 
 GeminiAIService::GeminiAIService(const GeminiConfig& config)
@@ -230,25 +261,11 @@ absl::StatusOr<std::vector<ModelInfo>> GeminiAIService::ListAvailableModels() {
     // Use curl to list models from the API
     std::string curl_cmd = "curl -s -X GET '" + endpoint + "' 2>&1";
 
-#ifdef _WIN32
-    FILE* pipe = _popen(curl_cmd.c_str(), "r");
-#else
-    FILE* pipe = popen(curl_cmd.c_str(), "r");
-#endif
-    if (!pipe) {
-      return absl::InternalError("Failed to execute curl command");
+    auto curl_or = RunCurlCommand(curl_cmd);
+    if (!curl_or.ok()) {
+      return curl_or.status();
     }
-
-    char buffer[4096];
-    while (fgets(buffer, sizeof(buffer), pipe) != nullptr) {
-      response_str += buffer;
-    }
-
-#ifdef _WIN32
-    _pclose(pipe);
-#else
-    pclose(pipe);
-#endif
+    response_str = std::move(curl_or->output);
 #endif  // YAZE_AI_IOS_URLSESSION
 
     auto models_json = nlohmann::json::parse(response_str, nullptr, false);
@@ -530,30 +547,16 @@ absl::StatusOr<AgentResponse> GeminiAIService::GenerateResponse(
       std::cerr << "[DEBUG] Executing API request..." << std::endl;
     }
 
-#ifdef _WIN32
-    FILE* pipe = _popen(curl_cmd.c_str(), "r");
-#else
-    FILE* pipe = popen(curl_cmd.c_str(), "r");
-#endif
-    if (!pipe) {
-      return absl::InternalError("Failed to execute curl command");
+    auto curl_or = RunCurlCommand(curl_cmd);
+    if (!curl_or.ok()) {
+      return curl_or.status();
     }
-
-    char buffer[4096];
-    while (fgets(buffer, sizeof(buffer), pipe) != nullptr) {
-      response_str += buffer;
-    }
-
-#ifdef _WIN32
-    int status = _pclose(pipe);
-#else
-    int status = pclose(pipe);
-#endif
+    response_str = std::move(curl_or->output);
     std::remove(temp_file.c_str());
 
-    if (status != 0) {
+    if (curl_or->exit_status != 0) {
       return absl::InternalError(
-          absl::StrCat("Curl failed with status ", status));
+          absl::StrCat("Curl failed with status ", curl_or->exit_status));
     }
 #endif  // YAZE_AI_IOS_URLSESSION
 
@@ -909,30 +912,16 @@ absl::StatusOr<AgentResponse> GeminiAIService::GenerateMultimodalResponse(
       std::cerr << "[DEBUG] Executing multimodal API request..." << std::endl;
     }
 
-#ifdef _WIN32
-    FILE* pipe = _popen(curl_cmd.c_str(), "r");
-#else
-    FILE* pipe = popen(curl_cmd.c_str(), "r");
-#endif
-    if (!pipe) {
-      return absl::InternalError("Failed to execute curl command");
+    auto curl_or = RunCurlCommand(curl_cmd);
+    if (!curl_or.ok()) {
+      return curl_or.status();
     }
-
-    char buffer[4096];
-    while (fgets(buffer, sizeof(buffer), pipe) != nullptr) {
-      response_str += buffer;
-    }
-
-#ifdef _WIN32
-    int status = _pclose(pipe);
-#else
-    int status = pclose(pipe);
-#endif
+    response_str = std::move(curl_or->output);
     std::remove(temp_file.c_str());
 
-    if (status != 0) {
+    if (curl_or->exit_status != 0) {
       return absl::InternalError(
-          absl::StrCat("Curl failed with status ", status));
+          absl::StrCat("Curl failed with status ", curl_or->exit_status));
     }
 #endif  // YAZE_AI_IOS_URLSESSION
 
