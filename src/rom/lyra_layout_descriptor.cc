@@ -1,6 +1,7 @@
 #include "rom/lyra_layout_descriptor.h"
 #include "rom/native_overworld_authoring_metadata.h"
 #include "rom/native_overworld_storage.h"
+#include "util/macro.h"
 
 #include <algorithm>
 #include <array>
