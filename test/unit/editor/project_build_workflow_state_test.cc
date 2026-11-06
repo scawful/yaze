@@ -557,8 +557,9 @@ TEST_F(ProjectBuildWorkflowStateTest,
   ASSERT_TRUE(before.ok());
   const auto rejected = Control("project.build", wrong);
   EXPECT_EQ(rejected.at("http_status"), 409);
-  EXPECT_EQ(core::ComputeSourceArtifactFileSha256(files.output).value(),
-            *before);
+  const auto after = core::ComputeSourceArtifactFileSha256(files.output);
+  ASSERT_TRUE(after.ok());
+  EXPECT_EQ(*after, *before);
 
   const auto saved = Control("project.save", expected);
   ASSERT_EQ(saved.at("status"), "ok") << saved.dump();
