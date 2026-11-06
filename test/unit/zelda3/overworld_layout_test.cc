@@ -176,6 +176,25 @@ TEST(OverworldLayoutTest, MissingEaMarkerDoesNotRestoreLegacyWriterPermission) {
   EXPECT_EQ(rom.vector(), before);
 }
 
+TEST(OverworldLayoutTest, TruncatedEaImageCannotMasqueradeAsSmallVanillaRom) {
+  Rom rom = MakeZsV3AllocationRom();
+  InstallValidatedEaTail(rom);
+  auto bytes = rom.vector();
+  bytes.resize(0x100000);
+  Rom truncated;
+  ASSERT_TRUE(truncated.LoadFromData(bytes).ok());
+  const auto layout =
+      InspectOverworldLayout(truncated, OverworldLayoutOptions::Defaults());
+  EXPECT_TRUE(layout.ea_loader_operands_present);
+  EXPECT_FALSE(layout
+                   .CheckOperation(OverworldLayoutDomain::kTerrainPointers,
+                                   OverworldLayoutOperation::kInspect, -1, 0)
+                   .ok());
+  Overworld overworld(&truncated);
+  EXPECT_FALSE(overworld.SaveMap32Expanded().ok());
+  EXPECT_EQ(truncated.vector(), bytes);
+}
+
 TEST(OverworldLayoutTest, RejectsInvalidSnesPointersAndOverlongMapStreams) {
   Rom rom = MakeZsV3AllocationRom();
   InstallValidatedEaTail(rom);

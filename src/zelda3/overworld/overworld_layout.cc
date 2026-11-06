@@ -554,16 +554,15 @@ OverworldLayout InspectOverworldLayout(const Rom& rom,
   const TailMapExpansionPlan plan;
   // Loader operands remain authoritative when the marker is removed. Do not
   // revert to legacy writes while any loader still reads the relocated tables.
-  if (layout.supports_area_enum && zscream::CanUseTailExpansion(rom) &&
-      ValidateEaPointerTableSpan(rom, high_pc, low_pc, kExpandedMapCount)) {
-    for (size_t i = 0; i < plan.operand_snes.size(); ++i) {
-      const uint32_t current =
-          ReadLongOrZero(rom, static_cast<int>(SnesToPc(plan.operand_snes[i])));
-      const int expected = (i % 4 < 2 ? high_pc : low_pc) + (i % 2);
-      if (IsRomSnesAddress(current) &&
-          SnesToPc(current) == static_cast<uint32_t>(expected)) {
-        layout.ea_loader_operands_present = true;
-      }
+  for (size_t i = 0; i < plan.operand_snes.size(); ++i) {
+    const uint32_t current =
+        ReadLongOrZero(rom, static_cast<int>(SnesToPc(plan.operand_snes[i])));
+    const int64_t expected =
+        static_cast<int64_t>(i % 4 < 2 ? high_pc : low_pc) + (i % 2);
+    if (IsRomSnesAddress(current) &&
+        (static_cast<int64_t>(SnesToPc(current)) == expected ||
+         SnesToPc(current) == SnesToPc(plan.operand_patched[i]))) {
+      layout.ea_loader_operands_present = true;
     }
   }
   layout.ea_tail_tables_in_rom =
