@@ -10,6 +10,7 @@
 #include "zelda3/dungeon/custom_collision.h"
 #include "zelda3/dungeon/room.h"
 #include "zelda3/dungeon/room_object.h"
+#include "zelda3/resource_labels.h"
 
 namespace yaze {
 namespace cli {
@@ -266,7 +267,8 @@ absl::Status DungeonMapCommandHandler::Execute(
   zelda3::Room room = zelda3::LoadRoomFromRom(rom, room_id);
 
   // Initialize grid with floor tiles
-  std::vector<std::string> grid(kRoomHeight, std::string(kRoomWidth, kCharFloor));
+  std::vector<std::string> grid(kRoomHeight,
+                                std::string(kRoomWidth, kCharFloor));
 
   // Add border walls
   for (int x = 0; x < kRoomWidth; ++x) {
@@ -299,12 +301,12 @@ absl::Status DungeonMapCommandHandler::Execute(
   // Output
   formatter.BeginObject("dungeon_map");
   formatter.AddField("room_id", absl::StrFormat("0x%02X", room_id));
-  formatter.AddField("room_name", std::string(zelda3::kRoomNames[room_id]));
+  formatter.AddField("room_name", zelda3::GetRoomLabel(room_id));
   formatter.AddField("width", kRoomWidth);
   formatter.AddField("height", kRoomHeight);
-  formatter.AddField("layer_filter",
-                     layer_filter >= 0 ? absl::StrFormat("%d", layer_filter)
-                                       : "all");
+  formatter.AddField("layer_filter", layer_filter >= 0
+                                         ? absl::StrFormat("%d", layer_filter)
+                                         : "all");
   formatter.AddField("object_count", static_cast<int>(objects.size()));
   formatter.AddField("door_count", static_cast<int>(room.GetDoors().size()));
 

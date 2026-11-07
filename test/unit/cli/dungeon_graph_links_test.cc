@@ -14,6 +14,7 @@
 #include <gtest/gtest.h>
 #include <nlohmann/json.hpp>
 
+#include "absl/cleanup/cleanup.h"
 #include "cli/handlers/game/dungeon_census_commands.h"
 #include "cli/handlers/game/dungeon_commands.h"
 #include "cli/handlers/game/dungeon_graph_commands.h"
@@ -26,6 +27,7 @@
 #include "zelda3/dungeon/room_census.h"
 #include "zelda3/dungeon/room_entrance.h"
 #include "zelda3/dungeon/room_links.h"
+#include "zelda3/resource_labels.h"
 
 namespace yaze::cli {
 namespace {
@@ -151,6 +153,36 @@ TEST_F(DungeonGraphLinksTest, EntranceTablesMatchTheGame) {
     }
   }
   EXPECT_TRUE(entrance_5);
+}
+
+TEST_F(DungeonGraphLinksTest, GraphCommandsUseProjectRoomNames) {
+  auto& labels = zelda3::GetResourceLabels();
+  const auto previous = labels.SnapshotState();
+  absl::Cleanup restore = [&] {
+    labels.RestoreState(previous);
+  };
+  zelda3::ResourceLabelProvider::ProjectLabels project_labels = {
+      {"room", {{"32", "Oracle Project Room"}}}};
+  labels.SetHackManifest(nullptr);
+  labels.SetProjectLabels(&project_labels);
+
+  auto expect_name = [](const nlohmann::json& rooms) {
+    for (const auto& room : rooms) {
+      if (room.at("room_id") == "0x020") {
+        EXPECT_EQ(room.at("name"), "Oracle Project Room");
+        return;
+      }
+    }
+    FAIL() << "Expected room 0x020 in graph";
+  };
+
+  handlers::DungeonGraphCommandHandler graph;
+  expect_name(Run(graph, {"--room=0x20"}, "dungeon_graph").at("nodes"));
+  handlers::DungeonDiscoverCommandHandler discover;
+  expect_name(
+      Run(discover, {"--entrance=0x05"}, "discovery").at("discovered_rooms"));
+  handlers::DungeonRoomGraphCommandHandler room_graph;
+  expect_name(Run(room_graph, {"--entrance=0x05"}, "room_graph").at("rooms"));
 }
 
 TEST_F(DungeonGraphLinksTest, EntranceCommandsRejectMalformedAndWrappedIds) {

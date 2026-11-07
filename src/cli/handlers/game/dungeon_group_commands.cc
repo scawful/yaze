@@ -12,6 +12,8 @@
 #include "zelda3/dungeon/dungeon_spawn_point.h"
 #include "zelda3/dungeon/room.h"
 #include "zelda3/dungeon/room_entrance.h"
+#include "zelda3/dungeon/room_links.h"
+#include "zelda3/resource_labels.h"
 
 namespace yaze {
 namespace cli {
@@ -228,9 +230,8 @@ absl::Status DungeonGroupCommandHandler::Execute(
       for (int room_id : info.rooms) {
         formatter.BeginObject();
         formatter.AddField("id", absl::StrFormat("0x%02X", room_id));
-        // Bounds check for kRoomNames (array size is 297)
-        if (room_id >= 0 && room_id < 297) {
-          formatter.AddField("name", std::string(zelda3::kRoomNames[room_id]));
+        if (zelda3::IsDungeonRoomId(room_id)) {
+          formatter.AddField("name", zelda3::GetRoomLabel(room_id));
         } else {
           formatter.AddField("name", absl::StrFormat("Room 0x%02X", room_id));
         }

@@ -23,6 +23,7 @@
 #include "zelda3/dungeon/room_entrance.h"
 #include "zelda3/dungeon/room_header_destination.h"
 #include "zelda3/dungeon/room_links.h"
+#include "zelda3/resource_labels.h"
 
 namespace yaze {
 namespace cli {
@@ -43,7 +44,7 @@ std::string RoomHex(int room_id) {
 
 std::string RoomName(int room_id) {
   if (zelda3::IsDungeonRoomId(room_id)) {
-    return std::string(zelda3::kRoomNames[room_id]);
+    return zelda3::GetRoomLabel(room_id);
   }
   return absl::StrFormat("Room 0x%03X", room_id);
 }
