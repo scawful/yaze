@@ -2,6 +2,11 @@ name: Web Build & Deploy
 
 on:
   workflow_dispatch:
+    inputs:
+      deploy:
+        description: 'Deploy the verified artifact to GitHub Pages'
+        type: boolean
+        default: false
   push:
     branches: [ master, main ]
     paths:
@@ -28,11 +33,6 @@ jobs:
     runs-on: ubuntu-22.04
     permissions:
       contents: read
-      pages: write
-      id-token: write
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
 
     steps:
       - name: Checkout code
@@ -204,14 +204,26 @@ jobs:
           done
           YAZE_WASM_URL=http://127.0.0.1:8000 npx playwright test playwright-wasm-smoke.spec.js --workers=1
 
-      # --- Deploy ---
-      - name: Setup Pages
-        uses: actions/configure-pages@v4
-
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
           path: build/presets/wasm-ai/dist/
+
+  deploy:
+    # Pushes keep publishing; manual runs build an artifact unless requested.
+    if: github.event_name != 'workflow_dispatch' || inputs.deploy
+    needs: build-deploy
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
 
       - name: Deploy to GitHub Pages
         id: deployment

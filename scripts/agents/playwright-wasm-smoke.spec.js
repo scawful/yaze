@@ -229,6 +229,9 @@ test.describe('yaze wasm smoke', () => {
             passed: testResults?.passed ?? 0,
             skipped: testResults?.skipped ?? 0,
             total: testResults?.total ?? 0,
+            failures: (testResults?.results || [])
+              .filter((result) => result.status === 'FAIL')
+              .map((result) => result.name),
             error: null
           };
         } catch (e) {
@@ -244,6 +247,9 @@ test.describe('yaze wasm smoke', () => {
       console.log('Debug API test error:', results.error);
     }
     console.log(`Debug API tests: ${results.passed} passed, ${results.failed} failed, ${results.skipped || 0} skipped`);
+    for (const name of results.failures || []) {
+      console.log(`Debug API failure: ${name}`);
+    }
     expect(results.error).toBeNull();
     const totalChecks =
       results.total ||

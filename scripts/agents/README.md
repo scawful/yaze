@@ -83,6 +83,9 @@ Usage examples:
 # Trigger CI workflow with artifacts and HTTP API tests enabled
 scripts/agents/run-gh-workflow.sh ci.yml --ref develop upload_artifacts=true enable_http_api_tests=true
 
+# Build the production web package without publishing it
+scripts/agents/run-gh-workflow.sh web-build.yml --ref <branch> deploy=false
+
 # Get the status of a workflow run (using either a URL or just the ID)
 scripts/agents/get-gh-workflow-status.sh https://github.com/scawful/yaze/actions/runs/19529930066
 scripts/agents/get-gh-workflow-status.sh 19529930066
