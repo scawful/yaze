@@ -1541,7 +1541,7 @@ static void RegisterLyraTerrainReopenTest(ImGuiTestEngine* engine) {
   ImGuiTestEngine_QueueTest(engine, test, ImGuiTestRunFlags_RunFromCommandLine);
 }
 
-// Optional native P0: normal-map ROM paint, save, build/run via project drawer.
+// Optional native P0: ROM terrain paint, save, build/run via project drawer.
 // Root drives startup via YAZE_BUILD_RUN_ACCEPTANCE_PROJECT and
 // build-run-native.json (phase edit|reopen); receipts live in the project dir.
 static void RegisterBuildRunAcceptanceTest(ImGuiTestEngine* engine) {
@@ -1583,7 +1583,7 @@ static void RegisterBuildRunAcceptanceTest(ImGuiTestEngine* engine) {
     const int local_y = fixture.value("y", -1);
     const int brush_id = fixture.value("brush_id", -1);
     const int original_tile = fixture.value("original_tile", -1);
-    IM_CHECK(map_id >= 0 && map_id <= 0x7F);
+    IM_CHECK(map_id >= 0 && map_id < zelda3::kExpandedMapCount);
     IM_CHECK(local_x >= 0 && local_x < 32 && local_y >= 0 && local_y < 32);
     IM_CHECK(brush_id >= 0 && brush_id <= 0xFFF);
     IM_CHECK(original_tile >= 0 && original_tile <= 0xFFF);
@@ -1686,6 +1686,7 @@ static void RegisterBuildRunAcceptanceTest(ImGuiTestEngine* engine) {
     }
     IM_CHECK(overworld && overworld->overworld().is_loaded());
     IM_CHECK(!overworld->lyra_canvas_.loaded());
+    IM_CHECK(map_id < overworld->overworld().materialized_map_count());
 
     auto& canvas = overworld->ow_map_canvas();
     canvas.set_global_scale(1.0f);
@@ -1915,6 +1916,7 @@ static void RegisterBuildRunAcceptanceTest(ImGuiTestEngine* engine) {
         {"rom_sha256", saved_rom_sha256},
         {"loaded_rom_sha256", core::ComputeSourceArtifactSha256(rom_view())},
         {"map_id", map_id},
+        {"map_capacity", overworld->overworld().materialized_map_count()},
         {"local_x", local_x},
         {"local_y", local_y},
         {"world_x", world_x},
