@@ -1697,6 +1697,15 @@ static void RegisterBuildRunAcceptanceTest(ImGuiTestEngine* engine) {
     IM_CHECK(!overworld->lyra_canvas_.loaded());
     IM_CHECK(map_id < overworld->overworld().materialized_map_count());
 
+    const auto selector_window =
+        manager->window_manager().GetWorkspaceWindowName(
+            manager->GetCurrentSessionId(), "overworld.tile16_selector");
+    ctx->SetRef(selector_window.c_str());
+    IM_CHECK(ctx->GetWindowByRef("") != nullptr);
+    ctx->WindowFocus("");
+    ctx->Yield(3);
+    IM_CHECK(!ctx->GetWindowByRef("")->Hidden);
+
     auto& canvas = overworld->ow_map_canvas();
     canvas.set_global_scale(1.0f);
     overworld->LocateOverworldTile(map_id, world_x, world_y);
@@ -1708,6 +1717,9 @@ static void RegisterBuildRunAcceptanceTest(ImGuiTestEngine* engine) {
       return ImVec2(origin.x + scrolling.x + (world_x + 0.5f) * cell,
                     origin.y + scrolling.y + (world_y + 0.5f) * cell);
     };
+    const auto canvas_window = manager->window_manager().GetWorkspaceWindowName(
+        manager->GetCurrentSessionId(), "overworld.canvas");
+    ctx->SetRef(canvas_window.c_str());
     auto terrain = ctx->ItemInfo("**/OwMap");
     IM_CHECK(terrain.ID != 0 && terrain.Window != nullptr);
     IM_CHECK(terrain.RectClipped.Contains(cell_center()));
@@ -1782,16 +1794,6 @@ static void RegisterBuildRunAcceptanceTest(ImGuiTestEngine* engine) {
       const auto before_png = project_directory / "build-run-canvas-before.png";
       const bool shot_before = queue_capture(before_png);
 
-      manager->OpenEditorAndPanelsFromFlags("Overworld",
-                                            "overworld.tile16_selector");
-      ctx->Yield(3);
-      const auto selector_window =
-          manager->window_manager().GetWorkspaceWindowName(
-              manager->GetCurrentSessionId(), "overworld.tile16_selector");
-      ctx->SetRef(selector_window.c_str());
-      IM_CHECK(ctx->GetWindowByRef("") != nullptr);
-      ctx->WindowFocus("");
-      ctx->Yield(3);
       const ImGuiID lookup = visible_widget("OwBlocksetSelector/button:Lookup");
       IM_CHECK(lookup != 0);
       ctx->ItemClick(lookup);
@@ -1926,6 +1928,7 @@ static void RegisterBuildRunAcceptanceTest(ImGuiTestEngine* engine) {
         {"loaded_rom_sha256", core::ComputeSourceArtifactSha256(rom_view())},
         {"map_id", map_id},
         {"map_capacity", overworld->overworld().materialized_map_count()},
+        {"selector_window", selector_window},
         {"local_x", local_x},
         {"local_y", local_y},
         {"world_x", world_x},
