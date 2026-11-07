@@ -184,6 +184,14 @@ TEST_F(DungeonGraphLinksTest, GraphCommandsUseProjectRoomNames) {
       Run(discover, {"--entrance=0x05"}, "discovery").at("discovered_rooms"));
   handlers::DungeonRoomGraphCommandHandler room_graph;
   expect_name(Run(room_graph, {"--entrance=0x05"}, "room_graph").at("rooms"));
+
+  handlers::DungeonDescribeRoomCommandHandler describe;
+  std::string described;
+  ASSERT_TRUE(
+      describe.Run({"--room=0x20", "--format=json"}, &rom_, &described).ok());
+  const auto description = nlohmann::json::parse(described);
+  EXPECT_EQ(description.at("name"), "Oracle Project Room");
+  EXPECT_EQ(description.at("room_name"), "Oracle Project Room");
 }
 
 TEST_F(DungeonGraphLinksTest, ResourceExportsResolveProjectRoomOverrides) {

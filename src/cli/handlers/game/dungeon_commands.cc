@@ -387,8 +387,9 @@ absl::Status DungeonDescribeRoomCommandHandler::Execute(
   const auto& tile_objects = room.GetTileObjects();
 
   formatter.AddField("status", "success");
-  formatter.AddField("name", absl::StrFormat("Room %d", room.id()));
-  formatter.AddField("room_name", zelda3::GetRoomLabel(room.id()));
+  const std::string room_name = zelda3::GetRoomLabel(room.id());
+  formatter.AddField("name", room_name);
+  formatter.AddField("room_name", room_name);
   formatter.AddField("room_id", room.id());
   formatter.AddField("room_type", "Dungeon Room");
 
