@@ -621,7 +621,8 @@ std::string WasmControlApi::SwitchEditor(const std::string& editor_name) {
     return result.dump();
   }
   
-  editor_manager_->SwitchToEditor(static_cast<editor::EditorType>(editor_type));
+  editor_manager_->SwitchToEditor(static_cast<editor::EditorType>(editor_type),
+                                 /*force_visible=*/true);
   
   result["success"] = true;
   result["editor"] = editor_name;
