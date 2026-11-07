@@ -1,6 +1,12 @@
 #include "cli/service/resources/resource_context_builder.h"
 
+#include <charconv>
 #include <sstream>
+#include <string_view>
+
+#include <nlohmann/json.hpp>
+
+#include "zelda3/resource_labels.h"
 
 namespace yaze {
 namespace cli {
@@ -113,18 +119,16 @@ std::string ResourceContextBuilder::ExtractRoomLabels() {
     return "Rooms: (ROM not loaded)\n";
   }
 
-  auto* label_mgr = rom_->resource_label();
-  if (!label_mgr || !label_mgr->labels_loaded_) {
+  auto labels = GetLabels("room");
+  if (!labels.ok()) {
     return "Rooms: (No labels file loaded)\n";
   }
 
   std::ostringstream oss;
   oss << "Rooms:\n";
 
-  // Check if "room" labels exist
-  auto it = label_mgr->labels_.find("room");
-  if (it != label_mgr->labels_.end()) {
-    for (const auto& [key, value] : it->second) {
+  if (!labels->empty()) {
+    for (const auto& [key, value] : *labels) {
       oss << "  - " << key << ": \"" << value << "\"\n";
     }
   } else {
@@ -204,21 +208,41 @@ ResourceContextBuilder::GetLabels(const std::string& category) {
     return absl::FailedPreconditionError("ROM not loaded");
   }
 
+  auto& provider = zelda3::GetResourceLabels();
+  const auto* labels = provider.GetAllProjectLabels();
+  const bool project_labels = labels != nullptr;
   auto* label_mgr = rom_->resource_label();
-  if (!label_mgr) {
-    return absl::FailedPreconditionError("No resource label manager");
+  if (!labels && label_mgr && label_mgr->labels_loaded_) {
+    labels = &label_mgr->labels_;
   }
-
-  if (!label_mgr->labels_loaded_) {
+  if (!labels) {
     return absl::FailedPreconditionError("No labels file loaded");
   }
 
   std::map<std::string, std::string> result;
 
-  auto it = label_mgr->labels_.find(category);
-  if (it != label_mgr->labels_.end()) {
+  auto it = labels->find(category);
+  if (it != labels->end()) {
     for (const auto& [key, value] : it->second) {
       result[key] = value;
+      if (project_labels && category == "room") {
+        std::string_view digits(key);
+        int base = 10;
+        if (digits.starts_with("0x") || digits.starts_with("0X")) {
+          digits.remove_prefix(2);
+          base = 16;
+        } else if (digits.starts_with('$')) {
+          digits.remove_prefix(1);
+          base = 16;
+        }
+        int id = 0;
+        const auto parsed = std::from_chars(
+            digits.data(), digits.data() + digits.size(), id, base);
+        if (parsed.ec == std::errc() &&
+            parsed.ptr == digits.data() + digits.size()) {
+          result[key] = provider.GetLabel(zelda3::ResourceType::kRoom, id);
+        }
+      }
     }
   }
 
@@ -230,37 +254,23 @@ absl::StatusOr<std::string> ResourceContextBuilder::ExportToJson() {
     return absl::InvalidArgumentError("ROM not loaded");
   }
 
+  const auto* labels = zelda3::GetResourceLabels().GetAllProjectLabels();
   auto* label_mgr = rom_->resource_label();
-  if (!label_mgr || !label_mgr->labels_loaded_) {
+  if (!labels && label_mgr && label_mgr->labels_loaded_) {
+    labels = &label_mgr->labels_;
+  }
+  if (!labels) {
     return absl::InvalidArgumentError("No labels file loaded");
   }
-
-  std::ostringstream json;
-  json << "{\n";
-
-  bool first_category = true;
-  for (const auto& [category, labels] : label_mgr->labels_) {
-    if (!first_category)
-      json << ",\n";
-    first_category = false;
-
-    json << "  \"" << category << "\": {\n";
-
-    bool first_label = true;
-    for (const auto& [key, value] : labels) {
-      if (!first_label)
-        json << ",\n";
-      first_label = false;
-
-      json << "    \"" << key << "\": \"" << value << "\"";
+  nlohmann::json output = nlohmann::json::object();
+  for (const auto& [category, unused] : *labels) {
+    auto resolved = GetLabels(category);
+    if (!resolved.ok()) {
+      return resolved.status();
     }
-
-    json << "\n  }";
+    output[category] = *resolved;
   }
-
-  json << "\n}\n";
-
-  return json.str();
+  return output.dump(2) + "\n";
 }
 
 }  // namespace cli

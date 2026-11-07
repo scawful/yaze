@@ -18,6 +18,7 @@
 #include "cli/handlers/game/dungeon_census_commands.h"
 #include "cli/handlers/game/dungeon_commands.h"
 #include "cli/handlers/game/dungeon_graph_commands.h"
+#include "cli/service/resources/resource_context_builder.h"
 #include "rom/rom.h"
 #include "rom/snes.h"
 #include "test_utils/expanded_entrance_fixture.h"
@@ -183,6 +184,34 @@ TEST_F(DungeonGraphLinksTest, GraphCommandsUseProjectRoomNames) {
       Run(discover, {"--entrance=0x05"}, "discovery").at("discovered_rooms"));
   handlers::DungeonRoomGraphCommandHandler room_graph;
   expect_name(Run(room_graph, {"--entrance=0x05"}, "room_graph").at("rooms"));
+}
+
+TEST_F(DungeonGraphLinksTest, ResourceExportsResolveProjectRoomOverrides) {
+  auto& labels = zelda3::GetResourceLabels();
+  const auto previous = labels.SnapshotState();
+  absl::Cleanup restore = [&] {
+    labels.RestoreState(previous);
+  };
+  zelda3::ResourceLabelProvider::ProjectLabels project_labels = {
+      {"room", {{"116", "Old Room"}, {"0x75", "Power Key Chamber"}}},
+      {"room_override", {{"116", "Oracle \"Power\" Room"}}}};
+  labels.SetHackManifest(nullptr);
+  labels.SetProjectLabels(&project_labels);
+  ASSERT_FALSE(rom_.resource_label()->labels_loaded_);
+
+  ResourceContextBuilder builder(&rom_);
+  const auto rooms = builder.GetLabels("room");
+  ASSERT_TRUE(rooms.ok()) << rooms.status();
+  EXPECT_EQ(rooms->at("116"), "Oracle \"Power\" Room");
+  EXPECT_EQ(rooms->at("0x75"), "Power Key Chamber");
+  const auto exported = builder.ExportToJson();
+  ASSERT_TRUE(exported.ok()) << exported.status();
+  const auto parsed = nlohmann::json::parse(*exported);
+  EXPECT_EQ(parsed.at("room").at("116"), "Oracle \"Power\" Room");
+  const auto context = builder.BuildResourceContext();
+  ASSERT_TRUE(context.ok()) << context.status();
+  EXPECT_NE(context->find("Oracle \"Power\" Room"), std::string::npos);
+  EXPECT_FALSE(rom_.resource_label()->labels_loaded_);
 }
 
 TEST_F(DungeonGraphLinksTest, EntranceCommandsRejectMalformedAndWrappedIds) {
