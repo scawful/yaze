@@ -74,7 +74,6 @@
       // Timers (for cleanup)
       this.moduleCheckInterval = null;
       this.autocompleteTimeout = null;
-      this._focusTimeout = null;
 
       // Bound event handlers (for cleanup)
       this._boundHandlers = {
@@ -105,11 +104,6 @@
 
       // Set global reference for C++ callbacks
       window.z3edTerminal = this;
-
-      // Focus the input field to ensure it's ready for typing
-      this._focusTimeout = setTimeout(() => {
-        this.focusInput();
-      }, 100);
 
       console.log('Z3edTerminal initialized');
     }
@@ -919,10 +913,6 @@
       if (this.autocompleteTimeout) {
         clearTimeout(this.autocompleteTimeout);
         this.autocompleteTimeout = null;
-      }
-      if (this._focusTimeout) {
-        clearTimeout(this._focusTimeout);
-        this._focusTimeout = null;
       }
 
       // Remove input element listeners

@@ -124,6 +124,8 @@ test.describe('yaze wasm smoke', () => {
 
     await waitForLoadingOverlayToHide(page, 120000);
     await waitForWasmReady(page, 180000);
+    // The closed terminal must not steal editor keyboard shortcuts at boot.
+    await expect(page.locator('#terminal-input')).not.toBeFocused();
     await ensureTerminalVisible(page);
 
     const input = page.locator('#terminal-input');
