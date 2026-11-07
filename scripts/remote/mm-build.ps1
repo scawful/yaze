@@ -220,9 +220,9 @@ Say "build ok ($($times.build_s)s, -j$jobs, $ccacheLine): $($targets -join ' ')"
 # --- tests ---------------------------------------------------------------------------
 $testRc = 0
 $testLog = Join-Path $Out 'test.log'
-# Keep tests away from the PC user's real files. test/yaze_test.cc sets these with
-# SDL_setenv, which on Windows does not reach std::getenv, so without this the
-# harness resolves %USERPROFILE%\Documents\Yaze and skips every test.
+# Keep tests away from the PC user's real files. test/yaze_test.cc replaces the two
+# YAZE_* dirs with per-process ones under TEMP; these values cover any other
+# process ctest starts.
 $testHome = Join-Path $JobDir 'testhome'
 $env:TEMP = $env:TMP = $testHome          # the isolation test wants docs under TEMP
 $env:YAZE_USER_DOCUMENTS_DIR = Join-Path $testHome 'documents'

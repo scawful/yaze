@@ -144,8 +144,12 @@ void ConfigureLocalTestProcessEnvironment(const TestConfig& config) {
   // Every test process gets its own settings root so no test reads or writes
   // the developer's real ~/Documents/Yaze/settings.json or ~/.yaze. ctest runs
   // several test processes at once (shards, or one process per case with
-  // YAZE_TEST_PER_CASE=ON), so the name carries the pid, a steady-clock stamp
-  // and a random_device value (pids are reused; rand() is unseeded).
+  // YAZE_TEST_PER_CASE=ON), so each process creates a directory nobody else
+  // has created. The name stays short because Windows std::ofstream fails past
+  // 260 characters and tests nest long per-case file names under it.
+  // Values inherited from a harness are replaced, not kept: every ctest
+  // process inherits the same environment, and shards sharing one app-data
+  // directory collide on its native-save publication lock.
   std::error_code ec;
   auto temp_dir = std::filesystem::temp_directory_path(ec);
   if (ec) {
@@ -157,23 +161,31 @@ void ConfigureLocalTestProcessEnvironment(const TestConfig& config) {
 
   const auto stamp =
       std::chrono::steady_clock::now().time_since_epoch().count();
-  g_test_app_data_dir =
-      temp_dir /
-      ("yaze-test-appdata-" + std::to_string(CurrentProcessId()) + "-" +
-       std::to_string(stamp) + "-" + std::to_string(std::random_device{}()));
-  std::filesystem::create_directories(g_test_app_data_dir, ec);
+  std::seed_seq seed{std::random_device{}(),
+                     static_cast<unsigned>(CurrentProcessId()),
+                     static_cast<unsigned>(stamp)};
+  std::mt19937 rng(seed);
+  bool created = false;
+  for (int attempt = 0; attempt < 64 && !created; ++attempt) {
+    char hex[8];
+    std::to_chars(hex, hex + sizeof(hex), rng() | 0x10000000u, 16);
+    g_test_app_data_dir = temp_dir / ("yt-" + std::string(hex, sizeof(hex)));
+    created = std::filesystem::create_directory(g_test_app_data_dir, ec);
+  }
+  if (!created) {
+    g_test_app_data_dir =
+        temp_dir / ("yaze-test-appdata-" + std::to_string(CurrentProcessId()) +
+                    "-" + std::to_string(stamp));
+    std::filesystem::create_directories(g_test_app_data_dir, ec);
+  }
   std::atexit(RemoveIsolatedAppDataDir);
 
-  if (std::getenv("YAZE_APP_DATA_DIR") == nullptr) {
-    const auto app_data = g_test_app_data_dir / "appdata";
-    std::filesystem::create_directories(app_data, ec);
-    SetTestEnv("YAZE_APP_DATA_DIR", app_data.string().c_str());
-  }
-  if (std::getenv("YAZE_USER_DOCUMENTS_DIR") == nullptr) {
-    const auto documents = g_test_app_data_dir / "documents";
-    std::filesystem::create_directories(documents, ec);
-    SetTestEnv("YAZE_USER_DOCUMENTS_DIR", documents.string().c_str());
-  }
+  const auto app_data = g_test_app_data_dir / "appdata";
+  std::filesystem::create_directories(app_data, ec);
+  SetTestEnv("YAZE_APP_DATA_DIR", app_data.string().c_str());
+  const auto documents = g_test_app_data_dir / "documents";
+  std::filesystem::create_directories(documents, ec);
+  SetTestEnv("YAZE_USER_DOCUMENTS_DIR", documents.string().c_str());
 }
 
 // Fails the whole run before any test starts if UserSettings would resolve to
