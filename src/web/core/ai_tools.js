@@ -189,13 +189,13 @@
       return data;
     },
 
-    // Get current map data (overworld)
-    getMapData: function() {
+    /** Get current overworld map data. @returns {Promise<Object>} */
+    getMapData: async function() {
       closeAllDropdowns();
       var data = { error: 'API not ready' };
 
       if (window.yaze && window.yaze.editor && window.yaze.editor.getCurrentMap) {
-        data = window.yaze.editor.getCurrentMap();
+        data = await window.yaze.editor.getCurrentMap();
       }
 
       console.log('=== AI Tools: Map Data ===');

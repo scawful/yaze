@@ -1196,7 +1196,7 @@
    * Handle AI Tools commands
    * @param {string[]} args
    */
-  function handleAITools(args) {
+  async function handleAITools(args) {
     if (!window.aiTools) {
       this.printError('AI Tools not initialized (window.aiTools missing).');
       return;
@@ -1257,7 +1257,7 @@
            if (args[1] === 'room') {
              this.print(JSON.stringify(window.aiTools.getRoomData(), null, 2));
            } else if (args[1] === 'map') {
-             this.print(JSON.stringify(window.aiTools.getMapData(), null, 2));
+             this.print(JSON.stringify(await window.aiTools.getMapData(), null, 2));
            } else {
              this.print('Usage: /ai data [room|map]');
            }

@@ -9,7 +9,7 @@
  *
  * Or run individual test groups:
  *   window.wasmDebugTests.runControlAPITests()
- *   window.wasmDebugTests.runGuiAPITests()
+ *   await window.wasmDebugTests.runGuiAPITests()
  *   window.wasmDebugTests.runAiToolsTests()
  */
 
@@ -361,6 +361,93 @@
     }
   }
 
+  // Embind may return either immediate JSON or an Asyncify Promise. Exercise
+  // the actual GUI helper without changing live panel/editor state.
+  async function testGuiAvailablePanelsResults() {
+    if (typeof Module === 'undefined' || !window.yaze || !window.yaze.gui) {
+      TestUtils.skip('GUI panel result tests', 'Module or GUI helper unavailable');
+      return;
+    }
+    const hadBinding = Object.prototype.hasOwnProperty.call(Module, 'controlGetAvailablePanels');
+    const original = Module.controlGetAvailablePanels;
+    const expected = { cards: [{ id: 'overworld.canvas', visible: true }], count: 1 };
+    try {
+      for (const asynchronous of [false, true]) {
+        Module.controlGetAvailablePanels = () => asynchronous
+          ? Promise.resolve(JSON.stringify(expected)) : JSON.stringify(expected);
+        const result = await window.yaze.gui.getAvailablePanels();
+        TestUtils.assertEqual(JSON.stringify(result), JSON.stringify(expected),
+          `GUI panels preserve ${asynchronous ? 'async' : 'sync'} result shape`);
+      }
+      Module.controlGetAvailablePanels = () => {
+        const rejected = Promise.reject(new Error('panel query rejected'));
+        rejected.catch(() => {}); // A broken synchronous consumer must not leak it.
+        return rejected;
+      };
+      let result = await window.yaze.gui.getAvailablePanels();
+      TestUtils.assertEqual(result.error, 'panel query rejected',
+        'GUI panels catch async binding rejection');
+      TestUtils.assertArray(result.cards, 'Rejected GUI panels retain cards array');
+      TestUtils.assertEqual(result.cards.length, 0, 'Rejected GUI panels are empty');
+
+      Module.controlGetAvailablePanels = () => Promise.resolve('{malformed');
+      result = await window.yaze.gui.getAvailablePanels();
+      TestUtils.assertType(result.error, 'string', 'Malformed GUI panel JSON reports an error');
+      TestUtils.assertArray(result.cards, 'Malformed GUI panels retain cards array');
+
+      delete Module.controlGetAvailablePanels;
+      result = await window.yaze.gui.getAvailablePanels();
+      TestUtils.assertEqual(result.error, 'Module not ready', 'Missing GUI panel binding stays explicit');
+      TestUtils.assertEqual(result.cards.length, 0, 'Missing GUI panels are empty');
+    } finally {
+      if (hadBinding) Module.controlGetAvailablePanels = original;
+      else delete Module.controlGetAvailablePanels;
+    }
+  }
+
+  async function testCurrentMapResults() {
+    if (typeof Module === 'undefined' || !window.yaze || !window.yaze.editor) {
+      TestUtils.skip('Current map result tests', 'Module or editor helper unavailable');
+      return;
+    }
+    const hadBinding = Object.prototype.hasOwnProperty.call(Module, 'editorGetCurrentOverworldMap');
+    const original = Module.editorGetCurrentOverworldMap;
+    const expected = { map_id: 162, world: 2, map_count: 192 };
+    try {
+      for (const asynchronous of [false, true]) {
+        Module.editorGetCurrentOverworldMap = () => asynchronous
+          ? Promise.resolve(JSON.stringify(expected)) : JSON.stringify(expected);
+        const result = await window.yaze.editor.getCurrentMap();
+        TestUtils.assertEqual(JSON.stringify(result), JSON.stringify(expected),
+          `Current map preserves ${asynchronous ? 'async' : 'sync'} result shape`);
+        if (window.aiTools && window.aiTools.getMapData) {
+          const data = await window.aiTools.getMapData();
+          TestUtils.assertEqual(JSON.stringify(data), JSON.stringify(expected),
+            `AI map caller preserves ${asynchronous ? 'async' : 'sync'} result`);
+        }
+      }
+      Module.editorGetCurrentOverworldMap = () => {
+        const rejected = Promise.reject(new Error('map query rejected'));
+        rejected.catch(() => {});
+        return rejected;
+      };
+      let result = await window.yaze.editor.getCurrentMap();
+      TestUtils.assertEqual(result.error, 'map query rejected', 'Current map catches async rejection');
+      Module.editorGetCurrentOverworldMap = () => Promise.resolve('{malformed');
+      result = await window.yaze.editor.getCurrentMap();
+      TestUtils.assertType(result.error, 'string', 'Current map malformed JSON reports error');
+      Module.editorGetCurrentOverworldMap = () => JSON.stringify({ error: 'Overworld editor not active' });
+      result = await window.yaze.editor.getCurrentMap();
+      TestUtils.assertEqual(result.error, 'Overworld editor not active', 'Current map preserves native error');
+      delete Module.editorGetCurrentOverworldMap;
+      result = await window.yaze.editor.getCurrentMap();
+      TestUtils.assertEqual(result.error, 'API not ready', 'Current map missing binding stays explicit');
+    } finally {
+      if (hadBinding) Module.editorGetCurrentOverworldMap = original;
+      else delete Module.editorGetCurrentOverworldMap;
+    }
+  }
+
   // Test: AI Tools API
   function testAiToolsFunctions() {
     console.log('\n--- AI Tools Function Tests ---');
@@ -582,6 +669,8 @@
     // GUI API tests
     testGuiAPIFunctions();
     testGuiAPIData();
+    await testGuiAvailablePanelsResults();
+    await testCurrentMapResults();
 
     // AI Tools tests
     testAiToolsFunctions();
@@ -609,6 +698,8 @@
     testUtilsApi: testUtilsApi,
     testGuiAPIFunctions: testGuiAPIFunctions,
     testGuiAPIData: testGuiAPIData,
+    testGuiAvailablePanelsResults: testGuiAvailablePanelsResults,
+    testCurrentMapResults: testCurrentMapResults,
     testAiToolsFunctions: testAiToolsFunctions,
     testAiToolsData: testAiToolsData,
     testAiManagerFunctions: testAiManagerFunctions,
@@ -625,10 +716,11 @@
       return TestUtils.summary();
     },
 
-    runGuiAPITests: function() {
+    runGuiAPITests: async function() {
       TestUtils.reset();
       testGuiAPIFunctions();
       testGuiAPIData();
+      await testGuiAvailablePanelsResults();
       return TestUtils.summary();
     },
 

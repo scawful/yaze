@@ -450,15 +450,15 @@
 
     /**
      * Get all available cards with their metadata
-     * @returns {Object} Panels array with id, name, visible, enabled, etc.
+     * @returns {Promise<Object>} Panels data with id, name, visible, enabled, etc.
      */
-    getAvailablePanels: function() {
+    getAvailablePanels: async function() {
       if (typeof Module === 'undefined' || !Module.controlGetAvailablePanels) {
         return { error: 'Module not ready', cards: [] };
       }
 
       try {
-        return JSON.parse(Module.controlGetAvailablePanels());
+        return JSON.parse(await Module.controlGetAvailablePanels());
       } catch (e) {
         return { error: e.message, cards: [] };
       }

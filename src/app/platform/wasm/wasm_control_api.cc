@@ -13,6 +13,7 @@
 #include "app/editor/session_types.h"
 #include "app/editor/dungeon/dungeon_editor_v2.h"
 #include "app/editor/overworld/overworld_editor.h"
+#include "app/editor/system/session/session_coordinator.h"
 #include "app/editor/system/workspace/workspace_window_manager.h"
 #include "app/gui/automation/widget_id_registry.h"
 #include "app/gui/automation/widget_measurement.h"
@@ -324,9 +325,10 @@ EM_JS(void, SetupYazeControlApi, (), {
       return {error: "API not ready"};
     },
 
-    getCurrentMap: function() {
+    // Asyncify bindings may return a Promise; callers must await this query.
+    getCurrentMap: async function() {
       if (Module.editorGetCurrentOverworldMap) {
-        try { return JSON.parse(Module.editorGetCurrentOverworldMap()); }
+        try { return JSON.parse(await Module.editorGetCurrentOverworldMap()); }
         catch(e) { return {error: e.message}; }
       }
       return {error: "API not ready"};
@@ -1576,7 +1578,15 @@ std::string WasmControlApi::GetCurrentOverworldMap() {
   result["world"] = ow_data.current_world();
   result["world_name"] = ow_data.current_world() == 0 ? "Light World" :
                          (ow_data.current_world() == 1 ? "Dark World" : "Special World");
-  result["map_count"] = zelda3::kNumOverworldMaps;
+  auto* coordinator = editor_manager_->session_coordinator();
+  auto* session = coordinator ? coordinator->GetActiveRomSession() : nullptr;
+  const bool model_ready =
+      session && session->rom.is_loaded() &&
+      session->editor_assets_loaded[
+          editor::EditorTypeIndex(editor::EditorType::kOverworld)] &&
+      ow_data.is_loaded();
+  result["map_count"] = model_ready ? ow_data.materialized_map_count()
+                                    : zelda3::kNumOverworldMaps;
 
   return result.dump();
 }
