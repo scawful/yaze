@@ -411,6 +411,60 @@
     }
   }
 
+  async function testEditorControlResults() {
+    const control = window.yaze?.control;
+    if (typeof Module === 'undefined' || !control) {
+      TestUtils.skip('Editor control result tests', 'Module or control helper unavailable');
+      return;
+    }
+    const names = ['ccall', '_GetCurrentEditorFromWeb', '_SwitchEditorFromWeb',
+      'controlGetCurrentEditor', 'controlSwitchEditor'];
+    const originals = names.map(name => Object.getOwnPropertyDescriptor(Module, name));
+    const expected = { name: 'Dungeon', type: 2, active: true };
+    try {
+      Module._GetCurrentEditorFromWeb = () => {};
+      Module._SwitchEditorFromWeb = () => {};
+      Module.controlGetCurrentEditor = Module.controlSwitchEditor = () => {
+        throw new Error('Unsafe embind editor adapter used');
+      };
+      Module.ccall = (name, type, argTypes, args, options) => {
+        TestUtils.assertEqual(type, 'string', 'Editor controls copy C strings');
+        if (name === 'GetCurrentEditorFromWeb') {
+          TestUtils.assertEqual(argTypes.length + args.length, 0, 'Current editor takes no arguments');
+          TestUtils.assert(!options?.async, 'Current editor remains synchronous');
+          return JSON.stringify(expected);
+        }
+        TestUtils.assertEqual(name, 'SwitchEditorFromWeb', 'Editor switch uses C export');
+        TestUtils.assertEqual(argTypes[0], 'string', 'Editor switch passes string argument');
+        TestUtils.assertEqual(args[0], 'Dungeon', 'Editor switch preserves requested name');
+        TestUtils.assertEqual(options.async, true, 'Editor switch awaits its own result');
+        return Promise.resolve(JSON.stringify({ success: true, editor: args[0] }));
+      };
+      const current = control.getCurrentEditor();
+      TestUtils.assert(!current?.then, 'Current editor preserves synchronous callers');
+      TestUtils.assertEqual(JSON.stringify(current), JSON.stringify(expected), 'Current editor preserves native data');
+      const switched = await control.switchEditor('Dungeon');
+      TestUtils.assertEqual(switched.editor, 'Dungeon', 'Editor switch resolves native result');
+      TestUtils.assertEqual(switched.success, true, 'Editor switch preserves native success');
+
+      Module.ccall = () => JSON.stringify({ error: 'Unknown editor' });
+      TestUtils.assertEqual((await control.switchEditor('Dungeon')).error, 'Unknown editor', 'Editor switch preserves native error');
+      Module.ccall = () => Promise.reject(new Error('editor switch rejected'));
+      TestUtils.assertEqual((await control.switchEditor('Dungeon')).error, 'editor switch rejected', 'Editor switch catches rejection');
+      Module.ccall = () => '{malformed';
+      TestUtils.assertType(control.getCurrentEditor().error, 'string', 'Current editor reports malformed JSON');
+      delete Module._GetCurrentEditorFromWeb;
+      delete Module._SwitchEditorFromWeb;
+      TestUtils.assertEqual(control.getCurrentEditor().error, 'API not ready', 'Missing current editor export stays explicit');
+      TestUtils.assertEqual((await control.switchEditor('Dungeon')).error, 'API not ready', 'Missing editor switch export stays explicit');
+    } finally {
+      names.forEach((name, i) => {
+        if (originals[i]) Object.defineProperty(Module, name, originals[i]);
+        else delete Module[name];
+      });
+    }
+  }
+
   async function testCurrentMapResults() {
     if (typeof Module === 'undefined' || !window.yaze?.editor) {
       TestUtils.skip('Current map result tests', 'Module or editor helper unavailable');
@@ -606,7 +660,7 @@
     }
 
     // Test switching to Dungeon
-    control.switchEditor('Dungeon');
+    await control.switchEditor('Dungeon');
     await new Promise(r => setTimeout(r, 100)); // Small delay for switch
 
     const afterSwitch = control.getCurrentEditor();
@@ -614,7 +668,7 @@
 
     // Restore original editor
     if (originalEditor.name && originalEditor.name !== 'Dungeon') {
-      control.switchEditor(originalEditor.name);
+      await control.switchEditor(originalEditor.name);
     }
   }
 
@@ -677,6 +731,7 @@
     testGuiAPIData();
     await testGuiAvailablePanelsResults();
     await testCurrentMapResults();
+    await testEditorControlResults();
 
     // AI Tools tests
     testAiToolsFunctions();
@@ -706,6 +761,7 @@
     testGuiAPIData: testGuiAPIData,
     testGuiAvailablePanelsResults: testGuiAvailablePanelsResults,
     testCurrentMapResults: testCurrentMapResults,
+    testEditorControlResults: testEditorControlResults,
     testAiToolsFunctions: testAiToolsFunctions,
     testAiToolsData: testAiToolsData,
     testAiManagerFunctions: testAiManagerFunctions,

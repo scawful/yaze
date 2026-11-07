@@ -49,17 +49,22 @@ EM_JS(void, SetupYazeControlApi, (), {
   // Control API namespace
   window.yaze.control = {
     // Editor control
-    switchEditor: function(editorName) {
-      if (Module.controlSwitchEditor) {
-        try { return JSON.parse(Module.controlSwitchEditor(editorName)); }
+    switchEditor: async function(editorName) {
+      if (Module.ccall && Module._SwitchEditorFromWeb) {
+        try {
+          return JSON.parse(await Module.ccall('SwitchEditorFromWeb', 'string',
+              ['string'], [editorName], {async: true}));
+        }
         catch(e) { return {error: e.message}; }
       }
       return {error: "API not ready"};
     },
     
     getCurrentEditor: function() {
-      if (Module.controlGetCurrentEditor) {
-        try { return JSON.parse(Module.controlGetCurrentEditor()); }
+      if (Module.ccall && Module._GetCurrentEditorFromWeb) {
+        try {
+          return JSON.parse(Module.ccall('GetCurrentEditorFromWeb', 'string', [], []));
+        }
         catch(e) { return {error: e.message}; }
       }
       return {error: "API not ready"};
@@ -2628,6 +2633,20 @@ extern "C" EMSCRIPTEN_KEEPALIVE const char* GetAvailablePanelsFromWeb() {
 extern "C" EMSCRIPTEN_KEEPALIVE const char* GetCurrentOverworldMapFromWeb() {
   static std::string result;
   result = yaze::app::platform::WasmControlApi::GetCurrentOverworldMap();
+  return result.c_str();
+}
+
+extern "C" EMSCRIPTEN_KEEPALIVE const char* GetCurrentEditorFromWeb() {
+  static std::string result;
+  result = yaze::app::platform::WasmControlApi::GetCurrentEditor();
+  return result.c_str();
+}
+
+extern "C" EMSCRIPTEN_KEEPALIVE const char* SwitchEditorFromWeb(
+    const char* editor_name) {
+  static std::string result;
+  result = yaze::app::platform::WasmControlApi::SwitchEditor(
+      editor_name ? editor_name : "");
   return result.c_str();
 }
 
