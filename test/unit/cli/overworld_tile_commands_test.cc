@@ -1,9 +1,11 @@
+#include <algorithm>
 #include <cstdint>
 #include <filesystem>
 #include <fstream>
 #include <iterator>
 #include <map>
 #include <memory>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -15,6 +17,7 @@
 #include "absl/strings/str_format.h"
 #include "cli/handlers/game/overworld_commands.h"
 #include "cli/handlers/game/overworld_inspect.h"
+#include "cli/handlers/tools/overworld_validate_commands.h"
 #include "core/features.h"
 #include "fixtures/lyra/native_directory_fixture.h"
 #include "framework/rom_save_fault.h"
@@ -22,6 +25,7 @@
 #include "rom/rom.h"
 #include "unique_temp_path.h"
 #include "zelda3/overworld/overworld.h"
+#include "zelda3/overworld/overworld_version_helper.h"
 
 namespace yaze::cli {
 namespace {
@@ -408,10 +412,219 @@ class OverworldTileRomTest : public ::testing::Test {
     return std::stoi(value.get<std::string>(), nullptr, 16);
   }
 
+  void SeedValidationFixture(
+      test::native_overworld::NativeDirectoryFixture* fixture) {
+    // The shared seed helper takes a 2MiB source. A patched Oracle fixture can
+    // append streams/graphics after that prefix. Retain that complete trailer
+    // in the resulting model fixture, without copying it over the new tables.
+    constexpr size_t kSeedPrefix = 0x200000;
+    ASSERT_LE(rom_.size(), fixture->Entry(1).pc_address);
+    if (rom_.size() <= kSeedPrefix) {
+      ASSERT_NO_FATAL_FAILURE(
+          fixture->SeedLoadedLegacyForModelTest(rom_, *overworld_));
+    } else {
+      const auto& layout = overworld_->resolved_layout();
+      ASSERT_LE(layout.tile16_pc.value + 4096 * 8, kSeedPrefix);
+      for (const auto& address : layout.tile32_pcs)
+        ASSERT_LE(address.value + 4432 * 6, kSeedPrefix);
+      ASSERT_LE(layout.terrain_high_table_pc.value + 160 * 3, kSeedPrefix);
+      ASSERT_LE(layout.terrain_low_table_pc.value + 160 * 3, kSeedPrefix);
+      const auto& original = rom_.vector();
+      Rom prefix;
+      ASSERT_TRUE(prefix
+                      .LoadFromData(std::vector<uint8_t>(
+                          original.begin(), original.begin() + kSeedPrefix))
+                      .ok());
+      ASSERT_NO_FATAL_FAILURE(
+          fixture->SeedLoadedLegacyForModelTest(prefix, *overworld_));
+      std::copy(original.begin() + kSeedPrefix, original.end(),
+                fixture->bytes.begin() + kSeedPrefix);
+      ASSERT_TRUE(std::equal(original.begin() + kSeedPrefix, original.end(),
+                             fixture->bytes.begin() + kSeedPrefix));
+    }
+    // Vanilla has 128 item slots; its following code is not a special-world
+    // item table. The complete native model needs explicit empty lists for
+    // those newly materialized slots, just as the shared helper supplies tail
+    // lists when starting from a v3 source.
+    const auto version = zelda3::OverworldVersionHelper::GetVersion(rom_);
+    if (!zelda3::OverworldVersionHelper::SupportsAreaEnum(version)) {
+      const auto root = rom_.ReadLong(zelda3::overworldItemsAddress);
+      const auto bank = rom_.ReadByte(zelda3::overworldItemsAddressBank);
+      ASSERT_TRUE(root.ok()) << root.status();
+      ASSERT_TRUE(bank.ok()) << bank.status();
+      std::optional<uint16_t> empty;
+      for (int map = 0; map < 128 && !empty; ++map) {
+        const auto word = rom_.ReadWord(SnesToPc(*root) + map * 2);
+        ASSERT_TRUE(word.ok()) << word.status();
+        if (*word < 0x8000)
+          continue;
+        const auto end = rom_.ReadWord(SnesToPc((*bank << 16) | *word));
+        if (end.ok() && *end == 0xFFFF)
+          empty = *word;
+      }
+      ASSERT_TRUE(empty.has_value());
+      for (int map = 128; map < fixture->Entry(23).count; ++map)
+        fixture->Word(fixture->Entry(23).pc_address + map * 2, *empty);
+    }
+    // Native phases all have 160 prefix entries. Vanilla's phase-specific
+    // 64/144/144 tables need explicit empty lists beyond their real extents.
+    const auto sprites = zelda3::GetOverworldSpriteLayout(rom_);
+    std::optional<uint16_t> empty_sprites;
+    for (int phase = 0; phase < 3 && !empty_sprites; ++phase) {
+      for (int map = 0; map < sprites.counts[phase]; ++map) {
+        const auto word = rom_.ReadWord(sprites.tables[phase] + map * 2);
+        ASSERT_TRUE(word.ok()) << word.status();
+        if (*word < 0xC881)
+          continue;
+        const auto end = rom_.ReadByte(0x40000 + *word);
+        if (end.ok() && *end == 0xFF) {
+          empty_sprites = *word;
+          break;
+        }
+      }
+    }
+    ASSERT_TRUE(empty_sprites.has_value());
+    for (int phase = 0; phase < 3; ++phase)
+      for (int map = sprites.counts[phase]; map < 160; ++map)
+        fixture->Word(fixture->Entry(16 + phase).pc_address + map * 2,
+                      *empty_sprites);
+    fixture->Seal();
+  }
+
   std::string rom_path_;
   Rom rom_;
   std::unique_ptr<zelda3::Overworld> overworld_;
 };
+
+TEST_F(OverworldTileRomTest,
+       NativeValidationReadsCanonicalTablesAndSkipsUnmaterializedTail) {
+  for (uint16_t capacity : {160, 192}) {
+    SCOPED_TRACE(capacity);
+    test::native_overworld::NativeDirectoryFixture fixture(capacity);
+    ASSERT_NO_FATAL_FAILURE(SeedValidationFixture(&fixture));
+    fixture.UpgradeToRevision4();
+    Rom native;
+    ASSERT_TRUE(native.LoadFromData(fixture.bytes).ok());
+    OverworldValidateCommandHandler handler;
+    absl::Status status;
+    const auto json = RunJson(handler, {"--include-tail"}, &native, &status);
+    ASSERT_TRUE(status.ok()) << status << "\n" << json.dump();
+    ASSERT_TRUE(json.is_object()) << json.dump();
+    for (const auto* key :
+         {"total_maps", "valid_maps", "invalid_maps", "skipped_maps", "maps"})
+      ASSERT_TRUE(json.contains(key)) << key << "\n" << json.dump();
+    ASSERT_TRUE(json["maps"].is_array());
+    ASSERT_EQ(json["maps"].size(), 192);
+    EXPECT_EQ(json["total_maps"], 192);
+    EXPECT_EQ(json["valid_maps"], capacity);
+    EXPECT_EQ(json["invalid_maps"], 0);
+    EXPECT_EQ(json["skipped_maps"], 192 - capacity);
+    for (int map : {0xA0, 0xBF}) {
+      ASSERT_TRUE(json["maps"][map].is_string());
+      const auto row =
+          nlohmann::json::parse(json["maps"][map].get<std::string>());
+      for (const auto* key : {"skipped", "error", "snes_low", "snes_high",
+                              "decomp_low", "decomp_high"})
+        ASSERT_TRUE(row.contains(key)) << key << "\n" << row.dump();
+      if (capacity == 160) {
+        EXPECT_EQ(row["skipped"], true);
+        EXPECT_EQ(row["error"], "tail not materialized");
+        EXPECT_EQ(row["snes_low"], "0x000000");
+      } else {
+        EXPECT_EQ(row["skipped"], false);
+        EXPECT_EQ(row["decomp_low"], true);
+        EXPECT_EQ(row["decomp_high"], true);
+        const auto pointer =
+            native.ReadLong(fixture.Entry(20).pc_address + map * 3);
+        ASSERT_TRUE(pointer.ok());
+        EXPECT_EQ(HexField(row["snes_high"]), *pointer);
+      }
+    }
+  }
+}
+
+TEST_F(OverworldTileRomTest, LegacyValidationDoesNotInventTailPointerRows) {
+  if (overworld_->materialized_map_count() != 160) {
+    GTEST_SKIP() << "This control requires a legacy160 fixture";
+  }
+  OverworldValidateCommandHandler handler;
+  absl::Status status;
+  const auto json = RunJson(handler, {"--include-tail"}, &rom_, &status);
+  ASSERT_TRUE(status.ok()) << status << "\n" << json.dump();
+  ASSERT_TRUE(json.is_object()) << json.dump();
+  for (const auto* key : {"total_maps", "skipped_maps", "maps"})
+    ASSERT_TRUE(json.contains(key)) << key << "\n" << json.dump();
+  ASSERT_TRUE(json["maps"].is_array());
+  ASSERT_EQ(json["maps"].size(), 192);
+  EXPECT_EQ(json["total_maps"], 192);
+  EXPECT_EQ(json["skipped_maps"], 32);
+  EXPECT_FALSE(json.contains("baseline_maps_checked"));
+  for (int map = 0xA0; map < 0xC0; ++map) {
+    ASSERT_TRUE(json["maps"][map].is_string());
+    const auto row =
+        nlohmann::json::parse(json["maps"][map].get<std::string>());
+    for (const auto* key : {"skipped", "error", "snes_low", "snes_high"})
+      ASSERT_TRUE(row.contains(key)) << key << "\n" << row.dump();
+    EXPECT_EQ(row["skipped"], true);
+    EXPECT_EQ(row["error"], "tail not materialized");
+    EXPECT_EQ(row["snes_low"], "0x000000");
+    EXPECT_EQ(row["snes_high"], "0x000000");
+  }
+}
+
+TEST_F(OverworldTileRomTest,
+       NativeValidationBaselineRejectsValidChangedOriginalTerrain) {
+  test::native_overworld::NativeDirectoryFixture fixture(192);
+  ASSERT_NO_FATAL_FAILURE(SeedValidationFixture(&fixture));
+  fixture.UpgradeToRevision4();
+  Rom native;
+  ASSERT_TRUE(native.LoadFromData(fixture.bytes).ok());
+  OverworldValidateCommandHandler handler;
+  const std::vector<std::string> args = {"--include-tail",
+                                         "--baseline=" + rom_path_};
+  absl::Status status;
+  auto json = RunJson(handler, args, &native, &status);
+  ASSERT_TRUE(status.ok()) << status << "\n" << json.dump();
+  ASSERT_TRUE(json.is_object()) << json.dump();
+  for (const auto* key :
+       {"valid_maps", "baseline_maps_checked", "baseline_mismatches"})
+    ASSERT_TRUE(json.contains(key)) << key << "\n" << json.dump();
+  EXPECT_EQ(json["valid_maps"], 192);
+  EXPECT_EQ(json["baseline_maps_checked"], 160);
+  EXPECT_EQ(json["baseline_mismatches"], 0);
+
+  // A syntactically valid original-page pointer change leaves every tail page
+  // untouched. All streams still decompress, so only the model comparison can
+  // reject this semantic loss of saved terrain.
+  zelda3::Overworld before(&native);
+  ASSERT_TRUE(before.Load(&native).ok());
+  fixture.Long(fixture.Entry(20).pc_address, fixture.Snes(0x240010));
+  fixture.Long(fixture.Entry(21).pc_address, fixture.Snes(0x240010));
+  fixture.Seal();
+  ASSERT_TRUE(native.LoadFromData(fixture.bytes).ok());
+  zelda3::Overworld changed(&native);
+  ASSERT_TRUE(changed.Load(&native).ok());
+  const auto& old_special = before.GetMapTiles(2);
+  const auto& new_special = changed.GetMapTiles(2);
+  for (int map = 0xA0; map < 0xC0; ++map) {
+    const int left = (map % 8) * 32;
+    const int top = ((map % 64) / 8) * 32;
+    for (int x = left; x < left + 32; ++x)
+      for (int y = top; y < top + 32; ++y)
+        EXPECT_EQ(old_special[x][y], new_special[x][y]);
+  }
+  json = RunJson(handler, args, &native, &status);
+  ASSERT_TRUE(absl::IsFailedPrecondition(status)) << status;
+  EXPECT_THAT(std::string(status.message()),
+              HasSubstr("baseline terrain changed"));
+  ASSERT_TRUE(json.is_object()) << json.dump();
+  for (const auto* key :
+       {"valid_maps", "baseline_maps_checked", "baseline_mismatches"})
+    ASSERT_TRUE(json.contains(key)) << key << "\n" << json.dump();
+  EXPECT_EQ(json["valid_maps"], 192);
+  EXPECT_EQ(json["baseline_maps_checked"], 160);
+  EXPECT_GT(json["baseline_mismatches"].get<int>(), 0);
+}
 
 TEST_F(OverworldTileRomTest, GetTileMatchesEditorGridForDarkAndLightWorld) {
   handlers::OverworldGetTileCommandHandler handler;

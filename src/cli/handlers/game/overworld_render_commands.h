@@ -22,7 +22,7 @@ class OverworldExportNativeSourceCommandHandler
   }
   std::string GetUsage() const override {
     return "overworld-export-native-source --rom=<saved-native-rom> "
-           "--format=json";
+           "[--include-inactive-backgrounds] --format=json";
   }
   absl::Status ValidateArgs(const resources::ArgumentParser&) override {
     return absl::OkStatus();

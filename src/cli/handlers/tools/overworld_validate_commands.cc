@@ -5,10 +5,11 @@
 
 #include "absl/status/status.h"
 #include "absl/strings/str_format.h"
-#include "app/gfx/util/compression.h"
 #include "cli/handlers/tools/diagnostic_types.h"
 #include "rom/rom.h"
 #include "zelda3/overworld/overworld.h"
+#include "zelda3/overworld/overworld_allocation.h"
+#include "zelda3/overworld/overworld_terrain_io.h"
 
 namespace yaze::cli {
 
@@ -84,7 +85,9 @@ uint32_t SnesToPcLoRom(uint32_t snes_addr) {
 // =============================================================================
 
 absl::StatusOr<MapValidationResult> ValidateMapPointers(
-    const zelda3::Overworld& overworld, int map_id, bool include_tail) {
+    const zelda3::Overworld& overworld,
+    const zelda3::OverworldTerrainPointerTables& tables, int map_id,
+    bool include_tail) {
   MapValidationResult result{};
   result.map_id = map_id;
 
@@ -94,11 +97,20 @@ absl::StatusOr<MapValidationResult> ValidateMapPointers(
     result.error = "tail disabled";
     return result;
   }
-
-  const auto ptr_low_base =
-      overworld.version_constants().kCompressedAllMap32PointersLow;
-  const auto ptr_high_base =
-      overworld.version_constants().kCompressedAllMap32PointersHigh;
+  // --include-tail requests inspection, not an increase in storage capacity.
+  if (map_id >= tables.map_count) {
+    result.skipped = true;
+    result.error = "tail not materialized";
+    return result;
+  }
+  const size_t offset = static_cast<size_t>(map_id) * 3;
+  const size_t rom_size = overworld.rom()->size();
+  if (rom_size < 3 ||
+      static_cast<size_t>(tables.low_table_pc) + offset > rom_size - 3 ||
+      static_cast<size_t>(tables.high_table_pc) + offset > rom_size - 3) {
+    result.error = "pointer table out of bounds";
+    return result;
+  }
 
   auto read_ptr = [&](uint32_t base) -> uint32_t {
     uint8_t byte0 = overworld.rom()->data()[base + (3 * map_id)];
@@ -107,27 +119,33 @@ absl::StatusOr<MapValidationResult> ValidateMapPointers(
     return (byte2 << 16) | (byte1 << 8) | byte0;
   };
 
-  result.snes_low = read_ptr(ptr_low_base);
-  result.snes_high = read_ptr(ptr_high_base);
+  result.snes_low = read_ptr(tables.low_table_pc);
+  result.snes_high = read_ptr(tables.high_table_pc);
   result.pc_low = SnesToPcLoRom(result.snes_low);
   result.pc_high = SnesToPcLoRom(result.snes_high);
 
   // Basic bounds check
-  result.pointers_valid = result.pc_low < overworld.rom()->size() &&
-                          result.pc_high < overworld.rom()->size();
+  const auto valid_pointer = [&](uint32_t snes, uint32_t pc) {
+    const auto bank = snes >> 16;
+    return (snes & 0x8000) != 0 && bank != 0x7E && bank != 0x7F &&
+           pc < rom_size;
+  };
+  result.pointers_valid = valid_pointer(result.snes_low, result.pc_low) &&
+                          valid_pointer(result.snes_high, result.pc_high);
 
   auto try_decompress = [&](uint32_t pc_addr) -> bool {
     if (pc_addr >= overworld.rom()->size()) {
       return false;
     }
-    int size = 0;
-    auto buf =
-        gfx::HyruleMagicDecompress(overworld.rom()->data() + pc_addr, &size, 1);
-    return !buf.empty();
+    const auto scan =
+        zelda3::ScanMapStream(overworld.rom()->data(), rom_size, pc_addr, 256);
+    return scan.error.empty() && scan.terminated && scan.decoded_bytes == 256;
   };
 
-  result.decompress_low_ok = try_decompress(result.pc_low);
-  result.decompress_high_ok = try_decompress(result.pc_high);
+  if (result.pointers_valid) {
+    result.decompress_low_ok = try_decompress(result.pc_low);
+    result.decompress_high_ok = try_decompress(result.pc_high);
+  }
 
   if (!result.pointers_valid) {
     result.error = "pointer out of bounds";
@@ -196,6 +214,16 @@ absl::Status OverworldValidateCommandHandler::Execute(
 
   zelda3::Overworld overworld(rom);
   RETURN_IF_ERROR(overworld.Load(rom));
+  const auto& layout = overworld.resolved_layout();
+  zelda3::OverworldTerrainPointerTables tables{
+      static_cast<uint32_t>(layout.terrain_high_table_pc.value),
+      static_cast<uint32_t>(layout.terrain_low_table_pc.value),
+      layout.materialized_model_slots};
+  if (rom::IsNativeSpecialOverworldLayout(layout.lyra_layout)) {
+    ASSIGN_OR_RETURN(const auto storage,
+                     zelda3::ResolveNativeOverworldTerrainStorage(*rom));
+    tables = {storage.high_table_pc, storage.low_table_pc, storage.map_count};
+  }
 
   // Validate maps
   int max_map = include_tail ? 0xC0 : zelda3::kNumOverworldMaps;
@@ -207,7 +235,7 @@ absl::Status OverworldValidateCommandHandler::Execute(
 
   for (int i = 0; i < max_map; ++i) {
     ASSIGN_OR_RETURN(auto result,
-                     ValidateMapPointers(overworld, i, include_tail));
+                     ValidateMapPointers(overworld, tables, i, include_tail));
     results.push_back(result);
 
     if (result.skipped) {
@@ -222,6 +250,44 @@ absl::Status OverworldValidateCommandHandler::Execute(
       if (!result.decompress_low_ok || !result.decompress_high_ok) {
         summary.decompress_failures++;
       }
+    }
+  }
+
+  int baseline_maps_checked = 0;
+  int baseline_mismatches = 0;
+  const auto baseline_path = parser.GetString("baseline");
+  if (baseline_path.has_value()) {
+    Rom baseline_rom;
+    RETURN_IF_ERROR(baseline_rom.LoadFromFile(*baseline_path));
+    zelda3::Overworld baseline(&baseline_rom);
+    RETURN_IF_ERROR(baseline.Load(&baseline_rom));
+    if (baseline.materialized_map_count() != zelda3::kNumOverworldMaps) {
+      return absl::InvalidArgumentError(
+          "Overworld validation baseline must contain 160 materialized maps");
+    }
+    // Compare physical Tile16 cells, after each model resolves its own pointer
+    // tables and shared Tile32 dictionary. Compressed-byte equality cannot prove
+    // that repacking shared definitions preserved the original terrain.
+    for (int map = 0; map < zelda3::kNumOverworldMaps; ++map) {
+      const int world = map / 64;
+      const int left = (map % 8) * 32;
+      const int top = ((map % 64) / 8) * 32;
+      const auto& before = baseline.GetMapTiles(world);
+      const auto& after = overworld.GetMapTiles(world);
+      if (before.size() < static_cast<size_t>(left + 32) ||
+          after.size() < static_cast<size_t>(left + 32)) {
+        return absl::DataLossError("Overworld validation grid is incomplete");
+      }
+      for (int x = left; x < left + 32; ++x) {
+        if (before[x].size() < static_cast<size_t>(top + 32) ||
+            after[x].size() < static_cast<size_t>(top + 32)) {
+          return absl::DataLossError("Overworld validation grid is incomplete");
+        }
+        for (int y = top; y < top + 32; ++y) {
+          baseline_mismatches += before[x][y] != after[x][y];
+        }
+      }
+      ++baseline_maps_checked;
     }
   }
 
@@ -244,6 +310,10 @@ absl::Status OverworldValidateCommandHandler::Execute(
   formatter.AddField("skipped_maps", summary.skipped_maps);
   formatter.AddField("pointer_failures", summary.pointer_failures);
   formatter.AddField("decompress_failures", summary.decompress_failures);
+  if (baseline_path.has_value()) {
+    formatter.AddField("baseline_maps_checked", baseline_maps_checked);
+    formatter.AddField("baseline_mismatches", baseline_mismatches);
+  }
 
   // Tile16 validation
   if (check_tile16) {
@@ -271,6 +341,11 @@ absl::Status OverworldValidateCommandHandler::Execute(
     }
   }
 
+  if (baseline_mismatches != 0) {
+    return absl::FailedPreconditionError(absl::StrFormat(
+        "Overworld baseline terrain changed in %d original Tile16 cells",
+        baseline_mismatches));
+  }
   return absl::OkStatus();
 }
 

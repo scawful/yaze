@@ -357,8 +357,10 @@ absl::Status AppendNativeImportPlan(Rom& rom,
 }  // namespace
 
 absl::Status OverworldExportNativeSourceCommandHandler::Execute(
-    Rom* rom, const resources::ArgumentParser&,
+    Rom* rom, const resources::ArgumentParser& parser,
     resources::OutputFormatter& formatter) {
+  const bool include_backgrounds =
+      parser.HasFlag("include-inactive-backgrounds");
   if (!rom || !rom->is_loaded())
     return absl::FailedPreconditionError("Load a saved native ROM first");
   if (rom->dirty())
@@ -387,6 +389,24 @@ absl::Status OverworldExportNativeSourceCommandHandler::Execute(
   RETURN_IF_ERROR(world.Load(rom));
   ASSIGN_OR_RETURN(const auto snapshot, world.CaptureNativeAreaSnapshot());
   const auto& grid = world.GetMapTiles(2);
+  std::optional<uint8_t> background_obj_selector;
+  if (include_backgrounds) {
+    // Find a concrete OBJ pair only to let the shared palette loader finish.
+    // No OBJ color is exported by this option, and no source selector changes.
+    for (int selector = 0; selector < 256; ++selector) {
+      const size_t at = zelda3::kOverworldSpritePaletteGroup + selector * 2;
+      if (at + 2 > rom->size())
+        break;
+      const size_t count = game_data.palette_groups.sprites_aux3.size();
+      if (rom->data()[at] < count && rom->data()[at + 1] < count) {
+        background_obj_selector = static_cast<uint8_t>(selector);
+        break;
+      }
+    }
+    if (!background_obj_selector.has_value())
+      return absl::FailedPreconditionError(
+          "Initial background projection needs one concrete OBJ palette pair");
+  }
   const size_t rows = (layout.capacity - 128) / 8 * 32;
   if (grid.size() < 256 ||
       std::any_of(grid.begin(), grid.begin() + 256,
@@ -496,12 +516,34 @@ absl::Status OverworldExportNativeSourceCommandHandler::Execute(
            {"sprite_graphics", resolved.sprite_graphics(state)},
            {"sprite_palette", resolved.sprite_palette(state)}});
     }
-    pages.push_back({{"map_id", map_id},
-                     {"parent_map_id", map->parent()},
-                     {"role", (*role)[0]},
-                     {"source_profile", std::move(source_profile)},
-                     {"tiles", std::move(terrain)},
-                     {"resolved_states", std::move(states)}});
+    nlohmann::json page = {{"map_id", map_id},
+                           {"parent_map_id", map->parent()},
+                           {"role", (*role)[0]},
+                           {"source_profile", std::move(source_profile)},
+                           {"tiles", std::move(terrain)},
+                           {"resolved_states", std::move(states)}};
+    if (include_backgrounds) {
+      // Unused legacy special pages may contain invalid OBJ selectors. BG128
+      // does not depend on OBJ colors: use the actual BG loader on a temporary
+      // map with a neutral OBJ selector, and discard the entire OBJ half.
+      auto palette_source = *map;
+      palette_source.set_game_state(0);
+      palette_source.set_sprite_palette(0, *background_obj_selector);
+      const auto palette_status = palette_source.LoadPalette();
+      if (!palette_status.ok())
+        return absl::Status(palette_status.code(),
+                            absl::StrFormat("Initial background map $%02X: %s",
+                                            map_id, palette_status.message()));
+      const auto& palette = palette_source.current_palette();
+      if (palette.size() != 256)
+        return absl::FailedPreconditionError(
+            "Initial appearance needs a complete source palette");
+      auto background = nlohmann::json::array();
+      for (size_t color = 0; color < 128; ++color)
+        background.push_back(palette[color].snes());
+      page["background_palette_words"] = std::move(background);
+    }
+    pages.push_back(std::move(page));
     auto& area = areas[map->parent()];
     if (area.is_null()) {
       constexpr std::array<const char*, 4> sizes = {"small", "large", "wide",

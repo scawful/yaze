@@ -24,7 +24,7 @@ class OverworldValidateCommandHandler : public resources::CommandHandler {
 
   std::string GetUsage() const override {
     return "overworld-validate --rom <path> [--include-tail] [--check-tile16] "
-           "[--format json|text] [--verbose]";
+           "[--baseline <saved160_rom>] [--format json|text] [--verbose]";
   }
 
   std::string GetDefaultFormat() const override { return "text"; }
@@ -34,14 +34,14 @@ class OverworldValidateCommandHandler : public resources::CommandHandler {
   Descriptor Describe() const override {
     Descriptor desc;
     desc.display_name = "overworld-validate";
-    desc.summary = "Validate map32 pointer tables and decompression for all "
-                   "overworld maps. Detects corruption and pointer issues.";
+    desc.summary =
+        "Validate map32 pointer tables and decompression for all "
+        "overworld maps. Detects corruption and pointer issues.";
     desc.todo_reference = "todo#overworld-validate";
     return desc;
   }
 
-  absl::Status ValidateArgs(
-      const resources::ArgumentParser& parser) override {
+  absl::Status ValidateArgs(const resources::ArgumentParser& parser) override {
     return absl::OkStatus();
   }
 
