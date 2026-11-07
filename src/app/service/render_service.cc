@@ -274,7 +274,7 @@ absl::StatusOr<OverworldRenderResult> RenderService::RenderOverworldArea(
   if (!game_data_) {
     return absl::FailedPreconditionError("GameData not available");
   }
-  if (req.screen_id < 0 || req.screen_id >= zelda3::kNumOverworldMaps) {
+  if (req.screen_id < 0 || req.screen_id >= zelda3::kExpandedMapCount) {
     return absl::InvalidArgumentError(
         absl::StrFormat("Invalid overworld screen 0x%02X", req.screen_id));
   }
@@ -290,6 +290,10 @@ absl::StatusOr<OverworldRenderResult> RenderService::RenderOverworldArea(
 
   zelda3::Overworld overworld(rom_, game_data_);
   RETURN_IF_ERROR(overworld.Load(rom_));
+  if (req.screen_id >= overworld.materialized_map_count()) {
+    return absl::InvalidArgumentError(
+        absl::StrFormat("Invalid overworld screen 0x%02X", req.screen_id));
+  }
   if (!req.graphics_preview.empty()) {
     overworld.SetGraphicsPreview(req.graphics_preview);
   }
@@ -353,6 +357,9 @@ absl::StatusOr<OverworldRenderResult> RenderService::RenderOverworldArea(
   for (int dy = 0; dy < rows; ++dy) {
     for (int dx = 0; dx < cols; ++dx) {
       const int screen = parent + dx + dy * 8;
+      if (screen < 0 || screen >= overworld.materialized_map_count()) {
+        return absl::InternalError("Overworld child map outside loaded range");
+      }
       // Subscreen overlay layer (sky, fog, lava, canopy, rain): drawn with
       // this screen's graphics and palette, like the game's BG1.
       std::vector<uint8_t> overlay_pixels;

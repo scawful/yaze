@@ -515,6 +515,63 @@ TEST(OverworldRenderServiceTest, RejectsBadRequestsBeforeLoading) {
   request.scale = 1.0f;
   EXPECT_TRUE(absl::IsFailedPrecondition(
       service.RenderOverworldArea(request).status()));
+
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+  zelda3::GameData data;
+  app::service::RenderService loaded_service(&rom, &data);
+  for (const int screen : {-1, 0xC0, 0x100}) {
+    request.screen_id = screen;
+    EXPECT_TRUE(absl::IsInvalidArgument(
+        loaded_service.RenderOverworldArea(request).status()));
+  }
+}
+
+TEST(OverworldRenderServiceTest, AddedScreenUsesMaterializedMapCount) {
+  const auto fixture = test::FindOracleRomFixture();
+  if (fixture.empty()) {
+    GTEST_SKIP()
+        << "Set YAZE_TEST_ROM_OOS to a native192 or legacy160 Oracle ROM";
+  }
+  const auto previous_addresses = core::RomSettings::Get().address_overrides();
+  const auto previous_flags = core::FeatureFlags::get();
+  absl::Cleanup restore = [&] {
+    core::RomSettings::Get().SetAddressOverrides(previous_addresses);
+    core::FeatureFlags::get() = previous_flags;
+  };
+  core::RomSettings::Get().ClearOverrides();
+  core::FeatureFlags::get().overworld.kLoadCustomOverworld = true;
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromFile(fixture).ok());
+  const auto layout = rom.InspectLyraLayout();
+  const bool expanded = rom::IsNativeSpecialOverworldLayout(layout) &&
+                        layout.capacity == zelda3::kExpandedMapCount;
+  const auto before = rom.vector();
+  zelda3::GameData data;
+  zelda3::LoadOptions options;
+  options.expand_rom = false;
+  ASSERT_TRUE(zelda3::LoadGameData(rom, data, options).ok());
+  app::service::RenderService service(&rom, &data);
+  app::service::OverworldRenderRequest request;
+  request.screen_id = expanded ? 0xA2 : 0xA0;
+  request.area_overlay = false;
+  const auto result = service.RenderOverworldArea(request);
+  if (expanded) {
+    ASSERT_TRUE(result.ok()) << result.status();
+    EXPECT_EQ(result->requested_screen, 0xA2);
+    EXPECT_FALSE(result->png_data.empty());
+    EXPECT_GE(result->width, 512);
+    EXPECT_GE(result->height, 512);
+    EXPECT_NE(std::find(result->screens.begin(), result->screens.end(), 0xA2),
+              result->screens.end());
+    for (const int screen : result->screens) {
+      EXPECT_GE(screen, 0);
+      EXPECT_LT(screen, 192);
+    }
+  } else {
+    EXPECT_TRUE(absl::IsInvalidArgument(result.status())) << result.status();
+  }
+  EXPECT_EQ(rom.vector(), before);
 }
 
 // A project whose manifest DMAs one 4bpp tile to VRAM word 0x2C00 (BG
