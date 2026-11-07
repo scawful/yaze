@@ -129,6 +129,8 @@ void ProjectManagementPanel::Draw() {
     return;
   }
 
+  DrawQuickActions();
+  ImGui::Separator();
   DrawProjectOverview();
   ImGui::Separator();
   DrawStorageLocations();
@@ -136,8 +138,6 @@ void ProjectManagementPanel::Draw() {
   DrawRomManagement();
   ImGui::Separator();
   DrawVersionControl();
-  ImGui::Separator();
-  DrawQuickActions();
 }
 
 void ProjectManagementPanel::DrawProjectOverview() {
