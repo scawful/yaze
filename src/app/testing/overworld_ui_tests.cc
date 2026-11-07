@@ -1578,6 +1578,15 @@ static void RegisterBuildRunAcceptanceTest(ImGuiTestEngine* engine) {
     IM_CHECK(fixture.is_object());
     const std::string phase = fixture.value("phase", "");
     IM_CHECK(phase == "edit" || phase == "reopen");
+    if (fixture.value("wait_for_window_observation", false)) {
+      const auto observed = project_directory / ("ui-window-observed-" + phase);
+      const auto deadline =
+          std::chrono::steady_clock::now() + std::chrono::seconds(60);
+      while (!fs::exists(observed, ec) && !ec &&
+             std::chrono::steady_clock::now() < deadline)
+        ctx->Yield(1);
+      IM_CHECK(!ec && fs::exists(observed));
+    }
     const int map_id = fixture.value("map_id", -1);
     const int local_x = fixture.value("x", -1);
     const int local_y = fixture.value("y", -1);
