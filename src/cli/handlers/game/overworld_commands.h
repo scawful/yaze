@@ -76,6 +76,38 @@ class OverworldSetTileCommandHandler : public resources::CommandHandler {
       const resources::CommandInvocationContext& invocation_context) override;
 };
 
+// Imports physical pages into an already-loaded native overworld. Publication
+// is deliberately separate from the caller's ROM and is exclusive-create only.
+class OverworldImportMapsCommandHandler : public resources::CommandHandler {
+ public:
+  std::string GetName() const override { return "overworld-import-maps"; }
+  std::string GetDescription() const {
+    return "Stage selected physical map grids, referenced Tile16 definitions, "
+           "ordinary graphics assignments and palette dependencies from a "
+           "donor into a native overworld; reject foreign owners; dry-run by "
+           "default";
+  }
+  Descriptor Describe() const override {
+    Descriptor descriptor;
+    descriptor.display_name = GetName();
+    descriptor.summary = GetDescription();
+    return descriptor;
+  }
+  std::string GetUsage() const override {
+    return "overworld-import-maps --donor <rom> --maps <hex,hex,...> "
+           "--output <new-rom> [--write] [--format <json|text>]";
+  }
+  absl::Status ValidateArgs(const resources::ArgumentParser& parser) override {
+    return parser.RequireArgs({"donor", "maps", "output"});
+  }
+  absl::Status Execute(Rom* rom, const resources::ArgumentParser& parser,
+                       resources::OutputFormatter& formatter) override;
+  absl::Status ExecuteWithContext(
+      Rom* rom, const resources::ArgumentParser& parser,
+      resources::OutputFormatter& formatter,
+      const resources::CommandInvocationContext& invocation_context) override;
+};
+
 /**
  * @brief Command handler for finding tiles in overworld
  */

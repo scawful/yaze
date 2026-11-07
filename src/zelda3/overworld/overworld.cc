@@ -1981,10 +1981,18 @@ std::vector<std::pair<uint32_t, uint32_t>> Overworld::GetProjectedWriteRanges()
         publish_ptr = &*publish_meta;
       }
     }
-    if (properties.ok() && sprites.ok()) {
+    auto palettes =
+        game_data_
+            ? PrepareNativeOverworldPaletteSave(
+                  *rom_, *game_data_, core::FeatureFlags::get().kSaveGfxGroups,
+                  core::FeatureFlags::get().kSaveAllPalettes ||
+                      core::FeatureFlags::get().dungeon.kSavePalettes)
+            : absl::StatusOr<rom::NativeOverworldPaletteEdits>(
+                  rom::NativeOverworldPaletteEdits{});
+    if (properties.ok() && sprites.ok() && palettes.ok()) {
       const auto candidate = rom::SealNativeOverworldTerrain(
           rom_->vector(), rom_->vector(), *properties, *sprites, baseline_ptr,
-          publish_ptr);
+          publish_ptr, &*palettes);
       if (candidate.ok()) {
         for (size_t pc = 0; pc < candidate->size();) {
           if ((*candidate)[pc] == rom_->vector()[pc]) {
@@ -2511,12 +2519,22 @@ absl::Status Overworld::SaveNativeTerrain() {
   if (flags.kSaveOverworldSprites) {
     ASSIGN_OR_RETURN(sprite_edits, PrepareNativeSpriteSave());
   }
+  std::optional<rom::NativeOverworldPaletteEdits> palette_edits;
+  if (game_data_) {
+    ASSIGN_OR_RETURN(
+        palette_edits,
+        PrepareNativeOverworldPaletteSave(
+            *rom_, *game_data_, core::FeatureFlags::get().kSaveGfxGroups,
+            core::FeatureFlags::get().kSaveAllPalettes ||
+                core::FeatureFlags::get().dungeon.kSavePalettes));
+  }
+  const auto* palette_ptr = palette_edits ? &*palette_edits : nullptr;
   const bool changed_maps = !MapTilesUnchanged();
   if (!flags.kSaveOverworldMaps ||
       (!changed_maps && tiles16_ == loaded_tiles16_)) {
     RETURN_IF_ERROR(rom_->CommitNativeTerrainImage(
         rom_->vector(), rom_->vector(), property_edits, sprite_edits,
-        baseline_metadata_ptr, publish_metadata_ptr));
+        baseline_metadata_ptr, publish_metadata_ptr, palette_ptr));
     if (flags.kSaveOverworldMaps)
       StageSavedMapTiles();
     if (flags.kSaveOverworldProperties) {
@@ -2572,7 +2590,7 @@ absl::Status Overworld::SaveNativeTerrain() {
   }
   RETURN_IF_ERROR(rom_->CommitNativeTerrainImage(
       rom_->vector(), std::move(candidate), property_edits, sprite_edits,
-      baseline_metadata_ptr, publish_metadata_ptr));
+      baseline_metadata_ptr, publish_metadata_ptr, palette_ptr));
   StageSavedMapTiles();
   if (flags.kSaveOverworldProperties) {
     staged_native_properties_ = current[0];

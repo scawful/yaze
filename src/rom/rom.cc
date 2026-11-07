@@ -464,7 +464,8 @@ absl::Status Rom::CommitNativeTerrainImage(
     std::span<const rom::NativeOverworldPropertyEdit> properties,
     std::span<const rom::NativeOverworldSpriteEdit> sprites,
     const rom::NativeOverworldAuthoringMetadata* baseline_metadata,
-    const rom::NativeOverworldAuthoringMetadata* publish_metadata) {
+    const rom::NativeOverworldAuthoringMetadata* publish_metadata,
+    const rom::NativeOverworldPaletteEdits* palettes) {
   RETURN_IF_ERROR(CheckLayoutSaveable());
   if (baseline != rom_data_)
     return absl::FailedPreconditionError(
@@ -472,7 +473,7 @@ absl::Status Rom::CommitNativeTerrainImage(
   ASSIGN_OR_RETURN(candidate,
                    rom::SealNativeOverworldTerrain(
                        baseline, std::move(candidate), properties, sprites,
-                       baseline_metadata, publish_metadata));
+                       baseline_metadata, publish_metadata, palettes));
   std::vector<std::pair<uint32_t, uint32_t>> changed;
   for (size_t pc = 0; pc < candidate.size();) {
     if (candidate[pc] == rom_data_[pc]) {

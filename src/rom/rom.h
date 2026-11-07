@@ -241,7 +241,8 @@ class Rom {
       std::span<const rom::NativeOverworldPropertyEdit> properties = {},
       std::span<const rom::NativeOverworldSpriteEdit> sprites = {},
       const rom::NativeOverworldAuthoringMetadata* baseline_metadata = nullptr,
-      const rom::NativeOverworldAuthoringMetadata* publish_metadata = nullptr);
+      const rom::NativeOverworldAuthoringMetadata* publish_metadata = nullptr,
+      const rom::NativeOverworldPaletteEdits* palettes = nullptr);
 
   // Sticky, value-owned exact-save reservation. No public detach capability.
   absl::Status AttachLyraPrivateReservation(const core::HackManifest& manifest);

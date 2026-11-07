@@ -9,6 +9,7 @@
 
 #include <algorithm>
 #include <memory>
+#include <set>
 #include <utility>
 
 #ifdef __EMSCRIPTEN__
@@ -237,6 +238,10 @@ absl::Status LoadGameData(Rom& rom, GameData& data,
 }
 
 absl::Status SaveGameData(Rom& rom, GameData& data) {
+  if (rom::IsNativeSpecialOverworldLayout(rom.InspectLyraLayout()))
+    return SaveNativeOverworldPalettes(
+        rom, data, core::FeatureFlags::get().kSaveGfxGroups,
+        core::FeatureFlags::get().kSaveAllPalettes);
   if (core::FeatureFlags::get().kSaveAllPalettes) {
     const auto layout = data.overworld_palette_layout.value_or(
         gfx::palette_group_internal::OverworldPaletteLayout::Legacy());
@@ -306,10 +311,21 @@ absl::Status LoadMetadata(const Rom& rom, GameData& data) {
 absl::Status LoadPalettes(const Rom& rom, GameData& data) {
   // Create a vector from rom data for palette loading
   const std::vector<uint8_t>& rom_vec = rom.vector();
-  return gfx::LoadAllPalettes(
+  RETURN_IF_ERROR(gfx::LoadAllPalettes(
       rom_vec, data.palette_groups,
       data.overworld_palette_layout.value_or(
-          gfx::palette_group_internal::OverworldPaletteLayout::Legacy()));
+          gfx::palette_group_internal::OverworldPaletteLayout::Legacy())));
+  if (rom::IsNativeSpecialOverworldLayout(rom.InspectLyraLayout())) {
+    // ReadPaletteFromRom initializes with set_snes(), which marks colors
+    // modified. Loading the session is not a user edit or write request.
+    for (const char* name : gfx::kPaletteGroupAddressesKeys) {
+      auto* group = data.palette_groups.get_group(name);
+      for (int palette = 0; palette < group->size(); ++palette)
+        for (auto& color : *group->mutable_palette(palette))
+          color.set_modified(false);
+    }
+  }
+  return absl::OkStatus();
 }
 
 absl::Status LoadGfxGroups(Rom& rom, GameData& data) {
@@ -459,6 +475,8 @@ absl::StatusOr<GfxGroupDiff> DiffGfxGroups(const Rom& rom,
 }
 
 absl::Status SaveGfxGroups(Rom& rom, const GameData& data) {
+  if (rom::IsNativeSpecialOverworldLayout(rom.InspectLyraLayout()))
+    return SaveNativeOverworldPalettes(rom, data, true, false);
   ASSIGN_OR_RETURN(const auto tables, ResolveGfxGroupTables(rom, data));
   absl::Status status;
   ForEachGfxGroupByte(tables, data, [&](uint32_t pc, uint8_t wanted, int) {
@@ -474,6 +492,106 @@ absl::Status SaveGfxGroups(Rom& rom, const GameData& data) {
         "Gfx group read-back differs in %d byte(s)", readback.changed_bytes));
   }
   return absl::OkStatus();
+}
+
+absl::StatusOr<rom::NativeOverworldPaletteEdits>
+PrepareNativeOverworldPaletteSave(const Rom& rom, const GameData& data,
+                                  bool save_groups, bool save_colors) {
+  if (!rom::IsNativeSpecialOverworldLayout(rom.InspectLyraLayout()))
+    return absl::FailedPreconditionError(
+        "Native palette preparation requires a native overworld");
+  if (data.version != zelda3_version::US)
+    return absl::FailedPreconditionError(
+        "Native palette carrier requires the US table layout");
+  rom::NativeOverworldPaletteEdits plan;
+  plan.layout = data.overworld_palette_layout.value_or(
+      gfx::palette_group_internal::OverworldPaletteLayout::Legacy());
+  if (save_groups) {
+    if (!data.gfx_groups_loaded)
+      return absl::FailedPreconditionError(
+          "Load graphics groups before preparing native palette selectors");
+    ASSIGN_OR_RETURN(const auto tables, ResolveGfxGroupTables(rom, data));
+    absl::Status status;
+    std::set<size_t> rows;
+    ForEachGfxGroupByte(tables, data,
+                        [&](uint32_t pc, uint8_t value, int table) {
+                          if (!status.ok() || value == rom.data()[pc])
+                            return;
+                          if (table != 3 || pc < 0x75504 || pc >= 0x75580) {
+                            status = absl::FailedPreconditionError(
+                                "Native palette save refuses changed foreign "
+                                "graphics/group tables");
+                            return;
+                          }
+                          rows.insert((pc - 0x75504) / 4);
+                        });
+    RETURN_IF_ERROR(status);
+    for (size_t row : rows) {
+      rom::NativeOverworldPaletteSelectorEdit edit;
+      edit.group_index = row;
+      std::copy_n(rom.vector().begin() + 0x75504 + row * 4, 4,
+                  edit.expected.begin());
+      edit.value = data.paletteset_ids[(0x75504 - tables.palette) / 4 + row];
+      plan.selectors.push_back(edit);
+    }
+  }
+  if (save_colors) {
+    auto prepare_group = [&](const gfx::PaletteGroup& group) -> absl::Status {
+      std::optional<rom::NativeOverworldPaletteKind> kind;
+      if (group.name() == "ow_main")
+        kind = rom::NativeOverworldPaletteKind::kMain;
+      else if (group.name() == "ow_aux")
+        kind = rom::NativeOverworldPaletteKind::kAuxiliary;
+      else if (group.name() == "ow_animated")
+        kind = rom::NativeOverworldPaletteKind::kAnimated;
+      for (int palette = 0; palette < group.size(); ++palette) {
+        const auto& colors = group.palette_ref(palette);
+        for (int color = 0; color < colors.size(); ++color) {
+          if (!kind) {
+            if (colors[color].is_modified()) {
+              ASSIGN_OR_RETURN(
+                  const auto pc,
+                  gfx::palette_group_internal::ResolvePaletteColorAddress(
+                      plan.layout, group.name(), palette, color, rom.size()));
+              ASSIGN_OR_RETURN(const auto expected, rom.ReadWord(pc));
+              if (expected != colors[color].snes())
+                return absl::FailedPreconditionError(
+                    absl::StrFormat("Native background palette save refuses "
+                                    "changed foreign palette %s/%d/%d",
+                                    group.name(), palette, color));
+            }
+            continue;
+          }
+          ASSIGN_OR_RETURN(
+              const auto pc,
+              gfx::palette_group_internal::ResolvePaletteColorAddress(
+                  plan.layout, group.name(), palette, color, rom.size()));
+          ASSIGN_OR_RETURN(const auto expected, rom.ReadWord(pc));
+          if (expected != colors[color].snes())
+            plan.colors.push_back({*kind, static_cast<uint16_t>(palette),
+                                   static_cast<uint16_t>(color), expected,
+                                   colors[color].snes()});
+        }
+      }
+      return absl::OkStatus();
+    };
+    for (const char* name : gfx::kPaletteGroupAddressesKeys)
+      RETURN_IF_ERROR(prepare_group(*data.palette_groups.get_group(name)));
+  }
+  // Run the same ownership/preimage validation before an editor changes bytes.
+  RETURN_IF_ERROR(rom::SealNativeOverworldTerrain(rom.vector(), rom.vector(),
+                                                  {}, {}, nullptr, nullptr,
+                                                  &plan)
+                      .status());
+  return plan;
+}
+
+absl::Status SaveNativeOverworldPalettes(Rom& rom, const GameData& data,
+                                         bool save_groups, bool save_colors) {
+  ASSIGN_OR_RETURN(const auto plan, PrepareNativeOverworldPaletteSave(
+                                        rom, data, save_groups, save_colors));
+  return rom.CommitNativeTerrainImage(rom.vector(), rom.vector(), {}, {},
+                                      nullptr, nullptr, &plan);
 }
 
 // ============================================================================

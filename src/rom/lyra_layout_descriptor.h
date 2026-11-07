@@ -10,6 +10,7 @@
 #include <vector>
 
 #include "absl/status/statusor.h"
+#include "app/gfx/types/snes_palette_layout.h"
 
 #include "rom/native_overworld_authoring_metadata.h"
 
@@ -84,6 +85,28 @@ struct NativeOverworldPropertyEdit {
   std::vector<uint8_t> value;
 };
 
+// Background palette edits are resolved by the same captured session layout
+// as GameData. No caller-supplied byte address grants write authority.
+enum class NativeOverworldPaletteKind { kMain, kAuxiliary, kAnimated };
+struct NativeOverworldPaletteColorEdit {
+  NativeOverworldPaletteKind kind;
+  uint16_t palette_index;
+  uint16_t color_index;
+  uint16_t expected;
+  uint16_t value;
+};
+struct NativeOverworldPaletteSelectorEdit {
+  uint16_t group_index;
+  std::array<uint8_t, 4> expected;
+  std::array<uint8_t, 4> value;
+};
+struct NativeOverworldPaletteEdits {
+  gfx::palette_group_internal::OverworldPaletteLayout layout =
+      gfx::palette_group_internal::OverworldPaletteLayout::Legacy();
+  std::vector<NativeOverworldPaletteSelectorEdit> selectors;
+  std::vector<NativeOverworldPaletteColorEdit> colors;
+};
+
 // Ordered packed sprite stream: y, x, sprite code, with a final FF. Placement
 // IDs, when present in optional record 412, are not runtime sprite codes.
 struct NativeOverworldSpriteEdit {
@@ -114,7 +137,8 @@ absl::StatusOr<std::vector<uint8_t>> SealNativeOverworldTerrain(
     std::span<const NativeOverworldPropertyEdit> properties = {},
     std::span<const NativeOverworldSpriteEdit> sprites = {},
     const NativeOverworldAuthoringMetadata* baseline_metadata = nullptr,
-    const NativeOverworldAuthoringMetadata* publish_metadata = nullptr);
+    const NativeOverworldAuthoringMetadata* publish_metadata = nullptr,
+    const NativeOverworldPaletteEdits* palettes = nullptr);
 
 inline constexpr uint32_t kLyraA0HighStreamPc = 0x132000;
 inline constexpr uint32_t kLyraA0LowStreamPc = 0x132200;

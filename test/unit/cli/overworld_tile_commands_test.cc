@@ -6,6 +6,7 @@
 #include <map>
 #include <memory>
 #include <optional>
+#include <set>
 #include <string>
 #include <vector>
 
@@ -15,6 +16,7 @@
 
 #include "absl/cleanup/cleanup.h"
 #include "absl/strings/str_format.h"
+#include "app/gfx/util/palette_manager.h"
 #include "cli/handlers/game/overworld_commands.h"
 #include "cli/handlers/game/overworld_inspect.h"
 #include "cli/handlers/tools/overworld_validate_commands.h"
@@ -23,7 +25,11 @@
 #include "framework/rom_save_fault.h"
 #include "oracle_rom_fixture.h"
 #include "rom/rom.h"
+#include "rom/transaction.h"
+#include "rom/write_fence.h"
 #include "unique_temp_path.h"
+#include "zelda3/dungeon/room.h"
+#include "zelda3/game_data.h"
 #include "zelda3/overworld/overworld.h"
 #include "zelda3/overworld/overworld_version_helper.h"
 
@@ -979,6 +985,449 @@ TEST_F(OverworldTileRomTest,
     EXPECT_EQ(reopened.vector(), saved_bytes);
     EXPECT_EQ(ReadBytes(path), saved_bytes);
   }
+}
+
+TEST_F(OverworldTileRomTest,
+       SelectedImportStagesNative192AndPublishesOnlyNewVerifiedOutput) {
+  test::native_overworld::NativeDirectoryFixture fixture(192);
+  fixture.SeedLoadedLegacyForModelTest(rom_, *overworld_);
+  fixture.UpgradeToRevision4();
+  fixture.AddAuthoringMetadata();
+  const auto dir = test::UniqueTempPath("ow_selected_import");
+  std::filesystem::create_directories(dir);
+  auto cleanup = absl::MakeCleanup([&] {
+    std::error_code ec;
+    std::filesystem::remove_all(dir, ec);
+  });
+  const auto donor_path = dir / "donor.sfc";
+  const auto target_path = dir / "native.sfc";
+  const auto output_path = dir / "imported.sfc";
+  auto write_bytes = [](const auto& path, const std::vector<uint8_t>& bytes) {
+    std::ofstream file(path, std::ios::binary);
+    file.write(reinterpret_cast<const char*>(bytes.data()), bytes.size());
+  };
+  Rom native;
+  ASSERT_TRUE(native.LoadFromData(fixture.bytes).ok());
+  zelda3::Overworld target(&native);
+  ASSERT_TRUE(target.Load(&native).ok());
+  // Choose an ordinary complete area with explicit palette selectors. The
+  // fixture contributes actual legacy resources; tail pages and authoring
+  // metadata come from the maintained native model fixture.
+  int parent = -1;
+  for (int map = 0; map < 128; ++map) {
+    const auto* page = overworld_->overworld_map(map);
+    const int pc = overworld_->version_constants().kOverworldMapPaletteGroup +
+                   page->area_palette() * 4;
+    if (page->parent() == map && page->main_palette() != 0xFF &&
+        page->roomset_source() ==
+            zelda3::OverworldRoomsetSource::kCustomTileGroups &&
+        rom_.data()[pc] != 0xFF && rom_.data()[pc + 1] != 0xFF &&
+        rom_.data()[pc + 2] != 0xFF) {
+      parent = map;
+      break;
+    }
+  }
+  ASSERT_GE(parent, 0) << "Fixture must contain an explicit ordinary area";
+  std::string maps;
+  std::set<int> selected;
+  for (int map = 0; map < 160; ++map) {
+    if (overworld_->overworld_map(map)->parent() != parent)
+      continue;
+    selected.insert(map);
+    if (!maps.empty())
+      maps += ',';
+    maps += absl::StrFormat("%02X", map);
+  }
+  const int physical = *selected.rbegin();  // exercise a child when available
+  const auto location = overworld::LocateScreenTile(target, physical, 5, 6);
+  ASSERT_TRUE(location.ok()) << location.status();
+  const auto old_tile = overworld::ReadAreaTile(target, *location);
+  ASSERT_TRUE(old_tile.ok());
+  ASSERT_TRUE(
+      overworld::WriteAreaTile(target, *location, *old_tile == 1 ? 2 : 1).ok());
+  const auto flags = core::FeatureFlags::get();
+  auto restore_flags =
+      absl::MakeCleanup([&] { core::FeatureFlags::get() = flags; });
+  core::FeatureFlags::get().overworld.kSaveOverworldMaps = true;
+  core::FeatureFlags::get().kSaveAllPalettes = true;
+  Rom donor;
+  ASSERT_TRUE(donor.LoadFromData(rom_.vector()).ok());
+  auto donor_data_owner = std::make_unique<zelda3::GameData>(&donor);
+  auto& donor_data = *donor_data_owner;
+  zelda3::LoadOptions data_options;
+  data_options.load_graphics = false;
+  data_options.expand_rom = false;
+  ASSERT_TRUE(zelda3::LoadGameData(donor, donor_data, data_options).ok());
+  zelda3::Overworld donor_world(&donor, &donor_data);
+  ASSERT_TRUE(donor_world.Load(&donor).ok());
+  std::set<int> used_tiles, used_groups, used_aux, room_palette_sets;
+  for (int map = 0; map < 192; ++map) {
+    const auto* page = target.overworld_map(map);
+    used_groups.insert(page->area_palette());
+    const int pc = target.version_constants().kOverworldMapPaletteGroup +
+                   page->area_palette() * 4;
+    used_aux.insert(native.data()[pc]);
+    used_aux.insert(native.data()[pc + 1]);
+    for (int y = 0; y < 32; ++y)
+      for (int x = 0; x < 32; ++x) {
+        const auto cell = overworld::LocateScreenTile(target, map, x, y);
+        ASSERT_TRUE(cell.ok());
+        used_tiles.insert(*overworld::ReadAreaTile(target, *cell));
+      }
+  }
+  for (int room = 0; room < zelda3::kNumberOfRooms; ++room)
+    room_palette_sets.insert(
+        zelda3::LoadRoomHeaderFromRom(&donor, room).palette());
+  int private_tile = 4095;
+  while (private_tile >= 0 && used_tiles.count(private_tile))
+    --private_tile;
+  ASSERT_GE(private_tile, 0);
+  int private_group = -1, private_aux = -1;
+  const int palette_base =
+      (target.version_constants().kOverworldMapPaletteGroup -
+       target.version_constants().kDungeonPalettesGroups) /
+      4;
+  for (int group = 0; group < 31; ++group)
+    if (!used_groups.count(group) &&
+        !room_palette_sets.count(palette_base + group)) {
+      private_group = group;
+      break;
+    }
+  for (int aux = 0; aux < donor_data.palette_groups.overworld_aux.size(); ++aux)
+    if (!used_aux.count(aux)) {
+      private_aux = aux;
+      break;
+    }
+  ASSERT_GE(private_group, 0) << "Fixture needs an unowned OW palette group";
+  ASSERT_GE(private_aux, 0) << "Fixture needs an unowned auxiliary palette";
+  auto definition = donor_world.tiles16()[*old_tile];
+  definition.tile0_.horizontal_mirror_ = !definition.tile0_.horizontal_mirror_;
+  if (definition == target.tiles16()[private_tile])
+    definition.tile1_.vertical_mirror_ = !definition.tile1_.vertical_mirror_;
+  (*donor_world.mutable_tiles16())[private_tile] = definition;
+  ASSERT_TRUE(
+      overworld::WriteAreaTile(donor_world, *location, private_tile).ok());
+  const auto old_group =
+      donor_data
+          .paletteset_ids[palette_base +
+                          donor_world.overworld_map(parent)->area_palette()];
+  donor_data.paletteset_ids[palette_base + private_group] = old_group;
+  donor_data.paletteset_ids[palette_base + private_group][0] = private_aux;
+  auto* aux =
+      donor_data.palette_groups.overworld_aux.mutable_palette(private_aux);
+  *aux = donor_data.palette_groups.overworld_aux.palette_ref(old_group[0]);
+  (*aux)[0].set_snes((*aux)[0].snes() ^ 1);
+  for (int color = 0; color < aux->size(); ++color)
+    (*aux)[color].set_modified(true);
+  const uint8_t sheet =
+      target.overworld_map(parent)->custom_tileset(0) == 0x3A ? 0x3B : 0x3A;
+  for (int map : selected) {
+    donor_world.mutable_overworld_map(map)->set_area_palette(private_group);
+    donor_world.mutable_overworld_map(map)->set_custom_tileset(0, sheet);
+  }
+  ASSERT_TRUE(donor_world.SaveMapProperties().ok());
+  ASSERT_TRUE(donor_world.SaveCustomOverworldData().ok());
+  ASSERT_TRUE(donor_world.SaveMap16Expanded().ok());
+  ASSERT_TRUE(donor_world.CreateTile32Tilemap().ok());
+  ASSERT_TRUE(donor_world.SaveMap32Expanded().ok());
+  ASSERT_TRUE(donor_world.SaveOverworldMaps().ok());
+  ASSERT_TRUE(zelda3::SaveGfxGroups(donor, donor_data).ok());
+  ASSERT_TRUE(zelda3::SaveGameData(donor, donor_data).ok());
+  write_bytes(donor_path, donor.vector());
+  const auto donor_before = donor.vector();
+  ASSERT_TRUE(target.SaveNativeTerrain().ok());
+  write_bytes(target_path, native.vector());
+  ASSERT_TRUE(native.LoadFromFile(target_path.string()).ok());
+  const auto original = native.vector();
+  // This source contains unavailable dormant special-area sprite selectors
+  // (map $90 is $C2). They are outside this BG import and remain byte-exact.
+  const auto sprite_selector_pc = fixture.Entry(25).pc_address + 0x90;
+  ASSERT_GE(original[sprite_selector_pc], 24);
+  handlers::OverworldImportMapsCommandHandler handler;
+  const std::vector<std::string> args = {"--donor=" + donor_path.string(),
+                                         "--maps=" + maps,
+                                         "--output=" + output_path.string()};
+  absl::Status status;
+  const auto dry = RunJson(handler, args, &native, &status);
+  ASSERT_TRUE(status.ok()) << status << dry.dump();
+  EXPECT_EQ(dry["Overworld Map Import"]["write_status"], "dry-run");
+  EXPECT_EQ(dry["Overworld Map Import"]["changed_definitions"], 1);
+  EXPECT_GE(dry["Overworld Map Import"]["changed_palette_records"].get<int>(),
+            1);
+  EXPECT_FALSE(std::filesystem::exists(output_path));
+  EXPECT_EQ(native.vector(), original);
+  EXPECT_EQ(ReadBytes(target_path), original);
+  EXPECT_EQ(ReadBytes(donor_path), donor_before);
+
+  for (const auto& alias : {target_path, donor_path}) {
+    auto alias_args = args;
+    alias_args[2] = "--output=" + alias.string();
+    alias_args.push_back("--write");
+    RunJson(handler, alias_args, &native, &status);
+    EXPECT_FALSE(status.ok());
+    EXPECT_EQ(native.vector(), original);
+    EXPECT_EQ(ReadBytes(target_path), original);
+  }
+  auto write_args = args;
+  write_args.push_back("--write");
+  const auto written = RunJson(handler, write_args, &native, &status);
+  ASSERT_TRUE(status.ok()) << status << written.dump();
+  EXPECT_EQ(native.vector(), original);
+  EXPECT_EQ(ReadBytes(target_path), original);
+  Rom reopened;
+  ASSERT_TRUE(reopened.LoadFromFile(output_path.string()).ok());
+  zelda3::Overworld actual(&reopened);
+  ASSERT_TRUE(actual.Load(&reopened).ok());
+  EXPECT_EQ(actual.materialized_map_count(), 192);
+  EXPECT_EQ(*overworld::ReadAreaTile(actual, *location), private_tile);
+  EXPECT_EQ(actual.tiles16()[private_tile], definition);
+  EXPECT_EQ(actual.overworld_map(parent)->custom_tileset(0), sheet);
+  EXPECT_EQ(actual.overworld_map(parent)->area_palette(), private_group);
+  auto actual_data_owner = std::make_unique<zelda3::GameData>(&reopened);
+  auto& actual_data = *actual_data_owner;
+  ASSERT_TRUE(zelda3::LoadGameData(reopened, actual_data, data_options).ok());
+  EXPECT_EQ(actual_data.paletteset_ids[palette_base + private_group],
+            donor_data.paletteset_ids[palette_base + private_group]);
+  EXPECT_EQ(actual_data.palette_groups.overworld_aux.palette_ref(private_aux),
+            *aux);
+  for (int table : {25, 37, 38}) {
+    const auto& entry = fixture.Entry(table);
+    EXPECT_TRUE(std::equal(
+        original.begin() + entry.pc_address,
+        original.begin() + entry.pc_address + entry.count * entry.stride,
+        reopened.vector().begin() + entry.pc_address));
+  }
+  EXPECT_EQ(reopened.vector()[sprite_selector_pc],
+            original[sprite_selector_pc]);
+  zelda3::Overworld control(&native);
+  ASSERT_TRUE(control.Load(&native).ok());
+  for (int map = 0; map < 192; ++map) {
+    if (selected.count(map))
+      continue;
+    for (int y = 0; y < 32; ++y) {
+      for (int x = 0; x < 32; ++x) {
+        const auto cell = overworld::LocateScreenTile(control, map, x, y);
+        ASSERT_TRUE(cell.ok()) << cell.status();
+        EXPECT_EQ(*overworld::ReadAreaTile(actual, *cell),
+                  *overworld::ReadAreaTile(control, *cell));
+      }
+    }
+  }
+  const auto output_bytes = ReadBytes(output_path);
+  RunJson(handler, write_args, &native, &status);
+  EXPECT_TRUE(absl::IsAlreadyExists(status)) << status;
+  EXPECT_EQ(ReadBytes(output_path), output_bytes);
+  EXPECT_EQ(native.vector(), original);
+
+  // Shared palette-owner lifecycle: native commits remain staged until the
+  // outer file save succeeds. Invalid batches and later publication failure
+  // leave bytes and palette dirty/original tracking intact.
+  auto palette_data_owner = std::make_unique<zelda3::GameData>(&native);
+  auto& palette_data = *palette_data_owner;
+  ASSERT_TRUE(zelda3::LoadGameData(native, palette_data, data_options).ok());
+  auto& manager = gfx::PaletteManager::Get();
+  manager.Initialize(&palette_data);
+  auto release_palettes =
+      absl::MakeCleanup([&] { manager.ReleaseSession(&palette_data); });
+  const auto old_color = manager.GetColor("ow_aux", private_aux, 0);
+  auto new_color = old_color;
+  new_color.set_snes(new_color.snes() ^ 1);
+  ASSERT_TRUE(manager.SetColor("ow_aux", private_aux, 0, new_color).ok());
+  const auto planned = zelda3::PrepareNativeOverworldPaletteSave(
+      native, palette_data, false, true);
+  ASSERT_TRUE(planned.ok()) << planned.status();
+  ASSERT_EQ(planned->colors.size(), 1);
+  auto reject_batch = [&](const rom::NativeOverworldPaletteEdits& plan) {
+    EXPECT_FALSE(native
+                     .CommitNativeTerrainImage(original, original, {}, {},
+                                               nullptr, nullptr, &plan)
+                     .ok());
+    EXPECT_EQ(native.vector(), original);
+    EXPECT_TRUE(manager.HasUnsavedChanges());
+    EXPECT_EQ(manager.GetOriginalColor("ow_aux", private_aux, 0).snes(),
+              old_color.snes());
+  };
+  auto invalid = *planned;
+  invalid.colors[0].value = 0x8000;
+  reject_batch(invalid);
+  invalid = *planned;
+  invalid.colors[0].expected ^= 1;
+  reject_batch(invalid);
+  invalid = *planned;
+  invalid.colors.push_back(invalid.colors.front());
+  reject_batch(invalid);
+  invalid = *planned;
+  invalid.colors[0].palette_index = 20;  // unbound in the legacy session layout
+  reject_batch(invalid);
+  invalid = *planned;
+  invalid.colors[0].kind = static_cast<rom::NativeOverworldPaletteKind>(255);
+  reject_batch(invalid);
+  palette_data.main_blockset_ids[0][0] ^= 1;
+  EXPECT_FALSE(zelda3::PrepareNativeOverworldPaletteSave(native, palette_data,
+                                                         true, true)
+                   .ok());
+  EXPECT_EQ(native.vector(), original);
+  palette_data.main_blockset_ids[0][0] ^= 1;
+  auto& foreign_color =
+      (*palette_data.palette_groups.hud.mutable_palette(0))[0];
+  const auto old_foreign_color = foreign_color;
+  foreign_color.set_snes(foreign_color.snes() ^ 1);
+  foreign_color.set_modified(true);
+  EXPECT_FALSE(zelda3::PrepareNativeOverworldPaletteSave(native, palette_data,
+                                                         false, true)
+                   .ok());
+  EXPECT_EQ(native.vector(), original);
+  foreign_color = old_foreign_color;
+  invalid = *planned;
+  const int row_pc = 0x75504 + private_group * 4;
+  rom::NativeOverworldPaletteSelectorEdit row;
+  row.group_index = private_group;
+  std::copy_n(original.begin() + row_pc, 4, row.expected.begin());
+  row.value = row.expected;
+  row.value[3] ^= 1;
+  invalid.selectors.push_back(row);
+  reject_batch(invalid);
+  core::RomAddressOverrides overlap;
+  overlap.addresses[core::RomAddressKey::kOverworldAuxPaletteExtensionPc] =
+      fixture.Entry(411).pc_address;
+  overlap.addresses[core::RomAddressKey::kOverworldAuxPaletteExtensionCount] =
+      32;
+  overlap.addresses[core::RomAddressKey::kOverworldAuxPaletteExtensionAbi] = 1;
+  const auto overlapping =
+      gfx::palette_group_internal::OverworldPaletteLayout::FromOverrides(
+          overlap, native.size());
+  ASSERT_TRUE(overlapping.ok()) << overlapping.status();
+  invalid = *planned;
+  invalid.layout = *overlapping;
+  invalid.colors[0].palette_index = 20;
+  invalid.colors[0].expected = *native.ReadWord(fixture.Entry(411).pc_address);
+  reject_batch(invalid);
+  {
+    ScopedRomReadOnly policy(native);
+    reject_batch(*planned);
+  }
+  {
+    rom::WriteFence deny;
+    rom::ScopedWriteFence fence(&native, &deny);
+    reject_batch(*planned);
+  }
+  EXPECT_FALSE(
+      native.WriteWord(0xDE86C + private_aux * 42, new_color.snes()).ok());
+  ASSERT_TRUE(manager.BeginSaveTransaction().ok());
+  {
+    ScopedRomTransaction transaction(native);
+    ASSERT_TRUE(manager.SaveAllToRom().ok());
+    EXPECT_TRUE(manager.HasUnsavedChanges());
+    EXPECT_EQ(manager.GetOriginalColor("ow_aux", private_aux, 0).snes(),
+              old_color.snes());
+    test::ScopedRomStagingFailure failure;
+    EXPECT_FALSE(
+        native
+            .SaveToFile({.save_new = false,
+                         .filename = (dir / "failed-palette.sfc").string()})
+            .ok());
+    manager.RollbackSaveTransaction();
+  }
+  EXPECT_EQ(native.vector(), original);
+  EXPECT_TRUE(manager.HasUnsavedChanges());
+  ASSERT_TRUE(manager.BeginSaveTransaction().ok());
+  {
+    ScopedRomTransaction transaction(native);
+    ASSERT_TRUE(manager.SaveAllToRom().ok());
+    ASSERT_TRUE(
+        native
+            .SaveToFile({.save_new = false,
+                         .filename = (dir / "palette-reopen.sfc").string()})
+            .ok());
+    transaction.Commit();
+    manager.CommitSaveTransaction();
+  }
+  EXPECT_FALSE(manager.HasUnsavedChanges());
+  EXPECT_EQ(manager.GetOriginalColor("ow_aux", private_aux, 0).snes(),
+            new_color.snes());
+  Rom palette_reopened;
+  ASSERT_TRUE(
+      palette_reopened.LoadFromFile((dir / "palette-reopen.sfc").string())
+          .ok());
+  EXPECT_EQ(*palette_reopened.ReadWord(0xDE86C + private_aux * 42),
+            new_color.snes());
+  auto staged_color = new_color;
+  staged_color.set_snes(staged_color.snes() ^ 2);
+  auto later_color = staged_color;
+  later_color.set_snes(later_color.snes() ^ 4);
+  ASSERT_TRUE(manager.SetColor("ow_aux", private_aux, 0, staged_color).ok());
+  ASSERT_TRUE(manager.BeginSaveTransaction().ok());
+  {
+    ScopedRomTransaction transaction(native);
+    ASSERT_TRUE(manager.SaveAllToRom().ok());
+    ASSERT_TRUE(manager.SetColor("ow_aux", private_aux, 0, later_color).ok());
+    ASSERT_TRUE(
+        native
+            .SaveToFile({.save_new = false,
+                         .filename = (dir / "palette-post-stage.sfc").string()})
+            .ok());
+    transaction.Commit();
+    manager.CommitSaveTransaction();
+  }
+  EXPECT_TRUE(manager.HasUnsavedChanges());
+  EXPECT_EQ(manager.GetOriginalColor("ow_aux", private_aux, 0).snes(),
+            staged_color.snes());
+  EXPECT_EQ(manager.GetColor("ow_aux", private_aux, 0).snes(),
+            later_color.snes());
+  EXPECT_EQ(*native.ReadWord(0xDE86C + private_aux * 42), staged_color.snes());
+  manager.ReleaseSession(&palette_data);
+
+  fixture.bytes = original;
+  fixture.bytes[fixture.Entry(31).pc_address + 0xBF] = private_group;
+  fixture.Seal();
+  write_bytes(target_path, fixture.bytes);
+  ASSERT_TRUE(native.LoadFromFile(target_path.string()).ok());
+  auto palette_foreign_args = write_args;
+  const auto palette_foreign_output = dir / "foreign-palette.sfc";
+  palette_foreign_args[2] = "--output=" + palette_foreign_output.string();
+  RunJson(handler, palette_foreign_args, &native, &status);
+  EXPECT_TRUE(absl::IsFailedPrecondition(status)) << status;
+  EXPECT_THAT(status.message(), HasSubstr("unselected owner"));
+  EXPECT_FALSE(std::filesystem::exists(palette_foreign_output));
+  EXPECT_EQ(native.vector(), fixture.bytes);
+  // Restore the original model before the independent shared-definition case.
+  ASSERT_TRUE(native.LoadFromData(original).ok());
+
+  // A changed definition used by both an imported and a preserved page must
+  // reject the entire transaction before publishing even one selected cell.
+  std::set<uint16_t> imported_tiles, foreign_tiles;
+  for (int map = 0; map < 192; ++map) {
+    auto& ids = selected.count(map) ? imported_tiles : foreign_tiles;
+    for (int y = 0; y < 32; ++y) {
+      for (int x = 0; x < 32; ++x) {
+        const auto cell = overworld::LocateScreenTile(control, map, x, y);
+        ASSERT_TRUE(cell.ok());
+        ids.insert(*overworld::ReadAreaTile(
+            selected.count(map) ? donor_world : control, *cell));
+      }
+    }
+  }
+  std::vector<uint16_t> shared;
+  std::set_intersection(imported_tiles.begin(), imported_tiles.end(),
+                        foreign_tiles.begin(), foreign_tiles.end(),
+                        std::back_inserter(shared));
+  ASSERT_FALSE(shared.empty());
+  fixture.bytes = original;
+  fixture.bytes[fixture.Entry(400).pc_address + shared.front() * 8 + 1] ^= 0x40;
+  fixture.Seal();
+  write_bytes(target_path, fixture.bytes);
+  ASSERT_TRUE(native.LoadFromFile(target_path.string()).ok());
+  const auto conflict_input = native.vector();
+  auto conflict_args = write_args;
+  const auto conflict_output = dir / "foreign-owner.sfc";
+  conflict_args[2] = "--output=" + conflict_output.string();
+  RunJson(handler, conflict_args, &native, &status);
+  EXPECT_TRUE(absl::IsFailedPrecondition(status)) << status;
+  EXPECT_THAT(status.message(), HasSubstr("unselected owner"));
+  EXPECT_FALSE(std::filesystem::exists(conflict_output));
+  EXPECT_EQ(native.vector(), conflict_input);
+  EXPECT_EQ(ReadBytes(target_path), conflict_input);
+  EXPECT_EQ(ReadBytes(donor_path), donor_before);
 }
 
 }  // namespace

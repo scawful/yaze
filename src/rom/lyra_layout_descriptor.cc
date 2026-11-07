@@ -8,6 +8,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
+#include <set>
 #include <string>
 #include <utility>
 #include <vector>
@@ -858,7 +859,8 @@ absl::StatusOr<std::vector<uint8_t>> SealNativeOverworldTerrain(
     std::span<const NativeOverworldPropertyEdit> properties,
     std::span<const NativeOverworldSpriteEdit> sprites,
     const NativeOverworldAuthoringMetadata* baseline_metadata,
-    const NativeOverworldAuthoringMetadata* publish_metadata) {
+    const NativeOverworldAuthoringMetadata* publish_metadata,
+    const NativeOverworldPaletteEdits* palettes) {
   const auto layout = InspectLyraLayout(baseline.data(), baseline.size());
   if (layout.presence != LyraLayoutPresence::kValid ||
       !IsNativeSpecialOverworldLayout(layout) ||
@@ -893,6 +895,130 @@ absl::StatusOr<std::vector<uint8_t>> SealNativeOverworldTerrain(
         })) {
       return absl::PermissionDeniedError(
           "Native terrain candidate changes an unowned byte");
+    }
+  }
+  // Palette authority is typed and separate from terrain candidate bytes.
+  // Resolve and validate the complete batch before applying any palette edit.
+  struct PaletteWrite {
+    uint32_t pc;
+    std::vector<uint8_t> value;
+  };
+  std::vector<PaletteWrite> palette_writes;
+  std::set<uint32_t> palette_bytes;
+  auto stage_palette = [&](uint32_t pc, std::span<const uint8_t> expected,
+                           std::span<const uint8_t> value) -> absl::Status {
+    if (expected.size() != value.size() || pc > baseline.size() ||
+        value.size() > baseline.size() - pc)
+      return absl::InvalidArgumentError("Native palette span is invalid");
+    auto overlaps = [&](size_t start, size_t end) {
+      return pc < end && start < pc + value.size();
+    };
+    if (overlaps(kDescriptorPc, kDescriptorPc + kDescriptorSize))
+      return absl::PermissionDeniedError("Native palette overlaps descriptor");
+    for (const auto& entry : layout.entries)
+      if (overlaps(entry.pc_address,
+                   entry.pc_address + entry.count * entry.stride))
+        return absl::PermissionDeniedError(
+            "Native palette overlaps a directory payload");
+    for (const auto& storage :
+         {std::span<const internal::NativeOverworldTableStorage>(
+              internal::kProperties),
+          std::span<const internal::NativeOverworldTableStorage>(
+              internal::kOtherNativeStorage)}) {
+      for (const auto& entry : storage) {
+        if (entry.native_pc == 0)
+          continue;
+        const size_t stride =
+            entry.id >= 500 ? 1 : FindEntry(layout, entry.id)->stride;
+        if (overlaps(entry.native_pc,
+                     entry.native_pc + entry.native_count * stride))
+          return absl::PermissionDeniedError(
+              "Native palette overlaps an original native table");
+      }
+    }
+    if (!std::equal(expected.begin(), expected.end(), baseline.begin() + pc))
+      return absl::FailedPreconditionError("Native palette preimage changed");
+    if (!std::equal(baseline.begin() + pc, baseline.begin() + pc + value.size(),
+                    candidate.begin() + pc))
+      return absl::PermissionDeniedError(
+          "Native terrain candidate aliases palette storage");
+    for (size_t i = 0; i < value.size(); ++i)
+      if (!palette_bytes.insert(pc + i).second)
+        return absl::InvalidArgumentError(
+            "Duplicate or overlapping native palette edits");
+    palette_writes.push_back(
+        {pc, std::vector<uint8_t>(value.begin(), value.end())});
+    return absl::OkStatus();
+  };
+  if (palettes) {
+    using gfx::palette_group_internal::OverworldPaletteKind;
+    std::set<uint8_t> dungeon_palette_sets;
+    if (!palettes->selectors.empty()) {
+      uint32_t table = 0;
+      if (!NativeToPc(U24(baseline.data() + 0xB5DD), &table) ||
+          table > baseline.size() || 296 * 2 > baseline.size() - table)
+        return absl::FailedPreconditionError(
+            "Dungeon palette ownership table is unavailable");
+      const uint32_t bank = static_cast<uint32_t>(baseline[0xB5E7]) << 16;
+      for (int room = 0; room < 296; ++room) {
+        uint32_t pc = 0;
+        if (!NativeToPc(bank | U16(baseline.data() + table + room * 2), &pc) ||
+            pc > baseline.size() || 14 > baseline.size() - pc)
+          return absl::FailedPreconditionError(
+              "Dungeon palette ownership is unavailable");
+        dungeon_palette_sets.insert(baseline[pc + 1]);
+      }
+    }
+    for (const auto& row : palettes->selectors) {
+      if (row.group_index >= 31 || row.value[3] != row.expected[3])
+        return absl::InvalidArgumentError(
+            "Native palette selector row or reserved fourth byte is invalid");
+      // The US native carrier's OW rows overlap UnderworldPaletteSets $29-$47.
+      if (dungeon_palette_sets.count(0x29 + row.group_index))
+        return absl::PermissionDeniedError(
+            "Native palette selector row is owned by a dungeon room");
+      for (int slot = 0; slot < 2; ++slot)
+        if (row.value[slot] != 0xFF)
+          RETURN_IF_ERROR(palettes->layout
+                              .Resolve(OverworldPaletteKind::kAuxiliary,
+                                       row.value[slot], baseline.size())
+                              .status());
+      if (row.value[2] != 0xFF && row.value[2] >= 14)
+        return absl::InvalidArgumentError(
+            "Native animated palette selector is invalid");
+      RETURN_IF_ERROR(stage_palette(0x75504 + row.group_index * 4, row.expected,
+                                    row.value));
+    }
+    for (const auto& color : palettes->colors) {
+      const char* group = nullptr;
+      switch (color.kind) {
+        case NativeOverworldPaletteKind::kMain:
+          group = "ow_main";
+          break;
+        case NativeOverworldPaletteKind::kAuxiliary:
+          group = "ow_aux";
+          break;
+        case NativeOverworldPaletteKind::kAnimated:
+          group = "ow_animated";
+          break;
+        default:
+          return absl::InvalidArgumentError(
+              "Unsupported native palette family");
+      }
+      if (color.value > 0x7FFF || color.expected > 0x7FFF)
+        return absl::InvalidArgumentError(
+            "Native palette color must be BGR555");
+      ASSIGN_OR_RETURN(const auto pc,
+                       gfx::palette_group_internal::ResolvePaletteColorAddress(
+                           palettes->layout, group, color.palette_index,
+                           color.color_index, baseline.size()));
+      const std::array<uint8_t, 2> before = {
+          static_cast<uint8_t>(color.expected),
+          static_cast<uint8_t>(color.expected >> 8)};
+      const std::array<uint8_t, 2> after = {
+          static_cast<uint8_t>(color.value),
+          static_cast<uint8_t>(color.value >> 8)};
+      RETURN_IF_ERROR(stage_palette(pc, before, after));
     }
   }
   for (uint16_t id : {20, 21}) {
@@ -1111,6 +1237,16 @@ absl::StatusOr<std::vector<uint8_t>> SealNativeOverworldTerrain(
   for (const auto& write : *sprite_plan)
     std::copy(write.bytes.begin(), write.bytes.end(),
               candidate.begin() + write.address);
+  for (const auto& write : palette_writes) {
+    // Properties/sprites must not gain a second authority over palette bytes.
+    if (!std::equal(candidate.begin() + write.pc,
+                    candidate.begin() + write.pc + write.value.size(),
+                    baseline.begin() + write.pc))
+      return absl::PermissionDeniedError(
+          "Native property or sprite edit aliases palette storage");
+    std::copy(write.value.begin(), write.value.end(),
+              candidate.begin() + write.pc);
+  }
   auto put32 = [&](size_t pc, uint32_t value) {
     for (int i = 0; i < 4; ++i)
       candidate[pc + i] = static_cast<uint8_t>(value >> (i * 8));

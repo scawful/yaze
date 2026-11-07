@@ -271,6 +271,14 @@ void RegisterBuiltinAgentTools(ToolRegistry& registry) {
       "--tile=<hex> [--write]",
       {}, true, true, OverworldSetTileCommandHandler)
   REGISTER_BUILTIN_AGENT_TOOL(
+      "overworld-import-maps", "overworld",
+      "Import selected physical map grids and ordinary graphics/palette "
+      "dependencies into a native overworld; dry-run unless write is set; "
+      "output must be a new file",
+      "overworld-import-maps --donor=<rom> --maps=<hex,hex,...> "
+      "--output=<new-rom> [--write]",
+      {}, true, true, OverworldImportMapsCommandHandler)
+  REGISTER_BUILTIN_AGENT_TOOL(
       "overworld-find-tile", "overworld",
       "Find every position of a tile16 id; x/y in each match feed "
       "overworld-get-tile",

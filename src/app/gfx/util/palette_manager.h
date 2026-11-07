@@ -426,6 +426,10 @@ class PaletteManager {
                        std::unordered_map<int, std::unordered_set<int>>>
         modified_colors;
     std::optional<SaveTransactionSnapshot> save_transaction_snapshot;
+    // Native commits stage bytes; only the outer successful file-save commit
+    // may advance palette baselines and clear these groups' dirty tracking.
+    std::unordered_map<std::string, std::vector<SnesPalette>>
+        staged_native_groups;
     std::deque<std::vector<PaletteColorChange>> undo_stack;
     std::deque<std::vector<PaletteColorChange>> redo_stack;
     std::optional<PaletteColorChange> color_edit;

@@ -589,6 +589,31 @@ absl::Status PaletteManager::SaveGroup(const std::string& group_name) {
     return absl::OkStatus();
   }
 
+  if (rom::IsNativeSpecialOverworldLayout(rom->InspectLyraLayout())) {
+    std::optional<rom::NativeOverworldPaletteKind> kind;
+    if (group_name == "ow_main")
+      kind = rom::NativeOverworldPaletteKind::kMain;
+    else if (group_name == "ow_aux")
+      kind = rom::NativeOverworldPaletteKind::kAuxiliary;
+    else if (group_name == "ow_animated")
+      kind = rom::NativeOverworldPaletteKind::kAnimated;
+    if (!kind || !game_data_)
+      return absl::FailedPreconditionError(
+          "Native palette save refuses a foreign palette family");
+    ASSIGN_OR_RETURN(auto plan, zelda3::PrepareNativeOverworldPaletteSave(
+                                    *rom, *game_data_, false, true));
+    std::erase_if(plan.colors,
+                  [&](const auto& edit) { return edit.kind != *kind; });
+    RETURN_IF_ERROR(rom->CommitNativeTerrainImage(
+        rom->vector(), rom->vector(), {}, {}, nullptr, nullptr, &plan));
+    CommitColorEdit();
+    auto& staged = CurrentState()->staged_native_groups[group_name];
+    staged.clear();
+    for (int i = 0; i < group->size(); ++i)
+      staged.push_back(group->palette_ref(i));
+    return absl::OkStatus();
+  }
+
   // Resolve every modified color before writing or committing edit metadata.
   std::vector<std::pair<uint32_t, uint16_t>> writes;
   for (int palette_idx : pal_it->second) {
@@ -644,6 +669,30 @@ absl::Status PaletteManager::SaveAllToRom() {
   const auto ranges = GetModifiedColorWriteRanges();
   RETURN_IF_ERROR(ranges.status());
 
+  Rom* active_rom = rom_ ? rom_ : game_data_ ? game_data_->rom() : nullptr;
+  if (active_rom &&
+      rom::IsNativeSpecialOverworldLayout(active_rom->InspectLyraLayout())) {
+    if (!game_data_)
+      return absl::FailedPreconditionError(
+          "Native palette save requires the owning GameData session");
+    const auto groups = GetModifiedGroups();
+    for (const auto& group : groups)
+      if (group != "ow_main" && group != "ow_aux" && group != "ow_animated")
+        return absl::FailedPreconditionError(
+            "Native palette save refuses a foreign palette family");
+    RETURN_IF_ERROR(zelda3::SaveNativeOverworldPalettes(
+        *active_rom, *game_data_, false, true));
+    CommitColorEdit();
+    for (const auto& name : groups) {
+      const auto* group = GetGroup(name);
+      auto& staged = CurrentState()->staged_native_groups[name];
+      staged.clear();
+      for (int i = 0; group && i < group->size(); ++i)
+        staged.push_back(group->palette_ref(i));
+    }
+    return absl::OkStatus();
+  }
+
   // Save all modified groups
   for (const auto& group_name : GetModifiedGroups()) {
     RETURN_IF_ERROR(SaveGroup(group_name));
@@ -670,6 +719,7 @@ absl::Status PaletteManager::BeginSaveTransaction() {
   state->save_transaction_snapshot =
       SaveTransactionSnapshot{state->original_palettes,
                               state->modified_palettes, state->modified_colors};
+  state->staged_native_groups.clear();
   return absl::OkStatus();
 }
 
@@ -685,10 +735,31 @@ void PaletteManager::RollbackSaveTransaction() {
   state->modified_colors =
       std::move(state->save_transaction_snapshot->modified_colors);
   state->save_transaction_snapshot.reset();
+  state->staged_native_groups.clear();
 }
 
 void PaletteManager::CommitSaveTransaction() {
-  CurrentState()->save_transaction_snapshot.reset();
+  auto* state = CurrentState();
+  for (const auto& [name, staged] : state->staged_native_groups) {
+    auto* group = GetMutableGroup(name);
+    auto& originals = state->original_palettes[name];
+    originals = staged;
+    ClearModifiedFlags(name);
+    for (int palette = 0; group && palette < group->size(); ++palette) {
+      auto* colors = group->mutable_palette(palette);
+      for (int color = 0; color < colors->size(); ++color) {
+        const bool dirty =
+            palette >= staged.size() || color >= staged[palette].size() ||
+            (*colors)[color].snes() != staged[palette][color].snes();
+        (*colors)[color].set_modified(dirty);
+        if (dirty)
+          MarkModified(name, palette, color);
+      }
+    }
+    NotifyListeners({PaletteChangeEvent::Type::kGroupSaved, name, -1, -1});
+  }
+  state->staged_native_groups.clear();
+  state->save_transaction_snapshot.reset();
 }
 
 absl::Status PaletteManager::ApplyPreviewChanges() {

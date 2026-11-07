@@ -178,6 +178,15 @@ absl::Status LoadGameData(Rom& rom, GameData& data,
  */
 absl::Status SaveGameData(Rom& rom, GameData& data);
 
+// Shared native background-palette owner. Preparation is side-effect free;
+// the existing native commit applies the complete validated batch. Staging
+// never clears model dirty flags; the outer save transaction owns publication.
+absl::StatusOr<rom::NativeOverworldPaletteEdits>
+PrepareNativeOverworldPaletteSave(const Rom& rom, const GameData& data,
+                                  bool save_groups, bool save_colors);
+absl::Status SaveNativeOverworldPalettes(Rom& rom, const GameData& data,
+                                         bool save_groups, bool save_colors);
+
 // Individual loaders (internal use or fine-grained control)
 absl::Status LoadMetadata(const Rom& rom, GameData& data);
 absl::Status LoadPalettes(const Rom& rom, GameData& data);
