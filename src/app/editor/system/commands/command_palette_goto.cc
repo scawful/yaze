@@ -84,12 +84,15 @@ std::optional<int> ParseGotoId(std::string_view token) {
   return ParseDigits(text, 16);
 }
 
-int GotoMaxId(GotoKind kind) {
+int GotoMaxId(GotoKind kind, int overworld_map_count) {
   switch (kind) {
     case GotoKind::kRoom:
       return 0x127;
     case GotoKind::kOverworldMap:
-      return zelda3::kNumOverworldMaps - 1;
+      return (overworld_map_count > 0
+                  ? std::min(overworld_map_count, zelda3::kExpandedMapCount)
+                  : zelda3::kNumOverworldMaps) -
+             1;
     case GotoKind::kMessage:
       return 0xFFFF;
     case GotoKind::kSprite:
@@ -116,7 +119,8 @@ bool GotoKindHasJumpPath(GotoKind kind) {
   return kind != GotoKind::kSprite;
 }
 
-std::optional<GotoQuery> ParseGotoQuery(std::string_view query) {
+std::optional<GotoQuery> ParseGotoQuery(std::string_view query,
+                                        int overworld_map_count) {
   std::string lower = Lower(Trim(query));
   std::string_view text(lower);
   for (const char* prefix : {"go to ", "goto ", "go "}) {
@@ -171,17 +175,19 @@ std::optional<GotoQuery> ParseGotoQuery(std::string_view query) {
   if (!id)
     return std::nullopt;
   result.id = *id;
-  result.status = (*id >= 0 && *id <= GotoMaxId(result.kind))
-                      ? GotoQuery::Status::kOk
-                      : GotoQuery::Status::kOutOfRange;
+  result.status =
+      (*id >= 0 && *id <= GotoMaxId(result.kind, overworld_map_count))
+          ? GotoQuery::Status::kOk
+          : GotoQuery::Status::kOutOfRange;
   return result;
 }
 
-CommandEntry BuildGotoEntry(const GotoQuery& query, size_t session_id) {
+CommandEntry BuildGotoEntry(const GotoQuery& query, size_t session_id,
+                            int overworld_map_count) {
   CommandEntry entry;
   entry.category = CommandCategory::kNavigation;
   const char* kind_name = GotoKindName(query.kind);
-  const int max_id = GotoMaxId(query.kind);
+  const int max_id = GotoMaxId(query.kind, overworld_map_count);
   const int width = max_id > 0xFF ? 3 : 2;
 
   if (query.status == GotoQuery::Status::kMissingId) {
@@ -193,7 +199,8 @@ CommandEntry BuildGotoEntry(const GotoQuery& query, size_t session_id) {
         width, 0, width, max_id);
     return entry;
   }
-  if (query.status == GotoQuery::Status::kOutOfRange) {
+  if (query.status == GotoQuery::Status::kOutOfRange || query.id < 0 ||
+      query.id > max_id) {
     entry.name = absl::StrFormat("Go to %s 0x%0*X", kind_name, width, query.id);
     entry.enabled = false;
     entry.note = absl::StrFormat("Out of range: %s ids are 0x%0*X-0x%0*X",

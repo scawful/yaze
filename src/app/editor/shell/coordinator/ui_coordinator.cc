@@ -22,6 +22,7 @@
 #include "app/editor/layout/layout_presets.h"
 #include "app/editor/layout/window_delegate.h"
 #include "app/editor/menu/right_drawer_manager.h"
+#include "app/editor/overworld/overworld_editor.h"
 #include "app/editor/shell/coordinator/welcome_screen.h"
 #include "app/editor/shell/feedback/popup_manager.h"
 #include "app/editor/shell/feedback/toast_manager.h"
@@ -1056,8 +1057,53 @@ void UICoordinator::DrawCommandPalette() {
     const std::string query(command_palette_query_);
     std::optional<CommandEntry> goto_row;
     if (auto go_to = ParseGotoQuery(query)) {
-      goto_row =
-          BuildGotoEntry(*go_to, session_coordinator_.GetActiveSessionId());
+      int map_count = zelda3::kNumOverworldMaps;
+      const size_t session_id = session_coordinator_.GetActiveSessionId();
+      if (go_to->kind == GotoKind::kOverworldMap) {
+        auto* session = session_coordinator_.GetActiveRomSession();
+        const auto index = EditorTypeIndex(EditorType::kOverworld);
+        auto* overworld = session ? static_cast<OverworldEditor*>(
+                                        session->editors.GetExistingEditor(
+                                            EditorType::kOverworld))
+                                  : nullptr;
+        // ROM reload clears this asset flag before replacing the old model.
+        // Do not borrow its materialized count until the new load commits.
+        if (session && session->rom.is_loaded() &&
+            session->editor_assets_loaded[index] && overworld &&
+            overworld->overworld().is_loaded()) {
+          map_count = overworld->overworld().materialized_map_count();
+          command_palette_goto_rom_sha256_.clear();
+        } else if (session && session->rom.is_loaded()) {
+          const auto identity = session->rom_baseline
+                                    ? session->rom_baseline->backing_sha256
+                                    : std::string();
+          const bool cacheable = !session->rom.dirty() && !identity.empty();
+          if (!cacheable || command_palette_goto_session_ != session_id ||
+              command_palette_goto_rom_ != &session->rom ||
+              command_palette_goto_rom_sha256_ != identity) {
+            const auto layout = session->rom.InspectLyraLayout();
+            command_palette_goto_map_count_ =
+                rom::IsNativeSpecialOverworldLayout(layout)
+                    ? layout.capacity
+                    : zelda3::kNumOverworldMaps;
+            if (cacheable) {
+              command_palette_goto_session_ = session_id;
+              command_palette_goto_rom_ = &session->rom;
+              command_palette_goto_rom_sha256_ = identity;
+            } else {
+              // Pending edits do not remove valid native navigation. Inspect
+              // current bytes, but never reuse a clean backing identity.
+              command_palette_goto_rom_sha256_.clear();
+            }
+          }
+          map_count = command_palette_goto_map_count_;
+        } else {
+          // An unloaded session cannot borrow a previous ROM's capacity.
+          command_palette_goto_rom_sha256_.clear();
+        }
+        go_to = ParseGotoQuery(query, map_count);
+      }
+      goto_row = BuildGotoEntry(*go_to, session_id, map_count);
     }
     if (query != command_palette_cached_query_ ||
         command_palette_.generation() != command_palette_cached_generation_) {

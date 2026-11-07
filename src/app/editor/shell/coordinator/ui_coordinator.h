@@ -1,6 +1,7 @@
 #ifndef YAZE_APP_EDITOR_SHELL_COORDINATOR_UI_COORDINATOR_H_
 #define YAZE_APP_EDITOR_SHELL_COORDINATOR_UI_COORDINATOR_H_
 
+#include <cstddef>
 #include <cstdint>
 #include <functional>
 #include <memory>
@@ -17,6 +18,7 @@
 #include "app/startup_flags.h"
 
 namespace yaze {
+class Rom;
 namespace editor {
 
 /**
@@ -311,6 +313,12 @@ class UICoordinator {
   std::string command_palette_cached_query_;
   uint64_t command_palette_cached_generation_ = ~uint64_t{0};
   std::vector<CommandMatch> command_palette_cached_matches_;
+  // Only used for map queries before the active session's model is loaded.
+  // A clean backing identity prevents repeated full descriptor validation.
+  size_t command_palette_goto_session_ = ~size_t{0};
+  const Rom* command_palette_goto_rom_ = nullptr;
+  std::string command_palette_goto_rom_sha256_;
+  int command_palette_goto_map_count_ = 0;
 
   void SaveCommandPaletteHistory();
 

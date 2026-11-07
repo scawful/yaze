@@ -4,6 +4,9 @@
 #include <string>
 #include <vector>
 
+#include "absl/cleanup/cleanup.h"
+#include "app/editor/events/core_events.h"
+#include "app/editor/registry/content_registry.h"
 #include "app/editor/system/commands/command_palette.h"
 #include "app/editor/system/commands/command_palette_goto.h"
 #include "app/editor/system/commands/command_palette_providers.h"
@@ -354,6 +357,82 @@ TEST(CommandPaletteGotoTest, BuildEntryStates) {
   auto missing = BuildGotoEntry(*ParseGotoQuery("msg "), 0);
   EXPECT_FALSE(missing.enabled);
   EXPECT_FALSE(missing.note.empty());
+}
+
+TEST(CommandPaletteGotoTest, ActiveModelCountControlsNativeAndLegacyMapRange) {
+  for (const char* query : {"map A0", "map A2", "ow BF"}) {
+    SCOPED_TRACE(query);
+    const auto legacy = ParseGotoQuery(query, 160);
+    const auto native = ParseGotoQuery(query, 192);
+    ASSERT_TRUE(legacy.has_value());
+    ASSERT_TRUE(native.has_value());
+    EXPECT_EQ(legacy->status, GotoQuery::Status::kOutOfRange);
+    EXPECT_EQ(native->status, GotoQuery::Status::kOk);
+    EXPECT_FALSE(BuildGotoEntry(*legacy, 1, 160).enabled);
+    EXPECT_TRUE(BuildGotoEntry(*native, 2, 192).enabled);
+  }
+  EXPECT_EQ(ParseGotoQuery("map 9F")->status, GotoQuery::Status::kOk);
+  EXPECT_EQ(ParseGotoQuery("map A2")->status, GotoQuery::Status::kOutOfRange);
+  for (int count : {0, 160, 192, 1024}) {
+    const auto outside = ParseGotoQuery("map C0", count);
+    ASSERT_TRUE(outside.has_value());
+    EXPECT_EQ(outside->status, GotoQuery::Status::kOutOfRange);
+    const auto entry = BuildGotoEntry(*outside, 0, count);
+    EXPECT_FALSE(entry.enabled);
+    EXPECT_FALSE(static_cast<bool>(entry.callback));
+  }
+}
+
+TEST(CommandPaletteGotoTest, MapRangeHintsFollowCurrentModelCount) {
+  for (int count : {160, 192}) {
+    SCOPED_TRACE(count);
+    const std::string range = count == 192 ? "0x00-0xBF" : "0x00-0x9F";
+    const auto missing = ParseGotoQuery("map:", count);
+    const auto outside = ParseGotoQuery("map C0", count);
+    ASSERT_TRUE(missing.has_value());
+    ASSERT_TRUE(outside.has_value());
+    for (const auto& query : {*missing, *outside}) {
+      const auto entry = BuildGotoEntry(query, 0, count);
+      EXPECT_FALSE(entry.enabled);
+      EXPECT_NE(entry.note.find(range), std::string::npos) << entry.note;
+    }
+  }
+}
+
+TEST(CommandPaletteGotoTest,
+     MapEntryKeepsSessionAndRechecksSwitchedModelRange) {
+  EventBus bus;
+  auto* old_bus = ContentRegistry::Context::event_bus();
+  ContentRegistry::Context::SetEventBus(&bus);
+  absl::Cleanup restore_bus = [&] {
+    ContentRegistry::Context::SetEventBus(old_bus);
+  };
+  std::vector<JumpToMapRequestEvent> jumps;
+  bus.Subscribe<JumpToMapRequestEvent>(
+      [&](const auto& event) { jumps.push_back(event); });
+  const auto native = ParseGotoQuery("map A2", 192);
+  ASSERT_TRUE(native.has_value());
+  auto entry = BuildGotoEntry(*native, 7, 192);
+  ASSERT_TRUE(entry.enabled);
+  ASSERT_TRUE(static_cast<bool>(entry.callback));
+  entry.callback();
+  ASSERT_EQ(jumps.size(), 1u);
+  EXPECT_EQ(jumps.back().map_id, 0xA2);
+  EXPECT_EQ(jumps.back().session_id, 7u);
+
+  // An entry rebuilt for another session must not trust the old parse range.
+  const auto legacy_entry = BuildGotoEntry(*native, 8, 160);
+  EXPECT_FALSE(legacy_entry.enabled);
+  EXPECT_FALSE(static_cast<bool>(legacy_entry.callback));
+  EXPECT_NE(legacy_entry.note.find("0x00-0x9F"), std::string::npos);
+  const auto switched_back = ParseGotoQuery("map BF", 192);
+  ASSERT_TRUE(switched_back.has_value());
+  entry = BuildGotoEntry(*switched_back, 9, 192);
+  ASSERT_TRUE(entry.enabled);
+  entry.callback();
+  ASSERT_EQ(jumps.size(), 2u);
+  EXPECT_EQ(jumps.back().map_id, 0xBF);
+  EXPECT_EQ(jumps.back().session_id, 9u);
 }
 
 }  // namespace

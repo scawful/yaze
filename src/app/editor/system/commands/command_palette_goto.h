@@ -16,7 +16,7 @@ namespace editor {
  *
  * Grammar (case-insensitive, optional leading "go to" / "goto"):
  *   room|r|rm <id>        dungeon room      0x000-0x127
- *   map|ow <id>           overworld map     0x00-0x9F
+ *   map|ow <id>           overworld map     active model range (default 0x00-0x9F)
  *   msg|message <id>      message           0x000-0xFFFF (editor validates)
  *   sprite|spr <id>       sprite            0x00-0xFF
  * The keyword and id are separated by whitespace and/or ':'.
@@ -41,13 +41,15 @@ struct GotoQuery {
 /// Parse @p query. Returns nullopt when the text is not a go-to query (no
 /// keyword, no separator, or an id token that is not a number), so ordinary
 /// searches like "map editor" fall through to fuzzy search.
-std::optional<GotoQuery> ParseGotoQuery(std::string_view query);
+std::optional<GotoQuery> ParseGotoQuery(std::string_view query,
+                                        int overworld_map_count = 0);
 
 /// Parse a single id token using the formats above. nullopt if malformed.
 std::optional<int> ParseGotoId(std::string_view token);
 
-/// Inclusive upper bound for @p kind.
-int GotoMaxId(GotoKind kind);
+/// Inclusive upper bound for @p kind. A missing/nonpositive model count uses
+/// the legacy 160-map range; the supported overworld limit remains 192 maps.
+int GotoMaxId(GotoKind kind, int overworld_map_count = 0);
 const char* GotoKindName(GotoKind kind);
 
 /// True when a jump path exists for @p kind (sprites have none yet).
@@ -57,7 +59,8 @@ bool GotoKindHasJumpPath(GotoKind kind);
 /// entry is disabled (with `note`) when the id is missing/out of range or the
 /// kind has no jump path. Enabled entries publish the matching Jump*Request
 /// event on the ContentRegistry event bus.
-CommandEntry BuildGotoEntry(const GotoQuery& query, size_t session_id);
+CommandEntry BuildGotoEntry(const GotoQuery& query, size_t session_id,
+                            int overworld_map_count = 0);
 
 }  // namespace editor
 }  // namespace yaze
