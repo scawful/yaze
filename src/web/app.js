@@ -239,28 +239,10 @@ window.yazeFrameTiming = {
   console.log('[COI] crossOriginIsolated:', isCrossOriginIsolated);
   console.log('[COI] Service Worker controller:', !!navigator.serviceWorker?.controller);
 
-  if (!hasSharedArrayBuffer) {
-    console.warn('[COI] SharedArrayBuffer not available. Attempting COI setup...');
-
-    // Check if we're in the middle of COI setup
-    const coiAttempted = window.sessionStorage.getItem("coiAttempted");
-    const coiReloaded = window.sessionStorage.getItem("coiReloadedBySelf");
-
-    if (coiAttempted && coiReloaded) {
-      // We've already tried COI and reloaded - show error to user
-      console.error('[COI] COI setup failed after reload. SharedArrayBuffer still unavailable.');
-      if (statusElement) {
-        statusElement.innerHTML = 'Error: SharedArrayBuffer not available.<br>Try a Chromium-based browser or check browser settings.';
-        statusElement.style.color = '#f44';
-      }
-      // Don't attempt to load WASM - it will fail
-      window.YAZE_COI_FAILED = true;
-    }
-  } else {
-    console.log('[COI] SharedArrayBuffer available!');
-    // Clear any stale COI session markers
-    window.sessionStorage.removeItem("coiAttempted");
-    window.sessionStorage.removeItem("coiReloadedBySelf");
+  // coi-serviceworker.js runs first and sets YAZE_COI_FAILED once its reloads are exhausted.
+  if (window.YAZE_COI_FAILED && statusElement) {
+    statusElement.innerHTML = 'Error: SharedArrayBuffer not available.<br>Try a Chromium-based browser or check browser settings.';
+    statusElement.style.color = '#f44';
   }
 })();
 

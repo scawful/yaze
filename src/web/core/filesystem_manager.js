@@ -532,6 +532,47 @@ var FilesystemManager = {
   },
 
   /**
+   * Saves the current ROM through the editor's save pipeline and, when
+   * download is true, downloads the saved file to the visitor's disk.
+   * @param {boolean} download
+   * @returns {Promise<boolean>} true when the save succeeded
+   */
+  saveRom: async function(download) {
+    if (!this.ensureReady() || !Module.ccall) return false;
+    var result;
+    try {
+      // async: true is required; the save path can suspend through Asyncify.
+      result = JSON.parse(await Module.ccall('SaveRomFromWeb', 'string', [], [], {async: true}));
+    } catch (e) {
+      console.error('[FilesystemManager] SaveRomFromWeb failed:', e);
+      alert('Save failed: ' + (e.message || e));
+      return false;
+    }
+    if (!result || result.success !== true) {
+      alert('Save failed: ' + (result && result.error || 'unknown error'));
+      return false;
+    }
+    try {
+      // A flush already in progress can predate the C++ writes. Drain it first,
+      // then await a flush started after this Save (including any queued one).
+      if (this.syncInProgress) await this.syncInProgress;
+      await this._syncNow();
+    } catch (e) {
+      console.error('[FilesystemManager] Failed to persist saved ROM:', e);
+      alert('Save failed to persist: ' + (e.message || e));
+      return false;
+    }
+    if (download) {
+      if (typeof result.path !== 'string' || !result.path) {
+        alert('Save failed: no saved ROM path was returned');
+        return false;
+      }
+      return this.downloadFile(result.path);
+    }
+    return true;
+  },
+
+  /**
    * Downloads save files from the virtual filesystem.
    */
   downloadSaves: function() {
@@ -1186,7 +1227,7 @@ var FilesystemManager = {
    * @param {string} downloadName - Optional name for the downloaded file
    */
   downloadFile: function(path, downloadName) {
-    if (!this.ensureReady()) return;
+    if (!this.ensureReady()) return false;
     try {
       var content = FS.readFile(path);
       var blob = new Blob([content], { type: 'application/octet-stream' });
@@ -1206,9 +1247,11 @@ var FilesystemManager = {
       }, 1000);
 
       console.log('[FilesystemManager] Downloaded file:', path);
+      return true;
     } catch (e) {
       console.error('[FilesystemManager] Failed to download file:', path, e);
       alert('Failed to download file: ' + e.message);
+      return false;
     }
   }
 };
@@ -1278,4 +1321,5 @@ waitForModule(() => {
 window.FilesystemManager = FilesystemManager;
 window.ensureFSReady = FilesystemManager.ensureReady.bind(FilesystemManager);
 window.downloadSaves = FilesystemManager.downloadSaves.bind(FilesystemManager);
+window.saveRom = FilesystemManager.saveRom.bind(FilesystemManager);
 window.flushSaves = FilesystemManager.flushSaves.bind(FilesystemManager);

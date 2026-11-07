@@ -88,11 +88,14 @@
               </a>
             </div>
           </div>
-          <button class="nav-btn" onclick="if(Module && Module._saveRom) Module._saveRom()" title="Save ROM (Ctrl+S)">
+          <button class="nav-btn" onclick="saveRom(false)" title="Save ROM (Ctrl+S)">
             <span class="material-symbols-outlined">save</span>
           </button>
-          <button class="nav-btn" onclick="downloadSaves()" title="Download Saves">
+          <button class="nav-btn" onclick="saveRom(true)" title="Save and Download ROM">
             <span class="material-symbols-outlined">download</span>
+          </button>
+          <button class="nav-btn" onclick="downloadSaves()" title="Download Emulator Saves (.srm/.sav)">
+            <span class="material-symbols-outlined">sd_card</span>
           </button>
           <input type="file" id="rom-input" accept=".sfc,.smc">
         </div>
@@ -428,6 +431,7 @@
         <div id="palette-results" class="palette-results">
           <div class="palette-item" data-action="open-rom">Open ROM</div>
           <div class="palette-item" data-action="save">Save ROM</div>
+          <div class="palette-item" data-action="download-rom">Save and Download ROM</div>
           <div class="palette-item" data-action="file-manager">File Manager</div>
           <div class="palette-item" data-action="settings">Settings</div>
           <div class="palette-item" data-action="fullscreen">Toggle Fullscreen</div>
