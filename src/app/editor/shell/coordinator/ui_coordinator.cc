@@ -2058,7 +2058,17 @@ void UICoordinator::SetStartupSurface(StartupSurface surface) {
   }
 }
 
+bool UICoordinator::IsEditorSelectionVisible() const {
+  return show_editor_selection_ &&
+         !(editor_manager_ && editor_manager_->IsRomLoadOptionsOpen());
+}
+
 bool UICoordinator::ShouldShowWelcome() const {
+  // A loaded ROM still awaits its options decision. Keep startup surfaces
+  // behind that owner, including explicit startup visibility preferences.
+  if (editor_manager_ && editor_manager_->IsRomLoadOptionsOpen()) {
+    return false;
+  }
   // Respect CLI overrides
   if (welcome_behavior_override_ == StartupVisibility::kHide) {
     return false;
@@ -2073,6 +2083,11 @@ bool UICoordinator::ShouldShowWelcome() const {
 }
 
 bool UICoordinator::ShouldShowDashboard() const {
+  // Confirm/cancel invokes ShowPostLoadSurface after the pending owner closes.
+  // Opening a ROM is not yet permission to cover its load-options dialog.
+  if (editor_manager_ && editor_manager_->IsRomLoadOptionsOpen()) {
+    return false;
+  }
   // Consulted by SetEditorSelectionVisible, the choke point every automatic
   // entry into the dashboard passes through.
   //

@@ -166,7 +166,7 @@ class UICoordinator {
   void HideAllWindows();
 
   // UI state queries (EditorManager can check these)
-  bool IsEditorSelectionVisible() const { return show_editor_selection_; }
+  bool IsEditorSelectionVisible() const;
   bool IsDisplaySettingsVisible() const { return show_display_settings_; }
   // Session switcher visibility managed by SessionCoordinator
   bool IsSessionSwitcherVisible() const;

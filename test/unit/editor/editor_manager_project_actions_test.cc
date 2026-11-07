@@ -3755,10 +3755,83 @@ class LoadOptionsDialogFrames {
     return Run() && GImGui->ActiveId == id;
   }
 
+  // Unlike ActivateItemByID, mouse input must hit the visible dialog instead
+  // of an overlapping startup window. Continue is the dialog's final item.
+  bool ClickContinue() {
+    ImGuiWindow* window = ImGui::FindWindowByName(title_.c_str());
+    if (window == nullptr) {
+      return false;
+    }
+    const ImVec2 center(
+        window->DC.CursorPosPrevLine.x - 60.0f,
+        window->DC.CursorPosPrevLine.y + ImGui::GetFrameHeight() * 0.5f);
+    ImGuiIO& io = ImGui::GetIO();
+    io.AddMousePosEvent(center.x, center.y);
+    Run();
+    if (GImGui->HoveredWindow != window) {
+      return false;
+    }
+    io.AddMouseButtonEvent(0, true);
+    Run();
+    io.AddMouseButtonEvent(0, false);
+    Run();
+    return !manager_.IsRomLoadOptionsOpen();
+  }
+
  private:
   EditorManager& manager_;
   const std::string title_;
 };
+
+TEST(EditorManagerProjectActionsTest,
+     FirstRomLoadOptionsStayReachableBeforeStartupPicker) {
+  const core::FeatureFlags::Flags saved_flags = core::FeatureFlags::get();
+  absl::Cleanup restore_flags = [&saved_flags] {
+    core::FeatureFlags::get() = saved_flags;
+  };
+  for (const bool dashboard_was_open : {false, true}) {
+    SCOPED_TRACE(dashboard_was_open);
+    ScopedImGuiContext imgui;
+    auto renderer = std::make_unique<gfx::NullRenderer>();
+    auto manager = std::make_unique<EditorManager>();
+    ::yaze::test::InitializeWithIsolatedSettings(*manager, renderer.get());
+    manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+    manager->user_settings().prefs().default_editor = 0;
+    // This case begins without a user-selected editor. The manager's generic
+    // test setup enables the Assembly category, whose existing-editor route
+    // correctly wins over the picker unless we model the startup category.
+    manager->window_manager().SetActiveCategory(
+        WorkspaceWindowManager::kDashboardCategory, /*notify=*/false);
+    manager->SetCurrentEditor(nullptr);
+    ASSERT_FALSE(manager->HasOpenEditor());
+    auto* ui = manager->ui_coordinator();
+    ASSERT_NE(ui, nullptr);
+    ui->SetStartupSurface(dashboard_was_open ? StartupSurface::kDashboard
+                                             : StartupSurface::kWelcome);
+    LoadOptionsDialogFrames frames(*manager);
+    ScopedTempDir temp(MakeTempDir("yaze_load_options_startup_mouse"));
+    const auto rom = temp.path / "game.sfc";
+    WriteRomFile(rom);
+
+    ASSERT_OK(manager->OpenRomOrProject(rom.string()));
+    ASSERT_TRUE(manager->IsRomLoadOptionsOpen());
+    ASSERT_TRUE(frames.Run());
+    ASSERT_TRUE(frames.Run());
+    EXPECT_FALSE(ui->ShouldShowWelcome());
+    EXPECT_FALSE(ui->ShouldShowDashboard());
+    EXPECT_FALSE(ui->IsEditorSelectionVisible());
+
+    // Match the existing Continue test's ROM-only path. This checkbox uses
+    // the existing helper; the confirmation itself must accept mouse input.
+    ASSERT_TRUE(frames.Press(tr("Create associated project file")));
+    ASSERT_TRUE(frames.ClickContinue());
+    EXPECT_FALSE(manager->IsRomLoadOptionsOpen());
+    EXPECT_TRUE(ui->IsEditorSelectionVisible());
+    EXPECT_FALSE(manager->GetCurrentProject()->project_opened());
+    EXPECT_FALSE(manager->GetCurrentRom()->dirty());
+    EXPECT_TRUE(std::filesystem::exists(rom));
+  }
+}
 
 // The load options dialog draws in real frames after an interactive open and
 // never after a kNoPrompt open. "Remember for this ROM file" starts checked,
