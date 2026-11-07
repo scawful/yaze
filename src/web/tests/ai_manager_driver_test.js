@@ -1,6 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const vm = require('vm');
+const assert = require('assert');
 
 function makeStorage() {
   const store = new Map();
@@ -42,8 +43,8 @@ async function main() {
       YAZE_CONFIG: {
         ai: {
           provider: 'openai',
-          model: 'gpt-4o-mini',
-          openaiBaseUrl: 'https://api.openai.com/v1',
+          model: 'site-model',
+          openaiBaseUrl: 'https://site.example/api/v1',
           auth: {}
         }
       }
@@ -76,6 +77,36 @@ async function main() {
   if (!ai) {
     throw new Error('AiManager was not initialized');
   }
+
+  assert.strictEqual(ai.getConfigSnapshot().provider, 'openai');
+  assert.strictEqual(ai.getConfigSnapshot().openaiBaseUrl, 'https://site.example/api/v1');
+  assert.strictEqual(ai.getConfigSnapshot().model, 'site-model');
+  localStorage.setItem('yaze_ai_provider', 'lmstudio');
+  localStorage.setItem('yaze_openai_base_url', 'http://localhost:8123');
+  ai.reloadConfigFromStorage();
+  assert.strictEqual(ai.getConfigSnapshot().openaiBaseUrl, 'http://localhost:8123/v1');
+
+  localStorage.removeItem('yaze_openai_base_url');
+  ai.reloadConfigFromStorage();
+  assert.strictEqual(ai.getConfigSnapshot().openaiBaseUrl, 'http://localhost:1234/v1');
+
+  localStorage.setItem('yaze_ai_provider', 'halext');
+  ai.reloadConfigFromStorage();
+  assert.strictEqual(ai.getConfigSnapshot().openaiBaseUrl, 'https://halext.org/v1');
+
+  localStorage.setItem('yaze_openai_base_url', 'https://bridge.example/custom/');
+  localStorage.setItem('yaze_ai_model', 'custom-model');
+  ai.reloadConfigFromStorage();
+  assert.strictEqual(ai.getConfigSnapshot().openaiBaseUrl, 'https://bridge.example/custom/v1');
+  assert.strictEqual(ai.getConfigSnapshot().model, 'custom-model');
+
+  localStorage.removeItem('yaze_ai_provider');
+  localStorage.removeItem('yaze_openai_base_url');
+  localStorage.removeItem('yaze_ai_model');
+  ai.reloadConfigFromStorage();
+  assert.strictEqual(ai.getConfigSnapshot().provider, 'openai');
+  assert.strictEqual(ai.getConfigSnapshot().openaiBaseUrl, 'https://site.example/api/v1');
+  assert.strictEqual(ai.getConfigSnapshot().model, 'site-model');
 
   ai.config.provider = 'openai';
   ai.config.model = 'gpt-4o-mini';

@@ -16,6 +16,11 @@
   class AiManager {
     constructor() {
       this.config = window.YAZE_CONFIG ? window.YAZE_CONFIG.ai : {};
+      this.initialProviderConfig = {
+        provider: this.config.provider,
+        model: this.config.model,
+        openaiBaseUrl: this.config.openaiBaseUrl
+      };
       this.authConfig = this.config.auth || {};
       this.aiConstants = (window.yaze && window.yaze.core &&
                           window.yaze.core.constants &&
@@ -249,30 +254,23 @@
     }
 
     reloadConfigFromStorage() {
-      const provider = this.normalizeProvider(this.getStoredValue(this.STORAGE_KEY_PROVIDER));
+      const provider = this.normalizeProvider(
+        this.getStoredValue(this.STORAGE_KEY_PROVIDER) || this.initialProviderConfig.provider
+      );
       const model = this.getStoredValue(this.STORAGE_KEY_MODEL);
       const openaiBase = this.getStoredValue(this.STORAGE_KEY_OPENAI_BASE);
+      const defaults = this.getProviderDefaults(provider);
+      const initialProvider = this.normalizeProvider(this.initialProviderConfig.provider);
+      const initial = provider === initialProvider ? this.initialProviderConfig : {};
 
-      if (provider) this.config.provider = provider;
-      if (model) this.config.model = model;
-      if (openaiBase) this.config.openaiBaseUrl = openaiBase;
-
-      if (!this.config.provider) {
-        this.config.provider = this.PROVIDERS.GEMINI;
-      }
-      if (this.isOpenAiCompatibleProvider(this.config.provider)) {
-        this.config.openaiBaseUrl = this.normalizeOpenAiBaseUrl(
-          this.config.openaiBaseUrl || openaiBase,
-          this.config.provider
-        );
-      }
-      const defaults = this.getProviderDefaults(this.config.provider);
-      if (!this.config.model) {
-        this.config.model = defaults.model || '';
-      }
-      if (!this.config.openaiBaseUrl) {
-        this.config.openaiBaseUrl = defaults.openaiBaseUrl || this.OPENAI_BASES.OPENAI;
-      }
+      // Rebuild provider settings so removed overrides cannot retain another
+      // provider's endpoint or model from a previous reload.
+      this.config.provider = provider;
+      this.config.model = model || initial.model || defaults.model || '';
+      this.config.openaiBaseUrl = this.normalizeOpenAiBaseUrl(
+        openaiBase || initial.openaiBaseUrl || defaults.openaiBaseUrl,
+        provider
+      );
     }
 
     getConfigSnapshot() {
