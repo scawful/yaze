@@ -35,6 +35,7 @@
 #include "cli/handlers/mesen_handlers.h"
 #include "cli/handlers/rom/project_bundle_archive_commands.h"
 #include "cli/handlers/rom/project_bundle_verify_commands.h"
+#include "cli/handlers/rom/project_commands.h"
 #include "cli/handlers/rom/project_plan_commands.h"
 #include "cli/handlers/rom/rom_commands.h"
 #include "cli/handlers/tools/dungeon_doctor_commands.h"
@@ -113,6 +114,8 @@ CreateCliCommandHandlers() {
 
   // Project bundle management
   handlers.push_back(std::make_unique<ProjectBundleVerifyCommandHandler>());
+  handlers.push_back(
+      std::make_unique<ProjectAdoptNativeOverworldCommandHandler>());
   handlers.push_back(std::make_unique<ProjectBundlePackCommandHandler>());
   handlers.push_back(std::make_unique<ProjectBundleUnpackCommandHandler>());
 

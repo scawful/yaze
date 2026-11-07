@@ -7,6 +7,27 @@ namespace yaze {
 namespace cli {
 namespace handlers {
 
+class ProjectAdoptNativeOverworldCommandHandler
+    : public resources::CommandHandler {
+ public:
+  std::string GetName() const override {
+    return "project-adopt-native-overworld";
+  }
+  std::string GetUsage() const override {
+    return "project-adopt-native-overworld --project <path> "
+           "--candidate <complete.sfc> --import-receipt <receipt.json> "
+           "--expect-project-sha256 <hash> [--write] "
+           "[--code-folder <staged-source> --build-command <command> "
+           "--build-target <output.sfc> --asm-entry <entry.asm> "
+           "--hack-manifest <matching-manifest.json>]";
+  }
+  bool RequiresRom() const override { return false; }
+  Descriptor Describe() const override;
+  absl::Status ValidateArgs(const resources::ArgumentParser& parser) override;
+  absl::Status Execute(Rom* rom, const resources::ArgumentParser& parser,
+                       resources::OutputFormatter& formatter) override;
+};
+
 /**
  * @brief Command handler for initializing new projects
  */

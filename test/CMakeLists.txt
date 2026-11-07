@@ -329,6 +329,7 @@ if(YAZE_BUILD_TESTS)
     unit/core/oracle_progression_loader_test.cc
     unit/core/story_event_graph_test.cc
     unit/core/project_bundle_test.cc
+    unit/core/project_native_import_test.cc
     unit/core/terrain_catalog_test.cc
     unit/core/lyra_terrain_document_test.cc
     unit/editor/lyra_terrain_canvas_test.cc

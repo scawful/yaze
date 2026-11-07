@@ -6,6 +6,7 @@
 
 #include "core/asar_wrapper.h"
 #include "core/project.h"
+#include "core/project_native_import.h"
 #include "util/bps.h"
 #include "util/file_util.h"
 #include "util/macro.h"
@@ -13,6 +14,68 @@
 namespace yaze {
 namespace cli {
 namespace handlers {
+
+resources::CommandHandler::Descriptor
+ProjectAdoptNativeOverworldCommandHandler::Describe() const {
+  Descriptor descriptor;
+  descriptor.display_name = "Import Native Special Overworld";
+  descriptor.summary =
+      "Validate a complete initial-import image against its saved project, "
+      "terrain and staged engine. Dry-run by default; --write publishes the "
+      "ROM, descriptor and bundle hash together. Reopen and Save in yaze "
+      "before Build. Does not compile, merge source or qualify gameplay.";
+  descriptor.entries = {
+      {"--project", "Saved .yaze descriptor or .yazeproj bundle", ""},
+      {"--candidate", "Complete native ROM prepared by the importer", ""},
+      {"--import-receipt", "Hash-bound initial-import receipt", ""},
+      {"--expect-project-sha256", "Exact saved descriptor SHA256", ""},
+      {"--write", "Publish after validation (default: dry run)", ""},
+      {"--code-folder",
+       "Separately staged engine source; never copied or merged", ""},
+      {"--build-command", "Build command for the staged source adapter", ""},
+      {"--build-target", "Compiled ROM output for the staged source", ""},
+      {"--asm-entry", "Assembly entry point in the staged source", ""},
+      {"--hack-manifest",
+       "Staged manifest with matching development ROM/output", ""},
+  };
+  return descriptor;
+}
+
+absl::Status ProjectAdoptNativeOverworldCommandHandler::ValidateArgs(
+    const resources::ArgumentParser& parser) {
+  return parser.RequireArgs(
+      {"project", "candidate", "import-receipt", "expect-project-sha256"});
+}
+
+absl::Status ProjectAdoptNativeOverworldCommandHandler::Execute(
+    Rom*, const resources::ArgumentParser& parser,
+    resources::OutputFormatter& formatter) {
+  project::YazeProject project;
+  RETURN_IF_ERROR(project.Open(*parser.GetString("project")));
+  project::NativeOverworldImportBuildSettings build;
+  build.code_folder = parser.GetString("code-folder").value_or("");
+  build.build_script = parser.GetString("build-command").value_or("");
+  build.build_target = parser.GetString("build-target").value_or("");
+  build.asm_entry_point = parser.GetString("asm-entry").value_or("");
+  build.hack_manifest_file = parser.GetString("hack-manifest").value_or("");
+  ASSIGN_OR_RETURN(auto plan,
+                   project::PrepareNativeOverworldProjectImport(
+                       project, *parser.GetString("candidate"),
+                       *parser.GetString("import-receipt"),
+                       *parser.GetString("expect-project-sha256"), build));
+  const bool publish = parser.HasFlag("write");
+  if (publish) {
+    RETURN_IF_ERROR(plan.Publish().status());
+  }
+  formatter.AddField("status", publish ? "adopted" : "ready");
+  formatter.AddField("dry_run", !publish);
+  formatter.AddField("project", project.filepath);
+  formatter.AddField("rom", project.rom_filename);
+  formatter.AddField("image_sha256", plan.image_sha256);
+  formatter.AddField("requires_editor_save", true);
+  formatter.AddField("runtime_qualified", false);
+  return absl::OkStatus();
+}
 
 absl::Status ProjectInitCommandHandler::Execute(
     Rom* rom, const resources::ArgumentParser& parser,
