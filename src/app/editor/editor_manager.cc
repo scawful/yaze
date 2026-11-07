@@ -4567,8 +4567,12 @@ absl::Status EditorManager::SaveProjectAs(const std::string& filepath) {
   }
 
   OverworldEditor* lyra_editor = nullptr;
-  if (current_project_.IsOracleCompatible() ||
-      !current_project_.lyra_terrain_file.empty()) {
+  const auto* active_rom = GetCurrentRom();
+  const bool native_terrain =
+      active_rom &&
+      rom::IsNativeSpecialOverworldLayout(active_rom->InspectLyraLayout());
+  if (!current_project_.lyra_terrain_file.empty() ||
+      (current_project_.IsOracleCompatible() && !native_terrain)) {
     RETURN_IF_ERROR(ValidateLyraTerrainProjectContext());
     RETURN_IF_ERROR(EnsureEditorAssetsLoaded(EditorType::kOverworld));
     lyra_editor = GetCurrentEditorSet()->GetEditorAs<OverworldEditor>(

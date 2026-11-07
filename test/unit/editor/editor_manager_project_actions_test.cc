@@ -40,6 +40,7 @@
 #include "test_utils.h"
 #include "testing.h"
 #include "util/i18n/tr.h"
+#include "util/rom_hash.h"
 #include "zelda3/overworld/overworld_version_helper.h"
 #include "zelda3/resource_labels.h"
 
@@ -511,6 +512,124 @@ TEST(EditorManagerProjectActionsTest,
   EXPECT_EQ(ReadFile(rom), rom_before);
   EXPECT_FALSE(
       std::filesystem::exists(directory.path / "expanded_messages.asm"));
+}
+
+TEST(EditorManagerProjectActionsTest,
+     NativeOracleProjectSaveAsReopensWithoutLegacySidecar) {
+  const auto immutable_rom =
+      test::TestRomManager::GetRomPath(test::RomRole::kExpanded);
+  if (immutable_rom.empty() || !std::filesystem::exists(immutable_rom)) {
+    GTEST_SKIP() << test::TestRomManager::GetRomRoleHint(
+        test::RomRole::kExpanded);
+  }
+  Rom input;
+  ASSERT_OK(input.LoadFromFile(immutable_rom));
+  const auto layout = input.InspectLyraLayout();
+  if (!rom::IsNativeSpecialOverworldLayout(layout)) {
+    GTEST_SKIP() << "Bind the expanded ROM role to a complete native ROM";
+  }
+  ASSERT_EQ(layout.capacity, 192);
+  const auto immutable_bytes = ReadFile(immutable_rom);
+  ScopedImGuiContext imgui;
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  ScopedTempDir directory(MakeTempDir("yaze_native_oracle_save_as"));
+  const auto source = directory.path / "source.sfc";
+  const auto original = directory.path / "original.yaze";
+  const auto destination = directory.path / "relocated" / "saved-as.yaze";
+  const auto collision =
+      directory.path / "Data" / "dungeons" / "custom_collision.json";
+  const auto manifest = directory.path / "hack_manifest.json";
+  std::filesystem::create_directories(destination.parent_path());
+  std::filesystem::create_directories(collision.parent_path());
+  std::ofstream(collision) << R"json({"version":1,"rooms":[]})json";
+  std::filesystem::copy_file(immutable_rom, source);
+  WriteProjectFile(original, "Native Oracle Save As", source);
+  std::ofstream(manifest)
+      << R"json({"manifest_version":2,"hack_name":"Oracle of Secrets"})json";
+  std::ofstream(directory.path / "labels.txt") << "; fixture labels\n";
+  std::ofstream(directory.path / "symbols.txt") << "; fixture symbols\n";
+  project::YazeProject project;
+  ASSERT_OK(project.Open(original.string()));
+  project.hack_manifest_file = manifest.string();
+  project.custom_collision_json = "Data/dungeons/custom_collision.json";
+  project.feature_flags.overworld.kLoadCustomOverworld = true;
+  project.rom_metadata.write_policy = project::RomWritePolicy::kBlock;
+  project.rom_metadata.expected_hash =
+      util::ComputeFileSha1Hex(source.string());
+  ASSERT_OK(SaveProjectFixture(project));
+  const auto original_descriptor = ReadFile(original);
+  const auto original_rom = ReadFile(source);
+  const auto original_collision = ReadFile(collision);
+  const auto flags = core::FeatureFlags::get();
+  std::unique_ptr<EditorManager> manager;
+  absl::Cleanup cleanup = [&] {
+    gfx::Arena::Get().ClearTextureQueue();
+    manager.reset();
+    gfx::PaletteManager::Get().ResetForTesting();
+    gfx::Arena::Get().ClearTextureQueue();
+    core::FeatureFlags::get() = flags;
+  };
+  auto open = [&](const std::filesystem::path& descriptor) {
+    gfx::Arena::Get().ClearTextureQueue();
+    manager.reset();
+    gfx::PaletteManager::Get().ResetForTesting();
+    gfx::Arena::Get().ClearTextureQueue();
+    manager = std::make_unique<EditorManager>();
+    test::InitializeWithIsolatedSettings(*manager, renderer.get());
+    manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+    ASSERT_OK(manager->OpenRomOrProject(descriptor.string()));
+    ASSERT_OK(manager->EnsureEditorAssetsLoaded(EditorType::kOverworld));
+  };
+  ASSERT_NO_FATAL_FAILURE(open(original));
+  ASSERT_TRUE(manager->GetCurrentProject()->IsOracleCompatible());
+  ASSERT_TRUE(manager->GetCurrentProject()->lyra_terrain_file.empty());
+  auto* overworld =
+      manager->GetCurrentEditorSet()->GetEditorAs<OverworldEditor>(
+          EditorType::kOverworld);
+  ASSERT_NE(overworld, nullptr);
+  ASSERT_FALSE(overworld->lyra_canvas_.loaded());
+  ASSERT_OK(overworld->lyra_canvas_status_);
+  ASSERT_TRUE(rom::IsNativeSpecialOverworldLayout(
+      manager->GetCurrentRom()->InspectLyraLayout()));
+  manager->ShowProjectFileEditor();
+  manager->GetCurrentProject()->name = "Native Oracle Saved As";
+  manager->MarkCurrentProjectDirty();
+  ASSERT_OK(manager->SaveProjectAs(destination.string()));
+  EXPECT_FALSE(manager->IsCurrentProjectDirty());
+  EXPECT_EQ(manager->GetCurrentProject()->filepath, destination.string());
+  EXPECT_EQ(manager->project_file_editor()->filepath(), destination.string());
+  EXPECT_EQ(ReadFile(original), original_descriptor);
+  EXPECT_EQ(ReadFile(source), original_rom);
+  EXPECT_EQ(ReadFile(collision), original_collision);
+  EXPECT_FALSE(std::filesystem::exists(destination.parent_path() /
+                                       "saved-as.lyra-terrain.json"));
+  const auto receipt = nlohmann::json::parse(
+      ReadFile(destination.string() + ".native-save.json"));
+  EXPECT_EQ(receipt.at("operation"), "save_as");
+  EXPECT_TRUE(receipt.at("bindings_complete")) << receipt.dump(2);
+  EXPECT_TRUE(receipt.at("binding_errors").empty()) << receipt.dump(2);
+  project::YazeProject reopened;
+  ASSERT_OK(reopened.Open(destination.string()));
+  EXPECT_TRUE(reopened.IsOracleCompatible());
+  EXPECT_TRUE(reopened.lyra_terrain_file.empty());
+  EXPECT_EQ(reopened.rom_metadata.expected_hash,
+            project.rom_metadata.expected_hash);
+  EXPECT_EQ(reopened.rom_metadata.write_policy,
+            project::RomWritePolicy::kBlock);
+  EXPECT_TRUE(SessionCoordinator::PathsReferToSameBackingFile(
+      reopened.GetAbsolutePath(reopened.rom_filename), source.string()));
+  EXPECT_TRUE(SessionCoordinator::PathsReferToSameBackingFile(
+      reopened.GetAbsolutePath(reopened.custom_collision_json),
+      collision.string()));
+  ASSERT_NO_FATAL_FAILURE(open(destination));
+  EXPECT_EQ(manager->GetCurrentProject()->name, "Native Oracle Saved As");
+  EXPECT_EQ(manager->GetCurrentProject()->filepath, destination.string());
+  EXPECT_TRUE(manager->GetCurrentProject()->lyra_terrain_file.empty());
+  EXPECT_EQ(manager->GetCurrentRom()->InspectLyraLayout().capacity, 192);
+  EXPECT_EQ(ReadFile(original), original_descriptor);
+  EXPECT_EQ(ReadFile(source), original_rom);
+  EXPECT_EQ(ReadFile(collision), original_collision);
+  EXPECT_EQ(ReadFile(immutable_rom), immutable_bytes);
 }
 
 TEST(EditorManagerProjectActionsTest,

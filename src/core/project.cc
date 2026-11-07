@@ -2829,6 +2829,7 @@ void YazeProject::NormalizePathsToAbsolute() {
   normalize(&sprite_source_root);
   normalize(&overworld_graphics_preview);
   normalize(&dungeon_tile_patterns);
+  normalize(&custom_collision_json);
   normalize(&terrain_catalog_file);
   normalize(&lyra_terrain_file);
   normalize(&lyra_build_request_file);
