@@ -111,8 +111,10 @@ EM_JS(void, SetupYazeControlApi, (), {
     getVisiblePanels: function() { return this.getVisibleWindows(); },
 
     getAvailableWindows: function() {
-      if (Module.controlGetAvailableWindows) {
-        try { return JSON.parse(Module.controlGetAvailableWindows()); }
+      if (Module.ccall && Module._GetAvailablePanelsFromWeb) {
+        try {
+          return JSON.parse(Module.ccall('GetAvailablePanelsFromWeb', 'string', [], []));
+        }
         catch(e) { return {error: e.message}; }
       }
       return {error: "API not ready"};
@@ -325,10 +327,13 @@ EM_JS(void, SetupYazeControlApi, (), {
       return {error: "API not ready"};
     },
 
-    // Asyncify bindings may return a Promise; callers must await this query.
+    // Use ccall to keep this result separate from an already-suspended main loop.
     getCurrentMap: async function() {
-      if (Module.editorGetCurrentOverworldMap) {
-        try { return JSON.parse(await Module.editorGetCurrentOverworldMap()); }
+      if (Module.ccall && Module._GetCurrentOverworldMapFromWeb) {
+        try {
+          return JSON.parse(await Module.ccall('GetCurrentOverworldMapFromWeb',
+              'string', [], [], {async: true}));
+        }
         catch(e) { return {error: e.message}; }
       }
       return {error: "API not ready"};
@@ -2609,6 +2614,20 @@ EMSCRIPTEN_BINDINGS(wasm_control_api) {
 extern "C" EMSCRIPTEN_KEEPALIVE const char* SaveRomFromWeb() {
   static std::string result;
   result = yaze::app::platform::WasmControlApi::SaveRom();
+  return result.c_str();
+}
+
+// Read-only queries can run while the main loop is suspended. Unlike the
+// Asyncify embind adapter, ccall preserves the query's own synchronous result.
+extern "C" EMSCRIPTEN_KEEPALIVE const char* GetAvailablePanelsFromWeb() {
+  static std::string result;
+  result = yaze::app::platform::WasmControlApi::GetAvailablePanels();
+  return result.c_str();
+}
+
+extern "C" EMSCRIPTEN_KEEPALIVE const char* GetCurrentOverworldMapFromWeb() {
+  static std::string result;
+  result = yaze::app::platform::WasmControlApi::GetCurrentOverworldMap();
   return result.c_str();
 }
 

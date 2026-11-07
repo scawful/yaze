@@ -361,90 +361,96 @@
     }
   }
 
-  // Embind may return either immediate JSON or an Asyncify Promise. Exercise
-  // the actual GUI helper without changing live panel/editor state.
+  // Mock the C bridge, not embind: unrelated Asyncify work must not own these
+  // getter results. The actual browser exercises the generated ccall adapter.
   async function testGuiAvailablePanelsResults() {
-    if (typeof Module === 'undefined' || !window.yaze || !window.yaze.gui) {
+    if (typeof Module === 'undefined' || !window.yaze?.gui || !window.yaze?.control) {
       TestUtils.skip('GUI panel result tests', 'Module or GUI helper unavailable');
       return;
     }
-    const hadBinding = Object.prototype.hasOwnProperty.call(Module, 'controlGetAvailablePanels');
-    const original = Module.controlGetAvailablePanels;
-    const expected = { cards: [{ id: 'overworld.canvas', visible: true }], count: 1 };
+    const names = ['ccall', '_GetAvailablePanelsFromWeb'];
+    const originals = names.map(name => Object.getOwnPropertyDescriptor(Module, name));
+    const expected = [{ id: 'overworld.canvas', visible: true }];
     try {
-      for (const asynchronous of [false, true]) {
-        Module.controlGetAvailablePanels = () => asynchronous
-          ? Promise.resolve(JSON.stringify(expected)) : JSON.stringify(expected);
-        const result = await window.yaze.gui.getAvailablePanels();
-        TestUtils.assertEqual(JSON.stringify(result), JSON.stringify(expected),
-          `GUI panels preserve ${asynchronous ? 'async' : 'sync'} result shape`);
-      }
-      Module.controlGetAvailablePanels = () => {
-        const rejected = Promise.reject(new Error('panel query rejected'));
-        rejected.catch(() => {}); // A broken synchronous consumer must not leak it.
-        return rejected;
+      Module._GetAvailablePanelsFromWeb = () => {};
+      Module.ccall = (name, type, argTypes, args, options) => {
+        TestUtils.assertEqual(name, 'GetAvailablePanelsFromWeb', 'Panels use C export');
+        TestUtils.assertEqual(type, 'string', 'Panels copy C string');
+        TestUtils.assertEqual(argTypes.length + args.length, 0, 'Panels take no arguments');
+        const value = JSON.stringify(expected);
+        return options?.async ? Promise.resolve(value) : value;
       };
+      for (const query of [
+        () => window.yaze.gui.getAvailablePanels(),
+        () => window.yaze.control.getAvailableWindows(),
+        () => window.yaze.control.getAvailablePanels()
+      ]) {
+        const result = query();
+        TestUtils.assertEqual(JSON.stringify(await result), JSON.stringify(expected),
+          'Panel consumers preserve actual array shape');
+      }
+      TestUtils.assertArray(window.yaze.control.getAvailableWindows(), 'Control windows remain synchronous');
+      TestUtils.assertArray(window.yaze.control.getAvailablePanels(), 'Control panels remain synchronous');
+      Module.ccall = () => Promise.reject(new Error('panel query rejected'));
       let result = await window.yaze.gui.getAvailablePanels();
-      TestUtils.assertEqual(result.error, 'panel query rejected',
-        'GUI panels catch async binding rejection');
-      TestUtils.assertArray(result.cards, 'Rejected GUI panels retain cards array');
-      TestUtils.assertEqual(result.cards.length, 0, 'Rejected GUI panels are empty');
-
-      Module.controlGetAvailablePanels = () => Promise.resolve('{malformed');
+      TestUtils.assertEqual(result.error, 'panel query rejected', 'GUI panels catch rejection');
+      TestUtils.assertEqual(result.cards.length, 0, 'Rejected panels retain empty cards');
+      Module.ccall = () => '';
       result = await window.yaze.gui.getAvailablePanels();
-      TestUtils.assertType(result.error, 'string', 'Malformed GUI panel JSON reports an error');
-      TestUtils.assertArray(result.cards, 'Malformed GUI panels retain cards array');
-
-      delete Module.controlGetAvailablePanels;
+      TestUtils.assertType(result.error, 'string', 'Empty return remains an error');
+      Module.ccall = () => '[]';
+      TestUtils.assertArray(await window.yaze.gui.getAvailablePanels(), 'Empty native registry is valid');
+      delete Module._GetAvailablePanelsFromWeb;
       result = await window.yaze.gui.getAvailablePanels();
-      TestUtils.assertEqual(result.error, 'Module not ready', 'Missing GUI panel binding stays explicit');
-      TestUtils.assertEqual(result.cards.length, 0, 'Missing GUI panels are empty');
+      TestUtils.assertEqual(result.error, 'Module not ready', 'Missing panel export stays explicit');
     } finally {
-      if (hadBinding) Module.controlGetAvailablePanels = original;
-      else delete Module.controlGetAvailablePanels;
+      names.forEach((name, i) => {
+        if (originals[i]) Object.defineProperty(Module, name, originals[i]);
+        else delete Module[name];
+      });
     }
   }
 
   async function testCurrentMapResults() {
-    if (typeof Module === 'undefined' || !window.yaze || !window.yaze.editor) {
+    if (typeof Module === 'undefined' || !window.yaze?.editor) {
       TestUtils.skip('Current map result tests', 'Module or editor helper unavailable');
       return;
     }
-    const hadBinding = Object.prototype.hasOwnProperty.call(Module, 'editorGetCurrentOverworldMap');
-    const original = Module.editorGetCurrentOverworldMap;
+    const names = ['ccall', '_GetCurrentOverworldMapFromWeb'];
+    const originals = names.map(name => Object.getOwnPropertyDescriptor(Module, name));
     const expected = { map_id: 162, world: 2, map_count: 192 };
     try {
-      for (const asynchronous of [false, true]) {
-        Module.editorGetCurrentOverworldMap = () => asynchronous
-          ? Promise.resolve(JSON.stringify(expected)) : JSON.stringify(expected);
-        const result = await window.yaze.editor.getCurrentMap();
-        TestUtils.assertEqual(JSON.stringify(result), JSON.stringify(expected),
-          `Current map preserves ${asynchronous ? 'async' : 'sync'} result shape`);
-        if (window.aiTools && window.aiTools.getMapData) {
-          const data = await window.aiTools.getMapData();
-          TestUtils.assertEqual(JSON.stringify(data), JSON.stringify(expected),
-            `AI map caller preserves ${asynchronous ? 'async' : 'sync'} result`);
-        }
-      }
-      Module.editorGetCurrentOverworldMap = () => {
-        const rejected = Promise.reject(new Error('map query rejected'));
-        rejected.catch(() => {});
-        return rejected;
+      Module._GetCurrentOverworldMapFromWeb = () => {};
+      Module.ccall = (name, type, argTypes, args, options) => {
+        TestUtils.assertEqual(name, 'GetCurrentOverworldMapFromWeb', 'Current map uses C export');
+        TestUtils.assertEqual(type, 'string', 'Current map copies C string');
+        TestUtils.assertEqual(argTypes.length + args.length, 0, 'Current map takes no arguments');
+        TestUtils.assertEqual(options.async, true, 'Current map preserves Promise contract');
+        return Promise.resolve(JSON.stringify(expected));
       };
       let result = await window.yaze.editor.getCurrentMap();
-      TestUtils.assertEqual(result.error, 'map query rejected', 'Current map catches async rejection');
-      Module.editorGetCurrentOverworldMap = () => Promise.resolve('{malformed');
+      TestUtils.assertEqual(JSON.stringify(result), JSON.stringify(expected), 'Current map preserves data');
+      if (window.aiTools?.getMapData) {
+        const data = await window.aiTools.getMapData();
+        TestUtils.assertEqual(JSON.stringify(data), JSON.stringify(expected), 'AI map caller preserves data');
+      }
+      Module.ccall = () => Promise.reject(new Error('map query rejected'));
       result = await window.yaze.editor.getCurrentMap();
-      TestUtils.assertType(result.error, 'string', 'Current map malformed JSON reports error');
-      Module.editorGetCurrentOverworldMap = () => JSON.stringify({ error: 'Overworld editor not active' });
+      TestUtils.assertEqual(result.error, 'map query rejected', 'Current map catches rejection');
+      Module.ccall = () => '{malformed';
+      result = await window.yaze.editor.getCurrentMap();
+      TestUtils.assertType(result.error, 'string', 'Malformed map JSON reports error');
+      Module.ccall = () => JSON.stringify({ error: 'Overworld editor not active' });
       result = await window.yaze.editor.getCurrentMap();
       TestUtils.assertEqual(result.error, 'Overworld editor not active', 'Current map preserves native error');
-      delete Module.editorGetCurrentOverworldMap;
+      delete Module._GetCurrentOverworldMapFromWeb;
       result = await window.yaze.editor.getCurrentMap();
-      TestUtils.assertEqual(result.error, 'API not ready', 'Current map missing binding stays explicit');
+      TestUtils.assertEqual(result.error, 'API not ready', 'Missing map export stays explicit');
     } finally {
-      if (hadBinding) Module.editorGetCurrentOverworldMap = original;
-      else delete Module.editorGetCurrentOverworldMap;
+      names.forEach((name, i) => {
+        if (originals[i]) Object.defineProperty(Module, name, originals[i]);
+        else delete Module[name];
+      });
     }
   }
 

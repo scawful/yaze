@@ -453,12 +453,13 @@
      * @returns {Promise<Object>} Panels data with id, name, visible, enabled, etc.
      */
     getAvailablePanels: async function() {
-      if (typeof Module === 'undefined' || !Module.controlGetAvailablePanels) {
+      if (typeof Module === 'undefined' || !Module.ccall || !Module._GetAvailablePanelsFromWeb) {
         return { error: 'Module not ready', cards: [] };
       }
 
       try {
-        return JSON.parse(await Module.controlGetAvailablePanels());
+        return JSON.parse(await Module.ccall('GetAvailablePanelsFromWeb',
+          'string', [], [], { async: true }));
       } catch (e) {
         return { error: e.message, cards: [] };
       }
