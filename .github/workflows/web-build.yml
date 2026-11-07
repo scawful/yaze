@@ -210,8 +210,8 @@ jobs:
           path: build/presets/wasm-ai/dist/
 
   deploy:
-    # Pushes keep publishing; manual runs build an artifact unless requested.
-    if: github.event_name != 'workflow_dispatch' || inputs.deploy
+    # Build artifacts on pushes; publish only when explicitly requested.
+    if: github.event_name == 'workflow_dispatch' && inputs.deploy
     needs: build-deploy
     runs-on: ubuntu-22.04
     permissions:
