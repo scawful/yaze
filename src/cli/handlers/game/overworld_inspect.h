@@ -122,9 +122,11 @@ std::pair<int, int> AreaScreenSpan(const zelda3::OverworldMap& parent_map);
 
 // Pure address math, independent of ROM loading. Fails when the parent is in
 // another world, the named screen is outside the parent's span, or x/y fall
-// outside the area.
+// outside the area. Defaults to the legacy160 domain; loaded model callers
+// supply their materialized160/192 capacity.
 absl::StatusOr<AreaTileLocation> ResolveAreaTileLocation(
-    int map_id, int parent_map, int area_columns, int area_rows, int x, int y);
+    int map_id, int parent_map, int area_columns, int area_rows, int x, int y,
+    int map_count = 160);
 
 // Resolves the parent and span of map_id from a loaded overworld.
 absl::StatusOr<AreaTileLocation> ResolveAreaTileForMap(
@@ -235,7 +237,7 @@ absl::StatusOr<TileUsageSummary> CollectTileUsage(zelda3::Overworld& overworld,
 
 absl::StatusOr<int> ParseNumeric(std::string_view value, int base = 0);
 absl::StatusOr<int> ParseWorldSpecifier(std::string_view value);
-absl::StatusOr<int> InferWorldFromMapId(int map_id);
+absl::StatusOr<int> InferWorldFromMapId(int map_id, int map_count = 160);
 std::string WorldName(int world);
 std::string WarpTypeName(WarpType type);
 

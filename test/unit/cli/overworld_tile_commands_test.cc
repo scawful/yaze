@@ -11,9 +11,13 @@
 #include <gtest/gtest.h>
 #include <nlohmann/json.hpp>
 
+#include "absl/cleanup/cleanup.h"
 #include "absl/strings/str_format.h"
 #include "cli/handlers/game/overworld_commands.h"
 #include "cli/handlers/game/overworld_inspect.h"
+#include "core/features.h"
+#include "fixtures/lyra/native_directory_fixture.h"
+#include "framework/rom_save_fault.h"
 #include "oracle_rom_fixture.h"
 #include "rom/rom.h"
 #include "unique_temp_path.h"
@@ -42,6 +46,21 @@ TEST(OverworldTileAddressTest, SmallLightWorldScreenOffsetsIntoWorldGrid) {
   EXPECT_EQ(location->screen_y, 6);
   EXPECT_EQ(location->world_x, 133);
   EXPECT_EQ(location->world_y, 6);
+}
+
+TEST(OverworldTileAddressTest, NativeCapacityBoundsParentChildAndLastScreen) {
+  const auto child = ResolveAreaTileLocation(0xB1, 0xB0, 2, 2, 40, 2, 192);
+  ASSERT_TRUE(child.ok()) << child.status();
+  EXPECT_EQ(child->parent_map, 0xB0);
+  EXPECT_EQ(child->screen_id, 0xB1);
+  EXPECT_EQ(child->screen_x, 8);
+  EXPECT_EQ(child->world_x, 40);
+  EXPECT_TRUE(ResolveAreaTileLocation(0xBF, 0xBF, 1, 1, 31, 31, 192).ok());
+  EXPECT_FALSE(ResolveAreaTileLocation(0xB1, 0xB0, 2, 2, 40, 2).ok());
+  EXPECT_FALSE(ResolveAreaTileLocation(0xA0, 0xA0, 1, 1, 0, 0, 160).ok());
+  EXPECT_FALSE(ResolveAreaTileLocation(0xC0, 0xC0, 1, 1, 0, 0, 192).ok());
+  EXPECT_FALSE(ResolveAreaTileLocation(0xB8, 0xB8, 1, 2, 0, 0, 192).ok());
+  EXPECT_FALSE(ResolveAreaTileLocation(0xB1, 0xB0, 2, 2, 64, 2, 192).ok());
 }
 
 TEST(OverworldTileAddressTest, LargeDarkWorldAreaUsesParentRelativeCoords) {
@@ -633,6 +652,120 @@ TEST_F(OverworldTileRomTest, SetTileWriteRefusesOracleCheckoutRom) {
   EXPECT_EQ(ReadBytes(work), file_before);
   std::error_code ec;
   std::filesystem::remove_all(root, ec);
+}
+
+TEST_F(OverworldTileRomTest,
+       NativeSetTileUsesNormalWriterAndPreservesDryRunFailureAndReopen) {
+  const auto flags = core::FeatureFlags::get();
+  auto restore_flags =
+      absl::MakeCleanup([&] { core::FeatureFlags::get() = flags; });
+  core::FeatureFlags::get().overworld.kSaveOverworldMaps = true;
+  for (uint16_t capacity : {160, 192}) {
+    SCOPED_TRACE(capacity);
+    test::native_overworld::NativeDirectoryFixture fixture(capacity);
+    fixture.SeedLoadedLegacyForModelTest(rom_, *overworld_);
+    fixture.UpgradeToRevision4();
+    if (capacity == 192) {
+      for (int map : {0xB0, 0xB1, 0xB8, 0xB9}) {
+        fixture.bytes[fixture.Entry(7).pc_address + map] = 0xB0;
+        fixture.bytes[fixture.Entry(30).pc_address + map] = 1;
+      }
+      fixture.Seal();
+    }
+    const auto dir = test::UniqueTempPath("ow_native_tile");
+    std::filesystem::create_directories(dir);
+    auto cleanup = absl::MakeCleanup([&] {
+      std::error_code ec;
+      std::filesystem::remove_all(dir, ec);
+    });
+    const auto path = dir / "edit.sfc";
+    {
+      std::ofstream file(path, std::ios::binary);
+      file.write(reinterpret_cast<const char*>(fixture.bytes.data()),
+                 fixture.bytes.size());
+    }
+    Rom rom;
+    ASSERT_TRUE(rom.LoadFromFile(path.string()).ok());
+    zelda3::Overworld before(&rom);
+    ASSERT_TRUE(before.Load(&rom).ok());
+    const int map = capacity == 192 ? 0xB1 : 0x00;
+    const int x = capacity == 192 ? 40 : 1;
+    const auto location = overworld::ResolveAreaTileForMap(before, map, x, 2);
+    ASSERT_TRUE(location.ok()) << location.status();
+    const auto old_tile = overworld::ReadAreaTile(before, *location);
+    ASSERT_TRUE(old_tile.ok());
+    const uint16_t replacement = *old_tile == 1 ? 2 : 1;
+    std::vector<std::string> args = {
+        absl::StrFormat("--map=%02X", map), absl::StrFormat("--x=%d", x),
+        "--y=2", absl::StrFormat("--tile=%03X", replacement)};
+    handlers::OverworldGetTileCommandHandler get;
+    const auto read = RunJson(get, {args[0], args[1], "--y=2"}, &rom);
+    ASSERT_TRUE(read.is_object()) << read.dump();
+    EXPECT_EQ(HexField(read["Overworld Tile"]["tile_id"]), *old_tile);
+    if (capacity == 192) {
+      const auto last = RunJson(get, {"--map=BF", "--x=31", "--y=31"}, &rom);
+      EXPECT_EQ(HexField(last["Overworld Tile"]["map_id"]), 0xBF);
+    }
+    handlers::OverworldSetTileCommandHandler set;
+    const auto initial = rom.vector();
+    const bool dirty = rom.dirty();
+    absl::Status status;
+    const auto dry = RunJson(set, args, &rom, &status);
+    ASSERT_TRUE(status.ok()) << status << dry.dump();
+    EXPECT_EQ(dry["Overworld Tile Write"]["write_status"], "dry-run");
+    EXPECT_EQ(rom.vector(), initial);
+    EXPECT_EQ(rom.dirty(), dirty);
+    EXPECT_EQ(ReadBytes(path), initial);
+    auto write_args = args;
+    write_args.push_back("--write");
+    {
+      ScopedRomReadOnly read_only(rom);
+      RunJson(set, write_args, &rom, &status);
+      EXPECT_TRUE(absl::IsPermissionDenied(status)) << status;
+      EXPECT_EQ(rom.vector(), initial);
+      EXPECT_EQ(ReadBytes(path), initial);
+    }
+    {
+      test::ScopedRomStagingFailure failure;
+      RunJson(set, write_args, &rom, &status);
+      EXPECT_FALSE(status.ok());
+      EXPECT_EQ(rom.vector(), initial);
+      EXPECT_EQ(rom.dirty(), dirty);
+      EXPECT_EQ(ReadBytes(path), initial);
+    }
+    const auto saved = RunJson(set, write_args, &rom, &status);
+    ASSERT_TRUE(status.ok()) << status << saved.dump();
+    EXPECT_EQ(saved["Overworld Tile Write"]["verified_reload"], true);
+    Rom reopened;
+    ASSERT_TRUE(reopened.LoadFromFile(path.string()).ok());
+    zelda3::Overworld after(&reopened);
+    ASSERT_TRUE(after.Load(&reopened).ok());
+    size_t differences = 0;
+    for (int world = 0; world < 3; ++world) {
+      const auto& old_grid = before.GetMapTiles(world);
+      const auto& new_grid = after.GetMapTiles(world);
+      ASSERT_EQ(new_grid.size(), old_grid.size());
+      for (size_t col = 0; col < old_grid.size(); ++col) {
+        ASSERT_EQ(new_grid[col].size(), old_grid[col].size());
+        for (size_t row = 0; row < old_grid[col].size(); ++row)
+          differences += new_grid[col][row] != old_grid[col][row];
+      }
+    }
+    EXPECT_EQ(differences, 1);
+    EXPECT_EQ(*overworld::ReadAreaTile(after, *location), replacement);
+    const auto saved_bytes = reopened.vector();
+    RunJson(get, {capacity == 160 ? "--map=A0" : "--map=C0", "--x=0", "--y=0"},
+            &reopened, &status);
+    EXPECT_TRUE(absl::IsInvalidArgument(status)) << status;
+    EXPECT_EQ(reopened.vector(), saved_bytes);
+    RunJson(set,
+            {capacity == 160 ? "--map=A0" : "--map=C0", "--x=0", "--y=0",
+             "--tile=001", "--write"},
+            &reopened, &status);
+    EXPECT_TRUE(absl::IsInvalidArgument(status)) << status;
+    EXPECT_EQ(reopened.vector(), saved_bytes);
+    EXPECT_EQ(ReadBytes(path), saved_bytes);
+  }
 }
 
 }  // namespace

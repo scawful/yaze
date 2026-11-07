@@ -6,6 +6,7 @@
 #include <string>
 #include <vector>
 
+#include "absl/cleanup/cleanup.h"
 #include "absl/strings/numbers.h"
 #include "absl/strings/str_format.h"
 #include "cli/handlers/game/overworld_inspect.h"
@@ -29,8 +30,8 @@ using util::ParseHexString;
 
 namespace {
 
-absl::Status ValidateMapId(int map_id) {
-  if (map_id < 0 || map_id >= zelda3::kNumOverworldMaps) {
+absl::Status ValidateMapId(int map_id, int map_count) {
+  if (map_id < 0 || map_id >= map_count) {
     return absl::InvalidArgumentError(
         absl::StrFormat("Map ID out of range: 0x%02X", map_id));
   }
@@ -41,15 +42,27 @@ absl::Status ValidateMapId(int map_id) {
 // coordinates are decimal with an optional 0x prefix (ArgumentParser::GetInt),
 // matching the dungeon and overworld-sprite editing commands.
 absl::StatusOr<int> ParseMapIdArg(const resources::ArgumentParser& parser,
-                                  const std::string& name) {
+                                  const std::string& name,
+                                  int map_count = zelda3::kNumOverworldMaps) {
   const auto value = parser.GetString(name);
   int map_id = 0;
   if (!value.has_value() || !ParseHexString(*value, &map_id)) {
     return absl::InvalidArgumentError(
         absl::StrFormat("--%s must be a hex map id (e.g. 0x40 or 40)", name));
   }
-  RETURN_IF_ERROR(ValidateMapId(map_id));
+  RETURN_IF_ERROR(ValidateMapId(map_id, map_count));
   return map_id;
+}
+
+// Only a validated native directory admits tail maps before model loading.
+// Other commands retain their existing standard160 parsing by default.
+int TileCommandMapCount(const Rom* rom) {
+  if (rom) {
+    const auto layout = rom->InspectLyraLayout();
+    if (rom::IsNativeSpecialOverworldLayout(layout))
+      return layout.capacity;
+  }
+  return zelda3::kNumOverworldMaps;
 }
 
 absl::StatusOr<int> ParseTileIdArg(const resources::ArgumentParser& parser) {
@@ -99,6 +112,8 @@ void AddTileLocationFields(resources::OutputFormatter& formatter,
 absl::Status SaveOverworldTileGrid(Rom& rom, zelda3::Overworld& overworld) {
   overworld.ReResolveLayoutFromRom();
   const auto& layout = overworld.resolved_layout();
+  if (rom::IsNativeSpecialOverworldLayout(layout.lyra_layout))
+    return overworld.SaveNativeTerrain();
   RETURN_IF_ERROR(layout.CheckOperation(
       zelda3::OverworldLayoutDomain::kTerrainPointers,
       zelda3::OverworldLayoutOperation::kSerialize, -1, 0));
@@ -172,6 +187,8 @@ absl::Status ApplyTileEdit(Rom& rom, zelda3::Overworld& overworld,
       zelda3::OverworldLayoutDomain::kTerrainPointers,
       zelda3::OverworldLayoutOperation::kMutateModel, location.map_id, 0));
   ScopedRomTransaction transaction(rom);
+  auto rollback_baseline =
+      absl::MakeCleanup([&] { overworld.RollbackSavedMapTiles(); });
   RETURN_IF_ERROR(overworld::WriteAreaTile(overworld, location, tile_id));
   RETURN_IF_ERROR(SaveOverworldTileGrid(rom, overworld));
   RETURN_IF_ERROR(VerifyTileGridRoundTrip(rom, overworld));
@@ -226,6 +243,7 @@ absl::Status ApplyTileEdit(Rom& rom, zelda3::Overworld& overworld,
   Rom::SaveSettings save_settings;
   save_settings.require_backup = true;
   RETURN_IF_ERROR(rom.SaveToFile(save_settings));
+  overworld.CommitSavedMapTiles();
   transaction.Commit();
   formatter.AddField("save_status", "saved");
 
@@ -290,7 +308,8 @@ absl::Status OverworldInspectSpecialEntrancesCommandHandler::Execute(
 absl::Status OverworldGetTileCommandHandler::Execute(
     Rom* rom, const resources::ArgumentParser& parser,
     resources::OutputFormatter& formatter) {
-  ASSIGN_OR_RETURN(const int map_id, ParseMapIdArg(parser, "map"));
+  ASSIGN_OR_RETURN(const int map_id,
+                   ParseMapIdArg(parser, "map", TileCommandMapCount(rom)));
   ASSIGN_OR_RETURN(const int x, ParseCoordinateArg(parser, "x"));
   ASSIGN_OR_RETURN(const int y, ParseCoordinateArg(parser, "y"));
 
@@ -323,7 +342,8 @@ absl::Status OverworldSetTileCommandHandler::ExecuteWithContext(
     Rom* rom, const resources::ArgumentParser& parser,
     resources::OutputFormatter& formatter,
     const resources::CommandInvocationContext& invocation_context) {
-  ASSIGN_OR_RETURN(const int map_id, ParseMapIdArg(parser, "map"));
+  ASSIGN_OR_RETURN(const int map_id,
+                   ParseMapIdArg(parser, "map", TileCommandMapCount(rom)));
   ASSIGN_OR_RETURN(const int x, ParseCoordinateArg(parser, "x"));
   ASSIGN_OR_RETURN(const int y, ParseCoordinateArg(parser, "y"));
   ASSIGN_OR_RETURN(const int tile_value, ParseTileIdArg(parser));
