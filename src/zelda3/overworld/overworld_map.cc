@@ -1374,6 +1374,7 @@ absl::StatusOr<gfx::SnesPalette> OverworldMap::GetPalette(
 
 absl::Status OverworldMap::LoadPalette() {
   palette_addresses_ = {};
+  sprite_palette_warning_.clear();
   if (!game_data_) {
     current_palette_.clear();
     return absl::OkStatus();
@@ -1540,12 +1541,26 @@ absl::Status OverworldMap::LoadPalette() {
     pal5 = 0;  // Fallback to 0 if still 0xFF
   }
 
-  ASSIGN_OR_RETURN(gfx::SnesPalette spr,
-                   GetPalette(game_data_->palette_groups.sprites_aux3, pal4,
-                              previous_spr_pal_id, 24));
-  ASSIGN_OR_RETURN(gfx::SnesPalette spr2,
-                   GetPalette(game_data_->palette_groups.sprites_aux3, pal5,
-                              previous_spr_pal_id, 24));
+  const auto sprite_palette = [&](uint8_t selector) {
+    auto palette = GetPalette(game_data_->palette_groups.sprites_aux3, selector,
+                              previous_spr_pal_id, 24);
+    if (palette.ok())
+      return *palette;
+    // BG and OBJ palettes have independent ownership. Some special pages are
+    // stored backgrounds with no usable sprite colors; their BG remains valid.
+    // Keep the raw selectors and use visibly neutral OBJ colors only in the
+    // preview, with a diagnostic surfaced by both the editor and render service.
+    sprite_palette_warning_ =
+        "Sprite colors unavailable; sprites use neutral preview colors. "
+        "Check this area's sprite palette and inherited colors.";
+    std::vector<gfx::SnesColor> neutral;
+    for (uint16_t shade = 4; shade <= 28; shade += 4) {
+      neutral.emplace_back(static_cast<uint16_t>(shade * 0x421));
+    }
+    return gfx::SnesPalette(neutral);
+  };
+  const gfx::SnesPalette spr = sprite_palette(pal4);
+  const gfx::SnesPalette spr2 = sprite_palette(pal5);
 
   RETURN_IF_ERROR(palette_internal::SetColorsPalette(
       *rom_, game_data_, parent_, current_palette_, main, animated, aux1, aux2,

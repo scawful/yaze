@@ -344,6 +344,9 @@ class OverworldMap : public gfx::GfxContext {
   }
   const std::vector<uint8_t>& current_graphics() const { return current_gfx_; }
   const gfx::SnesPalette& current_palette() const { return current_palette_; }
+  const std::string& sprite_palette_warning() const {
+    return sprite_palette_warning_;
+  }
   const std::vector<uint8_t>& bitmap_data() const { return bitmap_data_; }
   auto is_large_map() const { return large_map_; }
   auto is_initialized() const { return initialized_; }
@@ -660,6 +663,9 @@ class OverworldMap : public gfx::GfxContext {
 
   OverworldMapTiles map_tiles_;
   gfx::SnesPalette current_palette_;
+  // Display-only diagnostic. Unavailable OBJ colors must not hide valid BG
+  // terrain or rewrite the authored sprite palette selectors.
+  std::string sprite_palette_warning_;
   PaletteAddressMap palette_addresses_{};
   std::map<uint16_t, std::vector<uint8_t>> graphics_sheet_overrides_;
   AreaGraphicsPreview graphics_preview_;

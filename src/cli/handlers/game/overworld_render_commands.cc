@@ -991,6 +991,10 @@ absl::Status OverworldRenderCommandHandler::ExecuteWithContext(
   formatter.AddField("height", result.height);
   formatter.AddField("scale", absl::StrFormat("%.2f", req.scale));
   formatter.AddField("size_bytes", static_cast<int>(result.png_data.size()));
+  formatter.BeginArray("warnings");
+  for (const auto& warning : result.warnings)
+    formatter.AddArrayItem(warning);
+  formatter.EndArray();
   formatter.AddField(
       "coordinates",
       "marker x/y are area-local pixels at scale 1; tile = x/16, y/16");

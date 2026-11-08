@@ -377,6 +377,11 @@ ResolvedGraphicsContext DescribeOverworldGraphicsContext(
       custom_bg && map.has_inherited_area_properties(),
   });
   context.palette_colors_resolved = !map.current_palette().empty();
+  if (!map.sprite_palette_warning().empty()) {
+    context.loader_agrees = false;
+    context.alternates.push_back(
+        {"sprite_palette", "unavailable", map.sprite_palette_warning()});
+  }
 
   for (int state = 0; state < 3; ++state) {
     context.alternates.push_back({

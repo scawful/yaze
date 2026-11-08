@@ -82,6 +82,7 @@ struct OverworldRenderResult {
   bool graphics_preview = false;  // request's preview covered this area
   std::vector<int> screens;
   std::vector<OverworldRenderMarker> markers;
+  std::vector<std::string> warnings;
 };
 
 struct RenderRequest {

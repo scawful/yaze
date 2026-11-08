@@ -140,6 +140,15 @@ void OverworldCanvasRenderer::DrawOverworldCanvas() {
         });
     editor_->NormalizeCurrentSelectionState();
   }
+  if (!lyra_preview) {
+    if (const auto* map =
+            editor_->overworld_.overworld_map(editor_->current_map_);
+        map && !map->sprite_palette_warning().empty()) {
+      ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.75f, 0.25f, 1.0f));
+      ImGui::TextWrapped("%s", map->sprite_palette_warning().c_str());
+      ImGui::PopStyleColor();
+    }
+  }
   if (!lyra_preview && editor_->current_world_ == 2 &&
       !editor_->lyra_canvas_status_.ok()) {
     ImGui::TextWrapped("%s", editor_->lyra_canvas_status_.ToString().c_str());
@@ -1063,6 +1072,12 @@ absl::Status OverworldCanvasRenderer::DrawAreaGraphics() {
   }
 
   const float available_width = ImGui::GetContentRegionAvail().x;
+  if (const auto* map = editor_->overworld_.overworld_map(graphics_map);
+      map && !map->sprite_palette_warning().empty()) {
+    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.75f, 0.25f, 1.0f));
+    ImGui::TextWrapped("%s", map->sprite_palette_warning().c_str());
+    ImGui::PopStyleColor();
+  }
   DrawSheetScaleControl("##AreaGraphicsScale", &area_graphics_scale_mode_);
   const gui::AdaptiveSheetLayout sheet_layout = gui::ResolveAdaptiveSheetLayout(
       available_width, 0x80, kOverworldMapSize, area_graphics_scale_mode_,

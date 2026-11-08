@@ -139,6 +139,53 @@ TEST(OverworldAreaRenderTest,
   EXPECT_FALSE(map.LoadPalette().ok());
 }
 
+TEST(OverworldAreaRenderTest, UnavailableSpriteColorsDoNotHideBackground) {
+  auto bytes = MakeV3Rom();
+  // Oracle's legacy special maps can retain sprite selectors whose rows are
+  // not palette data. The background has a separate, valid palette contract.
+  bytes[kOverworldSpritePaletteGroup + 0x8F * 2] = 0xB0;
+  bytes[kOverworldSpritePaletteGroup + 0x8F * 2 + 1] = 0xC4;
+  auto rom = LoadRom(bytes);
+  GameData data(rom.get());
+  ASSERT_TRUE(LoadPalettes(*rom, data).ok());
+  OverworldMap map(0x98, rom.get(), &data);
+  map.set_sprite_palette(0, 1);
+  ASSERT_TRUE(map.LoadPalette().ok());
+  const auto expected = map.current_palette();
+  const auto before = rom->vector();
+  map.set_sprite_palette(0, 0x8F);
+  ASSERT_TRUE(map.LoadPalette().ok());
+  for (int i = 0; i < 128; ++i) {
+    EXPECT_EQ(map.current_palette()[i].snes(), expected[i].snes());
+  }
+  EXPECT_EQ(map.sprite_palette(0), 0x8F);
+  EXPECT_FALSE(map.sprite_palette_warning().empty());
+  EXPECT_EQ(rom->vector(), before);
+  map.set_sprite_palette(0, 1);
+  ASSERT_TRUE(map.LoadPalette().ok());
+  EXPECT_TRUE(map.sprite_palette_warning().empty());
+}
+
+TEST(OverworldAreaRenderTest, UnavailableInheritedSpriteColorsKeepBackground) {
+  auto bytes = MakeV3Rom();
+  // Special map99 inherits OBJ colors. A bad previous selector must not make
+  // its otherwise valid background disappear in the integrated layout either.
+  bytes[kOverworldSpritePaletteGroup] = 0xFF;
+  bytes[kOverworldSpritePaletteGroup + 1] = 0xFF;
+  bytes[kOverworldSpritePaletteIds + 0x98] = 0x8F;
+  bytes[kOverworldSpritePaletteGroup + 0x8F * 2] = 0xB0;
+  bytes[kOverworldSpritePaletteGroup + 0x8F * 2 + 1] = 0xC4;
+  auto rom = LoadRom(bytes);
+  GameData data(rom.get());
+  ASSERT_TRUE(LoadPalettes(*rom, data).ok());
+  OverworldMap map(0x99, rom.get(), &data);
+  const auto before = rom->vector();
+  ASSERT_TRUE(map.LoadPalette().ok());
+  EXPECT_EQ(map.current_palette().size(), 256);
+  EXPECT_FALSE(map.sprite_palette_warning().empty());
+  EXPECT_EQ(rom->vector(), before);
+}
+
 TEST(OverworldAreaRenderTest, AllQuadrantsResolveTheSameGraphics) {
   auto rom = LoadRom(MakeV3Rom());
   OverworldMap parent(kParent, rom.get());
