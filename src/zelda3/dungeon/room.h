@@ -793,6 +793,13 @@ class Room {
       MarkGraphicsDirty();
     }
   }
+  // Pot-item and key-drop indicators are an editor aid; the game draws neither.
+  void SetDrawItemIndicators(bool draw) {
+    if (draw_item_indicators_ != draw) {
+      draw_item_indicators_ = draw;
+      MarkGraphicsDirty();
+    }
+  }
   void SetEffect(EffectKey effect) {
     if (effect_ != effect) {
       effect_ = effect;
@@ -1270,6 +1277,7 @@ class Room {
   // Room header properties (formerly public)
   uint8_t blockset_ = 0;
   uint8_t render_entrance_blockset_ = 0xFF;
+  bool draw_item_indicators_ = true;
   uint8_t resolved_main_blockset_ = 0xFF;
   uint8_t spriteset_ = 0;
   uint8_t palette_ = 0;

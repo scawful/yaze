@@ -12,7 +12,7 @@ namespace handlers {
 // Usage:
 //   dungeon-render --room=<id> --output=<path.png>
 //           [--overlays=collision,track,sprites,objects,grid,camera,tiletype,
-//                       all]
+//                       items,all]
 //           [--scale=<float>] [--entrance=<hex_id>|--graphics-entrance=<hex_id>]
 //           [--project-context=<project.yaze>]
 // Example: dungeon-render --room=0x056 --entrance=0x79 --output=castle79.png
@@ -31,7 +31,7 @@ class DungeonRenderCommandHandler : public resources::CommandHandler {
   std::string GetUsage() const override {
     return "dungeon-render --room=<id> --output=<path.png> "
            "[--overlays=collision,track,sprites,objects,grid,camera,tiletype,"
-           "all] "
+           "items,all] "
            "[--scale=<float>] "
            "[--entrance=<hex_id>|--graphics-entrance=<hex_id>] "
            "[--project-context=<project.yaze>]";

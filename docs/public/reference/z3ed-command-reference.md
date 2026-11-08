@@ -202,7 +202,8 @@ came from. The ZScream custom collision map is not merged in; see
 `custom_collision_cells` and `dungeon-list-custom-collision`. Run it on the
 patched ROM when the patch changes tile types. `dungeon-render
 --overlays=tiletype` paints the same pits (red: upper map, orange: lower map
-only).
+only). Pot-item and key-drop indicators are an editor aid, so `dungeon-render`
+draws them only with `--overlays=items`.
 
 `dungeon-import-custom-collision-json` compares decoded room maps before
 writing. Replaying an exact source reports zero `changed_rooms` and

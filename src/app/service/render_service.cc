@@ -220,6 +220,7 @@ absl::StatusOr<RenderResult> RenderService::RenderDungeonRoom(
   if (!req.sheet_overrides.empty()) {
     room.SetGraphicsSheetOverrides(req.sheet_overrides);
   }
+  room.SetDrawItemIndicators((req.overlay_flags & RenderOverlay::kItems) != 0);
 
   // Load sprites (requires ROM, game_data not needed here).
   room.LoadSprites();

@@ -62,6 +62,8 @@ uint32_t ParseOverlays(const std::string& s) {
       flags |= app::service::RenderOverlay::kGrid;
     else if (tok == "tiletype")
       flags |= app::service::RenderOverlay::kTileTypes;
+    else if (tok == "items")
+      flags |= app::service::RenderOverlay::kItems;
     else if (tok == "all")
       flags = app::service::RenderOverlay::kAll;
   }
