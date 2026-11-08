@@ -297,6 +297,7 @@ absl::StatusOr<zelda3::OverworldEntrance*> InsertEntrance(
     for (size_t i = 0; i < entrances->size(); ++i) {
       if (entrances->at(i).deleted) {
         // Reuse deleted slot
+        entrances->at(i).authoring_placement_id.reset();
         entrances->at(i).deleted = false;
         entrances->at(i).map_id_ = map_id;
         entrances->at(i).x_ = static_cast<int>(snapped_pos.x);
@@ -338,6 +339,7 @@ absl::StatusOr<zelda3::OverworldExit*> InsertExit(zelda3::Overworld* overworld,
   for (size_t i = 0; i < exits.size(); ++i) {
     if (exits[i].deleted_) {
       // Reuse deleted slot
+      exits[i].authoring_placement_id.reset();
       exits[i].deleted_ = false;
       exits[i].map_id_ = map_id;
       exits[i].x_ = static_cast<int>(snapped_pos.x);

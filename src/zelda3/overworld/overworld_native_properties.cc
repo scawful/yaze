@@ -192,8 +192,7 @@ bool Overworld::HasPendingNativeSpriteChanges() const {
   // Disabled sprite saving must not make the session forget edits or newly
   // reserved identities after another domain has cleared the ROM dirty flag.
   return CaptureNativeSpriteState() != native_nonterrain_baseline_[4] ||
-         native_authoring_metadata_draft_ !=
-             native_authoring_metadata_baseline_;
+         HasPendingNativeAuthoringMetadataChanges(1);
 }
 
 }  // namespace yaze::zelda3

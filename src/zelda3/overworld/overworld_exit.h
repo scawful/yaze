@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <cstdint>
 #include <cstdlib>
+#include <optional>
 
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
@@ -82,6 +83,7 @@ class OverworldExit : public GameEntity {
   uint16_t map_pos_ = 0;  // VRAM location (ZScream: VRAMLocation)
   bool is_hole_ = false;
   bool deleted_ = false;
+  std::optional<uint32_t> authoring_placement_id;
   bool is_automatic_ =
       true;  // FIX: Default to true (matches ZScream ExitOW.cs:101)
 

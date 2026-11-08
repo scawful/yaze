@@ -329,6 +329,7 @@ absl::Status Overworld::Load(Rom* rom) {
                             rom::kNativeAuthoringMetadataSize},
                            static_cast<uint16_t>(materialized_map_count())));
       native_authoring_metadata_baseline_ = native_authoring_metadata_draft_;
+      RETURN_IF_ERROR(BindNativeEndpointPlacements());
     }
   }
 
@@ -1854,10 +1855,24 @@ void Overworld::CommitSavedMapTiles() {
     }
   }
   if (staged_native_authoring_metadata_) {
+    auto draft = *native_authoring_metadata_draft_;
+    for (const auto& published :
+         staged_native_authoring_metadata_->placements) {
+      if (!staged_native_authoring_domains_[published.value.index()])
+        continue;
+      const auto current =
+          std::find_if(draft.placements.begin(), draft.placements.end(),
+                       [&](const auto& p) { return p.id == published.id; });
+      if (current != draft.placements.end())
+        *current = published;
+    }
+    draft.schema_version =
+        std::max(draft.schema_version,
+                 staged_native_authoring_metadata_->schema_version);
     native_authoring_metadata_baseline_ = staged_native_authoring_metadata_;
-    native_authoring_metadata_draft_ =
-        std::move(*staged_native_authoring_metadata_);
+    native_authoring_metadata_draft_ = std::move(draft);
     staged_native_authoring_metadata_.reset();
+    staged_native_authoring_domains_ = {};
   }
   if (staged_native_geometry_) {
     native_geometry_baseline_ = std::move(*staged_native_geometry_);
@@ -1889,6 +1904,7 @@ void Overworld::RollbackSavedMapTiles() {
   for (auto& staged : staged_native_endpoints_)
     staged.reset();
   staged_native_authoring_metadata_.reset();
+  staged_native_authoring_domains_ = {};
   staged_native_geometry_.reset();
   staged_native_sprites_.reset();
   staged_native_properties_.reset();
@@ -1983,8 +1999,11 @@ std::vector<std::pair<uint32_t, uint32_t>> Overworld::GetProjectedWriteRanges()
     const rom::NativeOverworldAuthoringMetadata* publish_ptr = nullptr;
     if (properties.ok() && sprites.ok() &&
         resolved_layout_.lyra_layout.has_authoring_metadata &&
-        flags.kSaveOverworldSprites) {
-      auto proposed = ProposeNativeAuthoringMetadataForSave();
+        (flags.kSaveOverworldSprites || flags.kSaveOverworldEntrances ||
+         flags.kSaveOverworldExits)) {
+      auto proposed = ProposeNativeAuthoringMetadataForSave(
+          flags.kSaveOverworldSprites, flags.kSaveOverworldEntrances,
+          flags.kSaveOverworldExits);
       if (native_authoring_metadata_baseline_ && proposed.ok()) {
         baseline_meta = native_authoring_metadata_baseline_;
         publish_meta = std::move(*proposed);
@@ -2515,14 +2534,19 @@ absl::Status Overworld::SaveNativeTerrain() {
   const rom::NativeOverworldAuthoringMetadata* baseline_metadata_ptr = nullptr;
   std::optional<rom::NativeOverworldAuthoringMetadata> publish_metadata_model;
   const rom::NativeOverworldAuthoringMetadata* publish_metadata_ptr = nullptr;
-  if (layout.has_authoring_metadata && flags.kSaveOverworldSprites) {
+  if (layout.has_authoring_metadata &&
+      (flags.kSaveOverworldSprites || flags.kSaveOverworldEntrances ||
+       flags.kSaveOverworldExits)) {
     if (!native_authoring_metadata_baseline_)
       return absl::FailedPreconditionError(
           "Native authoring metadata baseline is unavailable");
     baseline_metadata_decoded = native_authoring_metadata_baseline_;
     baseline_metadata_ptr = &*baseline_metadata_decoded;
-    ASSIGN_OR_RETURN(publish_metadata_model,
-                     ProposeNativeAuthoringMetadataForSave());
+    ASSIGN_OR_RETURN(
+        publish_metadata_model,
+        ProposeNativeAuthoringMetadataForSave(flags.kSaveOverworldSprites,
+                                              flags.kSaveOverworldEntrances,
+                                              flags.kSaveOverworldExits));
     publish_metadata_ptr = &*publish_metadata_model;
   }
   std::vector<rom::NativeOverworldPropertyEdit> property_edits;
@@ -2563,8 +2587,12 @@ absl::Status Overworld::SaveNativeTerrain() {
     }
     if (flags.kSaveOverworldSprites) {
       staged_native_sprites_ = current[4];
-      if (publish_metadata_model)
-        staged_native_authoring_metadata_ = std::move(*publish_metadata_model);
+    }
+    if (publish_metadata_model) {
+      staged_native_authoring_metadata_ = std::move(*publish_metadata_model);
+      staged_native_authoring_domains_ = {flags.kSaveOverworldSprites,
+                                          flags.kSaveOverworldEntrances,
+                                          flags.kSaveOverworldExits};
     }
     return absl::OkStatus();
   }
@@ -2623,8 +2651,12 @@ absl::Status Overworld::SaveNativeTerrain() {
   }
   if (flags.kSaveOverworldSprites) {
     staged_native_sprites_ = current[4];
-    if (publish_metadata_model)
-      staged_native_authoring_metadata_ = std::move(*publish_metadata_model);
+  }
+  if (publish_metadata_model) {
+    staged_native_authoring_metadata_ = std::move(*publish_metadata_model);
+    staged_native_authoring_domains_ = {flags.kSaveOverworldSprites,
+                                        flags.kSaveOverworldEntrances,
+                                        flags.kSaveOverworldExits};
   }
   staged_tiles32_unique_ = std::move(definitions);
   staged_tiles32_list_ = std::move(indices);

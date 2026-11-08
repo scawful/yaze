@@ -364,6 +364,9 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
                                  const zelda3::OverworldEntrance& draft);
   absl::Status ApplyExitEdit(zelda3::OverworldExit* target,
                              const zelda3::OverworldExit& draft);
+  // Explicitly links a planned native endpoint to an existing runtime row.
+  // The model validates the binding; one record action owns Undo/Redo.
+  absl::Status BindNativeEndpointPlacement(uint32_t id, uint16_t row);
   absl::Status ValidateSpriteEdit(zelda3::Sprite* target,
                                   const zelda3::Sprite& draft);
   absl::Status ApplySpriteEdit(zelda3::Sprite* target,

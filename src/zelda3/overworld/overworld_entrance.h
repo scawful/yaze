@@ -113,6 +113,8 @@ class OverworldEntrance : public GameEntity {
   uint8_t entrance_id_ = 0;
   bool is_hole_ = false;
   bool deleted = false;
+  // Stable authoring identity, separate from the runtime table row/target ID.
+  std::optional<uint32_t> authoring_placement_id;
 
   OverworldEntrance() { entity_type_ = kEntrance; }
   OverworldEntrance(int x, int y, uint8_t entrance_id, short map_id,

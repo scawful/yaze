@@ -7,8 +7,8 @@
 
 namespace yaze::zelda3 {
 namespace {
-constexpr size_t kEntranceSnapshotFields = 9;
-constexpr size_t kReturnSnapshotFields = 20;
+constexpr size_t kEntranceSnapshotFields = 10;
+constexpr size_t kReturnSnapshotFields = 21;
 
 rom::NativeOverworldEntranceRow EntranceRow(std::span<const int64_t> row,
                                             bool expanded) {
@@ -45,8 +45,9 @@ Overworld::NativeEndpointState Overworld::CaptureNativeEndpointState() const {
   for (const auto* list : {&all_entrances_, &all_holes_}) {
     add(0, {static_cast<int64_t>(list->size())});
     for (const auto& e : *list)
-      add(0, {e.map_id_, e.map_pos_, e.entrance_id_, e.is_hole_, e.deleted,
-              e.x_, e.y_, e.game_x_, e.game_y_});
+      add(0,
+          {e.map_id_, e.map_pos_, e.entrance_id_, e.is_hole_, e.deleted, e.x_,
+           e.y_, e.game_x_, e.game_y_, e.authoring_placement_id.value_or(0)});
   }
   add(1, {static_cast<int64_t>(all_exits_.size())});
   for (const auto& e : all_exits_)
@@ -69,7 +70,8 @@ Overworld::NativeEndpointState Overworld::CaptureNativeEndpointState() const {
             e.x_,
             e.y_,
             e.game_x_,
-            e.game_y_});
+            e.game_y_,
+            e.authoring_placement_id.value_or(0)});
   return state;
 }
 
@@ -79,7 +81,9 @@ bool Overworld::HasPendingNativeEndpointChanges() const {
     return false;
   const auto state = CaptureNativeEndpointState();
   return state[0] != native_nonterrain_baseline_[1] ||
-         state[1] != native_nonterrain_baseline_[2];
+         state[1] != native_nonterrain_baseline_[2] ||
+         HasPendingNativeAuthoringMetadataChanges(2) ||
+         HasPendingNativeAuthoringMetadataChanges(3);
 }
 
 absl::StatusOr<rom::NativeOverworldEndpointEdits>
@@ -87,7 +91,20 @@ Overworld::PrepareNativeEndpointSave(bool save_entrances,
                                      bool save_returns) const {
   rom::NativeOverworldEndpointEdits edits;
   const auto current = CaptureNativeEndpointState();
-  if (save_entrances && current[0] != native_nonterrain_baseline_[1]) {
+  auto has_bound = [&](size_t kind) {
+    for (const auto* metadata : {&native_authoring_metadata_baseline_,
+                                 &native_authoring_metadata_draft_})
+      if (*metadata &&
+          std::any_of((*metadata)->placements.begin(),
+                      (*metadata)->placements.end(), [kind](const auto& p) {
+                        return p.value.index() + 1 == kind &&
+                               p.state == rom::NativePlacementState::kBound;
+                      }))
+        return true;
+    return false;
+  };
+  if (save_entrances &&
+      (current[0] != native_nonterrain_baseline_[1] || has_bound(2))) {
     const auto& saved = native_nonterrain_baseline_[1];
     const size_t count = all_entrances_.size();
     const size_t end = 1 + count * kEntranceSnapshotFields;
@@ -154,14 +171,15 @@ Overworld::PrepareNativeEndpointSave(bool save_entrances,
         edits.entrances.push_back(
             {static_cast<uint16_t>(row), expected, value});
       } else if (!std::equal(saved.begin() + at,
-                             saved.begin() + at + kEntranceSnapshotFields,
+                             saved.begin() + at + kEntranceSnapshotFields - 1,
                              current[0].begin() + at)) {
         return absl::FailedPreconditionError(
             "Native entrance edit has no serialized position change");
       }
     }
   }
-  if (save_returns && current[1] != native_nonterrain_baseline_[2]) {
+  if (save_returns &&
+      (current[1] != native_nonterrain_baseline_[2] || has_bound(3))) {
     const auto& saved = native_nonterrain_baseline_[2];
     const size_t count = all_exits_.size();
     if (count != kNumOverworldExits ||
@@ -201,10 +219,62 @@ Overworld::PrepareNativeEndpointSave(bool save_entrances,
       if (expected != value) {
         edits.returns.push_back({static_cast<uint16_t>(row), expected, value});
       } else {
-        for (size_t field = 0; field < kReturnSnapshotFields; ++field)
+        for (size_t field = 0; field < kReturnSnapshotFields - 1; ++field)
           if (field != 15 && saved[at + field] != current[1][at + field])
             return absl::FailedPreconditionError(
                 "Native return edit has no serialized position change");
+      }
+    }
+  }
+  // A metadata-only bind/unbind still selects the complete runtime row. Use
+  // the saved model snapshot for its preimage, never a caller-supplied address.
+  for (const auto* metadata : {&native_authoring_metadata_baseline_,
+                               &native_authoring_metadata_draft_}) {
+    if (!*metadata)
+      continue;
+    for (const auto& p : (*metadata)->placements) {
+      if (p.state != rom::NativePlacementState::kBound)
+        continue;
+      if (const auto* door =
+              std::get_if<rom::NativeAuthoringDoorPlacement>(&p.value);
+          door && save_entrances) {
+        const auto row = *door->trigger_row;
+        if (std::any_of(edits.entrances.begin(), edits.entrances.end(),
+                        [row](const auto& e) { return e.row == row; }))
+          continue;
+        const size_t at = 1 + row * kEntranceSnapshotFields;
+        if (row >= all_entrances_.size() ||
+            native_nonterrain_baseline_[1].size() <
+                at + kEntranceSnapshotFields)
+          return absl::FailedPreconditionError("Bound door row is not loaded");
+        const bool expanded = resolved_layout_.has_expanded_entrances;
+        edits.entrances.push_back(
+            {row,
+             EntranceRow(
+                 std::span<const int64_t>(native_nonterrain_baseline_[1])
+                     .subspan(at, kEntranceSnapshotFields),
+                 expanded),
+             EntranceRow(std::span<const int64_t>(current[0])
+                             .subspan(at, kEntranceSnapshotFields),
+                         expanded)});
+      } else if (const auto* back =
+                     std::get_if<rom::NativeAuthoringReturnPlacement>(&p.value);
+                 back && save_returns) {
+        const auto row = *back->return_row;
+        if (std::any_of(edits.returns.begin(), edits.returns.end(),
+                        [row](const auto& e) { return e.row == row; }))
+          continue;
+        const size_t at = 1 + row * kReturnSnapshotFields;
+        if (row >= all_exits_.size() ||
+            native_nonterrain_baseline_[2].size() < at + kReturnSnapshotFields)
+          return absl::FailedPreconditionError(
+              "Bound return row is not loaded");
+        edits.returns.push_back(
+            {row,
+             ReturnRow(std::span<const int64_t>(native_nonterrain_baseline_[2])
+                           .subspan(at, kReturnSnapshotFields)),
+             ReturnRow(std::span<const int64_t>(current[1])
+                           .subspan(at, kReturnSnapshotFields))});
       }
     }
   }

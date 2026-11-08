@@ -53,8 +53,7 @@ absl::Status Overworld::BindNativeSpritePlacements() {
     const auto* value =
         std::get_if<rom::NativeAuthoringSpritePlacement>(&placement.value);
     if (!value)
-      return absl::FailedPreconditionError(
-          "Native bound placement is not a sprite");
+      continue;  // Endpoint rows are independently bound after metadata load.
     const auto found =
         loaded.find({value->phase, value->owner_map, value->ordinal});
     if (found == loaded.end() ||

@@ -19,6 +19,7 @@
 #include "app/gui/core/popup_id.h"
 #include "imgui/imgui.h"
 #include "rom/lyra_layout_descriptor.h"
+#include "rom/native_overworld_authoring_metadata.h"
 #include "zelda3/zelda3_labels.h"
 
 namespace yaze {
@@ -29,9 +30,11 @@ namespace {
 bool SameRecord(const zelda3::OverworldEntrance& a,
                 const zelda3::OverworldEntrance& b) {
   return std::tie(a.map_id_, a.x_, a.y_, a.game_x_, a.game_y_, a.map_pos_,
-                  a.entrance_id_, a.is_hole_, a.deleted) ==
+                  a.entrance_id_, a.is_hole_, a.deleted,
+                  a.authoring_placement_id) ==
          std::tie(b.map_id_, b.x_, b.y_, b.game_x_, b.game_y_, b.map_pos_,
-                  b.entrance_id_, b.is_hole_, b.deleted);
+                  b.entrance_id_, b.is_hole_, b.deleted,
+                  b.authoring_placement_id);
 }
 
 bool SameRecord(const zelda3::OverworldExit& a,
@@ -40,12 +43,14 @@ bool SameRecord(const zelda3::OverworldExit& a,
                   a.map_pos_, a.x_player_, a.y_player_, a.x_scroll_,
                   a.y_scroll_, a.x_camera_, a.y_camera_, a.scroll_mod_x_,
                   a.scroll_mod_y_, a.door_type_1_, a.door_type_2_,
-                  a.is_automatic_, a.is_hole_, a.deleted_) ==
+                  a.is_automatic_, a.is_hole_, a.deleted_,
+                  a.authoring_placement_id) ==
          std::tie(b.map_id_, b.x_, b.y_, b.game_x_, b.game_y_, b.room_id_,
                   b.map_pos_, b.x_player_, b.y_player_, b.x_scroll_,
                   b.y_scroll_, b.x_camera_, b.y_camera_, b.scroll_mod_x_,
                   b.scroll_mod_y_, b.door_type_1_, b.door_type_2_,
-                  b.is_automatic_, b.is_hole_, b.deleted_);
+                  b.is_automatic_, b.is_hole_, b.deleted_,
+                  b.authoring_placement_id);
 }
 
 bool SameRecord(const zelda3::Sprite& a, const zelda3::Sprite& b) {
@@ -87,6 +92,12 @@ absl::Status CommitRecordEdit(std::vector<Record>& records, size_t row,
       if (row >= records.size()) {
         return absl::FailedPreconditionError("The edited table row is gone");
       }
+      if constexpr (std::is_same_v<Record, zelda3::OverworldEntrance> ||
+                    std::is_same_v<Record, zelda3::OverworldExit>) {
+        if (records[row].authoring_placement_id != value.authoring_placement_id)
+          return absl::FailedPreconditionError(
+              "Endpoint history identity changed");
+      }
       records[row] = value;
       notify(&records[row]);
       return absl::OkStatus();
@@ -121,6 +132,106 @@ const char* GetEntityTypeLabel(zelda3::GameEntity::EntityType type) {
     default:
       return "Unknown";
   }
+}
+
+void DrawNativeEndpointBinding(OverworldEditor& editor,
+                               zelda3::GameEntity* entity) {
+  auto& world = editor.overworld();
+  const auto& metadata = world.native_authoring_metadata();
+  if (!metadata || !entity)
+    return;
+
+  bool door = false;
+  bool inactive = false;
+  uint16_t target = 0;
+  uint16_t owner = 0;
+  std::optional<size_t> row;
+  std::optional<uint32_t> bound_id;
+  if (entity->entity_type_ == zelda3::GameEntity::kEntrance) {
+    const auto* entrance = static_cast<zelda3::OverworldEntrance*>(entity);
+    row = FindRecordRow(world.entrances(), entrance);
+    if (!row || entrance->is_hole_)
+      return;  // Legacy holes and hole-kind rows are not planned door bindings.
+    door = true;
+    inactive = entrance->deleted;
+    target = entrance->entrance_id_;
+    owner = entrance->map_id_;
+    bound_id = entrance->authoring_placement_id;
+  } else if (entity->entity_type_ == zelda3::GameEntity::kExit) {
+    const auto* back = static_cast<zelda3::OverworldExit*>(entity);
+    row = FindRecordRow(*world.exits(), back);
+    if (!row)
+      return;
+    inactive = back->deleted_;
+    target = back->room_id_;
+    owner = back->map_id_;
+    bound_id = back->authoring_placement_id;
+  } else {
+    return;
+  }
+
+  ImGui::Separator();
+  ImGui::TextUnformatted("Planned connection");
+  ImGui::Text("Selected %s row %zu", door ? "entrance" : "return", *row);
+  if (bound_id) {
+    ImGui::Text("Bound placement $%08X", *bound_id);
+    return;
+  }
+  ImGui::TextWrapped(
+      "Binding links this existing row to a planned connection. It does not "
+      "move the row or create a room.");
+  if (inactive) {
+    ImGui::TextDisabled("Choose an active row before binding a placement.");
+    return;
+  }
+
+  bool found = false;
+  std::optional<uint32_t> requested;
+  // Defer the mutation until enumeration finishes: the binder may replace
+  // the metadata vector, invalidating placement references and iterators.
+  for (const auto& placement : metadata->placements) {
+    if (placement.state != rom::NativePlacementState::kPending)
+      continue;
+    uint8_t map = 0, x = 0, y = 0;
+    if (door) {
+      const auto* value =
+          std::get_if<rom::NativeAuthoringDoorPlacement>(&placement.value);
+      if (!value || (value->entrance_id && *value->entrance_id != target))
+        continue;
+      map = value->map;
+      x = value->x;
+      y = value->y;
+    } else {
+      const auto* value =
+          std::get_if<rom::NativeAuthoringReturnPlacement>(&placement.value);
+      if (!value || (value->room_id && *value->room_id != target))
+        continue;
+      map = value->map;
+      x = value->x;
+      y = value->y;
+    }
+    const auto* page = world.overworld_map(map);
+    if (!page || page->parent() != owner)
+      continue;
+    found = true;
+    const std::string key = absl::StrFormat("placement_%08X", placement.id);
+    ImGui::PushID(key.c_str());
+    ImGui::Text("Placement $%08X: map $%02X, tile (%u,%u)", placement.id,
+                static_cast<unsigned>(map), static_cast<unsigned>(x),
+                static_cast<unsigned>(y));
+    if (ImGui::Button("Bind selected row"))
+      requested = placement.id;
+    ImGui::PopID();
+  }
+  if (!found)
+    ImGui::TextDisabled("No compatible pending placement for this row.");
+  if (requested) {
+    const auto status = editor.BindNativeEndpointPlacement(
+        *requested, static_cast<uint16_t>(*row));
+    editor.insert_error() = status.ok() ? "" : std::string(status.message());
+  }
+  if (!editor.insert_error().empty())
+    ImGui::TextWrapped("%s", editor.insert_error().c_str());
 }
 
 }  // namespace
@@ -193,6 +304,9 @@ absl::Status OverworldEditor::ApplyEntranceEdit(
   }
   if (!row)
     return absl::NotFoundError("Select a current entrance table row");
+  if (draft.authoring_placement_id != target->authoring_placement_id)
+    return absl::InvalidArgumentError(
+        "Change endpoint binding through its explicit binding action");
   ASSIGN_OR_RETURN(auto after, BuildOverworldEntranceEdit(
                                    overworld_, *records, *row, draft,
                                    records == overworld_.mutable_holes()));
@@ -216,6 +330,9 @@ absl::Status OverworldEditor::ApplyExitEdit(
   const auto row = FindRecordRow(*records, target);
   if (!row)
     return absl::NotFoundError("Select a current return table row");
+  if (draft.authoring_placement_id != target->authoring_placement_id)
+    return absl::InvalidArgumentError(
+        "Change endpoint binding through its explicit binding action");
   ASSIGN_OR_RETURN(auto after,
                    BuildOverworldExitEdit(overworld_, *records, *row, draft));
   return CommitRecordEdit(
@@ -226,6 +343,62 @@ absl::Status OverworldEditor::ApplyExitEdit(
         NotifyEntityModified(value);
       },
       "Edit overworld return");
+}
+
+absl::Status OverworldEditor::BindNativeEndpointPlacement(uint32_t id,
+                                                          uint16_t row) {
+  const auto& metadata = overworld_.native_authoring_metadata();
+  if (!metadata)
+    return absl::FailedPreconditionError(
+        "Native authoring placements are not loaded");
+  const auto found =
+      std::find_if(metadata->placements.begin(), metadata->placements.end(),
+                   [id](const auto& placement) { return placement.id == id; });
+  if (found == metadata->placements.end())
+    return absl::NotFoundError("Select an existing planned endpoint");
+  const rom::NativeAuthoringPlacement before = *found;
+  RETURN_IF_ERROR(overworld_.BindNativeEndpointPlacement(id, row));
+  const auto& updated = overworld_.native_authoring_metadata();
+  if (!updated) {
+    RETURN_IF_ERROR(overworld_.RestoreNativeEndpointPlacement(before));
+    return absl::InternalError("Native authoring placements disappeared");
+  }
+  const auto after =
+      std::find_if(updated->placements.begin(), updated->placements.end(),
+                   [id](const auto& placement) { return placement.id == id; });
+  if (after == updated->placements.end()) {
+    RETURN_IF_ERROR(overworld_.RestoreNativeEndpointPlacement(before));
+    return absl::InternalError("Bound endpoint identity disappeared");
+  }
+  if (before == *after)
+    return absl::OkStatus();
+  auto notify = [this]() {
+    NotifyEntityModified(nullptr);
+    if (!current_entity_)
+      return;
+    if (current_entity_->entity_type_ == zelda3::GameEntity::kEntrance) {
+      auto* value = static_cast<zelda3::OverworldEntrance*>(current_entity_);
+      if (FindRecordRow(*overworld_.mutable_entrances(), value)) {
+        edit_entrance_ = *value;
+      }
+    } else if (current_entity_->entity_type_ == zelda3::GameEntity::kExit) {
+      auto* value = static_cast<zelda3::OverworldExit*>(current_entity_);
+      if (FindRecordRow(*overworld_.mutable_exits(), value)) {
+        edit_exit_ = *value;
+      }
+    }
+  };
+  undo_manager_.Push(std::make_unique<
+                     OverworldRecordEditAction<rom::NativeAuthoringPlacement>>(
+      before, *after,
+      [this, notify](const rom::NativeAuthoringPlacement& value) {
+        RETURN_IF_ERROR(overworld_.RestoreNativeEndpointPlacement(value));
+        notify();
+        return absl::OkStatus();
+      },
+      "Bind planned overworld connection"));
+  notify();
+  return absl::OkStatus();
 }
 
 void OverworldEntityWorkbench::Draw(bool* p_open) {
@@ -352,6 +525,8 @@ void OverworldEntityWorkbench::Draw(bool* p_open) {
 
   ImGui::Text(tr("Type: %s"), GetEntityTypeLabel(active_entity->entity_type_));
   ImGui::Separator();
+
+  DrawNativeEndpointBinding(*editor, active_entity);
 
   if (ImGui::Button(ICON_MD_SETTINGS " Open Popup Editor")) {
     OpenEditorFor(active_entity);

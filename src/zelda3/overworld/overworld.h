@@ -502,7 +502,18 @@ class Overworld {
   absl::StatusOr<std::vector<rom::NativeOverworldSpriteEdit>>
   PrepareNativeSpriteSave() const;
   absl::StatusOr<rom::NativeOverworldAuthoringMetadata>
-  ProposeNativeAuthoringMetadataForSave() const;
+  ProposeNativeAuthoringMetadataForSave(bool save_sprites = true,
+                                        bool save_entrances = true,
+                                        bool save_returns = true) const;
+  const std::optional<rom::NativeOverworldAuthoringMetadata>&
+  native_authoring_metadata() const {
+    return native_authoring_metadata_draft_;
+  }
+  absl::Status BindNativeEndpointPlacement(uint32_t id, uint16_t row);
+  // History restores a single existing endpoint identity, never the allocator
+  // or other domains. Bound records must match their current model row.
+  absl::Status RestoreNativeEndpointPlacement(
+      const rom::NativeAuthoringPlacement& placement);
   absl::Status ReserveNativeAuthoringSpritePlacement(int phase, int map_id,
                                                      Sprite* sprite);
   absl::StatusOr<OverworldSpriteSavePlan> PrepareSpriteSave() const;
@@ -967,6 +978,11 @@ class Overworld {
       bool save_entrances, bool save_returns) const;
   std::vector<int64_t> CaptureNativeSpriteState() const;
   absl::Status BindNativeSpritePlacements();
+  absl::Status BindNativeEndpointPlacements();
+  absl::Status ProposeNativeEndpointPlacements(
+      rom::NativeOverworldAuthoringMetadata* metadata, bool save_entrances,
+      bool save_returns) const;
+  bool HasPendingNativeAuthoringMetadataChanges(size_t kind) const;
   absl::Status LoadNativeAreaProfiles();
   std::vector<OverworldAreaProfile> CaptureNativeAreaProfiles() const;
   void ApplyNativeAreaProfiles();
@@ -988,6 +1004,7 @@ class Overworld {
       native_authoring_metadata_baseline_;
   std::optional<rom::NativeOverworldAuthoringMetadata>
       staged_native_authoring_metadata_;
+  std::array<bool, 3> staged_native_authoring_domains_{};
   std::vector<gfx::Tile32> staged_tiles32_unique_;
   std::vector<uint16_t> staged_tiles32_list_;
   std::vector<uint8_t> private_loaded_overlays_;
