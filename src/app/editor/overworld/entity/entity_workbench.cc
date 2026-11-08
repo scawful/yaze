@@ -242,14 +242,21 @@ void OverworldEntityWorkbench::Draw(bool* p_open) {
 
   if (editor->current_map_id() >= 0xA0 && editor->current_map_id() < 0xC0) {
     ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.85f, 0.3f, 1.0f));
-    ImGui::Text(ICON_MD_INFO " Tail Map $%02X Entity Limitations",
+    ImGui::Text(ICON_MD_INFO " Special Map $%02X Entities",
                 editor->current_map_id());
     ImGui::PopStyleColor();
-    ImGui::TextWrapped(
-        "• Items & Bomb Doors: Disabled (requires SRAM event allocation)\n"
-        "• Exits: 1 free slot (full links require ASM exit table v2)\n"
-        "• Entrances: Trigger table v2 in development (Phase P2)\n"
-        "• Sprites: Draft state (actor compilation needed for ROM)");
+    if (rom::IsNativeSpecialOverworldLayout(
+            editor->overworld().resolved_layout().lyra_layout)) {
+      ImGui::TextWrapped(
+          "Entrances and returns use existing table rows. Sprites use the "
+          "native Save workflow. Hidden items and bomb-door events are not "
+          "supported here yet. Pending placements need an explicit table-row "
+          "assignment before they become playable connections.");
+    } else {
+      ImGui::TextWrapped(
+          "Entity support depends on the loaded ROM layout. Use an integrated "
+          "special-overworld project for the native Save workflow.");
+    }
     ImGui::Separator();
   }
 

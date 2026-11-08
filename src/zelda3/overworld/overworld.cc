@@ -1846,6 +1846,13 @@ void Overworld::StageSavedMapTiles() {
 }
 
 void Overworld::CommitSavedMapTiles() {
+  for (size_t i = 0; i < staged_native_endpoints_.size(); ++i) {
+    if (staged_native_endpoints_[i]) {
+      native_nonterrain_baseline_[i + 1] =
+          std::move(*staged_native_endpoints_[i]);
+      staged_native_endpoints_[i].reset();
+    }
+  }
   if (staged_native_authoring_metadata_) {
     native_authoring_metadata_baseline_ = staged_native_authoring_metadata_;
     native_authoring_metadata_draft_ =
@@ -1879,6 +1886,8 @@ void Overworld::CommitSavedMapTiles() {
 }
 
 void Overworld::RollbackSavedMapTiles() {
+  for (auto& staged : staged_native_endpoints_)
+    staged.reset();
   staged_native_authoring_metadata_.reset();
   staged_native_geometry_.reset();
   staged_native_sprites_.reset();
@@ -1956,6 +1965,8 @@ std::vector<std::pair<uint32_t, uint32_t>> Overworld::GetProjectedWriteRanges()
       }
     }
     const auto& flags = core::FeatureFlags::get().overworld;
+    const auto endpoints = PrepareNativeEndpointSave(
+        flags.kSaveOverworldEntrances, flags.kSaveOverworldExits);
     const auto properties =
         flags.kSaveOverworldProperties
             ? PrepareNativePropertySave()
@@ -1989,10 +2000,10 @@ std::vector<std::pair<uint32_t, uint32_t>> Overworld::GetProjectedWriteRanges()
                       core::FeatureFlags::get().dungeon.kSavePalettes)
             : absl::StatusOr<rom::NativeOverworldPaletteEdits>(
                   rom::NativeOverworldPaletteEdits{});
-    if (properties.ok() && sprites.ok() && palettes.ok()) {
+    if (properties.ok() && sprites.ok() && palettes.ok() && endpoints.ok()) {
       const auto candidate = rom::SealNativeOverworldTerrain(
           rom_->vector(), rom_->vector(), *properties, *sprites, baseline_ptr,
-          publish_ptr, &*palettes);
+          publish_ptr, &*palettes, &*endpoints);
       if (candidate.ok()) {
         for (size_t pc = 0; pc < candidate->size();) {
           if ((*candidate)[pc] == rom_->vector()[pc]) {
@@ -2478,8 +2489,8 @@ absl::Status Overworld::SaveNativeTerrain() {
     return absl::FailedPreconditionError("Native terrain model is incomplete");
   const auto& flags = core::FeatureFlags::get().overworld;
   const std::array<bool, 7> enabled = {false,
-                                       flags.kSaveOverworldEntrances,
-                                       flags.kSaveOverworldExits,
+                                       false,
+                                       false,
                                        flags.kSaveOverworldItems,
                                        false,
                                        flags.kSaveOverworldProperties,
@@ -2495,6 +2506,9 @@ absl::Status Overworld::SaveNativeTerrain() {
       return absl::FailedPreconditionError(
           "Native overworld save cannot publish pending geometry, inherited "
           "properties or entities");
+  ASSIGN_OR_RETURN(auto endpoint_edits,
+                   PrepareNativeEndpointSave(flags.kSaveOverworldEntrances,
+                                             flags.kSaveOverworldExits));
   RollbackSavedMapTiles();
   std::optional<rom::NativeOverworldAuthoringMetadata>
       baseline_metadata_decoded;
@@ -2534,7 +2548,12 @@ absl::Status Overworld::SaveNativeTerrain() {
       (!changed_maps && tiles16_ == loaded_tiles16_)) {
     RETURN_IF_ERROR(rom_->CommitNativeTerrainImage(
         rom_->vector(), rom_->vector(), property_edits, sprite_edits,
-        baseline_metadata_ptr, publish_metadata_ptr, palette_ptr));
+        baseline_metadata_ptr, publish_metadata_ptr, palette_ptr,
+        &endpoint_edits));
+    if (flags.kSaveOverworldEntrances)
+      staged_native_endpoints_[0] = current[1];
+    if (flags.kSaveOverworldExits)
+      staged_native_endpoints_[1] = current[2];
     if (flags.kSaveOverworldMaps)
       StageSavedMapTiles();
     if (flags.kSaveOverworldProperties) {
@@ -2590,7 +2609,12 @@ absl::Status Overworld::SaveNativeTerrain() {
   }
   RETURN_IF_ERROR(rom_->CommitNativeTerrainImage(
       rom_->vector(), std::move(candidate), property_edits, sprite_edits,
-      baseline_metadata_ptr, publish_metadata_ptr, palette_ptr));
+      baseline_metadata_ptr, publish_metadata_ptr, palette_ptr,
+      &endpoint_edits));
+  if (flags.kSaveOverworldEntrances)
+    staged_native_endpoints_[0] = current[1];
+  if (flags.kSaveOverworldExits)
+    staged_native_endpoints_[1] = current[2];
   StageSavedMapTiles();
   if (flags.kSaveOverworldProperties) {
     staged_native_properties_ = current[0];

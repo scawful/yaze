@@ -155,34 +155,9 @@ Overworld::NativeModelState Overworld::CaptureNativeNonTerrainState() const {
                 profiles[i].sprite_palettes[phase]});
     }
   }
-  for (const auto* list : {&all_entrances_, &all_holes_}) {
-    add(1, {static_cast<int64_t>(list->size())});
-    for (const auto& e : *list)
-      add(1, {e.map_id_, e.map_pos_, e.entrance_id_, e.is_hole_, e.deleted,
-              e.x_, e.y_, e.game_x_, e.game_y_});
-  }
-  add(2, {static_cast<int64_t>(all_exits_.size())});
-  for (const auto& e : all_exits_)
-    add(2, {e.map_id_,
-            e.room_id_,
-            e.map_pos_,
-            e.y_scroll_,
-            e.x_scroll_,
-            e.y_player_,
-            e.x_player_,
-            e.y_camera_,
-            e.x_camera_,
-            e.scroll_mod_y_,
-            e.scroll_mod_x_,
-            e.door_type_1_,
-            e.door_type_2_,
-            e.is_hole_,
-            e.deleted_,
-            e.is_automatic_,
-            e.x_,
-            e.y_,
-            e.game_x_,
-            e.game_y_});
+  auto endpoints = CaptureNativeEndpointState();
+  state[1] = std::move(endpoints[0]);
+  state[2] = std::move(endpoints[1]);
   add(3, {static_cast<int64_t>(all_items_.size())});
   for (const auto& e : all_items_)
     add(3, {e.room_map_id_, e.id_, e.game_x_, e.game_y_, e.x_, e.y_, e.bg2_,

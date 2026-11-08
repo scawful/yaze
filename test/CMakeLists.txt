@@ -542,6 +542,7 @@ if(YAZE_BUILD_TESTS)
     unit/rom/lyra_layout_descriptor_test.cc
     unit/rom/native_overworld_authoring_metadata_test.cc
     unit/rom/native_overworld_endpoint_save_test.cc
+    unit/rom/native_overworld_endpoint_session_test.cc
     unit/rom/native_overworld_placement_save_test.cc
     unit/core/oracle_rom_fixture_test.cc
     unit/core/project_file_passthrough_test.cc
