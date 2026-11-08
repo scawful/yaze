@@ -403,7 +403,9 @@ PhysicalStreamInfo AnalyzePhysicalStream(const std::vector<int>& room_addresses,
 }
 
 absl::Status GetObjectPointerTablePc(const std::vector<uint8_t>& rom_data,
-                                     int* table_pc) {
+                                     int* table_pc,
+                                     bool allow_compiled_inspection = false,
+                                     int room_id = -1) {
   if (table_pc == nullptr) {
     return absl::InvalidArgumentError("table_pc pointer is null");
   }
@@ -412,10 +414,63 @@ absl::Status GetObjectPointerTablePc(const std::vector<uint8_t>& rom_data,
         "Object pointer table address is out of range");
   }
 
-  const uint32_t table_snes =
-      (static_cast<uint32_t>(rom_data[kRoomObjectPointer + 2]) << 16) |
-      (static_cast<uint32_t>(rom_data[kRoomObjectPointer + 1]) << 8) |
-      rom_data[kRoomObjectPointer];
+  const auto read_long = [&](size_t at) {
+    return static_cast<uint32_t>(rom_data[at]) |
+           (static_cast<uint32_t>(rom_data[at + 1]) << 8) |
+           (static_cast<uint32_t>(rom_data[at + 2]) << 16);
+  };
+  uint32_t table_snes = read_long(kRoomObjectPointer);
+  constexpr size_t kObjectLoaderHookPc = 0x8745;
+  // Oracle's D4 water loader replaces both original long loads with one JSL
+  // and eight NOPs. The overwritten operand can look like a valid ROM address;
+  // never interpret it as a table or admit this fallback to a save plan.
+  if (rom_data[kObjectLoaderHookPc] == 0x22 || table_snes == 0xEAEAEA) {
+    if (!allow_compiled_inspection) {
+      return absl::FailedPreconditionError(
+          "Compiled room-object hooks are read-only inspection inputs");
+    }
+    constexpr uint32_t kD4SelectObjectsSnes = 0x508000;
+    constexpr size_t kD4SelectObjectsPc = 0x280000;
+    constexpr size_t kD4FallbackSize = 27;
+    constexpr std::array<uint8_t, 14> kD4Dispatch = {
+        0xAF, 0xA0, 0x00, 0x7E, 0xC9, 0x25, 0x00,
+        0xF0, 0x12, 0xC9, 0x37, 0x00, 0xF0, 0x35};
+    if (kObjectLoaderHookPc + 12 > rom_data.size() ||
+        rom_data[kObjectLoaderHookPc] != 0x22 ||
+        read_long(kObjectLoaderHookPc + 1) != kD4SelectObjectsSnes ||
+        !std::all_of(rom_data.begin() + kObjectLoaderHookPc + 4,
+                     rom_data.begin() + kObjectLoaderHookPc + 12,
+                     [](uint8_t byte) { return byte == 0xEA; }) ||
+        kD4SelectObjectsPc + kD4FallbackSize > rom_data.size() ||
+        !std::equal(kD4Dispatch.begin(), kD4Dispatch.end(),
+                    rom_data.begin() + kD4SelectObjectsPc) ||
+        rom_data[kD4SelectObjectsPc + 14] != 0xBF ||
+        rom_data[kD4SelectObjectsPc + 18] != 0x85 ||
+        rom_data[kD4SelectObjectsPc + 19] != 0xB8 ||
+        rom_data[kD4SelectObjectsPc + 20] != 0xBF ||
+        rom_data[kD4SelectObjectsPc + 24] != 0x85 ||
+        rom_data[kD4SelectObjectsPc + 25] != 0xB7 ||
+        rom_data[kD4SelectObjectsPc + 26] != 0x6B) {
+      return absl::FailedPreconditionError(
+          "Unsupported compiled room-object loader or D4 fallback");
+    }
+    table_snes = read_long(kD4SelectObjectsPc + 21);
+    if (read_long(kD4SelectObjectsPc + 15) != table_snes + 1) {
+      return absl::FailedPreconditionError(
+          "Compiled D4 fallback object-table operands disagree");
+    }
+    // Those two rooms use runtime water-state-selected streams. The captured
+    // ordinary table is not a substitute for selecting that state.
+    if (room_id == 0x25 || room_id == 0x37) {
+      return absl::FailedPreconditionError(
+          "D4 water room objects require an explicit runtime water state");
+    }
+  }
+  if ((table_snes & 0xFFFF) < 0x8000 || ((table_snes >> 16) & 0x7F) >= 0x7E ||
+      (table_snes & 0xFFFF) + kNumberOfRooms * 3 > 0x10000) {
+    return absl::FailedPreconditionError(
+        "Object pointer table is not a mapped contiguous LoROM table");
+  }
   const int pc = static_cast<int>(SnesToPc(table_snes));
   if (pc < 0 || pc + (kNumberOfRooms * 3) > static_cast<int>(rom_data.size())) {
     return absl::OutOfRangeError("Object pointer table is out of range");
@@ -442,7 +497,7 @@ uint32_t ReadRoomObjectAddressSnes(const std::vector<uint8_t>& rom_data,
 int ReadRoomObjectAddressPc(const std::vector<uint8_t>& rom_data, int table_pc,
                             int room_id) {
   const uint32_t snes = ReadRoomObjectAddressSnes(rom_data, table_pc, room_id);
-  if ((snes & 0xFFFF) < 0x8000) {
+  if ((snes & 0xFFFF) < 0x8000 || ((snes >> 16) & 0x7F) >= 0x7E) {
     return -1;
   }
   const int pc = static_cast<int>(SnesToPc(snes));
@@ -450,12 +505,14 @@ int ReadRoomObjectAddressPc(const std::vector<uint8_t>& rom_data, int table_pc,
 }
 
 absl::StatusOr<PhysicalStreamInfo> GetObjectStreamInfo(
-    const std::vector<uint8_t>& rom_data, int room_id) {
+    const std::vector<uint8_t>& rom_data, int room_id,
+    bool allow_compiled_inspection = false) {
   if (room_id < 0 || room_id >= kNumberOfRooms) {
     return absl::OutOfRangeError("Room ID out of range");
   }
   int table_pc = 0;
-  RETURN_IF_ERROR(GetObjectPointerTablePc(rom_data, &table_pc));
+  RETURN_IF_ERROR(GetObjectPointerTablePc(rom_data, &table_pc,
+                                          allow_compiled_inspection, room_id));
 
   std::vector<int> addresses(kNumberOfRooms, -1);
   for (int id = 0; id < kNumberOfRooms; ++id) {
@@ -636,13 +693,13 @@ RoomSize CalculateRoomSize(Rom* rom, int room_id) {
 
   const auto& rom_data = rom->vector();
   int table_pc = 0;
-  if (!GetObjectPointerTablePc(rom_data, &table_pc).ok()) {
+  if (!GetObjectPointerTablePc(rom_data, &table_pc, true, room_id).ok()) {
     return room_size;
   }
   room_size.room_size_pointer =
       ReadRoomObjectAddressSnes(rom_data, table_pc, room_id);
 
-  auto stream_info = GetObjectStreamInfo(rom_data, room_id);
+  auto stream_info = GetObjectStreamInfo(rom_data, room_id, true);
   if (!stream_info.ok() || stream_info->shared) {
     return room_size;
   }
@@ -1908,29 +1965,16 @@ void Room::LoadObjects() {
   const auto& rom_data = rom()->vector();
 
   // Enhanced object loading with comprehensive validation
-  int object_pointer = (rom_data[kRoomObjectPointer + 2] << 16) +
-                       (rom_data[kRoomObjectPointer + 1] << 8) +
-                       (rom_data[kRoomObjectPointer]);
-  object_pointer = SnesToPc(object_pointer);
-
-  // Enhanced bounds checking for object pointer
-  if (object_pointer < 0 || object_pointer >= (int)rom_->size()) {
+  int object_pointer = 0;
+  const auto table_status =
+      GetObjectPointerTablePc(rom_data, &object_pointer, true, room_id_);
+  if (!table_status.ok()) {
+    LOG_ERROR("[LoadObjects]", "%s", table_status.ToString().c_str());
     return;
   }
 
-  int room_address = object_pointer + (room_id_ * 3);
-
-  // Enhanced bounds checking for room address
-  if (room_address < 0 || room_address + 2 >= (int)rom_->size()) {
-    return;
-  }
-
-  int tile_address = (rom_data[room_address + 2] << 16) +
-                     (rom_data[room_address + 1] << 8) + rom_data[room_address];
-
-  int objects_location = SnesToPc(tile_address);
-
-  // Enhanced bounds checking for objects location
+  const int objects_location =
+      ReadRoomObjectAddressPc(rom_data, object_pointer, room_id_);
   if (objects_location < 0 || objects_location >= (int)rom_->size()) {
     return;
   }

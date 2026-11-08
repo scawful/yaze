@@ -185,6 +185,23 @@ class DungeonSaveTest : public ::testing::Test {
     ASSERT_TRUE(rom_->WriteVector(pc_addr, bytes).ok());
   }
 
+  void InstallCompiledD4ObjectHook(uint32_t table_snes = 0x1F8000) {
+    auto data = rom_->vector();
+    data.resize(0x400000);
+    ASSERT_TRUE(rom_->LoadFromData(data).ok());
+    ASSERT_TRUE(rom_->WriteVector(0x8745, {0x22, 0x00, 0x80, 0x50, 0xEA, 0xEA,
+                                           0xEA, 0xEA, 0xEA, 0xEA, 0xEA, 0xEA})
+                    .ok());
+    ASSERT_TRUE(rom_->WriteVector(
+                        0x280000,
+                        {0xAF, 0xA0, 0x00, 0x7E, 0xC9, 0x25, 0x00, 0xF0, 0x12,
+                         0xC9, 0x37, 0x00, 0xF0, 0x35, 0xBF, 0x01, 0x80, 0x1F,
+                         0x85, 0xB8, 0xBF, 0x00, 0x80, 0x1F, 0x85, 0xB7, 0x6B})
+                    .ok());
+    WriteLongPointer(0x28000F, table_snes + 1);
+    WriteLongPointer(0x280015, table_snes);
+  }
+
   DungeonStreamLayout MakeObjectLayout(DungeonStreamPcRange allocation = {
                                            0x100200, 0x100400}) const {
     DungeonStreamLayout layout;
@@ -381,6 +398,101 @@ class DungeonSaveTest : public ::testing::Test {
   std::unique_ptr<Rom> rom_;
   std::unique_ptr<Room> room_;
 };
+
+TEST_F(DungeonSaveTest, CompiledD4InspectionLoadsOriginalObjectsReadOnly) {
+  ASSERT_TRUE(
+      rom_->WriteVector(0x100000, {0x21, 0x04, 0xC4, 0x0C, 0x05, 0xFF, 0xFF,
+                                   0xFF, 0xFF, 0xF0, 0xFF, 0xFF, 0xFF})
+          .ok());
+  Room legacy(0, rom_.get());
+  legacy.LoadObjects();
+  ASSERT_EQ(legacy.GetTileObjects().size(), 1u);
+  const auto legacy_size = CalculateRoomSize(rom_.get(), 0);
+
+  InstallCompiledD4ObjectHook();
+  const auto before = rom_->vector();
+  Room compiled(0, rom_.get());
+  compiled.LoadObjects();
+  ASSERT_EQ(compiled.GetTileObjects().size(), 1u);
+  const auto& object = compiled.GetTileObjects().front();
+  EXPECT_EQ(object.id_, 5);
+  EXPECT_EQ(object.x(), 49);
+  EXPECT_EQ(object.y(), 3);
+  EXPECT_EQ(compiled.floor1(), legacy.floor1());
+  const auto compiled_size = CalculateRoomSize(rom_.get(), 0);
+  EXPECT_EQ(compiled_size.room_size_pointer, legacy_size.room_size_pointer);
+  EXPECT_EQ(compiled_size.room_size, legacy_size.room_size);
+  EXPECT_EQ(rom_->vector(), before);
+}
+
+TEST_F(DungeonSaveTest, CompiledD4InspectionRejectsMalformedHookAndHelper) {
+  InstallCompiledD4ObjectHook();
+  const auto valid = rom_->vector();
+  for (int offset : {0x8745, 0x8747, 0x8749, 0x8750, 0x280000, 0x280008,
+                     0x28000F, 0x280012, 0x28001A}) {
+    SCOPED_TRACE(offset);
+    auto malformed = valid;
+    malformed[offset] ^= 1;
+    Rom rom;
+    ASSERT_TRUE(rom.LoadFromData(malformed).ok());
+    Room room(0, &rom);
+    room.LoadObjects();
+    EXPECT_TRUE(room.GetTileObjects().empty());
+    EXPECT_EQ(CalculateRoomSize(&rom, 0).room_size_pointer, 0);
+    EXPECT_EQ(rom.vector(), malformed);
+  }
+}
+
+TEST_F(DungeonSaveTest, CompiledD4InspectionRejectsUnmappedOrTruncatedTable) {
+  for (uint32_t table : {0x7E8000u, 0x7F8000u, 0x510000u, 0x7FFFF0u}) {
+    SCOPED_TRACE(table);
+    InstallCompiledD4ObjectHook(table);
+    const auto before = rom_->vector();
+    Room room(0, rom_.get());
+    room.LoadObjects();
+    EXPECT_TRUE(room.GetTileObjects().empty());
+    EXPECT_EQ(CalculateRoomSize(rom_.get(), 0).room_size_pointer, 0);
+    EXPECT_EQ(rom_->vector(), before);
+  }
+}
+
+TEST_F(DungeonSaveTest, CompiledD4InspectionRejectsInvalidStreamPointer) {
+  InstallCompiledD4ObjectHook();
+  for (uint32_t pointer : {0x000000u, 0x7E8000u, 0x7F8000u}) {
+    WriteLongPointer(0xF8000, pointer);
+    const auto before = rom_->vector();
+    Room room(0, rom_.get());
+    room.LoadObjects();
+    EXPECT_TRUE(room.GetTileObjects().empty());
+    EXPECT_EQ(CalculateRoomSize(rom_.get(), 0).room_size, 0);
+    EXPECT_EQ(rom_->vector(), before);
+  }
+}
+
+TEST_F(DungeonSaveTest, CompiledD4InspectionDoesNotGuessDynamicWaterState) {
+  InstallCompiledD4ObjectHook();
+  for (int id : {0x25, 0x37}) {
+    Room room(id, rom_.get());
+    room.LoadObjects();
+    EXPECT_TRUE(room.GetTileObjects().empty());
+    EXPECT_EQ(CalculateRoomSize(rom_.get(), id).room_size_pointer, 0);
+  }
+}
+
+TEST_F(DungeonSaveTest, CompiledD4InspectionDoesNotAuthorizeObjectWrites) {
+  InstallCompiledD4ObjectHook();
+  Room room(0, rom_.get());
+  room.LoadObjects();
+  ASSERT_TRUE(room.AddObject(RoomObject(5, 49, 3, 0, 0)).ok());
+  const auto before = rom_->vector();
+  const auto layout = MakeObjectLayout();
+  const auto plan = room.GetObjectSaveWriteRanges(&layout);
+  EXPECT_FALSE(plan.ok());
+  EXPECT_NE(plan.status().message().find("read-only"), std::string::npos);
+  EXPECT_FALSE(room.SaveObjects(&layout).ok());
+  EXPECT_FALSE(ReadDungeonObjectStream(*rom_, 0).ok());
+  EXPECT_EQ(rom_->vector(), before);
+}
 
 TEST_F(DungeonSaveTest, SaveObjects_FitsInSpace) {
   // Add a few objects
