@@ -191,16 +191,16 @@ absl::Status DungeonRenderCommandHandler::ExecuteWithContext(
   formatter.AddField("size_bytes", static_cast<int>(result.png_data.size()));
   if (req.entrance_id.has_value()) {
     formatter.AddHexField("entrance_id", *req.entrance_id, 2);
-    formatter.AddHexField("main_blockset", result.main_blockset, 2);
-    formatter.BeginArray("slots");
-    for (size_t slot = 0; slot < result.graphics_sheets.size(); ++slot) {
-      formatter.BeginObject();
-      formatter.AddField("slot", static_cast<int>(slot));
-      formatter.AddHexField("sheet", result.graphics_sheets[slot], 2);
-      formatter.EndObject();
-    }
-    formatter.EndArray();
   }
+  formatter.AddHexField("main_blockset", result.main_blockset, 2);
+  formatter.BeginArray("slots");
+  for (size_t slot = 0; slot < result.graphics_sheets.size(); ++slot) {
+    formatter.BeginObject();
+    formatter.AddField("slot", static_cast<int>(slot));
+    formatter.AddHexField("sheet", result.graphics_sheets[slot], 2);
+    formatter.EndObject();
+  }
+  formatter.EndArray();
   return absl::OkStatus();
 }
 
