@@ -13,6 +13,7 @@ set(YAZE_ROM_LIB_SOURCES
   rom_diagnostics.cc
   lyra_layout_descriptor.cc
   native_overworld_authoring_metadata.cc
+  native_overworld_endpoint_io.cc
   native_overworld_sprite_io.cc
   hm_support.cc
 )

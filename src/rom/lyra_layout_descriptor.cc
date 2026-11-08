@@ -1,5 +1,6 @@
 #include "rom/lyra_layout_descriptor.h"
 #include "rom/native_overworld_authoring_metadata.h"
+#include "rom/native_overworld_endpoint_io.h"
 #include "rom/native_overworld_storage.h"
 #include "util/macro.h"
 
@@ -860,7 +861,8 @@ absl::StatusOr<std::vector<uint8_t>> SealNativeOverworldTerrain(
     std::span<const NativeOverworldSpriteEdit> sprites,
     const NativeOverworldAuthoringMetadata* baseline_metadata,
     const NativeOverworldAuthoringMetadata* publish_metadata,
-    const NativeOverworldPaletteEdits* palettes) {
+    const NativeOverworldPaletteEdits* palettes,
+    const NativeOverworldEndpointEdits* endpoints) {
   const auto layout = InspectLyraLayout(baseline.data(), baseline.size());
   if (layout.presence != LyraLayoutPresence::kValid ||
       !IsNativeSpecialOverworldLayout(layout) ||
@@ -1237,6 +1239,19 @@ absl::StatusOr<std::vector<uint8_t>> SealNativeOverworldTerrain(
   for (const auto& write : *sprite_plan)
     std::copy(write.bytes.begin(), write.bytes.end(),
               candidate.begin() + write.address);
+  if (endpoints) {
+    ASSIGN_OR_RETURN(auto endpoint_plan, PlanNativeOverworldEndpointSave(
+                                             baseline, *endpoints, candidate));
+    for (const auto& write : endpoint_plan) {
+      if (!std::equal(candidate.begin() + write.address,
+                      candidate.begin() + write.address + write.bytes.size(),
+                      baseline.begin() + write.address))
+        return absl::PermissionDeniedError(
+            "Native edit aliases endpoint storage");
+      std::copy(write.bytes.begin(), write.bytes.end(),
+                candidate.begin() + write.address);
+    }
+  }
   for (const auto& write : palette_writes) {
     // Properties/sprites must not gain a second authority over palette bytes.
     if (!std::equal(candidate.begin() + write.pc,

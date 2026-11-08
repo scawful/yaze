@@ -16,6 +16,8 @@
 
 namespace yaze::rom {
 
+struct NativeOverworldEndpointEdits;
+
 // This is the proposed overworld ROM format, not the separate SRAM event format.
 // Validation describes the stored layout; runtime and writer admission are
 // separate. Revisions 1/2 retain their original inspection/pilot contracts.
@@ -132,13 +134,16 @@ PlanNativeOverworldSpriteSave(
 // map; this low-level ownership check does not derive navigation values.
 // Model editors supply the shared geometry planner's output. Roles and entity
 // pointers are not property-write capabilities.
+// Optional endpoint edits use selected runtime rows with full preimages and
+// final-geometry validation; no raw endpoint bytes in candidate are admitted.
 absl::StatusOr<std::vector<uint8_t>> SealNativeOverworldTerrain(
     const std::vector<uint8_t>& baseline, std::vector<uint8_t> candidate,
     std::span<const NativeOverworldPropertyEdit> properties = {},
     std::span<const NativeOverworldSpriteEdit> sprites = {},
     const NativeOverworldAuthoringMetadata* baseline_metadata = nullptr,
     const NativeOverworldAuthoringMetadata* publish_metadata = nullptr,
-    const NativeOverworldPaletteEdits* palettes = nullptr);
+    const NativeOverworldPaletteEdits* palettes = nullptr,
+    const NativeOverworldEndpointEdits* endpoints = nullptr);
 
 inline constexpr uint32_t kLyraA0HighStreamPc = 0x132000;
 inline constexpr uint32_t kLyraA0LowStreamPc = 0x132200;
