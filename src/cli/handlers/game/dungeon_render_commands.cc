@@ -226,6 +226,13 @@ absl::Status DungeonRenderCommandHandler::ExecuteWithContext(
   }
   formatter.AddHexField("main_blockset", result.main_blockset, 2);
   AddDefaultEntranceReport(formatter, game_data, room_id);
+  formatter.AddField("project_objects_without_data",
+                     result.project_objects_without_data);
+  if (result.project_objects_without_data > 0) {
+    formatter.AddField("warning",
+                       "Room uses project-defined objects (0x31/0x32) that "
+                       "have no data; pass --project-context=<project.yaze>");
+  }
   formatter.BeginArray("slots");
   for (size_t slot = 0; slot < result.graphics_sheets.size(); ++slot) {
     formatter.BeginObject();

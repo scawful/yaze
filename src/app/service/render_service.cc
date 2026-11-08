@@ -14,6 +14,7 @@
 #include "app/service/headless_overlay_renderer.h"
 #include "util/macro.h"
 #include "zelda3/dungeon/game_tilemap_comparison.h"
+#include "zelda3/dungeon/object_layer_semantics.h"
 #include "zelda3/dungeon/room.h"
 #include "zelda3/dungeon/room_collision.h"
 #include "zelda3/dungeon/room_entrance.h"
@@ -260,6 +261,8 @@ absl::StatusOr<RenderResult> RenderService::RenderDungeonRoom(
 
   RenderResult result;
   result.png_data = std::move(png_or).value();
+  result.project_objects_without_data =
+      zelda3::CountProjectObjectsWithoutData(room.GetTileObjects());
   result.width = out_w;
   result.height = out_h;
   result.main_blockset = room.resolved_main_blockset();

@@ -2,6 +2,7 @@
 #define YAZE_ZELDA3_DUNGEON_OBJECT_LAYER_SEMANTICS_H_
 
 #include <cstdint>
+#include <vector>
 
 #include "core/features.h"
 #include "zelda3/dungeon/custom_object.h"
@@ -46,6 +47,26 @@ inline bool HasActiveCustomObjectOverride(const RoomObject& object) {
 
   const int subtype = object.size_ & 0x1F;
   return CustomObjectManager::Get().GetObjectInternal(object.id_, subtype).ok();
+}
+
+// Object IDs that only a project can define: their vanilla routine is replaced
+// by the project's handler, so without project data they draw nothing useful.
+inline bool IsProjectDefinedObjectSlot(int object_id) {
+  return object_id == 0x31 || object_id == 0x32;
+}
+
+// Counts objects in project-defined slots that have no active override, which
+// is what a render lacking project custom-object data would leave blank.
+inline int CountProjectObjectsWithoutData(
+    const std::vector<RoomObject>& objects) {
+  int count = 0;
+  for (const auto& object : objects) {
+    if (IsProjectDefinedObjectSlot(object.id_) &&
+        !HasActiveCustomObjectOverride(object)) {
+      ++count;
+    }
+  }
+  return count;
 }
 
 // Reports built-in routine routing. A project custom-object override can

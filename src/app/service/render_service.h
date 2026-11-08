@@ -110,6 +110,8 @@ struct RenderResult {
   // Actual resolved context, captured after the room has rendered.
   int main_blockset = -1;
   std::array<uint16_t, 8> graphics_sheets{};
+  // Objects in project-defined slots drawn without project data.
+  int project_objects_without_data = 0;
 };
 
 // Metadata about a dungeon room — no rendering required.
