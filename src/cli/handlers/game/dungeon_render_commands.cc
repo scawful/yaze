@@ -11,6 +11,7 @@
 #include "cli/service/resources/command_context.h"
 #include "rom/rom.h"
 #include "util/macro.h"
+#include "zelda3/dungeon/room_default_entrance.h"
 #include "zelda3/dungeon/room_entrance.h"
 #include "zelda3/game_data.h"
 
@@ -65,6 +66,35 @@ uint32_t ParseOverlays(const std::string& s) {
       flags = app::service::RenderOverlay::kAll;
   }
   return flags;
+}
+
+// Which entrance the default graphics come from, and the others that could
+// have loaded this room. Reported even with an explicit entrance so a reader
+// can see what the option replaced.
+void AddDefaultEntranceReport(resources::OutputFormatter& formatter,
+                              const zelda3::GameData& game_data, int room_id) {
+  if (room_id < 0 ||
+      room_id >= static_cast<int>(game_data.room_default_entrances.size())) {
+    return;
+  }
+  const auto& entry = game_data.room_default_entrances[room_id];
+  formatter.AddField("default_entrance_source",
+                     zelda3::RoomEntranceSourceName(entry.source));
+  if (entry.entrance_id >= 0) {
+    formatter.AddHexField("default_entrance_id", entry.entrance_id, 2);
+    formatter.AddHexField("default_main_blockset", entry.main_blockset, 2);
+  }
+  if (entry.via_room >= 0) {
+    formatter.AddHexField("default_entrance_via_room", entry.via_room, 3);
+  }
+  formatter.BeginArray("entrance_candidates");
+  for (const auto& candidate : entry.candidates) {
+    formatter.BeginObject();
+    formatter.AddHexField("entrance_id", candidate.entrance_id, 2);
+    formatter.AddHexField("main_blockset", candidate.main_blockset, 2);
+    formatter.EndObject();
+  }
+  formatter.EndArray();
 }
 
 }  // namespace
@@ -195,6 +225,7 @@ absl::Status DungeonRenderCommandHandler::ExecuteWithContext(
     formatter.AddHexField("graphics_entrance_id", *req.graphics_entrance_id, 2);
   }
   formatter.AddHexField("main_blockset", result.main_blockset, 2);
+  AddDefaultEntranceReport(formatter, game_data, room_id);
   formatter.BeginArray("slots");
   for (size_t slot = 0; slot < result.graphics_sheets.size(); ++slot) {
     formatter.BeginObject();
