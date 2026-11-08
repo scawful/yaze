@@ -69,21 +69,26 @@ struct NativeOverworldAuthoringMetadata {
   // Dense source order, including tombstones. IDs are never reused; deletion
   // retains the typed payload and consumes its slot. No sorting or compaction.
   std::vector<NativeAuthoringPlacement> placements;
+  // Preserve the loaded version; only an explicit caller chooses an upgrade.
+  // Kept after the original fields for aggregate-initializer compatibility.
+  uint16_t schema_version = 1;
   bool operator==(const NativeOverworldAuthoringMetadata&) const = default;
 };
 
-// ID412 v1 is exactly 8192 bytes, little endian, with its outer directory CRC.
-// Header (32 bytes): "OWPLAC1\0", u16 schema=1, stride=32, slots=255,
+// ID412 schemas 1/2 are exactly 8192 bytes, little endian, with an outer CRC.
+// Header (32 bytes): "OWPLAC1\0", u16 schema=1 or 2, stride=32, slots=255,
 // occupied (including tombstones), u32 nextID, then 12 reserved zero bytes.
 // Each occupied slot: u32 ID, u8 kind/state/phase/presence, 24-byte payload.
 // Sprite: phase 0..2, presence=0; owner, ordinal, packed Y/X/code, 19 zeros.
 // Door/return: phase=FF, presence bit0=target, bit1=row; map/x/y/zero,
 // u16 target, u16 row, 16 zeros. Absent optional values must encode as zero.
 // Door targets fit a byte; trigger rows fit the expanded 256-row table.
-// Return rows fit the existing 0x4F-row table. These pending records do not
-// enable a runtime entrance/return. Remaining unoccupied slots are all zero.
-// Bound sprites and pending endpoints may be tombstoned (state=deleted);
-// their identity/payload survives. Live sprite bindings must be unique.
+// Return rows fit the existing 0x4F-row table. Schema 1 permits only pending
+// or deleted endpoints. Schema 2 also permits bound endpoints with both target
+// and row present (including zero), unique per live (kind,row). Pending and
+// deleted endpoints do not own runtime rows. Structural encoding does not
+// establish agreement with those runtime rows. Unoccupied slots are all zero.
+// Tombstones retain their identity/payload. Live sprite bindings are unique.
 // materialized_count is the validated native map domain (160 or 192).
 absl::StatusOr<NativeOverworldAuthoringMetadata>
 DecodeNativeOverworldAuthoringMetadata(std::span<const uint8_t> bytes,
@@ -94,7 +99,7 @@ EncodeNativeOverworldAuthoringMetadata(
     const NativeOverworldAuthoringMetadata& metadata,
     uint16_t materialized_count);
 
-// Sprite-only normal Save preserves existing identities, order and endpoints.
+// Sprite-only normal Save preserves schema, identities, order and endpoints.
 // Reactivating an existing sprite identity supports Undo after Save; allocating
 // a new identity must append above the saved allocator watermark.
 absl::Status ValidateNativeAuthoringSpriteTransition(

@@ -14,6 +14,9 @@ absl::Status ValidateNativeAuthoringSpriteTransition(
     const NativeOverworldAuthoringMetadata& expected,
     const NativeOverworldAuthoringMetadata& proposed,
     uint16_t materialized_count) {
+  if (expected.schema_version != proposed.schema_version)
+    return absl::FailedPreconditionError(
+        "Sprite Save cannot change the native authoring metadata schema");
   const auto before =
       EncodeNativeOverworldAuthoringMetadata(expected, materialized_count);
   const auto after =
@@ -95,13 +98,15 @@ DecodeNativeOverworldAuthoringMetadata(std::span<const uint8_t> bytes,
   if ((materialized_count != 160 && materialized_count != 192) ||
       bytes.size() != kNativeAuthoringMetadataSize ||
       std::memcmp(bytes.data(), kMagic, 8) != 0 ||
-      Word(bytes.data() + 8) != 1 || Word(bytes.data() + 10) != 32 ||
+      (Word(bytes.data() + 8) != 1 && Word(bytes.data() + 8) != 2) ||
+      Word(bytes.data() + 10) != 32 ||
       Word(bytes.data() + 12) != kNativeAuthoringMetadataSlots ||
       Word(bytes.data() + 14) > kNativeAuthoringMetadataSlots ||
       !Zero(bytes.subspan(20, 12))) {
     return Invalid();
   }
   NativeOverworldAuthoringMetadata result;
+  result.schema_version = Word(bytes.data() + 8);
   result.next_placement_id = Long(bytes.data() + 16);
   if (result.next_placement_id == 0)
     return Invalid();
@@ -110,6 +115,7 @@ DecodeNativeOverworldAuthoringMetadata(std::span<const uint8_t> bytes,
     return Invalid();
   std::set<uint32_t> ids;
   std::set<std::tuple<uint8_t, uint8_t, uint8_t>> live_bindings;
+  std::set<std::pair<uint8_t, uint16_t>> live_endpoint_rows;
   for (size_t i = 0; i < count; ++i) {
     const uint8_t* p = bytes.data() + (i + 1) * kNativeAuthoringMetadataStride;
     NativeAuthoringPlacement placement;
@@ -135,9 +141,10 @@ DecodeNativeOverworldAuthoringMetadata(std::span<const uint8_t> bytes,
       placement.value = NativeAuthoringSpritePlacement{
           p[6], p[8], p[9], {p[10], p[11], p[12]}};
     } else if (p[4] == 2 || p[4] == 3) {
-      if (placement.state == NativePlacementState::kBound || p[6] != 0xFF ||
-          p[7] > 3 || p[8] >= materialized_count || p[9] >= 32 || p[10] >= 32 ||
-          p[11] != 0 || !Zero({p + 16, 16}) ||
+      if ((placement.state == NativePlacementState::kBound &&
+           (result.schema_version != 2 || p[7] != 3)) ||
+          p[6] != 0xFF || p[7] > 3 || p[8] >= materialized_count ||
+          p[9] >= 32 || p[10] >= 32 || p[11] != 0 || !Zero({p + 16, 16}) ||
           ((p[7] & 1) == 0 && Word(p + 12) != 0) ||
           ((p[7] & 2) == 0 && Word(p + 14) != 0)) {
         return Invalid();
@@ -160,6 +167,9 @@ DecodeNativeOverworldAuthoringMetadata(std::span<const uint8_t> bytes,
         placement.value =
             NativeAuthoringReturnPlacement{p[8], p[9], p[10], target, row};
       }
+      if (placement.state == NativePlacementState::kBound &&
+          !live_endpoint_rows.emplace(p[4], *row).second)
+        return Invalid();
     } else {
       return Invalid();
     }
@@ -172,11 +182,12 @@ absl::StatusOr<std::array<uint8_t, kNativeAuthoringMetadataSize>>
 EncodeNativeOverworldAuthoringMetadata(
     const NativeOverworldAuthoringMetadata& metadata,
     uint16_t materialized_count) {
-  if (metadata.placements.size() > kNativeAuthoringMetadataSlots)
+  if (metadata.placements.size() > kNativeAuthoringMetadataSlots ||
+      (metadata.schema_version != 1 && metadata.schema_version != 2))
     return Invalid();
   std::array<uint8_t, kNativeAuthoringMetadataSize> bytes{};
   std::copy_n(kMagic, 8, bytes.begin());
-  PutWord(bytes.data() + 8, 1);
+  PutWord(bytes.data() + 8, metadata.schema_version);
   PutWord(bytes.data() + 10, kNativeAuthoringMetadataStride);
   PutWord(bytes.data() + 12, kNativeAuthoringMetadataSlots);
   PutWord(bytes.data() + 14, static_cast<uint16_t>(metadata.placements.size()));

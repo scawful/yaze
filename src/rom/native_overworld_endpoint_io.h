@@ -9,6 +9,8 @@
 
 namespace yaze::rom {
 
+struct NativeOverworldAuthoringMetadata;
+
 // Runtime table records, not authoring placement IDs or destination room IDs.
 // Expected records retain every byte, including unused/deleted row payloads.
 struct NativeOverworldEntranceRow {
@@ -65,6 +67,22 @@ absl::StatusOr<std::vector<NativeOverworldEndpointWrite>>
 PlanNativeOverworldEndpointSave(const std::vector<uint8_t>& baseline,
                                 const NativeOverworldEndpointEdits& edits,
                                 std::span<const uint8_t> final_image = {});
+
+// Extends the sprite-only identity transition with explicit selected-row
+// authority. A metadata binding change requires both its old and new live rows
+// in the typed batch, including no-op witnesses for metadata-only binding.
+absl::Status ValidateNativeAuthoringEndpointTransition(
+    const NativeOverworldAuthoringMetadata& expected,
+    const NativeOverworldAuthoringMetadata& proposed,
+    uint16_t materialized_count, const NativeOverworldEndpointEdits& edits);
+
+// Checks bound endpoint identities against actual runtime rows and native
+// parent/size geometry. Metadata uses physical 32x32-page coordinates; runtime
+// rows use their owning area's coordinates. Return sub-tile pixels are retained.
+// This validates a fully sealed image, not an unsealed candidate or a route.
+absl::Status ValidateNativeEndpointPlacementWitness(
+    const std::vector<uint8_t>& image,
+    const NativeOverworldAuthoringMetadata& metadata);
 
 }  // namespace yaze::rom
 

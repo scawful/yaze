@@ -35,6 +35,142 @@ NativeOverworldAuthoringMetadata Placements() {
   return data;
 }
 
+NativeOverworldAuthoringMetadata BoundEndpointPlacements() {
+  auto data = Placements();
+  data.schema_version = 2;
+  data.placements[5].state = NativePlacementState::kBound;
+  data.placements[5].value =
+      NativeAuthoringDoorPlacement{0xB0, 22, 8, 0x0B, 53};
+  data.placements[6].state = NativePlacementState::kBound;
+  data.placements[6].value =
+      NativeAuthoringReturnPlacement{0xB0, 22, 11, 0x83, 41};
+  return data;
+}
+
+TEST(NativeOverworldAuthoringMetadataTest,
+     Schema2BoundEndpointsMatchPythonGolden) {
+  const auto data = BoundEndpointPlacements();
+  const auto encoded = EncodeNativeOverworldAuthoringMetadata(data, 192);
+  ASSERT_TRUE(encoded.ok()) << encoded.status();
+  EXPECT_EQ(
+      core::ComputeSourceArtifactSha256(
+          {reinterpret_cast<const char*>(encoded->data()), encoded->size()}),
+      "b61a938b1dbccf52ea0d29f222b340f0cabea30f4a8214023ce3af133759e278");
+  EXPECT_EQ((*encoded)[8], 2);
+  EXPECT_EQ((*encoded)[32 * 6 + 7], 3);
+  EXPECT_EQ((*encoded)[32 * 6 + 14], 53);  // Decimal trigger row, not $53.
+  EXPECT_EQ((*encoded)[32 * 7 + 14], 41);  // Decimal return row, not $41.
+  const auto decoded = DecodeNativeOverworldAuthoringMetadata(*encoded, 192);
+  ASSERT_TRUE(decoded.ok()) << decoded.status();
+  EXPECT_EQ(*decoded, data);
+  const auto reencoded = EncodeNativeOverworldAuthoringMetadata(*decoded, 192);
+  ASSERT_TRUE(reencoded.ok()) << reencoded.status();
+  EXPECT_EQ(*reencoded, *encoded);
+
+  const auto version1 =
+      EncodeNativeOverworldAuthoringMetadata(Placements(), 192);
+  ASSERT_TRUE(version1.ok());
+  EXPECT_TRUE(std::equal(version1->begin() + 32, version1->begin() + 32 * 6,
+                         encoded->begin() + 32));
+}
+
+TEST(NativeOverworldAuthoringMetadataTest,
+     Schema2RequiresExplicitVersionAndBothBoundEndpointFields) {
+  auto data = BoundEndpointPlacements();
+  data.schema_version = 1;
+  EXPECT_FALSE(EncodeNativeOverworldAuthoringMetadata(data, 192).ok());
+  for (uint16_t schema : {0, 3, 0xFFFF}) {
+    data.schema_version = schema;
+    EXPECT_FALSE(EncodeNativeOverworldAuthoringMetadata(data, 192).ok());
+  }
+  for (int missing = 0; missing < 4; ++missing) {
+    SCOPED_TRACE(missing);
+    data = BoundEndpointPlacements();
+    auto& door =
+        std::get<NativeAuthoringDoorPlacement>(data.placements[5].value);
+    auto& back =
+        std::get<NativeAuthoringReturnPlacement>(data.placements[6].value);
+    if (missing == 0)
+      door.entrance_id.reset();
+    if (missing == 1)
+      door.trigger_row.reset();
+    if (missing == 2)
+      back.room_id.reset();
+    if (missing == 3)
+      back.return_row.reset();
+    EXPECT_FALSE(EncodeNativeOverworldAuthoringMetadata(data, 192).ok());
+  }
+  data = BoundEndpointPlacements();
+  auto& door = std::get<NativeAuthoringDoorPlacement>(data.placements[5].value);
+  auto& back =
+      std::get<NativeAuthoringReturnPlacement>(data.placements[6].value);
+  door.entrance_id = 0;
+  door.trigger_row = 0;
+  back.room_id = 0;
+  back.return_row = 0;
+  const auto zero = EncodeNativeOverworldAuthoringMetadata(data, 192);
+  ASSERT_TRUE(zero.ok()) << zero.status();
+  EXPECT_EQ((*zero)[32 * 6 + 7], 3);
+  EXPECT_EQ((*zero)[32 * 7 + 7], 3);
+  const auto decoded = DecodeNativeOverworldAuthoringMetadata(*zero, 192);
+  ASSERT_TRUE(decoded.ok());
+  EXPECT_EQ(*decoded, data);
+}
+
+TEST(NativeOverworldAuthoringMetadataTest,
+     Schema2LiveEndpointRowsHaveOneOwnerPerKind) {
+  for (size_t source : {5, 6}) {
+    SCOPED_TRACE(source);
+    auto data = BoundEndpointPlacements();
+    auto duplicate = data.placements[source];
+    duplicate.id = data.next_placement_id++;
+    data.placements.push_back(duplicate);
+    EXPECT_FALSE(EncodeNativeOverworldAuthoringMetadata(data, 192).ok());
+    data.placements.back().state = NativePlacementState::kPending;
+    EXPECT_TRUE(EncodeNativeOverworldAuthoringMetadata(data, 192).ok());
+    data.placements.back().state = NativePlacementState::kDeleted;
+    EXPECT_TRUE(EncodeNativeOverworldAuthoringMetadata(data, 192).ok());
+    data.placements[source].state = NativePlacementState::kDeleted;
+    data.placements.back().state = NativePlacementState::kBound;
+    EXPECT_TRUE(EncodeNativeOverworldAuthoringMetadata(data, 192).ok());
+  }
+  auto data = BoundEndpointPlacements();
+  std::get<NativeAuthoringDoorPlacement>(data.placements[5].value).trigger_row =
+      41;
+  EXPECT_TRUE(EncodeNativeOverworldAuthoringMetadata(data, 192).ok());
+}
+
+TEST(NativeOverworldAuthoringMetadataTest,
+     LoadedSchemaIsPreservedWithoutImplicitUpgrade) {
+  const auto original = Placements();
+  EXPECT_EQ(original.schema_version, 1);
+  const auto version1 = EncodeNativeOverworldAuthoringMetadata(original, 192);
+  ASSERT_TRUE(version1.ok());
+  auto version2 = original;
+  version2.schema_version = 2;
+  const auto upgraded = EncodeNativeOverworldAuthoringMetadata(version2, 192);
+  ASSERT_TRUE(upgraded.ok());
+  auto expected = *version1;
+  expected[8] = 2;
+  EXPECT_EQ(*upgraded, expected);
+  for (const auto& bytes : {*version1, *upgraded}) {
+    const auto decoded = DecodeNativeOverworldAuthoringMetadata(bytes, 192);
+    ASSERT_TRUE(decoded.ok());
+    const auto encoded = EncodeNativeOverworldAuthoringMetadata(*decoded, 192);
+    ASSERT_TRUE(encoded.ok());
+    EXPECT_EQ(*encoded, bytes);
+  }
+  EXPECT_FALSE(
+      ValidateNativeAuthoringSpriteTransition(original, version2, 192).ok());
+  EXPECT_FALSE(
+      ValidateNativeAuthoringSpriteTransition(version2, original, 192).ok());
+  auto moved = BoundEndpointPlacements();
+  const auto before = moved;
+  std::get<NativeAuthoringSpritePlacement>(moved.placements[0].value)
+      .packed[1]++;
+  EXPECT_TRUE(ValidateNativeAuthoringSpriteTransition(before, moved, 192).ok());
+}
+
 TEST(NativeOverworldAuthoringMetadataTest,
      RoundTripPreservesOrderAndOptionals) {
   auto data = Placements();

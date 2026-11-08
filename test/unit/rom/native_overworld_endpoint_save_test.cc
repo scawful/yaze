@@ -39,6 +39,164 @@ rom::NativeOverworldEndpointEdits EndpointBatch() {
   return edits;
 }
 
+rom::NativeOverworldAuthoringMetadata EndpointMetadata() {
+  rom::NativeOverworldAuthoringMetadata metadata;
+  metadata.next_placement_id = 3;
+  metadata.placements = {
+      {1, rom::NativePlacementState::kPending,
+       rom::NativeAuthoringDoorPlacement{0xA0, 9, 9, 0x0B, std::nullopt}},
+      {2, rom::NativePlacementState::kPending,
+       rom::NativeAuthoringReturnPlacement{0xA0, 20, 24, 0x22, std::nullopt}}};
+  return metadata;
+}
+
+rom::NativeOverworldAuthoringMetadata BindEndpointMetadata(
+    rom::NativeOverworldAuthoringMetadata metadata) {
+  metadata.schema_version = 2;
+  for (auto& placement : metadata.placements) {
+    if (auto* door =
+            std::get_if<rom::NativeAuthoringDoorPlacement>(&placement.value)) {
+      placement.state = rom::NativePlacementState::kBound;
+      door->trigger_row = 0;
+    } else if (auto* back = std::get_if<rom::NativeAuthoringReturnPlacement>(
+                   &placement.value)) {
+      placement.state = rom::NativePlacementState::kBound;
+      back->return_row = 0;
+    }
+  }
+  return metadata;
+}
+
+TEST(NativeEndpointSaveTest, BindingRequiresSelectedRowsAndSurvivesFileRetry) {
+  auto fixture = EndpointFixture();
+  fixture.UpgradeToRevision4();
+  const auto pending = EndpointMetadata();
+  fixture.AddAuthoringMetadata(pending);
+  const auto bound = BindEndpointMetadata(pending);
+  const auto edits = EndpointBatch();
+  Rom document;
+  ASSERT_TRUE(document.LoadFromData(fixture.bytes).ok());
+  EXPECT_FALSE(document
+                   .CommitNativeTerrainImage(fixture.bytes, fixture.bytes, {},
+                                             {}, &pending, &bound)
+                   .ok());
+  auto only_door = edits;
+  only_door.returns.clear();
+  EXPECT_FALSE(document
+                   .CommitNativeTerrainImage(fixture.bytes, fixture.bytes, {},
+                                             {}, &pending, &bound, nullptr,
+                                             &only_door)
+                   .ok());
+  EXPECT_EQ(document.vector(), fixture.bytes);
+  ASSERT_TRUE(document
+                  .CommitNativeTerrainImage(fixture.bytes, fixture.bytes, {},
+                                            {}, &pending, &bound, nullptr,
+                                            &edits)
+                  .ok());
+  ASSERT_TRUE(
+      rom::ValidateNativeEndpointPlacementWitness(document.vector(), bound)
+          .ok());
+  const auto path = test::UniqueTempPath("native_endpoint_binding", ".sfc");
+  auto cleanup = absl::MakeCleanup([&] { std::filesystem::remove(path); });
+  test::native_overworld::WriteBytes(path, fixture.bytes);
+  const auto candidate = document.vector();
+  {
+    test::ScopedRomStagingFailure fault;
+    EXPECT_FALSE(document.SaveToFile({.filename = path.string()}).ok());
+  }
+  EXPECT_EQ(test::native_overworld::ReadBytes(path), fixture.bytes);
+  EXPECT_EQ(document.vector(), candidate);
+  ASSERT_TRUE(document.SaveToFile({.filename = path.string()}).ok());
+  Rom reopened;
+  ASSERT_TRUE(reopened.LoadFromFile(path.string()).ok());
+  EXPECT_EQ(reopened.vector(), candidate);
+  const auto metadata_pc = fixture.Entry(412).pc_address;
+  const auto decoded = rom::DecodeNativeOverworldAuthoringMetadata(
+      {reopened.data() + metadata_pc, rom::kNativeAuthoringMetadataSize}, 192);
+  ASSERT_TRUE(decoded.ok()) << decoded.status();
+  EXPECT_EQ(*decoded, bound);
+  EXPECT_TRUE(
+      rom::ValidateNativeEndpointPlacementWitness(reopened.vector(), *decoded)
+          .ok());
+}
+
+TEST(NativeEndpointSaveTest, BoundWitnessRefusesStaleRowsAndUnownedChanges) {
+  auto fixture = EndpointFixture();
+  fixture.UpgradeToRevision4();
+  const auto pending = EndpointMetadata();
+  fixture.AddAuthoringMetadata(pending);
+  const auto bound = BindEndpointMetadata(pending);
+  const auto edits = EndpointBatch();
+  const auto sealed = rom::SealNativeOverworldTerrain(
+      fixture.bytes, fixture.bytes, {}, {}, &pending, &bound, nullptr, &edits);
+  ASSERT_TRUE(sealed.ok()) << sealed.status();
+  auto wrong = bound;
+  std::get<rom::NativeAuthoringDoorPlacement>(wrong.placements[0].value)
+      .entrance_id = 0x0C;
+  EXPECT_FALSE(rom::SealNativeOverworldTerrain(fixture.bytes, fixture.bytes, {},
+                                               {}, &pending, &wrong, nullptr,
+                                               &edits)
+                   .ok());
+  auto moved = edits;
+  moved.entrances[0].expected = edits.entrances[0].value;
+  moved.entrances[0].value.position += 2;
+  moved.returns.clear();
+  // Existing bindings remain enforced even if the caller supplies no metadata.
+  EXPECT_FALSE(rom::SealNativeOverworldTerrain(
+                   *sealed, *sealed, {}, {}, nullptr, nullptr, nullptr, &moved)
+                   .ok());
+  auto repaired = bound;
+  std::get<rom::NativeAuthoringDoorPlacement>(repaired.placements[0].value).x++;
+  EXPECT_TRUE(rom::SealNativeOverworldTerrain(*sealed, *sealed, {}, {}, &bound,
+                                              &repaired, nullptr, &moved)
+                  .ok());
+  auto stale = *sealed;
+  stale[zelda3::kOverworldEntranceEntranceId] ^= 1;
+  EXPECT_FALSE(rom::SealNativeOverworldTerrain(stale, stale).ok());
+  auto downgraded = pending;
+  EXPECT_FALSE(rom::ValidateNativeAuthoringEndpointTransition(bound, downgraded,
+                                                              192, moved)
+                   .ok());
+  auto unrequested_upgrade = pending;
+  unrequested_upgrade.schema_version = 2;
+  EXPECT_FALSE(rom::ValidateNativeAuthoringEndpointTransition(
+                   pending, unrequested_upgrade, 192, edits)
+                   .ok());
+}
+
+TEST(NativeEndpointSaveTest,
+     ChildPageBindingsRebaseAndKeepSubTileReturnPixels) {
+  auto fixture = EndpointFixture();
+  fixture.UpgradeToRevision4();
+  auto pending = fixture.SeedCanonicalPlacementRows();
+  auto bound = BindEndpointMetadata(pending);
+  auto& door =
+      std::get<rom::NativeAuthoringDoorPlacement>(bound.placements[5].value);
+  door.map = 0xB9;
+  door.x = 2;
+  door.y = 3;
+  auto& back =
+      std::get<rom::NativeAuthoringReturnPlacement>(bound.placements[6].value);
+  back.map = 0xB9;
+  back.x = 2;
+  back.y = 3;
+  back.room_id = 0x22;
+  auto edits = EndpointBatch();
+  edits.entrances[0].value = {0xB0, (35 << 7) | (34 << 1), 0x0B};
+  edits.returns[0].value.map = 0xB0;
+  edits.returns[0].value.player_x = 0x22B;
+  edits.returns[0].value.player_y = 0xE37;
+  const auto sealed = rom::SealNativeOverworldTerrain(
+      fixture.bytes, fixture.bytes, {}, {}, &pending, &bound, nullptr, &edits);
+  ASSERT_TRUE(sealed.ok()) << sealed.status();
+  EXPECT_EQ((*sealed)[zelda3::OWExitXPlayer], 0x2B);
+  EXPECT_EQ((*sealed)[zelda3::OWExitYPlayer], 0x37);
+  EXPECT_TRUE(rom::ValidateNativeEndpointPlacementWitness(*sealed, bound).ok());
+  door.map = 0xB1;  // Same parent, wrong physical page for this packed row.
+  EXPECT_FALSE(
+      rom::ValidateNativeEndpointPlacementWitness(*sealed, bound).ok());
+}
+
 TEST(NativeEndpointSaveTest,
      SelectedRowsPublishAtomicallyAndPreserveOtherBytes) {
   auto fixture = EndpointFixture();

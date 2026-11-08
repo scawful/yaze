@@ -169,4 +169,164 @@ PlanNativeOverworldEndpointSave(const std::vector<uint8_t>& baseline,
   return writes;
 }
 
+absl::Status ValidateNativeAuthoringEndpointTransition(
+    const NativeOverworldAuthoringMetadata& expected,
+    const NativeOverworldAuthoringMetadata& proposed,
+    uint16_t materialized_count, const NativeOverworldEndpointEdits& edits) {
+  const auto encoded =
+      EncodeNativeOverworldAuthoringMetadata(proposed, materialized_count);
+  if (!encoded.ok())
+    return encoded.status();
+  if (proposed.schema_version < expected.schema_version)
+    return absl::FailedPreconditionError(
+        "Native authoring metadata cannot downgrade its saved schema");
+  auto sprite_only = proposed;
+  sprite_only.schema_version = expected.schema_version;
+  bool endpoint_changed = false;
+  for (size_t i = 0;
+       i < std::min(expected.placements.size(), proposed.placements.size());
+       ++i) {
+    const auto& old = expected.placements[i];
+    const auto& value = proposed.placements[i];
+    if (std::holds_alternative<NativeAuthoringSpritePlacement>(old.value))
+      continue;
+    if (old.id != value.id || old.value.index() != value.value.index())
+      return absl::FailedPreconditionError(
+          "Native endpoint identity, kind and order are immutable");
+    if (old != value) {
+      endpoint_changed = true;
+      bool selected = false;
+      auto check = [&](const NativeAuthoringPlacement& placement) {
+        if (placement.state != NativePlacementState::kBound)
+          return true;
+        selected = true;
+        if (const auto* door =
+                std::get_if<NativeAuthoringDoorPlacement>(&placement.value))
+          return door->trigger_row &&
+                 std::any_of(edits.entrances.begin(), edits.entrances.end(),
+                             [&](const auto& e) {
+                               return e.row == *door->trigger_row;
+                             });
+        const auto& back =
+            std::get<NativeAuthoringReturnPlacement>(placement.value);
+        return back.return_row &&
+               std::any_of(
+                   edits.returns.begin(), edits.returns.end(),
+                   [&](const auto& e) { return e.row == *back.return_row; });
+      };
+      if (!check(old) || !check(value) || !selected)
+        return absl::FailedPreconditionError(
+            "Native endpoint metadata change requires selected runtime rows");
+      if (value.state == NativePlacementState::kDeleted &&
+          value.value != old.value)
+        return absl::FailedPreconditionError(
+            "Native endpoint tombstone must retain its saved witness");
+    }
+    sprite_only.placements[i] = old;
+  }
+  if (proposed.schema_version != expected.schema_version && !endpoint_changed)
+    return absl::FailedPreconditionError(
+        "Native authoring schema upgrade requires an endpoint binding");
+  // Keep the original allocator/order/sprite checks rather than introduce a
+  // parallel identity policy. Only the explicitly authorized endpoints differ.
+  return ValidateNativeAuthoringSpriteTransition(expected, sprite_only,
+                                                 materialized_count);
+}
+
+absl::Status ValidateNativeEndpointPlacementWitness(
+    const std::vector<uint8_t>& image,
+    const NativeOverworldAuthoringMetadata& metadata) {
+  const auto layout = InspectLyraLayout(image.data(), image.size());
+  if (!IsNativeSpecialOverworldLayout(layout) || !layout.has_authoring_metadata)
+    return absl::FailedPreconditionError(
+        "Native endpoint witness requires a valid metadata layout");
+  const auto encoded =
+      EncodeNativeOverworldAuthoringMetadata(metadata, layout.capacity);
+  if (!encoded.ok())
+    return encoded.status();
+  auto word = [&](size_t pc) -> uint16_t {
+    return image[pc] | (static_cast<uint16_t>(image[pc + 1]) << 8);
+  };
+  NativeOverworldEndpointEdits rows;
+  for (const auto& placement : metadata.placements) {
+    if (placement.state != NativePlacementState::kBound ||
+        std::holds_alternative<NativeAuthoringSpritePlacement>(placement.value))
+      continue;
+    auto page_position =
+        [&](const auto& value) -> absl::StatusOr<std::array<uint16_t, 3>> {
+      const auto owner =
+          LyraLayoutRecord(layout, image.data(), image.size(), 7, value.map);
+      if (!owner)
+        return absl::FailedPreconditionError(
+            "Native endpoint witness has no physical-page owner");
+      const uint16_t parent = (*owner)[0];
+      const int dx = (value.map % 8) - (parent % 8);
+      const int dy = ((value.map % 64) / 8) - ((parent % 64) / 8);
+      const auto shape =
+          LyraLayoutRecord(layout, image.data(), image.size(), 30, parent);
+      if (value.map >= layout.active_count || value.map / 64 != parent / 64 ||
+          dx < 0 || dy < 0 || !shape || (*shape)[0] > 3 ||
+          dx >= (((*shape)[0] == 1 || (*shape)[0] == 2) ? 2 : 1) ||
+          dy >= (((*shape)[0] == 1 || (*shape)[0] == 3) ? 2 : 1))
+        return absl::FailedPreconditionError(
+            "Native endpoint physical page is outside its owning area");
+      return std::array<uint16_t, 3>{parent,
+                                     static_cast<uint16_t>(dx * 32 + value.x),
+                                     static_cast<uint16_t>(dy * 32 + value.y)};
+    };
+    if (const auto* door =
+            std::get_if<NativeAuthoringDoorPlacement>(&placement.value)) {
+      ASSIGN_OR_RETURN(auto position, page_position(*door));
+      const bool expanded = image[kEntranceFlag] != 0xB8;
+      const auto& tables = expanded ? kExpandedEntrances : kEntrances;
+      if (*door->trigger_row >= (expanded ? 256 : 129))
+        return absl::FailedPreconditionError(
+            "Native door binding exceeds runtime entrance capacity");
+      const size_t row = *door->trigger_row;
+      const NativeOverworldEntranceRow saved = {word(tables[0] + row * 2),
+                                                word(tables[1] + row * 2),
+                                                image[tables[2] + row]};
+      if (saved.map_word != position[0] ||
+          saved.position != ((position[2] << 7) | (position[1] << 1)) ||
+          saved.entrance_id != *door->entrance_id)
+        return absl::FailedPreconditionError(
+            "Native door placement witness differs from its runtime row");
+      rows.entrances.push_back({static_cast<uint16_t>(row), saved, saved});
+    } else {
+      const auto& back =
+          std::get<NativeAuthoringReturnPlacement>(placement.value);
+      ASSIGN_OR_RETURN(auto position, page_position(back));
+      const size_t row = *back.return_row;
+      std::array<uint16_t, 13> fields{};
+      for (size_t field = 0; field < fields.size(); ++field) {
+        const size_t pc = kReturns[field] + row * kReturnWidths[field];
+        fields[field] = kReturnWidths[field] == 1 ? image[pc] : word(pc);
+      }
+      const NativeOverworldReturnRow saved = {fields[0],
+                                              static_cast<uint8_t>(fields[1]),
+                                              fields[2],
+                                              fields[3],
+                                              fields[4],
+                                              fields[5],
+                                              fields[6],
+                                              fields[7],
+                                              fields[8],
+                                              static_cast<uint8_t>(fields[9]),
+                                              static_cast<uint8_t>(fields[10]),
+                                              fields[11],
+                                              fields[12]};
+      if (saved.room != *back.room_id || saved.map != position[0] ||
+          saved.player_x / 16 != (position[0] % 8) * 32 + position[1] ||
+          saved.player_y / 16 != ((position[0] % 64) / 8) * 32 + position[2])
+        return absl::FailedPreconditionError(
+            "Native return placement witness differs from its runtime row");
+      rows.returns.push_back({static_cast<uint16_t>(row), saved, saved});
+    }
+  }
+  // The existing planner owns the complete storage, alias and area bounds
+  // checks, even when these selected rows contain no byte changes.
+  const auto checked = PlanNativeOverworldEndpointSave(image, rows);
+  return checked.ok() ? absl::OkStatus() : checked.status();
+}
+
 }  // namespace yaze::rom

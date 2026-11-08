@@ -1196,23 +1196,27 @@ absl::StatusOr<std::vector<uint8_t>> SealNativeOverworldTerrain(
     std::copy_n(candidate.begin() + at, entry.stride,
                 candidate.begin() + native);
   }
+  std::optional<NativeOverworldAuthoringMetadata> saved_endpoint_metadata;
   if (layout.has_authoring_metadata) {
     const auto* meta_entry = FindEntry(layout, kNativeAuthoringMetadataTableId);
     if (!meta_entry ||
         meta_entry->count * meta_entry->stride != kNativeAuthoringMetadataSize)
       return absl::FailedPreconditionError(
           "Native authoring metadata record size mismatch");
+    ASSIGN_OR_RETURN(saved_endpoint_metadata,
+                     DecodeNativeOverworldAuthoringMetadata(
+                         {baseline.data() + meta_entry->pc_address,
+                          kNativeAuthoringMetadataSize},
+                         layout.capacity));
+    RETURN_IF_ERROR(ValidateNativeEndpointPlacementWitness(
+        baseline, *saved_endpoint_metadata));
     if (baseline_metadata) {
-      ASSIGN_OR_RETURN(auto decoded,
-                       DecodeNativeOverworldAuthoringMetadata(
-                           {baseline.data() + meta_entry->pc_address,
-                            kNativeAuthoringMetadataSize},
-                           layout.capacity));
-      if (decoded != *baseline_metadata)
+      if (*saved_endpoint_metadata != *baseline_metadata)
         return absl::FailedPreconditionError(
             "Native authoring metadata baseline witness disagrees with ROM");
-      RETURN_IF_ERROR(ValidateNativeAuthoringSpriteTransition(
-          *baseline_metadata, *publish_metadata, layout.capacity));
+      RETURN_IF_ERROR(ValidateNativeAuthoringEndpointTransition(
+          *baseline_metadata, *publish_metadata, layout.capacity,
+          endpoints ? *endpoints : NativeOverworldEndpointEdits{}));
       const auto old_witness =
           PlanNativeOverworldSpriteSave(baseline, {}, baseline_metadata);
       if (!old_witness.ok())
@@ -1284,6 +1288,10 @@ absl::StatusOr<std::vector<uint8_t>> SealNativeOverworldTerrain(
       !IsNativeSpecialOverworldLayout(checked))
     return absl::FailedPreconditionError(
         "Native terrain candidate is invalid: " + checked.error);
+  if (saved_endpoint_metadata)
+    RETURN_IF_ERROR(ValidateNativeEndpointPlacementWitness(
+        candidate,
+        publish_metadata ? *publish_metadata : *saved_endpoint_metadata));
   if (publish_metadata) {
     for (const auto* metadata : {baseline_metadata, publish_metadata}) {
       const auto& image = metadata == baseline_metadata ? baseline : candidate;
