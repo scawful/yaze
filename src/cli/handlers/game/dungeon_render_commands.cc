@@ -4,11 +4,13 @@
 #include <optional>
 #include <sstream>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "absl/strings/str_format.h"
 #include "app/service/render_service.h"
 #include "cli/service/resources/command_context.h"
+#include "core/gfx_sheet_policy_adapter.h"
 #include "rom/rom.h"
 #include "util/macro.h"
 #include "zelda3/dungeon/room_entrance.h"
@@ -131,8 +133,17 @@ absl::Status DungeonRenderCommandHandler::ExecuteWithContext(
   }
 
   // Load GameData (palette groups, tileset tables).
+  zelda3::LoadOptions load_options;
+  if (project_ != nullptr) {
+    ASSIGN_OR_RETURN(auto layout, core::ResolveGfxSheetLayout(*rom, *project_));
+    // Keep ordinary ROM decoding unchanged. Expanded inspection must use the
+    // identity-bound project layout rather than the legacy sheet limit.
+    if (layout.explicit_layout) {
+      load_options.gfx_sheet_layout = std::move(layout);
+    }
+  }
   zelda3::GameData game_data;
-  auto gd_status = zelda3::LoadGameData(*rom, game_data);
+  auto gd_status = zelda3::LoadGameData(*rom, game_data, load_options);
   if (!gd_status.ok()) {
     return absl::InternalError(
         absl::StrFormat("Failed to load game data: %s", gd_status.message()));

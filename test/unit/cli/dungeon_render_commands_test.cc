@@ -16,6 +16,9 @@
 #include "absl/flags/flag.h"
 #include "app/service/render_service.h"
 #include "cli/service/rom/rom_sandbox_manager.h"
+#include "core/project.h"
+#include "unit/zelda3/gfx_sheet_test_rom.h"
+#include "util/rom_hash.h"
 #include "zelda3/dungeon/entrance_layout.h"
 #include "zelda3/dungeon/room_entrance.h"
 
@@ -194,6 +197,77 @@ class DungeonRenderCommandsTest : public ::testing::Test {
   Rom rom_;
   std::vector<uint8_t> original_bytes_;
 };
+
+TEST_F(DungeonRenderCommandsTest,
+       ProjectGraphicsLayoutRejectsStaleRomIdentity) {
+  project::YazeProject project;
+  project.rom_metadata.expected_hash = std::string(40, '0');
+  handlers::DungeonRenderCommandHandler handler;
+  handler.SetProjectContext(&project);
+  resources::ArgumentParser parser(
+      {"--room=0", "--output", (directory_ / "room.png").string()});
+  resources::OutputFormatter formatter(
+      resources::OutputFormatter::Format::kJson);
+  const auto status = handler.Execute(&rom_, parser, formatter);
+  EXPECT_TRUE(absl::IsFailedPrecondition(status)) << status;
+  EXPECT_NE(status.message().find("expected ROM identity"),
+            absl::string_view::npos)
+      << status;
+  EXPECT_FALSE(std::filesystem::exists(directory_ / "room.png"));
+  EXPECT_EQ(rom_.vector(), original_bytes_);
+}
+
+TEST_F(DungeonRenderCommandsTest, ProjectGraphicsLayoutRejectsConflictingRole) {
+  project::YazeProject project;
+  ASSERT_TRUE(project.hack_manifest
+                  .LoadFromString(test::ExpandedGfxSheetTestManifest(rom_))
+                  .ok());
+  // The fixture declares development; a compiled project must not borrow it.
+  project.rom_metadata.role = project::RomRole::kPatched;
+  handlers::DungeonRenderCommandHandler handler;
+  handler.SetProjectContext(&project);
+  resources::ArgumentParser parser(
+      {"--room=0", "--output", (directory_ / "room.png").string()});
+  resources::OutputFormatter formatter(
+      resources::OutputFormatter::Format::kJson);
+  const auto status = handler.Execute(&rom_, parser, formatter);
+  EXPECT_TRUE(absl::IsFailedPrecondition(status)) << status;
+  EXPECT_NE(status.message().find("role conflicts"), absl::string_view::npos)
+      << status;
+  EXPECT_FALSE(std::filesystem::exists(directory_ / "room.png"));
+  EXPECT_EQ(rom_.vector(), original_bytes_);
+}
+
+TEST_F(DungeonRenderCommandsTest,
+       ProjectGraphicsLayoutValidatesExpandedSheetBeforeRendering) {
+  auto fixture = test::BuildOracleGfxSheetTestRom();
+  fixture.bytes.resize(0x200000);
+  test::CorruptExpandedDfStream(fixture,
+                                test::ExpandedDfStreamFailure::kMalformedCopy);
+  ASSERT_TRUE(rom_.LoadFromData(fixture.bytes).ok());
+  project::YazeProject project;
+  std::string manifest = test::ExpandedGfxSheetTestManifest(rom_);
+  manifest.replace(manifest.find("development"),
+                   std::string("development").size(), "compiled");
+  ASSERT_TRUE(project.hack_manifest.LoadFromString(manifest).ok());
+  project.rom_metadata.role = project::RomRole::kPatched;
+  project.rom_metadata.expected_hash =
+      util::ComputeSha1Hex(rom_.data(), rom_.size());
+  handlers::DungeonRenderCommandHandler handler;
+  handler.SetProjectContext(&project);
+  resources::ArgumentParser parser(
+      {"--room=0", "--output", (directory_ / "room.png").string()});
+  resources::OutputFormatter formatter(
+      resources::OutputFormatter::Format::kJson);
+  const auto status = handler.Execute(&rom_, parser, formatter);
+  EXPECT_TRUE(absl::IsInternal(status)) << status;
+  EXPECT_NE(status.message().find("Graphics sheet 0xDF"),
+            absl::string_view::npos)
+      << status;
+  EXPECT_FALSE(std::filesystem::exists(directory_ / "room.png"));
+  EXPECT_EQ(rom_.vector(), fixture.bytes);
+  EXPECT_FALSE(rom_.dirty());
+}
 
 TEST_F(DungeonRenderCommandsTest, RejectsDirectAndNormalizedRomOutputAliases) {
   ExpectRejectedAlias(source_);
