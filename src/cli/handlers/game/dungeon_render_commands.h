@@ -13,8 +13,12 @@ namespace handlers {
 //   dungeon-render --room=<id> --output=<path.png>
 //           [--overlays=collision,track,sprites,objects,grid,camera,tiletype,
 //                       all]
-//           [--scale=<float>] [--entrance=<hex_id>]
+//           [--scale=<float>] [--entrance=<hex_id>|--graphics-entrance=<hex_id>]
 // Example: dungeon-render --room=0x056 --entrance=0x79 --output=castle79.png
+//
+// --entrance requires the entrance to lead directly into the room.
+// --graphics-entrance previews main graphics inherited from a different room.
+// Example: dungeon-render --room=0x095 --graphics-entrance=0x29 --output=sky95.png
 //
 // Writes a PNG file to --output. Exits non-zero on failure.
 // Designed for agentic workflows where a long-lived server is inconvenient.
@@ -25,7 +29,22 @@ class DungeonRenderCommandHandler : public resources::CommandHandler {
     return "dungeon-render --room=<id> --output=<path.png> "
            "[--overlays=collision,track,sprites,objects,grid,camera,tiletype,"
            "all] "
-           "[--scale=<float>] [--entrance=<hex_id>]";
+           "[--scale=<float>] "
+           "[--entrance=<hex_id>|--graphics-entrance=<hex_id>]";
+  }
+
+  Descriptor Describe() const override {
+    auto descriptor = resources::CommandHandler::Describe();
+    descriptor.summary =
+        "Render a room using inferred, direct-entry or inherited-entry "
+        "graphics";
+    descriptor.entries = {
+        {"entrance", "Actual entrance directly into the requested room", ""},
+        {"graphics-entrance",
+         "Preview graphics inherited from an actual regular entrance; mutually "
+         "exclusive with entrance",
+         ""}};
+    return descriptor;
   }
 
   absl::Status ValidateArgs(const resources::ArgumentParser& parser) override;

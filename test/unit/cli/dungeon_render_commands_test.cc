@@ -16,6 +16,7 @@
 #include "absl/flags/flag.h"
 #include "app/service/render_service.h"
 #include "cli/service/rom/rom_sandbox_manager.h"
+#include "cli/service/usage_schema.h"
 #include "core/project.h"
 #include "unit/zelda3/gfx_sheet_test_rom.h"
 #include "util/rom_hash.h"
@@ -363,6 +364,119 @@ TEST(DungeonRenderEntranceTest, AcceptsOptionalRegularHexEntranceIds) {
         {"--room=0", "--output=room.png", "--entrance", value});
     EXPECT_TRUE(handler.ValidateArgs(parser).ok());
   }
+}
+
+TEST(DungeonRenderEntranceTest, InheritedGraphicsEntranceIsDiscoverable) {
+  handlers::DungeonRenderCommandHandler handler;
+  const auto schema =
+      UsageParametersToJsonSchema(ParseUsageParameters(handler.GetUsage()));
+  ASSERT_TRUE(schema["properties"].contains("graphics-entrance"));
+  EXPECT_EQ(schema["properties"]["graphics-entrance"]["type"], "string");
+  const auto descriptor = handler.Describe();
+  ASSERT_EQ(descriptor.entries.size(), 2u);
+  EXPECT_EQ(descriptor.entries[1].name, "graphics-entrance");
+  EXPECT_NE(descriptor.entries[1].description.find("mutually exclusive"),
+            std::string::npos);
+  for (const char* id : {"0", "29", "0x29", "84"}) {
+    resources::ArgumentParser parser(
+        {"--room=0x95", "--output=room.png", "--graphics-entrance", id});
+    EXPECT_TRUE(handler.ValidateArgs(parser).ok());
+  }
+}
+
+TEST_F(DungeonRenderCommandsTest,
+       InvalidGraphicsEntrancePreservesExistingOutput) {
+  const auto output = directory_ / "output.png";
+  const std::string sentinel = "existing image must survive";
+  {
+    std::ofstream out(output);
+    out << sentinel;
+  }
+  handlers::DungeonRenderCommandHandler handler;
+  for (const char* id :
+       {"", "nope", "0x29junk", "-1", "0x100000000", "85", "FF"}) {
+    SCOPED_TRACE(id);
+    std::string formatted;
+    const auto status = handler.Run(
+        {"--room=0x95", "--output", output.string(), "--graphics-entrance", id},
+        nullptr, &formatted);
+    EXPECT_TRUE(absl::IsInvalidArgument(status) || absl::IsOutOfRange(status))
+        << status;
+  }
+  for (const std::vector<std::string>& context :
+       {std::vector<std::string>{"--graphics-entrance"},
+        std::vector<std::string>{"--entrance=29", "--graphics-entrance=29"}}) {
+    std::vector<std::string> args = {"--room=0x95", "--output",
+                                     output.string()};
+    args.insert(args.end(), context.begin(), context.end());
+    std::string formatted;
+    EXPECT_TRUE(
+        absl::IsInvalidArgument(handler.Run(args, nullptr, &formatted)));
+  }
+  EXPECT_EQ(ReadBytes(output),
+            (std::vector<uint8_t>(sentinel.begin(), sentinel.end())));
+  EXPECT_EQ(ReadBytes(source_), original_bytes_);
+}
+
+TEST_F(DungeonRenderCommandsTest, ServiceRejectsBothEntranceContexts) {
+  zelda3::GameData game_data;
+  app::service::RenderService service(&rom_, &game_data);
+  app::service::RenderRequest request;
+  request.entrance_id = 0;
+  request.graphics_entrance_id = 0;
+  const auto result = service.RenderDungeonRoom(request);
+  EXPECT_TRUE(absl::IsInvalidArgument(result.status())) << result.status();
+  EXPECT_NE(result.status().message().find("mutually exclusive"),
+            absl::string_view::npos);
+  EXPECT_EQ(rom_.vector(), original_bytes_);
+}
+
+TEST_F(DungeonRenderCommandsTest, ServiceChecksInheritedEntranceRange) {
+  zelda3::GameData game_data;
+  app::service::RenderService service(&rom_, &game_data);
+  for (int id : {-1, zelda3::kNumRegularDungeonEntrances, 0xFF}) {
+    app::service::RenderRequest request;
+    request.graphics_entrance_id = id;
+    EXPECT_TRUE(
+        absl::IsOutOfRange(service.RenderDungeonRoom(request).status()));
+  }
+  EXPECT_EQ(rom_.vector(), original_bytes_);
+}
+
+TEST_F(DungeonRenderCommandsTest,
+       InheritedEntranceStillValidatesActualBlocksetOnAnotherRoom) {
+  const auto layout = zelda3::ResolveEntranceLayout(rom_.vector());
+  ASSERT_TRUE(layout.ok()) << layout.status();
+  ASSERT_TRUE(
+      rom_.WriteByte(layout->address(zelda3::EntranceField::kBlockset, 0), 0xFF)
+          .ok());
+  zelda3::GameData game_data;
+  app::service::RenderService service(&rom_, &game_data);
+  app::service::RenderRequest request;
+  request.room_id = 1;  // Entrance0 actually leads into room0.
+  request.graphics_entrance_id = 0;
+  const auto before = rom_.vector();
+  const auto result = service.RenderDungeonRoom(request);
+  EXPECT_TRUE(absl::IsOutOfRange(result.status())) << result.status();
+  EXPECT_NE(result.status().message().find("main blockset"),
+            absl::string_view::npos);
+  EXPECT_EQ(rom_.vector(), before);
+}
+
+TEST_F(DungeonRenderCommandsTest,
+       InheritedEntranceRejectsMalformedExpandedLoader) {
+  ASSERT_TRUE(rom_.WriteByte(0x7F000, 0).ok());
+  ASSERT_TRUE(rom_.WriteByte(0x7F001, 1).ok());
+  zelda3::GameData game_data;
+  app::service::RenderService service(&rom_, &game_data);
+  app::service::RenderRequest request;
+  request.graphics_entrance_id = 0;
+  const auto before = rom_.vector();
+  const auto result = service.RenderDungeonRoom(request);
+  EXPECT_TRUE(absl::IsFailedPrecondition(result.status())) << result.status();
+  EXPECT_NE(result.status().message().find("expanded dungeon entrance layout"),
+            absl::string_view::npos);
+  EXPECT_EQ(rom_.vector(), before);
 }
 
 TEST_F(DungeonRenderCommandsTest,
