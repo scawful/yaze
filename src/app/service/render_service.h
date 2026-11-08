@@ -94,6 +94,9 @@ struct RenderRequest {
   // Actual regular entrance ID in the selected ROM. When supplied, its room
   // must match room_id and its main graphics set supplies the render context.
   std::optional<int> entrance_id;
+  // Actual entrance whose main graphics remain inherited while moving to
+  // another room. Preview only; mutually exclusive with entrance_id.
+  std::optional<int> graphics_entrance_id;
 };
 
 // Shared strict parser for CLI/API scale input. Rejects malformed, non-finite,

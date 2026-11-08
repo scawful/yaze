@@ -21,15 +21,15 @@ namespace handlers {
 namespace {
 
 absl::StatusOr<std::optional<int>> ParseOptionalEntranceId(
-    const resources::ArgumentParser& parser) {
-  if (!parser.GetString("entrance").has_value()) {
-    if (parser.HasFlag("entrance")) {
-      return absl::InvalidArgumentError(
-          "--entrance requires a hexadecimal regular entrance ID");
+    const resources::ArgumentParser& parser, const char* option = "entrance") {
+  if (!parser.GetString(option).has_value()) {
+    if (parser.HasFlag(option)) {
+      return absl::InvalidArgumentError(absl::StrFormat(
+          "--%s requires a hexadecimal regular entrance ID", option));
     }
     return std::optional<int>();
   }
-  ASSIGN_OR_RETURN(const int entrance_id, parser.GetHex("entrance"));
+  ASSIGN_OR_RETURN(const int entrance_id, parser.GetHex(option));
   if (entrance_id < 0 || entrance_id >= zelda3::kNumRegularDungeonEntrances) {
     return absl::OutOfRangeError("Regular dungeon entrance ID is out of range");
   }
@@ -78,7 +78,15 @@ absl::Status DungeonRenderCommandHandler::ValidateArgs(
   if (const auto scale = parser.GetString("scale"); scale.has_value()) {
     RETURN_IF_ERROR(app::service::ParseRenderScale(*scale).status());
   }
-  return ParseOptionalEntranceId(parser).status();
+  if ((parser.GetString("entrance").has_value() ||
+       parser.HasFlag("entrance")) &&
+      (parser.GetString("graphics-entrance").has_value() ||
+       parser.HasFlag("graphics-entrance"))) {
+    return absl::InvalidArgumentError(
+        "--entrance and --graphics-entrance are mutually exclusive");
+  }
+  RETURN_IF_ERROR(ParseOptionalEntranceId(parser).status());
+  return ParseOptionalEntranceId(parser, "graphics-entrance").status();
 }
 
 absl::Status DungeonRenderCommandHandler::Execute(
@@ -145,6 +153,8 @@ absl::Status DungeonRenderCommandHandler::ExecuteWithContext(
   req.overlay_flags = overlay_flags;
   req.scale = scale;
   ASSIGN_OR_RETURN(req.entrance_id, ParseOptionalEntranceId(parser));
+  ASSIGN_OR_RETURN(req.graphics_entrance_id,
+                   ParseOptionalEntranceId(parser, "graphics-entrance"));
 
   auto result_or = render_service.RenderDungeonRoom(req);
   if (!result_or.ok())
@@ -180,16 +190,19 @@ absl::Status DungeonRenderCommandHandler::ExecuteWithContext(
   formatter.AddField("size_bytes", static_cast<int>(result.png_data.size()));
   if (req.entrance_id.has_value()) {
     formatter.AddHexField("entrance_id", *req.entrance_id, 2);
-    formatter.AddHexField("main_blockset", result.main_blockset, 2);
-    formatter.BeginArray("slots");
-    for (size_t slot = 0; slot < result.graphics_sheets.size(); ++slot) {
-      formatter.BeginObject();
-      formatter.AddField("slot", static_cast<int>(slot));
-      formatter.AddHexField("sheet", result.graphics_sheets[slot], 2);
-      formatter.EndObject();
-    }
-    formatter.EndArray();
   }
+  if (req.graphics_entrance_id.has_value()) {
+    formatter.AddHexField("graphics_entrance_id", *req.graphics_entrance_id, 2);
+  }
+  formatter.AddHexField("main_blockset", result.main_blockset, 2);
+  formatter.BeginArray("slots");
+  for (size_t slot = 0; slot < result.graphics_sheets.size(); ++slot) {
+    formatter.BeginObject();
+    formatter.AddField("slot", static_cast<int>(slot));
+    formatter.AddHexField("sheet", result.graphics_sheets[slot], 2);
+    formatter.EndObject();
+  }
+  formatter.EndArray();
   return absl::OkStatus();
 }
 

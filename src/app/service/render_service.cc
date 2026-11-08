@@ -177,9 +177,15 @@ absl::StatusOr<RenderResult> RenderService::RenderDungeonRoom(
   }
 
   std::lock_guard<std::mutex> lock(mu_);
+  if (req.entrance_id.has_value() && req.graphics_entrance_id.has_value()) {
+    return absl::InvalidArgumentError(
+        "Direct and inherited graphics entrances are mutually exclusive");
+  }
   std::optional<uint8_t> entrance_blockset;
-  if (req.entrance_id.has_value()) {
-    const int entrance_id = *req.entrance_id;
+  const auto context_entrance =
+      req.entrance_id.has_value() ? req.entrance_id : req.graphics_entrance_id;
+  if (context_entrance.has_value()) {
+    const int entrance_id = *context_entrance;
     if (entrance_id < 0 || entrance_id >= zelda3::kNumRegularDungeonEntrances) {
       return absl::OutOfRangeError(
           "Regular dungeon entrance ID is out of range");
@@ -187,7 +193,7 @@ absl::StatusOr<RenderResult> RenderService::RenderDungeonRoom(
     const zelda3::RoomEntrance entrance(rom_, static_cast<uint8_t>(entrance_id),
                                         false);
     RETURN_IF_ERROR(entrance.load_status());
-    if (entrance.room_ != req.room_id) {
+    if (req.entrance_id.has_value() && entrance.room_ != req.room_id) {
       return absl::InvalidArgumentError(absl::StrFormat(
           "Entrance 0x%02X leads to room 0x%03X, not requested room 0x%03X",
           entrance_id, entrance.room_, req.room_id));
