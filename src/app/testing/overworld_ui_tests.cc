@@ -2243,6 +2243,404 @@ static void RegisterProjectGraphicsImportPreviewTest(ImGuiTestEngine* engine) {
 #endif
 }
 
+// Normal-UI proof for binding one planned overworld connection to a live row:
+// select through the canvas, bind, Undo/Redo, Save, cold reopen. The fixture
+// names a private project; no pending plan is created by this test.
+static void RegisterEndpointBindAcceptanceTest(ImGuiTestEngine* engine) {
+  const char* requested = std::getenv("YAZE_ENDPOINT_BIND_ACCEPTANCE_PROJECT");
+  if (!requested || !*requested)
+    return;
+  ImGuiTestEngine_GetIO(engine).ConfigLogToTTY = true;
+  ImGuiTest* test = IM_REGISTER_TEST(engine, "endpoint_bind_acceptance",
+                                     "normal_bind_undo_redo_save_reopen");
+  test->TestFunc = [](ImGuiTestContext* ctx) {
+    namespace fs = std::filesystem;
+    ctx->EngineIO->ConfigWatchdogKillTest = 600.0f;
+    const char* requested =
+        std::getenv("YAZE_ENDPOINT_BIND_ACCEPTANCE_PROJECT");
+    IM_CHECK(requested && *requested);
+    IM_CHECK(fs::path(requested).is_absolute());
+    std::error_code ec;
+    const auto expected_project = fs::canonical(requested, ec);
+    IM_CHECK(!ec);
+    const auto project_directory = expected_project.parent_path();
+    const auto read_file =
+        [](const fs::path& path) -> std::optional<std::string> {
+      std::ifstream file(path, std::ios::binary);
+      if (!file)
+        return std::nullopt;
+      std::string bytes{std::istreambuf_iterator<char>(file), {}};
+      return file.bad() ? std::nullopt
+                        : std::optional<std::string>(std::move(bytes));
+    };
+    const auto fixture_bytes =
+        read_file(project_directory / "endpoint-bind-native.json");
+    IM_CHECK(fixture_bytes.has_value());
+    const auto fixture = nlohmann::json::parse(*fixture_bytes, nullptr, false);
+    IM_CHECK(fixture.is_object());
+    const std::string phase = fixture.value("phase", "");
+    IM_CHECK(phase == "edit" || phase == "reopen");
+    if (fixture.value("wait_for_window_observation", false)) {
+      const auto observed = project_directory / ("ui-window-observed-" + phase);
+      const auto deadline =
+          std::chrono::steady_clock::now() + std::chrono::seconds(60);
+      while (!fs::exists(observed, ec) && !ec &&
+             std::chrono::steady_clock::now() < deadline)
+        ctx->Yield(1);
+      IM_CHECK(!ec && fs::exists(observed));
+    }
+    const uint32_t placement_id = fixture.value("placement_id", 0u);
+    const int owner_map = fixture.value("owner_map", -1);
+    const int locate_map = fixture.value("locate_map", -1);
+    const int bind_entrance = fixture.value("bind_entrance", -1);
+    const int wrong_entrance = fixture.value("wrong_entrance", -1);
+    const int bind_x = fixture.value("bind_x", -1);
+    const int bind_y = fixture.value("bind_y", -1);
+    IM_CHECK(placement_id != 0 && owner_map >= 0 && locate_map >= 0);
+    IM_CHECK(bind_entrance >= 0 && wrong_entrance >= 0);
+
+    editor::EditorManager* manager = nullptr;
+    project::YazeProject* current_project = nullptr;
+    for (int frame = 0; frame < 200; ++frame) {
+      auto* controller = Application::Instance().GetController();
+      manager = controller ? controller->editor_manager() : nullptr;
+      current_project = manager ? manager->GetCurrentProject() : nullptr;
+      if (current_project && current_project->project_opened() &&
+          fs::weakly_canonical(current_project->filepath, ec) ==
+              expected_project &&
+          !ec)
+        break;
+      ctx->Yield(1);
+    }
+    IM_CHECK(manager && current_project && current_project->project_opened());
+    IM_CHECK(fs::canonical(current_project->filepath, ec) == expected_project &&
+             !ec);
+    IM_CHECK(current_project->name.find("[Build Run acceptance]") !=
+             std::string::npos);
+    const auto rom_path = fs::canonical(
+        current_project->GetAbsolutePath(current_project->rom_filename), ec);
+    IM_CHECK(!ec && rom_path.parent_path() == project_directory);
+    IM_CHECK(rom_path.filename() == "editing.sfc");
+    auto* rom = manager->GetCurrentRom();
+    IM_CHECK(rom && rom->is_loaded());
+    IM_CHECK(fs::canonical(rom->filename(), ec) == rom_path && !ec);
+    const auto rom_disk = read_file(rom_path);
+    IM_CHECK(rom_disk.has_value());
+    const auto rom_sha256 = core::ComputeSourceArtifactSha256(*rom_disk);
+    const std::string_view rom_view(reinterpret_cast<const char*>(rom->data()),
+                                    rom->size());
+    const std::string expected_sha256 = fixture.value(
+        phase == "edit" ? "input_rom_sha256" : "expected_rom_sha256", "");
+    IM_CHECK(!expected_sha256.empty());
+    IM_CHECK(rom_sha256 == expected_sha256);
+    IM_CHECK(core::ComputeSourceArtifactSha256(rom_view) == expected_sha256);
+    IM_CHECK(!rom->dirty() && !manager->IsCurrentProjectDirty());
+
+    const auto find_row = [owner_map](const auto& rows, int entrance_id) {
+      int found = -1;
+      for (int index = 0; index < static_cast<int>(rows.size()); ++index) {
+        const auto& row = rows[index];
+        if (row.deleted || row.is_hole_ || row.map_id_ != owner_map ||
+            row.entrance_id_ != entrance_id)
+          continue;
+        if (found != -1)
+          return -2;
+        found = index;
+      }
+      return found;
+    };
+    const auto placement_state =
+        [placement_id](
+            const auto& metadata) -> std::optional<rom::NativePlacementState> {
+      if (!metadata)
+        return std::nullopt;
+      for (const auto& placement : metadata->placements)
+        if (placement.id == placement_id)
+          return placement.state;
+      return std::nullopt;
+    };
+
+    manager->OpenEditorAndPanelsFromFlags("Overworld", "overworld.canvas");
+    editor::OverworldEditor* overworld = nullptr;
+    for (int frame = 0; frame < 200; ++frame) {
+      auto* editors = manager->GetCurrentEditorSet();
+      overworld = editors ? editors->GetEditorAs<editor::OverworldEditor>(
+                                editor::EditorType::kOverworld)
+                          : nullptr;
+      if (overworld && overworld->overworld().is_loaded() &&
+          ctx->ItemExists("**/OwMap"))
+        break;
+      ctx->Yield(1);
+    }
+    IM_CHECK(overworld && overworld->overworld().is_loaded());
+
+    const auto& rows = overworld->overworld().entrances();
+    const int bind_row = find_row(rows, bind_entrance);
+    const int wrong_row = find_row(rows, wrong_entrance);
+    IM_CHECK(bind_row >= 0 && wrong_row >= 0 && bind_row != wrong_row);
+    IM_CHECK_EQ(rows[bind_row].x_, bind_x);
+    IM_CHECK_EQ(rows[bind_row].y_, bind_y);
+    const auto session = manager->GetCurrentSessionId();
+    auto& window_manager = manager->window_manager();
+    const auto canvas_window =
+        window_manager.GetWorkspaceWindowName(session, "overworld.canvas");
+    const auto workbench_window = window_manager.GetWorkspaceWindowName(
+        session, "overworld.entity_workbench");
+    auto& canvas = overworld->ow_map_canvas();
+    canvas.set_global_scale(1.0f);
+    overworld->LocateOverworldTile(locate_map, rows[bind_row].x_ / 16,
+                                   rows[bind_row].y_ / 16);
+    ctx->Yield(3);
+
+    ctx->SetRef(canvas_window.c_str());
+    auto terrain = ctx->ItemInfo("**/OwMap");
+    IM_CHECK(terrain.ID != 0 && terrain.Window != nullptr);
+    auto* toasts = manager->toast_manager();
+    IM_CHECK(toasts != nullptr);
+    if (toasts->pending_count() != 0) {
+      ctx->MouseSetViewport(terrain.Window);
+      ctx->MouseMoveToPos(terrain.RectClipped.GetCenter());
+      const auto deadline =
+          std::chrono::steady_clock::now() + std::chrono::seconds(15);
+      while (toasts->pending_count() != 0 &&
+             std::chrono::steady_clock::now() < deadline && !ctx->IsError())
+        ctx->Yield(1);
+      IM_CHECK_EQ(toasts->pending_count(), 0);
+      ctx->Yield(2);
+    }
+
+    auto& widgets = gui::WidgetIdRegistry::Instance();
+    const auto visible_widget = [&](const std::string& suffix) -> ImGuiID {
+      const std::string tail = "/" + suffix;
+      for (const auto& path : widgets.FindWidgets("*" + suffix)) {
+        const bool match =
+            path == suffix ||
+            (path.size() > tail.size() &&
+             path.compare(path.size() - tail.size(), tail.size(), tail) == 0);
+        const ImGuiID id = match ? widgets.GetWidgetId(path) : 0;
+        if (id != 0) {
+          const auto info = widgets.GetWidgetInfo(path);
+          if (info && !info->window_name.empty())
+            ctx->SetRef(info->window_name.c_str());
+          if (ctx->ItemExists(id))
+            return id;
+        }
+      }
+      return 0;
+    };
+    ImGuiID select_mode = visible_widget("OverworldToolbar/button:Select");
+    const bool tools_overflow = select_mode == 0;
+    if (tools_overflow) {
+      const ImGuiID tools = visible_widget("OverworldToolbar/button:Tools");
+      IM_CHECK(tools != 0);
+      ctx->ItemClick(tools);
+      ctx->Yield(2);
+      select_mode = visible_widget("OverworldToolbar/button:Select");
+    }
+    IM_CHECK(select_mode != 0);
+    ctx->ItemClick(select_mode);
+    if (tools_overflow)
+      ctx->KeyPress(ImGuiKey_Escape);
+    ctx->Yield(2);
+
+    // The workbench stays closed while the canvas is clicked, so a floating
+    // panel cannot cover the marker. Right-click selects without opening it.
+    const auto right_click_row = [&](int row) {
+      const int world_x = rows[row].x_ / 16;
+      const int world_y = rows[row].y_ / 16;
+      overworld->LocateOverworldTile(locate_map, world_x, world_y);
+      ctx->Yield(3);
+      ctx->SetRef(canvas_window.c_str());
+      terrain = ctx->ItemInfo("**/OwMap");
+      ctx->SetRef(terrain.Window);
+      ctx->WindowFocus("");
+      ctx->Yield(2);
+      ctx->SetRef(canvas_window.c_str());
+      terrain = ctx->ItemInfo("**/OwMap");
+      const float cell = 16.0f * canvas.global_scale();
+      const ImVec2 center(canvas.zero_point().x + canvas.scrolling().x +
+                              (world_x + 0.5f) * cell,
+                          canvas.zero_point().y + canvas.scrolling().y +
+                              (world_y + 0.5f) * cell);
+      IM_CHECK(terrain.RectClipped.Contains(center));
+      ctx->MouseSetViewport(terrain.Window);
+      ctx->MouseMoveToPos(center);
+      ctx->Yield(3);
+      IM_CHECK(ctx->UiContext->HoveredWindow != nullptr);
+      IM_CHECK(ctx->UiContext->HoveredWindow->RootWindow ==
+               terrain.Window->RootWindow);
+      ctx->MouseClick(ImGuiMouseButton_Right);
+      ctx->Yield(3);
+      ctx->PopupCloseAll();
+      ctx->Yield(2);
+      IM_CHECK(
+          static_cast<const zelda3::GameEntity*>(overworld->current_entity()) ==
+          static_cast<const zelda3::GameEntity*>(&rows[row]));
+    };
+    char bind_button[80];
+    std::snprintf(bind_button, sizeof(bind_button),
+                  "**/placement_%08X/Bind selected row", placement_id);
+    const auto open_workbench = [&]() {
+      IM_CHECK(
+          window_manager.OpenWindow(session, "overworld.entity_workbench"));
+      ctx->Yield(3);
+      ctx->SetRef(workbench_window.c_str());
+      IM_CHECK(ctx->GetWindowByRef("") != nullptr);
+    };
+    const auto close_workbench = [&]() {
+      IM_CHECK(
+          window_manager.CloseWindow(session, "overworld.entity_workbench"));
+      ctx->Yield(3);
+    };
+
+    nlohmann::json receipt = {
+        {"project", expected_project.string()},
+        {"phase", phase},
+        {"placement_id", placement_id},
+        {"bind_row", bind_row},
+        {"wrong_row", wrong_row},
+    };
+
+    if (phase == "reopen") {
+      // A control copy that was never saved stops here.
+      IM_CHECK(rows[bind_row].authoring_placement_id ==
+               std::optional<uint32_t>(placement_id));
+      IM_CHECK(
+          placement_state(overworld->overworld().native_authoring_metadata()) ==
+          rom::NativePlacementState::kBound);
+      IM_CHECK_EQ(rows[bind_row].x_, bind_x);
+      IM_CHECK_EQ(rows[bind_row].y_, bind_y);
+      IM_CHECK(!overworld->HasPendingNativeEndpointChanges());
+      right_click_row(bind_row);
+      if (ctx->IsError())
+        return;
+      open_workbench();
+      if (ctx->IsError())
+        return;
+      IM_CHECK(!ctx->ItemExists(bind_button));
+      IM_CHECK(!rom->dirty() && !manager->IsCurrentProjectDirty());
+      receipt["rom_sha256"] = rom_sha256;
+      receipt["reopen_bound_verified"] = true;
+    } else {
+      IM_CHECK(!rows[bind_row].authoring_placement_id.has_value());
+      IM_CHECK(
+          placement_state(overworld->overworld().native_authoring_metadata()) ==
+          rom::NativePlacementState::kPending);
+      const uint16_t before_map_pos = rows[bind_row].map_pos_;
+      right_click_row(wrong_row);
+      if (ctx->IsError())
+        return;
+      open_workbench();
+      if (ctx->IsError())
+        return;
+      IM_CHECK(!ctx->ItemExists(bind_button));
+      close_workbench();
+      if (ctx->IsError())
+        return;
+      receipt["wrong_row_refused"] = true;
+
+      right_click_row(bind_row);
+      if (ctx->IsError())
+        return;
+      open_workbench();
+      if (ctx->IsError())
+        return;
+      IM_CHECK(ctx->ItemExists(bind_button));
+      const size_t undo_before = overworld->undo_manager().UndoStackSize();
+      ctx->ItemClick(bind_button);
+      ctx->Yield(3);
+      IM_CHECK_EQ(overworld->undo_manager().UndoStackSize(), undo_before + 1);
+      const auto is_bound = [&]() {
+        return rows[bind_row].authoring_placement_id ==
+                   std::optional<uint32_t>(placement_id) &&
+               placement_state(
+                   overworld->overworld().native_authoring_metadata()) ==
+                   rom::NativePlacementState::kBound;
+      };
+      const auto is_pending = [&]() {
+        return !rows[bind_row].authoring_placement_id.has_value() &&
+               placement_state(
+                   overworld->overworld().native_authoring_metadata()) ==
+                   rom::NativePlacementState::kPending;
+      };
+      IM_CHECK(is_bound());
+      IM_CHECK_EQ(rows[bind_row].x_, bind_x);
+      IM_CHECK_EQ(rows[bind_row].y_, bind_y);
+      IM_CHECK_EQ(rows[bind_row].map_pos_, before_map_pos);
+      IM_CHECK(overworld->HasPendingNativeEndpointChanges());
+      IM_CHECK(rom->dirty() || manager->IsCurrentProjectDirty());
+      close_workbench();
+      if (ctx->IsError())
+        return;
+
+      ctx->SetRef(canvas_window.c_str());
+      terrain = ctx->ItemInfo("**/OwMap");
+      ctx->SetRef(terrain.Window);
+      ctx->WindowFocus("");
+      ctx->Yield(2);
+      ctx->KeyPress(ImGuiMod_Ctrl | ImGuiKey_Z);
+      ctx->Yield(2);
+      IM_CHECK(is_pending());
+      IM_CHECK(!overworld->HasPendingNativeEndpointChanges());
+      ctx->KeyPress(ImGuiMod_Ctrl | ImGuiMod_Shift | ImGuiKey_Z);
+      ctx->Yield(2);
+      IM_CHECK(is_bound());
+      receipt["undo_verified"] = true;
+      receipt["redo_verified"] = true;
+
+      ctx->KeyPress(ImGuiMod_Ctrl | ImGuiKey_S);
+      bool save_ok = false;
+      const auto save_deadline =
+          std::chrono::steady_clock::now() + std::chrono::seconds(60);
+      while (!save_ok && std::chrono::steady_clock::now() < save_deadline &&
+             !ctx->IsError()) {
+        ctx->Yield(1);
+        save_ok = !rom->dirty() && !manager->IsCurrentProjectDirty() &&
+                  !overworld->HasPendingProjectDraftChanges() &&
+                  !overworld->HasPendingNativeEndpointChanges();
+      }
+      IM_CHECK(save_ok);
+      const auto rom_after = read_file(rom_path);
+      IM_CHECK(rom_after.has_value());
+      const std::vector<uint8_t> data(rom_after->begin(), rom_after->end());
+      auto disk_rom = std::make_unique<Rom>();
+      IM_CHECK(disk_rom->LoadFromData(data).ok());
+      auto game_data = std::make_unique<zelda3::GameData>();
+      IM_CHECK(zelda3::LoadGameData(*disk_rom, *game_data).ok());
+      auto model =
+          std::make_unique<zelda3::Overworld>(disk_rom.get(), game_data.get());
+      IM_CHECK(model->Load(disk_rom.get()).ok());
+      const auto& disk_rows = model->entrances();
+      IM_CHECK(bind_row < static_cast<int>(disk_rows.size()));
+      IM_CHECK(disk_rows[bind_row].authoring_placement_id ==
+               std::optional<uint32_t>(placement_id));
+      IM_CHECK_EQ(disk_rows[bind_row].x_, bind_x);
+      IM_CHECK_EQ(disk_rows[bind_row].y_, bind_y);
+      IM_CHECK(placement_state(model->native_authoring_metadata()) ==
+               rom::NativePlacementState::kBound);
+      receipt["rom_sha256"] = core::ComputeSourceArtifactSha256(*rom_after);
+      IM_CHECK(receipt["rom_sha256"].get<std::string>() != expected_sha256);
+      receipt["input_rom_sha256"] = expected_sha256;
+      receipt["save_verified"] = true;
+    }
+    receipt["result"] = "PASS";
+    const auto receipt_path =
+        project_directory / (phase == "edit" ? "endpoint-edit-result.json"
+                                             : "endpoint-reopen-result.json");
+    const auto temporary = fs::path(receipt_path.string() + ".part");
+    {
+      std::ofstream out(temporary, std::ios::binary);
+      out << receipt.dump(2) << '\n';
+      IM_CHECK(out.good());
+    }
+    fs::rename(temporary, receipt_path, ec);
+    IM_CHECK(!ec);
+    ctx->LogInfo("Endpoint bind %s PASS; receipt: %s", phase.c_str(),
+                 receipt_path.string().c_str());
+  };
+  ImGuiTestEngine_QueueTest(engine, test, ImGuiTestRunFlags_RunFromCommandLine);
+}
+
 void RegisterOverworldUITests(ImGuiTestEngine* engine) {
   if (engine == nullptr)
     return;
@@ -2254,6 +2652,7 @@ void RegisterOverworldUITests(ImGuiTestEngine* engine) {
   RegisterLyraTerrainAcceptanceTest(engine);
   RegisterLyraTerrainReopenTest(engine);
   RegisterBuildRunAcceptanceTest(engine);
+  RegisterEndpointBindAcceptanceTest(engine);
   RegisterProjectGraphicsImportPreviewTest(engine);
 }
 
