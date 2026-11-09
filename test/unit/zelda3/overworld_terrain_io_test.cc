@@ -1,6 +1,7 @@
 #include "zelda3/overworld/overworld_terrain_io.h"
 
 #include <algorithm>
+#include <array>
 #include <cstdlib>
 #include <filesystem>
 #include <utility>
@@ -506,6 +507,87 @@ TEST_F(OverworldTerrainIoTest, FullPoolFailsWithoutChangingSource) {
   EXPECT_EQ(plan.status().code(), absl::StatusCode::kResourceExhausted);
   EXPECT_EQ(rom.vector(), before);
   EXPECT_FALSE(rom.dirty());
+}
+
+TEST_F(OverworldTerrainIoTest, ReclaimsUnreferencedBytesFromEarlierSaves) {
+  MakeRom(192, 0x10010);
+  storage.stream_regions_exclusive = true;
+  auto data = rom.vector();
+  std::fill_n(data.begin() + 0x10008, 8, 0xAB);
+  ASSERT_TRUE(rom.LoadFromData(data).ok());
+  rom.set_dirty(false);
+  pages[0xBF][0] = 1;
+  auto plan = PlanOverworldTerrainSave(rom, storage, pages);
+  ASSERT_TRUE(plan.ok()) << plan.status();
+  ASSERT_TRUE(ApplyOverworldTerrainSave(rom, *plan).ok());
+  EXPECT_GE(StreamPc(storage.low_table_pc + 0xBF * 3), 0x10008u);
+  CheckColdReadback();
+}
+
+TEST_F(OverworldTerrainIoTest, UnknownBytesNeverDisplaceLiveStreams) {
+  MakeRom(192, 0x10040);
+  storage.stream_regions_exclusive = true;
+  auto data = rom.vector();
+  // Move map 1 to a live stream surrounded by unreferenced non-blank bytes.
+  std::fill(data.begin() + 0x10008, data.begin() + 0x10040, 0xAB);
+  const std::array<uint8_t, 4> live = {0xE4, 0xFF, 0x22, 0xFF};
+  std::copy(live.begin(), live.end(), data.begin() + 0x10020);
+  PutPointer(&data, storage.low_table_pc + 3, 0x10020);
+  ASSERT_TRUE(rom.LoadFromData(data).ok());
+  rom.set_dirty(false);
+  pages[1].fill(0x0022);
+  pages[0][0] = 1;
+  auto plan = PlanOverworldTerrainSave(rom, storage, pages);
+  ASSERT_TRUE(plan.ok()) << plan.status();
+  ASSERT_TRUE(ApplyOverworldTerrainSave(rom, *plan).ok());
+  EXPECT_EQ(StreamPc(storage.low_table_pc + 3), 0x10020u);
+  EXPECT_TRUE(
+      std::equal(live.begin(), live.end(), rom.vector().begin() + 0x10020));
+  CheckColdReadback();
+}
+
+TEST_F(OverworldTerrainIoTest, RepeatedSavesDoNotConsumeAssignedRegion) {
+  MakeRom(192, 0x10100);
+  storage.stream_regions_exclusive = true;
+  for (int save = 0; save < 300; ++save) {
+    for (int i = 0; i < 8; ++i)
+      pages[0][i * 11 % 256] = static_cast<uint16_t>((save * 7 + i) & 0xFF);
+    auto plan = PlanOverworldTerrainSave(rom, storage, pages);
+    ASSERT_TRUE(plan.ok()) << "save=" << save << " " << plan.status();
+    ASSERT_TRUE(ApplyOverworldTerrainSave(rom, *plan).ok()) << "save=" << save;
+    if (save % 10 == 0)
+      CheckColdReadback();
+    if (HasFatalFailure())
+      return;
+  }
+  CheckColdReadback();
+}
+
+TEST_F(OverworldTerrainIoTest, UnreferencedBytesCannotHideRegionExhaustion) {
+  MakeRom(192, 0x10010);
+  storage.stream_regions_exclusive = true;
+  auto data = rom.vector();
+  std::fill_n(data.begin() + 0x10008, 8, 0xAB);
+  ASSERT_TRUE(rom.LoadFromData(data).ok());
+  rom.set_dirty(false);
+  const auto before = rom.vector();
+  for (int i = 0; i < 256; ++i)
+    pages[0xBF][i] = static_cast<uint16_t>(i * 37 & 0xFF);
+  auto plan = PlanOverworldTerrainSave(rom, storage, pages);
+  EXPECT_EQ(plan.status().code(), absl::StatusCode::kResourceExhausted);
+  EXPECT_EQ(rom.vector(), before);
+  EXPECT_FALSE(rom.dirty());
+}
+
+TEST_F(OverworldTerrainIoTest, SharedRegionsKeepUnknownBytes) {
+  MakeRom(192, 0x10010);
+  auto data = rom.vector();
+  std::fill_n(data.begin() + 0x10008, 8, 0xAB);
+  ASSERT_TRUE(rom.LoadFromData(data).ok());
+  rom.set_dirty(false);
+  pages[0xBF][0] = 1;
+  EXPECT_EQ(PlanOverworldTerrainSave(rom, storage, pages).status().code(),
+            absl::StatusCode::kResourceExhausted);
 }
 
 TEST_F(OverworldTerrainIoTest, AllocationDoesNotCrossLoRomBank) {

@@ -46,6 +46,9 @@ struct OverworldTerrainStorage {
   // Retained native readers use these original 00–9F pointer slots. Both
   // copies must agree on load and are published in the same transaction.
   std::optional<OverworldTerrainPointerTables> native_prefix;
+  // True only when the format reserves stream_regions for terrain streams, so
+  // bytes no surviving pointer covers can be reused whatever they contain.
+  bool stream_regions_exclusive = false;
 };
 
 struct OverworldTerrainWrite {

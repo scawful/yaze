@@ -194,6 +194,7 @@ absl::StatusOr<OverworldTerrainStorage> ResolveNativeOverworldTerrainStorage(
                          [id](const auto& e) { return e.id == id; });
   };
   OverworldTerrainStorage result;
+  result.stream_regions_exclusive = true;
   result.high_table_pc = entry(20).pc_address;
   result.low_table_pc = entry(21).pc_address;
   result.map_count = layout.capacity;
@@ -361,9 +362,14 @@ absl::StatusOr<OverworldTerrainSavePlan> PlanTerrainSave(
           for (uint32_t at = region.start; at < region.end; ++at) {
             if ((at & 0x7FFF) == 0)
               run = 0;
+            // Regions reserved for terrain streams: free space is the region
+            // minus the spans that survive this Save, so bytes left by earlier
+            // Saves are reclaimed. Other regions may hold foreign data, and an
+            // initial import has no live pointers yet: both need blank bytes.
             const bool available =
                 !occupied[at] &&
-                (reusable[at] || staged[at] == 0 || staged[at] == 0xFF);
+                ((storage.stream_regions_exclusive && !initial_import) ||
+                 reusable[at] || staged[at] == 0 || staged[at] == 0xFF);
             run = available ? run + 1 : 0;
             if (run == bytes.size()) {
               pc = at + 1 - bytes.size();

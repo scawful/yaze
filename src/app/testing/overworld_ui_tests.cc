@@ -1632,14 +1632,42 @@ static void RegisterBuildRunAcceptanceTest(ImGuiTestEngine* engine) {
     };
     const auto loaded_sha256 = core::ComputeSourceArtifactSha256(rom_view());
 
-    const auto tile_from_loaded = [&](editor::OverworldEditor* ow) -> uint16_t {
+    struct ExtraCell {
+      int world_x, world_y, brush, original;
+    };
+    // Test-only: optional further cells painted in the same session and
+    // published by the one Save, so one launch can reach a dense map.
+    std::vector<ExtraCell> extra_cells;
+    if (fixture.contains("extra_cells")) {
+      IM_CHECK(fixture["extra_cells"].is_array());
+      for (const auto& cell : fixture["extra_cells"]) {
+        const int x = cell.value("x", -1);
+        const int y = cell.value("y", -1);
+        const int brush = cell.value("brush_id", -1);
+        const int original = cell.value("original_tile", -1);
+        IM_CHECK(x >= 0 && x < 32 && y >= 0 && y < 32);
+        IM_CHECK(brush >= 0 && brush <= 0xFFF);
+        IM_CHECK(original >= 0 && original <= 0xFFF);
+        extra_cells.push_back({(map_id % 8) * 32 + x,
+                               ((map_id % 0x40) / 8) * 32 + y, brush,
+                               original});
+      }
+    }
+
+    const auto tile_from_loaded_at = [&](editor::OverworldEditor* ow, int x,
+                                         int y) -> uint16_t {
       auto& model = ow->overworld();
       model.set_current_world(std::clamp(map_id / 0x40, 0, 2));
       model.set_current_map(map_id);
-      return model.GetTile(world_x, world_y);
+      return model.GetTile(x, y);
     };
-    const auto tile_from_disk_bytes =
-        [&](const std::string& bytes) -> std::optional<uint16_t> {
+    const auto tile_from_loaded = [&](editor::OverworldEditor* ow) -> uint16_t {
+      return tile_from_loaded_at(ow, world_x, world_y);
+    };
+    const auto tiles_from_disk_bytes =
+        [&](const std::string& bytes,
+            const std::vector<std::pair<int, int>>& cells)
+        -> std::optional<std::vector<uint16_t>> {
       const std::vector<uint8_t> data(bytes.begin(), bytes.end());
       auto disk_rom = std::make_unique<Rom>();
       IM_CHECK_RETV(disk_rom->LoadFromData(data).ok(), std::nullopt);
@@ -1651,7 +1679,28 @@ static void RegisterBuildRunAcceptanceTest(ImGuiTestEngine* engine) {
       IM_CHECK_RETV(model->Load(disk_rom.get()).ok(), std::nullopt);
       model->set_current_world(std::clamp(map_id / 0x40, 0, 2));
       model->set_current_map(map_id);
-      return model->GetTile(world_x, world_y);
+      std::vector<uint16_t> tiles;
+      tiles.reserve(cells.size());
+      for (const auto& [x, y] : cells)
+        tiles.push_back(model->GetTile(x, y));
+      return tiles;
+    };
+    const auto tile_from_disk_bytes =
+        [&](const std::string& bytes) -> std::optional<uint16_t> {
+      const auto tiles = tiles_from_disk_bytes(bytes, {{world_x, world_y}});
+      return tiles ? std::optional<uint16_t>(tiles->front()) : std::nullopt;
+    };
+    const auto extra_cells_on_disk = [&](const std::string& bytes) -> bool {
+      std::vector<std::pair<int, int>> cells;
+      for (const auto& cell : extra_cells)
+        cells.emplace_back(cell.world_x, cell.world_y);
+      const auto tiles = tiles_from_disk_bytes(bytes, cells);
+      if (!tiles)
+        return false;
+      for (size_t i = 0; i < cells.size(); ++i)
+        if ((*tiles)[i] != static_cast<uint16_t>(extra_cells[i].brush))
+          return false;
+      return true;
     };
 
     nlohmann::json prior;
@@ -1677,6 +1726,7 @@ static void RegisterBuildRunAcceptanceTest(ImGuiTestEngine* engine) {
       IM_CHECK(!rom->dirty());
       IM_CHECK(tile_from_disk_bytes(*rom_disk) ==
                prior.value("saved_tile", static_cast<uint16_t>(0)));
+      IM_CHECK(extra_cells_on_disk(*rom_disk));
     }
 
     manager->OpenEditorAndPanelsFromFlags(
@@ -1851,6 +1901,37 @@ static void RegisterBuildRunAcceptanceTest(ImGuiTestEngine* engine) {
       redo_ok = tile_from_loaded(overworld) == static_cast<uint16_t>(brush_id);
       IM_CHECK(redo_ok);
 
+      for (const auto& cell : extra_cells) {
+        IM_CHECK_EQ(tile_from_loaded_at(overworld, cell.world_x, cell.world_y),
+                    static_cast<uint16_t>(cell.original));
+        const ImGuiID cell_tile_input =
+            visible_widget("OwBlocksetSelector/input:TileID");
+        IM_CHECK(cell_tile_input != 0);
+        char cell_hex[8];
+        std::snprintf(cell_hex, sizeof(cell_hex), "%X", cell.brush);
+        ctx->ItemInputValue(cell_tile_input, cell_hex);
+        ctx->Yield(2);
+        IM_CHECK_EQ(overworld->current_tile16_id(), cell.brush);
+        overworld->LocateOverworldTile(map_id, cell.world_x, cell.world_y);
+        ctx->Yield(3);
+        const float size = 16.0f * canvas.global_scale();
+        const ImVec2 target(canvas.zero_point().x + canvas.scrolling().x +
+                                (cell.world_x + 0.5f) * size,
+                            canvas.zero_point().y + canvas.scrolling().y +
+                                (cell.world_y + 0.5f) * size);
+        ctx->SetRef(terrain.Window);
+        ctx->WindowFocus("");
+        ctx->Yield(2);
+        terrain = ctx->ItemInfo("**/OwMap");
+        IM_CHECK(terrain.RectClipped.Contains(target));
+        ctx->MouseSetViewport(terrain.Window);
+        ctx->MouseMoveToPos(target);
+        ctx->MouseClick(ImGuiMouseButton_Left);
+        ctx->Yield(3);
+        IM_CHECK_EQ(tile_from_loaded_at(overworld, cell.world_x, cell.world_y),
+                    static_cast<uint16_t>(cell.brush));
+      }
+
       ctx->KeyPress(ImGuiMod_Ctrl | ImGuiKey_S);
       const auto save_deadline =
           std::chrono::steady_clock::now() + std::chrono::seconds(30);
@@ -1867,6 +1948,7 @@ static void RegisterBuildRunAcceptanceTest(ImGuiTestEngine* engine) {
       IM_CHECK(disk_tile.has_value());
       saved_tile = *disk_tile;
       IM_CHECK_EQ(saved_tile, static_cast<uint16_t>(brush_id));
+      IM_CHECK(extra_cells_on_disk(*rom_disk_after));
       saved_rom_sha256 = core::ComputeSourceArtifactSha256(*rom_disk_after);
       IM_CHECK(saved_rom_sha256 ==
                core::ComputeSourceArtifactSha256(rom_view()));
@@ -1935,6 +2017,7 @@ static void RegisterBuildRunAcceptanceTest(ImGuiTestEngine* engine) {
         {"world_y", world_y},
         {"original_tile", original_tile},
         {"brush_id", brush_id},
+        {"extra_cells_verified", extra_cells.size()},
         {"saved_tile", saved_tile},
         {"undo_verified", undo_ok},
         {"redo_verified", redo_ok},
