@@ -32,6 +32,7 @@ constexpr uint32_t kTrack = 1 << 3;        // minecart track tiles
 constexpr uint32_t kCameraQuads = 1 << 4;  // camera quadrant boundaries
 constexpr uint32_t kGrid = 1 << 5;         // 8×8 tile grid
 constexpr uint32_t kTileTypes = 1 << 6;    // vanilla pits ($7F2000/$7F3000)
+constexpr uint32_t kItems = 1 << 7;        // pot-item and key-drop indicators
 constexpr uint32_t kAll = ~0u;
 }  // namespace RenderOverlay
 
@@ -111,6 +112,8 @@ struct RenderResult {
   // Actual resolved context, captured after the room has rendered.
   int main_blockset = -1;
   std::array<uint16_t, 8> graphics_sheets{};
+  // Objects in project-defined slots drawn without project data.
+  int project_objects_without_data = 0;
 };
 
 // Metadata about a dungeon room — no rendering required.

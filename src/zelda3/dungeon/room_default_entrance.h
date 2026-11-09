@@ -18,6 +18,16 @@ enum class RoomEntranceSource : uint8_t {
   kNeighbour,   // Inherited from an adjacent room in the 16-wide room grid.
 };
 
+const char* RoomEntranceSourceName(RoomEntranceSource source);
+
+// An entrance that could have loaded the room's graphics. A room can be
+// reached from several entrances, and a room can be drawn on several pause
+// maps, so the default below is only the most plausible of these.
+struct RoomEntranceCandidate {
+  int entrance_id = -1;
+  uint8_t main_blockset = 0xFF;
+};
+
 // The entrance the game would most plausibly load a room through, and the
 // main graphics set that entrance selects.
 //
@@ -31,6 +41,9 @@ struct RoomDefaultEntrance {
   uint8_t main_blockset = 0xFF;  // EntranceData.main_GFX, or 0xFF.
   RoomEntranceSource source = RoomEntranceSource::kNone;
   int via_room = -1;  // For kNeighbour: the room inherited from.
+  // Every direct or pause-map entrance considered, in table order. Empty for
+  // neighbour defaults.
+  std::vector<RoomEntranceCandidate> candidates;
 };
 
 struct GameData;
@@ -60,10 +73,21 @@ RoomMainBlocksetResolution ResolveRoomMainBlockset(
 // transparent; apply this offset only to nonzero 3bpp pixel indices.
 int DungeonBackgroundPaletteOffset(uint8_t main_blockset, int destination_slot);
 
+// Index of the candidate to use for a room reached only through its dungeon.
+// Prefers a main blockset equal to the room's header (secondary) blockset,
+// which is how hacks and vanilla usually pair them, then the first candidate.
+// Returns -1 when `candidates` is empty.
+int SelectRoomEntranceCandidate(
+    const std::vector<RoomEntranceCandidate>& candidates,
+    uint8_t header_blockset);
+
 // One entry per dungeon room (kNumberOfRooms), in order:
 //  1. an entrance whose room is this room;
-//  2. an entrance of the dungeon whose pause-menu map lists the room (map
-//     index to dungeon ID by majority over that map's direct entrances);
+//  2. an entrance on a pause-menu map listing the room. Only entrances that
+//     lead into a room of that map count; the map's dungeon ID is the majority
+//     among them. A dungeon ID shared with an entrance elsewhere in the ROM
+//     must not choose the graphics. A room on several maps chooses with
+//     SelectRoomEntranceCandidate;
 //  3. the choice of a neighbouring room (+-1 in the same row, +-16).
 std::vector<RoomDefaultEntrance> ComputeRoomDefaultEntrances(Rom& rom);
 

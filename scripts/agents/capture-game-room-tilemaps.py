@@ -22,7 +22,8 @@ records the entrance, how it was chosen, and its main_GFX per room.
 --oracle captures Oracle of Secrets ROMs: Oracle reads EntranceData from
 relocated tables (room word at $0F8000 + 2*entrance), and with $1B = 0 its
 LoadDarkWorldIntro hook sends the load to the overworld, so this writes
-$1B = 1 and the progress bytes the load needs, and uses entrance 0x34.
+$1B = 1 and the progress bytes the load needs. It uses entrance 0x34 unless
+--entrance names one; pass the room's real entrance for correct wall graphics.
 
 Output directory:
   room_XXX.tilemap  16384 bytes: TILEMAPA (BG1) then TILEMAPB (BG2),
@@ -283,7 +284,9 @@ def main():
     rom_bytes = Path(args.rom).read_bytes()
     rom_sha1 = hashlib.sha1(rom_bytes).hexdigest()
     if args.oracle:
-        args.entrance = f"0x{ENTRANCE:02X}"
+        # An explicit entrance is honored: it picks the main graphics set.
+        if args.entrance == "auto":
+            args.entrance = f"0x{ENTRANCE:02X}"
         manifest["oracle"] = True
     if args.entrance == "auto":
         entrance_for = choose_entrances(rom_bytes)

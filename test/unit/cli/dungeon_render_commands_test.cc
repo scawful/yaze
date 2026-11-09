@@ -1,5 +1,6 @@
 #include "cli/handlers/game/dungeon_render_commands.h"
 
+#include <algorithm>
 #include <chrono>
 #include <cmath>
 #include <filesystem>
@@ -373,10 +374,13 @@ TEST(DungeonRenderEntranceTest, InheritedGraphicsEntranceIsDiscoverable) {
   ASSERT_TRUE(schema["properties"].contains("graphics-entrance"));
   EXPECT_EQ(schema["properties"]["graphics-entrance"]["type"], "string");
   const auto descriptor = handler.Describe();
-  ASSERT_EQ(descriptor.entries.size(), 2u);
-  EXPECT_EQ(descriptor.entries[1].name, "graphics-entrance");
-  EXPECT_NE(descriptor.entries[1].description.find("mutually exclusive"),
-            std::string::npos);
+  const auto entry =
+      std::find_if(descriptor.entries.begin(), descriptor.entries.end(),
+                   [](const auto& candidate) {
+                     return candidate.name == "graphics-entrance";
+                   });
+  ASSERT_NE(entry, descriptor.entries.end());
+  EXPECT_NE(entry->description.find("mutually exclusive"), std::string::npos);
   for (const char* id : {"0", "29", "0x29", "84"}) {
     resources::ArgumentParser parser(
         {"--room=0x95", "--output=room.png", "--graphics-entrance", id});

@@ -241,6 +241,26 @@ TEST(ObjectLayerSemanticsTest,
   }
 }
 
+TEST(ObjectLayerSemanticsTest, CountsProjectSlotsThatHaveNoData) {
+  ScopedCustomObjectRoutingState custom_state;
+  custom_state.WriteOneTileObject("track_corner_tl.bin");
+  CustomObjectManager::Get().SetObjectFileMap(
+      {{0x31,
+        {"unused_lr.bin", "unused_ud.bin", "track_corner_tl.bin",
+         "unused_tr.bin", "unused_bl.bin", "unused_br.bin"}}});
+
+  const std::vector<RoomObject> objects = {
+      RoomObject(0x31, 0, 0, /*size=*/2, 1),  // resolves to the written file
+      RoomObject(0x31, 1, 0, /*size=*/0, 1),  // mapped file is absent
+      RoomObject(0x32, 2, 0, /*size=*/0, 1),  // slot has no mapping
+      RoomObject(0x30, 3, 0, /*size=*/0, 1),  // vanilla, never counted
+  };
+  EXPECT_EQ(CountProjectObjectsWithoutData(objects), 2);
+
+  core::FeatureFlags::get().kEnableCustomObjects = false;
+  EXPECT_EQ(CountProjectObjectsWithoutData(objects), 3);
+}
+
 TEST(ObjectLayerSemanticsTest, RoutingLabelsAndTokensAreStable) {
   struct LabelCase {
     ObjectRenderRouting routing;

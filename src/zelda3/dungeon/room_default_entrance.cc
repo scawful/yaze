@@ -1,10 +1,14 @@
 #include "zelda3/dungeon/room_default_entrance.h"
 
+#include <algorithm>
 #include <map>
+#include <set>
+#include <utility>
 
 #include "rom/rom.h"
 #include "zelda3/dungeon/dungeon_rom_addresses.h"
 #include "zelda3/dungeon/dungeon_spawn_point.h"
+#include "zelda3/dungeon/room.h"
 #include "zelda3/dungeon/room_entrance.h"
 #include "zelda3/game_data.h"
 #include "zelda3/screen/dungeon_map.h"
@@ -15,6 +19,31 @@ namespace {
 constexpr uint8_t kEmptyMapRoom = 0x0F;
 
 }  // namespace
+
+const char* RoomEntranceSourceName(RoomEntranceSource source) {
+  switch (source) {
+    case RoomEntranceSource::kNone:
+      return "none";
+    case RoomEntranceSource::kDirect:
+      return "direct";
+    case RoomEntranceSource::kDungeonMap:
+      return "dungeon_map";
+    case RoomEntranceSource::kNeighbour:
+      return "neighbour";
+  }
+  return "none";
+}
+
+int SelectRoomEntranceCandidate(
+    const std::vector<RoomEntranceCandidate>& candidates,
+    uint8_t header_blockset) {
+  for (size_t i = 0; i < candidates.size(); ++i) {
+    if (candidates[i].main_blockset == header_blockset) {
+      return static_cast<int>(i);
+    }
+  }
+  return candidates.empty() ? -1 : 0;
+}
 
 int DungeonBackgroundPaletteOffset(uint8_t main_blockset,
                                    int destination_slot) {
@@ -87,32 +116,34 @@ std::vector<RoomDefaultEntrance> ComputeRoomDefaultEntrances(Rom& rom) {
     }
     RoomDefaultEntrance& slot = result[static_cast<size_t>(entrance.room)];
     if (slot.source == RoomEntranceSource::kNone) {
-      slot = {entrance.id, entrance.main_blockset, RoomEntranceSource::kDirect,
-              -1};
+      slot.entrance_id = entrance.id;
+      slot.main_blockset = entrance.main_blockset;
+      slot.source = RoomEntranceSource::kDirect;
     }
+    slot.candidates.push_back({entrance.id, entrance.main_blockset});
   }
 
   // 2. Pause-menu dungeon maps.
+  std::map<int, std::vector<RoomEntranceCandidate>> map_candidates;
   DungeonMapLabels labels;
   auto maps = LoadDungeonMaps(rom, labels);
   if (maps.ok()) {
     for (const DungeonMap& map : *maps) {
-      std::vector<int> rooms;
+      std::set<int> rooms;
       for (const auto& floor : map.floor_rooms) {
         for (uint8_t room : floor) {
           if (room != kEmptyMapRoom) {
-            rooms.push_back(room);
+            rooms.insert(room);
           }
         }
       }
-      // Which dungeon ID this map belongs to: the most common one among
-      // entrances that lead straight into its rooms.
+      // The map's dungeon ID: the most common one among entrances that lead
+      // straight into its rooms. Other entrances can share the ID without
+      // being part of this map, so they never represent it.
       std::map<uint8_t, int> votes;
-      for (int room : rooms) {
-        for (const EntranceInfo& entrance : entrances) {
-          if (entrance.room == room && entrance.dungeon_id != 0xFF) {
-            ++votes[entrance.dungeon_id];
-          }
+      for (const EntranceInfo& entrance : entrances) {
+        if (rooms.contains(entrance.room) && entrance.dungeon_id != 0xFF) {
+          ++votes[entrance.dungeon_id];
         }
       }
       if (votes.empty()) {
@@ -124,24 +155,43 @@ std::vector<RoomDefaultEntrance> ComputeRoomDefaultEntrances(Rom& rom) {
           dungeon_id = id;
         }
       }
-      const EntranceInfo* representative = nullptr;
-      for (const EntranceInfo& entrance : entrances) {
-        if (entrance.dungeon_id == dungeon_id) {
-          representative = &entrance;
-          break;
-        }
-      }
-      if (representative == nullptr) {
-        continue;
-      }
       for (int room : rooms) {
-        RoomDefaultEntrance& slot = result[static_cast<size_t>(room)];
-        if (slot.source == RoomEntranceSource::kNone) {
-          slot = {representative->id, representative->main_blockset,
-                  RoomEntranceSource::kDungeonMap, -1};
+        auto& candidates = map_candidates[room];
+        for (const EntranceInfo& entrance : entrances) {
+          if (entrance.dungeon_id != dungeon_id ||
+              !rooms.contains(entrance.room)) {
+            continue;
+          }
+          const bool known = std::any_of(
+              candidates.begin(), candidates.end(), [&](const auto& candidate) {
+                return candidate.entrance_id == entrance.id;
+              });
+          if (!known) {
+            candidates.push_back({entrance.id, entrance.main_blockset});
+          }
         }
       }
     }
+  }
+  for (auto& [room, candidates] : map_candidates) {
+    RoomDefaultEntrance& slot = result[static_cast<size_t>(room)];
+    if (slot.source != RoomEntranceSource::kNone || candidates.empty()) {
+      continue;
+    }
+    const bool same_blockset = std::all_of(
+        candidates.begin(), candidates.end(), [&](const auto& candidate) {
+          return candidate.main_blockset == candidates.front().main_blockset;
+        });
+    // The header is read only when it can change the outcome.
+    const uint8_t header_blockset =
+        same_blockset ? candidates.front().main_blockset
+                      : LoadRoomHeaderFromRom(&rom, room).blockset();
+    const auto& chosen =
+        candidates[SelectRoomEntranceCandidate(candidates, header_blockset)];
+    slot.entrance_id = chosen.entrance_id;
+    slot.main_blockset = chosen.main_blockset;
+    slot.source = RoomEntranceSource::kDungeonMap;
+    slot.candidates = std::move(candidates);
   }
 
   // 3. Neighbours in the 16-wide room grid, until nothing changes.
@@ -164,9 +214,11 @@ std::vector<RoomDefaultEntrance> ComputeRoomDefaultEntrances(Rom& rom) {
         if (from.source == RoomEntranceSource::kNone) {
           continue;
         }
-        result[static_cast<size_t>(room)] = {
-            from.entrance_id, from.main_blockset,
-            RoomEntranceSource::kNeighbour, neighbour};
+        result[static_cast<size_t>(room)] = {from.entrance_id,
+                                             from.main_blockset,
+                                             RoomEntranceSource::kNeighbour,
+                                             neighbour,
+                                             {}};
         changed = true;
         break;
       }

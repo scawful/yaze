@@ -1832,29 +1832,32 @@ void Room::RenderObjectsToBackground() {
     object_bg2_buffer_.bitmap().set_modified(true);
   }
 
-  // Render pot items
-  // Pot items now have their own position from ROM data
-  // No need to match to objects - each item has exact coordinates
-  for (const auto& pot_item : pot_items_) {
-    if (pot_item.item != 0) {  // Skip "Nothing" items
-      // PotItem provides pixel coordinates, convert to tile coords
-      int tile_x = pot_item.GetTileX();
-      int tile_y = pot_item.GetTileY();
-      drawer.DrawPotItem(pot_item.item, tile_x, tile_y, object_bg1_buffer_);
+  if (draw_item_indicators_) {
+    // Render pot items
+    // Pot items now have their own position from ROM data
+    // No need to match to objects - each item has exact coordinates
+    for (const auto& pot_item : pot_items_) {
+      if (pot_item.item != 0) {  // Skip "Nothing" items
+        // PotItem provides pixel coordinates, convert to tile coords
+        int tile_x = pot_item.GetTileX();
+        int tile_y = pot_item.GetTileY();
+        drawer.DrawPotItem(pot_item.item, tile_x, tile_y, object_bg1_buffer_);
+      }
     }
-  }
 
-  // Render sprites (for key drops)
-  // We don't have full sprite rendering yet, but we can visualize key drops
-  for (const auto& sprite : sprites_) {
-    if (sprite.key_drop() > 0) {
-      // Draw key drop visualization
-      // Use a special item ID or just draw a key icon
-      // We can reuse DrawPotItem with a special ID for key
-      // Or add DrawKeyDrop to ObjectDrawer
-      // For now, let's use DrawPotItem with ID 0xFD (Small Key) or 0xFE (Big Key)
-      uint8_t key_item = (sprite.key_drop() == 1) ? 0xFD : 0xFE;
-      drawer.DrawPotItem(key_item, sprite.x(), sprite.y(), object_bg1_buffer_);
+    // Render sprites (for key drops)
+    // We don't have full sprite rendering yet, but we can visualize key drops
+    for (const auto& sprite : sprites_) {
+      if (sprite.key_drop() > 0) {
+        // Draw key drop visualization
+        // Use a special item ID or just draw a key icon
+        // We can reuse DrawPotItem with a special ID for key
+        // Or add DrawKeyDrop to ObjectDrawer
+        // For now, let's use DrawPotItem with ID 0xFD (Small Key) or 0xFE (Big Key)
+        uint8_t key_item = (sprite.key_drop() == 1) ? 0xFD : 0xFE;
+        drawer.DrawPotItem(key_item, sprite.x(), sprite.y(),
+                           object_bg1_buffer_);
+      }
     }
   }
 
