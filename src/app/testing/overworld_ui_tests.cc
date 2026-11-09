@@ -1555,6 +1555,9 @@ static void RegisterBuildRunAcceptanceTest(ImGuiTestEngine* engine) {
     namespace fs = std::filesystem;
     namespace Context = editor::ContentRegistry::Context;
     using editor::ProjectWorkflowState;
+    // Save, Build and Run on a dense map exceed the engine's 60 s default.
+    // The owning harness enforces its own progress and total deadlines.
+    ctx->EngineIO->ConfigWatchdogKillTest = 1200.0f;
     const char* requested = std::getenv("YAZE_BUILD_RUN_ACCEPTANCE_PROJECT");
     IM_CHECK(requested && *requested);
     IM_CHECK(fs::path(requested).is_absolute());
@@ -1904,6 +1907,13 @@ static void RegisterBuildRunAcceptanceTest(ImGuiTestEngine* engine) {
       for (const auto& cell : extra_cells) {
         IM_CHECK_EQ(tile_from_loaded_at(overworld, cell.world_x, cell.world_y),
                     static_cast<uint16_t>(cell.original));
+        // The tile input exists only while the Lookup popup is open, and each
+        // successful jump closes the popup.
+        const ImGuiID cell_lookup =
+            visible_widget("OwBlocksetSelector/button:Lookup");
+        IM_CHECK(cell_lookup != 0);
+        ctx->ItemClick(cell_lookup);
+        ctx->Yield(2);
         const ImGuiID cell_tile_input =
             visible_widget("OwBlocksetSelector/input:TileID");
         IM_CHECK(cell_tile_input != 0);
