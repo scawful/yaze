@@ -70,6 +70,9 @@ struct DungeonStreamRecord {
   // Long pointers only: the room pointer uses the $80-$FF LoROM (FastROM)
   // mirror. A copy-on-write move keeps that mirror for its new pointers.
   bool high_bank_mirror = false;
+  // Object streams only: the same flag for the room's kDoorPointers slot,
+  // which a move keeps independently of the object pointer.
+  bool door_high_bank_mirror = false;
   // Immutable logical payload captured with the inventory snapshot. Keeping
   // the bytes here lets a full repack preserve rooms that have no replacement
   // without consulting a ROM that may have changed since inventory.
@@ -158,6 +161,12 @@ struct DungeonStreamWritePlan {
 // LoROM bank end, or ROM end. Exact shared pointers are permitted.
 absl::StatusOr<DungeonStreamRecord> ReadDungeonObjectStream(const Rom& rom,
                                                             int room_id);
+
+// Offset from the start of an encoded object stream (header included) to the
+// first door byte, or to the final terminator of a doorless stream. The
+// runtime door pointer (kDoorPointers) must point there.
+absl::StatusOr<uint32_t> DungeonObjectDoorListOffset(
+    const std::vector<uint8_t>& encoded_stream);
 
 // Strict read-only counterparts for the live bank-09 sprite table and fixed
 // bank-01 pot-item table. Parsing cannot cross a pointer table/source, a known

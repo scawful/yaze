@@ -330,44 +330,6 @@ absl::Status SaveNativeRoomSprites(
       });
 }
 
-// The decoder returns stream objects grouped by list, so lists are compared
-// separately; within a list, order is the draw order and must match.
-absl::Status CheckReopenedObjects(const std::vector<uint8_t>& image,
-                                  int room_id, const zelda3::Room& expected) {
-  ASSIGN_OR_RETURN(auto scratch_rom, LoadScratchRom(image));
-  const zelda3::Room reopened =
-      zelda3::LoadRoomFromRom(scratch_rom.get(), room_id);
-  const auto list = [](const zelda3::Room& room, int index) {
-    std::vector<std::tuple<int, int, int, int>> out;
-    for (const auto& object : room.GetTileObjects()) {
-      if (zelda3::UsesRoomObjectStream(object) &&
-          object.GetLayerValue() == index) {
-        out.emplace_back(object.id_, object.x(), object.y(), object.size_);
-      }
-    }
-    return out;
-  };
-  const auto doors = [](const zelda3::Room& room) {
-    std::vector<std::pair<uint8_t, uint8_t>> out;
-    for (const auto& door : room.GetDoors()) {
-      out.push_back(door.EncodeBytes());
-    }
-    return out;
-  };
-  for (int index = 0; index < 3; ++index) {
-    if (list(reopened, index) != list(expected, index)) {
-      return absl::FailedPreconditionError(absl::StrFormat(
-          "Object list %d does not survive save/reopen", index));
-    }
-  }
-  if (doors(reopened) != doors(expected) ||
-      (expected.GetDoors().empty() &&
-       reopened.door_marker() != expected.door_marker())) {
-    return absl::FailedPreconditionError("Doors do not survive save/reopen");
-  }
-  return absl::OkStatus();
-}
-
 // In place when the stream fits; with a manifest, the allocator may move it
 // into declared allocation space and update the object and door pointers.
 // Every staged range is still checked against native storage at commit.
@@ -413,7 +375,7 @@ absl::Status SaveNativeRoomObjects(
       rom, baseline, std::move(candidate), *ranges,
       manifest_context != nullptr ? &manifest_context->manifest : nullptr,
       do_write, formatter, [&](const std::vector<uint8_t>& image) {
-        return CheckReopenedObjects(image, room_id, room);
+        return CheckReopenedRoomObjects(image, room_id, room);
       });
 }
 
@@ -1433,6 +1395,58 @@ absl::StatusOr<PotItemTarget> ResolvePotItemTarget(
 
 }  // namespace
 
+// The decoder returns stream objects grouped by list, so lists are compared
+// separately; within a list, order is the draw order and must match.
+absl::Status CheckReopenedRoomObjects(const std::vector<uint8_t>& image,
+                                      int room_id,
+                                      const zelda3::Room& expected) {
+  ASSIGN_OR_RETURN(auto scratch_rom, LoadScratchRom(image));
+  const zelda3::Room reopened =
+      zelda3::LoadRoomFromRom(scratch_rom.get(), room_id);
+  const auto list = [](const zelda3::Room& room, int index) {
+    std::vector<std::tuple<int, int, int, int>> out;
+    for (const auto& object : room.GetTileObjects()) {
+      if (zelda3::UsesRoomObjectStream(object) &&
+          object.GetLayerValue() == index) {
+        out.emplace_back(object.id_, object.x(), object.y(), object.size_);
+      }
+    }
+    return out;
+  };
+  const auto doors = [](const zelda3::Room& room) {
+    std::vector<std::pair<uint8_t, uint8_t>> out;
+    for (const auto& door : room.GetDoors()) {
+      out.push_back(door.EncodeBytes());
+    }
+    return out;
+  };
+  for (int index = 0; index < 3; ++index) {
+    if (list(reopened, index) != list(expected, index)) {
+      return absl::FailedPreconditionError(absl::StrFormat(
+          "Object list %d does not survive save/reopen", index));
+    }
+  }
+  if (doors(reopened) != doors(expected) ||
+      (expected.GetDoors().empty() &&
+       reopened.door_marker() != expected.door_marker())) {
+    return absl::FailedPreconditionError("Doors do not survive save/reopen");
+  }
+  // The room loader reads doors from the stream, but the game reads them
+  // through kDoorPointers; a stale pointer reopens cleanly and plays wrong.
+  ASSIGN_OR_RETURN(const auto stream,
+                   zelda3::ReadDungeonObjectStream(*scratch_rom, room_id));
+  ASSIGN_OR_RETURN(const uint32_t door_offset,
+                   zelda3::DungeonObjectDoorListOffset(stream.encoded_stream));
+  ASSIGN_OR_RETURN(const uint32_t door_pointer,
+                   scratch_rom->ReadLong(zelda3::kDoorPointers + room_id * 3));
+  if (SnesToPc(door_pointer & 0x7FFFFF) != stream.data_pc + door_offset) {
+    return absl::FailedPreconditionError(absl::StrFormat(
+        "Door pointer $%06X does not reach the saved door list at PC 0x%06X",
+        door_pointer, stream.data_pc + door_offset));
+  }
+  return absl::OkStatus();
+}
+
 bool IsNativeDungeonLayout(const Rom& rom) {
   return rom::IsNativeSpecialOverworldLayout(rom.InspectLyraLayout());
 }
@@ -1464,6 +1478,22 @@ absl::Status CommitNativeDungeonCandidate(
             begin, end, owned_begin, owned_end)));
     }
   }
+  // Rom::CommitNativeDungeonImage refuses the same bytes on --write; checking
+  // here keeps a dry run from reporting passed for a write that would fail.
+  if (candidate.size() != baseline.size())
+    return fail(absl::InvalidArgumentError(
+        "Native dungeon candidate differs in size from the ROM"));
+  int changed_bytes = 0;
+  for (size_t pc = 0; pc < candidate.size(); ++pc) {
+    if (candidate[pc] == baseline[pc])
+      continue;
+    ++changed_bytes;
+    if (std::none_of(ranges.begin(), ranges.end(), [pc](const auto& range) {
+          return pc >= range.first && pc < range.second;
+        }))
+      return fail(absl::PermissionDeniedError(absl::StrFormat(
+          "Native dungeon candidate changed unplanned byte 0x%06X", pc)));
+  }
   if (const absl::Status reopened = check(candidate); !reopened.ok())
     return fail(reopened);
   formatter.AddField("preflight_status", "passed");
@@ -1475,10 +1505,6 @@ absl::Status CommitNativeDungeonCandidate(
     formatter.EndObject();
   }
   formatter.EndArray();
-  int changed_bytes = 0;
-  for (size_t pc = 0; pc < candidate.size(); ++pc) {
-    changed_bytes += candidate[pc] != baseline[pc] ? 1 : 0;
-  }
   formatter.AddField("changed_bytes", changed_bytes);
   if (!do_write)
     return absl::OkStatus();
@@ -2266,21 +2292,18 @@ absl::Status DungeonImportRoomObjectsCommandHandler::Execute(
       zelda3::LoadRoomFromRom(&source_rom, room_id);
   zelda3::Room room = zelda3::LoadRoomFromRom(rom, room_id);
 
-  const auto count_stream = [](const zelda3::Room& r, bool chests_only) {
-    return static_cast<int>(std::count_if(
-        r.GetTileObjects().begin(), r.GetTileObjects().end(),
-        [chests_only](const zelda3::RoomObject& object) {
-          return zelda3::UsesRoomObjectStream(object) &&
-                 (!chests_only || zelda3::IsStatefulChestObjectId(object.id_));
-        }));
+  const auto count_stream = [](const zelda3::Room& r) {
+    return static_cast<int>(std::count_if(r.GetTileObjects().begin(),
+                                          r.GetTileObjects().end(),
+                                          zelda3::UsesRoomObjectStream));
   };
 
   formatter.BeginObject("Import Room Objects");
   formatter.AddHexField("room_id", room_id, 2);
   formatter.AddField("source_rom", source_path);
   formatter.AddHexField("source_data_pc_in_source", source_stream.data_pc, 6);
-  formatter.AddField("objects_before", count_stream(room, false));
-  formatter.AddField("objects_after", count_stream(source_room, false));
+  formatter.AddField("objects_before", count_stream(room));
+  formatter.AddField("objects_after", count_stream(source_room));
   formatter.AddField("doors_before", static_cast<int>(room.GetDoors().size()));
   formatter.AddField("doors_after",
                      static_cast<int>(source_room.GetDoors().size()));
@@ -2308,9 +2331,21 @@ absl::Status DungeonImportRoomObjectsCommandHandler::Execute(
     return refuse(absl::FailedPreconditionError(
         "Source and target object stream headers (floor/layout) differ"));
   }
-  if (count_stream(source_room, true) != count_stream(room, true)) {
+  const auto chest_sequence = [](const zelda3::Room& r) {
+    std::vector<std::tuple<int, int, int, int>> out;
+    for (const auto& object : r.GetTileObjects()) {
+      if (zelda3::UsesRoomObjectStream(object) &&
+          zelda3::IsStatefulChestObjectId(object.id_)) {
+        out.emplace_back(object.id_, object.x(), object.y(),
+                         object.GetLayerValue());
+      }
+    }
+    return out;
+  };
+  if (chest_sequence(source_room) != chest_sequence(room)) {
     return refuse(absl::FailedPreconditionError(
-        "Source and target chest object counts differ"));
+        "Source and target chest objects differ in order, kind or position; "
+        "chest-table rows pair with chests in stream order"));
   }
 
   std::vector<zelda3::RoomObject> objects;
@@ -2362,7 +2397,8 @@ absl::Status DungeonImportRoomObjectsCommandHandler::Execute(
     RETURN_IF_ERROR(MutateAndSaveRomWithBackup(
         rom, formatter,
         [&room, layout]() { return room.SaveObjects(layout); }));
-    if (const auto status = CheckReopenedObjects(rom->vector(), room_id, room);
+    if (const auto status =
+            CheckReopenedRoomObjects(rom->vector(), room_id, room);
         !status.ok()) {
       formatter.EndObject();
       return absl::DataLossError(status.message());

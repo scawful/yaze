@@ -13,6 +13,10 @@ namespace core {
 class HackManifest;
 }  // namespace core
 
+namespace zelda3 {
+class Room;
+}  // namespace zelda3
+
 namespace cli {
 namespace handlers {
 
@@ -34,6 +38,12 @@ absl::Status CommitNativeDungeonCandidate(
     const std::vector<std::pair<uint32_t, uint32_t>>& ranges,
     const core::HackManifest* manifest, bool do_write,
     resources::OutputFormatter& formatter, const NativeImageCheck& check);
+
+// Reopens room_id from image and refuses unless its object lists and doors
+// match expected and the runtime door pointer reaches the saved door list.
+absl::Status CheckReopenedRoomObjects(const std::vector<uint8_t>& image,
+                                      int room_id,
+                                      const zelda3::Room& expected);
 
 /**
  * @brief Place a sprite in a dungeon room and optionally write to ROM.

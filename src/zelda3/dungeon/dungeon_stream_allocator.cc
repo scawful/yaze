@@ -678,6 +678,16 @@ absl::StatusOr<std::vector<uint8_t>> EncodeRoomPointer(
   return bytes;
 }
 
+absl::StatusOr<std::vector<uint8_t>> EncodeRoomDoorPointer(
+    const DungeonStreamInventory& inventory, uint32_t room_id, uint32_t pc) {
+  ASSIGN_OR_RETURN(auto bytes, EncodePointer(inventory.layout, pc));
+  if (bytes.size() == 3 && room_id < inventory.streams.size() &&
+      inventory.streams[room_id].door_high_bank_mirror) {
+    bytes[2] |= 0x80;
+  }
+  return bytes;
+}
+
 absl::StatusOr<uint32_t> FindFirstFit(
     const std::vector<DungeonStreamPcRange>& free_intervals,
     const DungeonStreamLayout& layout, uint32_t size) {
@@ -903,7 +913,7 @@ absl::Status ValidatePlanAgainstInventory(
       if (!door_offset.ok()) {
         return door_offset.status();
       }
-      auto expected_door_pointer = EncodeRoomPointer(
+      auto expected_door_pointer = EncodeRoomDoorPointer(
           inventory, payload.room_id, payload.address + *door_offset);
       if (!expected_door_pointer.ok()) {
         return expected_door_pointer.status();
@@ -957,6 +967,11 @@ absl::Status ValidatePlanAgainstInventory(
 }
 
 }  // namespace
+
+absl::StatusOr<uint32_t> DungeonObjectDoorListOffset(
+    const std::vector<uint8_t>& encoded_stream) {
+  return ObjectDoorListOffset(encoded_stream);
+}
 
 absl::StatusOr<DungeonStreamRecord> ReadDungeonObjectStream(const Rom& rom,
                                                             int room_id) {
@@ -1057,6 +1072,11 @@ absl::StatusOr<DungeonStreamInventory> InventoryDungeonStreams(
     if (inventory.layout.pointer_encoding == DungeonPointerEncoding::kLong24 &&
         record.pointer_slot_pc + 2 < rom.size()) {
       record.high_bank_mirror = (bytes[record.pointer_slot_pc + 2] & 0x80) != 0;
+    }
+    const uint32_t door_slot_pc = kDoorPointers + room_id * 3;
+    if (inventory.layout.kind == DungeonStreamKind::kObject &&
+        door_slot_pc + 2 < rom.size()) {
+      record.door_high_bank_mirror = (bytes[door_slot_pc + 2] & 0x80) != 0;
     }
 
     auto pointer = DecodePointer(rom, inventory.layout, room_id);
@@ -1221,8 +1241,8 @@ absl::StatusOr<DungeonStreamWritePlan> PlanDungeonStreamWrites(
       if (!door_offset.ok()) {
         return door_offset.status();
       }
-      auto door_pointer = EncodeRoomPointer(inventory, replacement.room_id,
-                                            *address + *door_offset);
+      auto door_pointer = EncodeRoomDoorPointer(inventory, replacement.room_id,
+                                                *address + *door_offset);
       if (!door_pointer.ok()) {
         return door_pointer.status();
       }

@@ -1271,6 +1271,167 @@ TEST(DungeonNativeObjectRouteTest, ImportMovesStreamIntoAllocRangeAndReopens) {
   EXPECT_EQ(ReadFile(cleanup.rom_path), rom.vector());
 }
 
+// Room 0 rewritten as a doorless stream with objects in its first list, and
+// both runtime pointers aimed at it.
+std::vector<uint8_t> NativeRoomWithObjectsImage(
+    const std::vector<zelda3::RoomObject>& objects) {
+  auto bytes = NativeObjectRouteImage();
+  std::vector<uint8_t> stream = {kObjectHeaderByte0, kObjectHeaderByte1};
+  for (const auto& object : objects) {
+    const auto encoded = object.EncodeObjectToBytes();
+    stream.insert(stream.end(), {encoded.b1, encoded.b2, encoded.b3});
+  }
+  stream.insert(stream.end(), {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF});
+  std::copy(stream.begin(), stream.end(),
+            bytes.begin() + kNativeSourceStreamPc);
+  PutLong(bytes, kObjectPointerTablePc,
+          PcToSnes(kNativeSourceStreamPc) | 0x800000);
+  PutLong(bytes, zelda3::kDoorPointers,
+          PcToSnes(kNativeSourceStreamPc + stream.size() - 2) | 0x800000);
+  return bytes;
+}
+
+TEST(DungeonNativeObjectRouteTest, ImportRefusesChestOrderOrKindChange) {
+  const zelda3::RoomObject small_a(0xF99, 4, 4, 0, 0);
+  const zelda3::RoomObject small_b(0xF99, 10, 4, 0, 0);
+  const zelda3::RoomObject big_b(0xFB1, 10, 4, 0, 0);
+  const zelda3::RoomObject wall(0x031, 1, 2, 6, 0);
+  Rom rom;
+  ASSERT_TRUE(
+      rom.LoadFromData(NativeRoomWithObjectsImage({small_a, small_b})).ok());
+  ScopedRomArtifactsCleanup cleanup(MakeUniqueTempRomPath());
+  rom.set_filename(cleanup.rom_path.string());
+  rom.set_dirty(false);
+  WriteRomFile(rom, cleanup.rom_path);
+  const auto baseline = CaptureRomFailClosedBaseline(rom, cleanup.rom_path);
+
+  const std::filesystem::path source_path =
+      cleanup.rom_path.string() + ".source.sfc";
+  ScopedFileCleanup source_cleanup(source_path);
+  const std::filesystem::path manifest_path =
+      cleanup.rom_path.string() + ".manifest.json";
+  ScopedFileCleanup manifest_cleanup(manifest_path);
+  WriteNativeObjectManifest(manifest_path, kNativeObjectAllocationPc,
+                            kNativeObjectDataEndPc);
+  const std::vector<std::string> args = {
+      "--source-rom=" + source_path.string(),
+      "--manifest=" + manifest_path.string(),
+      absl::StrFormat("--alloc-range=0x%06X-0x%06X",
+                      PcToSnes(kNativeObjectAllocationPc + 0x80),
+                      PcToSnes(kNativeObjectDataEndPc))};
+  const auto dry_run = [&](const std::vector<zelda3::RoomObject>& source,
+                           nlohmann::json* out) {
+    test::native_overworld::WriteBytes(source_path,
+                                       NativeRoomWithObjectsImage(source));
+    return RunNativeImport(&rom, args, out);
+  };
+
+  // Control: a new non-chest object, chests unchanged and in order.
+  nlohmann::json out;
+  const absl::Status control = dry_run({wall, small_a, small_b}, &out);
+  ASSERT_TRUE(control.ok()) << control << out.dump();
+  EXPECT_EQ(out.at("preflight_status"), "passed");
+
+  // Same chest count in both: reordered, then small to big.
+  for (const auto& source :
+       {std::vector{small_b, small_a}, std::vector{small_a, big_b}}) {
+    out = nlohmann::json();
+    const absl::Status status = dry_run(source, &out);
+    EXPECT_EQ(status.code(), absl::StatusCode::kFailedPrecondition)
+        << status << out.dump();
+    EXPECT_THAT(out.value("preflight_error", ""), HasSubstr("chest"));
+  }
+  EXPECT_EQ(rom.vector(), baseline.bytes);
+  EXPECT_EQ(ReadFile(cleanup.rom_path), baseline.disk_bytes);
+  EXPECT_EQ(CountBackupArtifacts(cleanup.rom_path), 0);
+}
+
+TEST(DungeonNativeObjectRouteTest, ReopenCheckRefusesWrongDoorPointer) {
+  // Room 0's door list starts 17 bytes into the source stream.
+  auto image = NativeObjectSourceImage();
+  const int door_list_pc = kNativeSourceStreamPc + 17;
+  PutLong(image, zelda3::kDoorPointers, PcToSnes(door_list_pc) | 0x800000);
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(image).ok());
+  const zelda3::Room expected = zelda3::LoadRoomFromRom(&rom, 0);
+  ASSERT_EQ(expected.GetDoors().size(), 1u);
+  const absl::Status good =
+      handlers::CheckReopenedRoomObjects(image, 0, expected);
+  EXPECT_TRUE(good.ok()) << good;
+
+  // Off by one door entry, and still at the previous stream.
+  for (const int wrong_pc : {door_list_pc - 2, kNativeObjectDataPc + 6}) {
+    auto wrong = image;
+    PutLong(wrong, zelda3::kDoorPointers, PcToSnes(wrong_pc) | 0x800000);
+    const absl::Status status =
+        handlers::CheckReopenedRoomObjects(wrong, 0, expected);
+    EXPECT_EQ(status.code(), absl::StatusCode::kFailedPrecondition)
+        << absl::StrFormat("0x%06X: ", wrong_pc) << status;
+    EXPECT_THAT(std::string(status.message()), HasSubstr("Door pointer"));
+  }
+}
+
+TEST(DungeonNativeObjectRouteTest, ImportKeepsDoorSlotMirrorBit) {
+  // Object slot in the $80 mirror, door slot not: a move keeps each as found.
+  auto image = NativeObjectRouteImage();
+  PutLong(image, zelda3::kDoorPointers, PcToSnes(kNativeObjectDataPc + 6));
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(image).ok());
+  ScopedRomArtifactsCleanup cleanup(MakeUniqueTempRomPath());
+  rom.set_filename(cleanup.rom_path.string());
+  rom.set_dirty(false);
+  WriteRomFile(rom, cleanup.rom_path);
+
+  const std::filesystem::path source_path =
+      cleanup.rom_path.string() + ".source.sfc";
+  ScopedFileCleanup source_cleanup(source_path);
+  test::native_overworld::WriteBytes(source_path, NativeObjectSourceImage());
+  const std::filesystem::path manifest_path =
+      cleanup.rom_path.string() + ".manifest.json";
+  ScopedFileCleanup manifest_cleanup(manifest_path);
+  WriteNativeObjectManifest(manifest_path, kNativeObjectAllocationPc,
+                            kNativeObjectDataEndPc);
+  const int stream_pc = kNativeObjectAllocationPc + 0x80;
+
+  nlohmann::json out;
+  const absl::Status written = RunNativeImport(
+      &rom,
+      {"--source-rom=" + source_path.string(),
+       "--manifest=" + manifest_path.string(),
+       absl::StrFormat("--alloc-range=0x%06X-0x%06X", PcToSnes(stream_pc),
+                       PcToSnes(kNativeObjectDataEndPc)),
+       "--write"},
+      &out);
+  ASSERT_TRUE(written.ok()) << written << out.dump();
+  EXPECT_EQ(ReadImageLong(rom.vector(), kObjectPointerTablePc),
+            PcToSnes(stream_pc) | 0x800000);
+  EXPECT_EQ(ReadImageLong(rom.vector(), zelda3::kDoorPointers),
+            PcToSnes(stream_pc + 17));
+}
+
+TEST(DungeonNativeObjectRouteTest, DryRunRefusesUnplannedChangedByte) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(NativeObjectRouteImage()).ok());
+  const auto baseline = rom.vector();
+  auto candidate = baseline;
+  const uint32_t planned = kNativeObjectAllocationPc + 0x80;
+  candidate[planned] ^= 0xFF;
+  candidate[planned + 0x10] ^= 0xFF;
+  resources::OutputFormatter formatter(
+      resources::OutputFormatter::Format::kJson);
+  bool checked = false;
+  const absl::Status status = handlers::CommitNativeDungeonCandidate(
+      &rom, baseline, candidate, {{planned, planned + 8}}, nullptr,
+      /*do_write=*/false, formatter, [&checked](const std::vector<uint8_t>&) {
+        checked = true;
+        return absl::OkStatus();
+      });
+  EXPECT_EQ(status.code(), absl::StatusCode::kPermissionDenied) << status;
+  EXPECT_THAT(std::string(status.message()), HasSubstr("unplanned byte"));
+  EXPECT_FALSE(checked);
+  EXPECT_EQ(rom.vector(), baseline);
+}
+
 TEST(DungeonNativeObjectRouteTest, RefusesAllocationOverNativeStorage) {
   Rom rom;
   ASSERT_TRUE(rom.LoadFromData(NativeObjectRouteImage()).ok());
