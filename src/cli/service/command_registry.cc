@@ -99,6 +99,14 @@ void CommandRegistry::RegisterHandlers(
             "--rom=/tmp/oos-work.sfc --format=json",
             "z3ed dungeon-remove-sprite --room=0x77 --x=16 --y=21 --write "
             "--rom=/tmp/oos-work.sfc --format=json"};
+      } else if (name == "dungeon-move-sprite") {
+        metadata.description =
+            "Move a dungeon sprite to a new tile, keeping its list position";
+        metadata.examples = {
+            "z3ed dungeon-move-sprite --room=0x25 --index=0 --x=12 --y=9 "
+            "--rom=/tmp/oos-work.sfc --format=json",
+            "z3ed dungeon-move-sprite --room=0x25 --index=0 --x=12 --y=9 "
+            "--write --rom=/tmp/oos-work.sfc --format=json"};
       } else if (name == "dungeon-place-object") {
         metadata.description =
             "Place a dungeon object or paired chest/reward with capacity/COW "

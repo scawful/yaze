@@ -58,6 +58,30 @@ class DungeonRemoveSpriteCommandHandler : public resources::CommandHandler {
 };
 
 /**
+ * @brief Move one dungeon sprite to a new tile, keeping its list position.
+ *
+ * Dry-run by default. Use --write to commit + save ROM.
+ */
+class DungeonMoveSpriteCommandHandler : public resources::CommandHandler {
+ public:
+  std::string GetName() const override { return "dungeon-move-sprite"; }
+  std::string GetDescription() const {
+    return "Move a sprite in a dungeon room";
+  }
+  std::string GetUsage() const override {
+    return "dungeon-move-sprite --room <hex> --index <int> --x <int> "
+           "--y <int> [--write] [--format <json|text>]";
+  }
+
+  absl::Status ValidateArgs(const resources::ArgumentParser& parser) override {
+    return parser.RequireArgs({"room", "index", "x", "y"});
+  }
+
+  absl::Status Execute(Rom* rom, const resources::ArgumentParser& parser,
+                       resources::OutputFormatter& formatter) override;
+};
+
+/**
  * @brief Place a dungeon object (track segment, door, etc.) in a room.
  *
  * Dry-run by default. Use --write to commit + save ROM.

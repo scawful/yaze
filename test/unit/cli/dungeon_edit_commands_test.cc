@@ -21,7 +21,9 @@
 #include "absl/strings/str_format.h"
 #include "app/gfx/types/snes_palette.h"
 #include "cli/service/command_registry.h"
+#include "fixtures/lyra/native_directory_fixture.h"
 #include "framework/rom_save_fault.h"
+#include "rom/lyra_layout_descriptor.h"
 #include "rom/rom.h"
 #include "rom/snes.h"
 #include "zelda3/dungeon/dungeon_rom_addresses.h"
@@ -919,6 +921,130 @@ TEST_F(DungeonPlaceSpriteStorageTest,
   EXPECT_EQ(cart.subtype(), 2);
   EXPECT_EQ(cart.layer(), 0);
   EXPECT_FALSE(cart.IsOverlord());
+}
+
+// A native special-overworld image whose B8 sprite stream lives at `data_pc`
+// and is bounded by B9's stream at `data_pc + 8`. Bytes are placed directly
+// because native layouts refuse generic writes.
+std::vector<uint8_t> NativeSpriteRouteImage(int data_pc) {
+  test::native_overworld::NativeDirectoryFixture fixture;
+  auto& bytes = fixture.bytes;
+  const auto point = [&bytes](int room_id, int pc) {
+    const uint32_t snes = PcToSnes(pc);
+    bytes[kPlacementSpriteTablePc + room_id * 2] = snes & 0xFF;
+    bytes[kPlacementSpriteTablePc + room_id * 2 + 1] = (snes >> 8) & 0xFF;
+  };
+  bytes[zelda3::kRoomsSpritePointer] = 0x00;
+  bytes[zelda3::kRoomsSpritePointer + 1] = 0x80;
+  for (int room_id = 0; room_id < zelda3::kNumberOfRooms; ++room_id) {
+    point(room_id, kPlacementSpriteEmptyPc);
+  }
+  point(kPlacementRoomId, data_pc);
+  point(kPlacementNeighborRoomId, data_pc + 8);
+  const auto payload = EncodeSpritePayload(2);
+  bytes[data_pc] = 1;
+  std::copy(payload.begin(), payload.end(), bytes.begin() + data_pc + 1);
+  for (int pc : {data_pc + 8, kPlacementSpriteEmptyPc}) {
+    bytes[pc] = 0;
+    bytes[pc + 1] = 0xFF;
+  }
+  return bytes;
+}
+
+nlohmann::json RunNativeMove(Rom* rom, int x, int y, bool write,
+                             absl::Status* status) {
+  handlers::DungeonMoveSpriteCommandHandler handler;
+  std::vector<std::string> args = {
+      "--room=0xB8", "--index=0", absl::StrFormat("--x=%d", x),
+      absl::StrFormat("--y=%d", y), "--format=json"};
+  if (write) {
+    args.push_back("--write");
+  }
+  std::string output;
+  *status = handler.Run(args, rom, &output);
+  return nlohmann::json::parse(output).at("Move Sprite");
+}
+
+TEST(DungeonNativeSpriteRouteTest, MoveWritesOnlyRoomStreamAndReverses) {
+  Rom rom;
+  ASSERT_TRUE(
+      rom.LoadFromData(NativeSpriteRouteImage(kPlacementSpriteDataPc)).ok());
+  ASSERT_TRUE(rom::IsNativeSpecialOverworldLayout(rom.InspectLyraLayout()));
+  ScopedRomArtifactsCleanup cleanup(MakeUniqueTempRomPath());
+  rom.set_filename(cleanup.rom_path.string());
+  rom.set_dirty(false);
+  WriteRomFile(rom, cleanup.rom_path);
+  const auto before = rom.vector();
+
+  // Control: the generic room writer stays refused on native layouts.
+  auto generic = zelda3::LoadRoomHeaderFromRom(&rom, kPlacementRoomId);
+  generic.LoadSprites();
+  generic.GetSprites()[0].set_x(12);
+  generic.MarkSpritesDirty();
+  EXPECT_FALSE(generic.SaveSprites().ok());
+  EXPECT_EQ(rom.vector(), before);
+
+  absl::Status status;
+  auto preview = RunNativeMove(&rom, 12, 9, false, &status);
+  ASSERT_TRUE(status.ok()) << status;
+  EXPECT_EQ(preview.at("layout"), "native");
+  EXPECT_EQ(preview.at("storage_strategy"), "native_in_place");
+  EXPECT_EQ(preview.at("from_x"), 11);
+  EXPECT_EQ(preview.at("from_y"), 10);
+  EXPECT_EQ(rom.vector(), before);
+
+  auto moved = RunNativeMove(&rom, 12, 9, true, &status);
+  ASSERT_TRUE(status.ok()) << status;
+  EXPECT_EQ(moved.at("verified_reload"), true);
+  ASSERT_NE(rom.vector(), before);
+  for (size_t pc = 0; pc < before.size(); ++pc) {
+    if (rom.vector()[pc] != before[pc]) {
+      EXPECT_GT(pc, static_cast<size_t>(kPlacementSpriteDataPc));
+      EXPECT_LT(pc, static_cast<size_t>(kPlacementSpriteDataPc + 8));
+    }
+  }
+  EXPECT_TRUE(rom::IsNativeSpecialOverworldLayout(rom.InspectLyraLayout()));
+  EXPECT_EQ(ReadFile(cleanup.rom_path), rom.vector());
+
+  RunNativeMove(&rom, 11, 10, true, &status);
+  ASSERT_TRUE(status.ok()) << status;
+  EXPECT_EQ(rom.vector(), before);
+  EXPECT_EQ(ReadFile(cleanup.rom_path), before);
+}
+
+TEST(DungeonNativeSpriteRouteTest, RefusesNativeOverworldStorage) {
+  constexpr int kInsideOriginalSprites = 0x4C890;
+  Rom rom;
+  ASSERT_TRUE(
+      rom.LoadFromData(NativeSpriteRouteImage(kInsideOriginalSprites)).ok());
+  ScopedRomArtifactsCleanup cleanup(MakeUniqueTempRomPath());
+  rom.set_filename(cleanup.rom_path.string());
+  rom.set_dirty(false);
+  WriteRomFile(rom, cleanup.rom_path);
+  const auto baseline = CaptureRomFailClosedBaseline(rom, cleanup.rom_path);
+
+  absl::Status status;
+  auto preview = RunNativeMove(&rom, 12, 9, true, &status);
+  EXPECT_EQ(status.code(), absl::StatusCode::kPermissionDenied) << status;
+  EXPECT_EQ(preview.at("preflight_status"), "failed");
+  EXPECT_EQ(rom.vector(), baseline.bytes);
+  EXPECT_EQ(ReadFile(cleanup.rom_path), baseline.disk_bytes);
+  EXPECT_EQ(CountBackupArtifacts(cleanup.rom_path), 0);
+
+  const auto image = rom.vector();
+  auto unplanned = image;
+  unplanned[kPlacementSpriteEmptyPc + 4] ^= 1;
+  const std::array<std::pair<uint32_t, uint32_t>, 1> elsewhere = {
+      {{kPlacementSpriteEndPc, kPlacementSpriteEndPc + 1}}};
+  EXPECT_EQ(rom.CommitNativeDungeonImage(image, unplanned, elsewhere).code(),
+            absl::StatusCode::kPermissionDenied);
+  auto owned = image;
+  owned[kInsideOriginalSprites] ^= 1;
+  const std::array<std::pair<uint32_t, uint32_t>, 1> owned_range = {
+      {{kInsideOriginalSprites, kInsideOriginalSprites + 1}}};
+  EXPECT_EQ(rom.CommitNativeDungeonImage(image, owned, owned_range).code(),
+            absl::StatusCode::kPermissionDenied);
+  EXPECT_EQ(rom.vector(), baseline.bytes);
 }
 
 TEST_F(DungeonPlaceSpriteStorageTest, SharedAliasDetachesOnlySelectedRoom) {

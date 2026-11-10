@@ -508,6 +508,76 @@ absl::Status Rom::CommitNativeTerrainImage(
   return absl::OkStatus();
 }
 
+absl::Status Rom::CommitNativeDungeonImage(
+    const std::vector<uint8_t>& baseline, std::vector<uint8_t> candidate,
+    std::span<const std::pair<uint32_t, uint32_t>> allowed) {
+  RETURN_IF_ERROR(CheckLayoutSaveable());
+  const auto layout = InspectLyraLayout();
+  if (!rom::IsNativeSpecialOverworldLayout(layout))
+    return absl::FailedPreconditionError(
+        "Native dungeon commit requires a native special-overworld layout");
+  if (baseline != rom_data_)
+    return absl::FailedPreconditionError(
+        "ROM changed after native dungeon planning");
+  if (candidate.size() != rom_data_.size())
+    return absl::FailedPreconditionError(
+        "Native dungeon candidate changed the ROM size");
+  ASSIGN_OR_RETURN(const auto owned,
+                   rom::NativeOverworldOwnedRanges(layout, rom_data_.data(),
+                                                   rom_data_.size()));
+  for (const auto& [begin, end] : allowed) {
+    if (begin >= end || end > rom_data_.size())
+      return absl::OutOfRangeError("Native dungeon write range outside ROM");
+    for (const auto& [owned_begin, owned_end] : owned) {
+      if (begin < owned_end && owned_begin < end)
+        return absl::PermissionDeniedError(absl::StrFormat(
+            "Native dungeon write 0x%06X-0x%06X overlaps native overworld "
+            "storage 0x%06X-0x%06X",
+            begin, end, owned_begin, owned_end));
+    }
+  }
+  const auto inside_allowed = [&allowed](size_t pc) {
+    return std::any_of(allowed.begin(), allowed.end(), [pc](const auto& r) {
+      return pc >= r.first && pc < r.second;
+    });
+  };
+  std::vector<std::pair<uint32_t, uint32_t>> changed;
+  for (size_t pc = 0; pc < candidate.size();) {
+    if (candidate[pc] == rom_data_[pc]) {
+      ++pc;
+      continue;
+    }
+    const size_t begin = pc;
+    while (pc < candidate.size() && candidate[pc] != rom_data_[pc]) {
+      if (!inside_allowed(pc))
+        return absl::PermissionDeniedError(absl::StrFormat(
+            "Native dungeon candidate changed unplanned byte 0x%06X", pc));
+      ++pc;
+    }
+    for (auto* fence : write_fence_stack_)
+      RETURN_IF_ERROR(fence->Check(begin, pc - begin, "native dungeon save"));
+    RETURN_IF_ERROR(
+        CheckPrivateLyraWrite(begin, candidate.data() + begin, pc - begin));
+    changed.emplace_back(begin, pc - begin);
+  }
+  if (changed.empty())
+    return absl::OkStatus();
+  rom_data_.swap(candidate);
+  dirty_ = true;
+  for (const auto& [pc, count] : changed) {
+#ifdef __EMSCRIPTEN__
+    MaybeBroadcastChange(pc,
+                         std::vector<uint8_t>(candidate.begin() + pc,
+                                              candidate.begin() + pc + count),
+                         std::vector<uint8_t>(rom_data_.begin() + pc,
+                                              rom_data_.begin() + pc + count));
+#endif
+    for (auto* fence : write_fence_stack_)
+      fence->RecordWrite(pc, count);
+  }
+  return absl::OkStatus();
+}
+
 absl::Status Rom::CapturePrivateLyraReservation() {
   if (private_lyra_attached_)
     return ValidateLyraPrivateReservation();

@@ -177,6 +177,7 @@ CreateCliCommandHandlers() {
   // Dungeon editing (write commands)
   handlers.push_back(std::make_unique<DungeonPlaceSpriteCommandHandler>());
   handlers.push_back(std::make_unique<DungeonRemoveSpriteCommandHandler>());
+  handlers.push_back(std::make_unique<DungeonMoveSpriteCommandHandler>());
   handlers.push_back(std::make_unique<DungeonPlaceObjectCommandHandler>());
   handlers.push_back(std::make_unique<DungeonRemoveObjectCommandHandler>());
   handlers.push_back(std::make_unique<DungeonGetPaletteCommandHandler>());

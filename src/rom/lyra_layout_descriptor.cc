@@ -1386,4 +1386,57 @@ absl::StatusOr<std::vector<uint8_t>> SerializeLyraA0Terrain(
   return staged;
 }
 
+absl::StatusOr<std::vector<std::pair<uint32_t, uint32_t>>>
+NativeOverworldOwnedRanges(const LyraLayoutInspection& layout,
+                           const uint8_t* image, size_t size) {
+  if (!IsNativeSpecialOverworldLayout(layout))
+    return absl::FailedPreconditionError(
+        "Native special-overworld layout required");
+  std::vector<std::pair<uint32_t, uint32_t>> ranges;
+  const auto add = [&ranges](size_t begin, size_t length) {
+    ranges.emplace_back(static_cast<uint32_t>(begin),
+                        static_cast<uint32_t>(begin + length));
+  };
+  add(kDescriptorPc, kDescriptorSize);
+  for (const auto& e : layout.entries)
+    add(e.pc_address, static_cast<size_t>(e.count) * e.stride);
+  for (const auto& storage :
+       {std::span<const internal::NativeOverworldTableStorage>(
+            internal::kProperties),
+        std::span<const internal::NativeOverworldTableStorage>(
+            internal::kOtherNativeStorage)}) {
+    for (const auto& native : storage) {
+      if (native.native_pc == 0)
+        continue;
+      size_t stride = 1;
+      if (native.id < 500) {
+        const auto entry = std::find_if(
+            layout.entries.begin(), layout.entries.end(),
+            [&native](const auto& e) { return e.id == native.id; });
+        if (entry == layout.entries.end())
+          return absl::FailedPreconditionError(
+              "Native directory lacks an original-engine table");
+        stride = entry->stride;
+      }
+      add(native.native_pc, native.native_count * stride);
+    }
+  }
+  // Native sprite Save repacks this region and stops at the room sprite
+  // table when that table was moved inside it.
+  constexpr size_t kSpriteBegin = 0x4C881;
+  constexpr size_t kRoomSpriteTableWord = 0x4C298;
+  size_t sprite_end = 0x4D62E;
+  if (size < sprite_end)
+    return absl::FailedPreconditionError(
+        "Image ends inside original sprite storage");
+  const size_t room_table =
+      image[kRoomSpriteTableWord] | (image[kRoomSpriteTableWord + 1] << 8);
+  if (room_table >= 0x8000 && 0x40000 + room_table >= kSpriteBegin &&
+      0x40000 + room_table < sprite_end)
+    sprite_end = 0x40000 + room_table;
+  add(kSpriteBegin, sprite_end - kSpriteBegin);
+  std::sort(ranges.begin(), ranges.end());
+  return ranges;
+}
+
 }  // namespace yaze::rom

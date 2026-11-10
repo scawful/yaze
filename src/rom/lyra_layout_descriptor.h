@@ -7,6 +7,7 @@
 #include <optional>
 #include <span>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "absl/status/statusor.h"
@@ -144,6 +145,14 @@ absl::StatusOr<std::vector<uint8_t>> SealNativeOverworldTerrain(
     const NativeOverworldAuthoringMetadata* publish_metadata = nullptr,
     const NativeOverworldPaletteEdits* palettes = nullptr,
     const NativeOverworldEndpointEdits* endpoints = nullptr);
+
+// Byte ranges [begin, end) that native special-overworld Save owns: the
+// directory, every directory table, the original-engine prefix copies kept in
+// step with them, and original sprite storage up to the room sprite table.
+// Writers outside the overworld must leave all of them unchanged.
+absl::StatusOr<std::vector<std::pair<uint32_t, uint32_t>>>
+NativeOverworldOwnedRanges(const LyraLayoutInspection& layout,
+                           const uint8_t* image, size_t size);
 
 inline constexpr uint32_t kLyraA0HighStreamPc = 0x132000;
 inline constexpr uint32_t kLyraA0LowStreamPc = 0x132200;

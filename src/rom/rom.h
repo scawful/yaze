@@ -244,6 +244,12 @@ class Rom {
       const rom::NativeOverworldAuthoringMetadata* publish_metadata = nullptr,
       const rom::NativeOverworldPaletteEdits* palettes = nullptr,
       const rom::NativeOverworldEndpointEdits* endpoints = nullptr);
+  // Commits a planned non-overworld edit on a native layout. Every changed
+  // byte must lie inside `allowed`, and no allowed range may touch bytes that
+  // native overworld Save owns.
+  absl::Status CommitNativeDungeonImage(
+      const std::vector<uint8_t>& baseline, std::vector<uint8_t> candidate,
+      std::span<const std::pair<uint32_t, uint32_t>> allowed);
 
   // Sticky, value-owned exact-save reservation. No public detach capability.
   absl::Status AttachLyraPrivateReservation(const core::HackManifest& manifest);
