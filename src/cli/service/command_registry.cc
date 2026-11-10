@@ -107,6 +107,17 @@ void CommandRegistry::RegisterHandlers(
             "--rom=/tmp/oos-work.sfc --format=json",
             "z3ed dungeon-move-sprite --room=0x25 --index=0 --x=12 --y=9 "
             "--write --rom=/tmp/oos-work.sfc --format=json"};
+      } else if (name == "dungeon-import-room-objects") {
+        metadata.description =
+            "Copy a room's objects and doors from another ROM (dry-run by "
+            "default); --alloc-range confines copy-on-write placement";
+        metadata.examples = {
+            "z3ed dungeon-import-room-objects --room=0x5E "
+            "--source-rom=/tmp/mock.sfc --rom=/tmp/oos-work.sfc --format=json",
+            "z3ed dungeon-import-room-objects --room=0x5E "
+            "--source-rom=/tmp/mock.sfc --manifest=hack_manifest.json "
+            "--alloc-range=0x29E800-0x2A8000 --write --rom=/tmp/oos-work.sfc "
+            "--format=json"};
       } else if (name == "dungeon-place-object") {
         metadata.description =
             "Place a dungeon object or paired chest/reward with capacity/COW "

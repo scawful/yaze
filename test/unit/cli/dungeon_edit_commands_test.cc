@@ -1047,6 +1047,298 @@ TEST(DungeonNativeSpriteRouteTest, RefusesNativeOverworldStorage) {
   EXPECT_EQ(rom.vector(), baseline.bytes);
 }
 
+// The native fixture keeps overworld tables at 0x060000, so the native
+// object tests use their own stream region.
+constexpr int kNativeObjectDataPc = 0x0D0000;
+constexpr int kNativeObjectAllocationPc = 0x0D0100;
+constexpr int kNativeObjectDataEndPc = 0x0D0200;
+constexpr int kNativeSourceStreamPc = kNativeObjectDataPc + 0x40;
+constexpr int kNativeDescriptorPc = 0x147000;
+
+void PutLong(std::vector<uint8_t>& bytes, int pc, uint32_t value) {
+  bytes[pc] = value & 0xFF;
+  bytes[pc + 1] = (value >> 8) & 0xFF;
+  bytes[pc + 2] = (value >> 16) & 0xFF;
+}
+
+void WriteNativeObjectManifest(const std::filesystem::path& path,
+                               int allocation_pc, int allocation_end_pc) {
+  std::string extra_region;
+  if (allocation_pc >= kNativeObjectDataEndPc ||
+      allocation_end_pc <= kNativeObjectDataPc) {
+    extra_region =
+        absl::StrFormat(R"json(, {"start": "0x%06X", "end": "0x%06X"})json",
+                        PcToSnes(allocation_pc), PcToSnes(allocation_end_pc));
+  }
+  std::ofstream output(path, std::ios::trunc);
+  ASSERT_TRUE(output.is_open());
+  output << absl::StrFormat(
+      R"json({"manifest_version": 3, "dungeon_stream_regions": {"objects": {
+  "pointer_table": "0x%06X", "pointer_count": %d,
+  "pointer_encoding": "long24", "strategy": "copy_on_write",
+  "data_regions": [{"start": "0x%06X", "end": "0x%06X"}%s],
+  "allocation_regions": [{"start": "0x%06X", "end": "0x%06X"}]}}})json",
+      PcToSnes(kObjectPointerTablePc), zelda3::kNumberOfRooms,
+      PcToSnes(kNativeObjectDataPc), PcToSnes(kNativeObjectDataEndPc),
+      extra_region, PcToSnes(allocation_pc), PcToSnes(allocation_end_pc));
+  ASSERT_TRUE(output.good());
+}
+
+// A native special-overworld image with a synthetic object table. Room 0's
+// doorless stream has no door marker and 16 bytes of capacity before the
+// empty stream every other room shares; its pointers use the $80-$FF mirror.
+std::vector<uint8_t> NativeObjectRouteImage() {
+  test::native_overworld::NativeDirectoryFixture fixture;
+  auto& bytes = fixture.bytes;
+  PutLong(bytes, zelda3::kRoomObjectPointer, PcToSnes(kObjectPointerTablePc));
+  PutLong(bytes, kObjectPointerTablePc,
+          PcToSnes(kNativeObjectDataPc) | 0x800000);
+  PutLong(bytes, zelda3::kDoorPointers,
+          PcToSnes(kNativeObjectDataPc + 6) | 0x800000);
+  for (int room_id = 1; room_id < zelda3::kNumberOfRooms; ++room_id) {
+    PutLong(bytes, kObjectPointerTablePc + room_id * 3,
+            PcToSnes(kNativeObjectDataPc + 0x10));
+    PutLong(bytes, zelda3::kDoorPointers + room_id * 3,
+            PcToSnes(kNativeObjectDataPc + 0x18));
+  }
+  const std::vector<uint8_t> room0 = {kObjectHeaderByte0,
+                                      kObjectHeaderByte1,
+                                      0xFF,
+                                      0xFF,
+                                      0xFF,
+                                      0xFF,
+                                      0xFF,
+                                      0xFF};
+  const std::vector<uint8_t> empty = {0x00, 0x00, 0xFF, 0xFF, 0xFF,
+                                      0xFF, 0xF0, 0xFF, 0xFF, 0xFF};
+  std::copy(room0.begin(), room0.end(), bytes.begin() + kNativeObjectDataPc);
+  std::copy(empty.begin(), empty.end(),
+            bytes.begin() + kNativeObjectDataPc + 0x10);
+
+  const uint16_t pot_pointer = PcToSnes(kSyntheticPotTerminatorPc) & 0xFFFF;
+  for (int room_id = 0; room_id < zelda3::kNumberOfRooms; ++room_id) {
+    bytes[zelda3::kRoomItemsPointers + room_id * 2] = pot_pointer & 0xFF;
+    bytes[zelda3::kRoomItemsPointers + room_id * 2 + 1] = pot_pointer >> 8;
+  }
+  bytes[kSyntheticPotTerminatorPc] = 0xFF;
+  bytes[kSyntheticPotTerminatorPc + 1] = 0xFF;
+  bytes[zelda3::kChestsLengthPointer] = 0;
+  bytes[zelda3::kChestsLengthPointer + 1] = 0;
+
+  const uint32_t header_snes = PcToSnes(kRoomHeaderDataPc);
+  PutLong(bytes, zelda3::kRoomHeaderPointer,
+          PcToSnes(kRoomHeaderPointerTablePc));
+  bytes[zelda3::kRoomHeaderPointerBank] = (header_snes >> 16) & 0xFF;
+  for (int room_id = 0; room_id < zelda3::kNumberOfRooms; ++room_id) {
+    bytes[kRoomHeaderPointerTablePc + room_id * 2] = header_snes & 0xFF;
+    bytes[kRoomHeaderPointerTablePc + room_id * 2 + 1] =
+        (header_snes >> 8) & 0xFF;
+  }
+  std::copy(kRoomHeaderSentinel.begin(), kRoomHeaderSentinel.end(),
+            bytes.begin() + kRoomHeaderDataPc);
+  test::native_overworld::Reseal(&bytes, fixture.rows);
+  return bytes;
+}
+
+// The source copy of room 0: one object per list and one door, 21 bytes.
+std::vector<uint8_t> NativeObjectSourceImage() {
+  auto bytes = NativeObjectRouteImage();
+  std::vector<uint8_t> stream = {kObjectHeaderByte0, kObjectHeaderByte1};
+  const auto append = [&stream](const zelda3::RoomObject& object) {
+    const auto encoded = object.EncodeObjectToBytes();
+    stream.insert(stream.end(), {encoded.b1, encoded.b2, encoded.b3});
+  };
+  append(zelda3::RoomObject(0x031, 1, 2, 6, 0));
+  stream.insert(stream.end(), {0xFF, 0xFF});
+  append(zelda3::RoomObject(0x112, 17, 34, 0, 1));
+  stream.insert(stream.end(), {0xFF, 0xFF});
+  append(zelda3::RoomObject(0xF92, 3, 4, 8, 2));
+  stream.insert(stream.end(), {0xF0, 0xFF, 0x21, 0x04, 0xFF, 0xFF});
+  std::copy(stream.begin(), stream.end(),
+            bytes.begin() + kNativeSourceStreamPc);
+  PutLong(bytes, kObjectPointerTablePc, PcToSnes(kNativeSourceStreamPc));
+  return bytes;
+}
+
+absl::Status RunNativeImport(Rom* rom, std::vector<std::string> args,
+                             nlohmann::json* result) {
+  handlers::DungeonImportRoomObjectsCommandHandler handler;
+  args.insert(args.begin(), {"--room=0x00", "--format=json"});
+  std::string output;
+  const absl::Status status = handler.Run(args, rom, &output);
+  const auto parsed = nlohmann::json::parse(output, nullptr, false);
+  if (result != nullptr && !parsed.is_discarded() &&
+      parsed.contains("Import Room Objects")) {
+    *result = parsed.at("Import Room Objects");
+  }
+  return status;
+}
+
+uint32_t ReadImageLong(const std::vector<uint8_t>& bytes, int pc) {
+  return bytes[pc] | (bytes[pc + 1] << 8) | (bytes[pc + 2] << 16);
+}
+
+TEST(DungeonNativeObjectRouteTest, ImportMovesStreamIntoAllocRangeAndReopens) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(NativeObjectRouteImage()).ok());
+  ASSERT_TRUE(rom::IsNativeSpecialOverworldLayout(rom.InspectLyraLayout()));
+  ScopedRomArtifactsCleanup cleanup(MakeUniqueTempRomPath());
+  rom.set_filename(cleanup.rom_path.string());
+  rom.set_dirty(false);
+  WriteRomFile(rom, cleanup.rom_path);
+  const auto baseline = CaptureRomFailClosedBaseline(rom, cleanup.rom_path);
+
+  const std::filesystem::path source_path =
+      cleanup.rom_path.string() + ".source.sfc";
+  ScopedFileCleanup source_cleanup(source_path);
+  test::native_overworld::WriteBytes(source_path, NativeObjectSourceImage());
+  const std::filesystem::path manifest_path =
+      cleanup.rom_path.string() + ".manifest.json";
+  ScopedFileCleanup manifest_cleanup(manifest_path);
+  WriteNativeObjectManifest(manifest_path, kNativeObjectAllocationPc,
+                            kNativeObjectDataEndPc);
+
+  // A doorless stream without the door marker re-encodes byte for byte.
+  auto generic = zelda3::LoadRoomFromRom(&rom, 0);
+  EXPECT_EQ(
+      generic.EncodeObjects(),
+      std::vector<uint8_t>(baseline.bytes.begin() + kNativeObjectDataPc + 2,
+                           baseline.bytes.begin() + kNativeObjectDataPc + 8));
+  // Control: the generic object writer stays refused on native layouts.
+  generic.AddTileObject(zelda3::RoomObject(0x031, 1, 2, 6, 0));
+  EXPECT_FALSE(generic.SaveObjects().ok());
+  EXPECT_EQ(rom.vector(), baseline.bytes);
+
+  const std::string source_arg = "--source-rom=" + source_path.string();
+  const std::string manifest_arg = "--manifest=" + manifest_path.string();
+  const int stream_pc = kNativeObjectAllocationPc + 0x80;
+  const std::string alloc_arg =
+      absl::StrFormat("--alloc-range=0x%06X-0x%06X", PcToSnes(stream_pc),
+                      PcToSnes(kNativeObjectDataEndPc));
+
+  // Without a manifest only an in-place rewrite is possible, and it does not
+  // fit in the 16-byte slot.
+  nlohmann::json out;
+  EXPECT_FALSE(RunNativeImport(&rom, {source_arg, "--write"}, &out).ok());
+  EXPECT_EQ(out.value("preflight_status", ""), "failed");
+  EXPECT_EQ(rom.vector(), baseline.bytes);
+  EXPECT_EQ(ReadFile(cleanup.rom_path), baseline.disk_bytes);
+  EXPECT_EQ(CountBackupArtifacts(cleanup.rom_path), 0);
+
+  EXPECT_EQ(RunNativeImport(&rom,
+                            {source_arg, manifest_arg,
+                             absl::StrFormat("--alloc-range=0x%06X-0x%06X",
+                                             PcToSnes(kNativeObjectDataPc),
+                                             PcToSnes(kNativeObjectDataEndPc))},
+                            nullptr)
+                .code(),
+            absl::StatusCode::kInvalidArgument);
+
+  const absl::Status dry_run =
+      RunNativeImport(&rom, {source_arg, manifest_arg, alloc_arg}, &out);
+  ASSERT_TRUE(dry_run.ok()) << dry_run << out.dump();
+  EXPECT_EQ(out.at("layout"), "native");
+  EXPECT_EQ(out.at("storage_strategy"), "native_copy_on_write");
+  EXPECT_EQ(out.at("planned_data_pc"), absl::StrFormat("0x%06X", stream_pc));
+  EXPECT_EQ(out.at("stream_matches_source"), true);
+  EXPECT_EQ(rom.vector(), baseline.bytes);
+
+  const absl::Status written = RunNativeImport(
+      &rom, {source_arg, manifest_arg, alloc_arg, "--write"}, &out);
+  ASSERT_TRUE(written.ok()) << written << out.dump();
+  EXPECT_EQ(out.at("verified_reload"), true);
+  const auto& after = rom.vector();
+  for (size_t pc = 0; pc < after.size(); ++pc) {
+    if (after[pc] == baseline.bytes[pc])
+      continue;
+    const bool in_stream = pc >= static_cast<size_t>(stream_pc) &&
+                           pc < static_cast<size_t>(stream_pc + 21);
+    const bool in_slots =
+        (pc >= kObjectPointerTablePc && pc < kObjectPointerTablePc + 3) ||
+        (pc >= static_cast<size_t>(zelda3::kDoorPointers) &&
+         pc < static_cast<size_t>(zelda3::kDoorPointers + 3));
+    EXPECT_TRUE(in_stream || in_slots) << absl::StrFormat("0x%06X", pc);
+  }
+  const auto source = NativeObjectSourceImage();
+  EXPECT_TRUE(std::equal(after.begin() + stream_pc,
+                         after.begin() + stream_pc + 21,
+                         source.begin() + kNativeSourceStreamPc));
+  EXPECT_EQ(ReadImageLong(after, kObjectPointerTablePc),
+            PcToSnes(stream_pc) | 0x800000);
+  EXPECT_EQ(ReadImageLong(after, zelda3::kDoorPointers),
+            PcToSnes(stream_pc + 17) | 0x800000);
+  EXPECT_TRUE(rom::IsNativeSpecialOverworldLayout(rom.InspectLyraLayout()));
+  EXPECT_EQ(ReadFile(cleanup.rom_path), rom.vector());
+}
+
+TEST(DungeonNativeObjectRouteTest, RefusesAllocationOverNativeStorage) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(NativeObjectRouteImage()).ok());
+  ScopedRomArtifactsCleanup cleanup(MakeUniqueTempRomPath());
+  rom.set_filename(cleanup.rom_path.string());
+  rom.set_dirty(false);
+  WriteRomFile(rom, cleanup.rom_path);
+  const auto baseline = CaptureRomFailClosedBaseline(rom, cleanup.rom_path);
+
+  const std::filesystem::path source_path =
+      cleanup.rom_path.string() + ".source.sfc";
+  ScopedFileCleanup source_cleanup(source_path);
+  test::native_overworld::WriteBytes(source_path, NativeObjectSourceImage());
+  // A wrong manifest that lets the allocator use the native descriptor.
+  const std::filesystem::path manifest_path =
+      cleanup.rom_path.string() + ".manifest.json";
+  ScopedFileCleanup manifest_cleanup(manifest_path);
+  WriteNativeObjectManifest(manifest_path, kNativeDescriptorPc,
+                            kNativeDescriptorPc + 0x400);
+
+  nlohmann::json out;
+  const absl::Status status =
+      RunNativeImport(&rom,
+                      {"--source-rom=" + source_path.string(),
+                       "--manifest=" + manifest_path.string(), "--write"},
+                      &out);
+  EXPECT_EQ(status.code(), absl::StatusCode::kPermissionDenied) << status;
+  EXPECT_EQ(out.at("planned_data_pc"),
+            absl::StrFormat("0x%06X", kNativeDescriptorPc));
+  EXPECT_EQ(out.at("preflight_status"), "failed");
+  EXPECT_EQ(rom.vector(), baseline.bytes);
+  EXPECT_EQ(ReadFile(cleanup.rom_path), baseline.disk_bytes);
+  EXPECT_EQ(CountBackupArtifacts(cleanup.rom_path), 0);
+}
+
+TEST(DungeonNativeObjectRouteTest, RoomPropertyChangesOneHeaderByte) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(NativeObjectRouteImage()).ok());
+  ScopedRomArtifactsCleanup cleanup(MakeUniqueTempRomPath());
+  rom.set_filename(cleanup.rom_path.string());
+  rom.set_dirty(false);
+  WriteRomFile(rom, cleanup.rom_path);
+  const auto before = rom.vector();
+
+  const auto set_tag1 = [&rom](const std::string& value) {
+    handlers::DungeonSetRoomPropertyCommandHandler handler;
+    std::string output;
+    const absl::Status status = handler.Run(
+        {"--room=0x00", "--property=tag1", "--value=" + value, "--format=json"},
+        &rom, &output);
+    EXPECT_TRUE(status.ok()) << status << output;
+    return nlohmann::json::parse(output).at("Dungeon Room Property Set");
+  };
+  const auto out = set_tag1("0x32");
+  EXPECT_EQ(out.at("layout"), "native");
+  EXPECT_EQ(out.at("verified_reload"), true);
+  for (size_t pc = 0; pc < before.size(); ++pc) {
+    if (pc == static_cast<size_t>(kRoomHeaderDataPc + 5)) {
+      EXPECT_EQ(rom.vector()[pc], 0x32);
+    } else {
+      EXPECT_EQ(rom.vector()[pc], before[pc]) << absl::StrFormat("0x%06X", pc);
+    }
+  }
+  EXPECT_EQ(ReadFile(cleanup.rom_path), rom.vector());
+  set_tag1(absl::StrFormat("0x%02X", kRoomHeaderSentinel[5]));
+  EXPECT_EQ(rom.vector(), before);
+}
+
 TEST_F(DungeonPlaceSpriteStorageTest, SharedAliasDetachesOnlySelectedRoom) {
   SetRoomSpritePointer(&rom_, kPlacementSpriteTablePc, kPlacementNeighborRoomId,
                        kPlacementSpriteDataPc);

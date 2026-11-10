@@ -67,6 +67,9 @@ struct DungeonStreamRecord {
   uint32_t data_pc = 0;
   uint32_t logical_end_pc = 0;
   bool valid = false;
+  // Long pointers only: the room pointer uses the $80-$FF LoROM (FastROM)
+  // mirror. A copy-on-write move keeps that mirror for its new pointers.
+  bool high_bank_mirror = false;
   // Immutable logical payload captured with the inventory snapshot. Keeping
   // the bytes here lets a full repack preserve rooms that have no replacement
   // without consulting a ROM that may have changed since inventory.
@@ -193,6 +196,13 @@ absl::StatusOr<DungeonStreamWritePlan> PlanDungeonStreamRepack(
 // writes.
 absl::Status ApplyDungeonStreamWritePlan(Rom* rom,
                                          const DungeonStreamWritePlan& plan);
+
+// Validates a plan exactly as ApplyDungeonStreamWritePlan does against rom,
+// then copies its payload and pointer bytes into image (a same-size copy of
+// rom) instead of writing the ROM. rom is not modified.
+absl::Status StageDungeonStreamWritePlan(const Rom& rom,
+                                         const DungeonStreamWritePlan& plan,
+                                         std::vector<uint8_t>& image);
 
 }  // namespace zelda3
 }  // namespace yaze

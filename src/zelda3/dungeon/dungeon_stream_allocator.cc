@@ -668,6 +668,16 @@ absl::StatusOr<std::vector<uint8_t>> EncodePointer(
                               static_cast<uint8_t>((snes >> 8) & 0xFF)};
 }
 
+absl::StatusOr<std::vector<uint8_t>> EncodeRoomPointer(
+    const DungeonStreamInventory& inventory, uint32_t room_id, uint32_t pc) {
+  ASSIGN_OR_RETURN(auto bytes, EncodePointer(inventory.layout, pc));
+  if (bytes.size() == 3 && room_id < inventory.streams.size() &&
+      inventory.streams[room_id].high_bank_mirror) {
+    bytes[2] |= 0x80;
+  }
+  return bytes;
+}
+
 absl::StatusOr<uint32_t> FindFirstFit(
     const std::vector<DungeonStreamPcRange>& free_intervals,
     const DungeonStreamLayout& layout, uint32_t size) {
@@ -858,7 +868,10 @@ absl::Status ValidatePlanAgainstInventory(
     }
     planned_payloads.push_back(payload_range);
 
-    auto expected_pointer = EncodePointer(plan.layout, payload.address);
+    auto expected_pointer =
+        plan.mode == DungeonStreamWriteMode::kCopyOnWrite
+            ? EncodeRoomPointer(inventory, payload.room_id, payload.address)
+            : EncodePointer(plan.layout, payload.address);
     if (!expected_pointer.ok()) {
       return expected_pointer.status();
     }
@@ -890,8 +903,8 @@ absl::Status ValidatePlanAgainstInventory(
       if (!door_offset.ok()) {
         return door_offset.status();
       }
-      auto expected_door_pointer =
-          EncodePointer(plan.layout, payload.address + *door_offset);
+      auto expected_door_pointer = EncodeRoomPointer(
+          inventory, payload.room_id, payload.address + *door_offset);
       if (!expected_door_pointer.ok()) {
         return expected_door_pointer.status();
       }
@@ -1041,6 +1054,10 @@ absl::StatusOr<DungeonStreamInventory> InventoryDungeonStreams(
     record.room_id = room_id;
     record.pointer_slot_pc =
         inventory.layout.pointer_table_pc + room_id * pointer_width;
+    if (inventory.layout.pointer_encoding == DungeonPointerEncoding::kLong24 &&
+        record.pointer_slot_pc + 2 < rom.size()) {
+      record.high_bank_mirror = (bytes[record.pointer_slot_pc + 2] & 0x80) != 0;
+    }
 
     auto pointer = DecodePointer(rom, inventory.layout, room_id);
     if (!pointer.ok()) {
@@ -1187,7 +1204,8 @@ absl::StatusOr<DungeonStreamWritePlan> PlanDungeonStreamWrites(
     if (!address.ok()) {
       return address.status();
     }
-    auto pointer_bytes = EncodePointer(plan.layout, *address);
+    auto pointer_bytes =
+        EncodeRoomPointer(inventory, replacement.room_id, *address);
     if (!pointer_bytes.ok()) {
       return pointer_bytes.status();
     }
@@ -1203,7 +1221,8 @@ absl::StatusOr<DungeonStreamWritePlan> PlanDungeonStreamWrites(
       if (!door_offset.ok()) {
         return door_offset.status();
       }
-      auto door_pointer = EncodePointer(plan.layout, *address + *door_offset);
+      auto door_pointer = EncodeRoomPointer(inventory, replacement.room_id,
+                                            *address + *door_offset);
       if (!door_pointer.ok()) {
         return door_pointer.status();
       }
@@ -1354,30 +1373,61 @@ absl::StatusOr<DungeonStreamWritePlan> PlanDungeonStreamRepack(
   return plan;
 }
 
-absl::Status ApplyDungeonStreamWritePlan(Rom* rom,
-                                         const DungeonStreamWritePlan& plan) {
-  if (rom == nullptr || !rom->is_loaded()) {
+namespace {
+
+absl::Status ValidatePlanForRom(const Rom& rom,
+                                const DungeonStreamWritePlan& plan) {
+  if (!rom.is_loaded()) {
     return absl::InvalidArgumentError("ROM not loaded");
   }
-  if (rom->size() != plan.source_size) {
+  if (rom.size() != plan.source_size) {
     return absl::AbortedError("Dungeon stream plan source size is stale");
   }
   const uint32_t current_crc =
-      util::CalculateCrc32(rom->data(), static_cast<size_t>(rom->size()));
+      util::CalculateCrc32(rom.data(), static_cast<size_t>(rom.size()));
   if (current_crc != plan.source_crc32) {
     return absl::AbortedError(absl::StrFormat(
         "Dungeon stream plan is stale (source CRC %08X, current CRC %08X)",
         plan.source_crc32, current_crc));
   }
 
-  auto inventory = InventoryDungeonStreams(*rom, plan.layout);
+  auto inventory = InventoryDungeonStreams(rom, plan.layout);
   if (!inventory.ok()) {
     return inventory.status();
   }
-  auto validation = ValidatePlanAgainstInventory(plan, *inventory);
-  if (!validation.ok()) {
-    return validation;
+  return ValidatePlanAgainstInventory(plan, *inventory);
+}
+
+}  // namespace
+
+absl::Status StageDungeonStreamWritePlan(const Rom& rom,
+                                         const DungeonStreamWritePlan& plan,
+                                         std::vector<uint8_t>& image) {
+  RETURN_IF_ERROR(ValidatePlanForRom(rom, plan));
+  if (image.size() != rom.size()) {
+    return absl::InvalidArgumentError(
+        "Staging image size does not match the planned ROM");
   }
+  for (const auto* writes : {&plan.payload_writes, &plan.pointer_writes,
+                             &plan.auxiliary_pointer_writes}) {
+    for (const auto& write : *writes) {
+      if (static_cast<uint64_t>(write.address) + write.bytes.size() >
+          image.size()) {
+        return absl::OutOfRangeError("Dungeon stream write outside the image");
+      }
+      std::copy(write.bytes.begin(), write.bytes.end(),
+                image.begin() + write.address);
+    }
+  }
+  return absl::OkStatus();
+}
+
+absl::Status ApplyDungeonStreamWritePlan(Rom* rom,
+                                         const DungeonStreamWritePlan& plan) {
+  if (rom == nullptr) {
+    return absl::InvalidArgumentError("ROM not loaded");
+  }
+  RETURN_IF_ERROR(ValidatePlanForRom(*rom, plan));
 
   yaze::rom::WriteFence write_fence;
   auto allow_writes = [&](const std::vector<DungeonStreamWrite>& writes,

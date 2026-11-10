@@ -57,6 +57,7 @@ class DungeonMinecartMapCommandHandler;
 class DungeonPlaceSpriteCommandHandler;
 class DungeonRemoveSpriteCommandHandler;
 class DungeonMoveSpriteCommandHandler;
+class DungeonImportRoomObjectsCommandHandler;
 class DungeonPlaceObjectCommandHandler;
 class DungeonGetPaletteCommandHandler;
 class DungeonSetPaletteColorCommandHandler;

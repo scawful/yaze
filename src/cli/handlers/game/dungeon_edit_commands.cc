@@ -3,12 +3,15 @@
 #include <algorithm>
 #include <cstdint>
 #include <limits>
+#include <memory>
 #include <optional>
 #include <string>
+#include <tuple>
 #include <utility>
 #include <vector>
 
 #include "absl/strings/numbers.h"
+#include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
 #include "absl/strings/str_split.h"
 #include "app/gfx/types/snes_palette.h"
@@ -133,7 +136,11 @@ absl::StatusOr<std::optional<StreamSaveManifestContext>>
 LoadStreamSaveManifestContext(const resources::ArgumentParser& parser,
                               core::DungeonStreamType stream_type) {
   const auto manifest_path = parser.GetString("manifest");
+  const auto alloc_range = parser.GetString("alloc-range");
   if (!manifest_path.has_value()) {
+    if (alloc_range.has_value()) {
+      return absl::InvalidArgumentError("--alloc-range requires --manifest");
+    }
     return std::nullopt;
   }
 
@@ -155,6 +162,32 @@ LoadStreamSaveManifestContext(const resources::ArgumentParser& parser,
   ASSIGN_OR_RETURN(
       context.allocator_layout,
       core::ToDungeonStreamAllocatorLayout(stream_type, *manifest_layout));
+  if (alloc_range.has_value()) {
+    // Confines new streams to one reservation inside the manifest's
+    // allocation space, so separate landings cannot interleave.
+    const std::vector<std::string> parts = absl::StrSplit(*alloc_range, '-');
+    int begin_snes = 0;
+    int end_snes = 0;
+    if (parts.size() != 2 || !ParseHexString(parts[0], &begin_snes) ||
+        !ParseHexString(parts[1], &end_snes)) {
+      return absl::InvalidArgumentError(
+          "--alloc-range must be <snes_begin>-<snes_end>, e.g. "
+          "0x29E800-0x2A8000");
+    }
+    const zelda3::DungeonStreamPcRange narrowed{SnesToPc(begin_snes),
+                                                SnesToPc(end_snes)};
+    const auto& ranges = context.allocator_layout.allocation_ranges;
+    if (narrowed.begin >= narrowed.end ||
+        std::none_of(ranges.begin(), ranges.end(), [&](const auto& range) {
+          return range.begin <= narrowed.begin && narrowed.end <= range.end;
+        })) {
+      return absl::InvalidArgumentError(absl::StrFormat(
+          "--alloc-range PC 0x%06X-0x%06X is not inside one manifest "
+          "allocation range",
+          narrowed.begin, narrowed.end));
+    }
+    context.allocator_layout.allocation_ranges = {narrowed};
+  }
   return std::optional<StreamSaveManifestContext>(std::move(context));
 }
 
@@ -240,18 +273,20 @@ absl::StatusOr<SpriteSavePreview> PreflightSpriteSave(
   return preview;
 }
 
-bool IsNativeLayout(const Rom& rom) {
-  return rom::IsNativeSpecialOverworldLayout(rom.InspectLyraLayout());
+absl::StatusOr<std::unique_ptr<Rom>> LoadScratchRom(
+    const std::vector<uint8_t>& image) {
+  auto scratch_rom = std::make_unique<Rom>();
+  Rom::LoadOptions options;
+  options.strip_header = false;
+  options.load_resource_labels = false;
+  RETURN_IF_ERROR(scratch_rom->LoadFromData(image, options));
+  return scratch_rom;
 }
 
 absl::StatusOr<std::vector<zelda3::Sprite>> ReopenRoomSprites(
     const std::vector<uint8_t>& image, int room_id) {
-  Rom scratch_rom;
-  Rom::LoadOptions options;
-  options.strip_header = false;
-  options.load_resource_labels = false;
-  RETURN_IF_ERROR(scratch_rom.LoadFromData(image, options));
-  zelda3::Room room = zelda3::LoadRoomHeaderFromRom(&scratch_rom, room_id);
+  ASSIGN_OR_RETURN(auto scratch_rom, LoadScratchRom(image));
+  zelda3::Room room = zelda3::LoadRoomHeaderFromRom(scratch_rom.get(), room_id);
   room.LoadSprites();
   return room.GetSprites();
 }
@@ -263,71 +298,123 @@ absl::Status SaveNativeRoomSprites(
     const StreamSaveManifestContext* manifest_context, bool do_write,
     resources::OutputFormatter& formatter) {
   formatter.AddField("layout", "native");
+  const auto ranges = room.GetSpriteSaveWriteRanges(nullptr);
+  const auto baseline = rom->vector();
+  auto candidate = baseline;
+  absl::Status staged = ranges.status();
+  if (staged.ok() && !ranges->empty()) {
+    const auto encoded = room.EncodeSprites();
+    const auto& [begin, end] = ranges->front();
+    if (ranges->size() != 1 || end - begin != encoded.size()) {
+      staged = absl::FailedPreconditionError(
+          "Native sprite save supports only an in-place stream rewrite");
+    } else {
+      std::copy(encoded.begin(), encoded.end(), candidate.begin() + begin);
+    }
+  }
+  if (!staged.ok()) {
+    formatter.AddField("preflight_status", "failed");
+    formatter.AddField("preflight_error", std::string(staged.message()));
+    return staged;
+  }
+  formatter.AddField("storage_strategy", "native_in_place");
+  return CommitNativeDungeonCandidate(
+      rom, baseline, std::move(candidate), *ranges,
+      manifest_context != nullptr ? &manifest_context->manifest : nullptr,
+      do_write, formatter, [&](const std::vector<uint8_t>& image) {
+        ASSIGN_OR_RETURN(const auto sprites, ReopenRoomSprites(image, room_id));
+        if (!SameSprites(sprites, room.GetSprites()))
+          return absl::FailedPreconditionError(
+              "Sprite placement does not survive save/reopen");
+        return absl::OkStatus();
+      });
+}
+
+// The decoder returns stream objects grouped by list, so lists are compared
+// separately; within a list, order is the draw order and must match.
+absl::Status CheckReopenedObjects(const std::vector<uint8_t>& image,
+                                  int room_id, const zelda3::Room& expected) {
+  ASSIGN_OR_RETURN(auto scratch_rom, LoadScratchRom(image));
+  const zelda3::Room reopened =
+      zelda3::LoadRoomFromRom(scratch_rom.get(), room_id);
+  const auto list = [](const zelda3::Room& room, int index) {
+    std::vector<std::tuple<int, int, int, int>> out;
+    for (const auto& object : room.GetTileObjects()) {
+      if (zelda3::UsesRoomObjectStream(object) &&
+          object.GetLayerValue() == index) {
+        out.emplace_back(object.id_, object.x(), object.y(), object.size_);
+      }
+    }
+    return out;
+  };
+  const auto doors = [](const zelda3::Room& room) {
+    std::vector<std::pair<uint8_t, uint8_t>> out;
+    for (const auto& door : room.GetDoors()) {
+      out.push_back(door.EncodeBytes());
+    }
+    return out;
+  };
+  for (int index = 0; index < 3; ++index) {
+    if (list(reopened, index) != list(expected, index)) {
+      return absl::FailedPreconditionError(absl::StrFormat(
+          "Object list %d does not survive save/reopen", index));
+    }
+  }
+  if (doors(reopened) != doors(expected) ||
+      (expected.GetDoors().empty() &&
+       reopened.door_marker() != expected.door_marker())) {
+    return absl::FailedPreconditionError("Doors do not survive save/reopen");
+  }
+  return absl::OkStatus();
+}
+
+// In place when the stream fits; with a manifest, the allocator may move it
+// into declared allocation space and update the object and door pointers.
+// Every staged range is still checked against native storage at commit.
+absl::Status SaveNativeRoomObjects(
+    Rom* rom, int room_id, const zelda3::Room& room,
+    const StreamSaveManifestContext* manifest_context, bool do_write,
+    resources::OutputFormatter& formatter) {
+  formatter.AddField("layout", "native");
   const auto fail = [&formatter](const absl::Status& status) {
     formatter.AddField("preflight_status", "failed");
     formatter.AddField("preflight_error", std::string(status.message()));
     return status;
   };
-  const auto ranges = room.GetSpriteSaveWriteRanges(nullptr);
-  if (!ranges.ok())
-    return fail(ranges.status());
+  if (room.chests_dirty()) {
+    return fail(absl::FailedPreconditionError(
+        "Native object save does not edit the chest table"));
+  }
+  const auto source = zelda3::ReadDungeonObjectStream(*rom, room_id);
+  if (!source.ok())
+    return fail(source.status());
   const auto baseline = rom->vector();
   auto candidate = baseline;
-  if (!ranges->empty()) {
-    const auto encoded = room.EncodeSprites();
-    const auto& [begin, end] = ranges->front();
-    if (ranges->size() != 1 || end - begin != encoded.size())
-      return fail(absl::FailedPreconditionError(
-          "Native sprite save supports only an in-place stream rewrite"));
-    std::copy(encoded.begin(), encoded.end(), candidate.begin() + begin);
-  }
-  if (manifest_context != nullptr &&
-      !manifest_context->manifest.AnalyzePcWriteRanges(*ranges).empty())
-    return fail(
-        absl::PermissionDeniedError("Write conflict with Hack Manifest"));
-  const auto owned = rom::NativeOverworldOwnedRanges(
-      rom->InspectLyraLayout(), baseline.data(), baseline.size());
-  if (!owned.ok())
-    return fail(owned.status());
-  for (const auto& [begin, end] : *ranges) {
-    for (const auto& [owned_begin, owned_end] : *owned) {
-      if (begin < owned_end && owned_begin < end)
-        return fail(absl::PermissionDeniedError(absl::StrFormat(
-            "Room sprite stream 0x%06X-0x%06X overlaps native overworld "
-            "storage",
-            begin, end)));
-    }
-  }
-  const auto reopened = ReopenRoomSprites(candidate, room_id);
-  if (!reopened.ok())
-    return fail(reopened.status());
-  if (!SameSprites(*reopened, room.GetSprites()))
-    return fail(absl::FailedPreconditionError(
-        "Sprite placement does not survive save/reopen"));
-  formatter.AddField("preflight_status", "passed");
-  formatter.AddField("storage_strategy", "native_in_place");
-  formatter.BeginArray("write_ranges");
-  for (const auto& [begin, end] : *ranges) {
-    formatter.BeginObject();
-    formatter.AddHexField("begin", begin, 6);
-    formatter.AddHexField("end", end, 6);
-    formatter.EndObject();
-  }
-  formatter.EndArray();
-  if (!do_write)
-    return absl::OkStatus();
-
-  RETURN_IF_ERROR(MutateAndSaveRomWithBackup(rom, formatter, [&]() {
-    return rom->CommitNativeDungeonImage(baseline, std::move(candidate),
-                                         *ranges);
-  }));
-  Rom disk;
-  RETURN_IF_ERROR(disk.LoadFromFile(rom->filename()));
-  ASSIGN_OR_RETURN(const auto saved, ReopenRoomSprites(disk.vector(), room_id));
-  if (disk.vector() != rom->vector() || !SameSprites(saved, room.GetSprites()))
-    return absl::DataLossError("Saved ROM does not reopen to the edited room");
-  formatter.AddField("verified_reload", true);
-  return absl::OkStatus();
+  const auto ranges = room.StageObjectSave(
+      manifest_context != nullptr ? &manifest_context->allocator_layout
+                                  : nullptr,
+      candidate);
+  if (!ranges.ok())
+    return fail(ranges.status());
+  auto scratch_rom = LoadScratchRom(candidate);
+  if (!scratch_rom.ok())
+    return fail(scratch_rom.status());
+  const auto planned = zelda3::ReadDungeonObjectStream(**scratch_rom, room_id);
+  if (!planned.ok())
+    return fail(planned.status());
+  formatter.AddHexField("source_data_pc", source->data_pc, 6);
+  formatter.AddHexField("planned_data_pc", planned->data_pc, 6);
+  formatter.AddField("planned_stream_bytes",
+                     static_cast<int>(planned->encoded_stream.size()));
+  formatter.AddField("storage_strategy", planned->data_pc == source->data_pc
+                                             ? "native_in_place"
+                                             : "native_copy_on_write");
+  return CommitNativeDungeonCandidate(
+      rom, baseline, std::move(candidate), *ranges,
+      manifest_context != nullptr ? &manifest_context->manifest : nullptr,
+      do_write, formatter, [&](const std::vector<uint8_t>& image) {
+        return CheckReopenedObjects(image, room_id, room);
+      });
 }
 
 absl::Status ValidateObjectSaveManifestConflicts(
@@ -1346,6 +1433,71 @@ absl::StatusOr<PotItemTarget> ResolvePotItemTarget(
 
 }  // namespace
 
+bool IsNativeDungeonLayout(const Rom& rom) {
+  return rom::IsNativeSpecialOverworldLayout(rom.InspectLyraLayout());
+}
+
+absl::Status CommitNativeDungeonCandidate(
+    Rom* rom, const std::vector<uint8_t>& baseline,
+    std::vector<uint8_t> candidate,
+    const std::vector<std::pair<uint32_t, uint32_t>>& ranges,
+    const core::HackManifest* manifest, bool do_write,
+    resources::OutputFormatter& formatter, const NativeImageCheck& check) {
+  const auto fail = [&formatter](const absl::Status& status) {
+    formatter.AddField("preflight_status", "failed");
+    formatter.AddField("preflight_error", std::string(status.message()));
+    return status;
+  };
+  if (manifest != nullptr && !manifest->AnalyzePcWriteRanges(ranges).empty())
+    return fail(
+        absl::PermissionDeniedError("Write conflict with Hack Manifest"));
+  const auto owned = rom::NativeOverworldOwnedRanges(
+      rom->InspectLyraLayout(), baseline.data(), baseline.size());
+  if (!owned.ok())
+    return fail(owned.status());
+  for (const auto& [begin, end] : ranges) {
+    for (const auto& [owned_begin, owned_end] : *owned) {
+      if (begin < owned_end && owned_begin < end)
+        return fail(absl::PermissionDeniedError(absl::StrFormat(
+            "Dungeon write 0x%06X-0x%06X overlaps native overworld storage "
+            "0x%06X-0x%06X",
+            begin, end, owned_begin, owned_end)));
+    }
+  }
+  if (const absl::Status reopened = check(candidate); !reopened.ok())
+    return fail(reopened);
+  formatter.AddField("preflight_status", "passed");
+  formatter.BeginArray("write_ranges");
+  for (const auto& [begin, end] : ranges) {
+    formatter.BeginObject();
+    formatter.AddHexField("begin", begin, 6);
+    formatter.AddHexField("end", end, 6);
+    formatter.EndObject();
+  }
+  formatter.EndArray();
+  int changed_bytes = 0;
+  for (size_t pc = 0; pc < candidate.size(); ++pc) {
+    changed_bytes += candidate[pc] != baseline[pc] ? 1 : 0;
+  }
+  formatter.AddField("changed_bytes", changed_bytes);
+  if (!do_write)
+    return absl::OkStatus();
+
+  RETURN_IF_ERROR(MutateAndSaveRomWithBackup(rom, formatter, [&]() {
+    return rom->CommitNativeDungeonImage(baseline, std::move(candidate),
+                                         ranges);
+  }));
+  Rom disk;
+  RETURN_IF_ERROR(disk.LoadFromFile(rom->filename()));
+  if (disk.vector() != rom->vector())
+    return absl::DataLossError("Saved ROM differs from the committed image");
+  if (const absl::Status saved = check(disk.vector()); !saved.ok())
+    return absl::DataLossError(absl::StrCat(
+        "Saved ROM does not reopen to the edited room: ", saved.message()));
+  formatter.AddField("verified_reload", true);
+  return absl::OkStatus();
+}
+
 // ---------------------------------------------------------------------------
 // dungeon-place-sprite
 // ---------------------------------------------------------------------------
@@ -1452,7 +1604,7 @@ absl::Status DungeonPlaceSpriteCommandHandler::Execute(
     formatter.AddField("manifest", *manifest_path);
     formatter.AddField("manifest_write_policy", "block");
   }
-  if (IsNativeLayout(*rom)) {
+  if (IsNativeDungeonLayout(*rom)) {
     formatter.AddField("allocator_capability", "none");
     const auto status = SaveNativeRoomSprites(
         rom, room_id, room,
@@ -1607,7 +1759,7 @@ absl::Status DungeonRemoveSpriteCommandHandler::Execute(
   formatter.AddField("sprites_after", static_cast<int>(sprites.size()));
   formatter.AddField("mode", do_write ? "write" : "dry-run");
 
-  if (IsNativeLayout(*rom)) {
+  if (IsNativeDungeonLayout(*rom)) {
     const auto status =
         SaveNativeRoomSprites(rom, room_id, room, nullptr, do_write, formatter);
     formatter.EndObject();
@@ -1673,7 +1825,7 @@ absl::Status DungeonMoveSpriteCommandHandler::Execute(
   sprite.set_y(y);
   room.MarkSpritesDirty();
 
-  if (IsNativeLayout(*rom)) {
+  if (IsNativeDungeonLayout(*rom)) {
     const auto status =
         SaveNativeRoomSprites(rom, room_id, room, nullptr, do_write, formatter);
     formatter.EndObject();
@@ -1881,6 +2033,15 @@ absl::Status DungeonPlaceObjectCommandHandler::Execute(
                      static_cast<int>(room.GetTileObjects().size()));
   formatter.AddField("mode", do_write ? "write" : "dry-run");
 
+  if (IsNativeDungeonLayout(*rom)) {
+    const auto status = SaveNativeRoomObjects(
+        rom, room_id, room,
+        manifest_context.has_value() ? &*manifest_context : nullptr, do_write,
+        formatter);
+    formatter.EndObject();
+    return status;
+  }
+
   const auto preflight_status = PreflightObjectSave(
       *rom, room_id, obj, room,
       manifest_context.has_value() ? &*manifest_context : nullptr);
@@ -2038,6 +2199,15 @@ absl::Status DungeonRemoveObjectCommandHandler::Execute(
   const bool do_write = parser.HasFlag("write");
   formatter.AddField("mode", do_write ? "write" : "dry-run");
 
+  if (IsNativeDungeonLayout(*rom)) {
+    const auto status = SaveNativeRoomObjects(
+        rom, room_id, room,
+        manifest_context.has_value() ? &*manifest_context : nullptr, do_write,
+        formatter);
+    formatter.EndObject();
+    return status;
+  }
+
   const absl::Status preflight_status = PreflightObjectRemoval(
       *rom, room_id, object_vector_index, room,
       manifest_context.has_value() ? &*manifest_context : nullptr);
@@ -2059,6 +2229,146 @@ absl::Status DungeonRemoveObjectCommandHandler::Execute(
     }
   }
 
+  formatter.EndObject();
+  return absl::OkStatus();
+}
+
+// ---------------------------------------------------------------------------
+// dungeon-import-room-objects
+// ---------------------------------------------------------------------------
+
+absl::Status DungeonImportRoomObjectsCommandHandler::Execute(
+    Rom* rom, const resources::ArgumentParser& parser,
+    resources::OutputFormatter& formatter) {
+  int room_id = 0;
+  ASSIGN_OR_RETURN(room_id, GetRequiredHex(parser, "room"));
+  RETURN_IF_ERROR(ValidateRoomId(room_id));
+  std::string source_path;
+  ASSIGN_OR_RETURN(source_path, GetRequiredString(parser, "source-rom"));
+  std::optional<StreamSaveManifestContext> manifest_context;
+  ASSIGN_OR_RETURN(
+      manifest_context,
+      LoadStreamSaveManifestContext(parser, core::DungeonStreamType::kObjects));
+  const zelda3::DungeonStreamLayout* layout =
+      manifest_context.has_value() ? &manifest_context->allocator_layout
+                                   : nullptr;
+  const bool do_write = parser.HasFlag("write");
+
+  Rom source_rom;
+  Rom::LoadOptions options;
+  options.load_resource_labels = false;
+  RETURN_IF_ERROR(source_rom.LoadFromFile(source_path, options));
+  ASSIGN_OR_RETURN(const auto source_stream,
+                   zelda3::ReadDungeonObjectStream(source_rom, room_id));
+  ASSIGN_OR_RETURN(const auto target_stream,
+                   zelda3::ReadDungeonObjectStream(*rom, room_id));
+  const zelda3::Room source_room =
+      zelda3::LoadRoomFromRom(&source_rom, room_id);
+  zelda3::Room room = zelda3::LoadRoomFromRom(rom, room_id);
+
+  const auto count_stream = [](const zelda3::Room& r, bool chests_only) {
+    return static_cast<int>(std::count_if(
+        r.GetTileObjects().begin(), r.GetTileObjects().end(),
+        [chests_only](const zelda3::RoomObject& object) {
+          return zelda3::UsesRoomObjectStream(object) &&
+                 (!chests_only || zelda3::IsStatefulChestObjectId(object.id_));
+        }));
+  };
+
+  formatter.BeginObject("Import Room Objects");
+  formatter.AddHexField("room_id", room_id, 2);
+  formatter.AddField("source_rom", source_path);
+  formatter.AddHexField("source_data_pc_in_source", source_stream.data_pc, 6);
+  formatter.AddField("objects_before", count_stream(room, false));
+  formatter.AddField("objects_after", count_stream(source_room, false));
+  formatter.AddField("doors_before", static_cast<int>(room.GetDoors().size()));
+  formatter.AddField("doors_after",
+                     static_cast<int>(source_room.GetDoors().size()));
+  if (const auto manifest_path = parser.GetString("manifest");
+      manifest_path.has_value()) {
+    formatter.AddField("manifest", *manifest_path);
+    formatter.AddField("manifest_write_policy", "block");
+  }
+  formatter.AddField("allocator_capability",
+                     layout != nullptr ? "copy_on_write" : "none");
+  formatter.AddField("mode", do_write ? "write" : "dry-run");
+  const auto refuse = [&formatter](const absl::Status& status) {
+    formatter.AddField("preflight_status", "failed");
+    formatter.AddField("preflight_error", std::string(status.message()));
+    formatter.EndObject();
+    return status;
+  };
+
+  // The two header bytes hold floor graphics and layout, which
+  // dungeon-set-room-property edits; chest objects pair with chest-table rows
+  // in order, which this command does not edit.
+  if (!std::equal(source_stream.encoded_stream.begin(),
+                  source_stream.encoded_stream.begin() + 2,
+                  target_stream.encoded_stream.begin())) {
+    return refuse(absl::FailedPreconditionError(
+        "Source and target object stream headers (floor/layout) differ"));
+  }
+  if (count_stream(source_room, true) != count_stream(room, true)) {
+    return refuse(absl::FailedPreconditionError(
+        "Source and target chest object counts differ"));
+  }
+
+  std::vector<zelda3::RoomObject> objects;
+  for (zelda3::RoomObject object : source_room.GetTileObjects()) {
+    if (zelda3::UsesRoomObjectStream(object)) {
+      object.SetRom(rom);
+      objects.push_back(object);
+    }
+  }
+  for (const auto& object : room.GetTileObjects()) {
+    if (!zelda3::UsesRoomObjectStream(object)) {
+      objects.push_back(object);
+    }
+  }
+  room.GetTileObjects() = std::move(objects);
+  room.GetDoors() = source_room.GetDoors();
+  room.set_door_marker(source_room.door_marker());
+  room.MarkObjectStreamDirty();
+
+  std::vector<uint8_t> planned_stream(source_stream.encoded_stream.begin(),
+                                      source_stream.encoded_stream.begin() + 2);
+  const auto encoded = room.EncodeObjects();
+  planned_stream.insert(planned_stream.end(), encoded.begin(), encoded.end());
+  formatter.AddField("stream_matches_source",
+                     planned_stream == source_stream.encoded_stream);
+
+  if (IsNativeDungeonLayout(*rom)) {
+    const auto status = SaveNativeRoomObjects(
+        rom, room_id, room,
+        manifest_context.has_value() ? &*manifest_context : nullptr, do_write,
+        formatter);
+    formatter.EndObject();
+    return status;
+  }
+
+  if (manifest_context.has_value()) {
+    if (const auto status = ValidateObjectSaveManifestConflicts(
+            *rom, room_id, room, *manifest_context);
+        !status.ok()) {
+      return refuse(status);
+    }
+  }
+  const auto ranges = room.GetObjectSaveWriteRanges(layout);
+  if (!ranges.ok()) {
+    return refuse(ranges.status());
+  }
+  formatter.AddField("preflight_status", "passed");
+  if (do_write) {
+    RETURN_IF_ERROR(MutateAndSaveRomWithBackup(
+        rom, formatter,
+        [&room, layout]() { return room.SaveObjects(layout); }));
+    if (const auto status = CheckReopenedObjects(rom->vector(), room_id, room);
+        !status.ok()) {
+      formatter.EndObject();
+      return absl::DataLossError(status.message());
+    }
+    formatter.AddField("verified_reload", true);
+  }
   formatter.EndObject();
   return absl::OkStatus();
 }

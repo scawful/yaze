@@ -413,6 +413,14 @@ class Room {
 
   const std::vector<Door>& GetDoors() const { return doors_; }
   std::vector<Door>& GetDoors() { return doors_; }
+  // Whether a doorless room's encoded stream carries the $FFF0 door marker.
+  bool door_marker() const { return door_marker_; }
+  void set_door_marker(bool present) {
+    if (door_marker_ != present) {
+      door_marker_ = present;
+      MarkObjectStreamDirty();
+    }
+  }
   void AddDoor(const Door& door) {
     doors_.push_back(door);
     objects_loaded_ = true;
@@ -1084,6 +1092,17 @@ class Room {
   GetSpriteSaveWriteRanges(const DungeonStreamLayout* layout = nullptr) const;
   std::vector<uint8_t> EncodeSprites() const;
   absl::Status SaveRoomHeader();
+  // Stage the bytes SaveObjects, SaveObjectStreamHeader or SaveRoomHeader
+  // would write into image, a same-size copy of this room's ROM, and return
+  // the written PC ranges. The ROM is not modified, so callers whose layout
+  // refuses generic writes can commit the image as a whole.
+  using StagedRanges = std::vector<std::pair<uint32_t, uint32_t>>;
+  absl::StatusOr<StagedRanges> StageObjectSave(
+      const DungeonStreamLayout* layout, std::vector<uint8_t>& image) const;
+  absl::StatusOr<StagedRanges> StageObjectStreamHeaderSave(
+      const DungeonStreamLayout* layout, std::vector<uint8_t>& image) const;
+  absl::StatusOr<StagedRanges> StageRoomHeaderSave(
+      std::vector<uint8_t>& image) const;
 
   auto blocks() const { return blocks_; }
   auto& mutable_blocks() { return blocks_; }
@@ -1187,7 +1206,10 @@ class Room {
       const DungeonStreamLayout* layout) const;
   absl::StatusOr<StreamSavePlan> PlanObjectStreamHeaderSave(
       const DungeonStreamLayout* layout) const;
+  absl::StatusOr<StreamSavePlan> PlanRoomHeaderSave() const;
   absl::Status ApplyStreamSavePlan(const StreamSavePlan& plan);
+  absl::StatusOr<StagedRanges> StageStreamSavePlan(
+      const StreamSavePlan& plan, std::vector<uint8_t>& image) const;
   Rom* rom_;
   GameData* game_data_ = nullptr;
 
@@ -1301,6 +1323,7 @@ class Room {
   std::vector<staircase> z3_staircases_;
   std::vector<chest_data> chests_in_room_;
   std::vector<Door> doors_;
+  bool door_marker_ = true;
   std::vector<PotItem> pot_items_;
   RoomLayout layout_;
 

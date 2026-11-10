@@ -2027,6 +2027,7 @@ void Room::ParseObjectsFromLocation(int objects_location) {
   // Clear existing objects before parsing to prevent accumulation on reload
   tile_objects_.clear();
   doors_.clear();
+  door_marker_ = false;
   z3_staircases_.clear();
   int nbr_of_staircase = 0;
 
@@ -2073,6 +2074,7 @@ void Room::ParseObjectsFromLocation(int objects_location) {
     if (b1 == 0xF0 && b2 == 0xFF) {
       pos += 2;  // Jump to door section
       door = true;
+      door_marker_ = true;
       continue;
     }
 
@@ -2167,8 +2169,9 @@ std::vector<uint8_t> Room::EncodeObjects() const {
   //   2-byte door entries, and finally $FFFF which terminates both the door
   //   list and the third object list.
   //
-  // NOTE: We always emit the door marker and a terminator, even if there are
-  // zero doors, because vanilla room data does so as well.
+  // The door marker is emitted whenever there are doors, and for a doorless
+  // room unless its loaded stream omitted it (some ROM rooms end list 2 with a
+  // bare $FFFF). Keeping that form lets an unchanged room re-encode exactly.
 
   // Encode list index 0 (primary)
   for (const auto& obj : layer0_objects) {
@@ -2200,8 +2203,10 @@ std::vector<uint8_t> Room::EncodeObjects() const {
 
   // ASM marker 0xF0 0xFF - start of door list (RoomDraw_DrawAllObjects checks
   // for word $FFF0).
-  bytes.push_back(0xF0);
-  bytes.push_back(0xFF);
+  if (door_marker_ || !doors_.empty()) {
+    bytes.push_back(0xF0);
+    bytes.push_back(0xFF);
+  }
   for (const auto& door : doors_) {
     auto [b1, b2] = door.EncodeBytes();
     bytes.push_back(b1);
@@ -2390,6 +2395,57 @@ absl::Status Room::ApplyStreamSavePlan(const StreamSavePlan& plan) {
                                     plan.direct_long_write->second));
   }
   return absl::OkStatus();
+}
+
+absl::StatusOr<Room::StagedRanges> Room::StageStreamSavePlan(
+    const StreamSavePlan& plan, std::vector<uint8_t>& image) const {
+  if (rom_ == nullptr || image.size() != rom_->vector().size()) {
+    return absl::InvalidArgumentError(
+        "Staging image must be a same-size copy of the room's ROM");
+  }
+  if (plan.relocation.has_value()) {
+    RETURN_IF_ERROR(
+        StageDungeonStreamWritePlan(*rom_, *plan.relocation, image));
+    return plan.write_ranges();
+  }
+  const auto stage = [&image](uint32_t address,
+                              const std::vector<uint8_t>& bytes) {
+    if (static_cast<uint64_t>(address) + bytes.size() > image.size()) {
+      return absl::OutOfRangeError("Staged room write is outside the ROM");
+    }
+    std::copy(bytes.begin(), bytes.end(), image.begin() + address);
+    return absl::OkStatus();
+  };
+  for (const auto& [address, bytes] : plan.direct_writes) {
+    RETURN_IF_ERROR(stage(address, bytes));
+  }
+  if (plan.direct_long_write.has_value()) {
+    const uint32_t value = plan.direct_long_write->second;
+    RETURN_IF_ERROR(stage(plan.direct_long_write->first,
+                          {static_cast<uint8_t>(value & 0xFF),
+                           static_cast<uint8_t>((value >> 8) & 0xFF),
+                           static_cast<uint8_t>((value >> 16) & 0xFF)}));
+  }
+  return plan.write_ranges();
+}
+
+absl::StatusOr<Room::StagedRanges> Room::StageObjectSave(
+    const DungeonStreamLayout* layout, std::vector<uint8_t>& image) const {
+  ASSIGN_OR_RETURN(const StreamSavePlan plan, PlanObjectSave(layout));
+  return StageStreamSavePlan(plan, image);
+}
+
+absl::StatusOr<Room::StagedRanges> Room::StageObjectStreamHeaderSave(
+    const DungeonStreamLayout* layout, std::vector<uint8_t>& image) const {
+  ASSIGN_OR_RETURN(const StreamSavePlan plan,
+                   PlanObjectStreamHeaderSave(layout));
+  return StageStreamSavePlan(plan, image);
+}
+
+absl::StatusOr<Room::StagedRanges> Room::StageRoomHeaderSave(
+    std::vector<uint8_t>& image) const {
+  ASSIGN_OR_RETURN(const StreamSavePlan plan, PlanRoomHeaderSave());
+  return StageStreamSavePlan(plan, image);
 }
 
 absl::StatusOr<Room::StreamSavePlan> Room::PlanObjectSave(
@@ -2742,6 +2798,13 @@ absl::Status Room::SaveSprites(const DungeonStreamLayout* layout) {
 }
 
 absl::Status Room::SaveRoomHeader() {
+  ASSIGN_OR_RETURN(const StreamSavePlan plan, PlanRoomHeaderSave());
+  RETURN_IF_ERROR(ApplyStreamSavePlan(plan));
+  ClearHeaderDirty();
+  return absl::OkStatus();
+}
+
+absl::StatusOr<Room::StreamSavePlan> Room::PlanRoomHeaderSave() const {
   if (rom_ == nullptr) {
     return absl::InvalidArgumentError("ROM pointer is null");
   }
@@ -2799,33 +2862,24 @@ absl::Status Room::SaveRoomHeader() {
   const uint8_t byte8 = static_cast<uint8_t>(
       (rom_data[header_location + 8] & 0xFC) | (staircase_plane(3) & 0x03));
 
-  RETURN_IF_ERROR(rom_->WriteByte(header_location + 0, byte0));
-  RETURN_IF_ERROR(rom_->WriteByte(header_location + 1, byte1));
-  RETURN_IF_ERROR(rom_->WriteByte(header_location + 2, blockset_));
-  RETURN_IF_ERROR(rom_->WriteByte(header_location + 3, spriteset_));
-  RETURN_IF_ERROR(
-      rom_->WriteByte(header_location + 4, static_cast<uint8_t>(effect())));
-  RETURN_IF_ERROR(
-      rom_->WriteByte(header_location + 5, static_cast<uint8_t>(tag1())));
-  RETURN_IF_ERROR(
-      rom_->WriteByte(header_location + 6, static_cast<uint8_t>(tag2())));
-  RETURN_IF_ERROR(rom_->WriteByte(header_location + 7, byte7));
-  RETURN_IF_ERROR(rom_->WriteByte(header_location + 8, byte8));
-  RETURN_IF_ERROR(rom_->WriteByte(header_location + 9, holewarp_));
-  RETURN_IF_ERROR(rom_->WriteByte(header_location + 10, staircase_room(0)));
-  RETURN_IF_ERROR(rom_->WriteByte(header_location + 11, staircase_room(1)));
-  RETURN_IF_ERROR(rom_->WriteByte(header_location + 12, staircase_room(2)));
-  RETURN_IF_ERROR(rom_->WriteByte(header_location + 13, staircase_room(3)));
-
   int msg_addr = kMessagesIdDungeon + (room_id_ * 2);
   if (msg_addr < 0 || msg_addr + 1 >= static_cast<int>(rom_data.size())) {
     return absl::OutOfRangeError("Message ID address out of range");
   }
-  RETURN_IF_ERROR(rom_->WriteWord(msg_addr, message_id_));
 
-  ClearHeaderDirty();
-
-  return absl::OkStatus();
+  StreamSavePlan plan;
+  plan.direct_writes.emplace_back(
+      static_cast<uint32_t>(header_location),
+      std::vector<uint8_t>{
+          byte0, byte1, blockset_, spriteset_, static_cast<uint8_t>(effect()),
+          static_cast<uint8_t>(tag1()), static_cast<uint8_t>(tag2()), byte7,
+          byte8, holewarp_, staircase_room(0), staircase_room(1),
+          staircase_room(2), staircase_room(3)});
+  plan.direct_writes.emplace_back(
+      static_cast<uint32_t>(msg_addr),
+      std::vector<uint8_t>{static_cast<uint8_t>(message_id_ & 0xFF),
+                           static_cast<uint8_t>((message_id_ >> 8) & 0xFF)});
+  return plan;
 }
 
 // ============================================================================

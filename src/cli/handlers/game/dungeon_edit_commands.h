@@ -1,11 +1,39 @@
 #ifndef YAZE_SRC_CLI_HANDLERS_GAME_DUNGEON_EDIT_COMMANDS_H_
 #define YAZE_SRC_CLI_HANDLERS_GAME_DUNGEON_EDIT_COMMANDS_H_
 
+#include <cstdint>
+#include <functional>
+#include <utility>
+#include <vector>
+
 #include "cli/service/resources/command_handler.h"
 
 namespace yaze {
+namespace core {
+class HackManifest;
+}  // namespace core
+
 namespace cli {
 namespace handlers {
+
+// Native special-overworld ROMs refuse generic writes. Dungeon edits on them
+// are staged into a copy of the ROM image and committed as a whole through
+// Rom::CommitNativeDungeonImage, which accepts only the staged ranges.
+bool IsNativeDungeonLayout(const Rom& rom);
+
+using NativeImageCheck =
+    std::function<absl::Status(const std::vector<uint8_t>& image)>;
+
+// Reports the staged ranges and refuses any that a manifest protects or that
+// native overworld storage owns. check must confirm the candidate reopens to
+// the intended room. With do_write the candidate is committed, saved with a
+// backup, and check runs again on the image reloaded from disk.
+absl::Status CommitNativeDungeonCandidate(
+    Rom* rom, const std::vector<uint8_t>& baseline,
+    std::vector<uint8_t> candidate,
+    const std::vector<std::pair<uint32_t, uint32_t>>& ranges,
+    const core::HackManifest* manifest, bool do_write,
+    resources::OutputFormatter& formatter, const NativeImageCheck& check);
 
 /**
  * @brief Place a sprite in a dungeon room and optionally write to ROM.
@@ -82,6 +110,34 @@ class DungeonMoveSpriteCommandHandler : public resources::CommandHandler {
 };
 
 /**
+ * @brief Replace a room's object stream with the same room from another ROM.
+ *
+ * Copies stream objects (all three lists) and doors; torches, pushable blocks,
+ * sprites and headers stay as they are. Used to land a room authored on a
+ * private copy. Dry-run by default. Use --write to commit + save ROM.
+ */
+class DungeonImportRoomObjectsCommandHandler
+    : public resources::CommandHandler {
+ public:
+  std::string GetName() const override { return "dungeon-import-room-objects"; }
+  std::string GetDescription() const {
+    return "Copy a room's objects and doors from another ROM";
+  }
+  std::string GetUsage() const override {
+    return "dungeon-import-room-objects --room <hex> --source-rom <path> "
+           "[--manifest <path> [--alloc-range <snes_begin>-<snes_end>]] "
+           "[--write] [--format <json|text>]";
+  }
+
+  absl::Status ValidateArgs(const resources::ArgumentParser& parser) override {
+    return parser.RequireArgs({"room", "source-rom"});
+  }
+
+  absl::Status Execute(Rom* rom, const resources::ArgumentParser& parser,
+                       resources::OutputFormatter& formatter) override;
+};
+
+/**
  * @brief Place a dungeon object (track segment, door, etc.) in a room.
  *
  * Dry-run by default. Use --write to commit + save ROM.
@@ -96,7 +152,7 @@ class DungeonPlaceObjectCommandHandler : public resources::CommandHandler {
     return "dungeon-place-object --room <hex> --id <hex> --x <int> --y <int> "
            "[--size <int>] [--layer <0|1|2>] "
            "[--chest-item <hex>] "
-           "[--manifest <path>] "
+           "[--manifest <path> [--alloc-range <snes_begin>-<snes_end>]] "
            "[--write] [--format <json|text>]";
   }
 
@@ -123,7 +179,7 @@ class DungeonRemoveObjectCommandHandler : public resources::CommandHandler {
     return "dungeon-remove-object --room <hex> --index <int> "
            "--expect-id <hex> --expect-x <int> --expect-y <int> "
            "--expect-size <int> --expect-layer <0|1|2> "
-           "[--manifest <path>] "
+           "[--manifest <path> [--alloc-range <snes_begin>-<snes_end>]] "
            "[--write] [--format <json|text>]";
   }
 

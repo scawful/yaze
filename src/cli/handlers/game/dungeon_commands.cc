@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <fstream>
 #include <limits>
+#include <map>
 #include <memory>
 #include <optional>
 #include <sstream>
@@ -12,6 +13,7 @@
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
 #include "absl/strings/str_split.h"
+#include "cli/handlers/game/dungeon_edit_commands.h"
 #include "cli/util/hex_util.h"
 #include "cli/util/sprite_label_fields.h"
 #include "core/dungeon_stream_layout_adapter.h"
@@ -1017,6 +1019,86 @@ absl::Status DungeonSetRoomPropertyCommandHandler::Execute(
     formatter.AddField("error", std::string(property_status.message()));
     formatter.EndObject();
     return property_status;
+  }
+
+  if (IsNativeDungeonLayout(*rom)) {
+    formatter.AddField("layout", "native");
+    const auto property_value = [&prop](const zelda3::Room& r) -> int {
+      if (prop == "palette")
+        return r.palette();
+      if (prop == "blockset")
+        return r.blockset();
+      if (prop == "spriteset")
+        return r.spriteset();
+      if (prop == "effect")
+        return static_cast<int>(r.effect());
+      if (prop == "tag1")
+        return static_cast<int>(r.tag1());
+      if (prop == "tag2")
+        return static_cast<int>(r.tag2());
+      if (prop == "holewarp")
+        return r.holewarp();
+      if (prop == "floor1")
+        return r.floor1();
+      if (prop == "floor2")
+        return r.floor2();
+      return r.layout_id();
+    };
+    const auto* allocator_layout =
+        manifest_context.has_value() &&
+                manifest_context->allocator_layout.has_value()
+            ? &*manifest_context->allocator_layout
+            : nullptr;
+    const auto baseline = rom->vector();
+    auto candidate = baseline;
+    auto ranges = is_object_stream_header ? room.StageObjectStreamHeaderSave(
+                                                allocator_layout, candidate)
+                                          : room.StageRoomHeaderSave(candidate);
+    if (ranges.ok() && is_room_header) {
+      // The header is re-encoded from decoded fields; refuse if that would
+      // change any byte besides the edited field.
+      const std::map<std::string, uint32_t> kHeaderOffset = {
+          {"palette", 1}, {"blockset", 2}, {"spriteset", 3}, {"effect", 4},
+          {"tag1", 5},    {"tag2", 6},     {"holewarp", 9}};
+      const uint32_t field_pc = ranges->front().first + kHeaderOffset.at(prop);
+      for (size_t pc = 0; pc < candidate.size(); ++pc) {
+        if (candidate[pc] != baseline[pc] && pc != field_pc) {
+          ranges = absl::FailedPreconditionError(absl::StrFormat(
+              "Room header re-encoding would also change byte 0x%06X", pc));
+          break;
+        }
+      }
+    }
+    if (!ranges.ok()) {
+      formatter.AddField("status", "error");
+      formatter.AddField("preflight_error",
+                         std::string(ranges.status().message()));
+      formatter.EndObject();
+      return ranges.status();
+    }
+    const absl::Status native_status = CommitNativeDungeonCandidate(
+        rom, baseline, std::move(candidate), *ranges,
+        manifest_context.has_value() ? &manifest_context->manifest : nullptr,
+        !parser.HasFlag("mock-rom"), formatter,
+        [&](const std::vector<uint8_t>& image) -> absl::Status {
+          Rom scratch;
+          Rom::LoadOptions options;
+          options.strip_header = false;
+          options.load_resource_labels = false;
+          RETURN_IF_ERROR(scratch.LoadFromData(image, options));
+          if (property_value(zelda3::LoadRoomFromRom(&scratch, room_id)) !=
+              property_value(room)) {
+            return absl::FailedPreconditionError(
+                "Room property does not survive save/reopen");
+          }
+          return absl::OkStatus();
+        });
+    if (native_status.ok()) {
+      transaction.Commit();
+    }
+    formatter.AddField("status", native_status.ok() ? "success" : "error");
+    formatter.EndObject();
+    return native_status;
   }
 
   const absl::Status write_status =
