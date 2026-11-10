@@ -973,14 +973,41 @@ absl::StatusOr<uint32_t> DungeonObjectDoorListOffset(
   return ObjectDoorListOffset(encoded_stream);
 }
 
+absl::StatusOr<uint32_t> RoomObjectPointerSourcePc(
+    std::span<const uint8_t> rom_data) {
+  constexpr uint32_t kLoadHighPc = kRoomObjectPointer - 7;  // $01:8745
+  constexpr uint32_t kHookScanBytes = 0x100;
+  if (rom_data.size() < kLoadHighPc + 4 || rom_data[kLoadHighPc] != 0x22) {
+    return static_cast<uint32_t>(kRoomObjectPointer);
+  }
+  const uint32_t hook_pc =
+      SnesToPc(rom_data[kLoadHighPc + 1] | (rom_data[kLoadHighPc + 2] << 8) |
+               (rom_data[kLoadHighPc + 3] << 16));
+  const uint64_t scan_end = std::min<uint64_t>(
+      rom_data.size(), static_cast<uint64_t>(hook_pc) + kHookScanBytes);
+  for (uint64_t pc = hook_pc; pc + 6 <= scan_end; ++pc) {
+    if (rom_data[pc] == 0xBF && rom_data[pc + 4] == 0x85 &&
+        rom_data[pc + 5] == 0xB7) {
+      return static_cast<uint32_t>(pc + 1);
+    }
+  }
+  return absl::FailedPreconditionError(absl::StrFormat(
+      "Object pointer-table hook at $01:8745 (PC 0x%06X) has no "
+      "LDA.l table,X / STA.b $B7 pair",
+      hook_pc));
+}
+
 absl::StatusOr<DungeonStreamRecord> ReadDungeonObjectStream(const Rom& rom,
                                                             int room_id) {
   if (room_id < 0 || room_id >= kNumberOfRooms) {
     return absl::OutOfRangeError(
         "Object stream room is outside the room table");
   }
+  ASSIGN_OR_RETURN(
+      const uint32_t pointer_source_pc,
+      RoomObjectPointerSourcePc(std::span(rom.data(), rom.size())));
   DungeonStreamLayout layout;
-  layout.pointer_table_pc = kRoomObjectPointer;
+  layout.pointer_table_pc = pointer_source_pc;
   layout.pointer_encoding = DungeonPointerEncoding::kLong24;
   ASSIGN_OR_RETURN(layout.pointer_table_pc, DecodePointer(rom, layout, 0));
   const uint64_t table_end = static_cast<uint64_t>(layout.pointer_table_pc) +
@@ -996,8 +1023,8 @@ absl::StatusOr<DungeonStreamRecord> ReadDungeonObjectStream(const Rom& rom,
   ASSIGN_OR_RETURN(const uint32_t start, DecodePointer(rom, layout, room_id));
   const DungeonStreamPcRange pointer_table{layout.pointer_table_pc,
                                            static_cast<uint32_t>(table_end)};
-  const DungeonStreamPcRange pointer_source{kRoomObjectPointer,
-                                            kRoomObjectPointer + 3};
+  const DungeonStreamPcRange pointer_source{pointer_source_pc,
+                                            pointer_source_pc + 3};
   const DungeonStreamPcRange door_table{kDoorPointers,
                                         kDoorPointers + kNumberOfRooms * 3};
   uint32_t limit =
