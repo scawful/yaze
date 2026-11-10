@@ -125,7 +125,7 @@ class SDL2AudioBackend : public IAudioBackend {
   std::string GetBackendName() const override { return "SDL2"; }
 
  private:
- uint32_t device_id_ = 0;
+  uint32_t device_id_ = 0;
   AudioConfig config_;
   bool initialized_ = false;
   float volume_ = 1.0f;
