@@ -431,37 +431,58 @@ absl::Status GetObjectPointerTablePc(const std::vector<uint8_t>& rom_data,
     }
     constexpr uint32_t kD4SelectObjectsSnes = 0x508000;
     constexpr size_t kD4SelectObjectsPc = 0x280000;
-    constexpr size_t kD4FallbackSize = 27;
-    constexpr std::array<uint8_t, 14> kD4Dispatch = {
-        0xAF, 0xA0, 0x00, 0x7E, 0xC9, 0x25, 0x00,
-        0xF0, 0x12, 0xC9, 0x37, 0x00, 0xF0, 0x35};
+    constexpr size_t kD4FallbackSize = 13;
+    // Known D4 dispatch prefixes: LDA.l $7E00A0, then CMP #room / BEQ per
+    // water-state room. Each layout pins its branch offsets exactly.
+    struct D4Dispatch {
+      std::vector<uint8_t> bytes;
+      std::vector<int> state_rooms;
+    };
+    static const std::array<D4Dispatch, 2> kD4Dispatches = {{
+        {{0xAF, 0xA0, 0x00, 0x7E, 0xC9, 0x25, 0x00, 0xF0, 0x12, 0xC9, 0x37,
+          0x00, 0xF0, 0x35},
+         {0x25, 0x37}},
+        {{0xAF, 0xA0, 0x00, 0x7E, 0xC9, 0x25, 0x00, 0xF0, 0x17, 0xC9, 0x26,
+          0x00, 0xF0, 0x3A, 0xC9, 0x37, 0x00, 0xF0, 0x59},
+         {0x25, 0x26, 0x37}},
+    }};
+    const D4Dispatch* dispatch = nullptr;
+    for (const auto& candidate : kD4Dispatches) {
+      if (kD4SelectObjectsPc + candidate.bytes.size() <= rom_data.size() &&
+          std::equal(candidate.bytes.begin(), candidate.bytes.end(),
+                     rom_data.begin() + kD4SelectObjectsPc)) {
+        dispatch = &candidate;
+        break;
+      }
+    }
+    const size_t fallback_pc =
+        kD4SelectObjectsPc + (dispatch ? dispatch->bytes.size() : 0);
     if (kObjectLoaderHookPc + 12 > rom_data.size() ||
         rom_data[kObjectLoaderHookPc] != 0x22 ||
         read_long(kObjectLoaderHookPc + 1) != kD4SelectObjectsSnes ||
         !std::all_of(rom_data.begin() + kObjectLoaderHookPc + 4,
                      rom_data.begin() + kObjectLoaderHookPc + 12,
                      [](uint8_t byte) { return byte == 0xEA; }) ||
-        kD4SelectObjectsPc + kD4FallbackSize > rom_data.size() ||
-        !std::equal(kD4Dispatch.begin(), kD4Dispatch.end(),
-                    rom_data.begin() + kD4SelectObjectsPc) ||
-        rom_data[kD4SelectObjectsPc + 14] != 0xBF ||
-        rom_data[kD4SelectObjectsPc + 18] != 0x85 ||
-        rom_data[kD4SelectObjectsPc + 19] != 0xB8 ||
-        rom_data[kD4SelectObjectsPc + 20] != 0xBF ||
-        rom_data[kD4SelectObjectsPc + 24] != 0x85 ||
-        rom_data[kD4SelectObjectsPc + 25] != 0xB7 ||
-        rom_data[kD4SelectObjectsPc + 26] != 0x6B) {
+        dispatch == nullptr ||
+        fallback_pc + kD4FallbackSize > rom_data.size() ||
+        rom_data[fallback_pc] != 0xBF || rom_data[fallback_pc + 4] != 0x85 ||
+        rom_data[fallback_pc + 5] != 0xB8 ||
+        rom_data[fallback_pc + 6] != 0xBF ||
+        rom_data[fallback_pc + 10] != 0x85 ||
+        rom_data[fallback_pc + 11] != 0xB7 ||
+        rom_data[fallback_pc + 12] != 0x6B) {
       return absl::FailedPreconditionError(
           "Unsupported compiled room-object loader or D4 fallback");
     }
-    table_snes = read_long(kD4SelectObjectsPc + 21);
-    if (read_long(kD4SelectObjectsPc + 15) != table_snes + 1) {
+    table_snes = read_long(fallback_pc + 7);
+    if (read_long(fallback_pc + 1) != table_snes + 1) {
       return absl::FailedPreconditionError(
           "Compiled D4 fallback object-table operands disagree");
     }
-    // Those two rooms use runtime water-state-selected streams. The captured
+    // Dispatched rooms use runtime water-state-selected streams. The captured
     // ordinary table is not a substitute for selecting that state.
-    if (room_id == 0x25 || room_id == 0x37) {
+    if (std::find(dispatch->state_rooms.begin(), dispatch->state_rooms.end(),
+                  room_id) != dispatch->state_rooms.end()) {
       return absl::FailedPreconditionError(
           "D4 water room objects require an explicit runtime water state");
     }

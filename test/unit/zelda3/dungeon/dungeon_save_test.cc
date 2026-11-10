@@ -202,6 +202,25 @@ class DungeonSaveTest : public ::testing::Test {
     WriteLongPointer(0x280015, table_snes);
   }
 
+  // The current Oracle D4 helper also dispatches room $26.
+  void InstallCompiledThreeRoomD4ObjectHook(uint32_t table_snes = 0x1F8000) {
+    auto data = rom_->vector();
+    data.resize(0x400000);
+    ASSERT_TRUE(rom_->LoadFromData(data).ok());
+    ASSERT_TRUE(rom_->WriteVector(0x8745, {0x22, 0x00, 0x80, 0x50, 0xEA, 0xEA,
+                                           0xEA, 0xEA, 0xEA, 0xEA, 0xEA, 0xEA})
+                    .ok());
+    ASSERT_TRUE(
+        rom_->WriteVector(0x280000,
+                          {0xAF, 0xA0, 0x00, 0x7E, 0xC9, 0x25, 0x00, 0xF0,
+                           0x17, 0xC9, 0x26, 0x00, 0xF0, 0x3A, 0xC9, 0x37,
+                           0x00, 0xF0, 0x59, 0xBF, 0x01, 0x80, 0x1F, 0x85,
+                           0xB8, 0xBF, 0x00, 0x80, 0x1F, 0x85, 0xB7, 0x6B})
+            .ok());
+    WriteLongPointer(0x280014, table_snes + 1);
+    WriteLongPointer(0x28001A, table_snes);
+  }
+
   DungeonStreamLayout MakeObjectLayout(DungeonStreamPcRange allocation = {
                                            0x100200, 0x100400}) const {
     DungeonStreamLayout layout;
@@ -477,6 +496,39 @@ TEST_F(DungeonSaveTest, CompiledD4InspectionDoesNotGuessDynamicWaterState) {
     EXPECT_TRUE(room.GetTileObjects().empty());
     EXPECT_EQ(CalculateRoomSize(rom_.get(), id).room_size_pointer, 0);
   }
+}
+
+TEST_F(DungeonSaveTest, CompiledThreeRoomD4InspectionLoadsAndRefusesRoom26) {
+  ASSERT_TRUE(
+      rom_->WriteVector(0x100000, {0x21, 0x04, 0xC4, 0x0C, 0x05, 0xFF, 0xFF,
+                                   0xFF, 0xFF, 0xF0, 0xFF, 0xFF, 0xFF})
+          .ok());
+  InstallCompiledThreeRoomD4ObjectHook();
+  const auto valid = rom_->vector();
+  Room compiled(0, rom_.get());
+  compiled.LoadObjects();
+  ASSERT_EQ(compiled.GetTileObjects().size(), 1u);
+  EXPECT_EQ(compiled.GetTileObjects().front().id_, 5);
+  for (int id : {0x25, 0x26, 0x37}) {
+    SCOPED_TRACE(id);
+    Room room(id, rom_.get());
+    room.LoadObjects();
+    EXPECT_TRUE(room.GetTileObjects().empty());
+    EXPECT_EQ(CalculateRoomSize(rom_.get(), id).room_size_pointer, 0);
+  }
+  // A changed branch offset or fallback byte is not a known layout.
+  for (int offset :
+       {0x280008, 0x28000D, 0x280012, 0x280013, 0x280018, 0x28001F}) {
+    SCOPED_TRACE(offset);
+    auto malformed = valid;
+    malformed[offset] ^= 1;
+    Rom rom;
+    ASSERT_TRUE(rom.LoadFromData(malformed).ok());
+    Room room(0, &rom);
+    room.LoadObjects();
+    EXPECT_TRUE(room.GetTileObjects().empty());
+  }
+  EXPECT_EQ(rom_->vector(), valid);
 }
 
 TEST_F(DungeonSaveTest, CompiledD4InspectionDoesNotAuthorizeObjectWrites) {
