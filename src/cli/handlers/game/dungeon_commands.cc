@@ -1091,6 +1091,9 @@ absl::Status DungeonSetRoomPropertyCommandHandler::Execute(
             return absl::FailedPreconditionError(
                 "Room property does not survive save/reopen");
           }
+          if (is_object_stream_header) {
+            return CheckReopenedRoomObjects(image, room_id, room);
+          }
           return absl::OkStatus();
         });
     if (native_status.ok()) {

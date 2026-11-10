@@ -2331,21 +2331,26 @@ absl::Status DungeonImportRoomObjectsCommandHandler::Execute(
     return refuse(absl::FailedPreconditionError(
         "Source and target object stream headers (floor/layout) differ"));
   }
-  const auto chest_sequence = [](const zelda3::Room& r) {
+  // Chests and big-key locks share the room's event slots in list order.
+  const auto event_slot_sequence = [](const zelda3::Room& r) {
     std::vector<std::tuple<int, int, int, int>> out;
-    for (const auto& object : r.GetTileObjects()) {
-      if (zelda3::UsesRoomObjectStream(object) &&
-          zelda3::IsStatefulChestObjectId(object.id_)) {
-        out.emplace_back(object.id_, object.x(), object.y(),
-                         object.GetLayerValue());
+    for (int list = 0; list < 3; ++list) {
+      for (const auto& object : r.GetTileObjects()) {
+        if (zelda3::UsesRoomObjectStream(object) &&
+            object.GetLayerValue() == list &&
+            (zelda3::IsStatefulChestObjectId(object.id_) ||
+             object.id_ == 0xF98)) {
+          out.emplace_back(object.id_, object.x(), object.y(), list);
+        }
       }
     }
     return out;
   };
-  if (chest_sequence(source_room) != chest_sequence(room)) {
+  if (event_slot_sequence(source_room) != event_slot_sequence(room)) {
     return refuse(absl::FailedPreconditionError(
-        "Source and target chest objects differ in order, kind or position; "
-        "chest-table rows pair with chests in stream order"));
+        "Source and target chest and big-key lock objects differ in order, "
+        "kind or position; chest-table rows pair with room event slots in "
+        "list order"));
   }
 
   std::vector<zelda3::RoomObject> objects;
@@ -2394,14 +2399,15 @@ absl::Status DungeonImportRoomObjectsCommandHandler::Execute(
   }
   formatter.AddField("preflight_status", "passed");
   if (do_write) {
-    RETURN_IF_ERROR(MutateAndSaveRomWithBackup(
-        rom, formatter,
-        [&room, layout]() { return room.SaveObjects(layout); }));
-    if (const auto status =
-            CheckReopenedRoomObjects(rom->vector(), room_id, room);
+    if (const auto status = MutateAndSaveRomWithBackup(
+            rom, formatter,
+            [&]() -> absl::Status {
+              RETURN_IF_ERROR(room.SaveObjects(layout));
+              return CheckReopenedRoomObjects(rom->vector(), room_id, room);
+            });
         !status.ok()) {
       formatter.EndObject();
-      return absl::DataLossError(status.message());
+      return status;
     }
     formatter.AddField("verified_reload", true);
   }

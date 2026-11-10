@@ -1346,6 +1346,48 @@ TEST(DungeonNativeObjectRouteTest, ImportRefusesChestOrderOrKindChange) {
   EXPECT_EQ(CountBackupArtifacts(cleanup.rom_path), 0);
 }
 
+TEST(DungeonNativeObjectRouteTest, ImportRefusesBigKeyLockEventSlotChange) {
+  const zelda3::RoomObject small_a(0xF99, 4, 4, 0, 0);
+  const zelda3::RoomObject small_b(0xF99, 10, 4, 0, 0);
+  const zelda3::RoomObject lock(0xF98, 16, 4, 0, 0);
+  Rom rom;
+  ASSERT_TRUE(
+      rom.LoadFromData(NativeRoomWithObjectsImage({small_a, small_b})).ok());
+  ScopedRomArtifactsCleanup cleanup(MakeUniqueTempRomPath());
+  rom.set_filename(cleanup.rom_path.string());
+  rom.set_dirty(false);
+  WriteRomFile(rom, cleanup.rom_path);
+  const auto baseline = CaptureRomFailClosedBaseline(rom, cleanup.rom_path);
+
+  const std::filesystem::path source_path =
+      cleanup.rom_path.string() + ".source.sfc";
+  ScopedFileCleanup source_cleanup(source_path);
+  const std::filesystem::path manifest_path =
+      cleanup.rom_path.string() + ".manifest.json";
+  ScopedFileCleanup manifest_cleanup(manifest_path);
+  WriteNativeObjectManifest(manifest_path, kNativeObjectAllocationPc,
+                            kNativeObjectDataEndPc);
+  const std::vector<std::string> args = {
+      "--source-rom=" + source_path.string(),
+      "--manifest=" + manifest_path.string(),
+      absl::StrFormat("--alloc-range=0x%06X-0x%06X",
+                      PcToSnes(kNativeObjectAllocationPc + 0x80),
+                      PcToSnes(kNativeObjectDataEndPc))};
+
+  // The chests keep their order, but a lock before them takes event slot 0,
+  // so each chest-table row would pair with the next slot.
+  test::native_overworld::WriteBytes(
+      source_path, NativeRoomWithObjectsImage({lock, small_a, small_b}));
+  nlohmann::json out;
+  const absl::Status status = RunNativeImport(&rom, args, &out);
+  EXPECT_EQ(status.code(), absl::StatusCode::kFailedPrecondition)
+      << status << out.dump();
+  EXPECT_THAT(out.value("preflight_error", ""), HasSubstr("big-key lock"));
+  EXPECT_EQ(rom.vector(), baseline.bytes);
+  EXPECT_EQ(ReadFile(cleanup.rom_path), baseline.disk_bytes);
+  EXPECT_EQ(CountBackupArtifacts(cleanup.rom_path), 0);
+}
+
 TEST(DungeonNativeObjectRouteTest, ReopenCheckRefusesWrongDoorPointer) {
   // Room 0's door list starts 17 bytes into the source stream.
   auto image = NativeObjectSourceImage();
@@ -1498,6 +1540,116 @@ TEST(DungeonNativeObjectRouteTest, RoomPropertyChangesOneHeaderByte) {
   EXPECT_EQ(ReadFile(cleanup.rom_path), rom.vector());
   set_tag1(absl::StrFormat("0x%02X", kRoomHeaderSentinel[5]));
   EXPECT_EQ(rom.vector(), before);
+}
+
+TEST(DungeonNativeObjectRouteTest, RoomFloorEditChecksDoorPointer) {
+  const auto set_floor1 = [](Rom* rom, nlohmann::json* out) {
+    handlers::DungeonSetRoomPropertyCommandHandler handler;
+    std::string output;
+    const absl::Status status = handler.Run(
+        {"--room=0x00", "--property=floor1", "--value=0x3", "--format=json"},
+        rom, &output);
+    *out = nlohmann::json::parse(output, nullptr, false)
+               .value("Dungeon Room Property Set", nlohmann::json());
+    return status;
+  };
+
+  // Control: the floor nibble shares the object stream header and reopens.
+  {
+    Rom rom;
+    ASSERT_TRUE(rom.LoadFromData(NativeObjectRouteImage()).ok());
+    ScopedRomArtifactsCleanup cleanup(MakeUniqueTempRomPath());
+    rom.set_filename(cleanup.rom_path.string());
+    rom.set_dirty(false);
+    WriteRomFile(rom, cleanup.rom_path);
+    nlohmann::json out;
+    const absl::Status status = set_floor1(&rom, &out);
+    ASSERT_TRUE(status.ok()) << status << out.dump();
+    EXPECT_EQ(out.at("changed_bytes"), 1);
+    EXPECT_EQ(out.at("verified_reload"), true);
+  }
+
+  // Room 0's door slot points two bytes short of its door list.
+  auto image = NativeObjectRouteImage();
+  PutLong(image, zelda3::kDoorPointers,
+          PcToSnes(kNativeObjectDataPc + 4) | 0x800000);
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(image).ok());
+  ScopedRomArtifactsCleanup cleanup(MakeUniqueTempRomPath());
+  rom.set_filename(cleanup.rom_path.string());
+  rom.set_dirty(false);
+  WriteRomFile(rom, cleanup.rom_path);
+  const auto baseline = CaptureRomFailClosedBaseline(rom, cleanup.rom_path);
+  nlohmann::json out;
+  const absl::Status status = set_floor1(&rom, &out);
+  EXPECT_EQ(status.code(), absl::StatusCode::kFailedPrecondition)
+      << status << out.dump();
+  EXPECT_THAT(std::string(status.message()), HasSubstr("Door pointer"));
+  EXPECT_EQ(rom.vector(), baseline.bytes);
+  EXPECT_EQ(ReadFile(cleanup.rom_path), baseline.disk_bytes);
+  EXPECT_EQ(CountBackupArtifacts(cleanup.rom_path), 0);
+}
+
+// A legacy image with room 0's doorless stream at stream_pc.
+std::vector<uint8_t> LegacyRoomZeroImage(const std::vector<uint8_t>& stream,
+                                         int stream_pc) {
+  Rom rom;
+  InitializeRoomHeaderRom(&rom);
+  std::vector<uint8_t> bytes = rom.vector();
+  std::copy(stream.begin(), stream.end(), bytes.begin() + stream_pc);
+  PutLong(bytes, kObjectPointerTablePc, PcToSnes(stream_pc));
+  PutLong(bytes, zelda3::kDoorPointers,
+          PcToSnes(stream_pc + stream.size() - 2));
+  return bytes;
+}
+
+TEST(DungeonLegacyObjectImportTest, ReopenCheckRunsBeforeTheWrite) {
+  const std::vector<uint8_t> doorless = {kObjectHeaderByte0,
+                                         kObjectHeaderByte1,
+                                         0xFF,
+                                         0xFF,
+                                         0xFF,
+                                         0xFF,
+                                         0xFF,
+                                         0xFF};
+  // Room 0's stream ends where the door pointer table begins, and room 1's
+  // stream follows the table. The legacy writer sizes in-place capacity by
+  // the next room stream, so a longer stream fits and runs over the table.
+  auto image = LegacyRoomZeroImage(doorless, zelda3::kDoorPointers - 8);
+  const int room1_pc = zelda3::kDoorPointers + 0x400;
+  const std::vector<uint8_t> empty = {0x00, 0x00, 0xFF, 0xFF, 0xFF,
+                                      0xFF, 0xF0, 0xFF, 0xFF, 0xFF};
+  std::copy(empty.begin(), empty.end(), image.begin() + room1_pc);
+  PutLong(image, kObjectPointerTablePc + 3, PcToSnes(room1_pc));
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(image).ok());
+  ASSERT_FALSE(rom::IsNativeSpecialOverworldLayout(rom.InspectLyraLayout()));
+  ScopedRomArtifactsCleanup cleanup(MakeUniqueTempRomPath());
+  rom.set_filename(cleanup.rom_path.string());
+  rom.set_dirty(false);
+  WriteRomFile(rom, cleanup.rom_path);
+  const auto baseline = CaptureRomFailClosedBaseline(rom, cleanup.rom_path);
+
+  const std::filesystem::path source_path =
+      cleanup.rom_path.string() + ".source.sfc";
+  ScopedFileCleanup source_cleanup(source_path);
+  std::vector<uint8_t> longer = {kObjectHeaderByte0, kObjectHeaderByte1};
+  const auto wall = zelda3::RoomObject(0x031, 1, 2, 6, 0).EncodeObjectToBytes();
+  longer.insert(longer.end(), {wall.b1, wall.b2, wall.b3});
+  longer.insert(longer.end(), {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF});
+  test::native_overworld::WriteBytes(
+      source_path, LegacyRoomZeroImage(longer, kObjectDataPc));
+
+  nlohmann::json out;
+  const absl::Status status = RunNativeImport(
+      &rom, {"--source-rom=" + source_path.string(), "--write"}, &out);
+  EXPECT_EQ(status.code(), absl::StatusCode::kFailedPrecondition)
+      << status << out.dump();
+  EXPECT_THAT(std::string(status.message()), HasSubstr("save/reopen"));
+  EXPECT_EQ(out.value("preflight_status", ""), "passed");
+  EXPECT_EQ(rom.vector(), baseline.bytes);
+  EXPECT_EQ(ReadFile(cleanup.rom_path), baseline.disk_bytes);
+  EXPECT_EQ(CountBackupArtifacts(cleanup.rom_path), 0);
 }
 
 TEST_F(DungeonPlaceSpriteStorageTest, SharedAliasDetachesOnlySelectedRoom) {
