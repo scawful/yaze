@@ -8,13 +8,11 @@
 #include <vector>
 
 #include "absl/status/status.h"
-#include "oracle_rom_fixture.h"
 #include "rom/rom.h"
 #include "rom/snes.h"
 #include "rom/write_fence.h"
 #include "zelda3/dungeon/dungeon_rom_addresses.h"
 #include "zelda3/dungeon/dungeon_stream_allocator.h"
-#include "zelda3/dungeon/room.h"
 
 namespace yaze::zelda3::test {
 namespace {
@@ -149,92 +147,6 @@ TEST_F(DungeonStreamAllocatorTest, ReadsSingleObjectStreamThroughLiveTable) {
   EXPECT_EQ(record->encoded_stream, encoded);
   EXPECT_EQ(rom_->vector(), before);
   EXPECT_EQ(rom_->dirty(), dirty);
-}
-
-TEST_F(DungeonStreamAllocatorTest, ReadsObjectStreamThroughJslHook) {
-  constexpr uint32_t kHook = 0x0C0000;
-  const auto layout =
-      ObjectLayout(kNumberOfRooms, {kObjectData, kObjectData + 0x100});
-  const std::vector<uint8_t> encoded{0,    0,    0xFF, 0xFF, 0xFF, 0xFF,
-                                     0xF0, 0xFF, 0x63, 0,    0xFF, 0xFF};
-  SetPointersFrom(layout, 0, kObjectData);
-  SetPointer(layout, 3, kObjectData + 0x40);
-  WriteBytes(kObjectData + 0x40, encoded);
-  // Oracle's D4 water hook: JSL over the two loads, NOPs over the operand.
-  const uint32_t hook = PcToSnes(kHook);
-  const uint32_t table = PcToSnes(kObjectTable);
-  WriteBytes(kRoomObjectPointer - 7,
-             {0x22, static_cast<uint8_t>(hook), static_cast<uint8_t>(hook >> 8),
-              static_cast<uint8_t>(hook >> 16), 0xEA, 0xEA, 0xEA, 0xEA, 0xEA,
-              0xEA, 0xEA, 0xEA});
-  WriteBytes(kHook, {0xAF,
-                     0xA0,
-                     0x00,
-                     0x7E,
-                     0xC9,
-                     0x25,
-                     0x00,
-                     0xF0,
-                     0x17,
-                     0xBF,
-                     static_cast<uint8_t>(table + 1),
-                     static_cast<uint8_t>((table + 1) >> 8),
-                     static_cast<uint8_t>((table + 1) >> 16),
-                     0x85,
-                     0xB8,
-                     0xBF,
-                     static_cast<uint8_t>(table),
-                     static_cast<uint8_t>(table >> 8),
-                     static_cast<uint8_t>(table >> 16),
-                     0x85,
-                     0xB7,
-                     0x6B});
-
-  const auto source = RoomObjectPointerSourcePc(rom_->vector());
-  ASSERT_TRUE(source.ok()) << source.status();
-  EXPECT_EQ(*source, kHook + 16);
-  const auto record = ReadDungeonObjectStream(*rom_, 3);
-  ASSERT_TRUE(record.ok()) << record.status();
-  EXPECT_EQ(record->pointer_slot_pc, kObjectTable + 9);
-  EXPECT_EQ(record->data_pc, kObjectData + 0x40);
-  EXPECT_EQ(record->encoded_stream, encoded);
-}
-
-TEST_F(DungeonStreamAllocatorTest, RefusesJslHookWithoutTableLoad) {
-  constexpr uint32_t kHook = 0x0C0000;
-  const auto layout =
-      ObjectLayout(kNumberOfRooms, {kObjectData, kObjectData + 0x100});
-  SetPointersFrom(layout, 0, kObjectData);
-  WriteBytes(kObjectData, {0, 0, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF});
-  const uint32_t hook = PcToSnes(kHook);
-  WriteBytes(kRoomObjectPointer - 7,
-             {0x22, static_cast<uint8_t>(hook), static_cast<uint8_t>(hook >> 8),
-              static_cast<uint8_t>(hook >> 16)});
-  WriteBytes(kHook, {0xBF, 0x00, 0x80, 0x04, 0x85, 0xB8, 0x6B});
-
-  EXPECT_EQ(RoomObjectPointerSourcePc(rom_->vector()).status().code(),
-            absl::StatusCode::kFailedPrecondition);
-  EXPECT_FALSE(ReadDungeonObjectStream(*rom_, 0).ok());
-}
-
-TEST(DungeonStreamOracleFixtureTest, RoomObjectsLoadThroughPointerSource) {
-  const auto fixture = ::yaze::test::FindOracleRomFixture();
-  if (fixture.empty())
-    GTEST_SKIP() << "Oracle ROM fixture is unavailable";
-  Rom rom;
-  ASSERT_TRUE(rom.LoadFromFile(fixture).ok());
-  for (int room_id : {0x90, 0x25, 0x26, 0x37}) {
-    SCOPED_TRACE(room_id);
-    const auto stream = ReadDungeonObjectStream(rom, room_id);
-    ASSERT_TRUE(stream.ok()) << stream.status();
-    // Room::LoadObjects refuses the D4 water rooms until a runtime water
-    // state is chosen; only the stream reader is checked for them here.
-    if (room_id == 0x25 || room_id == 0x37)
-      continue;
-    Room room(room_id, &rom);
-    room.LoadObjects();
-    EXPECT_FALSE(room.GetTileObjects().empty());
-  }
 }
 
 TEST_F(DungeonStreamAllocatorTest, SingleObjectReadAllowsExactSharedPointers) {

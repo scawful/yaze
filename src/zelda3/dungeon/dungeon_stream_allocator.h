@@ -2,7 +2,6 @@
 #define YAZE_ZELDA3_DUNGEON_DUNGEON_STREAM_ALLOCATOR_H_
 
 #include <cstdint>
-#include <span>
 #include <string>
 #include <vector>
 
@@ -155,13 +154,6 @@ struct DungeonStreamWritePlan {
   // first door byte (or the final terminator for a doorless stream).
   std::vector<DungeonStreamWrite> auxiliary_pointer_writes;
 };
-
-// PC of the 24-bit operand that holds the room object pointer-table address.
-// Vanilla loads the table with LDA.l table,X at $01:874B, so this is
-// kRoomObjectPointer. When $01:8745 is a JSL (Oracle's D4 water hook), the
-// operand is the hook routine's first LDA.l table,X followed by STA.b $B7.
-absl::StatusOr<uint32_t> RoomObjectPointerSourcePc(
-    std::span<const uint8_t> rom_data);
 
 // Read one object stream through the ROM's live pointer table. This validates
 // structure without imposing allocator ownership ranges or changing ROM data.
