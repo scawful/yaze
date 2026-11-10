@@ -16,6 +16,7 @@ libpng-dev
 python3-dev
 libasound2-dev
 libpulse-dev
+libpipewire-0.3-dev
 libaudio-dev
 libx11-dev
 libxrandr-dev

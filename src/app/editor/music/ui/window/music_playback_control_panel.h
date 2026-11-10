@@ -8,6 +8,7 @@
 #include <cstdio>
 #include <functional>
 #include <string>
+#include <utility>
 #include "util/i18n/tr.h"
 
 #include "app/editor/music/music_player.h"
@@ -61,6 +62,10 @@ class MusicPlaybackControlPanel : public WindowContent {
     on_open_piano_roll_ = callback;
   }
 
+  void SetAudioErrorProvider(std::function<std::string()> provider) {
+    audio_error_provider_ = std::move(provider);
+  }
+
   // ==========================================================================
   // WindowContent Drawing
   // ==========================================================================
@@ -72,6 +77,7 @@ class MusicPlaybackControlPanel : public WindowContent {
     }
 
     DrawToolset();
+    DrawAudioError();
     ImGui::Separator();
     DrawSongInfo();
     DrawPlaybackStatus();
@@ -193,6 +199,21 @@ class MusicPlaybackControlPanel : public WindowContent {
       if (ImGui::IsItemHovered())
         ImGui::SetTooltip(tr("Volume"));
     }
+  }
+
+  void DrawAudioError() {
+    if (!audio_error_provider_)
+      return;
+    const std::string error = audio_error_provider_();
+    if (error.empty())
+      return;
+    ImGui::TextColored(gui::GetWarningColor(),
+                       ICON_MD_VOLUME_OFF " No audio output: %s",
+                       error.c_str());
+    if (ImGui::IsItemHovered())
+      ImGui::SetTooltip(
+          tr("Playback runs silently. On Linux, build with the ALSA, "
+             "PulseAudio, or PipeWire development packages installed."));
   }
 
   void DrawSongInfo() {
@@ -613,6 +634,7 @@ class MusicPlaybackControlPanel : public WindowContent {
 
   std::function<void(int)> on_open_song_;
   std::function<void(int)> on_open_piano_roll_;
+  std::function<std::string()> audio_error_provider_;
 
   // Debug state
   bool debug_paused_ = false;

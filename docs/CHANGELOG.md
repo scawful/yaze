@@ -25,6 +25,10 @@ These changes are on the development line after the published prerelease;
 they are not part of its existing downloads. See the
 [release/source matrix](internal/status.md#lyra-source-and-qualification-boundaries).
 
+- Linux builds compile SDL's PipeWire audio driver as well as ALSA and
+  PulseAudio. The Music editor's Playback Control panel shows
+  `No audio output` with SDL's reason when no audio device opens, and the log
+  names the driver in use or the drivers the build contains (#208).
 - Lyra gameplay-area documents (schema 5), 192-map navigation, and later
   Tile16 stroke/Undo integration are development work after the schema-3
   prerelease. Full expanded-map Oracle Build/Test is not release-qualified.

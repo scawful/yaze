@@ -87,6 +87,9 @@ class IAudioBackend {
 
   // Get backend name for debugging
   virtual std::string GetBackendName() const = 0;
+
+  // Reason the last Initialize() failed; empty after a successful one.
+  virtual std::string GetLastError() const { return {}; }
 };
 
 /**
@@ -123,9 +126,11 @@ class SDL2AudioBackend : public IAudioBackend {
   bool IsAudioStreamEnabled() const override;
 
   std::string GetBackendName() const override { return "SDL2"; }
+  std::string GetLastError() const override { return last_error_; }
 
  private:
   uint32_t device_id_ = 0;
+  std::string last_error_;
   AudioConfig config_;
   bool initialized_ = false;
   float volume_ = 1.0f;

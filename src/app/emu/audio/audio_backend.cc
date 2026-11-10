@@ -131,10 +131,24 @@ bool SDL2AudioBackend::Initialize(const AudioConfig& config) {
   device_id_ = SDL_OpenAudioDevice(nullptr, 0, &want, &have, allowed_changes);
 
   if (device_id_ == 0) {
-    LOG_ERROR("AudioBackend", "Failed to open SDL audio device: %s",
-              SDL_GetError());
+    last_error_ = SDL_GetError();
+    std::string compiled_drivers;
+    for (int i = 0; i < SDL_GetNumAudioDrivers(); ++i) {
+      if (!compiled_drivers.empty()) {
+        compiled_drivers += ", ";
+      }
+      compiled_drivers += SDL_GetAudioDriver(i);
+    }
+    if (compiled_drivers.empty()) {
+      compiled_drivers = "none";
+    }
+    LOG_ERROR("AudioBackend",
+              "Failed to open SDL audio device: %s (drivers in this build: %s)",
+              last_error_.c_str(), compiled_drivers.c_str());
     return false;
   }
+  last_error_.clear();
+  const char* driver = SDL_GetCurrentAudioDriver();
 
   device_format_ = have.format;
   device_channels_ = have.channels;
@@ -150,10 +164,11 @@ bool SDL2AudioBackend::Initialize(const AudioConfig& config) {
     config_.channels = have.channels;
   }
 
-  LOG_INFO(
-      "AudioBackend",
-      "SDL2 audio initialized: %dHz, %d channels, buffer: want=%d, have=%d",
-      have.freq, have.channels, want.samples, have.samples);
+  LOG_INFO("AudioBackend",
+           "SDL2 audio initialized (driver: %s): %dHz, %d channels, buffer: "
+           "want=%d, have=%d",
+           driver ? driver : "unknown", have.freq, have.channels, want.samples,
+           have.samples);
   LOG_INFO("AudioBackend",
            "Device actual: freq=%d, format=0x%04X, channels=%d (device_id=%u)",
            device_freq_, device_format_, device_channels_, device_id_);
