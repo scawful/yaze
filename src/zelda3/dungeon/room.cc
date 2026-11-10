@@ -1191,7 +1191,7 @@ void Room::CopyRoomGraphicsToBuffer() {
   const size_t native_sheet_count =
       game_data_->gfx_sheet_layout
           ? game_data_->gfx_sheet_layout->usable_sheet_count
-          : kLegacyNumGfxSheets;
+          : game_data_->gfx_sheet_table.count;
 
   // Process each of the 16 graphics blocks
   for (int block = 0; block < 16; block++) {

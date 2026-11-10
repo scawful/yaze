@@ -428,6 +428,13 @@ GraphicsEditor::PrepareGraphicsSave() {
         "the ROM they were edited in, or reopen this ROM, before saving "
         "graphics");
   }
+  // The sheets were read through Oracle's bank $23 table, but the writer
+  // packs through the vanilla arrays the game no longer reads.
+  if (game_data()->gfx_sheet_table.oracle_expanded) {
+    return absl::FailedPreconditionError(
+        "This ROM reads graphics through Oracle's expanded sheet table. Edit "
+        "graphics in the base ROM, not a patched build");
+  }
 
   if (game_data()->gfx_sheet_layout &&
       game_data()->gfx_sheet_layout->physical_table_rows !=

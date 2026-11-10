@@ -4392,12 +4392,15 @@ TEST(GraphicsSaveStoplossTest, EnabledSaveWritesTheEditedSheetToDisk) {
 }
 
 // Found in review: the Arena is shared by every open ROM, and the pixel
-// editor can hold indices up to 15 while a 3bpp sheet stores 0-7. Both must
-// refuse the save and leave the ROM on disk unchanged.
+// editor can hold indices up to 15 while a 3bpp sheet stores 0-7. A ROM read
+// through Oracle's expanded sheet table would be packed through the vanilla
+// arrays. All must refuse the save and leave the ROM on disk unchanged.
 TEST(GraphicsSaveStoplossTest, SaveRefusesForeignSheetsAndColorsAboveSeven) {
-  for (const bool foreign_owner : {true, false}) {
-    SCOPED_TRACE(foreign_owner ? "sheets owned by another ROM"
-                               : "color index 9");
+  enum class Case { kForeignOwner, kColorAboveSeven, kOracleExpandedTable };
+  for (const Case refusal : {Case::kForeignOwner, Case::kColorAboveSeven,
+                             Case::kOracleExpandedTable}) {
+    const bool foreign_owner = refusal == Case::kForeignOwner;
+    SCOPED_TRACE(static_cast<int>(refusal));
     FeatureFlagsGuard guard;
     ScopedImGuiContext imgui;
 
@@ -4438,8 +4441,11 @@ TEST(GraphicsSaveStoplossTest, SaveRefusesForeignSheetsAndColorsAboveSeven) {
     auto edited = fixture.sheets.at(kSheetId);
     std::fill(edited.begin(), edited.begin() + 0x100, 0x00);
     auto indexed = gfx::SnesTo8bppSheet(edited, /*bpp=*/3);
-    if (!foreign_owner) {
+    if (refusal == Case::kColorAboveSeven) {
       indexed[0] = 9;
+    }
+    if (refusal == Case::kOracleExpandedTable) {
+      graphics->game_data()->gfx_sheet_table.oracle_expanded = true;
     }
     auto& sheet = gfx::Arena::Get().mutable_gfx_sheets()->at(kSheetId);
     ScopedGraphicsSheetRestore restore_sheet(&sheet);
@@ -4457,9 +4463,13 @@ TEST(GraphicsSaveStoplossTest, SaveRefusesForeignSheetsAndColorsAboveSeven) {
     gfx::Arena::Get().set_gfx_sheets_owner(owner);
 
     EXPECT_FALSE(status.ok());
-    EXPECT_THAT(std::string(status.message()),
-                ::testing::HasSubstr(foreign_owner ? "another open ROM"
-                                                   : "above index 7"));
+    const char* expected = "another open ROM";
+    if (refusal == Case::kColorAboveSeven) {
+      expected = "above index 7";
+    } else if (refusal == Case::kOracleExpandedTable) {
+      expected = "expanded sheet table";
+    }
+    EXPECT_THAT(std::string(status.message()), ::testing::HasSubstr(expected));
     std::ifstream in(rom_path, std::ios::binary);
     const std::vector<uint8_t> disk((std::istreambuf_iterator<char>(in)),
                                     std::istreambuf_iterator<char>());

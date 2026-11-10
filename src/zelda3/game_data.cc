@@ -8,6 +8,7 @@
 #include "zelda3/dungeon/dungeon_rom_addresses.h"
 
 #include <algorithm>
+#include <iterator>
 #include <memory>
 #include <set>
 #include <utility>
@@ -121,6 +122,60 @@ uint32_t GetGraphicsAddress(const uint8_t* data, uint8_t addr, uint32_t ptr1,
   }
   return SnesToPc(AddressFromBytes(data[ptr1 + addr], data[ptr2 + addr],
                                    data[ptr3 + addr]));
+}
+
+GfxSheetPointerTable ResolveGfxSheetPointerTable(const Rom& rom, uint32_t ptr1,
+                                                 uint32_t ptr2, uint32_t ptr3) {
+  GfxSheetPointerTable vanilla;
+  vanilla.bank_pc = ptr1;
+  vanilla.high_pc = ptr2;
+  vanilla.low_pc = ptr3;
+
+  const auto& data = rom.vector();
+  auto long_at = [&](size_t pc) {
+    return static_cast<uint32_t>(data[pc]) |
+           static_cast<uint32_t>(data[pc + 1]) << 8 |
+           static_cast<uint32_t>(data[pc + 2]) << 16;
+  };
+  const uint32_t site = SnesToPc(kOracleSheetReaderSnes);
+  if (site + 4 > data.size() || data[site] != 0x22) {  // JSL long
+    return vanilla;
+  }
+
+  // GfxSheet_GetPtr_BgCA: PHP; SEP #$30; PHX; REP #$10; TYX; then
+  // LDA.l Low,X : STA $C8; LDA.l High,X : STA $C9; LDA.l Bank,X : STA $CA.
+  static constexpr uint8_t kPrologue[] = {0x08, 0xE2, 0x30, 0xDA,
+                                          0xC2, 0x10, 0xBB};
+  static constexpr uint8_t kStores[] = {0xC8, 0xC9, 0xCA};
+  const uint32_t helper = SnesToPc(long_at(site + 1));
+  const size_t helper_end =
+      static_cast<size_t>(helper) + sizeof(kPrologue) + 3 * 6;
+  if (helper_end > data.size() ||
+      !std::equal(std::begin(kPrologue), std::end(kPrologue),
+                  data.begin() + helper)) {
+    return vanilla;
+  }
+  uint32_t arrays[3];
+  for (int i = 0; i < 3; ++i) {
+    const size_t op = helper + sizeof(kPrologue) + i * 6;
+    if (data[op] != 0xBF || data[op + 4] != 0x85 ||
+        data[op + 5] != kStores[i]) {
+      return vanilla;
+    }
+    arrays[i] = SnesToPc(long_at(op + 1));
+    if (static_cast<size_t>(arrays[i]) + kMaxGfxSheets > data.size()) {
+      return vanilla;
+    }
+  }
+
+  GfxSheetPointerTable oracle;
+  oracle.low_pc = arrays[0];
+  oracle.high_pc = arrays[1];
+  oracle.bank_pc = arrays[2];
+  // Row $FF is the default-sheet sentinel, never a stored sheet.
+  oracle.count = kNumGfxSheets;
+  oracle.oracle_expanded = true;
+  return oracle;
 }
 
 absl::Status LoadGameData(Rom& rom, GameData& data,
@@ -677,7 +732,8 @@ absl::StatusOr<SheetLoadResult> LoadSheetRaw(
       result.decompression_succeeded = false;
     }
   }
-  // Native 2BPP (113-114, 218-222) - Skipped in main loop.
+  // Native 2BPP (113-114, 218-222) - Skipped in main loop. Rows $DF+ are
+  // compressed 3BPP.
   else if (kind == GfxSheetStorageKind::kCompressed2bpp) {
     result.is_compressed = true;
     result.is_bpp3 = false;
@@ -705,6 +761,16 @@ absl::StatusOr<SheetLoadResult> LoadSheetRaw(
 
 void ProcessSheetBitmap(GameData& data, uint32_t i,
                         const SheetLoadResult& result) {
+  if (i >= kNumGfxSheets) {
+    std::vector<uint8_t> pixels(4096, 0);
+    if (result.is_bpp3) {
+      pixels = gfx::SnesTo8bppSheet(result.data, 3);
+      pixels.resize(4096, 0);
+    }
+    data.graphics_buffer.insert(data.graphics_buffer.end(), pixels.begin(),
+                                pixels.end());
+    return;
+  }
   if (result.is_bpp3) {
     auto converted_sheet = gfx::SnesTo8bppSheet(result.data, 3);
     if (converted_sheet.size() != 4096)
@@ -786,11 +852,17 @@ absl::Status LoadGraphics(Rom& rom, GameData& data) {
   if (layout) {
     RETURN_IF_ERROR(ValidateResolvedGfxSheetLayout(rom, *layout));
   }
-  const size_t sheet_count =
-      layout ? layout->usable_sheet_count : kLegacyNumGfxSheets;
-  const auto tables = layout
-                          ? layout->tables
-                          : GfxSheetPointerTables{gfx_ptr1, gfx_ptr2, gfx_ptr3};
+  // Without an explicit layout, follow Oracle's bank $23 reader when the ROM
+  // installs it; otherwise read the vanilla arrays.
+  data.gfx_sheet_table =
+      layout ? GfxSheetPointerTable{layout->tables.bank, layout->tables.high,
+                                    layout->tables.low,
+                                    layout->usable_sheet_count, false}
+             : ResolveGfxSheetPointerTable(rom, gfx_ptr1, gfx_ptr2, gfx_ptr3);
+  const auto& table = data.gfx_sheet_table;
+  const size_t sheet_count = table.count;
+  const GfxSheetPointerTables tables{table.bank_pc, table.high_pc,
+                                     table.low_pc};
   // A matching body hash does not prove the streams are valid. Decode every
   // requested explicit 3bpp sheet before replacing pixels/revisions/diagnostics.
   std::vector<SheetLoadResult> decoded_sheets;
@@ -822,7 +894,8 @@ absl::Status LoadGraphics(Rom& rom, GameData& data) {
   diag.ptr3_loc = tables.low;
   diag.sheets.assign(sheet_count, {});
 
-  LOG_INFO("Graphics", "Loading %zu graphics sheets...", sheet_count);
+  LOG_INFO("Graphics", "Loading %zu graphics sheets%s...", sheet_count,
+           table.oracle_expanded ? " (Oracle bank $23 table)" : "");
 
   for (uint32_t i = 0; i < sheet_count; i++) {
 #ifdef __EMSCRIPTEN__
@@ -839,19 +912,20 @@ absl::Status LoadGraphics(Rom& rom, GameData& data) {
                                             tables.low, nullptr));
     }
 
-    // Update Diagnostics
-    auto& sd = diag.sheets[i];
-    sd.index = i;
-    sd.is_compressed = result.is_compressed;
-    sd.pc_offset = result.pc_offset;
-    sd.decompression_succeeded = result.decompression_succeeded;
-    sd.actual_decomp_size = result.data.size();
-    if (!result.data.empty()) {
-      size_t count = std::min<size_t>(result.data.size(), 8);
-      sd.first_bytes.assign(result.data.begin(), result.data.begin() + count);
-    }
-    if (result.is_compressed && !result.is_bpp3) {
-      sd.decomp_size_param = 0x800;  // Expected for LC-LZ2
+    if (i < diag.sheets.size()) {
+      auto& sd = diag.sheets[i];
+      sd.index = i;
+      sd.is_compressed = result.is_compressed;
+      sd.pc_offset = result.pc_offset;
+      sd.decompression_succeeded = result.decompression_succeeded;
+      sd.actual_decomp_size = result.data.size();
+      if (!result.data.empty()) {
+        size_t count = std::min<size_t>(result.data.size(), 8);
+        sd.first_bytes.assign(result.data.begin(), result.data.begin() + count);
+      }
+      if (result.is_compressed && !result.is_bpp3) {
+        sd.decomp_size_param = 0x800;  // Expected for LC-LZ2
+      }
     }
 
     ProcessSheetBitmap(data, i, result);

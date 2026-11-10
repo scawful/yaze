@@ -29,8 +29,11 @@ namespace zelda3 {
 // ============================================================================
 
 // Storage capacity excludes the $FF sentinel; each loaded layout sets the count.
+// Oracle's bank $23 table (Core/gfx_sheet_table.asm) has kMaxGfxSheets
+// physical rows; the last is the $FF sentinel.
 constexpr uint32_t kNumGfxSheets = gfx::kGraphicsSheetCapacity;
 constexpr uint32_t kLegacyNumGfxSheets = gfx::kLegacyGraphicsSheetCount;
+constexpr uint32_t kMaxGfxSheets = 256;
 constexpr uint32_t kNumLinkSheets = 14;
 
 // Blockset/Group counts
@@ -58,6 +61,20 @@ constexpr uint16_t kLinkGfxLength = 0x800;
 
 // Font graphics location
 constexpr uint32_t kFontSpriteLocation = 0x70000;
+
+/// The three parallel sheet pointer arrays (bank, high, low bytes) as PC
+/// offsets, and how many rows they hold.
+struct GfxSheetPointerTable {
+  uint32_t bank_pc = 0;
+  uint32_t high_pc = 0;
+  uint32_t low_pc = 0;
+  uint32_t count = kLegacyNumGfxSheets;
+  bool oracle_expanded = false;
+};
+
+/// Oracle's Decompress_background_arbitrary reader site ($00:E78F). With the
+/// expanded table it holds a JSL to GfxSheet_GetPtr_BgCA.
+constexpr uint32_t kOracleSheetReaderSnes = 0x00E78F;
 
 // Sheet sizes
 constexpr uint32_t kUncompressedSheetSize = 0x0800;  // 2048 bytes
@@ -119,6 +136,10 @@ struct GameData : GraphicsSheetStoreHolder {
   // NOT a direct palette index! See room.cc for correct lookup algorithm.
   std::array<std::array<uint8_t, 4>, kNumPalettesets> paletteset_ids{};
 
+  // The sheet pointer table LoadGraphics read; count is the number of sheets
+  // in graphics_buffer after a full load.
+  GfxSheetPointerTable gfx_sheet_table;
+
   // Diagnostics
   GraphicsLoadDiagnostics diagnostics;
 
@@ -132,6 +153,7 @@ struct GameData : GraphicsSheetStoreHolder {
   void Clear() {
     gfx_groups_loaded = false;
     gfx_main_group_address = 0;
+    gfx_sheet_table = GfxSheetPointerTable();
     room_default_entrances.clear();
     sheet_store.Clear();
     for (auto& sheet : raw_gfx_sheets)
@@ -255,6 +277,17 @@ absl::Status SaveAllGraphicsData(
  */
 uint32_t GetGraphicsAddress(const uint8_t* data, uint8_t addr, uint32_t ptr1,
                             uint32_t ptr2, uint32_t ptr3, size_t rom_size);
+
+/**
+ * @brief Finds the sheet pointer table the game reads.
+ *
+ * When the reader at kOracleSheetReaderSnes is a JSL to Oracle's
+ * GfxSheet_GetPtr_BgCA helper, returns the bank $23 arrays it loads from
+ * (kMaxGfxSheets physical rows, kNumGfxSheets usable). Otherwise returns the
+ * given vanilla arrays with kLegacyNumGfxSheets rows.
+ */
+GfxSheetPointerTable ResolveGfxSheetPointerTable(const Rom& rom, uint32_t ptr1,
+                                                 uint32_t ptr2, uint32_t ptr3);
 
 }  // namespace zelda3
 }  // namespace yaze
