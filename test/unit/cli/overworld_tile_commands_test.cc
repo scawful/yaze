@@ -19,11 +19,13 @@
 #include "app/gfx/util/palette_manager.h"
 #include "cli/handlers/game/overworld_commands.h"
 #include "cli/handlers/game/overworld_inspect.h"
+#include "cli/handlers/game/overworld_sprite_edit_commands.h"
 #include "cli/handlers/tools/overworld_validate_commands.h"
 #include "core/features.h"
 #include "fixtures/lyra/native_directory_fixture.h"
 #include "framework/rom_save_fault.h"
 #include "oracle_rom_fixture.h"
+#include "rom/lyra_layout_descriptor.h"
 #include "rom/rom.h"
 #include "rom/transaction.h"
 #include "rom/write_fence.h"
@@ -984,6 +986,89 @@ TEST_F(OverworldTileRomTest,
     EXPECT_TRUE(absl::IsInvalidArgument(status)) << status;
     EXPECT_EQ(reopened.vector(), saved_bytes);
     EXPECT_EQ(ReadBytes(path), saved_bytes);
+  }
+}
+
+TEST_F(OverworldTileRomTest, NativeSpriteEditUsesNormalSaveAndReopens) {
+  test::native_overworld::NativeDirectoryFixture fixture(192);
+  fixture.SeedLoadedLegacyForModelTest(rom_, *overworld_);
+  fixture.UpgradeToRevision4();
+  const auto dir = test::UniqueTempPath("ow_native_sprite");
+  std::filesystem::create_directories(dir);
+  auto cleanup = absl::MakeCleanup([&] {
+    std::error_code ec;
+    std::filesystem::remove_all(dir, ec);
+  });
+  const auto path = dir / "edit.sfc";
+  {
+    std::ofstream file(path, std::ios::binary);
+    file.write(reinterpret_cast<const char*>(fixture.bytes.data()),
+               fixture.bytes.size());
+  }
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromFile(path.string()).ok());
+  auto live_rows = [](zelda3::Overworld& world, int map) {
+    std::vector<zelda3::Sprite> rows;
+    for (const auto& sprite : *world.mutable_sprites(1))
+      if (!sprite.deleted() && sprite.map_id() == map)
+        rows.push_back(sprite);
+    return rows;
+  };
+  zelda3::Overworld before(&rom);
+  ASSERT_TRUE(before.Load(&rom).ok());
+  const auto old_rows = live_rows(before, 0x00);
+  ASSERT_FALSE(old_rows.empty());
+  const auto& last = old_rows.back();
+  ASSERT_EQ(last.overworld_x_flags() | last.overworld_y_flags(), 0);
+
+  // The seeded original list region is full, so free a row before adding.
+  handlers::OverworldSpriteEditCommandHandler remove(
+      handlers::OverworldSpriteEditAction::kRemove);
+  const std::vector<std::string> args = {
+      "--screen=0x00", "--phase=1",
+      absl::StrFormat("--index=%d", static_cast<int>(old_rows.size()) - 1),
+      absl::StrFormat("--expect-id=0x%02X", last.id())};
+  const auto initial = rom.vector();
+  absl::Status status;
+  const auto dry = RunJson(remove, args, &rom, &status);
+  ASSERT_TRUE(status.ok()) << status << dry.dump();
+  EXPECT_EQ(dry["strategy"], "native-save");
+  EXPECT_EQ(dry["write_status"], "dry-run");
+  EXPECT_EQ(rom.vector(), initial);
+  EXPECT_EQ(ReadBytes(path), initial);
+
+  auto write_args = args;
+  write_args.push_back("--write");
+  const auto saved = RunJson(remove, write_args, &rom, &status);
+  ASSERT_TRUE(status.ok()) << status << saved.dump();
+  EXPECT_EQ(saved["verified_reload"], true);
+  Rom reopened;
+  ASSERT_TRUE(reopened.LoadFromFile(path.string()).ok());
+  ASSERT_TRUE(
+      rom::IsNativeSpecialOverworldLayout(reopened.InspectLyraLayout()));
+  zelda3::Overworld after(&reopened);
+  ASSERT_TRUE(after.Load(&reopened).ok());
+  EXPECT_EQ(live_rows(after, 0x00).size(), old_rows.size() - 1);
+
+  handlers::OverworldSpriteEditCommandHandler add(
+      handlers::OverworldSpriteEditAction::kAdd);
+  RunJson(
+      add,
+      {"--screen=0x00", "--phase=1", absl::StrFormat("--id=0x%02X", last.id()),
+       absl::StrFormat("--x=%d", last.x() / 16),
+       absl::StrFormat("--y=%d", last.y() / 16), "--write"},
+      &reopened, &status);
+  ASSERT_TRUE(status.ok()) << status;
+  Rom restored;
+  ASSERT_TRUE(restored.LoadFromFile(path.string()).ok());
+  zelda3::Overworld final_world(&restored);
+  ASSERT_TRUE(final_world.Load(&restored).ok());
+  const auto final_rows = live_rows(final_world, 0x00);
+  ASSERT_EQ(final_rows.size(), old_rows.size());
+  for (size_t i = 0; i < old_rows.size(); ++i) {
+    EXPECT_EQ(final_rows[i].id(), old_rows[i].id());
+    EXPECT_EQ(final_rows[i].x(), old_rows[i].x());
+    EXPECT_EQ(final_rows[i].y(), old_rows[i].y());
   }
 }
 

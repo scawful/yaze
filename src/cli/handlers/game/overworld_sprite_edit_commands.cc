@@ -1,15 +1,22 @@
 #include "cli/handlers/game/overworld_sprite_edit_commands.h"
 
 #include <algorithm>
+#include <array>
+#include <map>
+#include <optional>
 #include <string>
 #include <system_error>
 #include <vector>
 
+#include "absl/cleanup/cleanup.h"
 #include "absl/strings/numbers.h"
 #include "absl/strings/str_format.h"
 #include "absl/strings/str_join.h"
 #include "cli/handlers/game/overworld_inspect.h"
 #include "cli/util/hex_util.h"
+#include "core/features.h"
+#include "rom/lyra_layout_descriptor.h"
+#include "rom/native_overworld_authoring_metadata.h"
 #include "rom/rom.h"
 #include "rom/transaction.h"
 #include "util/macro.h"
@@ -30,6 +37,18 @@ struct Entry {
   uint8_t y;  // raw byte: flags in bits 6-7, tile in bits 0-5
   uint8_t x;
   uint8_t id;
+};
+
+bool operator==(const Entry& a, const Entry& b) {
+  return a.y == b.y && a.x == b.x && a.id == b.id;
+}
+
+// Parsed operands of the requested edit; index is -1 when not given.
+struct SpriteOp {
+  int index = -1;
+  int x = 0;
+  int y = 0;
+  int id = 0;
 };
 
 std::vector<Entry> Decode(const zelda3::OverworldSpriteBytes& bytes) {
@@ -87,6 +106,151 @@ absl::StatusOr<int> RequiredInt(const resources::ArgumentParser& parser,
     return absl::InvalidArgumentError(
         absl::StrFormat("--%s is required", name));
   return parser.GetInt(name);
+}
+
+int AreaOriginX(int map) {
+  return (map % 8) * 512;
+}
+int AreaOriginY(int map) {
+  return ((map % 64) / 8) * 512;
+}
+
+// Same packing as Overworld::PrepareSpriteEdits.
+Entry EntryFromSprite(const zelda3::Sprite& sprite) {
+  const int map = sprite.map_id();
+  const int x = (sprite.x() - AreaOriginX(map)) / 16;
+  const int y = (sprite.y() - AreaOriginY(map)) / 16;
+  return {static_cast<uint8_t>(y | sprite.overworld_y_flags()),
+          static_cast<uint8_t>(x | sprite.overworld_x_flags()), sprite.id()};
+}
+
+// Live rows owned by one area, in model order (the stored list order).
+std::vector<size_t> NativeRows(const std::vector<zelda3::Sprite>& records,
+                               int map) {
+  std::vector<size_t> rows;
+  for (size_t i = 0; i < records.size(); ++i)
+    if (!records[i].deleted() && records[i].map_id() == map)
+      rows.push_back(i);
+  return rows;
+}
+
+using NativeLists = std::array<std::map<int, std::vector<Entry>>, 3>;
+
+NativeLists CaptureNativeLists(zelda3::Overworld& overworld) {
+  NativeLists lists;
+  for (int phase = 0; phase < 3; ++phase)
+    for (const auto& sprite : *overworld.mutable_sprites(phase))
+      if (!sprite.deleted())
+        lists[phase][sprite.map_id()].push_back(EntryFromSprite(sprite));
+  return lists;
+}
+
+absl::Status ApplyNativeSpriteOp(zelda3::Overworld& overworld,
+                                 OverworldSpriteEditAction action, int phase,
+                                 int parent, const SpriteOp& op) {
+  auto& records = *overworld.mutable_sprites(phase);
+  const auto rows = NativeRows(records, parent);
+  const int world_x = AreaOriginX(parent) + op.x * 16;
+  const int world_y = AreaOriginY(parent) + op.y * 16;
+  switch (action) {
+    case OverworldSpriteEditAction::kAdd: {
+      if (op.index >= 0)
+        records[rows[op.index]].set_deleted(true);
+      static const std::vector<uint8_t> kNoGraphics;
+      zelda3::Sprite sprite(kNoGraphics, static_cast<uint8_t>(parent),
+                            static_cast<uint8_t>(op.id),
+                            static_cast<uint8_t>(op.x),
+                            static_cast<uint8_t>(op.y), world_x, world_y);
+      RETURN_IF_ERROR(overworld.ReserveNativeAuthoringSpritePlacement(
+          phase, parent, &sprite));
+      records.push_back(std::move(sprite));
+      break;
+    }
+    case OverworldSpriteEditAction::kMove: {
+      auto& sprite = records[rows[op.index]];
+      sprite.x_ = world_x;
+      sprite.y_ = world_y;
+      sprite.SetOverworldArea(static_cast<uint8_t>(parent),
+                              static_cast<uint8_t>(op.x),
+                              static_cast<uint8_t>(op.y));
+      sprite.UpdateCoordinates(world_x, world_y);
+      break;
+    }
+    case OverworldSpriteEditAction::kRemove:
+      records[rows[op.index]].set_deleted(true);
+      break;
+  }
+  return absl::OkStatus();
+}
+
+// The normal native Save transaction, limited to the sprite domain.
+absl::Status SaveNativeSprites(zelda3::Overworld& overworld) {
+  const auto old_flags = core::FeatureFlags::get();
+  auto restore_flags =
+      absl::MakeCleanup([&] { core::FeatureFlags::get() = old_flags; });
+  auto& flags = core::FeatureFlags::get();
+  flags.overworld.kSaveOverworldMaps = false;
+  flags.overworld.kSaveOverworldProperties = false;
+  flags.overworld.kSaveOverworldSprites = true;
+  flags.overworld.kSaveOverworldEntrances = false;
+  flags.overworld.kSaveOverworldExits = false;
+  flags.overworld.kSaveOverworldItems = false;
+  flags.kSaveAllPalettes = false;
+  flags.kSaveGfxGroups = false;
+  return overworld.SaveNativeTerrain();
+}
+
+// A native sprite Save may only rewrite the storage PlanNativeOverworldSpriteSave
+// owns: maps $00-$9F pack into the original list region and its three pointer
+// mirrors; tail maps, pointers and metadata live in directory tables. The
+// revision 3/4 directory (1 KiB at PC 0x147000) changes only in its CRCs.
+constexpr std::array<std::pair<size_t, size_t>, 5> kNativeSpriteFixedRanges = {{
+    {0x4C881, 0x4D62E},
+    {0x141438, 0x141438 + 320},
+    {0x141578, 0x141578 + 320},
+    {0x1416B8, 0x1416B8 + 320},
+    {0x147000, 0x147000 + 1024},
+}};
+
+absl::StatusOr<std::vector<int>> CheckNativeSpriteOwnership(
+    const std::vector<uint8_t>& before, const Rom& after, int* changed_bytes) {
+  const auto layout = after.InspectLyraLayout();
+  if (!rom::IsNativeSpecialOverworldLayout(layout))
+    return absl::DataLossError("Native directory is no longer valid");
+  const auto& bytes = after.vector();
+  if (bytes.size() != before.size())
+    return absl::DataLossError("Native sprite Save resized the ROM");
+  auto sprite_owned = [](uint16_t id) {
+    return id == 16 || id == 17 || id == 18 || id == 100 ||
+           id == rom::kNativeAuthoringMetadataTableId;
+  };
+  std::vector<int> tables;
+  *changed_bytes = 0;
+  for (size_t pc = 0; pc < bytes.size(); ++pc) {
+    if (bytes[pc] == before[pc])
+      continue;
+    ++*changed_bytes;
+    if (std::any_of(kNativeSpriteFixedRanges.begin(),
+                    kNativeSpriteFixedRanges.end(), [pc](const auto& range) {
+                      return pc >= range.first && pc < range.second;
+                    }))
+      continue;
+    const auto owner = std::find_if(
+        layout.entries.begin(), layout.entries.end(), [pc](const auto& e) {
+          return pc >= e.pc_address &&
+                 pc < e.pc_address + size_t{e.count} * e.stride;
+        });
+    if (owner == layout.entries.end() || !sprite_owned(owner->id))
+      return absl::DataLossError(absl::StrFormat(
+          "Native sprite Save changed unowned byte PC $%06X%s", pc,
+          owner == layout.entries.end()
+              ? ""
+              : absl::StrFormat(" (table %d)", owner->id)));
+    if (std::find(tables.begin(), tables.end(), owner->id) == tables.end())
+      tables.push_back(owner->id);
+  }
+  std::sort(tables.begin(), tables.end());
+  return tables;
 }
 
 }  // namespace
@@ -231,18 +395,33 @@ absl::Status OverworldSpriteEditCommandHandler::ExecuteWithContext(
       break;
   }
 
-  const auto layout = zelda3::GetOverworldSpriteLayout(*rom);
-  if (parent >= layout.counts[phase]) {
-    return absl::InvalidArgumentError(absl::StrFormat(
-        "Phase %d has no sprite list for area 0x%02X in this ROM "
-        "(%d entries)",
-        phase, parent, layout.counts[phase]));
+  const bool native =
+      rom::IsNativeSpecialOverworldLayout(rom->InspectLyraLayout());
+  int pointer_pc = -1;
+  std::vector<Entry> before;
+  if (native) {
+    if (parent >= overworld.materialized_map_count())
+      return absl::InvalidArgumentError(
+          absl::StrFormat("Area 0x%02X is outside the native %d-map model",
+                          parent, overworld.materialized_map_count()));
+    const auto& records = *overworld.mutable_sprites(phase);
+    for (size_t row : NativeRows(records, parent))
+      before.push_back(EntryFromSprite(records[row]));
+  } else {
+    const auto layout = zelda3::GetOverworldSpriteLayout(*rom);
+    if (parent >= layout.counts[phase]) {
+      return absl::InvalidArgumentError(absl::StrFormat(
+          "Phase %d has no sprite list for area 0x%02X in this ROM "
+          "(%d entries)",
+          phase, parent, layout.counts[phase]));
+    }
+    pointer_pc = layout.tables[phase] + parent * 2;
+    ASSIGN_OR_RETURN(auto old_bytes,
+                     zelda3::ReadOverworldSpriteList(*rom, pointer_pc));
+    before = Decode(old_bytes);
   }
-  const int pointer_pc = layout.tables[phase] + parent * 2;
-  ASSIGN_OR_RETURN(auto old_bytes,
-                   zelda3::ReadOverworldSpriteList(*rom, pointer_pc));
-  const auto before = Decode(old_bytes);
   auto after = before;
+  SpriteOp op;
 
   auto check_tile = [&](int x, int y) -> absl::Status {
     if (x < 0 || y < 0 || x >= cols * 32 || y >= rows * 32) {
@@ -293,9 +472,13 @@ absl::Status OverworldSpriteEditCommandHandler::ExecuteWithContext(
         ASSIGN_OR_RETURN(int replace, check_index("replace-index"));
         formatter.AddField("replaced_index", replace);
         after.erase(after.begin() + replace);
+        op.index = replace;
       }
       after.push_back({static_cast<uint8_t>(y), static_cast<uint8_t>(x),
                        static_cast<uint8_t>(id)});
+      op.x = x;
+      op.y = y;
+      op.id = id;
       formatter.AddField("sprite_id", absl::StrFormat("0x%02X", id));
       formatter.AddField("sprite_name", zelda3::ResolveSpriteName(id));
       break;
@@ -308,12 +491,14 @@ absl::Status OverworldSpriteEditCommandHandler::ExecuteWithContext(
       after[index].x = static_cast<uint8_t>((after[index].x & 0xC0) | x);
       after[index].y = static_cast<uint8_t>((after[index].y & 0xC0) | y);
       formatter.AddField("index", index);
+      op = {index, x, y, after[index].id};
       break;
     }
     case OverworldSpriteEditAction::kRemove: {
       ASSIGN_OR_RETURN(int index, check_index("index"));
       after.erase(after.begin() + index);
       formatter.AddField("index", index);
+      op.index = index;
       break;
     }
   }
@@ -334,6 +519,72 @@ absl::Status OverworldSpriteEditCommandHandler::ExecuteWithContext(
     }
   }
   formatter.EndArray();
+
+  if (native) {
+    formatter.AddField("strategy", "native-save");
+    // A dry run performs the whole transaction on a private copy so the
+    // session ROM never holds an unsaved native edit.
+    std::optional<Rom> staged;
+    std::optional<zelda3::Overworld> staged_overworld;
+    Rom* target = rom;
+    zelda3::Overworld* model = &overworld;
+    if (!do_write) {
+      Rom::LoadOptions rom_options;
+      rom_options.load_resource_labels = false;
+      staged.emplace();
+      RETURN_IF_ERROR(staged->LoadFromData(rom->vector(), rom_options));
+      staged_overworld.emplace(&*staged);
+      RETURN_IF_ERROR(staged_overworld->Load(&*staged));
+      target = &*staged;
+      model = &*staged_overworld;
+    }
+    auto expected = CaptureNativeLists(*model);
+    if (after.empty())
+      expected[phase].erase(parent);
+    else
+      expected[phase][parent] = after;
+
+    const auto before_rom = rom->vector();
+    ScopedRomTransaction transaction(*target);
+    RETURN_IF_ERROR(ApplyNativeSpriteOp(*model, action_, phase, parent, op));
+    if (auto status = SaveNativeSprites(*model); !status.ok()) {
+      formatter.AddField("save_error", std::string(status.message()));
+      return status;
+    }
+    int changed = 0;
+    ASSIGN_OR_RETURN(auto tables,
+                     CheckNativeSpriteOwnership(before_rom, *target, &changed));
+    formatter.BeginArray("changed_tables");
+    for (int id : tables)
+      formatter.AddArrayItem(absl::StrFormat("%d", id));
+    formatter.EndArray();
+    formatter.AddField("changed_bytes", changed);
+
+    zelda3::Overworld reloaded(target);
+    RETURN_IF_ERROR(reloaded.Load(target));
+    if (CaptureNativeLists(reloaded) != expected)
+      return absl::DataLossError(
+          "Native sprite lists did not read back as planned");
+
+    if (!do_write) {
+      formatter.AddField("write_status", "dry-run");
+      return absl::OkStatus();
+    }
+    Rom::SaveSettings save_settings;
+    save_settings.require_backup = true;
+    if (auto status = rom->SaveToFile(save_settings); !status.ok()) {
+      formatter.AddField("save_error", std::string(status.message()));
+      return status;
+    }
+    transaction.Commit();
+    formatter.AddField("save_status", "saved");
+    Rom reopened;
+    RETURN_IF_ERROR(reopened.LoadFromFile(rom->filename()));
+    if (reopened.vector() != rom->vector())
+      return absl::DataLossError("Saved native ROM does not read back");
+    formatter.AddField("verified_reload", true);
+    return absl::OkStatus();
+  }
 
   const auto new_bytes = Encode(after);
   formatter.AddField(
