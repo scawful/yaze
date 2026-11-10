@@ -348,6 +348,27 @@ TEST(MessageBundleTest, ParseStructuredBundleRequiresTextContent) {
   EXPECT_EQ(entries_or.status().code(), absl::StatusCode::kInvalidArgument);
 }
 
+TEST(MessageBundleTest, EmptyMessageExportRoundTrips) {
+  // Vanilla message 0 is empty; a full export must re-import.
+  std::vector<uint8_t> source_bytes = {kMessageTerminator, 0xFF};
+  auto messages = ReadAllTextData(source_bytes.data(), 0,
+                                  static_cast<int>(source_bytes.size()), false);
+  ASSERT_EQ(messages.size(), 1);
+
+  const nlohmann::json bundle = SerializeMessageBundle(messages, {});
+  EXPECT_EQ(bundle["messages"][0]["text"], "");
+
+  auto entries_or = ParseMessageBundleJson(bundle);
+  ASSERT_TRUE(entries_or.ok()) << entries_or.status();
+  ASSERT_EQ(entries_or.value().size(), 1);
+  EXPECT_TRUE(entries_or.value().front().text.empty());
+
+  auto encoded =
+      ParseMessageToDataWithDiagnostics(entries_or.value().front().text);
+  ASSERT_TRUE(encoded.ok());
+  EXPECT_EQ(encoded.bytes, messages[0].Data);
+}
+
 // ===========================================================================
 // FindDictionaryEntry Tests
 // ===========================================================================

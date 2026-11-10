@@ -987,7 +987,19 @@ absl::StatusOr<MessageBundleEntry> ParseMessageBundleEntry(
     }
   }
 
-  if (result.text.empty()) {
+  // An empty string is valid content: vanilla message 0 is empty, and every
+  // full export includes it. Only an entry with no text field is rejected.
+  const bool has_text_field = [&entry] {
+    for (const char* key :
+         {"text", "raw", "raw_string", "parsed", "parsed_string"}) {
+      if (entry.contains(key) && entry[key].is_string()) {
+        return true;
+      }
+    }
+    return false;
+  }();
+
+  if (result.text.empty() && !has_text_field) {
     return absl::InvalidArgumentError(
         absl::StrFormat("Message entry %d missing text content", result.id));
   }
