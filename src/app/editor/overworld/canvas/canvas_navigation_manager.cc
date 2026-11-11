@@ -771,7 +771,10 @@ void CanvasNavigationManager::UpdateBlocksetSelectorState() {
     return;
   }
 
-  (*ctx_.blockset_selector)->SetTileCount(zelda3::kNumTile16Individual);
+  (*ctx_.blockset_selector)
+      ->SetTileCount(callbacks_.editable_tile16_count
+                         ? callbacks_.editable_tile16_count()
+                         : zelda3::kNumTile16Individual);
   (*ctx_.blockset_selector)->SetSelectedTile(*ctx_.current_tile16);
 }
 

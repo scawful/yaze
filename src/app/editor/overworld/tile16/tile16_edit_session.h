@@ -58,6 +58,10 @@ class Tile16EditSession {
     before_edit_ = std::move(before_edit);
   }
   bool has_shared_history() const { return history_ != &undo_manager_; }
+  // Document Save writes only this many definitions (3752 without expanded
+  // Tile16), so ids at or past it cannot be selected or edited.
+  void set_editable_tile16_count(int count);
+  int editable_tile16_count() const { return editable_tile16_count_; }
   // Edits passing the same non-zero group merge into one Undo step while that
   // step is still the newest history entry. Allocate one group per user
   // interaction (for example, one property dialog session).
@@ -237,6 +241,7 @@ class Tile16EditSession {
   void set_current_page(int page) { current_page_ = page; }
   static constexpr int kTilesPerPage = 64;
   static constexpr int kTilesPerRow = 8;
+  static constexpr int kMaxTile16Count = 4096;
 
   gfx::Bitmap& current_tile16_bmp() { return current_tile16_bmp_; }
   const gfx::Bitmap& current_tile16_bmp() const { return current_tile16_bmp_; }
@@ -407,6 +412,7 @@ class Tile16EditSession {
   int last_rom_write_count_ = 0;
   int jump_to_tile_id_ = 0;
   int current_page_ = 0;
+  int editable_tile16_count_ = kMaxTile16Count;
   gfx::Tile16 current_tile16_data_;
   bool map_blockset_loaded_ = false;
   bool x_flip_ = false;

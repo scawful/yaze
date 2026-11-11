@@ -24,6 +24,7 @@ namespace editor {
 namespace {
 
 constexpr int kTile16Count = zelda3::kNumTile16Individual;
+static_assert(Tile16EditSession::kMaxTile16Count == kTile16Count);
 constexpr float kTile16PreviewDisplayScale = 4.0f;
 
 gfx::SnesPalette BuildFallbackDisplayPalette() {
@@ -318,9 +319,11 @@ Tile16EditSession::BuildStampMutations(Tile16LocalPos pos) const {
   stamp_request.tile16_row_stride = kTilesPerRow;
   stamp_request.max_tile8_id = max_tile8_id;
   stamp_request.max_tile16_id =
-      document_definitions_
-          ? static_cast<int>(document_definitions_->size()) - 1
-          : kTile16Count - 1;
+      (document_definitions_
+           ? std::min(editable_tile16_count_,
+                      static_cast<int>(document_definitions_->size()))
+           : editable_tile16_count_) -
+      1;
 
   return zelda3::BuildTile16StampMutations(stamp_request);
 }
@@ -512,10 +515,26 @@ absl::Status Tile16EditSession::LoadTile8() {
   return absl::OkStatus();
 }
 
+void Tile16EditSession::set_editable_tile16_count(int count) {
+  editable_tile16_count_ = std::clamp(count, 1, kTile16Count);
+  jump_to_tile_id_ = std::min(jump_to_tile_id_, editable_tile16_count_ - 1);
+  if (current_tile16_ >= editable_tile16_count_) {
+    current_tile16_ = editable_tile16_count_ - 1;
+    if (tile16_blockset_ && rom_)
+      (void)SetCurrentTile(current_tile16_);
+  }
+}
+
 absl::Status Tile16EditSession::SetCurrentTile(int tile_id) {
   if (tile_id < 0 || tile_id >= kTile16Count) {
     return absl::OutOfRangeError(
         absl::StrFormat("Invalid tile16 id: %d", tile_id));
+  }
+  if (tile_id >= editable_tile16_count_) {
+    return absl::OutOfRangeError(absl::StrFormat(
+        "Tile16 0x%03X is past the 0x%03X definitions this ROM saves; "
+        "expand Tile16 storage to edit it",
+        tile_id, editable_tile16_count_));
   }
 
   if (!tile16_blockset_ || !rom_) {
@@ -557,7 +576,7 @@ void Tile16EditSession::RequestTileSwitch(int target_tile_id) {
   }
 
   // Validate target tile ID
-  if (target_tile_id < 0 || target_tile_id >= kTile16Count) {
+  if (target_tile_id < 0 || target_tile_id >= editable_tile16_count_) {
     util::logf("RequestTileSwitch: Invalid target tile ID %d", target_tile_id);
     return;
   }
@@ -573,7 +592,7 @@ void Tile16EditSession::RequestTileSwitch(int target_tile_id) {
 }
 
 absl::Status Tile16EditSession::CopyTile16ToClipboard(int tile_id) {
-  if (tile_id < 0 || tile_id >= kTile16Count) {
+  if (tile_id < 0 || tile_id >= editable_tile16_count_) {
     return absl::InvalidArgumentError("Invalid tile ID");
   }
   if (!rom_) {
@@ -984,7 +1003,8 @@ absl::Status Tile16EditSession::ValidateTile16Data() {
 }
 
 bool Tile16EditSession::IsTile16Valid(int tile_id) const {
-  return tile16_blockset_ != nullptr && tile_id >= 0 && tile_id < kTile16Count;
+  return tile16_blockset_ != nullptr && tile_id >= 0 &&
+         tile_id < editable_tile16_count_;
 }
 
 // Integration with overworld system

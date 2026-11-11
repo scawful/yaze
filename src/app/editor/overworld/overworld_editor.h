@@ -271,6 +271,9 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   // the ROM model or materializing legacy maps for those IDs.
   int DisplayedMapCount() const;
   bool IsProjectTerrainMap(int map_id) const;
+  // Tile16 ids that can be selected and edited: the definitions Save writes,
+  // or every id when project terrain supplies its own Tile16 atlas.
+  int EditableTile16Count() const;
   bool is_lyra_preview() const { return overworld_.is_lyra_preview(); }
   bool lyra_a0_terrain_writable() const {
     return overworld_.lyra_a0_terrain_writable();

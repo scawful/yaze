@@ -77,6 +77,11 @@ class Tile16Editor : public gfx::GfxContext {
   void RequestTileSwitch(int target_tile_id) {
     session_.RequestTileSwitch(target_tile_id);
   }
+  void set_editable_tile16_count(int count) {
+    session_.set_editable_tile16_count(count);
+    blockset_selector_.SetTileCount(session_.editable_tile16_count());
+  }
+  int editable_tile16_count() const { return session_.editable_tile16_count(); }
 
   absl::Status CopyTile16ToClipboard(int tile_id) {
     return session_.CopyTile16ToClipboard(tile_id);

@@ -245,6 +245,11 @@ constexpr int kNumTile16Individual = 4096;
 constexpr int Map32PerScreen = 256;
 constexpr int NumberOfMap16 = 3752;    // 4096
 constexpr int NumberOfMap16Ex = 4096;  // 4096
+// Tile16 definitions SaveMap16Tiles/SaveMap16Expanded write. A vanilla ROM
+// still loads 4096 entries, but the ones past 3752 are unrelated ROM data.
+constexpr int SavableTile16Count(bool expanded_tile16) {
+  return expanded_tile16 ? NumberOfMap16Ex : NumberOfMap16;
+}
 // Tile32 definitions are packed four-at-a-time into six bytes in each of the
 // four quadrant tables. Keep byte spans and definition capacities distinct:
 // the expanded table length is a byte count, not a Tile32 count.

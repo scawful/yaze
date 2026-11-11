@@ -55,7 +55,7 @@ absl::Status Tile16Editor::Initialize(
   tile8_source_canvas_.InitializeDefaults();
 
   blockset_selector_.AttachCanvas(&blockset_canvas_);
-  blockset_selector_.SetTileCount(zelda3::kNumTile16Individual);
+  blockset_selector_.SetTileCount(session_.editable_tile16_count());
 
   tile16_edit_canvas_.SetAutoResize(false);
   tile8_source_canvas_.SetAutoResize(false);

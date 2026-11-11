@@ -104,7 +104,7 @@ absl::Status Tile16EditSession::ApplyDefinitions(
   std::vector<gfx::Bitmap> bitmaps(definitions.size());
   for (size_t i = 0; i < definitions.size(); ++i) {
     const auto& edit = definitions[i];
-    if (edit.tile_id < 0 || edit.tile_id >= zelda3::kNumTile16Individual ||
+    if (edit.tile_id < 0 || edit.tile_id >= editable_tile16_count_ ||
         (document_definitions_ &&
          edit.tile_id >= static_cast<int>(document_definitions_->size()))) {
       return absl::OutOfRangeError("Tile16 edit is outside the document");
@@ -149,7 +149,7 @@ absl::Status Tile16EditSession::ValidateDefinitionImport(
   }
   std::set<int> destinations;
   for (const auto& edit : definitions) {
-    if (edit.tile_id < 0 || edit.tile_id >= zelda3::kNumTile16Individual ||
+    if (edit.tile_id < 0 || edit.tile_id >= editable_tile16_count_ ||
         (document_definitions_ &&
          edit.tile_id >= static_cast<int>(document_definitions_->size()))) {
       return absl::OutOfRangeError("Tile16 import is outside the document");

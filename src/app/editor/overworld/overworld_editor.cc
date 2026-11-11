@@ -178,6 +178,12 @@ bool OverworldEditor::IsProjectTerrainMap(int map_id) const {
          !overworld_.is_lyra_preview() && map_id >= 0xA0 && map_id < 0xC0;
 }
 
+int OverworldEditor::EditableTile16Count() const {
+  if (lyra_canvas_.loaded())
+    return zelda3::kNumTile16Individual;
+  return zelda3::SavableTile16Count(overworld_.expanded_tile16());
+}
+
 bool OverworldEditor::NormalizeMapSelection(int& current_world,
                                             int& current_map, int map_count) {
   map_count = std::clamp(map_count, 1, zelda3::kExpandedMapCount);
@@ -530,6 +536,9 @@ void OverworldEditor::InitCanvasNavigationManager() {
   callbacks.is_project_terrain_map = [this](int map_id) {
     return IsProjectTerrainMap(map_id);
   };
+  callbacks.editable_tile16_count = [this]() {
+    return EditableTile16Count();
+  };
   callbacks.refresh_overworld_map = [this]() {
     this->RefreshOverworldMap();
   };
@@ -735,6 +744,7 @@ absl::Status OverworldEditor::Load() {
   all_gfx_loaded_ = true;
 
   lyra_canvas_status_ = lyra_canvas_.Load(TerrainProject(), overworld_);
+  tile16_editor_.set_editable_tile16_count(EditableTile16Count());
   if (IsProjectTerrainMap(0xA0)) {
     SelectMapForEditing(0xA0, false);
     hovered_map_ = -1;
@@ -2276,7 +2286,7 @@ absl::Status OverworldEditor::OpenGraphicsForTile16Quadrant(int tile16_id,
 }
 
 void OverworldEditor::RequestTile16Selection(int tile_id) {
-  if (tile_id < 0 || tile_id >= zelda3::kNumTile16Individual) {
+  if (tile_id < 0 || tile_id >= EditableTile16Count()) {
     return;
   }
 
@@ -2340,7 +2350,7 @@ void OverworldEditor::UpdateBlocksetSelectorState() {
 
 void OverworldEditor::CycleTileSelection(int delta) {
   const int next =
-      std::clamp(current_tile16_ + delta, 0, zelda3::kNumTile16Individual - 1);
+      std::clamp(current_tile16_ + delta, 0, EditableTile16Count() - 1);
   RequestTile16Selection(next);
 }
 
