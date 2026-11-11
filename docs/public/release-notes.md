@@ -8,6 +8,11 @@ These are not retroactive additions to the published downloads. The
 [release/source matrix](../internal/status.md#lyra-source-and-qualification-boundaries)
 names the exact public, mainline and private sources and their remaining checks.
 
+Linux builds now include SDL's native PipeWire audio driver alongside ALSA and
+PulseAudio. When no audio device opens, the Music editor's Playback Control
+panel shows `No audio output` and the reason instead of playing silently
+([#208](https://github.com/scawful/yaze/issues/208)).
+
 ## v0.8.0
 
 **Type:** Desktop editor release

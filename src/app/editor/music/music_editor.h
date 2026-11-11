@@ -206,6 +206,7 @@ class MusicEditor : public Editor {
   // Single shared audio backend - owned here and shared with emulators
   // This avoids the dual-backend bug where two SDL audio devices conflict
   std::unique_ptr<emu::audio::IAudioBackend> audio_backend_;
+  std::string audio_init_error_;
   bool song_browser_auto_shown_ = false;
   bool tracker_auto_shown_ = false;
   bool piano_roll_auto_shown_ = false;

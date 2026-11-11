@@ -584,6 +584,7 @@ if(YAZE_BUILD_TESTS)
     unit/rom/rom_copier_header_test.cc
     unit/rom/fresh_rom_fixture_output_test.cc
     unit/emu/input_backend_test.cc
+    unit/emu/audio_backend_test.cc
     unit/emu/step_controller_test.cc
     unit/emu/spc700_reset_test.cc
     unit/emu/apu_dsp_test.cc

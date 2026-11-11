@@ -40,7 +40,7 @@ APT_PACKAGES=(
   build-essential cmake ninja-build pkg-config ccache git ca-certificates
   python3 python3-dev
   libgtk-3-dev libglew-dev libpng-dev libwavpack-dev libdbus-1-dev
-  libasound2-dev libpulse-dev libaudio-dev
+  libasound2-dev libpulse-dev libpipewire-0.3-dev libaudio-dev
   libx11-dev libxext-dev libxrandr-dev libxcursor-dev libxinerama-dev
   libxi-dev libxss-dev libxxf86vm-dev libxkbcommon-dev libwayland-dev
   libdecor-0-dev
