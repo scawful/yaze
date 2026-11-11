@@ -28,6 +28,10 @@ they are not part of its existing downloads. See the
 - Lyra gameplay-area documents (schema 5), 192-map navigation, and later
   Tile16 stroke/Undo integration are development work after the schema-3
   prerelease. Full expanded-map Oracle Build/Test is not release-qualified.
+- On ROMs without expanded Tile16 storage, the Tile16 selector and editor stop
+  at tile `0xEA7`. Save writes only the first 3752 definitions there, so edits
+  to `0xEA8`-`0xFFF` (including stamp spill-over) were previously lost on
+  save without a message ([#33](https://github.com/scawful/yaze/issues/33)).
 - PNG/palette-strip import and the Sheet Browser palette selector are later
   graphics work. The release-hardening patch keeps the existing import window
   and moves its drawing component into the graphics feature-view module.

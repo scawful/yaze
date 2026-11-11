@@ -150,7 +150,8 @@ absl::Status Tile16Editor::UpdateTile16Edit() {
   ImGui::Separator();
 
   const int total_tiles =
-      zelda3::ComputeTile16Count(session_.tile16_blockset());
+      std::min(zelda3::ComputeTile16Count(session_.tile16_blockset()),
+               session_.editable_tile16_count());
   const float layout_width = ImGui::GetContentRegionAvail().x;
   const bool compact_layout = layout_width < 900.0f;
   const int layout_columns = compact_layout ? 1 : 2;

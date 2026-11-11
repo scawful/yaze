@@ -496,6 +496,58 @@ TEST_F(Tile16DocumentHistoryTest, EdgeClippedStampHasCompleteUndo) {
   }
 }
 
+TEST_F(Tile16DocumentHistoryTest, VanillaCapacityRefusesUnsavedDefinitions) {
+  EXPECT_EQ(zelda3::SavableTile16Count(false), zelda3::NumberOfMap16);
+  EXPECT_EQ(zelda3::SavableTile16Count(true), zelda3::NumberOfMap16Ex);
+  session_.set_editable_tile16_count(zelda3::SavableTile16Count(false));
+  const int first_unsaved = zelda3::NumberOfMap16;
+  const auto before = overworld_.tiles16();
+  auto changed = initial_;
+  changed.tile0_.palette_ = 4;
+
+  EXPECT_EQ(session_.SetCurrentTile(first_unsaved).code(),
+            absl::StatusCode::kOutOfRange);
+  session_.RequestTileSwitch(first_unsaved);
+  EXPECT_EQ(session_.current_tile16(), 0);
+  EXPECT_FALSE(session_.IsTile16Valid(first_unsaved));
+  EXPECT_TRUE(session_.IsTile16Valid(first_unsaved - 1));
+  EXPECT_FALSE(session_.ImportDefinitions({{first_unsaved, changed}}).ok());
+  EXPECT_FALSE(
+      session_.ImportDefinitions({{1, changed}, {first_unsaved, changed}})
+          .ok());
+  EXPECT_FALSE(session_.CopyTile16ToClipboard(first_unsaved).ok());
+
+  for (int id = 0; id < zelda3::kNumTile16Individual; ++id)
+    ExpectDefinition(overworld_.tiles16()[id], before[id]);
+  EXPECT_EQ(history_.UndoStackSize(), 0u);
+  EXPECT_TRUE(published_.empty());
+}
+
+TEST_F(Tile16DocumentHistoryTest, VanillaCapacityClipsStampAtLastSavedTile) {
+  session_.set_editable_tile16_count(zelda3::NumberOfMap16);
+  const auto before = overworld_.tiles16();
+  ASSERT_TRUE(session_.SetCurrentTile(zelda3::NumberOfMap16 - 1).ok());
+  session_.set_tile8_stamp_size(4);
+  ASSERT_TRUE(session_.DrawToCurrentTile16({0, 0}).ok());
+  ASSERT_EQ(published_, (std::vector<size_t>{1}));
+  for (int id = zelda3::NumberOfMap16; id < zelda3::kNumTile16Individual;
+       ++id) {
+    ExpectDefinition(overworld_.tiles16()[id], before[id]);
+  }
+  ASSERT_TRUE(history_.Undo().ok());
+  for (int id = 0; id < zelda3::kNumTile16Individual; ++id)
+    ExpectDefinition(overworld_.tiles16()[id], before[id]);
+}
+
+TEST_F(Tile16DocumentHistoryTest, LoweringCapacityMovesSelectionIntoRange) {
+  ASSERT_TRUE(session_.SetCurrentTile(zelda3::kNumTile16Individual - 1).ok());
+  session_.set_editable_tile16_count(zelda3::NumberOfMap16);
+  EXPECT_EQ(session_.current_tile16(), zelda3::NumberOfMap16 - 1);
+  EXPECT_LT(session_.jump_to_tile_id(), zelda3::NumberOfMap16);
+  session_.set_editable_tile16_count(zelda3::NumberOfMap16Ex);
+  EXPECT_TRUE(session_.SetCurrentTile(zelda3::kNumTile16Individual - 1).ok());
+}
+
 TEST_F(Tile16DocumentHistoryTest, UndoRendersUsingCurrentGraphicsSource) {
   ASSERT_TRUE(session_.ApplyPaletteToAll(6).ok());
   graphics_.set_data(std::vector<uint8_t>(128 * 512, 7));
