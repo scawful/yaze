@@ -123,6 +123,47 @@ TEST(OverworldTileAddressTest, RejectsInconsistentParentData) {
 }
 
 // ---------------------------------------------------------------------------
+// Entrance lookup by entrance ID, not marker index
+// ---------------------------------------------------------------------------
+
+TEST(OverworldEntranceDetailsTest, FindsMarkersByEntranceIdNotListIndex) {
+  Rom rom;
+  zelda3::Overworld overworld(&rom);
+  auto& markers = *overworld.mutable_entrances();
+  // Marker index 2 leads to entrance 0x00; entrance 0x02 lives at index 0 and
+  // index 3. The old lookup returned index 2 labelled as entrance 0x02.
+  markers.emplace_back(0x0E00, 0x0280, 0x02, 0x75, 0x02A0, false);
+  markers.emplace_back(0x0400, 0x0100, 0x01, 0x03, 0x098C, false);
+  markers.emplace_back(0x0200, 0x0200, 0x00, 0x50, 0x019C, false);
+  markers.emplace_back(0x0600, 0x0300, 0x02, 0x15, 0x031A, false);
+
+  auto details = overworld::GetEntranceDetails(overworld, 0x02);
+  ASSERT_TRUE(details.ok()) << details.status();
+  EXPECT_EQ(details->entrance_id, 0x02);
+  EXPECT_EQ(details->marker_index, 0);
+  EXPECT_EQ(details->map_id, 0x75);
+  EXPECT_EQ(details->map_pos, 0x02A0);
+  EXPECT_EQ(details->marker_indices, (std::vector<int>{0, 3}));
+}
+
+TEST(OverworldEntranceDetailsTest, SkipsDeletedMarkersAndReportsMissingIds) {
+  Rom rom;
+  zelda3::Overworld overworld(&rom);
+  auto& markers = *overworld.mutable_entrances();
+  markers.emplace_back(0x0E00, 0x0280, 0x3D, 0x75, 0x02A0, false);
+  markers.back().deleted = true;
+  markers.emplace_back(0x0400, 0x0100, 0x3D, 0x03, 0x098C, false);
+
+  auto details = overworld::GetEntranceDetails(overworld, 0x3D);
+  ASSERT_TRUE(details.ok()) << details.status();
+  EXPECT_EQ(details->marker_index, 1);
+  EXPECT_EQ(details->marker_indices, (std::vector<int>{1}));
+
+  auto missing = overworld::GetEntranceDetails(overworld, 0x84);
+  EXPECT_TRUE(absl::IsNotFound(missing.status())) << missing.status();
+}
+
+// ---------------------------------------------------------------------------
 // Blockset indexing on a synthetic overworld grid
 // ---------------------------------------------------------------------------
 

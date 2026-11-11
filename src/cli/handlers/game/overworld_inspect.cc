@@ -595,15 +595,23 @@ absl::StatusOr<EntranceDetails> GetEntranceDetails(
     const zelda3::Overworld& overworld, uint8_t entrance_id) {
   const auto& entrances = overworld.entrances();
 
-  if (entrance_id >= entrances.size()) {
+  std::vector<int> marker_indices;
+  for (size_t i = 0; i < entrances.size(); ++i) {
+    if (!entrances[i].deleted && entrances[i].entrance_id_ == entrance_id) {
+      marker_indices.push_back(static_cast<int>(i));
+    }
+  }
+  if (marker_indices.empty()) {
     return absl::NotFoundError(absl::StrFormat(
-        "Entrance %d not found (max: %d)", entrance_id, entrances.size() - 1));
+        "No overworld entrance marker leads to entrance 0x%02X", entrance_id));
   }
 
-  const auto& entrance = entrances[entrance_id];
+  const auto& entrance = entrances[marker_indices.front()];
 
   EntranceDetails details;
   details.entrance_id = entrance_id;
+  details.marker_index = marker_indices.front();
+  details.marker_indices = std::move(marker_indices);
   details.map_id = entrance.map_id_;
 
   // Determine world from map_id
