@@ -138,7 +138,25 @@ absl::StatusOr<std::string> ResolveConfiguredProjectRunTargetPath(
 
   std::string target;
   if (project.hack_manifest.loaded()) {
-    target = project.hack_manifest.build_pipeline().patched_rom;
+    const auto& pipeline = project.hack_manifest.build_pipeline();
+    // A manifest whose development ROM is another file describes another
+    // checkout (for example a copied project that still carries the original
+    // folder's absolute paths). Its patched ROM is not this project's output,
+    // so apply the build command's source rule and skip it.
+    const bool manifest_describes_other_source =
+        !pipeline.dev_rom.empty() && !project.rom_filename.empty() &&
+        !SessionCoordinator::PathsReferToSameBackingFile(
+            project.GetAbsolutePath(pipeline.dev_rom),
+            project.GetAbsolutePath(project.rom_filename));
+    if (!manifest_describes_other_source) {
+      target = pipeline.patched_rom;
+    } else if (project.build_target.empty()) {
+      return absl::FailedPreconditionError(absl::StrFormat(
+          "Run target mismatch: manifest development ROM %s differs from "
+          "project ROM %s, and the project defines no build target.",
+          project.GetAbsolutePath(pipeline.dev_rom),
+          project.GetAbsolutePath(project.rom_filename)));
+    }
   }
   if (target.empty()) {
     target = project.build_target;

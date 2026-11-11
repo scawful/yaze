@@ -1708,6 +1708,147 @@ TEST(EditorManagerProjectActionsTest,
             std::string::npos);
 }
 
+// A copied project keeps the original folder's manifest, whose absolute
+// development and patched ROM paths name the original checkout. Build and Run
+// must resolve the copy's own build target, never the original output.
+TEST(EditorManagerProjectActionsTest,
+     RunCurrentProjectUsesBuildTargetWhenManifestDescribesOtherSource) {
+  ScopedImGuiContext imgui;
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  ::yaze::test::InitializeWithIsolatedSettings(*manager, renderer.get());
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+
+  ScopedTempDir temp_dir(MakeTempDir("yaze_run_copied_project_output"));
+  const auto original = temp_dir.path / "original";
+  const auto copy = temp_dir.path / "copy";
+  std::filesystem::create_directories(original);
+  std::filesystem::create_directories(copy);
+  const auto original_rom = original / "rom.sfc";
+  const auto original_output = original / "patched.sfc";
+  const auto copy_rom = copy / "rom.sfc";
+  const auto copy_output = copy / "patched.sfc";
+  const auto build_artifact = copy / "artifact.sfc";
+  const auto script_path = copy / "build_run.sh";
+  WriteRomFile(original_rom, "ORIGINAL SOURCE ROM");
+  WriteRomFile(original_output, "ORIGINAL OUTPUT ROM");
+  WriteRomFile(copy_rom, "COPY SOURCE ROM");
+  WriteRomFile(build_artifact, "COPY BUILT ROM");
+  {
+    nlohmann::json manifest = {{"manifest_version", 2},
+                               {"hack_name", "Copied Hack"},
+                               {"build_pipeline",
+                                {{"dev_rom", original_rom.string()},
+                                 {"patched_rom", original_output.string()}}}};
+    std::ofstream out(copy / "hack_manifest.json");
+    ASSERT_TRUE(out.is_open());
+    out << manifest.dump(2);
+  }
+  {
+    std::ofstream script(script_path);
+    ASSERT_TRUE(script.is_open());
+    script << "#!/bin/sh\n";
+    script << CopyCommand(build_artifact, copy_output) << "\n";
+  }
+  std::filesystem::permissions(script_path,
+                               std::filesystem::perms::owner_exec |
+                                   std::filesystem::perms::owner_read |
+                                   std::filesystem::perms::owner_write,
+                               std::filesystem::perm_options::add);
+  const auto original_output_sha =
+      core::ComputeSourceArtifactFileSha256(original_output);
+  ASSERT_TRUE(original_output_sha.ok()) << original_output_sha.status();
+  const auto artifact_sha =
+      core::ComputeSourceArtifactFileSha256(build_artifact);
+  ASSERT_TRUE(artifact_sha.ok()) << artifact_sha.status();
+
+  const auto project_path = copy / "project.yaze";
+  auto* project = manager->GetCurrentProject();
+  ASSERT_NE(project, nullptr);
+  project->name = "CopiedProject";
+  project->filepath = project_path.string();
+  project->rom_filename = copy_rom.string();
+  project->build_target = "patched.sfc";
+  project->hack_manifest_file = "hack_manifest.json";
+#ifdef _WIN32
+  project->build_script = CopyCommand(build_artifact, copy_output);
+#else
+  project->build_script = "./build_run.sh";
+#endif
+  ASSERT_OK(SaveProjectFixture(*project));
+  ASSERT_OK(manager->OpenRomOrProject(project_path.string()));
+  ASSERT_TRUE(manager->GetCurrentProject()->hack_manifest.loaded());
+  ASSERT_OK(manager->BuildCurrentProject());
+  ASSERT_OK(manager->RunCurrentProject());
+  const auto status = ContentRegistry::Context::run_workflow_status();
+  EXPECT_EQ(status.state, ProjectWorkflowState::kSuccess);
+  EXPECT_EQ(std::filesystem::path(status.detail), copy_output);
+  EXPECT_EQ(
+      LoadedLoRomSha256(*manager, std::filesystem::file_size(copy_output)),
+      *artifact_sha);
+  const auto original_after =
+      core::ComputeSourceArtifactFileSha256(original_output);
+  ASSERT_TRUE(original_after.ok()) << original_after.status();
+  EXPECT_EQ(*original_after, *original_output_sha);
+}
+
+TEST(EditorManagerProjectActionsTest,
+     BuildRefusesForeignManifestOutputWithoutBuildTarget) {
+  ScopedImGuiContext imgui;
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  ::yaze::test::InitializeWithIsolatedSettings(*manager, renderer.get());
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+
+  ScopedTempDir temp_dir(MakeTempDir("yaze_run_foreign_manifest_output"));
+  const auto copy_rom = temp_dir.path / "rom.sfc";
+  const auto marker_path = temp_dir.path / "build.marker";
+  const auto script_path = temp_dir.path / "build_ok.sh";
+  WriteRomFile(copy_rom, "COPY SOURCE ROM");
+  // The original checkout still exists, as it does for a real copied project.
+  std::filesystem::create_directories(temp_dir.path / "elsewhere");
+  WriteRomFile(temp_dir.path / "elsewhere" / "rom.sfc", "ORIGINAL SOURCE ROM");
+  {
+    nlohmann::json manifest = {
+        {"manifest_version", 2},
+        {"hack_name", "Copied Hack"},
+        {"build_pipeline",
+         {{"dev_rom", (temp_dir.path / "elsewhere" / "rom.sfc").string()},
+          {"patched_rom",
+           (temp_dir.path / "elsewhere" / "patched.sfc").string()}}}};
+    std::ofstream out(temp_dir.path / "hack_manifest.json");
+    ASSERT_TRUE(out.is_open());
+    out << manifest.dump(2);
+  }
+  {
+    std::ofstream script(script_path);
+    ASSERT_TRUE(script.is_open());
+    script << "#!/bin/sh\nprintf 'built' > build.marker\n";
+  }
+  std::filesystem::permissions(
+      script_path,
+      std::filesystem::perms::owner_exec | std::filesystem::perms::owner_read,
+      std::filesystem::perm_options::add);
+
+  const auto project_path = temp_dir.path / "project.yaze";
+  auto* project = manager->GetCurrentProject();
+  ASSERT_NE(project, nullptr);
+  project->name = "CopiedProjectNoTarget";
+  project->filepath = project_path.string();
+  project->rom_filename = copy_rom.string();
+  project->hack_manifest_file = "hack_manifest.json";
+  project->build_script = "./build_ok.sh";
+  ASSERT_OK(SaveProjectFixture(*project));
+  ASSERT_OK(manager->OpenRomOrProject(project_path.string()));
+  ASSERT_TRUE(manager->GetCurrentProject()->hack_manifest.loaded());
+  const auto status = manager->BuildCurrentProject();
+  EXPECT_EQ(status.code(), absl::StatusCode::kFailedPrecondition);
+  EXPECT_NE(std::string(status.message()).find("Run target mismatch"),
+            std::string::npos)
+      << status.message();
+  EXPECT_FALSE(std::filesystem::exists(marker_path));
+}
+
 // These synthetic receipts exercise the existing Build/Run consumer contract.
 // They do not establish an Oracle allocation grant or compiled gameplay proof.
 struct ExpandedRunFixture {
