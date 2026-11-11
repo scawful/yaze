@@ -215,6 +215,68 @@ absl::StatusOr<zelda3::OverworldExit> BuildOverworldExitEdit(
   return value;
 }
 
+absl::StatusOr<OverworldEndpointPairEdit> BuildOverworldEndpointPairMove(
+    const zelda3::Overworld& overworld,
+    const std::vector<zelda3::OverworldEntrance>& entrances, size_t door_row,
+    const std::vector<zelda3::OverworldExit>& exits, size_t return_row,
+    const OverworldEndpointPairMove& move) {
+  if (door_row >= entrances.size()) {
+    return absl::NotFoundError("Entrance row is no longer available");
+  }
+  if (return_row >= exits.size()) {
+    return absl::NotFoundError("Return row is no longer available");
+  }
+  if (entrances[door_row].is_hole_ || entrances[door_row].deleted ||
+      exits[return_row].deleted_) {
+    return absl::FailedPreconditionError(
+        "Move an active door and return row pair");
+  }
+  // A bound row is the position source of its placement. Moving it would
+  // silently move that placement on the next Save.
+  if (entrances[door_row].authoring_placement_id.has_value() ||
+      exits[return_row].authoring_placement_id.has_value()) {
+    return absl::FailedPreconditionError(
+        "A bound row cannot move with a planned connection");
+  }
+  // These fields carry a tile position the runtime animates on exit, and no
+  // editor path rebuilds them for a new area.
+  if (exits[return_row].door_type_1_ != 0 ||
+      exits[return_row].door_type_2_ != 0) {
+    return absl::FailedPreconditionError(
+        "A return row with exit door animation cannot move with this action");
+  }
+  if (move.door_tile_x < 0 || move.door_tile_y < 0 || move.return_tile_x < 0 ||
+      move.return_tile_y < 0) {
+    return absl::InvalidArgumentError("Tile position must not be negative");
+  }
+  const auto* page = overworld.overworld_map(move.map);
+  if (page == nullptr) {
+    return absl::NotFoundError("Destination map is not available");
+  }
+  // Rows belong to the parent area. Position comes from the planned page, so
+  // a plan on a lower page of a large area keeps its screen.
+  const int owner = page->parent();
+  const int origin_x = (move.map % 8) * 512;
+  const int origin_y = ((move.map % 64) / 8) * 512;
+
+  auto door = entrances[door_row];
+  door.map_id_ = owner;
+  door.x_ = origin_x + move.door_tile_x * 16;
+  door.y_ = origin_y + move.door_tile_y * 16;
+  ASSIGN_OR_RETURN(auto built_door, BuildOverworldEntranceEdit(
+                                        overworld, entrances, door_row, door));
+
+  auto back = exits[return_row];
+  back.map_id_ = owner;
+  back.x_ = origin_x + move.return_tile_x * 16;
+  back.y_ = origin_y + move.return_tile_y * 16;
+  back.is_automatic_ = true;
+  ASSIGN_OR_RETURN(auto built_back,
+                   BuildOverworldExitEdit(overworld, exits, return_row, back));
+  return OverworldEndpointPairEdit{std::move(built_door),
+                                   std::move(built_back)};
+}
+
 absl::StatusOr<zelda3::OverworldItem> BuildOverworldItemForInsertion(
     const std::vector<zelda3::OverworldMap>& maps, ImVec2 world_position,
     int current_map, uint8_t item_id) {

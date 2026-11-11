@@ -105,6 +105,26 @@ class NativeEndpointSessionTest : public test::HeadlessEditorTest {
     ASSERT_TRUE(editor_->ApplyExitEdit(&exit, back).ok());
   }
 
+  void ActivatePairRows() {
+    auto& world = editor_->overworld();
+    auto door = world.entrances()[kEntranceRow];
+    door.entrance_id_ = 0x0B;
+    door.is_hole_ = false;
+    door.deleted = false;
+    ASSERT_TRUE(
+        editor_->ApplyEntranceEdit(&world.entrances()[kEntranceRow], door)
+            .ok());
+    auto back = (*world.exits())[kReturnRow];
+    back.room_id_ = 0x83;
+    back.is_hole_ = false;
+    back.deleted_ = false;
+    back.door_type_1_ = 0;
+    back.door_type_2_ = 0;
+    ASSERT_TRUE(
+        editor_->ApplyExitEdit(&(*world.mutable_exits())[kReturnRow], back)
+            .ok());
+  }
+
   void BindBoth() {
     ASSERT_TRUE(
         editor_->BindNativeEndpointPlacement(0x6001, kEntranceRow).ok());
@@ -406,6 +426,121 @@ TEST_F(NativeEndpointSessionTest, BoundMoveDeleteSaveUndoRedoKeepIdentity) {
             std::optional<uint32_t>(0x6001));
   EXPECT_EQ((*world.exits())[kReturnRow].authoring_placement_id,
             std::optional<uint32_t>(0x6002));
+}
+
+TEST_F(NativeEndpointSessionTest, PairMoveIsOneUndoStepAndThenBindsBothRows) {
+  auto& world = editor_->overworld();
+  auto door = world.entrances()[kEntranceRow];
+  door.entrance_id_ = 0x0B;
+  door.is_hole_ = false;
+  door.deleted = false;
+  ASSERT_TRUE(
+      editor_->ApplyEntranceEdit(&world.entrances()[kEntranceRow], door).ok());
+  auto back = (*world.exits())[kReturnRow];
+  back.room_id_ = 0x83;
+  back.is_hole_ = false;
+  back.deleted_ = false;
+  back.x_scroll_ = 0x1234;
+  back.is_automatic_ = false;
+  ASSERT_TRUE(
+      editor_->ApplyExitEdit(&(*world.mutable_exits())[kReturnRow], back).ok());
+  const auto door_start = world.entrances()[kEntranceRow];
+  const auto back_start = (*world.exits())[kReturnRow];
+  const auto plan = world.native_authoring_metadata();
+  ASSERT_NE(door_start.map_id_, 0xB0);
+
+  const editor::OverworldEndpointPairMove move{0xB0, 21, 9, 22, 11};
+  ASSERT_TRUE(editor_->MoveEndpointPair(kEntranceRow, kReturnRow, move).ok());
+  const auto expect_moved = [&] {
+    const auto& moved_door = world.entrances()[kEntranceRow];
+    const auto& moved_back = (*world.exits())[kReturnRow];
+    EXPECT_EQ(moved_door.map_id_, 0xB0);
+    EXPECT_EQ(moved_door.x_, 21 * 16);
+    EXPECT_EQ(moved_door.y_, 0xC00 + 9 * 16);
+    EXPECT_EQ(moved_door.map_pos_, (9 << 7) | (21 << 1));
+    EXPECT_EQ(moved_back.map_id_, 0xB0);
+    EXPECT_EQ(moved_back.x_, 22 * 16);
+    EXPECT_EQ(moved_back.y_, 0xC00 + 11 * 16);
+    EXPECT_EQ(moved_back.x_player_, 22 * 16);
+    EXPECT_EQ(moved_back.y_player_, 0xC00 + 11 * 16);
+    // The old area's scroll must not survive a move to another area.
+    EXPECT_TRUE(moved_back.is_automatic_);
+    EXPECT_LE(moved_back.x_scroll_, 0x200);
+    EXPECT_GE(moved_back.y_scroll_, 0xC00);
+  };
+  expect_moved();
+  EXPECT_EQ(world.native_authoring_metadata(), plan);
+
+  // One Undo restores both rows, and one Redo moves both again.
+  ASSERT_TRUE(editor_->Undo().ok());
+  EXPECT_EQ(world.entrances()[kEntranceRow].map_id_, door_start.map_id_);
+  EXPECT_EQ(world.entrances()[kEntranceRow].x_, door_start.x_);
+  EXPECT_EQ(world.entrances()[kEntranceRow].map_pos_, door_start.map_pos_);
+  EXPECT_EQ((*world.exits())[kReturnRow].map_id_, back_start.map_id_);
+  EXPECT_EQ((*world.exits())[kReturnRow].y_, back_start.y_);
+  EXPECT_EQ((*world.exits())[kReturnRow].x_scroll_, back_start.x_scroll_);
+  EXPECT_EQ((*world.exits())[kReturnRow].is_automatic_,
+            back_start.is_automatic_);
+  ASSERT_TRUE(editor_->Redo().ok());
+  expect_moved();
+
+  // The moved rows are what the existing bind path needs.
+  BindBoth();
+  ASSERT_FALSE(HasFatalFailure());
+  ASSERT_TRUE(manager_->SaveCurrentSession(false).ok());
+  const auto saved = DiskMetadata();
+  for (uint32_t id : {0x6001u, 0x6002u}) {
+    ASSERT_NE(FindPlacement(saved, id), nullptr);
+    EXPECT_EQ(FindPlacement(saved, id)->state,
+              rom::NativePlacementState::kBound);
+  }
+}
+
+TEST_F(NativeEndpointSessionTest, PairMoveRefusalLeavesBothRowsUnchanged) {
+  auto& world = editor_->overworld();
+  ActivatePairRows();
+  ASSERT_FALSE(HasFatalFailure());
+  const auto door_start = world.entrances()[kEntranceRow];
+  const auto back_start = (*world.exits())[kReturnRow];
+  // The door destination is valid; the return destination is outside the area.
+  const editor::OverworldEndpointPairMove move{0xB0, 21, 9, 200, 11};
+  const auto status = editor_->MoveEndpointPair(kEntranceRow, kReturnRow, move);
+  EXPECT_TRUE(absl::IsInvalidArgument(status)) << status;
+  EXPECT_EQ(world.entrances()[kEntranceRow].map_id_, door_start.map_id_);
+  EXPECT_EQ(world.entrances()[kEntranceRow].x_, door_start.x_);
+  EXPECT_EQ((*world.exits())[kReturnRow].map_id_, back_start.map_id_);
+  EXPECT_EQ((*world.exits())[kReturnRow].x_, back_start.x_);
+}
+
+TEST_F(NativeEndpointSessionTest, PairMoveRefusesBoundRows) {
+  auto& world = editor_->overworld();
+  PrepareBindingRows();
+  ASSERT_FALSE(HasFatalFailure());
+  BindBoth();
+  ASSERT_FALSE(HasFatalFailure());
+  const auto door_start = world.entrances()[kEntranceRow];
+  const auto status = editor_->MoveEndpointPair(
+      kEntranceRow, kReturnRow,
+      editor::OverworldEndpointPairMove{0x8E, 1, 1, 2, 2});
+  EXPECT_TRUE(absl::IsFailedPrecondition(status)) << status;
+  EXPECT_NE(status.message().find("bound"), std::string::npos) << status;
+  EXPECT_EQ(world.entrances()[kEntranceRow].map_id_, door_start.map_id_);
+}
+
+TEST_F(NativeEndpointSessionTest, PairMoveRefusesExitDoorAnimationRows) {
+  auto& world = editor_->overworld();
+  ActivatePairRows();
+  ASSERT_FALSE(HasFatalFailure());
+  auto back = (*world.exits())[kReturnRow];
+  back.door_type_1_ = 0x0B2C;
+  ASSERT_TRUE(
+      editor_->ApplyExitEdit(&(*world.mutable_exits())[kReturnRow], back).ok());
+  const auto status = editor_->MoveEndpointPair(
+      kEntranceRow, kReturnRow,
+      editor::OverworldEndpointPairMove{0xB0, 21, 9, 22, 11});
+  EXPECT_TRUE(absl::IsFailedPrecondition(status)) << status;
+  EXPECT_NE(status.message().find("animation"), std::string::npos) << status;
+  EXPECT_EQ((*world.exits())[kReturnRow].door_type_1_, 0x0B2C);
 }
 
 TEST_F(NativeEndpointSessionTest,

@@ -14,6 +14,7 @@
 #include "app/editor/overworld/entity/entity_editing_target.h"
 #include "app/editor/overworld/entity/entity_insertion_request.h"
 #include "app/editor/overworld/entity/entity_mutation_service.h"
+#include "app/editor/overworld/entity/entity_operations.h"
 #include "app/editor/overworld/entity/entity_workbench.h"
 #include "app/editor/overworld/entity/overworld_entity_renderer.h"
 #include "app/editor/overworld/lyra_terrain_canvas.h"
@@ -367,6 +368,9 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   // Explicitly links a planned native endpoint to an existing runtime row.
   // The model validates the binding; one record action owns Undo/Redo.
   absl::Status BindNativeEndpointPlacement(uint32_t id, uint16_t row);
+  // Moves one connection's door and return rows together in one Undo step.
+  absl::Status MoveEndpointPair(size_t door_row, size_t return_row,
+                                const OverworldEndpointPairMove& move);
   absl::Status ValidateSpriteEdit(zelda3::Sprite* target,
                                   const zelda3::Sprite& draft);
   absl::Status ApplySpriteEdit(zelda3::Sprite* target,

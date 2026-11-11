@@ -256,6 +256,59 @@ class OverworldRecordEditAction final : public UndoAction {
   std::string description_;
 };
 
+// One connection's door and return rows change together. A failure restoring
+// the second row puts the first row back, so Undo cannot split the pair.
+class OverworldEndpointPairEditAction final : public UndoAction {
+ public:
+  using DoorRestoreFn =
+      std::function<absl::Status(const zelda3::OverworldEntrance&)>;
+  using ReturnRestoreFn =
+      std::function<absl::Status(const zelda3::OverworldExit&)>;
+  OverworldEndpointPairEditAction(zelda3::OverworldEntrance door_before,
+                                  zelda3::OverworldEntrance door_after,
+                                  zelda3::OverworldExit return_before,
+                                  zelda3::OverworldExit return_after,
+                                  DoorRestoreFn restore_door,
+                                  ReturnRestoreFn restore_return,
+                                  std::string description)
+      : door_before_(std::move(door_before)),
+        door_after_(std::move(door_after)),
+        return_before_(std::move(return_before)),
+        return_after_(std::move(return_after)),
+        restore_door_(std::move(restore_door)),
+        restore_return_(std::move(restore_return)),
+        description_(std::move(description)) {}
+  absl::Status Undo() override {
+    return Apply(door_before_, return_before_, door_after_);
+  }
+  absl::Status Redo() override {
+    return Apply(door_after_, return_after_, door_before_);
+  }
+  std::string Description() const override { return description_; }
+  size_t MemoryUsage() const override { return sizeof(*this); }
+
+ private:
+  absl::Status Apply(const zelda3::OverworldEntrance& door,
+                     const zelda3::OverworldExit& back,
+                     const zelda3::OverworldEntrance& door_rollback) {
+    if (!restore_door_ || !restore_return_)
+      return absl::FailedPreconditionError("Record owner is gone");
+    RETURN_IF_ERROR(restore_door_(door));
+    const absl::Status status = restore_return_(back);
+    if (!status.ok()) {
+      RETURN_IF_ERROR(restore_door_(door_rollback));
+    }
+    return status;
+  }
+  zelda3::OverworldEntrance door_before_;
+  zelda3::OverworldEntrance door_after_;
+  zelda3::OverworldExit return_before_;
+  zelda3::OverworldExit return_after_;
+  DoorRestoreFn restore_door_;
+  ReturnRestoreFn restore_return_;
+  std::string description_;
+};
+
 // Record identity survives vector reallocation and area regrouping. Legacy
 // untracked rows retain their existing row contract; they cannot replace a
 // tracked row. Insertion Undo keeps a deleted row so its ID is never reused.

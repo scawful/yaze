@@ -28,6 +28,30 @@ absl::StatusOr<zelda3::OverworldExit> BuildOverworldExitEdit(
     const std::vector<zelda3::OverworldExit>& records, size_t row,
     const zelda3::OverworldExit& draft);
 
+// Destination of one connection, in the planned placement's units: local tile
+// coordinates on page `map`, which may be a child page of a large area.
+struct OverworldEndpointPairMove {
+  int map = 0;
+  int door_tile_x = 0;
+  int door_tile_y = 0;
+  int return_tile_x = 0;
+  int return_tile_y = 0;
+};
+
+struct OverworldEndpointPairEdit {
+  zelda3::OverworldEntrance door;
+  zelda3::OverworldExit back;
+};
+
+// Builds both rows of one connection before either is changed, so a refused
+// row can never leave the other row moved. The return row is switched to
+// automatic scroll: its old scroll and camera belong to the old area.
+absl::StatusOr<OverworldEndpointPairEdit> BuildOverworldEndpointPairMove(
+    const zelda3::Overworld& overworld,
+    const std::vector<zelda3::OverworldEntrance>& entrances, size_t door_row,
+    const std::vector<zelda3::OverworldExit>& exits, size_t return_row,
+    const OverworldEndpointPairMove& move);
+
 /**
  * @brief Flat helper functions for entity insertion/manipulation
  *

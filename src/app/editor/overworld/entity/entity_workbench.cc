@@ -185,6 +185,76 @@ void DrawNativeEndpointBinding(OverworldEditor& editor,
     return;
   }
 
+  // A door row can carry its return row to the planned area. Return rows do
+  // not offer this: entrance IDs are not unique, so the door is not derivable.
+  struct PairRequest {
+    size_t return_row;
+    OverworldEndpointPairMove move;
+  };
+  std::optional<PairRequest> pair_request;
+  if (door) {
+    for (const auto& door_plan : metadata->placements) {
+      const auto* door_value =
+          std::get_if<rom::NativeAuthoringDoorPlacement>(&door_plan.value);
+      if (door_plan.state != rom::NativePlacementState::kPending ||
+          !door_value || door_value->entrance_id != target) {
+        continue;
+      }
+      // A row already in the planned area binds directly.
+      const auto* planned_page = world.overworld_map(door_value->map);
+      if (!planned_page || planned_page->parent() == owner)
+        continue;
+      for (const auto& return_plan : metadata->placements) {
+        const auto* return_value =
+            std::get_if<rom::NativeAuthoringReturnPlacement>(
+                &return_plan.value);
+        if (return_plan.state != rom::NativePlacementState::kPending ||
+            !return_value || !return_value->room_id ||
+            return_value->map != door_value->map) {
+          continue;
+        }
+        std::optional<size_t> return_row;
+        bool ambiguous = false;
+        const auto& exits = *world.exits();
+        for (size_t i = 0; i < exits.size(); ++i) {
+          if (exits[i].deleted_ || exits[i].room_id_ != *return_value->room_id)
+            continue;
+          ambiguous = return_row.has_value();
+          return_row = i;
+        }
+        const std::string key =
+            absl::StrFormat("move_%08X_%08X", door_plan.id, return_plan.id);
+        ImGui::PushID(key.c_str());
+        if (!return_row || ambiguous) {
+          ImGui::TextDisabled(
+              "Planned return room $%03X needs exactly one row.",
+              static_cast<unsigned>(*return_value->room_id));
+        } else if (exits[*return_row].authoring_placement_id.has_value()) {
+          ImGui::TextDisabled("Return row %zu is already bound.", *return_row);
+        } else if (exits[*return_row].door_type_1_ != 0 ||
+                   exits[*return_row].door_type_2_ != 0) {
+          ImGui::TextDisabled(
+              "Return row %zu has exit door animation, so it cannot move here.",
+              *return_row);
+        } else {
+          ImGui::Text("Plan: map $%02X, door (%u,%u), return row %zu (%u,%u)",
+                      static_cast<unsigned>(door_value->map),
+                      static_cast<unsigned>(door_value->x),
+                      static_cast<unsigned>(door_value->y), *return_row,
+                      static_cast<unsigned>(return_value->x),
+                      static_cast<unsigned>(return_value->y));
+          if (ImGui::Button("Move with return row")) {
+            pair_request =
+                PairRequest{*return_row,
+                            {door_value->map, door_value->x, door_value->y,
+                             return_value->x, return_value->y}};
+          }
+        }
+        ImGui::PopID();
+      }
+    }
+  }
+
   bool found = false;
   std::optional<uint32_t> requested;
   // Defer the mutation until enumeration finishes: the binder may replace
@@ -223,8 +293,13 @@ void DrawNativeEndpointBinding(OverworldEditor& editor,
       requested = placement.id;
     ImGui::PopID();
   }
-  if (!found)
+  if (!found && !pair_request)
     ImGui::TextDisabled("No compatible pending placement for this row.");
+  if (pair_request) {
+    const auto status = editor.MoveEndpointPair(*row, pair_request->return_row,
+                                                pair_request->move);
+    editor.insert_error() = status.ok() ? "" : std::string(status.message());
+  }
   if (requested) {
     const auto status = editor.BindNativeEndpointPlacement(
         *requested, static_cast<uint16_t>(*row));
@@ -398,6 +473,62 @@ absl::Status OverworldEditor::BindNativeEndpointPlacement(uint32_t id,
       },
       "Bind planned overworld connection"));
   notify();
+  return absl::OkStatus();
+}
+
+absl::Status OverworldEditor::MoveEndpointPair(
+    size_t door_row, size_t return_row, const OverworldEndpointPairMove& move) {
+  if (overworld_.is_lyra_preview()) {
+    return absl::FailedPreconditionError(
+        "Native entity editing is unavailable in preview");
+  }
+  auto* entrances = overworld_.mutable_entrances();
+  auto* exits = overworld_.mutable_exits();
+  if (!entrances || !exits)
+    return absl::FailedPreconditionError("Connection tables are not loaded");
+  ASSIGN_OR_RETURN(auto after, BuildOverworldEndpointPairMove(
+                                   overworld_, *entrances, door_row, *exits,
+                                   return_row, move));
+  auto door_before = (*entrances)[door_row];
+  auto back_before = (*exits)[return_row];
+  if (SameRecord(door_before, after.door) &&
+      SameRecord(back_before, after.back)) {
+    return absl::OkStatus();
+  }
+  auto action = std::make_unique<OverworldEndpointPairEditAction>(
+      std::move(door_before), std::move(after.door), std::move(back_before),
+      std::move(after.back),
+      [this, door_row](const zelda3::OverworldEntrance& value) -> absl::Status {
+        auto* records = overworld_.mutable_entrances();
+        if (!records || door_row >= records->size())
+          return absl::FailedPreconditionError("The door row is gone");
+        auto& record = (*records)[door_row];
+        if (record.authoring_placement_id != value.authoring_placement_id)
+          return absl::FailedPreconditionError(
+              "Endpoint history identity changed");
+        record = value;
+        if (current_entity_ == &record)
+          edit_entrance_ = record;
+        NotifyEntityModified(&record);
+        return absl::OkStatus();
+      },
+      [this, return_row](const zelda3::OverworldExit& value) -> absl::Status {
+        auto* records = overworld_.mutable_exits();
+        if (!records || return_row >= records->size())
+          return absl::FailedPreconditionError("The return row is gone");
+        auto& record = (*records)[return_row];
+        if (record.authoring_placement_id != value.authoring_placement_id)
+          return absl::FailedPreconditionError(
+              "Endpoint history identity changed");
+        record = value;
+        if (current_entity_ == &record)
+          edit_exit_ = record;
+        NotifyEntityModified(&record);
+        return absl::OkStatus();
+      },
+      "Move overworld connection");
+  RETURN_IF_ERROR(action->Redo());
+  undo_manager_.Push(std::move(action));
   return absl::OkStatus();
 }
 
