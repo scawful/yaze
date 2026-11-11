@@ -2,6 +2,7 @@
 #define YAZE_APP_EDITOR_SYSTEM_PROJECT_BUILD_WORKFLOW_H_
 
 #include <cstdint>
+#include <filesystem>
 #include <functional>
 #include <map>
 #include <optional>
@@ -106,6 +107,10 @@ struct ProjectRunPrepareInputs {
 
 std::string ProjectBuildResultKey(size_t session_id,
                                   const std::string& descriptor_path);
+
+// Returns the z3ed shipped beside `executable` (same directory, or beside the
+// enclosing macOS .app bundle), or an empty string when none is present.
+std::string FindCompanionZ3edPath(const std::filesystem::path& executable);
 
 absl::StatusOr<std::map<std::string, std::string>>
 BuildProjectCommandEnvironment(const project::YazeProject& project,

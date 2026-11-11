@@ -1,7 +1,10 @@
 #include "app/editor/system/session/project_build_workflow.h"
 
+#include <cstdlib>
 #include <filesystem>
 #include <fstream>
+#include <utility>
+#include <vector>
 
 #include "absl/strings/str_format.h"
 
@@ -9,8 +12,41 @@
 #include "core/native_save_receipt.h"
 #include "core/source_artifact_publisher.h"
 #include "util/macro.h"
+#include "util/platform_paths.h"
 
 namespace yaze::editor {
+
+std::string FindCompanionZ3edPath(const std::filesystem::path& executable) {
+#ifdef _WIN32
+  constexpr const char* kZ3edName = "z3ed.exe";
+#else
+  constexpr const char* kZ3edName = "z3ed";
+#endif
+  const auto directory = executable.parent_path();
+  std::vector<std::filesystem::path> candidates = {directory / kZ3edName};
+  // Installs and builds place z3ed beside yaze.app, whose executable is
+  // <root>/yaze.app/Contents/MacOS/yaze.
+  if (directory.filename() == "MacOS" &&
+      directory.parent_path().filename() == "Contents") {
+    candidates.push_back(directory.parent_path().parent_path().parent_path() /
+                         kZ3edName);
+  }
+  for (const auto& candidate : candidates) {
+    std::error_code error;
+    if (!std::filesystem::is_regular_file(candidate, error)) {
+      continue;
+    }
+#ifndef _WIN32
+    const auto perms = std::filesystem::status(candidate, error).permissions();
+    if (error || (perms & std::filesystem::perms::owner_exec) ==
+                     std::filesystem::perms::none) {
+      continue;
+    }
+#endif
+    return candidate.lexically_normal().string();
+  }
+  return {};
+}
 
 std::string ProjectBuildResultKey(size_t session_id,
                                   const std::string& descriptor_path) {
@@ -61,6 +97,17 @@ BuildProjectCommandEnvironment(const project::YazeProject& project,
       {"OOS_LYRA_REQUEST", absolute(project.lyra_build_request_file)}};
   if (!project_output_path.empty()) {
     environment["YAZE_PROJECT_OUTPUT"] = project_output_path;
+  }
+  // A GUI launch has no shell PATH, so give build scripts the z3ed that
+  // shipped with this yaze unless the caller already chose one.
+  const char* inherited_z3ed = std::getenv("OOS_Z3ED_BIN");
+  if (inherited_z3ed == nullptr || *inherited_z3ed == '\0') {
+    const auto executable = util::PlatformPaths::GetExecutablePath();
+    if (executable.ok()) {
+      if (auto z3ed = FindCompanionZ3edPath(*executable); !z3ed.empty()) {
+        environment["OOS_Z3ED_BIN"] = std::move(z3ed);
+      }
+    }
   }
   return environment;
 }

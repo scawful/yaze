@@ -7,6 +7,7 @@
 #include <filesystem>
 #include <fstream>
 #include <functional>
+#include <optional>
 #include <string>
 #include <thread>
 #include <utility>
@@ -40,6 +41,7 @@
 #include "test_utils.h"
 #include "testing.h"
 #include "util/i18n/tr.h"
+#include "util/platform_paths.h"
 #include "util/rom_hash.h"
 #include "zelda3/overworld/overworld_version_helper.h"
 #include "zelda3/resource_labels.h"
@@ -1210,6 +1212,66 @@ TEST(EditorManagerProjectActionsTest,
   EXPECT_EQ(ReadFile(marker_path), "project-build");
 #endif  // _WIN32
 }
+
+#ifndef _WIN32
+TEST(EditorManagerProjectActionsTest, FindsZ3edBesideExecutableOrAppBundle) {
+  ScopedTempDir temp(MakeTempDir("yaze_companion_z3ed"));
+  const auto macos = temp.path / "yaze.app" / "Contents" / "MacOS";
+  std::filesystem::create_directories(macos);
+  const auto executable = macos / "yaze";
+  std::ofstream(executable) << "app";
+  EXPECT_EQ(FindCompanionZ3edPath(executable), "");
+
+  const auto beside_bundle = temp.path / "z3ed";
+  std::ofstream(beside_bundle) << "z3ed";
+  EXPECT_EQ(FindCompanionZ3edPath(executable), "")
+      << "a z3ed without execute permission is not a tool";
+  std::filesystem::permissions(beside_bundle,
+                               std::filesystem::perms::owner_exec,
+                               std::filesystem::perm_options::add);
+  EXPECT_EQ(FindCompanionZ3edPath(executable),
+            beside_bundle.lexically_normal().string());
+
+  const auto beside_executable = macos / "z3ed";
+  std::ofstream(beside_executable) << "z3ed";
+  std::filesystem::permissions(beside_executable,
+                               std::filesystem::perms::owner_exec,
+                               std::filesystem::perm_options::add);
+  EXPECT_EQ(FindCompanionZ3edPath(executable),
+            beside_executable.lexically_normal().string());
+}
+
+TEST(EditorManagerProjectActionsTest,
+     BuildEnvironmentPassesCompanionZ3edUnlessCallerSetOne) {
+  ScopedTempDir temp(MakeTempDir("yaze_build_env_z3ed"));
+  project::YazeProject model;
+  model.filepath = (temp.path / "env.yaze").string();
+  const char* previous = std::getenv("OOS_Z3ED_BIN");
+  const std::optional<std::string> saved =
+      previous == nullptr ? std::nullopt : std::optional<std::string>(previous);
+
+  ASSERT_EQ(setenv("OOS_Z3ED_BIN", "/caller/z3ed", 1), 0);
+  const auto caller_set = BuildProjectCommandEnvironment(model, "");
+  ASSERT_EQ(unsetenv("OOS_Z3ED_BIN"), 0);
+  const auto caller_unset = BuildProjectCommandEnvironment(model, "");
+  if (saved.has_value()) {
+    setenv("OOS_Z3ED_BIN", saved->c_str(), 1);
+  }
+
+  ASSERT_TRUE(caller_set.ok()) << caller_set.status();
+  EXPECT_EQ(caller_set->count("OOS_Z3ED_BIN"), 0u)
+      << "the child inherits the caller's z3ed unchanged";
+  ASSERT_TRUE(caller_unset.ok()) << caller_unset.status();
+  const auto executable = util::PlatformPaths::GetExecutablePath();
+  ASSERT_TRUE(executable.ok()) << executable.status();
+  const auto companion = FindCompanionZ3edPath(*executable);
+  if (companion.empty()) {
+    EXPECT_EQ(caller_unset->count("OOS_Z3ED_BIN"), 0u);
+  } else {
+    EXPECT_EQ(caller_unset->at("OOS_Z3ED_BIN"), companion);
+  }
+}
+#endif  // _WIN32
 
 TEST(EditorManagerProjectActionsTest,
      BuildEnvironmentUsesRelocatedProjectContextWithoutChangingRequest) {
