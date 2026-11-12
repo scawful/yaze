@@ -334,6 +334,7 @@ bool PanelWindow::Begin(bool* p_open) {
   }
 
   const bool was_first_draw = first_draw_;
+  ImVec2 undock_size = default_size_;
   // Set initial position based on position enum
   if (first_draw_) {
     float display_width = ImGui::GetIO().DisplaySize.x;
@@ -401,14 +402,30 @@ bool PanelWindow::Begin(bool* p_open) {
         break;
     }
 
-    ImGui::SetNextWindowSize(
-        initial_size, force_undock ? ImGuiCond_Always : ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowSize(initial_size, ImGuiCond_FirstUseEver);
+    undock_size = initial_size;
     first_draw_ = false;
   }
 
-  if (force_undock && !was_first_draw && default_size_set_) {
-    // Explicit edit requests restore a usable workbench size after narrow docking.
-    ImGui::SetNextWindowSize(default_size_, ImGuiCond_Always);
+  if (force_undock && (was_first_draw || default_size_set_)) {
+    // Explicit edit requests raise a usable workbench in front of the work,
+    // inside the app window. One already floating in view keeps its place.
+    const ImGuiViewport* viewport = ImGui::GetMainViewport();
+    const ImRect work_rect(viewport->WorkPos,
+                           ImVec2(viewport->WorkPos.x + viewport->WorkSize.x,
+                                  viewport->WorkPos.y + viewport->WorkSize.y));
+    const ImGuiWindow* existing = ImGui::FindWindowByName(window_name_.c_str());
+    const bool floating_in_view = existing && existing->WasActive &&
+                                  existing->DockId == 0 &&
+                                  work_rect.Contains(existing->Rect());
+    if (!floating_in_view) {
+      ImGui::SetNextWindowSize(
+          ImVec2(std::min(undock_size.x, viewport->WorkSize.x * 0.95f),
+                 std::min(undock_size.y, viewport->WorkSize.y * 0.95f)),
+          ImGuiCond_Always);
+      ImGui::SetNextWindowPos(viewport->GetWorkCenter(), ImGuiCond_Always,
+                              ImVec2(0.5f, 0.5f));
+    }
   }
 
   // Modern panel styling

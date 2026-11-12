@@ -25,6 +25,13 @@ These changes are on the development line after the published prerelease;
 they are not part of its existing downloads. See the
 [release/source matrix](internal/status.md#lyra-source-and-qualification-boundaries).
 
+- Double-clicking a Tile16 in the Tile16 Selector raises the Tile16 Editor as
+  a floating window in front of the current work, centered and sized to fit
+  inside the app window, even if it was docked before. A floating editor
+  already in view keeps its position and size. Map Properties uses the same
+  path. A new GUI startup smoke test (`gui_overworld_tile16_startup_smoke`)
+  covers opening the selector and editor after a ROM load, selection sync,
+  and the double-click.
 - Lyra gameplay-area documents (schema 5), 192-map navigation, and later
   Tile16 stroke/Undo integration are development work after the schema-3
   prerelease. Full expanded-map Oracle Build/Test is not release-qualified.

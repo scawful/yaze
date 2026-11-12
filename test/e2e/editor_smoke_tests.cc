@@ -2,17 +2,21 @@
 #include "e2e/overworld/drawing_acceptance.h"
 #include "e2e/overworld/special_entrance_inspector_acceptance.h"
 
+#include <algorithm>
 #include <chrono>
 #include <filesystem>
 #include <fstream>
 #include <string>
+#include <string_view>
 
 #include "app/controller.h"
 #include "app/editor/code/assembly_editor.h"
 #include "app/editor/menu/right_drawer_manager.h"
+#include "app/editor/overworld/overworld_editor.h"
 #include "app/editor/shell/coordinator/ui_coordinator.h"
 #include "app/editor/system/workspace/workspace_window_manager.h"
 #include "app/gui/core/icons.h"
+#include "imgui/imgui_internal.h"
 #include "imgui_test_engine/imgui_te_engine.h"
 #include "test_utils.h"
 
@@ -337,6 +341,143 @@ void E2ETest_RightDrawerSmokeTest(ImGuiTestContext* ctx) {
            nullptr);
 }
 
+// Issue #33: a fresh ROM load must bring up a usable Tile16 editor that
+// follows the Overworld editor's Tile16 selection, and a selector
+// double-click must raise it as a floating window.
+void E2ETest_OverworldTile16StartupSmokeTest(ImGuiTestContext* ctx) {
+  auto* controller = GetController(ctx);
+  if (!EnsureRomLoaded(ctx, controller)) {
+    return;
+  }
+
+  ctx->LogInfo("=== Overworld Tile16 Startup Smoke Test ===");
+  // A visible emulator keeps the editor host on the emulator's dockspace.
+  controller->editor_manager()->ui_coordinator()->SetEmulatorVisible(false);
+  controller->editor_manager()->SwitchToEditor(
+      yaze::editor::EditorType::kOverworld, true);
+  ctx->Yield(10);
+
+  auto* editor_set = controller->editor_manager()->GetCurrentEditorSet();
+  IM_CHECK(editor_set != nullptr);
+  auto* overworld_editor =
+      editor_set->GetEditorAs<yaze::editor::OverworldEditor>(
+          yaze::editor::EditorType::kOverworld);
+  IM_CHECK(overworld_editor != nullptr);
+  IM_CHECK(overworld_editor->overworld().is_loaded());
+
+  // Other Overworld panels can share the selector's dock node as tabs.
+  auto* window_manager = GetWindowManager(controller);
+  IM_CHECK(window_manager != nullptr);
+  window_manager->ShowOnlyWindow(GetSessionId(controller),
+                                 "overworld.tile16_selector");
+  IM_CHECK(OpenWindow(ctx, controller, "overworld.tile16_editor"));
+  ctx->Yield(5);
+
+  auto find_window = [&](const char* window_id) -> ImGuiWindow* {
+    const auto* descriptor = GetWindowDescriptor(controller, window_id);
+    if (descriptor == nullptr) {
+      return nullptr;
+    }
+    ImGuiWindow* window =
+        ctx->WindowInfo(descriptor->GetImGuiWindowName().c_str(),
+                        ImGuiTestOpFlags_NoError)
+            .Window;
+    if (window != nullptr) {
+      ctx->LogInfo("%s: %.0fx%.0f dock=0x%08X viewport=%.0fx%.0f", window_id,
+                   window->Size.x, window->Size.y, window->DockId,
+                   window->Viewport->Size.x, window->Viewport->Size.y);
+    }
+    return window;
+  };
+
+  ImGuiWindow* selector = find_window("overworld.tile16_selector");
+  IM_CHECK(selector != nullptr);
+  IM_CHECK(selector->Active);
+  IM_CHECK_GE(selector->Size.x, 240.0f);
+  IM_CHECK_GE(selector->Size.y, 240.0f);
+
+  ImGuiWindow* editor_window = find_window("overworld.tile16_editor");
+  IM_CHECK(editor_window != nullptr);
+  IM_CHECK(editor_window->Active);
+
+  auto& tile16_editor = overworld_editor->tile16_editor();
+  IM_CHECK(tile16_editor.blockset_loaded());
+
+  constexpr int kTile = 0x42;
+  overworld_editor->RequestTile16Selection(kTile);
+  ctx->Yield(3);
+  IM_CHECK_EQ(tile16_editor.current_tile16(), kTile);
+  IM_CHECK_EQ(overworld_editor->current_tile16_id(), kTile);
+
+  // Leave the editor docked beside the selector, then close it, so the
+  // double-click below starts from a remembered dock position.
+  IM_CHECK_NE(selector->DockId, 0u);
+  ImGui::DockBuilderDockWindow(editor_window->Name, selector->DockId);
+  ctx->Yield(3);
+  IM_CHECK_EQ(editor_window->DockId, selector->DockId);
+  window_manager->CloseWindow(GetSessionId(controller),
+                              "overworld.tile16_editor");
+  ctx->Yield(3);
+
+  // Double-clicking a selector tile brings the editor up undocked, in front
+  // of the current work, at a usable size, on the clicked tile.
+  ImGuiWindow* grid = nullptr;
+  for (ImGuiWindow* window : ctx->UiContext->Windows) {
+    if (window->WasActive && window->RootWindow == selector &&
+        std::string_view(window->Name).find("##Tile16Grid") !=
+            std::string_view::npos) {
+      grid = window;
+    }
+  }
+  IM_CHECK(grid != nullptr);
+  ctx->MouseMoveToPos(ImVec2(grid->Pos.x + 6.0f, grid->Pos.y + 4.0f));
+  ctx->MouseDoubleClick(ImGuiMouseButton_Left);
+  ctx->Yield(5);
+
+  editor_window = find_window("overworld.tile16_editor");
+  IM_CHECK(editor_window != nullptr);
+  IM_CHECK(editor_window->Active);
+  IM_CHECK_EQ(editor_window->DockId, 0u);
+  const ImGuiViewport* viewport = ImGui::GetMainViewport();
+  const ImVec2 work_size = viewport->WorkSize;
+  IM_CHECK_GE(editor_window->Size.x, std::min(600.0f, work_size.x * 0.9f));
+  IM_CHECK_GE(editor_window->Size.y, std::min(500.0f, work_size.y * 0.9f));
+  const ImRect work_rect(viewport->WorkPos.x, viewport->WorkPos.y,
+                         viewport->WorkPos.x + work_size.x,
+                         viewport->WorkPos.y + work_size.y);
+  ctx->LogInfo(
+      "editor rect (%.0f,%.0f)-(%.0f,%.0f) work (%.0f,%.0f)-(%.0f,%.0f)",
+      editor_window->Pos.x, editor_window->Pos.y,
+      editor_window->Pos.x + editor_window->Size.x,
+      editor_window->Pos.y + editor_window->Size.y, work_rect.Min.x,
+      work_rect.Min.y, work_rect.Max.x, work_rect.Max.y);
+  IM_CHECK(work_rect.Contains(editor_window->Rect()));
+  IM_CHECK(!ctx->UiContext->WindowsFocusOrder.empty());
+  IM_CHECK(ctx->UiContext->WindowsFocusOrder.back() == editor_window);
+  // The selector's display order decides which Tile16 the first cell shows.
+  IM_CHECK_NE(tile16_editor.current_tile16(), kTile);
+  IM_CHECK_EQ(overworld_editor->current_tile16_id(),
+              tile16_editor.current_tile16());
+
+  // Raising it again (the double-click path) keeps a floating editor the
+  // user placed in view where it is.
+  const ImVec2 placed_pos(work_rect.Min.x + 20.0f, work_rect.Min.y + 30.0f);
+  const ImVec2 placed_size(420.0f, 360.0f);
+  ImGui::SetWindowPos(editor_window, placed_pos, ImGuiCond_Always);
+  ImGui::SetWindowSize(editor_window, placed_size, ImGuiCond_Always);
+  ctx->Yield(3);
+  IM_CHECK(window_manager->OpenWindowFloating(GetSessionId(controller),
+                                              "overworld.tile16_editor"));
+  ctx->Yield(5);
+  IM_CHECK_EQ(editor_window->DockId, 0u);
+  IM_CHECK_EQ(editor_window->Pos.x, placed_pos.x);
+  IM_CHECK_EQ(editor_window->Pos.y, placed_pos.y);
+  IM_CHECK_EQ(editor_window->Size.x, placed_size.x);
+  IM_CHECK_EQ(editor_window->Size.y, placed_size.y);
+  IM_CHECK(ctx->UiContext->WindowsFocusOrder.back() == editor_window);
+  IM_CHECK(!ctx->IsError());
+}
+
 void E2ETest_AssemblyDisassemblyGraphJumpSmokeTest(ImGuiTestContext* ctx) {
   auto* controller = GetController(ctx);
   if (!EnsureRomLoaded(ctx, controller)) {
@@ -458,6 +599,13 @@ void RegisterEditorSmokeTests(ImGuiTestEngine* engine, Controller* controller) {
   {
     ImGuiTest* test = IM_REGISTER_TEST(engine, "EditorSmoke", "RightDrawer");
     test->TestFunc = E2ETest_RightDrawerSmokeTest;
+    test->UserData = controller;
+  }
+
+  {
+    ImGuiTest* test =
+        IM_REGISTER_TEST(engine, "EditorSmoke", "OverworldTile16Startup");
+    test->TestFunc = E2ETest_OverworldTile16StartupSmokeTest;
     test->UserData = controller;
   }
 

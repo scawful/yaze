@@ -1214,6 +1214,19 @@ if(YAZE_BUILD_TESTS)
     TIMEOUT 300
   )
 
+  # Overworld startup: a fresh ROM load opens the Tile16 selector and editor
+  # at a usable size with the blockset loaded, and the editor follows the
+  # Tile16 selection. Needs YAZE_TEST_ROM_VANILLA; skipped without one.
+  add_test(
+      NAME gui_overworld_tile16_startup_smoke
+      COMMAND $<TARGET_FILE:yaze_test_gui> --ui --fast OverworldTile16Startup
+      WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+  )
+  set_tests_properties(gui_overworld_tile16_startup_smoke PROPERTIES
+    LABELS "gui_smoke;gui"
+    TIMEOUT 300
+  )
+
   # Menu Tilemap (2bpp) panel: load a synthetic tilemap, real-click-paint a
   # cell, undo, save via Ctrl/Cmd+S, verify the saved bytes match the
   # pristine original. Needs a test ROM (YAZE_TEST_ROM_VANILLA) to open the
