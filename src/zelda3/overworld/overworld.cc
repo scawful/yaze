@@ -61,6 +61,25 @@ constexpr Map16TableOperand kMap16ShortOperands[] = {{0x02FE1C, 0},
                                                      {0x02FE33, 6}};
 constexpr uint32_t kMap16BankOperands[] = {0x02FD28, 0x02FD39};
 
+// Native directory entry 400 stores Tile16 definitions as four words each.
+constexpr uint16_t kNativeTile16EntryId = 400;
+
+void WriteNativeTile16Definitions(const std::vector<gfx::Tile16>& tiles,
+                                  size_t pc, std::vector<uint8_t>& image) {
+  if (pc > image.size() || tiles.size() > (image.size() - pc) / 8)
+    return;
+  for (size_t i = 0; i < tiles.size(); ++i) {
+    const auto& t = tiles[i];
+    const std::array<uint16_t, 4> values = {
+        gfx::TileInfoToWord(t.tile0_), gfx::TileInfoToWord(t.tile1_),
+        gfx::TileInfoToWord(t.tile2_), gfx::TileInfoToWord(t.tile3_)};
+    for (size_t q = 0; q < values.size(); ++q) {
+      image[pc + i * 8 + q * 2] = static_cast<uint8_t>(values[q]);
+      image[pc + i * 8 + q * 2 + 1] = static_cast<uint8_t>(values[q] >> 8);
+    }
+  }
+}
+
 std::vector<uint8_t> PrivateOverlaySnapshot(
     const std::vector<OverworldMap>& maps) {
   std::vector<uint8_t> bytes;
@@ -1905,6 +1924,10 @@ void Overworld::CommitSavedMapTiles() {
     native_nonterrain_baseline_[0] = std::move(*staged_native_properties_);
     staged_native_properties_.reset();
   }
+  if (staged_tiles16_valid_) {
+    loaded_tiles16_ = tiles16_;
+    staged_tiles16_valid_ = false;
+  }
   if (!staged_map_tiles_valid_) {
     return;
   }
@@ -1931,6 +1954,7 @@ void Overworld::RollbackSavedMapTiles() {
   staged_map_tiles_valid_ = false;
   staged_tiles32_unique_.clear();
   staged_tiles32_list_.clear();
+  staged_tiles16_valid_ = false;
 }
 
 absl::Status Overworld::SaveOverworldMaps() {
@@ -2062,9 +2086,16 @@ std::vector<std::pair<uint32_t, uint32_t>> Overworld::GetProjectedWriteRanges()
             : absl::StatusOr<rom::NativeOverworldPaletteEdits>(
                   rom::NativeOverworldPaletteEdits{});
     if (properties.ok() && sprites.ok() && palettes.ok() && endpoints.ok()) {
+      auto terrain = rom_->vector();
+      if (!flags.kSaveOverworldMaps && tiles16_ != loaded_tiles16_) {
+        for (const auto& e : resolved_layout_.lyra_layout.entries) {
+          if (e.id == kNativeTile16EntryId)
+            WriteNativeTile16Definitions(tiles16_, e.pc_address, terrain);
+        }
+      }
       const auto candidate = rom::SealNativeOverworldTerrain(
-          rom_->vector(), rom_->vector(), *properties, *sprites, baseline_ptr,
-          publish_ptr, &*palettes, &*endpoints);
+          rom_->vector(), std::move(terrain), *properties, *sprites,
+          baseline_ptr, publish_ptr, &*palettes, &*endpoints);
       if (candidate.ok()) {
         for (size_t pc = 0; pc < candidate->size();) {
           if ((*candidate)[pc] == rom_->vector()[pc]) {
@@ -2605,9 +2636,10 @@ absl::Status Overworld::SaveNativeTerrain() {
                 core::FeatureFlags::get().dungeon.kSavePalettes));
   }
   const auto* palette_ptr = palette_edits ? &*palette_edits : nullptr;
-  const bool changed_maps = !MapTilesUnchanged();
-  if (!flags.kSaveOverworldMaps ||
-      (!changed_maps && tiles16_ == loaded_tiles16_)) {
+  // Tile16 definitions always publish; map streams only with map saving.
+  const bool changed_maps = flags.kSaveOverworldMaps && !MapTilesUnchanged();
+  const bool changed_tiles16 = tiles16_ != loaded_tiles16_;
+  if (!changed_maps && !changed_tiles16) {
     RETURN_IF_ERROR(rom_->CommitNativeTerrainImage(
         rom_->vector(), rom_->vector(), property_edits, sprite_edits,
         baseline_metadata_ptr, publish_metadata_ptr, palette_ptr,
@@ -2639,19 +2671,8 @@ absl::Status Overworld::SaveNativeTerrain() {
     return *std::find_if(layout.entries.begin(), layout.entries.end(),
                          [id](const auto& e) { return e.id == id; });
   };
-  auto word = [&](size_t pc, uint16_t value) {
-    candidate[pc] = static_cast<uint8_t>(value);
-    candidate[pc + 1] = static_cast<uint8_t>(value >> 8);
-  };
-  const size_t definitions_pc = entry(400).pc_address;
-  for (size_t i = 0; i < tiles16_.size(); ++i) {
-    const auto& t = tiles16_[i];
-    const std::array<uint16_t, 4> values = {
-        gfx::TileInfoToWord(t.tile0_), gfx::TileInfoToWord(t.tile1_),
-        gfx::TileInfoToWord(t.tile2_), gfx::TileInfoToWord(t.tile3_)};
-    for (size_t q = 0; q < values.size(); ++q)
-      word(definitions_pc + i * 8 + q * 2, values[q]);
-  }
+  WriteNativeTile16Definitions(tiles16_, entry(kNativeTile16EntryId).pc_address,
+                               candidate);
   std::vector<gfx::Tile32> definitions;
   std::vector<uint16_t> indices;
   if (changed_maps) {
@@ -2681,7 +2702,10 @@ absl::Status Overworld::SaveNativeTerrain() {
     staged_native_endpoints_[0] = current[1];
   if (flags.kSaveOverworldExits)
     staged_native_endpoints_[1] = current[2];
-  StageSavedMapTiles();
+  if (flags.kSaveOverworldMaps)
+    StageSavedMapTiles();
+  else
+    staged_tiles16_valid_ = true;
   if (flags.kSaveOverworldProperties) {
     staged_native_properties_ = current[0];
     ASSIGN_OR_RETURN(staged_native_geometry_,

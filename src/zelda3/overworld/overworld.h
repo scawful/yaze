@@ -1016,6 +1016,8 @@ class Overworld {
   bool loaded_map_tiles_valid_ = false;
   OverworldMapTiles staged_map_tiles_;
   bool staged_map_tiles_valid_ = false;
+  // A Tile16-only native publish; map tiles keep their pending baseline.
+  bool staged_tiles16_valid_ = false;
   bool MapTilesUnchanged() const;
 
   // Thread safety for parallel operations

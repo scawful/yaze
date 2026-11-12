@@ -865,5 +865,61 @@ TEST_F(NativeEndpointSessionTest, UnsupportedEditsRefuseWithoutLosingWork) {
   ExpectDiskMaps(0xA0, 0xA0);
 }
 
+uint16_t EditTile16(zelda3::Overworld& world, int tile_id) {
+  auto& tile = (*world.mutable_tiles16())[tile_id];
+  tile.tile0_.palette_ = (tile.tile0_.palette_ + 1) % 8;
+  return gfx::TileInfoToWord(tile.tile0_);
+}
+
+TEST_F(NativeEndpointSessionTest, Tile16SavesWithMapSavingOff) {
+  ASSERT_FALSE(core::FeatureFlags::get().overworld.kSaveOverworldMaps);
+  constexpr int kTile = 21;
+  const uint16_t edited = EditTile16(editor_->overworld(), kTile);
+  manager_->GetCurrentRom()->set_dirty(true);
+  ASSERT_TRUE(manager_->SaveCurrentSession(false).ok());
+
+  const auto saved = ReadBytes(source_);
+  EXPECT_NE(saved, before_);
+  Rom reopened;
+  ASSERT_TRUE(reopened.LoadFromFile(source_.string()).ok());
+  zelda3::Overworld fresh(&reopened);
+  ASSERT_TRUE(fresh.Load(&reopened).ok());
+  EXPECT_EQ(gfx::TileInfoToWord(fresh.tiles16()[kTile].tile0_), edited);
+
+  manager_->GetCurrentRom()->set_dirty(true);
+  ASSERT_TRUE(manager_->SaveCurrentSession(false).ok());
+  EXPECT_EQ(ReadBytes(source_), saved);
+}
+
+TEST_F(NativeEndpointSessionTest, Tile16SaveKeepsDisabledMapEditsPending) {
+  auto& world = editor_->overworld();
+  constexpr int kTile = 21;
+  const uint16_t edited = EditTile16(world, kTile);
+  const auto light_before = world.GetMapTiles(0);
+  auto& light = world.mutable_map_tiles()->light_world;
+  light[0][0] = light[0][0] == 0 ? 1 : 0;
+  const uint16_t painted = light[0][0];
+  manager_->GetCurrentRom()->set_dirty(true);
+  (void)manager_->SaveCurrentSession(false);
+
+  Rom reopened;
+  ASSERT_TRUE(reopened.LoadFromFile(source_.string()).ok());
+  zelda3::Overworld fresh(&reopened);
+  ASSERT_TRUE(fresh.Load(&reopened).ok());
+  EXPECT_EQ(gfx::TileInfoToWord(fresh.tiles16()[kTile].tile0_), edited);
+  EXPECT_EQ(fresh.GetMapTiles(0), light_before);
+  EXPECT_EQ(world.GetMapTiles(0)[0][0], painted);
+
+  core::FeatureFlags::get().overworld.kSaveOverworldMaps = true;
+  manager_->GetCurrentRom()->set_dirty(true);
+  ASSERT_TRUE(manager_->SaveCurrentSession(false).ok());
+  Rom published;
+  ASSERT_TRUE(published.LoadFromFile(source_.string()).ok());
+  zelda3::Overworld after(&published);
+  ASSERT_TRUE(after.Load(&published).ok());
+  EXPECT_EQ(after.GetMapTiles(0)[0][0], painted);
+  EXPECT_EQ(gfx::TileInfoToWord(after.tiles16()[kTile].tile0_), edited);
+}
+
 }  // namespace
 }  // namespace yaze
