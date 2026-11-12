@@ -11,14 +11,12 @@
 #include "absl/status/status.h"
 #include "app/editor/overworld/tile16/tile16_edit_session.h"
 #include "app/editor/overworld/tile16/tile16_edit_types.h"
-#include "app/editor/palette/palette_editor.h"
 #include "app/gfx/core/bitmap.h"
 #include "app/gui/canvas/canvas.h"
 #include "app/gui/core/input.h"
 #include "app/gui/widgets/tile_selector_widget.h"
 #include "imgui/imgui.h"
 #include "rom/rom.h"
-#include "util/notify.h"
 
 namespace yaze {
 namespace zelda3 {
@@ -281,10 +279,6 @@ class Tile16Editor : public gfx::GfxContext {
 
   std::vector<int> selected_tiles_;
   int selection_start_tile_ = -1;
-  bool multi_select_mode_ = false;
-
-  util::NotifyValue<uint32_t> notify_tile16;
-  util::NotifyValue<uint8_t> notify_palette;
 
   gui::Canvas blockset_canvas_{
       "blocksetCanvas", ImVec2(kTilesheetEditorWidth, kTilesheetEditorHeight),
@@ -300,10 +294,6 @@ class Tile16Editor : public gfx::GfxContext {
       ImVec2(gfx::kTilesheetWidth * 8, gfx::kTilesheetHeight * 0x10 * 8),
       gui::CanvasGridSize::k32x32};
 
-  gui::Table tile_edit_table_{"##TileEditTable", 3, ImGuiTableFlags_Borders,
-                              ImVec2(0, 0)};
-
-  PaletteEditor palette_editor_;
   absl::Status status_;
   absl::Status graphics_open_status_;
   std::function<absl::Status(int, int)> open_graphics_for_quadrant_;

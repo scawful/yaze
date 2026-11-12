@@ -69,18 +69,6 @@ absl::Status Tile16Editor::Initialize(
   *tile8_source_canvas_.custom_labels_enabled() =
       session_.mutable_show_tile_collision_ids();
 
-  gui::AddTableColumn(tile_edit_table_, "##tile16ID", [&]() {
-    Text(tr("Tile16: %02X"), session_.current_tile16());
-  });
-  gui::AddTableColumn(tile_edit_table_, "##tile8ID", [&]() {
-    Text(tr("Tile8: %02X"), session_.current_tile8());
-  });
-  gui::AddTableColumn(tile_edit_table_, "##tile16Flip", [&]() {
-    Checkbox(tr("X Flip"), session_.mutable_x_flip());
-    Checkbox(tr("Y Flip"), session_.mutable_y_flip());
-    Checkbox(tr("Priority"), session_.mutable_priority_tile());
-  });
-
   return absl::OkStatus();
 }
 
