@@ -2,12 +2,14 @@
 
 #include "app/editor/shell/feedback/feature_hint_manager.h"
 
+#include <chrono>
 #include <filesystem>
 #include <string>
 
 #include <gtest/gtest.h>
 
 #include "app/editor/system/session/user_settings.h"
+#include "imgui/imgui.h"
 
 namespace yaze::editor {
 namespace {
@@ -94,6 +96,73 @@ TEST_F(FeatureHintManagerTest, ResetDismissedAllowsReshow) {
   // reopened rather than toast history growth.
   EXPECT_TRUE(mgr_.MaybeShow(FeatureHintId::kZScreamDungeon));
   EXPECT_TRUE(mgr_.IsDismissed(FeatureHintId::kZScreamDungeon));
+}
+
+TEST_F(FeatureHintManagerTest, OtherTipWaitsWhileOneIsOnScreen) {
+  ASSERT_TRUE(mgr_.MaybeShow(FeatureHintId::kZScreamWelcome));
+  EXPECT_FALSE(mgr_.MaybeShow(FeatureHintId::kZScreamOverworld));
+  EXPECT_FALSE(mgr_.MaybeShow(FeatureHintId::kZScreamTile16));
+  EXPECT_FALSE(mgr_.IsDismissed(FeatureHintId::kZScreamOverworld));
+  EXPECT_FALSE(mgr_.IsDismissed(FeatureHintId::kZScreamTile16));
+  EXPECT_EQ(toast_.pending_count(), 1u);
+  EXPECT_EQ(toast_.GetHistory().size(), 1u);
+}
+
+class FeatureHintDrawTest : public FeatureHintManagerTest {
+ protected:
+  void SetUp() override {
+    FeatureHintManagerTest::SetUp();
+    mgr_.SetToastManager(&timed_);
+    previous_context_ = ImGui::GetCurrentContext();
+    context_ = ImGui::CreateContext();
+    ImGui::SetCurrentContext(context_);
+    auto& io = ImGui::GetIO();
+    io.IniFilename = nullptr;
+    io.DisplaySize = ImVec2(1280, 720);
+    unsigned char* pixels = nullptr;
+    int width = 0;
+    int height = 0;
+    io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
+  }
+
+  void TearDown() override {
+    ImGui::DestroyContext(context_);
+    ImGui::SetCurrentContext(previous_context_);
+    FeatureHintManagerTest::TearDown();
+  }
+
+  void DrawFrame(float seconds) {
+    now_ += std::chrono::duration_cast<ToastManager::Clock::duration>(
+        std::chrono::duration<float>(seconds));
+    auto& io = ImGui::GetIO();
+    io.DeltaTime = seconds;
+    io.AddMousePosEvent(-1000, -1000);
+    ImGui::NewFrame();
+    timed_.Draw();
+    ImGui::Render();
+  }
+
+  ToastManager::Clock::time_point now_{};
+  ToastManager timed_{[this]() { return now_; }};
+
+ private:
+  ImGuiContext* previous_context_ = nullptr;
+  ImGuiContext* context_ = nullptr;
+};
+
+TEST_F(FeatureHintDrawTest, WaitingTipShowsAfterTheVisibleTipExpires) {
+  ASSERT_TRUE(mgr_.MaybeShow(FeatureHintId::kZScreamWelcome));
+  DrawFrame(1.0f / 60.0f);
+  ASSERT_FALSE(mgr_.MaybeShow(FeatureHintId::kZScreamOverworld));
+
+  timed_.Show("Project saved", ToastType::kSuccess, 30.0f);
+  DrawFrame(13.0f);
+  ASSERT_EQ(timed_.pending_count(), 1u);
+  ASSERT_EQ(timed_.GetPendingToast(0)->message, "Project saved");
+
+  EXPECT_TRUE(mgr_.MaybeShow(FeatureHintId::kZScreamOverworld));
+  EXPECT_TRUE(mgr_.IsDismissed(FeatureHintId::kZScreamOverworld));
+  EXPECT_EQ(timed_.pending_count(), 2u);
 }
 
 TEST_F(FeatureHintManagerTest, UnknownIdIsNoOp) {
