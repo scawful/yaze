@@ -3,6 +3,7 @@
 #if defined(YAZE_ENABLE_IMGUI_TEST_ENGINE) && YAZE_ENABLE_IMGUI_TEST_ENGINE
 
 #include <algorithm>
+#include <chrono>
 #include <cmath>
 #include <cstdint>
 #include <cstdlib>
@@ -22,6 +23,7 @@
 #include "app/controller.h"
 #include "app/editor/editor_manager.h"
 #include "app/editor/graphics/graphics_editor.h"
+#include "app/editor/registry/content_registry.h"
 #include "app/gui/automation/widget_id_registry.h"
 #include "core/gfx_sheet_source.h"
 #include "core/project.h"
@@ -48,6 +50,12 @@ constexpr char kPaintProject[] = "YAZE_GRAPHICS_SOURCE_ACCEPTANCE_PROJECT";
 constexpr char kReopenProject[] = "YAZE_GRAPHICS_SOURCE_REOPEN_PROJECT";
 constexpr char kRomHash[] = "YAZE_GRAPHICS_SOURCE_EXPECTED_ROM_SHA256";
 constexpr char kSpecHash[] = "YAZE_GRAPHICS_SOURCE_EXPECTED_SPEC_SHA1";
+constexpr char kEbPaintProject[] = "YAZE_GRAPHICS_EB_ACCEPTANCE_PROJECT";
+constexpr char kEbReopenProject[] = "YAZE_GRAPHICS_EB_REOPEN_PROJECT";
+constexpr char kEbRomHash[] = "YAZE_GRAPHICS_EB_EXPECTED_ROM_SHA256";
+constexpr char kEbProjectHash[] = "YAZE_GRAPHICS_EB_EXPECTED_PROJECT_SHA256";
+constexpr char kEbSpecHash[] = "YAZE_GRAPHICS_EB_EXPECTED_D4_SHA1";
+constexpr char kEbAlternateHash[] = "YAZE_GRAPHICS_EB_EXPECTED_STANDARD_SHA1";
 constexpr uint16_t kSheet = 0xDF;
 constexpr uint16_t kNeighbor = 0xE4;
 constexpr uint8_t kColor = 6;
@@ -86,11 +94,13 @@ struct Fixture {
   fs::path rom;
   fs::path spec;
   fs::path df;
+  fs::path alternate_spec;
+  std::string rom_identity;
   std::map<fs::path, std::string> files;
 };
 
 absl::StatusOr<Fixture> ObserveFixture(editor::EditorManager& manager,
-                                       const fs::path& requested) {
+                                       const fs::path& requested, bool eb) {
   const auto refuse = [](const char* message) {
     return absl::FailedPreconditionError(message);
   };
@@ -98,7 +108,8 @@ absl::StatusOr<Fixture> ObserveFixture(editor::EditorManager& manager,
   Fixture result;
   result.project = fs::canonical(requested, ec);
   if (ec || !requested.is_absolute() || requested != result.project ||
-      result.project.filename() != "graphics-source-acceptance.yaze") {
+      result.project.filename() !=
+          (eb ? "project.yaze" : "graphics-source-acceptance.yaze")) {
     return refuse("Select an exact canonical private graphics fixture");
   }
   const auto* current_project = manager.GetCurrentProject();
@@ -106,13 +117,21 @@ absl::StatusOr<Fixture> ObserveFixture(editor::EditorManager& manager,
   auto* rom = manager.GetCurrentRom();
   if (!current_project || !current_project->project_opened() ||
       fs::canonical(current_project->filepath, ec) != result.project || ec ||
-      current_project->name.find("[Graphics source acceptance]") ==
+      current_project->name.find(eb ? "Oracle private EB source Save Build Run"
+                                    : "[Graphics source acceptance]") ==
           std::string::npos ||
       manager.GetProjectRomWritePolicy() != project::RomWritePolicy::kBlock ||
       current_project->hack_manifest.graphics_sheet_layout().pointer_layout ||
       !data || !data->gfx_sheet_source || !rom || !rom->is_loaded() ||
       rom->dirty()) {
     return refuse("Require the selected clean legacy source-overlay project");
+  }
+  if (eb) {
+    if (current_project->rom_metadata.role != project::RomRole::kDev ||
+        current_project->rom_metadata.expected_hash.empty()) {
+      return refuse("Require the private development ROM identity");
+    }
+    result.rom_identity = current_project->rom_metadata.expected_hash;
   }
   const auto directory = result.project.parent_path();
   const auto source_root = fs::canonical(
@@ -122,7 +141,7 @@ absl::StatusOr<Fixture> ObserveFixture(editor::EditorManager& manager,
   }
   result.rom = fs::canonical(rom->filename(), ec);
   if (ec || result.rom.parent_path() != directory ||
-      result.rom.filename() != "rom.sfc" ||
+      result.rom.filename() != (eb ? "rom" : "rom.sfc") ||
       fs::canonical(
           current_project->GetAbsolutePath(current_project->rom_filename),
           ec) != result.rom ||
@@ -131,19 +150,38 @@ absl::StatusOr<Fixture> ObserveFixture(editor::EditorManager& manager,
   }
   const auto& source = *data->gfx_sheet_source;
   if (!source.CheckBinding(*current_project).ok() || !source.CheckDisk().ok() ||
-      !source.sheets().contains(kSheet) ||
-      !source.sheets().contains(kNeighbor)) {
+      !source.sheets().contains(eb ? 0xEB : kSheet) ||
+      (!eb && !source.sheets().contains(kNeighbor))) {
     return refuse("Require current bound DF..E4 source inputs");
   }
   result.spec = fs::canonical(source.spec_path(), ec);
   if (ec ||
-      result.spec != source_root / "Data/graphics/source_sprite_sheets.json") {
+      result.spec !=
+          source_root / (eb ? "Data/graphics/d4_zora_sprite_sheets.json"
+                            : "Data/graphics/source_sprite_sheets.json")) {
     return refuse("Require the canonical fixture source spec");
   }
-  result.df = fs::canonical(source.sheets().at(kSheet).path, ec);
+  result.df = fs::canonical(source.sheets().at(eb ? 0xEB : kSheet).path, ec);
   if (ec || result.df.extension() != ".txt" ||
       !Inside(result.df, result.spec.parent_path())) {
     return refuse("Require a private text-backed DF source");
+  }
+  if (eb) {
+    result.alternate_spec = fs::canonical(
+        source_root / "Data/graphics/source_sprite_sheets.json", ec);
+    if (ec ||
+        result.alternate_spec !=
+            source_root / "Data/graphics/source_sprite_sheets.json" ||
+        result.df != source_root / "Data/graphics/sky_overworld/gEB.txt") {
+      return refuse("Require canonical EB source and both private specs");
+    }
+    const auto alternate = Read(result.alternate_spec);
+    if (!alternate || !Hex(Environment(kEbAlternateHash), 40) ||
+        core::GfxSheetSource::SpecSha1(*alternate) !=
+            Environment(kEbAlternateHash)) {
+      return refuse("Supply the actual standard spec hash");
+    }
+    result.files.emplace(result.alternate_spec, *alternate);
   }
   for (const auto& [name, expected] : source.inputs()) {
     const auto path = fs::canonical(name, ec);
@@ -173,12 +211,27 @@ absl::StatusOr<Fixture> ObserveFixture(editor::EditorManager& manager,
     }
     result.files.emplace(manifest, *bytes);
   }
-  if (!Hex(Environment(kRomHash), 64) || !Hex(Environment(kSpecHash), 40) ||
+  const auto* rom_hash = Environment(eb ? kEbRomHash : kRomHash);
+  const auto* spec_hash = Environment(eb ? kEbSpecHash : kSpecHash);
+  if (!Hex(rom_hash, 64) || !Hex(spec_hash, 40) ||
       core::ComputeSourceArtifactSha256(result.files.at(result.rom)) !=
-          Environment(kRomHash) ||
+          rom_hash ||
       core::GfxSheetSource::SpecSha1(result.files.at(result.spec)) !=
-          Environment(kSpecHash)) {
+          spec_hash ||
+      (eb && (!Hex(Environment(kEbProjectHash), 64) ||
+              core::ComputeSourceArtifactSha256(result.files.at(
+                  result.project)) != Environment(kEbProjectHash)))) {
     return refuse("Supply actual selected ROM/spec hashes; no defaults exist");
+  }
+  if (eb) {
+    for (const auto& [path, bytes] : result.files) {
+      (void)bytes;
+      if (!fs::is_regular_file(path, ec) || ec ||
+          fs::hard_link_count(path, ec) != 1 || ec) {
+        return refuse(
+            "EB fixture files must be private regular single-link files");
+      }
+    }
   }
   const std::string_view loaded(reinterpret_cast<const char*>(rom->data()),
                                 rom->size());
@@ -212,10 +265,19 @@ ImGuiID Control(ImGuiTestContext* ctx, ImGuiWindow* window, const char* type,
   return result;
 }
 
-void RunGraphicsSourceTest(ImGuiTestContext* ctx, bool reopen) {
-  const char* requested = Environment(reopen ? kReopenProject : kPaintProject);
+void RunGraphicsSourceTest(ImGuiTestContext* ctx, bool reopen, bool eb) {
+  const auto sheet = static_cast<uint16_t>(eb ? 0xEB : kSheet);
+  const uint8_t initial_color = eb ? 6 : 0;
+  const uint8_t color_index = eb ? 7 : kColor;
+  const char* requested =
+      Environment(eb ? (reopen ? kEbReopenProject : kEbPaintProject)
+                     : (reopen ? kReopenProject : kPaintProject));
   IM_CHECK(requested != nullptr);
-  IM_CHECK(Environment(reopen ? kPaintProject : kReopenProject) == nullptr);
+  IM_CHECK(Environment(eb ? (reopen ? kEbPaintProject : kEbReopenProject)
+                          : (reopen ? kPaintProject : kReopenProject)) ==
+           nullptr);
+  IM_CHECK(Environment(eb ? kPaintProject : kEbPaintProject) == nullptr);
+  IM_CHECK(Environment(eb ? kReopenProject : kEbReopenProject) == nullptr);
   const auto& config = Application::Instance().GetConfig();
   IM_CHECK(!config.headless && !config.service_mode);
   IM_CHECK(!config.enable_api && !config.editor_control &&
@@ -224,19 +286,44 @@ void RunGraphicsSourceTest(ImGuiTestContext* ctx, bool reopen) {
   IM_CHECK(Environment("YAZE_LYRA_TERRAIN_REOPEN_PROJECT") == nullptr);
   IM_CHECK(Environment("YAZE_GUI_BOAT_PROJECT") == nullptr);
 
+  if (eb) {
+    ctx->EngineIO->ConfigWatchdogKillTest = 300.0f;
+    // The owner creates this phase marker only after observing the owned PID
+    // and isolated window. No UI interaction is permitted while waiting.
+    const fs::path requested_path(requested);
+    IM_CHECK(requested_path.is_absolute());
+    std::error_code ec;
+    const auto project = fs::canonical(requested_path, ec);
+    IM_CHECK(!ec && project == requested_path);
+    const auto marker = project.parent_path() / "graphics-source-ui.ready";
+    const auto deadline =
+        std::chrono::steady_clock::now() + std::chrono::seconds(60);
+    while (!fs::exists(marker, ec) && !ec &&
+           std::chrono::steady_clock::now() < deadline) {
+      ctx->Yield(1);
+    }
+    IM_CHECK(!ec && fs::exists(marker));
+    const auto status = fs::symlink_status(marker, ec);
+    IM_CHECK(!ec && fs::is_regular_file(status) && !fs::is_symlink(status));
+    IM_CHECK(fs::canonical(marker, ec) == marker && !ec);
+    IM_CHECK(Read(marker) ==
+             std::optional<std::string>(reopen ? "reopen\n" : "edit\n"));
+  }
+
   editor::EditorManager* manager = nullptr;
   for (int frame = 0; frame < 200; ++frame) {
     auto* controller = Application::Instance().GetController();
     manager = controller ? controller->editor_manager() : nullptr;
     auto* data = manager ? manager->GetCurrentGameData() : nullptr;
-    if (manager && manager->GetCurrentProject()->project_opened() && data &&
-        data->gfx_sheet_source && data->sheet_store.HasSheet(kSheet)) {
+    if (manager && manager->GetCurrentProject() &&
+        manager->GetCurrentProject()->project_opened() && data &&
+        data->gfx_sheet_source && data->sheet_store.HasSheet(sheet)) {
       break;
     }
     ctx->Yield(1);
   }
   IM_CHECK(manager != nullptr);
-  const auto observed = ObserveFixture(*manager, requested);
+  const auto observed = ObserveFixture(*manager, requested, eb);
   if (!observed.ok()) {
     IM_ERRORF("Graphics fixture refused: %s",
               observed.status().ToString().c_str());
@@ -245,11 +332,15 @@ void RunGraphicsSourceTest(ImGuiTestContext* ctx, bool reopen) {
   const Fixture fixture = *observed;
   const auto session = manager->GetCurrentSessionId();
   auto* data = manager->GetCurrentGameData();
-  IM_CHECK(data && data->sheet_store.HasSheet(kSheet));
-  IM_CHECK(data->sheet_store.HasSheet(kNeighbor));
+  IM_CHECK(data && data->sheet_store.HasSheet(sheet));
+  if (!eb) {
+    IM_CHECK(data->sheet_store.HasSheet(kNeighbor));
+  }
   IM_CHECK(!data->sheet_store.HasSheet(0xFF));
-  IM_CHECK(data->sheet_store.Sheet(kSheet).size() == 4096);
-  IM_CHECK(data->sheet_store.Sheet(kNeighbor).size() == 4096);
+  IM_CHECK(data->sheet_store.Sheet(sheet).size() == 4096);
+  if (!eb) {
+    IM_CHECK(data->sheet_store.Sheet(kNeighbor).size() == 4096);
+  }
   IM_CHECK(!manager->IsCurrentProjectDirty());
 
   std::map<uint16_t, std::vector<uint8_t>> sheets_before;
@@ -260,13 +351,22 @@ void RunGraphicsSourceTest(ImGuiTestContext* ctx, bool reopen) {
                             std::vector<uint8_t>(pixels.begin(), pixels.end()));
     }
   }
-  auto expected = sheets_before.at(kSheet);
-  IM_CHECK(std::all_of(expected.begin() + (reopen ? 1 : 0), expected.end(),
-                       [](uint8_t pixel) { return pixel == 0; }));
-  IM_CHECK_EQ(expected.front(), reopen ? kColor : 0);
-  IM_CHECK(std::all_of(sheets_before.at(kNeighbor).begin(),
-                       sheets_before.at(kNeighbor).end(),
-                       [](uint8_t pixel) { return pixel == 0; }));
+  auto expected = sheets_before.at(sheet);
+  if (!eb) {
+    IM_CHECK(std::all_of(expected.begin() + (reopen ? 1 : 0), expected.end(),
+                         [](uint8_t pixel) { return pixel == 0; }));
+    IM_CHECK(std::all_of(sheets_before.at(kNeighbor).begin(),
+                         sheets_before.at(kNeighbor).end(),
+                         [](uint8_t pixel) { return pixel == 0; }));
+  }
+  IM_CHECK_EQ(expected.front(), reopen ? color_index : initial_color);
+  if (eb) {
+    IM_CHECK(core::GfxSheetSource::DecodedSha256(expected) ==
+             (reopen ? "1e5fa70f55955b365bc8479901ee6ec4ca1cf12e24860bd3f81d21b"
+                       "747e67c58"
+                     : "061be2cad508703e8f4ec449c62567ed412e6a42406c3e132b2705c"
+                       "afb158b91"));
+  }
 
   // Reopen asserts the automatically loaded indexed store before any sheet
   // selection or canvas input. The native owner proves prior PID exit and
@@ -287,7 +387,7 @@ void RunGraphicsSourceTest(ImGuiTestContext* ctx, bool reopen) {
 
   if (!reopen) {
     IM_CHECK(graphics->BuildContextSnapshot().semantic_owner !=
-             "graphics.sheet.DF");
+             (eb ? "graphics.sheet.EB" : "graphics.sheet.DF"));
   }
   const auto browser_name = manager->window_manager().GetWorkspaceWindowName(
       session, "graphics.sheet_browser_v2");
@@ -296,11 +396,11 @@ void RunGraphicsSourceTest(ImGuiTestContext* ctx, bool reopen) {
   ctx->WindowFocus("");
   ctx->Yield(2);
   IM_CHECK(ctx->ItemExists("**/##SheetSearch"));
-  ctx->ItemInputValue("**/##SheetSearch", "DF");
+  ctx->ItemInputValue("**/##SheetSearch", eb ? "EB" : "DF");
   ctx->Yield(3);
   IM_CHECK(!ctx->IsError());
   IM_CHECK(graphics->BuildContextSnapshot().semantic_owner ==
-           "graphics.sheet.DF");
+           (eb ? "graphics.sheet.EB" : "graphics.sheet.DF"));
 
   const auto pixel_name = manager->window_manager().GetWorkspaceWindowName(
       session, "graphics.pixel_editor");
@@ -318,7 +418,8 @@ void RunGraphicsSourceTest(ImGuiTestContext* ctx, bool reopen) {
     ctx->Yield(2);
     IM_CHECK(ctx->ItemExists("**/##BrushSize"));
     ctx->ItemInputValue("**/##BrushSize", 1);
-    const auto color = Control(ctx, window, "color", "Palette index 6");
+    const auto color = Control(ctx, window, "color",
+                               eb ? "Palette index 7" : "Palette index 6");
     IM_CHECK(color != 0);
     ctx->ItemClick(color);
     const auto fit = Control(ctx, window, "button", "Fit sheet");
@@ -346,8 +447,8 @@ void RunGraphicsSourceTest(ImGuiTestContext* ctx, bool reopen) {
     ctx->MouseUp(ImGuiMouseButton_Left);
     ctx->Yield(3);
     IM_CHECK(!ctx->IsError());
-    expected.front() = kColor;
-    const auto pixels = data->sheet_store.Sheet(kSheet);
+    expected.front() = color_index;
+    const auto pixels = data->sheet_store.Sheet(sheet);
     IM_CHECK(std::equal(pixels.begin(), pixels.end(), expected.begin(),
                         expected.end()));
     IM_CHECK(manager->IsCurrentProjectDirty());
@@ -359,14 +460,14 @@ void RunGraphicsSourceTest(ImGuiTestContext* ctx, bool reopen) {
     IM_CHECK(undo != 0);
     ctx->ItemClick(undo);
     ctx->Yield(2);
-    IM_CHECK_EQ(data->sheet_store.Sheet(kSheet).front(), 0);
+    IM_CHECK_EQ(data->sheet_store.Sheet(sheet).front(), initial_color);
     IM_CHECK_EQ(graphics->undo_manager().UndoStackSize(), undo_size);
     IM_CHECK(graphics->CanRedo());
     const auto redo = Control(ctx, window, "button", "Redo pixels");
     IM_CHECK(redo != 0);
     ctx->ItemClick(redo);
     ctx->Yield(2);
-    IM_CHECK_EQ(data->sheet_store.Sheet(kSheet).front(), kColor);
+    IM_CHECK_EQ(data->sheet_store.Sheet(sheet).front(), color_index);
     IM_CHECK_EQ(graphics->undo_manager().UndoStackSize(), undo_size + 1);
     IM_CHECK_EQ(manager->GetCurrentSessionId(), session);
     IM_CHECK(manager->GetCurrentGameData() == data);
@@ -396,13 +497,14 @@ void RunGraphicsSourceTest(ImGuiTestContext* ctx, bool reopen) {
   IM_CHECK(loaded == fixture.files.at(fixture.rom));
   for (const auto& [id, before] : sheets_before) {
     const auto pixels = data->sheet_store.Sheet(id);
-    const auto& wanted = id == kSheet ? expected : before;
+    const auto& wanted = id == sheet ? expected : before;
     IM_CHECK(
         std::equal(pixels.begin(), pixels.end(), wanted.begin(), wanted.end()));
   }
   for (const auto& [path, before] : fixture.files) {
-    if (!reopen && (path == fixture.project || path == fixture.spec ||
-                    path == fixture.df)) {
+    if (!reopen &&
+        (path == fixture.project || path == fixture.spec ||
+         path == fixture.df || (eb && path == fixture.alternate_spec))) {
       continue;
     }
     IM_CHECK(Read(path) == std::optional<std::string>(before));
@@ -413,8 +515,8 @@ void RunGraphicsSourceTest(ImGuiTestContext* ctx, bool reopen) {
   IM_CHECK(saved.Open(fixture.project.string()).ok());
   const auto source = core::GfxSheetSource::Load(saved);
   IM_CHECK(source.ok());
-  IM_CHECK(source->sheets().contains(kSheet));
-  IM_CHECK(source->sheets().at(kSheet).pixels == expected);
+  IM_CHECK(source->sheets().contains(sheet));
+  IM_CHECK(source->sheets().at(sheet).pixels == expected);
   IM_CHECK(source->spec_path() == fixture.spec.string());
   IM_CHECK(
       data->gfx_sheet_source->CheckBinding(*manager->GetCurrentProject()).ok());
@@ -427,7 +529,8 @@ void RunGraphicsSourceTest(ImGuiTestContext* ctx, bool reopen) {
     IM_CHECK(*df_bytes != fixture.files.at(fixture.df));
     IM_CHECK(Read(fixture.project) !=
              std::optional<std::string>(fixture.files.at(fixture.project)));
-    IM_CHECK(saved.graphics_sheets.source_spec_sha1 != Environment(kSpecHash));
+    IM_CHECK(saved.graphics_sheets.source_spec_sha1 !=
+             Environment(eb ? kEbSpecHash : kSpecHash));
     auto expected_spec =
         nlohmann::json::parse(fixture.files.at(fixture.spec), nullptr, false);
     const auto actual_spec = nlohmann::json::parse(*spec_bytes, nullptr, false);
@@ -452,8 +555,129 @@ void RunGraphicsSourceTest(ImGuiTestContext* ctx, bool reopen) {
     IM_CHECK_EQ(df_entries, 1u);
     IM_CHECK(actual_spec == expected_spec);
   }
+  if (eb) {
+    IM_CHECK(saved.rom_metadata.role == project::RomRole::kDev);
+    IM_CHECK(saved.rom_metadata.expected_hash == fixture.rom_identity);
+    IM_CHECK(saved.name == "Oracle private EB source Save Build Run");
+    IM_CHECK(saved.rom_filename == "rom");
+    IM_CHECK(saved.code_folder == "source-native");
+    IM_CHECK(saved.graphics_sheets.source_spec ==
+             "Data/graphics/d4_zora_sprite_sheets.json");
+    const auto alternate_bytes = Read(fixture.alternate_spec);
+    IM_CHECK(alternate_bytes);
+    auto standard = nlohmann::json::parse(*alternate_bytes, nullptr, false);
+    const auto active = nlohmann::json::parse(*spec_bytes, nullptr, false);
+    IM_CHECK(standard.is_object() && active.is_object());
+    IM_CHECK(standard.contains("sheets") && standard["sheets"].is_array());
+    IM_CHECK(active.contains("sheets") && active["sheets"].is_array());
+    IM_CHECK(standard["sheets"].size() <= active["sheets"].size());
+    ctx->LogInfo("EB standard_spec_sha1=%s d4_spec_sha1=%s",
+                 core::GfxSheetSource::SpecSha1(*alternate_bytes).c_str(),
+                 core::GfxSheetSource::SpecSha1(*spec_bytes).c_str());
+    for (size_t i = 0; i < standard["sheets"].size(); ++i) {
+      IM_CHECK(standard["sheets"][i] == active["sheets"][i]);
+    }
+    if (!reopen) {
+      auto expected_standard = nlohmann::json::parse(
+          fixture.files.at(fixture.alternate_spec), nullptr, false);
+      IM_CHECK(expected_standard.is_object() &&
+               expected_standard.contains("sheets"));
+      size_t matches = 0;
+      for (auto& entry : expected_standard["sheets"]) {
+        if (entry.value("source", std::string()) == "sky_overworld/gEB.txt") {
+          IM_CHECK(entry.contains("global_sheet") &&
+                   entry.contains("decoded_sha256"));
+          entry["decoded_sha256"] =
+              core::GfxSheetSource::DecodedSha256(expected);
+          ++matches;
+        }
+      }
+      IM_CHECK_EQ(matches, 1u);
+      IM_CHECK(standard == expected_standard);
+      IM_CHECK(core::GfxSheetSource::SpecSha1(*alternate_bytes) !=
+               Environment(kEbAlternateHash));
+    }
+  }
   IM_CHECK(saved.graphics_sheets.source_spec_sha1 ==
            core::GfxSheetSource::SpecSha1(*spec_bytes));
+  std::string output_hash;
+  std::string output_path;
+  if (eb && reopen) {
+    namespace Context = editor::ContentRegistry::Context;
+    using editor::ProjectWorkflowState;
+    IM_CHECK(saved.run_script.empty());
+    std::error_code ec;
+    const auto expected_output =
+        fixture.project.parent_path() / "source-native/Roms/oos168x.sfc";
+    const auto output =
+        fs::weakly_canonical(saved.GetAbsolutePath(saved.build_target), ec);
+    IM_CHECK(!ec && output == expected_output);
+    IM_CHECK(Inside(output, fixture.project.parent_path()));
+    IM_CHECK(Context::build_workflow_status().state !=
+             ProjectWorkflowState::kSuccess);
+    IM_CHECK(Context::run_workflow_status().state !=
+             ProjectWorkflowState::kSuccess);
+    const auto visible_button = [&](const char* label) -> ImGuiID {
+      ImGuiID found = 0;
+      for (const auto& entry :
+           gui::WidgetIdRegistry::Instance().GetAllWidgets()) {
+        const auto& info = entry.second;
+        if (info.type != "button" ||
+            info.label != gui::WidgetIdRegistry::NormalizeLabel(label) ||
+            !info.enabled)
+          continue;
+        const auto item =
+            ctx->ItemInfo(info.imgui_id, ImGuiTestOpFlags_NoError);
+        if (!item.ID || !item.Window || item.RectClipped.GetWidth() <= 0 ||
+            item.RectClipped.GetHeight() <= 0)
+          continue;
+        if (found)
+          return 0;
+        found = Control(ctx, item.Window, "button", label);
+        if (!found)
+          return 0;
+      }
+      return found;
+    };
+    const auto wait_success = [&](auto getter, int seconds) -> bool {
+      const auto deadline =
+          std::chrono::steady_clock::now() + std::chrono::seconds(seconds);
+      while (std::chrono::steady_clock::now() < deadline && !ctx->IsError()) {
+        const auto state = getter().state;
+        if (state == ProjectWorkflowState::kFailure)
+          return false;
+        if (state == ProjectWorkflowState::kSuccess)
+          return true;
+        ctx->Yield(1);
+      }
+      return false;
+    };
+    ctx->EngineIO->ConfigWatchdogKillTest = 300.0f;
+    manager->ShowProjectManagement();
+    ctx->Yield(3);
+    const auto build_button = visible_button("Build Project");
+    IM_CHECK(build_button != 0);
+    ctx->ItemClick(build_button);
+    IM_CHECK(
+        wait_success([] { return Context::build_workflow_status(); }, 180));
+    const auto output_status = fs::symlink_status(output, ec);
+    IM_CHECK(!ec && fs::is_regular_file(output_status) &&
+             !fs::is_symlink(output_status));
+    IM_CHECK(fs::canonical(output, ec) == expected_output && !ec);
+    const auto output_bytes = Read(output);
+    IM_CHECK(output_bytes && !output_bytes->empty());
+    output_hash = core::ComputeSourceArtifactSha256(*output_bytes);
+    output_path = output.string();
+    const auto run_button = visible_button("Run Project Output");
+    IM_CHECK(run_button != 0);
+    ctx->ItemClick(run_button);
+    IM_CHECK(wait_success([] { return Context::run_workflow_status(); }, 30));
+    IM_CHECK(Read(output) == output_bytes);
+    for (const auto& [path, before] : fixture.files) {
+      IM_CHECK(Read(path) == std::optional<std::string>(before));
+    }
+    IM_CHECK(!manager->GetCurrentRom()->dirty());
+  }
   ctx->LogInfo(
       "Graphics source %s completed; project=%s spec_sha1=%s "
       "df_text_sha256=%s rom_sha256=%s",
@@ -461,35 +685,85 @@ void RunGraphicsSourceTest(ImGuiTestContext* ctx, bool reopen) {
       fixture.project.string().c_str(),
       saved.graphics_sheets.source_spec_sha1.c_str(),
       core::ComputeSourceArtifactSha256(*df_bytes).c_str(),
-      Environment(kRomHash));
+      Environment(eb ? kEbRomHash : kRomHash));
+  if (eb) {
+    const auto alternate_bytes = Read(fixture.alternate_spec);
+    const auto project_bytes = Read(fixture.project);
+    IM_CHECK(alternate_bytes && project_bytes);
+    const auto receipt = fixture.project.parent_path() /
+                         (reopen ? "graphics-source-eb-reopen-result.json"
+                                 : "graphics-source-eb-edit-result.json");
+    std::error_code ec;
+    IM_CHECK(!fs::exists(receipt, ec) && !ec);
+    const nlohmann::json result = {
+        {"result", "PASS"},
+        {"phase", reopen ? "reopen" : "edit"},
+        {"project", fixture.project.string()},
+        {"project_sha256", core::ComputeSourceArtifactSha256(*project_bytes)},
+        {"rom_sha256", Environment(kEbRomHash)},
+        {"source_sha256", core::ComputeSourceArtifactSha256(*df_bytes)},
+        {"d4_spec_sha1", core::GfxSheetSource::SpecSha1(*spec_bytes)},
+        {"standard_spec_sha1",
+         core::GfxSheetSource::SpecSha1(*alternate_bytes)},
+        {"build_output", output_path},
+        {"build_output_sha256", output_hash}};
+    std::ofstream file(receipt, std::ios::binary);
+    IM_CHECK(file.is_open());
+    file << result.dump(2) << '\n';
+    file.close();
+    IM_CHECK(!file.fail());
+    // FrameGuiBegin executes this after the test callback has returned.
+    // The owner must independently confirm the normal process/window exit.
+    manager->QueueDeferredAction([manager] { manager->Quit(); });
+  }
   // The native owner must still observe normal Quit, PID/window closure and
-  // the distinct reopen process. No receipt/context/guardian is created here.
+  // the distinct reopen process. No native Save receipt is fabricated here.
 }
 
 }  // namespace
 
 void RegisterGraphicsSourceUITests(ImGuiTestEngine* engine) {
-  const bool paint = Environment(kPaintProject) != nullptr;
-  const bool reopen = Environment(kReopenProject) != nullptr;
+  const bool eb = Environment(kEbPaintProject) != nullptr ||
+                  Environment(kEbReopenProject) != nullptr;
+  const bool paint =
+      Environment(eb ? kEbPaintProject : kPaintProject) != nullptr;
+  const bool reopen =
+      Environment(eb ? kEbReopenProject : kReopenProject) != nullptr;
   if (!paint && !reopen) {
     return;
   }
   ImGuiTestEngine_GetIO(engine).ConfigLogToTTY = true;
   // Conflicting gates register only the first callback, which fails before
   // any UI action. An absent gate registers and queues nothing.
-  ImGuiTest* test = IM_REGISTER_TEST(
-      engine, "graphics_source",
-      paint ? "df_pixel_undo_redo_normal_save" : "fresh_process_source_reopen");
-  if (paint) {
+  ImGuiTest* test =
+      IM_REGISTER_TEST(engine, "graphics_source",
+                       eb ? (paint ? "eb_pixel_undo_redo_normal_save"
+                                   : "eb_fresh_process_source_reopen")
+                          : (paint ? "df_pixel_undo_redo_normal_save"
+                                   : "fresh_process_source_reopen"));
+  if (eb && paint) {
     test->TestFunc = [](ImGuiTestContext* ctx) {
-      RunGraphicsSourceTest(ctx, false);
+      RunGraphicsSourceTest(ctx, false, true);
+    };
+  } else if (eb) {
+    test->TestFunc = [](ImGuiTestContext* ctx) {
+      RunGraphicsSourceTest(ctx, true, true);
+    };
+  } else if (paint) {
+    test->TestFunc = [](ImGuiTestContext* ctx) {
+      RunGraphicsSourceTest(ctx, false, false);
     };
   } else {
     test->TestFunc = [](ImGuiTestContext* ctx) {
-      RunGraphicsSourceTest(ctx, true);
+      RunGraphicsSourceTest(ctx, true, false);
     };
   }
-  // Start the registered test from the engine GUI after window observation.
+  if (eb) {
+    ImGuiTestEngine_GetIO(engine).ConfigRestoreFocusAfterTests = false;
+    ImGuiTestEngine_QueueTest(engine, test,
+                              ImGuiTestRunFlags_RunFromCommandLine);
+  }
+  // DF remains registered for an explicit engine-GUI start.
 }
 
 }  // namespace yaze::test
