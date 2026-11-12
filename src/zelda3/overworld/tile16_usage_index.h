@@ -39,6 +39,23 @@ void AccumulateTile16MapUsage(
     const std::vector<std::vector<uint16_t>>& world_tiles, int local_map,
     std::vector<int>* counts);
 
+// A horizontal run of one Tile16 inside a 32x32 map, in map-local tiles.
+struct Tile16PlacementRun {
+  int x = 0;
+  int y = 0;
+  int length = 0;
+};
+
+// Placements of `tile16_id` in one overworld map of `world_tiles` (same
+// layout as AccumulateTile16MapUsage), merged into runs along each row.
+std::vector<Tile16PlacementRun> FindTile16MapPlacements(
+    const std::vector<std::vector<uint16_t>>& world_tiles, int local_map,
+    int tile16_id);
+
+// Same, for a row-major 32x32 map such as a Lyra terrain map.
+std::vector<Tile16PlacementRun> FindTile16MapPlacements(
+    const std::array<uint16_t, 32 * 32>& map_tiles, int tile16_id);
+
 enum class Tile16SortMode { kUsage, kTileId };
 
 // Tile16 IDs in display order. kUsage puts the most placed tiles first (ties

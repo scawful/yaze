@@ -866,6 +866,21 @@ evidence levels. These are **not yet audited** comparison targets, not a blanket
 claim of missing Yaze support. Loading a patched ROM or exposing a property is
 insufficient to close its editing and save/runtime workflow.
 
+**Tile16/Tile8 usage highlighting (audited 2026-11-12, Candidate).** Tile8
+usage within Tile16 definitions already existed: holding right-click on the
+Tile16 editor's Tile8 source, or the Usage mode, shows the overlay. Map Tile16
+highlighting is new in [PR #354](https://github.com/scawful/yaze/pull/354)
+(`77de05484`): the `tile16_highlight_uses` toggle in the Tile16 Selector marks
+every placement of the current Tile16 in the visible maps of the current world,
+for both the world blockset and Lyra project terrain. ZScream shows this only
+while right-click is held; Yaze uses a persistent toggle. Both overlays share
+ZScream's purple tint. Evidence: **Focused**: `Tile16UsageIndex*` unit cases
+and the opt-in GUI test `overworld_tile16/map_placement_highlight` on a vanilla
+copy (draw-list fill at the first placement, 0.00 px corner error at 1.0x and
+0.5x, removed on toggle-off, ROM unchanged); Windows full unit/integration
+suite on `77de05484`. Display-only, so the ROM and Runtime levels do not apply.
+Release remains open until merge.
+
 ## Instructions for the implementing model
 
 1. Claim a bounded package/sub-slice through `scripts/agents/coord`. Inspect

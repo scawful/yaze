@@ -20,6 +20,29 @@ const gfx::TileInfo& TileInfoForQuadrant(const gfx::Tile16& tile,
   }
 }
 
+template <typename TileAt>
+std::vector<Tile16PlacementRun> CollectPlacementRuns(const TileAt& tile_at,
+                                                     int tile16_id) {
+  constexpr int kTilesPerMapSide = 32;
+  std::vector<Tile16PlacementRun> runs;
+  if (tile16_id < 0) {
+    return runs;
+  }
+  for (int y = 0; y < kTilesPerMapSide; ++y) {
+    int run_start = -1;
+    for (int x = 0; x <= kTilesPerMapSide; ++x) {
+      const bool match = x < kTilesPerMapSide && tile_at(x, y) == tile16_id;
+      if (match && run_start < 0) {
+        run_start = x;
+      } else if (!match && run_start >= 0) {
+        runs.push_back({run_start, y, x - run_start});
+        run_start = -1;
+      }
+    }
+  }
+  return runs;
+}
+
 }  // namespace
 
 void ClearTile8UsageIndex(Tile8UsageIndex* usage_index) {
@@ -94,6 +117,35 @@ void AccumulateTile16MapUsage(
       }
     }
   }
+}
+
+std::vector<Tile16PlacementRun> FindTile16MapPlacements(
+    const std::vector<std::vector<uint16_t>>& world_tiles, int local_map,
+    int tile16_id) {
+  constexpr int kMapsPerRow = 8;
+  constexpr int kTilesPerMapSide = 32;
+  if (local_map < 0) {
+    return {};
+  }
+  const int x0 = (local_map % kMapsPerRow) * kTilesPerMapSide;
+  const int y0 = (local_map / kMapsPerRow) * kTilesPerMapSide;
+  return CollectPlacementRuns(
+      [&](int x, int y) -> int {
+        const int wx = x0 + x;
+        const int wy = y0 + y;
+        if (wx >= static_cast<int>(world_tiles.size()) ||
+            wy >= static_cast<int>(world_tiles[wx].size())) {
+          return -1;
+        }
+        return world_tiles[wx][wy];
+      },
+      tile16_id);
+}
+
+std::vector<Tile16PlacementRun> FindTile16MapPlacements(
+    const std::array<uint16_t, 32 * 32>& map_tiles, int tile16_id) {
+  return CollectPlacementRuns(
+      [&](int x, int y) -> int { return map_tiles[y * 32 + x]; }, tile16_id);
 }
 
 std::vector<int> BuildTile16DisplayOrder(const std::vector<int>& counts,
