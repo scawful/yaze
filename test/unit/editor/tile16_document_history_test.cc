@@ -152,12 +152,26 @@ TEST_F(Tile16DocumentHistoryTest,
   EXPECT_TRUE(overworld_.tiles16()[0].tile0_.horizontal_mirror_);
 }
 
+TEST_F(Tile16DocumentHistoryTest, UndoDescriptionsNameTheSharedHistoryStep) {
+  session_.RequestTileSwitch(0x15);
+  ASSERT_TRUE(session_.ApplyPaletteToAll(6).ok());
+  EXPECT_EQ(session_.UndoDescription(), "Edit Tile16 0x015");
+  history_.Push(std::make_unique<OverworldTilePaintAction>(
+      0, 0, std::vector<OverworldTileChange>{{4, 5, 0, 12}}, &overworld_,
+      std::function<void()>{}));
+  EXPECT_EQ(session_.UndoDescription(), "Paint 1 tile on map 0");
+  ASSERT_TRUE(session_.Undo().ok());
+  EXPECT_EQ(session_.RedoDescription(), "Paint 1 tile on map 0");
+  EXPECT_EQ(session_.UndoDescription(), "Edit Tile16 0x015");
+}
+
 TEST_F(Tile16DocumentHistoryTest, FourDefinitionStampIsOneCompleteUndoStep) {
   const auto before = overworld_.tiles16();
   session_.set_tile8_stamp_size(4);
   session_.set_current_tile8(16);
   ASSERT_TRUE(session_.DrawToCurrentTile16({0, 0}).ok());
   ASSERT_EQ(history_.UndoStackSize(), 1u);
+  EXPECT_EQ(session_.UndoDescription(), "Edit 4 Tile16 definitions");
   ASSERT_EQ(published_, (std::vector<size_t>{4}));
   const auto after = overworld_.tiles16();
   ASSERT_TRUE(history_.Undo().ok());

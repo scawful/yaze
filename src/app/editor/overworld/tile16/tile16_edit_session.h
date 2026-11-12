@@ -101,6 +101,9 @@ class Tile16EditSession {
   absl::Status Redo();
   bool CanUndo() const { return history_->CanUndo(); }
   bool CanRedo() const { return history_->CanRedo(); }
+  // The shared history can hold map strokes as well as Tile16 edits.
+  std::string UndoDescription() const { return history_->GetUndoDescription(); }
+  std::string RedoDescription() const { return history_->GetRedoDescription(); }
 
   void EnableLivePreview(bool enable) { live_preview_enabled_ = enable; }
   bool live_preview_enabled() const { return live_preview_enabled_; }

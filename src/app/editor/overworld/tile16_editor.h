@@ -125,8 +125,15 @@ class Tile16Editor : public gfx::GfxContext {
                                   uint64_t edit_group = 0) {
     return session_.ReplaceCurrentTile(data, edit_group);
   }
-  absl::Status Undo() { return session_.Undo(); }
-  absl::Status Redo() { return session_.Redo(); }
+  absl::Status Undo();
+  absl::Status Redo();
+  // "Undid: <step>" / "Redid: <step>" after the last successful Undo/Redo.
+  const std::string& last_history_message() const {
+    return last_history_message_;
+  }
+  const gfx::Tile16& current_tile16_data() const {
+    return session_.current_tile16_data();
+  }
   absl::StatusOr<std::unique_ptr<UndoAction>> PrepareDefinitionImport(
       const std::vector<Tile16Commit>& definitions) {
     return session_.PrepareDefinitionImport(definitions);
@@ -305,6 +312,7 @@ class Tile16Editor : public gfx::GfxContext {
 
   PaletteEditor palette_editor_;
   absl::Status status_;
+  std::string last_history_message_;
   absl::Status graphics_open_status_;
   std::function<absl::Status(int, int)> open_graphics_for_quadrant_;
   // One shared Undo step per open session of the manual properties dialog.

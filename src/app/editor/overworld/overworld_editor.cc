@@ -449,7 +449,6 @@ void OverworldEditor::InitTilePaintingManager() {
   deps.current_world = &current_world_;
   deps.current_mode = &current_mode;
   deps.rom = rom_;
-  deps.tile16_editor = &tile16_editor_;
 
   TilePaintingCallbacks callbacks;
   callbacks.create_undo_point = [this](int map_id, int world, int x, int y,
