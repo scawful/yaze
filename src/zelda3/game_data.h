@@ -150,6 +150,18 @@ struct GameData : GraphicsSheetStoreHolder {
   // room_default_entrance.h. Empty until LoadGameData runs.
   std::vector<RoomDefaultEntrance> room_default_entrances;
 
+  // A row decoded from the ROM's pointer table or declared by the bound
+  // source. Buffer extent alone never makes a sheet available.
+  bool HasGraphicsSheet(size_t sheet) const {
+    const size_t native = gfx_sheet_layout
+                              ? gfx_sheet_layout->usable_sheet_count
+                              : gfx_sheet_table.count;
+    return (sheet < native ||
+            (gfx_sheet_source && gfx_sheet_source->sheets().contains(
+                                     static_cast<uint16_t>(sheet)))) &&
+           (sheet + 1) * 0x1000 <= graphics_buffer.size();
+  }
+
   void Clear() {
     gfx_groups_loaded = false;
     gfx_main_group_address = 0;

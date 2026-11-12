@@ -30,6 +30,8 @@
 #include "app/gui/automation/widget_id_registry.h"
 #include "cli/handlers/game/overworld_render_commands.h"
 #include "cli/handlers/rom/rom_commands.h"
+#include "core/gfx_sheet_source.h"
+#include "core/project.h"
 #include "core/rom_settings.h"
 #include "core/source_artifact_publisher.h"
 #include "editor_test_support.h"
@@ -1842,6 +1844,129 @@ TEST_F(NativeSpecialOverworldEditorTest, SavedNativeSourceExport) {
       EXPECT_TRUE(absl::IsFailedPrecondition(refused.status()));
     }
   }
+}
+
+TEST_F(NativeSpecialOverworldEditorTest,
+       NativeSourceExportReadsHighSheetsOnlyFromTheBoundSource) {
+  const char* path = std::getenv("YAZE_TEST_ROM_OOS");
+  if (!path || !std::filesystem::exists(path))
+    GTEST_SKIP() << "Set YAZE_TEST_ROM_OOS for saved native source export";
+  Rom legacy;
+  ASSERT_TRUE(legacy.LoadFromData(ReadBytes(path)).ok());
+  zelda3::Overworld reference(&legacy);
+  ASSERT_TRUE(reference.Load(&legacy).ok());
+  const auto old_addresses = core::RomSettings::Get().address_overrides();
+  auto restore = absl::MakeCleanup(
+      [&] { core::RomSettings::Get().SetAddressOverrides(old_addresses); });
+  core::RomSettings::Get().ClearOverrides();
+  NativeDirectoryFixture fixture(192);
+  fixture.SeedLoadedLegacyForModelTest(legacy, reference);
+  for (int map = 128; map < 192; ++map) {
+    fixture.bytes[fixture.Entry(7).pc_address + map] = map;
+    fixture.bytes[fixture.Entry(30).pc_address + map] = 0;
+  }
+  constexpr int kMap = 0xB1;
+  fixture.bytes[fixture.Entry(2).pc_address + kMap] = 2;
+  fixture.bytes[fixture.Entry(31).pc_address + kMap] = 2;
+  for (const auto [id, graphics] :
+       {std::pair{24, 1}, std::pair{36, 2}, std::pair{39, 3}})
+    fixture.bytes[fixture.Entry(id).pc_address + kMap] = graphics;
+  for (const int id : {25, 37, 38})
+    fixture.bytes[fixture.Entry(id).pc_address + kMap] = 1;
+  fixture.UpgradeToRevision4();
+  fixture.bytes[fixture.Entry(410).pc_address + kMap] = 3;
+  fixture.bytes[fixture.Entry(6).pc_address + kMap * 8] = 0xEB;
+  fixture.Seal();
+  Rom document;
+  ASSERT_TRUE(document.LoadFromData(fixture.bytes).ok());
+  const auto before = document.vector();
+
+  const auto root = test::UniqueTempPath("native-source-sheets");
+  const absl::Cleanup remove = [&] {
+    std::error_code ec;
+    std::filesystem::remove_all(root, ec);
+  };
+  std::filesystem::create_directories(root / "Data/graphics");
+  std::filesystem::create_directories(root / "Util");
+  const auto write = [](const std::filesystem::path& file,
+                        const std::string& text) {
+    std::ofstream output(file, std::ios::binary);
+    output << text;
+  };
+  std::vector<uint8_t> sky(4096, 0);
+  for (size_t i = 0; i < sky.size(); ++i)
+    sky[i] = static_cast<uint8_t>(i % 7 + 1);
+  write(root / "Data/graphics/eb.txt", core::GfxSheetSource::EncodeText(sky));
+  const nlohmann::json spec = {
+      {"schema_version", 2},
+      {"start", "0x40D000"},
+      {"capacity", "0x3000"},
+      {"encoding", "lz2"},
+      {"sheets",
+       {{{"global_sheet", "0xEB"},
+         {"source", "eb.txt"},
+         {"decoded_sha256", core::GfxSheetSource::DecodedSha256(sky)},
+         {"flag", "ENABLE_SKY_OVERWORLD_GRAPHICS"},
+         {"why", "Flag-only high global"}}}}};
+  write(root / "Data/graphics/source_sprite_sheets.json", spec.dump(2) + "\n");
+  project::YazeProject project;
+  project.name = "Bound native graphics source";
+  project.filepath = (root / "source.yaze").string();
+  project.code_folder = root.string();
+  project.graphics_sheets.source_spec =
+      "Data/graphics/source_sprite_sheets.json";
+  project.graphics_sheets.source_spec_sha1 =
+      core::GfxSheetSource::SpecSha1(spec.dump(2) + "\n");
+  ASSERT_TRUE(project.Save().ok());
+
+  cli::handlers::OverworldExportNativeSourceCommandHandler command;
+  cli::resources::ArgumentParser args({});
+  auto run = [&]() -> absl::StatusOr<nlohmann::json> {
+    cli::resources::OutputFormatter out(
+        cli::resources::OutputFormatter::Format::kJson);
+    out.BeginObject();
+    const auto result = command.Execute(&document, args, out);
+    if (!result.ok())
+      return result;
+    out.EndObject();
+    return nlohmann::json::parse(out.GetOutput());
+  };
+
+  // Without the project, $EB is past the ROM's legacy table: refused.
+  const auto unbound = run();
+  ASSERT_TRUE(absl::IsOutOfRange(unbound.status())) << unbound.status();
+  EXPECT_NE(unbound.status().message().find("sheet $EB"), std::string::npos);
+
+  // The selecting define is off: the bound source does not declare $EB.
+  write(root / "Util/macros.asm", "!ENABLE_SKY_OVERWORLD_GRAPHICS = 0\n");
+  command.SetProjectContext(&project);
+  EXPECT_TRUE(absl::IsOutOfRange(run().status()));
+
+  write(root / "Util/macros.asm", "!ENABLE_SKY_OVERWORLD_GRAPHICS = 1\n");
+  const auto exported = run();
+  ASSERT_TRUE(exported.ok()) << exported.status();
+  const auto& source = exported->at("native_source");
+  const auto sky_hash = core::ComputeSourceArtifactSha256(
+      {reinterpret_cast<const char*>(sky.data()), sky.size()});
+  const auto& state = source["pages"][kMap - 128]["resolved_states"][0];
+  EXPECT_EQ(state["slots"][0]["sheet_id"], 0xEB);
+  EXPECT_EQ(state["slots"][0]["decoded_sheet_sha256"], sky_hash);
+  const auto& binding = source.at("graphics_source");
+  EXPECT_EQ(binding["spec"], "Data/graphics/source_sprite_sheets.json");
+  EXPECT_EQ(binding["spec_sha1"], project.graphics_sheets.source_spec_sha1);
+  EXPECT_EQ(binding["sheets"],
+            nlohmann::json::array({{{"sheet_id", 0xEB},
+                                    {"source", "eb.txt"},
+                                    {"flag", "ENABLE_SKY_OVERWORLD_GRAPHICS"},
+                                    {"decoded_sheet_sha256", sky_hash}}}));
+  EXPECT_EQ(exported->at("native_source_sha256"),
+            core::ComputeSourceArtifactSha256(source.dump()));
+
+  // A stale source binding is refused before any graphics load.
+  project.graphics_sheets.source_spec_sha1 = std::string(40, '0');
+  EXPECT_TRUE(absl::IsFailedPrecondition(run().status()));
+  EXPECT_EQ(document.vector(), before);
+  EXPECT_FALSE(document.dirty());
 }
 
 TEST_F(NativeSpecialOverworldEditorTest,

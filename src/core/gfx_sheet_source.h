@@ -22,6 +22,8 @@ class GfxSheetSource {
     std::string path;
     std::string bytes;
     std::vector<uint8_t> pixels;
+    // The !ENABLE_* define that selected this entry; empty when unflagged.
+    std::string flag;
   };
   struct Plan {
     std::string descriptor;
@@ -52,6 +54,8 @@ class GfxSheetSource {
 
  private:
   std::map<std::string, std::string> inputs_;
+  // Define files that selected flagged entries; checked, never published.
+  std::map<std::string, std::string> defines_;
   std::string descriptor_;
   std::string root_;
   std::string spec_path_;

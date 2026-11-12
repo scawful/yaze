@@ -937,7 +937,7 @@ absl::Status LoadGraphics(Rom& rom, GameData& data) {
     }
   }
 
-  if (data.gfx_sheet_source) {
+  if (data.gfx_sheet_source && !data.gfx_sheet_source->sheets().empty()) {
     // Source rows extend the editor store only; no native pointer declaration.
     const auto& source_sheets = data.gfx_sheet_source->sheets();
     const size_t count = source_sheets.rbegin()->first + 1;
