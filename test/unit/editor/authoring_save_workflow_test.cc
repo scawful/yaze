@@ -727,6 +727,10 @@ class AuthoringSaveWorkflowTest : public ::testing::Test {
     output.close();
     project::YazeProject source_project;
     ASSERT_OK(source_project.Open(fixture.project.string()));
+    // The shared descriptor and ROM can come from different authoring
+    // revisions. Bind this disposable source-overlay fixture to its own copy.
+    ASSERT_FALSE(fixture.source_hash.empty());
+    source_project.rom_metadata.expected_hash = fixture.source_hash;
     source_project.graphics_sheets.source_spec =
         "Data/graphics/source_sprite_sheets.json";
     source_project.graphics_sheets.source_spec_sha1 =
@@ -7155,7 +7159,7 @@ void AuthoringSaveWorkflowTest::QualifyGoronRouteBuild(bool floor_art) {
 TEST_F(AuthoringSaveWorkflowTest,
        SourceDfNormalSaveUndoAndFreshReopenKeepLegacyRom) {
   const auto fixture = CopyProject("source-df-normal-save");
-  BindGraphicsSources(fixture);
+  ASSERT_NO_FATAL_FAILURE(BindGraphicsSources(fixture));
   const auto rom_before = ReadFile(fixture.rom);
   const auto manifest_before = ReadFile(fixture.root / "hack_manifest.json");
   const auto png_before =
@@ -7164,7 +7168,7 @@ TEST_F(AuthoringSaveWorkflowTest,
       fixture.root / "Data/graphics/source_sprite_sheets.json";
   const auto spec_before_bytes = ReadFile(spec_path);
   const auto spec_before = nlohmann::json::parse(spec_before_bytes);
-  Open(fixture);
+  ASSERT_NO_FATAL_FAILURE(Open(fixture));
   ASSERT_OK(manager_->EnsureEditorAssetsLoaded(EditorType::kGraphics));
   auto* graphics = manager_->GetCurrentEditorSet()->GetGraphicsEditor();
   auto& state = AuthoringSaveWorkflowTestPeer::GraphicsState(*graphics);
@@ -7199,7 +7203,7 @@ TEST_F(AuthoringSaveWorkflowTest,
   for (int entry = 0; entry < 4; ++entry)
     EXPECT_EQ(spec_after["sheets"][entry], spec_before["sheets"][entry]);
   manager_.reset();
-  Open(fixture);
+  ASSERT_NO_FATAL_FAILURE(Open(fixture));
   ASSERT_OK(manager_->EnsureEditorAssetsLoaded(EditorType::kGraphics));
   auto& reopened = AuthoringSaveWorkflowTestPeer::GraphicsState(
       *manager_->GetCurrentEditorSet()->GetGraphicsEditor());
@@ -7274,8 +7278,8 @@ TEST_F(AuthoringSaveWorkflowTest,
 TEST_F(AuthoringSaveWorkflowTest,
        SourceFailedReloadPreservesDirtyPixelsAndSurfaces) {
   const auto fixture = CopyProject("source-df-reload-stop");
-  BindGraphicsSources(fixture);
-  Open(fixture);
+  ASSERT_NO_FATAL_FAILURE(BindGraphicsSources(fixture));
+  ASSERT_NO_FATAL_FAILURE(Open(fixture));
   ASSERT_OK(manager_->EnsureEditorAssetsLoaded(EditorType::kGraphics));
   auto* graphics = manager_->GetCurrentEditorSet()->GetGraphicsEditor();
   auto& state = AuthoringSaveWorkflowTestPeer::GraphicsState(*graphics);
