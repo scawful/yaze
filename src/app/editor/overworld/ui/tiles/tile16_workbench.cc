@@ -11,6 +11,7 @@
 #include "app/editor/overworld/tile16/tile16_editor_action_state.h"
 #include "app/editor/overworld/tile16/tile16_editor_shortcuts.h"
 #include "app/editor/overworld/tile16/tile8_source_interaction.h"
+#include "app/editor/overworld/ui/ui_constants.h"
 #include "app/gfx/backend/irenderer.h"
 #include "app/gfx/core/bitmap.h"
 #include "app/gfx/debug/performance/performance_profiler.h"
@@ -1187,9 +1188,8 @@ void Tile16Editor::DrawTile8UsageOverlay() {
         canvas_pos.y + (tile_y * tile16_display) + (quad_y * quadrant_display));
     const ImVec2 max(min.x + quadrant_display, min.y + quadrant_display);
 
-    // Mirrors ZScream's right-click usage tint (purple, transparent).
-    draw_list->AddRectFilled(min, max, IM_COL32(150, 0, 210, 80));
-    draw_list->AddRect(min, max, IM_COL32(215, 170, 255, 180));
+    draw_list->AddRectFilled(min, max, kTileUsageHighlightFill);
+    draw_list->AddRect(min, max, kTileUsageHighlightEdge);
   }
 }
 

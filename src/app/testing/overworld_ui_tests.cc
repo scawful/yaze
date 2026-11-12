@@ -2,6 +2,7 @@
 
 #if defined(YAZE_ENABLE_IMGUI_TEST_ENGINE) && YAZE_ENABLE_IMGUI_TEST_ENGINE
 
+#include <algorithm>
 #include <array>
 #include <chrono>
 #include <cmath>
@@ -26,6 +27,7 @@
 #include "imgui.h"
 #include "nlohmann/json.hpp"
 #include "zelda3/game_data.h"
+#include "zelda3/overworld/tile16_usage_index.h"
 #include "zelda3/resource_labels.h"
 #if __has_include("imgui_test_engine/imgui_te_context.h")
 #include "imgui_test_engine/imgui_te_context.h"
@@ -1726,6 +1728,248 @@ static void RegisterProjectGraphicsImportPreviewTest(ImGuiTestEngine* engine) {
 #endif
 }
 
+// Read-only check of the Tile16 selector's map highlight on an explicitly
+// selected disposable ROM. The toggle is clicked through the selector; the
+// highlight is located in the canvas draw list and captured for review.
+static void RegisterTile16PlacementHighlightTest(ImGuiTestEngine* engine) {
+#ifdef YAZE_WITH_GRPC
+  const char* requested = std::getenv("YAZE_GUI_TILE16_HIGHLIGHT_ROM");
+  const char* capture_dir = std::getenv("YAZE_GUI_TILE16_HIGHLIGHT_CAPTURES");
+  if (!requested || !*requested || !capture_dir || !*capture_dir)
+    return;
+  ImGuiTestEngine_GetIO(engine).ConfigLogToTTY = true;
+  ImGuiTest* test =
+      IM_REGISTER_TEST(engine, "overworld_tile16", "map_placement_highlight");
+  test->TestFunc = [](ImGuiTestContext* ctx) {
+    namespace fs = std::filesystem;
+    const fs::path rom_request(std::getenv("YAZE_GUI_TILE16_HIGHLIGHT_ROM"));
+    const fs::path captures(std::getenv("YAZE_GUI_TILE16_HIGHLIGHT_CAPTURES"));
+    IM_CHECK(rom_request.is_absolute() && fs::is_directory(captures));
+
+    editor::EditorManager* manager = nullptr;
+    for (int frame = 0; frame < 200 && !manager; ++frame) {
+      auto* controller = Application::Instance().GetController();
+      manager = controller ? controller->editor_manager() : nullptr;
+      if (!manager)
+        ctx->Yield(1);
+    }
+    IM_CHECK(manager != nullptr);
+    auto opened = std::make_shared<std::optional<absl::Status>>();
+    manager->QueueDeferredAction([manager, rom_request, opened] {
+      const auto status = manager->OpenRomOrProject(rom_request.string());
+      if (status.ok()) {
+        manager->OpenEditorAndPanelsFromFlags(
+            "Overworld", "overworld.canvas,overworld.tile16_selector");
+      }
+      *opened = status;
+    });
+    for (int frame = 0; frame < 200 && !opened->has_value(); ++frame)
+      ctx->Yield(1);
+    IM_CHECK(opened->has_value() && opened->value().ok());
+    editor::OverworldEditor* overworld = nullptr;
+    for (int frame = 0; frame < 300; ++frame) {
+      auto* editors = manager->GetCurrentEditorSet();
+      overworld = editors ? editors->GetEditorAs<editor::OverworldEditor>(
+                                editor::EditorType::kOverworld)
+                          : nullptr;
+      if (overworld && overworld->overworld().is_loaded() &&
+          ctx->ItemExists("**/OwMap"))
+        break;
+      ctx->Yield(1);
+    }
+    IM_CHECK(overworld && overworld->overworld().is_loaded());
+    auto* rom = manager->GetCurrentRom();
+    IM_CHECK(rom && rom->is_loaded() && !rom->dirty());
+    const auto rom_before = rom->vector();
+
+    // A fresh profile opens ROM Load Options over the map. Its close button
+    // keeps the session's current options, like Cancel.
+    for (ImGuiWindow* window : ctx->UiContext->Windows) {
+      if (window->WasActive &&
+          std::string(window->Name).find("ROM Load Options") !=
+              std::string::npos) {
+        ctx->SetRef(window);
+        ctx->WindowClose("");
+        ctx->Yield(2);
+        break;
+      }
+    }
+
+    // Light World map 0x2C has no subscreen overlay to tint the highlight.
+    // Placement runs are local to the map; the canvas uses world Tile16s.
+    constexpr int kMap = 0x2C;
+    constexpr int kMapX = (kMap % 8) * 32;
+    constexpr int kMapY = (kMap / 8) * 32;
+    auto& world_tiles = overworld->overworld().GetMapTiles(0);
+    const auto first_run = [&](int tile) {
+      const auto runs =
+          zelda3::FindTile16MapPlacements(world_tiles, kMap, tile);
+      return runs.empty() ? std::optional<zelda3::Tile16PlacementRun>()
+                          : std::optional(runs.front());
+    };
+    const int first_tile = world_tiles[kMapX][kMapY];
+    int second_tile = first_tile;
+    for (int i = 0; i < 32 * 32 && second_tile == first_tile; ++i)
+      second_tile = world_tiles[kMapX + i % 32][kMapY + i / 32];
+    const auto first_target = first_run(first_tile);
+    const auto second_target = first_run(second_tile);
+    IM_CHECK(second_tile != first_tile);
+    IM_CHECK(first_target.has_value() && second_target.has_value());
+
+    auto& canvas = overworld->ow_map_canvas();
+    const auto view = [&](float scale,
+                          const zelda3::Tile16PlacementRun& target) {
+      canvas.set_global_scale(scale);
+      overworld->LocateOverworldTile(kMap, kMapX + target.x, kMapY + target.y);
+      ctx->Yield(3);
+    };
+    const auto request_tile = [&](int tile) {
+      overworld->RequestTile16Selection(tile);
+      ctx->Yield(3);
+      return overworld->current_tile16_id() == tile;
+    };
+    // The vertex nearest the expected placement corner proves where the
+    // highlight fill was drawn.
+    constexpr ImU32 fill = editor::kTileUsageHighlightFill;
+    struct FillScan {
+      int vertices = 0;
+      float corner_error = 1e9f;
+    };
+    const auto scan_fill = [&](const zelda3::Tile16PlacementRun& target) {
+      FillScan scan;
+      ctx->SetRef("");
+      const auto map_item = ctx->ItemInfo("**/OwMap");
+      if (map_item.Window == nullptr)
+        return scan;
+      const float cell = 16.0f * canvas.global_scale();
+      const ImVec2 corner(canvas.zero_point().x + canvas.scrolling().x +
+                              (kMapX + target.x) * cell,
+                          canvas.zero_point().y + canvas.scrolling().y +
+                              (kMapY + target.y) * cell);
+      for (const ImDrawVert& vert : map_item.Window->DrawList->VtxBuffer) {
+        if (vert.col != fill)
+          continue;
+        ++scan.vertices;
+        scan.corner_error =
+            std::min(scan.corner_error, std::abs(vert.pos.x - corner.x) +
+                                            std::abs(vert.pos.y - corner.y));
+      }
+      return scan;
+    };
+    const auto capture_renderer = [&](const char* name) -> absl::Status {
+      const fs::path path = captures / name;
+      auto result =
+          std::make_shared<std::optional<absl::StatusOr<ScreenshotArtifact>>>();
+      auto* controller = Application::Instance().GetController();
+      if (!controller)
+        return absl::FailedPreconditionError("No GUI controller");
+      controller->RequestScreenshot(
+          {.preferred_path = path.string(),
+           .format = ScreenshotFormat::kPng,
+           .reveal_to_user = false,
+           .callback = [result](absl::StatusOr<ScreenshotArtifact> image) {
+             *result = std::move(image);
+           }});
+      for (int frame = 0; frame < 200 && !result->has_value(); ++frame)
+        ctx->Yield(1);
+      if (!result->has_value())
+        return absl::DeadlineExceededError("GUI capture timed out");
+      return result->value().status();
+    };
+
+    IM_CHECK(request_tile(first_tile));
+    view(1.0f, *first_target);
+    IM_CHECK_EQ(overworld->current_map_id(), kMap);
+    const int baseline = scan_fill(*first_target).vertices;
+    IM_CHECK(capture_renderer("01-highlight-off.png").ok());
+
+    // Startup toasts can cover the selector controls. Their TTL pauses on
+    // hover, so park the mouse on the map while real time ages them out.
+    auto* toasts = manager->toast_manager();
+    IM_CHECK(toasts != nullptr);
+    if (toasts->pending_count() != 0) {
+      const auto map_item = ctx->ItemInfo("**/OwMap");
+      ctx->MouseSetViewport(map_item.Window);
+      ctx->MouseMoveToPos(map_item.RectClipped.GetCenter());
+      const auto deadline =
+          std::chrono::steady_clock::now() + std::chrono::seconds(15);
+      while (toasts->pending_count() != 0 &&
+             std::chrono::steady_clock::now() < deadline && !ctx->IsError())
+        ctx->Yield(1);
+      IM_CHECK_EQ(toasts->pending_count(), 0);
+    }
+
+    // Registry entries outlive their widgets; only a recently submitted item
+    // counts as the visible toggle.
+    auto& widgets = gui::WidgetIdRegistry::Instance();
+    const auto selector_window =
+        manager->window_manager().GetWorkspaceWindowName(
+            manager->GetCurrentSessionId(), "overworld.tile16_selector");
+    const auto click_toggle = [&]() -> bool {
+      ctx->SetRef(selector_window.c_str());
+      ctx->WindowFocus("");
+      for (int frame = 0; frame < 120 && !ctx->IsError(); ++frame) {
+        ctx->Yield(1);
+        for (const auto& path :
+             widgets.FindWidgets("*button:tile16_highlight_uses")) {
+          const ImGuiID id = widgets.GetWidgetId(path);
+          if (id != 0 && ctx->ItemExists(id)) {
+            ctx->ItemClick(id);
+            ctx->Yield(3);
+            return true;
+          }
+        }
+      }
+      return false;
+    };
+
+    IM_CHECK(click_toggle());
+    view(1.0f, *first_target);
+    const auto at_full = scan_fill(*first_target);
+    ctx->LogInfo(
+        "Tile16 0x%03X at 1.0x: %d fill vertices (baseline %d), "
+        "corner error %.2f px",
+        first_tile, at_full.vertices, baseline, at_full.corner_error);
+    IM_CHECK_GT(at_full.vertices, baseline);
+    IM_CHECK_LT(at_full.corner_error, 0.5f);
+    IM_CHECK(capture_renderer("02-highlight-first-tile-1x.png").ok());
+
+    view(0.5f, *first_target);
+    const auto at_half = scan_fill(*first_target);
+    ctx->LogInfo(
+        "Tile16 0x%03X at 0.5x: %d fill vertices, corner error "
+        "%.2f px",
+        first_tile, at_half.vertices, at_half.corner_error);
+    IM_CHECK_GT(at_half.vertices, baseline);
+    IM_CHECK_LT(at_half.corner_error, 0.5f);
+    IM_CHECK(capture_renderer("03-highlight-first-tile-half.png").ok());
+
+    IM_CHECK(request_tile(second_tile));
+    view(1.0f, *second_target);
+    const auto switched = scan_fill(*second_target);
+    ctx->LogInfo(
+        "Tile16 0x%03X at 1.0x: %d fill vertices, corner error "
+        "%.2f px",
+        second_tile, switched.vertices, switched.corner_error);
+    IM_CHECK_GT(switched.vertices, baseline);
+    IM_CHECK_LT(switched.corner_error, 0.5f);
+    IM_CHECK(capture_renderer("04-highlight-switched-tile.png").ok());
+
+    IM_CHECK(click_toggle());
+    view(1.0f, *second_target);
+    IM_CHECK_EQ(scan_fill(*second_target).vertices, baseline);
+    IM_CHECK(capture_renderer("05-highlight-off-again.png").ok());
+
+    IM_CHECK(!rom->dirty() && rom->vector() == rom_before);
+    ctx->LogInfo("Tile16 map highlight PASS; captures in %s",
+                 captures.string().c_str());
+  };
+  ImGuiTestEngine_QueueTest(engine, test, ImGuiTestRunFlags_RunFromCommandLine);
+#else
+  (void)engine;  // The maintained renderer screenshot queue requires gRPC.
+#endif
+}
+
 void RegisterOverworldUITests(ImGuiTestEngine* engine) {
   if (engine == nullptr)
     return;
@@ -1737,6 +1981,7 @@ void RegisterOverworldUITests(ImGuiTestEngine* engine) {
   RegisterLyraTerrainAcceptanceTest(engine);
   RegisterLyraTerrainReopenTest(engine);
   RegisterProjectGraphicsImportPreviewTest(engine);
+  RegisterTile16PlacementHighlightTest(engine);
 }
 
 }  // namespace yaze::test

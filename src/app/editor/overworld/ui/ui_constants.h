@@ -1,6 +1,8 @@
 #ifndef YAZE_APP_EDITOR_OVERWORLD_UI_CONSTANTS_H
 #define YAZE_APP_EDITOR_OVERWORLD_UI_CONSTANTS_H
 
+#include "imgui.h"
+
 namespace yaze {
 namespace editor {
 
@@ -64,6 +66,11 @@ inline constexpr unsigned int kOverworldMapSize = 0x200;
 inline constexpr int kTile16SelectorColumns = 8;
 inline constexpr float kTile16SelectorScale = 2.0f;
 inline constexpr float kTile16SelectorDrawOffsetX = 2.0f;
+
+// ZScream's usage tint: purple stays visible on ALTTP's greens and browns.
+// Shared by the map Tile16 highlight and the Tile16 editor's Tile8 overlay.
+inline constexpr ImU32 kTileUsageHighlightFill = IM_COL32(150, 0, 210, 80);
+inline constexpr ImU32 kTileUsageHighlightEdge = IM_COL32(215, 170, 255, 180);
 
 // Zoom/pan constants - centralized for consistency across all zoom controls
 inline constexpr float kOverworldMinZoom = 0.1f;

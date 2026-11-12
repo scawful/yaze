@@ -585,11 +585,6 @@ void OverworldCanvasRenderer::DrawTile16PlacementHighlights() {
                                  editor_->ow_map_canvas_.scrolling().y);
   const float map_extent = kOverworldMapSize * scale;
   const float cell = 16.0f * scale;
-  const ImVec4 accent = AgentUI::GetTheme().accent_color;
-  const ImU32 fill =
-      ImGui::GetColorU32(ImVec4(accent.x, accent.y, accent.z, 0.35f));
-  const ImU32 edge =
-      ImGui::GetColorU32(ImVec4(accent.x, accent.y, accent.z, 0.9f));
   const auto* lyra = editor_->lyra_canvas_.loaded()
                          ? editor_->lyra_canvas_.document()
                          : nullptr;
@@ -620,8 +615,8 @@ void OverworldCanvasRenderer::DrawTile16PlacementHighlights() {
     for (const auto& run : runs) {
       const ImVec2 run_min(left + run.x * cell, top + run.y * cell);
       const ImVec2 run_max(run_min.x + run.length * cell, run_min.y + cell);
-      draw_list->AddRectFilled(run_min, run_max, fill);
-      draw_list->AddRect(run_min, run_max, edge);
+      draw_list->AddRectFilled(run_min, run_max, kTileUsageHighlightFill);
+      draw_list->AddRect(run_min, run_max, kTileUsageHighlightEdge);
     }
   }
 }
