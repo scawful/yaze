@@ -507,6 +507,72 @@ TEST_F(GfxSheetSourceTest, D4SpecExtendsTheStandardSpecAndFollowsItsFlag) {
   EXPECT_FALSE(GfxSheetSource::Load(project).ok());
 }
 
+TEST_F(GfxSheetSourceTest, StandardSaveKeepsTheD4PrefixValidForReopen) {
+  constexpr char kD4[] = "Data/graphics/d4_zora_sprite_sheets.json";
+  fs::create_directories(root / "Util");
+  Write(root / "Util/macros.asm", "!ENABLE_D4_ZORA_REDESIGN = 0\n");
+  auto d4 = spec;
+  Write(root / "Data/graphics/e0.txt", GfxSheetSource::EncodeText(pixels));
+  d4["sheets"].push_back(
+      {{"global_sheet", "0xE0"},
+       {"source", "e0.txt"},
+       {"decoded_sha256", GfxSheetSource::DecodedSha256(pixels)},
+       {"why", "D4-only global"}});
+  Write(root / kD4, d4.dump(2) + "\n");
+  auto source = GfxSheetSource::Load(project);
+  ASSERT_TRUE(source.ok()) << source.status();
+  auto edited = pixels;
+  edited[7] = 3;
+  auto plan = source->Prepare(project, {{0xDF, edited}});
+  ASSERT_TRUE(plan.ok()) << plan.status();
+  ASSERT_EQ(plan->updates.size(), 2u + source->inputs().size());
+  EXPECT_TRUE(fs::equivalent(plan->updates[1].target, root / kD4));
+  const auto standard_after = Json::parse(plan->spec);
+  const auto d4_after = Json::parse(plan->updates[1].after);
+  EXPECT_EQ(d4_after["sheets"].back(), d4["sheets"].back());
+  for (size_t i = 0; i < standard_after["sheets"].size(); ++i)
+    EXPECT_EQ(d4_after["sheets"][i], standard_after["sheets"][i]) << i;
+  for (const auto& update : plan->updates)
+    Write(update.target, update.after);
+  project.graphics_sheets.source_spec_sha1 = plan->sha1;
+  ASSERT_TRUE(project.Save().ok());
+  source->Commit(std::move(*plan), Read(project.filepath));
+  EXPECT_TRUE(source->CheckDisk().ok());
+  EXPECT_TRUE(source->CheckBinding(project).ok());
+
+  // Select the real producer's other mode after the standard save.
+  Write(root / "Util/macros.asm", "!ENABLE_D4_ZORA_REDESIGN = 1\n");
+  project.graphics_sheets.source_spec = kD4;
+  project.graphics_sheets.source_spec_sha1 =
+      GfxSheetSource::SpecSha1(Read(root / kD4));
+  ASSERT_TRUE(project.Save().ok());
+  auto reopened = GfxSheetSource::Load(project);
+  ASSERT_TRUE(reopened.ok()) << reopened.status();
+  EXPECT_EQ(reopened->sheets().at(0xDF).pixels, edited);
+  EXPECT_EQ(reopened->sheets().at(0xE0).pixels, pixels);
+}
+
+TEST_F(GfxSheetSourceTest, StandardDraftBindsOptionalD4SpecPresenceAndBytes) {
+  const auto d4 = root / "Data/graphics/d4_zora_sprite_sheets.json";
+  auto source = GfxSheetSource::Load(project);
+  ASSERT_TRUE(source.ok()) << source.status();
+  ASSERT_FALSE(fs::exists(d4));
+  EXPECT_TRUE(source->CheckDisk().ok());
+  Write(d4, spec.dump(2) + "\n");
+  EXPECT_FALSE(source->CheckDisk().ok());
+  EXPECT_FALSE(source->Prepare(project, {{0xDF, pixels}}).ok());
+  source = GfxSheetSource::Load(project);
+  ASSERT_TRUE(source.ok()) << source.status();
+  const auto before = Read(d4);
+  Write(d4, before + " ");
+  EXPECT_FALSE(source->CheckDisk().ok());
+  Write(d4, before);
+  EXPECT_TRUE(source->CheckDisk().ok());
+  fs::remove(d4);
+  EXPECT_FALSE(source->CheckDisk().ok());
+  EXPECT_FALSE(source->Prepare(project, {{0xDF, pixels}}).ok());
+}
+
 TEST_F(GfxSheetSourceTest, IntegerAndSchemaFieldsMatchPythonWithoutNarrowing) {
   const auto original = spec;
   for (const auto& value : std::vector<Json>{

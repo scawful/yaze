@@ -420,25 +420,32 @@ absl::StatusOr<GfxSheetSource> GfxSheetSource::Load(
   result.spec_path_ = spec_path.string();
   result.spec_ = bytes;
   result.spec_sha1_ = SpecSha1(bytes);
-  if (d4) {
-    const auto standard_expected = root / kSpec;
-    auto standard_path = fs::canonical(standard_expected, ec);
-    if (ec || standard_path != standard_expected)
+  const auto alternate_expected = root / (d4 ? kSpec : kD4Spec);
+  result.alternate_spec_path_ = alternate_expected.string();
+  const bool alternate_exists = fs::exists(alternate_expected, ec);
+  if (ec)
+    return Bad("alternate spec is unreadable");
+  if (d4 || alternate_exists) {
+    const auto alternate_path = fs::canonical(alternate_expected, ec);
+    if (ec || alternate_path != alternate_expected)
       return Bad("canonical spec must not be redirected");
-    ASSIGN_OR_RETURN(result.standard_, Read(standard_path));
-    result.standard_path_ = standard_path.string();
+    ASSIGN_OR_RETURN(auto alternate, Read(alternate_path));
+    result.alternate_spec_ = std::move(alternate);
   }
   try {
     const auto spec = Json::parse(bytes);
     if (!SupportedHeader(spec))
       return Bad("unsupported schema2 sheet spec");
-    if (d4) {
-      const auto standard = Json::parse(result.standard_);
-      if (!SupportedHeader(standard))
-        return Bad("unsupported schema2 standard sheet spec");
+    if (result.alternate_spec_) {
+      const auto alternate = Json::parse(*result.alternate_spec_);
+      if (!SupportedHeader(alternate))
+        return Bad("unsupported schema2 alternate sheet spec");
+      const auto& standard = d4 ? alternate : spec;
+      const auto& extended = d4 ? spec : alternate;
       const auto& prefix = standard.at("sheets");
-      if (prefix.size() > spec.at("sheets").size() ||
-          !std::equal(prefix.begin(), prefix.end(), spec.at("sheets").begin()))
+      if (prefix.size() > extended.at("sheets").size() ||
+          !std::equal(prefix.begin(), prefix.end(),
+                      extended.at("sheets").begin()))
         return Bad("D4 sheet spec must preserve every standard sheet entry");
     }
     // A flagged global assembles only under its define and then replaces the
@@ -563,13 +570,17 @@ absl::Status GfxSheetSource::CheckDisk() const {
   ASSIGN_OR_RETURN(auto spec, Read(spec_path_));
   if (spec != spec_)
     return Bad("spec changed on disk; draft retained");
-  if (!standard_path_.empty()) {
-    if (fs::canonical(standard_path_, spec_error) != fs::path(standard_path_) ||
+  const bool alternate_exists = fs::exists(alternate_spec_path_, spec_error);
+  if (spec_error || alternate_exists != alternate_spec_.has_value())
+    return Bad("alternate spec changed on disk; draft retained");
+  if (alternate_exists) {
+    if (fs::canonical(alternate_spec_path_, spec_error) !=
+            fs::path(alternate_spec_path_) ||
         spec_error)
       return Bad("spec target was redirected");
-    ASSIGN_OR_RETURN(auto standard, Read(standard_path_));
-    if (standard != standard_)
-      return Bad("standard spec changed on disk; draft retained");
+    ASSIGN_OR_RETURN(auto alternate, Read(alternate_spec_path_));
+    if (alternate != *alternate_spec_)
+      return Bad("alternate spec changed on disk; draft retained");
   }
   for (const auto& [path, before] : inputs_) {
     std::error_code ec;
@@ -603,9 +614,9 @@ absl::StatusOr<GfxSheetSource::Plan> GfxSheetSource::Prepare(
   plan.descriptor = descriptor_;
   plan.sheets = sheets_;
   auto spec = Json::parse(spec_);
-  // The D4 spec's standard prefix shares sources with kSpec; keep it equal.
-  auto standard = standard_path_.empty() ? Json() : Json::parse(standard_);
-  bool changed = false, standard_changed = false;
+  // Shared artwork must retain equal hashes in both specs, whichever is open.
+  auto alternate = alternate_spec_ ? Json::parse(*alternate_spec_) : Json();
+  bool changed = false, alternate_changed = false;
   for (const auto& [id, edited] : pixels) {
     auto found = plan.sheets.find(id);
     if (found == plan.sheets.end() || edited.size() != 4096 ||
@@ -643,21 +654,21 @@ absl::StatusOr<GfxSheetSource::Plan> GfxSheetSource::Prepare(
     for (auto& entry : spec["sheets"])
       if (MatchesSheet(entry, id, sheet.flag))
         entry["decoded_sha256"] = digest;
-    if (!standard_path_.empty())
-      for (auto& entry : standard["sheets"])
+    if (alternate_spec_)
+      for (auto& entry : alternate["sheets"])
         if (MatchesSheet(entry, id, sheet.flag) &&
             entry["decoded_sha256"] != digest) {
           entry["decoded_sha256"] = digest;
-          standard_changed = true;
+          alternate_changed = true;
         }
   }
   plan.spec = changed ? spec.dump(2) + "\n" : spec_;
   plan.sha1 = SpecSha1(plan.spec);
   plan.updates.push_back({spec_path_, spec_, plan.spec});
-  if (!standard_path_.empty())
+  if (alternate_spec_)
     plan.updates.push_back(
-        {standard_path_, standard_,
-         standard_changed ? standard.dump(2) + "\n" : standard_});
+        {alternate_spec_path_, *alternate_spec_,
+         alternate_changed ? alternate.dump(2) + "\n" : *alternate_spec_});
   for (const auto& [path, before] : inputs_) {
     std::string after = before;
     for (const auto& [id, sheet] : plan.sheets)
@@ -671,8 +682,8 @@ void GfxSheetSource::Commit(Plan plan, std::string descriptor) {
   descriptor_ = std::move(descriptor);
   for (const auto& update : plan.updates) {
     const auto target = update.target.string();
-    if (target == standard_path_)
-      standard_ = update.after;
+    if (target == alternate_spec_path_)
+      alternate_spec_ = update.after;
     else if (target != spec_path_)
       inputs_[target] = update.after;
   }

@@ -63,9 +63,10 @@ class GfxSheetSource {
   std::string spec_path_;
   std::string spec_;
   std::string spec_sha1_;
-  // The standard spec a selected D4 spec extends; empty for the standard spec.
-  std::string standard_path_;
-  std::string standard_;
+  // Bind the other canonical spec too. Standard requires D4 only when it
+  // exists; D4 always requires standard. Absence is part of the binding.
+  std::string alternate_spec_path_;
+  std::optional<std::string> alternate_spec_;
   std::map<uint16_t, Sheet> sheets_;
 };
 }  // namespace yaze::core
