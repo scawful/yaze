@@ -144,4 +144,43 @@ TEST(Tile16UsageIndexTest, BuildTile16DisplayOrderSortsAndFilters) {
             (std::vector<int>{1, 2, 4, 5}));
 }
 
+bool operator==(const Tile16PlacementRun& a, const Tile16PlacementRun& b) {
+  return a.x == b.x && a.y == b.y && a.length == b.length;
+}
+
+TEST(Tile16UsageIndexTest, FindTile16MapPlacementsMergesRowRunsInOneMap) {
+  std::vector<std::vector<uint16_t>> world(256, std::vector<uint16_t>(256, 0));
+  // Local map 9 is the second map of the second row: tiles x 32..63, y 32..63.
+  world[32 + 2][32 + 5] = 7;
+  world[32 + 3][32 + 5] = 7;
+  world[32 + 4][32 + 5] = 7;
+  world[32 + 31][32 + 0] = 7;
+  world[32 + 0][32 + 31] = 7;
+  world[64][32 + 5] = 7;  // Map 10 continues the row; not part of map 9.
+  world[2][5] = 7;        // Map 0.
+
+  EXPECT_EQ(
+      FindTile16MapPlacements(world, 9, 7),
+      (std::vector<Tile16PlacementRun>{{31, 0, 1}, {2, 5, 3}, {0, 31, 1}}));
+  EXPECT_TRUE(FindTile16MapPlacements(world, 9, 8).empty());
+  EXPECT_TRUE(FindTile16MapPlacements(world, -1, 7).empty());
+
+  std::vector<std::vector<uint16_t>> small(8, std::vector<uint16_t>(8, 7));
+  const auto clipped = FindTile16MapPlacements(small, 0, 7);
+  ASSERT_EQ(clipped.size(), 8u);
+  EXPECT_EQ(clipped.front(), (Tile16PlacementRun{0, 0, 8}));
+}
+
+TEST(Tile16UsageIndexTest, FindTile16MapPlacementsReadsRowMajorMaps) {
+  std::array<uint16_t, 32 * 32> map{};
+  map.fill(3);
+  map[4 * 32 + 10] = 9;
+  map[4 * 32 + 11] = 9;
+  EXPECT_EQ(FindTile16MapPlacements(map, 9),
+            (std::vector<Tile16PlacementRun>{{10, 4, 2}}));
+  const auto all = FindTile16MapPlacements(map, 3);
+  ASSERT_EQ(all.size(), 33u);
+  EXPECT_EQ(all.front(), (Tile16PlacementRun{0, 0, 32}));
+}
+
 }  // namespace yaze::zelda3

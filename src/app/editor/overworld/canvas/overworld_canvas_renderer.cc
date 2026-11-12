@@ -249,6 +249,7 @@ void OverworldCanvasRenderer::DrawOverworldCanvas() {
     } else {
       editor_->lyra_canvas_.FinishStroke(editor_->undo_manager_);
     }
+    DrawTile16PlacementHighlights();
     const bool tile_tool = !placing_project_entity &&
                            (editor_->current_mode == EditingMode::DRAW_TILE ||
                             editor_->current_mode == EditingMode::FILL_TILE);
@@ -564,6 +565,63 @@ void OverworldCanvasRenderer::DrawOverworldMaps() {
                            12);
       draw_list->PathStroke(ImGui::GetColorU32(theme.status_active), 0,
                             2.5f * scale);
+    }
+  }
+}
+
+void OverworldCanvasRenderer::DrawTile16PlacementHighlights() {
+  if (!highlight_tile16_uses_) {
+    return;
+  }
+  float scale = editor_->ow_map_canvas_.global_scale();
+  if (scale <= 0.0f)
+    scale = 1.0f;
+  ImDrawList* draw_list = ImGui::GetWindowDrawList();
+  const ImVec2 clip_min = draw_list->GetClipRectMin();
+  const ImVec2 clip_max = draw_list->GetClipRectMax();
+  const ImVec2 canvas_origin(editor_->ow_map_canvas_.zero_point().x +
+                                 editor_->ow_map_canvas_.scrolling().x,
+                             editor_->ow_map_canvas_.zero_point().y +
+                                 editor_->ow_map_canvas_.scrolling().y);
+  const float map_extent = kOverworldMapSize * scale;
+  const float cell = 16.0f * scale;
+  const ImVec4 accent = AgentUI::GetTheme().accent_color;
+  const ImU32 fill =
+      ImGui::GetColorU32(ImVec4(accent.x, accent.y, accent.z, 0.35f));
+  const ImU32 edge =
+      ImGui::GetColorU32(ImVec4(accent.x, accent.y, accent.z, 0.9f));
+  const auto* lyra = editor_->lyra_canvas_.loaded()
+                         ? editor_->lyra_canvas_.document()
+                         : nullptr;
+  const int tile_id = editor_->current_tile16_;
+
+  for (int i = 0; i < 0x40; ++i) {
+    const int map_index = i + editor_->current_world_ * 0x40;
+    if (map_index >= editor_->overworld_.inspected_map_count()) {
+      continue;
+    }
+    const float left =
+        canvas_origin.x + static_cast<int>((i % 8) * kOverworldMapSize * scale);
+    const float top =
+        canvas_origin.y + static_cast<int>((i / 8) * kOverworldMapSize * scale);
+    if (left >= clip_max.x || top >= clip_max.y ||
+        left + map_extent <= clip_min.x || top + map_extent <= clip_min.y) {
+      continue;
+    }
+    const int lyra_index = map_index - core::LyraTerrainDocument::kFirstMap;
+    const auto runs =
+        lyra && lyra_index >= 0 &&
+                lyra_index < core::LyraTerrainDocument::kMapCount
+            ? zelda3::FindTile16MapPlacements(lyra->maps()[lyra_index], tile_id)
+            : zelda3::FindTile16MapPlacements(
+                  editor_->overworld_.GetMapTiles(
+                      std::min(map_index / 0x40, 2)),
+                  i, tile_id);
+    for (const auto& run : runs) {
+      const ImVec2 run_min(left + run.x * cell, top + run.y * cell);
+      const ImVec2 run_max(run_min.x + run.length * cell, run_min.y + cell);
+      draw_list->AddRectFilled(run_min, run_max, fill);
+      draw_list->AddRect(run_min, run_max, edge);
     }
   }
 }
@@ -896,6 +954,18 @@ void OverworldCanvasRenderer::DrawTile16ViewControls() {
   gui::AutoRegisterLastItem("button", "tile16_usage_scope");
   if (ImGui::IsItemHovered()) {
     ImGui::SetTooltip(tr("Maps that usage counts and \"Hide unused\" use"));
+  }
+
+  ImGui::SameLine();
+  if (gui::ToggleButton(ICON_MD_HIGHLIGHT "##Tile16HighlightUses",
+                        highlight_tile16_uses_)) {
+    highlight_tile16_uses_ = !highlight_tile16_uses_;
+  }
+  gui::AutoRegisterLastItem("button", "tile16_highlight_uses");
+  if (ImGui::IsItemHovered()) {
+    ImGui::SetTooltip(
+        tr("Highlight where Tile16 0x%03X is placed in this world"),
+        editor_->current_tile16_);
   }
 
   ImGui::SetNextWindowSizeConstraints(ImVec2(260.0f, 0.0f),

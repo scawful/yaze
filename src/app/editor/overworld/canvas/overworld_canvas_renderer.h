@@ -88,6 +88,8 @@ class OverworldCanvasRenderer {
 
   /// @brief Render the 64 overworld map bitmaps to the canvas
   void DrawOverworldMaps();
+  /// Tints every placement of the current Tile16 on the visible maps.
+  void DrawTile16PlacementHighlights();
   void DrawMapWithAreaLayers(int map_index, int map_x, int map_y, float scale);
 
   // Subscreen overlay layer per map (sky, fog, lava, canopy, rain), built in
@@ -130,6 +132,7 @@ class OverworldCanvasRenderer {
   Tile16UsageScope tile16_scope_ = Tile16UsageScope::kAllMaps;
   int tile16_scope_area_ = 0;
   bool tile16_hide_unused_ = false;
+  bool highlight_tile16_uses_ = false;
   bool tile16_order_dirty_ = true;
   bool tile16_grid_hovered_ = false;
   double tile16_last_count_time_ = -1.0;
