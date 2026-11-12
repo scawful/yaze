@@ -66,7 +66,8 @@ class FeatureHintManager {
   void RegisterHint(FeatureHintDefinition definition);
 
   /// Show the tip if enabled, known, and not yet dismissed. Returns true when
-  /// a toast was emitted (and the id was marked dismissed).
+  /// a toast was emitted (and the id was marked dismissed). While another tip
+  /// is still on screen, returns false and leaves this tip for a later trigger.
   bool MaybeShow(std::string_view id);
 
   /// Mark dismissed without showing (e.g. user opened the guide manually).
@@ -83,6 +84,7 @@ class FeatureHintManager {
   size_t dismissed_count() const;
 
  private:
+  bool OtherHintOnScreen(std::string_view id) const;
   void Persist();
 
   UserSettings* user_settings_ = nullptr;

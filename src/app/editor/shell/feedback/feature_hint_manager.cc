@@ -61,6 +61,9 @@ bool FeatureHintManager::MaybeShow(std::string_view id) {
   if (it == catalog_.end()) {
     return false;
   }
+  if (OtherHintOnScreen(id)) {
+    return false;
+  }
 
   const FeatureHintDefinition& hint = it->second;
   if (hint.offer_guide && guide_callback_) {
@@ -71,6 +74,18 @@ bool FeatureHintManager::MaybeShow(std::string_view id) {
   }
   Dismiss(id);
   return true;
+}
+
+bool FeatureHintManager::OtherHintOnScreen(std::string_view id) const {
+  for (size_t i = 0; i < toast_manager_->pending_count(); ++i) {
+    const std::string& message = toast_manager_->GetPendingToast(i)->message;
+    for (const auto& [other_id, hint] : catalog_) {
+      if (other_id != id && message == hint.message) {
+        return true;
+      }
+    }
+  }
+  return false;
 }
 
 void FeatureHintManager::Dismiss(std::string_view id) {
