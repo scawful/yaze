@@ -544,6 +544,10 @@ void GraphicsEditor::ProjectSourceSaveCommitted(core::GfxSheetSource::Plan plan,
 
 absl::Status GraphicsEditor::Save() {
   RETURN_IF_ERROR(SaveScratchAssets());
+  return SaveRomData();
+}
+
+absl::Status GraphicsEditor::SaveRomData() {
   if (state_.selection.is_floating)
     return absl::FailedPreconditionError(
         "Commit or cancel the floating paste in Graphics before saving "

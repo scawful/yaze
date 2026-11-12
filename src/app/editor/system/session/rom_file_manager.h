@@ -3,11 +3,14 @@
 
 #include <ctime>
 #include <filesystem>
+#include <optional>
 #include <string>
 #include <vector>
 
 #include "absl/status/status.h"
+#include "core/source_artifact_publisher.h"
 #include "rom/rom.h"
+#include "util/rom_hash.h"
 
 namespace yaze {
 namespace editor {
@@ -36,6 +39,20 @@ class RomFileManager {
   absl::Status SaveRom(Rom* rom,
                        const std::filesystem::path& collision_source = {});
   absl::Status SaveRomAs(Rom* rom, const std::string& filename);
+  struct PreparedSaveArtifacts {
+    // ROM first, then its optional collision source. File bytes include a
+    // retained copier header; project identity always hashes the ROM body.
+    std::vector<core::SourceArtifactUpdate> updates;
+    util::RomIdentityHashes rom_identity;
+  };
+  // Read-only staging from a serialized in-memory candidate. The caller pins
+  // old bytes under its publication lock and must CAS every returned update.
+  // This does not change filenames, dirty state, backups, or Save receipts.
+  static absl::StatusOr<PreparedSaveArtifacts> PrepareSaveArtifacts(
+      Rom* candidate, const std::filesystem::path& target,
+      const std::optional<std::string>& disk_rom,
+      const std::filesystem::path& collision_source = {},
+      const std::optional<std::string>& disk_collision = std::nullopt);
   absl::Status OpenRomOrProject(Rom* rom, const std::string& filename);
   absl::Status CreateBackup(Rom* rom);
   absl::Status ValidateRom(Rom* rom);

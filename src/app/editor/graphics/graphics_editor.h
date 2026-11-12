@@ -118,6 +118,8 @@ class GraphicsEditor : public Editor {
   void Initialize() override;
   absl::Status Load() override;
   absl::Status Save() override;
+  // ROM serializer only; the caller owns scratch-asset publication separately.
+  absl::Status SaveRomData();
   // Detached assets save independently of ROM sheet serialization settings.
   absl::Status SaveScratchAssets();
   bool HasPendingSourceChanges() const;

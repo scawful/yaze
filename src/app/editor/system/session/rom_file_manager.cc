@@ -137,6 +137,38 @@ absl::Status RomFileManager::SaveRomAs(Rom* rom, const std::string& filename) {
   return status;
 }
 
+absl::StatusOr<RomFileManager::PreparedSaveArtifacts>
+RomFileManager::PrepareSaveArtifacts(
+    Rom* candidate, const std::filesystem::path& target,
+    const std::optional<std::string>& disk_rom,
+    const std::filesystem::path& collision_source,
+    const std::optional<std::string>& disk_collision) {
+  if (candidate == nullptr || !candidate->is_loaded())
+    return absl::FailedPreconditionError("No candidate ROM loaded");
+  if (target.empty())
+    return absl::InvalidArgumentError("No ROM publication target");
+  RETURN_IF_ERROR(candidate->CheckLayoutSaveable());
+  RETURN_IF_ERROR(candidate->ValidateLyraPrivateReservation());
+
+  PreparedSaveArtifacts prepared;
+  std::string file_bytes(candidate->copier_header().begin(),
+                         candidate->copier_header().end());
+  file_bytes.append(candidate->vector().begin(), candidate->vector().end());
+  prepared.updates.push_back({target, disk_rom, std::move(file_bytes)});
+  prepared.rom_identity =
+      util::ComputeRomIdentityHashes(candidate->data(), candidate->size());
+  if (!collision_source.empty()) {
+    if (!disk_rom.has_value())
+      return absl::FailedPreconditionError(
+          "Collision-source preparation requires the previous ROM bytes");
+    ASSIGN_OR_RETURN(auto update, PrepareRomCollisionSourceUpdate(
+                                      candidate, collision_source, *disk_rom,
+                                      disk_collision));
+    prepared.updates.push_back(std::move(update));
+  }
+  return prepared;
+}
+
 absl::Status RomFileManager::OpenRomOrProject(Rom* rom,
                                               const std::string& filename) {
   if (!rom) {

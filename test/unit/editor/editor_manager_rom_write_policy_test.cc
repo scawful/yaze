@@ -85,6 +85,9 @@ class ExpandedGraphicsLoadTestPeer {
 
 class EditorManagerProjectSaveBindingTestPeer {
  public:
+  static auto PrepareRomSave(EditorManager& manager) {
+    return manager.PrepareRomSave(std::nullopt);
+  }
   static RomLifecycleManager& Lifecycle(EditorManager& manager) {
     return manager.rom_lifecycle_;
   }
@@ -989,6 +992,37 @@ class NativeSaveReceiptIntegrationTest : public ::testing::Test {
   bool had_app_data_override_ = false;
   bool app_data_redirected_ = false;
 };
+
+TEST_F(NativeSaveReceiptIntegrationTest,
+       PreparationDoesNotPublishOrAdvanceNativeSaveGeneration) {
+  ASSERT_NO_FATAL_FAILURE(CommitBaseline());
+  const auto disk_rom = ReadText(source_);
+  const auto descriptor = ReadText(manager_->GetCurrentProject()->filepath);
+  const auto receipt = ReadText(receipt_);
+  const auto context = ReadText(context_);
+  ASSERT_OK(manager_->GetCurrentRom()->WriteByte(0x1234, 0xA5));
+  const auto pending_rom = manager_->GetCurrentRom()->vector();
+  {
+    auto prepared =
+        EditorManagerProjectSaveBindingTestPeer::PrepareRomSave(*manager_);
+    ASSERT_TRUE(prepared.ok()) << prepared.status();
+    EXPECT_EQ((*prepared)->rom->vector(), pending_rom);
+    auto artifacts = RomFileManager::PrepareSaveArtifacts((*prepared)->rom,
+                                                          source_, disk_rom);
+    ASSERT_TRUE(artifacts.ok()) << artifacts.status();
+    ASSERT_EQ(artifacts->updates.size(), 1u);
+    EXPECT_NE(artifacts->updates[0].after, disk_rom);
+    EXPECT_EQ(ReadText(source_), disk_rom);
+    EXPECT_EQ(ReadText(manager_->GetCurrentProject()->filepath), descriptor);
+    EXPECT_EQ(ReadText(receipt_), receipt);
+    EXPECT_EQ(ReadText(context_), context);
+  }
+  EXPECT_EQ(manager_->GetCurrentRom()->vector(), pending_rom);
+  EXPECT_TRUE(manager_->GetCurrentRom()->dirty());
+  EXPECT_EQ(ReadText(receipt_), receipt);
+  ASSERT_OK(manager_->SaveRom());
+  EXPECT_EQ(ReadReceipt(receipt_).at("generation"), 2u);
+}
 
 TEST_F(NativeSaveReceiptIntegrationTest,
        NativeCommitsAdvanceGenerationEvenWhenRomBytesAreIdentical) {
@@ -4894,6 +4928,20 @@ TEST(GfxGroupSaveTest, SpritesetEditSavesAndReopensOrBlocksWhenDisabled) {
   EXPECT_TRUE(session->HasPendingGfxGroupChanges());
 
   core::FeatureFlags::get().kSaveGfxGroups = true;
+  const auto before_preparation = session->rom.vector();
+  const bool was_dirty = session->rom.dirty();
+  {
+    auto prepared =
+        EditorManagerProjectSaveBindingTestPeer::PrepareRomSave(*manager);
+    ASSERT_TRUE(prepared.ok()) << prepared.status();
+    EXPECT_EQ((*prepared)->rom->vector()[kSlotPc + 2], 0x55);
+    EXPECT_EQ(ReadByteAt(rom_path, kSlotPc + 2), 0x00);
+    EXPECT_FALSE(session->HasPendingGfxGroupChanges());
+  }
+  // Abandoning the candidate restores ROM bytes and derived model dirtiness.
+  EXPECT_EQ(session->rom.vector(), before_preparation);
+  EXPECT_EQ(session->rom.dirty(), was_dirty);
+  EXPECT_TRUE(session->HasPendingGfxGroupChanges());
   ASSERT_OK(manager->SaveRom());
   EXPECT_FALSE(session->HasPendingGfxGroupChanges());
 

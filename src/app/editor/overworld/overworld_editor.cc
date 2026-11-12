@@ -1578,8 +1578,20 @@ absl::Status OverworldEditor::Save() {
     return absl::FailedPreconditionError(
         "Publish project graphics before Save ROM (Edit / Import Project "
         "Graphics)");
+  RETURN_IF_ERROR(SaveScratchAssets());
+  return SaveRomData();
+}
+
+absl::Status OverworldEditor::SaveScratchAssets() {
   FinishScratchEdit("Edit scratch layout");
-  RETURN_IF_ERROR(FlushScratchPadIfDirty());
+  return FlushScratchPadIfDirty();
+}
+
+absl::Status OverworldEditor::SaveRomData() {
+  if (graphics_source_ && graphics_source_->any_dirty())
+    return absl::FailedPreconditionError(
+        "Publish project graphics before Save ROM (Edit / Import Project "
+        "Graphics)");
   if (rom_ == nullptr) {
     return absl::FailedPreconditionError("No ROM for overworld sprites");
   }

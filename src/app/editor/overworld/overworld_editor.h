@@ -200,6 +200,9 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
       int map_id, const std::vector<GuardedTileCell>& cells);
   absl::Status Find() override { return absl::UnimplementedError("Find"); }
   absl::Status Save() override;
+  // ROM serializer only; the caller owns scratch-asset publication separately.
+  absl::Status SaveRomData();
+  absl::Status SaveScratchAssets();
   absl::Status BeginSaveTransaction() override;
   void RollbackSaveTransaction() override;
   void CommitSaveTransaction() override;

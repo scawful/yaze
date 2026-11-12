@@ -16,6 +16,7 @@
 #include "absl/strings/str_format.h"
 #include "app/editor/dungeon/dungeon_editor_v2.h"
 #include "app/editor/editor_manager.h"
+#include "app/editor/system/session/rom_file_manager.h"
 #include "app/gfx/backend/null_renderer.h"
 #include "core/features.h"
 #include "editor_test_support.h"
@@ -118,6 +119,67 @@ TEST_F(CollisionSourcePairingTest, PrepareCollisionUpdateDoesNotPublish) {
   EXPECT_FALSE(stale.ok());
   EXPECT_EQ(ReadFile(rom_path_), disk_rom);
   EXPECT_EQ(ReadFile(json_path_), disk_json);
+}
+
+TEST_F(CollisionSourcePairingTest, StageRomAndCollisionWithoutPublishing) {
+  const auto disk_rom = ReadFile(rom_path_);
+  const auto disk_json = ReadFile(json_path_);
+  SetCollisionTile(&rom_, 101, 0xB3);
+  const auto candidate = rom_.vector();
+  const auto prepared = RomFileManager::PrepareSaveArtifacts(
+      &rom_, rom_path_, disk_rom, json_path_, disk_json);
+  ASSERT_TRUE(prepared.ok()) << prepared.status();
+  ASSERT_EQ(prepared->updates.size(), 2u);
+  EXPECT_EQ(prepared->updates[0].target, rom_path_);
+  EXPECT_EQ(prepared->updates[0].before, disk_rom);
+  EXPECT_EQ(prepared->updates[0].after,
+            std::string(candidate.begin(), candidate.end()));
+  EXPECT_EQ(prepared->updates[1].target, json_path_);
+  EXPECT_NE(prepared->updates[1].after, disk_json);
+  EXPECT_EQ(ReadFile(rom_path_), disk_rom);
+  EXPECT_EQ(ReadFile(json_path_), disk_json);
+  EXPECT_TRUE(rom_.dirty());
+  EXPECT_EQ(rom_.filename(), rom_path_.string());
+
+  const auto stale = RomFileManager::PrepareSaveArtifacts(
+      &rom_, rom_path_, disk_rom, json_path_, "{\"rooms\": []}");
+  EXPECT_FALSE(stale.ok());
+  EXPECT_EQ(ReadFile(rom_path_), disk_rom);
+  EXPECT_EQ(ReadFile(json_path_), disk_json);
+}
+
+TEST_F(CollisionSourcePairingTest, StagedFileKeepsHeaderButIdentityHashesBody) {
+  const auto disk_rom = ReadFile(rom_path_);
+  const auto disk_json = ReadFile(json_path_);
+  const std::string header(kCopierHeaderSize, '\x5A');
+  const auto headered = header + disk_rom;
+  Rom candidate;
+  ASSERT_TRUE(
+      candidate
+          .LoadFromData(std::vector<uint8_t>(headered.begin(), headered.end()))
+          .ok());
+  ASSERT_TRUE(candidate.has_copier_header());
+  candidate.set_filename(rom_path_.string());
+  SetCollisionTile(&candidate, 101, 0xB3);
+
+  const auto prepared = RomFileManager::PrepareSaveArtifacts(
+      &candidate, rom_path_, headered, json_path_, disk_json);
+  ASSERT_TRUE(prepared.ok()) << prepared.status();
+  ASSERT_EQ(prepared->updates.size(), 2u);
+  const auto& file = prepared->updates[0];
+  EXPECT_EQ(file.before, headered);
+  EXPECT_EQ(file.after.substr(0, kCopierHeaderSize), header);
+  EXPECT_EQ(file.after.substr(kCopierHeaderSize),
+            std::string(candidate.vector().begin(), candidate.vector().end()));
+  EXPECT_EQ(prepared->rom_identity.sha1,
+            util::ComputeSha1Hex(candidate.data(), candidate.size()));
+  EXPECT_NE(
+      prepared->rom_identity.sha1,
+      util::ComputeSha1Hex(reinterpret_cast<const uint8_t*>(file.after.data()),
+                           file.after.size()));
+  EXPECT_EQ(ReadFile(rom_path_), disk_rom);
+  EXPECT_EQ(ReadFile(json_path_), disk_json);
+  EXPECT_TRUE(candidate.dirty());
 }
 
 TEST_F(CollisionSourcePairingTest, UnchangedCollisionLeavesJsonUntouched) {

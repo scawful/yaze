@@ -785,6 +785,27 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
   absl::Status CheckRomWritePolicy(
       const std::optional<std::string>& target_filename = std::nullopt);
   absl::Status CheckOracleRomSafetyPreSave(Rom* rom);
+  // Holds the in-memory candidate and editor rollback state until publication.
+  // Destroying it without Commit restores pending ROM/editor edits. Preparation
+  // does not flush scratch assets, publish files, or mint a native Save receipt.
+  struct PreparedRomSave {
+    struct Transactions;
+    PreparedRomSave(Rom* rom, const project::YazeProject& project,
+                    RomLifecycleManager* lifecycle,
+                    project::YazeProject* restore_project);
+    ~PreparedRomSave();
+    void Commit();
+
+    Rom* rom;
+    project::YazeProject project;
+    bool lyra_a0_only = false;
+    OverworldEditor* overworld_scratch = nullptr;
+    GraphicsEditor* graphics_scratch = nullptr;
+    std::filesystem::path collision_source;
+    std::unique_ptr<Transactions> transactions;
+  };
+  absl::StatusOr<std::unique_ptr<PreparedRomSave>> PrepareRomSave(
+      const std::optional<std::string>& save_as_filename);
   absl::Status SaveRomInternal(
       const std::optional<std::string>& save_as_filename);
   // rom_written=false records a project-only Save: the ROM is bound as it is

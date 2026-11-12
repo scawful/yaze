@@ -26,6 +26,7 @@
 
 #include "app/editor/dungeon/dungeon_editor_v2.h"
 #include "app/editor/editor.h"
+#include "app/editor/graphics/graphics_editor.h"
 #include "app/editor/graphics/screen_editor.h"
 #include "app/editor/layout/layout_presets.h"
 #include "app/editor/message/message_editor.h"
@@ -777,7 +778,41 @@ absl::Status EditorManager::LoadRomInternal() {
 #endif
 }
 
-absl::Status EditorManager::SaveRomInternal(
+struct EditorManager::PreparedRomSave::Transactions {
+  struct ProjectContext {
+    RomLifecycleManager* lifecycle;
+    project::YazeProject* restore;
+    ~ProjectContext() { lifecycle->SetProjectContext(restore); }
+  };
+  Transactions(Rom& rom, RomLifecycleManager* lifecycle,
+               project::YazeProject* restore_project)
+      : context{lifecycle, restore_project}, rom(rom) {}
+
+  // Reverse destruction restores editors, ROM bytes, then project context.
+  ProjectContext context;
+  ScopedRomTransaction rom;
+  ScopedEditorSaveTransactions editors;
+};
+
+EditorManager::PreparedRomSave::PreparedRomSave(
+    Rom* rom, const project::YazeProject& project,
+    RomLifecycleManager* lifecycle, project::YazeProject* restore_project)
+    : rom(rom),
+      project(project),
+      transactions(
+          std::make_unique<Transactions>(*rom, lifecycle, restore_project)) {
+  lifecycle->SetProjectContext(&this->project);
+}
+
+EditorManager::PreparedRomSave::~PreparedRomSave() = default;
+
+void EditorManager::PreparedRomSave::Commit() {
+  transactions->editors.Commit();
+  transactions->rom.Commit();
+}
+
+absl::StatusOr<std::unique_ptr<EditorManager::PreparedRomSave>>
+EditorManager::PrepareRomSave(
     const std::optional<std::string>& save_as_filename) {
   auto* current_rom = GetCurrentRom();
   auto* current_editor_set = GetCurrentEditorSet();
@@ -846,16 +881,9 @@ absl::Status EditorManager::SaveRomInternal(
   }
   // Hash/write/safety checks must read the same immutable session snapshot as
   // the rest of this save, never a process-global project left by another ROM.
-  rom_lifecycle_.SetProjectContext(save_project);
-  struct LifecycleProjectContextGuard {
-    RomLifecycleManager* lifecycle = nullptr;
-    project::YazeProject* restore = nullptr;
-    ~LifecycleProjectContextGuard() {
-      if (lifecycle) {
-        lifecycle->SetProjectContext(restore);
-      }
-    }
-  } lifecycle_project_guard{&rom_lifecycle_, &current_project_};
+  auto prepared = std::make_unique<PreparedRomSave>(
+      current_rom, *save_project, &rom_lifecycle_, &current_project_);
+  save_project = &prepared->project;
 
   // GraphicsEditor tracks pixel edits in its model, not in the ROM buffer.
   // With Save Graphics Sheets enabled it joins the editor saves below; with
@@ -957,21 +985,8 @@ absl::Status EditorManager::SaveRomInternal(
       return absl::FailedPreconditionError(
           "Open Lyra A0 terrain before Save As");
     }
-    RETURN_IF_ERROR(RetireNativeSaveTransfer("rebound"));
-    RETURN_IF_ERROR(overworld->SaveLyraA0TerrainAs(*save_as_filename));
-    CaptureCurrentRomIdentity(/*preserve_editing_source=*/true);
-    if (auto* session = session_coordinator_->GetActiveRomSession()) {
-      session->filepath = *save_as_filename;
-      session->backup_restore_pending = false;
-    }
-    rom_lifecycle_.CancelRomWriteConfirm();
-    auto& recent = project::RecentFilesManager::GetInstance();
-    recent.AddFile(*save_as_filename);
-    recent.Save();
-    if (popup_manager_)
-      popup_manager_->Hide(PopupID::kSaveAs);
-    return RecordCompletedNativeSave(*save_project, *save_as_filename,
-                                     /*save_as=*/true);
+    prepared->lyra_a0_only = true;
+    return prepared;
   }
 
   // Pot streams are saved sparsely: unchanged/unloaded rooms are inventoried
@@ -1017,8 +1032,7 @@ absl::Status EditorManager::SaveRomInternal(
   const auto predicted_dungeon_write_ranges =
       current_editor_set->CollectDungeonWriteRanges();
 
-  ScopedRomTransaction rom_transaction(*current_rom);
-  ScopedEditorSaveTransactions editor_transactions;
+  auto& editor_transactions = prepared->transactions->editors;
 
   auto save_editor = [&editor_transactions](Editor* editor) -> absl::Status {
     if (editor == nullptr) {
@@ -1047,7 +1061,9 @@ absl::Status EditorManager::SaveRomInternal(
   if (auto* overworld = static_cast<OverworldEditor*>(
           current_editor_set->GetExistingEditor(EditorType::kOverworld));
       overworld && overworld->overworld().is_loaded()) {
-    RETURN_IF_ERROR(save_editor(overworld));
+    RETURN_IF_ERROR(editor_transactions.Begin(overworld));
+    RETURN_IF_ERROR(overworld->SaveRomData());
+    prepared->overworld_scratch = overworld;
   }
 
   // Dungeon may already have serialized palettes under its own transaction.
@@ -1069,8 +1085,13 @@ absl::Status EditorManager::SaveRomInternal(
   // relocated into manifest-registered free space) before the write-conflict
   // check below diffs the ROM against disk.
   if (!native_terrain_save && core::FeatureFlags::get().kSaveGraphicsSheet) {
-    RETURN_IF_ERROR(save_editor(
-        current_editor_set->GetExistingEditor(EditorType::kGraphics)));
+    auto* graphics = static_cast<GraphicsEditor*>(
+        current_editor_set->GetExistingEditor(EditorType::kGraphics));
+    if (graphics) {
+      RETURN_IF_ERROR(editor_transactions.Begin(graphics));
+      RETURN_IF_ERROR(graphics->SaveRomData());
+      prepared->graphics_scratch = graphics;
+    }
   }
 
   // Gfx group tables are written byte-for-byte where they differ, then read
@@ -1159,6 +1180,44 @@ absl::Status EditorManager::SaveRomInternal(
           save_project->GetAbsolutePath(save_project->custom_collision_json);
     }
   }
+  prepared->collision_source = std::move(collision_source);
+  return prepared;
+}
+
+absl::Status EditorManager::SaveRomInternal(
+    const std::optional<std::string>& save_as_filename) {
+  ASSIGN_OR_RETURN(auto prepared, PrepareRomSave(save_as_filename));
+  auto* current_rom = prepared->rom;
+  const auto* save_project = &prepared->project;
+  if (prepared->lyra_a0_only) {
+    auto* overworld = static_cast<OverworldEditor*>(
+        GetCurrentEditorSet()->GetExistingEditor(EditorType::kOverworld));
+    RETURN_IF_ERROR(RetireNativeSaveTransfer("rebound"));
+    RETURN_IF_ERROR(overworld->SaveLyraA0TerrainAs(*save_as_filename));
+    prepared->Commit();
+    CaptureCurrentRomIdentity(/*preserve_editing_source=*/true);
+    if (auto* session = session_coordinator_->GetActiveRomSession()) {
+      session->filepath = *save_as_filename;
+      session->backup_restore_pending = false;
+    }
+    rom_lifecycle_.CancelRomWriteConfirm();
+    auto& recent = project::RecentFilesManager::GetInstance();
+    recent.AddFile(*save_as_filename);
+    recent.Save();
+    if (popup_manager_)
+      popup_manager_->Hide(PopupID::kSaveAs);
+    return RecordCompletedNativeSave(*save_project, *save_as_filename,
+                                     /*save_as=*/true);
+  }
+
+  // Legacy publication still saves scratch files separately. Keep these disk
+  // writes out of preparation. A future coordinated source consumer must stage
+  // them with its other artifacts before publishing, not call these flushes.
+  if (prepared->overworld_scratch)
+    RETURN_IF_ERROR(prepared->overworld_scratch->SaveScratchAssets());
+  if (prepared->graphics_scratch)
+    RETURN_IF_ERROR(prepared->graphics_scratch->SaveScratchAssets());
+
   // A same-byte save still supersedes the prior native operation. Retire its
   // external context before committing disk/baseline state, so publication or
   // write failure cannot leave the previous operation consumable as current.
@@ -1167,10 +1226,9 @@ absl::Status EditorManager::SaveRomInternal(
   auto save_status =
       save_as_filename.has_value()
           ? rom_file_manager_.SaveRomAs(current_rom, *save_as_filename)
-          : rom_file_manager_.SaveRom(current_rom, collision_source);
+          : rom_file_manager_.SaveRom(current_rom, prepared->collision_source);
   if (save_status.ok()) {
-    editor_transactions.Commit();
-    rom_transaction.Commit();
+    prepared->Commit();
     CaptureCurrentRomIdentity(/*preserve_editing_source=*/true);
     if (session_coordinator_) {
       if (auto* session = session_coordinator_->GetActiveRomSession()) {
