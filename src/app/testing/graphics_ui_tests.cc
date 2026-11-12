@@ -284,30 +284,55 @@ std::vector<ImRect> ActiveToasts(ImGuiTestContext* ctx) {
 }
 
 // Toasts are pinned under the menu bar, cannot be moved aside by the test
-// engine, and hold their TTL while hovered. Before a real click on `id`, park
-// the mouse inside the item's window off every toast and wait for any toast
-// covering the item to expire.
-void WaitForToastsToClear(ImGuiTestContext* ctx, ImGuiID id) {
+// engine, hold their TTL while hovered, and reflow upward as earlier ones
+// expire. Before a real click on `id`, park the mouse inside the item's window
+// off every toast and wait for any toast covering the item to expire. The
+// bound is the longest pending TTL; only a newly shown toast can raise it.
+void WaitForToastsToClear(ImGuiTestContext* ctx, editor::ToastManager& toasts,
+                          ImGuiID id) {
   const auto item = ctx->ItemInfo(id);
   IM_CHECK(item.ID != 0 && item.Window != nullptr);
   const auto covered = [&] {
-    const auto toasts = ActiveToasts(ctx);
-    return std::any_of(toasts.begin(), toasts.end(), [&](const ImRect& toast) {
+    const auto rects = ActiveToasts(ctx);
+    return std::any_of(rects.begin(), rects.end(), [&](const ImRect& toast) {
       return toast.Overlaps(item.RectClipped);
     });
   };
   if (!covered())
     return;
+  for (size_t i = 0; i < toasts.pending_count(); ++i) {
+    const auto* toast = toasts.GetPendingToast(i);
+    ctx->LogInfo("Covering toast candidate %.1fs: %s", toast->ttl_seconds,
+                 toast->message.c_str());
+  }
   const auto& inner = item.Window->InnerRect;
   const ImVec2 park(inner.Min.x + 4.0f, inner.Max.y - 4.0f);
   for (const auto& toast : ActiveToasts(ctx))
     IM_CHECK(!toast.Contains(park));
   ctx->MouseMoveToPos(park);
-  const auto deadline =
-      std::chrono::steady_clock::now() + std::chrono::seconds(10);
-  while (covered() && std::chrono::steady_clock::now() < deadline)
+  using Clock = std::chrono::steady_clock;
+  auto deadline = Clock::now();
+  std::optional<std::chrono::system_clock::time_point> newest;
+  while (covered()) {
+    const ImVec2 mouse = ctx->UiContext->IO.MousePos;
+    for (const auto& toast : ActiveToasts(ctx))
+      IM_CHECK(!toast.Contains(mouse));
+    const auto now = Clock::now();
+    const auto& history = toasts.GetHistory();
+    const auto shown = history.empty() ? std::chrono::system_clock::time_point{}
+                                       : history.front().timestamp;
+    if (newest != shown) {
+      newest = shown;
+      float remaining = 0.0f;
+      for (size_t i = 0; i < toasts.pending_count(); ++i)
+        remaining = std::max(remaining, toasts.GetPendingToast(i)->ttl_seconds);
+      deadline = std::max(
+          deadline, now + std::chrono::duration_cast<Clock::duration>(
+                              std::chrono::duration<float>(remaining + 1.0f)));
+    }
+    IM_CHECK(now < deadline);
     ctx->Yield(1);
-  IM_CHECK(!covered());
+  }
 }
 
 // The same lookup, Paint tool and OwMap click used by the maintained
@@ -348,6 +373,7 @@ void MixedTerrain(ImGuiTestContext* ctx, editor::EditorManager* manager,
   ctx->WindowFocus("");
   ctx->Yield(3);
   auto& widgets = gui::WidgetIdRegistry::Instance();
+  auto& toasts = *manager->toast_manager();
   const auto visible = [&](const std::string& suffix) -> ImGuiID {
     const std::string tail = "/" + suffix;
     for (const auto& path : widgets.FindWidgets("*" + suffix)) {
@@ -368,12 +394,12 @@ void MixedTerrain(ImGuiTestContext* ctx, editor::EditorManager* manager,
   };
   const auto lookup = visible("OwBlocksetSelector/button:Lookup");
   IM_CHECK(lookup != 0);
-  WaitForToastsToClear(ctx, lookup);
+  WaitForToastsToClear(ctx, toasts, lookup);
   ctx->ItemClick(lookup);
   ctx->Yield(2);
   const auto input = visible("OwBlocksetSelector/input:TileID");
   IM_CHECK(input != 0);
-  WaitForToastsToClear(ctx, input);
+  WaitForToastsToClear(ctx, toasts, input);
   ctx->ItemInputValue(input, "D5");
   ctx->Yield(2);
   IM_CHECK_EQ(overworld->current_tile16_id(), 0xD5);
@@ -382,13 +408,13 @@ void MixedTerrain(ImGuiTestContext* ctx, editor::EditorManager* manager,
   if (overflow) {
     const auto tools = visible("OverworldToolbar/button:Tools");
     IM_CHECK(tools != 0);
-    WaitForToastsToClear(ctx, tools);
+    WaitForToastsToClear(ctx, toasts, tools);
     ctx->ItemClick(tools);
     ctx->Yield(2);
     paint = visible("OverworldToolbar/button:Paint");
   }
   IM_CHECK(paint != 0);
-  WaitForToastsToClear(ctx, paint);
+  WaitForToastsToClear(ctx, toasts, paint);
   ctx->ItemClick(paint);
   if (overflow)
     ctx->KeyPress(ImGuiKey_Escape);
