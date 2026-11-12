@@ -526,11 +526,17 @@ TEST(ProjectFilePassthroughTest, SavedBindingsIncludeSourceReceiptLabels) {
   EXPECT_EQ(binding_status.code(), absl::StatusCode::kFailedPrecondition);
   EXPECT_THAT(binding_status.message(), HasSubstr("code_folder"));
 
-  // An explicit descriptor label is not a missing source default.
+  // A stale descriptor copy of a registry label (the registry renamed it after
+  // the last descriptor write) reopens as the registry label, so it matches.
+  const auto stale_status = active.ValidateSavedSourceBindings(
+      descriptor + "[labels_item_receipt]\n76=Old Bombchu\n");
+  EXPECT_TRUE(stale_status.ok()) << stale_status;
+
+  // A saved label the registry does not provide is a real difference.
   const auto explicit_status = active.ValidateSavedSourceBindings(
-      descriptor + "[labels_item_receipt]\n76=Changed Bombchu\n");
+      descriptor + "[labels_item_receipt]\n78=Saved Only\n");
   EXPECT_EQ(explicit_status.code(), absl::StatusCode::kFailedPrecondition);
-  EXPECT_THAT(explicit_status.message(), HasSubstr("[labels_item_receipt] 76"));
+  EXPECT_THAT(explicit_status.message(), HasSubstr("[labels_item_receipt] 78"));
 
   // Nor may a real unsaved active edit be overwritten by the source registry.
   active.resource_labels["item_receipt"]["77"] = "Unsaved Hook";
