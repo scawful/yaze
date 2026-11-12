@@ -129,6 +129,39 @@ absl::Status ValidateRomCollisionSourceBinding(Rom* replacement_rom,
   return absl::OkStatus();
 }
 
+absl::StatusOr<core::SourceArtifactUpdate> PrepareRomCollisionSourceUpdate(
+    Rom* candidate, const fs::path& json_path, const std::string& disk_rom,
+    const std::optional<std::string>& disk_json) {
+  if (candidate == nullptr || !candidate->is_loaded()) {
+    return absl::FailedPreconditionError("No candidate ROM loaded");
+  }
+  RETURN_IF_ERROR(candidate->CheckLayoutSaveable());
+  ASSIGN_OR_RETURN(const std::string next,
+                   zelda3::DumpCustomCollisionSourceFromRom(candidate));
+  if (disk_json.has_value()) {
+    ASSIGN_OR_RETURN(const std::string original,
+                     CollisionSourceOfRomBytes(disk_rom));
+    ASSIGN_OR_RETURN(const bool matches,
+                     CollisionSourcesMatch(*disk_json, original, json_path));
+    if (!matches) {
+      return absl::FailedPreconditionError(absl::StrFormat(
+          "%s does not match the custom collision in %s. It was changed "
+          "outside yaze, or the two were already out of step. Nothing was "
+          "written; reconcile them first (Oracle: "
+          "Scripts/Generate/validate_custom_collision_source.py).",
+          json_path.string(), candidate->filename()));
+    }
+    ASSIGN_OR_RETURN(const bool already_matches,
+                     CollisionSourcesMatch(*disk_json, next, json_path));
+    if (already_matches) {
+      return core::SourceArtifactUpdate{
+          .target = json_path, .before = disk_json, .after = *disk_json};
+    }
+  }
+  return core::SourceArtifactUpdate{
+      .target = json_path, .before = disk_json, .after = next};
+}
+
 absl::Status SaveRomWithCollisionSource(Rom* rom, const fs::path& json_path) {
   if (rom == nullptr || !rom->is_loaded() || rom->filename().empty()) {
     return absl::FailedPreconditionError("No ROM file to save");
@@ -170,21 +203,9 @@ absl::Status SaveRomWithCollisionSource(Rom* rom, const fs::path& json_path) {
         "%s changed while saving; nothing was written. Save again.",
         json_path.string()));
   }
-  if (locked_json.has_value()) {
-    ASSIGN_OR_RETURN(const std::string disk_source,
-                     CollisionSourceOfRomBytes(*disk_rom));
-    ASSIGN_OR_RETURN(
-        const bool source_matches,
-        CollisionSourcesMatch(*locked_json, disk_source, json_path));
-    if (!source_matches) {
-      return absl::FailedPreconditionError(absl::StrFormat(
-          "%s does not match the custom collision in %s. It was changed "
-          "outside yaze, or the two were already out of step. Nothing was "
-          "written; reconcile them first (Oracle: "
-          "Scripts/Generate/validate_custom_collision_source.py).",
-          json_path.string(), rom_path.string()));
-    }
-  }
+  ASSIGN_OR_RETURN(
+      auto collision_update,
+      PrepareRomCollisionSourceUpdate(rom, json_path, *disk_rom, locked_json));
 
   const std::vector<uint8_t>& bytes = rom->vector();
   std::vector<core::SourceArtifactUpdate> updates;
@@ -192,8 +213,7 @@ absl::Status SaveRomWithCollisionSource(Rom* rom, const fs::path& json_path) {
       .target = rom_path,
       .before = *disk_rom,
       .after = std::string(bytes.begin(), bytes.end())});
-  updates.push_back(core::SourceArtifactUpdate{
-      .target = json_path, .before = locked_json, .after = new_json});
+  updates.push_back(std::move(collision_update));
   RETURN_IF_ERROR(core::PublishSourceArtifacts(
       *lock, std::move(updates), core::ComputeSourceArtifactSha256(*disk_rom)));
   rom->set_dirty(false);

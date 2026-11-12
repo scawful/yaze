@@ -97,6 +97,29 @@ class CollisionSourcePairingTest : public ::testing::Test {
   Rom rom_;
 };
 
+TEST_F(CollisionSourcePairingTest, PrepareCollisionUpdateDoesNotPublish) {
+  const auto disk_rom = ReadFile(rom_path_);
+  const auto disk_json = ReadFile(json_path_);
+  SetCollisionTile(&rom_, 101, 0xB3);
+
+  const auto plan = PrepareRomCollisionSourceUpdate(
+      &rom_, json_path_, disk_rom, std::optional<std::string>(disk_json));
+  ASSERT_TRUE(plan.ok()) << plan.status();
+  EXPECT_EQ(plan->target, json_path_);
+  EXPECT_EQ(plan->before, std::optional<std::string>(disk_json));
+  EXPECT_NE(plan->after, disk_json);
+  EXPECT_EQ(ReadFile(rom_path_), disk_rom);
+  EXPECT_EQ(ReadFile(json_path_), disk_json);
+  EXPECT_TRUE(rom_.dirty());
+
+  const auto stale = PrepareRomCollisionSourceUpdate(
+      &rom_, json_path_, disk_rom,
+      std::optional<std::string>("{\"rooms\": []}"));
+  EXPECT_FALSE(stale.ok());
+  EXPECT_EQ(ReadFile(rom_path_), disk_rom);
+  EXPECT_EQ(ReadFile(json_path_), disk_json);
+}
+
 TEST_F(CollisionSourcePairingTest, UnchangedCollisionLeavesJsonUntouched) {
   const std::string json_before = ReadFile(json_path_);
   const auto json_time = fs::last_write_time(json_path_);

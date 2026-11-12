@@ -2,6 +2,11 @@
 #define YAZE_APP_EDITOR_SYSTEM_SESSION_COLLISION_SOURCE_PAIRING_H_
 
 #include <filesystem>
+#include <optional>
+#include <string>
+
+#include "absl/status/statusor.h"
+#include "core/source_artifact_publisher.h"
 
 #include "absl/status/status.h"
 #include "rom/rom.h"
@@ -14,6 +19,13 @@ namespace yaze::editor {
 // publishes a new source or changes either ROM.
 absl::Status ValidateRomCollisionSourceBinding(
     Rom* replacement_rom, const std::filesystem::path& json_path);
+
+// Prepare a collision-source update from caller-pinned on-disk ROM/JSON bytes.
+// This is read-only: the caller must hold the publication lock and CAS both
+// inputs through publication. Unchanged semantic data retains its formatting.
+absl::StatusOr<core::SourceArtifactUpdate> PrepareRomCollisionSourceUpdate(
+    Rom* candidate, const std::filesystem::path& json_path,
+    const std::string& disk_rom, const std::optional<std::string>& disk_json);
 
 // Saves `rom` to its own filename and keeps a tracked custom_collision.json in
 // step with it. Projects that name `custom_collision_json` (Oracle of Secrets)
