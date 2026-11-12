@@ -1,5 +1,7 @@
 #include "integration/overworld_editor_test.h"
 
+#include <algorithm>
+#include <utility>
 #include <vector>
 
 namespace yaze {
@@ -14,6 +16,44 @@ void ExpectTile16Equals(const gfx::Tile16& lhs, const gfx::Tile16& rhs) {
   EXPECT_EQ(gfx::TileInfoToWord(lhs.tile3_), gfx::TileInfoToWord(rhs.tile3_));
 }
 
+// Turns every overworld save scope off; Tile16 definitions still save.
+struct ScopedOverworldSavesOff {
+  ScopedOverworldSavesOff() : saved(core::FeatureFlags::get().overworld) {
+    auto& flags = core::FeatureFlags::get().overworld;
+    flags.kSaveOverworldMaps = false;
+    flags.kSaveOverworldEntrances = false;
+    flags.kSaveOverworldExits = false;
+    flags.kSaveOverworldItems = false;
+    flags.kSaveOverworldProperties = false;
+    flags.kSaveOverworldSprites = false;
+  }
+  ~ScopedOverworldSavesOff() { core::FeatureFlags::get().overworld = saved; }
+  decltype(core::FeatureFlags::Flags::overworld) saved;
+};
+
+::testing::AssertionResult ChangesStayInRanges(
+    const std::vector<uint8_t>& before, const std::vector<uint8_t>& after,
+    const std::vector<std::pair<uint32_t, uint32_t>>& ranges) {
+  if (before.size() != after.size()) {
+    return ::testing::AssertionFailure() << "ROM size changed";
+  }
+  for (size_t pc = 0; pc < after.size(); ++pc) {
+    if (after[pc] == before[pc]) {
+      continue;
+    }
+    const bool declared =
+        std::any_of(ranges.begin(), ranges.end(), [pc](const auto& range) {
+          return pc >= range.first && pc < range.second;
+        });
+    if (!declared) {
+      return ::testing::AssertionFailure()
+             << (::testing::Message() << "byte 0x" << std::hex << pc
+                                      << " changed outside the ranges");
+    }
+  }
+  return ::testing::AssertionSuccess();
+}
+
 }  // namespace
 
 TEST_F(OverworldEditorTest, LoadAndSave) {
@@ -26,18 +66,7 @@ TEST_F(OverworldEditorTest, LoadAndSave) {
 }
 
 TEST_F(OverworldEditorTest, SaveWritesTile16WithMapSavingDisabled) {
-  const auto saved_flags = core::FeatureFlags::get().overworld;
-  struct RestoreFlags {
-    decltype(saved_flags) flags;
-    ~RestoreFlags() { core::FeatureFlags::get().overworld = flags; }
-  } restore{saved_flags};
-  auto& flags = core::FeatureFlags::get().overworld;
-  flags.kSaveOverworldMaps = false;
-  flags.kSaveOverworldEntrances = false;
-  flags.kSaveOverworldExits = false;
-  flags.kSaveOverworldItems = false;
-  flags.kSaveOverworldProperties = false;
-  flags.kSaveOverworldSprites = false;
+  ScopedOverworldSavesOff saves_off;
 
   constexpr int kTile = 21;
   auto& tiles16 = *overworld_editor_->overworld().mutable_tiles16();
@@ -54,16 +83,52 @@ TEST_F(OverworldEditorTest, SaveWritesTile16WithMapSavingDisabled) {
   const auto saved = rom_->ReadTile16(kTile, zelda3::kTile16Ptr);
   ASSERT_TRUE(saved.ok());
   ExpectTile16Equals(*saved, edited);
-  const auto [table_start, table_end] =
-      overworld_editor_->overworld().GetProjectedTile16WriteRange();
-  const auto& after = rom_->vector();
-  ASSERT_EQ(after.size(), before.size());
-  for (size_t pc = 0; pc < after.size(); ++pc) {
-    if (after[pc] != before[pc]) {
-      ASSERT_TRUE(pc >= table_start && pc < table_end)
-          << "Map saving is off, but byte 0x" << std::hex << pc << " changed";
-    }
+  const auto ranges =
+      overworld_editor_->overworld().GetProjectedTile16WriteRanges();
+  // A vanilla table holds 3752 definitions; nothing points at it.
+  ASSERT_EQ(ranges.size(), 1u);
+  EXPECT_EQ(ranges[0].first, static_cast<uint32_t>(zelda3::kMap16Tiles));
+  EXPECT_EQ(ranges[0].second, static_cast<uint32_t>(zelda3::kMap16Tiles +
+                                                    zelda3::NumberOfMap16 * 8));
+  EXPECT_TRUE(ChangesStayInRanges(before, rom_->vector(), ranges));
+}
+
+TEST_F(OverworldExpandedEditorTest,
+       Tile16OnlySaveRepairsTableOperandsWithinProjectedRanges) {
+  if (rom_->has_lyra_private_reservation()) {
+    GTEST_SKIP() << "Private Lyra terrain saves skip the ROM Tile16 table";
   }
+  const auto& layout = overworld_editor_->overworld().resolved_layout();
+  if (rom::IsNativeSpecialOverworldLayout(layout.lyra_layout)) {
+    GTEST_SKIP() << "Native terrain saves publish Tile16 through entry 400";
+  }
+  ASSERT_TRUE(layout.has_expanded_tile16);
+  ScopedOverworldSavesOff saves_off;
+  const uint32_t table = layout.tile16_pc.value;
+  // One stale operand of each width SaveMap16Expanded() rewrites.
+  const uint32_t long_pc = SnesToPc(0x008865);
+  const uint32_t short_pc = SnesToPc(0x02FE1C);
+  const uint32_t bank_pc = SnesToPc(0x02FD28);
+  ASSERT_TRUE(rom_->WriteLong(long_pc, 0x000000).ok());
+  ASSERT_TRUE(rom_->WriteShort(short_pc, 0x0000).ok());
+  ASSERT_TRUE(rom_->WriteByte(bank_pc, 0x00).ok());
+  const auto before = rom_->vector();
+
+  const auto status = overworld_editor_->Save();
+  ASSERT_TRUE(status.ok()) << status.message();
+
+  const auto long_value = rom_->ReadLong(long_pc);
+  ASSERT_TRUE(long_value.ok());
+  EXPECT_EQ(SnesToPc(*long_value), table);
+  const auto short_value = rom_->ReadWord(short_pc);
+  ASSERT_TRUE(short_value.ok());
+  EXPECT_EQ(*short_value, static_cast<uint16_t>(PcToSnes(table)));
+  const auto bank_value = rom_->ReadByte(bank_pc);
+  ASSERT_TRUE(bank_value.ok());
+  EXPECT_EQ(*bank_value & 0x7F, (PcToSnes(table) >> 16) & 0x7F);
+  EXPECT_TRUE(ChangesStayInRanges(
+      before, rom_->vector(),
+      overworld_editor_->overworld().GetProjectedTile16WriteRanges()));
 }
 
 TEST_F(OverworldExpandedEditorTest, NoEditSaveUsesExpandedTile32Capacity) {

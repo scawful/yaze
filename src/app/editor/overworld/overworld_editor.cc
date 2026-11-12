@@ -1644,8 +1644,7 @@ absl::Status OverworldEditor::SaveRomData() {
     // `ranges` are PC offsets (ROM file offsets). The hack manifest is in SNES
     // address space (LoROM), so convert before analysis.
     auto ranges = saving_maps ? overworld_.GetProjectedWriteRanges()
-                              : std::vector<std::pair<uint32_t, uint32_t>>{
-                                    overworld_.GetProjectedTile16WriteRange()};
+                              : overworld_.GetProjectedTile16WriteRanges();
     RETURN_IF_ERROR(ValidateHackManifestSaveConflicts(
         manifest, write_policy, ranges,
         saving_maps ? "overworld maps" : "Tile16 definitions",
