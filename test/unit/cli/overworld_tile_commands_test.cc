@@ -421,6 +421,14 @@ class OverworldTileRomTest : public ::testing::Test {
     return std::stoi(value.get<std::string>(), nullptr, 16);
   }
 
+  // Native model fixtures are seeded from a legacy-layout source; a current
+  // Oracle build is already native and cannot seed one.
+  static constexpr char kNeedsLegacySource[] =
+      "Set YAZE_TEST_ROM_OOS to a copy of a legacy-layout Oracle ROM";
+  bool HasLegacySource() const {
+    return !rom::IsNativeSpecialOverworldLayout(rom_.InspectLyraLayout());
+  }
+
   void SeedValidationFixture(
       test::native_overworld::NativeDirectoryFixture* fixture) {
     // The shared seed helper takes a 2MiB source. A patched Oracle fixture can
@@ -507,6 +515,8 @@ class OverworldTileRomTest : public ::testing::Test {
 
 TEST_F(OverworldTileRomTest,
        NativeValidationReadsCanonicalTablesAndSkipsUnmaterializedTail) {
+  if (!HasLegacySource())
+    GTEST_SKIP() << kNeedsLegacySource;
   for (uint16_t capacity : {160, 192}) {
     SCOPED_TRACE(capacity);
     test::native_overworld::NativeDirectoryFixture fixture(capacity);
@@ -583,6 +593,8 @@ TEST_F(OverworldTileRomTest, LegacyValidationDoesNotInventTailPointerRows) {
 
 TEST_F(OverworldTileRomTest,
        NativeValidationBaselineRejectsValidChangedOriginalTerrain) {
+  if (!HasLegacySource())
+    GTEST_SKIP() << kNeedsLegacySource;
   test::native_overworld::NativeDirectoryFixture fixture(192);
   ASSERT_NO_FATAL_FAILURE(SeedValidationFixture(&fixture));
   fixture.UpgradeToRevision4();
@@ -878,6 +890,8 @@ TEST_F(OverworldTileRomTest, SetTileWriteRefusesOracleCheckoutRom) {
 
 TEST_F(OverworldTileRomTest,
        NativeSetTileUsesNormalWriterAndPreservesDryRunFailureAndReopen) {
+  if (!HasLegacySource())
+    GTEST_SKIP() << kNeedsLegacySource;
   const auto flags = core::FeatureFlags::get();
   auto restore_flags =
       absl::MakeCleanup([&] { core::FeatureFlags::get() = flags; });
@@ -991,6 +1005,8 @@ TEST_F(OverworldTileRomTest,
 }
 
 TEST_F(OverworldTileRomTest, NativeSpriteEditUsesNormalSaveAndReopens) {
+  if (!HasLegacySource())
+    GTEST_SKIP() << kNeedsLegacySource;
   test::native_overworld::NativeDirectoryFixture fixture(192);
   fixture.SeedLoadedLegacyForModelTest(rom_, *overworld_);
   fixture.UpgradeToRevision4();
@@ -1075,6 +1091,8 @@ TEST_F(OverworldTileRomTest, NativeSpriteEditUsesNormalSaveAndReopens) {
 
 TEST_F(OverworldTileRomTest,
        SelectedImportStagesNative192AndPublishesOnlyNewVerifiedOutput) {
+  if (!HasLegacySource())
+    GTEST_SKIP() << kNeedsLegacySource;
   test::native_overworld::NativeDirectoryFixture fixture(192);
   fixture.SeedLoadedLegacyForModelTest(rom_, *overworld_);
   fixture.UpgradeToRevision4();
@@ -1517,6 +1535,8 @@ TEST_F(OverworldTileRomTest,
 }
 
 TEST_F(OverworldTileRomTest, AllocationTakesNativeTailOccupancyFromTheModel) {
+  if (!HasLegacySource())
+    GTEST_SKIP() << kNeedsLegacySource;
   test::native_overworld::NativeDirectoryFixture fixture(192);
   ASSERT_NO_FATAL_FAILURE(SeedValidationFixture(&fixture));
   fixture.UpgradeToRevision4();
