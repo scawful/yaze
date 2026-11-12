@@ -3,6 +3,7 @@
 
 #include <cstdint>
 #include <map>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -54,8 +55,9 @@ class GfxSheetSource {
 
  private:
   std::map<std::string, std::string> inputs_;
-  // Define files that selected flagged entries; checked, never published.
-  std::map<std::string, std::string> defines_;
+  // Every define file read to select flagged entries, nullopt when absent at
+  // load; checked, never published.
+  std::map<std::string, std::optional<std::string>> defines_;
   std::string descriptor_;
   std::string root_;
   std::string spec_path_;
