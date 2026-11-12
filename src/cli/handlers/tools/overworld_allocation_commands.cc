@@ -13,7 +13,9 @@
 #include "core/hack_manifest.h"
 #include "core/project.h"
 #include "nlohmann/json.hpp"
+#include "rom/lyra_layout_descriptor.h"
 #include "rom/rom.h"
+#include "zelda3/overworld/overworld.h"
 #include "zelda3/overworld/overworld_allocation.h"
 #include "zelda3/resource_labels.h"
 
@@ -158,6 +160,14 @@ absl::Status OverworldAllocationCommandHandler::Execute(
   zelda3::OverworldAllocationOptions options;
   if (manifest != nullptr && manifest->loaded()) {
     options.area_names = AreaNamesFromManifest(*manifest);
+  }
+  // A model that fails to load leaves native tail slots unverified.
+  std::optional<zelda3::Overworld> overworld;
+  if (rom::IsNativeSpecialOverworldLayout(rom->InspectLyraLayout())) {
+    overworld.emplace(rom);
+    if (overworld->Load(rom).ok()) {
+      options.overworld = &*overworld;
+    }
   }
 
   auto report_or = zelda3::BuildOverworldAllocationReport(rom, options);

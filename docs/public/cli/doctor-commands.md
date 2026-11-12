@@ -71,11 +71,17 @@ Per area ID it reports:
 
 On a native special-overworld ROM, tail IDs the native directory declares
 read their map pointers (`native_table`), parent and size from that
-directory, and only WRAM/SRAM tables can leave them uncovered.
+directory. A ROM table counts as covered for such an ID when its native
+record has a row for it; tables with no native record (`sw_entry_gfx`) and
+WRAM/SRAM tables stay uncovered. Entrances, holes, exits, sprites, items,
+subscreen overlay users and authoring placements for these IDs come from the
+loaded overworld model. Inbound transitions and code references are not
+scanned, so a tail ID with no evidence is `unverified` (`?` in the used
+column, with `unscanned` listing what was not checked), never free.
 
 The summary counts used and free IDs for light, dark, special (`$80-$9F`)
 and special_tail (`$A0-$BF`), and splits free IDs by whether a valid map
-pointer exists.
+pointer exists. On a native ROM it also counts unverified IDs.
 
 `--tail-check` adds the patch marker, the target regions (`$28:A3FF`,
 `$28:A400`, `$28:A640`, `$30:8000`, `$30:9000`) with non-zero byte counts,

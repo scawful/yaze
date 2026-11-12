@@ -120,8 +120,15 @@ struct AreaAllocation {
   int holes = 0;
   int exits = 0;
   int sprites = 0;
+  int items = 0;                   // Native tail slots only.
+  int authoring_placements = 0;    // Native tail slots only; excludes deleted.
   std::vector<int> overlay_users;  // Areas whose subscreen overlay is this ID.
   bool overlay_named_in_code = false;
+
+  // Reference sources the report could not scan for this ID. An ID with no
+  // evidence and any unscanned source is unverified: neither used nor free.
+  std::vector<std::string> unscanned;
+  bool unverified = false;
 
   std::vector<std::string> uncovered_tables;  // AreaTableInfo::id values.
 };
@@ -134,13 +141,20 @@ struct WorldAllocationSummary {
   int free = 0;
   int free_with_map_data = 0;     // Free, and a valid map pointer exists.
   int free_without_map_data = 0;  // Free, and no valid map pointer.
+  int unverified = 0;  // No evidence, but not every reference was scanned.
 };
+
+class Overworld;
 
 struct OverworldAllocationOptions {
   bool scan_entities = true;  // Entrances, holes and exits.
   bool scan_sprites = true;   // Overworld sprite lists (ZS v3 only).
   std::map<int, std::string> area_names;
   std::optional<OverworldLayoutOptions> layout_options;
+  // Overworld loaded from the same ROM. Native special-overworld tail slots
+  // take their entities, sprites, items, overlay users and authoring
+  // placements from it; without it those slots stay unverified.
+  const Overworld* overworld = nullptr;
 };
 
 struct OverworldAllocationReport {
