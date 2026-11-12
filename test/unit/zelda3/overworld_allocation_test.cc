@@ -432,14 +432,23 @@ TEST(OverworldAllocationTest, NativeCoverageStopsAtTheDirectoryCapacity) {
   Rom rom = LoadRom(fixture.bytes);
   ASSERT_TRUE(rom::IsNativeSpecialOverworldLayout(rom.InspectLyraLayout()));
 
-  // No native record has a row for $A0, so no ROM table is covered for it
-  // and the slot is outside the native evidence scan.
+  // No native record has a row for $A0, so no ROM table is covered for it.
+  // An ID the native directory does not declare is not reusable either.
   const auto report = BuildReport(rom);
   const auto& slot = report.areas[0xA0];
   EXPECT_EQ(report.areas[0x9F].map_pointer_source, "vanilla_table");
+  EXPECT_TRUE(report.areas[0x9F].unscanned.empty());
   EXPECT_EQ(slot.map_pointer_source, "none");
-  EXPECT_TRUE(slot.unscanned.empty());
-  EXPECT_FALSE(slot.unverified);
+  EXPECT_EQ(slot.unscanned,
+            std::vector<std::string>{"native_directory_capacity"});
+  EXPECT_TRUE(slot.unverified);
+  EXPECT_FALSE(slot.used);
+  const auto& tail = Summary(report, "special_tail");
+  EXPECT_EQ(tail.used, 0);
+  EXPECT_EQ(tail.unverified, 32);
+  EXPECT_EQ(tail.free, 0);
+  EXPECT_EQ(tail.free_without_map_data, 0);
+  EXPECT_EQ(Summary(report, "special").unverified, 0);
   for (const char* table :
        {"map32_high", "map32_low", "pool_parent", "pool_by_screen_1",
         "pool_sprites_phase_0", "hidden_items", "sw_entry_gfx", "area_flags"}) {

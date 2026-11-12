@@ -982,6 +982,8 @@ absl::StatusOr<OverworldAllocationReport> BuildOverworldAllocationReport(
       }
       area.unscanned.push_back("inbound_transitions");
       area.unscanned.push_back("code_references");
+    } else if (native_layout && area.area >= std::max(native_end, 0xA0)) {
+      area.unscanned.push_back("native_directory_capacity");
     }
     area.unverified = !area.used && !area.unscanned.empty();
   }
@@ -1642,7 +1644,8 @@ std::string FormatOverworldAllocationText(
   }
   if (unscanned) {
     out << "  Unverified IDs have no evidence, but inbound transitions and "
-           "code references were not scanned; they are not free.\n";
+           "code references were not scanned, or the native directory does "
+           "not declare them; they are not free.\n";
   }
 
   out << "\nPer-area tables (a read past the last entry returns the data "

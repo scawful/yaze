@@ -77,7 +77,9 @@ WRAM/SRAM tables stay uncovered. Entrances, holes, exits, sprites, items,
 subscreen overlay users and authoring placements for these IDs come from the
 loaded overworld model. Inbound transitions and code references are not
 scanned, so a tail ID with no evidence is `unverified` (`?` in the used
-column, with `unscanned` listing what was not checked), never free.
+column, with `unscanned` listing what was not checked), never free. A tail
+ID past the directory's declared capacity is `unverified` with
+`native_directory_capacity`; it is not free either.
 
 The summary counts used and free IDs for light, dark, special (`$80-$9F`)
 and special_tail (`$A0-$BF`), and splits free IDs by whether a valid map
