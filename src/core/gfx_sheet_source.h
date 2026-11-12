@@ -63,6 +63,9 @@ class GfxSheetSource {
   std::string spec_path_;
   std::string spec_;
   std::string spec_sha1_;
+  // The standard spec a selected D4 spec extends; empty for the standard spec.
+  std::string standard_path_;
+  std::string standard_;
   std::map<uint16_t, Sheet> sheets_;
 };
 }  // namespace yaze::core
