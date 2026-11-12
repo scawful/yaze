@@ -57,6 +57,18 @@ std::array<uint16_t, 4> DefinitionWords(const gfx::Tile16& tile) {
   return words;
 }
 
+gfx::Tile16 AlteredDefinition(const gfx::Tile16& tile) {
+  gfx::Tile16 edited = tile;
+  for (int quadrant = 0; quadrant < 4; ++quadrant) {
+    auto& info = zelda3::MutableTile16QuadrantInfo(edited, quadrant);
+    info.palette_ = (info.palette_ + quadrant + 1) % 8;
+    info.horizontal_mirror_ = !info.horizontal_mirror_;
+    info.vertical_mirror_ = !info.vertical_mirror_;
+  }
+  zelda3::SyncTile16TilesInfo(&edited);
+  return edited;
+}
+
 // Role availability is a precondition. A present ROM that cannot load or whose
 // layout does not match its selected role is a failure, never a skip.
 class SaveTrustTile16Test
@@ -136,15 +148,10 @@ class SaveTrustTile16Test
     }
     ASSERT_FALSE(definitions->empty());
     *overworld_.mutable_tiles16() = std::move(*definitions);
+    ASSERT_EQ(overworld_.tiles16().size(),
+              static_cast<size_t>(zelda3::kNumTile16Individual));
     initial_ = overworld_.tiles16()[0];
-    edited_ = initial_;
-    for (int quadrant = 0; quadrant < 4; ++quadrant) {
-      auto& info = zelda3::MutableTile16QuadrantInfo(edited_, quadrant);
-      info.palette_ = (info.palette_ + quadrant + 1) % 8;
-      info.horizontal_mirror_ = !info.horizontal_mirror_;
-      info.vertical_mirror_ = !info.vertical_mirror_;
-    }
-    zelda3::SyncTile16TilesInfo(&edited_);
+    edited_ = AlteredDefinition(initial_);
     ASSERT_NE(DefinitionWords(initial_), DefinitionWords(edited_));
 
     // Rendering fixtures support the production editor session's edit/Undo.
@@ -189,7 +196,7 @@ class SaveTrustTile16Test
     return SaveRomToFile(&rom_, test_rom_path_);
   }
 
-  absl::StatusOr<gfx::Tile16> ReopenDefinition() {
+  absl::StatusOr<gfx::Tile16> ReopenDefinition(int tile_id = 0) {
     Rom fresh;
     Rom::LoadOptions options;
     options.load_resource_labels = false;
@@ -200,10 +207,44 @@ class SaveTrustTile16Test
     if (expanded != expanded_) {
       return absl::DataLossError("Fresh reader selected a different layout");
     }
-    if (definitions.empty()) {
-      return absl::DataLossError("Fresh reader returned no Tile16 definitions");
+    if (tile_id < 0 || static_cast<size_t>(tile_id) >= definitions.size()) {
+      return absl::DataLossError("Fresh reader did not return the Tile16 id");
     }
-    return definitions[0];
+    return definitions[tile_id];
+  }
+
+  int SavableCount() const {
+    return expanded_ ? zelda3::NumberOfMap16Ex : zelda3::NumberOfMap16;
+  }
+
+  // Every changed byte must be in a declared writer region.
+  ::testing::AssertionResult ChangedBytesInDeclaredRegions() {
+    const auto after = ReadFileBytes(test_rom_path_);
+    if (!after.ok()) {
+      return ::testing::AssertionFailure() << after.status();
+    }
+    if (after->size() != original_file_.size()) {
+      return ::testing::AssertionFailure() << "File size changed";
+    }
+    size_t changed_bytes = 0;
+    for (size_t offset = 0; offset < after->size(); ++offset) {
+      if ((*after)[offset] == original_file_[offset]) {
+        continue;
+      }
+      ++changed_bytes;
+      if (offset < copier_header_size_) {
+        return ::testing::AssertionFailure() << "Copier header changed";
+      }
+      if (!InDeclaredWriterRegion(offset - copier_header_size_)) {
+        return ::testing::AssertionFailure()
+               << "Unexpected changed PC byte: " << std::hex
+               << (offset - copier_header_size_);
+      }
+    }
+    if (changed_bytes == 0) {
+      return ::testing::AssertionFailure() << "Save changed no bytes";
+    }
+    return ::testing::AssertionSuccess();
   }
 
   bool InDeclaredWriterRegion(size_t pc) const {
@@ -284,24 +325,47 @@ TEST_P(SaveTrustTile16Test, I3EditUndoSavePreservesFileBytes) {
 TEST_P(SaveTrustTile16Test, I4EditSaveContainsWritesToDeclaredRegions) {
   ASSERT_TRUE(session_.ReplaceCurrentTile(edited_).ok());
   ASSERT_TRUE(SaveDefinitions().ok());
-  const auto after = ReadFileBytes(test_rom_path_);
-  ASSERT_TRUE(after.ok()) << after.status();
-  ASSERT_EQ(after->size(), original_file_.size());
-  size_t changed_bytes = 0;
-  for (size_t offset = 0; offset < after->size(); ++offset) {
-    if ((*after)[offset] == original_file_[offset]) {
-      continue;
-    }
-    ++changed_bytes;
-    ASSERT_GE(offset, copier_header_size_) << "Copier header changed";
-    ASSERT_TRUE(InDeclaredWriterRegion(offset - copier_header_size_))
-        << "Unexpected changed PC byte: " << std::hex
-        << (offset - copier_header_size_);
-  }
-  EXPECT_GT(changed_bytes, 0u);
+  ASSERT_TRUE(ChangedBytesInDeclaredRegions());
   const auto reopened = ReopenDefinition();
   ASSERT_TRUE(reopened.ok()) << reopened.status();
   EXPECT_EQ(DefinitionWords(*reopened), DefinitionWords(edited_));
+}
+
+TEST_P(SaveTrustTile16Test, I5LastSavableDefinitionRoundTrips) {
+  const int last = SavableCount() - 1;
+  const gfx::Tile16 neighbor = overworld_.tiles16()[last - 1];
+  const gfx::Tile16 edited = AlteredDefinition(overworld_.tiles16()[last]);
+  ASSERT_TRUE(session_.SetCurrentTile(last).ok());
+  ASSERT_TRUE(session_.ReplaceCurrentTile(edited).ok());
+  ASSERT_TRUE(SaveDefinitions().ok());
+  ASSERT_TRUE(ChangedBytesInDeclaredRegions());
+  const auto reopened = ReopenDefinition(last);
+  ASSERT_TRUE(reopened.ok()) << reopened.status();
+  EXPECT_EQ(DefinitionWords(*reopened), DefinitionWords(edited));
+  const auto reopened_neighbor = ReopenDefinition(last - 1);
+  ASSERT_TRUE(reopened_neighbor.ok()) << reopened_neighbor.status();
+  EXPECT_EQ(DefinitionWords(*reopened_neighbor), DefinitionWords(neighbor));
+}
+
+// A vanilla save writes only NumberOfMap16 definitions, so an edit to the next
+// id is dropped; expanded storage keeps it.
+TEST_P(SaveTrustTile16Test, I6FirstIdPastVanillaTableFollowsLayout) {
+  const int id = zelda3::NumberOfMap16;
+  const gfx::Tile16 initial = overworld_.tiles16()[id];
+  const gfx::Tile16 edited = AlteredDefinition(initial);
+  (*overworld_.mutable_tiles16())[id] = edited;
+  ASSERT_TRUE(SaveDefinitions().ok());
+  const auto reopened = ReopenDefinition(id);
+  ASSERT_TRUE(reopened.ok()) << reopened.status();
+  if (expanded_) {
+    ASSERT_TRUE(ChangedBytesInDeclaredRegions());
+    EXPECT_EQ(DefinitionWords(*reopened), DefinitionWords(edited));
+  } else {
+    const auto after = ReadFileBytes(test_rom_path_);
+    ASSERT_TRUE(after.ok()) << after.status();
+    EXPECT_TRUE(*after == original_file_);
+    EXPECT_EQ(DefinitionWords(*reopened), DefinitionWords(initial));
+  }
 }
 
 TEST_P(SaveTrustTile16Test, ControlSkippingDiskSaveCannotObserveEdit) {
