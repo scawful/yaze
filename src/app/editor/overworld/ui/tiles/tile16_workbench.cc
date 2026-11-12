@@ -728,6 +728,10 @@ absl::Status Tile16Editor::DrawCompactActionStatusRow(
           "Edits update every use of this Tile16 in the document.\n"
           "Use Undo/Redo to revise edits and Save to write the ROM.");
     }
+    if (!last_history_message_.empty()) {
+      ImGui::SameLine();
+      ImGui::TextDisabled("| %s", last_history_message_.c_str());
+    }
 
     if (ImGui::BeginTable("##Tile16CompactActions", columns,
                           ImGuiTableFlags_SizingStretchProp)) {
@@ -741,28 +745,30 @@ absl::Status Tile16Editor::DrawCompactActionStatusRow(
       };
 
       next_action_cell();
-      if (!session_.CanUndo()) {
-        ImGui::BeginDisabled();
-      }
+      const bool can_undo = session_.CanUndo();
+      const std::string undo_step = session_.UndoDescription();
+      ImGui::BeginDisabled(!can_undo);
       if (ImGui::Button(tr("Undo"),
                         ImVec2(ImGui::GetContentRegionAvail().x, 0))) {
         action_status = Undo();
       }
-      if (!session_.CanUndo()) {
-        ImGui::EndDisabled();
+      if (can_undo && ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("Undo: %s", undo_step.c_str());
       }
+      ImGui::EndDisabled();
 
       next_action_cell();
-      if (!session_.CanRedo()) {
-        ImGui::BeginDisabled();
-      }
+      const bool can_redo = session_.CanRedo();
+      const std::string redo_step = session_.RedoDescription();
+      ImGui::BeginDisabled(!can_redo);
       if (ImGui::Button(tr("Redo"),
                         ImVec2(ImGui::GetContentRegionAvail().x, 0))) {
         action_status = Redo();
       }
-      if (!session_.CanRedo()) {
-        ImGui::EndDisabled();
+      if (can_redo && ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("Redo: %s", redo_step.c_str());
       }
+      ImGui::EndDisabled();
 
       next_action_cell();
       const char* advanced_label = *show_advanced_controls

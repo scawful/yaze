@@ -7,10 +7,9 @@
 
 #include "absl/strings/str_format.h"
 #include "app/editor/overworld/painting/tile_brush_preview.h"
-#include "app/editor/overworld/tile16_editor.h"
+#include "app/editor/overworld/tile16/tile16_edit_types.h"
 #include "app/gfx/resource/arena.h"
 #include "app/gui/canvas/canvas_usage_tracker.h"
-#include "util/log.h"
 
 namespace yaze::editor {
 namespace {
@@ -651,12 +650,6 @@ bool TilePaintingManager::PickTile16FromHoveredCanvas() {
     callbacks_.request_tile16_selection(tile_id);
   } else {
     *deps_.current_tile16 = tile_id;
-    auto set_tile_status =
-        deps_.tile16_editor->SetCurrentTile(*deps_.current_tile16);
-    if (!set_tile_status.ok()) {
-      util::logf("Failed to sync Tile16 editor after eyedropper: %s",
-                 set_tile_status.message().data());
-    }
   }
 
   callbacks_.scroll_blockset_to_current_tile();

@@ -19,8 +19,6 @@
 namespace yaze {
 namespace editor {
 
-class Tile16Editor;
-
 /// @brief Shared state for the tile painting system.
 ///
 /// All pointers are non-owning references into OverworldEditor members.
@@ -35,7 +33,6 @@ struct TilePaintingDependencies {
   int* current_world = nullptr;
   EditingMode* current_mode = nullptr;
   Rom* rom = nullptr;
-  Tile16Editor* tile16_editor = nullptr;
 };
 
 /// @brief Callbacks for undo integration and map refresh.
