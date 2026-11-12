@@ -106,9 +106,9 @@ struct AreaAllocation {
   std::optional<int> parent_past_end;
   AllocationAreaSize size = AllocationAreaSize::kSmall;
 
-  // Map data. `map_pointer_source` is "vanilla_table", "tail_table" or
-  // "none". A pointer is valid when both streams are inside the ROM, end
-  // with $FF and decode to at least 256 bytes.
+  // Map data. `map_pointer_source` is "vanilla_table", "tail_table",
+  // "native_table" or "none". A pointer is valid when both streams are inside
+  // the ROM, end with $FF and decode to at least 256 bytes.
   std::string map_pointer_source = "none";
   bool map_pointer_valid = false;
   MapStreamScan high;  // decoded bytes are cleared after classification

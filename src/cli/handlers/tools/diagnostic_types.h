@@ -102,6 +102,9 @@ struct RomFeatures {
   bool has_expanded_tile16 = false;
   bool has_expanded_tile32 = false;
   bool has_expanded_pointer_tables = false;  // Requires ASM patch
+  // A native special-overworld directory declares its own map slots; the
+  // TailMapExpansion patch does not apply to it.
+  uint16_t native_map_capacity = 0;
 
   // ZSCustomOverworld features (ROM-level enable flags)
   bool custom_bg_enabled = false;

@@ -69,6 +69,10 @@ Per area ID it reports:
   read past each table's last entry returns (a missed table reads its
   neighbour).
 
+On a native special-overworld ROM, tail IDs the native directory declares
+read their map pointers (`native_table`), parent and size from that
+directory, and only WRAM/SRAM tables can leave them uncovered.
+
 The summary counts used and free IDs for light, dark, special (`$80-$9F`)
 and special_tail (`$A0-$BF`), and splits free IDs by whether a valid map
 pointer exists.

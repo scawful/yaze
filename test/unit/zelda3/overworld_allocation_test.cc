@@ -15,7 +15,9 @@
 
 #include "absl/status/status.h"
 #include "absl/strings/str_format.h"
+#include "fixtures/lyra/native_directory_fixture.h"
 #include "nlohmann/json.hpp"
+#include "rom/lyra_layout_descriptor.h"
 #include "rom/rom.h"
 #include "unit/zelda3/overworld_allocation_test_rom.h"
 #include "yaze_test_paths.h"
@@ -371,6 +373,48 @@ TEST(OverworldAllocationTest, MarkerPresentReadsTheRelocatedTables) {
   EXPECT_EQ(report.areas[0xA0].map_pointer_source, "tail_table");
   EXPECT_TRUE(report.areas[0xA0].map_pointer_valid);
   EXPECT_EQ(Summary(report, "special_tail").free_with_map_data, 32);
+}
+
+TEST(OverworldAllocationTest, NativeDirectoryReadsEveryDeclaredMapSlot) {
+  test::native_overworld::NativeDirectoryFixture fixture(192);
+  // Give $A0 two distinct tile32 high bytes: copy $12,$13 then fill 254 x $12.
+  const std::vector<uint8_t> varied = {0x01, 0x12, 0x13, 0xE4,
+                                       0xFD, 0x12, 0xFF};
+  std::copy(varied.begin(), varied.end(), fixture.bytes.begin() + 0x240020);
+  fixture.Long(fixture.Entry(20).pc_address + 0xA0 * 3, fixture.Snes(0x240020));
+  // A blank large area still owns its four pages.
+  for (int map : {0xB0, 0xB1, 0xB8, 0xB9}) {
+    fixture.bytes[fixture.Entry(7).pc_address + map] = 0xB0;
+    fixture.bytes[fixture.Entry(30).pc_address + map] = 1;
+  }
+  fixture.Seal();
+  Rom rom = LoadRom(fixture.bytes);
+  ASSERT_TRUE(rom::IsNativeSpecialOverworldLayout(rom.InspectLyraLayout()));
+
+  const auto report = BuildReport(rom);
+  ASSERT_EQ(report.areas.size(), static_cast<size_t>(kAllocationAreaCount));
+  EXPECT_FALSE(report.tail_marker_present);
+  for (int id : {0x00, 0x9F}) {
+    EXPECT_EQ(report.areas[id].map_pointer_source, "vanilla_table") << id;
+  }
+  for (int id : {0xA0, 0xBF}) {
+    EXPECT_EQ(report.areas[id].map_pointer_source, "native_table") << id;
+    EXPECT_TRUE(report.areas[id].map_pointer_valid) << id;
+  }
+  EXPECT_EQ(report.areas[0xA0].unique_tile32, 2);
+  EXPECT_TRUE(report.areas[0xA0].used);
+  EXPECT_EQ(report.areas[0xB9].parent, 0xB0);
+  EXPECT_EQ(report.areas[0xB9].size, AllocationAreaSize::kLarge);
+  EXPECT_TRUE(report.areas[0xB9].used);
+  EXPECT_FALSE(report.areas[0xA1].used);
+  EXPECT_EQ(report.areas[0xA1].uncovered_tables,
+            std::vector<std::string>{"area_flags"});
+  EXPECT_EQ(report.TablesStoppingBeforeTail(),
+            std::vector<std::string>{"area_flags"});
+  const auto& tail = Summary(report, "special_tail");
+  EXPECT_EQ(tail.used, 5);
+  EXPECT_EQ(tail.free_with_map_data, 27);
+  EXPECT_EQ(tail.free_without_map_data, 0);
 }
 
 TEST(OverworldAllocationTest, CustomCollisionMarkerCannotBypassApplyGuard) {
