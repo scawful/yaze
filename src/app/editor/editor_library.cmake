@@ -174,6 +174,7 @@ set(
   app/editor/overworld/entity/entity_operations.cc
   app/editor/overworld/entity/entity_workbench.cc
   app/editor/overworld/entity/overworld_entity_renderer.cc
+  app/editor/overworld/entity/overworld_item_controller.cc
   app/editor/overworld/maps/map_properties.cc
   app/editor/overworld/maps/map_refresh_coordinator.cc
   app/editor/overworld/maps/map_texture_coordinator.cc

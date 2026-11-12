@@ -16,6 +16,7 @@
 #include "app/editor/overworld/entity/entity_mutation_service.h"
 #include "app/editor/overworld/entity/entity_workbench.h"
 #include "app/editor/overworld/entity/overworld_entity_renderer.h"
+#include "app/editor/overworld/entity/overworld_item_controller.h"
 #include "app/editor/overworld/lyra_terrain_canvas.h"
 #include "app/editor/overworld/maps/map_properties.h"
 #include "app/editor/overworld/maps/map_refresh_coordinator.h"
@@ -149,6 +150,7 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
     type_ = EditorType::kOverworld;
     gfx_group_editor_.SetRom(rom);
     gfx_group_editor_.SetUndoManager(&undo_manager_);
+    InitItemController();
     // MapPropertiesSystem will be initialized after maps_bmp_ and canvas are
     // ready
   }
@@ -420,28 +422,38 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   bool SampleContextTile16(const OverworldContextTarget& target);
 
   /// @brief Select an overworld item using value identity matching.
-  bool SelectItemByIdentity(const zelda3::OverworldItem& item_identity);
+  bool SelectItemByIdentity(const zelda3::OverworldItem& item_identity) {
+    return item_controller_.SelectItemByIdentity(item_identity);
+  }
 
   /// @brief Clear active item selection.
-  void ClearSelectedItem();
+  void ClearSelectedItem() { item_controller_.ClearSelectedItem(); }
 
   /// @brief Get current selected item identity snapshot.
   std::optional<zelda3::OverworldItem> selected_item_identity() const {
-    return selected_item_identity_;
+    return item_controller_.selected_item_identity();
   }
 
   /// @brief Resolve selected item identity to the current live item pointer.
-  zelda3::OverworldItem* GetSelectedItem();
-  const zelda3::OverworldItem* GetSelectedItem() const;
+  zelda3::OverworldItem* GetSelectedItem() {
+    return item_controller_.GetSelectedItem();
+  }
+  const zelda3::OverworldItem* GetSelectedItem() const {
+    return const_cast<OverworldEditor*>(this)->GetSelectedItem();
+  }
 
   /// @brief Duplicate selected item with optional pixel offset.
-  bool DuplicateSelectedItem(int offset_x = 16, int offset_y = 0);
+  bool DuplicateSelectedItem(int offset_x = 16, int offset_y = 0) {
+    return item_controller_.DuplicateSelectedItem(offset_x, offset_y);
+  }
 
   /// @brief Move selected item by signed pixel deltas.
-  bool NudgeSelectedItem(int delta_x, int delta_y);
+  bool NudgeSelectedItem(int delta_x, int delta_y) {
+    return item_controller_.NudgeSelectedItem(delta_x, delta_y);
+  }
 
   /// @brief Delete selected item and preserve nearest-item selection continuity.
-  bool DeleteSelectedItem();
+  bool DeleteSelectedItem() { return item_controller_.DeleteSelectedItem(); }
   bool DeleteItemByIdentity(const zelda3::OverworldItem& item_identity);
 
   // ===========================================================================
@@ -640,6 +652,7 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   void InitMapRefreshCoordinator();
   void InitMapTextureCoordinator();
   void InitInteractionCoordinator();
+  void InitItemController();
 
   // Convenience delegation methods for internal use
   void RefreshChildMap(int map_index) {
@@ -964,7 +977,7 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
 
   zelda3::GameEntity* current_entity_ = nullptr;
   zelda3::GameEntity* dragged_entity_ = nullptr;
-  std::optional<zelda3::OverworldItem> selected_item_identity_;
+  OverworldItemController item_controller_;
   std::optional<OverworldEntityEditingTarget> editing_target_;
 
   // Edit buffers for popups (session-specific)

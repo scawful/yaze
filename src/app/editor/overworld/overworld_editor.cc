@@ -117,36 +117,6 @@ class LyraTerrainPaintAction final : public UndoAction {
   std::function<absl::Status(uint16_t)> apply_;
 };
 
-bool ItemIdentityMatchesForUndo(const zelda3::OverworldItem& lhs,
-                                const zelda3::OverworldItem& rhs) {
-  return lhs.id_ == rhs.id_ && lhs.room_map_id_ == rhs.room_map_id_ &&
-         lhs.x_ == rhs.x_ && lhs.y_ == rhs.y_ && lhs.bg2_ == rhs.bg2_;
-}
-
-bool ItemSnapshotsEqual(const OverworldItemsSnapshot& lhs,
-                        const OverworldItemsSnapshot& rhs) {
-  if (lhs.items.size() != rhs.items.size()) {
-    return false;
-  }
-
-  for (size_t i = 0; i < lhs.items.size(); ++i) {
-    if (!ItemIdentityMatchesForUndo(lhs.items[i], rhs.items[i])) {
-      return false;
-    }
-  }
-
-  if (lhs.selected_item_identity.has_value() !=
-      rhs.selected_item_identity.has_value()) {
-    return false;
-  }
-  if (!lhs.selected_item_identity.has_value()) {
-    return true;
-  }
-
-  return ItemIdentityMatchesForUndo(*lhs.selected_item_identity,
-                                    *rhs.selected_item_identity);
-}
-
 }  // namespace
 
 OverworldEditor::~OverworldEditor() {
@@ -558,15 +528,7 @@ void OverworldEditor::InitCanvasNavigationManager() {
 
 void OverworldEditor::SetCurrentEntity(zelda3::GameEntity* entity) {
   current_entity_ = entity;
-  if (!entity) {
-    selected_item_identity_.reset();
-    return;
-  }
-  if (entity->entity_type_ == zelda3::GameEntity::EntityType::kItem) {
-    selected_item_identity_ = *static_cast<zelda3::OverworldItem*>(entity);
-  } else {
-    selected_item_identity_.reset();
-  }
+  item_controller_.SyncSelectionToEntity(entity);
 }
 
 void OverworldEditor::NotifyEntityModified(zelda3::GameEntity*) {
@@ -1151,37 +1113,39 @@ void OverworldEditor::SwitchToWorld(int world) {
   PrimeWorldMaps(current_world_);
 }
 
-bool OverworldEditor::SelectItemByIdentity(
-    const zelda3::OverworldItem& item_identity) {
-  auto* item = FindItemByIdentity(&overworld_, item_identity);
-  if (!item) {
-    return false;
-  }
+void OverworldEditor::InitItemController() {
+  OverworldItemDependencies deps;
+  deps.overworld = &overworld_;
+  deps.rom = rom_;
+  deps.undo_manager = &undo_manager_;
+  deps.editor_dependencies = &dependencies_;
+  deps.current_entity = &current_entity_;
 
-  selected_item_identity_ = *item;
-  current_entity_ = item;
-  if (dependencies_.window_manager) {
-    auto* workbench = static_cast<OverworldEntityWorkbench*>(
-        dependencies_.window_manager->GetWindowContent(
-            "overworld.entity_workbench"));
-    if (workbench) {
-      workbench->SetActiveEntity(item);
-    }
-  }
-  return true;
+  OverworldItemCallbacks callbacks;
+  callbacks.mutation_service = [this]() {
+    return entity_mutation_service_.get();
+  };
+  callbacks.workbench = [this]() {
+    return GetWorkbench();
+  };
+  callbacks.refresh_overworld_map = [this]() {
+    RefreshOverworldMap();
+  };
+  item_controller_.Initialize(deps, std::move(callbacks));
 }
 
-void OverworldEditor::ClearSelectedItem() {
-  selected_item_identity_.reset();
-  current_entity_ = nullptr;
-  if (dependencies_.window_manager) {
-    auto* workbench = static_cast<OverworldEntityWorkbench*>(
-        dependencies_.window_manager->GetWindowContent(
-            "overworld.entity_workbench"));
-    if (workbench) {
-      workbench->SetActiveEntity(nullptr);
-    }
-  }
+OverworldItemsSnapshot OverworldEditor::CaptureItemUndoSnapshot() const {
+  return item_controller_.CaptureUndoSnapshot();
+}
+
+void OverworldEditor::RestoreItemUndoSnapshot(
+    const OverworldItemsSnapshot& snapshot) {
+  item_controller_.RestoreUndoSnapshot(snapshot);
+}
+
+void OverworldEditor::PushItemUndoAction(OverworldItemsSnapshot before,
+                                         std::string description) {
+  item_controller_.PushUndoAction(std::move(before), std::move(description));
 }
 
 OverworldEntityWorkbench* OverworldEditor::GetWorkbench() {
@@ -1193,229 +1157,6 @@ OverworldEntityWorkbench* OverworldEditor::GetWorkbench() {
   return static_cast<OverworldEntityWorkbench*>(
       dependencies_.window_manager->GetWindowContent(
           "overworld.entity_workbench"));
-}
-
-zelda3::OverworldItem* OverworldEditor::GetSelectedItem() {
-  if (!selected_item_identity_.has_value()) {
-    return nullptr;
-  }
-
-  auto* item = FindItemByIdentity(&overworld_, *selected_item_identity_);
-  if (!item) {
-    ClearSelectedItem();
-    return nullptr;
-  }
-
-  current_entity_ = item;
-  if (auto* workbench = GetWorkbench()) {
-    workbench->SetActiveEntity(item);
-  }
-  return item;
-}
-
-const zelda3::OverworldItem* OverworldEditor::GetSelectedItem() const {
-  return const_cast<OverworldEditor*>(this)->GetSelectedItem();
-}
-
-OverworldItemsSnapshot OverworldEditor::CaptureItemUndoSnapshot() const {
-  OverworldItemsSnapshot snapshot;
-  snapshot.items = overworld_.all_items();
-  snapshot.selected_item_identity = selected_item_identity_;
-  return snapshot;
-}
-
-void OverworldEditor::RestoreItemUndoSnapshot(
-    const OverworldItemsSnapshot& snapshot) {
-  auto* items = overworld_.mutable_all_items();
-  if (!items) {
-    return;
-  }
-
-  *items = snapshot.items;
-  selected_item_identity_ = snapshot.selected_item_identity;
-  if (selected_item_identity_.has_value()) {
-    auto* selected_item =
-        FindItemByIdentity(&overworld_, *selected_item_identity_);
-    if (selected_item) {
-      current_entity_ = selected_item;
-      if (auto* workbench = GetWorkbench()) {
-        workbench->SetActiveEntity(selected_item);
-      }
-    } else {
-      ClearSelectedItem();
-    }
-  } else {
-    ClearSelectedItem();
-  }
-
-  if (rom_) {
-    rom_->set_dirty(true);
-  }
-  RefreshOverworldMap();
-}
-
-void OverworldEditor::PushItemUndoAction(OverworldItemsSnapshot before,
-                                         std::string description) {
-  OverworldItemsSnapshot after = CaptureItemUndoSnapshot();
-  if (ItemSnapshotsEqual(before, after)) {
-    return;
-  }
-
-  undo_manager_.Push(std::make_unique<OverworldItemsEditAction>(
-      std::move(before), std::move(after),
-      [this](const OverworldItemsSnapshot& snapshot) {
-        RestoreItemUndoSnapshot(snapshot);
-      },
-      std::move(description)));
-}
-
-bool OverworldEditor::DuplicateSelectedItem(int offset_x, int offset_y) {
-  auto* selected_item = GetSelectedItem();
-  if (!selected_item) {
-    if (dependencies_.toast_manager) {
-      dependencies_.toast_manager->Show(
-          "Select an overworld item first (click one, or Items mode: 5)",
-          ToastType::kInfo);
-    }
-    return false;
-  }
-
-  auto before_snapshot = CaptureItemUndoSnapshot();
-  EntityMutationService::MutationResult duplicate_result;
-  if (entity_mutation_service_) {
-    duplicate_result = entity_mutation_service_->DuplicateItem(
-        *selected_item, offset_x, offset_y);
-  } else {
-    auto duplicate_or = DuplicateItemByIdentity(&overworld_, *selected_item,
-                                                offset_x, offset_y);
-    if (duplicate_or.ok()) {
-      duplicate_result.entity = *duplicate_or;
-      duplicate_result.status = absl::OkStatus();
-    } else {
-      duplicate_result.status = duplicate_or.status();
-      duplicate_result.error_message =
-          "Failed to duplicate overworld item: " +
-          std::string(duplicate_or.status().message());
-    }
-  }
-  if (!duplicate_result.ok()) {
-    if (dependencies_.toast_manager) {
-      dependencies_.toast_manager->Show(
-          duplicate_result.error_message.empty()
-              ? "Failed to duplicate overworld item"
-              : duplicate_result.error_message,
-          ToastType::kError);
-    }
-    return false;
-  }
-
-  auto* duplicated_item =
-      static_cast<zelda3::OverworldItem*>(duplicate_result.entity);
-  selected_item_identity_ = *duplicated_item;
-  current_entity_ = duplicated_item;
-  if (auto* workbench = GetWorkbench()) {
-    workbench->SetActiveEntity(duplicated_item);
-  }
-  PushItemUndoAction(std::move(before_snapshot),
-                     absl::StrFormat("Duplicate overworld item 0x%02X",
-                                     static_cast<int>(duplicated_item->id_)));
-  rom_->set_dirty(true);
-  if (dependencies_.toast_manager) {
-    dependencies_.toast_manager->Show(
-        absl::StrFormat("Duplicated item 0x%02X",
-                        static_cast<int>(duplicated_item->id_)),
-        ToastType::kSuccess);
-  }
-  return true;
-}
-
-bool OverworldEditor::NudgeSelectedItem(int delta_x, int delta_y) {
-  auto* selected_item = GetSelectedItem();
-  if (!selected_item) {
-    return false;
-  }
-
-  auto before_snapshot = CaptureItemUndoSnapshot();
-  auto status = NudgeItem(selected_item, delta_x, delta_y);
-  if (!status.ok()) {
-    if (dependencies_.toast_manager) {
-      dependencies_.toast_manager->Show("Failed to move selected item",
-                                        ToastType::kError);
-    }
-    return false;
-  }
-
-  selected_item_identity_ = *selected_item;
-  current_entity_ = selected_item;
-  if (auto* workbench = GetWorkbench()) {
-    workbench->SetActiveEntity(selected_item);
-  }
-  PushItemUndoAction(
-      std::move(before_snapshot),
-      absl::StrFormat("Move overworld item 0x%02X (%+d,%+d)",
-                      static_cast<int>(selected_item->id_), delta_x, delta_y));
-  rom_->set_dirty(true);
-  return true;
-}
-
-bool OverworldEditor::DeleteSelectedItem() {
-  auto* selected_item = GetSelectedItem();
-  if (!selected_item) {
-    return false;
-  }
-
-  auto before_snapshot = CaptureItemUndoSnapshot();
-  const zelda3::OverworldItem selected_identity = *selected_item;
-  const uint8_t deleted_item_id = selected_identity.id_;
-  absl::Status remove_status =
-      absl::FailedPreconditionError("Entity mutation service not initialized");
-  if (entity_mutation_service_) {
-    remove_status =
-        entity_mutation_service_->DeleteItem(selected_identity).status;
-  } else {
-    remove_status = RemoveItemByIdentity(&overworld_, selected_identity);
-  }
-  if (!remove_status.ok()) {
-    if (dependencies_.toast_manager) {
-      dependencies_.toast_manager->Show("Failed to delete selected item",
-                                        ToastType::kError);
-    }
-    return false;
-  }
-
-  auto* nearest_item =
-      entity_mutation_service_
-          ? entity_mutation_service_->ResolveNextSelection(selected_identity)
-          : FindNearestItemForSelection(&overworld_, selected_identity);
-  if (nearest_item) {
-    selected_item_identity_ = *nearest_item;
-    current_entity_ = nearest_item;
-    if (auto* workbench = GetWorkbench()) {
-      workbench->SetActiveEntity(nearest_item);
-    }
-  } else {
-    ClearSelectedItem();
-  }
-
-  PushItemUndoAction(std::move(before_snapshot),
-                     absl::StrFormat("Delete overworld item 0x%02X",
-                                     static_cast<int>(deleted_item_id)));
-  rom_->set_dirty(true);
-  if (dependencies_.toast_manager) {
-    if (nearest_item) {
-      dependencies_.toast_manager->Show(
-          absl::StrFormat("Deleted item 0x%02X (selected nearest 0x%02X)",
-                          static_cast<int>(deleted_item_id),
-                          static_cast<int>(nearest_item->id_)),
-          ToastType::kSuccess);
-    } else {
-      dependencies_.toast_manager->Show(
-          absl::StrFormat("Deleted overworld item 0x%02X",
-                          static_cast<int>(deleted_item_id)),
-          ToastType::kSuccess);
-    }
-  }
-  return true;
 }
 
 void OverworldEditor::CheckForOverworldEdits() {
