@@ -406,15 +406,46 @@ TEST(OverworldAllocationTest, NativeDirectoryReadsEveryDeclaredMapSlot) {
   EXPECT_EQ(report.areas[0xB9].parent, 0xB0);
   EXPECT_EQ(report.areas[0xB9].size, AllocationAreaSize::kLarge);
   EXPECT_TRUE(report.areas[0xB9].used);
+  // Without a loaded model, a blank tail slot is unverified, not free.
   EXPECT_FALSE(report.areas[0xA1].used);
-  EXPECT_EQ(report.areas[0xA1].uncovered_tables,
-            std::vector<std::string>{"area_flags"});
-  EXPECT_EQ(report.TablesStoppingBeforeTail(),
-            std::vector<std::string>{"area_flags"});
+  EXPECT_TRUE(report.areas[0xA1].unverified);
+  EXPECT_EQ(report.areas[0xA1].unscanned,
+            (std::vector<std::string>{"overworld_model", "inbound_transitions",
+                                      "code_references"}));
+  EXPECT_TRUE(report.areas[0x9F].unscanned.empty());
+  // Every per-area ROM table except the special-exit entry GFX has a native
+  // record with a row for each tail slot.
+  const std::vector<std::string> uncovered = {"sw_entry_gfx", "area_flags"};
+  EXPECT_EQ(report.areas[0xA1].uncovered_tables, uncovered);
+  EXPECT_EQ(report.TablesStoppingBeforeTail(), uncovered);
   const auto& tail = Summary(report, "special_tail");
   EXPECT_EQ(tail.used, 5);
-  EXPECT_EQ(tail.free_with_map_data, 27);
+  EXPECT_EQ(tail.unverified, 27);
+  EXPECT_EQ(tail.free, 0);
+  EXPECT_EQ(tail.free_with_map_data, 0);
   EXPECT_EQ(tail.free_without_map_data, 0);
+}
+
+TEST(OverworldAllocationTest, NativeCoverageStopsAtTheDirectoryCapacity) {
+  test::native_overworld::NativeDirectoryFixture fixture(160);
+  fixture.Seal();
+  Rom rom = LoadRom(fixture.bytes);
+  ASSERT_TRUE(rom::IsNativeSpecialOverworldLayout(rom.InspectLyraLayout()));
+
+  // No native record has a row for $A0, so no ROM table is covered for it
+  // and the slot is outside the native evidence scan.
+  const auto report = BuildReport(rom);
+  const auto& slot = report.areas[0xA0];
+  EXPECT_EQ(report.areas[0x9F].map_pointer_source, "vanilla_table");
+  EXPECT_EQ(slot.map_pointer_source, "none");
+  EXPECT_TRUE(slot.unscanned.empty());
+  EXPECT_FALSE(slot.unverified);
+  for (const char* table :
+       {"map32_high", "map32_low", "pool_parent", "pool_by_screen_1",
+        "pool_sprites_phase_0", "hidden_items", "sw_entry_gfx", "area_flags"}) {
+    EXPECT_TRUE(Contains(slot.uncovered_tables, table)) << table;
+  }
+  EXPECT_EQ(report.TablesStoppingBeforeTail(), slot.uncovered_tables);
 }
 
 TEST(OverworldAllocationTest, CustomCollisionMarkerCannotBypassApplyGuard) {

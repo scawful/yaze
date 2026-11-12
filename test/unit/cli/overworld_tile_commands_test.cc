@@ -33,6 +33,7 @@
 #include "zelda3/dungeon/room.h"
 #include "zelda3/game_data.h"
 #include "zelda3/overworld/overworld.h"
+#include "zelda3/overworld/overworld_allocation.h"
 #include "zelda3/overworld/overworld_version_helper.h"
 
 namespace yaze::cli {
@@ -1513,6 +1514,68 @@ TEST_F(OverworldTileRomTest,
   EXPECT_EQ(native.vector(), conflict_input);
   EXPECT_EQ(ReadBytes(target_path), conflict_input);
   EXPECT_EQ(ReadBytes(donor_path), donor_before);
+}
+
+TEST_F(OverworldTileRomTest, AllocationTakesNativeTailOccupancyFromTheModel) {
+  test::native_overworld::NativeDirectoryFixture fixture(192);
+  ASSERT_NO_FATAL_FAILURE(SeedValidationFixture(&fixture));
+  fixture.UpgradeToRevision4();
+  rom::NativeOverworldAuthoringMetadata metadata;
+  metadata.next_placement_id = 2;
+  metadata.placements = {
+      {1, rom::NativePlacementState::kPending,
+       rom::NativeAuthoringDoorPlacement{0xA5, 9, 9, 0x0B, std::nullopt}}};
+  fixture.AddAuthoringMetadata(metadata);
+  Rom native;
+  ASSERT_TRUE(native.LoadFromData(fixture.bytes).ok());
+  zelda3::Overworld world(&native);
+  ASSERT_TRUE(world.Load(&native).ok());
+  ASSERT_TRUE(world.native_authoring_metadata().has_value());
+  // Stage entities on blank tail pages the way the editor holds them.
+  world.mutable_all_items()->emplace_back(0x01, 0xAC, 16, 16, false);
+  world.mutable_sprites(1)->emplace_back(std::vector<uint8_t>{}, 0xB2, 0x08, 4,
+                                         4, 64, 64);
+  world.mutable_overworld_map(0xA3)->set_subscreen_overlay(0xB5);
+
+  zelda3::OverworldAllocationOptions options;
+  options.overworld = &world;
+  const auto with_model =
+      zelda3::BuildOverworldAllocationReport(&native, options);
+  ASSERT_TRUE(with_model.ok()) << with_model.status();
+  const auto without_model = zelda3::BuildOverworldAllocationReport(&native);
+  ASSERT_TRUE(without_model.ok()) << without_model.status();
+  const auto& areas = with_model->areas;
+  EXPECT_EQ(areas[0xA5].authoring_placements, 1);
+  EXPECT_EQ(areas[0xAC].items, 1);
+  EXPECT_EQ(areas[0xB2].sprites, 1);
+  EXPECT_THAT(areas[0xB5].overlay_users, ::testing::Contains(0xA3));
+  for (int id : {0xA5, 0xAC, 0xB2, 0xB5}) {
+    EXPECT_TRUE(areas[id].used) << id;
+    EXPECT_FALSE(without_model->areas[id].used) << id;
+    EXPECT_TRUE(without_model->areas[id].unverified) << id;
+  }
+  // No evidence, yet inbound transitions and code references are unscanned.
+  EXPECT_FALSE(areas[0xB6].used);
+  EXPECT_TRUE(areas[0xB6].unverified);
+  EXPECT_EQ(
+      areas[0xB6].unscanned,
+      (std::vector<std::string>{"inbound_transitions", "code_references"}));
+  for (const auto* report : {&*with_model, &*without_model}) {
+    for (const auto& summary : report->summary) {
+      if (summary.key == "special_tail") {
+        EXPECT_EQ(summary.free, 0);
+        EXPECT_EQ(summary.used + summary.unverified, 32);
+      }
+    }
+  }
+  // $00-$9F keep the legacy readers; the model adds nothing there.
+  for (int id = 0; id <= 0x9F; ++id) {
+    const auto& legacy = without_model->areas[id];
+    EXPECT_EQ(areas[id].entrances, legacy.entrances) << id;
+    EXPECT_EQ(areas[id].sprites, legacy.sprites) << id;
+    EXPECT_EQ(areas[id].items, 0) << id;
+    EXPECT_TRUE(areas[id].unscanned.empty()) << id;
+  }
 }
 
 }  // namespace

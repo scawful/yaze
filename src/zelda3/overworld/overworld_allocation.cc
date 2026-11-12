@@ -11,7 +11,9 @@
 #include "absl/strings/str_format.h"
 #include "absl/strings/str_join.h"
 #include "nlohmann/json.hpp"
+#include "rom/lyra_layout_descriptor.h"
 #include "util/macro.h"
+#include "zelda3/overworld/overworld.h"
 #include "zelda3/overworld/overworld_entrance.h"
 #include "zelda3/overworld/overworld_exit.h"
 #include "zelda3/overworld/overworld_layout.h"
@@ -407,6 +409,59 @@ std::string JoinAreas(const std::vector<int>& areas) {
   return absl::StrJoin(parts, ",");
 }
 
+// Native directory records holding a catalogue table's entry for a tail
+// slot, as yaze's native property, geometry, sprite and item code reads and
+// writes them. Empty when the directory has no equivalent record.
+std::vector<uint16_t> NativeRecordsForTable(const std::string& table,
+                                            int area) {
+  if (table == "area_gfx") {
+    return {static_cast<uint16_t>(area >= 0x80 ? 27 : 26)};
+  }
+  static const std::map<std::string, std::vector<uint16_t>> kRecords = {
+      {"map32_high", {20}},
+      {"map32_low", {21}},
+      {"area_size", {30}},
+      {"pool_parent", {7}},
+      {"palette_set", {31}},
+      {"pool_bg_color", {1}},
+      {"pool_main_palette", {2}},
+      {"pool_mosaic", {3}},
+      {"pool_animated_gfx", {4}},
+      {"pool_subscreen_overlay", {5}},
+      {"pool_tile_gfx_groups", {6}},
+      {"sw_sprite_gfx", {24, 36, 39}},
+      {"sw_sprite_palette", {25, 37, 38}},
+      {"pool_by_screen_1", {8}},
+      {"pool_by_screen_2", {9}},
+      {"pool_by_screen_3", {10}},
+      {"pool_by_screen_4", {11}},
+      {"pool_trans_pos_y", {12}},
+      {"pool_trans_pos_x", {13}},
+      {"pool_trans_target_north", {14}},
+      {"pool_trans_target_west", {15}},
+      {"pool_sprites_phase_0", {16}},
+      {"pool_sprites_phase_1", {17}},
+      {"pool_sprites_phase_2", {18}},
+      {"pool_sign_message", {19}},
+      {"music_dw_sw", {32, 33, 34, 35}},
+      {"bomb_doors", {22}},
+      {"hidden_items", {23}},
+  };
+  const auto it = kRecords.find(table);
+  return it == kRecords.end() ? std::vector<uint16_t>{} : it->second;
+}
+
+bool NativeRecordsCover(const rom::LyraLayoutInspection& layout, const Rom& rom,
+                        const std::string& table, int area) {
+  const auto records = NativeRecordsForTable(table, area);
+  return !records.empty() &&
+         std::all_of(records.begin(), records.end(), [&](uint16_t record) {
+           return rom::LyraLayoutRecord(layout, rom.data(), rom.size(), record,
+                                        area)
+               .has_value();
+         });
+}
+
 }  // namespace
 
 const char* AllocationWorldName(AllocationWorld world) {
@@ -653,15 +708,20 @@ absl::StatusOr<OverworldAllocationReport> BuildOverworldAllocationReport(
     if (auto it = options.area_names.find(id); it != options.area_names.end()) {
       area.name = it->second;
     }
-    // A native directory declares every per-area ROM table for each tail slot
-    // it owns; $00-$9F keep the legacy tables the game reads, and WRAM/SRAM
-    // tables keep their fixed extent.
+    // A tail slot of a native directory is covered by the record that holds
+    // the table's entry, when that record has a row for it. $00-$9F keep the
+    // legacy tables the game reads.
     const bool native_slot =
         native_layout && id > 0x9F && id < layout.terrain_table_entries;
     for (const auto& table : report.tables) {
-      if (table.Misses(id) && !(native_slot && table.in_rom)) {
-        area.uncovered_tables.push_back(table.id);
+      if (!table.Misses(id)) {
+        continue;
       }
+      if (native_slot && table.in_rom &&
+          NativeRecordsCover(layout.lyra_layout, *rom, table.id, id)) {
+        continue;
+      }
+      area.uncovered_tables.push_back(table.id);
     }
 
     // Parent.
@@ -804,6 +864,75 @@ absl::StatusOr<OverworldAllocationReport> BuildOverworldAllocationReport(
     }
   }
 
+  // Native tail slots. The legacy readers above stop at $9F; the overworld
+  // model reads every slot through the native directory. Nothing here scans
+  // inbound transitions from neighbouring areas or code that names an ID.
+  const int native_end =
+      native_layout
+          ? std::min<int>(layout.terrain_table_entries, kAllocationAreaCount)
+          : 0;
+  const auto native_tail = [native_end](int map) {
+    return map > 0x9F && map < native_end;
+  };
+  if (const Overworld* world = options.overworld;
+      world != nullptr && native_end > kSpecialTailFirstArea) {
+    for (const auto& entrance : world->entrances()) {
+      if (!entrance.deleted && native_tail(entrance.map_id_)) {
+        report.areas[entrance.map_id_].entrances++;
+      }
+    }
+    for (const auto& hole : world->holes()) {
+      if (!hole.deleted && native_tail(hole.map_id_)) {
+        report.areas[hole.map_id_].holes++;
+      }
+    }
+    for (const auto& exit : *world->exits()) {
+      if (!exit.deleted_ && native_tail(exit.map_id_)) {
+        report.areas[exit.map_id_].exits++;
+      }
+    }
+    for (const auto& item : world->all_items()) {
+      if (!item.deleted && native_tail(item.room_map_id_)) {
+        report.areas[item.room_map_id_].items++;
+      }
+    }
+    for (int phase = 0; phase < 3; ++phase) {
+      for (const auto& sprite : world->sprites(phase)) {
+        if (!sprite.deleted() && native_tail(sprite.map_id())) {
+          report.areas[sprite.map_id()].sprites++;
+        }
+      }
+    }
+    // The game reads the parent's overlay; $00-$9F users are counted above.
+    for (const auto& map : world->overworld_maps()) {
+      const int user = map.index();
+      const int overlay = map.subscreen_overlay();
+      if (native_tail(user) && map.parent() == user && overlay >= 0x80 &&
+          overlay < kAllocationAreaCount) {
+        report.areas[overlay].overlay_users.push_back(user);
+      }
+    }
+    if (const auto& metadata = world->native_authoring_metadata()) {
+      for (const auto& placement : metadata->placements) {
+        if (placement.state == rom::NativePlacementState::kDeleted) {
+          continue;
+        }
+        const int map = std::visit(
+            [](const auto& value) -> int {
+              if constexpr (std::is_same_v<std::decay_t<decltype(value)>,
+                                           rom::NativeAuthoringSpritePlacement>)
+                return value.owner_map;
+              else
+                return value.map;
+            },
+            placement.value);
+        if (native_tail(map)) {
+          report.areas[map].authoring_placements++;
+        }
+      }
+    }
+  }
+
   // Evidence and summary.
   for (auto& area : report.areas) {
     if (area.unique_tile32 > 1) {
@@ -831,6 +960,14 @@ absl::StatusOr<OverworldAllocationReport> BuildOverworldAllocationReport(
     if (area.sprites > 0) {
       area.evidence.push_back(EvidenceCount(area.sprites, "sprite", "sprites"));
     }
+    if (area.items > 0) {
+      area.evidence.push_back(EvidenceCount(area.items, "item", "items"));
+    }
+    if (area.authoring_placements > 0) {
+      area.evidence.push_back(EvidenceCount(area.authoring_placements,
+                                            "authoring placement",
+                                            "authoring placements"));
+    }
     if (!area.overlay_users.empty()) {
       area.evidence.push_back(
           absl::StrCat("subscreen overlay of ", JoinAreas(area.overlay_users)));
@@ -839,6 +976,14 @@ absl::StatusOr<OverworldAllocationReport> BuildOverworldAllocationReport(
       area.evidence.push_back("overlay ID named in code");
     }
     area.used = !area.evidence.empty();
+    if (native_tail(area.area)) {
+      if (options.overworld == nullptr) {
+        area.unscanned.push_back("overworld_model");
+      }
+      area.unscanned.push_back("inbound_transitions");
+      area.unscanned.push_back("code_references");
+    }
+    area.unverified = !area.used && !area.unscanned.empty();
   }
 
   const std::array<std::pair<const char*, std::pair<int, int>>, 4> worlds = {
@@ -855,6 +1000,8 @@ absl::StatusOr<OverworldAllocationReport> BuildOverworldAllocationReport(
       const AreaAllocation& area = report.areas[id];
       if (area.used) {
         summary.used++;
+      } else if (area.unverified) {
+        summary.unverified++;
       } else {
         summary.free++;
         if (area.map_pointer_valid) {
@@ -1291,7 +1438,13 @@ ordered_json AreaJson(const AreaAllocation& area) {
     j["name"] = area.name;
   }
   j["used"] = area.used;
+  if (!area.unscanned.empty()) {
+    j["unverified"] = area.unverified;
+  }
   j["evidence"] = area.evidence;
+  if (!area.unscanned.empty()) {
+    j["unscanned"] = area.unscanned;
+  }
   j["parent"] = area.parent.has_value() ? ordered_json(HexByte(*area.parent))
                                         : ordered_json(nullptr);
   if (area.parent_past_end.has_value()) {
@@ -1314,8 +1467,18 @@ ordered_json AreaJson(const AreaAllocation& area) {
   j["holes"] = area.holes;
   j["exits"] = area.exits;
   j["sprites"] = area.sprites;
+  if (!area.unscanned.empty()) {
+    j["items"] = area.items;
+    j["authoring_placements"] = area.authoring_placements;
+  }
   j["uncovered_tables"] = area.uncovered_tables;
   return j;
+}
+
+bool HasUnscannedAreas(const OverworldAllocationReport& report) {
+  return std::any_of(
+      report.areas.begin(), report.areas.end(),
+      [](const AreaAllocation& area) { return !area.unscanned.empty(); });
 }
 
 ordered_json TailJson(const TailMapExpansionCheck& check) {
@@ -1422,13 +1585,18 @@ std::string OverworldAllocationToJson(const OverworldAllocationReport& report,
   j["catalogue"] = report.catalogue;
   j["tail_marker_present"] = report.tail_marker_present;
   ordered_json summary = ordered_json::array();
+  const bool unscanned = HasUnscannedAreas(report);
   for (const auto& world : report.summary) {
-    summary.push_back({{"world", world.key},
-                       {"range", RangeText(world.first_area, world.last_area)},
-                       {"used", world.used},
-                       {"free", world.free},
-                       {"free_with_map_data", world.free_with_map_data},
-                       {"free_without_map_data", world.free_without_map_data}});
+    ordered_json row = {{"world", world.key},
+                        {"range", RangeText(world.first_area, world.last_area)},
+                        {"used", world.used},
+                        {"free", world.free},
+                        {"free_with_map_data", world.free_with_map_data},
+                        {"free_without_map_data", world.free_without_map_data}};
+    if (unscanned) {
+      row["unverified"] = world.unverified;
+    }
+    summary.push_back(row);
   }
   j["summary"] = summary;
   j["tables_stopping_before_tail"] = report.TablesStoppingBeforeTail();
@@ -1461,13 +1629,20 @@ std::string FormatOverworldAllocationText(
       report.tail_marker_present ? "present" : "absent");
 
   out << "Summary\n";
-  out << absl::StrFormat("  %-13s %-8s %5s %5s %9s %11s\n", "world", "range",
+  const bool unscanned = HasUnscannedAreas(report);
+  out << absl::StrFormat("  %-13s %-8s %5s %5s %9s %11s", "world", "range",
                          "used", "free", "free+map", "free-no-map");
+  out << (unscanned ? absl::StrFormat(" %10s\n", "unverified") : "\n");
   for (const auto& world : report.summary) {
-    out << absl::StrFormat("  %-13s %-8s %5d %5d %9d %11d\n", world.key,
+    out << absl::StrFormat("  %-13s %-8s %5d %5d %9d %11d", world.key,
                            RangeText(world.first_area, world.last_area),
                            world.used, world.free, world.free_with_map_data,
                            world.free_without_map_data);
+    out << (unscanned ? absl::StrFormat(" %10d\n", world.unverified) : "\n");
+  }
+  if (unscanned) {
+    out << "  Unverified IDs have no evidence, but inbound transitions and "
+           "code references were not scanned; they are not free.\n";
   }
 
   out << "\nPer-area tables (a read past the last entry returns the data "
@@ -1513,8 +1688,8 @@ std::string FormatOverworldAllocationText(
     out << absl::StrFormat(
         "  %-4s %-7s %-4s %-6s %-5s %-7s %5s %4d %4d %4d %4d %4d  %s\n",
         AreaText(area.area), AllocationWorldName(area.world),
-        area.used ? "yes" : "no", parent, AllocationAreaSizeName(area.size),
-        MapColumn(area),
+        area.used ? "yes" : (area.unverified ? "?" : "no"), parent,
+        AllocationAreaSizeName(area.size), MapColumn(area),
         area.unique_tile32 >= 0 ? absl::StrCat(area.unique_tile32) : "-",
         area.entrances, area.holes, area.exits, area.sprites,
         static_cast<int>(area.uncovered_tables.size()),
