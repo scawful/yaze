@@ -24,6 +24,10 @@ namespace {
 namespace fs = std::filesystem;
 using Json = nlohmann::json;
 constexpr char kSpec[] = "Data/graphics/source_sprite_sheets.json";
+// The producer selects this spec instead when !ENABLE_D4_ZORA_REDESIGN is
+// nonzero; it must begin with every kSpec sheet entry.
+constexpr char kD4Spec[] = "Data/graphics/d4_zora_sprite_sheets.json";
+constexpr char kD4Flag[] = "ENABLE_D4_ZORA_REDESIGN";
 absl::Status Bad(const std::string& message) {
   return absl::FailedPreconditionError("Graphics source: " + message);
 }
@@ -261,8 +265,8 @@ bool FlagName(const std::string& name) {
 }
 
 // The define files the producer reads before code, in include order. The
-// last assignment wins; a flag selecting a source must be a plain integer.
-absl::StatusOr<std::map<std::string, bool>> ReadFlags(
+// last assignment wins; nullopt marks a value that is not a plain integer.
+absl::StatusOr<std::map<std::string, std::optional<int64_t>>> ReadFlags(
     const fs::path& root, const std::set<std::string>& names,
     std::map<std::string, std::optional<std::string>>& files) {
   std::map<std::string, std::optional<int64_t>> values;
@@ -310,16 +314,22 @@ absl::StatusOr<std::map<std::string, bool>> ReadFlags(
     }
     files.emplace(path.string(), std::move(text));
   }
-  std::map<std::string, bool> enabled;
-  for (const auto& name : names) {
-    const auto found = values.find(name);
-    if (found == values.end())
-      return Bad("!" + name + " is not defined");
-    if (!found->second)
-      return Bad("!" + name + " is not a literal integer");
-    enabled[name] = *found->second != 0;
-  }
-  return enabled;
+  return values;
+}
+bool SupportedHeader(const Json& spec) {
+  return Keys(spec,
+              {"schema_version", "start", "capacity", "encoding", "sheets"}) &&
+         spec.at("schema_version").is_number_integer() &&
+         spec.at("schema_version") == 2 &&
+         Number(spec.at("start")) == 0x40D000 &&
+         Number(spec.at("capacity")) == 0x3000 &&
+         (spec.at("encoding") == "stored" || spec.at("encoding") == "lz2") &&
+         spec.at("sheets").is_array() && !spec.at("sheets").empty();
+}
+bool MatchesSheet(const Json& entry, uint16_t id, const std::string& flag) {
+  return entry.contains("global_sheet") &&
+         Number(entry.at("global_sheet")) == id &&
+         entry.value("flag", std::string()) == flag;
 }
 }  // namespace
 
@@ -389,11 +399,13 @@ std::string GfxSheetSource::EncodeText(const std::vector<uint8_t>& pixels) {
 }
 absl::StatusOr<GfxSheetSource> GfxSheetSource::Load(
     const project::YazeProject& project) {
-  if (project.graphics_sheets.source_spec != kSpec ||
+  const auto& selected = project.graphics_sheets.source_spec;
+  const bool d4 = selected == kD4Spec;
+  if ((selected != kSpec && !d4) ||
       !Hex(project.graphics_sheets.source_spec_sha1, 40))
-    return Bad("select canonical source_spec and its current SHA1");
+    return Bad("select a canonical source_spec and its current SHA1");
   ASSIGN_OR_RETURN(auto root, Root(project));
-  const auto expected = root / kSpec;
+  const auto expected = root / selected;
   std::error_code ec;
   auto spec_path = fs::canonical(expected, ec);
   if (ec || spec_path != expected)
@@ -408,17 +420,27 @@ absl::StatusOr<GfxSheetSource> GfxSheetSource::Load(
   result.spec_path_ = spec_path.string();
   result.spec_ = bytes;
   result.spec_sha1_ = SpecSha1(bytes);
+  if (d4) {
+    const auto standard_expected = root / kSpec;
+    auto standard_path = fs::canonical(standard_expected, ec);
+    if (ec || standard_path != standard_expected)
+      return Bad("canonical spec must not be redirected");
+    ASSIGN_OR_RETURN(result.standard_, Read(standard_path));
+    result.standard_path_ = standard_path.string();
+  }
   try {
     const auto spec = Json::parse(bytes);
-    if (!Keys(spec,
-              {"schema_version", "start", "capacity", "encoding", "sheets"}) ||
-        !spec.at("schema_version").is_number_integer() ||
-        spec.at("schema_version") != 2 ||
-        Number(spec.at("start")) != 0x40D000 ||
-        Number(spec.at("capacity")) != 0x3000 ||
-        (spec.at("encoding") != "stored" && spec.at("encoding") != "lz2") ||
-        !spec.at("sheets").is_array() || spec.at("sheets").empty())
+    if (!SupportedHeader(spec))
       return Bad("unsupported schema2 sheet spec");
+    if (d4) {
+      const auto standard = Json::parse(result.standard_);
+      if (!SupportedHeader(standard))
+        return Bad("unsupported schema2 standard sheet spec");
+      const auto& prefix = standard.at("sheets");
+      if (prefix.size() > spec.at("sheets").size() ||
+          !std::equal(prefix.begin(), prefix.end(), spec.at("sheets").begin()))
+        return Bad("D4 sheet spec must preserve every standard sheet entry");
+    }
     // A flagged global assembles only under its define and then replaces the
     // unflagged entry for that ID (Scripts/Generate/sheet_overrides.py).
     std::set<std::pair<int, std::string>> ids;
@@ -499,17 +521,26 @@ absl::StatusOr<GfxSheetSource> GfxSheetSource::Load(
     }
     if (unflagged.empty() && flagged.empty())
       return Bad("no declared DF..FE source sheets");
-    std::set<std::string> names;
+    std::set<std::string> names{kD4Flag};
     for (const auto& [id, sheet] : flagged)
       names.insert(sheet.flag);
-    std::map<std::string, bool> enabled;
-    if (!names.empty()) {
-      ASSIGN_OR_RETURN(enabled, ReadFlags(root, names, result.defines_));
-    }
+    ASSIGN_OR_RETURN(auto values, ReadFlags(root, names, result.defines_));
+    // Like the producer, an undefined D4 flag selects the standard spec.
+    const auto d4_value = values.find(kD4Flag);
+    if (d4_value != values.end() && !d4_value->second)
+      return Bad("!" + std::string(kD4Flag) + " is not a literal integer");
+    if ((d4_value != values.end() && *d4_value->second != 0) != d4)
+      return Bad("source_spec disagrees with !" + std::string(kD4Flag));
     result.sheets_ = std::move(unflagged);
-    for (auto& [id, sheet] : flagged)
-      if (enabled.at(sheet.flag))
+    for (auto& [id, sheet] : flagged) {
+      const auto value = values.find(sheet.flag);
+      if (value == values.end())
+        return Bad("!" + sheet.flag + " is not defined");
+      if (!value->second)
+        return Bad("!" + sheet.flag + " is not a literal integer");
+      if (*value->second != 0)
         result.sheets_.insert_or_assign(id, std::move(sheet));
+    }
   } catch (const std::exception& e) {
     return Bad(e.what());
   }
@@ -518,7 +549,8 @@ absl::StatusOr<GfxSheetSource> GfxSheetSource::Load(
 absl::Status GfxSheetSource::CheckBinding(
     const project::YazeProject& project) const {
   ASSIGN_OR_RETURN(auto root, Root(project));
-  if (root.string() != root_ || project.graphics_sheets.source_spec != kSpec ||
+  if (root.string() != root_ ||
+      root / project.graphics_sheets.source_spec != fs::path(spec_path_) ||
       project.graphics_sheets.source_spec_sha1 != spec_sha1_)
     return Bad("project source binding changed; draft retained");
   return absl::OkStatus();
@@ -531,6 +563,14 @@ absl::Status GfxSheetSource::CheckDisk() const {
   ASSIGN_OR_RETURN(auto spec, Read(spec_path_));
   if (spec != spec_)
     return Bad("spec changed on disk; draft retained");
+  if (!standard_path_.empty()) {
+    if (fs::canonical(standard_path_, spec_error) != fs::path(standard_path_) ||
+        spec_error)
+      return Bad("spec target was redirected");
+    ASSIGN_OR_RETURN(auto standard, Read(standard_path_));
+    if (standard != standard_)
+      return Bad("standard spec changed on disk; draft retained");
+  }
   for (const auto& [path, before] : inputs_) {
     std::error_code ec;
     if (fs::canonical(path, ec) != fs::path(path) || ec)
@@ -563,7 +603,9 @@ absl::StatusOr<GfxSheetSource::Plan> GfxSheetSource::Prepare(
   plan.descriptor = descriptor_;
   plan.sheets = sheets_;
   auto spec = Json::parse(spec_);
-  bool changed = false;
+  // The D4 spec's standard prefix shares sources with kSpec; keep it equal.
+  auto standard = standard_path_.empty() ? Json() : Json::parse(standard_);
+  bool changed = false, standard_changed = false;
   for (const auto& [id, edited] : pixels) {
     auto found = plan.sheets.find(id);
     if (found == plan.sheets.end() || edited.size() != 4096 ||
@@ -597,15 +639,25 @@ absl::StatusOr<GfxSheetSource::Plan> GfxSheetSource::Prepare(
       ASSIGN_OR_RETURN(sheet.bytes, ReplaceTextPixels(sheet.bytes, edited));
     }
     sheet.pixels = edited;
+    const auto digest = DecodedSha256(edited);
     for (auto& entry : spec["sheets"])
-      if (entry.contains("global_sheet") &&
-          Number(entry["global_sheet"]) == id &&
-          entry.value("flag", std::string()) == sheet.flag)
-        entry["decoded_sha256"] = DecodedSha256(edited);
+      if (MatchesSheet(entry, id, sheet.flag))
+        entry["decoded_sha256"] = digest;
+    if (!standard_path_.empty())
+      for (auto& entry : standard["sheets"])
+        if (MatchesSheet(entry, id, sheet.flag) &&
+            entry["decoded_sha256"] != digest) {
+          entry["decoded_sha256"] = digest;
+          standard_changed = true;
+        }
   }
   plan.spec = changed ? spec.dump(2) + "\n" : spec_;
   plan.sha1 = SpecSha1(plan.spec);
   plan.updates.push_back({spec_path_, spec_, plan.spec});
+  if (!standard_path_.empty())
+    plan.updates.push_back(
+        {standard_path_, standard_,
+         standard_changed ? standard.dump(2) + "\n" : standard_});
   for (const auto& [path, before] : inputs_) {
     std::string after = before;
     for (const auto& [id, sheet] : plan.sheets)
@@ -617,9 +669,13 @@ absl::StatusOr<GfxSheetSource::Plan> GfxSheetSource::Prepare(
 }
 void GfxSheetSource::Commit(Plan plan, std::string descriptor) {
   descriptor_ = std::move(descriptor);
-  for (const auto& update : plan.updates)
-    if (update.target.string() != spec_path_)
-      inputs_[update.target.string()] = update.after;
+  for (const auto& update : plan.updates) {
+    const auto target = update.target.string();
+    if (target == standard_path_)
+      standard_ = update.after;
+    else if (target != spec_path_)
+      inputs_[target] = update.after;
+  }
   spec_ = std::move(plan.spec);
   spec_sha1_ = std::move(plan.sha1);
   sheets_ = std::move(plan.sheets);

@@ -422,6 +422,91 @@ TEST_F(GfxSheetSourceTest, DefineFilePresenceIsBoundLikeItsBytes) {
   EXPECT_FALSE(source->Prepare(project, {{0xDF, pixels}}).ok());
 }
 
+TEST_F(GfxSheetSourceTest, D4SpecExtendsTheStandardSpecAndFollowsItsFlag) {
+  constexpr char kD4[] = "Data/graphics/d4_zora_sprite_sheets.json";
+  fs::create_directories(root / "Util");
+  auto atlas = pixels;
+  atlas[5] = 7;
+  Write(root / "Data/graphics/e0.txt", GfxSheetSource::EncodeText(atlas));
+  auto d4 = spec;
+  d4["sheets"].push_back(
+      {{"global_sheet", "0xE0"},
+       {"source", "e0.txt"},
+       {"decoded_sha256", GfxSheetSource::DecodedSha256(atlas)},
+       {"why", "D4-only global"}});
+  Write(root / kD4, d4.dump(2) + "\n");
+  const auto standard_bytes = Read(Spec());
+  const auto standard_sha1 = project.graphics_sheets.source_spec_sha1;
+  const auto bind = [&](const std::string& name, const std::string& sha1) {
+    project.graphics_sheets.source_spec = name;
+    project.graphics_sheets.source_spec_sha1 = sha1;
+    ASSERT_TRUE(project.Save().ok());
+  };
+  const auto d4_sha1 = GfxSheetSource::SpecSha1(Read(root / kD4));
+
+  // Undefined (as the producer reads it) or 0 selects only the standard spec.
+  for (const char* macros : {"", "!ENABLE_D4_ZORA_REDESIGN = 0\n"}) {
+    Write(root / "Util/macros.asm", macros);
+    bind(kD4, d4_sha1);
+    EXPECT_FALSE(GfxSheetSource::Load(project).ok()) << macros;
+    bind("Data/graphics/source_sprite_sheets.json", standard_sha1);
+    EXPECT_TRUE(GfxSheetSource::Load(project).ok()) << macros;
+  }
+  Write(root / "Util/macros.asm", "!ENABLE_D4_ZORA_REDESIGN = 1\n");
+  EXPECT_FALSE(GfxSheetSource::Load(project).ok());
+  bind(kD4, standard_sha1);
+  EXPECT_FALSE(GfxSheetSource::Load(project).ok());
+  bind("Data/graphics/other_sprite_sheets.json", d4_sha1);
+  EXPECT_FALSE(GfxSheetSource::Load(project).ok());
+  bind(kD4, d4_sha1);
+  auto source = GfxSheetSource::Load(project);
+  ASSERT_TRUE(source.ok()) << source.status();
+  EXPECT_EQ(source->sheets().at(0xE0).pixels, atlas);
+  EXPECT_EQ(source->sheets().at(0xDF).pixels, pixels);
+
+  // A D4-only edit leaves the standard spec as a guarded, unchanged input.
+  auto edited = atlas;
+  edited[6] = 1;
+  auto plan = source->Prepare(project, {{0xE0, edited}});
+  ASSERT_TRUE(plan.ok()) << plan.status();
+  ASSERT_EQ(plan->updates.size(), 2u + source->inputs().size());
+  EXPECT_TRUE(fs::equivalent(plan->updates[1].target, Spec()));
+  EXPECT_EQ(plan->updates[1].after, standard_bytes);
+
+  // A shared-sheet edit updates both specs, so the prefix stays equal.
+  edited = pixels;
+  edited[7] = 3;
+  plan = source->Prepare(project, {{0xDF, edited}});
+  ASSERT_TRUE(plan.ok()) << plan.status();
+  const auto standard_after = Json::parse(plan->updates[1].after);
+  const auto d4_after = Json::parse(plan->spec);
+  EXPECT_EQ(standard_after["sheets"][0]["decoded_sha256"],
+            GfxSheetSource::DecodedSha256(edited));
+  for (size_t i = 0; i < standard_after["sheets"].size(); ++i)
+    EXPECT_EQ(d4_after["sheets"][i], standard_after["sheets"][i]) << i;
+  for (const auto& update : plan->updates)
+    Write(update.target, update.after);
+  bind(kD4, plan->sha1);
+  source = GfxSheetSource::Load(project);
+  ASSERT_TRUE(source.ok()) << source.status();
+  EXPECT_EQ(source->sheets().at(0xDF).pixels, edited);
+
+  // The standard spec is bound like the selected spec.
+  const auto standard_now = Read(Spec());
+  Write(Spec(), standard_now + " ");
+  EXPECT_FALSE(source->CheckDisk().ok());
+  EXPECT_FALSE(source->Prepare(project, {}).ok());
+  auto diverged = Json::parse(standard_now);
+  diverged["sheets"][0]["why"] = "Diverged standard entry";
+  Write(Spec(), diverged.dump(2) + "\n");
+  EXPECT_FALSE(GfxSheetSource::Load(project).ok());
+  Write(Spec(), standard_now);
+  EXPECT_TRUE(GfxSheetSource::Load(project).ok());
+
+  Write(root / "Util/macros.asm", "!ENABLE_D4_ZORA_REDESIGN = !OTHER\n");
+  EXPECT_FALSE(GfxSheetSource::Load(project).ok());
+}
+
 TEST_F(GfxSheetSourceTest, IntegerAndSchemaFieldsMatchPythonWithoutNarrowing) {
   const auto original = spec;
   for (const auto& value : std::vector<Json>{
