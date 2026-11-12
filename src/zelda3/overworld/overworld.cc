@@ -39,6 +39,25 @@ namespace yaze::zelda3 {
 
 namespace {
 
+// Code operands SaveMap16Expanded() points at the relocated Tile16 table, as
+// SNES address plus byte offset into the table's first entry.
+struct Map16TableOperand {
+  uint32_t snes;
+  uint32_t offset;
+};
+constexpr Map16TableOperand kMap16LongOperands[] = {
+    {0x008865, 0}, {0x0EDE4F, 0}, {0x0EDEE9, 0}, {0x1BBC2D, 2}, {0x1BBC4C, 0},
+    {0x1BBCC2, 4}, {0x1BBCCB, 6}, {0x1BBEF6, 0}, {0x1BBF23, 0}, {0x1BC041, 0},
+    {0x1BC9B3, 0}, {0x1BC9BA, 2}, {0x1BC9C1, 4}, {0x1BC9C8, 6}, {0x1BCA40, 0},
+    {0x1BCA47, 2}, {0x1BCA4E, 4}, {0x1BCA55, 6}, {0x02F457, 0}, {0x02F45E, 2},
+    {0x02F467, 4}, {0x02F46E, 6}, {0x02F51F, 0}, {0x02F526, 4}, {0x02F52F, 2},
+    {0x02F536, 6}};
+constexpr Map16TableOperand kMap16ShortOperands[] = {{0x02FE1C, 0},
+                                                     {0x02FE23, 4},
+                                                     {0x02FE2C, 2},
+                                                     {0x02FE33, 6}};
+constexpr uint32_t kMap16BankOperands[] = {0x02FD28, 0x02FD39};
+
 std::vector<uint8_t> PrivateOverlaySnapshot(
     const std::vector<OverworldMap>& maps) {
   std::vector<uint8_t> bytes;
@@ -1887,14 +1906,27 @@ absl::Status Overworld::SaveOverworldMaps() {
   return absl::OkStatus();
 }
 
-std::pair<uint32_t, uint32_t> Overworld::GetProjectedTile16WriteRange() const {
-  int map16_addr = kMap16Tiles;
-  int map16_len = kNumTile16Individual * 8;  // Vanilla: 4096 * 8 = 32KB
-  if (expanded_tile16_) {
-    map16_addr = GetMap16TilesExpanded();
-    map16_len = NumberOfMap16Ex * 8;
+std::vector<std::pair<uint32_t, uint32_t>>
+Overworld::GetProjectedTile16WriteRanges() const {
+  if (!expanded_tile16_) {
+    return {{kMap16Tiles, kMap16Tiles + NumberOfMap16 * 8}};
   }
-  return {map16_addr, map16_addr + map16_len};
+  const uint32_t table = GetMap16TilesExpanded();
+  std::vector<std::pair<uint32_t, uint32_t>> ranges = {
+      {table, table + NumberOfMap16Ex * 8}};
+  for (const auto& operand : kMap16LongOperands) {
+    const uint32_t pc = SnesToPc(operand.snes);
+    ranges.emplace_back(pc, pc + 3);
+  }
+  for (const auto& operand : kMap16ShortOperands) {
+    const uint32_t pc = SnesToPc(operand.snes);
+    ranges.emplace_back(pc, pc + 2);
+  }
+  for (const uint32_t operand : kMap16BankOperands) {
+    const uint32_t pc = SnesToPc(operand);
+    ranges.emplace_back(pc, pc + 1);
+  }
+  return ranges;
 }
 
 std::vector<std::pair<uint32_t, uint32_t>> Overworld::GetProjectedWriteRanges()
@@ -1923,7 +1955,9 @@ std::vector<std::pair<uint32_t, uint32_t>> Overworld::GetProjectedWriteRanges()
   }
 
   // 2) Map16 Tiles
-  ranges.push_back(GetProjectedTile16WriteRange());
+  for (const auto& range : GetProjectedTile16WriteRanges()) {
+    ranges.push_back(range);
+  }
 
   // 3) Overworld map compressed pointer tables + data regions.
   // SaveOverworldMaps() writes two 3-byte pointer tables for all maps, plus the
@@ -3357,68 +3391,19 @@ absl::Status Overworld::SaveMap16Expanded() {
     }
     return rom()->WriteByte(address, bank);
   };
-  RETURN_IF_ERROR(write_pointer(SnesToPc(0x008865), PcToSnes(map16_expanded)));
-  RETURN_IF_ERROR(write_pointer(SnesToPc(0x0EDE4F), PcToSnes(map16_expanded)));
-  RETURN_IF_ERROR(write_pointer(SnesToPc(0x0EDEE9), PcToSnes(map16_expanded)));
-
-  RETURN_IF_ERROR(
-      write_pointer(SnesToPc(0x1BBC2D), PcToSnes(map16_expanded + 2)));
-  RETURN_IF_ERROR(write_pointer(SnesToPc(0x1BBC4C), PcToSnes(map16_expanded)));
-  RETURN_IF_ERROR(
-      write_pointer(SnesToPc(0x1BBCC2), PcToSnes(map16_expanded + 4)));
-  RETURN_IF_ERROR(
-      write_pointer(SnesToPc(0x1BBCCB), PcToSnes(map16_expanded + 6)));
-
-  RETURN_IF_ERROR(write_pointer(SnesToPc(0x1BBEF6), PcToSnes(map16_expanded)));
-  RETURN_IF_ERROR(write_pointer(SnesToPc(0x1BBF23), PcToSnes(map16_expanded)));
-  RETURN_IF_ERROR(write_pointer(SnesToPc(0x1BC041), PcToSnes(map16_expanded)));
-  RETURN_IF_ERROR(write_pointer(SnesToPc(0x1BC9B3), PcToSnes(map16_expanded)));
-
-  RETURN_IF_ERROR(
-      write_pointer(SnesToPc(0x1BC9BA), PcToSnes(map16_expanded + 2)));
-  RETURN_IF_ERROR(
-      write_pointer(SnesToPc(0x1BC9C1), PcToSnes(map16_expanded + 4)));
-  RETURN_IF_ERROR(
-      write_pointer(SnesToPc(0x1BC9C8), PcToSnes(map16_expanded + 6)));
-
-  RETURN_IF_ERROR(write_pointer(SnesToPc(0x1BCA40), PcToSnes(map16_expanded)));
-  RETURN_IF_ERROR(
-      write_pointer(SnesToPc(0x1BCA47), PcToSnes(map16_expanded + 2)));
-  RETURN_IF_ERROR(
-      write_pointer(SnesToPc(0x1BCA4E), PcToSnes(map16_expanded + 4)));
-  RETURN_IF_ERROR(
-      write_pointer(SnesToPc(0x1BCA55), PcToSnes(map16_expanded + 6)));
-
-  RETURN_IF_ERROR(write_pointer(SnesToPc(0x02F457), PcToSnes(map16_expanded)));
-  RETURN_IF_ERROR(
-      write_pointer(SnesToPc(0x02F45E), PcToSnes(map16_expanded + 2)));
-  RETURN_IF_ERROR(
-      write_pointer(SnesToPc(0x02F467), PcToSnes(map16_expanded + 4)));
-  RETURN_IF_ERROR(
-      write_pointer(SnesToPc(0x02F46E), PcToSnes(map16_expanded + 6)));
-  RETURN_IF_ERROR(write_pointer(SnesToPc(0x02F51F), PcToSnes(map16_expanded)));
-  RETURN_IF_ERROR(
-      write_pointer(SnesToPc(0x02F526), PcToSnes(map16_expanded + 4)));
-  RETURN_IF_ERROR(
-      write_pointer(SnesToPc(0x02F52F), PcToSnes(map16_expanded + 2)));
-  RETURN_IF_ERROR(
-      write_pointer(SnesToPc(0x02F536), PcToSnes(map16_expanded + 6)));
-
-  RETURN_IF_ERROR(
-      rom()->WriteShort(SnesToPc(0x02FE1C), PcToSnes(map16_expanded)));
-  RETURN_IF_ERROR(
-      rom()->WriteShort(SnesToPc(0x02FE23), PcToSnes(map16_expanded + 4)));
-  RETURN_IF_ERROR(
-      rom()->WriteShort(SnesToPc(0x02FE2C), PcToSnes(map16_expanded + 2)));
-  RETURN_IF_ERROR(
-      rom()->WriteShort(SnesToPc(0x02FE33), PcToSnes(map16_expanded + 6)));
-
-  RETURN_IF_ERROR(
-      write_bank(SnesToPc(0x02FD28),
-                 static_cast<uint8_t>(PcToSnes(map16_expanded) >> 16)));
-  RETURN_IF_ERROR(
-      write_bank(SnesToPc(0x02FD39),
-                 static_cast<uint8_t>(PcToSnes(map16_expanded) >> 16)));
+  for (const auto& operand : kMap16LongOperands) {
+    RETURN_IF_ERROR(write_pointer(SnesToPc(operand.snes),
+                                  PcToSnes(map16_expanded + operand.offset)));
+  }
+  for (const auto& operand : kMap16ShortOperands) {
+    RETURN_IF_ERROR(rom()->WriteShort(
+        SnesToPc(operand.snes), PcToSnes(map16_expanded + operand.offset)));
+  }
+  for (const uint32_t operand : kMap16BankOperands) {
+    RETURN_IF_ERROR(
+        write_bank(SnesToPc(operand),
+                   static_cast<uint8_t>(PcToSnes(map16_expanded) >> 16)));
+  }
 
   int tpos = map16_expanded;
   for (int i = 0; i < NumberOfMap16Ex; i += 1)  // 4096

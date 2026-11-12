@@ -49,6 +49,9 @@ they are not part of its existing downloads. See the
   in the Randomizer Compatible preset) now covers only the map layout (Tile32
   and map tiles); before, it also skipped Tile16, so Tile16 edits were lost on
   save without a message ([#33](https://github.com/scawful/yaze/issues/33)).
+  The hack-manifest conflict check now covers exactly the bytes Tile16 saves
+  write: 3752 definitions on vanilla ROMs, and the table plus the code
+  pointers into it on expanded ROMs.
 - Project font, autosave, and backup preferences apply only while the project
   is open: they are never saved to global settings, and closing the last ROM
   restores the global values. Opening a raw ROM no longer turns autosave on

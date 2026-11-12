@@ -213,11 +213,10 @@ class SaveTrustTile32Test
     // pointers. Tile16 is a different domain and is deliberately excluded.
     auto ranges = world_->GetProjectedWriteRanges();
     const auto profile = zelda3::DetectOverworldRomProfile(rom_);
-    const uint32_t tile16 = profile.has_expanded_tile16
-                                ? zelda3::GetMap16TilesExpanded()
-                                : zelda3::kMap16Tiles;
-    std::erase_if(
-        ranges, [tile16](const Range& range) { return range.first == tile16; });
+    const auto tile16 = world_->GetProjectedTile16WriteRanges();
+    std::erase_if(ranges, [&tile16](const Range& range) {
+      return std::find(tile16.begin(), tile16.end(), range) != tile16.end();
+    });
     const auto add = [&ranges](uint32_t start, uint32_t size) {
       ranges.emplace_back(start, start + size);
     };

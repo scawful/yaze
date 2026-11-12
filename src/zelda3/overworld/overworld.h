@@ -702,8 +702,10 @@ class Overworld {
    * conflicts with ASM-managed regions (HackManifest).
    */
   std::vector<std::pair<uint32_t, uint32_t>> GetProjectedWriteRanges() const;
-  /// The Tile16 definition table's share of GetProjectedWriteRanges().
-  std::pair<uint32_t, uint32_t> GetProjectedTile16WriteRange() const;
+  /// Tile16's share of GetProjectedWriteRanges(): the definition table plus,
+  /// for an expanded table, the code operands that point at it.
+  std::vector<std::pair<uint32_t, uint32_t>> GetProjectedTile16WriteRanges()
+      const;
 
   /**
    * @brief Check if the ROM has expanded pointer tables for tail maps
