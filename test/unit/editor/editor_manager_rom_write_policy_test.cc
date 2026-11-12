@@ -48,6 +48,7 @@
 #include "core/native_save_receipt.h"
 #include "core/source_artifact_publisher.h"
 #include "editor_test_support.h"
+#include "fixtures/lyra/native_directory_fixture.h"
 #include "framework/mock_renderer.h"
 #include "framework/rom_save_fault.h"
 #include "gmock/gmock.h"
@@ -136,18 +137,23 @@ class GraphicsEditorSaveStoplossTestPeer {
     gfx::Arena::Get().set_gfx_sheets_owner(data);
     AttachSheetStore(editor->state_, data);
   }
-  static absl::Status PaintPixel(GraphicsEditor* editor, uint8_t value) {
+  static absl::Status PaintPixel(GraphicsEditor* editor, uint8_t value,
+                                 uint16_t sheet_id = 0) {
     auto& state = editor->state_;
-    const auto pixels = state.game_data->sheet_store.Sheet(0);
+    const auto pixels = state.game_data->sheet_store.Sheet(sheet_id);
     std::vector<uint8_t> before(pixels.begin(), pixels.end());
     auto after = before;
     after[0] = value;
-    auto status = CommitSheetPixels(state, 0, after);
+    auto status = CommitSheetPixels(state, sheet_id, after);
     if (!status.ok())
       return status;
     editor->undo_manager_.Push(std::make_unique<GraphicsPixelEditAction>(
-        &state, MakeSheetPixelDiff(0, before, after), "Session pixel"));
+        &state, MakeSheetPixelDiff(sheet_id, before, after), "Session pixel"));
     return absl::OkStatus();
+  }
+  static absl::Status CaptureScratch(GraphicsEditor* editor) {
+    editor->state_.SelectSheet(0);
+    return editor->scratch_view_->CaptureSheet();
   }
   // Runs the real read-back check against pixels with one index changed, so
   // every sheet the save writes fails verification.
@@ -992,6 +998,296 @@ class NativeSaveReceiptIntegrationTest : public ::testing::Test {
   bool had_app_data_override_ = false;
   bool app_data_redirected_ = false;
 };
+
+// All bytes below come from generated fixtures, never a user/game ROM.
+class CoordinatedSourceSaveTest : public NativeSaveReceiptIntegrationTest {
+ protected:
+  void OpenSources(bool native = false, bool headered = false) {
+    auto fixture = test::BuildGfxSheetTestRom();
+    if (native) {
+      test::native_overworld::NativeDirectoryFixture directory;
+      // Graphics payloads and their vanilla table are disjoint from this
+      // fixture's declared native ownership. Preserve every native range.
+      std::copy(fixture.bytes.begin() + 0x80000,
+                fixture.bytes.begin() + 0xE0000,
+                directory.bytes.begin() + 0x80000);
+      const zelda3::GfxSheetPointerTables tables;
+      for (auto at : {tables.bank, tables.high, tables.low})
+        std::copy_n(fixture.bytes.begin() + at, zelda3::kGfxSheetCount,
+                    directory.bytes.begin() + at);
+      fixture.bytes = std::move(directory.bytes);
+    }
+    fixture.bytes[0x7FD9] = 1;
+    const std::string title = "COORDINATED SYNTHETIC";
+    std::copy(title.begin(), title.end(), fixture.bytes.begin() + 0x7FC0);
+    original_body_ = fixture.bytes;
+    std::string bytes(fixture.bytes.begin(), fixture.bytes.end());
+    if (headered)
+      bytes.insert(0, 0x200, '\xA5');
+    Write(source_, bytes);
+    ASSERT_NO_FATAL_FAILURE(BindProject());
+    auto project = *manager_->GetCurrentProject();
+    project.code_folder = cleanup_.path.string();
+    project.graphics_sheets.source_spec =
+        "Data/graphics/source_sprite_sheets.json";
+    std::filesystem::create_directories(cleanup_.path / "Data/graphics");
+    Json spec = {{"schema_version", 2},
+                 {"start", "0x40D000"},
+                 {"capacity", "0x3000"},
+                 {"encoding", "lz2"},
+                 {"sheets", Json::array()}};
+    const std::vector<uint8_t> pixels(4096, 2);
+    for (int id : {0xDF, 0xFE}) {
+      const auto name = std::to_string(id) + ".txt";
+      Write(cleanup_.path / "Data/graphics" / name,
+            core::GfxSheetSource::EncodeText(pixels));
+      spec["sheets"].push_back(
+          {{"global_sheet", id},
+           {"source", name},
+           {"decoded_sha256", core::GfxSheetSource::DecodedSha256(pixels)},
+           {"why", "Generated coordinated Save test"}});
+    }
+    spec_ = cleanup_.path / project.graphics_sheets.source_spec;
+    Write(spec_, spec.dump(2) + "\n");
+    project.graphics_sheets.source_spec_sha1 =
+        core::GfxSheetSource::SpecSha1(ReadText(spec_));
+    ASSERT_OK(project.Save());
+    manager_.reset();
+    manager_ = std::make_unique<EditorManager>();
+    InitializeWithIsolatedSettings(*manager_, &renderer_);
+    manager_->SetAssetLoadMode(AssetLoadMode::kLazy);
+    manager_->user_settings().prefs().backup_before_save = false;
+    ASSERT_OK(manager_->OpenRomOrProject(project.filepath));
+    ASSERT_OK(manager_->EnsureEditorAssetsLoaded(EditorType::kGraphics));
+    graphics_ = manager_->GetCurrentEditorSet()->GetGraphicsEditor();
+    ASSERT_NE(graphics_, nullptr);
+    ASSERT_EQ(graphics_->game_data()->sheet_store.Sheet(0xFE)[0], 2);
+    // This flag deliberately remains on: source pixels must bypass its legacy
+    // serializer even when another ROM domain needs serialization.
+    core::FeatureFlags::get().kSaveGraphicsSheet = true;
+  }
+  static void Write(const std::filesystem::path& path,
+                    const std::string& bytes) {
+    std::ofstream out(path, std::ios::binary | std::ios::trunc);
+    out.write(bytes.data(), bytes.size());
+    ASSERT_TRUE(out.good());
+  }
+  void Edit() {
+    ASSERT_OK(
+        GraphicsEditorSaveStoplossTestPeer::PaintPixel(graphics_, 7, 0xFE));
+    ASSERT_OK(manager_->GetCurrentRom()->WriteByte(0x200, 0x5A));
+  }
+  void ExpectDraft() {
+    EXPECT_TRUE(graphics_->HasPendingSourceChanges());
+    EXPECT_TRUE(manager_->GetCurrentRom()->dirty());
+    EXPECT_EQ(manager_->GetCurrentRom()->vector()[0x200], 0x5A);
+    EXPECT_EQ(graphics_->game_data()->sheet_store.Sheet(0xFE)[0], 7);
+  }
+  GraphicsEditor* graphics_ = nullptr;
+  std::filesystem::path spec_;
+  std::vector<uint8_t> original_body_;
+};
+
+TEST_F(CoordinatedSourceSaveTest,
+       NormalSavePublishesOneMixedGenerationAndUndo) {
+  ASSERT_NO_FATAL_FAILURE(OpenSources(false, true));
+  const auto disk_before = ReadText(source_);
+  ASSERT_NO_FATAL_FAILURE(Edit());
+  auto* session = manager_->session_coordinator()->GetActiveRomSession();
+  session->game_data.spriteset_ids[0x0C][2] = 0x55;
+  core::FeatureFlags::get().kSaveGfxGroups = true;
+  ASSERT_TRUE(session->HasPendingGfxGroupChanges());
+  ASSERT_OK(manager_->SaveCurrentSession());
+  EXPECT_FALSE(session->HasPendingGfxGroupChanges());
+  EXPECT_FALSE(manager_->GetCurrentRom()->dirty());
+  EXPECT_FALSE(graphics_->HasPendingSourceChanges());
+  auto expected = disk_before;
+  expected[0x200 + 0x200] = 0x5A;
+  expected[0x200 + 0x5B57 + 0x0C * 4 + 2] = 0x55;
+  EXPECT_EQ(ReadText(source_), expected);  // Includes exact copier header.
+  auto source = core::GfxSheetSource::Load(*manager_->GetCurrentProject());
+  ASSERT_TRUE(source.ok()) << source.status();
+  EXPECT_EQ(source->sheets().at(0xFE).pixels[0], 7);
+  EXPECT_EQ(manager_->GetCurrentProject()->rom_metadata.expected_hash,
+            util::ComputeRomHash(manager_->GetCurrentRom()->data(),
+                                 manager_->GetCurrentRom()->size()));
+  const auto receipt = ReadReceipt(receipt_);
+  EXPECT_EQ(receipt.at("generation"), 1u);
+  ExpectArtifact(receipt, "rom", source_);
+  ExpectArtifact(receipt, "project", manager_->GetCurrentProject()->filepath);
+  const auto context = core::GetNativeSaveContext(
+      source_.string(), manager_->GetCurrentProject()->filepath);
+  ASSERT_TRUE(context.ok()) << context.status();
+  EXPECT_EQ(ReadReceipt(context->path).at("state"), "committed");
+  ASSERT_OK(manager_->SaveCurrentSession());
+  EXPECT_EQ(ReadReceipt(receipt_).at("generation"), 1u);
+  ASSERT_OK(graphics_->Undo());
+  EXPECT_EQ(graphics_->game_data()->sheet_store.Sheet(0xFE)[0], 2);
+  ASSERT_OK(graphics_->Redo());
+  EXPECT_EQ(graphics_->game_data()->sheet_store.Sheet(0xFE)[0], 7);
+}
+
+TEST_F(CoordinatedSourceSaveTest, NativeTerrainAndSourcePixelsPublishTogether) {
+  ASSERT_NO_FATAL_FAILURE(OpenSources(/*native=*/true));
+  auto* rom = manager_->GetCurrentRom();
+  const auto baseline = rom->vector();
+  const auto layout = rom->InspectLyraLayout();
+  ASSERT_TRUE(rom::IsNativeSpecialOverworldLayout(layout));
+  const auto tile16 =
+      std::find_if(layout.entries.begin(), layout.entries.end(),
+                   [](const auto& row) { return row.id == 400; });
+  ASSERT_NE(tile16, layout.entries.end());
+  auto terrain = baseline;
+  terrain[tile16->pc_address] = 1;
+  ASSERT_OK(rom->CommitNativeTerrainImage(baseline, std::move(terrain)));
+  ASSERT_OK(GraphicsEditorSaveStoplossTestPeer::PaintPixel(graphics_, 7, 0xFE));
+  ASSERT_OK(manager_->SaveCurrentSession());
+  EXPECT_FALSE(rom->dirty());
+  EXPECT_FALSE(graphics_->HasPendingSourceChanges());
+  Rom reopened;
+  ASSERT_OK(reopened.LoadFromFile(source_.string()));
+  EXPECT_EQ(reopened.vector()[tile16->pc_address], 1);
+  EXPECT_TRUE(
+      rom::IsNativeSpecialOverworldLayout(reopened.InspectLyraLayout()));
+  auto source = core::GfxSheetSource::Load(*manager_->GetCurrentProject());
+  ASSERT_TRUE(source.ok()) << source.status();
+  EXPECT_EQ(source->sheets().at(0xFE).pixels[0], 7);
+  EXPECT_EQ(ReadReceipt(receipt_).at("generation"), 1u);
+  // The ROM's graphics payload and every legacy pointer row remain exact.
+  EXPECT_TRUE(std::equal(baseline.begin() + 0x80000, baseline.begin() + 0xE0000,
+                         reopened.vector().begin() + 0x80000));
+  const zelda3::GfxSheetPointerTables tables;
+  for (auto at : {tables.bank, tables.high, tables.low})
+    EXPECT_TRUE(std::equal(baseline.begin() + at,
+                           baseline.begin() + at + zelda3::kGfxSheetCount,
+                           reopened.vector().begin() + at));
+}
+
+TEST_F(CoordinatedSourceSaveTest, ExternalRomConflictRetainsEveryDraft) {
+  ASSERT_NO_FATAL_FAILURE(OpenSources());
+  const auto descriptor = ReadText(manager_->GetCurrentProject()->filepath);
+  const auto spec = ReadText(spec_);
+  ASSERT_NO_FATAL_FAILURE(Edit());
+  auto external = ReadText(source_);
+  external[0x300] = 0x33;
+  Write(source_, external);
+  EXPECT_FALSE(manager_->SaveCurrentSession().ok());
+  EXPECT_EQ(ReadText(source_), external);
+  EXPECT_EQ(ReadText(spec_), spec);
+  EXPECT_EQ(ReadText(manager_->GetCurrentProject()->filepath), descriptor);
+  EXPECT_FALSE(std::filesystem::exists(receipt_));
+  ExpectDraft();
+}
+
+TEST_F(CoordinatedSourceSaveTest,
+       PublicationLockPathFailureRollsBackCandidate) {
+  ASSERT_NO_FATAL_FAILURE(OpenSources());
+  const auto before = ReadText(source_);
+  const auto descriptor = ReadText(manager_->GetCurrentProject()->filepath);
+  const auto spec = ReadText(spec_);
+  ASSERT_NO_FATAL_FAILURE(Edit());
+  auto* session = manager_->session_coordinator()->GetActiveRomSession();
+  session->game_data.spriteset_ids[0x0C][2] = 0x55;
+  core::FeatureFlags::get().kSaveGfxGroups = true;
+  const auto pending_rom = session->rom.vector();
+  std::filesystem::create_symlink(
+      source_,
+      spec_.parent_path() / core::kSourceArtifactPublicationLockBasename);
+  EXPECT_FALSE(manager_->SaveCurrentSession().ok());
+  EXPECT_EQ(ReadText(source_), before);
+  EXPECT_EQ(ReadText(spec_), spec);
+  EXPECT_EQ(ReadText(manager_->GetCurrentProject()->filepath), descriptor);
+  EXPECT_FALSE(std::filesystem::exists(receipt_));
+  ExpectDraft();
+  EXPECT_EQ(session->rom.vector(), pending_rom);
+  EXPECT_TRUE(session->HasPendingGfxGroupChanges());
+}
+
+TEST_F(CoordinatedSourceSaveTest, ScratchDraftRefusesBeforeAnyWrite) {
+  ASSERT_NO_FATAL_FAILURE(OpenSources());
+  const auto before = ReadText(source_);
+  const auto descriptor = ReadText(manager_->GetCurrentProject()->filepath);
+  const auto spec = ReadText(spec_);
+  ASSERT_NO_FATAL_FAILURE(Edit());
+  ASSERT_OK(GraphicsEditorSaveStoplossTestPeer::CaptureScratch(graphics_));
+  // Capture and Undo normally publish immediately. An external library edit
+  // makes Undo's CAS flush fail, leaving the actual recoverable pending draft.
+  const auto scratch_path = cleanup_.path / "appdata/GraphicsScratch.json";
+  const auto external_scratch = ReadText(scratch_path) + " ";
+  Write(scratch_path, external_scratch);
+  EXPECT_FALSE(graphics_->Undo().ok());
+  ASSERT_TRUE(graphics_->HasPendingScratchChanges());
+  EXPECT_FALSE(manager_->SaveCurrentSession().ok());
+  EXPECT_EQ(ReadText(source_), before);
+  EXPECT_EQ(ReadText(spec_), spec);
+  EXPECT_EQ(ReadText(manager_->GetCurrentProject()->filepath), descriptor);
+  EXPECT_FALSE(std::filesystem::exists(receipt_));
+  EXPECT_TRUE(graphics_->HasPendingScratchChanges());
+  EXPECT_EQ(ReadText(scratch_path), external_scratch);
+  ExpectDraft();
+}
+
+TEST_F(CoordinatedSourceSaveTest, UnsupportedNativeDungeonDraftIsNotDropped) {
+  ASSERT_NO_FATAL_FAILURE(OpenSources(/*native=*/true));
+  const auto before = ReadText(source_);
+  const auto spec = ReadText(spec_);
+  ASSERT_OK(GraphicsEditorSaveStoplossTestPeer::PaintPixel(graphics_, 7, 0xFE));
+  auto* dungeon = manager_->GetCurrentEditorSet()->GetEditorAs<DungeonEditorV2>(
+      EditorType::kDungeon);
+  ASSERT_NE(dungeon, nullptr);
+  dungeon->rooms()[0].MarkTorchesDirty();
+  const auto status = manager_->SaveCurrentSession();
+  EXPECT_FALSE(status.ok());
+  EXPECT_THAT(std::string(status.message()), ::testing::HasSubstr("torches"));
+  EXPECT_EQ(ReadText(source_), before);
+  EXPECT_EQ(ReadText(spec_), spec);
+  EXPECT_FALSE(std::filesystem::exists(receipt_));
+  EXPECT_TRUE(dungeon->rooms()[0].torches_dirty());
+  EXPECT_TRUE(graphics_->HasPendingSourceChanges());
+}
+
+TEST_F(CoordinatedSourceSaveTest, ReceiptFailureRetriesCompletionOnly) {
+  ASSERT_NO_FATAL_FAILURE(OpenSources());
+  ASSERT_NO_FATAL_FAILURE(Edit());
+  ASSERT_TRUE(std::filesystem::create_directory(receipt_));
+  const auto status = manager_->SaveCurrentSession();
+  EXPECT_FALSE(status.ok());
+  EXPECT_THAT(std::string(status.message()),
+              ::testing::HasSubstr("receipt is unavailable"));
+  auto* session = manager_->session_coordinator()->GetActiveRomSession();
+  ASSERT_NE(session, nullptr);
+  EXPECT_TRUE(session->native_save_completion_pending);
+  EXPECT_FALSE(session->rom.dirty());
+  EXPECT_FALSE(graphics_->HasPendingSourceChanges());
+  const auto rom = ReadText(source_);
+  const auto descriptor = ReadText(manager_->GetCurrentProject()->filepath);
+  const auto spec = ReadText(spec_);
+  ASSERT_TRUE(std::filesystem::remove(receipt_));
+  ASSERT_OK(manager_->SaveCurrentSession());
+  EXPECT_FALSE(session->native_save_completion_pending);
+  EXPECT_EQ(ReadText(source_), rom);
+  EXPECT_EQ(ReadText(manager_->GetCurrentProject()->filepath), descriptor);
+  EXPECT_EQ(ReadText(spec_), spec);
+  EXPECT_EQ(ReadReceipt(receipt_).at("generation"), 1u);
+}
+
+TEST_F(CoordinatedSourceSaveTest, RawProjectDraftRefusesBeforeAnyWrite) {
+  ASSERT_NO_FATAL_FAILURE(OpenSources());
+  const auto before = ReadText(source_);
+  const auto spec = ReadText(spec_);
+  ASSERT_NO_FATAL_FAILURE(Edit());
+  auto* session = manager_->session_coordinator()->GetActiveRomSession();
+  ASSERT_NE(session, nullptr);
+  session->project_file_editor_state.initialized = true;
+  session->project_file_editor_state.modified = true;
+  manager_->project_file_editor()->RestoreState(
+      session->project_file_editor_state, manager_->GetCurrentProject());
+  EXPECT_FALSE(manager_->SaveProject().ok());
+  EXPECT_EQ(ReadText(source_), before);
+  EXPECT_EQ(ReadText(spec_), spec);
+  EXPECT_FALSE(std::filesystem::exists(receipt_));
+  ExpectDraft();
+}
 
 TEST_F(NativeSaveReceiptIntegrationTest,
        PreparationDoesNotPublishOrAdvanceNativeSaveGeneration) {

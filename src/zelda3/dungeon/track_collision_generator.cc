@@ -650,12 +650,25 @@ absl::Status WriteTrackCollision(Rom* rom, int room_id,
                         "end=0x%06X, size=0x%06X)",
                         write_pos + encoded.size(), data.size()));
   }
+  const uint32_t snes_addr = PcToSnes(write_pos);
+  const int ptr_offset = kCustomCollisionRoomPointers + (room_id * 3);
+  if (rom::IsNativeSpecialOverworldLayout(rom->InspectLyraLayout())) {
+    const auto baseline = rom->vector();
+    auto candidate = baseline;
+    std::copy(encoded.begin(), encoded.end(), candidate.begin() + write_pos);
+    for (int i = 0; i < 3; ++i)
+      candidate[ptr_offset + i] = static_cast<uint8_t>(snes_addr >> (8 * i));
+    const std::array<std::pair<uint32_t, uint32_t>, 2> ranges = {
+        {{write_pos, write_pos + static_cast<uint32_t>(encoded.size())},
+         {static_cast<uint32_t>(ptr_offset),
+          static_cast<uint32_t>(ptr_offset + 3)}}};
+    return rom->CommitNativeNonOverworldImage(baseline, std::move(candidate),
+                                              ranges);
+  }
   RETURN_IF_ERROR(
       rom->WriteVector(static_cast<int>(write_pos), std::move(encoded)));
 
   // Update pointer table: 3-byte SNES address
-  uint32_t snes_addr = PcToSnes(write_pos);
-  int ptr_offset = kCustomCollisionRoomPointers + (room_id * 3);
   RETURN_IF_ERROR(rom->WriteByte(ptr_offset, snes_addr & 0xFF));
   RETURN_IF_ERROR(rom->WriteByte(ptr_offset + 1, (snes_addr >> 8) & 0xFF));
   RETURN_IF_ERROR(rom->WriteByte(ptr_offset + 2, (snes_addr >> 16) & 0xFF));

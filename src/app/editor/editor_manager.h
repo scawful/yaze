@@ -804,8 +804,10 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
     std::filesystem::path collision_source;
     std::unique_ptr<Transactions> transactions;
   };
+  enum class RomGraphicsSaveMode { kRomSheets, kSourceArtifacts };
   absl::StatusOr<std::unique_ptr<PreparedRomSave>> PrepareRomSave(
-      const std::optional<std::string>& save_as_filename);
+      const std::optional<std::string>& save_as_filename,
+      RomGraphicsSaveMode graphics_mode = RomGraphicsSaveMode::kRomSheets);
   absl::Status SaveRomInternal(
       const std::optional<std::string>& save_as_filename);
   // rom_written=false records a project-only Save: the ROM is bound as it is

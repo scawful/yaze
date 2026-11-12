@@ -657,6 +657,28 @@ absl::Status DungeonEditorV2::ValidateSaveScope(int only_room,
     collision |= room.custom_collision_dirty();
     water_fill |= room.water_fill_dirty();
   });
+  if (rom_ && rom::IsNativeSpecialOverworldLayout(rom_->InspectLyraLayout())) {
+    std::vector<std::string> unsupported;
+    const auto add = [&](bool dirty, const char* name) {
+      if (dirty)
+        unsupported.emplace_back(name);
+    };
+    add(pending.chests, "chests");
+    add(pending.pot_items, "pot items");
+    add(pending.torches, "torches");
+    add(pending.blocks, "blocks");
+    add(water_fill, "water fill");
+    add(game_data_ && game_data_->pit_damage_table.dirty(), "pit damage");
+    add(std::any_of(entrances_.begin(), entrances_.end(),
+                    [](const auto& row) { return row.dirty(); }) ||
+            std::any_of(spawn_points_.begin(), spawn_points_.end(),
+                        [](const auto& row) { return row.dirty(); }),
+        "dungeon entrances/spawn points");
+    if (!unsupported.empty())
+      return absl::FailedPreconditionError(
+          absl::StrCat("Native dungeon Save has no staged plan for pending ",
+                       absl::StrJoin(unsupported, ", "), "; edits retained"));
+  }
   std::vector<std::string> excluded;
   auto check = [&](bool dirty, bool enabled, const char* label) {
     if (dirty && !enabled) {
@@ -794,6 +816,8 @@ absl::Status DungeonEditorV2::Save() {
   // Direct Save callers need the same post-finalization check as File > Save.
   RETURN_IF_ERROR(ValidateSaveScope());
   const auto& flags = core::FeatureFlags::get().dungeon;
+  const bool native =
+      rom::IsNativeSpecialOverworldLayout(rom_->InspectLyraLayout());
   std::optional<zelda3::ChestSavePlan> chest_save_plan;
 
   // Simulate the pending room streams in save order before any ROM writer.
@@ -812,18 +836,18 @@ absl::Status DungeonEditorV2::Save() {
         dependencies_.project, rom_, rooms_, "custom collision",
         dependencies_.toast_manager));
   }
-  if (flags.kSaveWaterFillZones) {
+  if (!native && flags.kSaveWaterFillZones) {
     RETURN_IF_ERROR(ValidateWaterFillManifestConflicts(
         dependencies_.project, rom_, rooms_, "water fill zones",
         dependencies_.toast_manager));
   }
-  if (flags.kSaveEntrances) {
+  if (!native && flags.kSaveEntrances) {
     RETURN_IF_ERROR(ValidateDungeonEntranceSavePreflight(
         dependencies_.project, rom_, entrances_, spawn_points_,
         "dungeon entrances and spawn points", dependencies_.toast_manager));
   }
 
-  if (flags.kSaveChests) {
+  if (!native && flags.kSaveChests) {
     ASSIGN_OR_RETURN(auto plan, zelda3::BuildChestSavePlan(
                                     rom_, static_cast<int>(rooms_.size()),
                                     [this](int room_id) {
@@ -834,7 +858,7 @@ absl::Status DungeonEditorV2::Save() {
         dependencies_.toast_manager));
     chest_save_plan = std::move(plan);
   }
-  if (flags.kSavePotItems) {
+  if (!native && flags.kSavePotItems) {
     RETURN_IF_ERROR(ValidatePotItemManifestConflicts(
         dependencies_.project, rom_, rooms_, "pot items",
         dependencies_.toast_manager));
@@ -877,7 +901,7 @@ absl::Status DungeonEditorV2::Save() {
     }
   }
 
-  if (flags.kSaveTorches) {
+  if (!native && flags.kSaveTorches) {
     auto status = zelda3::SaveAllTorches(
         rom_, static_cast<int>(rooms_.size()),
         [this](int room_id) { return rooms_.GetIfMaterialized(room_id); });
@@ -888,7 +912,7 @@ absl::Status DungeonEditorV2::Save() {
     }
   }
 
-  if (flags.kSavePits) {
+  if (!native && flags.kSavePits) {
     auto status = zelda3::SaveAllPits(
         rom_, game_data_ ? &game_data_->pit_damage_table : nullptr);
     if (!status.ok()) {
@@ -898,7 +922,7 @@ absl::Status DungeonEditorV2::Save() {
     }
   }
 
-  if (flags.kSaveBlocks) {
+  if (!native && flags.kSaveBlocks) {
     auto status = zelda3::SaveAllBlocks(
         rom_, static_cast<int>(rooms_.size()),
         [this](int room_id) { return rooms_.GetIfMaterialized(room_id); });
@@ -920,7 +944,7 @@ absl::Status DungeonEditorV2::Save() {
     }
   }
 
-  if (flags.kSaveWaterFillZones) {
+  if (!native && flags.kSaveWaterFillZones) {
     auto status = SaveWaterFillZones(rom_, rooms_, dependencies_.project);
     if (!status.ok()) {
       LOG_ERROR("DungeonEditorV2", "Failed to save water fill zones: %s",
@@ -929,7 +953,7 @@ absl::Status DungeonEditorV2::Save() {
     }
   }
 
-  if (flags.kSaveChests) {
+  if (!native && flags.kSaveChests) {
     auto status = zelda3::ApplyChestSavePlan(
         rom_, *chest_save_plan,
         [this](int room_id) { return rooms_.GetIfMaterialized(room_id); });
@@ -940,7 +964,7 @@ absl::Status DungeonEditorV2::Save() {
     }
   }
 
-  if (flags.kSavePotItems) {
+  if (!native && flags.kSavePotItems) {
     auto status =
         SaveAllPotItemsForProject(dependencies_.project, rom_, rooms_);
     if (!status.ok()) {
@@ -950,7 +974,7 @@ absl::Status DungeonEditorV2::Save() {
     }
   }
 
-  if (flags.kSaveEntrances) {
+  if (!native && flags.kSaveEntrances) {
     auto status = zelda3::SaveAllDungeonEntrances(rom_, entrances_);
     if (!status.ok()) {
       LOG_ERROR("DungeonEditorV2", "Failed to save dungeon entrances: %s",

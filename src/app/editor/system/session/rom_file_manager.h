@@ -55,6 +55,9 @@ class RomFileManager {
       const std::optional<std::string>& disk_collision = std::nullopt);
   absl::Status OpenRomOrProject(Rom* rom, const std::string& filename);
   absl::Status CreateBackup(Rom* rom);
+  absl::Status CreateSaveBackup(Rom* rom) {
+    return backup_before_save_ ? CreateBackup(rom) : absl::OkStatus();
+  }
   absl::Status ValidateRom(Rom* rom);
 
   void SetBackupFolder(const std::string& folder) { backup_folder_ = folder; }

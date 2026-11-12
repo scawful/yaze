@@ -247,9 +247,17 @@ class Rom {
   // Commits a planned non-overworld edit on a native layout. Every changed
   // byte must lie inside `allowed`, and no allowed range may touch bytes that
   // native overworld Save owns.
-  absl::Status CommitNativeDungeonImage(
+  absl::Status CommitNativeNonOverworldImage(
       const std::vector<uint8_t>& baseline, std::vector<uint8_t> candidate,
       std::span<const std::pair<uint32_t, uint32_t>> allowed);
+
+  // Compatibility name for the original dungeon-only consumer.
+  absl::Status CommitNativeDungeonImage(
+      const std::vector<uint8_t>& baseline, std::vector<uint8_t> candidate,
+      std::span<const std::pair<uint32_t, uint32_t>> allowed) {
+    return CommitNativeNonOverworldImage(baseline, std::move(candidate),
+                                         allowed);
+  }
 
   // Sticky, value-owned exact-save reservation. No public detach capability.
   absl::Status AttachLyraPrivateReservation(const core::HackManifest& manifest);

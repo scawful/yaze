@@ -122,6 +122,9 @@ class GraphicsEditor : public Editor {
   absl::Status SaveRomData();
   // Detached assets save independently of ROM sheet serialization settings.
   absl::Status SaveScratchAssets();
+  bool HasPendingScratchChanges() const {
+    return scratch_view_ && scratch_view_->HasPendingChanges();
+  }
   bool HasPendingSourceChanges() const;
   bool HasPendingRomGraphicsChanges() const;
   absl::Status PrepareProjectSave();

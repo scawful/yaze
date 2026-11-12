@@ -2377,9 +2377,22 @@ absl::Status MessageEditor::ApplySavePlan(const SavePlan& plan) {
 
   ScopedRomTransaction transaction(*rom_);
   yaze::rom::ScopedWriteFence fence_scope(rom_, &fence);
-  for (const auto& write : plan.writes) {
-    RETURN_IF_ERROR(
-        rom_->WriteVector(static_cast<int>(write.start), write.bytes));
+  if (rom::IsNativeSpecialOverworldLayout(rom_->InspectLyraLayout())) {
+    const auto baseline = rom_->vector();
+    auto candidate = baseline;
+    std::vector<std::pair<uint32_t, uint32_t>> ranges;
+    for (const auto& write : plan.writes) {
+      std::copy(write.bytes.begin(), write.bytes.end(),
+                candidate.begin() + write.start);
+      ranges.emplace_back(write.start, write.end());
+    }
+    RETURN_IF_ERROR(rom_->CommitNativeNonOverworldImage(
+        baseline, std::move(candidate), ranges));
+  } else {
+    for (const auto& write : plan.writes) {
+      RETURN_IF_ERROR(
+          rom_->WriteVector(static_cast<int>(write.start), write.bytes));
+    }
   }
   transaction.Commit();
 

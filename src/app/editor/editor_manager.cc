@@ -3041,6 +3041,16 @@ absl::Status EditorManager::SaveCurrentSession(bool allow_dialogs) {
         "Publish in the Message editor before saving");
   }
   CaptureActiveProjectEditingState();
+  if (core::GfxSheetSource::Selected(current_project_)) {
+    if (!SessionHasPendingUnsavedWork(GetCurrentSessionIndex()))
+      return CompletePendingProjectNativeSave();
+    RETURN_IF_ERROR(SaveProject());
+    if (!allow_dialogs &&
+        SessionHasPendingUnsavedWork(GetCurrentSessionIndex()))
+      return absl::FailedPreconditionError(
+          "Save left unsaved project or ROM work");
+    return absl::OkStatus();
+  }
   const size_t session_id = GetCurrentSessionId();
   const size_t session_index = GetCurrentSessionIndex();
   CaptureActiveProjectContext();
@@ -4166,16 +4176,26 @@ absl::Status EditorManager::SaveProject() {
   auto* save_session = session_coordinator_
                            ? session_coordinator_->GetActiveRomSession()
                            : nullptr;
-  if (save_session != nullptr && IsPlanningOnlyProjectSave(*save_session)) {
+  const bool source_selected = core::GfxSheetSource::Selected(current_project_);
+  if (save_session != nullptr && IsPlanningOnlyProjectSave(*save_session) &&
+      (!source_selected ||
+       !SessionHasPendingRomWork(GetCurrentSessionIndex()))) {
     // The plan is a live reference outside the build: its own CAS save is the
     // whole Save, leaving the descriptor and native receipt untouched.
     return save_session->editors.SavePlanningProjectDraft();
+  }
+  if (source_selected && !rom_lifecycle_.HasPendingRomSave()) {
+    if (save_session && save_session->native_save_completion_pending &&
+        !SessionHasPendingUnsavedWork(GetCurrentSessionIndex()))
+      return CompletePendingProjectNativeSave();
+    return SaveRom();
   }
   std::optional<core::GfxSheetSource> source_without_editor;
   core::GfxSheetSource* graphics_source = nullptr;
   GraphicsEditor* source_editor = nullptr;
   std::optional<core::GfxSheetSource::Plan> source_plan;
-  if (core::GfxSheetSource::Selected(current_project_)) {
+  std::unique_ptr<PreparedRomSave> prepared_rom;
+  if (source_selected) {
     if (!save_session)
       return absl::FailedPreconditionError(
           "Source save needs its owning session");
@@ -4184,19 +4204,28 @@ absl::Status EditorManager::SaveProject() {
         editors.GetExistingEditor(EditorType::kDungeon));
     const auto* overworld = static_cast<OverworldEditor*>(
         editors.GetExistingEditor(EditorType::kOverworld));
-    if (SessionHasPendingRomWork(GetCurrentSessionIndex()) ||
-        editors.HasPendingSpriteChanges() ||
+    const auto* message = static_cast<MessageEditor*>(
+        editors.GetExistingEditor(EditorType::kMessage));
+    source_editor = static_cast<GraphicsEditor*>(
+        editors.GetExistingEditor(EditorType::kGraphics));
+    // These producers still publish independently. Refuse their pending work
+    // before retirement, backup, or any artifact publication.
+    if (editors.HasPendingSpriteChanges() ||
         editors.HasPendingPlanningProjectDraftChanges() ||
+        (save_session->project_file_editor_state.initialized &&
+         save_session->project_file_editor_state.modified) ||
         (dungeon && dungeon->HasPendingProjectDraftChanges()) ||
-        (overworld && overworld->HasPendingProjectDraftChanges()))
+        (overworld && overworld->HasPendingProjectDraftChanges()) ||
+        (source_editor && source_editor->HasPendingScratchChanges()) ||
+        (message && message->HasUnpublishedMessageSourceChanges()))
       return absl::FailedPreconditionError(
-          "Save or discard other ROM/project-source drafts before graphics "
-          "source Save Project; nothing published");
+          "Coordinated Save cannot publish pending scratch, sprite, planning, "
+          "raw project, or independent project-source drafts; nothing "
+          "published and all edits retained");
+    RETURN_IF_ERROR(PrepareActiveProjectContextForSave().status());
     RETURN_IF_ERROR(
         core::ResolveGfxSheetLayout(save_session->rom, current_project_)
             .status());
-    source_editor = static_cast<GraphicsEditor*>(
-        editors.GetExistingEditor(EditorType::kGraphics));
     if (save_session->game_data.gfx_sheet_source) {
       graphics_source = &*save_session->game_data.gfx_sheet_source;
     } else {
@@ -4210,16 +4239,22 @@ absl::Status EditorManager::SaveProject() {
       ASSIGN_OR_RETURN(source_plan,
                        graphics_source->Prepare(current_project_, {}));
     }
+    if (SessionHasPendingRomWork(GetCurrentSessionIndex())) {
+      ASSIGN_OR_RETURN(
+          prepared_rom,
+          PrepareRomSave(std::nullopt, RomGraphicsSaveMode::kSourceArtifacts));
+    }
   }
   // Every other project Save commits build-owned work: the descriptor and
   // any terrain/sprite/dungeon drafts. Retire the prior native commit before
   // any of those bytes change.
   const bool build_owned =
       current_project_.project_opened() && save_session != nullptr;
-  if (build_owned) {
-    RETURN_IF_ERROR(RetireNativeSaveTransfer("rebound"));
+  if (!source_selected) {
+    if (build_owned)
+      RETURN_IF_ERROR(RetireNativeSaveTransfer("rebound"));
+    RETURN_IF_ERROR(PrepareActiveProjectEditorDraftsForSave());
   }
-  RETURN_IF_ERROR(PrepareActiveProjectEditorDraftsForSave());
   CaptureActiveProjectContext();
   if (!current_project_.project_opened()) {
     return CreateNewProject();
@@ -4231,48 +4266,86 @@ absl::Status EditorManager::SaveProject() {
     ApplyProjectSaveSettings(&candidate, /*include_recent_files=*/true);
     candidate.graphics_sheets.source_spec_sha1 = source_plan->sha1;
     auto updates = source_plan->updates;
-    // The ROM/manifest are protected inputs, never publication outputs.
-    for (const auto& path :
-         {candidate.rom_filename, candidate.hack_manifest_file}) {
-      if (path.empty())
-        continue;
-      const auto absolute = candidate.GetAbsolutePath(path);
-      std::error_code input_error;
-      if (!std::filesystem::is_regular_file(absolute, input_error) ||
-          input_error ||
-          std::filesystem::file_size(absolute, input_error) >
-              64 * 1024 * 1024 ||
-          input_error)
+    const auto read_input =
+        [](const std::filesystem::path& path) -> absl::StatusOr<std::string> {
+      std::error_code error;
+      if (!std::filesystem::is_regular_file(path, error) || error ||
+          std::filesystem::file_size(path, error) > 64 * 1024 * 1024 || error)
         return absl::FailedPreconditionError(
-            "Graphics source protected input is not a bounded regular file");
-      std::ifstream input(absolute, std::ios::binary);
+            "Coordinated Save input is not a bounded regular file");
+      std::ifstream input(path, std::ios::binary);
       if (!input)
         return absl::FailedPreconditionError(
-            "Graphics source protected input is unreadable");
+            "Coordinated Save input is unreadable");
       std::string bytes{std::istreambuf_iterator<char>(input), {}};
       if (input.bad())
-        return absl::DataLossError(
-            "Graphics source protected input read failed");
-      if (path == candidate.rom_filename) {
-        size_t offset = bytes.size() % 0x8000 == 0x200 ? 0x200 : 0;
-        if (bytes.size() < offset ||
-            bytes.size() - offset != save_session->rom.size() ||
-            !std::equal(
-                bytes.begin() + offset, bytes.end(),
-                save_session->rom.vector().begin(),
-                [](char a, uint8_t b) { return static_cast<uint8_t>(a) == b; }))
+        return absl::DataLossError("Coordinated Save input read failed");
+      return bytes;
+    };
+    const auto rom_path = candidate.GetAbsolutePath(candidate.rom_filename);
+    std::error_code identity_error;
+    if (!std::filesystem::equivalent(rom_path, save_session->rom.filename(),
+                                     identity_error) ||
+        identity_error)
+      return absl::FailedPreconditionError(
+          "Coordinated Save ROM no longer belongs to this project session");
+    ASSIGN_OR_RETURN(auto disk_rom, read_input(rom_path));
+    if (!save_session->rom_baseline ||
+        core::ComputeSourceArtifactSha256(disk_rom) !=
+            save_session->rom_baseline->backing_sha256)
+      return absl::FailedPreconditionError(
+          "ROM backing file differs from the loaded source project; draft "
+          "retained");
+    if (prepared_rom) {
+      std::optional<std::string> disk_collision;
+      if (!prepared_rom->collision_source.empty()) {
+        std::error_code error;
+        const bool exists =
+            std::filesystem::exists(prepared_rom->collision_source, error);
+        if (error)
           return absl::FailedPreconditionError(
-              "ROM backing file differs from the loaded source project; draft "
-              "retained");
+              "Cannot inspect collision source before coordinated Save");
+        if (exists) {
+          ASSIGN_OR_RETURN(disk_collision,
+                           read_input(prepared_rom->collision_source));
+        }
       }
-      updates.push_back({absolute, bytes, bytes});
+      ASSIGN_OR_RETURN(auto artifacts,
+                       RomFileManager::PrepareSaveArtifacts(
+                           prepared_rom->rom, rom_path, disk_rom,
+                           prepared_rom->collision_source, disk_collision));
+      candidate.rom_metadata.expected_hash = artifacts.rom_identity.crc32;
+      for (auto& update : artifacts.updates)
+        updates.push_back(std::move(update));
+    } else {
+      updates.push_back({rom_path, disk_rom, disk_rom});
     }
+    if (!candidate.hack_manifest_file.empty()) {
+      const auto manifest =
+          candidate.GetAbsolutePath(candidate.hack_manifest_file);
+      ASSIGN_OR_RETURN(auto bytes, read_input(manifest));
+      updates.push_back({manifest, bytes, bytes});
+    }
+    std::vector<std::filesystem::path> targets{candidate.filepath};
+    for (const auto& update : updates)
+      targets.push_back(update.target);
+    RETURN_IF_ERROR(core::ValidateSourceArtifactPublicationTargets(targets));
+    if (prepared_rom)
+      RETURN_IF_ERROR(rom_file_manager_.CreateSaveBackup(prepared_rom->rom));
+    RETURN_IF_ERROR(RetireNativeSaveTransfer("rebound"));
     auto saved = candidate.SaveWithSourceArtifacts(
         std::move(updates),
         [&]() { return core::GfxSheetSource::Load(candidate).status(); },
         source_plan->descriptor);
     status = saved.status();
     if (saved.ok()) {
+      if (prepared_rom) {
+        prepared_rom->rom->set_dirty(false);
+        prepared_rom->Commit();
+        CaptureCurrentRomIdentity(/*preserve_editing_source=*/true);
+        save_session->backup_restore_pending = false;
+        rom_lifecycle_.CancelRomWriteConfirm();
+      }
       current_project_ = std::move(candidate);
       if (source_editor && save_session->game_data.gfx_sheet_source)
         source_editor->ProjectSourceSaveCommitted(std::move(*source_plan),
@@ -4302,6 +4375,12 @@ absl::Status EditorManager::SaveProject() {
     return status;
   }
   save_session->native_save_completion_pending = true;
+  if (source_selected) {
+    save_session->native_save_completion_save_as = false;
+    return RecordCompletedNativeSave(current_project_,
+                                     save_session->rom.filename(), false,
+                                     /*rom_written=*/prepared_rom != nullptr);
+  }
   if (rom_lifecycle_.ShouldDeferProjectNativeCompletion()) {
     return absl::OkStatus();
   }
@@ -4442,6 +4521,8 @@ EditorManager::MakeActiveProjectEditingSaveCallbacks() {
 }
 
 absl::Status EditorManager::SaveActiveProjectEditingWork(bool allow_dialogs) {
+  if (core::GfxSheetSource::Selected(current_project_))
+    return SaveCurrentSession(allow_dialogs);
   if (!session_coordinator_) {
     return absl::FailedPreconditionError("No session coordinator");
   }
@@ -4459,6 +4540,13 @@ absl::Status EditorManager::SaveActiveProjectEditingWork(bool allow_dialogs) {
 absl::Status EditorManager::AutosaveActiveSession() {
   if (!session_coordinator_) {
     return absl::FailedPreconditionError("No session coordinator");
+  }
+  if (core::GfxSheetSource::Selected(current_project_)) {
+    if (auto* session = session_coordinator_->GetActiveRomSession();
+        session && session->backup_restore_pending)
+      return absl::CancelledError(
+          "Staged backup restore requires an explicit Save ROM");
+    return SaveCurrentSession(/*allow_dialogs=*/false);
   }
   const size_t session_index = GetCurrentSessionIndex();
   const size_t session_id = GetCurrentSessionId();
@@ -5773,6 +5861,11 @@ bool EditorManager::SessionHasPendingRomWork(size_t session_index) const {
             const auto* graphics = static_cast<GraphicsEditor*>(
                 session->editors.GetExistingEditor(EditorType::kGraphics));
             return graphics && graphics->HasPendingRomGraphicsChanges();
+          }()) ||
+          ([&]() {
+            const auto* message = static_cast<MessageEditor*>(
+                session->editors.GetExistingEditor(EditorType::kMessage));
+            return message && message->HasPendingMessageChanges();
           }()) ||
           session->HasPendingGfxGroupChanges() ||
           session->editors.HasPendingScreenChanges() || ([&]() {

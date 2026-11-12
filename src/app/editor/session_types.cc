@@ -417,8 +417,8 @@ absl::Status EditorSet::CheckGfxSourceBlocksOtherDrafts(
   }
   if (session_has_pending_rom_work || HasPendingSpriteChanges()) {
     return absl::FailedPreconditionError(
-        "Save or discard other ROM/source drafts before graphics source Save; "
-        "nothing published");
+        "Source-backed graphics and ROM drafts require coordinated project "
+        "Save; independent pre-save publication refused");
   }
   return absl::OkStatus();
 }

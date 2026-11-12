@@ -9,6 +9,7 @@
 #include <vector>
 
 #include "core/project.h"
+#include "fixtures/lyra/native_directory_fixture.h"
 #include "rom/rom.h"
 #include "rom/write_fence.h"
 
@@ -382,6 +383,46 @@ TEST(VanillaMessageSavePlanTest, ApplyRollsBackWhenOuterFenceRejectsLaterRun) {
 
   EXPECT_EQ(status.code(), absl::StatusCode::kPermissionDenied) << status;
   EXPECT_EQ(rom.vector(), before);
+}
+
+TEST(MessageEditorSavePlanTest, NativeLayoutAppliesExactMessagePlan) {
+  test::native_overworld::NativeDirectoryFixture fixture;
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(fixture.bytes).ok());
+  MessageEditor editor(&rom, MakeDependencies(&rom));
+  MessageEditorSaveTestPeer::SetVanillaMessages(
+      editor, {{0x01, kBankSwitchCommand}}, /*dirty=*/true);
+  ASSERT_TRUE(editor.BeginSaveTransaction().ok());
+  const auto status = editor.Save();
+  ASSERT_TRUE(status.ok()) << status;
+  editor.CommitSaveTransaction();
+  EXPECT_EQ(rom.vector()[kTextData], 0x01);
+  EXPECT_FALSE(MessageEditorSaveTestPeer::VanillaDirty(editor));
+  EXPECT_TRUE(rom::IsNativeSpecialOverworldLayout(rom.InspectLyraLayout()));
+  // Every native directory/resource byte remains exact.
+  const auto owned = rom::NativeOverworldOwnedRanges(
+      rom.InspectLyraLayout(), fixture.bytes.data(), fixture.bytes.size());
+  ASSERT_TRUE(owned.ok()) << owned.status();
+  for (const auto& [begin, end] : *owned)
+    EXPECT_TRUE(std::equal(fixture.bytes.begin() + begin,
+                           fixture.bytes.begin() + end,
+                           rom.vector().begin() + begin));
+}
+
+TEST(MessageEditorSavePlanTest, NativeLayoutRetainsOuterFenceAndDirtyDraft) {
+  test::native_overworld::NativeDirectoryFixture fixture;
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(fixture.bytes).ok());
+  MessageEditor editor(&rom, MakeDependencies(&rom));
+  MessageEditorSaveTestPeer::SetVanillaMessages(
+      editor, {{0x01, kBankSwitchCommand}}, /*dirty=*/true);
+  rom::WriteFence fence;
+  ASSERT_TRUE(fence.Allow(0, 1, "unrelated single byte").ok());
+  rom::ScopedWriteFence scope(&rom, &fence);
+  EXPECT_FALSE(editor.Save().ok());
+  EXPECT_EQ(rom.vector(), fixture.bytes);
+  EXPECT_TRUE(MessageEditorSaveTestPeer::VanillaDirty(editor));
+  EXPECT_TRUE(fence.written_ranges().empty());
 }
 
 TEST(MessageEditorSavePlanTest,

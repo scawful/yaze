@@ -7246,8 +7246,7 @@ TEST_F(AuthoringSaveWorkflowTest,
   EXPECT_NE(before_source, external);
 }
 
-TEST_F(AuthoringSaveWorkflowTest,
-       SourceMixedRomAndSaveAsRefuseBeforeAnySourceWrite) {
+TEST_F(AuthoringSaveWorkflowTest, SourceSaveAsRefusesBeforeAnySourceWrite) {
   const auto fixture = CopyProject("source-df-mixed-stop");
   BindGraphicsSources(fixture);
   Open(fixture);
@@ -7264,10 +7263,6 @@ TEST_F(AuthoringSaveWorkflowTest,
   const auto destination = fixture.root / "independent.yaze";
   EXPECT_FALSE(manager_->SaveProjectAs(destination.string()).ok());
   EXPECT_FALSE(std::filesystem::exists(destination));
-  ASSERT_OK(manager_->GetCurrentRom()->WriteByte(
-      0x200, manager_->GetCurrentRom()->vector()[0x200] ^ 1));
-  EXPECT_FALSE(manager_->SaveCurrentSession().ok());
-  EXPECT_TRUE(manager_->GetCurrentRom()->dirty());
   EXPECT_TRUE(state.HasUnsavedChanges());
   EXPECT_EQ(ReadFile(fixture.project), before_project);
   EXPECT_EQ(ReadFile(spec), before_spec);

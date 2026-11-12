@@ -508,32 +508,35 @@ absl::Status Rom::CommitNativeTerrainImage(
   return absl::OkStatus();
 }
 
-absl::Status Rom::CommitNativeDungeonImage(
+absl::Status Rom::CommitNativeNonOverworldImage(
     const std::vector<uint8_t>& baseline, std::vector<uint8_t> candidate,
     std::span<const std::pair<uint32_t, uint32_t>> allowed) {
   RETURN_IF_ERROR(CheckLayoutSaveable());
   const auto layout = InspectLyraLayout();
   if (!rom::IsNativeSpecialOverworldLayout(layout))
     return absl::FailedPreconditionError(
-        "Native dungeon commit requires a native special-overworld layout");
+        "Native non-overworld commit requires a native special-overworld "
+        "layout");
   if (baseline != rom_data_)
     return absl::FailedPreconditionError(
-        "ROM changed after native dungeon planning");
+        "ROM changed after native non-overworld planning");
   if (candidate.size() != rom_data_.size())
     return absl::FailedPreconditionError(
-        "Native dungeon candidate changed the ROM size");
+        "Native non-overworld candidate changed the ROM size");
   ASSIGN_OR_RETURN(const auto owned,
                    rom::NativeOverworldOwnedRanges(layout, rom_data_.data(),
                                                    rom_data_.size()));
   for (const auto& [begin, end] : allowed) {
     if (begin >= end || end > rom_data_.size())
-      return absl::OutOfRangeError("Native dungeon write range outside ROM");
+      return absl::OutOfRangeError(
+          "Native non-overworld write range outside ROM");
     for (const auto& [owned_begin, owned_end] : owned) {
       if (begin < owned_end && owned_begin < end)
-        return absl::PermissionDeniedError(absl::StrFormat(
-            "Native dungeon write 0x%06X-0x%06X overlaps native overworld "
-            "storage 0x%06X-0x%06X",
-            begin, end, owned_begin, owned_end));
+        return absl::PermissionDeniedError(
+            absl::StrFormat("Native non-overworld write 0x%06X-0x%06X overlaps "
+                            "native overworld "
+                            "storage 0x%06X-0x%06X",
+                            begin, end, owned_begin, owned_end));
     }
   }
   const auto inside_allowed = [&allowed](size_t pc) {
@@ -551,11 +554,13 @@ absl::Status Rom::CommitNativeDungeonImage(
     while (pc < candidate.size() && candidate[pc] != rom_data_[pc]) {
       if (!inside_allowed(pc))
         return absl::PermissionDeniedError(absl::StrFormat(
-            "Native dungeon candidate changed unplanned byte 0x%06X", pc));
+            "Native non-overworld candidate changed unplanned byte 0x%06X",
+            pc));
       ++pc;
     }
     for (auto* fence : write_fence_stack_)
-      RETURN_IF_ERROR(fence->Check(begin, pc - begin, "native dungeon save"));
+      RETURN_IF_ERROR(
+          fence->Check(begin, pc - begin, "native non-overworld save"));
     RETURN_IF_ERROR(
         CheckPrivateLyraWrite(begin, candidate.data() + begin, pc - begin));
     changed.emplace_back(begin, pc - begin);

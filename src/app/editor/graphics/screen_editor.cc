@@ -331,7 +331,21 @@ absl::Status ScreenEditor::Save() {
   if (plan.writes.empty()) {
     return absl::OkStatus();
   }
-  RETURN_IF_ERROR(zelda3::SaveDungeonMaps(*rom_, dungeon_maps_));
+  if (rom::IsNativeSpecialOverworldLayout(rom_->InspectLyraLayout())) {
+    const auto baseline = rom_->vector();
+    auto candidate = baseline;
+    std::vector<std::pair<uint32_t, uint32_t>> ranges;
+    for (const auto& write : plan.writes) {
+      std::copy(write.data.begin(), write.data.end(),
+                candidate.begin() + write.pc_address);
+      ranges.emplace_back(write.pc_address,
+                          write.pc_address + write.data.size());
+    }
+    RETURN_IF_ERROR(rom_->CommitNativeNonOverworldImage(
+        baseline, std::move(candidate), ranges));
+  } else {
+    RETURN_IF_ERROR(zelda3::SaveDungeonMaps(*rom_, dungeon_maps_));
+  }
   // A direct Save writes only the in-memory ROM. Only the outer file-save
   // commit may mark the editor clean; Undo/Redo remain available after it.
   map_save_serialized_ = map_save_transaction_active_;

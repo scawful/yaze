@@ -813,7 +813,10 @@ void EditorManager::PreparedRomSave::Commit() {
 
 absl::StatusOr<std::unique_ptr<EditorManager::PreparedRomSave>>
 EditorManager::PrepareRomSave(
-    const std::optional<std::string>& save_as_filename) {
+    const std::optional<std::string>& save_as_filename,
+    RomGraphicsSaveMode graphics_mode) {
+  const bool source_graphics =
+      graphics_mode == RomGraphicsSaveMode::kSourceArtifacts;
   auto* current_rom = GetCurrentRom();
   auto* current_editor_set = GetCurrentEditorSet();
   if (!current_rom || !current_editor_set) {
@@ -859,7 +862,11 @@ EditorManager::PrepareRomSave(
 
   ASSIGN_OR_RETURN(const project::YazeProject* save_project,
                    PrepareActiveProjectContextForSave());
-  if (core::GfxSheetSource::Selected(*save_project))
+  if (source_graphics &&
+      (!core::GfxSheetSource::Selected(*save_project) || save_as_filename))
+    return absl::FailedPreconditionError(
+        "Source artifacts require normal Save of their bound project");
+  if (!source_graphics && core::GfxSheetSource::Selected(*save_project))
     return absl::FailedPreconditionError(
         "Source-owned graphics use normal Save Project; ROM serialization is "
         "unavailable");
@@ -867,12 +874,13 @@ EditorManager::PrepareRomSave(
   // including legacy-numbered sheet IDs. Refuse before any serializer runs.
   const auto& graphics_layout =
       save_project->hack_manifest.graphics_sheet_layout().pointer_layout;
-  if (graphics_layout &&
+  if (!source_graphics && graphics_layout &&
       graphics_layout->physical_table_rows != zelda3::kGfxSheetCount) {
     RETURN_IF_ERROR(core::BuildGfxSheetWritePolicy(*save_project).status());
   }
   auto* graphics_session = session_coordinator_->GetActiveRomSession();
-  if (graphics_session && graphics_session->game_data.gfx_sheet_layout &&
+  if (!source_graphics && graphics_session &&
+      graphics_session->game_data.gfx_sheet_layout &&
       graphics_session->game_data.gfx_sheet_layout->physical_table_rows !=
           zelda3::kGfxSheetCount) {
     return absl::FailedPreconditionError(
@@ -917,7 +925,7 @@ EditorManager::PrepareRomSave(
         "before saving the ROM.");
   }
 
-  if (current_editor_set->HasPendingGraphicsChanges() &&
+  if (!source_graphics && current_editor_set->HasPendingGraphicsChanges() &&
       !core::FeatureFlags::get().kSaveGraphicsSheet) {
     return absl::FailedPreconditionError(
         "Save blocked: graphics sheet edits are pending, but Save Graphics "
@@ -930,29 +938,20 @@ EditorManager::PrepareRomSave(
   // is unavailable. Never materialize an unopened Screen editor here.
   auto* screen_editor = static_cast<ScreenEditor*>(
       current_editor_set->GetExistingEditor(EditorType::kScreen));
-  if (native_terrain_save) {
-    auto* dungeon = static_cast<DungeonEditorV2*>(
-        current_editor_set->GetExistingEditor(EditorType::kDungeon));
-    auto* message = static_cast<MessageEditor*>(
-        current_editor_set->GetExistingEditor(EditorType::kMessage));
-    if (pending_palettes || pending_gfx_groups ||
-        current_editor_set->HasPendingGraphicsChanges() ||
-        (screen_editor && screen_editor->HasPendingScreenChanges()) ||
-        (dungeon && dungeon->HasPendingDungeonChanges()) ||
-        (message && message->HasPendingMessageChanges()))
-      return absl::FailedPreconditionError(
-          "Native terrain save cannot publish pending changes in other "
-          "editors");
-    auto* overworld = static_cast<OverworldEditor*>(
-        current_editor_set->GetExistingEditor(EditorType::kOverworld));
-    if (!overworld || !overworld->overworld().is_loaded())
-      return absl::FailedPreconditionError(
-          "Load native overworld terrain before saving");
-  }
+  auto* message_editor = static_cast<MessageEditor*>(
+      current_editor_set->GetExistingEditor(EditorType::kMessage));
+  if (message_editor && message_editor->HasPendingMessageChanges() &&
+      !core::FeatureFlags::get().kSaveMessages)
+    return absl::FailedPreconditionError(
+        "Save blocked: message edits are pending, but Save Messages is "
+        "disabled");
+  if (native_terrain_save && !source_graphics &&
+      current_editor_set->HasPendingGraphicsChanges())
+    return absl::FailedPreconditionError(
+        "Native ROM graphics require selected source artifacts");
   std::vector<std::pair<uint32_t, uint32_t>> predicted_screen_write_ranges;
-  if (!native_terrain_save && screen_editor != nullptr &&
-      (screen_editor->IsRomBackedStateValid() ||
-       screen_editor->HasPendingScreenChanges())) {
+  if (screen_editor != nullptr && (screen_editor->IsRomBackedStateValid() ||
+                                   screen_editor->HasPendingScreenChanges())) {
     ASSIGN_OR_RETURN(auto plan, screen_editor->PrepareDungeonMapSave());
     for (const auto& write : plan.writes) {
       predicted_screen_write_ranges.emplace_back(
@@ -1045,25 +1044,30 @@ EditorManager::PrepareRomSave(
   // --- Save editor-specific data ---
   // A failed lazy Screen load leaves an invalid, clean editor behind. It has
   // nothing to serialize and must not poison unrelated ROM saves.
-  if (!native_terrain_save && screen_editor != nullptr &&
-      (screen_editor->IsRomBackedStateValid() ||
-       screen_editor->HasPendingScreenChanges())) {
+  if (screen_editor != nullptr && (screen_editor->IsRomBackedStateValid() ||
+                                   screen_editor->HasPendingScreenChanges())) {
     RETURN_IF_ERROR(save_editor(screen_editor));
   }
   // A coordinated save must not materialize an unrelated lazy editor. Its
   // serializer can project broad writes (and correctly trip manifest guards)
   // even though the user never opened or edited that domain.
-  if (!native_terrain_save)
-    RETURN_IF_ERROR(save_editor(
-        current_editor_set->GetExistingEditor(EditorType::kDungeon)));
+  RETURN_IF_ERROR(
+      save_editor(current_editor_set->GetExistingEditor(EditorType::kDungeon)));
   // Project context binding creates an Overworld editor before its model is
   // loaded. Its empty caches are not ROM edits and must not be serialized.
   if (auto* overworld = static_cast<OverworldEditor*>(
           current_editor_set->GetExistingEditor(EditorType::kOverworld));
-      overworld && overworld->overworld().is_loaded()) {
-    RETURN_IF_ERROR(editor_transactions.Begin(overworld));
-    RETURN_IF_ERROR(overworld->SaveRomData());
-    prepared->overworld_scratch = overworld;
+      overworld) {
+    if (overworld->overworld().is_loaded()) {
+      RETURN_IF_ERROR(editor_transactions.Begin(overworld));
+      RETURN_IF_ERROR(overworld->SaveRomData());
+      prepared->overworld_scratch = overworld;
+    } else if (overworld->HasPendingNativeSpriteChanges() ||
+               overworld->HasPendingNativeEndpointChanges()) {
+      return absl::FailedPreconditionError(
+          "Pending native overworld drafts need their loaded model; edits "
+          "retained");
+    }
   }
 
   // Dungeon may already have serialized palettes under its own transaction.
@@ -1075,16 +1079,19 @@ EditorManager::PrepareRomSave(
         current_editor_set->GetExistingEditor(EditorType::kPalette)));
   }
 
-  if (!native_terrain_save && core::FeatureFlags::get().kSaveMessages) {
-    RETURN_IF_ERROR(EnsureEditorAssetsLoaded(EditorType::kMessage));
-    RETURN_IF_ERROR(
-        save_editor(current_editor_set->GetEditor(EditorType::kMessage)));
+  if (core::FeatureFlags::get().kSaveMessages) {
+    if (!native_terrain_save && !source_graphics)
+      RETURN_IF_ERROR(EnsureEditorAssetsLoaded(EditorType::kMessage));
+    RETURN_IF_ERROR(save_editor(
+        current_editor_set->GetExistingEditor(EditorType::kMessage)));
   }
 
   // Graphics sheets are written through zelda3::WriteGfxSheet (in place, or
   // relocated into manifest-registered free space) before the write-conflict
   // check below diffs the ROM against disk.
-  if (!native_terrain_save && core::FeatureFlags::get().kSaveGraphicsSheet) {
+  // Source-overlay pixels must never reach the legacy ROM sheet table.
+  if (!source_graphics && !native_terrain_save &&
+      core::FeatureFlags::get().kSaveGraphicsSheet) {
     auto* graphics = static_cast<GraphicsEditor*>(
         current_editor_set->GetExistingEditor(EditorType::kGraphics));
     if (graphics) {
@@ -1122,6 +1129,10 @@ EditorManager::PrepareRomSave(
                       static_cast<std::streamsize>(disk_data.size()));
             if (file) {
               diff_computed = true;
+              if (DetectCopierHeader(disk_data.data(), disk_data.size()) !=
+                  CopierHeaderReason::kNone)
+                disk_data.erase(disk_data.begin(),
+                                disk_data.begin() + kCopierHeaderSize);
               auto diff = yaze::rom::ComputeDiffRanges(disk_data,
                                                        current_rom->vector());
               if (!diff.ranges.empty()) {
@@ -1186,6 +1197,8 @@ EditorManager::PrepareRomSave(
 
 absl::Status EditorManager::SaveRomInternal(
     const std::optional<std::string>& save_as_filename) {
+  if (!save_as_filename && core::GfxSheetSource::Selected(current_project_))
+    return SaveProject();
   ASSIGN_OR_RETURN(auto prepared, PrepareRomSave(save_as_filename));
   auto* current_rom = prepared->rom;
   const auto* save_project = &prepared->project;

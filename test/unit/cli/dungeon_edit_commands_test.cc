@@ -26,6 +26,7 @@
 #include "rom/lyra_layout_descriptor.h"
 #include "rom/rom.h"
 #include "rom/snes.h"
+#include "rom/transaction.h"
 #include "zelda3/dungeon/dungeon_rom_addresses.h"
 #include "zelda3/dungeon/dungeon_torch_codec.h"
 #include "zelda3/dungeon/object_layer_semantics.h"
@@ -976,12 +977,18 @@ TEST(DungeonNativeSpriteRouteTest, MoveWritesOnlyRoomStreamAndReverses) {
   WriteRomFile(rom, cleanup.rom_path);
   const auto before = rom.vector();
 
-  // Control: the generic room writer stays refused on native layouts.
-  auto generic = zelda3::LoadRoomHeaderFromRom(&rom, kPlacementRoomId);
-  generic.LoadSprites();
-  generic.GetSprites()[0].set_x(12);
-  generic.MarkSpritesDirty();
-  EXPECT_FALSE(generic.SaveSprites().ok());
+  // Normal editor Save uses this same exact native room plan. Abandoning its
+  // enclosing transaction must restore the caller before the CLI control.
+  {
+    ScopedRomTransaction transaction(rom);
+    auto generic = zelda3::LoadRoomHeaderFromRom(&rom, kPlacementRoomId);
+    generic.LoadSprites();
+    generic.GetSprites()[0].set_x(12);
+    generic.MarkSpritesDirty();
+    ASSERT_TRUE(generic.SaveSprites().ok());
+    EXPECT_NE(rom.vector(), before);
+    EXPECT_TRUE(rom::IsNativeSpecialOverworldLayout(rom.InspectLyraLayout()));
+  }
   EXPECT_EQ(rom.vector(), before);
 
   absl::Status status;
@@ -1204,9 +1211,15 @@ TEST(DungeonNativeObjectRouteTest, ImportMovesStreamIntoAllocRangeAndReopens) {
       generic.EncodeObjects(),
       std::vector<uint8_t>(baseline.bytes.begin() + kNativeObjectDataPc + 2,
                            baseline.bytes.begin() + kNativeObjectDataPc + 8));
-  // Control: the generic object writer stays refused on native layouts.
-  generic.AddTileObject(zelda3::RoomObject(0x031, 1, 2, 6, 0));
-  EXPECT_FALSE(generic.SaveObjects().ok());
+  // The shared editor plan now admits this in-place edit on native layouts.
+  // Its caller can still abandon the candidate without changing the ROM.
+  {
+    ScopedRomTransaction transaction(rom);
+    generic.AddTileObject(zelda3::RoomObject(0x031, 1, 2, 6, 0));
+    ASSERT_TRUE(generic.SaveObjects().ok());
+    EXPECT_NE(rom.vector(), baseline.bytes);
+    EXPECT_TRUE(rom::IsNativeSpecialOverworldLayout(rom.InspectLyraLayout()));
+  }
   EXPECT_EQ(rom.vector(), baseline.bytes);
 
   const std::string source_arg = "--source-rom=" + source_path.string();

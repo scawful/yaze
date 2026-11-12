@@ -23,6 +23,7 @@
 #include "app/controller.h"
 #include "app/editor/editor_manager.h"
 #include "app/editor/graphics/graphics_editor.h"
+#include "app/editor/overworld/overworld_editor.h"
 #include "app/editor/registry/content_registry.h"
 #include "app/gui/automation/widget_id_registry.h"
 #include "core/gfx_sheet_source.h"
@@ -31,6 +32,7 @@
 #include "imgui.h"
 #include "imgui_internal.h"
 #include "nlohmann/json.hpp"
+#include "util/rom_hash.h"
 
 #if __has_include("imgui_test_engine/imgui_te_context.h")
 #include "imgui_test_engine/imgui_te_context.h"
@@ -56,6 +58,9 @@ constexpr char kEbRomHash[] = "YAZE_GRAPHICS_EB_EXPECTED_ROM_SHA256";
 constexpr char kEbProjectHash[] = "YAZE_GRAPHICS_EB_EXPECTED_PROJECT_SHA256";
 constexpr char kEbSpecHash[] = "YAZE_GRAPHICS_EB_EXPECTED_D4_SHA1";
 constexpr char kEbAlternateHash[] = "YAZE_GRAPHICS_EB_EXPECTED_STANDARD_SHA1";
+constexpr char kMixedPaintProject[] =
+    "YAZE_GRAPHICS_EB_MIXED_ACCEPTANCE_PROJECT";
+constexpr char kMixedReopenProject[] = "YAZE_GRAPHICS_EB_MIXED_REOPEN_PROJECT";
 constexpr uint16_t kSheet = 0xDF;
 constexpr uint16_t kNeighbor = 0xE4;
 constexpr uint8_t kColor = 6;
@@ -100,7 +105,8 @@ struct Fixture {
 };
 
 absl::StatusOr<Fixture> ObserveFixture(editor::EditorManager& manager,
-                                       const fs::path& requested, bool eb) {
+                                       const fs::path& requested, bool eb,
+                                       bool mixed) {
   const auto refuse = [](const char* message) {
     return absl::FailedPreconditionError(message);
   };
@@ -117,9 +123,10 @@ absl::StatusOr<Fixture> ObserveFixture(editor::EditorManager& manager,
   auto* rom = manager.GetCurrentRom();
   if (!current_project || !current_project->project_opened() ||
       fs::canonical(current_project->filepath, ec) != result.project || ec ||
-      current_project->name.find(eb ? "Oracle private EB source Save Build Run"
-                                    : "[Graphics source acceptance]") ==
-          std::string::npos ||
+      current_project->name.find(
+          mixed ? "Oracle private EB mixed source terrain Save Build Run"
+          : eb  ? "Oracle private EB source Save Build Run"
+                : "[Graphics source acceptance]") == std::string::npos ||
       manager.GetProjectRomWritePolicy() != project::RomWritePolicy::kBlock ||
       current_project->hack_manifest.graphics_sheet_layout().pointer_layout ||
       !data || !data->gfx_sheet_source || !rom || !rom->is_loaded() ||
@@ -265,19 +272,138 @@ ImGuiID Control(ImGuiTestContext* ctx, ImGuiWindow* window, const char* type,
   return result;
 }
 
-void RunGraphicsSourceTest(ImGuiTestContext* ctx, bool reopen, bool eb) {
+// The same lookup, Paint tool and OwMap click used by the maintained
+// overworld Build/Run test. Model reads below are observations only.
+void MixedTerrain(ImGuiTestContext* ctx, editor::EditorManager* manager,
+                  bool reopen) {
+  constexpr int kMap = 0xA0, kX = 0, kY = 128;
+  manager->OpenEditorAndPanelsFromFlags(
+      "Overworld", "overworld.canvas,overworld.tile16_selector");
+  const auto canvas_name = manager->window_manager().GetWorkspaceWindowName(
+      manager->GetCurrentSessionId(), "overworld.canvas");
+  ctx->SetRef(canvas_name.c_str());
+  editor::OverworldEditor* overworld = nullptr;
+  for (int frame = 0; frame < 200; ++frame) {
+    auto* editors = manager->GetCurrentEditorSet();
+    overworld = editors ? editors->GetEditorAs<editor::OverworldEditor>(
+                              editor::EditorType::kOverworld)
+                        : nullptr;
+    if (overworld && overworld->overworld().is_loaded() &&
+        ctx->ItemExists("**/OwMap"))
+      break;
+    ctx->Yield(1);
+  }
+  IM_CHECK(overworld && overworld->overworld().is_loaded());
+  IM_CHECK(!overworld->lyra_canvas_.loaded());
+  IM_CHECK(kMap < overworld->overworld().materialized_map_count());
+  overworld->LocateOverworldTile(kMap, kX, kY);
+  ctx->Yield(3);
+  auto& model = overworld->overworld();
+  IM_CHECK_EQ(model.GetTile(kX, kY), reopen ? 0xD5 : 0x152);
+  if (reopen)
+    return;
+
+  const auto selector = manager->window_manager().GetWorkspaceWindowName(
+      manager->GetCurrentSessionId(), "overworld.tile16_selector");
+  ctx->SetRef(selector.c_str());
+  IM_CHECK(ctx->GetWindowByRef("") != nullptr);
+  ctx->WindowFocus("");
+  ctx->Yield(3);
+  auto& widgets = gui::WidgetIdRegistry::Instance();
+  const auto visible = [&](const std::string& suffix) -> ImGuiID {
+    const std::string tail = "/" + suffix;
+    for (const auto& path : widgets.FindWidgets("*" + suffix)) {
+      const bool match =
+          path == suffix ||
+          (path.size() > tail.size() &&
+           path.compare(path.size() - tail.size(), tail.size(), tail) == 0);
+      const ImGuiID id = match ? widgets.GetWidgetId(path) : 0;
+      if (id) {
+        const auto info = widgets.GetWidgetInfo(path);
+        if (info && !info->window_name.empty())
+          ctx->SetRef(info->window_name.c_str());
+        if (ctx->ItemExists(id))
+          return id;
+      }
+    }
+    return 0;
+  };
+  const auto lookup = visible("OwBlocksetSelector/button:Lookup");
+  IM_CHECK(lookup != 0);
+  ctx->ItemClick(lookup);
+  ctx->Yield(2);
+  const auto input = visible("OwBlocksetSelector/input:TileID");
+  IM_CHECK(input != 0);
+  ctx->ItemInputValue(input, "D5");
+  ctx->Yield(2);
+  IM_CHECK_EQ(overworld->current_tile16_id(), 0xD5);
+  auto paint = visible("OverworldToolbar/button:Paint");
+  const bool overflow = paint == 0;
+  if (overflow) {
+    const auto tools = visible("OverworldToolbar/button:Tools");
+    IM_CHECK(tools != 0);
+    ctx->ItemClick(tools);
+    ctx->Yield(2);
+    paint = visible("OverworldToolbar/button:Paint");
+  }
+  IM_CHECK(paint != 0);
+  ctx->ItemClick(paint);
+  if (overflow)
+    ctx->KeyPress(ImGuiKey_Escape);
+  auto& canvas = overworld->ow_map_canvas();
+  canvas.set_global_scale(1.0f);
+  overworld->LocateOverworldTile(kMap, kX, kY);
+  ctx->Yield(3);
+  ctx->SetRef(canvas_name.c_str());
+  auto terrain = ctx->ItemInfo("**/OwMap");
+  IM_CHECK(terrain.ID != 0 && terrain.Window != nullptr);
+  ctx->SetRef(terrain.Window);
+  ctx->WindowFocus("");
+  ctx->Yield(2);
+  terrain = ctx->ItemInfo("**/OwMap");
+  const auto origin = canvas.zero_point();
+  const auto scroll = canvas.scrolling();
+  const float cell = 16.0f * canvas.global_scale();
+  const ImVec2 center(origin.x + scroll.x + (kX + 0.5f) * cell,
+                      origin.y + scroll.y + (kY + 0.5f) * cell);
+  IM_CHECK(terrain.RectClipped.Contains(center));
+  const auto undo = overworld->undo_manager().UndoStackSize();
+  ctx->MouseSetViewport(terrain.Window);
+  ctx->MouseMoveToPos(center);
+  ctx->MouseClick(ImGuiMouseButton_Left);
+  ctx->Yield(3);
+  IM_CHECK_EQ(overworld->undo_manager().UndoStackSize(), undo + 1);
+  IM_CHECK_EQ(model.GetTile(kX, kY), 0xD5);
+  ctx->KeyPress(ImGuiMod_Ctrl | ImGuiKey_Z);
+  ctx->Yield(2);
+  IM_CHECK_EQ(model.GetTile(kX, kY), 0x152);
+  ctx->KeyPress(ImGuiMod_Ctrl | ImGuiMod_Shift | ImGuiKey_Z);
+  ctx->Yield(2);
+  IM_CHECK_EQ(model.GetTile(kX, kY), 0xD5);
+  IM_CHECK(manager->IsCurrentProjectDirty() ||
+           manager->GetCurrentRom()->dirty());
+}
+
+void RunGraphicsSourceTest(ImGuiTestContext* ctx, bool reopen, bool eb,
+                           bool mixed = false) {
   const auto sheet = static_cast<uint16_t>(eb ? 0xEB : kSheet);
   const uint8_t initial_color = eb ? 6 : 0;
   const uint8_t color_index = eb ? 7 : kColor;
   const char* requested =
-      Environment(eb ? (reopen ? kEbReopenProject : kEbPaintProject)
-                     : (reopen ? kReopenProject : kPaintProject));
+      Environment(mixed ? (reopen ? kMixedReopenProject : kMixedPaintProject)
+                  : eb  ? (reopen ? kEbReopenProject : kEbPaintProject)
+                        : (reopen ? kReopenProject : kPaintProject));
   IM_CHECK(requested != nullptr);
-  IM_CHECK(Environment(eb ? (reopen ? kEbPaintProject : kEbReopenProject)
-                          : (reopen ? kPaintProject : kReopenProject)) ==
-           nullptr);
+  IM_CHECK(
+      Environment(mixed ? (reopen ? kMixedPaintProject : kMixedReopenProject)
+                  : eb ? (reopen ? kEbPaintProject : kEbReopenProject)
+                       : (reopen ? kPaintProject : kReopenProject)) == nullptr);
   IM_CHECK(Environment(eb ? kPaintProject : kEbPaintProject) == nullptr);
   IM_CHECK(Environment(eb ? kReopenProject : kEbReopenProject) == nullptr);
+  IM_CHECK(!mixed || (Environment(kEbPaintProject) == nullptr &&
+                      Environment(kEbReopenProject) == nullptr));
+  IM_CHECK(mixed || (Environment(kMixedPaintProject) == nullptr &&
+                     Environment(kMixedReopenProject) == nullptr));
   const auto& config = Application::Instance().GetConfig();
   IM_CHECK(!config.headless && !config.service_mode);
   IM_CHECK(!config.enable_api && !config.editor_control &&
@@ -323,7 +449,7 @@ void RunGraphicsSourceTest(ImGuiTestContext* ctx, bool reopen, bool eb) {
     ctx->Yield(1);
   }
   IM_CHECK(manager != nullptr);
-  const auto observed = ObserveFixture(*manager, requested, eb);
+  const auto observed = ObserveFixture(*manager, requested, eb, mixed);
   if (!observed.ok()) {
     IM_ERRORF("Graphics fixture refused: %s",
               observed.status().ToString().c_str());
@@ -375,6 +501,23 @@ void RunGraphicsSourceTest(ImGuiTestContext* ctx, bool reopen, bool eb) {
     const auto decoded =
         core::GfxSheetSource::DecodeText(fixture.files.at(fixture.df));
     IM_CHECK(decoded.ok() && *decoded == expected);
+    if (mixed) {
+      const auto prior_bytes =
+          Read(fixture.project.parent_path() /
+               "graphics-source-eb-mixed-edit-result.json");
+      IM_CHECK(prior_bytes);
+      const auto prior = nlohmann::json::parse(*prior_bytes, nullptr, false);
+      IM_CHECK(prior.is_object() && prior.value("result", "") == "PASS");
+      IM_CHECK(prior.value("project", "") == fixture.project.string());
+      IM_CHECK(prior.value("rom_sha256", "") == Environment(kEbRomHash));
+      IM_CHECK(prior.value("project_sha256", "") ==
+               Environment(kEbProjectHash));
+      IM_CHECK(prior.value("d4_spec_sha1", "") == Environment(kEbSpecHash));
+      IM_CHECK(prior.value("standard_spec_sha1", "") ==
+               Environment(kEbAlternateHash));
+      MixedTerrain(ctx, manager, true);
+      IM_CHECK(!ctx->IsError());
+    }
   }
 
   manager->OpenEditorAndPanelsFromFlags(
@@ -472,6 +615,11 @@ void RunGraphicsSourceTest(ImGuiTestContext* ctx, bool reopen, bool eb) {
     IM_CHECK_EQ(manager->GetCurrentSessionId(), session);
     IM_CHECK(manager->GetCurrentGameData() == data);
 
+    if (mixed) {
+      MixedTerrain(ctx, manager, false);
+      IM_CHECK(!ctx->IsError());
+      IM_CHECK(graphics->HasPendingSourceChanges());
+    }
     // Use the normal app shortcut. Never call a source publisher or fall back
     // to a direct Save method when this actual frontend route fails.
     ctx->KeyPress(ImGuiMod_Shortcut | ImGuiKey_S);
@@ -494,7 +642,14 @@ void RunGraphicsSourceTest(ImGuiTestContext* ctx, bool reopen, bool eb) {
   const std::string_view loaded(
       reinterpret_cast<const char*>(manager->GetCurrentRom()->data()),
       manager->GetCurrentRom()->size());
-  IM_CHECK(loaded == fixture.files.at(fixture.rom));
+  const auto saved_rom = Read(fixture.rom);
+  IM_CHECK(saved_rom);
+  IM_CHECK(loaded == *saved_rom);
+  if (mixed && !reopen) {
+    IM_CHECK(*saved_rom != fixture.files.at(fixture.rom));
+  } else {
+    IM_CHECK(*saved_rom == fixture.files.at(fixture.rom));
+  }
   for (const auto& [id, before] : sheets_before) {
     const auto pixels = data->sheet_store.Sheet(id);
     const auto& wanted = id == sheet ? expected : before;
@@ -502,9 +657,9 @@ void RunGraphicsSourceTest(ImGuiTestContext* ctx, bool reopen, bool eb) {
         std::equal(pixels.begin(), pixels.end(), wanted.begin(), wanted.end()));
   }
   for (const auto& [path, before] : fixture.files) {
-    if (!reopen &&
-        (path == fixture.project || path == fixture.spec ||
-         path == fixture.df || (eb && path == fixture.alternate_spec))) {
+    if (!reopen && (path == fixture.project || (mixed && path == fixture.rom) ||
+                    path == fixture.spec || path == fixture.df ||
+                    (eb && path == fixture.alternate_spec))) {
       continue;
     }
     IM_CHECK(Read(path) == std::optional<std::string>(before));
@@ -557,8 +712,19 @@ void RunGraphicsSourceTest(ImGuiTestContext* ctx, bool reopen, bool eb) {
   }
   if (eb) {
     IM_CHECK(saved.rom_metadata.role == project::RomRole::kDev);
-    IM_CHECK(saved.rom_metadata.expected_hash == fixture.rom_identity);
-    IM_CHECK(saved.name == "Oracle private EB source Save Build Run");
+    if (mixed) {
+      IM_CHECK(
+          saved.rom_metadata.expected_hash ==
+          util::ComputeRomHash(reinterpret_cast<const uint8_t*>(loaded.data()),
+                               loaded.size()));
+      if (!reopen)
+        IM_CHECK(saved.rom_metadata.expected_hash != fixture.rom_identity);
+    } else {
+      IM_CHECK(saved.rom_metadata.expected_hash == fixture.rom_identity);
+    }
+    IM_CHECK(saved.name ==
+             (mixed ? "Oracle private EB mixed source terrain Save Build Run"
+                    : "Oracle private EB source Save Build Run"));
     IM_CHECK(fs::path(saved.rom_filename) == fixture.rom);
     IM_CHECK(fs::path(saved.code_folder) ==
              fixture.project.parent_path() / "source-native");
@@ -686,14 +852,17 @@ void RunGraphicsSourceTest(ImGuiTestContext* ctx, bool reopen, bool eb) {
       fixture.project.string().c_str(),
       saved.graphics_sheets.source_spec_sha1.c_str(),
       core::ComputeSourceArtifactSha256(*df_bytes).c_str(),
-      Environment(eb ? kEbRomHash : kRomHash));
+      core::ComputeSourceArtifactSha256(*saved_rom).c_str());
   if (eb) {
     const auto alternate_bytes = Read(fixture.alternate_spec);
     const auto project_bytes = Read(fixture.project);
     IM_CHECK(alternate_bytes && project_bytes);
-    const auto receipt = fixture.project.parent_path() /
-                         (reopen ? "graphics-source-eb-reopen-result.json"
-                                 : "graphics-source-eb-edit-result.json");
+    const auto receipt =
+        fixture.project.parent_path() /
+        (mixed ? (reopen ? "graphics-source-eb-mixed-reopen-result.json"
+                         : "graphics-source-eb-mixed-edit-result.json")
+               : (reopen ? "graphics-source-eb-reopen-result.json"
+                         : "graphics-source-eb-edit-result.json"));
     std::error_code ec;
     IM_CHECK(!fs::exists(receipt, ec) && !ec);
     const nlohmann::json result = {
@@ -701,7 +870,7 @@ void RunGraphicsSourceTest(ImGuiTestContext* ctx, bool reopen, bool eb) {
         {"phase", reopen ? "reopen" : "edit"},
         {"project", fixture.project.string()},
         {"project_sha256", core::ComputeSourceArtifactSha256(*project_bytes)},
-        {"rom_sha256", Environment(kEbRomHash)},
+        {"rom_sha256", core::ComputeSourceArtifactSha256(*saved_rom)},
         {"source_sha256", core::ComputeSourceArtifactSha256(*df_bytes)},
         {"d4_spec_sha1", core::GfxSheetSource::SpecSha1(*spec_bytes)},
         {"standard_spec_sha1",
@@ -724,12 +893,16 @@ void RunGraphicsSourceTest(ImGuiTestContext* ctx, bool reopen, bool eb) {
 }  // namespace
 
 void RegisterGraphicsSourceUITests(ImGuiTestEngine* engine) {
-  const bool eb = Environment(kEbPaintProject) != nullptr ||
+  const bool mixed = Environment(kMixedPaintProject) != nullptr ||
+                     Environment(kMixedReopenProject) != nullptr;
+  const bool eb = mixed || Environment(kEbPaintProject) != nullptr ||
                   Environment(kEbReopenProject) != nullptr;
-  const bool paint =
-      Environment(eb ? kEbPaintProject : kPaintProject) != nullptr;
-  const bool reopen =
-      Environment(eb ? kEbReopenProject : kReopenProject) != nullptr;
+  const bool paint = Environment(mixed ? kMixedPaintProject
+                                 : eb  ? kEbPaintProject
+                                       : kPaintProject) != nullptr;
+  const bool reopen = Environment(mixed ? kMixedReopenProject
+                                  : eb  ? kEbReopenProject
+                                        : kReopenProject) != nullptr;
   if (!paint && !reopen) {
     return;
   }
@@ -738,11 +911,21 @@ void RegisterGraphicsSourceUITests(ImGuiTestEngine* engine) {
   // any UI action. An absent gate registers and queues nothing.
   ImGuiTest* test =
       IM_REGISTER_TEST(engine, "graphics_source",
-                       eb ? (paint ? "eb_pixel_undo_redo_normal_save"
-                                   : "eb_fresh_process_source_reopen")
-                          : (paint ? "df_pixel_undo_redo_normal_save"
-                                   : "fresh_process_source_reopen"));
-  if (eb && paint) {
+                       mixed ? (paint ? "eb_mixed_terrain_normal_save"
+                                      : "eb_mixed_terrain_fresh_reopen")
+                       : eb  ? (paint ? "eb_pixel_undo_redo_normal_save"
+                                      : "eb_fresh_process_source_reopen")
+                             : (paint ? "df_pixel_undo_redo_normal_save"
+                                      : "fresh_process_source_reopen"));
+  if (mixed && paint) {
+    test->TestFunc = [](ImGuiTestContext* ctx) {
+      RunGraphicsSourceTest(ctx, false, true, true);
+    };
+  } else if (mixed) {
+    test->TestFunc = [](ImGuiTestContext* ctx) {
+      RunGraphicsSourceTest(ctx, true, true, true);
+    };
+  } else if (eb && paint) {
     test->TestFunc = [](ImGuiTestContext* ctx) {
       RunGraphicsSourceTest(ctx, false, true);
     };

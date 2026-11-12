@@ -2405,6 +2405,13 @@ std::vector<std::pair<uint32_t, uint32_t>> Room::StreamSavePlan::write_ranges()
 }
 
 absl::Status Room::ApplyStreamSavePlan(const StreamSavePlan& plan) {
+  if (rom_ && rom::IsNativeSpecialOverworldLayout(rom_->InspectLyraLayout())) {
+    const auto baseline = rom_->vector();
+    auto candidate = baseline;
+    ASSIGN_OR_RETURN(auto ranges, StageStreamSavePlan(plan, candidate));
+    return rom_->CommitNativeNonOverworldImage(baseline, std::move(candidate),
+                                               ranges);
+  }
   if (plan.relocation.has_value()) {
     return ApplyDungeonStreamWritePlan(rom_, *plan.relocation);
   }
@@ -4042,20 +4049,23 @@ absl::Status SaveAllCollisionImpl(Rom* rom, int room_count,
       return absl::OutOfRangeError("Custom collision pointer out of range");
     }
 
-    if (!room->has_custom_collision()) {
-      // Disable: clear the pointer entry.
-      RETURN_IF_ERROR(rom->WriteByte(ptr_offset, 0));
-      RETURN_IF_ERROR(rom->WriteByte(ptr_offset + 1, 0));
-      RETURN_IF_ERROR(rom->WriteByte(ptr_offset + 2, 0));
-      const_cast<Room*>(room)->ClearCustomCollisionDirty();
-      continue;
-    }
-
     // A floor-only map is populated; only absent overrides disable the room.
-    if (!room->custom_collision().HasOverrides()) {
-      RETURN_IF_ERROR(rom->WriteByte(ptr_offset, 0));
-      RETURN_IF_ERROR(rom->WriteByte(ptr_offset + 1, 0));
-      RETURN_IF_ERROR(rom->WriteByte(ptr_offset + 2, 0));
+    if (!room->has_custom_collision() ||
+        !room->custom_collision().HasOverrides()) {
+      if (rom::IsNativeSpecialOverworldLayout(rom->InspectLyraLayout())) {
+        const auto baseline = rom->vector();
+        auto candidate = baseline;
+        std::fill_n(candidate.begin() + ptr_offset, 3, 0);
+        const std::array<std::pair<uint32_t, uint32_t>, 1> ranges = {
+            {{static_cast<uint32_t>(ptr_offset),
+              static_cast<uint32_t>(ptr_offset + 3)}}};
+        RETURN_IF_ERROR(rom->CommitNativeNonOverworldImage(
+            baseline, std::move(candidate), ranges));
+      } else {
+        RETURN_IF_ERROR(rom->WriteByte(ptr_offset, 0));
+        RETURN_IF_ERROR(rom->WriteByte(ptr_offset + 1, 0));
+        RETURN_IF_ERROR(rom->WriteByte(ptr_offset + 2, 0));
+      }
       const_cast<Room*>(room)->ClearCustomCollisionDirty();
       continue;
     }
