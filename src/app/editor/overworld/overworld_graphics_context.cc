@@ -1,6 +1,8 @@
 #include "app/editor/overworld/overworld_graphics_context.h"
 
 #include <cstdint>
+#include <memory>
+#include <set>
 #include <utility>
 #include <vector>
 
@@ -8,6 +10,9 @@
 #include "absl/status/statusor.h"
 #include "absl/strings/str_format.h"
 #include "app/editor/graphics/graphics_edit_context.h"
+#include "app/editor/graphics/graphics_preview_image.h"
+#include "app/editor/graphics/usage_preview.h"
+#include "util/macro.h"
 #include "zelda3/gfx_sheet_storage.h"
 #include "zelda3/overworld/overworld.h"
 #include "zelda3/overworld/overworld_map.h"
@@ -125,6 +130,123 @@ absl::StatusOr<GraphicsEditContext> MakeOverworldGraphicsEditContext(
     context.targets.push_back(std::move(*neighbor));
   }
   return context;
+}
+
+namespace {
+
+bool LiveSessionMatches(const OverworldGraphicsLiveSource& source) {
+  return source.current_game_data() == source.owner &&
+         source.overworld->is_loaded();
+}
+
+bool LiveTileAvailable(const OverworldGraphicsLiveSource& source) {
+  return LiveSessionMatches(source) &&
+         source.tile16_id <
+             static_cast<int>(source.overworld->tiles16().size());
+}
+
+}  // namespace
+
+void AttachOverworldLiveSource(GraphicsEditContext& context,
+                               OverworldGraphicsLiveSource source) {
+  auto src =
+      std::make_shared<const OverworldGraphicsLiveSource>(std::move(source));
+  context.resolve_live_source = [src](GraphicsEditContext& fresh) {
+    if (!LiveTileAvailable(*src)) {
+      return absl::FailedPreconditionError("Overworld source session changed");
+    }
+    RETURN_IF_ERROR(src->sync_project_preview());
+    auto& overworld = *src->overworld;
+    overworld.SyncAreaProperties(src->source_map_id);
+    auto* live = overworld.mutable_overworld_map(src->source_map_id);
+    if (!live || live->HasGraphicsPreview()) {
+      return absl::UnimplementedError(
+          "Project graphics overrides have no writable source");
+    }
+    live->LoadAreaGraphics();
+    RETURN_IF_ERROR(live->LoadPalette());
+    auto resolved = MakeOverworldGraphicsEditContext(
+        *live, overworld.tiles16()[src->tile16_id], src->tile16_id,
+        src->quadrant, src->owner);
+    if (!resolved.ok())
+      return resolved.status();
+    fresh = std::move(*resolved);
+    return absl::OkStatus();
+  };
+  context.limitation += " Palette colors follow live edits.";
+  context.refresh_palettes =
+      [src](GraphicsEditContext& target) -> absl::Status {
+    if (!LiveTileAvailable(*src)) {
+      return absl::FailedPreconditionError("Overworld source session changed");
+    }
+    RETURN_IF_ERROR(src->preview_map->LoadPalette());
+    auto refreshed = MakeOverworldGraphicsEditContext(
+        *src->preview_map, src->overworld->tiles16()[src->tile16_id],
+        src->tile16_id, src->quadrant, src->owner);
+    if (!refreshed.ok())
+      return refreshed.status();
+    return UpdateGraphicsContextPalettes(target, std::move(*refreshed));
+  };
+  context.preview_revision = [src]() -> absl::StatusOr<uint64_t> {
+    if (!LiveSessionMatches(*src))
+      return absl::FailedPreconditionError("Overworld source session changed");
+    constexpr uint64_t kPrime = 1099511628211ULL;
+    uint64_t hash = 1469598103934665603ULL;
+    auto add = [&](uint64_t value) {
+      hash = (hash ^ value) * kPrime;
+    };
+    for (const auto& tile : src->overworld->tiles16())
+      for (const auto& quadrant : tile.tiles_info)
+        add(gfx::TileInfoToWord(quadrant));
+    const int world = zelda3::WorldForOverworldMap(src->source_map_id);
+    const auto& placements = src->overworld->GetMapTiles(world);
+    const int local = src->source_map_id - world * 0x40;
+    const int x0 = (local % 8) * 32;
+    const int y0 = (local / 8) * 32;
+    for (int x = x0; x < x0 + 32; ++x) {
+      if (x >= static_cast<int>(placements.size()) ||
+          y0 + 32 > static_cast<int>(placements[x].size()))
+        return absl::FailedPreconditionError("Overworld source grid changed");
+      for (int y = y0; y < y0 + 32; ++y)
+        add(placements[x][y]);
+    }
+    return hash;
+  };
+  context.render_preview =
+      [src]() -> absl::StatusOr<usage_preview::PreviewImage> {
+    if (!LiveSessionMatches(*src)) {
+      return absl::FailedPreconditionError(
+          "Overworld graphics source session has changed");
+    }
+    auto& preview_map = *src->preview_map;
+    std::set<uint16_t> ids;
+    for (int slot = 0; slot < 8; ++slot) {
+      ids.insert(preview_map.static_graphics(slot));
+    }
+    ids.insert(preview_map.animated_sheet());
+    preview_map.SetGraphicsSheetOverrides(
+        usage_preview::SnapshotSessionSheets(ids, src->owner));
+    RETURN_IF_ERROR(preview_map.BuildTileset());
+    RETURN_IF_ERROR(preview_map.BuildTiles16Gfx(
+        *src->overworld->mutable_tiles16(),
+        static_cast<int>(src->overworld->tiles16().size())));
+    const int world = zelda3::WorldForOverworldMap(src->source_map_id);
+    RETURN_IF_ERROR(
+        preview_map.BuildBitmap(src->overworld->GetMapTiles(world)));
+    usage_preview::PreviewImage image;
+    image.width = 512;
+    image.height = 512;
+    image.pixels = preview_map.bitmap_data();
+    image.index0_transparent = false;
+    const auto& palette = preview_map.current_palette();
+    for (size_t i = 0; i < palette.size() && i < image.colors.size(); ++i) {
+      const auto rgb = palette[i].rgb();
+      image.colors[i] =
+          SDL_Color{static_cast<uint8_t>(rgb.x), static_cast<uint8_t>(rgb.y),
+                    static_cast<uint8_t>(rgb.z), 255};
+    }
+    return image;
+  };
 }
 
 }  // namespace yaze::editor

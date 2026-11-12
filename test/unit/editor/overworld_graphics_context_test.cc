@@ -3,10 +3,12 @@
 #include <cstdint>
 #include <cstdlib>
 #include <filesystem>
+#include <memory>
 #include <string>
 #include <vector>
 
 #include "absl/status/status.h"
+#include "absl/status/statusor.h"
 #include "app/editor/overworld/overworld_graphics_context.h"
 #include "app/editor/overworld/tile16_editor.h"
 #include "app/gfx/types/snes_color.h"
@@ -300,6 +302,83 @@ TEST(OverworldGraphicsContextRomTest, SlotZeroRawZeroUsesAreaBackdrop) {
   EXPECT_EQ(result->palette[0].snes(), map.current_palette()[2 * 16].snes());
   EXPECT_EQ(result->palette[1].snes(),
             map.current_palette()[2 * 16 + 9].snes());
+}
+
+TEST(OverworldGraphicsContextRomTest, LiveSourceFollowsSessionUntilItChanges) {
+  const char* path = std::getenv("YAZE_TEST_ROM_VANILLA");
+  if (path == nullptr || !std::filesystem::exists(path)) {
+    GTEST_SKIP() << "Set YAZE_TEST_ROM_VANILLA to a vanilla ROM copy";
+  }
+  Rom rom;
+  zelda3::GameData data;
+  ASSERT_TRUE(rom.LoadFromFile(path).ok());
+  ASSERT_TRUE(zelda3::LoadGameData(rom, data).ok());
+  zelda3::Overworld overworld(&rom, &data);
+  ASSERT_TRUE(overworld.Load(&rom).ok());
+  ASSERT_TRUE(overworld.EnsureMapBuilt(0).ok());
+  const auto* map = overworld.overworld_map(0);
+  ASSERT_NE(map, nullptr);
+
+  int tile16_id = -1;
+  absl::StatusOr<GraphicsEditContext> context =
+      absl::NotFoundError("no editable Tile16 on map 0");
+  for (int id = 0; id < 64 && !context.ok(); ++id) {
+    context = MakeOverworldGraphicsEditContext(*map, overworld.tiles16()[id],
+                                               id, 0, &data);
+    tile16_id = id;
+  }
+  ASSERT_TRUE(context.ok()) << context.status();
+
+  const zelda3::GameData* current = &data;
+  int sync_calls = 0;
+  OverworldGraphicsLiveSource source;
+  source.overworld = &overworld;
+  source.current_game_data = [&current]() {
+    return current;
+  };
+  source.owner = &data;
+  source.sync_project_preview = [&sync_calls]() {
+    ++sync_calls;
+    return absl::OkStatus();
+  };
+  source.preview_map = std::make_shared<zelda3::OverworldMap>(*map);
+  source.source_map_id = 0;
+  source.tile16_id = tile16_id;
+  source.quadrant = 0;
+  AttachOverworldLiveSource(*context, std::move(source));
+
+  GraphicsEditContext fresh;
+  ASSERT_TRUE(context->resolve_live_source(fresh).ok());
+  EXPECT_EQ(sync_calls, 1);
+  ASSERT_FALSE(fresh.targets.empty());
+  EXPECT_EQ(fresh.targets.front().sheet_id, context->targets.front().sheet_id);
+  EXPECT_TRUE(context->refresh_palettes(*context).ok());
+
+  auto before = context->preview_revision();
+  ASSERT_TRUE(before.ok()) << before.status();
+  auto& edited = (*overworld.mutable_tiles16())[tile16_id].tiles_info[0];
+  edited.palette_ = (edited.palette_ + 1) % 8;
+  auto after = context->preview_revision();
+  ASSERT_TRUE(after.ok()) << after.status();
+  EXPECT_NE(*before, *after);
+
+  auto image = context->render_preview();
+  ASSERT_TRUE(image.ok()) << image.status();
+  EXPECT_EQ(image->width, 512);
+  EXPECT_EQ(image->height, 512);
+  EXPECT_EQ(image->pixels.size(), 512u * 512u);
+
+  zelda3::GameData other;
+  current = &other;
+  EXPECT_EQ(context->resolve_live_source(fresh).code(),
+            absl::StatusCode::kFailedPrecondition);
+  EXPECT_EQ(sync_calls, 1);
+  EXPECT_EQ(context->refresh_palettes(*context).code(),
+            absl::StatusCode::kFailedPrecondition);
+  EXPECT_EQ(context->preview_revision().status().code(),
+            absl::StatusCode::kFailedPrecondition);
+  EXPECT_EQ(context->render_preview().status().code(),
+            absl::StatusCode::kFailedPrecondition);
 }
 
 }  // namespace
