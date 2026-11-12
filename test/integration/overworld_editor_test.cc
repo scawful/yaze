@@ -25,6 +25,47 @@ TEST_F(OverworldEditorTest, LoadAndSave) {
   EXPECT_TRUE(status.ok()) << "Save failed: " << status.message();
 }
 
+TEST_F(OverworldEditorTest, SaveWritesTile16WithMapSavingDisabled) {
+  const auto saved_flags = core::FeatureFlags::get().overworld;
+  struct RestoreFlags {
+    decltype(saved_flags) flags;
+    ~RestoreFlags() { core::FeatureFlags::get().overworld = flags; }
+  } restore{saved_flags};
+  auto& flags = core::FeatureFlags::get().overworld;
+  flags.kSaveOverworldMaps = false;
+  flags.kSaveOverworldEntrances = false;
+  flags.kSaveOverworldExits = false;
+  flags.kSaveOverworldItems = false;
+  flags.kSaveOverworldProperties = false;
+  flags.kSaveOverworldSprites = false;
+
+  constexpr int kTile = 21;
+  auto& tiles16 = *overworld_editor_->overworld().mutable_tiles16();
+  ASSERT_GT(tiles16.size(), static_cast<size_t>(kTile));
+  gfx::Tile16 edited = tiles16[kTile];
+  edited.tile0_.palette_ = (edited.tile0_.palette_ + 1) % 8;
+  edited.tile3_.horizontal_mirror_ = !edited.tile3_.horizontal_mirror_;
+  tiles16[kTile] = edited;
+  const auto before = rom_->vector();
+
+  const auto status = overworld_editor_->Save();
+  ASSERT_TRUE(status.ok()) << status.message();
+
+  const auto saved = rom_->ReadTile16(kTile, zelda3::kTile16Ptr);
+  ASSERT_TRUE(saved.ok());
+  ExpectTile16Equals(*saved, edited);
+  const auto [table_start, table_end] =
+      overworld_editor_->overworld().GetProjectedTile16WriteRange();
+  const auto& after = rom_->vector();
+  ASSERT_EQ(after.size(), before.size());
+  for (size_t pc = 0; pc < after.size(); ++pc) {
+    if (after[pc] != before[pc]) {
+      ASSERT_TRUE(pc >= table_start && pc < table_end)
+          << "Map saving is off, but byte 0x" << std::hex << pc << " changed";
+    }
+  }
+}
+
 TEST_F(OverworldExpandedEditorTest, NoEditSaveUsesExpandedTile32Capacity) {
   const auto profile = zelda3::DetectOverworldRomProfile(*rom_);
   ASSERT_TRUE(profile.has_expanded_tile32);

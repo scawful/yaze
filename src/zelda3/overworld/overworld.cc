@@ -1887,6 +1887,16 @@ absl::Status Overworld::SaveOverworldMaps() {
   return absl::OkStatus();
 }
 
+std::pair<uint32_t, uint32_t> Overworld::GetProjectedTile16WriteRange() const {
+  int map16_addr = kMap16Tiles;
+  int map16_len = kNumTile16Individual * 8;  // Vanilla: 4096 * 8 = 32KB
+  if (expanded_tile16_) {
+    map16_addr = GetMap16TilesExpanded();
+    map16_len = NumberOfMap16Ex * 8;
+  }
+  return {map16_addr, map16_addr + map16_len};
+}
+
 std::vector<std::pair<uint32_t, uint32_t>> Overworld::GetProjectedWriteRanges()
     const {
   std::vector<std::pair<uint32_t, uint32_t>> ranges;
@@ -1913,13 +1923,7 @@ std::vector<std::pair<uint32_t, uint32_t>> Overworld::GetProjectedWriteRanges()
   }
 
   // 2) Map16 Tiles
-  int map16_addr = kMap16Tiles;
-  int map16_len = kNumTile16Individual * 8;  // Vanilla: 4096 * 8 = 32KB
-  if (expanded_tile16_) {
-    map16_addr = GetMap16TilesExpanded();
-    map16_len = NumberOfMap16Ex * 8;
-  }
-  ranges.emplace_back(map16_addr, map16_addr + map16_len);
+  ranges.push_back(GetProjectedTile16WriteRange());
 
   // 3) Overworld map compressed pointer tables + data regions.
   // SaveOverworldMaps() writes two 3-byte pointer tables for all maps, plus the
@@ -3332,6 +3336,9 @@ absl::Status Overworld::SaveMap16Expanded() {
   RETURN_IF_ERROR(ValidatePrivateNativeTerrainSave());
   if (rom_ && rom_->has_lyra_private_reservation())
     return absl::OkStatus();
+  if (tiles16_.size() < static_cast<size_t>(NumberOfMap16Ex)) {
+    return absl::FailedPreconditionError("Tile16 definitions are not loaded");
+  }
   const int map16_expanded = GetMap16TilesExpanded();
   const auto write_pointer = [this](int address,
                                     uint32_t target) -> absl::Status {
@@ -3437,6 +3444,9 @@ absl::Status Overworld::SaveMap16Tiles() {
   RETURN_IF_ERROR(ValidatePrivateNativeTerrainSave());
   if (rom_ && rom_->has_lyra_private_reservation())
     return absl::OkStatus();
+  if (tiles16_.size() < static_cast<size_t>(NumberOfMap16)) {
+    return absl::FailedPreconditionError("Tile16 definitions are not loaded");
+  }
   util::logf("Saving Map16 Tiles");
   int tpos = kMap16Tiles;
   // 3760

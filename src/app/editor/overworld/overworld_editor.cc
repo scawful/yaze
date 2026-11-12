@@ -1577,35 +1577,43 @@ absl::Status OverworldEditor::Save() {
 
   ScopedRomTransaction save_transaction(*rom_);
   // HACK MANIFEST VALIDATION
+  // Tile16 definitions always save; Save Overworld Maps covers only the map
+  // layout (Tile32 and compressed map tiles).
   const bool saving_maps =
       core::FeatureFlags::get().overworld.kSaveOverworldMaps;
-  if (saving_maps && dependencies_.project &&
-      dependencies_.project->hack_manifest.loaded()) {
+  if (dependencies_.project && dependencies_.project->hack_manifest.loaded()) {
     const auto& manifest = dependencies_.project->hack_manifest;
     const auto write_policy = dependencies_.project->rom_metadata.write_policy;
 
     // Calculate memory ranges that would be written by overworld map saves.
     // `ranges` are PC offsets (ROM file offsets). The hack manifest is in SNES
     // address space (LoROM), so convert before analysis.
-    auto ranges = overworld_.GetProjectedWriteRanges();
+    auto ranges = saving_maps ? overworld_.GetProjectedWriteRanges()
+                              : std::vector<std::pair<uint32_t, uint32_t>>{
+                                    overworld_.GetProjectedTile16WriteRange()};
     RETURN_IF_ERROR(ValidateHackManifestSaveConflicts(
-        manifest, write_policy, ranges, "overworld maps", "OverworldEditor",
-        dependencies_.toast_manager));
+        manifest, write_policy, ranges,
+        saving_maps ? "overworld maps" : "Tile16 definitions",
+        "OverworldEditor", dependencies_.toast_manager));
   }
 
+  const auto profile = zelda3::DetectOverworldRomProfile(*rom_);
   if (saving_maps) {
-    const auto profile = zelda3::DetectOverworldRomProfile(*rom_);
     RETURN_IF_ERROR(overworld_.CreateTile32Tilemap());
     if (profile.has_expanded_tile32) {
       RETURN_IF_ERROR(overworld_.SaveMap32Expanded());
     } else {
       RETURN_IF_ERROR(overworld_.SaveMap32Tiles());
     }
+  }
+  if (overworld_.is_loaded()) {
     if (profile.has_expanded_tile16) {
       RETURN_IF_ERROR(overworld_.SaveMap16Expanded());
     } else {
       RETURN_IF_ERROR(overworld_.SaveMap16Tiles());
     }
+  }
+  if (saving_maps) {
     RETURN_IF_ERROR(overworld_.SaveOverworldMaps());
   }
   if (core::FeatureFlags::get().overworld.kSaveOverworldEntrances) {
