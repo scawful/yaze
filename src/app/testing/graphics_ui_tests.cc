@@ -272,6 +272,44 @@ ImGuiID Control(ImGuiTestContext* ctx, ImGuiWindow* window, const char* type,
   return result;
 }
 
+std::vector<ImRect> ActiveToasts(ImGuiTestContext* ctx) {
+  std::vector<ImRect> result;
+  for (ImGuiWindow* window : ctx->UiContext->Windows) {
+    if ((window->Active || window->WasActive) &&
+        std::string_view(window->Name).starts_with("##toast_")) {
+      result.push_back(window->Rect());
+    }
+  }
+  return result;
+}
+
+// Toasts are pinned under the menu bar, cannot be moved aside by the test
+// engine, and hold their TTL while hovered. Before a real click on `id`, park
+// the mouse inside the item's window off every toast and wait for any toast
+// covering the item to expire.
+void WaitForToastsToClear(ImGuiTestContext* ctx, ImGuiID id) {
+  const auto item = ctx->ItemInfo(id);
+  IM_CHECK(item.ID != 0 && item.Window != nullptr);
+  const auto covered = [&] {
+    const auto toasts = ActiveToasts(ctx);
+    return std::any_of(toasts.begin(), toasts.end(), [&](const ImRect& toast) {
+      return toast.Overlaps(item.RectClipped);
+    });
+  };
+  if (!covered())
+    return;
+  const auto& inner = item.Window->InnerRect;
+  const ImVec2 park(inner.Min.x + 4.0f, inner.Max.y - 4.0f);
+  for (const auto& toast : ActiveToasts(ctx))
+    IM_CHECK(!toast.Contains(park));
+  ctx->MouseMoveToPos(park);
+  const auto deadline =
+      std::chrono::steady_clock::now() + std::chrono::seconds(10);
+  while (covered() && std::chrono::steady_clock::now() < deadline)
+    ctx->Yield(1);
+  IM_CHECK(!covered());
+}
+
 // The same lookup, Paint tool and OwMap click used by the maintained
 // overworld Build/Run test. Model reads below are observations only.
 void MixedTerrain(ImGuiTestContext* ctx, editor::EditorManager* manager,
@@ -330,10 +368,12 @@ void MixedTerrain(ImGuiTestContext* ctx, editor::EditorManager* manager,
   };
   const auto lookup = visible("OwBlocksetSelector/button:Lookup");
   IM_CHECK(lookup != 0);
+  WaitForToastsToClear(ctx, lookup);
   ctx->ItemClick(lookup);
   ctx->Yield(2);
   const auto input = visible("OwBlocksetSelector/input:TileID");
   IM_CHECK(input != 0);
+  WaitForToastsToClear(ctx, input);
   ctx->ItemInputValue(input, "D5");
   ctx->Yield(2);
   IM_CHECK_EQ(overworld->current_tile16_id(), 0xD5);
@@ -342,11 +382,13 @@ void MixedTerrain(ImGuiTestContext* ctx, editor::EditorManager* manager,
   if (overflow) {
     const auto tools = visible("OverworldToolbar/button:Tools");
     IM_CHECK(tools != 0);
+    WaitForToastsToClear(ctx, tools);
     ctx->ItemClick(tools);
     ctx->Yield(2);
     paint = visible("OverworldToolbar/button:Paint");
   }
   IM_CHECK(paint != 0);
+  WaitForToastsToClear(ctx, paint);
   ctx->ItemClick(paint);
   if (overflow)
     ctx->KeyPress(ImGuiKey_Escape);
