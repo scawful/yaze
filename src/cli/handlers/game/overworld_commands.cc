@@ -1031,7 +1031,8 @@ absl::Status OverworldFindTileCommandHandler::Execute(
 absl::Status OverworldDescribeMapCommandHandler::Execute(
     Rom* rom, const resources::ArgumentParser& parser,
     resources::OutputFormatter& formatter) {
-  ASSIGN_OR_RETURN(const int screen_id, ParseMapIdArg(parser, "screen"));
+  ASSIGN_OR_RETURN(const int screen_id,
+                   ParseMapIdArg(parser, "screen", TileCommandMapCount(rom)));
 
   // Load the Overworld from ROM
   zelda3::Overworld overworld(rom);

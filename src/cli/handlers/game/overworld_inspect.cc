@@ -175,8 +175,9 @@ std::string WarpTypeName(WarpType type) {
 
 absl::StatusOr<MapSummary> BuildMapSummary(zelda3::Overworld& overworld,
                                            int map_id) {
-  RETURN_IF_ERROR(ValidateMapId(map_id));
-  ASSIGN_OR_RETURN(int world, InferWorldFromMapId(map_id));
+  const int map_count = overworld.materialized_map_count();
+  RETURN_IF_ERROR(ValidateMapId(map_id, map_count));
+  ASSIGN_OR_RETURN(int world, InferWorldFromMapId(map_id, map_count));
 
   // Ensure map data is built before accessing metadata.
   RETURN_IF_ERROR(overworld.EnsureMapBuilt(map_id));

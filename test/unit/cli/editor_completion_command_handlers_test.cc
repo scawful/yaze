@@ -6,10 +6,14 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
+#include "fixtures/lyra/native_directory_fixture.h"
+#include "rom/rom.h"
+
 namespace yaze::cli {
 namespace {
 
 using ::testing::HasSubstr;
+using ::testing::Not;
 
 TEST(EditorCompletionCommandHandlersTest,
      OverworldGetTileRejectsOutOfRangeMap) {
@@ -22,6 +26,27 @@ TEST(EditorCompletionCommandHandlersTest,
   EXPECT_FALSE(status.ok());
   EXPECT_EQ(status.code(), absl::StatusCode::kInvalidArgument);
   EXPECT_THAT(std::string(status.message()), HasSubstr("Map ID out of range"));
+}
+
+TEST(EditorCompletionCommandHandlersTest,
+     DescribeMapUsesTheNativeDirectoryCapacity) {
+  handlers::OverworldDescribeMapCommandHandler handler;
+  for (uint16_t capacity : {160, 192}) {
+    test::native_overworld::NativeDirectoryFixture fixture(capacity);
+    Rom rom;
+    ASSERT_TRUE(rom.LoadFromData(fixture.bytes).ok()) << capacity;
+    std::string output;
+    const auto status =
+        handler.Run({"--screen=A0", "--format=json"}, &rom, &output);
+    EXPECT_FALSE(status.ok()) << capacity;
+    if (capacity == 160) {
+      EXPECT_THAT(std::string(status.message()),
+                  HasSubstr("Map ID out of range"));
+    } else {
+      EXPECT_THAT(std::string(status.message()),
+                  Not(HasSubstr("Map ID out of range")));
+    }
+  }
 }
 
 TEST(EditorCompletionCommandHandlersTest,
