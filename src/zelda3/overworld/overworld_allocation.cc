@@ -573,6 +573,9 @@ MapStreamScan ScanMapStream(const uint8_t* data, size_t size, uint32_t pc,
 
 std::vector<std::string> OverworldAllocationReport::TablesStoppingBeforeTail()
     const {
+  if (areas.size() > kSpecialTailFirstArea) {
+    return areas[kSpecialTailFirstArea].uncovered_tables;
+  }
   std::vector<std::string> ids;
   for (const auto& table : tables) {
     if (table.Misses(kSpecialTailFirstArea)) {
@@ -639,6 +642,8 @@ absl::StatusOr<OverworldAllocationReport> BuildOverworldAllocationReport(
   };
   const TailMapExpansionPlan plan;
   report.tail_marker_present = layout.has_validated_ea_tail();
+  const bool native_layout =
+      rom::IsNativeSpecialOverworldLayout(layout.lyra_layout);
 
   report.areas.resize(kAllocationAreaCount);
   for (int id = 0; id < kAllocationAreaCount; ++id) {
@@ -648,14 +653,30 @@ absl::StatusOr<OverworldAllocationReport> BuildOverworldAllocationReport(
     if (auto it = options.area_names.find(id); it != options.area_names.end()) {
       area.name = it->second;
     }
+    // A native directory declares every per-area ROM table for each tail slot
+    // it owns; $00-$9F keep the legacy tables the game reads, and WRAM/SRAM
+    // tables keep their fixed extent.
+    const bool native_slot =
+        native_layout && id > 0x9F && id < layout.terrain_table_entries;
     for (const auto& table : report.tables) {
-      if (table.Misses(id)) {
+      if (table.Misses(id) && !(native_slot && table.in_rom)) {
         area.uncovered_tables.push_back(table.id);
       }
     }
 
     // Parent.
-    if (zs_v3) {
+    const auto native_parent =
+        native_slot ? rom::LyraLayoutRecord(layout.lyra_layout, rom->data(),
+                                            rom->size(), 7, id)
+                    : std::nullopt;
+    const auto native_size =
+        native_slot ? rom::LyraLayoutRecord(layout.lyra_layout, rom->data(),
+                                            rom->size(), 30, id)
+                    : std::nullopt;
+    const bool native_geometry = native_parent && native_size;
+    if (native_geometry) {
+      area.parent = (*native_parent)[0];
+    } else if (zs_v3) {
       const uint32_t pc = catalogue_pc("pool_parent", kPoolParentPc) + id;
       if (pc < rom->size()) {
         if (id <= 0x9F) {
@@ -674,7 +695,9 @@ absl::StatusOr<OverworldAllocationReport> BuildOverworldAllocationReport(
 
     // Size. Vanilla fixes special-world sizes in code (only Zora's Domain
     // is large); ZS v3 reads all 0xC0 entries of the table.
-    if (zs_v3 || id < 0x80) {
+    if (native_geometry) {
+      area.size = DecodeAreaSize((*native_size)[0], /*zs_v3=*/true);
+    } else if (zs_v3 || id < 0x80) {
       area.size = DecodeAreaSize(rom->data()[kAreaSizePc + id], zs_v3);
     } else {
       area.size = VanillaSpecialParent(id) == 0x81 ? AllocationAreaSize::kLarge
@@ -682,9 +705,16 @@ absl::StatusOr<OverworldAllocationReport> BuildOverworldAllocationReport(
     }
 
     // Map data. Once the tail marker is present the game reads the
-    // relocated 192-entry tables; otherwise only $00-$9F have pointers.
+    // relocated 192-entry tables, and a native special-overworld directory
+    // owns one pointer per tail slot it declares; otherwise only $00-$9F have
+    // pointers.
     if (layout.has_validated_ea_tail()) {
       area.map_pointer_source = "tail_table";
+      ScanAreaMap(
+          *rom, static_cast<uint32_t>(layout.terrain_high_table_pc.value),
+          static_cast<uint32_t>(layout.terrain_low_table_pc.value), id, &area);
+    } else if (native_slot) {
+      area.map_pointer_source = "native_table";
       ScanAreaMap(
           *rom, static_cast<uint32_t>(layout.terrain_high_table_pc.value),
           static_cast<uint32_t>(layout.terrain_low_table_pc.value), id, &area);

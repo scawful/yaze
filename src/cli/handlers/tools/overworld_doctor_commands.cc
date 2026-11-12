@@ -67,6 +67,10 @@ RomFeatures DetectRomFeatures(Rom* rom) {
     features.has_expanded_pointer_tables =
         (rom->data()[kExpandedPtrTableMarker] == kExpandedPtrTableMagic);
   }
+  if (const auto native = rom->InspectLyraLayout();
+      rom::IsNativeSpecialOverworldLayout(native)) {
+    features.native_map_capacity = native.capacity;
+  }
 
   // Detect ZSCustomOverworld feature enables
   if (!features.is_vanilla) {
@@ -151,10 +155,10 @@ void ValidateMapPointers(Rom* rom, DiagnosticReport& report) {
   }
 
   // Tail maps status
-  report.map_status.tail_maps_valid =
-      report.features.has_expanded_pointer_tables;
-  report.map_status.can_support_tail =
-      report.features.has_expanded_pointer_tables;
+  const bool has_tail = report.features.has_expanded_pointer_tables ||
+                        report.features.native_map_capacity > kVanillaMapCount;
+  report.map_status.tail_maps_valid = has_tail;
+  report.map_status.can_support_tail = has_tail;
 
   // Add finding if map pointer corruption detected
   if (!report.map_status.lw_dw_maps_valid) {
@@ -366,6 +370,8 @@ void OutputFeaturesJson(resources::OutputFormatter& formatter,
   formatter.AddField("expanded_tile32", features.has_expanded_tile32);
   formatter.AddField("expanded_pointer_tables",
                      features.has_expanded_pointer_tables);
+  formatter.AddField("native_map_capacity",
+                     static_cast<int>(features.native_map_capacity));
 
   if (!features.is_vanilla) {
     formatter.AddField("custom_bg_enabled", features.custom_bg_enabled);
@@ -441,10 +447,13 @@ void OutputTextSummary(const DiagnosticReport& report) {
   std::cout << absl::StrFormat(
       "║  Expanded Tile32: %-42s ║\n",
       report.features.has_expanded_tile32 ? "YES" : "NO");
-  std::cout << absl::StrFormat("║  Expanded Ptr Tables: %-38s ║\n",
-                               report.features.has_expanded_pointer_tables
-                                   ? "YES (192 maps)"
-                                   : "NO (160 maps)");
+  std::cout << absl::StrFormat(
+      "║  Expanded Ptr Tables: %-38s ║\n",
+      report.features.native_map_capacity > 0
+          ? absl::StrFormat("NATIVE (%d maps)",
+                            report.features.native_map_capacity)
+      : report.features.has_expanded_pointer_tables ? "YES (192 maps)"
+                                                    : "NO (160 maps)");
 
   std::cout
       << "╠═══════════════════════════════════════════════════════════════╣\n";
@@ -523,7 +532,7 @@ absl::Status OverworldDoctorCommandHandler::Execute(
   auto baseline_rom = LoadBaselineRom(baseline_path, &resolved_baseline);
 
   // Add info finding if no ASM expansion for tail maps
-  if (!report.features.has_expanded_pointer_tables) {
+  if (!report.map_status.can_support_tail) {
     DiagnosticFinding finding;
     finding.id = "no_tail_support";
     finding.severity = DiagnosticSeverity::kInfo;
