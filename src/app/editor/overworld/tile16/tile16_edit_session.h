@@ -262,10 +262,6 @@ class Tile16EditSession {
   }
   Tile16LayoutScratch& layout_scratch(int i) { return layout_scratch_[i]; }
 
-  bool auto_tile_mode() const { return auto_tile_mode_; }
-  bool* mutable_auto_tile_mode() { return &auto_tile_mode_; }
-  bool grid_snap_enabled() const { return grid_snap_enabled_; }
-  bool* mutable_grid_snap_enabled() { return &grid_snap_enabled_; }
   bool show_tile_info() const { return show_tile_info_; }
   bool* mutable_show_tile_info() { return &show_tile_info_; }
   bool show_palette_preview() const { return show_palette_preview_; }
@@ -415,8 +411,6 @@ class Tile16EditSession {
   uint8_t current_palette_ = 0;
   bool live_preview_enabled_ = true;
   bool preview_dirty_ = false;
-  bool auto_tile_mode_ = false;
-  bool grid_snap_enabled_ = true;
   bool show_tile_info_ = true;
   bool show_palette_preview_ = true;
   bool show_tile_grid_ = true;
