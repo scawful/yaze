@@ -389,6 +389,39 @@ TEST_F(GfxSheetSourceTest, FlaggedGlobalsFollowTheProducerDefines) {
   EXPECT_TRUE(GfxSheetSource::Load(project).ok());
 }
 
+TEST_F(GfxSheetSourceTest, DefineFilePresenceIsBoundLikeItsBytes) {
+  fs::create_directories(root / "Util");
+  auto sky = pixels;
+  sky[2] = 3;
+  Write(root / "Data/graphics/eb.txt", GfxSheetSource::EncodeText(sky));
+  spec["sheets"].push_back(
+      {{"global_sheet", "0xEB"},
+       {"source", "eb.txt"},
+       {"decoded_sha256", GfxSheetSource::DecodedSha256(sky)},
+       {"flag", "ENABLE_SKY_OVERWORLD"},
+       {"why", "Flag-only global"}});
+  Bind();
+  Write(root / "Util/macros.asm", "!ENABLE_SKY_OVERWORLD = 0\n");
+  const auto features = root / "Config/feature_flags.asm";
+  ASSERT_FALSE(fs::exists(features));
+  auto source = GfxSheetSource::Load(project);
+  ASSERT_TRUE(source.ok()) << source.status();
+  EXPECT_FALSE(source->sheets().contains(0xEB));
+  ASSERT_TRUE(source->CheckDisk().ok());
+
+  // A define file absent at load would change the selection once created.
+  fs::create_directories(features.parent_path());
+  Write(features, "!ENABLE_SKY_OVERWORLD = 1\n");
+  EXPECT_FALSE(source->CheckDisk().ok());
+  EXPECT_FALSE(source->Prepare(project, {{0xDF, pixels}}).ok());
+  fs::remove(features);
+  EXPECT_TRUE(source->CheckDisk().ok());
+
+  fs::remove(root / "Util/macros.asm");
+  EXPECT_FALSE(source->CheckDisk().ok());
+  EXPECT_FALSE(source->Prepare(project, {{0xDF, pixels}}).ok());
+}
+
 TEST_F(GfxSheetSourceTest, IntegerAndSchemaFieldsMatchPythonWithoutNarrowing) {
   const auto original = spec;
   for (const auto& value : std::vector<Json>{

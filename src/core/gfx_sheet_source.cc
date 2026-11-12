@@ -264,7 +264,7 @@ bool FlagName(const std::string& name) {
 // last assignment wins; a flag selecting a source must be a plain integer.
 absl::StatusOr<std::map<std::string, bool>> ReadFlags(
     const fs::path& root, const std::set<std::string>& names,
-    std::map<std::string, std::string>& files) {
+    std::map<std::string, std::optional<std::string>>& files) {
   std::map<std::string, std::optional<int64_t>> values;
   const auto trim = [](const std::string& text) {
     const auto begin = text.find_first_not_of(" \t\r");
@@ -276,8 +276,10 @@ absl::StatusOr<std::map<std::string, bool>> ReadFlags(
                            "Config/feature_flags.asm"}) {
     const auto path = root / name;
     std::error_code ec;
-    if (!fs::exists(path, ec) && !ec)
+    if (!fs::exists(path, ec) && !ec) {
+      files.emplace(path.string(), std::nullopt);
       continue;
+    }
     ASSIGN_OR_RETURN(auto text, Read(path));
     std::istringstream lines(text);
     std::string line;
@@ -538,8 +540,16 @@ absl::Status GfxSheetSource::CheckDisk() const {
       return Bad("source changed on disk; draft retained");
   }
   for (const auto& [path, before] : defines_) {
+    std::error_code ec;
+    const bool exists = fs::exists(path, ec);
+    if (ec)
+      return Bad("feature flags unreadable; draft retained");
+    if (exists != before.has_value())
+      return Bad("feature flags changed on disk; draft retained");
+    if (!exists)
+      continue;
     ASSIGN_OR_RETURN(auto bytes, Read(path));
-    if (bytes != before)
+    if (bytes != *before)
       return Bad("feature flags changed on disk; draft retained");
   }
   return absl::OkStatus();

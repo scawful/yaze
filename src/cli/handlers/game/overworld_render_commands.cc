@@ -629,6 +629,8 @@ absl::Status OverworldExportNativeSourceCommandHandler::Execute(
         {"spec", project_->graphics_sheets.source_spec},
         {"spec_sha1", source.spec_sha1()},
         {"sheets", std::move(sheets)}};
+    RETURN_IF_ERROR(source.CheckBinding(*project_));
+    RETURN_IF_ERROR(source.CheckDisk());
   }
   if (source_hash != hash(rom->data(), rom->size()))
     return absl::DataLossError("Native source export changed the ROM");
