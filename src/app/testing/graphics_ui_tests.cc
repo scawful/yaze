@@ -559,8 +559,9 @@ void RunGraphicsSourceTest(ImGuiTestContext* ctx, bool reopen, bool eb) {
     IM_CHECK(saved.rom_metadata.role == project::RomRole::kDev);
     IM_CHECK(saved.rom_metadata.expected_hash == fixture.rom_identity);
     IM_CHECK(saved.name == "Oracle private EB source Save Build Run");
-    IM_CHECK(saved.rom_filename == "rom");
-    IM_CHECK(saved.code_folder == "source-native");
+    IM_CHECK(fs::path(saved.rom_filename) == fixture.rom);
+    IM_CHECK(fs::path(saved.code_folder) ==
+             fixture.project.parent_path() / "source-native");
     IM_CHECK(saved.graphics_sheets.source_spec ==
              "Data/graphics/d4_zora_sprite_sheets.json");
     const auto alternate_bytes = Read(fixture.alternate_spec);
