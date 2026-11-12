@@ -837,6 +837,17 @@ absl::Status YazeProject::ValidateSavedSourceBindings(
     return absl::InvalidArgumentError(
         std::string("Invalid saved project bindings: ") + error.what());
   }
+  // Loading the active project imports source-registry labels that need not be
+  // present in its descriptor. Reconstruct only those missing defaults for the
+  // comparison; explicit saved labels and unsaved active edits must still differ.
+  // Do not reload a temporary project's manifest: that changes the global label
+  // provider and can overwrite explicit descriptor labels.
+  for (const auto& [type, labels] :
+       hack_manifest.project_registry().all_resource_labels) {
+    for (const auto& [id, label] : labels) {
+      saved.resource_labels[type].try_emplace(id, label);
+    }
+  }
   ASSIGN_OR_RETURN(const auto live_text, SerializeToString());
   ASSIGN_OR_RETURN(const auto saved_text, saved.SerializeToString());
   const auto bindings = [](const std::string& text) {

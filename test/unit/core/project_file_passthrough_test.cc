@@ -495,5 +495,53 @@ TEST(ProjectFilePassthroughTest, ValidIntegerFieldsSurviveSaveAndReopen) {
   EXPECT_EQ(reopened.build_number, 2147483647);
 }
 
+// Native04: registry-loaded receipt labels were absent from the saved
+// descriptor, producing a false Save receipt despite an unchanged project.
+TEST(ProjectFilePassthroughTest, SavedBindingsIncludeSourceReceiptLabels) {
+  ScopedDir dir(yaze::test::UniqueTempPath("project_source_receipt_labels"));
+  const auto planning = dir.path() / "code" / "Docs" / "Dev" / "Planning";
+  fs::create_directories(planning);
+  WriteFile(planning / "oracle_resource_labels.json", R"({
+    "item_receipt": {"0x4C": "Bombchu", "0x4D": "Switch Hook"}
+  })");
+  const std::string descriptor =
+      "[project]\nname=Receipt labels\nproject_id=receipt-roundtrip\n"
+      "[files]\ncode_folder=code\n";
+  YazeProject active;
+  ASSERT_TRUE(
+      active.LoadFromString(descriptor, (dir.path() / "project.yaze").string())
+          .ok());
+  ASSERT_EQ(active.resource_labels.at("item_receipt").at("76"), "Bombchu");
+  ASSERT_EQ(active.resource_labels.at("item_receipt").at("77"), "Switch Hook");
+  EXPECT_TRUE(active.ValidateSavedSourceBindings(descriptor).ok())
+      << active.ValidateSavedSourceBindings(descriptor);
+
+  // Rehydrating defaults must not hide a changed dependency binding.
+  auto changed_binding = descriptor;
+  changed_binding.replace(changed_binding.find("code_folder=code"),
+                          std::string("code_folder=code").size(),
+                          "code_folder=other-code");
+  const auto binding_status =
+      active.ValidateSavedSourceBindings(changed_binding);
+  EXPECT_EQ(binding_status.code(), absl::StatusCode::kFailedPrecondition);
+  EXPECT_THAT(binding_status.message(), HasSubstr("code_folder"));
+
+  // An explicit descriptor label is not a missing source default.
+  const auto explicit_status = active.ValidateSavedSourceBindings(
+      descriptor + "[labels_item_receipt]\n76=Changed Bombchu\n");
+  EXPECT_EQ(explicit_status.code(), absl::StatusCode::kFailedPrecondition);
+  EXPECT_THAT(explicit_status.message(), HasSubstr("[labels_item_receipt] 76"));
+
+  // Nor may a real unsaved active edit be overwritten by the source registry.
+  active.resource_labels["item_receipt"]["77"] = "Unsaved Hook";
+  const auto edit_status = active.ValidateSavedSourceBindings(descriptor);
+  EXPECT_EQ(edit_status.code(), absl::StatusCode::kFailedPrecondition);
+  EXPECT_THAT(edit_status.message(), HasSubstr("[labels_item_receipt] 77"));
+  active.resource_labels["item_receipt"]["77"] = "Switch Hook";
+  active.resource_labels["item_receipt"].erase("76");
+  EXPECT_EQ(active.ValidateSavedSourceBindings(descriptor).code(),
+            absl::StatusCode::kFailedPrecondition);
+}
+
 }  // namespace
 }  // namespace yaze::project
