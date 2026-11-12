@@ -21,6 +21,8 @@
 #include "absl/strings/string_view.h"
 #include "app/service/render_service.h"
 #include "cli/util/hex_util.h"
+#include "core/gfx_sheet_policy_adapter.h"
+#include "core/gfx_sheet_source.h"
 #include "core/lyra_terrain_document.h"
 #include "core/overworld_graphics_preview.h"
 #include "core/rom_settings.h"
@@ -384,6 +386,20 @@ absl::Status OverworldExportNativeSourceCommandHandler::Execute(
   zelda3::GameData game_data;
   zelda3::LoadOptions options;
   options.expand_rom = false;
+  // The project's graphics layout and source, resolved as the editor's ROM
+  // load does, including its ROM identity and source binding checks.
+  if (project_ &&
+      (project_->hack_manifest.graphics_sheet_layout().pointer_layout ||
+       core::GfxSheetSource::Selected(*project_))) {
+    ASSIGN_OR_RETURN(auto sheet_layout,
+                     core::ResolveGfxSheetLayout(*rom, *project_));
+    if (sheet_layout.explicit_layout)
+      options.gfx_sheet_layout = std::move(sheet_layout);
+    if (core::GfxSheetSource::Selected(*project_)) {
+      ASSIGN_OR_RETURN(options.gfx_sheet_source,
+                       core::GfxSheetSource::Load(*project_));
+    }
+  }
   RETURN_IF_ERROR(zelda3::LoadGameData(*rom, game_data, options));
   zelda3::Overworld world(rom, &game_data);
   RETURN_IF_ERROR(world.Load(rom));
@@ -463,13 +479,15 @@ absl::Status OverworldExportNativeSourceCommandHandler::Execute(
             absl::StrFormat("Special overworld map $%02X phase %d: %s", map_id,
                             state, palette_status.message()));
       for (int slot = 0; slot < 16; ++slot) {
-        if ((static_cast<size_t>(resolved.static_graphics(slot)) + 1) * 0x1000 >
-            game_data.graphics_buffer.size())
-          return absl::OutOfRangeError(
-              "A resolved native graphics sheet is unavailable");
+        if (!game_data.HasGraphicsSheet(resolved.static_graphics(slot)))
+          return absl::OutOfRangeError(absl::StrFormat(
+              "A resolved native graphics sheet is unavailable: map $%02X "
+              "phase %d sheet $%02X is in neither the ROM table nor the bound "
+              "graphics source",
+              map_id, state, resolved.static_graphics(slot)));
       }
       const size_t animation = resolved.animated_sheet();
-      if ((animation + 1) * 0x1000 > game_data.graphics_buffer.size())
+      if (!game_data.HasGraphicsSheet(animation))
         return absl::OutOfRangeError(
             "A resolved native animation sheet is unavailable");
       RETURN_IF_ERROR(resolved.BuildTileset());
@@ -591,6 +609,27 @@ absl::Status OverworldExportNativeSourceCommandHandler::Execute(
                         definition->count * definition->stride)}}},
       {"gameplay_areas", std::move(gameplay_areas)},
       {"pages", std::move(pages)}};
+  if (game_data.gfx_sheet_source) {
+    // Source rows are not in this ROM's pointer table; name what supplied them.
+    const auto& source = *game_data.gfx_sheet_source;
+    const auto spec_dir =
+        std::filesystem::path(source.spec_path()).parent_path();
+    auto sheets = nlohmann::json::array();
+    for (const auto& [id, sheet] : source.sheets())
+      sheets.push_back(
+          {{"sheet_id", id},
+           {"source", std::filesystem::path(sheet.path)
+                          .lexically_relative(spec_dir)
+                          .generic_string()},
+           {"flag", sheet.flag.empty() ? nlohmann::json(nullptr)
+                                       : nlohmann::json(sheet.flag)},
+           {"decoded_sheet_sha256",
+            hash(sheet.pixels.data(), sheet.pixels.size())}});
+    result["graphics_source"] = {
+        {"spec", project_->graphics_sheets.source_spec},
+        {"spec_sha1", source.spec_sha1()},
+        {"sheets", std::move(sheets)}};
+  }
   if (source_hash != hash(rom->data(), rom->size()))
     return absl::DataLossError("Native source export changed the ROM");
   const auto encoded = result.dump();

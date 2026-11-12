@@ -299,6 +299,96 @@ TEST_F(GfxSheetSourceTest,
   EXPECT_TRUE(source->Prepare(project, {{0xDF, edited}}).ok());
 }
 
+TEST_F(GfxSheetSourceTest, FlaggedGlobalsFollowTheProducerDefines) {
+  fs::create_directories(root / "Util");
+  fs::create_directories(root / "Config");
+  auto variant = pixels;
+  variant[1] = 4;
+  auto sky = pixels;
+  sky[2] = 3;
+  Write(root / "Data/graphics/df-variant.txt",
+        GfxSheetSource::EncodeText(variant));
+  Write(root / "Data/graphics/eb.txt", GfxSheetSource::EncodeText(sky));
+  const auto original = spec;
+  spec["sheets"].push_back(
+      {{"global_sheet", "0xDF"},
+       {"source", "df-variant.txt"},
+       {"decoded_sha256", GfxSheetSource::DecodedSha256(variant)},
+       {"flag", "ENABLE_ROOM_SKY"},
+       {"why", "Flagged variant of an unflagged global"}});
+  spec["sheets"].push_back(
+      {{"global_sheet", "0xEB"},
+       {"source", "eb.txt"},
+       {"decoded_sha256", GfxSheetSource::DecodedSha256(sky)},
+       {"flag", "ENABLE_SKY_OVERWORLD"},
+       {"why", "Flag-only global"}});
+  const auto flagged = spec;
+  Bind();
+  Write(root / "Util/macros.asm",
+        "!ENABLE_ROOM_SKY = 1 ; default on\n!ENABLE_SKY_OVERWORLD = $1\n");
+  Write(root / "Config/feature_flags.asm", "!ENABLE_SKY_OVERWORLD = 0\n");
+
+  // feature_flags.asm is read last: its 0 wins over the macros default.
+  auto source = GfxSheetSource::Load(project);
+  ASSERT_TRUE(source.ok()) << source.status();
+  EXPECT_EQ(source->sheets().at(0xDF).pixels, variant);
+  EXPECT_EQ(source->sheets().at(0xDF).flag, "ENABLE_ROOM_SKY");
+  EXPECT_FALSE(source->sheets().contains(0xEB));
+  EXPECT_EQ(source->sheets().at(0xFE).pixels, pixels);
+
+  // A Save edits only the selected entry's hash.
+  auto edited = variant;
+  edited[3] = 6;
+  auto plan = source->Prepare(project, {{0xDF, edited}});
+  ASSERT_TRUE(plan.ok()) << plan.status();
+  const auto planned = Json::parse(plan->spec);
+  EXPECT_EQ(planned["sheets"][0]["decoded_sha256"],
+            GfxSheetSource::DecodedSha256(pixels));
+  EXPECT_EQ(planned["sheets"][6]["decoded_sha256"],
+            GfxSheetSource::DecodedSha256(edited));
+
+  // The selecting define is bound like a source input.
+  Write(root / "Config/feature_flags.asm", "!ENABLE_SKY_OVERWORLD = 1\n");
+  EXPECT_FALSE(source->CheckDisk().ok());
+  source = GfxSheetSource::Load(project);
+  ASSERT_TRUE(source.ok()) << source.status();
+  EXPECT_EQ(source->sheets().at(0xEB).pixels, sky);
+
+  Write(root / "Util/macros.asm", "!ENABLE_ROOM_SKY = 0\n");
+  source = GfxSheetSource::Load(project);
+  ASSERT_TRUE(source.ok()) << source.status();
+  EXPECT_EQ(source->sheets().at(0xDF).pixels, pixels);
+  EXPECT_TRUE(source->sheets().at(0xDF).flag.empty());
+
+  for (const char* macros :
+       {"!ENABLE_SKY_OVERWORLD = 1\n", "!ENABLE_ROOM_SKY = !OTHER\n",
+        "!ENABLE_ROOM_SKY ?= 1\n"}) {
+    Write(root / "Util/macros.asm", macros);
+    Write(root / "Config/feature_flags.asm", "");
+    EXPECT_FALSE(GfxSheetSource::Load(project).ok()) << macros;
+  }
+  Write(root / "Util/macros.asm", "!ENABLE_ROOM_SKY = 1\n");
+  Write(root / "Config/feature_flags.asm", "!ENABLE_SKY_OVERWORLD = 1\n");
+  ASSERT_TRUE(GfxSheetSource::Load(project).ok());
+
+  for (int variant_case = 0; variant_case < 4; ++variant_case) {
+    spec = flagged;
+    if (variant_case == 0)
+      spec["sheets"][6]["flag"] = "ROOM_SKY";
+    if (variant_case == 1)
+      spec["sheets"][6]["flag"] = 1;
+    if (variant_case == 2)
+      spec["sheets"][7]["global_sheet"] = "0xDF";
+    if (variant_case == 3)
+      spec["sheets"][2]["flag"] = "ENABLE_ROOM_SKY";
+    Bind();
+    EXPECT_FALSE(GfxSheetSource::Load(project).ok()) << variant_case;
+  }
+  spec = original;
+  Bind();
+  EXPECT_TRUE(GfxSheetSource::Load(project).ok());
+}
+
 TEST_F(GfxSheetSourceTest, IntegerAndSchemaFieldsMatchPythonWithoutNarrowing) {
   const auto original = spec;
   for (const auto& value : std::vector<Json>{

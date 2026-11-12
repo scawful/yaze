@@ -6,8 +6,11 @@
 #include <fstream>
 #include <iterator>
 #include <limits>
+#include <optional>
 #include <set>
+#include <sstream>
 #include <stdexcept>
+#include <string_view>
 #include <utility>
 
 #include "app/gfx/types/snes_tile.h"
@@ -248,6 +251,74 @@ absl::StatusOr<fs::path> Root(const project::YazeProject& project) {
     return Bad("code folder is unavailable");
   return root;
 }
+
+bool FlagName(const std::string& name) {
+  constexpr std::string_view kPrefix = "ENABLE_";
+  return name.size() > kPrefix.size() && name.starts_with(kPrefix) &&
+         std::all_of(name.begin(), name.end(), [](unsigned char c) {
+           return std::isupper(c) || std::isdigit(c) || c == '_';
+         });
+}
+
+// The define files the producer reads before code, in include order. The
+// last assignment wins; a flag selecting a source must be a plain integer.
+absl::StatusOr<std::map<std::string, bool>> ReadFlags(
+    const fs::path& root, const std::set<std::string>& names,
+    std::map<std::string, std::string>& files) {
+  std::map<std::string, std::optional<int64_t>> values;
+  const auto trim = [](const std::string& text) {
+    const auto begin = text.find_first_not_of(" \t\r");
+    if (begin == std::string::npos)
+      return std::string();
+    return text.substr(begin, text.find_last_not_of(" \t\r") - begin + 1);
+  };
+  for (const char* name : {"Util/macros.asm", "Config/module_flags.asm",
+                           "Config/feature_flags.asm"}) {
+    const auto path = root / name;
+    std::error_code ec;
+    if (!fs::exists(path, ec) && !ec)
+      continue;
+    ASSIGN_OR_RETURN(auto text, Read(path));
+    std::istringstream lines(text);
+    std::string line;
+    while (std::getline(lines, line)) {
+      line = trim(line.substr(0, line.find(';')));
+      if (line.empty() || line[0] != '!')
+        continue;
+      const auto end = line.find_first_not_of(
+          "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_", 1);
+      const auto define =
+          line.substr(1, end == std::string::npos ? end : end - 1);
+      if (!names.contains(define))
+        continue;
+      const auto rest = trim(end == std::string::npos ? "" : line.substr(end));
+      if (rest.empty() || rest[0] != '=')
+        return Bad("unsupported assignment of !" + define + " in " + name);
+      const auto value = trim(rest.substr(1));
+      const bool hex = !value.empty() && value[0] == '$';
+      const auto digits = hex ? value.substr(1) : value;
+      if (digits.empty() || digits.size() > 8 ||
+          !std::all_of(digits.begin(), digits.end(), [hex](unsigned char c) {
+            return hex ? std::isxdigit(c) : std::isdigit(c);
+          })) {
+        values[define] = std::nullopt;
+        continue;
+      }
+      values[define] = std::stoll(digits, nullptr, hex ? 16 : 10);
+    }
+    files.emplace(path.string(), std::move(text));
+  }
+  std::map<std::string, bool> enabled;
+  for (const auto& name : names) {
+    const auto found = values.find(name);
+    if (found == values.end())
+      return Bad("!" + name + " is not defined");
+    if (!found->second)
+      return Bad("!" + name + " is not a literal integer");
+    enabled[name] = *found->second != 0;
+  }
+  return enabled;
+}
 }  // namespace
 
 bool GfxSheetSource::Selected(const project::YazeProject& project) {
@@ -346,16 +417,28 @@ absl::StatusOr<GfxSheetSource> GfxSheetSource::Load(
         (spec.at("encoding") != "stored" && spec.at("encoding") != "lz2") ||
         !spec.at("sheets").is_array() || spec.at("sheets").empty())
       return Bad("unsupported schema2 sheet spec");
-    std::set<int> ids;
+    // A flagged global assembles only under its define and then replaces the
+    // unflagged entry for that ID (Scripts/Generate/sheet_overrides.py).
+    std::set<std::pair<int, std::string>> ids;
+    std::map<uint16_t, Sheet> unflagged, flagged;
     std::vector<fs::path> sources;
     for (const auto& entry : spec.at("sheets")) {
       const bool global = entry.contains("global_sheet");
-      if (!Keys(entry, global ? std::set<std::string>{"global_sheet", "source",
-                                                      "decoded_sha256", "why"}
-                              : std::set<std::string>{"sprite_sheet", "source",
-                                                      "base_sha256", "identity",
-                                                      "why"}))
+      auto keys = global
+                      ? std::set<std::string>{"global_sheet", "source",
+                                              "decoded_sha256", "why"}
+                      : std::set<std::string>{"sprite_sheet", "source",
+                                              "base_sha256", "identity", "why"};
+      if (global && entry.contains("flag"))
+        keys.insert("flag");
+      if (!Keys(entry, keys))
         return Bad("invalid sheet entry keys");
+      std::string flag;
+      if (keys.contains("flag")) {
+        if (!entry.at("flag").is_string() ||
+            !FlagName(flag = entry.at("flag").get<std::string>()))
+          return Bad("flag must name an ENABLE_* define");
+      }
       const auto source_id =
           Number(entry.at(global ? "global_sheet" : "sprite_sheet"));
       if ((global && (source_id < 0xDF || source_id > 0xFE)) ||
@@ -364,8 +447,10 @@ absl::StatusOr<GfxSheetSource> GfxSheetSource::Load(
       // Bounds precede conversion/addition: JSON integers must never wrap to
       // another logical ID (Python's integers do not narrow).
       const int id = static_cast<int>(source_id) + (global ? 0 : 0x73);
-      if (!ids.insert(id).second)
+      if (!ids.insert({id, flag}).second)
         return Bad("duplicate logical sheet ID");
+      if (!flag.empty() && flagged.contains(id))
+        return Bad("only one flagged variant per global sheet");
       const auto why = entry.at("why").get<std::string>();
       if (why.find_first_of("\r\n") != std::string::npos)
         return Bad("why must be one line");
@@ -406,11 +491,23 @@ absl::StatusOr<GfxSheetSource> GfxSheetSource::Load(
       ASSIGN_OR_RETURN(auto pixels, DecodeText(source));
       if (DecodedSha256(pixels) != digest)
         return Bad("decoded source SHA256 mismatch");
-      result.sheets_.emplace(
-          id, Sheet{path.string(), std::move(source), std::move(pixels)});
+      (flag.empty() ? unflagged : flagged)
+          .emplace(id, Sheet{path.string(), std::move(source),
+                             std::move(pixels), flag});
     }
-    if (result.sheets_.empty())
+    if (unflagged.empty() && flagged.empty())
       return Bad("no declared DF..FE source sheets");
+    std::set<std::string> names;
+    for (const auto& [id, sheet] : flagged)
+      names.insert(sheet.flag);
+    std::map<std::string, bool> enabled;
+    if (!names.empty()) {
+      ASSIGN_OR_RETURN(enabled, ReadFlags(root, names, result.defines_));
+    }
+    result.sheets_ = std::move(unflagged);
+    for (auto& [id, sheet] : flagged)
+      if (enabled.at(sheet.flag))
+        result.sheets_.insert_or_assign(id, std::move(sheet));
   } catch (const std::exception& e) {
     return Bad(e.what());
   }
@@ -439,6 +536,11 @@ absl::Status GfxSheetSource::CheckDisk() const {
     ASSIGN_OR_RETURN(auto bytes, Read(path));
     if (bytes != before)
       return Bad("source changed on disk; draft retained");
+  }
+  for (const auto& [path, before] : defines_) {
+    ASSIGN_OR_RETURN(auto bytes, Read(path));
+    if (bytes != before)
+      return Bad("feature flags changed on disk; draft retained");
   }
   return absl::OkStatus();
 }
@@ -486,7 +588,9 @@ absl::StatusOr<GfxSheetSource::Plan> GfxSheetSource::Prepare(
     }
     sheet.pixels = edited;
     for (auto& entry : spec["sheets"])
-      if (entry.contains("global_sheet") && Number(entry["global_sheet"]) == id)
+      if (entry.contains("global_sheet") &&
+          Number(entry["global_sheet"]) == id &&
+          entry.value("flag", std::string()) == sheet.flag)
         entry["decoded_sha256"] = DecodedSha256(edited);
   }
   plan.spec = changed ? spec.dump(2) + "\n" : spec_;

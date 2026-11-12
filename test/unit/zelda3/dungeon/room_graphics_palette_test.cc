@@ -402,6 +402,41 @@ TEST(RoomGraphicsPaletteTest, SourceOverlayCopyUsesOnlyDeclaredRows) {
   }
 }
 
+TEST(RoomGraphicsPaletteTest, SheetAvailabilityNeedsRomTableOrDeclaredSource) {
+  RoomGraphicsSourceFiles files;
+  auto source = files.Load({{0xFE, RoomSourcePixels(5)}});
+  ASSERT_TRUE(source.ok()) << source.status();
+  auto fixture = ::yaze::test::BuildGfxSheetTestRom();
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(fixture.bytes).ok());
+  for (bool bound : {false, true}) {
+    SCOPED_TRACE(bound ? "source bound" : "ROM only");
+    auto data = std::make_unique<GameData>();
+    const absl::Cleanup retire = [&] {
+      for (auto& bitmap : data->gfx_bitmaps) {
+        gfx::Arena::Get().RetireBitmap(bitmap);
+      }
+    };
+    LoadOptions options;
+    if (bound)
+      options.gfx_sheet_source = *source;
+    options.load_palettes = false;
+    options.load_gfx_groups = false;
+    options.populate_metadata = false;
+    options.expand_rom = false;
+    ASSERT_TRUE(LoadGameData(rom, *data, options).ok());
+    const size_t native = data->gfx_sheet_table.count;
+    ASSERT_GT(native, 0u);
+    EXPECT_TRUE(data->HasGraphicsSheet(native - 1));
+    EXPECT_FALSE(data->HasGraphicsSheet(native));
+    // The bound row extends the buffer past $DF; the extent declares nothing.
+    EXPECT_EQ(data->graphics_buffer.size() >= 0xFF * 4096u, bound);
+    EXPECT_FALSE(data->HasGraphicsSheet(0xDF));
+    EXPECT_EQ(data->HasGraphicsSheet(0xFE), bound);
+    EXPECT_FALSE(data->HasGraphicsSheet(0xFF));
+  }
+}
+
 TEST(RoomGraphicsPaletteTest,
      EligibleSourceCopyPreservesOverrideAndExtentChecks) {
   RoomGraphicsSourceFiles files;
