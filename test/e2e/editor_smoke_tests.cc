@@ -9,10 +9,12 @@
 
 #include "app/controller.h"
 #include "app/editor/code/assembly_editor.h"
+#include "app/editor/layout/layout_manager.h"
 #include "app/editor/menu/right_drawer_manager.h"
 #include "app/editor/shell/coordinator/ui_coordinator.h"
 #include "app/editor/system/workspace/workspace_window_manager.h"
 #include "app/gui/core/icons.h"
+#include "imgui/imgui_internal.h"
 #include "imgui_test_engine/imgui_te_engine.h"
 #include "test_utils.h"
 
@@ -404,6 +406,52 @@ void E2ETest_AssemblyDisassemblyGraphJumpSmokeTest(ImGuiTestContext* ctx) {
   IM_CHECK(assembly_editor->active_cursor_position().mLine == 11);
 }
 
+void E2ETest_EditorSwitchAfterEmulatorSmokeTest(ImGuiTestContext* ctx) {
+  auto* controller = GetController(ctx);
+  if (!EnsureRomLoaded(ctx, controller)) {
+    return;
+  }
+  auto* manager = controller->editor_manager();
+  auto* ui = manager->ui_coordinator();
+  IM_CHECK(ui != nullptr);
+
+  using yaze::editor::EditorType;
+  using yaze::editor::LayoutManager;
+  // Inactive editor dockspaces are only kept alive, so their host child
+  // window is not submitted.
+  auto dockspace_drawn = [](EditorType type) {
+    const ImGuiDockNode* node =
+        ImGui::DockBuilderGetNode(LayoutManager::EditorDockspaceId(type));
+    return node != nullptr && node->HostWindow != nullptr &&
+           node->HostWindow->Active;
+  };
+
+  manager->SwitchToEditor(EditorType::kOverworld, true);
+  ctx->Yield(10);
+  IM_CHECK(dockspace_drawn(EditorType::kOverworld));
+
+  manager->SwitchToEditor(EditorType::kEmulator, true);
+  ctx->Yield(10);
+  const bool emulator_drawn = dockspace_drawn(EditorType::kEmulator);
+  const bool overworld_drawn_under_emulator =
+      dockspace_drawn(EditorType::kOverworld);
+
+  // Emulator windows stay open after switching; Overworld must take the
+  // editor host back.
+  manager->SwitchToEditor(EditorType::kOverworld, true);
+  ctx->Yield(10);
+  const bool emulator_still_visible = ui->IsEmulatorVisible();
+  const bool overworld_drawn_after_switch =
+      dockspace_drawn(EditorType::kOverworld);
+
+  ui->SetEmulatorVisible(false);
+  ctx->Yield(3);
+  IM_CHECK(emulator_drawn);
+  IM_CHECK(!overworld_drawn_under_emulator);
+  IM_CHECK(emulator_still_visible);
+  IM_CHECK(overworld_drawn_after_switch);
+}
+
 namespace yaze {
 namespace test {
 namespace e2e {
@@ -439,6 +487,13 @@ void RegisterEditorSmokeTests(ImGuiTestEngine* engine, Controller* controller) {
     ImGuiTest* test =
         IM_REGISTER_TEST(engine, "EditorSmoke", "EmulatorSaveStates");
     test->TestFunc = E2ETest_EmulatorSaveStatesSmokeTest;
+    test->UserData = controller;
+  }
+
+  {
+    ImGuiTest* test =
+        IM_REGISTER_TEST(engine, "EditorSmoke", "EditorSwitchAfterEmulator");
+    test->TestFunc = E2ETest_EditorSwitchAfterEmulatorSmokeTest;
     test->UserData = controller;
   }
 

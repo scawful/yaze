@@ -97,11 +97,15 @@ void EditorManager::UpdateEditorState() {
     ui_coordinator_->RefreshWorkflowActions();
   }
   // Check for layout rebuild requests and execute if needed (delegated to LayoutCoordinator)
-  bool is_emulator_visible =
-      ui_coordinator_ && ui_coordinator_->IsEmulatorVisible();
   EditorType current_type =
       current_editor_ ? current_editor_->type() : EditorType::kUnknown;
-  layout_coordinator_.ProcessLayoutRebuild(current_type, is_emulator_visible);
+  // Emulator windows stay open after the user switches to an editor; the
+  // emulator owns the editor host only while it is the active workspace.
+  const bool emulator_owns_host =
+      ui_coordinator_ && ui_coordinator_->IsEmulatorVisible() &&
+      (current_type == EditorType::kUnknown ||
+       window_manager_.GetActiveCategory() == "Emulator");
+  layout_coordinator_.ProcessLayoutRebuild(current_type, emulator_owns_host);
 
   // Periodic user settings auto-save
   if (settings_dirty_) {

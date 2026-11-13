@@ -31,6 +31,9 @@ they are not part of its existing downloads. See the
 - PNG/palette-strip import and the Sheet Browser palette selector are later
   graphics work. The release-hardening patch keeps the existing import window
   and moves its drawing component into the graphics feature-view module.
+- Switching from the emulator to an editor shows that editor's panels again.
+  Previously any open emulator window kept the emulator's layout on screen,
+  so the editor's panels stayed hidden until the emulator was closed.
 - Interactive raw-ROM opens share one path. File > Open ROM, Recent Files,
   backup restores, iOS document opens, and the web build's drop zone and
   picker show the ROM load options dialog only when no project is open and
