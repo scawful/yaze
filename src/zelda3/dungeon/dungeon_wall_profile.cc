@@ -28,7 +28,9 @@ absl::StatusOr<std::optional<CompiledWallProfile>> ReadCompiledWallProfile(
     if (std::equal(vanilla.begin(), vanilla.end(), bytes.begin() + kDispatch))
       return std::nullopt;
     // Uninitialized synthetic ROMs do not assert an Oracle runtime hook.
-    if (bytes[kDispatch] == 0 || bytes[kDispatch] == 0xFF)
+    if (std::all_of(bytes.begin() + kDispatch, bytes.begin() + kDispatch + 6,
+                    [&](uint8_t b) { return b == bytes[kDispatch]; }) &&
+        (bytes[kDispatch] == 0 || bytes[kDispatch] == 0xFF))
       return std::nullopt;
     return absl::FailedPreconditionError(
         "Unsupported dungeon palette-half dispatch");
@@ -86,6 +88,8 @@ absl::StatusOr<std::optional<CompiledWallProfile>> ReadCompiledWallProfile(
   CompiledWallProfile result;
   result.blockset = bytes[pc(pointers[7]) + profile - 1];
   result.palette = bytes[pc(pointers[8]) + profile - 1];
+  if (result.palette != 0xFF && ((result.palette & 1) || result.palette > 0x26))
+    return fail();
   if (result.blockset != 0xFF) {
     if (result.blockset < 0x17 || result.blockset >= 0x17 + kits)
       return fail();

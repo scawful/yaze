@@ -3,10 +3,12 @@
 #include <algorithm>
 #include <chrono>
 #include <cmath>
+#include <cstdlib>
 #include <filesystem>
 #include <fstream>
 #include <iterator>
 #include <limits>
+#include <memory>
 #include <string>
 #include <utility>
 #include <vector>
@@ -21,6 +23,7 @@
 #include "core/project.h"
 #include "unit/zelda3/gfx_sheet_test_rom.h"
 #include "util/rom_hash.h"
+#include "zelda3/dungeon/dungeon_wall_profile.h"
 #include "zelda3/dungeon/entrance_layout.h"
 #include "zelda3/dungeon/room_entrance.h"
 
@@ -28,6 +31,63 @@ ABSL_DECLARE_FLAG(bool, sandbox);
 
 namespace yaze::cli {
 namespace {
+
+// Opt-in compiled-ROM acceptance through the production loader and renderer.
+// The companion context supplies the exact external custom objects; it never
+// installs or writes a project. Ordinary ROM-free runs skip this fixture.
+TEST(CompiledWallProfileAcceptance, GlaciaRoomsUseCompiledKitAndRender) {
+  const char* fixture = std::getenv("YAZE_TEST_ROM_OOS");
+  const char* context = std::getenv("YAZE_TEST_GLACIA_RENDER_CONTEXT");
+  if (!fixture || !context)
+    GTEST_SKIP()
+        << "Supply candidate ROM and exact Glacia custom-object context";
+  resources::CommandContext::Config config;
+  config.rom_path = fixture;
+  config.project_context_path = context;
+  auto command = std::make_unique<resources::CommandContext>(config);
+  ASSERT_TRUE(command->Initialize().ok());
+  auto loaded = command->GetRom();
+  ASSERT_TRUE(loaded.ok()) << loaded.status();
+  Rom* rom = *loaded;
+  const auto original = rom->vector();
+  auto data = std::make_unique<zelda3::GameData>();
+  ASSERT_TRUE(zelda3::LoadGameData(*rom, *data).ok());
+  app::service::RenderService service(rom, data.get());
+  for (int room : {0xDB, 0xCB, 0xBB, 0xBC, 0xBD, 0xAD, 0xAC, 0xCC, 0x9E, 0x9F,
+                   0xAE, 0xAF, 0xBE, 0xBF, 0xCD, 0xCE, 0xCF, 0xDC, 0xDD}) {
+    SCOPED_TRACE(room);
+    const bool estate = room == 0xDB || room == 0xCB || room == 0xBB ||
+                        room == 0xBC || room == 0xBD || room == 0xAD ||
+                        room == 0xAC || room == 0xCC;
+    auto profile = zelda3::ReadCompiledWallProfile(*rom, room);
+    ASSERT_TRUE(profile.ok()) << profile.status();
+    ASSERT_TRUE(profile->has_value());
+    EXPECT_EQ((*profile)->blockset, estate ? 0x17 : 0x18);
+    EXPECT_EQ((*profile)->palette, estate ? 0x26 : 0x24);
+    EXPECT_EQ((*profile)->class_words.size(), 24);
+    EXPECT_EQ((*profile)->slot6_high_palette,
+              estate ? 3ULL : 0x0000003002700070ULL);
+    app::service::RenderRequest request;
+    request.room_id = room;
+    request.graphics_entrance_id = 0x34;
+    auto rendered = service.RenderDungeonRoom(request);
+    ASSERT_TRUE(rendered.ok()) << rendered.status();
+    EXPECT_EQ(rendered->main_blockset, 0x0B);
+    EXPECT_EQ(rendered->graphics_sheets[3], estate ? 0xFE : 0xFD);
+    EXPECT_EQ(rendered->graphics_sheets[6], estate ? 0xF3 : 0xF4);
+    EXPECT_EQ(rendered->project_objects_without_data, 0);
+    EXPECT_GT(rendered->png_data.size(), 1000);
+    if (const char* output = std::getenv("YAZE_TEST_GLACIA_RENDER_OUTPUT")) {
+      const auto path =
+          std::filesystem::path(output) / (std::to_string(room) + ".png");
+      std::ofstream png(path, std::ios::binary);
+      png.write(reinterpret_cast<const char*>(rendered->png_data.data()),
+                rendered->png_data.size());
+      ASSERT_TRUE(png.good());
+    }
+  }
+  EXPECT_EQ(rom->vector(), original);
+}
 
 TEST(DungeonRenderScaleTest, RejectsMalformedNonFiniteAndOutOfRangeValues) {
   for (const char* value : {"", "nope", "1junk", "1 2", "nan", "NaN", "inf",
