@@ -379,6 +379,19 @@ TEST(OverworldGraphicsContextRomTest, LiveSourceFollowsSessionUntilItChanges) {
             absl::StatusCode::kFailedPrecondition);
   EXPECT_EQ(context->render_preview().status().code(),
             absl::StatusCode::kFailedPrecondition);
+
+  // Closing the ROM unloads the overworld but keeps the same GameData.
+  current = &data;
+  overworld.Destroy();
+  EXPECT_EQ(context->resolve_live_source(fresh).code(),
+            absl::StatusCode::kFailedPrecondition);
+  EXPECT_EQ(sync_calls, 1);
+  EXPECT_EQ(context->refresh_palettes(*context).code(),
+            absl::StatusCode::kFailedPrecondition);
+  EXPECT_EQ(context->preview_revision().status().code(),
+            absl::StatusCode::kFailedPrecondition);
+  EXPECT_EQ(context->render_preview().status().code(),
+            absl::StatusCode::kFailedPrecondition);
 }
 
 }  // namespace
