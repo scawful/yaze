@@ -15,6 +15,7 @@
 #include <utility>
 
 #include "imgui/imgui.h"
+#include "imgui/imgui_internal.h"
 
 #include <gtest/gtest.h>
 #include <nlohmann/json.hpp>
@@ -26,6 +27,7 @@
 #include "core/project.h"
 #include "rom/rom.h"
 #include "rom/snes.h"
+#include "util/i18n/tr.h"
 
 namespace yaze::editor {
 
@@ -165,6 +167,28 @@ class MessageEditorPublishGuardTestPeer {
   static void SetParsedText(MessageEditor& editor, int display_id,
                             const std::string& text) {
     editor.parsed_messages_[display_id] = text;
+  }
+
+  static void SelectExpanded(MessageEditor& editor, int index) {
+    editor.current_message_is_expanded_ = true;
+    editor.current_message_index_ = index;
+  }
+
+  static void DrawReviewPanel(MessageEditor& editor) {
+    editor.DrawReviewPanel();
+  }
+
+  static const ReviewEntry* ReviewEntryFor(const MessageEditor& editor,
+                                           int display_id) {
+    return editor.review_.Find(display_id);
+  }
+
+  static const std::string& ReviewStatusText(const MessageEditor& editor) {
+    return editor.review_status_;
+  }
+
+  static bool ReviewStatusError(const MessageEditor& editor) {
+    return editor.review_status_error_;
   }
 };
 
@@ -1066,6 +1090,98 @@ TEST(MessageReviewWorkflowTest, ReviewContextLabelsMessagesAndSavesSidecar) {
   EXPECT_TRUE(MessageEditorPublishGuardTestPeer::ReviewStale(editor, 0x18D));
   MessageEditorPublishGuardTestPeer::SetParsedText(editor, 0x18D, "Al\npha");
   EXPECT_FALSE(MessageEditorPublishGuardTestPeer::ReviewStale(editor, 0x18D));
+}
+
+TEST(MessageReviewWorkflowTest, PanelClearingANoteDoesNotReadTheErasedEntry) {
+  PublishFixture fixture;
+  MessageEditor editor(&fixture.rom, fixture.dependencies);
+  ASSERT_TRUE(MessageEditorPublishGuardTestPeer::LoadCanonical(editor).ok());
+  MessageEditorPublishGuardTestPeer::EnsureReviewContext(editor);
+  MessageEditorPublishGuardTestPeer::CreateReviewer(editor, "Ridoyie");
+  MessageEditorPublishGuardTestPeer::SelectExpanded(editor, 0);
+  MessageEditorPublishGuardTestPeer::SetReview(editor, 0x18D,
+                                               ReviewStatus::kApproved);
+  ASSERT_NE(MessageEditorPublishGuardTestPeer::ReviewEntryFor(editor, 0x18D),
+            nullptr);
+
+  ScopedImGuiFrame gui;
+  const auto draw_panel = [&](bool press_unreviewed) {
+    std::string text;
+    gui.DrawOnce([&] {
+      if (press_unreviewed) {
+        ImGui::ActivateItemByID(
+            ImGui::GetID(tr(ReviewStatusLabel(ReviewStatus::kUnreviewed))));
+      }
+      ImGui::LogToBuffer();
+      MessageEditorPublishGuardTestPeer::DrawReviewPanel(editor);
+      text = GImGui->LogBuffer.c_str();
+      ImGui::LogFinish();
+    });
+    return text;
+  };
+  EXPECT_NE(draw_panel(true).find("Last reviewed"), std::string::npos);
+  // The queued activation presses Unreviewed during this draw, which erases
+  // the approved, comment-free note before the panel's last line.
+  EXPECT_EQ(draw_panel(false).find("Last reviewed"), std::string::npos);
+  EXPECT_EQ(MessageEditorPublishGuardTestPeer::ReviewEntryFor(editor, 0x18D),
+            nullptr);
+  auto saved = LoadMessageReviewFile(
+      MessageEditorPublishGuardTestPeer::ReviewPath(editor));
+  ASSERT_TRUE(saved.ok()) << saved.status();
+  EXPECT_EQ(saved->Find(0x18D), nullptr);
+}
+
+TEST(MessageReviewWorkflowTest, ReviewNotesRequireTheCanonicalMessageSource) {
+  PublishFixture fixture;
+  MessageEditor editor(&fixture.rom, fixture.dependencies);
+  ASSERT_TRUE(MessageEditorPublishGuardTestPeer::LoadCanonical(editor).ok());
+  MessageEditorPublishGuardTestPeer::EnsureReviewContext(editor);
+  MessageEditorPublishGuardTestPeer::CreateReviewer(editor, "Ridoyie");
+  const fs::path review_path =
+      MessageEditorPublishGuardTestPeer::ReviewPath(editor);
+  ASSERT_FALSE(review_path.empty());
+  MessageEditorPublishGuardTestPeer::SetReview(editor, 0x18D,
+                                               ReviewStatus::kNeedsChanges);
+
+  const std::string source = ReadText(fixture.canonical);
+  fs::remove(fixture.canonical);
+  MessageEditorPublishGuardTestPeer::SetReview(editor, 0x18D,
+                                               ReviewStatus::kApproved);
+  EXPECT_TRUE(MessageEditorPublishGuardTestPeer::ReviewStatusError(editor));
+  EXPECT_NE(MessageEditorPublishGuardTestPeer::ReviewStatusText(editor).find(
+                "canonical_bundle_path"),
+            std::string::npos);
+  const auto* draft =
+      MessageEditorPublishGuardTestPeer::ReviewEntryFor(editor, 0x18D);
+  ASSERT_NE(draft, nullptr);
+  EXPECT_EQ(draft->status, ReviewStatus::kApproved);
+  auto saved = LoadMessageReviewFile(review_path);
+  ASSERT_TRUE(saved.ok()) << saved.status();
+  EXPECT_EQ(saved->Find(0x18D)->status, ReviewStatus::kNeedsChanges);
+  EXPECT_FALSE(fs::exists(fixture.root.path() / "message_review"));
+
+  WriteText(fixture.canonical, source);
+  MessageEditorPublishGuardTestPeer::SetReview(editor, 0x18E,
+                                               ReviewStatus::kApproved);
+  EXPECT_FALSE(MessageEditorPublishGuardTestPeer::ReviewStatusError(editor));
+  saved = LoadMessageReviewFile(review_path);
+  ASSERT_TRUE(saved.ok()) << saved.status();
+  EXPECT_EQ(saved->Find(0x18D)->status, ReviewStatus::kApproved);
+  EXPECT_EQ(saved->Find(0x18E)->status, ReviewStatus::kApproved);
+
+  PublishFixture unbound;
+  unbound.project.hack_manifest.Clear();
+  MessageEditor unbound_editor(&unbound.rom, unbound.dependencies);
+  MessageEditorPublishGuardTestPeer::EnsureReviewContext(unbound_editor);
+  MessageEditorPublishGuardTestPeer::CreateReviewer(unbound_editor, "Ridoyie");
+  EXPECT_TRUE(
+      MessageEditorPublishGuardTestPeer::ReviewPath(unbound_editor).empty());
+  EXPECT_TRUE(
+      MessageEditorPublishGuardTestPeer::ReviewStatusError(unbound_editor));
+  EXPECT_NE(MessageEditorPublishGuardTestPeer::ReviewStatusText(unbound_editor)
+                .find("messages.source"),
+            std::string::npos);
+  EXPECT_FALSE(fs::exists(unbound.root.path() / "message_review"));
 }
 
 }  // namespace yaze::editor

@@ -273,7 +273,7 @@ class MessageEditor : public Editor {
   void EnsureReviewContextLoaded();
   void ReloadReviewContext();
   std::optional<std::filesystem::path> ProjectRootPath() const;
-  std::optional<std::filesystem::path> ReviewDirectory() const;
+  absl::StatusOr<std::filesystem::path> ReviewDirectory() const;
   void OpenReviewFile(const std::filesystem::path& path);
   void CreateReviewFile(const std::string& reviewer);
   void SaveReview();

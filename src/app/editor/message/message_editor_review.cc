@@ -9,6 +9,8 @@
 #include <system_error>
 #include <vector>
 
+#include "absl/status/status.h"
+#include "absl/status/statusor.h"
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
 #include "absl/strings/str_join.h"
@@ -91,17 +93,23 @@ std::optional<std::filesystem::path> MessageEditor::ProjectRootPath() const {
   return root;
 }
 
-std::optional<std::filesystem::path> MessageEditor::ReviewDirectory() const {
-  if (HasMessageSourceLayout()) {
-    const auto bundle = ResolveCanonicalBundlePath();
-    if (bundle.ok()) {
-      return bundle->parent_path() / "review";
-    }
+absl::StatusOr<std::filesystem::path> MessageEditor::ReviewDirectory() const {
+  const auto bundle = ResolveCanonicalBundlePath();
+  if (!bundle.ok()) {
+    return absl::FailedPreconditionError(
+        absl::StrCat("Review notes are kept beside the project's canonical "
+                     "message source. ",
+                     bundle.status().message()));
   }
-  if (auto root = ProjectRootPath()) {
-    return *root / "message_review";
+  std::error_code error;
+  if (!std::filesystem::is_regular_file(*bundle, error)) {
+    return absl::FailedPreconditionError(absl::StrFormat(
+        "Review notes are kept beside the canonical message source %s, which "
+        "is missing. Restore it or fix messages.source.canonical_bundle_path "
+        "in the hack manifest.",
+        DisplayPath(*bundle, ProjectRootPath())));
   }
-  return std::nullopt;
+  return bundle->parent_path() / "review";
 }
 
 void MessageEditor::EnsureReviewContextLoaded() {
@@ -161,7 +169,7 @@ void MessageEditor::ReloadReviewContext() {
   }
 
   if (review_path_.empty()) {
-    if (auto directory = ReviewDirectory()) {
+    if (const auto directory = ReviewDirectory(); directory.ok()) {
       const auto files = ListMessageReviewFiles(*directory);
       if (files.size() == 1) {
         OpenReviewFile(files.front());
@@ -193,11 +201,14 @@ void MessageEditor::OpenReviewFile(const std::filesystem::path& path) {
 
 void MessageEditor::CreateReviewFile(const std::string& reviewer) {
   const std::string stem = ReviewFileStem(reviewer);
+  if (stem.empty()) {
+    review_status_ = "Enter a reviewer name with letters or digits";
+    review_status_error_ = true;
+    return;
+  }
   const auto directory = ReviewDirectory();
-  if (stem.empty() || !directory.has_value()) {
-    review_status_ = stem.empty()
-                         ? "Enter a reviewer name with letters or digits"
-                         : "Open a project to keep review notes";
+  if (!directory.ok()) {
+    review_status_ = std::string(directory.status().message());
     review_status_error_ = true;
     return;
   }
@@ -218,9 +229,20 @@ void MessageEditor::SaveReview() {
   if (review_path_.empty()) {
     return;
   }
-  const auto status = SaveMessageReviewFile(review_path_, review_);
+  const auto directory = ReviewDirectory();
+  absl::Status status;
+  if (!directory.ok()) {
+    status = directory.status();
+  } else if (*directory != review_path_.parent_path()) {
+    status = absl::FailedPreconditionError(
+        "The canonical message source moved after this review file was "
+        "opened. Choose the reviewer again.");
+  } else {
+    status = SaveMessageReviewFile(review_path_, review_);
+  }
   if (!status.ok()) {
-    review_status_ = absl::StrFormat("Review not saved: %s", status.message());
+    review_status_ = absl::StrFormat(
+        "Review not saved; notes are kept in the editor. %s", status.message());
     review_status_error_ = true;
     if (dependencies_.toast_manager) {
       dependencies_.toast_manager->Show(review_status_, ToastType::kError);
@@ -388,9 +410,11 @@ void MessageEditor::DrawReviewCell(int display_id) {
 
 void MessageEditor::DrawReviewerPicker() {
   const auto directory = ReviewDirectory();
-  if (!directory.has_value()) {
-    ImGui::TextDisabled("%s",
-                        tr("Open the project (.yaze) to keep review notes."));
+  if (!directory.ok()) {
+    ImGui::PushTextWrapPos(0.0f);
+    ImGui::TextColored(gui::GetWarningColor(), "%s",
+                       std::string(directory.status().message()).c_str());
+    ImGui::PopTextWrapPos();
     return;
   }
   bool open_new_popup = false;
@@ -527,9 +551,10 @@ void MessageEditor::DrawReviewPanel() {
       review_comment_buffer_ = entry ? entry->comment : std::string();
       review_comment_id_ = display_id;
     }
-    const auto* entry = review_.Find(display_id);
-    const ReviewStatus current =
-        entry ? entry->status : ReviewStatus::kUnreviewed;
+    ReviewStatus current = ReviewStatus::kUnreviewed;
+    if (const auto* entry = review_.Find(display_id)) {
+      current = entry->status;
+    }
     for (const ReviewStatus status :
          {ReviewStatus::kUnreviewed, ReviewStatus::kApproved,
           ReviewStatus::kNeedsChanges}) {
@@ -552,6 +577,9 @@ void MessageEditor::DrawReviewPanel() {
     if (ImGui::IsItemDeactivatedAfterEdit()) {
       CommitReviewComment(display_id);
     }
+    // SetReviewStatus and CommitReviewComment erase empty entries, so look
+    // the entry up again after them.
+    const auto* entry = review_.Find(display_id);
     if (entry != nullptr && !entry->updated.empty()) {
       ImGui::TextDisabled(tr("Last reviewed %s"), entry->updated.c_str());
     }
