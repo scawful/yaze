@@ -755,6 +755,7 @@ class Overworld {
     native_area_profiles_.clear();
     native_effective_area_profiles_.clear();
     native_geometry_baseline_.clear();
+    expanded_geometry_baseline_.reset();
     native_authoring_metadata_draft_.reset();
     native_authoring_metadata_baseline_.reset();
     staged_native_authoring_metadata_.reset();
@@ -994,6 +995,17 @@ class Overworld {
   std::vector<OverworldAreaProfile> native_effective_area_profiles_;
   std::vector<OverworldGeometryRow> native_geometry_baseline_;
   std::optional<std::vector<OverworldGeometryRow>> staged_native_geometry_;
+  // Conventional v3 keeps authored transition overrides separately from the
+  // canonical topology plan. Unchanged contacts retain their loaded words.
+  struct ExpandedGeometryState {
+    std::vector<OverworldGeometryRow> canonical;
+    std::vector<OverworldGeometryRow> stored;
+    std::array<int, 8> word_tables{};
+    int parent_table = 0;
+  };
+  absl::Status CaptureExpandedGeometryBaseline();
+  std::optional<ExpandedGeometryState> expanded_geometry_baseline_;
+  std::optional<ExpandedGeometryState> staged_expanded_geometry_;
   NativeModelState native_nonterrain_baseline_;
   std::optional<std::vector<int64_t>> staged_native_properties_;
   std::optional<std::vector<int64_t>> staged_native_sprites_;

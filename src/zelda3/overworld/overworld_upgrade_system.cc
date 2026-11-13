@@ -17,6 +17,7 @@
 #include "util/macro.h"
 #include "zelda3/overworld/overworld.h"
 #include "zelda3/overworld/overworld_geometry.h"
+#include "zelda3/overworld/overworld_item.h"
 #include "zelda3/overworld/overworld_sprite_io.h"
 
 namespace yaze::zelda3 {
@@ -26,6 +27,7 @@ constexpr int kPoolBegin = OverworldCustomAreaSpecificBGPalette;
 constexpr int kPoolEnd = kOverworldMapParentIdExpanded;
 constexpr int kLegacyNorthTarget = 0x13EE2;
 constexpr int kLegacyWestTarget = 0x13F62;
+constexpr int kLegacyBombDoorTable = 0x16DC5;
 constexpr std::array<int, 8> kLegacyGeometryTables = {
     kOverworldScreenTileMapChangeByScreen1,
     kOverworldScreenTileMapChangeByScreen2,
@@ -58,6 +60,8 @@ struct UpgradeData {
   std::array<uint8_t, 32> special_sprite_palettes{};
   std::array<std::array<uint16_t, kNumOverworldMaps>, 3> sprites{};
   std::array<uint16_t, kNumOverworldMaps> messages{};
+  std::array<uint16_t, kNumOverworldMaps> item_pointers{};
+  std::array<uint16_t, kNumOverworldMaps> bomb_door_locations{};
 };
 
 absl::Status RequireSpan(const Rom& rom, int pc, int bytes) {
@@ -230,6 +234,56 @@ absl::StatusOr<UpgradeData> CaptureUpgradeData(const Rom& rom) {
   for (int phase = 0; phase < 3; ++phase)
     std::fill(result.sprites[phase].begin() + layout.counts[phase],
               result.sprites[phase].end(), empty);
+
+  // V3 reuses the old transition tables for item/bomb-door pointers. Preserve
+  // list data and aliases in their existing bank instead of repacking it.
+  const uint32_t item_table = Word(bytes, overworldItemsAddress) |
+                              (bytes[overworldItemsAddress + 2] << 16);
+  if (SnesToPc(item_table) != kOverworldItemsPointers ||
+      (bytes[overworldItemsAddressBank] & 0x7F) != 0x1B)
+    return absl::FailedPreconditionError(
+        "Relocated/custom legacy item tables require their own migration");
+  Rom item_source(rom);
+  std::vector<OverworldMap> item_maps;
+  item_maps.reserve(kNumOverworldMaps);
+  for (int map = 0; map < kNumOverworldMaps; ++map) {
+    item_maps.emplace_back(map, &item_source, nullptr,
+                           core::RomAddressOverrides{});
+    item_maps.back().SetParent(result.geometry[map].parent);
+    item_maps.back().SetAreaSize(result.geometry[map].size);
+    if (map < 128) {
+      result.item_pointers[map] =
+          Word(bytes, kOverworldItemsPointers + map * 2);
+      result.bomb_door_locations[map] =
+          Word(bytes, kLegacyBombDoorTable + map * 2);
+      if (result.geometry[map].parent == map &&
+          (result.item_pointers[map] < 0xC3F9 ||
+           result.item_pointers[map] >= 0xC89C))
+        return absl::FailedPreconditionError(
+            "Legacy item pointer is outside its owned list block");
+    }
+  }
+  // Bound the maintained decoder to the source item block plus its loader
+  // operands. Truncating this private copy cannot change the original ROM.
+  item_source.Expand(overworldItemsAddressBank + 1);
+  ASSIGN_OR_RETURN(const auto items, LoadItems(&item_source, item_maps));
+  std::array<int, 128> counts{};
+  for (const auto& item : items)
+    ++counts[item.room_map_id_];
+  uint16_t empty_item = 0;
+  for (int map = 0; map < 128; ++map) {
+    if (result.geometry[map].parent != map)
+      continue;
+    const int terminator =
+        0xD0000 + result.item_pointers[map] + counts[map] * 3;
+    if (terminator + 2 > kOverworldItemsEndData ||
+        Word(bytes, terminator) != 0xFFFF)
+      return absl::FailedPreconditionError(
+          "Legacy item list crosses its owned boundary");
+    empty_item = static_cast<uint16_t>(terminator & 0xFFFF);
+  }
+  std::fill(result.item_pointers.begin() + 128, result.item_pointers.end(),
+            empty_item);
   return result;
 }
 
@@ -283,6 +337,15 @@ absl::Status MigrateUpgradeData(const UpgradeData& data,
   std::copy(data.special_sprite_palettes.begin(),
             data.special_sprite_palettes.end(),
             bytes.begin() + kOverworldSpecialSpritePaletteExpandedTemp);
+  for (int map = 0; map < kNumOverworldMaps; ++map) {
+    PutWord(bytes, kOverworldItemsPointersNew + map * 2,
+            data.item_pointers[map]);
+    PutWord(bytes, kOverworldBombDoorItemLocationsNew + map * 2,
+            data.bomb_door_locations[map]);
+  }
+  const uint32_t new_item_table = PcToSnes(kOverworldItemsPointersNew);
+  PutWord(bytes, overworldItemsAddress, new_item_table & 0xFFFF);
+  bytes[overworldItemsAddress + 2] = new_item_table >> 16;
   // Read back using the real v3 map model. This has no terrain or graphics
   // decompression and does not rely on the old marker remaining available.
   Rom check;

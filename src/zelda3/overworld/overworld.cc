@@ -42,6 +42,24 @@ namespace yaze::zelda3 {
 
 namespace {
 
+std::array<int, 8> ExpandedGeometryTables(
+    const OverworldLayoutOptions& options) {
+  return {options.Address(core::RomAddressKey::kOverworldScreenChange1Expanded,
+                          kOverworldScreenTileMapChangeByScreen1Expanded),
+          options.Address(core::RomAddressKey::kOverworldScreenChange2Expanded,
+                          kOverworldScreenTileMapChangeByScreen2Expanded),
+          options.Address(core::RomAddressKey::kOverworldScreenChange3Expanded,
+                          kOverworldScreenTileMapChangeByScreen3Expanded),
+          options.Address(core::RomAddressKey::kOverworldScreenChange4Expanded,
+                          kOverworldScreenTileMapChangeByScreen4Expanded),
+          options.Address(core::RomAddressKey::kOverworldTransitionPosYExpanded,
+                          kOverworldTransitionPositionYExpanded),
+          options.Address(core::RomAddressKey::kOverworldTransitionPosXExpanded,
+                          kOverworldTransitionPositionXExpanded),
+          transition_target_northExpanded,
+          transition_target_westExpanded};
+}
+
 std::vector<uint8_t> PrivateOverlaySnapshot(
     const std::vector<OverworldMap>& maps) {
   std::vector<uint8_t> bytes;
@@ -345,6 +363,8 @@ absl::Status Overworld::Load(Rom* rom) {
     RETURN_IF_ERROR(LoadNativeAreaProfiles());
     native_nonterrain_baseline_ = {};
     native_nonterrain_baseline_ = CaptureNativeNonTerrainState();
+  } else if (OverworldVersionHelper::SupportsAreaEnum(cached_version_)) {
+    RETURN_IF_ERROR(CaptureExpandedGeometryBaseline());
   }
   loaded_map_tiles_ = map_tiles_;
   loaded_map_tiles_valid_ = true;
@@ -1847,6 +1867,10 @@ void Overworld::StageSavedMapTiles() {
 }
 
 void Overworld::CommitSavedMapTiles() {
+  if (staged_expanded_geometry_) {
+    expanded_geometry_baseline_ = std::move(staged_expanded_geometry_);
+    staged_expanded_geometry_.reset();
+  }
   for (size_t i = 0; i < staged_native_endpoints_.size(); ++i) {
     if (staged_native_endpoints_[i]) {
       native_nonterrain_baseline_[i + 1] =
@@ -1901,6 +1925,7 @@ void Overworld::CommitSavedMapTiles() {
 }
 
 void Overworld::RollbackSavedMapTiles() {
+  staged_expanded_geometry_.reset();
   for (auto& staged : staged_native_endpoints_)
     staged.reset();
   staged_native_authoring_metadata_.reset();
@@ -2449,51 +2474,82 @@ absl::Status Overworld::SaveLargeMaps() {
   return absl::OkStatus();
 }
 
+absl::Status Overworld::CaptureExpandedGeometryBaseline() {
+  ExpandedGeometryState state;
+  if (!resolved_layout_
+           .CheckOperation(OverworldLayoutDomain::kGeometry,
+                           OverworldLayoutOperation::kSerialize)
+           .ok()) {
+    expanded_geometry_baseline_.reset();
+    return absl::OkStatus();
+  }
+  const auto canonical = PlanExpandedOverworldGeometry(overworld_maps_);
+  // A malformed scene remains inspectable. Its existing save preflight will
+  // refuse invalid geometry; this preservation cache is not a new load gate.
+  if (!canonical.ok()) {
+    expanded_geometry_baseline_.reset();
+    return absl::OkStatus();
+  }
+  state.canonical = *canonical;
+  state.stored = state.canonical;
+  state.word_tables = ExpandedGeometryTables(layout_inspect_options_);
+  state.parent_table = layout_inspect_options_.Address(
+      core::RomAddressKey::kOverworldMapParentExpanded,
+      kOverworldMapParentIdExpanded);
+  for (size_t i = 0; i < state.stored.size(); ++i) {
+    for (size_t table = 0; table < state.word_tables.size(); ++table) {
+      ASSIGN_OR_RETURN(state.stored[i].words[table],
+                       rom()->ReadWord(state.word_tables[table] + i * 2));
+    }
+  }
+  expanded_geometry_baseline_ = std::move(state);
+  return absl::OkStatus();
+}
+
 absl::Status Overworld::SaveLargeMapsExpanded() {
   RETURN_IF_ERROR(PreflightLayoutOperation(
       OverworldLayoutDomain::kGeometry, OverworldLayoutOperation::kSerialize));
   util::logf("Saving Large Maps (v3+ Expanded)");
 
-  // Use expanded memory locations for v3+
-  int transition_target_north = zelda3::transition_target_northExpanded;
-  int transition_target_west = zelda3::transition_target_westExpanded;
-  int transition_pos_x = layout_inspect_options_.Address(
-      core::RomAddressKey::kOverworldTransitionPosXExpanded,
-      kOverworldTransitionPositionXExpanded);
-  int transition_pos_y = layout_inspect_options_.Address(
-      core::RomAddressKey::kOverworldTransitionPosYExpanded,
-      kOverworldTransitionPositionYExpanded);
-  int screen_change_1 = layout_inspect_options_.Address(
-      core::RomAddressKey::kOverworldScreenChange1Expanded,
-      kOverworldScreenTileMapChangeByScreen1Expanded);
-  int screen_change_2 = layout_inspect_options_.Address(
-      core::RomAddressKey::kOverworldScreenChange2Expanded,
-      kOverworldScreenTileMapChangeByScreen2Expanded);
-  int screen_change_3 = layout_inspect_options_.Address(
-      core::RomAddressKey::kOverworldScreenChange3Expanded,
-      kOverworldScreenTileMapChangeByScreen3Expanded);
-  int screen_change_4 = layout_inspect_options_.Address(
-      core::RomAddressKey::kOverworldScreenChange4Expanded,
-      kOverworldScreenTileMapChangeByScreen4Expanded);
-
-  ASSIGN_OR_RETURN(const auto rows,
+  ExpandedGeometryState state;
+  ASSIGN_OR_RETURN(state.canonical,
                    PlanExpandedOverworldGeometry(overworld_maps_));
-  const std::array<int, 8> word_tables = {
-      screen_change_1,         screen_change_2,       screen_change_3,
-      screen_change_4,         transition_pos_y,      transition_pos_x,
-      transition_target_north, transition_target_west};
+  state.stored = state.canonical;
+  state.word_tables = ExpandedGeometryTables(layout_inspect_options_);
+  state.parent_table = layout_inspect_options_.Address(
+      core::RomAddressKey::kOverworldMapParentExpanded,
+      kOverworldMapParentIdExpanded);
+  const auto& word_tables = state.word_tables;
+  if (expanded_geometry_baseline_ &&
+      (expanded_geometry_baseline_->word_tables != state.word_tables ||
+       expanded_geometry_baseline_->parent_table != state.parent_table))
+    return absl::FailedPreconditionError(
+        "Reload the overworld after changing its geometry table bindings");
+  const bool preserve =
+      expanded_geometry_baseline_ &&
+      expanded_geometry_baseline_->canonical.size() == state.canonical.size();
+  if (preserve) {
+    for (size_t i = 0; i < state.stored.size(); ++i)
+      for (size_t table = 0; table < word_tables.size(); ++table)
+        if (state.canonical[i].parent ==
+                expanded_geometry_baseline_->canonical[i].parent &&
+            state.canonical[i].size ==
+                expanded_geometry_baseline_->canonical[i].size &&
+            state.canonical[i].words[table] ==
+                expanded_geometry_baseline_->canonical[i].words[table])
+          state.stored[i].words[table] =
+              expanded_geometry_baseline_->stored[i].words[table];
+  }
+  const auto& rows = state.stored;
+  ScopedRomTransaction transaction(*rom_);
   for (size_t i = 0; i < rows.size(); ++i) {
-    RETURN_IF_ERROR(
-        rom()->WriteByte(layout_inspect_options_.Address(
-                             core::RomAddressKey::kOverworldMapParentExpanded,
-                             kOverworldMapParentIdExpanded) +
-                             i,
-                         rows[i].parent));
+    RETURN_IF_ERROR(rom()->WriteByte(state.parent_table + i, rows[i].parent));
     for (size_t table = 0; table < word_tables.size(); ++table)
       RETURN_IF_ERROR(
           rom()->WriteShort(word_tables[table] + i * 2, rows[i].words[table]));
   }
-
+  staged_expanded_geometry_ = std::move(state);
+  transaction.Commit();
   return absl::OkStatus();
 }
 

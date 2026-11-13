@@ -4,6 +4,8 @@
 #include <chrono>
 #include <filesystem>
 #include <fstream>
+#include <memory>
+#include <string>
 #include <vector>
 
 #include "absl/status/status.h"
@@ -12,7 +14,9 @@
 #include "gtest/gtest.h"
 #include "rom/rom.h"
 #include "rom/snes.h"
+#include "rom/transaction.h"
 #include "test_utils/overworld_model_test_peer.h"
+#include "unit/zelda3/overworld_allocation_test_rom.h"
 #include "zelda3/overworld/overworld.h"
 #include "zelda3/overworld/overworld_allocation.h"
 #include "zelda3/overworld/overworld_layout.h"
@@ -344,7 +348,9 @@ std::filesystem::path UpgradeAsmDirectory() {
 }
 
 void SeedUpgradeSource(Rom& rom, bool v2) {
-  std::vector<uint8_t> bytes(v2 ? 0x200000 : 0x100000, 0xFF);
+  auto bytes = test::BuildOverworldAllocationTestRom(false);
+  if (v2)
+    bytes.resize(0x200000, 0);
   bytes[0x7FD5] = 0x20;  // US LoROM; fixture has no copyrighted ROM contents.
   bytes[0x7FD9] = 1;
   std::copy_n(std::array<uint8_t, 4>{0xA8, 0xB9, 0x1D, 0xF5}.begin(), 4,
@@ -375,6 +381,7 @@ void SeedUpgradeSource(Rom& rom, bool v2) {
         kOverworldTransitionPositionX, 0x13EE2, 0x13F62})
     for (int i = 0; i < 64; ++i)
       word(table + i * 2, static_cast<uint16_t>(table + i));
+  word(kOverworldScreenTileMapChangeByScreen1, 0x1060);
   for (int i = 0; i < 128; ++i) {
     bytes[kAreaGfxIdPtr + i] = i % 0x30;
     bytes[kOverworldMapPaletteIds + i] = i % 0x20;
@@ -398,6 +405,19 @@ void SeedUpgradeSource(Rom& rom, bool v2) {
   word(kRoomSpritePointerTableOperand, 0xD2B2);
   for (int i = 0; i < 144; ++i)
     word(kOverworldMessageIds + i * 2, 0x80 + i);
+  const uint32_t item_table = PcToSnes(kOverworldItemsPointers);
+  word(overworldItemsAddress, item_table & 0xFFFF);
+  bytes[overworldItemsAddress + 2] = item_table >> 16;
+  bytes[overworldItemsAddressBank] = 0x1B;
+  for (int i = 0; i < 128; ++i) {
+    word(kOverworldItemsPointers + i * 2, i == 2 ? 0xC400 : 0xC3F9);
+    word(0x16DC5 + i * 2, i == 2 ? 0x0082 : 0);
+  }
+  word(0xDC3F9, 0xFFFF);
+  bytes[0xDC400] = 0x82;
+  bytes[0xDC401] = 0;
+  bytes[0xDC402] = 0x86;
+  word(0xDC403, 0xFFFF);
   word(0x166E1, 0x0061);
   word(0x166E3, 0x0073);  // Authored special camera origin, moved by real ASM.
   if (v2) {
@@ -512,6 +532,24 @@ TEST(OverworldUpgradeServiceTest, ActualAsarPreservesCustomGeometryAndPools) {
                            output.begin() + 0x4CB41));
     EXPECT_EQ(UpgradeWord(output, kOverworldMessagesExpanded + 0x83 * 2),
               UpgradeWord(original, kOverworldMessageIds + 0x83 * 2));
+    EXPECT_EQ(SnesToPc(UpgradeWord(output, overworldItemsAddress) |
+                       (output[overworldItemsAddress + 2] << 16)),
+              kOverworldItemsPointersNew);
+    for (int i = 0; i < 128; ++i) {
+      EXPECT_EQ(UpgradeWord(output, kOverworldItemsPointersNew + i * 2),
+                UpgradeWord(original, kOverworldItemsPointers + i * 2));
+      EXPECT_EQ(UpgradeWord(output, kOverworldBombDoorItemLocationsNew + i * 2),
+                UpgradeWord(original, 0x16DC5 + i * 2));
+    }
+    EXPECT_TRUE(std::equal(original.begin() + kOverworldItemsPointers,
+                           original.begin() + kOverworldItemsEndData,
+                           output.begin() + kOverworldItemsPointers));
+    for (int i = 128; i < 160; ++i) {
+      EXPECT_EQ(UpgradeWord(output, kOverworldItemsPointersNew + i * 2),
+                0xC3F9);
+      EXPECT_EQ(UpgradeWord(output, kOverworldBombDoorItemLocationsNew + i * 2),
+                0);
+    }
     if (v2) {
       auto expected_pool = std::vector<uint8_t>(original.begin() + 0x140000,
                                                 original.begin() + 0x140998);
@@ -560,7 +598,7 @@ TEST(OverworldUpgradeServiceTest, ActualAsarPreservesCustomGeometryAndPools) {
 }
 
 TEST(OverworldUpgradeServiceTest, RejectsInvalidSourcesWithoutMutation) {
-  for (int which = 0; which < 10; ++which) {
+  for (int which = 0; which < 12; ++which) {
     SCOPED_TRACE(which);
     Rom rom;
     ASSERT_NO_FATAL_FAILURE(SeedUpgradeSource(rom, true));
@@ -589,6 +627,10 @@ TEST(OverworldUpgradeServiceTest, RejectsInvalidSourcesWithoutMutation) {
       rom.Expand(0x200000);
       rom[0x141800] = 0x42;  // Vanilla-owned content in the new message span.
     }
+    if (which == 10)
+      rom[overworldItemsAddressBank] = 0x7E;
+    if (which == 11)
+      ASSERT_TRUE(rom.WriteWord(kOverworldItemsPointers, 0).ok());
     rom.set_dirty(true);
     const auto before = rom.vector();
     const auto size = rom.size();
@@ -630,10 +672,186 @@ TEST(OverworldUpgradeServiceTest,
   OverworldUpgradeSystem upgrade(rom, temporary.string());
   const auto status = upgrade.ApplyZSCustomOverworldASM(3);
   EXPECT_FALSE(status.ok());
+  EXPECT_NE(std::string(status.message()).find("injected upgrade failure"),
+            std::string::npos)
+      << status;
   EXPECT_EQ(rom.vector(), before);
   EXPECT_EQ(rom.size(), before.size());
   EXPECT_EQ(rom.filename(), "synthetic-upgrade-source.sfc");
   EXPECT_FALSE(rom.dirty());
+}
+
+namespace {
+
+std::vector<uint16_t> ExpandedContactWords(const Rom& rom) {
+  const std::array<int, 8> tables = {
+      kOverworldScreenTileMapChangeByScreen1Expanded,
+      kOverworldScreenTileMapChangeByScreen2Expanded,
+      kOverworldScreenTileMapChangeByScreen3Expanded,
+      kOverworldScreenTileMapChangeByScreen4Expanded,
+      kOverworldTransitionPositionYExpanded,
+      kOverworldTransitionPositionXExpanded,
+      transition_target_northExpanded,
+      transition_target_westExpanded};
+  std::vector<uint16_t> words;
+  for (int map = 0; map < 160; ++map)
+    for (int table : tables)
+      words.push_back(UpgradeWord(rom.vector(), table + map * 2));
+  return words;
+}
+
+}  // namespace
+
+TEST(OverworldUpgradeServiceTest,
+     NormalModelTerrainSavePreservesMigratedContactsAndReopens) {
+  Rom rom;
+  ASSERT_NO_FATAL_FAILURE(SeedUpgradeSource(rom, false));
+  OverworldUpgradeSystem upgrade(rom, UpgradeAsmDirectory().string());
+  ASSERT_TRUE(upgrade.ApplyZSCustomOverworldASM(3).ok());
+  const auto contacts = ExpandedContactWords(rom);
+  ASSERT_EQ(contacts.front(), 0x1060);
+  auto world = std::make_unique<Overworld>(&rom);
+  world->set_layout_inspect_options(OverworldLayoutOptions::Defaults());
+  const auto loaded = world->Load(&rom);
+  ASSERT_TRUE(loaded.ok()) << loaded;
+  const auto canonical = PlanExpandedOverworldGeometry(world->overworld_maps());
+  ASSERT_TRUE(canonical.ok()) << canonical.status();
+  // The old writer unconditionally replaced this authored word with0060.
+  ASSERT_EQ(canonical->front().words[0], 0x0060);
+  ASSERT_NE(canonical->front().words[0], contacts.front());
+  world->set_current_world(0);
+  const auto terrain = static_cast<uint16_t>((world->GetTile(8, 8) + 1) % 4096);
+  world->SetTile(8, 8, terrain);
+  const auto saved =
+      world->Save(&rom);  // Actual normal model Save, not ROM-only.
+  ASSERT_TRUE(saved.ok()) << saved;
+  EXPECT_EQ(ExpandedContactWords(rom), contacts);
+
+  const auto path =
+      std::filesystem::temp_directory_path() /
+      ("yaze-model-upgrade-" +
+       std::to_string(
+           std::chrono::steady_clock::now().time_since_epoch().count()) +
+       ".sfc");
+  struct Cleanup {
+    std::filesystem::path path;
+    ~Cleanup() {
+      std::error_code ec;
+      std::filesystem::remove(path, ec);
+    }
+  } cleanup{path};
+  ASSERT_TRUE(rom.SaveToFile({.filename = path.string()}).ok());
+  world->CommitSavedMapTiles();
+  Rom reopened;
+  ASSERT_TRUE(reopened.LoadFromFile(path.string()).ok());
+  auto fresh = std::make_unique<Overworld>(&reopened);
+  fresh->set_layout_inspect_options(OverworldLayoutOptions::Defaults());
+  ASSERT_TRUE(fresh->Load(&reopened).ok());
+  EXPECT_EQ(fresh->GetTile(8, 8), terrain);
+  EXPECT_EQ(ExpandedContactWords(reopened), contacts);
+  const auto second = fresh->Save(&reopened);
+  ASSERT_TRUE(second.ok()) << second;
+  EXPECT_EQ(ExpandedContactWords(reopened), contacts);
+}
+
+TEST(OverworldUpgradeServiceTest,
+     ResizeUpdatesOnlyChangedContactsAndRollbackRetainsTheBaseline) {
+  Rom rom;
+  ASSERT_NO_FATAL_FAILURE(SeedUpgradeSource(rom, false));
+  OverworldUpgradeSystem upgrade(rom, UpgradeAsmDirectory().string());
+  ASSERT_TRUE(upgrade.ApplyZSCustomOverworldASM(3).ok());
+  auto world = std::make_unique<Overworld>(&rom);
+  world->set_layout_inspect_options(OverworldLayoutOptions::Defaults());
+  ASSERT_TRUE(world->Load(&rom).ok());
+  const auto before = ExpandedContactWords(rom);
+  const auto original = rom.vector();
+  const auto old_plan = PlanExpandedOverworldGeometry(world->overworld_maps());
+  ASSERT_TRUE(old_plan.ok());
+  {
+    ScopedRomTransaction transaction(rom);
+    ASSERT_TRUE(
+        world->ConfigureMultiAreaMap(0x30, AreaSizeEnum::WideArea).ok());
+    const auto new_plan =
+        PlanExpandedOverworldGeometry(world->overworld_maps());
+    ASSERT_TRUE(new_plan.ok());
+    ASSERT_TRUE(world->SaveLargeMaps().ok());
+    const auto after = ExpandedContactWords(rom);
+    int changed = 0;
+    for (size_t map = 0; map < new_plan->size(); ++map) {
+      for (int word = 0; word < 8; ++word) {
+        const bool contact_changed =
+            (*new_plan)[map].parent != (*old_plan)[map].parent ||
+            (*new_plan)[map].size != (*old_plan)[map].size ||
+            (*new_plan)[map].words[word] != (*old_plan)[map].words[word];
+        EXPECT_EQ(after[map * 8 + word], contact_changed
+                                             ? (*new_plan)[map].words[word]
+                                             : before[map * 8 + word]);
+        changed += contact_changed;
+      }
+    }
+    EXPECT_GT(changed, 0);
+    EXPECT_EQ(after.front(), 0x1060);  // Distant authored override survives.
+    // Abandon the publisher transaction, as on a failed disk save.
+  }
+  world->RollbackSavedMapTiles();
+  EXPECT_EQ(rom.vector(), original);
+  ASSERT_TRUE(world->ConfigureMultiAreaMap(0x30, AreaSizeEnum::SmallArea).ok());
+  ASSERT_TRUE(world->SaveLargeMaps().ok());
+  EXPECT_EQ(ExpandedContactWords(rom), before);
+}
+
+TEST(OverworldUpgradeServiceTest,
+     Native192SaveKeepsItsDirectoryRouteAndRefusesTheLegacyUpgrade) {
+  Rom legacy;
+  ASSERT_NO_FATAL_FAILURE(SeedUpgradeSource(legacy, false));
+  OverworldUpgradeSystem upgrade(legacy, UpgradeAsmDirectory().string());
+  ASSERT_TRUE(upgrade.ApplyZSCustomOverworldASM(3).ok());
+  auto legacy_world = std::make_unique<Overworld>(&legacy);
+  legacy_world->set_layout_inspect_options(OverworldLayoutOptions::Defaults());
+  ASSERT_TRUE(legacy_world->Load(&legacy).ok());
+  test::native_overworld::NativeDirectoryFixture fixture(192);
+  fixture.UpgradeToRevision4();
+  ASSERT_NO_FATAL_FAILURE(
+      fixture.SeedLoadedLegacyForModelTest(legacy, *legacy_world));
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(fixture.bytes).ok());
+  ASSERT_TRUE(rom::IsNativeSpecialOverworldLayout(rom.InspectLyraLayout()));
+  auto world = std::make_unique<Overworld>(&rom);
+  world->set_layout_inspect_options(OverworldLayoutOptions::Defaults());
+  const auto loaded = world->Load(&rom);
+  ASSERT_TRUE(loaded.ok()) << loaded;
+  ASSERT_EQ(world->overworld_maps().size(), 192u);
+  const auto old_legacy_contacts = ExpandedContactWords(rom);
+  const auto light_before = world->GetMapTiles(0);
+  const auto dark_before = world->GetMapTiles(1);
+  const auto special_before = world->GetMapTiles(2);
+  world->set_current_world(2);
+  const auto replacement =
+      static_cast<uint16_t>((world->GetTile(8, 136) + 1) % 4096);
+  world->SetTile(8, 136,
+                 replacement);  // A0, beyond the conventional160 prefix.
+  const auto saved = world->Save(&rom);
+  ASSERT_TRUE(saved.ok()) << saved;
+  EXPECT_EQ(ExpandedContactWords(rom), old_legacy_contacts);
+  ASSERT_TRUE(rom::IsNativeSpecialOverworldLayout(rom.InspectLyraLayout()));
+  EXPECT_EQ(rom.InspectLyraLayout().capacity, 192);
+  auto expected = special_before;
+  expected[8][136] = replacement;
+  EXPECT_EQ(world->GetMapTiles(2), expected);
+  const auto before_upgrade = rom.vector();
+  OverworldUpgradeSystem refused(rom, UpgradeAsmDirectory().string());
+  EXPECT_EQ(refused.ApplyZSCustomOverworldASM(3).code(),
+            absl::StatusCode::kFailedPrecondition);
+  EXPECT_EQ(rom.vector(), before_upgrade);
+  Rom reopened;
+  ASSERT_TRUE(reopened.LoadFromData(rom.vector()).ok());
+  auto fresh = std::make_unique<Overworld>(&reopened);
+  fresh->set_layout_inspect_options(OverworldLayoutOptions::Defaults());
+  ASSERT_TRUE(fresh->Load(&reopened).ok());
+  EXPECT_EQ(fresh->overworld_maps().size(), 192u);
+  EXPECT_EQ(fresh->GetMapTiles(0), light_before);
+  EXPECT_EQ(fresh->GetMapTiles(1), dark_before);
+  EXPECT_EQ(fresh->GetMapTiles(2), expected);
 }
 
 TEST(OverworldMap32StorageTest, CapacityTracksDetectedRomProfile) {
