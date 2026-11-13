@@ -43,6 +43,8 @@ test/
 
 **ROM policy**: GitHub CI does not run ROM-dependent tests. Run them locally with `YAZE_ENABLE_ROM_TESTS=ON` and `YAZE_TEST_ROM_*` paths. Use `YAZE_SKIP_ROM_TESTS=1` to force-skip ROM suites.
 
+**Oracle authoring workflows**: `AuthoringSaveWorkflowTest` runs only when `YAZE_TEST_AUTHORING_ORACLE_ROOT` points at an isolated Oracle of Secrets bundle (`Roms/oos168.sfc`, `Roms/alttp_vanilla.sfc`, `Roms/hack_manifest.json`, `Oracle-of-Secrets.yaze` and `Data/dungeons/custom_collision.json`); it skips when the variable is unset. It runs as one CTest entry, `yaze_test_oracle_authoring` (label `oracle_authoring`), outside the unit shards. Use a copied bundle rather than a live checkout, because a checkout that moves ahead of the branch under test fails these cases.
+
 ### Unit Tests
 
 Fast, isolated tests with no external dependencies. Run in CI on every commit.

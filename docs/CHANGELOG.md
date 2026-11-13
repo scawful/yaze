@@ -61,6 +61,11 @@ they are not part of its existing downloads. See the
 - `--export-schemas` now gives every command a JSON Schema `parameters`
   object (flag names, required flags, booleans, and `<a|b>` choices) and a
   `positional_arguments` list, parsed from its usage string.
+- Oracle authoring workflow tests no longer default to the live Oracle of
+  Secrets checkout. They run only with `YAZE_TEST_AUTHORING_ORACLE_ROOT` set
+  to an isolated bundle, as one CTest entry (`yaze_test_oracle_authoring`)
+  outside the unit shards, so a checkout that moves ahead no longer fails
+  `ctest --preset mac-ai`.
 - Help and status output use color only on a terminal and honor `NO_COLOR`
   and `TERM=dumb`; help captured by the HTTP API or agent tools is plain
   text. `z3ed help <topic>` matches `--help`, and an unknown help topic exits

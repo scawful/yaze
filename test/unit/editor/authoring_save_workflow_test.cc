@@ -411,13 +411,16 @@ struct AuthoringFixturePaths {
 
 absl::StatusOr<AuthoringFixturePaths> ResolveAuthoringFixturePaths(
     const char* root_override) {
-  if (root_override != nullptr && *root_override == '\0') {
+  if (root_override == nullptr) {
+    return absl::FailedPreconditionError(
+        absl::StrCat("Set ", kAuthoringFixtureRootEnv,
+                     " to an isolated matched Oracle authoring bundle"));
+  }
+  if (*root_override == '\0') {
     return absl::InvalidArgumentError(
         absl::StrCat(kAuthoringFixtureRootEnv, " must not be empty"));
   }
-  const std::filesystem::path root =
-      root_override != nullptr ? root_override
-                               : "/Users/scawful/src/hobby/oracle-of-secrets";
+  const std::filesystem::path root = root_override;
   AuthoringFixturePaths paths{
       (root / "Roms/oos168.sfc").string(),
       (root / "Roms/alttp_vanilla.sfc").string(),
@@ -425,11 +428,8 @@ absl::StatusOr<AuthoringFixturePaths> ResolveAuthoringFixturePaths(
       (root / "Roms/hack_manifest.json").string(),
       (root / "Data/dungeons/custom_collision.json").string(),
       (root / "Sprites/Objects/data/minecart_tracks.asm").string()};
-  std::vector<std::string> required = {paths.rom, paths.project, paths.manifest,
-                                       paths.collision};
-  if (root_override != nullptr) {
-    required.push_back(paths.vanilla);
-  }
+  const std::vector<std::string> required = {
+      paths.rom, paths.project, paths.manifest, paths.collision, paths.vanilla};
   for (const auto& path : required) {
     std::error_code error;
     if (!std::filesystem::is_regular_file(path, error)) {
@@ -438,6 +438,13 @@ absl::StatusOr<AuthoringFixturePaths> ResolveAuthoringFixturePaths(
     }
   }
   return paths;
+}
+
+TEST(AuthoringFixtureSelectionTest, UnsetRootRequiresExplicitBundle) {
+  const auto result = ResolveAuthoringFixturePaths(nullptr);
+  ASSERT_TRUE(absl::IsFailedPrecondition(result.status()));
+  EXPECT_NE(result.status().message().find(kAuthoringFixtureRootEnv),
+            absl::string_view::npos);
 }
 
 TEST(AuthoringFixtureSelectionTest, ExplicitEmptyRootIsRefused) {
@@ -4949,8 +4956,10 @@ std::string ResolveVanillaEditRom() {
 }
 
 OverworldEditor* LoadedOverworld(EditorManager* manager) {
-  EXPECT_OK(manager->EnsureEditorAssetsLoaded(EditorType::kOverworld));
-  if (manager->GetCurrentEditorSet() == nullptr) {
+  const absl::Status loaded =
+      manager->EnsureEditorAssetsLoaded(EditorType::kOverworld);
+  EXPECT_OK(loaded);
+  if (!loaded.ok() || manager->GetCurrentEditorSet() == nullptr) {
     return nullptr;
   }
   return manager->GetCurrentEditorSet()->GetEditorAs<OverworldEditor>(

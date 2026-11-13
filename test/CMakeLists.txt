@@ -241,6 +241,19 @@ if(YAZE_BUILD_TESTS)
       set(_default_gtest_filter "*-OracleExpandedSourceAcceptance.*")
     endif()
     if(suite_name STREQUAL "yaze_test_unit")
+      # Oracle authoring workflows run once through this entry, outside the
+      # shards and per-case discovery, with their own timeout. They need an
+      # isolated bundle selected with YAZE_TEST_AUTHORING_ORACLE_ROOT and skip
+      # when it is unset.
+      string(APPEND _default_gtest_filter ":AuthoringSaveWorkflowTest.*")
+      add_test(NAME yaze_test_oracle_authoring
+        COMMAND $<TARGET_FILE:${suite_name}>
+          "--gtest_filter=AuthoringSaveWorkflowTest.*")
+      set_tests_properties(yaze_test_oracle_authoring PROPERTIES
+        LABELS "stable;unit;oracle_authoring"
+        WORKING_DIRECTORY "${CMAKE_BINARY_DIR}"
+        TIMEOUT 600)
+
       # Run these phases separately with YAZE_ORACLE_ACCEPTANCE_ROOT set:
       # 1. ctest -L oracle_source_publish --output-on-failure
       # 2. Build Roms/oos168x.sfc in that isolated Oracle source copy.
