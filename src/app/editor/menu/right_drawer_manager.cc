@@ -930,7 +930,10 @@ void RightDrawerManager::Draw() {
 
   const ImGuiViewport* viewport = ImGui::GetMainViewport();
   const float viewport_width = viewport->WorkSize.x;
-  const float top_inset = gui::LayoutHelpers::GetTopInset();
+  const float top_inset = gui::LayoutHelpers::GetTopInset() +
+                          (top_reserved_height_provider_
+                               ? std::max(0.0f, top_reserved_height_provider_())
+                               : 0.0f);
   const float bottom_safe = gui::LayoutHelpers::GetSafeAreaInsets().bottom;
   const float viewport_height =
       std::max(0.0f, viewport->WorkSize.y - top_inset - bottom_safe);

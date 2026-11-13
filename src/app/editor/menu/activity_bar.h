@@ -34,6 +34,10 @@ class ActivityBar {
     window_sidebar_.SetUserSettings(settings);
   }
 
+  void SetSidePanelTopReservedHeightProvider(std::function<float()> provider) {
+    window_sidebar_.SetTopReservedHeightProvider(std::move(provider));
+  }
+
   // Extensible registry powering the "More Actions" popup at the bottom of
   // the rail. Populated by EditorManager at construction time; callers may
   // Register/Unregister further entries at runtime.

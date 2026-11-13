@@ -15,6 +15,7 @@
 #include "app/gui/core/icons.h"
 #include "app/platform/timing.h"
 #include "app/testing/test_manager.h"
+#include "imgui/imgui_internal.h"
 #include "zelda3/resource_labels.h"
 
 #if defined(YAZE_BUILD_AGENT_UI)
@@ -506,7 +507,9 @@ void EditorManager::DrawInterface() {
 }
 
 void EditorManager::DrawMainMenuBar() {
+  main_menu_bar_height_ = 0.0f;
   if (ImGui::BeginMenuBar()) {
+    main_menu_bar_height_ = ImGui::GetCurrentWindow()->MenuBarHeight;
     const bool sidebar_visible = window_manager_.IsSidebarVisible();
     const char* icon = sidebar_visible ? ICON_MD_MENU_OPEN : ICON_MD_MENU;
     const char* tooltip = sidebar_visible ? "Hide Activity Bar (Ctrl+B)"

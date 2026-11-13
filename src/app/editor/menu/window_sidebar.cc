@@ -298,7 +298,10 @@ void WindowSidebar::Draw(size_t session_id, const std::string& category,
   const float panel_width =
       window_manager_.GetActiveSidePanelWidth(viewport->WorkSize.x);
 
-  const float top_inset = gui::LayoutHelpers::GetTopInset();
+  const float top_inset =
+      gui::LayoutHelpers::GetTopInset() +
+      (get_top_reserved_height_ ? std::max(0.0f, get_top_reserved_height_())
+                                : 0.0f);
   const auto safe_area = gui::LayoutHelpers::GetSafeAreaInsets();
   const float bottom_reserved =
       get_bottom_reserved_height_

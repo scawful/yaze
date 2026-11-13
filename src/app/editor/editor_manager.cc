@@ -873,6 +873,18 @@ void EditorManager::InitializeSubsystems() {
   // Wire per-user sidebar prefs so right-click / drag mutate persisted state.
   activity_bar_->SetUserSettings(&user_settings_);
 
+  // Overlaying side panels start below the main menu bar, which the
+  // dockspace then draws beneath them.
+  auto overlay_top_reserved = [this]() -> float {
+    if (!layout_coordinator_.SidePanelsOverlayWorkspace() ||
+        (ui_coordinator_ && !ui_coordinator_->IsMenuBarVisible())) {
+      return 0.0f;
+    }
+    return main_menu_bar_height_;
+  };
+  activity_bar_->SetSidePanelTopReservedHeightProvider(overlay_top_reserved);
+  right_drawer_manager_->SetTopReservedHeightProvider(overlay_top_reserved);
+
   // Populate the MoreActions registry with the default rail entries. External
   // callers can Register/Unregister further entries at runtime.
   auto& registry = activity_bar_->actions_registry();

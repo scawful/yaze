@@ -25,6 +25,9 @@ These changes are on the development line after the published prerelease;
 they are not part of its existing downloads. See the
 [release/source matrix](internal/status.md#lyra-source-and-qualification-boundaries).
 
+- On narrow windows, the expanded sidebar panel and right drawer no longer
+  cover the main menu bar when they overlay the workspace; File, Edit, View
+  and the menu bar toggles stay clickable.
 - Lyra gameplay-area documents (schema 5), 192-map navigation, and later
   Tile16 stroke/Undo integration are development work after the schema-3
   prerelease. Full expanded-map Oracle Build/Test is not release-qualified.

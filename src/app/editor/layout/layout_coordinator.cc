@@ -100,6 +100,10 @@ float LayoutCoordinator::GetRightLayoutOffset() const {
   return GetWorkspaceChromeBudget().right_offset;
 }
 
+bool LayoutCoordinator::SidePanelsOverlayWorkspace() const {
+  return GetWorkspaceChromeBudget().side_panels_overlay;
+}
+
 float LayoutCoordinator::GetBottomLayoutOffset() const {
   return (status_bar_ && status_bar_->IsEnabled()) ? status_bar_->GetHeight()
                                                    : 0.0f;

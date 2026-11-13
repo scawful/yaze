@@ -24,6 +24,10 @@ class WindowSidebar {
           context_provider = {});
 
   void SetUserSettings(UserSettings* settings) { user_settings_ = settings; }
+  // Height kept clear above the panel, below any safe-area inset.
+  void SetTopReservedHeightProvider(std::function<float()> provider) {
+    get_top_reserved_height_ = std::move(provider);
+  }
 
   static bool MatchesWindowSearch(const std::string& query,
                                   const std::string& display_name,
@@ -62,6 +66,7 @@ class WindowSidebar {
   std::function<bool()> is_dungeon_workbench_mode_;
   std::function<void(bool)> set_dungeon_workflow_mode_;
   std::function<float()> get_bottom_reserved_height_;
+  std::function<float()> get_top_reserved_height_;
   std::function<EditorContextSnapshot(const std::string&)> context_provider_;
   UserSettings* user_settings_ = nullptr;
   char sidebar_search_[256] = {};

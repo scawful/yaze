@@ -80,6 +80,10 @@ class LayoutCoordinator {
     */
   float GetRightLayoutOffset() const;
 
+  /// True when the side panels overlay the workspace instead of reserving
+  /// its margins, because the canvas would drop below its minimum width.
+  bool SidePanelsOverlayWorkspace() const;
+
   static WorkspaceChromeBudget ResolveWorkspaceChromeBudget(
       float viewport_width, float activity_bar_width,
       float left_side_panel_width, float right_sidebar_width,

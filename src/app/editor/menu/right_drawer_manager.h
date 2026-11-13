@@ -280,6 +280,11 @@ class RightDrawerManager {
     on_panel_width_changed_ = std::move(callback);
   }
 
+  // Height kept clear above the drawer, below any safe-area inset.
+  void SetTopReservedHeightProvider(std::function<float()> provider) {
+    top_reserved_height_provider_ = std::move(provider);
+  }
+
   // ============================================================================
   // Rendering
   // ============================================================================
@@ -398,6 +403,7 @@ class RightDrawerManager {
   PanelType closing_panel_ = PanelType::kNone;  // Panel being animated closed
   std::unordered_map<std::string, PanelSizeLimits> panel_size_limits_;
   std::function<void(PanelType, float)> on_panel_width_changed_;
+  std::function<float()> top_reserved_height_provider_;
 };
 
 /**

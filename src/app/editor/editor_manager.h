@@ -188,6 +188,9 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
   float GetBottomLayoutOffset() const {
     return layout_coordinator_.GetBottomLayoutOffset();
   }
+  bool SidePanelsOverlayWorkspace() const {
+    return layout_coordinator_.SidePanelsOverlayWorkspace();
+  }
 
   absl::Status SetCurrentRom(Rom* rom);
   Rom* GetCurrentRom() const override {
@@ -723,6 +726,8 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
       right_drawer_manager_;  // Right-side drawer system
   StatusBar status_bar_;      // Bottom status bar
   std::unique_ptr<ActivityBar> activity_bar_;
+  // Measured by DrawMainMenuBar, which runs before the side panels each frame.
+  float main_menu_bar_height_ = 0.0f;
   WorkspaceManager workspace_manager_{&toast_manager_};
 
   emu::input::InputConfig BuildInputConfigFromSettings() const;

@@ -6,6 +6,7 @@
 
 #include "app/controller.h"
 #include "app/editor/editor_manager.h"
+#include "app/editor/menu/right_drawer_manager.h"
 #include "app/editor/overworld/overworld_editor.h"
 #include "app/editor/overworld/painting/tile_brush_preview.h"
 #include "app/editor/overworld/painting/tile_painting_manager.h"
@@ -23,6 +24,7 @@ using yaze::Controller;
 using yaze::editor::EditingMode;
 using yaze::editor::EditorType;
 using yaze::editor::OverworldEditor;
+using yaze::editor::RightDrawerManager;
 using yaze::editor::WindowDescriptor;
 using yaze::editor::WorkspaceWindowManager;
 
@@ -209,6 +211,58 @@ void E2ETest_DeadClickMainMenuItem(ImGuiTestContext* ctx) {
     ClickMainMenuItem(ctx, "View", ICON_MD_VIEW_SIDEBAR " Show Sidebar");
   }
   IM_CHECK_EQ(wm->IsSidebarVisible(), before);
+}
+
+// When the workspace is too narrow for the expanded sidebar plus a right
+// drawer, both panels overlay the workspace. They must still start below the
+// main menu bar so its menus and toggles stay clickable.
+void E2ETest_DeadClickMenuBarAboveOverlayPanels(ImGuiTestContext* ctx) {
+  Controller* controller = GetController(ctx);
+  IM_CHECK(controller != nullptr);
+  if (!EnsureOverworldReady(ctx, controller)) {
+    return;
+  }
+  auto* editor_manager = controller->editor_manager();
+  WorkspaceWindowManager* wm = GetWindowManager(controller);
+  RightDrawerManager* drawers = editor_manager->right_drawer_manager();
+  IM_CHECK(wm != nullptr && drawers != nullptr);
+
+  SDL_Window* window = controller->window();
+  IM_CHECK(window != nullptr);
+  int original_width = 0;
+  int original_height = 0;
+  SDL_GetWindowSize(window, &original_width, &original_height);
+  SDL_SetWindowSize(window, 1280, 800);
+  const bool was_expanded = wm->IsSidebarExpanded();
+  const bool was_visible = wm->IsSidebarVisible();
+  wm->SetSidebarVisible(true);
+  wm->SetActiveCategory("Overworld");
+  wm->SetSidebarExpanded(true);
+  drawers->OpenDrawer(RightDrawerManager::DrawerType::kProperties);
+  ctx->Yield(30);
+
+  IM_CHECK_NO_RET(editor_manager->SidePanelsOverlayWorkspace());
+  ImGuiWindow* host = ctx->GetWindowByRef("//DockSpaceWindow");
+  ImGuiWindow* side_panel = ctx->GetWindowByRef("//##SidePanel");
+  ImGuiWindow* right_panel = ctx->GetWindowByRef("//##RightPanel");
+  IM_CHECK_NO_RET(host != nullptr && side_panel != nullptr &&
+                  right_panel != nullptr);
+  if (host && side_panel && right_panel) {
+    const float menu_bottom = host->MenuBarRect().Max.y;
+    IM_CHECK_GE_NO_RET(side_panel->Pos.y, menu_bottom);
+    IM_CHECK_GE_NO_RET(right_panel->Pos.y, menu_bottom);
+  }
+
+  const bool before = wm->IsSidebarVisible();
+  IM_CHECK_NO_RET(
+      ClickMainMenuItem(ctx, "View", ICON_MD_VIEW_SIDEBAR " Show Sidebar"));
+  IM_CHECK_NO_RET(wm->IsSidebarVisible() != before);
+
+  drawers->CloseDrawer();
+  wm->SetSidebarExpanded(was_expanded);
+  wm->SetSidebarVisible(was_visible);
+  SDL_SetWindowSize(window, original_width, original_height);
+  ctx->Yield(10);
 }
 
 // The overworld map context popup opens on right-button release over the
@@ -619,6 +673,10 @@ void RegisterDeadClickRegressionTests(ImGuiTestEngine* engine,
                                       Controller* controller) {
   ImGuiTest* t = IM_REGISTER_TEST(engine, "DeadClickSmoke", "MainMenuItem");
   t->TestFunc = E2ETest_DeadClickMainMenuItem;
+  t->UserData = controller;
+
+  t = IM_REGISTER_TEST(engine, "DeadClickSmoke", "MenuBarAboveOverlayPanels");
+  t->TestFunc = E2ETest_DeadClickMenuBarAboveOverlayPanels;
   t->UserData = controller;
 
   t = IM_REGISTER_TEST(engine, "DeadClickSmoke", "OverworldContextMenu");
