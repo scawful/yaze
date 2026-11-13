@@ -1,6 +1,7 @@
 #include "cli/handlers/game/dungeon_tile_type_commands.h"
 
 #include <map>
+#include <memory>
 #include <string>
 
 #include "absl/strings/ascii.h"
@@ -113,7 +114,8 @@ absl::Status DungeonTileTypesCommandHandler::Execute(
 
   // The maps come from the room's drawn tilemaps, so the room is rendered the
   // way dungeon-render and the game-state parity test render it.
-  zelda3::GameData game_data;
+  auto game_data_owner = std::make_unique<zelda3::GameData>();
+  auto& game_data = *game_data_owner;
   RETURN_IF_ERROR(zelda3::LoadGameData(*rom, game_data));
   zelda3::Room room = zelda3::LoadRoomFromRom(rom, room_id);
   room.SetGameData(&game_data);

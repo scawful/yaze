@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <memory>
 #include <set>
 #include <string>
 
@@ -130,7 +131,8 @@ absl::Status PaletteGetColorsCommandHandler::Execute(
   auto group_name = parser.GetString("group").value();
 
   // Load palette data from ROM.
-  zelda3::GameData game_data;
+  auto game_data_owner = std::make_unique<zelda3::GameData>();
+  auto& game_data = *game_data_owner;
   RETURN_IF_ERROR(LoadPalettes(rom, game_data));
 
   const auto* group = game_data.palette_groups.get_group(group_name);
@@ -247,7 +249,8 @@ absl::Status PaletteSetColorCommandHandler::Execute(
   uint8_t b = static_cast<uint8_t>(b_val);
 
   // Load palette data from ROM.
-  zelda3::GameData game_data;
+  auto game_data_owner = std::make_unique<zelda3::GameData>();
+  auto& game_data = *game_data_owner;
   RETURN_IF_ERROR(LoadPalettes(rom, game_data));
 
   auto* group = game_data.palette_groups.get_group(group_name);
@@ -302,7 +305,8 @@ absl::Status PaletteAnalyzeCommandHandler::Execute(
   auto group_name_opt = parser.GetString("group");
 
   // Load palette data from ROM.
-  zelda3::GameData game_data;
+  auto game_data_owner = std::make_unique<zelda3::GameData>();
+  auto& game_data = *game_data_owner;
   RETURN_IF_ERROR(LoadPalettes(rom, game_data));
 
   formatter.BeginObject("Palette Analysis");

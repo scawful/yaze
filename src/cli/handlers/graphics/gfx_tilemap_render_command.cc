@@ -1,6 +1,7 @@
 #include "cli/handlers/graphics/gfx_tilemap_render_command.h"
 
 #include <array>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -134,7 +135,8 @@ absl::Status GfxTilemapRenderCommandHandler::Execute(
   } else if (palette_source == "hud") {
     ASSIGN_OR_RETURN(Rom pal_rom,
                      LoadRomArg("--palette-source hud needs a ROM"));
-    zelda3::GameData game_data;
+    auto game_data_owner = std::make_unique<zelda3::GameData>();
+    auto& game_data = *game_data_owner;
     zelda3::LoadOptions options;
     options.load_graphics = false;
     options.load_gfx_groups = false;

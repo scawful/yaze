@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <cctype>
 #include <filesystem>
+#include <memory>
 #include <optional>
 #include <string>
 #include <vector>
@@ -111,7 +112,8 @@ absl::StatusOr<zelda3::SheetPalette> ResolvePalette(
     ASSIGN_OR_RETURN(const int room, ParseNumber(parts[1], "room"));
     ASSIGN_OR_RETURN(const int slot, ParseNumber(parts[2], "slot"));
     ASSIGN_OR_RETURN(const int row, ParseNumber(parts[3], "row"));
-    zelda3::GameData data;
+    auto data_owner = std::make_unique<zelda3::GameData>();
+    auto& data = *data_owner;
     zelda3::LoadOptions options;
     options.load_graphics = false;
     options.expand_rom = false;
@@ -136,7 +138,8 @@ absl::StatusOr<zelda3::SheetPalette> ResolvePalette(
     }
     ASSIGN_OR_RETURN(int room, ParseNumber(parts[1], "room"));
     ASSIGN_OR_RETURN(int row, ParseNumber(parts[2], "row"));
-    zelda3::GameData data;
+    auto data_owner = std::make_unique<zelda3::GameData>();
+    auto& data = *data_owner;
     zelda3::LoadOptions options;
     options.load_graphics = false;
     options.expand_rom = false;
@@ -252,7 +255,7 @@ std::string RangeText(const std::vector<std::pair<int, int>>& ranges) {
 }
 
 struct RoomContext {
-  zelda3::GameData data;
+  std::unique_ptr<zelda3::GameData> data = std::make_unique<zelda3::GameData>();
   zelda3::RoomBackgroundSet set;
   int row = 2;
   zelda3::SheetPalette palette;
@@ -273,21 +276,21 @@ absl::StatusOr<RoomContext> LoadRoomContext(
   zelda3::LoadOptions options;
   options.load_graphics = false;
   options.expand_rom = false;
-  RETURN_IF_ERROR(zelda3::LoadGameData(rom, context.data, options));
+  RETURN_IF_ERROR(zelda3::LoadGameData(rom, *context.data, options));
   const auto rooms = zelda3::CollectRoomGfx(rom);
   const auto header = rooms.find(room);
   if (header == rooms.end()) {
     return absl::DataLossError(
         absl::StrFormat("Room 0x%03X header is unreadable", room));
   }
-  context.set = zelda3::ResolveRoomBackgroundSet(context.data, room,
+  context.set = zelda3::ResolveRoomBackgroundSet(*context.data, room,
                                                  header->second.blockset);
   if (parser.GetString("palette").has_value()) {
     ASSIGN_OR_RETURN(context.palette, ResolvePalette(rom, parser));
   } else {
     ASSIGN_OR_RETURN(context.palette,
-                     zelda3::RoomBackgroundSheetPalette(rom, context.data, room,
-                                                        context.row));
+                     zelda3::RoomBackgroundSheetPalette(rom, *context.data,
+                                                        room, context.row));
   }
   return context;
 }
@@ -308,7 +311,7 @@ absl::Status ExportRoomBundle(Rom& rom, RoomContext& context,
   for (int slot = 0; slot < 8; ++slot) {
     ASSIGN_OR_RETURN(
         const auto palette_context,
-        zelda3::ResolveRoomSheetPalette(rom, context.data, context.set.room,
+        zelda3::ResolveRoomSheetPalette(rom, *context.data, context.set.room,
                                         slot, context.row));
     auto entry = PaletteContextJson(palette_context);
     const uint16_t sheet = context.set.sheets[slot];
@@ -663,7 +666,7 @@ absl::Status GfxRoomExportCommandHandler::Execute(
 
   // Who else sees these sheets: an edit changes every one of these rooms.
   const auto all_sets =
-      zelda3::ResolveAllRoomBackgroundSets(*rom, context.data);
+      zelda3::ResolveAllRoomBackgroundSets(*rom, *context.data);
   std::vector<int> same_main, same_room_blockset;
   for (const auto& other : all_sets) {
     if (other.main_blockset == set.main_blockset) {
@@ -763,7 +766,7 @@ absl::Status GfxRoomImportCommandHandler::Execute(
   }
   Rom simulated = *rom;
   const auto all_sets =
-      zelda3::ResolveAllRoomBackgroundSets(*rom, context.data);
+      zelda3::ResolveAllRoomBackgroundSets(*rom, *context.data);
   nlohmann::json sheets = nlohmann::json::array();
   std::string refusal;
   std::vector<int> affected_rooms;

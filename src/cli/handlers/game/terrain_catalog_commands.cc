@@ -77,7 +77,8 @@ absl::Status OverworldTerrainCatalogCommandHandler::Execute(
   }
   int requested = 0;
   util::ParseHexString(*parser.GetString("map"), &requested);
-  zelda3::GameData data;
+  auto data_owner = std::make_unique<zelda3::GameData>();
+  auto& data = *data_owner;
   zelda3::LoadOptions options;
   options.expand_rom = false;
   RETURN_IF_ERROR(zelda3::LoadGameData(*rom, data, options));

@@ -1,4 +1,5 @@
 #include <iostream>
+#include <memory>
 #include <string>
 
 #include "absl/flags/declare.h"
@@ -75,7 +76,8 @@ absl::Status HandlePaletteExportLegacy(
   }
 
   // Load game data for palette access
-  zelda3::GameData game_data;
+  auto game_data_owner = std::make_unique<zelda3::GameData>();
+  auto& game_data = *game_data_owner;
   auto load_status = zelda3::LoadGameData(rom, game_data);
   if (!load_status.ok()) {
     return absl::AbortedError("Failed to load game data.");
@@ -148,7 +150,8 @@ absl::Status HandlePaletteImportLegacy(
   }
 
   // Load game data for palette access
-  zelda3::GameData game_data;
+  auto game_data_owner = std::make_unique<zelda3::GameData>();
+  auto& game_data = *game_data_owner;
   auto load_status = zelda3::LoadGameData(rom, game_data);
   if (!load_status.ok()) {
     return absl::AbortedError("Failed to load game data.");
