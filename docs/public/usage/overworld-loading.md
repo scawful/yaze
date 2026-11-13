@@ -1,6 +1,10 @@
 # Overworld Loading Guide
 
-This document provides a comprehensive guide to understanding how overworld loading works in both ZScream (C#) and yaze (C++), including the differences between vanilla ROMs and ZSCustomOverworld v2/v3 ROMs.
+This guide describes the shared overworld concepts in ZScream (C#) and Yaze
+(C++), including vanilla and ZSCustomOverworld v2/v3 ROMs. The implementation
+examples below describe those legacy layouts. Native special-overworld
+directories and project graphics sources add separate capabilities; see the
+compatibility boundaries below before upgrading a ROM.
 
 ## Table of Contents
 
@@ -12,6 +16,7 @@ This document provides a comprehensive guide to understanding how overworld load
 6. [Yaze Implementation](#yaze-implementation)
 7. [Key Differences](#key-differences)
 8. [Common Issues and Solutions](#common-issues-and-solutions)
+9. [Format Compatibility and Expansion Upgrades](#format-compatibility-and-expansion-upgrades)
 
 ## Overview
 
@@ -51,6 +56,51 @@ constexpr int OverworldCustomASMHasBeenApplied = 0x140145;
 | Vanilla Overlays |  |  |  |
 
 **Note:** Subscreen overlays are visual effects (fog, rain, backgrounds, etc.) that are shared between vanilla ROMs and ZSCustomOverworld. ZSCustomOverworld v2+ expands on this by adding support for custom overlay configurations and additional overlay types.
+
+## Format Compatibility and Expansion Upgrades
+
+Yaze expansions should retain ZScream/ZSCustomOverworld's existing map, area,
+graphics-group, object and pointer conventions wherever the selected format
+supports them. Optional features must identify their actual format and runtime
+requirements. Opening an older ROM must not silently opt it into a different
+layout or install a gameplay patch.
+
+Keep these identities separate:
+
+| Identity | What it tells you | What it does not establish |
+|----------|-------------------|----------------------------|
+| ZSCustomOverworld version | Which established patch tables and properties the ROM uses; Yaze detects these through `OverworldVersionHelper`. | A native directory revision, the number of usable gameplay areas, or support in every ZScream release. |
+| Native special-overworld directory | A separately validated layout with explicit table locations and capacity. Yaze currently recognizes native revisions 3/4 through `InspectLyraLayout`. | A new ZSCustomOverworld version. Native revision 4 must not be called "ZSCustomOverworld v4". |
+| Physical map capacity | A 160-map layout has 32 special screens (`$80–$9F`); a 192-map layout has 64 (`$80–$BF`). The selected layout determines admission. | That all screens are populated, connected, independently playable, or available for allocation. Pages can form one larger gameplay area or serve an overlay. |
+| Project graphics bindings | Source sheets or an explicit [graphics preview](overworld-graphics-preview.md) can supply the actual editor appearance. | That opening the ROM alone reproduces those assets, that the preview installs runtime graphics, or that ZScream reads Yaze project settings. |
+| Game-specific ASM | A hack can add items, menus, collision rules, actors or travel behavior. | A generic ZSCustomOverworld feature or portable support in another hack without its own patch and data bindings. |
+
+**Editing older ROMs in Yaze** and **editing an expanded ROM in ZScream** are
+separate compatibility claims. Retaining ordinary object/sprite encodings and
+pointer formats avoids unnecessary divergence, but relocated tables, native
+directories and source-only assets still need explicit reader/writer support.
+Do not assume ZScream can safely save a native-expanded ROM from its version
+byte or a successful read in Yaze. Compatibility must name the reference
+editor version, affected operation and checked data format; untested operations
+remain unverified.
+
+An upgrade should be an explicit operation with a retained original, a summary
+of changed formats and engine patches, and the features that require Yaze or
+another compatible editor afterward. A downgrade/export is supported only when
+the destination format can represent all selected data or the user has chosen
+which content to omit. Reopening a backup is recovery, not a proven lossless
+downgrade. These are upgrade requirements, not a claim that a general conversion
+or downgrade wizard is implemented.
+
+Normal saves should use the detected format's maintained writer and existing
+allocation ownership. For example, moving a dungeon sprite stream within a
+declared bank-`$09` allocation retains its existing 16-bit pointer and sprite
+encoding; it does not require a new expansion version. Native storage fences
+still apply. Rendering, allocation, Save/reopen, Build and runtime travel are
+separate capabilities and should be reported at the evidence level actually
+checked.
+
+Developer tracking: [CO-1 compatibility ledger](../../internal/plans/editor-capability-parity-plan.md#co-1-compatibility-and-complete-reference-coverage).
 
 ## Overworld Map Structure
 

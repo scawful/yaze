@@ -834,6 +834,21 @@ overflow must leave the current song/bank and ROM unchanged.
 
 ### CO-1: compatibility and complete reference coverage
 
+scawful's 2026-11-13 direction: retain ZScream/ZSCustomOverworld conventions for
+expansions where supported, and make divergence and backwards compatibility
+clear for future Yaze users. The public contract is in
+[Format Compatibility and Expansion Upgrades](../../public/usage/overworld-loading.md#format-compatibility-and-expansion-upgrades).
+
+For each expansion or upgrade, record the ZSCustom patch version separately
+from native directory revision/capacity, project-only source/preview bindings
+and game-specific ASM. Existing-format Yaze editing and expanded-ROM ZScream
+round-tripping need separate evidence. Preserve ordinary encodings and current
+writers/allocators; do not silently upgrade on load/save or infer available
+space from blank art. Name the exact reference editor/version and affected
+read/write operation before claiming compatibility. Explicit conversion,
+retained originals and any lossy downgrade decisions remain requirements, not
+implemented capabilities unless their actual workflow is qualified.
+
 Inventory each reference editor feature by user task, exact version, format,
 Yaze entrypoint, and persistence path. Include effects/tags, maps, sprite/game
 properties, special entities, overlays/animations, graphics exchange, screens,
