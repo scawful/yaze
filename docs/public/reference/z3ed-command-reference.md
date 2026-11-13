@@ -358,7 +358,7 @@ object stream. Without the flag, the legacy output and count are unchanged.
 - `overworld-list-sprites [--screen <hex>] [--phase <0|1|2>]`
 - `overworld-list-items --map <hex>`
 - `overworld-get-entrance --entrance <hex>`
-- `overworld-tile-stats [--map <hex>] [--world <light|dark|special>] [--tile <hex>] [--top <n>]`
+- `overworld-tile-stats [--map <hex>] [--world <light|dark|special>] [--tile <hex> [--details]] [--top <n>]`
 - `overworld-render --screen <hex> --out <file.png> [--overlays <list>] [--phase <0|1|2>] [--scale <float>]`
 - `overworld-add-sprite --screen <hex> --phase <0|1|2> --id <hex> --x <tile> --y <tile> [--replace-index <n>] [--write]`
 - `overworld-move-sprite --screen <hex> --phase <0|1|2> --index <n> --x <tile> --y <tile> [--expect-id <hex>] [--write]`
@@ -392,6 +392,22 @@ tile (`--top`, default 32; `0` lists every tile). `--map` (or `--screen`)
 limits the scan to one screen and `--world` to one world. `--tile` adds a
 `tile` total and a `tile_count` per screen; use `overworld-find-tile` for
 positions.
+
+`--details` (with `--tile`) also describes the definition and how each screen
+draws it. `tile.quadrants` lists the four raw `word`s with `tile8_id`,
+`palette`, `priority` and `flip_x`/`flip_y`, plus the raw `tile_type` byte from
+the ROM's Tile8 type table (`unresolved` when the Tile8 is outside that table;
+it is not a walkability verdict). `tile.source_groups` groups the screens that
+place the tile by the graphics source of each quadrant (`kind`, `slot`, and for
+a sheet its `sheet`, `sheet_override` and `palette_half`). More than one group
+means the same words draw different art on different screens. A screen with its
+own native appearance resolves through itself, any other screen through its
+parent area. Sources are ROM sheets: `graphics_preview` is `not_applied`; use
+`overworld-terrain-catalog` with a project for preview transfers.
+
+```bash
+z3ed overworld-tile-stats --tile=0x0422 --details --world=light --rom=copy.sfc --format=json
+```
 
 `overworld-set-tile` is dry-run by default. Both modes rebuild the tile32 table
 and compressed screens exactly as the editor's overworld save does (tile16

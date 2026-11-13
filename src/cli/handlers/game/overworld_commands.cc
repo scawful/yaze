@@ -1475,11 +1475,33 @@ absl::Status OverworldTileStatsCommandHandler::Execute(
     }
     top = *top_or;
   }
+  const bool details = parser.HasFlag("details");
+  if (details && !query.tile_id.has_value()) {
+    return absl::InvalidArgumentError("--details describes one --tile");
+  }
 
-  zelda3::Overworld overworld(rom);
+  // Graphics sources resolve only with game data; plain counts never load it.
+  std::unique_ptr<zelda3::GameData> game_data;
+  if (details) {
+    game_data = std::make_unique<zelda3::GameData>();
+    zelda3::LoadOptions options;
+    options.expand_rom = false;
+    RETURN_IF_ERROR(zelda3::LoadGameData(*rom, *game_data, options));
+  }
+  zelda3::Overworld overworld(rom, game_data.get());
   RETURN_IF_ERROR(overworld.Load(rom));
   ASSIGN_OR_RETURN(const auto summary,
                    overworld::CollectTileUsage(overworld, query));
+  std::optional<overworld::Tile16Details> described;
+  if (details) {
+    std::vector<int> using_screens;
+    for (const auto& screen : summary.screens) {
+      if (screen.tile_count > 0)
+        using_screens.push_back(screen.map_id);
+    }
+    ASSIGN_OR_RETURN(described, overworld::DescribeTile16(
+                                    overworld, *query.tile_id, using_screens));
+  }
 
   formatter.BeginObject("Overworld Tile Statistics");
   formatter.AddField("screen_filter",
@@ -1507,6 +1529,52 @@ absl::Status OverworldTileStatsCommandHandler::Execute(
     formatter.AddField("tile_id", absl::StrFormat("0x%04X", *query.tile_id));
     formatter.AddField("count", count);
     formatter.AddField("screens", screens);
+    if (described.has_value()) {
+      formatter.BeginArray("quadrants");
+      for (const auto& q : described->quadrants) {
+        formatter.BeginObject();
+        formatter.AddHexField("word", q.word, 4);
+        formatter.AddHexField("tile8_id", q.tile8_id, 3);
+        formatter.AddField("palette", q.palette);
+        formatter.AddField("priority", q.priority);
+        formatter.AddField("flip_x", q.flip_x);
+        formatter.AddField("flip_y", q.flip_y);
+        if (q.tile_type.has_value())
+          formatter.AddHexField("tile_type", *q.tile_type, 2);
+        else
+          formatter.AddField("tile_type", "unresolved");
+        formatter.EndObject();
+      }
+      formatter.EndArray();
+      formatter.AddField("graphics_preview", "not_applied");
+      formatter.AddField("source_group_count",
+                         static_cast<int>(described->source_groups.size()));
+      formatter.BeginArray("source_groups");
+      for (const auto& group : described->source_groups) {
+        formatter.BeginObject();
+        formatter.BeginArray("screens");
+        for (const int screen : group.screens)
+          formatter.AddArrayItem(absl::StrFormat("0x%02X", screen));
+        formatter.EndArray();
+        formatter.BeginArray("quadrants");
+        for (const auto& source : group.sources) {
+          formatter.BeginObject();
+          formatter.AddField("kind",
+                             overworld::GraphicsSourceKindName(source.kind));
+          formatter.AddField("slot", source.slot);
+          if (source.sheet >= 0) {
+            formatter.AddField("sheet", source.sheet);
+            formatter.AddField("sheet_override", source.sheet_override);
+            formatter.AddField("palette_half",
+                               source.high_palette_half ? "high" : "low");
+          }
+          formatter.EndObject();
+        }
+        formatter.EndArray();
+        formatter.EndObject();
+      }
+      formatter.EndArray();
+    }
     formatter.EndObject();
   }
 

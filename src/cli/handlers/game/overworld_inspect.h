@@ -1,6 +1,7 @@
 #ifndef YAZE_CLI_HANDLERS_OVERWORLD_INSPECT_H_
 #define YAZE_CLI_HANDLERS_OVERWORLD_INSPECT_H_
 
+#include <array>
 #include <cstdint>
 #include <optional>
 #include <string>
@@ -9,6 +10,7 @@
 #include <vector>
 
 #include "absl/status/statusor.h"
+#include "zelda3/overworld/overworld_map.h"
 
 namespace yaze {
 class Rom;
@@ -234,6 +236,39 @@ struct TileUsageSummary {
 // world's grid is not loaded.
 absl::StatusOr<TileUsageSummary> CollectTileUsage(zelda3::Overworld& overworld,
                                                   const TileUsageQuery& query);
+
+using GraphicsSource = zelda3::OverworldMap::GraphicsCharacterSource;
+
+const char* GraphicsSourceKindName(GraphicsSource::Kind kind);
+
+struct Tile16QuadrantDetail {
+  uint16_t word = 0;
+  int tile8_id = 0;
+  int palette = 0;
+  bool priority = false;
+  bool flip_x = false;
+  bool flip_y = false;
+  std::optional<uint8_t> tile_type;  // unset: outside the Tile8 type table
+};
+
+// Screens whose quadrants read the same graphics sources.
+struct Tile16SourceGroup {
+  std::array<GraphicsSource, 4> sources;
+  std::vector<int> screens;
+};
+
+struct Tile16Details {
+  std::array<Tile16QuadrantDetail, 4> quadrants;
+  std::vector<Tile16SourceGroup> source_groups;  // by first screen
+};
+
+// Describes one Tile16 definition and how each listed screen resolves its
+// quadrants. A screen with its own native appearance resolves through itself,
+// any other screen through its parent area. Requires game data on the
+// overworld; builds the maps it reads.
+absl::StatusOr<Tile16Details> DescribeTile16(zelda3::Overworld& overworld,
+                                             uint16_t tile_id,
+                                             const std::vector<int>& screens);
 
 absl::StatusOr<int> ParseNumeric(std::string_view value, int base = 0);
 absl::StatusOr<int> ParseWorldSpecifier(std::string_view value);

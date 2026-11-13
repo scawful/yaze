@@ -249,8 +249,8 @@ class OverworldTileStatsCommandHandler : public resources::CommandHandler {
   }
   std::string GetUsage() const {
     return "overworld-tile-stats [--screen <hex>|--map <hex>] "
-           "[--world <light|dark|special>] [--tile <hex>] [--top <n>] "
-           "[--format <json|text>]";
+           "[--world <light|dark|special>] [--tile <hex> [--details]] "
+           "[--top <n>] [--format <json|text>]";
   }
 
   absl::Status ValidateArgs(const resources::ArgumentParser& parser) override {
