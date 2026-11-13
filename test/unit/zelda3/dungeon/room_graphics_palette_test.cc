@@ -222,6 +222,12 @@ TEST(RoomGraphicsPaletteTest, CompiledKitMasksOnlySelectedSlot6Glyphs) {
   EXPECT_EQ(rom.vector(), bytes);
   room.LoadRoomGraphics(0x20);
   EXPECT_FALSE(room.compiled_wall_profile_status().ok());
+  room.SetRenderEntranceBlockset(0x20);
+  room.RenderRoomGraphics();
+  EXPECT_FALSE(room.compiled_wall_profile_status().ok());
+  EXPECT_TRUE(std::all_of(room.get_gfx_buffer().begin(),
+                          room.get_gfx_buffer().end(),
+                          [](uint8_t pixel) { return pixel == 0; }));
   EXPECT_EQ(rom.vector(), bytes);
   // A room without a compiled class profile still uses a directly authored
   // kit AA2. Unsaved header edits must update and clear this transient mask.

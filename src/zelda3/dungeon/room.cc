@@ -1432,6 +1432,17 @@ void Room::RenderRoomGraphics() {
     // Ensure blocks_[] array is properly initialized before copying graphics
     // LoadRoomGraphics sets up which sheets go into which blocks
     LoadRoomGraphics();
+    if (!compiled_wall_profile_status_.ok()) {
+      // GUI callers also stop on unsupported compiled consumers. Clear stale
+      // surfaces and keep graphics dirty so correcting the header can retry.
+      for (auto* buffer : {&bg1_buffer_, &bg2_buffer_}) {
+        buffer->EnsureBitmapInitialized();
+        buffer->bitmap().Fill(255);
+        buffer->ClearBuffer();
+      }
+      dirty_state_.composite = true;
+      return;
+    }
     CopyRoomGraphicsToBuffer();
     dirty_state_.graphics = false;
   }
