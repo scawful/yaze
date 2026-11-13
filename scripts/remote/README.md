@@ -101,12 +101,20 @@ The PC-side clone (`%USERPROFILE%\src\yaze`) and worktree root
 
 Needs: Git for Windows, CMake, PowerShell 7 (`pwsh`), Visual Studio 2022 with
 the C++ x64 toolset and "C++ Clang tools for Windows" (clang-cl). Then put
-portable tools under `%USERPROFILE%\tools`:
+portable tools under the runner dir, `%USERPROFILE%\src\yaze-remote\tools`:
 
 | Tool | Source | Install to |
 |------|--------|------------|
-| Ninja 1.13.2 | `https://github.com/ninja-build/ninja/releases/download/v1.13.2/ninja-win.zip` | `tools\ninja\ninja.exe` |
-| ccache 4.14.1 | `https://github.com/ccache/ccache/releases/download/v4.14.1/ccache-4.14.1-windows-x86_64.zip` | `tools\ccache\ccache.exe` |
+| Ninja 1.13.2 | `https://github.com/ninja-build/ninja/releases/download/v1.13.2/ninja-win.zip` | `yaze-remote\tools\ninja\ninja.exe` |
+| ccache 4.14.1 | `https://github.com/ccache/ccache/releases/download/v4.14.1/ccache-4.14.1-windows-x86_64.zip` | `yaze-remote\tools\ccache\ccache.exe` |
+
+Do not keep `%USERPROFILE%\tools\ninja` and `%USERPROFILE%\tools\ccache`.
+Runners older than `f84273944` delete least-recently-used worktrees and job
+dirs older than two days after each build, and stale checkouts still upload
+them. They look for tools only in `%USERPROFILE%\tools`, so without it they
+stop with exit 3 before syncing. Current runners fall back to the old location
+with a warning until the tools are moved. Run `mm-test.sh` from a checkout
+that has this change; older helpers report the box as unprepared.
 
 The yaze clone is created on first use from the Mac checkout's `origin` URL
 (HTTPS only). Submodule mirrors (`yaze-remote\mods`) are created on first use.

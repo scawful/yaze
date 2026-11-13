@@ -8,8 +8,8 @@
 #   %USERPROFILE%\src\yaze            clone that receives bundles (refs/mm/<slug>)
 #   %USERPROFILE%\src\yw\<slug>       one worktree per branch, reused
 #   %USERPROFILE%\src\yaze-remote     jobs\, mods\ (submodule mirrors), cpm\,
-#                                     ccache\, stamps\, build.lock
-#   %USERPROFILE%\tools\ninja, \ccache  portable ninja.exe and ccache.exe
+#                                     ccache\, stamps\, build.lock,
+#                                     tools\ninja, tools\ccache (portable exes)
 #
 # Exit codes: 0 pass, 1 tests failed, 2 configure/build failed, 3 setup error.
 param([Parameter(Mandatory = $true)][string]$JobDir)
@@ -61,7 +61,13 @@ if ($Home_ -match '\s') { Fail 3 "USERPROFILE contains whitespace: $Home_" }
 $Root = Split-Path (Split-Path $JobDir)           # ...\yaze-remote
 $Repo = Join-Path $Home_ 'src\yaze'
 $WtRoot = Join-Path $Home_ 'src\yw'
-$Tools = Join-Path $Home_ 'tools'
+# Runners older than f84273944, still uploaded by stale checkouts, delete
+# worktrees and job dirs after building. They only look for ninja/ccache in
+# %USERPROFILE%\tools, so keeping the tools under <root>\tools makes them stop
+# before syncing.
+$Tools = Join-Path $Root 'tools'
+$LegacyTools = Join-Path $Home_ 'tools'
+$legacyArmed = (Test-Path "$LegacyTools\ninja\ninja.exe") -and (Test-Path "$LegacyTools\ccache\ccache.exe")
 $Wt = Join-Path $WtRoot $job.slug
 $BuildDir = Join-Path $Wt "build\presets\$($job.preset)"
 $times = [ordered]@{}
@@ -104,6 +110,10 @@ while (-not $lock) {
 
 # --- toolchain -----------------------------------------------------------------
 $cmakeExe = (Get-Command cmake -ErrorAction SilentlyContinue).Source   # before vcvars puts VS's copy first
+if ($legacyArmed) {
+  Say "WARNING: $LegacyTools\ninja and \ccache exist, so stale pre-f84273944 runners can still delete worktrees and job dirs here; move both into $Tools"
+  if (-not (Test-Path "$Tools\ninja\ninja.exe")) { $Tools = $LegacyTools }
+}
 foreach ($t in @("$Tools\ninja\ninja.exe", "$Tools\ccache\ccache.exe")) {
   if (-not (Test-Path $t)) { Fail 3 "missing $t (see scripts/remote/README.md, one-time setup)" }
 }
