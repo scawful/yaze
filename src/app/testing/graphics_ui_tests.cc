@@ -25,6 +25,7 @@
 #include "app/editor/graphics/graphics_editor.h"
 #include "app/editor/overworld/overworld_editor.h"
 #include "app/editor/registry/content_registry.h"
+#include "app/editor/system/session/session_coordinator.h"
 #include "app/gui/automation/widget_id_registry.h"
 #include "core/gfx_sheet_source.h"
 #include "core/project.h"
@@ -32,6 +33,7 @@
 #include "imgui.h"
 #include "imgui_internal.h"
 #include "nlohmann/json.hpp"
+#include "util/log.h"
 #include "util/rom_hash.h"
 
 #if __has_include("imgui_test_engine/imgui_te_context.h")
@@ -64,6 +66,23 @@ constexpr char kMixedReopenProject[] = "YAZE_GRAPHICS_EB_MIXED_REOPEN_PROJECT";
 constexpr uint16_t kSheet = 0xDF;
 constexpr uint16_t kNeighbor = 0xE4;
 constexpr uint8_t kColor = 6;
+
+struct FixtureOwner {
+  size_t session_id = 0;
+  fs::path project;
+};
+
+// What a gated EB run had established when it stopped.
+struct GatedProgress {
+  std::optional<fs::path> directory;  // owner-marked fixture directory
+  std::optional<FixtureOwner> owner;  // verified fixture session
+};
+
+std::string ReceiptStem(bool reopen, bool mixed) {
+  return std::string(mixed ? "graphics-source-eb-mixed-"
+                           : "graphics-source-eb-") +
+         (reopen ? "reopen" : "edit");
+}
 
 const char* Environment(const char* name) {
   const char* value = std::getenv(name);
@@ -453,7 +472,8 @@ void MixedTerrain(ImGuiTestContext* ctx, editor::EditorManager* manager,
 }
 
 void RunGraphicsSourceTest(ImGuiTestContext* ctx, bool reopen, bool eb,
-                           bool mixed = false) {
+                           bool mixed = false,
+                           GatedProgress* progress = nullptr) {
   const auto sheet = static_cast<uint16_t>(eb ? 0xEB : kSheet);
   const uint8_t initial_color = eb ? 6 : 0;
   const uint8_t color_index = eb ? 7 : kColor;
@@ -502,6 +522,9 @@ void RunGraphicsSourceTest(ImGuiTestContext* ctx, bool reopen, bool eb,
     IM_CHECK(fs::canonical(marker, ec) == marker && !ec);
     IM_CHECK(Read(marker) ==
              std::optional<std::string>(reopen ? "reopen\n" : "edit\n"));
+    if (progress) {
+      progress->directory = project.parent_path();
+    }
   }
 
   editor::EditorManager* manager = nullptr;
@@ -525,6 +548,9 @@ void RunGraphicsSourceTest(ImGuiTestContext* ctx, bool reopen, bool eb,
   }
   const Fixture fixture = *observed;
   const auto session = manager->GetCurrentSessionId();
+  if (progress) {
+    progress->owner = FixtureOwner{session, fixture.project};
+  }
   auto* data = manager->GetCurrentGameData();
   IM_CHECK(data && data->sheet_store.HasSheet(sheet));
   if (!eb) {
@@ -925,12 +951,8 @@ void RunGraphicsSourceTest(ImGuiTestContext* ctx, bool reopen, bool eb,
     const auto alternate_bytes = Read(fixture.alternate_spec);
     const auto project_bytes = Read(fixture.project);
     IM_CHECK(alternate_bytes && project_bytes);
-    const auto receipt =
-        fixture.project.parent_path() /
-        (mixed ? (reopen ? "graphics-source-eb-mixed-reopen-result.json"
-                         : "graphics-source-eb-mixed-edit-result.json")
-               : (reopen ? "graphics-source-eb-reopen-result.json"
-                         : "graphics-source-eb-edit-result.json"));
+    const auto receipt = fixture.project.parent_path() /
+                         (ReceiptStem(reopen, mixed) + "-result.json");
     std::error_code ec;
     IM_CHECK(!fs::exists(receipt, ec) && !ec);
     const nlohmann::json result = {
@@ -956,6 +978,90 @@ void RunGraphicsSourceTest(ImGuiTestContext* ctx, bool reopen, bool eb,
   }
   // The native owner must still observe normal Quit, PID/window closure and
   // the distinct reopen process. No native Save receipt is fabricated here.
+}
+
+// The Quit guard covers every session, so its Discard is safe only while the
+// verified fixture session is the only session and still holds the project.
+bool FixtureOwnsEverySession(editor::EditorManager& manager,
+                             const FixtureOwner& owner) {
+  const auto* sessions = manager.session_coordinator();
+  const auto* project = manager.GetCurrentProject();
+  std::error_code ec;
+  return sessions && sessions->GetTotalSessionCount() == 1 &&
+         sessions->GetSessionId(0) == owner.session_id &&
+         manager.GetCurrentSessionId() == owner.session_id && project &&
+         project->project_opened() &&
+         fs::equivalent(project->filepath, owner.project, ec) && !ec;
+}
+
+// A failed gated run publishes its own FAIL result and requests the normal
+// Quit, so the native owner does not wait for its deadline. The result file
+// name never matches a PASS receipt. Failures before the owner marker stay
+// with the native supervisor.
+void PublishGatedFailure(ImGuiTestContext* ctx, const GatedProgress& progress,
+                         bool reopen, bool mixed) {
+  if (!progress.directory) {
+    ctx->LogWarning("Failure before the owner marker; no result or Quit");
+    return;
+  }
+  const auto path =
+      *progress.directory / (ReceiptStem(reopen, mixed) + "-failure.json");
+  std::error_code ec;
+  if (fs::exists(path, ec) || ec) {
+    ctx->LogWarning("Failure result not written; %s already exists",
+                    path.string().c_str());
+  } else {
+    ImGuiTextBuffer errors;
+    ctx->TestOutput->Log.ExtractLinesForVerboseLevels(
+        ImGuiTestVerboseLevel_Error, ImGuiTestVerboseLevel_Error, &errors);
+    const nlohmann::json result = {
+        {"result", "FAIL"},
+        {"phase", reopen ? "reopen" : "edit"},
+        {"test", ctx->Test->Name},
+        {"fixture_observed", progress.owner.has_value()},
+        {"errors", std::string(errors.c_str())}};
+    std::ofstream file(path, std::ios::binary);
+    file << result.dump(2, ' ', false, nlohmann::json::error_handler_t::replace)
+         << '\n';
+    file.close();
+    ctx->LogWarning(
+        file.fail() ? "Failure result write failed: %s" : "Failure result: %s",
+        path.string().c_str());
+  }
+  auto* controller = Application::Instance().GetController();
+  auto* manager = controller ? controller->editor_manager() : nullptr;
+  if (!manager) {
+    return;
+  }
+  manager->QueueDeferredAction([manager, owner = progress.owner] {
+    // Quit replaces any pending guard, so an existing one is left untouched.
+    if (manager->HasPendingUnsavedSessionAction()) {
+      LOG_WARN("GraphicsSourceUITest",
+               "Failed run found a pending guard; Quit not requested");
+      return;
+    }
+    manager->Quit();
+    if (manager->quit() || !manager->HasPendingUnsavedSessionAction()) {
+      return;
+    }
+    // A failed run must never Save its partial edit. Discard only the guard
+    // this Quit raised, and only for a fixture that owns every session.
+    if (!owner || !FixtureOwnsEverySession(*manager, *owner)) {
+      LOG_WARN("GraphicsSourceUITest",
+               "Failed run left the unsaved-changes guard for the owner");
+      return;
+    }
+    manager->ConfirmPendingUnsavedSessionActionDiscardAndContinue();
+  });
+}
+
+void RunGatedGraphicsSourceTest(ImGuiTestContext* ctx, bool reopen,
+                                bool mixed) {
+  GatedProgress progress;
+  RunGraphicsSourceTest(ctx, reopen, true, mixed, &progress);
+  if (ctx->IsError()) {
+    PublishGatedFailure(ctx, progress, reopen, mixed);
+  }
 }
 
 }  // namespace
@@ -987,19 +1093,19 @@ void RegisterGraphicsSourceUITests(ImGuiTestEngine* engine) {
                                       : "fresh_process_source_reopen"));
   if (mixed && paint) {
     test->TestFunc = [](ImGuiTestContext* ctx) {
-      RunGraphicsSourceTest(ctx, false, true, true);
+      RunGatedGraphicsSourceTest(ctx, false, true);
     };
   } else if (mixed) {
     test->TestFunc = [](ImGuiTestContext* ctx) {
-      RunGraphicsSourceTest(ctx, true, true, true);
+      RunGatedGraphicsSourceTest(ctx, true, true);
     };
   } else if (eb && paint) {
     test->TestFunc = [](ImGuiTestContext* ctx) {
-      RunGraphicsSourceTest(ctx, false, true);
+      RunGatedGraphicsSourceTest(ctx, false, false);
     };
   } else if (eb) {
     test->TestFunc = [](ImGuiTestContext* ctx) {
-      RunGraphicsSourceTest(ctx, true, true);
+      RunGatedGraphicsSourceTest(ctx, true, false);
     };
   } else if (paint) {
     test->TestFunc = [](ImGuiTestContext* ctx) {
