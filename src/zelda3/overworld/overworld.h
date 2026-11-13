@@ -442,6 +442,7 @@ class Overworld {
       : rom_(rom), game_data_(game_data) {}
 
   void SetGameData(GameData* game_data) { game_data_ = game_data; }
+  GameData* game_data() const { return game_data_; }
 
   /// @brief Get version-specific ROM addresses
   zelda3_version_pointers version_constants() const {

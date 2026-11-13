@@ -848,31 +848,57 @@ TEST_F(OverworldTileRomTest, SeamCheckCellsTileQueryAndBothSidesAgree) {
     }
     return out;
   };
-  auto tile_at = [this](int screen, int x, int y) -> uint16_t {
-    auto location = overworld::LocateScreenTile(*overworld_, screen, x, y);
+  constexpr int kMap = 0x90;
+  EXPECT_EQ(overworld::CheckMapSeams(*overworld_, {kMap, 1, std::nullopt})
+                .status()
+                .code(),
+            absl::StatusCode::kFailedPrecondition);
+
+  zelda3::GameData game_data;
+  zelda3::LoadOptions options;
+  options.expand_rom = false;
+  ASSERT_TRUE(zelda3::LoadGameData(rom_, game_data, options).ok());
+  zelda3::Overworld ow(&rom_, &game_data);
+  ASSERT_TRUE(ow.Load(&rom_).ok());
+
+  auto tile_at = [&ow](int screen, int x, int y) -> uint16_t {
+    auto location = overworld::LocateScreenTile(ow, screen, x, y);
     EXPECT_TRUE(location.ok()) << location.status();
-    auto tile = overworld::ReadAreaTile(*overworld_, *location);
+    auto tile = overworld::ReadAreaTile(ow, *location);
     EXPECT_TRUE(tile.ok()) << tile.status();
     return tile.value_or(0);
   };
 
-  constexpr int kMap = 0x90;
-  auto reports = overworld::CheckMapSeams(*overworld_, {kMap, 1, std::nullopt});
+  ASSERT_TRUE(ow.EnsureMapBuilt(kMap).ok());
+  {
+    const auto* map = ow.overworld_map(kMap);
+    std::vector<uint16_t> palette;
+    for (size_t i = 0; i < map->current_palette().size(); ++i) {
+      palette.push_back(map->current_palette()[i].snes());
+    }
+    auto colors = overworld::Tile16Colors(map->current_tile16_blockset(),
+                                          palette, tile_at(kMap, 0, 0));
+    ASSERT_TRUE(colors.ok()) << colors.status();
+    EXPECT_TRUE(std::any_of(colors->begin(), colors->end(), [](uint16_t c) {
+      return c != overworld::kTransparentTile16Pixel;
+    })) << "edge tile built with no visible pixels";
+  }
+
+  auto reports = overworld::CheckMapSeams(ow, {kMap, 1, std::nullopt});
   ASSERT_TRUE(reports.ok()) << reports.status();
   ASSERT_FALSE(reports->empty());
-  const int parent = overworld_->overworld_map(kMap)->parent();
+  const int parent = ow.overworld_map(kMap)->parent();
   int changed_cells = 0;
   for (const auto& report : *reports) {
     SCOPED_TRACE(absl::StrFormat("seam $%02X|$%02X", kMap, report.neighbor_id));
-    EXPECT_NE(overworld_->overworld_map(report.neighbor_id)->parent(), parent);
+    EXPECT_NE(ow.overworld_map(report.neighbor_id)->parent(), parent);
     EXPECT_EQ(report.cells_checked, 32);
     for (const auto& change : report.changed) {
       for (const auto& [x, y] : change.cells) {
         EXPECT_EQ(tile_at(kMap, x, y), change.tile_id);
         ++changed_cells;
       }
-      auto one =
-          overworld::CheckMapSeams(*overworld_, {kMap, 1, change.tile_id});
+      auto one = overworld::CheckMapSeams(ow, {kMap, 1, change.tile_id});
       ASSERT_TRUE(one.ok()) << one.status();
       for (const auto& other : *one) {
         if (other.neighbor_id == report.neighbor_id) {
@@ -887,8 +913,8 @@ TEST_F(OverworldTileRomTest, SeamCheckCellsTileQueryAndBothSidesAgree) {
     }
 
     // Checking from the neighbour reports the same seam with sides swapped.
-    auto back = overworld::CheckMapSeams(*overworld_,
-                                         {report.neighbor_id, 1, std::nullopt});
+    auto back =
+        overworld::CheckMapSeams(ow, {report.neighbor_id, 1, std::nullopt});
     ASSERT_TRUE(back.ok()) << back.status();
     const auto it = std::find_if(
         back->begin(), back->end(),
@@ -899,7 +925,7 @@ TEST_F(OverworldTileRomTest, SeamCheckCellsTileQueryAndBothSidesAgree) {
     EXPECT_EQ(it->differing_sheet_slots, report.differing_sheet_slots);
   }
 
-  auto full = overworld::CheckMapSeams(*overworld_, {kMap, 32, std::nullopt});
+  auto full = overworld::CheckMapSeams(ow, {kMap, 32, std::nullopt});
   ASSERT_TRUE(full.ok()) << full.status();
   for (const auto& report : *full) {
     EXPECT_EQ(report.cells_checked, 1024);

@@ -924,6 +924,12 @@ absl::StatusOr<std::vector<SeamReport>> CheckMapSeams(
   if (query.depth < 1 || query.depth > 32) {
     return absl::InvalidArgumentError("--depth must be 1-32 cells");
   }
+  // Without graphics sheets every tile16 builds fully transparent and all
+  // seams would falsely compare equal.
+  if (overworld.game_data() == nullptr) {
+    return absl::FailedPreconditionError(
+        "Seam check needs the overworld loaded with game graphics");
+  }
   const int map_count = overworld.materialized_map_count();
   RETURN_IF_ERROR(ValidateMapId(query.map_id, map_count));
   ASSIGN_OR_RETURN(const int world,
