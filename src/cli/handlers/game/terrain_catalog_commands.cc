@@ -7,12 +7,15 @@
 #include <optional>
 #include <sstream>
 
+#include "absl/strings/str_format.h"
 #include "cli/handlers/game/overworld_render_commands.h"
 #include "cli/util/hex_util.h"
 #include "core/project.h"
 #include "core/rom_settings.h"
 #include "core/source_artifact_publisher.h"
 #include "core/terrain_catalog.h"
+#include "rom/lyra_layout_descriptor.h"
+#include "rom/rom.h"
 #include "util/macro.h"
 #include "zelda3/game_data.h"
 #include "zelda3/overworld/overworld.h"
@@ -149,9 +152,9 @@ absl::Status OverworldTerrainCatalogCommandHandler::ValidateArgs(
   }
   int map = -1;
   if (!util::ParseHexString(*parser.GetString("map"), &map) || map < 0 ||
-      map >= zelda3::kNumOverworldMaps) {
+      map >= zelda3::kExpandedMapCount) {
     return absl::InvalidArgumentError(
-        "Map must be within this adapter's supported 0x00-0x9F range");
+        "Map must be within this adapter's supported 0x00-0xBF range");
   }
   if (parser.HasFlag("write")) {
     return absl::InvalidArgumentError(
@@ -205,6 +208,17 @@ absl::Status OverworldTerrainCatalogCommandHandler::Execute(
   }
   int requested = 0;
   util::ParseHexString(*parser.GetString("map"), &requested);
+  // Only a validated native directory admits the special-overworld tail; a
+  // standard ROM's $A0-$BF slots are blank fill, not map data.
+  const auto layout = rom->InspectLyraLayout();
+  const int map_count = rom::IsNativeSpecialOverworldLayout(layout)
+                            ? layout.capacity
+                            : zelda3::kNumOverworldMaps;
+  if (requested >= map_count) {
+    return absl::InvalidArgumentError(
+        absl::StrFormat("Map 0x%02X is outside this ROM's %d-map overworld",
+                        requested, map_count));
+  }
   auto data_owner = std::make_unique<zelda3::GameData>();
   auto& data = *data_owner;
   zelda3::LoadOptions options;
@@ -214,9 +228,12 @@ absl::Status OverworldTerrainCatalogCommandHandler::Execute(
   ow->SetGameData(&data);
   RETURN_IF_ERROR(ow->Load(rom));
   ow->SetGraphicsPreview(preview.preview);
+  if (requested >= ow->materialized_map_count()) {
+    return absl::FailedPreconditionError(absl::StrFormat(
+        "Map 0x%02X was not materialized by the overworld loader", requested));
+  }
   const int parent = ow->overworld_map(requested)->parent();
-  if (parent < 0 || parent >= zelda3::kNumOverworldMaps ||
-      parent / 64 != requested / 64) {
+  if (parent < 0 || parent >= map_count || parent / 64 != requested / 64) {
     return absl::FailedPreconditionError(
         "Invalid area parent/world relationship");
   }
@@ -232,8 +249,29 @@ absl::Status OverworldTerrainCatalogCommandHandler::Execute(
   const int world = parent / 64;
   const int origin_x = (parent % 8) * 32;
   const int origin_y = ((parent % 64) / 8) * 32;
-  if (origin_x + width > 256 || origin_y + height > (world == 2 ? 128 : 256)) {
+  const int world_rows = world == 2 ? (map_count - 0x80) / 8 * 32 : 256;
+  if (origin_x + width > 256 || origin_y + height > world_rows) {
     return absl::FailedPreconditionError("Area exceeds supported world bounds");
+  }
+  // One profile describes the whole area. A page with its own native
+  // appearance qualifies only if the renderer builds it identically.
+  for (int dy = 0; dy < height / 32; ++dy) {
+    for (int dx = 0; dx < width / 32; ++dx) {
+      const int page = parent + dx + dy * 8;
+      if (page == parent ||
+          !ow->overworld_map(page)->uses_native_screen_appearance()) {
+        continue;
+      }
+      RETURN_IF_ERROR(ow->EnsureMapBuilt(page));
+      const auto* built = ow->overworld_map(page);
+      if (built->current_graphics() != map->current_graphics() ||
+          !(built->current_palette() == map->current_palette())) {
+        return absl::FailedPreconditionError(absl::StrFormat(
+            "Page 0x%02X of area 0x%02X has its own native appearance that "
+            "differs from the parent's; terrain catalog profiles are per area",
+            page, parent));
+      }
+    }
   }
   json profile = {
       {"adapter", kAdapter},
@@ -304,12 +342,14 @@ absl::Status OverworldTerrainCatalogCommandHandler::Execute(
       if (source.kind == CharacterSource::Kind::kGraphicsPreview) {
         mask = PreviewTransparency(map->graphics_preview().at(q.id_),
                                    q.horizontal_mirror_, q.vertical_mirror_);
+      } else if (source.kind == CharacterSource::Kind::kNone) {
+        return absl::FailedPreconditionError(absl::StrFormat(
+            "Tile16 0x%04X quadrant %d reads character 0x%03X from slot %d, "
+            "which has no graphics source",
+            id, quadrant_index, q.id_, q.id_ / 64));
       } else {
-        const int sheet = source.kind == CharacterSource::Kind::kAnimatedSheet
-                              ? source.sheet
-                              : map->static_graphics(q.id_ / 64);
         ASSIGN_OR_RETURN(mask, zelda3::Tile8SourceTransparency(
-                                   data.graphics_buffer, sheet, q.id_,
+                                   data.graphics_buffer, source.sheet, q.id_,
                                    q.horizontal_mirror_, q.vertical_mirror_));
       }
       for (int py = 0; py < 8; ++py) {

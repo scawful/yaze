@@ -20,6 +20,7 @@
 #include "cli/handlers/game/overworld_commands.h"
 #include "cli/handlers/game/overworld_inspect.h"
 #include "cli/handlers/game/overworld_sprite_edit_commands.h"
+#include "cli/handlers/game/terrain_catalog_commands.h"
 #include "cli/handlers/tools/overworld_validate_commands.h"
 #include "core/features.h"
 #include "fixtures/lyra/native_directory_fixture.h"
@@ -35,6 +36,7 @@
 #include "zelda3/overworld/overworld.h"
 #include "zelda3/overworld/overworld_allocation.h"
 #include "zelda3/overworld/overworld_version_helper.h"
+#include "zelda3/overworld/terrain_graphics.h"
 
 namespace yaze::cli {
 namespace {
@@ -825,6 +827,180 @@ TEST_F(OverworldTileRomTest, TileStatsAndFindTileCoverTheNativeTail) {
       EXPECT_EQ(match["map_id"], "0xBF");
     }
   }
+}
+
+// Catalog one area into a fresh file; `out` receives the export on success.
+absl::Status RunTerrainCatalog(Rom* rom, const std::string& map,
+                               nlohmann::json* out = nullptr) {
+  const auto path = test::UniqueTempPath("terrain_catalog", ".json");
+  handlers::OverworldTerrainCatalogCommandHandler handler;
+  std::string output;
+  const auto status =
+      handler.Run({"--map=" + map, "--out=" + path.string(), "--format=json"},
+                  rom, &output);
+  if (status.ok() && out != nullptr) {
+    std::ifstream file(path);
+    *out = nlohmann::json::parse(file);
+  }
+  std::error_code ec;
+  std::filesystem::remove(path, ec);
+  return status;
+}
+
+TEST_F(OverworldTileRomTest, TerrainCatalogCoversTheNativeTail) {
+  // A standard ROM's $A0-$BF slots are blank fill, not catalog data.
+  ASSERT_FALSE(rom::IsNativeSpecialOverworldLayout(rom_.InspectLyraLayout()));
+  auto status = RunTerrainCatalog(&rom_, "0xA0");
+  EXPECT_TRUE(absl::IsInvalidArgument(status)) << status;
+  EXPECT_THAT(std::string(status.message()), HasSubstr("160-map overworld"));
+
+  for (uint16_t capacity : {160, 192}) {
+    SCOPED_TRACE(capacity);
+    test::native_overworld::NativeDirectoryFixture fixture(capacity);
+    ASSERT_NO_FATAL_FAILURE(SeedValidationFixture(&fixture));
+    fixture.UpgradeToRevision4();
+    Rom native;
+    ASSERT_TRUE(native.LoadFromData(fixture.bytes).ok());
+    nlohmann::json catalog;
+    status = RunTerrainCatalog(&native, "0xBF", &catalog);
+    if (capacity == 160) {
+      EXPECT_TRUE(absl::IsInvalidArgument(status)) << status;
+      continue;
+    }
+    ASSERT_TRUE(status.ok()) << status;
+    zelda3::Overworld world(&native);
+    ASSERT_TRUE(world.Load(&native).ok());
+    EXPECT_EQ(catalog["parent_area"], 0xBF);
+    EXPECT_EQ(catalog["profile"]["world"], 2);
+    // $BF is local 0x3F of the special world: grid origin (224,224).
+    const auto& grid = world.GetMapTiles(2);
+    int cells = 0;
+    for (const auto& record : catalog["records"]) {
+      for (const auto& at : record["occurrences"]) {
+        EXPECT_EQ(record["tile_id"],
+                  grid[224 + at[0].get<int>()][224 + at[1].get<int>()]);
+        ++cells;
+      }
+      for (const auto& quadrant : record["quadrants"]) {
+        EXPECT_NE(quadrant["graphics_source"]["kind"], "none");
+      }
+    }
+    EXPECT_EQ(cells, 32 * 32);
+  }
+}
+
+TEST_F(OverworldTileRomTest, TerrainCatalogExportsAnExplicitNativeSheetZero) {
+  test::native_overworld::NativeDirectoryFixture fixture(192);
+  ASSERT_NO_FATAL_FAILURE(SeedValidationFixture(&fixture));
+  fixture.UpgradeToRevision4();
+  Rom native;
+  ASSERT_TRUE(native.LoadFromData(fixture.bytes).ok());
+  zelda3::Overworld world(&native);
+  ASSERT_TRUE(world.Load(&native).ok());
+  const auto& tile = world.tiles16()[world.GetMapTiles(2)[224][224]];
+  // A main slot below the animated slot 7 that $BF's first Tile16 reads.
+  int slot = -1;
+  for (const auto& quadrant :
+       {tile.tile0_, tile.tile1_, tile.tile2_, tile.tile3_}) {
+    if (quadrant.id_ / 64 < 7) {
+      slot = quadrant.id_ / 64;
+      break;
+    }
+  }
+  ASSERT_GE(slot, 0);
+
+  // Control: the seeded custom tile group names a nonzero sheet.
+  nlohmann::json control;
+  ASSERT_TRUE(RunTerrainCatalog(&native, "0xBF", &control).ok());
+  ASSERT_NE(control["profile"]["sheets"][slot], 0);
+
+  // Tile group ID $00 is an explicit sheet 0 ($FF would inherit).
+  fixture.bytes[fixture.Entry(6).pc_address + 0xBF * 8 + slot] = 0;
+  fixture.Seal();
+  Rom zeroed;
+  ASSERT_TRUE(zeroed.LoadFromData(fixture.bytes).ok());
+  nlohmann::json catalog;
+  const auto status = RunTerrainCatalog(&zeroed, "0xBF", &catalog);
+  ASSERT_TRUE(status.ok()) << status;
+  EXPECT_EQ(catalog["profile"]["sheets"][slot], 0);
+
+  auto data = std::make_unique<zelda3::GameData>();
+  zelda3::LoadOptions options;
+  options.expand_rom = false;
+  ASSERT_TRUE(zelda3::LoadGameData(zeroed, *data, options).ok());
+  int checked = 0;
+  for (const auto& record : catalog["records"]) {
+    for (const auto& quadrant : record["quadrants"]) {
+      const int id = quadrant["tile8_id"];
+      if (id / 64 != slot)
+        continue;
+      EXPECT_EQ(quadrant["graphics_source"]["kind"], "sheet");
+      EXPECT_EQ(quadrant["graphics_source"]["sheet"], 0);
+      const auto mask = zelda3::Tile8SourceTransparency(
+          data->graphics_buffer, 0, id, quadrant["flip_x"].get<bool>(),
+          quadrant["flip_y"].get<bool>());
+      ASSERT_TRUE(mask.ok()) << mask.status();
+      EXPECT_EQ(quadrant["transparent_pixels"],
+                std::count(mask->begin(), mask->end(), 1));
+      ++checked;
+    }
+  }
+  EXPECT_GT(checked, 0);
+}
+
+TEST_F(OverworldTileRomTest, TerrainCatalogAdmitsOnlyPagesThatMatchTheArea) {
+  test::native_overworld::NativeDirectoryFixture fixture(192);
+  ASSERT_NO_FATAL_FAILURE(SeedValidationFixture(&fixture));
+  fixture.UpgradeToRevision4();
+  // Appearance flags are valid only from $80; find a multi-page special area.
+  int parent = -1;
+  int page = -1;
+  for (int map = 0x80; map < 0xA0 && page < 0; ++map) {
+    const auto* area = overworld_->overworld_map(map);
+    if (area->parent() != map)
+      continue;
+    parent = map;
+    if (area->area_size() == zelda3::AreaSizeEnum::LargeArea ||
+        area->area_size() == zelda3::AreaSizeEnum::WideArea) {
+      page = map + 1;
+    } else if (area->area_size() == zelda3::AreaSizeEnum::TallArea) {
+      page = map + 8;
+    }
+  }
+  ASSERT_GE(page, 0);
+  const std::string map = absl::StrFormat("0x%02X", page);
+  auto catalog_of = [&](nlohmann::json* out) {
+    fixture.Seal();
+    Rom rom;
+    EXPECT_TRUE(rom.LoadFromData(fixture.bytes).ok());
+    return RunTerrainCatalog(&rom, map, out);
+  };
+  nlohmann::json control;
+  ASSERT_TRUE(catalog_of(&control).ok());
+
+  // The page takes its own rows, copied from the parent: same build, same
+  // profile as the inherited control.
+  for (uint16_t id : {1, 2, 3, 4, 5, 6, 26, 27, 31}) {
+    const auto& entry = fixture.Entry(id);
+    std::copy_n(
+        fixture.bytes.begin() + entry.pc_address + parent * entry.stride,
+        entry.stride,
+        fixture.bytes.begin() + entry.pc_address + page * entry.stride);
+  }
+  fixture.bytes[fixture.Entry(410).pc_address + page] = 1;
+  nlohmann::json same;
+  const auto same_status = catalog_of(&same);
+  ASSERT_TRUE(same_status.ok()) << same_status;
+  EXPECT_EQ(same["profile_fingerprint"], control["profile_fingerprint"]);
+  EXPECT_EQ(same["records"], control["records"]);
+
+  // A different main sheet on that page is not described by the area profile.
+  auto& sheet = fixture.bytes[fixture.Entry(6).pc_address + page * 8];
+  sheet = sheet == 0x10 ? 0x11 : 0x10;
+  const auto status = catalog_of(nullptr);
+  EXPECT_TRUE(absl::IsFailedPrecondition(status)) << status;
+  EXPECT_THAT(std::string(status.message()),
+              HasSubstr("differs from the parent's"));
 }
 
 std::filesystem::path CopyRomTo(const std::string& source,
