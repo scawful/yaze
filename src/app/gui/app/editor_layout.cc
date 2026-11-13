@@ -259,6 +259,9 @@ void PanelWindow::SetPosition(Position pos) {
 }
 
 void PanelWindow::SetStableId(const std::string& stable_id) {
+  if (stable_id == stable_id_) {
+    return;
+  }
   stable_id_ = stable_id;
   UpdateWindowName();
 }

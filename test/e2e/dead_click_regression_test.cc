@@ -280,6 +280,51 @@ void E2ETest_DeadClickPanelCloseButton(ImGuiTestContext* ctx) {
   ctx->Yield(2);
 }
 
+// Windows drawn outside WindowContent (emulator cards, Hex Editor) must use
+// the workspace window name: layout presets, pinning and sidebar focus all
+// look them up by it.
+void E2ETest_LegacyWindowsUseWorkspaceNames(ImGuiTestContext* ctx) {
+  Controller* controller = GetController(ctx);
+  IM_CHECK(controller != nullptr);
+  yaze::test::gui::LoadRomInTest(ctx,
+                                 yaze::test::TestRomManager::GetTestRomPath());
+  auto* rom = controller->GetCurrentRom();
+  if (!rom || !rom->is_loaded()) {
+    ctx->LogWarning("LegacyWindowNames: no test ROM loaded; skipping.");
+    return;
+  }
+  WorkspaceWindowManager* wm = GetWindowManager(controller);
+  IM_CHECK(wm != nullptr);
+  const size_t session = controller->editor_manager()->GetCurrentSessionId();
+  const char* const ids[] = {
+      "emulator.cpu_debugger",       "emulator.ppu_viewer",
+      "emulator.memory_viewer",      "emulator.breakpoints",
+      "emulator.performance",        "emulator.ai_agent",
+      "emulator.save_states",        "emulator.keyboard_config",
+      "emulator.apu_debugger",       "emulator.audio_mixer",
+      "emulator.virtual_controller", "memory.hex_editor",
+  };
+  for (const char* id : ids) {
+    IM_CHECK(wm->OpenWindow(session, id));
+  }
+  ctx->Yield(5);
+
+  for (const char* id : ids) {
+    const std::string title = WindowTitle(controller, id);
+    IM_CHECK_NO_RET(!title.empty());
+    ImGuiWindow* window = ImGui::FindWindowByName(title.c_str());
+    if (window == nullptr || !window->WasActive) {
+      ctx->LogError("No live window named '%s' for %s", title.c_str(), id);
+    }
+    IM_CHECK_NO_RET(window != nullptr && window->WasActive);
+  }
+
+  for (const char* id : ids) {
+    wm->CloseWindow(session, id);
+  }
+  ctx->Yield(2);
+}
+
 // Brush tool: a right-click on another map both samples its Tile16 and makes
 // that map (its whole area) the current map, like a Select-tool left-click.
 // Run pinned: unpinned, hovering alone already selects the map, which hid
@@ -627,6 +672,11 @@ void RegisterDeadClickRegressionTests(ImGuiTestEngine* engine,
 
   t = IM_REGISTER_TEST(engine, "DeadClickSmoke", "PanelCloseButton");
   t->TestFunc = E2ETest_DeadClickPanelCloseButton;
+  t->UserData = controller;
+
+  t = IM_REGISTER_TEST(engine, "DeadClickSmoke",
+                       "LegacyWindowsUseWorkspaceNames");
+  t->TestFunc = E2ETest_LegacyWindowsUseWorkspaceNames;
   t->UserData = controller;
 
   t = IM_REGISTER_TEST(engine, "OverworldRightClick",

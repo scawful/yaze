@@ -1,7 +1,10 @@
 #include "app/editor/code/memory_editor.h"
 #include "util/i18n/tr.h"
 
+#include <string>
+
 #include "absl/strings/str_format.h"
+#include "app/editor/system/workspace/workspace_window_manager.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/layout_helpers.h"
 #include "app/gui/core/style.h"
@@ -17,7 +20,15 @@ absl::Status MemoryEditor::Update() {
     return absl::OkStatus();
   }
 
-  ImGui::Begin("Hex Editor", &active_);
+  std::string window_name;
+  if (dependencies_.window_manager) {
+    window_name = dependencies_.window_manager->GetWorkspaceWindowName(
+        dependencies_.session_id, "memory.hex_editor");
+  }
+  if (window_name.empty()) {
+    window_name = "Hex Editor";
+  }
+  ImGui::Begin(window_name.c_str(), &active_);
   DrawToolbar();
   if (ImGui::Button(tr("Compare Rom"))) {
     LoadComparisonRom(util::FileDialogWrapper::ShowOpenFileDialog());

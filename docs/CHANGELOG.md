@@ -28,6 +28,9 @@ they are not part of its existing downloads. See the
 - Lyra gameplay-area documents (schema 5), 192-map navigation, and later
   Tile16 stroke/Undo integration are development work after the schema-3
   prerelease. Full expanded-map Oracle Build/Test is not release-qualified.
+- Emulator windows and the Hex Editor now carry their workspace window IDs, so
+  layout presets dock them, pinning keeps them in place, and the sidebar can
+  focus them. Saved positions for these windows reset once.
 - PNG/palette-strip import and the Sheet Browser palette selector are later
   graphics work. The release-hardening patch keeps the existing import window
   and moves its drawing component into the graphics feature-view module.

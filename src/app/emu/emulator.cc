@@ -926,6 +926,26 @@ void Emulator::RenderEmulatorInterface() {
     breakpoints_card.SetDefaultSize(400, 350);
     performance_card.SetDefaultSize(350, 300);
 
+    // Layout presets, pinning and sidebar focus find windows by the
+    // descriptor's ImGui name, so each card must carry its registered id.
+    const size_t session_id = window_manager_->GetActiveSessionId();
+    const auto bind_card = [&](gui::PanelWindow& card, const char* window_id) {
+      if (const auto* descriptor =
+              window_manager_->GetWindowDescriptor(session_id, window_id)) {
+        card.SetStableId(descriptor->card_id);
+      }
+    };
+    bind_card(cpu_card, "emulator.cpu_debugger");
+    bind_card(ppu_card, "emulator.ppu_viewer");
+    bind_card(memory_card, "emulator.memory_viewer");
+    bind_card(breakpoints_card, "emulator.breakpoints");
+    bind_card(performance_card, "emulator.performance");
+    bind_card(ai_card, "emulator.ai_agent");
+    bind_card(save_states_card, "emulator.save_states");
+    bind_card(keyboard_card, "emulator.keyboard_config");
+    bind_card(apu_card, "emulator.apu_debugger");
+    bind_card(audio_card, "emulator.audio_mixer");
+
     // Get visibility flags from registry and pass them to Begin() for proper X
     // button functionality This ensures each card window can be closed by the
     // user via the window close button
@@ -1005,6 +1025,7 @@ void Emulator::RenderEmulatorInterface() {
     static gui::PanelWindow controller_card("Virtual Controller",
                                             ICON_MD_SPORTS_ESPORTS);
     controller_card.SetDefaultSize(250, 450);
+    bind_card(controller_card, "emulator.virtual_controller");
     bool* virtual_controller_visible =
         window_manager_->GetWindowVisibilityFlag("emulator.virtual_controller");
     if (virtual_controller_visible && *virtual_controller_visible) {
