@@ -154,8 +154,11 @@ absl::Status ValidateAsset(const ProjectGraphicsImportAsset& asset) {
   }
   for (const auto& cell : asset.cells) {
     for (const auto& q : cell.quadrants) {
-      if (q.transparent)
+      if (q.transparent) {
+        if (q.priority)
+          return Invalid("Transparent import quadrant cannot carry priority");
         continue;
+      }
       const auto found = groups.find(q.palette);
       if (found == groups.end() || q.character < 0 ||
           q.character >=
