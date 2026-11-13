@@ -30,6 +30,7 @@
 #include "app/gfx/resource/arena.h"
 #include "app/platform/window.h"
 #include "app/testing/test_manager.h"
+#include "e2e/assembly_layout_test.h"
 #include "e2e/canvas_selection_test.h"
 #include "e2e/dead_click_regression_test.h"
 #include "e2e/dungeon_e2e_tests.h"
@@ -739,6 +740,9 @@ int main(int argc, char* argv[]) {
 
     // Mouse-release regressions: menu item, canvas context popup, close X
     yaze::test::e2e::RegisterDeadClickRegressionTests(engine, &controller);
+
+    // Disassembly panel fits the Assembly default dock at 1280x800
+    yaze::test::e2e::RegisterAssemblyLayoutTests(engine, &controller);
 
     // Settings drawer entry points: File menu, drawers button, Cmd/Ctrl+,
     yaze::test::e2e::RegisterSettingsDrawerTests(engine, &controller);

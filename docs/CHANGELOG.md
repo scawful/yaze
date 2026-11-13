@@ -41,6 +41,10 @@ they are not part of its existing downloads. See the
   dialog. A remembered choice never upgrades the ROM and is dropped when the
   ROM's ZSCustomOverworld version byte changes. `--rom_file` and the gRPC and
   emulator loaders apply a remembered choice but never wait on the dialog.
+- The Assembly editor's Disassembly panel fits its default right-side dock:
+  the bank list stacks above the preview when the panel is narrow, preview
+  and jump actions wrap instead of running off the edge, and the bank browser
+  no longer pushes the Quick ROM Slice out of view.
 - The ROM load options dialog no longer shows the "Upgrade ROM to
   ZSCustomOverworld" checkbox, which nothing applied; Upgrade is in the
   Overworld toolbar. A changed overworld load option applies when the ROM is

@@ -1136,6 +1136,7 @@ if(YAZE_BUILD_TESTS)
   # GUI tests always available when tests are built (uses ImGui Test Engine)
   set(GUI_TEST_SOURCES
     gui_test_utils.cc
+    e2e/assembly_layout_test.cc
     e2e/framework_smoke_test.cc
     e2e/controller_window_close_test.cc
     e2e/dead_click_regression_test.cc
@@ -1198,6 +1199,19 @@ if(YAZE_BUILD_TESTS)
       WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
   )
   set_tests_properties(gui_dead_click_smoke PROPERTIES
+    LABELS "gui_smoke;gui"
+    TIMEOUT 300
+  )
+
+  # The Disassembly panel in the Assembly default layout keeps its bank
+  # preview actions inside the docked panel at 1280x800. Needs a test ROM
+  # (YAZE_TEST_ROM_VANILLA); skipped without one.
+  add_test(
+      NAME gui_assembly_layout_smoke
+      COMMAND $<TARGET_FILE:yaze_test_gui> --ui --fast AssemblyLayoutSmoke
+      WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+  )
+  set_tests_properties(gui_assembly_layout_smoke PROPERTIES
     LABELS "gui_smoke;gui"
     TIMEOUT 300
   )

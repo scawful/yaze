@@ -127,6 +127,9 @@ class AssemblyEditor : public Editor {
   void DrawSymbolsContent();
   void DrawBuildOutput();
   void DrawDisassemblyContent();
+  void DrawZ3DisasmBankBrowser();
+  void DrawZ3DisasmBankList();
+  void DrawZ3DisasmPreview();
   void DrawToolbarContent();
 
   // Menu drawing

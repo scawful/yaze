@@ -686,6 +686,29 @@ std::optional<AsmSymbolLocation> FindLabelInFolder(
   return std::nullopt;
 }
 
+float ButtonWidth(const char* label) {
+  return ImGui::CalcTextSize(label, nullptr, true).x +
+         ImGui::GetStyle().FramePadding.x * 2.0f;
+}
+
+// A framed field `field_width` wide followed by its label.
+float LabeledFieldWidth(float field_width, const char* label) {
+  return field_width + ImGui::GetStyle().ItemInnerSpacing.x +
+         ImGui::CalcTextSize(label, nullptr, true).x;
+}
+
+// Keeps the next item on the current row only when it fits, so narrow docks
+// wrap controls instead of clipping them at the window edge.
+void SameLineIfFits(float next_width) {
+  const float right =
+      ImGui::GetCursorScreenPos().x + ImGui::GetContentRegionAvail().x;
+  if (ImGui::GetItemRectMax().x + ImGui::GetStyle().ItemSpacing.x +
+          next_width <=
+      right) {
+    ImGui::SameLine();
+  }
+}
+
 }  // namespace
 
 void AssemblyEditor::Initialize() {
@@ -1536,18 +1559,19 @@ void AssemblyEditor::DrawDisassemblyContent() {
 
   ImGui::Checkbox(tr("All banks"), &z3disasm_all_banks_);
   if (!z3disasm_all_banks_) {
-    ImGui::SameLine();
-    ImGui::SetNextItemWidth(70.0f);
+    constexpr float kBankFieldWidth = 70.0f;
+    SameLineIfFits(LabeledFieldWidth(kBankFieldWidth, tr("Start")));
+    ImGui::SetNextItemWidth(kBankFieldWidth);
     ImGui::InputInt(tr("Start"), &z3disasm_bank_start_);
-    ImGui::SameLine();
-    ImGui::SetNextItemWidth(70.0f);
+    SameLineIfFits(LabeledFieldWidth(kBankFieldWidth, tr("End")));
+    ImGui::SetNextItemWidth(kBankFieldWidth);
     ImGui::InputInt(tr("End"), &z3disasm_bank_end_);
     z3disasm_bank_start_ = std::clamp(z3disasm_bank_start_, 0, 0xFF);
     z3disasm_bank_end_ = std::clamp(z3disasm_bank_end_, 0, 0xFF);
     if (z3disasm_bank_end_ < z3disasm_bank_start_) {
       z3disasm_bank_end_ = z3disasm_bank_start_;
     }
-    ImGui::SameLine();
+    SameLineIfFits(ButtonWidth(tr("Use Query Bank")));
     if (ImGui::SmallButton(tr("Use Query Bank"))) {
       if (auto bank = CurrentDisassemblyBank(); bank.has_value()) {
         z3disasm_bank_start_ = static_cast<int>(*bank);
@@ -1570,14 +1594,15 @@ void AssemblyEditor::DrawDisassemblyContent() {
   }
   ImGui::EndDisabled();
   if (task_snapshot.running) {
-    ImGui::SameLine();
+    SameLineIfFits(ButtonWidth(ICON_MD_CANCEL " Cancel"));
     if (gui::ThemedButton(ICON_MD_CANCEL " Cancel")) {
       z3disasm_task_.Cancel();
     }
   }
   if (!can_generate) {
-    ImGui::SameLine();
-    ImGui::TextDisabled(tr("Load or configure a ROM path first."));
+    const char* hint = tr("Load or configure a ROM path first.");
+    SameLineIfFits(ImGui::CalcTextSize(hint).x);
+    ImGui::TextDisabled("%s", hint);
   }
 
   if (!z3disasm_status_.empty()) {
@@ -1599,182 +1624,25 @@ void AssemblyEditor::DrawDisassemblyContent() {
     ImGui::TextDisabled(tr(
         "No generated bank files yet. Run z3disasm to populate this browser."));
   } else {
-    if (ImGui::BeginTable(
-            "##z3disasm_browser", 2,
-            ImGuiTableFlags_Resizable | ImGuiTableFlags_BordersInnerV)) {
-      ImGui::TableSetupColumn("Banks", ImGuiTableColumnFlags_WidthFixed,
-                              180.0f);
-      ImGui::TableSetupColumn("Preview", ImGuiTableColumnFlags_WidthStretch);
-      ImGui::TableNextRow();
-
-      ImGui::TableSetColumnIndex(0);
-      if (ImGui::BeginChild("##z3disasm_list", ImVec2(0, 0), true)) {
-        for (int i = 0; i < static_cast<int>(z3disasm_files_.size()); ++i) {
-          const std::string name =
-              std::filesystem::path(z3disasm_files_[i]).filename().string();
-          if (ImGui::Selectable(name.c_str(), z3disasm_selected_index_ == i)) {
-            z3disasm_selected_index_ = i;
-            LoadSelectedZ3DisassemblyFile();
-          }
-        }
-      }
-      ImGui::EndChild();
-
-      ImGui::TableSetColumnIndex(1);
-      if (ImGui::BeginChild("##z3disasm_preview", ImVec2(0, 0), true)) {
-        if (!z3disasm_selected_path_.empty()) {
-          const std::string selected_name =
-              std::filesystem::path(z3disasm_selected_path_)
-                  .filename()
-                  .string();
-          ImGui::TextUnformatted(selected_name.c_str());
-          ImGui::SameLine();
-          if (ImGui::SmallButton(tr("Open in Code Editor"))) {
-            ChangeActiveFile(z3disasm_selected_path_);
-          }
-          const std::string bank_query = BuildProjectGraphBankQuery();
-          if (!bank_query.empty()) {
-            ImGui::SameLine();
-            if (ImGui::SmallButton(tr("Open Bank Graph"))) {
-              auto status = RunProjectGraphQueryInDrawer(
-                  {"--query=bank",
-                   absl::StrFormat("--bank=%02X", SelectedZ3DisasmBankIndex()),
-                   "--format=json"},
-                  absl::StrFormat("Project Graph Bank $%02X",
-                                  SelectedZ3DisasmBankIndex()));
-              if (!status.ok()) {
-                z3disasm_status_ = std::string(status.message());
-              }
-            }
-            ImGui::SameLine();
-            if (ImGui::SmallButton(tr("Copy Bank Query"))) {
-              ImGui::SetClipboardText(bank_query.c_str());
-            }
-            ImGui::TextDisabled("%s", bank_query.c_str());
-          }
-          ImGui::Separator();
-          if (!z3disasm_source_jumps_.empty() &&
-              ImGui::CollapsingHeader(tr("Source Map Jumps"),
-                                      ImGuiTreeNodeFlags_DefaultOpen)) {
-            for (const auto& jump : z3disasm_source_jumps_) {
-              ImGui::PushID(static_cast<int>(jump.address) ^ jump.line);
-              const std::string source_label =
-                  absl::StrFormat("Source##source_jump_%06X", jump.address);
-              const std::string graph_label =
-                  absl::StrFormat("Graph##source_graph_%06X", jump.address);
-              const std::string copy_label =
-                  absl::StrFormat("Copy##source_copy_%06X", jump.address);
-              const std::string addr_label =
-                  absl::StrFormat("Addr##source_addr_%06X", jump.address);
-              if (ImGui::SmallButton(source_label.c_str())) {
-                JumpToReference(absl::StrCat(jump.file, ":", jump.line))
-                    .IgnoreError();
-              }
-              ImGui::SameLine();
-              if (ImGui::SmallButton(graph_label.c_str())) {
-                auto status = RunProjectGraphQueryInDrawer(
-                    {"--query=lookup",
-                     absl::StrFormat("--address=%06X", jump.address),
-                     "--format=json"},
-                    absl::StrFormat("Project Graph Lookup $%06X",
-                                    jump.address));
-                if (!status.ok()) {
-                  z3disasm_status_ = std::string(status.message());
-                }
-              }
-              ImGui::SameLine();
-              if (ImGui::SmallButton(copy_label.c_str())) {
-                const std::string query =
-                    BuildProjectGraphLookupQuery(jump.address);
-                ImGui::SetClipboardText(query.c_str());
-              }
-              ImGui::SameLine();
-              if (ImGui::SmallButton(addr_label.c_str())) {
-                disasm_query_ = absl::StrFormat("0x%06X", jump.address);
-                NavigateDisassemblyQuery().IgnoreError();
-              }
-              ImGui::SameLine();
-              ImGui::TextWrapped("$%06X  %s:%d", jump.address,
-                                 jump.file.c_str(), jump.line);
-              ImGui::PopID();
-            }
-          }
-          if (!z3disasm_hook_jumps_.empty() &&
-              ImGui::CollapsingHeader(tr("Hook Jumps"),
-                                      ImGuiTreeNodeFlags_DefaultOpen)) {
-            for (const auto& hook : z3disasm_hook_jumps_) {
-              ImGui::PushID(static_cast<int>(hook.address) ^ hook.size ^
-                            0x4000);
-              const std::string source_label =
-                  absl::StrFormat("Source##hook_jump_%06X", hook.address);
-              const std::string graph_label =
-                  absl::StrFormat("Graph##hook_graph_%06X", hook.address);
-              const std::string copy_label =
-                  absl::StrFormat("Copy##hook_copy_%06X", hook.address);
-              const std::string addr_label =
-                  absl::StrFormat("Addr##hook_addr_%06X", hook.address);
-              if (!hook.source.empty() &&
-                  ImGui::SmallButton(source_label.c_str())) {
-                JumpToReference(hook.source).IgnoreError();
-              }
-              if (!hook.source.empty()) {
-                ImGui::SameLine();
-              }
-              if (ImGui::SmallButton(graph_label.c_str())) {
-                auto status = RunProjectGraphQueryInDrawer(
-                    {"--query=lookup",
-                     absl::StrFormat("--address=%06X", hook.address),
-                     "--format=json"},
-                    absl::StrFormat("Project Graph Lookup $%06X",
-                                    hook.address));
-                if (!status.ok()) {
-                  z3disasm_status_ = std::string(status.message());
-                }
-              }
-              ImGui::SameLine();
-              if (ImGui::SmallButton(copy_label.c_str())) {
-                const std::string query =
-                    BuildProjectGraphLookupQuery(hook.address);
-                ImGui::SetClipboardText(query.c_str());
-              }
-              ImGui::SameLine();
-              if (ImGui::SmallButton(addr_label.c_str())) {
-                disasm_query_ = absl::StrFormat("0x%06X", hook.address);
-                NavigateDisassemblyQuery().IgnoreError();
-              }
-              ImGui::SameLine();
-              ImGui::TextWrapped("$%06X  %s %s (+%d) %s", hook.address,
-                                 hook.kind.c_str(), hook.name.c_str(),
-                                 hook.size, hook.source.c_str());
-              ImGui::PopID();
-            }
-          }
-          ImGui::Separator();
-          ImGui::InputTextMultiline(
-              "##z3disasm_text", &z3disasm_selected_contents_,
-              ImVec2(-1.0f, -1.0f), ImGuiInputTextFlags_ReadOnly);
-        } else {
-          ImGui::TextDisabled(
-              tr("Select a generated bank file to preview it."));
-        }
-      }
-      ImGui::EndChild();
-      ImGui::EndTable();
-    }
+    DrawZ3DisasmBankBrowser();
   }
 
   ImGui::SeparatorText(tr("Quick ROM Slice"));
   ImGui::TextDisabled(tr("Inline viewer for the currently loaded ROM buffer."));
-  ImGui::SetNextItemWidth(220.0f);
-  ImGui::InputText(tr("Address or Symbol"), &disasm_query_);
-  ImGui::SameLine();
+  const char* query_label = tr("Address or Symbol");
+  ImGui::SetNextItemWidth(
+      std::min(220.0f, std::max(ImGui::GetFontSize() * 6.0f,
+                                ImGui::GetContentRegionAvail().x -
+                                    LabeledFieldWidth(0.0f, query_label))));
+  ImGui::InputText(query_label, &disasm_query_);
+  SameLineIfFits(ButtonWidth(tr("Go")));
   if (gui::PrimaryButton(tr("Go"))) {
     auto status = NavigateDisassemblyQuery();
     if (!status.ok()) {
       disasm_status_ = std::string(status.message());
     }
   }
-  ImGui::SameLine();
+  SameLineIfFits(LabeledFieldWidth(80.0f, tr("Count")));
   ImGui::SetNextItemWidth(80.0f);
   ImGui::InputInt(tr("Count"), &disasm_instruction_count_);
   if (disasm_instruction_count_ < 1) {
@@ -1881,6 +1749,212 @@ void AssemblyEditor::DrawDisassemblyContent() {
     }
     ImGui::EndTable();
   }
+}
+
+void AssemblyEditor::DrawZ3DisasmBankBrowser() {
+  const ImGuiStyle& style = ImGui::GetStyle();
+  const float line_height = ImGui::GetTextLineHeightWithSpacing();
+  float name_width = 0.0f;
+  for (const auto& file : z3disasm_files_) {
+    const std::string name = std::filesystem::path(file).filename().string();
+    name_width = std::max(name_width, ImGui::CalcTextSize(name.c_str()).x);
+  }
+  const float list_width =
+      name_width + style.WindowPadding.x * 2.0f + style.ScrollbarSize;
+  const float min_preview_width = ImGui::GetFontSize() * 22.0f;
+  const ImVec2 avail = ImGui::GetContentRegionAvail();
+  // Leave room below for the Quick ROM Slice.
+  const float browser_height = std::max(line_height * 14.0f, avail.y * 0.6f);
+
+  if (avail.x >= list_width + style.ItemSpacing.x + min_preview_width) {
+    if (ImGui::BeginTable(
+            "##z3disasm_browser", 2,
+            ImGuiTableFlags_Resizable | ImGuiTableFlags_BordersInnerV)) {
+      ImGui::TableSetupColumn("Banks", ImGuiTableColumnFlags_WidthFixed,
+                              list_width);
+      ImGui::TableSetupColumn("Preview", ImGuiTableColumnFlags_WidthStretch);
+      ImGui::TableNextRow();
+      ImGui::TableSetColumnIndex(0);
+      if (ImGui::BeginChild("##z3disasm_list", ImVec2(0, browser_height),
+                            true)) {
+        DrawZ3DisasmBankList();
+      }
+      ImGui::EndChild();
+      ImGui::TableSetColumnIndex(1);
+      if (ImGui::BeginChild("##z3disasm_preview", ImVec2(0, browser_height),
+                            true)) {
+        DrawZ3DisasmPreview();
+      }
+      ImGui::EndChild();
+      ImGui::EndTable();
+    }
+    return;
+  }
+
+  // Too narrow for side-by-side: a short bank list above the preview.
+  const int visible_rows =
+      std::min(static_cast<int>(z3disasm_files_.size()), 6);
+  const float list_height =
+      visible_rows * line_height + style.WindowPadding.y * 2.0f;
+  if (ImGui::BeginChild("##z3disasm_list", ImVec2(0, list_height), true)) {
+    DrawZ3DisasmBankList();
+  }
+  ImGui::EndChild();
+  const float preview_height = std::max(
+      browser_height - list_height - style.ItemSpacing.y, line_height * 12.0f);
+  if (ImGui::BeginChild("##z3disasm_preview", ImVec2(0, preview_height),
+                        true)) {
+    DrawZ3DisasmPreview();
+  }
+  ImGui::EndChild();
+}
+
+void AssemblyEditor::DrawZ3DisasmBankList() {
+  for (int i = 0; i < static_cast<int>(z3disasm_files_.size()); ++i) {
+    const std::string name =
+        std::filesystem::path(z3disasm_files_[i]).filename().string();
+    if (ImGui::Selectable(name.c_str(), z3disasm_selected_index_ == i)) {
+      z3disasm_selected_index_ = i;
+      LoadSelectedZ3DisassemblyFile();
+    }
+  }
+}
+
+void AssemblyEditor::DrawZ3DisasmPreview() {
+  if (z3disasm_selected_path_.empty()) {
+    ImGui::TextDisabled(tr("Select a generated bank file to preview it."));
+    return;
+  }
+
+  const std::string selected_name =
+      std::filesystem::path(z3disasm_selected_path_).filename().string();
+  ImGui::TextUnformatted(selected_name.c_str());
+  SameLineIfFits(ButtonWidth(tr("Open in Code Editor")));
+  if (ImGui::SmallButton(tr("Open in Code Editor"))) {
+    ChangeActiveFile(z3disasm_selected_path_);
+  }
+  const std::string bank_query = BuildProjectGraphBankQuery();
+  if (!bank_query.empty()) {
+    SameLineIfFits(ButtonWidth(tr("Open Bank Graph")));
+    if (ImGui::SmallButton(tr("Open Bank Graph"))) {
+      auto status = RunProjectGraphQueryInDrawer(
+          {"--query=bank",
+           absl::StrFormat("--bank=%02X", SelectedZ3DisasmBankIndex()),
+           "--format=json"},
+          absl::StrFormat("Project Graph Bank $%02X",
+                          SelectedZ3DisasmBankIndex()));
+      if (!status.ok()) {
+        z3disasm_status_ = std::string(status.message());
+      }
+    }
+    SameLineIfFits(ButtonWidth(tr("Copy Bank Query")));
+    if (ImGui::SmallButton(tr("Copy Bank Query"))) {
+      ImGui::SetClipboardText(bank_query.c_str());
+    }
+    ImGui::PushTextWrapPos(0.0f);
+    ImGui::TextDisabled("%s", bank_query.c_str());
+    ImGui::PopTextWrapPos();
+  }
+  ImGui::Separator();
+
+  // Each jump row: action buttons, then its location; both wrap when narrow.
+  const auto draw_location = [](const std::string& text) {
+    SameLineIfFits(ImGui::CalcTextSize(text.c_str()).x);
+    ImGui::TextWrapped("%s", text.c_str());
+  };
+
+  if (!z3disasm_source_jumps_.empty() &&
+      ImGui::CollapsingHeader(tr("Source Map Jumps"),
+                              ImGuiTreeNodeFlags_DefaultOpen)) {
+    for (const auto& jump : z3disasm_source_jumps_) {
+      ImGui::PushID(static_cast<int>(jump.address) ^ jump.line);
+      const std::string source_label =
+          absl::StrFormat("Source##source_jump_%06X", jump.address);
+      const std::string graph_label =
+          absl::StrFormat("Graph##source_graph_%06X", jump.address);
+      const std::string copy_label =
+          absl::StrFormat("Copy##source_copy_%06X", jump.address);
+      const std::string addr_label =
+          absl::StrFormat("Addr##source_addr_%06X", jump.address);
+      if (ImGui::SmallButton(source_label.c_str())) {
+        JumpToReference(absl::StrCat(jump.file, ":", jump.line)).IgnoreError();
+      }
+      SameLineIfFits(ButtonWidth(graph_label.c_str()));
+      if (ImGui::SmallButton(graph_label.c_str())) {
+        auto status = RunProjectGraphQueryInDrawer(
+            {"--query=lookup", absl::StrFormat("--address=%06X", jump.address),
+             "--format=json"},
+            absl::StrFormat("Project Graph Lookup $%06X", jump.address));
+        if (!status.ok()) {
+          z3disasm_status_ = std::string(status.message());
+        }
+      }
+      SameLineIfFits(ButtonWidth(copy_label.c_str()));
+      if (ImGui::SmallButton(copy_label.c_str())) {
+        const std::string query = BuildProjectGraphLookupQuery(jump.address);
+        ImGui::SetClipboardText(query.c_str());
+      }
+      SameLineIfFits(ButtonWidth(addr_label.c_str()));
+      if (ImGui::SmallButton(addr_label.c_str())) {
+        disasm_query_ = absl::StrFormat("0x%06X", jump.address);
+        NavigateDisassemblyQuery().IgnoreError();
+      }
+      draw_location(
+          absl::StrFormat("$%06X  %s:%d", jump.address, jump.file, jump.line));
+      ImGui::PopID();
+    }
+  }
+  if (!z3disasm_hook_jumps_.empty() &&
+      ImGui::CollapsingHeader(tr("Hook Jumps"),
+                              ImGuiTreeNodeFlags_DefaultOpen)) {
+    for (const auto& hook : z3disasm_hook_jumps_) {
+      ImGui::PushID(static_cast<int>(hook.address) ^ hook.size ^ 0x4000);
+      const std::string source_label =
+          absl::StrFormat("Source##hook_jump_%06X", hook.address);
+      const std::string graph_label =
+          absl::StrFormat("Graph##hook_graph_%06X", hook.address);
+      const std::string copy_label =
+          absl::StrFormat("Copy##hook_copy_%06X", hook.address);
+      const std::string addr_label =
+          absl::StrFormat("Addr##hook_addr_%06X", hook.address);
+      if (!hook.source.empty()) {
+        if (ImGui::SmallButton(source_label.c_str())) {
+          JumpToReference(hook.source).IgnoreError();
+        }
+        SameLineIfFits(ButtonWidth(graph_label.c_str()));
+      }
+      if (ImGui::SmallButton(graph_label.c_str())) {
+        auto status = RunProjectGraphQueryInDrawer(
+            {"--query=lookup", absl::StrFormat("--address=%06X", hook.address),
+             "--format=json"},
+            absl::StrFormat("Project Graph Lookup $%06X", hook.address));
+        if (!status.ok()) {
+          z3disasm_status_ = std::string(status.message());
+        }
+      }
+      SameLineIfFits(ButtonWidth(copy_label.c_str()));
+      if (ImGui::SmallButton(copy_label.c_str())) {
+        const std::string query = BuildProjectGraphLookupQuery(hook.address);
+        ImGui::SetClipboardText(query.c_str());
+      }
+      SameLineIfFits(ButtonWidth(addr_label.c_str()));
+      if (ImGui::SmallButton(addr_label.c_str())) {
+        disasm_query_ = absl::StrFormat("0x%06X", hook.address);
+        NavigateDisassemblyQuery().IgnoreError();
+      }
+      draw_location(absl::StrFormat("$%06X  %s %s (+%d) %s", hook.address,
+                                    hook.kind, hook.name, hook.size,
+                                    hook.source));
+      ImGui::PopID();
+    }
+  }
+  ImGui::Separator();
+  const float text_height =
+      std::max(ImGui::GetContentRegionAvail().y,
+               ImGui::GetTextLineHeightWithSpacing() * 8.0f);
+  ImGui::InputTextMultiline("##z3disasm_text", &z3disasm_selected_contents_,
+                            ImVec2(-1.0f, text_height),
+                            ImGuiInputTextFlags_ReadOnly);
 }
 
 void AssemblyEditor::DrawToolbarContent() {
