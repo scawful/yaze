@@ -3,7 +3,7 @@
 #include "imgui_test_engine/imgui_te_context.h"
 #include "test_utils.h"
 
-#include "absl/strings/str_format.h"
+#include "absl/strings/strip.h"
 #include "app/controller.h"
 #include "app/editor/editor_manager.h"
 #include "rom/rom.h"
@@ -55,9 +55,23 @@ void LoadRomInTest(ImGuiTestContext* ctx, const std::string& rom_path) {
 }
 
 void OpenEditorInTest(ImGuiTestContext* ctx, const std::string& editor_name) {
-  // Editors are under the "View" menu in yaze's menu structure
-  // See: src/app/editor/system/menu_orchestrator.cc BuildViewMenu()
-  ctx->MenuClick(absl::StrFormat("View/%s", editor_name).c_str());
+  yaze::Controller* controller = (yaze::Controller*)ctx->Test->UserData;
+  if (!controller) {
+    ctx->LogError("OpenEditorInTest: Controller is null!");
+    return;
+  }
+
+  // The View menu has no per-editor entries; switch the way the activity bar
+  // and Switch Editor dialog do.
+  absl::string_view name = editor_name;
+  absl::ConsumeSuffix(&name, " Editor");
+  const auto type = editor::ParseEditorTypeFromString(name);
+  if (!type.has_value()) {
+    ctx->LogError("OpenEditorInTest: Unknown editor '%s'", editor_name.c_str());
+    return;
+  }
+  controller->editor_manager()->SwitchToEditor(*type, true);
+  ctx->Yield(2);
 }
 
 }  // namespace gui

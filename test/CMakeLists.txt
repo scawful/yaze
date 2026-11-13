@@ -1228,6 +1228,19 @@ if(YAZE_BUILD_TESTS)
     TIMEOUT 300
   )
 
+  # Per-editor smoke cases (Graphics, Sprite, Message, Music, Emulator,
+  # Window Browser, sidebar, right drawer, Assembly graph jump). Needs a test
+  # ROM (YAZE_TEST_ROM_VANILLA); skipped without one.
+  add_test(
+      NAME gui_editor_smoke
+      COMMAND $<TARGET_FILE:yaze_test_gui> --ui --fast EditorSmoke
+      WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+  )
+  set_tests_properties(gui_editor_smoke PROPERTIES
+    LABELS "gui_smoke;gui"
+    TIMEOUT 600
+  )
+
   if(YAZE_ENABLE_AI_RUNTIME)
     set(EXPERIMENTAL_TEST_SOURCES
       integration/ai/test_ai_tile_placement.cc

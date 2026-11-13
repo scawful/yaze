@@ -685,6 +685,21 @@ int main(int argc, char* argv[]) {
       return 1;
     }
 
+    // Small displays (the dummy video driver reports 1024x768) open the window
+    // below the compact-layout width, which hides the activity bar and side
+    // panel that GUI tests drive.
+    if (SDL_Window* window = controller.window()) {
+      constexpr int kMinTestWindowWidth = 1280;
+      constexpr int kMinTestWindowHeight = 800;
+      int width = 0;
+      int height = 0;
+      SDL_GetWindowSize(window, &width, &height);
+      if (width < kMinTestWindowWidth || height < kMinTestWindowHeight) {
+        SDL_SetWindowSize(window, std::max(width, kMinTestWindowWidth),
+                          std::max(height, kMinTestWindowHeight));
+      }
+    }
+
     // Get ImGui IO for additional test-specific configuration
     ImGuiIO& io = ImGui::GetIO();
 

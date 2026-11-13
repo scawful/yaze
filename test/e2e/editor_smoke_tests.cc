@@ -13,6 +13,8 @@
 #include "app/editor/shell/coordinator/ui_coordinator.h"
 #include "app/editor/system/workspace/workspace_window_manager.h"
 #include "app/gui/core/icons.h"
+#include "core/project.h"
+#include "imgui/imgui_internal.h"
 #include "imgui_test_engine/imgui_te_engine.h"
 #include "test_utils.h"
 
@@ -84,6 +86,11 @@ std::string GetWindowTitle(const WindowDescriptor* descriptor) {
   if (!descriptor) {
     return "";
   }
+  const std::string name = descriptor->GetImGuiWindowName();
+  if (ImGui::FindWindowByName(name.c_str()) != nullptr) {
+    return name;
+  }
+  // Emulator panels are drawn as "<icon> <name>" without the "##<id>" suffix.
   if (descriptor->icon.empty()) {
     return descriptor->display_name;
   }
@@ -125,7 +132,7 @@ bool CheckWindow(ImGuiTestContext* ctx, Controller* controller,
   }
 
   ImGuiTestItemInfo info =
-      ctx->WindowInfo(window_title.c_str(), ImGuiTestOpFlags_NoError);
+      ctx->WindowInfo(("//" + window_title).c_str(), ImGuiTestOpFlags_NoError);
   if (!info.Window) {
     ctx->LogWarning("Editor smoke test: Window not found: %s",
                     window_title.c_str());
@@ -304,7 +311,7 @@ void E2ETest_WindowSidebarToggleSmokeTest(ImGuiTestContext* ctx) {
   const auto* descriptor = GetWindowDescriptor(controller, window_id);
   IM_CHECK(descriptor != nullptr);
   const std::string sidebar_label =
-      descriptor->icon + std::string("  ") + descriptor->display_name;
+      "**/" + descriptor->icon + std::string("  ") + descriptor->display_name;
 
   ctx->SetRef("##SidePanel");
   IM_CHECK(ctx->ItemExists(sidebar_label.c_str()));
@@ -362,10 +369,30 @@ void E2ETest_AssemblyDisassemblyGraphJumpSmokeTest(ImGuiTestContext* ctx) {
       out_dir / "hooks.json",
       R"({"version":1,"hooks":[{"address":"0x808000","size":4,"kind":"hook","name":"Start","source":"asm/main.asm:12"}]})");
 
-  auto* project = controller->editor_manager()->GetCurrentProject();
-  IM_CHECK(project != nullptr);
-  project->code_folder = code_dir.string();
-  project->output_folder = out_dir.string();
+  // Editors read the session's project context, so open a real project
+  // rather than editing the raw-ROM placeholder project.
+  yaze::project::YazeProject project;
+  IM_CHECK(project.Create("disasm_graph", project_root.string()).ok());
+  // The loaded test ROM is already open in another session.
+  const fs::path project_rom = project_root / "project.sfc";
+  std::error_code copy_error;
+  fs::copy_file(yaze::test::TestRomManager::GetTestRomPath(), project_rom,
+                fs::copy_options::overwrite_existing, copy_error);
+  IM_CHECK(!copy_error);
+  project.rom_filename = project_rom.string();
+  project.code_folder = code_dir.string();
+  project.output_folder = out_dir.string();
+  IM_CHECK(project.Save().ok());
+  const absl::Status open_status =
+      controller->editor_manager()->OpenRomOrProject(
+          project.filepath,
+          yaze::editor::EditorManager::LoadOptionsPrompt::kNoPrompt);
+  if (!open_status.ok()) {
+    ctx->LogError("Open project failed: %s",
+                  std::string(open_status.message()).c_str());
+  }
+  IM_CHECK(open_status.ok());
+  ctx->Yield(10);
 
   controller->editor_manager()->SwitchToEditor(
       yaze::editor::EditorType::kAssembly, true);
@@ -384,6 +411,20 @@ void E2ETest_AssemblyDisassemblyGraphJumpSmokeTest(ImGuiTestContext* ctx) {
       yaze::editor::EditorType::kAssembly);
   IM_CHECK(assembly_editor != nullptr);
 
+  const std::string disasm_title =
+      GetWindowTitle(GetWindowDescriptor(controller, "assembly.disassembly"));
+  IM_CHECK(!disasm_title.empty());
+  ctx->SetRef(("//" + disasm_title).c_str());
+  // The docked panel leaves the bank preview too narrow for its buttons, and
+  // clipped buttons have no label to match. Float it on screen at full size.
+  ImGuiWindow* disasm_window = ImGui::FindWindowByName(disasm_title.c_str());
+  IM_CHECK(disasm_window != nullptr);
+  ImGui::DockContextQueueUndockWindow(ctx->UiContext, disasm_window);
+  ctx->Yield(2);
+  ImGui::SetWindowPos(disasm_window, ImVec2(60.0f, 60.0f), ImGuiCond_Always);
+  ImGui::SetWindowSize(disasm_window, ImVec2(1100.0f, 700.0f),
+                       ImGuiCond_Always);
+  ctx->Yield(3);
   IM_CHECK(ctx->ItemExists("**/Open Bank Graph"));
   ctx->ItemClick("**/Open Bank Graph");
   ctx->Yield(5);
@@ -395,6 +436,7 @@ void E2ETest_AssemblyDisassemblyGraphJumpSmokeTest(ImGuiTestContext* ctx) {
   IM_CHECK(drawer_manager->tool_output_content().find("asm/main.asm") !=
            std::string::npos);
 
+  ctx->SetRef("//##RightPanel");
   IM_CHECK(ctx->ItemExists("**/Open##tool_output_open_808000"));
   ctx->ItemClick("**/Open##tool_output_open_808000");
   ctx->Yield(5);
@@ -402,6 +444,10 @@ void E2ETest_AssemblyDisassemblyGraphJumpSmokeTest(ImGuiTestContext* ctx) {
   IM_CHECK(assembly_editor->active_file_path().find("main.asm") !=
            std::string::npos);
   IM_CHECK(assembly_editor->active_cursor_position().mLine == 11);
+
+  // An open drawer plus the expanded sidebar overlays the main menu bar.
+  drawer_manager->CloseDrawer();
+  ctx->Yield(2);
 }
 
 namespace yaze {

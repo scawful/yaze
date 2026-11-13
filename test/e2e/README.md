@@ -133,7 +133,8 @@ test/e2e/
 
 Available in `test_utils.h`:
 - `yaze::test::gui::LoadRomInTest(ctx, yaze::test::TestRomManager::GetTestRomPath())` - Load ROM for testing
-- `yaze::test::gui::OpenEditorInTest(ctx, "Editor Name")` - Open an editor window
+- `yaze::test::gui::OpenEditorInTest(ctx, "Editor Name")` - Switch to an editor
+  by name or category (for example `"Dungeon"`), as the activity bar does
 
 ## Future Test Ideas
 
