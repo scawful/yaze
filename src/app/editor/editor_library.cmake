@@ -52,6 +52,7 @@ set(
   app/editor/dungeon/inspectors/dungeon_chest_editor.cc
   app/editor/dungeon/inspectors/dungeon_destination_editor.cc
   app/editor/dungeon/inspectors/dungeon_connection_editor.cc
+  app/editor/dungeon/inspectors/dungeon_room_swap_dialog.cc
   app/editor/dungeon/inspectors/dungeon_room_transfer_editor.cc
   app/editor/dungeon/inspectors/door_editor_content.cc
   app/editor/dungeon/interaction/door_interaction_handler.cc

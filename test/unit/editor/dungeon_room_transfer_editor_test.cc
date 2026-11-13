@@ -386,6 +386,30 @@ TEST_F(DungeonRoomTransferEditorTest, ContextMenuOpensPersistentSharedDialog) {
   EXPECT_EQ(previews_, 0);
 }
 
+TEST_F(DungeonRoomTransferEditorTest,
+       ExternalCloneRequestPresetsSourceAndLeavesImportMode) {
+  rooms_[2] = zelda3::Room(2, &rom_);
+  rooms_[2].SetLoaded(true);
+  rooms_[2].SetTileObjects({zelda3::RoomObject(0x003, 6, 6, 0, 0)});
+  Prepare();
+  Click("TransferImportMode");
+  ASSERT_TRUE(viewer_.room_transfer_state().import_json);
+  RequestDungeonRoomTransferPopup(viewer_, 2);
+  EXPECT_TRUE(viewer_.room_transfer_state().request_popup);
+  EXPECT_FALSE(viewer_.room_transfer_state().import_json);
+  EXPECT_EQ(viewer_.room_transfer_state().source_room_id, 2);
+  popup_ = true;
+  Prepare();
+  EXPECT_TRUE(viewer_.room_transfer_state().popup_open);
+  Click("TransferPreview");
+  EXPECT_EQ(last_source_, 2);
+  EXPECT_EQ(last_target_, 0);
+  EXPECT_EQ(attempts_, 0);
+  // The target itself is never a valid clone source.
+  RequestDungeonRoomTransferPopup(viewer_, 0);
+  EXPECT_EQ(viewer_.room_transfer_state().source_room_id, 2);
+}
+
 TEST_F(DungeonRoomTransferEditorTest, NarrowInspectorContainsPreviewAndStatus) {
   width_ = 260;
   Prepare();

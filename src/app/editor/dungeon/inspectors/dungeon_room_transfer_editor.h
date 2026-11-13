@@ -34,6 +34,16 @@ void LoadDungeonRoomTransferFile(DungeonRoomTransferEditorState& state,
 
 void DrawDungeonRoomTransferEditor(DungeonCanvasViewer& viewer);
 void DrawDungeonRoomTransferPopup(DungeonCanvasViewer& viewer);
+// Opens the shared Clone / Import dialog for the viewer's current room on its
+// next draw. A valid, different `source_room_id` preselects Clone from it.
+void RequestDungeonRoomTransferPopup(DungeonCanvasViewer& viewer,
+                                     int source_room_id = -1);
+
+// Shared by clone/import and swap. Returns true when a choice changed;
+// clearing room properties also clears `copy_destinations`.
+bool DrawDungeonRoomTransferDomainChoices(uint16_t* domains,
+                                          bool* copy_destinations);
+void DrawDungeonRoomTransferCounts(const DungeonRoomTransferPlan& plan);
 
 }  // namespace yaze::editor
 
