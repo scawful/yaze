@@ -198,6 +198,38 @@ TEST_F(Tile16DocumentHistoryTest, LargeDefinitionImportIsOneCompleteUndoStep) {
 }
 
 TEST_F(Tile16DocumentHistoryTest,
+       PriorityDefinitionImportSurvivesUndoRedoAndReopen) {
+  const auto path =
+      std::filesystem::temp_directory_path() /
+      ("yaze_tile16_priority_" +
+       std::to_string(
+           std::chrono::steady_clock::now().time_since_epoch().count()) +
+       ".sfc");
+  Rom::SaveSettings settings;
+  settings.filename = path.string();
+  auto imported = initial_;
+  imported.tile0_.over_ = true;
+  imported.tile3_.over_ = true;
+  ASSERT_TRUE(
+      session_.ImportDefinitions({{0, imported}}, "Import priority art").ok());
+  ExpectDefinition(overworld_.tiles16()[0], imported);
+  ASSERT_TRUE(history_.Undo().ok());
+  ExpectDefinition(overworld_.tiles16()[0], initial_);
+  ASSERT_TRUE(history_.Redo().ok());
+  ExpectDefinition(overworld_.tiles16()[0], imported);
+
+  ASSERT_TRUE(overworld_.SaveMap16Tiles().ok());
+  ASSERT_TRUE(rom_.SaveToFile(settings).ok());
+  const auto reopened = ReopenTile16(path, 0);
+  ExpectDefinition(reopened, imported);
+  EXPECT_TRUE(reopened.tile0_.over_);
+  EXPECT_FALSE(reopened.tile1_.over_);
+  EXPECT_TRUE(reopened.tile3_.over_);
+  std::error_code ec;
+  std::filesystem::remove(path, ec);
+}
+
+TEST_F(Tile16DocumentHistoryTest,
        InvalidDefinitionImportsPreserveDocumentHistoryAndPendingState) {
   ASSERT_TRUE(session_.ApplyPaletteToAll(6).ok());
   ASSERT_TRUE(history_.Undo().ok());

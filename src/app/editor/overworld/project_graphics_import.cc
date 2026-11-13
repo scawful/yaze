@@ -162,6 +162,12 @@ absl::Status ValidateAsset(const ProjectGraphicsImportAsset& asset) {
               static_cast<int>(found->second->characters.size() / 32)) {
         return Invalid("Unknown logical palette or character in import");
       }
+      // A quadrant without opaque pixels keeps the destination's quadrant.
+      const auto pixels = Decode(found->second->characters, q.character);
+      if (q.priority && std::all_of(pixels.begin(), pixels.end(),
+                                    [](int p) { return p == 0 || p == 8; })) {
+        return Invalid("Priority import quadrant has no opaque pixels");
+      }
     }
   }
   return absl::OkStatus();
@@ -351,7 +357,7 @@ absl::StatusOr<ProjectGraphicsImportAsset> LoadProjectGraphicsImport(
         auto& q = asset.cells[y * asset.width + x].quadrants[i];
         if (part.value("transparent", false)) {
           if (part.contains("logical_palette") ||
-              part.contains("logical_character"))
+              part.contains("logical_character") || part.contains("priority"))
             return Invalid(
                 "Transparent import quadrant has conflicting art references");
           continue;
@@ -361,6 +367,7 @@ absl::StatusOr<ProjectGraphicsImportAsset> LoadProjectGraphicsImport(
         q.character = Integer(part.at("logical_character"), 1023);
         q.hflip = part.at("hflip").get<bool>();
         q.vflip = part.at("vflip").get<bool>();
+        q.priority = part.value("priority", false);
       }
     }
     if (positions.size() != asset.cells.size())
@@ -599,7 +606,7 @@ absl::StatusOr<ProjectGraphicsImportPlan> PlanProjectGraphicsImport(
           }
         }
         zelda3::MutableTile16QuadrantInfo(tile, q) =
-            gfx::TileInfo(c, group.binding.bg_row, v, h, false);
+            gfx::TileInfo(c, group.binding.bg_row, v, h, source.priority);
       }
       if (!opaque) {
         plan.stamp.tile_ids.push_back(old_id);
