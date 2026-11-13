@@ -25,7 +25,9 @@
 #include "util/rom_hash.h"
 #include "zelda3/dungeon/dungeon_wall_profile.h"
 #include "zelda3/dungeon/entrance_layout.h"
+#include "zelda3/dungeon/object_layer_semantics.h"
 #include "zelda3/dungeon/room_entrance.h"
+#include "zelda3/dungeon/room_layer_manager.h"
 
 ABSL_DECLARE_FLAG(bool, sandbox);
 
@@ -52,7 +54,9 @@ TEST(CompiledWallProfileAcceptance, GlaciaRoomsUseCompiledKitAndRender) {
   const auto original = rom->vector();
   auto data = std::make_unique<zelda3::GameData>();
   ASSERT_TRUE(zelda3::LoadGameData(*rom, *data).ok());
-  app::service::RenderService service(rom, data.get());
+  zelda3::RoomEntrance entrance(rom, 0x34);
+  ASSERT_TRUE(entrance.load_status().ok());
+  ASSERT_EQ(entrance.blockset_, 0x0B);
   for (int room : {0xDB, 0xCB, 0xBB, 0xBC, 0xBD, 0xAD, 0xAC, 0xCC, 0x9E, 0x9F,
                    0xAE, 0xAF, 0xBE, 0xBF, 0xCD, 0xCE, 0xCF, 0xDC, 0xDD}) {
     SCOPED_TRACE(room);
@@ -67,23 +71,36 @@ TEST(CompiledWallProfileAcceptance, GlaciaRoomsUseCompiledKitAndRender) {
     EXPECT_EQ((*profile)->class_words.size(), 24);
     EXPECT_EQ((*profile)->slot6_high_palette,
               estate ? 3ULL : 0x0000003002700070ULL);
-    app::service::RenderRequest request;
-    request.room_id = room;
-    request.graphics_entrance_id = 0x34;
-    auto rendered = service.RenderDungeonRoom(request);
-    ASSERT_TRUE(rendered.ok()) << rendered.status();
-    EXPECT_EQ(rendered->main_blockset, 0x0B);
-    EXPECT_EQ(rendered->graphics_sheets[3], estate ? 0xFE : 0xFD);
-    EXPECT_EQ(rendered->graphics_sheets[6], estate ? 0xF3 : 0xF4);
-    EXPECT_EQ(rendered->project_objects_without_data, 0);
-    EXPECT_GT(rendered->png_data.size(), 1000);
+    // Use the same CPU Room/compositor path as RenderService. The Windows
+    // focused target has no libpng; SDL's lossless BMP output keeps the exact
+    // indexed surface palette without claiming CLI PNG qualification.
+    auto loaded_room =
+        std::make_unique<zelda3::Room>(zelda3::LoadRoomFromRom(rom, room));
+    loaded_room->SetGameData(data.get());
+    loaded_room->SetRenderEntranceBlockset(entrance.blockset_);
+    loaded_room->LoadRoomGraphics();
+    ASSERT_TRUE(loaded_room->compiled_wall_profile_status().ok());
+    loaded_room->RenderRoomGraphics();
+    EXPECT_EQ(loaded_room->resolved_main_blockset(), 0x0B);
+    EXPECT_EQ(loaded_room->blocks()[3], estate ? 0xFE : 0xFD);
+    EXPECT_EQ(loaded_room->blocks()[6], estate ? 0xF3 : 0xF4);
+    EXPECT_EQ(
+        zelda3::CountProjectObjectsWithoutData(loaded_room->GetTileObjects()),
+        0);
+    zelda3::RoomLayerManager layers;
+    layers.ApplyLayerMerging(loaded_room->layer_merging());
+    layers.ApplyRoomEffect(loaded_room->effect());
+    layers.ApplyGameLayerRegisters(loaded_room->GameLayerRegisters());
+    auto& bitmap = loaded_room->GetCompositeBitmap(layers);
+    ASSERT_TRUE(bitmap.is_active());
+    ASSERT_NE(bitmap.surface(), nullptr);
+    EXPECT_EQ(bitmap.width(), 512);
+    EXPECT_EQ(bitmap.height(), 512);
     if (const char* output = std::getenv("YAZE_TEST_GLACIA_RENDER_OUTPUT")) {
       const auto path =
-          std::filesystem::path(output) / (std::to_string(room) + ".png");
-      std::ofstream png(path, std::ios::binary);
-      png.write(reinterpret_cast<const char*>(rendered->png_data.data()),
-                rendered->png_data.size());
-      ASSERT_TRUE(png.good());
+          std::filesystem::path(output) / (std::to_string(room) + ".bmp");
+      EXPECT_EQ(SDL_SaveBMP(bitmap.surface(), path.string().c_str()), 0)
+          << SDL_GetError();
     }
   }
   EXPECT_EQ(rom->vector(), original);
