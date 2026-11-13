@@ -1435,12 +1435,13 @@ void Room::RenderRoomGraphics() {
     if (!compiled_wall_profile_status_.ok()) {
       // GUI callers also stop on unsupported compiled consumers. Clear stale
       // surfaces and keep graphics dirty so correcting the header can retry.
-      for (auto* buffer : {&bg1_buffer_, &bg2_buffer_}) {
+      for (auto* buffer : {&bg1_buffer_, &bg2_buffer_, &object_bg1_buffer_,
+                           &object_bg2_buffer_}) {
         buffer->EnsureBitmapInitialized();
         buffer->bitmap().Fill(255);
         buffer->ClearBuffer();
       }
-      dirty_state_.composite = true;
+      MarkCompositeDirty();
       return;
     }
     CopyRoomGraphicsToBuffer();

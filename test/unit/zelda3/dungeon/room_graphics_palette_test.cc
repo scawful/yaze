@@ -25,6 +25,7 @@
 #include "unit/zelda3/gfx_sheet_test_rom.h"
 #include "zelda3/dungeon/palette_debug.h"
 #include "zelda3/dungeon/room.h"
+#include "zelda3/dungeon/room_layer_manager.h"
 #include "zelda3/game_data.h"
 
 namespace yaze::zelda3::test {
@@ -246,6 +247,85 @@ TEST(RoomGraphicsPaletteTest, CompiledKitMasksOnlySelectedSlot6Glyphs) {
   unprofiled.CopyRoomGraphicsToBuffer();
   EXPECT_EQ(unprofiled.get_gfx_buffer()[6 * 4096 + 1], 9);
   EXPECT_EQ(rom.vector(), bytes);
+}
+
+TEST(RoomGraphicsPaletteTest,
+     RefusedCompiledContextClearsObjectLayersAndCompositeThenRecovers) {
+  for (bool malformed_descriptor : {false, true}) {
+    SCOPED_TRACE(malformed_descriptor);
+    Rom rom;
+    const auto bytes = CompiledWallProfileRom();
+    ASSERT_TRUE(rom.LoadFromData(bytes).ok());
+    auto data = std::make_unique<GameData>();
+    data->graphics_buffer.assign(256 * 4096, 1);
+    data->gfx_sheet_table.count = 255;
+    data->room_blockset_ids[0x17] = {0xFE, 0, 0x27, 0xF3};
+    AddDistinctPaletteSeries(data->palette_groups.dungeon_main, 1, 90, 0x0400);
+    Room room(0xBD, &rom, data.get());
+    room.SetBlockset(0x0B);
+    room.SetRenderEntranceBlockset(0x0B);
+    room.AddTileObject(RoomObject(0x21, 4, 4, 0, 0));
+    room.AddTileObject(RoomObject(0x21, 12, 12, 0, 1));
+    room.RenderRoomGraphics();
+    ASSERT_TRUE(room.compiled_wall_profile_status().ok());
+    for (auto* buffer :
+         {&room.object_bg1_buffer(), &room.object_bg2_buffer()}) {
+      const auto& pixels = buffer->bitmap().mutable_data();
+      ASSERT_TRUE(std::any_of(pixels.begin(), pixels.end(),
+                              [](uint8_t pixel) { return pixel != 255; }));
+      ASSERT_TRUE(std::any_of(buffer->coverage_data().begin(),
+                              buffer->coverage_data().end(),
+                              [](uint8_t covered) { return covered != 0; }));
+    }
+    RoomLayerManager layers;
+    const auto& before = room.GetCompositeBitmap(layers).mutable_data();
+    ASSERT_TRUE(std::any_of(before.begin(), before.end(),
+                            [](uint8_t pixel) { return pixel != 0; }));
+
+    if (malformed_descriptor) {
+      auto invalid = bytes;
+      invalid[0x226706] = 2;
+      ASSERT_TRUE(rom.LoadFromData(invalid).ok());
+      room.MarkGraphicsDirty();
+    } else {
+      room.SetRenderEntranceBlockset(0x20);
+    }
+    const auto refused_bytes = rom.vector();
+    room.RenderRoomGraphics();
+    ASSERT_FALSE(room.compiled_wall_profile_status().ok());
+    for (auto* buffer :
+         {&room.bg1_buffer(), &room.bg2_buffer(), &room.object_bg1_buffer(),
+          &room.object_bg2_buffer()}) {
+      const auto& pixels = buffer->bitmap().mutable_data();
+      EXPECT_TRUE(std::all_of(pixels.begin(), pixels.end(),
+                              [](uint8_t pixel) { return pixel == 255; }));
+      EXPECT_TRUE(std::all_of(buffer->buffer().begin(), buffer->buffer().end(),
+                              [](uint16_t tile) { return tile == 0; }));
+      EXPECT_TRUE(std::all_of(buffer->coverage_data().begin(),
+                              buffer->coverage_data().end(),
+                              [](uint8_t covered) { return covered == 0; }));
+      EXPECT_TRUE(std::all_of(
+          buffer->priority_data().begin(), buffer->priority_data().end(),
+          [](uint8_t priority) { return priority == 255; }));
+      EXPECT_TRUE(std::all_of(buffer->bg1_reveal_mask_data().begin(),
+                              buffer->bg1_reveal_mask_data().end(),
+                              [](uint8_t mask) { return mask == 0; }));
+    }
+    const auto& refused = room.GetCompositeBitmap(layers).mutable_data();
+    EXPECT_TRUE(std::all_of(refused.begin(), refused.end(),
+                            [](uint8_t pixel) { return pixel == 0; }));
+    EXPECT_EQ(rom.vector(), refused_bytes);
+
+    ASSERT_TRUE(rom.LoadFromData(bytes).ok());
+    room.SetRenderEntranceBlockset(0x0B);
+    room.MarkGraphicsDirty();
+    room.RenderRoomGraphics();
+    ASSERT_TRUE(room.compiled_wall_profile_status().ok());
+    const auto& recovered = room.GetCompositeBitmap(layers).mutable_data();
+    EXPECT_TRUE(std::any_of(recovered.begin(), recovered.end(),
+                            [](uint8_t pixel) { return pixel != 0; }));
+    EXPECT_EQ(rom.vector(), bytes);
+  }
 }
 
 TEST(RoomGraphicsPaletteTest,
