@@ -261,6 +261,27 @@ class OverworldTileStatsCommandHandler : public resources::CommandHandler {
                        resources::OutputFormatter& formatter) override;
 };
 
+class OverworldSeamCheckCommandHandler : public resources::CommandHandler {
+ public:
+  std::string GetName() const { return "overworld-seam-check"; }
+  std::string GetDescription() const {
+    return "List tile16s along a screen's edges that draw differently on the "
+           "neighbouring screen (each screen loads its own sheets and "
+           "palette). --tile checks one tile16 against every neighbour";
+  }
+  std::string GetUsage() const {
+    return "overworld-seam-check --map <hex> [--depth <1-32>] [--tile <hex>] "
+           "[--format <json|text>]";
+  }
+
+  absl::Status ValidateArgs(const resources::ArgumentParser& parser) override {
+    return parser.RequireArgs({"map"});
+  }
+
+  absl::Status Execute(Rom* rom, const resources::ArgumentParser& parser,
+                       resources::OutputFormatter& formatter) override;
+};
+
 }  // namespace handlers
 }  // namespace cli
 }  // namespace yaze

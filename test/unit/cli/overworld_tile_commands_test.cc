@@ -381,6 +381,70 @@ TEST(OverworldTileCommandArgsTest, FindTileRejectsIdsPastSixteenBits) {
   EXPECT_THAT(std::string(status.message()), HasSubstr("Tile ID out of range"));
 }
 
+TEST(OverworldSeamCheckArgsTest, RejectsDepthOutsideOneToThirtyTwo) {
+  handlers::OverworldSeamCheckCommandHandler handler;
+  for (const char* depth : {"--depth=0", "--depth=33", "--depth=x"}) {
+    std::string output;
+    const auto status = handler.Run(
+        {"--mock-rom", "--map=0x90", depth, "--format=json"}, nullptr, &output);
+    EXPECT_TRUE(absl::IsInvalidArgument(status)) << depth << ": " << status;
+    EXPECT_THAT(std::string(status.message()), HasSubstr("--depth must be"));
+  }
+}
+
+TEST(OverworldSeamNeighborsTest, SpecialWorldEdgesFollowTheEightColumnGrid) {
+  using overworld::SeamSide;
+  auto sides = [](int map_id, int screens) {
+    std::vector<std::pair<int, SeamSide>> out;
+    for (const auto& n : overworld::SeamNeighbors(map_id, 0x80, screens)) {
+      out.emplace_back(n.map_id, n.side);
+    }
+    return out;
+  };
+  using Pairs = std::vector<std::pair<int, SeamSide>>;
+  EXPECT_EQ(sides(0x90, 0x20), (Pairs{{0x88, SeamSide::kNorth},
+                                      {0x98, SeamSide::kSouth},
+                                      {0x91, SeamSide::kEast}}));
+  EXPECT_EQ(sides(0x87, 0x20),
+            (Pairs{{0x8F, SeamSide::kSouth}, {0x86, SeamSide::kWest}}));
+  // The last legacy row has no south neighbour; a native 64-screen grid does.
+  EXPECT_EQ(sides(0x98, 0x20),
+            (Pairs{{0x90, SeamSide::kNorth}, {0x99, SeamSide::kEast}}));
+  EXPECT_EQ(sides(0x98, 0x40), (Pairs{{0x90, SeamSide::kNorth},
+                                      {0xA0, SeamSide::kSouth},
+                                      {0x99, SeamSide::kEast}}));
+  EXPECT_TRUE(overworld::SeamNeighbors(0xA0, 0x80, 0x20).empty());
+}
+
+TEST(OverworldTile16ColorsTest, ReadsPaletteColoursAndTransparency) {
+  // Tile16 9 is row 1, column 1 of the 128px-wide blockset.
+  std::vector<uint8_t> blockset(0x800 * 2, 0x00);
+  const size_t base = 0x800 + 0x10;
+  blockset[base + 1] = 0x21;               // row 2, colour 1
+  blockset[base + 15 * 0x80 + 15] = 0x10;  // row 1, colour 0: transparent
+  std::vector<uint16_t> palette(0x30, 0x0000);
+  palette[0x21] = 0x7C00;
+
+  auto colors = overworld::Tile16Colors(blockset, palette, 9);
+  ASSERT_TRUE(colors.ok()) << colors.status();
+  EXPECT_EQ((*colors)[0], overworld::kTransparentTile16Pixel);
+  EXPECT_EQ((*colors)[1], 0x7C00);
+  EXPECT_EQ((*colors)[255], overworld::kTransparentTile16Pixel);
+
+  // Same indices under another palette draw a different tile.
+  auto other_palette = palette;
+  other_palette[0x21] = 0x001F;
+  auto recoloured = overworld::Tile16Colors(blockset, other_palette, 9);
+  ASSERT_TRUE(recoloured.ok()) << recoloured.status();
+  EXPECT_NE(*colors, *recoloured);
+
+  EXPECT_TRUE(absl::IsOutOfRange(
+      overworld::Tile16Colors(blockset, palette, 16).status()));
+  palette.resize(0x21);
+  EXPECT_TRUE(absl::IsFailedPrecondition(
+      overworld::Tile16Colors(blockset, palette, 9).status()));
+}
+
 // ---------------------------------------------------------------------------
 // ROM-gated checks: set YAZE_TEST_ROM_OOS to a COPY of the Oracle ROM.
 // Read-only tests load it in memory; write tests copy it again first.
@@ -772,6 +836,86 @@ TEST_F(OverworldTileRomTest, TileStatsCountsMatchTheWorldGrid) {
             found["Overworld Tile Search"]["matches_found"]);
   EXPECT_EQ(tile["Overworld Tile Statistics"]["screens"][0]["tile_count"],
             found["Overworld Tile Search"]["matches_found"]);
+}
+
+TEST_F(OverworldTileRomTest, SeamCheckCellsTileQueryAndBothSidesAgree) {
+  using Changes =
+      std::vector<std::pair<uint16_t, std::vector<std::pair<int, int>>>>;
+  auto flat = [](const std::vector<overworld::SeamTileChange>& changes) {
+    Changes out;
+    for (const auto& change : changes) {
+      out.emplace_back(change.tile_id, change.cells);
+    }
+    return out;
+  };
+  auto tile_at = [this](int screen, int x, int y) -> uint16_t {
+    auto location = overworld::LocateScreenTile(*overworld_, screen, x, y);
+    EXPECT_TRUE(location.ok()) << location.status();
+    auto tile = overworld::ReadAreaTile(*overworld_, *location);
+    EXPECT_TRUE(tile.ok()) << tile.status();
+    return tile.value_or(0);
+  };
+
+  constexpr int kMap = 0x90;
+  auto reports = overworld::CheckMapSeams(*overworld_, {kMap, 1, std::nullopt});
+  ASSERT_TRUE(reports.ok()) << reports.status();
+  ASSERT_FALSE(reports->empty());
+  const int parent = overworld_->overworld_map(kMap)->parent();
+  int changed_cells = 0;
+  for (const auto& report : *reports) {
+    SCOPED_TRACE(absl::StrFormat("seam $%02X|$%02X", kMap, report.neighbor_id));
+    EXPECT_NE(overworld_->overworld_map(report.neighbor_id)->parent(), parent);
+    EXPECT_EQ(report.cells_checked, 32);
+    for (const auto& change : report.changed) {
+      for (const auto& [x, y] : change.cells) {
+        EXPECT_EQ(tile_at(kMap, x, y), change.tile_id);
+        ++changed_cells;
+      }
+      auto one =
+          overworld::CheckMapSeams(*overworld_, {kMap, 1, change.tile_id});
+      ASSERT_TRUE(one.ok()) << one.status();
+      for (const auto& other : *one) {
+        if (other.neighbor_id == report.neighbor_id) {
+          EXPECT_EQ(other.tile_differs, std::optional<bool>(true));
+        }
+      }
+    }
+    for (const auto& change : report.neighbor_changed) {
+      for (const auto& [x, y] : change.cells) {
+        EXPECT_EQ(tile_at(report.neighbor_id, x, y), change.tile_id);
+      }
+    }
+
+    // Checking from the neighbour reports the same seam with sides swapped.
+    auto back = overworld::CheckMapSeams(*overworld_,
+                                         {report.neighbor_id, 1, std::nullopt});
+    ASSERT_TRUE(back.ok()) << back.status();
+    const auto it = std::find_if(
+        back->begin(), back->end(),
+        [](const overworld::SeamReport& r) { return r.neighbor_id == kMap; });
+    ASSERT_NE(it, back->end());
+    EXPECT_EQ(flat(it->changed), flat(report.neighbor_changed));
+    EXPECT_EQ(flat(it->neighbor_changed), flat(report.changed));
+    EXPECT_EQ(it->differing_sheet_slots, report.differing_sheet_slots);
+  }
+
+  auto full = overworld::CheckMapSeams(*overworld_, {kMap, 32, std::nullopt});
+  ASSERT_TRUE(full.ok()) << full.status();
+  for (const auto& report : *full) {
+    EXPECT_EQ(report.cells_checked, 1024);
+  }
+
+  handlers::OverworldSeamCheckCommandHandler handler;
+  auto json = RunJson(handler, {"--map=0x90"}, &rom_);
+  const auto& check = json["Overworld Seam Check"];
+  ASSERT_TRUE(check["seams"].is_array());
+  EXPECT_EQ(check["seams_checked"].get<int>(),
+            static_cast<int>(reports->size()));
+  int json_changed = 0;
+  for (const auto& seam : check["seams"]) {
+    json_changed += seam["changed_cells"].get<int>();
+  }
+  EXPECT_EQ(json_changed, changed_cells);
 }
 
 std::filesystem::path CopyRomTo(const std::string& source,

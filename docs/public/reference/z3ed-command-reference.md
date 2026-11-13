@@ -323,6 +323,7 @@ object stream. Without the flag, the legacy output and count are unchanged.
 - `overworld-list-items --map <hex>`
 - `overworld-get-entrance --entrance <hex>`
 - `overworld-tile-stats [--map <hex>] [--world <light|dark|special>] [--tile <hex>] [--top <n>]`
+- `overworld-seam-check --map <hex> [--depth <1-32>] [--tile <hex>]`
 - `overworld-render --screen <hex> --out <file.png> [--overlays <list>] [--phase <0|1|2>] [--scale <float>]`
 - `overworld-add-sprite --screen <hex> --phase <0|1|2> --id <hex> --x <tile> --y <tile> [--replace-index <n>] [--write]`
 - `overworld-move-sprite --screen <hex> --phase <0|1|2> --index <n> --x <tile> --y <tile> [--expect-id <hex>] [--write]`
@@ -354,6 +355,19 @@ tile (`--top`, default 32; `0` lists every tile). `--map` (or `--screen`)
 limits the scan to one screen and `--world` to one world. `--tile` adds a
 `tile` total and a `tile_count` per screen; use `overworld-find-tile` for
 positions.
+
+`overworld-seam-check` compares how tile16s draw on either side of each edge
+of `--map`. Tile16 ids are shared, but every screen loads its own sheets and
+palette, so a tile can look right on one screen and wrong on its neighbour.
+For each neighbouring screen outside the map's own area it reports the
+`differing_sheet_slots` (static graphics slots 0-15), both `area_palette`
+values, and two lists of tile16s with their screen-local `cells` (`x,y`,
+0-31): `changed` are the map's edge tiles that draw differently on the
+neighbour, and `neighbor_changed` are the neighbour's edge tiles that draw
+differently on the map. `--depth` widens the strip checked from each edge
+(default 1; 32 checks every cell). `--tile` adds `tile_differs` per neighbour
+for one tile16, placed or not. Colours are compared after each screen's
+palette; transparent pixels compare equal.
 
 `overworld-set-tile` is dry-run by default. Both modes rebuild the tile32 table
 and compressed screens exactly as the editor's overworld save does (tile16

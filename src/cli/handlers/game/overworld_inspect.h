@@ -1,6 +1,7 @@
 #ifndef YAZE_CLI_HANDLERS_OVERWORLD_INSPECT_H_
 #define YAZE_CLI_HANDLERS_OVERWORLD_INSPECT_H_
 
+#include <array>
 #include <cstdint>
 #include <optional>
 #include <string>
@@ -234,6 +235,62 @@ struct TileUsageSummary {
 // world's grid is not loaded.
 absl::StatusOr<TileUsageSummary> CollectTileUsage(zelda3::Overworld& overworld,
                                                   const TileUsageQuery& query);
+
+// Tile16 ids are shared by every screen, but each screen loads its own sheets
+// and palette, so one tile16 can draw differently on two neighbouring screens.
+enum class SeamSide { kNorth, kSouth, kWest, kEast };
+std::string SeamSideName(SeamSide side);
+
+struct SeamNeighbor {
+  int map_id = 0;
+  SeamSide side = SeamSide::kNorth;  // side of the checked screen it touches
+};
+
+// Screens touching map_id in an 8-column world grid of world_screens screens
+// starting at world_offset, in north/south/west/east order.
+std::vector<SeamNeighbor> SeamNeighbors(int map_id, int world_offset,
+                                        int world_screens);
+
+// Value Tile16Colors reports for a transparent pixel (SNES colours are 15-bit).
+inline constexpr uint16_t kTransparentTile16Pixel = 0xFFFF;
+
+// The 16x16 SNES colours a tile16 draws, row-major, from a screen's blockset
+// (128 px wide, one byte per pixel: palette row * 16 + colour index) and its
+// palette. Colour 0 of every row is transparent.
+absl::StatusOr<std::array<uint16_t, 256>> Tile16Colors(
+    const std::vector<uint8_t>& blockset, const std::vector<uint16_t>& palette,
+    int tile_id);
+
+struct SeamTileChange {
+  uint16_t tile_id = 0;
+  std::vector<std::pair<int, int>> cells;  // screen-local (x, y), 0-31
+};
+
+struct SeamReport {
+  int map_id = 0;
+  int neighbor_id = 0;
+  SeamSide side = SeamSide::kNorth;
+  std::vector<int> differing_sheet_slots;  // static graphics slots 0-15
+  int area_palette = 0;
+  int neighbor_area_palette = 0;
+  int cells_checked = 0;  // per side of the seam
+  // Edge tiles of map_id that draw differently on the neighbour, and the
+  // neighbour's edge tiles that draw differently on map_id.
+  std::vector<SeamTileChange> changed;
+  std::vector<SeamTileChange> neighbor_changed;
+  std::optional<bool> tile_differs;  // SeamQuery::tile_id, when set
+};
+
+struct SeamQuery {
+  int map_id = 0;
+  int depth = 1;  // cells checked from the shared edge, 1-32
+  std::optional<uint16_t> tile_id;
+};
+
+// Compares rendered tile16 colours across each seam of map_id. Screens of the
+// same multi-screen area share one parent's graphics and are not reported.
+absl::StatusOr<std::vector<SeamReport>> CheckMapSeams(
+    zelda3::Overworld& overworld, const SeamQuery& query);
 
 absl::StatusOr<int> ParseNumeric(std::string_view value, int base = 0);
 absl::StatusOr<int> ParseWorldSpecifier(std::string_view value);

@@ -307,6 +307,11 @@ void RegisterBuiltinAgentTools(ToolRegistry& registry) {
       "overworld-tile-stats [--map=<hex>] [--world=<light|dark|special>] "
       "[--tile=<hex>] [--top=<n>]",
       {}, true, false, OverworldTileStatsCommandHandler)
+  REGISTER_BUILTIN_AGENT_TOOL(
+      "overworld-seam-check", "overworld",
+      "List edge tile16s that draw differently on a neighbouring screen",
+      "overworld-seam-check --map=<hex> [--depth=<1-32>] [--tile=<hex>]", {},
+      true, false, OverworldSeamCheckCommandHandler)
 
   // Message & Dialogue commands
   REGISTER_BUILTIN_AGENT_TOOL("message-list", "message", "List messages",

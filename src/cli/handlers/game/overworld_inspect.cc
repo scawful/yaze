@@ -778,6 +778,273 @@ absl::StatusOr<TileUsageSummary> CollectTileUsage(zelda3::Overworld& overworld,
   return summary;
 }
 
+std::string SeamSideName(SeamSide side) {
+  switch (side) {
+    case SeamSide::kNorth:
+      return "north";
+    case SeamSide::kSouth:
+      return "south";
+    case SeamSide::kWest:
+      return "west";
+    case SeamSide::kEast:
+      return "east";
+  }
+  return "unknown";
+}
+
+std::vector<SeamNeighbor> SeamNeighbors(int map_id, int world_offset,
+                                        int world_screens) {
+  std::vector<SeamNeighbor> neighbors;
+  const int local = map_id - world_offset;
+  if (local < 0 || local >= world_screens) {
+    return neighbors;
+  }
+  const int column = local % 8;
+  if (local >= 8) {
+    neighbors.push_back({map_id - 8, SeamSide::kNorth});
+  }
+  if (local + 8 < world_screens) {
+    neighbors.push_back({map_id + 8, SeamSide::kSouth});
+  }
+  if (column > 0) {
+    neighbors.push_back({map_id - 1, SeamSide::kWest});
+  }
+  if (column < 7 && local + 1 < world_screens) {
+    neighbors.push_back({map_id + 1, SeamSide::kEast});
+  }
+  return neighbors;
+}
+
+absl::StatusOr<std::array<uint16_t, 256>> Tile16Colors(
+    const std::vector<uint8_t>& blockset, const std::vector<uint16_t>& palette,
+    int tile_id) {
+  constexpr size_t kRowStride = 0x80;
+  if (tile_id < 0) {
+    return absl::InvalidArgumentError("Tile16 id must not be negative");
+  }
+  const size_t base = static_cast<size_t>(tile_id / 8) * 0x800 +
+                      static_cast<size_t>(tile_id % 8) * 0x10;
+  if (base + 15 * kRowStride + 16 > blockset.size()) {
+    return absl::OutOfRangeError(absl::StrFormat(
+        "Tile16 0x%04X is outside the built blockset", tile_id));
+  }
+  std::array<uint16_t, 256> colors{};
+  for (int y = 0; y < 16; ++y) {
+    for (int x = 0; x < 16; ++x) {
+      const uint8_t pixel = blockset[base + y * kRowStride + x];
+      uint16_t& color = colors[y * 16 + x];
+      if ((pixel & 0x0F) == 0) {
+        color = kTransparentTile16Pixel;
+      } else if (pixel < palette.size()) {
+        color = palette[pixel];
+      } else {
+        return absl::FailedPreconditionError(absl::StrFormat(
+            "Tile16 0x%04X uses palette entry 0x%02X beyond the %d loaded "
+            "colours",
+            tile_id, pixel, static_cast<int>(palette.size())));
+      }
+    }
+  }
+  return colors;
+}
+
+namespace {
+
+struct SeamCell {
+  int x = 0;
+  int y = 0;
+};
+
+// Screen-local cells within depth of the edge facing `side`.
+std::vector<SeamCell> EdgeCells(SeamSide side, int depth) {
+  std::vector<SeamCell> cells;
+  cells.reserve(32 * depth);
+  for (int d = 0; d < depth; ++d) {
+    for (int i = 0; i < 32; ++i) {
+      switch (side) {
+        case SeamSide::kNorth:
+          cells.push_back({i, d});
+          break;
+        case SeamSide::kSouth:
+          cells.push_back({i, 31 - d});
+          break;
+        case SeamSide::kWest:
+          cells.push_back({d, i});
+          break;
+        case SeamSide::kEast:
+          cells.push_back({31 - d, i});
+          break;
+      }
+    }
+  }
+  return cells;
+}
+
+SeamSide OppositeSide(SeamSide side) {
+  switch (side) {
+    case SeamSide::kNorth:
+      return SeamSide::kSouth;
+    case SeamSide::kSouth:
+      return SeamSide::kNorth;
+    case SeamSide::kWest:
+      return SeamSide::kEast;
+    case SeamSide::kEast:
+      return SeamSide::kWest;
+  }
+  return side;
+}
+
+struct ScreenLook {
+  std::vector<int> sheets;
+  int area_palette = 0;
+  std::map<uint16_t, std::array<uint16_t, 256>> colors;
+};
+
+std::vector<SeamTileChange> GroupChanges(
+    const std::vector<std::pair<uint16_t, SeamCell>>& placed,
+    const ScreenLook& own, const ScreenLook& other) {
+  std::map<uint16_t, std::vector<std::pair<int, int>>> by_tile;
+  for (const auto& [tile_id, cell] : placed) {
+    if (own.colors.at(tile_id) != other.colors.at(tile_id)) {
+      by_tile[tile_id].emplace_back(cell.x, cell.y);
+    }
+  }
+  std::vector<SeamTileChange> changes;
+  for (auto& [tile_id, cells] : by_tile) {
+    std::sort(cells.begin(), cells.end());
+    changes.push_back({tile_id, std::move(cells)});
+  }
+  return changes;
+}
+
+}  // namespace
+
+absl::StatusOr<std::vector<SeamReport>> CheckMapSeams(
+    zelda3::Overworld& overworld, const SeamQuery& query) {
+  if (query.depth < 1 || query.depth > 32) {
+    return absl::InvalidArgumentError("--depth must be 1-32 cells");
+  }
+  const int map_count = overworld.materialized_map_count();
+  RETURN_IF_ERROR(ValidateMapId(query.map_id, map_count));
+  ASSIGN_OR_RETURN(const int world,
+                   InferWorldFromMapId(query.map_id, map_count));
+  const int offset = WorldOffset(world);
+  const int world_screens =
+      world == 2 ? std::min(0x40, map_count - offset) : 0x40;
+  const auto* checked = overworld.overworld_map(query.map_id);
+  if (checked == nullptr) {
+    return absl::FailedPreconditionError(
+        absl::StrFormat("Overworld map 0x%02X is not loaded", query.map_id));
+  }
+
+  struct Seam {
+    SeamNeighbor neighbor;
+    std::vector<std::pair<uint16_t, SeamCell>> own;
+    std::vector<std::pair<uint16_t, SeamCell>> other;
+  };
+  auto read_edge = [&overworld](int screen, SeamSide side, int depth)
+      -> absl::StatusOr<std::vector<std::pair<uint16_t, SeamCell>>> {
+    std::vector<std::pair<uint16_t, SeamCell>> placed;
+    for (const auto& cell : EdgeCells(side, depth)) {
+      ASSIGN_OR_RETURN(const auto location,
+                       LocateScreenTile(overworld, screen, cell.x, cell.y));
+      ASSIGN_OR_RETURN(const uint16_t tile, ReadAreaTile(overworld, location));
+      placed.emplace_back(tile, cell);
+    }
+    return placed;
+  };
+
+  std::vector<Seam> seams;
+  std::vector<uint16_t> tiles;
+  if (query.tile_id.has_value()) {
+    tiles.push_back(*query.tile_id);
+  }
+  for (const auto& neighbor :
+       SeamNeighbors(query.map_id, offset, world_screens)) {
+    const auto* other = overworld.overworld_map(neighbor.map_id);
+    if (other == nullptr || other->parent() == checked->parent()) {
+      continue;
+    }
+    Seam seam{neighbor, {}, {}};
+    ASSIGN_OR_RETURN(seam.own,
+                     read_edge(query.map_id, neighbor.side, query.depth));
+    ASSIGN_OR_RETURN(
+        seam.other,
+        read_edge(neighbor.map_id, OppositeSide(neighbor.side), query.depth));
+    for (const auto* placed : {&seam.own, &seam.other}) {
+      for (const auto& [tile_id, cell] : *placed) {
+        tiles.push_back(tile_id);
+      }
+    }
+    seams.push_back(std::move(seam));
+  }
+  std::sort(tiles.begin(), tiles.end());
+  tiles.erase(std::unique(tiles.begin(), tiles.end()), tiles.end());
+
+  // Building a screen may evict another from the editor's built-map cache, so
+  // read each screen's colours right after building it.
+  std::map<int, ScreenLook> looks;
+  auto capture = [&](int screen) -> absl::Status {
+    if (looks.count(screen) != 0) {
+      return absl::OkStatus();
+    }
+    RETURN_IF_ERROR(overworld.EnsureMapBuilt(screen));
+    const auto* map = overworld.overworld_map(screen);
+    if (map == nullptr) {
+      return absl::InternalError(
+          absl::StrFormat("Overworld map 0x%02X did not build", screen));
+    }
+    ScreenLook look;
+    for (int slot = 0; slot < 16; ++slot) {
+      look.sheets.push_back(map->static_graphics(slot));
+    }
+    look.area_palette = map->area_palette();
+    std::vector<uint16_t> palette;
+    const auto& colors = map->current_palette();
+    palette.reserve(colors.size());
+    for (size_t i = 0; i < colors.size(); ++i) {
+      palette.push_back(colors[i].snes());
+    }
+    for (const uint16_t tile_id : tiles) {
+      ASSIGN_OR_RETURN(
+          look.colors[tile_id],
+          Tile16Colors(map->current_tile16_blockset(), palette, tile_id));
+    }
+    looks.emplace(screen, std::move(look));
+    return absl::OkStatus();
+  };
+  RETURN_IF_ERROR(capture(query.map_id));
+  for (const auto& seam : seams) {
+    RETURN_IF_ERROR(capture(seam.neighbor.map_id));
+  }
+
+  std::vector<SeamReport> reports;
+  const ScreenLook& own = looks.at(query.map_id);
+  for (const auto& seam : seams) {
+    const ScreenLook& other = looks.at(seam.neighbor.map_id);
+    SeamReport report;
+    report.map_id = query.map_id;
+    report.neighbor_id = seam.neighbor.map_id;
+    report.side = seam.neighbor.side;
+    for (int slot = 0; slot < 16; ++slot) {
+      if (own.sheets[slot] != other.sheets[slot]) {
+        report.differing_sheet_slots.push_back(slot);
+      }
+    }
+    report.area_palette = own.area_palette;
+    report.neighbor_area_palette = other.area_palette;
+    report.cells_checked = static_cast<int>(seam.own.size());
+    report.changed = GroupChanges(seam.own, own, other);
+    report.neighbor_changed = GroupChanges(seam.other, other, own);
+    if (query.tile_id.has_value()) {
+      report.tile_differs =
+          own.colors.at(*query.tile_id) != other.colors.at(*query.tile_id);
+    }
+    reports.push_back(std::move(report));
+  }
+  return reports;
+}
+
 }  // namespace overworld
 }  // namespace cli
 }  // namespace yaze

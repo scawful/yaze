@@ -1555,6 +1555,89 @@ absl::Status OverworldTileStatsCommandHandler::Execute(
   return absl::OkStatus();
 }
 
+absl::Status OverworldSeamCheckCommandHandler::Execute(
+    Rom* rom, const resources::ArgumentParser& parser,
+    resources::OutputFormatter& formatter) {
+  overworld::SeamQuery query;
+  ASSIGN_OR_RETURN(query.map_id,
+                   ParseMapIdArg(parser, "map", TileCommandMapCount(rom)));
+  if (parser.GetString("depth").has_value()) {
+    auto depth = parser.GetInt("depth");
+    if (!depth.ok() || *depth < 1 || *depth > 32) {
+      return absl::InvalidArgumentError("--depth must be 1-32 cells");
+    }
+    query.depth = *depth;
+  }
+  if (parser.GetString("tile").has_value()) {
+    ASSIGN_OR_RETURN(const int tile_id, ParseTileIdArg(parser));
+    query.tile_id = static_cast<uint16_t>(tile_id);
+  }
+
+  zelda3::Overworld overworld(rom);
+  RETURN_IF_ERROR(overworld.Load(rom));
+  ASSIGN_OR_RETURN(const auto reports,
+                   overworld::CheckMapSeams(overworld, query));
+
+  auto add_changes =
+      [&formatter](const std::string& key,
+                   const std::vector<overworld::SeamTileChange>& changes) {
+        formatter.BeginArray(key);
+        for (const auto& change : changes) {
+          formatter.BeginObject();
+          formatter.AddHexField("tile_id", change.tile_id, 4);
+          formatter.BeginArray("cells");
+          for (const auto& [x, y] : change.cells) {
+            formatter.AddArrayItem(absl::StrFormat("%d,%d", x, y));
+          }
+          formatter.EndArray();
+          formatter.EndObject();
+        }
+        formatter.EndArray();
+      };
+  auto cell_count = [](const std::vector<overworld::SeamTileChange>& changes) {
+    int count = 0;
+    for (const auto& change : changes) {
+      count += static_cast<int>(change.cells.size());
+    }
+    return count;
+  };
+
+  formatter.BeginObject("Overworld Seam Check");
+  formatter.AddHexField("map_id", query.map_id, 2);
+  formatter.AddField("depth", query.depth);
+  if (query.tile_id.has_value()) {
+    formatter.AddHexField("tile_id", *query.tile_id, 4);
+  }
+  formatter.AddField("seams_checked", static_cast<int>(reports.size()));
+  formatter.BeginArray("seams");
+  for (const auto& report : reports) {
+    formatter.BeginObject();
+    formatter.AddHexField("neighbor_id", report.neighbor_id, 2);
+    formatter.AddField("side", overworld::SeamSideName(report.side));
+    formatter.BeginArray("differing_sheet_slots");
+    for (const int slot : report.differing_sheet_slots) {
+      formatter.AddArrayItem(std::to_string(slot));
+    }
+    formatter.EndArray();
+    formatter.AddHexField("area_palette", report.area_palette, 2);
+    formatter.AddHexField("neighbor_area_palette", report.neighbor_area_palette,
+                          2);
+    formatter.AddField("cells_checked", report.cells_checked);
+    if (report.tile_differs.has_value()) {
+      formatter.AddField("tile_differs", *report.tile_differs);
+    }
+    formatter.AddField("changed_cells", cell_count(report.changed));
+    formatter.AddField("neighbor_changed_cells",
+                       cell_count(report.neighbor_changed));
+    add_changes("changed", report.changed);
+    add_changes("neighbor_changed", report.neighbor_changed);
+    formatter.EndObject();
+  }
+  formatter.EndArray();
+  formatter.EndObject();
+  return absl::OkStatus();
+}
+
 }  // namespace handlers
 }  // namespace cli
 }  // namespace yaze
