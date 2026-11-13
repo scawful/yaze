@@ -33,16 +33,19 @@ class DungeonChestEditorTest : public ::testing::Test {
     viewer_.RefreshRomBackedState(&rom_, nullptr, &rooms_, 0);
     viewer_.SetChestEditCallback(
         [this](int room_id, size_t index, uint8_t item, bool big) {
+          ++edit_calls_;
           if (reject_) {
             return absl::FailedPreconditionError("Test rejection");
           }
           auto& chest = rooms_[room_id].GetChests()[index];
           if (chest.id != item || chest.size != big) {
+            const bool type_changed = chest.size != big;
             chest = {item, big};
             for (size_t object_index = 0;
                  object_index < rooms_[room_id].GetTileObjects().size();
                  ++object_index) {
-              if (zelda3::ChestIndexForObject(rooms_[room_id].GetTileObjects(),
+              if (type_changed &&
+                  zelda3::ChestIndexForObject(rooms_[room_id].GetTileObjects(),
                                               object_index) == index) {
                 rooms_[room_id].GetTileObjects()[object_index].id_ =
                     big ? 0xFB1 : 0xF99;
@@ -96,8 +99,12 @@ class DungeonChestEditorTest : public ::testing::Test {
     ImGui::SetNextWindowSize(ImVec2(320, 640), ImGuiCond_Always);
     ImGui::Begin("ChestEditorHost", nullptr, ImGuiWindowFlags_NoSavedSettings);
     ImGui::LogToBuffer();
-    DrawDungeonChestEditor(
-        room_id, override_room ? *override_room : rooms_[room_id], viewer_);
+    if (dialog_only_) {
+      viewer_.DrawChestEditorPopup();
+    } else {
+      DrawDungeonChestEditor(
+          room_id, override_room ? *override_room : rooms_[room_id], viewer_);
+    }
     logged_text_ = ImGui::GetCurrentContext()->LogBuffer.c_str();
     ImGui::LogFinish();
     auto* window = ImGui::GetCurrentWindow();
@@ -112,7 +119,8 @@ class DungeonChestEditorTest : public ::testing::Test {
     const auto normalized = gui::WidgetIdRegistry::NormalizeLabel(name);
     for (const auto& [path, widget] :
          gui::WidgetIdRegistry::Instance().GetAllWidgets()) {
-      if (path.starts_with("Dungeon/ChestEditor/") &&
+      if ((path.starts_with("Dungeon/ChestEditor/") ||
+           path.starts_with("Dungeon/ChestDialog/")) &&
           widget.label == normalized) {
         return widget;
       }
@@ -138,16 +146,220 @@ class DungeonChestEditorTest : public ::testing::Test {
     DrawFrame();
   }
 
+  void OpenDialog() {
+    dialog_only_ = true;
+    ASSERT_TRUE(viewer_.OpenChestEditor(0, 0).ok());
+    DrawFrame();
+    DrawFrame();
+    ASSERT_TRUE(Widget("ChestOK"));
+  }
+
+  void ChooseHammer() {
+    Click("ChestReward");
+    Click("ChestSearch");
+    ImGui::GetIO().AddInputCharactersUTF8("hammer");
+    DrawFrame();
+    DrawFrame();
+    Click("ChestReward09");
+  }
+
   Rom rom_;
   DungeonRoomStore rooms_{&rom_};
   DungeonCanvasViewer viewer_{&rom_};
   zelda3::ResourceLabelProvider old_labels_;
   std::string logged_text_;
   int changes_ = 0;
+  int edit_calls_ = 0;
   int deletions_ = 0;
   int last_room_id_ = -1;
   bool reject_ = false;
+  bool dialog_only_ = false;
 };
+
+TEST_F(DungeonChestEditorTest, ModalRewardAndTypeDraftCommitOnceOnOK) {
+  OpenDialog();
+  ChooseHammer();
+  Click("ChestBig");
+  EXPECT_EQ(edit_calls_, 0);
+  EXPECT_EQ(rooms_[0].GetChests()[0].id, 0x24);
+  EXPECT_FALSE(rooms_[0].GetChests()[0].size);
+  EXPECT_EQ(rooms_[0].GetTileObjects()[0].id_, 0xF99);
+  Click("ChestOK");
+  EXPECT_EQ(edit_calls_, 1);
+  EXPECT_EQ(changes_, 1);
+  EXPECT_EQ(rooms_[0].GetChests()[0].id, 0x09);
+  EXPECT_TRUE(rooms_[0].GetChests()[0].size);
+  EXPECT_EQ(rooms_[0].GetTileObjects()[0].id_, 0xFB1);
+  EXPECT_FALSE(Widget("ChestOK"));
+}
+
+TEST_F(DungeonChestEditorTest, ModalCancelDiscardsRewardAndTypeDraft) {
+  OpenDialog();
+  ChooseHammer();
+  Click("ChestBig");
+  Click("ChestCancel");
+  EXPECT_EQ(edit_calls_, 0);
+  EXPECT_EQ(rooms_[0].GetChests()[0].id, 0x24);
+  EXPECT_FALSE(rooms_[0].GetChests()[0].size);
+  EXPECT_EQ(rooms_[0].GetTileObjects()[0].id_, 0xF99);
+  OpenDialog();
+  EXPECT_NE(logged_text_.find("Small Key"), std::string::npos);
+}
+
+TEST_F(DungeonChestEditorTest, ModalEscapeDiscardsDraft) {
+  OpenDialog();
+  Click("ChestBig");
+  auto& io = ImGui::GetIO();
+  io.AddKeyEvent(ImGuiKey_Escape, true);
+  DrawFrame();
+  io.AddKeyEvent(ImGuiKey_Escape, false);
+  DrawFrame();
+  EXPECT_FALSE(Widget("ChestOK"));
+  EXPECT_EQ(edit_calls_, 0);
+  EXPECT_FALSE(rooms_[0].GetChests()[0].size);
+}
+
+TEST_F(DungeonChestEditorTest, ModalWindowCloseDiscardsDraft) {
+  OpenDialog();
+  Click("ChestBig");
+  ImGuiWindow* modal = nullptr;
+  for (auto* window : ImGui::GetCurrentContext()->Windows) {
+    if (window->Active &&
+        std::string(window->Name).find("###DungeonChestDialog") !=
+            std::string::npos) {
+      modal = window;
+      break;
+    }
+  }
+  ASSERT_NE(modal, nullptr);
+  const float title_height = modal->TitleBarHeight;
+  const ImVec2 close(modal->Pos.x + modal->Size.x -
+                         ImGui::GetStyle().FramePadding.x -
+                         ImGui::GetFontSize() * 0.5f,
+                     modal->Pos.y + title_height * 0.5f);
+  auto& io = ImGui::GetIO();
+  io.AddMousePosEvent(close.x, close.y);
+  DrawFrame();
+  io.AddMouseButtonEvent(0, true);
+  DrawFrame();
+  io.AddMouseButtonEvent(0, false);
+  DrawFrame();
+  DrawFrame();
+  EXPECT_FALSE(Widget("ChestOK"));
+  EXPECT_EQ(edit_calls_, 0);
+  EXPECT_FALSE(rooms_[0].GetChests()[0].size);
+}
+
+TEST_F(DungeonChestEditorTest, ModalUnknownRewardSurvivesTypeCommit) {
+  rooms_[0].GetChests()[0].id = 0xE0;
+  OpenDialog();
+  EXPECT_NE(logged_text_.find("Unknown item E0"), std::string::npos);
+  Click("ChestBig");
+  EXPECT_EQ(edit_calls_, 0);
+  Click("ChestOK");
+  EXPECT_EQ(edit_calls_, 1);
+  EXPECT_EQ(rooms_[0].GetChests()[0].id, 0xE0);
+  EXPECT_TRUE(rooms_[0].GetChests()[0].size);
+}
+
+TEST_F(DungeonChestEditorTest, ModalRejectedCommitKeepsDraftForRetry) {
+  OpenDialog();
+  Click("ChestBig");
+  reject_ = true;
+  Click("ChestOK");
+  EXPECT_EQ(edit_calls_, 1);
+  EXPECT_EQ(changes_, 0);
+  EXPECT_FALSE(rooms_[0].GetChests()[0].size);
+  EXPECT_NE(logged_text_.find("Test rejection"), std::string::npos);
+  ASSERT_TRUE(Widget("ChestOK"));
+  reject_ = false;
+  Click("ChestOK");
+  EXPECT_EQ(edit_calls_, 2);
+  EXPECT_EQ(changes_, 1);
+  EXPECT_TRUE(rooms_[0].GetChests()[0].size);
+}
+
+TEST_F(DungeonChestEditorTest, ModalChangedTargetBlocksCommit) {
+  OpenDialog();
+  Click("ChestBig");
+  rooms_[0].GetChests()[0].id = 0x32;
+  DrawFrame();
+  DrawFrame();
+  ASSERT_TRUE(Widget("ChestOK"));
+  EXPECT_FALSE(Widget("ChestOK")->enabled);
+  EXPECT_NE(logged_text_.find("This chest changed"), std::string::npos);
+  Click("ChestCancel");
+  EXPECT_EQ(edit_calls_, 0);
+  EXPECT_EQ(rooms_[0].GetChests()[0].id, 0x32);
+  EXPECT_FALSE(rooms_[0].GetChests()[0].size);
+}
+
+TEST_F(DungeonChestEditorTest, ModalReadOnlyTransitionBlocksCommit) {
+  OpenDialog();
+  Click("ChestBig");
+  viewer_.SetHeaderReadOnly(true);
+  DrawFrame();
+  ASSERT_TRUE(Widget("ChestOK"));
+  EXPECT_FALSE(Widget("ChestOK")->enabled);
+  EXPECT_FALSE(Widget("ChestReward")->enabled);
+  Click("ChestCancel");
+  EXPECT_EQ(edit_calls_, 0);
+  EXPECT_FALSE(viewer_.OpenChestEditor(0, 0).ok());
+}
+
+TEST_F(DungeonChestEditorTest, ModalInteractionDisabledBlocksOpenAndCommit) {
+  viewer_.SetObjectInteractionEnabled(false);
+  EXPECT_FALSE(viewer_.OpenChestEditor(0, 0).ok());
+  viewer_.SetObjectInteractionEnabled(true);
+  OpenDialog();
+  Click("ChestBig");
+  viewer_.SetObjectInteractionEnabled(false);
+  DrawFrame();
+  ASSERT_TRUE(Widget("ChestOK"));
+  EXPECT_FALSE(Widget("ChestOK")->enabled);
+  EXPECT_FALSE(Widget("ChestReward")->enabled);
+  Click("ChestCancel");
+  EXPECT_EQ(edit_calls_, 0);
+  EXPECT_FALSE(rooms_[0].GetChests()[0].size);
+}
+
+TEST_F(DungeonChestEditorTest, SamePointerRefreshDiscardsModalAndRecordState) {
+  OpenDialog();
+  Click("ChestBig");
+  viewer_.chest_editor_state().error = "Old record error";
+  viewer_.chest_editor_state().search[0] = 'x';
+  auto* original_room = &rooms_[0];
+  rooms_[0] = zelda3::Room(0, &rom_);
+  rooms_[0].SetLoaded(true);
+  rooms_[0].LoadChests();
+  rooms_[0].GetChests().push_back({0x24, false});
+  rooms_[0].GetTileObjects().emplace_back(0xF99, 2, 4, 0, 0);
+  ASSERT_EQ(&rooms_[0], original_room);
+  viewer_.RefreshRomBackedState(&rom_, nullptr, &rooms_, 0);
+  DrawFrame();
+  DrawFrame();
+  EXPECT_FALSE(Widget("ChestOK"));
+  EXPECT_EQ(edit_calls_, 0);
+  EXPECT_EQ(rooms_[0].GetChests()[0].id, 0x24);
+  EXPECT_FALSE(rooms_[0].GetChests()[0].size);
+  EXPECT_TRUE(viewer_.chest_editor_state().error.empty());
+  EXPECT_STREQ(viewer_.chest_editor_state().search.data(), "");
+  EXPECT_EQ(viewer_.chest_editor_state().room_id, -1);
+}
+
+TEST_F(DungeonChestEditorTest, ModalMismatchedRecordsPermitRewardOnlyRepair) {
+  rooms_[0].GetTileObjects()[0].id_ = 0xFB1;
+  OpenDialog();
+  ASSERT_TRUE(Widget("ChestBig"));
+  EXPECT_FALSE(Widget("ChestBig")->enabled);
+  ChooseHammer();
+  EXPECT_EQ(edit_calls_, 0);
+  Click("ChestOK");
+  EXPECT_EQ(edit_calls_, 1);
+  EXPECT_EQ(rooms_[0].GetChests()[0].id, 0x09);
+  EXPECT_FALSE(rooms_[0].GetChests()[0].size);
+  EXPECT_EQ(rooms_[0].GetTileObjects()[0].id_, 0xFB1);
+}
 
 TEST_F(DungeonChestEditorTest, NamesUseReceiptIdsRatherThanInventoryIndices) {
   EXPECT_EQ(GetDungeonChestItemLabel(0x00), "Fighter Sword");

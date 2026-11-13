@@ -23,6 +23,7 @@
 #include <nlohmann/json.hpp>
 
 #include "rom/rom.h"
+#include "yaze_test_paths.h"
 #include "zelda3/dungeon/room_census.h"
 #include "zelda3/dungeon/room_census_vanilla_fingerprints.h"
 

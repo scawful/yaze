@@ -77,3 +77,22 @@ feature while doing that preparation. Compiler and tidy success do not establish
 layout quality. Record live acceptance at representative widths and scale,
 including keyboard and pointer use; screenshots can support that review but
 cannot prove focus, wheel, drag, or selection behavior.
+
+## 7. Component Modularization & Architecture Isolation
+
+To keep UI components maintainable, testable in isolation, and ready for future frontend alternatives (e.g. sandboxes, dynamic reloading, or web previews), adhere to these architectural boundaries:
+
+*   **Presentation vs. Domain Separation:** Views (`<feature>_view.{h,cc}`) must only handle layout, styling, and user interaction. They receive const data models or narrow interfaces and emit user intent (callbacks or command objects). Never invoke ROM disk serialization, Asar assembly, or raw ROM buffer mutation directly inside an ImGui draw function.
+*   **Decoupled Header Dependencies:** Views must not include monolithic editor headers (such as `overworld_editor.h` or `dungeon_editor_v2.h`). Use focused interface headers, typed accessors, or view-model structs (`<feature>_state.h`). This minimizes compilation fanout and keeps incremental UI rebuilds fast.
+*   **Explicit View State:** Transient UI state (search filters, tab selection, scroll positions, active collapse headers) must be stored in an explicit state struct (`<feature>_state.h`) rather than hidden `static` variables inside draw functions. This prevents state collisions across multiple instances and allows clean state reset.
+*   **Sandbox & Headless Readiness:** A properly modularized component can be rendered with stub/mock data in `yaze_lab` or headless visual tests without initializing the full emulator, Asar, or a 4 MB ROM image.
+
+## 8. Fast Local UI Development Workflow
+
+To iterate quickly without full rebuilds, worktree churn, or PR waiting:
+
+*   **Persistent Development Checkout:** UI development is anchored in a permanent, dedicated local checkout or persistent worktree (e.g. `ui-dev`) with an established `build/presets/mac-ai` cache. Retain this directory across tasks to preserve compiler cache hits.
+*   **Incremental Rebuild:** Touch code and recompile only the executable via `ninja -C build/presets/mac-ai yaze`. With ccache and precompiled headers, single-file UI recompile and relink finishes in approximately 7 seconds (measured ~6.6s).
+*   **Visual Inspection:**
+    *   *Human Developers:* Launch the built binary directly via `./scripts/dev_start_yaze.sh` or `bin/Debug/yaze.app/Contents/MacOS/yaze` for immediate visual verification and live interaction.
+    *   *AI Agents:* Follow the native GUI testing policy in `docs/internal/testing/remote-native-testing.md`. Agents must register exact-app rules on a dedicated Space, preserve user applications, and cleanly terminate processes and windows upon completion.

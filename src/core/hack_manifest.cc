@@ -20,6 +20,24 @@
 
 namespace yaze::core {
 
+LyraPrivateReservation PrivateLyraExactSaveReservation() {
+  LyraPrivateReservation r;
+  r.source_rom_sha256 =
+      "44f46bb06f589a39275ff40d35e40a3a5652502a981205eaebb54f4c447a3ee2";
+  r.tile32_id_range = {13992, 14436};
+  r.stream_pc_range = {0x133D3A, 0x138000};
+  r.dictionary_bases_pc = {0x18000, 0x20000, 0x1F0000, 0x1F8000};
+  for (size_t i = 0; i < 4; ++i) {
+    r.packed_preimages[i] = {
+        {r.dictionary_bases_pc[i] + 20988, r.dictionary_bases_pc[i] + 21654},
+        "a81832a1890ee3808d233633a5cc4f90cd77edd8ef68781c8c1701dea4c09175"};
+  }
+  r.stream_preimage = {
+      r.stream_pc_range,
+      "412194777d0a23bcff78ea17b498da632466066462a6f0f2dc28b2758fced844"};
+  return r;
+}
+
 std::string AddressOwnershipToString(AddressOwnership ownership) {
   switch (ownership) {
     case AddressOwnership::kVanillaSafe:
@@ -768,6 +786,7 @@ absl::StatusOr<GraphicsSheetLayout> ParseGraphicsSheetLayout(
 
 void HackManifest::Reset() {
   loaded_ = false;
+  lyra_private_reservation_.reset();
   manifest_version_ = 0;
   hack_name_.clear();
   total_hooks_ = 0;
@@ -812,6 +831,66 @@ absl::Status HackManifest::LoadFromString(const std::string& json_content) {
 
   if (!root.is_object()) {
     return absl::InvalidArgumentError("Hack manifest root must be an object");
+  }
+
+  if (root.contains("lyra_private_reservation")) {
+    // Fail closed: this private branch recognizes exactly the reviewed source
+    // and geometry. JSON numbers are decimal PC offsets, never SNES addresses.
+    try {
+      const auto& v = root.at("lyra_private_reservation");
+      const auto expected = PrivateLyraExactSaveReservation();
+      if (!v.is_object() ||
+          v.at("kind") != "lyra.private_exact_save_producer_reservation.v1" ||
+          v.at("scope") != "private_candidate_only" ||
+          !v.at("production_admission").is_boolean() ||
+          v.at("production_admission") != false ||
+          v.at("producer_transfer").at("from") !=
+              "yaze.native_overworld_terrain" ||
+          v.at("producer_transfer").at("to") !=
+              "oracle.lyra_private_candidate" ||
+          v.at("producer_transfer").at("native_terrain_policy") !=
+              "refuse_changes" ||
+          v.at("source_rom_sha256") != expected.source_rom_sha256) {
+        return absl::InvalidArgumentError(
+            "Invalid private Lyra producer transfer");
+      }
+      auto exact_numbers = [](const Json& value, const auto& expected_values) {
+        if (!value.is_array() || value.size() != expected_values.size())
+          return false;
+        for (size_t i = 0; i < value.size(); ++i) {
+          if (!value[i].is_number_integer() || value[i].is_boolean() ||
+              value[i] != expected_values[i])
+            return false;
+        }
+        return true;
+      };
+      if (!exact_numbers(v.at("tile32_id_range"), expected.tile32_id_range) ||
+          !exact_numbers(v.at("stream_pc_range"), expected.stream_pc_range) ||
+          !exact_numbers(v.at("dictionary_bases_pc"),
+                         expected.dictionary_bases_pc) ||
+          !v.at("packed_preimages").is_array() ||
+          v.at("packed_preimages").size() != 4) {
+        return absl::InvalidArgumentError(
+            "Private Lyra reservation geometry mismatch");
+      }
+      for (size_t i = 0; i < 4; ++i) {
+        const auto& p = v.at("packed_preimages")[i];
+        if (!exact_numbers(p.at("pc"), expected.packed_preimages[i].pc) ||
+            p.at("sha256") != expected.packed_preimages[i].sha256) {
+          return absl::InvalidArgumentError(
+              "Private Lyra packed preimage mismatch");
+        }
+      }
+      const auto& p = v.at("stream_preimage");
+      if (!exact_numbers(p.at("pc"), expected.stream_preimage.pc) ||
+          p.at("sha256") != expected.stream_preimage.sha256) {
+        return absl::InvalidArgumentError(
+            "Private Lyra stream preimage mismatch");
+      }
+      lyra_private_reservation_ = expected;
+    } catch (const std::exception&) {
+      return absl::InvalidArgumentError("Malformed private Lyra reservation");
+    }
   }
 
   ASSIGN_OR_RETURN(manifest_version_, ParseManifestVersion(root));

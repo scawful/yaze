@@ -110,7 +110,8 @@ void DungeonRoomSelector::DrawRoomSelectorInternal(
     ImGui::Separator();
   }
 
-  room_filter_.Draw("Filter", ImGui::GetContentRegionAvail().x);
+  ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+  room_filter_.DrawWithHint("Filter", tr("room name"));
 
   // View mode + entity-type filter row
   {
@@ -429,7 +430,8 @@ void DungeonRoomSelector::DrawEntranceSelectorInternal(bool show_properties) {
     ImGui::Separator();
   }
 
-  entrance_filter_.Draw("Filter", ImGui::GetContentRegionAvail().x);
+  ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+  entrance_filter_.DrawWithHint("Filter", tr("entrance name or room ID"));
 
   // Target-room ownership can change while the filter text stays the same.
   std::string current_filter(entrance_filter_.InputBuf);

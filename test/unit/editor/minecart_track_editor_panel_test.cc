@@ -15,6 +15,7 @@
 #include "app/editor/dungeon/dungeon_canvas_viewer.h"
 #include "app/editor/dungeon/dungeon_editor_v2.h"
 #include "app/editor/dungeon/dungeon_rendering_helpers.h"
+#include "app/editor/dungeon/dungeon_selection_edit.h"
 #include "app/editor/dungeon/ui/minecart/minecart_canvas_tool.h"
 #include "app/editor/editor_manager.h"
 #include "app/gfx/backend/null_renderer.h"
@@ -66,6 +67,27 @@ class DungeonEditorV2MinecartTrackTestPeer {
   }
   static void FinishCollisionEdit(DungeonEditorV2& editor, int room) {
     editor.FinalizeCollisionUndoAction(room);
+  }
+  static void BeginObjectEdit(DungeonEditorV2& editor, int room) {
+    editor.BeginUndoSnapshot(room);
+  }
+  static void FinalizeObjectEdit(DungeonEditorV2& editor, int room) {
+    editor.FinalizeUndoAction(room);
+  }
+  static absl::Status CommitSelectionEdit(
+      DungeonEditorV2& editor, const DungeonSelectionEditPlan& plan) {
+    return editor.CommitSelectionEdit(plan, false);
+  }
+  static absl::Status PreflightSprites(
+      DungeonEditorV2& editor, int room,
+      const std::vector<zelda3::Sprite>& sprites) {
+    return editor.PreflightSpriteMutation(room, sprites);
+  }
+  static size_t OwnedCollisionCells(const DungeonEditorV2& editor, int room) {
+    const auto found = editor.minecart_collision_ownership_.find(room);
+    return found == editor.minecart_collision_ownership_.end()
+               ? 0
+               : found->second.size();
   }
 };
 
@@ -1994,6 +2016,279 @@ TEST(MinecartTrackEditorPanelTest,
   EXPECT_FALSE(MinecartTrackEditorPanelTestPeer::RouteSlotUsed(panel, 14));
 }
 
+class MinecartObjectCollisionWorkflowTest : public ::testing::Test {
+ protected:
+  void SetUp() override {
+    core::FeatureFlags::get().kEnableCustomObjects = true;
+    ASSERT_TRUE(rom_.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+    ASSERT_NO_FATAL_FAILURE(ConfigureMinecartAuditRom(&rom_, kRoom));
+    ASSERT_TRUE(panel_.SetProject(fixture_.project()).ok());
+    panel_.set_automatic_rail_collision(true);
+    editor_ = std::make_unique<DungeonEditorV2>(&rom_);
+    dependencies_.project = fixture_.project();
+    editor_->SetDependencies(dependencies_);
+    room_ = &DungeonEditorV2MinecartTrackTestPeer::BindCanvas(*editor_, panel_,
+                                                              rom_);
+    ASSERT_TRUE(room_->IsLoaded());
+    room_->SetTileObjects({});
+    room_->custom_collision() = {};
+    room_->RestoreSaveDirtySnapshot({});
+    rom_.set_dirty(false);
+    rom_before_ = rom_.vector();
+  }
+  void TearDown() override {
+    if (editor_) {
+      DungeonEditorV2MinecartTrackTestPeer::SetMinecartTrackEditorPanel(
+          *editor_, nullptr);
+    }
+    editor_.reset();
+  }
+  void EditObjects(std::vector<zelda3::RoomObject> objects) {
+    DungeonEditorV2MinecartTrackTestPeer::BeginObjectEdit(*editor_, kRoom);
+    room_->SetTileObjects(objects);
+    DungeonEditorV2MinecartTrackTestPeer::FinalizeObjectEdit(*editor_, kRoom);
+  }
+  void ExpectPiece(int x, int y, uint8_t value) {
+    for (int dy = 0; dy < 2; ++dy) {
+      for (int dx = 0; dx < 2; ++dx) {
+        const size_t offset = (y + dy) * 64 + x + dx;
+        EXPECT_TRUE(room_->custom_collision().HasOverride(offset));
+        EXPECT_EQ(room_->custom_collision().tiles[offset], value);
+      }
+    }
+  }
+  void ExpectObject(int x, int y, int subtype) {
+    ASSERT_EQ(room_->GetTileObjects().size(), 1);
+    const auto& object = room_->GetTileObjects().front();
+    EXPECT_EQ(object.id_, 0x31);
+    EXPECT_EQ(object.x_, x);
+    EXPECT_EQ(object.y_, y);
+    EXPECT_EQ(object.size_, subtype);
+  }
+  static constexpr int kRoom = 0x98;
+  ScopedImGuiContext imgui_;
+  FeatureFlagsGuard flags_guard_;
+  ScopedTestProject fixture_;
+  Rom rom_;
+  MinecartTrackEditorPanel panel_;
+  EditorDependencies dependencies_;
+  std::unique_ptr<DungeonEditorV2> editor_;
+  zelda3::Room* room_ = nullptr;
+  std::vector<uint8_t> rom_before_;
+};
+
+TEST_F(MinecartObjectCollisionWorkflowTest,
+       PlacementAndMoveShareOneObjectAndCollisionUndoStep) {
+  EditObjects({zelda3::RoomObject(0x31, 10, 10, 0)});
+  ASSERT_EQ(editor_->undo_manager().UndoStackSize(), 1);
+  ExpectObject(10, 10, 0);
+  ExpectPiece(10, 10, 0xB0);
+  EXPECT_EQ(room_->custom_collision().overrides.count(), 4);
+  EXPECT_TRUE(room_->object_stream_dirty());
+  EXPECT_TRUE(room_->custom_collision_dirty());
+  EXPECT_EQ(rom_.vector(), rom_before_);
+  const auto placed_collision = room_->custom_collision();
+
+  EditObjects({zelda3::RoomObject(0x31, 20, 20, 1)});
+  ASSERT_EQ(editor_->undo_manager().UndoStackSize(), 2);
+  ExpectObject(20, 20, 1);
+  ExpectPiece(20, 20, 0xB1);
+  EXPECT_FALSE(room_->custom_collision().HasOverride(650));
+  EXPECT_EQ(room_->custom_collision().overrides.count(), 4);
+  const auto moved_collision = room_->custom_collision();
+  ASSERT_TRUE(editor_->Undo().ok());
+  EXPECT_EQ(editor_->undo_manager().UndoStackSize(), 1);
+  ExpectObject(10, 10, 0);
+  EXPECT_EQ(room_->custom_collision(), placed_collision);
+  ASSERT_TRUE(editor_->Redo().ok());
+  ExpectObject(20, 20, 1);
+  EXPECT_EQ(room_->custom_collision(), moved_collision);
+  ASSERT_TRUE(editor_->Undo().ok());
+  ASSERT_TRUE(editor_->Undo().ok());
+  EXPECT_TRUE(room_->GetTileObjects().empty());
+  EXPECT_FALSE(room_->custom_collision().HasOverrides());
+  EXPECT_EQ(DungeonEditorV2MinecartTrackTestPeer::OwnedCollisionCells(*editor_,
+                                                                      kRoom),
+            0);
+  ASSERT_TRUE(editor_->Redo().ok());
+  EXPECT_EQ(room_->custom_collision(), placed_collision);
+  EXPECT_EQ(rom_.vector(), rom_before_);
+}
+
+TEST_F(MinecartObjectCollisionWorkflowTest,
+       PendingObjectEditFinalizesBeforeRejectingStaleCollisionStamp) {
+  const auto original = room_->custom_collision();
+  DungeonEditorV2MinecartTrackTestPeer::BeginObjectEdit(*editor_, kRoom);
+  room_->SetTileObjects({zelda3::RoomObject(0x31, 10, 10, 0)});
+  ASSERT_EQ(editor_->undo_manager().UndoStackSize(), 0);
+  EXPECT_EQ(room_->custom_collision(), original);
+
+  // The caller's map can alias the working room, as the canvas tool's input
+  // does. The command must snapshot it before finalizing the pending object
+  // gesture generates collision, then reject that now-stale expectation.
+  const auto status = DungeonEditorV2MinecartTrackTestPeer::Stamp(
+      *editor_, kRoom, room_->custom_collision(), {20, 20, 2, 0xB1});
+  EXPECT_TRUE(absl::IsFailedPrecondition(status)) << status;
+  EXPECT_EQ(editor_->undo_manager().UndoStackSize(), 1);
+  ExpectObject(10, 10, 0);
+  ExpectPiece(10, 10, 0xB0);
+  EXPECT_EQ(room_->custom_collision().overrides.count(), 4);
+  EXPECT_FALSE(room_->custom_collision().HasOverride(20 * 64 + 20));
+  EXPECT_EQ(DungeonEditorV2MinecartTrackTestPeer::OwnedCollisionCells(*editor_,
+                                                                      kRoom),
+            4);
+
+  ASSERT_TRUE(editor_->Undo().ok());
+  EXPECT_TRUE(room_->GetTileObjects().empty());
+  EXPECT_EQ(room_->custom_collision(), original);
+  EXPECT_EQ(editor_->undo_manager().UndoStackSize(), 0);
+  EXPECT_EQ(DungeonEditorV2MinecartTrackTestPeer::OwnedCollisionCells(*editor_,
+                                                                      kRoom),
+            0);
+  EXPECT_EQ(rom_.vector(), rom_before_);
+}
+
+TEST_F(MinecartObjectCollisionWorkflowTest,
+       AuthoredStopAndExplicitFloorSurvivePlacementMoveAndUndo) {
+  room_->custom_collision().SetOverride(650, 0xB7);
+  room_->custom_collision().SetOverride(651, 0);
+  room_->custom_collision().SetOverride(714, 0xBB);
+  const auto original = room_->custom_collision();
+  EditObjects({zelda3::RoomObject(0x31, 10, 10, 0)});
+  EXPECT_EQ(room_->custom_collision().tiles[650], 0xB7);
+  EXPECT_EQ(room_->custom_collision().tiles[651], 0xB0);
+  EXPECT_EQ(room_->custom_collision().tiles[714], 0xBB);
+  EXPECT_EQ(DungeonEditorV2MinecartTrackTestPeer::OwnedCollisionCells(*editor_,
+                                                                      kRoom),
+            2);
+  EditObjects({zelda3::RoomObject(0x31, 20, 20, 0)});
+  EXPECT_EQ(room_->custom_collision().tiles[650], 0xB7);
+  EXPECT_EQ(room_->custom_collision().tiles[714], 0xBB);
+  EXPECT_TRUE(room_->custom_collision().HasOverride(651));
+  EXPECT_EQ(room_->custom_collision().tiles[651], 0);
+  ASSERT_TRUE(editor_->Undo().ok());
+  ASSERT_TRUE(editor_->Undo().ok());
+  EXPECT_EQ(room_->custom_collision(), original);
+  EXPECT_EQ(rom_.vector(), rom_before_);
+}
+
+TEST_F(MinecartObjectCollisionWorkflowTest,
+       UnsupportedCornerAndCollisionConflictRollBackWithoutHistory) {
+  EditObjects({zelda3::RoomObject(0x31, 10, 10, 2)});
+  EXPECT_TRUE(room_->GetTileObjects().empty());
+  EXPECT_FALSE(room_->custom_collision().HasOverrides());
+  EXPECT_EQ(editor_->undo_manager().UndoStackSize(), 0);
+
+  room_->custom_collision().SetOverride(715, 0x20);
+  const auto obstacle = room_->custom_collision();
+  EditObjects({zelda3::RoomObject(0x31, 10, 10, 0)});
+  EXPECT_TRUE(room_->GetTileObjects().empty());
+  EXPECT_EQ(room_->custom_collision(), obstacle);
+  EXPECT_EQ(editor_->undo_manager().UndoStackSize(), 0);
+  EXPECT_EQ(DungeonEditorV2MinecartTrackTestPeer::OwnedCollisionCells(*editor_,
+                                                                      kRoom),
+            0);
+  EXPECT_EQ(rom_.vector(), rom_before_);
+}
+
+TEST_F(MinecartObjectCollisionWorkflowTest,
+       DisabledAutomationLeavesVisualEditsAndHistoryAvailable) {
+  panel_.set_automatic_rail_collision(false);
+  room_->custom_collision().SetOverride(650, 0x20);
+  const auto original = room_->custom_collision();
+  EditObjects({zelda3::RoomObject(0x31, 10, 10, 2)});
+  ASSERT_EQ(editor_->undo_manager().UndoStackSize(), 1);
+  ExpectObject(10, 10, 2);
+  EXPECT_EQ(room_->custom_collision(), original);
+  EXPECT_EQ(DungeonEditorV2MinecartTrackTestPeer::OwnedCollisionCells(*editor_,
+                                                                      kRoom),
+            0);
+  ASSERT_TRUE(editor_->Undo().ok());
+  EXPECT_TRUE(room_->GetTileObjects().empty());
+  EXPECT_EQ(room_->custom_collision(), original);
+  EXPECT_EQ(rom_.vector(), rom_before_);
+}
+
+TEST_F(MinecartObjectCollisionWorkflowTest,
+       ProjectRebindRejectsOldPairedUndoBeforeEitherPlaneChanges) {
+  EditObjects({zelda3::RoomObject(0x31, 10, 10, 0)});
+  ASSERT_EQ(editor_->undo_manager().UndoStackSize(), 1);
+  const auto collision_before = room_->custom_collision();
+  editor_->SetDependencies(dependencies_);
+  EXPECT_EQ(DungeonEditorV2MinecartTrackTestPeer::OwnedCollisionCells(*editor_,
+                                                                      kRoom),
+            0);
+  const auto status = editor_->Undo();
+  EXPECT_TRUE(absl::IsFailedPrecondition(status)) << status;
+  ExpectObject(10, 10, 0);
+  EXPECT_EQ(room_->custom_collision(), collision_before);
+  EXPECT_EQ(rom_.vector(), rom_before_);
+}
+
+TEST_F(MinecartObjectCollisionWorkflowTest,
+       ExternalCollisionChangeRejectsUndoBeforeRestoringObjects) {
+  EditObjects({zelda3::RoomObject(0x31, 10, 10, 0)});
+  ASSERT_EQ(editor_->undo_manager().UndoStackSize(), 1);
+  room_->custom_collision().SetOverride(650, 0xB9);
+  const auto manual = room_->custom_collision();
+  const auto status = editor_->Undo();
+  EXPECT_TRUE(absl::IsFailedPrecondition(status)) << status;
+  EXPECT_EQ(editor_->undo_manager().UndoStackSize(), 1);
+  ExpectObject(10, 10, 0);
+  EXPECT_EQ(room_->custom_collision(), manual);
+  EXPECT_EQ(rom_.vector(), rom_before_);
+}
+
+TEST_F(MinecartObjectCollisionWorkflowTest,
+       GroupSelectionMoveUsesTheSamePairedCollisionHistory) {
+  EditObjects({zelda3::RoomObject(0x31, 10, 10, 0)});
+  const auto original = room_->custom_collision();
+  DungeonSelectionEditRequest request;
+  request.kind = DungeonSelectionEditKind::kMove;
+  request.objects = {0};
+  request.delta_x_pixels = 16;
+  const auto plan = PlanDungeonSelectionEdit(*room_, request);
+  ASSERT_TRUE(plan.ok()) << plan.status();
+  const auto status = DungeonEditorV2MinecartTrackTestPeer::CommitSelectionEdit(
+      *editor_, *plan);
+  ASSERT_TRUE(status.ok()) << status;
+  ASSERT_EQ(editor_->undo_manager().UndoStackSize(), 2);
+  ExpectObject(12, 10, 0);
+  ExpectPiece(12, 10, 0xB0);
+  EXPECT_FALSE(room_->custom_collision().HasOverride(650));
+  EXPECT_FALSE(room_->custom_collision().HasOverride(651));
+  const auto moved = room_->custom_collision();
+  ASSERT_TRUE(editor_->Undo().ok());
+  ExpectObject(10, 10, 0);
+  EXPECT_EQ(room_->custom_collision(), original);
+  ASSERT_TRUE(editor_->Redo().ok());
+  ExpectObject(12, 10, 0);
+  EXPECT_EQ(room_->custom_collision(), moved);
+  EXPECT_EQ(rom_.vector(), rom_before_);
+}
+
+TEST_F(MinecartObjectCollisionWorkflowTest,
+       GroupSelectionUnsupportedShapeFailsBeforePublication) {
+  panel_.set_automatic_rail_collision(false);
+  EditObjects({zelda3::RoomObject(0x31, 10, 10, 2)});
+  ASSERT_EQ(editor_->undo_manager().UndoStackSize(), 1);
+  panel_.set_automatic_rail_collision(true);
+  const auto original = room_->custom_collision();
+  DungeonSelectionEditRequest request;
+  request.kind = DungeonSelectionEditKind::kMove;
+  request.objects = {0};
+  request.delta_x_pixels = 16;
+  const auto plan = PlanDungeonSelectionEdit(*room_, request);
+  ASSERT_TRUE(plan.ok()) << plan.status();
+  const auto status = DungeonEditorV2MinecartTrackTestPeer::CommitSelectionEdit(
+      *editor_, *plan);
+  EXPECT_TRUE(absl::IsFailedPrecondition(status)) << status;
+  ExpectObject(10, 10, 2);
+  EXPECT_EQ(editor_->undo_manager().UndoStackSize(), 1);
+  EXPECT_EQ(room_->custom_collision(), original);
+  EXPECT_EQ(rom_.vector(), rom_before_);
+}
+
 // Pointer events run through the production canvas tool binding and editor
 // command. Fixture-only room/source setup never substitutes for the gesture.
 class MinecartCanvasWorkflowTest : public ::testing::Test {
@@ -2273,6 +2568,120 @@ TEST_F(MinecartCanvasWorkflowTest, LowerLayerAndMissingPairAreRefused) {
   Button(false);
   EXPECT_EQ(panel_.GetTracks()[0], start_);
   EXPECT_EQ(DungeonEditorV2MinecartTrackTestPeer::UndoCount(*editor_), 0u);
+}
+
+TEST_F(
+    MinecartCanvasWorkflowTest,
+    GenericSwitchTransformRefusesAddMoveAndLayerButAllowsPropertiesAndRemoval) {
+  room_->GetSprites().emplace_back(0xB0, 22, 19, 3, 0);
+  room_->custom_collision().SetOverride(38 * 64 + 44, 0xD0);
+  const auto original = room_->GetSprites();
+  auto candidate = original;
+  candidate.back().set_x(23);
+  auto status = DungeonEditorV2MinecartTrackTestPeer::PreflightSprites(
+      *editor_, 0x98, candidate);
+  EXPECT_TRUE(absl::IsFailedPrecondition(status)) << status;
+  EXPECT_EQ(status.message(),
+            "Place and move switch tracks with Tracks > Nodes");
+  candidate = original;
+  candidate.back().set_layer(1);
+  EXPECT_FALSE(DungeonEditorV2MinecartTrackTestPeer::PreflightSprites(
+                   *editor_, 0x98, candidate)
+                   .ok());
+  candidate = original;
+  candidate.emplace_back(0xB0, 23, 19, 3, 0);
+  EXPECT_FALSE(DungeonEditorV2MinecartTrackTestPeer::PreflightSprites(
+                   *editor_, 0x98, candidate)
+                   .ok());
+  candidate = original;
+  candidate.back() = zelda3::Sprite(0xB0, 22, 19, 4, 0);
+  candidate.back().set_key_drop(1);
+  EXPECT_TRUE(DungeonEditorV2MinecartTrackTestPeer::PreflightSprites(
+                  *editor_, 0x98, candidate)
+                  .ok());
+  candidate.pop_back();
+  EXPECT_TRUE(DungeonEditorV2MinecartTrackTestPeer::PreflightSprites(
+                  *editor_, 0x98, candidate)
+                  .ok());
+  ASSERT_EQ(room_->GetSprites().size(), 2u);
+  EXPECT_EQ(room_->GetSprites()[1].x(), 22);
+  EXPECT_EQ(editor_->undo_manager().UndoStackSize(), 0u);
+}
+
+TEST_F(MinecartCanvasWorkflowTest, MixedSelectionCannotMoveSwitchTrackActor) {
+  room_->GetSprites().emplace_back(0xB0, 22, 19, 3, 0);
+  room_->SetTileObjects({zelda3::RoomObject(0, 10, 10, 0)});
+  room_->custom_collision().SetOverride(38 * 64 + 44, 0xD0);
+  const auto collision = room_->custom_collision();
+  DungeonSelectionEditRequest request;
+  request.kind = DungeonSelectionEditKind::kMove;
+  request.objects = {0};
+  request.entities = {{EntityType::Sprite, 1}};
+  request.delta_x_pixels = 16;
+  const auto plan = PlanDungeonSelectionEdit(*room_, request);
+  ASSERT_TRUE(plan.ok()) << plan.status();
+  ASSERT_TRUE(plan->domains & kSelectionObjects);
+  ASSERT_TRUE(plan->domains & kSelectionSprites);
+  const auto status = DungeonEditorV2MinecartTrackTestPeer::CommitSelectionEdit(
+      *editor_, *plan);
+  EXPECT_TRUE(absl::IsFailedPrecondition(status)) << status;
+  EXPECT_EQ(room_->GetTileObjects()[0].x_, 10);
+  EXPECT_EQ(room_->GetSprites()[1].x(), 22);
+  EXPECT_EQ(room_->custom_collision(), collision);
+  EXPECT_EQ(editor_->undo_manager().UndoStackSize(), 0u);
+}
+
+TEST_F(MinecartCanvasWorkflowTest, SwitchDeletionUndoCanRestoreItsActor) {
+  room_->GetSprites().emplace_back(0xB0, 22, 19, 3, 0);
+  room_->custom_collision().SetOverride(38 * 64 + 44, 0xD0);
+  const auto collision = room_->custom_collision();
+  DungeonSelectionEditRequest request;
+  request.kind = DungeonSelectionEditKind::kDelete;
+  request.entities = {{EntityType::Sprite, 1}};
+  const auto plan = PlanDungeonSelectionEdit(*room_, request);
+  ASSERT_TRUE(plan.ok()) << plan.status();
+  ASSERT_TRUE(
+      DungeonEditorV2MinecartTrackTestPeer::CommitSelectionEdit(*editor_, *plan)
+          .ok());
+  ASSERT_EQ(room_->GetSprites().size(), 1u);
+  EXPECT_EQ(room_->custom_collision(), collision);
+  ASSERT_TRUE(editor_->Undo().ok());
+  ASSERT_EQ(room_->GetSprites().size(), 2u);
+  EXPECT_EQ(room_->GetSprites()[1].id(), 0xB0);
+  EXPECT_EQ(room_->GetSprites()[1].x(), 22);
+  EXPECT_EQ(room_->custom_collision(), collision);
+  ASSERT_TRUE(editor_->Redo().ok());
+  EXPECT_EQ(room_->GetSprites().size(), 1u);
+}
+
+TEST_F(MinecartCanvasWorkflowTest,
+       CollisionOnlyMoveCannotDetachPairedCartOrSwitch) {
+  auto original = room_->custom_collision();
+  MinecartCollisionStamp cart{54, 48, 1, 0xB7, MinecartCollisionSource{50, 48}};
+  auto status = DungeonEditorV2MinecartTrackTestPeer::Stamp(*editor_, 0x98,
+                                                            original, cart);
+  EXPECT_TRUE(absl::IsFailedPrecondition(status)) << status;
+  EXPECT_EQ(status.message(),
+            "Move this cart and its stop with the Cart Starts marker");
+  EXPECT_EQ(room_->custom_collision(), original);
+  EXPECT_EQ(room_->GetSprites()[0].x(), 25);
+  EXPECT_EQ(editor_->undo_manager().UndoStackSize(), 0u);
+
+  room_->GetSprites().emplace_back(0xB0, 22, 19, 3, 0);
+  // The actor need not sit at the source footprint's first cell.
+  for (int y = 37; y < 39; ++y)
+    for (int x = 43; x < 45; ++x)
+      room_->custom_collision().SetOverride(y * 64 + x, 0xD2);
+  original = room_->custom_collision();
+  MinecartCollisionStamp track{46, 38, 2, 0xD2,
+                               MinecartCollisionSource{43, 37}};
+  status = DungeonEditorV2MinecartTrackTestPeer::Stamp(*editor_, 0x98, original,
+                                                       track);
+  EXPECT_TRUE(absl::IsFailedPrecondition(status)) << status;
+  EXPECT_EQ(status.message(), "Move this switch track with Tracks > Nodes");
+  EXPECT_EQ(room_->custom_collision(), original);
+  EXPECT_EQ(room_->GetSprites()[1].x(), 22);
+  EXPECT_EQ(editor_->undo_manager().UndoStackSize(), 0u);
 }
 
 TEST(MinecartCanvasCoordinatesTest, RealStartsAndHighRoomsUseWorldPixels) {

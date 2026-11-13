@@ -93,6 +93,25 @@ struct WindowEvent {
 };
 
 /**
+ * @brief Push an SDL user event that only wakes the frame loop.
+ *
+ * Thread-safe (SDL_PushEvent). Defined by whichever of
+ * sdl2_window_backend.cc or sdl3_window_backend.cc this build compiles; one
+ * of them is always compiled. Kept as free functions so the wake code lives
+ * in the SDL backend sources without changing the backend class headers.
+ * @return True if the event was queued.
+ */
+bool PushWakeEvent();
+
+/**
+ * @brief True for an event pushed by PushWakeEvent().
+ *
+ * The frame loop skips these: they carry no input and must not reset the
+ * idle timer or reach the emulator input manager.
+ */
+bool IsWakeEvent(const SDL_Event& event);
+
+/**
  * @brief Window backend status information
  */
 struct WindowStatus {
@@ -166,6 +185,22 @@ class IWindowBackend {
   virtual bool WaitForEvent(int timeout_ms) {
     (void)timeout_ms;
     return false;
+  }
+
+  /**
+   * @brief Make a WaitForEvent() in progress on the UI thread return now.
+   *
+   * Safe to call from any thread. Used by util::UiThreadQueue so a task
+   * posted from a gRPC or HTTP thread runs on the next frame instead of
+   * after the idle wait. SDL backends push a wake event (see
+   * PushWakeEvent()); the frame loop drops it with IsWakeEvent(). Backends
+   * that never block in WaitForEvent() (null, iOS) report SDL version 0
+   * and need no wake.
+   */
+  virtual void WakeEventLoop() {
+    if (GetSDLVersion() != 0) {
+      PushWakeEvent();
+    }
   }
 
   // =========================================================================

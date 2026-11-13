@@ -3,6 +3,7 @@
 
 #ifdef YAZE_WITH_GRPC
 
+#include <cstddef>
 #include <string>
 
 #include "absl/status/statusor.h"
@@ -10,12 +11,25 @@
 #include "imgui/imgui.h"
 
 namespace yaze {
+namespace editor {
+class WindowHost;
+}
 namespace test {
 
 enum class HarnessTestStatus;
 struct HarnessTestExecution;
 
 namespace internal {
+
+// Empty selects Cancel. Nonempty destinations must be new absolute .yaze paths.
+absl::Status ValidateProjectSaveAsDestination(const char* destination);
+
+// Use a registered base ID in the active session, never a guessed ImGui label.
+absl::StatusOr<std::string> FocusHarnessWindow(editor::WindowHost* host,
+                                               size_t session_id,
+                                               absl::string_view window_id);
+// Call after a UI frame: dispatching focus alone does not prove tab selection.
+absl::Status VerifyHarnessWindowFocus(absl::string_view window_name);
 
 struct ParsedTarget {
   std::string type;

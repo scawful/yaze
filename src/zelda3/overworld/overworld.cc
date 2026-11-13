@@ -33,10 +33,31 @@
 #include "zelda3/overworld/overworld_map.h"
 #include "zelda3/overworld/overworld_version_helper.h"
 #include "zelda3/overworld/zscream_custom_layout.h"
+#include "zelda3/resource_labels.h"
 
 namespace yaze::zelda3 {
 
 namespace {
+
+std::vector<uint8_t> PrivateOverlaySnapshot(
+    const std::vector<OverworldMap>& maps) {
+  std::vector<uint8_t> bytes;
+  const auto append = [&bytes](uint32_t value) {
+    for (int shift = 0; shift < 32; shift += 8)
+      bytes.push_back(static_cast<uint8_t>(value >> shift));
+  };
+  append(static_cast<uint32_t>(maps.size()));
+  for (const auto& map : maps) {
+    append(map.overlay_id());
+    append(map.has_overlay() ? 1 : 0);
+    append(map.subscreen_overlay());
+    append(map.render_subscreen_overlay());
+    append(static_cast<uint32_t>(map.overlay_data().size()));
+    bytes.insert(bytes.end(), map.overlay_data().begin(),
+                 map.overlay_data().end());
+  }
+  return bytes;
+}
 
 struct Map32StorageLayout {
   std::array<int, 4> destinations{};
@@ -140,6 +161,9 @@ absl::Status Overworld::Load(Rom* rom) {
   if (rom->size() == 0) {
     return absl::InvalidArgumentError("ROM file not loaded");
   }
+  if (const auto* manifest = GetResourceLabels().hack_manifest()) {
+    RETURN_IF_ERROR(rom->AttachLyraPrivateReservation(*manifest));
+  }
   const auto layout = rom->InspectLyraLayout();
   if (layout.presence == yaze::rom::LyraLayoutPresence::kInvalid) {
     return absl::FailedPreconditionError(
@@ -149,6 +173,17 @@ absl::Status Overworld::Load(Rom* rom) {
     return absl::FailedPreconditionError(
         "Lyra descriptor canvas loading is not yet supported");
   }
+  // Reload replaces ROM-derived state. In particular, CreateTile32Tilemap()
+  // may have reordered the in-memory definitions during an unchanged save;
+  // appending the ROM definitions would retain that stale index prefix.
+  // Destroy preserves the bound GameData, selection and graphics preview.
+  Destroy();
+  tiles32_list_.clear();
+  map_tiles_ = {};
+  loaded_map_tiles_ = {};
+  RollbackSavedMapTiles();
+  expanded_tile16_ = false;
+  expanded_tile32_ = false;
   descriptor_layout_ = {};
   rom_ = rom;
 
@@ -156,6 +191,7 @@ absl::Status Overworld::Load(Rom* rom) {
   // Cache ROM version to avoid repeated detection (called 160+ times otherwise)
   cached_version_ = profile.version;
   expanded_entrances_ = profile.has_expanded_entrances;
+  has_tail_map_expansion_ = profile.has_tail_map_expansion;
 
   // Phase 1: Tile Assembly (can be parallelized)
   {
@@ -234,6 +270,14 @@ absl::Status Overworld::Load(Rom* rom) {
     }
   }
 
+  if (rom_->has_lyra_private_reservation()) {
+    // Overlay caches are otherwise lazy. Resolve every native map before the
+    // snapshot so browsing an unbuilt map cannot look like an authored edit.
+    for (auto& map : overworld_maps_)
+      RETURN_IF_ERROR(map.LoadOverlay());
+    private_loaded_overlays_ = PrivateOverlaySnapshot(overworld_maps_);
+  }
+  private_loaded_tiles16_ = tiles16_;
   loaded_map_tiles_ = map_tiles_;
   loaded_map_tiles_valid_ = true;
   is_loaded_ = true;
@@ -265,6 +309,7 @@ absl::Status Overworld::BuildLyraTerrainPreview(
   const auto profile = DetectOverworldRomProfile(*rom_);
   cached_version_ = profile.version;
   expanded_entrances_ = profile.has_expanded_entrances;
+  has_tail_map_expansion_ = profile.has_tail_map_expansion;
   tiles16_.clear();
   tiles32_unique_.clear();
   overworld_maps_.clear();
@@ -1040,7 +1085,7 @@ absl::Status Overworld::LoadOverworldMaps() {
                 (*rom_)[kOverworldSpecialGfxGroup +
                         (map->parent() - kSpecialWorldMapIdStart)]);
             map->set_area_palette((*rom_)[kOverworldSpecialPalGroup + 1]);
-          } else if (i == 0x88) {
+          } else if (i == 0x88 || i == 0x93) {
             map->set_area_graphics(0x51);
             map->set_area_palette(0x00);
           } else if (i < kSpecialWorldMapIdStart) {
@@ -1189,7 +1234,7 @@ absl::Status Overworld::EnsureMapBuilt(int map_index) {
             (*rom_)[kOverworldSpecialGfxGroup +
                     (map->parent() - kSpecialWorldMapIdStart)]);
         map->set_area_palette((*rom_)[kOverworldSpecialPalGroup + 1]);
-      } else if (map_index == 0x88) {
+      } else if (map_index == 0x88 || map_index == 0x93) {
         map->set_area_graphics(0x51);
         map->set_area_palette(0x00);
       } else if (map_index < kSpecialWorldMapIdStart) {
@@ -1617,6 +1662,7 @@ absl::Status Overworld::Save(Rom* rom) {
   }
   RETURN_IF_ERROR(rom->CheckLayoutWritable());
   rom_ = rom;
+  RETURN_IF_ERROR(ValidatePrivateNativeTerrainSave());
   ASSIGN_OR_RETURN(auto sprite_plan, PrepareSpriteSave());
   ScopedRomTransaction transaction(*rom_);
   RETURN_IF_ERROR(CreateTile32Tilemap())
@@ -1641,6 +1687,23 @@ absl::Status Overworld::Save(Rom* rom) {
   RETURN_IF_ERROR(SaveMusic())
   RETURN_IF_ERROR(SaveCustomOverworldData())
   transaction.Commit();
+  return absl::OkStatus();
+}
+
+absl::Status Overworld::ValidatePrivateNativeTerrainSave() const {
+  if (!rom_ || !rom_->has_lyra_private_reservation())
+    return absl::OkStatus();
+  RETURN_IF_ERROR(rom_->ValidateLyraPrivateReservation());
+  if (!MapTilesUnchanged() || tiles16_ != private_loaded_tiles16_) {
+    return absl::FailedPreconditionError(
+        "Private Lyra producer reservation refuses changed native terrain "
+        "before serialization");
+  }
+  if (PrivateOverlaySnapshot(overworld_maps_) != private_loaded_overlays_) {
+    return absl::FailedPreconditionError(
+        "Private Lyra reservation refuses changed overlay model before "
+        "serialization");
+  }
   return absl::OkStatus();
 }
 
@@ -1672,6 +1735,9 @@ void Overworld::RollbackSavedMapTiles() {
 }
 
 absl::Status Overworld::SaveOverworldMaps() {
+  RETURN_IF_ERROR(ValidatePrivateNativeTerrainSave());
+  if (rom_ && rom_->has_lyra_private_reservation())
+    return absl::OkStatus();
   util::logf("Saving Overworld Maps");
 
   if (MapTilesUnchanged()) {
@@ -2904,6 +2970,9 @@ std::vector<uint64_t> GetAllTile16(OverworldMapTiles& map_tiles_) {
 }  // namespace
 
 absl::Status Overworld::CreateTile32Tilemap() {
+  RETURN_IF_ERROR(ValidatePrivateNativeTerrainSave());
+  if (rom_ && rom_->has_lyra_private_reservation())
+    return absl::OkStatus();
   tiles32_unique_.clear();
   tiles32_list_.clear();
 
@@ -2955,6 +3024,9 @@ absl::Status Overworld::CreateTile32Tilemap() {
 }
 
 absl::Status Overworld::SaveMap32Expanded() {
+  RETURN_IF_ERROR(ValidatePrivateNativeTerrainSave());
+  if (rom_ && rom_->has_lyra_private_reservation())
+    return absl::OkStatus();
   if (MapTilesUnchanged()) {
     util::logf("Overworld tiles unchanged; preserving expanded tile32");
     return absl::OkStatus();
@@ -3118,6 +3190,9 @@ absl::Status Overworld::SaveMap32Expanded() {
 }
 
 absl::Status Overworld::SaveMap32Tiles() {
+  RETURN_IF_ERROR(ValidatePrivateNativeTerrainSave());
+  if (rom_ && rom_->has_lyra_private_reservation())
+    return absl::OkStatus();
   if (MapTilesUnchanged()) {
     util::logf("Overworld tiles unchanged; preserving tile32 definitions");
     return absl::OkStatus();
@@ -3254,6 +3329,9 @@ absl::Status Overworld::SaveMap32Tiles() {
 }
 
 absl::Status Overworld::SaveMap16Expanded() {
+  RETURN_IF_ERROR(ValidatePrivateNativeTerrainSave());
+  if (rom_ && rom_->has_lyra_private_reservation())
+    return absl::OkStatus();
   const int map16_expanded = GetMap16TilesExpanded();
   const auto write_pointer = [this](int address,
                                     uint32_t target) -> absl::Status {
@@ -3356,6 +3434,9 @@ absl::Status Overworld::SaveMap16Expanded() {
 }
 
 absl::Status Overworld::SaveMap16Tiles() {
+  RETURN_IF_ERROR(ValidatePrivateNativeTerrainSave());
+  if (rom_ && rom_->has_lyra_private_reservation())
+    return absl::OkStatus();
   util::logf("Saving Map16 Tiles");
   int tpos = kMap16Tiles;
   // 3760
@@ -3377,9 +3458,27 @@ absl::Status Overworld::SaveMap16Tiles() {
 }
 
 absl::Status Overworld::SaveEntrances() {
+  if (!rom_) {
+    return absl::InvalidArgumentError("Cannot save entrances without a ROM");
+  }
+  const bool expanded = DetectOverworldRomProfile(*rom_).has_expanded_entrances;
+  if (expanded) {
+    if (all_holes_.size() != kNumOverworldHoles) {
+      return absl::FailedPreconditionError(
+          "Legacy hole source rows are missing");
+    }
+    for (size_t i = 0; i < all_holes_.size(); ++i) {
+      if (!all_holes_[i].HasUnchangedHoleSourceState(i)) {
+        return absl::FailedPreconditionError(
+            "Legacy holes were edited; use the expanded entrance table rows");
+      }
+    }
+  }
   RETURN_IF_ERROR(
-      ::yaze::zelda3::SaveEntrances(rom_, all_entrances_, expanded_entrances_));
-  RETURN_IF_ERROR(SaveHoles(rom_, all_holes_));
+      ::yaze::zelda3::SaveEntrances(rom_, all_entrances_, expanded));
+  if (!expanded) {
+    RETURN_IF_ERROR(SaveHoles(rom_, all_holes_));
+  }
   return absl::OkStatus();
 }
 
@@ -3424,6 +3523,13 @@ absl::Status Overworld::SaveItems() {
 }
 
 absl::Status Overworld::SaveMapOverlays() {
+  if (rom_ && rom_->has_lyra_private_reservation()) {
+    // This private transfer does not admit the legacy renderer generator.
+    // Preserve a loaded no-op and reject edits rather than installing code.
+    RETURN_IF_ERROR(ValidatePrivateNativeTerrainSave());
+    return absl::OkStatus();
+  }
+
   util::logf("Saving Map Overlays");
 
   // Generate the new overlay code that handles interactive overlays

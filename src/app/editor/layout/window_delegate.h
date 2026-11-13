@@ -59,7 +59,6 @@ class WindowDelegate {
   // Workspace-specific layout methods (match EditorManager API)
   void SaveWorkspaceLayout();
   void LoadWorkspaceLayout();
-  void ResetWorkspaceLayout();
 
   // Layout presets
   void LoadDeveloperLayout();
@@ -112,4 +111,3 @@ class WindowDelegate {
 }  // namespace yaze
 
 #endif  // YAZE_APP_EDITOR_LAYOUT_WINDOW_DELEGATE_H_
-

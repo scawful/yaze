@@ -16,6 +16,7 @@
 #include <nlohmann/json.hpp>
 
 #include "app/editor/message/message_data.h"
+#include "cli/handlers/tools/message_doctor_commands.h"
 #include "framework/rom_save_fault.h"
 #include "rom/rom.h"
 #include "zelda3/resource_labels.h"
@@ -1029,6 +1030,176 @@ TEST(MessageCommandsPolicyTest, MessageWriteVanillaSaveFailurePrintsErrorJson) {
   EXPECT_FALSE(result.at("error").get<std::string>().empty());
   EXPECT_EQ(ReadBinaryFile(rom_path), disk_before);
   EXPECT_EQ(rom.vector(), memory_before);  // the transaction rolled back
+}
+
+std::vector<std::string> ReadExpandedTexts(Rom& rom) {
+  std::vector<std::string> texts;
+  for (const auto& message : editor::ReadExpandedTextData(
+           rom.mutable_data(), editor::kExpandedTextDataDefault,
+           editor::kExpandedTextDataEndDefault)) {
+    texts.push_back(message.RawString);
+  }
+  return texts;
+}
+
+TEST(MessageCommandsPolicyTest,
+     MessageWriteExpandedRangeSavesBacksUpAndSurvivesFreshLoad) {
+  ScopedTempDir temp;
+  const fs::path rom_path = temp.path() / "active.sfc";
+  const auto disk_before = MakeMessageRomData();
+  WriteBinaryFile(rom_path, disk_before);
+  const fs::path project_path =
+      CreateProject(temp.path(), rom_path, "Other Hack", "allow", false);
+
+  {
+    Rom rom = LoadRom(rom_path);
+    handlers::MessageWriteCommandHandler handler;
+    std::string output;
+    const auto status =
+        handler.Run({"--id=1", "--text=CD", "--range=expanded",
+                     "--project=" + project_path.string(), "--format=json"},
+                    &rom, &output);
+    ASSERT_TRUE(status.ok()) << status << "\n" << output;
+    const auto result =
+        nlohmann::json::parse(output).at("Message Write Result");
+    EXPECT_EQ(result.at("status"), "success");
+    EXPECT_EQ(result.at("range"), "expanded");
+    EXPECT_EQ(result.at("readback_verified"), true);
+  }
+
+  const auto backups = FindBackupArtifacts(rom_path);
+  ASSERT_EQ(backups.size(), 1);
+  EXPECT_EQ(ReadBinaryFile(backups.front()), disk_before);
+
+  Rom reopened = LoadRom(rom_path);
+  EXPECT_THAT(ReadExpandedTexts(reopened), ::testing::ElementsAre("X", "CD"));
+  EXPECT_EQ(reopened.vector()[editor::kTextData],
+            editor::FindMatchingCharacter('A'));
+}
+
+TEST(MessageCommandsPolicyTest,
+     MessageWriteVanillaThenExpandedBothSurviveFreshLoad) {
+  ScopedTempDir temp;
+  const fs::path rom_path = temp.path() / "active.sfc";
+  WriteBinaryFile(rom_path, MakeMessageRomData());
+  const fs::path project_path =
+      CreateProject(temp.path(), rom_path, "Other Hack", "allow", false);
+
+  for (const auto& [range, id, text] :
+       std::vector<std::tuple<std::string, std::string, std::string>>{
+           {"vanilla", "0", "B[BANK]"}, {"expanded", "0", "Y"}}) {
+    SCOPED_TRACE(range);
+    Rom rom = LoadRom(rom_path);
+    handlers::MessageWriteCommandHandler handler;
+    std::string output;
+    const auto status =
+        handler.Run({"--id=" + id, "--text=" + text, "--range=" + range,
+                     "--project=" + project_path.string(), "--format=json"},
+                    &rom, &output);
+    ASSERT_TRUE(status.ok()) << status << "\n" << output;
+  }
+
+  Rom reopened = LoadRom(rom_path);
+  EXPECT_EQ(reopened.vector()[editor::kTextData],
+            editor::FindMatchingCharacter('B'));
+  EXPECT_EQ(reopened.vector()[editor::kTextData + 1],
+            editor::kBankSwitchCommand);
+  EXPECT_THAT(ReadExpandedTexts(reopened), ::testing::ElementsAre("Y"));
+  EXPECT_EQ(FindBackupArtifacts(rom_path).size(), 2);
+}
+
+TEST(MessageCommandsPolicyTest,
+     MessageWriteExpandedSaveFailureFailsLoudlyAndRollsBack) {
+  ScopedTempDir temp;
+  const fs::path rom_path = temp.path() / "active.sfc";
+  const auto disk_before = MakeMessageRomData();
+  WriteBinaryFile(rom_path, disk_before);
+  const fs::path project_path =
+      CreateProject(temp.path(), rom_path, "Other Hack", "allow", false);
+  Rom rom = LoadRom(rom_path);
+  const auto memory_before = rom.vector();
+
+  handlers::MessageWriteCommandHandler handler;
+  std::string output;
+  absl::Status status;
+  {
+    test::ScopedRomStagingFailure staging_failure;
+    status =
+        handler.Run({"--id=0", "--text=B", "--range=expanded",
+                     "--project=" + project_path.string(), "--format=json"},
+                    &rom, &output);
+  }
+
+  EXPECT_FALSE(status.ok());
+  const auto result = nlohmann::json::parse(output).at("Message Write Result");
+  EXPECT_EQ(result.at("status"), "error");
+  EXPECT_FALSE(result.at("error").get<std::string>().empty());
+  EXPECT_EQ(ReadBinaryFile(rom_path), disk_before);
+  EXPECT_EQ(rom.vector(), memory_before);
+}
+
+TEST(MessageCommandsPolicyTest,
+     MessageWriteExpandedRejectsDirtyInMemoryRomBeforeMutation) {
+  ScopedTempDir temp;
+  const fs::path rom_path = temp.path() / "active.sfc";
+  const auto disk_before = MakeMessageRomData();
+  WriteBinaryFile(rom_path, disk_before);
+  const fs::path project_path =
+      CreateProject(temp.path(), rom_path, "Other Hack", "allow", false);
+  Rom rom = LoadRom(rom_path);
+  ASSERT_TRUE(rom.WriteByte(0x10, 0x5A).ok());
+  const auto memory_before = rom.vector();
+
+  handlers::MessageWriteCommandHandler handler;
+  std::string output;
+  const auto status =
+      handler.Run({"--id=0", "--text=B", "--project=" + project_path.string(),
+                   "--format=json"},
+                  &rom, &output);
+
+  EXPECT_EQ(status.code(), absl::StatusCode::kFailedPrecondition) << output;
+  EXPECT_THAT(std::string(status.message()), HasSubstr("requires a clean ROM"));
+  EXPECT_EQ(rom.vector(), memory_before);
+  EXPECT_EQ(ReadBinaryFile(rom_path), disk_before);
+  EXPECT_EQ(CountBackupArtifacts(rom_path), 0);
+}
+
+nlohmann::json RunMessageDoctor(const std::vector<uint8_t>& data) {
+  Rom rom;
+  EXPECT_TRUE(rom.LoadFromData(data).ok());
+  MessageDoctorCommandHandler handler;
+  std::string output;
+  const auto status = handler.Run({"--format=json"}, &rom, &output);
+  EXPECT_TRUE(status.ok()) << status << "\n" << output;
+  return nlohmann::json::parse(output);
+}
+
+TEST(MessageDoctorBoundsTest, RomShorterThanDictionaryBankReportsCritical) {
+  const auto result = RunMessageDoctor(std::vector<uint8_t>(0x10000, 0x00));
+
+  EXPECT_EQ(result.at("critical_count"), 1);
+  EXPECT_THAT(result.dump(), HasSubstr("dictionary_out_of_bounds"));
+}
+
+TEST(MessageDoctorBoundsTest, ScanStopsAtRomEndInsideTextBank) {
+  // The text bank is cut short with no 0xFF end marker: the scan must stop
+  // at the last byte the ROM holds, not at kTextDataEnd.
+  constexpr size_t kMessagesBeforeEnd = 0x10;
+  std::vector<uint8_t> data(editor::kTextData + kMessagesBeforeEnd, 0x00);
+  std::fill(data.begin() + editor::kTextData, data.end(),
+            editor::kMessageTerminator);
+
+  const auto result = RunMessageDoctor(data);
+
+  EXPECT_EQ(result.at("critical_count"), 0);
+  EXPECT_EQ(result.at("messages_scanned"), kMessagesBeforeEnd);
+}
+
+TEST(MessageDoctorBoundsTest, RomEndingBeforeTextBankScansNothing) {
+  const auto result = RunMessageDoctor(std::vector<uint8_t>(0x80000, 0x00));
+
+  EXPECT_EQ(result.at("critical_count"), 0);
+  EXPECT_EQ(result.at("messages_scanned"), 0);
 }
 
 }  // namespace

@@ -119,6 +119,39 @@ TEST(GraphicsUsagePreviewTest, ZsmFrameDrawsEditedSheetPixels) {
   EXPECT_TRUE(found);
 }
 
+TEST(GraphicsUsagePreviewTest, LiveTile16CopiesAreIsolatedAndSessionBound) {
+  SyntheticGame game(1);
+  zelda3::OverworldMap map(0, &game.rom, &game.game_data);
+  for (int slot = 0; slot < 8; ++slot)
+    *map.mutable_static_graphics(slot) = slot + 1;
+  *map.mutable_current_palette() =
+      gfx::SnesPalette(std::vector<uint16_t>(256, 0x7fff));
+  const gfx::TileInfo info(1, 2, false, false, false);
+  std::vector<gfx::Tile16> definitions(1, gfx::Tile16(info, info, info, info));
+  const auto rom_before = game.rom.vector();
+  const auto source_pixels = map.current_graphics();
+  Tile16UsagePreview preview;
+  ASSERT_TRUE(
+      preview.ConfigureFromLive(map, definitions, &game.game_data).ok());
+  EXPECT_EQ(preview.Tile16sUsingTile(1, 1), (std::vector<int>{0}));
+  // Editing the author's document does not alias the previously rendered copy.
+  definitions[0] =
+      gfx::Tile16(gfx::TileInfo(2, 3, true, false, false), info, info, info);
+  auto image = preview.Render({}, {0}, 1, 1);
+  ASSERT_FALSE(image.empty());
+  EXPECT_EQ(image.pixels[0], 0x29);
+  ASSERT_TRUE(
+      preview.ConfigureFromLive(map, definitions, &game.game_data).ok());
+  image = preview.Render({}, {0}, 1, 1);
+  EXPECT_EQ(image.pixels[0], 0x39);
+  EXPECT_EQ(game.rom.vector(), rom_before);
+  EXPECT_EQ(map.current_graphics(), source_pixels);
+  zelda3::GameData foreign;
+  EXPECT_EQ(preview.ConfigureFromLive(map, definitions, &foreign).code(),
+            absl::StatusCode::kFailedPrecondition);
+  EXPECT_EQ(preview.Render({}, {0}, 1, 1).pixels, image.pixels);
+}
+
 TEST(GraphicsUsagePreviewTest, ZsmAnimationAdvancesAtGameSpeed) {
   SyntheticGame game(0);
   SpriteUsagePreview preview;

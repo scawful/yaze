@@ -11,6 +11,7 @@
 
 #include <gtest/gtest.h>
 
+#include <algorithm>
 #include <vector>
 
 namespace yaze::editor {
@@ -44,6 +45,12 @@ class EditorActivatorLayoutTest : public ::testing::Test {
     };
     deps.get_current_session_id = [this]() {
       return window_manager_.GetActiveSessionId();
+    };
+    deps.ensure_editor_assets_loaded = [this](EditorType type) {
+      if (materialize_on_switch_) {
+        editor_set_.GetEditor(type);
+      }
+      return absl::OkStatus();
     };
     deps.queue_deferred_action = [this](std::function<void()> action) {
       if (defer_layout_actions_) {
@@ -87,6 +94,7 @@ class EditorActivatorLayoutTest : public ::testing::Test {
   bool overworld_tile_selector_visible_ = false;
   bool overworld_properties_visible_ = false;
   bool defer_layout_actions_ = false;
+  bool materialize_on_switch_ = false;
   std::vector<std::function<void()>> deferred_layout_actions_;
   WorkspaceWindowManager window_manager_;
   LayoutManager layout_manager_;
@@ -117,6 +125,32 @@ TEST(EditorActivatorTest, RejectsInvalidOverworldMapJumpTargets) {
             "Invalid overworld map ID: 259");
 }
 
+TEST(EditorActivatorTest, LoadsProjectCapabilitiesBeforeRejectingMapTarget) {
+  EditorSet editor_set(nullptr, nullptr, nullptr, 0, nullptr);
+  auto* overworld = editor_set.GetOverworldEditor();
+  ToastManager toasts;
+  EditorActivator activator;
+  bool prepared = false;
+  EditorActivator::Dependencies deps;
+  deps.toast_manager = &toasts;
+  deps.get_current_editor_set = [&]() {
+    return &editor_set;
+  };
+  deps.ensure_editor_assets_loaded = [&](EditorType type) {
+    EXPECT_EQ(type, EditorType::kOverworld);
+    prepared = true;
+    return absl::OkStatus();
+  };
+  activator.Initialize(deps);
+  // An ordinary project without loaded Lyra terrain must still refuse A0.
+  activator.JumpToOverworldMap(0xA0);
+  EXPECT_TRUE(prepared);
+  EXPECT_EQ(overworld->current_map_id(), 0);
+  ASSERT_FALSE(toasts.GetHistory().empty());
+  EXPECT_EQ(toasts.GetHistory().front().message,
+            "Invalid overworld map ID: 160");
+}
+
 TEST(EditorActivatorTest, AppliesValidOverworldMapJumpTargets) {
   EditorSet editor_set(nullptr, nullptr, nullptr, 0, nullptr);
   auto* overworld_editor = editor_set.GetOverworldEditor();
@@ -135,6 +169,61 @@ TEST(EditorActivatorTest, AppliesValidOverworldMapJumpTargets) {
 
   EXPECT_EQ(overworld_editor->current_map_id(), 0x7F);
   EXPECT_TRUE(toast_manager.GetHistory().empty());
+}
+
+TEST_F(EditorActivatorLayoutTest,
+       RepeatedMapNavigationKeepsVisibleOverworldActive) {
+  auto* dungeon = editor_set_.GetEditor(EditorType::kDungeon);
+  auto* overworld = editor_set_.GetOverworldEditor();
+  ASSERT_NE(dungeon, nullptr);
+  ASSERT_NE(overworld, nullptr);
+  activator_.SwitchToEditor(EditorType::kDungeon, true);
+  activator_.SwitchToEditor(EditorType::kOverworld, true);
+
+  for (const int map_id : {0x23, 0x7F, 0x7F}) {
+    activator_.JumpToOverworldMap(map_id);
+    EXPECT_TRUE(*overworld->active());
+    EXPECT_EQ(window_manager_.GetActiveCategory(), "Overworld");
+    EXPECT_EQ(overworld->current_map_id(), map_id);
+  }
+}
+
+TEST_F(EditorActivatorLayoutTest,
+       DeferredFreshStartupMapNavigationKeepsExplicitOverworldActive) {
+  auto* dungeon = editor_set_.GetEditor(EditorType::kDungeon);
+  auto* overworld = editor_set_.GetOverworldEditor();
+  ASSERT_NE(dungeon, nullptr);
+  ASSERT_NE(overworld, nullptr);
+  dungeon->set_active(false);
+  overworld->set_active(false);
+  defer_layout_actions_ = true;
+  ImGui::EndFrame();
+
+  // Post-load fallback, explicit --editor, then --map arrive before frame one.
+  activator_.SwitchToEditor(EditorType::kDungeon, true);
+  activator_.SwitchToEditor(EditorType::kOverworld, true);
+  activator_.JumpToOverworldMap(0x7F);
+  const size_t startup_action_count = deferred_layout_actions_.size();
+  ImGui::NewFrame();
+  ASSERT_EQ(startup_action_count, 3u);
+  auto startup_actions = std::move(deferred_layout_actions_);
+  deferred_layout_actions_.clear();
+  for (auto& action : startup_actions) {
+    action();
+  }
+  // Editor activation queued layout work for the following frame as well.
+  auto layout_actions = std::move(deferred_layout_actions_);
+  deferred_layout_actions_.clear();
+  for (auto& action : layout_actions) {
+    action();
+  }
+
+  EXPECT_TRUE(*overworld->active());
+  EXPECT_EQ(window_manager_.GetActiveCategory(), "Overworld");
+  EXPECT_EQ(overworld->current_map_id(), 0x7F);
+  activator_.JumpToOverworldMap(0x7F);
+  EXPECT_TRUE(*overworld->active());
+  EXPECT_EQ(window_manager_.GetActiveCategory(), "Overworld");
 }
 
 TEST_F(EditorActivatorLayoutTest,
@@ -235,6 +324,28 @@ TEST_F(EditorActivatorLayoutTest, DeferredEditorSwitchDoesNotCrossRomSessions) {
 
   EXPECT_FALSE(*dungeon_editor->active());
   EXPECT_FALSE(layout_manager_.IsLayoutInitialized(EditorType::kDungeon));
+}
+
+TEST_F(EditorActivatorLayoutTest, PlanningSwitchFromDashboardShowsPlanning) {
+  bool overview_visible = false;
+  RegisterPanel(0, "planning.overview", "Planning", &overview_visible);
+  window_manager_.SetActiveCategory("Dashboard");
+  materialize_on_switch_ = true;
+
+  activator_.SwitchToEditor(EditorType::kPlanning, true);
+
+  Editor* planning = editor_set_.GetEditor(EditorType::kPlanning);
+  ASSERT_NE(planning, nullptr);
+  EXPECT_TRUE(*planning->active());
+  EXPECT_EQ(window_manager_.GetActiveCategory(), "Planning");
+
+  activator_.SwitchToEditor(EditorType::kPlanning, true);
+
+  EXPECT_TRUE(*planning->active());
+  EXPECT_EQ(window_manager_.GetActiveCategory(), "Planning");
+  EXPECT_EQ(std::count(editor_set_.active_editors_.begin(),
+                       editor_set_.active_editors_.end(), planning),
+            1);
 }
 
 }  // namespace

@@ -52,10 +52,14 @@ class MemoryEditor : public Editor {
   // Get the ROM pointer
   Rom* rom() const { return rom_; }
 
+  // Loads the comparison ROM and shows it. Returns false and leaves the view
+  // hidden when `path` is empty (a cancelled file dialog) or fails to load.
+  bool LoadComparisonRom(const std::string& path);
+  bool show_compare_rom() const { return show_compare_rom_; }
+
  private:
   void DrawToolbar();
   void DrawJumpToAddressPopup();
-  void DrawSearchPopup();
   void DrawBookmarksPopup();
 
   Rom* rom_;
@@ -66,7 +70,6 @@ class MemoryEditor : public Editor {
 
   // Toolbar state
   char jump_address_[16] = "0x000000";
-  char search_pattern_[256] = "";
   uint32_t current_address_ = 0;
 
   struct Bookmark {

@@ -3,7 +3,6 @@
 # Define base source files
 set(Z3ED_BASE_SOURCES
   cli/cli_main.cc
-  cli/cli.cc
   cli/util/autocomplete.cc
 )
 

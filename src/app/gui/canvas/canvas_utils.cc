@@ -1,5 +1,6 @@
 #include "canvas_utils.h"
 
+#include <algorithm>
 #include <cmath>
 
 #include "app/gfx/resource/arena.h"
@@ -183,7 +184,7 @@ void DrawCanvasOutline(ImDrawList* draw_list, ImVec2 canvas_p0,
   ImVec2 origin(canvas_p0.x + scrolling.x + scaled_x,
                 canvas_p0.y + scrolling.y + scaled_y);
   ImVec2 size(origin.x + scaled_w, origin.y + scaled_h);
-  draw_list->AddRect(origin, size, color, 0, 0, 1.5f);
+  draw_list->AddRect(origin, size, color, 0.0f, 1.5f);
 }
 
 void DrawCanvasOutlineWithColor(ImDrawList* draw_list, ImVec2 canvas_p0,
@@ -206,16 +207,14 @@ void DrawCanvasGridLines(ImDrawList* draw_list, ImVec2 canvas_p0,
 
   for (float x = fmodf(scrolling.x, scaled_grid_step);
        x < (canvas_p1.x - canvas_p0.x); x += scaled_grid_step) {
-    draw_list->AddLine(ImVec2(canvas_p0.x + x, canvas_p0.y),
-                       ImVec2(canvas_p0.x + x, canvas_p1.y), grid_color,
-                       grid_thickness);
+    draw_list->AddLineV(canvas_p0.x + x, canvas_p0.y, canvas_p1.y, grid_color,
+                        grid_thickness);
   }
 
   for (float y = fmodf(scrolling.y, scaled_grid_step);
        y < (canvas_p1.y - canvas_p0.y); y += scaled_grid_step) {
-    draw_list->AddLine(ImVec2(canvas_p0.x, canvas_p0.y + y),
-                       ImVec2(canvas_p1.x, canvas_p0.y + y), grid_color,
-                       grid_thickness);
+    draw_list->AddLineH(canvas_p0.x, canvas_p1.x, canvas_p0.y + y, grid_color,
+                        grid_thickness);
   }
 }
 
@@ -361,22 +360,28 @@ void DrawCanvasOverlay(const CanvasRenderContext& ctx,
     ctx.draw_list->AddRect(
         ImVec2(origin.x + points[n].x, origin.y + points[n].y),
         ImVec2(origin.x + points[n + 1].x, origin.y + points[n + 1].y),
-        IM_COL32(255, 255, 255, 255), 1.0f);
+        IM_COL32(255, 255, 255, 255), 0.0f, 1.0f);
   }
 
   // Draw selection rectangles (selected_points are in world coordinates)
   // Scale world coordinates to screen coordinates for proper display
   if (!selected_points.empty()) {
     constexpr float kTile16Size = 16.0f;
-    const float scaled_tile_offset = kTile16Size * scale;
     for (int n = 0; n < selected_points.size(); n += 2) {
-      // Convert world coordinates to screen coordinates by multiplying by scale
-      float start_x = origin.x + selected_points[n].x * scale;
-      float start_y = origin.y + selected_points[n].y * scale;
-      float end_x = origin.x + (selected_points[n + 1].x + kTile16Size) * scale;
-      float end_y = origin.y + (selected_points[n + 1].y + kTile16Size) * scale;
+      // Release retains the drag direction. Order the tile corners before
+      // including the last tile, as AddRect requires increasing bounds.
+      const ImVec2 min(
+          std::min(selected_points[n].x, selected_points[n + 1].x),
+          std::min(selected_points[n].y, selected_points[n + 1].y));
+      const ImVec2 max(
+          std::max(selected_points[n].x, selected_points[n + 1].x),
+          std::max(selected_points[n].y, selected_points[n + 1].y));
+      float start_x = origin.x + min.x * scale;
+      float start_y = origin.y + min.y * scale;
+      float end_x = origin.x + (max.x + kTile16Size) * scale;
+      float end_y = origin.y + (max.y + kTile16Size) * scale;
       ctx.draw_list->AddRect(ImVec2(start_x, start_y), ImVec2(end_x, end_y),
-                             IM_COL32(255, 255, 255, 255), 1.0f);
+                             IM_COL32(255, 255, 255, 255), 0.0f, 1.0f);
     }
   }
 }

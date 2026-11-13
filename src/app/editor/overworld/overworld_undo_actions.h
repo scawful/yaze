@@ -225,6 +225,35 @@ struct OverworldItemsSnapshot {
   std::optional<zelda3::OverworldItem> selected_item_identity;
 };
 
+// Fixed table rows are restored by value, never through a retained element
+// pointer (a load or vector replacement can invalidate those pointers).
+template <typename Record>
+class OverworldRecordEditAction final : public UndoAction {
+ public:
+  using RestoreFn = std::function<absl::Status(const Record&)>;
+  OverworldRecordEditAction(Record before, Record after, RestoreFn restore,
+                            std::string description)
+      : before_(std::move(before)),
+        after_(std::move(after)),
+        restore_(std::move(restore)),
+        description_(std::move(description)) {}
+  absl::Status Undo() override { return Restore(before_); }
+  absl::Status Redo() override { return Restore(after_); }
+  std::string Description() const override { return description_; }
+  size_t MemoryUsage() const override { return sizeof(*this); }
+
+ private:
+  absl::Status Restore(const Record& value) {
+    if (!restore_)
+      return absl::FailedPreconditionError("Record owner is gone");
+    return restore_(value);
+  }
+  Record before_;
+  Record after_;
+  RestoreFn restore_;
+  std::string description_;
+};
+
 /**
  * @class OverworldItemsEditAction
  * @brief Undoable action for overworld item mutations.

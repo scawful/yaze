@@ -61,6 +61,52 @@ int WorldOf(int map_index) {
 }
 
 TEST(OverworldRomBuildTest,
+     SameObjectReloadAfterUnchangedSavePreservesDefinitionsAndGrids) {
+  const auto paths = OverworldRomPaths();
+  if (paths.empty()) {
+    GTEST_SKIP() << "Set YAZE_TEST_ROM_OOS or YAZE_TEST_ROM_VANILLA";
+  }
+  for (const auto& path : paths) {
+    SCOPED_TRACE(path);
+    Rom rom;
+    ASSERT_TRUE(LoadOverworldTestRom(path, rom));
+    GameData game_data;
+    ASSERT_TRUE(LoadGameData(rom, game_data).ok());
+    Overworld overworld(&rom, &game_data);
+    OverworldGraphicsPreview preview;
+    preview[0][0x3FF].fill(7);
+    overworld.SetGraphicsPreview(preview);
+    ASSERT_TRUE(overworld.Load(&rom).ok());
+    const auto definitions = overworld.tiles16();
+    const auto tile32_count = overworld.tiles32_unique().size();
+    const auto map_count = overworld.overworld_maps().size();
+    const auto light = overworld.GetMapTiles(0);
+    const auto dark = overworld.GetMapTiles(1);
+    const auto special = overworld.GetMapTiles(2);
+    ASSERT_TRUE(overworld.overworld_map(0)->HasGraphicsPreview());
+
+    // Normal Save prepares sorted unique Tile32 definitions even when the
+    // unchanged-grid path retains the ROM's original definitions and indices.
+    ASSERT_TRUE(overworld.CreateTile32Tilemap().ok());
+    if (DetectOverworldRomProfile(rom).has_expanded_tile32) {
+      ASSERT_TRUE(overworld.SaveMap32Expanded().ok());
+    } else {
+      ASSERT_TRUE(overworld.SaveMap32Tiles().ok());
+    }
+    ASSERT_TRUE(overworld.SaveOverworldMaps().ok());
+    ASSERT_TRUE(overworld.Load(&rom).ok());
+    EXPECT_EQ(overworld.overworld_maps().size(), map_count);
+    EXPECT_EQ(overworld.tiles32_unique().size(), tile32_count);
+    EXPECT_EQ(overworld.tiles16(), definitions);
+    EXPECT_EQ(overworld.GetMapTiles(0), light);
+    EXPECT_EQ(overworld.GetMapTiles(1), dark);
+    EXPECT_EQ(overworld.GetMapTiles(2), special);
+    EXPECT_TRUE(overworld.overworld_map(0)->HasGraphicsPreview());
+    EXPECT_EQ(overworld.overworld_map(0)->game_data(), &game_data);
+  }
+}
+
+TEST(OverworldRomBuildTest,
      RectangularAreaQuadrantsSurviveSizeChangeSaveReopen) {
   const char* path = std::getenv("YAZE_TEST_ROM_OOS");
   if (!path || !std::filesystem::exists(path)) {

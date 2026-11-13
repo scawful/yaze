@@ -64,6 +64,14 @@ struct TilePaintingCallbacks {
   std::function<int(int world)> allocated_rows;
 };
 
+/// One cell of a guarded stencil, in Tile16 cells local to its map (0..31).
+struct GuardedTileCell {
+  int x = 0;
+  int y = 0;
+  uint16_t expected = 0;
+  uint16_t proposed = 0;
+};
+
 /// @brief Manages tile painting, fill, selection, and eyedropper operations.
 ///
 /// Owns captured brush contents and canvas gestures. All destinations use
@@ -86,10 +94,22 @@ class TilePaintingManager {
 
   /// The captured selection, independent of its source or preview position.
   const TileBrush* selection_brush() const;
+  void SetSelectionBrush(TileBrush brush);
+  void ClearSelectionBrush();
 
   /// Paste a validated pattern at the current canvas cursor, using the same
   /// clipping, per-map refresh, and undo path as rectangle painting.
   absl::Status PasteBrush(const TileBrush& brush);
+  absl::Status PlaceBrushAt(const TileBrush& brush, int x, int y) {
+    FinalizePendingPaint();
+    return PaintPattern(brush, {x, y}, brush.width, brush.height);
+  }
+
+  /// Write every cell of one ROM map in the displayed world as a single undo
+  /// step, or none of them: any cell whose live Tile16 differs from
+  /// `expected` refuses the whole stencil. Returns the number of cells changed.
+  absl::StatusOr<int> ApplyGuardedCells(
+      int map_id, const std::vector<GuardedTileCell>& cells);
 
   /// @brief Update bitmap pixels after a single tile paint.
   void RenderUpdatedMapBitmap(const ImVec2& click_position,
@@ -136,6 +156,7 @@ class TilePaintingManager {
   absl::Status PaintPattern(const TileBrush& brush, TilePosition anchor,
                             int width, int height, bool finalize = true);
   bool PaintTile(TilePosition position, int tile_id, ChangedMaps& changed_maps);
+  void RefreshChangedMaps(const ChangedMaps& changed_maps);
   void RenderMapTile(int map_id, TilePosition position,
                      const std::vector<uint8_t>& tile_data);
 
@@ -148,6 +169,7 @@ class TilePaintingManager {
   int gesture_world_ = 0;
   EditingMode gesture_mode_ = EditingMode::DRAW_TILE;
   bool selection_gesture_owned_ = false;
+  bool external_brush_active_ = false;
   TileBrush brush_;
   std::array<gfx::Bitmap, zelda3::kNumOverworldMaps> map_brush_previews_;
 };

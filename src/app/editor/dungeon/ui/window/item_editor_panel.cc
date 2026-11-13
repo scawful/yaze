@@ -21,7 +21,63 @@ void ItemEditorPanel::Draw(bool* /*p_open*/) {
 }
 
 void ItemEditorPanel::DrawInWorkbench() {
-  DrawContent(false);
+  gui::AutoWidgetScope scope("Dungeon/ItemEditor");
+  if (!current_room_id_ || !rooms_ || *current_room_id_ < 0 ||
+      *current_room_id_ >= static_cast<int>(rooms_->size()))
+    return;
+  if (HasMatchingViewer() &&
+      canvas_viewer_->object_interaction().IsItemPlacementActive())
+    DrawPlacementControls();
+  DrawDungeonPotItemSaveNotice();
+  constexpr const char* categories[] = {"All items", "Used here"};
+  workbench::DrawDungeonBrowserControls(browser_state_, categories);
+  auto& room = (*rooms_)[*current_room_id_];
+  std::vector<std::pair<int, std::string>> entries;
+  for (int id = 0; id < static_cast<int>(kDungeonPotItemCount); ++id) {
+    if (browser_state_.category == 1 &&
+        std::none_of(room.GetPotItems().begin(), room.GetPotItems().end(),
+                     [id](const auto& item) { return item.item == id; }))
+      continue;
+    const std::string name = GetDungeonPotItemName(static_cast<uint8_t>(id));
+    if (workbench::DungeonBrowserMatches(browser_state_.search, id, name))
+      entries.emplace_back(id, name);
+  }
+  if (browser_state_.sort == 1)
+    std::stable_sort(entries.begin(), entries.end(),
+                     [](const auto& a, const auto& b) {
+                       return workbench::DungeonBrowserFold(a.second) <
+                              workbench::DungeonBrowserFold(b.second);
+                     });
+  const auto colors = zelda3::BuildDungeonSpriteRenderPalette(
+      room, canvas_viewer_ ? canvas_viewer_->game_data() : nullptr);
+  const bool can_place = CanEditRoom();
+  if (ImGui::BeginChild("##ItemLibrary", ImVec2(0, 0), false)) {
+    ImGui::BeginDisabled(!can_place);
+    for (const auto& [id, name] : entries) {
+      ImGui::PushID(id);
+      const bool picked = workbench::DrawDungeonBrowserRow(
+          id, name, selected_item_id_ == id,
+          [&, id = id](ImVec2 pos, ImVec2 size) {
+            const auto& preview =
+                GetOrCreateItemPreview(static_cast<uint8_t>(id), room);
+            return DungeonRenderingHelpers::DrawSpritePreview(
+                ImGui::GetWindowDrawList(), preview.pixels, preview.bounds, pos,
+                ImVec2(pos.x + size.x, pos.y + size.y), colors);
+          });
+      gui::AutoRegisterLastItem("selectable",
+                                absl::StrFormat("place_item_%02X", id));
+      if (picked && can_place) {
+        selected_item_id_ = id;
+        canvas_viewer_->object_interaction().SetItemPlacementMode(
+            true, static_cast<uint8_t>(id));
+      }
+      ImGui::PopID();
+    }
+    ImGui::EndDisabled();
+    if (entries.empty())
+      ImGui::TextDisabled("No matches");
+  }
+  ImGui::EndChild();
 }
 
 void ItemEditorPanel::DrawContent(bool show_room_items) {

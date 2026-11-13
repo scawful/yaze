@@ -3,11 +3,11 @@
 #include "util/i18n/tr.h"
 
 #include <algorithm>
+#include <cmath>
 #include <cstdint>
 #include <initializer_list>
 #include <optional>
 #include <string>
-#include <vector>
 
 #include "absl/status/status.h"
 #include "absl/strings/str_format.h"
@@ -60,10 +60,9 @@ std::string GetLayer2ModeName(int value) {
 
 }  // namespace
 
-void DrawDungeonRoomPropertyFields(DungeonCanvasViewer& viewer,
-                                   zelda3::Room& room, int room_id,
-                                   RoomPropertyLayout layout,
-                                   const RoomPropertyExtraCell* extra) {
+void DrawDungeonRoomPropertyFields(
+    DungeonCanvasViewer& viewer, zelda3::Room& room, int room_id,
+    RoomPropertyLayout layout, const std::function<void()>& draw_pit_damage) {
   auto* rooms = viewer.rooms();
   if (!rooms || room_id < 0 || room_id >= static_cast<int>(rooms->size()))
     return;
@@ -91,19 +90,20 @@ void DrawDungeonRoomPropertyFields(DungeonCanvasViewer& viewer,
     ImGui::TableSetupColumn("Value", ImGuiTableColumnFlags_WidthStretch, 1.0f);
     return true;
   };
-  auto property_row = [](const char* label, float item_width = -1.0f) {
+  auto property_row = [](const char* label) {
     // Advance by one label/value pair; four-column tables pair short fields.
     ImGui::TableNextColumn();
     ImGui::AlignTextToFramePadding();
     ImGui::TextUnformatted(label);
     ImGui::TableNextColumn();
-    ImGui::SetNextItemWidth(item_width);
+    ImGui::SetNextItemWidth(-1);
   };
-  // Set by draw_hex_grid while its columns have a fixed width.
-  float hex_item_width = -1.0f;
   auto draw_hex = [&](const char* label, const char* id, int value,
                       int max_value, RoomMetadataField field, int index = 0) {
-    property_row(label, hex_item_width);
+    property_row(label);
+    ImGui::SetNextItemWidth(
+        ImGui::CalcTextSize(max_value > 0xFF ? "0000" : "000").x +
+        ImGui::GetStyle().FramePadding.x * 2.0f);
     auto target = identity;
     target.element = static_cast<uint64_t>(field);
     target.component = static_cast<uint64_t>(index);
@@ -184,105 +184,28 @@ void DrawDungeonRoomPropertyFields(DungeonCanvasViewer& viewer,
       width = std::max(width, ImGui::CalcTextSize(label).x);
     return width;
   };
-  struct HexField {
-    const char* label;
-    const char* id;
-    int value;
-    int max_value;
-    RoomMetadataField field;
-  };
-  // Values are at most three hex digits, so inputs get a fixed width instead
-  // of stretching; wide panes then fit four label/value pairs per row. Narrow
-  // panes that cannot fit two fixed pairs fall back to stretched values.
-  auto draw_hex_grid = [&](const char* table_id,
-                           const std::vector<HexField>& fields,
-                           const RoomPropertyExtraCell* extra_cell,
-                           ImGuiTableFlags row_flags) {
-    const ImGuiStyle& style = ImGui::GetStyle();
-    const float input_width = ImGui::CalcTextSize("000").x +
-                              style.FramePadding.x * 2.0f +
-                              ImGui::GetFontSize() * 0.5f;
-    const float pair_gap = style.ItemSpacing.x;
-    const int cell_count =
-        static_cast<int>(fields.size()) + (extra_cell != nullptr ? 1 : 0);
-    auto cell_label = [&](int index) {
-      return index < static_cast<int>(fields.size()) ? fields[index].label
-                                                     : extra_cell->label;
-    };
-    auto label_widths = [&](int pairs) {
-      std::vector<float> widths(pairs, 0.0f);
-      for (int i = 0; i < cell_count; ++i) {
-        widths[i % pairs] =
-            std::max(widths[i % pairs], ImGui::CalcTextSize(cell_label(i)).x);
-      }
-      return widths;
-    };
-    auto fixed_table_width = [&](const std::vector<float>& widths) {
-      float total = style.CellPadding.x * 2.0f;
-      for (const float width : widths)
-        total += width + input_width + pair_gap + style.CellPadding.x * 4.0f;
-      return total;
-    };
-    const float available = ImGui::GetContentRegionAvail().x;
-    int pairs = 2;
-    bool fixed = false;
-    for (const int candidate : {4, 2}) {
-      if (candidate <= cell_count &&
-          fixed_table_width(label_widths(candidate)) <= available) {
-        pairs = candidate;
-        fixed = true;
-        break;
-      }
-    }
-    const auto widths = label_widths(pairs);
-    const ImGuiTableFlags sizing =
-        fixed ? ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_NoHostExtendX
-              : ImGuiTableFlags_SizingStretchProp;
-    if (!ImGui::BeginTable(table_id, pairs * 2, sizing | row_flags))
-      return;
-    for (int pair = 0; pair < pairs; ++pair) {
-      ImGui::TableSetupColumn(nullptr, ImGuiTableColumnFlags_WidthFixed,
-                              widths[pair]);
-      if (fixed) {
-        // The trailing gap separates this value from the next pair's label.
-        ImGui::TableSetupColumn(nullptr, ImGuiTableColumnFlags_WidthFixed,
-                                input_width + pair_gap);
-      } else {
-        ImGui::TableSetupColumn(nullptr, ImGuiTableColumnFlags_WidthStretch,
-                                1.0f);
-      }
-    }
-    hex_item_width = fixed ? input_width : -1.0f;
-    for (const auto& field : fields) {
-      draw_hex(field.label, field.id, field.value, field.max_value,
-               field.field);
-    }
-    hex_item_width = -1.0f;
-    if (extra_cell != nullptr) {
-      ImGui::TableNextColumn();
-      ImGui::AlignTextToFramePadding();
-      ImGui::TextUnformatted(extra_cell->label);
-      ImGui::TableNextColumn();
-      if (extra_cell->draw)
-        extra_cell->draw();
-    }
-    ImGui::EndTable();
-  };
 
   ImGui::BeginDisabled(viewer.header_read_only() ||
                        !viewer.IsObjectInteractionEnabled());
   if (compact) {
-    draw_hex_grid(
-        "##CompactRoomGraphics",
-        {{"Layout", "##Lyr", room.layout_id(), 0x07,
-          RoomMetadataField::kLayout},
-         {"Blockset", "##BS", room.blockset(), 0x51,
-          RoomMetadataField::kBlockset},
-         {"Palette", "##Pal", room.palette(), 0x47,
-          RoomMetadataField::kPalette},
-         {"Spriteset", "##SS", room.spriteset(), zelda3::kMaxDungeonSpriteset,
-          RoomMetadataField::kSpriteset}},
-        nullptr, ImGuiTableFlags_None);
+    if (ImGui::BeginTable("##CompactRoomGraphics", 4,
+                          ImGuiTableFlags_SizingStretchProp)) {
+      ImGui::TableSetupColumn("Property 1", ImGuiTableColumnFlags_WidthFixed,
+                              label_width({"Layout", "Palette"}));
+      ImGui::TableSetupColumn("Value 1", ImGuiTableColumnFlags_WidthStretch);
+      ImGui::TableSetupColumn("Property 2", ImGuiTableColumnFlags_WidthFixed,
+                              label_width({"Blockset", "Spriteset"}));
+      ImGui::TableSetupColumn("Value 2", ImGuiTableColumnFlags_WidthStretch);
+      draw_hex("Layout", "##Lyr", room.layout_id(), 0x07,
+               RoomMetadataField::kLayout);
+      draw_hex("Blockset", "##BS", room.blockset(), 0x51,
+               RoomMetadataField::kBlockset);
+      draw_hex("Palette", "##Pal", room.palette(), 0x47,
+               RoomMetadataField::kPalette);
+      draw_hex("Spriteset", "##SS", room.spriteset(),
+               zelda3::kMaxDungeonSpriteset, RoomMetadataField::kSpriteset);
+      ImGui::EndTable();
+    }
     ImGui::EndDisabled();
     if (inspector_storage->GetBool(error_id))
       ImGui::TextWrapped(
@@ -291,9 +214,13 @@ void DrawDungeonRoomPropertyFields(DungeonCanvasViewer& viewer,
   }
 
   const bool show_all = (layout == RoomPropertyLayout::kFull);
-  const bool show_core =
-      show_all || (layout == RoomPropertyLayout::kCoreGraphics);
-  const bool show_mechanics =
+  const bool show_core = show_all ||
+                         (layout == RoomPropertyLayout::kCoreGraphics) ||
+                         (layout == RoomPropertyLayout::kCoreGraphicsRow);
+  const bool show_mechanics = show_all ||
+                              (layout == RoomPropertyLayout::kMechanics) ||
+                              (layout == RoomPropertyLayout::kRoomDetails);
+  const bool show_message =
       show_all || (layout == RoomPropertyLayout::kMechanics);
   const bool show_tags =
       show_all || (layout == RoomPropertyLayout::kTags) || show_mechanics;
@@ -325,25 +252,67 @@ void DrawDungeonRoomPropertyFields(DungeonCanvasViewer& viewer,
     if (show_all) {
       ImGui::SeparatorText("Room properties");
     }
-    draw_hex_grid(
-        "##WorkbenchRoomGraphics",
-        {{"Layout", "##RoomHeaderLayout", room.layout_id(), 0x07,
-          RoomMetadataField::kLayout},
-         {"Blockset", "##RoomHeaderBlockset", room.blockset(), 0x51,
-          RoomMetadataField::kBlockset},
-         {"Floor 1", "##RoomHeaderFloor1", room.floor1(), 0x0F,
-          RoomMetadataField::kFloor1},
-         {"Floor 2", "##RoomHeaderFloor2", room.floor2(), 0x0F,
-          RoomMetadataField::kFloor2},
-         {"Palette", "##RoomHeaderPalette", room.palette(), 0x47,
-          RoomMetadataField::kPalette},
-         {"Spriteset", "##RoomHeaderSpriteset", room.spriteset(),
-          zelda3::kMaxDungeonSpriteset, RoomMetadataField::kSpriteset},
-         {"Message", "##RoomHeaderMessage", room.message_id(), 0x0FFF,
-          RoomMetadataField::kMessage}},
-        extra, ImGuiTableFlags_RowBg);
+    const bool horizontal = layout == RoomPropertyLayout::kCoreGraphicsRow;
+    const float available = ImGui::GetContentRegionAvail().x;
+    const float property_width =
+        label_width({"Layout", "Blockset", "Floor 1", "Floor 2", "Palette",
+                     "Spriteset", "Message", "Pit damage"});
+    const float value_width =
+        ImGui::CalcTextSize("0000").x + ImGui::GetStyle().FramePadding.x * 2.0f;
+    const float pair_width =
+        property_width + value_width + ImGui::GetStyle().CellPadding.x * 4.0f;
+    const int field_count = 7 + (draw_pit_damage ? 1 : 0);
+    const int pairs =
+        horizontal ? std::clamp(static_cast<int>(std::floor(
+                                    available / std::max(pair_width, 1.0f))),
+                                1, field_count)
+                   : 2;
+    const ImGuiTableFlags graphics_flags =
+        ImGuiTableFlags_RowBg |
+        (horizontal
+             ? ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_NoHostExtendX
+             : ImGuiTableFlags_SizingStretchProp);
+    if (ImGui::BeginTable("##WorkbenchRoomGraphics", pairs * 2,
+                          graphics_flags)) {
+      for (int pair = 0; pair < pairs; ++pair) {
+        ImGui::TableSetupColumn("Property", ImGuiTableColumnFlags_WidthFixed,
+                                property_width);
+        ImGui::TableSetupColumn("Value",
+                                horizontal ? ImGuiTableColumnFlags_WidthFixed
+                                           : ImGuiTableColumnFlags_WidthStretch,
+                                horizontal ? value_width : 1.0f);
+      }
+      draw_hex("Layout", "##RoomHeaderLayout", room.layout_id(), 0x07,
+               RoomMetadataField::kLayout);
+      draw_hex("Blockset", "##RoomHeaderBlockset", room.blockset(), 0x51,
+               RoomMetadataField::kBlockset);
+      draw_hex("Floor 1", "##RoomHeaderFloor1", room.floor1(), 0x0F,
+               RoomMetadataField::kFloor1);
+      draw_hex("Floor 2", "##RoomHeaderFloor2", room.floor2(), 0x0F,
+               RoomMetadataField::kFloor2);
+      draw_hex("Palette", "##RoomHeaderPalette", room.palette(), 0x47,
+               RoomMetadataField::kPalette);
+      draw_hex("Spriteset", "##RoomHeaderSpriteset", room.spriteset(),
+               zelda3::kMaxDungeonSpriteset, RoomMetadataField::kSpriteset);
+      if (horizontal) {
+        draw_hex("Message", "##RoomHeaderMessage", room.message_id(), 0x0FFF,
+                 RoomMetadataField::kMessage);
+        if (draw_pit_damage) {
+          property_row("Pit damage");
+          draw_pit_damage();
+        }
+      }
+      ImGui::EndTable();
+    }
   }
 
+  if (show_message) {
+    if (begin_properties("##WorkbenchRoomMessage", label_width({"Message"}))) {
+      draw_hex("Message", "##RoomHeaderMessage", room.message_id(), 0x0FFF,
+               RoomMetadataField::kMessage);
+      ImGui::EndTable();
+    }
+  }
   if (show_mechanics) {
     choice_group(
         "##WorkbenchRoomHeader",

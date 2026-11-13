@@ -241,6 +241,8 @@ struct RomCompareResult {
   bool features_match = false;
   std::vector<DiffRegion> diff_regions;
   size_t total_diff_bytes = 0;
+  // Differing bytes the region scan did not cover (always 0 with --all).
+  size_t unchecked_diff_bytes = 0;
 };
 
 // =============================================================================

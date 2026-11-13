@@ -79,9 +79,10 @@ runs:
     # and the primary key embedded github.sha, so it only matched a re-run of
     # the same commit. Every pull request compiled cold.
     #
-    # Only pushes to master save: pull requests may restore their base branch's
-    # caches but not each other's, so PR saves only spent the 10 GB repository
-    # budget and evicted master's entries.
+    # Only pushes to master save: pull requests restore master's cache.
+    # Saving from other branches risks evicting master's entries under
+    # GitHub's 10 GB repository cache budget. With max-size raised to 3G,
+    # master's ~1,170 compiled objects fit without mid-build LRU thrashing.
     - name: Setup sccache
       if: inputs.compiler-cache == 'true'
       uses: hendrikmuhs/ccache-action@v1.2
@@ -92,7 +93,7 @@ runs:
         key: ${{ inputs.platform }}-${{ inputs.preset }}-v2
         restore-keys: |
           ${{ inputs.platform }}-${{ inputs.preset }}-v2
-        max-size: 1G
+        max-size: 3G
         variant: sccache
         save: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
 

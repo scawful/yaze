@@ -18,6 +18,7 @@
 #include "nlohmann/json.hpp"
 #include "rom/rom.h"
 #include "unit/zelda3/overworld_allocation_test_rom.h"
+#include "yaze_test_paths.h"
 
 namespace yaze::zelda3 {
 namespace {

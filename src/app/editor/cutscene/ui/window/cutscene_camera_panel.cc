@@ -406,14 +406,12 @@ void CutsceneCameraPanel::DrawCanvas(zelda3::CutsceneShot& shot) {
   draw->AddRectFilled(origin, ImVec2(origin.x + size.x, origin.y + size.y),
                       ToU32(ImGui::GetStyleColorVec4(ImGuiCol_FrameBg)));
   for (int seam = 512; seam < extent.width; seam += 512) {
-    draw->AddLine(ImVec2(origin.x + seam * scale, origin.y),
-                  ImVec2(origin.x + seam * scale, origin.y + size.y),
-                  ToU32(gui::GetDisabledColor(), 0.5f));
+    draw->AddLineV(origin.x + seam * scale, origin.y, origin.y + size.y,
+                   ToU32(gui::GetDisabledColor(), 0.5f));
   }
   for (int seam = 512; seam < extent.height; seam += 512) {
-    draw->AddLine(ImVec2(origin.x, origin.y + seam * scale),
-                  ImVec2(origin.x + size.x, origin.y + seam * scale),
-                  ToU32(gui::GetDisabledColor(), 0.5f));
+    draw->AddLineH(origin.x, origin.x + size.x, origin.y + seam * scale,
+                   ToU32(gui::GetDisabledColor(), 0.5f));
   }
 
   // The area's own screens, when the Overworld editor can provide them.
@@ -524,7 +522,7 @@ void CutsceneCameraPanel::DrawCanvas(zelda3::CutsceneShot& shot) {
   }
 
   // Viewport and markers (markers outside the viewport are dimmed).
-  draw->AddRect(view_min, view_max, ToU32(gui::GetInfoColor()), 0, 0, 2.0f);
+  draw->AddRect(view_min, view_max, ToU32(gui::GetInfoColor()), 0.0f, 2.0f);
   auto draw_marker = [&](int x, int y, ImVec4 color, const std::string& label) {
     const bool inside = zelda3::PointInViewport(camera.x, camera.y, x, y);
     const float alpha = inside ? 1.0f : 0.35f;

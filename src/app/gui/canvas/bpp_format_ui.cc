@@ -6,6 +6,7 @@
 
 #include "app/gfx/core/bitmap.h"
 #include "app/gfx/util/bpp_format_manager.h"
+#include "app/gui/core/draw_sampling.h"
 #include "app/gui/core/ui_helpers.h"
 #include "imgui/imgui.h"
 
@@ -226,6 +227,7 @@ void BppFormatUI::RenderConversionPreview(const gfx::Bitmap& bitmap,
   // Original
   ImGui::Text(tr("Original"));
   if (bitmap.texture()) {
+    ScopedNearestSampling nearest_sampling(ImGui::GetWindowDrawList());
     ImGui::Image((ImTextureID)(intptr_t)bitmap.texture(),
                  ImVec2(256, 256 * bitmap.height() / bitmap.width()));
   }
@@ -235,6 +237,7 @@ void BppFormatUI::RenderConversionPreview(const gfx::Bitmap& bitmap,
   // Converted
   ImGui::Text(tr("Converted"));
   if (preview_bitmap.texture()) {
+    ScopedNearestSampling nearest_sampling(ImGui::GetWindowDrawList());
     ImGui::Image(
         (ImTextureID)(intptr_t)preview_bitmap.texture(),
         ImVec2(256, 256 * preview_bitmap.height() / preview_bitmap.width()));
@@ -529,8 +532,11 @@ void BppConversionDialog::RenderPreview() {
 
   if (preview_valid_ && preview_bitmap_.texture()) {
     ImGui::Text(tr("Preview:"));
-    ImGui::Image((ImTextureID)(intptr_t)preview_bitmap_.texture(),
-                 ImVec2(128 * preview_scale_, 128 * preview_scale_));
+    {
+      ScopedNearestSampling nearest_sampling(ImGui::GetWindowDrawList());
+      ImGui::Image((ImTextureID)(intptr_t)preview_bitmap_.texture(),
+                   ImVec2(128 * preview_scale_, 128 * preview_scale_));
+    }
 
     ImGui::SliderFloat(tr("Scale"), &preview_scale_, 0.5f, 3.0f);
   }
@@ -638,6 +644,7 @@ void BppComparisonTool::RenderComparisonGrid() {
     ImGui::Text("%s", format_info.name.c_str());
 
     if (bitmap.texture()) {
+      ScopedNearestSampling nearest_sampling(ImGui::GetWindowDrawList());
       ImGui::Image((ImTextureID)(intptr_t)bitmap.texture(),
                    ImVec2(128 * comparison_scale_, 128 * comparison_scale_));
     }

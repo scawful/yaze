@@ -38,7 +38,7 @@ the listed environment variable.
 | `dev-setup.sh` | canonical | One-command setup for a new developer machine |
 | `verify-build-environment.sh` / `.ps1` | canonical | Per-machine toolchain diagnostics; `--fix` / `-FixIssues` repairs common problems |
 | `setup-vcpkg-windows.ps1` | canonical | Bootstrap and populate vcpkg on Windows |
-| `agent_build.sh` | canonical | Quiet incremental agent builds: selected targets, two workers (max four), preset-directory reuse and automatic macOS heavy-lock waiting. `--dry-run` previews; `--status` shows the owner. `YAZE_BUILD_DIR` overrides the directory. |
+| `agent_build.sh` | canonical | Quiet incremental agent builds: selected targets, workers from `~/.config/oos/build_mode` (desk all host cores, laptop 2 with max four) and preset-directory reuse; never takes the native heavy lock. `--preflight` checks dependencies and previews cache reuse. Cold builds require `--allow-new-build`; `--reuse-from` selects a clean same-commit owner checkout. `YAZE_BUILD_DIR` overrides the directory. On macOS it refuses under swap/disk pressure and points to `scripts/remote/mm-test.sh`; `YAZE_AGENT_BUILD_LOCAL=1` overrides. |
 | `build_cleaner.py` | canonical | Maintain CMake source lists and self-header includes; also a `build_cleaner` CMake target |
 | `audit_test_registration.py` | canonical | Require every `*_test.cc` source to be registered or explicitly excluded with a reason |
 | `fetch_usdasm.sh` | canonical | Fetch the usdasm disassembly on demand (`USDASM_DIR`, `USDASM_REPO_URL`) |
@@ -224,6 +224,7 @@ paths, and its Goron Mines data already lives in
 | `ai/` | Model evaluation suite (`run-model-eval.sh`, `eval-runner.py`, `compare-models.py`, `eval-tasks.yaml`) plus agent research tools (navigator, map compiler, profiler, asm tuner) |
 | `cloud/` | Cloud agent bootstrap and its tests |
 | `dev/` | Local developer workflows: `local-workflow.sh` (canonical build + deploy), iPad deployment, guardrail and smoke loops |
+| `graphics/` | Art catalog packaging and `snes_fx.js` (SNES OBJ effect frames as indexed PNGs for `z3ed gfx-import`), `sprite_gfx_audit.py` (dungeon sprite sheet and palette audit) — see [graphics/README.md](graphics/README.md) |
 | `i18n/` | Translation catalog extraction and validation |
 | `package/` | Packaging entry point (`release.sh`) |
 | `profiles/` | ROM profile definitions consumed by `location_mapper.py` and `discover_rooms.py` |

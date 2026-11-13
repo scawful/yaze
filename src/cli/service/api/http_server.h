@@ -52,7 +52,19 @@ class HttpServer {
   ~HttpServer();
 
   // Start the server on the specified port in a background thread.
+  // `loopback_only` binds 127.0.0.1 and overrides the bind address.
   absl::Status Start(int port, bool loopback_only = false);
+
+  // Address to bind when not loopback-only. Call before Start().
+  void SetBindAddress(std::string address) {
+    bind_address_ = std::move(address);
+  }
+
+  // When disabled, POST /api/v1/command/execute responds 403. Call before
+  // Start().
+  void SetCommandExecutionEnabled(bool enabled) {
+    command_execution_enabled_ = enabled;
+  }
 
   // Stop the server.
   void Stop();
@@ -102,6 +114,8 @@ class HttpServer {
   std::atomic<bool> is_running_{false};
   int port_ = 0;
   bool editor_control_only_ = false;
+  std::string bind_address_ = "0.0.0.0";
+  bool command_execution_enabled_ = true;
   BonjourPublisher bonjour_;
   SymbolProviderSource symbol_source_;
   RenderServiceSource render_source_;

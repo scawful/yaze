@@ -1,8 +1,10 @@
 #include "app/gui/core/layout_helpers.h"
 
 #include <algorithm>
+#include <string>
 #include <vector>
 
+#include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
 #include "app/gui/core/color.h"
 #include "app/gui/core/icons.h"
@@ -21,6 +23,19 @@
 
 namespace yaze {
 namespace gui {
+
+namespace {
+
+// BeginTableWithTheming() pushes exactly this many entries on every path, so
+// EndTableWithTheming() can pop them without knowing the caller's flags.
+constexpr int kThemedTableColorCount = 5;
+constexpr int kThemedTableVarCount = 1;
+
+}  // namespace
+
+std::string ColumnLabel(absl::string_view text, absl::string_view stable_id) {
+  return absl::StrCat(text, "###", stable_id);
+}
 
 // Core sizing functions
 float LayoutHelpers::GetStandardWidgetHeight() {
@@ -193,22 +208,29 @@ bool LayoutHelpers::BeginTableWithTheming(const char* str_id, int columns,
   ImGui::PushStyleColor(ImGuiCol_TableRowBgAlt,
                         ConvertColorToImVec4(theme.table_row_bg_alt));
 
-  // Set row height if not overridden by caller
+  // Set row height if not overridden by caller. The var is pushed either way
+  // (with the unchanged padding when the caller opts out) so the pop count
+  // does not depend on flags.
+  ImVec2 cell_padding = ImGui::GetStyle().CellPadding;
   if (!(flags & ImGuiTableFlags_NoHostExtendY)) {
-    ImGui::PushStyleVar(
-        ImGuiStyleVar_CellPadding,
-        ImVec2(ImGui::GetStyle().CellPadding.x, GetTableRowHeight() * 0.25f));
+    cell_padding.y = GetTableRowHeight() * 0.25f;
   }
+  ImGui::PushStyleVar(ImGuiStyleVar_CellPadding, cell_padding);
 
-  return ImGui::BeginTable(str_id, columns, flags, outer_size, inner_width);
+  if (!ImGui::BeginTable(str_id, columns, flags, outer_size, inner_width)) {
+    // Callers skip EndTableWithTheming() when this returns false, so undo
+    // the pushes here.
+    ImGui::PopStyleVar(kThemedTableVarCount);
+    ImGui::PopStyleColor(kThemedTableColorCount);
+    return false;
+  }
+  return true;
 }
 
 void LayoutHelpers::EndTableWithTheming() {
   ImGui::EndTable();
-  // Pop style colors (5 colors pushed in BeginTableWithTheming)
-  ImGui::PopStyleColor(5);
-  // Pop style var if it was pushed (CellPadding)
-  ImGui::PopStyleVar(1);
+  ImGui::PopStyleVar(kThemedTableVarCount);
+  ImGui::PopStyleColor(kThemedTableColorCount);
 }
 
 void LayoutHelpers::BeginCanvasPanel(const char* label, ImVec2* canvas_size) {
@@ -313,23 +335,6 @@ bool LayoutHelpers::InputHexRow(const char* label, uint16_t* data) {
   }
 
   return changed;
-}
-
-void LayoutHelpers::BeginPropertyGrid(const char* label) {
-  const auto& theme = GetTheme();
-
-  // Create a 2-column table for property editing
-  if (ImGui::BeginTable(label, 2,
-                        ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg)) {
-    // Setup columns: label column (30%) and value column (70%)
-    ImGui::TableSetupColumn("Property", ImGuiTableColumnFlags_WidthFixed,
-                            GetStandardInputWidth() * 1.5f);
-    ImGui::TableSetupColumn("Value", ImGuiTableColumnFlags_WidthStretch);
-  }
-}
-
-void LayoutHelpers::EndPropertyGrid() {
-  ImGui::EndTable();
 }
 
 bool LayoutHelpers::InputToolbarField(const char* label, char* buf,

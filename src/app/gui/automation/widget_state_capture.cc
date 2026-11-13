@@ -1,13 +1,13 @@
 #include "app/gui/automation/widget_state_capture.h"
 
 #include "absl/strings/str_format.h"
-#if defined(YAZE_ENABLE_IMGUI_TEST_ENGINE) && YAZE_ENABLE_IMGUI_TEST_ENGINE
-#include "imgui.h"
-#include "imgui_internal.h"
-#else
-#include "imgui/imgui.h"
-#endif
+// imgui_internal.h ships with ImGui, not the test engine, and
+// widget_id_registry.cc in this library includes it in every build. This
+// library never gets YAZE_ENABLE_IMGUI_TEST_ENGINE, so gating the capture on
+// that macro made it return a stub in every build.
 #include <string>
+#include "imgui/imgui.h"
+#include "imgui/imgui_internal.h"
 
 #if defined(YAZE_WITH_JSON)
 #include "nlohmann/json.hpp"
@@ -49,7 +49,7 @@ std::string EscapeJsonString(const std::string& value) {
         break;
       default:
         if (c <= 0x1F) {
-          escaped.append(absl::StrFormat("\\\\u%04X", static_cast<int>(c)));
+          escaped.append(absl::StrFormat("\\u%04X", static_cast<int>(c)));
         } else {
           escaped.push_back(static_cast<char>(c));
         }
@@ -91,7 +91,6 @@ std::string FormatFloatCompact(float value) {
 std::string CaptureWidgetState() {
   WidgetState state;
 
-#if defined(YAZE_ENABLE_IMGUI_TEST_ENGINE) && YAZE_ENABLE_IMGUI_TEST_ENGINE
   // Check if ImGui context is available
   ImGuiContext* ctx = ImGui::GetCurrentContext();
   if (!ctx) {
@@ -104,10 +103,12 @@ std::string CaptureWidgetState() {
   state.frame_count = ImGui::GetFrameCount();
   state.frame_rate = io.Framerate;
 
-  // Capture focused window
-  ImGuiWindow* current = ImGui::GetCurrentWindow();
-  if (current && !current->Hidden) {
-    state.focused_window = current->Name;
+  // Capture focused window. NavWindow is the window ImGui treats as focused
+  // (IsWindowFocused() compares against it). CurrentWindow is only the window
+  // being submitted when the capture runs, and is null between frames.
+  // NavWindow is null when no window has focus; focused_window stays "".
+  if (ctx->NavWindow != nullptr) {
+    state.focused_window = ctx->NavWindow->Name;
   }
 
   // Capture active widget (focused for input)
@@ -152,14 +153,6 @@ std::string CaptureWidgetState() {
   state.ctrl_pressed = io.KeyCtrl;
   state.shift_pressed = io.KeyShift;
   state.alt_pressed = io.KeyAlt;
-
-#else
-  // When UI test engine / ImGui internals aren't available, provide a minimal
-  // payload so downstream systems still receive structured JSON. This keeps
-  // builds that exclude the UI test engine (e.g., Windows release) working.
-  return "{\"warning\": \"Widget state capture unavailable (UI test engine "
-         "disabled)\"}";
-#endif
 
   return SerializeWidgetStateToJson(state);
 }

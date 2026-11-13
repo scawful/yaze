@@ -7,9 +7,50 @@ They take precedence over broad parity or completion claims in historical
 entries below. Historical entries record changes at their original scope;
 they do not establish current end-to-end or release qualification.
 
-## 0.8.0 (in development)
+## 0.8.0
 
-Release date, final merge SHA, and packaged-candidate evidence are pending.
+The unsuffixed release adds the Workbench updates below and nonthrowing
+validation for project integer settings to the application baseline
+`14c118824`. It also includes PNG/palette import, message-editor preview and
+list changes, safer file operations and package portability repairs. The
+following historical entries retain their original scope; the current
+[release notes](../release-notes.md#v080) and
+[coverage report](feature-coverage-report.md) define the supported boundaries.
+
+- **Object browser views:** switch between **List** rows and **Icons** cards.
+  Both views use the same search/category filters, standard and custom object
+  entries, selection and placement actions.
+- **Workbench navigation:** Selection fits its content and scrolls when needed,
+  leaving the remaining right-side space for a larger Room Matrix and the
+  existing entrance list. Matrix and entrances can collapse independently, and
+  their split can be resized. Room settings stay in their existing controls.
+
+## Unreleased (after v0.8.0-exp.1)
+
+These source changes are not in the published prerelease downloads.
+
+- **The z3ed HTTP API listens on localhost and refuses commands by default.**
+  `z3ed --http-port` now binds `--http-host`, which defaults to `localhost`, so
+  other machines can no longer connect; pass `--http-host=0.0.0.0` (or another
+  address) to restore network access. `POST /api/v1/command/execute` returns
+  `403` unless z3ed is started with `--http-allow-commands`. 0.7.2 listened on
+  every interface, served that endpoint unconditionally, and used
+  `--http-host` only in printed URLs. The desktop app's API server is
+  unchanged.
+- **`gfx-import` and `gfx-room-import` dry runs exit nonzero when the write
+  would be refused.** They still print the full preview. Before, a refused dry
+  run exited 0. `gfx-import` also reports `shared_by` (who loads the sheet),
+  writes `--diff-png`, and reads the high palette half for the seven sprite
+  sheets vanilla loads there when given `room-sprite:`.
+
+## 0.8.0 (experimental prerelease: v0.8.0-exp.1)
+
+0.8.0 is an experimental release of the merged editor work, not the completed
+Dungeon Editor milestone. The supported / experimental / deferred table is in
+the [release notes](../release-notes.md#v080). Published 2026-10-28 from `cc673c04f5dae90d17bdc25d0923d540522340c0`.
+[Packages](https://github.com/scawful/yaze/releases/tag/v0.8.0-exp.1) and the
+[publication run](https://github.com/scawful/yaze/actions/runs/40781419989) are available;
+manual GUI checks are not implied by a green package job.
 
 - Fixed white overworld map and subscreen overlay textures. Their indexed
   bitmaps now declare 8-bit depth, restoring palette application and pixel row
@@ -17,9 +58,8 @@ Release date, final merge SHA, and packaged-candidate evidence are pending.
   textures against the model's pixel colors.
 
 ### Upgrading from 0.7.2
-Every item below was checked against the `v0.7.2` tag and current `master`: the
-behaviour is on master, was absent or different in 0.7.2, and a user, script,
-or project will notice it.
+Every item below describes release source `cc673c04f5dae90d17bdc25d0923d540522340c0`
+relative to `v0.7.2`. Later development changes are listed separately above.
 
 #### Saves that used to succeed now stop with an error
 - **Save scope must cover pending edits.** Supported Graphics sheet edits and

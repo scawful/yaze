@@ -18,8 +18,13 @@ Planning Editor"). Two windows open:
 `room:` and `map:` targets are buttons: they open the room in the Dungeon
 editor or the map in the Overworld editor. Other targets are shown as text.
 
-Edits are held in memory until you press **Save plan**. **Reload** discards
-unsaved edits and reads the file again.
+Edits are held in memory until you press **Save plan** or save the project.
+Save writes only if the file still holds the bytes the editor loaded. If an
+agent changed only the plan's agent status in the meantime, Save keeps your
+edits and takes the agent's new status. Any other change on disk refuses the
+save and keeps your edits in the window. **Reload** asks before discarding
+unsaved edits. Quit, close and opening another project ask you to save or
+discard plan edits first.
 
 ## Linking a plan to a project
 
@@ -89,3 +94,68 @@ Keys and sections the editor does not know are kept when it saves, so other
 tools can store more in the same file (the Oracle of Secrets plan keeps its
 overworld notes, markers and concept boards under `overworld` and
 `concepts`).
+
+## Agent status
+
+Agents record what they observe (state, next step, evidence, pull requests)
+in one top-level `agent_status` section, keyed by existing plan IDs. The
+editor shows each observation, read-only, under the step, item or decision it
+describes, next to your editable note. Agents never write notes, answers,
+titles, route order, markers or other sections.
+
+```json
+"agent_status": {
+  "schema": "yaze.plan.agent_status/1",
+  "updated_utc": "2026-10-27T21:34:00Z",
+  "agent": "my-agent",
+  "sources": {"repo_master": "5d4b39ae"},
+  "observations": {
+    "step:D4": {"state": "DRAFT_CANDIDATE", "next": "Full route still open",
+                "prs": [262], "evidence": ["native pass 5/8"],
+                "agent": "my-agent", "observed_utc": "2026-10-27T21:34:00Z"}
+  }
+}
+```
+
+Keys are `step:<id>`, `item:<id>`, `decision:<id>` or `milestone:<id>`, and
+the ID must exist in the plan. Renaming a step or item in the editor moves its
+observation. Observations whose entry was deleted are listed as orphaned.
+
+### Updating agent status
+
+1. Read the plan and note its SHA-256 and IDs:
+
+   ```sh
+   z3ed plan-read --plan MyHack.plan.json --format=json
+   ```
+
+   `--project MyHack.yaze` reads the project's `[planning]` file instead.
+
+2. Write an update. `base_sha256` is the `sha256` from step 1. Each
+   observation replaces the stored one for that key; `remove` deletes keys.
+
+   ```json
+   {
+     "schema": "yaze.plan.agent_update/1",
+     "base_sha256": "<sha256 from plan-read>",
+     "agent": "my-agent",
+     "observed_utc": "2026-10-27T21:34:00Z",
+     "sources": {"repo_master": "5d4b39ae"},
+     "observations": {"step:D4": {"state": "DRAFT_CANDIDATE"}},
+     "remove": []
+   }
+   ```
+
+3. Check the diff, then apply it:
+
+   ```sh
+   z3ed plan-agent-apply --plan MyHack.plan.json --update update.json --dry-run --format=json
+   z3ed plan-agent-apply --plan MyHack.plan.json --update update.json --format=json
+   ```
+
+The command refuses, without writing, an update whose `base_sha256` no longer
+matches the file, an unknown ID or key kind, a malformed observation, and a
+plan whose `agent_status` is not an object. Reread the plan and rebuild the
+update after a refusal. Sending the same observations again reports
+`unchanged` and does not write, even with a new `observed_utc`. Writes go
+through the same locked compare-and-swap publisher as the editor's Save.

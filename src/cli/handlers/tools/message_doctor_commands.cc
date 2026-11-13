@@ -1,5 +1,6 @@
 #include "cli/handlers/tools/message_doctor_commands.h"
 
+#include <algorithm>
 #include <iostream>
 
 #include "absl/status/status.h"
@@ -161,8 +162,7 @@ void ValidateLineWidths(const editor::MessageData& msg,
     DiagnosticFinding finding;
     finding.id = "line_too_wide";
     finding.severity = DiagnosticSeverity::kWarning;
-    finding.message =
-        absl::StrFormat("Message %d: %s", msg.ID, warning);
+    finding.message = absl::StrFormat("Message %d: %s", msg.ID, warning);
     finding.location = absl::StrFormat("Message %d", msg.ID);
     finding.suggested_action = "Shorten line or add a line break command";
     finding.fixable = true;
@@ -183,7 +183,32 @@ absl::Status MessageDoctorCommandHandler::Execute(
     return absl::InvalidArgumentError("ROM not loaded");
   }
 
-  // 1. Build Dictionary
+  // 1. Build Dictionary. BuildDictionaryEntries does not bound its reads; the
+  // pointer table and every entry it can address lie below the end of bank
+  // $0E, so a ROM at least that long keeps the scan inside the buffer.
+  constexpr size_t kDictionaryBankEnd = 0x78000;
+  if (rom->size() < kDictionaryBankEnd) {
+    DiagnosticFinding finding;
+    finding.id = "dictionary_out_of_bounds";
+    finding.severity = DiagnosticSeverity::kCritical;
+    finding.message =
+        absl::StrFormat("ROM is 0x%zX bytes; the dictionary tables need 0x%zX",
+                        rom->size(), kDictionaryBankEnd);
+    finding.location = "Dictionary Tables";
+    finding.fixable = false;
+    report.AddFinding(finding);
+
+    formatter.AddField("total_findings", report.TotalFindings());
+    formatter.AddField("critical_count", report.critical_count);
+    if (formatter.IsJson()) {
+      formatter.BeginArray("findings");
+      formatter.AddArrayItem(finding.FormatJson());
+      formatter.EndArray();
+    } else {
+      std::cout << finding.message << "\n";
+    }
+    return absl::OkStatus();
+  }
   std::vector<editor::DictionaryEntry> dictionary;
   try {
     dictionary = editor::BuildDictionaryEntries(rom);
@@ -207,8 +232,10 @@ absl::Status MessageDoctorCommandHandler::Execute(
   std::vector<editor::MessageData> messages;
   try {
     uint8_t* mutable_data = const_cast<uint8_t*>(rom->data());
-    messages = editor::ReadAllTextData(mutable_data, editor::kTextData,
-                                       editor::kTextDataEnd);
+    const int scan_end = static_cast<int>(std::min<size_t>(
+        rom->size(), static_cast<size_t>(editor::kTextDataEnd)));
+    messages =
+        editor::ReadAllTextData(mutable_data, editor::kTextData, scan_end);
 
   } catch (const std::exception& e) {
     DiagnosticFinding finding;

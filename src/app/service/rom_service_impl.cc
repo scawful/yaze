@@ -8,6 +8,7 @@
 #include "app/net/rom_version_manager.h"
 #include "rom/rom.h"
 #include "util/json.h"
+#include "util/ui_thread_queue.h"
 #include "zelda3/dungeon/room.h"
 #include "zelda3/game_data.h"
 #include "zelda3/overworld/overworld.h"
@@ -74,10 +75,8 @@ std::string BuildRoomRawJson(const zelda3::Room& room) {
   auto sprites = nlohmann::json::array();
   for (const auto& sprite : room.GetSprites()) {
     nlohmann::json entry = {
-        {"id", sprite.id()},
-        {"x", sprite.x()},
-        {"y", sprite.y()},
-        {"subtype", sprite.subtype()},
+        {"id", sprite.id()},       {"x", sprite.x()},
+        {"y", sprite.y()},         {"subtype", sprite.subtype()},
         {"layer", sprite.layer()},
     };
     sprites.push_back(entry);
@@ -155,6 +154,27 @@ grpc::Status RomServiceImpl::ReadBytes(grpc::ServerContext* context,
 grpc::Status RomServiceImpl::WriteBytes(
     grpc::ServerContext* context, const rom_svc::WriteBytesRequest* request,
     rom_svc::WriteBytesResponse* response) {
+  // The ROM buffer is read by the editors on the UI thread every frame, so
+  // the write (and its snapshot) must happen there, not on this gRPC
+  // thread. Re-enter this method on the UI thread; there RunsInline() is
+  // true and the body below runs. Capturing by reference is safe because a
+  // timed-out task is never run.
+  auto& ui_queue = util::UiThreadQueue::Get();
+  if (!ui_queue.RunsInline()) {
+    grpc::Status result;
+    absl::Status queued = ui_queue.RunOnUiThread([&]() {
+      result = WriteBytes(context, request, response);
+      return absl::OkStatus();
+    });
+    if (!queued.ok()) {
+      // absl and gRPC share canonical code numbers, so DeadlineExceeded and
+      // Cancelled map to DEADLINE_EXCEEDED and CANCELLED.
+      return grpc::Status(static_cast<grpc::StatusCode>(queued.code()),
+                          std::string(queued.message()));
+    }
+    return result;
+  }
+
   Rom* rom = rom_getter_();
   if (!rom || !rom->is_loaded()) {
     return grpc::Status(grpc::StatusCode::FAILED_PRECONDITION,
@@ -241,7 +261,8 @@ grpc::Status RomServiceImpl::GetRomInfo(
 
   auto metadata = std::make_unique<zelda3::GameData>(rom);
   if (LoadMetadataForRom(rom, metadata.get()).ok()) {
-    response->set_version(metadata->version == zelda3_version::JP ? "JP" : "US");
+    response->set_version(metadata->version == zelda3_version::JP ? "JP"
+                                                                  : "US");
   }
   response->set_is_expanded(rom->size() > 0x200000);
 
@@ -275,9 +296,9 @@ grpc::Status RomServiceImpl::ReadOverworldMap(
   zelda3::Overworld overworld(rom, metadata.get());
   auto status = overworld.Load(rom);
   if (!status.ok()) {
-    return grpc::Status(grpc::StatusCode::INTERNAL,
-                        "Failed to load Overworld: " +
-                            std::string(status.message()));
+    return grpc::Status(
+        grpc::StatusCode::INTERNAL,
+        "Failed to load Overworld: " + std::string(status.message()));
   }
 
   int world = 0;
@@ -292,7 +313,7 @@ grpc::Status RomServiceImpl::ReadOverworldMap(
 
   // Access tile data (map tiles are stored as [x][y])
   auto& blockset = overworld.GetMapTiles(world);
-  
+
   // Calculate global coordinates
   // All worlds (Light, Dark, Special) are laid out in 8-map columns
   int maps_per_row = 8;
@@ -302,7 +323,7 @@ grpc::Status RomServiceImpl::ReadOverworldMap(
   int global_start_y = map_row * 32;
 
   response->set_map_id(map_id);
-  
+
   if (blockset.empty() || blockset[0].empty()) {
     return grpc::Status(grpc::StatusCode::INTERNAL,
                         "Overworld tiles not initialized");
@@ -353,11 +374,11 @@ grpc::Status RomServiceImpl::WriteOverworldTile(
                           "Approval manager not initialized");
     }
 
-    std::string description = request->description().empty()
-                                  ? absl::StrFormat(
-                                        "Update OW tile: Map %d (%d,%d) -> %d",
-                                        map_id, x, y, tile_id)
-                                  : request->description();
+    std::string description =
+        request->description().empty()
+            ? absl::StrFormat("Update OW tile: Map %d (%d,%d) -> %d", map_id, x,
+                              y, tile_id)
+            : request->description();
     nlohmann::json proposal_data = {{"description", description},
                                     {"type", "overworld_tile_write"},
                                     {"map_id", map_id},
@@ -389,8 +410,7 @@ grpc::Status RomServiceImpl::WriteOverworldTile(
   zelda3::Overworld overworld(rom, metadata.get());
   auto status = overworld.Load(rom);
   if (!status.ok()) {
-    return grpc::Status(grpc::StatusCode::INTERNAL,
-                        "Failed to load Overworld");
+    return grpc::Status(grpc::StatusCode::INTERNAL, "Failed to load Overworld");
   }
 
   int world = 0;
@@ -424,8 +444,8 @@ grpc::Status RomServiceImpl::WriteOverworldTile(
   blockset[global_x][global_y] = static_cast<uint16_t>(tile_id);
 
   // Create snapshot
-  auto snap_status = MaybeCreateSnapshot(
-      absl::StrFormat("Update OW tile: Map %d (%d,%d) -> %d", map_id, x, y, tile_id));
+  auto snap_status = MaybeCreateSnapshot(absl::StrFormat(
+      "Update OW tile: Map %d (%d,%d) -> %d", map_id, x, y, tile_id));
   if (!snap_status.ok()) {
     return grpc::Status(grpc::StatusCode::INTERNAL, "Snapshot failed");
   }
@@ -433,8 +453,9 @@ grpc::Status RomServiceImpl::WriteOverworldTile(
   // Save back to ROM
   status = overworld.Save(rom);
   if (!status.ok()) {
-    return grpc::Status(grpc::StatusCode::INTERNAL,
-                        "Failed to save Overworld: " + std::string(status.message()));
+    return grpc::Status(
+        grpc::StatusCode::INTERNAL,
+        "Failed to save Overworld: " + std::string(status.message()));
   }
 
   response->set_success(true);
@@ -447,7 +468,8 @@ grpc::Status RomServiceImpl::ReadDungeonRoom(
     rom_svc::ReadDungeonRoomResponse* response) {
   Rom* rom = rom_getter_();
   if (!rom || !rom->is_loaded()) {
-    return grpc::Status(grpc::StatusCode::FAILED_PRECONDITION, "ROM not loaded");
+    return grpc::Status(grpc::StatusCode::FAILED_PRECONDITION,
+                        "ROM not loaded");
   }
 
   uint32_t room_id = request->room_id();
@@ -482,7 +504,7 @@ grpc::Status RomServiceImpl::ReadDungeonRoom(
   // BackgroundBuffer default is 512x512 pixels (64x64 tiles)
   // Check room dimensions? For now assuming standard buffer
   const auto& buffer = room.bg1_buffer().buffer();
-  
+
   for (uint16_t tile : buffer) {
     response->add_tile16_data(tile);
   }
@@ -504,12 +526,12 @@ grpc::Status RomServiceImpl::WriteDungeonTile(
                         "Approval manager not initialized");
   }
 
-  std::string description = request->description().empty()
-                                ? absl::StrFormat(
-                                      "Dungeon tile write: Room %d (%d,%d) -> %d",
-                                      request->room_id(), request->x(),
-                                      request->y(), request->tile16_id())
-                                : request->description();
+  std::string description =
+      request->description().empty()
+          ? absl::StrFormat("Dungeon tile write: Room %d (%d,%d) -> %d",
+                            request->room_id(), request->x(), request->y(),
+                            request->tile16_id())
+          : request->description();
   nlohmann::json proposal_data = {{"description", description},
                                   {"type", "dungeon_tile_write"},
                                   {"room_id", request->room_id()},
@@ -518,8 +540,8 @@ grpc::Status RomServiceImpl::WriteDungeonTile(
                                   {"tile16_id", request->tile16_id()}};
 
   std::string proposal_id = GenerateProposalId();
-  auto status = approval_mgr_->SubmitProposal(proposal_id, "grpc",
-                                              description, proposal_data);
+  auto status = approval_mgr_->SubmitProposal(proposal_id, "grpc", description,
+                                              proposal_data);
   if (!status.ok()) {
     return grpc::Status(grpc::StatusCode::INTERNAL,
                         std::string(status.message()));
@@ -535,22 +557,24 @@ grpc::Status RomServiceImpl::ReadSprite(
     rom_svc::ReadSpriteResponse* response) {
   Rom* rom = rom_getter_();
   if (!rom || !rom->is_loaded()) {
-    return grpc::Status(grpc::StatusCode::FAILED_PRECONDITION, "ROM not loaded");
+    return grpc::Status(grpc::StatusCode::FAILED_PRECONDITION,
+                        "ROM not loaded");
   }
 
   uint32_t sprite_id = request->sprite_id();
   if (sprite_id >= 256) {
-    return grpc::Status(grpc::StatusCode::OUT_OF_RANGE, "Invalid sprite_id (0-255)");
+    return grpc::Status(grpc::StatusCode::OUT_OF_RANGE,
+                        "Invalid sprite_id (0-255)");
   }
 
   // ALttP Sprite Property Tables (PC Offsets)
   const uint32_t kSpriteHPTable = 0x6B173;
   const uint32_t kSpriteDamageTable = 0x6B266;
   const uint32_t kSpritePaletteTable = 0x6B35B;
-  const uint32_t kSpritePropertiesTable = 0x6B450; // 4 bytes per sprite
+  const uint32_t kSpritePropertiesTable = 0x6B450;  // 4 bytes per sprite
 
   response->set_sprite_id(sprite_id);
-  
+
   auto read_byte = [&](uint32_t offset, uint8_t* out) -> absl::Status {
     auto val = rom->ReadByte(static_cast<int>(offset));
     if (!val.ok()) {
@@ -582,8 +606,7 @@ grpc::Status RomServiceImpl::ReadSprite(
   }
   data.push_back(value);
   for (int i = 0; i < 4; ++i) {
-    status =
-        read_byte(kSpritePropertiesTable + (sprite_id * 4) + i, &value);
+    status = read_byte(kSpritePropertiesTable + (sprite_id * 4) + i, &value);
     if (!status.ok()) {
       return grpc::Status(grpc::StatusCode::OUT_OF_RANGE,
                           std::string(status.message()));
@@ -609,7 +632,8 @@ grpc::Status RomServiceImpl::SubmitRomProposal(
   if (description.empty()) {
     description = "ROM proposal";
   }
-  std::string username = request->username().empty() ? "grpc" : request->username();
+  std::string username =
+      request->username().empty() ? "grpc" : request->username();
 
   nlohmann::json proposal_data = {{"description", description}};
 
@@ -640,8 +664,8 @@ grpc::Status RomServiceImpl::SubmitRomProposal(
   }
 
   std::string proposal_id = GenerateProposalId();
-  auto status = approval_mgr_->SubmitProposal(proposal_id, username, description,
-                                              proposal_data);
+  auto status = approval_mgr_->SubmitProposal(proposal_id, username,
+                                              description, proposal_data);
   if (!status.ok()) {
     return grpc::Status(grpc::StatusCode::INTERNAL,
                         std::string(status.message()));

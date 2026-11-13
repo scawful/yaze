@@ -155,6 +155,7 @@ absl::StatusOr<std::vector<uint16_t>> ParseHexList(const std::string& input) {
 }  // namespace
 
 void MinecartTrackEditorPanel::ResetTrackSession() {
+  placement_brush_.reset();
   collision_stamping_ = false;
   ++track_generation_;
   ++canvas_revision_;
@@ -1049,6 +1050,7 @@ void MinecartTrackEditorPanel::set_canvas_editing(bool enabled) {
     return;
   }
   collision_stamping_ = false;
+  CancelNodePlacement();
   canvas_editing_ = true;
 }
 
@@ -1082,42 +1084,52 @@ void MinecartTrackEditorPanel::Draw(bool* p_open) {
     RebuildAuditCache();
   }
 
+  if (!status_message_.empty() && !show_success_) {
+    ImGui::TextWrapped("%s", status_message_.c_str());
+  }
   DrawRailTools();
   ImGui::Separator();
-  ImGui::TextUnformatted("Cart starts");
-  bool canvas_editing = canvas_editing_;
-  if (ImGui::Checkbox("Edit starts on room canvas", &canvas_editing)) {
-    set_canvas_editing(canvas_editing);
-  }
-  ImGui::TextWrapped(
-      "Select a cart marker, then drag it onto a stop. "
-      "Escape cancels. Arrow keys nudge one sprite cell.");
-  if (selected_track_ >= 0 &&
-      selected_track_ < static_cast<int>(tracks_.size())) {
-    const auto& selected = tracks_[selected_track_];
-    ImGui::Text("Cart %d - room %03X%s", selected.id, selected.room_id,
-                HasUnpublishedChanges() ? " (unpublished changes)" : "");
-    ImGui::TextDisabled("Moving a start also moves its matching placed cart.");
-  }
-  for (const auto& track : tracks_) {
-    if (track.room_id != active_room_)
-      continue;
-    if (ImGui::Selectable(
-            absl::StrFormat("Cart %d##cart_start_%d", track.id, track.id)
-                .c_str(),
-            selected_track_ == track.id)) {
-      selected_track_ = track.id;
-      set_canvas_editing(true);
+  if (ImGui::CollapsingHeader("Cart starts")) {
+    bool canvas_editing = canvas_editing_;
+    if (ImGui::Checkbox("Edit starts on room canvas", &canvas_editing)) {
+      set_canvas_editing(canvas_editing);
+    }
+    ImGui::TextWrapped(
+        "Select a cart marker, then drag it onto a stop. "
+        "Escape cancels. Arrow keys nudge one sprite cell.");
+    if (selected_track_ >= 0 &&
+        selected_track_ < static_cast<int>(tracks_.size())) {
+      const auto& selected = tracks_[selected_track_];
+      ImGui::Text("Cart %d - room %03X%s", selected.id, selected.room_id,
+                  HasUnpublishedChanges() ? " (unpublished changes)" : "");
+      ImGui::TextDisabled(
+          "Moving a start also moves its matching placed cart.");
+    }
+    for (const auto& track : tracks_) {
+      if (track.room_id != active_room_)
+        continue;
+      if (ImGui::Selectable(
+              absl::StrFormat("Cart %d##cart_start_%d", track.id, track.id)
+                  .c_str(),
+              selected_track_ == track.id)) {
+        selected_track_ = track.id;
+        set_canvas_editing(true);
+      }
+    }
+    if (picking_mode_) {
+      if (ImGui::Button(ICON_MD_CANCEL " Cancel Pick")) {
+        CancelCoordinatePicking();
+      }
+      ImGui::SameLine();
+      ImGui::TextColored(ImVec4(1.0f, 0.8f, 0.2f, 1.0f),
+                         ICON_MD_MY_LOCATION " Picking for Track %d...",
+                         picking_track_index_);
     }
   }
-  if (picking_mode_) {
-    if (ImGui::Button(ICON_MD_CANCEL " Cancel Pick")) {
-      CancelCoordinatePicking();
-    }
-    ImGui::SameLine();
-    ImGui::TextColored(ImVec4(1.0f, 0.8f, 0.2f, 1.0f),
-                       ICON_MD_MY_LOCATION " Picking for Track %d...",
-                       picking_track_index_);
+  // Source publishing and room-wide audits remain available below the primary
+  // placement tools without consuming the rail's normal working area.
+  if (!ImGui::CollapsingHeader("Source and audit")) {
+    return;
   }
   if (!ImGui::BeginTabBar("##MinecartTasks")) {
     return;

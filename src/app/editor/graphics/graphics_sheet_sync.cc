@@ -36,7 +36,7 @@ SheetPixelDiff MakeSheetPixelDiff(uint16_t sheet,
 void AttachSheetStore(GraphicsEditorState& state, zelda3::GameData* game_data) {
   if (state.game_data != game_data) {
     state.ClearSourceContext();
-    state.preview_palettes.clear();
+    state.ClearPreviewPalettes();
   }
   state.game_data = game_data;
   state.arena_revisions.fill(0);

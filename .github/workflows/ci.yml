@@ -119,8 +119,8 @@ jobs:
             os: ubuntu-22.04
             platform: linux
             preset: ci-linux
-          - name: "macOS 14 (Clang)"
-            os: macos-14
+          - name: "macOS 15 (Clang)"
+            os: macos-15
             platform: macos
             preset: ci-macos
           - name: "Windows 2022 (Core)"
@@ -171,7 +171,9 @@ jobs:
             build/bin/*.dll
             build/bin/${{ env.BUILD_TYPE }}/*.exe
             build/bin/${{ env.BUILD_TYPE }}/*.dll
-          if-no-files-found: warn
+            build/presets/${{ matrix.preset }}/bin/${{ env.BUILD_TYPE }}/*.exe
+            build/presets/${{ matrix.preset }}/bin/${{ env.BUILD_TYPE }}/*.dll
+          if-no-files-found: error
           retention-days: 3
 
   test:
@@ -187,8 +189,8 @@ jobs:
             preset: ci-linux
             # Linux smoke runs yaze_test_gui directly. z3ed_self_test is stable.
             test_targets: yaze_test_unit yaze_test_integration yaze_test_gui z3ed
-          - name: "macOS 14"
-            os: macos-14
+          - name: "macOS 15"
+            os: macos-15
             platform: macos
             preset: ci-macos
             test_targets: yaze_test_unit yaze_test_integration z3ed
@@ -437,7 +439,8 @@ jobs:
           -DCMAKE_C_COMPILER=clang-14 \
           -DCMAKE_CXX_COMPILER=clang++-14 \
           -DCMAKE_CXX_FLAGS="-fsanitize=address -fno-omit-frame-pointer" \
-          -DYAZE_BUILD_TESTS=ON
+          -DYAZE_BUILD_TESTS=ON \
+          -DYAZE_TEST_SHARD_TIMEOUT=1800
     
     - name: Build
       run: cmake --build build --parallel
@@ -452,11 +455,11 @@ jobs:
       # meaningless under ASan instrumentation; they run in nightly.yml instead.
       # Correctness suites still run under ASan through stable entries.
       # Quick binaries repeat cases already registered under stable.
-      run: ctest --output-on-failure --label-exclude "benchmark|gui|experimental|rom_dependent|quick"
+      run: ctest --output-on-failure --parallel 2 --label-exclude "benchmark|gui|experimental|rom_dependent|quick"
 
   z3ed-agent-test:
     name: "z3ed Agent"
-    runs-on: macos-14
+    runs-on: macos-15
     # Only run on master/develop push, not on PRs (moved to nightly for PRs)
     if: github.event_name == 'push' && (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/develop')
 
@@ -490,7 +493,7 @@ jobs:
 
   oracle-smoke-check:
     name: "Oracle ROM Smoke Check"
-    runs-on: macos-14
+    runs-on: macos-15
     # Runs on both push and pull_request so it can be registered as a required
     # status check for merge gating. When ORACLE_ROM_URL is not configured
     # (e.g. fork PRs without access to repo secrets), all ROM-dependent steps

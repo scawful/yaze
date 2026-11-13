@@ -25,6 +25,10 @@ script asks the PC which commits it already has and sends the rest as a
 `build.log`, `test.log`, `junit.xml`, `git.log`); the script prints a short
 pass/fail summary with failing test names.
 
+Two boxes are configured: `mm` (16 cores) and `eva-02` (8 cores). Each has
+its own lock, clone, caches and worktrees, so two jobs run in parallel. The
+script prints which box it picked; the result paths are the same either way.
+
 Exit codes: `0` pass, `1` test failures (or every test skipped), `2` configure
 or build failure, `3` setup/usage/SSH error or build-lock timeout. A cold first build of a new branch takes several
 minutes; run it in the background rather than inside a short tool timeout.
@@ -61,23 +65,24 @@ Details:
   core count capped by free RAM (about 1.2 GB per job); override with `--jobs`.
 - **Test isolation.** Tests run with `YAZE_USER_DOCUMENTS_DIR`,
   `YAZE_APP_DATA_DIR`, `TEMP` and `TMP` pointing into the job dir.
-  `test/yaze_test.cc` sets the first two with `SDL_setenv`, which on Windows
-  calls `SetEnvironmentVariableA` and does not reach `std::getenv`; without the
-  runner's values the harness resolves the PC user's real
-  `Documents\Yaze\settings.json`, creates that folder, and skips every test.
-  All test processes of one run share these dirs (the harness would give each
-  process its own), so tests that write settings can interfere under `ctest -j`.
-- **Cleanup.** The newest `MM_MAX_WORKTREES` worktrees (default 8, by last
-  use) are kept; older ones and job dirs older than two days are removed.
-  `--clean` deletes one branch's build dir before building.
+  `test/yaze_test.cc` then gives each test process its own documents and
+  app-data dirs under `TEMP`, replacing the inherited two, so parallel ctest
+  shards never share settings files or native-save publication locks.
+- **Cleanup.** Remote worktrees and job directories are retained. They may
+  contain sources, ROMs, profiles or pending test evidence, so age and a cache
+  limit cannot authorize removal. Cleanup needs a separate owner review and
+  the inventory/capture/restore/freshness preservation gate. The runner removes
+  only its own lock-owner marker on completion. `--clean` still explicitly
+  deletes the selected branch's build directory; inspect its contents first.
 
 ## Configuration
 
 | Variable | Default | Meaning |
 |----------|---------|---------|
-| `MM_HOST` | `mm` | SSH alias of the PC (key auth, default shell `cmd`) |
+| `MM_HOST` | unset | SSH alias of one PC to use (key auth, default shell `cmd`); disables fallback |
+| `MM_HOSTS` | `mm` | Boxes tried in order when `MM_HOST` is unset: the first ready box with a free build lock runs the job; if all are busy, it waits on the first reachable one |
 | `MM_REMOTE_ROOT` | `src/yaze-remote` | Runner dir, relative to the remote home |
-| `MM_MAX_WORKTREES` | `8` | Worktrees kept on the PC |
+| `MM_MAX_WORKTREES` | `8` | Legacy job parameter, accepted for compatibility; automatic worktree/job removal is disabled |
 | `MM_LOCK_WAIT_MIN` | `120` | Minutes to wait for the build lock |
 
 The PC-side clone (`%USERPROFILE%\src\yaze`) and worktree root

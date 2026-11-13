@@ -3,7 +3,90 @@
 High-level release summary. For detailed notes, see
 `docs/public/reference/changelog.md`.
 
-## 0.8.0 (in development)
+## 0.8.0
+
+- Prepared the unsuffixed desktop release with fixes made after the first
+  experimental download. It includes Dungeon Workbench updates, graphics import
+  and palette selection, message-editor preview/list improvements, safer file
+  operations, portable package fixes and project-integer validation that reports
+  malformed settings without crashing. See `docs/public/release-notes.md` for
+  the shipped scope and limits.
+- Added **List** and **Icons** views to the Workbench object browser. Both views
+  share the existing filters, selection and placement actions.
+- Made the Workbench's right side focus on navigation: Selection fits its
+  content, leaving more space for Room Matrix and the entrance list. The
+  navigation sections can collapse, and their split can be resized.
+- Kept the remaining Dungeon completion roadmap and Oracle expanded-map
+  Build/Test qualification separate from the 0.8.0 package release.
+
+## Unreleased (after v0.8.0-exp.1)
+
+These changes are on the development line after the published prerelease;
+they are not part of its existing downloads. See the
+[release/source matrix](internal/status.md#lyra-source-and-qualification-boundaries).
+
+- Lyra gameplay-area documents (schema 5), 192-map navigation, and later
+  Tile16 stroke/Undo integration are development work after the schema-3
+  prerelease. Full expanded-map Oracle Build/Test is not release-qualified.
+- PNG/palette-strip import and the Sheet Browser palette selector are later
+  graphics work. The release-hardening patch keeps the existing import window
+  and moves its drawing component into the graphics feature-view module.
+- Interactive raw-ROM opens share one path. File > Open ROM, Recent Files,
+  backup restores, iOS document opens, and the web build's drop zone and
+  picker show the ROM load options dialog only when no project is open and
+  the ROM has no remembered choice. "Remember for this ROM file" (on by
+  default) stores the custom overworld and special world tail (0xA0-0xBF)
+  choices for that ROM; a later open applies them and shows a toast with
+  "Change…", and the command palette's "ROM Load Options…" reopens the
+  dialog. A remembered choice never upgrades the ROM and is dropped when the
+  ROM's ZSCustomOverworld version byte changes. `--rom_file` and the gRPC and
+  emulator loaders apply a remembered choice but never wait on the dialog.
+- The ROM load options dialog no longer shows the "Upgrade ROM to
+  ZSCustomOverworld" checkbox, which nothing applied; Upgrade is in the
+  Overworld toolbar. A changed overworld load option applies when the ROM is
+  reopened.
+- Project font, autosave, and backup preferences apply only while the project
+  is open: they are never saved to global settings, and closing the last ROM
+  restores the global values. Opening a raw ROM no longer turns autosave on
+  globally.
+- `z3ed rom-write` and `hex-write` reported `bytes_written` without saving the
+  ROM. They now preview by default and save only with `--write`, keeping a
+  backup and verifying the reloaded file; writes into an Oracle checkout need
+  `--allow-project-rom`. `rom-compare` no longer reports `identical` when bytes
+  differ outside its checked regions (`unchecked_diff_bytes`; `--all` locates
+  them).
+- `scripts/dev/local-workflow.sh test` builds the suites behind the CTest
+  preset and runs with the configuration and `--no-tests=error`; it previously
+  found no tests and passed. `scripts/yaze` finds preset build directories.
+- `--export-schemas` now gives every command a JSON Schema `parameters`
+  object (flag names, required flags, booleans, and `<a|b>` choices) and a
+  `positional_arguments` list, parsed from its usage string.
+- Help and status output use color only on a terminal and honor `NO_COLOR`
+  and `TERM=dumb`; help captured by the HTTP API or agent tools is plain
+  text. `z3ed help <topic>` matches `--help`, and an unknown help topic exits
+  1.
+- `debug` with no topic no longer reads past its arguments, `rom` subcommand
+  errors print once, `--quiet=maybe` is rejected, and the HTTP API server
+  stops before the ROM it serves is freed.
+- The AI agent's tool schemas now use the flags each command reads.
+  Registered tools take their required and boolean flags from the command's
+  usage, the fallback `assets/agent/function_schemas.json` keeps only tools
+  the agent can dispatch, and the agent's `dungeon-set-room-property` tool
+  uses `--property`. A unit test checks registered tools, the prompt
+  catalogue, and the fallback list against each command.
+- The z3ed HTTP API binds `--http-host` (default `localhost`) instead of
+  every interface, and `POST /api/v1/command/execute` returns `403` unless
+  z3ed is started with `--http-allow-commands`.
+
+## 0.8.0 (experimental prerelease: v0.8.0-exp.1)
+- **Experimental release.** 0.8.0 packages the merged editor work for Linux,
+  macOS, and Windows instead of waiting for Dungeon Editor completion, which
+  continues as the next Dungeon milestone. The supported / experimental /
+  deferred table is in `docs/public/release-notes.md`. Published 2026-10-28 from `cc673c04f5dae90d17bdc25d0923d540522340c0`;
+  [release and packages](https://github.com/scawful/yaze/releases/tag/v0.8.0-exp.1),
+  [Release run](https://github.com/scawful/yaze/actions/runs/40781419989). Native GUI/package limitations remain explicit.
+- Fixed a use-after-free in `ObjectDrawCodeTest` found by the Memory Sanitizer
+  job: the test kept a pointer into a temporary `ReadObjectDrawCode` result.
 - Dungeon pot-item edits now use the normal sparse save path without loading
   every room. Disabled pot saving reports the existing Save Scope control and
   preserves the edit for retry; untouched room streams remain unchanged.
@@ -17,9 +100,6 @@ High-level release summary. For detailed notes, see
   pointer/artwork ranges, and signed basement boss-floor encoding. Floor
   buttons update the full model and restore the visible floor on Undo/Redo.
   Tile16 artwork, title-screen and overworld pause-map saves remain blocked.
-- Dungeon Editor completion milestone. See
-  `docs/internal/plans/release-ladder-0x-2026.md` for scope. Release date,
-  final merge SHA, and packaged-candidate evidence are pending.
 - **Upgrading from 0.7.2**: several saves, z3ed commands, Hack Manifest
   sections, project files, menus, and package layouts behave differently. See
   the **Upgrading from 0.7.2** section in `docs/public/reference/changelog.md`

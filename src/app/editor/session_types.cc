@@ -23,6 +23,7 @@
 #include "app/editor/system/session/user_settings.h"
 #include "app/gfx/resource/arena.h"
 #include "app/gfx/util/palette_manager.h"
+#include "core/source_artifact_publisher.h"
 #include "core/version_manager.h"
 
 namespace yaze::editor {
@@ -203,6 +204,14 @@ Editor* EditorSet::EnsureEditorCreated(EditorType type) const {
       }
       return contexts;
     });
+    graphics->SetOverworldUsageProvider([this]() -> zelda3::Overworld* {
+      if (session_teardown_prepared_ || !rom_ || !game_data_)
+        return nullptr;
+      auto* overworld = GetOverworldData();
+      return overworld && overworld->is_loaded() && overworld->rom() == rom_
+                 ? overworld
+                 : nullptr;
+    });
     graphics->SetMainGraphicsUsageCallback(main_usage);
     graphics->SetRoomsetGraphicsUsageCallback(roomset_usage);
   }
@@ -235,6 +244,7 @@ bool EditorSet::ShouldTrackAsActiveEditor(EditorType type) const {
     case EditorType::kMusic:
     case EditorType::kOverworld:
     case EditorType::kPalette:
+    case EditorType::kPlanning:
     case EditorType::kScreen:
     case EditorType::kSprite:
       return true;
@@ -324,6 +334,13 @@ bool EditorSet::HasPendingGraphicsChanges() const {
   return false;
 }
 
+bool EditorSet::HasPendingSpriteChanges() const {
+  if (auto* editor =
+          static_cast<SpriteEditor*>(FindEditor(EditorType::kSprite)))
+    return editor->HasPendingSpriteChanges();
+  return false;
+}
+
 bool EditorSet::HasPendingScreenChanges() const {
   if (auto* editor =
           static_cast<ScreenEditor*>(FindEditor(EditorType::kScreen))) {
@@ -340,6 +357,13 @@ void EditorSet::InvalidateScreenRomBackedState() {
 }
 
 bool EditorSet::HasPendingProjectDraftChanges() const {
+  return HasPendingPlanningProjectDraftChanges() ||
+         HasPendingBuildProjectDraftChanges();
+}
+
+bool EditorSet::HasPendingBuildProjectDraftChanges() const {
+  if (HasPendingSpriteChanges())
+    return true;
   if (auto* editor =
           static_cast<DungeonEditorV2*>(FindEditor(EditorType::kDungeon))) {
     if (editor->HasPendingProjectDraftChanges())
@@ -352,7 +376,22 @@ bool EditorSet::HasPendingProjectDraftChanges() const {
   return false;
 }
 
+bool EditorSet::HasPendingPlanningProjectDraftChanges() const {
+  auto* editor =
+      static_cast<PlanningEditor*>(FindEditor(EditorType::kPlanning));
+  return editor && editor->HasPendingProjectDraftChanges();
+}
+
+absl::Status EditorSet::SavePlanningProjectDraft() {
+  auto* editor =
+      static_cast<PlanningEditor*>(FindEditor(EditorType::kPlanning));
+  return editor ? editor->Save() : absl::OkStatus();
+}
+
 absl::Status EditorSet::PrepareProjectSave(bool publish_lyra) {
+  if (auto* editor =
+          static_cast<SpriteEditor*>(FindEditor(EditorType::kSprite)))
+    RETURN_IF_ERROR(editor->PrepareProjectSave());
   if (auto* editor =
           static_cast<DungeonEditorV2*>(FindEditor(EditorType::kDungeon))) {
     RETURN_IF_ERROR(editor->PrepareProjectSave());
@@ -363,13 +402,27 @@ absl::Status EditorSet::PrepareProjectSave(bool publish_lyra) {
       RETURN_IF_ERROR(editor->PrepareProjectSave());
     }
   }
+  if (auto* editor =
+          static_cast<PlanningEditor*>(FindEditor(EditorType::kPlanning))) {
+    RETURN_IF_ERROR(editor->Save());
+  }
   return absl::OkStatus();
 }
 
 void EditorSet::ProjectSaveCommitted() {
   if (auto* editor =
+          static_cast<SpriteEditor*>(FindEditor(EditorType::kSprite)))
+    editor->ProjectSaveCommitted();
+  if (auto* editor =
           static_cast<OverworldEditor*>(FindEditor(EditorType::kOverworld))) {
     editor->ProjectSaveCommitted();
+  }
+}
+
+void EditorSet::DiscardPlanningProjectDraft() {
+  if (auto* editor =
+          static_cast<PlanningEditor*>(FindEditor(EditorType::kPlanning))) {
+    editor->DiscardProjectDraftChanges();
   }
 }
 
@@ -431,6 +484,13 @@ RomSession::RomSession(Rom&& r, UserSettings* user_settings, size_t session_id,
   CaptureRomIdentity();
 }
 
+std::string ComputeRomFileBytesSha256(const Rom& rom) {
+  std::string bytes(reinterpret_cast<const char*>(rom.copier_header().data()),
+                    rom.copier_header().size());
+  bytes.append(reinterpret_cast<const char*>(rom.data()), rom.size());
+  return core::ComputeSourceArtifactSha256(bytes);
+}
+
 void RomSession::CaptureRomIdentity(bool preserve_editing_source) {
   if (!rom.is_loaded()) {
     rom_baseline.reset();
@@ -443,7 +503,7 @@ void RomSession::CaptureRomIdentity(bool preserve_editing_source) {
                                          : path.string();
   rom_baseline = RomBaselineIdentity{
       util::ComputeRomIdentityHashes(rom.data(), rom.size()), path.string(),
-      editing_source};
+      editing_source, rom.dirty() ? "" : ComputeRomFileBytesSha256(rom)};
 }
 
 void RomSession::ReloadGraphicsDisplay() {

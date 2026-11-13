@@ -98,6 +98,10 @@ class ProjectBundleVerifyCommandHandler;
 class ProjectBundlePackCommandHandler;
 class ProjectBundleUnpackCommandHandler;
 
+// Project plan
+class PlanReadCommandHandler;
+class PlanAgentApplyCommandHandler;
+
 // Test helper tools
 class ToolsHarnessStateCommandHandler;
 class ToolsExtractValuesCommandHandler;

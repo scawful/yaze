@@ -323,6 +323,12 @@ absl::Status OverworldSetTileCommandHandler::ExecuteWithContext(
     return absl::FailedPreconditionError("ROM not loaded");
   }
 
+  if (auto path = parser.GetString("manifest"); path.has_value()) {
+    core::HackManifest manifest;
+    RETURN_IF_ERROR(manifest.LoadFromFile(*path));
+    RETURN_IF_ERROR(rom->AttachLyraPrivateReservation(manifest));
+  }
+
   // Same guard as the overworld sprite editors: never write a ROM that lives
   // in an Oracle of Secrets checkout unless the caller opts in explicitly.
   const auto active_path = invocation_context.active_rom_path.value_or(

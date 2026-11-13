@@ -151,7 +151,7 @@ and runtime-effect paths remain editor approximations.
    - Add broader editor/integration coverage around apply/reload/save flows.
    - Consolidate custom visual, collision, and runtime semantics through the
      project object catalog described in
-     `docs/internal/hand-off/HANDOFF_CUSTOM_OBJECTS.md`.
+     `docs/internal/zelda3/custom-objects.md`.
    - Revisit selector/browser preview quality after the current object-selector refactor settles.
 2. **Save Pipeline Follow-up**:
    - Keep pit-damage edits within the fixed-capacity membership table; treat repointing or capacity expansion as a separate ROM-layout feature.

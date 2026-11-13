@@ -10,6 +10,7 @@
 #include "app/editor/graphics/graphics_edit_context.h"
 #include "app/editor/graphics/usage_preview.h"
 #include "app/editor/sprite/sprite_drawer.h"
+#include "app/gfx/resource/arena.h"
 #include "zelda3/game_data.h"
 #include "zelda3/gfx_sheet_storage.h"
 #include "zelda3/sprite/sprite_sheet_slots.h"
@@ -116,6 +117,15 @@ absl::StatusOr<usage_preview::PreviewImage> RenderCapturedFrame(
     std::copy(it->second.begin(), it->second.end(),
               buffer.begin() + slot * 4096);
   }
+  return RenderFrameBuffer(frame, buffer, palettes);
+}
+
+absl::StatusOr<usage_preview::PreviewImage> RenderFrameBuffer(
+    const zsprite::Frame& frame, std::span<const uint8_t> buffer,
+    const gfx::PaletteGroup& palettes) {
+  if (buffer.size() < 8 * 4096)
+    return absl::InvalidArgumentError(
+        "Sprite frame needs eight complete graphics slots");
   constexpr int kSize = 256;
   gfx::Bitmap canvas(kSize, kSize, 8, std::vector<uint8_t>(kSize * kSize, 0));
   SpriteDrawer drawer(buffer.data());
@@ -124,6 +134,7 @@ absl::StatusOr<usage_preview::PreviewImage> RenderCapturedFrame(
   image.width = kSize;
   image.height = kSize;
   image.pixels = canvas.vector();
+  gfx::Arena::Get().RetireBitmap(canvas);
   image.index0_transparent = true;
   for (size_t row = 0; row < palettes.size() && row < 8; ++row) {
     const auto& palette = palettes.palette_ref(row);

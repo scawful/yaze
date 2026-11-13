@@ -1746,6 +1746,26 @@ void UICoordinator::RefreshWorkflowActions() {
          }});
   }
 
+  // Raw ROM sessions only: a project keeps these flags in its project file.
+  if (editor_manager_ && editor_manager_->GetCurrentRom() != nullptr &&
+      editor_manager_->GetCurrentRom()->is_loaded() &&
+      !(editor_manager_->GetCurrentProject() &&
+        editor_manager_->GetCurrentProject()->project_opened())) {
+    ContentRegistry::WorkflowActions::Register(
+        {.id = "workflow.rom.load_options",
+         .group = "ROM",
+         .label = "ROM Load Options…",
+         .description = "Review the save options this ROM uses and whether "
+                        "yaze remembers them for the file",
+         .shortcut = "",
+         .priority = 20,
+         .callback = [this]() {
+           if (editor_manager_) {
+             editor_manager_->ShowRomLoadOptions();
+           }
+         }});
+  }
+
 #ifdef YAZE_WITH_GRPC
   auto* emu_backend = Application::Instance().GetEmulatorBackend();
   if (emu_backend) {

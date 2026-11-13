@@ -15,7 +15,8 @@
 
 #ifdef _MSC_VER
 #pragma warning(push)
-#pragma warning(disable : 4996)  // warning C4996: 'sprintf': This function or \
+#pragma warning(disable \
+                : 4996)  // warning C4996: 'sprintf': This function or \
                                  // variable may be unsafe.
 #endif
 
@@ -263,11 +264,9 @@ struct MemoryEditorWidget {
     // Draw vertical separator
     ImVec2 window_pos = ImGui::GetWindowPos();
     if (OptShowAscii)
-      draw_list->AddLine(
-          ImVec2(window_pos.x + s.PosAsciiStart - s.GlyphWidth, window_pos.y),
-          ImVec2(window_pos.x + s.PosAsciiStart - s.GlyphWidth,
-                 window_pos.y + 9999),
-          ImGui::GetColorU32(ImGuiCol_Border));
+      draw_list->AddLineV(window_pos.x + s.PosAsciiStart - s.GlyphWidth,
+                          window_pos.y, window_pos.y + 9999,
+                          ImGui::GetColorU32(ImGuiCol_Border));
 
     const ImU32 color_text = ImGui::GetColorU32(ImGuiCol_Text);
     const ImU32 color_disabled = OptGreyOutZeroes
@@ -520,18 +519,22 @@ struct MemoryEditorWidget {
       ImGui::OpenPopup("context");
     if (ImGui::BeginPopup("context")) {
       ImGui::SetNextItemWidth(s.GlyphWidth * 7 + style.FramePadding.x * 2.0f);
-      if (ImGui::DragInt(ICON_MD_VIEW_COLUMN " ##cols", &Cols, 0.2f, 4, 32, "%d cols")) {
+      if (ImGui::DragInt(ICON_MD_VIEW_COLUMN " ##cols", &Cols, 0.2f, 4, 32,
+                         "%d cols")) {
         ContentsWidthChanged = true;
         if (Cols < 1)
           Cols = 1;
       }
-      ImGui::Checkbox(ICON_MD_PREVIEW " Show Data Preview", &OptShowDataPreview);
+      ImGui::Checkbox(ICON_MD_PREVIEW " Show Data Preview",
+                      &OptShowDataPreview);
       ImGui::Checkbox(ICON_MD_HEXAGON " Show HexII", &OptShowHexII);
       if (ImGui::Checkbox(ICON_MD_ABC " Show Ascii", &OptShowAscii)) {
         ContentsWidthChanged = true;
       }
-      ImGui::Checkbox(ICON_MD_FORMAT_COLOR_RESET " Grey out zeroes", &OptGreyOutZeroes);
-      ImGui::Checkbox(ICON_MD_KEYBOARD_CAPSLOCK " Uppercase Hex", &OptUpperCaseHex);
+      ImGui::Checkbox(ICON_MD_FORMAT_COLOR_RESET " Grey out zeroes",
+                      &OptGreyOutZeroes);
+      ImGui::Checkbox(ICON_MD_KEYBOARD_CAPSLOCK " Uppercase Hex",
+                      &OptUpperCaseHex);
 
       ImGui::EndPopup();
     }

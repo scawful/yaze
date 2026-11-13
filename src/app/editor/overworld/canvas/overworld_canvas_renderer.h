@@ -18,6 +18,8 @@ namespace editor {
 
 class OverworldEditor;
 
+void DrawSheetScaleControl(const char* id, gui::AdaptiveSheetScaleMode* mode);
+
 /**
  * @class OverworldCanvasRenderer
  * @brief Handles all canvas drawing and panel rendering for the overworld
@@ -67,6 +69,18 @@ class OverworldCanvasRenderer {
   /// @brief Draw the overworld properties grid (debug/info view)
   void DrawOverworldProperties();
 
+  const std::vector<int>& tile16_usage_counts() const {
+    return tile16_usage_counts_;
+  }
+  int tile16_usage_count(int tile_id) const {
+    if (tile_id >= 0 &&
+        tile_id < static_cast<int>(tile16_usage_counts_.size())) {
+      return tile16_usage_counts_[tile_id];
+    }
+    return 0;
+  }
+  std::string Tile16ScopeLabel() const;
+
  private:
   // =========================================================================
   // Internal Canvas Drawing Helpers
@@ -89,13 +103,11 @@ class OverworldCanvasRenderer {
   bool PrepareContextMenu(const ImVec2& screen_position);
   /// In an entity mode only that entity type responds to hover/drag/menu.
   void FilterHoveredEntityByMode();
+  void DrawEntityHoverTooltip();
 
-  // Tile16 selector ordering: sort by placement count (default) or ID, over
-  // all maps, the current world, the current area, or a named area.
   enum class Tile16UsageScope { kAllMaps, kCurrentWorld, kCurrentArea, kArea };
   void DrawTile16ViewControls();
   void DrawTile16AreaPicker();
-  std::string Tile16ScopeLabel() const;
   std::vector<int> Tile16ScopeMaps() const;
   /// Recounts placements at most twice a second, and never while the mouse is
   /// down or over the grid, so tiles don't move under the cursor.

@@ -164,6 +164,7 @@ const std::vector<EditorShortcutDef> kOverworldShortcuts = {
     {"overworld.prev_tile", {ImGuiKey_LeftBracket}, "Previous tile"},
     {"overworld.toggle_fullscreen", {ImGuiKey_F11}, "Toggle canvas fullscreen"},
     {"overworld.toggle_lock", {ImGuiMod_Ctrl, ImGuiKey_L}, "Toggle map lock"},
+    {"overworld.toggle_map_properties", {ImGuiKey_M}, "Toggle map properties"},
     {"overworld.toggle_tile16_editor",
      {ImGuiMod_Ctrl, ImGuiKey_T},
      "Toggle Tile16 editor"},
@@ -664,6 +665,8 @@ void ConfigureEditorShortcuts(const ShortcutDependencies& deps,
               overworld_editor->ToggleCanvasFullscreen();
             } else if (id == "overworld.toggle_lock") {
               overworld_editor->ToggleMapLock();
+            } else if (id == "overworld.toggle_map_properties") {
+              overworld_editor->OpenMapPropertiesWindow();
             } else if (id == "overworld.toggle_tile16_editor") {
               overworld_editor->ToggleTile16EditorWindow();
             } else if (id == "overworld.toggle_item_list") {
@@ -1179,9 +1182,9 @@ void ConfigureMenuShortcuts(const ShortcutDependencies& deps,
   // Proposal Drawer
   RegisterIfValid(shortcut_manager, "Reset Layout",
                   {ImGuiMod_Ctrl, ImGuiMod_Alt, ImGuiKey_R},
-                  [workspace_manager]() {
-                    if (workspace_manager) {
-                      workspace_manager->ResetWorkspaceLayout();
+                  [menu_orchestrator]() {
+                    if (menu_orchestrator) {
+                      menu_orchestrator->OnResetWorkspaceLayout();
                     }
                   });
 

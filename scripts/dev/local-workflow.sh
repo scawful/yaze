@@ -13,6 +13,8 @@
 # Options:
 #   --preset <name>         CMake build preset (default: platform AI preset)
 #   --ctest-preset <name>   CTest preset (default auto by platform)
+#   --test-targets "<t..>"  Test binaries to build before ctest (default from preset)
+#   --config <name>         Configuration for ctest (default: Debug)
 #   --jobs <n>              Build parallelism (default: 4)
 #   --app-dest <path>       App destination on macOS (default: /Applications/yaze.app)
 #   --z3ed-link <path>      PATH symlink target (default: /usr/local/bin/z3ed)
@@ -44,6 +46,8 @@ fi
 
 PRESET="${YAZE_DEV_PRESET:-}"
 CTEST_PRESET="${YAZE_DEV_CTEST_PRESET:-}"
+TEST_TARGETS="${YAZE_DEV_TEST_TARGETS:-}"
+BUILD_CONFIG="${YAZE_DEV_CONFIG:-Debug}"
 JOBS="${YAZE_BUILD_JOBS:-${CMAKE_BUILD_PARALLEL_LEVEL:-4}}"
 APP_DEST="${YAZE_APP_DEST:-/Applications/yaze.app}"
 Z3ED_LINK="${YAZE_Z3ED_LINK:-/usr/local/bin/z3ed}"
@@ -64,6 +68,10 @@ while [[ $# -gt 0 ]]; do
       PRESET="$2"; shift 2 ;;
     --ctest-preset)
       CTEST_PRESET="$2"; shift 2 ;;
+    --test-targets)
+      TEST_TARGETS="$2"; shift 2 ;;
+    --config)
+      BUILD_CONFIG="$2"; shift 2 ;;
     --jobs)
       JOBS="$2"; shift 2 ;;
     --app-dest)
@@ -152,6 +160,9 @@ resolve_yaze_app_bundle() {
     "$ROOT/build_ai/bin/Debug/yaze.app" \
     "$ROOT/build_ai/bin/RelWithDebInfo/yaze.app" \
     "$ROOT/build_ai/bin/Release/yaze.app" \
+    "$ROOT/build/presets/${PRESET}/bin/Debug/yaze.app" \
+    "$ROOT/build/presets/${PRESET}/bin/RelWithDebInfo/yaze.app" \
+    "$ROOT/build/presets/${PRESET}/bin/Release/yaze.app" \
     "$ROOT/build/bin/Debug/yaze.app" \
     "$ROOT/build/bin/RelWithDebInfo/yaze.app" \
     "$ROOT/build/bin/Release/yaze.app"; do
@@ -246,6 +257,21 @@ build_targets() {
   print_ok "build complete"
 }
 
+# Test binaries register their cases at build time, so the suites behind a
+# CTest preset must be built first or ctest finds nothing and "passes".
+default_test_targets() {
+  case "$1" in
+    *-quick-editor) echo "yaze_test_quick_unit_editor" ;;
+    *-quick-core) echo "yaze_test_quick_unit_core" ;;
+    *-quick-unit) echo "yaze_test_quick_unit_core yaze_test_quick_unit_editor" ;;
+    *-quick-integration) echo "yaze_test_quick_integration" ;;
+    *-quick) echo "yaze_test_quick_unit_core yaze_test_quick_unit_editor yaze_test_quick_integration" ;;
+    *-unit) echo "yaze_test_unit" ;;
+    *-integration) echo "yaze_test_integration" ;;
+    *) echo "yaze_test_unit yaze_test_integration" ;;
+  esac
+}
+
 run_tests() {
   print_header "Tests"
   print_info "CTest preset: ${CTEST_PRESET}"
@@ -255,7 +281,14 @@ run_tests() {
     CTEST_PRESET="fast"
   fi
 
-  run_cmd "ctest --preset '${CTEST_PRESET}' --output-on-failure"
+  local targets njobs
+  targets="${TEST_TARGETS:-$(default_test_targets "$CTEST_PRESET")}"
+  njobs="$(auto_jobs)"
+  print_info "Test targets: ${targets}"
+  run_cmd "cmake --build --preset '${PRESET}' --target ${targets} --parallel '${njobs}'"
+
+  # Quick presets set no configuration; multi-config builds need one.
+  run_cmd "ctest --preset '${CTEST_PRESET}' -C '${BUILD_CONFIG}' --no-tests=error --output-on-failure"
   print_ok "tests complete"
 }
 

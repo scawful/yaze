@@ -70,6 +70,7 @@ class MenuOrchestrator {
   void BuildFileMenu();
   void BuildEditMenu();
   void BuildViewMenu();
+  void BuildEditorMenu();
   // Top-level "Windows" menu — panel toggles, sessions, and layout
   // management. The legacy top-level "Window" menu has been folded in here as
   // Sessions ▸ and Layout ▸ submenus.

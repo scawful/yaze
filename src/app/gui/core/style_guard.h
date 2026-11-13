@@ -7,6 +7,8 @@
 
 #include "app/gui/core/color.h"
 #include "imgui/imgui.h"
+// ImGuiItemFlags_ReadOnly (used by ReadOnlyScope) is declared only here.
+#include "imgui/imgui_internal.h"
 
 namespace yaze {
 namespace gui {
@@ -47,7 +49,8 @@ class StyleColorGuard {
   }
 
   ~StyleColorGuard() {
-    if (count_ > 0) ImGui::PopStyleColor(count_);
+    if (count_ > 0)
+      ImGui::PopStyleColor(count_);
   }
 
   StyleColorGuard(const StyleColorGuard&) = delete;
@@ -92,7 +95,8 @@ class StyleVarGuard {
   }
 
   ~StyleVarGuard() {
-    if (count_ > 0) ImGui::PopStyleVar(count_);
+    if (count_ > 0)
+      ImGui::PopStyleVar(count_);
   }
 
   StyleVarGuard(const StyleVarGuard&) = delete;
@@ -100,6 +104,102 @@ class StyleVarGuard {
 
  private:
   int count_;
+};
+
+// ============================================================================
+// RAII Scope Guards: ID, Disabled, and Item Flag Stacks
+// ============================================================================
+// Each guard pushes in its constructor and pops in its destructor, so an early
+// return, break, or continue inside the scope cannot leave an ImGui stack
+// unbalanced.
+
+/**
+ * @brief RAII guard for ImGui::PushID / ImGui::PopID.
+ *
+ * Usage:
+ *   for (int i = 0; i < count; ++i) {
+ *     IdScope id(i);
+ *     ImGui::Button("Delete");  // A different ID on every row.
+ *   }
+ */
+class IdScope {
+ public:
+  explicit IdScope(const char* str_id) { ImGui::PushID(str_id); }
+  explicit IdScope(int int_id) { ImGui::PushID(int_id); }
+  explicit IdScope(const void* ptr_id) { ImGui::PushID(ptr_id); }
+
+  ~IdScope() { ImGui::PopID(); }
+
+  IdScope(const IdScope&) = delete;
+  IdScope& operator=(const IdScope&) = delete;
+};
+
+/**
+ * @brief RAII guard for ImGui::BeginDisabled / ImGui::EndDisabled.
+ *
+ * DisabledScope(false) still pushes and pops, so the argument can be a
+ * runtime condition with no if around the scope. A DisabledScope(false)
+ * nested inside a disabled scope does not re-enable items; ImGui keeps them
+ * disabled.
+ *
+ * Usage:
+ *   DisabledScope disabled(!rom_loaded);
+ *   ImGui::Button("Save");
+ */
+class DisabledScope {
+ public:
+  explicit DisabledScope(bool disabled = true) {
+    ImGui::BeginDisabled(disabled);
+  }
+
+  ~DisabledScope() { ImGui::EndDisabled(); }
+
+  DisabledScope(const DisabledScope&) = delete;
+  DisabledScope& operator=(const DisabledScope&) = delete;
+};
+
+/**
+ * @brief RAII guard for ImGui::PushItemFlag / ImGui::PopItemFlag.
+ *
+ * Usage:
+ *   ItemFlagScope no_tab(ImGuiItemFlags_NoTabStop, true);
+ *   ItemFlagScope repeat(ImGuiItemFlags_ButtonRepeat, true);
+ */
+class ItemFlagScope {
+ public:
+  ItemFlagScope(ImGuiItemFlags option, bool enabled) {
+    ImGui::PushItemFlag(option, enabled);
+  }
+
+  ~ItemFlagScope() { ImGui::PopItemFlag(); }
+
+  ItemFlagScope(const ItemFlagScope&) = delete;
+  ItemFlagScope& operator=(const ItemFlagScope&) = delete;
+};
+
+/**
+ * @brief RAII guard that pushes ImGuiItemFlags_ReadOnly.
+ *
+ * Read-only items still hover and show tooltips, and are not dimmed, but
+ * their value does not change. ImGui 1.93 marks the flag [ALPHA]. Only
+ * Drag and Slider widgets, InputText, ColorEdit4, and ColorPicker4 honor it;
+ * Button, Checkbox, and Combo still react to clicks, so use DisabledScope
+ * for those.
+ *
+ * Usage:
+ *   ReadOnlyScope read_only(!can_edit);
+ *   ImGui::DragInt("Room", &room_id);
+ */
+class ReadOnlyScope {
+ public:
+  explicit ReadOnlyScope(bool read_only = true) {
+    ImGui::PushItemFlag(ImGuiItemFlags_ReadOnly, read_only);
+  }
+
+  ~ReadOnlyScope() { ImGui::PopItemFlag(); }
+
+  ReadOnlyScope(const ReadOnlyScope&) = delete;
+  ReadOnlyScope& operator=(const ReadOnlyScope&) = delete;
 };
 
 // ============================================================================
@@ -115,10 +215,10 @@ class StyleVarGuard {
 struct StyledWindowConfig {
   std::optional<ImVec4> bg;
   std::optional<ImVec4> border;
-  ImVec2 padding = {-1, -1};    // -1 means "don't push"
-  ImVec2 spacing = {-1, -1};    // -1 means "don't push"
-  float border_size = -1.0f;    // -1 means "don't push"
-  float rounding = -1.0f;       // -1 means "don't push"
+  ImVec2 padding = {-1, -1};  // -1 means "don't push"
+  ImVec2 spacing = {-1, -1};  // -1 means "don't push"
+  float border_size = -1.0f;  // -1 means "don't push"
+  float rounding = -1.0f;     // -1 means "don't push"
 };
 
 /**
@@ -170,8 +270,10 @@ class StyledWindow {
 
   ~StyledWindow() {
     ImGui::End();
-    if (var_count_ > 0) ImGui::PopStyleVar(var_count_);
-    if (color_count_ > 0) ImGui::PopStyleColor(color_count_);
+    if (var_count_ > 0)
+      ImGui::PopStyleVar(var_count_);
+    if (color_count_ > 0)
+      ImGui::PopStyleColor(color_count_);
   }
 
   explicit operator bool() const { return is_open_; }
@@ -198,8 +300,7 @@ class StyledWindow {
 class FixedPanel {
  public:
   FixedPanel(const char* name, const ImVec2& pos, const ImVec2& size,
-             const StyledWindowConfig& config,
-             ImGuiWindowFlags extra_flags = 0)
+             const StyledWindowConfig& config, ImGuiWindowFlags extra_flags = 0)
       : window_(std::nullopt) {
     ImGui::SetNextWindowPos(pos);
     ImGui::SetNextWindowSize(size);
@@ -234,8 +335,8 @@ class FixedPanel {
  *   StyledChildConfig{.bg = color, .border = border_color, .rounding = 4.0f}
  */
 struct StyledChildConfig {
-  std::optional<ImVec4> bg;       // ImGuiCol_ChildBg
-  std::optional<ImVec4> border;   // ImGuiCol_Border
+  std::optional<ImVec4> bg;      // ImGuiCol_ChildBg
+  std::optional<ImVec4> border;  // ImGuiCol_Border
   float rounding = -1.0f;        // ImGuiStyleVar_ChildRounding
   float border_size = -1.0f;     // ImGuiStyleVar_ChildBorderSize
 };
@@ -253,8 +354,8 @@ struct StyledChildConfig {
 class StyledChild {
  public:
   StyledChild(const char* id, const ImVec2& size,
-              const StyledChildConfig& config,
-              bool has_border = false, ImGuiWindowFlags flags = 0)
+              const StyledChildConfig& config, bool has_border = false,
+              ImGuiWindowFlags flags = 0)
       : color_count_(0), var_count_(0) {
     if (config.bg.has_value()) {
       ImGui::PushStyleColor(ImGuiCol_ChildBg, *config.bg);
@@ -277,8 +378,10 @@ class StyledChild {
 
   ~StyledChild() {
     ImGui::EndChild();
-    if (var_count_ > 0) ImGui::PopStyleVar(var_count_);
-    if (color_count_ > 0) ImGui::PopStyleColor(color_count_);
+    if (var_count_ > 0)
+      ImGui::PopStyleVar(var_count_);
+    if (color_count_ > 0)
+      ImGui::PopStyleColor(color_count_);
   }
 
   explicit operator bool() const { return is_open_; }

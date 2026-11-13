@@ -118,7 +118,7 @@ class AuthoringAction final : public UndoAction {
     return document_->SetAuthoring(before_, after_);
   }
   std::string Description() const override {
-    return "Edit Lyra map properties, entities or connections";
+    return "Edit Lyra map properties, areas, entities or connections";
   }
   size_t MemoryUsage() const override { return sizeof(*this); }
 
@@ -497,6 +497,45 @@ absl::Status LyraTerrainCanvas::EditAuthoring(core::LyraAuthoringState after,
                                               UndoManager& history) {
   status_ = ApplyAuthoring(std::move(after), overworld, history);
   return status_;
+}
+
+absl::Status LyraTerrainCanvas::SetGameplayArea(
+    int map_id, std::optional<core::LyraGameplayAreaSize> size,
+    zelda3::Overworld& overworld, UndoManager& history) {
+  if (!document_) {
+    return absl::FailedPreconditionError("Lyra project is unavailable");
+  }
+  if (map_id < Document::kFirstMap ||
+      map_id >= Document::kFirstMap + Document::kMapCount) {
+    return absl::OutOfRangeError("Gameplay area page must be in A0-BF");
+  }
+  const auto* current = document_->GameplayAreaForMap(map_id);
+  if (size && current && current->parent_map_id != map_id) {
+    return absl::FailedPreconditionError(absl::StrFormat(
+        "Select area parent $%02X to resize, or unassign the whole area first",
+        current->parent_map_id));
+  }
+  auto after = document_->authoring();
+  auto& areas = after.gameplay_areas;
+  const auto existing = std::find_if(
+      areas.begin(), areas.end(), [&](const core::LyraGameplayArea& area) {
+        return current && area.parent_map_id == current->parent_map_id;
+      });
+  if (!size) {
+    if (existing == areas.end()) {
+      return absl::OkStatus();
+    }
+    areas.erase(existing);
+  } else {
+    ASSIGN_OR_RETURN(auto maps, core::LyraGameplayAreaFootprint(map_id, *size));
+    core::LyraGameplayArea area{map_id, *size, std::move(maps)};
+    if (existing == areas.end()) {
+      areas.push_back(std::move(area));
+    } else {
+      *existing = std::move(area);
+    }
+  }
+  return EditAuthoring(std::move(after), overworld, history);
 }
 
 absl::Status LyraTerrainCanvas::ApplyAuthoring(core::LyraAuthoringState after,

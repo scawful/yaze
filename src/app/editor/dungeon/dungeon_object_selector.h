@@ -9,6 +9,7 @@
 #include <set>
 #include <string>
 #include <utility>
+#include "app/editor/dungeon/ui/workbench/dungeon_browser.h"
 
 #include "absl/status/status.h"
 #include "app/editor/dungeon/dungeon_room_store.h"
@@ -110,6 +111,7 @@ class DungeonObjectSelector {
 
   // AssetBrowser-style object selection
   void DrawObjectAssetBrowser(float minimum_grid_height = 1.0f);
+  void DrawWorkbenchBrowser();
 
   // Rail palette shares the room-context thumbnail cache and placement path.
   bool DrawMinecartPalette();
@@ -222,6 +224,7 @@ class DungeonObjectSelector {
   std::function<void()> placement_invalidated_callback_;
 
   // Object selection state
+  workbench::DungeonBrowserState browser_state_;
   int selected_object_id_ = -1;
 
   // UI state for object browser filter

@@ -16,6 +16,7 @@
 #include "app/gui/canvas/canvas_automation_api.h"
 #include "app/gui/canvas/canvas_extensions.h"
 #include "app/gui/canvas/canvas_utils.h"
+#include "app/gui/core/draw_sampling.h"
 #include "app/gui/core/layout_helpers.h"
 #include "app/gui/core/style.h"
 #include "imgui/imgui.h"
@@ -865,7 +866,7 @@ void Canvas::DrawContextMenu() {
               ResetView();
               break;
             case CanvasContextMenu::Command::kZoomToFit:
-              if (bitmap_) {
+              if (config_.enable_zoom_to_fit && bitmap_) {
                 SetZoomToFit(*bitmap_);
               }
               break;
@@ -1094,6 +1095,7 @@ bool Canvas::DrawTilePainter(const Bitmap& bitmap, int size, float scale) {
   points_.push_back(paint_pos_end);
 
   if (bitmap.is_active()) {
+    ScopedNearestSampling nearest_sampling(draw_list_);
     draw_list_->AddImage((ImTextureID)(intptr_t)bitmap.texture(),
                          ImVec2(origin.x + paint_pos.x, origin.y + paint_pos.y),
                          ImVec2(origin.x + paint_pos.x + scaled_size,
@@ -1338,6 +1340,7 @@ void Canvas::DrawBitmap(Bitmap& bitmap, ImVec2 dest_pos, ImVec2 dest_size,
 
 // TODO: Add parameters for sizing and positioning
 void Canvas::DrawBitmapTable(const BitmapTable& gfx_bin) {
+  ScopedNearestSampling nearest_sampling(draw_list_);
   for (const auto& [key, value] : gfx_bin) {
     // Skip null or inactive bitmaps without valid textures
     if (!value || !value->is_active() || !value->texture()) {
@@ -1430,6 +1433,9 @@ void Canvas::DrawBitmapGroup(std::vector<int>& group, gfx::Tilemap& tilemap,
   int tiles_per_row = rect_width / tile_size;
   int tiles_per_col = rect_height / tile_size;
 
+  // The rest of this function draws only these atlas tiles, so the scope can
+  // end with the function. The tiles share a texture and stay in one command.
+  ScopedNearestSampling nearest_sampling(draw_list_);
   int i = 0;
   for (int y = 0; y < tiles_per_col + 1; ++y) {
     for (int x = 0; x < tiles_per_row + 1; ++x) {
@@ -1586,30 +1592,31 @@ void Canvas::DrawInfoGrid(float grid_step, int tile_id_offset, int label_id) {
     DrawGridLines(grid_step);
     DrawCustomHighlight(grid_step);
 
-    if (!enable_custom_labels_) {
-      return;
-    }
-
     // Draw the contents of labels on the grid
-    for (float x = fmodf(scrolling_.x, grid_step);
-         x < canvas_sz_.x * global_scale_; x += grid_step) {
-      for (float y = fmodf(scrolling_.y, grid_step);
-           y < canvas_sz_.y * global_scale_; y += grid_step) {
-        int tile_x = (x - scrolling_.x) / grid_step;
-        int tile_y = (y - scrolling_.y) / grid_step;
-        int tile_id = tile_x + (tile_y * tile_id_offset);
+    if (enable_custom_labels_) {
+      for (float x = fmodf(scrolling_.x, grid_step);
+           x < canvas_sz_.x * global_scale_; x += grid_step) {
+        for (float y = fmodf(scrolling_.y, grid_step);
+             y < canvas_sz_.y * global_scale_; y += grid_step) {
+          int tile_x = (x - scrolling_.x) / grid_step;
+          int tile_y = (y - scrolling_.y) / grid_step;
+          int tile_id = tile_x + (tile_y * tile_id_offset);
 
-        if (tile_id >= labels_[label_id].size()) {
-          break;
+          if (tile_id >= labels_[label_id].size()) {
+            break;
+          }
+          const std::string& label = labels_[label_id][tile_id];
+          draw_list_->AddText(
+              ImVec2(canvas_p0_.x + x + (grid_step / 2) - tile_id_offset,
+                     canvas_p0_.y + y + (grid_step / 2) - tile_id_offset),
+              kWhiteColor, label.c_str());
         }
-        std::string label = labels_[label_id][tile_id];
-        draw_list_->AddText(
-            ImVec2(canvas_p0_.x + x + (grid_step / 2) - tile_id_offset,
-                   canvas_p0_.y + y + (grid_step / 2) - tile_id_offset),
-            kWhiteColor, label.data());
       }
     }
   }
+  // Every path must pop: an unbalanced clip rect clips everything drawn
+  // after this canvas into the same window's draw list.
+  draw_list_->PopClipRect();
 }
 
 void Canvas::DrawCustomHighlight(float grid_step) {
@@ -1712,6 +1719,7 @@ void Canvas::ShowAdvancedCanvasProperties() {
   ext.InitializeModals();
   if (ext.modals) {
     CanvasConfig modal_config;
+    modal_config.enable_center_view = config_.enable_center_view;
     modal_config.canvas_size = canvas_sz_;
     modal_config.content_size = config_.content_size;
     modal_config.global_scale = global_scale_;
@@ -1811,8 +1819,9 @@ void Canvas::ShowAdvancedCanvasProperties() {
       scrolling_ = ImVec2(0, 0);
     }
     ImGui::SameLine();
+    ImGui::BeginDisabled(!config_.enable_center_view || !bitmap_);
     if (ImGui::Button(tr("Center View"))) {
-      if (bitmap_) {
+      if (config_.enable_center_view && bitmap_) {
         scrolling_ = ImVec2(
             -(bitmap_->width() * config_.global_scale - config_.canvas_size.x) /
                 2.0f,
@@ -1821,6 +1830,7 @@ void Canvas::ShowAdvancedCanvasProperties() {
                 2.0f);
       }
     }
+    ImGui::EndDisabled();
 
     if (ImGui::Button(tr("Close"))) {
       ImGui::CloseCurrentPopup();

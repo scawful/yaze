@@ -6,6 +6,7 @@
 #include <fstream>
 #include <future>
 #include <iterator>
+#include <optional>
 #include <stdexcept>
 #include <string>
 #include <thread>
@@ -89,6 +90,104 @@ TEST(SourceArtifactPublisherTest, Sha256MatchesPublishedKnownVectors) {
             "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad");
 }
 
+TEST(SourceArtifactPublisherTest,
+     Sha256MatchesPaddingAndBinaryChunkBoundaries) {
+  struct Vector {
+    size_t bytes;
+    const char* sha256;
+  };
+  const Vector vectors[] = {
+      {55, "463eb28e72f82e0a96c0a4cc53690c571281131f672aa229e0d45ae59b598b59"},
+      {56, "da2ae4d6b36748f2a318f23e7ab1dfdf45acdc9d049bd80e59de82a60895f562"},
+      {63, "29af2686fd53374a36b0846694cc342177e428d1647515f078784d69cdb9e488"},
+      {64, "fdeab9acf3710362bd2658cdc9a29e8f9c757fcf9811603a8c447cd1d9151108"},
+      {65, "4bfd2c8b6f1eec7a2afeb48b934ee4b2694182027e6d0fc075074f2fabb31781"},
+      {65535,
+       "5f1bf999bcba5e05d4c34a13710d2e4bff005877874dcce49ac87af61076231e"},
+      {65536,
+       "7daca2095d0438260fa849183dfc67faa459fdf4936e1bc91eec6b281b27e4c2"},
+      {65537,
+       "2deb0bd2129a9d3aed91e3cff58b3993752be549642890a3e853ec1065f9b617"},
+  };
+  ScopedTempDir temp;
+  const auto path = temp.path() / "binary.bin";
+  for (const auto& vector : vectors) {
+    SCOPED_TRACE(vector.bytes);
+    std::string bytes(vector.bytes, '\0');
+    for (size_t i = 0; i < bytes.size(); ++i) {
+      bytes[i] = static_cast<char>(i % 256);
+    }
+    WriteText(path, bytes);
+    EXPECT_EQ(ComputeSourceArtifactSha256(bytes), vector.sha256);
+    const auto file_hash = ComputeSourceArtifactFileSha256(path);
+    ASSERT_TRUE(file_hash.ok()) << file_hash.status();
+    EXPECT_EQ(*file_hash, vector.sha256);
+  }
+}
+
+TEST(SourceArtifactPublisherTest, FileSha256StreamsKnownVectorAcrossChunks) {
+  ScopedTempDir temp;
+  const auto path = temp.path() / "input.bin";
+  WriteText(path, std::string(1000000, 'a'));
+  const auto digest = ComputeSourceArtifactFileSha256(path);
+  ASSERT_TRUE(digest.ok()) << digest.status();
+  EXPECT_EQ(*digest,
+            "cdc76e5c9914fb9281a1c7e284d73e67f1809a48a497200e046d39ccc7112cd0");
+  WriteText(path, "");
+  EXPECT_EQ(*ComputeSourceArtifactFileSha256(path),
+            "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855");
+}
+
+TEST(SourceArtifactPublisherTest, FileSha256MatchesLargeBinaryMemoryDigest) {
+  ScopedTempDir temp;
+  const auto path = temp.path() / "large-binary.bin";
+  std::string bytes(16 * 1024 * 1024 + 17, '\0');
+  for (size_t index = 0; index < bytes.size(); ++index) {
+    bytes[index] = static_cast<char>(index % 256);
+  }
+  WriteText(path, bytes);
+  // Independently computed SHA256 for this binary pattern, including NULs.
+  constexpr const char* kExpected =
+      "95efbbacc4a59ff8db42623a3df617f34d1f8bdbe66288b66914823ef0300b86";
+  EXPECT_EQ(ComputeSourceArtifactSha256(bytes), kExpected);
+  const auto file_hash = ComputeSourceArtifactFileSha256(path);
+  ASSERT_TRUE(file_hash.ok()) << file_hash.status();
+  EXPECT_EQ(*file_hash, kExpected);
+  EXPECT_EQ(fs::file_size(path), bytes.size());
+}
+
+TEST(SourceArtifactPublisherTest, Sha256ContextsAreIndependentAcrossThreads) {
+  std::string bytes(65537, '\0');
+  for (size_t index = 0; index < bytes.size(); ++index) {
+    bytes[index] = static_cast<char>(index % 256);
+  }
+  std::vector<std::future<bool>> hashes;
+  for (int worker = 0; worker < 8; ++worker) {
+    hashes.push_back(std::async(std::launch::async, [&bytes]() {
+      for (int repeat = 0; repeat < 8; ++repeat) {
+        if (ComputeSourceArtifactSha256(bytes) !=
+                "2deb0bd2129a9d3aed91e3cff58b3993752be549642890a3e853ec1065f9b6"
+                "17" ||
+            ComputeSourceArtifactSha256("abc") !=
+                "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015"
+                "ad") {
+          return false;
+        }
+      }
+      return true;
+    }));
+  }
+  for (auto& hash : hashes) {
+    EXPECT_TRUE(hash.get());
+  }
+}
+
+TEST(SourceArtifactPublisherTest, FileSha256RefusesMissingOrDirectoryInputs) {
+  ScopedTempDir temp;
+  EXPECT_FALSE(ComputeSourceArtifactFileSha256(temp.path() / "missing").ok());
+  EXPECT_FALSE(ComputeSourceArtifactFileSha256(temp.path()).ok());
+}
+
 TEST(SourceArtifactPublisherTest, RejectsRelativeTargetPaths) {
   const absl::Status status =
       ValidateSourceArtifactPublicationTargets({"relative/source.json"});
@@ -143,6 +242,65 @@ TEST(SourceArtifactPublisherTest,
   EXPECT_FALSE(fs::exists(source.parent_path() /
                           kSourceArtifactPublicationLockBasename));
   ExpectNoPublicationArtifacts(temp.path());
+}
+
+TEST(SourceArtifactPublisherTest,
+     MissingReadOnlyParentDoesNotPreventOutputPublicationOrCreateDirectories) {
+  ScopedTempDir temp;
+  const auto source = temp.path() / "input" / "source.json";
+  const auto future = temp.path() / "future" / "generation" / "proof.json";
+  const auto output = temp.path() / "output" / "generated.json";
+  WriteText(source, "canonical\n");
+  WriteText(output, "old output\n");
+  const auto missing_output = temp.path() / "missing-output" / "generated.json";
+  const auto missing_output_lock =
+      AcquireSourceArtifactPublicationLock({missing_output}, {}, {future});
+  EXPECT_EQ(missing_output_lock.status().code(),
+            absl::StatusCode::kFailedPrecondition)
+      << missing_output_lock.status();
+  EXPECT_FALSE(fs::exists(missing_output.parent_path()));
+  EXPECT_FALSE(fs::exists(temp.path() / "future"));
+  auto lock =
+      AcquireSourceArtifactPublicationLock({output}, {}, {source, future});
+  ASSERT_TRUE(lock.ok()) << lock.status();
+  EXPECT_FALSE(fs::exists(temp.path() / "future"));
+  const auto status =
+      PublishSourceArtifacts(**lock,
+                             {{source, "canonical\n", "canonical\n"},
+                              {output, "old output\n", "new output\n"}},
+                             ComputeSourceArtifactSha256("canonical\n"));
+  ASSERT_TRUE(status.ok()) << status;
+  EXPECT_EQ(ReadText(source), "canonical\n");
+  EXPECT_EQ(ReadText(output), "new output\n");
+  EXPECT_FALSE(fs::exists(temp.path() / "future"));
+  EXPECT_FALSE(fs::exists(source.parent_path() /
+                          kSourceArtifactPublicationLockBasename));
+  ExpectNoPublicationArtifacts(temp.path());
+}
+
+TEST(SourceArtifactPublisherTest,
+     ReadOnlyReferencesCannotUseOutputPersistentLockPath) {
+  ScopedTempDir temp;
+  const auto output = temp.path() / "generated.json";
+  const auto lock_path = temp.path() / kSourceArtifactPublicationLockBasename;
+  WriteText(output, "original output\n");
+  for (bool existing_lock : {false, true}) {
+    SCOPED_TRACE(existing_lock ? "existing lock path" : "future lock path");
+    if (existing_lock) {
+      WriteText(lock_path, "protected lock sentinel\n");
+    }
+    const auto lock =
+        AcquireSourceArtifactPublicationLock({output}, {}, {lock_path});
+    EXPECT_EQ(lock.status().code(), absl::StatusCode::kInvalidArgument)
+        << lock.status();
+    EXPECT_EQ(ReadText(output), "original output\n");
+    if (existing_lock) {
+      EXPECT_EQ(ReadText(lock_path), "protected lock sentinel\n");
+    } else {
+      EXPECT_FALSE(fs::exists(lock_path));
+    }
+    ExpectNoPublicationArtifacts(temp.path());
+  }
 }
 
 TEST(SourceArtifactPublisherTest,
@@ -411,6 +569,103 @@ TEST(SourceArtifactPublisherTest, ValidatorFailureRollsBackEveryArtifact) {
   EXPECT_EQ(ReadText(primary), primary_before);
   EXPECT_EQ(ReadText(generated), generated_before);
   ExpectNoPublicationArtifacts(temp.path());
+}
+
+TEST(SourceArtifactPublisherTest,
+     RollbackPreservesChangedNewSidecarAndRestoresOwnedDescriptor) {
+  for (bool replace_file : {false, true}) {
+    SCOPED_TRACE(replace_file ? "replacement" : "in-place rewrite");
+    ScopedTempDir temp;
+    const fs::path descriptor = temp.path() / "project.yaze";
+    const fs::path plan = temp.path() / "project.plan.json";
+    const std::string descriptor_before = "original descriptor\n";
+    const std::string recovery = "external plan recovery\n";
+    WriteText(descriptor, descriptor_before);
+    auto lock_or = AcquireSourceArtifactPublicationLock({descriptor, plan});
+    ASSERT_TRUE(lock_or.ok()) << lock_or.status();
+
+    const absl::Status status = PublishSourceArtifacts(
+        **lock_or,
+        {{.target = descriptor,
+          .before = descriptor_before,
+          .after = "descriptor with plan\n"},
+         {.target = plan, .before = std::nullopt, .after = "new plan\n"}},
+        ComputeSourceArtifactSha256(descriptor_before), [&] {
+          if (replace_file) {
+            const fs::path replacement = temp.path() / "replacement";
+            WriteText(replacement, recovery);
+            std::error_code error;
+            fs::remove(plan, error);
+            if (error) {
+              return absl::InternalError(error.message());
+            }
+            fs::rename(replacement, plan, error);
+            if (error) {
+              return absl::InternalError(error.message());
+            }
+          } else {
+            WriteText(plan, recovery);
+          }
+          return absl::FailedPreconditionError("readback rejected");
+        });
+
+    EXPECT_EQ(status.code(), absl::StatusCode::kDataLoss) << status;
+    EXPECT_NE(std::string(status.message())
+                  .find("Published file changed before rollback"),
+              std::string::npos);
+    EXPECT_EQ(ReadText(plan), recovery);
+    EXPECT_EQ(ReadText(descriptor), descriptor_before);
+    size_t backups = 0;
+    for (const auto& entry : fs::directory_iterator(temp.path())) {
+      const std::string filename = entry.path().filename().string();
+      EXPECT_EQ(filename.find(".yaze-tmp-"), std::string::npos);
+      if (filename.find(".yaze-backup-") != std::string::npos) {
+        ++backups;
+        EXPECT_EQ(ReadText(entry.path()), descriptor_before);
+      }
+    }
+    EXPECT_EQ(backups, 1);
+  }
+}
+
+TEST(SourceArtifactPublisherTest,
+     RollbackPreservesChangedDescriptorAndRemovesOwnedNewSidecar) {
+  ScopedTempDir temp;
+  const fs::path descriptor = temp.path() / "project.yaze";
+  const fs::path plan = temp.path() / "project.plan.json";
+  const std::string descriptor_before = "original descriptor\n";
+  const std::string recovery = "external descriptor recovery\n";
+  WriteText(descriptor, descriptor_before);
+  auto lock_or = AcquireSourceArtifactPublicationLock({descriptor, plan});
+  ASSERT_TRUE(lock_or.ok()) << lock_or.status();
+
+  const absl::Status status = PublishSourceArtifacts(
+      **lock_or,
+      {{.target = descriptor,
+        .before = descriptor_before,
+        .after = "descriptor with plan\n"},
+       {.target = plan, .before = std::nullopt, .after = "new plan\n"}},
+      ComputeSourceArtifactSha256(descriptor_before), [&] {
+        WriteText(descriptor, recovery);
+        return absl::FailedPreconditionError("readback rejected");
+      });
+
+  EXPECT_EQ(status.code(), absl::StatusCode::kDataLoss) << status;
+  EXPECT_NE(std::string(status.message())
+                .find("Published file changed before rollback"),
+            std::string::npos);
+  EXPECT_EQ(ReadText(descriptor), recovery);
+  EXPECT_FALSE(fs::exists(plan));
+  size_t backups = 0;
+  for (const auto& entry : fs::directory_iterator(temp.path())) {
+    const std::string filename = entry.path().filename().string();
+    EXPECT_EQ(filename.find(".yaze-tmp-"), std::string::npos);
+    if (filename.find(".yaze-backup-") != std::string::npos) {
+      ++backups;
+      EXPECT_EQ(ReadText(entry.path()), descriptor_before);
+    }
+  }
+  EXPECT_EQ(backups, 1);
 }
 
 TEST(SourceArtifactPublisherTest,

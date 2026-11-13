@@ -20,6 +20,9 @@
 #include <grpcpp/server.h>
 
 namespace yaze {
+namespace util {
+class UiThreadQueue;
+}
 namespace test {
 
 // Forward declare TestManager
@@ -63,8 +66,9 @@ class ReplayTestResponse;
 class ImGuiTestHarnessServiceImpl {
  public:
   // Constructor now takes TestManager reference for ImGuiTestEngine access
-  explicit ImGuiTestHarnessServiceImpl(TestManager* test_manager)
-      : test_manager_(test_manager), test_recorder_(test_manager) {}
+  explicit ImGuiTestHarnessServiceImpl(
+      TestManager* test_manager,
+      util::UiThreadQueue* ui_thread_queue = nullptr);
   ~ImGuiTestHarnessServiceImpl() = default;
 
   // Disable copy and move
@@ -119,6 +123,8 @@ class ImGuiTestHarnessServiceImpl {
 
  private:
   TestManager* test_manager_;  // Non-owning pointer to access ImGuiTestEngine
+  util::UiThreadQueue*
+      ui_thread_queue_;  // Non-owning; defaults to Controller's queue.
   WidgetDiscoveryService widget_discovery_service_;
   TestRecorder test_recorder_;
 };

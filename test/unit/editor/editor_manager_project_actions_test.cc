@@ -14,24 +14,33 @@
 
 #include "absl/cleanup/cleanup.h"
 #include "absl/status/status.h"
+#include "absl/strings/str_format.h"
 #include "app/editor/core/content_registry.h"
 #include "app/editor/dungeon/dungeon_editor_v2.h"
 #include "app/editor/dungeon/dungeon_project_labels.h"
 #include "app/editor/editor_manager.h"
 #include "app/editor/message/message_editor.h"
 #include "app/editor/overworld/overworld_editor.h"
+#include "app/editor/shell/dialogs/rom_load_options_dialog.h"
 #include "app/editor/shell/feedback/toast_manager.h"
 #include "app/gfx/backend/null_renderer.h"
 #include "app/gfx/resource/arena.h"
 #include "app/gfx/util/palette_manager.h"
+#include "app/gui/core/icons.h"
+#include "core/features.h"
+#include "core/native_save_receipt.h"
 #include "core/palette_catalog.h"
 #include "core/source_artifact_publisher.h"
 #include "editor_test_support.h"
+#include "rom/rom.h"
 #include "test_utils.h"
 #include "testing.h"
+#include "util/i18n/tr.h"
+#include "zelda3/overworld/overworld_version_helper.h"
 #include "zelda3/resource_labels.h"
 
 #include "imgui/imgui.h"
+#include "imgui/imgui_internal.h"
 #include "nlohmann/json.hpp"
 
 namespace yaze::editor {
@@ -57,10 +66,17 @@ struct ScopedImGuiContext {
 
 struct ScopedTempDir {
   std::filesystem::path path;
+  bool retain_on_success = false;
   explicit ScopedTempDir(std::filesystem::path p) : path(std::move(p)) {
     std::filesystem::create_directories(path);
   }
   ~ScopedTempDir() {
+    if (retain_on_success && !::testing::Test::HasFailure() &&
+        !::testing::Test::IsSkipped()) {
+      ::testing::Test::RecordProperty("lyra_authoring_retained_root",
+                                      path.string());
+      return;
+    }
     std::error_code ec;
     std::filesystem::remove_all(path, ec);
   }
@@ -92,6 +108,17 @@ std::string ReadFile(const std::filesystem::path& path) {
   EXPECT_TRUE(in.is_open());
   return std::string((std::istreambuf_iterator<char>(in)),
                      std::istreambuf_iterator<char>());
+}
+
+std::string LoadedLoRomSha256(EditorManager& manager, size_t rom_size) {
+  std::string bytes(rom_size, '\0');
+  auto& memory = manager.emulator().snes().memory();
+  for (size_t offset = 0; offset < bytes.size(); ++offset) {
+    bytes[offset] = static_cast<char>(
+        memory.cart_read(static_cast<uint8_t>(offset / 0x8000),
+                         static_cast<uint16_t>(0x8000 | (offset & 0x7fff))));
+  }
+  return core::ComputeSourceArtifactSha256(bytes);
 }
 
 std::string ProjectFileContents(const std::string& name,
@@ -534,8 +561,38 @@ TEST(EditorManagerProjectActionsTest,
   EXPECT_EQ(ReadFile(primary_project), initial_descriptor);
 
   const auto initial_authoring = editor->lyra_canvas_.document()->authoring();
+  EXPECT_TRUE(initial_authoring.gameplay_areas.empty());
+  UndoManager area_history;
+  auto& canvas = editor->lyra_canvas_;
+  using AreaSize = core::LyraGameplayAreaSize;
+  ASSERT_OK(canvas.SetGameplayArea(0xA0, AreaSize::kLarge, editor->overworld(),
+                                   area_history));
+  ASSERT_NE(canvas.document()->GameplayAreaForMap(0xA9), nullptr);
+  EXPECT_EQ(canvas.document()->GameplayAreaForMap(0xA9)->parent_map_id, 0xA0);
+  const auto assigned_area = canvas.document()->authoring();
+  const auto area_history_size = area_history.UndoStackSize();
+  // A child cannot silently steal ownership, and a root cannot wrap a row.
+  EXPECT_FALSE(canvas
+                   .SetGameplayArea(0xA1, AreaSize::kSmall, editor->overworld(),
+                                    area_history)
+                   .ok());
+  EXPECT_FALSE(canvas
+                   .SetGameplayArea(0xA7, AreaSize::kWide, editor->overworld(),
+                                    area_history)
+                   .ok());
+  EXPECT_EQ(canvas.document()->authoring(), assigned_area);
+  EXPECT_EQ(area_history.UndoStackSize(), area_history_size);
+  ASSERT_OK(canvas.SetGameplayArea(0xA9, std::nullopt, editor->overworld(),
+                                   area_history));
+  EXPECT_TRUE(canvas.document()->authoring().gameplay_areas.empty());
+  ASSERT_OK(area_history.Undo());
+  EXPECT_EQ(canvas.document()->authoring(), assigned_area);
+  ASSERT_OK(area_history.Redo());
+  EXPECT_EQ(canvas.document()->authoring(), initial_authoring);
   auto selected_scene = initial_authoring;
   selected_scene.maps[1].properties.message_id = 0x42;
+  selected_scene.gameplay_areas.push_back(
+      {0xA0, AreaSize::kWide, {0xA0, 0xA1}});
   selected_scene.edge_connections.push_back(
       {1, 0x99, 0xA1, core::LyraEdgePassage{15, 16}});
   ASSERT_OK(editor->EditProjectMapAuthoring(selected_scene));
@@ -582,6 +639,8 @@ TEST(EditorManagerProjectActionsTest,
 
   auto save_as_scene = selected_scene;
   save_as_scene.maps[0].properties.message_id = 0x71;
+  save_as_scene.gameplay_areas[0] = {
+      0xA0, AreaSize::kLarge, {0xA0, 0xA1, 0xA8, 0xA9}};
   ASSERT_OK(editor->EditProjectMapAuthoring(save_as_scene));
   save_as_scene = editor->lyra_canvas_.document()->authoring();
   const auto save_as_bytes = editor->lyra_canvas_.document()->Serialize();
@@ -618,6 +677,32 @@ TEST(EditorManagerProjectActionsTest,
       relocated_terrain.string()));
   EXPECT_TRUE(SessionCoordinator::PathsReferToSameBackingFile(
       saved.GetAbsolutePath(saved.rom_filename), primary_rom.string()));
+  // Save As publishes the new owner's receipt binding its own descriptor,
+  // its terrain sidecar and the unchanged ROM.
+  const auto relocated_receipt = nlohmann::json::parse(
+      ReadFile(relocated_project.string() + ".native-save.json"));
+  EXPECT_EQ(relocated_receipt.at("operation"), "save_as");
+  // The fixture names label/symbol files it never creates; only those may be
+  // reported unbound.
+  for (const auto& error : relocated_receipt.at("binding_errors")) {
+    EXPECT_EQ(error.get<std::string>().rfind("dependency.", 0), 0u)
+        << relocated_receipt.dump(2);
+  }
+  for (const auto& [role, path] :
+       std::vector<std::pair<std::string, std::filesystem::path>>{
+           {"project", relocated_project},
+           {"sidecar", relocated_terrain},
+           {"rom", primary_rom}}) {
+    const auto& artifacts = relocated_receipt.at("artifacts");
+    const std::string& wanted_role = role;
+    const auto found = std::find_if(
+        artifacts.begin(), artifacts.end(),
+        [&](const auto& item) { return item.at("role") == wanted_role; });
+    ASSERT_NE(found, artifacts.end()) << role;
+    EXPECT_EQ(found->at("path"), std::filesystem::canonical(path).string());
+    EXPECT_EQ(found->at("sha256"),
+              core::ComputeSourceArtifactSha256(ReadFile(path)));
+  }
 
   ASSERT_NO_FATAL_FAILURE(open_fresh_manager(relocated_project));
   ASSERT_OK(manager->EnsureEditorAssetsLoaded(EditorType::kOverworld));
@@ -680,6 +765,12 @@ TEST(EditorManagerProjectActionsTest,
             immutable_hash);
   EXPECT_EQ(core::ComputeSourceArtifactSha256(ReadFile(immutable_rom)),
             immutable_hash);
+
+  const char* retain = std::getenv("YAZE_LYRA_AUTHORING_RETAIN");
+  if (retain != nullptr && std::string(retain) == "1" &&
+      !::testing::Test::HasFailure() && !::testing::Test::IsSkipped()) {
+    directory.retain_on_success = true;
+  }
 }
 
 TEST(EditorManagerProjectActionsTest,
@@ -939,6 +1030,110 @@ TEST(EditorManagerProjectActionsTest,
   ASSERT_TRUE(std::filesystem::exists(marker_path));
   EXPECT_EQ(ReadFile(marker_path), "project-build");
 #endif  // _WIN32
+}
+
+TEST(EditorManagerProjectActionsTest,
+     SyncAndQueuedBuildsUseRelocatedProjectContextWithoutChangingRequest) {
+#if defined(_WIN32) || defined(__EMSCRIPTEN__) || \
+    (defined(__APPLE__) && TARGET_OS_IPHONE)
+  GTEST_SKIP() << "Background commands require a POSIX desktop";
+#else
+  ScopedImGuiContext imgui;
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  test::InitializeWithIsolatedSettings(*manager, renderer.get());
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+  ScopedTempDir temp(MakeTempDir("yaze_project_build_context"));
+  const auto original = temp.path / "original";
+  const auto relocated = temp.path / "copy with 'quotes'";
+  std::filesystem::create_directories(original / "code folder");
+  std::filesystem::create_directories(relocated);
+  const auto original_project = original / "original.yaze";
+  const auto copied_project = relocated / "copy.yaze";
+  const auto rom = original / "source.sfc";
+  const auto terrain = original / "terrain.json";
+  const auto request = original / "request.json";
+  WriteRomFile(rom);
+  std::ofstream(terrain) << "terrain context canary";
+  std::ofstream(request) << "request context canary";
+  auto* project = manager->GetCurrentProject();
+  project->name = "Build context";
+  project->filepath = original_project.string();
+  project->rom_filename = rom.string();
+  project->code_folder = (original / "code folder").string();
+  project->lyra_terrain_file = terrain.string();
+  project->lyra_build_request_file = request.string();
+  project->build_script = "./build_context.sh";
+  ASSERT_OK(project->Save());
+  ASSERT_OK(project->Open(original_project.string()));
+  const auto original_bytes = ReadFile(original_project);
+  ASSERT_OK(project->SaveAs(copied_project.string()));
+  ASSERT_EQ(project->lyra_build_request_file, request.string());
+
+  const auto script_path = relocated / "build_context.sh";
+  {
+    std::ofstream script(script_path);
+    ASSERT_TRUE(script.is_open());
+    script << R"sh(#!/bin/sh
+printf '%s\n' "$YAZE_PROJECT_FILE" "$YAZE_PROJECT_CODE_FOLDER" \
+  "$YAZE_PROJECT_ROM" "$YAZE_LYRA_TERRAIN_FILE" "$OOS_LYRA_PROJECT" \
+  "$OOS_LYRA_REQUEST" > build.context
+printf '%s\n' "${YAZE_PROJECT_FILE+set}" "${YAZE_PROJECT_CODE_FOLDER+set}" \
+  "${YAZE_PROJECT_ROM+set}" "${YAZE_LYRA_TERRAIN_FILE+set}" \
+  "${OOS_LYRA_PROJECT+set}" "${OOS_LYRA_REQUEST+set}" > build.presence
+)sh";
+    ASSERT_TRUE(script.good());
+  }
+  std::filesystem::permissions(
+      script_path,
+      std::filesystem::perms::owner_exec | std::filesystem::perms::owner_read,
+      std::filesystem::perm_options::add);
+  const std::string expected =
+      copied_project.string() + "\n" + (original / "code folder").string() +
+      "\n" + rom.string() + "\n" + terrain.string() + "\n" +
+      copied_project.string() + "\n" + request.string() + "\n";
+  for (bool queued : {false, true}) {
+    SCOPED_TRACE(queued ? "queued" : "synchronous");
+    std::filesystem::remove(relocated / "build.context");
+    if (queued) {
+      manager->QueueBuildCurrentProject();
+      const auto deadline =
+          std::chrono::steady_clock::now() + std::chrono::seconds(5);
+      while (ContentRegistry::Context::build_workflow_status().state ==
+                 ProjectWorkflowState::kRunning &&
+             std::chrono::steady_clock::now() < deadline) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(20));
+        ImGui::GetIO().DisplaySize = ImVec2(1280, 720);
+        ImGui::NewFrame();
+        const auto status = manager->Update();
+        ImGui::Render();
+        ASSERT_OK(status);
+      }
+      const auto status = ContentRegistry::Context::build_workflow_status();
+      ASSERT_EQ(status.state, ProjectWorkflowState::kSuccess) << status.detail;
+    } else {
+      ASSERT_OK(manager->BuildCurrentProject());
+    }
+    EXPECT_EQ(ReadFile(relocated / "build.context"), expected);
+    EXPECT_EQ(ReadFile(relocated / "build.presence"),
+              "set\nset\nset\nset\nset\nset\n");
+  }
+
+  // Every known name remains an explicit override when its binding is absent.
+  project->code_folder.clear();
+  project->rom_filename.clear();
+  project->lyra_terrain_file.clear();
+  project->lyra_build_request_file.clear();
+  ASSERT_OK(project->Save());
+  ASSERT_OK(manager->BuildCurrentProject());
+  EXPECT_EQ(ReadFile(relocated / "build.context"),
+            copied_project.string() + "\n\n\n\n\n\n");
+  EXPECT_EQ(ReadFile(relocated / "build.presence"),
+            "set\nset\nset\nset\nset\nset\n");
+  EXPECT_EQ(ReadFile(original_project), original_bytes);
+  EXPECT_EQ(ReadFile(request), "request context canary");
+  EXPECT_EQ(ReadFile(terrain), "terrain context canary");
+#endif
 }
 
 TEST(EditorManagerProjectActionsTest,
@@ -1260,9 +1455,6 @@ TEST(EditorManagerProjectActionsTest,
 
 TEST(EditorManagerProjectActionsTest,
      RunCurrentProjectPrefersManifestPatchedRomAndReloadsEmulator) {
-#ifdef _WIN32
-  GTEST_SKIP() << "Test uses #!/bin/sh shebang + chmod exec, POSIX-only";
-#else
   ScopedImGuiContext imgui;
   auto renderer = std::make_unique<gfx::NullRenderer>();
   auto manager = std::make_unique<EditorManager>();
@@ -1271,13 +1463,22 @@ TEST(EditorManagerProjectActionsTest,
 
   ScopedTempDir temp_dir(MakeTempDir("yaze_run_project_output"));
   const auto project_path = temp_dir.path / "project.yaze";
+  const auto source_rom = temp_dir.path / "editing_source.sfc";
   const auto valid_rom = temp_dir.path / "patched_valid.sfc";
+  WriteRomFile(source_rom, "EDITING SOURCE ROM");
   WriteRomFile(valid_rom, "RUN TARGET ROM");
+  ASSERT_OK(manager->OpenRomOrProject(source_rom.string()));
+  const auto source_sha256 = core::ComputeSourceArtifactFileSha256(source_rom);
+  ASSERT_TRUE(source_sha256.ok()) << source_sha256.status();
+  const auto target_sha256 = core::ComputeSourceArtifactFileSha256(valid_rom);
+  ASSERT_TRUE(target_sha256.ok()) << target_sha256.status();
+  ASSERT_NE(*source_sha256, *target_sha256);
 
   auto* project = manager->GetCurrentProject();
   ASSERT_NE(project, nullptr);
   project->name = "RunProjectOutput";
   project->filepath = project_path.string();
+  project->rom_filename = source_rom.string();
   project->build_target = "missing_output.sfc";
   ASSERT_TRUE(project->hack_manifest
                   .LoadFromString(R"json(
@@ -1296,12 +1497,641 @@ TEST(EditorManagerProjectActionsTest,
   EXPECT_TRUE(manager->emulator().running());
   ASSERT_NE(manager->ui_coordinator(), nullptr);
   EXPECT_TRUE(manager->ui_coordinator()->IsEmulatorVisible());
+  const auto status = ContentRegistry::Context::run_workflow_status();
+  EXPECT_EQ(status.state, ProjectWorkflowState::kSuccess);
+  EXPECT_EQ(std::filesystem::path(status.detail), valid_rom);
+  const auto loaded_sha256 =
+      LoadedLoRomSha256(*manager, std::filesystem::file_size(valid_rom));
+  EXPECT_EQ(loaded_sha256, *target_sha256);
+  EXPECT_NE(loaded_sha256, *source_sha256);
+  EXPECT_EQ(std::filesystem::path(manager->GetCurrentRom()->filename()),
+            source_rom);
+  const auto source_after = core::ComputeSourceArtifactFileSha256(source_rom);
+  ASSERT_TRUE(source_after.ok()) << source_after.status();
+  EXPECT_EQ(*source_after, *source_sha256);
 
   const auto& history = manager->toast_manager()->GetHistory();
   ASSERT_FALSE(history.empty());
   EXPECT_NE(history.front().message.find("patched_valid.sfc"),
             std::string::npos);
-#endif  // _WIN32
+}
+
+// These synthetic receipts exercise the existing Build/Run consumer contract.
+// They do not establish an Oracle allocation grant or compiled gameplay proof.
+struct ExpandedRunFixture {
+  using Json = nlohmann::json;
+  EditorManager& manager;
+  std::filesystem::path root, project, source, stale, target, seed, request;
+  std::filesystem::path producer, proof, prepare, verification, build_receipt;
+  std::filesystem::path symbols, ledger, editor, verifier, source_binding;
+  std::filesystem::path context, save_receipt, snapshot, staged;
+  Json request_json, prepare_json, verification_json, build_json;
+  static constexpr uint64_t kGeneration = 7;
+  static constexpr char kOperation[] = "y12b-native-save";
+
+  // Evidence records canonical paths; macOS temp_directory_path() is a
+  // symlink (/var -> /private/var).
+  ExpandedRunFixture(EditorManager& owner, const std::filesystem::path& folder)
+      : manager(owner),
+        root(std::filesystem::weakly_canonical(folder)),
+        project(root / "project.yaze"),
+        source(root / "editing.sfc"),
+        stale(root / "stale.sfc"),
+        target(root / "engine" / "Roms" / "generation-7" / "oos168x.sfc"),
+        seed(root / "candidate.sfc"),
+        request(root / "snapshot" / "request.json"),
+        producer(root / "producer.json"),
+        proof(root / "future" / "proof.json"),
+        prepare(root / "engine" / "Data" / "Generated" / "lyra_project" /
+                "prepare.json"),
+        verification(target.parent_path() / "oos168x.lyra-verification.json"),
+        build_receipt(target.parent_path() / "oos168x.build.json"),
+        symbols(target.parent_path() / "oos168x.sym"),
+        ledger(root / "engine" / "Config" / "allocation_ownership.json"),
+        editor(root / "selected-editor.bin"),
+        verifier(root / "selected-z3ed.bin"),
+        source_binding(root / "engine" / "Oracle_main.asm"),
+        save_receipt(root / "project.yaze.native-save.json"),
+        snapshot(root / "snapshot"),
+        staged(root / "staged") {}
+
+  static std::string Text(const std::filesystem::path& path) {
+    const auto utf8 = path.generic_u8string();
+    return std::string(utf8.begin(), utf8.end());
+  }
+  static void Write(const std::filesystem::path& path,
+                    const std::string& bytes) {
+    std::filesystem::create_directories(path.parent_path());
+    std::ofstream output(path, std::ios::binary);
+    ASSERT_TRUE(output.is_open()) << path;
+    output.write(bytes.data(), static_cast<std::streamsize>(bytes.size()));
+    ASSERT_TRUE(output.good()) << path;
+  }
+  static void WriteJson(const std::filesystem::path& path, const Json& value) {
+    Write(path, value.dump(2) + "\n");
+  }
+  static Json Binding(const std::filesystem::path& path,
+                      const std::filesystem::path& bytes_from = {}) {
+    const auto& bytes_path = bytes_from.empty() ? path : bytes_from;
+    const auto digest = core::ComputeSourceArtifactFileSha256(bytes_path);
+    EXPECT_TRUE(digest.ok()) << digest.status();
+    return {{"path", Text(path)}, {"sha256", digest.ok() ? *digest : ""}};
+  }
+  static Json Artifact(const std::filesystem::path& path,
+                       const std::filesystem::path& bytes_from = {}) {
+    auto row = Binding(path, bytes_from);
+    row["size"] =
+        std::filesystem::file_size(bytes_from.empty() ? path : bytes_from);
+    return row;
+  }
+  static Json SaveArtifact(const std::string& role,
+                           const std::filesystem::path& path) {
+    auto row = Binding(path);
+    row["role"] = role;
+    row["bytes"] = std::filesystem::file_size(path);
+    return row;
+  }
+
+  void Initialize() {
+    WriteRomFile(source, "EDITING SOURCE");
+    WriteRomFile(stale, "STALE MANIFEST");
+    WriteRomFile(seed, "GENERATION SEVEN");
+    std::filesystem::resize_file(seed, 0x400000);
+    std::filesystem::create_directories(staged);
+    std::filesystem::create_directories(target.parent_path());
+    Write(editor, "selected editor fixture\n");
+    Write(verifier, "selected verifier fixture\n");
+    Write(source_binding, "; selected source fixture\n");
+    Write(ledger, "{}\n");
+    const auto terrain = root / "terrain.json";
+    Write(terrain, "{}\n");
+    ASSERT_OK(manager.OpenRomOrProject(source.string()));
+    auto* model = manager.GetCurrentProject();
+    ASSERT_NE(model, nullptr);
+    model->name = "Expanded Run generation";
+    model->filepath = project.string();
+    model->rom_filename = source.string();
+    model->code_folder = (root / "engine").string();
+    model->lyra_terrain_file = terrain.string();
+    model->lyra_build_request_file = request.string();
+    model->native_save_producer_file = producer.string();
+    model->native_save_transfer_proof_file = proof.string();
+    model->native_save_receipt_file = (root / "legacy-receipt.json").string();
+    model->build_target = target.string();
+#ifdef _WIN32
+    model->build_script = "build-fixture.cmd";
+#else
+    model->build_script = "sh build-fixture.sh";
+#endif
+    // Opening a real project assigns its persistent identity before Save.
+    // Normalize this in-memory fixture through the same parser before hashing.
+    const auto descriptor = model->SerializeToString();
+    ASSERT_TRUE(descriptor.ok()) << descriptor.status();
+    ASSERT_OK(model->LoadFromString(*descriptor, project.string()));
+    ASSERT_OK(model->hack_manifest.LoadFromString(Json{
+        {"manifest_version", 2},
+        {"hack_name", "Run target fixture"},
+        {"build_pipeline",
+         {{"patched_rom", stale.string()}}}}.dump()));
+    ASSERT_OK(model->Save());
+    const Json producer_identity{
+        {"kind", "yaze.native_save_producer_identity.v1"},
+        {"source_head", std::string(40, 'a')},
+        {"editor", Binding(editor)},
+        {"verifier", Binding(verifier)},
+        {"source_bindings", Json::array({Binding(source_binding)})}};
+    WriteJson(producer, producer_identity);
+    const auto producer_artifact = SaveArtifact("producer", editor);
+    WriteJson(save_receipt,
+              {{"kind", "yaze.native_save.v1"},
+               {"generation", kGeneration},
+               {"operation_id", kOperation},
+               {"operation", "save"},
+               {"receipt_path", Text(save_receipt)},
+               {"bindings_complete", true},
+               {"binding_errors", Json::array()},
+               {"artifacts", Json::array({SaveArtifact("project", project),
+                                          SaveArtifact("rom", source),
+                                          SaveArtifact("sidecar", terrain),
+                                          producer_artifact})}});
+    auto native_context =
+        core::GetNativeSaveContext(source.string(), project.string());
+    ASSERT_TRUE(native_context.ok()) << native_context.status();
+    context = native_context->path;
+    WriteJson(context,
+              {{"kind", "yaze.native_save_context.v1"},
+               {"editing_source_path", native_context->editing_source_path},
+               {"project_path", native_context->project_path},
+               {"rom_path", Text(source)},
+               {"producer", producer_artifact},
+               {"state", "committed"},
+               {"native_commit",
+                {{"receipt_path", Text(save_receipt)},
+                 {"generation", kGeneration},
+                 {"operation_id", kOperation}}}});
+    Json live_inputs{{"project", Binding(project)},
+                     {"rom", Binding(source)},
+                     {"terrain", Binding(terrain)}};
+    Json snapshot_inputs = Json::object();
+    for (const auto& [role, row] : live_inputs.items()) {
+      const auto copy = snapshot / (role + ".snapshot");
+      std::filesystem::create_directories(copy.parent_path());
+      std::filesystem::copy_file(
+          std::filesystem::u8path(row.at("path").get<std::string>()), copy);
+      snapshot_inputs[role] = Binding(copy);
+    }
+    for (const auto& [name, original] :
+         std::vector<std::pair<std::string, std::filesystem::path>>{
+             {"native-save.json", save_receipt},
+             {"producer.json", producer},
+             {"context.json", context}}) {
+      std::filesystem::copy_file(original, snapshot / name);
+    }
+    Write(snapshot / "observation.json", "{}\n");
+    const auto execution = snapshot / "native-verification.json";
+    WriteJson(
+        execution,
+        {{"kind", "yaze.lyra_verify_project_execution.v1"},
+         {"binary", Binding(verifier)},
+         {"source_bindings", producer_identity["source_bindings"]},
+         {"generation", kGeneration},
+         {"operation_id", kOperation},
+         {"save_receipt", Binding(save_receipt)},
+         {"save_context", Binding(context)},
+         {"source_rom_sha256", Binding(source)["sha256"]},
+         {"exit_code", 0},
+         {"command", Json::array({Text(verifier), "lyra-verify-project",
+                                  "--project-context=" + Text(project),
+                                  "--rom=" + Text(source), "--format=json"})},
+         {"observation", Binding(snapshot / "observation.json")}});
+    const Json target_row{{"path", Text(target)},
+                          {"size", 0x400000},
+                          {"role", "compiled_candidate"},
+                          {"native_serializer_after_compile", "forbidden"}};
+    request_json = {{"kind", "lyra.current_save_transfer_request.v1"},
+                    {"live",
+                     {{"project", Text(project)},
+                      {"inputs", live_inputs},
+                      {"producer", Binding(producer)},
+                      {"producer_identity", producer_identity},
+                      {"save_receipt", Binding(save_receipt)},
+                      {"save_context", Binding(context)},
+                      {"generation", kGeneration},
+                      {"operation_id", kOperation},
+                      {"enforcement_receipt", Text(proof)}}},
+                    {"snapshot_root", Text(snapshot)},
+                    {"inputs", snapshot_inputs},
+                    {"observation", Binding(snapshot / "observation.json")},
+                    {"save_snapshot", Binding(snapshot / "native-save.json")},
+                    {"producer_snapshot", Binding(snapshot / "producer.json")},
+                    {"context_snapshot", Binding(snapshot / "context.json")},
+                    {"native_verification", Binding(execution)},
+                    {"census", Json::object()},
+                    {"allocation_policy_id", "current_runtime"},
+                    {"target", target_row}};
+    request_json["transfer_id"] =
+        core::ComputeSourceArtifactSha256(request_json.dump());
+    WriteJson(request, request_json);
+    Json inputs = Json::array();
+    for (const auto& path :
+         {project, source, request, ledger, source_binding, execution}) {
+      inputs.push_back(Binding(path));
+    }
+    for (const auto& row : snapshot_inputs)
+      inputs.push_back(row);
+    prepare_json = {
+        {"kind", "lyra.current_build_prepare.v1"},
+        {"selected", true},
+        {"allocation_granted", true},
+        {"producer_enforcement_verified", true},
+        {"runtime_admission", true},
+        {"ordinary_build_ready", true},
+        {"project", Text(project)},
+        {"base_rom", Text(source)},
+        {"request", Text(request)},
+        {"ledger", Text(ledger)},
+        {"saved_rom_sha256", Binding(source)["sha256"]},
+        {"current_ledger_sha256", Binding(ledger)["sha256"]},
+        {"inputs", inputs},
+        {"current_source_profile",
+         {{"kind", "lyra.current_native_source_profile.v1"},
+          {"selected_source",
+           {{"root", Text(root / "engine")},
+            {"head", std::string(40, 'a')},
+            {"bindings", Json::array({Binding(source_binding)})}}}}},
+        {"terrain_plan",
+         {{"target", target_row},
+          {"transfer_id", request_json["transfer_id"]},
+          {"generation", kGeneration},
+          {"operation_id", kOperation},
+          {"save_context", Binding(context)},
+          {"retirement", "next_native_save"},
+          {"enforcement_owner", "oracle.current_builder"},
+          {"enforcement_receipt", Binding(execution)}}}};
+    WriteJson(prepare, prepare_json);
+    verification_json = {
+        {"kind", "lyra.current_build_verification.v1"},
+        {"compiled_consumers_verified", true},
+        {"compiled_rom_sha256", Binding(seed)["sha256"]},
+        {"saved_rom_sha256", Binding(source)["sha256"]},
+        {"symbols_sha256",
+         core::ComputeSourceArtifactSha256("fixture symbols\n")},
+        {"prepared_sha256", Binding(prepare)["sha256"]},
+        {"current_ledger_sha256", Binding(ledger)["sha256"]},
+        {"runtime_verified", false},
+        {"native_gameplay_verified", false},
+        {"save_reopen_verified", false},
+        {"production_maps", Json::array()},
+        {"production_edge_ids", Json::array()},
+        {"compile_order",
+         {{"owner", "oracle.current_builder"},
+          {"required_order",
+           Json::array({"native_save", "immutable_snapshot",
+                        "compile_candidate", "no_native_serializer"})},
+          {"native_verification", Binding(execution)},
+          {"saved_generation_unchanged", true},
+          {"immutable_snapshot_verified", true},
+          {"derived_output_verified", true},
+          {"oracle_compile_order_verified", true}}}};
+    RefreshBuildEvidence();
+#ifdef _WIN32
+    std::string script = "@echo off\r\n";
+    for (const auto& name :
+         {"oos168x.sfc", "oos168x.sym", "oos168x.lyra-verification.json",
+          "oos168x.build.json"}) {
+      script += "copy /b /y \"staged\\" + std::string(name) +
+                "\" \"engine\\Roms\\generation-7\\" + name +
+                "\" >nul\r\nif errorlevel 1 exit /b 1\r\n";
+    }
+    script += "echo fixture-build-complete\r\n";
+    Write(root / "build-fixture.cmd", script);
+#else
+    std::string script = "set -e\n";
+    for (const auto& name :
+         {"oos168x.sfc", "oos168x.sym", "oos168x.lyra-verification.json",
+          "oos168x.build.json"}) {
+      script += "cp 'staged/" + std::string(name) +
+                "' 'engine/Roms/generation-7/" + name + "'\n";
+    }
+    script += "printf 'fixture-build-complete\\n'\n";
+    Write(root / "build-fixture.sh", script);
+#endif
+  }
+
+  void RefreshBuildEvidence() {
+    std::filesystem::copy_file(
+        seed, staged / "oos168x.sfc",
+        std::filesystem::copy_options::overwrite_existing);
+    Write(staged / "oos168x.sym", "fixture symbols\n");
+    WriteJson(staged / "oos168x.lyra-verification.json", verification_json);
+    build_json = {{"schema_version", 1},
+                  {"state", "completed"},
+                  {"root", Text(root / "engine")},
+                  {"base_rom", Artifact(source)},
+                  {"finish",
+                   {{"exit_code", 0},
+                    {"required_gaps", Json::array()},
+                    {"optional_gaps", Json::array()}}},
+                  {"checks", Json::array({{{"name", "lyra_verify"},
+                                           {"status", "passed"},
+                                           {"required", true},
+                                           {"exit_code", 0}}})},
+                  {"artifacts",
+                   {{"output_rom", Artifact(target, staged / "oos168x.sfc")},
+                    {"symbols", Artifact(symbols, staged / "oos168x.sym")},
+                    {"lyra_prepare", Artifact(prepare)},
+                    {"lyra_verification",
+                     Artifact(verification,
+                              staged / "oos168x.lyra-verification.json")}}}};
+    WriteJson(staged / "oos168x.build.json", build_json);
+  }
+};
+
+TEST(EditorManagerProjectActionsTest,
+     ExpandedBuildThenRunLoadsSameGenerationPathAndHash) {
+  ScopedImGuiContext imgui;
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  test::InitializeWithIsolatedSettings(*manager, renderer.get());
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+  ScopedTempDir temp(MakeTempDir("yaze_build_then_run_generation"));
+  ExpandedRunFixture fixture(*manager, temp.path);
+  fixture.Initialize();
+  ASSERT_FALSE(::testing::Test::HasFatalFailure());
+  ASSERT_FALSE(std::filesystem::exists(fixture.target));
+  ASSERT_OK(manager->BuildCurrentProject());
+  EXPECT_EQ(ContentRegistry::Context::build_workflow_status().state,
+            ProjectWorkflowState::kSuccess);
+  const auto built_hash = core::ComputeSourceArtifactFileSha256(fixture.target);
+  ASSERT_TRUE(built_hash.ok()) << built_hash.status();
+  const auto source_hash =
+      core::ComputeSourceArtifactFileSha256(fixture.source);
+  ASSERT_TRUE(source_hash.ok()) << source_hash.status();
+  ASSERT_OK(manager->RunCurrentProject());
+  const auto status = ContentRegistry::Context::run_workflow_status();
+  EXPECT_EQ(status.state, ProjectWorkflowState::kSuccess);
+  EXPECT_EQ(std::filesystem::path(status.detail), fixture.target);
+  EXPECT_EQ(
+      *built_hash,
+      fixture.verification_json["compiled_rom_sha256"].get<std::string>());
+  EXPECT_EQ(LoadedLoRomSha256(*manager, 0x400000), *built_hash);
+  EXPECT_NE(*built_hash, *source_hash);
+  EXPECT_EQ(std::filesystem::path(manager->GetCurrentRom()->filename()),
+            fixture.source);
+  EXPECT_FALSE(std::filesystem::exists(fixture.proof.parent_path()));
+}
+
+TEST(EditorManagerProjectActionsTest,
+     RunWithoutExpandedAdmissionRetainsManifestTarget) {
+  ScopedImGuiContext imgui;
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  test::InitializeWithIsolatedSettings(*manager, renderer.get());
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+  ScopedTempDir temp(MakeTempDir("yaze_run_unadmitted_manifest"));
+  ExpandedRunFixture fixture(*manager, temp.path);
+  fixture.Initialize();
+  ASSERT_FALSE(::testing::Test::HasFatalFailure());
+  // A Lyra document or legacy receipt reference alone is not expanded admission.
+  auto* project = manager->GetCurrentProject();
+  project->native_save_producer_file.clear();
+  project->native_save_transfer_proof_file.clear();
+  project->lyra_build_request_file.clear();
+  ASSERT_FALSE(project->lyra_terrain_file.empty());
+  ASSERT_FALSE(std::filesystem::exists(fixture.target));
+  ASSERT_OK(manager->RunCurrentProject());
+  EXPECT_EQ(std::filesystem::path(
+                ContentRegistry::Context::run_workflow_status().detail),
+            fixture.stale);
+  const auto expected = core::ComputeSourceArtifactFileSha256(fixture.stale);
+  ASSERT_TRUE(expected.ok()) << expected.status();
+  EXPECT_EQ(
+      LoadedLoRomSha256(*manager, std::filesystem::file_size(fixture.stale)),
+      *expected);
+}
+
+TEST(EditorManagerProjectActionsTest,
+     RunWithoutExpandedRequestPreservesDailyAndLabManifestTarget) {
+  // Match the persisted daily/Lab configuration: native-save capability refs
+  // are configured, but no expanded build request has been selected.
+  for (const auto* name : {"Oracle-of-Secrets", "Oracle Prototype Lab"}) {
+    SCOPED_TRACE(name);
+    ScopedImGuiContext imgui;
+    auto renderer = std::make_unique<gfx::NullRenderer>();
+    auto manager = std::make_unique<EditorManager>();
+    test::InitializeWithIsolatedSettings(*manager, renderer.get());
+    manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+    ScopedTempDir temp(MakeTempDir("yaze_daily_manifest_run"));
+    const auto bundle = temp.path / "Oracle.yazeproj";
+    const auto descriptor = bundle / "project.yaze";
+    const auto source = bundle / "rom";
+    const auto target = bundle / "project" / "Roms" / "oos168x.sfc";
+    const auto manifest = target.parent_path() / "hack_manifest.json";
+    std::filesystem::create_directories(target.parent_path());
+    WriteRomFile(source, "DAILY EDITING SOURCE");
+    WriteRomFile(target, "DAILY MANIFEST OUTPUT");
+    ExpandedRunFixture::Write(
+        descriptor,
+        "[project]\nname=" + std::string(name) +
+            "\nproject_id=yaze_daily_manifest_fixture\n\n"
+            "[files]\nrom_filename=rom\ncode_folder=project\n"
+            "lyra_terrain_file=assets/project/lyra_terrain_file/"
+            "unified.lyra-terrain.json\nlyra_build_request_file=\n"
+            "hack_manifest_file=project/Roms/hack_manifest.json\n"
+            "native_save_producer_file=transfer/producer-identity.json\n"
+            "native_save_transfer_proof_file=transfer/transfer-proof.json\n\n"
+            "[rom]\nrole=dev\nwrite_policy=block\n\n"
+            "[build]\nbuild_script=python3 project/Scripts/Build/"
+            "authoring_bundle_build.py --project project.yaze\n"
+            "build_target=project/Roms/oos168x.sfc\n\n"
+            "[workspace]\nautosave_enabled=false\nbackup_on_save=false\n");
+    ExpandedRunFixture::WriteJson(
+        manifest,
+        {{"manifest_version", 2},
+         {"hack_name", "Oracle of Secrets"},
+         {"build_pipeline",
+          {{"dev_rom", "rom"}, {"patched_rom", "project/Roms/oos168x.sfc"}}}});
+    const auto descriptor_before = ReadFile(descriptor);
+    const auto manifest_before = ReadFile(manifest);
+    const auto source_before = core::ComputeSourceArtifactFileSha256(source);
+    const auto target_hash = core::ComputeSourceArtifactFileSha256(target);
+    ASSERT_TRUE(source_before.ok()) << source_before.status();
+    ASSERT_TRUE(target_hash.ok()) << target_hash.status();
+    ASSERT_NE(*source_before, *target_hash);
+
+    ASSERT_OK(manager->OpenRomOrProject(descriptor.string()));
+    const auto* project = manager->GetCurrentProject();
+    ASSERT_NE(project, nullptr);
+    ASSERT_TRUE(project->project_opened());
+    ASSERT_FALSE(project->native_save_producer_file.empty());
+    ASSERT_FALSE(project->native_save_transfer_proof_file.empty());
+    ASSERT_TRUE(project->lyra_build_request_file.empty());
+    ASSERT_TRUE(project->hack_manifest.loaded());
+    const auto result = manager->RunCurrentProject();
+    EXPECT_TRUE(result.ok()) << result;
+    if (!result.ok()) {
+      continue;
+    }
+    EXPECT_EQ(std::filesystem::path(
+                  ContentRegistry::Context::run_workflow_status().detail),
+              target);
+    EXPECT_EQ(LoadedLoRomSha256(*manager, std::filesystem::file_size(target)),
+              *target_hash);
+    EXPECT_EQ(std::filesystem::path(manager->GetCurrentRom()->filename()),
+              source);
+    const auto source_after = core::ComputeSourceArtifactFileSha256(source);
+    ASSERT_TRUE(source_after.ok()) << source_after.status();
+    EXPECT_EQ(*source_after, *source_before);
+    EXPECT_EQ(ReadFile(descriptor), descriptor_before);
+    EXPECT_EQ(ReadFile(manifest), manifest_before);
+    EXPECT_FALSE(std::filesystem::exists(bundle / "transfer"));
+    EXPECT_FALSE(
+        std::filesystem::exists(bundle / "project.yaze.native-save.json"));
+  }
+}
+
+TEST(EditorManagerProjectActionsTest,
+     ExpandedRunRejectsChangedOrUnadmittedGenerationWithoutManifestFallback) {
+  using Fixture = ExpandedRunFixture;
+  using Json = Fixture::Json;
+  const std::vector<std::pair<std::string, std::function<void(Fixture&)>>>
+      cases{{"missing build receipt",
+             [](auto& f) { std::filesystem::remove(f.build_receipt); }},
+            {"malformed build receipt",
+             [](auto& f) { Fixture::Write(f.build_receipt, "{"); }},
+            {"in-progress build",
+             [](auto& f) {
+               f.build_json["state"] = "in_progress";
+               Fixture::WriteJson(f.build_receipt, f.build_json);
+             }},
+            {"failed build",
+             [](auto& f) {
+               f.build_json["finish"]["exit_code"] = 7;
+               Fixture::WriteJson(f.build_receipt, f.build_json);
+             }},
+            {"required build gap",
+             [](auto& f) {
+               f.build_json["finish"]["required_gaps"] =
+                   Json::array({"lyra_verify"});
+               Fixture::WriteJson(f.build_receipt, f.build_json);
+             }},
+            {"changed compiled ROM",
+             [](auto& f) {
+               std::fstream rom(
+                   f.target, std::ios::in | std::ios::out | std::ios::binary);
+               rom.seekp(0x7FC0);
+               rom.put('X');
+             }},
+            {"missing verification",
+             [](auto& f) { std::filesystem::remove(f.verification); }},
+            {"legacy verification",
+             [](auto& f) {
+               f.verification_json["kind"] =
+                   "lyra.ordinary_build_verification.v1";
+               Fixture::WriteJson(f.verification, f.verification_json);
+               f.build_json["artifacts"]["lyra_verification"] =
+                   Fixture::Artifact(f.verification);
+               Fixture::WriteJson(f.build_receipt, f.build_json);
+             }},
+            {"preview-only admission",
+             [](auto& f) {
+               f.prepare_json["ordinary_build_ready"] = false;
+               f.prepare_json["runtime_scope"] = "seeded_checkpoint_preview";
+               Fixture::WriteJson(f.prepare, f.prepare_json);
+               f.verification_json["prepared_sha256"] =
+                   Fixture::Binding(f.prepare)["sha256"];
+               Fixture::WriteJson(f.verification, f.verification_json);
+               f.build_json["artifacts"]["lyra_prepare"] =
+                   Fixture::Artifact(f.prepare);
+               f.build_json["artifacts"]["lyra_verification"] =
+                   Fixture::Artifact(f.verification);
+               Fixture::WriteJson(f.build_receipt, f.build_json);
+             }},
+            {"next native Save",
+             [](auto& f) {
+               auto receipt = Json::parse(ReadFile(f.save_receipt));
+               receipt["generation"] = Fixture::kGeneration + 1;
+               receipt["operation_id"] = "next-native-save";
+               Fixture::WriteJson(f.save_receipt, receipt);
+             }},
+            {"legacy receipt cannot replace canonical completion",
+             [](auto& f) {
+               std::filesystem::copy_file(f.save_receipt,
+                                          f.root / "legacy-receipt.json");
+               std::filesystem::remove(f.save_receipt);
+             }},
+            {"rebound native context",
+             [](auto& f) {
+               auto context = Json::parse(ReadFile(f.context));
+               context["state"] = "rebound";
+               context["native_commit"] = nullptr;
+               Fixture::WriteJson(f.context, context);
+             }},
+            {"changed selected editor",
+             [](auto& f) { Fixture::Write(f.editor, "new editor\n"); }},
+            {"changed terrain",
+             [](auto& f) {
+               Fixture::Write(f.root / "terrain.json", "{\"changed\":true}\n");
+             }},
+            {"changed transfer target",
+             [](auto& f) {
+               f.request_json["target"]["path"] = Fixture::Text(f.stale);
+               Fixture::WriteJson(f.request, f.request_json);
+             }},
+            {"changed active target",
+             [](auto& f) {
+               f.manager.GetCurrentProject()->build_target = f.stale.string();
+             }},
+            {"missing selected request file",
+             [](auto& f) { std::filesystem::remove(f.request); }},
+            {"malformed selected request file",
+             [](auto& f) { Fixture::Write(f.request, "{"); }},
+            {"selected request without producer",
+             [](auto& f) {
+               f.manager.GetCurrentProject()->native_save_producer_file.clear();
+             }},
+            {"selected request without proof",
+             [](auto& f) {
+               f.manager.GetCurrentProject()
+                   ->native_save_transfer_proof_file.clear();
+             }},
+            {"selected request without native-save capabilities",
+             [](auto& f) {
+               auto* project = f.manager.GetCurrentProject();
+               project->native_save_producer_file.clear();
+               project->native_save_transfer_proof_file.clear();
+             }},
+            {"selected request without terrain", [](auto& f) {
+               f.manager.GetCurrentProject()->lyra_terrain_file.clear();
+             }}};
+  for (const auto& [name, mutate] : cases) {
+    SCOPED_TRACE(name);
+    ScopedImGuiContext imgui;
+    auto renderer = std::make_unique<gfx::NullRenderer>();
+    auto manager = std::make_unique<EditorManager>();
+    test::InitializeWithIsolatedSettings(*manager, renderer.get());
+    manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+    ScopedTempDir temp(MakeTempDir("yaze_rejected_run_generation"));
+    Fixture fixture(*manager, temp.path);
+    fixture.Initialize();
+    ASSERT_FALSE(::testing::Test::HasFatalFailure());
+    ASSERT_OK(manager->BuildCurrentProject());
+    ASSERT_OK(manager->RunCurrentProject());
+    const auto runtime_before = LoadedLoRomSha256(*manager, 0x400000);
+    const auto source_before =
+        core::ComputeSourceArtifactFileSha256(fixture.source);
+    ASSERT_TRUE(source_before.ok()) << source_before.status();
+    mutate(fixture);
+    const auto result = manager->RunCurrentProject();
+    EXPECT_FALSE(result.ok()) << name;
+    EXPECT_EQ(ContentRegistry::Context::run_workflow_status().state,
+              ProjectWorkflowState::kFailure);
+    EXPECT_EQ(LoadedLoRomSha256(*manager, 0x400000), runtime_before);
+    const auto source_after =
+        core::ComputeSourceArtifactFileSha256(fixture.source);
+    ASSERT_TRUE(source_after.ok()) << source_after.status();
+    EXPECT_EQ(*source_after, *source_before);
+  }
 }
 
 TEST(EditorManagerProjectActionsTest,
@@ -2244,6 +3074,756 @@ TEST(EditorManagerProjectActionsTest,
       reopened.rom_filename, second_rom_path.string()));
 }
 
+// Interactive opens (File > Open, Recent Files, drag and drop) ask for load
+// options. Startup files and automation pass kNoPrompt and never wait on the
+// dialog.
+TEST(EditorManagerProjectActionsTest,
+     RawRomOpenAsksForLoadOptionsOnlyWhenPrompted) {
+  ScopedImGuiContext imgui;
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  ::yaze::test::InitializeWithIsolatedSettings(*manager, renderer.get());
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+
+  // Reopening an open path only activates its session, so each open uses its
+  // own file.
+  ScopedTempDir temp_dir(MakeTempDir("yaze_load_options_prompt"));
+  const auto quiet_rom_path = temp_dir.path / "quiet.sfc";
+  const auto asked_rom_path = temp_dir.path / "asked.sfc";
+  WriteRomFile(quiet_rom_path, "QUIET ROM");
+  WriteRomFile(asked_rom_path, "ASKED ROM");
+
+  ASSERT_OK(manager->OpenRomOrProject(
+      quiet_rom_path.string(), EditorManager::LoadOptionsPrompt::kNoPrompt));
+  ASSERT_NE(manager->GetCurrentRom(), nullptr);
+  EXPECT_FALSE(manager->IsRomLoadOptionsOpen());
+
+  ASSERT_OK(manager->OpenRomOrProject(asked_rom_path.string()));
+  ASSERT_NE(manager->GetCurrentRom(), nullptr);
+  EXPECT_TRUE(SessionCoordinator::PathsReferToSameBackingFile(
+      manager->GetCurrentRom()->filename(), asked_rom_path.string()));
+  EXPECT_TRUE(manager->IsRomLoadOptionsOpen());
+}
+
+// A choice remembered for a ROM file applies before assets load and replaces
+// the dialog. It sets flags only; it never changes the ROM.
+TEST(EditorManagerProjectActionsTest,
+     RememberedRomLoadChoiceSkipsLoadOptionsAndLeavesRomUnchanged) {
+  ScopedImGuiContext imgui;
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  ::yaze::test::InitializeWithIsolatedSettings(*manager, renderer.get());
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+  const core::FeatureFlags::Flags saved_flags = core::FeatureFlags::get();
+  absl::Cleanup restore_flags = [&saved_flags] {
+    core::FeatureFlags::get() = saved_flags;
+  };
+
+  ScopedTempDir temp_dir(MakeTempDir("yaze_remembered_load_options"));
+  const auto rom_path = temp_dir.path / "remembered.sfc";
+  WriteRomFile(rom_path, "REMEMBERED ROM");
+
+  Rom probe;
+  ASSERT_OK(probe.LoadFromFile(rom_path.string()));
+  const int zso_byte = zelda3::OverworldVersionHelper::GetAsmVersion(probe);
+  RomLoadOptionsDialog::LoadOptions options;
+  options.enable_custom_overworld = true;
+  options.save_gfx_groups = true;
+  options.selected_preset = "ZSCustomOverworld v3 (Recommended)";
+  manager->user_settings()
+      .prefs()
+      .rom_load_choices[RomLoadOptionsDialog::RomChoiceKey(rom_path.string())] =
+      RomLoadOptionsDialog::EncodeRememberedChoice(options, zso_byte);
+
+  ASSERT_OK(manager->OpenRomOrProject(rom_path.string()));
+  Rom* const rom = manager->GetCurrentRom();
+  ASSERT_NE(rom, nullptr);
+  EXPECT_FALSE(manager->IsRomLoadOptionsOpen());
+  EXPECT_TRUE(core::FeatureFlags::get().overworld.kLoadCustomOverworld);
+  EXPECT_TRUE(core::FeatureFlags::get().kSaveGfxGroups);
+  EXPECT_FALSE(rom->dirty());
+  EXPECT_EQ(zelda3::OverworldVersionHelper::GetAsmVersion(*rom), zso_byte);
+}
+
+// A new project owns its feature flags, so creating one from a ROM never asks
+// for load options.
+TEST(EditorManagerProjectActionsTest, ProjectCreationFromRomSkipsLoadOptions) {
+  ScopedImGuiContext imgui;
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  ::yaze::test::InitializeWithIsolatedSettings(*manager, renderer.get());
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+
+  ScopedTempDir temp_dir(MakeTempDir("yaze_project_creation_load_options"));
+  const auto rom_path = temp_dir.path / "created.sfc";
+  const auto project_path = temp_dir.path / "created.yaze";
+  WriteRomFile(rom_path, "CREATED PROJECT ROM");
+
+  ASSERT_OK(manager->CreateNewProjectFromRom(
+      "Vanilla ROM Hack", rom_path.string(), "Created Project",
+      project_path.string()));
+  ASSERT_NE(manager->GetCurrentRom(), nullptr);
+  EXPECT_FALSE(manager->IsRomLoadOptionsOpen());
+}
+
+// The unsaved-work guard replays an open after the user decides. The replay
+// keeps the caller's prompt choice in both directions.
+TEST(EditorManagerProjectActionsTest,
+     GuardedRawRomOpenReplayKeepsPromptChoice) {
+  ScopedImGuiContext imgui;
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  ::yaze::test::InitializeWithIsolatedSettings(*manager, renderer.get());
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+
+  ScopedTempDir temp_dir(MakeTempDir("yaze_guarded_load_options"));
+  const auto first_rom_path = temp_dir.path / "first.sfc";
+  const auto quiet_rom_path = temp_dir.path / "quiet.sfc";
+  const auto asked_rom_path = temp_dir.path / "asked.sfc";
+  WriteRomFile(first_rom_path, "FIRST GUARDED ROM");
+  WriteRomFile(quiet_rom_path, "QUIET GUARDED ROM");
+  WriteRomFile(asked_rom_path, "ASKED GUARDED ROM");
+
+  ASSERT_OK(manager->OpenRomOrProject(
+      first_rom_path.string(), EditorManager::LoadOptionsPrompt::kNoPrompt));
+  ASSERT_NE(manager->GetCurrentRom(), nullptr);
+  manager->GetCurrentRom()->set_dirty(true);
+
+  ASSERT_OK(manager->OpenRomOrProject(
+      quiet_rom_path.string(), EditorManager::LoadOptionsPrompt::kNoPrompt));
+  ASSERT_TRUE(manager->HasPendingUnsavedSessionAction());
+  EXPECT_EQ(manager->session_coordinator()->GetTotalSessionCount(), 1u);
+  manager->ConfirmPendingUnsavedSessionActionDiscardAndContinue();
+  ASSERT_NE(manager->GetCurrentRom(), nullptr);
+  EXPECT_TRUE(SessionCoordinator::PathsReferToSameBackingFile(
+      manager->GetCurrentRom()->filename(), quiet_rom_path.string()));
+  EXPECT_FALSE(manager->IsRomLoadOptionsOpen());
+
+  manager->GetCurrentRom()->set_dirty(true);
+  ASSERT_OK(manager->OpenRomOrProject(asked_rom_path.string()));
+  ASSERT_TRUE(manager->HasPendingUnsavedSessionAction());
+  EXPECT_FALSE(manager->IsRomLoadOptionsOpen());
+  manager->ConfirmPendingUnsavedSessionActionDiscardAndContinue();
+  ASSERT_NE(manager->GetCurrentRom(), nullptr);
+  EXPECT_TRUE(SessionCoordinator::PathsReferToSameBackingFile(
+      manager->GetCurrentRom()->filename(), asked_rom_path.string()));
+  EXPECT_TRUE(manager->IsRomLoadOptionsOpen());
+}
+
+// Runs EditorManager through real ImGui frames and presses controls in the
+// ROM load options dialog the way a click would.
+class LoadOptionsDialogFrames {
+ public:
+  explicit LoadOptionsDialogFrames(EditorManager& manager)
+      : manager_(manager),
+        title_(absl::StrFormat("%s ROM Load Options", ICON_MD_SETTINGS)) {
+    // Window state saved by other runs must not reach the dialog.
+    ImGui::GetIO().IniFilename = nullptr;
+  }
+
+  // Runs one frame. Returns true when the dialog window drew in it.
+  bool Run() {
+    ImGuiIO& io = ImGui::GetIO();
+    io.DisplaySize = ImVec2(1280.0f, 720.0f);
+    io.DeltaTime = 1.0f / 60.0f;
+    ImGui::NewFrame();
+    EXPECT_OK(manager_.Update());
+    ImGui::Render();
+    const ImGuiWindow* window = ImGui::FindWindowByName(title_.c_str());
+    return window != nullptr &&
+           window->LastFrameActive == ImGui::GetFrameCount();
+  }
+
+  // Activates the dialog control with this label in the next frame. Returns
+  // true when the dialog drew in that frame and the control took the press,
+  // which leaves it the active item when the frame ends.
+  bool Press(const std::string& label, const std::string& scope = {}) {
+    ImGuiWindow* window = ImGui::FindWindowByName(title_.c_str());
+    if (window == nullptr) {
+      return false;
+    }
+    const ImGuiID id = scope.empty() ? window->GetID(label.c_str())
+                                     : ImHashStr(label.c_str(), 0,
+                                                 window->GetID(scope.c_str()));
+    ImGui::ActivateItemByID(id);
+    return Run() && GImGui->ActiveId == id;
+  }
+
+ private:
+  EditorManager& manager_;
+  const std::string title_;
+};
+
+// The load options dialog draws in real frames after an interactive open and
+// never after a kNoPrompt open. "Remember for this ROM file" starts checked,
+// so Continue closes the dialog, stores a choice for that file only, and
+// leaves the ROM unchanged. The next interactive open of the file skips the
+// dialog and shows the remembered-options toast.
+TEST(EditorManagerProjectActionsTest,
+     LoadOptionsDialogContinueRemembersChoiceAcrossFrames) {
+  ScopedImGuiContext imgui;
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  ::yaze::test::InitializeWithIsolatedSettings(*manager, renderer.get());
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+  const core::FeatureFlags::Flags saved_flags = core::FeatureFlags::get();
+  absl::Cleanup restore_flags = [&saved_flags] {
+    core::FeatureFlags::get() = saved_flags;
+  };
+  LoadOptionsDialogFrames frames(*manager);
+
+  ScopedTempDir temp_dir(MakeTempDir("yaze_load_options_continue"));
+  const auto quiet_rom_path = temp_dir.path / "quiet.sfc";
+  const auto asked_rom_path = temp_dir.path / "asked.sfc";
+  WriteRomFile(quiet_rom_path, "QUIET FRAME ROM");
+  WriteRomFile(asked_rom_path, "ASKED FRAME ROM");
+  Rom probe;
+  ASSERT_OK(probe.LoadFromFile(asked_rom_path.string()));
+  const int zso_byte = zelda3::OverworldVersionHelper::GetAsmVersion(probe);
+
+  ASSERT_OK(manager->OpenRomOrProject(
+      quiet_rom_path.string(), EditorManager::LoadOptionsPrompt::kNoPrompt));
+  EXPECT_FALSE(frames.Run());
+
+  ASSERT_OK(manager->OpenRomOrProject(asked_rom_path.string()));
+  EXPECT_TRUE(frames.Run());
+  // A path new to recent files starts with "Create associated project file"
+  // checked. Clear it so Continue creates nothing.
+  ASSERT_TRUE(frames.Press(tr("Create associated project file")));
+  ASSERT_TRUE(frames.Press(absl::StrFormat("%s Continue", ICON_MD_CHECK)));
+  EXPECT_FALSE(manager->IsRomLoadOptionsOpen());
+  EXPECT_FALSE(frames.Run());
+
+  Rom* rom = manager->GetCurrentRom();
+  ASSERT_NE(rom, nullptr);
+  ASSERT_TRUE(SessionCoordinator::PathsReferToSameBackingFile(
+      rom->filename(), asked_rom_path.string()));
+  EXPECT_FALSE(rom->dirty());
+  EXPECT_EQ(zelda3::OverworldVersionHelper::GetAsmVersion(*rom), zso_byte);
+  EXPECT_FALSE(manager->GetCurrentProject()->project_opened());
+  // No project file appeared beside the ROMs.
+  std::vector<std::string> names;
+  for (const auto& entry : std::filesystem::directory_iterator(temp_dir.path)) {
+    names.push_back(entry.path().filename().string());
+  }
+  std::sort(names.begin(), names.end());
+  EXPECT_EQ(names, (std::vector<std::string>{"asked.sfc", "quiet.sfc"}));
+  const auto& choices = manager->user_settings().prefs().rom_load_choices;
+  EXPECT_EQ(choices.size(), 1u);
+  EXPECT_TRUE(
+      choices.contains(RomLoadOptionsDialog::RomChoiceKey(rom->filename())));
+
+  // Closing the session makes the next open load the file again instead of
+  // switching to its session.
+  manager->CloseRom();
+  ASSERT_OK(manager->OpenRomOrProject(asked_rom_path.string()));
+  EXPECT_FALSE(manager->IsRomLoadOptionsOpen());
+  EXPECT_FALSE(frames.Run());
+  rom = manager->GetCurrentRom();
+  ASSERT_NE(rom, nullptr);
+  EXPECT_FALSE(rom->dirty());
+  EXPECT_EQ(zelda3::OverworldVersionHelper::GetAsmVersion(*rom), zso_byte);
+  const auto& history = manager->toast_manager()->GetHistory();
+  EXPECT_TRUE(
+      std::any_of(history.begin(), history.end(), [](const auto& entry) {
+        return entry.message ==
+               "Opened with this ROM's remembered load options";
+      }));
+}
+
+// Cancel closes the dialog and remembers nothing, though "Remember for this
+// ROM file" starts checked, so the next interactive open of the file asks
+// again.
+TEST(EditorManagerProjectActionsTest,
+     LoadOptionsDialogCancelRemembersNothingAcrossFrames) {
+  ScopedImGuiContext imgui;
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  ::yaze::test::InitializeWithIsolatedSettings(*manager, renderer.get());
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+  const core::FeatureFlags::Flags saved_flags = core::FeatureFlags::get();
+  absl::Cleanup restore_flags = [&saved_flags] {
+    core::FeatureFlags::get() = saved_flags;
+  };
+  LoadOptionsDialogFrames frames(*manager);
+
+  ScopedTempDir temp_dir(MakeTempDir("yaze_load_options_cancel"));
+  const auto rom_path = temp_dir.path / "cancel.sfc";
+  WriteRomFile(rom_path, "CANCEL FRAME ROM");
+
+  ASSERT_OK(manager->OpenRomOrProject(rom_path.string()));
+  EXPECT_TRUE(frames.Run());
+  ASSERT_TRUE(frames.Press(tr("Cancel")));
+  EXPECT_FALSE(manager->IsRomLoadOptionsOpen());
+  EXPECT_FALSE(frames.Run());
+  EXPECT_FALSE(manager->GetCurrentProject()->project_opened());
+  EXPECT_TRUE(manager->user_settings().prefs().rom_load_choices.empty());
+
+  manager->CloseRom();
+  ASSERT_OK(manager->OpenRomOrProject(rom_path.string()));
+  EXPECT_TRUE(manager->IsRomLoadOptionsOpen());
+  EXPECT_TRUE(frames.Run());
+}
+
+// Continue with "Remember for this ROM file" cleared closes the dialog but
+// stores no choice, so the next interactive open of the file asks again.
+TEST(EditorManagerProjectActionsTest,
+     LoadOptionsDialogContinueWithoutRememberAsksAgainAcrossFrames) {
+  ScopedImGuiContext imgui;
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  ::yaze::test::InitializeWithIsolatedSettings(*manager, renderer.get());
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+  const core::FeatureFlags::Flags saved_flags = core::FeatureFlags::get();
+  absl::Cleanup restore_flags = [&saved_flags] {
+    core::FeatureFlags::get() = saved_flags;
+  };
+  LoadOptionsDialogFrames frames(*manager);
+
+  ScopedTempDir temp_dir(MakeTempDir("yaze_load_options_forget"));
+  const auto rom_path = temp_dir.path / "forget.sfc";
+  WriteRomFile(rom_path, "FORGET FRAME ROM");
+
+  ASSERT_OK(manager->OpenRomOrProject(rom_path.string()));
+  EXPECT_TRUE(frames.Run());
+  ASSERT_TRUE(frames.Press(tr("Create associated project file")));
+  ASSERT_TRUE(frames.Press(tr("Remember for this ROM file")));
+  ASSERT_TRUE(frames.Press(absl::StrFormat("%s Continue", ICON_MD_CHECK)));
+  EXPECT_FALSE(manager->IsRomLoadOptionsOpen());
+  EXPECT_FALSE(frames.Run());
+  EXPECT_FALSE(manager->GetCurrentProject()->project_opened());
+  EXPECT_TRUE(manager->user_settings().prefs().rom_load_choices.empty());
+
+  manager->CloseRom();
+  ASSERT_OK(manager->OpenRomOrProject(rom_path.string()));
+  EXPECT_TRUE(manager->IsRomLoadOptionsOpen());
+  EXPECT_TRUE(frames.Run());
+}
+
+bool HasToast(EditorManager& manager, const std::string& message) {
+  const auto& history = manager.toast_manager()->GetHistory();
+  return std::any_of(
+      history.begin(), history.end(),
+      [&message](const auto& entry) { return entry.message == message; });
+}
+
+TEST(EditorManagerProjectActionsTest,
+     LoadOptionsReviewCannotApplyAcrossExplicitSessionSwitch) {
+  for (bool project_target : {false, true}) {
+    SCOPED_TRACE(project_target);
+    ScopedImGuiContext imgui;
+    auto renderer = std::make_unique<gfx::NullRenderer>();
+    auto manager = std::make_unique<EditorManager>();
+    ::yaze::test::InitializeWithIsolatedSettings(*manager, renderer.get());
+    manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+    LoadOptionsDialogFrames frames(*manager);
+    ScopedTempDir temp(MakeTempDir("yaze_load_options_switch_owner"));
+    const auto rom_a = temp.path / "a.sfc";
+    const auto rom_b = temp.path / "b.sfc";
+    const auto project_b = temp.path / "b.yaze";
+    WriteRomFile(rom_a);
+    WriteRomFile(rom_b);
+    WriteProjectFile(project_b, "Owner B", rom_b);
+    ASSERT_OK(manager->OpenRomOrProject(
+        rom_a.string(), EditorManager::LoadOptionsPrompt::kNoPrompt));
+    ASSERT_OK(
+        manager->OpenRomOrProject((project_target ? project_b : rom_b).string(),
+                                  EditorManager::LoadOptionsPrompt::kNoPrompt));
+    auto* session_b = manager->session_coordinator()->GetActiveRomSession();
+    ASSERT_NE(session_b, nullptr);
+    const bool maps_b = session_b->feature_flags.overworld.kSaveOverworldMaps;
+    manager->SwitchToSession(0);
+    const bool maps_a = core::FeatureFlags::get().overworld.kSaveOverworldMaps;
+    manager->ShowRomLoadOptions();
+    ASSERT_TRUE(frames.Run());
+    ASSERT_TRUE(frames.Press(tr("Save overworld maps"), "Overworld"));
+
+    manager->SwitchToSession(1);
+
+    EXPECT_FALSE(manager->IsRomLoadOptionsOpen());
+    EXPECT_TRUE(HasToast(*manager,
+                         "ROM load options closed without changes because "
+                         "another session became active"));
+    EXPECT_FALSE(frames.Press(absl::StrFormat("%s Apply", ICON_MD_CHECK)));
+    EXPECT_EQ(core::FeatureFlags::get().overworld.kSaveOverworldMaps, maps_b);
+    EXPECT_EQ(session_b->feature_flags.overworld.kSaveOverworldMaps, maps_b);
+    ASSERT_TRUE(session_b->project_context.has_value());
+    EXPECT_EQ(
+        session_b->project_context->feature_flags.overworld.kSaveOverworldMaps,
+        maps_b);
+    EXPECT_TRUE(manager->user_settings().prefs().rom_load_choices.empty());
+    manager->SwitchToSession(0);
+    EXPECT_EQ(core::FeatureFlags::get().overworld.kSaveOverworldMaps, maps_a);
+  }
+}
+
+TEST(EditorManagerProjectActionsTest,
+     LoadOptionsReviewClosesWhenItsSessionCloses) {
+  ScopedImGuiContext imgui;
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  ::yaze::test::InitializeWithIsolatedSettings(*manager, renderer.get());
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+  LoadOptionsDialogFrames frames(*manager);
+  ScopedTempDir temp(MakeTempDir("yaze_load_options_close_owner"));
+  const auto rom_a = temp.path / "a.sfc";
+  const auto rom_b = temp.path / "b.sfc";
+  WriteRomFile(rom_a);
+  WriteRomFile(rom_b);
+  ASSERT_OK(manager->OpenRomOrProject(
+      rom_a.string(), EditorManager::LoadOptionsPrompt::kNoPrompt));
+  ASSERT_OK(manager->OpenRomOrProject(
+      rom_b.string(), EditorManager::LoadOptionsPrompt::kNoPrompt));
+  const bool maps_b = core::FeatureFlags::get().overworld.kSaveOverworldMaps;
+  manager->SwitchToSession(0);
+  manager->ShowRomLoadOptions();
+  ASSERT_TRUE(frames.Run());
+  ASSERT_TRUE(frames.Press(tr("Save overworld maps"), "Overworld"));
+
+  manager->CloseRom();
+
+  ASSERT_FALSE(manager->HasPendingUnsavedSessionAction());
+  ASSERT_NE(manager->GetCurrentRom(), nullptr);
+  EXPECT_TRUE(SessionCoordinator::PathsReferToSameBackingFile(
+      manager->GetCurrentRom()->filename(), rom_b.string()));
+  EXPECT_FALSE(manager->IsRomLoadOptionsOpen());
+  EXPECT_FALSE(frames.Press(absl::StrFormat("%s Apply", ICON_MD_CHECK)));
+  EXPECT_EQ(core::FeatureFlags::get().overworld.kSaveOverworldMaps, maps_b);
+  EXPECT_TRUE(manager->user_settings().prefs().rom_load_choices.empty());
+}
+
+TEST(EditorManagerProjectActionsTest,
+     LoadOptionsReviewRejectsChangedBackingPathBeforeDrawing) {
+  ScopedImGuiContext imgui;
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  ::yaze::test::InitializeWithIsolatedSettings(*manager, renderer.get());
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+  LoadOptionsDialogFrames frames(*manager);
+  ScopedTempDir temp(MakeTempDir("yaze_load_options_rebound_owner"));
+  const auto rom_a = temp.path / "a.sfc";
+  const auto rom_b = temp.path / "b.sfc";
+  WriteRomFile(rom_a);
+  WriteRomFile(rom_b);
+  ASSERT_OK(manager->OpenRomOrProject(
+      rom_a.string(), EditorManager::LoadOptionsPrompt::kNoPrompt));
+  const bool maps = core::FeatureFlags::get().overworld.kSaveOverworldMaps;
+  manager->ShowRomLoadOptions();
+  ASSERT_TRUE(frames.Run());
+  ASSERT_TRUE(frames.Press(tr("Save overworld maps"), "Overworld"));
+
+  manager->GetCurrentRom()->set_filename(rom_b.string());
+
+  EXPECT_FALSE(frames.Press(absl::StrFormat("%s Apply", ICON_MD_CHECK)));
+  EXPECT_FALSE(manager->IsRomLoadOptionsOpen());
+  EXPECT_TRUE(HasToast(*manager,
+                       "ROM load options closed without changes because its "
+                       "session or ROM file is no longer active"));
+  EXPECT_EQ(core::FeatureFlags::get().overworld.kSaveOverworldMaps, maps);
+  EXPECT_TRUE(manager->user_settings().prefs().rom_load_choices.empty());
+}
+
+TEST(EditorManagerProjectActionsTest,
+     LoadOptionsReviewSurvivesTransientVisitsAndAppliesOnlyToOwner) {
+  ScopedImGuiContext imgui;
+  const core::FeatureFlags::Flags saved_flags = core::FeatureFlags::get();
+  absl::Cleanup restore_flags = [&]() {
+    core::FeatureFlags::get() = saved_flags;
+  };
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  ::yaze::test::InitializeWithIsolatedSettings(*manager, renderer.get());
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+  LoadOptionsDialogFrames frames(*manager);
+  ScopedTempDir temp(MakeTempDir("yaze_load_options_transient_owner"));
+  const auto rom_a = temp.path / "a.sfc";
+  const auto rom_b = temp.path / "b.sfc";
+  WriteRomFile(rom_a);
+  WriteRomFile(rom_b);
+  ASSERT_OK(manager->OpenRomOrProject(
+      rom_a.string(), EditorManager::LoadOptionsPrompt::kNoPrompt));
+  ASSERT_OK(manager->OpenRomOrProject(
+      rom_b.string(), EditorManager::LoadOptionsPrompt::kNoPrompt));
+  auto* session_b = manager->session_coordinator()->GetActiveRomSession();
+  ASSERT_NE(session_b, nullptr);
+  const bool maps_b = session_b->feature_flags.overworld.kSaveOverworldMaps;
+  manager->SwitchToSession(0);
+  const auto owner_id = manager->GetCurrentSessionId();
+  const bool maps_a = core::FeatureFlags::get().overworld.kSaveOverworldMaps;
+  manager->ShowRomLoadOptions();
+  bool visited_b = false;
+  LyraActionCallbackEditor callback([&]() {
+    visited_b = true;
+    EXPECT_NE(manager->GetCurrentSessionId(), owner_id);
+    EXPECT_TRUE(manager->IsRomLoadOptionsOpen());
+    return absl::OkStatus();
+  });
+  session_b->editors.active_editors_.push_back(&callback);
+  absl::Cleanup remove_callback = [&]() {
+    auto& editors = session_b->editors.active_editors_;
+    editors.erase(std::remove(editors.begin(), editors.end(), &callback),
+                  editors.end());
+  };
+  ASSERT_TRUE(frames.Run());
+  ASSERT_TRUE(visited_b);
+  EXPECT_EQ(manager->GetCurrentSessionId(), owner_id);
+  ASSERT_TRUE(frames.Press(tr("Save overworld maps"), "Overworld"));
+  // A review starts with Remember ticked only when the file already has a
+  // stored choice, and this one has none.
+  ASSERT_TRUE(frames.Press(tr("Remember for this ROM file")));
+  ASSERT_TRUE(frames.Press(absl::StrFormat("%s Apply", ICON_MD_CHECK)));
+
+  EXPECT_FALSE(manager->IsRomLoadOptionsOpen());
+  EXPECT_EQ(core::FeatureFlags::get().overworld.kSaveOverworldMaps, !maps_a);
+  const auto& choices = manager->user_settings().prefs().rom_load_choices;
+  ASSERT_EQ(choices.size(), 1u);
+  const auto key_a = RomLoadOptionsDialog::RomChoiceKey(rom_a.string());
+  ASSERT_TRUE(choices.contains(key_a));
+  const auto remembered =
+      RomLoadOptionsDialog::DecodeRememberedChoice(choices.at(key_a));
+  ASSERT_TRUE(remembered.has_value());
+  EXPECT_EQ(remembered->options.save_overworld_maps, !maps_a);
+  EXPECT_FALSE(
+      choices.contains(RomLoadOptionsDialog::RomChoiceKey(rom_b.string())));
+  EXPECT_EQ(session_b->feature_flags.overworld.kSaveOverworldMaps, maps_b);
+  EXPECT_FALSE(manager->GetCurrentRom()->dirty());
+}
+
+TEST(EditorManagerProjectActionsTest,
+     LoadOptionsReviewSurvivesAnotherSessionsIndexCompaction) {
+  ScopedImGuiContext imgui;
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  ::yaze::test::InitializeWithIsolatedSettings(*manager, renderer.get());
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+  LoadOptionsDialogFrames frames(*manager);
+  ScopedTempDir temp(MakeTempDir("yaze_load_options_compact_owner"));
+  const auto rom_a = temp.path / "a.sfc";
+  const auto rom_b = temp.path / "b.sfc";
+  WriteRomFile(rom_a);
+  WriteRomFile(rom_b);
+  ASSERT_OK(manager->OpenRomOrProject(
+      rom_b.string(), EditorManager::LoadOptionsPrompt::kNoPrompt));
+  ASSERT_OK(manager->OpenRomOrProject(
+      rom_a.string(), EditorManager::LoadOptionsPrompt::kNoPrompt));
+  const auto owner_id = manager->GetCurrentSessionId();
+  manager->ShowRomLoadOptions();
+  ASSERT_TRUE(frames.Run());
+
+  manager->session_coordinator()->CloseSession(0);
+
+  EXPECT_EQ(manager->GetCurrentSessionId(), owner_id);
+  EXPECT_EQ(manager->GetCurrentSessionIndex(), 0u);
+  EXPECT_TRUE(manager->IsRomLoadOptionsOpen());
+  EXPECT_TRUE(frames.Run());
+  ASSERT_TRUE(frames.Press(tr("Cancel")));
+  EXPECT_TRUE(manager->user_settings().prefs().rom_load_choices.empty());
+}
+
+TEST(EditorManagerProjectActionsTest,
+     LoadOptionsFirstOpenInterruptionKeepsFlagsAndRemembersNothing) {
+  ScopedImGuiContext imgui;
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  ::yaze::test::InitializeWithIsolatedSettings(*manager, renderer.get());
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+  LoadOptionsDialogFrames frames(*manager);
+  ScopedTempDir temp(MakeTempDir("yaze_load_options_first_open_interrupt"));
+  const auto rom_a = temp.path / "a.sfc";
+  const auto rom_b = temp.path / "b.sfc";
+  WriteRomFile(rom_a);
+  WriteRomFile(rom_b);
+  ASSERT_OK(manager->OpenRomOrProject(rom_a.string()));
+  const bool maps_a = core::FeatureFlags::get().overworld.kSaveOverworldMaps;
+  ASSERT_TRUE(frames.Run());
+
+  ASSERT_OK(manager->OpenRomOrProject(
+      rom_b.string(), EditorManager::LoadOptionsPrompt::kNoPrompt));
+
+  EXPECT_FALSE(manager->IsRomLoadOptionsOpen());
+  EXPECT_FALSE(frames.Run());
+  EXPECT_TRUE(manager->user_settings().prefs().rom_load_choices.empty());
+  manager->SwitchToSession(0);
+  EXPECT_EQ(core::FeatureFlags::get().overworld.kSaveOverworldMaps, maps_a);
+}
+
+TEST(EditorManagerProjectActionsTest,
+     LoadOptionsFirstOpenStaleOwnerShowsPostLoadPicker) {
+  ScopedImGuiContext imgui;
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  ::yaze::test::InitializeWithIsolatedSettings(*manager, renderer.get());
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+  manager->user_settings().prefs().default_editor = 0;
+  LoadOptionsDialogFrames frames(*manager);
+  ScopedTempDir temp(MakeTempDir("yaze_load_options_first_open_stale"));
+  const auto rom_a = temp.path / "a.sfc";
+  WriteRomFile(rom_a);
+  ASSERT_OK(manager->OpenRomOrProject(rom_a.string()));
+  ASSERT_TRUE(frames.Run());
+  manager->SetCurrentEditor(nullptr);
+  manager->ui_coordinator()->SetDashboardBehavior(StartupVisibility::kShow);
+  manager->ui_coordinator()->SetEditorSelectionVisible(false);
+
+  manager->GetCurrentRom()->set_filename((temp.path / "saved-as.sfc").string());
+
+  EXPECT_FALSE(frames.Run());
+  EXPECT_FALSE(manager->IsRomLoadOptionsOpen());
+  EXPECT_TRUE(manager->ui_coordinator()->IsEditorSelectionVisible());
+  EXPECT_TRUE(manager->user_settings().prefs().rom_load_choices.empty());
+}
+
+TEST(EditorManagerProjectActionsTest,
+     RememberedLoadOptionsToastCannotReviewAnotherRomOrReopenedSession) {
+  ScopedImGuiContext imgui;
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  ::yaze::test::InitializeWithIsolatedSettings(*manager, renderer.get());
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+  LoadOptionsDialogFrames frames(*manager);
+  ScopedTempDir temp(MakeTempDir("yaze_load_options_toast_owner"));
+  const auto rom_a = temp.path / "a.sfc";
+  const auto rom_b = temp.path / "b.sfc";
+  WriteRomFile(rom_a);
+  WriteRomFile(rom_b);
+  Rom probe;
+  ASSERT_OK(probe.LoadFromFile(rom_a.string()));
+  const auto key_a = RomLoadOptionsDialog::RomChoiceKey(rom_a.string());
+  const auto encoded = RomLoadOptionsDialog::EncodeRememberedChoice(
+      RomLoadOptionsDialog::LoadOptions{},
+      zelda3::OverworldVersionHelper::GetAsmVersion(probe));
+  manager->user_settings().prefs().rom_load_choices[key_a] = encoded;
+  ASSERT_OK(manager->OpenRomOrProject(rom_a.string()));
+  const auto owner_id = manager->GetCurrentSessionId();
+  std::function<void()> change;
+  for (size_t i = 0; i < manager->toast_manager()->pending_count(); ++i) {
+    const auto* toast = manager->toast_manager()->GetPendingToast(i);
+    if (toast->message == "Opened with this ROM's remembered load options") {
+      change = toast->on_action;
+    }
+  }
+  ASSERT_TRUE(static_cast<bool>(change));
+  change();
+  ASSERT_TRUE(frames.Run());
+  ASSERT_TRUE(frames.Press(tr("Cancel")));
+
+  ASSERT_OK(manager->OpenRomOrProject(
+      rom_b.string(), EditorManager::LoadOptionsPrompt::kNoPrompt));
+  const bool maps_b = core::FeatureFlags::get().overworld.kSaveOverworldMaps;
+  change();
+  EXPECT_FALSE(manager->IsRomLoadOptionsOpen());
+  EXPECT_EQ(core::FeatureFlags::get().overworld.kSaveOverworldMaps, maps_b);
+  EXPECT_EQ(manager->user_settings().prefs().rom_load_choices.size(), 1u);
+  EXPECT_EQ(manager->user_settings().prefs().rom_load_choices.at(key_a),
+            encoded);
+
+  manager->SwitchToSession(0);
+  change();
+  ASSERT_TRUE(frames.Run());
+  ASSERT_TRUE(frames.Press(tr("Cancel")));
+  manager->CloseRom();
+  ASSERT_OK(manager->OpenRomOrProject(rom_a.string()));
+  ASSERT_NE(manager->GetCurrentSessionId(), owner_id);
+  change();
+  EXPECT_FALSE(manager->IsRomLoadOptionsOpen());
+}
+
+// The dialog an interactive open shows belongs to the new session. Switching
+// to an older session closes it without changing either session. The tail
+// expansion checkbox is used because it draws at the dialog's root even when
+// the advanced sections are collapsed.
+TEST(EditorManagerProjectActionsTest,
+     LoadOptionsAfterOpenClosesWhenAnOlderSessionBecomesActive) {
+  ScopedImGuiContext imgui;
+  const core::FeatureFlags::Flags saved_flags = core::FeatureFlags::get();
+  absl::Cleanup restore_flags = [&]() {
+    core::FeatureFlags::get() = saved_flags;
+  };
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  ::yaze::test::InitializeWithIsolatedSettings(*manager, renderer.get());
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+  LoadOptionsDialogFrames frames(*manager);
+  ScopedTempDir temp(MakeTempDir("yaze_load_options_open_switch"));
+  const auto rom_a = temp.path / "a.sfc";
+  const auto rom_b = temp.path / "b.sfc";
+  WriteRomFile(rom_a, "OPEN SWITCH A");
+  WriteRomFile(rom_b, "OPEN SWITCH B");
+  ASSERT_OK(manager->OpenRomOrProject(
+      rom_a.string(), EditorManager::LoadOptionsPrompt::kNoPrompt));
+  EXPECT_FALSE(frames.Run());
+  auto tail = [&manager](size_t index) {
+    return static_cast<RomSession*>(
+               manager->session_coordinator()->GetSession(index))
+        ->feature_flags.overworld.kEnableSpecialWorldExpansion;
+  };
+  const bool tail_a = tail(0);
+
+  ASSERT_OK(manager->OpenRomOrProject(rom_b.string()));
+  ASSERT_TRUE(manager->IsRomLoadOptionsOpen());
+  ASSERT_TRUE(frames.Run());
+  const bool tail_b = tail(1);
+  ASSERT_TRUE(frames.Press(tr("Enable special world tail (0xA0-0xBF)")));
+
+  manager->SwitchToSession(0);
+  EXPECT_FALSE(manager->IsRomLoadOptionsOpen());
+  EXPECT_FALSE(frames.Run());
+  EXPECT_EQ(tail(0), tail_a);
+  EXPECT_EQ(tail(1), tail_b);
+  EXPECT_TRUE(manager->user_settings().prefs().rom_load_choices.empty());
+  EXPECT_TRUE(HasToast(*manager,
+                       "ROM load options closed without changes because "
+                       "another session became active"));
+
+  manager->SwitchToSession(1);
+  EXPECT_FALSE(manager->IsRomLoadOptionsOpen());
+  EXPECT_FALSE(frames.Run());
+  EXPECT_EQ(tail(1), tail_b);
+}
+
+TEST(RomLoadOptionsDialogTest, ApplyGuardRejectsBeforeAnyFlagMutation) {
+  ScopedImGuiContext imgui;
+  ImGui::GetIO().IniFilename = nullptr;
+  const core::FeatureFlags::Flags saved_flags = core::FeatureFlags::get();
+  absl::Cleanup restore_flags = [&]() {
+    core::FeatureFlags::get() = saved_flags;
+  };
+  core::FeatureFlags::get().overworld.kSaveOverworldMaps = false;
+  RomLoadOptionsDialog dialog;
+  dialog.Open(nullptr, "test.sfc", false);
+  // The selected preset enables map writes; a stale owner must not apply it.
+  ASSERT_TRUE(dialog.GetOptions().save_overworld_maps);
+  bool confirmed = false;
+  int guard_calls = 0;
+  dialog.SetConfirmCallback([&](const auto&) { confirmed = true; });
+  dialog.SetApplyGuard([&]() {
+    ++guard_calls;
+    return false;
+  });
+  bool open = true;
+  const auto frame = [&]() {
+    auto& io = ImGui::GetIO();
+    io.DisplaySize = ImVec2(1280.0f, 720.0f);
+    io.DeltaTime = 1.0f / 60.0f;
+    ImGui::NewFrame();
+    dialog.Draw(&open);
+    ImGui::Render();
+  };
+  frame();
+  const auto title = absl::StrFormat("%s ROM Load Options", ICON_MD_SETTINGS);
+  auto* window = ImGui::FindWindowByName(title.c_str());
+  ASSERT_NE(window, nullptr);
+  ImGui::ActivateItemByID(
+      window->GetID(absl::StrFormat("%s Continue", ICON_MD_CHECK).c_str()));
+  frame();
+
+  EXPECT_EQ(guard_calls, 1);
+  EXPECT_FALSE(confirmed);
+  EXPECT_FALSE(dialog.WasConfirmed());
+  EXPECT_FALSE(open);
+  EXPECT_FALSE(core::FeatureFlags::get().overworld.kSaveOverworldMaps);
+}
+
 TEST(EditorManagerProjectActionsTest,
      FailedProjectAssetLoadRestoresInitiatingSession) {
   ScopedImGuiContext imgui;
@@ -2653,6 +4233,51 @@ TEST_F(EditorControlRomSwapTest, RejectsEachStaleIdentityAndMalformedArgument) {
   changed = request;
   changed["path"] = "relative.sfc";
   EXPECT_EQ(Execute(changed)["http_status"], 400);
+  ExpectUnchanged();
+  EXPECT_FALSE(manager_->HasPendingUnsavedSessionAction());
+}
+
+TEST_F(EditorControlRomSwapTest, StencilRefusesBeforeTouchingTheEditor) {
+  const auto stencil_path = temp_dir_.path / "stencil.json";
+  const auto write_stencil = [&](const std::string& schema) {
+    std::ofstream(stencil_path, std::ios::binary | std::ios::trunc)
+        << nlohmann::json(
+               {{"schema", schema},
+                {"map_id", 0x98},
+                {"cells",
+                 {{{"x", 0}, {"y", 0}, {"expected", 1}, {"proposed", 2}}}}})
+               .dump();
+    return core::ComputeSourceArtifactSha256(ReadFile(stencil_path));
+  };
+  const nlohmann::json request = {
+      {"command", "overworld.stencil.apply"},
+      {"path", stencil_path.string()},
+      {"stencil_sha256", write_stencil("yaze.overworld_tile16_stencil.v1")},
+      {"expected", State()}};
+
+  auto changed = request;
+  changed["stencil_sha256"] = std::string(64, '0');
+  EXPECT_EQ(Execute(changed)["http_status"], 409);
+  changed = request;
+  changed["expected"]["pid"] = request["expected"]["pid"].get<int>() + 1;
+  EXPECT_EQ(Execute(changed)["http_status"], 409);
+  changed = request;
+  changed["path"] = "relative.json";
+  EXPECT_EQ(Execute(changed)["http_status"], 400);
+  changed = request;
+  changed["path"] = (temp_dir_.path / "missing.json").string();
+  EXPECT_EQ(Execute(changed)["http_status"], 422);
+  changed = request;
+  changed["stencil_sha256"] = write_stencil("other.schema");
+  EXPECT_EQ(Execute(changed)["http_status"], 400);
+  write_stencil("yaze.overworld_tile16_stencil.v1");
+
+  manager_->ShowProjectFileEditor();
+  const auto draft = MakeModifiedProjectDraft(
+      manager_->project_file_editor(), manager_->GetCurrentProject(),
+      ProjectFileContents("Unsaved Draft", rom_path_));
+  EXPECT_EQ(Execute(request)["http_status"], 409);
+  EXPECT_EQ(manager_->project_file_editor()->CaptureState().text, draft.text);
   ExpectUnchanged();
   EXPECT_FALSE(manager_->HasPendingUnsavedSessionAction());
 }

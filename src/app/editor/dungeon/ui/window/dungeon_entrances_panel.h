@@ -3,7 +3,6 @@
 
 #include <algorithm>
 #include <array>
-#include <cfloat>
 #include <cstdio>
 #include <functional>
 #include <memory>
@@ -140,19 +139,6 @@ class DungeonEntrancesPanel : public WindowContent {
                     context.effective_blockset());
     }
     ImGui::SetNextItemWidth(width);
-    // Entrance names are long; size the popup to them rather than to the
-    // narrow inspector combo. The widest label is measured while open.
-    const ImGuiStyle& style = ImGui::GetStyle();
-    const float max_popup_width =
-        std::max(ImGui::GetFontSize() * 18.0f,
-                 ImGui::GetMainViewport()->WorkSize.x * 0.6f);
-    const float popup_width = entrance_choice_width_ > 0.0f
-                                  ? entrance_choice_width_
-                                  : ImGui::GetFontSize() * 26.0f;
-    ImGui::SetNextWindowSizeConstraints(
-        ImVec2(std::min(popup_width, max_popup_width), 0.0f),
-        ImVec2(FLT_MAX, ImGui::GetTextLineHeightWithSpacing() * 20.0f +
-                            style.WindowPadding.y * 2.0f));
     const bool open = ImGui::BeginCombo(
         "##GraphicsEntrance", preview.c_str(),
         select_preview_ ? ImGuiComboFlags_HeightLarge : ImGuiComboFlags_None);
@@ -169,18 +155,14 @@ class DungeonEntrancesPanel : public WindowContent {
         gui::AutoRegisterLastItem("selectable", "Auto (follow room)");
         ImGui::Separator();
         // Keep Auto visible while the entrance list scrolls to a manual choice.
-        ImGui::BeginChild(
-            "##EntranceChoices",
-            ImVec2(0, ImGui::GetTextLineHeightWithSpacing() * 14));
+        ImGui::BeginChild("##EntranceChoices",
+                          ImVec2(0, ImGui::GetTextLineHeightWithSpacing() * 8));
       }
-      float widest_label = ImGui::CalcTextSize("Auto (follow room)").x;
       for (int slot = 0; slot < static_cast<int>(entrances_->size()); ++slot) {
         const std::string entry = DungeonEntrancePreviewLabel(slot);
         const std::string label = slot >= zelda3::kNumDungeonSpawnPoints
                                       ? entry + " - " + EntranceLabel(slot)
                                       : entry;
-        widest_label =
-            std::max(widest_label, ImGui::CalcTextSize(label.c_str()).x);
         if (ImGui::Selectable(label.c_str(), !automatic && slot == selected)) {
           if (select_preview_) {
             select_preview_(slot);
@@ -203,9 +185,6 @@ class DungeonEntrancesPanel : public WindowContent {
       if (select_preview_)
         ImGui::EndChild();
       ImGui::EndCombo();
-      entrance_choice_width_ =
-          widest_label + style.ScrollbarSize +
-          (style.WindowPadding.x + style.FramePadding.x) * 2.0f;
     }
   }
 
@@ -221,21 +200,21 @@ class DungeonEntrancesPanel : public WindowContent {
       DrawSelectedProperties();
   }
 
+  // Navigation-only embedding: reuse the list and selection callback without
+  // duplicating the entrance property editor in the Workbench inspector.
+  void DrawInWorkbench() {
+    if (PrepareNavigation())
+      DrawEntranceList();
+  }
+
   // ==========================================================================
   // WindowContent Drawing
   // ==========================================================================
 
   void Draw(bool* p_open) override {
     (void)p_open;
-    if (!entrances_ || !spawn_points_ || !current_entrance_id_)
+    if (!PrepareNavigation())
       return;
-    if (*current_entrance_id_ < 0 ||
-        *current_entrance_id_ >= static_cast<int>(entrances_->size())) {
-      *current_entrance_id_ = 0;
-    }
-    navigation_shortcut_last_draw_frame_ = ImGui::GetFrameCount();
-    navigation_shortcut_focus_ =
-        ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows);
 
     const bool split_layout = ImGui::GetContentRegionAvail().x >= 620.0f;
     if (split_layout &&
@@ -269,6 +248,62 @@ class DungeonEntrancesPanel : public WindowContent {
   }
 
  private:
+  bool PrepareNavigation() {
+    if (!entrances_ || !spawn_points_ || !current_entrance_id_)
+      return false;
+    if (*current_entrance_id_ < 0 ||
+        *current_entrance_id_ >= static_cast<int>(entrances_->size()))
+      *current_entrance_id_ = 0;
+    navigation_shortcut_last_draw_frame_ = ImGui::GetFrameCount();
+    navigation_shortcut_focus_ =
+        ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows);
+    return true;
+  }
+
+  float HexPropertyWidth(int digits) const {
+    constexpr char hexadecimal[] = "0123456789ABCDEF";
+    float glyph_width = 0.0f;
+    for (int index = 0; index < 16; ++index) {
+      const char glyph[] = {hexadecimal[index], '\0'};
+      glyph_width = std::max(glyph_width, ImGui::CalcTextSize(glyph).x);
+    }
+    return glyph_width * digits + ImGui::GetStyle().FramePadding.x * 2.0f +
+           2.0f;
+  }
+
+  void ContinuePropertyRow(const char* label, int digits) const {
+    const float right =
+        ImGui::GetCursorScreenPos().x + ImGui::GetContentRegionAvail().x;
+    const float spacing = ImGui::GetStyle().ItemSpacing.x;
+    const float next_width =
+        ImGui::CalcTextSize(label).x + spacing + HexPropertyWidth(digits);
+    if (ImGui::GetItemRectMax().x + spacing + next_width <= right)
+      ImGui::SameLine();
+  }
+
+  template <typename T>
+  bool DrawHexProperty(const char* label, T* value, const char* widget_label,
+                       bool continue_row = false) {
+    constexpr int digits = sizeof(T) == 1 ? 2 : 4;
+    if (continue_row)
+      ContinuePropertyRow(label, digits);
+    const float width = HexPropertyWidth(digits);
+    // InputScalarLeft draws its label with Text(), so wrapping the label keeps
+    // the existing input ID and wheel/typing behavior even for a long label.
+    const float label_width =
+        std::max(1.0f, ImGui::GetContentRegionAvail().x - width -
+                           ImGui::GetStyle().ItemSpacing.x);
+    ImGui::PushTextWrapPos(ImGui::GetCursorPosX() + label_width);
+    bool changed = false;
+    if constexpr (sizeof(T) == 1)
+      changed = gui::InputHexByte(label, value, width, true);
+    else
+      changed = gui::InputHexWord(label, value, width, true);
+    ImGui::PopTextWrapPos();
+    RegisterPropertyInput(label, widget_label);
+    return changed;
+  }
+
   std::string EntranceLabel(int slot) const {
     const int entrance_id = slot - zelda3::kNumDungeonSpawnPoints;
     if (!entrances_ || entrance_id < 0 ||
@@ -389,11 +424,14 @@ class DungeonEntrancesPanel : public WindowContent {
     }
     const auto validation = ValidateDungeonEntranceCamera(*state);
     ImGui::SeparatorText("Camera safety");
+    ImGui::PushTextWrapPos(0.0f);
     if (!validation.geometry_valid()) {
       ImGui::TextColored(ImVec4(0.95f, 0.35f, 0.30f, 1.0f),
                          "Unsafe camera geometry");
       for (const auto& error : validation.errors) {
-        ImGui::BulletText("%s", error.c_str());
+        ImGui::Bullet();
+        ImGui::SameLine();
+        ImGui::TextWrapped("%s", error.c_str());
       }
       if (validation.can_repair()) {
         ImGui::TextWrapped(
@@ -408,12 +446,15 @@ class DungeonEntrancesPanel : public WindowContent {
           "Camera geometry is safe, but %zu derived value group(s) differ.",
           validation.differences.size());
       for (const auto& difference : validation.differences) {
-        ImGui::BulletText("%s", difference.c_str());
+        ImGui::Bullet();
+        ImGui::SameLine();
+        ImGui::TextWrapped("%s", difference.c_str());
       }
     }
 
+    ImGui::PopTextWrapPos();
     ImGui::BeginDisabled(!validation.can_repair() || !camera_repair_callback_);
-    if (ImGui::Button("Preview Camera Repair")) {
+    if (ImGui::Button("Preview Camera Repair", ImVec2(-1, 0))) {
       camera_repair_preview_ = *state;
       camera_repair_slot_ = slot_index;
       camera_repair_error_.clear();
@@ -439,31 +480,53 @@ class DungeonEntrancesPanel : public WindowContent {
   bool DrawCameraBoundaries(const char* table_id,
                             const std::array<uint8_t*, 8>& boundaries) {
     bool changed = false;
-    if (!ImGui::BeginTable(table_id, 5,
+    const float value_width = HexPropertyWidth(2);
+    const float mode_width = ImGui::CalcTextSize("Full room").x;
+    const float column_width =
+        std::max(value_width, ImGui::CalcTextSize("North").x);
+    const bool narrow = ImGui::GetContentRegionAvail().x <
+                        mode_width + column_width * 4.0f +
+                            ImGui::GetStyle().CellPadding.x * 10.0f;
+    if (!ImGui::BeginTable(table_id, narrow ? 2 : 5,
                            ImGuiTableFlags_BordersInnerV |
-                               ImGuiTableFlags_SizingStretchSame)) {
+                               ImGuiTableFlags_SizingStretchProp)) {
       return false;
     }
-    ImGui::TableSetupColumn("Mode", ImGuiTableColumnFlags_WidthFixed, 70.0f);
-    ImGui::TableSetupColumn("North");
-    ImGui::TableSetupColumn("East");
-    ImGui::TableSetupColumn("South");
-    ImGui::TableSetupColumn("West");
-    ImGui::TableHeadersRow();
+    if (narrow) {
+      ImGui::TableSetupColumn("Boundary", ImGuiTableColumnFlags_WidthStretch);
+      ImGui::TableSetupColumn("Value", ImGuiTableColumnFlags_WidthFixed,
+                              value_width);
+    } else {
+      ImGui::TableSetupColumn("Mode", ImGuiTableColumnFlags_WidthFixed,
+                              mode_width);
+      for (const auto* direction : {"North", "East", "South", "West"})
+        ImGui::TableSetupColumn(direction);
+      ImGui::TableHeadersRow();
+    }
     constexpr std::array<int, 4> kQuadrantOrder = {0, 6, 2, 4};
     constexpr std::array<int, 4> kFullRoomOrder = {1, 7, 3, 5};
-    const auto draw_row = [&changed, &boundaries](
+    const auto draw_row = [&changed, &boundaries, narrow, value_width, this](
                               const char* label,
                               const std::array<int, 4>& order) {
-      ImGui::TableNextRow();
-      ImGui::TableNextColumn();
-      ImGui::TextUnformatted(label);
-      for (const int index : order) {
+      if (!narrow) {
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        ImGui::TextUnformatted(label);
+      }
+      constexpr const char* directions[] = {"North", "East", "South", "West"};
+      for (size_t direction = 0; direction < order.size(); ++direction) {
+        const int index = order[direction];
+        if (narrow) {
+          ImGui::TableNextRow();
+          ImGui::TableNextColumn();
+          ImGui::TextWrapped("%s %s", label, directions[direction]);
+        }
         ImGui::TableNextColumn();
         ImGui::PushID(index);
-        changed |= gui::InputHexByte(
-            "##Boundary", boundaries[index],
-            std::max(36.0f, ImGui::GetContentRegionAvail().x), true);
+        changed |= gui::InputHexByte("##Boundary", boundaries[index],
+                                     value_width, true);
+        RegisterPropertyInput(
+            "##Boundary", absl::StrFormat("CameraBoundary%d", index).c_str());
         ImGui::PopID();
       }
     };
@@ -511,6 +574,10 @@ class DungeonEntrancesPanel : public WindowContent {
             on_entrance_selected_(i);
           }
         }
+        gui::AutoRegisterLastItem("selectable",
+                                  absl::StrFormat("entrance_%03X", i));
+        if (ImGui::IsItemHovered())
+          ImGui::SetTooltip("%s", label.c_str());
       }
     }
     ImGui::EndChild();
@@ -530,29 +597,22 @@ class DungeonEntrancesPanel : public WindowContent {
     }
     ImGui::BeginDisabled(!properties_editable);
 
-    changed |= gui::InputHexWord("Entrance ID", &spawn.entrance_id);
-    changed |= gui::InputHexWord("Room ID", &spawn.room_id);
-    RegisterPropertyInput("Room ID", "SpawnRoomId");
-    ImGui::SameLine();
-    changed |= gui::InputHexByte("Dungeon ID", &spawn.dungeon_id, 50.f, true);
-
-    changed |= gui::InputHexByte("Main GFX", &spawn.main_gfx, 50.f, true);
-    RegisterPropertyInput("Main GFX", "SpawnMainGfx");
-    ImGui::SameLine();
-    changed |= gui::InputHexByte("Song", &spawn.song, 50.f, true);
-    ImGui::SameLine();
-    changed |= gui::InputHexByte("Floor", &spawn.floor);
+    changed |=
+        DrawHexProperty("Entrance ID", &spawn.entrance_id, "SpawnEntranceId");
+    changed |= DrawHexProperty("Room ID", &spawn.room_id, "SpawnRoomId");
+    changed |= DrawHexProperty("Dungeon ID", &spawn.dungeon_id,
+                               "SpawnDungeonId", true);
+    changed |= DrawHexProperty("Main GFX", &spawn.main_gfx, "SpawnMainGfx");
+    changed |= DrawHexProperty("Song", &spawn.song, "SpawnSong", true);
+    changed |= DrawHexProperty("Floor", &spawn.floor, "SpawnFloor", true);
 
     ImGui::Separator();
-
-    changed |= gui::InputHexWord("Player X", &spawn.x_coordinate);
-    RegisterPropertyInput("Player X", "SpawnPlayerX");
-    ImGui::SameLine();
-    changed |= gui::InputHexWord("Player Y", &spawn.y_coordinate);
-    RegisterPropertyInput("Player Y", "SpawnPlayerY");
-
-    changed |= gui::InputHexWord("Overworld Door Tilemap",
-                                 &spawn.overworld_door_tilemap, 70.f, true);
+    changed |= DrawHexProperty("Player X", &spawn.x_coordinate, "SpawnPlayerX");
+    changed |=
+        DrawHexProperty("Player Y", &spawn.y_coordinate, "SpawnPlayerY", true);
+    changed |=
+        DrawHexProperty("Overworld Door Tilemap", &spawn.overworld_door_tilemap,
+                        "SpawnDoorTilemap");
     ImGui::EndDisabled();
 
     CommitSpawnPropertyEdit(slot_index, before, changed);
@@ -564,24 +624,20 @@ class DungeonEntrancesPanel : public WindowContent {
     gui::AutoRegisterLastItem("header", "AdvancedCameraData");
     if (camera_open) {
       ImGui::BeginDisabled(!properties_editable);
-      changed |= gui::InputHexWord("Camera Trigger X", &spawn.camera_trigger_x);
-      RegisterPropertyInput("Camera Trigger X", "SpawnCameraTriggerX");
-      ImGui::SameLine();
-      changed |= gui::InputHexWord("Camera Trigger Y", &spawn.camera_trigger_y);
-      RegisterPropertyInput("Camera Trigger Y", "SpawnCameraTriggerY");
-
+      changed |= DrawHexProperty("Camera Trigger X", &spawn.camera_trigger_x,
+                                 "SpawnCameraTriggerX");
+      changed |= DrawHexProperty("Camera Trigger Y", &spawn.camera_trigger_y,
+                                 "SpawnCameraTriggerY", true);
+      changed |= DrawHexProperty("Horizontal Scroll", &spawn.horizontal_scroll,
+                                 "SpawnHorizontalScroll");
+      changed |= DrawHexProperty("Vertical Scroll", &spawn.vertical_scroll,
+                                 "SpawnVerticalScroll", true);
+      changed |= DrawHexProperty("Layer", &spawn.layer, "SpawnLayer");
+      changed |= DrawHexProperty("Spawn Quadrant", &spawn.quadrant,
+                                 "SpawnQuadrant", true);
       changed |=
-          gui::InputHexWord("Horizontal Scroll", &spawn.horizontal_scroll);
-      ImGui::SameLine();
-      changed |= gui::InputHexWord("Vertical Scroll", &spawn.vertical_scroll);
-
-      changed |= gui::InputHexByte("Layer", &spawn.layer, 50.f, true);
-      ImGui::SameLine();
-      changed |=
-          gui::InputHexByte("Spawn Quadrant", &spawn.quadrant, 50.f, true);
-      ImGui::SameLine();
-      changed |= gui::InputHexByte("Scroll Controller",
-                                   &spawn.camera_scroll_controller, 50.f, true);
+          DrawHexProperty("Scroll Controller", &spawn.camera_scroll_controller,
+                          "SpawnScrollController", true);
 
       ImGui::SeparatorText(tr("Camera Boundaries"));
       changed |= DrawCameraBoundaries("##SpawnCameraBoundaries",
@@ -608,28 +664,20 @@ class DungeonEntrancesPanel : public WindowContent {
 
     ImGui::Text(tr("Entrance ID: %04X"), entrance.entrance_id_);
     ImGui::BeginDisabled(!properties_editable);
-    changed |= gui::InputHexWord("Room ID", &entrance.room_);
-    RegisterPropertyInput("Room ID", "RegularRoomId");
-    ImGui::SameLine();
+    changed |= DrawHexProperty("Room ID", &entrance.room_, "RegularRoomId");
+    changed |= DrawHexProperty("Dungeon ID", &entrance.dungeon_id_,
+                               "RegularDungeonId", true);
     changed |=
-        gui::InputHexByte("Dungeon ID", &entrance.dungeon_id_, 50.f, true);
-
-    changed |= gui::InputHexByte("Blockset", &entrance.blockset_, 50.f, true);
-    RegisterPropertyInput("Blockset", "RegularBlockset");
-    ImGui::SameLine();
-    changed |= gui::InputHexByte("Music", &entrance.music_, 50.f, true);
-    ImGui::SameLine();
-    changed |= gui::InputHexByte("Floor", &entrance.floor_);
+        DrawHexProperty("Blockset", &entrance.blockset_, "RegularBlockset");
+    changed |= DrawHexProperty("Music", &entrance.music_, "RegularMusic", true);
+    changed |= DrawHexProperty("Floor", &entrance.floor_, "RegularFloor", true);
 
     ImGui::Separator();
-
-    changed |= gui::InputHexWord("Player X   ", &entrance.x_position_);
-    RegisterPropertyInput("Player X   ", "RegularPlayerX");
-    ImGui::SameLine();
-    changed |= gui::InputHexWord("Player Y   ", &entrance.y_position_);
-    RegisterPropertyInput("Player Y   ", "RegularPlayerY");
-
-    changed |= gui::InputHexWord("Exit", &entrance.exit_, 50.f, true);
+    changed |=
+        DrawHexProperty("Player X   ", &entrance.x_position_, "RegularPlayerX");
+    changed |= DrawHexProperty("Player Y   ", &entrance.y_position_,
+                               "RegularPlayerY", true);
+    changed |= DrawHexProperty("Exit", &entrance.exit_, "RegularExit");
     ImGui::EndDisabled();
 
     CommitEntrancePropertyEdit(slot_index, before, changed);
@@ -642,18 +690,17 @@ class DungeonEntrancesPanel : public WindowContent {
     if (camera_open) {
       ImGui::BeginDisabled(!properties_editable);
       changed |=
-          gui::InputHexWord("Camera Trigger X", &entrance.camera_trigger_x_);
-      RegisterPropertyInput("Camera Trigger X", "RegularCameraTriggerX");
-      ImGui::SameLine();
+          DrawHexProperty("Camera Trigger X", &entrance.camera_trigger_x_,
+                          "RegularCameraTriggerX");
       changed |=
-          gui::InputHexWord("Camera Trigger Y", &entrance.camera_trigger_y_);
-      RegisterPropertyInput("Camera Trigger Y", "RegularCameraTriggerY");
-
-      changed |= gui::InputHexWord("Scroll X", &entrance.camera_x_);
-      ImGui::SameLine();
-      changed |= gui::InputHexWord("Scroll Y", &entrance.camera_y_);
-      changed |= gui::InputHexByte("Scroll Quadrant",
-                                   &entrance.scroll_quadrant_, 50.f, true);
+          DrawHexProperty("Camera Trigger Y", &entrance.camera_trigger_y_,
+                          "RegularCameraTriggerY", true);
+      changed |=
+          DrawHexProperty("Scroll X", &entrance.camera_x_, "RegularScrollX");
+      changed |= DrawHexProperty("Scroll Y", &entrance.camera_y_,
+                                 "RegularScrollY", true);
+      changed |= DrawHexProperty("Scroll Quadrant", &entrance.scroll_quadrant_,
+                                 "RegularScrollQuadrant");
 
       ImGui::SeparatorText(tr("Camera Boundaries"));
       changed |= DrawCameraBoundaries(
@@ -726,7 +773,6 @@ class DungeonEntrancesPanel : public WindowContent {
   bool navigation_shortcut_focus_ = false;
   int navigation_shortcut_last_draw_frame_ = -1;
   ImGuiTextFilter entrance_filter_;
-  float entrance_choice_width_ = 0.0f;
 };
 
 }  // namespace editor

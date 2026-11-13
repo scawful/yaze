@@ -423,7 +423,6 @@ float toolbar_height = LayoutHelpers::GetToolbarHeight();
 - `BeginCanvasPanel() / EndCanvasPanel()` - Canvas containers
 - `BeginPaddedPanel() / EndPaddedPanel()` - Consistent padding
 - `InputHexRow()` - Labeled hex inputs
-- `BeginPropertyGrid() / EndPropertyGrid()` - 2-column property tables
 - `PropertyRow()` - Label + widget in table row
 - `SectionHeader()` - Colored section headers
 - `HelpMarker()` - Tooltip help icons

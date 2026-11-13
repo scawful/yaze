@@ -65,10 +65,6 @@ tools:
         description: "Room label or numeric ID (supports hex like 0x123)."
         required: true
         example: hyrule_castle_throne
-      - name: dungeon
-        description: "Optional dungeon ID when room names are ambiguous."
-        required: false
-        example: 0x00
       - name: format
         description: "Response format (json or table). Defaults to JSON if omitted."
         required: false
@@ -153,10 +149,10 @@ tools:
     description: "Summarize metadata for an overworld map, including regions and labels."
     usage_notes: "Use this before proposing edits to understand map properties and labels."
     arguments:
-      - name: map
-        description: "Map ID or label to describe."
+      - name: screen
+        description: "Overworld screen ID (hex, e.g. 0x00)."
         required: true
-        example: 0
+        example: 0x00
       - name: format
         description: "Response format (json or table). Defaults to JSON if omitted."
         required: false
@@ -165,10 +161,10 @@ tools:
     description: "List warp entrances and exits for overworld maps, including destinations."
     usage_notes: "Helpful for navigation questions and verifying warp destinations."
     arguments:
-      - name: map
-        description: "Optional map filter. Defaults to all maps when omitted."
+      - name: screen
+        description: "Optional overworld screen filter (hex). Defaults to all screens when omitted."
         required: false
-        example: 1
+        example: 0x01
       - name: format
         description: "Response format (json or table). Defaults to JSON if omitted."
         required: false
@@ -191,17 +187,17 @@ tools:
         example: 20
   - name: gui-click
     description: "Generate GUI automation script to click a button or widget in the YAZE interface."
-    usage_notes: "Use this to automate GUI interactions like opening editors, clicking toolbar buttons, or selecting tiles. Requires widget path from gui-discover."
+    usage_notes: "Use this to automate GUI interactions like opening editors, clicking toolbar buttons, or selecting tiles. Requires widget path from gui-discover-tool."
     arguments:
       - name: target
         description: "Widget path or label to click (e.g., 'ModeButton:Draw (2)' or 'ToolbarAction:Toggle Tile16 Selector')."
         required: true
         example: "ModeButton:Draw (2)"
-      - name: click_type
+      - name: click-type
         description: "Type of click: left, right, middle, or double. Defaults to left."
         required: false
         example: left
-  - name: gui-discover
+  - name: gui-discover-tool
     description: "Discover available GUI widgets and windows in the running YAZE instance."
     usage_notes: "Use this first to find widget paths before using gui-click. Helps identify what UI elements are available for automation."
     arguments:

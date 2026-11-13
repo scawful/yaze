@@ -3,6 +3,17 @@
 
 set(CPM_DOWNLOAD_VERSION 0.38.7)
 
+# Share pinned dependency sources on developer machines as well as CI. Keep
+# explicit cache/environment choices (including OFF) and existing build caches.
+# CPM keys sources by the download parameters and locks each package fetch.
+if(NOT DEFINED CPM_SOURCE_CACHE AND NOT DEFINED ENV{CPM_SOURCE_CACHE})
+  if(DEFINED ENV{HOME})
+    set(CPM_SOURCE_CACHE "$ENV{HOME}/.cpm-cache" CACHE PATH "Shared CPM dependency sources")
+  elseif(DEFINED ENV{LOCALAPPDATA})
+    set(CPM_SOURCE_CACHE "$ENV{LOCALAPPDATA}/yaze/cpm-cache" CACHE PATH "Shared CPM dependency sources")
+  endif()
+endif()
+
 if(CPM_SOURCE_CACHE)
   set(CPM_DOWNLOAD_LOCATION "${CPM_SOURCE_CACHE}/cpm/CPM_${CPM_DOWNLOAD_VERSION}.cmake")
 elseif(DEFINED ENV{CPM_SOURCE_CACHE})

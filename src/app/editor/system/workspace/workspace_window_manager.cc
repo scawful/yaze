@@ -399,9 +399,9 @@ void WorkspaceWindowManager::RegisterPanel(size_t session_id,
     // Register the card
     cards_[panel_id] = panel_info;
 
-    LOG_INFO("WorkspaceWindowManager",
-             "Registered card %s -> %s for session %zu",
-             canonical_info.card_id.c_str(), panel_id.c_str(), session_id);
+    LOG_DEBUG("WorkspaceWindowManager",
+              "Registered card %s -> %s for session %zu",
+              canonical_info.card_id.c_str(), panel_id.c_str(), session_id);
   }
 
   if (canonical_info.scope == WindowScope::kGlobal) {
@@ -451,8 +451,8 @@ void WorkspaceWindowManager::UnregisterPanel(size_t session_id,
 
   auto it = cards_.find(prefixed_id);
   if (it != cards_.end()) {
-    LOG_INFO("WorkspaceWindowManager", "Unregistered card: %s",
-             prefixed_id.c_str());
+    LOG_DEBUG("WorkspaceWindowManager", "Unregistered card: %s",
+              prefixed_id.c_str());
     RememberPinnedStateForRemovedWindow(session_id, canonical_base_id,
                                         prefixed_id);
     UntrackResourceWindow(prefixed_id);
@@ -525,8 +525,9 @@ void WorkspaceWindowManager::UnregisterPanelsWithPrefix(
     cards_.erase(info.prefixed_id);
     centralized_visibility_.erase(info.prefixed_id);
     pinned_panels_.erase(info.prefixed_id);
-    LOG_INFO("WorkspaceWindowManager", "Unregistered card with prefix '%s': %s",
-             prefix.c_str(), info.prefixed_id.c_str());
+    LOG_DEBUG("WorkspaceWindowManager",
+              "Unregistered card with prefix '%s': %s", prefix.c_str(),
+              info.prefixed_id.c_str());
   }
 
   // Also clean up session tracking
@@ -593,8 +594,8 @@ void WorkspaceWindowManager::RegisterRegistryWindowContent(
 
   TrackResourceWindow(panel_id, resource_panel);
 
-  LOG_INFO("WorkspaceWindowManager", "Registered registry WindowContent: %s",
-           panel_id.c_str());
+  LOG_DEBUG("WorkspaceWindowManager", "Registered registry WindowContent: %s",
+            panel_id.c_str());
 }
 
 void WorkspaceWindowManager::RegisterRegistryWindowContentsForSession(
@@ -708,8 +709,8 @@ void WorkspaceWindowManager::RegisterWindowContent(
     if (visible_by_default) {
       OpenWindowImpl(active_session_, panel_id);
     }
-    LOG_INFO("WorkspaceWindowManager", "Replaced WindowContent: %s",
-             instance_id.c_str());
+    LOG_DEBUG("WorkspaceWindowManager", "Replaced WindowContent: %s",
+              instance_id.c_str());
     return;
   }
 
@@ -723,8 +724,8 @@ void WorkspaceWindowManager::RegisterWindowContent(
 
   TrackResourceWindow(instance_id, resource_panel);
 
-  LOG_INFO("WorkspaceWindowManager", "Registered WindowContent: %s (%s)",
-           instance_id.c_str(), descriptor.display_name.c_str());
+  LOG_DEBUG("WorkspaceWindowManager", "Registered WindowContent: %s (%s)",
+            instance_id.c_str(), descriptor.display_name.c_str());
 }
 
 // ============================================================================
@@ -834,8 +835,8 @@ void WorkspaceWindowManager::UnregisterWindowContent(
     panel_instances_.erase(it);
     registry_panel_ids_.erase(base_panel_id);
     global_panel_ids_.erase(instance_id);
-    LOG_INFO("WorkspaceWindowManager", "Unregistered WindowContent: %s",
-             instance_id.c_str());
+    LOG_DEBUG("WorkspaceWindowManager", "Unregistered WindowContent: %s",
+              instance_id.c_str());
   }
 
   // Also unregister the descriptor
@@ -1587,8 +1588,8 @@ void WorkspaceWindowManager::ResetToDefaults(size_t session_id,
   // Show each default card
   for (const auto& card_id : default_panels) {
     if (OpenWindowImpl(session_id, card_id)) {
-      LOG_INFO("WorkspaceWindowManager", "Showing default card: %s",
-               card_id.c_str());
+      LOG_DEBUG("WorkspaceWindowManager", "Showing default card: %s",
+                card_id.c_str());
     }
   }
 

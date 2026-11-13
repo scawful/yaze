@@ -212,8 +212,11 @@ rules in [tile16_edit_history.cc](tile16/tile16_edit_history.cc).
 2. Every definition mutation enters `RunEdit`. It publishes metadata immediately,
    marks the document dirty, and records one complete before/after batch. A
    four-definition stamp must undo all four definitions. No-op/invalid edits
-   must not clear Redo. Use `ReplaceCurrentTile` for property UI; do not mutate
-   the pointer returned by `GetCurrentTile16Data` from new UI code.
+   must not clear Redo. Edits passing the same non-zero `edit_group` identifier
+   (such as the Tile16 property dialog session) merge consecutive changes into
+   one Undo step while that group stays active. Use `ReplaceCurrentTile` for
+   property UI; do not mutate the pointer returned by `GetCurrentTile16Data` from
+   new UI code.
 3. `on_document_changed` invalidates shared map/atlas caches after edit, Undo,
    and Redo. The selected map is rebuilt immediately; other maps use the existing
    deferred refresh budget. History stores metadata, not graphics tied to the

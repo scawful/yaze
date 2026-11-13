@@ -95,6 +95,28 @@ absl::Status SetGraphicsPreviewPalette(
   return absl::OkStatus();
 }
 
+absl::Status SetGraphicsPreviewPaletteForAllSheets(
+    GraphicsEditorState& state,
+    std::optional<GraphicsPaletteSelection> selection) {
+  if (!state.game_data ||
+      gfx::Arena::Get().gfx_sheets_owner() != state.game_data) {
+    return absl::FailedPreconditionError("This ROM's graphics are not active");
+  }
+  if (selection) {
+    const auto resolved =
+        ResolveGraphicsPreviewPalette(*state.game_data, *selection);
+    if (!resolved.ok()) {
+      return resolved.status();
+    }
+  }
+  // Inactive sheets have no display palette; they keep loaded colors.
+  for (uint16_t sheet = 0; sheet < zelda3::kNumGfxSheets; ++sheet) {
+    SetGraphicsPreviewPalette(state, sheet, selection).IgnoreError();
+  }
+  state.browser_palette = std::move(selection);
+  return absl::OkStatus();
+}
+
 void RefreshGraphicsPreviewPalettes(GraphicsEditorState& state) {
   auto& manager = gfx::PaletteManager::Get();
   if (manager.IsManaging(state.game_data) && state.source_context &&

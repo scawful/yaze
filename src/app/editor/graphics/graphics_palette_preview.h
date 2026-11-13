@@ -24,6 +24,13 @@ absl::Status SetGraphicsPreviewPalette(
     GraphicsEditorState& state, uint16_t sheet,
     std::optional<GraphicsPaletteSelection> selection);
 
+// Applies one choice to every active sheet (the Sheet Browser view) and
+// records it as the browser palette. Null restores loaded colors everywhere.
+// An invalid selection changes nothing.
+absl::Status SetGraphicsPreviewPaletteForAllSheets(
+    GraphicsEditorState& state,
+    std::optional<GraphicsPaletteSelection> selection);
+
 // Restores choices after the session's Arena sheets are reloaded and reflects
 // source palette edits without changing authored pixels or their history.
 void RefreshGraphicsPreviewPalettes(GraphicsEditorState& state);

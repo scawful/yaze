@@ -8,6 +8,7 @@
 
 #include "rom/rom.h"
 #include "zelda3/overworld/diggable_tiles.h"
+#include "zelda3/overworld/overworld_exit.h"
 #include "zelda3/overworld/overworld_item.h"
 #include "zelda3/overworld/overworld_map.h"
 #include "zelda3/overworld/overworld_version_helper.h"
@@ -109,6 +110,222 @@ TEST(OverworldAreaTransitionTest, StaggeredWideAreasKeepDownwardTilemapOrigin) {
   // word. Remove the source's right-half $0040 offset without changing the
   // normal destination-left $1800 row; $07C0 would select $0800 instead.
   EXPECT_EQ((0x0040 & 0x007F) + *adjustment, 0x1800);
+}
+
+TEST(OverworldExitRegressionTest,
+     DefaultRecordHasInitializedFieldsAndExitType) {
+  OverworldExit exit;
+  EXPECT_EQ(exit.entity_type_, GameEntity::kExit);
+  EXPECT_EQ(exit.map_id_, 0);
+  EXPECT_EQ(exit.entity_id_, 0);
+  EXPECT_EQ(exit.x_, 0);
+  EXPECT_EQ(exit.y_, 0);
+  EXPECT_EQ(exit.game_x_, 0);
+  EXPECT_EQ(exit.game_y_, 0);
+  EXPECT_EQ(exit.room_id_, 0);
+  EXPECT_EQ(exit.map_pos_, 0);
+  EXPECT_EQ(exit.x_player_, 0);
+  EXPECT_EQ(exit.y_player_, 0);
+  EXPECT_EQ(exit.x_scroll_, 0);
+  EXPECT_EQ(exit.y_scroll_, 0);
+  EXPECT_EQ(exit.x_camera_, 0);
+  EXPECT_EQ(exit.y_camera_, 0);
+  EXPECT_EQ(exit.scroll_mod_x_, 0);
+  EXPECT_EQ(exit.scroll_mod_y_, 0);
+  EXPECT_EQ(exit.door_type_1_, 0);
+  EXPECT_EQ(exit.door_type_2_, 0);
+  EXPECT_FALSE(exit.deleted_);
+  EXPECT_FALSE(exit.is_hole_);
+  EXPECT_TRUE(exit.is_automatic_);
+}
+
+TEST(OverworldExitRegressionTest,
+     AutomaticMoveNearOriginClampsBeforeNarrowing) {
+  OverworldExit exit;
+  exit.x_ = 32;
+  exit.y_ = 32;
+
+  exit.UpdateMapProperties(0, nullptr);
+
+  EXPECT_EQ(exit.game_x_, 2);
+  EXPECT_EQ(exit.game_y_, 2);
+  EXPECT_EQ(exit.x_player_, 32);
+  EXPECT_EQ(exit.y_player_, 32);
+  EXPECT_EQ(exit.x_scroll_, 0);
+  EXPECT_EQ(exit.y_scroll_, 0);
+  EXPECT_EQ(exit.x_camera_, 127);
+  EXPECT_EQ(exit.y_camera_, 111);
+  EXPECT_EQ(exit.map_pos_, 0);
+}
+
+TEST(OverworldExitRegressionTest,
+     B0MoveSaveReloadPreservesMapAndLandingFields) {
+  // This is a serializer fixture, not an allocation or runtime admission.
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+  std::vector<OverworldExit> exits(kNumOverworldExits);
+  auto& exit = exits[0x29];
+  exit.room_id_ = 0x83;
+  exit.x_ = 32;
+  exit.y_ = 3104;
+  exit.scroll_mod_x_ = 0x12;
+  exit.scroll_mod_y_ = 0x34;
+  exit.door_type_1_ = 0x5678;
+  exit.door_type_2_ = 0x9ABC;
+  exit.UpdateMapProperties(0xB0, nullptr);
+
+  ASSERT_TRUE(SaveExits(&rom, exits).ok());
+  const auto loaded = LoadExits(&rom);
+  ASSERT_TRUE(loaded.ok()) << loaded.status();
+  const auto& actual = (*loaded)[0x29];
+  EXPECT_EQ(actual.map_id_, 0xB0);
+  EXPECT_EQ(actual.room_id_, 0x83);
+  EXPECT_EQ(actual.game_x_, 2);
+  EXPECT_EQ(actual.game_y_, 2);
+  EXPECT_EQ(actual.x_player_, 32);
+  EXPECT_EQ(actual.y_player_, 3104);
+  EXPECT_EQ(actual.x_scroll_, 0);
+  EXPECT_EQ(actual.y_scroll_, 3072);
+  EXPECT_EQ(actual.x_camera_, 127);
+  EXPECT_EQ(actual.y_camera_, 3183);
+  EXPECT_EQ(actual.map_pos_, 0);
+  EXPECT_EQ(actual.scroll_mod_x_, 0x12);
+  EXPECT_EQ(actual.scroll_mod_y_, 0x34);
+  EXPECT_EQ(actual.door_type_1_, 0x5678);
+  EXPECT_EQ(actual.door_type_2_, 0x9ABC);
+  EXPECT_FALSE(actual.deleted_);
+}
+
+TEST(OverworldExitRegressionTest, ManualMoveKeepsAuthoredCameraAndScroll) {
+  OverworldExit exit;
+  exit.is_automatic_ = false;
+  exit.x_scroll_ = 224;
+  exit.y_scroll_ = 3168;
+  exit.x_camera_ = 359;
+  exit.y_camera_ = 3279;
+  exit.x_ = 352;
+  exit.y_ = 3248;
+
+  exit.UpdateMapProperties(0xB0, nullptr);
+
+  EXPECT_EQ(exit.x_player_, 352);
+  EXPECT_EQ(exit.y_player_, 3248);
+  EXPECT_EQ(exit.x_scroll_, 224);
+  EXPECT_EQ(exit.y_scroll_, 3168);
+  EXPECT_EQ(exit.x_camera_, 359);
+  EXPECT_EQ(exit.y_camera_, 3279);
+  EXPECT_EQ(exit.map_pos_, 0x031C);
+}
+
+TEST(OverworldExitRegressionTest, MissingContextMapUsesSmallAreaFallback) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+  Overworld overworld(&rom);
+  ASSERT_EQ(overworld.overworld_map(0xB0), nullptr);
+  OverworldExit exit;
+  exit.x_ = 32;
+  exit.y_ = 3104;
+
+  exit.UpdateMapProperties(0xB0, &overworld);
+
+  EXPECT_EQ(exit.map_id_, 0xB0);
+  EXPECT_EQ(exit.x_scroll_, 0);
+  EXPECT_EQ(exit.y_scroll_, 3072);
+  EXPECT_EQ(exit.x_camera_, 127);
+  EXPECT_EQ(exit.y_camera_, 3183);
+}
+
+TEST(OverworldExitRegressionTest,
+     DeletedRecordSaveReloadChangesOnlyPlayerSentinel) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+  std::vector<OverworldExit> exits(kNumOverworldExits);
+  exits[0x29] = OverworldExit(0x83, 0xB0, 0x031C, 3168, 224, 3248, 352, 3279,
+                              359, 0x12, 0x34, 0x5678, 0x9ABC);
+  ASSERT_TRUE(SaveExits(&rom, exits).ok());
+  const auto before = rom.vector();
+  exits[0x29].deleted_ = true;
+
+  ASSERT_TRUE(SaveExits(&rom, exits).ok());
+  const auto loaded = LoadExits(&rom);
+  ASSERT_TRUE(loaded.ok()) << loaded.status();
+  const auto& actual = (*loaded)[0x29];
+  EXPECT_TRUE(actual.deleted_);
+  EXPECT_EQ(actual.x_player_, 0xFFFF);
+  EXPECT_EQ(actual.y_player_, 0xFFFF);
+  EXPECT_EQ(actual.room_id_, 0x83);
+  EXPECT_EQ(actual.map_id_, 0xB0);
+  EXPECT_EQ(actual.x_camera_, 359);
+  EXPECT_EQ(actual.y_camera_, 3279);
+  // Serialization retains the source coordinates for Undo.
+  EXPECT_EQ(exits[0x29].x_player_, 352);
+  EXPECT_EQ(exits[0x29].y_player_, 3248);
+  auto expected = before;
+  for (const int address : {OWExitXPlayer, OWExitYPlayer}) {
+    expected[address + 0x29 * 2] = 0xFF;
+    expected[address + 0x29 * 2 + 1] = 0xFF;
+  }
+  EXPECT_EQ(rom.vector(), expected);
+}
+
+TEST(OverworldExitRegressionTest,
+     SaveReloadPreservesExistingRecordsAndAuxiliaryBytes) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+  std::vector<OverworldExit> exits(kNumOverworldExits);
+  exits[5] = OverworldExit(0x180, 0x12, 0x1357, 1010, 1000, 1048, 1032, 1111,
+                           1222, 0xE1, 0xF2, 0xABCD, 0x5678);
+  exits[7] = OverworldExit(0xFFFF, 0xFF, 0x2468, 10, 20, 0xFFFF, 0xFFFF, 30, 40,
+                           0x12, 0x34, 0x56, 0x78);
+  ASSERT_TRUE(SaveExits(&rom, exits).ok());
+  ASSERT_TRUE(rom.WriteByte(OWExitDoorPosition, 0xA7).ok());
+  ASSERT_TRUE(rom.WriteByte(OWExitDoorPosition + 2, 0xB8).ok());
+  ASSERT_TRUE(rom.WriteByte(OWExitDoorPosition + 4, 0xC9).ok());
+  const auto before = rom.vector();
+  auto loaded = LoadExits(&rom);
+  ASSERT_TRUE(loaded.ok()) << loaded.status();
+  EXPECT_TRUE((*loaded)[7].deleted_);
+  EXPECT_EQ((*loaded)[7].room_id_, 0xFFFF);
+  EXPECT_EQ((*loaded)[7].map_id_, 0xFF);
+
+  ASSERT_TRUE(SaveExits(&rom, *loaded).ok());
+  EXPECT_EQ(rom.vector(), before);
+  // Only an authored destination change may synchronize this auxiliary map.
+  (*loaded)[5].map_id_ = 0x13;
+  ASSERT_TRUE(SaveExits(&rom, *loaded).ok());
+  EXPECT_EQ(rom.vector()[OWExitDoorPosition], 0x13);
+  EXPECT_EQ(rom.vector()[OWExitDoorPosition + 2], 0xB8);
+  EXPECT_EQ(rom.vector()[OWExitDoorPosition + 4], 0xC9);
+}
+
+TEST(OverworldExitRegressionTest,
+     MissingRomAndShortVectorAreRejectedBeforeWrites) {
+  std::vector<OverworldExit> exits(kNumOverworldExits);
+  EXPECT_EQ(SaveExits(nullptr, exits).code(),
+            absl::StatusCode::kInvalidArgument);
+  EXPECT_EQ(LoadExits(nullptr).status().code(),
+            absl::StatusCode::kInvalidArgument);
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+  const auto before = rom.vector();
+  exits[0].room_id_ = 0x83;
+  exits.resize(kNumOverworldExits - 1);
+
+  EXPECT_EQ(SaveExits(&rom, exits).code(), absl::StatusCode::kInvalidArgument);
+  EXPECT_EQ(rom.vector(), before);
+}
+
+TEST(OverworldExitRegressionTest, TruncatedLastTableIsRejectedBeforeAnyWrite) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+  rom.mutable_vector().resize(OWExitDoorType2 + kNumOverworldExits * 2 - 1);
+  const auto before = rom.vector();
+  std::vector<OverworldExit> exits(kNumOverworldExits);
+  exits[0].room_id_ = 0x83;
+  exits[0].map_id_ = 0xB0;
+
+  EXPECT_EQ(SaveExits(&rom, exits).code(), absl::StatusCode::kOutOfRange);
+  EXPECT_EQ(rom.vector(), before);
 }
 
 class OverworldRegressionTest : public ::testing::Test {

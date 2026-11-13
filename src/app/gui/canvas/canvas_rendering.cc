@@ -4,6 +4,7 @@
 #include <cmath>
 
 #include "app/gui/canvas/canvas_utils.h"
+#include "app/gui/core/draw_sampling.h"
 #include "app/gui/core/theme_manager.h"
 #include "util/log.h"
 
@@ -71,7 +72,7 @@ void RenderCanvasBackground(ImDrawList* draw_list,
   // Draw theme-aware border
   draw_list->AddRect(
       geometry.canvas_p0, geometry.canvas_p1,
-      ImGui::GetColorU32(ConvertColorToImVec4(theme.border)), 0.0f, 0,
+      ImGui::GetColorU32(ConvertColorToImVec4(theme.border)), 0.0f,
       theme.window_border_size > 0 ? theme.window_border_size : 1.0f);
 }
 
@@ -154,6 +155,7 @@ void RenderBitmapOnCanvas(ImDrawList* draw_list, const CanvasGeometry& geometry,
   }
 
   // Extracted from Canvas::DrawBitmap (border offset variant)
+  ScopedNearestSampling nearest_sampling(draw_list);
   draw_list->AddImage((ImTextureID)(intptr_t)bitmap.texture(),
                       ImVec2(geometry.canvas_p0.x, geometry.canvas_p0.y),
                       ImVec2(geometry.canvas_p0.x + (bitmap.width() * scale),
@@ -181,6 +183,7 @@ void RenderBitmapOnCanvas(ImDrawList* draw_list, const CanvasGeometry& geometry,
   // CRITICAL FIX: Draw bitmap WITHOUT additional global_scale multiplication
   // The scale parameter already contains the correct scale factor
   // The scrolling should NOT be scaled - it's already in screen space
+  ScopedNearestSampling nearest_sampling(draw_list);
   draw_list->AddImage(
       (ImTextureID)(intptr_t)bitmap.texture(),
       ImVec2(geometry.canvas_p0.x + x_offset + geometry.scrolling.x,
@@ -202,6 +205,7 @@ void RenderBitmapOnCanvas(ImDrawList* draw_list, const CanvasGeometry& geometry,
   }
 
   // Extracted from Canvas::DrawBitmap (custom source/dest regions variant)
+  ScopedNearestSampling nearest_sampling(draw_list);
   draw_list->AddImage(
       (ImTextureID)(intptr_t)bitmap.texture(),
       ImVec2(geometry.canvas_p0.x + dest_pos.x,
@@ -237,6 +241,9 @@ void RenderBitmapGroup(ImDrawList* draw_list, const CanvasGeometry& geometry,
   // context) For now, we'll just render tiles at their grid positions The full
   // implementation would need the selected_points passed in
 
+  // One scope for the whole loop: the atlas tiles share a texture, so their
+  // images stay in one draw command between the two sampler callbacks.
+  ScopedNearestSampling nearest_sampling(draw_list);
   int i = 0;
   for (const auto tile_id : group) {
     // Calculate grid position for this tile

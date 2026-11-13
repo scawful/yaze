@@ -46,7 +46,6 @@ class WorkspaceManager {
   // Layout management
   absl::Status SaveWorkspaceLayout(const std::string& name = "");
   absl::Status LoadWorkspaceLayout(const std::string& name = "");
-  absl::Status ResetWorkspaceLayout();
 
   // Preset management
   void SaveWorkspacePreset(const std::string& name);
@@ -69,9 +68,6 @@ class WorkspaceManager {
   void SplitWindowHorizontal();
   void SplitWindowVertical();
   void CloseCurrentWindow();
-
-  // Command execution (for WhichKey integration)
-  void ExecuteWorkspaceCommand(const std::string& command_id);
 
   // Session queries
   size_t GetActiveSessionCount() const;

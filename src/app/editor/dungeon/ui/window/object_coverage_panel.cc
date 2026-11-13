@@ -16,6 +16,7 @@
 #include "absl/time/clock.h"
 #include "absl/time/time.h"
 #include "app/editor/dungeon/dungeon_project_labels.h"
+#include "app/gui/core/layout_helpers.h"
 #include "app/gui/core/style_guard.h"
 #include "app/gui/core/ui_helpers.h"
 #include "imgui/imgui.h"
@@ -694,19 +695,24 @@ void ObjectCoveragePanel::DrawObjectTable(float height) {
     return;
   }
   ImGui::TableSetupScrollFreeze(0, 1);
-  ImGui::TableSetupColumn(tr("ID"), ImGuiTableColumnFlags_WidthFixed, 48.0f);
-  ImGui::TableSetupColumn(tr("Name"), ImGuiTableColumnFlags_WidthStretch, 3.0f);
+  // Stable IDs keep saved column settings matched when the language changes
+  // or the Focus and Game columns come and go.
+  ImGui::TableSetupColumn(gui::ColumnLabel(tr("ID"), "id").c_str(),
+                          ImGuiTableColumnFlags_WidthFixed, 48.0f);
+  ImGui::TableSetupColumn(gui::ColumnLabel(tr("Name"), "name").c_str(),
+                          ImGuiTableColumnFlags_WidthStretch, 3.0f);
   if (show_focus_column) {
-    ImGui::TableSetupColumn(tr("Focus"), ImGuiTableColumnFlags_WidthStretch,
-                            1.5f);
+    ImGui::TableSetupColumn(gui::ColumnLabel(tr("Focus"), "focus").c_str(),
+                            ImGuiTableColumnFlags_WidthStretch, 1.5f);
   }
-  ImGui::TableSetupColumn(tr("Rooms"), ImGuiTableColumnFlags_WidthFixed, 44.0f);
+  ImGui::TableSetupColumn(gui::ColumnLabel(tr("Rooms"), "rooms").c_str(),
+                          ImGuiTableColumnFlags_WidthFixed, 44.0f);
   if (show_auto_column) {
-    ImGui::TableSetupColumn(tr("Game"), ImGuiTableColumnFlags_WidthFixed,
-                            56.0f);
+    ImGui::TableSetupColumn(gui::ColumnLabel(tr("Game"), "game").c_str(),
+                            ImGuiTableColumnFlags_WidthFixed, 56.0f);
   }
-  ImGui::TableSetupColumn(tr("Status"), ImGuiTableColumnFlags_WidthStretch,
-                          1.5f);
+  ImGui::TableSetupColumn(gui::ColumnLabel(tr("Status"), "status").c_str(),
+                          ImGuiTableColumnFlags_WidthStretch, 1.5f);
   ImGui::TableHeadersRow();
 
   const auto& groups = ReleaseFocusGroups();

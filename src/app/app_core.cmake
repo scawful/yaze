@@ -138,6 +138,11 @@ if(APPLE)
     endif()
 
     target_link_libraries(yaze_app_objcxx PUBLIC ${ABSL_TARGETS} yaze_util ${YAZE_SDL2_TARGETS})
+    # These sources include ImGui headers but do not link ImGui; take its
+    # definitions (IMGUI_USER_CONFIG, test engine) so they see the same config.
+    target_compile_definitions(yaze_app_objcxx PRIVATE
+      $<$<TARGET_EXISTS:ImGui>:$<TARGET_PROPERTY:ImGui,INTERFACE_COMPILE_DEFINITIONS>>
+    )
     if(YAZE_PLATFORM_MACOS)
       target_compile_definitions(yaze_app_objcxx PUBLIC MACOS)
     elseif(YAZE_PLATFORM_IOS)

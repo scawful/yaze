@@ -192,6 +192,9 @@ struct EditorDependencies {
   gfx::IRenderer* renderer = nullptr;
   emu::Emulator* emulator = nullptr;
   void* custom_data = nullptr;
+  // Resolve the descriptor that normal Project Save actually writes. Editors
+  // with detached assets must not mutate only the session's captured snapshot.
+  std::function<project::YazeProject*()> project_context_provider;
 
   // Extract sub-structs for passing to components that only need a subset.
   CoreDependencies GetCoreDeps() const {
@@ -328,6 +331,15 @@ class Editor {
   // Default no-op; override to surface cursor/selection/zoom/mode/custom
   // segments via StatusBar's Set* setters.
   virtual void ContributeStatus(StatusBar* /*status_bar*/) {}
+
+  // Push editor-specific top menu items into the main menu bar.
+  // Called when this editor is active. Runs inside an open BeginMenu scope.
+  virtual void DrawEditorMenu() {}
+
+  // Push editor-specific items into the main Edit menu, after the shared
+  // items. Called when this editor is active, inside the open Edit menu.
+  // Draw a leading separator when adding anything.
+  virtual void DrawEditMenuItems() {}
 
   virtual EditorContextSnapshot BuildContextSnapshot() const {
     EditorContextSnapshot snapshot;

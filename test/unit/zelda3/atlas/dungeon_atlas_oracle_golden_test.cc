@@ -29,6 +29,7 @@
 #include "rom/rom.h"
 #include "unique_temp_path.h"
 #include "util/rom_hash.h"
+#include "yaze_test_paths.h"
 #include "zelda3/atlas/atlas_annotations.h"
 #include "zelda3/atlas/atlas_json.h"
 #include "zelda3/atlas/dungeon_atlas.h"

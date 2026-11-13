@@ -56,6 +56,9 @@ class PixelEditorPanel : public WindowContent {
     draw_source_preview_ = std::move(draw);
   }
   void ShowSourcePreview() { show_source_preview_ = true; }
+  void SetScratchCallback(std::function<void()> open) {
+    open_scratch_ = std::move(open);
+  }
   // Visibility belongs to the workspace manager, including saved layouts.
   void SetSheetBrowserCallbacks(std::function<bool()> visible,
                                 std::function<void(bool)> set_visible) {
@@ -109,6 +112,7 @@ class PixelEditorPanel : public WindowContent {
   bool fit_canvas_requested_ = false;
   bool show_source_preview_ = true;
   std::function<void()> draw_source_preview_;
+  std::function<void()> open_scratch_;
   std::function<bool()> sheet_browser_visible_;
   std::function<void(bool)> set_sheet_browser_visible_;
   /**
@@ -130,6 +134,12 @@ class PixelEditorPanel : public WindowContent {
    * @brief Draw the color palette picker
    */
   void DrawColorPicker();
+
+  void DrawIndexSwapControls();
+  int swap_from_id_ = 1;
+  int swap_to_id_ = 2;
+  int swap_scope_ = 0;
+  std::string index_swap_status_;
 
   /**
    * @brief Draw the status bar with cursor position

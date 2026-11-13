@@ -427,38 +427,6 @@ void StatusBadge(const char* text, ButtonType type) {
 // Editor-Specific Patterns
 // ============================================================================
 
-void BeginToolset(const char* id) {
-  ImGui::PushStyleVar(ImGuiStyleVar_CellPadding, ImVec2(2, 2));
-  ImGui::BeginTable(id, 32, ImGuiTableFlags_SizingFixedFit);
-}
-
-void EndToolset() {
-  ImGui::EndTable();
-  ImGui::PopStyleVar();
-}
-
-void ToolsetButton(const char* icon, bool selected, const char* tooltip,
-                   std::function<void()> on_click) {
-  ImGui::TableNextColumn();
-
-  if (selected) {
-    ImGui::PushStyleColor(ImGuiCol_Button, GetAccentColor());
-  }
-
-  if (ImGui::Button(icon)) {
-    if (on_click)
-      on_click();
-  }
-
-  if (selected) {
-    ImGui::PopStyleColor();
-  }
-
-  if (tooltip && ImGui::IsItemHovered()) {
-    ImGui::SetTooltip("%s", tooltip);
-  }
-}
-
 void BeginCanvasContainer(const char* id, bool scrollable) {
   ImGuiWindowFlags flags = scrollable ? ImGuiWindowFlags_AlwaysVerticalScrollbar
                                       : ImGuiWindowFlags_None;
@@ -637,7 +605,7 @@ void LoadingSpinner(const char* label, float radius) {
   const float end_angle = rotation + IM_PI * 1.5f;
 
   draw_list->PathArcTo(pos, radius, start_angle, end_angle, segments);
-  draw_list->PathStroke(ImGui::GetColorU32(GetAccentColor()), 0, thickness);
+  draw_list->PathStroke(ImGui::GetColorU32(GetAccentColor()), thickness);
 
   if (label) {
     ImGui::SetCursorPosX(ImGui::GetCursorPosX() + radius * 2 + 8);

@@ -2,10 +2,12 @@
 
 #include <algorithm>
 #include <chrono>
+#include <cmath>
 #include <cstdio>
 #include <ctime>
 #include <fstream>
 #include <sstream>
+#include <utility>
 
 #include "absl/strings/ascii.h"
 #include "absl/strings/str_cat.h"
@@ -15,6 +17,10 @@
 #include "absl/strings/strip.h"
 #include "absl/time/clock.h"
 #include "imgui/imgui_internal.h"  // For ImGuiContext internals
+
+#if defined(YAZE_WITH_JSON)
+#include "nlohmann/json.hpp"
+#endif
 
 namespace yaze {
 namespace gui {
@@ -156,6 +162,174 @@ WidgetIdRegistry::WidgetBounds BoundsFromImGui(const ImRect& rect) {
   return bounds;
 }
 
+// Returns the byte length of the UTF-8 character that starts at `pos`, so '?'
+// and '*' step over whole characters in non-ASCII widget names.
+size_t Utf8CharLength(absl::string_view text, size_t pos) {
+  size_t end = pos + 1;
+  while (end < text.size() &&
+         (static_cast<unsigned char>(text[end]) & 0xC0) == 0x80) {
+    ++end;
+  }
+  return end - pos;
+}
+
+// Matches all of `text` against `pattern`. '*' matches any run of characters,
+// '?' matches one character, and every other byte matches itself. On a
+// mismatch the most recent '*' takes one more character and matching resumes
+// after it; that backtracking is complete for patterns without classes.
+bool GlobMatch(absl::string_view pattern, absl::string_view text) {
+  size_t p = 0;
+  size_t t = 0;
+  size_t star = absl::string_view::npos;  // pattern index of the last '*'
+  size_t star_text = 0;                   // text index where that '*' ends
+  while (t < text.size()) {
+    if (p < pattern.size() && pattern[p] == '*') {
+      star = p++;
+      star_text = t;
+    } else if (p < pattern.size() && pattern[p] == '?') {
+      ++p;
+      t += Utf8CharLength(text, t);
+    } else if (p < pattern.size() && pattern[p] == text[t]) {
+      ++p;
+      ++t;
+    } else if (star != absl::string_view::npos) {
+      p = star + 1;
+      star_text += Utf8CharLength(text, star_text);
+      t = star_text;
+    } else {
+      return false;
+    }
+  }
+  while (p < pattern.size() && pattern[p] == '*') {
+    ++p;
+  }
+  return p == pattern.size();
+}
+
+// The catalog keeps bounds to one decimal place, as the earlier hand-written
+// "%0.1f" output did.
+double RoundToTenth(float value) {
+  return std::round(static_cast<double>(value) * 10.0) / 10.0;
+}
+
+#if defined(YAZE_WITH_JSON)
+// ordered_json keeps the field order of the earlier hand-written catalog.
+nlohmann::ordered_json WidgetToJson(const std::string& path,
+                                    const WidgetIdRegistry::WidgetInfo& info) {
+  nlohmann::ordered_json widget;
+  widget["path"] = path;
+  widget["type"] = info.type;
+  widget["imgui_id"] = info.imgui_id;
+  widget["label"] = info.label;
+  widget["window"] = info.window_name;
+  widget["visible"] = info.visible;
+  widget["enabled"] = info.enabled;
+  if (info.bounds.valid) {
+    // nlohmann writes NaN and infinity as null, so odd ImGui rects stay valid.
+    widget["bounds"] = {
+        {"min",
+         {RoundToTenth(info.bounds.min_x), RoundToTenth(info.bounds.min_y)}},
+        {"max",
+         {RoundToTenth(info.bounds.max_x), RoundToTenth(info.bounds.max_y)}}};
+  } else {
+    widget["bounds"] = nullptr;
+  }
+  widget["last_seen_frame"] = info.last_seen_frame;
+  widget["last_seen_at"] = FormatTimestampUTC(info.last_seen_time);
+  widget["stale"] = info.stale_frame_count > 0;
+  if (!info.description.empty()) {
+    widget["description"] = info.description;
+  }
+  return widget;
+}
+#else
+// Quotes a string as a JSON string literal for builds without nlohmann::json.
+// Bytes 0x80 and above pass through, so UTF-8 names stay intact.
+std::string QuoteJsonString(absl::string_view value) {
+  std::string quoted;
+  quoted.reserve(value.size() + 2);
+  quoted.push_back('"');
+  for (unsigned char c : value) {
+    switch (c) {
+      case '"':
+        quoted.append("\\\"");
+        break;
+      case '\\':
+        quoted.append("\\\\");
+        break;
+      case '\b':
+        quoted.append("\\b");
+        break;
+      case '\f':
+        quoted.append("\\f");
+        break;
+      case '\n':
+        quoted.append("\\n");
+        break;
+      case '\r':
+        quoted.append("\\r");
+        break;
+      case '\t':
+        quoted.append("\\t");
+        break;
+      default:
+        if (c < 0x20) {
+          quoted.append(absl::StrFormat("\\u%04X", static_cast<int>(c)));
+        } else {
+          quoted.push_back(static_cast<char>(c));
+        }
+        break;
+    }
+  }
+  quoted.push_back('"');
+  return quoted;
+}
+
+// JSON has no NaN or infinity literal; write null as nlohmann::json does.
+std::string JsonNumber(double value) {
+  if (!std::isfinite(value)) {
+    return "null";
+  }
+  return absl::StrFormat("%.1f", value);
+}
+
+std::string WidgetToJson(const std::string& path,
+                         const WidgetIdRegistry::WidgetInfo& info) {
+  std::vector<std::string> fields;
+  fields.push_back(absl::StrCat("\"path\": ", QuoteJsonString(path)));
+  fields.push_back(absl::StrCat("\"type\": ", QuoteJsonString(info.type)));
+  fields.push_back(absl::StrCat("\"imgui_id\": ", info.imgui_id));
+  fields.push_back(absl::StrCat("\"label\": ", QuoteJsonString(info.label)));
+  fields.push_back(
+      absl::StrCat("\"window\": ", QuoteJsonString(info.window_name)));
+  fields.push_back(
+      absl::StrCat("\"visible\": ", info.visible ? "true" : "false"));
+  fields.push_back(
+      absl::StrCat("\"enabled\": ", info.enabled ? "true" : "false"));
+  if (info.bounds.valid) {
+    fields.push_back(absl::StrCat(
+        "\"bounds\": {\"min\": [", JsonNumber(RoundToTenth(info.bounds.min_x)),
+        ", ", JsonNumber(RoundToTenth(info.bounds.min_y)), "], \"max\": [",
+        JsonNumber(RoundToTenth(info.bounds.max_x)), ", ",
+        JsonNumber(RoundToTenth(info.bounds.max_y)), "]}"));
+  } else {
+    fields.push_back("\"bounds\": null");
+  }
+  fields.push_back(absl::StrCat("\"last_seen_frame\": ", info.last_seen_frame));
+  fields.push_back(
+      absl::StrCat("\"last_seen_at\": ",
+                   QuoteJsonString(FormatTimestampUTC(info.last_seen_time))));
+  fields.push_back(absl::StrCat("\"stale\": ",
+                                info.stale_frame_count > 0 ? "true" : "false"));
+  if (!info.description.empty()) {
+    fields.push_back(
+        absl::StrCat("\"description\": ", QuoteJsonString(info.description)));
+  }
+  return absl::StrCat("    {\n      ", absl::StrJoin(fields, ",\n      "),
+                      "\n    }");
+}
+#endif  // defined(YAZE_WITH_JSON)
+
 }  // namespace
 
 void WidgetIdRegistry::RegisterWidget(const std::string& full_path,
@@ -234,30 +408,9 @@ std::vector<std::string> WidgetIdRegistry::FindWidgets(
   absl::MutexLock lock(&mutex_);
   std::vector<std::string> matches;
 
-  // Simple glob-style pattern matching
-  // Supports: "*" (any), "?" (single char), exact matches
-  for (const auto& [path, info] : widgets_) {
-    bool match = false;
-
-    if (pattern == "*") {
-      match = true;
-    } else if (pattern.find('*') != std::string::npos) {
-      // Wildcard pattern - convert to simple substring match for now
-      std::string search = pattern;
-      search.erase(std::remove(search.begin(), search.end(), '*'),
-                   search.end());
-      if (!search.empty() && path.find(search) != std::string::npos) {
-        match = true;
-      }
-    } else {
-      // Exact match
-      if (path == pattern) {
-        match = true;
-      }
-    }
-
-    if (match) {
-      matches.push_back(path);
+  for (const auto& entry : widgets_) {
+    if (GlobMatch(pattern, entry.first)) {
+      matches.push_back(entry.first);
     }
   }
 
@@ -302,52 +455,42 @@ std::string WidgetIdRegistry::ExportCatalog(const std::string& format) const {
   std::ostringstream ss;
 
   if (format == "json") {
-    ss << "{\n";
-    ss << "  \"widgets\": [\n";
-
-    bool first = true;
-    for (const auto& [path, info] : widgets_) {
-      if (!first)
-        ss << ",\n";
-      first = false;
-
-      ss << "    {\n";
-      ss << absl::StrFormat("      \"path\": \"%s\",\n", path);
-      ss << absl::StrFormat("      \"type\": \"%s\",\n", info.type);
-      ss << absl::StrFormat("      \"imgui_id\": %u,\n", info.imgui_id);
-      ss << absl::StrFormat("      \"label\": \"%s\",\n", info.label);
-      ss << absl::StrFormat("      \"window\": \"%s\",\n", info.window_name);
-      ss << absl::StrFormat("      \"visible\": %s,\n",
-                            info.visible ? "true" : "false");
-      ss << absl::StrFormat("      \"enabled\": %s,\n",
-                            info.enabled ? "true" : "false");
-      if (info.bounds.valid) {
-        ss << absl::StrFormat(
-            "      \"bounds\": {\"min\": [%0.1f, %0.1f], \"max\": [%0.1f, "
-            "%0.1f]},\n",
-            info.bounds.min_x, info.bounds.min_y, info.bounds.max_x,
-            info.bounds.max_y);
-      } else {
-        ss << "      \"bounds\": null,\n";
-      }
-      ss << absl::StrFormat("      \"last_seen_frame\": %d,\n",
-                            info.last_seen_frame);
-      std::string iso_timestamp = FormatTimestampUTC(info.last_seen_time);
-      ss << absl::StrFormat("      \"last_seen_at\": \"%s\",\n", iso_timestamp);
-      ss << absl::StrFormat("      \"stale\": %s",
-                            info.stale_frame_count > 0 ? "true" : "false");
-      if (!info.description.empty()) {
-        ss << ",\n";
-        ss << absl::StrFormat("      \"description\": \"%s\"\n",
-                              info.description);
-      } else {
-        ss << "\n";
-      }
-      ss << "    }";
+    // widgets_ is unordered; sort by path so repeated exports diff cleanly.
+    using Entry = std::unordered_map<std::string, WidgetInfo>::value_type;
+    std::vector<const Entry*> entries;
+    entries.reserve(widgets_.size());
+    for (const Entry& entry : widgets_) {
+      entries.push_back(&entry);
     }
+    std::sort(
+        entries.begin(), entries.end(),
+        [](const Entry* a, const Entry* b) { return a->first < b->first; });
 
-    ss << "\n  ]\n";
-    ss << "}\n";
+#if defined(YAZE_WITH_JSON)
+    nlohmann::ordered_json widgets = nlohmann::ordered_json::array();
+    for (const Entry* entry : entries) {
+      widgets.push_back(WidgetToJson(entry->first, entry->second));
+    }
+    nlohmann::ordered_json catalog;
+    catalog["widgets"] = std::move(widgets);
+    // Paths and labels come from UI strings. Replace invalid UTF-8 instead of
+    // letting dump() throw; valid UTF-8 is written as-is.
+    ss << catalog.dump(2, ' ', false,
+                       nlohmann::ordered_json::error_handler_t::replace)
+       << "\n";
+#else
+    std::vector<std::string> objects;
+    objects.reserve(entries.size());
+    for (const Entry* entry : entries) {
+      objects.push_back(WidgetToJson(entry->first, entry->second));
+    }
+    if (objects.empty()) {
+      ss << "{\n  \"widgets\": []\n}\n";
+    } else {
+      ss << "{\n  \"widgets\": [\n"
+         << absl::StrJoin(objects, ",\n") << "\n  ]\n}\n";
+    }
+#endif  // defined(YAZE_WITH_JSON)
   } else {
     // YAML format (default)
     ss << "widgets:\n";

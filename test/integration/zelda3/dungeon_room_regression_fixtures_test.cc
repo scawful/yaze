@@ -19,6 +19,7 @@
 #include "integration/zelda3/dungeon_room_regression_fixtures.h"
 #include "rom/snes.h"
 #include "test_utils.h"
+#include "yaze_test_paths.h"
 #if defined(YAZE_HAS_VISUAL_DIFF_ENGINE)
 #include "util/rom_hash.h"
 #endif

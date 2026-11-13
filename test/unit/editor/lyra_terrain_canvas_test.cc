@@ -1,5 +1,6 @@
 #include "app/editor/overworld/lyra_terrain_canvas.h"
 
+#include <array>
 #include <chrono>
 #include <filesystem>
 #include <fstream>
@@ -7,7 +8,9 @@
 #include <memory>
 #include <vector>
 
+#include "app/gfx/types/snes_palette.h"
 #include "gtest/gtest.h"
+#include "zelda3/overworld/lyra_terrain_source.h"
 
 namespace yaze::editor {
 
@@ -52,6 +55,100 @@ core::LyraTerrainProfile FixtureProfile() {
   profile.palette_fingerprint = "palette:fixture";
   profile.animation_fingerprint = "animation:fixture";
   return profile;
+}
+
+TEST(LyraBackgroundPaletteTest, AppliesOnlyBackgroundToResolvedCopy) {
+  std::vector<uint16_t> native_colors(256);
+  for (size_t i = 0; i < native_colors.size(); ++i) {
+    native_colors[i] = static_cast<uint16_t>(i * 19);
+  }
+  gfx::SnesPalette native(native_colors);
+  native[0].set_transparent(true);
+  native[16].set_transparent(true);
+  native[127].set_modified(true);
+  native[128].set_transparent(true);
+  native[255].set_modified(true);
+  auto resolved = native;
+  core::LyraMapProperties properties;
+  std::array<uint16_t, 128> override_colors{};
+  for (size_t i = 0; i < override_colors.size(); ++i) {
+    override_colors[i] = static_cast<uint16_t>(0x7FFF - i);
+  }
+  properties.background_palette = override_colors;
+
+  ASSERT_TRUE(
+      zelda3::ApplyLyraBackgroundPaletteOverride(properties, resolved).ok());
+  ASSERT_EQ(resolved.size(), 256u);
+  for (size_t i = 0; i < resolved.size(); ++i) {
+    SCOPED_TRACE(i);
+    EXPECT_EQ(native[i].snes(), native_colors[i]);
+    EXPECT_EQ(resolved[i].snes(),
+              i < 128 ? override_colors[i] : native_colors[i]);
+    EXPECT_EQ(resolved[i].is_transparent(), native[i].is_transparent());
+    EXPECT_EQ(resolved[i].is_modified(), native[i].is_modified());
+  }
+}
+
+TEST(LyraBackgroundPaletteTest, InvalidLastColorRefusesBeforeAnyMutation) {
+  const std::vector<uint16_t> native_colors(256, 0x1234);
+  gfx::SnesPalette resolved(native_colors);
+  core::LyraMapProperties properties;
+  std::array<uint16_t, 128> override_colors{};
+  override_colors[0] = 0x001F;
+  override_colors[127] = 0x8000;
+  properties.background_palette = override_colors;
+
+  const auto status =
+      zelda3::ApplyLyraBackgroundPaletteOverride(properties, resolved);
+  EXPECT_EQ(status.code(), absl::StatusCode::kInvalidArgument);
+  for (size_t i = 0; i < resolved.size(); ++i) {
+    SCOPED_TRACE(i);
+    EXPECT_EQ(resolved[i].snes(), native_colors[i]);
+  }
+}
+
+TEST(LyraBackgroundPaletteTest, IncompleteResolvedPaletteRefusesAtomically) {
+  const std::vector<uint16_t> native_colors(128, 0x1234);
+  gfx::SnesPalette resolved(native_colors);
+  core::LyraMapProperties properties;
+  properties.background_palette = std::array<uint16_t, 128>{};
+
+  const auto status =
+      zelda3::ApplyLyraBackgroundPaletteOverride(properties, resolved);
+  EXPECT_EQ(status.code(), absl::StatusCode::kFailedPrecondition);
+  ASSERT_EQ(resolved.size(), native_colors.size());
+  for (size_t i = 0; i < resolved.size(); ++i) {
+    SCOPED_TRACE(i);
+    EXPECT_EQ(resolved[i].snes(), native_colors[i]);
+  }
+}
+
+TEST(LyraBackgroundPaletteTest, AbsentOverrideLeavesNativePaletteUntouched) {
+  const std::vector<uint16_t> native_colors = {0, 0x001F, 0x03E0, 0x7C00};
+  gfx::SnesPalette resolved(native_colors);
+  const core::LyraMapProperties native_properties;
+  ASSERT_TRUE(
+      zelda3::ApplyLyraBackgroundPaletteOverride(native_properties, resolved)
+          .ok());
+  ASSERT_EQ(resolved.size(), native_colors.size());
+  for (size_t i = 0; i < resolved.size(); ++i) {
+    EXPECT_EQ(resolved[i].snes(), native_colors[i]);
+  }
+}
+
+TEST(LyraBackgroundPaletteTest, AssetKeysSeparatePresenceColorsAndGameState) {
+  core::LyraMapProperties properties;
+  const auto native_key = zelda3::LyraMapAssetKey(properties, 0);
+  properties.background_palette = std::array<uint16_t, 128>{};
+  const auto zero_key = zelda3::LyraMapAssetKey(properties, 0);
+  EXPECT_NE(native_key, zero_key);
+
+  properties.background_palette->back() = 0x7FFF;
+  const auto changed_key = zelda3::LyraMapAssetKey(properties, 0);
+  EXPECT_NE(zero_key, changed_key);
+  EXPECT_NE(changed_key, zelda3::LyraMapAssetKey(properties, 1));
+  properties.background_palette.reset();
+  EXPECT_EQ(zelda3::LyraMapAssetKey(properties, 0), native_key);
 }
 
 void Write(const fs::path& path, const std::string& bytes) {
@@ -140,6 +237,43 @@ TEST_F(LyraTerrainSourceTest, CreatesSidecarReopensAndPreservesUndoAfterSave) {
   ASSERT_TRUE(undone_reopened.ok());
   EXPECT_EQ(undone_reopened->MapTile(0xA8, 7, 0).value(), 8);
   ASSERT_TRUE(document->ApplyStroke(*stroke, false).ok());
+  EXPECT_FALSE(document->dirty());
+}
+
+TEST_F(LyraTerrainSourceTest,
+       BackgroundPalettePublishesAndReopensWithoutRomWrite) {
+  auto document = core::LyraTerrainDocument::Create(FixtureProfile(), 8);
+  ASSERT_TRUE(document.ok());
+  const auto baseline = document->authoring();
+  auto overridden = baseline;
+  std::array<uint16_t, 128> palette{};
+  palette[0] = 0x001F;
+  palette[127] = 0x7FFF;
+  overridden.maps[0].properties.background_palette = palette;
+  overridden.maps[0].asset_bindings = {"defs:0", "gfx:0", "palette:0"};
+  ASSERT_TRUE(document->SetAuthoring(baseline, overridden).ok());
+
+  auto published = PublishLyraTerrainSource(project_, source_.string(),
+                                            std::nullopt, *document);
+  ASSERT_TRUE(published.ok()) << published.status();
+  ExpectProtectedFilesUnchanged();
+  auto reopened =
+      core::LyraTerrainDocument::Parse(Read(source_), FixtureProfile());
+  ASSERT_TRUE(reopened.ok()) << reopened.status();
+  EXPECT_EQ(reopened->authoring(), overridden);
+  EXPECT_FALSE(reopened->dirty());
+  document->MarkSaved();
+  ASSERT_TRUE(document->SetAuthoring(overridden, baseline).ok());
+  EXPECT_TRUE(document->dirty());
+
+  auto undone = PublishLyraTerrainSource(project_, source_.string(), *published,
+                                         *document);
+  ASSERT_TRUE(undone.ok()) << undone.status();
+  auto native = core::LyraTerrainDocument::Parse(*undone, FixtureProfile());
+  ASSERT_TRUE(native.ok()) << native.status();
+  EXPECT_FALSE(native->authoring().maps[0].properties.background_palette);
+  ExpectProtectedFilesUnchanged();
+  ASSERT_TRUE(document->SetAuthoring(baseline, overridden).ok());
   EXPECT_FALSE(document->dirty());
 }
 
@@ -435,6 +569,76 @@ TEST_F(LyraPropertyDraftTest, MapNavigationRetainsEachPendingDraft) {
   EXPECT_EQ(Live(0).main_palette, 0);
   Peer::Revert(canvas_, 0);
   EXPECT_FALSE(canvas_.dirty());
+}
+
+TEST_F(LyraPropertyDraftTest, BackgroundPaletteDraftIsPerMapAndRevertUsesLive) {
+  const auto native = Live(0);
+  std::array<uint16_t, 128> palette{};
+  palette[0] = 0x001F;
+  palette[127] = 0x7FFF;
+  Peer::Draft(canvas_, 0).background_palette = palette;
+
+  EXPECT_EQ(Peer::Draft(canvas_, 0).background_palette, palette);
+  EXPECT_FALSE(Peer::Draft(canvas_, 1).background_palette.has_value());
+  EXPECT_EQ(Live(0), native);
+  EXPECT_FALSE(document_->dirty());
+  EXPECT_EQ(Peer::PendingMaps(canvas_), std::vector<int>({0xA0}));
+  EXPECT_TRUE(canvas_.dirty());
+
+  Peer::Revert(canvas_, 0);
+  EXPECT_EQ(Peer::Draft(canvas_, 0), native);
+  EXPECT_TRUE(Peer::PendingMaps(canvas_).empty());
+  EXPECT_FALSE(canvas_.dirty());
+  EXPECT_EQ(history_.UndoStackSize(), 0u);
+}
+
+TEST_F(LyraPropertyDraftTest,
+       NativePaletteResetIsReversibleWithoutGlobalEdits) {
+  auto live = Live(0);
+  std::array<uint16_t, 128> palette{};
+  palette[16] = 0x03E0;
+  live.background_palette = palette;
+  live.main_palette = 5;
+  live.palette_set = 14;
+  SetLive(0, live);
+  document_->MarkSaved();
+  ASSERT_EQ(Peer::Draft(canvas_, 0), live);
+
+  auto& draft = Peer::Draft(canvas_, 0);
+  draft.background_palette.reset();
+  EXPECT_EQ(draft.main_palette, 5);
+  EXPECT_EQ(draft.palette_set, 14);
+  EXPECT_EQ(Live(0), live);
+  EXPECT_FALSE(document_->dirty());
+  EXPECT_TRUE(canvas_.dirty());
+
+  Peer::Revert(canvas_, 0);
+  EXPECT_EQ(Peer::Draft(canvas_, 0).background_palette, palette);
+  EXPECT_EQ(Live(0), live);
+  EXPECT_FALSE(canvas_.dirty());
+  EXPECT_EQ(history_.UndoStackSize(), 0u);
+}
+
+TEST_F(LyraPropertyDraftTest, BackgroundPaletteLiveChangeRefusesStaleDraft) {
+  std::array<uint16_t, 128> draft_palette{};
+  draft_palette[0] = 0x001F;
+  Peer::Draft(canvas_, 0).background_palette = draft_palette;
+  auto newer = Live(0);
+  std::array<uint16_t, 128> live_palette{};
+  live_palette[0] = 0x7C00;
+  newer.background_palette = live_palette;
+  SetLive(0, newer);
+  const auto before = document_->authoring();
+  ASSERT_TRUE(Peer::Conflict(canvas_, 0));
+
+  const auto status = Peer::Apply(canvas_, 0, overworld_, history_);
+  EXPECT_EQ(status.code(), absl::StatusCode::kFailedPrecondition);
+  EXPECT_NE(status.message().find("Revert Properties"), std::string::npos);
+  EXPECT_EQ(document_->authoring(), before);
+  EXPECT_EQ(Peer::Draft(canvas_, 0).background_palette, draft_palette);
+  EXPECT_EQ(history_.UndoStackSize(), 0u);
+  Peer::Revert(canvas_, 0);
+  EXPECT_EQ(Peer::Draft(canvas_, 0).background_palette, live_palette);
 }
 
 TEST_F(LyraPropertyDraftTest, CleanDraftFollowsLiveIncludingUndo) {

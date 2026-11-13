@@ -169,6 +169,7 @@ absl::Status DungeonEditorV2::PreflightObjectMutation(
   if (!room || room->rom() != rom_) {
     return absl::FailedPreconditionError("Room objects are not loaded");
   }
+  RETURN_IF_ERROR(PreflightMinecartObjectCollision(room_id, objects));
   if (objects.size() > zelda3::kMaxTileObjects &&
       objects.size() > room->GetTileObjects().size()) {
     return absl::ResourceExhaustedError("Room object limit reached");

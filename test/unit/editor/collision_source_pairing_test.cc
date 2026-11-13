@@ -2,6 +2,9 @@
 
 #include <gtest/gtest.h>
 
+#include <atomic>
+#include <chrono>
+#include <cstdint>
 #include <cstdlib>
 #include <filesystem>
 #include <fstream>
@@ -54,10 +57,19 @@ void SetCollisionTile(Rom* rom, int offset, uint8_t value) {
 class CollisionSourcePairingTest : public ::testing::Test {
  protected:
   void SetUp() override {
-    root_ = ::yaze::test::UniqueTempPath("yaze_collision_pair", "");
+    // Nested source files gain publication temporary/backup suffixes. Keep
+    // this root independent of long test names so Windows stays below MAX_PATH.
+    static std::atomic<uint64_t> sequence{0};
+    const auto tick = static_cast<uint64_t>(
+        std::chrono::steady_clock::now().time_since_epoch().count());
+    root_ =
+        fs::temp_directory_path() /
+        absl::StrFormat("yaze_pair_%016x_%016x", tick, sequence.fetch_add(1));
     rom_path_ = root_ / "rom.sfc";
     json_path_ = root_ / "Data" / "dungeons" / "custom_collision.json";
-    fs::create_directories(json_path_.parent_path());
+    std::error_code create_error;
+    ASSERT_TRUE(fs::create_directories(json_path_.parent_path(), create_error))
+        << create_error.message();
 
     ASSERT_TRUE(rom_.LoadFromData(std::vector<uint8_t>(0x200000, 0x00)).ok());
     SetCollisionTile(&rom_, 100, 0xB7);
@@ -90,7 +102,8 @@ TEST_F(CollisionSourcePairingTest, UnchangedCollisionLeavesJsonUntouched) {
   const auto json_time = fs::last_write_time(json_path_);
   ASSERT_TRUE(rom_.WriteByte(0x100, 0x42).ok());
 
-  ASSERT_TRUE(SaveRomWithCollisionSource(&rom_, json_path_).ok());
+  const auto save = SaveRomWithCollisionSource(&rom_, json_path_);
+  ASSERT_TRUE(save.ok()) << save;
 
   EXPECT_EQ(ReadFile(json_path_), json_before);
   EXPECT_EQ(fs::last_write_time(json_path_), json_time);
@@ -114,7 +127,8 @@ TEST_F(CollisionSourcePairingTest,
   EXPECT_EQ(ReadFile(rom_path_), rom_before);
   EXPECT_EQ(ReadFile(json_path_), formatted);
   ASSERT_TRUE(rom_.WriteByte(0x100, 0x42).ok());
-  ASSERT_TRUE(SaveRomWithCollisionSource(&rom_, json_path_).ok());
+  const auto save = SaveRomWithCollisionSource(&rom_, json_path_);
+  ASSERT_TRUE(save.ok()) << save;
 
   EXPECT_EQ(ReadFile(json_path_), formatted);
   EXPECT_EQ(fs::last_write_time(json_path_), json_time);
@@ -126,7 +140,8 @@ TEST_F(CollisionSourcePairingTest, ChangedCollisionWritesBothFiles) {
   const std::string json_before = ReadFile(json_path_);
   SetCollisionTile(&rom_, 200, 0xB0);
 
-  ASSERT_TRUE(SaveRomWithCollisionSource(&rom_, json_path_).ok());
+  const auto save = SaveRomWithCollisionSource(&rom_, json_path_);
+  ASSERT_TRUE(save.ok()) << save;
 
   const std::string rom_bytes = ReadFile(rom_path_);
   EXPECT_EQ(rom_bytes, std::string(rom_.vector().begin(), rom_.vector().end()));
@@ -144,7 +159,8 @@ TEST_F(CollisionSourcePairingTest,
             "\"room_id\":\"0x25\"}]}\n");
   SetCollisionTile(&rom_, 200, 0xB0);
 
-  ASSERT_TRUE(SaveRomWithCollisionSource(&rom_, json_path_).ok());
+  const auto save = SaveRomWithCollisionSource(&rom_, json_path_);
+  ASSERT_TRUE(save.ok()) << save;
 
   auto expected = zelda3::DumpCustomCollisionSourceFromRom(&rom_);
   ASSERT_TRUE(expected.ok());
@@ -158,7 +174,8 @@ TEST_F(CollisionSourcePairingTest, MissingJsonIsCreated) {
   fs::remove(json_path_);
   SetCollisionTile(&rom_, 200, 0xB0);
 
-  ASSERT_TRUE(SaveRomWithCollisionSource(&rom_, json_path_).ok());
+  const auto save = SaveRomWithCollisionSource(&rom_, json_path_);
+  ASSERT_TRUE(save.ok()) << save;
 
   auto expected = zelda3::DumpCustomCollisionSourceFromRom(&rom_);
   ASSERT_TRUE(expected.ok());
@@ -192,7 +209,8 @@ TEST_F(CollisionSourcePairingTest, RemovedExplicitFloorRefusesSaveAndRebind) {
   map.SetOverride(100, 0x00);
   map.SetOverride(200, 0xB7);
   ASSERT_TRUE(zelda3::WriteTrackCollision(&rom_, kRoom, map).ok());
-  ASSERT_TRUE(SaveRomWithCollisionSource(&rom_, json_path_).ok());
+  const auto save = SaveRomWithCollisionSource(&rom_, json_path_);
+  ASSERT_TRUE(save.ok()) << save;
   const auto rom_before = ReadFile(rom_path_);
   // Omitting offset 100 is a real change, even though its override is zero.
   const std::string removed_floor =

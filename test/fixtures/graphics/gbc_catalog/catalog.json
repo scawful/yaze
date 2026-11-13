@@ -1,0 +1,2411 @@
+{
+ "schema_version": 1,
+ "title": "GBC donor resource collection — review candidates",
+ "references": [
+  {
+   "id": "gbc.gbc-keese",
+   "title": "Keese",
+   "name": "Keese",
+   "role": "source-sheet",
+   "source_kind": "indexed-png",
+   "bpp": 4,
+   "group": "Oracle of Ages",
+   "category": "sprite",
+   "game": "Oracle of Ages",
+   "credit": "Nintendo/Capcom game art (Oracle games) or Nintendo (LADX); ripper not identified in this local blue-background sheet.",
+   "source_game_attribution": "The Legend of Zelda: Oracle of Ages",
+   "original_research_game_label": null,
+   "source_url": null,
+   "source_sha256": "16719d8c2a40c5f70e21f4e2c1ffb1734d0987e379876d7edd824d18a4de7ecb",
+   "source_origin": "zeldaoracleofages_peopleandmonsters_sheet.png",
+   "donor_crop_sha256": "62c097344298a7a5b9e206ba928119a76636cceb89d73860ac432ae6b796a40d",
+   "source_rects": [
+    [
+     170,
+     582,
+     228,
+     604
+    ]
+   ],
+   "pages": [
+    {
+     "path": "pages/gbc-keese/page-00.png",
+     "sha256": "15cd6a993a99d6ef75c9ffc8df6e732395faea838ddb883747e5bfd3e669ca65",
+     "binary_path": "pages/gbc-keese/page-00.4bpp",
+     "binary_sha256": "06502c806c2b43c39b61b4c685462ee5ea1560aecec9aaa768b5fecf5ef75e3c"
+    }
+   ],
+   "palette_bgr555": [
+    0,
+    0,
+    5182,
+    18238,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "pixel_size": [
+    64,
+    24
+   ],
+   "original_pixel_size": [
+    58,
+    22
+   ],
+   "assembly": [
+    {
+     "x": 0,
+     "y": 0,
+     "page": 0,
+     "page_tile": 1,
+     "h": false,
+     "v": false
+    },
+    {
+     "x": 1,
+     "y": 0,
+     "page": 0,
+     "page_tile": 2,
+     "h": false,
+     "v": false
+    },
+    {
+     "x": 2,
+     "y": 0,
+     "page": 0,
+     "page_tile": 0,
+     "h": false,
+     "v": false
+    },
+    {
+     "x": 3,
+     "y": 0,
+     "page": 0,
+     "page_tile": 0,
+     "h": false,
+     "v": false
+    },
+    {
+     "x": 4,
+     "y": 0,
+     "page": 0,
+     "page_tile": 0,
+     "h": false,
+     "v": false
+    },
+    {
+     "x": 5,
+     "y": 0,
+     "page": 0,
+     "page_tile": 3,
+     "h": false,
+     "v": false
+    },
+    {
+     "x": 6,
+     "y": 0,
+     "page": 0,
+     "page_tile": 4,
+     "h": true,
+     "v": false
+    },
+    {
+     "x": 7,
+     "y": 0,
+     "page": 0,
+     "page_tile": 0,
+     "h": false,
+     "v": false
+    },
+    {
+     "x": 0,
+     "y": 1,
+     "page": 0,
+     "page_tile": 5,
+     "h": false,
+     "v": false
+    },
+    {
+     "x": 1,
+     "y": 1,
+     "page": 0,
+     "page_tile": 6,
+     "h": true,
+     "v": true
+    },
+    {
+     "x": 2,
+     "y": 1,
+     "page": 0,
+     "page_tile": 7,
+     "h": true,
+     "v": false
+    },
+    {
+     "x": 3,
+     "y": 1,
+     "page": 0,
+     "page_tile": 0,
+     "h": false,
+     "v": false
+    },
+    {
+     "x": 4,
+     "y": 1,
+     "page": 0,
+     "page_tile": 0,
+     "h": false,
+     "v": false
+    },
+    {
+     "x": 5,
+     "y": 1,
+     "page": 0,
+     "page_tile": 8,
+     "h": false,
+     "v": true
+    },
+    {
+     "x": 6,
+     "y": 1,
+     "page": 0,
+     "page_tile": 9,
+     "h": true,
+     "v": true
+    },
+    {
+     "x": 7,
+     "y": 1,
+     "page": 0,
+     "page_tile": 0,
+     "h": false,
+     "v": false
+    },
+    {
+     "x": 0,
+     "y": 2,
+     "page": 0,
+     "page_tile": 10,
+     "h": true,
+     "v": true
+    },
+    {
+     "x": 1,
+     "y": 2,
+     "page": 0,
+     "page_tile": 11,
+     "h": true,
+     "v": true
+    },
+    {
+     "x": 2,
+     "y": 2,
+     "page": 0,
+     "page_tile": 12,
+     "h": true,
+     "v": true
+    },
+    {
+     "x": 3,
+     "y": 2,
+     "page": 0,
+     "page_tile": 0,
+     "h": false,
+     "v": false
+    },
+    {
+     "x": 4,
+     "y": 2,
+     "page": 0,
+     "page_tile": 0,
+     "h": false,
+     "v": false
+    },
+    {
+     "x": 5,
+     "y": 2,
+     "page": 0,
+     "page_tile": 12,
+     "h": false,
+     "v": true
+    },
+    {
+     "x": 6,
+     "y": 2,
+     "page": 0,
+     "page_tile": 10,
+     "h": false,
+     "v": true
+    },
+    {
+     "x": 7,
+     "y": 2,
+     "page": 0,
+     "page_tile": 0,
+     "h": false,
+     "v": false
+    }
+   ],
+   "preview_path": "pages/gbc-keese/source.png",
+   "preview_sha256": "0c3362b4a138905c12b51d218cacded094cff02952bd9bf0a10ca9c1ac216ddb",
+   "resources_bound": false,
+   "proposal": "Dark-world sprite visual candidate; compare silhouette and palette groups.",
+   "notes": "Two wing poses with genuine black body pixels preserved.",
+   "behavior_status": "UNBOUND: no engine sequence, timing, OAM, palette assignment, collision or runtime behavior verified.",
+   "identification_confidence": "high",
+   "provenance_status": "see source inventory",
+   "source_components": [],
+   "background_policy": {
+    "mode": "key",
+    "rgb": [
+     0,
+     136,
+     255
+    ],
+    "method": "Only exact blue pixels connected to crop border become alpha0; original RGB and all black pixels preserved.",
+    "mask_path": "/Users/scawful/.context/projects/oracle-of-secrets/scratchpad/handoffs/cave_minish_revision_2026-10-28/family-expansion/gbc-resource-lab-v30/sprite-research/accepted-crops/keese-mask.png",
+    "keyed_pixels": 1042
+   },
+   "source_rgb_colors": 3,
+   "color_reduction": false,
+   "unique_tiles_including_blank": 13,
+   "conversion": "Raster-rip RGB to SNES indices; original GBC tile IDs/palette banks not recovered"
+  },
+  {
+   "id": "gbc.gbc-moblin-king",
+   "title": "Great Moblin-like creature",
+   "name": "Great Moblin-like creature",
+   "role": "source-sheet",
+   "source_kind": "indexed-png",
+   "bpp": 4,
+   "group": "Oracle of Ages",
+   "category": "sprite",
+   "game": "Oracle of Ages",
+   "credit": "Nintendo/Capcom game art (Oracle games) or Nintendo (LADX); ripper not identified in this local blue-background sheet.",
+   "source_game_attribution": "The Legend of Zelda: Oracle of Ages",
+   "original_research_game_label": null,
+   "source_url": null,
+   "source_sha256": "16719d8c2a40c5f70e21f4e2c1ffb1734d0987e379876d7edd824d18a4de7ecb",
+   "source_origin": "zeldaoracleofages_peopleandmonsters_sheet.png",
+   "donor_crop_sha256": "33612af1b4760e6164751f1a082aa5551b7d64f1376ed78420b50ffe89f33b30",
+   "source_rects": [
+    [
+     0,
+     617,
+     158,
+     690
+    ]
+   ],
+   "pages": [
+    {
+     "path": "pages/gbc-moblin-king/page-00.png",
+     "sha256": "0ea3e9592aebb7815fd5949af9d9eec8a42bd18c6b6ffef0dd5bb776d1de2ddd",
+     "binary_path": "pages/gbc-moblin-king/page-00.4bpp",
+     "binary_sha256": "ddd6a22cbaa9f3e5de813134976e8d693316be9e6093c5fc5a81e94097ca473a"
+    },
+    {
+     "path": "pages/gbc-moblin-king/page-01.png",
+     "sha256": "858334ed0257ec96ee6259bb3a59b4e92cdb75a4b5f5399c663e2ae08e9281eb",
+     "binary_path": "pages/gbc-moblin-king/page-01.4bpp",
+     "binary_sha256": "a4f13c0b32cdcb3db60c892001697aac0686cabbfd05d1f4f8a362c0c699bdd5"
+    }
+   ],
+   "palette_bgr555": [
+    0,
+    0,
+    26,
+    5182,
+    6846,
+    18238,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "pixel_size": [
+    160,
+    80
+   ],
+   "original_pixel_size": [
+    158,
+    73
+   ],
+   "assembly": [
+    {
+     "x": 0,
+     "y": 0,
+     "page": 0,
+     "page_tile": 0,
+     "h": false,
+     "v": false
+    },
+    {
+     "x": 1,
+     "y": 0,
+     "page": 0,
+     "page_tile": 1,
+     "h": false,
+     "v": false
+    },
+    {
+     "x": 2,
+     "y": 0,
+     "page": 0,
+     "page_tile": 2,
+     "h": false,
+     "v": false
+    },
+    {
+     "x": 3,
+     "y": 0,
+     "page": 0,
+     "page_tile": 1,
+     "h": true,
+     "v": false
+    },
+    {
+     "x": 4,
+     "y": 0,
+     "page": 0,
+     "page_tile": 0,
+     "h": false,
+     "v": false
+    },
+    {
+     "x": 5,
+     "y": 0,
+     "page": 0,
+     "page_tile": 0,
+     "h": false,
+     "v": false
+    },
+    {
+     "x": 6,
+     "y": 0,
+     "page": 0,
+     "page_tile": 3,
+     "h": false,
+     "v": false
+    },
+    {
+     "x": 7,
+     "y": 0,
+     "page": 0,
+     "page_tile": 4,
+     "h": false,
+     "v": false
+    },
+    {
+     "x": 8,
+     "y": 0,
+     "page": 0,
+     "page_tile": 3,
+     "h": true,
+     "v": false
+    },
+    {
+     "x": 9,
+     "y": 0,
+     "page": 0,
+     "page_tile": 0,
+     "h": false,
+     "v": false
+    },
+    {
+     "x": 10,
+     "y": 0,
+     "page": 0,
+     "page_tile": 5,
+     "h": false,
+     "v": false
+    },
+    {
+     "x": 11,
+     "y": 0,
+     "page": 0,
+     "page_tile": 6,
+     "h": true,
+     "v": false
+    },
+    {
+     "x": 12,
+     "y": 0,
+     "page": 0,
+     "page_tile": 7,
+     "h": false,
+     "v": false
+    },
+    {
+     "x": 13,
+     "y": 0,
+     "page": 0,
+     "page_tile": 6,
+     "h": false,
+     "v": false
+    },
+    {
+     "x": 14,
+     "y": 0,
+     "page": 0,
+     "page_tile": 5,
+     "h": true,
+     "v": false
+    },
+    {
+     "x": 15,
+     "y": 0,
+     "page": 0,
+     "page_tile": 8,
+     "h": false,
+     "v": false
+    },
+    {
+     "x": 16,
+     "y": 0,
+     "page": 0,
+     "page_tile": 9,
+     "h": false,
+     "v": false
+    },
+    {
+     "x": 17,
+     "y": 0,
+     "page": 0,
+     "page_tile": 10,
+     "h": false,
+     "v": false
+    },
+    {
+     "x": 18,
+     "y": 0,
+     "page": 0,
+     "page_tile": 9,
+     "h": true,
+     "v": false
+    },
+    {
+     "x": 19,
+     "y": 0,
+     "page": 0,
+     "page_tile": 8,
+     "h": true,
+     "v": false
+    },
+    {
+     "x": 0,
+     "y": 1,
+     "page": 0,
+     "page_tile": 0,
+     "h": false,
+     "v": false
+    },
+    {
+     "x": 1,
+     "y": 1,
+     "page": 0,
+     "page_tile": 11,
+     "h": false,
+     "v": false
+    },
+    {
+     "x": 2,
+     "y": 1,
+     "page": 0,
+     "page_tile": 12,
+     "h": false,
+     "v": false
+    },
+    {
+     "x": 3,
+     "y": 1,
+     "page": 0,
+     "page_tile": 11,
+     "h": true,
+     "v": false
+    },
+    {
+     "x": 4,
+     "y": 1,
+     "page": 0,
+     "page_tile": 0,
+     "h": false,
+     "v": false
+    },
+    {
+     "x": 5,
+     "y": 1,
+     "page": 0,
+     "page_tile": 13,
+     "h": false,
+     "v": false
+    },
+    {
+     "x": 6,
+     "y": 1,
+     "page": 0,
+     "page_tile": 14,
+     "h": true,
+     "v": true
+    },
+    {
+     "x": 7,
+     "y": 1,
+     "page": 0,
+     "page_tile": 15,
+     "h": false,
+     "v": true
+    },
+    {
+     "x": 8,
+     "y": 1,
+     "page": 0,
+     "page_tile": 14,
+     "h": false,
+     "v": true
+    },
+    {
+     "x": 9,
+     "y": 1,
+     "page": 0,
+     "page_tile": 13,
+     "h": true,
+     "v": false
+    },
+    {
+     "x": 10,
+     "y": 1,
+     "page": 0,
+     "page_tile": 16,
+     "h": false,
+     "v": true
+    },
+    {
+     "x": 11,
+     "y": 1,
+     "page": 0,
+     "page_tile": 17,
+     "h": false,
+     "v": false
+    },
+    {
+     "x": 12,
+     "y": 1,
+     "page": 0,
+     "page_tile": 18,
+     "h": false,
+     "v": true
+    },
+    {
+     "x": 13,
+     "y": 1,
+     "page": 0,
+     "page_tile": 17,
+     "h": true,
+     "v": false
+    },
+    {
+     "x": 14,
+     "y": 1,
+     "page": 0,
+     "page_tile": 16,
+     "h": true,
+     "v": true
+    },
+    {
+     "x": 15,
+     "y": 1,
+     "page": 0,
+     "page_tile": 19,
+     "h": false,
+     "v": false
+    },
+    {
+     "x": 16,
+     "y": 1,
+     "page": 0,
+     "page_tile": 20,
+     "h": true,
+     "v": true
+    },
+    {
+     "x": 17,
+     "y": 1,
+     "page": 0,
+     "page_tile": 21,
+     "h": false,
+     "v": true
+    },
+    {
+     "x": 18,
+     "y": 1,
+     "page": 0,
+     "page_tile": 20,
+     "h": false,
+     "v": true
+    },
+    {
+     "x": 19,
+     "y": 1,
+     "page": 0,
+     "page_tile": 19,
+     "h": true,
+     "v": false
+    },
+    {
+     "x": 0,
+     "y": 2,
+     "page": 0,
+     "page_tile": 0,
+     "h": false,
+     "v": false
+    },
+    {
+     "x": 1,
+     "y": 2,
+     "page": 0,
+     "page_tile": 22,
+     "h": false,
+     "v": true
+    },
+    {
+     "x": 2,
+     "y": 2,
+     "page": 0,
+     "page_tile": 23,
+     "h": false,
+     "v": false
+    },
+    {
+     "x": 3,
+     "y": 2,
+     "page": 0,
+     "page_tile": 22,
+     "h": true,
+     "v": true
+    },
+    {
+     "x": 4,
+     "y": 2,
+     "page": 0,
+     "page_tile": 0,
+     "h": false,
+     "v": false
+    },
+    {
+     "x": 5,
+     "y": 2,
+     "page": 0,
+     "page_tile": 24,
+     "h": false,
+     "v": true
+    },
+    {
+     "x": 6,
+     "y": 2,
+     "page": 0,
+     "page_tile": 25,
+     "h": false,
+     "v": false
+    },
+    {
+     "x": 7,
+     "y": 2,
+     "page": 0,
+     "page_tile": 26,
+     "h": false,
+     "v": true
+    },
+    {
+     "x": 8,
+     "y": 2,
+     "page": 0,
+     "page_tile": 25,
+     "h": true,
+     "v": false
+    },
+    {
+     "x": 9,
+     "y": 2,
+     "page": 0,
+     "page_tile": 24,
+     "h": true,
+     "v": true
+    },
+    {
+     "x": 10,
+     "y": 2,
+     "page": 0,
+     "page_tile": 27,
+     "h": false,
+     "v": true
+    },
+    {
+     "x": 11,
+     "y": 2,
+     "page": 0,
+     "page_tile": 28,
+     "h": false,
+     "v": true
+    },
+    {
+     "x": 12,
+     "y": 2,
+     "page": 0,
+     "page_tile": 29,
+     "h": false,
+     "v": false
+    },
+    {
+     "x": 13,
+     "y": 2,
+     "page": 0,
+     "page_tile": 28,
+     "h": true,
+     "v": true
+    },
+    {
+     "x": 14,
+     "y": 2,
+     "page": 0,
+     "page_tile": 27,
+     "h": true,
+     "v": true
+    },
+    {
+     "x": 15,
+     "y": 2,
+     "page": 0,
+     "page_tile": 30,
+     "h": false,
+     "v": true
+    },
+    {
+     "x": 16,
+     "y": 2,
+     "page": 0,
+     "page_tile": 31,
+     "h": false,
+     "v": true
+    },
+    {
+     "x": 17,
+     "y": 2,
+     "page": 0,
+     "page_tile": 32,
+     "h": false,
+     "v": false
+    },
+    {
+     "x": 18,
+     "y": 2,
+     "page": 0,
+     "page_tile": 31,
+     "h": true,
+     "v": true
+    },
+    {
+     "x": 19,
+     "y": 2,
+     "page": 0,
+     "page_tile": 30,
+     "h": true,
+     "v": true
+    },
+    {
+     "x": 0,
+     "y": 3,
+     "page": 0,
+     "page_tile": 0,
+     "h": false,
+     "v": false
+    },
+    {
+     "x": 1,
+     "y": 3,
+     "page": 0,
+     "page_tile": 33,
+     "h": false,
+     "v": true
+    },
+    {
+     "x": 2,
+     "y": 3,
+     "page": 0,
+     "page_tile": 34,
+     "h": false,
+     "v": true
+    },
+    {
+     "x": 3,
+     "y": 3,
+     "page": 0,
+     "page_tile": 33,
+     "h": true,
+     "v": true
+    },
+    {
+     "x": 4,
+     "y": 3,
+     "page": 0,
+     "page_tile": 0,
+     "h": false,
+     "v": false
+    },
+    {
+     "x": 5,
+     "y": 3,
+     "page": 0,
+     "page_tile": 0,
+     "h": false,
+     "v": false
+    },
+    {
+     "x": 6,
+     "y": 3,
+     "page": 0,
+     "page_tile": 35,
+     "h": false,
+     "v": true
+    },
+    {
+     "x": 7,
+     "y": 3,
+     "page": 0,
+     "page_tile": 36,
+     "h": false,
+     "v": true
+    },
+    {
+     "x": 8,
+     "y": 3,
+     "page": 0,
+     "page_tile": 35,
+     "h": true,
+     "v": true
+    },
+    {
+     "x": 9,
+     "y": 3,
+     "page": 0,
+     "page_tile": 0,
+     "h": false,
+     "v": false
+    },
+    {
+     "x": 10,
+     "y": 3,
+     "page": 0,
+     "page_tile": 0,
+     "h": false,
+     "v": false
+    },
+    {
+     "x": 11,
+     "y": 3,
+     "page": 0,
+     "page_tile": 37,
+     "h": false,
+     "v": true
+    },
+    {
+     "x": 12,
+     "y": 3,
+     "page": 0,
+     "page_tile": 38,
+     "h": false,
+     "v": true
+    },
+    {
+     "x": 13,
+     "y": 3,
+     "page": 0,
+     "page_tile": 37,
+     "h": true,
+     "v": true
+    },
+    {
+     "x": 14,
+     "y": 3,
+     "page": 0,
+     "page_tile": 0,
+     "h": false,
+     "v": false
+    },
+    {
+     "x": 15,
+     "y": 3,
+     "page": 0,
+     "page_tile": 0,
+     "h": false,
+     "v": false
+    },
+    {
+     "x": 16,
+     "y": 3,
+     "page": 0,
+     "page_tile": 39,
+     "h": false,
+     "v": true
+    },
+    {
+     "x": 17,
+     "y": 3,
+     "page": 0,
+     "page_tile": 40,
+     "h": false,
+     "v": true
+    },
+    {
+     "x": 18,
+     "y": 3,
+     "page": 0,
+     "page_tile": 39,
+     "h": true,
+     "v": true
+    },
+    {
+     "x": 19,
+     "y": 3,
+     "page": 0,
+     "page_tile": 0,
+     "h": false,
+     "v": false
+    },
+    {
+     "x": 0,
+     "y": 4,
+     "page": 0,
+     "page_tile": 0,
+     "h": false,
+     "v": false
+    },
+    {
+     "x": 1,
+     "y": 4,
+     "page": 0,
+     "page_tile": 0,
+     "h": false,
+     "v": false
+    },
+    {
+     "x": 2,
+     "y": 4,
+     "page": 0,
+     "page_tile": 0,
+     "h": false,
+     "v": false
+    },
+    {
+     "x": 3,
+     "y": 4,
+     "page": 0,
+     "page_tile": 0,
+     "h": false,
+     "v": false
+    },
+    {
+     "x": 4,
+     "y": 4,
+     "page": 0,
+     "page_tile": 0,
+     "h": false,
+     "v": false
+    },
+    {
+     "x": 5,
+     "y": 4,
+     "page": 0,
+     "page_tile": 0,
+     "h": false,
+     "v": false
+    },
+    {
+     "x": 6,
+     "y": 4,
+     "page": 0,
+     "page_tile": 0,
+     "h": false,
+     "v": false
+    },
+    {
+     "x": 7,
+     "y": 4,
+     "page": 0,
+     "page_tile": 0,
+     "h": false,
+     "v": false
+    },
+    {
+     "x": 8,
+     "y": 4,
+     "page": 0,
+     "page_tile": 0,
+     "h": false,
+     "v": false
+    },
+    {
+     "x": 9,
+     "y": 4,
+     "page": 0,
+     "page_tile": 0,
+     "h": false,
+     "v": false
+    },
+    {
+     "x": 10,
+     "y": 4,
+     "page": 0,
+     "page_tile": 0,
+     "h": false,
+     "v": false
+    },
+    {
+     "x": 11,
+     "y": 4,
+     "page": 0,
+     "page_tile": 0,
+     "h": false,
+     "v": false
+    },
+    {
+     "x": 12,
+     "y": 4,
+     "page": 0,
+     "page_tile": 0,
+     "h": false,
+     "v": false
+    },
+    {
+     "x": 13,
+     "y": 4,
+     "page": 0,
+     "page_tile": 0,
+     "h": false,
+     "v": false
+    },
+    {
+     "x": 14,
+     "y": 4,
+     "page": 0,
+     "page_tile": 0,
+     "h": false,
+     "v": false
+    },
+    {
+     "x": 15,
+     "y": 4,
+     "page": 0,
+     "page_tile": 0,
+     "h": false,
+     "v": false
+    },
+    {
+     "x": 16,
+     "y": 4,
+     "page": 0,
+     "page_tile": 0,
+     "h": false,
+     "v": false
+    },
+    {
+     "x": 17,
+     "y": 4,
+     "page": 0,
+     "page_tile": 0,
+     "h": false,
+     "v": false
+    },
+    {
+     "x": 18,
+     "y": 4,
+     "page": 0,
+     "page_tile": 0,
+     "h": false,
+     "v": false
+    },
+    {
+     "x": 19,
+     "y": 4,
+     "page": 0,
+     "page_tile": 0,
+     "h": false,
+     "v": false
+    },
+    {
+     "x": 0,
+     "y": 5,
+     "page": 0,
+     "page_tile": 41,
+     "h": false,
+     "v": false
+    },
+    {
+     "x": 1,
+     "y": 5,
+     "page": 0,
+     "page_tile": 42,
+     "h": false,
+     "v": false
+    },
+    {
+     "x": 2,
+     "y": 5,
+     "page": 0,
+     "page_tile": 43,
+     "h": false,
+     "v": false
+    },
+    {
+     "x": 3,
+     "y": 5,
+     "page": 0,
+     "page_tile": 42,
+     "h": true,
+     "v": false
+    },
+    {
+     "x": 4,
+     "y": 5,
+     "page": 0,
+     "page_tile": 41,
+     "h": true,
+     "v": false
+    },
+    {
+     "x": 5,
+     "y": 5,
+     "page": 0,
+     "page_tile": 44,
+     "h": false,
+     "v": false
+    },
+    {
+     "x": 6,
+     "y": 5,
+     "page": 0,
+     "page_tile": 45,
+     "h": false,
+     "v": false
+    },
+    {
+     "x": 7,
+     "y": 5,
+     "page": 0,
+     "page_tile": 46,
+     "h": false,
+     "v": false
+    },
+    {
+     "x": 8,
+     "y": 5,
+     "page": 0,
+     "page_tile": 47,
+     "h": true,
+     "v": false
+    },
+    {
+     "x": 9,
+     "y": 5,
+     "page": 0,
+     "page_tile": 48,
+     "h": true,
+     "v": false
+    },
+    {
+     "x": 10,
+     "y": 5,
+     "page": 0,
+     "page_tile": 41,
+     "h": false,
+     "v": false
+    },
+    {
+     "x": 11,
+     "y": 5,
+     "page": 0,
+     "page_tile": 49,
+     "h": false,
+     "v": false
+    },
+    {
+     "x": 12,
+     "y": 5,
+     "page": 0,
+     "page_tile": 50,
+     "h": false,
+     "v": false
+    },
+    {
+     "x": 13,
+     "y": 5,
+     "page": 0,
+     "page_tile": 51,
+     "h": true,
+     "v": false
+    },
+    {
+     "x": 14,
+     "y": 5,
+     "page": 0,
+     "page_tile": 52,
+     "h": true,
+     "v": false
+    },
+    {
+     "x": 15,
+     "y": 5,
+     "page": 0,
+     "page_tile": 53,
+     "h": false,
+     "v": false
+    },
+    {
+     "x": 16,
+     "y": 5,
+     "page": 0,
+     "page_tile": 54,
+     "h": false,
+     "v": false
+    },
+    {
+     "x": 17,
+     "y": 5,
+     "page": 0,
+     "page_tile": 55,
+     "h": false,
+     "v": false
+    },
+    {
+     "x": 18,
+     "y": 5,
+     "page": 0,
+     "page_tile": 54,
+     "h": true,
+     "v": false
+    },
+    {
+     "x": 19,
+     "y": 5,
+     "page": 0,
+     "page_tile": 53,
+     "h": true,
+     "v": false
+    },
+    {
+     "x": 0,
+     "y": 6,
+     "page": 0,
+     "page_tile": 56,
+     "h": false,
+     "v": true
+    },
+    {
+     "x": 1,
+     "y": 6,
+     "page": 0,
+     "page_tile": 57,
+     "h": true,
+     "v": false
+    },
+    {
+     "x": 2,
+     "y": 6,
+     "page": 0,
+     "page_tile": 58,
+     "h": false,
+     "v": false
+    },
+    {
+     "x": 3,
+     "y": 6,
+     "page": 0,
+     "page_tile": 57,
+     "h": false,
+     "v": false
+    },
+    {
+     "x": 4,
+     "y": 6,
+     "page": 0,
+     "page_tile": 56,
+     "h": true,
+     "v": true
+    },
+    {
+     "x": 5,
+     "y": 6,
+     "page": 0,
+     "page_tile": 59,
+     "h": false,
+     "v": true
+    },
+    {
+     "x": 6,
+     "y": 6,
+     "page": 0,
+     "page_tile": 60,
+     "h": true,
+     "v": true
+    },
+    {
+     "x": 7,
+     "y": 6,
+     "page": 0,
+     "page_tile": 61,
+     "h": true,
+     "v": true
+    },
+    {
+     "x": 8,
+     "y": 6,
+     "page": 0,
+     "page_tile": 62,
+     "h": false,
+     "v": false
+    },
+    {
+     "x": 9,
+     "y": 6,
+     "page": 0,
+     "page_tile": 63,
+     "h": true,
+     "v": true
+    },
+    {
+     "x": 10,
+     "y": 6,
+     "page": 1,
+     "page_tile": 0,
+     "h": false,
+     "v": true
+    },
+    {
+     "x": 11,
+     "y": 6,
+     "page": 1,
+     "page_tile": 1,
+     "h": false,
+     "v": false
+    },
+    {
+     "x": 12,
+     "y": 6,
+     "page": 1,
+     "page_tile": 2,
+     "h": true,
+     "v": false
+    },
+    {
+     "x": 13,
+     "y": 6,
+     "page": 1,
+     "page_tile": 3,
+     "h": false,
+     "v": false
+    },
+    {
+     "x": 14,
+     "y": 6,
+     "page": 1,
+     "page_tile": 4,
+     "h": true,
+     "v": true
+    },
+    {
+     "x": 15,
+     "y": 6,
+     "page": 1,
+     "page_tile": 5,
+     "h": false,
+     "v": true
+    },
+    {
+     "x": 16,
+     "y": 6,
+     "page": 1,
+     "page_tile": 6,
+     "h": false,
+     "v": false
+    },
+    {
+     "x": 17,
+     "y": 6,
+     "page": 1,
+     "page_tile": 7,
+     "h": false,
+     "v": false
+    },
+    {
+     "x": 18,
+     "y": 6,
+     "page": 1,
+     "page_tile": 6,
+     "h": true,
+     "v": false
+    },
+    {
+     "x": 19,
+     "y": 6,
+     "page": 1,
+     "page_tile": 5,
+     "h": true,
+     "v": true
+    },
+    {
+     "x": 0,
+     "y": 7,
+     "page": 1,
+     "page_tile": 8,
+     "h": false,
+     "v": true
+    },
+    {
+     "x": 1,
+     "y": 7,
+     "page": 1,
+     "page_tile": 9,
+     "h": true,
+     "v": false
+    },
+    {
+     "x": 2,
+     "y": 7,
+     "page": 1,
+     "page_tile": 10,
+     "h": false,
+     "v": false
+    },
+    {
+     "x": 3,
+     "y": 7,
+     "page": 1,
+     "page_tile": 11,
+     "h": false,
+     "v": false
+    },
+    {
+     "x": 4,
+     "y": 7,
+     "page": 1,
+     "page_tile": 12,
+     "h": true,
+     "v": false
+    },
+    {
+     "x": 5,
+     "y": 7,
+     "page": 1,
+     "page_tile": 13,
+     "h": false,
+     "v": true
+    },
+    {
+     "x": 6,
+     "y": 7,
+     "page": 1,
+     "page_tile": 14,
+     "h": true,
+     "v": false
+    },
+    {
+     "x": 7,
+     "y": 7,
+     "page": 1,
+     "page_tile": 15,
+     "h": false,
+     "v": false
+    },
+    {
+     "x": 8,
+     "y": 7,
+     "page": 1,
+     "page_tile": 16,
+     "h": false,
+     "v": false
+    },
+    {
+     "x": 9,
+     "y": 7,
+     "page": 1,
+     "page_tile": 17,
+     "h": true,
+     "v": false
+    },
+    {
+     "x": 10,
+     "y": 7,
+     "page": 1,
+     "page_tile": 18,
+     "h": false,
+     "v": true
+    },
+    {
+     "x": 11,
+     "y": 7,
+     "page": 1,
+     "page_tile": 19,
+     "h": true,
+     "v": true
+    },
+    {
+     "x": 12,
+     "y": 7,
+     "page": 1,
+     "page_tile": 20,
+     "h": true,
+     "v": true
+    },
+    {
+     "x": 13,
+     "y": 7,
+     "page": 1,
+     "page_tile": 21,
+     "h": false,
+     "v": false
+    },
+    {
+     "x": 14,
+     "y": 7,
+     "page": 1,
+     "page_tile": 22,
+     "h": true,
+     "v": false
+    },
+    {
+     "x": 15,
+     "y": 7,
+     "page": 1,
+     "page_tile": 23,
+     "h": false,
+     "v": true
+    },
+    {
+     "x": 16,
+     "y": 7,
+     "page": 1,
+     "page_tile": 24,
+     "h": true,
+     "v": false
+    },
+    {
+     "x": 17,
+     "y": 7,
+     "page": 1,
+     "page_tile": 25,
+     "h": false,
+     "v": true
+    },
+    {
+     "x": 18,
+     "y": 7,
+     "page": 1,
+     "page_tile": 26,
+     "h": false,
+     "v": false
+    },
+    {
+     "x": 19,
+     "y": 7,
+     "page": 1,
+     "page_tile": 27,
+     "h": true,
+     "v": false
+    },
+    {
+     "x": 0,
+     "y": 8,
+     "page": 0,
+     "page_tile": 0,
+     "h": false,
+     "v": false
+    },
+    {
+     "x": 1,
+     "y": 8,
+     "page": 1,
+     "page_tile": 28,
+     "h": false,
+     "v": true
+    },
+    {
+     "x": 2,
+     "y": 8,
+     "page": 1,
+     "page_tile": 29,
+     "h": false,
+     "v": true
+    },
+    {
+     "x": 3,
+     "y": 8,
+     "page": 1,
+     "page_tile": 30,
+     "h": true,
+     "v": true
+    },
+    {
+     "x": 4,
+     "y": 8,
+     "page": 1,
+     "page_tile": 31,
+     "h": true,
+     "v": true
+    },
+    {
+     "x": 5,
+     "y": 8,
+     "page": 0,
+     "page_tile": 8,
+     "h": false,
+     "v": true
+    },
+    {
+     "x": 6,
+     "y": 8,
+     "page": 1,
+     "page_tile": 32,
+     "h": false,
+     "v": true
+    },
+    {
+     "x": 7,
+     "y": 8,
+     "page": 1,
+     "page_tile": 33,
+     "h": false,
+     "v": true
+    },
+    {
+     "x": 8,
+     "y": 8,
+     "page": 1,
+     "page_tile": 34,
+     "h": true,
+     "v": true
+    },
+    {
+     "x": 9,
+     "y": 8,
+     "page": 1,
+     "page_tile": 35,
+     "h": true,
+     "v": true
+    },
+    {
+     "x": 10,
+     "y": 8,
+     "page": 0,
+     "page_tile": 0,
+     "h": false,
+     "v": false
+    },
+    {
+     "x": 11,
+     "y": 8,
+     "page": 1,
+     "page_tile": 36,
+     "h": false,
+     "v": true
+    },
+    {
+     "x": 12,
+     "y": 8,
+     "page": 1,
+     "page_tile": 37,
+     "h": false,
+     "v": true
+    },
+    {
+     "x": 13,
+     "y": 8,
+     "page": 1,
+     "page_tile": 38,
+     "h": true,
+     "v": true
+    },
+    {
+     "x": 14,
+     "y": 8,
+     "page": 1,
+     "page_tile": 39,
+     "h": true,
+     "v": true
+    },
+    {
+     "x": 15,
+     "y": 8,
+     "page": 0,
+     "page_tile": 0,
+     "h": false,
+     "v": false
+    },
+    {
+     "x": 16,
+     "y": 8,
+     "page": 1,
+     "page_tile": 40,
+     "h": false,
+     "v": true
+    },
+    {
+     "x": 17,
+     "y": 8,
+     "page": 1,
+     "page_tile": 41,
+     "h": false,
+     "v": true
+    },
+    {
+     "x": 18,
+     "y": 8,
+     "page": 1,
+     "page_tile": 42,
+     "h": true,
+     "v": true
+    },
+    {
+     "x": 19,
+     "y": 8,
+     "page": 1,
+     "page_tile": 43,
+     "h": true,
+     "v": true
+    },
+    {
+     "x": 0,
+     "y": 9,
+     "page": 0,
+     "page_tile": 0,
+     "h": false,
+     "v": false
+    },
+    {
+     "x": 1,
+     "y": 9,
+     "page": 0,
+     "page_tile": 0,
+     "h": false,
+     "v": false
+    },
+    {
+     "x": 2,
+     "y": 9,
+     "page": 0,
+     "page_tile": 0,
+     "h": false,
+     "v": false
+    },
+    {
+     "x": 3,
+     "y": 9,
+     "page": 0,
+     "page_tile": 0,
+     "h": false,
+     "v": false
+    },
+    {
+     "x": 4,
+     "y": 9,
+     "page": 0,
+     "page_tile": 0,
+     "h": false,
+     "v": false
+    },
+    {
+     "x": 5,
+     "y": 9,
+     "page": 0,
+     "page_tile": 0,
+     "h": false,
+     "v": false
+    },
+    {
+     "x": 6,
+     "y": 9,
+     "page": 0,
+     "page_tile": 0,
+     "h": false,
+     "v": false
+    },
+    {
+     "x": 7,
+     "y": 9,
+     "page": 0,
+     "page_tile": 0,
+     "h": false,
+     "v": false
+    },
+    {
+     "x": 8,
+     "y": 9,
+     "page": 0,
+     "page_tile": 0,
+     "h": false,
+     "v": false
+    },
+    {
+     "x": 9,
+     "y": 9,
+     "page": 0,
+     "page_tile": 0,
+     "h": false,
+     "v": false
+    },
+    {
+     "x": 10,
+     "y": 9,
+     "page": 0,
+     "page_tile": 0,
+     "h": false,
+     "v": false
+    },
+    {
+     "x": 11,
+     "y": 9,
+     "page": 0,
+     "page_tile": 0,
+     "h": false,
+     "v": false
+    },
+    {
+     "x": 12,
+     "y": 9,
+     "page": 0,
+     "page_tile": 0,
+     "h": false,
+     "v": false
+    },
+    {
+     "x": 13,
+     "y": 9,
+     "page": 0,
+     "page_tile": 0,
+     "h": false,
+     "v": false
+    },
+    {
+     "x": 14,
+     "y": 9,
+     "page": 0,
+     "page_tile": 0,
+     "h": false,
+     "v": false
+    },
+    {
+     "x": 15,
+     "y": 9,
+     "page": 0,
+     "page_tile": 0,
+     "h": false,
+     "v": false
+    },
+    {
+     "x": 16,
+     "y": 9,
+     "page": 0,
+     "page_tile": 0,
+     "h": false,
+     "v": false
+    },
+    {
+     "x": 17,
+     "y": 9,
+     "page": 0,
+     "page_tile": 0,
+     "h": false,
+     "v": false
+    },
+    {
+     "x": 18,
+     "y": 9,
+     "page": 0,
+     "page_tile": 0,
+     "h": false,
+     "v": false
+    },
+    {
+     "x": 19,
+     "y": 9,
+     "page": 0,
+     "page_tile": 0,
+     "h": false,
+     "v": false
+    }
+   ],
+   "preview_path": "pages/gbc-moblin-king/source.png",
+   "preview_sha256": "8bc45bdb4af0d4546d498c9b435b77e99f5f56dc549944ba247fe7125f39f726",
+   "resources_bound": false,
+   "proposal": "Dark-world sprite visual candidate; compare silhouette and palette groups.",
+   "notes": "Two appearance rows with large Moblin-like faces; neither animation relationship nor exact character identity is asserted.",
+   "behavior_status": "UNBOUND: no engine sequence, timing, OAM, palette assignment, collision or runtime behavior verified.",
+   "identification_confidence": "tentative",
+   "provenance_status": "see source inventory",
+   "source_components": [],
+   "background_policy": {
+    "mode": "key",
+    "rgb": [
+     0,
+     136,
+     255
+    ],
+    "method": "Only exact blue pixels connected to crop border become alpha0; original RGB and all black pixels preserved.",
+    "mask_path": "/Users/scawful/.context/projects/oracle-of-secrets/scratchpad/handoffs/cave_minish_revision_2026-10-28/family-expansion/gbc-resource-lab-v30/sprite-research/accepted-crops/moblin-king-mask.png",
+    "keyed_pixels": 6486
+   },
+   "source_rgb_colors": 5,
+   "color_reduction": false,
+   "unique_tiles_including_blank": 108,
+   "conversion": "Raster-rip RGB to SNES indices; original GBC tile IDs/palette banks not recovered"
+  },
+  {
+   "id": "gbc.la-barrel",
+   "title": "LA barrel",
+   "name": "LA barrel",
+   "role": "source-sheet",
+   "source_kind": "indexed-png",
+   "bpp": 3,
+   "group": "Link’s Awakening (version unspecified)",
+   "category": "interior",
+   "game": "Link’s Awakening (version unspecified)",
+   "credit": "RIPPED BY RED MAGE MOOGLE / NO CREDIT NEEDED",
+   "source_game_attribution": "Link’s Awakening (sheet does not specify DX/version)",
+   "original_research_game_label": null,
+   "source_url": null,
+   "source_sha256": "75f3df242d14862b15cb0b156a46307a4a662e56ae903feb92eec2d0d8005eb2",
+   "source_origin": "9457.gif",
+   "donor_crop_sha256": "765ee86826ef1591b3531daeb58d2715205e31a264a91bc689696b8707da8296",
+   "source_rects": [
+    [
+     96,
+     59,
+     112,
+     75
+    ]
+   ],
+   "pages": [
+    {
+     "path": "pages/la-barrel/page-00.png",
+     "sha256": "82f8b00118799d6c4fa06ab8bdb6c60d6a46323da9c5455f839d75d1f735bf94",
+     "binary_path": "pages/la-barrel/page-00.3bpp",
+     "binary_sha256": "896adb32acae02517312b4470551907a68335e155e2f234b81ba3000ac8c2aa1"
+    }
+   ],
+   "palette_bgr555": [
+    0,
+    0,
+    4302,
+    4568,
+    11996,
+    0,
+    0,
+    0
+   ],
+   "pixel_size": [
+    16,
+    16
+   ],
+   "original_pixel_size": [
+    16,
+    16
+   ],
+   "assembly": [
+    {
+     "x": 0,
+     "y": 0,
+     "page": 0,
+     "page_tile": 1,
+     "h": true,
+     "v": true
+    },
+    {
+     "x": 1,
+     "y": 0,
+     "page": 0,
+     "page_tile": 1,
+     "h": false,
+     "v": true
+    },
+    {
+     "x": 0,
+     "y": 1,
+     "page": 0,
+     "page_tile": 2,
+     "h": true,
+     "v": true
+    },
+    {
+     "x": 1,
+     "y": 1,
+     "page": 0,
+     "page_tile": 2,
+     "h": false,
+     "v": true
+    }
+   ],
+   "preview_path": "pages/la-barrel/source.png",
+   "preview_sha256": "765ee86826ef1591b3531daeb58d2715205e31a264a91bc689696b8707da8296",
+   "resources_bound": false,
+   "proposal": "LA interior fallback; compare native footprint before selecting a destination recipe.",
+   "notes": "Round barrel/open-topped vessel. This is not the round table. Native 16×16 decoration candidate; collision and palette mapping still unmeasured. Coordinates and RGB pixel hash reused from the measured 2026-10-19 source manifest. One-pixel blue separator rows/columns excluded.",
+   "behavior_status": "Art candidate; behavior unbound",
+   "identification_confidence": "see source inventory",
+   "provenance_status": "identified source rip",
+   "source_components": [
+    {
+     "source_box_xyxy_exclusive": [
+      96,
+      59,
+      112,
+      75
+     ],
+     "destination_xy": [
+      0,
+      0
+     ]
+    }
+   ],
+   "background_policy": "Preserved crop RGBA; see source inventory",
+   "source_rgb_colors": 4,
+   "color_reduction": false,
+   "unique_tiles_including_blank": 3,
+   "conversion": "Raster-rip RGB to SNES indices; original GBC tile IDs/palette banks not recovered"
+  },
+  {
+   "id": "gbc.season-round-tree",
+   "title": "Seasons round tree",
+   "name": "Seasons round tree",
+   "role": "source-sheet",
+   "source_kind": "indexed-png",
+   "bpp": 3,
+   "group": "Oracle of Seasons",
+   "category": "overworld",
+   "game": "Oracle of Seasons",
+   "credit": "Ripped by KOOLKID7890 / Credit wanted but not needed.",
+   "source_game_attribution": "Oracle of Seasons (named Overworld & Subrosia source)",
+   "original_research_game_label": null,
+   "source_url": null,
+   "source_sha256": "1c28a3d00c97c4f86beba3569abc8068b4defb2e120a20ae84b6e688b8b938d4",
+   "source_origin": "Game Boy _ GBC - The Legend of Zelda_ Oracle of Seasons - Tilesets - Overworld & Subrosia.png",
+   "donor_crop_sha256": "8b572ce71fbfb720145de03b2ebddf8486c8866eeff53fd99086abe8ec579a63",
+   "source_rects": [
+    [
+     192,
+     0,
+     224,
+     32
+    ]
+   ],
+   "pages": [
+    {
+     "path": "pages/season-round-tree/page-00.png",
+     "sha256": "2156aae4a378b0eb9cf0a4840ccbe3ccbccc16834449506a49856baf0ccc5b42",
+     "binary_path": "pages/season-round-tree/page-00.3bpp",
+     "binary_sha256": "0778c0cd50b5f1dc1a36249af2571c399d75a77329f2752f90d3aa7867462cd0"
+    }
+   ],
+   "palette_bgr555": [
+    0,
+    0,
+    3457,
+    4398,
+    11009,
+    4663,
+    8157,
+    0
+   ],
+   "pixel_size": [
+    32,
+    32
+   ],
+   "original_pixel_size": [
+    32,
+    32
+   ],
+   "assembly": [
+    {
+     "x": 0,
+     "y": 0,
+     "page": 0,
+     "page_tile": 1,
+     "h": false,
+     "v": true
+    },
+    {
+     "x": 1,
+     "y": 0,
+     "page": 0,
+     "page_tile": 2,
+     "h": true,
+     "v": false
+    },
+    {
+     "x": 2,
+     "y": 0,
+     "page": 0,
+     "page_tile": 3,
+     "h": false,
+     "v": false
+    },
+    {
+     "x": 3,
+     "y": 0,
+     "page": 0,
+     "page_tile": 4,
+     "h": true,
+     "v": true
+    },
+    {
+     "x": 0,
+     "y": 1,
+     "page": 0,
+     "page_tile": 5,
+     "h": false,
+     "v": true
+    },
+    {
+     "x": 1,
+     "y": 1,
+     "page": 0,
+     "page_tile": 6,
+     "h": false,
+     "v": true
+    },
+    {
+     "x": 2,
+     "y": 1,
+     "page": 0,
+     "page_tile": 7,
+     "h": true,
+     "v": true
+    },
+    {
+     "x": 3,
+     "y": 1,
+     "page": 0,
+     "page_tile": 8,
+     "h": true,
+     "v": true
+    },
+    {
+     "x": 0,
+     "y": 2,
+     "page": 0,
+     "page_tile": 9,
+     "h": true,
+     "v": true
+    },
+    {
+     "x": 1,
+     "y": 2,
+     "page": 0,
+     "page_tile": 10,
+     "h": false,
+     "v": true
+    },
+    {
+     "x": 2,
+     "y": 2,
+     "page": 0,
+     "page_tile": 11,
+     "h": true,
+     "v": true
+    },
+    {
+     "x": 3,
+     "y": 2,
+     "page": 0,
+     "page_tile": 9,
+     "h": false,
+     "v": true
+    },
+    {
+     "x": 0,
+     "y": 3,
+     "page": 0,
+     "page_tile": 12,
+     "h": false,
+     "v": false
+    },
+    {
+     "x": 1,
+     "y": 3,
+     "page": 0,
+     "page_tile": 13,
+     "h": true,
+     "v": false
+    },
+    {
+     "x": 2,
+     "y": 3,
+     "page": 0,
+     "page_tile": 14,
+     "h": false,
+     "v": true
+    },
+    {
+     "x": 3,
+     "y": 3,
+     "page": 0,
+     "page_tile": 15,
+     "h": true,
+     "v": false
+    }
+   ],
+   "preview_path": "pages/season-round-tree/source.png",
+   "preview_sha256": "8b572ce71fbfb720145de03b2ebddf8486c8866eeff53fd99086abe8ec579a63",
+   "resources_bound": false,
+   "proposal": "Round canopy for a forest or village edge.",
+   "notes": "Exact rectangular pixels from the named local rip. Original palette indices and GB map attributes are not present. No color key, alpha inference, padding, scaling, SNES conversion, or collision assumption.",
+   "behavior_status": "Art candidate; behavior unbound",
+   "identification_confidence": "see source inventory",
+   "provenance_status": "identified source rip",
+   "source_components": [
+    {
+     "source_box_xyxy_exclusive": [
+      192,
+      0,
+      224,
+      32
+     ],
+     "destination_xy": [
+      0,
+      0
+     ]
+    }
+   ],
+   "background_policy": "Preserved crop RGBA; see source inventory",
+   "source_rgb_colors": 6,
+   "color_reduction": false,
+   "unique_tiles_including_blank": 16,
+   "conversion": "Raster-rip RGB to SNES indices; original GBC tile IDs/palette banks not recovered"
+  },
+  {
+   "id": "gbc.la-dungeon-pot",
+   "title": "LA brown pot",
+   "name": "LA brown pot",
+   "role": "source-sheet",
+   "source_kind": "indexed-png",
+   "bpp": 3,
+   "group": "Link’s Awakening (version unspecified)",
+   "category": "dungeon",
+   "game": "Link’s Awakening (version unspecified)",
+   "credit": "THIS SHEET WAS MADE BY RICE JUICE / GIVE CREDIT IF USED. NO PERMISSION NEEDED.",
+   "source_game_attribution": "Link’s Awakening (Objects sheet; DX/version unspecified)",
+   "original_research_game_label": null,
+   "source_url": null,
+   "source_sha256": "4795579e2916aadc1397b4c2a8c454a1c912e41aa7aee64bda19280a6db464e7",
+   "source_origin": "9452.png",
+   "donor_crop_sha256": "c312e9a80dbe69b2256a23a0b2dec9cdf1c21b8bb795f41b29383d83d32ac3e7",
+   "source_rects": [
+    [
+     156,
+     208,
+     172,
+     224
+    ]
+   ],
+   "pages": [
+    {
+     "path": "pages/la-dungeon-pot/page-00.png",
+     "sha256": "0bdf9363ae9f93ccd08ee964dd95ea9e9a84e496dc35c5862aaf18af6ecad427",
+     "binary_path": "pages/la-dungeon-pot/page-00.3bpp",
+     "binary_sha256": "42979700e2cdb2cc68ee7b5246c7570b731eb598d9f3b6b1ced9f14c9b0c47a3"
+    }
+   ],
+   "palette_bgr555": [
+    0,
+    0,
+    4302,
+    23816,
+    4568,
+    11996,
+    0,
+    0
+   ],
+   "pixel_size": [
+    16,
+    16
+   ],
+   "original_pixel_size": [
+    16,
+    16
+   ],
+   "assembly": [
+    {
+     "x": 0,
+     "y": 0,
+     "page": 0,
+     "page_tile": 1,
+     "h": true,
+     "v": false
+    },
+    {
+     "x": 1,
+     "y": 0,
+     "page": 0,
+     "page_tile": 1,
+     "h": false,
+     "v": false
+    },
+    {
+     "x": 0,
+     "y": 1,
+     "page": 0,
+     "page_tile": 2,
+     "h": true,
+     "v": true
+    },
+    {
+     "x": 1,
+     "y": 1,
+     "page": 0,
+     "page_tile": 2,
+     "h": false,
+     "v": true
+    }
+   ],
+   "preview_path": "pages/la-dungeon-pot/source.png",
+   "preview_sha256": "c312e9a80dbe69b2256a23a0b2dec9cdf1c21b8bb795f41b29383d83d32ac3e7",
+   "resources_bound": false,
+   "proposal": "Dungeon object trial using identified LA object art.",
+   "notes": "Sheet title and credit explicitly identify LA and Rice Juice. Crops are native source-pixel bounds, with its original blue background retained. Area is a proposed library classification. The sheet does not establish original room, map, object ID, collision, source 2bpp IDs or palette attributes. These are object donors, not a recovered authentic dungeon wall/floor tileset.",
+   "behavior_status": "Art candidate; behavior unbound",
+   "identification_confidence": "see source inventory",
+   "provenance_status": "identified LA Objects sheet; area use proposed",
+   "source_components": [
+    {
+     "source_box_xyxy_exclusive": [
+      156,
+      208,
+      172,
+      224
+     ],
+     "destination_xy": [
+      0,
+      0
+     ]
+    }
+   ],
+   "background_policy": "Preserved crop RGBA; see source inventory",
+   "source_rgb_colors": 5,
+   "color_reduction": false,
+   "unique_tiles_including_blank": 3,
+   "conversion": "Raster-rip RGB to SNES indices; original GBC tile IDs/palette banks not recovered"
+  }
+ ]
+}

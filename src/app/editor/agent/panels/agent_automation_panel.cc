@@ -62,7 +62,8 @@ void AgentAutomationPanel::Draw(AgentUIContext* context,
       // Pulsing green for connected
       float green_pulse = 0.7f + 0.3f * std::sin(state.pulse_animation * 0.5f);
       auto success = gui::GetSuccessColor();
-      status_color = ImVec4(success.x, success.y * green_pulse, success.z, 1.0f);
+      status_color =
+          ImVec4(success.x, success.y * green_pulse, success.z, 1.0f);
       status_text = "ONLINE";
       status_icon = ICON_MD_CHECK_CIRCLE;
     } else {
@@ -159,8 +160,7 @@ void AgentAutomationPanel::Draw(AgentUIContext* context,
     ImGui::Separator();
 
     // Header with retro styling
-    ImGui::TextColored(gui::GetInfoColor(), "%s RECENT ACTIONS",
-                       ICON_MD_LIST);
+    ImGui::TextColored(gui::GetInfoColor(), "%s RECENT ACTIONS", ICON_MD_LIST);
     ImGui::SameLine();
     ImGui::TextDisabled("[%zu]", state.recent_tests.size());
 
@@ -187,10 +187,8 @@ void AgentAutomationPanel::Draw(AgentUIContext* context,
       for (float y = 0; y < win_size.y; y += 4.0f) {
         float offset_y = y + state.scanline_offset * 4.0f;
         if (offset_y < win_size.y) {
-          draw_list->AddLine(
-              ImVec2(win_pos.x, win_pos.y + offset_y),
-              ImVec2(win_pos.x + win_size.x, win_pos.y + offset_y),
-              IM_COL32(0, 0, 0, 20));
+          draw_list->AddLineH(win_pos.x, win_pos.x + win_size.x,
+                              win_pos.y + offset_y, IM_COL32(0, 0, 0, 20));
         }
       }
 

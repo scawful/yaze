@@ -18,6 +18,7 @@
 #include "util/macro.h"
 
 #ifdef YAZE_WITH_GRPC
+#include "cli/handlers/agent/replay_output.h"
 #include "cli/service/gui/gui_automation_client.h"
 #include "cli/service/testing/test_workflow_generator.h"
 #endif
@@ -294,11 +295,8 @@ absl::Status HandleTestReplayCommand(const std::vector<std::string>& args) {
     return result.status();
   }
 
-  if (result.value().success) {
-    std::cout << "✅ Replay succeeded\n";
-    std::cout << "Steps executed: " << result.value().steps_executed << "\n";
-  } else {
-    std::cout << "❌ Replay failed: " << result.value().message << "\n";
+  PrintReplayResult(*result, std::cout);
+  if (!result->success) {
     return absl::InternalError(result.value().message);
   }
 

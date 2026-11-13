@@ -18,6 +18,7 @@ set(GUI_CORE_SRC
   app/gui/core/background_renderer.cc
   app/gui/core/color.cc
   app/gui/core/icons.cc
+  app/gui/core/imgui_diagnostics.cc
   app/gui/core/input.cc
   app/gui/core/layout_helpers.cc
   app/gui/core/platform_keys.cc
@@ -75,6 +76,7 @@ set(GUI_WIDGETS_SRC
   app/gui/widgets/resize_handles.cc
   app/gui/widgets/text_editor.cc
   app/gui/widgets/themed_widgets.cc
+  app/gui/widgets/centered_icon_button.cc
   app/gui/widgets/empty_state.cc
   app/gui/widgets/tile_selector_widget.cc
 )

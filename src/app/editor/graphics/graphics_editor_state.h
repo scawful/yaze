@@ -128,6 +128,15 @@ class GraphicsEditorState {
     return found == preview_palettes.end() ? nullptr : &found->second;
   }
 
+  // The Sheet Browser's palette for every sheet, also a display choice. Unset
+  // means loaded colors; a later per-sheet choice overrides that one sheet.
+  std::optional<GraphicsPaletteSelection> browser_palette;
+
+  void ClearPreviewPalettes() {
+    preview_palettes.clear();
+    browser_palette.reset();
+  }
+
   // --- Selection State ---
   PixelSelection selection;
   ImVec2 selection_start;        // Drag start point

@@ -1,7 +1,10 @@
 #ifndef YAZE_ZELDA3_DUNGEON_TRACK_COLLISION_GENERATOR_H
 #define YAZE_ZELDA3_DUNGEON_TRACK_COLLISION_GENERATOR_H
 
+#include <cstddef>
 #include <cstdint>
+#include <map>
+#include <span>
 #include <string>
 #include <tuple>
 #include <utility>
@@ -64,6 +67,40 @@ struct GeneratorOptions {
   // Useful when the auto-detected direction isn't what you want.
   std::vector<std::tuple<int, int, TrackTileType>> stop_overrides;
 };
+
+// Session-only ownership: keep the exact cell displaced by an automatic rail
+// stamp. An authored cell already matching the desired rail is never adopted.
+struct MinecartTrackCollisionCellOwner {
+  bool baseline_override = false;
+  uint8_t baseline_value = 0;
+  uint8_t generated_value = 0;
+
+  bool operator==(const MinecartTrackCollisionCellOwner&) const = default;
+};
+
+using MinecartTrackCollisionOwnership =
+    std::map<size_t, MinecartTrackCollisionCellOwner>;
+
+struct MinecartTrackCollisionEdit {
+  CustomCollisionMap collision;
+  MinecartTrackCollisionOwnership ownership;
+};
+
+// Synchronize changed Oracle object 0x31 straight rails with their verified 2x2
+// behavior: subtypes 0/7 are horizontal, 1/6 vertical. Changed corner/crossing
+// pieces require explicit behavior editing until their stencils are verified.
+// Only primary-list rails are supported. Unchanged geometry, authored
+// stops/switches, and unowned departing cells are preserved. Owned departing
+// cells restore their baseline only while their generated value still matches.
+// Conflicting shapes, changed lower-layer/out-of-room rails, and new non-rail
+// collision conflicts fail atomically. No Room, ROM, or source file is mutated.
+// The editor must capture collision AND ownership in its object Undo action;
+// ownership is discarded on room/session reload, never inferred from ROM data.
+absl::StatusOr<MinecartTrackCollisionEdit> SynchronizeMinecartTrackCollision(
+    std::span<const RoomObject> before_objects,
+    std::span<const RoomObject> after_objects,
+    const CustomCollisionMap& before_collision,
+    const MinecartTrackCollisionOwnership& before_ownership = {});
 
 // Build a collision map from rail objects in a room.
 // Reads Object 0x31 (rail) positions, builds an occupancy grid,

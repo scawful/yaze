@@ -16,8 +16,10 @@ EntityMutationService::MutationResult EntityMutationService::InsertEntity(
     uint8_t item_id) {
   MutationResult result;
   const auto* map = overworld_.overworld_map(target.map_id);
-  if (!target.valid() || !map || !overworld_.is_loaded() ||
-      GetParentMapId(map, target.map_id) != target.parent_map_id) {
+  const bool is_project_terrain = target.map_id >= 0xA0 && target.map_id < 0xC0;
+  if (!target.valid(zelda3::kExpandedMapCount) || !overworld_.is_loaded() ||
+      (!map && !is_project_terrain) ||
+      (map && GetParentMapId(map, target.map_id) != target.parent_map_id)) {
     result.status = absl::FailedPreconditionError(
         "The insertion target is no longer available. Open the map menu "
         "again.");

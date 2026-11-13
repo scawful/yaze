@@ -20,6 +20,7 @@
 #include "app/gui/core/color.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/layout_helpers.h"
+#include "app/gui/core/ui_helpers.h"
 #include "app/gui/widgets/themed_widgets.h"
 #include "imgui/imgui.h"
 #include "imgui/imgui_internal.h"
@@ -225,6 +226,19 @@ void PaletteGroupPanel::DrawContent(bool embedded) {
   if (batch_requested)
     ImGui::OpenPopup("BatchOperations");
   DrawBatchOperationsPopup();
+  // Opened here, not inside the batch popup, so the modal and its OpenPopup
+  // share one ID-stack level.
+  if (reset_all_requested_) {
+    reset_all_requested_ = false;
+    ImGui::OpenPopup(kResetAllPopupId);
+  }
+  const std::string reset_message = absl::StrFormat(
+      "Discard every unapplied change in %s? Applied changes stay.",
+      display_name_);
+  if (gui::ConfirmationDialog(kResetAllPopupId, "Reset all palettes?",
+                              reset_message.c_str(), "Reset All", "Cancel")) {
+    DiscardChanges();
+  }
 }
 
 void PaletteGroupPanel::DrawPaletteGrid() {
@@ -264,6 +278,12 @@ void PaletteGroupPanel::DrawToolbar() {
                                              display_name_, status.message()),
                              ToastType::kError);
       }
+    } else if (toast_manager_) {
+      toast_manager_->Show(
+          absl::StrFormat("Applied %s changes to the ROM buffer; save the ROM "
+                          "to write them to disk",
+                          display_name_),
+          ToastType::kSuccess);
     }
   }
   ImGui::EndDisabled();
@@ -277,7 +297,7 @@ void PaletteGroupPanel::DrawToolbar() {
   // Discard button (danger action)
   ImGui::BeginDisabled(!has_changes);
   if (DangerButton(absl::StrFormat("%s Discard", ICON_MD_UNDO).c_str())) {
-    DiscardChanges();
+    reset_all_requested_ = true;  // same confirm as Reset All Palettes
   }
   ImGui::EndDisabled();
   if (!has_changes &&
@@ -298,7 +318,7 @@ void PaletteGroupPanel::DrawToolbar() {
         }
       }
     }
-    ImGui::TextColored(ImVec4(1.0f, 0.6f, 0.0f, 1.0f), tr("%s %zu modified"),
+    ImGui::TextColored(gui::GetWarningColor(), tr("%s %zu modified"),
                        ICON_MD_EDIT, modified_count);
   }
 
@@ -649,9 +669,17 @@ void PaletteGroupPanel::DrawBatchOperationsPopup() {
 
     ImGui::Separator();
 
+    const bool has_changes =
+        gfx::PaletteManager::Get().IsGroupModified(group_name_);
+    ImGui::BeginDisabled(!has_changes);
     if (ThemedButton("Reset All Palettes", ImVec2(-1, 0))) {
-      DiscardChanges();
+      reset_all_requested_ = true;
       ImGui::CloseCurrentPopup();
+    }
+    ImGui::EndDisabled();
+    if (!has_changes &&
+        ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
+      ImGui::SetTooltip(tr("No palette changes to reset"));
     }
 
     ImGui::EndPopup();
@@ -689,12 +717,15 @@ absl::Status PaletteGroupPanel::SaveToRom() {
         "Cannot save palettes from an inactive ROM session");
   }
   auto& palette_manager = gfx::PaletteManager::Get();
+  const auto ranges =
+      palette_manager.GetModifiedGroupColorWriteRanges(group_name_);
+  if (!ranges.ok()) {
+    return ranges.status();
+  }
   if (project_ != nullptr && project_->hack_manifest.loaded()) {
-    const auto ranges =
-        palette_manager.GetModifiedGroupColorWriteRanges(group_name_);
-    if (!ranges.empty()) {
+    if (!ranges->empty()) {
       const absl::Status preflight = ValidateHackManifestSaveConflicts(
-          project_->hack_manifest, project_->rom_metadata.write_policy, ranges,
+          project_->hack_manifest, project_->rom_metadata.write_policy, *ranges,
           display_name_, "PaletteGroupPanel", toast_manager_);
       if (!preflight.ok()) {
         return preflight;

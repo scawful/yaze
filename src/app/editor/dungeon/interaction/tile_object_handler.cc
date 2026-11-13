@@ -230,13 +230,11 @@ void DrawDashedLine(ImDrawList* draw_list, ImVec2 start, ImVec2 end,
     if (vertical) {
       const float y0 = start.y + offset;
       const float y1 = start.y + segment_end;
-      draw_list->AddLine(ImVec2(start.x, y0), ImVec2(start.x, y1), color,
-                         thickness);
+      draw_list->AddLineV(start.x, y0, y1, color, thickness);
     } else {
       const float x0 = start.x + offset;
       const float x1 = start.x + segment_end;
-      draw_list->AddLine(ImVec2(x0, start.y), ImVec2(x1, start.y), color,
-                         thickness);
+      draw_list->AddLineH(x0, x1, start.y, color, thickness);
     }
   }
 }
@@ -542,7 +540,7 @@ void TileObjectHandler::DrawGhostPreview() {
                           bitmap_end, ImVec2(0, 0), uv_end,
                           ImGui::GetColorU32(tint));
       draw_list->AddRect(preview_start, preview_end,
-                         ImGui::GetColorU32(outline_color), 0.0f, 0, 2.0f);
+                         ImGui::GetColorU32(outline_color), 0.0f, 2.0f);
       drew_bitmap = true;
     }
   }
@@ -553,7 +551,7 @@ void TileObjectHandler::DrawGhostPreview() {
         ImGui::GetColorU32(
             ImVec4(outline_color.x, outline_color.y, outline_color.z, 0.25f)));
     draw_list->AddRect(preview_start, preview_end,
-                       ImGui::GetColorU32(outline_color), 0.0f, 0, 2.0f);
+                       ImGui::GetColorU32(outline_color), 0.0f, 2.0f);
   }
 
   // ID label

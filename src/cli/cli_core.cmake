@@ -49,7 +49,12 @@ if(YAZE_ENABLE_JSON)
 endif()
 
 set(YAZE_CLI_CORE_SOURCES
+  cli/cli.cc
+  cli/global_flags.cc
+  cli/subcommand_routes.cc
+  cli/util/ansi_style.cc
   cli/service/command_registry.cc
+  cli/service/usage_schema.cc
   cli/service/resources/resource_catalog.cc
   cli/service/resources/resource_context_builder.cc
   cli/handlers/mesen_handlers.cc
@@ -71,6 +76,7 @@ set(YAZE_CLI_CORE_SOURCES
   cli/handlers/game/dungeon_group_commands.cc
   cli/handlers/game/dungeon_map_commands.cc
   cli/handlers/game/dungeon_render_commands.cc
+  cli/handlers/game/dungeon_wall_profile_commands.cc
   cli/handlers/game/dungeon_tile_type_commands.cc
   cli/handlers/game/dungeon_stream_plan_commands.cc
   cli/handlers/game/message.cc
@@ -92,6 +98,7 @@ set(YAZE_CLI_CORE_SOURCES
   cli/handlers/rom/project_bundle_archive_commands.cc
   cli/handlers/rom/project_bundle_verify_commands.cc
   cli/handlers/rom/project_commands.cc
+  cli/handlers/rom/project_plan_commands.cc
   cli/handlers/rom/rom_commands.cc
 
   cli/handlers/tools/dungeon_doctor_commands.cc

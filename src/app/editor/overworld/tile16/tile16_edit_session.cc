@@ -331,7 +331,7 @@ absl::Status Tile16EditSession::BuildStampPreview(Tile16LocalPos pos,
     return absl::InvalidArgumentError("Stamp preview bitmap is null");
   }
   ASSIGN_OR_RETURN(const auto mutations, BuildStampMutations(pos));
-  const int size = tile8_stamp_size_ == 4 ? 32 : 16;
+  const int size = tile8_stamp_size_ == 1 || tile8_stamp_size_ == 2 ? 16 : 32;
   std::vector<uint8_t> pixels(size * size, 0);
   for (const auto& mutation : mutations) {
     const int offset = mutation.tile16_id - current_tile16_;

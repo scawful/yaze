@@ -231,6 +231,12 @@ TEST_F(ShortcutConfiguratorTest, DefaultBindingsHaveNoUnintendedConflicts) {
   ASSERT_NE(brush, nullptr);
   ASSERT_TRUE(brush->editor_type.has_value());
   EXPECT_EQ(*brush->editor_type, EditorType::kOverworld);
+  const Shortcut* map_properties =
+      shortcuts.FindShortcut("overworld.toggle_map_properties");
+  ASSERT_NE(map_properties, nullptr);
+  ASSERT_TRUE(map_properties->editor_type.has_value());
+  EXPECT_EQ(*map_properties->editor_type, EditorType::kOverworld);
+  EXPECT_EQ(map_properties->keys, (std::vector<ImGuiKey>{ImGuiKey_M}));
   const Shortcut* next_object =
       shortcuts.FindShortcut("dungeon.object.next_object");
   ASSERT_NE(next_object, nullptr);
@@ -250,6 +256,20 @@ TEST_F(ShortcutConfiguratorTest, DefaultBindingsHaveNoUnintendedConflicts) {
             (std::vector<ImGuiKey>{ImGuiMod_Ctrl, ImGuiKey_PageDown}));
   EXPECT_EQ(shortcuts.GetShortcut("dungeon.open_room_list").keys,
             (std::vector<ImGuiKey>{ImGuiMod_Ctrl, ImGuiMod_Alt, ImGuiKey_L}));
+}
+
+TEST_F(ShortcutConfiguratorTest, ResetLayoutShortcutQueuesMenuReset) {
+  const Shortcut* reset =
+      editor_manager_->shortcut_manager()->FindShortcut("Reset Layout");
+  ASSERT_NE(reset, nullptr);
+  ASSERT_TRUE(static_cast<bool>(reset->callback));
+  EXPECT_EQ(reset->keys,
+            (std::vector<ImGuiKey>{ImGuiMod_Ctrl, ImGuiMod_Alt, ImGuiKey_R}));
+  const int before =
+      editor_manager_->GetUiSyncStateSnapshot().pending_editor_actions;
+  reset->callback();
+  EXPECT_EQ(editor_manager_->GetUiSyncStateSnapshot().pending_editor_actions,
+            before + 1);
 }
 
 TEST_F(ShortcutConfiguratorTest, PanelHintDoesNotShadowGlobalChord) {

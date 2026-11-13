@@ -24,6 +24,9 @@
 #include "absl/strings/string_view.h"
 #include "app/gfx/types/snes_color.h"
 #include "app/gfx/types/snes_tile.h"
+#include "app/gfx/util/compression.h"
+#include "core/source_artifact_publisher.h"
+#include "rom/snes.h"
 #include "rom/write_fence.h"
 #include "util/hex.h"
 #include "util/log.h"
@@ -445,8 +448,133 @@ absl::Status Rom::CheckLayoutWritable() const {
                          "; save refused"));
 }
 
+absl::Status Rom::CapturePrivateLyraReservation() {
+  if (private_lyra_attached_)
+    return ValidateLyraPrivateReservation();
+  const auto contract = core::PrivateLyraExactSaveReservation();
+  const auto hash = core::ComputeSourceArtifactSha256(std::string_view(
+      reinterpret_cast<const char*>(rom_data_.data()), rom_data_.size()));
+  if (hash != contract.source_rom_sha256)
+    return absl::OkStatus();
+  std::vector<std::pair<uint32_t, uint32_t>> ranges;
+  for (uint32_t base : contract.dictionary_bases_pc)
+    ranges.emplace_back(base, base + 0x67E0);
+  // Native Tile16 definitions, native pointer rows, the supplemental stream
+  // transfer and old A0 diagnostic slots are all immutable in this phase.
+  // Native full-load, packed decoder/relocation operands, and sub-overlay
+  // consumers pinned by the exact source ownership proof.
+  ranges.emplace_back(0x1759D, 0x175D2);
+  ranges.emplace_back(0x17691, 0x177CB);
+  ranges.emplace_back(0x177E3, 0x17818);
+  ranges.emplace_back(0x78000, 0x80000);
+  ranges.emplace_back(0x1E8000, 0x1F0000);
+  ranges.emplace_back(0x132000, 0x132400);
+  ranges.emplace_back(contract.stream_pc_range[0], contract.stream_pc_range[1]);
+  for (uint32_t table : {0x1794Du, 0x17B2Du}) {
+    ranges.emplace_back(table, table + 160 * 3);
+    for (int map = 0; map < 160; ++map) {
+      ASSIGN_OR_RETURN(uint32_t pointer, ReadLong(table + map * 3));
+      const uint32_t pc = SnesToPc(pointer);
+      ASSIGN_OR_RETURN(auto decoded,
+                       gfx::lc_lz2::DecompressExact(
+                           rom_data_.data(), rom_data_.size(), pc, 256, true));
+      if (decoded.data.size() != 256 ||
+          pc + decoded.compressed_size > rom_data_.size())
+        return absl::FailedPreconditionError(
+            "Private Lyra native stream is invalid");
+      ranges.emplace_back(pc, pc + decoded.compressed_size);
+    }
+  }
+  std::sort(ranges.begin(), ranges.end());
+  std::vector<std::pair<uint32_t, uint32_t>> merged;
+  for (auto range : ranges) {
+    if (!merged.empty() && range.first <= merged.back().second)
+      merged.back().second = std::max(merged.back().second, range.second);
+    else
+      merged.push_back(range);
+  }
+  auto fence = std::make_shared<rom::WriteFence>();
+  std::vector<std::pair<uint32_t, std::vector<uint8_t>>> preimages;
+  uint32_t cursor = 0;
+  for (auto [begin, end] : merged) {
+    if (end > rom_data_.size())
+      return absl::FailedPreconditionError("Private Lyra range outside ROM");
+    if (cursor < begin)
+      RETURN_IF_ERROR(fence->Allow(cursor, begin, "outside private terrain"));
+    preimages.emplace_back(begin,
+                           std::vector<uint8_t>(rom_data_.begin() + begin,
+                                                rom_data_.begin() + end));
+    cursor = end;
+  }
+  if (cursor < rom_data_.size())
+    RETURN_IF_ERROR(
+        fence->Allow(cursor, rom_data_.size(), "outside private terrain"));
+  private_lyra_preimages_ = std::move(preimages);
+  private_lyra_fence_ = std::move(fence);
+  private_lyra_attached_ = true;
+  return absl::OkStatus();
+}
+
+absl::Status Rom::AttachLyraPrivateReservation(
+    const core::HackManifest& manifest) {
+  if (!manifest.lyra_private_reservation())
+    return ValidateLyraPrivateReservation();
+  if (!manifest.loaded())
+    return absl::FailedPreconditionError("Private Lyra manifest is not loaded");
+  if (*manifest.lyra_private_reservation() !=
+      core::PrivateLyraExactSaveReservation())
+    return absl::FailedPreconditionError(
+        "Private Lyra reservation contract mismatch");
+  if (private_lyra_attached_)
+    return ValidateLyraPrivateReservation();
+  RETURN_IF_ERROR(CapturePrivateLyraReservation());
+  if (!private_lyra_attached_)
+    return absl::FailedPreconditionError(
+        "Private Lyra reservation source ROM hash mismatch");
+  return absl::OkStatus();
+}
+
+absl::Status Rom::ValidatePrivateLyraImage(
+    const std::vector<uint8_t>& image) const {
+  if (!private_lyra_attached_)
+    return absl::OkStatus();
+  if (image.size() != 0x400000) {
+    return absl::FailedPreconditionError(
+        "Private Lyra exact-save ROM size changed");
+  }
+  for (const auto& [pc, bytes] : private_lyra_preimages_) {
+    if (pc > image.size() || bytes.size() > image.size() - pc ||
+        !std::equal(bytes.begin(), bytes.end(), image.begin() + pc))
+      return absl::FailedPreconditionError(
+          "Private Lyra reservation protected terrain changed; native save "
+          "refused");
+  }
+  return absl::OkStatus();
+}
+
+absl::Status Rom::ValidateLyraPrivateReservation() const {
+  return ValidatePrivateLyraImage(rom_data_);
+}
+
+absl::Status Rom::CheckPrivateLyraWrite(uint32_t pc, const uint8_t* bytes,
+                                        size_t size) const {
+  if (!private_lyra_attached_ || size == 0)
+    return absl::OkStatus();
+  // Check only changed bytes. Exact no-op serializers stay compatible with
+  // existing fences; shared packed nibbles cannot change a protected neighbor.
+  for (size_t i = 0; i < size; ++i) {
+    if (rom_data_[pc + i] != bytes[i])
+      RETURN_IF_ERROR(
+          private_lyra_fence_->Check(pc + i, 1, "private native terrain"));
+  }
+  return absl::OkStatus();
+}
+
 Rom::Rom(const Rom& other)
-    : size_(other.size_),
+    : private_lyra_attached_(other.private_lyra_attached_),
+      private_lyra_preimages_(other.private_lyra_preimages_),
+      private_lyra_fence_(other.private_lyra_fence_),
+      size_(other.size_),
       title_(other.title_),
       filename_(other.filename_),
       short_name_(other.short_name_),
@@ -467,6 +595,11 @@ Rom& Rom::operator=(const Rom& other) {
     return *this;
   }
 
+  if (!private_lyra_attached_ && other.private_lyra_attached_) {
+    private_lyra_attached_ = true;
+    private_lyra_preimages_ = other.private_lyra_preimages_;
+    private_lyra_fence_ = other.private_lyra_fence_;
+  }
   const uint64_t previous_revision = object_tile_revision_;
   size_ = other.size_;
   title_ = other.title_;
@@ -501,6 +634,38 @@ absl::Status Rom::LoadFromFile(const std::string& filename,
   if (filename.empty()) {
     return absl::InvalidArgumentError(
         "Could not load ROM: parameter `filename` is empty.");
+  }
+
+  // Attached reloads validate and load one bounded snapshot. Never reopen a
+  // second image after validating the first, and commit file identity last.
+  if (private_lyra_attached_) {
+    std::ifstream candidate_file(filename, std::ios::binary | std::ios::ate);
+    if (!candidate_file)
+      return absl::NotFoundError("Could not open ROM: " + filename);
+    const auto length = candidate_file.tellg();
+    if (length < 32768 || length > 16 * 1024 * 1024) {
+      return absl::InvalidArgumentError(
+          "Attached ROM file must be between 32KB and 16MB");
+    }
+    std::vector<uint8_t> candidate(static_cast<size_t>(length));
+    candidate_file.seekg(0, std::ios::beg);
+    if (!candidate_file.read(reinterpret_cast<char*>(candidate.data()),
+                             length)) {
+      return absl::DataLossError(
+          "Could not read complete attached ROM snapshot");
+    }
+    RETURN_IF_ERROR(LoadFromData(candidate, options));
+#ifdef __EMSCRIPTEN__
+    filename_ = filename;
+#else
+    filename_ = std::filesystem::absolute(filename).string();
+#endif
+    short_name_ = filename_.substr(filename_.find_last_of("/\\") + 1);
+    if (options.load_resource_labels) {
+      resource_label_manager_.LoadLabels(
+          absl::StrFormat("%s.labels", filename));
+    }
+    return absl::OkStatus();
   }
 
 #ifdef __EMSCRIPTEN__
@@ -609,6 +774,7 @@ absl::Status Rom::LoadFromFile(const std::string& filename,
   }
 
   AdvanceObjectTileRevision();
+  RETURN_IF_ERROR(CapturePrivateLyraReservation());
   return absl::OkStatus();
 }
 
@@ -617,6 +783,14 @@ absl::Status Rom::LoadFromData(const std::vector<uint8_t>& data,
   if (data.empty()) {
     return absl::InvalidArgumentError(
         "Could not load ROM: parameter `data` is empty.");
+  }
+  if (private_lyra_attached_) {
+    auto candidate = data;
+    std::vector<uint8_t> header;
+    CopierHeaderReason reason = CopierHeaderReason::kNone;
+    if (options.strip_header)
+      MaybeStripCopierHeader(candidate, header, reason);
+    RETURN_IF_ERROR(ValidatePrivateLyraImage(candidate));
   }
   rom_data_ = data;
 
@@ -652,6 +826,7 @@ absl::Status Rom::LoadFromData(const std::vector<uint8_t>& data,
   }
 
   AdvanceObjectTileRevision();
+  RETURN_IF_ERROR(CapturePrivateLyraReservation());
   return absl::OkStatus();
 }
 
@@ -666,6 +841,9 @@ void Rom::CaptureLyraTerrainBaseline() {
 
 absl::Status Rom::SaveLyraA0TerrainAs(const std::array<uint16_t, 256>& tiles,
                                       const std::string& filename) {
+  if (private_lyra_attached_)
+    return absl::FailedPreconditionError(
+        "Private Lyra reservation forbids alternate A0 save route");
   if (read_only_scope_depth_ != 0) {
     return absl::PermissionDeniedError(
         "ROM write refused by read_only project policy");
@@ -714,10 +892,12 @@ absl::Status Rom::SaveLyraA0TerrainAs(const std::array<uint16_t, 256>& tiles,
 
 absl::Status Rom::SaveToFile(const SaveSettings& settings) {
   RETURN_IF_ERROR(CheckLayoutWritable());
+  RETURN_IF_ERROR(ValidateLyraPrivateReservation());
   return SaveToFileUnchecked(settings);
 }
 
 absl::Status Rom::SaveToFileUnchecked(const SaveSettings& settings) {
+  RETURN_IF_ERROR(ValidateLyraPrivateReservation());
   if (rom_data_.empty()) {
     return absl::InternalError("ROM data is empty.");
   }
@@ -929,6 +1109,7 @@ absl::Status Rom::WriteByte(int addr, uint8_t value) {
   for (auto* fence : write_fence_stack_) {
     RETURN_IF_ERROR(fence->Check(static_cast<uint32_t>(addr), 1, "WriteByte"));
   }
+  RETURN_IF_ERROR(CheckPrivateLyraWrite(addr, &value, 1));
   const uint8_t old_val = rom_data_[addr];
   rom_data_[addr] = value;
   dirty_ = true;
@@ -949,6 +1130,10 @@ absl::Status Rom::WriteWord(int addr, uint16_t value) {
   for (auto* fence : write_fence_stack_) {
     RETURN_IF_ERROR(fence->Check(static_cast<uint32_t>(addr), 2, "WriteWord"));
   }
+  const uint8_t private_bytes[] = {static_cast<uint8_t>(value),
+                                   static_cast<uint8_t>(value >> 8),
+                                   static_cast<uint8_t>(value >> 16)};
+  RETURN_IF_ERROR(CheckPrivateLyraWrite(addr, private_bytes, 2));
   const uint8_t old0 = rom_data_[addr];
   const uint8_t old1 = rom_data_[addr + 1];
   rom_data_[addr] = (uint8_t)(value & 0xFF);
@@ -977,6 +1162,10 @@ absl::Status Rom::WriteLong(uint32_t addr, uint32_t value) {
   for (auto* fence : write_fence_stack_) {
     RETURN_IF_ERROR(fence->Check(addr, 3, "WriteLong"));
   }
+  const uint8_t private_bytes[] = {static_cast<uint8_t>(value),
+                                   static_cast<uint8_t>(value >> 8),
+                                   static_cast<uint8_t>(value >> 16)};
+  RETURN_IF_ERROR(CheckPrivateLyraWrite(addr, private_bytes, 3));
   const uint8_t old0 = rom_data_[addr];
   const uint8_t old1 = rom_data_[addr + 1];
   const uint8_t old2 = rom_data_[addr + 2];
@@ -1010,6 +1199,7 @@ absl::Status Rom::WriteVector(int addr, std::vector<uint8_t> data) {
                                  static_cast<uint32_t>(data.size()),
                                  "WriteVector"));
   }
+  RETURN_IF_ERROR(CheckPrivateLyraWrite(addr, data.data(), data.size()));
   std::vector<uint8_t> old_data;
   old_data.reserve(data.size());
   for (int i = 0; i < static_cast<int>(data.size()); i++) {

@@ -3,66 +3,27 @@
 
 #include <string>
 
-namespace yaze {
-namespace cli {
+#include "absl/strings/str_cat.h"
+#include "cli/util/ansi_style.h"
 
-// ASCII art logo for z3ed CLI
-constexpr const char* kZ3edLogo = R"(
-    ███████╗██████╗ ███████╗██████╗ 
-    ╚══███╔╝╚════██╗██╔════╝██╔══██╗
-      ███╔╝  █████╔╝█████╗  ██║  ██║
-     ███╔╝   ╚═══██╗██╔══╝  ██║  ██║
-    ███████╗██████╔╝███████╗██████╔╝
-    ╚══════╝╚═════╝ ╚══════╝╚═════╝ 
-          
-       ▲      Zelda 3 Editor      
-      ▲ ▲     AI-Powered CLI
-     ▲▲▲▲▲    
-)";
+namespace yaze::cli {
 
-constexpr const char* kZ3edLogoCompact = R"(
- ╔════════════════════════════════╗
- ║  ███████╗██████╗ ███████╗██████╗  ║
- ║  ╚══███╔╝╚════██╗██╔════╝██╔══██╗ ║
- ║    ███╔╝  █████╔╝█████╗  ██║  ██║ ║
- ║   ███╔╝   ╚═══██╗██╔══╝  ██║  ██║ ║
- ║  ███████╗██████╔╝███████╗██████╔╝ ║
- ║  ╚══════╝╚═════╝ ╚══════╝╚═════╝  ║
- ║         ▲    Zelda 3 Editor      ║
- ║        ▲ ▲   AI-Powered CLI      ║
- ║       ▲▲▲▲▲  ROM Hacking Tool    ║
- ╚════════════════════════════════╝
-)";
-
-constexpr const char* kZ3edLogoMinimal = R"(
- ╭──────────────────────╮
- │  Z3ED - Zelda 3      │
- │    ▲   Editor CLI    │
- │   ▲ ▲  AI-Powered    │
- │  ▲▲▲▲▲               │
- ╰──────────────────────╯
-)";
-
-// Get logo with color codes for terminal
-inline std::string GetColoredLogo() {
-  return std::string("\033[1;36m") +  // Cyan
-         "    ███████╗██████╗ ███████╗██████╗ \n"
-         "    ╚══███╔╝╚════██╗██╔════╝██╔══██╗\n"
-         "      ███╔╝  █████╔╝█████╗  ██║  ██║\n"
-         "     ███╔╝   ╚═══██╗██╔══╝  ██║  ██║\n"
-         "    ███████╗██████╔╝███████╗██████╔╝\n"
-         "    ╚══════╝╚═════╝ ╚══════╝╚═════╝ \n"
-         "\033[1;33m" +  // Yellow for triforce
-         "          \n"
-         "       ▲      " +
-         "\033[1;37m" + "Zelda 3 Editor\n" +  // White
-         "\033[1;33m" + "      ▲ ▲     " + "\033[0;37m" +
-         "AI-Powered CLI\n" +  // Gray
-         "\033[1;33m" + "     ▲▲▲▲▲    \n" + "\033[1;32m" +
-         "  CLI ✦ Automation ✦ Command TODOs" + "\n" + "\033[0m";  // Reset
+// The z3ed banner printed by --help and --version.
+inline std::string RenderLogo(const util::AnsiStyle& style) {
+  return absl::StrCat(style.Heading(),
+                      "    ███████╗██████╗ ███████╗██████╗ \n"
+                      "    ╚══███╔╝╚════██╗██╔════╝██╔══██╗\n"
+                      "      ███╔╝  █████╔╝█████╗  ██║  ██║\n"
+                      "     ███╔╝   ╚═══██╗██╔══╝  ██║  ██║\n"
+                      "    ███████╗██████╔╝███████╗██████╔╝\n"
+                      "    ╚══════╝╚═════╝ ╚══════╝╚═════╝ \n",
+                      style.Highlight(), "          \n       ▲      ",
+                      style.Emphasis(), "Zelda 3 Editor\n", style.Highlight(),
+                      "      ▲ ▲     ", style.Muted(), "AI-Powered CLI\n",
+                      style.Highlight(), "     ▲▲▲▲▲    \n", style.Success(),
+                      "  CLI ✦ Automation ✦ Command TODOs\n", style.Reset());
 }
 
-}  // namespace cli
-}  // namespace yaze
+}  // namespace yaze::cli
 
 #endif  // YAZE_CLI_Z3ED_ASCII_LOGO_H_

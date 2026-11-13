@@ -36,10 +36,12 @@ class HexWriteCommandHandler : public resources::CommandHandler {
  public:
   std::string GetName() const { return "hex-write"; }
   std::string GetDescription() const {
-    return "Write hex data to ROM at specified address";
+    return "Write hex data to ROM at specified address (dry-run unless "
+           "--write)";
   }
   std::string GetUsage() const {
-    return "hex-write --address <address> --data <data>";
+    return "hex-write --address <address> --data <data> [--write] "
+           "[--allow-project-rom]";
   }
 
   absl::Status ValidateArgs(const resources::ArgumentParser& parser) override {

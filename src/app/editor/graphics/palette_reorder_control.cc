@@ -127,7 +127,7 @@ void PaletteReorderControl::Draw(GraphicsEditorState& state, const Apply& apply,
         if (row == 1 && slot == selected_slot_) {
           ImGui::GetWindowDrawList()->AddRect(
               ImGui::GetItemRectMin(), ImGui::GetItemRectMax(),
-              ImGui::GetColorU32(ImGuiCol_Text), 0, 0, 2);
+              ImGui::GetColorU32(ImGuiCol_Text), 0.0f, 2.0f);
         }
         if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
           ImGui::SetTooltip(tr("Slot %d"), slot);

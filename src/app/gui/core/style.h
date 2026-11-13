@@ -39,16 +39,8 @@ void BeginChildWithScrollbar(const char* str_id, ImVec2 content_size,
 
 void BeginChildBothScrollbars(int id);
 
-// Table canvas management helpers for GUI elements that need proper sizing
-void BeginTableCanvas(const char* table_id, int columns,
-                      ImVec2 canvas_size = ImVec2(0, 0));
-void EndTableCanvas();
-void SetupCanvasTableColumn(const char* label, float width_ratio = 0.0f);
-void BeginCanvasTableCell(ImVec2 min_size = ImVec2(0, 0));
-
-void DrawDisplaySettings(ImGuiStyle* ref = nullptr);
-void DrawDisplaySettingsForPopup(
-    ImGuiStyle* ref = nullptr);  // Popup-safe version
+// Style editor drawn inside the Display Settings popup.
+void DrawDisplaySettingsForPopup(ImGuiStyle* ref = nullptr);
 
 void TextWithSeparators(const absl::string_view& text);
 

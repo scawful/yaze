@@ -3,6 +3,7 @@
 #include <algorithm>
 
 #include "app/gui/canvas/canvas_utils.h"
+#include "app/gui/core/draw_sampling.h"
 #include "app/gui/core/layout_helpers.h"
 #include "app/gui/core/style.h"
 #include "imgui/imgui.h"
@@ -103,6 +104,7 @@ void GraphicsBinCanvasPipeline(int width, int height, int tile_size,
     canvas.DrawBackground(ImVec2(width + 1, num_sheets_to_load * height + 1));
     canvas.DrawContextMenu();
     if (is_loaded) {
+      ScopedNearestSampling nearest_sampling(canvas.draw_list());
       for (const auto& [key, value] : graphics_bin) {
         if (!value || !value->texture()) {
           continue;

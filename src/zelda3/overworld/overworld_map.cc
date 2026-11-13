@@ -280,7 +280,7 @@ absl::Status OverworldMap::BuildMapWithCache(
         area_graphics_ = (*rom_)[kOverworldSpecialGfxGroup +
                                  (parent_ - kSpecialWorldMapIdStart)];
         area_palette_ = (*rom_)[kOverworldSpecialPalGroup + 1];
-      } else if (index_ == 0x88) {
+      } else if (index_ == 0x88 || index_ == 0x93) {
         // Triforce room has special hardcoded values
         area_graphics_ = 0x51;
         area_palette_ = 0x00;
@@ -920,7 +920,7 @@ int OverworldMap::ComputeMainBlocksetId() const {
   } else if (parent_ >= kSpecialWorldMapIdStart) {
     // Special world maps - use appropriate graphics ID based on the specific
     // map
-    if (parent_ == 0x88) {
+    if (parent_ == 0x88 || parent_ == 0x93) {
       return 0x24;
     } else {
       // Default special world graphics ID

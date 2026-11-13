@@ -221,14 +221,16 @@ void Theme::ApplyToImGui() const {
   colors[ImGuiCol_Tab] = ConvertColorToImVec4(tab);
   colors[ImGuiCol_TabHovered] = ConvertColorToImVec4(tab_hovered);
   colors[ImGuiCol_TabSelected] = ConvertColorToImVec4(tab_active);
-  colors[ImGuiCol_TabUnfocused] = ConvertColorToImVec4(tab_unfocused);
-  colors[ImGuiCol_TabUnfocusedActive] =
-      ConvertColorToImVec4(tab_unfocused_active);
   colors[ImGuiCol_DockingPreview] = ConvertColorToImVec4(docking_preview);
   colors[ImGuiCol_DockingEmptyBg] = ConvertColorToImVec4(docking_empty_bg);
 
   // Complete ImGui color support
   colors[ImGuiCol_CheckMark] = ConvertColorToImVec4(check_mark);
+  // Derived rather than themed: checked checkboxes lean toward the hover color,
+  // as ImGui's own styles do. ColorsYaze() sets the same slot for Classic.
+  colors[ImGuiCol_CheckboxSelectedBg] =
+      colors[ImGuiCol_FrameBg] +
+      (colors[ImGuiCol_FrameBgHovered] - colors[ImGuiCol_FrameBg]) * 0.65f;
   colors[ImGuiCol_SliderGrab] = ConvertColorToImVec4(slider_grab);
   colors[ImGuiCol_SliderGrabActive] = ConvertColorToImVec4(slider_grab_active);
   colors[ImGuiCol_InputTextCursor] = ConvertColorToImVec4(input_text_cursor);
@@ -240,6 +242,11 @@ void Theme::ApplyToImGui() const {
   colors[ImGuiCol_ModalWindowDimBg] = ConvertColorToImVec4(modal_window_dim_bg);
   colors[ImGuiCol_TextSelectedBg] = ConvertColorToImVec4(text_selected_bg);
   colors[ImGuiCol_DragDropTarget] = ConvertColorToImVec4(drag_drop_target);
+  // Not themed; mirrors ColorsYaze(). Left unwritten, a preset applied after
+  // Classic YAZE would keep Classic's near-white unsaved marker, which
+  // disappears on light themes.
+  colors[ImGuiCol_DragDropTargetBg] = ImVec4(0.0f, 0.0f, 0.0f, 0.0f);
+  colors[ImGuiCol_UnsavedMarker] = colors[ImGuiCol_Text];
   colors[ImGuiCol_TableHeaderBg] = ConvertColorToImVec4(table_header_bg);
   colors[ImGuiCol_TableBorderStrong] =
       ConvertColorToImVec4(table_border_strong);

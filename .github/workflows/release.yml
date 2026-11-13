@@ -80,8 +80,8 @@ jobs:
             os: ubuntu-22.04
             platform: linux
             preset: release
-          - name: "macOS 14"
-            os: macos-14
+          - name: "macOS 15"
+            os: macos-15
             platform: macos
             preset: release
           - name: "Windows 2022"
@@ -331,8 +331,8 @@ jobs:
             os: ubuntu-22.04
             platform: linux
             preset: release-test
-          - name: "macOS 14"
-            os: macos-14
+          - name: "macOS 15"
+            os: macos-15
             platform: macos
             preset: release-test
           - name: "Windows 2022"

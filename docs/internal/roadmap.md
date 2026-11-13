@@ -6,15 +6,28 @@ Owner: [`backend-infra-engineer` with editor owners](agents/personas.md)
 
 Created: 2026-09-14
 
-Last reviewed: 2026-09-23
+Last reviewed: 2026-10-27
 
 Next review: 2026-10-06
 
 Universe task: `task_20260923T000806Z_4560` ([coordination system](agents/universe-coordination-spec.md))
 
-Intent: ship v0.8.0 as a dependable Dungeon Editor milestone, with audited
-vanilla object rendering and a validated Oracle editing workflow. Continue
-bounded preview builds while completing the release requirements below.
+Intent: complete the Dungeon Editor milestone, with audited vanilla object
+rendering and a validated Oracle editing workflow. On 2026-10-27 v0.8.0 was
+rescoped to an experimental release of merged work (see the
+[release checklist](release-checklist.md)); the Dungeon completion requirements
+below are not v0.8.0 gates and continue into the next Dungeon milestone.
+
+Second active goal: expanded overworld map tooling. On 2026-10-27 scawful set
+full expanded-map writing, normal save/reopen, and matching Build/Test as P0
+Oracle work. On 2026-10-29 scawful added: "I really can build these maps fast
+once the tools are ready." Map content waits on these editor tools, not on
+authoring time, so they are the critical path for the complete 64-cell
+`$80–$BF` Lyra third world: Tile16 commit/discard/Undo through the normal
+save lifecycle, entrance/return records for moved maps, expanded-map write →
+Build → Run/Test of the exact built generation, and procedural terrain
+proposals applied through normal Undo. Work-chunk IDs and owners live in the
+Oracle `work_chunks_2026-10-29/CHUNKS.md` handoff (Y8b, Y10, Y12a–Y12c).
 
 The [editor capability parity plan](plans/editor-capability-parity-plan.md)
 owns the target baseline, work-package IDs, dependencies, and implementation
@@ -92,14 +105,14 @@ An editor is not promoted because its panel opens, its serializer has a unit
 test, or a direct ROM writer can roundtrip bytes. Promotion requires a named
 user workflow and evidence appropriate to that workflow.
 
-Merge reviewed, verified slices throughout development. Hold the v0.8.0 tag,
-not consolidation. A bounded preview is not evidence that the full dungeon
+Merge reviewed, verified slices throughout development. Hold the Dungeon
+completion release, not consolidation; experimental v0.8.0 does not close it. A bounded preview is not evidence that the full dungeon
 milestone is complete. Unsupported custom ASM and universal hack compatibility
 are not implied by this release.
 
-## P0: v0.8.0 dungeon completion
+## P0: Dungeon completion (after experimental v0.8.0)
 
-All five outcomes below are release requirements. `DA-1` through `DA-4`
+All five outcomes below are requirements for the Dungeon completion release. `DA-1` through `DA-4`
 deliver complete dungeon authoring; `DA-5` qualifies those workflows and the
 rendering baseline. Early previews must name their remaining gaps.
 

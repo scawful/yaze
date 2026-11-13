@@ -220,9 +220,9 @@ Say "build ok ($($times.build_s)s, -j$jobs, $ccacheLine): $($targets -join ' ')"
 # --- tests ---------------------------------------------------------------------------
 $testRc = 0
 $testLog = Join-Path $Out 'test.log'
-# Keep tests away from the PC user's real files. test/yaze_test.cc sets these with
-# SDL_setenv, which on Windows does not reach std::getenv, so without this the
-# harness resolves %USERPROFILE%\Documents\Yaze and skips every test.
+# Keep tests away from the PC user's real files. test/yaze_test.cc replaces the two
+# YAZE_* dirs with per-process ones under TEMP; these values cover any other
+# process ctest starts.
 $testHome = Join-Path $JobDir 'testhome'
 $env:TEMP = $env:TMP = $testHome          # the isolation test wants docs under TEMP
 $env:YAZE_USER_DOCUMENTS_DIR = Join-Path $testHome 'documents'
@@ -269,20 +269,12 @@ $summary = [ordered]@{
 foreach ($k in $times.Keys) { $summary[$k] = $times[$k] }
 $summary.GetEnumerator() | ForEach-Object { "$($_.Key)=$($_.Value)" } | Set-Content (Join-Path $Out 'summary.txt')
 
-# Keep the newest max_worktrees worktrees (by last use); drop older ones and old job dirs.
-$stampDir = Join-Path $Root 'stamps'
-Get-ChildItem $stampDir -File | Sort-Object LastWriteTime -Descending |
-  Select-Object -Skip ([int]$job.max_worktrees) | ForEach-Object {
-    $old = Join-Path $WtRoot $_.Name
-    Say "pruning least-recently-used worktree $($_.Name)"
-    & git -C $Repo worktree remove --force $old *> $null
-    if (Test-Path $old) { Remove-Item -Recurse -Force $old -ErrorAction SilentlyContinue }
-    Remove-Item $_.FullName -Force
-  }
-& git -C $Repo worktree prune *> $null
-Get-ChildItem (Join-Path $Root 'jobs') -Directory |
-  Where-Object { $_.FullName -ne $JobDir -and $_.LastWriteTime -lt (Get-Date).AddDays(-2) } |
-  Remove-Item -Recurse -Force -ErrorAction SilentlyContinue
+# Worktrees and job directories can hold protected sources, ROMs, profiles and
+# runtime evidence. Age or a cache limit is not a preservation/ownership check.
+# Retain them for an explicit inventory/capture/restore/freshness cleanup pass.
+# max_worktrees remains accepted in job.txt for older clients; it cannot grant
+# automatic removal. Only this job's lock-owner marker is disposable here.
+Say 'retaining remote worktrees and job evidence; automatic pruning is disabled'
 Remove-Item $ownerPath -Force -ErrorAction SilentlyContinue
 $lock.Dispose()
 exit $rcFinal

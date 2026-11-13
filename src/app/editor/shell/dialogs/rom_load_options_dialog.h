@@ -2,7 +2,10 @@
 #define YAZE_APP_EDITOR_SHELL_DIALOGS_ROM_LOAD_OPTIONS_DIALOG_H_
 
 #include <functional>
+#include <optional>
 #include <string>
+#include <string_view>
+#include <utility>
 
 #include "absl/status/status.h"
 #include "core/features.h"
@@ -16,29 +19,25 @@ class Rom;
 namespace editor {
 
 /**
- * @brief ROM load options and ZSCustomOverworld upgrade dialog
+ * @brief ROM load options dialog
  *
- * Shown after ROM detection to offer:
- * - ZSCustomOverworld version upgrade options
- * - Feature flag presets
+ * Shown after an interactive raw ROM open, and from the command palette to
+ * review the options a session uses now. It offers:
+ * - Overworld load options (custom overworld fields, special world tail)
+ * - Save flag presets based on the detected version
  * - Project creation integration
  *
- * Flow:
- * 1. ROM loaded -> Detect version
- * 2. If vanilla, offer upgrade to v2/v3
- * 3. Show feature flag presets based on version
- * 4. Optionally create associated project
+ * It never changes the ROM. ZSCustomOverworld ASM is applied from the
+ * Overworld toolbar's Upgrade button.
  */
 class RomLoadOptionsDialog {
  public:
   struct LoadOptions {
-    // ZSCustomOverworld options
-    bool upgrade_to_zscustom = false;
-    int target_zso_version = 3;          // 2 or 3
+    // Overworld load options. Both are read when the overworld loads.
+    bool enable_custom_overworld = false;
     bool enable_tail_expansion = false;  // Special world tail (0xA0-0xBF)
 
-    // Feature flags to apply
-    bool enable_custom_overworld = false;
+    // Save flags to apply
     bool save_overworld_maps = true;
     bool save_overworld_entrances = true;
     bool save_overworld_exits = true;
@@ -55,6 +54,17 @@ class RomLoadOptionsDialog {
 
     // Preset name if selected
     std::string selected_preset;
+
+    // Skip this dialog the next time this ROM file opens. UserSettings keeps
+    // the choice beside its encoding; the encoding never stores this field.
+    bool remember_for_rom = true;
+  };
+
+  // A decoded remembered choice. zso_version_byte is the ZSCustomOverworld
+  // ASM byte the ROM had when the choice was made.
+  struct RememberedChoice {
+    LoadOptions options;
+    int zso_version_byte = -1;
   };
 
   RomLoadOptionsDialog();
@@ -75,6 +85,15 @@ class RomLoadOptionsDialog {
    */
   void Open(Rom* rom);
   void Open(Rom* rom, bool suggest_project_creation);
+
+  /**
+   * @brief Reopen the dialog for a ROM that is already loaded
+   * @param active Feature flags the session uses now (what Save writes)
+   * @param preset_name Remembered preset to select; empty keeps the default
+   * @param remembered Whether this ROM file has a remembered choice
+   */
+  void OpenForReview(Rom* rom, const core::FeatureFlags::Flags& active,
+                     const std::string& preset_name, bool remembered);
 
   /**
    * @brief Show the dialog
@@ -112,16 +131,20 @@ class RomLoadOptionsDialog {
   }
 
   /**
-   * @brief Set callback for ZSO upgrade
+   * @brief Set callback for Cancel or the title-bar close button
    */
-  void SetUpgradeCallback(std::function<absl::Status(int version)> callback) {
-    upgrade_callback_ = callback;
+  void SetCancelCallback(std::function<void()> callback) {
+    cancel_callback_ = std::move(callback);
   }
 
-  /**
-   * @brief Check if ROM needs upgrade prompt
-   */
-  bool ShouldPromptUpgrade() const;
+  // Checked before any flag mutation, including the dialog's own application.
+  void SetApplyGuard(std::function<bool()> guard) {
+    apply_guard_ = std::move(guard);
+  }
+  void Close() {
+    is_open_ = false;
+    confirmed_ = false;
+  }
 
   /**
    * @brief Get detected ROM version
@@ -130,9 +153,35 @@ class RomLoadOptionsDialog {
     return detected_version_;
   }
 
+  const std::string& rom_filename() const { return rom_filename_; }
+  // ZSCustomOverworld ASM byte of the open ROM; -1 when no ROM is loaded.
+  int zso_version_byte() const { return zso_version_byte_; }
+  // True when opened through OpenForReview().
+  bool reviewing() const { return reviewing_; }
+  // True when an overworld load option differs from the flag in effect when
+  // the dialog opened. The open ROM's overworld loaded with that flag, so the
+  // change needs a reopen.
+  bool OverworldLoadOptionsChanged() const;
+
+  // Remembered choices are stored as "key=value;" text so UserSettings can
+  // keep them as opaque strings in both settings.json and the legacy INI.
+  static std::string EncodeRememberedChoice(const LoadOptions& options,
+                                            int zso_version_byte);
+  // Returns nullopt for any version, byte, or flag it does not understand.
+  static std::optional<RememberedChoice> DecodeRememberedChoice(
+      std::string_view encoded);
+  // Settings key for a ROM path: absolute and lexically normal. Symlinks are
+  // not resolved, so two links to one file remember separately.
+  static std::string RomChoiceKey(const std::string& rom_path);
+
+  static void ApplyToFeatureFlags(const LoadOptions& options,
+                                  core::FeatureFlags::Flags& flags);
+  static LoadOptions OptionsFromFeatureFlags(
+      const core::FeatureFlags::Flags& flags);
+
  private:
   void DrawVersionInfo();
-  void DrawUpgradeOptions();
+  void DrawOverworldOptions();
   void DrawFeatureFlagPresets();
   void DrawFeatureFlagDetails();
   void DrawProjectOptions();
@@ -149,6 +198,11 @@ class RomLoadOptionsDialog {
   bool is_open_ = false;
   bool confirmed_ = false;
   bool show_advanced_ = false;
+  bool reviewing_ = false;
+  int zso_version_byte_ = -1;
+  // Overworld load flags in effect when the dialog opened.
+  bool loaded_custom_overworld_ = false;
+  bool loaded_tail_expansion_ = false;
 
   // Options
   LoadOptions options_;
@@ -161,7 +215,8 @@ class RomLoadOptionsDialog {
 
   // Callbacks
   std::function<void(const LoadOptions&)> confirm_callback_;
-  std::function<absl::Status(int version)> upgrade_callback_;
+  std::function<void()> cancel_callback_;
+  std::function<bool()> apply_guard_;
 
   // UI state
   char project_name_buffer_[256] = {};

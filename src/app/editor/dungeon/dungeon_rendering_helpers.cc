@@ -512,12 +512,10 @@ void DungeonRenderingHelpers::DrawCameraQuadrantOverlay(
   const float thickness = std::max(1.0f, 1.0f * scale);
   const ImU32 line_color = ImGui::GetColorU32(theme.editor_grid);
 
-  draw_list->AddLine(ImVec2(canvas_pos.x + mid_px, canvas_pos.y),
-                     ImVec2(canvas_pos.x + mid_px, canvas_pos.y + room_size_px),
-                     line_color, thickness);
-  draw_list->AddLine(ImVec2(canvas_pos.x, canvas_pos.y + mid_px),
-                     ImVec2(canvas_pos.x + room_size_px, canvas_pos.y + mid_px),
-                     line_color, thickness);
+  draw_list->AddLineV(canvas_pos.x + mid_px, canvas_pos.y,
+                      canvas_pos.y + room_size_px, line_color, thickness);
+  draw_list->AddLineH(canvas_pos.x, canvas_pos.x + room_size_px,
+                      canvas_pos.y + mid_px, line_color, thickness);
 
   std::string label = absl::StrFormat("Layout %d", room.layout_id());
   draw_list->AddText(ImVec2(canvas_pos.x + 6.0f, canvas_pos.y + 6.0f),
@@ -560,7 +558,7 @@ void DungeonRenderingHelpers::DrawMinecartSpriteOverlay(
     const float py = static_cast<float>(sprite.y() * 16) * scale;
     ImVec2 min(canvas_pos.x + px, canvas_pos.y + py);
     ImVec2 max(min.x + (16.0f * scale), min.y + (16.0f * scale));
-    draw_list->AddRect(min, max, color, 0.0f, 0, 2.0f);
+    draw_list->AddRect(min, max, color, 0.0f, 2.0f);
   }
 }
 
@@ -632,13 +630,11 @@ void DungeonRenderingHelpers::DrawTrackRouteOverlay(
 
     if (entry.x + 1 < 64 &&
         occupied[static_cast<size_t>(entry.y * 64 + (entry.x + 1))]) {
-      draw_list->AddLine(ImVec2(cx, cy), ImVec2(cx + tile_size, cy),
-                         route_color, thickness);
+      draw_list->AddLineH(cx, cx + tile_size, cy, route_color, thickness);
     }
     if (entry.y + 1 < 64 &&
         occupied[static_cast<size_t>((entry.y + 1) * 64 + entry.x)]) {
-      draw_list->AddLine(ImVec2(cx, cy), ImVec2(cx, cy + tile_size),
-                         route_color, thickness);
+      draw_list->AddLineV(cx, cy, cy + tile_size, route_color, thickness);
     }
   }
 }

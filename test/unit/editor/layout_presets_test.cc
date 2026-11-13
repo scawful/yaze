@@ -2,6 +2,7 @@
 #include "app/editor/overworld/ui/tiles/tile16_editor_view.h"
 
 #include <algorithm>
+#include <utility>
 #include <vector>
 
 #include "gtest/gtest.h"
@@ -22,11 +23,13 @@ TEST(LayoutPresetsTest, OverworldDefaultUsesMinimalWorkbenchArrangement) {
   EXPECT_TRUE(ContainsPanel(preset.default_visible_panels,
                             LayoutPresets::Panels::kOverworldTile16Selector));
   EXPECT_TRUE(ContainsPanel(preset.default_visible_panels,
+                            LayoutPresets::Panels::kOverworldScratch));
+  EXPECT_TRUE(ContainsPanel(preset.default_visible_panels,
                             LayoutPresets::Panels::kOverworldAreaGraphics));
   EXPECT_FALSE(ContainsPanel(preset.default_visible_panels,
                              LayoutPresets::Panels::kOverworldTile16Editor));
-  EXPECT_TRUE(ContainsPanel(preset.default_visible_panels,
-                            LayoutPresets::Panels::kOverworldMapProperties));
+  EXPECT_FALSE(ContainsPanel(preset.default_visible_panels,
+                             LayoutPresets::Panels::kOverworldMapProperties));
   EXPECT_FALSE(ContainsPanel(preset.default_visible_panels,
                              LayoutPresets::Panels::kOverworldItemList));
   EXPECT_TRUE(preset.dock_only_default_visible_panels);
@@ -39,31 +42,34 @@ TEST(LayoutPresetsTest, OverworldDefaultUsesMinimalWorkbenchArrangement) {
   auto selector_pos = preset.panel_positions.find(
       LayoutPresets::Panels::kOverworldTile16Selector);
   ASSERT_NE(selector_pos, preset.panel_positions.end());
-  EXPECT_EQ(selector_pos->second, DockPosition::RightTop);
+  EXPECT_EQ(selector_pos->second, DockPosition::Right);
+
+  auto scratch_pos =
+      preset.panel_positions.find(LayoutPresets::Panels::kOverworldScratch);
+  ASSERT_NE(scratch_pos, preset.panel_positions.end());
+  EXPECT_EQ(scratch_pos->second, DockPosition::Right);
 
   auto area_graphics_pos = preset.panel_positions.find(
       LayoutPresets::Panels::kOverworldAreaGraphics);
   ASSERT_NE(area_graphics_pos, preset.panel_positions.end());
-  EXPECT_EQ(area_graphics_pos->second, DockPosition::RightBottom);
+  EXPECT_EQ(area_graphics_pos->second, DockPosition::Right);
   EXPECT_FALSE(ContainsPanel(preset.optional_panels,
                              LayoutPresets::Panels::kOverworldAreaGraphics));
 
   auto editor_pos = preset.panel_positions.find(
       LayoutPresets::Panels::kOverworldTile16Editor);
   ASSERT_NE(editor_pos, preset.panel_positions.end());
-  EXPECT_EQ(editor_pos->second, DockPosition::RightTop);
+  EXPECT_EQ(editor_pos->second, DockPosition::Right);
   EXPECT_TRUE(ContainsPanel(preset.optional_panels,
                             LayoutPresets::Panels::kOverworldTile16Editor));
 
-  auto properties_pos = preset.panel_positions.find(
-      LayoutPresets::Panels::kOverworldMapProperties);
-  ASSERT_NE(properties_pos, preset.panel_positions.end());
-  EXPECT_EQ(properties_pos->second, DockPosition::RightBottom);
+  EXPECT_TRUE(ContainsPanel(preset.optional_panels,
+                            LayoutPresets::Panels::kOverworldMapProperties));
 
   auto item_list_pos =
       preset.panel_positions.find(LayoutPresets::Panels::kOverworldItemList);
   ASSERT_NE(item_list_pos, preset.panel_positions.end());
-  EXPECT_EQ(item_list_pos->second, DockPosition::RightBottom);
+  EXPECT_EQ(item_list_pos->second, DockPosition::Right);
 
   EXPECT_TRUE(ContainsPanel(preset.optional_panels,
                             LayoutPresets::Panels::kOverworldDebug));
@@ -86,8 +92,8 @@ TEST(LayoutPresetsTest, Tile16EditorHasUsableFirstUseSizeButIsOptional) {
 }
 
 TEST(LayoutPresetsTest,
-     OverworldExpertPositionsMapPropertiesAndGraphicsEditor) {
-  auto preset = LayoutPresets::GetOverworldExpertPreset();
+     OverworldArtistPositionsMapPropertiesAndGraphicsEditor) {
+  auto preset = LayoutPresets::GetOverworldArtistPreset();
 
   EXPECT_TRUE(ContainsPanel(preset.default_visible_panels,
                             LayoutPresets::Panels::kOverworldMapProperties));
@@ -108,6 +114,29 @@ TEST(LayoutPresetsTest,
       preset.panel_positions.find(LayoutPresets::Panels::kOverworldDebug);
   ASSERT_NE(debug_pos, preset.panel_positions.end());
   EXPECT_EQ(debug_pos->second, DockPosition::RightBottom);
+}
+
+TEST(LayoutPresetsTest, NamedPresetLookupPreservesMenuAndProfileNames) {
+  const std::pair<const char*, const char*> names[] = {
+      {"Minimal", "Minimal"},
+      {"Developer", "Developer"},
+      {"Designer", "Designer"},
+      {"Modder", "Modder"},
+      {"Overworld Expert", "Overworld Artist"},
+      {"Dungeon Expert", "Dungeon Master"},
+      {"Testing", "Logic Debugger"},
+      {"Audio", "Audio Engineer"},
+  };
+  for (const auto& [input, expected] : names) {
+    PanelLayoutPreset preset;
+    ASSERT_TRUE(LayoutPresets::TryGetNamedPreset(input, &preset)) << input;
+    EXPECT_EQ(preset.name, expected);
+  }
+  PanelLayoutPreset unchanged;
+  unchanged.name = "sentinel";
+  EXPECT_FALSE(LayoutPresets::TryGetNamedPreset("unknown", &unchanged));
+  EXPECT_EQ(unchanged.name, "sentinel");
+  EXPECT_FALSE(LayoutPresets::TryGetNamedPreset("Minimal", nullptr));
 }
 
 TEST(LayoutPresetsTest, DungeonWorkbenchDefaultKeepsStandaloneToolsOptional) {

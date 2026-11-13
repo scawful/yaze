@@ -288,6 +288,36 @@ class GraphicsUsagePreviewPanel : public WindowContent {
   DrawCallback draw_callback_;
 };
 
+/**
+ * @brief PNG file / clipboard import that keeps the image's palette indices
+ */
+class GraphicsImageImportPanel : public WindowContent {
+ public:
+  using DrawCallback = std::function<void()>;
+
+  explicit GraphicsImageImportPanel(DrawCallback draw_callback)
+      : draw_callback_(std::move(draw_callback)) {}
+
+  std::string GetId() const override { return "graphics.image_import"; }
+  std::string GetDisplayName() const override { return "Image Import"; }
+  std::string GetIcon() const override { return ICON_MD_IMAGE; }
+  std::string GetEditorCategory() const override { return "Graphics"; }
+  WindowPresentationPolicy GetPresentationPolicy() const override {
+    return WindowPresentationPolicy::OptionalPopOut();
+  }
+  int GetPriority() const override { return 32; }
+  float GetPreferredWidth() const override { return 420.0f; }
+
+  void Draw(bool* p_open) override {
+    if (draw_callback_) {
+      draw_callback_();
+    }
+  }
+
+ private:
+  DrawCallback draw_callback_;
+};
+
 }  // namespace editor
 }  // namespace yaze
 

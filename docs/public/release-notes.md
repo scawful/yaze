@@ -1,47 +1,140 @@
 # Release Notes
 
+## Unreleased development
+
+Current development includes gameplay-area authoring, 192-map navigation,
+later Tile16 Undo/save integration, and image-import/palette-selector work.
+These are not retroactive additions to the published downloads. The
+[release/source matrix](../internal/status.md#lyra-source-and-qualification-boundaries)
+names the exact public, mainline and private sources and their remaining checks.
+
 ## v0.8.0
 
-**Type:** Dungeon Authoring Milestone — Editing + Undo + Rendering + Save Safety
-**Status:** In development
-**Date:** pending
-**Release SHA:** pending
+**Type:** Desktop editor release
 
-This is the Dungeon Editor milestone. More dungeon objects now draw from their
-USDASM routines, the Workbench keeps the room canvas stable, guarded dungeon,
-message, and palette writes check more before touching the ROM, and release
-packages gained per-platform layout and install checks. Many of those checks
-refuse work that 0.7.2 accepted, so read **Upgrading from 0.7.2** first.
+**Status:** Release candidate; package and native validation are recorded before publication.
 
-### Completion baseline (2026-09-22)
+Yaze 0.8.0 brings the Dungeon Workbench, shared editing history, graphics import
+and safer ROM/project saves to Linux, macOS and Windows. It packages the editor
+work since 0.7.2 and the fixes made after the first 0.8.0 experimental download.
+Dungeon rendering parity and the remaining Dungeon completion roadmap continue
+beyond this release.
 
-The [editor capability completion plan](../internal/plans/editor-capability-parity-plan.md)
-defines the remaining 0.8.0 authoring work: shared dungeon undo, editable entity
-inspectors, complete room reuse, visual connections, and ROM/runtime/release
-acceptance. Full Hyrule Magic / ZScream workflow coverage extends beyond 0.8.0
-into overworld, graphics, screens, and audio milestones.
+### Highlights
 
-The source audit uses mainline `d609e6254` and local placement candidate
-`7ba7d76ce`. The candidate adds live preview properties, once/repeat placement,
-selection of inserted objects, Place another, physical size controls, and
-uniform wheel resizing for area objects. Its app build and 43 focused tests
-passed, but it was unpublished and had not replaced the installed app at review.
-This is **Candidate** evidence, not a claim that these changes are shipped or
-that ROM save/reopen and in-game acceptance passed. Current implementation
+- **Dungeon Workbench:** the object browser offers **List** and **Icons** views
+  with shared filters and placement actions. A compact Selection panel leaves
+  more space on the right for Room Matrix and an entrance list, with collapsible
+  navigation sections and a resizable split. Room settings stay in their
+  existing controls. Object, sprite, door and pot-item edits use the existing
+  Undo/Redo and guarded save paths.
+- **Graphics editing:** PNG and palette-strip import, Sheet Browser palette
+  selection and live previews join the existing sheet editor. Graphics
+  write-back remains experimental and supports the documented 3bpp sheet table;
+  source publishing and arbitrary bit depths are not claimed.
+- **Message editing:** the preview fits the panel at integer zoom, uses the
+  textbox palette and a three-line black textbox, and keeps its grid optional.
+  The editor restores the last message, accepts `--message`, and puts prose
+  ahead of bank/address metadata in the message list.
+- **Project loading:** malformed integer settings return a project error instead
+  of aborting the editor or CLI. Empty, nonnumeric and overflowing values are
+  rejected before the project is accepted.
+- **Safer file operations:** shared ROM-load options, project-scoped autosave
+  preferences, staged backup restore and guarded z3ed writes preserve the
+  existing backup, manifest and reopen contracts.
+- **Portable packages:** the macOS bundle carries its OpenSSL/libpng
+  dependencies and requires macOS 15 or newer. Linux TGZ/DEB and Windows
+  ZIP/installer packages use the existing layout, startup and version checks.
+
+### Scope and remaining limits
+
+Use copies of ROMs and projects. A release version is not a claim of emulator
+rendering parity or support for every hack-specific format. The
+[feature coverage report](reference/feature-coverage-report.md) records the
+supported editing and save domains. Gameplay-area/Lyra authoring and later
+Oracle expanded-map Build/Test remain experimental and are not runtime-qualified
+by this release. Screen, Music sample/instrument, Hex/Memory and emulator-state
+persistence remain outside coordinated Save ROM where the coverage report says
+so. The Windows interactive Save As check in issue #107 and unexecuted native
+platform checks stay explicit in the release validation record.
+
+HTTP API servers are compiled out of production packages. Private source builds
+and internal automation builds have separate options and are not the downloaded
+release package.
+
+The exact source, package hashes and platform checks belong to the release
+record. Read [Upgrading from 0.7.2](#upgrading-from-072) below before moving an
+existing project or script.
+
+## v0.8.0-exp.2
+
+**Type:** Experimental prerelease candidate
+
+**Status:** In preparation; packages and release validation are pending.
+
+This candidate covers development after v0.8.0-exp.1. Test with copies of
+your ROMs and projects. The final package contents and validation depend on
+the release commit and its package checks.
+
+Mainline changes include Lyra gameplay-area document tooling and 192-map
+navigation, Tile16 editing and Undo work, graphics image import and palette
+selection, per-editor layout improvements, ROM-load options, and safer z3ed
+ROM writes. These remain subject to the scope and limits in the
+[release/source matrix](https://github.com/scawful/yaze/blob/master/docs/internal/status.md#lyra-source-and-qualification-boundaries);
+full expanded-map Oracle Build/Test is not release-qualified.
+
+## v0.8.0-exp.1 <a id="v080-exp1"></a>
+
+**Type:** Experimental release — Dungeon rendering and authoring, save safety,
+graphics and project tooling
+**Status:** Published experimental prerelease
+**Date:** 2026-10-28 (Eastern; published 2026-10-29 00:28 UTC)
+**Release SHA:** `cc673c04f5dae90d17bdc25d0923d540522340c0`
+**Packages:** [Release downloads](https://github.com/scawful/yaze/releases/tag/v0.8.0-exp.1) and [SHA-256 checksums](https://github.com/scawful/yaze/releases/download/v0.8.0-exp.1/checksums.txt)
+**Release runs:** [Dry run](https://github.com/scawful/yaze/actions/runs/40748726881) and [publication](https://github.com/scawful/yaze/actions/runs/40781419989)
+
+v0.8.0 is an **experimental** release for Linux, macOS, and Windows. It
+packages the editor work merged since 0.7.2 so it can be tried on ROM copies.
+It is not the completed Dungeon Editor milestone; that work continues after
+this release (see [Dungeon completion](#dungeon-completion-continues-after-080)).
+Many save checks now refuse work that 0.7.2 accepted, so read
+**Upgrading from 0.7.2** first. Always edit a copy of your ROM.
+
+### Release scope
+
+**Supported** rows are the paths the release candidate must pass before
+publication: the package starts, and a ROM copy can be opened, edited, saved,
+and reopened without losing edits. The packaged results for the candidate are
+recorded in the release PR. A platform or path without a recorded result is
+listed there as unchecked, not passed. **Experimental** features are included
+and usable on ROM copies but are not release-accepted. **Deferred** features
+are not part of 0.8.0.
+
+| Area | Level | What you can rely on | Boundary |
+| --- | --- | --- | --- |
+| Package startup | Supported | Linux TGZ/DEB, macOS DMG, and Windows ZIP/installer start and report `yaze 0.8.0`; bundled assets load | The interactive Windows Save As check ([#107](https://github.com/scawful/yaze/issues/107)) still needs a person |
+| Open / Save ROM / reopen, backups | Supported | Coordinated Save ROM with fail-closed checks, managed backups, and backup restore staged until Save ROM | Saves stop instead of writing when an edit cannot be encoded; see **Upgrading from 0.7.2** |
+| `z3ed` ROM open/save | Supported | Open, save, and reopen a ROM copy from the packaged `z3ed` | Dungeon write commands require a completed backup |
+| Dungeon object, sprite, door, and pot-item editing | Supported for the edits named here | Place/move/resize/delete with Save ROM and reopen; Undo/Redo for these domains | Other room domains, compound edits, and runtime behavior are Experimental |
+| Dungeon rendering | Experimental | Many object families redrawn from USDASM routines | Not 1:1 emulator parity; see **Known Limits** |
+| Minecart tracks (Oracle projects) | Experimental | Track drafts, canvas controls, collision tools, and explicit **Publish Tracks** with rollback on all three platforms | Publishing writes project source; it reaches the game only after an Oracle build and in-game check |
+| Graphics sheet editing | Experimental | Shared sheet pixels, live dungeon/overworld previews, PNG/clipboard, guarded 3bpp write-back and relocation | Uses the 223-sheet table; a 256-sheet table and other bit depths are not supported |
+| Planning editor | Experimental | `yaze.plan/1` plans with goals, milestones, route, items, decisions, and notes; unknown keys preserved | Explicit Save/Reload only; no Planning Undo, and switching projects can lose unsaved plan edits |
+| Lyra project authoring | Experimental | Schema-3 project terrain document covering the 32 tail-map pages `$A0–$BF` | Later gameplay-area schemas and private transport/reward authoring are not in these downloads; a playable Oracle build requires separate qualification |
+| Overworld, Message, Palette | Experimental | Per-domain saves when their save flags are enabled | Status per domain is in the [coverage report](reference/feature-coverage-report.md) |
+| Screen, Music instruments/samples, Hex/Memory writes, emulator save states | Deferred | Viewing and partial editing | Blocked or not part of coordinated Save ROM |
+| HTTP API servers (`z3ed --http-port`, `yaze --enable_api`) | Not in release packages | Release packages are built with the HTTP API off | Source builds that enable it should use [PR #312](https://github.com/scawful/yaze/pull/312) once merged |
+| Canonical graphics source publishing, graphics catalogs, 4bpp import, Plan Maps | Deferred | Open draft PRs, not part of 0.8.0 | When it lands, the canonical source publisher supports macOS and Linux only, not Windows |
+
+### Dungeon completion continues after 0.8.0
+
+The original 0.8.0 goal was Dungeon Editor completion (`DA-1` to `DA-5` in the
+[editor capability completion plan](../internal/plans/editor-capability-parity-plan.md)):
+shared undo for every room domain, one contextual entity inspector, visual room
+connections, complete room cloning, and runtime/package acceptance. Those goals
+are still open and move to the next Dungeon milestone. Current implementation
 status and save boundaries are in the
 [coverage report](reference/feature-coverage-report.md).
-
-Subsequent candidate `a730d6557`, following plan commit `5fc5af950`, implements
-door, sprite, and pot-item undo/redo plus shared Workbench/standalone properties.
-It refreshes baked entity graphics, rejects reserved sprite encodings, preserves
-paste selection through redo, and blocks inspector edits when the connected
-view's room differs from the interaction context. App and unit-test builds
-succeeded; 150 selected tests across 21 suites passed with no skips, including
-22 entity lifecycle and five shared inspector UI cases. Only formatting
-whitespace changed afterward, verified through whitespace-normalized staged
-content. This remains **Candidate**: ROM save/reopen, runtime, CI, installation,
-and release qualification are pending. DA-1 and DA-2 remain open for their
-remaining domains and acceptance requirements.
 
 ### ⚠️ Upgrading from 0.7.2
 Read this before upgrading a project or a script. Each item was checked against
@@ -312,18 +405,30 @@ and every affected command, is in `docs/public/reference/changelog.md` under
   section is stale or an address disagrees.
 
 ### Validation Snapshot
-The figures below were added to these notes on 2026-09-13. They are not a run
-against the final release head, which is **pending**.
+The figures below were added on 2026-09-13. They predate the published release
+head and do not replace the exact-SHA workflow results linked below.
 - ROM parser/drawer parity and room fingerprint tests pass for the covered
   vanilla rooms and objects.
 - `z3ed dungeon-object-validate` reported `0` mismatches across `1190` validated
   objects for the canonical vanilla ROM used by the dungeon parity audit.
 - The Release test gate executed `3286` discovered stable tests locally on
   macOS instead of accepting an empty test run.
-- Final tag SHA, packaged-candidate digests, hosted `Release` workflow run links,
-  and a full-suite run against the release head are **pending**.
+- Published package digests are in [checksums.txt](https://github.com/scawful/yaze/releases/download/v0.8.0-exp.1/checksums.txt).
+  The [dry run](https://github.com/scawful/yaze/actions/runs/40748726881) and
+  [publication run](https://github.com/scawful/yaze/actions/runs/40781419989) passed
+  at the release SHA. A later [tag-triggered CI run](https://github.com/scawful/yaze/actions/runs/40798319425)
+  failed its Memory Sanitizer test job; that result remains recorded, not waived.
+- The Memory Sanitizer CI job failed on `5d4b39ae0` because one test read a
+  pointer into a destroyed temporary in `object_draw_code_test.cc`. The test
+  now keeps the result alive; the sanitizer remains enabled.
 
 ### Known Limits
+- The published Debian download is named `yaze_0.8.0.exp.1_amd64.deb`, while
+  `checksums.txt` names the same bytes `yaze_0.8.0~exp.1_amd64.deb`.
+  Its SHA-256 is `a3b2d0eb04ffb04faea001157ad2e98436683adeae2436e93d79fe7ac3a470a5`.
+  Use that digest when checking the downloaded file; the other package names
+  match their checksum rows. Future source uses an upload-safe filename and
+  preserves Debian's internal prerelease version separately.
 - Dungeon authoring remains Partial. Candidate `a730d6557` covers
   door/sprite/pot-item undo and shared properties, but header/chest transactions,
   atomic mixed-domain operations, clipboard capacity handling, and ROM/runtime

@@ -1082,10 +1082,10 @@ void PianoRollView::DrawGrid(ImDrawList* draw_list, const ImVec2& grid_origin,
     if (t % ticks_per_beat == 0) {
       float x = grid_origin.x + t * pixels_per_tick_;
       bool is_bar = (t % ticks_per_bar == 0);
-      draw_list->AddLine(ImVec2(x, std::max(grid_origin.y, canvas_pos.y)),
-                         ImVec2(x, grid_clip_bottom),
-                         is_bar ? palette.beat_marker : palette.grid_major,
-                         is_bar ? 2.0f : 1.0f);
+      draw_list->AddLineV(x, std::max(grid_origin.y, canvas_pos.y),
+                          grid_clip_bottom,
+                          is_bar ? palette.beat_marker : palette.grid_major,
+                          is_bar ? 2.0f : 1.0f);
 
       // Draw bar/beat number at top
       if (is_bar && x > grid_origin.x) {
@@ -1110,10 +1110,9 @@ void PianoRollView::DrawGrid(ImDrawList* draw_list, const ImVec2& grid_origin,
 
     int note_val = kNoteMinPitch + i;
     bool is_octave = (note_val % 12 == 0);
-    draw_list->AddLine(ImVec2(grid_origin.x, line_y),
-                       ImVec2(grid_origin.x + content_width, line_y),
-                       is_octave ? palette.octave_line : palette.grid_minor,
-                       is_octave ? 1.5f : 1.0f);
+    draw_list->AddLineH(grid_origin.x, grid_origin.x + content_width, line_y,
+                        is_octave ? palette.octave_line : palette.grid_minor,
+                        is_octave ? 1.5f : 1.0f);
   }
 
   draw_list->PopClipRect();

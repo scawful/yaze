@@ -32,6 +32,7 @@ Purpose: keep plan/spec documents centralized and up to date.
   - `oracle-yaze-integration.md`
   - `ai-infra-improvements.md`
   - `yaze-beta-feedback-backlog-2026-07-01.md`
+  - [Dear ImGui 1.93 upgrade and GUI pattern roadmap](imgui-1.93-upgrade-2026-10-26.md)
 - The [HM / Parallel Worlds proposal](hyrule-magic-support-plan.md) is historical
   research with unverified layout assumptions. Follow `CO-1` before using it.
 - Archived plans: see [../archive/](../archive/) for historical context.

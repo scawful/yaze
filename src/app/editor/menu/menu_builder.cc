@@ -130,6 +130,17 @@ MenuBuilder& MenuBuilder::CustomMenu(const char* label,
   return *this;
 }
 
+MenuBuilder& MenuBuilder::CustomItems(Callback draw_callback) {
+  if (!current_menu_)
+    return *this;
+
+  MenuItem item;
+  item.type = MenuItem::Type::kCustom;
+  item.callback = draw_callback;
+  current_menu_->items.push_back(item);
+  return *this;
+}
+
 void MenuBuilder::Draw() {
   for (const auto& menu : menus_) {
     // Don't add icons to top-level menus as they get cut off
@@ -158,6 +169,12 @@ void MenuBuilder::DrawMenuItem(const MenuItem& item) {
     case MenuItem::Type::kSeparator:
       if (skip_depth_ == 0) {
         ImGui::Separator();
+      }
+      break;
+
+    case MenuItem::Type::kCustom:
+      if (skip_depth_ == 0 && item.callback) {
+        item.callback();
       }
       break;
 

@@ -117,11 +117,7 @@ bool DrawEntranceInserterPopup() {
 }
 
 bool DrawOverworldEntrancePopup(zelda3::OverworldEntrance& entrance) {
-  static bool set_done = false;
-  if (set_done) {
-    set_done = false;
-    return true;
-  }
+  bool set_done = false;
 
   if (ImGui::BeginPopupModal(
           gui::MakePopupId(gui::EditorNames::kOverworld, "Entrance Editor")
@@ -140,7 +136,7 @@ bool DrawOverworldEntrancePopup(zelda3::OverworldEntrance& entrance) {
     gui::InputHex("X Position", &entrance.x_);
     gui::InputHex("Y Position", &entrance.y_);
 
-    ImGui::Checkbox(tr("Is Hole"), &entrance.is_hole_);
+    ImGui::Text("Kind: %s", entrance.is_hole_ ? "Hole" : "Entrance");
 
     ImGui::Separator();
 
@@ -202,11 +198,7 @@ void DrawExitInserterPopup() {
 }
 
 bool DrawExitEditorPopup(zelda3::OverworldExit& exit) {
-  static bool set_done = false;
-  if (set_done) {
-    set_done = false;
-    return true;
-  }
+  bool set_done = false;
   if (ImGui::BeginPopupModal(
           gui::MakePopupId(gui::EditorNames::kOverworld, "Exit Editor").c_str(),
           NULL, ImGuiWindowFlags_AlwaysAutoResize)) {
@@ -264,7 +256,7 @@ bool DrawExitEditorPopup(zelda3::OverworldExit& exit) {
 
     gui::InputHexWord("Room", &exit.room_id_);
     SameLine();
-    gui::InputHex("Entity ID", &exit.entity_id_, 4);
+    ImGui::Text("Row: %02X", exit.entity_id_);
     gui::InputHexWord("Map", &exit.map_id_);
     SameLine();
     Checkbox(tr("Automatic"), &exit.is_automatic_);
@@ -273,6 +265,7 @@ bool DrawExitEditorPopup(zelda3::OverworldExit& exit) {
     SameLine();
     gui::InputHex("Y Position", &exit.y_);
 
+    ImGui::BeginDisabled(exit.is_automatic_);
     gui::InputHexWord("X Camera", &exit.x_camera_);
     SameLine();
     gui::InputHexWord("Y Camera", &exit.y_camera_);
@@ -280,6 +273,7 @@ bool DrawExitEditorPopup(zelda3::OverworldExit& exit) {
     gui::InputHexWord("X Scroll", &exit.x_scroll_);
     SameLine();
     gui::InputHexWord("Y Scroll", &exit.y_scroll_);
+    ImGui::EndDisabled();
 
     ImGui::Separator();
 

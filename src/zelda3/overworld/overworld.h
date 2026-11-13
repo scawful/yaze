@@ -188,7 +188,7 @@ constexpr int kExpandedPtrTableMarker = 0x1423FF;  // Location of marker byte
 constexpr uint8_t kExpandedPtrTableMagic = 0xEA;   // Marker value when applied
 constexpr int kExpandedPtrTableHigh = 0x142400;    // New high table location
 constexpr int kExpandedPtrTableLow = 0x142640;     // New low table location
-constexpr int kExpandedMapCount = 192;             // 0x00-0xBF
+// kExpandedMapCount is defined in zelda3/common.h
 
 constexpr int overworldTilesType = 0x071459;
 constexpr int overworldMessages = 0x03F51D;
@@ -445,7 +445,13 @@ class Overworld {
     return descriptor_layout_.presence == rom::LyraLayoutPresence::kValid;
   }
   int inspected_map_count() const {
-    return is_lyra_preview() ? descriptor_layout_.capacity : kNumOverworldMaps;
+    if (is_lyra_preview()) {
+      return descriptor_layout_.capacity;
+    }
+    if (has_tail_map_expansion_) {
+      return kExpandedMapCount;
+    }
+    return kNumOverworldMaps;
   }
   bool descriptor_sprite_display_available() const { return false; }
   bool lyra_a0_terrain_writable() const {
@@ -558,6 +564,7 @@ class Overworld {
 
   /// @brief Save compressed map tile data to ROM
   absl::Status SaveOverworldMaps();
+  absl::Status ValidatePrivateNativeTerrainSave() const;
 
   // Map-grid identity for skipping recompression. SaveOverworldMaps stages the
   // grids it serialized; the editor save transaction publishes that stage only
@@ -830,6 +837,8 @@ class Overworld {
   auto expanded_tile16() const { return expanded_tile16_; }
   auto expanded_tile32() const { return expanded_tile32_; }
   auto expanded_entrances() const { return expanded_entrances_; }
+  bool has_tail_map_expansion() const { return has_tail_map_expansion_; }
+  void set_has_tail_map_expansion(bool v) { has_tail_map_expansion_ = v; }
   int current_map_id() const { return current_map_; }
   int current_world() const { return current_world_; }
   void set_current_map(int i) { current_map_ = i; }
@@ -901,6 +910,7 @@ class Overworld {
   bool expanded_tile16_ = false;
   bool expanded_tile32_ = false;
   bool expanded_entrances_ = false;
+  bool has_tail_map_expansion_ = false;
 
   int game_state_ = 0;
   int current_map_ = 0;
@@ -917,6 +927,8 @@ class Overworld {
   // resaving tile32 reorders expanded definitions. An unchanged grid leaves
   // both on disk. The staged copy is not this identity: a failed save rolls
   // the ROM back and must not treat the unsaved edit as already written.
+  std::vector<gfx::Tile16> private_loaded_tiles16_;
+  std::vector<uint8_t> private_loaded_overlays_;
   OverworldMapTiles loaded_map_tiles_;
   bool loaded_map_tiles_valid_ = false;
   OverworldMapTiles staged_map_tiles_;

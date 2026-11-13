@@ -11,6 +11,7 @@
 #include "app/gui/canvas/coordinate_mapper.h"
 #include "protos/canvas_automation.grpc.pb.h"
 #include "protos/canvas_automation.pb.h"
+#include "util/ui_thread_queue.h"
 
 namespace yaze {
 
@@ -45,12 +46,20 @@ grpc::Status ConvertStatus(const absl::Status& status) {
     case absl::StatusCode::kUnavailable:
       code = grpc::StatusCode::UNAVAILABLE;
       break;
+    // Returned by UiThreadQueue when the UI thread is too slow or exiting.
+    case absl::StatusCode::kDeadlineExceeded:
+      code = grpc::StatusCode::DEADLINE_EXCEEDED;
+      break;
+    case absl::StatusCode::kCancelled:
+      code = grpc::StatusCode::CANCELLED;
+      break;
     default:
       code = grpc::StatusCode::UNKNOWN;
       break;
   }
 
-  return grpc::Status(code, std::string(status.message().data(), status.message().size()));
+  return grpc::Status(
+      code, std::string(status.message().data(), status.message().size()));
 }
 
 }  // namespace
@@ -391,7 +400,7 @@ absl::Status CanvasAutomationServiceImpl::ScreenToTile(
   geometry.canvas_p0 = canvas->zero_point();
   geometry.canvas_sz = canvas->canvas_size();
   geometry.canvas_p1 = ImVec2(geometry.canvas_p0.x + geometry.canvas_sz.x,
-                               geometry.canvas_p0.y + geometry.canvas_sz.y);
+                              geometry.canvas_p0.y + geometry.canvas_sz.y);
   geometry.scrolling = canvas->scrolling();
   mapper.SetGeometry(geometry);
   mapper.SetScale(canvas->global_scale());
@@ -399,8 +408,10 @@ absl::Status CanvasAutomationServiceImpl::ScreenToTile(
   // Configure tile settings from canvas
   gui::CoordinateMapperConfig config;
   config.tile_size = canvas->GetGridStep();
-  config.tiles_per_row = static_cast<int>(canvas->canvas_size().x / config.tile_size);
-  config.tiles_per_col = static_cast<int>(canvas->canvas_size().y / config.tile_size);
+  config.tiles_per_row =
+      static_cast<int>(canvas->canvas_size().x / config.tile_size);
+  config.tiles_per_col =
+      static_cast<int>(canvas->canvas_size().y / config.tile_size);
   config.use_tile16 = (config.tile_size == 16.0f);
   mapper.SetConfig(config);
 
@@ -457,99 +468,115 @@ class CanvasAutomationServiceGrpc final
   grpc::Status SetTile(grpc::ServerContext* context,
                        const proto::SetTileRequest* request,
                        proto::SetTileResponse* response) override {
-    return ConvertStatus(impl_->SetTile(request, response));
+    return OnUiThread([&]() { return impl_->SetTile(request, response); });
   }
 
   grpc::Status GetTile(grpc::ServerContext* context,
                        const proto::GetTileRequest* request,
                        proto::GetTileResponse* response) override {
-    return ConvertStatus(impl_->GetTile(request, response));
+    return OnUiThread([&]() { return impl_->GetTile(request, response); });
   }
 
   grpc::Status SetTiles(grpc::ServerContext* context,
                         const proto::SetTilesRequest* request,
                         proto::SetTilesResponse* response) override {
-    return ConvertStatus(impl_->SetTiles(request, response));
+    return OnUiThread([&]() { return impl_->SetTiles(request, response); });
   }
 
   // Selection Operations
   grpc::Status SelectTile(grpc::ServerContext* context,
                           const proto::SelectTileRequest* request,
                           proto::SelectTileResponse* response) override {
-    return ConvertStatus(impl_->SelectTile(request, response));
+    return OnUiThread([&]() { return impl_->SelectTile(request, response); });
   }
 
   grpc::Status SelectTileRect(
       grpc::ServerContext* context, const proto::SelectTileRectRequest* request,
       proto::SelectTileRectResponse* response) override {
-    return ConvertStatus(impl_->SelectTileRect(request, response));
+    return OnUiThread(
+        [&]() { return impl_->SelectTileRect(request, response); });
   }
 
   grpc::Status GetSelection(grpc::ServerContext* context,
                             const proto::GetSelectionRequest* request,
                             proto::GetSelectionResponse* response) override {
-    return ConvertStatus(impl_->GetSelection(request, response));
+    return OnUiThread([&]() { return impl_->GetSelection(request, response); });
   }
 
   grpc::Status ClearSelection(
       grpc::ServerContext* context, const proto::ClearSelectionRequest* request,
       proto::ClearSelectionResponse* response) override {
-    return ConvertStatus(impl_->ClearSelection(request, response));
+    return OnUiThread(
+        [&]() { return impl_->ClearSelection(request, response); });
   }
 
   // View Operations
   grpc::Status ScrollToTile(grpc::ServerContext* context,
                             const proto::ScrollToTileRequest* request,
                             proto::ScrollToTileResponse* response) override {
-    return ConvertStatus(impl_->ScrollToTile(request, response));
+    return OnUiThread([&]() { return impl_->ScrollToTile(request, response); });
   }
 
   grpc::Status CenterOn(grpc::ServerContext* context,
                         const proto::CenterOnRequest* request,
                         proto::CenterOnResponse* response) override {
-    return ConvertStatus(impl_->CenterOn(request, response));
+    return OnUiThread([&]() { return impl_->CenterOn(request, response); });
   }
 
   grpc::Status SetZoom(grpc::ServerContext* context,
                        const proto::SetZoomRequest* request,
                        proto::SetZoomResponse* response) override {
-    return ConvertStatus(impl_->SetZoom(request, response));
+    return OnUiThread([&]() { return impl_->SetZoom(request, response); });
   }
 
   grpc::Status GetZoom(grpc::ServerContext* context,
                        const proto::GetZoomRequest* request,
                        proto::GetZoomResponse* response) override {
-    return ConvertStatus(impl_->GetZoom(request, response));
+    return OnUiThread([&]() { return impl_->GetZoom(request, response); });
   }
 
   // Query Operations
   grpc::Status GetDimensions(grpc::ServerContext* context,
                              const proto::GetDimensionsRequest* request,
                              proto::GetDimensionsResponse* response) override {
-    return ConvertStatus(impl_->GetDimensions(request, response));
+    return OnUiThread(
+        [&]() { return impl_->GetDimensions(request, response); });
   }
 
   grpc::Status GetVisibleRegion(
       grpc::ServerContext* context,
       const proto::GetVisibleRegionRequest* request,
       proto::GetVisibleRegionResponse* response) override {
-    return ConvertStatus(impl_->GetVisibleRegion(request, response));
+    return OnUiThread(
+        [&]() { return impl_->GetVisibleRegion(request, response); });
   }
 
   grpc::Status IsTileVisible(grpc::ServerContext* context,
                              const proto::IsTileVisibleRequest* request,
                              proto::IsTileVisibleResponse* response) override {
-    return ConvertStatus(impl_->IsTileVisible(request, response));
+    return OnUiThread(
+        [&]() { return impl_->IsTileVisible(request, response); });
   }
 
   // Coordinate Mapping Operations
   grpc::Status ScreenToTile(grpc::ServerContext* context,
                             const proto::ScreenToTileRequest* request,
                             proto::ScreenToTileResponse* response) override {
-    return ConvertStatus(impl_->ScreenToTile(request, response));
+    return OnUiThread([&]() { return impl_->ScreenToTile(request, response); });
   }
 
  private:
+  // RPCs arrive on gRPC threads, but the canvas registry and the canvases
+  // belong to the UI thread, which registers canvases and draws them every
+  // frame. Every call runs there, reads included, because a read can see a
+  // canvas in the middle of an update. Capturing by reference is safe:
+  // RunOnUiThread never runs a task after it has returned DeadlineExceeded.
+  template <typename Fn>
+  static grpc::Status OnUiThread(Fn fn) {
+    return ConvertStatus(
+        util::UiThreadQueue::Get().RunOnUiThread(std::move(fn)));
+  }
+
   CanvasAutomationServiceImpl* impl_;
 };
 

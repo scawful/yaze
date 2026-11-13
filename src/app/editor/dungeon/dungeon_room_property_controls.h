@@ -14,23 +14,20 @@ enum class RoomPropertyLayout {
   kCompact,
   kFull,
   kCoreGraphics,
+  kCoreGraphicsRow,
+  kRoomDetails,
   kTags,
   kMechanics,
 };
 
-// A host-owned control placed in the core grid after the message field, for
-// state that lives outside the room header (e.g. pit damage). `draw` renders
-// one frame-height widget in the value cell.
-struct RoomPropertyExtraCell {
-  const char* label = nullptr;
-  std::function<void()> draw;
-};
-
 // Both hosts edit through the viewer's validated, undoable metadata callback.
 // Navigation and surrounding layout remain owned by each host.
+// kCoreGraphicsRow appends Message and the optional pit-damage checkbox. The
+// callback draws only the value widget; this renderer owns its label and cell.
 void DrawDungeonRoomPropertyFields(
     DungeonCanvasViewer& viewer, zelda3::Room& room, int room_id,
-    RoomPropertyLayout layout, const RoomPropertyExtraCell* extra = nullptr);
+    RoomPropertyLayout layout,
+    const std::function<void()>& draw_pit_damage = {});
 
 }  // namespace yaze::editor
 

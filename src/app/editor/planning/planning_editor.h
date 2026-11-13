@@ -3,6 +3,7 @@
 
 #include <optional>
 #include <string>
+#include <string_view>
 
 #include "absl/status/status.h"
 #include "app/editor/editor.h"
@@ -10,10 +11,19 @@
 
 namespace yaze::editor {
 
+// Checks a typed route-step Id before it replaces `current_id`. Rejects an
+// empty (or all-whitespace) Id and an Id another step already uses. Leaving
+// the Id unchanged is OK.
+absl::Status ValidateStepIdEdit(const core::ProjectPlan& plan,
+                                std::string_view current_id,
+                                std::string_view proposed_id);
+
 // Project planning: goal, milestones, play route and open decisions, kept in
 // the yaze.plan/1 file named by the project's [planning] section. Works with
 // or without a ROM and never writes the ROM; Save() writes only the plan file.
 class PlanningEditor : public Editor {
+  friend class PlanningEditorTestPeer;
+
  public:
   PlanningEditor() { type_ = EditorType::kPlanning; }
 
@@ -38,12 +48,16 @@ class PlanningEditor : public Editor {
   void DrawRoute();
 
   bool dirty() const { return dirty_; }
+  bool HasPendingProjectDraftChanges() const { return dirty_; }
+  // Called only after an authorized project replacement succeeds, or an
+  // explicit discard. A failed or canceled open must preserve the draft.
+  void DiscardProjectDraftChanges();
   const std::optional<core::ProjectPlan>& plan() const { return plan_; }
 
  private:
   // Loads the plan when the project's [planning] path changes.
-  void SyncWithProject();
-  absl::Status Reload();
+  absl::Status SyncWithProject();
+  absl::Status Reload(bool discard_changes = false);
   bool DrawPlanHeader();
   void DrawNoPlan();
   void DrawGoal();
@@ -51,6 +65,10 @@ class PlanningEditor : public Editor {
   void DrawRouteStrip();
   void DrawDecisionQueue();
   void DrawReferences();
+  void DrawAgentStatus();
+  // Read-only agent observation for "<kind>:<id>", drawn under the user's
+  // editable fields for that entry.
+  void DrawAgentObservation(const std::string& key);
   void DrawStepList();
   void DrawStepDetail();
   void DrawItems();
@@ -58,7 +76,21 @@ class PlanningEditor : public Editor {
   void OpenTarget(const std::string& target);
   void MarkDirty() { dirty_ = true; }
 
+  enum class RemovalKind { kNone, kStep, kItem };
+  // Remove acts only through RequestRemoval -> confirm dialog ->
+  // ConfirmPendingRemoval; the request itself changes no plan data.
+  void RequestRemoval(RemovalKind kind, const std::string& id,
+                      std::string label);
+  bool ConfirmPendingRemoval();
+  void CancelPendingRemoval();
+  void DrawRemovalConfirm();
+  // Commits the Id buffer typed for `step_id`; keeps the old Id and sets
+  // step_id_error_ when validation fails.
+  void CommitStepIdEdit(std::string step_id);
+
   std::string plan_path_;
+  std::string project_path_;
+  std::string loaded_source_;
   std::optional<core::ProjectPlan> plan_;
   std::string load_error_;
   std::string save_error_;
@@ -68,6 +100,13 @@ class PlanningEditor : public Editor {
   int selected_step_ = -1;
   int selected_item_ = -1;
   bool items_at_step_only_ = true;
+  RemovalKind pending_removal_ = RemovalKind::kNone;
+  std::string pending_removal_id_;
+  std::string pending_removal_label_;
+  // Step Id edit buffer; step_id_edit_for_ is the step it was seeded from.
+  std::string step_id_edit_;
+  std::string step_id_edit_for_;
+  std::string step_id_error_;
 };
 
 }  // namespace yaze::editor

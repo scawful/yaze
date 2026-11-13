@@ -1,6 +1,8 @@
 #ifndef YAZE_APP_GUI_CANVAS_CANVAS_TOUCH_HANDLER_H
 #define YAZE_APP_GUI_CANVAS_CANVAS_TOUCH_HANDLER_H
 
+#include <string>
+
 #include "app/gui/core/touch_input.h"
 #include "imgui/imgui.h"
 

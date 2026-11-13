@@ -87,6 +87,271 @@ void SetCollisionPointer(Rom* rom, int room_id, uint32_t pc_address) {
   rom->mutable_data()[pointer_offset + 2] = (snes_address >> 16) & 0xFF;
 }
 
+TEST(MinecartTrackCollisionSyncTest, StraightArtworkUsesItsOrientation) {
+  // A 16 pixel piece covers four 8 pixel collision cells. Connectivity-based
+  // generation incorrectly makes an isolated 2x2 straight into four corners.
+  for (const auto& [subtype, expected] :
+       std::array<std::pair<uint8_t, uint8_t>, 4>{
+           {{0, 0xB0}, {7, 0xB0}, {1, 0xB1}, {6, 0xB1}}}) {
+    SCOPED_TRACE(::testing::Message() << "subtype=" << +subtype);
+    const std::vector<RoomObject> objects{RoomObject(0x31, 10, 12, subtype)};
+    const CustomCollisionMap original;
+    auto edit = SynchronizeMinecartTrackCollision({}, objects, original);
+    ASSERT_TRUE(edit.ok()) << edit.status();
+    EXPECT_EQ(edit->ownership.size(), 4);
+    for (const int offset : {778, 779, 842, 843}) {
+      EXPECT_EQ(edit->collision.tiles[offset], expected);
+      EXPECT_TRUE(edit->collision.HasOverride(offset));
+      ASSERT_TRUE(edit->ownership.contains(offset));
+      EXPECT_FALSE(edit->ownership.at(offset).baseline_override);
+      EXPECT_EQ(edit->ownership.at(offset).baseline_value, 0);
+      EXPECT_EQ(edit->ownership.at(offset).generated_value, expected);
+    }
+    EXPECT_EQ(edit->collision.overrides.count(), 4);
+    EXPECT_TRUE(edit->collision.has_data);
+    EXPECT_FALSE(original.has_data);
+    EXPECT_FALSE(original.HasOverrides());
+  }
+}
+
+TEST(MinecartTrackCollisionSyncTest,
+     MoveAndDeleteRestoreExactBaselinesAndPreserveAuthoredBehavior) {
+  CustomCollisionMap original;
+  original.SetOverride(650, 0);     // Explicit floor underneath the new piece.
+  original.tiles[651] = 0xB3;       // Legacy nonzero override, without a bit.
+  original.SetOverride(714, 0xB7);  // Authored stop must not be adopted.
+  original.SetOverride(1200, 0);    // Unrelated explicit floor survives.
+  original.SetOverride(1201, 0x20);
+  const std::vector<RoomObject> start{RoomObject(0x31, 10, 10, 0)};
+  const std::vector<RoomObject> moved{RoomObject(0x31, 20, 20, 0)};
+
+  auto placed = SynchronizeMinecartTrackCollision({}, start, original);
+  ASSERT_TRUE(placed.ok()) << placed.status();
+  EXPECT_EQ(placed->ownership.size(), 3);
+  EXPECT_FALSE(placed->ownership.contains(714));
+  auto move = SynchronizeMinecartTrackCollision(start, moved, placed->collision,
+                                                placed->ownership);
+  ASSERT_TRUE(move.ok()) << move.status();
+  EXPECT_EQ(move->ownership.size(), 4);
+  for (const int offset : {650, 651, 714, 715, 1200, 1201}) {
+    EXPECT_EQ(move->collision.tiles[offset], original.tiles[offset]);
+    EXPECT_EQ(move->collision.overrides[offset], original.overrides[offset]);
+  }
+  auto removed = SynchronizeMinecartTrackCollision(moved, {}, move->collision,
+                                                   move->ownership);
+  ASSERT_TRUE(removed.ok()) << removed.status();
+  EXPECT_EQ(removed->collision, original);
+  EXPECT_EQ(removed->collision.overrides, original.overrides);
+  EXPECT_TRUE(removed->ownership.empty());
+}
+
+TEST(MinecartTrackCollisionSyncTest,
+     MatchingAuthoredRailsAreNeverAdoptedOrRemoved) {
+  CustomCollisionMap original;
+  for (const int offset : {650, 651, 714, 715}) {
+    original.SetOverride(offset, 0xB0);
+  }
+  const std::vector<RoomObject> objects{RoomObject(0x31, 10, 10, 0)};
+  auto placed = SynchronizeMinecartTrackCollision({}, objects, original);
+  ASSERT_TRUE(placed.ok()) << placed.status();
+  EXPECT_EQ(placed->collision, original);
+  EXPECT_TRUE(placed->ownership.empty());
+  auto removed = SynchronizeMinecartTrackCollision(
+      objects, {}, placed->collision, placed->ownership);
+  ASSERT_TRUE(removed.ok()) << removed.status();
+  EXPECT_EQ(removed->collision, original);
+  EXPECT_TRUE(removed->ownership.empty());
+}
+
+TEST(MinecartTrackCollisionSyncTest,
+     ManualChangesInvalidateOwnershipWithoutRestoringOverThem) {
+  const std::vector<RoomObject> objects{RoomObject(0x31, 10, 10, 0)};
+  auto placed = SynchronizeMinecartTrackCollision({}, objects, {});
+  ASSERT_TRUE(placed.ok()) << placed.status();
+  auto manual = placed->collision;
+  manual.SetOverride(650, 0xB9);
+  manual.SetOverride(651, 0);
+  manual.ClearOverride(714);
+  auto removed =
+      SynchronizeMinecartTrackCollision(objects, {}, manual, placed->ownership);
+  ASSERT_TRUE(removed.ok()) << removed.status();
+  EXPECT_EQ(removed->collision.tiles[650], 0xB9);
+  EXPECT_TRUE(removed->collision.HasOverride(651));
+  EXPECT_EQ(removed->collision.tiles[651], 0);
+  EXPECT_FALSE(removed->collision.HasOverride(714));
+  EXPECT_FALSE(removed->collision.HasOverride(715));
+  EXPECT_TRUE(removed->ownership.empty());
+}
+
+TEST(MinecartTrackCollisionSyncTest, StopsJunctionsAndSwitchesRemainAuthored) {
+  for (const uint8_t value : {0xB7, 0xB8, 0xB9, 0xBA, 0xBB, 0xBC, 0xBD, 0xBE,
+                              0xD0, 0xD1, 0xD2, 0xD3}) {
+    SCOPED_TRACE(::testing::Message() << "behavior=" << +value);
+    CustomCollisionMap original;
+    original.SetOverride(650, value);
+    const std::vector<RoomObject> objects{RoomObject(0x31, 10, 10, 0)};
+    auto placed = SynchronizeMinecartTrackCollision({}, objects, original);
+    ASSERT_TRUE(placed.ok()) << placed.status();
+    EXPECT_EQ(placed->collision.tiles[650], value);
+    EXPECT_FALSE(placed->ownership.contains(650));
+    auto removed = SynchronizeMinecartTrackCollision(
+        objects, {}, placed->collision, placed->ownership);
+    ASSERT_TRUE(removed.ok()) << removed.status();
+    EXPECT_EQ(removed->collision, original);
+  }
+}
+
+TEST(MinecartTrackCollisionSyncTest,
+     OrientationChangesRetainTheOriginalBaselineForUndoSnapshots) {
+  CustomCollisionMap original;
+  original.SetOverride(650, 0);
+  const std::vector<RoomObject> horizontal{RoomObject(0x31, 10, 10, 0)};
+  const std::vector<RoomObject> vertical{RoomObject(0x31, 10, 10, 1)};
+  auto placed = SynchronizeMinecartTrackCollision({}, horizontal, original);
+  ASSERT_TRUE(placed.ok()) << placed.status();
+  auto rotated = SynchronizeMinecartTrackCollision(
+      horizontal, vertical, placed->collision, placed->ownership);
+  ASSERT_TRUE(rotated.ok()) << rotated.status();
+  EXPECT_EQ(rotated->collision.tiles[650], 0xB1);
+  EXPECT_EQ(rotated->ownership.at(650).generated_value, 0xB1);
+  EXPECT_TRUE(rotated->ownership.at(650).baseline_override);
+  EXPECT_EQ(rotated->ownership.at(650).baseline_value, 0);
+  // The earlier value snapshots remain intact for a paired object Undo/Redo.
+  EXPECT_EQ(placed->collision.tiles[650], 0xB0);
+  EXPECT_EQ(placed->ownership.at(650).generated_value, 0xB0);
+  auto removed = SynchronizeMinecartTrackCollision(
+      vertical, {}, rotated->collision, rotated->ownership);
+  ASSERT_TRUE(removed.ok()) << removed.status();
+  EXPECT_EQ(removed->collision, original);
+  EXPECT_EQ(removed->collision.overrides, original.overrides);
+}
+
+TEST(MinecartTrackCollisionSyncTest,
+     UnrelatedEditsAndEquivalentArtworkDoNotRegenerateCollision) {
+  CustomCollisionMap original;
+  original.SetOverride(650, 0x20);
+  original.SetOverride(999, 0);
+  const MinecartTrackCollisionOwnership ownership{{1000, {false, 0, 0xB1}}};
+  const std::vector<RoomObject> before{RoomObject(0x31, 10, 10, 0),
+                                       RoomObject(0x31, 63, 63, 1, 1),
+                                       RoomObject(0x01, 1, 1, 0)};
+  const std::vector<RoomObject> after{RoomObject(0x01, 20, 20, 2),
+                                      RoomObject(0x31, 63, 63, 6, 1),
+                                      RoomObject(0x31, 10, 10, 7)};
+  auto edit =
+      SynchronizeMinecartTrackCollision(before, after, original, ownership);
+  ASSERT_TRUE(edit.ok()) << edit.status();
+  EXPECT_EQ(edit->collision, original);
+  EXPECT_EQ(edit->collision.overrides, original.overrides);
+  EXPECT_EQ(edit->ownership, ownership);
+
+  auto added = after;
+  added.emplace_back(0x31, 30, 30, 1);
+  auto extension =
+      SynchronizeMinecartTrackCollision(after, added, original, ownership);
+  ASSERT_TRUE(extension.ok()) << extension.status();
+  EXPECT_EQ(extension->collision.tiles[650], 0x20);
+  EXPECT_FALSE(extension->collision.HasOverride(651));
+  EXPECT_EQ(extension->collision.tiles[1950], 0xB1);
+}
+
+TEST(MinecartTrackCollisionSyncTest,
+     ChangedLowerLayerAndOutOfBoundsPiecesFailWithoutClipping) {
+  for (const auto& object :
+       {RoomObject(0x31, 63, 10, 0), RoomObject(0x31, 10, 63, 0),
+        RoomObject(0x31, 64, 10, 1), RoomObject(0x31, 10, 10, 0, 1),
+        RoomObject(0x31, 10, 10, 0, 2)}) {
+    const std::vector<RoomObject> invalid{object};
+    EXPECT_FALSE(SynchronizeMinecartTrackCollision({}, invalid, {}).ok());
+    EXPECT_FALSE(SynchronizeMinecartTrackCollision(invalid, {}, {}).ok());
+  }
+  const std::vector<RoomObject> edge{RoomObject(0x31, 62, 62, 0)};
+  auto valid = SynchronizeMinecartTrackCollision({}, edge, {});
+  ASSERT_TRUE(valid.ok()) << valid.status();
+  EXPECT_EQ(valid->collision.tiles[4095], 0xB0);
+}
+
+TEST(MinecartTrackCollisionSyncTest,
+     UnverifiedCornerAndCrossingChangesRequireExplicitBehaviorEditing) {
+  for (const uint8_t subtype : {2, 3, 4, 5, 8, 9, 10, 11, 12, 14}) {
+    SCOPED_TRACE(::testing::Message() << "subtype=" << +subtype);
+    const std::vector<RoomObject> objects{RoomObject(0x31, 10, 10, subtype)};
+    EXPECT_FALSE(SynchronizeMinecartTrackCollision({}, objects, {}).ok());
+    EXPECT_FALSE(SynchronizeMinecartTrackCollision(objects, {}, {}).ok());
+    // Existing pieces do not block unrelated room edits or get regenerated.
+    CustomCollisionMap original;
+    original.SetOverride(650, 0xB2);
+    auto unchanged =
+        SynchronizeMinecartTrackCollision(objects, objects, original);
+    ASSERT_TRUE(unchanged.ok()) << unchanged.status();
+    EXPECT_EQ(unchanged->collision, original);
+  }
+  const std::vector<RoomObject> decorations{RoomObject(0x31, 10, 10, 13),
+                                            RoomObject(0x31, 12, 10, 15)};
+  auto decorative = SynchronizeMinecartTrackCollision({}, decorations, {});
+  ASSERT_TRUE(decorative.ok()) << decorative.status();
+  EXPECT_FALSE(decorative->collision.HasOverrides());
+  EXPECT_TRUE(decorative->ownership.empty());
+}
+
+TEST(MinecartTrackCollisionSyncTest,
+     ConflictingShapesAndNonRailCollisionFailAtomically) {
+  const std::vector<RoomObject> before{RoomObject(0x31, 10, 10, 0)};
+  auto placed = SynchronizeMinecartTrackCollision({}, before, {});
+  ASSERT_TRUE(placed.ok()) << placed.status();
+  auto overlap = before;
+  overlap.emplace_back(0x31, 11, 10, 1);
+  const auto collision_snapshot = placed->collision;
+  const auto ownership_snapshot = placed->ownership;
+  EXPECT_FALSE(SynchronizeMinecartTrackCollision(
+                   before, overlap, placed->collision, placed->ownership)
+                   .ok());
+  EXPECT_EQ(placed->collision, collision_snapshot);
+  EXPECT_EQ(placed->ownership, ownership_snapshot);
+
+  const std::vector<RoomObject> corner{RoomObject(0x31, 10, 10, 2)};
+  auto corner_overlap = corner;
+  corner_overlap.emplace_back(0x31, 11, 10, 0);
+  EXPECT_FALSE(
+      SynchronizeMinecartTrackCollision(corner, corner_overlap, {}).ok());
+
+  CustomCollisionMap obstacle;
+  obstacle.SetOverride(715, 0x20);  // Last cell: no partial first-three stamp.
+  auto refused = SynchronizeMinecartTrackCollision({}, before, obstacle);
+  EXPECT_FALSE(refused.ok());
+  EXPECT_FALSE(obstacle.HasOverride(650));
+  EXPECT_EQ(obstacle.overrides.count(), 1);
+  EXPECT_EQ(obstacle.tiles[715], 0x20);
+}
+
+TEST(MinecartTrackCollisionSyncTest,
+     SameShapeOverlapKeepsCellsStillCoveredByAnotherPiece) {
+  const std::vector<RoomObject> first{RoomObject(0x31, 10, 10, 0)};
+  auto placed = SynchronizeMinecartTrackCollision({}, first, {});
+  ASSERT_TRUE(placed.ok()) << placed.status();
+  auto both = first;
+  both.emplace_back(0x31, 11, 10, 7);
+  auto extended = SynchronizeMinecartTrackCollision(
+      first, both, placed->collision, placed->ownership);
+  ASSERT_TRUE(extended.ok()) << extended.status();
+  EXPECT_EQ(extended->ownership.size(), 6);
+  const std::vector<RoomObject> second{both.back()};
+  auto removed_first = SynchronizeMinecartTrackCollision(
+      both, second, extended->collision, extended->ownership);
+  ASSERT_TRUE(removed_first.ok()) << removed_first.status();
+  EXPECT_EQ(removed_first->ownership.size(), 4);
+  EXPECT_FALSE(removed_first->collision.HasOverride(650));
+  EXPECT_EQ(removed_first->collision.tiles[651], 0xB0);
+  EXPECT_EQ(removed_first->collision.tiles[652], 0xB0);
+  auto removed_all = SynchronizeMinecartTrackCollision(
+      second, {}, removed_first->collision, removed_first->ownership);
+  ASSERT_TRUE(removed_all.ok()) << removed_all.status();
+  EXPECT_FALSE(removed_all->collision.HasOverrides());
+  EXPECT_TRUE(removed_all->ownership.empty());
+  // Keep the empty custom-collision domain present for the normal clear save.
+  EXPECT_TRUE(removed_all->collision.has_data);
+}
+
 TEST(TrackCollisionGeneratorTest, UsesDimensionServiceNotLegacyWidthHeight) {
   Room room;
   RoomObject track_obj(0x01, 10, 10, 0, 0);

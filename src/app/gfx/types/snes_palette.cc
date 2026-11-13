@@ -1,4 +1,5 @@
 #include "app/gfx/types/snes_palette.h"
+#include "app/gfx/types/snes_palette_layout.h"
 
 #include "app/platform/sdl_compat.h"
 
@@ -6,6 +7,7 @@
 #include <cstdint>
 #include <cstdlib>
 #include <cstring>
+#include <limits>
 #include <stdexcept>
 #include <string_view>
 #include <utility>
@@ -16,7 +18,9 @@
 #include "absl/strings/str_format.h"
 #include "app/gfx/types/snes_color.h"
 #include "imgui/imgui.h"
+#include "rom/snes.h"
 #include "util/macro.h"
+#include "zelda3/palette_constants.h"
 
 namespace yaze::gfx {
 
@@ -77,42 +81,152 @@ SnesPalette::SnesPalette(const std::vector<ImVec4>& colors) : size_(0) {
  * @brief Internal functions for loading palettes by group.
  */
 namespace palette_group_internal {
-absl::Status LoadOverworldMainPalettes(const std::vector<uint8_t>& rom_data,
-                                       gfx::PaletteGroupMap& palette_groups) {
-  auto data = rom_data.data();
-  size_t rom_size = rom_data.size();
-  for (int i = 0; i < 6; i++) {
-    int offset = kOverworldPaletteMain + (i * (35 * 2));
-    int num_colors = 35;
-    // Bounds check: each color is 2 bytes, so we need offset + (num_colors * 2) bytes
-    if (offset < 0 || offset + (num_colors * 2) > static_cast<int>(rom_size)) {
-      return absl::OutOfRangeError(absl::StrFormat(
-          "Overworld main palette %d out of bounds: offset %d, size %zu", i,
-          offset, rom_size));
+absl::StatusOr<ResolvedPaletteRecord> ResolvePaletteRecord(
+    std::optional<uint32_t> snes_address, uint64_t color_count,
+    size_t normalized_rom_size) {
+  if (!snes_address.has_value()) {
+    return absl::FailedPreconditionError("Palette record storage is unbound");
+  }
+  if (color_count > std::numeric_limits<uint32_t>::max() / 2u) {
+    return absl::OutOfRangeError("Palette record byte size overflows");
+  }
+  if (color_count != 35 && color_count != 21) {
+    return absl::InvalidArgumentError(
+        "Native palette records require 35 or 21 colors");
+  }
+  const uint32_t address = *snes_address;
+  if (address > 0xFFFFFFu || (address & 0x8000u) == 0) {
+    return absl::InvalidArgumentError("Palette address is not mapped LoROM");
+  }
+  if (((address >> 16) & 0x7Fu) != 0x1Bu) {
+    return absl::FailedPreconditionError(
+        "Palette bank ABI is bound only to bank 1B");
+  }
+  const size_t bytes = static_cast<size_t>(color_count) * 2;
+  if (bytes > 0x10000u - (address & 0xFFFFu)) {
+    return absl::OutOfRangeError("Palette record crosses its native bank");
+  }
+  const uint32_t pc = yaze::SnesToPc(address);
+  if (yaze::PcToSnes(pc) != (address & 0x7FFFFFu)) {
+    return absl::InvalidArgumentError("Palette address does not round trip");
+  }
+  if (pc > normalized_rom_size || bytes > normalized_rom_size - pc) {
+    return absl::OutOfRangeError("Palette record exceeds normalized ROM body");
+  }
+  return ResolvedPaletteRecord(pc, yaze::PcToSnes(pc),
+                               static_cast<int>(color_count));
+}
+
+absl::StatusOr<uint32_t> ResolvedPaletteRecord::ColorAddress(
+    int color_index) const {
+  if (color_index < 0 || color_index >= color_count_) {
+    return absl::OutOfRangeError(
+        "Palette color selector is outside its record");
+  }
+  return pc_address_ + static_cast<uint32_t>(color_index) * 2u;
+}
+
+absl::StatusOr<std::pair<uint32_t, uint32_t>>
+ResolvedPaletteRecord::ColorWriteRange(int color_index) const {
+  const auto address = ColorAddress(color_index);
+  if (!address.ok()) {
+    return address.status();
+  }
+  return std::make_pair(*address, *address + 2u);
+}
+
+namespace {
+const zelda3::PaletteGroupMetadata* OverworldMetadata(
+    OverworldPaletteKind kind) {
+  switch (kind) {
+    case OverworldPaletteKind::kMain:
+      return &zelda3::PaletteMetadata::kOverworldMain;
+    case OverworldPaletteKind::kAuxiliary:
+      return &zelda3::PaletteMetadata::kOverworldAux;
+  }
+  return nullptr;
+}
+}  // namespace
+
+OverworldPaletteLayout OverworldPaletteLayout::Legacy() {
+  return OverworldPaletteLayout(false);
+}
+
+OverworldPaletteLayout OverworldPaletteLayout::ProposedUnbound() {
+  return OverworldPaletteLayout(true);
+}
+
+int OverworldPaletteLayout::RecordCount(OverworldPaletteKind kind) const {
+  const auto* metadata = OverworldMetadata(kind);
+  if (!metadata) {
+    return 0;
+  }
+  return metadata->palette_count +
+         (proposed_ ? (kind == OverworldPaletteKind::kMain ? 1 : 2) : 0);
+}
+
+absl::StatusOr<ResolvedPaletteRecord> OverworldPaletteLayout::Resolve(
+    OverworldPaletteKind kind, int selector, size_t normalized_rom_size) const {
+  const auto* metadata = OverworldMetadata(kind);
+  if (!metadata) {
+    return absl::InvalidArgumentError("Unknown overworld palette kind");
+  }
+  if (selector < 0 || selector >= RecordCount(kind)) {
+    return absl::OutOfRangeError(
+        "Palette record selector is outside its layout");
+  }
+  if (selector >= metadata->palette_count) {
+    return ResolvePaletteRecord(std::nullopt, metadata->colors_per_palette,
+                                normalized_rom_size);
+  }
+  const uint64_t pc =
+      metadata->base_address +
+      static_cast<uint64_t>(selector) * metadata->colors_per_palette * 2u;
+  if (pc > std::numeric_limits<uint32_t>::max()) {
+    return absl::OutOfRangeError("Palette record address overflows");
+  }
+  return ResolvePaletteRecord(yaze::PcToSnes(static_cast<uint32_t>(pc)),
+                              metadata->colors_per_palette,
+                              normalized_rom_size);
+}
+
+absl::Status LoadOverworldPaletteRecords(
+    OverworldPaletteKind kind, const OverworldPaletteLayout& layout,
+    const std::vector<uint8_t>& normalized_rom_data, PaletteGroup& group) {
+  const int count = layout.RecordCount(kind);
+  if (count <= 0) {
+    return absl::InvalidArgumentError("Unknown overworld palette kind");
+  }
+  std::vector<ResolvedPaletteRecord> records;
+  records.reserve(count);
+  for (int selector = 0; selector < count; ++selector) {
+    auto record = layout.Resolve(kind, selector, normalized_rom_data.size());
+    if (!record.ok()) {
+      return record.status();
     }
-    palette_groups.overworld_main.AddPalette(
-        gfx::ReadPaletteFromRom(offset, num_colors, data));
+    records.push_back(*record);
+  }
+  // Complete preflight before appending any colors or changing group state.
+  for (const auto& record : records) {
+    group.AddPalette(ReadPaletteFromRom(
+        record.pc_address(), record.color_count(), normalized_rom_data.data()));
   }
   return absl::OkStatus();
+}
+
+absl::Status LoadOverworldMainPalettes(const std::vector<uint8_t>& rom_data,
+                                       gfx::PaletteGroupMap& palette_groups) {
+  return LoadOverworldPaletteRecords(OverworldPaletteKind::kMain,
+                                     OverworldPaletteLayout::Legacy(), rom_data,
+                                     palette_groups.overworld_main);
 }
 
 absl::Status LoadOverworldAuxiliaryPalettes(
     const std::vector<uint8_t>& rom_data,
     gfx::PaletteGroupMap& palette_groups) {
-  auto data = rom_data.data();
-  size_t rom_size = rom_data.size();
-  for (int i = 0; i < 20; i++) {
-    int offset = kOverworldPaletteAux + (i * (21 * 2));
-    int num_colors = 21;
-    if (offset < 0 || offset + (num_colors * 2) > static_cast<int>(rom_size)) {
-      return absl::OutOfRangeError(absl::StrFormat(
-          "Overworld aux palette %d out of bounds: offset %d, size %zu", i,
-          offset, rom_size));
-    }
-    palette_groups.overworld_aux.AddPalette(
-        gfx::ReadPaletteFromRom(offset, num_colors, data));
-  }
-  return absl::OkStatus();
+  return LoadOverworldPaletteRecords(OverworldPaletteKind::kAuxiliary,
+                                     OverworldPaletteLayout::Legacy(), rom_data,
+                                     palette_groups.overworld_aux);
 }
 
 absl::Status LoadOverworldAnimatedPalettes(

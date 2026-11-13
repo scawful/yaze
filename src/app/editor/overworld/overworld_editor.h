@@ -22,6 +22,9 @@
 #include "app/editor/overworld/maps/map_texture_coordinator.h"
 #include "app/editor/overworld/overworld_undo_actions.h"
 #include "app/editor/overworld/painting/tile_painting_manager.h"
+#include "app/editor/overworld/project_graphics_import.h"
+#include "app/editor/overworld/project_graphics_source.h"
+#include "app/editor/overworld/scratch_workspace.h"
 #include "app/editor/overworld/tile16_editor.h"
 #include "app/editor/overworld/ui/debug/debug_window_card.h"
 #include "app/editor/overworld/ui/debug/usage_statistics_card.h"
@@ -34,6 +37,7 @@
 #include "app/gfx/types/snes_palette.h"
 #include "app/gui/canvas/canvas.h"
 #include "app/gui/core/input.h"
+#include "app/gui/layout/adaptive_sheet_layout.h"
 #include "app/gui/widgets/tile_selector_widget.h"
 #include "imgui/imgui.h"
 #include "rom/rom.h"
@@ -134,6 +138,7 @@ constexpr absl::string_view kOWMapTable = "#MapSettingsTable";
  */
 class OverworldEditor : public Editor, public gfx::GfxContext {
   friend class OverworldCanvasRenderer;
+  friend class OverworldScratchTestPeer;
 
  public:
   // ===========================================================================
@@ -189,13 +194,29 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   absl::Status Cut() override { return absl::UnimplementedError("Cut"); }
   absl::Status Copy() override;
   absl::Status Paste() override;
+  /// Select `map_id` and apply a guarded stencil as one undoable paint.
+  absl::StatusOr<int> ApplyTile16Stencil(
+      int map_id, const std::vector<GuardedTileCell>& cells);
   absl::Status Find() override { return absl::UnimplementedError("Find"); }
   absl::Status Save() override;
   absl::Status BeginSaveTransaction() override;
   void RollbackSaveTransaction() override;
   void CommitSaveTransaction() override;
   absl::Status Clear() override;
-  bool HasPendingProjectDraftChanges() const { return lyra_canvas_.dirty(); }
+  bool HasPendingProjectDraftChanges() const {
+    return lyra_canvas_.dirty() || scratch_space_dirty_ ||
+           (graphics_source_ && graphics_source_->any_dirty());
+  }
+  bool HasUnpublishedProjectGraphics() const {
+    return graphics_source_ && graphics_source_->any_dirty();
+  }
+  absl::Status OpenProjectGraphicsSource();
+  absl::StatusOr<ProjectGraphicsImportPlan> PreviewProjectGraphicsImport(
+      const std::string& pack, const ProjectGraphicsImportBindings& bindings);
+  absl::Status ApplyProjectGraphicsImport(
+      const std::string& pack, const ProjectGraphicsImportBindings& bindings);
+  absl::Status PlaceProjectGraphicsImport(int world_x, int world_y);
+  absl::Status PublishProjectGraphicsSource();
   void SetProjectContextProvider(
       std::function<project::YazeProject*()> provider) {
     project_context_provider_ = std::move(provider);
@@ -203,6 +224,8 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   absl::Status PrepareProjectSave();
   void ProjectSaveCommitted() { lyra_canvas_.ProjectSaveCommitted(); }
   void ContributeStatus(StatusBar* status_bar) override;
+  void DrawEditorMenu() override;
+  void DrawEditMenuItems() override;
   EditorContextSnapshot BuildContextSnapshot() const override;
 
   /// @brief Access the underlying Overworld data
@@ -214,6 +237,9 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
 
   int jump_to_tab() { return jump_to_tab_; }
   int jump_to_tab_ = -1;
+  // Regular entrance IDs share numbers with room IDs but not meaning; the
+  // dungeon editor resolves the entrance's room.
+  int jump_to_entrance_ = -1;
 
   // ===========================================================================
   // ROM State
@@ -328,13 +354,19 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
 
   /// @brief Notify that an entity has been modified, marking ROM as dirty
   void NotifyEntityModified(zelda3::GameEntity* entity);
+  absl::Status ApplyEntranceEdit(zelda3::OverworldEntrance* target,
+                                 const zelda3::OverworldEntrance& draft);
+  absl::Status ApplyExitEdit(zelda3::OverworldExit* target,
+                             const zelda3::OverworldExit& draft);
   void OpenEntityEditor(zelda3::GameEntity* entity);
 
   /// @brief Trigger a jump to a dungeon room
   void RequestJumpToRoom(int room_id) { jump_to_tab_ = room_id; }
 
   /// @brief Trigger a jump to a dungeon entrance
-  void RequestJumpToEntrance(int entrance_id) { jump_to_tab_ = entrance_id; }
+  void RequestJumpToEntrance(int entrance_id) {
+    jump_to_entrance_ = entrance_id;
+  }
 
   /// @brief Access the entity mutation service
   EntityMutationService* entity_mutation_service() {
@@ -357,6 +389,12 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   int game_state() const { return game_state_; }
   // Preview only; does not rewrite story progression or entity placements.
   void SetPreviewStoryState(int state);
+
+  void SetSelectionBrush(TileBrush brush);
+  void ClearSelectionBrush();
+  const TileBrush* selection_brush() const;
+  int GetTile16UsageCount(int tile_id) const;
+  std::string GetTile16ScopeLabel() const;
 
   // ===========================================================================
   // Entity System - Insertion and Editing
@@ -424,6 +462,7 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   void ToggleMapLock();
   void ToggleCanvasFullscreen();
   void ToggleTile16EditorWindow();
+  bool Tile16MenuEnabled() const;
   void ToggleItemListWindow();
   /// Tool change from the toolbar or keys 1/2: also leaves entity modes.
   void SetEditingMode(EditingMode mode);
@@ -470,6 +509,8 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
       return absl::OkStatus();
     }
     NormalizeCurrentSelectionState();
+    if (ImGui::Button("Edit / Import Project Graphics"))
+      status_.Update(OpenProjectGraphicsSource());
     if (!canvas_renderer_)
       return absl::FailedPreconditionError("Renderer not initialized");
     return canvas_renderer_->DrawAreaGraphics();
@@ -550,6 +591,31 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   }
   std::function<project::YazeProject*()> project_context_provider_;
   friend class AuthoringSaveWorkflowTestPeer;
+  friend class ProjectGraphicsImportSaveTestPeer;
+  friend class ProjectGraphicsImportWorkflowTestPeer;
+  void DrawProjectGraphicsSource();
+  void DrawProjectGraphicsImport();
+  std::string ProjectGraphicsPath() const;
+  absl::Status ReloadProjectGraphics();
+  absl::Status RefreshPendingProjectGraphics();
+  absl::StatusOr<ProjectGraphicsImportContext> GraphicsImportContext();
+  std::shared_ptr<ProjectGraphicsSource> graphics_source_;
+  const project::YazeProject* graphics_source_project_ = nullptr;
+  bool graphics_source_open_ = false;
+  bool graphics_import_applied_ = false;
+  int graphics_source_tile_ = 0;
+  int graphics_source_palette_ = 5;
+  int graphics_source_index_ = 1;
+  absl::Status graphics_source_status_;
+  std::string graphics_source_message_;
+  zelda3::OverworldGraphicsPreview graphics_preview_baseline_;
+  std::array<char, 1024> graphics_import_path_{};
+  std::optional<ProjectGraphicsImportAsset> graphics_import_asset_;
+  std::optional<ProjectGraphicsImportPlan> graphics_import_plan_;
+  ProjectGraphicsImportBindings graphics_import_bindings_;
+  ProjectGraphicsImportBindings graphics_import_applied_bindings_;
+  std::string graphics_import_pack_;
+  bool graphics_import_ranges_reviewed_ = false;
 
   // Identifies the exact descriptor image bound to this model. The session
   // reload path may restore those bytes after a refused ROM replacement.
@@ -698,7 +764,10 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   void DrawScratchSpaceSelection();
   void UpdateScratchBitmapTile(int tile_x, int tile_y, int tile_id);
   absl::Status LoadScratchPad();
-  absl::Status SaveScratchPad() const;
+  absl::Status SaveScratchPad();
+  void BeginScratchEdit();
+  void FinishScratchEdit(const std::string& description);
+  absl::Status RestoreScratchState(const ScratchWorkspaceState& state);
   absl::Status FlushScratchPadIfDirty();
   absl::Status RebuildScratchBitmapFromTileData();
   void MarkScratchSpaceDirty();
@@ -827,19 +896,29 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   // Scratch Space System (Unified Single Workspace)
   // ===========================================================================
 
-  struct ScratchSpace {
-    gfx::Bitmap scratch_bitmap;
-    std::array<std::array<int, 32>, 32> tile_data{};
-    bool in_use = false;
-    std::string name = "Scratch Space";
-    int width = 16;
-    int height = 16;
-    std::vector<ImVec2> selected_tiles;
-    std::vector<ImVec2> selected_points;
-    bool select_rect_active = false;
-  };
-  ScratchSpace scratch_space_;
+  ScratchWorkspace scratch_workspace_;
+  gfx::Bitmap scratch_bitmap_;
+  std::optional<ScratchWorkspaceState> scratch_edit_before_;
   bool scratch_space_dirty_ = false;
+  absl::Status scratch_load_status_;
+  absl::Status scratch_action_status_;
+  absl::Status scratch_save_status_;
+  bool scratch_initialized_ = false;
+  std::filesystem::path scratch_path_;
+  uint64_t scratch_name_id_ = 0;
+  std::array<char, 129> scratch_name_buffer_{};
+  uint64_t scratch_resize_id_ = 0;
+  std::array<int, 2> scratch_resize_dimensions_{16, 16};
+  int scratch_preview_map_ = -1;
+  uint64_t scratch_preview_revision_ = 0;
+  bool scratch_paint_gesture_owned_ = false;
+  bool scratch_select_active_ = false;
+  ImVec2 scratch_select_min_{-1, -1};
+  ImVec2 scratch_select_max_{-1, -1};
+  bool scratch_selecting_ = false;
+  ImVec2 scratch_drag_start_{-1, -1};
+  gui::AdaptiveSheetScaleMode scratch_scale_mode_ =
+      gui::AdaptiveSheetScaleMode::kFit;
 
   // ===========================================================================
   // Core Data References
@@ -917,7 +996,7 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
                                    gui::CanvasGridSize::k16x16};
   gui::Canvas properties_canvas_;
   gui::Canvas scratch_canvas_{"ScratchSpace", ImVec2(320, 480),
-                              gui::CanvasGridSize::k32x32};
+                              gui::CanvasGridSize::k16x16};
 
   // ===========================================================================
   // Panel Cards

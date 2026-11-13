@@ -1383,5 +1383,57 @@ TEST_F(TilePaintingManagerGestureTest,
   EXPECT_EQ(finalize_count_, 1);
 }
 
+TEST_F(TilePaintingManagerGestureTest,
+       GuardedStencilAppliesAllCellsAsOneUndoStep) {
+  // Map 1 starts at world cell (32,0); the unchanged cell is a guard only.
+  auto& world = overworld_->mutable_map_tiles()->light_world;
+  world[32][0] = 1;
+  world[33][0] = 2;
+  initial_tiles_ = *overworld_->mutable_map_tiles();
+
+  const auto changed = manager_->ApplyGuardedCells(
+      1, {{0, 0, 1, 3}, {1, 0, 2, 2}, {31, 31, 0, 4}});
+  ASSERT_TRUE(changed.ok()) << changed.status();
+  EXPECT_EQ(*changed, 2);
+  EXPECT_EQ(world[32][0], 3);
+  EXPECT_EQ(world[33][0], 2);
+  EXPECT_EQ(world[63][31], 4);
+  EXPECT_TRUE(rom_.dirty());
+  EXPECT_EQ(undo_points_.size(), 2);
+  EXPECT_EQ(undo_points_[0], (std::array<int, 5>{1, 0, 32, 0, 1}));
+  EXPECT_EQ(finalize_count_, 1);
+  EXPECT_EQ(refreshed_maps_, (std::vector<int>{1}));
+}
+
+TEST_F(TilePaintingManagerGestureTest,
+       GuardedStencilRefusesEveryCellWhenOneGuardDiffers) {
+  const auto changed =
+      manager_->ApplyGuardedCells(0, {{0, 0, 1, 3}, {1, 0, 4, 3}});
+  ASSERT_FALSE(changed.ok());
+  EXPECT_TRUE(absl::IsFailedPrecondition(changed.status()));
+  EXPECT_NE(changed.status().message().find(
+                "1 cell(s); first (1,0) expected 0x004, found 0x002"),
+            std::string_view::npos)
+      << changed.status();
+  ExpectUnchanged();
+}
+
+TEST_F(TilePaintingManagerGestureTest, GuardedStencilRejectsInvalidCells) {
+  EXPECT_TRUE(absl::IsInvalidArgument(
+      manager_->ApplyGuardedCells(0, {{0, 0, 1, 3}, {0, 0, 1, 3}}).status()));
+  EXPECT_TRUE(absl::IsInvalidArgument(
+      manager_->ApplyGuardedCells(0, {{32, 0, 0, 3}}).status()));
+  EXPECT_TRUE(absl::IsInvalidArgument(
+      manager_->ApplyGuardedCells(0, {{0, 0, 1, 0x1000}}).status()));
+  EXPECT_TRUE(
+      absl::IsInvalidArgument(manager_->ApplyGuardedCells(0, {}).status()));
+  EXPECT_TRUE(absl::IsFailedPrecondition(
+      manager_->ApplyGuardedCells(0x40, {{0, 0, 0, 3}}).status()));
+  EXPECT_TRUE(absl::IsOutOfRange(
+      manager_->ApplyGuardedCells(zelda3::kNumOverworldMaps, {{0, 0, 0, 3}})
+          .status()));
+  ExpectUnchanged();
+}
+
 }  // namespace
 }  // namespace yaze::editor

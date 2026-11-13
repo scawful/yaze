@@ -2,6 +2,7 @@
 #define YAZE_APP_EDITOR_TILE16EDITOR_H
 
 #include <array>
+#include <cstdint>
 #include <functional>
 #include <string>
 #include <utility>
@@ -44,6 +45,9 @@ class Tile16Editor : public gfx::GfxContext {
       std::function<absl::Status(int, int)> callback) {
     open_graphics_for_quadrant_ = std::move(callback);
   }
+  void SetHoverDetailProvider(std::function<std::string(int)> provider) {
+    blockset_selector_.SetHoverDetailProvider(std::move(provider));
+  }
   absl::Status OpenGraphicsForActiveQuadrant() {
     if (!open_graphics_for_quadrant_) {
       return absl::FailedPreconditionError("Graphics editor is unavailable");
@@ -51,7 +55,11 @@ class Tile16Editor : public gfx::GfxContext {
     return open_graphics_for_quadrant_(session_.current_tile16(),
                                        session_.active_quadrant());
   }
-  void DrawContextMenu();
+  // Main-menu items. The Overworld editor draws the edit actions in the main
+  // Edit menu and the view toggles and scratch slots in its own menu.
+  bool blockset_loaded() const { return session_.map_blockset_loaded(); }
+  void DrawEditMenuItems();
+  void DrawOverworldMenuItems();
   void DrawTile16Editor();
   absl::Status UpdateBlockset();
   void DrawScratchSpace();
@@ -113,11 +121,16 @@ class Tile16Editor : public gfx::GfxContext {
                     std::function<void()> before_edit = {}) {
     session_.BindDocument(definitions, history, std::move(before_edit));
   }
-  absl::Status ReplaceCurrentTile(const gfx::Tile16& data) {
-    return session_.ReplaceCurrentTile(data);
+  absl::Status ReplaceCurrentTile(const gfx::Tile16& data,
+                                  uint64_t edit_group = 0) {
+    return session_.ReplaceCurrentTile(data, edit_group);
   }
   absl::Status Undo() { return session_.Undo(); }
   absl::Status Redo() { return session_.Redo(); }
+  absl::StatusOr<std::unique_ptr<UndoAction>> PrepareDefinitionImport(
+      const std::vector<Tile16Commit>& definitions) {
+    return session_.PrepareDefinitionImport(definitions);
+  }
 
   void EnableLivePreview(bool enable) { session_.EnableLivePreview(enable); }
   absl::Status UpdateLivePreview() { return session_.UpdateLivePreview(); }
@@ -294,6 +307,8 @@ class Tile16Editor : public gfx::GfxContext {
   absl::Status status_;
   absl::Status graphics_open_status_;
   std::function<absl::Status(int, int)> open_graphics_for_quadrant_;
+  // One shared Undo step per open session of the manual properties dialog.
+  uint64_t manual_edit_group_ = 0;
 };
 
 }  // namespace editor

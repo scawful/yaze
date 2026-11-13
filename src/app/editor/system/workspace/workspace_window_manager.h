@@ -297,14 +297,12 @@ class WorkspaceWindowManager {
   void DrawVisibleWindows() { DrawAllVisiblePanels(); }
 
   /**
-   * @brief Handle editor/category switching for panel visibility
+   * @brief Update the active category and start panel transitions.
    * @param from_category The category being switched away from
    * @param to_category The category being switched to
    *
-   * This method:
-   * 1. Hides non-pinned, non-persistent panels from the previous category
-   * 2. Shows default panels for the new category
-   * 3. Updates the active category
+   * Leaves panel visibility unchanged so switching categories does not
+   * overwrite user preferences or close dynamic resource windows.
    */
   void OnEditorSwitch(const std::string& from_category,
                       const std::string& to_category);

@@ -100,7 +100,7 @@ struct MemoryRegionInfo {
  */
 struct MemoryAnomaly {
   uint32_t address;
-  std::string type;        // "out_of_bounds", "null_pointer", "corruption"
+  std::string type;  // "out_of_bounds", "null_pointer", "corruption"
   std::string description;
   int severity;  // 1-5, 5 being most severe
 };
@@ -170,7 +170,8 @@ class MemoryAnalyzeTool : public MemoryInspectorBase {
   }
 
   std::string GetUsage() const override {
-    return "memory-analyze --address <addr> --length <len> [--format <json|text>]";
+    return "memory-analyze --address <addr> --length <len> [--format "
+           "<json|text>]";
   }
 
   bool RequiresLabels() const override { return false; }
@@ -232,16 +233,17 @@ class MemorySearchTool : public MemoryInspectorBase {
   ParsePattern(const std::string& pattern_str) const;
 
   // Match pattern against memory
-  std::vector<PatternMatch> FindMatches(
-      const std::vector<uint8_t>& memory, uint32_t base_address,
-      const std::vector<uint8_t>& pattern,
-      const std::vector<bool>& mask, int max_results) const;
+  std::vector<PatternMatch> FindMatches(const std::vector<uint8_t>& memory,
+                                        uint32_t base_address,
+                                        const std::vector<uint8_t>& pattern,
+                                        const std::vector<bool>& mask,
+                                        int max_results) const;
 };
 
 /**
  * @brief Compare memory regions or detect changes
  *
- * Usage: memory-compare --address <addr> --expected <hex> [--format <json|text>]
+ * Usage: memory-compare --address <addr> [--expected <hex>] [--format <json|text>]
  *    OR: memory-compare --address <addr> --baseline <addr2> --length <len>
  *
  * Features:
@@ -258,7 +260,8 @@ class MemoryCompareTool : public MemoryInspectorBase {
   }
 
   std::string GetUsage() const override {
-    return "memory-compare --address <addr> --expected <hex> [--format <json|text>]";
+    return "memory-compare --address <addr> [--expected <hex>] [--format "
+           "<json|text>]";
   }
 
   bool RequiresLabels() const override { return false; }

@@ -11,12 +11,30 @@
 #include "app/gui/core/platform_keys.h"
 #include "imgui/imgui.h"
 #include "util/log.h"
+#include "zelda3/dungeon/chest_edit.h"
 #include "zelda3/dungeon/object_layer_semantics.h"
 #include "zelda3/dungeon/object_tile_editor.h"
 #include "zelda3/resource_labels.h"
 #include "zelda3/sprite/sprite.h"
 
 namespace yaze::editor {
+
+namespace {
+
+std::pair<int, int> ContextMenuRoomPosition(const gui::Canvas& canvas) {
+  ImVec2 screen_position = ImGui::GetIO().MousePos;
+  if (!ImGui::IsMouseClicked(ImGuiMouseButton_Right)) {
+    if (const auto popup_anchor = canvas.context_menu_open_screen_position();
+        popup_anchor.has_value()) {
+      screen_position = *popup_anchor;
+    }
+  }
+  return DungeonCanvasTransform(canvas.zero_point(), canvas.scrolling(),
+                                canvas.global_scale())
+      .ScreenToRoomPixelCoordinates(screen_position);
+}
+
+}  // namespace
 
 void DungeonCanvasViewer::PopulateCanvasContextMenu(int room_id) {
   canvas_.ClearContextMenuItems();
@@ -42,41 +60,44 @@ void DungeonCanvasViewer::AddLoadedRoomContextMenuItems(int room_id) {
     return;
   }
 
+  if (show_dungeon_settings_callback_) {
+    gui::CanvasMenuItem inspector("Inspector...", ICON_MD_TUNE, [this]() {
+      show_dungeon_settings_callback_();
+    });
+    inspector.separator_after = true;
+    canvas_.AddContextMenuItem(std::move(inspector));
+  }
   canvas_.AddContextMenuItem(BuildRoomContextMenu(room_id));
   if (auto open_menu = BuildOpenContextMenu(); open_menu.has_value()) {
     canvas_.AddContextMenuItem(std::move(*open_menu));
   }
-  gui::CanvasMenuItem display;
-  display.label = "Display";
-  display.icon = ICON_MD_VISIBILITY;
-  display.subitems.emplace_back(
-      "Fit room", ICON_MD_FIT_SCREEN, [this, room_id] {
-        if (auto* bitmap = PrepareRoomCompositeBitmap(room_id)) {
-          canvas_.SetZoomToFit(*bitmap);
-          room_viewport_auto_fit_ = true;
-          room_viewport_last_scale_ = canvas_.global_scale();
-        }
-      });
-  display.subitems.emplace_back("Zoom in", ICON_MD_ZOOM_IN, [this] {
+  gui::CanvasMenuItem view;
+  view.label = "View";
+  view.icon = ICON_MD_VISIBILITY;
+  view.subitems.emplace_back("Fit room", ICON_MD_FIT_SCREEN, [this, room_id] {
+    if (auto* bitmap = PrepareRoomCompositeBitmap(room_id)) {
+      canvas_.SetZoomToFit(*bitmap);
+      room_viewport_auto_fit_ = true;
+      room_viewport_last_scale_ = canvas_.global_scale();
+    }
+  });
+  view.subitems.emplace_back("Zoom in", ICON_MD_ZOOM_IN, [this] {
     room_viewport_auto_fit_ = false;
     canvas_.ZoomIn();
   });
-  display.subitems.emplace_back("Zoom out", ICON_MD_ZOOM_OUT, [this] {
+  view.subitems.emplace_back("Zoom out", ICON_MD_ZOOM_OUT, [this] {
     room_viewport_auto_fit_ = false;
     canvas_.ZoomOut();
   });
-  display.subitems.back().separator_after = true;
-  display.subitems.push_back(BuildLayerVisibilityContextMenu(room_id));
-  display.subitems.push_back(BuildOverlayContextMenu());
-  canvas_.AddContextMenuItem(std::move(display));
-
-  gui::CanvasMenuItem advanced;
-  advanced.label = "Advanced";
-  advanced.icon = ICON_MD_MORE_HORIZ;
-  advanced.subitems.push_back(BuildCopyExportContextMenu(room_id));
-  advanced.subitems.push_back(BuildReportContextMenu(room_id));
-  advanced.subitems.push_back(BuildDebugContextMenu(room_id));
-  canvas_.AddContextMenuItem(std::move(advanced));
+  view.subitems.back().separator_after = true;
+  view.subitems.push_back(BuildLayerVisibilityContextMenu(room_id));
+  view.subitems.push_back(BuildOverlayContextMenu());
+  canvas_.AddContextMenuItem(std::move(view));
+  canvas_.AddContextMenuItem(BuildCopyExportContextMenu(room_id));
+  auto debug = BuildDebugContextMenu(room_id);
+  debug.subitems.back().separator_after = true;
+  debug.subitems.push_back(BuildReportContextMenu(room_id));
+  canvas_.AddContextMenuItem(std::move(debug));
 }
 
 gui::CanvasMenuItem DungeonCanvasViewer::BuildInsertContextMenu() {
@@ -131,22 +152,18 @@ gui::CanvasMenuItem DungeonCanvasViewer::BuildInsertContextMenu() {
 
 std::optional<zelda3::RoomObject>
 DungeonCanvasViewer::GetObjectUnderContextCursor(int room_id) {
+  const auto index = GetObjectIndexUnderContextCursor(room_id);
+  return index ? std::optional((*rooms_)[room_id].GetTileObjects()[*index])
+               : std::nullopt;
+}
+
+std::optional<size_t> DungeonCanvasViewer::GetObjectIndexUnderContextCursor(
+    int room_id) {
   if (!rooms_ || room_id < 0 || room_id >= zelda3::kNumberOfRooms) {
     return std::nullopt;
   }
 
-  const ImGuiIO& io = ImGui::GetIO();
-  ImVec2 screen_position = io.MousePos;
-  if (!ImGui::IsMouseClicked(ImGuiMouseButton_Right)) {
-    if (const auto popup_anchor = canvas_.context_menu_open_screen_position();
-        popup_anchor.has_value()) {
-      screen_position = *popup_anchor;
-    }
-  }
-  const DungeonCanvasTransform transform(
-      canvas_.zero_point(), canvas_.scrolling(), canvas_.global_scale());
-  const auto [canvas_x, canvas_y] =
-      transform.ScreenToRoomPixelCoordinates(screen_position);
+  const auto [canvas_x, canvas_y] = ContextMenuRoomPosition(canvas_);
   if (!dungeon_coords::IsWithinBounds(canvas_x, canvas_y)) {
     return std::nullopt;
   }
@@ -161,7 +178,7 @@ DungeonCanvasViewer::GetObjectUnderContextCursor(int room_id) {
   if (*hovered_index >= objects.size()) {
     return std::nullopt;
   }
-  return objects[*hovered_index];
+  return hovered_index;
 }
 
 std::vector<gui::CanvasMenuItem>
@@ -199,6 +216,40 @@ DungeonCanvasViewer::BuildSelectionContextMenuItems(
   }
 
   std::vector<gui::CanvasMenuItem> items;
+
+  if (valid_room) {
+    auto& room = (*rooms_)[room_id];
+    std::optional<size_t> chest_index;
+    if (context_object &&
+        zelda3::IsStatefulChestObjectId(context_object->id_)) {
+      if (const auto index = GetObjectIndexUnderContextCursor(room_id)) {
+        chest_index =
+            zelda3::ChestIndexForObject(room.GetTileObjects(), *index);
+      }
+    }
+    if (!chest_index && single_selection) {
+      chest_index =
+          zelda3::ChestIndexForObject(room.GetTileObjects(), selected.front());
+    }
+    if (chest_index) {
+      gui::CanvasMenuItem edit_chest(
+          "Edit Chest...", ICON_MD_EDIT,
+          [this, room_id, index = *chest_index]() {
+            const auto status = OpenChestEditor(room_id, index);
+            chest_editor_state_.error =
+                status.ok() ? "" : std::string(status.message());
+          });
+      edit_chest.enabled_condition = [this, room_id, index = *chest_index]() {
+        const auto* room = rooms_ ? rooms_->GetIfLoaded(room_id) : nullptr;
+        return !header_read_only_ && IsObjectInteractionEnabled() &&
+               chest_edit_callback_ && room && room->AreChestsLoaded() &&
+               index < room->GetChests().size();
+      };
+      edit_chest.tooltip = "Edit this chest's reward and type.";
+      edit_chest.separator_after = true;
+      items.push_back(std::move(edit_chest));
+    }
+  }
 
   bool can_edit_selected_graphics = false;
   std::function<void()> edit_selected_graphics;
@@ -241,9 +292,13 @@ DungeonCanvasViewer::BuildSelectionContextMenuItems(
     };
   };
   auto paste_item = [&]() {
+    const auto [room_x, room_y] =
+        has_clipboard ? ContextMenuRoomPosition(canvas_) : std::pair{0, 0};
     gui::CanvasMenuItem item(
         "Paste", ICON_MD_CONTENT_PASTE,
-        [&interaction]() { (void)interaction.HandlePasteObjects(); },
+        [&interaction, room_x = room_x, room_y = room_y]() {
+          (void)interaction.HandlePasteObjectsAt(room_x, room_y);
+        },
         gui::FormatCtrlShortcut(ImGuiKey_V));
     item.enabled_condition = enabled_if(has_clipboard);
     return item;
@@ -464,6 +519,10 @@ std::optional<gui::CanvasMenuItem> DungeonCanvasViewer::BuildOpenContextMenu() {
   gui::CanvasMenuItem open_menu;
   open_menu.label = "Open";
   open_menu.icon = ICON_MD_OPEN_IN_NEW;
+  if (show_room_list_callback_) {
+    open_menu.subitems.emplace_back("Room List", ICON_MD_LIST,
+                                    [this]() { show_room_list_callback_(); });
+  }
   if (show_room_matrix_callback_) {
     open_menu.subitems.emplace_back("Room Matrix", ICON_MD_GRID_VIEW,
                                     [this]() { show_room_matrix_callback_(); });
@@ -491,7 +550,7 @@ std::optional<gui::CanvasMenuItem> DungeonCanvasViewer::BuildOpenContextMenu() {
 gui::CanvasMenuItem DungeonCanvasViewer::BuildCopyExportContextMenu(
     int room_id) {
   gui::CanvasMenuItem copy_export_menu;
-  copy_export_menu.label = "Copy / Export";
+  copy_export_menu.label = "Export";
   copy_export_menu.icon = ICON_MD_CONTENT_COPY;
   copy_export_menu.subitems.emplace_back(
       "Copy Room Summary", ICON_MD_ASSIGNMENT, [this, room_id]() {
@@ -512,7 +571,7 @@ gui::CanvasMenuItem DungeonCanvasViewer::BuildCopyExportContextMenu(
         [room_label]() { ImGui::SetClipboardText(room_label.c_str()); });
   }
   copy_export_menu.subitems.emplace_back(
-      "Export Layout Template...", ICON_MD_FILE_DOWNLOAD, [this, room_id]() {
+      "Copy Layout Template", ICON_MD_CONTENT_COPY, [this, room_id]() {
         if (!rooms_ || room_id < 0 || room_id >= zelda3::kNumberOfRooms) {
           return;
         }
@@ -703,6 +762,13 @@ gui::CanvasMenuItem DungeonCanvasViewer::BuildDebugContextMenu(int room_id) {
   gui::CanvasMenuItem debug_menu;
   debug_menu.label = "Debug";
   debug_menu.icon = ICON_MD_BUG_REPORT;
+
+  debug_menu.subitems.emplace_back(
+      "Chest Records...", ICON_MD_INVENTORY, [this, room_id]() {
+        chest_edit_dialog_state_.diagnostics_room_id = room_id;
+        chest_edit_dialog_state_.show_diagnostics = true;
+      });
+  debug_menu.subitems.back().separator_after = true;
 
   debug_menu.subitems.push_back(gui::CanvasMenuItem(
       "Room Info", ICON_MD_INFO,

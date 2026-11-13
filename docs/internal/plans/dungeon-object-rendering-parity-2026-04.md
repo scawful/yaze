@@ -21,7 +21,7 @@ floor/background palette parity remains open.
 
 **Primary spec:** [dungeon-object-rendering-spec.md](../agents/dungeon-object-rendering-spec.md) (USDASM `bank_01.asm`)
 
-**Related handoff:** [HANDOFF_BG2_MASKING_FIX.md](../hand-off/HANDOFF_BG2_MASKING_FIX.md)
+**Related handoff:** [HANDOFF_BG2_MASKING_FIX.md](https://github.com/scawful/yaze/blob/a439d021ac2b0db9e7f7d6c358b2d1952c9855d5/docs/internal/hand-off/HANDOFF_BG2_MASKING_FIX.md) (archived)
 
 ## Goals
 

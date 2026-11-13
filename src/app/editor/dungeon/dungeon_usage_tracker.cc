@@ -162,7 +162,7 @@ void DungeonUsageTracker::DrawUsageGrid() {
 
       if (is_selected) {
         draw_list->AddRect(cell_min, cell_max, IM_COL32(255, 255, 255, 255),
-                           0.0f, 0, 2.0f);
+                           0.0f, 2.0f);
       }
 
       // Invisible button to handle selection.

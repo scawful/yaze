@@ -136,5 +136,50 @@ TEST(RomHashTest, ComputeFileSha1HexHandlesEmptyFile) {
   EXPECT_EQ(sha1, "da39a3ee5e6b4b0d3255bfef95601890afd80709");
 }
 
+TEST(RomHashTest, ComputeFileSha1HexHandlesChunkAndPaddingBoundaries) {
+  for (const size_t size : {size_t{55}, size_t{56}, size_t{63}, size_t{64},
+                            size_t{65}, size_t{65535}, size_t{65536},
+                            size_t{65537}, size_t{131129}, size_t{196608}}) {
+    SCOPED_TRACE(size);
+    std::vector<uint8_t> bytes(size);
+    for (size_t i = 0; i < bytes.size(); ++i) {
+      bytes[i] = static_cast<uint8_t>(i * 37 + 11);
+    }
+    const auto path = UniqueTempPath("yaze_rom_hash_test_chunks", ".bin");
+    {
+      std::ofstream file(path, std::ios::binary | std::ios::trunc);
+      ASSERT_TRUE(file.is_open());
+      file.write(reinterpret_cast<const char*>(bytes.data()),
+                 static_cast<std::streamsize>(bytes.size()));
+      ASSERT_TRUE(file.good());
+    }
+    const auto actual = util::ComputeFileSha1Hex(path.string());
+    std::error_code ec;
+    fs::remove(path, ec);
+    EXPECT_EQ(actual, util::ComputeSha1Hex(bytes.data(), bytes.size()));
+  }
+}
+
+TEST(RomHashTest, ComputeFileSha1HexMatchesMillionAsVector) {
+  const std::string bytes(1000000, 'a');
+  const auto path = UniqueTempPath("yaze_rom_hash_test_million", ".bin");
+  {
+    std::ofstream file(path, std::ios::binary | std::ios::trunc);
+    ASSERT_TRUE(file.is_open());
+    file.write(bytes.data(), static_cast<std::streamsize>(bytes.size()));
+    ASSERT_TRUE(file.good());
+  }
+  const auto actual = util::ComputeFileSha1Hex(path.string());
+  std::error_code ec;
+  fs::remove(path, ec);
+  EXPECT_EQ(actual, "34aa973cd4c4daa4f61eeb2bdbad27316534016f");
+}
+
+TEST(RomHashTest, ComputeFileSha1HexReturnsEmptyForMissingFile) {
+  const auto path = UniqueTempPath("yaze_rom_hash_test_missing", ".bin");
+  ASSERT_FALSE(fs::exists(path));
+  EXPECT_TRUE(util::ComputeFileSha1Hex(path.string()).empty());
+}
+
 }  // namespace
 }  // namespace yaze::test

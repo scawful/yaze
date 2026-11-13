@@ -5,6 +5,11 @@
 
 namespace yaze::editor {
 
+// Use only space below the fitted square room; never reduce its fitted size.
+float ResolveDungeonWorkbenchNearbyHeight(float width, float height,
+                                          float requested_height,
+                                          float item_spacing);
+
 // Draw a workbench-standard vertical splitter that mutates pane_width.
 // Returns true when the drag moves past collapse_threshold.
 bool DrawDungeonWorkbenchVerticalSplitter(const char* id, float height,

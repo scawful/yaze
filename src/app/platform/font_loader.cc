@@ -2,6 +2,7 @@
 
 #include <cstring>
 #include <filesystem>
+#include <fstream>
 #include <string>
 #include <vector>
 
@@ -114,16 +115,49 @@ absl::Status AddIconFont(const FontConfig& /*config*/) {
   return absl::OkStatus();
 }
 
+// NotoSansJP.ttf is ~9.5 MB and is merged into every base font; loading it
+// from file per merge kept one copy per font. All merges share this buffer.
+// ImGui 1.92 reads font source data for the life of the atlas, so the buffer
+// is never freed. An empty buffer means the file was missing or unreadable.
+std::vector<char>* JapaneseFontData() {
+  static std::vector<char>* data = [] {
+    auto* buffer = new std::vector<char>();
+    std::ifstream file(SetFontPath(NOTO_SANS_JP),
+                       std::ios::binary | std::ios::ate);
+    if (!file) {
+      return buffer;
+    }
+    const std::streamsize size = file.tellg();
+    if (size <= 0) {
+      return buffer;
+    }
+    buffer->resize(static_cast<size_t>(size));
+    file.seekg(0);
+    if (!file.read(buffer->data(), size)) {
+      buffer->clear();
+    }
+    return buffer;
+  }();
+  return data;
+}
+
 absl::Status AddJapaneseFont(const FontConfig& /*config*/) {
+  std::vector<char>* font_data = JapaneseFontData();
+  if (font_data->empty()) {
+    return absl::InternalError("Failed to add Japanese fonts");
+  }
   ImFontConfig japanese_font_config{};
+  japanese_font_config.FontDataOwnedByAtlas = false;
   japanese_font_config.MergeMode = true;
   japanese_font_config.GlyphOffset.y = 5.0F;
   japanese_font_config.GlyphMinAdvanceX = 13.0F;
   japanese_font_config.PixelSnapH = true;
-  std::string japanese_font_path = SetFontPath(NOTO_SANS_JP);
+  std::strncpy(japanese_font_config.Name, NOTO_SANS_JP,
+               sizeof(japanese_font_config.Name) - 1);
   ImGuiIO& imgui_io = ImGui::GetIO();
-  if (!imgui_io.Fonts->AddFontFromFileTTF(
-          japanese_font_path.data(), ICON_FONT_SIZE, &japanese_font_config,
+  if (!imgui_io.Fonts->AddFontFromMemoryTTF(
+          font_data->data(), static_cast<int>(font_data->size()),
+          ICON_FONT_SIZE, &japanese_font_config,
           imgui_io.Fonts->GetGlyphRangesJapanese())) {
     return absl::InternalError("Failed to add Japanese fonts");
   }

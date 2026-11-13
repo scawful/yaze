@@ -100,6 +100,10 @@ void GraphicsEditor::Initialize() {
   };
   pixel_editor_panel_->SetHistoryCallbacks([this] { return Undo(); },
                                            [this] { return Redo(); });
+  pixel_editor_panel_->SetScratchCallback([this] {
+    FinishPixelGesture();
+    dependencies_.window_manager->OpenWindow("graphics.scratch");
+  });
   pixel_editor_panel_->SetPaletteReorderCallback(
       [this](const std::vector<size_t>& targets,
              const PalettePermutation& permutation) {
@@ -118,6 +122,8 @@ void GraphicsEditor::Initialize() {
           workspace->CloseWindow("graphics.sheet_browser_v2");
       });
   palette_controls_panel_ = std::make_unique<PaletteControlsPanel>(&state_);
+  image_import_view_ =
+      std::make_unique<ImageImportView>(&state_, &undo_manager_);
   link_sprite_panel_ = std::make_unique<LinkSpritePanel>(&state_, rom_);
   gfx_group_panel_ = std::make_unique<GfxGroupEditor>();
   gfx_group_panel_->SetWorkspaceState(dependencies_.gfx_group_workspace);
@@ -141,12 +147,41 @@ void GraphicsEditor::Initialize() {
   usage_preview_view_->SetRom(rom_);
   usage_preview_view_->SetGameData(game_data_);
   usage_preview_view_->SetLiveRoomProvider(room_usage_provider_);
+  usage_preview_view_->SetLiveOverworldProvider(overworld_usage_provider_);
   pixel_editor_panel_->SetSourcePreviewCallback(
       [this]() { usage_preview_view_->DrawSourcePreview(); });
 
   sheet_browser_panel_->Initialize();
   pixel_editor_panel_->Initialize();
   link_sprite_panel_->Initialize();
+
+  if (!scratch_view_)
+    scratch_view_ =
+        std::make_unique<GraphicsScratchView>(&state_, &undo_manager_);
+  scratch_view_->SetApplyValidator([this](uint16_t sheet) -> absl::Status {
+    if (const auto* current = project()) {
+      ASSIGN_OR_RETURN(auto policy, core::BuildGfxSheetWritePolicy(*current));
+      if (policy.reserved_sheets.count(sheet))
+        return absl::FailedPreconditionError(
+            "The project reserves this graphics sheet");
+    }
+    return absl::OkStatus();
+  });
+  scratch_view_->SetExportValidator([this](const std::string& path) {
+    auto* manager = static_cast<EditorManager*>(dependencies_.custom_data);
+    if (manager && manager->session_coordinator())
+      return manager->session_coordinator()->CheckBackingFileAvailable(path);
+    if (rom_ && !rom_->filename().empty() &&
+        SessionCoordinator::PathsReferToSameBackingFile(path, rom_->filename()))
+      return absl::FailedPreconditionError(
+          "BIN export cannot replace an open ROM");
+    return absl::OkStatus();
+  });
+  window_manager->RegisterWindowContent(
+      std::make_unique<GraphicsScratchWindow>([this] {
+        bool open = true;
+        scratch_view_->Draw(&open);
+      }));
 
   // Register panels using WindowContent system with callbacks
   window_manager->RegisterWindowContent(
@@ -215,6 +250,13 @@ void GraphicsEditor::Initialize() {
           polyhedral_panel_->Draw(&open);
         }
       }));
+
+  window_manager->RegisterWindowContent(
+      std::make_unique<GraphicsImageImportPanel>([this]() {
+        if (image_import_view_) {
+          status_ = image_import_view_->Update();
+        }
+      }));
 }
 
 absl::Status GraphicsEditor::Load() {
@@ -222,7 +264,7 @@ absl::Status GraphicsEditor::Load() {
   if (usage_preview_view_)
     usage_preview_view_->Reset();
   state_.ClearSourceContext();
-  state_.preview_palettes.clear();
+  state_.ClearPreviewPalettes();
 
   // Initialize all graphics sheets with appropriate palettes from ROM
   // This ensures textures are created for editing
@@ -427,7 +469,15 @@ GraphicsEditor::PrepareGraphicsSave() {
   return prepared;
 }
 
+absl::Status GraphicsEditor::SaveScratchAssets() {
+  if (!scratch_view_)
+    return absl::OkStatus();
+  scratch_view_->FinishGesture();
+  return scratch_view_->Flush();
+}
+
 absl::Status GraphicsEditor::Save() {
+  RETURN_IF_ERROR(SaveScratchAssets());
   if (state_.selection.is_floating)
     return absl::FailedPreconditionError(
         "Commit or cancel the floating paste in Graphics before saving "
@@ -555,11 +605,30 @@ GraphicsEditor::PlanGraphicsSave() {
   return entries;
 }
 
+absl::Status GraphicsEditor::ImportScratchBin(const std::string& path, int bpp,
+                                              size_t offset,
+                                              const gfx::SnesPalette& palette) {
+  if (!scratch_view_ || !dependencies_.window_manager)
+    return absl::FailedPreconditionError(
+        "Initialize Graphics before importing scratch assets");
+  FinishPixelGesture();
+  dependencies_.window_manager->OpenWindow("graphics.scratch");
+  return scratch_view_->ImportBin(path, bpp, offset, palette);
+}
+
+void GraphicsEditor::SetScratchPreview(std::string label,
+                                       ScratchPreviewCallback callback) {
+  if (scratch_view_)
+    scratch_view_->SetAssociatedPreview(std::move(label), std::move(callback));
+}
+
 absl::Status GraphicsEditor::Update() {
   // Panels are now drawn via WorkspaceWindowManager::DrawAllVisiblePanels()
   // This Update() only handles editor-level state and keyboard shortcuts
 
   // Show store changes (undo, redo, imports) in the Arena's display copies.
+  if (scratch_view_)
+    scratch_view_->FinishGesture();
   SyncArenaFromStore(state_);
   RefreshGraphicsPreviewPalettes(state_);
 
@@ -575,7 +644,13 @@ absl::Status GraphicsEditor::Undo() {
     pixel_editor_panel_->FinishReleasedGesture();
   if (pixel_editor_panel_ && pixel_editor_panel_->HasActiveStroke())
     return absl::FailedPreconditionError("Finish the pixel stroke before Undo");
-  return undo_manager_.Undo();
+  if (scratch_view_)
+    scratch_view_->FinishGesture();
+  if (scratch_view_ && scratch_view_->HasActiveStroke())
+    return absl::FailedPreconditionError(
+        "Finish the scratch stroke before Undo");
+  RETURN_IF_ERROR(undo_manager_.Undo());
+  return scratch_view_ ? scratch_view_->Flush() : absl::OkStatus();
 }
 
 absl::Status GraphicsEditor::Redo() {
@@ -583,7 +658,13 @@ absl::Status GraphicsEditor::Redo() {
     pixel_editor_panel_->FinishReleasedGesture();
   if (pixel_editor_panel_ && pixel_editor_panel_->HasActiveStroke())
     return absl::FailedPreconditionError("Finish the pixel stroke before Redo");
-  return undo_manager_.Redo();
+  if (scratch_view_)
+    scratch_view_->FinishGesture();
+  if (scratch_view_ && scratch_view_->HasActiveStroke())
+    return absl::FailedPreconditionError(
+        "Finish the scratch stroke before Redo");
+  RETURN_IF_ERROR(undo_manager_.Redo());
+  return scratch_view_ ? scratch_view_->Flush() : absl::OkStatus();
 }
 
 void GraphicsEditor::DrawPrototypeViewer() {

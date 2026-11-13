@@ -5,6 +5,7 @@
 #include <vector>
 
 #include "absl/cleanup/cleanup.h"
+#include "app/editor/dungeon/dungeon_canvas_transform.h"
 #include "app/editor/dungeon/dungeon_selection_edit.h"
 #include "app/gfx/resource/arena.h"
 #include "core/features.h"
@@ -416,6 +417,34 @@ TEST_P(DungeonSelectionEditsLifecycleTest,
   EXPECT_EQ(room_->GetPotItems()[1].GetPixelX(), 160);
   EXPECT_EQ(room_->GetPotItems()[1].GetPixelY(), 208);
   EXPECT_EQ(room_->GetChests()[1].id, 0xF1);
+  EXPECT_EQ(UndoDepth(), 1u);
+}
+
+TEST_P(DungeonSelectionEditsLifecycleTest,
+       PointerPasteSnapsMixedGroupAndKeyboardPasteKeepsCurrentPointer) {
+  SelectMixed();
+  ASSERT_TRUE(interaction().HandleCopySelected().ok());
+  ASSERT_TRUE(interaction().HandlePasteObjectsAt(103, 127).ok());
+  ASSERT_EQ(room_->GetTileObjects().size(), 4u);
+  EXPECT_EQ(room_->GetTileObjects()[2].x_, 12);
+  EXPECT_EQ(room_->GetTileObjects()[2].y_, 14);
+  EXPECT_EQ(room_->GetSprites()[1].x(), 8);
+  EXPECT_EQ(room_->GetSprites()[1].y(), 11);
+  EXPECT_EQ(room_->GetPotItems()[1].GetPixelX(), 160);
+  EXPECT_EQ(room_->GetPotItems()[1].GetPixelY(), 208);
+  EXPECT_EQ(UndoDepth(), 1u);
+  ASSERT_TRUE(editor_->Undo().ok());
+
+  const auto& canvas = viewer_->canvas();
+  const DungeonCanvasTransform transform(
+      canvas.zero_point(), canvas.scrolling(), canvas.global_scale());
+  ImGui::GetIO().MousePos = transform.RoomPixelsToScreen(ImVec2(135, 159));
+  ASSERT_TRUE(interaction().HandlePasteObjects().ok());
+  ASSERT_EQ(room_->GetTileObjects().size(), 4u);
+  EXPECT_EQ(room_->GetTileObjects()[2].x_, 16);
+  EXPECT_EQ(room_->GetTileObjects()[2].y_, 18);
+  EXPECT_EQ(room_->GetSprites()[1].x(), 10);
+  EXPECT_EQ(room_->GetSprites()[1].y(), 13);
   EXPECT_EQ(UndoDepth(), 1u);
 }
 

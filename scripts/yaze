@@ -34,8 +34,22 @@ other_candidates=(
   "${ROOT}/build/bin/Release/yaze"
 )
 
+# Per-preset binaryDir layout (build/presets/<preset>/bin/...), matching
+# scripts/z3ed.
+shopt -s nullglob
+preset_candidates=(
+  "${ROOT}/build/presets/"*/bin/Debug/yaze.app/Contents/MacOS/yaze
+  "${ROOT}/build/presets/"*/bin/RelWithDebInfo/yaze.app/Contents/MacOS/yaze
+  "${ROOT}/build/presets/"*/bin/Release/yaze.app/Contents/MacOS/yaze
+  "${ROOT}/build/presets/"*/bin/Debug/yaze
+  "${ROOT}/build/presets/"*/bin/RelWithDebInfo/yaze
+  "${ROOT}/build/presets/"*/bin/Release/yaze
+)
+shopt -u nullglob
+
 all_candidates=(
   "${ai_candidates[@]}"
+  "${preset_candidates[@]}"
   "${other_candidates[@]}"
 )
 
@@ -84,6 +98,9 @@ resolve_bin() {
 
   # Prefer build_ai when available.
   bin="$(pick_newest "${ai_candidates[@]}")"
+  if [[ -z "${bin}" ]]; then
+    bin="$(pick_newest "${preset_candidates[@]}")"
+  fi
   if [[ -z "${bin}" ]]; then
     bin="$(pick_newest "${other_candidates[@]}")"
   fi

@@ -3,10 +3,17 @@
 #include <gtest/gtest.h>
 
 #include <array>
+#include <filesystem>
+#include <fstream>
+#include <memory>
+#include <sstream>
 #include <string>
+#include <system_error>
 #include <unordered_map>
 
 #include "app/editor/system/workspace/resource_panel.h"
+#include "unique_temp_path.h"
+#include "util/log.h"
 
 namespace yaze::editor {
 namespace {
@@ -600,6 +607,63 @@ TEST(WorkspaceWindowManagerPolicyTest,
                     .category = "Music"});
 
   EXPECT_TRUE(pm.IsWindowPinned(0, "music.song_5"));
+}
+
+// Headless and test runs register every window for every session. Those
+// per-item lines stay at DEBUG so the default INFO log keeps only summaries,
+// warnings and errors.
+TEST(WorkspaceWindowManagerPolicyTest, PerWindowRegistrationLogsStayBelowInfo) {
+  auto& log = util::LogManager::instance();
+  const util::LogLevel previous_level = log.GetLogLevel();
+  const auto log_path = test::UniqueTempPath("yaze_wwm_registration", ".log");
+
+  auto run_registration_cycle = [] {
+    WorkspaceWindowManager wm;
+    wm.RegisterSession(0);
+    wm.SetActiveSession(0);
+    for (int i = 0; i < 20; ++i) {
+      const std::string id = "test.panel_" + std::to_string(i);
+      wm.RegisterWindowContent(
+          std::make_unique<MockEditorPanelWithHooks>(id, "Test"));
+      wm.RegisterPanel({.card_id = id + ".card",
+                        .display_name = "Card",
+                        .icon = "ICON_MOCK",
+                        .category = "Test"});
+      wm.UnregisterPanel(0, id + ".card");
+      wm.UnregisterWindowContent(id);
+    }
+    wm.UnregisterSession(0);
+  };
+  auto read_log = [&log, &log_path] {
+    log.Flush();
+    std::ifstream in(log_path);
+    std::ostringstream contents;
+    contents << in.rdbuf();
+    return contents.str();
+  };
+
+  log.configure(util::LogLevel::INFO, log_path.string(), {});
+  run_registration_cycle();
+  const std::string info_log = read_log();
+
+  log.configure(util::LogLevel::YAZE_DEBUG, log_path.string(), {});
+  run_registration_cycle();
+  const std::string debug_log = read_log();
+
+  log.configure(previous_level, "", {});
+  std::error_code ec;
+  std::filesystem::remove(log_path, ec);
+
+  EXPECT_EQ(info_log.find("[WorkspaceWindowManager]"), std::string::npos)
+      << info_log;
+  EXPECT_NE(debug_log.find("Registered session 0"), std::string::npos)
+      << debug_log;
+  EXPECT_NE(debug_log.find("Registered WindowContent: test.panel_0"),
+            std::string::npos)
+      << debug_log;
+  EXPECT_NE(debug_log.find("Unregistered WindowContent: test.panel_19"),
+            std::string::npos)
+      << debug_log;
 }
 
 }  // namespace

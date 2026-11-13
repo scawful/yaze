@@ -51,15 +51,30 @@ bool CanPreview(const GraphicsEditorState& state) {
 }
 
 void Choose(GraphicsEditorState& state,
-            std::optional<GraphicsPaletteSelection> selection) {
-  SetGraphicsPreviewPalette(state, state.current_sheet_id, selection)
-      .IgnoreError();
+            std::optional<GraphicsPaletteSelection> selection,
+            GraphicsPaletteSelectorScope scope =
+                GraphicsPaletteSelectorScope::kCurrentSheet) {
+  if (scope == GraphicsPaletteSelectorScope::kAllSheets) {
+    SetGraphicsPreviewPaletteForAllSheets(state, selection).IgnoreError();
+  } else {
+    SetGraphicsPreviewPalette(state, state.current_sheet_id, selection)
+        .IgnoreError();
+  }
+}
+
+const GraphicsPaletteSelection* Selected(const GraphicsEditorState& state,
+                                         GraphicsPaletteSelectorScope scope) {
+  if (scope == GraphicsPaletteSelectorScope::kAllSheets) {
+    return state.browser_palette ? &*state.browser_palette : nullptr;
+  }
+  return state.PreviewPalette(state.current_sheet_id);
 }
 
 }  // namespace
 
 void DrawGraphicsPreviewPaletteSelector(GraphicsEditorState& state,
-                                        GraphicsPaletteSelectorLayout layout) {
+                                        GraphicsPaletteSelectorLayout layout,
+                                        GraphicsPaletteSelectorScope scope) {
   const bool inline_controls = layout == GraphicsPaletteSelectorLayout::kInline;
   const float font = ImGui::GetFontSize();
   const float right =
@@ -72,7 +87,7 @@ void DrawGraphicsPreviewPaletteSelector(GraphicsEditorState& state,
     }
     ImGui::SetNextItemWidth(inline_controls ? width : -1);
   };
-  const auto* selected = state.PreviewPalette(state.current_sheet_id);
+  const auto* selected = Selected(state, scope);
   const std::string selected_group = selected ? selected->group : "";
   const char* label =
       selected ? GroupLabel(selected->group) : tr("Loaded colors");
@@ -84,7 +99,7 @@ void DrawGraphicsPreviewPaletteSelector(GraphicsEditorState& state,
   gui::AutoRegisterLastItem("combo", "Preview palette");
   if (open) {
     if (ImGui::Selectable(tr("Loaded colors"), !selected))
-      Choose(state, std::nullopt);
+      Choose(state, std::nullopt, scope);
     gui::AutoRegisterLastItem("selectable", "Loaded colors");
     for (const auto& group : kGroups) {
       const auto* palettes =
@@ -94,7 +109,7 @@ void DrawGraphicsPreviewPaletteSelector(GraphicsEditorState& state,
       if (!palettes || palettes->empty())
         continue;
       if (ImGui::Selectable(tr(group.label), selected_group == group.name)) {
-        Choose(state, GraphicsPaletteSelection{group.name});
+        Choose(state, GraphicsPaletteSelection{group.name}, scope);
       }
       gui::AutoRegisterLastItem(
           "selectable", absl::StrFormat("Preview group %s", group.name));
@@ -103,7 +118,7 @@ void DrawGraphicsPreviewPaletteSelector(GraphicsEditorState& state,
   }
   ImGui::EndDisabled();
   // A choice above can erase or replace the selected entry.
-  selected = state.PreviewPalette(state.current_sheet_id);
+  selected = Selected(state, scope);
   if (!selected || !CanPreview(state))
     return;
   auto choice = *selected;
@@ -119,7 +134,7 @@ void DrawGraphicsPreviewPaletteSelector(GraphicsEditorState& state,
     if (ImGui::InputInt("##PreviewPaletteIndex", &index)) {
       choice.palette = std::clamp(index, 0, resolved->palette_count - 1);
       choice.row = 0;
-      Choose(state, choice);
+      Choose(state, choice, scope);
     }
     // InputInt's step buttons form a group with ID zero while idle. Register
     // the visible group explicitly so automation can discover it before focus.
@@ -155,7 +170,7 @@ void DrawGraphicsPreviewPaletteSelector(GraphicsEditorState& state,
     ImGui::EndDisabled();
     if (previous || next) {
       choice.row += next ? 1 : -1;
-      Choose(state, choice);
+      Choose(state, choice, scope);
     }
     ImGui::EndGroup();
   }
@@ -267,9 +282,7 @@ void PaletteControlsPanel::DrawApplyButtons() {
     }
   }
   if (ImGui::Button(tr("Preview on all sheets"))) {
-    for (uint16_t sheet = 0; sheet < zelda3::kNumGfxSheets; ++sheet) {
-      SetGraphicsPreviewPalette(*state_, sheet, choice).IgnoreError();
-    }
+    Choose(*state_, choice, GraphicsPaletteSelectorScope::kAllSheets);
   }
 }
 

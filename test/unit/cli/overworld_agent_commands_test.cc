@@ -1,11 +1,14 @@
 #include <algorithm>
+#include <array>
 #include <chrono>
+#include <cstdint>
 #include <filesystem>
 #include <fstream>
 #include <iterator>
 #include <memory>
 #include <optional>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include <gtest/gtest.h>
@@ -17,6 +20,7 @@
 #include "cli/handlers/game/overworld_sprite_edit_commands.h"
 #include "core/project.h"
 #include "core/rom_settings.h"
+#include "core/source_artifact_publisher.h"
 #include "oracle_rom_fixture.h"
 #include "rom/rom.h"
 #include "zelda3/game_data.h"
@@ -25,6 +29,33 @@
 
 namespace yaze::cli {
 namespace {
+
+template <size_t N>
+std::string WordFingerprint(const std::array<uint16_t, N>& words) {
+  std::string bytes;
+  bytes.reserve(N * 2);
+  for (const auto word : words) {
+    bytes.push_back(static_cast<char>(word));
+    bytes.push_back(static_cast<char>(word >> 8));
+  }
+  return core::ComputeSourceArtifactSha256(bytes);
+}
+
+std::string ByteFingerprint(const std::vector<uint8_t>& bytes, size_t offset,
+                            size_t count) {
+  return core::ComputeSourceArtifactSha256(
+      {reinterpret_cast<const char*>(bytes.data() + offset), count});
+}
+
+TEST(LyraNativeAssetDescriptionTest, RejectsIncompleteSourceWithoutRom) {
+  core::LyraMapProperties properties;
+  zelda3::LyraNativeMapAssets missing{zelda3::OverworldMap{}, ""};
+  for (const int state : {-1, 0, 3}) {
+    EXPECT_FALSE(
+        zelda3::DescribeLyraNativeMapAssets(properties, state, missing).ok())
+        << "state=" << state;
+  }
+}
 
 TEST(LyraVerifyProjectCommandTest, RequiresLoadedRomAndProjectContext) {
   handlers::LyraVerifyProjectCommandHandler command;
@@ -122,10 +153,169 @@ TEST(LyraVerifyProjectCommandTest,
   ASSERT_TRUE(document.ok()) << document.status();
   auto authoring = document->authoring();
   authoring.maps[0].properties.message_id = 0x42;
+  authoring.maps[0].properties.graphics_sheets[3] = 0;
+  // Keep the static lower half distinct from the animated sheet so the
+  // descriptor cannot label the entire composite slot as animation bytes.
+  authoring.maps[0].properties.graphics_sheets[7] = 0x3E;
+  std::array<uint16_t, 128> background;
+  for (size_t i = 0; i < background.size(); ++i)
+    background[i] = static_cast<uint16_t>((i * 47 + 0x123) & 0x7FFF);
+  authoring.maps[0].properties.background_palette = background;
+  auto native_properties = authoring.maps[0].properties;
+  native_properties.background_palette.reset();
+  std::array<std::array<uint16_t, 256>, 3> expected_palettes;
   for (int state = 0; state < 3; ++state) {
+    const auto native =
+        zelda3::ResolveLyraMapAssets(*source, native_properties, state);
+    ASSERT_TRUE(native.ok()) << native.status();
     const auto assets = zelda3::ResolveLyraMapAssets(
         *source, authoring.maps[0].properties, state);
     ASSERT_TRUE(assets.ok()) << assets.status();
+    ASSERT_EQ(assets->source.current_palette().size(), 256);
+    ASSERT_EQ(native->source.current_palette().size(), 256);
+    for (size_t color = 0; color < 256; ++color) {
+      expected_palettes[state][color] =
+          color < 128 ? background[color]
+                      : native->source.current_palette()[color].snes();
+      EXPECT_EQ(assets->source.current_palette()[color].snes(),
+                expected_palettes[state][color]);
+    }
+    const auto description = zelda3::DescribeLyraNativeMapAssets(
+        authoring.maps[0].properties, state, *assets);
+    ASSERT_TRUE(description.ok()) << description.status();
+    const auto described = nlohmann::json::parse(*description);
+    EXPECT_EQ(described["palette"]["words"],
+              nlohmann::json(expected_palettes[state]));
+    EXPECT_EQ(described["palette"]["uint16le_sha256"],
+              WordFingerprint(expected_palettes[state]));
+    EXPECT_EQ(described["palette"]["background_override_words"],
+              nlohmann::json(background));
+    EXPECT_EQ(described["palette"]["background_override_uint16le_sha256"],
+              WordFingerprint(background));
+    EXPECT_EQ(described["palette"]["runtime_consumer"], "unsupported");
+    EXPECT_EQ(described["effective_sprite_graphics"],
+              assets->source.sprite_graphics(state));
+    EXPECT_EQ(described["effective_sprite_palette"],
+              assets->source.sprite_palette(state));
+    const auto& pixels = assets->source.current_graphics();
+    ASSERT_EQ(pixels.size(), 0x10000);
+    EXPECT_EQ(described["graphics"]["sha256"],
+              ByteFingerprint(pixels, 0, pixels.size()));
+    ASSERT_EQ(described["slots"].size(), 16);
+    for (int slot = 0; slot < 16; ++slot) {
+      const auto& row = described["slots"][slot];
+      const auto sheet = row["sheet_id"].get<uint16_t>();
+      EXPECT_EQ(row["slot"], slot);
+      EXPECT_EQ(sheet, slot == 3 ? 0 : assets->source.static_graphics(slot));
+      EXPECT_EQ(row["loader_sheet_id"], assets->source.static_graphics(slot));
+      EXPECT_EQ(row["decoded_byte_count"], 4096);
+      EXPECT_EQ(row["decoded_format"], "indexed8");
+      EXPECT_EQ(row["decoded_sheet_sha256"],
+                ByteFingerprint(data.graphics_buffer, sheet * 0x1000, 0x1000));
+      EXPECT_EQ(row["resolved_offset"], slot * 0x1000);
+      EXPECT_EQ(row["resolved_byte_count"], 4096);
+      EXPECT_EQ(row["resolved_slot_sha256"],
+                ByteFingerprint(pixels, slot * 0x1000, 0x1000));
+      EXPECT_EQ(row["composite"], slot == 7);
+    }
+    const auto& animation = described["animation"];
+    const auto animated = assets->source.animated_sheet();
+    EXPECT_EQ(animation["sheet_id"], animated);
+    EXPECT_EQ(animation["decoded_sheet_sha256"],
+              ByteFingerprint(data.graphics_buffer, animated * 0x1000, 0x1000));
+    EXPECT_EQ(animation["frame"], 0);
+    EXPECT_EQ(animation["source_offset"], 0);
+    EXPECT_EQ(animation["destination_offset"], 0x7000);
+    EXPECT_EQ(animation["byte_count"], 0x800);
+    EXPECT_EQ(animation["frame0_sha256"],
+              ByteFingerprint(data.graphics_buffer, animated * 0x1000, 0x800));
+    EXPECT_EQ(animation["composite_slot7_sha256"],
+              ByteFingerprint(pixels, 0x7000, 0x1000));
+    EXPECT_EQ(animation["static_lower_sheet_id"], 0x3E);
+    EXPECT_EQ(animation["static_lower_source_offset"], 0x800);
+    EXPECT_EQ(animation["static_lower_destination_offset"], 0x7800);
+    EXPECT_EQ(animation["static_lower_byte_count"], 0x800);
+    EXPECT_EQ(
+        ByteFingerprint(pixels, 0x7800, 0x800),
+        ByteFingerprint(data.graphics_buffer, 0x3E * 0x1000 + 0x800, 0x800));
+    if (state == 0) {
+      auto incomplete = *assets;
+      incomplete.source.mutable_current_graphics()->pop_back();
+      EXPECT_FALSE(zelda3::DescribeLyraNativeMapAssets(
+                       authoring.maps[0].properties, state, incomplete)
+                       .ok());
+      incomplete = *assets;
+      incomplete.source.mutable_current_palette()->set_size(255);
+      EXPECT_FALSE(zelda3::DescribeLyraNativeMapAssets(
+                       authoring.maps[0].properties, state, incomplete)
+                       .ok());
+      auto inconsistent = *assets;
+      (*inconsistent.source.mutable_current_graphics())[0] ^= 1;
+      EXPECT_FALSE(zelda3::DescribeLyraNativeMapAssets(
+                       authoring.maps[0].properties, state, inconsistent)
+                       .ok());
+      inconsistent = *assets;
+      auto* palette = inconsistent.source.mutable_current_palette();
+      (*palette)[0] =
+          gfx::SnesColor(static_cast<uint16_t>((*palette)[0].snes() ^ 1));
+      EXPECT_FALSE(zelda3::DescribeLyraNativeMapAssets(
+                       authoring.maps[0].properties, state, inconsistent)
+                       .ok());
+      inconsistent = *assets;
+      inconsistent.binding.assign(64, '0');
+      EXPECT_FALSE(zelda3::DescribeLyraNativeMapAssets(
+                       authoring.maps[0].properties, state, inconsistent)
+                       .ok());
+      auto wrong_properties = authoring.maps[0].properties;
+      wrong_properties.palette_set ^= 1;
+      EXPECT_FALSE(
+          zelda3::DescribeLyraNativeMapAssets(wrong_properties, state, *assets)
+              .ok());
+      for (const int wrong_state : {-1, 1, 3})
+        EXPECT_FALSE(zelda3::DescribeLyraNativeMapAssets(
+                         authoring.maps[0].properties, wrong_state, *assets)
+                         .ok());
+      {
+        auto& decoded_pixel =
+            data.graphics_buffer
+                [authoring.maps[0].properties.graphics_sheets[0] * 0x1000];
+        const uint8_t original_pixel = decoded_pixel;
+        absl::Cleanup restore_pixel = [&]() {
+          decoded_pixel = original_pixel;
+        };
+        decoded_pixel ^= 1;
+        const auto drifted = zelda3::DescribeLyraNativeMapAssets(
+            authoring.maps[0].properties, state, *assets);
+        EXPECT_TRUE(absl::IsFailedPrecondition(drifted.status()));
+      }
+      {
+        auto* donor = source->mutable_overworld_map(0x3A);
+        ASSERT_NE(donor, nullptr);
+        const uint16_t sheet = authoring.maps[0].properties.graphics_sheets[0];
+        auto begin = data.graphics_buffer.begin() + sheet * 0x1000;
+        std::vector<uint8_t> preview(begin, begin + 0x1000);
+        preview[0] ^= 1;
+        donor->SetGraphicsSheetOverrides({{sheet, std::move(preview)}});
+        absl::Cleanup reset_overrides = [&]() {
+          donor->SetGraphicsSheetOverrides({});
+        };
+        const auto overridden = zelda3::ResolveLyraMapAssets(
+            *source, authoring.maps[0].properties, state);
+        ASSERT_TRUE(overridden.ok()) << overridden.status();
+        EXPECT_NE(overridden->binding, assets->binding);
+        const auto unsafe_description = zelda3::DescribeLyraNativeMapAssets(
+            authoring.maps[0].properties, state, *overridden);
+        EXPECT_TRUE(absl::IsFailedPrecondition(unsafe_description.status()));
+      }
+      // A complete composite raster cannot conceal a missing decoded source.
+      auto decoded = std::move(data.graphics_buffer);
+      absl::Cleanup restore_decoded = [&]() {
+        data.graphics_buffer = std::move(decoded);
+      };
+      EXPECT_FALSE(zelda3::DescribeLyraNativeMapAssets(
+                       authoring.maps[0].properties, state, *assets)
+                       .ok());
+    }
     authoring.maps[0].asset_bindings[state] = assets->binding;
   }
   ASSERT_TRUE(document->SetAuthoring(document->authoring(), authoring).ok());
@@ -178,6 +368,86 @@ TEST(LyraVerifyProjectCommandTest,
   EXPECT_EQ(rom.vector(), before);
   EXPECT_EQ(core::RomSettings::Get().address_overrides().addresses,
             unrelated.addresses);
+
+  handlers::LyraInspectProjectCommandHandler inspection;
+  inspection.SetProjectContext(&project);
+  resources::OutputFormatter inspected_output(
+      resources::OutputFormatter::Format::kJson);
+  inspected_output.BeginObject();
+  const auto inspect_status = inspection.Execute(&rom, args, inspected_output);
+  ASSERT_TRUE(inspect_status.ok()) << inspect_status;
+  inspected_output.EndObject();
+  const auto inspected = nlohmann::json::parse(inspected_output.GetOutput());
+  EXPECT_EQ(inspected["inspection_only"], true);
+  EXPECT_EQ(inspected["asset_binding_mismatches"], 1);
+  EXPECT_TRUE(inspected["project_descriptor_sha256"].is_null());
+  ASSERT_TRUE(inspected["rom_address_overrides"].is_object());
+  EXPECT_FALSE(inspected["rom_address_overrides"].empty());
+  EXPECT_EQ(inspected["rom_address_overrides_sha256"],
+            core::ComputeSourceArtifactSha256(
+                inspected["rom_address_overrides"].dump()));
+  ASSERT_EQ(inspected["map_assets"].size(), 96);
+  for (int map = 0; map < core::LyraTerrainDocument::kMapCount; ++map) {
+    for (int state = 0; state < 3; ++state) {
+      SCOPED_TRACE("map=" + std::to_string(map + 0xA0) +
+                   " state=" + std::to_string(state));
+      const auto& row = inspected["map_assets"][map * 3 + state];
+      EXPECT_EQ(row["map_id"], map + 0xA0);
+      EXPECT_EQ(row["state"], state);
+      EXPECT_EQ(row["stored_binding"], changed.maps[map].asset_bindings[state]);
+      EXPECT_EQ(row["binding_changed"], map == 0 && state == 1);
+      EXPECT_EQ(row["runtime_assignment"], "unassigned");
+      const auto& native = row["native_assets"];
+      EXPECT_EQ(native["schema"], "yaze.lyra-native-resolution.v1");
+      EXPECT_EQ(native["resolution_mode"], "native-only");
+      EXPECT_EQ(native["resolver_seed_map"], 0x3A);
+      EXPECT_EQ(native["state"], state);
+      EXPECT_EQ(native["inspection_only"], true);
+      EXPECT_EQ(native["runtime_assignment"], "unassigned");
+      EXPECT_TRUE(native["custom_catalog_binding"].is_null());
+      EXPECT_EQ(native["custom_transfers"], nlohmann::json::array());
+      EXPECT_EQ(native["native_base_binding"], row["current_binding"]);
+      EXPECT_EQ(row["native_base_binding"], row["current_binding"]);
+      EXPECT_FALSE(native.contains("gameplay_parent"));
+      EXPECT_FALSE(native.contains("footprint"));
+      const auto& properties = native["saved_properties"];
+      EXPECT_EQ(properties["graphics_sheets"],
+                nlohmann::json(changed.maps[map].properties.graphics_sheets));
+      EXPECT_EQ(properties["sprite_graphics"],
+                nlohmann::json::array({-1, -1, -1}));
+      EXPECT_EQ(properties["sprite_palettes"],
+                nlohmann::json::array({-1, -1, -1}));
+      ASSERT_EQ(native["slots"].size(), 16);
+      EXPECT_EQ(native["graphics"]["format"], "indexed8");
+      EXPECT_EQ(native["graphics"]["byte_count"], 65536);
+      EXPECT_EQ(native["palette"]["words"], row["palette_words"]);
+      ASSERT_EQ(row["palette_words"].size(), 256);
+      if (map == 0) {
+        EXPECT_EQ(native["native_base_binding"],
+                  authoring.maps[0].asset_bindings[state]);
+        EXPECT_EQ(native["palette"]["words"],
+                  nlohmann::json(expected_palettes[state]));
+        EXPECT_EQ(native["palette"]["uint16le_sha256"],
+                  WordFingerprint(expected_palettes[state]));
+        EXPECT_EQ(native["palette"]["background_override_words"],
+                  nlohmann::json(background));
+        EXPECT_EQ(native["palette"]["background_override_uint16le_sha256"],
+                  WordFingerprint(background));
+        EXPECT_EQ(native["palette"]["runtime_consumer"], "unsupported");
+      } else {
+        EXPECT_TRUE(native["palette"]["background_override_words"].is_null());
+        EXPECT_TRUE(
+            native["palette"]["background_override_uint16le_sha256"].is_null());
+        EXPECT_EQ(native["palette"]["runtime_consumer"], "unassigned");
+      }
+    }
+  }
+  EXPECT_EQ(rom.vector(), before);
+  EXPECT_EQ(core::RomSettings::Get().address_overrides().addresses,
+            unrelated.addresses);
+  std::ifstream inspected_sidecar(project.lyra_terrain_file);
+  EXPECT_EQ(std::string(std::istreambuf_iterator<char>(inspected_sidecar), {}),
+            document->Serialize());
 
   // LoadGameData's normal expansion must stay disabled on a failing input too.
   auto small_image = before;

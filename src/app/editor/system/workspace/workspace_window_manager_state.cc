@@ -53,8 +53,8 @@ void WorkspaceWindowManager::RegisterSession(size_t session_id) {
       TrackPanelForSession(session_id, global_panel_id, global_panel_id);
     }
     UpdateSessionCount();
-    LOG_INFO("WorkspaceWindowManager", "Registered session %zu (total: %zu)",
-             session_id, session_count_);
+    LOG_DEBUG("WorkspaceWindowManager", "Registered session %zu (total: %zu)",
+              session_id, session_count_);
   }
 }
 
@@ -74,8 +74,8 @@ void WorkspaceWindowManager::UnregisterSession(size_t session_id) {
       }
     }
 
-    LOG_INFO("WorkspaceWindowManager", "Unregistered session %zu (total: %zu)",
-             session_id, session_count_);
+    LOG_DEBUG("WorkspaceWindowManager", "Unregistered session %zu (total: %zu)",
+              session_id, session_count_);
   }
 }
 

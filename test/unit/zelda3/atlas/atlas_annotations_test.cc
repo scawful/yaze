@@ -18,6 +18,7 @@
 #include <nlohmann/json.hpp>
 
 #include "unique_temp_path.h"
+#include "yaze_test_paths.h"
 
 namespace yaze::zelda3::atlas {
 namespace {

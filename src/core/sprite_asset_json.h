@@ -1,5 +1,7 @@
 #ifndef YAZE_CORE_SPRITE_ASSET_JSON_H_
 #define YAZE_CORE_SPRITE_ASSET_JSON_H_
+#include <algorithm>
+#include <limits>
 #include <set>
 #include <stdexcept>
 #include <vector>
@@ -26,6 +28,19 @@ inline nlohmann::json SpriteAssetToJson(const SpriteAssetBinding& asset) {
     result["version"] = 2;
     result["behavior"] = SpriteBehaviorToJson(asset.behavior);
   }
+  if (std::any_of(asset.graphics_sources.begin(), asset.graphics_sources.end(),
+                  [](const auto& source) {
+                    return source.kind != "sheet" || !source.path.empty() ||
+                           source.offset != 0 || source.bpp != 3;
+                  })) {
+    result["version"] = 3;
+    result["graphics_sources"] = nlohmann::json::array();
+    for (const auto& source : asset.graphics_sources)
+      result["graphics_sources"].push_back({{"kind", source.kind},
+                                            {"path", source.path},
+                                            {"offset", source.offset},
+                                            {"bpp", source.bpp}});
+  }
   return result;
 }
 
@@ -37,16 +52,46 @@ inline absl::StatusOr<SpriteAssetBinding> SpriteAssetFromJson(
   try {
     if (!value.is_object() || !value.at("version").is_number_integer())
       return invalid();
-    const bool behavior_version = value.at("version") == 2;
-    if ((!behavior_version && value.at("version") != 1) ||
-        value.size() != (behavior_version ? 10 : 9))
+    const bool graphics_version = value.at("version") == 3;
+    const bool has_behavior = value.contains("behavior");
+    if ((value.at("version") != 1 && value.at("version") != 2 &&
+         !graphics_version) ||
+        (!graphics_version && has_behavior != (value.at("version") == 2)) ||
+        value.size() != 9 + (has_behavior ? 1 : 0) + (graphics_version ? 1 : 0))
       return invalid();
     SpriteAssetBinding asset;
-    if (behavior_version) {
+    if (has_behavior) {
       auto behavior = SpriteBehaviorFromJson(value.at("behavior"));
       if (!behavior.ok())
         return behavior.status();
       asset.behavior = std::move(*behavior);
+    }
+    if (graphics_version) {
+      const auto& sources = value.at("graphics_sources");
+      if (!sources.is_array() || sources.size() != 8)
+        return invalid();
+      for (size_t i = 0; i < 8; ++i) {
+        const auto& json = sources[i];
+        if (!json.is_object() || json.size() != 4 ||
+            !json.at("offset").is_number_integer() || json.at("offset") < 0 ||
+            json.at("offset") > std::numeric_limits<uint32_t>::max() ||
+            !json.at("bpp").is_number_integer() || json.at("bpp") < 2 ||
+            json.at("bpp") > 4)
+          return invalid();
+        auto& source = asset.graphics_sources[i];
+        source.kind = json.at("kind").get<std::string>();
+        source.path = json.at("path").get<std::string>();
+        source.offset = json.at("offset").get<uint32_t>();
+        source.bpp = json.at("bpp").get<int>();
+        if ((source.kind != "sheet" && source.kind != "bin" &&
+             source.kind != "raw_rom") ||
+            source.bpp < 2 || source.bpp > 4 || source.path.size() > 4096 ||
+            source.path.find('\0') != std::string::npos ||
+            (source.kind == "bin" && source.path.empty()) ||
+            (source.kind != "bin" && !source.path.empty()) ||
+            (source.kind == "sheet" && (source.offset || source.bpp != 3)))
+          return invalid();
+      }
     }
     asset.zsm_path = value.at("zsm_path").get<std::string>();
     asset.catalog_key = value.at("catalog_key").get<std::string>();

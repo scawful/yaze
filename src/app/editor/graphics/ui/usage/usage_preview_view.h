@@ -39,6 +39,10 @@ class UsagePreviewView {
     live_rooms_provider_ = std::move(provider);
     InvalidateTables();
   }
+  void SetLiveOverworldProvider(usage_preview::LiveOverworldProvider provider) {
+    live_overworld_provider_ = std::move(provider);
+    InvalidateTables();
+  }
   void Reset() { InvalidateTables(); }
   void Draw();
   // Both the inline view and Source tab use the same cache and renderer.
@@ -89,6 +93,7 @@ class UsagePreviewView {
 
   usage_preview::LiveRoomProvider live_rooms_provider_;
   usage_preview::LiveRoomContexts live_rooms_;
+  usage_preview::LiveOverworldProvider live_overworld_provider_;
   std::map<int, std::array<uint8_t, 16>> fallback_room_blocks_;
   std::map<int, uint64_t> live_room_revisions_;
   uint64_t group_hash_ = 0;
@@ -119,6 +124,8 @@ class UsagePreviewView {
   usage_preview::Tile16UsagePreview tile16_preview_;
   std::vector<int> areas_for_sheet_;
   int area_choice_ = 0;
+  uint64_t live_tile16_hash_ = 0;
+  bool tile16_uses_live_source_ = false;
   int tile_index_ = 0;
   bool follow_selection_ = true;
   std::vector<int> tile16s_;
@@ -131,6 +138,7 @@ class UsagePreviewView {
   uint64_t rendered_source_revision_ = 0;
   uint64_t source_palette_revision_ = 0;
   uint64_t source_hash_ = 0;
+  std::optional<uint64_t> source_model_revision_;
   double source_render_time_ = -1.0;
   bool source_dirty_ = true;
   std::string source_status_;

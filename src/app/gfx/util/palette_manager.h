@@ -241,24 +241,26 @@ class PaletteManager {
 
   /**
    * @brief Get exact, coalesced half-open ROM ranges for modified colors.
+   * Invalid or unbound addresses return an error, never an empty success.
    */
-  std::vector<std::pair<uint32_t, uint32_t>> GetModifiedColorWriteRanges()
-      const;
+  absl::StatusOr<std::vector<std::pair<uint32_t, uint32_t>>>
+  GetModifiedColorWriteRanges() const;
 
   /**
    * @brief Get modified-color ranges for a session without activating it.
    */
-  std::vector<std::pair<uint32_t, uint32_t>> GetModifiedColorWriteRanges(
-      const zelda3::GameData* game_data) const;
+  absl::StatusOr<std::vector<std::pair<uint32_t, uint32_t>>>
+  GetModifiedColorWriteRanges(const zelda3::GameData* game_data) const;
 
   /**
    * @brief Get exact, coalesced half-open ROM ranges for one modified group.
+   * Resolution errors leave the pending changes intact.
    *
    * The active palette session is used. Callers must verify session ownership
    * before using these ranges to authorize a save.
    */
-  std::vector<std::pair<uint32_t, uint32_t>> GetModifiedGroupColorWriteRanges(
-      const std::string& group_name) const;
+  absl::StatusOr<std::vector<std::pair<uint32_t, uint32_t>>>
+  GetModifiedGroupColorWriteRanges(const std::string& group_name) const;
 
   // ========== Persistence ==========
 
@@ -435,6 +437,10 @@ class PaletteManager {
   SessionState* CurrentState();
   const SessionState* CurrentState() const;
   const SessionState* FindState(const zelda3::GameData* game_data) const;
+
+  absl::StatusOr<uint32_t> ResolveColorAddress(
+      const zelda3::GameData* game_data, const std::string& group_name,
+      int palette_index, int color_index) const;
 
   // ========== Member Variables ==========
 

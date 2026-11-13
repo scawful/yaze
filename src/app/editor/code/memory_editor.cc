@@ -17,14 +17,10 @@ absl::Status MemoryEditor::Update() {
     return absl::OkStatus();
   }
 
-  DrawToolbar();
-  ImGui::Separator();
-
   ImGui::Begin("Hex Editor", &active_);
+  DrawToolbar();
   if (ImGui::Button(tr("Compare Rom"))) {
-    auto file_name = util::FileDialogWrapper::ShowOpenFileDialog();
-    PRINT_IF_ERROR(comparison_rom_.LoadFromFile(file_name));
-    show_compare_rom_ = true;
+    LoadComparisonRom(util::FileDialogWrapper::ShowOpenFileDialog());
   }
 
   static uint64_t convert_address = 0;
@@ -58,6 +54,20 @@ absl::Status MemoryEditor::Update() {
   return absl::OkStatus();
 }
 
+bool MemoryEditor::LoadComparisonRom(const std::string& path) {
+  // A cancelled file dialog returns an empty path; keep the current comparison.
+  if (path.empty()) {
+    return false;
+  }
+  const absl::Status status = comparison_rom_.LoadFromFile(path);
+  if (!status.ok()) {
+    PRINT_IF_ERROR(status);
+    return false;
+  }
+  show_compare_rom_ = true;
+  return true;
+}
+
 void MemoryEditor::DrawToolbar() {
   // Gentle compaction only; preserve theme ItemSpacing.x for SameLine() gaps.
   {
@@ -78,11 +88,13 @@ void MemoryEditor::DrawToolbar() {
     }
 
     ImGui::SameLine();
-    if (ImGui::Button(ICON_MD_SEARCH " Search")) {
-      ImGui::OpenPopup("SearchPattern");
-    }
-    if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip(tr("Search for hex pattern"));
+    ImGui::BeginDisabled();
+    ImGui::Button(ICON_MD_SEARCH " Search");
+    ImGui::EndDisabled();
+    if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
+      ImGui::SetTooltip(
+          tr("Hex pattern search is not available yet. Use Jump to go to an "
+             "address."));
     }
 
     ImGui::SameLine();
@@ -107,7 +119,6 @@ void MemoryEditor::DrawToolbar() {
   ImGui::Separator();
 
   DrawJumpToAddressPopup();
-  DrawSearchPopup();
   DrawBookmarksPopup();
 }
 
@@ -146,51 +157,6 @@ void MemoryEditor::DrawJumpToAddressPopup() {
       }
       ImGui::CloseCurrentPopup();
     }
-    ImGui::SameLine();
-    if (ImGui::Button(ICON_MD_CANCEL " Cancel", ImVec2(120, 0))) {
-      ImGui::CloseCurrentPopup();
-    }
-    ImGui::EndPopup();
-  }
-}
-
-void MemoryEditor::DrawSearchPopup() {
-  if (ImGui::BeginPopupModal("SearchPattern", nullptr,
-                             ImGuiWindowFlags_AlwaysAutoResize)) {
-    ImGui::TextColored(gui::GetSuccessColor(),
-                       ICON_MD_SEARCH " Search Hex Pattern");
-    ImGui::Separator();
-    ImGui::Spacing();
-
-    ImGui::SetNextItemWidth(300);
-    ImGui::InputText("##search_pattern", search_pattern_,
-                     IM_ARRAYSIZE(search_pattern_),
-                     ImGuiInputTextFlags_EnterReturnsTrue);
-    ImGui::TextDisabled(tr("Use ?? for wildcard (e.g. FF 00 ?? 12)"));
-    ImGui::TextDisabled(tr("Search is not implemented yet."));
-    ImGui::Spacing();
-
-    // Quick preset patterns
-    ImGui::Text(ICON_MD_LIST " Quick Patterns:");
-    if (ImGui::SmallButton(tr("LDA"))) {
-      snprintf(search_pattern_, sizeof(search_pattern_), "A9 ??");
-    }
-    ImGui::SameLine();
-    if (ImGui::SmallButton(tr("STA"))) {
-      snprintf(search_pattern_, sizeof(search_pattern_), "8D ?? ??");
-    }
-    ImGui::SameLine();
-    if (ImGui::SmallButton(tr("JSR"))) {
-      snprintf(search_pattern_, sizeof(search_pattern_), "20 ?? ??");
-    }
-
-    ImGui::Spacing();
-    ImGui::Separator();
-    ImGui::Spacing();
-
-    ImGui::BeginDisabled();
-    ImGui::Button(ICON_MD_SEARCH " Search", ImVec2(120, 0));
-    ImGui::EndDisabled();
     ImGui::SameLine();
     if (ImGui::Button(ICON_MD_CANCEL " Cancel", ImVec2(120, 0))) {
       ImGui::CloseCurrentPopup();

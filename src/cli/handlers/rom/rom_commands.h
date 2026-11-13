@@ -1,11 +1,27 @@
 #ifndef YAZE_SRC_CLI_HANDLERS_ROM_COMMANDS_H_
 #define YAZE_SRC_CLI_HANDLERS_ROM_COMMANDS_H_
 
+#include <cstdint>
+#include <vector>
+
 #include "cli/service/resources/command_handler.h"
 
 namespace yaze {
 namespace cli {
 namespace handlers {
+
+/**
+ * @brief Shared body of rom-write and hex-write.
+ *
+ * Dry-run unless --write: reports the bytes before and after without touching
+ * the file. --write saves with a required backup and verifies the reloaded
+ * file; it refuses ROMs inside an Oracle of Secrets checkout unless
+ * --allow-project-rom is passed.
+ */
+absl::Status ApplyRawRomWrite(Rom* rom, uint32_t address,
+                              const std::vector<uint8_t>& bytes,
+                              const resources::ArgumentParser& parser,
+                              resources::OutputFormatter& formatter);
 
 /**
  * @brief Command handler for reading raw ROM bytes
@@ -36,10 +52,11 @@ class RomWriteCommandHandler : public resources::CommandHandler {
  public:
   std::string GetName() const override { return "rom-write"; }
   std::string GetDescription() const {
-    return "Write raw bytes to ROM at an address";
+    return "Write raw bytes to ROM at an address (dry-run unless --write)";
   }
   std::string GetUsage() const override {
-    return "rom-write --address <hex> --data <hex_string>";
+    return "rom-write --address <hex> --data <hex_string> [--write] "
+           "[--allow-project-rom]";
   }
 
   absl::Status ValidateArgs(const resources::ArgumentParser& parser) override {
@@ -153,7 +170,9 @@ class RomResolveAddressCommandHandler : public resources::CommandHandler {
 class RomFindSymbolCommandHandler : public resources::CommandHandler {
  public:
   std::string GetName() const override { return "rom-find-symbol"; }
-  std::string GetDescription() const { return "Find a symbol by name or pattern"; }
+  std::string GetDescription() const {
+    return "Find a symbol by name or pattern";
+  }
   std::string GetUsage() const override {
     return "rom-find-symbol --name <string>";
   }

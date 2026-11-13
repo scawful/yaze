@@ -474,7 +474,7 @@ bool PaletteColorButton(const char* id, const gfx::SnesColor& color,
         GetAnimator().Animate(panel_key, anim_key + "_sel", 1.0f, 8.0f);
     ImU32 border_color =
         IM_COL32(255, 255, 255, static_cast<int>(255 * select_t));
-    draw_list->AddRect(rect_min, rect_max, border_color, 0.0f, 0, 2.0f);
+    draw_list->AddRect(rect_min, rect_max, border_color, 0.0f, 2.0f);
   }
 
   // Modified indicator (small colored dot in corner)
@@ -507,9 +507,8 @@ void PanelHeader(const char* title, const char* icon, bool* p_open,
       ImGui::GetColorU32(ConvertColorToImVec4(theme.header)));
 
   // Bottom border
-  draw_list->AddLine(
-      ImVec2(header_min.x, header_max.y), ImVec2(header_max.x, header_max.y),
-      ImGui::GetColorU32(ConvertColorToImVec4(theme.border)), 1.0f);
+  draw_list->AddLineH(header_min.x, header_max.x, header_max.y,
+                      ImGui::GetColorU32(ConvertColorToImVec4(theme.border)));
 
   // Content positioning
   ImGui::SetCursorPosX(padding);
@@ -554,11 +553,11 @@ bool BeginThemedTabBar(const char* id, ImGuiTabBarFlags flags) {
   ImGui::PushStyleColor(ImGuiCol_Tab, ConvertColorToImVec4(theme.secondary));
   ImGui::PushStyleColor(ImGuiCol_TabHovered,
                         ConvertColorToImVec4(theme.accent));
-  ImGui::PushStyleColor(ImGuiCol_TabActive,
+  ImGui::PushStyleColor(ImGuiCol_TabSelected,
                         ConvertColorToImVec4(theme.primary));
-  ImGui::PushStyleColor(ImGuiCol_TabUnfocused,
+  ImGui::PushStyleColor(ImGuiCol_TabDimmed,
                         ConvertColorToImVec4(theme.secondary));
-  ImGui::PushStyleColor(ImGuiCol_TabUnfocusedActive,
+  ImGui::PushStyleColor(ImGuiCol_TabDimmedSelected,
                         ConvertColorToImVec4(theme.primary));
 
   // Thicker tabs for premium feel

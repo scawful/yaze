@@ -17,6 +17,10 @@ namespace util {
  */
 class PlatformPaths {
  public:
+  // Resolves the running native executable, independent of the working
+  // directory or PATH. Used to bind file receipts to the actual producer.
+  static absl::StatusOr<std::filesystem::path> GetExecutablePath();
+
   /**
    * @brief Get the user's home directory in a cross-platform way
    *
@@ -162,7 +166,9 @@ class PlatformPaths {
    * 5. Executable-relative usr/share/yaze/assets/ (Linux packages)
    * 6. macOS app Resources/assets/ or sibling assets/
    * 7. ~/.yaze/assets/ + relative_path (user-installed assets)
-   * 8. /usr/local/share/yaze/assets/ + relative_path (system-wide on Unix)
+   * 8. /Applications/yaze.app and ~/Applications/yaze.app Resources/assets/
+   *    (macOS; lets a z3ed on PATH use the installed app's assets)
+   * 9. /usr/local/share/yaze/assets/ + relative_path (system-wide on Unix)
    *
    * @param relative_path Path relative to assets directory (e.g.,
    * "agent/prompt_catalogue.yaml")

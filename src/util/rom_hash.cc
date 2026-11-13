@@ -1,9 +1,10 @@
 #include "util/rom_hash.h"
 
+#include <algorithm>
+#include <array>
 #include <cstring>
 #include <fstream>
 #include <ios>
-#include <vector>
 
 #include "absl/strings/ascii.h"
 #include "absl/strings/str_format.h"
@@ -229,6 +230,17 @@ void Sha1Final(Sha1State& state, uint8_t digest[20]) {
   }
 }
 
+std::string Sha1Hex(Sha1State& state) {
+  uint8_t digest[20];
+  Sha1Final(state, digest);
+  std::string result;
+  result.reserve(40);
+  for (int i = 0; i < 20; ++i) {
+    result += absl::StrFormat("%02x", digest[i]);
+  }
+  return result;
+}
+
 }  // namespace
 
 std::string ComputeSha1Hex(const uint8_t* data, size_t size) {
@@ -238,14 +250,7 @@ std::string ComputeSha1Hex(const uint8_t* data, size_t size) {
   Sha1State state;
   Sha1Init(state);
   Sha1Update(state, data, size);
-  uint8_t digest[20];
-  Sha1Final(state, digest);
-  std::string result;
-  result.reserve(40);
-  for (int i = 0; i < 20; ++i) {
-    result += absl::StrFormat("%02x", digest[i]);
-  }
-  return result;
+  return Sha1Hex(state);
 }
 
 std::string ComputeFileSha1Hex(const std::string& path) {
@@ -258,15 +263,25 @@ std::string ComputeFileSha1Hex(const std::string& path) {
     return {};
   }
   file.seekg(0, std::ios::beg);
-  std::vector<uint8_t> buffer(static_cast<size_t>(size));
-  if (size > 0) {
-    file.read(reinterpret_cast<char*>(buffer.data()), size);
-  }
-  if (!file && !file.eof()) {
+  if (!file) {
     return {};
   }
-  const uint8_t* data = buffer.empty() ? nullptr : buffer.data();
-  return ComputeSha1Hex(data, buffer.size());
+
+  Sha1State state;
+  Sha1Init(state);
+  std::array<uint8_t, 64 * 1024> buffer;
+  auto remaining = static_cast<size_t>(size);
+  while (remaining > 0) {
+    const auto count = std::min(remaining, buffer.size());
+    file.read(reinterpret_cast<char*>(buffer.data()),
+              static_cast<std::streamsize>(count));
+    if (!file || file.gcount() != static_cast<std::streamsize>(count)) {
+      return {};
+    }
+    Sha1Update(state, buffer.data(), count);
+    remaining -= count;
+  }
+  return Sha1Hex(state);
 }
 
 }  // namespace yaze::util

@@ -83,6 +83,7 @@ class GameEntity {
 };
 
 constexpr int kNumOverworldMaps = 160;
+constexpr int kExpandedMapCount = 192;
 
 // 1 byte, not 0 if enabled
 // vanilla, v2, v3
@@ -158,7 +159,7 @@ constexpr const char* kEntranceNames[] = {
     "Kakariko Pub South",
     "Kakariko Pub North",
     "Kakariko Inn",
-    "Sahasrahlah's Disco Infernum",
+    "Sahasrahla's Hideout",
     "Kakariko's Lame Shop",
     "Village of Outcasts Chest Game",
     "Village of Outcasts Orphanage",

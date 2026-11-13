@@ -68,24 +68,24 @@ constexpr int OWWhirlpoolPosition = 0x16CF8;     //    JP = ;016F94
  */
 class OverworldExit : public GameEntity {
  public:
-  uint16_t y_scroll_;
-  uint16_t x_scroll_;
-  uint16_t y_player_;  // Player spawn Y (0-4088 range, ZScream: PlayerY)
-  uint16_t x_player_;  // Player spawn X (0-4088 range, ZScream: PlayerX)
-  uint16_t y_camera_;  // Camera Y position
-  uint16_t x_camera_;  // Camera X position
-  uint8_t scroll_mod_y_;
-  uint8_t scroll_mod_x_;
-  uint16_t door_type_1_;
-  uint16_t door_type_2_;
-  uint16_t room_id_;  // ZScream: RoomID
-  uint16_t map_pos_;  // VRAM location (ZScream: VRAMLocation)
+  uint16_t y_scroll_ = 0;
+  uint16_t x_scroll_ = 0;
+  uint16_t y_player_ = 0;  // Player spawn Y (0-4088 range, ZScream: PlayerY)
+  uint16_t x_player_ = 0;  // Player spawn X (0-4088 range, ZScream: PlayerX)
+  uint16_t y_camera_ = 0;  // Camera Y position
+  uint16_t x_camera_ = 0;  // Camera X position
+  uint8_t scroll_mod_y_ = 0;
+  uint8_t scroll_mod_x_ = 0;
+  uint16_t door_type_1_ = 0;
+  uint16_t door_type_2_ = 0;
+  uint16_t room_id_ = 0;  // ZScream: RoomID
+  uint16_t map_pos_ = 0;  // VRAM location (ZScream: VRAMLocation)
   bool is_hole_ = false;
   bool deleted_ = false;
   bool is_automatic_ =
       true;  // FIX: Default to true (matches ZScream ExitOW.cs:101)
 
-  OverworldExit() = default;
+  OverworldExit() { entity_type_ = kExit; }
 
   /**
    * @brief Constructor for loading exits from ROM

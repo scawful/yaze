@@ -45,38 +45,6 @@ absl::Status WorkspaceManager::LoadWorkspaceLayout(const std::string& name) {
   return absl::OkStatus();
 }
 
-absl::Status WorkspaceManager::ResetWorkspaceLayout() {
-  if (ImGui::GetCurrentContext()) {
-    static const char kEmptyIni[] = "\n";
-    ImGui::LoadIniSettingsFromMemory(kEmptyIni, sizeof(kEmptyIni) - 1);
-  }
-
-  if (auto ini_path = util::PlatformPaths::GetImGuiIniPath(); ini_path.ok()) {
-    std::error_code ec;
-    std::filesystem::remove(*ini_path, ec);
-    if (ec) {
-      LOG_WARN("WorkspaceManager", "Failed to remove ImGui ini: %s",
-               ec.message().c_str());
-    }
-  }
-
-  if (layout_manager_) {
-    layout_manager_->ClearInitializationFlags();
-
-    EditorType editor_type = EditorType::kSettings;
-    if (window_manager_) {
-      editor_type = EditorRegistry::GetEditorTypeFromCategory(
-          window_manager_->GetActiveCategory());
-    }
-    layout_manager_->ResetToDefaultLayout(editor_type);
-    layout_manager_->RequestRebuild();
-  }
-  if (toast_manager_) {
-    toast_manager_->Show("Layout reset to default", ToastType::kInfo);
-  }
-  return absl::OkStatus();
-}
-
 void WorkspaceManager::SaveWorkspacePreset(const std::string& name) {
   if (name.empty())
     return;
@@ -227,10 +195,11 @@ void WorkspaceManager::HideAllWindows() {
 void WorkspaceManager::MaximizeCurrentWindow() {
   // Use ImGui internal API to maximize current window
   ImGuiWindow* window = ImGui::GetCurrentWindowRead();
-  if (window && window->DockNode) {
-    ImGuiID central_node_id =
-        ImGui::DockBuilderGetCentralNode(ImGui::GetID("MainDockSpace"))->ID;
-    ImGui::DockBuilderDockWindow(window->Name, central_node_id);
+  if (window && window->DockNode && layout_manager_) {
+    if (ImGuiDockNode* central = ImGui::DockBuilderGetCentralNode(
+            layout_manager_->GetMainDockspaceId())) {
+      ImGui::DockBuilderDockWindow(window->Name, central->ID);
+    }
   }
   if (toast_manager_) {
     toast_manager_->Show("Window maximized", ToastType::kInfo);
@@ -332,49 +301,6 @@ void WorkspaceManager::CloseCurrentWindow() {
   ImGuiWindow* window = ImGui::GetCurrentWindowRead();
   if (window) {
     window->Hidden = true;
-  }
-}
-
-// Command execution for WhichKey integration
-void WorkspaceManager::ExecuteWorkspaceCommand(const std::string& command_id) {
-  // Window commands (Space + w)
-  if (command_id == "w.s") {
-    ShowAllWindows();
-  } else if (command_id == "w.h") {
-    HideAllWindows();
-  } else if (command_id == "w.m") {
-    MaximizeCurrentWindow();
-  } else if (command_id == "w.r") {
-    RestoreAllWindows();
-  } else if (command_id == "w.c") {
-    CloseCurrentWindow();
-  } else if (command_id == "w.f") {
-    CloseAllFloatingWindows();
-  } else if (command_id == "w.v") {
-    SplitWindowVertical();
-  } else if (command_id == "w.H") {
-    SplitWindowHorizontal();
-  }
-
-  // Layout commands (Space + l)
-  else if (command_id == "l.s") {
-    SaveWorkspaceLayout();
-  } else if (command_id == "l.l") {
-    LoadWorkspaceLayout();
-  } else if (command_id == "l.r") {
-    ResetWorkspaceLayout();
-  } else if (command_id == "l.d") {
-    LoadDeveloperLayout();
-  } else if (command_id == "l.g") {
-    LoadDesignerLayout();
-  } else if (command_id == "l.m") {
-    LoadModderLayout();
-  }
-
-  // Unknown command
-  else if (toast_manager_) {
-    toast_manager_->Show(absl::StrFormat("Unknown command: %s", command_id),
-                         ToastType::kWarning);
   }
 }
 

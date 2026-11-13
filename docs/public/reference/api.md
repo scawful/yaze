@@ -26,8 +26,9 @@ Start the server:
 ```
 
 Notes:
-- The HTTP server listens on all interfaces; use firewalls or SSH tunnels if you need it private.
-- `--http-host` controls the host shown in z3ed output (useful for clients).
+- `z3ed` binds `--http-host`, which defaults to `localhost`, so only this machine can connect. Pass another address, such as `--http-host=0.0.0.0`, to accept other machines; z3ed prints a warning when it does.
+- `z3ed` answers `POST /api/v1/command/execute` with `403` unless started with `--http-allow-commands`. That endpoint runs any z3ed command, including commands that write files.
+- The desktop app listens on all interfaces unless editor control is enabled; use firewalls or SSH tunnels if you need it private.
 - All endpoints return JSON and include CORS headers (except `/api/v1/symbols`, which returns plain text by default). Use `OPTIONS` for a `204` preflight response with `Access-Control-Allow-*` headers.
 
 ### Smoke Testing

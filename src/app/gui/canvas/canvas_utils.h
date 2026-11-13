@@ -28,6 +28,8 @@ struct CanvasConfig {
   bool enable_custom_labels = false;
   bool enable_context_menu = true;
   bool show_builtin_context_menu = true;  // Show built-in canvas debug items
+  bool enable_zoom_to_fit = true;
+  bool enable_center_view = true;
   bool is_draggable = false;
   bool auto_resize = false;
   bool clamp_rect_to_local_maps =

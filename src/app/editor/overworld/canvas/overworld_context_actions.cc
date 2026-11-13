@@ -29,17 +29,23 @@ bool OverworldCanvasRenderer::PrepareContextMenu(
   }
   auto target = ResolveOverworldContextTarget(
       editor_->current_world_, editor_->game_state_, screen_position,
-      canvas.zero_point(), canvas.scrolling(), canvas.global_scale());
+      canvas.zero_point(), canvas.scrolling(), canvas.global_scale(),
+      editor_->DisplayedMapCount());
   if (!target) {
     return false;
   }
   const auto* map = editor_->overworld_.overworld_map(target->map_id);
   if (!map) {
-    return false;
+    if (editor_->IsProjectTerrainMap(target->map_id)) {
+      target->parent_map_id = target->map_id;
+    } else {
+      return false;
+    }
+  } else {
+    target->parent_map_id =
+        map->parent() == 0xFF ? target->map_id : map->parent();
   }
-  target->parent_map_id =
-      map->parent() == 0xFF ? target->map_id : map->parent();
-  if (!target->valid()) {
+  if (!target->valid(editor_->DisplayedMapCount())) {
     return false;
   }
   const auto* tiles = editor_->overworld_.mutable_map_tiles();
@@ -48,8 +54,14 @@ bool OverworldCanvasRenderer::PrepareContextMenu(
                                                  : tiles->special_world;
   const int x = static_cast<int>(target->world_position.x) / 16;
   const int y = static_cast<int>(target->world_position.y) / 16;
-  if (x < static_cast<int>(world_tiles.size()) &&
-      y < static_cast<int>(world_tiles[x].size())) {
+  if (editor_->IsProjectTerrainMap(target->map_id) &&
+      editor_->lyra_canvas_.loaded()) {
+    auto project_tile = editor_->lyra_canvas_.document()->tile(x, y - 128);
+    if (project_tile.ok()) {
+      target->tile16_id = *project_tile;
+    }
+  } else if (x < static_cast<int>(world_tiles.size()) &&
+             y < static_cast<int>(world_tiles[x].size())) {
     target->tile16_id = world_tiles[x][y];
   }
   editor_->map_properties_system_->SetupCanvasContextMenu(
@@ -124,6 +136,18 @@ void OverworldEditor::DrawItemInsertPopup() {
     item_insert_popup_requested_ = false;
   }
   if (!ImGui::BeginPopup("Insert Item")) {
+    return;
+  }
+  if (current_map_ >= 0xA0 && current_map_ < 0xC0) {
+    ImGui::TextColored(ImVec4(1.0f, 0.4f, 0.4f, 1.0f),
+                       "Item Placement Unavailable ($%02X)", current_map_);
+    ImGui::TextWrapped(
+        "Persistent event storage (SRAM $7EF000-$7EF4FF) is not yet allocated "
+        "for maps $A0-$BF.");
+    if (ImGui::Button("Close")) {
+      ImGui::CloseCurrentPopup();
+    }
+    ImGui::EndPopup();
     return;
   }
   ImGui::TextUnformatted(tr("Choose an item"));

@@ -180,7 +180,7 @@ void DrawProposalShape(ImDrawList* draw_list, const ProposalShape& shape,
       const ImVec2 p0 = to_screen(r.x0, r.y0);
       const ImVec2 p1 = to_screen(r.x1, r.y1);
       draw_list->AddRectFilled(p0, p1, fill);
-      draw_list->AddRect(p0, p1, stroke, 0.0f, 0, 2.0f);
+      draw_list->AddRect(p0, p1, stroke, 0.0f, 2.0f);
       DrawOutlinedText(draw_list, ImVec2(p0.x + 3, p0.y + 2), text,
                        shape.label);
       break;
@@ -195,7 +195,7 @@ void DrawProposalShape(ImDrawList* draw_list, const ProposalShape& shape,
       }
       const float thickness = std::max(2.0f, 3.0f * scale);
       draw_list->AddPolyline(points.data(), static_cast<int>(points.size()),
-                             stroke, ImDrawFlags_None, thickness);
+                             stroke, thickness);
       // Arrowhead on the last segment shows travel direction.
       const ImVec2 a = points[points.size() - 2];
       const ImVec2 b = points.back();

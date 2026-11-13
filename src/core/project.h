@@ -276,13 +276,12 @@ RomRole ParseRomRole(absl::string_view value);
 std::string RomWritePolicyToString(RomWritePolicy policy);
 RomWritePolicy ParseRomWritePolicy(absl::string_view value);
 
-#ifndef __EMSCRIPTEN__
-// Atomically writes project descriptor contents. When replace_existing is
-// false, a target created after preflight is rejected without mutation.
+// Native files use atomic replacement. Browser files use synchronous VFS
+// replacement or exclusive creation. When replace_existing is false, an
+// existing destination is rejected without mutation.
 absl::Status WriteProjectFileAtomically(absl::string_view target_path,
                                         absl::string_view contents,
                                         bool replace_existing);
-#endif
 
 /**
  * @struct YazeProject
@@ -341,6 +340,16 @@ struct YazeProject {
 
   // Optional editable Lyra terrain document, independent of ROM map storage.
   std::string lyra_terrain_file;
+
+  // Optional producer request; saving does not refresh its source bindings.
+  std::string lyra_build_request_file;
+
+  // Optional build-transfer control references. Save preserves their paths,
+  // but does not create, copy, or refresh their contents. The canonical Save
+  // receipt remains adjacent to the descriptor, even with a legacy reference.
+  std::string native_save_producer_file;
+  std::string native_save_transfer_proof_file;
+  std::string native_save_receipt_file;
 
   // Optional read-only palette names, contextual sprite uses and provenance.
   std::string palette_catalog_file;
@@ -447,6 +456,18 @@ struct YazeProject {
   // draft before it replaces the active descriptor on disk.
   absl::Status LoadFromString(const std::string& content,
                               const std::string& project_path);
+  // Checks the persisted source/build settings against this live context.
+  // UI layout, timestamps and recent-file history do not qualify build inputs.
+  absl::Status ValidateSavedSourceBindings(const std::string& content) const;
+  // Returns no selection when lyra_build_request_file is empty. Native-save
+  // producer/proof references alone describe capability, not expanded admission.
+  // Expanded claims require the existing completed build and its current
+  // hash-bound Save/transfer evidence. Failure must not use a manifest fallback.
+  // This does not compile, grant allocation, or create completion evidence.
+  absl::StatusOr<std::optional<std::string>> ResolveExpandedBuildRunTarget(
+      const std::string& editing_source_path) const;
+  // Serializes without writing, for coordinated descriptor/sidecar publication.
+  absl::StatusOr<std::string> SerializeToString() const;
   absl::Status Save();
   // Create a new descriptor without replacing a file that appeared after the
   // caller's preflight check.
@@ -525,7 +546,6 @@ struct YazeProject {
   std::string GetZ3dkArtifactPath(absl::string_view artifact_name) const;
 
  private:
-  absl::StatusOr<std::string> SerializeToString() const;
   absl::Status ParseFromString(const std::string& content);
   absl::Status LoadFromYazeFormat(const std::string& project_path);
   absl::Status SaveToYazeFormat(bool replace_existing = true);

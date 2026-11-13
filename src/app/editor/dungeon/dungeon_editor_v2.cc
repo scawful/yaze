@@ -27,6 +27,7 @@
 #include "app/editor/agent/agent_ui_theme.h"
 #include "app/editor/dungeon/dungeon_canvas_viewer.h"
 #include "app/editor/dungeon/dungeon_room_store.h"
+#include "app/editor/dungeon/dungeon_room_transfer.h"
 #include "app/editor/dungeon/inspectors/door_editor_content.h"
 #include "app/editor/dungeon/inspectors/dungeon_room_transfer_editor.h"
 #include "app/editor/dungeon/inspectors/palette_editor_content.h"
@@ -115,6 +116,19 @@ WindowPresentationPolicy WorkbenchTool(std::string capability = std::string()) {
 }  // namespace
 
 void DungeonEditorV2::SetDependencies(const EditorDependencies& deps) {
+  if (minecart_track_editor_panel_)
+    minecart_track_editor_panel_->CancelNodePlacement();
+  room_viewers_.ForEach([](int, std::unique_ptr<DungeonCanvasViewer>& viewer) {
+    if (viewer)
+      viewer->CancelMinecartGesture();
+  });
+  for (auto* viewer :
+       {workbench_viewer_.get(), workbench_compare_viewer_.get()}) {
+    if (viewer)
+      viewer->CancelMinecartGesture();
+  }
+  minecart_collision_ownership_.clear();
+  ++minecart_collision_generation_;
   Editor::SetDependencies(deps);
   room_selector_.SetProject(deps.project);
   if (entrance_navigator_panel_)
@@ -140,6 +154,7 @@ void DungeonEditorV2::ConfigureMinecartProjectCallbacks() {
 
   auto* editor_manager = static_cast<EditorManager*>(dependencies_.custom_data);
   const size_t session_id = dependencies_.session_id;
+  minecart_track_editor_panel_->SetActiveRoom(current_room_id_);
   minecart_track_editor_panel_->SetTrackEditCallback(
       [this, editor_manager, session_id](const MinecartTrack& before,
                                          const MinecartTrack& after,
@@ -154,6 +169,18 @@ void DungeonEditorV2::ConfigureMinecartProjectCallbacks() {
     return object_selector_panel_ &&
            object_selector_panel_->DrawMinecartPalette();
   });
+  minecart_track_editor_panel_->SetNodePlacementCallback(
+      [this, editor_manager, session_id](
+          int room, int x, int y,
+          const MinecartNodeBrush& brush) -> absl::Status {
+        if (editor_manager &&
+            !editor_manager->IsCurrentProjectContextOwnedBySession(
+                session_id)) {
+          return absl::FailedPreconditionError(
+              "Activate this dungeon project before placing track nodes");
+        }
+        return PlaceMinecartNode(room, x, y, brush);
+      });
   minecart_track_editor_panel_->SetCollisionStampCallback(
       [this, editor_manager, session_id](
           int room, const zelda3::CustomCollisionMap& expected,
@@ -467,6 +494,9 @@ absl::Status DungeonEditorV2::RefreshRomBackedState() {
   if (object_tile_editor_panel_) {
     object_tile_editor_panel_->Close();
   }
+  if (room_matrix_panel_) {
+    room_matrix_panel_->InvalidatePreviewCache();
+  }
   auto prepare_viewer = [this](DungeonCanvasViewer* viewer, int room_id) {
     if (viewer) {
       viewer->RefreshRomBackedState(rom_, game_data_, &rooms_, room_id);
@@ -495,6 +525,8 @@ absl::Status DungeonEditorV2::RefreshRomBackedState() {
   undo_manager_.Clear();
   save_transaction_snapshot_.reset();
   pending_undo_ = {};
+  minecart_collision_ownership_.clear();
+  ++minecart_collision_generation_;
   has_pending_undo_ = false;
   pending_collision_undo_ = {};
   pending_water_fill_undo_ = {};
@@ -984,13 +1016,6 @@ void DungeonEditorV2::Initialize() {
         });
     workbench_panel_->SetOpenKeyboardShortcutsCallback(
         [window_manager]() { window_manager->TriggerShowShortcuts(); });
-    workbench_panel_->SetOnInspectorSideChanged([this](bool on_left) {
-      if (dependencies_.user_settings) {
-        dependencies_.user_settings->SetDungeonInspectorSide(on_left ? "left"
-                                                                     : "right");
-        dependencies_.user_settings->Save().IgnoreError();
-      }
-    });
     workbench_panel_->SetPitDamageTableProvider(
         [this]() {
           return game_data_ ? &game_data_->pit_damage_table : nullptr;
@@ -1025,8 +1050,9 @@ void DungeonEditorV2::Initialize() {
         });
   }
   if (room_matrix_panel_) {
-    room_matrix_panel_->SetRenderContextCallback(
-        [this](int room_id) { ApplyEntranceRenderContext(room_id); });
+    room_matrix_panel_->SetPreviewEntranceBlocksetResolver([this](int room_id) {
+      return ResolveSelectedEntranceBlocksetForRoom(room_id);
+    });
   }
 
   // Note: RoomGraphicsContent and PaletteEditorContent are registered
@@ -1485,13 +1511,6 @@ absl::Status DungeonEditorV2::Update() {
   ProcessPendingWorkflowMode();
   ProcessPendingStandaloneToolWindow();
   ExpireStaleRoomCanvasDeleteShortcut();
-
-  // Mirror the workbench inspector to the LEFT when user_settings says so.
-  // Persisted across sessions via UserSettings::dungeon_inspector_side.
-  if (workbench_panel_ && dependencies_.user_settings) {
-    workbench_panel_->SetInspectorOnLeft(
-        dependencies_.user_settings->GetDungeonInspectorSide() == "left");
-  }
 
   const auto& theme = AgentUI::GetTheme();
   if (room_window_class_.ClassId == 0) {
@@ -2317,6 +2336,12 @@ void DungeonEditorV2::add_room(int room_id) {
   OnRoomSelected(room_id);
 }
 
+void DungeonEditorV2::OpenRegularEntrance(int entrance_id) {
+  if (entrance_id < 0 || entrance_id >= zelda3::kNumRegularDungeonEntrances)
+    return;
+  OnEntranceSelected(zelda3::kNumDungeonSpawnPoints + entrance_id);
+}
+
 void DungeonEditorV2::FocusRoom(int room_id) {
   auto it = room_cards_.find(room_id);
   if (it != room_cards_.end()) {
@@ -2507,7 +2532,8 @@ void DungeonEditorV2::OpenGraphicsEditorForObject(
       live_object = &objects[*placed_index];
     }
     ApplyEntranceRenderContext(room_id);
-    live_room->MarkGraphicsDirty();
+    // Prepare resolves changed assignments and committed sheet revisions. A
+    // read-only source check must not invalidate an unchanged staged preview.
     live_room->PrepareForRender();
     auto refreshed =
         MakeDungeonGraphicsEditContext(*live_room, *live_object, owner);
@@ -2517,6 +2543,7 @@ void DungeonEditorV2::OpenGraphicsEditorForObject(
     return absl::OkStatus();
   };
   context->resolve_live_source = resolve_live_source;
+  ConfigureStagedGraphicsPreview(*context, room_id, resolve_live_source);
   // Display refresh retains its earlier captured-source behavior. The strict
   // live resolver runs only at the palette/pixel mutation boundary.
   context->refresh_palettes = [this, room_id, object, owner = game_data_](
@@ -3086,6 +3113,9 @@ DungeonCanvasViewer* DungeonEditorV2::GetWorkbenchCompareViewer(int room_id) {
 }
 
 void DungeonEditorV2::SyncPanelsToRoom(int room_id) {
+  if (minecart_track_editor_panel_) {
+    minecart_track_editor_panel_->SetActiveRoom(room_id);
+  }
   // Update object editor card with current viewer
   if (object_selector_panel_) {
     object_selector_panel_->SetCanvasViewerProvider(

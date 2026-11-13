@@ -142,7 +142,9 @@ absl::StatusOr<zelda3::SheetPalette> ResolvePalette(
     options.expand_rom = false;
     RETURN_IF_ERROR(zelda3::LoadGameData(rom, data, options));
     return background ? zelda3::RoomBackgroundSheetPalette(rom, data, room, row)
-                      : zelda3::RoomSpriteSheetPalette(rom, data, room, row);
+                      : zelda3::RoomSpriteSheetPalette(
+                            rom, data, room, row,
+                            sheet >= 0 && zelda3::IsHighHalfSpriteSheet(sheet));
   }
   return absl::InvalidArgumentError("Unknown --palette " + spec);
 }
@@ -360,6 +362,47 @@ std::string HexIds(const std::vector<int>& ids) {
   });
 }
 
+// Which CGRAM columns a room-sprite: palette read for this sheet, or nullopt
+// for other palette specs.
+std::optional<std::string> SpritePaletteHalf(
+    const resources::ArgumentParser& parser, uint16_t sheet) {
+  if (!absl::StartsWith(parser.GetString("palette").value_or(""),
+                        "room-sprite:")) {
+    return std::nullopt;
+  }
+  return zelda3::IsHighHalfSpriteSheet(sheet) ? "high (columns 8-15)"
+                                              : "low (columns 0-7)";
+}
+
+// Every group, overworld area and room that loads `sheet`, so a dry run shows
+// who else sees the edit. Empty lists are left out.
+absl::StatusOr<nlohmann::json> SheetSharedBy(
+    Rom& rom, uint16_t sheet, const zelda3::GfxSheetInventoryOptions& options,
+    bool* reserved) {
+  const auto areas = zelda3::CollectOverworldAreaGfx(rom);
+  const auto rooms = zelda3::CollectRoomGfx(rom);
+  ASSIGN_OR_RETURN(const auto inventory,
+                   zelda3::BuildGfxSheetInventory(rom, areas, rooms, options));
+  if (sheet >= inventory.sheets.size()) {
+    return absl::OutOfRangeError(absl::StrFormat("No sheet 0x%02X", sheet));
+  }
+  const auto& entry = inventory.sheets[sheet];
+  *reserved = entry.reserved;
+  nlohmann::json shared = nlohmann::json::object();
+  const std::pair<const char*, const std::vector<int>*> lists[] = {
+      {"main_blocksets", &entry.usage.main_blocksets},
+      {"room_blocksets", &entry.usage.room_blocksets},
+      {"ow_areas_static", &entry.usage.ow_areas_static},
+      {"spritesets", &entry.usage.spritesets},
+      {"ow_areas_sprite", &entry.usage.ow_areas_sprite},
+      {"rooms_sprite", &entry.usage.rooms_sprite}};
+  for (const auto& [key, ids] : lists) {
+    if (!ids->empty())
+      shared[key] = *ids;
+  }
+  return shared;
+}
+
 // These commands use the US graphics pointer tables; on a Japanese ROM they
 // would read and write the wrong sheets.
 absl::Status RequireUsGfxTables(const Rom& rom) {
@@ -433,6 +476,8 @@ absl::Status GfxExportCommandHandler::Execute(
   formatter.AddField("width", std::min(count, 8) * 16);
   formatter.AddField("height", (count + 7) / 8 * 16);
   formatter.AddField("palette", PaletteText(palette));
+  if (const auto half = SpritePaletteHalf(parser, sheet); half.has_value())
+    formatter.AddField("palette_half", *half);
   if (context.has_value()) {
     formatter.AddRawJsonField("room_context", metadata["room_context"].dump());
   }
@@ -476,10 +521,28 @@ absl::Status GfxImportCommandHandler::Execute(
   }
   ASSIGN_OR_RETURN(const auto current, zelda3::ReadGfxSheetData(*rom, sheet));
   const std::string png_path = *parser.GetString("png");
+  const auto diff_png = parser.GetString("diff-png");
+  std::vector<std::string> paths = {png_path};
+  if (project_ != nullptr && !project_->filepath.empty())
+    paths.push_back(project_->filepath);
+  if (parser.HasFlag("write"))
+    paths.push_back(*parser.GetString("out"));
+  if (diff_png.has_value())
+    paths.push_back(*diff_png);
+  RETURN_IF_ERROR(ValidateExportPaths(*rom, paths));
   ASSIGN_OR_RETURN(const auto png_bytes, util::ReadBinaryFile(png_path));
   ASSIGN_OR_RETURN(const auto png, util::DecodePng(png_bytes));
   ASSIGN_OR_RETURN(const auto imported,
                    zelda3::ImportSheetBlocksPng(current, png, block, palette));
+  if (diff_png.has_value()) {
+    ASSIGN_OR_RETURN(
+        const auto diff,
+        zelda3::ExportSheetDiffPng(current, imported.snes_3bpp, palette));
+    RETURN_IF_ERROR(util::WriteBinaryFile(*diff_png, diff));
+  }
+  bool reserved = false;
+  const auto shared_by = SheetSharedBy(
+      *rom, sheet, core::BuildGfxSheetInventoryOptions(project_), &reserved);
 
   // Run the real writer on a copy of the ROM buffer; the diff is exactly
   // what --write would change.
@@ -498,16 +561,30 @@ absl::Status GfxImportCommandHandler::Execute(
   formatter.AddField("changed_tiles",
                      static_cast<int>(imported.changed_tiles.size()));
   formatter.AddField("sheet_byte_ranges", RangeText(imported.changed_ranges));
+  if (const auto half = SpritePaletteHalf(parser, sheet); half.has_value())
+    formatter.AddField("palette_half", *half);
+  if (shared_by.ok()) {
+    formatter.AddRawJsonField("shared_by", shared_by->dump());
+  } else {
+    formatter.AddField("shared_by_error",
+                       std::string(shared_by.status().message()));
+  }
+  if (reserved) {
+    formatter.AddField("reserved_sheet",
+                       "The project reserves this sheet; check its owner "
+                       "before writing");
+  }
+  if (diff_png.has_value())
+    formatter.AddField("diff_png", *diff_png);
   if (!written.ok()) {
-    // The preview still stands; say why the write would be refused.
+    // The preview still stands; say why the write would be refused, and fail
+    // the command so scripts see the refusal in the exit code.
     formatter.AddField("write_status", std::string(written.status().message()));
     if (project_ == nullptr) {
       formatter.AddField("hint", kNoProjectHint);
     }
-    if (parser.HasFlag("dry-run")) {
+    if (parser.HasFlag("dry-run"))
       formatter.AddField("mode", "dry-run");
-      return absl::OkStatus();
-    }
     return written.status();
   }
   formatter.AddField("write_status", "ok");
@@ -666,8 +743,14 @@ absl::Status GfxRoomImportCommandHandler::Execute(
         "Graphics import is disabled by the project's read-only policy");
   }
   RETURN_IF_ERROR(RequireUsGfxTables(*rom));
-  ASSIGN_OR_RETURN(auto context, LoadRoomContext(*rom, parser));
   const std::string png_path = *parser.GetString("png");
+  std::vector<std::string> paths = {png_path};
+  if (project_ != nullptr && !project_->filepath.empty())
+    paths.push_back(project_->filepath);
+  if (parser.HasFlag("write"))
+    paths.push_back(*parser.GetString("out"));
+  RETURN_IF_ERROR(ValidateExportPaths(*rom, paths));
+  ASSIGN_OR_RETURN(auto context, LoadRoomContext(*rom, parser));
   ASSIGN_OR_RETURN(const auto png_bytes, util::ReadBinaryFile(png_path));
   ASSIGN_OR_RETURN(const auto png, util::DecodePng(png_bytes));
   ASSIGN_OR_RETURN(
@@ -730,13 +813,14 @@ absl::Status GfxRoomImportCommandHandler::Execute(
       rom::ComputeDiffRanges(rom->vector(), simulated.vector());
   formatter.AddField("rom_bytes_changed",
                      static_cast<int>(rom_diff.total_bytes_changed));
-  if (parser.HasFlag("dry-run")) {
+  if (parser.HasFlag("dry-run"))
     formatter.AddField("mode", "dry-run");
-    return absl::OkStatus();
-  }
+  // A dry run fails like the write would, so scripts see the refusal.
   if (!refusal.empty()) {
     return absl::FailedPreconditionError(refusal);
   }
+  if (parser.HasFlag("dry-run"))
+    return absl::OkStatus();
   const std::string out = *parser.GetString("out");
   std::error_code ec;
   if (!rom->filename().empty() &&

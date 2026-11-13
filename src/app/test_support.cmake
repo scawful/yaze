@@ -67,7 +67,6 @@ if(TARGET ImGuiTestEngine)
   target_link_libraries(yaze_test_support PUBLIC ImGuiTestEngine)
   target_compile_definitions(yaze_test_support PUBLIC
     YAZE_ENABLE_IMGUI_TEST_ENGINE=1
-    IMGUI_DEFINE_MATH_OPERATORS=1
     IMGUI_ENABLE_TEST_ENGINE=1
     IMGUI_TEST_ENGINE_ENABLE_COROUTINE_STDTHREAD_IMPL=1
   )

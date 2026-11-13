@@ -16,6 +16,7 @@
 //     registers: R"(/api/v1/annotations/(.+))".
 
 #include "cli/service/api/api_handlers.h"
+#include "cli/service/api/http_server.h"
 
 #include <filesystem>
 #include <fstream>
@@ -313,6 +314,68 @@ TEST(CommandExecuteHandlerTest, ValidNoRomCommandReturns200) {
   auto body = json::parse(res.body);
   EXPECT_EQ(body["status"], "ok");
   EXPECT_EQ(body["command"], "test-list");
+}
+
+TEST(CommandExecuteHandlerTest, DisabledHandlerReturns403) {
+  httplib::Request req;
+  req.body = R"({"command":"test-list","args":[]})";
+  httplib::Response res;
+
+  HandleCommandExecuteDisabled(req, res);
+
+  EXPECT_EQ(res.status, 403);
+  auto body = json::parse(res.body);
+  EXPECT_EQ(body["status"], "error");
+  EXPECT_TRUE(body.contains("error"));
+  EXPECT_EQ(res.get_header_value("Access-Control-Allow-Origin"), "*");
+}
+
+// Starts `server` on loopback and returns its port, or 0 if no port in the
+// probed range was free.
+int StartOnLoopback(HttpServer& server) {
+#ifdef _WIN32
+  const int base = 41000 + _getpid() % 500;
+#else
+  const int base = 41000 + static_cast<int>(getpid()) % 500;
+#endif
+  for (int port = base; port < base + 50; ++port) {
+    if (server.Start(port, /*loopback_only=*/true).ok()) {
+      return port;
+    }
+  }
+  return 0;
+}
+
+httplib::Result PostExecute(int port, const std::string& body) {
+  httplib::Client client("127.0.0.1", port);
+  client.set_connection_timeout(5);
+  client.set_read_timeout(5);
+  return client.Post("/api/v1/command/execute", body, "application/json");
+}
+
+TEST(CommandExecuteRouteTest, DisabledServerRefusesCommands) {
+  HttpServer server;
+  server.SetCommandExecutionEnabled(false);
+  const int port = StartOnLoopback(server);
+  ASSERT_NE(port, 0);
+
+  auto result = PostExecute(port, R"({"command":"test-list","args":[]})");
+
+  ASSERT_TRUE(result);
+  EXPECT_EQ(result->status, 403);
+  server.Stop();
+}
+
+TEST(CommandExecuteRouteTest, EnabledServerDispatchesCommands) {
+  HttpServer server;
+  const int port = StartOnLoopback(server);
+  ASSERT_NE(port, 0);
+
+  auto result = PostExecute(port, R"({"command":"no-such-command-xyz"})");
+
+  ASSERT_TRUE(result);
+  EXPECT_EQ(result->status, 404);
+  server.Stop();
 }
 
 TEST(CommandExecuteHandlerTest, SuccessfulResponseContainsResultField) {

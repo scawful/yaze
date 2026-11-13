@@ -3,6 +3,7 @@
 #include <cmath>
 
 #include "app/gui/canvas/canvas_interaction.h"
+#include "app/gui/core/draw_sampling.h"
 #include "imgui/imgui.h"
 
 namespace yaze {
@@ -84,6 +85,7 @@ bool CanvasInteractionHandler::DrawTilePainter(
 
   // Draw preview of tile at hover position
   if (bitmap.is_active() && draw_list) {
+    ScopedNearestSampling nearest_sampling(draw_list);
     draw_list->AddImage(reinterpret_cast<ImTextureID>(bitmap.texture()),
                         ImVec2(origin.x + paint_pos.x, origin.y + paint_pos.y),
                         ImVec2(origin.x + paint_pos.x + scaled_size,
@@ -148,6 +150,7 @@ bool CanvasInteractionHandler::DrawTilemapPainter(
                             static_cast<float>(tile_y + tilemap.tile_size.y) /
                                 tilemap.atlas.height());
 
+        ScopedNearestSampling nearest_sampling(draw_list);
         draw_list->AddImage(
             reinterpret_cast<ImTextureID>(tilemap.atlas.texture()),
             ImVec2(origin.x + paint_pos.x, origin.y + paint_pos.y),

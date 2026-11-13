@@ -1,6 +1,7 @@
 #include "zelda3/overworld/overworld_exit.h"
 
 #include <algorithm>
+#include <cstddef>
 #include <cstdint>
 #include <cstdlib>
 #include <vector>
@@ -16,13 +17,14 @@
 namespace yaze::zelda3 {
 
 absl::StatusOr<std::vector<OverworldExit>> LoadExits(Rom* rom) {
+  if (rom == nullptr) {
+    return absl::InvalidArgumentError("Cannot load exits without a ROM");
+  }
   const int NumberOfOverworldExits = 0x4F;
   std::vector<OverworldExit> exits;
   for (int i = 0; i < NumberOfOverworldExits; i++) {
-    const auto* rom_data = rom->data();
-
     uint16_t exit_room_id;
-    uint16_t exit_map_id;
+    uint8_t exit_map_id;
     uint16_t exit_vram;
     uint16_t exit_y_scroll;
     uint16_t exit_x_scroll;
@@ -30,8 +32,8 @@ absl::StatusOr<std::vector<OverworldExit>> LoadExits(Rom* rom) {
     uint16_t exit_x_player;
     uint16_t exit_y_camera;
     uint16_t exit_x_camera;
-    uint16_t exit_scroll_mod_y;
-    uint16_t exit_scroll_mod_x;
+    uint8_t exit_scroll_mod_y;
+    uint8_t exit_scroll_mod_x;
     uint16_t exit_door_type_1;
     uint16_t exit_door_type_2;
     RETURN_IF_ERROR(rom->ReadTransaction(
@@ -45,18 +47,11 @@ absl::StatusOr<std::vector<OverworldExit>> LoadExits(Rom* rom) {
         OWExitDoorType1 + (i * 2), exit_door_type_2,
         OWExitDoorType2 + (i * 2)));
 
-    uint16_t player_y =
-        static_cast<uint16_t>((rom_data[OWExitYPlayer + (i * 2) + 1] << 8) +
-                              rom_data[OWExitYPlayer + (i * 2)]);
-    uint16_t player_x =
-        static_cast<uint16_t>((rom_data[OWExitXPlayer + (i * 2) + 1] << 8) +
-                              rom_data[OWExitXPlayer + (i * 2)]);
-
     exits.emplace_back(exit_room_id, exit_map_id, exit_vram, exit_y_scroll,
-                       exit_x_scroll, player_y, player_x, exit_y_camera,
-                       exit_x_camera, exit_scroll_mod_y, exit_scroll_mod_x,
-                       exit_door_type_1, exit_door_type_2,
-                       (player_x & player_y) == 0xFFFF);
+                       exit_x_scroll, exit_y_player, exit_x_player,
+                       exit_y_camera, exit_x_camera, exit_scroll_mod_y,
+                       exit_scroll_mod_x, exit_door_type_1, exit_door_type_2,
+                       exit_x_player == 0xFFFF && exit_y_player == 0xFFFF);
   }
   return exits;
 }
@@ -74,19 +69,19 @@ void OverworldExit::UpdateMapProperties(uint16_t map_id, const void* context) {
   int area_size_x = 256;
   int area_size_y = 256;
 
+  // Missing context maps use the same small-area geometry as nullptr.
+  // Checked editor operations validate destination ownership separately.
   if (context != nullptr) {
     const auto* overworld = static_cast<const Overworld*>(context);
-    auto area_size = overworld->overworld_map(map_id)->area_size();
-
-    // Calculate area dimensions based on size enum
-    if (area_size == AreaSizeEnum::LargeArea) {
-      area_size_x = area_size_y = 768;
-    } else if (area_size == AreaSizeEnum::WideArea) {
-      area_size_x = 768;
-      area_size_y = 256;
-    } else if (area_size == AreaSizeEnum::TallArea) {
-      area_size_x = 256;
-      area_size_y = 768;
+    if (const auto* map = overworld->overworld_map(map_id)) {
+      const auto area_size = map->area_size();
+      if (area_size == AreaSizeEnum::LargeArea) {
+        area_size_x = area_size_y = 768;
+      } else if (area_size == AreaSizeEnum::WideArea) {
+        area_size_x = 768;
+      } else if (area_size == AreaSizeEnum::TallArea) {
+        area_size_y = 768;
+      }
     }
   }
 
@@ -120,47 +115,17 @@ void OverworldExit::UpdateMapProperties(uint16_t map_id, const void* context) {
     // Auto-calculate scroll and camera from player position
     // ZScream: ExitOW.cs:256-309
 
-    // Base scroll calculation (player centered in screen)
-    x_scroll_ = x_player_ - 120;
-    y_scroll_ = y_player_ - 80;
-
-    // Clamp scroll to map bounds using actual area size
-    if (x_scroll_ < mapx) {
-      x_scroll_ = mapx;
-    }
-
-    if (y_scroll_ < mapy) {
-      y_scroll_ = mapy;
-    }
-
-    if (x_scroll_ > mapx + area_size_x) {
-      x_scroll_ = mapx + area_size_x;
-    }
-
-    if (y_scroll_ > mapy + area_size_y + 32) {
-      y_scroll_ = mapy + area_size_y + 32;
-    }
-
-    // Camera position (offset from player)
-    x_camera_ = x_player_ + 0x07;
-    y_camera_ = y_player_ + 0x1F;
-
-    // Clamp camera to valid range
-    if (x_camera_ < mapx + 127) {
-      x_camera_ = mapx + 127;
-    }
-
-    if (y_camera_ < mapy + 111) {
-      y_camera_ = mapy + 111;
-    }
-
-    if (x_camera_ > mapx + 127 + area_size_x) {
-      x_camera_ = mapx + 127 + area_size_x;
-    }
-
-    if (y_camera_ > mapy + 143 + area_size_y) {
-      y_camera_ = mapy + 143 + area_size_y;
-    }
+    // Clamp signed values before storing them. Narrowing a negative scroll
+    // first wraps it to $FFxx and incorrectly selects the far map edge.
+    x_scroll_ = static_cast<uint16_t>(std::clamp(
+        static_cast<int>(x_player_) - 120, mapx, mapx + area_size_x));
+    y_scroll_ = static_cast<uint16_t>(std::clamp(
+        static_cast<int>(y_player_) - 80, mapy, mapy + area_size_y + 32));
+    x_camera_ = static_cast<uint16_t>(std::clamp(
+        static_cast<int>(x_player_) + 7, mapx + 127, mapx + 127 + area_size_x));
+    y_camera_ =
+        static_cast<uint16_t>(std::clamp(static_cast<int>(y_player_) + 31,
+                                         mapy + 111, mapy + 143 + area_size_y));
   }
 
   // Calculate VRAM location from scroll values
@@ -173,18 +138,39 @@ void OverworldExit::UpdateMapProperties(uint16_t map_id, const void* context) {
 }
 
 absl::Status SaveExits(Rom* rom, const std::vector<OverworldExit>& exits) {
-  // ASM version 0x03 added SW support and the exit leading to Zora's Domain
-  // specifically needs to be updated because its camera values are incorrect.
-  // We only update it if it was a vanilla ROM though because we don't know if
-  // the user has already adjusted it or not.
-  uint8_t asm_version = (*rom)[OverworldCustomASMHasBeenApplied];
-  if (asm_version == 0x00) {
-    // Apply special fix for Zora's Domain exit (index 0x4D)
-    // TODO(scawful): Implement SpecialUpdatePosition for OverworldExit
-    // Similar to ZScream Save.cs:1034-1039
-    // if (all_exits_.size() > 0x4D) {
-    //   all_exits_[0x4D].SpecialUpdatePosition();
-    // }
+  if (rom == nullptr) {
+    return absl::InvalidArgumentError("Cannot save exits without a ROM");
+  }
+  if (exits.size() < kNumOverworldExits) {
+    return absl::InvalidArgumentError("Saving exits requires all 79 records");
+  }
+  // Validate every destination before the first mutation, including the
+  // auxiliary map bytes used only when a special room destination changes.
+  struct TableRange {
+    size_t address;
+    size_t bytes;
+  };
+  constexpr TableRange kTables[] = {
+      {OWExitRoomId, kNumOverworldExits * 2},
+      {OWExitMapId, kNumOverworldExits},
+      {OWExitVram, kNumOverworldExits * 2},
+      {OWExitYScroll, kNumOverworldExits * 2},
+      {OWExitXScroll, kNumOverworldExits * 2},
+      {OWExitYPlayer, kNumOverworldExits * 2},
+      {OWExitXPlayer, kNumOverworldExits * 2},
+      {OWExitYCamera, kNumOverworldExits * 2},
+      {OWExitXCamera, kNumOverworldExits * 2},
+      {OWExitUnk1, kNumOverworldExits},
+      {OWExitUnk2, kNumOverworldExits},
+      {OWExitDoorType1, kNumOverworldExits * 2},
+      {OWExitDoorType2, kNumOverworldExits * 2},
+      {OWExitDoorPosition, 5},
+  };
+  const size_t rom_size = rom->vector().size();
+  for (const auto& table : kTables) {
+    if (table.address > rom_size || table.bytes > rom_size - table.address) {
+      return absl::OutOfRangeError("ROM does not contain complete exit tables");
+    }
   }
 
   for (int i = 0; i < kNumOverworldExits; i++) {
@@ -199,10 +185,14 @@ absl::Status SaveExits(Rom* rom, const std::vector<OverworldExit>& exits) {
         rom->WriteShort(OWExitYScroll + (i * 2), exits[i].y_scroll_));
     RETURN_IF_ERROR(
         rom->WriteShort(OWExitXScroll + (i * 2), exits[i].x_scroll_));
+    // $FFFF/$FFFF is the existing on-disk unused-record sentinel. Preserve
+    // the remaining record fields so deletion can be undone without invention.
     RETURN_IF_ERROR(
-        rom->WriteShort(OWExitYPlayer + (i * 2), exits[i].y_player_));
+        rom->WriteShort(OWExitYPlayer + (i * 2),
+                        exits[i].deleted_ ? 0xFFFF : exits[i].y_player_));
     RETURN_IF_ERROR(
-        rom->WriteShort(OWExitXPlayer + (i * 2), exits[i].x_player_));
+        rom->WriteShort(OWExitXPlayer + (i * 2),
+                        exits[i].deleted_ ? 0xFFFF : exits[i].x_player_));
     RETURN_IF_ERROR(
         rom->WriteShort(OWExitYCamera + (i * 2), exits[i].y_camera_));
     RETURN_IF_ERROR(

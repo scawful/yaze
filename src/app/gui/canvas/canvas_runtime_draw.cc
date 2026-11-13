@@ -8,6 +8,7 @@
 #include "app/gfx/resource/arena.h"
 #include "app/gui/canvas/canvas_rendering.h"
 #include "app/gui/canvas/canvas_utils.h"
+#include "app/gui/core/draw_sampling.h"
 #include "imgui/imgui.h"
 
 namespace yaze::gui {
@@ -184,6 +185,7 @@ bool DrawTilemapPainter(const CanvasRuntime& rt, gfx::Tilemap& tilemap,
                             static_cast<float>(tile_y + tilemap.tile_size.y) /
                                 tilemap.atlas.height());
 
+        ScopedNearestSampling nearest_sampling(rt.draw_list);
         rt.draw_list->AddImage(
             (ImTextureID)(intptr_t)tilemap.atlas.texture(),
             ImVec2(origin.x + paint_pos.x, origin.y + paint_pos.y),
@@ -280,10 +282,15 @@ void DrawSelectRect(const CanvasRuntime& rt, int current_map, int tile_size,
 
   ImVec2 drag_end_pos = AlignPosToGridHelper(mouse_pos, scaled_size);
   if (ImGui::IsMouseDragging(ImGuiMouseButton_Right)) {
-    auto start =
-        ImVec2(origin.x + drag_start_pos.x, origin.y + drag_start_pos.y);
-    auto end = ImVec2(origin.x + drag_end_pos.x + scaled_size,
-                      origin.y + drag_end_pos.y + scaled_size);
+    // Order the tile corners before adding the tile size: dragging up or left
+    // otherwise inverts the rect, and ImGui 1.93 draws nothing for it.
+    const float min_x = std::min(drag_start_pos.x, drag_end_pos.x);
+    const float min_y = std::min(drag_start_pos.y, drag_end_pos.y);
+    const float max_x = std::max(drag_start_pos.x, drag_end_pos.x);
+    const float max_y = std::max(drag_start_pos.y, drag_end_pos.y);
+    auto start = ImVec2(origin.x + min_x, origin.y + min_y);
+    auto end =
+        ImVec2(origin.x + max_x + scaled_size, origin.y + max_y + scaled_size);
     rt.draw_list->AddRect(start, end, kWhite);
     dragging = true;
   }

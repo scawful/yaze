@@ -73,6 +73,16 @@ void OverworldSidebar::Draw(int& current_world, int& current_map,
       ImGui::TextWrapped(
           "Use the Tile16 selector to paint terrain across neighboring maps. "
           "Save Project keeps these terrain edits.");
+      ImGui::Spacing();
+      ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.85f, 0.3f, 1.0f));
+      ImGui::Text(ICON_MD_INFO " Tail Map Limitations ($A0-$BF)");
+      ImGui::PopStyleColor();
+      ImGui::TextWrapped(
+          "• Items & Bomb Doors: Disabled (pending SRAM event allocation in "
+          "save file)\n"
+          "• Exits: 1 free slot (full links require ASM exit table v2)\n"
+          "• Entrances: Trigger table v2 in development (Phase P2)\n"
+          "• Sprites: Draft state (actor compilation needed for ROM)");
       ImGui::PopID();
       ImGui::EndChild();
       return;

@@ -65,15 +65,13 @@ ImVec4 GetModifiedColor();
 void ColoredText(const char* text, const ImVec4& color);
 
 // Render formatted text with an explicit ImVec4 color.
-void ColoredTextF(const ImVec4& color, const char* fmt, ...)
-    IM_FMTARGS(2);
+void ColoredTextF(const ImVec4& color, const char* fmt, ...) IM_FMTARGS(2);
 
 // Render text with a SemanticColor from the current theme.
 void ThemedText(const char* text, SemanticColor color);
 
 // Render formatted text with a SemanticColor from the current theme.
-void ThemedTextF(SemanticColor color, const char* fmt, ...)
-    IM_FMTARGS(2);
+void ThemedTextF(SemanticColor color, const char* fmt, ...) IM_FMTARGS(2);
 
 // ============================================================================
 // Button Color Sets
@@ -161,12 +159,6 @@ void StatusBadge(const char* text, ButtonType type = ButtonType::Default);
 // ============================================================================
 // Editor-Specific Patterns
 // ============================================================================
-
-// Toolset table (horizontal button bar)
-void BeginToolset(const char* id);
-void EndToolset();
-void ToolsetButton(const char* icon, bool selected, const char* tooltip,
-                   std::function<void()> on_click);
 
 // Canvas container patterns
 void BeginCanvasContainer(const char* id, bool scrollable = true);

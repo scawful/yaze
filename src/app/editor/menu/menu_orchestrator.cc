@@ -128,6 +128,7 @@ void MenuOrchestrator::BuildMainMenu() {
   BuildFileMenu();
   BuildEditMenu();
   BuildViewMenu();
+  BuildEditorMenu();
   // Windows menu now owns what used to live in the legacy "Window" menu
   // (Sessions, Layout, Snapshots) in addition to the dynamic category
   // toggles from WorkspaceWindowManager.
@@ -339,6 +340,13 @@ void MenuOrchestrator::AddEditMenuItems() {
       "Find", ICON_MD_SEARCH, [this]() { OnFind(); },
       GetShortcutForAction("Find").c_str(),
       [this]() { return CurrentEditorCanFind(); });
+
+  menu_builder_.CustomItems([this]() {
+    if (Editor* editor =
+            editor_manager_ ? editor_manager_->GetCurrentEditor() : nullptr) {
+      editor->DrawEditMenuItems();
+    }
+  });
 }
 
 void MenuOrchestrator::BuildViewMenu() {
@@ -443,6 +451,30 @@ void MenuOrchestrator::AddAppearanceMenuItems() {
             [this]() { OnShowDisplaySettings(); })
       .Item("Welcome Screen", ICON_MD_HOME,
             [this]() { OnShowWelcomeScreen(); });
+}
+
+void MenuOrchestrator::BuildEditorMenu() {
+  if (!editor_manager_) {
+    return;
+  }
+  auto* current_editor = editor_manager_->GetCurrentEditor();
+  if (!current_editor) {
+    return;
+  }
+
+  const char* menu_title = nullptr;
+  switch (current_editor->type()) {
+    case EditorType::kOverworld:
+      menu_title = "Overworld";
+      break;
+    default:
+      return;
+  }
+
+  if (menu_title != nullptr) {
+    menu_builder_.CustomMenu(
+        menu_title, [current_editor]() { current_editor->DrawEditorMenu(); });
+  }
 }
 
 void MenuOrchestrator::AddDrawersMenuItems() {

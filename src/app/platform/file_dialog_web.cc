@@ -30,7 +30,7 @@ std::string FileDialogWrapper::ShowOpenFileDialog() {
       romInput.click();
     }
   });
-  
+
   // Return empty string - the actual loading happens asynchronously
   // via the file input handler which calls LoadRomFromWeb
   return "";
@@ -55,6 +55,9 @@ std::string FileDialogWrapper::ShowOpenFolderDialog() {
 
 std::string FileDialogWrapper::ShowSaveFileDialog(
     const std::string& default_name, const std::string& default_extension) {
+  if (auto result = ConsumeSaveFileDialogResultForTesting()) {
+    return *result;
+  }
   // TODO(web): Implement download trigger via JS
   return "";
 }

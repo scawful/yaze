@@ -260,7 +260,7 @@ void DoorInteractionHandler::DrawGhostPreview() {
   // Draw outline
   ImVec4 outline_color(base_color.x, base_color.y, base_color.z, 0.9f);
   draw_list->AddRect(preview_start, preview_end,
-                     ImGui::GetColorU32(outline_color), 0.0f, 0, 2.0f);
+                     ImGui::GetColorU32(outline_color), 0.0f, 2.0f);
 
   // Draw door type label
   std::string type_name(zelda3::GetDoorTypeName(preview_door_type_));
@@ -361,7 +361,7 @@ void DoorInteractionHandler::DrawSelectionHighlight() {
   draw_list->AddRectFilled(pos, ImVec2(pos.x + size.x, pos.y + size.y),
                            fill_color);
   draw_list->AddRect(pos, ImVec2(pos.x + size.x, pos.y + size.y), color, 0.0f,
-                     0, 2.0f);
+                     2.0f);
 
   ImVec2 label_pos(pos.x, pos.y - 14 * scale);
   draw_list->AddText(label_pos, IM_COL32(255, 255, 255, 220), "Door");
@@ -378,9 +378,8 @@ void DoorInteractionHandler::DrawSelectionHighlight() {
     if (hovered) {
       const auto& theme = AgentUI::GetTheme();
       const ImU32 hover_color = ImGui::GetColorU32(theme.accent_color);
-      draw_list->AddLine(ImVec2(badge->screen_pos.x, badge_max.y + 1.0f),
-                         ImVec2(badge_max.x, badge_max.y + 1.0f), hover_color,
-                         1.0f);
+      draw_list->AddLineH(badge->screen_pos.x, badge_max.x, badge_max.y + 1.0f,
+                          hover_color);
       ImGui::SetMouseCursor(ImGuiMouseCursor_Hand);
       ImGui::SetTooltip(tr("Open room 0x%03X"), badge->target_room_id);
     }
@@ -883,11 +882,11 @@ void DoorInteractionHandler::DrawSnapIndicators() {
                        theme.dungeon_selection_primary.y,
                        theme.dungeon_selection_primary.z, 0.75f);
       draw_list->AddRect(snap_start, snap_end, ImGui::GetColorU32(highlight),
-                         0.0f, 0, 2.5f);
+                         0.0f, 2.5f);
     } else {
       ImVec4 ghost(1.0f, 1.0f, 1.0f, 0.25f);
       draw_list->AddRect(snap_start, snap_end, ImGui::GetColorU32(ghost), 0.0f,
-                         0, 1.0f);
+                         1.0f);
     }
   }
 }
