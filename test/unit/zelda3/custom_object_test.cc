@@ -454,7 +454,7 @@ TEST_P(CustomObjectOracleAssetTest, DecodePublishReloadPreservesRuntimeLayout) {
   const char* asset_root = std::getenv("YAZE_TEST_ORACLE_CUSTOM_OBJECTS");
   if (asset_root == nullptr) {
     GTEST_SKIP() << "Set YAZE_TEST_ORACLE_CUSTOM_OBJECTS to Oracle's "
-                    "Dungeons/Objects/Data folder for the 23-asset audit";
+                    "Dungeons/Objects/Data folder for the runtime-asset audit";
   }
   const auto [object_id, subtype] = GetParam();
   auto& manager = CustomObjectManager::Get();
@@ -685,24 +685,24 @@ TEST_F(CustomObjectManagerTest, PublishRequiresExactSourceSnapshot) {
 
 TEST_F(CustomObjectManagerTest, RuntimeSubtypeCapacityBoundsMappings) {
   std::vector<std::string> oversized_31(17, "track_LR.bin");
-  std::vector<std::string> oversized_32(6, "furnace.bin");
+  std::vector<std::string> oversized_32(12, "furnace.bin");
   std::vector<std::string> oversized_54(3, "kydreeok_body.bin");
   CustomObjectManager::Get().SetObjectFileMap(
       {{0x31, oversized_31}, {0x32, oversized_32}, {0x54, oversized_54}});
 
   EXPECT_EQ(CustomObjectManager::RuntimeSubtypeCountForObject(0x31), 16);
-  EXPECT_EQ(CustomObjectManager::RuntimeSubtypeCountForObject(0x32), 5);
+  EXPECT_EQ(CustomObjectManager::RuntimeSubtypeCountForObject(0x32), 11);
   EXPECT_EQ(CustomObjectManager::RuntimeSubtypeCountForObject(0x54), 2);
   EXPECT_EQ(CustomObjectManager::Get().GetSubtypeCount(0x31), 16);
-  EXPECT_EQ(CustomObjectManager::Get().GetSubtypeCount(0x32), 5);
+  EXPECT_EQ(CustomObjectManager::Get().GetSubtypeCount(0x32), 11);
   EXPECT_EQ(CustomObjectManager::Get().GetSubtypeCount(0x54), 2);
   EXPECT_TRUE(CustomObjectManager::Get().ResolveFilename(0x31, 16).empty());
-  EXPECT_TRUE(CustomObjectManager::Get().ResolveFilename(0x32, 5).empty());
+  EXPECT_TRUE(CustomObjectManager::Get().ResolveFilename(0x32, 11).empty());
   EXPECT_TRUE(CustomObjectManager::Get().ResolveFilename(0x54, 2).empty());
   EXPECT_TRUE(absl::IsOutOfRange(
       CustomObjectManager::Get().GetObjectInternal(0x31, 16).status()));
   EXPECT_TRUE(absl::IsOutOfRange(
-      CustomObjectManager::Get().GetObjectInternal(0x32, 5).status()));
+      CustomObjectManager::Get().GetObjectInternal(0x32, 11).status()));
   EXPECT_TRUE(absl::IsOutOfRange(
       CustomObjectManager::Get().GetObjectInternal(0x54, 2).status()));
 }
@@ -718,7 +718,7 @@ TEST_F(CustomObjectManagerTest, SpriteBodyDefaultSubtypeOrderMatchesOracleAbi) {
   EXPECT_TRUE(CustomObjectManager::Get().ResolveFilename(0x54, 2).empty());
 }
 
-TEST_F(CustomObjectManagerTest, TrackIceAndMinishSubtypeOrderMatchesOracleAbi) {
+TEST_F(CustomObjectManagerTest, TrackAndIceSubtypeOrderMatchesOracleAbi) {
   EXPECT_THAT(CustomObjectManager::RuntimeObjectIds(),
               ::testing::ElementsAre(0x31, 0x32, 0x54));
   EXPECT_THAT(CustomObjectManager::DefaultSubtypeFilenamesForObject(0x31),
@@ -732,42 +732,78 @@ TEST_F(CustomObjectManagerTest, TrackIceAndMinishSubtypeOrderMatchesOracleAbi) {
                   "wall_sword_house.bin", "track_any.bin", "small_statue.bin"));
   EXPECT_THAT(
       CustomObjectManager::DefaultSubtypeFilenamesForObject(0x32),
-      ::testing::ElementsAre("furnace.bin", "firewood.bin", "ice_chair.bin",
-                             "minish_stump.bin", "minish_wall_hole.bin"));
-  EXPECT_EQ(OracleRuntimeAssetCases().size(), 23u);
-}
-
-TEST_F(CustomObjectManagerTest, MinishDefaultsRequireTheirOwnAssets) {
-  auto& manager = CustomObjectManager::Get();
-  for (const int subtype : {3, 4}) {
-    const auto binding = manager.ResolveSlotBinding(0x32, subtype);
-    ASSERT_TRUE(binding.ok()) << binding.status();
-    EXPECT_EQ(binding->origin, CustomObjectMappingOrigin::kDefaultFilename);
-    EXPECT_TRUE(
-        absl::IsNotFound(manager.GetObjectInternal(0x32, subtype).status()));
-  }
-
-  WriteBinaryFile("minish_stump.bin", {0x01, 0x00, 0x31, 0x28, 0x00, 0x00});
-  WriteBinaryFile("minish_wall_hole.bin", {0x01, 0x00, 0x42, 0x28, 0x00, 0x00});
-  manager.ReloadAll();
-  const auto stump = manager.GetObjectInternal(0x32, 3);
-  const auto hole = manager.GetObjectInternal(0x32, 4);
-  ASSERT_TRUE(stump.ok()) << stump.status();
-  ASSERT_TRUE(hole.ok()) << hole.status();
-  ASSERT_EQ((*stump)->tiles.size(), 1u);
-  ASSERT_EQ((*hole)->tiles.size(), 1u);
-  EXPECT_EQ((*stump)->tiles.front().tile_data, 0x2831);
-  EXPECT_EQ((*hole)->tiles.front().tile_data, 0x2842);
+      ::testing::ElementsAre(
+          "furnace.bin", "firewood.bin", "ice_chair.bin", "track_floor_T_N.bin",
+          "track_floor_T_S.bin", "track_floor_T_E.bin", "track_floor_T_W.bin",
+          "track_T_N.bin", "track_T_S.bin", "track_T_E.bin", "track_T_W.bin"));
+  EXPECT_EQ(OracleRuntimeAssetCases().size(), 29u);
 }
 
 TEST_F(CustomObjectManagerTest,
-       LegacyIceMappingDoesNotFallBackToMinishDefaults) {
-  WriteBinaryFile("minish_stump.bin", {0x01, 0x00, 0x31, 0x28, 0x00, 0x00});
-  WriteBinaryFile("minish_wall_hole.bin", {0x01, 0x00, 0x42, 0x28, 0x00, 0x00});
+       IceAndTrackDefaultsAndOverridesLoadAllRuntimeSlots) {
+  // Exact order from Oracle CustomObjectHandler2, independent of Yaze defaults.
+  const std::vector<std::string> filenames = {
+      "furnace.bin",         "firewood.bin",        "ice_chair.bin",
+      "track_floor_T_N.bin", "track_floor_T_S.bin", "track_floor_T_E.bin",
+      "track_floor_T_W.bin", "track_T_N.bin",       "track_T_S.bin",
+      "track_T_E.bin",       "track_T_W.bin"};
+  auto& manager = CustomObjectManager::Get();
+  for (int subtype = 0; subtype < 11; ++subtype) {
+    WriteBinaryFile(
+        filenames[subtype],
+        {0x01, 0x00, static_cast<uint8_t>(subtype), 0x28, 0x00, 0x00});
+    WriteBinaryFile(
+        "project_" + filenames[subtype],
+        {0x01, 0x00, static_cast<uint8_t>(subtype), 0x29, 0x00, 0x00});
+  }
+  const auto defaults = manager.CaptureRenderSnapshot(true);
+  std::vector<std::string> overrides;
+  for (const auto& filename : filenames) {
+    overrides.push_back("project_" + filename);
+  }
+  // A project can rename runtime assets but cannot allocate proposed slot 0B.
+  overrides.push_back("project_furnace.bin");
+  for (const bool use_overrides : {false, true}) {
+    SCOPED_TRACE(use_overrides ? "project overrides" : "built-in defaults");
+    if (use_overrides) {
+      manager.SetObjectFileMap({{0x32, overrides}});
+    }
+    const auto snapshot = manager.CaptureRenderSnapshot(true);
+    EXPECT_EQ(manager.GetSubtypeCount(0x32), 11);
+    for (int subtype = 0; subtype < 11; ++subtype) {
+      SCOPED_TRACE(subtype);
+      EXPECT_EQ(manager.ResolveFilename(0x32, subtype),
+                use_overrides ? overrides[subtype] : filenames[subtype]);
+      const auto object = manager.GetObjectInternal(0x32, subtype);
+      const auto rendered = snapshot.GetObject(0x32, subtype);
+      const auto original = defaults.GetObject(0x32, subtype);
+      ASSERT_TRUE(object.ok()) << object.status();
+      ASSERT_TRUE(rendered.ok()) << rendered.status();
+      ASSERT_TRUE(original.ok()) << original.status();
+      ASSERT_EQ((*object)->tiles.size(), 1u);
+      ASSERT_EQ((*rendered)->tiles.size(), 1u);
+      ASSERT_EQ((*original)->tiles.size(), 1u);
+      EXPECT_EQ((*object)->tiles[0].tile_data,
+                (use_overrides ? 0x2900 : 0x2800) + subtype);
+      EXPECT_EQ((*rendered)->tiles[0].tile_data, (*object)->tiles[0].tile_data);
+      EXPECT_EQ((*original)->tiles[0].tile_data, 0x2800 + subtype);
+    }
+    EXPECT_TRUE(manager.ResolveFilename(0x32, 0x0B).empty());
+    EXPECT_TRUE(
+        absl::IsOutOfRange(manager.GetObjectInternal(0x32, 0x0B).status()));
+    EXPECT_TRUE(absl::IsOutOfRange(snapshot.GetObject(0x32, 0x0B).status()));
+    EXPECT_TRUE(
+        absl::IsOutOfRange(manager.ResolveSlotBinding(0x32, 0x0B).status()));
+  }
+}
+
+TEST_F(CustomObjectManagerTest,
+       LegacyIceMappingDoesNotFallBackToTrackDefaults) {
+  WriteBinaryFile("track_floor_T_N.bin", {0x01, 0x00, 0x31, 0x28, 0x00, 0x00});
   auto& manager = CustomObjectManager::Get();
   manager.SetObjectFileMap(
       {{0x32, {"furnace.bin", "firewood.bin", "ice_chair.bin"}}});
-  for (const int subtype : {3, 4}) {
+  for (int subtype = 3; subtype < 11; ++subtype) {
     const auto binding = manager.ResolveSlotBinding(0x32, subtype);
     ASSERT_TRUE(binding.ok()) << binding.status();
     EXPECT_TRUE(binding->filename.empty());

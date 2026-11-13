@@ -211,9 +211,13 @@ std::string GetDungeonCustomObjectSlotName(int object_id, int subtype) {
       "Floor track any direction",      "Sword House wall object",
       "Pit track any direction",        "Small statue",
   };
-  static constexpr std::array<const char*, 5> kObject32Names = {
-      "Ice furnace",  "Firewood",         "Ice chair",
-      "Minish stump", "Minish wall hole",
+  static constexpr std::array<const char*, 11> kObject32Names = {
+      "Ice furnace",         "Firewood",
+      "Ice chair",           "Floor track T north",
+      "Floor track T south", "Floor track T east",
+      "Floor track T west",  "Pit track T north",
+      "Pit track T south",   "Pit track T east",
+      "Pit track T west",
   };
   static constexpr std::array<const char*, 2> kObject54Names = {
       "Kydreeok body",

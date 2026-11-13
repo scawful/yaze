@@ -510,12 +510,19 @@ const std::vector<std::string> CustomObjectManager::kSubtype1Filenames = {
     "small_statue.bin",           // 15
 };
 
+// Oracle CustomObjectHandler2 runtime order; proposed slots require ASM support.
 const std::vector<std::string> CustomObjectManager::kSubtype2Filenames = {
-    "furnace.bin",           // 00
-    "firewood.bin",          // 01
-    "ice_chair.bin",         // 02
-    "minish_stump.bin",      // 03
-    "minish_wall_hole.bin",  // 04
+    "furnace.bin",          // 00
+    "firewood.bin",         // 01
+    "ice_chair.bin",        // 02
+    "track_floor_T_N.bin",  // 03
+    "track_floor_T_S.bin",  // 04
+    "track_floor_T_E.bin",  // 05
+    "track_floor_T_W.bin",  // 06
+    "track_T_N.bin",        // 07
+    "track_T_S.bin",        // 08
+    "track_T_E.bin",        // 09
+    "track_T_W.bin",        // 0A
 };
 
 const std::vector<std::string> CustomObjectManager::kSubtype54Filenames = {

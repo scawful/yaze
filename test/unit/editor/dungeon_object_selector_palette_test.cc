@@ -1140,10 +1140,10 @@ TEST(DungeonObjectSelectorCustomRuntimeTest, FixedSlotsMatchOracleDispatch) {
     EXPECT_TRUE(IsDungeonCustomObjectRuntimeSlot(0x31, subtype));
   }
   EXPECT_FALSE(IsDungeonCustomObjectRuntimeSlot(0x31, 16));
-  for (int subtype = 0; subtype < 5; ++subtype) {
+  for (int subtype = 0; subtype < 11; ++subtype) {
     EXPECT_TRUE(IsDungeonCustomObjectRuntimeSlot(0x32, subtype));
   }
-  EXPECT_FALSE(IsDungeonCustomObjectRuntimeSlot(0x32, 5));
+  EXPECT_FALSE(IsDungeonCustomObjectRuntimeSlot(0x32, 11));
   for (int subtype = 0; subtype < 2; ++subtype) {
     EXPECT_TRUE(IsDungeonCustomObjectRuntimeSlot(0x54, subtype));
   }
@@ -1156,9 +1156,10 @@ TEST(DungeonObjectSelectorCustomRuntimeTest, FixedSlotsMatchOracleDispatch) {
   EXPECT_EQ(GetDungeonCustomObjectSlotName(0x32, 2), "Ice chair");
   EXPECT_EQ(GetDungeonCustomObjectSlotName(0x54, 0), "Kydreeok body");
   EXPECT_EQ(GetDungeonCustomObjectSlotName(0x54, 1), "Manhandla body");
-  EXPECT_EQ(GetDungeonCustomObjectSlotName(0x32, 3), "Minish stump");
-  EXPECT_EQ(GetDungeonCustomObjectSlotName(0x32, 4), "Minish wall hole");
-  EXPECT_EQ(GetDungeonCustomObjectSlotName(0x32, 5),
+  EXPECT_EQ(GetDungeonCustomObjectSlotName(0x32, 3), "Floor track T north");
+  EXPECT_EQ(GetDungeonCustomObjectSlotName(0x32, 4), "Floor track T south");
+  EXPECT_EQ(GetDungeonCustomObjectSlotName(0x32, 10), "Pit track T west");
+  EXPECT_EQ(GetDungeonCustomObjectSlotName(0x32, 11),
             "Unknown custom runtime slot");
 }
 
