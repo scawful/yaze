@@ -338,6 +338,39 @@ TEST_F(OverworldEditorTest, ItemMultiDeleteUndoRedoRestoresListAndSelection) {
   EXPECT_EQ(overworld_editor_->GetSelectedItem()->id_, 0x42);
 }
 
+// Reload replaces the item list and the Undo history. The selection is found
+// again by identity in the new list, never through the old one.
+TEST_F(OverworldEditorTest, ItemSelectionAndUndoFollowReload) {
+  const auto* items = overworld_editor_->overworld().mutable_all_items();
+  ASSERT_GE(items->size(), 2u);
+  const zelda3::OverworldItem kept = items->at(0);
+  const zelda3::OverworldItem moved = items->at(1);
+
+  ASSERT_TRUE(overworld_editor_->SelectItemByIdentity(kept));
+  ASSERT_TRUE(overworld_editor_->Load().ok());
+  const auto* reloaded = overworld_editor_->overworld().mutable_all_items();
+  auto* selected = overworld_editor_->GetSelectedItem();
+  ASSERT_NE(selected, nullptr);
+  EXPECT_GE(selected, reloaded->data());
+  EXPECT_LT(selected, reloaded->data() + reloaded->size());
+  EXPECT_EQ(selected->id_, kept.id_);
+  EXPECT_EQ(selected->x_, kept.x_);
+  EXPECT_EQ(selected->y_, kept.y_);
+
+  ASSERT_TRUE(overworld_editor_->SelectItemByIdentity(moved));
+  ASSERT_TRUE(overworld_editor_->NudgeSelectedItem(/*delta_x=*/16,
+                                                   /*delta_y=*/0));
+  ASSERT_TRUE(overworld_editor_->undo_manager().CanUndo());
+  ASSERT_TRUE(overworld_editor_->Load().ok());
+
+  EXPECT_FALSE(overworld_editor_->undo_manager().CanUndo());
+  EXPECT_EQ(overworld_editor_->GetSelectedItem(), nullptr);
+  const auto* restored = overworld_editor_->overworld().mutable_all_items();
+  ASSERT_GE(restored->size(), 2u);
+  EXPECT_EQ(restored->at(1).x_, moved.x_);
+  EXPECT_EQ(restored->at(1).y_, moved.y_);
+}
+
 TEST_F(OverworldEditorTest, ItemNudgeSequenceUndoRedoRestoresCoordinates) {
   auto* items = overworld_editor_->overworld().mutable_all_items();
   ASSERT_NE(items, nullptr);
