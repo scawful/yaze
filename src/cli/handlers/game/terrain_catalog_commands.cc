@@ -8,6 +8,7 @@
 #include <sstream>
 
 #include "absl/strings/str_format.h"
+#include "cli/handlers/game/overworld_inspect.h"
 #include "cli/handlers/game/overworld_render_commands.h"
 #include "cli/util/hex_util.h"
 #include "core/project.h"
@@ -38,23 +39,10 @@ std::string Bytes(const std::vector<uint8_t>& bytes) {
 }
 
 using CharacterSource = zelda3::OverworldMap::GraphicsCharacterSource;
-
-const char* KindName(CharacterSource::Kind kind) {
-  switch (kind) {
-    case CharacterSource::Kind::kSheet:
-      return "sheet";
-    case CharacterSource::Kind::kAnimatedSheet:
-      return "animated_sheet";
-    case CharacterSource::Kind::kGraphicsPreview:
-      return "graphics_preview";
-    case CharacterSource::Kind::kNone:
-      return "none";
-  }
-  return "none";
-}
+using overworld::GraphicsSourceKindName;
 
 json SourceJson(const CharacterSource& source) {
-  json result = {{"kind", KindName(source.kind)},
+  json result = {{"kind", GraphicsSourceKindName(source.kind)},
                  {"slot", source.slot},
                  {"sheet", nullptr},
                  {"palette_half", nullptr}};
@@ -147,7 +135,8 @@ json Composition(const zelda3::OverworldMap& map,
                    {"none", 0}};
     for (int character = slot * 64; character < slot * 64 + 64; ++character) {
       const auto kind = map.GraphicsSourceForCharacter(character).kind;
-      counts[KindName(kind)] = counts[KindName(kind)].get<int>() + 1;
+      counts[GraphicsSourceKindName(kind)] =
+          counts[GraphicsSourceKindName(kind)].get<int>() + 1;
     }
     json entry = {
         {"slot", slot},

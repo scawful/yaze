@@ -1,9 +1,11 @@
 #include "cli/handlers/game/overworld_inspect.h"
 
 #include <algorithm>
+#include <iterator>
 #include <map>
 #include <optional>
 #include <string>
+#include <tuple>
 #include <vector>
 
 #include "absl/status/status.h"
@@ -791,6 +793,81 @@ absl::StatusOr<TileUsageSummary> CollectTileUsage(zelda3::Overworld& overworld,
                      return a.count > b.count;
                    });
   return summary;
+}
+
+const char* GraphicsSourceKindName(GraphicsSource::Kind kind) {
+  switch (kind) {
+    case GraphicsSource::Kind::kSheet:
+      return "sheet";
+    case GraphicsSource::Kind::kAnimatedSheet:
+      return "animated_sheet";
+    case GraphicsSource::Kind::kGraphicsPreview:
+      return "graphics_preview";
+    case GraphicsSource::Kind::kNone:
+      return "none";
+  }
+  return "none";
+}
+
+absl::StatusOr<Tile16Details> DescribeTile16(zelda3::Overworld& overworld,
+                                             uint16_t tile_id,
+                                             const std::vector<int>& screens) {
+  const auto& definitions = overworld.tiles16();
+  if (tile_id >= definitions.size()) {
+    return absl::OutOfRangeError(
+        absl::StrFormat("Tile16 0x%04X has no definition (this ROM has %d)",
+                        tile_id, static_cast<int>(definitions.size())));
+  }
+  const auto& tile = definitions[tile_id];
+  const auto types = overworld.all_tiles_types();
+  Tile16Details details;
+  const gfx::TileInfo infos[] = {tile.tile0_, tile.tile1_, tile.tile2_,
+                                 tile.tile3_};
+  for (int q = 0; q < 4; ++q) {
+    auto& detail = details.quadrants[q];
+    detail.word = gfx::TileInfoToWord(infos[q]);
+    detail.tile8_id = infos[q].id_;
+    detail.palette = infos[q].palette_;
+    detail.priority = infos[q].over_;
+    detail.flip_x = infos[q].horizontal_mirror_;
+    detail.flip_y = infos[q].vertical_mirror_;
+    if (infos[q].id_ < types.size())
+      detail.tile_type = types[infos[q].id_];
+  }
+
+  const auto key = [](const GraphicsSource& s) {
+    return std::make_tuple(static_cast<int>(s.kind), s.slot, s.sheet,
+                           s.sheet_override, s.high_palette_half);
+  };
+  for (const int screen : screens) {
+    const auto* map = overworld.overworld_map(screen);
+    if (map == nullptr) {
+      return absl::FailedPreconditionError(
+          absl::StrFormat("Screen 0x%02X is not loaded", screen));
+    }
+    const int source_map =
+        map->uses_native_screen_appearance() ? screen : map->parent();
+    RETURN_IF_ERROR(overworld.EnsureMapBuilt(source_map));
+    const auto* resolved = overworld.overworld_map(source_map);
+    std::array<GraphicsSource, 4> sources;
+    for (int q = 0; q < 4; ++q)
+      sources[q] = resolved->GraphicsSourceForCharacter(infos[q].id_);
+    auto group =
+        std::find_if(details.source_groups.begin(), details.source_groups.end(),
+                     [&](const Tile16SourceGroup& g) {
+                       for (int q = 0; q < 4; ++q) {
+                         if (key(g.sources[q]) != key(sources[q]))
+                           return false;
+                       }
+                       return true;
+                     });
+    if (group == details.source_groups.end()) {
+      details.source_groups.push_back({sources, {}});
+      group = std::prev(details.source_groups.end());
+    }
+    group->screens.push_back(screen);
+  }
+  return details;
 }
 
 }  // namespace overworld

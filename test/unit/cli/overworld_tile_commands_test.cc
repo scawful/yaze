@@ -360,6 +360,9 @@ TEST(OverworldTileCommandArgsTest, TileStatsRejectsBadFilters) {
   status = handler.Run({"--mock-rom", "--map=0xA0", "--format=json"}, nullptr,
                        &output);
   EXPECT_TRUE(absl::IsInvalidArgument(status)) << status;
+  status = handler.Run({"--mock-rom", "--details", "--format=json"}, nullptr,
+                       &output);
+  EXPECT_TRUE(absl::IsInvalidArgument(status)) << status;
 }
 
 TEST(OverworldTileCommandArgsTest, RejectsNonNumericCoordinates) {
@@ -775,6 +778,144 @@ TEST_F(OverworldTileRomTest, TileStatsCountsMatchTheWorldGrid) {
             found["Overworld Tile Search"]["matches_found"]);
   EXPECT_EQ(tile["Overworld Tile Statistics"]["screens"][0]["tile_count"],
             found["Overworld Tile Search"]["matches_found"]);
+}
+
+TEST_F(OverworldTileRomTest, TileStatsDetailsGroupScreensByGraphicsSource) {
+  test::native_overworld::NativeDirectoryFixture fixture(192);
+  ASSERT_NO_FATAL_FAILURE(SeedValidationFixture(&fixture));
+  fixture.UpgradeToRevision4();
+  fixture.Seal();
+  Rom seeded;
+  ASSERT_TRUE(seeded.LoadFromData(fixture.bytes).ok());
+  zelda3::Overworld world(&seeded);
+  ASSERT_TRUE(world.Load(&seeded).ok());
+
+  // A Tile16 placed in two special-world areas, with a quadrant in a slot
+  // below the animated slot 7.
+  overworld::TileUsageQuery special;
+  special.world = 2;
+  const auto usage_or = overworld::CollectTileUsage(world, special);
+  ASSERT_TRUE(usage_or.ok()) << usage_or.status();
+  const auto& usage = *usage_or;
+  uint16_t tile_id = 0;
+  int quadrant = -1, slot = -1, area_a = -1, area_b = -1, screen_a = -1,
+      screen_b = -1;
+  for (size_t i = 0; i < usage.tiles.size() && i < 32 && area_b < 0; ++i) {
+    const auto& tile = world.tiles16()[usage.tiles[i].tile_id];
+    const gfx::TileInfo infos[] = {tile.tile0_, tile.tile1_, tile.tile2_,
+                                   tile.tile3_};
+    int q = 0;
+    while (q < 4 && infos[q].id_ / 64 >= 7)
+      ++q;
+    if (q == 4)
+      continue;
+    auto query = special;
+    query.tile_id = usage.tiles[i].tile_id;
+    const auto one = overworld::CollectTileUsage(world, query);
+    ASSERT_TRUE(one.ok()) << one.status();
+    for (const auto& screen : one->screens) {
+      if (screen.tile_count == 0)
+        continue;
+      const int area = world.overworld_map(screen.map_id)->parent();
+      if (area_a < 0) {
+        area_a = area;
+        screen_a = screen.map_id;
+      } else if (area != area_a) {
+        area_b = area;
+        screen_b = screen.map_id;
+        break;
+      }
+    }
+    if (area_b >= 0) {
+      tile_id = usage.tiles[i].tile_id;
+      quadrant = q;
+      slot = infos[q].id_ / 64;
+    } else {
+      area_a = screen_a = -1;
+    }
+  }
+  ASSERT_GE(area_b, 0) << "no Tile16 placed in two areas";
+
+  const auto& groups = fixture.Entry(6);
+  auto details_with_sheets = [&](int sheet_a, int sheet_b) {
+    std::copy_n(fixture.bytes.begin() + groups.pc_address + area_a * 8, 8,
+                fixture.bytes.begin() + groups.pc_address + area_b * 8);
+    fixture.bytes[groups.pc_address + area_a * 8 + slot] = sheet_a;
+    fixture.bytes[groups.pc_address + area_b * 8 + slot] = sheet_b;
+    fixture.Seal();
+    Rom rom;
+    EXPECT_TRUE(rom.LoadFromData(fixture.bytes).ok());
+    handlers::OverworldTileStatsCommandHandler handler;
+    return RunJson(
+        handler, {"--tile=" + absl::StrFormat("0x%04X", tile_id), "--details"},
+        &rom);
+  };
+  const std::string name_a = absl::StrFormat("0x%02X", screen_a);
+  const std::string name_b = absl::StrFormat("0x%02X", screen_b);
+  auto group_of = [](const nlohmann::json& tile, const std::string& screen) {
+    for (const auto& group : tile["source_groups"]) {
+      for (const auto& listed : group["screens"]) {
+        if (listed == screen)
+          return group;
+      }
+    }
+    return nlohmann::json();
+  };
+
+  // Control: same sheets, so both areas resolve to one source group.
+  auto same = details_with_sheets(0x10, 0x10);
+  auto& same_tile = same["Overworld Tile Statistics"]["tile"];
+  ASSERT_TRUE(same_tile.contains("source_groups")) << same.dump();
+  int listed = 0;
+  for (const auto& group : same_tile["source_groups"])
+    listed += static_cast<int>(group["screens"].size());
+  EXPECT_EQ(listed, same_tile["screens"].get<int>());
+  ASSERT_FALSE(group_of(same_tile, name_a).is_null());
+  EXPECT_EQ(group_of(same_tile, name_a), group_of(same_tile, name_b));
+
+  const auto& tile = world.tiles16()[tile_id];
+  const gfx::TileInfo infos[] = {tile.tile0_, tile.tile1_, tile.tile2_,
+                                 tile.tile3_};
+  const auto types = world.all_tiles_types();
+  for (int q = 0; q < 4; ++q) {
+    const auto& detail = same_tile["quadrants"][q];
+    EXPECT_EQ(HexField(detail["word"]), gfx::TileInfoToWord(infos[q]));
+    EXPECT_EQ(HexField(detail["tile8_id"]), infos[q].id_);
+    EXPECT_EQ(detail["palette"], infos[q].palette_);
+    EXPECT_EQ(detail["priority"], infos[q].over_);
+    EXPECT_EQ(detail["flip_x"], infos[q].horizontal_mirror_);
+    EXPECT_EQ(detail["flip_y"], infos[q].vertical_mirror_);
+    if (infos[q].id_ < types.size())
+      EXPECT_EQ(HexField(detail["tile_type"]), types[infos[q].id_]);
+    else
+      EXPECT_EQ(detail["tile_type"], "unresolved");
+  }
+
+  // Same words, different sheet in one area: the areas separate.
+  auto split = details_with_sheets(0x10, 0x11);
+  auto& split_tile = split["Overworld Tile Statistics"]["tile"];
+  EXPECT_EQ(split_tile["quadrants"], same_tile["quadrants"]);
+  const auto group_a = group_of(split_tile, name_a);
+  const auto group_b = group_of(split_tile, name_b);
+  ASSERT_FALSE(group_a.is_null());
+  ASSERT_FALSE(group_b.is_null());
+  EXPECT_NE(group_a, group_b);
+  EXPECT_EQ(group_a["quadrants"][quadrant]["sheet"], 0x10);
+  EXPECT_EQ(group_b["quadrants"][quadrant]["sheet"], 0x11);
+
+  // Without --details the output is the existing count-only shape.
+  fixture.Seal();
+  Rom plain_rom;
+  ASSERT_TRUE(plain_rom.LoadFromData(fixture.bytes).ok());
+  handlers::OverworldTileStatsCommandHandler handler;
+  auto plain = RunJson(
+      handler, {"--tile=" + absl::StrFormat("0x%04X", tile_id)}, &plain_rom);
+  auto expected = split;
+  for (const char* key : {"quadrants", "graphics_preview", "source_group_count",
+                          "source_groups"}) {
+    expected["Overworld Tile Statistics"]["tile"].erase(key);
+  }
+  EXPECT_EQ(plain, expected);
 }
 
 TEST_F(OverworldTileRomTest, TileStatsAndFindTileCoverTheNativeTail) {
