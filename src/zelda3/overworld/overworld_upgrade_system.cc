@@ -235,6 +235,15 @@ absl::StatusOr<UpgradeData> CaptureUpgradeData(const Rom& rom) {
     std::fill(result.sprites[phase].begin() + layout.counts[phase],
               result.sprites[phase].end(), empty);
 
+  // The live loader must still read the canonical table that we capture.
+  // V3 replaces this instruction, so a custom lookup cannot be preserved by
+  // copying the old table address alone.
+  constexpr std::array<uint8_t, 4> bomb_door_loader = {0xBF, 0xC5, 0xED, 0x02};
+  if (!std::equal(bomb_door_loader.begin(), bomb_door_loader.end(),
+                  bytes.begin() + 0x16F64))
+    return absl::FailedPreconditionError(
+        "Custom bomb-door loader requires its own upgrade migration");
+
   // V3 reuses the old transition tables for item/bomb-door pointers. Preserve
   // list data and aliases in their existing bank instead of repacking it.
   const uint32_t item_table = Word(bytes, overworldItemsAddress) |

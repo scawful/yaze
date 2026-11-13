@@ -409,6 +409,8 @@ void SeedUpgradeSource(Rom& rom, bool v2) {
   word(overworldItemsAddress, item_table & 0xFFFF);
   bytes[overworldItemsAddress + 2] = item_table >> 16;
   bytes[overworldItemsAddressBank] = 0x1B;
+  std::copy_n(std::array<uint8_t, 4>{0xBF, 0xC5, 0xED, 0x02}.begin(), 4,
+              bytes.begin() + 0x16F64);
   for (int i = 0; i < 128; ++i) {
     word(kOverworldItemsPointers + i * 2, i == 2 ? 0xC400 : 0xC3F9);
     word(0x16DC5 + i * 2, i == 2 ? 0x0082 : 0);
@@ -641,6 +643,31 @@ TEST(OverworldUpgradeServiceTest, RejectsInvalidSourcesWithoutMutation) {
     EXPECT_EQ(rom.size(), size);
     EXPECT_EQ(rom.filename(), filename);
     EXPECT_TRUE(rom.dirty());
+  }
+}
+
+TEST(OverworldUpgradeServiceTest, RejectsUnknownBombDoorLoaderWithoutMutation) {
+  for (const bool v2 : {false, true}) {
+    for (const int offset : {0, 1, 2, 3}) {
+      SCOPED_TRACE(v2);
+      SCOPED_TRACE(offset);
+      Rom rom;
+      ASSERT_NO_FATAL_FAILURE(SeedUpgradeSource(rom, v2));
+      rom[0x16F64 + offset] ^= 1;  // Changed opcode or relocated table operand.
+      rom.set_dirty(v2);
+      const auto before = rom.vector();
+      const auto size = rom.size();
+      const auto filename = rom.filename();
+      OverworldUpgradeSystem upgrade(rom, UpgradeAsmDirectory().string());
+      const auto status = upgrade.ApplyZSCustomOverworldASM(3);
+      EXPECT_EQ(status.code(), absl::StatusCode::kFailedPrecondition);
+      EXPECT_NE(std::string(status.message()).find("bomb-door loader"),
+                std::string::npos);
+      EXPECT_EQ(rom.vector(), before);
+      EXPECT_EQ(rom.size(), size);
+      EXPECT_EQ(rom.filename(), filename);
+      EXPECT_EQ(rom.dirty(), v2);
+    }
   }
 }
 
