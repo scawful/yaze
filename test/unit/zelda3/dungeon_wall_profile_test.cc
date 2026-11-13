@@ -348,6 +348,19 @@ TEST(CompiledWallProfileTest, ResolvesExistingTablesWithoutChangingRom) {
   EXPECT_FALSE(ReadCompiledWallProfile(rom, 0xBC)->has_value());
 }
 
+TEST(CompiledWallProfileTest, HeaderOnlyKitMaskDoesNotInventProfileOverrides) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(test::CompiledWallProfileRom()).ok());
+  auto result = ReadCompiledWallProfile(rom, 0xBC, 0x17);
+  ASSERT_TRUE(result.ok());
+  ASSERT_TRUE(result->has_value());
+  EXPECT_EQ((*result)->blockset, 0xFF);
+  EXPECT_EQ((*result)->palette, 0xFF);
+  EXPECT_EQ((*result)->slot6_high_palette, 3);
+  EXPECT_TRUE((*result)->class_words.empty());
+  EXPECT_FALSE(ReadCompiledWallProfile(rom, 0xBC, 0x0B)->has_value());
+}
+
 TEST(CompiledWallProfileTest, RefusesUnknownVersionPointersAndAnimatedMask) {
   for (int mode = 0; mode < 4; ++mode) {
     auto bytes = test::CompiledWallProfileRom();

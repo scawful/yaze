@@ -18,7 +18,7 @@
 namespace yaze::zelda3 {
 
 absl::StatusOr<std::optional<CompiledWallProfile>> ReadCompiledWallProfile(
-    const Rom& rom, int room) {
+    const Rom& rom, int room, std::optional<uint8_t> header_blockset) {
   const auto& bytes = rom.vector();
   constexpr size_t kDispatch = 0x6636;
   if (bytes.size() < kDispatch + 6)
@@ -81,25 +81,37 @@ absl::StatusOr<std::optional<CompiledWallProfile>> ReadCompiledWallProfile(
       return fail();
   }
   const uint8_t profile = bytes[pc(pointers[0]) + room];
-  if (profile == 0)
-    return std::nullopt;
   if (profile > profiles)
     return fail();
   CompiledWallProfile result;
-  result.blockset = bytes[pc(pointers[7]) + profile - 1];
-  result.palette = bytes[pc(pointers[8]) + profile - 1];
-  if (result.palette != 0xFF && ((result.palette & 1) || result.palette > 0x26))
-    return fail();
-  if (result.blockset != 0xFF) {
-    if (result.blockset < 0x17 || result.blockset >= 0x17 + kits)
+  if (profile != 0) {
+    result.blockset = bytes[pc(pointers[7]) + profile - 1];
+    result.palette = bytes[pc(pointers[8]) + profile - 1];
+    if (result.palette != 0xFF &&
+        ((result.palette & 1) || result.palette > 0x26))
       return fail();
-    const size_t mask = pc(pointers[9]) + (result.blockset - 0x17) * 64;
+    if (result.blockset != 0xFF &&
+        (result.blockset < 0x17 || result.blockset >= 0x17 + kits))
+      return fail();
+  }
+  const uint8_t effective_blockset = result.blockset != 0xFF
+                                         ? result.blockset
+                                         : header_blockset.value_or(0xFF);
+  const bool kit_row =
+      effective_blockset >= 0x17 && effective_blockset < 0x17 + kits;
+  if (kit_row) {
+    const size_t mask = pc(pointers[9]) + (effective_blockset - 0x17) * 64;
     for (int tile = 0; tile < 64; ++tile) {
       if (bytes[mask + tile] > 1 || (tile >= 48 && bytes[mask + tile]))
         return fail();
       if (bytes[mask + tile])
         result.slot6_high_palette |= uint64_t{1} << tile;
     }
+  }
+  if (profile == 0) {
+    if (kit_row)
+      return result;
+    return std::nullopt;
   }
   const uint16_t base = u16(pc(pointers[3]) + (profile - 1) * 2);
   if (base != (profile - 1) * 60)

@@ -1041,7 +1041,7 @@ void Room::LoadRoomGraphics(std::optional<uint8_t> entrance_blockset) {
   // requests still decode and refuse malformed compiled metadata.
   const auto compiled =
       rom_ && rom_->is_loaded()
-          ? ReadCompiledWallProfile(*rom_, room_id_)
+          ? ReadCompiledWallProfile(*rom_, room_id_, blockset_)
           : absl::StatusOr<std::optional<CompiledWallProfile>>(std::nullopt);
   compiled_wall_profile_status_ = compiled.status();
   compiled_wall_profile_ = compiled.ok() ? *compiled : std::nullopt;

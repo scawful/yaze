@@ -29,8 +29,11 @@ struct CompiledWallProfile {
 
 // A vanilla dispatch means no compiled profile. A hooked but unknown/malformed
 // descriptor fails closed instead of producing a plausible incorrect render.
+// The current (possibly unsaved) AA2 header can select a kit mask even when
+// this room has no compiled class/palette profile.
 absl::StatusOr<std::optional<CompiledWallProfile>> ReadCompiledWallProfile(
-    const Rom& rom, int room);
+    const Rom& rom, int room,
+    std::optional<uint8_t> header_blockset = std::nullopt);
 
 inline constexpr size_t kWallProfileMaxSourceBytes = 1024 * 1024;
 inline constexpr size_t kWallProfileMaxProfiles = 128;

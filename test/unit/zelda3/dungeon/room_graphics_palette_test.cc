@@ -223,6 +223,23 @@ TEST(RoomGraphicsPaletteTest, CompiledKitMasksOnlySelectedSlot6Glyphs) {
   room.LoadRoomGraphics(0x20);
   EXPECT_FALSE(room.compiled_wall_profile_status().ok());
   EXPECT_EQ(rom.vector(), bytes);
+  // A room without a compiled class profile still uses a directly authored
+  // kit AA2. Unsaved header edits must update and clear this transient mask.
+  Room unprofiled(0xBC, &rom, &data);
+  unprofiled.SetBlockset(0x17);
+  unprofiled.LoadRoomGraphics(0x0B);
+  ASSERT_TRUE(unprofiled.compiled_wall_profile_status().ok());
+  unprofiled.CopyRoomGraphicsToBuffer();
+  EXPECT_EQ(unprofiled.get_gfx_buffer()[6 * 4096 + 1], 9);
+  EXPECT_EQ(unprofiled.blockset(), 0x17);
+  unprofiled.SetBlockset(0x0B);
+  unprofiled.LoadRoomGraphics(0x0B);
+  EXPECT_NE(unprofiled.blocks()[6], 0xF3);
+  unprofiled.SetBlockset(0x17);
+  unprofiled.LoadRoomGraphics(0x0B);
+  unprofiled.CopyRoomGraphicsToBuffer();
+  EXPECT_EQ(unprofiled.get_gfx_buffer()[6 * 4096 + 1], 9);
+  EXPECT_EQ(rom.vector(), bytes);
 }
 
 TEST(RoomGraphicsPaletteTest,
