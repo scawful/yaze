@@ -854,11 +854,12 @@ TEST_F(OverworldTileRomTest, SeamCheckCellsTileQueryAndBothSidesAgree) {
                 .code(),
             absl::StatusCode::kFailedPrecondition);
 
-  zelda3::GameData game_data;
+  auto game_data = std::make_unique<zelda3::GameData>(&rom_);
   zelda3::LoadOptions options;
   options.expand_rom = false;
-  ASSERT_TRUE(zelda3::LoadGameData(rom_, game_data, options).ok());
-  zelda3::Overworld ow(&rom_, &game_data);
+  ASSERT_TRUE(zelda3::LoadGameData(rom_, *game_data, options).ok());
+  auto ow_owner = std::make_unique<zelda3::Overworld>(&rom_, game_data.get());
+  auto& ow = *ow_owner;
   ASSERT_TRUE(ow.Load(&rom_).ok());
 
   auto tile_at = [&ow](int screen, int x, int y) -> uint16_t {

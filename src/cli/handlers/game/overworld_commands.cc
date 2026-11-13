@@ -1573,14 +1573,15 @@ absl::Status OverworldSeamCheckCommandHandler::Execute(
     query.tile_id = static_cast<uint16_t>(tile_id);
   }
 
-  zelda3::GameData game_data;
+  // Both live on the heap: together they overflow the 1 MiB Windows stack.
+  auto game_data = std::make_unique<zelda3::GameData>(rom);
   zelda3::LoadOptions options;
   options.expand_rom = false;
-  RETURN_IF_ERROR(zelda3::LoadGameData(*rom, game_data, options));
-  zelda3::Overworld overworld(rom, &game_data);
-  RETURN_IF_ERROR(overworld.Load(rom));
+  RETURN_IF_ERROR(zelda3::LoadGameData(*rom, *game_data, options));
+  auto overworld = std::make_unique<zelda3::Overworld>(rom, game_data.get());
+  RETURN_IF_ERROR(overworld->Load(rom));
   ASSIGN_OR_RETURN(const auto reports,
-                   overworld::CheckMapSeams(overworld, query));
+                   overworld::CheckMapSeams(*overworld, query));
 
   auto add_changes =
       [&formatter](const std::string& key,
