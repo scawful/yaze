@@ -148,6 +148,17 @@ TEST_F(ProjectGraphicsImportTest, PriorityOnAnAllTransparentGlyphRefuses) {
   EXPECT_EQ(plan.status().code(), absl::StatusCode::kInvalidArgument);
 }
 
+TEST_F(ProjectGraphicsImportTest, PriorityOnATransparentQuadrantRefuses) {
+  ASSERT_TRUE(asset_.cells[0].quadrants[1].transparent);
+  auto plan = PlanProjectGraphicsImport(asset_, bindings_, context_);
+  ASSERT_TRUE(plan.ok()) << plan.status();
+  asset_.cells[0].quadrants[1].priority = true;
+  plan = PlanProjectGraphicsImport(asset_, bindings_, context_);
+  EXPECT_EQ(plan.status().code(), absl::StatusCode::kInvalidArgument);
+  EXPECT_NE(std::string(plan.status().message()).find("priority"),
+            std::string::npos);
+}
+
 TEST_F(ProjectGraphicsImportTest,
        AlphaComposesExactResolvedBackgroundInFreeColor) {
   asset_.palettes[0].characters = Glyph(1, true);
