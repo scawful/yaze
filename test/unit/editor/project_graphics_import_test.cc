@@ -112,6 +112,42 @@ TEST_F(ProjectGraphicsImportTest, FullyTransparentCellsRetainTheirCurrentIds) {
   EXPECT_EQ(plan->definitions[0].tile_id, 10);
 }
 
+TEST_F(ProjectGraphicsImportTest, QuadrantPriorityReachesTheDefinitionWord) {
+  asset_.width = 2;
+  asset_.cells.resize(2);
+  asset_.cells[1] = asset_.cells[0];
+  auto plan = PlanProjectGraphicsImport(asset_, bindings_, context_);
+  ASSERT_TRUE(plan.ok()) << plan.status();
+  ASSERT_EQ(plan->definitions.size(), 1);
+  EXPECT_FALSE(
+      zelda3::Tile16QuadrantInfo(plan->definitions[0].tile_data, 0).over_);
+
+  asset_.cells[1].quadrants[0].priority = true;
+  plan = PlanProjectGraphicsImport(asset_, bindings_, context_);
+  ASSERT_TRUE(plan.ok()) << plan.status();
+  ASSERT_EQ(plan->definitions.size(), 2);
+  EXPECT_EQ(plan->stamp.tile_ids, (std::vector<int>{10, 11}));
+  const auto& low =
+      zelda3::Tile16QuadrantInfo(plan->definitions[0].tile_data, 0);
+  const auto& high =
+      zelda3::Tile16QuadrantInfo(plan->definitions[1].tile_data, 0);
+  EXPECT_FALSE(low.over_);
+  EXPECT_TRUE(high.over_);
+  EXPECT_EQ(high.id_, low.id_);
+  EXPECT_EQ(high.palette_, low.palette_);
+  EXPECT_EQ(gfx::TileInfoToWord(high), gfx::TileInfoToWord(low) | 0x2000);
+}
+
+TEST_F(ProjectGraphicsImportTest, PriorityOnAnAllTransparentGlyphRefuses) {
+  asset_.palettes[0].characters = Glyph(0);
+  auto plan = PlanProjectGraphicsImport(asset_, bindings_, context_);
+  ASSERT_TRUE(plan.ok()) << plan.status();
+  EXPECT_TRUE(plan->definitions.empty());
+  asset_.cells[0].quadrants[0].priority = true;
+  plan = PlanProjectGraphicsImport(asset_, bindings_, context_);
+  EXPECT_EQ(plan.status().code(), absl::StatusCode::kInvalidArgument);
+}
+
 TEST_F(ProjectGraphicsImportTest,
        AlphaComposesExactResolvedBackgroundInFreeColor) {
   asset_.palettes[0].characters = Glyph(1, true);
@@ -258,6 +294,81 @@ TEST(ProjectGraphicsImportLoaderTest,
   std::ofstream(directory / "catalog.json") << catalog.dump();
   loaded = LoadProjectGraphicsImport(directory / "logical.json");
   EXPECT_FALSE(loaded.ok());
+}
+
+TEST(ProjectGraphicsImportLoaderTest, OptionalQuadrantPriorityIsStrict) {
+  const auto directory =
+      std::filesystem::temp_directory_path() /
+      ("yaze_project_graphics_priority_" +
+       std::to_string(
+           std::chrono::steady_clock::now().time_since_epoch().count()));
+  std::filesystem::create_directories(directory);
+  struct Cleanup {
+    std::filesystem::path path;
+    ~Cleanup() {
+      std::error_code ignored;
+      std::filesystem::remove_all(path, ignored);
+    }
+  } cleanup{directory};
+  const auto glyph = Glyph(1);
+  std::ofstream(directory / "glyph.bin", std::ios::binary)
+      .write(reinterpret_cast<const char*>(glyph.data()), glyph.size());
+  nlohmann::json catalog = {{"schema_version", 2},
+                            {"profiles", nlohmann::json::object()},
+                            {"bindings", nlohmann::json::array()}};
+  catalog["resources"]["art"] = {
+      {"format", "snes4bpp"},
+      {"byte_count", 32},
+      {"path", "glyph.bin"},
+      {"sha256",
+       core::ComputeSourceArtifactSha256(std::string_view(
+           reinterpret_cast<const char*>(glyph.data()), glyph.size()))}};
+  std::ofstream(directory / "catalog.json") << catalog.dump();
+  auto words = nlohmann::json::array();
+  for (int i = 0; i < 16; ++i)
+    words.push_back(nullptr);
+  words[1] = 0x001F;
+  const nlohmann::json art = {{"logical_palette", "timber"},
+                              {"logical_character", 0},
+                              {"hflip", false},
+                              {"vflip", false}};
+  const auto load = [&](const nlohmann::json& first,
+                        const nlohmann::json& second) {
+    nlohmann::json logical = {
+        {"catalog", "catalog.json"},
+        {"tile16_grid_size", {1, 1}},
+        {"resources",
+         {{{"logical_palette", "timber"},
+           {"resource_id", "art"},
+           {"characters", 1},
+           {"bytes", 32}}}},
+        {"palette_groups",
+         {{{"logical_palette", "timber"}, {"BGR555_words", words}}}},
+        {"tile16_cells",
+         {{{"x", 0},
+           {"y", 0},
+           {"quadrants",
+            {first,
+             second,
+             {{"transparent", true}},
+             {{"transparent", true}}}}}}}};
+    std::ofstream(directory / "logical.json") << logical.dump();
+    return LoadProjectGraphicsImport(directory / "logical.json");
+  };
+
+  auto prioritized = art;
+  prioritized["priority"] = true;
+  auto loaded = load(prioritized, art);
+  ASSERT_TRUE(loaded.ok()) << loaded.status();
+  EXPECT_TRUE(loaded->cells[0].quadrants[0].priority);
+  EXPECT_FALSE(loaded->cells[0].quadrants[1].priority);
+
+  prioritized["priority"] = "yes";
+  EXPECT_EQ(load(prioritized, art).status().code(),
+            absl::StatusCode::kInvalidArgument);
+  EXPECT_EQ(
+      load(art, {{"transparent", true}, {"priority", false}}).status().code(),
+      absl::StatusCode::kInvalidArgument);
 }
 
 }  // namespace

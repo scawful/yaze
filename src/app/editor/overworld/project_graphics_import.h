@@ -29,6 +29,7 @@ struct ProjectImportQuadrant {
   int character = 0;
   bool hflip = false;
   bool vflip = false;
+  bool priority = false;
 };
 struct ProjectImportTile16 {
   std::array<ProjectImportQuadrant, 4> quadrants;
