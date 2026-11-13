@@ -102,7 +102,10 @@ absl::StatusOr<UpgradeData> CaptureUpgradeData(const Rom& rom) {
   // here rather than silently replacing another producer's data. This is a
   // migration precondition for fixed ZSCustom spans, not a free-space search.
   const int destination_begin = result.custom_v2 ? kPoolEnd : kPoolBegin;
-  const int destination_end = std::min<int>(0x1417F8, bytes.size());
+  // Bundled v2 functions begin at1412B8 (not at v3's141940). That occupied
+  // code is verified separately against its producer, not treated as a pool.
+  const int destination_end =
+      std::min<int>(result.custom_v2 ? 0x1412B8 : 0x141938, bytes.size());
   for (int pc = destination_begin; pc < destination_end; ++pc)
     if (bytes[pc] != 0 && bytes[pc] != 0xFF)
       return absl::FailedPreconditionError(absl::StrFormat(
@@ -196,14 +199,6 @@ absl::StatusOr<UpgradeData> CaptureUpgradeData(const Rom& rom) {
         bytes[kOverworldMapPaletteIds + (map < 128 ? map : 0)];
     result.messages[map] =
         Word(bytes, kOverworldMessageIds + (map < 144 ? map : 0) * 2);
-    if (result.custom_v2) {
-      const auto dormant = Word(bytes, kOverworldMessagesExpanded + map * 2);
-      if (dormant != 0 && dormant != 0xFFFF && dormant != result.messages[map])
-        return absl::FailedPreconditionError(absl::StrFormat(
-            "V2 message 0x%02X conflicts with the active legacy sign table; "
-            "reconcile the authored expanded value before upgrade",
-            map));
-    }
   }
   for (int local = 0; local < 16; ++local) {
     result.graphics[128 + local] = bytes[kOverworldSpecialGFXGroup + local];
@@ -236,6 +231,29 @@ absl::StatusOr<UpgradeData> CaptureUpgradeData(const Rom& rom) {
     std::fill(result.sprites[phase].begin() + layout.counts[phase],
               result.sprites[phase].end(), empty);
   return result;
+}
+
+absl::Status VerifyBundledV2Source(const Rom& source, core::AsarWrapper& asar,
+                                   const std::filesystem::path& asm_directory) {
+  auto probe = source.vector();
+  ASSIGN_OR_RETURN(
+      const auto patched,
+      asar.ApplyPatch((asm_directory / "ZSCustomOverworld.asm").string(),
+                      probe));
+  if (!patched.success || probe.size() != source.size())
+    return absl::FailedPreconditionError(
+        "Cannot verify this source against the bundled legacy-table v2 "
+        "producer");
+  for (size_t pc = 0; pc < probe.size(); ++pc) {
+    if ((pc >= kPoolBegin && pc < kPoolEnd) || (pc >= 0x7FDC && pc < 0x7FE0))
+      continue;
+    if (probe[pc] != source.vector()[pc])
+      return absl::FailedPreconditionError(absl::StrFormat(
+          "Modified v2 hook/function at PC 0x%06X requires its own migration; "
+          "bundled upgrade will not discard it",
+          pc));
+  }
+  return absl::OkStatus();
 }
 
 absl::Status MigrateUpgradeData(const UpgradeData& data,
@@ -338,6 +356,9 @@ absl::Status OverworldUpgradeSystem::ApplyZSCustomOverworldASM(
   try {
     core::AsarWrapper asar;
     RETURN_IF_ERROR(asar.Initialize());
+    if (data.custom_v2)
+      RETURN_IF_ERROR(
+          VerifyBundledV2Source(rom_, asar, asm_path.parent_path()));
     auto candidate = rom_.vector();
     candidate.resize(std::max<size_t>(candidate.size(), 0x200000), 0);
     ASSIGN_OR_RETURN(const auto patched,

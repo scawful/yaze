@@ -7,6 +7,7 @@
 #include <vector>
 
 #include "absl/status/status.h"
+#include "core/asar_wrapper.h"
 #include "fixtures/lyra/native_directory_fixture.h"
 #include "gtest/gtest.h"
 #include "rom/rom.h"
@@ -400,6 +401,12 @@ void SeedUpgradeSource(Rom& rom, bool v2) {
   word(0x166E1, 0x0061);
   word(0x166E3, 0x0073);  // Authored special camera origin, moved by real ASM.
   if (v2) {
+    core::AsarWrapper asar;
+    ASSERT_TRUE(asar.Initialize().ok());
+    const auto patched = asar.ApplyPatch(
+        (UpgradeAsmDirectory() / "ZSCustomOverworld.asm").string(), bytes);
+    ASSERT_TRUE(patched.ok()) << patched.status();
+    ASSERT_TRUE(patched->success);
     std::fill(bytes.begin() + 0x140000, bytes.begin() + 0x140998, 0);
     bytes[OverworldCustomASMHasBeenApplied] = 2;
     bytes[OverworldCustomAreaSpecificBGEnabled] = 0xFF;
@@ -409,8 +416,6 @@ void SeedUpgradeSource(Rom& rom, bool v2) {
     bytes[OverworldCustomTileGFXGroupEnabled] = 1;
     bytes[OverworldCustomMosaicEnabled] = 1;  // Previously unused feature.
     bytes[OverworldCustomMosaicArray + 9] = 0x0A;
-    for (int i = 0; i < 160; ++i)
-      word(kOverworldMessagesExpanded + i * 2, 0x80 + (i < 144 ? i : 0));
     word(OverworldCustomAreaSpecificBGPalette + 6, 0x1234);
     bytes[OverworldCustomMainPaletteArray + 7] = 4;
     bytes[OverworldCustomTileGFXGroupArray + 11] = 0x3A;
@@ -506,9 +511,7 @@ TEST(OverworldUpgradeServiceTest, ActualAsarPreservesCustomGeometryAndPools) {
                            original.begin() + 0x4CB54,
                            output.begin() + 0x4CB41));
     EXPECT_EQ(UpgradeWord(output, kOverworldMessagesExpanded + 0x83 * 2),
-              UpgradeWord(original, (v2 ? kOverworldMessagesExpanded
-                                        : kOverworldMessageIds) +
-                                        0x83 * 2));
+              UpgradeWord(original, kOverworldMessageIds + 0x83 * 2));
     if (v2) {
       auto expected_pool = std::vector<uint8_t>(original.begin() + 0x140000,
                                                 original.begin() + 0x140998);
@@ -557,7 +560,7 @@ TEST(OverworldUpgradeServiceTest, ActualAsarPreservesCustomGeometryAndPools) {
 }
 
 TEST(OverworldUpgradeServiceTest, RejectsInvalidSourcesWithoutMutation) {
-  for (int which = 0; which < 9; ++which) {
+  for (int which = 0; which < 10; ++which) {
     SCOPED_TRACE(which);
     Rom rom;
     ASSERT_NO_FATAL_FAILURE(SeedUpgradeSource(rom, true));
@@ -581,6 +584,11 @@ TEST(OverworldUpgradeServiceTest, RejectsInvalidSourcesWithoutMutation) {
       rom[kOverworldMapParentIdExpanded] = 0x22;
     if (which == 8)
       rom[0x3B518] = 0x22;  // Custom message loader, unknown target.
+    if (which == 9) {
+      ASSERT_NO_FATAL_FAILURE(SeedUpgradeSource(rom, false));
+      rom.Expand(0x200000);
+      rom[0x141800] = 0x42;  // Vanilla-owned content in the new message span.
+    }
     rom.set_dirty(true);
     const auto before = rom.vector();
     const auto size = rom.size();
@@ -597,7 +605,7 @@ TEST(OverworldUpgradeServiceTest, RejectsInvalidSourcesWithoutMutation) {
 TEST(OverworldUpgradeServiceTest,
      ActualAsarFailureLeavesCompleteSourceUntouched) {
   Rom rom;
-  ASSERT_NO_FATAL_FAILURE(SeedUpgradeSource(rom, true));
+  ASSERT_NO_FATAL_FAILURE(SeedUpgradeSource(rom, false));
   const auto before = rom.vector();
   const auto temporary =
       std::filesystem::temp_directory_path() /
