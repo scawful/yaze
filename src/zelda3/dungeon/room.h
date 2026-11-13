@@ -1097,12 +1097,14 @@ class Room {
   GetSpriteSaveWriteRanges(const DungeonStreamLayout* layout = nullptr) const;
   std::vector<uint8_t> EncodeSprites() const;
   absl::Status SaveRoomHeader();
-  // Stage the bytes SaveObjects, SaveObjectStreamHeader or SaveRoomHeader
+  // Stage the bytes SaveObjects, SaveSprites, SaveObjectStreamHeader or SaveRoomHeader
   // would write into image, a same-size copy of this room's ROM, and return
   // the written PC ranges. The ROM is not modified, so callers whose layout
   // refuses generic writes can commit the image as a whole.
   using StagedRanges = std::vector<std::pair<uint32_t, uint32_t>>;
   absl::StatusOr<StagedRanges> StageObjectSave(
+      const DungeonStreamLayout* layout, std::vector<uint8_t>& image) const;
+  absl::StatusOr<StagedRanges> StageSpriteSave(
       const DungeonStreamLayout* layout, std::vector<uint8_t>& image) const;
   absl::StatusOr<StagedRanges> StageObjectStreamHeaderSave(
       const DungeonStreamLayout* layout, std::vector<uint8_t>& image) const;

@@ -952,6 +952,171 @@ std::vector<uint8_t> NativeSpriteRouteImage(int data_pc) {
   return bytes;
 }
 
+class DungeonNativePlaceSpriteStorageTest
+    : public DungeonPlaceSpriteStorageTest {
+ protected:
+  void SetUp() override {
+    DungeonPlaceSpriteStorageTest::SetUp();
+    ASSERT_TRUE(
+        rom_.LoadFromData(NativeSpriteRouteImage(kPlacementSpriteDataPc)).ok());
+    ASSERT_TRUE(rom::IsNativeSpecialOverworldLayout(rom_.InspectLyraLayout()));
+    PersistFixture();
+  }
+
+  void ExpectNativeRelocation(const nlohmann::json& placement) const {
+    EXPECT_EQ(placement.at("layout"), "native");
+    EXPECT_EQ(placement.at("allocator_capability"), "copy_on_write");
+    EXPECT_EQ(placement.at("storage_strategy"), "native_copy_on_write");
+    EXPECT_EQ(placement.at("source_data_pc"), "0x048400");
+    EXPECT_EQ(placement.at("planned_data_pc"), "0x048440");
+    EXPECT_EQ(placement.at("planned_stream_bytes"), 11);
+    EXPECT_EQ(placement.at("preflight_status"), "passed");
+  }
+};
+
+TEST_F(DungeonNativePlaceSpriteStorageTest,
+       GrowDryRunAndWritePreserveFullStreamsAndReopen) {
+  const auto baseline = CaptureRomFailClosedBaseline(rom_, cleanup_.rom_path);
+  auto args = Args();
+  std::string output;
+  ASSERT_TRUE(handler_.Run(args, &rom_, &output).ok()) << output;
+  ExpectNativeRelocation(nlohmann::json::parse(output).at("Place Sprite"));
+  ExpectUnchanged(baseline);
+
+  args.push_back("--write");
+  ASSERT_TRUE(handler_.Run(args, &rom_, &output).ok()) << output;
+  const auto placement = nlohmann::json::parse(output).at("Place Sprite");
+  ExpectNativeRelocation(placement);
+  EXPECT_EQ(placement.at("verified_reload"), true);
+  const auto expected = ExpectedRelocation(baseline.bytes);
+  EXPECT_EQ(rom_.vector(), expected);
+  EXPECT_EQ(ReadFile(cleanup_.rom_path), expected);
+  EXPECT_TRUE(rom::IsNativeSpecialOverworldLayout(rom_.InspectLyraLayout()));
+  const auto backups = FindBackupArtifacts(cleanup_.rom_path);
+  ASSERT_EQ(backups.size(), 1u);
+  EXPECT_EQ(ReadFile(backups.front()), baseline.disk_bytes);
+
+  Rom reopened;
+  ASSERT_TRUE(reopened.LoadFromFile(cleanup_.rom_path.string()).ok());
+  EXPECT_EQ(reopened.vector(), expected);
+  auto room = zelda3::LoadRoomHeaderFromRom(&reopened, kPlacementRoomId);
+  room.LoadSprites();
+  ASSERT_EQ(room.GetSprites().size(), 3u);
+  EXPECT_EQ(room.GetSprites()[0].id(), 0x10);
+  EXPECT_EQ(room.GetSprites()[1].id(), 0x11);
+  EXPECT_EQ(room.GetSprites()[2].id(), 0xA3);
+  EXPECT_EQ(room.GetSprites()[2].x(), 7);
+  EXPECT_EQ(room.GetSprites()[2].y(), 20);
+  EXPECT_EQ(room.GetSprites()[2].subtype(), 2);
+  EXPECT_EQ(ReadRoomSpritePointerPc(reopened, kPlacementSpriteTablePc,
+                                    kPlacementNeighborRoomId),
+            kPlacementSpriteOtherPc);
+  EXPECT_EQ(reopened.data()[kPlacementSpriteAllocationPc], 1);
+}
+
+TEST_F(DungeonNativePlaceSpriteStorageTest,
+       SharedAliasRelocationPreservesNeighborAndSortHeader) {
+  SetRoomSpritePointer(&rom_, kPlacementSpriteTablePc, kPlacementNeighborRoomId,
+                       kPlacementSpriteDataPc);
+  PersistFixture();
+  const auto baseline = CaptureRomFailClosedBaseline(rom_, cleanup_.rom_path);
+  auto args = Args();
+  args.push_back("--write");
+  std::string output;
+  ASSERT_TRUE(handler_.Run(args, &rom_, &output).ok()) << output;
+  ExpectNativeRelocation(nlohmann::json::parse(output).at("Place Sprite"));
+  EXPECT_EQ(rom_.vector(), ExpectedRelocation(baseline.bytes));
+  Rom reopened;
+  ASSERT_TRUE(reopened.LoadFromFile(cleanup_.rom_path.string()).ok());
+  EXPECT_EQ(ReadRoomSpritePointerPc(reopened, kPlacementSpriteTablePc,
+                                    kPlacementNeighborRoomId),
+            kPlacementSpriteDataPc);
+  auto neighbor =
+      zelda3::LoadRoomHeaderFromRom(&reopened, kPlacementNeighborRoomId);
+  neighbor.LoadSprites();
+  ASSERT_EQ(neighbor.GetSprites().size(), 2u);
+  EXPECT_EQ(neighbor.GetSprites()[0].id(), 0x10);
+  EXPECT_EQ(neighbor.GetSprites()[1].id(), 0x11);
+  EXPECT_EQ(reopened.data()[kPlacementSpriteDataPc], 1);
+  EXPECT_EQ(reopened.data()[kPlacementSpriteAllocationPc], 1);
+}
+
+TEST_F(DungeonNativePlaceSpriteStorageTest,
+       MissingExhaustedAndProtectedOwnershipRefuseBothModes) {
+  const auto baseline = CaptureRomFailClosedBaseline(rom_, cleanup_.rom_path);
+  for (int storage_case = 0; storage_case < 4; ++storage_case) {
+    SCOPED_TRACE(storage_case);
+    WriteManifest(storage_case == 1 ? 10 : 0x40,
+                  storage_case == 2 ? kPlacementSpriteAllocationPc
+                  : storage_case == 3
+                      ? kPlacementSpriteTablePc + kPlacementRoomId * 2
+                      : -1);
+    for (const bool write : {false, true}) {
+      auto args = Args();
+      if (storage_case == 0)
+        args.erase(args.end() - 2);  // No --manifest capability.
+      if (write)
+        args.push_back("--write");
+      std::string output;
+      const auto status = handler_.Run(args, &rom_, &output);
+      EXPECT_EQ(status.code(), storage_case < 2
+                                   ? absl::StatusCode::kResourceExhausted
+                                   : absl::StatusCode::kPermissionDenied)
+          << status;
+      const auto result = ExpectRomFailedClosed(output, rom_, baseline);
+      EXPECT_EQ(result.at("Place Sprite").at("preflight_status"), "failed");
+    }
+  }
+}
+
+TEST_F(DungeonNativePlaceSpriteStorageTest,
+       ManifestCannotAllocateOverNativeOverworldStorage) {
+  constexpr int kOwnedPc = 0x04C890;
+  std::ifstream input(manifest_cleanup_.file_path);
+  auto manifest = nlohmann::json::parse(input);
+  auto& layout = manifest["dungeon_stream_regions"]["sprites"];
+  layout["data_regions"][0]["end"] = "0x09C900";
+  layout["allocation_regions"][0] = {{"start", "0x09C890"},
+                                     {"end", "0x09C900"}};
+  {
+    std::ofstream output(manifest_cleanup_.file_path, std::ios::trunc);
+    output << manifest.dump(2);
+  }
+  const auto baseline = CaptureRomFailClosedBaseline(rom_, cleanup_.rom_path);
+  for (const bool write : {false, true}) {
+    auto args = Args();
+    if (write)
+      args.push_back("--write");
+    std::string output;
+    const auto status = handler_.Run(args, &rom_, &output);
+    EXPECT_EQ(status.code(), absl::StatusCode::kPermissionDenied) << status;
+    EXPECT_THAT(std::string(status.message()),
+                HasSubstr("overlaps native overworld storage"));
+    const auto result = ExpectRomFailedClosed(output, rom_, baseline);
+    EXPECT_EQ(result.at("Place Sprite").at("planned_data_pc"),
+              absl::StrFormat("0x%06X", kOwnedPc));
+  }
+}
+
+TEST_F(DungeonNativePlaceSpriteStorageTest,
+       FailedDiskSaveRollsBackRelocatedPayloadAndPointer) {
+  const auto baseline = CaptureRomFailClosedBaseline(rom_, cleanup_.rom_path);
+  auto args = Args();
+  args.push_back("--write");
+  std::string output;
+  {
+    test::ScopedRomStagingFailure fault;
+    EXPECT_FALSE(handler_.Run(args, &rom_, &output).ok());
+  }
+  const auto placement = nlohmann::json::parse(output).at("Place Sprite");
+  ExpectNativeRelocation(placement);
+  EXPECT_TRUE(placement.contains("save_error"));
+  ExpectUnchanged(baseline, 1);
+  const auto backups = FindBackupArtifacts(cleanup_.rom_path);
+  ASSERT_EQ(backups.size(), 1u);
+  EXPECT_EQ(ReadFile(backups.front()), baseline.disk_bytes);
+}
+
 nlohmann::json RunNativeMove(Rom* rom, int x, int y, bool write,
                              absl::Status* status) {
   handlers::DungeonMoveSpriteCommandHandler handler;

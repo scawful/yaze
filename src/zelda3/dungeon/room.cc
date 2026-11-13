@@ -2507,6 +2507,12 @@ absl::StatusOr<Room::StagedRanges> Room::StageObjectSave(
   return StageStreamSavePlan(plan, image);
 }
 
+absl::StatusOr<Room::StagedRanges> Room::StageSpriteSave(
+    const DungeonStreamLayout* layout, std::vector<uint8_t>& image) const {
+  ASSIGN_OR_RETURN(const StreamSavePlan plan, PlanSpriteSave(layout));
+  return StageStreamSavePlan(plan, image);
+}
+
 absl::StatusOr<Room::StagedRanges> Room::StageObjectStreamHeaderSave(
     const DungeonStreamLayout* layout, std::vector<uint8_t>& image) const {
   ASSIGN_OR_RETURN(const StreamSavePlan plan,

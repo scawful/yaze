@@ -291,33 +291,42 @@ absl::StatusOr<std::vector<zelda3::Sprite>> ReopenRoomSprites(
   return room.GetSprites();
 }
 
-// Native layouts refuse generic writes and have no allocator layout that is
-// known to avoid native storage, so only an in-place stream rewrite is planned.
+// Use the same manifest-backed room plan as editor Save, staging both payload
+// and pointer changes before checking native storage and reopening the result.
 absl::Status SaveNativeRoomSprites(
     Rom* rom, int room_id, const zelda3::Room& room,
     const StreamSaveManifestContext* manifest_context, bool do_write,
     resources::OutputFormatter& formatter) {
   formatter.AddField("layout", "native");
-  const auto ranges = room.GetSpriteSaveWriteRanges(nullptr);
+  const auto fail = [&formatter](const absl::Status& status) {
+    formatter.AddField("preflight_status", "failed");
+    formatter.AddField("preflight_error", std::string(status.message()));
+    return status;
+  };
+  const auto source = zelda3::ReadDungeonSpriteStream(*rom, room_id);
+  if (!source.ok())
+    return fail(source.status());
   const auto baseline = rom->vector();
   auto candidate = baseline;
-  absl::Status staged = ranges.status();
-  if (staged.ok() && !ranges->empty()) {
-    const auto encoded = room.EncodeSprites();
-    const auto& [begin, end] = ranges->front();
-    if (ranges->size() != 1 || end - begin != encoded.size()) {
-      staged = absl::FailedPreconditionError(
-          "Native sprite save supports only an in-place stream rewrite");
-    } else {
-      std::copy(encoded.begin(), encoded.end(), candidate.begin() + begin);
-    }
-  }
-  if (!staged.ok()) {
-    formatter.AddField("preflight_status", "failed");
-    formatter.AddField("preflight_error", std::string(staged.message()));
-    return staged;
-  }
-  formatter.AddField("storage_strategy", "native_in_place");
+  const auto ranges = room.StageSpriteSave(
+      manifest_context != nullptr ? &manifest_context->allocator_layout
+                                  : nullptr,
+      candidate);
+  if (!ranges.ok())
+    return fail(ranges.status());
+  auto scratch_rom = LoadScratchRom(candidate);
+  if (!scratch_rom.ok())
+    return fail(scratch_rom.status());
+  const auto planned = zelda3::ReadDungeonSpriteStream(**scratch_rom, room_id);
+  if (!planned.ok())
+    return fail(planned.status());
+  formatter.AddHexField("source_data_pc", source->data_pc, 6);
+  formatter.AddHexField("planned_data_pc", planned->data_pc, 6);
+  formatter.AddField("planned_stream_bytes",
+                     static_cast<int>(planned->encoded_stream.size()));
+  formatter.AddField("storage_strategy", planned->data_pc == source->data_pc
+                                             ? "native_in_place"
+                                             : "native_copy_on_write");
   return CommitNativeDungeonCandidate(
       rom, baseline, std::move(candidate), *ranges,
       manifest_context != nullptr ? &manifest_context->manifest : nullptr,
@@ -1631,7 +1640,8 @@ absl::Status DungeonPlaceSpriteCommandHandler::Execute(
     formatter.AddField("manifest_write_policy", "block");
   }
   if (IsNativeDungeonLayout(*rom)) {
-    formatter.AddField("allocator_capability", "none");
+    formatter.AddField("allocator_capability",
+                       layout != nullptr ? "copy_on_write" : "none");
     const auto status = SaveNativeRoomSprites(
         rom, room_id, room,
         manifest_context.has_value() ? &*manifest_context : nullptr, do_write,
