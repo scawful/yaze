@@ -262,6 +262,27 @@ class OverworldMap : public gfx::GfxContext {
     built_ = false;
   }
   bool HasGraphicsPreview() const { return !graphics_preview_.empty(); }
+  const AreaGraphicsPreview& graphics_preview() const {
+    return graphics_preview_;
+  }
+
+  /// Ordinary 3bpp sheets in BG slots 0, 3, 4 and 5 use colors 8-15 of their
+  /// palette row; the other slots use colors 0-7.
+  static constexpr bool SlotUsesHighPaletteHalf(int slot) {
+    return slot == 0 || slot == 3 || slot == 4 || slot == 5;
+  }
+
+  /// Where BuildTileset() takes one 8x8 graphics character from.
+  struct GraphicsCharacterSource {
+    enum class Kind { kNone, kSheet, kAnimatedSheet, kGraphicsPreview };
+    Kind kind = Kind::kNone;
+    int slot = 0;
+    int sheet = -1;  // -1 for kNone and kGraphicsPreview
+    bool sheet_override = false;
+    bool high_palette_half = false;
+  };
+  /// `character` is 0-0x3FF (64 per slot). Requires LoadAreaGraphics().
+  GraphicsCharacterSource GraphicsSourceForCharacter(int character) const;
 
   const GameData* game_data() const { return game_data_; }
   void SetGameData(GameData* game_data) {

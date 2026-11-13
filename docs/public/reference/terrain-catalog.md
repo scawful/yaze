@@ -27,12 +27,13 @@ Automatic bundle asset packaging and native catalog UI are not implemented yet.
 
 ```sh
 z3ed overworld-terrain-catalog --rom game.sfc --map 0x33 \
-  --project-file game.yaze --out loom-tiles.json --format json
+  --project-context game.yaze --out loom-tiles.json --format json
 ```
 
-Use `--catalog labels.json` to explicitly override the project's catalog for
-this export. The output must be a new file. Existing files, including a ROM or
-catalog accidentally passed as `--out`, are never replaced.
+`--project-file` is an older equivalent of `--project-context`; pass one of
+them. Use `--catalog labels.json` to explicitly override the project's catalog
+for this export. The output must be a new file. Existing files, including a ROM
+or catalog accidentally passed as `--out`, are never replaced.
 
 The command exports the entire parent area, including large, wide and tall
 areas. All occurrence coordinates are **Tile16 coordinates within that parent**.
@@ -42,15 +43,32 @@ raw collision bytes, priority, transparency counts, palette-indexed thumbnails,
 and a graphics profile. Unknown Tile8 collision lookups are `null`.
 
 Coverage is one selected area, not a complete global collision impact report.
-The initial profile uses phase zero and editor ROM graphics; custom runtime
-DMA, time tinting and project graphics-preview overrides are not applied.
-Exports are observations, not runtime collision or layering verification.
+The profile uses phase zero and the editor's graphics composition. With a
+project, its `[files] overworld_graphics_preview` transfers are applied over
+the ordinary sheets, the way the editor and `overworld-render` draw the area;
+`--graphics-preview=off` exports the ROM's sheets only, and
+`--graphics-preview=<manifest.json>` uses another manifest. When the area has
+transfers, `profile.runtime_overrides` is `graphics_preview` and the profile
+fingerprint differs from the ROM-only profile. Time tinting and other runtime
+DMA are not applied. Exports are observations, not runtime collision or
+layering verification.
+
+`graphics_composition` records what the renderer composed, in order: ordinary
+sheets, the animated sheet in the top 32 characters of slot 7, then preview
+transfers. It lists the manifest and its SHA256, the replaced character
+ranges, and per slot the sheet, palette half and character counts by source.
+Ordinary 3bpp sheets in slots 0, 3, 4 and 5 use colors 8-15 of a palette row
+(`palette_half: high`); other slots use colors 0-7. Each quadrant's
+`graphics_source` gives the same facts for its Tile8: `kind` is `sheet`,
+`animated_sheet`, `graphics_preview` or `none`. Preview characters are raw
+4bpp indices and have no sheet or palette half.
 
 `transparent_mask` contains 256 source-zero flags in thumbnail pixel order,
 including quadrant flips. Use this mask instead of inferring transparency from
 `pixels`: the editor remaps source zero to index 8 in some graphics slots.
 Opaque source color 8 must remain opaque. Unavailable source sheets fail export.
-The mask describes decoded ROM graphics, not custom runtime graphics transfers.
+The mask comes from each quadrant's `graphics_source`: decoded sheet pixels,
+the animated sheet, or the preview transfer.
 
 Main palette, auxiliary palette selection, resolved colors, backdrop, sheets,
 and world are part of the profile fingerprint. Keep separate bindings for

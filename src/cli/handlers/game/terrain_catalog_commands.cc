@@ -1,13 +1,17 @@
 #include "cli/handlers/game/terrain_catalog_commands.h"
 
+#include <array>
 #include <fstream>
 #include <map>
 #include <memory>
 #include <optional>
 #include <sstream>
 
+#include "cli/handlers/game/overworld_render_commands.h"
 #include "cli/util/hex_util.h"
+#include "core/project.h"
 #include "core/rom_settings.h"
+#include "core/source_artifact_publisher.h"
 #include "core/terrain_catalog.h"
 #include "util/macro.h"
 #include "zelda3/game_data.h"
@@ -29,11 +33,120 @@ class RestoreAddresses {
 std::string Bytes(const std::vector<uint8_t>& bytes) {
   return std::string(bytes.begin(), bytes.end());
 }
+
+using CharacterSource = zelda3::OverworldMap::GraphicsCharacterSource;
+
+const char* KindName(CharacterSource::Kind kind) {
+  switch (kind) {
+    case CharacterSource::Kind::kSheet:
+      return "sheet";
+    case CharacterSource::Kind::kAnimatedSheet:
+      return "animated_sheet";
+    case CharacterSource::Kind::kGraphicsPreview:
+      return "graphics_preview";
+    case CharacterSource::Kind::kNone:
+      return "none";
+  }
+  return "none";
+}
+
+json SourceJson(const CharacterSource& source) {
+  json result = {{"kind", KindName(source.kind)},
+                 {"slot", source.slot},
+                 {"sheet", nullptr},
+                 {"palette_half", nullptr}};
+  if (source.sheet >= 0) {
+    result["sheet"] = source.sheet;
+    result["palette_half"] = source.high_palette_half ? "high" : "low";
+  }
+  return result;
+}
+
+std::array<uint8_t, 64> PreviewTransparency(const zelda3::PreviewTile8& pixels,
+                                            bool flip_x, bool flip_y) {
+  std::array<uint8_t, 64> mask{};
+  for (int y = 0; y < 8; ++y) {
+    for (int x = 0; x < 8; ++x) {
+      const int sx = flip_x ? 7 - x : x;
+      const int sy = flip_y ? 7 - y : y;
+      mask[y * 8 + x] = pixels[sy * 8 + sx] == 0;
+    }
+  }
+  return mask;
+}
+
+// What BuildTileset() composed for this area: ordinary sheets, then the
+// animated sheet in the top of slot 7, then any graphics-preview transfers.
+json Composition(const zelda3::OverworldMap& map,
+                 const OverworldRenderGraphicsPreview& preview,
+                 const std::string& manifest_sha256) {
+  json ranges = json::array();
+  for (auto it = map.graphics_preview().begin();
+       it != map.graphics_preview().end();) {
+    const int first = it->first;
+    int last = first;
+    while (++it != map.graphics_preview().end() && it->first == last + 1) {
+      last = it->first;
+    }
+    ranges.push_back(
+        {{"first", first}, {"last", last}, {"count", last - first + 1}});
+  }
+  json slots = json::array();
+  for (int slot = 0; slot < 16; ++slot) {
+    json counts = {{"sheet", 0},
+                   {"animated_sheet", 0},
+                   {"graphics_preview", 0},
+                   {"none", 0}};
+    for (int character = slot * 64; character < slot * 64 + 64; ++character) {
+      const auto kind = map.GraphicsSourceForCharacter(character).kind;
+      counts[KindName(kind)] = counts[KindName(kind)].get<int>() + 1;
+    }
+    json entry = {
+        {"slot", slot},
+        {"first_character", slot * 64},
+        {"sheet", nullptr},
+        {"palette_half",
+         zelda3::OverworldMap::SlotUsesHighPaletteHalf(slot) ? "high" : "low"},
+        {"characters", counts}};
+    if (map.GraphicsSlotHasSource(slot)) {
+      entry["sheet"] = map.static_graphics(slot);
+    }
+    if (slot == 7) {
+      entry["animated_sheet"] = map.animated_sheet();
+    }
+    slots.push_back(entry);
+  }
+  json manifest = nullptr;
+  json sha = nullptr;
+  if (!preview.manifest.empty()) {
+    manifest = preview.manifest;
+    sha = manifest_sha256;
+  }
+  return {{"order",
+           {"ordinary_sheets", "animated_sheet_slot7_top", "graphics_preview"}},
+          {"graphics_preview",
+           {{"mode", preview.mode},
+            {"manifest", manifest},
+            {"manifest_sha256", sha},
+            {"applied", map.HasGraphicsPreview()},
+            {"characters", ranges}}},
+          {"slots", slots}};
+}
 }  // namespace
 
 absl::Status OverworldTerrainCatalogCommandHandler::ValidateArgs(
     const resources::ArgumentParser& parser) {
   RETURN_IF_ERROR(parser.RequireArgs({"map", "out"}));
+  if (parser.GetString("project-file").has_value() &&
+      parser.GetString("project-context").has_value()) {
+    return absl::InvalidArgumentError(
+        "Pass --project-context or --project-file, not both");
+  }
+  if (const auto gp = parser.GetString("graphics-preview");
+      gp.has_value() && gp->empty()) {
+    return absl::InvalidArgumentError(
+        "--graphics-preview must be on, off, or a manifest path");
+  }
   int map = -1;
   if (!util::ParseHexString(*parser.GetString("map"), &map) || map < 0 ||
       map >= zelda3::kNumOverworldMaps) {
@@ -56,13 +169,28 @@ absl::Status OverworldTerrainCatalogCommandHandler::Execute(
   // process-global address overrides.
   core::RomSettings::Get().ClearOverrides();
   std::string catalog_path = parser.GetString("catalog").value_or("");
-  project::YazeProject project;
+  project::YazeProject file_project;
+  const project::YazeProject* project = project_;
   if (auto path = parser.GetString("project-file")) {
-    RETURN_IF_ERROR(project.Open(*path));
-    core::RomSettings::Get().SetAddressOverrides(project.rom_address_overrides);
-    if (catalog_path.empty()) {
-      catalog_path = project.GetAbsolutePath(project.terrain_catalog_file);
+    RETURN_IF_ERROR(file_project.Open(*path));
+    project = &file_project;
+  }
+  if (project != nullptr) {
+    core::RomSettings::Get().SetAddressOverrides(
+        project->rom_address_overrides);
+    if (catalog_path.empty() && !project->terrain_catalog_file.empty()) {
+      catalog_path = project->GetAbsolutePath(project->terrain_catalog_file);
     }
+  }
+  ASSIGN_OR_RETURN(auto preview,
+                   ResolveOverworldRenderGraphicsPreview(
+                       project, parser.GetString("graphics-preview")));
+  std::string manifest_sha256;
+  if (!preview.manifest.empty()) {
+    std::ifstream manifest(preview.manifest, std::ios::binary);
+    std::ostringstream text;
+    text << manifest.rdbuf();
+    manifest_sha256 = core::ComputeSourceArtifactSha256(text.str());
   }
   std::optional<core::TerrainCatalog> catalog;
   if (!catalog_path.empty()) {
@@ -85,6 +213,7 @@ absl::Status OverworldTerrainCatalogCommandHandler::Execute(
   auto ow = std::make_unique<zelda3::Overworld>(rom);
   ow->SetGameData(&data);
   RETURN_IF_ERROR(ow->Load(rom));
+  ow->SetGraphicsPreview(preview.preview);
   const int parent = ow->overworld_map(requested)->parent();
   if (parent < 0 || parent >= zelda3::kNumOverworldMaps ||
       parent / 64 != requested / 64) {
@@ -106,18 +235,20 @@ absl::Status OverworldTerrainCatalogCommandHandler::Execute(
   if (origin_x + width > 256 || origin_y + height > (world == 2 ? 128 : 256)) {
     return absl::FailedPreconditionError("Area exceeds supported world bounds");
   }
-  json profile = {{"adapter", kAdapter},
-                  {"world", world},
-                  {"phase", 0},
-                  {"area_graphics", map->area_graphics()},
-                  {"area_palette", map->area_palette()},
-                  {"main_palette", map->main_palette()},
-                  {"background_color", map->area_specific_bg_color()},
-                  {"subscreen_overlay", map->subscreen_overlay()},
-                  {"animated_gfx", map->animated_gfx()},
-                  {"graphics_fingerprint",
-                   core::TerrainFingerprint(Bytes(map->current_graphics()))},
-                  {"runtime_overrides", "not_applied"}};
+  json profile = {
+      {"adapter", kAdapter},
+      {"world", world},
+      {"phase", 0},
+      {"area_graphics", map->area_graphics()},
+      {"area_palette", map->area_palette()},
+      {"main_palette", map->main_palette()},
+      {"background_color", map->area_specific_bg_color()},
+      {"subscreen_overlay", map->subscreen_overlay()},
+      {"animated_gfx", map->animated_gfx()},
+      {"graphics_fingerprint",
+       core::TerrainFingerprint(Bytes(map->current_graphics()))},
+      {"runtime_overrides",
+       map->HasGraphicsPreview() ? "graphics_preview" : "not_applied"}};
   profile["sheets"] = json::array();
   for (int i = 0; i < 16; ++i)
     profile["sheets"].push_back(map->static_graphics(i));
@@ -166,11 +297,21 @@ absl::Status OverworldTerrainCatalogCommandHandler::Execute(
                     {"tile_type", nullptr}};
       if (q.id_ < types.size())
         piece["tile_type"] = types[q.id_];
+      const auto source = map->GraphicsSourceForCharacter(q.id_);
+      piece["graphics_source"] = SourceJson(source);
       int transparent = 0;
-      ASSIGN_OR_RETURN(
-          auto mask, zelda3::Tile8SourceTransparency(
-                         data.graphics_buffer, map->static_graphics(q.id_ / 64),
-                         q.id_, q.horizontal_mirror_, q.vertical_mirror_));
+      std::array<uint8_t, 64> mask{};
+      if (source.kind == CharacterSource::Kind::kGraphicsPreview) {
+        mask = PreviewTransparency(map->graphics_preview().at(q.id_),
+                                   q.horizontal_mirror_, q.vertical_mirror_);
+      } else {
+        const int sheet = source.kind == CharacterSource::Kind::kAnimatedSheet
+                              ? source.sheet
+                              : map->static_graphics(q.id_ / 64);
+        ASSIGN_OR_RETURN(mask, zelda3::Tile8SourceTransparency(
+                                   data.graphics_buffer, sheet, q.id_,
+                                   q.horizontal_mirror_, q.vertical_mirror_));
+      }
       for (int py = 0; py < 8; ++py) {
         for (int px = 0; px < 8; ++px) {
           const auto zero = mask[py * 8 + px];
@@ -218,6 +359,7 @@ absl::Status OverworldTerrainCatalogCommandHandler::Execute(
       {"expanded_tile16", ow->expanded_tile16()},
       {"profile_fingerprint", profile_id},
       {"profile", profile},
+      {"graphics_composition", Composition(*map, preview, manifest_sha256)},
       {"coverage",
        "selected parent area only; not a global collision impact report"},
       {"collision_status",
@@ -239,6 +381,8 @@ absl::Status OverworldTerrainCatalogCommandHandler::Execute(
   formatter.AddField("output", path);
   formatter.AddField("tiles", static_cast<int>(records.size()));
   formatter.AddField("parent_area", parent);
+  formatter.AddField("graphics_preview", preview.mode);
+  formatter.AddField("graphics_preview_applied", map->HasGraphicsPreview());
   formatter.AddField("rom_modified", false);
   return absl::OkStatus();
 }

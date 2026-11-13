@@ -3,6 +3,10 @@
 #include "cli/service/resources/command_handler.h"
 
 namespace yaze::cli::handlers {
+// With a project (--project-context or --project-file), the project's
+// [files] overworld_graphics_preview transfers are composed over the ordinary
+// sheets the way the editor and overworld-render draw the area;
+// --graphics-preview=off exports the ROM's sheets only.
 class OverworldTerrainCatalogCommandHandler : public resources::CommandHandler {
  public:
   std::string GetName() const override { return "overworld-terrain-catalog"; }
@@ -11,7 +15,9 @@ class OverworldTerrainCatalogCommandHandler : public resources::CommandHandler {
   }
   std::string GetUsage() const override {
     return "overworld-terrain-catalog --map <hex> --out <new.json> "
-           "[--project-file <project.yaze>] [--catalog <labels.json>]";
+           "[--project-context <project.yaze> | --project-file <project.yaze>] "
+           "[--catalog <labels.json>] "
+           "[--graphics-preview=on|off|<manifest.json>]";
   }
   absl::Status ValidateArgs(const resources::ArgumentParser& parser) override;
   absl::Status Execute(Rom* rom, const resources::ArgumentParser& parser,

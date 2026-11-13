@@ -103,6 +103,86 @@ TEST(OverworldGraphicsPreviewTest,
   }
 }
 
+TEST(OverworldGraphicsPreviewTest, CharacterSourcesMatchTheBuiltTileset) {
+  Rom rom;
+  std::vector<uint8_t> data(0x200000, 0);
+  data[OverworldCustomASMHasBeenApplied] = 3;
+  for (int id = 0; id < kNumOverworldMaps; ++id) {
+    data[kOverworldMapParentIdExpanded + id] = id;
+  }
+  ASSERT_TRUE(rom.LoadFromData(data).ok());
+  GameData game;
+  game.graphics_buffer.resize(0x100000);
+  for (size_t i = 0; i < game.graphics_buffer.size(); ++i) {
+    game.graphics_buffer[i] = static_cast<uint8_t>((i / 0x1000 + i) % 8);
+  }
+  OverworldMap map(0x30, &rom, &game);
+  map.LoadAreaGraphics();
+  for (int slot = 0; slot < 8; ++slot) {
+    *map.mutable_static_graphics(slot) = slot == 2 ? 0 : 0x30 + slot;
+  }
+  ASSERT_NE(map.animated_sheet(), 0);
+  std::map<uint16_t, std::vector<uint8_t>> overrides;
+  overrides[0x34] = std::vector<uint8_t>(0x1000, 6);
+  map.SetGraphicsSheetOverrides(overrides);
+  PreviewTile8 boat{};
+  boat.fill(13);
+  // 0x1C5 sits in slot 7's animated top: the preview still wins there.
+  map.SetGraphicsPreview({{0xC0, boat}, {0xC1, boat}, {0x1C5, boat}});
+  ASSERT_TRUE(map.BuildTileset().ok());
+
+  using Kind = OverworldMap::GraphicsCharacterSource::Kind;
+  std::map<Kind, int> seen;
+  const auto& built = map.current_graphics();
+  for (int character = 0; character < 0x400; ++character) {
+    SCOPED_TRACE(character);
+    const auto source = map.GraphicsSourceForCharacter(character);
+    ++seen[source.kind];
+    EXPECT_EQ(source.slot, character / 64);
+    const int local = character % 64;
+    const size_t offset = local / 16 * 0x400 + local % 16 * 8;
+    for (int y = 0; y < 8; ++y) {
+      for (int x = 0; x < 8; ++x) {
+        const size_t pixel = offset + y * 128 + x;
+        int expected = 0;
+        switch (source.kind) {
+          case Kind::kGraphicsPreview:
+            expected = boat[y * 8 + x];
+            break;
+          case Kind::kSheet:
+          case Kind::kAnimatedSheet:
+            expected =
+                source.sheet_override
+                    ? overrides.at(source.sheet)[pixel]
+                    : game.graphics_buffer[source.sheet * 0x1000 + pixel];
+            if (source.high_palette_half)
+              expected = static_cast<uint8_t>(expected + 0x88);
+            break;
+          case Kind::kNone:
+            break;
+        }
+        ASSERT_EQ(built[source.slot * 0x1000 + pixel], expected)
+            << "x=" << x << " y=" << y;
+      }
+    }
+  }
+  EXPECT_EQ(seen[Kind::kGraphicsPreview], 3);
+  EXPECT_EQ(seen[Kind::kAnimatedSheet], 31);
+  EXPECT_EQ(seen[Kind::kNone], 64);
+  for (int slot : {0, 3, 4, 5}) {
+    EXPECT_TRUE(
+        map.GraphicsSourceForCharacter(slot * 64 + 63).high_palette_half);
+  }
+  for (int slot : {1, 6, 7}) {
+    EXPECT_FALSE(
+        map.GraphicsSourceForCharacter(slot * 64 + 63).high_palette_half);
+  }
+  EXPECT_TRUE(map.GraphicsSourceForCharacter(4 * 64).sheet_override);
+  EXPECT_EQ(map.GraphicsSourceForCharacter(0xC0).sheet, -1);
+  EXPECT_EQ(map.GraphicsSourceForCharacter(0x1C0).sheet, map.animated_sheet());
+  EXPECT_EQ(map.GraphicsSourceForCharacter(0x1E0).sheet, 0x37);
+}
+
 class OverworldGraphicsPreviewFileTest : public ::testing::Test {
  protected:
   void SetUp() override {

@@ -1774,18 +1774,69 @@ void OverworldMap::ProcessGraphicsBuffer(int index, int static_graphics_offset,
     }
     return;
   }
+  const bool high_half = SlotUsesHighPaletteHalf(index);
   for (int i = 0; i < size; i++) {
     auto byte = all_gfx[i + (static_graphics_offset * size)];
-    switch (index) {
-      case 0:
-      case 3:
-      case 4:
-      case 5:
-        byte += 0x88;
-        break;
+    if (high_half) {
+      byte += 0x88;
     }
     current_gfx_[(index * size) + i] = byte;
   }
+}
+
+OverworldMap::GraphicsCharacterSource OverworldMap::GraphicsSourceForCharacter(
+    int character) const {
+  using Kind = GraphicsCharacterSource::Kind;
+  GraphicsCharacterSource source;
+  if (character < 0 || character >= 0x400) {
+    return source;
+  }
+  source.slot = character / 64;
+  if (graphics_preview_.contains(static_cast<uint16_t>(character))) {
+    source.kind = Kind::kGraphicsPreview;
+    return source;
+  }
+  if (game_data_ == nullptr) {
+    return source;
+  }
+  const size_t store_size = game_data_->graphics_buffer.size();
+  // Mirrors CopyAnimatedSheetIntoSlot7(); a character row is 0x400 bytes.
+  const int row_offset = (character % 64) / 16 * 0x400;
+  const bool animated_top =
+      source.slot == 7 && row_offset < kAnimatedSheetSlotBytes;
+  if (animated_top && animated_sheet_ != 0) {
+    if (const auto it = graphics_sheet_overrides_.find(animated_sheet_);
+        it != graphics_sheet_overrides_.end()) {
+      if (it->second.size() >= kAnimatedSheetSlotBytes) {
+        source.kind = Kind::kAnimatedSheet;
+        source.sheet = animated_sheet_;
+        source.sheet_override = true;
+        return source;
+      }
+    } else if (static_cast<size_t>(animated_sheet_) * 0x1000 +
+                   kAnimatedSheetSlotBytes <=
+               store_size) {
+      source.kind = Kind::kAnimatedSheet;
+      source.sheet = animated_sheet_;
+      return source;
+    }
+  }
+  // Mirrors BuildTileset() and ProcessGraphicsBuffer().
+  if (!GraphicsSlotHasSource(source.slot)) {
+    return source;
+  }
+  const int sheet = static_graphics_[source.slot];
+  if (const auto it =
+          graphics_sheet_overrides_.find(static_cast<uint16_t>(sheet));
+      it != graphics_sheet_overrides_.end() && it->second.size() == 0x1000) {
+    source.sheet_override = true;
+  } else if (static_cast<size_t>(sheet) * 0x1000 + 0x1000 > store_size) {
+    return source;
+  }
+  source.kind = Kind::kSheet;
+  source.sheet = sheet;
+  source.high_palette_half = SlotUsesHighPaletteHalf(source.slot);
+  return source;
 }
 
 absl::Status OverworldMap::BuildTileset() {
