@@ -11,10 +11,11 @@ namespace yaze::zelda3 {
 
 // Read decoded source pixels before ProcessGraphicsBuffer's palette remapping.
 // A preview index of 8 alone cannot distinguish source zero from opaque color 8.
+// Sheet 0 is a real sheet; the caller decides whether its slot has a source.
 inline absl::StatusOr<std::array<uint8_t, 64>> Tile8SourceTransparency(
     const std::vector<uint8_t>& decoded, int sheet, int tile_id, bool flip_x,
     bool flip_y) {
-  if (sheet <= 0 || tile_id < 0 || tile_id >= 1024 ||
+  if (sheet < 0 || tile_id < 0 || tile_id >= 1024 ||
       static_cast<size_t>(sheet + 1) * 4096 > decoded.size()) {
     return absl::FailedPreconditionError("Tile8 source graphics unavailable");
   }

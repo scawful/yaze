@@ -131,10 +131,20 @@ TEST(OverworldReadOnlyTest, TransparencyUsesSourceZeroAndPreservesOpaqueEight) {
   EXPECT_EQ((*flipped)[62], 0);
 }
 
+TEST(OverworldReadOnlyTest, TransparencyReadsExplicitSheetZero) {
+  std::vector<uint8_t> decoded(2 * 4096, 0);
+  decoded[1] = 5;
+  auto mask = Tile8SourceTransparency(decoded, 0, 0, false, false);
+  ASSERT_TRUE(mask.ok());
+  EXPECT_EQ((*mask)[0], 1);
+  EXPECT_EQ((*mask)[1], 0);
+}
+
 TEST(OverworldReadOnlyTest, TransparencyRejectsUnloadedOrMissingSheets) {
   const std::vector<uint8_t> decoded(2 * 4096, 0);
-  EXPECT_FALSE(Tile8SourceTransparency(decoded, 0, 0, false, false).ok());
+  EXPECT_FALSE(Tile8SourceTransparency(decoded, -1, 0, false, false).ok());
   EXPECT_FALSE(Tile8SourceTransparency(decoded, 2, 0, false, false).ok());
+  EXPECT_FALSE(Tile8SourceTransparency(decoded, 0, -1, false, false).ok());
   EXPECT_FALSE(Tile8SourceTransparency(decoded, 1, 1024, false, false).ok());
   const std::vector<uint8_t> failed_sheet(2 * 4096, 0xFF);
   EXPECT_FALSE(Tile8SourceTransparency(failed_sheet, 1, 0, false, false).ok());

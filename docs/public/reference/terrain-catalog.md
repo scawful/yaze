@@ -37,8 +37,14 @@ or catalog accidentally passed as `--out`, are never replaced.
 
 The command exports the entire parent area, including large, wide and tall
 areas. All occurrence coordinates are **Tile16 coordinates within that parent**.
-The current adapter accepts map IDs `0x00-0x9F`; later expanded tail maps need
-an adapter update. It reports used Tile16 definitions, four Tile8 quadrants,
+Map IDs `0x00-0x9F` are accepted on every ROM. The special-overworld tail
+`0xA0-0xBF` is accepted only when the ROM has a validated native
+special-overworld directory, up to its capacity; on other ROMs those slots are
+blank fill and are refused. One profile describes the whole area. A page with
+its own native appearance (revision-4 per-page graphics and palette) is
+accepted only when it has the parent's profile, built graphics and palette and
+per-character sources; otherwise the area is refused. Identical pixels from a
+different sheet are a different source. It reports used Tile16 definitions, four Tile8 quadrants,
 raw collision bytes, priority, transparency counts, palette-indexed thumbnails,
 and a graphics profile. Unknown Tile8 collision lookups are `null`.
 
@@ -68,7 +74,9 @@ including quadrant flips. Use this mask instead of inferring transparency from
 `pixels`: the editor remaps source zero to index 8 in some graphics slots.
 Opaque source color 8 must remain opaque. Unavailable source sheets fail export.
 The mask comes from each quadrant's `graphics_source`: decoded sheet pixels,
-the animated sheet, or the preview transfer.
+the animated sheet, or the preview transfer. A custom tile group that names
+sheet `0` explicitly is a real source and is exported. A quadrant whose slot has
+no graphics source fails export with the Tile16, quadrant, character and slot.
 
 Main palette, auxiliary palette selection, resolved colors, backdrop, sheets,
 and world are part of the profile fingerprint. Keep separate bindings for
