@@ -93,6 +93,8 @@ static const std::map<zelda3_version, zelda3_version_pointers>
 
 // Sheet pixels live in `sheet_store` (inherited, with the legacy
 // `graphics_buffer` alias); see graphics_sheet_store.h.
+// About 1.7 MiB: larger than the 1 MiB default Windows thread stack, so
+// tools must heap-allocate it instead of declaring a local.
 struct GameData : GraphicsSheetStoreHolder {
   // Constructors
   GameData() = default;

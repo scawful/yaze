@@ -383,7 +383,8 @@ absl::Status OverworldExportNativeSourceCommandHandler::Execute(
                              ? project_->rom_address_overrides
                              : core::RomSettings::Get().address_overrides();
   ScopedLyraRomAddresses addresses(overrides);
-  zelda3::GameData game_data;
+  auto game_data_owner = std::make_unique<zelda3::GameData>();
+  auto& game_data = *game_data_owner;
   zelda3::LoadOptions options;
   options.expand_rom = false;
   // The project's graphics layout and source, resolved as the editor's ROM
@@ -672,7 +673,8 @@ absl::Status LyraVerifyProjectCommandHandler::Execute(
   if (file.bad())
     return absl::DataLossError("Cannot finish reading Lyra terrain");
 
-  zelda3::GameData game_data;
+  auto game_data_owner = std::make_unique<zelda3::GameData>();
+  auto& game_data = *game_data_owner;
   zelda3::LoadOptions options;
   options.expand_rom = false;
   RETURN_IF_ERROR(zelda3::LoadGameData(*rom, game_data, options));
@@ -981,7 +983,8 @@ absl::Status OverworldRenderCommandHandler::ExecuteWithContext(
     return absl::FailedPreconditionError("ROM not loaded");
   }
 
-  zelda3::GameData game_data;
+  auto game_data_owner = std::make_unique<zelda3::GameData>();
+  auto& game_data = *game_data_owner;
   auto gd_status = zelda3::LoadGameData(*rom, game_data);
   if (!gd_status.ok()) {
     return absl::InternalError(

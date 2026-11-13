@@ -1,6 +1,7 @@
 #include "cli/handlers/game/dungeon_render_commands.h"
 
 #include <fstream>
+#include <memory>
 #include <optional>
 #include <sstream>
 #include <string>
@@ -182,7 +183,8 @@ absl::Status DungeonRenderCommandHandler::ExecuteWithContext(
       load_options.gfx_sheet_layout = std::move(layout);
     }
   }
-  zelda3::GameData game_data;
+  auto game_data_owner = std::make_unique<zelda3::GameData>();
+  auto& game_data = *game_data_owner;
   auto gd_status = zelda3::LoadGameData(*rom, game_data, load_options);
   if (!gd_status.ok()) {
     return absl::InternalError(
