@@ -2478,7 +2478,7 @@ absl::Status Overworld::CaptureExpandedGeometryBaseline() {
   ExpandedGeometryState state;
   if (!resolved_layout_
            .CheckOperation(OverworldLayoutDomain::kGeometry,
-                           OverworldLayoutOperation::kSerialize)
+                           OverworldLayoutOperation::kSerialize, -1, 0)
            .ok()) {
     expanded_geometry_baseline_.reset();
     return absl::OkStatus();
