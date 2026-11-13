@@ -4949,8 +4949,10 @@ std::string ResolveVanillaEditRom() {
 }
 
 OverworldEditor* LoadedOverworld(EditorManager* manager) {
-  EXPECT_OK(manager->EnsureEditorAssetsLoaded(EditorType::kOverworld));
-  if (manager->GetCurrentEditorSet() == nullptr) {
+  const absl::Status loaded =
+      manager->EnsureEditorAssetsLoaded(EditorType::kOverworld);
+  EXPECT_OK(loaded);
+  if (!loaded.ok() || manager->GetCurrentEditorSet() == nullptr) {
     return nullptr;
   }
   return manager->GetCurrentEditorSet()->GetEditorAs<OverworldEditor>(

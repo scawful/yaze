@@ -45,6 +45,18 @@ TEST(GfxSheetPolicyAdapterTest, ParsesGraphicsSheetRegions) {
   EXPECT_TRUE(without.graphics_sheet_layout().reserved_sheets.empty());
 }
 
+// Oracle of Secrets reserves sheets in its expanded table (0xDF-0xFE); the
+// manifest must still load.
+TEST(GfxSheetPolicyAdapterTest, AcceptsReservedSheetsPastVanillaRange) {
+  HackManifest manifest;
+  const absl::Status status = manifest.LoadFromString(
+      R"json({"manifest_version":3,"graphics_sheet_regions":{"reserved_sheets":["0xDE","0xDF","0xE3","0xFF"]}})json");
+  ASSERT_TRUE(status.ok()) << status;
+  EXPECT_TRUE(manifest.loaded());
+  EXPECT_EQ(manifest.graphics_sheet_layout().reserved_sheets,
+            (std::vector<uint16_t>{0xDE, 0xDF, 0xE3, 0xFF}));
+}
+
 TEST(GfxSheetPolicyAdapterTest, RejectsMalformedGraphicsSheetRegions) {
   const std::pair<const char*, const char*> cases[] = {
       {R"json({"manifest_version":2,"graphics_sheet_regions":{"reserved_sheets":["0x7B"]}})json",
@@ -53,8 +65,8 @@ TEST(GfxSheetPolicyAdapterTest, RejectsMalformedGraphicsSheetRegions) {
        "non-empty object"},
       {R"json({"manifest_version":3,"graphics_sheet_regions":{"regions":[]}})json",
        "unknown key"},
-      {R"json({"manifest_version":3,"graphics_sheet_regions":{"reserved_sheets":["0xDF"]}})json",
-       "reserved_sheets[0]"},
+      {R"json({"manifest_version":3,"graphics_sheet_regions":{"reserved_sheets":["0x7B","0x100"]}})json",
+       "reserved_sheets[1]"},
       {R"json({"manifest_version":3,"graphics_sheet_regions":{"reserved_sheets":"0x7B"}})json",
        "must be an array"},
       {R"json({"manifest_version":3,"graphics_sheet_regions":{"allocation_regions":[]}})json",

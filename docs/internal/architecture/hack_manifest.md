@@ -74,6 +74,10 @@ which sheets it must never write:
 }
 ```
 
+`reserved_sheets` accepts ids `0x00`-`0xFF`. Ids past the 223 sheets yaze
+edits (`0xDF` and up, used by hacks with an expanded sheet table) are kept
+but never match a yaze write.
+
 A sheet whose re-encoded stream fits its old stream is written in place. A
 larger stream moves to the first free fit in `allocation_regions`, where free
 means "not referenced by any of the 223 sheet pointers". Without this section,

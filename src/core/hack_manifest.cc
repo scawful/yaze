@@ -707,8 +707,10 @@ absl::StatusOr<GraphicsSheetLayout> ParseGraphicsSheetLayout(
     const std::unordered_map<DungeonStreamType, DungeonStreamLayout>&
         dungeon_stream_layouts) {
   constexpr const char* kSection = "graphics_sheet_regions";
-  // Matches zelda3::kGfxSheetCount; core cannot include zelda3 headers.
-  constexpr uint32_t kGraphicsSheetCount = 223;
+  // Graphics groups store sheet ids as bytes. Hacks with an expanded sheet
+  // table (Oracle of Secrets uses 0xDF-0xFE) reserve ids past the 223 sheets
+  // yaze edits; those reservations are kept and never match a yaze write.
+  constexpr uint32_t kMaxSheetId = 0xFF;
   GraphicsSheetLayout layout;
   if (!root.contains(kSection)) {
     return layout;
@@ -774,7 +776,7 @@ absl::StatusOr<GraphicsSheetLayout> ParseGraphicsSheetLayout(
                      value,
                      absl::StrFormat(
                          "graphics_sheet_regions.reserved_sheets[%zu]", index),
-                     kGraphicsSheetCount - 1));
+                     kMaxSheetId));
       layout.reserved_sheets.push_back(static_cast<uint16_t>(sheet));
       ++index;
     }

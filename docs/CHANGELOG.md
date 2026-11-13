@@ -55,6 +55,10 @@ they are not part of its existing downloads. See the
   `--allow-project-rom`. `rom-compare` no longer reports `identical` when bytes
   differ outside its checked regions (`unchecked_diff_bytes`; `--all` locates
   them).
+- Hack manifests may reserve graphics sheets `0xDF`-`0xFF`. Oracle of Secrets
+  reserves sheets in its expanded table, and yaze rejected the whole manifest,
+  so the project opened without its write protections. Those ids are kept
+  but never match a sheet yaze writes.
 - `scripts/dev/local-workflow.sh test` builds the suites behind the CTest
   preset and runs with the configuration and `--no-tests=error`; it previously
   found no tests and passed. `scripts/yaze` finds preset build directories.
