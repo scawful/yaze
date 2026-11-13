@@ -345,6 +345,8 @@ and `--map 0x40 --x 40` name the same tile. Output reports the resolved
 matches carry the same `x`/`y`, so they can be passed straight back.
 
 `overworld-tile-stats` counts tile16 placements in the loaded world grids.
+With a native 192-map layout the special world includes the tail screens
+`$A0`-`$BF`, for both this command and `overworld-find-tile`.
 Each screen is one 32x32 block of 1024 tiles, so a multi-screen area appears
 as its screens, each with its `parent_area`. Output: `screens_scanned`,
 `total_tiles`, `unique_tiles`; `worlds` (screens, total and unique tiles per

@@ -46,6 +46,16 @@ int WorldOffset(int world) {
   }
 }
 
+// Layouts with the special-world tail ($A0-$BF) hold 64 special screens, not
+// 32. The layout decides, as for the editor's per-world screen loops.
+int WorldScreenCount(const zelda3::Overworld& overworld, int world) {
+  if (world != 2) {
+    return 0x40;
+  }
+  return std::clamp(overworld.inspected_map_count() - kSpecialWorldOffset, 0,
+                    0x40);
+}
+
 absl::Status ValidateMapId(int map_id,
                            int map_count = zelda3::kNumOverworldMaps) {
   if (map_count != zelda3::kNumOverworldMaps &&
@@ -456,8 +466,9 @@ absl::Status WriteAreaTile(zelda3::Overworld& overworld,
 absl::StatusOr<std::vector<TileMatch>> FindTileMatches(
     zelda3::Overworld& overworld, uint16_t tile_id,
     const TileSearchOptions& options) {
+  const int map_count = overworld.inspected_map_count();
   if (options.map_id.has_value()) {
-    RETURN_IF_ERROR(ValidateMapId(*options.map_id));
+    RETURN_IF_ERROR(ValidateMapId(*options.map_id, map_count));
   }
   if (options.world.has_value()) {
     if (*options.world < 0 || *options.world > 2) {
@@ -467,7 +478,8 @@ absl::StatusOr<std::vector<TileMatch>> FindTileMatches(
   }
 
   if (options.map_id.has_value() && options.world.has_value()) {
-    ASSIGN_OR_RETURN(int inferred_world, InferWorldFromMapId(*options.map_id));
+    ASSIGN_OR_RETURN(int inferred_world,
+                     InferWorldFromMapId(*options.map_id, map_count));
     if (inferred_world != *options.world) {
       return absl::InvalidArgumentError(absl::StrFormat(
           "Map 0x%02X belongs to the %s World but --world requested %s",
@@ -480,7 +492,8 @@ absl::StatusOr<std::vector<TileMatch>> FindTileMatches(
   if (options.world.has_value()) {
     worlds.push_back(*options.world);
   } else if (options.map_id.has_value()) {
-    ASSIGN_OR_RETURN(int inferred_world, InferWorldFromMapId(*options.map_id));
+    ASSIGN_OR_RETURN(int inferred_world,
+                     InferWorldFromMapId(*options.map_id, map_count));
     worlds.push_back(inferred_world);
   } else {
     worlds = {0, 1, 2};
@@ -502,7 +515,7 @@ absl::StatusOr<std::vector<TileMatch>> FindTileMatches(
         break;
       case 2:
         world_start = 0x80;
-        world_maps = 0x20;
+        world_maps = WorldScreenCount(overworld, 2);
         break;
       default:
         return absl::InvalidArgumentError(
@@ -681,7 +694,9 @@ absl::StatusOr<TileUsageSummary> CollectTileUsage(zelda3::Overworld& overworld,
     worlds = {*query.world};
   }
   if (query.map_id.has_value()) {
-    ASSIGN_OR_RETURN(const int map_world, InferWorldFromMapId(*query.map_id));
+    ASSIGN_OR_RETURN(
+        const int map_world,
+        InferWorldFromMapId(*query.map_id, overworld.inspected_map_count()));
     if (query.world.has_value() && *query.world != map_world) {
       return absl::InvalidArgumentError(absl::StrFormat(
           "Map 0x%02X belongs to the %s World but --world requested %s",
@@ -700,7 +715,7 @@ absl::StatusOr<TileUsageSummary> CollectTileUsage(zelda3::Overworld& overworld,
   TileUsageSummary summary;
   for (const int world : worlds) {
     const auto& grid = overworld.GetMapTiles(world);
-    const int world_screens = world == 2 ? 0x20 : 0x40;
+    const int world_screens = WorldScreenCount(overworld, world);
     std::vector<bool> seen_in_world(kTileIds, false);
     WorldTileUsage world_usage;
     world_usage.world = world;

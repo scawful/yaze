@@ -728,8 +728,9 @@ TEST_F(OverworldTileRomTest, TileStatsCountsMatchTheWorldGrid) {
   auto json = RunJson(handler, {"--top=0"}, &rom_);
   auto& stats = json["Overworld Tile Statistics"];
   ASSERT_TRUE(stats.is_object()) << json.dump();
-  EXPECT_EQ(stats["screens_scanned"], 0xA0);
-  EXPECT_EQ(stats["total_tiles"], 0xA0 * 1024);
+  const int screens = overworld_->materialized_map_count();
+  EXPECT_EQ(stats["screens_scanned"], screens);
+  EXPECT_EQ(stats["total_tiles"], screens * 1024);
   auto& counts = stats["tile_counts"];
   ASSERT_TRUE(counts.is_array());
   EXPECT_EQ(stats["unique_tiles"].get<int>(), static_cast<int>(counts.size()));
@@ -742,7 +743,7 @@ TEST_F(OverworldTileRomTest, TileStatsCountsMatchTheWorldGrid) {
     previous = count;
     total += count;
   }
-  EXPECT_EQ(total, 0xA0 * 1024);
+  EXPECT_EQ(total, screens * 1024);
 
   // One screen: recount it straight from the grid.
   auto screen = RunJson(handler, {"--map=0x40", "--top=0"}, &rom_);
@@ -772,6 +773,58 @@ TEST_F(OverworldTileRomTest, TileStatsCountsMatchTheWorldGrid) {
             found["Overworld Tile Search"]["matches_found"]);
   EXPECT_EQ(tile["Overworld Tile Statistics"]["screens"][0]["tile_count"],
             found["Overworld Tile Search"]["matches_found"]);
+}
+
+TEST_F(OverworldTileRomTest, TileStatsAndFindTileCoverTheNativeTail) {
+  for (uint16_t capacity : {160, 192}) {
+    SCOPED_TRACE(capacity);
+    test::native_overworld::NativeDirectoryFixture fixture(capacity);
+    ASSERT_NO_FATAL_FAILURE(SeedValidationFixture(&fixture));
+    fixture.UpgradeToRevision4();
+    Rom native;
+    ASSERT_TRUE(native.LoadFromData(fixture.bytes).ok());
+    zelda3::Overworld world(&native);
+    ASSERT_TRUE(world.Load(&native).ok());
+    ASSERT_EQ(world.materialized_map_count(), capacity);
+
+    handlers::OverworldTileStatsCommandHandler stats_handler;
+    auto all = RunJson(stats_handler, {"--top=0"}, &native);
+    auto& stats = all["Overworld Tile Statistics"];
+    ASSERT_TRUE(stats.is_object()) << all.dump();
+    EXPECT_EQ(stats["screens_scanned"], capacity);
+    EXPECT_EQ(stats["total_tiles"], capacity * 1024);
+    ASSERT_EQ(stats["screens"].size(), capacity);
+    EXPECT_EQ(stats["screens"].back()["map_id"],
+              absl::StrFormat("0x%02X", capacity - 1));
+    ASSERT_EQ(stats["worlds"].size(), 3u);
+    EXPECT_EQ(stats["worlds"][2]["screens"], capacity - 0x80);
+
+    // $BF is the last tail screen: local 0x3F at grid (224,224).
+    const uint16_t tile_id = world.GetMapTiles(2)[224][224];
+    const std::string tile = absl::StrFormat("0x%04X", tile_id);
+    handlers::OverworldFindTileCommandHandler find_handler;
+    absl::Status stats_status;
+    absl::Status find_status;
+    auto one = RunJson(stats_handler, {"--map=0xBF", "--tile=" + tile}, &native,
+                       &stats_status);
+    auto found = RunJson(find_handler, {"--map=0xBF", "--tile=" + tile},
+                         &native, &find_status);
+    if (capacity == 160) {
+      EXPECT_FALSE(stats_status.ok());
+      EXPECT_FALSE(find_status.ok());
+      continue;
+    }
+    ASSERT_TRUE(stats_status.ok()) << stats_status;
+    ASSERT_TRUE(find_status.ok()) << find_status;
+    auto& screen = one["Overworld Tile Statistics"];
+    EXPECT_EQ(screen["screens_scanned"], 1);
+    const int count = screen["tile"]["count"].get<int>();
+    EXPECT_GE(count, 1);
+    EXPECT_EQ(found["Overworld Tile Search"]["matches_found"], count);
+    for (auto& match : found["Overworld Tile Search"]["matches"]) {
+      EXPECT_EQ(match["map_id"], "0xBF");
+    }
+  }
 }
 
 std::filesystem::path CopyRomTo(const std::string& source,
