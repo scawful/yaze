@@ -15,6 +15,7 @@ namespace handlers {
 //                       items,all]
 //           [--scale=<float>] [--entrance=<hex_id>|--graphics-entrance=<hex_id>]
 //           [--project-context=<project.yaze>]
+//           [--object-plan=<plan.json>] [--manifest=<manifest.json>]
 // Example: dungeon-render --room=0x056 --entrance=0x79 --output=castle79.png
 //
 // --entrance requires the entrance to lead directly into the room.
@@ -34,7 +35,8 @@ class DungeonRenderCommandHandler : public resources::CommandHandler {
            "items,all] "
            "[--scale=<float>] "
            "[--entrance=<hex_id>|--graphics-entrance=<hex_id>] "
-           "[--project-context=<project.yaze>]";
+           "[--project-context=<project.yaze>] "
+           "[--object-plan=<plan.json>] [--manifest=<manifest.json>]";
   }
 
   Descriptor Describe() const override {
@@ -43,6 +45,15 @@ class DungeonRenderCommandHandler : public resources::CommandHandler {
         "Render a room using inferred, direct-entry or inherited-entry "
         "graphics";
     descriptor.entries = {
+        {"object-plan",
+         "Read-only native-object edits pinned to the original ROM and room; "
+         "staged and rendered in RAM without saving a ROM",
+         ""},
+        {"manifest",
+         "Optional existing dungeon stream allocation manifest for "
+         "object-plan; "
+         "otherwise uses the loaded project's manifest",
+         ""},
         {"entrance", "Actual entrance directly into the requested room", ""},
         {"graphics-entrance",
          "Preview graphics inherited from an actual regular entrance; mutually "

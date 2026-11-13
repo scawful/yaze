@@ -205,6 +205,38 @@ patched ROM when the patch changes tile types. `dungeon-render
 only). Pot-item and key-drop indicators are an editor aid, so `dungeon-render`
 draws them only with `--overlays=items`.
 
+`dungeon-render --object-plan <plan.json>` previews object changes in detached
+RAM through the normal room save planner and renderer. It writes only the PNG;
+the ROM and project stay unchanged. Pass the original `--project-context` for
+project objects, palettes and graphics layout. Existing `--entrance` and
+`--graphics-entrance` options still select the render context. A manifest with
+declared `copy_on_write` object-stream space is required if the edited stream
+needs relocation; the loaded project's manifest is used unless `--manifest`
+is supplied. No raw ROM addresses are accepted.
+
+```json
+{
+  "version": 1,
+  "room": 70,
+  "rom_sha256": "<exact original ROM SHA-256>",
+  "edits": [
+    {"op": "append", "object": {"id": 5, "x": 45, "y": 3, "size": 0, "list": 0}},
+    {"op": "append", "object": {"id": 5, "x": 49, "y": 3, "size": 0, "list": 0}}
+  ]
+}
+```
+
+All numeric plan fields are JSON integers. Coordinates use Tile8 cells; `list`
+is the stored object list (0–2), not a rendered background. Optional
+`object_stream_sha256` pins the complete encoded stream. `replace` and `remove`
+also require an original stream `index` and an exact `before` object with the
+same five fields; `replace` supplies the new `object`. Indices match
+`dungeon-describe-room` and exclude special-table objects. Multiple edits refer
+to original indices, so removing one object does not shift subsequent targets.
+Stale identities, mismatched objects, invalid encodings and output paths that
+alias the ROM, plan or supplied manifest fail before writing the PNG. A render
+preview does not establish in-game collision, passage or progression.
+
 `dungeon-import-custom-collision-json` compares decoded room maps before
 writing. Replaying an exact source reports zero `changed_rooms` and
 `write_status`/`save_status` as `not-needed`; it does not create a backup or

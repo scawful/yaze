@@ -1,8 +1,10 @@
 #include "cli/handlers/game/dungeon_render_commands.h"
+#include "cli/handlers/game/dungeon_render_object_plan.h"
 
 #include <algorithm>
 #include <chrono>
 #include <cmath>
+#include <cstdint>
 #include <cstdlib>
 #include <filesystem>
 #include <fstream>
@@ -20,9 +22,14 @@
 #include "app/service/render_service.h"
 #include "cli/service/rom/rom_sandbox_manager.h"
 #include "cli/service/usage_schema.h"
+#include "core/hack_manifest.h"
 #include "core/project.h"
+#include "core/source_artifact_publisher.h"
+#include "rom/snes.h"
 #include "unit/zelda3/gfx_sheet_test_rom.h"
 #include "util/rom_hash.h"
+#include "zelda3/dungeon/dungeon_rom_addresses.h"
+#include "zelda3/dungeon/dungeon_stream_allocator.h"
 #include "zelda3/dungeon/dungeon_wall_profile.h"
 #include "zelda3/dungeon/entrance_layout.h"
 #include "zelda3/dungeon/object_layer_semantics.h"
@@ -658,6 +665,322 @@ TEST_F(DungeonRenderCommandsTest, SharedPathGuardAllowsSeparateOutput) {
       resources::RejectArtifactRomAliases("--output", *resolved, context).ok());
   EXPECT_FALSE(std::filesystem::exists(output));
   EXPECT_EQ(ReadBytes(source_), original_bytes_);
+}
+
+TEST_F(DungeonRenderCommandsTest, ObjectPlanPathsRequireValues) {
+  handlers::DungeonRenderCommandHandler handler;
+  for (const std::vector<std::string> extra :
+       {std::vector<std::string>{"--object-plan"},
+        {"--object-plan="},
+        {"--manifest=layout.json"},
+        {"--object-plan=plan.json", "--manifest"}}) {
+    std::vector<std::string> args{"--room=0", "--output=room.png"};
+    args.insert(args.end(), extra.begin(), extra.end());
+    EXPECT_FALSE(handler.ValidateArgs(resources::ArgumentParser(args)).ok());
+  }
+  EXPECT_TRUE(
+      handler
+          .ValidateArgs(resources::ArgumentParser(
+              {"--room=0", "--output=room.png", "--object-plan", "plan.json"}))
+          .ok());
+}
+
+TEST_F(DungeonRenderCommandsTest, ObjectPlanRefusesMalformedJsonWithoutOutput) {
+  const auto plan = directory_ / "bad.json";
+  {
+    std::ofstream stream(plan);
+    stream << "{not-json";
+  }
+  handlers::DungeonRenderCommandHandler handler;
+  resources::OutputFormatter formatter(
+      resources::OutputFormatter::Format::kJson);
+  const auto status = handler.Execute(
+      &rom_,
+      resources::ArgumentParser({"--room=0", "--output",
+                                 (directory_ / "room.png").string(),
+                                 "--object-plan", plan.string()}),
+      formatter);
+  EXPECT_TRUE(absl::IsInvalidArgument(status)) << status;
+  EXPECT_FALSE(std::filesystem::exists(directory_ / "room.png"));
+  EXPECT_EQ(rom_.vector(), original_bytes_);
+  EXPECT_EQ(ReadBytes(source_), original_bytes_);
+}
+
+TEST_F(DungeonRenderCommandsTest, ObjectPlanCannotOverwriteItsInputOrRom) {
+  const auto plan = directory_ / "plan.json";
+  {
+    std::ofstream stream(plan);
+    stream << "{}";
+  }
+  const auto plan_bytes = ReadBytes(plan);
+  for (const auto& output : {plan, source_}) {
+    handlers::DungeonRenderCommandHandler handler;
+    resources::OutputFormatter formatter(
+        resources::OutputFormatter::Format::kJson);
+    const auto status = handler.Execute(
+        &rom_,
+        resources::ArgumentParser({"--room=0", "--output", output.string(),
+                                   "--object-plan", plan.string()}),
+        formatter);
+    EXPECT_TRUE(absl::IsInvalidArgument(status)) << status;
+    EXPECT_EQ(ReadBytes(plan), plan_bytes);
+    EXPECT_EQ(ReadBytes(source_), original_bytes_);
+    EXPECT_EQ(rom_.vector(), original_bytes_);
+  }
+}
+
+class DungeonRenderObjectPlanTest : public ::testing::Test {
+ protected:
+  static constexpr int kTable = 0x70000;
+  static constexpr int kData = 0x60000;
+  static constexpr int kOther = 0x60100;
+  Rom rom_;
+  std::vector<uint8_t> baseline_;
+
+  static nlohmann::json Object(int id, int x, int y, int size = 0,
+                               int list = 0) {
+    return {{"id", id}, {"x", x}, {"y", y}, {"size", size}, {"list", list}};
+  }
+
+  static std::string Hash(const std::vector<uint8_t>& bytes) {
+    return core::ComputeSourceArtifactSha256(std::string_view(
+        reinterpret_cast<const char*>(bytes.data()), bytes.size()));
+  }
+
+  void Long(int pc, uint32_t value) {
+    for (int byte = 0; byte < 3; ++byte) {
+      rom_.mutable_data()[pc + byte] = (value >> (byte * 8)) & 255;
+    }
+  }
+
+  void SetUp() override {
+    ASSERT_TRUE(rom_.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+    Long(zelda3::kRoomObjectPointer, PcToSnes(kTable));
+    Long(zelda3::kRoomHeaderPointer, PcToSnes(0x20000));
+    rom_.mutable_data()[zelda3::kRoomHeaderPointerBank] =
+        PcToSnes(0x21000) >> 16;
+    for (int room = 0; room < zelda3::kNumberOfRooms; ++room) {
+      Long(kTable + room * 3, PcToSnes(room == 0 ? kData : kOther));
+      Long(zelda3::kDoorPointers + room * 3,
+           PcToSnes(room == 0 ? kData + 14 : kOther + 8));
+      rom_.mutable_data()[0x20000 + room * 2] = 0;
+      rom_.mutable_data()[0x20001 + room * 2] = 0x90;
+      const auto pot = PcToSnes(0xF000);
+      rom_.mutable_data()[zelda3::kRoomItemsPointers + room * 2] = pot & 255;
+      rom_.mutable_data()[zelda3::kRoomItemsPointers + room * 2 + 1] =
+          (pot >> 8) & 255;
+    }
+    ASSERT_TRUE(rom_.WriteVector(0xF000, {0xFF, 0xFF}).ok());
+    // Two stream objects in different stored lists plus an actual door.
+    ASSERT_TRUE(rom_.WriteVector(
+                        kData, {0x12, 0, 40, 12, 5, 0xFF, 0xFF, 20, 42, 0x63,
+                                0xFF, 0xFF, 0xF0, 0xFF, 0x20, 0x38, 0xFF, 0xFF})
+                    .ok());
+    ASSERT_TRUE(rom_.WriteVector(kOther, {0, 0, 0xFF, 0xFF, 0xFF, 0xFF, 0xF0,
+                                          0xFF, 0xFF, 0xFF})
+                    .ok());
+    rom_.set_dirty(false);
+    rom_.set_filename("read-only-source.sfc");
+    baseline_ = rom_.vector();
+  }
+
+  nlohmann::json Plan(nlohmann::json edits = nlohmann::json::array()) {
+    const auto stream = zelda3::ReadDungeonObjectStream(rom_, 0);
+    EXPECT_TRUE(stream.ok()) << stream.status();
+    return {{"version", 1},
+            {"room", 0},
+            {"rom_sha256", Hash(rom_.vector())},
+            {"object_stream_sha256",
+             stream.ok() ? Hash(stream->encoded_stream) : ""},
+            {"edits", std::move(edits)}};
+  }
+
+  void ExpectSourceUnchanged() {
+    EXPECT_EQ(rom_.vector(), baseline_);
+    EXPECT_FALSE(rom_.dirty());
+    EXPECT_EQ(rom_.filename(), "read-only-source.sfc");
+  }
+};
+
+TEST_F(DungeonRenderObjectPlanTest, EmptyPlanPreservesEveryByte) {
+  const auto preview = handlers::StageDungeonRenderObjectPlan(rom_, 0, Plan());
+  ASSERT_TRUE(preview.ok()) << preview.status();
+  EXPECT_EQ(preview->rom->vector(), baseline_);
+  EXPECT_EQ(preview->objects_before, 2);
+  EXPECT_EQ(preview->objects_after, 2);
+  EXPECT_EQ(preview->edit_count, 0);
+  ExpectSourceUnchanged();
+}
+
+TEST_F(DungeonRenderObjectPlanTest,
+       AppendGroupsListsAndPreservesHeaderDoorAndOtherRooms) {
+  auto plan = Plan(nlohmann::json::array(
+      {{{"op", "append"}, {"object", Object(5, 45, 3)}},
+       {{"op", "append"}, {"object", Object(0x100, 12, 14, 0, 2)}}}));
+  const auto preview = handlers::StageDungeonRenderObjectPlan(rom_, 0, plan);
+  ASSERT_TRUE(preview.ok()) << preview.status();
+  EXPECT_EQ(preview->objects_after, 4);
+  auto room = std::make_unique<zelda3::Room>(
+      zelda3::LoadRoomFromRom(preview->rom.get(), 0));
+  room->LoadObjects();
+  const auto& objects = room->GetTileObjects();
+  ASSERT_EQ(objects.size(), 4);
+  EXPECT_EQ(objects[0].x(), 10);
+  EXPECT_EQ(objects[1].x(), 45);
+  EXPECT_EQ(objects[2].GetLayerValue(), 1);
+  EXPECT_EQ(objects[3].GetLayerValue(), 2);
+  EXPECT_EQ(room->floor1(), 2);
+  ASSERT_EQ(room->GetDoors().size(), 1);
+  EXPECT_EQ(room->GetDoors()[0].byte1, 0x20);
+  EXPECT_EQ(room->GetDoors()[0].byte2, 0x38);
+  for (int other = 1; other < zelda3::kNumberOfRooms; ++other) {
+    const auto old = zelda3::ReadDungeonObjectStream(rom_, other);
+    const auto saved = zelda3::ReadDungeonObjectStream(*preview->rom, other);
+    ASSERT_TRUE(old.ok() && saved.ok());
+    EXPECT_EQ(old->data_pc, saved->data_pc);
+    EXPECT_EQ(old->encoded_stream, saved->encoded_stream);
+  }
+  ExpectSourceUnchanged();
+}
+
+TEST_F(DungeonRenderObjectPlanTest, RemoveAndReplaceUseOriginalIndices) {
+  auto plan = Plan(nlohmann::json::array(
+      {{{"op", "remove"}, {"index", 0}, {"before", Object(5, 10, 3)}},
+       {{"op", "replace"},
+        {"index", 1},
+        {"before", Object(0x63, 5, 10, 2, 1)},
+        {"object", Object(0x63, 7, 10, 3, 1)}}}));
+  const auto preview = handlers::StageDungeonRenderObjectPlan(rom_, 0, plan);
+  ASSERT_TRUE(preview.ok()) << preview.status();
+  auto room = std::make_unique<zelda3::Room>(
+      zelda3::LoadRoomFromRom(preview->rom.get(), 0));
+  room->LoadObjects();
+  ASSERT_EQ(room->GetTileObjects().size(), 1);
+  EXPECT_EQ(room->GetTileObjects()[0].x(), 7);
+  EXPECT_EQ(room->GetTileObjects()[0].size(), 3);
+  ExpectSourceUnchanged();
+}
+
+TEST_F(DungeonRenderObjectPlanTest, RejectsStaleIdentitiesAndObjectPreimages) {
+  auto rom_hash = Plan();
+  rom_hash["rom_sha256"] = std::string(64, '0');
+  auto stream_hash = Plan();
+  stream_hash["object_stream_sha256"] = std::string(64, '0');
+  auto room_id = Plan();
+  room_id["room"] = 1;
+  auto stale_object =
+      Plan(nlohmann::json::array({{{"op", "remove"},
+                                   {"index", 1},
+                                   {"before", Object(0x63, 6, 10, 2, 1)}}}));
+  for (const auto& plan : {rom_hash, stream_hash, room_id, stale_object}) {
+    EXPECT_TRUE(absl::IsFailedPrecondition(
+        handlers::StageDungeonRenderObjectPlan(rom_, 0, plan).status()));
+    ExpectSourceUnchanged();
+  }
+}
+
+TEST_F(DungeonRenderObjectPlanTest,
+       RejectsInvalidObjectNumbersBeforeNarrowing) {
+  for (const auto& object :
+       {Object(0xF8, 3, 4), Object(5, 256, 3), Object(5, 3, -1),
+        Object(5, 63, 3), Object(5, 3, 4, 16), Object(0x100, 3, 4, 1),
+        Object(5, 3, 4, 0, 3)}) {
+    EXPECT_FALSE(handlers::StageDungeonRenderObjectPlan(
+                     rom_, 0,
+                     Plan(nlohmann::json::array(
+                         {{{"op", "append"}, {"object", object}}})))
+                     .ok());
+    ExpectSourceUnchanged();
+  }
+  for (const nlohmann::json value :
+       {nlohmann::json(true), nlohmann::json(1.5), nlohmann::json("5"),
+        nlohmann::json(UINT64_MAX)}) {
+    auto object = Object(5, 3, 4);
+    object["id"] = value;
+    EXPECT_FALSE(handlers::StageDungeonRenderObjectPlan(
+                     rom_, 0,
+                     Plan(nlohmann::json::array(
+                         {{{"op", "append"}, {"object", object}}})))
+                     .ok());
+  }
+}
+
+TEST_F(DungeonRenderObjectPlanTest, RejectsUnknownFieldsAndRepeatedIndices) {
+  auto unknown = Plan();
+  unknown["memory_edits"] = nlohmann::json::array();
+  auto duplicate = Plan(nlohmann::json::array(
+      {{{"op", "remove"}, {"index", 0}, {"before", Object(5, 10, 3)}},
+       {{"op", "remove"}, {"index", 0}, {"before", Object(5, 10, 3)}}}));
+  auto unknown_op = Plan(nlohmann::json::array({{{"op", "write"}, {"pc", 0}}}));
+  for (const auto& plan : {unknown, duplicate, unknown_op}) {
+    EXPECT_TRUE(absl::IsInvalidArgument(
+        handlers::StageDungeonRenderObjectPlan(rom_, 0, plan).status()));
+    ExpectSourceUnchanged();
+  }
+}
+
+TEST_F(DungeonRenderObjectPlanTest, SharedSourceNeedsDeclaredAllocation) {
+  Long(kTable, PcToSnes(kOther));
+  baseline_ = rom_.vector();
+  const auto preview = handlers::StageDungeonRenderObjectPlan(
+      rom_, 0,
+      Plan(nlohmann::json::array(
+          {{{"op", "append"}, {"object", Object(5, 10, 3)}}})));
+  EXPECT_TRUE(absl::IsFailedPrecondition(preview.status())) << preview.status();
+  ExpectSourceUnchanged();
+}
+
+TEST_F(DungeonRenderObjectPlanTest,
+       DeclaredCopyOnWritePreservesSharedRoomsAndHonorsProtection) {
+  Long(kTable, PcToSnes(kOther));
+  Long(zelda3::kDoorPointers, PcToSnes(kOther + 8));
+  baseline_ = rom_.vector();
+  auto plan = Plan(nlohmann::json::array(
+      {{{"op", "append"}, {"object", Object(5, 10, 3)}}}));
+  const auto snes = [](int pc) {
+    return absl::StrFormat("0x%06X", PcToSnes(pc));
+  };
+  nlohmann::json manifest = {
+      {"manifest_version", 3},
+      {"dungeon_stream_regions",
+       {{"objects",
+         {{"pointer_table", snes(kTable)},
+          {"pointer_count", zelda3::kNumberOfRooms},
+          {"pointer_encoding", "long24"},
+          {"strategy", "copy_on_write"},
+          {"data_regions",
+           {{{"start", snes(kData)}, {"end", snes(kData + 0x1000)}}}},
+          {"allocation_regions",
+           {{{"start", snes(kData + 0x200)},
+             {"end", snes(kData + 0x300)}}}}}}}}};
+  core::HackManifest allocation;
+  ASSERT_TRUE(allocation.LoadFromString(manifest.dump()).ok());
+  const auto preview =
+      handlers::StageDungeonRenderObjectPlan(rom_, 0, plan, &allocation);
+  ASSERT_TRUE(preview.ok()) << preview.status();
+  const auto room0 = zelda3::ReadDungeonObjectStream(*preview->rom, 0);
+  ASSERT_TRUE(room0.ok()) << room0.status();
+  EXPECT_EQ(room0->data_pc, kData + 0x200);
+  for (int other = 1; other < zelda3::kNumberOfRooms; ++other) {
+    const auto old = zelda3::ReadDungeonObjectStream(rom_, other);
+    const auto saved = zelda3::ReadDungeonObjectStream(*preview->rom, other);
+    ASSERT_TRUE(old.ok() && saved.ok());
+    EXPECT_EQ(old->data_pc, saved->data_pc);
+    EXPECT_EQ(old->encoded_stream, saved->encoded_stream);
+  }
+  manifest["protected_regions"] = {{"total_hooks", 1},
+                                   {"regions",
+                                    {{{"start", snes(kData + 0x200)},
+                                      {"end", snes(kData + 0x201)},
+                                      {"size", 1},
+                                      {"hook_count", 1},
+                                      {"module", "ObjectPreviewGuard"}}}}};
+  core::HackManifest protected_allocation;
+  ASSERT_TRUE(protected_allocation.LoadFromString(manifest.dump()).ok());
+  EXPECT_TRUE(absl::IsPermissionDenied(handlers::StageDungeonRenderObjectPlan(
+                                           rom_, 0, plan, &protected_allocation)
+                                           .status()));
+  ExpectSourceUnchanged();
 }
 
 }  // namespace

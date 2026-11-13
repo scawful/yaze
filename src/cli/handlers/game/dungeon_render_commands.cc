@@ -1,6 +1,7 @@
 #include "cli/handlers/game/dungeon_render_commands.h"
 
 #include <fstream>
+#include <iterator>
 #include <memory>
 #include <optional>
 #include <sstream>
@@ -10,8 +11,10 @@
 
 #include "absl/strings/str_format.h"
 #include "app/service/render_service.h"
+#include "cli/handlers/game/dungeon_render_object_plan.h"
 #include "cli/service/resources/command_context.h"
 #include "core/gfx_sheet_policy_adapter.h"
+#include "nlohmann/json.hpp"
 #include "rom/rom.h"
 #include "util/macro.h"
 #include "zelda3/dungeon/room_default_entrance.h"
@@ -23,6 +26,41 @@ namespace cli {
 namespace handlers {
 
 namespace {
+
+absl::StatusOr<nlohmann::json> LoadObjectPlanFile(
+    const std::filesystem::path& path) {
+  std::error_code error;
+  const auto size = std::filesystem::file_size(path, error);
+  if (error) {
+    return absl::InvalidArgumentError("Cannot read --object-plan file");
+  }
+  if (size > 1024 * 1024) {
+    return absl::ResourceExhaustedError("--object-plan exceeds one MiB");
+  }
+  std::ifstream input(path, std::ios::binary);
+  if (!input) {
+    return absl::InvalidArgumentError("Cannot open --object-plan file");
+  }
+  const std::string bytes{std::istreambuf_iterator<char>(input), {}};
+  auto plan = nlohmann::json::parse(bytes, nullptr, false);
+  if (input.bad() || plan.is_discarded()) {
+    return absl::InvalidArgumentError("--object-plan is not valid JSON");
+  }
+  return plan;
+}
+
+absl::Status RejectPreviewInputAliases(
+    const std::filesystem::path& output,
+    const std::vector<std::filesystem::path>& inputs) {
+  for (const auto& input : inputs) {
+    ASSIGN_OR_RETURN(const bool alias, resources::PathsAlias(output, input));
+    if (alias) {
+      return absl::InvalidArgumentError(
+          "PNG output aliases a read-only object-plan/manifest input");
+    }
+  }
+  return absl::OkStatus();
+}
 
 absl::StatusOr<std::optional<int>> ParseOptionalEntranceId(
     const resources::ArgumentParser& parser, const char* option = "entrance") {
@@ -110,6 +148,24 @@ absl::Status DungeonRenderCommandHandler::ValidateArgs(
   if (parser.GetString("output")->empty()) {
     return absl::InvalidArgumentError("--output cannot be empty");
   }
+  if ((parser.HasFlag("object-plan") &&
+       !parser.GetString("object-plan").has_value()) ||
+      (parser.HasFlag("manifest") &&
+       !parser.GetString("manifest").has_value())) {
+    return absl::InvalidArgumentError(
+        "--object-plan and --manifest require file paths");
+  }
+  for (const char* name : {"object-plan", "manifest"}) {
+    if (const auto value = parser.GetString(name);
+        value.has_value() && value->empty()) {
+      return absl::InvalidArgumentError(
+          absl::StrFormat("--%s cannot be empty", name));
+    }
+  }
+  if (parser.GetString("manifest").has_value() &&
+      !parser.GetString("object-plan").has_value()) {
+    return absl::InvalidArgumentError("--manifest requires --object-plan");
+  }
   if (const auto scale = parser.GetString("scale"); scale.has_value()) {
     RETURN_IF_ERROR(app::service::ParseRenderScale(*scale).status());
   }
@@ -157,6 +213,28 @@ absl::Status DungeonRenderCommandHandler::ExecuteWithContext(
   RETURN_IF_ERROR(resources::RejectArtifactRomAliases(
       "--output", resolved_output, invocation_context));
 
+  std::optional<nlohmann::json> object_plan;
+  std::optional<core::HackManifest> manifest_override;
+  std::vector<std::filesystem::path> preview_inputs;
+  if (const auto path = parser.GetString("object-plan"); path.has_value()) {
+    ASSIGN_OR_RETURN(const auto input,
+                     resources::ResolveStableArtifactPath(*path));
+    preview_inputs.push_back(input);
+    if (const auto manifest_path = parser.GetString("manifest");
+        manifest_path.has_value()) {
+      ASSIGN_OR_RETURN(const auto manifest_input,
+                       resources::ResolveStableArtifactPath(*manifest_path));
+      preview_inputs.push_back(manifest_input);
+    }
+    RETURN_IF_ERROR(RejectPreviewInputAliases(resolved_output, preview_inputs));
+    ASSIGN_OR_RETURN(object_plan, LoadObjectPlanFile(input));
+    if (preview_inputs.size() > 1) {
+      manifest_override.emplace();
+      RETURN_IF_ERROR(
+          manifest_override->LoadFromFile(preview_inputs[1].string()));
+    }
+  }
+
   // Parse --overlays (optional, default none).
   uint32_t overlay_flags = app::service::RenderOverlay::kNone;
   if (auto ov = parser.GetString("overlays"); ov.has_value()) {
@@ -191,8 +269,19 @@ absl::Status DungeonRenderCommandHandler::ExecuteWithContext(
         absl::StrFormat("Failed to load game data: %s", gd_status.message()));
   }
 
-  // Render.
-  app::service::RenderService render_service(rom, &game_data);
+  // Bind graphics against the original image above. The object-save plan and
+  // rendering below use only detached RAM; never save or mutate the caller.
+  std::optional<DungeonRenderObjectPreview> preview;
+  if (object_plan.has_value()) {
+    const auto* manifest =
+        manifest_override.has_value()
+            ? &*manifest_override
+            : (project_ ? &project_->hack_manifest : nullptr);
+    ASSIGN_OR_RETURN(preview, StageDungeonRenderObjectPlan(
+                                  *rom, room_id, *object_plan, manifest));
+  }
+  app::service::RenderService render_service(
+      preview.has_value() ? preview->rom.get() : rom, &game_data);
   app::service::RenderRequest req;
   req.room_id = room_id;
   req.overlay_flags = overlay_flags;
@@ -211,6 +300,7 @@ absl::Status DungeonRenderCommandHandler::ExecuteWithContext(
   // the resolved path, not a caller-supplied parent symlink a second time.
   RETURN_IF_ERROR(resources::RejectArtifactRomAliases(
       "--output", resolved_output, invocation_context));
+  RETURN_IF_ERROR(RejectPreviewInputAliases(resolved_output, preview_inputs));
   std::ofstream out(resolved_output, std::ios::binary);
   if (!out) {
     return absl::InternalError(
@@ -233,6 +323,18 @@ absl::Status DungeonRenderCommandHandler::ExecuteWithContext(
   formatter.AddField("width", result.width);
   formatter.AddField("height", result.height);
   formatter.AddField("size_bytes", static_cast<int>(result.png_data.size()));
+  if (preview.has_value()) {
+    formatter.BeginObject("object_plan");
+    formatter.AddField("mode", "ram_only");
+    formatter.AddField("rom_sha256",
+                       (*object_plan)["rom_sha256"].get<std::string>());
+    formatter.AddField("source_stream_sha256", preview->source_stream_sha256);
+    formatter.AddField("edit_count", preview->edit_count);
+    formatter.AddField("objects_before", preview->objects_before);
+    formatter.AddField("objects_after", preview->objects_after);
+    formatter.AddField("rom_file_written", false);
+    formatter.EndObject();
+  }
   if (req.entrance_id.has_value()) {
     formatter.AddHexField("entrance_id", *req.entrance_id, 2);
   }
