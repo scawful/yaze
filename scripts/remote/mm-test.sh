@@ -73,9 +73,10 @@ fi
 # Prints FREE or BUSY for a box's build lock; UNPREPARED if build tools are missing;
 # fails if the box is unreachable.
 lock_state() {
-  local script="\$t = Join-Path \$env:USERPROFILE 'tools'
-if (-not ((Test-Path \"\$t\\ninja\\ninja.exe\") -and (Test-Path \"\$t\\ccache\\ccache.exe\") -and (Get-Command cmake -ErrorAction SilentlyContinue))) { 'UNPREPARED'; exit }
-\$p = Join-Path \$env:USERPROFILE '${remote_root//\//\\}\\build.lock'
+  local script="\$r = Join-Path \$env:USERPROFILE '${remote_root//\//\\}'
+\$ready = foreach (\$t in @(\"\$r\\tools\", (Join-Path \$env:USERPROFILE 'tools'))) { (Test-Path \"\$t\\ninja\\ninja.exe\") -and (Test-Path \"\$t\\ccache\\ccache.exe\") }
+if (-not ((\$ready -contains \$true) -and (Get-Command cmake -ErrorAction SilentlyContinue))) { 'UNPREPARED'; exit }
+\$p = Join-Path \$r 'build.lock'
 if (-not (Test-Path \$p)) { 'FREE'; exit }
 try { [IO.File]::Open(\$p, 'Open', 'ReadWrite', 'None').Close(); 'FREE' } catch { 'BUSY' }"
   ssh -o BatchMode=yes -o LogLevel=ERROR -o ConnectTimeout=5 "$1" \
