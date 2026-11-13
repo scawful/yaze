@@ -21,6 +21,7 @@
 #include "nlohmann/json.hpp"
 #include "rom/rom.h"
 #include "rom/snes.h"
+#include "unit/zelda3/compiled_wall_profile_test_rom.h"
 #include "unit/zelda3/gfx_sheet_test_rom.h"
 #include "zelda3/dungeon/palette_debug.h"
 #include "zelda3/dungeon/room.h"
@@ -192,6 +193,34 @@ TEST(GameDataTest, DefaultGraphicsLookupTablesAreZeroInitialized) {
 // In yaze we store sheets as 8BPP linear indices (one byte per pixel). To
 // mirror the runtime expansion, we apply the +8 shift when copying UW
 // destination blocks 0-3 into the room's graphics buffer.
+TEST(RoomGraphicsPaletteTest, CompiledKitMasksOnlySelectedSlot6Glyphs) {
+  Rom rom;
+  const auto bytes = CompiledWallProfileRom();
+  ASSERT_TRUE(rom.LoadFromData(bytes).ok());
+  GameData data;
+  data.graphics_buffer.assign(256 * 4096, 0);
+  data.room_blockset_ids[0x17] = {0xFE, 0, 0x27, 0xF3};
+  for (int i = 0; i < 4096; ++i)
+    data.graphics_buffer[0xF3 * 4096 + i] = i % 8;
+  Room room(0xBD, &rom, &data);
+  room.SetBlockset(0x0B);
+  room.LoadRoomGraphics(0x0B);
+  ASSERT_TRUE(room.compiled_wall_profile_status().ok());
+  EXPECT_EQ(room.blocks()[6], 0xF3);
+  room.CopyRoomGraphicsToBuffer();
+  const auto& pixels = room.get_gfx_buffer();
+  for (int i = 0; i < 4096; ++i) {
+    const int tile = (i / 128 / 8) * 16 + i % 128 / 8;
+    // Animation owns tiles48..63 after expansion and is outside this test.
+    if (tile >= 48)
+      continue;
+    const int source = i % 8;
+    EXPECT_EQ(pixels[6 * 4096 + i], source && tile < 2 ? source + 8 : source);
+  }
+  EXPECT_EQ(room.blockset(), 0x0B);
+  EXPECT_EQ(rom.vector(), bytes);
+}
+
 TEST(RoomGraphicsPaletteTest,
      CopyRoomGraphicsToBuffer_ShiftsRightPaletteBlocks) {
   auto rom = std::make_unique<Rom>();

@@ -14,6 +14,7 @@
 #include "zelda3/dungeon/door_position.h"
 #include "zelda3/dungeon/door_types.h"
 #include "zelda3/dungeon/dungeon_state.h"
+#include "zelda3/dungeon/dungeon_wall_profile.h"
 #include "zelda3/dungeon/room_object.h"
 
 namespace yaze {
@@ -345,6 +346,9 @@ class ObjectDrawer {
   const CustomObjectRenderSnapshot* custom_objects_ = nullptr;
   Rom* rom_;
   int room_id_;
+  bool compiled_profile_loaded_ = false;
+  absl::StatusOr<std::optional<CompiledWallProfile>> compiled_profile_{
+      std::nullopt};
   mutable int current_chest_index_ = 0;
   mutable int current_room_event_index_ = 0;
   bool has_room_floor_graphics_ = false;

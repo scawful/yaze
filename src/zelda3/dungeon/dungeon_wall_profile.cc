@@ -1,6 +1,7 @@
 #include "zelda3/dungeon/dungeon_wall_profile.h"
 
 #include <algorithm>
+#include <array>
 #include <filesystem>
 #include <fstream>
 #include <initializer_list>
@@ -12,8 +13,116 @@
 #include "absl/status/status.h"
 #include "absl/strings/str_format.h"
 #include "nlohmann/json.hpp"
+#include "rom/rom.h"
 
 namespace yaze::zelda3 {
+
+absl::StatusOr<std::optional<CompiledWallProfile>> ReadCompiledWallProfile(
+    const Rom& rom, int room) {
+  const auto& bytes = rom.vector();
+  constexpr size_t kDispatch = 0x6636;
+  if (bytes.size() < kDispatch + 6)
+    return std::nullopt;
+  if (bytes[kDispatch] != 0x5C) {
+    const std::array<uint8_t, 6> vanilla = {0xA6, 0x0F, 0xE0, 0x04, 0xB0, 0xF7};
+    if (std::equal(vanilla.begin(), vanilla.end(), bytes.begin() + kDispatch))
+      return std::nullopt;
+    // Uninitialized synthetic ROMs do not assert an Oracle runtime hook.
+    if (bytes[kDispatch] == 0 || bytes[kDispatch] == 0xFF)
+      return std::nullopt;
+    return absl::FailedPreconditionError(
+        "Unsupported dungeon palette-half dispatch");
+  }
+  auto fail = []() {
+    return absl::FailedPreconditionError(
+        "Unsupported or malformed compiled wall-kit palette mask descriptor");
+  };
+  auto u16 = [&](size_t p) -> uint16_t {
+    return bytes[p] | (bytes[p + 1] << 8);
+  };
+  auto u24 = [&](size_t p) -> uint32_t {
+    return bytes[p] | (bytes[p + 1] << 8) | (bytes[p + 2] << 16);
+  };
+  auto pc = [](uint32_t a) -> size_t {
+    return ((a >> 16) & 0x7F) * 0x8000 + (a & 0x7FFF);
+  };
+  auto valid = [&](uint32_t a, size_t count) {
+    return a >= 0x44E000 && a < 0x450000 && count <= 0x450000 - a &&
+           pc(a) <= bytes.size() && count <= bytes.size() - pc(a);
+  };
+  const uint32_t entry = u24(kDispatch + 1);
+  if (!valid(entry, 10))
+    return fail();
+  const size_t e = pc(entry);
+  if (bytes[e] != 0x80 || bytes[e + 1] != 8 ||
+      std::string(bytes.begin() + e + 2, bytes.begin() + e + 6) != "WKPM" ||
+      bytes[e + 6] != 1)
+    return fail();
+  const uint32_t descriptor = u24(e + 7);
+  if (!valid(descriptor, 40))
+    return fail();
+  const size_t d = pc(descriptor);
+  if (std::string(bytes.begin() + d, bytes.begin() + d + 4) != "WSR1" ||
+      u16(d + 4) != 0x128 || bytes[d + 6] != 30 || bytes[d + 7] == 0 ||
+      bytes[d + 7] > 128 || bytes[d + 8] != 0x17 || bytes[d + 9] > 4)
+    return fail();
+  if (room < 0 || room >= 0x128)
+    return absl::OutOfRangeError("Compiled wall profile room is out of range");
+  const size_t profiles = bytes[d + 7], kits = bytes[d + 9];
+  std::array<uint32_t, 10> pointers;
+  const std::array<size_t, 10> lengths = {
+      0x128,         0xF8, 0x40,     profiles * 2, profiles * 60,
+      profiles * 60, 2,    profiles, profiles,     kits * 64};
+  for (size_t i = 0; i < pointers.size(); ++i) {
+    pointers[i] = u24(d + 10 + i * 3);
+    if (!valid(pointers[i], lengths[i]))
+      return fail();
+  }
+  const uint8_t profile = bytes[pc(pointers[0]) + room];
+  if (profile == 0)
+    return std::nullopt;
+  if (profile > profiles)
+    return fail();
+  CompiledWallProfile result;
+  result.blockset = bytes[pc(pointers[7]) + profile - 1];
+  result.palette = bytes[pc(pointers[8]) + profile - 1];
+  if (result.blockset != 0xFF) {
+    if (result.blockset < 0x17 || result.blockset >= 0x17 + kits)
+      return fail();
+    const size_t mask = pc(pointers[9]) + (result.blockset - 0x17) * 64;
+    for (int tile = 0; tile < 64; ++tile) {
+      if (bytes[mask + tile] > 1 || (tile >= 48 && bytes[mask + tile]))
+        return fail();
+      if (bytes[mask + tile])
+        result.slot6_high_palette |= uint64_t{1} << tile;
+    }
+  }
+  const uint16_t base = u16(pc(pointers[3]) + (profile - 1) * 2);
+  if (base != (profile - 1) * 60)
+    return fail();
+  for (int object = 0; object < 0x140; ++object) {
+    if (object >= 0xF8 && object < 0x100)
+      continue;
+    const int cls = object < 0x100 ? bytes[pc(pointers[1]) + object]
+                                   : bytes[pc(pointers[2]) + object - 0x100];
+    if (cls == 0xFF)
+      continue;
+    if (cls >= 30)
+      return fail();
+    const uint16_t last = u16(pc(pointers[4]) + base + cls * 2);
+    const uint16_t span = u16(pc(pointers[5]) + base + cls * 2);
+    if (last == 0xFFFF && span == 0xFFFF)
+      continue;
+    if (span > 30 || (span & 1) || last < span ||
+        !valid(pointers[6] + last - span, span + 2))
+      return fail();
+    auto& words = result.class_words[object];
+    for (int offset = 0; offset <= span; offset += 2)
+      words.push_back(u16(pc(pointers[6]) + last - span + offset));
+  }
+  return result;
+}
+
 namespace {
 
 using Json = nlohmann::json;

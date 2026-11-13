@@ -227,6 +227,7 @@ absl::StatusOr<RenderResult> RenderService::RenderDungeonRoom(
 
   // Load graphics sheets and render tiles to BackgroundBuffers (CPU only).
   room.LoadRoomGraphics();
+  RETURN_IF_ERROR(room.compiled_wall_profile_status());
   room.RenderRoomGraphics();
 
   // Composite all layers to a single Bitmap (CPU, SDL surface with palette).

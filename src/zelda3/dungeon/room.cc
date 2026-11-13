@@ -1007,7 +1007,10 @@ int Room::ResolveDungeonPaletteId() const {
   int id = palette_;
   if (palette_ < game_data_->paletteset_ids.size() &&
       !game_data_->paletteset_ids[palette_].empty()) {
-    const auto offset = game_data_->paletteset_ids[palette_][0];
+    const auto offset =
+        compiled_wall_profile_ && compiled_wall_profile_->palette != 0xFF
+            ? compiled_wall_profile_->palette
+            : game_data_->paletteset_ids[palette_][0];
     const auto word = rom_->ReadWord(kDungeonPalettePointerTable + offset);
     if (word.ok()) {
       id = word.value() / kDungeonPaletteBytes;
@@ -1034,6 +1037,18 @@ void Room::LoadRoomGraphics(std::optional<uint8_t> entrance_blockset) {
     return;
   }
 
+  const auto compiled = ReadCompiledWallProfile(*rom_, room_id_);
+  compiled_wall_profile_status_ = compiled.status();
+  compiled_wall_profile_ = compiled.ok() ? *compiled : std::nullopt;
+  if (!compiled.ok()) {
+    std::fill(current_gfx16_.begin(), current_gfx16_.end(), 0);
+    LOG_ERROR("Room", "%s", compiled.status().ToString().c_str());
+    return;
+  }
+  const uint8_t render_blockset =
+      compiled_wall_profile_ && compiled_wall_profile_->blockset != 0xFF
+          ? compiled_wall_profile_->blockset
+          : blockset_;
   const auto& room_gfx = game_data_->room_blockset_ids;
   const auto& sprite_gfx = game_data_->spriteset_ids;
   const uint8_t requested_main_blockset =
@@ -1065,8 +1080,8 @@ void Room::LoadRoomGraphics(std::optional<uint8_t> entrance_blockset) {
 
   for (int i = 0; i < 8; i++) {
     blocks_[i] = game_data_->main_blockset_ids[main_blockset][i];
-    if (i >= 3 && i <= 6 && blockset_ < room_gfx.size()) {
-      const uint8_t room_sheet = room_gfx[blockset_][i - 3];
+    if (i >= 3 && i <= 6 && render_blockset < room_gfx.size()) {
+      const uint8_t room_sheet = room_gfx[render_blockset][i - 3];
       if (room_sheet != 0) {
         blocks_[i] = room_sheet;
       }
@@ -1250,13 +1265,18 @@ void Room::CopyRoomGraphicsToBuffer() {
       // Only background blocks (0-7) participate in Left/Right palette
       // expansion. Sprite sheets are handled separately by the game.
       const bool right_pal = BackgroundPaletteOffset(block) == 8;
-      if (!right_pal) {
+      const uint64_t high_mask =
+          block == 6 && compiled_wall_profile_
+              ? compiled_wall_profile_->slot6_high_palette
+              : 0;
+      if (!right_pal && high_mask == 0) {
         memcpy(dst, src, 4096);
       } else {
         // Right palette expansion: set bit3 for non-zero pixels (1-7 -> 9-15).
         for (int i = 0; i < 4096; ++i) {
           uint8_t p = src[i];
-          if (p != 0 && p < 8) {
+          const int tile = (i / 128 / 8) * 16 + (i % 128 / 8);
+          if ((right_pal || ((high_mask >> tile) & 1)) && p != 0 && p < 8) {
             p |= 0x08;
           }
           dst[i] = p;

@@ -12,7 +12,25 @@
 #include "absl/strings/string_view.h"
 #include "zelda3/dungeon/dungeon_tile_patterns.h"
 
+namespace yaze {
+class Rom;
+}
+
 namespace yaze::zelda3 {
+
+// Read-only runtime view emitted by Oracle's existing wall-kit producer. Never
+// copy these resolved values into room headers, object caches, or source files.
+struct CompiledWallProfile {
+  uint8_t blockset = 0xFF;
+  uint8_t palette = 0xFF;
+  uint64_t slot6_high_palette = 0;
+  std::map<uint16_t, std::vector<uint16_t>> class_words;
+};
+
+// A vanilla dispatch means no compiled profile. A hooked but unknown/malformed
+// descriptor fails closed instead of producing a plausible incorrect render.
+absl::StatusOr<std::optional<CompiledWallProfile>> ReadCompiledWallProfile(
+    const Rom& rom, int room);
 
 inline constexpr size_t kWallProfileMaxSourceBytes = 1024 * 1024;
 inline constexpr size_t kWallProfileMaxProfiles = 128;

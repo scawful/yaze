@@ -9,6 +9,8 @@
 #include "absl/status/status.h"
 #include "gtest/gtest.h"
 #include "nlohmann/json.hpp"
+#include "rom/rom.h"
+#include "unit/zelda3/compiled_wall_profile_test_rom.h"
 
 namespace yaze::zelda3 {
 namespace {
@@ -328,6 +330,50 @@ TEST(DungeonWallProfileTest, LoadsExactSourceWithoutCreatingMissingFiles) {
   EXPECT_EQ((*parsed)->source_text(), source);
   EXPECT_EQ((*parsed)->source_path(),
             std::filesystem::canonical(path).string());
+}
+
+TEST(CompiledWallProfileTest, ResolvesExistingTablesWithoutChangingRom) {
+  Rom rom;
+  const auto bytes = test::CompiledWallProfileRom();
+  ASSERT_TRUE(rom.LoadFromData(bytes).ok());
+  auto result = ReadCompiledWallProfile(rom, 0xBD);
+  ASSERT_TRUE(result.ok()) << result.status();
+  ASSERT_TRUE(result->has_value());
+  EXPECT_EQ((*result)->blockset, 0x17);
+  EXPECT_EQ((*result)->palette, 0x26);
+  EXPECT_EQ((*result)->slot6_high_palette, 3);
+  EXPECT_EQ((*result)->class_words.at(1).size(), 8);
+  EXPECT_EQ((*result)->class_words.at(1).front(), 0x1580);
+  EXPECT_EQ(rom.vector(), bytes);
+  EXPECT_FALSE(ReadCompiledWallProfile(rom, 0xBC)->has_value());
+}
+
+TEST(CompiledWallProfileTest, RefusesUnknownVersionPointersAndAnimatedMask) {
+  for (int mode = 0; mode < 4; ++mode) {
+    auto bytes = test::CompiledWallProfileRom();
+    if (mode == 0)
+      bytes[0x226706] = 2;
+    if (mode == 1)
+      bytes[0x22660C] = 0x7E;
+    if (mode == 2)
+      bytes[0x226530] = 1;
+    if (mode == 3)
+      bytes[0x226350] = 0;
+    Rom rom;
+    ASSERT_TRUE(rom.LoadFromData(bytes).ok());
+    EXPECT_FALSE(ReadCompiledWallProfile(rom, 0xBD).ok()) << mode;
+  }
+}
+
+TEST(CompiledWallProfileTest, VanillaDispatchHasNoMask) {
+  auto bytes = test::CompiledWallProfileRom();
+  const std::array<uint8_t, 6> vanilla{0xA6, 0x0F, 0xE0, 0x04, 0xB0, 0xF7};
+  std::copy(vanilla.begin(), vanilla.end(), bytes.begin() + 0x6636);
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(bytes).ok());
+  auto result = ReadCompiledWallProfile(rom, 0xBD);
+  ASSERT_TRUE(result.ok());
+  EXPECT_FALSE(result->has_value());
 }
 
 }  // namespace

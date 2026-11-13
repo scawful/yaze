@@ -369,6 +369,12 @@ absl::Status ObjectDrawer::DrawObject(
         data_pc);
   }
 
+  if (!compiled_profile_loaded_) {
+    compiled_profile_ = ReadCompiledWallProfile(*rom_, room_id_);
+    compiled_profile_loaded_ = true;
+  }
+  if (!compiled_profile_.ok())
+    return compiled_profile_.status();
   std::array<gfx::TileInfo, 8> room_floor_tiles;
   std::span<const gfx::TileInfo> render_tiles = mutable_obj.tiles();
   // Keep source patterns out of the RoomObject cache and ROM save path. Worker
@@ -386,6 +392,17 @@ absl::Status ObjectDrawer::DrawObject(
       return parsed.status();
     source_tiles = std::move(*parsed);
     render_tiles = source_tiles;
+  }
+  // Runtime selector wins only for its declared class in this room. Keep the
+  // authored object cache and the legacy source publication tokens untouched.
+  if (*compiled_profile_) {
+    const auto& classes = (*compiled_profile_)->class_words;
+    if (const auto it = classes.find(object.id_); it != classes.end()) {
+      source_tiles.clear();
+      for (uint16_t word : it->second)
+        source_tiles.push_back(gfx::WordToTileInfo(word));
+      render_tiles = source_tiles;
+    }
   }
   if (has_room_floor_graphics_ &&
       (object.id_ == 0x00C4 || object.id_ == 0x00DB)) {

@@ -28,6 +28,7 @@
 #include "zelda3/dungeon/dungeon_limits.h"
 #include "zelda3/dungeon/dungeon_rom_addresses.h"
 #include "zelda3/dungeon/dungeon_stream_allocator.h"
+#include "zelda3/dungeon/dungeon_wall_profile.h"
 #include "zelda3/dungeon/room_header_destination.h"
 #include "zelda3/dungeon/room_layer_registers.h"
 #include "zelda3/dungeon/room_layout.h"
@@ -290,6 +291,10 @@ class Room {
 
   void LoadRoomGraphics(
       std::optional<uint8_t> entrance_blockset = std::nullopt);
+  const absl::Status& compiled_wall_profile_status() const {
+    return compiled_wall_profile_status_;
+  }
+
   friend ResolvedGraphicsContext DescribeDungeonGraphicsContext(
       const Room& room, const GraphicsContextIdentity& identity);
   void CopyRoomGraphicsToBuffer();
@@ -1300,6 +1305,8 @@ class Room {
   uint8_t blockset_ = 0;
   uint8_t render_entrance_blockset_ = 0xFF;
   bool draw_item_indicators_ = true;
+  std::optional<CompiledWallProfile> compiled_wall_profile_;
+  absl::Status compiled_wall_profile_status_;
   uint8_t resolved_main_blockset_ = 0xFF;
   uint8_t spriteset_ = 0;
   uint8_t palette_ = 0;
