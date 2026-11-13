@@ -271,8 +271,8 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   // the ROM model or materializing legacy maps for those IDs.
   int DisplayedMapCount() const;
   bool IsProjectTerrainMap(int map_id) const;
-  // Tile16 ids that can be selected and edited: the definitions Save writes,
-  // or every id when project terrain supplies its own Tile16 atlas.
+  // Tile16 ids that can be selected and edited: the definitions Save writes.
+  // Project terrain renders from the same table, so it does not widen this.
   int EditableTile16Count() const;
   bool is_lyra_preview() const { return overworld_.is_lyra_preview(); }
   bool lyra_a0_terrain_writable() const {
@@ -594,6 +594,7 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   }
   std::function<project::YazeProject*()> project_context_provider_;
   friend class AuthoringSaveWorkflowTestPeer;
+  friend class LyraTerrainCanvasTestPeer;
   friend class ProjectGraphicsImportSaveTestPeer;
   friend class ProjectGraphicsImportWorkflowTestPeer;
   void DrawProjectGraphicsSource();

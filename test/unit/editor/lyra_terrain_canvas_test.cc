@@ -8,6 +8,7 @@
 #include <memory>
 #include <vector>
 
+#include "app/editor/overworld/overworld_editor.h"
 #include "app/gfx/types/snes_palette.h"
 #include "gtest/gtest.h"
 #include "zelda3/overworld/lyra_terrain_source.h"
@@ -19,6 +20,9 @@ class LyraTerrainCanvasTestPeer {
   static void Install(LyraTerrainCanvas& canvas,
                       std::shared_ptr<core::LyraTerrainDocument> document) {
     canvas.document_ = std::move(document);
+  }
+  static LyraTerrainCanvas& EditorCanvas(OverworldEditor& editor) {
+    return editor.lyra_canvas_;
   }
   static void BindSourcePath(LyraTerrainCanvas& canvas, std::string path) {
     canvas.source_path_ = std::move(path);
@@ -733,6 +737,22 @@ TEST_F(LyraPropertyDraftTest, EdgeConnectionEditsLeavePropertyDraftsIntact) {
 
   ASSERT_TRUE(document_->SetAuthoring(connected, before).ok());
   EXPECT_FALSE(canvas_.dirty());
+}
+
+// Project terrain draws from the ROM's Tile16 table, so it cannot open the
+// definitions a ROM without expanded Tile16 storage never saves.
+TEST(LyraTerrainEditorTest, LoadedTerrainKeepsSavableTile16Count) {
+  auto document = core::LyraTerrainDocument::Create(FixtureProfile());
+  ASSERT_TRUE(document.ok()) << document.status();
+  OverworldEditor editor(nullptr);
+  ASSERT_FALSE(editor.overworld().expanded_tile16());
+
+  Peer::Install(
+      Peer::EditorCanvas(editor),
+      std::make_shared<core::LyraTerrainDocument>(*std::move(document)));
+
+  ASSERT_TRUE(Peer::EditorCanvas(editor).loaded());
+  EXPECT_EQ(editor.EditableTile16Count(), zelda3::NumberOfMap16);
 }
 
 }  // namespace

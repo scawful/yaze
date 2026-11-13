@@ -179,8 +179,6 @@ bool OverworldEditor::IsProjectTerrainMap(int map_id) const {
 }
 
 int OverworldEditor::EditableTile16Count() const {
-  if (lyra_canvas_.loaded())
-    return zelda3::kNumTile16Individual;
   return zelda3::SavableTile16Count(overworld_.expanded_tile16());
 }
 

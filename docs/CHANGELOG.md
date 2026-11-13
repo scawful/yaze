@@ -32,6 +32,8 @@ they are not part of its existing downloads. See the
   at tile `0xEA7`. Save writes only the first 3752 definitions there, so edits
   to `0xEA8`-`0xFFF` (including stamp spill-over) were previously lost on
   save without a message ([#33](https://github.com/scawful/yaze/issues/33)).
+  Loaded Lyra project terrain keeps the same limit, since it draws from the
+  ROM's Tile16 table.
 - PNG/palette-strip import and the Sheet Browser palette selector are later
   graphics work. The release-hardening patch keeps the existing import window
   and moves its drawing component into the graphics feature-view module.
