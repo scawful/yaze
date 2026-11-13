@@ -117,8 +117,19 @@ absl::StatusOr<AsarPatchResult> AsarWrapper::ApplyPatch(
     if (lib_result.ok()) {
       return lib_result;
     }
-    // Fall through to CLI fallback
-    last_errors_.push_back(lib_result.status().ToString());
+    // The CLI clears last_errors_ on entry. Retain the actual primary
+    // failure until fallback succeeds or both backend failures are reported.
+    const absl::Status library_status = lib_result.status();
+    auto cli_result = ApplyPatchWithBinary(patch_path, rom_data, include_paths);
+    if (cli_result.ok()) {
+      return cli_result;
+    }
+    last_errors_ = {
+        absl::StrFormat("Asar library: %s", library_status.ToString()),
+        absl::StrFormat("Asar CLI fallback: %s",
+                        cli_result.status().ToString())};
+    return absl::Status(cli_result.status().code(),
+                        absl::StrJoin(last_errors_, "\n"));
   }
 #endif
 

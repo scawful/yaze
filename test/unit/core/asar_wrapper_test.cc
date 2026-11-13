@@ -3,8 +3,8 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
-#include <chrono>
 #include <cctype>
+#include <chrono>
 #include <filesystem>
 #include <fstream>
 #include <string>
@@ -38,9 +38,8 @@ std::string CurrentTestName() {
 
 std::filesystem::path MakeUniqueTempDir(const std::string& prefix) {
   const auto now = std::chrono::steady_clock::now().time_since_epoch().count();
-  const auto name =
-      prefix + "_" + SanitizeForPath(CurrentTestName()) + "_" +
-      std::to_string(now);
+  const auto name = prefix + "_" + SanitizeForPath(CurrentTestName()) + "_" +
+                    std::to_string(now);
   return std::filesystem::temp_directory_path() / name;
 }
 
@@ -183,6 +182,38 @@ TEST_F(AsarWrapperTest, InvalidPatchHandling) {
   EXPECT_FALSE(patch_result.ok());
   EXPECT_THAT(patch_result.status().message(),
               testing::HasSubstr("Patch failed"));
+}
+
+TEST_F(AsarWrapperTest, FailedFallbackRetainsDiagnosticsThenSuccessClearsThem) {
+  ASSERT_TRUE(wrapper_->Initialize().ok());
+  const auto failure_path = test_dir_ / "injected_failure.asm";
+  {
+    std::ofstream patch(failure_path);
+    ASSERT_TRUE(patch.good());
+    patch << "lorom\norg $008000\ndb $42\n"
+             "error \"asar wrapper injected failure\"\n";
+  }
+  auto failed_rom = test_rom_;
+  const auto failed = wrapper_->ApplyPatch(failure_path.string(), failed_rom);
+  ASSERT_FALSE(failed.ok());
+  RecordProperty("asar_failure_status", failed.status().ToString());
+  const auto errors = wrapper_->GetLastErrors();
+  for (size_t i = 0; i < errors.size(); ++i)
+    RecordProperty("asar_error_" + std::to_string(i), errors[i]);
+  EXPECT_THAT(failed.status().message(),
+              testing::HasSubstr("asar wrapper injected failure"));
+  if (wrapper_->GetApiVersion() > 0) {
+    ASSERT_EQ(errors.size(), 2u);
+    EXPECT_THAT(errors[0], testing::StartsWith("Asar library: "));
+    EXPECT_THAT(errors[1], testing::StartsWith("Asar CLI fallback: "));
+  }
+
+  auto good_rom = test_rom_;
+  const auto good = wrapper_->ApplyPatch(test_asm_path_.string(), good_rom);
+  ASSERT_TRUE(good.ok()) << good.status();
+  EXPECT_TRUE(good->success);
+  EXPECT_NE(good_rom, test_rom_);
+  EXPECT_TRUE(wrapper_->GetLastErrors().empty());
 }
 
 TEST_F(AsarWrapperTest, NonexistentPatchFile) {

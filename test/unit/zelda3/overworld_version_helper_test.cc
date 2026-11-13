@@ -698,6 +698,7 @@ TEST(OverworldUpgradeServiceTest,
   }
   OverworldUpgradeSystem upgrade(rom, temporary.string());
   const auto status = upgrade.ApplyZSCustomOverworldASM(3);
+  RecordProperty("upgrade_failure_status", status.ToString());
   EXPECT_FALSE(status.ok());
   EXPECT_NE(std::string(status.message()).find("injected upgrade failure"),
             std::string::npos)
