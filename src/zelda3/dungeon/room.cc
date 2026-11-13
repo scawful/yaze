@@ -2989,8 +2989,6 @@ void Room::LoadChests() {
 }
 
 void Room::LoadDoors() {
-  auto rom_data = rom()->vector();
-
   // Doors are loaded as part of the object stream in LoadObjects()
   // When the parser encounters 0xF0 0xFF, it enters door mode
   // Door objects have format: b1 (position/direction), b2 (type)
@@ -3005,7 +3003,7 @@ void Room::LoadDoors() {
 }
 
 void Room::LoadTorches() {
-  auto rom_data = rom()->vector();
+  const auto& rom_data = rom()->vector();
 
   // Read torch data length
   int bytes_count = (rom_data[kTorchesLengthPointer + 1] << 8) |
@@ -4612,7 +4610,7 @@ void Room::LoadBlocks() {
 void Room::LoadPotItems() {
   if (!rom_ || !rom_->is_loaded())
     return;
-  auto rom_data = rom()->vector();
+  const auto& rom_data = rom()->vector();
   pot_items_.clear();
   pot_items_loaded_ = false;
 
@@ -4661,7 +4659,7 @@ void Room::LoadPotItems() {
 }
 
 void Room::LoadPits() {
-  auto rom_data = rom()->vector();
+  const auto& rom_data = rom()->vector();
 
   // The legacy symbol `kPitCount` is the LDX.w immediate at PC 0x394A6
   // — the **maximum X offset** in the runtime CMP loop, not an entry
