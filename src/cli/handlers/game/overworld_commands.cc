@@ -970,7 +970,8 @@ absl::Status OverworldFindTileCommandHandler::Execute(
 
   overworld::TileSearchOptions options;
   if (parser.GetString("map").has_value()) {
-    ASSIGN_OR_RETURN(const int map_id, ParseMapIdArg(parser, "map"));
+    ASSIGN_OR_RETURN(const int map_id,
+                     ParseMapIdArg(parser, "map", TileCommandMapCount(rom)));
     options.map_id = map_id;
   }
   if (auto world = parser.GetString("world"); world.has_value()) {
@@ -1442,10 +1443,13 @@ absl::Status OverworldTileStatsCommandHandler::Execute(
   const bool has_screen = parser.GetString("screen").has_value();
   const bool has_map = parser.GetString("map").has_value();
   if (has_screen || has_map) {
-    ASSIGN_OR_RETURN(const int map_id,
-                     ParseMapIdArg(parser, has_screen ? "screen" : "map"));
+    const int map_count = TileCommandMapCount(rom);
+    ASSIGN_OR_RETURN(
+        const int map_id,
+        ParseMapIdArg(parser, has_screen ? "screen" : "map", map_count));
     if (has_screen && has_map) {
-      ASSIGN_OR_RETURN(const int other, ParseMapIdArg(parser, "map"));
+      ASSIGN_OR_RETURN(const int other,
+                       ParseMapIdArg(parser, "map", map_count));
       if (other != map_id) {
         return absl::InvalidArgumentError(
             "--screen and --map name different screens; pass one");
