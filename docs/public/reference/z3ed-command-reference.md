@@ -218,13 +218,17 @@ is supplied. No raw ROM addresses are accepted.
 {
   "version": 1,
   "room": 70,
-  "rom_sha256": "<exact original ROM SHA-256>",
+  "rom_sha256": "<exact loaded ROM payload SHA-256>",
   "edits": [
     {"op": "append", "object": {"id": 5, "x": 45, "y": 3, "size": 0, "list": 0}},
     {"op": "append", "object": {"id": 5, "x": 49, "y": 3, "size": 0, "list": 0}}
   ]
 }
 ```
+
+`rom_sha256` hashes the loaded ROM payload. If normal CLI loading strips a
+512-byte copier header, exclude that header when calculating this hash; the
+unchanged file's full SHA-256 is a different identity in that case.
 
 All numeric plan fields are JSON integers. Coordinates use Tile8 cells; `list`
 is the stored object list (0–2), not a rendered background. Optional

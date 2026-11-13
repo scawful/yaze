@@ -19,6 +19,7 @@
 
 #include "absl/flags/declare.h"
 #include "absl/flags/flag.h"
+#include "absl/strings/str_format.h"
 #include "app/service/render_service.h"
 #include "cli/service/rom/rom_sandbox_manager.h"
 #include "cli/service/usage_schema.h"
@@ -921,6 +922,7 @@ TEST_F(DungeonRenderObjectPlanTest, RejectsUnknownFieldsAndRepeatedIndices) {
 
 TEST_F(DungeonRenderObjectPlanTest, SharedSourceNeedsDeclaredAllocation) {
   Long(kTable, PcToSnes(kOther));
+  Long(zelda3::kDoorPointers, PcToSnes(kOther + 8));
   baseline_ = rom_.vector();
   const auto preview = handlers::StageDungeonRenderObjectPlan(
       rom_, 0,
