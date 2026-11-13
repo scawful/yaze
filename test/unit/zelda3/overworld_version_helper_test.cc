@@ -1,9 +1,13 @@
 #include "zelda3/overworld/overworld_version_helper.h"
 
 #include <algorithm>
+#include <chrono>
+#include <filesystem>
+#include <fstream>
 #include <vector>
 
 #include "absl/status/status.h"
+#include "fixtures/lyra/native_directory_fixture.h"
 #include "gtest/gtest.h"
 #include "rom/rom.h"
 #include "rom/snes.h"
@@ -12,6 +16,7 @@
 #include "zelda3/overworld/overworld_allocation.h"
 #include "zelda3/overworld/overworld_layout.h"
 #include "zelda3/overworld/overworld_map.h"
+#include "zelda3/overworld/overworld_sprite_io.h"
 #include "zelda3/overworld/overworld_upgrade_system.h"
 #include "zelda3/overworld/terrain_graphics.h"
 
@@ -324,6 +329,303 @@ TEST(OverworldRomProfileTest, CustomLayoutsRejectBundledAsmBeforeMutation) {
     EXPECT_EQ(rom.vector(), before);
     EXPECT_FALSE(rom.dirty());
   }
+}
+
+namespace {
+
+std::filesystem::path UpgradeAsmDirectory() {
+  return std::filesystem::path(__FILE__)
+             .parent_path()
+             .parent_path()
+             .parent_path()
+             .parent_path() /
+         "assets" / "asm";
+}
+
+void SeedUpgradeSource(Rom& rom, bool v2) {
+  std::vector<uint8_t> bytes(v2 ? 0x200000 : 0x100000, 0xFF);
+  bytes[0x7FD5] = 0x20;  // US LoROM; fixture has no copyrighted ROM contents.
+  bytes[0x7FD9] = 1;
+  std::copy_n(std::array<uint8_t, 4>{0xA8, 0xB9, 0x1D, 0xF5}.begin(), 4,
+              bytes.begin() + 0x3B518);
+  const auto word = [&bytes](int pc, uint16_t value) {
+    bytes[pc] = value & 0xFF;
+    bytes[pc + 1] = value >> 8;
+  };
+  for (int i = 0; i < 64; ++i)
+    bytes[kOverworldMapParentId + i] = i;
+  std::fill_n(bytes.begin() + kOverworldScreenSize, 128, 1);
+  // One authored 2x2 area not in the reset list; DW remains small. A shared
+  // legacy parent entry is irrelevant when the DW screen's size is small.
+  for (int i : {0x22, 0x23, 0x2A, 0x2B}) {
+    bytes[kOverworldMapParentId + i] = 0x22;
+    bytes[kOverworldScreenSize + i] = 0;
+  }
+  // A separate DW area: its LW equivalents remain small.
+  for (int i : {0x44, 0x45, 0x4C, 0x4D}) {
+    bytes[kOverworldMapParentId + (i & 63)] = 4;
+    bytes[kOverworldScreenSize + i] = 0;
+  }
+  for (int table :
+       {kOverworldScreenTileMapChangeByScreen1,
+        kOverworldScreenTileMapChangeByScreen2,
+        kOverworldScreenTileMapChangeByScreen3,
+        kOverworldScreenTileMapChangeByScreen4, kOverworldTransitionPositionY,
+        kOverworldTransitionPositionX, 0x13EE2, 0x13F62})
+    for (int i = 0; i < 64; ++i)
+      word(table + i * 2, static_cast<uint16_t>(table + i));
+  for (int i = 0; i < 128; ++i) {
+    bytes[kAreaGfxIdPtr + i] = i % 0x30;
+    bytes[kOverworldMapPaletteIds + i] = i % 0x20;
+  }
+  for (int i = 0; i < 16; ++i) {
+    bytes[kOverworldSpecialGFXGroup + i] = 0x10 + i;
+    bytes[kOverworldSpecialPALGroup + i] = i;
+    bytes[kOverworldSpecialSpriteGFXGroup + i] = i;
+    bytes[kOverworldSpecialSpritePalette + i] = i;
+  }
+  for (const auto [table, count] :
+       {std::pair{0x4C881, 64}, std::pair{0x4C901, 144},
+        std::pair{0x4CA21, 144}})
+    for (int i = 0; i < count; ++i)
+      word(table + i * 2, i == 2 ? 0xCB50 : 0xCB41);
+  bytes[0x4CB41] = 0xFF;
+  bytes[0x4CB50] = 3;
+  bytes[0x4CB51] = 4;
+  bytes[0x4CB52] = 0x0B;
+  bytes[0x4CB53] = 0xFF;
+  word(kRoomSpritePointerTableOperand, 0xD2B2);
+  for (int i = 0; i < 144; ++i)
+    word(kOverworldMessageIds + i * 2, 0x80 + i);
+  word(0x166E1, 0x0061);
+  word(0x166E3, 0x0073);  // Authored special camera origin, moved by real ASM.
+  if (v2) {
+    std::fill(bytes.begin() + 0x140000, bytes.begin() + 0x140998, 0);
+    bytes[OverworldCustomASMHasBeenApplied] = 2;
+    bytes[OverworldCustomAreaSpecificBGEnabled] = 0xFF;
+    bytes[OverworldCustomMainPaletteEnabled] = 1;
+    bytes[OverworldCustomAnimatedGFXEnabled] = 1;
+    bytes[OverworldCustomSubscreenOverlayEnabled] = 1;
+    bytes[OverworldCustomTileGFXGroupEnabled] = 1;
+    bytes[OverworldCustomMosaicEnabled] = 1;  // Previously unused feature.
+    bytes[OverworldCustomMosaicArray + 9] = 0x0A;
+    for (int i = 0; i < 160; ++i)
+      word(kOverworldMessagesExpanded + i * 2, 0x80 + (i < 144 ? i : 0));
+    word(OverworldCustomAreaSpecificBGPalette + 6, 0x1234);
+    bytes[OverworldCustomMainPaletteArray + 7] = 4;
+    bytes[OverworldCustomTileGFXGroupArray + 11] = 0x3A;
+  }
+  ASSERT_TRUE(rom.LoadFromData(bytes).ok());
+  rom.set_filename("synthetic-upgrade-source.sfc");
+  rom.set_dirty(false);
+}
+
+uint16_t UpgradeWord(const std::vector<uint8_t>& bytes, int pc) {
+  return bytes[pc] | (bytes[pc + 1] << 8);
+}
+
+}  // namespace
+
+TEST(OverworldUpgradeServiceTest, ActualAsarPreservesCustomGeometryAndPools) {
+  ASSERT_TRUE(std::filesystem::exists(UpgradeAsmDirectory() / "yaze.asm"));
+  for (const bool v2 : {false, true}) {
+    SCOPED_TRACE(v2);
+    Rom rom;
+    ASSERT_NO_FATAL_FAILURE(SeedUpgradeSource(rom, v2));
+    const auto original = rom.vector();
+    OverworldUpgradeSystem upgrade(rom, UpgradeAsmDirectory().string());
+    // This calls the real bundled ASM through AsarWrapper, not a marker stub.
+    const auto status = upgrade.ApplyZSCustomOverworldASM(3);
+    ASSERT_TRUE(status.ok()) << status;
+    EXPECT_TRUE(rom.dirty());
+    EXPECT_EQ(rom.filename(), "synthetic-upgrade-source.sfc");
+    const auto& output = rom.vector();
+    EXPECT_EQ(output[OverworldCustomASMHasBeenApplied], 3);
+    EXPECT_EQ(output.size(), 0x200000u);
+    EXPECT_EQ(output[0x7FD7], 0x0B);
+    uint32_t checksum = 0;
+    for (uint8_t value : output)
+      checksum += value;
+    EXPECT_EQ(UpgradeWord(output, 0x7FDE), checksum & 0xFFFF);
+    EXPECT_EQ(UpgradeWord(output, 0x7FDC) ^ UpgradeWord(output, 0x7FDE),
+              0xFFFF);
+    const std::array<uint8_t, 4> special_camera = {0x61, 0, 0x73, 0};
+    const auto camera =
+        std::search(output.begin(), output.end(), special_camera.begin(),
+                    special_camera.end());
+    ASSERT_NE(camera, output.end());
+    EXPECT_NE(std::distance(output.begin(), camera), 0x166E1);
+    for (int i = 0; i < 128; ++i) {
+      EXPECT_EQ(output[kOverworldScreenSize + i],
+                original[kOverworldScreenSize + i] == 0 ? 1 : 0)
+          << i;
+      const int expected_parent =
+          original[kOverworldScreenSize + i] == 0
+              ? (i & 0x40) + original[kOverworldMapParentId + (i & 63)]
+              : i;
+      EXPECT_EQ(output[kOverworldMapParentIdExpanded + i], expected_parent)
+          << i;
+      EXPECT_EQ(output[kOverworldPalettesScreenToSetNew + i],
+                original[kOverworldMapPaletteIds + i])
+          << i;
+    }
+    for (int i : {0x81, 0x82, 0x89, 0x8A}) {
+      EXPECT_EQ(output[kOverworldMapParentIdExpanded + i], 0x81);
+      EXPECT_EQ(output[kOverworldScreenSize + i], 1);
+    }
+    EXPECT_EQ(output[kOverworldScreenSize + 0x80], 0);
+    EXPECT_EQ(output[kOverworldMapParentIdExpanded + 0x83], 0x83);
+    const std::array<int, 8> old_tables = {
+        kOverworldScreenTileMapChangeByScreen1,
+        kOverworldScreenTileMapChangeByScreen2,
+        kOverworldScreenTileMapChangeByScreen3,
+        kOverworldScreenTileMapChangeByScreen4,
+        kOverworldTransitionPositionY,
+        kOverworldTransitionPositionX,
+        0x13EE2,
+        0x13F62};
+    const std::array<int, 8> new_tables = {
+        kOverworldScreenTileMapChangeByScreen1Expanded,
+        kOverworldScreenTileMapChangeByScreen2Expanded,
+        kOverworldScreenTileMapChangeByScreen3Expanded,
+        kOverworldScreenTileMapChangeByScreen4Expanded,
+        kOverworldTransitionPositionYExpanded,
+        kOverworldTransitionPositionXExpanded,
+        transition_target_northExpanded,
+        transition_target_westExpanded};
+    for (int i = 0; i < 128; ++i)
+      for (size_t table = 0; table < old_tables.size(); ++table)
+        EXPECT_EQ(UpgradeWord(output, new_tables[table] + i * 2),
+                  UpgradeWord(original, old_tables[table] + (i & 63) * 2));
+    EXPECT_EQ(UpgradeWord(output, 0x141438 + 2 * 2), 0xCB50);
+    EXPECT_EQ(UpgradeWord(output, 0x141438 + 100 * 2), 0xCB41);
+    EXPECT_EQ(UpgradeWord(output, 0x141578 + 143 * 2),
+              UpgradeWord(original, 0x4C901 + 143 * 2));
+    EXPECT_EQ(UpgradeWord(output, 0x1416B8 + 159 * 2), 0xCB41);
+    EXPECT_TRUE(std::equal(original.begin() + 0x4CB41,
+                           original.begin() + 0x4CB54,
+                           output.begin() + 0x4CB41));
+    EXPECT_EQ(UpgradeWord(output, kOverworldMessagesExpanded + 0x83 * 2),
+              UpgradeWord(original, (v2 ? kOverworldMessagesExpanded
+                                        : kOverworldMessageIds) +
+                                        0x83 * 2));
+    if (v2) {
+      auto expected_pool = std::vector<uint8_t>(original.begin() + 0x140000,
+                                                original.begin() + 0x140998);
+      expected_pool[OverworldCustomASMHasBeenApplied - 0x140000] = 3;
+      expected_pool[OverworldCustomMosaicEnabled - 0x140000] = 0;
+      EXPECT_TRUE(std::equal(expected_pool.begin(), expected_pool.end(),
+                             output.begin() + 0x140000));
+    } else {
+      for (int flag :
+           {OverworldCustomAreaSpecificBGEnabled,
+            OverworldCustomMainPaletteEnabled,
+            OverworldCustomAnimatedGFXEnabled,
+            OverworldCustomSubscreenOverlayEnabled,
+            OverworldCustomTileGFXGroupEnabled, OverworldCustomMosaicEnabled})
+        EXPECT_EQ(output[flag], 0);
+    }
+    const auto path =
+        std::filesystem::temp_directory_path() /
+        ("yaze-synthetic-upgrade-" +
+         std::to_string(
+             std::chrono::steady_clock::now().time_since_epoch().count()) +
+         ".sfc");
+    struct CleanupRom {
+      std::filesystem::path path;
+      ~CleanupRom() {
+        std::error_code ec;
+        std::filesystem::remove(path, ec);
+      }
+    } cleanup{path};
+    Rom::SaveSettings settings;
+    settings.filename = path.string();
+    ASSERT_TRUE(rom.SaveToFile(settings).ok());
+    Rom reopened;
+    ASSERT_TRUE(reopened.LoadFromFile(path.string()).ok());
+    for (int i = 0; i < 160; ++i) {
+      OverworldMap map(i, &reopened, nullptr, core::RomAddressOverrides{});
+      EXPECT_EQ(map.parent(), output[kOverworldMapParentIdExpanded + i]);
+      EXPECT_EQ(static_cast<int>(map.area_size()),
+                output[kOverworldScreenSize + i]);
+    }
+    const auto once = rom.vector();
+    EXPECT_EQ(upgrade.ApplyZSCustomOverworldASM(3).code(),
+              absl::StatusCode::kAlreadyExists);
+    EXPECT_EQ(rom.vector(), once);
+  }
+}
+
+TEST(OverworldUpgradeServiceTest, RejectsInvalidSourcesWithoutMutation) {
+  for (int which = 0; which < 9; ++which) {
+    SCOPED_TRACE(which);
+    Rom rom;
+    ASSERT_NO_FATAL_FAILURE(SeedUpgradeSource(rom, true));
+    if (which == 0)
+      rom[kOverworldScreenSize] = 2;
+    if (which == 1)
+      rom[kOverworldMapParentId + 0x23] = 0x3F;
+    if (which == 2)
+      rom[OverworldCustomASMHasBeenApplied] = 1;
+    if (which == 3)
+      rom[0x7FD9] = 0;
+    if (which == 4)
+      rom.Expand(0x140200);
+    if (which == 5) {
+      test::native_overworld::NativeDirectoryFixture fixture;
+      ASSERT_TRUE(rom.LoadFromData(fixture.bytes).ok());
+    }
+    if (which == 6)
+      rom[kOverworldMessagesExpanded] ^= 1;
+    if (which == 7)
+      rom[kOverworldMapParentIdExpanded] = 0x22;
+    if (which == 8)
+      rom[0x3B518] = 0x22;  // Custom message loader, unknown target.
+    rom.set_dirty(true);
+    const auto before = rom.vector();
+    const auto size = rom.size();
+    const auto filename = rom.filename();
+    OverworldUpgradeSystem upgrade(rom, UpgradeAsmDirectory().string());
+    EXPECT_FALSE(upgrade.ApplyZSCustomOverworldASM(3).ok());
+    EXPECT_EQ(rom.vector(), before);
+    EXPECT_EQ(rom.size(), size);
+    EXPECT_EQ(rom.filename(), filename);
+    EXPECT_TRUE(rom.dirty());
+  }
+}
+
+TEST(OverworldUpgradeServiceTest,
+     ActualAsarFailureLeavesCompleteSourceUntouched) {
+  Rom rom;
+  ASSERT_NO_FATAL_FAILURE(SeedUpgradeSource(rom, true));
+  const auto before = rom.vector();
+  const auto temporary =
+      std::filesystem::temp_directory_path() /
+      ("yaze-upgrade-failure-" +
+       std::to_string(
+           std::chrono::steady_clock::now().time_since_epoch().count()));
+  ASSERT_TRUE(std::filesystem::create_directory(temporary));
+  struct Cleanup {
+    std::filesystem::path path;
+    ~Cleanup() {
+      std::error_code ec;
+      std::filesystem::remove_all(path, ec);
+    }
+  } cleanup{temporary};
+  {
+    std::ofstream patch(temporary / "yaze.asm");
+    ASSERT_TRUE(patch.good());
+    patch << "incsrc \""
+          << (UpgradeAsmDirectory() / "yaze.asm").generic_string()
+          << "\"\nerror \"injected upgrade failure after real bundled ASM\"\n";
+  }
+  OverworldUpgradeSystem upgrade(rom, temporary.string());
+  const auto status = upgrade.ApplyZSCustomOverworldASM(3);
+  EXPECT_FALSE(status.ok());
+  EXPECT_EQ(rom.vector(), before);
+  EXPECT_EQ(rom.size(), before.size());
+  EXPECT_EQ(rom.filename(), "synthetic-upgrade-source.sfc");
+  EXPECT_FALSE(rom.dirty());
 }
 
 TEST(OverworldMap32StorageTest, CapacityTracksDetectedRomProfile) {

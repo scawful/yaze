@@ -1,6 +1,8 @@
 #ifndef YAZE_ZELDA3_OVERWORLD_UPGRADE_SYSTEM_H
 #define YAZE_ZELDA3_OVERWORLD_UPGRADE_SYSTEM_H
 
+#include <string>
+
 #include "absl/status/status.h"
 
 namespace yaze {
@@ -13,8 +15,8 @@ namespace zelda3 {
  * @brief Service responsible for applying the ZSCustomOverworld ASM patch
  *        and updating ROM version markers for A Link to the Past.
  *
- * This system encapsulates the destructive logic of upgrading a vanilla ROM
- * to support expanded overworld features (v2 and v3).
+ * Stages supported vanilla/legacy-table v2 ROMs into the established v3
+ * tables without changing the caller until migration and validation succeed.
  */
 class OverworldUpgradeSystem {
  public:
@@ -22,23 +24,21 @@ class OverworldUpgradeSystem {
    * @brief Constructs the upgrade system.
    * @param rom The ROM to be mutated. Must be valid for the lifetime of this object.
    */
-  explicit OverworldUpgradeSystem(Rom& rom);
+  // asm_directory defaults to the installed resource location. Hosts which
+  // supply their own bundled resources may provide that directory explicitly.
+  explicit OverworldUpgradeSystem(Rom& rom, std::string asm_directory = "");
 
   /**
    * @brief Apply ZSCustomOverworld ASM patch to upgrade ROM version.
-   * @param target_version Target version (2 for v2, 3 for v3).
+   * @param target_version Target version (3). The incomplete bundled v2
+   * installer is refused; existing legacy-table v2 ROMs can upgrade to v3.
    * @return OK if the patch was successful, or an error detailing the ASM failure.
    */
   absl::Status ApplyZSCustomOverworldASM(int target_version);
 
  private:
-  /**
-   * @brief Update ROM version markers and feature flags after ASM patching.
-   *        This is an internal sub-step of the upgrade process.
-   */
-  absl::Status UpdateROMVersionMarkers(int target_version);
-
   Rom& rom_;
+  std::string asm_directory_;
 };
 
 }  // namespace zelda3

@@ -5520,34 +5520,35 @@ SetupSpecialCameraBounds:
 
     RTL
 
-    ; These are the camera values that are used for the master sword area and
-    ; the area under the bridge.
+    ; Retain the source ROM's two special-camera assemblies instead of resetting
+    ; authored bounds to vanilla constants. The old tables are still available
+    ; while assembling; the editor later reuses part of that space for SW data.
     .SpecialCamera600
-    dw $0000, $0000
+    dw read2($02E6E1), read2($02E6E3)
 
     .SpecialCamera602
-    dw $0120, $0020
+    dw read2($02E701), read2($02E703)
 
     .SpecialCamera604
-    dw $0000, $0100
+    dw read2($02E721), read2($02E723)
 
     .SpecialCamera606
-    dw $0000, $0100
+    dw read2($02E741), read2($02E743)
 
     .SpecialCamera610
-    dw $FF20, $FF20
+    dw read2($02E761), read2($02E763)
 
     .SpecialCamera612
-    dw $FFFC, $0100
+    dw read2($02E7A1), read2($02E7A3)
 
     .SpecialCamera614
-    dw $FF20, $FF20
+    dw read2($02E781), read2($02E783)
 
     .SpecialCamera616
-    dw $0004, $0104
+    dw read2($02E7C1), read2($02E7C3)
 
     .SpecialCamera70C
-    dw $0000, $0000
+    dw read2($02E7E1), read2($02E7E3)
 }
 
 pushpc

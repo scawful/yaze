@@ -937,9 +937,13 @@ absl::Status OverworldEditor::Update() {
                     : absl::StrFormat("v%d", current_version).c_str());
 
     static int target_version = 3;
-    ImGui::RadioButton(tr("v2 (Basic features)"), &target_version, 2);
-    ImGui::SameLine();
-    ImGui::RadioButton(tr("v3 (All features)"), &target_version, 3);
+    ImGui::RadioButton(tr("v3 (Wide/tall areas and per-area graphics)"),
+                       &target_version, 3);
+    ImGui::TextWrapped(
+        tr("Preserves supported vanilla/v2 map layouts. Existing optional "
+           "features are retained; new optional features stay disabled until "
+           "their data is authored. Native special-overworld expansion and "
+           "project graphics sources are separate capabilities."));
 
     ImGui::Separator();
 
