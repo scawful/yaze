@@ -1,6 +1,10 @@
 #include "integration/overworld_editor_test.h"
 
 #include <algorithm>
+#include <chrono>
+#include <filesystem>
+#include <string>
+#include <system_error>
 #include <utility>
 #include <vector>
 
@@ -54,6 +58,45 @@ struct ScopedOverworldSavesOff {
   return ::testing::AssertionSuccess();
 }
 
+// Recolors a definition through the Tile16 editor, which edits the shared
+// overworld definitions live; returns the edited definition.
+void EditThroughTile16Editor(editor::OverworldEditor& editor, int tile_id,
+                             gfx::Tile16* edited) {
+  auto& tile16_editor = editor.tile16_editor();
+  const auto& tiles16 = editor.overworld().tiles16();
+  ASSERT_GT(tiles16.size(), static_cast<size_t>(tile_id));
+  const uint8_t palette =
+      static_cast<uint8_t>((tiles16[tile_id].tile0_.palette_ + 1) % 8);
+  ASSERT_TRUE(tile16_editor.SetCurrentTile(tile_id).ok());
+  ASSERT_TRUE(tile16_editor.ApplyPaletteToAll(palette).ok());
+  *edited = editor.overworld().tiles16()[tile_id];
+  ASSERT_EQ(edited->tile0_.palette_, palette);
+}
+
+// Writes the ROM to disk and loads Tile16 the way the next session does.
+void ReopenTiles16(Rom& rom, std::vector<gfx::Tile16>* tiles16,
+                   bool* expanded) {
+  const auto path =
+      std::filesystem::temp_directory_path() /
+      ("yaze_tile16_reopen_" +
+       std::to_string(
+           std::chrono::steady_clock::now().time_since_epoch().count()) +
+       ".sfc");
+  ASSERT_TRUE(
+      rom.SaveToFile(Rom::SaveSettings{.filename = path.string()}).ok());
+  Rom reopened;
+  const auto load = reopened.LoadFromFile(path.string());
+  std::error_code ec;
+  std::filesystem::remove(path, ec);
+  ASSERT_TRUE(load.ok()) << load;
+  zelda3::GameData game_data(&reopened);
+  ASSERT_TRUE(zelda3::LoadGameData(reopened, game_data).ok());
+  zelda3::Overworld overworld(&reopened, &game_data);
+  ASSERT_TRUE(overworld.Load(&reopened).ok());
+  *tiles16 = overworld.tiles16();
+  *expanded = overworld.expanded_tile16();
+}
+
 }  // namespace
 
 TEST_F(OverworldEditorTest, LoadAndSave) {
@@ -91,6 +134,54 @@ TEST_F(OverworldEditorTest, SaveWritesTile16WithMapSavingDisabled) {
   EXPECT_EQ(ranges[0].second, static_cast<uint32_t>(zelda3::kMap16Tiles +
                                                     zelda3::NumberOfMap16 * 8));
   EXPECT_TRUE(ChangesStayInRanges(before, rom_->vector(), ranges));
+}
+
+TEST_F(OverworldEditorTest, Tile16EditorEditsReopenWithMapSavingDisabled) {
+  ScopedOverworldSavesOff saves_off;
+  constexpr int kLastSavable = zelda3::NumberOfMap16 - 1;
+  gfx::Tile16 first;
+  gfx::Tile16 last;
+  ASSERT_NO_FATAL_FAILURE(
+      EditThroughTile16Editor(*overworld_editor_, 21, &first));
+  ASSERT_NO_FATAL_FAILURE(
+      EditThroughTile16Editor(*overworld_editor_, kLastSavable, &last));
+
+  const auto status = overworld_editor_->Save();
+  ASSERT_TRUE(status.ok()) << status.message();
+
+  std::vector<gfx::Tile16> reopened;
+  bool expanded = true;
+  ASSERT_NO_FATAL_FAILURE(ReopenTiles16(*rom_, &reopened, &expanded));
+  EXPECT_FALSE(expanded);
+  ASSERT_GT(reopened.size(), static_cast<size_t>(kLastSavable));
+  ExpectTile16Equals(reopened[21], first);
+  ExpectTile16Equals(reopened[kLastSavable], last);
+}
+
+TEST_F(OverworldExpandedEditorTest,
+       Tile16EditorEditsReopenWithMapSavingDisabled) {
+  if (rom_->has_lyra_private_reservation()) {
+    GTEST_SKIP() << "Private Lyra terrain saves skip the ROM Tile16 table";
+  }
+  ScopedOverworldSavesOff saves_off;
+  constexpr int kLastExpanded = zelda3::NumberOfMap16Ex - 1;
+  gfx::Tile16 first;
+  gfx::Tile16 last;
+  ASSERT_NO_FATAL_FAILURE(
+      EditThroughTile16Editor(*overworld_editor_, 21, &first));
+  ASSERT_NO_FATAL_FAILURE(
+      EditThroughTile16Editor(*overworld_editor_, kLastExpanded, &last));
+
+  const auto status = overworld_editor_->Save();
+  ASSERT_TRUE(status.ok()) << status.message();
+
+  std::vector<gfx::Tile16> reopened;
+  bool expanded = false;
+  ASSERT_NO_FATAL_FAILURE(ReopenTiles16(*rom_, &reopened, &expanded));
+  EXPECT_TRUE(expanded);
+  ASSERT_GT(reopened.size(), static_cast<size_t>(kLastExpanded));
+  ExpectTile16Equals(reopened[21], first);
+  ExpectTile16Equals(reopened[kLastExpanded], last);
 }
 
 TEST_F(OverworldExpandedEditorTest,
