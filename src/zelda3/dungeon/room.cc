@@ -1076,6 +1076,13 @@ void Room::LoadRoomGraphics(std::optional<uint8_t> entrance_blockset) {
              "Room %d: entrance main blockset %d out of range; using %d",
              room_id_, requested_main_blockset, main_blockset);
   }
+  if (compiled_wall_profile_ && compiled_wall_profile_->slot6_high_palette &&
+      main_blockset >= 0x20) {
+    compiled_wall_profile_status_ = absl::FailedPreconditionError(
+        "Compiled wall-kit mask requires an underworld entrance main group");
+    std::fill(current_gfx16_.begin(), current_gfx16_.end(), 0);
+    return;
+  }
   resolved_main_blockset_ = main_blockset;
 
   LOG_DEBUG("Room",

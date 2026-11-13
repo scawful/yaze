@@ -220,6 +220,9 @@ TEST(RoomGraphicsPaletteTest, CompiledKitMasksOnlySelectedSlot6Glyphs) {
   }
   EXPECT_EQ(room.blockset(), 0x0B);
   EXPECT_EQ(rom.vector(), bytes);
+  room.LoadRoomGraphics(0x20);
+  EXPECT_FALSE(room.compiled_wall_profile_status().ok());
+  EXPECT_EQ(rom.vector(), bytes);
 }
 
 TEST(RoomGraphicsPaletteTest,
