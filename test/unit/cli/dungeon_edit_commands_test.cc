@@ -1075,7 +1075,10 @@ TEST_F(DungeonNativePlaceSpriteStorageTest,
   std::ifstream input(manifest_cleanup_.file_path);
   auto manifest = nlohmann::json::parse(input);
   auto& layout = manifest["dungeon_stream_regions"]["sprites"];
-  layout["data_regions"][0]["end"] = "0x09C900";
+  // Keep the original streams in their own region. Extending that region
+  // across $09C298 would hit pointer-source protection before the native fence.
+  layout["data_regions"].push_back(
+      {{"start", "0x09C890"}, {"end", "0x09C900"}});
   layout["allocation_regions"][0] = {{"start", "0x09C890"},
                                      {"end", "0x09C900"}};
   {
@@ -1089,7 +1092,7 @@ TEST_F(DungeonNativePlaceSpriteStorageTest,
       args.push_back("--write");
     std::string output;
     const auto status = handler_.Run(args, &rom_, &output);
-    EXPECT_EQ(status.code(), absl::StatusCode::kPermissionDenied) << status;
+    ASSERT_EQ(status.code(), absl::StatusCode::kPermissionDenied) << status;
     EXPECT_THAT(std::string(status.message()),
                 HasSubstr("overlaps native overworld storage"));
     const auto result = ExpectRomFailedClosed(output, rom_, baseline);
