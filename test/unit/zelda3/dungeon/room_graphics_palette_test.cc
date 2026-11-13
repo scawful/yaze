@@ -199,6 +199,7 @@ TEST(RoomGraphicsPaletteTest, CompiledKitMasksOnlySelectedSlot6Glyphs) {
   ASSERT_TRUE(rom.LoadFromData(bytes).ok());
   GameData data;
   data.graphics_buffer.assign(256 * 4096, 0);
+  data.gfx_sheet_table.count = 255;
   data.room_blockset_ids[0x17] = {0xFE, 0, 0x27, 0xF3};
   for (int i = 0; i < 4096; ++i)
     data.graphics_buffer[0xF3 * 4096 + i] = i % 8;
