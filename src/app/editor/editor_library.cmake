@@ -180,6 +180,7 @@ set(
   app/editor/overworld/maps/overworld_map_metadata.cc
   app/editor/overworld/maps/overworld_property_edit.cc
   app/editor/overworld/overworld_editor.cc
+  app/editor/overworld/overworld_editor_navigation.cc
   app/editor/overworld/project_graphics_source.cc
   app/editor/overworld/project_graphics_source_ui.cc
   app/editor/overworld/project_graphics_import.cc
