@@ -78,6 +78,51 @@ std::array<uint8_t, 64> PreviewTransparency(const zelda3::PreviewTile8& pixels,
   return mask;
 }
 
+json Profile(const zelda3::OverworldMap& map, int world) {
+  json profile = {
+      {"adapter", kAdapter},
+      {"world", world},
+      {"phase", 0},
+      {"area_graphics", map.area_graphics()},
+      {"area_palette", map.area_palette()},
+      {"main_palette", map.main_palette()},
+      {"background_color", map.area_specific_bg_color()},
+      {"subscreen_overlay", map.subscreen_overlay()},
+      {"animated_gfx", map.animated_gfx()},
+      {"graphics_fingerprint",
+       core::TerrainFingerprint(Bytes(map.current_graphics()))},
+      {"runtime_overrides",
+       map.HasGraphicsPreview() ? "graphics_preview" : "not_applied"}};
+  profile["sheets"] = json::array();
+  for (int i = 0; i < 16; ++i)
+    profile["sheets"].push_back(map.static_graphics(i));
+  profile["palette"] = json::array();
+  for (const auto& color : map.current_palette())
+    profile["palette"].push_back(color.snes());
+  return profile;
+}
+
+// Equal pixels are not equal provenance: two sheets can decode identically.
+bool SameSourcesAndPixels(const zelda3::OverworldMap& a,
+                          const zelda3::OverworldMap& b, int world) {
+  if (a.current_graphics() != b.current_graphics() ||
+      !(a.current_palette() == b.current_palette()) ||
+      a.graphics_preview() != b.graphics_preview() ||
+      Profile(a, world) != Profile(b, world)) {
+    return false;
+  }
+  for (int character = 0; character < 1024; ++character) {
+    const auto x = a.GraphicsSourceForCharacter(character);
+    const auto y = b.GraphicsSourceForCharacter(character);
+    if (x.kind != y.kind || x.slot != y.slot || x.sheet != y.sheet ||
+        x.sheet_override != y.sheet_override ||
+        x.high_palette_half != y.high_palette_half) {
+      return false;
+    }
+  }
+  return true;
+}
+
 // What BuildTileset() composed for this area: ordinary sheets, then the
 // animated sheet in the top of slot 7, then any graphics-preview transfers.
 json Composition(const zelda3::OverworldMap& map,
@@ -254,7 +299,8 @@ absl::Status OverworldTerrainCatalogCommandHandler::Execute(
     return absl::FailedPreconditionError("Area exceeds supported world bounds");
   }
   // One profile describes the whole area. A page with its own native
-  // appearance qualifies only if the renderer builds it identically.
+  // appearance qualifies only if it has the parent's profile, pixels and
+  // per-character sources.
   for (int dy = 0; dy < height / 32; ++dy) {
     for (int dx = 0; dx < width / 32; ++dx) {
       const int page = parent + dx + dy * 8;
@@ -263,9 +309,7 @@ absl::Status OverworldTerrainCatalogCommandHandler::Execute(
         continue;
       }
       RETURN_IF_ERROR(ow->EnsureMapBuilt(page));
-      const auto* built = ow->overworld_map(page);
-      if (built->current_graphics() != map->current_graphics() ||
-          !(built->current_palette() == map->current_palette())) {
+      if (!SameSourcesAndPixels(*ow->overworld_map(page), *map, world)) {
         return absl::FailedPreconditionError(absl::StrFormat(
             "Page 0x%02X of area 0x%02X has its own native appearance that "
             "differs from the parent's; terrain catalog profiles are per area",
@@ -273,26 +317,7 @@ absl::Status OverworldTerrainCatalogCommandHandler::Execute(
       }
     }
   }
-  json profile = {
-      {"adapter", kAdapter},
-      {"world", world},
-      {"phase", 0},
-      {"area_graphics", map->area_graphics()},
-      {"area_palette", map->area_palette()},
-      {"main_palette", map->main_palette()},
-      {"background_color", map->area_specific_bg_color()},
-      {"subscreen_overlay", map->subscreen_overlay()},
-      {"animated_gfx", map->animated_gfx()},
-      {"graphics_fingerprint",
-       core::TerrainFingerprint(Bytes(map->current_graphics()))},
-      {"runtime_overrides",
-       map->HasGraphicsPreview() ? "graphics_preview" : "not_applied"}};
-  profile["sheets"] = json::array();
-  for (int i = 0; i < 16; ++i)
-    profile["sheets"].push_back(map->static_graphics(i));
-  profile["palette"] = json::array();
-  for (const auto& color : map->current_palette())
-    profile["palette"].push_back(color.snes());
+  const json profile = Profile(*map, world);
   if (map->current_graphics().empty() || map->current_palette().empty()) {
     return absl::FailedPreconditionError(
         "Map graphics or palette did not resolve");

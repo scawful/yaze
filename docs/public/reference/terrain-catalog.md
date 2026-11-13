@@ -42,8 +42,9 @@ Map IDs `0x00-0x9F` are accepted on every ROM. The special-overworld tail
 special-overworld directory, up to its capacity; on other ROMs those slots are
 blank fill and are refused. One profile describes the whole area. A page with
 its own native appearance (revision-4 per-page graphics and palette) is
-accepted only when the renderer builds it with the parent's graphics and
-palette; otherwise the area is refused. It reports used Tile16 definitions, four Tile8 quadrants,
+accepted only when it has the parent's profile, built graphics and palette and
+per-character sources; otherwise the area is refused. Identical pixels from a
+different sheet are a different source. It reports used Tile16 definitions, four Tile8 quadrants,
 raw collision bytes, priority, transparency counts, palette-indexed thumbnails,
 and a graphics profile. Unknown Tile8 collision lookups are `null`.
 

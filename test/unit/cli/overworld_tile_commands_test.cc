@@ -948,6 +948,53 @@ TEST_F(OverworldTileRomTest, TerrainCatalogExportsAnExplicitNativeSheetZero) {
   EXPECT_GT(checked, 0);
 }
 
+TEST_F(OverworldTileRomTest, TerrainCatalogRefusesACharacterWithoutASource) {
+  test::native_overworld::NativeDirectoryFixture fixture(192);
+  ASSERT_NO_FATAL_FAILURE(SeedValidationFixture(&fixture));
+  fixture.UpgradeToRevision4();
+  int slot = -1;
+  {
+    Rom rom;
+    ASSERT_TRUE(rom.LoadFromData(fixture.bytes).ok());
+    zelda3::Overworld world(&rom);
+    ASSERT_TRUE(world.Load(&rom).ok());
+    const auto& tile = world.tiles16()[world.GetMapTiles(2)[224][224]];
+    for (const auto& quadrant :
+         {tile.tile0_, tile.tile1_, tile.tile2_, tile.tile3_}) {
+      if (quadrant.id_ / 64 < 7) {
+        slot = quadrant.id_ / 64;
+        break;
+      }
+    }
+  }
+  ASSERT_GE(slot, 0);
+
+  // Tile group ID $FE names a sheet past the decoded graphics store.
+  fixture.bytes[fixture.Entry(6).pc_address + 0xBF * 8 + slot] = 0xFE;
+  fixture.Seal();
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(fixture.bytes).ok());
+  {
+    auto data = std::make_unique<zelda3::GameData>();
+    zelda3::LoadOptions options;
+    options.expand_rom = false;
+    ASSERT_TRUE(zelda3::LoadGameData(rom, *data, options).ok());
+    ASSERT_LT(data->graphics_buffer.size(), 0xFFu * 0x1000);
+    auto world = std::make_unique<zelda3::Overworld>(&rom);
+    world->SetGameData(data.get());
+    ASSERT_TRUE(world->Load(&rom).ok());
+    ASSERT_TRUE(world->EnsureMapBuilt(0xBF).ok());
+    const auto* map = world->overworld_map(0xBF);
+    ASSERT_EQ(map->GraphicsSourceForCharacter(slot * 64).kind,
+              zelda3::OverworldMap::GraphicsCharacterSource::Kind::kNone);
+  }
+  const auto status = RunTerrainCatalog(&rom, "0xBF");
+  EXPECT_TRUE(absl::IsFailedPrecondition(status)) << status;
+  EXPECT_THAT(std::string(status.message()),
+              HasSubstr(absl::StrFormat(
+                  "from slot %d, which has no graphics source", slot)));
+}
+
 TEST_F(OverworldTileRomTest, TerrainCatalogAdmitsOnlyPagesThatMatchTheArea) {
   test::native_overworld::NativeDirectoryFixture fixture(192);
   ASSERT_NO_FATAL_FAILURE(SeedValidationFixture(&fixture));
@@ -995,9 +1042,51 @@ TEST_F(OverworldTileRomTest, TerrainCatalogAdmitsOnlyPagesThatMatchTheArea) {
   EXPECT_EQ(same["records"], control["records"]);
 
   // A different main sheet on that page is not described by the area profile.
-  auto& sheet = fixture.bytes[fixture.Entry(6).pc_address + page * 8];
-  sheet = sheet == 0x10 ? 0x11 : 0x10;
-  const auto status = catalog_of(nullptr);
+  const uint32_t slot0 = fixture.Entry(6).pc_address;
+  fixture.bytes[slot0 + parent * 8] = 0x10;
+  fixture.bytes[slot0 + page * 8] = 0x11;
+  auto status = catalog_of(nullptr);
+  EXPECT_TRUE(absl::IsFailedPrecondition(status)) << status;
+  EXPECT_THAT(std::string(status.message()),
+              HasSubstr("differs from the parent's"));
+
+  // Point sheet $11 at sheet $10's data: the page now builds pixel-identical
+  // graphics, yet its characters still come from another sheet.
+  {
+    Rom rom;
+    ASSERT_TRUE(rom.LoadFromData(fixture.bytes).ok());
+    auto data = std::make_unique<zelda3::GameData>();
+    zelda3::LoadOptions options;
+    options.expand_rom = false;
+    ASSERT_TRUE(zelda3::LoadGameData(rom, *data, options).ok());
+    const auto& table = data->gfx_sheet_table;
+    ASSERT_GT(table.count, 0x11u);
+    for (uint32_t pc : {table.bank_pc, table.high_pc, table.low_pc}) {
+      fixture.bytes[pc + 0x11] = fixture.bytes[pc + 0x10];
+    }
+  }
+  fixture.Seal();
+  {
+    Rom rom;
+    ASSERT_TRUE(rom.LoadFromData(fixture.bytes).ok());
+    auto data = std::make_unique<zelda3::GameData>();
+    zelda3::LoadOptions options;
+    options.expand_rom = false;
+    ASSERT_TRUE(zelda3::LoadGameData(rom, *data, options).ok());
+    auto world_owner = std::make_unique<zelda3::Overworld>(&rom);
+    auto& world = *world_owner;
+    world.SetGameData(data.get());
+    ASSERT_TRUE(world.Load(&rom).ok());
+    ASSERT_TRUE(world.EnsureMapBuilt(parent).ok());
+    ASSERT_TRUE(world.EnsureMapBuilt(page).ok());
+    const auto* a = world.overworld_map(parent);
+    const auto* b = world.overworld_map(page);
+    ASSERT_EQ(a->static_graphics(0), 0x10);
+    ASSERT_EQ(b->static_graphics(0), 0x11);
+    ASSERT_EQ(a->current_graphics(), b->current_graphics());
+    ASSERT_TRUE(a->current_palette() == b->current_palette());
+  }
+  status = catalog_of(nullptr);
   EXPECT_TRUE(absl::IsFailedPrecondition(status)) << status;
   EXPECT_THAT(std::string(status.message()),
               HasSubstr("differs from the parent's"));
