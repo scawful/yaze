@@ -1091,6 +1091,68 @@ TEST_F(NativeSaveReceiptTest, CommittedReaderAllowsProjectlessRawRomSave) {
   ExpectInputsUnchanged();
 }
 
+TEST_F(NativeSaveReceiptTest, CommittedReaderNamesSaveThatReplacedSharedRom) {
+  ScopedAppDataOverride app_data(temp_.path() / "app-data");
+  ASSERT_TRUE(app_data.ok());
+  const std::string rom = request_.artifacts[0].path.string();
+  const auto projectless = request_;
+  AddInput("project", "main.yaze", "name=Main\n");
+  const auto main_project = request_.artifacts.back().path;
+  receipt_path_ = main_project.string() + ".native-save.json";
+  request_.receipt_path = receipt_path_;
+  auto context = GetNativeSaveContext(rom, main_project.string());
+  ASSERT_TRUE(context.ok()) << context.status();
+  request_.context = *context;
+  ASSERT_NO_FATAL_FAILURE(SeedReceipt());
+  const auto read_main = [&] {
+    return ReadVerifiedCommittedNativeSaveIdentity(rom, main_project.string(),
+                                                   rom);
+  };
+  ASSERT_TRUE(read_main().ok()) << read_main().status();
+  const auto expect_refusal_naming = [&](const std::string& owner) {
+    const auto refused = read_main();
+    ASSERT_TRUE(absl::IsFailedPrecondition(refused.status()))
+        << refused.status();
+    const std::string message(refused.status().message());
+    EXPECT_NE(message.find(owner), std::string::npos) << message;
+    EXPECT_NE(message.find("Save this project again"), std::string::npos)
+        << message;
+  };
+
+  auto raw = projectless;
+  raw.receipt_path = rom + ".native-save.json";
+  raw.operation_id = "native-save-raw";
+  context = GetNativeSaveContext(rom, "");
+  ASSERT_TRUE(context.ok()) << context.status();
+  raw.context = *context;
+  ASSERT_TRUE(PublishNativeSaveReceipt(raw).ok());
+  ASSERT_NO_FATAL_FAILURE(expect_refusal_naming("without a project"));
+
+  auto other = projectless;
+  const auto other_project = temp_.path() / "other.yaze";
+  WriteBytes(other_project, "name=Other\n");
+  other.artifacts.push_back(
+      {"project", other_project, ComputeSourceArtifactSha256("name=Other\n")});
+  other.receipt_path = other_project.string() + ".native-save.json";
+  other.operation_id = "native-save-other";
+  context = GetNativeSaveContext(rom, other_project.string());
+  ASSERT_TRUE(context.ok()) << context.status();
+  other.context = *context;
+  ASSERT_TRUE(PublishNativeSaveReceipt(other).ok());
+  ASSERT_NO_FATAL_FAILURE(expect_refusal_naming(
+      "by project " + JsonPathText(fs::canonical(other_project))));
+
+  request_.operation_id = "native-save-2";
+  context = GetNativeSaveContext(rom, main_project.string());
+  ASSERT_TRUE(context.ok()) << context.status();
+  request_.context = *context;
+  ASSERT_TRUE(PublishNativeSaveReceipt(request_).ok());
+  const auto rebound = read_main();
+  ASSERT_TRUE(rebound.ok()) << rebound.status();
+  EXPECT_EQ(rebound->generation, 2u);
+  ExpectInputsUnchanged();
+}
+
 #endif  // defined(__EMSCRIPTEN__)
 
 }  // namespace

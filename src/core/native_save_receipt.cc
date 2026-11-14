@@ -353,8 +353,13 @@ absl::Status VerifyCommittedNativeContextDocument(
                    CanonicalDescriptorPath(project_descriptor_path));
   const auto& stored_project = value.at("project_path").get<std::string>();
   if (!PathsMatchCanonical(stored_project, expected_descriptor)) {
-    return absl::FailedPreconditionError(
-        "Native save context project binding mismatch");
+    // One context slot exists per editing ROM, so another project or a
+    // project-less ROM Save of the same file replaces this project's binding.
+    return absl::FailedPreconditionError(absl::StrCat(
+        "The last native Save of this ROM was made ",
+        stored_project.empty() ? std::string("without a project")
+                               : absl::StrCat("by project ", stored_project),
+        ". Save this project again before building or running it."));
   }
   const auto& commit = value.at("native_commit");
   if (!expected_descriptor.empty()) {
