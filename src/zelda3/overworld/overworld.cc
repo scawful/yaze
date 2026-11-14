@@ -2654,6 +2654,9 @@ absl::Status Overworld::SaveNativeTerrain() {
                                        false,
                                        flags.kSaveOverworldProperties,
                                        flags.kSaveOverworldProperties};
+  if (!flags.kSaveOverworldMaps && page_tile16_ != loaded_page_tile16_)
+    return absl::FailedPreconditionError(
+        "Enable map saving to publish pending page Tile16 definitions");
   RETURN_IF_ERROR(ValidateNativeGeometrySaveFlags());
   const auto current = CaptureNativeNonTerrainState();
   if (layout.revision >= 4 && !flags.kSaveOverworldProperties &&

@@ -225,6 +225,10 @@ TEST(LyraLayoutDescriptorTest, PageTile16NormalModelSaveUndoFailureAndReopen) {
       {0x8D, 0x234, {1, 2, 3, 4}}, {0x8E, 0x234, {5, 6, 7, 8}}};
   editor::OverworldPageTile16Action action(world.get(), {0x8D, 0x8E}, {}, rows);
   ASSERT_TRUE(action.Redo().ok());
+  save.kSaveOverworldMaps = false;
+  EXPECT_FALSE(world->SaveNativeTerrain().ok());
+  EXPECT_EQ(image.vector(), fixture.bytes);
+  save.kSaveOverworldMaps = true;
   EXPECT_TRUE(image.dirty());
   EXPECT_EQ(gfx::TileInfoToWord(world->Tiles16ForMap(0x8D)[0x234].tile0_), 1);
   EXPECT_EQ(gfx::TileInfoToWord(world->Tiles16ForMap(0x8E)[0x234].tile0_), 5);
@@ -279,6 +283,45 @@ TEST(LyraLayoutDescriptorTest, PageTile16NormalModelSaveUndoFailureAndReopen) {
   EXPECT_EQ(fresh->GetMapTiles(2), special);
   ASSERT_TRUE(fresh->SaveNativeTerrain().ok());
   EXPECT_EQ(reopened.vector(), persisted);
+}
+
+TEST(LyraLayoutDescriptorTest, PageTile16OldFormatsNormalSavePreservesBytes) {
+  const auto flags = core::FeatureFlags::get();
+  auto restore = absl::MakeCleanup([&] { core::FeatureFlags::get() = flags; });
+  auto& save = core::FeatureFlags::get().overworld;
+  save.kSaveOverworldMaps = true;
+  save.kSaveOverworldSprites = false;
+  save.kSaveOverworldProperties = false;
+  save.kSaveOverworldEntrances = false;
+  save.kSaveOverworldExits = false;
+  save.kSaveOverworldItems = false;
+  for (const uint16_t capacity : {160, 192}) {
+    for (const int revision : {3, 4}) {
+      NativeDirectoryFixture fixture(capacity);
+      fixture.SeedNativeSpritePrefix();
+      fixture.bytes[zelda3::overworldItemsAddressBank] = 0x1B;
+      fixture.Word(0xD8000, 0xFFFF);
+      for (int map = 0; map < capacity; ++map)
+        fixture.Word(fixture.Entry(23).pc_address + map * 2, 0x8000);
+      if (revision == 4) {
+        fixture.UpgradeToRevision4();
+        fixture.AddAuthoringMetadata();
+      }
+      fixture.Seal();
+      Rom image;
+      ASSERT_TRUE(image.LoadFromData(fixture.bytes).ok());
+      auto world = std::make_unique<zelda3::Overworld>(&image);
+      const auto loaded = world->Load(&image);
+      ASSERT_TRUE(loaded.ok()) << loaded;
+      const auto saved = world->SaveNativeTerrain();
+      ASSERT_TRUE(saved.ok()) << saved;
+      world->CommitSavedMapTiles();
+      EXPECT_EQ(image.vector(), fixture.bytes);
+      EXPECT_TRUE(world->page_tile16().empty());
+      const std::array<uint16_t, 1> maps = {0x8D};
+      EXPECT_FALSE(world->ImportPageTile16(maps, {}).ok());
+    }
+  }
 }
 
 TEST(LyraLayoutDescriptorTest, NativeDirectoryDecodesBothCapacitiesById) {
@@ -1919,7 +1962,7 @@ TEST_F(NativeSpecialOverworldEditorTest, SavedNativeSourceExport) {
       [&] { core::RomSettings::Get().SetAddressOverrides(old_addresses); });
   core::RomSettings::Get().ClearOverrides();
   for (int capacity : {160, 192}) {
-    for (int revision : {3, 4}) {
+    for (int revision : {3, 4, 5}) {
       SCOPED_TRACE(
           absl::StrFormat("capacity%d revision%d", capacity, revision));
       NativeDirectoryFixture fixture(capacity);
@@ -1943,16 +1986,28 @@ TEST_F(NativeSpecialOverworldEditorTest, SavedNativeSourceExport) {
       // palette slots. This synthetic active area supplies a valid selector.
       for (const int id : {25, 37, 38})
         fixture.bytes[fixture.Entry(id).pc_address + parent] = 1;
-      if (revision == 4) {
+      if (revision >= 4) {
         fixture.UpgradeToRevision4();
         fixture.bytes[fixture.Entry(410).pc_address + selected] = 3;
         fixture.Word(
             fixture.Entry(411).pc_address + (selected - 128) * 256 + 254,
             0x3210);
       }
+      if (revision == 5) {
+        fixture.AddPageTile16();
+        const std::vector<rom::NativePageTile16Definition> rows = {
+            {static_cast<uint16_t>(parent), 0x234, {1, 2, 3, 4}},
+            {static_cast<uint16_t>(selected), 0x234, {5, 6, 7, 8}}};
+        auto encoded = rom::EncodeNativePageTile16(rows, capacity, 16);
+        ASSERT_TRUE(encoded.ok());
+        std::copy(encoded->begin(), encoded->end(),
+                  fixture.bytes.begin() + fixture.Entry(413).pc_address);
+      }
       fixture.Seal();
       Rom document;
       ASSERT_TRUE(document.LoadFromData(fixture.bytes).ok());
+      if (revision == 5)
+        document.EnableExperimentalPageTile16();
       const auto before = document.vector();
       cli::handlers::OverworldExportNativeSourceCommandHandler command;
       cli::resources::ArgumentParser args({});
@@ -1969,7 +2024,10 @@ TEST_F(NativeSpecialOverworldEditorTest, SavedNativeSourceExport) {
       const auto exported = run();
       ASSERT_TRUE(exported.ok()) << exported.status();
       const auto& source = exported->at("native_source");
-      EXPECT_EQ(source["schema"], "yaze.special-overworld-native-source.v1");
+      EXPECT_EQ(source["schema"],
+                revision == 5
+                    ? "yaze.special-overworld-native-source.experimental-v2"
+                    : "yaze.special-overworld-native-source.v1");
       EXPECT_EQ(source["directory_revision"], revision);
       EXPECT_EQ(source["materialized_map_count"], capacity);
       EXPECT_EQ(source["pages"].size(), capacity - 128);
@@ -1982,7 +2040,7 @@ TEST_F(NativeSpecialOverworldEditorTest, SavedNativeSourceExport) {
       const auto& page = source["pages"][selected - 128];
       EXPECT_EQ(page["parent_map_id"], parent);
       EXPECT_EQ(page["tiles"].size(), 1024);
-      EXPECT_EQ(page["resolved_states"].size(), revision == 4 ? 3 : 0);
+      EXPECT_EQ(page["resolved_states"].size(), revision >= 4 ? 3 : 0);
       zelda3::GameData data;
       zelda3::LoadOptions options;
       options.expand_rom = false;
@@ -2001,7 +2059,7 @@ TEST_F(NativeSpecialOverworldEditorTest, SavedNativeSourceExport) {
       ASSERT_NE(area, source["gameplay_areas"].end());
       EXPECT_EQ((*area)["size"], "wide");
       EXPECT_EQ((*area)["maps"], nlohmann::json::array({parent, selected}));
-      for (int phase = 0; revision == 4 && phase < 3; ++phase) {
+      for (int phase = 0; revision >= 4 && phase < 3; ++phase) {
         const auto& state = page["resolved_states"][phase];
         EXPECT_EQ(state["sprite_graphics"], phase + 1);
         std::vector<uint8_t> pixels(0x10000, 0);
@@ -2025,10 +2083,10 @@ TEST_F(NativeSpecialOverworldEditorTest, SavedNativeSourceExport) {
             core::ComputeSourceArtifactSha256(
                 {reinterpret_cast<const char*>(pixels.data()), pixels.size()}));
       }
-      if (revision == 4)
+      if (revision >= 4)
         EXPECT_NE(page["resolved_states"][0]["graphics_sha256"],
                   page["resolved_states"][1]["graphics_sha256"]);
-      if (revision == 4) {
+      if (revision >= 4) {
         EXPECT_EQ(page["source_profile"]["appearance_flags"], 3);
         EXPECT_EQ(page["source_profile"]["background_palette_words"][127],
                   0x3210);
@@ -2041,6 +2099,28 @@ TEST_F(NativeSpecialOverworldEditorTest, SavedNativeSourceExport) {
       const auto repeated = run();
       ASSERT_TRUE(repeated.ok()) << repeated.status();
       EXPECT_EQ(*repeated, *exported);
+      if (revision == 5) {
+        ASSERT_FALSE(source["runtime_supported"].get<bool>());
+        EXPECT_EQ(source["page_tile16_definitions"]["rows"].size(), 2);
+        const std::array<uint16_t, 1> selected_maps = {
+            static_cast<uint16_t>(selected)};
+        ASSERT_TRUE(expected.ImportPageTile16(selected_maps, {}).ok());
+        ASSERT_EQ(expected.page_tile16().size(), 1);
+        ASSERT_TRUE(zelda3::ImportNativePageTile16Source(
+                        expected, source.dump(), selected_maps)
+                        .ok());
+        EXPECT_EQ(expected.page_tile16().size(), 2);
+        EXPECT_EQ(expected.page_tile16()[0].words[0], 1);
+        EXPECT_EQ(expected.page_tile16()[1].words[0], 5);
+        auto malformed = source;
+        malformed["page_tile16_definitions"]["rows"][0]["tile_id"] = 4096;
+        EXPECT_FALSE(zelda3::ImportNativePageTile16Source(
+                         expected, malformed.dump(), selected_maps)
+                         .ok());
+        EXPECT_EQ(expected.page_tile16().size(), 2);
+        EXPECT_EQ(expected.tiles16(), reference.tiles16());
+        document.ClearDirty();
+      }
       EXPECT_EQ(document.vector(), before);
       EXPECT_FALSE(document.dirty());
       document.set_dirty(true);
