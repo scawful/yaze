@@ -3,10 +3,13 @@
 #include <gtest/gtest.h>
 
 #include <chrono>
+#include <filesystem>
+#include <fstream>
 #include <functional>
 #include <string>
 #include <vector>
 
+#include "app/editor/hack/workflow/build_log_view.h"
 #include "imgui/imgui.h"
 #include "imgui/imgui_internal.h"
 
@@ -177,6 +180,55 @@ TEST_F(WorkflowActivityWidgetsTest, CopyCurrentLogButtonRendersClickableItem) {
   EXPECT_TRUE(rect.visible);
   EXPECT_NE(rect.id, 0u);
 }
+
+#if defined(YAZE_WITH_JSON)
+TEST_F(WorkflowActivityWidgetsTest, BuildLogViewRendersStepsAndReceipt) {
+  const auto receipt_path =
+      std::filesystem::temp_directory_path() /
+      ("yaze-build-log-view-" +
+       std::to_string(
+           std::chrono::steady_clock::now().time_since_epoch().count()) +
+       ".json");
+  {
+    std::ofstream receipt(receipt_path);
+    receipt << R"({"state": "failed", "finish": {"exit_code": 1},
+      "checks": [
+        {"name": "assembly", "status": "passed", "required": true},
+        {"name": "overlap", "status": "failed", "required": true,
+         "detail": "reserved region"},
+        {"name": "smoke", "status": "unavailable", "required": false}
+      ]})";
+  }
+  std::string log =
+      "[*] Assembling\n"
+      "Core/credits_text.asm:59: warning: (Wfeature_deprecated): warnpc\n";
+  for (int i = 0; i < 200; ++i) {
+    log += "detail line " + std::to_string(i) + "\n";
+  }
+  log += "[!] overlap check failed\nBuild receipt: " + receipt_path.string() +
+         "\n";
+
+  BuildLogView view;
+  view.SetLog(log);
+  ASSERT_TRUE(view.receipt().has_value());
+  EXPECT_EQ(view.receipt()->checks.size(), 3u);
+  EXPECT_EQ(view.summary().warnings, 1);
+  EXPECT_EQ(view.summary().errors, 1);
+
+  for (int frame = 0; frame < 2; ++frame) {
+    RunFrame([&]() {
+      view.Draw("build_log_view", 220.0f, /*follow_tail=*/true);
+      return 0;
+    });
+  }
+
+  std::filesystem::remove(receipt_path);
+  view.SetLog(log);
+  EXPECT_TRUE(view.receipt().has_value());
+  view.SetLog(log + "trailing\n");
+  EXPECT_FALSE(view.receipt().has_value());
+}
+#endif
 
 }  // namespace
 }  // namespace yaze::editor::workflow

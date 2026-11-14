@@ -130,6 +130,7 @@ set(
   app/editor/graphics/ui/usage/usage_preview_view.cc
   app/editor/hack/workflow/hack_workflow_backend_factory.cc
   app/editor/hack/workflow/manifest_only_hack_workflow_backend.cc
+  app/editor/hack/workflow/build_log_view.cc
   app/editor/hack/workflow/project_workflow_output_panel.cc
   app/editor/hack/workflow/workflow_activity_widgets.cc
   app/editor/layout/layout_designer/layout_designer_panel.cc
@@ -275,6 +276,7 @@ set(
 
 set(
   YAZE_EDITOR_SYSTEM_SESSION_SRC
+  app/editor/system/session/build_log_view_model.cc
   app/editor/system/session/collision_source_pairing.cc
   app/editor/system/session/extension_manager.cc
   app/editor/system/session/project_manager.cc

@@ -7,6 +7,7 @@
 #include <vector>
 
 #include "absl/status/status.h"
+#include "app/editor/hack/workflow/build_log_view.h"
 #include "app/editor/system/session/project_workflow_status.h"
 #include "core/project.h"
 #include "core/version_manager.h"
@@ -77,7 +78,7 @@ class ProjectManagementPanel {
     run_status_ = status;
   }
   void SetBuildLogOutput(const std::string& output) {
-    build_log_output_ = output;
+    build_log_view_.SetLog(output);
   }
 
   bool IsProjectDirty() const { return project_dirty_; }
@@ -131,7 +132,7 @@ class ProjectManagementPanel {
 
   ProjectWorkflowStatus build_status_;
   ProjectWorkflowStatus run_status_;
-  std::string build_log_output_;
+  workflow::BuildLogView build_log_view_;
 };
 
 }  // namespace editor

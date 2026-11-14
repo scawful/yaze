@@ -403,6 +403,7 @@ if(YAZE_BUILD_TESTS)
     unit/editor/ui_coordinator_workflow_test.cc
     unit/editor/welcome_screen_test.cc
     unit/editor/editor_manager_project_actions_test.cc
+    unit/editor/build_log_view_model_test.cc
     unit/editor/project_build_workflow_state_test.cc
     unit/editor/popup_manager_test.cc
     unit/editor/cutscene_camera_panel_test.cc

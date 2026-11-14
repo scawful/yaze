@@ -31,11 +31,11 @@ void CopyToBuffer(std::array<char, N>* buffer, const std::string& value) {
 ImVec4 WorkflowColor(ProjectWorkflowState state) {
   switch (state) {
     case ProjectWorkflowState::kRunning:
-      return ImVec4(0.45f, 0.70f, 0.95f, 1.0f);
+      return gui::GetInfoColor();
     case ProjectWorkflowState::kSuccess:
-      return ImVec4(0.35f, 0.80f, 0.45f, 1.0f);
+      return gui::GetSuccessColor();
     case ProjectWorkflowState::kFailure:
-      return ImVec4(0.90f, 0.35f, 0.35f, 1.0f);
+      return gui::GetErrorColor();
     case ProjectWorkflowState::kIdle:
     default:
       return gui::GetTextSecondaryVec4();
@@ -57,7 +57,7 @@ const char* WorkflowIcon(ProjectWorkflowState state, const char* fallback) {
 }
 
 void DrawWorkflowCard(const ProjectWorkflowStatus& status,
-                      const char* fallback_icon) {
+                      const char* fallback_icon, bool show_output_tail = true) {
   if (!status.visible) {
     return;
   }
@@ -69,7 +69,7 @@ void DrawWorkflowCard(const ProjectWorkflowStatus& status,
   if (!status.detail.empty()) {
     ImGui::TextWrapped("%s", status.detail.c_str());
   }
-  if (!status.output_tail.empty()) {
+  if (show_output_tail && !status.output_tail.empty()) {
     ImGui::TextWrapped("%s", status.output_tail.c_str());
   }
 }
@@ -521,18 +521,16 @@ void ProjectManagementPanel::DrawQuickActions() {
     ImGui::Spacing();
     gui::ColoredTextF(gui::GetPrimaryVec4(), "%s Build & Run", ICON_MD_ROUTE);
     if (build_status_.visible) {
-      DrawWorkflowCard(build_status_, ICON_MD_BUILD);
+      DrawWorkflowCard(build_status_, ICON_MD_BUILD,
+                       /*show_output_tail=*/build_log_view_.empty());
     }
-    if (!build_log_output_.empty()) {
+    if (!build_log_view_.empty()) {
       ImGui::Spacing();
-      ImGui::TextColored(gui::GetTextSecondaryVec4(), tr("Build Output:"));
-      ImGui::BeginChild("##build_output_log", ImVec2(0, 140), true,
-                        ImGuiWindowFlags_HorizontalScrollbar);
-      ImGui::TextUnformatted(build_log_output_.c_str());
-      if (ImGui::GetScrollY() >= ImGui::GetScrollMaxY()) {
-        ImGui::SetScrollHereY(1.0f);
-      }
-      ImGui::EndChild();
+      ImGui::TextColored(gui::GetTextSecondaryVec4(), "%s %s", ICON_MD_TERMINAL,
+                         tr("Build Output"));
+      build_log_view_.Draw("project_build_output", 220.0f,
+                           /*follow_tail=*/build_status_.state ==
+                               ProjectWorkflowState::kRunning);
     }
     if (run_status_.visible) {
       DrawWorkflowCard(run_status_, ICON_MD_PLAY_ARROW);
