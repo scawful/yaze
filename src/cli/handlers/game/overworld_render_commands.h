@@ -104,10 +104,11 @@ ResolveOverworldRenderGraphicsPreview(const project::YazeProject* project,
 // composited by default the way the game layers it; --area-overlay=off
 // renders the bare area.
 //
-// With --project-context, graphics a hack DMAs at runtime (the project's
-// [files] overworld_graphics_preview manifest) replace the area's tiles the
-// way the editor canvas shows them; --graphics-preview=off draws the ROM's
-// sheets only.
+// With --project-context, LoadNativeSourceGameData binds the project's
+// authenticated graphics source/layout (source-only F6..FE sheets) before
+// rendering. The project's [files] overworld_graphics_preview manifest can
+// also DMA runtime tiles the way the editor canvas shows them;
+// --graphics-preview=off draws ROM+source sheets only.
 class OverworldRenderCommandHandler : public resources::CommandHandler {
  public:
   std::string GetName() const override { return "overworld-render"; }

@@ -11,6 +11,7 @@
 #include <utility>
 #include <vector>
 
+#include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include <nlohmann/json.hpp>
 
@@ -18,11 +19,13 @@
 #include "app/service/render_service.h"
 #include "cli/handlers/game/overworld_render_commands.h"
 #include "cli/handlers/game/overworld_sprite_edit_commands.h"
+#include "core/gfx_sheet_source.h"
 #include "core/project.h"
 #include "core/rom_settings.h"
 #include "core/source_artifact_publisher.h"
 #include "oracle_rom_fixture.h"
 #include "rom/rom.h"
+#include "unit/zelda3/gfx_sheet_test_rom.h"
 #include "zelda3/game_data.h"
 #include "zelda3/overworld/lyra_terrain_source.h"
 #include "zelda3/overworld/overworld.h"
@@ -727,6 +730,119 @@ TEST(OverworldRenderServiceTest, GraphicsPreviewRedrawsOnlyItsArea) {
   ASSERT_NE(with->parent_screen, parent);
   EXPECT_FALSE(with->graphics_preview);
   EXPECT_EQ(with->png_data, without->png_data);
+}
+
+// overworld-render must use LoadNativeSourceGameData so --project-context
+// source-only sheets (Sea Zora F6..) are present; plain LoadGameData omits them.
+TEST(OverworldRenderNativeSourceTest,
+     ProjectSourceBindsSheetAndRefusesStaleIdentity) {
+  namespace fs = std::filesystem;
+  const auto root =
+      fs::temp_directory_path() /
+      ("yaze-ow-render-source-" +
+       std::to_string(
+           std::chrono::steady_clock::now().time_since_epoch().count()));
+  fs::create_directories(root / "Data/graphics");
+  const absl::Cleanup cleanup = [&] {
+    std::error_code ec;
+    fs::remove_all(root, ec);
+  };
+
+  std::vector<uint8_t> pixels(4096, 0);
+  pixels[0] = 3;
+  pixels[136] = 7;
+  const auto sheet_name = "246.txt";  // 0xF6
+  {
+    std::ofstream out(root / "Data/graphics" / sheet_name, std::ios::binary);
+    out << core::GfxSheetSource::EncodeText(pixels);
+    ASSERT_TRUE(out.good());
+  }
+  nlohmann::json spec = {
+      {"schema_version", 2},
+      {"start", "0x40D000"},
+      {"capacity", "0x3000"},
+      {"encoding", "lz2"},
+      {"sheets",
+       nlohmann::json::array(
+           {{{"global_sheet", 0xF6},
+             {"source", sheet_name},
+             {"decoded_sha256", core::GfxSheetSource::DecodedSha256(pixels)},
+             {"why", "source-only render fixture"}}})}};
+  const auto spec_path = root / "Data/graphics/source_sprite_sheets.json";
+  {
+    std::ofstream out(spec_path, std::ios::binary);
+    out << spec.dump(2) << '\n';
+    ASSERT_TRUE(out.good());
+  }
+  const std::string spec_text = [&] {
+    std::ifstream in(spec_path, std::ios::binary);
+    return std::string{std::istreambuf_iterator<char>(in), {}};
+  }();
+
+  project::YazeProject project;
+  project.filepath = (root / "render.yaze").string();
+  project.code_folder = root.string();
+  project.name = "Overworld render source fixture";
+  project.graphics_sheets.source_spec =
+      "Data/graphics/source_sprite_sheets.json";
+  project.graphics_sheets.source_spec_sha1 =
+      core::GfxSheetSource::SpecSha1(spec_text);
+  ASSERT_TRUE(project.Save().ok());
+
+  auto fixture = test::BuildGfxSheetTestRom();
+  fixture.bytes[0x7FD9] =
+      1;  // US tables; LoadNativeSource refuses JP without layout
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(fixture.bytes).ok());
+
+  {
+    zelda3::GameData plain;
+    zelda3::LoadOptions options;
+    options.expand_rom = false;
+    ASSERT_TRUE(zelda3::LoadGameData(rom, plain, options).ok());
+    EXPECT_FALSE(plain.HasGraphicsSheet(0xF6));
+  }
+
+  {
+    zelda3::GameData bound;
+    const auto bound_status =
+        handlers::LoadNativeSourceGameData(rom, &project, bound);
+    ASSERT_TRUE(bound_status.ok()) << bound_status;
+    ASSERT_TRUE(bound.gfx_sheet_source.has_value());
+    EXPECT_TRUE(bound.HasGraphicsSheet(0xF6));
+    EXPECT_EQ(bound.gfx_sheet_source->sheets().at(0xF6).pixels, pixels);
+    const auto* begin = bound.graphics_buffer.data() + 0xF6 * 4096;
+    EXPECT_EQ(std::vector<uint8_t>(begin, begin + 4096), pixels);
+  }
+
+  {
+    project.graphics_sheets.source_spec_sha1 = std::string(40, '0');
+    zelda3::GameData refused;
+    const auto status =
+        handlers::LoadNativeSourceGameData(rom, &project, refused);
+    EXPECT_FALSE(status.ok());
+    EXPECT_THAT(std::string(status.message()),
+                ::testing::HasSubstr("SHA1 mismatch"));
+    EXPECT_FALSE(refused.gfx_sheet_source.has_value());
+  }
+
+  {
+    project.graphics_sheets.source_spec_sha1 =
+        core::GfxSheetSource::SpecSha1(spec_text);
+    // Still a legal 3bpp index, but not the declared decoded hash.
+    pixels[0] = 4;
+    {
+      std::ofstream out(root / "Data/graphics" / sheet_name, std::ios::binary);
+      out << core::GfxSheetSource::EncodeText(pixels);
+      ASSERT_TRUE(out.good());
+    }
+    zelda3::GameData refused;
+    const auto status =
+        handlers::LoadNativeSourceGameData(rom, &project, refused);
+    EXPECT_FALSE(status.ok());
+    EXPECT_THAT(std::string(status.message()),
+                ::testing::HasSubstr("SHA256 mismatch"));
+  }
 }
 
 }  // namespace

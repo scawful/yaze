@@ -1137,13 +1137,12 @@ absl::Status OverworldRenderCommandHandler::ExecuteWithContext(
     return absl::FailedPreconditionError("ROM not loaded");
   }
 
+  // Same project layout/source path as native export: --project-context binds
+  // authenticated source sheets (F6..FE) and layout before the renderer loads
+  // maps, so page413/per-map words resolve against real sheet pixels.
   auto game_data_owner = std::make_unique<zelda3::GameData>();
   auto& game_data = *game_data_owner;
-  auto gd_status = zelda3::LoadGameData(*rom, game_data);
-  if (!gd_status.ok()) {
-    return absl::InternalError(
-        absl::StrFormat("Failed to load game data: %s", gd_status.message()));
-  }
+  RETURN_IF_ERROR(LoadNativeSourceGameData(*rom, project_, game_data));
 
   app::service::RenderService render_service(rom, &game_data);
   ASSIGN_OR_RETURN(auto result, render_service.RenderOverworldArea(req));
