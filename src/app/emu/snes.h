@@ -47,7 +47,8 @@ class Snes {
   void Init(const std::vector<uint8_t>& rom_data);
   void Reset(bool hard = false);
   void RunFrame();
-  void RunAudioFrame();  // Audio-focused frame: runs CPU+APU, skips PPU rendering
+  // Audio-focused frame: runs CPU+APU, skips PPU rendering
+  void RunAudioFrame();
   void CatchUpApu();
   void HandleInput();
   void RunCycle();
@@ -88,6 +89,11 @@ class Snes {
   auto memory() -> MemoryImpl& { return memory_; }
   auto get_ram() -> uint8_t* { return ram; }
   auto mutable_cycles() -> uint64_t& { return cycles_; }
+  // Last value written to $2100+adr (adr 0x00-0x3F); most of these PPU
+  // registers are write-only. Not part of save states.
+  uint8_t ppu_last_write(uint8_t adr) const {
+    return ppu_last_write_[adr & 0x3F];
+  }
 
   // Input state accessors (for debugging UI)
   uint16_t GetInput1State() const { return input1.current_state_; }
@@ -123,7 +129,9 @@ class Snes {
   std::vector<uint8_t> rom_data;
 
   bool running_ = false;
-  bool audio_only_mode_ = false;  // Skip PPU rendering for audio-focused playback
+  // Skip PPU rendering for audio-focused playback
+  bool audio_only_mode_ = false;
+  uint8_t ppu_last_write_[0x40] = {};
 
   // ram
   uint8_t ram[0x20000];

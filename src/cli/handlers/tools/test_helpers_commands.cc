@@ -15,6 +15,7 @@
 
 #include "absl/status/status.h"
 #include "absl/strings/str_cat.h"
+#include "absl/strings/str_format.h"
 #include "app/emu/snes.h"
 #include "rom/rom.h"
 #include "zelda3/overworld/overworld.h"
@@ -76,22 +77,18 @@ absl::Status ToolsHarnessStateCommandHandler::GenerateHarnessState(
   snes.Reset(false);
 
   auto& cpu = snes.cpu();
-  auto& ppu = snes.ppu();
 
-  // Run emulator until the main game loop is reached
-  int max_cycles = 15000000;  // 15 million cycles
-  int cycles = 0;
-  while (cycles < max_cycles) {
-    snes.RunCycle();
-    cycles++;
-    if (cpu.PB == 0x00 && cpu.PC == 0x8034) {
-      break;  // Reached MainGameLoop
+  // Snes::RunCycle only advances the clock; instructions run via RunOpcode.
+  constexpr int kMaxInstructions = 20000000;
+  int instructions = 0;
+  while (!(cpu.PB == 0x00 && cpu.PC == 0x8034)) {  // MainGameLoop
+    if (instructions++ >= kMaxInstructions) {
+      return absl::DeadlineExceededError(absl::StrFormat(
+          "Emulator did not reach MainGameLoop ($00:8034) within %d "
+          "instructions; stopped at $%02X:%04X",
+          kMaxInstructions, cpu.PB, cpu.PC));
     }
-  }
-
-  if (cycles >= max_cycles) {
-    return absl::InternalError(
-        "Emulator timed out; did not reach main game loop.");
+    cpu.RunOpcode();
   }
 
   std::ofstream out_file(output_path);
@@ -133,25 +130,21 @@ absl::Status ToolsHarnessStateCommandHandler::GenerateHarnessState(
   out_file << "// ================================================"
               "=========================\n\n";
 
+  const auto write_register = [&](const char* name, uint8_t adr) {
+    out_file << "    uint8_t " << name << " = 0x" << std::hex << std::setw(2)
+             << std::setfill('0') << static_cast<int>(snes.ppu_last_write(adr))
+             << ";\n";
+  };
   out_file << "struct InitialPpuState {\n";
-  out_file << "    uint8_t inidisp = 0x" << std::hex << ppu.Read(0x2100, false)
-           << ";\n";
-  out_file << "    uint8_t objsel = 0x" << std::hex << ppu.Read(0x2101, false)
-           << ";\n";
-  out_file << "    uint8_t bgmode = 0x" << std::hex << ppu.Read(0x2105, false)
-           << ";\n";
-  out_file << "    uint8_t mosaic = 0x" << std::hex << ppu.Read(0x2106, false)
-           << ";\n";
-  out_file << "    uint8_t tm = 0x" << std::hex << ppu.Read(0x212C, false)
-           << ";\n";
-  out_file << "    uint8_t ts = 0x" << std::hex << ppu.Read(0x212D, false)
-           << ";\n";
-  out_file << "    uint8_t cgwsel = 0x" << std::hex << ppu.Read(0x2130, false)
-           << ";\n";
-  out_file << "    uint8_t cgadsub = 0x" << std::hex << ppu.Read(0x2131, false)
-           << ";\n";
-  out_file << "    uint8_t setini = 0x" << std::hex << ppu.Read(0x2133, false)
-           << ";\n";
+  write_register("inidisp", 0x00);
+  write_register("objsel", 0x01);
+  write_register("bgmode", 0x05);
+  write_register("mosaic", 0x06);
+  write_register("tm", 0x2C);
+  write_register("ts", 0x2D);
+  write_register("cgwsel", 0x30);
+  write_register("cgadsub", 0x31);
+  write_register("setini", 0x33);
   out_file << "};\n\n";
 
   out_file << "}  // namespace emu\n";

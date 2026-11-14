@@ -106,6 +106,46 @@ TEST(ToolsTestHelpersCommandsTest, PatchV3ReopensCommandRomFile) {
   EXPECT_EQ(ReadBinaryFile(input), original);
 }
 
+TEST(ToolsTestHelpersCommandsTest, HarnessStateRunsCpuToMainLoop) {
+  // LoROM reset at $00:8000 writes INIDISP/BGMODE, then idles at $00:8034
+  // (MainGameLoop in ALTTP).
+  std::vector<uint8_t> data(0x100000, 0);
+  const std::vector<uint8_t> reset = {
+      0x78,              // SEI
+      0xA9, 0x8F,        // LDA #$8F
+      0x8D, 0x00, 0x21,  // STA $2100
+      0xA9, 0x09,        // LDA #$09
+      0x8D, 0x05, 0x21,  // STA $2105
+      0x4C, 0x34, 0x80,  // JMP $8034
+  };
+  std::copy(reset.begin(), reset.end(), data.begin());
+  data[0x34] = 0x80;  // BRA $8034
+  data[0x35] = 0xFE;
+  data[0x7FFC] = 0x00;  // Emulation-mode reset vector
+  data[0x7FFD] = 0x80;
+
+  ScopedTempDir temp;
+  const fs::path input = temp.path() / "boot.sfc";
+  const fs::path header = temp.path() / "harness_state.h";
+  WriteBinaryFile(input, data);
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromFile(input.string()).ok());
+
+  ToolsHarnessStateCommandHandler handler;
+  std::string output;
+  const auto status =
+      handler.Run({"--output=" + header.string()}, &rom, &output);
+
+  ASSERT_TRUE(status.ok()) << status << "\n" << output;
+  const auto bytes = ReadBinaryFile(header);
+  const std::string text(bytes.begin(), bytes.end());
+  EXPECT_EQ(text.find('\0'), std::string::npos);
+  EXPECT_THAT(text, HasSubstr("kInitialWRAMState"));
+  EXPECT_THAT(text, HasSubstr("uint8_t inidisp = 0x8f;"));
+  EXPECT_THAT(text, HasSubstr("uint8_t bgmode = 0x09;"));
+  EXPECT_THAT(text, HasSubstr("uint8_t objsel = 0x00;"));
+}
+
 TEST(ToolsTestHelpersCommandsTest, PatchV3RefusesUnexpandedRom) {
   ScopedTempDir temp;
   const fs::path input = temp.path() / "retail.sfc";

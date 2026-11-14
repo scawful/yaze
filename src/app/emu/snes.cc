@@ -183,6 +183,7 @@ void Snes::Reset(bool hard) {
   cpu_.Reset(hard);
   apu_.Reset();
   ppu_.Reset();
+  std::fill(std::begin(ppu_last_write_), std::end(ppu_last_write_), 0);
   ResetDma(&memory_);
   input1.latch_line_ = false;
   input2.latch_line_ = false;
@@ -641,6 +642,7 @@ void Snes::WriteBBus(uint8_t adr, uint8_t val) {
         memory_.h_pos() < 1100) {
       ppu_.CatchUp(memory_.h_pos());
     }
+    ppu_last_write_[adr] = val;
     ppu_.Write(adr, val);
     return;
   }
