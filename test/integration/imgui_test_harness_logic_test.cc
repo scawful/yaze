@@ -961,6 +961,64 @@ TEST_F(RemoteReplayUiPersistenceTest,
       }
   EXPECT_TRUE(found);
 }
+
+TEST_F(RemoteReplayUiPersistenceTest,
+       TypeIntoActiveInputKeepsExactMultilineAndSingleLineCommit) {
+  struct Fields {
+    char single[64] = {};
+    char multi[256] = {};
+    bool ran = false;
+  };
+  auto* fields = new Fields();
+  ImGuiTest* job = IM_REGISTER_TEST(manager_.GetUITestEngine(), "harness",
+                                    "type-multiline-exact");
+  job->UserData = fields;
+  job->GuiFunc = [](ImGuiTestContext* ctx) {
+    auto* fields = static_cast<Fields*>(ctx->Test->UserData);
+    ImGui::SetNextWindowPos(ImVec2(20, 20));
+    ImGui::SetNextWindowSize(ImVec2(420, 280));
+    ImGui::Begin("Type Host");
+    ImGui::InputText("Single", fields->single, sizeof(fields->single));
+    ImGui::InputTextMultiline("Multi", fields->multi, sizeof(fields->multi));
+    ImGui::End();
+  };
+  job->TestFunc = [](ImGuiTestContext* ctx) {
+    auto* fields = static_cast<Fields*>(ctx->Test->UserData);
+    ctx->SetRef("Type Host");
+    ImGuiTestItemInfo multi = ctx->ItemInfo("Multi");
+    IM_CHECK(multi.ID != 0);
+    ctx->ItemClick(multi.ID);
+    ctx->ItemInput(multi.ID);
+    yaze::test::internal::TypeIntoActiveInput(ctx, multi.ID, "note");
+    IM_CHECK_STR_EQ(fields->multi, "note");
+    ctx->ItemClick(multi.ID);
+    ctx->ItemInput(multi.ID);
+    yaze::test::internal::TypeIntoActiveInput(ctx, multi.ID, "line1\nline2");
+    IM_CHECK_STR_EQ(fields->multi, "line1\nline2");
+    ImGuiTestItemInfo single = ctx->ItemInfo("Single");
+    IM_CHECK(single.ID != 0);
+    ctx->ItemClick(single.ID);
+    ctx->ItemInput(single.ID);
+    yaze::test::internal::TypeIntoActiveInput(ctx, single.ID, "hello");
+    IM_CHECK_STR_EQ(fields->single, "hello");
+    fields->ran = true;
+  };
+  ImGuiTestEngine_QueueTest(manager_.GetUITestEngine(), job,
+                            ImGuiTestRunFlags_RunFromGui);
+  const auto deadline =
+      std::chrono::steady_clock::now() + std::chrono::seconds(10);
+  while (!ImGuiTestEngine_IsTestQueueEmpty(manager_.GetUITestEngine()) &&
+         std::chrono::steady_clock::now() < deadline)
+    Frame();
+  Frame();
+  EXPECT_TRUE(ImGuiTestEngine_IsTestQueueEmpty(manager_.GetUITestEngine()));
+  EXPECT_TRUE(fields->ran);
+  EXPECT_STREQ(fields->multi, "line1\nline2");
+  EXPECT_STREQ(fields->single, "hello");
+  EXPECT_EQ(std::string(fields->multi).find('\n'), 5u);
+  EXPECT_EQ(std::string(fields->multi).rfind('\n'), 5u);
+  delete fields;
+}
 #endif
 
 }  // namespace

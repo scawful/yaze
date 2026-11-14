@@ -9,6 +9,9 @@
 #include "absl/status/statusor.h"
 #include "absl/strings/string_view.h"
 #include "imgui/imgui.h"
+#if defined(YAZE_ENABLE_IMGUI_TEST_ENGINE) && YAZE_ENABLE_IMGUI_TEST_ENGINE
+struct ImGuiTestContext;
+#endif
 
 namespace yaze {
 namespace editor {
@@ -54,6 +57,12 @@ absl::StatusOr<ResolvedWidgetSelector> ResolveWidgetSelector(
 void ApplyTerminalHarnessExecution(const HarnessTestExecution& execution,
                                    bool* step_success,
                                    std::string* step_message);
+
+#if defined(YAZE_ENABLE_IMGUI_TEST_ENGINE) && YAZE_ENABLE_IMGUI_TEST_ENGINE
+// Type into an already-activated InputText. Multiline fields must not receive
+// the trailing Enter that single-line commit uses; Enter inserts a newline.
+void TypeIntoActiveInput(ImGuiTestContext* ctx, ImGuiID id, const char* text);
+#endif
 
 }  // namespace internal
 }  // namespace test

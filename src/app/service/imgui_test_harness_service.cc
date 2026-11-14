@@ -515,6 +515,19 @@ void ApplyTerminalHarnessExecution(const HarnessTestExecution& execution,
   }
 }
 
+#if defined(YAZE_ENABLE_IMGUI_TEST_ENGINE) && YAZE_ENABLE_IMGUI_TEST_ENGINE
+void TypeIntoActiveInput(ImGuiTestContext* ctx, ImGuiID id, const char* text) {
+  const ImGuiInputTextState* state = ImGui::GetInputTextState(id);
+  const bool multiline =
+      state != nullptr && (state->Flags & ImGuiInputTextFlags_Multiline) != 0;
+  if (multiline) {
+    ctx->KeyCharsReplace(text);
+  } else {
+    ctx->KeyCharsReplaceEnter(text);
+  }
+}
+#endif
+
 }  // namespace internal
 
 absl::StatusOr<ScreenshotArtifact> CaptureScreenshotOnRenderThread(
@@ -1364,11 +1377,14 @@ absl::Status ImGuiTestHarnessServiceImpl::Type(const TypeRequest* request,
         ctx->ItemClick(option.c_str());
       } else {
         ctx->ItemClick(ImGuiTestRef(item.ID));
+        ctx->ItemInput(ImGuiTestRef(item.ID));
         if (clear_first) {
           ctx->KeyPress(ImGuiMod_Shortcut | ImGuiKey_A);
           ctx->KeyPress(ImGuiKey_Delete);
         }
-        ctx->ItemInputValue(ImGuiTestRef(item.ID), text.c_str());
+        // ItemInputValue always ends with Enter. On InputTextMultiline that
+        // inserts a trailing newline into the note instead of committing.
+        internal::TypeIntoActiveInput(ctx, item.ID, text.c_str());
       }
       ctx->Yield();
       if (ctx->IsError()) {
