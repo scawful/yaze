@@ -10,6 +10,7 @@
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "core/lyra_terrain_document.h"
+#include "nlohmann/json_fwd.hpp"
 #include "zelda3/overworld/overworld_geometry.h"
 #include "zelda3/overworld/overworld_map.h"
 #include "zelda3/overworld/overworld_terrain_io.h"
@@ -28,6 +29,11 @@ class Overworld;
 absl::Status ImportNativePageTile16Source(
     Overworld& overworld, const std::string& source_json,
     std::span<const uint16_t> selected_maps);
+
+// A page's saved appearance inputs as the native-source export records them
+// (`pages[].source_profile`). Background words exist from revision 4.
+nlohmann::json NativeSourcePageProfile(const OverworldAreaSnapshot& snapshot,
+                                       int directory_revision, int map_id);
 
 struct SpecialOverworldTerrainImportPlan {
   OverworldTile32Packing tile32;

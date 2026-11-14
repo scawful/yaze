@@ -8,12 +8,15 @@
 #include <memory>
 #include <optional>
 #include <set>
+#include <stdexcept>
 #include <string>
 #include <vector>
 
 #include "absl/cleanup/cleanup.h"
+#include "absl/strings/ascii.h"
 #include "absl/strings/numbers.h"
 #include "absl/strings/str_format.h"
+#include "absl/strings/str_join.h"
 #include "absl/strings/str_split.h"
 #include "cli/handlers/game/overworld_inspect.h"
 #include "cli/handlers/game/overworld_sprite_edit_commands.h"
@@ -21,12 +24,16 @@
 #include "cli/util/sprite_label_fields.h"
 #include "core/features.h"
 #include "core/project.h"
+#include "core/source_artifact_publisher.h"
+#include "nlohmann/json.hpp"
+#include "rom/lyra_layout_descriptor.h"
 #include "rom/rom.h"
 #include "rom/snes.h"
 #include "rom/transaction.h"
 #include "util/macro.h"
 #include "zelda3/dungeon/room.h"
 #include "zelda3/game_data.h"
+#include "zelda3/overworld/lyra_terrain_source.h"
 #include "zelda3/overworld/overworld.h"
 #include "zelda3/overworld/overworld_item.h"
 #include "zelda3/overworld/overworld_layout.h"
@@ -442,7 +449,337 @@ absl::Status CheckImportInputUnchanged(const std::filesystem::path& path,
   return absl::OkStatus();
 }
 
+constexpr char kNativeSourceSchema[] =
+    "yaze.special-overworld-native-source.experimental-v2";
+
+int RequireJsonInt(const nlohmann::json& value, const char* field, int min,
+                   int max) {
+  if (!value.is_number_integer() || value.get<int64_t>() < min ||
+      value.get<int64_t>() > max)
+    throw std::out_of_range(absl::StrFormat(
+        "%s must be an integer in range %d..%d", field, min, max));
+  return value.get<int>();
+}
+
+// Special-page grid cell in the same order the native-source export writes
+// `pages[].tiles`: row-major 32x32.
+uint16_t& SpecialPageCell(zelda3::OverworldBlockset& grid, int map, int x,
+                          int y) {
+  return grid[(map % 8) * 32 + x][((map % 64) / 8) * 32 + y];
+}
+
+// Selected special pages from a native-source export: grids plus page Tile16
+// definitions. Graphics, palettes and area profiles are never written; a page
+// whose recorded profile differs from the target is refused.
+absl::Status ImportNativeSourcePages(
+    Rom* rom, const resources::ArgumentParser& parser,
+    resources::OutputFormatter& formatter,
+    const resources::CommandInvocationContext& context) {
+  if (!parser.HasFlag("experimental-page-tile16"))
+    return absl::FailedPreconditionError(
+        "--native-source requires --experimental-page-tile16");
+  if (!rom || !rom->is_loaded())
+    return absl::FailedPreconditionError(
+        "Target must be a loaded native overworld");
+  ASSIGN_OR_RETURN(const auto output, resources::ResolveStableArtifactPath(
+                                          *parser.GetString("output")));
+  ASSIGN_OR_RETURN(
+      const auto source_path,
+      resources::ResolveStableArtifactPath(*parser.GetString("native-source")));
+  RETURN_IF_ERROR(
+      resources::RejectArtifactRomAliases("output", output, context));
+  ASSIGN_OR_RETURN(const bool source_alias,
+                   resources::PathsAlias(output, source_path));
+  if (source_alias)
+    return absl::InvalidArgumentError("--output aliases the native source");
+  std::error_code ec;
+  if (std::filesystem::exists(output, ec) || ec)
+    return absl::AlreadyExistsError("--output must be a new file");
+
+  constexpr uintmax_t kMaxSourceBytes = 8 * 1024 * 1024;
+  const auto source_size = std::filesystem::file_size(source_path, ec);
+  if (ec || source_size > kMaxSourceBytes)
+    return absl::InvalidArgumentError(
+        "--native-source must be a readable file of at most 8 MiB");
+  std::ifstream source_file(source_path, std::ios::binary);
+  if (!source_file)
+    return absl::InvalidArgumentError("--native-source is not readable");
+  const std::string text((std::istreambuf_iterator<char>(source_file)), {});
+  if (text.size() != source_size)
+    return absl::FailedPreconditionError(
+        "--native-source changed while it was read");
+  const std::string source_sha256 = core::ComputeSourceArtifactSha256(text);
+  if (source_sha256 !=
+      absl::AsciiStrToLower(*parser.GetString("native-source-sha256")))
+    return absl::FailedPreconditionError(
+        "--native-source does not match --native-source-sha256");
+
+  Rom::LoadOptions rom_options;
+  rom_options.load_resource_labels = false;
+  Rom staged;
+  RETURN_IF_ERROR(staged.LoadFromData(rom->vector(), rom_options));
+  staged.EnableExperimentalPageTile16();
+  const auto target_bytes = rom->vector();
+  const auto layout = staged.InspectLyraLayout();
+  if (!rom::IsNativeSpecialOverworldLayout(layout) || layout.revision != 5 ||
+      std::none_of(layout.entries.begin(), layout.entries.end(),
+                   [](const auto& entry) {
+                     return entry.id == rom::kNativePageTile16TableId;
+                   }))
+    return absl::FailedPreconditionError(
+        "--native-source requires a native revision-5 overworld with page "
+        "Tile16 storage");
+  zelda3::Overworld target(&staged);
+  RETURN_IF_ERROR(target.Load(&staged));
+  ASSIGN_OR_RETURN(const auto snapshot, target.CaptureNativeAreaSnapshot());
+  const int map_count = target.materialized_map_count();
+  const int tile_count = static_cast<int>(target.tiles16().size());
+
+  std::set<int> selected;
+  for (absl::string_view part :
+       absl::StrSplit(*parser.GetString("maps"), ',')) {
+    int map = -1;
+    if (!ParseHexString(std::string(part), &map) || map < 0x80 ||
+        map >= map_count || !selected.insert(map).second)
+      return absl::InvalidArgumentError(
+          "--maps requires unique in-range hex special page IDs");
+  }
+  if (selected.empty())
+    return absl::InvalidArgumentError("--maps is empty");
+
+  // The whole manifest is validated before the model changes, including pages
+  // outside the selection.
+  std::map<int, std::vector<uint16_t>> source_tiles;
+  try {
+    const auto source = nlohmann::json::parse(text);
+    if (!source.is_object() || source.at("schema") != kNativeSourceSchema ||
+        source.at("directory_revision") != 5 ||
+        source.at("materialized_map_count") != map_count ||
+        source.at("runtime_supported") != false)
+      return absl::FailedPreconditionError(
+          "Native source must be an experimental-v2 revision-5 export for this "
+          "map count");
+    const auto& pages = source.at("pages");
+    if (!pages.is_array() || pages.empty())
+      return absl::InvalidArgumentError("Native source has no pages");
+    std::map<int, const nlohmann::json*> by_map;
+    for (const auto& page : pages) {
+      if (!page.is_object())
+        return absl::InvalidArgumentError(
+            "Native source page is not an object");
+      const int map =
+          RequireJsonInt(page.at("map_id"), "map_id", 0x80, map_count - 1);
+      RequireJsonInt(page.at("parent_map_id"), "parent_map_id", 0,
+                     map_count - 1);
+      if (!page.at("source_profile").is_object())
+        return absl::InvalidArgumentError(
+            "Native source page requires a source_profile");
+      const auto& tiles = page.at("tiles");
+      if (!tiles.is_array() || tiles.size() != 32 * 32)
+        return absl::InvalidArgumentError(absl::StrFormat(
+            "Native source page $%02X requires 1024 tiles", map));
+      std::vector<uint16_t> cells;
+      cells.reserve(tiles.size());
+      for (const auto& tile : tiles)
+        cells.push_back(static_cast<uint16_t>(
+            RequireJsonInt(tile, "tile", 0, tile_count - 1)));
+      if (!by_map.emplace(map, &page).second)
+        return absl::InvalidArgumentError(
+            absl::StrFormat("Native source repeats page $%02X", map));
+      if (selected.count(map))
+        source_tiles.emplace(map, std::move(cells));
+    }
+    for (int map : selected) {
+      const auto found = by_map.find(map);
+      if (found == by_map.end())
+        return absl::FailedPreconditionError(
+            absl::StrFormat("Native source has no page $%02X", map));
+      const int parent = target.overworld_map(map)->parent();
+      for (int other = 0; other < map_count; ++other)
+        if (target.overworld_map(other)->parent() == parent &&
+            !selected.count(other))
+          return absl::FailedPreconditionError(
+              "Select every physical page of each imported area");
+      if (found->second->at("parent_map_id") != parent)
+        return absl::FailedPreconditionError(absl::StrFormat(
+            "Native source page $%02X belongs to a different area", map));
+      const auto expected =
+          zelda3::NativeSourcePageProfile(snapshot, layout.revision, map);
+      const auto& recorded = found->second->at("source_profile");
+      if (recorded != expected) {
+        std::vector<std::string> fields;
+        for (const auto& [key, value] : expected.items())
+          if (!recorded.contains(key) || recorded.at(key) != value)
+            fields.push_back(key);
+        for (const auto& [key, value] : recorded.items())
+          if (!expected.contains(key))
+            fields.push_back(key);
+        return absl::FailedPreconditionError(absl::StrFormat(
+            "Native source page $%02X profile differs from the target (%s); "
+            "bind a matching graphics/profile before importing",
+            map, absl::StrJoin(fields, ",")));
+      }
+    }
+  } catch (const std::exception& error) {
+    return absl::InvalidArgumentError(std::string("Invalid native source: ") +
+                                      error.what());
+  }
+
+  const auto before_global = target.tiles16();
+  const auto before_rows = target.page_tile16();
+  auto grid = target.map_tiles();
+  std::vector<uint16_t> maps(selected.begin(), selected.end());
+  RETURN_IF_ERROR(zelda3::ImportNativePageTile16Source(target, text, maps));
+  int changed_cells = 0;
+  for (const auto& [map, cells] : source_tiles) {
+    for (int y = 0; y < 32; ++y) {
+      for (int x = 0; x < 32; ++x) {
+        const uint16_t tile = cells[y * 32 + x];
+        auto& cell = SpecialPageCell(grid.special_world, map, x, y);
+        if (cell == tile)
+          continue;
+        cell = tile;
+        ++changed_cells;
+        ASSIGN_OR_RETURN(const auto location,
+                         overworld::LocateScreenTile(target, map, x, y));
+        RETURN_IF_ERROR(overworld::WriteAreaTile(target, location, tile));
+      }
+    }
+  }
+
+  const auto old_flags = core::FeatureFlags::get();
+  auto restore_flags =
+      absl::MakeCleanup([&] { core::FeatureFlags::get() = old_flags; });
+  auto& flags = core::FeatureFlags::get();
+  flags.overworld.kSaveOverworldMaps = true;
+  flags.overworld.kSaveOverworldProperties = false;
+  flags.overworld.kSaveOverworldSprites = false;
+  flags.overworld.kSaveOverworldEntrances = false;
+  flags.overworld.kSaveOverworldExits = false;
+  flags.overworld.kSaveOverworldItems = false;
+  flags.kSaveAllPalettes = false;
+  flags.kSaveGfxGroups = false;
+  const auto allowed_ranges = target.GetProjectedWriteRanges();
+  RETURN_IF_ERROR(target.SaveNativeTerrain());
+  if (staged.size() != target_bytes.size())
+    return absl::DataLossError("Import unexpectedly resized the target ROM");
+
+  const auto before_layout =
+      rom::InspectLyraLayout(target_bytes.data(), target_bytes.size());
+  const auto after_layout = staged.InspectLyraLayout();
+  if (!rom::IsNativeSpecialOverworldLayout(after_layout) ||
+      after_layout.capacity != before_layout.capacity ||
+      after_layout.entries.size() != before_layout.entries.size())
+    return absl::DataLossError("Import changed native directory identity");
+  for (const auto& entry : before_layout.entries) {
+    const auto found =
+        std::find_if(after_layout.entries.begin(), after_layout.entries.end(),
+                     [&](const auto& item) { return item.id == entry.id; });
+    if (found == after_layout.entries.end() ||
+        found->pc_address != entry.pc_address || found->count != entry.count ||
+        found->stride != entry.stride)
+      return absl::DataLossError(
+          "Import relocated or reshaped a native directory entry");
+    const bool terrain = entry.id == 20 || entry.id == 21 ||
+                         (entry.id >= 210 && entry.id <= 213) ||
+                         (entry.id >= 400 && entry.id <= 404) ||
+                         entry.id == rom::kNativePageTile16TableId;
+    const size_t length = size_t{entry.count} * entry.stride;
+    if (!terrain &&
+        !std::equal(target_bytes.begin() + entry.pc_address,
+                    target_bytes.begin() + entry.pc_address + length,
+                    staged.vector().begin() + entry.pc_address))
+      return absl::DataLossError(absl::StrFormat(
+          "Import changed preserved native table %d", entry.id));
+  }
+  size_t changed_bytes = 0;
+  for (size_t pc = 0; pc < staged.size(); ++pc) {
+    if (staged.vector()[pc] == target_bytes[pc])
+      continue;
+    ++changed_bytes;
+    if (std::none_of(allowed_ranges.begin(), allowed_ranges.end(),
+                     [pc](const auto& range) {
+                       return pc >= range.first && pc < range.second;
+                     }))
+      return absl::DataLossError(absl::StrFormat(
+          "Import changed unowned byte PC $%06X; nothing was published", pc));
+  }
+
+  Rom reopened;
+  RETURN_IF_ERROR(reopened.LoadFromData(staged.vector(), rom_options));
+  reopened.EnableExperimentalPageTile16();
+  zelda3::Overworld fresh(&reopened);
+  RETURN_IF_ERROR(fresh.Load(&reopened));
+  if (fresh.tiles16() != before_global)
+    return absl::DataLossError("Import changed the global Tile16 dictionary");
+  if (fresh.page_tile16() != target.page_tile16())
+    return absl::DataLossError(
+        "Imported page Tile16 definitions did not read back exactly");
+  int changed_rows = 0;
+  for (const auto& row : fresh.page_tile16())
+    changed_rows += selected.count(row.map_id) ? 1 : 0;
+  std::vector<rom::NativePageTile16Definition> kept_before, kept_after;
+  for (const auto& row : before_rows)
+    if (!selected.count(row.map_id))
+      kept_before.push_back(row);
+  for (const auto& row : fresh.page_tile16())
+    if (!selected.count(row.map_id))
+      kept_after.push_back(row);
+  if (kept_before != kept_after)
+    return absl::DataLossError(
+        "Import changed page Tile16 definitions of an unselected page");
+  const auto saved = fresh.map_tiles();
+  if (saved.light_world != grid.light_world ||
+      saved.dark_world != grid.dark_world ||
+      saved.special_world != grid.special_world)
+    return absl::DataLossError("Imported terrain grid did not read back");
+
+  RETURN_IF_ERROR(CheckImportInputUnchanged(
+      source_path, std::vector<uint8_t>(text.begin(), text.end())));
+  if (context.active_rom_path)
+    RETURN_IF_ERROR(
+        CheckImportInputUnchanged(*context.active_rom_path, target_bytes));
+  if (parser.HasFlag("write")) {
+    if (!context.active_rom_path)
+      return absl::FailedPreconditionError(
+          "Publishing requires an identified target input file");
+    RETURN_IF_ERROR(project::WriteProjectFileAtomically(
+        output.string(),
+        absl::string_view(reinterpret_cast<const char*>(staged.data()),
+                          staged.size()),
+        false));
+  }
+  formatter.BeginObject("Overworld Map Import");
+  formatter.AddField("source", "native-source");
+  formatter.AddField("native_source_sha256", source_sha256);
+  formatter.AddField("write_status",
+                     parser.HasFlag("write") ? "new-output" : "dry-run");
+  formatter.AddField("selected_physical_maps",
+                     static_cast<int>(selected.size()));
+  formatter.AddField("selected_page_rows", changed_rows);
+  formatter.AddField("changed_cells", changed_cells);
+  formatter.AddField("changed_bytes", static_cast<int>(changed_bytes));
+  formatter.AddField("profile_writes", false);
+  formatter.AddField("verified_reload", true);
+  formatter.AddField("output", output.string());
+  formatter.EndObject();
+  return absl::OkStatus();
+}
+
 }  // namespace
+
+absl::Status OverworldImportMapsCommandHandler::ValidateArgs(
+    const resources::ArgumentParser& parser) {
+  RETURN_IF_ERROR(parser.RequireArgs({"maps", "output"}));
+  const bool donor = parser.GetString("donor").has_value();
+  const bool native = parser.GetString("native-source").has_value();
+  if (donor == native)
+    return absl::InvalidArgumentError(
+        "Use exactly one of --donor or --native-source");
+  if (native)
+    return parser.RequireArgs({"native-source-sha256"});
+  return absl::OkStatus();
+}
 
 absl::Status OverworldImportMapsCommandHandler::Execute(
     Rom* rom, const resources::ArgumentParser& parser,
@@ -459,6 +796,8 @@ absl::Status OverworldImportMapsCommandHandler::ExecuteWithContext(
     Rom* rom, const resources::ArgumentParser& parser,
     resources::OutputFormatter& formatter,
     const resources::CommandInvocationContext& context) {
+  if (parser.GetString("native-source").has_value())
+    return ImportNativeSourcePages(rom, parser, formatter, context);
   if (!rom || !rom->is_loaded() ||
       !rom::IsNativeSpecialOverworldLayout(rom->InspectLyraLayout()))
     return absl::FailedPreconditionError(

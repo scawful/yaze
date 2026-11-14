@@ -549,8 +549,6 @@ absl::Status OverworldExportNativeSourceCommandHandler::Execute(
     resident_areas.insert(snapshot.geometry[definition.map_id].parent);
   for (int map_id = 128; map_id < layout.capacity; ++map_id) {
     const auto* map = world.overworld_map(map_id);
-    const auto& raw = snapshot.pages[map_id];
-    const auto& profile = snapshot.profiles[map_id];
     const auto role =
         rom::LyraLayoutRecord(layout, rom->data(), rom->size(), 29, map_id);
     if (!map || !role || role->size() != 1)
@@ -561,19 +559,8 @@ absl::Status OverworldExportNativeSourceCommandHandler::Execute(
       for (int x = 0; x < 32; ++x)
         terrain.push_back(
             grid[(map_id % 8) * 32 + x][((map_id % 64) / 8) * 32 + y]);
-    nlohmann::json source_profile = {
-        {"background_color", raw.background},
-        {"main_palette", raw.main_palette},
-        {"palette_set", profile.palette},
-        {"area_graphics", profile.graphics},
-        {"graphics_sheets", raw.graphics},
-        {"animated_sheet", raw.animated},
-        {"subscreen_overlay", raw.overlay},
-        {"mosaic", raw.mosaic},
-        {"appearance_flags", raw.appearance_flags},
-        {"background_palette_words",
-         layout.revision >= 4 ? nlohmann::json(raw.appearance_bg_palette)
-                              : nlohmann::json(nullptr)}};
+    auto source_profile =
+        zelda3::NativeSourcePageProfile(snapshot, layout.revision, map_id);
     auto states = nlohmann::json::array();
     // Untouched legacy special maps can contain unused palette selectors.
     // Resolve whole gameplay areas requiring native appearance resources;

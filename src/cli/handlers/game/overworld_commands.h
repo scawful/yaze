@@ -78,14 +78,17 @@ class OverworldSetTileCommandHandler : public resources::CommandHandler {
 
 // Imports physical pages into an already-loaded native overworld. Publication
 // is deliberately separate from the caller's ROM and is exclusive-create only.
+// --native-source consumes a hash-bound native-source export instead of a
+// donor ROM: selected special pages' grids and page Tile16 definitions only.
 class OverworldImportMapsCommandHandler : public resources::CommandHandler {
  public:
   std::string GetName() const override { return "overworld-import-maps"; }
   std::string GetDescription() const {
     return "Stage selected physical map grids, referenced Tile16 definitions, "
            "ordinary graphics assignments and palette dependencies from a "
-           "donor into a native overworld; reject foreign owners; dry-run by "
-           "default";
+           "donor (or selected special-page grids and page Tile16 definitions "
+           "from a native-source export) into a native overworld; reject "
+           "foreign owners; dry-run by default";
   }
   Descriptor Describe() const override {
     Descriptor descriptor;
@@ -94,12 +97,12 @@ class OverworldImportMapsCommandHandler : public resources::CommandHandler {
     return descriptor;
   }
   std::string GetUsage() const override {
-    return "overworld-import-maps --donor <rom> --maps <hex,hex,...> "
-           "--output <new-rom> [--write] [--format <json|text>]";
+    return "overworld-import-maps (--donor <rom> | --native-source <json>) "
+           "[--native-source-sha256 <sha256>] [--experimental-page-tile16] "
+           "--maps <hex,hex,...> --output <new-rom> [--write] "
+           "[--format <json|text>]";
   }
-  absl::Status ValidateArgs(const resources::ArgumentParser& parser) override {
-    return parser.RequireArgs({"donor", "maps", "output"});
-  }
+  absl::Status ValidateArgs(const resources::ArgumentParser& parser) override;
   absl::Status Execute(Rom* rom, const resources::ArgumentParser& parser,
                        resources::OutputFormatter& formatter) override;
   absl::Status ExecuteWithContext(

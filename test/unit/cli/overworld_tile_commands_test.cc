@@ -16,6 +16,8 @@
 
 #include "absl/cleanup/cleanup.h"
 #include "absl/strings/str_format.h"
+#include "absl/strings/str_join.h"
+#include "app/gfx/types/snes_tile.h"
 #include "app/gfx/util/palette_manager.h"
 #include "cli/handlers/game/overworld_commands.h"
 #include "cli/handlers/game/overworld_inspect.h"
@@ -23,6 +25,7 @@
 #include "cli/handlers/game/terrain_catalog_commands.h"
 #include "cli/handlers/tools/overworld_validate_commands.h"
 #include "core/features.h"
+#include "core/source_artifact_publisher.h"
 #include "fixtures/lyra/native_directory_fixture.h"
 #include "framework/rom_save_fault.h"
 #include "oracle_rom_fixture.h"
@@ -33,6 +36,7 @@
 #include "unique_temp_path.h"
 #include "zelda3/dungeon/room.h"
 #include "zelda3/game_data.h"
+#include "zelda3/overworld/lyra_terrain_source.h"
 #include "zelda3/overworld/overworld.h"
 #include "zelda3/overworld/overworld_allocation.h"
 #include "zelda3/overworld/overworld_version_helper.h"
@@ -2035,6 +2039,322 @@ TEST_F(OverworldTileRomTest, AllocationTakesNativeTailOccupancyFromTheModel) {
     EXPECT_EQ(areas[id].items, 0) << id;
     EXPECT_TRUE(areas[id].unscanned.empty()) << id;
   }
+}
+
+class OverworldNativeSourceImportTest : public ::testing::Test {
+ protected:
+  static constexpr int kSelectedMap = 0x8D;
+  static constexpr int kKeptMap = 0x90;
+
+  void SetUp() override {
+    fixture_.SeedNativeSpritePrefix();
+    fixture_.bytes[zelda3::overworldItemsAddressBank] = 0x1B;
+    fixture_.Word(0xD8000, 0xFFFF);
+    for (int map = 0; map < 192; ++map) {
+      fixture_.Word(fixture_.Entry(23).pc_address + map * 2, 0x8000);
+      fixture_.bytes[fixture_.Entry(7).pc_address + map] = map;
+    }
+    for (int map : {kSelectedMap, kSelectedMap + 1}) {
+      fixture_.bytes[fixture_.Entry(7).pc_address + map] = kSelectedMap;
+      fixture_.bytes[fixture_.Entry(30).pc_address + map] =
+          static_cast<uint8_t>(zelda3::AreaSizeEnum::WideArea);
+    }
+    fixture_.UpgradeToRevision4();
+    fixture_.AddAuthoringMetadata();
+    fixture_.AddPageTile16();
+    const std::vector<rom::NativePageTile16Definition> kept = {
+        {kKeptMap, 0x10, {9, 9, 9, 9}}};
+    const auto encoded = rom::EncodeNativePageTile16(kept, 192, 16);
+    ASSERT_TRUE(encoded.ok()) << encoded.status();
+    std::copy(encoded->begin(), encoded->end(),
+              fixture_.bytes.begin() + fixture_.Entry(413).pc_address);
+    fixture_.Seal();
+
+    dir_ = test::UniqueTempPath("ow_native_source_import");
+    std::filesystem::create_directories(dir_);
+    target_path_ = dir_ / "native.sfc";
+    source_path_ = dir_ / "source.json";
+    output_path_ = dir_ / "imported.sfc";
+    WriteBytes(target_path_, fixture_.bytes);
+    ASSERT_TRUE(target_.LoadFromFile(target_path_.string()).ok());
+    original_ = target_.vector();
+
+    model_rom_.LoadFromData(fixture_.bytes);
+    model_rom_.EnableExperimentalPageTile16();
+    model_ = std::make_unique<zelda3::Overworld>(&model_rom_);
+    ASSERT_TRUE(model_->Load(&model_rom_).ok());
+    grid_ = model_->map_tiles().special_world;
+    const int parent = model_->overworld_map(kSelectedMap)->parent();
+    for (int map = 0; map < 192; ++map) {
+      if (model_->overworld_map(map)->parent() == parent) {
+        area_.push_back(map);
+      }
+    }
+    ASSERT_EQ(std::count(area_.begin(), area_.end(), kKeptMap), 0);
+    source_ = BuildSource();
+  }
+
+  void TearDown() override {
+    std::error_code ignored;
+    std::filesystem::remove_all(dir_, ignored);
+  }
+
+  static void WriteBytes(const std::filesystem::path& path,
+                         const std::vector<uint8_t>& bytes) {
+    std::ofstream out(path, std::ios::binary);
+    out.write(reinterpret_cast<const char*>(bytes.data()),
+              static_cast<std::streamsize>(bytes.size()));
+  }
+
+  uint16_t Cell(const zelda3::OverworldBlockset& grid, int map, int x,
+                int y) const {
+    return grid[(map % 8) * 32 + x][((map % 64) / 8) * 32 + y];
+  }
+
+  std::string DictionarySha() const {
+    std::string words;
+    for (const auto& tile : model_->tiles16()) {
+      for (const auto& quadrant : tile.tiles_info) {
+        const uint16_t word = gfx::TileInfoToWord(quadrant);
+        words.push_back(static_cast<char>(word & 0xFF));
+        words.push_back(static_cast<char>(word >> 8));
+      }
+    }
+    return core::ComputeSourceArtifactSha256(words);
+  }
+
+  nlohmann::json BuildSource() {
+    const auto snapshot = model_->CaptureNativeAreaSnapshot();
+    EXPECT_TRUE(snapshot.ok()) << snapshot.status();
+    rows_ = {{kSelectedMap, 0x10, {1, 2, 3, 4}},
+             {kSelectedMap, 0x11, {5, 6, 7, 8}},
+             {kKeptMap, 0x10, {7, 7, 7, 7}}};
+    const auto table = rom::EncodeNativePageTile16(rows_, 192, 16);
+    EXPECT_TRUE(table.ok()) << table.status();
+    auto rows = nlohmann::json::array();
+    for (const auto& row : rows_) {
+      rows.push_back({{"map_id", row.map_id},
+                      {"tile_id", row.tile_id},
+                      {"words", row.words}});
+    }
+    std::vector<int> maps = area_;
+    maps.push_back(kKeptMap);
+    auto pages = nlohmann::json::array();
+    for (const int map : maps) {
+      std::vector<uint16_t> tiles(1024);
+      for (int y = 0; y < 32; ++y) {
+        for (int x = 0; x < 32; ++x) {
+          tiles[y * 32 + x] = Cell(grid_, map, x, y);
+        }
+      }
+      tiles[4 * 32 + 3] = tiles[4 * 32 + 3] == 1 ? 2 : 1;
+      pages.push_back({{"map_id", map},
+                       {"parent_map_id", model_->overworld_map(map)->parent()},
+                       {"tiles", tiles},
+                       {"source_profile",
+                        zelda3::NativeSourcePageProfile(*snapshot, 5, map)}});
+    }
+    return {{"schema", "yaze.special-overworld-native-source.experimental-v2"},
+            {"directory_revision", 5},
+            {"materialized_map_count", 192},
+            {"runtime_supported", false},
+            {"tile16_dictionary", {{"sha256", DictionarySha()}}},
+            {"page_tile16_definitions",
+             {{"table_id", rom::kNativePageTile16TableId},
+              {"stride", 12},
+              {"count", 16},
+              {"sha256", core::ComputeSourceArtifactSha256(
+                             std::string(table->begin(), table->end()))},
+              {"rows", rows}}},
+            {"pages", pages}};
+  }
+
+  std::string MapsArg(const std::vector<int>& maps) const {
+    std::vector<std::string> parts;
+    for (const int map : maps) {
+      parts.push_back(absl::StrFormat("%02X", map));
+    }
+    return absl::StrJoin(parts, ",");
+  }
+
+  std::vector<std::string> Args(const std::string& text) const {
+    return {"--native-source=" + source_path_.string(),
+            "--native-source-sha256=" + core::ComputeSourceArtifactSha256(text),
+            "--experimental-page-tile16",
+            "--maps=" + MapsArg(area_),
+            "--output=" + output_path_.string(),
+            "--format=json"};
+  }
+
+  absl::Status Run(const nlohmann::json& source,
+                   std::vector<std::string> args = {},
+                   nlohmann::json* result = nullptr) {
+    const std::string text = source.dump();
+    WriteBytes(source_path_, std::vector<uint8_t>(text.begin(), text.end()));
+    if (args.empty()) {
+      args = Args(text);
+    }
+    handlers::OverworldImportMapsCommandHandler handler;
+    std::string output;
+    const auto status = handler.Run(args, &target_, &output);
+    if (result != nullptr) {
+      *result = nlohmann::json::parse(output, nullptr, false)
+                    .value("Overworld Map Import", nlohmann::json::object());
+    }
+    return status;
+  }
+
+  void ExpectRefused(const absl::Status& status, absl::string_view message) {
+    EXPECT_FALSE(status.ok());
+    EXPECT_THAT(std::string(status.message()), HasSubstr(message)) << status;
+    EXPECT_FALSE(std::filesystem::exists(output_path_));
+    EXPECT_EQ(target_.vector(), original_);
+    EXPECT_EQ(ReadBytes(target_path_), original_);
+  }
+
+  test::native_overworld::NativeDirectoryFixture fixture_;
+  std::filesystem::path dir_;
+  std::filesystem::path target_path_;
+  std::filesystem::path source_path_;
+  std::filesystem::path output_path_;
+  Rom target_;
+  std::vector<uint8_t> original_;
+  Rom model_rom_;
+  std::unique_ptr<zelda3::Overworld> model_;
+  zelda3::OverworldBlockset grid_;
+  std::vector<int> area_;
+  std::vector<rom::NativePageTile16Definition> rows_;
+  nlohmann::json source_;
+};
+
+TEST_F(OverworldNativeSourceImportTest, DryRunThenWriteImportsSelectedPages) {
+  ASSERT_EQ(area_, (std::vector<int>{kSelectedMap, kSelectedMap + 1}));
+  nlohmann::json dry;
+  const auto dry_status = Run(source_, {}, &dry);
+  ASSERT_TRUE(dry_status.ok()) << dry_status;
+  EXPECT_EQ(dry["write_status"], "dry-run");
+  EXPECT_EQ(dry["source"], "native-source");
+  EXPECT_EQ(dry["selected_page_rows"], 2);
+  EXPECT_EQ(dry["changed_cells"], static_cast<int>(area_.size()));
+  EXPECT_EQ(dry["profile_writes"], false);
+  EXPECT_EQ(dry["verified_reload"], true);
+  EXPECT_FALSE(std::filesystem::exists(output_path_));
+  EXPECT_EQ(target_.vector(), original_);
+
+  auto args = Args(source_.dump());
+  args.push_back("--write");
+  nlohmann::json wrote;
+  const auto write_status = Run(source_, args, &wrote);
+  ASSERT_TRUE(write_status.ok()) << write_status;
+  EXPECT_EQ(wrote["write_status"], "new-output");
+  ASSERT_TRUE(std::filesystem::exists(output_path_));
+  EXPECT_EQ(target_.vector(), original_);
+  EXPECT_EQ(ReadBytes(target_path_), original_);
+
+  Rom reopened;
+  reopened.LoadFromData(ReadBytes(output_path_));
+  reopened.EnableExperimentalPageTile16();
+  zelda3::Overworld world(&reopened);
+  ASSERT_TRUE(world.Load(&reopened).ok());
+  EXPECT_EQ(world.page_tile16(),
+            (std::vector<rom::NativePageTile16Definition>{
+                rows_[0], rows_[1], {kKeptMap, 0x10, {9, 9, 9, 9}}}));
+  const auto grid = world.map_tiles().special_world;
+  for (int map = 0x80; map < 0xC0; ++map) {
+    const bool selected = std::count(area_.begin(), area_.end(), map) != 0;
+    for (int y = 0; y < 32; ++y) {
+      for (int x = 0; x < 32; ++x) {
+        const uint16_t before = Cell(grid_, map, x, y);
+        const uint16_t expected =
+            selected && x == 3 && y == 4 ? (before == 1 ? 2 : 1) : before;
+        ASSERT_EQ(Cell(grid, map, x, y), expected)
+            << absl::StrFormat("map $%02X (%d,%d)", map, x, y);
+      }
+    }
+  }
+  EXPECT_EQ(world.map_tiles().light_world, model_->map_tiles().light_world);
+  EXPECT_EQ(world.map_tiles().dark_world, model_->map_tiles().dark_world);
+  ASSERT_EQ(world.tiles16().size(), model_->tiles16().size());
+  for (size_t i = 0; i < world.tiles16().size(); ++i) {
+    ASSERT_EQ(world.tiles16()[i].tiles_info, model_->tiles16()[i].tiles_info)
+        << i;
+  }
+
+  EXPECT_EQ(Run(source_).code(), absl::StatusCode::kAlreadyExists);
+}
+
+TEST_F(OverworldNativeSourceImportTest, RefusesBeforeProducingOutput) {
+  const std::string text = source_.dump();
+  auto args = Args(text);
+  args[1] = "--native-source-sha256=" + std::string(64, '0');
+  ExpectRefused(Run(source_, args), "sha256");
+
+  args = Args(text);
+  args.erase(args.begin() + 2);
+  ExpectRefused(Run(source_, args), "--experimental-page-tile16");
+
+  args = Args(text);
+  args[4] = "--output=" + source_path_.string();
+  EXPECT_FALSE(Run(source_, args).ok());
+  args[4] = "--output=" + target_path_.string();
+  ExpectRefused(Run(source_, args), "");
+
+  auto source = source_;
+  source["pages"][0]["source_profile"]["palette_set"] =
+      source["pages"][0]["source_profile"]["palette_set"].get<int>() ^ 1;
+  ExpectRefused(Run(source), "palette_set");
+
+  source = source_;
+  source["pages"].back()["tiles"].erase(0);
+  ExpectRefused(Run(source), "tiles");
+
+  source = source_;
+  source["pages"][0]["tiles"][0] = model_->tiles16().size();
+  ExpectRefused(Run(source), "Invalid native source");
+
+  source = source_;
+  source["pages"].push_back(source["pages"][0]);
+  ExpectRefused(Run(source), "repeats page");
+
+  source = source_;
+  source["pages"].erase(0);
+  ExpectRefused(Run(source), "");
+
+  source = source_;
+  source["directory_revision"] = 4;
+  ExpectRefused(Run(source), "");
+
+  source = source_;
+  source["tile16_dictionary"]["sha256"] = std::string(64, '0');
+  ExpectRefused(Run(source), "");
+
+  source = source_;
+  source["page_tile16_definitions"]["rows"][2]["words"][0] = 8;
+  ExpectRefused(Run(source), "");
+
+  args = Args(text);
+  args[3] = "--maps=" + MapsArg({kSelectedMap});
+  ExpectRefused(Run(source_, args), "every physical page");
+}
+
+TEST(OverworldNativeSourceImportArgsTest, RequiresExactlyOneSource) {
+  handlers::OverworldImportMapsCommandHandler handler;
+  Rom rom;
+  std::string output;
+  EXPECT_EQ(
+      handler
+          .Run({"--donor=a.sfc", "--native-source=b.json",
+                "--native-source-sha256=00", "--maps=8D", "--output=c.sfc"},
+               &rom, &output)
+          .code(),
+      absl::StatusCode::kInvalidArgument);
+  EXPECT_EQ(handler.Run({"--maps=8D", "--output=c.sfc"}, &rom, &output).code(),
+            absl::StatusCode::kInvalidArgument);
+  EXPECT_EQ(handler
+                .Run({"--native-source=b.json", "--maps=8D", "--output=c.sfc"},
+                     &rom, &output)
+                .code(),
+            absl::StatusCode::kInvalidArgument);
 }
 
 }  // namespace

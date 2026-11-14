@@ -98,6 +98,24 @@ absl::Status ImportNativePageTile16Source(
   }
 }
 
+nlohmann::json NativeSourcePageProfile(const OverworldAreaSnapshot& snapshot,
+                                       int directory_revision, int map_id) {
+  const auto& raw = snapshot.pages[map_id];
+  const auto& profile = snapshot.profiles[map_id];
+  return {{"background_color", raw.background},
+          {"main_palette", raw.main_palette},
+          {"palette_set", profile.palette},
+          {"area_graphics", profile.graphics},
+          {"graphics_sheets", raw.graphics},
+          {"animated_sheet", raw.animated},
+          {"subscreen_overlay", raw.overlay},
+          {"mosaic", raw.mosaic},
+          {"appearance_flags", raw.appearance_flags},
+          {"background_palette_words",
+           directory_revision >= 4 ? nlohmann::json(raw.appearance_bg_palette)
+                                   : nlohmann::json(nullptr)}};
+}
+
 absl::StatusOr<SpecialOverworldTerrainImportPlan>
 PlanSpecialOverworldTerrainImport(const Rom& source,
                                   const core::LyraTerrainDocument& document,
