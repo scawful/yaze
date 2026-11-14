@@ -12,8 +12,11 @@
 #include <vector>
 
 #include "app/editor/editor_manager.h"
+#include "app/editor/registry/content_registry.h"
 #include "app/editor/session_types.h"
+#include "app/editor/system/session/project_workflow_status.h"
 #include "app/gfx/backend/null_renderer.h"
+#include "app/testing/failed_run_quit.h"
 #include "core/project.h"
 #include "core/project_plan_agent.h"
 #include "core/source_artifact_publisher.h"
@@ -542,6 +545,78 @@ TEST_F(PlanningProjectActionsTest, SaveAndContinuePersistsPlanBeforeQuit) {
   auto saved = core::ProjectPlan::LoadFromFile(plan_path_.string());
   ASSERT_TRUE(saved.ok());
   EXPECT_EQ(saved->goal.title, "Edited");
+}
+
+class FailedRunQuitTest : public PlanningProjectActionsTest {
+ protected:
+  void TearDown() override {
+    SetWorkflows(ProjectWorkflowState::kIdle);
+    PlanningProjectActionsTest::TearDown();
+  }
+  static void SetWorkflows(ProjectWorkflowState state) {
+    ProjectWorkflowStatus status;
+    status.state = state;
+    ContentRegistry::Context::SetBuildWorkflowStatus(status);
+    ContentRegistry::Context::SetRunWorkflowStatus(status);
+  }
+  test::FixtureOwner Owner() const {
+    return {manager_->GetCurrentSessionId(), directory_ / "hack.yaze"};
+  }
+  void DiscardDraft() {
+    manager_->GetCurrentEditorSet()->DiscardPlanningProjectDraft();
+    ASSERT_FALSE(editor_->dirty());
+  }
+};
+
+TEST_F(FailedRunQuitTest, KeepsTheUnsavedDraftAndLeavesNoGuard) {
+  const std::string plan = Read(plan_path_);
+  EXPECT_EQ(test::RequestFailedRunQuit(*manager_, Owner()),
+            test::FailedRunQuit::kLeftToOwner);
+  EXPECT_FALSE(manager_->quit());
+  EXPECT_FALSE(manager_->HasPendingUnsavedSessionAction());
+  EXPECT_TRUE(editor_->dirty());
+  EXPECT_EQ(editor_->plan()->goal.title, "Edited");
+  EXPECT_EQ(Read(plan_path_), plan);
+}
+
+TEST_F(FailedRunQuitTest, WaitsWhileABuildOrRunIsActive) {
+  DiscardDraft();
+  ProjectWorkflowStatus running;
+  running.state = ProjectWorkflowState::kRunning;
+  ContentRegistry::Context::SetBuildWorkflowStatus(running);
+  EXPECT_EQ(test::RequestFailedRunQuit(*manager_, Owner()),
+            test::FailedRunQuit::kWaitingForWorkflow);
+  SetWorkflows(ProjectWorkflowState::kFailure);
+  ContentRegistry::Context::SetRunWorkflowStatus(running);
+  EXPECT_EQ(test::RequestFailedRunQuit(*manager_, Owner()),
+            test::FailedRunQuit::kWaitingForWorkflow);
+  EXPECT_FALSE(manager_->quit());
+  EXPECT_FALSE(manager_->HasPendingUnsavedSessionAction());
+
+  SetWorkflows(ProjectWorkflowState::kFailure);
+  EXPECT_EQ(test::RequestFailedRunQuit(*manager_, Owner()),
+            test::FailedRunQuit::kRequested);
+  EXPECT_TRUE(manager_->quit());
+}
+
+TEST_F(FailedRunQuitTest, NeedsTheVerifiedFixtureOwner) {
+  DiscardDraft();
+  EXPECT_EQ(test::RequestFailedRunQuit(*manager_, std::nullopt),
+            test::FailedRunQuit::kLeftToOwner);
+  auto other = Owner();
+  other.project = directory_ / "other.yaze";
+  EXPECT_EQ(test::RequestFailedRunQuit(*manager_, other),
+            test::FailedRunQuit::kLeftToOwner);
+  other = Owner();
+  other.session_id += 1;
+  EXPECT_EQ(test::RequestFailedRunQuit(*manager_, other),
+            test::FailedRunQuit::kLeftToOwner);
+  EXPECT_FALSE(manager_->quit());
+  EXPECT_FALSE(manager_->HasPendingUnsavedSessionAction());
+
+  EXPECT_EQ(test::RequestFailedRunQuit(*manager_, Owner()),
+            test::FailedRunQuit::kRequested);
+  EXPECT_TRUE(manager_->quit());
 }
 
 }  // namespace

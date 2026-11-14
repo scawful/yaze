@@ -25,15 +25,14 @@
 #include "app/editor/graphics/graphics_editor.h"
 #include "app/editor/overworld/overworld_editor.h"
 #include "app/editor/registry/content_registry.h"
-#include "app/editor/system/session/session_coordinator.h"
 #include "app/gui/automation/widget_id_registry.h"
+#include "app/testing/failed_run_quit.h"
 #include "core/gfx_sheet_source.h"
 #include "core/project.h"
 #include "core/source_artifact_publisher.h"
 #include "imgui.h"
 #include "imgui_internal.h"
 #include "nlohmann/json.hpp"
-#include "util/log.h"
 #include "util/rom_hash.h"
 
 #if __has_include("imgui_test_engine/imgui_te_context.h")
@@ -66,11 +65,6 @@ constexpr char kMixedReopenProject[] = "YAZE_GRAPHICS_EB_MIXED_REOPEN_PROJECT";
 constexpr uint16_t kSheet = 0xDF;
 constexpr uint16_t kNeighbor = 0xE4;
 constexpr uint8_t kColor = 6;
-
-struct FixtureOwner {
-  size_t session_id = 0;
-  fs::path project;
-};
 
 // What a gated EB run had established when it stopped.
 struct GatedProgress {
@@ -980,24 +974,11 @@ void RunGraphicsSourceTest(ImGuiTestContext* ctx, bool reopen, bool eb,
   // the distinct reopen process. No native Save receipt is fabricated here.
 }
 
-// The Quit guard covers every session, so its Discard is safe only while the
-// verified fixture session is the only session and still holds the project.
-bool FixtureOwnsEverySession(editor::EditorManager& manager,
-                             const FixtureOwner& owner) {
-  const auto* sessions = manager.session_coordinator();
-  const auto* project = manager.GetCurrentProject();
-  std::error_code ec;
-  return sessions && sessions->GetTotalSessionCount() == 1 &&
-         sessions->GetSessionId(0) == owner.session_id &&
-         manager.GetCurrentSessionId() == owner.session_id && project &&
-         project->project_opened() &&
-         fs::equivalent(project->filepath, owner.project, ec) && !ec;
-}
-
-// A failed gated run publishes its own FAIL result and requests the normal
-// Quit, so the native owner does not wait for its deadline. The result file
-// name never matches a PASS receipt. Failures before the owner marker stay
-// with the native supervisor.
+// A failed gated run publishes its own FAIL result and, once no Build or Run
+// is active, requests the normal Quit so the native owner does not wait for
+// its deadline. The result file name never matches a PASS receipt. Failures
+// before the owner marker or fixture ownership, and runs with unsaved work,
+// stay with the native supervisor.
 void PublishGatedFailure(ImGuiTestContext* ctx, const GatedProgress& progress,
                          bool reopen, bool mixed) {
   if (!progress.directory) {
@@ -1033,26 +1014,7 @@ void PublishGatedFailure(ImGuiTestContext* ctx, const GatedProgress& progress,
   if (!manager) {
     return;
   }
-  manager->QueueDeferredAction([manager, owner = progress.owner] {
-    // Quit replaces any pending guard, so an existing one is left untouched.
-    if (manager->HasPendingUnsavedSessionAction()) {
-      LOG_WARN("GraphicsSourceUITest",
-               "Failed run found a pending guard; Quit not requested");
-      return;
-    }
-    manager->Quit();
-    if (manager->quit() || !manager->HasPendingUnsavedSessionAction()) {
-      return;
-    }
-    // A failed run must never Save its partial edit. Discard only the guard
-    // this Quit raised, and only for a fixture that owns every session.
-    if (!owner || !FixtureOwnsEverySession(*manager, *owner)) {
-      LOG_WARN("GraphicsSourceUITest",
-               "Failed run left the unsaved-changes guard for the owner");
-      return;
-    }
-    manager->ConfirmPendingUnsavedSessionActionDiscardAndContinue();
-  });
+  QueueFailedRunQuit(manager, progress.owner);
 }
 
 void RunGatedGraphicsSourceTest(ImGuiTestContext* ctx, bool reopen,

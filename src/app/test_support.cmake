@@ -16,6 +16,7 @@ set(YAZE_TEST_SOURCES
   app/testing/screenshot_assertion.cc
   app/testing/visual_diff_engine.cc
   app/testing/dungeon_ui_tests.cc
+  app/testing/failed_run_quit.cc
   app/testing/graphics_ui_tests.cc
   app/testing/overworld_ui_tests.cc
   app/testing/z3ed_test_suite.cc
