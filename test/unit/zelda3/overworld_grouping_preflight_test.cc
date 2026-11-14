@@ -2,6 +2,7 @@
 
 #include <gtest/gtest.h>
 
+#include "absl/strings/str_join.h"
 #include "nlohmann/json.hpp"
 
 namespace yaze::zelda3 {
@@ -115,6 +116,67 @@ TEST(OverworldGroupingPreflightTest, JsonMarksContactsNotCollisionProof) {
   EXPECT_EQ(json["schema"], "yaze.overworld-grouping-preflight.v1");
   EXPECT_TRUE(json["ok"]);
   EXPECT_FALSE(json["contacts"][0]["collision_proof"]);
+}
+
+TEST(OverworldGroupingPreflightTest, DuplicateMembersRejected) {
+  GroupingPreflightRequest request;
+  request.parent = 0x90;
+  request.size = AreaSizeEnum::TallArea;
+  request.members = {0x90, 0x98, 0x98};
+  request.current = {Snap(0x90, 0x90, AreaSizeEnum::SmallArea),
+                     Snap(0x98, 0x98, AreaSizeEnum::SmallArea)};
+  auto report = BuildGroupingPreflightReport(request);
+  ASSERT_TRUE(report.ok()) << report.status();
+  EXPECT_FALSE(report->ok);
+  ASSERT_FALSE(report->blocking.empty());
+  EXPECT_NE(report->blocking[0].find("duplicates"), std::string::npos);
+}
+
+TEST(OverworldGroupingPreflightTest,
+     PartialRegroupOrphansSiblingFromWiderParent) {
+  // Proposed tall 90+98 while 98 already owns wide 98+99 would strand 99.
+  GroupingPreflightRequest request;
+  request.parent = 0x90;
+  request.size = AreaSizeEnum::TallArea;
+  request.members = {0x90, 0x98};
+  request.current = {
+      Snap(0x90, 0x90, AreaSizeEnum::SmallArea),
+      Snap(0x98, 0x98, AreaSizeEnum::WideArea),
+      Snap(0x99, 0x98, AreaSizeEnum::WideArea),
+  };
+  auto report = BuildGroupingPreflightReport(request);
+  ASSERT_TRUE(report.ok()) << report.status();
+  EXPECT_FALSE(report->ok);
+  ASSERT_FALSE(report->blocking.empty());
+  bool saw_orphan = false;
+  for (const auto& item : report->blocking) {
+    if (item.find("$99") != std::string::npos &&
+        item.find("orphaned") != std::string::npos)
+      saw_orphan = true;
+  }
+  EXPECT_TRUE(saw_orphan) << absl::StrJoin(report->blocking, " | ");
+}
+
+TEST(OverworldGroupingPreflightTest,
+     ShrinkingLargeToTallOrphansOmittedMembers) {
+  // Existing large 90 owns 90/91/98/99; proposing tall 90+98 omits 91/99.
+  GroupingPreflightRequest request;
+  request.parent = 0x90;
+  request.size = AreaSizeEnum::TallArea;
+  request.members = {0x90, 0x98};
+  request.current = {
+      Snap(0x90, 0x90, AreaSizeEnum::LargeArea),
+      Snap(0x91, 0x90, AreaSizeEnum::LargeArea),
+      Snap(0x98, 0x90, AreaSizeEnum::LargeArea),
+      Snap(0x99, 0x90, AreaSizeEnum::LargeArea),
+  };
+  auto report = BuildGroupingPreflightReport(request);
+  ASSERT_TRUE(report.ok()) << report.status();
+  EXPECT_FALSE(report->ok);
+  std::string joined = absl::StrJoin(report->blocking, " | ");
+  EXPECT_NE(joined.find("$91"), std::string::npos) << joined;
+  EXPECT_NE(joined.find("$99"), std::string::npos) << joined;
+  EXPECT_NE(joined.find("orphaned"), std::string::npos) << joined;
 }
 
 }  // namespace

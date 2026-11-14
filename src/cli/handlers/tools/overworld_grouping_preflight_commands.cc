@@ -96,6 +96,34 @@ absl::Status OverworldGroupingPreflightCommandHandler::Execute(
                    zelda3::ProposedGroupingFootprint(parent, size));
   std::set<int> needed(footprint.begin(), footprint.end());
   needed.insert(members.begin(), members.end());
+  // Expand to every sibling of current multi-area parents that touch the
+  // proposal so orphan detection can see displaced maps.
+  for (bool grew = true; grew;) {
+    grew = false;
+    std::vector<int> seed(needed.begin(), needed.end());
+    for (int map_id : seed) {
+      if (map_id < 0 || map_id >= overworld.materialized_map_count())
+        continue;
+      const auto* map = overworld.overworld_map(map_id);
+      if (map == nullptr)
+        continue;
+      auto absorb = [&](int parent_id, zelda3::AreaSizeEnum area_size) {
+        if (area_size == zelda3::AreaSizeEnum::SmallArea)
+          return;
+        auto full = zelda3::ProposedGroupingFootprint(parent_id, area_size);
+        if (!full.ok())
+          return;
+        for (int sibling : *full) {
+          if (needed.insert(sibling).second)
+            grew = true;
+        }
+      };
+      const auto* parent_map = overworld.overworld_map(map->parent());
+      absorb(map->parent(),
+             parent_map ? parent_map->area_size() : map->area_size());
+      absorb(map_id, map->area_size());
+    }
+  }
   for (int map_id : needed) {
     if (map_id < 0 || map_id >= overworld.materialized_map_count())
       return absl::InvalidArgumentError(

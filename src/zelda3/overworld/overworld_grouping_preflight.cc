@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <map>
+#include <set>
 #include <sstream>
 
 #include "absl/status/status.h"
@@ -100,17 +101,30 @@ absl::StatusOr<GroupingPreflightReport> BuildGroupingPreflightReport(
 
   std::vector<int> requested = request.members;
   std::sort(requested.begin(), requested.end());
-  requested.erase(std::unique(requested.begin(), requested.end()),
-                  requested.end());
+  if (std::adjacent_find(requested.begin(), requested.end()) !=
+      requested.end()) {
+    report.blocking.push_back(
+        absl::StrFormat("Requested members {%s} contain duplicates",
+                        absl::StrJoin(request.members, ",")));
+  }
   auto expected = footprint;
   std::sort(expected.begin(), expected.end());
-  if (requested != expected) {
+  // Exact membership: after rejecting duplicates, the unique sorted list must
+  // equal the proposed footprint. Do not unique-erase before comparing when
+  // reporting the mismatch list — duplicates already blocked above.
+  std::vector<int> unique_requested = requested;
+  unique_requested.erase(
+      std::unique(unique_requested.begin(), unique_requested.end()),
+      unique_requested.end());
+  if (unique_requested != expected) {
     report.blocking.push_back(absl::StrFormat(
         "Requested members {%s} do not match %s footprint {%s}",
-        absl::StrJoin(requested, ","), AreaSizeEnumName(request.size),
+        absl::StrJoin(unique_requested, ","), AreaSizeEnumName(request.size),
         absl::StrJoin(expected, ",")));
   }
 
+  const std::set<int> proposed(footprint.begin(), footprint.end());
+  std::set<int> touched_parents;
   std::map<std::string, std::map<int, std::vector<int>>> field_values;
   for (int map_id : footprint) {
     const auto* snap = FindSnapshot(request.current, map_id);
@@ -131,6 +145,10 @@ absl::StatusOr<GroupingPreflightReport> BuildGroupingPreflightReport(
     member.animated_gfx = snap->animated_gfx;
     member.subscreen_overlay = snap->subscreen_overlay;
 
+    touched_parents.insert(snap->parent);
+    if (snap->size != AreaSizeEnum::SmallArea)
+      touched_parents.insert(map_id);
+
     // Foreign = owned by a different multi-area parent (not self, not proposed).
     if (snap->parent != map_id && snap->parent != request.parent) {
       member.foreign_parent = true;
@@ -145,6 +163,36 @@ absl::StatusOr<GroupingPreflightReport> BuildGroupingPreflightReport(
     field_values["animated_gfx"][snap->animated_gfx].push_back(map_id);
     field_values["subscreen_overlay"][snap->subscreen_overlay].push_back(
         map_id);
+  }
+
+  // Any current multi-area group that intersects the proposal must be fully
+  // absorbed. Partial regroup that strands siblings is out of scope.
+  for (int parent : touched_parents) {
+    const auto* parent_snap = FindSnapshot(request.current, parent);
+    if (parent_snap == nullptr || parent_snap->size == AreaSizeEnum::SmallArea)
+      continue;
+    auto current_or = ProposedGroupingFootprint(parent, parent_snap->size);
+    if (!current_or.ok()) {
+      report.blocking.push_back(absl::StrFormat(
+          "Current multi-area parent $%02X has an invalid %s footprint", parent,
+          AreaSizeEnumName(parent_snap->size)));
+      continue;
+    }
+    for (int map_id : *current_or) {
+      if (FindSnapshot(request.current, map_id) == nullptr) {
+        report.blocking.push_back(absl::StrFormat(
+            "Missing current snapshot for map $%02X (sibling of multi-area "
+            "parent $%02X)",
+            map_id, parent));
+        continue;
+      }
+      if (!proposed.contains(map_id)) {
+        report.blocking.push_back(absl::StrFormat(
+            "Map $%02X would be orphaned from current %s parent $%02X; "
+            "partial regroup is unsupported",
+            map_id, AreaSizeEnumName(parent_snap->size), parent));
+      }
+    }
   }
 
   for (const auto& [field, by_value] : field_values) {
