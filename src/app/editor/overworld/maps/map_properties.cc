@@ -127,20 +127,18 @@ int MusicRomAddressForMapState(int map_id, int state) {
   return -1;
 }
 
-bool WriteRomByteIfValid(Rom* rom, int address, uint8_t value) {
+absl::Status WriteRomByteIfValid(Rom* rom, int address, uint8_t value) {
   if (!rom || address < 0 || static_cast<size_t>(address) >= rom->size()) {
-    return false;
+    return absl::OkStatus();
   }
-  (*rom)[address] = value;
-  return true;
+  return rom->WriteByte(address, value);
 }
 
-void WriteRomWordIfValid(Rom* rom, int address, uint16_t value) {
+absl::Status WriteRomWordIfValid(Rom* rom, int address, uint16_t value) {
   if (!rom || address < 0 || static_cast<size_t>(address + 1) >= rom->size()) {
-    return;
+    return absl::OkStatus();
   }
-  (*rom)[address] = value & 0xFF;
-  (*rom)[address + 1] = (value >> 8) & 0xFF;
+  return rom->WriteWord(address, value);
 }
 
 OverworldMapMetadataClipboard CaptureMapMetadataClipboard(
@@ -870,9 +868,10 @@ absl::Status MapPropertiesSystem::ApplyPropertyEditDirect(
       break;
     case OverworldPropertyField::kMusic: {
       const int music_state = std::clamp(edit.index, 0, 3);
+      RETURN_IF_ERROR(WriteRomByteIfValid(
+          rom_, MusicRomAddressForMapState(map_id, music_state),
+          static_cast<uint8_t>(edit.value)));
       *map->mutable_area_music(music_state) = static_cast<uint8_t>(edit.value);
-      WriteRomByteIfValid(rom_, MusicRomAddressForMapState(map_id, music_state),
-                          static_cast<uint8_t>(edit.value));
       RefreshMapProperties(map_id);
       break;
     }
@@ -887,18 +886,18 @@ absl::Status MapPropertiesSystem::ApplyPropertyEditDirect(
       RefreshOverworldMap();
       break;
     case OverworldPropertyField::kAreaSpecificBgColor:
-      map->set_area_specific_bg_color(static_cast<uint16_t>(edit.value));
-      WriteRomWordIfValid(
+      RETURN_IF_ERROR(WriteRomWordIfValid(
           rom_, zelda3::OverworldCustomAreaSpecificBGPalette + (map_id * 2),
-          static_cast<uint16_t>(edit.value));
+          static_cast<uint16_t>(edit.value)));
+      map->set_area_specific_bg_color(static_cast<uint16_t>(edit.value));
       RefreshMapProperties(map_id);
       RefreshOverworldMap();
       break;
     case OverworldPropertyField::kSubscreenOverlay:
-      map->set_subscreen_overlay(static_cast<uint16_t>(edit.value));
-      WriteRomWordIfValid(
+      RETURN_IF_ERROR(WriteRomWordIfValid(
           rom_, zelda3::OverworldCustomSubscreenOverlayArray + (map_id * 2),
-          static_cast<uint16_t>(edit.value));
+          static_cast<uint16_t>(edit.value)));
+      map->set_subscreen_overlay(static_cast<uint16_t>(edit.value));
       RefreshMapProperties(map_id);
       RefreshOverworldMap();
       break;

@@ -11,6 +11,7 @@
 #include "app/editor/core/undo_manager.h"
 #include "app/editor/overworld/overworld_undo_actions.h"
 #include "rom/rom.h"
+#include "rom/write_fence.h"
 #include "zelda3/common.h"
 #include "zelda3/overworld/overworld_map.h"
 
@@ -94,6 +95,41 @@ TEST_F(OverworldPropertyEditTest, MusicEditWritesLightAndDarkWorldTables) {
                       {0x40, OverworldPropertyField::kMusic, 0, 0x35})
                   .ok());
   EXPECT_EQ((*rom_)[zelda3::kOverworldMusicDarkWorld], 0x35);
+}
+
+TEST_F(OverworldPropertyEditTest, FencedRomWriteLeavesMapPropertiesUnchanged) {
+  (*rom_)[zelda3::OverworldCustomASMHasBeenApplied] = 0x03;
+  MapPropertiesSystem properties(overworld_.get(), rom_.get());
+  for (const auto field : {OverworldPropertyField::kMusic,
+                           OverworldPropertyField::kAreaSpecificBgColor,
+                           OverworldPropertyField::kSubscreenOverlay}) {
+    ASSERT_TRUE(properties.CheckPropertyEditSupported({0x02, field}).ok());
+  }
+  rom::WriteFence fence;
+  ASSERT_TRUE(fence.Allow(0, 1, "unrelated").ok());
+  rom::ScopedWriteFence scope(rom_.get(), &fence);
+
+  EXPECT_FALSE(properties
+                   .ApplyPropertyEditDirect(
+                       {0x02, OverworldPropertyField::kMusic, 2, 0x2A})
+                   .ok());
+  EXPECT_EQ(overworld_->overworld_map(0x02)->area_music(2), 0x00);
+  EXPECT_EQ((*rom_)[zelda3::kOverworldMusicMasterSword + 0x02], 0x00);
+
+  EXPECT_FALSE(
+      properties
+          .ApplyPropertyEditDirect(
+              {0x02, OverworldPropertyField::kAreaSpecificBgColor, 0, 0x1234})
+          .ok());
+  EXPECT_EQ(overworld_->overworld_map(0x02)->area_specific_bg_color(), 0x0000);
+  EXPECT_EQ((*rom_)[zelda3::OverworldCustomAreaSpecificBGPalette + 0x04], 0x00);
+
+  EXPECT_FALSE(
+      properties
+          .ApplyPropertyEditDirect(
+              {0x02, OverworldPropertyField::kSubscreenOverlay, 0, 0x009F})
+          .ok());
+  EXPECT_EQ((*rom_)[zelda3::OverworldCustomSubscreenOverlayArray + 0x04], 0x00);
 }
 
 TEST_F(OverworldPropertyEditTest, VanillaRomRejectsZSCustomOnlyFields) {
