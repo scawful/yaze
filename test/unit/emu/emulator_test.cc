@@ -1,10 +1,13 @@
 #include "app/emu/emulator.h"
 
+#include <chrono>
 #include <cmath>
+#include <thread>
 #include <vector>
 
 #include <gtest/gtest.h>
 
+#include "app/gfx/backend/null_renderer.h"
 #include "rom/rom.h"
 
 namespace yaze::emu {
@@ -46,6 +49,61 @@ TEST(EmulatorTest, ReloadRuntimeRomRecomputesTimingConstantsFromRegion) {
   EXPECT_EQ(emulator.wanted_samples(),
             static_cast<int>(std::lround(kNativeSampleRate / kPalFrameRate)));
   EXPECT_TRUE(emulator.running());
+}
+
+class TextureCountingRenderer : public gfx::NullRenderer {
+ public:
+  gfx::TextureHandle CreateTextureWithFormat(int width, int height,
+                                             uint32_t format,
+                                             int access) override {
+    ++created;
+    return &texture;
+  }
+
+  int created = 0;
+  int texture = 0;
+};
+
+TEST(EmulatorTest, RunCreatesPpuTextureAfterRuntimeReload) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(MakeTestRomData()).ok());
+  TextureCountingRenderer renderer;
+  Emulator emulator;
+  emulator.set_renderer(&renderer);
+
+  // Run Project Output reloads the runtime before the viewer ever ran.
+  ASSERT_TRUE(emulator.ReloadRuntimeRom(rom.vector()).ok());
+  ASSERT_TRUE(emulator.is_snes_initialized());
+  ASSERT_EQ(emulator.ppu_texture(), nullptr);
+
+  emulator.Run(&rom);
+  EXPECT_EQ(emulator.ppu_texture(), &renderer.texture)
+      << "the viewer needs a texture without being opened before Run";
+  EXPECT_EQ(renderer.created, 1);
+
+  ASSERT_TRUE(emulator.ReloadRuntimeRom(rom.vector()).ok());
+  emulator.Run(&rom);
+  EXPECT_EQ(emulator.ppu_texture(), &renderer.texture);
+  EXPECT_EQ(renderer.created, 1) << "a later reload reuses the texture";
+}
+
+TEST(EmulatorTest, RunAfterRuntimeReloadKeepsEmulatingWithoutATexture) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(MakeTestRomData()).ok());
+  gfx::NullRenderer renderer;
+  Emulator emulator;
+  emulator.set_renderer(&renderer);
+  ASSERT_TRUE(emulator.ReloadRuntimeRom(rom.vector()).ok());
+
+  emulator.Run(&rom);
+  // Long enough for the next call to emulate and present a frame.
+  std::this_thread::sleep_for(std::chrono::milliseconds(40));
+  emulator.Run(&rom);
+
+  EXPECT_EQ(emulator.ppu_texture(), nullptr);
+  EXPECT_TRUE(emulator.running());
+  EXPECT_GT(emulator.snes().mutable_cycles(), 0u)
+      << "frames ran and skipped the missing texture";
 }
 
 }  // namespace
