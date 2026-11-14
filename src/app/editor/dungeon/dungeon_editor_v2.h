@@ -266,6 +266,9 @@ class DungeonEditorV2 : public Editor {
   // entrance numbering) with that entrance's render context.
   void OpenRegularEntrance(int entrance_id);
   void FocusRoom(int room_id);
+  // Select rendering context without moving the current room or changing ROM
+  // data. Uses the unified spawn/regular entrance slot; -1 restores automatic.
+  void SetGraphicsPreviewEntrance(int entrance_id);
   absl::Status LoadProposalForReview(const std::string& path);
   std::string proposal_review_path() const;
 
@@ -410,7 +413,6 @@ class DungeonEditorV2 : public Editor {
   std::unique_ptr<ObjectCoveragePanel> CreateObjectCoveragePanel();
   void FocusObjectCoverage(int room_id, const zelda3::RoomObject& object);
   void OnEntranceSelected(int entrance_id);
-  void SetGraphicsPreviewEntrance(int entrance_id);
   int ResolveEntranceRoomId(int entrance_id) const;
 
   // Sync all sub-panels to the current room configuration

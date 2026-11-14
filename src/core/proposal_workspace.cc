@@ -4,6 +4,7 @@
 #include <fstream>
 #include <set>
 #include <sstream>
+#include <stdexcept>
 
 #include "core/project.h"
 #include "core/source_artifact_publisher.h"
