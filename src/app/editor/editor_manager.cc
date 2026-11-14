@@ -246,6 +246,13 @@ std::string StripSessionPrefix(absl::string_view panel_id) {
 void SeedOracleProjectInRecents() {
   namespace fs = std::filesystem;
 
+  // An explicit app-data root belongs to an isolated caller; its recent list
+  // must not pick up projects from the developer's checkout.
+  if (const char* app_data = std::getenv("YAZE_APP_DATA_DIR");
+      app_data != nullptr && *app_data != '\0') {
+    return;
+  }
+
   std::vector<fs::path> roots;
   if (const char* home = std::getenv("HOME");
       home != nullptr && std::strlen(home) > 0) {
