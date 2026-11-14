@@ -78,6 +78,39 @@ using test::native_overworld::ReadBytes;
 using test::native_overworld::Reseal;
 using test::native_overworld::WriteBytes;
 
+// Compare the editable logical model, independently of the serializer's packed
+// Tile32 dictionaries and terrain allocation. A page-local definition must never
+// silently replace a global definition or alter a different page's grid.
+struct NativeModelSnapshot {
+  std::vector<std::array<uint16_t, 1024>> maps;
+  std::vector<gfx::Tile16> global_definitions;
+};
+
+NativeModelSnapshot CaptureNativeModel(zelda3::Overworld& world) {
+  NativeModelSnapshot result;
+  result.global_definitions = world.tiles16();
+  result.maps.resize(world.materialized_map_count());
+  for (size_t map = 0; map < result.maps.size(); ++map) {
+    const auto& tiles = world.GetMapTiles(map / 64);
+    for (int y = 0; y < 32; ++y)
+      for (int x = 0; x < 32; ++x)
+        result.maps[map][y * 32 + x] =
+            tiles[(map % 8) * 32 + x][((map % 64) / 8) * 32 + y];
+  }
+  return result;
+}
+
+void ExpectNativeModelPreserved(const NativeModelSnapshot& expected,
+                                zelda3::Overworld& world) {
+  const auto actual = CaptureNativeModel(world);
+  EXPECT_EQ(actual.global_definitions, expected.global_definitions);
+  ASSERT_EQ(actual.maps.size(), expected.maps.size());
+  for (size_t map = 0; map < expected.maps.size(); ++map) {
+    SCOPED_TRACE(absl::StrFormat("map $%02X", map));
+    EXPECT_EQ(actual.maps[map], expected.maps[map]);
+  }
+}
+
 TEST(LyraLayoutDescriptorTest, PageTile16CodecRejectsAmbiguityAndOverflow) {
   using Row = rom::NativePageTile16Definition;
   const std::vector<Row> rows = {{0x8D, 0x234, {1, 2, 3, 4}},
@@ -227,6 +260,7 @@ TEST(LyraLayoutDescriptorTest, PageTile16NormalModelSaveUndoFailureAndReopen) {
   const auto dark = world->GetMapTiles(1);
   const auto special = world->GetMapTiles(2);
   const auto global = world->tiles16();
+  const auto preserved_model = CaptureNativeModel(*world);
   ASSERT_TRUE(world->SaveNativeTerrain().ok());
   world->CommitSavedMapTiles();
   EXPECT_EQ(image.vector(), fixture.bytes);
@@ -269,10 +303,12 @@ TEST(LyraLayoutDescriptorTest, PageTile16NormalModelSaveUndoFailureAndReopen) {
   EXPECT_EQ(image.vector(), fixture.bytes);
   EXPECT_EQ(ReadBytes(target), fixture.bytes);
   EXPECT_EQ(world->page_tile16(), rows);
+  ExpectNativeModelPreserved(preserved_model, *world);
   auto saved = save_file();
   ASSERT_TRUE(saved.ok()) << saved;
   const auto persisted = ReadBytes(target);
   ASSERT_TRUE(action.Undo().ok());
+  ExpectNativeModelPreserved(preserved_model, *world);
   ASSERT_TRUE(save_file().ok());
   EXPECT_EQ(ReadBytes(target), fixture.bytes);
   ASSERT_TRUE(action.Redo().ok());
@@ -289,6 +325,7 @@ TEST(LyraLayoutDescriptorTest, PageTile16NormalModelSaveUndoFailureAndReopen) {
   loaded = fresh->Load(&reopened);
   ASSERT_TRUE(loaded.ok()) << loaded;
   EXPECT_EQ(fresh->page_tile16(), rows);
+  ExpectNativeModelPreserved(preserved_model, *fresh);
   EXPECT_EQ(fresh->GetMapTiles(2), special);
   ASSERT_TRUE(fresh->SaveNativeTerrain().ok());
   EXPECT_EQ(reopened.vector(), persisted);
@@ -305,6 +342,7 @@ TEST(LyraLayoutDescriptorTest, PageTile16NormalModelSaveUndoFailureAndReopen) {
             rom::LyraLayoutPresence::kValid);
   EXPECT_FALSE(fresh->SaveNativeTerrain().ok());
   EXPECT_EQ(reopened.vector(), fixture.bytes);
+  ExpectNativeModelPreserved(preserved_model, *fresh);
 }
 
 TEST(LyraLayoutDescriptorTest, PageTile16ReusedModelClearsOverrides) {
@@ -2135,6 +2173,22 @@ TEST_F(NativeSpecialOverworldEditorTest, SavedNativeSourceExport) {
       ASSERT_TRUE(zelda3::LoadGameData(document, data, options).ok());
       zelda3::Overworld expected(&document, &data);
       ASSERT_TRUE(expected.Load(&document).ok());
+      const auto preserved_model = CaptureNativeModel(expected);
+      const auto& dictionary = fixture.Entry(400);
+      EXPECT_EQ(source["tile16_dictionary"]["sha256"],
+                core::ComputeSourceArtifactSha256(
+                    {reinterpret_cast<const char*>(before.data() +
+                                                   dictionary.pc_address),
+                     size_t{dictionary.count} * dictionary.stride}));
+      // Check every exported grid, including pages outside the edited area.
+      for (const auto& exported_page : source["pages"]) {
+        const auto map = exported_page["map_id"].get<size_t>();
+        ASSERT_LT(map, preserved_model.maps.size());
+        EXPECT_EQ(exported_page["tiles"].get<std::vector<uint16_t>>(),
+                  std::vector<uint16_t>(preserved_model.maps[map].begin(),
+                                        preserved_model.maps[map].end()))
+            << "map " << map;
+      }
       EXPECT_EQ(
           page["tiles"][19 * 32 + 7],
           expected.GetMapTiles(
@@ -2207,6 +2261,7 @@ TEST_F(NativeSpecialOverworldEditorTest, SavedNativeSourceExport) {
                          .ok());
         EXPECT_EQ(expected.page_tile16().size(), 2);
         EXPECT_EQ(expected.tiles16(), reference.tiles16());
+        ExpectNativeModelPreserved(preserved_model, expected);
         document.ClearDirty();
       }
       EXPECT_EQ(document.vector(), before);
@@ -2233,6 +2288,8 @@ TEST_F(NativeSpecialOverworldEditorTest, SavedNativeSourceExport) {
       document.set_dirty(true);
       const auto refused = run();
       EXPECT_TRUE(absl::IsFailedPrecondition(refused.status()));
+      ExpectNativeModelPreserved(preserved_model, expected);
+      EXPECT_TRUE(document.dirty());
     }
   }
 }
@@ -2958,8 +3015,9 @@ TEST_F(NativeSpecialOverworldEditorTest, NormalSaveUndoFailureAndDiskReopen) {
   const char* path = std::getenv("YAZE_TEST_ROM_OOS");
   if (!path || !std::filesystem::exists(path))
     GTEST_SKIP() << "Set YAZE_TEST_ROM_OOS for native Save/reopen";
-  for (int capacity : {160, 192}) {
-    SCOPED_TRACE(capacity);
+  for (const auto [capacity, revision] :
+       {std::pair{160, 3}, std::pair{192, 3}, std::pair{192, 5}}) {
+    SCOPED_TRACE(absl::StrFormat("capacity%d revision%d", capacity, revision));
     const auto flags = core::FeatureFlags::get();
     auto restore_flags =
         absl::MakeCleanup([&] { core::FeatureFlags::get() = flags; });
@@ -2969,6 +3027,19 @@ TEST_F(NativeSpecialOverworldEditorTest, NormalSaveUndoFailureAndDiskReopen) {
     ASSERT_TRUE(reference.Load(&legacy).ok());
     NativeDirectoryFixture fixture(capacity);
     fixture.SeedLoadedLegacyForModelTest(legacy, reference);
+    if (revision == 5) {
+      fixture.UpgradeToRevision4();
+      rom::NativeOverworldAuthoringMetadata metadata;
+      metadata.next_placement_id = 0x7003;
+      metadata.placements = {
+          {0x7001, rom::NativePlacementState::kPending,
+           rom::NativeAuthoringDoorPlacement{0x8D, 10, 11, 0x0B, std::nullopt}},
+          {0x7002, rom::NativePlacementState::kDeleted,
+           rom::NativeAuthoringReturnPlacement{0x8E, 12, 13, 0x83,
+                                               std::nullopt}}};
+      fixture.AddAuthoringMetadata(metadata);
+      fixture.AddPageTile16();
+    }
     const auto root = test::UniqueTempPath("ow3");
     std::filesystem::create_directories(root);
     auto cleanup =
@@ -2982,6 +3053,9 @@ TEST_F(NativeSpecialOverworldEditorTest, NormalSaveUndoFailureAndDiskReopen) {
     manager->user_settings().prefs().backup_before_save = false;
     const auto opened = manager->OpenRomOrProject(source.string());
     ASSERT_TRUE(opened.ok()) << opened;
+    // Explicit per-ROM prototype admission, not a UI or project-file feature.
+    if (revision == 5)
+      manager->GetCurrentRom()->EnableExperimentalPageTile16();
     const auto assets =
         manager->EnsureEditorAssetsLoaded(editor::EditorType::kOverworld);
     ASSERT_TRUE(assets.ok()) << assets;
@@ -2990,19 +3064,23 @@ TEST_F(NativeSpecialOverworldEditorTest, NormalSaveUndoFailureAndDiskReopen) {
     ASSERT_TRUE(editor->overworld().is_loaded());
     auto* document = manager->GetCurrentRom();
     auto& world = editor->overworld();
+    const auto original_model = CaptureNativeModel(world);
     editor->SetPreviewStoryState(1);
     editor->SetPreviewStoryState(2);
     const auto noop = manager->SaveRom();
     ASSERT_TRUE(noop.ok()) << noop;
     EXPECT_EQ(ReadBytes(source), fixture.bytes);
+    ExpectNativeModelPreserved(original_model, world);
     const auto initial_definitions = world.tiles32_unique();
     auto cell = [&](int map) -> uint16_t& {
       return world.GetMapTiles(
           map / 64)[(map % 8) * 32 + 5][((map % 64) / 8) * 32 + 5];
     };
-    const std::vector<int> edited_maps =
+    std::vector<int> edited_maps =
         capacity == 192 ? std::vector<int>{0x00, 0x9F, 0xA0, 0xBF}
                         : std::vector<int>{0x00, 0x80, 0x9F};
+    if (revision == 5)
+      edited_maps.push_back(0x8D);
     for (int map : edited_maps) {
       const uint16_t old = cell(map);
       const uint16_t next = old == 1 ? 2 : 1;
@@ -3014,6 +3092,29 @@ TEST_F(NativeSpecialOverworldEditorTest, NormalSaveUndoFailureAndDiskReopen) {
       EXPECT_EQ(cell(map), old);
       ASSERT_TRUE(editor->Redo().ok());
       EXPECT_EQ(cell(map), next);
+    }
+    const std::vector<rom::NativePageTile16Definition> page_rows =
+        revision == 5
+            ? std::vector<rom::NativePageTile16Definition>{{0x8D,
+                                                            1,
+                                                            {1, 2, 3, 4}},
+                                                           {0x8E,
+                                                            1,
+                                                            {5, 6, 7, 8}}}
+            : std::vector<rom::NativePageTile16Definition>{};
+    if (revision == 5) {
+      // The prototype deliberately has no UI binding. Exercise its existing
+      // action while using the actual manager Save path below.
+      editor::OverworldPageTile16Action action(&world, {0x8D, 0x8E}, {},
+                                               page_rows);
+      const auto before_definition = CaptureNativeModel(world);
+      ASSERT_TRUE(action.Redo().ok());
+      ASSERT_TRUE(action.Undo().ok());
+      EXPECT_TRUE(world.page_tile16().empty());
+      ExpectNativeModelPreserved(before_definition, world);
+      ASSERT_TRUE(action.Redo().ok());
+      EXPECT_EQ(world.page_tile16(), page_rows);
+      ExpectNativeModelPreserved(before_definition, world);
     }
     auto& definition = world.mutable_tiles16()->at(1);
     definition.tile0_.horizontal_mirror_ =
@@ -3044,6 +3145,7 @@ TEST_F(NativeSpecialOverworldEditorTest, NormalSaveUndoFailureAndDiskReopen) {
       ASSERT_TRUE(editor->ApplySpriteEdit(&*actor, draft).ok());
     }
     const auto expected_tile16 = world.tiles16();
+    const auto expected_model = CaptureNativeModel(world);
     const std::array<zelda3::OverworldBlockset, 3> expected = {
         world.GetMapTiles(0), world.GetMapTiles(1), world.GetMapTiles(2)};
     const auto pending = document->vector();
@@ -3062,6 +3164,8 @@ TEST_F(NativeSpecialOverworldEditorTest, NormalSaveUndoFailureAndDiskReopen) {
     EXPECT_FALSE(std::filesystem::exists(target));
     EXPECT_EQ(world.tiles32_unique(), initial_definitions);
     EXPECT_EQ(world.tiles16(), expected_tile16);
+    EXPECT_EQ(world.page_tile16(), page_rows);
+    ExpectNativeModelPreserved(expected_model, world);
     for (int i = 0; i < 3; ++i)
       EXPECT_EQ(world.GetMapTiles(i), expected[i]);
     const auto saved = manager->SaveRomAs(target.string());
@@ -3078,7 +3182,8 @@ TEST_F(NativeSpecialOverworldEditorTest, NormalSaveUndoFailureAndDiskReopen) {
       for (size_t i = 0; i < fixture.rows.entries.size(); ++i) {
         const auto& e = fixture.rows.entries[i];
         if ((e.id >= 16 && e.id <= 21) || e.id == 100 ||
-            (e.id >= 210 && e.id <= 213) || (e.id >= 400 && e.id <= 404)) {
+            (e.id >= 210 && e.id <= 213) || (e.id >= 400 && e.id <= 404) ||
+            (revision == 5 && e.id == 413)) {
           if (pc >= e.pc_address && pc < e.pc_address + e.count * e.stride)
             return true;
           if (pc >= 0x147020 + i * 16 + 12 && pc < 0x147020 + i * 16 + 16)
@@ -3115,6 +3220,8 @@ TEST_F(NativeSpecialOverworldEditorTest, NormalSaveUndoFailureAndDiskReopen) {
     manager.reset();
     Rom reopened;
     ASSERT_TRUE(reopened.LoadFromFile(target.string()).ok());
+    if (revision == 5)
+      reopened.EnableExperimentalPageTile16();
     ASSERT_EQ(reopened.InspectLyraLayout().presence,
               rom::LyraLayoutPresence::kValid);
     zelda3::Overworld fresh(&reopened);
@@ -3123,6 +3230,8 @@ TEST_F(NativeSpecialOverworldEditorTest, NormalSaveUndoFailureAndDiskReopen) {
     EXPECT_EQ(fresh.materialized_map_count(), capacity);
     EXPECT_EQ(fresh.overworld_map(property_map)->message_id(), message);
     EXPECT_EQ(fresh.tiles16(), expected_tile16);
+    EXPECT_EQ(fresh.page_tile16(), page_rows);
+    ExpectNativeModelPreserved(expected_model, fresh);
     for (int i = 0; i < 3; ++i)
       EXPECT_EQ(fresh.GetMapTiles(i), expected[i]);
     EXPECT_EQ(reopened.vector(), persisted);
