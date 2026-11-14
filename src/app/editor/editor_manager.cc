@@ -4274,6 +4274,9 @@ absl::Status EditorManager::SaveProject() {
   // any of those bytes change.
   const bool build_owned =
       current_project_.project_opened() && save_session != nullptr;
+  if (build_owned)
+    RETURN_IF_ERROR(
+        core::CheckNativeSaveReceiptOwner(current_project_.filepath));
   if (!source_selected) {
     if (build_owned)
       RETURN_IF_ERROR(RetireNativeSaveTransfer("rebound"));
