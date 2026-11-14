@@ -2838,6 +2838,64 @@ TEST_P(OverworldEndpointPlanTest, GetEntranceAdmitsRevision5OnlyWhenExplicit) {
   EXPECT_EQ(ReadBytes(input_), original_);
 }
 
+TEST_P(OverworldEndpointPlanTest,
+       TileCommandsRequireExplicitRevision5AndReopen) {
+  const auto flags = core::FeatureFlags::get();
+  auto restore = absl::MakeCleanup([&] { core::FeatureFlags::get() = flags; });
+  core::FeatureFlags::get().overworld.kSaveOverworldMaps = true;
+  handlers::OverworldGetTileCommandHandler get;
+  handlers::OverworldSetTileCommandHandler set;
+  const std::vector<std::string> read_args = {"--map=0D", "--x=13", "--y=5",
+                                              "--format=json"};
+  auto write_args = read_args;
+  write_args.push_back("--tile=001");
+  std::string output;
+  Rom plain;
+  ASSERT_TRUE(plain.LoadFromFile(input_.string()).ok());
+  const auto plain_get = get.Run(read_args, &plain, &output);
+  const auto plain_set = set.Run(write_args, &plain, &output);
+  EXPECT_EQ(plain.vector(), original_);
+  EXPECT_EQ(ReadBytes(input_), original_);
+  if (GetParam().second == 5) {
+    EXPECT_FALSE(plain_get.ok());
+    EXPECT_FALSE(plain_set.ok());
+  } else {
+    EXPECT_TRUE(plain_get.ok()) << plain_get;
+    EXPECT_TRUE(plain_set.ok()) << plain_set;
+  }
+
+  if (GetParam().first == 192) {
+    Rom tail;
+    ASSERT_TRUE(tail.LoadFromFile(input_.string()).ok());
+    const auto tail_status =
+        get.Run({"--map=BF", "--x=31", "--y=31", "--experimental-page-tile16",
+                 "--format=json"},
+                &tail, &output);
+    ASSERT_TRUE(tail_status.ok()) << tail_status;
+    EXPECT_EQ(tail.vector(), original_);
+  }
+  auto admitted_read = read_args;
+  admitted_read.push_back("--experimental-page-tile16");
+  write_args.push_back("--experimental-page-tile16");
+  Rom admitted;
+  ASSERT_TRUE(admitted.LoadFromFile(input_.string()).ok());
+  ASSERT_TRUE(get.Run(admitted_read, &admitted, &output).ok());
+  const auto dry = set.Run(write_args, &admitted, &output);
+  ASSERT_TRUE(dry.ok()) << dry;
+  EXPECT_EQ(admitted.vector(), original_);
+  EXPECT_EQ(ReadBytes(input_), original_);
+  write_args.push_back("--write");
+  const auto saved = set.Run(write_args, &admitted, &output);
+  ASSERT_TRUE(saved.ok()) << saved;
+  EXPECT_TRUE(
+      nlohmann::json::parse(output)["Overworld Tile Write"]["verified_reload"]);
+  Rom cold;
+  ASSERT_TRUE(cold.LoadFromFile(input_.string()).ok());
+  ASSERT_TRUE(get.Run(admitted_read, &cold, &output).ok());
+  EXPECT_EQ(nlohmann::json::parse(output)["Overworld Tile"]["tile_id"],
+            "0x0001");
+}
+
 INSTANTIATE_TEST_SUITE_P(NativeLayouts, OverworldEndpointPlanTest,
                          ::testing::Values(std::make_pair(160, 4),
                                            std::make_pair(192, 4),

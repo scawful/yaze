@@ -160,6 +160,7 @@ absl::Status VerifyTileGridRoundTrip(const Rom& rom,
   Rom::LoadOptions options;
   options.load_resource_labels = false;
   RETURN_IF_ERROR(reloaded.LoadFromData(rom.vector(), options));
+  reloaded.AdoptExperimentalPageTile16(rom);
   zelda3::Overworld actual(&reloaded);
   RETURN_IF_ERROR(actual.Load(&reloaded));
   const auto want = expected.map_tiles();
@@ -1710,6 +1711,8 @@ absl::Status OverworldImportMapsCommandHandler::ExecuteWithContext(
 absl::Status OverworldGetTileCommandHandler::Execute(
     Rom* rom, const resources::ArgumentParser& parser,
     resources::OutputFormatter& formatter) {
+  if (rom != nullptr && parser.HasFlag("experimental-page-tile16"))
+    rom->EnableExperimentalPageTile16();
   ASSIGN_OR_RETURN(const int map_id,
                    ParseMapIdArg(parser, "map", TileCommandMapCount(rom)));
   ASSIGN_OR_RETURN(const int x, ParseCoordinateArg(parser, "x"));
@@ -1744,6 +1747,8 @@ absl::Status OverworldSetTileCommandHandler::ExecuteWithContext(
     Rom* rom, const resources::ArgumentParser& parser,
     resources::OutputFormatter& formatter,
     const resources::CommandInvocationContext& invocation_context) {
+  if (rom != nullptr && parser.HasFlag("experimental-page-tile16"))
+    rom->EnableExperimentalPageTile16();
   ASSIGN_OR_RETURN(const int map_id,
                    ParseMapIdArg(parser, "map", TileCommandMapCount(rom)));
   ASSIGN_OR_RETURN(const int x, ParseCoordinateArg(parser, "x"));
