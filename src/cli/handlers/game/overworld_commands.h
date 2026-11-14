@@ -18,7 +18,7 @@ class OverworldGetTileCommandHandler : public resources::CommandHandler {
   }
   std::string GetUsage() const {
     return "overworld-get-tile --map <hex> --x <area_tile_x> --y <area_tile_y> "
-           "[--format <json|text>]";
+           "[--experimental-page-tile16] [--format <json|text>]";
   }
 
   absl::Status ValidateArgs(const resources::ArgumentParser& parser) override {
@@ -60,7 +60,8 @@ class OverworldSetTileCommandHandler : public resources::CommandHandler {
   }
   std::string GetUsage() const {
     return "overworld-set-tile --map <hex> --x <area_tile_x> --y <area_tile_y> "
-           "--tile <hex> [--write] [--allow-project-rom] [--format "
+           "--tile <hex> [--write] [--allow-project-rom] "
+           "[--experimental-page-tile16] [--format "
            "<json|text>]";
   }
 
