@@ -1285,10 +1285,15 @@ absl::Status Overworld::LoadOverworldMaps() {
 
       SyncAreaProperties(i);
       auto task_function = [this, i, size, world_type]() {
-        auto definitions = Tiles16ForMap(i);
+        if (std::any_of(page_tile16_.begin(), page_tile16_.end(),
+                        [i](const auto& row) { return row.map_id == i; })) {
+          auto definitions = Tiles16ForMap(i);
+          return overworld_maps_[i].BuildMap(size, game_state_, world_type,
+                                             definitions,
+                                             GetMapTiles(world_type));
+        }
         return overworld_maps_[i].BuildMap(size, game_state_, world_type,
-                                           definitions,
-                                           GetMapTiles(world_type));
+                                           tiles16_, GetMapTiles(world_type));
       };
       futures.emplace_back(std::async(std::launch::async, task_function));
     } else {

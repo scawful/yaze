@@ -295,6 +295,9 @@ TEST(LyraLayoutDescriptorTest, PageTile16OldFormatsNormalSavePreservesBytes) {
   save.kSaveOverworldEntrances = false;
   save.kSaveOverworldExits = false;
   save.kSaveOverworldItems = false;
+  const auto root = test::UniqueTempPath("old_page_tile16");
+  std::filesystem::create_directories(root);
+  auto cleanup = absl::MakeCleanup([&] { std::filesystem::remove_all(root); });
   for (const uint16_t capacity : {160, 192}) {
     for (const int revision : {3, 4}) {
       NativeDirectoryFixture fixture(capacity);
@@ -317,6 +320,16 @@ TEST(LyraLayoutDescriptorTest, PageTile16OldFormatsNormalSavePreservesBytes) {
       ASSERT_TRUE(saved.ok()) << saved;
       world->CommitSavedMapTiles();
       EXPECT_EQ(image.vector(), fixture.bytes);
+      const auto target = root / (std::to_string(capacity) + "_" +
+                                  std::to_string(revision) + ".sfc");
+      ASSERT_TRUE(image.SaveToFile({.filename = target.string()}).ok());
+      EXPECT_EQ(ReadBytes(target), fixture.bytes);
+      Rom reopened;
+      ASSERT_TRUE(reopened.LoadFromFile(target.string()).ok());
+      auto fresh = std::make_unique<zelda3::Overworld>(&reopened);
+      ASSERT_TRUE(fresh->Load(&reopened).ok());
+      ASSERT_TRUE(fresh->SaveNativeTerrain().ok());
+      EXPECT_EQ(reopened.vector(), fixture.bytes);
       EXPECT_TRUE(world->page_tile16().empty());
       const std::array<uint16_t, 1> maps = {0x8D};
       EXPECT_FALSE(world->ImportPageTile16(maps, {}).ok());
