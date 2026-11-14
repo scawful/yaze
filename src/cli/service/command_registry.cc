@@ -191,6 +191,8 @@ void CommandRegistry::RegisterHandlers(
             "List existing pot items with raw positions and ROM addresses";
         metadata.examples = {
             "z3ed dungeon-list-pot-items --room=0xA8 "
+            "--rom=Roms/oos168.sfc --format=json",
+            "z3ed dungeon-list-pot-items --room=0x99 --pair-liftables "
             "--rom=Roms/oos168.sfc --format=json"};
       } else if (name == "dungeon-set-pot-item") {
         metadata.description =

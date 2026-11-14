@@ -110,24 +110,32 @@ class RoomLoadReplay {
   LowWram& wram() { return w_; }
   uint8_t tag1() const { return tag1_; }
   uint8_t tag2() const { return tag2_; }
+  // The input object that recorded each $0500/$0540 entry, by list offset.
+  const std::vector<size_t>& manipulable_objects() const {
+    return manipulable_objects_;
+  }
 
   // Underworld_LoadRoom (#_01873A): room object lists 0, 1, 2 (doors follow
   // the list that holds the $FFF0 marker, the last one in vanilla), then
   // pushable blocks, then torches.
   void Run() {
     for (int list = 0; list < 3; ++list) {
-      for (const auto& object : input_.objects) {
+      for (size_t i = 0; i < input_.objects.size(); ++i) {
+        const auto& object = input_.objects[i];
         if (!UsesRoomObjectStream(object) || object.GetLayerValue() != list) {
           continue;
         }
+        current_object_ = i;
         RecordObject(object, /*lower_layer=*/list == 1);
       }
     }
     for (const auto& door : input_.doors) {
       RecordDoor(door);
     }
-    for (const auto& object : input_.objects) {
+    for (size_t i = 0; i < input_.objects.size(); ++i) {
+      const auto& object = input_.objects[i];
       if ((object.options() & ObjectOption::Block) != ObjectOption::Nothing) {
+        current_object_ = i;
         RecordPushableBlock(object);
       }
     }
@@ -167,6 +175,7 @@ class RoomLoadReplay {
   // (#_01B33A, #_01B395, #_01B493): $0500 = type, $0540 = position.
   void AddManipulable(uint16_t type, uint16_t y, bool lower_layer) {
     const uint16_t x = w_.Word(kManipulableCount);
+    NoteManipulableObject(x);
     w_.SetWord(0x0500 + x, type);
     w_.SetWord(kManipulableCount, static_cast<uint16_t>(x + 2));
     w_.SetWord(0x0520 + x, 0);  // $BA, the object stream offset (unused)
@@ -418,6 +427,7 @@ class RoomLoadReplay {
   // RoomDraw_PushableBlock (#_01B4D6): $0500 = 0, $0540 = table word.
   void RecordPushableBlock(const RoomObject& block) {
     const uint16_t x = w_.Word(kManipulableCount);
+    NoteManipulableObject(x);
     w_.SetWord(kManipulableCount, static_cast<uint16_t>(x + 2));
     w_.SetWord(0x0500 + x, 0);
     w_.SetWord(0x0520 + x, 0);
@@ -791,6 +801,14 @@ class RoomLoadReplay {
     }
   }
 
+  void NoteManipulableObject(uint16_t list_offset) {
+    const size_t slot = list_offset / 2;
+    if (manipulable_objects_.size() <= slot) {
+      manipulable_objects_.resize(slot + 1, current_object_);
+    }
+    manipulable_objects_[slot] = current_object_;
+  }
+
   const Rom& rom_;
   RomTables tables_;
   const RoomCollisionInput& input_;
@@ -799,6 +817,8 @@ class RoomLoadReplay {
   DoorRegs regs_;
   uint8_t tag1_ = 0;
   uint8_t tag2_ = 0;
+  size_t current_object_ = 0;
+  std::vector<size_t> manipulable_objects_;
 };
 
 // ---------------------------------------------------------------------------
@@ -1571,6 +1591,24 @@ std::vector<StaircaseSlotResolution> ResolveVanillaStaircaseSlots(
     }
   }
   return results;
+}
+
+std::vector<ManipulableSlot> ResolveVanillaManipulables(
+    const Rom& rom, const RoomCollisionInput& input,
+    const UnderworldRoomLoadState& state) {
+  RoomLoadReplay replay(rom, input, state);
+  replay.Run();
+  const LowWram& w = replay.wram();
+  const auto& sources = replay.manipulable_objects();
+  std::vector<ManipulableSlot> slots;
+  for (size_t slot = 0; slot < sources.size(); ++slot) {
+    const int offset = static_cast<int>(slot * 2);
+    slots.push_back({.slot = static_cast<int>(slot),
+                     .object_index = sources[slot],
+                     .type = w.Word(0x0500 + offset),
+                     .position = w.Word(0x0540 + offset)});
+  }
+  return slots;
 }
 
 RoomCollisionInput MakeRoomCollisionInput(const Room& room,

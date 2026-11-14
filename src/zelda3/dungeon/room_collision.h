@@ -168,6 +168,26 @@ std::vector<StaircaseSlotResolution> ResolveVanillaStaircaseSlots(
     const Rom& rom, const RoomCollisionInput& input,
     const UnderworldRoomLoadState& state = {});
 
+// One $0500 (type) / $0540 (position) entry the room's draw routines
+// recorded: pots, hammer pegs, big gray rock and bombable floor segments,
+// pushable blocks. The object pass gives its tiles attribute 0x70 + slot.
+// Values are the replayed WRAM words, so lists past 16 entries show the
+// game's own overlap with $0520/$0540.
+struct ManipulableSlot {
+  int slot = 0;
+  size_t object_index = 0;  // into RoomCollisionInput::objects
+  uint16_t type = 0;        // $0500
+  uint16_t position = 0;    // $0540: tilemap byte index, bit 13 = lower layer
+};
+
+// The vanilla replay's manipulable list in slot order. Lifting or hammering a
+// tile reads the slot from its attribute; a pot (type & 0xF0F0 == 0x1010) or
+// big gray rock (0x2020, first segment's word) then calls RevealPotItem
+// (#_01E6B2), which matches a pot-item word whose low 15 bits equal $0540.
+std::vector<ManipulableSlot> ResolveVanillaManipulables(
+    const Rom& rom, const RoomCollisionInput& input,
+    const UnderworldRoomLoadState& state = {});
+
 // Convenience for a loaded, rendered room: its objects, doors and header, and
 // the tilemaps yaze composed (ComposeYazeRoomTilemaps) unless `tilemaps` is
 // given.

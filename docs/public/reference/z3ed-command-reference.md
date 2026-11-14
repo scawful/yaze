@@ -187,7 +187,7 @@ of Secrets, `Docs/Dev/Planning/oracle_resource_labels.json`. JSON rows carry
 - `dungeon-place-object --room <hex> --id <hex> --x <int> --y <int> [--size <int>] [--layer <0|1|2>] [--manifest <path>] [--write]`
 - `dungeon-remove-object --room <hex> --index <int> --expect-id <hex> --expect-x <int> --expect-y <int> --expect-size <int> --expect-layer <0|1|2> [--manifest <path>] [--write]`
 - `dungeon-set-door-type --room <hex> --x <int> --y <int> --type <hex> --expect-type <hex> --manifest <path> [--write]`
-- `dungeon-list-pot-items --room <hex>`
+- `dungeon-list-pot-items --room <hex> [--pair-liftables]`
 - `dungeon-set-pot-item --room <hex> --index <int> --expect-position <hex> --expect-item <hex> --item <hex> --manifest <path> [--write]`
 - `dungeon-get-room-tiles --room <hex>` *(stubbed)*
 - `dungeon-tile-types --room <hex> [--layer upper|lower|both] [--type <hex>] [--no-rows]`
@@ -314,7 +314,16 @@ old/new symbolic names but never selects a door by display-name text.
 
 `dungeon-list-pot-items` reports each existing entry's zero-based stream
 `index`, raw `position`, tile coordinates, item ID, and item-byte PC/SNES
-address. `dungeon-set-pot-item` changes only that fixed-width item byte. It is
+address. `--pair-liftables` adds the room's `$0500`/`$0540` list from the same
+vanilla load replay `dungeon-tile-types` uses (new-file state): each slot's
+attribute (`0x70` + slot; only slots 0-15 are liftable), kind, `$0540` word,
+plane, tile and source object. Lifting a pot (or the first segment of a big
+gray rock) reveals the row whose low 15 bits equal that word, so each row gets
+a `pair_status`: `paired`, `unreachable_slot`, `extra_bits` (same tile and
+plane, other bits set), `plane_mismatch`, `off_anchor` (inside a pot or rock
+but not its top-left word), `non_revealing_target` (a peg or block), or
+`orphaned`. Pots and rocks without a row report `no_drop_row`.
+`dungeon-set-pot-item` changes only that fixed-width item byte. It is
 a dry-run unless `--write` is supplied and requires an exact index plus
 expected raw position/item compare-and-swap and a pot-item stream manifest.
 The setter's dry-run and write modes inventory the complete manifest pointer

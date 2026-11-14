@@ -30,6 +30,7 @@
 #include "zelda3/dungeon/object_layer_semantics.h"
 #include "zelda3/dungeon/pot_item_position.h"
 #include "zelda3/dungeon/room.h"
+#include "zelda3/dungeon/room_collision.h"
 #include "zelda3/dungeon/room_object.h"
 #include "zelda3/dungeon/track_collision_generator.h"
 #include "zelda3/game_data.h"
@@ -1308,6 +1309,136 @@ absl::StatusOr<PotItemStreamView> ResolveRuntimePotItemStream(Rom* rom,
     }
   }
   return view;
+}
+
+// Only slots 0-15 get a liftable attribute (0x70-0x7F); later ones reach 0x80+.
+constexpr int kLiftableAttributeSlots = 16;
+
+const char* ManipulableKind(uint16_t type) {
+  switch (type & 0xF0F0) {
+    case 0x0000:
+      return "pushable_block";
+    case 0x1010:
+      return "pot";
+    case 0x2020:
+      return "big_gray_rock";
+    case 0x3030:
+      return "bombable_floor";
+    case 0x4040:
+      return "hammer_peg";
+    default:
+      return "other";
+  }
+}
+
+const char* PotWordPlane(uint16_t word) {
+  return (word & 0x2000) != 0 ? "lower" : "upper";
+}
+
+// Pairs the pot-item rows with the room's replayed $0500/$0540 list the way
+// Underworld_LiftAndReplaceLiftable (#_01D9EC) and RevealPotItem (#_01E6B2)
+// do: a pot reveals the row equal to its own $0540, a big gray rock the row
+// equal to its first segment's.
+struct LiftablePairing {
+  std::vector<zelda3::ManipulableSlot> slots;
+  std::vector<zelda3::RoomObject> objects;
+  std::vector<int> anchor;     // per slot: slot whose word it reveals, or -1
+  std::vector<int> slot_drop;  // per anchor slot: first exact row, or -1
+  std::vector<std::string> item_status;
+  std::vector<int> item_slot;  // per row: slot it was classified against
+};
+
+LiftablePairing PairLiftables(Rom* rom, int room_id,
+                              const std::vector<PotItemEntryView>& entries) {
+  const zelda3::Room room = zelda3::LoadRoomFromRom(rom, room_id);
+  LiftablePairing pairing;
+  const zelda3::RoomCollisionInput input =
+      zelda3::MakeRoomCollisionInput(room, zelda3::RoomTilemaps{});
+  pairing.objects = input.objects;
+  pairing.slots = zelda3::ResolveVanillaManipulables(*rom, input);
+
+  const auto& slots = pairing.slots;
+  pairing.anchor.assign(slots.size(), -1);
+  pairing.slot_drop.assign(slots.size(), -1);
+  for (size_t i = 0; i < slots.size(); ++i) {
+    const uint16_t kind = slots[i].type & 0xF0F0;
+    if (kind == 0x1010) {
+      pairing.anchor[i] = static_cast<int>(i);
+    } else if (kind == 0x2020) {
+      const int base = static_cast<int>(i) - (slots[i].type & 0x000F);
+      if (base >= 0 && (slots[base].type & 0xF0F0) == 0x2020) {
+        pairing.anchor[i] = base;
+      }
+    }
+  }
+  const auto is_anchor = [&](size_t i) {
+    return pairing.anchor[i] == static_cast<int>(i);
+  };
+  const auto anchor_reachable = [&](size_t a) {
+    for (size_t i = 0; i < slots.size(); ++i) {
+      if (pairing.anchor[i] == static_cast<int>(a) &&
+          slots[i].slot < kLiftableAttributeSlots) {
+        return true;
+      }
+    }
+    return false;
+  };
+  const auto tile = [](uint16_t word) {
+    return std::pair<int, int>((word >> 1) & 63, (word >> 7) & 63);
+  };
+
+  for (const PotItemEntryView& entry : entries) {
+    const uint16_t word = entry.item.position & 0x7FFF;
+    const auto [x, y] = tile(word);
+    std::string status = "orphaned";
+    int match = -1;
+    const auto find = [&](auto&& predicate) {
+      for (size_t i = 0; i < slots.size(); ++i) {
+        if (predicate(i)) {
+          return static_cast<int>(i);
+        }
+      }
+      return -1;
+    };
+    const auto same_plane = [&](size_t i) {
+      return ((slots[i].position ^ word) & 0x2000) == 0;
+    };
+    const auto same_tile = [&](size_t i) {
+      return ((slots[i].position ^ word) & zelda3::kPotItemCoordinateMask) == 0;
+    };
+    if ((match = find([&](size_t i) {
+           return is_anchor(i) && slots[i].position == word;
+         })) >= 0) {
+      status = anchor_reachable(match) ? "paired" : "unreachable_slot";
+      if (pairing.slot_drop[match] < 0) {
+        pairing.slot_drop[match] = entry.index;
+      }
+    } else if ((match = find([&](size_t i) {
+                  return is_anchor(i) && same_tile(i) && same_plane(i);
+                })) >= 0) {
+      status = "extra_bits";
+    } else if ((match = find([&](size_t i) {
+                  return is_anchor(i) && same_tile(i);
+                })) >= 0) {
+      status = "plane_mismatch";
+    } else if ((match = find([&](size_t i) {
+                  if (!is_anchor(i) || !same_plane(i)) {
+                    return false;
+                  }
+                  const int size = (slots[i].type & 0xF0F0) == 0x2020 ? 4 : 2;
+                  const auto [ax, ay] = tile(slots[i].position);
+                  return x >= ax && x < ax + size && y >= ay && y < ay + size;
+                })) >= 0) {
+      status = "off_anchor";
+    } else if ((match = find([&](size_t i) {
+                  return pairing.anchor[i] < 0 && same_tile(i) && same_plane(i);
+                })) >= 0) {
+      status = "non_revealing_target";
+    }
+    pairing.item_status.push_back(status);
+    pairing.item_slot.push_back(match);
+  }
+  return pairing;
 }
 
 struct PotItemTarget {
@@ -2968,6 +3099,10 @@ absl::Status DungeonListPotItemsCommandHandler::Execute(
 
   PotItemStreamView stream;
   ASSIGN_OR_RETURN(stream, ResolveRuntimePotItemStream(rom, room_id));
+  std::optional<LiftablePairing> pairing;
+  if (parser.HasFlag("pair-liftables")) {
+    pairing = PairLiftables(rom, room_id, stream.entries);
+  }
 
   formatter.BeginObject("Dungeon Pot Items");
   formatter.AddHexField("room_id", room_id, 3);
@@ -2985,9 +3120,73 @@ absl::Status DungeonListPotItemsCommandHandler::Execute(
     formatter.AddHexField("item_id", entry.item.item, 2);
     formatter.AddHexField("item_pc", entry.item_pc, 6);
     formatter.AddHexField("item_snes", PcToSnes(entry.item_pc), 6);
+    if (pairing) {
+      formatter.AddField("plane", PotWordPlane(entry.item.position));
+      formatter.AddField("pixel_x", entry.item.GetPixelX());
+      formatter.AddField("pixel_y", entry.item.GetPixelY());
+      formatter.AddField("pair_status", pairing->item_status[entry.index]);
+      if (pairing->item_slot[entry.index] >= 0) {
+        formatter.AddField("liftable_slot", pairing->item_slot[entry.index]);
+      }
+    }
     formatter.EndObject();
   }
   formatter.EndArray();
+  if (pairing) {
+    int paired = 0;
+    int without_drop = 0;
+    for (const std::string& status : pairing->item_status) {
+      paired += status == "paired";
+    }
+    formatter.BeginObject("liftables");
+    formatter.AddField("model",
+                       "vanilla Underworld_LoadRoom replay ($0500 type, $0540 "
+                       "position), new-file load state");
+    formatter.AddField(
+        "units",
+        "tile_x/tile_y: 8-pixel tiles of the 64x64 room tilemap; "
+        "object_x/object_y: object grid (8-pixel tiles); position: $0540 "
+        "tilemap byte index, bit 13 = lower plane (COLMAPB)");
+    formatter.BeginArray("slots");
+    for (size_t i = 0; i < pairing->slots.size(); ++i) {
+      const zelda3::ManipulableSlot& slot = pairing->slots[i];
+      const zelda3::RoomObject& object = pairing->objects[slot.object_index];
+      formatter.BeginObject();
+      formatter.AddField("slot", slot.slot);
+      formatter.AddHexField("attribute", 0x70 + slot.slot, 2);
+      formatter.AddField("reachable", slot.slot < kLiftableAttributeSlots);
+      formatter.AddField("kind", ManipulableKind(slot.type));
+      formatter.AddHexField("type", slot.type, 4);
+      formatter.AddHexField("position", slot.position, 4);
+      formatter.AddField("plane", PotWordPlane(slot.position));
+      formatter.AddField("tile_x", (slot.position >> 1) & 63);
+      formatter.AddField("tile_y", (slot.position >> 7) & 63);
+      formatter.AddField("object_index", static_cast<int>(slot.object_index));
+      formatter.AddHexField("object_id", static_cast<uint16_t>(object.id_), 3);
+      formatter.AddField("object_x", static_cast<int>(object.x()));
+      formatter.AddField("object_y", static_cast<int>(object.y()));
+      formatter.AddField("object_list", object.GetLayerValue());
+      const int anchor = pairing->anchor[i];
+      if (anchor >= 0 && anchor != static_cast<int>(i)) {
+        formatter.AddField("anchor_slot", anchor);
+      } else if (anchor == static_cast<int>(i)) {
+        const int drop = pairing->slot_drop[i];
+        formatter.AddField("drop", drop >= 0 ? "paired" : "no_drop_row");
+        if (drop >= 0) {
+          formatter.AddField("drop_index", drop);
+        } else {
+          ++without_drop;
+        }
+      }
+      formatter.EndObject();
+    }
+    formatter.EndArray();
+    formatter.AddField("paired_drops", paired);
+    formatter.AddField("unpaired_drops",
+                       static_cast<int>(stream.entries.size()) - paired);
+    formatter.AddField("liftables_without_drop", without_drop);
+    formatter.EndObject();
+  }
   formatter.AddField("status", "success");
   formatter.EndObject();
   return absl::OkStatus();

@@ -312,6 +312,9 @@ class DungeonSetDoorTypeCommandHandler : public resources::CommandHandler {
 
 /**
  * @brief List existing pot-item entries and their exact ROM addresses.
+ *
+ * --pair-liftables also lists the room's replayed pots, pegs, rocks and
+ * blocks and classifies each row against the liftable that would reveal it.
  */
 class DungeonListPotItemsCommandHandler : public resources::CommandHandler {
  public:
@@ -320,7 +323,7 @@ class DungeonListPotItemsCommandHandler : public resources::CommandHandler {
     return "List existing dungeon pot-item entries";
   }
   std::string GetUsage() const override {
-    return "dungeon-list-pot-items --room <hex> "
+    return "dungeon-list-pot-items --room <hex> [--pair-liftables] "
            "[--format <json|text>]";
   }
 

@@ -384,6 +384,40 @@ TEST_F(RoomCollisionTest, StairSlotResolverRejectsBoundsAndNonStairs) {
   }
 }
 
+TEST_F(RoomCollisionTest, ManipulableResolverNamesSourceObjectsInSlotOrder) {
+  auto input = EmptyRoom();
+  input.objects.push_back(RoomObject(0x0BC, 4, 4, 1, 0));  // pots (4,4), (6,4)
+  input.objects.push_back(Special(0x150, 20, 30, 1, ObjectOption::Torch));
+  input.objects.push_back(Special(0x0E00, 12, 12, 0, ObjectOption::Block));
+  input.objects.push_back(RoomObject(0xFAF, 30, 30, 0, 1));  // lower pot
+  const auto slots = ResolveVanillaManipulables(rom_, input);
+  ASSERT_EQ(slots.size(), 4u);
+  const uint16_t types[] = {0x1111, 0x1111, 0x1111, 0x0000};
+  const uint16_t positions[] = {0x0208, 0x020C, 0x2F3C, 0x0618};
+  const size_t objects[] = {0, 0, 3, 2};  // lists 0, 1, then blocks
+  for (int i = 0; i < 4; ++i) {
+    EXPECT_EQ(slots[i].slot, i);
+    EXPECT_EQ(slots[i].type, types[i]);
+    EXPECT_EQ(slots[i].position, positions[i]);
+    EXPECT_EQ(slots[i].object_index, objects[i]);
+  }
+}
+
+// The 17th entry's $0520 write lands on slot 0's $0540, as in the game.
+TEST_F(RoomCollisionTest, ManipulableResolverKeepsTheGamesListOverlap) {
+  auto input = EmptyRoom();
+  for (int i = 0; i < 17; ++i) {
+    input.objects.push_back(RoomObject(0xFAF, 2 * i, 8, 0, 0));
+  }
+  const auto slots = ResolveVanillaManipulables(rom_, input);
+  ASSERT_EQ(slots.size(), 17u);
+  EXPECT_EQ(slots[16].object_index, 16u);
+  EXPECT_EQ(slots[16].type, 0x1111);
+  EXPECT_EQ(slots[16].position, 0x0400 + 32 * 2);
+  EXPECT_EQ(slots[0].position, 0x0000);
+  EXPECT_EQ(slots[1].position, 0x0404);
+}
+
 TEST_F(RoomCollisionTest, StairSlotResolverRejectsTriggerOverwrittenByPot) {
   auto input = EmptyRoom();
   input.objects = {RoomObject(0x138, 10, 10, 0), RoomObject(0xFAF, 11, 10, 0)};
