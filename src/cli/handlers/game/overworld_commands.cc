@@ -31,10 +31,12 @@
 #include "core/source_artifact_publisher.h"
 #include "nlohmann/json.hpp"
 #include "rom/lyra_layout_descriptor.h"
+#include "rom/native_overworld_endpoint_io.h"
 #include "rom/rom.h"
 #include "rom/snes.h"
 #include "rom/transaction.h"
 #include "util/macro.h"
+#include "util/rom_hash.h"
 #include "zelda3/dungeon/room.h"
 #include "zelda3/game_data.h"
 #include "zelda3/overworld/lyra_terrain_source.h"
@@ -929,7 +931,347 @@ absl::Status ImportNativeSourcePages(
   return absl::OkStatus();
 }
 
+// Endpoint plans select existing runtime rows; they never allocate or bind
+// authoring placements. The normal native model remains the only writer.
+using EndpointJson = nlohmann::json;
+
+void EndpointKeys(const EndpointJson& value,
+                  std::initializer_list<const char*> names) {
+  if (!value.is_object() || value.size() != names.size())
+    throw std::out_of_range("Endpoint plan has missing or unknown fields");
+  for (const char* name : names)
+    if (!value.contains(name))
+      throw std::out_of_range("Endpoint plan has missing or unknown fields");
+}
+
+rom::NativeOverworldEntranceRow EndpointRow(const zelda3::OverworldEntrance& e,
+                                            bool expanded) {
+  return {static_cast<uint16_t>(expanded && !e.deleted
+                                    ? (e.map_id_ & 0x7FFF) |
+                                          (e.is_hole_ ? 0x8000 : 0)
+                                    : e.map_id_),
+          static_cast<uint16_t>(e.deleted ? 0xFFFF : e.map_pos_),
+          e.entrance_id_};
+}
+rom::NativeOverworldReturnRow EndpointRow(const zelda3::OverworldExit& e) {
+  return {e.room_id_,
+          static_cast<uint8_t>(e.map_id_),
+          e.map_pos_,
+          e.y_scroll_,
+          e.x_scroll_,
+          static_cast<uint16_t>(e.deleted_ ? 0xFFFF : e.y_player_),
+          static_cast<uint16_t>(e.deleted_ ? 0xFFFF : e.x_player_),
+          e.y_camera_,
+          e.x_camera_,
+          e.scroll_mod_y_,
+          e.scroll_mod_x_,
+          e.door_type_1_,
+          e.door_type_2_};
+}
+EndpointJson EndpointFields(const rom::NativeOverworldEntranceRow& e) {
+  return {{"map_word", e.map_word},
+          {"position", e.position},
+          {"entrance_id", e.entrance_id}};
+}
+EndpointJson EndpointFields(const rom::NativeOverworldReturnRow& e) {
+  return {{"room", e.room},
+          {"map", e.map},
+          {"vram", e.vram},
+          {"scroll_y", e.scroll_y},
+          {"scroll_x", e.scroll_x},
+          {"player_y", e.player_y},
+          {"player_x", e.player_x},
+          {"camera_y", e.camera_y},
+          {"camera_x", e.camera_x},
+          {"scroll_mod_y", e.scroll_mod_y},
+          {"scroll_mod_x", e.scroll_mod_x},
+          {"door_type_1", e.door_type_1},
+          {"door_type_2", e.door_type_2}};
+}
+
+// CRC is IEEE over complete on-disk row fields in the order below, little
+// endian. It is an additional selected-row witness, not a replacement for SHA.
+void CheckEndpointPreimage(const EndpointJson& operation,
+                           const EndpointJson& actual, bool entrance) {
+  const auto& expected = operation.at("expected");
+  if (!expected.is_object() || expected.size() != actual.size())
+    throw std::out_of_range("Endpoint expected must contain the complete row");
+  const std::vector<std::pair<const char*, int>> fields =
+      entrance
+          ? std::vector<std::pair<const char*, int>>{{"map_word", 2},
+                                                     {"position", 2},
+                                                     {"entrance_id", 1}}
+          : std::vector<std::pair<const char*, int>>{
+                {"room", 2},         {"map", 1},          {"vram", 2},
+                {"scroll_y", 2},     {"scroll_x", 2},     {"player_y", 2},
+                {"player_x", 2},     {"camera_y", 2},     {"camera_x", 2},
+                {"scroll_mod_y", 1}, {"scroll_mod_x", 1}, {"door_type_1", 2},
+                {"door_type_2", 2}};
+  std::vector<uint8_t> bytes;
+  for (const auto& [name, width] : fields) {
+    const int value =
+        RequireJsonInt(expected.at(name), name, 0, width == 1 ? 0xFF : 0xFFFF);
+    if (expected.at(name) != actual.at(name))
+      throw std::out_of_range("Endpoint row preimage differs");
+    for (int i = 0; i < width; ++i)
+      bytes.push_back(static_cast<uint8_t>(value >> (8 * i)));
+  }
+  if (operation.at("expected_crc32") !=
+      yaze::util::ComputeRomHash(bytes.data(), bytes.size()))
+    throw std::out_of_range("Endpoint row CRC32 differs");
+}
+
+absl::Status ApplyNativeEndpointPlan(
+    Rom* rom, const resources::ArgumentParser& parser,
+    resources::OutputFormatter& formatter,
+    const resources::CommandInvocationContext& context,
+    const project::YazeProject* project) {
+  if (!rom || !rom->is_loaded())
+    return absl::FailedPreconditionError("Target must be a loaded native ROM");
+  // Preserve active project/scoped policy before copying the ROM. Format
+  // admission is checked again on the explicitly opted-in staged instance.
+  const auto policy = rom->CheckLayoutSaveable();
+  if (absl::IsPermissionDenied(policy))
+    return policy;
+  if (project &&
+      project->rom_metadata.write_policy == project::RomWritePolicy::kReadOnly)
+    return absl::PermissionDeniedError(
+        "Endpoint plan refused by read_only project policy");
+  if (rom->has_lyra_private_reservation())
+    return absl::FailedPreconditionError(
+        "Endpoint plans do not change private reservations");
+  const auto before = rom->vector();
+  const auto saved_addresses = core::RomSettings::Get().address_overrides();
+  if (project)
+    core::RomSettings::Get().SetAddressOverrides(
+        project->rom_address_overrides);
+  auto restore_addresses = absl::MakeCleanup(
+      [&] { core::RomSettings::Get().SetAddressOverrides(saved_addresses); });
+  ASSIGN_OR_RETURN(const auto output, resources::ResolveStableArtifactPath(
+                                          *parser.GetString("output")));
+  ASSIGN_OR_RETURN(const auto plan_path, resources::ResolveStableArtifactPath(
+                                             *parser.GetString("plan")));
+  RETURN_IF_ERROR(
+      resources::RejectArtifactRomAliases("output", output, context));
+  ASSIGN_OR_RETURN(const bool alias, resources::PathsAlias(output, plan_path));
+  if (alias)
+    return absl::InvalidArgumentError("--output aliases the endpoint plan");
+  std::error_code ec;
+  if (std::filesystem::exists(output, ec) || ec)
+    return absl::AlreadyExistsError("--output must be a new file");
+  const auto size = std::filesystem::file_size(plan_path, ec);
+  if (ec || size > 256 * 1024)
+    return absl::InvalidArgumentError("Endpoint plan must be at most 256 KiB");
+  std::ifstream file(plan_path, std::ios::binary);
+  if (!file)
+    return absl::InvalidArgumentError("Endpoint plan is not readable");
+  const std::string text((std::istreambuf_iterator<char>(file)), {});
+  if (text.size() != size ||
+      core::ComputeSourceArtifactSha256(text) !=
+          absl::AsciiStrToLower(*parser.GetString("plan-sha256")))
+    return absl::FailedPreconditionError("Endpoint plan SHA256 differs");
+
+  Rom staged;
+  Rom::LoadOptions load_options;
+  load_options.load_resource_labels = false;
+  RETURN_IF_ERROR(staged.LoadFromData(before, load_options));
+  if (parser.HasFlag("experimental-page-tile16"))
+    staged.EnableExperimentalPageTile16();
+  RETURN_IF_ERROR(staged.CheckLayoutSaveable());
+  const auto layout = staged.InspectLyraLayout();
+  if (!rom::IsNativeSpecialOverworldLayout(layout))
+    return absl::FailedPreconditionError(
+        "Endpoint plan requires native layout");
+  if (layout.revision == 5 && !parser.HasFlag("experimental-page-tile16"))
+    return absl::FailedPreconditionError(
+        "Revision5 requires --experimental-page-tile16");
+  zelda3::Overworld target(&staged);
+  RETURN_IF_ERROR(target.Load(&staged));
+  const bool expanded = target.mutable_entrances()->size() == 256;
+  rom::NativeOverworldEndpointEdits edits;
+  try {
+    const auto plan = EndpointJson::parse(text);
+    EndpointKeys(plan, {"schema", "source_rom_sha256", "entrance_layout",
+                        "entrances", "returns"});
+    if (plan.at("schema") != "yaze.overworld-endpoint-plan.v1" ||
+        plan.at("source_rom_sha256") !=
+            core::ComputeSourceArtifactSha256(
+                std::string(before.begin(), before.end())) ||
+        plan.at("entrance_layout") != (expanded ? "expanded256" : "legacy129"))
+      return absl::FailedPreconditionError(
+          "Endpoint plan source identity differs");
+    for (const char* kind : {"entrances", "returns"}) {
+      const bool entrance = std::string(kind) == "entrances";
+      const auto& operations = plan.at(kind);
+      const size_t count = entrance ? target.mutable_entrances()->size()
+                                    : target.mutable_exits()->size();
+      if (!operations.is_array() || operations.size() > count)
+        throw std::out_of_range("Endpoint plan row list exceeds capacity");
+      std::set<int> rows;
+      for (const auto& operation : operations) {
+        EndpointKeys(operation, {"row", "expected", "expected_crc32", "value"});
+        const int row =
+            RequireJsonInt(operation.at("row"), "row", 0, count - 1);
+        if (!rows.insert(row).second)
+          throw std::out_of_range("Endpoint plan repeats a row");
+        const auto& value = operation.at("value");
+        if (entrance)
+          EndpointKeys(value, {"map_id", "x", "y", "entrance_id"});
+        else
+          EndpointKeys(value, {"map_id", "x", "y", "scroll_mod_y",
+                               "scroll_mod_x", "door_type_1", "door_type_2"});
+        const int map = RequireJsonInt(value.at("map_id"), "map_id", 0,
+                                       target.materialized_map_count() - 1);
+        const int x = RequireJsonInt(value.at("x"), "x", 0, 4095);
+        const int y = RequireJsonInt(value.at("y"), "y", 0, 4095);
+        if (entrance) {
+          auto& e = target.mutable_entrances()->at(row);
+          const auto old = EndpointRow(e, expanded);
+          CheckEndpointPreimage(operation, EndpointFields(old), true);
+          if (e.deleted || e.is_hole_ || (x & 15) || (y & 15))
+            throw std::out_of_range(
+                "Only live door rows at tile-aligned positions are supported");
+          e.x_ = x;
+          e.y_ = y;
+          e.entrance_id_ =
+              RequireJsonInt(value.at("entrance_id"), "entrance_id", 0, 255);
+          e.UpdateMapProperties(map);
+          if (x != (map % 8) * 512 + e.game_x_ * 16 ||
+              y != ((map % 64) / 8) * 512 + e.game_y_ * 16)
+            throw std::out_of_range("Entrance position is outside its area");
+          edits.entrances.push_back(
+              {static_cast<uint16_t>(row), old, EndpointRow(e, expanded)});
+        } else {
+          auto& e = target.mutable_exits()->at(row);
+          const auto old = EndpointRow(e);
+          CheckEndpointPreimage(operation, EndpointFields(old), false);
+          if (e.deleted_ || e.is_hole_)
+            throw std::out_of_range("Only live return rows are supported");
+          e.x_ = x;
+          e.y_ = y;
+          e.is_automatic_ = true;
+          e.scroll_mod_y_ =
+              RequireJsonInt(value.at("scroll_mod_y"), "scroll_mod_y", 0, 255);
+          e.scroll_mod_x_ =
+              RequireJsonInt(value.at("scroll_mod_x"), "scroll_mod_x", 0, 255);
+          e.door_type_1_ =
+              RequireJsonInt(value.at("door_type_1"), "door_type_1", 0, 65535);
+          e.door_type_2_ =
+              RequireJsonInt(value.at("door_type_2"), "door_type_2", 0, 65535);
+          e.UpdateMapProperties(map, &target);
+          edits.returns.push_back(
+              {static_cast<uint16_t>(row), old, EndpointRow(e)});
+        }
+      }
+    }
+  } catch (const std::exception& error) {
+    return absl::InvalidArgumentError(error.what());
+  }
+  // This retained planner supplies the exact storage/geometry/alias fence.
+  // It does not mutate bytes; SaveNativeTerrain below is the writer.
+  ASSIGN_OR_RETURN(const auto writes,
+                   rom::PlanNativeOverworldEndpointSave(before, edits));
+  std::map<uint32_t, uint8_t> expected_bytes;
+  for (const auto& write : writes)
+    for (size_t i = 0; i < write.bytes.size(); ++i)
+      if (!expected_bytes.emplace(write.address + i, write.bytes[i]).second)
+        return absl::FailedPreconditionError("Endpoint write spans overlap");
+  size_t changed = 0;
+  for (const auto& [pc, value] : expected_bytes)
+    changed += before.at(pc) != value;
+  if (!changed)
+    return absl::InvalidArgumentError("Endpoint plan makes no changes");
+  const auto old_flags = core::FeatureFlags::get();
+  auto restore_flags =
+      absl::MakeCleanup([&] { core::FeatureFlags::get() = old_flags; });
+  auto& flags = core::FeatureFlags::get();
+  flags.overworld.kSaveOverworldMaps = false;
+  flags.overworld.kSaveOverworldProperties = false;
+  flags.overworld.kSaveOverworldSprites = false;
+  flags.overworld.kSaveOverworldEntrances = !edits.entrances.empty();
+  flags.overworld.kSaveOverworldExits = !edits.returns.empty();
+  flags.overworld.kSaveOverworldItems = false;
+  flags.kSaveAllPalettes = false;
+  flags.kSaveGfxGroups = false;
+  flags.dungeon.kSavePalettes = false;
+  RETURN_IF_ERROR(target.SaveNativeTerrain());
+  if (staged.size() != before.size())
+    return absl::DataLossError("Endpoint save resized ROM");
+  for (size_t pc = 0; pc < before.size(); ++pc) {
+    const auto found = expected_bytes.find(pc);
+    const uint8_t expected =
+        found == expected_bytes.end() ? before[pc] : found->second;
+    if (staged.vector()[pc] != expected)
+      return absl::DataLossError(
+          "Endpoint save changed bytes outside the exact plan");
+  }
+  Rom reopened;
+  RETURN_IF_ERROR(reopened.LoadFromData(staged.vector(), load_options));
+  if (parser.HasFlag("experimental-page-tile16"))
+    reopened.EnableExperimentalPageTile16();
+  zelda3::Overworld fresh(&reopened);
+  RETURN_IF_ERROR(fresh.Load(&reopened));
+  if (fresh.mutable_entrances()->size() != target.mutable_entrances()->size() ||
+      fresh.mutable_exits()->size() != target.mutable_exits()->size())
+    return absl::DataLossError("Endpoint reload changed row counts");
+  for (size_t i = 0; i < target.mutable_entrances()->size(); ++i)
+    if (EndpointRow(fresh.mutable_entrances()->at(i), expanded) !=
+        EndpointRow(target.mutable_entrances()->at(i), expanded))
+      return absl::DataLossError("Entrance cold readback differs");
+  for (size_t i = 0; i < target.mutable_exits()->size(); ++i)
+    if (EndpointRow(fresh.mutable_exits()->at(i)) !=
+        EndpointRow(target.mutable_exits()->at(i)))
+      return absl::DataLossError("Return cold readback differs");
+  if (rom->vector() != before)
+    return absl::FailedPreconditionError(
+        "Input model changed before publication");
+  if (context.active_rom_path)
+    RETURN_IF_ERROR(
+        CheckImportInputUnchanged(*context.active_rom_path, before));
+  RETURN_IF_ERROR(CheckImportInputUnchanged(
+      plan_path, std::vector<uint8_t>(text.begin(), text.end())));
+  if (parser.HasFlag("write")) {
+    if (!context.active_rom_path)
+      return absl::FailedPreconditionError(
+          "Publishing requires an identified target input file");
+    RETURN_IF_ERROR(project::WriteProjectFileAtomically(
+        output.string(),
+        absl::string_view(reinterpret_cast<const char*>(staged.data()),
+                          staged.size()),
+        false));
+  }
+  formatter.BeginObject("Overworld Endpoint Plan");
+  formatter.AddField("write_status",
+                     parser.HasFlag("write") ? "new-output" : "dry-run");
+  formatter.AddField("changed_bytes", static_cast<int>(changed));
+  formatter.AddField("verified_reload", true);
+  formatter.AddField("output", output.string());
+  formatter.EndObject();
+  return absl::OkStatus();
+}
+
 }  // namespace
+
+absl::Status OverworldApplyEndpointPlanCommandHandler::ValidateArgs(
+    const resources::ArgumentParser& parser) {
+  return parser.RequireArgs({"plan", "plan-sha256", "output"});
+}
+absl::Status OverworldApplyEndpointPlanCommandHandler::Execute(
+    Rom* rom, const resources::ArgumentParser& parser,
+    resources::OutputFormatter& formatter) {
+  resources::CommandInvocationContext context;
+  if (rom && !rom->filename().empty()) {
+    context.source_rom_path = rom->filename();
+    context.active_rom_path = rom->filename();
+  }
+  return ExecuteWithContext(rom, parser, formatter, context);
+}
+absl::Status OverworldApplyEndpointPlanCommandHandler::ExecuteWithContext(
+    Rom* rom, const resources::ArgumentParser& parser,
+    resources::OutputFormatter& formatter,
+    const resources::CommandInvocationContext& context) {
+  return ApplyNativeEndpointPlan(rom, parser, formatter, context, project_);
+}
 
 absl::Status OverworldImportMapsCommandHandler::ValidateArgs(
     const resources::ArgumentParser& parser) {

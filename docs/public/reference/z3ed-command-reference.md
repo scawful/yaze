@@ -402,6 +402,23 @@ Example:
 z3ed overworld-describe-map --screen=0x40 --rom=zelda3.sfc
 ```
 
+#### Native endpoint plans
+
+`overworld-apply-endpoint-plan --plan <json> --plan-sha256 <sha256> --output <new-rom> [--experimental-page-tile16] [--write]` stages existing live entrance/return rows through the native model and verifies a cold reopen. It is a dry run unless `--write` is present. Output must be a new file; input ROM, native payloads and authoring identities remain unchanged. Revision5 requires explicit experimental admission. Non-native ROMs, hole/deleted rows, new bindings, relocated endpoint tables, and metadata changes are outside this command.
+
+The JSON has exactly `schema` (`yaze.overworld-endpoint-plan.v1`), `source_rom_sha256` (whole headerless input SHA256), `entrance_layout` (`legacy129` or `expanded256`), `entrances`, and `returns`. Each list contains unique existing rows with exactly `row`, `expected`, `expected_crc32`, and `value`. JSON IDs/coordinates are integers, not hex strings. `--plan-sha256` authenticates the exact JSON file bytes.
+
+Entrance `expected` contains `map_word`, `position`, `entrance_id`. Return `expected` contains `room`, `map`, `vram`, `scroll_y`, `scroll_x`, `player_y`, `player_x`, `camera_y`, `camera_x`, `scroll_mod_y`, `scroll_mod_x`, `door_type_1`, `door_type_2`. All fields are required. The CRC is lowercase eight-digit IEEE CRC32 of those fields in the listed order, each little endian: entrance widths2/2/1; return widths2/1/2/2/2/2/2/2/2/1/1/2/2. Complete preimages and the source SHA are checked before publication.
+
+Entrance `value` contains `map_id`, `x`, `y`, `entrance_id`. Return `value` contains `map_id`, `x`, `y`, `scroll_mod_y`, `scroll_mod_x`, `door_type_1`, `door_type_2`; its room stays unchanged. `map_id` is the destination parent area. `x`/`y` are world pixels0..4095; entrances must be tile aligned. The existing model derives encoded position, scroll and camera. Other byte/word fields must fit their stored width. Unknown fields, incomplete preimages, duplicate rows and an unchanged batch are refused. The exact planner-derived byte fence protects every unrelated endpoint, map, profile, actor, dictionary and authoring metadata record.
+
+```bash
+z3ed overworld-apply-endpoint-plan --rom=private-input.sfc \
+  --plan=endpoint-plan.json --plan-sha256=<exact-plan-sha256> \
+  --output=new-private-output.sfc --experimental-page-tile16 --format=json
+# Add --write only to publish the already reviewed plan to that new path.
+```
+
 #### Overworld tile coordinates
 IDs (`--map`, `--screen`, `--tile`) are hex. `--x`/`--y` are decimal tile16
 coordinates (a `0x` prefix selects hex) relative to the top-left of the

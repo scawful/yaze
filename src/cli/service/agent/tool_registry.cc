@@ -58,6 +58,7 @@ ToolAccess InferToolAccess(const std::string& tool_name) {
       "message-source-sync",
       "overworld-set-tile",
       "overworld-import-maps",
+      "overworld-apply-endpoint-plan",
       "project-export",
       "project-import",
       "project-restore",

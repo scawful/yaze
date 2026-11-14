@@ -76,6 +76,35 @@ class OverworldSetTileCommandHandler : public resources::CommandHandler {
       const resources::CommandInvocationContext& invocation_context) override;
 };
 
+// Hash-bound relocation of existing live native entrance/return rows.
+class OverworldApplyEndpointPlanCommandHandler
+    : public resources::CommandHandler {
+ public:
+  std::string GetName() const override {
+    return "overworld-apply-endpoint-plan";
+  }
+  Descriptor Describe() const override {
+    Descriptor descriptor;
+    descriptor.display_name = GetName();
+    descriptor.summary =
+        "Apply a hash-bound native endpoint plan through the model; dry-run by "
+        "default";
+    return descriptor;
+  }
+  std::string GetUsage() const override {
+    return "overworld-apply-endpoint-plan --plan <json> --plan-sha256 <sha256> "
+           "--output <new-rom> [--experimental-page-tile16] [--write] "
+           "[--format <json|text>]";
+  }
+  absl::Status ValidateArgs(const resources::ArgumentParser& parser) override;
+  absl::Status Execute(Rom* rom, const resources::ArgumentParser& parser,
+                       resources::OutputFormatter& formatter) override;
+  absl::Status ExecuteWithContext(
+      Rom* rom, const resources::ArgumentParser& parser,
+      resources::OutputFormatter& formatter,
+      const resources::CommandInvocationContext& invocation_context) override;
+};
+
 // Imports physical pages into an already-loaded native overworld. Publication
 // is deliberately separate from the caller's ROM and is exclusive-create only.
 // --native-source consumes a hash-bound native-source export instead of a

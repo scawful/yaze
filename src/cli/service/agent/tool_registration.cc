@@ -283,6 +283,14 @@ void RegisterBuiltinAgentTools(ToolRegistry& registry) {
       "--maps=<hex,hex,...> --output=<new-rom> [--write]",
       {}, true, true, OverworldImportMapsCommandHandler)
   REGISTER_BUILTIN_AGENT_TOOL(
+      "overworld-apply-endpoint-plan", "overworld",
+      "Relocate existing native entrance/return rows using a complete "
+      "hash-bound "
+      "endpoint plan; normal model save and cold reopen; dry-run by default",
+      "overworld-apply-endpoint-plan --plan=<json> --plan-sha256=<sha256> "
+      "--output=<new-rom> [--experimental-page-tile16] [--write]",
+      {}, true, true, OverworldApplyEndpointPlanCommandHandler)
+  REGISTER_BUILTIN_AGENT_TOOL(
       "overworld-find-tile", "overworld",
       "Find every position of a tile16 id; x/y in each match feed "
       "overworld-get-tile",

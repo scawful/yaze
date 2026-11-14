@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <array>
 #include <cstdint>
 #include <filesystem>
 #include <fstream>
@@ -34,6 +35,7 @@
 #include "rom/transaction.h"
 #include "rom/write_fence.h"
 #include "unique_temp_path.h"
+#include "util/rom_hash.h"
 #include "zelda3/dungeon/room.h"
 #include "zelda3/game_data.h"
 #include "zelda3/overworld/lyra_terrain_source.h"
@@ -2473,6 +2475,344 @@ TEST(OverworldNativeSourceImportArgsTest, RequiresExactlyOneSource) {
                 .code(),
             absl::StatusCode::kInvalidArgument);
 }
+
+// Synthetic current-layout fixtures: the endpoint preimages below are the
+// retained normal62/42 route shape. No external game ROM is required.
+class OverworldEndpointPlanTest
+    : public ::testing::TestWithParam<std::pair<int, int>> {
+ protected:
+  void SetUp() override {
+    fixture_ = std::make_unique<test::native_overworld::NativeDirectoryFixture>(
+        GetParam().first);
+    auto& f = *fixture_;
+    f.SeedNativeSpritePrefix();
+    f.bytes[zelda3::overworldItemsAddressBank] = 0x1B;
+    f.Word(0xD8000, 0xFFFF);
+    for (int map = 0; map < GetParam().first; ++map) {
+      f.Word(f.Entry(23).pc_address + map * 2, 0x8000);
+      f.bytes[f.Entry(7).pc_address + map] = map;
+      f.bytes[f.Entry(30).pc_address + map] = 0;
+    }
+    f.UpgradeToRevision4();
+    rom::NativeOverworldAuthoringMetadata metadata;
+    metadata.next_placement_id = 0x6002;
+    metadata.placements = {
+        {0x6001, rom::NativePlacementState::kPending,
+         rom::NativeAuthoringDoorPlacement{0x90, 4, 5, 0x29, std::nullopt}}};
+    f.AddAuthoringMetadata(metadata);
+    if (GetParam().second == 5) {
+      f.AddPageTile16();
+      const std::vector<rom::NativePageTile16Definition> rows = {
+          {0x90, 0x10, {1, 2, 3, 4}}};
+      const auto encoded =
+          rom::EncodeNativePageTile16(rows, GetParam().first, 16);
+      ASSERT_TRUE(encoded.ok()) << encoded.status();
+      std::copy(encoded->begin(), encoded->end(),
+                f.bytes.begin() + f.Entry(413).pc_address);
+    }
+    f.bytes[0xDB895] = 0xB8;
+    f.Word(0xDBA33, 0x7A);
+    f.Word(0xDBB35, 0x0626);
+    f.bytes[0xDBBD5] = 0x29;
+    const std::vector<uint16_t> values = {0x90,  0x7A,  0x318, 0xE68, 0x4C0,
+                                          0xEB8, 0x538, 0xED7, 0x53F, 4,
+                                          3,     0,     0};
+    for (size_t i = 0; i < kReturnPcs.size(); ++i) {
+      if (kReturnWidths[i] == 2)
+        f.Word(kReturnPcs[i], values[i]);
+      else
+        f.bytes[kReturnPcs[i]] = values[i];
+    }
+    f.Seal();
+    dir_ = test::UniqueTempPath("ow_endpoint_plan");
+    std::filesystem::create_directories(dir_);
+    input_ = dir_ / "input.sfc";
+    output_ = dir_ / "output.sfc";
+    plan_path_ = dir_ / "plan.json";
+    test::native_overworld::WriteBytes(input_, f.bytes);
+    ASSERT_TRUE(rom_.LoadFromFile(input_.string()).ok());
+    original_ = rom_.vector();
+    plan_ = Plan();
+  }
+  void TearDown() override {
+    std::error_code ec;
+    std::filesystem::remove_all(dir_, ec);
+  }
+  static constexpr std::array<uint32_t, 13> kReturnPcs = {
+      0x15E0E, 0x15E6A, 0x15EFB, 0x15F99, 0x16037, 0x160D5, 0x16173,
+      0x16211, 0x162AF, 0x1630B, 0x1635A, 0x163EB, 0x16489};
+  static constexpr std::array<int, 13> kReturnWidths = {2, 1, 2, 2, 2, 2, 2,
+                                                        2, 2, 1, 1, 2, 2};
+  static constexpr std::array<const char*, 13> kReturnNames = {
+      "room",         "map",         "vram",       "scroll_y", "scroll_x",
+      "player_y",     "player_x",    "camera_y",   "camera_x", "scroll_mod_y",
+      "scroll_mod_x", "door_type_1", "door_type_2"};
+  nlohmann::json Plan() const {
+    std::vector<uint8_t> entrance_bytes;
+    for (const auto& [pc, width] : std::vector<std::pair<int, int>>{
+             {0xDBA33, 2}, {0xDBB35, 2}, {0xDBBD5, 1}})
+      entrance_bytes.insert(entrance_bytes.end(), original_.begin() + pc,
+                            original_.begin() + pc + width);
+    nlohmann::json expected;
+    std::vector<uint8_t> return_bytes;
+    for (size_t i = 0; i < kReturnPcs.size(); ++i) {
+      int value = 0;
+      for (int b = 0; b < kReturnWidths[i]; ++b) {
+        const uint8_t byte = original_[kReturnPcs[i] + b];
+        value |= int(byte) << (b * 8);
+        return_bytes.push_back(byte);
+      }
+      expected[kReturnNames[i]] = value;
+    }
+    return {
+        {"schema", "yaze.overworld-endpoint-plan.v1"},
+        {"source_rom_sha256", core::ComputeSourceArtifactSha256(std::string(
+                                  original_.begin(), original_.end()))},
+        {"entrance_layout", "legacy129"},
+        {"entrances",
+         nlohmann::json::array({{{"row", 0x62},
+                                 {"expected",
+                                  {{"map_word", 0x7A},
+                                   {"position", 0x626},
+                                   {"entrance_id", 0x29}}},
+                                 {"expected_crc32", yaze::util::ComputeRomHash(
+                                                        entrance_bytes.data(),
+                                                        entrance_bytes.size())},
+                                 {"value",
+                                  {{"map_id", 0x87},
+                                   {"x", 0xEF0},
+                                   {"y", 0xE0},
+                                   {"entrance_id", 0x29}}}}})},
+        {"returns",
+         nlohmann::json::array({{{"row", 0x42},
+                                 {"expected", expected},
+                                 {"expected_crc32", yaze::util::ComputeRomHash(
+                                                        return_bytes.data(),
+                                                        return_bytes.size())},
+                                 {"value",
+                                  {{"map_id", 0x87},
+                                   {"x", 0xEF8},
+                                   {"y", 0x108},
+                                   {"scroll_mod_y", 0},
+                                   {"scroll_mod_x", 0},
+                                   {"door_type_1", 0},
+                                   {"door_type_2", 0}}}}})}};
+  }
+  absl::Status Run(const nlohmann::json& plan, bool write = false,
+                   std::vector<std::string> extra = {}, bool opt_in = true,
+                   std::string* result = nullptr) {
+    const auto text = plan.dump();
+    test::native_overworld::WriteBytes(
+        plan_path_, std::vector<uint8_t>(text.begin(), text.end()));
+    std::vector<std::string> args = {
+        "--plan=" + plan_path_.string(),
+        "--plan-sha256=" + core::ComputeSourceArtifactSha256(text),
+        "--output=" + output_.string(), "--format=json"};
+    if (opt_in)
+      args.push_back("--experimental-page-tile16");
+    if (write)
+      args.push_back("--write");
+    args.insert(args.end(), extra.begin(), extra.end());
+    handlers::OverworldApplyEndpointPlanCommandHandler handler;
+    std::string out;
+    const auto status = handler.Run(args, &rom_, &out);
+    if (result)
+      *result = out;
+    return status;
+  }
+  void Preserved() {
+    EXPECT_EQ(rom_.vector(), original_);
+    EXPECT_EQ(ReadBytes(input_), original_);
+  }
+  std::unique_ptr<test::native_overworld::NativeDirectoryFixture> fixture_;
+  Rom rom_;
+  std::filesystem::path dir_, input_, output_, plan_path_;
+  std::vector<uint8_t> original_;
+  nlohmann::json plan_;
+};
+
+TEST_P(OverworldEndpointPlanTest,
+       NormalDryWriteColdReopenAndExactTwentyByteFence) {
+  std::string result;
+  const auto dry = Run(plan_, false, {}, true, &result);
+  ASSERT_TRUE(dry.ok()) << dry;
+  EXPECT_EQ(
+      nlohmann::json::parse(result)["Overworld Endpoint Plan"]["changed_bytes"],
+      20);
+  EXPECT_FALSE(std::filesystem::exists(output_));
+  Preserved();
+  const auto write = Run(plan_, true);
+  ASSERT_TRUE(write.ok()) << write;
+  Preserved();
+  const auto bytes = ReadBytes(output_);
+  auto expected = original_;
+  expected[0xDBA33] = 0x87;
+  expected[0xDBB35] = 0x1E;
+  expected[0xDBB36] = 0x07;
+  const std::vector<uint16_t> values = {
+      0x90, 0x87, 0x590, 0xB8, 0xE80, 0x108, 0xEF8, 0x127, 0xEFF, 0, 0, 0, 0};
+  for (size_t i = 0; i < values.size(); ++i)
+    for (int b = 0; b < kReturnWidths[i]; ++b)
+      expected[kReturnPcs[i] + b] = values[i] >> (b * 8);
+  EXPECT_EQ(bytes,
+            expected);  // Includes every192/160 map,400/412/413 and actors.
+  Rom cold;
+  ASSERT_TRUE(cold.LoadFromData(bytes).ok());
+  cold.EnableExperimentalPageTile16();
+  zelda3::Overworld world(&cold);
+  ASSERT_TRUE(world.Load(&cold).ok());
+  EXPECT_EQ(world.mutable_entrances()->at(0x62).map_pos_, 0x71E);
+  EXPECT_EQ(world.mutable_exits()->at(0x42).x_player_, 0xEF8);
+  EXPECT_EQ(world.mutable_exits()->at(0x42).y_player_, 0x108);
+  EXPECT_FALSE(Run(plan_, true).ok());
+  EXPECT_EQ(ReadBytes(output_), bytes);
+  Preserved();
+}
+
+TEST_P(OverworldEndpointPlanTest,
+       DiagnosticReturnOnlyPreservesEntranceAndMetadata) {
+  plan_["entrances"] = nlohmann::json::array();
+  plan_["returns"][0]["value"]["x"] = 0xEB0;
+  plan_["returns"][0]["value"]["y"] = 0x1A8;
+  std::string result;
+  const auto status = Run(plan_, true, {}, true, &result);
+  ASSERT_TRUE(status.ok()) << status;
+  EXPECT_EQ(
+      nlohmann::json::parse(result)["Overworld Endpoint Plan"]["changed_bytes"],
+      17);
+  auto expected = original_;
+  const std::vector<uint16_t> values = {
+      0x90, 0x87, 0x906, 0x120, 0xE38, 0x1A8, 0xEB0, 0x18F, 0xEB7, 0, 0, 0, 0};
+  for (size_t i = 0; i < values.size(); ++i)
+    for (int b = 0; b < kReturnWidths[i]; ++b)
+      expected[kReturnPcs[i] + b] = values[i] >> (b * 8);
+  EXPECT_EQ(ReadBytes(output_), expected);
+  Preserved();
+}
+
+TEST_P(OverworldEndpointPlanTest,
+       RefusesWrongHashesRowsFieldsAndGeometryWithoutMutation) {
+  const auto refuse = [&](const nlohmann::json& plan) {
+    EXPECT_FALSE(Run(plan, true).ok());
+    EXPECT_FALSE(std::filesystem::exists(output_));
+    Preserved();
+  };
+  auto plan = plan_;
+  plan["source_rom_sha256"] = std::string(64, '0');
+  refuse(plan);
+  plan = plan_;
+  plan["returns"][0]["expected"]["room"] = 0x91;
+  refuse(plan);
+  plan = plan_;
+  plan["returns"][0]["expected_crc32"] = "00000000";
+  refuse(plan);
+  plan = plan_;
+  plan["returns"][0]["expected"].erase("door_type_2");
+  refuse(plan);
+  plan = plan_;
+  plan["returns"].push_back(plan["returns"][0]);
+  refuse(plan);
+  plan = plan_;
+  plan["returns"][0]["value"]["room"] = 0x91;
+  refuse(plan);
+  plan = plan_;
+  plan["returns"][0]["value"]["x"] = -1;
+  refuse(plan);
+  plan = plan_;
+  plan["returns"][0]["value"]["y"] = 512;
+  refuse(plan);
+  plan = plan_;
+  plan["entrances"][0]["value"]["x"] = 0xDF0;
+  refuse(plan);
+  plan = plan_;
+  plan["entrances"][0]["value"]["x"] = 0xEF1;
+  refuse(plan);
+  plan = plan_;
+  plan["entrances"][0]["expected"]["position"] = 1574.0;
+  refuse(plan);
+  plan = plan_;
+  plan["returns"][0]["pc"] = 0x2C0000;
+  refuse(plan);
+  plan = plan_;
+  plan["schema"] = "unknown";
+  refuse(plan);
+  plan = plan_;
+  plan["entrance_layout"] = "expanded256";
+  refuse(plan);
+  plan = plan_;
+  plan["entrances"] = nlohmann::json::array();
+  plan["returns"] = nlohmann::json::array();
+  refuse(plan);
+}
+
+TEST_P(OverworldEndpointPlanTest,
+       RevisionGateAliasStaleInputAndPublicationFailure) {
+  if (GetParam().second == 5)
+    EXPECT_FALSE(Run(plan_, false, {}, false).ok());
+  else
+    EXPECT_TRUE(Run(plan_, false, {}, false).ok());
+  const auto wanted_output = output_;
+  output_ = input_;
+  EXPECT_FALSE(Run(plan_, true).ok());
+  Preserved();
+  output_ = plan_path_;
+  EXPECT_FALSE(Run(plan_, true).ok());
+  Preserved();
+  output_ = wanted_output;
+  auto stale = original_;
+  stale[0] ^= 1;
+  test::native_overworld::WriteBytes(input_, stale);
+  EXPECT_FALSE(Run(plan_, true).ok());
+  EXPECT_EQ(ReadBytes(input_), stale);
+  EXPECT_EQ(rom_.vector(), original_);
+  EXPECT_FALSE(std::filesystem::exists(output_));
+  test::native_overworld::WriteBytes(input_, original_);
+  const auto blocker = dir_ / "not-a-directory";
+  test::native_overworld::WriteBytes(blocker, {1, 2, 3});
+  output_ = blocker / "output.sfc";
+  EXPECT_FALSE(Run(plan_, true).ok());
+  EXPECT_EQ(ReadBytes(blocker), (std::vector<uint8_t>{1, 2, 3}));
+  Preserved();
+}
+
+TEST_P(OverworldEndpointPlanTest, CorruptNativeRecordAndUnknownRevisionRefuse) {
+  auto broken = original_;
+  const auto entry = fixture_->Entry(GetParam().second == 5 ? 413 : 412);
+  broken[entry.pc_address] ^= 1;
+  test::native_overworld::WriteBytes(input_, broken);
+  Rom::LoadOptions options;
+  options.load_resource_labels = false;
+  ASSERT_TRUE(rom_.LoadFromData(broken, options).ok());
+  auto plan = plan_;
+  plan["source_rom_sha256"] = core::ComputeSourceArtifactSha256(
+      std::string(broken.begin(), broken.end()));
+  EXPECT_FALSE(Run(plan, true).ok());
+  EXPECT_FALSE(std::filesystem::exists(output_));
+  EXPECT_EQ(rom_.vector(), broken);
+  EXPECT_EQ(ReadBytes(input_), broken);
+  broken = original_;
+  broken[0x147008] = 99;
+  test::native_overworld::WriteBytes(input_, broken);
+  ASSERT_TRUE(rom_.LoadFromData(broken, options).ok());
+  plan["source_rom_sha256"] = core::ComputeSourceArtifactSha256(
+      std::string(broken.begin(), broken.end()));
+  EXPECT_FALSE(Run(plan, true).ok());
+  EXPECT_FALSE(std::filesystem::exists(output_));
+  EXPECT_EQ(rom_.vector(), broken);
+  EXPECT_EQ(ReadBytes(input_), broken);
+}
+
+TEST_P(OverworldEndpointPlanTest, ReadOnlyScopeRefusesWithoutStagingOutput) {
+  ScopedRomReadOnly read_only(rom_);
+  EXPECT_TRUE(absl::IsPermissionDenied(Run(plan_, true)));
+  EXPECT_FALSE(std::filesystem::exists(output_));
+  Preserved();
+}
+
+INSTANTIATE_TEST_SUITE_P(NativeLayouts, OverworldEndpointPlanTest,
+                         ::testing::Values(std::make_pair(160, 4),
+                                           std::make_pair(192, 4),
+                                           std::make_pair(192, 5)));
 
 }  // namespace
 }  // namespace yaze::cli
