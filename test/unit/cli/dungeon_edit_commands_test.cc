@@ -1262,8 +1262,8 @@ void WriteNativeObjectManifest(const std::filesystem::path& path,
 // A native special-overworld image with a synthetic object table. Room 0's
 // doorless stream has no door marker and 16 bytes of capacity before the
 // empty stream every other room shares; its pointers use the $80-$FF mirror.
-std::vector<uint8_t> NativeObjectRouteImage() {
-  test::native_overworld::NativeDirectoryFixture fixture;
+std::vector<uint8_t> NativeObjectRouteImage(uint16_t capacity = 192) {
+  test::native_overworld::NativeDirectoryFixture fixture(capacity);
   auto& bytes = fixture.bytes;
   PutLong(bytes, zelda3::kRoomObjectPointer, PcToSnes(kObjectPointerTablePc));
   PutLong(bytes, kObjectPointerTablePc,
@@ -1351,6 +1351,126 @@ absl::Status RunNativeImport(Rom* rom, std::vector<std::string> args,
 
 uint32_t ReadImageLong(const std::vector<uint8_t>& bytes, int pc) {
   return bytes[pc] | (bytes[pc + 1] << 8) | (bytes[pc + 2] << 16);
+}
+
+// A moved door stream with an explicit auxiliary pointer; no old-PC assumption.
+std::vector<uint8_t> NativeDoorTypeImage(uint16_t capacity, int stream_pc) {
+  auto image = NativeObjectRouteImage(capacity);
+  const std::vector<uint8_t> stream = {kObjectHeaderByte0,
+                                       kObjectHeaderByte1,
+                                       0xFF,
+                                       0xFF,
+                                       0xFF,
+                                       0xFF,
+                                       0xF0,
+                                       0xFF,
+                                       0x81,
+                                       0x18,
+                                       0xFF,
+                                       0xFF};
+  std::copy(stream.begin(), stream.end(), image.begin() + stream_pc);
+  PutLong(image, kObjectPointerTablePc, PcToSnes(stream_pc) | 0x800000);
+  PutLong(image, zelda3::kDoorPointers, PcToSnes(stream_pc + 8) | 0x800000);
+  test::native_overworld::NativeDirectoryFixture fixture(capacity);
+  test::native_overworld::Reseal(&image, fixture.rows);
+  return image;
+}
+
+TEST(DungeonNativeDoorTypeTest, DryRunWriteAndColdReopenBothCapacities) {
+  for (const uint16_t capacity : {160, 192}) {
+    SCOPED_TRACE(capacity);
+    constexpr int stream_pc = kNativeObjectDataPc + 0x80;
+    Rom rom;
+    ASSERT_TRUE(
+        rom.LoadFromData(NativeDoorTypeImage(capacity, stream_pc)).ok());
+    const auto before = rom.vector();
+    ScopedRomArtifactsCleanup cleanup(MakeUniqueTempRomPath());
+    ScopedFileCleanup manifest(cleanup.rom_path.string() + ".manifest.json");
+    WriteNativeObjectManifest(manifest.file_path, kNativeObjectAllocationPc,
+                              kNativeObjectDataEndPc);
+    WriteRomFile(rom, cleanup.rom_path);
+    rom.set_filename(cleanup.rom_path.string());
+    rom.set_dirty(false);
+    handlers::DungeonSetDoorTypeCommandHandler handler;
+    std::vector<std::string> args = {
+        "--room=0x00",
+        "--x=46",
+        "--y=58",
+        "--type=0x00",
+        "--expect-type=0x18",
+        "--manifest=" + manifest.file_path.string(),
+        "--format=json"};
+    std::string output;
+    ASSERT_TRUE(handler.Run(args, &rom, &output).ok()) << output;
+    EXPECT_EQ(rom.vector(), before);
+    EXPECT_EQ(ReadFile(cleanup.rom_path), before);
+    EXPECT_TRUE(FindBackupArtifacts(cleanup.rom_path).empty());
+    args.push_back("--write");
+    const auto status = handler.Run(args, &rom, &output);
+    ASSERT_TRUE(status.ok()) << status << output;
+    auto expected = before;
+    expected[stream_pc + 9] = 0;
+    EXPECT_EQ(rom.vector(), expected);
+    EXPECT_EQ(ReadFile(cleanup.rom_path), expected);
+    EXPECT_FALSE(rom.dirty());
+    EXPECT_THAT(output, HasSubstr("\"verified_reload\": true"));
+    const auto backups = FindBackupArtifacts(cleanup.rom_path);
+    ASSERT_EQ(backups.size(), 1u);
+    EXPECT_EQ(ReadFile(backups.front()), before);
+    Rom reopened;
+    ASSERT_TRUE(reopened.LoadFromFile(cleanup.rom_path.string()).ok());
+    const auto room = zelda3::LoadRoomFromRom(&reopened, 0);
+    ASSERT_EQ(room.GetDoors().size(), 1u);
+    EXPECT_EQ(room.GetDoors()[0].GetTileCoords(), std::make_pair(46, 58));
+    EXPECT_EQ(room.GetDoors()[0].type, zelda3::DoorType::NormalDoor);
+  }
+}
+
+TEST(DungeonNativeDoorTypeTest, RefusalsPreserveCallerDiskAndBackups) {
+  for (const std::string refusal : {"stale", "type", "alias", "native_span"}) {
+    for (const bool write : {false, true}) {
+      SCOPED_TRACE(refusal + (write ? " write" : " dry-run"));
+      test::native_overworld::NativeDirectoryFixture fixture;
+      const int stream_pc = refusal == "native_span"
+                                ? fixture.Entry(400).pc_address
+                                : kNativeObjectDataPc + 0x80;
+      auto image = NativeDoorTypeImage(192, stream_pc);
+      if (refusal == "alias") {
+        PutLong(image, kObjectPointerTablePc + 3, PcToSnes(stream_pc));
+        PutLong(image, zelda3::kDoorPointers + 3, PcToSnes(stream_pc + 8));
+      }
+      Rom rom;
+      ASSERT_TRUE(rom.LoadFromData(image).ok());
+      ScopedRomArtifactsCleanup cleanup(MakeUniqueTempRomPath());
+      ScopedFileCleanup manifest(cleanup.rom_path.string() + ".manifest.json");
+      WriteNativeObjectManifest(manifest.file_path, stream_pc,
+                                stream_pc + 0x40);
+      WriteRomFile(rom, cleanup.rom_path);
+      rom.set_filename(cleanup.rom_path.string());
+      rom.set_dirty(false);
+      handlers::DungeonSetDoorTypeCommandHandler handler;
+      std::vector<std::string> args = {
+          "--room=0x00",
+          "--x=46",
+          "--y=58",
+          refusal == "type" ? "--type=0xFF" : "--type=0x00",
+          refusal == "stale" ? "--expect-type=0x00" : "--expect-type=0x18",
+          "--manifest=" + manifest.file_path.string(),
+          "--format=json"};
+      if (write)
+        args.push_back("--write");
+      std::string output;
+      const auto status = handler.Run(args, &rom, &output);
+      EXPECT_FALSE(status.ok()) << output;
+      if (refusal == "native_span")
+        EXPECT_THAT(std::string(status.message()),
+                    HasSubstr("native overworld storage"));
+      EXPECT_EQ(rom.vector(), image);
+      EXPECT_EQ(ReadFile(cleanup.rom_path), image);
+      EXPECT_FALSE(rom.dirty());
+      EXPECT_TRUE(FindBackupArtifacts(cleanup.rom_path).empty());
+    }
+  }
 }
 
 TEST(DungeonNativeObjectRouteTest, ImportMovesStreamIntoAllocRangeAndReopens) {
