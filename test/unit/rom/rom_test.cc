@@ -120,7 +120,9 @@ TEST_F(RomTest, LoadFromFile) {
   YAZE_SKIP_IF_ROM_MISSING(RomRole::kVanilla, "RomTest.LoadFromFile");
   const std::string rom_path = TestRomManager::GetRomPath(RomRole::kVanilla);
   EXPECT_OK(rom_.LoadFromFile(rom_path));
-  EXPECT_EQ(rom_.size(), 0x200000);
+  // The vanilla role may be the 1 MiB retail image or a 2 MiB expanded copy.
+  EXPECT_THAT(rom_.size(), ::testing::AnyOf(::testing::Eq(0x100000u),
+                                            ::testing::Eq(0x200000u)));
   EXPECT_NE(rom_.data(), nullptr);
 }
 
