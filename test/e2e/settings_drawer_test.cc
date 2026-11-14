@@ -3,21 +3,27 @@
 #include "e2e/settings_drawer_test.h"
 
 #include <chrono>
+#include <cstdlib>
 #include <filesystem>
 #include <fstream>
 #include <iterator>
 #include <memory>
+#include <optional>
 #include <string>
 #include <utility>
 
 #include "absl/cleanup/cleanup.h"
+#include "absl/status/status.h"
 
 #include "app/controller.h"
 #include "app/editor/editor_manager.h"
 #include "app/editor/menu/right_drawer_manager.h"
 #include "app/editor/shell/coordinator/ui_coordinator.h"
 #include "app/editor/shell/windows/project_management_panel.h"
+#include "app/editor/system/session/build_log_view_model.h"
+#include "app/editor/system/session/project_workflow_status.h"
 #include "app/gui/core/icons.h"
+#include "app/service/screenshot_utils.h"
 #include "imgui/imgui_internal.h"
 #include "imgui_test_engine/imgui_te_context.h"
 #include "imgui_test_engine/imgui_te_engine.h"
@@ -421,6 +427,266 @@ void LongProjectBuildFieldsRoundtrip(ImGuiTestContext* ctx) {
            initial_target + target_edit + second_target_edit);
 }
 
+constexpr char kSidebarWindow[] = "//Project Sidebar";
+constexpr char kSidebarOutput[] = "//Project Sidebar/project_build_output";
+constexpr char kSidebarLog[] =
+    "//Project Sidebar/project_build_output/##build_log";
+
+struct BuildOutputSidebarState {
+  std::unique_ptr<yaze::project::YazeProject> project;
+  yaze::editor::ProjectManagementPanel panel;
+  float width = 320.0f;
+  bool active = false;
+  std::string clipboard;
+};
+
+BuildOutputSidebarState& SidebarState() {
+  static BuildOutputSidebarState state;
+  return state;
+}
+
+const char* SidebarClipboardGet(ImGuiContext*) {
+  return SidebarState().clipboard.c_str();
+}
+
+void SidebarClipboardSet(ImGuiContext*, const char* text) {
+  SidebarState().clipboard = text != nullptr ? text : "";
+}
+
+// Trimmed from an actual Oracle build_rom.sh run; the drive-letter warning
+// covers Windows paths.
+std::string OracleBuildLogFixture(const std::string& receipt_path) {
+  return "[*] Validating custom collision source contract...\n"
+         "[+] Custom collision source contract OK\n"
+         "[*] Validating expanded message source contract...\n"
+         "[+] Expanded message source contract OK\n"
+         "[*] Assembling Oracle_main.asm\n"
+         "Core/credits_text.asm:59: warning: (Wfeature_deprecated): "
+         "DEPRECATION NOTIFICATION: Feature \"warnpc\" is deprecated and will "
+         "be REMOVED in the future. [warnpc $0EB178+$057D]\n"
+         "Items/bombchu_receipt.asm:3: warning: "
+         "(Wunrecognized_special_command): Unrecognized special command - "
+         "your version of Asar might be outdated.\n"
+         "C:\\oracle\\Overworld\\special_overworld_graphics.asm:85: warning: "
+         "(W65816_yy_x_does_not_exist): ($yy),x does not exist, assuming "
+         "$yy,x. [LDA.l ($00D1<<16),X]\n"
+         "---  Music  ---\n"
+         "Song bank 1: 0x1A3F bytes free\n"
+         "Song bank 2: 0x0C10 bytes free\n"
+         "---  Overworld  ---\n"
+         "Special overworld page Tile16: 48 pages\n"
+         "[*] Checking mapped emission starts in Roms/oos168x.sym...\n"
+         "[+] No unowned mapped emission starts in ZScream reserved regions.\n"
+         "[-] analysis: unavailable (Analyzer missing; set OOS_ANALYZER "
+         "explicitly in isolated copies; required=0).\n"
+         "[-] smoke: unavailable (No OOS_TEST_SOCKET; no emulator "
+         "autodiscovery attempted; required=0).\n"
+         "Build receipt: " +
+         receipt_path + "\n";
+}
+
+std::string OracleBuildReceiptFixture() {
+  static const char* kPassed[] = {
+      "source_sprite_sheets", "menu_icon_sheets",
+      "collision_source",     "message_source",
+      "native_overworld_constants", "water_tables",
+      "water_fill",           "flags",
+      "menu",                 "version_stamp",
+      "assembly",             "native_overworld_readers",
+      "native_overworld_preservation", "wall_kit_palette_ownership",
+      "hooks_generation",     "hooks",
+      "manifest",             "symbol_export",
+      "overlap"};
+  std::string checks;
+  for (const char* name : kPassed) {
+    checks += std::string("{\"name\":\"") + name +
+              "\",\"status\":\"passed\",\"required\":true,"
+              "\"detail\":\"Command completed successfully\"},";
+  }
+  checks +=
+      "{\"name\":\"analysis\",\"status\":\"unavailable\",\"required\":false,"
+      "\"detail\":\"Analyzer missing\"},"
+      "{\"name\":\"smoke\",\"status\":\"unavailable\",\"required\":false,"
+      "\"detail\":\"No OOS_TEST_SOCKET\"}";
+  return "{\"state\":\"completed_with_gaps\",\"finish\":{\"exit_code\":0,"
+         "\"required_gaps\":[],\"optional_gaps\":[\"analysis\",\"smoke\"]},"
+         "\"checks\":[" +
+         checks + "]}";
+}
+
+void DrawBuildOutputSidebar(ImGuiTestContext*) {
+  auto& state = SidebarState();
+  if (!state.active) {
+    return;
+  }
+  const ImGuiViewport* viewport = ImGui::GetMainViewport();
+  const ImVec2 margin(20, 20);
+  ImGui::SetNextWindowPos(viewport->WorkPos + margin, ImGuiCond_Always);
+  ImGui::SetNextWindowSize(
+      ImVec2(state.width, ImMin(760.0f, viewport->WorkSize.y - margin.y * 2)),
+      ImGuiCond_Always);
+  if (ImGui::Begin(kSidebarWindow + 2, nullptr,
+                   ImGuiWindowFlags_NoSavedSettings)) {
+    state.panel.Draw();
+  }
+  ImGui::End();
+}
+
+absl::Status CaptureSidebar(ImGuiTestContext* ctx, Controller* controller,
+                            const std::filesystem::path& path) {
+  auto result = std::make_shared<
+      std::optional<absl::StatusOr<yaze::test::ScreenshotArtifact>>>();
+  controller->RequestScreenshot(
+      {.preferred_path = path.string(),
+       .format = yaze::test::ScreenshotFormat::kPng,
+       .reveal_to_user = false,
+       .callback =
+           [result](absl::StatusOr<yaze::test::ScreenshotArtifact> image) {
+             *result = std::move(image);
+           }});
+  for (int frame = 0; frame < 200 && !result->has_value(); ++frame) {
+    ctx->Yield(1);
+  }
+  if (!result->has_value()) {
+    return absl::DeadlineExceededError("GUI capture timed out");
+  }
+  return result->value().status();
+}
+
+void BuildOutputSidebarWidths(ImGuiTestContext* ctx) {
+  auto& state = SidebarState();
+  auto* controller = static_cast<Controller*>(ctx->Test->UserData);
+  IM_CHECK(controller != nullptr);
+  const auto root =
+      std::filesystem::temp_directory_path() /
+      ("yaze-build-output-sidebar-" +
+       std::to_string(
+           std::chrono::steady_clock::now().time_since_epoch().count()));
+  std::error_code error;
+  std::filesystem::create_directories(root, error);
+  IM_CHECK(!error);
+  const auto receipt_path = root / "oos168x.build.json";
+  {
+    std::ofstream receipt(receipt_path, std::ios::binary);
+    receipt << OracleBuildReceiptFixture();
+  }
+  const std::string log = OracleBuildLogFixture(receipt_path.string());
+  const auto summary = yaze::editor::ParseBuildLog(log);
+  IM_CHECK_EQ(summary.warnings, 3);
+  IM_CHECK_EQ(summary.errors, 0);
+
+  ImGuiPlatformIO& platform_io = ImGui::GetPlatformIO();
+  const auto saved_get = platform_io.Platform_GetClipboardTextFn;
+  const auto saved_set = platform_io.Platform_SetClipboardTextFn;
+  platform_io.Platform_GetClipboardTextFn = &SidebarClipboardGet;
+  platform_io.Platform_SetClipboardTextFn = &SidebarClipboardSet;
+  absl::Cleanup cleanup = [&] {
+    state.active = false;
+    state.panel.SetBuildLogOutput("");
+    state.panel.SetProject(nullptr);
+    state.project.reset();
+    state.clipboard.clear();
+    platform_io.Platform_GetClipboardTextFn = saved_get;
+    platform_io.Platform_SetClipboardTextFn = saved_set;
+    if (ctx->IsError()) {
+      ctx->LogInfo("Retained failed sidebar fixture: %s",
+                   root.string().c_str());
+    } else {
+      std::filesystem::remove_all(root, error);
+    }
+  };
+
+  state.project = std::make_unique<yaze::project::YazeProject>();
+  state.project->name = "Oracle build output fixture";
+  state.project->filepath = (root / "project.yaze").string();
+  state.panel.SetProject(state.project.get());
+  yaze::editor::ProjectWorkflowStatus status;
+  status.visible = true;
+  status.label = "Build";
+  status.summary = "Build completed with gaps";
+  status.detail = "exit 0; optional analysis and smoke unavailable";
+  status.state = yaze::editor::ProjectWorkflowState::kSuccess;
+  state.panel.SetBuildStatus(status);
+  state.panel.SetBuildLogOutput(log);
+
+  const char* capture_env = std::getenv("YAZE_E2E_CAPTURE_DIR");
+  const std::filesystem::path capture_dir =
+      capture_env != nullptr ? capture_env : "";
+  const auto capture = [&](float width, const char* view) {
+    if (capture_dir.empty()) {
+      return;
+    }
+    const auto path = capture_dir / ("build-output-sidebar-" +
+                                     std::to_string(static_cast<int>(width)) +
+                                     "-" + view + ".png");
+    IM_CHECK(CaptureSidebar(ctx, controller, path).ok());
+    ctx->LogInfo("Captured %s", path.string().c_str());
+  };
+  const auto step_nodes_match = [&](bool problems_only, bool raw) {
+    ctx->SetRef(ctx->WindowInfo(kSidebarLog).Window);
+    bool ok = raw != ctx->ItemExists("##receipt_checks");
+    for (size_t i = 0; i < summary.steps.size(); ++i) {
+      const auto& step = summary.steps[i];
+      if (step.lines.empty()) {
+        continue;
+      }
+      const bool problem =
+          step.severity == yaze::editor::BuildLogSeverity::kWarning ||
+          step.severity == yaze::editor::BuildLogSeverity::kError;
+      const bool expected = !raw && (!problems_only || problem);
+      const std::string ref = "$$" + std::to_string(i) + "/##step";
+      ok = ok && ctx->ItemExists(ref.c_str()) == expected;
+    }
+    ctx->SetRef(kSidebarOutput);
+    return ok;
+  };
+
+  for (const float width : {320.0f, 480.0f}) {
+    state.width = width;
+    state.active = true;
+    ctx->Yield(3);
+    ImGuiWindow* sidebar = ctx->GetWindowByRef(kSidebarWindow);
+    IM_CHECK(sidebar != nullptr);
+    IM_CHECK(ctx->WindowInfo(kSidebarLog).Window != nullptr);
+    ctx->SetRef(kSidebarOutput);
+    for (const char* ref : {ICON_MD_FILTER_LIST, ICON_MD_RECEIPT_LONG,
+                            ICON_MD_CONTENT_COPY "##copy_build_log"}) {
+      const ImGuiTestItemInfo item = ctx->ItemInfo(ref);
+      IM_CHECK(item.ID != 0);
+      IM_CHECK_LE(item.RectFull.Max.x, sidebar->InnerClipRect.Max.x + 0.5f);
+      IM_CHECK_GE(item.RectFull.Min.x, sidebar->InnerClipRect.Min.x - 0.5f);
+    }
+    ctx->LogInfo("Sidebar %.0fpx: inner %.1f, content ideal %.1f", width,
+                 sidebar->InnerClipRect.GetWidth(),
+                 sidebar->ContentSizeIdeal.x);
+    IM_CHECK(step_nodes_match(false, false));
+
+    ctx->SetRef(ctx->WindowInfo(kSidebarLog).Window);
+    ctx->ItemOpen("##receipt_checks");
+    ctx->SetRef(kSidebarOutput);
+    ctx->Yield(2);
+    capture(width, "default");
+
+    ctx->ItemClick(ICON_MD_FILTER_LIST);
+    ctx->Yield(2);
+    IM_CHECK(step_nodes_match(true, false));
+    capture(width, "problems-only");
+    ctx->ItemClick(ICON_MD_FILTER_LIST);
+
+    ctx->ItemClick(ICON_MD_RECEIPT_LONG);
+    ctx->Yield(2);
+    IM_CHECK(step_nodes_match(false, true));
+    capture(width, "raw");
+    ctx->ItemClick(ICON_MD_RECEIPT_LONG);
+    ctx->Yield(2);
+    IM_CHECK(step_nodes_match(false, false));
+
+    state.clipboard.clear();
+    ctx->ItemClick(ICON_MD_CONTENT_COPY "##copy_build_log");
+    IM_CHECK(state.clipboard == log);
+  }
+}
+
 }  // namespace
 
 namespace yaze {
@@ -452,6 +718,11 @@ void RegisterSettingsDrawerTests(ImGuiTestEngine* engine,
       IM_REGISTER_TEST(engine, "ProjectManagement", "LongBuildFieldsRoundtrip");
   build_fields->GuiFunc = DrawProjectBuildFields;
   build_fields->TestFunc = LongProjectBuildFieldsRoundtrip;
+  ImGuiTest* build_output =
+      IM_REGISTER_TEST(engine, "ProjectManagement", "BuildOutputSidebarWidths");
+  build_output->GuiFunc = DrawBuildOutputSidebar;
+  build_output->TestFunc = BuildOutputSidebarWidths;
+  build_output->UserData = controller;
 }
 
 }  // namespace e2e
