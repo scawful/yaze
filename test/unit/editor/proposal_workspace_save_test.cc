@@ -160,21 +160,32 @@ TEST_F(ProposalWorkspaceSaveTest, CleanSourceDraftGetsItsOwnCommittedSave) {
   EXPECT_EQ(Hash(root_ / "baseline.rom"), Hash(draft_ / "rom"));
 }
 
-TEST_F(ProposalWorkspaceSaveTest, StartupPanelDrawsAfterTargetEditorActivates) {
+class ProposalStartupPanelTest
+    : public ProposalWorkspaceSaveTest,
+      public ::testing::WithParamInterface<std::string> {};
+
+TEST_P(ProposalStartupPanelTest, DrawsAfterTargetEditorActivates) {
+  const std::string& editor = GetParam();
+  // Mirrors the --proposal startup configuration in main.cc.
   AppConfig config;
-  config.startup_editor = "Overworld";
-  config.jump_to_map = 0xA0;
+  config.startup_editor = editor;
   config.welcome_mode = StartupVisibility::kHide;
   config.dashboard_mode = StartupVisibility::kHide;
   config.sidebar_mode = StartupVisibility::kHide;
   config.open_panels = {"proposal.workbench"};
+  if (editor == "Dungeon") {
+    config.jump_to_room = 0x25;
+    config.open_panels.push_back("dungeon.workbench");
+  } else {
+    config.jump_to_map = 0xA0;
+  }
   manager_->ProcessStartupActions(config);
 
   auto& windows = manager_->window_manager();
   const size_t session = manager_->GetCurrentSessionId();
   ASSERT_TRUE(windows.IsWindowOpen(session, "proposal.workbench"));
   // Deferred editor activation leaves the target editor's category active.
-  windows.SetActiveCategory("Overworld", /*notify=*/false);
+  windows.SetActiveCategory(editor, /*notify=*/false);
 
   ImGuiIO& io = ImGui::GetIO();
   io.IniFilename = nullptr;
@@ -193,6 +204,10 @@ TEST_F(ProposalWorkspaceSaveTest, StartupPanelDrawsAfterTargetEditorActivates) {
   ASSERT_NE(window, nullptr) << name;
   EXPECT_TRUE(window->Active) << name;
 }
+
+INSTANTIATE_TEST_SUITE_P(TargetEditors, ProposalStartupPanelTest,
+                         ::testing::Values("Overworld", "Dungeon"),
+                         [](const auto& info) { return info.param; });
 
 TEST_F(ProposalWorkspaceSaveTest, DifferentActiveRomRefusesBeforeWriting) {
   const auto before = Hash(draft_ / "project.yaze");
