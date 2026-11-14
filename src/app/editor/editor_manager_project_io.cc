@@ -1202,6 +1202,10 @@ absl::Status EditorManager::SaveRomInternal(
   ASSIGN_OR_RETURN(auto prepared, PrepareRomSave(save_as_filename));
   auto* current_rom = prepared->rom;
   const auto* save_project = &prepared->project;
+  RETURN_IF_ERROR(core::CheckNativeSaveReceiptOwner(
+      save_project->project_opened()
+          ? save_project->filepath
+          : save_as_filename.value_or(current_rom->filename())));
   if (prepared->lyra_a0_only) {
     auto* overworld = static_cast<OverworldEditor*>(
         GetCurrentEditorSet()->GetExistingEditor(EditorType::kOverworld));

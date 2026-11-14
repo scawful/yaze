@@ -795,6 +795,36 @@ ReadVerifiedCommittedNativeSaveIdentity(
       editing_source_path, project_descriptor_path, expected_editable_rom_path);
 }
 
+absl::Status CheckNativeSaveReceiptOwner(const fs::path& owner) {
+  std::error_code error;
+  const auto canonical_owner = fs::weakly_canonical(owner, error);
+  if (error || canonical_owner.empty()) {
+    return absl::OkStatus();
+  }
+  const auto receipt_path = fs::weakly_canonical(
+      canonical_owner.string() + ".native-save.json", error);
+  if (error || !fs::is_regular_file(fs::symlink_status(receipt_path, error)) ||
+      error) {
+    return absl::OkStatus();
+  }
+  const auto text = ReadBoundedFile(receipt_path, kMaxReceiptBytes);
+  if (!text.ok()) {
+    return absl::OkStatus();
+  }
+  const auto receipt = Json::parse(*text, nullptr, false);
+  if (!receipt.is_object() || receipt.value("kind", Json()) != kKind ||
+      !receipt.contains("receipt_path") ||
+      !receipt["receipt_path"].is_string() ||
+      receipt["receipt_path"] == PathText(receipt_path)) {
+    return absl::OkStatus();
+  }
+  return absl::FailedPreconditionError(absl::StrCat(
+      "Save receipt ", PathText(receipt_path), " was published for ",
+      receipt["receipt_path"].get<std::string>(),
+      "; a copied project keeps the original's save history. Use Save As, or "
+      "move the copied receipt aside. Nothing was saved."));
+}
+
 }  // namespace yaze::core
 
 #else
@@ -820,6 +850,10 @@ absl::StatusOr<VerifiedNativeSaveIdentity>
 ReadVerifiedCommittedNativeSaveIdentity(const std::string&, const std::string&,
                                         const std::optional<std::string>&) {
   return absl::UnimplementedError("Native save receipts require JSON support");
+}
+
+absl::Status CheckNativeSaveReceiptOwner(const std::filesystem::path&) {
+  return absl::OkStatus();
 }
 
 }  // namespace yaze::core

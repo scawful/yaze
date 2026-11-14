@@ -1501,6 +1501,68 @@ TEST_F(NativeSaveReceiptIntegrationTest,
   ExpectArtifact(receipt, "rom", source_);
 }
 
+// A copied project carries the original's receipt. Saving the copy must refuse
+// before its descriptor, the ROM or the save context change.
+TEST_F(NativeSaveReceiptIntegrationTest,
+       CopiedProjectSaveRefusesForeignReceiptBeforeWriting) {
+  ASSERT_NO_FATAL_FAILURE(CommitBaseline());
+  auto* project = manager_->GetCurrentProject();
+  const auto original = project->filepath;
+  const auto copy = cleanup_.path / "copy" / "project.yaze";
+  const auto copy_receipt = copy.string() + ".native-save.json";
+  ASSERT_TRUE(std::filesystem::create_directory(copy.parent_path()));
+  ASSERT_TRUE(std::filesystem::copy_file(original, copy));
+  ASSERT_TRUE(std::filesystem::copy_file(receipt_, copy_receipt));
+  const auto descriptor = ReadText(copy);
+  const auto receipt = ReadText(receipt_);
+  const auto rom = ReadText(source_);
+  const auto context = ReadText(context_);
+  project->filepath = copy.string();
+
+  const auto expect_refused_unchanged = [&](const absl::Status& refused) {
+    ASSERT_TRUE(absl::IsFailedPrecondition(refused)) << refused;
+    EXPECT_NE(refused.message().find(ReceiptPathText(receipt_)),
+              std::string::npos)
+        << refused;
+    EXPECT_NE(refused.message().find("Nothing was saved"), std::string::npos)
+        << refused;
+    EXPECT_EQ(ReadText(copy), descriptor);
+    EXPECT_EQ(ReadText(copy_receipt), receipt);
+    EXPECT_EQ(ReadText(receipt_), receipt);
+    EXPECT_EQ(ReadText(source_), rom);
+    EXPECT_EQ(ReadText(context_), context);
+  };
+  project->name = "Edited in the copy";
+  manager_->MarkCurrentProjectDirty();
+  expect_refused_unchanged(manager_->SaveCurrentSession());
+  EXPECT_TRUE(manager_->IsCurrentProjectDirty());
+  ASSERT_OK(manager_->GetCurrentRom()->WriteByte(0x1234, 0xA5));
+  expect_refused_unchanged(manager_->SaveRom());
+  EXPECT_TRUE(manager_->GetCurrentRom()->dirty());
+
+  project->filepath = original;
+  ASSERT_OK(manager_->SaveCurrentSession());
+  EXPECT_EQ(ReadReceipt(receipt_).at("generation"), 2u);
+  EXPECT_NE(ReadText(source_), rom);
+  project::YazeProject reopened;
+  ASSERT_OK(reopened.Open(original));
+  EXPECT_EQ(reopened.name, "Edited in the copy");
+}
+
+TEST_F(NativeSaveReceiptIntegrationTest,
+       MalformedReceiptIsStillRefusedAndLeftUnchanged) {
+  ASSERT_NO_FATAL_FAILURE(BindProject());
+  std::ofstream(receipt_, std::ios::binary) << "not a receipt";
+  manager_->GetCurrentProject()->name = "Saved beside a malformed receipt";
+  manager_->MarkCurrentProjectDirty();
+  const auto refused = manager_->SaveCurrentSession();
+  ASSERT_FALSE(refused.ok());
+  EXPECT_NE(refused.message().find("Invalid prior native save receipt"),
+            std::string::npos)
+      << refused;
+  EXPECT_EQ(ReadText(receipt_), "not a receipt");
+}
+
 // A project-only receipt binds the ROM only as this session loaded or last
 // wrote it, copier header included; another writer's bytes are never blessed.
 TEST_F(NativeSaveReceiptIntegrationTest,

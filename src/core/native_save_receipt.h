@@ -69,6 +69,12 @@ struct NativeSaveReceipt {
 absl::StatusOr<NativeSaveReceipt> PublishNativeSaveReceipt(
     const NativeSaveReceiptRequest& request);
 
+// Refuses a save before it writes anything when the receipt beside |owner|
+// (the project descriptor, or the ROM without a project) was published for
+// another location, as a copied project carries. A missing, unreadable or
+// malformed receipt passes here and stays with PublishNativeSaveReceipt.
+absl::Status CheckNativeSaveReceiptOwner(const std::filesystem::path& owner);
+
 struct VerifiedNativeSaveIdentity {
   uint64_t generation = 0;
   std::string operation_id;
