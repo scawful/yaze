@@ -40,6 +40,8 @@ class GfxSheetSource {
   static bool Selected(const project::YazeProject& project);
   static absl::StatusOr<GfxSheetSource> Load(
       const project::YazeProject& project);
+  // Test-only: install already-validated sheet rows without a project spec.
+  static GfxSheetSource WithSheetsForTest(std::map<uint16_t, Sheet> sheets);
   static absl::StatusOr<std::vector<uint8_t>> DecodeText(
       const std::string& text);
   static std::string EncodeText(const std::vector<uint8_t>& pixels);

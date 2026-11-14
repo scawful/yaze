@@ -1618,9 +1618,11 @@ Overworld::GetTile8CollisionTypes(int map_id) const {
     return absl::FailedPreconditionError(
         "Unknown ZScream collision layout; no vanilla fallback");
   }
+
+  const auto* map = overworld_map(map_id);
+  std::array<uint8_t, kNumTileTypes> types{};
   if (layout == zscream::LayoutDialect::kZScreamV5) {
     RETURN_IF_ERROR(zscream::ValidateSheetCollisionTable(*rom_));
-    const auto* map = overworld_map(map_id);
     if (!map) {
       return absl::FailedPreconditionError(
           "Map must be loaded before resolving per-sheet collisions");
@@ -1632,16 +1634,61 @@ Overworld::GetTile8CollisionTypes(int map_id) const {
       sheets[slot] =
           map->MainSlotProvenance(static_cast<int>(slot)).effective_sheet;
     }
-    return zscream::ComposeTile8Collisions(*rom_, sheets);
+    ASSIGN_OR_RETURN(types, zscream::ComposeTile8Collisions(*rom_, sheets));
+  } else {
+    const size_t offset = version_constants().kOverworldTilesType;
+    if (offset > rom_->vector().size() ||
+        rom_->vector().size() - offset < all_tiles_types_.size()) {
+      return absl::OutOfRangeError("Incomplete legacy collision table");
+    }
+    std::copy_n(rom_->vector().begin() + offset, types.size(), types.begin());
   }
-  const size_t offset = version_constants().kOverworldTilesType;
-  if (offset > rom_->vector().size() ||
-      rom_->vector().size() - offset < all_tiles_types_.size()) {
-    return absl::OutOfRangeError("Incomplete legacy collision table");
+
+  if (game_data_ && game_data_->gfx_sheet_source.has_value()) {
+    if (!map) {
+      return absl::FailedPreconditionError(
+          "Map must be loaded before composing source-sheet collisions");
+    }
+    zscream::ResolvedSheetIds sheets{};
+    for (size_t slot = 0; slot < sheets.size(); ++slot) {
+      sheets[slot] =
+          map->MainSlotProvenance(static_cast<int>(slot)).effective_sheet;
+    }
+    RETURN_IF_ERROR(ApplySourceSheetCollisionOverrides(
+        sheets, *game_data_->gfx_sheet_source, &types));
   }
-  std::array<uint8_t, kNumTileTypes> types{};
-  std::copy_n(rom_->vector().begin() + offset, types.size(), types.begin());
   return types;
+}
+
+absl::Status Overworld::ApplySourceSheetCollisionOverrides(
+    const zscream::ResolvedSheetIds& sheets, const core::GfxSheetSource& source,
+    std::array<uint8_t, kNumTileTypes>* types) {
+  if (types == nullptr) {
+    return absl::InvalidArgumentError("Collision preview table is required");
+  }
+  const auto& source_sheets = source.sheets();
+  for (size_t slot = 0; slot < sheets.size(); ++slot) {
+    const uint16_t sheet_id = sheets[slot];
+    const auto found = source_sheets.find(sheet_id);
+    if (found == source_sheets.end())
+      continue;
+    if (!found->second.collision_attributes.has_value()) {
+      return absl::FailedPreconditionError(absl::StrFormat(
+          "Source sheet $%02X is bound without collision_attributes; "
+          "refusing misleading collision preview",
+          sheet_id));
+    }
+    const auto& attrs = *found->second.collision_attributes;
+    if (attrs.size() != zscream::kCollisionsPerSheet) {
+      return absl::FailedPreconditionError(absl::StrFormat(
+          "Source sheet $%02X collision_attributes must be %zu bytes", sheet_id,
+          zscream::kCollisionsPerSheet));
+    }
+    std::copy(attrs.begin(), attrs.end(),
+              types->begin() + static_cast<std::ptrdiff_t>(
+                                   slot * zscream::kCollisionsPerSheet));
+  }
+  return absl::OkStatus();
 }
 
 void Overworld::InvalidateMapCache(int map_index) {

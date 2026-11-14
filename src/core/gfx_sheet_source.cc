@@ -375,6 +375,12 @@ bool GfxSheetSource::Selected(const project::YazeProject& project) {
   return !project.graphics_sheets.source_spec.empty() ||
          !project.graphics_sheets.source_spec_sha1.empty();
 }
+GfxSheetSource GfxSheetSource::WithSheetsForTest(
+    std::map<uint16_t, Sheet> sheets) {
+  GfxSheetSource source;
+  source.sheets_ = std::move(sheets);
+  return source;
+}
 std::string GfxSheetSource::SpecSha1(const std::string& bytes) {
   return util::ComputeSha1Hex(reinterpret_cast<const uint8_t*>(bytes.data()),
                               bytes.size());

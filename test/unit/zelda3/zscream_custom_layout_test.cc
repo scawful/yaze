@@ -7,6 +7,7 @@
 #include <vector>
 
 #include "absl/status/status.h"
+#include "core/gfx_sheet_source.h"
 #include "gtest/gtest.h"
 #include "rom/rom.h"
 #include "zelda3/overworld/overworld.h"
@@ -273,6 +274,37 @@ TEST(ZscreamCustomLayoutTest, LegacyCollisionSaveRejectsCustomBeforeAnyWrite) {
     EXPECT_EQ(rom.vector(), before);
     EXPECT_EQ(rom.dirty(), was_dirty);
   }
+}
+
+TEST(ZscreamCustomLayoutTest,
+     SourceSheetAttributesOverlayPriorSheetsAndRefuseMissing) {
+  std::array<uint8_t, kNumTileTypes> types{};
+  types.fill(0xAA);
+  zs::ResolvedSheetIds sheets{0x10, 0xF6, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16};
+
+  core::GfxSheetSource::Sheet with_attrs;
+  with_attrs.collision_attributes = std::vector<uint8_t>(64, 0x01);
+  (*with_attrs.collision_attributes)[3] = 0x22;
+  auto source = core::GfxSheetSource::WithSheetsForTest({{0xF6, with_attrs}});
+
+  const auto overlaid =
+      Overworld::ApplySourceSheetCollisionOverrides(sheets, source, &types);
+  ASSERT_TRUE(overlaid.ok()) << overlaid;
+  EXPECT_EQ(types[64 + 3], 0x22);
+  EXPECT_EQ(types[0], 0xAA);    // unbound ROM sheet keeps base
+  EXPECT_EQ(types[64], 0x01);   // source overlay
+  EXPECT_EQ(types[128], 0xAA);  // later unbound slot keeps base
+
+  // Bound sheet without attributes must refuse rather than leave legacy bytes.
+  core::GfxSheetSource::Sheet missing_attrs;
+  auto incomplete = core::GfxSheetSource::WithSheetsForTest(
+      {{0xF6, with_attrs}, {0x11, missing_attrs}});
+  sheets[2] = 0x11;
+  const auto refused =
+      Overworld::ApplySourceSheetCollisionOverrides(sheets, incomplete, &types);
+  EXPECT_EQ(refused.code(), absl::StatusCode::kFailedPrecondition);
+  EXPECT_NE(std::string(refused.message()).find("without collision_attributes"),
+            std::string::npos);
 }
 
 TEST(ZscreamCustomLayoutTest, CollisionModelRejectsMissingOrShortRom) {

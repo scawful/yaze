@@ -496,6 +496,13 @@ class Overworld {
   absl::StatusOr<std::array<uint8_t, kNumTileTypes>> GetTile8CollisionTypes(
       int map_id) const;
 
+  // Overlay authenticated source-sheet collision attributes onto a composed
+  // PriorSheets preview table. Bound sheets without attributes refuse.
+  static absl::Status ApplySourceSheetCollisionOverrides(
+      const zscream::ResolvedSheetIds& sheets,
+      const core::GfxSheetSource& source,
+      std::array<uint8_t, kNumTileTypes>* types);
+
   /// @brief Load sprite data for all game states
   absl::Status LoadSprites();
   absl::StatusOr<OverworldSpriteEdits> PrepareSpriteEdits() const;
