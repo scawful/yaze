@@ -307,6 +307,59 @@ TEST(LyraLayoutDescriptorTest, PageTile16NormalModelSaveUndoFailureAndReopen) {
   EXPECT_EQ(reopened.vector(), fixture.bytes);
 }
 
+TEST(LyraLayoutDescriptorTest, PageTile16ReusedModelClearsOverrides) {
+  const char* legacy_path = std::getenv("YAZE_TEST_ROM_OOS");
+  ASSERT_NE(legacy_path, nullptr);
+  ASSERT_TRUE(std::filesystem::exists(legacy_path));
+  NativeDirectoryFixture prototype;
+  prototype.SeedNativeSpritePrefix();
+  prototype.bytes[zelda3::overworldItemsAddressBank] = 0x1B;
+  prototype.Word(0xD8000, 0xFFFF);
+  for (int map = 0; map < 192; ++map)
+    prototype.Word(prototype.Entry(23).pc_address + map * 2, 0x8000);
+  prototype.UpgradeToRevision4();
+  prototype.AddPageTile16();
+  const std::vector<rom::NativePageTile16Definition> rows = {
+      {0x8D, 0x2A, {0xC123, 0x4567, 0x89AB, 0xCDEF}}};
+  const auto encoded = rom::EncodeNativePageTile16(rows, 192, 16);
+  ASSERT_TRUE(encoded.ok()) << encoded.status();
+  std::copy(encoded->begin(), encoded->end(),
+            prototype.bytes.begin() + prototype.Entry(413).pc_address);
+  prototype.Seal();
+  Rom admitted;
+  ASSERT_TRUE(admitted.LoadFromData(prototype.bytes).ok());
+  admitted.EnableExperimentalPageTile16();
+  auto world = std::make_unique<zelda3::Overworld>(&admitted);
+  for (const int revision : {3, 4, 0}) {
+    SCOPED_TRACE(revision);
+    ASSERT_TRUE(world->Load(&admitted).ok());
+    ASSERT_EQ(world->page_tile16(), rows);
+    EXPECT_NE(world->Tiles16ForMap(0x8D)[0x2A], world->tiles16()[0x2A]);
+    NativeDirectoryFixture ordinary;
+    ordinary.SeedNativeSpritePrefix();
+    ordinary.bytes[zelda3::overworldItemsAddressBank] = 0x1B;
+    ordinary.Word(0xD8000, 0xFFFF);
+    for (int map = 0; map < 192; ++map)
+      ordinary.Word(ordinary.Entry(23).pc_address + map * 2, 0x8000);
+    if (revision == 4)
+      ordinary.UpgradeToRevision4();
+    ordinary.Seal();
+    const auto bytes = revision == 0 ? ReadBytes(legacy_path) : ordinary.bytes;
+    Rom replacement;
+    ASSERT_TRUE(replacement.LoadFromData(bytes).ok());
+    EXPECT_FALSE(replacement.experimental_page_tile16());
+    const auto loaded = world->Load(&replacement);
+    ASSERT_TRUE(loaded.ok()) << loaded;
+    ASSERT_TRUE(world->page_tile16().empty());
+    EXPECT_EQ(world->Tiles16ForMap(0x8D)[0x2A], world->tiles16()[0x2A]);
+    EXPECT_EQ(replacement.vector(), bytes);
+    ASSERT_TRUE(world->Load(&admitted).ok());
+    ASSERT_FALSE(world->page_tile16().empty());
+    world->Destroy();
+    EXPECT_TRUE(world->page_tile16().empty());
+  }
+}
+
 TEST(LyraLayoutDescriptorTest, PageTile16OldFormatsNormalSavePreservesBytes) {
   const auto flags = core::FeatureFlags::get();
   auto restore = absl::MakeCleanup([&] { core::FeatureFlags::get() = flags; });
