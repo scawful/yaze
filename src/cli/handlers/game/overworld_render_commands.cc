@@ -437,6 +437,10 @@ absl::Status OverworldExportNativeSourceCommandHandler::Execute(
   for (int map_id = 128; map_id < layout.capacity; ++map_id)
     if (snapshot.pages[map_id].appearance_flags != 0)
       resident_areas.insert(snapshot.geometry[map_id].parent);
+  // Page definitions also need the area's graphics inputs, even when its
+  // original appearance flag selected the shared global dictionary.
+  for (const auto& definition : world.page_tile16())
+    resident_areas.insert(snapshot.geometry[definition.map_id].parent);
   for (int map_id = 128; map_id < layout.capacity; ++map_id) {
     const auto* map = world.overworld_map(map_id);
     const auto& raw = snapshot.pages[map_id];
@@ -462,7 +466,7 @@ absl::Status OverworldExportNativeSourceCommandHandler::Execute(
         {"mosaic", raw.mosaic},
         {"appearance_flags", raw.appearance_flags},
         {"background_palette_words",
-         layout.revision == 4 ? nlohmann::json(raw.appearance_bg_palette)
+         layout.revision >= 4 ? nlohmann::json(raw.appearance_bg_palette)
                               : nlohmann::json(nullptr)}};
     auto states = nlohmann::json::array();
     // Untouched legacy special maps can contain unused palette selectors.
@@ -573,7 +577,7 @@ absl::Status OverworldExportNativeSourceCommandHandler::Execute(
               {"resident_required", false}};
     }
     area["maps"].push_back(map_id);
-    if (raw.appearance_flags != 0)
+    if (resident_areas.contains(map->parent()))
       area["resident_required"] = true;
   }
   auto gameplay_areas = nlohmann::json::array();

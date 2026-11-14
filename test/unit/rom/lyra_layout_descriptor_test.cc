@@ -2158,6 +2158,25 @@ TEST_F(NativeSpecialOverworldEditorTest, SavedNativeSourceExport) {
       }
       EXPECT_EQ(document.vector(), before);
       EXPECT_FALSE(document.dirty());
+      if (revision == 5) {
+        const std::array<rom::NativeOverworldPropertyEdit, 1> clear_appearance =
+            {rom::NativeOverworldPropertyEdit{
+                410, static_cast<uint16_t>(selected), {0}}};
+        ASSERT_TRUE(document
+                        .CommitNativeTerrainImage(document.vector(),
+                                                  document.vector(),
+                                                  clear_appearance)
+                        .ok());
+        document.ClearDirty();
+        const auto page_only = run();
+        ASSERT_TRUE(page_only.ok()) << page_only.status();
+        EXPECT_EQ(
+            page_only
+                ->at(
+                    "native_source")["pages"][selected - 128]["resolved_states"]
+                .size(),
+            3);
+      }
       document.set_dirty(true);
       const auto refused = run();
       EXPECT_TRUE(absl::IsFailedPrecondition(refused.status()));
