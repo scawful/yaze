@@ -356,6 +356,7 @@ if(YAZE_BUILD_TESTS)
     unit/cli/dungeon_spawn_report_commands_test.cc
     unit/cli/dungeon_stream_plan_commands_test.cc
     unit/cli/message_commands_policy_test.cc
+    unit/cli/tools_test_helpers_commands_test.cc
   )
   set(QUICK_UNIT_EDITOR_TEST_SOURCES
     unit/editor/dungeon_editor_v2_rom_safety_test.cc

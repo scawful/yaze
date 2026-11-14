@@ -19,6 +19,7 @@
 #include "rom/rom.h"
 #include "zelda3/overworld/overworld.h"
 #include "zelda3/overworld/overworld_map.h"
+#include "zelda3/overworld/overworld_version_helper.h"
 
 namespace yaze {
 namespace cli {
@@ -26,14 +27,28 @@ namespace handlers {
 
 using namespace zelda3;
 
+namespace {
+
+// z3ed consumes the global --rom flag before command parsing and loads it as
+// the command ROM, so these tools reopen that file by its path.
+absl::StatusOr<std::string> LoadedRomPath(const Rom* rom) {
+  if (rom == nullptr || rom->filename().empty()) {
+    return absl::FailedPreconditionError(
+        "This tool needs a ROM file; pass --rom=<path>");
+  }
+  return rom->filename();
+}
+
+}  // namespace
+
 // =============================================================================
 // ToolsHarnessStateCommandHandler
 // =============================================================================
 
 absl::Status ToolsHarnessStateCommandHandler::Execute(
-    Rom* /*rom*/, const resources::ArgumentParser& parser,
+    Rom* rom, const resources::ArgumentParser& parser,
     resources::OutputFormatter& formatter) {
-  std::string rom_path = parser.GetString("rom").value_or("");
+  ASSIGN_OR_RETURN(const std::string rom_path, LoadedRomPath(rom));
   std::string output_path = parser.GetString("output").value_or("");
 
   auto status = GenerateHarnessState(rom_path, output_path);
@@ -152,14 +167,9 @@ absl::Status ToolsHarnessStateCommandHandler::GenerateHarnessState(
 absl::Status ToolsExtractValuesCommandHandler::Execute(
     Rom* rom, const resources::ArgumentParser& parser,
     resources::OutputFormatter& formatter) {
-  std::string rom_path = parser.GetString("rom").value_or("");
   std::string format = parser.GetString("format").value_or("cpp");
-
-  // Load the ROM if not already loaded
   if (!rom || rom->size() == 0) {
-    Rom loaded_rom;
-    RETURN_IF_ERROR(loaded_rom.LoadFromFile(rom_path));
-    rom = &loaded_rom;
+    return absl::FailedPreconditionError("No ROM loaded; pass --rom=<path>");
   }
 
   std::ostringstream output;
@@ -168,7 +178,7 @@ absl::Status ToolsExtractValuesCommandHandler::Execute(
     output << "{\n";
     output << "  \"asm_version\": \"0x" << std::hex << std::setw(2)
            << std::setfill('0')
-           << static_cast<int>((*rom)[OverworldCustomASMHasBeenApplied])
+           << static_cast<int>(OverworldVersionHelper::GetAsmVersion(*rom))
            << "\",\n";
     output << "  \"area_graphics\": [";
     for (int i = 0; i < 10; i++) {
@@ -201,7 +211,7 @@ absl::Status ToolsExtractValuesCommandHandler::Execute(
 
     output << "constexpr uint8_t kVanillaASMVersion = 0x" << std::hex
            << std::setw(2) << std::setfill('0')
-           << static_cast<int>((*rom)[OverworldCustomASMHasBeenApplied])
+           << static_cast<int>(OverworldVersionHelper::GetAsmVersion(*rom))
            << ";\n\n";
 
     output << "// Area graphics for first 10 maps\n";
@@ -248,7 +258,7 @@ absl::Status ToolsExtractValuesCommandHandler::Execute(
 absl::Status ToolsExtractGoldenCommandHandler::Execute(
     Rom* rom, const resources::ArgumentParser& parser,
     resources::OutputFormatter& formatter) {
-  std::string rom_path = parser.GetString("rom").value_or("");
+  ASSIGN_OR_RETURN(const std::string rom_path, LoadedRomPath(rom));
   std::string output_path = parser.GetString("output").value_or("");
 
   // Load ROM
@@ -417,7 +427,7 @@ void ToolsExtractGoldenCommandHandler::WriteFooter(std::ofstream& out) {
 // =============================================================================
 
 absl::Status ToolsPatchV3CommandHandler::Execute(
-    Rom* /*rom*/, const resources::ArgumentParser& parser,
+    Rom* active_rom, const resources::ArgumentParser& parser,
     resources::OutputFormatter& formatter) {
   // This utility loads an independent ROM rather than the guarded active one.
   if (project_ != nullptr && project_->rom_metadata.write_policy ==
@@ -425,7 +435,7 @@ absl::Status ToolsPatchV3CommandHandler::Execute(
     return absl::PermissionDeniedError(
         "ROM patching is disabled by the project's read-only policy");
   }
-  std::string input_path = parser.GetString("rom").value_or("");
+  ASSIGN_OR_RETURN(const std::string input_path, LoadedRomPath(active_rom));
   std::string output_path = parser.GetString("output").value_or("");
 
   // Load the vanilla ROM
@@ -447,56 +457,61 @@ absl::Status ToolsPatchV3CommandHandler::Execute(
 
 absl::Status ToolsPatchV3CommandHandler::ApplyV3Patch(Rom& rom) {
   // Set ASM version to v3
-  rom.WriteByte(OverworldCustomASMHasBeenApplied, 0x03);
+  RETURN_IF_ERROR(rom.WriteByte(OverworldCustomASMHasBeenApplied, 0x03));
 
   // Enable v3 features
-  rom.WriteByte(OverworldCustomAreaSpecificBGEnabled, 0x01);
-  rom.WriteByte(OverworldCustomSubscreenOverlayEnabled, 0x01);
-  rom.WriteByte(OverworldCustomAnimatedGFXEnabled, 0x01);
-  rom.WriteByte(OverworldCustomTileGFXGroupEnabled, 0x01);
-  rom.WriteByte(OverworldCustomMosaicEnabled, 0x01);
-  rom.WriteByte(OverworldCustomMainPaletteEnabled, 0x01);
+  RETURN_IF_ERROR(rom.WriteByte(OverworldCustomAreaSpecificBGEnabled, 0x01));
+  RETURN_IF_ERROR(rom.WriteByte(OverworldCustomSubscreenOverlayEnabled, 0x01));
+  RETURN_IF_ERROR(rom.WriteByte(OverworldCustomAnimatedGFXEnabled, 0x01));
+  RETURN_IF_ERROR(rom.WriteByte(OverworldCustomTileGFXGroupEnabled, 0x01));
+  RETURN_IF_ERROR(rom.WriteByte(OverworldCustomMosaicEnabled, 0x01));
+  RETURN_IF_ERROR(rom.WriteByte(OverworldCustomMainPaletteEnabled, 0x01));
 
   // Apply v3 settings to first 10 maps for testing
   for (int i = 0; i < 10; i++) {
     // Set area sizes (mix of different sizes)
     auto area_size = static_cast<AreaSizeEnum>(i % 4);
-    rom.WriteByte(kOverworldScreenSize + i, static_cast<uint8_t>(area_size));
+    RETURN_IF_ERROR(rom.WriteByte(kOverworldScreenSize + i,
+                                  static_cast<uint8_t>(area_size)));
 
     // Set main palettes
-    rom.WriteByte(OverworldCustomMainPaletteArray + i, i % 8);
+    RETURN_IF_ERROR(rom.WriteByte(OverworldCustomMainPaletteArray + i, i % 8));
 
     // Set area-specific background colors
     uint16_t bg_color = 0x0000 + (i * 0x1000);
-    rom.WriteByte(OverworldCustomAreaSpecificBGPalette + (i * 2),
-                  bg_color & 0xFF);
-    rom.WriteByte(OverworldCustomAreaSpecificBGPalette + (i * 2) + 1,
-                  (bg_color >> 8) & 0xFF);
+    RETURN_IF_ERROR(rom.WriteByte(
+        OverworldCustomAreaSpecificBGPalette + (i * 2), bg_color & 0xFF));
+    RETURN_IF_ERROR(
+        rom.WriteByte(OverworldCustomAreaSpecificBGPalette + (i * 2) + 1,
+                      (bg_color >> 8) & 0xFF));
 
     // Set subscreen overlays
     uint16_t overlay = 0x0090 + i;
-    rom.WriteByte(OverworldCustomSubscreenOverlayArray + (i * 2),
-                  overlay & 0xFF);
-    rom.WriteByte(OverworldCustomSubscreenOverlayArray + (i * 2) + 1,
-                  (overlay >> 8) & 0xFF);
+    RETURN_IF_ERROR(rom.WriteByte(
+        OverworldCustomSubscreenOverlayArray + (i * 2), overlay & 0xFF));
+    RETURN_IF_ERROR(
+        rom.WriteByte(OverworldCustomSubscreenOverlayArray + (i * 2) + 1,
+                      (overlay >> 8) & 0xFF));
 
     // Set animated GFX
-    rom.WriteByte(OverworldCustomAnimatedGFXArray + i, 0x50 + i);
+    RETURN_IF_ERROR(
+        rom.WriteByte(OverworldCustomAnimatedGFXArray + i, 0x50 + i));
 
     // Set custom tile GFX groups (8 bytes per map)
     for (int j = 0; j < 8; j++) {
-      rom.WriteByte(OverworldCustomTileGFXGroupArray + (i * 8) + j,
-                    0x20 + j + i);
+      RETURN_IF_ERROR(rom.WriteByte(
+          OverworldCustomTileGFXGroupArray + (i * 8) + j, 0x20 + j + i));
     }
 
     // Set mosaic settings
-    rom.WriteByte(OverworldCustomMosaicArray + i, i % 16);
+    RETURN_IF_ERROR(rom.WriteByte(OverworldCustomMosaicArray + i, i % 16));
 
     // Set expanded message IDs
     uint16_t message_id = 0x1000 + i;
-    rom.WriteByte(kOverworldMessagesExpanded + (i * 2), message_id & 0xFF);
-    rom.WriteByte(kOverworldMessagesExpanded + (i * 2) + 1,
-                  (message_id >> 8) & 0xFF);
+    RETURN_IF_ERROR(
+        rom.WriteByte(kOverworldMessagesExpanded + (i * 2), message_id & 0xFF));
+    RETURN_IF_ERROR(rom.WriteByte(kOverworldMessagesExpanded + (i * 2) + 1,
+                                  (message_id >> 8) & 0xFF));
   }
 
   return absl::OkStatus();

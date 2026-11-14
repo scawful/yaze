@@ -20,8 +20,8 @@
 
 #include "absl/status/status.h"
 #include "app/emu/snes.h"
-#include "rom/rom.h"
 #include "cli/service/resources/command_handler.h"
+#include "rom/rom.h"
 #include "zelda3/overworld/overworld.h"
 #include "zelda3/overworld/overworld_map.h"
 
@@ -47,7 +47,7 @@ class ToolsHarnessStateCommandHandler : public resources::CommandHandler {
   }
 
   absl::Status ValidateArgs(const resources::ArgumentParser& parser) override {
-    return parser.RequireArgs({"rom", "output"});
+    return parser.RequireArgs({"output"});
   }
 
   absl::Status Execute(Rom* rom, const resources::ArgumentParser& parser,
@@ -75,7 +75,7 @@ class ToolsExtractValuesCommandHandler : public resources::CommandHandler {
   }
 
   absl::Status ValidateArgs(const resources::ArgumentParser& parser) override {
-    return parser.RequireArgs({"rom"});
+    return absl::OkStatus();
   }
 
   absl::Status Execute(Rom* rom, const resources::ArgumentParser& parser,
@@ -99,7 +99,7 @@ class ToolsExtractGoldenCommandHandler : public resources::CommandHandler {
   }
 
   absl::Status ValidateArgs(const resources::ArgumentParser& parser) override {
-    return parser.RequireArgs({"rom", "output"});
+    return parser.RequireArgs({"output"});
   }
 
   absl::Status Execute(Rom* rom, const resources::ArgumentParser& parser,
@@ -109,8 +109,7 @@ class ToolsExtractGoldenCommandHandler : public resources::CommandHandler {
   void WriteHeader(std::ofstream& out, const std::string& rom_path);
   void WriteBasicROMInfo(std::ofstream& out, Rom& rom);
   void WriteASMVersionInfo(std::ofstream& out, Rom& rom);
-  void WriteOverworldMapsData(std::ofstream& out,
-                              zelda3::Overworld& overworld);
+  void WriteOverworldMapsData(std::ofstream& out, zelda3::Overworld& overworld);
   void WriteTileData(std::ofstream& out, zelda3::Overworld& overworld);
   void WriteEntranceData(std::ofstream& out, zelda3::Overworld& overworld);
   void WriteFooter(std::ofstream& out);
@@ -133,7 +132,7 @@ class ToolsPatchV3CommandHandler : public resources::CommandHandler {
   }
 
   absl::Status ValidateArgs(const resources::ArgumentParser& parser) override {
-    return parser.RequireArgs({"rom", "output"});
+    return parser.RequireArgs({"output"});
   }
 
   absl::Status Execute(Rom* rom, const resources::ArgumentParser& parser,
@@ -172,4 +171,3 @@ class ToolsListCommandHandler : public resources::CommandHandler {
 }  // namespace yaze
 
 #endif  // YAZE_SRC_CLI_HANDLERS_TOOLS_TEST_HELPERS_COMMANDS_H_
-
