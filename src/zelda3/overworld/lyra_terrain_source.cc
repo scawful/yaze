@@ -32,6 +32,72 @@ std::string Tile16Fingerprint(const Overworld& overworld) {
 }
 }  // namespace
 
+absl::Status ImportNativePageTile16Source(
+    Overworld& overworld, const std::string& source_json,
+    std::span<const uint16_t> selected_maps) {
+  if (source_json.size() > 8 * 1024 * 1024)
+    return absl::InvalidArgumentError("Native source export is too large");
+  try {
+    const auto source = nlohmann::json::parse(source_json);
+    if (source.at("schema") !=
+            "yaze.special-overworld-native-source.experimental-v2" ||
+        source.at("directory_revision") != 5 ||
+        source.at("materialized_map_count") !=
+            overworld.materialized_map_count() ||
+        source.at("runtime_supported") != false ||
+        source.at("tile16_dictionary").at("sha256") !=
+            Tile16Fingerprint(overworld))
+      return absl::FailedPreconditionError(
+          "Native source page definitions require a matching global dictionary "
+          "and format");
+    const auto& table = source.at("page_tile16_definitions");
+    if (table.at("table_id") != rom::kNativePageTile16TableId ||
+        table.at("stride") != rom::kNativePageTile16Stride ||
+        !table.at("rows").is_array() || table.at("rows").size() > 0x10000 / 12)
+      return absl::InvalidArgumentError(
+          "Native source page definition table invalid");
+    auto read_word = [](const nlohmann::json& value) -> uint16_t {
+      if (!value.is_number_integer() || value.get<int64_t>() < 0 ||
+          value.get<int64_t>() > 65535)
+        throw std::out_of_range("Native source word outside 16 bits");
+      return value.get<uint16_t>();
+    };
+    std::vector<rom::NativePageTile16Definition> rows;
+    for (const auto& row : table.at("rows")) {
+      rom::NativePageTile16Definition definition;
+      definition.map_id = read_word(row.at("map_id"));
+      definition.tile_id = read_word(row.at("tile_id"));
+      const auto& words = row.at("words");
+      if (!words.is_array() || words.size() != 4)
+        return absl::InvalidArgumentError(
+            "Native source Tile16 requires four words");
+      for (size_t q = 0; q < 4; ++q)
+        definition.words[q] = read_word(words[q]);
+      rows.push_back(definition);
+    }
+    // Authenticate canonical row shape even for unselected pages; input cannot
+    // hide duplicate IDs or malformed rows outside the chosen subset.
+    auto count = table.at("count");
+    const auto row_capacity = read_word(count);
+    ASSIGN_OR_RETURN(auto encoded, rom::EncodeNativePageTile16(
+                                       rows, overworld.materialized_map_count(),
+                                       row_capacity));
+    const auto digest = core::ComputeSourceArtifactSha256(
+        {reinterpret_cast<const char*>(encoded.data()), encoded.size()});
+    if (table.at("sha256") != digest)
+      return absl::FailedPreconditionError(
+          "Native source page definition hash mismatch");
+    std::erase_if(rows, [&](const auto& row) {
+      return std::find(selected_maps.begin(), selected_maps.end(),
+                       row.map_id) == selected_maps.end();
+    });
+    return overworld.ImportPageTile16(selected_maps, rows);
+  } catch (const std::exception& error) {
+    return absl::InvalidArgumentError(std::string("Invalid native source: ") +
+                                      error.what());
+  }
+}
+
 absl::StatusOr<SpecialOverworldTerrainImportPlan>
 PlanSpecialOverworldTerrainImport(const Rom& source,
                                   const core::LyraTerrainDocument& document,

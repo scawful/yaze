@@ -232,6 +232,10 @@ class Rom {
   // The parsed result is derived from this ROM's current bytes. Attribution
   // captured at load prevents a damaged/erased signature from enabling saves.
   rom::LyraLayoutInspection InspectLyraLayout() const;
+  // Explicit session-local source prototype admission; never project-persisted.
+  // This does not admit Build, Run, installation, or runtime format migration.
+  void EnableExperimentalPageTile16() { experimental_page_tile16_ = true; }
+  bool experimental_page_tile16() const { return experimental_page_tile16_; }
   absl::Status CheckLayoutWritable() const;
   // File publication accepts a fully validated native image. Individual
   // WriteByte/Word/Vector operations retain the stricter generic-write policy.
@@ -243,7 +247,8 @@ class Rom {
       const rom::NativeOverworldAuthoringMetadata* baseline_metadata = nullptr,
       const rom::NativeOverworldAuthoringMetadata* publish_metadata = nullptr,
       const rom::NativeOverworldPaletteEdits* palettes = nullptr,
-      const rom::NativeOverworldEndpointEdits* endpoints = nullptr);
+      const rom::NativeOverworldEndpointEdits* endpoints = nullptr,
+      const rom::NativePageTile16Edits* page_tile16 = nullptr);
   // Commits a planned non-overworld edit on a native layout. Every changed
   // byte must lie inside `allowed`, and no allowed range may touch bytes that
   // native overworld Save owns.
@@ -319,6 +324,7 @@ class Rom {
   std::vector<uint8_t> copier_header_;
   CopierHeaderReason copier_header_reason_ = CopierHeaderReason::kNone;
   bool lyra_attributed_at_load_ = false;
+  bool experimental_page_tile16_ = false;
 
   // Label manager for unique resource names.
   project::ResourceLabelManager resource_label_manager_;

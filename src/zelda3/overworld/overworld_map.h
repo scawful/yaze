@@ -453,7 +453,7 @@ class OverworldMap : public gfx::GfxContext {
   bool uses_native_screen_appearance() const {
     return descriptor_layout_ &&
            rom::IsNativeSpecialOverworldLayout(*descriptor_layout_) &&
-           descriptor_layout_->revision == 4 && (appearance_flags_ & 1) != 0;
+           descriptor_layout_->revision >= 4 && (appearance_flags_ & 1) != 0;
   }
   void set_native_appearance_flags(uint8_t flags) { appearance_flags_ = flags; }
   /// Raw authored colors persist independently of the override presence flag.

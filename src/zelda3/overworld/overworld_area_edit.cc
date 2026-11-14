@@ -160,7 +160,7 @@ absl::Status Overworld::RestoreNativeAreaSnapshot(
     return checked.status();
   for (size_t map = 0; map < snapshot.pages.size(); ++map) {
     const auto& page = snapshot.pages[map];
-    const bool has_appearance = descriptor_layout_.revision == 4 && map >= 0x80;
+    const bool has_appearance = descriptor_layout_.revision >= 4 && map >= 0x80;
     if ((!has_appearance && page.appearance_flags != 0) ||
         (page.appearance_flags != 0 && page.appearance_flags != 1 &&
          page.appearance_flags != 3) ||

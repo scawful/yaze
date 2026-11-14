@@ -19,6 +19,27 @@ namespace yaze::rom {
 
 struct NativeOverworldEndpointEdits;
 
+// Source-only prototype. No runtime producer/reader is admitted by revision 5.
+// Entry 413 holds sorted (page, local Tile16 ID, TL/TR/BL/BR words) rows;
+// unused rows are twelve FF bytes. Entry 400 remains the global fallback.
+inline constexpr uint16_t kNativePageTile16TableId = 413;
+inline constexpr size_t kNativePageTile16Stride = 12;
+struct NativePageTile16Definition {
+  uint16_t map_id = 0;
+  uint16_t tile_id = 0;
+  std::array<uint16_t, 4> words{};
+  bool operator==(const NativePageTile16Definition&) const = default;
+};
+struct NativePageTile16Edits {
+  std::vector<NativePageTile16Definition> expected;
+  std::vector<NativePageTile16Definition> value;
+};
+absl::StatusOr<std::vector<NativePageTile16Definition>> DecodeNativePageTile16(
+    std::span<const uint8_t> bytes, uint16_t map_count);
+absl::StatusOr<std::vector<uint8_t>> EncodeNativePageTile16(
+    std::span<const NativePageTile16Definition> definitions, uint16_t map_count,
+    size_t row_capacity);
+
 // This is the proposed overworld ROM format, not the separate SRAM event format.
 // Validation describes the stored layout; runtime and writer admission are
 // separate. Revisions 1/2 retain their original inspection/pilot contracts.
@@ -58,7 +79,7 @@ struct LyraLayoutInspection {
 
 inline bool IsNativeSpecialOverworldLayout(const LyraLayoutInspection& layout) {
   return layout.presence == LyraLayoutPresence::kValid &&
-         (layout.revision == 3 || layout.revision == 4);
+         (layout.revision == 3 || layout.revision == 4 || layout.revision == 5);
 }
 
 // The input is a headerless ROM image. The caller owns session attribution:
@@ -144,7 +165,9 @@ absl::StatusOr<std::vector<uint8_t>> SealNativeOverworldTerrain(
     const NativeOverworldAuthoringMetadata* baseline_metadata = nullptr,
     const NativeOverworldAuthoringMetadata* publish_metadata = nullptr,
     const NativeOverworldPaletteEdits* palettes = nullptr,
-    const NativeOverworldEndpointEdits* endpoints = nullptr);
+    const NativeOverworldEndpointEdits* endpoints = nullptr,
+    const NativePageTile16Edits* page_tile16 = nullptr,
+    bool allow_experimental_page_tile16 = false);
 
 // Byte ranges [begin, end) that native special-overworld Save owns: the
 // directory, every directory table, the original-engine prefix copies kept in

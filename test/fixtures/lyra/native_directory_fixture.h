@@ -258,6 +258,18 @@ struct NativeDirectoryFixture {
     bytes[0x147015] = 0x3C;
     Seal();
   }
+  // Synthetic bank allocation only; no production migration is implied.
+  void AddPageTile16(uint16_t row_capacity = 16) {
+    Add(rom::kNativePageTile16TableId, 10, 0x2C0000, row_capacity,
+        rom::kNativePageTile16Stride);
+    std::fill_n(bytes.begin() + Entry(413).pc_address,
+                row_capacity * rom::kNativePageTile16Stride, 0xFF);
+    Word(0x147008, 5);
+    Word(0x14700C, 32 + rows.entries.size() * 16);
+    Word(0x147012, rows.entries.size());
+    bytes[0x147015] |= 0x40;
+    Seal();
+  }
   rom::NativeOverworldAuthoringMetadata SeedCanonicalPlacementRows() {
     // Canonical identities/order on a synthetic model allocation; this is
     // not the one-time project importer or runtime qualification.

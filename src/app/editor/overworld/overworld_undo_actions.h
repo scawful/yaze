@@ -24,6 +24,40 @@
 namespace yaze {
 namespace editor {
 
+// Uses the normal history service with selected-page snapshots. The source
+// prototype exposes no new UI, so adoption must explicitly bind this action.
+class OverworldPageTile16Action final : public UndoAction {
+ public:
+  OverworldPageTile16Action(zelda3::Overworld* world,
+                            std::vector<uint16_t> maps,
+                            std::vector<rom::NativePageTile16Definition> before,
+                            std::vector<rom::NativePageTile16Definition> after)
+      : world_(world),
+        maps_(std::move(maps)),
+        before_(std::move(before)),
+        after_(std::move(after)) {}
+  absl::Status Undo() override { return Apply(before_); }
+  absl::Status Redo() override { return Apply(after_); }
+  std::string Description() const override {
+    return "Import page Tile16 definitions";
+  }
+  size_t MemoryUsage() const override {
+    return sizeof(*this) + maps_.size() * sizeof(uint16_t) +
+           (before_.size() + after_.size()) *
+               sizeof(rom::NativePageTile16Definition);
+  }
+
+ private:
+  absl::Status Apply(const std::vector<rom::NativePageTile16Definition>& rows) {
+    if (!world_)
+      return absl::FailedPreconditionError("No overworld model");
+    return world_->ImportPageTile16(maps_, rows);
+  }
+  zelda3::Overworld* world_;
+  std::vector<uint16_t> maps_;
+  std::vector<rom::NativePageTile16Definition> before_, after_;
+};
+
 /**
  * @brief A single tile coordinate + old/new value pair for undo/redo.
  */

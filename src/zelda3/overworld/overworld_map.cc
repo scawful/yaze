@@ -224,7 +224,7 @@ absl::Status OverworldMap::LoadLayoutProperties() {
       rom::IsNativeSpecialOverworldLayout(*descriptor_layout_);
   appearance_flags_ = 0;
   appearance_bg_palette_.fill(0);
-  if (native_special && descriptor_layout_->revision == 4) {
+  if (native_special && descriptor_layout_->revision >= 4) {
     auto appear = rom::LyraLayoutRecord(*descriptor_layout_, rom_->data(),
                                         rom_->size(), 410, index_);
     if (!appear || appear->size() < 1) {

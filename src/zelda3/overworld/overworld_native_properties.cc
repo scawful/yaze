@@ -53,7 +53,7 @@ Overworld::CaptureNativePropertyRecords() const {
       }
     }
     if (rom::IsNativeSpecialOverworldLayout(descriptor_layout_) &&
-        descriptor_layout_.revision == 4) {
+        descriptor_layout_.revision >= 4) {
       add(410, index, map.native_appearance_flags());
       if (index >= 0x80) {
         std::vector<uint8_t> pal(256);

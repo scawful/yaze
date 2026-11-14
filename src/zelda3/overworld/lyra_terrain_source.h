@@ -22,6 +22,13 @@ struct PaletteGroupMap;
 namespace yaze::zelda3 {
 class Overworld;
 
+// Consume the existing native-source export's experimental page definitions.
+// Only selected pages are replaced; global dictionary and terrain grids remain
+// model-owned. This does not allocate storage or write a ROM/project file.
+absl::Status ImportNativePageTile16Source(
+    Overworld& overworld, const std::string& source_json,
+    std::span<const uint16_t> selected_maps);
+
 struct SpecialOverworldTerrainImportPlan {
   OverworldTile32Packing tile32;
   std::vector<OverworldGeometryRow> geometry;

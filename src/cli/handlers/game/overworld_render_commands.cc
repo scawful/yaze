@@ -610,6 +610,33 @@ absl::Status OverworldExportNativeSourceCommandHandler::Execute(
                         definition->count * definition->stride)}}},
       {"gameplay_areas", std::move(gameplay_areas)},
       {"pages", std::move(pages)}};
+  if (layout.revision == 5) {
+    const auto page_entry = std::find_if(
+        layout.entries.begin(), layout.entries.end(),
+        [](const auto& e) { return e.id == rom::kNativePageTile16TableId; });
+    ASSIGN_OR_RETURN(auto definitions,
+                     rom::DecodeNativePageTile16(
+                         {rom->data() + page_entry->pc_address,
+                          size_t{page_entry->count} * page_entry->stride},
+                         layout.capacity));
+    auto rows = nlohmann::json::array();
+    for (const auto& row : definitions)
+      rows.push_back({{"map_id", row.map_id},
+                      {"tile_id", row.tile_id},
+                      {"words", row.words}});
+    // Existing v1 consumers must not silently compile the global fallback.
+    result["schema"] = "yaze.special-overworld-native-source.experimental-v2";
+    result["runtime_supported"] = false;
+    result["page_tile16_definitions"] = {
+        {"table_id", rom::kNativePageTile16TableId},
+        {"pc_address", page_entry->pc_address},
+        {"snes_address", page_entry->snes_address},
+        {"count", page_entry->count},
+        {"stride", page_entry->stride},
+        {"sha256", hash(rom->data() + page_entry->pc_address,
+                        size_t{page_entry->count} * page_entry->stride)},
+        {"rows", std::move(rows)}};
+  }
   if (game_data.gfx_sheet_source) {
     // Source rows are not in this ROM's pointer table; name what supplied them.
     const auto& source = *game_data.gfx_sheet_source;

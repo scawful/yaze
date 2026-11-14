@@ -46,6 +46,7 @@
 #include "rom/native_overworld_authoring_metadata.h"
 #include "rom/rom.h"
 #include "rom/snes.h"
+#include "rom/transaction.h"
 #include "rom/write_fence.h"
 #include "unique_temp_path.h"
 #include "zelda3/dungeon/custom_collision.h"
@@ -76,6 +77,209 @@ using test::native_overworld::Put32;
 using test::native_overworld::ReadBytes;
 using test::native_overworld::Reseal;
 using test::native_overworld::WriteBytes;
+
+TEST(LyraLayoutDescriptorTest, PageTile16CodecRejectsAmbiguityAndOverflow) {
+  using Row = rom::NativePageTile16Definition;
+  const std::vector<Row> rows = {{0x8D, 0x234, {1, 2, 3, 4}},
+                                 {0x8E, 0x234, {0xC001, 6, 7, 8}}};
+  for (const size_t capacity : {size_t{2}, size_t{17}, size_t{2730}}) {
+    const auto bytes = rom::EncodeNativePageTile16(rows, 192, capacity);
+    ASSERT_TRUE(bytes.ok()) << bytes.status();
+    EXPECT_EQ(bytes->size(), capacity * 12);
+    EXPECT_EQ(rom::DecodeNativePageTile16(*bytes, 192).value(), rows);
+  }
+  EXPECT_FALSE(rom::EncodeNativePageTile16(rows, 192, 1).ok());
+  auto duplicate = rows;
+  duplicate[1].map_id = duplicate[0].map_id;
+  EXPECT_FALSE(rom::EncodeNativePageTile16(duplicate, 192, 2).ok());
+  duplicate = rows;
+  duplicate[1].tile_id = 4096;
+  EXPECT_FALSE(rom::EncodeNativePageTile16(duplicate, 192, 2).ok());
+  duplicate = rows;
+  duplicate[1].map_id = 0xC0;
+  EXPECT_FALSE(rom::EncodeNativePageTile16(duplicate, 192, 2).ok());
+  auto bytes = rom::EncodeNativePageTile16(rows, 192, 3).value();
+  bytes.back() = 0;
+  EXPECT_FALSE(rom::DecodeNativePageTile16(bytes, 192).ok());
+}
+
+TEST(LyraLayoutDescriptorTest, PageTile16AdmissionPreservationAndStaleSeal) {
+  using Row = rom::NativePageTile16Definition;
+  for (const uint16_t capacity : {160, 192}) {
+    for (const bool authoring : {false, true}) {
+      NativeDirectoryFixture fixture(capacity);
+      fixture.UpgradeToRevision4();
+      if (authoring)
+        fixture.AddAuthoringMetadata();
+      fixture.AddPageTile16(17);
+      const auto baseline = fixture.bytes;
+      const auto baseline_layout =
+          rom::InspectLyraLayout(baseline.data(), baseline.size());
+      auto layout = rom::InspectLyraLayout(baseline.data(), baseline.size());
+      ASSERT_EQ(layout.presence, rom::LyraLayoutPresence::kValid)
+          << layout.error;
+      EXPECT_TRUE(layout.offline_only);
+      Rom image;
+      ASSERT_TRUE(image.LoadFromData(baseline).ok());
+      EXPECT_FALSE(image.CheckLayoutSaveable().ok());
+      EXPECT_FALSE(image.CommitNativeTerrainImage(baseline, baseline).ok());
+      EXPECT_FALSE(rom::SealNativeOverworldTerrain(baseline, baseline).ok());
+      image.EnableExperimentalPageTile16();
+      ASSERT_TRUE(image.CommitNativeTerrainImage(baseline, baseline).ok());
+      EXPECT_EQ(image.vector(), baseline);
+      const rom::NativePageTile16Edits edits{
+          {}, {{0x8D, 0x234, {1, 2, 3, 4}}, {0x8E, 0x234, {5, 6, 7, 8}}}};
+      ASSERT_TRUE(image
+                      .CommitNativeTerrainImage(baseline, baseline, {}, {},
+                                                nullptr, nullptr, nullptr,
+                                                nullptr, &edits)
+                      .ok());
+      const auto saved = image.vector();
+      EXPECT_FALSE(image
+                       .CommitNativeTerrainImage(baseline, baseline, {}, {},
+                                                 nullptr, nullptr, nullptr,
+                                                 nullptr, &edits)
+                       .ok());
+      EXPECT_FALSE(image
+                       .CommitNativeTerrainImage(saved, saved, {}, {}, nullptr,
+                                                 nullptr, nullptr, nullptr,
+                                                 &edits)
+                       .ok());
+      EXPECT_EQ(image.vector(), saved);
+      layout = image.InspectLyraLayout();
+      const auto& entry = fixture.Entry(413);
+      EXPECT_EQ(
+          rom::DecodeNativePageTile16({image.data() + entry.pc_address,
+                                       entry.count * size_t{entry.stride}},
+                                      capacity)
+              .value(),
+          edits.value);
+      for (const auto& e : fixture.rows.entries) {
+        if (e.id == 413)
+          continue;
+        EXPECT_TRUE(
+            std::equal(baseline.begin() + e.pc_address,
+                       baseline.begin() + e.pc_address + e.count * e.stride,
+                       saved.begin() + e.pc_address))
+            << e.id;
+      }
+      for (int map = 0; map < capacity; ++map)
+        EXPECT_EQ(rom::LyraMapTile32(layout, saved.data(), saved.size(), map),
+                  rom::LyraMapTile32(baseline_layout, baseline.data(),
+                                     baseline.size(), map));
+      auto raw = saved;
+      raw[entry.pc_address + 4] ^= 1;
+      EXPECT_FALSE(image.CommitNativeTerrainImage(saved, raw).ok());
+      EXPECT_EQ(image.vector(), saved);
+      fixture.bytes = saved;
+      fixture.Word(0x147008, 6);
+      fixture.Seal();
+      EXPECT_EQ(
+          rom::InspectLyraLayout(fixture.bytes.data(), fixture.bytes.size())
+              .presence,
+          rom::LyraLayoutPresence::kInvalid);
+      fixture.Word(0x147008, 5);
+      fixture.bytes[0x147000] = 0;
+      fixture.Seal();
+      EXPECT_EQ(
+          rom::InspectLyraLayout(fixture.bytes.data(), fixture.bytes.size())
+              .presence,
+          rom::LyraLayoutPresence::kInvalid);
+    }
+  }
+}
+
+TEST(LyraLayoutDescriptorTest, PageTile16NormalModelSaveUndoFailureAndReopen) {
+  const auto flags = core::FeatureFlags::get();
+  auto restore = absl::MakeCleanup([&] { core::FeatureFlags::get() = flags; });
+  auto& save = core::FeatureFlags::get().overworld;
+  save.kSaveOverworldMaps = true;
+  save.kSaveOverworldSprites = false;
+  save.kSaveOverworldProperties = false;
+  save.kSaveOverworldEntrances = false;
+  save.kSaveOverworldExits = false;
+  save.kSaveOverworldItems = false;
+  NativeDirectoryFixture fixture;
+  fixture.SeedNativeSpritePrefix();
+  fixture.bytes[zelda3::overworldItemsAddressBank] = 0x1B;
+  fixture.Word(0xD8000, 0xFFFF);
+  for (int map = 0; map < 192; ++map)
+    fixture.Word(fixture.Entry(23).pc_address + map * 2, 0x8000);
+  fixture.UpgradeToRevision4();
+  fixture.AddAuthoringMetadata();
+  fixture.AddPageTile16();
+  Rom image;
+  ASSERT_TRUE(image.LoadFromData(fixture.bytes).ok());
+  image.EnableExperimentalPageTile16();
+  auto world = std::make_unique<zelda3::Overworld>(&image);
+  auto loaded = world->Load(&image);
+  ASSERT_TRUE(loaded.ok()) << loaded;
+  const auto light = world->GetMapTiles(0);
+  const auto dark = world->GetMapTiles(1);
+  const auto special = world->GetMapTiles(2);
+  const auto global = world->tiles16();
+  ASSERT_TRUE(world->SaveNativeTerrain().ok());
+  world->CommitSavedMapTiles();
+  EXPECT_EQ(image.vector(), fixture.bytes);
+  const std::vector<rom::NativePageTile16Definition> rows = {
+      {0x8D, 0x234, {1, 2, 3, 4}}, {0x8E, 0x234, {5, 6, 7, 8}}};
+  editor::OverworldPageTile16Action action(world.get(), {0x8D, 0x8E}, {}, rows);
+  ASSERT_TRUE(action.Redo().ok());
+  EXPECT_TRUE(image.dirty());
+  EXPECT_EQ(gfx::TileInfoToWord(world->Tiles16ForMap(0x8D)[0x234].tile0_), 1);
+  EXPECT_EQ(gfx::TileInfoToWord(world->Tiles16ForMap(0x8E)[0x234].tile0_), 5);
+  EXPECT_EQ(world->Tiles16ForMap(0x8F), global);
+  EXPECT_EQ(world->tiles16(), global);
+  const auto root = test::UniqueTempPath("page_tile16");
+  std::filesystem::create_directories(root);
+  auto cleanup = absl::MakeCleanup([&] { std::filesystem::remove_all(root); });
+  const auto target = root / "source.sfc";
+  WriteBytes(target, fixture.bytes);
+  auto save_file = [&]() -> absl::Status {
+    ScopedRomTransaction transaction(image);
+    const auto model_save = world->SaveNativeTerrain();
+    if (!model_save.ok())
+      return model_save;
+    const auto disk_save = image.SaveToFile({.filename = target.string()});
+    if (!disk_save.ok()) {
+      world->RollbackSavedMapTiles();
+      return disk_save;
+    }
+    world->CommitSavedMapTiles();
+    transaction.Commit();
+    return absl::OkStatus();
+  };
+  {
+    test::ScopedRomStagingFailure failure;
+    EXPECT_FALSE(save_file().ok());
+  }
+  EXPECT_EQ(image.vector(), fixture.bytes);
+  EXPECT_EQ(ReadBytes(target), fixture.bytes);
+  EXPECT_EQ(world->page_tile16(), rows);
+  auto saved = save_file();
+  ASSERT_TRUE(saved.ok()) << saved;
+  const auto persisted = ReadBytes(target);
+  ASSERT_TRUE(action.Undo().ok());
+  ASSERT_TRUE(save_file().ok());
+  EXPECT_EQ(ReadBytes(target), fixture.bytes);
+  ASSERT_TRUE(action.Redo().ok());
+  ASSERT_TRUE(save_file().ok());
+  EXPECT_EQ(ReadBytes(target), persisted);
+  EXPECT_EQ(world->GetMapTiles(0), light);
+  EXPECT_EQ(world->GetMapTiles(1), dark);
+  EXPECT_EQ(world->GetMapTiles(2), special);
+  Rom reopened;
+  ASSERT_TRUE(reopened.LoadFromData(ReadBytes(target)).ok());
+  EXPECT_FALSE(reopened.CheckLayoutSaveable().ok());
+  reopened.EnableExperimentalPageTile16();
+  auto fresh = std::make_unique<zelda3::Overworld>(&reopened);
+  loaded = fresh->Load(&reopened);
+  ASSERT_TRUE(loaded.ok()) << loaded;
+  EXPECT_EQ(fresh->page_tile16(), rows);
+  EXPECT_EQ(fresh->GetMapTiles(2), special);
+  ASSERT_TRUE(fresh->SaveNativeTerrain().ok());
+  EXPECT_EQ(reopened.vector(), persisted);
+}
 
 TEST(LyraLayoutDescriptorTest, NativeDirectoryDecodesBothCapacitiesById) {
   for (uint16_t capacity : {160, 192}) {

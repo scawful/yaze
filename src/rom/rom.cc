@@ -420,6 +420,12 @@ void Rom::SetStagingFailureForTesting(bool fail) {
 
 rom::LyraLayoutInspection Rom::InspectLyraLayout() const {
   auto result = rom::InspectLyraLayout(rom_data_.data(), rom_data_.size());
+  if (result.presence == rom::LyraLayoutPresence::kValid &&
+      result.revision == 5 && !experimental_page_tile16_) {
+    result.presence = rom::LyraLayoutPresence::kInvalid;
+    result.error =
+        "Native page Tile16 requires explicit source-only prototype admission";
+  }
   if (lyra_attributed_at_load_ &&
       result.presence == rom::LyraLayoutPresence::kAbsent) {
     result.presence = rom::LyraLayoutPresence::kInvalid;
@@ -466,15 +472,17 @@ absl::Status Rom::CommitNativeTerrainImage(
     const rom::NativeOverworldAuthoringMetadata* baseline_metadata,
     const rom::NativeOverworldAuthoringMetadata* publish_metadata,
     const rom::NativeOverworldPaletteEdits* palettes,
-    const rom::NativeOverworldEndpointEdits* endpoints) {
+    const rom::NativeOverworldEndpointEdits* endpoints,
+    const rom::NativePageTile16Edits* page_tile16) {
   RETURN_IF_ERROR(CheckLayoutSaveable());
   if (baseline != rom_data_)
     return absl::FailedPreconditionError(
         "ROM changed after native terrain planning");
-  ASSIGN_OR_RETURN(
-      candidate, rom::SealNativeOverworldTerrain(
-                     baseline, std::move(candidate), properties, sprites,
-                     baseline_metadata, publish_metadata, palettes, endpoints));
+  ASSIGN_OR_RETURN(candidate,
+                   rom::SealNativeOverworldTerrain(
+                       baseline, std::move(candidate), properties, sprites,
+                       baseline_metadata, publish_metadata, palettes, endpoints,
+                       page_tile16, experimental_page_tile16_));
   std::vector<std::pair<uint32_t, uint32_t>> changed;
   for (size_t pc = 0; pc < candidate.size();) {
     if (candidate[pc] == rom_data_[pc]) {
@@ -718,6 +726,7 @@ Rom::Rom(const Rom& other)
       copier_header_(other.copier_header_),
       copier_header_reason_(other.copier_header_reason_),
       lyra_attributed_at_load_(other.lyra_attributed_at_load_),
+      experimental_page_tile16_(other.experimental_page_tile16_),
       resource_label_manager_(other.resource_label_manager_),
       dirty_(other.dirty_),
       object_tile_revision_(other.object_tile_revision_) {
@@ -745,6 +754,7 @@ Rom& Rom::operator=(const Rom& other) {
   copier_header_ = other.copier_header_;
   copier_header_reason_ = other.copier_header_reason_;
   lyra_attributed_at_load_ = other.lyra_attributed_at_load_;
+  experimental_page_tile16_ = other.experimental_page_tile16_;
   resource_label_manager_ = other.resource_label_manager_;
   dirty_ = other.dirty_;
 
@@ -872,6 +882,7 @@ absl::Status Rom::LoadFromFile(const std::string& filename,
   }
   size_ = rom_data_.size();
 
+  experimental_page_tile16_ = false;
   lyra_attributed_at_load_ =
       rom::InspectLyraLayout(rom_data_.data(), rom_data_.size()).presence !=
       rom::LyraLayoutPresence::kAbsent;
@@ -936,6 +947,7 @@ absl::Status Rom::LoadFromData(const std::vector<uint8_t>& data,
   }
   size_ = rom_data_.size();
 
+  experimental_page_tile16_ = false;
   lyra_attributed_at_load_ =
       rom::InspectLyraLayout(rom_data_.data(), rom_data_.size()).presence !=
       rom::LyraLayoutPresence::kAbsent;

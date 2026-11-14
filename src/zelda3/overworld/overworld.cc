@@ -245,6 +245,16 @@ absl::Status Overworld::Load(Rom* rom) {
     gfx::ScopedTimer assembly_timer("AssembleTiles");
     RETURN_IF_ERROR(AssembleMap32Tiles());
     RETURN_IF_ERROR(AssembleMap16Tiles());
+    if (native && layout.revision == 5) {
+      const auto entry = std::find_if(
+          layout.entries.begin(), layout.entries.end(),
+          [](const auto& e) { return e.id == rom::kNativePageTile16TableId; });
+      ASSIGN_OR_RETURN(page_tile16_, rom::DecodeNativePageTile16(
+                                         {rom_->data() + entry->pc_address,
+                                          entry->count * size_t{entry->stride}},
+                                         layout.capacity));
+    }
+    loaded_page_tile16_ = page_tile16_;
   }
 
   // Phase 2: Map Decompression (major bottleneck - now parallelized)
@@ -405,6 +415,9 @@ absl::Status Overworld::BuildLyraTerrainPreview(
   expanded_entrances_ = profile.has_expanded_entrances;
   has_tail_map_expansion_ = profile.has_tail_map_expansion;
   tiles16_.clear();
+  page_tile16_.clear();
+  loaded_page_tile16_.clear();
+  staged_page_tile16_.reset();
   tiles32_unique_.clear();
   overworld_maps_.clear();
   built_map_lru_.clear();
@@ -1272,8 +1285,10 @@ absl::Status Overworld::LoadOverworldMaps() {
 
       SyncAreaProperties(i);
       auto task_function = [this, i, size, world_type]() {
+        auto definitions = Tiles16ForMap(i);
         return overworld_maps_[i].BuildMap(size, game_state_, world_type,
-                                           tiles16_, GetMapTiles(world_type));
+                                           definitions,
+                                           GetMapTiles(world_type));
       };
       futures.emplace_back(std::async(std::launch::async, task_function));
     } else {
@@ -1423,6 +1438,14 @@ absl::Status Overworld::BuildMapWithTilesetCache(int map_index,
                                                  int world_type) {
   auto& map = overworld_maps_[map_index];
   map.LoadAreaGraphics();
+  if (std::any_of(
+          page_tile16_.begin(), page_tile16_.end(),
+          [map_index](const auto& row) { return row.map_id == map_index; })) {
+    auto definitions = Tiles16ForMap(map_index);
+    return map.BuildMapWithCache(static_cast<int>(definitions.size()),
+                                 game_state_, world_type, definitions,
+                                 GetMapTiles(world_type), nullptr);
+  }
   // Preview-only DMA pixels must never enter the shared ordinary-sheet cache.
   if (map.HasGraphicsPreview()) {
     return map.BuildMapWithCache(static_cast<int>(tiles16_.size()), game_state_,
@@ -1841,7 +1864,8 @@ absl::Status Overworld::ValidatePrivateNativeTerrainSave() const {
   if (!rom_ || !rom_->has_lyra_private_reservation())
     return absl::OkStatus();
   RETURN_IF_ERROR(rom_->ValidateLyraPrivateReservation());
-  if (!MapTilesUnchanged() || tiles16_ != loaded_tiles16_) {
+  if (!MapTilesUnchanged() || tiles16_ != loaded_tiles16_ ||
+      page_tile16_ != loaded_page_tile16_) {
     return absl::FailedPreconditionError(
         "Private Lyra producer reservation refuses changed native terrain "
         "before serialization");
@@ -1862,6 +1886,7 @@ bool Overworld::MapTilesUnchanged() const {
 }
 
 void Overworld::StageSavedMapTiles() {
+  staged_page_tile16_ = page_tile16_;
   staged_map_tiles_ = map_tiles_;
   staged_map_tiles_valid_ = true;
 }
@@ -1916,6 +1941,10 @@ void Overworld::CommitSavedMapTiles() {
   loaded_map_tiles_ = std::move(staged_map_tiles_);
   loaded_map_tiles_valid_ = true;
   loaded_tiles16_ = tiles16_;
+  if (staged_page_tile16_) {
+    loaded_page_tile16_ = std::move(*staged_page_tile16_);
+    staged_page_tile16_.reset();
+  }
   if (!staged_tiles32_unique_.empty()) {
     tiles32_unique_ = std::move(staged_tiles32_unique_);
     tiles32_list_ = std::move(staged_tiles32_list_);
@@ -1925,6 +1954,7 @@ void Overworld::CommitSavedMapTiles() {
 }
 
 void Overworld::RollbackSavedMapTiles() {
+  staged_page_tile16_.reset();
   staged_expanded_geometry_.reset();
   for (auto& staged : staged_native_endpoints_)
     staged.reset();
@@ -2553,6 +2583,60 @@ absl::Status Overworld::SaveLargeMapsExpanded() {
   return absl::OkStatus();
 }
 
+std::vector<gfx::Tile16> Overworld::Tiles16ForMap(int map_id) const {
+  auto definitions = tiles16_;
+  for (const auto& row : page_tile16_) {
+    if (row.map_id != map_id || row.tile_id >= definitions.size())
+      continue;
+    definitions[row.tile_id] = gfx::Tile16(
+        gfx::WordToTileInfo(row.words[0]), gfx::WordToTileInfo(row.words[1]),
+        gfx::WordToTileInfo(row.words[2]), gfx::WordToTileInfo(row.words[3]));
+  }
+  return definitions;
+}
+
+absl::Status Overworld::ImportPageTile16(
+    std::span<const uint16_t> maps,
+    std::span<const rom::NativePageTile16Definition> definitions) {
+  if (!rom_ || !is_loaded_ || descriptor_layout_.revision != 5)
+    return absl::FailedPreconditionError(
+        "Load a revision-5 source prototype first");
+  RETURN_IF_ERROR(rom_->CheckLayoutSaveable());
+  std::set<uint16_t> selected;
+  for (auto map : maps) {
+    if (map < 0x80 || map >= materialized_map_count() ||
+        !selected.insert(map).second)
+      return absl::InvalidArgumentError("Native page Tile16 selection invalid");
+  }
+  if (selected.empty())
+    return absl::InvalidArgumentError("Select at least one native page");
+  for (const auto& row : definitions)
+    if (!selected.contains(row.map_id))
+      return absl::InvalidArgumentError(
+          "Native page Tile16 row outside selection");
+  std::vector<rom::NativePageTile16Definition> proposed;
+  for (const auto& row : page_tile16_)
+    if (!selected.contains(row.map_id))
+      proposed.push_back(row);
+  proposed.insert(proposed.end(), definitions.begin(), definitions.end());
+  std::sort(proposed.begin(), proposed.end(), [](const auto& a, const auto& b) {
+    return std::pair{a.map_id, a.tile_id} < std::pair{b.map_id, b.tile_id};
+  });
+  const auto entry = std::find_if(
+      descriptor_layout_.entries.begin(), descriptor_layout_.entries.end(),
+      [](const auto& e) { return e.id == rom::kNativePageTile16TableId; });
+  RETURN_IF_ERROR(rom::EncodeNativePageTile16(
+                      proposed, descriptor_layout_.capacity, entry->count)
+                      .status());
+  if (proposed == page_tile16_)
+    return absl::OkStatus();
+  page_tile16_ = std::move(proposed);
+  for (auto map : selected)
+    overworld_maps_[map].SetNotBuilt();
+  rom_->set_dirty(true);
+  return absl::OkStatus();
+}
+
 absl::Status Overworld::SaveNativeTerrain() {
   if (!rom_ || !is_loaded_ ||
       !rom::IsNativeSpecialOverworldLayout(descriptor_layout_))
@@ -2572,7 +2656,7 @@ absl::Status Overworld::SaveNativeTerrain() {
                                        flags.kSaveOverworldProperties};
   RETURN_IF_ERROR(ValidateNativeGeometrySaveFlags());
   const auto current = CaptureNativeNonTerrainState();
-  if (layout.revision == 4 && !flags.kSaveOverworldProperties &&
+  if (layout.revision >= 4 && !flags.kSaveOverworldProperties &&
       current[0] != native_nonterrain_baseline_[0])
     return absl::FailedPreconditionError(
         "Enable property saving to publish pending screen appearance");
@@ -2624,12 +2708,16 @@ absl::Status Overworld::SaveNativeTerrain() {
   }
   const auto* palette_ptr = palette_edits ? &*palette_edits : nullptr;
   const bool changed_maps = !MapTilesUnchanged();
+  const rom::NativePageTile16Edits page_edits{loaded_page_tile16_,
+                                              page_tile16_};
+  const auto* page_edits_ptr =
+      layout.revision == 5 && flags.kSaveOverworldMaps ? &page_edits : nullptr;
   if (!flags.kSaveOverworldMaps ||
       (!changed_maps && tiles16_ == loaded_tiles16_)) {
     RETURN_IF_ERROR(rom_->CommitNativeTerrainImage(
         rom_->vector(), rom_->vector(), property_edits, sprite_edits,
         baseline_metadata_ptr, publish_metadata_ptr, palette_ptr,
-        &endpoint_edits));
+        &endpoint_edits, page_edits_ptr));
     if (flags.kSaveOverworldEntrances)
       staged_native_endpoints_[0] = current[1];
     if (flags.kSaveOverworldExits)
@@ -2693,8 +2781,8 @@ absl::Status Overworld::SaveNativeTerrain() {
   }
   RETURN_IF_ERROR(rom_->CommitNativeTerrainImage(
       rom_->vector(), std::move(candidate), property_edits, sprite_edits,
-      baseline_metadata_ptr, publish_metadata_ptr, palette_ptr,
-      &endpoint_edits));
+      baseline_metadata_ptr, publish_metadata_ptr, palette_ptr, &endpoint_edits,
+      page_edits_ptr));
   if (flags.kSaveOverworldEntrances)
     staged_native_endpoints_[0] = current[1];
   if (flags.kSaveOverworldExits)

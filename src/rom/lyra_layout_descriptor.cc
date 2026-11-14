@@ -280,12 +280,14 @@ std::optional<EntrySpec> NativeSpec(uint16_t id, uint16_t capacity,
     return EntrySpec{id, 7, 4096, 8};
   if (id >= 401 && id <= 404)
     return EntrySpec{id, 7, 4432, 6};
-  if (revision == 4 && id == 410)
+  if (revision >= 4 && id == 410)
     return EntrySpec{id, 8, capacity, 1};
-  if (revision == 4 && id == 411)
+  if (revision >= 4 && id == 411)
     return EntrySpec{id, 8, 64, 256};
-  if (revision == 4 && authoring && id == kNativeAuthoringMetadataTableId)
+  if (revision >= 4 && authoring && id == kNativeAuthoringMetadataTableId)
     return EntrySpec{id, 9, 256, kNativeAuthoringMetadataStride};
+  if (revision == 5 && id == kNativePageTile16TableId)
+    return EntrySpec{id, 10, 0, kNativePageTile16Stride};
   return std::nullopt;
 }
 
@@ -297,11 +299,13 @@ LyraLayoutInspection InspectNativeLayout(const uint8_t* image, size_t size,
     return Invalid(std::move(error), revision, capacity, materialized);
   };
   const bool authoring =
-      revision == 4 && (d[0x15] & kNativeAuthoringMetadataFlag) != 0;
-  const size_t kNativeEntryCount = revision == 4 ? (authoring ? 57 : 56) : 54;
+      revision >= 4 && (d[0x15] & kNativeAuthoringMetadataFlag) != 0;
+  const size_t kNativeEntryCount =
+      (revision >= 4 ? (authoring ? 57 : 56) : 54) + (revision == 5 ? 1 : 0);
   const size_t kUsedSize = kHeaderSize + kNativeEntryCount * kEntrySize;
   const uint8_t expected_flags =
-      revision == 4 ? (authoring ? 0x3C : 0x1C) : 0x0C;
+      (revision >= 4 ? (authoring ? 0x3C : 0x1C) : 0x0C) |
+      (revision == 5 ? 0x40 : 0);
   if (U16(d + 8) != revision || U16(d + 0x0A) != kHeaderSize ||
       U16(d + 0x0C) != kUsedSize || U16(d + 0x12) != kNativeEntryCount) {
     return bad("Invalid native special-overworld directory size");
@@ -332,7 +336,7 @@ LyraLayoutInspection InspectNativeLayout(const uint8_t* image, size_t size,
   result.active_count = materialized;
   result.tail_actor_bank = d[0x14];
   result.write_supported = false;
-  result.offline_only = false;
+  result.offline_only = revision == 5;
   result.entries.reserve(kNativeEntryCount);
   for (size_t i = 0; i < kNativeEntryCount; ++i) {
     const uint8_t* p = d + kHeaderSize + i * kEntrySize;
@@ -504,7 +508,7 @@ LyraLayoutInspection InspectNativeLayout(const uint8_t* image, size_t size,
                     image + prefix))
       return bad("Native terrain pointer mirrors disagree");
   }
-  if (revision == 4) {
+  if (revision >= 4) {
     const auto* appear = FindEntry(result, 410);
     const auto* pal_rows = FindEntry(result, 411);
     if (!appear || !pal_rows)
@@ -540,10 +544,79 @@ LyraLayoutInspection InspectNativeLayout(const uint8_t* image, size_t size,
       result.has_authoring_metadata = true;
     }
   }
+  if (revision == 5) {
+    const auto* definitions = FindEntry(result, kNativePageTile16TableId);
+    if (!definitions)
+      return bad("Native page Tile16 record missing");
+    const auto decoded = DecodeNativePageTile16(
+        {image + definitions->pc_address,
+         size_t{definitions->count} * kNativePageTile16Stride},
+        capacity);
+    if (!decoded.ok())
+      return bad(std::string(decoded.status().message()));
+  }
   return result;
 }
 
 }  // namespace
+
+absl::StatusOr<std::vector<uint8_t>> EncodeNativePageTile16(
+    std::span<const NativePageTile16Definition> definitions, uint16_t map_count,
+    size_t row_capacity) {
+  if ((map_count != 160 && map_count != 192) || row_capacity == 0 ||
+      row_capacity > 0x10000 / kNativePageTile16Stride ||
+      definitions.size() > row_capacity)
+    return absl::InvalidArgumentError("Native page Tile16 capacity invalid");
+  std::vector<uint8_t> bytes(row_capacity * kNativePageTile16Stride, 0xFF);
+  uint32_t previous = 0;
+  for (size_t i = 0; i < definitions.size(); ++i) {
+    const auto& row = definitions[i];
+    const uint32_t key = (uint32_t{row.map_id} << 12) | row.tile_id;
+    if (row.map_id < 0x80 || row.map_id >= map_count || row.tile_id >= 4096 ||
+        (i != 0 && key <= previous))
+      return absl::InvalidArgumentError(
+          "Native page Tile16 rows require sorted unique page/local IDs");
+    previous = key;
+    const std::array<uint16_t, 6> words = {row.map_id,   row.tile_id,
+                                           row.words[0], row.words[1],
+                                           row.words[2], row.words[3]};
+    for (size_t w = 0; w < words.size(); ++w) {
+      bytes[i * kNativePageTile16Stride + w * 2] = words[w] & 0xFF;
+      bytes[i * kNativePageTile16Stride + w * 2 + 1] = words[w] >> 8;
+    }
+  }
+  return bytes;
+}
+
+absl::StatusOr<std::vector<NativePageTile16Definition>> DecodeNativePageTile16(
+    std::span<const uint8_t> bytes, uint16_t map_count) {
+  if (bytes.empty() || bytes.size() > 0x10000 ||
+      bytes.size() % kNativePageTile16Stride != 0)
+    return absl::InvalidArgumentError("Native page Tile16 extent invalid");
+  std::vector<NativePageTile16Definition> rows;
+  bool unused = false;
+  for (size_t i = 0; i < bytes.size() / kNativePageTile16Stride; ++i) {
+    const auto* row = bytes.data() + i * kNativePageTile16Stride;
+    if (U16(row) == 0xFFFF) {
+      unused = true;
+      if (!std::all_of(row, row + kNativePageTile16Stride,
+                       [](uint8_t b) { return b == 0xFF; }))
+        return absl::InvalidArgumentError("Native page Tile16 padding invalid");
+      continue;
+    }
+    if (unused)
+      return absl::InvalidArgumentError(
+          "Native page Tile16 rows follow padding");
+    rows.push_back({U16(row),
+                    U16(row + 2),
+                    {U16(row + 4), U16(row + 6), U16(row + 8), U16(row + 10)}});
+  }
+  auto validated = EncodeNativePageTile16(
+      rows, map_count, bytes.size() / kNativePageTile16Stride);
+  if (!validated.ok())
+    return validated.status();
+  return rows;
+}
 
 LyraLayoutInspection InspectLyraLayout(const uint8_t* image, size_t size) {
   LyraLayoutInspection absent;
@@ -573,8 +646,15 @@ LyraLayoutInspection InspectLyraLayout(const uint8_t* image, size_t size) {
       U16(d + 0x10) == U16(d + 0x0E) &&
       ((U16(d + 0x0C) == 928 && U16(d + 0x12) == 56 && d[0x15] == 0x1C) ||
        (U16(d + 0x0C) == 944 && U16(d + 0x12) == 57 && d[0x15] == 0x3C));
+  const bool native_header_rev5 =
+      available == kDescriptorSize && U16(d + 8) == 5 &&
+      U16(d + 0x0A) == kHeaderSize &&
+      (U16(d + 0x0E) == 160 || U16(d + 0x0E) == 192) &&
+      U16(d + 0x10) == U16(d + 0x0E) &&
+      ((U16(d + 0x0C) == 944 && U16(d + 0x12) == 57 && d[0x15] == 0x5C) ||
+       (U16(d + 0x0C) == 960 && U16(d + 0x12) == 58 && d[0x15] == 0x7C));
   bool native_fingerprint = false;
-  if (native_header_rev3 || native_header_rev4) {
+  if (native_header_rev3 || native_header_rev4 || native_header_rev5) {
     auto has_record = [&](uint16_t id, uint16_t kind, uint16_t count,
                           uint16_t stride) {
       for (size_t i = 0; i < U16(d + 0x12); ++i) {
@@ -589,7 +669,7 @@ LyraLayoutInspection InspectLyraLayout(const uint8_t* image, size_t size) {
     native_fingerprint = has_record(1, 1, cap, 2) &&
                          has_record(20, 1, cap, 3) &&
                          has_record(400, 7, 4096, 8);
-    if (native_header_rev4) {
+    if (native_header_rev4 || native_header_rev5) {
       native_fingerprint = native_fingerprint && has_record(410, 8, cap, 1) &&
                            has_record(411, 8, 64, 256);
       if ((d[0x15] & kNativeAuthoringMetadataFlag) != 0)
@@ -611,7 +691,7 @@ LyraLayoutInspection InspectLyraLayout(const uint8_t* image, size_t size) {
   const uint16_t revision = U16(d + 8);
   const uint16_t capacity = U16(d + 0x0E);
   const uint16_t active = U16(d + 0x10);
-  if (revision == 3 || revision == 4)
+  if (revision == 3 || revision == 4 || revision == 5)
     return InspectNativeLayout(image, size, d, revision);
   auto bad = [&](std::string error) {
     return Invalid(std::move(error), revision, capacity, active);
@@ -862,7 +942,9 @@ absl::StatusOr<std::vector<uint8_t>> SealNativeOverworldTerrain(
     const NativeOverworldAuthoringMetadata* baseline_metadata,
     const NativeOverworldAuthoringMetadata* publish_metadata,
     const NativeOverworldPaletteEdits* palettes,
-    const NativeOverworldEndpointEdits* endpoints) {
+    const NativeOverworldEndpointEdits* endpoints,
+    const NativePageTile16Edits* page_tile16,
+    bool allow_experimental_page_tile16) {
   const auto layout = InspectLyraLayout(baseline.data(), baseline.size());
   if (layout.presence != LyraLayoutPresence::kValid ||
       !IsNativeSpecialOverworldLayout(layout) ||
@@ -870,6 +952,12 @@ absl::StatusOr<std::vector<uint8_t>> SealNativeOverworldTerrain(
     return absl::FailedPreconditionError(
         "Native terrain publication requires a valid unchanged image extent");
   }
+  if (layout.revision == 5 && !allow_experimental_page_tile16)
+    return absl::FailedPreconditionError(
+        "Native page Tile16 requires explicit source-only prototype admission");
+  if (page_tile16 && layout.revision != 5)
+    return absl::FailedPreconditionError(
+        "Native page Tile16 requires revision 5");
   if (publish_metadata && !layout.has_authoring_metadata)
     return absl::InvalidArgumentError(
         "Native placement publication requires authoring metadata in layout");
@@ -898,6 +986,21 @@ absl::StatusOr<std::vector<uint8_t>> SealNativeOverworldTerrain(
       return absl::PermissionDeniedError(
           "Native terrain candidate changes an unowned byte");
     }
+  }
+  if (page_tile16) {
+    const auto* entry = FindEntry(layout, kNativePageTile16TableId);
+    ASSIGN_OR_RETURN(auto expected,
+                     EncodeNativePageTile16(page_tile16->expected,
+                                            layout.capacity, entry->count));
+    ASSIGN_OR_RETURN(auto proposed,
+                     EncodeNativePageTile16(page_tile16->value, layout.capacity,
+                                            entry->count));
+    if (!std::equal(expected.begin(), expected.end(),
+                    baseline.begin() + entry->pc_address))
+      return absl::FailedPreconditionError(
+          "Native page Tile16 baseline changed");
+    std::copy(proposed.begin(), proposed.end(),
+              candidate.begin() + entry->pc_address);
   }
   // Palette authority is typed and separate from terrain candidate bytes.
   // Resolve and validate the complete batch before applying any palette edit.
@@ -1273,6 +1376,7 @@ absl::StatusOr<std::vector<uint8_t>> SealNativeOverworldTerrain(
   for (size_t i = 0; i < layout.entries.size(); ++i) {
     const auto& e = layout.entries[i];
     if (writable_table(e.id) ||
+        (page_tile16 && e.id == kNativePageTile16TableId) ||
         (!sprites.empty() && (e.id == 100 || (e.id >= 16 && e.id <= 18))) ||
         std::find(changed_properties.begin(), changed_properties.end(), e.id) !=
             changed_properties.end() ||

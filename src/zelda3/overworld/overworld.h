@@ -808,6 +808,18 @@ class Overworld {
   const std::vector<gfx::Tile16>& tiles16() const { return tiles16_; }
   auto tiles32_unique() const { return tiles32_unique_; }
   auto mutable_tiles16() { return &tiles16_; }
+
+  // Global definitions stay authoritative on every page without an override.
+  std::vector<gfx::Tile16> Tiles16ForMap(int map_id) const;
+  const std::vector<rom::NativePageTile16Definition>& page_tile16() const {
+    return page_tile16_;
+  }
+  // Replace only selected pages, including deletion by an empty page batch.
+  // Validate the complete batch before changing the model. Normal Save owns
+  // publication; callers can use the same method for Undo/Redo snapshots.
+  absl::Status ImportPageTile16(
+      std::span<const uint16_t> maps,
+      std::span<const rom::NativePageTile16Definition> definitions);
   auto sprites(int state) const {
     if (state < 0 || state >= 3)
       return std::vector<Sprite>{};
@@ -991,6 +1003,10 @@ class Overworld {
   absl::StatusOr<std::vector<rom::NativeOverworldPropertyEdit>>
   PrepareNativeGeometrySave() const;
   absl::Status ValidateNativeGeometrySaveFlags() const;
+  std::vector<rom::NativePageTile16Definition> page_tile16_;
+  std::vector<rom::NativePageTile16Definition> loaded_page_tile16_;
+  std::optional<std::vector<rom::NativePageTile16Definition>>
+      staged_page_tile16_;
   std::vector<OverworldAreaProfile> native_area_profiles_;
   std::vector<OverworldAreaProfile> native_effective_area_profiles_;
   std::vector<OverworldGeometryRow> native_geometry_baseline_;
