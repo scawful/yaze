@@ -50,6 +50,8 @@ class ProposalWorkbenchTest(unittest.TestCase):
         self.assertEqual({r["path"] for r in result["changed_files"]},
                          {"rom", "source/sky.bin"})
         self.assertEqual(workbench.inventory(self.project), before)
+        self.assertEqual((self.out / "baseline-files/source/sky.bin").read_bytes(),
+                         b"original graphic")
         self.assertNotEqual((draft / "rom").stat().st_ino,
                             (self.project / "rom").stat().st_ino)
 
@@ -115,6 +117,18 @@ class ProposalWorkbenchTest(unittest.TestCase):
         (self.out / "baseline.rom").write_bytes(b"changed")
         with self.assertRaisesRegex(ValueError, "baseline changed"):
             workbench.feedback(self.out)
+
+    def test_modified_source_baseline_refused(self):
+        self.prepare()
+        (self.out / "baseline-files/source/sky.bin").write_bytes(b"changed")
+        with self.assertRaisesRegex(ValueError, "source baseline changed"):
+            workbench.feedback(self.out)
+
+    def test_id_cannot_inject_project_fields(self):
+        with self.assertRaisesRegex(ValueError, "Proposal ID"):
+            workbench.prepare(self.project, self.out, "overworld", 0x90,
+                              "draft\n[files]\nrom_filename=/Main.sfc")
+        self.assertFalse(self.out.exists())
 
     def test_modified_draft_path_cannot_escape(self):
         self.prepare()

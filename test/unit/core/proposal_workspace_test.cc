@@ -33,6 +33,11 @@ class ProposalWorkspaceTest : public ::testing::Test {
         {"project.yaze", Hash("Draft.yazeproj/project.yaze")},
         {"source/sheet.bin", Hash("Draft.yazeproj/source/sheet.bin")}};
     Write("baseline.json", baseline.dump());
+    fs::create_directories(root_ / "baseline-files/source");
+    Write("baseline-files/source/sheet.bin", "source-backed graphics");
+    Write("baseline-files.json",
+          json({{"source/sheet.bin", Hash("baseline-files/source/sheet.bin")}})
+              .dump());
     packet_ = {{"schema", "yaze.proposal-workbench.v1"},
                {"proposal_id", "water-control"},
                {"domain", "dungeon"},
@@ -42,6 +47,7 @@ class ProposalWorkspaceTest : public ::testing::Test {
                {"rom", "rom"},
                {"baseline_rom_sha256", Hash("baseline.rom")},
                {"baseline_inventory_sha256", Hash("baseline.json")},
+               {"baseline_files_inventory_sha256", Hash("baseline-files.json")},
                {"references", json::array()}};
     Publish();
   }
@@ -99,6 +105,11 @@ TEST_F(ProposalWorkspaceTest, RefusesDraftEscape) {
 
 TEST_F(ProposalWorkspaceTest, RefusesTamperedBaseline) {
   Write("baseline.rom", "different original");
+  EXPECT_FALSE(LoadProposalWorkspace(root_).ok());
+}
+
+TEST_F(ProposalWorkspaceTest, RefusesTamperedSourceGraphicsBaseline) {
+  Write("baseline-files/source/sheet.bin", "changed baseline pixel");
   EXPECT_FALSE(LoadProposalWorkspace(root_).ok());
 }
 

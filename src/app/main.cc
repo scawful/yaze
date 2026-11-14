@@ -77,7 +77,8 @@ DEFINE_FLAG(int, graphics_entrance, -1,
             "Dungeon graphics entrance slot (0-139; -1: automatic).");
 DEFINE_FLAG(std::string, proposal, "",
             "Open a prepared editable proposal packet in its focused editor.");
-DEFINE_FLAG(int, map, -1, "Open Overworld Editor at specific map ID (0-159).");
+DEFINE_FLAG(int, map, -1,
+            "Open Overworld Editor at a map supported by the loaded project.");
 
 // AI Agent API flags
 DEFINE_FLAG(bool, enable_api, false, "Enable the AI Agent API server.");

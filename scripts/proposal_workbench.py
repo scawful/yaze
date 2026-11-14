@@ -9,6 +9,7 @@ import configparser
 import hashlib
 import json
 from pathlib import Path
+import re
 import shutil
 import sys
 
@@ -113,6 +114,8 @@ def prepare(project, output, domain, target, proposal_id, entrance=None,
         raise ValueError("Output must be a new directory outside the source bundle")
     if domain not in ("overworld", "dungeon"):
         raise ValueError("Domain must be overworld or dungeon")
+    if not re.fullmatch(r"[A-Za-z0-9_.-]{1,100}", proposal_id):
+        raise ValueError("Proposal ID must use 1..100 letters, digits, dots, underscores or hyphens")
     if not 0 <= target < (192 if domain == "overworld" else 296):
         raise ValueError("Target is outside the supported map/room range")
     if domain == "dungeon" and (entrance is None or not 0 <= entrance < 140):
@@ -156,12 +159,27 @@ def prepare(project, output, domain, target, proposal_id, entrance=None,
                 changes[section, key] = str(draft / within(project, value).relative_to(project))
     changes["workspace", "recent_files"] = ""
     changes["planning", "file"] = ""  # Do not write the live shared plan.
+    changes["project", "name"] = f"{config.get('project', 'name', fallback='Project')} — {proposal_id} draft"
     (draft / "project.yaze").write_text(replace_fields(text, changes))
     validate_paths(draft, descriptor(draft / "project.yaze"))
     baseline_rom = output / "baseline.rom"
     shutil.copy2(rom, baseline_rom)
     baseline = inventory(draft)
     write_json(output / "baseline.json", baseline)
+    # Retain editable source/graphics bytes, not just their hashes. Bundled
+    # executables and old backups are immutable provenance, not edit baselines.
+    captured = {}
+    rom_rel = rom.relative_to(project).as_posix()
+    for relative, sha in baseline.items():
+        if relative == rom_rel or Path(relative).parts[0] in ("tools", "backups"):
+            continue
+        dest = output / "baseline-files" / relative
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(draft / relative, dest)
+        if digest(dest) != sha:
+            raise ValueError(f"Baseline copy changed: {relative}")
+        captured[relative] = sha
+    write_json(output / "baseline-files.json", captured)
     unbound = []
     for index, (path, sha) in enumerate(refs):
         dest = output / "references" / f"{index:03d}-{path.name}"
@@ -176,6 +194,7 @@ def prepare(project, output, domain, target, proposal_id, entrance=None,
               "original_project": str(project), "original_inventory": original,
               "draft_project": "Draft.yazeproj", "rom": str(rom.relative_to(project)),
               "baseline_inventory_sha256": digest(output / "baseline.json"),
+              "baseline_files_inventory_sha256": digest(output / "baseline-files.json"),
               "baseline_rom_sha256": digest(baseline_rom), "references": unbound,
               "proof": "prepared-only; normal Save/reopen/Build/Run not performed",
               "delivery": "private; contains ROM and source; not a public package"}
@@ -189,9 +208,13 @@ def load_packet(root):
     if data.get("schema") != SCHEMA:
         raise ValueError("Unsupported proposal schema")
     for name, field in (("baseline.json", "baseline_inventory_sha256"),
+                        ("baseline-files.json", "baseline_files_inventory_sha256"),
                         ("baseline.rom", "baseline_rom_sha256")):
         if digest(root / name) != data[field]:
             raise ValueError(f"Proposal baseline changed: {name}")
+    for relative, sha in json.loads((root / "baseline-files.json").read_text()).items():
+        if digest(within(root / "baseline-files", relative)) != sha:
+            raise ValueError(f"Proposal source baseline changed: {relative}")
     draft = within(root, data["draft_project"])
     validate_paths(draft, descriptor(draft / "project.yaze"))
     return data, draft
@@ -279,6 +302,9 @@ def main():
             result = feedback(args.packet)
         if args.command != "prepare" and args.out:
             write_json(args.out, result)
+        elif args.command == "prepare":
+            print(json.dumps({key: result[key] for key in
+                              ("proposal_id", "domain", "target", "proof")}, indent=2))
         else:
             print(json.dumps(result, indent=2))
     except (ValueError, OSError, configparser.Error, KeyError) as error:

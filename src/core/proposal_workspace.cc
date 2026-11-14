@@ -57,6 +57,8 @@ absl::StatusOr<ProposalWorkspace> LoadProposalWorkspace(
       return absl::InvalidArgumentError("Unsupported proposal schema");
     result.proposal_id = packet.at("proposal_id").get<std::string>();
     result.domain = packet.at("domain").get<std::string>();
+    if (!packet.at("target").is_number_integer())
+      return absl::InvalidArgumentError("Proposal target must be an integer");
     result.target = packet.at("target").get<int>();
     const int limit = result.domain == "dungeon" ? 296 : 192;
     if ((result.domain != "dungeon" && result.domain != "overworld") ||
@@ -64,6 +66,9 @@ absl::StatusOr<ProposalWorkspace> LoadProposalWorkspace(
       return absl::InvalidArgumentError("Invalid proposal domain or target");
     }
     if (result.domain == "dungeon") {
+      if (!packet.at("graphics_entrance_slot").is_number_integer())
+        return absl::InvalidArgumentError(
+            "Graphics entrance must be an integer");
       result.graphics_entrance_slot =
           packet.at("graphics_entrance_slot").get<int>();
       if (result.graphics_entrance_slot < 0 ||
@@ -95,6 +100,21 @@ absl::StatusOr<ProposalWorkspace> LoadProposalWorkspace(
     if (baseline_hash != result.baseline_rom_sha256 ||
         inventory_hash != packet.at("baseline_inventory_sha256")) {
       return absl::FailedPreconditionError("Proposal baseline changed");
+    }
+    ASSIGN_OR_RETURN(
+        auto source_inventory_hash,
+        ComputeSourceArtifactFileSha256(result.root / "baseline-files.json"));
+    if (source_inventory_hash != packet.at("baseline_files_inventory_sha256"))
+      return absl::FailedPreconditionError(
+          "Proposal source baseline inventory changed");
+    const auto sources = ReadJson(result.root / "baseline-files.json");
+    for (auto it = sources.begin(); it != sources.end(); ++it) {
+      ASSIGN_OR_RETURN(auto path,
+                       ContainedPath(result.root / "baseline-files", it.key()));
+      ASSIGN_OR_RETURN(auto hash, ComputeSourceArtifactFileSha256(path));
+      if (hash != it.value())
+        return absl::FailedPreconditionError(
+            "Proposal source baseline changed");
     }
     result.unbound_references = packet.at("references").size();
     return result;

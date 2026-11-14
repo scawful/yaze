@@ -8,7 +8,7 @@ paint over screenshots or introduce a second ROM writer.
 
 Use a self-contained `.yazeproj` bundle whose ROM already contains the proposed
 native map or room data. The helper copies that bundle, keeps the ROM baseline
-and file hashes, relocates bundle-local paths, and preserves copied save receipts
+and editable source/graphics bytes plus file hashes, relocates bundle-local paths, and preserves copied save receipts
 and stale build output outside the draft. Only Yaze's real Save creates a new
 save receipt. The original bundle is never edited.
 
@@ -84,7 +84,8 @@ baseline and separately reviews changed definitions, graphics and collision.
   Unsupported external paths, symlinks and multiple-ROM descriptors are refused.
 - Feedback identifies files/bytes, not yet semantic object/Tile16 changes.
   Do not infer target-only changes from the selected map/room. The existing
-  `dungeon-export-room` and `overworld-export-native-source --project-context`
+  `dungeon-describe-room --include-objects` and
+  `overworld-export-native-source --project-context`
   contracts are the next semantic comparison integration.
 - The packet's native baseline is preserved, but side-by-side baseline rendering
   and graphic allocation assistance remain future passes.
