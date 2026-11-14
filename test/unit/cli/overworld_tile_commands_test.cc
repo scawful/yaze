@@ -2809,6 +2809,35 @@ TEST_P(OverworldEndpointPlanTest, ReadOnlyScopeRefusesWithoutStagingOutput) {
   Preserved();
 }
 
+TEST_P(OverworldEndpointPlanTest, GetEntranceAdmitsRevision5OnlyWhenExplicit) {
+  const auto inspect = [&](bool opt_in, std::string* out) {
+    Rom rom;
+    EXPECT_TRUE(rom.LoadFromFile(input_.string()).ok());
+    std::vector<std::string> args = {"--entrance=0x62", "--format=json"};
+    if (opt_in)
+      args.push_back("--experimental-page-tile16");
+    handlers::OverworldGetEntranceCommandHandler handler;
+    const auto status = handler.Run(args, &rom, out);
+    EXPECT_EQ(rom.vector(), original_);
+    EXPECT_FALSE(rom.dirty());
+    return status;
+  };
+  std::string plain, admitted;
+  const auto plain_status = inspect(false, &plain);
+  const auto admitted_status = inspect(true, &admitted);
+  ASSERT_TRUE(admitted_status.ok()) << admitted_status;
+  const auto entrance = nlohmann::json::parse(admitted)["Overworld Entrance"];
+  EXPECT_EQ(entrance["map_id"], "0x7A");
+  EXPECT_EQ(entrance["map_pos"], "0x0626");
+  if (GetParam().second == 5) {
+    EXPECT_FALSE(plain_status.ok());
+  } else {
+    ASSERT_TRUE(plain_status.ok()) << plain_status;
+    EXPECT_EQ(plain, admitted);
+  }
+  EXPECT_EQ(ReadBytes(input_), original_);
+}
+
 INSTANTIATE_TEST_SUITE_P(NativeLayouts, OverworldEndpointPlanTest,
                          ::testing::Values(std::make_pair(160, 4),
                                            std::make_pair(192, 4),

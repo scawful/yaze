@@ -260,8 +260,8 @@ class OverworldGetEntranceCommandHandler : public resources::CommandHandler {
     return "Get entrance information from overworld";
   }
   std::string GetUsage() const {
-    return "overworld-get-entrance --entrance <entrance_id> [--format "
-           "<json|text>]";
+    return "overworld-get-entrance --entrance <entrance_id> "
+           "[--experimental-page-tile16] [--format <json|text>]";
   }
 
   absl::Status ValidateArgs(const resources::ArgumentParser& parser) override {

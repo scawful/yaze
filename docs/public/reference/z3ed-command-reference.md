@@ -390,7 +390,7 @@ object stream. Without the flag, the legacy output and count are unchanged.
 - `overworld-list-warps [--screen <hex>]`
 - `overworld-list-sprites [--screen <hex>] [--phase <0|1|2>]`
 - `overworld-list-items --map <hex>`
-- `overworld-get-entrance --entrance <hex>`
+- `overworld-get-entrance --entrance <hex> [--experimental-page-tile16]` (read-only; the flag admits a revision-5 native page Tile16 ROM for inspection)
 - `overworld-tile-stats [--map <hex>] [--world <light|dark|special>] [--tile <hex> [--details]] [--top <n>]`
 - `overworld-render --screen <hex> --out <file.png> [--overlays <list>] [--phase <0|1|2>] [--scale <float>]`
 - `overworld-add-sprite --screen <hex> --phase <0|1|2> --id <hex> --x <tile> --y <tile> [--replace-index <n>] [--write]`

@@ -659,6 +659,7 @@ GraphicsEditor::PlanGraphicsSave() {
   // Run the real writer on a scratch copy; the ROM itself is untouched.
   Rom scratch;
   RETURN_IF_ERROR(scratch.LoadFromData(rom_->vector()));
+  scratch.AdoptExperimentalPageTile16(*rom_);
   auto& sheets = gfx::Arena::Get().gfx_sheets();
   for (uint16_t sheet_id : prepared.sheet_ids) {
     GraphicsSavePlanEntry entry;

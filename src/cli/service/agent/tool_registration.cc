@@ -309,10 +309,11 @@ void RegisterBuiltinAgentTools(ToolRegistry& registry) {
       "overworld-list-sprites --screen=<id> "
       "[--phase=0|1|2]",
       {}, true, false, OverworldListSpritesCommandHandler)
-  REGISTER_BUILTIN_AGENT_TOOL("overworld-get-entrance", "overworld",
-                              "Get entrance info",
-                              "overworld-get-entrance --entrance=<hex>", {},
-                              true, false, OverworldGetEntranceCommandHandler)
+  REGISTER_BUILTIN_AGENT_TOOL(
+      "overworld-get-entrance", "overworld", "Get entrance info",
+      "overworld-get-entrance --entrance=<hex> "
+      "[--experimental-page-tile16]",
+      {}, true, false, OverworldGetEntranceCommandHandler)
   REGISTER_BUILTIN_AGENT_TOOL(
       "overworld-tile-stats", "overworld",
       "Count tile16 usage per screen, per world and per tile16 id",

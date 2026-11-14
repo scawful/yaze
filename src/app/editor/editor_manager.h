@@ -736,6 +736,9 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
   void PersistInputConfig(const emu::input::InputConfig& config);
   void CaptureCurrentRomIdentity(bool preserve_editing_source = false);
   void RestoreCurrentRomIdentity();
+  // Reloads of the active project's own session re-admit revision 5; any
+  // other session, including a standalone ROM, keeps refusing it.
+  void AdmitProjectSessionPageTile16(const RomSession& session, Rom* rom) const;
   void ApplyDefaultBackupPolicy();
   void CaptureRuntimeFeatureFlags();
   void CaptureActiveProjectEditingState();

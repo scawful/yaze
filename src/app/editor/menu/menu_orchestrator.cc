@@ -2151,6 +2151,13 @@ void MenuOrchestrator::OnApplyBpsPatch() {
   auto* rom = editor_manager_->GetCurrentRom();
   if (!rom || !rom->is_loaded())
     return;
+  // Patched bytes have no saved project identity to re-admit.
+  if (rom->experimental_page_tile16()) {
+    toast_manager_.Show(
+        "BPS patching is unavailable for native page Tile16 project sessions",
+        ToastType::kError);
+    return;
+  }
 
   // Ask user to select a .bps file
   util::FileDialogOptions options;

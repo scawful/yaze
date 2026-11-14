@@ -2247,6 +2247,10 @@ absl::Status OverworldGetEntranceCommandHandler::Execute(
         "Invalid entrance ID format. Must be hex.");
   }
 
+  if (parser.HasFlag("experimental-page-tile16"))
+    rom->EnableExperimentalPageTile16();
+  ScopedRomReadOnly read_only(*rom);
+
   // Load the Overworld from ROM
   zelda3::Overworld overworld(rom);
   auto ow_status = overworld.Load(rom);

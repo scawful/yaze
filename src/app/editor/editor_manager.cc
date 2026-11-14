@@ -4106,9 +4106,18 @@ absl::Status EditorManager::ReloadProjectRom() {
   Rom replacement_rom;
   RETURN_IF_ERROR(rom_file_manager_.LoadRom(&replacement_rom,
                                             current_project_.rom_filename));
+  AdmitProjectSessionPageTile16(*session, &replacement_rom);
   RETURN_IF_ERROR(rom_lifecycle_.CheckRomOpenPolicy(&replacement_rom));
   return ReplaceActiveSessionRom(std::move(replacement_rom),
                                  current_project_.rom_filename);
+}
+
+void EditorManager::AdmitProjectSessionPageTile16(const RomSession& session,
+                                                  Rom* rom) const {
+  if (active_project_context_session_id_ == session.session_id() &&
+      session.project_context.has_value()) {
+    RomLifecycleManager::AdmitProjectPageTile16(current_project_, rom);
+  }
 }
 
 absl::Status EditorManager::ValidateLyraTerrainProjectContext() const {
@@ -5292,6 +5301,7 @@ absl::Status EditorManager::DiscardPendingRomBackupRestore() {
       *session->rom.resource_label();
   Rom backing_rom;
   RETURN_IF_ERROR(rom_file_manager_.LoadRom(&backing_rom, backing_path));
+  AdmitProjectSessionPageTile16(*session, &backing_rom);
   *backing_rom.resource_label() = resource_labels;
   RETURN_IF_ERROR(
       ReplaceActiveSessionRom(std::move(backing_rom), backing_path));
@@ -5422,6 +5432,7 @@ absl::Status EditorManager::RevertRomToSavedInternal() {
       *session->rom.resource_label();
   Rom backing_rom;
   RETURN_IF_ERROR(rom_file_manager_.LoadRom(&backing_rom, backing_path));
+  AdmitProjectSessionPageTile16(*session, &backing_rom);
   *backing_rom.resource_label() = resource_labels;
   RETURN_IF_ERROR(
       ReplaceActiveSessionRom(std::move(backing_rom), backing_path));

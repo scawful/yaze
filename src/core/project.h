@@ -364,6 +364,10 @@ struct YazeProject {
 
   // Consolidated settings (previously scattered across multiple files)
   core::FeatureFlags::Flags feature_flags;
+  // Saved under [feature_flags] but deliberately outside FeatureFlags::Flags:
+  // revision-5 admission must not reach the global singleton or raw-ROM
+  // sessions. It applies only to this project's ROM with its expected hash.
+  bool experimental_page_tile16 = false;
   WorkspaceSettings workspace_settings;
   DungeonOverlaySettings dungeon_overlay;
   GraphicsSheetSettings graphics_sheets;

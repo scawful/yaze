@@ -365,6 +365,51 @@ TEST(ProjectFilePassthroughTest, MissingGranularSaveControlsKeepDefaults) {
   EXPECT_FALSE(reopened.feature_flags.kSaveWithChangeQueue);
 }
 
+TEST(ProjectFilePassthroughTest, ExperimentalPageTile16IsSavedOptInOnly) {
+  ScopedDir dir(yaze::test::UniqueTempPath("project_page_tile16"));
+  const fs::path legacy = dir.path() / "Legacy.yaze";
+  const fs::path opted_in = dir.path() / "OptedIn.yaze";
+  WriteFile(legacy, "[project]\nname=Legacy\n\n[feature_flags]\n");
+  WriteFile(opted_in,
+            "[project]\nname=Opted In\n\n[feature_flags]\n"
+            "experimental_page_tile16=true\n");
+
+  YazeProject project;
+  ASSERT_TRUE(project.Open(legacy.string()).ok());
+  EXPECT_FALSE(project.experimental_page_tile16);
+  ASSERT_TRUE(project.Save().ok());
+  EXPECT_THAT(ReadFile(legacy),
+              ::testing::Not(HasSubstr("experimental_page_tile16")));
+
+  ASSERT_TRUE(project.Open(opted_in.string()).ok());
+  EXPECT_TRUE(project.experimental_page_tile16);
+  ASSERT_TRUE(project.Save().ok());
+  EXPECT_THAT(ReadFile(opted_in), HasSubstr("experimental_page_tile16=true\n"));
+  YazeProject reopened;
+  ASSERT_TRUE(reopened.Open(opted_in.string()).ok());
+  EXPECT_TRUE(reopened.experimental_page_tile16);
+
+  // Reusing a project object for another file resets the opt-in.
+  ASSERT_TRUE(reopened.Open(legacy.string()).ok());
+  EXPECT_FALSE(reopened.experimental_page_tile16);
+
+#ifdef YAZE_ENABLE_JSON_PROJECT_FORMAT
+  const fs::path json = dir.path() / "Imported.yaze";
+  const fs::path saved = dir.path() / "ImportedSaved.yaze";
+  WriteFile(json, R"({"yaze_project":{"name":"Imported","feature_flags":{
+"kExperimentalPageTile16":true}}})");
+  YazeProject imported;
+  ASSERT_TRUE(imported.Open(json.string()).ok());
+  EXPECT_TRUE(imported.experimental_page_tile16);
+  ASSERT_TRUE(imported.SaveAs(saved.string()).ok());
+  YazeProject imported_reopened;
+  ASSERT_TRUE(imported_reopened.Open(saved.string()).ok());
+  EXPECT_TRUE(imported_reopened.experimental_page_tile16);
+  ASSERT_TRUE(imported.Open(legacy.string()).ok());
+  EXPECT_FALSE(imported.experimental_page_tile16);
+#endif
+}
+
 TEST(ProjectFilePassthroughTest,
      GranularSaveControlsJsonImportSurvivesNativeSave) {
 #ifdef YAZE_ENABLE_JSON_PROJECT_FORMAT

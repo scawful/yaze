@@ -232,10 +232,16 @@ class Rom {
   // The parsed result is derived from this ROM's current bytes. Attribution
   // captured at load prevents a damaged/erased signature from enabling saves.
   rom::LyraLayoutInspection InspectLyraLayout() const;
-  // Explicit session-local source prototype admission; never project-persisted.
+  // Explicit session-local source prototype admission. A project persists only
+  // its opt-in; every load resets this until its owner admits the bytes again.
   // This does not admit Build, Run, installation, or runtime format migration.
   void EnableExperimentalPageTile16() { experimental_page_tile16_ = true; }
   bool experimental_page_tile16() const { return experimental_page_tile16_; }
+  // Scratch images inherit admission only while their bytes equal `source`.
+  void AdoptExperimentalPageTile16(const Rom& source) {
+    experimental_page_tile16_ =
+        source.experimental_page_tile16_ && rom_data_ == source.rom_data_;
+  }
   // Explicit, atomic source-format initialization. Requires admission above,
   // an exact image baseline and active WriteFence ownership of directory and
   // caller-selected free storage. Loaded overworld models must then reload.

@@ -1762,6 +1762,7 @@ absl::Status EditorManager::LoadProjectWithRom(bool allow_dialogs) {
 #endif
   }
 
+  RomLifecycleManager::AdmitProjectPageTile16(current_project_, &temp_rom);
   auto policy_status = rom_lifecycle_.CheckRomOpenPolicy(&temp_rom);
   if (!policy_status.ok()) {
     abandon_selected_rom();

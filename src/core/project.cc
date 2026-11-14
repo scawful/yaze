@@ -1744,6 +1744,8 @@ absl::StatusOr<std::string> YazeProject::SerializeToString() const {
        << (feature_flags.overworld.kEnableSpecialWorldExpansion ? "true"
                                                                 : "false")
        << "\n";
+  if (experimental_page_tile16)
+    file << "experimental_page_tile16=true\n";
   file << "save_with_change_queue="
        << (feature_flags.kSaveWithChangeQueue ? "true" : "false") << "\n";
   file << "save_dungeon_maps="
@@ -2048,6 +2050,7 @@ absl::Status YazeProject::ParseFromString(const std::string& content) {
   rom_metadata.write_policy = RomWritePolicy::kWarn;
   feature_flags.overworld.kSaveOverworldSprites = true;
   feature_flags.overworld.kEnableSpecialWorldExpansion = false;
+  experimental_page_tile16 = false;
   feature_flags.kSaveWithChangeQueue = false;
   sprite_catalog_file.clear();
   sprite_source_root.clear();
@@ -2210,6 +2213,8 @@ absl::Status YazeProject::ParseFromString(const std::string& content) {
         feature_flags.overworld.kApplyZSCustomOverworldASM = ParseBool(value);
       else if (key == "enable_special_world_expansion")
         feature_flags.overworld.kEnableSpecialWorldExpansion = ParseBool(value);
+      else if (key == "experimental_page_tile16")
+        experimental_page_tile16 = ParseBool(value);
       else if (key == "save_with_change_queue")
         feature_flags.kSaveWithChangeQueue = ParseBool(value);
       else if (key == "save_dungeon_maps")
@@ -3876,6 +3881,7 @@ absl::Status YazeProject::LoadFromJsonFormat(const std::string& project_path) {
   rom_metadata.write_policy = RomWritePolicy::kWarn;
   feature_flags.overworld.kSaveOverworldSprites = true;
   feature_flags.overworld.kEnableSpecialWorldExpansion = false;
+  experimental_page_tile16 = false;
   feature_flags.kSaveWithChangeQueue = false;
   terrain_catalog_file.clear();
   lyra_terrain_file.clear();
@@ -4010,6 +4016,9 @@ absl::Status YazeProject::LoadFromJsonFormat(const std::string& project_path) {
         if (flags.contains("kEnableSpecialWorldExpansion"))
           feature_flags.overworld.kEnableSpecialWorldExpansion =
               flags["kEnableSpecialWorldExpansion"].get<bool>();
+        if (flags.contains("kExperimentalPageTile16"))
+          experimental_page_tile16 =
+              flags["kExperimentalPageTile16"].get<bool>();
         if (flags.contains("kSaveOverworldMaps"))
           feature_flags.overworld.kSaveOverworldMaps =
               flags["kSaveOverworldMaps"].get<bool>();
@@ -4308,6 +4317,8 @@ absl::Status YazeProject::SaveToJsonFormat() {
       feature_flags.kSaveWithChangeQueue;
   proj["feature_flags"]["kEnableSpecialWorldExpansion"] =
       feature_flags.overworld.kEnableSpecialWorldExpansion;
+  if (experimental_page_tile16)
+    proj["feature_flags"]["kExperimentalPageTile16"] = true;
   proj["feature_flags"]["kSaveOverworldMaps"] =
       feature_flags.overworld.kSaveOverworldMaps;
   proj["feature_flags"]["kSaveOverworldEntrances"] =

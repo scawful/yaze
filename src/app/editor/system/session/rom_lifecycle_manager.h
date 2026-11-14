@@ -83,6 +83,13 @@ class RomLifecycleManager {
   /// Check whether the ROM hash mismatches the project's expected hash.
   bool IsRomHashMismatch() const;
 
+  /// Admit a freshly loaded native page Tile16 (revision 5) ROM for a saved
+  /// project that opted in. The ROM must be the project's ROM backing file and
+  /// match its saved expected hash; otherwise revision 5 keeps refusing.
+  /// Call after the load reset and before any layout, GameData or overworld use.
+  static bool AdmitProjectPageTile16(const project::YazeProject& project,
+                                     Rom* rom);
+
   /// Validate that the loaded ROM is a safe project target to open/edit.
   absl::Status CheckRomOpenPolicy(Rom* rom);
 

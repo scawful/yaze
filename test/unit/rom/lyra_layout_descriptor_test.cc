@@ -49,6 +49,7 @@
 #include "rom/transaction.h"
 #include "rom/write_fence.h"
 #include "unique_temp_path.h"
+#include "util/rom_hash.h"
 #include "zelda3/dungeon/custom_collision.h"
 #include "zelda3/dungeon/dungeon_rom_addresses.h"
 #include "zelda3/game_data.h"
@@ -4729,6 +4730,257 @@ TEST(LyraLayoutDescriptorTest, PairedSourceAndBackupsRefuseBeforeWrites) {
   expect_unchanged();
   EXPECT_FALSE(manager.SaveRomAs(&loaded, destination.string()).ok());
   expect_unchanged();
+}
+
+std::vector<uint8_t> NativeImage(bool page_tile16) {
+  NativeDirectoryFixture fixture;
+  fixture.UpgradeToRevision4();
+  fixture.AddAuthoringMetadata();
+  if (page_tile16)
+    fixture.AddPageTile16();
+  fixture.Seal();
+  return fixture.bytes;
+}
+
+project::YazeProject PageTile16Project(const std::filesystem::path& root,
+                                       const std::filesystem::path& rom,
+                                       const std::vector<uint8_t>& bytes) {
+  project::YazeProject project;
+  project.name = "Page Tile16 Admission";
+  project.filepath = (root / "page16.yaze").string();
+  project.rom_filename = rom.string();
+  project.rom_metadata.expected_hash =
+      util::ComputeRomIdentityHashes(bytes.data(), bytes.size()).crc32;
+  project.experimental_page_tile16 = true;
+  return project;
+}
+
+TEST(LyraLayoutDescriptorTest, PageTile16SavedProjectAdmissionMatrix) {
+  const auto root = test::UniqueTempPath("page16_admission");
+  std::filesystem::create_directories(root);
+  const auto cleanup =
+      absl::MakeCleanup([&] { std::filesystem::remove_all(root); });
+  const auto bytes = NativeImage(true);
+  ASSERT_EQ(rom::InspectLyraLayout(bytes.data(), bytes.size()).revision, 5);
+  const auto rom_path = root / "native.sfc";
+  const auto copy_path = root / "copy.sfc";
+  WriteBytes(rom_path, bytes);
+  WriteBytes(copy_path, bytes);
+  const auto project = PageTile16Project(root, rom_path, bytes);
+  const auto admit = [](const project::YazeProject& owner,
+                        const std::filesystem::path& path) {
+    Rom rom;
+    EXPECT_TRUE(rom.LoadFromFile(path.string()).ok());
+    const bool admitted =
+        editor::RomLifecycleManager::AdmitProjectPageTile16(owner, &rom);
+    EXPECT_EQ(rom.experimental_page_tile16(), admitted);
+    EXPECT_EQ(
+        rom.InspectLyraLayout().presence == rom::LyraLayoutPresence::kValid,
+        admitted);
+    return admitted;
+  };
+  EXPECT_TRUE(admit(project, rom_path));
+  auto sha1 = project;
+  sha1.rom_metadata.expected_hash =
+      util::ComputeRomIdentityHashes(bytes.data(), bytes.size()).sha1;
+  EXPECT_TRUE(admit(sha1, rom_path));
+
+  auto opted_out = project;
+  opted_out.experimental_page_tile16 = false;
+  EXPECT_FALSE(admit(opted_out, rom_path));
+  auto closed = project;
+  closed.filepath.clear();
+  EXPECT_FALSE(admit(closed, rom_path));
+  EXPECT_FALSE(admit(project, copy_path));
+  auto unbound = project;
+  unbound.rom_metadata.expected_hash.clear();
+  EXPECT_FALSE(admit(unbound, rom_path));
+  auto stale = project;
+  const auto legacy = NativeImage(false);
+  stale.rom_metadata.expected_hash =
+      util::ComputeRomIdentityHashes(legacy.data(), legacy.size()).crc32;
+  EXPECT_FALSE(admit(stale, rom_path));
+
+  auto corrupt = bytes;
+  corrupt[0x147008] = 99;
+  WriteBytes(rom_path, corrupt);
+  EXPECT_FALSE(admit(PageTile16Project(root, rom_path, corrupt), rom_path));
+
+  WriteBytes(rom_path, legacy);
+  Rom revision4;
+  ASSERT_TRUE(revision4.LoadFromFile(rom_path.string()).ok());
+  EXPECT_FALSE(editor::RomLifecycleManager::AdmitProjectPageTile16(
+      PageTile16Project(root, rom_path, legacy), &revision4));
+  EXPECT_FALSE(revision4.experimental_page_tile16());
+  EXPECT_EQ(revision4.InspectLyraLayout().presence,
+            rom::LyraLayoutPresence::kValid);
+  EXPECT_EQ(revision4.vector(), legacy);
+}
+
+TEST(LyraLayoutDescriptorTest, PageTile16ScratchCopyAdoptsOnlyIdenticalBytes) {
+  const auto bytes = NativeImage(true);
+  Rom session;
+  ASSERT_TRUE(session.LoadFromData(bytes).ok());
+  session.EnableExperimentalPageTile16();
+  Rom scratch;
+  ASSERT_TRUE(scratch.LoadFromData(session.vector()).ok());
+  EXPECT_FALSE(scratch.experimental_page_tile16());
+  scratch.AdoptExperimentalPageTile16(session);
+  EXPECT_TRUE(scratch.experimental_page_tile16());
+  EXPECT_EQ(scratch.InspectLyraLayout().presence,
+            rom::LyraLayoutPresence::kValid);
+
+  auto other = bytes;
+  other[0x100] ^= 1;
+  Rom unrelated;
+  ASSERT_TRUE(unrelated.LoadFromData(other).ok());
+  unrelated.AdoptExperimentalPageTile16(session);
+  EXPECT_FALSE(unrelated.experimental_page_tile16());
+  EXPECT_EQ(unrelated.InspectLyraLayout().presence,
+            rom::LyraLayoutPresence::kInvalid);
+
+  Rom unadmitted;
+  ASSERT_TRUE(unadmitted.LoadFromData(bytes).ok());
+  scratch.AdoptExperimentalPageTile16(unadmitted);
+  EXPECT_FALSE(scratch.experimental_page_tile16());
+}
+
+TEST_F(NativeSpecialOverworldEditorTest,
+       PageTile16SavedProjectOpenReloadColdReopenAndNoLeak) {
+  const char* path = std::getenv("YAZE_TEST_ROM_OOS");
+  if (!path || !std::filesystem::exists(path))
+    GTEST_SKIP() << "Set YAZE_TEST_ROM_OOS for saved-project admission";
+  Rom legacy;
+  ASSERT_TRUE(legacy.LoadFromData(ReadBytes(path)).ok());
+  zelda3::Overworld reference(&legacy);
+  ASSERT_TRUE(reference.Load(&legacy).ok());
+  NativeDirectoryFixture fixture;
+  fixture.SeedLoadedLegacyForModelTest(legacy, reference);
+  fixture.UpgradeToRevision4();
+  fixture.AddAuthoringMetadata();
+  const rom::NativePageTile16Initialization initialization{
+      0x2C0000, 16, std::vector<uint8_t>(16 * 12, 0)};
+  const auto staged = rom::PlanNativePageTile16Initialization(
+      fixture.bytes, initialization, true);
+  ASSERT_TRUE(staged.ok()) << staged.status();
+  const auto& bytes = *staged;
+
+  const auto root = test::UniqueTempPath("page16_project");
+  std::filesystem::create_directories(root);
+  const auto cleanup =
+      absl::MakeCleanup([&] { std::filesystem::remove_all(root); });
+  const auto rom_path = root / "rom.sfc";
+  WriteBytes(rom_path, bytes);
+  const auto crc32 =
+      util::ComputeRomIdentityHashes(bytes.data(), bytes.size()).crc32;
+  const auto write_project = [&](const std::string& name,
+                                 const std::string& expected_hash,
+                                 bool opt_in) {
+    const auto project = root / (name + ".yaze");
+    const std::string text = "[project]\nname=" + name +
+                             "\n\n[files]\nrom_filename=rom.sfc\n\n" +
+                             "[rom]\nrole=dev\nexpected_hash=" + expected_hash +
+                             "\nwrite_policy=warn\n\n[feature_flags]\n" +
+                             (opt_in ? "experimental_page_tile16=true\n" : "");
+    WriteBytes(project, std::vector<uint8_t>(text.begin(), text.end()));
+    return project;
+  };
+  const auto open = [&](const std::filesystem::path& target) {
+    auto manager = std::make_unique<editor::EditorManager>();
+    test::InitializeWithIsolatedSettings(*manager, renderer_.get());
+    manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+    manager->user_settings().prefs().backup_before_save = false;
+    const auto opened = manager->OpenRomOrProject(target.string());
+    EXPECT_TRUE(opened.ok()) << opened;
+    return manager;
+  };
+  const auto admitted = [](editor::EditorManager& manager) {
+    const auto* rom = manager.GetCurrentRom();
+    return rom != nullptr && rom->experimental_page_tile16() &&
+           rom->InspectLyraLayout().presence == rom::LyraLayoutPresence::kValid;
+  };
+
+  const auto opted_in = write_project("opted_in", crc32, true);
+  {
+    auto manager = open(opted_in);
+    ASSERT_TRUE(admitted(*manager));
+    const auto assets =
+        manager->EnsureEditorAssetsLoaded(editor::EditorType::kOverworld);
+    ASSERT_TRUE(assets.ok()) << assets;
+    auto* editor = manager->GetCurrentEditorSet()->GetOverworldEditor();
+    ASSERT_NE(editor, nullptr);
+    EXPECT_TRUE(editor->overworld().is_loaded());
+    const auto reloaded = manager->ReloadProjectRom();
+    ASSERT_TRUE(reloaded.ok()) << reloaded;
+    EXPECT_TRUE(admitted(*manager));
+    const auto reverted = manager->RevertRomToSaved();
+    ASSERT_TRUE(reverted.ok()) << reverted;
+    EXPECT_TRUE(admitted(*manager));
+
+    // Closing the opted-in project must not carry admission to a raw open.
+    manager->CloseRom();
+    ASSERT_FALSE(manager->GetCurrentProject() &&
+                 manager->GetCurrentProject()->project_opened());
+    const auto raw = manager->OpenRomOrProject(rom_path.string());
+    ASSERT_TRUE(raw.ok()) << raw;
+    EXPECT_FALSE(manager->GetCurrentRom()->experimental_page_tile16());
+    EXPECT_EQ(manager->GetCurrentRom()->InspectLyraLayout().presence,
+              rom::LyraLayoutPresence::kInvalid);
+  }
+  EXPECT_EQ(ReadBytes(rom_path), bytes);
+
+  // Cold reopen in a fresh manager re-admits from the saved project alone.
+  EXPECT_TRUE(admitted(*open(opted_in)));
+  EXPECT_FALSE(admitted(*open(write_project("opted_out", crc32, false))));
+  EXPECT_FALSE(admitted(*open(write_project("stale", "00000000", true))));
+  EXPECT_FALSE(admitted(*open(rom_path)));
+  EXPECT_EQ(ReadBytes(rom_path), bytes);
+}
+
+TEST_F(NativeSpecialOverworldEditorTest, PageTile16SavedProjectPreflight) {
+  const char* path = std::getenv("YAZE_TEST_PAGE16_PROJECT");
+  if (!path || !std::filesystem::exists(path))
+    GTEST_SKIP() << "Set YAZE_TEST_PAGE16_PROJECT to an opted-in project copy";
+  project::YazeProject descriptor;
+  ASSERT_TRUE(descriptor.Open(path).ok());
+  ASSERT_TRUE(descriptor.experimental_page_tile16);
+  ASSERT_EQ(descriptor.rom_metadata.write_policy,
+            project::RomWritePolicy::kReadOnly);
+  const auto rom_path = descriptor.GetAbsolutePath(descriptor.rom_filename);
+  const auto project_before = ReadBytes(path);
+  const auto rom_before = ReadBytes(rom_path);
+  const auto open = [&](const std::string& target) {
+    auto manager = std::make_unique<editor::EditorManager>();
+    test::InitializeWithIsolatedSettings(*manager, renderer_.get());
+    manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+    const auto opened = manager->OpenRomOrProject(target);
+    EXPECT_TRUE(opened.ok()) << opened;
+    return manager;
+  };
+  {
+    auto manager = open(path);
+    auto* rom = manager->GetCurrentRom();
+    ASSERT_NE(rom, nullptr);
+    ASSERT_TRUE(rom->experimental_page_tile16());
+    const auto layout = rom->InspectLyraLayout();
+    ASSERT_EQ(layout.presence, rom::LyraLayoutPresence::kValid) << layout.error;
+    EXPECT_EQ(layout.revision, 5);
+    const auto assets =
+        manager->EnsureEditorAssetsLoaded(editor::EditorType::kOverworld);
+    ASSERT_TRUE(assets.ok()) << assets;
+    auto* editor = manager->GetCurrentEditorSet()->GetOverworldEditor();
+    ASSERT_NE(editor, nullptr);
+    EXPECT_TRUE(editor->overworld().is_loaded());
+  }
+  {
+    auto manager = open(rom_path);
+    ASSERT_NE(manager->GetCurrentRom(), nullptr);
+    EXPECT_FALSE(manager->GetCurrentRom()->experimental_page_tile16());
+    EXPECT_EQ(manager->GetCurrentRom()->InspectLyraLayout().presence,
+              rom::LyraLayoutPresence::kInvalid);
+  }
+  EXPECT_EQ(ReadBytes(path), project_before);
+  EXPECT_EQ(ReadBytes(rom_path), rom_before);
 }
 
 }  // namespace

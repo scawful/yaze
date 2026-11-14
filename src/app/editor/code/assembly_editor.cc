@@ -2450,6 +2450,11 @@ absl::Status AssemblyEditor::ApplyPatchToRom() {
   if (!rom_ || !rom_->is_loaded()) {
     return absl::FailedPreconditionError("No ROM is loaded");
   }
+  // Patched bytes have no saved project identity to re-admit.
+  if (rom_->experimental_page_tile16()) {
+    return absl::FailedPreconditionError(
+        "Patching is unavailable for native page Tile16 project sessions");
+  }
 
   if (!HasActiveFile()) {
     return absl::FailedPreconditionError("No file is currently active");
