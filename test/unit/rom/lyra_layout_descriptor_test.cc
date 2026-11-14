@@ -109,8 +109,17 @@ TEST(LyraLayoutDescriptorTest, PageTile16AdmissionPreservationAndStaleSeal) {
     for (const bool authoring : {false, true}) {
       NativeDirectoryFixture fixture(capacity);
       fixture.UpgradeToRevision4();
-      if (authoring)
-        fixture.AddAuthoringMetadata();
+      if (authoring) {
+        rom::NativeOverworldAuthoringMetadata metadata;
+        metadata.next_placement_id = 0x7003;
+        metadata.placements = {{0x7001, rom::NativePlacementState::kPending,
+                                rom::NativeAuthoringDoorPlacement{
+                                    0x8D, 10, 11, 0x0B, std::nullopt}},
+                               {0x7002, rom::NativePlacementState::kDeleted,
+                                rom::NativeAuthoringReturnPlacement{
+                                    0x8E, 12, 13, 0x83, std::nullopt}}};
+        fixture.AddAuthoringMetadata(metadata);
+      }
       fixture.AddPageTile16(17);
       const auto baseline = fixture.bytes;
       const auto baseline_layout =
