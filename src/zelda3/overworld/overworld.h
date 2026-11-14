@@ -497,9 +497,11 @@ class Overworld {
       int map_id) const;
 
   // Overlay authenticated source-sheet collision attributes onto a composed
-  // PriorSheets preview table. Bound sheets without attributes refuse.
+  // PriorSheets preview table. Absent optional attrs preserve baseline bytes.
+  // Active animated_sheet owns indices 448..479 (first 32 attrs); static slot 7
+  // never supplies those animated quarters.
   static absl::Status ApplySourceSheetCollisionOverrides(
-      const zscream::ResolvedSheetIds& sheets,
+      const zscream::ResolvedSheetIds& sheets, uint8_t animated_sheet,
       const core::GfxSheetSource& source,
       std::array<uint8_t, kNumTileTypes>* types);
 

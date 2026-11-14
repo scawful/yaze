@@ -277,7 +277,7 @@ TEST(ZscreamCustomLayoutTest, LegacyCollisionSaveRejectsCustomBeforeAnyWrite) {
 }
 
 TEST(ZscreamCustomLayoutTest,
-     SourceSheetAttributesOverlayPriorSheetsAndRefuseMissing) {
+     SourceSheetAttributesPreserveAbsenceAndOverlayPresent) {
   std::array<uint8_t, kNumTileTypes> types{};
   types.fill(0xAA);
   zs::ResolvedSheetIds sheets{0x10, 0xF6, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16};
@@ -285,26 +285,55 @@ TEST(ZscreamCustomLayoutTest,
   core::GfxSheetSource::Sheet with_attrs;
   with_attrs.collision_attributes = std::vector<uint8_t>(64, 0x01);
   (*with_attrs.collision_attributes)[3] = 0x22;
-  auto source = core::GfxSheetSource::WithSheetsForTest({{0xF6, with_attrs}});
+  core::GfxSheetSource::Sheet sky_without_attrs;
+  auto source = core::GfxSheetSource::WithSheetsForTest(
+      {{0xF6, with_attrs}, {0x10, sky_without_attrs}});
 
-  const auto overlaid =
-      Overworld::ApplySourceSheetCollisionOverrides(sheets, source, &types);
+  const auto overlaid = Overworld::ApplySourceSheetCollisionOverrides(
+      sheets, /*animated_sheet=*/0x5B, source, &types);
   ASSERT_TRUE(overlaid.ok()) << overlaid;
+  EXPECT_EQ(types[0], 0xAA);  // bound Sky sheet without attrs keeps baseline
   EXPECT_EQ(types[64 + 3], 0x22);
-  EXPECT_EQ(types[0], 0xAA);    // unbound ROM sheet keeps base
-  EXPECT_EQ(types[64], 0x01);   // source overlay
-  EXPECT_EQ(types[128], 0xAA);  // later unbound slot keeps base
+  EXPECT_EQ(types[64], 0x01);
+  EXPECT_EQ(types[128], 0xAA);
+}
 
-  // Bound sheet without attributes must refuse rather than leave legacy bytes.
-  core::GfxSheetSource::Sheet missing_attrs;
-  auto incomplete = core::GfxSheetSource::WithSheetsForTest(
-      {{0xF6, with_attrs}, {0x11, missing_attrs}});
-  sheets[2] = 0x11;
-  const auto refused =
-      Overworld::ApplySourceSheetCollisionOverrides(sheets, incomplete, &types);
-  EXPECT_EQ(refused.code(), absl::StatusCode::kFailedPrecondition);
-  EXPECT_NE(std::string(refused.message()).find("without collision_attributes"),
-            std::string::npos);
+TEST(ZscreamCustomLayoutTest, ActiveAnimationOwns448to479OverStaticSlot7) {
+  std::array<uint8_t, kNumTileTypes> types{};
+  types.fill(0x27);
+  zs::ResolvedSheetIds sheets{0xF6, 0xF7, 0xF8, 0xF9, 0xFA, 0xFB, 0xFC, 0xFD};
+
+  core::GfxSheetSource::Sheet slot0;
+  slot0.collision_attributes = std::vector<uint8_t>(64, 0x01);
+  core::GfxSheetSource::Sheet slot7;
+  slot7.collision_attributes = std::vector<uint8_t>(64, 0x02);
+  core::GfxSheetSource::Sheet animated;
+  animated.collision_attributes = std::vector<uint8_t>(64);
+  for (size_t i = 0; i < 64; ++i)
+    (*animated.collision_attributes)[i] = static_cast<uint8_t>(i);
+
+  auto source = core::GfxSheetSource::WithSheetsForTest(
+      {{0xF6, slot0}, {0xFD, slot7}, {0xFE, animated}});
+  ASSERT_TRUE(Overworld::ApplySourceSheetCollisionOverrides(
+                  sheets, /*animated_sheet=*/0xFE, source, &types)
+                  .ok());
+  EXPECT_EQ(types[0], 0x01);
+  for (size_t i = 64; i < 448; ++i)
+    EXPECT_EQ(types[i], 0x27) << i;
+  for (size_t i = 0; i < 32; ++i)
+    EXPECT_EQ(types[448 + i], static_cast<uint8_t>(i)) << i;
+  for (size_t i = 480; i < 512; ++i)
+    EXPECT_EQ(types[i], 0x02) << i;
+
+  types.fill(0x27);
+  auto no_active = core::GfxSheetSource::WithSheetsForTest({{0xFD, slot7}});
+  ASSERT_TRUE(Overworld::ApplySourceSheetCollisionOverrides(
+                  sheets, /*animated_sheet=*/0xFE, no_active, &types)
+                  .ok());
+  for (size_t i = 448; i < 480; ++i)
+    EXPECT_EQ(types[i], 0x27) << i;
+  for (size_t i = 480; i < 512; ++i)
+    EXPECT_EQ(types[i], 0x02) << i;
 }
 
 TEST(ZscreamCustomLayoutTest, CollisionModelRejectsMissingOrShortRom) {

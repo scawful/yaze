@@ -1655,28 +1655,33 @@ Overworld::GetTile8CollisionTypes(int map_id) const {
           map->MainSlotProvenance(static_cast<int>(slot)).effective_sheet;
     }
     RETURN_IF_ERROR(ApplySourceSheetCollisionOverrides(
-        sheets, *game_data_->gfx_sheet_source, &types));
+        sheets, map->animated_sheet(), *game_data_->gfx_sheet_source, &types));
   }
   return types;
 }
 
 absl::Status Overworld::ApplySourceSheetCollisionOverrides(
-    const zscream::ResolvedSheetIds& sheets, const core::GfxSheetSource& source,
+    const zscream::ResolvedSheetIds& sheets, uint8_t animated_sheet,
+    const core::GfxSheetSource& source,
     std::array<uint8_t, kNumTileTypes>* types) {
   if (types == nullptr) {
     return absl::InvalidArgumentError("Collision preview table is required");
   }
+  // Capture baseline animated quarters before static slot 7 may overwrite them.
+  constexpr size_t kAnimatedBegin = 448;
+  constexpr size_t kAnimatedCount = 32;
+  std::array<uint8_t, kAnimatedCount> baseline_animated{};
+  std::copy_n(types->begin() + static_cast<std::ptrdiff_t>(kAnimatedBegin),
+              kAnimatedCount, baseline_animated.begin());
+
   const auto& source_sheets = source.sheets();
   for (size_t slot = 0; slot < sheets.size(); ++slot) {
     const uint16_t sheet_id = sheets[slot];
     const auto found = source_sheets.find(sheet_id);
-    if (found == source_sheets.end())
+    if (found == source_sheets.end() ||
+        !found->second.collision_attributes.has_value()) {
+      // Absent optional pair preserves old behavior (Sky rows without attrs).
       continue;
-    if (!found->second.collision_attributes.has_value()) {
-      return absl::FailedPreconditionError(absl::StrFormat(
-          "Source sheet $%02X is bound without collision_attributes; "
-          "refusing misleading collision preview",
-          sheet_id));
     }
     const auto& attrs = *found->second.collision_attributes;
     if (attrs.size() != zscream::kCollisionsPerSheet) {
@@ -1687,6 +1692,24 @@ absl::Status Overworld::ApplySourceSheetCollisionOverrides(
     std::copy(attrs.begin(), attrs.end(),
               types->begin() + static_cast<std::ptrdiff_t>(
                                    slot * zscream::kCollisionsPerSheet));
+  }
+
+  // Active animation owns 448..479 even when static slot 7 has another sheet.
+  const auto animated = source_sheets.find(animated_sheet);
+  if (animated != source_sheets.end() &&
+      animated->second.collision_attributes.has_value()) {
+    const auto& attrs = *animated->second.collision_attributes;
+    if (attrs.size() != zscream::kCollisionsPerSheet) {
+      return absl::FailedPreconditionError(absl::StrFormat(
+          "Animated sheet $%02X collision_attributes must be %zu bytes",
+          animated_sheet, zscream::kCollisionsPerSheet));
+    }
+    std::copy_n(attrs.begin(), kAnimatedCount,
+                types->begin() + static_cast<std::ptrdiff_t>(kAnimatedBegin));
+  } else {
+    // Static slot 7 payload never supplies the animated quarters.
+    std::copy(baseline_animated.begin(), baseline_animated.end(),
+              types->begin() + static_cast<std::ptrdiff_t>(kAnimatedBegin));
   }
   return absl::OkStatus();
 }
