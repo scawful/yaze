@@ -2034,7 +2034,9 @@ std::vector<std::pair<uint32_t, uint32_t>> Overworld::GetProjectedWriteRanges()
       for (size_t i = 0; i < entries.size(); ++i) {
         const auto& e = entries[i];
         if (e.id == 20 || e.id == 21 || (e.id >= 210 && e.id <= 213) ||
-            (e.id >= 400 && e.id <= 404)) {
+            (e.id >= 400 && e.id <= 404) ||
+            (e.id == rom::kNativePageTile16TableId &&
+             rom_->experimental_page_tile16())) {
           ranges.emplace_back(e.pc_address, e.pc_address + e.count * e.stride);
           ranges.emplace_back(0x147020 + i * 16 + 12, 0x147020 + i * 16 + 16);
         }
@@ -2082,7 +2084,8 @@ std::vector<std::pair<uint32_t, uint32_t>> Overworld::GetProjectedWriteRanges()
     if (properties.ok() && sprites.ok() && palettes.ok() && endpoints.ok()) {
       const auto candidate = rom::SealNativeOverworldTerrain(
           rom_->vector(), rom_->vector(), *properties, *sprites, baseline_ptr,
-          publish_ptr, &*palettes, &*endpoints);
+          publish_ptr, &*palettes, &*endpoints, nullptr,
+          rom_->experimental_page_tile16());
       if (candidate.ok()) {
         for (size_t pc = 0; pc < candidate->size();) {
           if ((*candidate)[pc] == rom_->vector()[pc]) {

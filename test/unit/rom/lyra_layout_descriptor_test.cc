@@ -3080,7 +3080,7 @@ TEST_F(NativeSpecialOverworldEditorTest, NormalSaveUndoFailureAndDiskReopen) {
         capacity == 192 ? std::vector<int>{0x00, 0x9F, 0xA0, 0xBF}
                         : std::vector<int>{0x00, 0x80, 0x9F};
     if (revision == 5)
-      edited_maps.push_back(0x8D);
+      edited_maps = {0x8D};
     for (int map : edited_maps) {
       const uint16_t old = cell(map);
       const uint16_t next = old == 1 ? 2 : 1;
@@ -3115,19 +3115,43 @@ TEST_F(NativeSpecialOverworldEditorTest, NormalSaveUndoFailureAndDiskReopen) {
       ASSERT_TRUE(action.Redo().ok());
       EXPECT_EQ(world.page_tile16(), page_rows);
       ExpectNativeModelPreserved(before_definition, world);
+      const auto& entry = fixture.Entry(413);
+      const size_t crc = fixture.EntryPc(413) + 12;
+      const auto projects = [&](size_t begin, size_t end) {
+        const auto ranges = world.GetProjectedWriteRanges();
+        return std::any_of(ranges.begin(), ranges.end(),
+                           [&](const auto& range) {
+                             return range.first <= begin && range.second >= end;
+                           });
+      };
+      EXPECT_TRUE(projects(entry.pc_address,
+                           entry.pc_address + entry.count * entry.stride));
+      EXPECT_TRUE(projects(crc, crc + 4));
+      auto& map_save = core::FeatureFlags::get().overworld.kSaveOverworldMaps;
+      map_save = false;
+      EXPECT_FALSE(projects(entry.pc_address,
+                            entry.pc_address + entry.count * entry.stride));
+      EXPECT_FALSE(projects(crc, crc + 4));
+      map_save = true;
     }
-    auto& definition = world.mutable_tiles16()->at(1);
-    definition.tile0_.horizontal_mirror_ =
-        !definition.tile0_.horizontal_mirror_;
+    if (revision != 5) {
+      auto& definition = world.mutable_tiles16()->at(1);
+      definition.tile0_.horizontal_mirror_ =
+          !definition.tile0_.horizontal_mirror_;
+    }
     const int property_map = world.overworld_map(capacity - 1)->parent();
-    const int message = world.overworld_map(property_map)->message_id() ^ 1;
-    ASSERT_TRUE(
-        editor::NativePropertySaveTestPeer::Apply(
-            *editor, {capacity - 1, editor::OverworldPropertyField::kMessageId,
-                      0, message})
-            .ok());
+    const int message = world.overworld_map(property_map)->message_id() ^
+                        (revision == 5 ? 0 : 1);
+    if (revision != 5)
+      ASSERT_TRUE(
+          editor::NativePropertySaveTestPeer::Apply(
+              *editor, {capacity - 1,
+                        editor::OverworldPropertyField::kMessageId, 0, message})
+              .ok());
     editor->SetPreviewStoryState(1);
-    if (capacity == 192) {
+    if (revision == 5) {
+      EXPECT_EQ(world.tiles16(), original_model.global_definitions);
+    } else if (capacity == 192) {
       const int actor_map = world.overworld_map(0xBF)->parent();
       const auto actor = editor::InsertSprite(
           &world,
@@ -3181,18 +3205,25 @@ TEST_F(NativeSpecialOverworldEditorTest, NormalSaveUndoFailureAndDiskReopen) {
         return true;
       for (size_t i = 0; i < fixture.rows.entries.size(); ++i) {
         const auto& e = fixture.rows.entries[i];
-        if ((e.id >= 16 && e.id <= 21) || e.id == 100 ||
-            (e.id >= 210 && e.id <= 213) || (e.id >= 400 && e.id <= 404) ||
-            (revision == 5 && e.id == 413)) {
+        const bool changed_domain =
+            revision == 5
+                ? (e.id == 20 || e.id == 21 || (e.id >= 210 && e.id <= 213) ||
+                   (e.id >= 401 && e.id <= 404) || e.id == 413)
+                : ((e.id >= 16 && e.id <= 21) || e.id == 100 ||
+                   (e.id >= 210 && e.id <= 213) ||
+                   (e.id >= 400 && e.id <= 404));
+        if (changed_domain) {
           if (pc >= e.pc_address && pc < e.pc_address + e.count * e.stride)
             return true;
           if (pc >= 0x147020 + i * 16 + 12 && pc < 0x147020 + i * 16 + 16)
             return true;
         }
       }
-      if ((pc >= 0x4C881 && pc < 0x4D62E) || (pc >= 0x141438 && pc < 0x1417F8))
+      if (revision != 5 && ((pc >= 0x4C881 && pc < 0x4D62E) ||
+                            (pc >= 0x141438 && pc < 0x1417F8)))
         return true;
-      if (property_map < 160 && pc >= 0x1417F8 + property_map * 2 &&
+      if (revision != 5 && property_map < 160 &&
+          pc >= 0x1417F8 + property_map * 2 &&
           pc < 0x1417F8 + property_map * 2 + 2)
         return true;
       return false;
