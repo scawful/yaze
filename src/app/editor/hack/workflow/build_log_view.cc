@@ -2,8 +2,10 @@
 
 #include <fstream>
 #include <iterator>
+#include <string>
 #include <vector>
 
+#include "absl/strings/str_format.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/style_guard.h"
 #include "app/gui/core/theme_manager.h"
@@ -65,10 +67,30 @@ bool IsProblem(BuildLogSeverity severity) {
          severity == BuildLogSeverity::kError;
 }
 
-void DrawCount(BuildLogSeverity severity, int count, const char* label) {
+// Continues the current row when `width` still fits, otherwise wraps, so the
+// counts stay legible in a narrow sidebar.
+void SameLineIfFits(float width) {
+  ImGui::SameLine();
+  if (ImGui::GetCursorPosX() + width > ImGui::GetContentRegionMax().x) {
+    ImGui::NewLine();
+  }
+}
+
+void DrawCount(BuildLogSeverity severity, int count, const char* label,
+               bool continue_row) {
+  const std::string text =
+      absl::StrFormat("%s %d %s", SeverityIcon(severity), count, label);
+  if (continue_row) {
+    SameLineIfFits(ImGui::CalcTextSize(text.c_str()).x);
+  }
   gui::ColoredTextF(
-      count > 0 ? SeverityColor(severity) : gui::GetTextDisabledVec4(),
-      "%s %d %s", SeverityIcon(severity), count, label);
+      count > 0 ? SeverityColor(severity) : gui::GetTextDisabledVec4(), "%s",
+      text.c_str());
+}
+
+float SmallButtonWidth(const char* label) {
+  return ImGui::CalcTextSize(label, nullptr, true).x +
+         ImGui::GetStyle().FramePadding.x * 2.0f;
 }
 
 }  // namespace
@@ -123,18 +145,20 @@ void BuildLogView::Draw(const char* id, float height, bool follow_tail) {
 
 void BuildLogView::DrawToolbar() {
   DrawCount(BuildLogSeverity::kSuccess,
-            receipt_ ? receipt_passed_ : summary_.passed, tr("passed"));
-  ImGui::SameLine();
-  DrawCount(BuildLogSeverity::kWarning, summary_.warnings, tr("warn"));
-  ImGui::SameLine();
+            receipt_ ? receipt_passed_ : summary_.passed, tr("passed"),
+            /*continue_row=*/false);
+  DrawCount(BuildLogSeverity::kWarning, summary_.warnings, tr("warn"),
+            /*continue_row=*/true);
   DrawCount(BuildLogSeverity::kError, summary_.errors + receipt_failed_,
-            tr("err"));
-  ImGui::SameLine();
-  DrawCount(BuildLogSeverity::kSkipped, summary_.skipped, tr("skipped"));
+            tr("err"), /*continue_row=*/true);
+  DrawCount(BuildLogSeverity::kSkipped, summary_.skipped, tr("skipped"),
+            /*continue_row=*/true);
 
-  const ImGuiStyle& style = ImGui::GetStyle();
   const float buttons_width =
-      ImGui::GetFrameHeight() * 3.0f + style.ItemSpacing.x * 2.0f;
+      SmallButtonWidth(ICON_MD_FILTER_LIST) +
+      SmallButtonWidth(ICON_MD_RECEIPT_LONG) +
+      SmallButtonWidth(ICON_MD_CONTENT_COPY "##copy_build_log") +
+      ImGui::GetStyle().ItemSpacing.x * 2.0f;
   const float right_edge = ImGui::GetContentRegionMax().x - buttons_width;
   ImGui::SameLine();
   if (ImGui::GetCursorPosX() <= right_edge) {
