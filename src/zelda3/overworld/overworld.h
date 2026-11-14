@@ -751,6 +751,8 @@ class Overworld {
     loaded_map_tiles_valid_ = false;
     tiles16_.clear();
     loaded_tiles16_.clear();
+    page_tile16_.clear();
+    loaded_page_tile16_.clear();
     native_nonterrain_baseline_ = {};
     native_area_profiles_.clear();
     native_effective_area_profiles_.clear();

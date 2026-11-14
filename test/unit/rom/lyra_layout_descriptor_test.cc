@@ -309,8 +309,8 @@ TEST(LyraLayoutDescriptorTest, PageTile16NormalModelSaveUndoFailureAndReopen) {
 
 TEST(LyraLayoutDescriptorTest, PageTile16ReusedModelClearsOverrides) {
   const char* legacy_path = std::getenv("YAZE_TEST_ROM_OOS");
-  ASSERT_NE(legacy_path, nullptr);
-  ASSERT_TRUE(std::filesystem::exists(legacy_path));
+  if (!legacy_path || !std::filesystem::exists(legacy_path))
+    GTEST_SKIP() << "Set YAZE_TEST_ROM_OOS for reused-model legacy loading";
   NativeDirectoryFixture prototype;
   prototype.SeedNativeSpritePrefix();
   prototype.bytes[zelda3::overworldItemsAddressBank] = 0x1B;
