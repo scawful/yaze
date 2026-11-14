@@ -3,6 +3,7 @@
 #include <cstdlib>
 #include <filesystem>
 #include <fstream>
+#include <iterator>
 #include <utility>
 #include <vector>
 
@@ -13,6 +14,10 @@
 #include "core/source_artifact_publisher.h"
 #include "util/macro.h"
 #include "util/platform_paths.h"
+
+#if defined(YAZE_WITH_JSON) && !defined(__EMSCRIPTEN__)
+#include <nlohmann/json.hpp>
+#endif
 
 namespace yaze::editor {
 
@@ -212,6 +217,146 @@ absl::StatusOr<std::string> ResolveConfiguredProjectRunTargetPath(
     return absl::NotFoundError("Project does not define a run target ROM");
   }
   return project.GetAbsolutePath(target);
+}
+
+namespace {
+
+#if defined(YAZE_WITH_JSON) && !defined(__EMSCRIPTEN__)
+constexpr char kBuildRecordKind[] = "yaze.build_result.v1";
+constexpr uint64_t kMaxBuildRecordBytes = 64 * 1024;
+#endif
+
+std::string CanonicalPathText(const std::string& path) {
+  if (path.empty()) {
+    return {};
+  }
+  std::error_code error;
+  const auto canonical =
+      std::filesystem::weakly_canonical(std::filesystem::u8path(path), error);
+  if (error) {
+    return {};
+  }
+  const auto utf8 = canonical.generic_u8string();
+  return std::string(utf8.begin(), utf8.end());
+}
+
+}  // namespace
+
+absl::StatusOr<std::filesystem::path> ProjectBuildRecordPath(
+    const std::string& descriptor_path) {
+  const std::string descriptor = CanonicalPathText(descriptor_path);
+  if (descriptor.empty()) {
+    return absl::FailedPreconditionError(
+        "Cannot resolve the project descriptor for its build record");
+  }
+  ASSIGN_OR_RETURN(const auto app_data,
+                   util::PlatformPaths::GetAppDataDirectory());
+  return app_data / "build-results" /
+         (core::ComputeSourceArtifactSha256(descriptor) + ".json");
+}
+
+absl::Status WriteProjectBuildRecord(const std::string& descriptor_path,
+                                     const ProjectBuildRecord& record) {
+#if defined(YAZE_WITH_JSON) && !defined(__EMSCRIPTEN__)
+  ASSIGN_OR_RETURN(const auto path, ProjectBuildRecordPath(descriptor_path));
+  std::error_code error;
+  std::filesystem::create_directories(path.parent_path(), error);
+  if (error) {
+    return absl::FailedPreconditionError(
+        "Cannot create the build record directory");
+  }
+  const nlohmann::json json = {
+      {"kind", kBuildRecordKind},
+      {"descriptor_path", CanonicalPathText(descriptor_path)},
+      {"editing_source_path", CanonicalPathText(record.editing_source_path)},
+      {"output_path", record.output_path},
+      {"output_sha256", record.output_sha256},
+      {"output_size", record.output_size},
+      {"saved_input",
+       {{"fingerprint_sha256", record.saved_input.fingerprint_sha256},
+        {"uses_native_receipt", record.saved_input.uses_native_receipt},
+        {"native_generation", record.saved_input.native_generation},
+        {"native_operation_id", record.saved_input.native_operation_id}}}};
+  return project::WriteProjectFileAtomically(path.string(), json.dump(2),
+                                             /*replace_existing=*/true);
+#else
+  return absl::OkStatus();
+#endif
+}
+
+absl::Status RemoveProjectBuildRecord(const std::string& descriptor_path) {
+#if defined(YAZE_WITH_JSON) && !defined(__EMSCRIPTEN__)
+  ASSIGN_OR_RETURN(const auto path, ProjectBuildRecordPath(descriptor_path));
+  std::error_code error;
+  std::filesystem::remove(path, error);
+  std::error_code status_error;
+  if (error || std::filesystem::exists(
+                   std::filesystem::symlink_status(path, status_error))) {
+    return absl::FailedPreconditionError(absl::StrFormat(
+        "Cannot remove the previous build record %s; Build was not started",
+        path.string()));
+  }
+#endif
+  return absl::OkStatus();
+}
+
+std::optional<ProjectBuildRecord> ReadProjectBuildRecord(
+    const std::string& descriptor_path,
+    const std::string& editing_source_path) {
+#if defined(YAZE_WITH_JSON) && !defined(__EMSCRIPTEN__)
+  const auto path = ProjectBuildRecordPath(descriptor_path);
+  if (!path.ok()) {
+    return std::nullopt;
+  }
+  std::error_code error;
+  if (!std::filesystem::is_regular_file(
+          std::filesystem::symlink_status(*path, error)) ||
+      error) {
+    return std::nullopt;
+  }
+  const auto size = std::filesystem::file_size(*path, error);
+  if (error || size > kMaxBuildRecordBytes) {
+    return std::nullopt;
+  }
+  std::ifstream input(*path, std::ios::binary);
+  const std::string text{std::istreambuf_iterator<char>(input), {}};
+  if (!input.good() && !input.eof()) {
+    return std::nullopt;
+  }
+  const auto json = nlohmann::json::parse(text, nullptr, false);
+  try {
+    if (!json.is_object() || json.at("kind") != kBuildRecordKind ||
+        json.at("descriptor_path") != CanonicalPathText(descriptor_path) ||
+        json.at("editing_source_path") !=
+            CanonicalPathText(editing_source_path)) {
+      return std::nullopt;
+    }
+    ProjectBuildRecord record;
+    record.editing_source_path =
+        json.at("editing_source_path").get<std::string>();
+    record.output_path = json.at("output_path").get<std::string>();
+    record.output_sha256 = json.at("output_sha256").get<std::string>();
+    record.output_size = json.at("output_size").get<uint64_t>();
+    const auto& saved = json.at("saved_input");
+    record.saved_input.fingerprint_sha256 =
+        saved.at("fingerprint_sha256").get<std::string>();
+    record.saved_input.uses_native_receipt =
+        saved.at("uses_native_receipt").get<bool>();
+    record.saved_input.native_generation =
+        saved.at("native_generation").get<uint64_t>();
+    record.saved_input.native_operation_id =
+        saved.at("native_operation_id").get<std::string>();
+    if (record.output_path.empty() || record.output_sha256.size() != 64 ||
+        record.saved_input.fingerprint_sha256.empty()) {
+      return std::nullopt;
+    }
+    return record;
+  } catch (const nlohmann::json::exception&) {
+    return std::nullopt;
+  }
+#else
+  return std::nullopt;
+#endif
 }
 
 }  // namespace yaze::editor
