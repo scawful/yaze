@@ -28,7 +28,8 @@ class OverworldIntegrationTest : public ::testing::Test {
  protected:
   void SetUp() override {
 #if defined(__linux__)
-    GTEST_SKIP() << "Overworld integration tests require ROM (unavailable on Linux CI)";
+    GTEST_SKIP()
+        << "Overworld integration tests require ROM (unavailable on Linux CI)";
 #endif
 
     // Check if we should use real ROM or mock data
@@ -153,11 +154,13 @@ TEST_F(OverworldIntegrationTest, ZSCustomOverworldVersionIntegration) {
   auto status = overworld_->Load(rom_.get());
   ASSERT_TRUE(status.ok());
 
-  // Check ASM version detection
-  auto version_byte = rom_->ReadByte(0x140145);
-  ASSERT_TRUE(version_byte.ok());
-
-  uint8_t asm_version = *version_byte;
+  // An unexpanded 1 MiB ROM ends before the version marker and is vanilla.
+  uint8_t asm_version = 0xFF;
+  if (rom_->size() > OverworldCustomASMHasBeenApplied) {
+    auto version_byte = rom_->ReadByte(OverworldCustomASMHasBeenApplied);
+    ASSERT_TRUE(version_byte.ok());
+    asm_version = *version_byte;
+  }
 
   if (asm_version == 0xFF) {
     // Vanilla ROM

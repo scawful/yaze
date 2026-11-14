@@ -367,7 +367,8 @@ TEST_F(DungeonEditorV2IntegrationTest,
       session_id, editor::DungeonEditorV2::kObjectSelectorId));
 
   workbench->OpenObjectSelectorTool();
-  ASSERT_TRUE(workbench->IsToolInspectorActiveForTesting());
+  ASSERT_STREQ(workbench->GetActiveToolIdForTesting(), "object_selector");
+  ASSERT_STREQ(workbench->GetSidebarModeIdForTesting(), "objects");
 
   ImGui::Begin("DungeonWorkbenchPopOutHost");
   ImGui::BeginChild("##DungeonWorkbenchPopOutChild");
@@ -409,8 +410,9 @@ TEST_F(DungeonEditorV2IntegrationTest,
   auto* workbench = dynamic_cast<editor::DungeonWorkbenchContent*>(
       window_manager_->GetWindowContent("dungeon.workbench"));
   ASSERT_NE(workbench, nullptr);
-  EXPECT_TRUE(workbench->IsToolInspectorActiveForTesting());
-  EXPECT_STREQ(workbench->GetInspectorModeIdForTesting(), "tools");
+  // The object selector opens in the left sidebar, not the tool inspector.
+  EXPECT_STREQ(workbench->GetInspectorModeIdForTesting(), "inspect");
+  EXPECT_STREQ(workbench->GetSidebarModeIdForTesting(), "objects");
   EXPECT_STREQ(workbench->GetActiveToolIdForTesting(), "object_selector");
 }
 
