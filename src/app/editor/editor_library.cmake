@@ -410,6 +410,8 @@ target_link_libraries(yaze_editor PUBLIC
   yaze_editor_system_shortcuts
   yaze_app_core_lib
   yaze_cli_editor_shared
+  # Tile16 reference inspector (Map Properties) calls cli::overworld helpers.
+  yaze_cli_core
   yaze_rom
   yaze_gfx
   yaze_gui

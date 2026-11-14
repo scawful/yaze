@@ -1279,6 +1279,8 @@ void OverworldCanvasRenderer::DrawMapProperties() {
   // The Background Color and Visual Effects buttons open the same floating
   // editors the canvas context menu uses (drawn in OverworldEditor::Update).
   if (editor_->sidebar_) {
+    // Update live hover only while the canvas owns the cursor. Leaving the
+    // canvas must not clear the last valid selection (sidebar Pin needs it).
     if (editor_->tile_painting_ && editor_->overworld_.is_loaded() &&
         editor_->ow_map_canvas_.IsMouseHovering()) {
       const auto hover = editor_->tile_painting_->HoveredTile();
@@ -1290,13 +1292,13 @@ void OverworldCanvasRenderer::DrawMapProperties() {
       const auto location = cli::overworld::LocateScreenTile(
           editor_->overworld_, map_id, screen_x, screen_y);
       if (location.ok()) {
-        editor_->sidebar_->SetTile16ReferenceOccurrence(
+        editor_->sidebar_->SetTile16ReferenceHover(
             location->map_id, location->area_x, location->area_y);
       } else {
-        editor_->sidebar_->ClearTile16ReferenceOccurrence();
+        editor_->sidebar_->ClearTile16ReferenceHover();
       }
     } else {
-      editor_->sidebar_->ClearTile16ReferenceOccurrence();
+      editor_->sidebar_->ClearTile16ReferenceHover();
     }
     editor_->sidebar_->Draw(editor_->current_world_, editor_->current_map_,
                             editor_->current_map_lock_, editor_->game_state_,

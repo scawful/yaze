@@ -4,11 +4,13 @@
 #include <array>
 #include <cstdint>
 #include <functional>
+#include <optional>
 #include <string>
 #include <vector>
 
 #include "absl/status/status.h"
 #include "app/editor/overworld/maps/map_properties.h"
+#include "cli/handlers/game/overworld_tile_reference.h"
 #include "rom/rom.h"
 #include "zelda3/overworld/overworld.h"
 
@@ -48,10 +50,35 @@ class OverworldSidebar {
   /// Discards an in-progress screen color picker draft (ROM reload, etc.).
   void CancelScreenColorEdit();
 
-  // Occurrence under the canvas cursor (area-relative). Read-only inspector;
-  // does not mutate terrain or undo history.
-  void SetTile16ReferenceOccurrence(int map_id, int area_x, int area_y);
-  void ClearTile16ReferenceOccurrence();
+  // Live canvas hover updates the selected occurrence unless pinned. Leaving
+  // the canvas clears only the live-hover flag; the last valid selection stays
+  // so the sidebar Pin control remains usable. Clear on world/project/ROM
+  // invalidation via InvalidateTile16ReferenceContext.
+  void SetTile16ReferenceHover(int map_id, int area_x, int area_y);
+  void ClearTile16ReferenceHover();
+  void InvalidateTile16ReferenceContext();
+  void SetTile16ReferencePinned(bool pinned);
+  bool tile16_reference_pinned() const { return tile16_reference_pinned_; }
+  bool tile16_reference_has_selection() const {
+    return tile16_reference_has_selection_;
+  }
+  bool tile16_reference_live_hover() const {
+    return tile16_reference_live_hover_;
+  }
+  int tile16_reference_map_for_test() const { return tile16_reference_map_; }
+  int tile16_reference_x_for_test() const { return tile16_reference_x_; }
+  int tile16_reference_y_for_test() const { return tile16_reference_y_; }
+  void SetTile16ReferencePolicyPathForTest(const std::string& path);
+  void ReloadTile16ReferencePolicyForTest();
+  bool tile16_reference_policy_loaded_for_test() const {
+    return tile16_reference_policy_.has_value();
+  }
+  const std::string& tile16_reference_policy_error_for_test() const {
+    return tile16_reference_policy_error_;
+  }
+  int tile16_reference_policy_load_count_for_test() const {
+    return tile16_reference_policy_load_count_;
+  }
 
  private:
   struct LabelTarget {
@@ -70,6 +97,8 @@ class OverworldSidebar {
   void DrawMusicSection(int property_map);
   void DrawEffectsSection(int property_map, bool& show_overlay_editor);
   void DrawTile16ReferenceSection();
+  void NotifyTile16ReferenceMapContext(int current_world);
+  void CommitTile16ReferencePolicyPath(bool force_reload);
 
   // Two-column row: label (with tooltip) then a full-width control cell.
   bool BeginFieldTable(const char* id);
@@ -106,13 +135,17 @@ class OverworldSidebar {
   std::array<char, 128> label_buffer_{};
   std::string label_error_;
 
-  bool tile16_reference_has_occurrence_ = false;
+  bool tile16_reference_has_selection_ = false;
+  bool tile16_reference_live_hover_ = false;
   bool tile16_reference_pinned_ = false;
   int tile16_reference_map_ = 0;
   int tile16_reference_x_ = 0;
   int tile16_reference_y_ = 0;
   std::array<char, 512> tile16_reference_policy_path_{};
+  std::string tile16_reference_policy_committed_path_;
+  std::optional<cli::overworld::TileReferencePolicy> tile16_reference_policy_;
   std::string tile16_reference_policy_error_;
+  int tile16_reference_policy_load_count_ = 0;
 };
 
 }  // namespace editor

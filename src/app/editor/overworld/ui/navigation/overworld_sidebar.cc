@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <cfloat>
 #include <cstdint>
+#include <cstdio>
 #include <cstring>
 #include <optional>
 
@@ -162,6 +163,7 @@ void OverworldSidebar::Draw(int& current_world, int& current_map,
     if (ImGui::CollapsingHeader(tr("Effects"))) {
       DrawEffectsSection(appearance_map, show_overlay_editor);
     }
+    NotifyTile16ReferenceMapContext(current_world);
     if (ImGui::CollapsingHeader(tr("Tile16 reference"))) {
       DrawTile16ReferenceSection();
     }
@@ -546,20 +548,72 @@ void OverworldSidebar::DrawGraphicsSection(int property_map, int game_state) {
   }
 }
 
-void OverworldSidebar::SetTile16ReferenceOccurrence(int map_id, int area_x,
-                                                    int area_y) {
+void OverworldSidebar::SetTile16ReferenceHover(int map_id, int area_x,
+                                               int area_y) {
+  tile16_reference_live_hover_ = true;
   if (tile16_reference_pinned_)
     return;
-  tile16_reference_has_occurrence_ = true;
+  tile16_reference_has_selection_ = true;
   tile16_reference_map_ = map_id;
   tile16_reference_x_ = area_x;
   tile16_reference_y_ = area_y;
 }
 
-void OverworldSidebar::ClearTile16ReferenceOccurrence() {
-  if (tile16_reference_pinned_)
+void OverworldSidebar::ClearTile16ReferenceHover() {
+  // Leaving the canvas must not erase the last valid selection: the user needs
+  // to move into the sidebar and click Pin without losing the tile.
+  tile16_reference_live_hover_ = false;
+}
+
+void OverworldSidebar::InvalidateTile16ReferenceContext() {
+  tile16_reference_has_selection_ = false;
+  tile16_reference_live_hover_ = false;
+  tile16_reference_pinned_ = false;
+}
+
+void OverworldSidebar::SetTile16ReferencePinned(bool pinned) {
+  tile16_reference_pinned_ = pinned;
+}
+
+void OverworldSidebar::NotifyTile16ReferenceMapContext(int current_world) {
+  if (!overworld_ || !overworld_->is_loaded()) {
+    InvalidateTile16ReferenceContext();
     return;
-  tile16_reference_has_occurrence_ = false;
+  }
+  if (!tile16_reference_has_selection_)
+    return;
+  const int occ_world = tile16_reference_map_ / 64;
+  if (occ_world != current_world)
+    InvalidateTile16ReferenceContext();
+}
+
+void OverworldSidebar::SetTile16ReferencePolicyPathForTest(
+    const std::string& path) {
+  std::snprintf(tile16_reference_policy_path_.data(),
+                tile16_reference_policy_path_.size(), "%s", path.c_str());
+  CommitTile16ReferencePolicyPath(true);
+}
+
+void OverworldSidebar::ReloadTile16ReferencePolicyForTest() {
+  CommitTile16ReferencePolicyPath(true);
+}
+
+void OverworldSidebar::CommitTile16ReferencePolicyPath(bool force_reload) {
+  const std::string path(tile16_reference_policy_path_.data());
+  if (!force_reload && path == tile16_reference_policy_committed_path_)
+    return;
+  tile16_reference_policy_committed_path_ = path;
+  tile16_reference_policy_.reset();
+  tile16_reference_policy_error_.clear();
+  if (path.empty())
+    return;
+  ++tile16_reference_policy_load_count_;
+  auto parsed = cli::overworld::LoadTileReferencePolicy(path);
+  if (!parsed.ok()) {
+    tile16_reference_policy_error_ = std::string(parsed.status().message());
+    return;
+  }
+  tile16_reference_policy_ = std::move(*parsed);
 }
 
 void OverworldSidebar::DrawTile16ReferenceSection() {
@@ -568,15 +622,29 @@ void OverworldSidebar::DrawTile16ReferenceSection() {
     ImGui::SetTooltip("%s", tr("Keep the last map/cell while the cursor moves. "
                                "Read-only; does not edit terrain or Save."));
   }
-  ImGui::InputText(tr("Policy JSON"), tile16_reference_policy_path_.data(),
-                   tile16_reference_policy_path_.size());
-  if (ImGui::IsItemHovered()) {
-    ImGui::SetTooltip("%s",
-                      tr("Optional source-reference policy. Absent path leaves "
-                         "status as observed. No auto-repair or blanking."));
+  if (tile16_reference_has_selection_) {
+    ImGui::SameLine();
+    ImGui::TextDisabled("%s", tile16_reference_live_hover_
+                                  ? tr("(live hover)")
+                                  : tr("(last selection)"));
   }
 
-  if (!tile16_reference_has_occurrence_) {
+  const bool enter =
+      ImGui::InputText(tr("Policy JSON"), tile16_reference_policy_path_.data(),
+                       tile16_reference_policy_path_.size(),
+                       ImGuiInputTextFlags_EnterReturnsTrue);
+  if (ImGui::IsItemHovered()) {
+    ImGui::SetTooltip("%s",
+                      tr("Optional source-reference policy. Loaded on Enter, "
+                         "edit-commit, or Reload — not every frame."));
+  }
+  if (enter || ImGui::IsItemDeactivatedAfterEdit())
+    CommitTile16ReferencePolicyPath(false);
+  ImGui::SameLine();
+  if (ImGui::Button(tr("Reload")))
+    CommitTile16ReferencePolicyPath(true);
+
+  if (!tile16_reference_has_selection_) {
     ImGui::TextDisabled("%s", tr("Hover a map tile to inspect an occurrence."));
     return;
   }
@@ -585,19 +653,8 @@ void OverworldSidebar::DrawTile16ReferenceSection() {
     return;
   }
 
-  const cli::overworld::TileReferencePolicy* policy = nullptr;
-  std::optional<cli::overworld::TileReferencePolicy> loaded;
-  tile16_reference_policy_error_.clear();
-  const std::string policy_path(tile16_reference_policy_path_.data());
-  if (!policy_path.empty()) {
-    auto parsed = cli::overworld::LoadTileReferencePolicy(policy_path);
-    if (!parsed.ok()) {
-      tile16_reference_policy_error_ = std::string(parsed.status().message());
-    } else {
-      loaded = std::move(*parsed);
-      policy = &*loaded;
-    }
-  }
+  const cli::overworld::TileReferencePolicy* policy =
+      tile16_reference_policy_ ? &*tile16_reference_policy_ : nullptr;
 
   auto inspection = cli::overworld::InspectTile16Reference(
       *overworld_, tile16_reference_map_, tile16_reference_x_,

@@ -648,6 +648,7 @@ if(YAZE_BUILD_TESTS)
     unit/editor/oracle_hack_workflow_backend_test.cc
     unit/editor/dungeon_canvas_transform_test.cc
     unit/editor/map_properties_context_menu_test.cc
+    unit/editor/overworld_tile16_reference_sidebar_test.cc
     unit/editor/layout_presets_test.cc
     unit/editor/graphics_editor_window_ids_test.cc
     unit/editor/graphics_workspace_layout_test.cc

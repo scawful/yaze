@@ -657,6 +657,8 @@ absl::Status OverworldEditor::Load() {
   current_paint_operation_.reset();
   undo_manager_.Clear();
   CancelScreenColorEdit();
+  if (sidebar_)
+    sidebar_->InvalidateTile16ReferenceContext();
 
   RETURN_IF_ERROR(LoadGraphics());
   if (overworld_.is_lyra_preview()) {
@@ -2443,6 +2445,8 @@ void OverworldEditor::RequestTile16Selection(int tile_id) {
 
 absl::Status OverworldEditor::Clear() {
   CancelScreenColorEdit();
+  if (sidebar_)
+    sidebar_->InvalidateTile16ReferenceContext();
   graphics_source_.reset();
   graphics_source_project_ = nullptr;
   graphics_source_open_ = false;
