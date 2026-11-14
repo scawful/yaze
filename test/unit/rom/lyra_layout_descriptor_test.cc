@@ -283,6 +283,19 @@ TEST(LyraLayoutDescriptorTest, PageTile16NormalModelSaveUndoFailureAndReopen) {
   EXPECT_EQ(fresh->GetMapTiles(2), special);
   ASSERT_TRUE(fresh->SaveNativeTerrain().ok());
   EXPECT_EQ(reopened.vector(), persisted);
+  // A separately resealed allocation change is stale even with identical rows.
+  fixture.bytes = persisted;
+  auto& moved = fixture.Entry(413);
+  std::copy_n(fixture.bytes.begin() + moved.pc_address,
+              moved.count * moved.stride, fixture.bytes.begin() + 0x2C1000);
+  moved.pc_address = 0x2C1000;
+  moved.snes_address = NativeDirectoryFixture::Snes(moved.pc_address);
+  fixture.Seal();
+  reopened.mutable_vector() = fixture.bytes;
+  EXPECT_EQ(reopened.InspectLyraLayout().presence,
+            rom::LyraLayoutPresence::kValid);
+  EXPECT_FALSE(fresh->SaveNativeTerrain().ok());
+  EXPECT_EQ(reopened.vector(), fixture.bytes);
 }
 
 TEST(LyraLayoutDescriptorTest, PageTile16OldFormatsNormalSavePreservesBytes) {

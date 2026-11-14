@@ -2651,6 +2651,23 @@ absl::Status Overworld::SaveNativeTerrain() {
   const auto layout = rom_->InspectLyraLayout();
   if (materialized_map_count() != layout.capacity || tiles16_.size() != 4096)
     return absl::FailedPreconditionError("Native terrain model is incomplete");
+  if (layout.revision == 5 || descriptor_layout_.revision == 5) {
+    const auto find_page_record = [](const auto& descriptor) {
+      return std::find_if(
+          descriptor.entries.begin(), descriptor.entries.end(),
+          [](const auto& e) { return e.id == rom::kNativePageTile16TableId; });
+    };
+    const auto current = find_page_record(layout);
+    const auto loaded = find_page_record(descriptor_layout_);
+    if (layout.revision != descriptor_layout_.revision ||
+        current == layout.entries.end() ||
+        loaded == descriptor_layout_.entries.end() ||
+        current->snes_address != loaded->snes_address ||
+        current->pc_address != loaded->pc_address ||
+        current->count != loaded->count || current->stride != loaded->stride)
+      return absl::FailedPreconditionError(
+          "Reload the overworld after changing its page Tile16 binding");
+  }
   const auto& flags = core::FeatureFlags::get().overworld;
   const std::array<bool, 7> enabled = {false,
                                        false,
