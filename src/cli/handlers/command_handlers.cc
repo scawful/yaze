@@ -49,6 +49,7 @@
 #include "cli/handlers/tools/message_doctor_commands.h"
 #include "cli/handlers/tools/overworld_allocation_commands.h"
 #include "cli/handlers/tools/overworld_doctor_commands.h"
+#include "cli/handlers/tools/overworld_grouping_preflight_commands.h"
 #include "cli/handlers/tools/overworld_validate_commands.h"
 #include "cli/handlers/tools/resource_commands.h"
 #include "cli/handlers/tools/rom_compare_commands.h"
@@ -273,6 +274,8 @@ CreateCliCommandHandlers() {
   handlers.push_back(std::make_unique<OverworldValidateCommandHandler>());
   handlers.push_back(std::make_unique<OverworldDoctorCommandHandler>());
   handlers.push_back(std::make_unique<OverworldAllocationCommandHandler>());
+  handlers.push_back(
+      std::make_unique<OverworldGroupingPreflightCommandHandler>());
   handlers.push_back(std::make_unique<DungeonDoctorCommandHandler>());
   handlers.push_back(std::make_unique<DungeonObjectValidateCommandHandler>());
   handlers.push_back(std::make_unique<RomDoctorCommandHandler>());

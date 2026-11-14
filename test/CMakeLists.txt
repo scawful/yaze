@@ -575,6 +575,7 @@ if(YAZE_BUILD_TESTS)
     unit/cli/rom_doctor_water_fill_test.cc
     unit/cli/overworld_doctor_tile16_test.cc
     unit/cli/overworld_allocation_commands_test.cc
+    unit/cli/overworld_grouping_preflight_commands_test.cc
     unit/cli/graphics_doctor_test.cc
     unit/cli/rom_header_size_test.cc
     unit/cli/overworld_agent_commands_test.cc
@@ -688,6 +689,7 @@ if(YAZE_BUILD_TESTS)
     unit/zelda3/overworld_layout_test.cc
     unit/zelda3/zscream_custom_layout_test.cc
     unit/zelda3/overworld_allocation_test.cc
+    unit/zelda3/overworld_grouping_preflight_test.cc
     unit/zelda3/special_entrance_inspector_test.cc
     unit/zelda3/zelda3_version_test.cc
     unit/zelda3/tile16_metadata_test.cc

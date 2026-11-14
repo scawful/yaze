@@ -113,6 +113,7 @@ set(YAZE_CLI_CORE_SOURCES
   cli/handlers/tools/hex_inspector_commands.cc
   cli/handlers/tools/message_doctor_commands.cc
   cli/handlers/tools/overworld_allocation_commands.cc
+  cli/handlers/tools/overworld_grouping_preflight_commands.cc
   cli/handlers/tools/overworld_doctor_commands.cc
   cli/handlers/tools/overworld_validate_commands.cc
   cli/handlers/tools/resource_commands.cc

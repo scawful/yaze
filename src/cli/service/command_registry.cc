@@ -256,6 +256,16 @@ void CommandRegistry::RegisterHandlers(
             "z3ed overworld-allocation --rom=zelda3.sfc",
             "z3ed overworld-allocation --rom=oos168x.sfc "
             "--project=Oracle-of-Secrets.yaze --tail-check --format=json"};
+      } else if (name == "overworld-grouping-preflight") {
+        metadata.description =
+            "Read-only tall/wide/large grouping preflight before Save";
+        metadata.examples = {
+            "z3ed overworld-grouping-preflight --rom=private.sfc "
+            "--parent=0x90 --size=tall --members=0x90,0x98 "
+            "--contact='beach_99_98:99↔98 beach' --format=json",
+            "z3ed overworld-grouping-preflight --rom=private.sfc "
+            "--parent=0xA0 --size=wide --members=0xA0,0xA1 "
+            "--experimental-page-tile16 --format=text"};
       }
     } else if (name.find("project-bundle-") == 0) {
       metadata.category = "project";

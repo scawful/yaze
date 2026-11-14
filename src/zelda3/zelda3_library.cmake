@@ -78,6 +78,7 @@ set(
   zelda3/overworld/overworld_layout.cc
   zelda3/overworld/overworld.cc
   zelda3/overworld/overworld_allocation.cc
+  zelda3/overworld/overworld_grouping_preflight.cc
   zelda3/overworld/overworld_entrance.cc
   zelda3/overworld/overworld_exit.cc
   zelda3/overworld/overworld_item.cc
