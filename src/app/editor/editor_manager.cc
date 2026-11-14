@@ -77,6 +77,7 @@
 #include "app/editor/shell/feedback/toast_manager.h"
 #include "app/editor/shell/windows/dashboard_panel.h"
 #include "app/editor/shell/windows/project_management_panel.h"
+#include "app/editor/shell/windows/proposal_workspace_panel.h"
 #include "app/editor/shell/windows/settings_panel.h"
 #include "app/editor/sprite/sprite_editor.h"
 #include "app/editor/system/editor_registry.h"
@@ -707,6 +708,49 @@ void EditorManager::InitializeSubsystems() {
       });
   window_manager_.RegisterWindowContent(
       std::make_unique<workflow::ProjectWorkflowOutputPanel>());
+  window_manager_.RegisterWindowContent(
+      std::make_unique<ProposalWorkspacePanel>(
+          [this]() { return current_project_.filepath; },
+          [this]() { return SaveCurrentSession(/*allow_dialogs=*/false); },
+          [this](const core::ProposalWorkspace& proposal) {
+            AppConfig config;
+            config.startup_editor =
+                proposal.domain == "dungeon" ? "Dungeon" : "Overworld";
+            config.jump_to_room =
+                proposal.domain == "dungeon" ? proposal.target : -1;
+            config.jump_to_map =
+                proposal.domain == "overworld" ? proposal.target : -1;
+            config.graphics_entrance = proposal.graphics_entrance_slot;
+            ProcessStartupActions(config);
+          },
+          [this]() -> absl::Status {
+            if (HasAnySessionPendingUnsavedWork() ||
+                HasPendingUnsavedSessionAction()) {
+              return absl::FailedPreconditionError(
+                  "Save or close pending edits before opening a proposal");
+            }
+            const auto selected = util::FileDialogWrapper::ShowOpenFileDialog(
+                util::FileDialogOptions{{{"Proposal packet", "json"}}});
+            if (selected.empty())
+              return absl::CancelledError("Open cancelled");
+            const auto proposal = core::LoadProposalWorkspace(
+                std::filesystem::path(selected).parent_path());
+            if (!proposal.ok())
+              return proposal.status();
+            RETURN_IF_ERROR(OpenRomOrProjectInternal(
+                proposal->project_file.string(), false));
+            AppConfig config;
+            config.startup_editor =
+                proposal->domain == "dungeon" ? "Dungeon" : "Overworld";
+            config.jump_to_room =
+                proposal->domain == "dungeon" ? proposal->target : -1;
+            config.jump_to_map =
+                proposal->domain == "overworld" ? proposal->target : -1;
+            config.graphics_entrance = proposal->graphics_entrance_slot;
+            config.open_panels = {"proposal.workbench"};
+            ProcessStartupActions(config);
+            return absl::OkStatus();
+          }));
   project_management_panel_->SetSwapRomCallback([this]() {
     // Prompt user to select a new ROM for the project
     auto rom_path = util::FileDialogWrapper::ShowOpenFileDialog(
@@ -2176,6 +2220,14 @@ void EditorManager::ProcessStartupActions(const AppConfig& config) {
   if (config.jump_to_room >= 0) {
     event_bus_.Publish(JumpToRoomRequestEvent::Create(config.jump_to_room,
                                                       GetCurrentSessionId()));
+    if (config.graphics_entrance >= 0) {
+      auto* editors = GetCurrentEditorSet();
+      auto* dungeon =
+          editors ? editors->GetEditorAs<DungeonEditorV2>(EditorType::kDungeon)
+                  : nullptr;
+      if (dungeon)
+        dungeon->SetGraphicsPreviewEntrance(config.graphics_entrance);
+    }
   }
   if (config.jump_to_map >= 0) {
     // The navigation handler loads project assets before validating the target

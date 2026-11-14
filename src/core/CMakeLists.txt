@@ -29,6 +29,7 @@ set(YAZE_CORE_LIB_SOURCES
   oracle_progression.cc
   oracle_progression_loader.cc
   project.cc
+  proposal_workspace.cc
   project_native_import.cc
   project_plan.cc
   project_plan_agent.cc

@@ -235,6 +235,7 @@ set(
   app/editor/shell/windows/about_panel.cc
   app/editor/shell/windows/dashboard_panel.cc
   app/editor/shell/windows/project_management_panel.cc
+  app/editor/shell/windows/proposal_workspace_panel.cc
   app/editor/shell/windows/selection_properties_panel.cc
   app/editor/shell/windows/settings_panel.cc
   app/editor/sprite/sprite_drawer.cc

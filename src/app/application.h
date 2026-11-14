@@ -40,8 +40,9 @@ struct AppConfig {
       open_panels;  // Panel IDs to show (e.g., "dungeon.room_list")
 
   // Jump targets
-  int jump_to_room = -1;  // Dungeon room ID (-1 to ignore)
-  int jump_to_map = -1;   // Overworld map ID (-1 to ignore)
+  int jump_to_room = -1;       // Dungeon room ID (-1 to ignore)
+  int graphics_entrance = -1;  // Unified dungeon entrance slot (-1: automatic)
+  int jump_to_map = -1;        // Overworld map ID (-1 to ignore)
 
   // Services
   bool headless = false;      // Run without GUI (uses NullWindowBackend)

@@ -29,11 +29,13 @@
 #include "app/service/editor_http_server.h"
 #endif
 #include "core/features.h"
+#include "core/proposal_workspace.h"
 #include "util/crash_handler.h"
 #include "util/flag.h"
 #include "util/log.h"
 #include "util/platform_paths.h"
 #include "yaze.h"
+#include "zelda3/dungeon/dungeon_spawn_point.h"
 
 // ============================================================================
 // Global Accessors for WASM Integration
@@ -71,6 +73,10 @@ DEFINE_FLAG(std::string, asset_mode, "auto",
             "Asset load mode: auto, full, or lazy.");
 
 DEFINE_FLAG(int, room, -1, "Open Dungeon Editor at specific room ID (0-295).");
+DEFINE_FLAG(int, graphics_entrance, -1,
+            "Dungeon graphics entrance slot (0-139; -1: automatic).");
+DEFINE_FLAG(std::string, proposal, "",
+            "Open a prepared editable proposal packet in its focused editor.");
 DEFINE_FLAG(int, map, -1, "Open Overworld Editor at specific map ID (0-159).");
 
 // AI Agent API flags
@@ -307,6 +313,7 @@ yaze::AppConfig BuildAppConfig(yaze::util::LogLevel log_level,
   config.log_categories = FLAGS_log_categories->Get();
   config.startup_editor = FLAGS_editor->Get();
   config.jump_to_room = FLAGS_room->Get();
+  config.graphics_entrance = FLAGS_graphics_entrance->Get();
   config.jump_to_map = FLAGS_map->Get();
   config.api_port = FLAGS_api_port->Get();
 
@@ -427,6 +434,34 @@ int main(int argc, char** argv) {
 
   // Build AppConfig from flags
   auto config = BuildAppConfig(log_level, log_path);
+  if (!FLAGS_proposal->Get().empty()) {
+    const auto proposal =
+        yaze::core::LoadProposalWorkspace(FLAGS_proposal->Get());
+    if (!proposal.ok()) {
+      std::cerr << "Proposal: " << proposal.status().message() << '\n';
+      return EXIT_FAILURE;
+    }
+    config.rom_file = proposal->project_file.string();
+    config.startup_editor =
+        proposal->domain == "dungeon" ? "Dungeon" : "Overworld";
+    config.jump_to_room = proposal->domain == "dungeon" ? proposal->target : -1;
+    config.jump_to_map =
+        proposal->domain == "overworld" ? proposal->target : -1;
+    config.graphics_entrance = proposal->graphics_entrance_slot;
+    config.welcome_mode = yaze::StartupVisibility::kHide;
+    config.dashboard_mode = yaze::StartupVisibility::kHide;
+    config.sidebar_mode = yaze::StartupVisibility::kHide;
+    config.open_panels = {"proposal.workbench"};
+    if (proposal->domain == "dungeon")
+      config.open_panels.push_back("dungeon.workbench");
+  }
+  if (config.graphics_entrance < -1 ||
+      config.graphics_entrance >= yaze::zelda3::kNumDungeonEntranceSlots ||
+      (config.graphics_entrance >= 0 && config.jump_to_room < 0)) {
+    std::cerr
+        << "--graphics_entrance requires --room and a slot from 0 to 139\n";
+    return EXIT_FAILURE;
+  }
 
   // Fast symbol export path (no UI initialization)
   if (RunSymbolExportFastPath()) {
