@@ -25,6 +25,10 @@ class GfxSheetSource {
     std::vector<uint8_t> pixels;
     // The !ENABLE_* define that selected this entry; empty when unflagged.
     std::string flag;
+    // Optional authenticated 64-byte Tile8 collision attributes for this
+    // dedicated global source sheet. Absent preserves legacy global-table
+    // behavior for that sheet.
+    std::optional<std::vector<uint8_t>> collision_attributes;
   };
   struct Plan {
     std::string descriptor;

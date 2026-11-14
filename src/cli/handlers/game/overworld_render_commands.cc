@@ -754,16 +754,32 @@ absl::Status OverworldExportNativeSourceCommandHandler::Execute(
     const auto spec_dir =
         std::filesystem::path(source.spec_path()).parent_path();
     auto sheets = nlohmann::json::array();
-    for (const auto& [id, sheet] : source.sheets())
-      sheets.push_back(
-          {{"sheet_id", id},
-           {"source", std::filesystem::path(sheet.path)
-                          .lexically_relative(spec_dir)
-                          .generic_string()},
-           {"flag", sheet.flag.empty() ? nlohmann::json(nullptr)
-                                       : nlohmann::json(sheet.flag)},
-           {"decoded_sheet_sha256",
-            hash(sheet.pixels.data(), sheet.pixels.size())}});
+    for (const auto& [id, sheet] : source.sheets()) {
+      nlohmann::json row = {
+          {"sheet_id", id},
+          {"source", std::filesystem::path(sheet.path)
+                         .lexically_relative(spec_dir)
+                         .generic_string()},
+          {"flag", sheet.flag.empty() ? nlohmann::json(nullptr)
+                                      : nlohmann::json(sheet.flag)},
+          {"decoded_sheet_sha256",
+           hash(sheet.pixels.data(), sheet.pixels.size())}};
+      if (sheet.collision_attributes.has_value()) {
+        const auto& raw = *sheet.collision_attributes;
+        std::string hex;
+        hex.resize(raw.size() * 2);
+        static constexpr char kDigits[] = "0123456789abcdef";
+        for (size_t i = 0; i < raw.size(); ++i) {
+          hex[i * 2] = kDigits[raw[i] >> 4];
+          hex[i * 2 + 1] = kDigits[raw[i] & 0x0F];
+        }
+        row["collision_attributes_hex"] = hex;
+        row["collision_attributes_sha256"] =
+            core::ComputeSourceArtifactSha256(std::string_view(
+                reinterpret_cast<const char*>(raw.data()), raw.size()));
+      }
+      sheets.push_back(std::move(row));
+    }
     result["graphics_source"] = {
         {"spec", project_->graphics_sheets.source_spec},
         {"spec_sha1", source.spec_sha1()},

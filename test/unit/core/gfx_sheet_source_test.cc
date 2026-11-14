@@ -10,6 +10,7 @@
 #include "app/gfx/types/snes_tile.h"
 #include "core/gfx_sheet_policy_adapter.h"
 #include "core/project.h"
+#include "core/source_artifact_publisher.h"
 #include "gtest/gtest.h"
 #include "nlohmann/json.hpp"
 #include "util/indexed_png.h"
@@ -674,6 +675,67 @@ TEST_F(GfxSheetSourceTest,
   EXPECT_EQ(Json::parse(Read(Spec()))["sheets"][0]["decoded_sha256"],
             GfxSheetSource::DecodedSha256(edited));
   EXPECT_EQ(Read(Sheet())[positions[10]], '0');
+}
+
+TEST_F(GfxSheetSourceTest, OptionalCollisionAttributesLoadAtomically) {
+  std::vector<uint8_t> attrs(64, 0x01);
+  attrs[0] = 0x00;
+  attrs[1] = 0x22;
+  std::string hex;
+  hex.resize(128);
+  static constexpr char kDigits[] = "0123456789abcdef";
+  for (size_t i = 0; i < attrs.size(); ++i) {
+    hex[i * 2] = kDigits[attrs[i] >> 4];
+    hex[i * 2 + 1] = kDigits[attrs[i] & 0x0F];
+  }
+  const auto digest = ComputeSourceArtifactSha256(std::string_view(
+      reinterpret_cast<const char*>(attrs.data()), attrs.size()));
+  spec["sheets"][0]["collision_attributes_hex"] = hex;
+  spec["sheets"][0]["collision_attributes_sha256"] = digest;
+  Bind();
+  auto source = GfxSheetSource::Load(project);
+  ASSERT_TRUE(source.ok()) << source.status();
+  ASSERT_TRUE(source->sheets().at(0xDF).collision_attributes.has_value());
+  EXPECT_EQ(*source->sheets().at(0xDF).collision_attributes, attrs);
+  EXPECT_FALSE(source->sheets().at(0xFE).collision_attributes.has_value());
+}
+
+TEST_F(GfxSheetSourceTest, CollisionAttributePairRejectsLoneOrBadPayload) {
+  const auto original = spec;
+  auto expect_reject = [&](auto mutate, const char* label) {
+    spec = original;
+    mutate();
+    Bind();
+    EXPECT_FALSE(GfxSheetSource::Load(project).ok()) << label;
+  };
+  expect_reject(
+      [&] {
+        spec["sheets"][0]["collision_attributes_hex"] = std::string(128, '0');
+      },
+      "lone hex");
+  expect_reject(
+      [&] {
+        spec["sheets"][0]["collision_attributes_sha256"] = std::string(64, 'a');
+      },
+      "lone sha");
+  expect_reject(
+      [&] {
+        spec["sheets"][0]["collision_attributes_hex"] = std::string(128, '0');
+        spec["sheets"][0]["collision_attributes_sha256"] = std::string(64, 'a');
+      },
+      "hash mismatch");
+  expect_reject(
+      [&] {
+        spec["sheets"][0]["collision_attributes_hex"] = std::string(128, 'A');
+        spec["sheets"][0]["collision_attributes_sha256"] = std::string(64, 'a');
+      },
+      "uppercase hex");
+  expect_reject(
+      [&] {
+        spec["sheets"][0]["collision_attributes_hex"] = std::string(64, '0');
+        spec["sheets"][0]["collision_attributes_sha256"] = std::string(64, 'a');
+      },
+      "short hex");
 }
 
 }  // namespace

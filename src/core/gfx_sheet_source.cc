@@ -331,6 +331,44 @@ bool MatchesSheet(const Json& entry, uint16_t id, const std::string& flag) {
          Number(entry.at("global_sheet")) == id &&
          entry.value("flag", std::string()) == flag;
 }
+
+// Optional atomic pair: 128 lowercase hex chars ↔ SHA256 of the 64 raw bytes.
+absl::StatusOr<std::optional<std::vector<uint8_t>>> ParseCollisionAttributes(
+    const Json& entry) {
+  const bool has_hex = entry.contains("collision_attributes_hex");
+  const bool has_sha = entry.contains("collision_attributes_sha256");
+  if (has_hex != has_sha)
+    return Bad(
+        "collision_attributes_hex and collision_attributes_sha256 must both "
+        "be present or both absent");
+  if (!has_hex)
+    return std::optional<std::vector<uint8_t>>{};
+  if (!entry.at("collision_attributes_hex").is_string() ||
+      !entry.at("collision_attributes_sha256").is_string())
+    return Bad("collision attribute fields must be strings");
+  const auto hex = entry.at("collision_attributes_hex").get<std::string>();
+  const auto digest =
+      entry.at("collision_attributes_sha256").get<std::string>();
+  if (!Hex(hex, 128) || !Hex(digest, 64))
+    return Bad(
+        "collision_attributes_hex must be 128 lowercase hex chars and "
+        "collision_attributes_sha256 must be 64 lowercase hex chars");
+  std::vector<uint8_t> raw(64);
+  for (size_t i = 0; i < raw.size(); ++i) {
+    const auto nibble = [](char c) -> int {
+      if (c >= '0' && c <= '9')
+        return c - '0';
+      return 10 + (c - 'a');
+    };
+    raw[i] = static_cast<uint8_t>((nibble(hex[i * 2]) << 4) |
+                                  nibble(hex[i * 2 + 1]));
+  }
+  const auto actual = ComputeSourceArtifactSha256(
+      std::string_view(reinterpret_cast<const char*>(raw.data()), raw.size()));
+  if (actual != digest)
+    return Bad("collision_attributes_sha256 mismatch");
+  return std::optional<std::vector<uint8_t>>(std::move(raw));
+}
 }  // namespace
 
 bool GfxSheetSource::Selected(const project::YazeProject& project) {
@@ -462,6 +500,12 @@ absl::StatusOr<GfxSheetSource> GfxSheetSource::Load(
                                               "base_sha256", "identity", "why"};
       if (global && entry.contains("flag"))
         keys.insert("flag");
+      // Optional authenticated collision payload is global-only and atomic.
+      if (global && (entry.contains("collision_attributes_hex") ||
+                     entry.contains("collision_attributes_sha256"))) {
+        keys.insert("collision_attributes_hex");
+        keys.insert("collision_attributes_sha256");
+      }
       if (!Keys(entry, keys))
         return Bad("invalid sheet entry keys");
       std::string flag;
@@ -522,9 +566,10 @@ absl::StatusOr<GfxSheetSource> GfxSheetSource::Load(
       ASSIGN_OR_RETURN(auto pixels, DecodeText(source));
       if (DecodedSha256(pixels) != digest)
         return Bad("decoded source SHA256 mismatch");
-      (flag.empty() ? unflagged : flagged)
-          .emplace(id, Sheet{path.string(), std::move(source),
-                             std::move(pixels), flag});
+      ASSIGN_OR_RETURN(auto collision, ParseCollisionAttributes(entry));
+      Sheet sheet{path.string(), std::move(source), std::move(pixels), flag,
+                  std::move(collision)};
+      (flag.empty() ? unflagged : flagged).emplace(id, std::move(sheet));
     }
     if (unflagged.empty() && flagged.empty())
       return Bad("no declared DF..FE source sheets");
