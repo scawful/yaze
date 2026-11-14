@@ -59,6 +59,9 @@ constexpr char kEbRomHash[] = "YAZE_GRAPHICS_EB_EXPECTED_ROM_SHA256";
 constexpr char kEbProjectHash[] = "YAZE_GRAPHICS_EB_EXPECTED_PROJECT_SHA256";
 constexpr char kEbSpecHash[] = "YAZE_GRAPHICS_EB_EXPECTED_D4_SHA1";
 constexpr char kEbAlternateHash[] = "YAZE_GRAPHICS_EB_EXPECTED_STANDARD_SHA1";
+// Optional pair for fixtures whose EB art differs from the legacy fixture.
+constexpr char kEbSheetHash[] = "YAZE_GRAPHICS_EB_EXPECTED_SHEET_SHA256";
+constexpr char kEbEditedSheetHash[] = "YAZE_GRAPHICS_EB_EDITED_SHEET_SHA256";
 constexpr char kMixedPaintProject[] =
     "YAZE_GRAPHICS_EB_MIXED_ACCEPTANCE_PROJECT";
 constexpr char kMixedReopenProject[] = "YAZE_GRAPHICS_EB_MIXED_REOPEN_PROJECT";
@@ -575,11 +578,20 @@ void RunGraphicsSourceTest(ImGuiTestContext* ctx, bool reopen, bool eb,
   }
   IM_CHECK_EQ(expected.front(), reopen ? color_index : initial_color);
   if (eb) {
+    const char* sheet_pin = Environment(kEbSheetHash);
+    const char* edited_pin = Environment(kEbEditedSheetHash);
+    IM_CHECK((sheet_pin == nullptr) == (edited_pin == nullptr));
+    IM_CHECK(!sheet_pin || (Hex(sheet_pin, 64) && Hex(edited_pin, 64)));
+    const std::string sheet_hash =
+        sheet_pin ? sheet_pin
+                  : "061be2cad508703e8f4ec449c62567ed412e6a42406c3e132b2705c"
+                    "afb158b91";
+    const std::string edited_hash =
+        edited_pin ? edited_pin
+                   : "1e5fa70f55955b365bc8479901ee6ec4ca1cf12e24860bd3f81d21b"
+                     "747e67c58";
     IM_CHECK(core::GfxSheetSource::DecodedSha256(expected) ==
-             (reopen ? "1e5fa70f55955b365bc8479901ee6ec4ca1cf12e24860bd3f81d21b"
-                       "747e67c58"
-                     : "061be2cad508703e8f4ec449c62567ed412e6a42406c3e132b2705c"
-                       "afb158b91"));
+             (reopen ? edited_hash : sheet_hash));
   }
 
   // Reopen asserts the automatically loaded indexed store before any sheet
