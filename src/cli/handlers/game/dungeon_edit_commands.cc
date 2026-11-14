@@ -15,6 +15,7 @@
 #include "absl/strings/str_format.h"
 #include "absl/strings/str_split.h"
 #include "app/gfx/types/snes_palette.h"
+#include "cli/handlers/game/dungeon_render_object_plan.h"
 #include "cli/util/hex_util.h"
 #include "core/dungeon_stream_layout_adapter.h"
 #include "core/hack_manifest.h"
@@ -884,25 +885,26 @@ absl::StatusOr<std::vector<uint32_t>> ValidateDungeonPaletteWholeRomDiff(
   return changed;
 }
 
-absl::Status ValidateDungeonPaletteWriteBaseline(const Rom& rom) {
+absl::Status ValidateDungeonWriteBaseline(const Rom& rom,
+                                          bool strip_header = false) {
   if (rom.dirty()) {
     return absl::FailedPreconditionError(
-        "Dungeon palette write requires a clean file-backed ROM; save or "
+        "Dungeon write requires a clean file-backed ROM; save or "
         "discard unrelated in-memory edits first");
   }
   if (rom.filename().empty()) {
     return absl::FailedPreconditionError(
-        "Dungeon palette write requires a ROM filename");
+        "Dungeon write requires a ROM filename");
   }
 
   Rom disk_rom;
   Rom::LoadOptions options;
-  options.strip_header = false;
+  options.strip_header = strip_header;
   options.load_resource_labels = false;
   RETURN_IF_ERROR(disk_rom.LoadFromFile(rom.filename(), options));
   if (disk_rom.vector() != rom.vector()) {
     return absl::FailedPreconditionError(
-        "Dungeon palette write requires in-memory ROM bytes to exactly match "
+        "Dungeon write requires in-memory ROM bytes to exactly match "
         "the current file; refusing to persist unrelated or stale bytes");
   }
   return absl::OkStatus();
@@ -1530,6 +1532,105 @@ absl::Status CommitNativeDungeonCandidate(
     return absl::DataLossError(absl::StrCat(
         "Saved ROM does not reopen to the edited room: ", saved.message()));
   formatter.AddField("verified_reload", true);
+  return absl::OkStatus();
+}
+
+absl::Status DungeonApplyObjectPlanCommandHandler::ValidateArgs(
+    const resources::ArgumentParser& parser) {
+  RETURN_IF_ERROR(parser.RequireArgs({"room", "object-plan"}));
+  if (parser.GetString("alloc-range").has_value() ||
+      parser.HasFlag("alloc-range")) {
+    return absl::InvalidArgumentError(
+        "Object plans use the same manifest allocation as dungeon-render; "
+        "--alloc-range is not supported");
+  }
+  for (const char* name : {"object-plan", "manifest"}) {
+    const auto value = parser.GetString(name);
+    if ((value.has_value() && value->empty()) ||
+        (parser.HasFlag(name) && !value.has_value())) {
+      return absl::InvalidArgumentError(
+          absl::StrFormat("--%s requires a file path", name));
+    }
+  }
+  ASSIGN_OR_RETURN(const int room_id, parser.GetInt("room"));
+  return ValidateRoomId(room_id);
+}
+
+absl::Status DungeonApplyObjectPlanCommandHandler::Execute(
+    Rom* rom, const resources::ArgumentParser& parser,
+    resources::OutputFormatter& formatter) {
+  RETURN_IF_ERROR(ValidateArgs(parser));
+  if (rom == nullptr || !rom->is_loaded()) {
+    return absl::FailedPreconditionError("ROM not loaded");
+  }
+  const bool do_write = parser.HasFlag("write");
+  if (do_write) {
+    RETURN_IF_ERROR(ValidateDungeonWriteBaseline(*rom, true));
+  }
+  ASSIGN_OR_RETURN(const int room_id, parser.GetInt("room"));
+  ASSIGN_OR_RETURN(const auto input, resources::ResolveStableArtifactPath(
+                                         *parser.GetString("object-plan")));
+  ASSIGN_OR_RETURN(const auto plan, LoadDungeonObjectPlanFile(input));
+  ASSIGN_OR_RETURN(
+      auto manifest_context,
+      LoadStreamSaveManifestContext(parser, core::DungeonStreamType::kObjects));
+  const auto* manifest = manifest_context.has_value()
+                             ? &manifest_context->manifest
+                             : (project_ ? &project_->hack_manifest : nullptr);
+  ASSIGN_OR_RETURN(auto staged,
+                   StageDungeonRenderObjectPlan(*rom, room_id, plan, manifest));
+  // The preview has already reopened the normal serializer's exact result.
+  // Persist that image, rather than planning the edits a second time.
+  const auto& candidate = staged.rom->vector();
+  formatter.AddHexField("room_id", room_id, 3);
+  formatter.AddField("mode", do_write ? "write" : "dry-run");
+  formatter.AddField("source_stream_sha256", staged.source_stream_sha256);
+  formatter.AddField("edit_count", staged.edit_count);
+  formatter.AddField("objects_before", staged.objects_before);
+  formatter.AddField("objects_after", staged.objects_after);
+  formatter.AddField("rom_file_written", false);
+  if (do_write) {
+    // Recheck the clean file preimage after planning, immediately before Save.
+    RETURN_IF_ERROR(ValidateDungeonWriteBaseline(*rom, true));
+  }
+  const auto check = [&candidate](const std::vector<uint8_t>& image) {
+    return image == candidate
+               ? absl::OkStatus()
+               : absl::DataLossError(
+                     "Saved ROM differs from object-plan preview");
+  };
+  if (IsNativeDungeonLayout(*rom)) {
+    RETURN_IF_ERROR(CommitNativeDungeonCandidate(rom, rom->vector(), candidate,
+                                                 staged.write_ranges, manifest,
+                                                 do_write, formatter, check));
+  } else {
+    formatter.AddField("preflight_status", "passed");
+    formatter.BeginArray("write_ranges");
+    for (const auto& [begin, end] : staged.write_ranges) {
+      formatter.BeginObject();
+      formatter.AddHexField("begin", begin, 6);
+      formatter.AddHexField("end", end, 6);
+      formatter.EndObject();
+    }
+    formatter.EndArray();
+    if (do_write) {
+      RETURN_IF_ERROR(MutateAndSaveRomWithBackup(rom, formatter, [&]() {
+        for (const auto& [begin, end] : staged.write_ranges) {
+          RETURN_IF_ERROR(rom->WriteVector(
+              begin, std::vector<uint8_t>(candidate.begin() + begin,
+                                          candidate.begin() + end)));
+        }
+        return check(rom->vector());
+      }));
+      Rom disk;
+      RETURN_IF_ERROR(disk.LoadFromFile(rom->filename()));
+      RETURN_IF_ERROR(check(disk.vector()));
+      formatter.AddField("verified_reload", true);
+    }
+  }
+  if (do_write) {
+    formatter.AddField("rom_file_written", true);
+  }
   return absl::OkStatus();
 }
 
@@ -2575,7 +2676,7 @@ absl::Status DungeonSetPaletteColorCommandHandler::Execute(
       DungeonPaletteColorPc(selection.selected, color_index);
   RETURN_IF_ERROR(ValidateDungeonPaletteManifestRange(manifest, color_pc));
   if (do_write) {
-    RETURN_IF_ERROR(ValidateDungeonPaletteWriteBaseline(*rom));
+    RETURN_IF_ERROR(ValidateDungeonWriteBaseline(*rom));
   }
 
   formatter.BeginObject("Set Dungeon Palette Color");

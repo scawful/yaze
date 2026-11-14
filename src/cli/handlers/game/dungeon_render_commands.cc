@@ -1,7 +1,6 @@
 #include "cli/handlers/game/dungeon_render_commands.h"
 
 #include <fstream>
-#include <iterator>
 #include <memory>
 #include <optional>
 #include <sstream>
@@ -26,28 +25,6 @@ namespace cli {
 namespace handlers {
 
 namespace {
-
-absl::StatusOr<nlohmann::json> LoadObjectPlanFile(
-    const std::filesystem::path& path) {
-  std::error_code error;
-  const auto size = std::filesystem::file_size(path, error);
-  if (error) {
-    return absl::InvalidArgumentError("Cannot read --object-plan file");
-  }
-  if (size > 1024 * 1024) {
-    return absl::ResourceExhaustedError("--object-plan exceeds one MiB");
-  }
-  std::ifstream input(path, std::ios::binary);
-  if (!input) {
-    return absl::InvalidArgumentError("Cannot open --object-plan file");
-  }
-  const std::string bytes{std::istreambuf_iterator<char>(input), {}};
-  auto plan = nlohmann::json::parse(bytes, nullptr, false);
-  if (input.bad() || plan.is_discarded()) {
-    return absl::InvalidArgumentError("--object-plan is not valid JSON");
-  }
-  return plan;
-}
 
 absl::Status RejectPreviewInputAliases(
     const std::filesystem::path& output,
@@ -227,7 +204,7 @@ absl::Status DungeonRenderCommandHandler::ExecuteWithContext(
       preview_inputs.push_back(manifest_input);
     }
     RETURN_IF_ERROR(RejectPreviewInputAliases(resolved_output, preview_inputs));
-    ASSIGN_OR_RETURN(object_plan, LoadObjectPlanFile(input));
+    ASSIGN_OR_RETURN(object_plan, LoadDungeonObjectPlanFile(input));
     if (preview_inputs.size() > 1) {
       manifest_override.emplace();
       RETURN_IF_ERROR(

@@ -3,8 +3,10 @@
 #include <algorithm>
 #include <array>
 #include <cstdint>
+#include <fstream>
 #include <functional>
 #include <initializer_list>
+#include <iterator>
 #include <limits>
 #include <map>
 #include <optional>
@@ -123,6 +125,28 @@ absl::StatusOr<std::unique_ptr<Rom>> DetachedRom(
 }
 
 }  // namespace
+
+absl::StatusOr<Json> LoadDungeonObjectPlanFile(
+    const std::filesystem::path& path) {
+  std::error_code error;
+  const auto size = std::filesystem::file_size(path, error);
+  if (error) {
+    return absl::InvalidArgumentError("Cannot read --object-plan file");
+  }
+  if (size > 1024 * 1024) {
+    return absl::ResourceExhaustedError("--object-plan exceeds one MiB");
+  }
+  std::ifstream input(path, std::ios::binary);
+  if (!input) {
+    return absl::InvalidArgumentError("Cannot open --object-plan file");
+  }
+  const std::string bytes{std::istreambuf_iterator<char>(input), {}};
+  auto plan = Json::parse(bytes, nullptr, false);
+  if (input.bad() || plan.is_discarded()) {
+    return absl::InvalidArgumentError("--object-plan is not valid JSON");
+  }
+  return plan;
+}
 
 absl::StatusOr<DungeonRenderObjectPreview> StageDungeonRenderObjectPlan(
     const Rom& source, int room_id, const Json& plan,
@@ -263,6 +287,7 @@ absl::StatusOr<DungeonRenderObjectPreview> StageDungeonRenderObjectPlan(
   DungeonRenderObjectPreview result;
   result.rom = std::move(scratch);
   result.source_stream_sha256 = stream_hash;
+  result.write_ranges = ranges;
   result.objects_before = static_cast<int>(original_objects.size());
   result.objects_after = static_cast<int>(reopened->GetTileObjects().size());
   result.edit_count = static_cast<int>(plan["edits"].size());

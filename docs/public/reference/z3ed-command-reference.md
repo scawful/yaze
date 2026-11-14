@@ -241,6 +241,25 @@ Stale identities, mismatched objects, invalid encodings and output paths that
 alias the ROM, plan or supplied manifest fail before writing the PNG. A render
 preview does not establish in-game collision, passage or progression.
 
+`dungeon-apply-object-plan` consumes that same JSON schema and stages that same
+single-room image. It reports `edit_count`, `objects_before`, `objects_after`,
+`source_stream_sha256`, `write_ranges` and `rom_file_written`. It defaults to a
+dry run, with no ROM output:
+
+```sh
+z3ed --rom private-room.sfc dungeon-apply-object-plan --room 0x46 --object-plan plan.json --manifest manifest.json
+```
+
+Adding `--write` persists the staged image once through normal Save, requires a
+backup, and verifies disk reopen against the exact preview image. Write mode
+requires a clean file-backed ROM whose current file still matches the loaded
+bytes. Native overworld storage and manifest ownership remain fenced. Explicit
+manifests must define `copy_on_write` object-stream allocation; otherwise the
+loaded project's manifest is used. `--alloc-range` is unsupported so render
+and apply use the same allocation plan. Real Oracle ROM writes require the
+project's separate approval for the named target; a successful dry run does
+not authorize them or qualify gameplay.
+
 `dungeon-import-custom-collision-json` compares decoded room maps before
 writing. Replaying an exact source reports zero `changed_rooms` and
 `write_status`/`save_status` as `not-needed`; it does not create a backup or

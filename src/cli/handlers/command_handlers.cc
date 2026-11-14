@@ -167,6 +167,7 @@ CreateCliCommandHandlers() {
   handlers.push_back(std::make_unique<DungeonMinecartAuditCommandHandler>());
   handlers.push_back(std::make_unique<DungeonMinecartMapCommandHandler>());
   handlers.push_back(std::make_unique<DungeonRenderCommandHandler>());
+  handlers.push_back(std::make_unique<DungeonApplyObjectPlanCommandHandler>());
   handlers.push_back(std::make_unique<DungeonWallProfileCommandHandler>());
   handlers.push_back(std::make_unique<DungeonStreamPlanCommandHandler>());
   handlers.push_back(

@@ -1,4 +1,5 @@
 #include "cli/handlers/game/dungeon_render_commands.h"
+#include "cli/handlers/game/dungeon_edit_commands.h"
 #include "cli/handlers/game/dungeon_render_object_plan.h"
 
 #include <algorithm>
@@ -21,11 +22,13 @@
 #include "absl/flags/flag.h"
 #include "absl/strings/str_format.h"
 #include "app/service/render_service.h"
+#include "cli/handlers/command_handlers.h"
 #include "cli/service/rom/rom_sandbox_manager.h"
 #include "cli/service/usage_schema.h"
 #include "core/hack_manifest.h"
 #include "core/project.h"
 #include "core/source_artifact_publisher.h"
+#include "fixtures/lyra/native_directory_fixture.h"
 #include "rom/snes.h"
 #include "unit/zelda3/gfx_sheet_test_rom.h"
 #include "util/rom_hash.h"
@@ -983,6 +986,262 @@ TEST_F(DungeonRenderObjectPlanTest,
                                            rom_, 0, plan, &protected_allocation)
                                            .status()));
   ExpectSourceUnchanged();
+}
+
+class DungeonApplyObjectPlanTest : public DungeonRenderObjectPlanTest {
+ protected:
+  std::filesystem::path directory_;
+  std::filesystem::path source_;
+  std::filesystem::path plan_path_;
+  bool previous_sandbox_ = false;
+
+  static std::vector<uint8_t> ReadBytes(const std::filesystem::path& path) {
+    return test::native_overworld::ReadBytes(path);
+  }
+
+  void SetUp() override {
+    DungeonRenderObjectPlanTest::SetUp();
+    previous_sandbox_ = absl::GetFlag(FLAGS_sandbox);
+    absl::SetFlag(&FLAGS_sandbox, false);
+    directory_ =
+        std::filesystem::temp_directory_path() /
+        ("yaze_apply_object_plan_" +
+         std::to_string(
+             std::chrono::steady_clock::now().time_since_epoch().count()));
+    ASSERT_TRUE(std::filesystem::create_directory(directory_));
+    source_ = directory_ / "source.sfc";
+    plan_path_ = directory_ / "plan.json";
+    FileBaseline();
+  }
+
+  void TearDown() override {
+    Rom::SetStagingFailureForTesting(false);
+    absl::SetFlag(&FLAGS_sandbox, previous_sandbox_);
+    std::error_code error;
+    std::filesystem::remove_all(directory_, error);
+  }
+
+  void FileBaseline() {
+    test::native_overworld::WriteBytes(source_, rom_.vector());
+    rom_.set_filename(source_.string());
+    rom_.set_dirty(false);
+    baseline_ = rom_.vector();
+  }
+
+  nlohmann::json Edits() {
+    return Plan(nlohmann::json::array(
+        {{{"op", "remove"}, {"index", 0}, {"before", Object(5, 10, 3)}},
+         {{"op", "replace"},
+          {"index", 1},
+          {"before", Object(0x63, 5, 10, 2, 1)},
+          {"object", Object(0x63, 7, 10, 3, 1)}},
+         {{"op", "append"}, {"object", Object(5, 45, 3)}}}));
+  }
+
+  absl::Status Apply(const nlohmann::json& plan, bool write,
+                     std::string* output = nullptr,
+                     std::vector<std::string> extra = {}) {
+    {
+      std::ofstream file(plan_path_);
+      file << plan;
+    }
+    std::vector<std::string> args = {"--room=0",
+                                     "--object-plan=" + plan_path_.string()};
+    if (write)
+      args.push_back("--write");
+    args.insert(args.end(), extra.begin(), extra.end());
+    std::string unused;
+    handlers::DungeonApplyObjectPlanCommandHandler handler;
+    return handler.Run(args, &rom_, output ? output : &unused);
+  }
+
+  void NativeBaseline() {
+    test::native_overworld::NativeDirectoryFixture fixture;
+    auto& image = fixture.bytes;
+    // Keep the native descriptor and owned payloads intact. Only seed the
+    // synthetic dungeon model, with object data outside native Tile16 storage.
+    for (const auto& [begin, end] : std::vector<std::pair<int, int>>{
+             {zelda3::kRoomObjectPointer, zelda3::kRoomObjectPointer + 3},
+             {zelda3::kRoomHeaderPointer, zelda3::kRoomHeaderPointer + 3},
+             {zelda3::kRoomHeaderPointerBank,
+              zelda3::kRoomHeaderPointerBank + 1},
+             {kTable, kTable + zelda3::kNumberOfRooms * 3},
+             {zelda3::kDoorPointers,
+              zelda3::kDoorPointers + zelda3::kNumberOfRooms * 3},
+             {zelda3::kRoomItemsPointers,
+              zelda3::kRoomItemsPointers + zelda3::kNumberOfRooms * 2},
+             {0x20000, 0x20000 + zelda3::kNumberOfRooms * 2},
+             {0xF000, 0xF002}}) {
+      std::copy(baseline_.begin() + begin, baseline_.begin() + end,
+                image.begin() + begin);
+    }
+    std::copy(baseline_.begin() + kData, baseline_.begin() + kData + 0x200,
+              image.begin() + 0x90000);
+    ASSERT_TRUE(rom_.LoadFromData(image).ok());
+    for (int room = 0; room < zelda3::kNumberOfRooms; ++room) {
+      Long(kTable + room * 3, PcToSnes(room == 0 ? 0x90000 : 0x90100));
+      Long(zelda3::kDoorPointers + room * 3,
+           PcToSnes(room == 0 ? 0x9000E : 0x90108));
+    }
+    FileBaseline();
+    ASSERT_TRUE(handlers::IsNativeDungeonLayout(rom_));
+  }
+};
+
+TEST_F(DungeonApplyObjectPlanTest, DryRunAndOneSaveReopenMatchPreviewExactly) {
+  const auto plan = Edits();
+  const auto staged = handlers::StageDungeonRenderObjectPlan(rom_, 0, plan);
+  ASSERT_TRUE(staged.ok()) << staged.status();
+  ASSERT_TRUE(Apply(plan, false).ok());
+  EXPECT_EQ(rom_.vector(), baseline_);
+  EXPECT_EQ(ReadBytes(source_), baseline_);
+  EXPECT_EQ(std::distance(std::filesystem::directory_iterator(directory_),
+                          std::filesystem::directory_iterator()),
+            2);
+  std::string output;
+  const auto status = Apply(plan, true, &output);
+  ASSERT_TRUE(status.ok()) << status << output;
+  EXPECT_EQ(rom_.vector(), staged->rom->vector());
+  Rom disk;
+  ASSERT_TRUE(disk.LoadFromFile(source_.string()).ok());
+  EXPECT_EQ(disk.vector(), staged->rom->vector());
+  EXPECT_FALSE(rom_.dirty());
+  int backups = 0;
+  for (const auto& entry : std::filesystem::directory_iterator(directory_)) {
+    if (entry.path().filename().string().find("source.sfc_backup_") == 0) {
+      ++backups;
+      EXPECT_EQ(ReadBytes(entry.path()), baseline_);
+    }
+  }
+  EXPECT_EQ(backups, 1);
+  EXPECT_NE(output.find("verified_reload"), std::string::npos);
+}
+
+TEST_F(DungeonApplyObjectPlanTest, RefusesStalePlanStreamObjectAndRoom) {
+  auto stale_rom = Edits();
+  stale_rom["rom_sha256"] = std::string(64, '0');
+  auto stale_stream = Edits();
+  stale_stream["object_stream_sha256"] = std::string(64, '0');
+  auto stale_object = Edits();
+  stale_object["edits"][0]["before"]["x"] = 11;
+  auto wrong_room = Edits();
+  wrong_room["room"] = 1;
+  for (const auto& plan : {stale_rom, stale_stream, stale_object, wrong_room}) {
+    EXPECT_TRUE(absl::IsFailedPrecondition(Apply(plan, true)));
+    EXPECT_EQ(ReadBytes(source_), baseline_);
+    EXPECT_EQ(rom_.vector(), baseline_);
+  }
+}
+
+TEST_F(DungeonApplyObjectPlanTest, RefusesDirtyAndStaleDiskBaselines) {
+  const auto plan = Edits();
+  rom_.set_dirty(true);
+  EXPECT_TRUE(absl::IsFailedPrecondition(Apply(plan, true)));
+  rom_.set_dirty(false);
+  auto changed = baseline_;
+  changed[0x100] ^= 1;
+  test::native_overworld::WriteBytes(source_, changed);
+  EXPECT_TRUE(absl::IsFailedPrecondition(Apply(plan, true)));
+  EXPECT_EQ(ReadBytes(source_), changed);
+  EXPECT_EQ(rom_.vector(), baseline_);
+}
+
+TEST_F(DungeonApplyObjectPlanTest,
+       FailedAtomicSavePreservesOriginalAndCleansStage) {
+  Rom::SetStagingFailureForTesting(true);
+  EXPECT_FALSE(Apply(Edits(), true).ok());
+  EXPECT_EQ(ReadBytes(source_), baseline_);
+  EXPECT_EQ(rom_.vector(), baseline_);
+  EXPECT_FALSE(rom_.dirty());
+  for (const auto& entry : std::filesystem::directory_iterator(directory_)) {
+    EXPECT_EQ(entry.path().filename().string().find(".tmp"), std::string::npos);
+  }
+}
+
+TEST_F(DungeonApplyObjectPlanTest, Native192SaveMatchesSamePreview) {
+  NativeBaseline();
+  const auto plan = Edits();
+  const auto staged = handlers::StageDungeonRenderObjectPlan(rom_, 0, plan);
+  ASSERT_TRUE(staged.ok()) << staged.status();
+  const auto status = Apply(plan, true);
+  ASSERT_TRUE(status.ok()) << status;
+  EXPECT_EQ(ReadBytes(source_), staged->rom->vector());
+  EXPECT_TRUE(handlers::IsNativeDungeonLayout(rom_));
+}
+
+TEST_F(DungeonApplyObjectPlanTest, NativeAtomicSaveFailurePreservesOriginal) {
+  NativeBaseline();
+  Rom::SetStagingFailureForTesting(true);
+  EXPECT_FALSE(Apply(Edits(), true).ok());
+  EXPECT_EQ(rom_.vector(), baseline_);
+  EXPECT_EQ(ReadBytes(source_), baseline_);
+  EXPECT_FALSE(rom_.dirty());
+  EXPECT_TRUE(handlers::IsNativeDungeonLayout(rom_));
+}
+
+TEST_F(DungeonApplyObjectPlanTest,
+       ExplicitManifestRequiresObjectAllocationContract) {
+  const auto manifest = directory_ / "manifest.json";
+  {
+    std::ofstream file(manifest);
+    file << R"({"manifest_version":3})";
+  }
+  const auto status =
+      Apply(Edits(), true, nullptr, {"--manifest=" + manifest.string()});
+  EXPECT_TRUE(absl::IsFailedPrecondition(status)) << status;
+  EXPECT_EQ(ReadBytes(source_), baseline_);
+}
+
+TEST_F(DungeonApplyObjectPlanTest,
+       NativeFenceRefusesManifestAllocationInDescriptor) {
+  NativeBaseline();
+  // A shared stream forces relocation. The manifest intentionally offers the
+  // native directory as allocation space; its contract cannot grant ownership.
+  Long(kTable, PcToSnes(0x90100));
+  Long(zelda3::kDoorPointers, PcToSnes(0x90108));
+  FileBaseline();
+  const auto snes = [](int pc) {
+    return absl::StrFormat("0x%06X", PcToSnes(pc));
+  };
+  const nlohmann::json manifest = {
+      {"manifest_version", 3},
+      {"dungeon_stream_regions",
+       {{"objects",
+         {{"pointer_table", snes(kTable)},
+          {"pointer_count", zelda3::kNumberOfRooms},
+          {"pointer_encoding", "long24"},
+          {"strategy", "copy_on_write"},
+          {"data_regions",
+           {{{"start", snes(0x90000)}, {"end", snes(0x90200)}},
+            {{"start", snes(0x147000)}, {"end", snes(0x147400)}}}},
+          {"allocation_regions",
+           {{{"start", snes(0x147000)}, {"end", snes(0x147400)}}}}}}}}};
+  const auto path = directory_ / "manifest.json";
+  {
+    std::ofstream file(path);
+    file << manifest;
+  }
+  const auto plan = Plan(nlohmann::json::array(
+      {{{"op", "append"}, {"object", Object(5, 10, 3)}}}));
+  const auto status =
+      Apply(plan, true, nullptr, {"--manifest=" + path.string()});
+  EXPECT_TRUE(absl::IsPermissionDenied(status)) << status;
+  EXPECT_EQ(rom_.vector(), baseline_);
+  EXPECT_EQ(ReadBytes(source_), baseline_);
+}
+
+TEST(DungeonApplyObjectPlanSchemaTest, RegisteredAndDiscoverable) {
+  const auto all_handlers = handlers::CreateCliCommandHandlers();
+  const auto found = std::find_if(
+      all_handlers.begin(), all_handlers.end(), [](const auto& handler) {
+        return handler->GetName() == "dungeon-apply-object-plan";
+      });
+  ASSERT_NE(found, all_handlers.end());
+  const auto schema =
+      UsageParametersToJsonSchema(ParseUsageParameters((*found)->GetUsage()));
+  EXPECT_TRUE(schema["properties"].contains("object-plan"));
+  EXPECT_TRUE(schema["properties"].contains("manifest"));
+  EXPECT_EQ(schema["properties"]["write"]["type"], "boolean");
 }
 
 }  // namespace

@@ -45,6 +45,32 @@ absl::Status CheckReopenedRoomObjects(const std::vector<uint8_t>& image,
                                       int room_id,
                                       const zelda3::Room& expected);
 
+// Applies the same guarded single-room plan as dungeon-render. Dry-run is
+// default; --write uses one normal transaction, required backup and reopen.
+class DungeonApplyObjectPlanCommandHandler : public resources::CommandHandler {
+ public:
+  std::string GetName() const override { return "dungeon-apply-object-plan"; }
+  std::string GetUsage() const override {
+    return "dungeon-apply-object-plan --room <int> --object-plan <path> "
+           "[--manifest <path>] [--write] [--format <json|text>]";
+  }
+  Descriptor Describe() const override {
+    auto descriptor = resources::CommandHandler::Describe();
+    descriptor.summary = "Apply a guarded single-room native-object plan";
+    descriptor.entries = {
+        {"object-plan", "Same version 1 JSON and preimages as dungeon-render",
+         ""},
+        {"manifest", "Optional copy_on_write object stream manifest", ""},
+        {"write",
+         "Persist once with backup and verified reopen; default is dry-run",
+         ""}};
+    return descriptor;
+  }
+  absl::Status ValidateArgs(const resources::ArgumentParser& parser) override;
+  absl::Status Execute(Rom* rom, const resources::ArgumentParser& parser,
+                       resources::OutputFormatter& formatter) override;
+};
+
 /**
  * @brief Place a sprite in a dungeon room and optionally write to ROM.
  *
