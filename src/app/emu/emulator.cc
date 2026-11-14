@@ -50,6 +50,15 @@ constexpr double kPalFrameRate = 50.007;
 // Value of 1.0 means no calibration. Values < 1.0 slow down playback.
 // This can be exposed as a user-adjustable setting if needed.
 constexpr double kSpeedCalibration = 1.0;
+
+bool EnsurePpuTexture(gfx::IRenderer* renderer, void*& texture) {
+  if (!texture && renderer) {
+    // ARGB8888 matches the XBGR format used by the SNES PPU (pixel format 1)
+    texture = renderer->CreateTextureWithFormat(
+        512, 480, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING);
+  }
+  return texture != nullptr;
+}
 }  // namespace
 
 Emulator::~Emulator() {
@@ -527,15 +536,9 @@ void Emulator::Run(Rom* rom) {
   // Initialize SNES and create PPU texture on first run
   // This happens lazily when user opens the emulator window
   if (!snes_initialized_ && rom->is_loaded()) {
-    // Create PPU texture with correct format for SNES emulator
-    // ARGB8888 matches the XBGR format used by the SNES PPU (pixel format 1)
-    if (!ppu_texture_) {
-      ppu_texture_ = renderer_->CreateTextureWithFormat(
-          512, 480, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING);
-      if (ppu_texture_ == NULL) {
-        printf("Failed to create PPU texture: %s\n", SDL_GetError());
-        return;
-      }
+    if (!EnsurePpuTexture(renderer_, ppu_texture_)) {
+      printf("Failed to create PPU texture: %s\n", SDL_GetError());
+      return;
     }
 
     // Initialize SNES with ROM data (either from Initialize() or from rom
@@ -573,6 +576,11 @@ void Emulator::Run(Rom* rom) {
     // Start emulator in running state by default
     // User can press Space to pause if needed
     running_ = true;
+  }
+  // ReloadRuntimeRom can initialize the SNES before the viewer's first frame;
+  // the texture must still be created here, on the render thread.
+  if (snes_initialized_) {
+    EnsurePpuTexture(renderer_, ppu_texture_);
   }
 
   // Auto-pause emulator during window resize to prevent crashes
@@ -794,7 +802,8 @@ void Emulator::Run(Rom* rom) {
           // Update PPU texture only on rendered frames
           void* ppu_pixels_;
           int ppu_pitch_;
-          if (renderer_->LockTexture(ppu_texture_, NULL, &ppu_pixels_,
+          if (ppu_texture_ &&
+              renderer_->LockTexture(ppu_texture_, NULL, &ppu_pixels_,
                                      &ppu_pitch_)) {
             snes_.SetPixels(static_cast<uint8_t*>(ppu_pixels_));
             renderer_->UnlockTexture(ppu_texture_);
