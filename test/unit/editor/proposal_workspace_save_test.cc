@@ -3,6 +3,7 @@
 #include <fstream>
 #include <memory>
 
+#include "app/application.h"
 #include "app/editor/editor_manager.h"
 #include "app/gfx/backend/null_renderer.h"
 #include "core/gfx_sheet_source.h"
@@ -12,6 +13,7 @@
 #include "editor_test_support.h"
 #include "gtest/gtest.h"
 #include "imgui/imgui.h"
+#include "imgui/imgui_internal.h"
 #include "nlohmann/json.hpp"
 #include "oracle_rom_fixture.h"
 #include "util/rom_hash.h"
@@ -156,6 +158,40 @@ TEST_F(ProposalWorkspaceSaveTest, CleanSourceDraftGetsItsOwnCommittedSave) {
   ASSERT_TRUE(identity.ok()) << identity.status();
   EXPECT_GE(identity->generation, 1u);
   EXPECT_EQ(Hash(root_ / "baseline.rom"), Hash(draft_ / "rom"));
+}
+
+TEST_F(ProposalWorkspaceSaveTest, StartupPanelDrawsAfterTargetEditorActivates) {
+  AppConfig config;
+  config.startup_editor = "Overworld";
+  config.jump_to_map = 0xA0;
+  config.welcome_mode = StartupVisibility::kHide;
+  config.dashboard_mode = StartupVisibility::kHide;
+  config.sidebar_mode = StartupVisibility::kHide;
+  config.open_panels = {"proposal.workbench"};
+  manager_->ProcessStartupActions(config);
+
+  auto& windows = manager_->window_manager();
+  const size_t session = manager_->GetCurrentSessionId();
+  ASSERT_TRUE(windows.IsWindowOpen(session, "proposal.workbench"));
+  // Deferred editor activation leaves the target editor's category active.
+  windows.SetActiveCategory("Overworld", /*notify=*/false);
+
+  ImGuiIO& io = ImGui::GetIO();
+  io.IniFilename = nullptr;
+  io.DisplaySize = ImVec2(1280, 800);
+  io.DeltaTime = 1.0f / 60.0f;
+  for (int i = 0; i < 3; ++i) {
+    ImGui::NewFrame();
+    windows.DrawVisibleWindows();
+    ImGui::Render();
+  }
+  const auto* descriptor =
+      windows.GetWindowDescriptor(session, "proposal.workbench");
+  ASSERT_NE(descriptor, nullptr);
+  const auto name = windows.GetWorkspaceWindowName(*descriptor);
+  const auto* window = ImGui::FindWindowByName(name.c_str());
+  ASSERT_NE(window, nullptr) << name;
+  EXPECT_TRUE(window->Active) << name;
 }
 
 TEST_F(ProposalWorkspaceSaveTest, DifferentActiveRomRefusesBeforeWriting) {

@@ -2172,6 +2172,13 @@ void EditorManager::ProcessStartupActions(const AppConfig& config) {
     panels_str += config.open_panels[i];
   }
   OpenEditorAndPanelsFromFlags(config.startup_editor, panels_str);
+  // The Proposal panel stays in Project while its target editor is active;
+  // off-category windows draw only when pinned.
+  if (std::find(config.open_panels.begin(), config.open_panels.end(),
+                "proposal.workbench") != config.open_panels.end()) {
+    window_manager_.SetWindowPinned(GetCurrentSessionId(), "proposal.workbench",
+                                    true);
+  }
 
   // Handle jump targets
   if (config.jump_to_room >= 0) {
