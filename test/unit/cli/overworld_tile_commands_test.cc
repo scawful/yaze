@@ -23,6 +23,7 @@
 #include "cli/handlers/game/overworld_commands.h"
 #include "cli/handlers/game/overworld_inspect.h"
 #include "cli/handlers/game/overworld_sprite_edit_commands.h"
+#include "cli/handlers/game/overworld_tile_reference.h"
 #include "cli/handlers/game/terrain_catalog_commands.h"
 #include "cli/handlers/tools/overworld_validate_commands.h"
 #include "core/features.h"
@@ -2900,6 +2901,190 @@ INSTANTIATE_TEST_SUITE_P(NativeLayouts, OverworldEndpointPlanTest,
                          ::testing::Values(std::make_pair(160, 4),
                                            std::make_pair(192, 4),
                                            std::make_pair(192, 5)));
+
+// ---------------------------------------------------------------------------
+// Tile16 source-reference inspector (policy + occurrence status)
+// ---------------------------------------------------------------------------
+
+constexpr char kKalyxoCapPairPolicy[] = R"json({
+  "rules": [{
+    "id": "kalyxo-0d-cap-straight-pair-20261114",
+    "classification": "confirmed_error",
+    "map": "0D",
+    "before": [[13, 5, "0CE"], [13, 6, "0D3"]],
+    "after": [[13, 5, "0D3"], [13, 6, "0CE"]],
+    "definitions": {
+      "0CE": ["0845", "8880", "0855", "0880"],
+      "0D3": ["0876", "8880", "0855", "0880"]
+    },
+    "user_ruling": "0D3 at 13,6 should be swapped with 13,5",
+    "reason": "Place the cap at the horizontal mass's lower edge; straight face below.",
+    "preserve": [[13, 7, "0D3"]]
+  }]
+})json";
+
+TEST(OverworldTileReferencePolicyTest, LoadsKalyxoCapPairRule) {
+  const auto path = test::UniqueTempPath("tile16_reference_policy", ".json");
+  {
+    std::ofstream out(path);
+    ASSERT_TRUE(out) << path;
+    out << kKalyxoCapPairPolicy;
+  }
+  auto policy = overworld::LoadTileReferencePolicy(path.string());
+  ASSERT_TRUE(policy.ok()) << policy.status();
+  ASSERT_EQ(policy->rules.size(), 1u);
+  EXPECT_EQ(policy->rules[0].id, "kalyxo-0d-cap-straight-pair-20261114");
+  EXPECT_EQ(policy->rules[0].map, 0x0D);
+  EXPECT_EQ(policy->rules[0].classification,
+            overworld::TileReferenceStatus::kConfirmedError);
+  ASSERT_EQ(policy->rules[0].before.size(), 2u);
+  EXPECT_EQ(policy->rules[0].before[0].x, 13);
+  EXPECT_EQ(policy->rules[0].before[0].y, 5);
+  EXPECT_EQ(policy->rules[0].before[0].tile16, 0x0CE);
+  EXPECT_EQ(policy->rules[0].before[1].tile16, 0x0D3);
+  ASSERT_EQ(policy->rules[0].definitions.size(), 2u);
+  ASSERT_EQ(policy->rules[0].preserve.size(), 1u);
+  EXPECT_EQ(policy->rules[0].preserve[0].y, 7);
+}
+
+TEST(OverworldTileReferencePolicyTest, ClassifiesBeforeAfterAndPreserve) {
+  const auto path =
+      test::UniqueTempPath("tile16_reference_policy_classify", ".json");
+  {
+    std::ofstream out(path);
+    ASSERT_TRUE(out) << path;
+    out << kKalyxoCapPairPolicy;
+  }
+  auto policy = overworld::LoadTileReferencePolicy(path.string());
+  ASSERT_TRUE(policy.ok()) << policy.status();
+
+  std::map<std::pair<int, int>, uint16_t> grid{
+      {{13, 5}, 0x0CE},
+      {{13, 6}, 0x0D3},
+      {{13, 7}, 0x0D3},
+  };
+  std::map<uint16_t, std::array<uint16_t, 4>> defs{
+      {0x0CE, {0x0845, 0x8880, 0x0855, 0x0880}},
+      {0x0D3, {0x0876, 0x8880, 0x0855, 0x0880}},
+  };
+  auto read_cell = [&](int x, int y) -> absl::StatusOr<uint16_t> {
+    const auto it = grid.find({x, y});
+    if (it == grid.end())
+      return absl::NotFoundError("missing cell");
+    return it->second;
+  };
+  auto read_def = [&](uint16_t id) -> absl::StatusOr<std::array<uint16_t, 4>> {
+    const auto it = defs.find(id);
+    if (it == defs.end())
+      return absl::NotFoundError("missing def");
+    return it->second;
+  };
+
+  auto before = overworld::ClassifyTileReferenceOccurrence(*policy, 0x0D, 13, 5,
+                                                           read_cell, read_def);
+  ASSERT_TRUE(before.ok()) << before.status();
+  EXPECT_EQ(before->status, overworld::TileReferenceStatus::kConfirmedError);
+  EXPECT_EQ(before->rule_id, "kalyxo-0d-cap-straight-pair-20261114");
+  EXPECT_THAT(before->user_ruling, HasSubstr("swapped"));
+
+  auto sibling = overworld::ClassifyTileReferenceOccurrence(
+      *policy, 0x0D, 13, 6, read_cell, read_def);
+  ASSERT_TRUE(sibling.ok()) << sibling.status();
+  EXPECT_EQ(sibling->status, overworld::TileReferenceStatus::kConfirmedError);
+
+  // (13,7) is preserve-only: not covered by before/after cells.
+  auto preserve = overworld::ClassifyTileReferenceOccurrence(
+      *policy, 0x0D, 13, 7, read_cell, read_def);
+  ASSERT_TRUE(preserve.ok()) << preserve.status();
+  EXPECT_EQ(preserve->status, overworld::TileReferenceStatus::kObserved);
+  EXPECT_TRUE(preserve->rule_id.empty());
+
+  grid[{13, 5}] = 0x0D3;
+  grid[{13, 6}] = 0x0CE;
+  auto after = overworld::ClassifyTileReferenceOccurrence(*policy, 0x0D, 13, 5,
+                                                          read_cell, read_def);
+  ASSERT_TRUE(after.ok()) << after.status();
+  EXPECT_EQ(after->status, overworld::TileReferenceStatus::kVerifiedValid);
+
+  defs[0x0CE] = {0x0001, 0x0002, 0x0003, 0x0004};
+  auto drifted = overworld::ClassifyTileReferenceOccurrence(
+      *policy, 0x0D, 13, 5, read_cell, read_def);
+  ASSERT_TRUE(drifted.ok()) << drifted.status();
+  EXPECT_EQ(drifted->status, overworld::TileReferenceStatus::kUnresolved);
+}
+
+TEST_F(OverworldTileRomTest, ReferenceInspectReportsNeighborsAndQuadrants) {
+  handlers::OverworldTileReferenceInspectCommandHandler handler;
+  auto json = RunJson(handler, {"--map=0x0D", "--x=13", "--y=5"}, &rom_);
+  ASSERT_TRUE(json.is_object()) << json.dump();
+  auto& body = json["Overworld Tile Reference"];
+  ASSERT_TRUE(body.is_object()) << json.dump();
+  EXPECT_EQ(body["map"], "0x0D");
+  EXPECT_EQ(body["x"], 13);
+  EXPECT_EQ(body["y"], 5);
+  EXPECT_TRUE(body.contains("tile16"));
+  ASSERT_TRUE(body["quadrants"].is_array());
+  ASSERT_EQ(body["quadrants"].size(), 4u);
+  EXPECT_EQ(body["quadrants"][0]["corner"], "TL");
+  for (const auto& q : body["quadrants"]) {
+    EXPECT_TRUE(q.contains("word"));
+    EXPECT_TRUE(q.contains("tile8_id"));
+    EXPECT_TRUE(q.contains("palette"));
+    EXPECT_TRUE(q.contains("flip_x"));
+    EXPECT_TRUE(q.contains("flip_y"));
+    EXPECT_TRUE(q.contains("tile_type"));
+  }
+  ASSERT_TRUE(body["neighbors"].is_array());
+  ASSERT_EQ(body["neighbors"].size(), 9u);
+  bool saw_center = false;
+  for (const auto& n : body["neighbors"]) {
+    if (n["dx"] == 0 && n["dy"] == 0) {
+      saw_center = true;
+      EXPECT_TRUE(n["in_bounds"].get<bool>());
+      EXPECT_EQ(n["tile16"], body["tile16"]);
+    }
+  }
+  EXPECT_TRUE(saw_center);
+  EXPECT_EQ(body["reference"]["status"], "observed");
+}
+
+TEST_F(OverworldTileRomTest, ReferenceInspectAppliesKalyxoPolicyToOccurrence) {
+  const auto path =
+      test::UniqueTempPath("tile16_reference_policy_rom", ".json");
+  {
+    std::ofstream out(path);
+    ASSERT_TRUE(out) << path;
+    out << kKalyxoCapPairPolicy;
+  }
+  handlers::OverworldTileReferenceInspectCommandHandler handler;
+  auto json = RunJson(
+      handler,
+      {"--map=0x0D", "--x=13", "--y=5", "--reference-policy=" + path.string()},
+      &rom_);
+  ASSERT_TRUE(json.is_object()) << json.dump();
+  auto& body = json["Overworld Tile Reference"];
+  ASSERT_TRUE(body.is_object()) << json.dump();
+  ASSERT_TRUE(body["reference"].is_object());
+  const std::string status = body["reference"]["status"].get<std::string>();
+  // Shared fixtures may already carry the selected correction, the bad
+  // preimage, or an unrelated drift. All three are honest outcomes.
+  EXPECT_TRUE(status == "confirmed_error" || status == "verified_valid" ||
+              status == "unresolved")
+      << body["reference"].dump();
+  EXPECT_EQ(body["reference"]["rule_id"],
+            "kalyxo-0d-cap-straight-pair-20261114");
+  if (status == "confirmed_error" || status == "verified_valid") {
+    EXPECT_THAT(body["reference"]["user_ruling"].get<std::string>(),
+                HasSubstr("swapped"));
+  }
+
+  auto preserve = RunJson(
+      handler,
+      {"--map=0x0D", "--x=13", "--y=7", "--reference-policy=" + path.string()},
+      &rom_);
+  EXPECT_EQ(preserve["Overworld Tile Reference"]["reference"]["status"],
+            "observed");
+}
 
 }  // namespace
 }  // namespace yaze::cli

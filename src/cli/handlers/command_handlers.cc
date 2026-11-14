@@ -24,6 +24,7 @@
 #include "cli/handlers/game/overworld_graph_commands.h"
 #include "cli/handlers/game/overworld_render_commands.h"
 #include "cli/handlers/game/overworld_sprite_edit_commands.h"
+#include "cli/handlers/game/overworld_tile_reference.h"
 #include "cli/handlers/game/terrain_catalog_commands.h"
 #include "cli/handlers/graphics/gfx_sheet_inventory_commands.h"
 #include "cli/handlers/graphics/gfx_sheet_png_commands.h"
@@ -208,6 +209,8 @@ CreateCliCommandHandlers() {
   handlers.push_back(std::make_unique<OverworldListItemsCommandHandler>());
   handlers.push_back(std::make_unique<OverworldGetEntranceCommandHandler>());
   handlers.push_back(std::make_unique<OverworldTileStatsCommandHandler>());
+  handlers.push_back(
+      std::make_unique<OverworldTileReferenceInspectCommandHandler>());
   handlers.push_back(std::make_unique<OverworldExportGraphCommandHandler>());
   handlers.push_back(std::make_unique<OverworldRenderCommandHandler>());
   handlers.push_back(
