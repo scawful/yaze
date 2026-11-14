@@ -12,6 +12,27 @@ namespace yaze {
 namespace cli {
 namespace handlers {
 
+class OverworldInitPageTile16CommandHandler : public resources::CommandHandler {
+ public:
+  std::string GetName() const override { return "overworld-init-page-tile16"; }
+  std::string GetUsage() const override {
+    return "overworld-init-page-tile16 --rom=<private-native-rom> "
+           "--storage-pc=<hex> --row-capacity=<int> "
+           "--expected-rom-sha256=<sha256> --expected-storage-sha256=<sha256> "
+           "--experimental-page-tile16 [--write] --format=json";
+  }
+  absl::Status ValidateArgs(const resources::ArgumentParser& parser) override {
+    return parser.RequireArgs({"storage-pc", "row-capacity",
+                               "expected-rom-sha256",
+                               "expected-storage-sha256"});
+  }
+  absl::Status Execute(Rom* rom, const resources::ArgumentParser& parser,
+                       resources::OutputFormatter& formatter) override;
+
+ private:
+  std::string GetDefaultFormat() const override { return "json"; }
+};
+
 // Read-only compiler input from the saved native ROM. No project-side terrain
 // document or graphics-preview file participates in this resolution.
 class OverworldExportNativeSourceCommandHandler
@@ -22,7 +43,8 @@ class OverworldExportNativeSourceCommandHandler
   }
   std::string GetUsage() const override {
     return "overworld-export-native-source --rom=<saved-native-rom> "
-           "[--include-inactive-backgrounds] --format=json";
+           "[--include-inactive-backgrounds] [--experimental-page-tile16] "
+           "--format=json";
   }
   absl::Status ValidateArgs(const resources::ArgumentParser&) override {
     return absl::OkStatus();

@@ -40,6 +40,22 @@ absl::StatusOr<std::vector<uint8_t>> EncodeNativePageTile16(
     std::span<const NativePageTile16Definition> definitions, uint16_t map_count,
     size_t row_capacity);
 
+// Explicit caller-owned allocation, not an allocator or a free-space search.
+// The complete storage preimage must be uniformly 00 or FF and match the image.
+// A mutating consumer additionally requires a caller-supplied WriteFence.
+struct NativePageTile16Initialization {
+  uint32_t storage_pc = 0;
+  uint16_t row_capacity = 0;
+  std::vector<uint8_t> expected_storage;
+};
+// Stage revision 4 -> source-only revision 5, with an empty canonical record413.
+// All existing directory entries, payloads and their CRCs remain byte-identical.
+// Unknown/older/already initialized formats are refused without mutation.
+absl::StatusOr<std::vector<uint8_t>> PlanNativePageTile16Initialization(
+    const std::vector<uint8_t>& baseline,
+    const NativePageTile16Initialization& initialization,
+    bool allow_experimental_page_tile16 = false);
+
 // This is the proposed overworld ROM format, not the separate SRAM event format.
 // Validation describes the stored layout; runtime and writer admission are
 // separate. Revisions 1/2 retain their original inspection/pilot contracts.

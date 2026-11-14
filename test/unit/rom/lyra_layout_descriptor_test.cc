@@ -136,6 +136,189 @@ TEST(LyraLayoutDescriptorTest, PageTile16CodecRejectsAmbiguityAndOverflow) {
   EXPECT_FALSE(rom::DecodeNativePageTile16(bytes, 192).ok());
 }
 
+TEST(LyraLayoutDescriptorTest,
+     PageTile16InitializationPreservesExistingRecords) {
+  for (const uint16_t capacity : {160, 192}) {
+    for (const uint16_t rows : {1, 512, 2730}) {
+      for (const uint8_t fill : {0, 0xFF}) {
+        SCOPED_TRACE(
+            absl::StrFormat("maps%d rows%d fill%d", capacity, rows, fill));
+        NativeDirectoryFixture fixture(capacity);
+        fixture.UpgradeToRevision4();
+        if (rows != 1)
+          fixture.AddAuthoringMetadata();
+        rom::NativePageTile16Initialization initialization{
+            0x2C0000, rows, std::vector<uint8_t>(rows * 12, fill)};
+        std::copy(initialization.expected_storage.begin(),
+                  initialization.expected_storage.end(),
+                  fixture.bytes.begin() + initialization.storage_pc);
+        const auto before = fixture.bytes;
+        const auto staged = rom::PlanNativePageTile16Initialization(
+            before, initialization, true);
+        ASSERT_TRUE(staged.ok()) << staged.status();
+        const auto layout =
+            rom::InspectLyraLayout(staged->data(), staged->size());
+        ASSERT_EQ(layout.presence, rom::LyraLayoutPresence::kValid)
+            << layout.error;
+        EXPECT_EQ(layout.revision, 5);
+        EXPECT_EQ(layout.capacity, capacity);
+        EXPECT_EQ(layout.entries.size(), fixture.rows.entries.size() + 1);
+        const auto& added = layout.entries.back();
+        EXPECT_EQ(added.id, 413);
+        EXPECT_EQ(added.kind, 10);
+        EXPECT_EQ(added.count, rows);
+        EXPECT_EQ(added.stride, 12);
+        EXPECT_EQ(added.pc_address, initialization.storage_pc);
+        EXPECT_TRUE(rom::DecodeNativePageTile16(
+                        {staged->data() + added.pc_address, size_t{rows} * 12},
+                        capacity)
+                        ->empty());
+        for (size_t i = 0; i < fixture.rows.entries.size(); ++i) {
+          const auto& entry = fixture.rows.entries[i];
+          EXPECT_TRUE(std::equal(
+              before.begin() + entry.pc_address,
+              before.begin() + entry.pc_address + entry.count * entry.stride,
+              staged->begin() + entry.pc_address))
+              << entry.id;
+          EXPECT_TRUE(std::equal(before.begin() + 0x147020 + i * 16,
+                                 before.begin() + 0x147020 + (i + 1) * 16,
+                                 staged->begin() + 0x147020 + i * 16));
+        }
+        for (size_t pc = 0; pc < before.size(); ++pc)
+          if (before[pc] != (*staged)[pc])
+            ASSERT_TRUE(
+                (pc >= 0x147000 && pc < 0x147400) ||
+                (pc >= added.pc_address && pc < added.pc_address + rows * 12))
+                << std::hex << pc;
+        Rom document;
+        ASSERT_TRUE(document.LoadFromData(before).ok());
+        document.EnableExperimentalPageTile16();
+        rom::WriteFence ownership;
+        ASSERT_TRUE(ownership.Allow(0x147000, 0x147400, "directory").ok());
+        ASSERT_TRUE(ownership
+                        .Allow(added.pc_address, added.pc_address + rows * 12,
+                               "storage")
+                        .ok());
+        rom::ScopedWriteFence scoped(&document, &ownership);
+        ASSERT_TRUE(
+            document.InitializeNativePageTile16(before, initialization).ok());
+        EXPECT_EQ(document.vector(), *staged);
+        EXPECT_TRUE(document.dirty());
+        EXPECT_FALSE(ownership.written_ranges().empty());
+        EXPECT_FALSE(rom::PlanNativePageTile16Initialization(
+                         document.vector(), initialization, true)
+                         .ok());
+        EXPECT_EQ(fixture.bytes, before);
+      }
+    }
+  }
+}
+
+TEST(LyraLayoutDescriptorTest, PageTile16InitializationRefusesWithoutMutation) {
+  NativeDirectoryFixture fixture;
+  fixture.UpgradeToRevision4();
+  const auto before = fixture.bytes;
+  const rom::NativePageTile16Initialization initialization{
+      0x2C0000, 16, std::vector<uint8_t>(16 * 12, 0)};
+  Rom document;
+  ASSERT_TRUE(document.LoadFromData(before).ok());
+  rom::WriteFence ownership;
+  ASSERT_TRUE(ownership.Allow(0x147000, 0x147400, "directory").ok());
+  ASSERT_TRUE(ownership.Allow(0x2C0000, 0x2C0000 + 16 * 12, "storage").ok());
+  EXPECT_FALSE(
+      rom::PlanNativePageTile16Initialization(before, initialization).ok());
+  {
+    rom::ScopedWriteFence scoped(&document, &ownership);
+    EXPECT_FALSE(
+        document.InitializeNativePageTile16(before, initialization).ok());
+  }
+  document.EnableExperimentalPageTile16();
+  EXPECT_FALSE(
+      document.InitializeNativePageTile16(before, initialization).ok());
+  {
+    rom::WriteFence directory_only;
+    ASSERT_TRUE(directory_only.Allow(0x147000, 0x147400, "directory").ok());
+    rom::ScopedWriteFence scoped(&document, &directory_only);
+    EXPECT_FALSE(
+        document.InitializeNativePageTile16(before, initialization).ok());
+    EXPECT_TRUE(directory_only.written_ranges().empty());
+  }
+  {
+    rom::ScopedWriteFence scoped(&document, &ownership);
+    ScopedRomReadOnly read_only(document);
+    EXPECT_FALSE(
+        document.InitializeNativePageTile16(before, initialization).ok());
+  }
+  const auto refuse = [&](const std::vector<uint8_t>& baseline,
+                          const rom::NativePageTile16Initialization& request) {
+    rom::ScopedWriteFence scoped(&document, &ownership);
+    EXPECT_FALSE(document.InitializeNativePageTile16(baseline, request).ok());
+    EXPECT_EQ(document.vector(), before);
+    EXPECT_FALSE(document.dirty());
+    EXPECT_TRUE(ownership.written_ranges().empty());
+  };
+  auto stale = before;
+  stale[0] ^= 1;
+  refuse(stale, initialization);
+  for (const uint32_t pc :
+       {0x2C7FF8u, 0xFFFFFFFFu, 0x1473C0u, fixture.Entry(300).pc_address}) {
+    auto request = initialization;
+    request.storage_pc = pc;
+    EXPECT_FALSE(
+        rom::PlanNativePageTile16Initialization(before, request, true).ok());
+    refuse(before, request);
+  }
+  auto overlaps = initialization;
+  overlaps.storage_pc = fixture.Entry(411).pc_address;
+  EXPECT_EQ(rom::PlanNativePageTile16Initialization(before, overlaps, true)
+                .status()
+                .code(),
+            absl::StatusCode::kPermissionDenied);
+  for (const uint16_t rows : {0, 2731, 65535}) {
+    auto request = initialization;
+    request.row_capacity = rows;
+    refuse(before, request);
+  }
+  for (const uint8_t fill : {1, 0xFF}) {
+    auto request = initialization;
+    std::fill(request.expected_storage.begin(), request.expected_storage.end(),
+              fill);
+    refuse(before, request);
+  }
+  auto mixed = initialization;
+  mixed.expected_storage.back() = 0xFF;
+  refuse(before, mixed);
+  mixed.expected_storage.pop_back();
+  refuse(before, mixed);
+  const NativeDirectoryFixture revision3;
+  ASSERT_EQ(
+      rom::InspectLyraLayout(revision3.bytes.data(), revision3.bytes.size())
+          .presence,
+      rom::LyraLayoutPresence::kValid);
+  EXPECT_FALSE(rom::PlanNativePageTile16Initialization(revision3.bytes,
+                                                       initialization, true)
+                   .ok());
+  for (const uint16_t revision : {3, 6}) {
+    auto invalid = fixture;
+    invalid.Word(0x147008, revision);
+    invalid.Seal();
+    EXPECT_FALSE(rom::PlanNativePageTile16Initialization(invalid.bytes,
+                                                         initialization, true)
+                     .ok());
+  }
+  auto occupied = before;
+  occupied[initialization.storage_pc] = 1;
+  EXPECT_FALSE(
+      rom::PlanNativePageTile16Initialization(occupied, initialization, true)
+          .ok());
+  auto no_slot = fixture;
+  no_slot.bytes[0x147020 + fixture.rows.entries.size() * 16] = 1;
+  no_slot.Seal();
+  EXPECT_FALSE(rom::PlanNativePageTile16Initialization(no_slot.bytes,
+                                                       initialization, true)
+                   .ok());
+}
+
 TEST(LyraLayoutDescriptorTest, PageTile16AdmissionPreservationAndStaleSeal) {
   using Row = rom::NativePageTile16Definition;
   for (const uint16_t capacity : {160, 192}) {
@@ -1914,6 +2097,105 @@ TEST(LyraLayoutDescriptorTest,
 class NativeSpecialOverworldEditorTest : public test::HeadlessEditorTest {};
 
 TEST_F(NativeSpecialOverworldEditorTest,
+       PageTile16InitializerCommandDryRunWriteAndExport) {
+  const char* path = std::getenv("YAZE_TEST_ROM_OOS");
+  if (!path || !std::filesystem::exists(path))
+    GTEST_SKIP() << "Set YAZE_TEST_ROM_OOS for native initialization/export";
+  Rom legacy;
+  ASSERT_TRUE(legacy.LoadFromData(ReadBytes(path)).ok());
+  zelda3::Overworld reference(&legacy);
+  ASSERT_TRUE(reference.Load(&legacy).ok());
+  NativeDirectoryFixture fixture;
+  fixture.SeedLoadedLegacyForModelTest(legacy, reference);
+  fixture.UpgradeToRevision4();
+  fixture.AddAuthoringMetadata();
+  const auto root = test::UniqueTempPath("native_init");
+  std::filesystem::create_directories(root);
+  const auto cleanup =
+      absl::MakeCleanup([&] { std::filesystem::remove_all(root); });
+  const auto target = root / "source.sfc";
+  WriteBytes(target, fixture.bytes);
+  Rom document;
+  ASSERT_TRUE(document.LoadFromFile(target.string()).ok());
+  const auto before = document.vector();
+  const auto hash = [](std::span<const uint8_t> bytes) {
+    return core::ComputeSourceArtifactSha256(
+        {reinterpret_cast<const char*>(bytes.data()), bytes.size()});
+  };
+  std::vector<std::string> args = {
+      "--storage-pc=0x2C0000", "--row-capacity=512", "--format=json",
+      "--expected-rom-sha256=" + hash(before),
+      "--expected-storage-sha256=" +
+          hash(std::span<const uint8_t>(before).subspan(0x2C0000, 512 * 12))};
+  cli::handlers::OverworldInitPageTile16CommandHandler initialize;
+  std::string output;
+  EXPECT_FALSE(initialize.Run(args, &document, &output).ok());
+  args.push_back("--experimental-page-tile16");
+  ASSERT_TRUE(initialize.Run(args, &document, &output).ok());
+  const auto planned = nlohmann::json::parse(output);
+  EXPECT_EQ(planned["mode"], "dry-run");
+  EXPECT_FALSE(planned["runtime_supported"].get<bool>());
+  EXPECT_EQ(planned["row_capacity"], 512);
+  EXPECT_EQ(document.vector(), before);
+  EXPECT_FALSE(document.experimental_page_tile16());
+  EXPECT_FALSE(document.dirty());
+  EXPECT_EQ(ReadBytes(target), before);
+  auto bad = args;
+  bad[4] = "--expected-storage-sha256=" + std::string(64, '0');
+  EXPECT_FALSE(initialize.Run(bad, &document, &output).ok());
+  auto changed_disk = before;
+  changed_disk[0] ^= 1;
+  WriteBytes(target, changed_disk);
+  EXPECT_FALSE(initialize.Run(args, &document, &output).ok());
+  EXPECT_EQ(ReadBytes(target), changed_disk);
+  WriteBytes(target, before);
+  args.push_back("--write");
+  {
+    ScopedRomReadOnly read_only(document);
+    EXPECT_FALSE(initialize.Run(args, &document, &output).ok());
+  }
+  {
+    rom::WriteFence outer_ownership;
+    ASSERT_TRUE(
+        outer_ownership.Allow(0x147000, 0x147400, "directory only").ok());
+    rom::ScopedWriteFence scoped(&document, &outer_ownership);
+    EXPECT_FALSE(initialize.Run(args, &document, &output).ok());
+    EXPECT_TRUE(outer_ownership.written_ranges().empty());
+  }
+  {
+    test::ScopedRomStagingFailure failure;
+    EXPECT_FALSE(initialize.Run(args, &document, &output).ok());
+  }
+  EXPECT_EQ(document.vector(), before);
+  EXPECT_EQ(ReadBytes(target), before);
+  EXPECT_FALSE(document.experimental_page_tile16());
+  EXPECT_FALSE(document.dirty());
+  const auto written = initialize.Run(args, &document, &output);
+  ASSERT_TRUE(written.ok()) << written;
+  EXPECT_NE(ReadBytes(target), before);
+  EXPECT_EQ(ReadBytes(target), document.vector());
+  EXPECT_EQ(nlohmann::json::parse(output)["planned_rom_sha256"],
+            planned["planned_rom_sha256"]);
+  Rom reopened;
+  ASSERT_TRUE(reopened.LoadFromFile(target.string()).ok());
+  EXPECT_FALSE(reopened.experimental_page_tile16());
+  const auto saved = reopened.vector();
+  cli::handlers::OverworldExportNativeSourceCommandHandler export_source;
+  EXPECT_FALSE(export_source.Run({"--format=json"}, &reopened, &output).ok());
+  const auto exported = export_source.Run(
+      {"--format=json", "--experimental-page-tile16"}, &reopened, &output);
+  ASSERT_TRUE(exported.ok()) << exported;
+  const auto source = nlohmann::json::parse(output)["native_source"];
+  EXPECT_EQ(source["directory_revision"], 5);
+  EXPECT_EQ(source["materialized_map_count"], 192);
+  EXPECT_FALSE(source["runtime_supported"].get<bool>());
+  EXPECT_TRUE(source["page_tile16_definitions"]["rows"].empty());
+  EXPECT_EQ(source["page_tile16_definitions"]["count"], 512);
+  EXPECT_EQ(reopened.vector(), saved);
+  EXPECT_FALSE(reopened.dirty());
+}
+
+TEST_F(NativeSpecialOverworldEditorTest,
        AuthoringSpriteLoadRequiresExactSavedWitness) {
   const char* path = std::getenv("YAZE_TEST_ROM_OOS");
   if (!path || !std::filesystem::exists(path))
@@ -3016,7 +3298,8 @@ TEST_F(NativeSpecialOverworldEditorTest, NormalSaveUndoFailureAndDiskReopen) {
   if (!path || !std::filesystem::exists(path))
     GTEST_SKIP() << "Set YAZE_TEST_ROM_OOS for native Save/reopen";
   for (const auto [capacity, revision] :
-       {std::pair{160, 3}, std::pair{192, 3}, std::pair{192, 5}}) {
+       {std::pair{160, 3}, std::pair{192, 3}, std::pair{160, 5},
+        std::pair{192, 5}}) {
     SCOPED_TRACE(absl::StrFormat("capacity%d revision%d", capacity, revision));
     const auto flags = core::FeatureFlags::get();
     auto restore_flags =
@@ -3038,7 +3321,6 @@ TEST_F(NativeSpecialOverworldEditorTest, NormalSaveUndoFailureAndDiskReopen) {
            rom::NativeAuthoringReturnPlacement{0x8E, 12, 13, 0x83,
                                                std::nullopt}}};
       fixture.AddAuthoringMetadata(metadata);
-      fixture.AddPageTile16();
     }
     const auto root = test::UniqueTempPath("ow3");
     std::filesystem::create_directories(root);
@@ -3054,8 +3336,33 @@ TEST_F(NativeSpecialOverworldEditorTest, NormalSaveUndoFailureAndDiskReopen) {
     const auto opened = manager->OpenRomOrProject(source.string());
     ASSERT_TRUE(opened.ok()) << opened;
     // Explicit per-ROM prototype admission, not a UI or project-file feature.
-    if (revision == 5)
+    std::optional<NativeModelSnapshot> before_initialization;
+    if (revision == 5) {
       manager->GetCurrentRom()->EnableExperimentalPageTile16();
+      auto* document = manager->GetCurrentRom();
+      zelda3::Overworld old_model(document);
+      ASSERT_TRUE(old_model.Load(document).ok());
+      before_initialization = CaptureNativeModel(old_model);
+      rom::NativePageTile16Initialization initialization{
+          0x2C0000, 16, std::vector<uint8_t>(16 * 12, 0)};
+      {
+        rom::WriteFence ownership;
+        ASSERT_TRUE(ownership.Allow(0x147000, 0x147400, "directory").ok());
+        ASSERT_TRUE(ownership
+                        .Allow(0x2C0000, 0x2C0000 + 16 * 12,
+                               "caller-owned unused storage")
+                        .ok());
+        rom::ScopedWriteFence scoped(document, &ownership);
+        const auto initialized =
+            document->InitializeNativePageTile16(fixture.bytes, initialization);
+        ASSERT_TRUE(initialized.ok()) << initialized;
+      }
+      EXPECT_EQ(ReadBytes(source), fixture.bytes);
+      fixture.bytes = document->vector();
+      fixture.rows = document->InspectLyraLayout();
+      EXPECT_FALSE(old_model.SaveNativeTerrain().ok());
+      EXPECT_EQ(document->vector(), fixture.bytes);
+    }
     const auto assets =
         manager->EnsureEditorAssetsLoaded(editor::EditorType::kOverworld);
     ASSERT_TRUE(assets.ok()) << assets;
@@ -3065,6 +3372,8 @@ TEST_F(NativeSpecialOverworldEditorTest, NormalSaveUndoFailureAndDiskReopen) {
     auto* document = manager->GetCurrentRom();
     auto& world = editor->overworld();
     const auto original_model = CaptureNativeModel(world);
+    if (before_initialization)
+      ExpectNativeModelPreserved(*before_initialization, world);
     editor->SetPreviewStoryState(1);
     editor->SetPreviewStoryState(2);
     const auto noop = manager->SaveRom();

@@ -229,7 +229,17 @@ void CommandRegistry::RegisterHandlers(
     } else if (name.find("overworld-") == 0) {
       metadata.category = "overworld";
       metadata.description = "Overworld inspection and editing";
-      if (name == "overworld-find-tile") {
+      if (name == "overworld-init-page-tile16") {
+        metadata.description =
+            "Experimental revision-4 to revision-5 initialization of empty "
+            "page Tile16 storage; dry-run by default; runtime unsupported";
+        metadata.examples = {
+            "z3ed overworld-init-page-tile16 --rom=private-copy.sfc "
+            "--storage-pc=<owned-pc> --row-capacity=512 "
+            "--expected-rom-sha256=<sha256> "
+            "--expected-storage-sha256=<sha256> "
+            "--experimental-page-tile16 --format=json"};
+      } else if (name == "overworld-find-tile") {
         metadata.examples = {
             "z3ed overworld-find-tile --tile=0x42 --format=json"};
       } else if (name == "overworld-allocation") {

@@ -16,6 +16,7 @@
 #include <string_view>
 #include <unordered_map>
 
+#include "absl/cleanup/cleanup.h"
 #include "absl/strings/numbers.h"
 #include "absl/strings/str_format.h"
 #include "absl/strings/string_view.h"
@@ -29,6 +30,7 @@
 #include "core/source_artifact_publisher.h"
 #include "nlohmann/json.hpp"
 #include "rom/rom.h"
+#include "rom/write_fence.h"
 #include "util/macro.h"
 #include "zelda3/game_data.h"
 #include "zelda3/overworld/lyra_terrain_source.h"
@@ -358,6 +360,108 @@ absl::Status AppendNativeImportPlan(Rom& rom,
 
 }  // namespace
 
+absl::Status OverworldInitPageTile16CommandHandler::Execute(
+    Rom* rom, const resources::ArgumentParser& parser,
+    resources::OutputFormatter& formatter) {
+  if (!parser.HasFlag("experimental-page-tile16"))
+    return absl::FailedPreconditionError(
+        "Initialization requires --experimental-page-tile16; runtime is "
+        "unsupported");
+  if (!rom || !rom->is_loaded() || rom->filename().empty() || rom->dirty() ||
+      rom->has_copier_header())
+    return absl::FailedPreconditionError(
+        "Load a saved headerless native ROM before initialization");
+  ASSIGN_OR_RETURN(const int pc, parser.GetInt("storage-pc"));
+  ASSIGN_OR_RETURN(const int capacity, parser.GetInt("row-capacity"));
+  if (pc < 0 || capacity <= 0 || capacity > 0x8000 / 12 ||
+      size_t{static_cast<uint32_t>(pc)} > rom->size() ||
+      static_cast<size_t>(capacity) * 12 > rom->size() - pc)
+    return absl::OutOfRangeError(
+        "Page Tile16 initialization storage is outside the ROM");
+  const auto hash = [](std::span<const uint8_t> bytes) {
+    return core::ComputeSourceArtifactSha256(
+        {reinterpret_cast<const char*>(bytes.data()), bytes.size()});
+  };
+  const auto expected_rom = parser.GetString("expected-rom-sha256");
+  const auto expected_storage = parser.GetString("expected-storage-sha256");
+  if (!expected_rom || !expected_storage || expected_rom->size() != 64 ||
+      expected_storage->size() != 64 || hash(rom->vector()) != *expected_rom)
+    return absl::FailedPreconditionError(
+        "Initialization ROM identity does not match");
+  const auto check_disk = [&]() -> absl::Status {
+    ASSIGN_OR_RETURN(const auto actual,
+                     core::ComputeSourceArtifactFileSha256(rom->filename()));
+    if (actual != *expected_rom)
+      return absl::FailedPreconditionError(
+          "Initialization ROM changed on disk");
+    return absl::OkStatus();
+  };
+  RETURN_IF_ERROR(check_disk());
+  rom::NativePageTile16Initialization initialization{
+      static_cast<uint32_t>(pc), static_cast<uint16_t>(capacity),
+      std::vector<uint8_t>(rom->vector().begin() + pc,
+                           rom->vector().begin() + pc + capacity * 12)};
+  if (hash(initialization.expected_storage) != *expected_storage)
+    return absl::FailedPreconditionError(
+        "Initialization storage preimage does not match");
+  const auto baseline = rom->vector();
+  ASSIGN_OR_RETURN(const auto planned, rom::PlanNativePageTile16Initialization(
+                                           baseline, initialization, true));
+  const auto layout = rom::InspectLyraLayout(planned.data(), planned.size());
+  const bool write = parser.HasFlag("write");
+  formatter.AddField("mode", write ? "write" : "dry-run");
+  formatter.AddField("experimental", true);
+  formatter.AddField("runtime_supported", false);
+  formatter.AddField("directory_revision_before", 4);
+  formatter.AddField("directory_revision_after", 5);
+  formatter.AddField("materialized_map_count", layout.capacity);
+  formatter.AddField("table_id", 413);
+  formatter.AddField("kind", 10);
+  formatter.AddField("stride", 12);
+  formatter.AddField("row_capacity", capacity);
+  formatter.AddHexField("storage_pc", pc, 6);
+  formatter.AddField("input_rom_sha256", *expected_rom);
+  formatter.AddField("storage_preimage_sha256", *expected_storage);
+  formatter.AddField("planned_rom_sha256", hash(planned));
+  formatter.AddField("initialized_rows", 0);
+  if (!write) {
+    formatter.AddField("save_status", "not_requested");
+    return absl::OkStatus();
+  }
+  RETURN_IF_ERROR(rom->CheckLayoutSaveable());
+  const Rom snapshot(*rom);
+  bool committed = false;
+  const auto restore = absl::MakeCleanup([&] {
+    if (!committed)
+      *rom = snapshot;
+  });
+  rom->EnableExperimentalPageTile16();
+  {
+    rom::WriteFence ownership;
+    RETURN_IF_ERROR(ownership.Allow(0x147000, 0x147400, "native directory"));
+    RETURN_IF_ERROR(ownership.Allow(
+        pc, pc + capacity * 12, "explicit caller-owned page Tile16 storage"));
+    rom::ScopedWriteFence scoped(rom, &ownership);
+    RETURN_IF_ERROR(rom->InitializeNativePageTile16(baseline, initialization));
+  }
+  if (rom->vector() != planned)
+    return absl::DataLossError(
+        "Initialization differs from its validated plan");
+  RETURN_IF_ERROR(check_disk());
+  RETURN_IF_ERROR(rom->SaveToFile(
+      {.backup = true, .save_new = false, .require_backup = true}));
+  Rom reopened;
+  RETURN_IF_ERROR(reopened.LoadFromFile(rom->filename()));
+  reopened.EnableExperimentalPageTile16();
+  if (reopened.vector() != planned ||
+      reopened.InspectLyraLayout().presence != rom::LyraLayoutPresence::kValid)
+    return absl::DataLossError("Initialized ROM disk readback differs");
+  committed = true;
+  formatter.AddField("save_status", "saved");
+  formatter.AddField("readback_status", "verified");
+  return absl::OkStatus();
+}
+
 absl::Status OverworldExportNativeSourceCommandHandler::Execute(
     Rom* rom, const resources::ArgumentParser& parser,
     resources::OutputFormatter& formatter) {
@@ -368,6 +472,8 @@ absl::Status OverworldExportNativeSourceCommandHandler::Execute(
   if (rom->dirty())
     return absl::FailedPreconditionError(
         "Save the ROM before exporting compiler input");
+  if (parser.HasFlag("experimental-page-tile16"))
+    rom->EnableExperimentalPageTile16();
   const auto layout = rom->InspectLyraLayout();
   if (!rom::IsNativeSpecialOverworldLayout(layout))
     return absl::FailedPreconditionError(

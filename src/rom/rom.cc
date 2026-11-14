@@ -465,6 +465,56 @@ absl::Status Rom::CheckLayoutSaveable() const {
   return CheckLayoutWritable();
 }
 
+absl::Status Rom::InitializeNativePageTile16(
+    const std::vector<uint8_t>& baseline,
+    const rom::NativePageTile16Initialization& initialization) {
+  RETURN_IF_ERROR(CheckLayoutSaveable());
+  if (baseline != rom_data_)
+    return absl::FailedPreconditionError(
+        "ROM changed after native page Tile16 initialization planning");
+  if (write_fence_stack_.empty())
+    return absl::PermissionDeniedError(
+        "Native page Tile16 initialization requires explicit storage "
+        "ownership");
+  ASSIGN_OR_RETURN(auto candidate,
+                   rom::PlanNativePageTile16Initialization(
+                       baseline, initialization, experimental_page_tile16_));
+  for (auto* fence : write_fence_stack_) {
+    RETURN_IF_ERROR(
+        fence->Check(0x147000, 1024, "native directory initialization"));
+    RETURN_IF_ERROR(fence->Check(initialization.storage_pc,
+                                 initialization.expected_storage.size(),
+                                 "native page Tile16 storage ownership"));
+  }
+  std::vector<std::pair<uint32_t, uint32_t>> changed;
+  for (size_t pc = 0; pc < candidate.size();) {
+    if (candidate[pc] == rom_data_[pc]) {
+      ++pc;
+      continue;
+    }
+    const size_t begin = pc++;
+    while (pc < candidate.size() && candidate[pc] != rom_data_[pc])
+      ++pc;
+    RETURN_IF_ERROR(
+        CheckPrivateLyraWrite(begin, candidate.data() + begin, pc - begin));
+    changed.emplace_back(begin, pc - begin);
+  }
+  rom_data_.swap(candidate);
+  dirty_ = true;
+  for (const auto& [pc, count] : changed) {
+#ifdef __EMSCRIPTEN__
+    MaybeBroadcastChange(pc,
+                         std::vector<uint8_t>(candidate.begin() + pc,
+                                              candidate.begin() + pc + count),
+                         std::vector<uint8_t>(rom_data_.begin() + pc,
+                                              rom_data_.begin() + pc + count));
+#endif
+    for (auto* fence : write_fence_stack_)
+      fence->RecordWrite(pc, count);
+  }
+  return absl::OkStatus();
+}
+
 absl::Status Rom::CommitNativeTerrainImage(
     const std::vector<uint8_t>& baseline, std::vector<uint8_t> candidate,
     std::span<const rom::NativeOverworldPropertyEdit> properties,

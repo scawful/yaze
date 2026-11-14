@@ -618,6 +618,90 @@ absl::StatusOr<std::vector<NativePageTile16Definition>> DecodeNativePageTile16(
   return rows;
 }
 
+absl::StatusOr<std::vector<uint8_t>> PlanNativePageTile16Initialization(
+    const std::vector<uint8_t>& baseline,
+    const NativePageTile16Initialization& initialization,
+    bool allow_experimental_page_tile16) {
+  if (!allow_experimental_page_tile16)
+    return absl::FailedPreconditionError(
+        "Native page Tile16 initialization requires explicit admission");
+  const auto layout = InspectLyraLayout(baseline.data(), baseline.size());
+  if (layout.presence != LyraLayoutPresence::kValid || layout.revision != 4)
+    return absl::FailedPreconditionError(
+        "Native page Tile16 initialization requires a valid revision-4 image");
+  const size_t length =
+      size_t{initialization.row_capacity} * kNativePageTile16Stride;
+  const size_t pc = initialization.storage_pc;
+  if (length == 0 || length > 0x8000 || pc > baseline.size() ||
+      length > baseline.size() - pc || (pc & 0x7FFF) + length > 0x8000)
+    return absl::OutOfRangeError(
+        "Native page Tile16 storage exceeds one LoROM bank or image");
+  if (initialization.expected_storage.size() != length)
+    return absl::InvalidArgumentError(
+        "Native page Tile16 storage requires a complete free preimage");
+  const uint8_t fill = initialization.expected_storage.front();
+  if ((fill != 0 && fill != 0xFF) ||
+      !std::all_of(initialization.expected_storage.begin(),
+                   initialization.expected_storage.end(),
+                   [fill](uint8_t byte) { return byte == fill; }))
+    return absl::InvalidArgumentError(
+        "Native page Tile16 storage preimage is not uniformly free 00 or FF");
+  if (!std::equal(initialization.expected_storage.begin(),
+                  initialization.expected_storage.end(), baseline.begin() + pc))
+    return absl::FailedPreconditionError(
+        "Native page Tile16 storage preimage changed");
+  ASSIGN_OR_RETURN(
+      const auto owned,
+      NativeOverworldOwnedRanges(layout, baseline.data(), baseline.size()));
+  for (const auto& [begin, end] : owned)
+    if (pc < end && begin < pc + length)
+      return absl::PermissionDeniedError(
+          "Native page Tile16 storage overlaps existing native data");
+  const size_t slot =
+      kDescriptorPc + kHeaderSize + layout.entries.size() * kEntrySize;
+  if (slot + kEntrySize > kDescriptorPc + kDescriptorSize ||
+      !std::all_of(baseline.begin() + slot,
+                   baseline.begin() + slot + kEntrySize,
+                   [](uint8_t byte) { return byte == 0; }))
+    return absl::ResourceExhaustedError(
+        "Native page Tile16 directory has no free entry");
+  ASSIGN_OR_RETURN(
+      auto rows,
+      EncodeNativePageTile16({}, layout.capacity, initialization.row_capacity));
+  auto candidate = baseline;
+  std::copy(rows.begin(), rows.end(), candidate.begin() + pc);
+  const auto put16 = [&](size_t at, uint16_t word) {
+    candidate[at] = static_cast<uint8_t>(word);
+    candidate[at + 1] = static_cast<uint8_t>(word >> 8);
+  };
+  const auto put32 = [&](size_t at, uint32_t value) {
+    for (int i = 0; i < 4; ++i)
+      candidate[at + i] = static_cast<uint8_t>(value >> (i * 8));
+  };
+  uint32_t bank = static_cast<uint32_t>(pc / 0x8000);
+  if (bank >= 0x7E)
+    bank |= 0x80;
+  put16(slot, kNativePageTile16TableId);
+  put16(slot + 2, 10);
+  put32(slot + 4, (bank << 16) | 0x8000 | static_cast<uint32_t>(pc & 0x7FFF));
+  put16(slot + 8, initialization.row_capacity);
+  put16(slot + 10, kNativePageTile16Stride);
+  put32(slot + 12, Crc32(rows.data(), rows.size()));
+  put16(kDescriptorPc + 8, 5);
+  put16(kDescriptorPc + 12,
+        static_cast<uint16_t>(slot + kEntrySize - kDescriptorPc));
+  put16(kDescriptorPc + 18, static_cast<uint16_t>(layout.entries.size() + 1));
+  candidate[kDescriptorPc + 21] |= 0x40;
+  put32(kDescriptorPc + 28, 0);
+  put32(kDescriptorPc + 28,
+        Crc32(candidate.data() + kDescriptorPc, kDescriptorSize));
+  const auto checked = InspectLyraLayout(candidate.data(), candidate.size());
+  if (checked.presence != LyraLayoutPresence::kValid || checked.revision != 5)
+    return absl::FailedPreconditionError(
+        "Native page Tile16 initialized image is invalid: " + checked.error);
+  return candidate;
+}
+
 LyraLayoutInspection InspectLyraLayout(const uint8_t* image, size_t size) {
   LyraLayoutInspection absent;
   if (image == nullptr || size <= kDescriptorPc) {

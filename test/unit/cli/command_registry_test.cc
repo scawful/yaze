@@ -1,5 +1,6 @@
 #include "cli/service/command_registry.h"
 
+#include <algorithm>
 #include <memory>
 #include <string>
 #include <utility>
@@ -97,6 +98,25 @@ TEST(CommandRegistryTest, DungeonPlaceSpriteHelpIncludesExamples) {
   EXPECT_THAT(help, ::testing::HasSubstr("Examples:"));
   EXPECT_THAT(help, ::testing::HasSubstr("--subtype=4"));
   EXPECT_THAT(help, ::testing::HasSubstr("--write"));
+}
+
+TEST(CommandRegistryTest, PageTile16InitializationAdvertisesExplicitContract) {
+  auto& registry = CommandRegistry::Instance();
+  const auto help = registry.GenerateHelp("overworld-init-page-tile16");
+  for (const char* text :
+       {"runtime unsupported", "--storage-pc", "--row-capacity",
+        "--expected-rom-sha256", "--expected-storage-sha256",
+        "--experimental-page-tile16", "--write"})
+    EXPECT_THAT(help, ::testing::HasSubstr(text));
+  const auto schemas = nlohmann::json::parse(registry.ExportFunctionSchemas());
+  const auto command =
+      std::find_if(schemas["commands"].begin(), schemas["commands"].end(),
+                   [](const auto& row) {
+                     return row["name"] == "overworld-init-page-tile16";
+                   });
+  ASSERT_NE(command, schemas["commands"].end());
+  EXPECT_EQ((*command)["category"], "overworld");
+  EXPECT_TRUE((*command)["requires_rom"]);
 }
 
 TEST(CommandRegistryTest, DungeonSetCollisionTileHelpIncludesTilesSyntax) {

@@ -236,6 +236,12 @@ class Rom {
   // This does not admit Build, Run, installation, or runtime format migration.
   void EnableExperimentalPageTile16() { experimental_page_tile16_ = true; }
   bool experimental_page_tile16() const { return experimental_page_tile16_; }
+  // Explicit, atomic source-format initialization. Requires admission above,
+  // an exact image baseline and active WriteFence ownership of directory and
+  // caller-selected free storage. Loaded overworld models must then reload.
+  absl::Status InitializeNativePageTile16(
+      const std::vector<uint8_t>& baseline,
+      const rom::NativePageTile16Initialization& initialization);
   absl::Status CheckLayoutWritable() const;
   // File publication accepts a fully validated native image. Individual
   // WriteByte/Word/Vector operations retain the stricter generic-write policy.
