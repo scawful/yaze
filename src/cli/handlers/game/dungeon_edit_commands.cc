@@ -28,6 +28,7 @@
 #include "zelda3/dungeon/chest_edit.h"
 #include "zelda3/dungeon/dungeon_stream_allocator.h"
 #include "zelda3/dungeon/object_layer_semantics.h"
+#include "zelda3/dungeon/pot_item_position.h"
 #include "zelda3/dungeon/room.h"
 #include "zelda3/dungeon/room_object.h"
 #include "zelda3/dungeon/track_collision_generator.h"
@@ -3036,9 +3037,49 @@ absl::Status DungeonSetPotItemCommandHandler::Execute(
         index, expected_position, expected_item, target.entry.item.position,
         target.entry.item.item));
   }
-  if (new_item == expected_item) {
+  int new_position = expected_position;
+  if (parser.GetString("new-position").has_value() ||
+      parser.HasFlag("new-position")) {
+    ASSIGN_OR_RETURN(new_position, GetRequiredHex(parser, "new-position"));
+    if (new_position < 0 || new_position >= 0xFFFF) {
+      return absl::InvalidArgumentError(
+          "--new-position must be in range 0x0000-0xFFFE");
+    }
+    const auto encoded = zelda3::EncodePotItemPosition(
+        zelda3::PotItemPixelX(static_cast<uint16_t>(new_position)),
+        zelda3::PotItemPixelY(static_cast<uint16_t>(new_position)),
+        target.entry.item.position);
+    if (!encoded.has_value() || *encoded != new_position) {
+      return absl::InvalidArgumentError(
+          "--new-position must preserve the pot item's layer/control bits");
+    }
+  }
+  const bool move_position = new_position != expected_position;
+  if (new_item == expected_item && !move_position) {
     return absl::InvalidArgumentError(
-        "--item must differ from the current pot item");
+        "Pot-item edit must change its position or item");
+  }
+  if (move_position) {
+    ASSIGN_OR_RETURN(const auto stream,
+                     ResolveRuntimePotItemStream(rom, room_id));
+    for (const auto& entry : stream.entries) {
+      // RevealPotItem ignores bit15, but layer/control bits remain meaningful.
+      if (entry.index != index &&
+          (entry.item.position & 0x7FFF) == (new_position & 0x7FFF)) {
+        return absl::FailedPreconditionError(
+            "Pot-item destination is occupied by another item row");
+      }
+    }
+  }
+  const bool native = IsNativeDungeonLayout(*rom);
+  const uint32_t write_begin =
+      native || move_position ? target.entry.entry_pc : target.entry.item_pc;
+  const uint32_t write_end = target.entry.item_pc + 1u;
+  const auto conflicts = manifest_context.manifest.AnalyzePcWriteRanges(
+      {{write_begin, write_end}});
+  if (!conflicts.empty()) {
+    return absl::PermissionDeniedError(
+        "Pot-item row conflicts with Hack Manifest");
   }
 
   const bool do_write = parser.HasFlag("write");
@@ -3052,6 +3093,8 @@ absl::Status DungeonSetPotItemCommandHandler::Execute(
   formatter.AddHexField("position", target.entry.item.position, 4);
   formatter.AddField("tile_x", target.entry.item.GetTileX());
   formatter.AddField("tile_y", target.entry.item.GetTileY());
+  formatter.AddHexField("new_position", new_position, 4);
+  formatter.AddHexField("entry_pc", target.entry.entry_pc, 6);
   formatter.AddHexField("old_item", expected_item, 2);
   formatter.AddHexField("new_item", new_item, 2);
   formatter.AddHexField("pointer_slot_pc", target.pointer_slot_pc, 6);
@@ -3065,15 +3108,6 @@ absl::Status DungeonSetPotItemCommandHandler::Execute(
   formatter.AddField("mode", do_write ? "write" : "dry-run");
   formatter.AddField("preflight_status", "success");
 
-  if (!do_write) {
-    formatter.AddField("write_status", "not_requested");
-    formatter.AddField("save_status", "not_requested");
-    formatter.AddField("readback_status", "not_requested");
-    formatter.AddField("status", "success");
-    formatter.EndObject();
-    return absl::OkStatus();
-  }
-
   const auto finish_error = [&formatter](const absl::Status& status,
                                          const char* field) -> absl::Status {
     formatter.AddField("status", "error");
@@ -3082,11 +3116,12 @@ absl::Status DungeonSetPotItemCommandHandler::Execute(
     return status;
   };
   const auto verify_readback =
-      [&target, new_item](const PotItemTarget& readback) -> absl::Status {
+      [&target, new_item,
+       new_position](const PotItemTarget& readback) -> absl::Status {
     if (readback.entry.index != target.entry.index ||
         readback.entry.entry_pc != target.entry.entry_pc ||
         readback.entry.item_pc != target.entry.item_pc ||
-        readback.entry.item.position != target.entry.item.position ||
+        readback.entry.item.position != new_position ||
         readback.entry.item.item != new_item ||
         readback.stream_pc != target.stream_pc ||
         readback.stream_end_pc != target.stream_end_pc) {
@@ -3096,17 +3131,56 @@ absl::Status DungeonSetPotItemCommandHandler::Execute(
     return absl::OkStatus();
   };
 
+  const std::vector<uint8_t> before = rom->vector();
+  auto candidate = before;
+  candidate[target.entry.entry_pc] = static_cast<uint8_t>(new_position);
+  candidate[target.entry.entry_pc + 1u] =
+      static_cast<uint8_t>(new_position >> 8);
+  candidate[target.entry.item_pc] = static_cast<uint8_t>(new_item);
+  if (native) {
+    formatter.AddField("layout", "native");
+    const auto status = CommitNativeDungeonCandidate(
+        rom, before, std::move(candidate), {{write_begin, write_end}},
+        &manifest_context.manifest, do_write, formatter,
+        [&](const std::vector<uint8_t>& image) -> absl::Status {
+          ASSIGN_OR_RETURN(auto reopened, LoadScratchRom(image));
+          ASSIGN_OR_RETURN(const auto readback,
+                           ResolvePotItemTarget(reopened.get(), room_id, index,
+                                                manifest_context));
+          return verify_readback(readback);
+        });
+    formatter.AddField("status", status.ok() ? "success" : "error");
+    formatter.EndObject();
+    return status;
+  }
+
+  if (!do_write) {
+    formatter.AddField("write_status", "not_requested");
+    formatter.AddField("save_status", "not_requested");
+    formatter.AddField("readback_status", "not_requested");
+    formatter.AddField("status", "success");
+    formatter.EndObject();
+    return absl::OkStatus();
+  }
+
   rom::WriteFence write_fence;
-  const absl::Status allow_status = write_fence.Allow(
-      target.entry.item_pc, target.entry.item_pc + 1u, "dungeon pot item");
+  const absl::Status allow_status =
+      write_fence.Allow(write_begin, write_end, "dungeon pot item");
   if (!allow_status.ok()) {
     return finish_error(allow_status, "write_error");
   }
 
-  const std::vector<uint8_t> before = rom->vector();
   ScopedRomTransaction transaction(*rom);
   {
     rom::ScopedWriteFence write_scope(rom, &write_fence);
+    if (move_position) {
+      const auto position_status =
+          rom->WriteWord(static_cast<int>(target.entry.entry_pc),
+                         static_cast<uint16_t>(new_position));
+      if (!position_status.ok()) {
+        return finish_error(position_status, "write_error");
+      }
+    }
     const absl::Status write_status = rom->WriteByte(
         static_cast<int>(target.entry.item_pc), static_cast<uint8_t>(new_item));
     if (!write_status.ok()) {
@@ -3119,19 +3193,10 @@ absl::Status DungeonSetPotItemCommandHandler::Execute(
         absl::DataLossError("Pot-item edit unexpectedly resized the ROM"),
         "write_error");
   }
-  int changed_bytes = 0;
-  uint32_t changed_pc = 0;
-  for (uint32_t pc = 0; pc < before.size(); ++pc) {
-    if (before[pc] != rom->data()[pc]) {
-      ++changed_bytes;
-      changed_pc = pc;
-    }
-  }
-  if (changed_bytes != 1 || changed_pc != target.entry.item_pc) {
+  if (rom->vector() != candidate) {
     return finish_error(
-        absl::DataLossError(absl::StrFormat(
-            "Pot-item edit changed %d bytes; expected only PC 0x%06X",
-            changed_bytes, target.entry.item_pc)),
+        absl::DataLossError(
+            "Pot-item edit differs from the exact row candidate"),
         "write_error");
   }
 
@@ -3155,6 +3220,27 @@ absl::Status DungeonSetPotItemCommandHandler::Execute(
   }
 
   transaction.Commit();
+  if (move_position) {
+    Rom disk;
+    const auto reopen_status = disk.LoadFromFile(rom->filename());
+    if (!reopen_status.ok()) {
+      return finish_error(reopen_status, "readback_error");
+    }
+    if (disk.vector() != rom->vector()) {
+      return finish_error(absl::DataLossError("Saved pot-item ROM differs"),
+                          "readback_error");
+    }
+    const auto disk_target =
+        ResolvePotItemTarget(&disk, room_id, index, manifest_context);
+    if (!disk_target.ok()) {
+      return finish_error(disk_target.status(), "readback_error");
+    }
+    const auto disk_verify = verify_readback(*disk_target);
+    if (!disk_verify.ok()) {
+      return finish_error(disk_verify, "readback_error");
+    }
+    formatter.AddField("verified_reload", true);
+  }
   formatter.AddField("status", "success");
   formatter.EndObject();
   return absl::OkStatus();

@@ -1473,6 +1473,209 @@ TEST(DungeonNativeDoorTypeTest, RefusalsPreserveCallerDiskAndBackups) {
   }
 }
 
+std::vector<uint8_t> PotRelocationImage(uint16_t capacity,
+                                        uint16_t position = 0x1A0C,
+                                        uint8_t item = 0x09) {
+  std::vector<uint8_t> image;
+  if (capacity == 0) {
+    Rom legacy;
+    InitializePotItemRom(&legacy);
+    image = legacy.vector();
+  } else {
+    image = NativeObjectRouteImage(capacity);
+  }
+  for (int room = 0; room < zelda3::kNumberOfRooms; ++room) {
+    const uint16_t pointer = PcToSnes(room == 0 ? kPotDataPc : kOtherPotDataPc);
+    image[zelda3::kRoomItemsPointers + room * 2] = pointer & 0xFF;
+    image[zelda3::kRoomItemsPointers + room * 2 + 1] = pointer >> 8;
+  }
+  const std::vector<uint8_t> rows = {static_cast<uint8_t>(position),
+                                     static_cast<uint8_t>(position >> 8),
+                                     item,
+                                     0x18,
+                                     0x1A,
+                                     0x0D,
+                                     0xFF,
+                                     0xFF};
+  std::copy(rows.begin(), rows.end(), image.begin() + kPotDataPc);
+  image[kOtherPotDataPc] = image[kOtherPotDataPc + 1] = 0xFF;
+  return image;
+}
+
+TEST(DungeonPotRelocationTest, ValuePositionAndCombinedEditsPreserveExactRows) {
+  // Zero denotes legacy storage; native cases cover both materialized counts.
+  for (const uint16_t capacity : {0, 160, 192}) {
+    for (const auto& [position, destination, item, replacement] :
+         std::vector<std::tuple<uint16_t, uint16_t, uint8_t, uint8_t>>{
+             {0x1A0C, 0x1A0C, 0x09, 0x0D},     // ordinary item value edit
+             {0x1A0C, 0x1414, 0x09, 0x09},     // Arrow position-only relocation
+             {0x1A18, 0x1594, 0x0D, 0x0D},     // Full Magic position-only
+             {0xBA0D, 0xB415, 0x09, 0x0D}}) {  // retain all control bits
+      SCOPED_TRACE(
+          absl::StrFormat("%d %04X -> %04X", capacity, position, destination));
+      Rom rom;
+      ASSERT_TRUE(
+          rom.LoadFromData(PotRelocationImage(capacity, position, item)).ok());
+      const auto before = rom.vector();
+      ScopedRomArtifactsCleanup cleanup(MakeUniqueTempRomPath());
+      ScopedFileCleanup manifest(cleanup.rom_path.string() + ".manifest.json");
+      WritePotItemManifest(manifest.file_path);
+      WriteRomFile(rom, cleanup.rom_path);
+      rom.set_filename(cleanup.rom_path.string());
+      rom.set_dirty(false);
+      std::vector<std::string> args = {
+          "--room=0x00",
+          "--index=0",
+          absl::StrFormat("--expect-position=0x%04X", position),
+          absl::StrFormat("--expect-item=0x%02X", item),
+          absl::StrFormat("--item=0x%02X", replacement),
+          "--manifest=" + manifest.file_path.string(),
+          "--format=json"};
+      if (destination != position)
+        args.push_back(absl::StrFormat("--new-position=0x%04X", destination));
+      handlers::DungeonSetPotItemCommandHandler handler;
+      std::string output;
+      const auto preview = handler.Run(args, &rom, &output);
+      ASSERT_TRUE(preview.ok()) << preview << output;
+      EXPECT_EQ(rom.vector(), before);
+      EXPECT_EQ(ReadFile(cleanup.rom_path), before);
+      EXPECT_TRUE(FindBackupArtifacts(cleanup.rom_path).empty());
+      if (capacity != 0) {
+        const auto result = nlohmann::json::parse(output).at("Set Pot Item");
+        ASSERT_EQ(result.at("write_ranges").size(), 1u);
+        EXPECT_EQ(result.at("write_ranges")[0].at("begin"), "0x00E000");
+        EXPECT_EQ(result.at("write_ranges")[0].at("end"), "0x00E003");
+      }
+      args.push_back("--write");
+      const auto status = handler.Run(args, &rom, &output);
+      ASSERT_TRUE(status.ok()) << status << output;
+      auto expected = before;
+      expected[kPotDataPc] = destination & 0xFF;
+      expected[kPotDataPc + 1] = destination >> 8;
+      expected[kPotItemBytePc] = replacement;
+      EXPECT_EQ(rom.vector(), expected);
+      EXPECT_EQ(ReadFile(cleanup.rom_path), expected);
+      const auto backups = FindBackupArtifacts(cleanup.rom_path);
+      ASSERT_EQ(backups.size(), 1u);
+      EXPECT_EQ(ReadFile(backups.front()), before);
+      Rom reopened;
+      ASSERT_TRUE(reopened.LoadFromFile(cleanup.rom_path.string()).ok());
+      zelda3::Room room(0, &reopened);
+      room.LoadPotItems();
+      ASSERT_EQ(room.GetPotItems().size(), 2u);
+      EXPECT_EQ(room.GetPotItems()[0].position, destination);
+      EXPECT_EQ(room.GetPotItems()[0].item, replacement);
+      EXPECT_EQ(room.GetPotItems()[1].position, 0x1A18);
+      EXPECT_EQ(room.GetPotItems()[1].item, 0x0D);
+    }
+  }
+}
+
+TEST(DungeonPotRelocationTest,
+     RejectsStaleDuplicateAliasFlagsAndForeignRowBytes) {
+  for (const uint16_t capacity : {0, 160, 192}) {
+    for (const std::string reason :
+         {"position", "item", "duplicate", "masked_duplicate", "alias",
+          "protected_low", "protected_high", "flags", "terminator", "no_op",
+          "missing_value"}) {
+      for (const bool write : {false, true}) {
+        SCOPED_TRACE(absl::StrFormat("%d %s %d", capacity, reason, write));
+        auto image = PotRelocationImage(capacity);
+        if (reason == "alias") {
+          image[zelda3::kRoomItemsPointers + 2] =
+              image[zelda3::kRoomItemsPointers];
+          image[zelda3::kRoomItemsPointers + 3] =
+              image[zelda3::kRoomItemsPointers + 1];
+        }
+        if (reason == "masked_duplicate")
+          image[kPotDataPc + 4] |= 0x80;
+        Rom rom;
+        ASSERT_TRUE(rom.LoadFromData(image).ok());
+        ScopedRomArtifactsCleanup cleanup(MakeUniqueTempRomPath());
+        ScopedFileCleanup manifest(cleanup.rom_path.string() +
+                                   ".manifest.json");
+        WritePotItemManifest(manifest.file_path,
+                             reason == "protected_low"    ? kPotDataPc
+                             : reason == "protected_high" ? kPotDataPc + 1
+                                                          : -1);
+        WriteRomFile(rom, cleanup.rom_path);
+        rom.set_filename(cleanup.rom_path.string());
+        rom.set_dirty(false);
+        const std::string destination =
+            reason == "duplicate" || reason == "masked_duplicate" ? "0x1A18"
+            : reason == "flags"                                   ? "0x3414"
+            : reason == "terminator"                              ? "0xFFFF"
+            : reason == "no_op"                                   ? "0x1A0C"
+                                                                  : "0x1414";
+        std::vector<std::string> args = {
+            "--room=0x00",
+            "--index=0",
+            "--item=0x09",
+            reason == "position" ? "--expect-position=0x1A0E"
+                                 : "--expect-position=0x1A0C",
+            reason == "item" ? "--expect-item=0x0D" : "--expect-item=0x09",
+            reason == "missing_value" ? "--new-position"
+                                      : "--new-position=" + destination,
+            "--manifest=" + manifest.file_path.string(),
+            "--format=json"};
+        if (write)
+          args.push_back("--write");
+        handlers::DungeonSetPotItemCommandHandler handler;
+        std::string output;
+        const auto status = handler.Run(args, &rom, &output);
+        EXPECT_FALSE(status.ok()) << output;
+        EXPECT_EQ(rom.vector(), image);
+        EXPECT_EQ(ReadFile(cleanup.rom_path), image);
+        EXPECT_FALSE(rom.dirty());
+        EXPECT_TRUE(FindBackupArtifacts(cleanup.rom_path).empty());
+      }
+    }
+  }
+}
+
+TEST(DungeonPotRelocationTest, NativeOwnedSpanRefusedInDryRunAndWrite) {
+  for (const uint16_t capacity : {160, 192}) {
+    test::native_overworld::NativeDirectoryFixture fixture(capacity);
+    fixture.bytes = PotRelocationImage(capacity);
+    // A synthetic directory-owned table over the row, without changing the
+    // bank01 pot pointer contract. This grants no production storage ownership.
+    fixture.Entry(1).pc_address = kPotDataPc;
+    fixture.Entry(1).snes_address = PcToSnes(kPotDataPc);
+    fixture.Seal();
+    for (const bool write : {false, true}) {
+      Rom rom;
+      ASSERT_TRUE(rom.LoadFromData(fixture.bytes).ok());
+      ASSERT_TRUE(handlers::IsNativeDungeonLayout(rom));
+      ScopedRomArtifactsCleanup cleanup(MakeUniqueTempRomPath());
+      ScopedFileCleanup manifest(cleanup.rom_path.string() + ".manifest.json");
+      WritePotItemManifest(manifest.file_path);
+      WriteRomFile(rom, cleanup.rom_path);
+      rom.set_filename(cleanup.rom_path.string());
+      rom.set_dirty(false);
+      std::vector<std::string> args = {
+          "--room=0x00",
+          "--index=0",
+          "--expect-position=0x1A0C",
+          "--expect-item=0x09",
+          "--item=0x09",
+          "--new-position=0x1414",
+          "--manifest=" + manifest.file_path.string(),
+          "--format=json"};
+      if (write)
+        args.push_back("--write");
+      handlers::DungeonSetPotItemCommandHandler handler;
+      std::string output;
+      const auto status = handler.Run(args, &rom, &output);
+      EXPECT_THAT(std::string(status.message()),
+                  HasSubstr("native overworld storage"));
+      EXPECT_FALSE(status.ok());
+      EXPECT_EQ(rom.vector(), fixture.bytes);
+      EXPECT_EQ(ReadFile(cleanup.rom_path), fixture.bytes);
+      EXPECT_TRUE(FindBackupArtifacts(cleanup.rom_path).empty());
+    }
+  }
+}
+
 TEST(DungeonNativeObjectRouteTest, ImportMovesStreamIntoAllocRangeAndReopens) {
   Rom rom;
   ASSERT_TRUE(rom.LoadFromData(NativeObjectRouteImage()).ok());

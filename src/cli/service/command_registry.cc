@@ -194,7 +194,8 @@ void CommandRegistry::RegisterHandlers(
             "--rom=Roms/oos168.sfc --format=json"};
       } else if (name == "dungeon-set-pot-item") {
         metadata.description =
-            "Change one existing pot item with index/position/item CAS and "
+            "Change one existing pot item or encoded "
+            "position with index/position/item CAS and "
             "manifest guards (dry-run by default)";
         metadata.examples = {
             "z3ed dungeon-set-pot-item --room=0xA8 --index=0 "
@@ -204,6 +205,10 @@ void CommandRegistry::RegisterHandlers(
             "z3ed dungeon-set-pot-item --room=0xA8 --index=0 "
             "--expect-position=0x198C --expect-item=0x05 --item=0x06 "
             "--manifest=Roms/hack_manifest.json --write "
+            "--rom=/tmp/oos-work.sfc --format=json",
+            "z3ed dungeon-set-pot-item --room=0x99 --index=4 "
+            "--expect-position=0x1A0C --new-position=0x1414 "
+            "--expect-item=0x09 --item=0x09 --manifest=hack_manifest.json "
             "--rom=/tmp/oos-work.sfc --format=json"};
       } else if (name == "dungeon-oracle-preflight") {
         metadata.description =

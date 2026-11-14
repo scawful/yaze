@@ -333,7 +333,7 @@ class DungeonListPotItemsCommandHandler : public resources::CommandHandler {
 };
 
 /**
- * @brief Change one existing pot item's fixed-width item byte.
+ * @brief Change one existing pot item's value or encoded position.
  *
  * The target is selected by exact stream index and guarded by expected raw
  * position and item values. Dry-run is the default; use --write to commit.
@@ -347,7 +347,8 @@ class DungeonSetPotItemCommandHandler : public resources::CommandHandler {
   std::string GetUsage() const override {
     return "dungeon-set-pot-item --room <hex> --index <int> "
            "--expect-position <hex> --expect-item <hex> --item <hex> "
-           "--manifest <path> [--write] [--format <json|text>]";
+           "[--new-position <hex>] --manifest <path> [--write] [--format "
+           "<json|text>]";
   }
 
   absl::Status ValidateArgs(const resources::ArgumentParser& parser) override {
