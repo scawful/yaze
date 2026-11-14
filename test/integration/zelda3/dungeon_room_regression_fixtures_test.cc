@@ -12,8 +12,8 @@
 #include <utility>
 #include <vector>
 
-#if defined(YAZE_HAS_VISUAL_DIFF_ENGINE)
 #include "app/platform/sdl_compat.h"
+#if defined(YAZE_HAS_VISUAL_DIFF_ENGINE)
 #include "app/testing/visual_diff_engine.h"
 #endif
 #include "integration/zelda3/dungeon_room_regression_fixtures.h"
@@ -41,17 +41,55 @@ uint64_t Fnv1a64(const uint8_t* data, size_t size) {
   return hash;
 }
 
+// Composites with a translucent BG2 are 32-bit RGBA over an opaque black
+// backdrop; layer bitmaps and other composites are 8-bit with backdrop index 0.
 int CountNonBackdropPixels(const gfx::Bitmap& bitmap) {
   if (!bitmap.is_active()) {
     return 0;
   }
   int count = 0;
+  if (bitmap.depth() == 32) {
+    for (size_t i = 0; i + 3 < bitmap.size(); i += 4) {
+      const uint8_t* px = bitmap.data() + i;
+      if ((px[0] | px[1] | px[2]) != 0) {
+        ++count;
+      }
+    }
+    return count;
+  }
   for (size_t i = 0; i < bitmap.size(); ++i) {
     if (bitmap.data()[i] != 0) {
       ++count;
     }
   }
   return count;
+}
+
+// Per-pixel 0xRRGGBB for either composite depth, so composites of different
+// depths compare pixel for pixel.
+std::vector<uint32_t> CompositeRgb(const gfx::Bitmap& bitmap) {
+  const size_t pixels = static_cast<size_t>(bitmap.width()) * bitmap.height();
+  std::vector<uint32_t> rgb(pixels, 0);
+  if (bitmap.depth() == 32) {
+    for (size_t i = 0; i < pixels; ++i) {
+      const uint8_t* px = bitmap.data() + i * 4;
+      rgb[i] = (px[0] << 16) | (px[1] << 8) | px[2];
+    }
+    return rgb;
+  }
+  const auto* palette = platform::GetSurfacePalette(bitmap.surface());
+  EXPECT_NE(palette, nullptr);
+  if (palette == nullptr) {
+    return rgb;
+  }
+  for (size_t i = 0; i < pixels; ++i) {
+    const uint8_t index = bitmap.data()[i];
+    if (index < palette->ncolors) {
+      const SDL_Color c = palette->colors[index];
+      rgb[i] = (c.r << 16) | (c.g << 8) | c.b;
+    }
+  }
+  return rgb;
 }
 
 int CountOpaqueLayerPixels(const gfx::Bitmap& bitmap) {
@@ -1280,23 +1318,20 @@ TEST_F(DungeonRoomRegressionFixturesTest,
   const auto& without_objects_composite =
       room.GetCompositeBitmap(without_bg2_objects);
   ASSERT_TRUE(without_objects_composite.is_active());
-  std::vector<uint8_t> without_objects_snapshot(
-      without_objects_composite.data(),
-      without_objects_composite.data() +
-          static_cast<size_t>(without_objects_composite.size()));
+  const auto without_objects_rgb = CompositeRgb(without_objects_composite);
 
   const auto& full_composite = room.GetCompositeBitmap(with_bg2_objects);
   ASSERT_TRUE(full_composite.is_active());
-  ASSERT_EQ(without_objects_snapshot.size(),
-            static_cast<size_t>(full_composite.size()));
+  const auto full_rgb = CompositeRgb(full_composite);
+  ASSERT_EQ(without_objects_rgb.size(), full_rgb.size());
 
   int differing = 0;
   for (int py = 0; py < kOverlayPixelH; ++py) {
     for (int px = 0; px < kOverlayPixelW; ++px) {
-      const int index = (kOverlayPixelY + py) * full_composite.width() +
-                        (kOverlayPixelX + px);
-      if (without_objects_snapshot[static_cast<size_t>(index)] !=
-          full_composite.data()[index]) {
+      const size_t index =
+          static_cast<size_t>(kOverlayPixelY + py) * full_composite.width() +
+          (kOverlayPixelX + px);
+      if (without_objects_rgb[index] != full_rgb[index]) {
         ++differing;
       }
     }
@@ -1477,8 +1512,12 @@ TEST_F(DungeonRoomRegressionFixturesTest,
   const auto& historical_composite =
       historical.GetCompositeBitmap(historical_layers);
   ASSERT_TRUE(historical_composite.is_active());
+  // The 2026-09 whole-room golden (16184705480853915451) used nearest-index
+  // translucent blending, which 3a101a6bc replaced with RGBA blending; the
+  // layer hashes above still reproduce that golden's inputs. These pin the
+  // counterfactual's RGBA composite.
   EXPECT_EQ(Fnv1a64(historical_composite.data(), historical_composite.size()),
-            16184705480853915451ull);
+            7056152865949438209ull);
 
   // Both sides below use today's pot coordinates, isolating the water change.
   RoomLayerManager old_layers;
@@ -1486,15 +1525,18 @@ TEST_F(DungeonRoomRegressionFixturesTest,
   old_layers.ApplyRoomEffect(legacy.effect());
   const auto& old_composite = legacy.GetCompositeBitmap(old_layers);
   ASSERT_TRUE(old_composite.is_active());
-  EXPECT_EQ(CountNonBackdropPixels(old_composite), 231372);
+  EXPECT_EQ(CountNonBackdropPixels(old_composite), 231340);
   RoomLayerManager new_layers;
   new_layers.ApplyLayerMerging(corrected.layer_merging());
   new_layers.ApplyRoomEffect(corrected.effect());
+  const auto old_rgb = CompositeRgb(old_composite);
   const auto& new_composite = corrected.GetCompositeBitmap(new_layers);
-  ASSERT_EQ(new_composite.size(), old_composite.size());
-  for (size_t i = 0; i < new_composite.size(); ++i) {
+  const auto new_rgb = CompositeRgb(new_composite);
+  ASSERT_EQ(new_rgb.size(), old_rgb.size());
+  ASSERT_EQ(new_rgb.size(), new_bg2.size());
+  for (size_t i = 0; i < new_rgb.size(); ++i) {
     if (new_bg2.data()[i] == old_bg2.data()[i]) {
-      ASSERT_EQ(new_composite.data()[i], old_composite.data()[i])
+      ASSERT_EQ(new_rgb[i], old_rgb[i])
           << "composite changed outside corrected BG2 pixels at " << i;
     }
   }

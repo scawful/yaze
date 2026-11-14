@@ -26,8 +26,19 @@ uint64_t Fnv1a64(const uint8_t* data, size_t size) {
   return hash;
 }
 
+// Composites with a translucent BG2 are 32-bit RGBA over an opaque black
+// backdrop; other composites are 8-bit with backdrop index 0.
 int CountNonBackdropPixels(const gfx::Bitmap& bitmap) {
   int count = 0;
+  if (bitmap.depth() == 32) {
+    for (size_t i = 0; i + 3 < bitmap.size(); i += 4) {
+      const uint8_t* px = bitmap.data() + i;
+      if ((px[0] | px[1] | px[2]) != 0) {
+        ++count;
+      }
+    }
+    return count;
+  }
   for (size_t i = 0; i < bitmap.size(); ++i) {
     if (bitmap.data()[i] != 0) {
       ++count;
@@ -70,8 +81,10 @@ void ExpectHeadlessPngMatchesRoomComposite(app::service::RenderService& service,
   const auto& composite = room.GetCompositeBitmap(layers);
   ASSERT_TRUE(composite.is_active());
   ASSERT_NE(composite.surface(), nullptr);
-  const auto* palette = platform::GetSurfacePalette(composite.surface());
-  ASSERT_NE(palette, nullptr);
+  const bool true_color = composite.depth() == 32;
+  const auto* palette =
+      true_color ? nullptr : platform::GetSurfacePalette(composite.surface());
+  ASSERT_TRUE(true_color || palette != nullptr);
 
   for (float scale : {0.25f, 1.0f, 2.0f}) {
     SCOPED_TRACE(::testing::Message() << "scale=" << scale);
@@ -92,10 +105,18 @@ void ExpectHeadlessPngMatchesRoomComposite(app::service::RenderService& service,
       for (int x = 0; x < width; ++x) {
         const int sx = x * composite.width() / width;
         const int sy = y * composite.height() / height;
-        const uint8_t index = composite.data()[sy * composite.width() + sx];
+        const size_t source = static_cast<size_t>(sy) * composite.width() + sx;
+        const size_t out = (static_cast<size_t>(y) * width + x) * 4;
+        if (true_color) {
+          const uint8_t* px = composite.data() + source * 4;
+          expected[out] = px[0];
+          expected[out + 1] = px[1];
+          expected[out + 2] = px[2];
+          continue;
+        }
+        const uint8_t index = composite.data()[source];
         ASSERT_LT(index, palette->ncolors);
         const auto color = palette->colors[index];
-        const size_t out = (static_cast<size_t>(y) * width + x) * 4;
         expected[out] = color.r;
         expected[out + 1] = color.g;
         expected[out + 2] = color.b;
@@ -132,7 +153,9 @@ TEST_F(DungeonRoomRenderParityTest, Room00FingerprintSmoke) {
   // room's Floor1 header value, matching the vanilla room-draw path.
   // Ganon's triforce floor (0xFF8) now draws its bottom blocks at x-2 and x+2;
   // room 0x000's tilemap then matches the game capture tile for tile.
-  EXPECT_EQ(fingerprint.checksum, 11838603172490691807ull);
+  // Its translucent BG2 merge composites to RGBA (3a101a6bc), so the checksum
+  // covers RGBA bytes.
+  EXPECT_EQ(fingerprint.checksum, 13569100474253056138ull);
   EXPECT_EQ(fingerprint.non_backdrop_pixels, 262144);
 }
 

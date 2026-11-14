@@ -128,11 +128,15 @@ inline constexpr DungeonRoomRegressionFixture kDungeonRoomRegressionFixtures[] =
             // sheet $5D, not the old misindexed $94. The counterfactual test
             // reproduces the old hashes and confines pixel changes to the
             // BG2 water tiles $1B0/$1B1. This remains a self-fingerprint.
-            .composite_checksum = 7095718157671064982ull,
+            // Composite refreshed 2026-11-13: since 3a101a6bc the translucent
+            // merge blends in RGBA instead of snapping to the nearest palette
+            // index, so the composite hashes RGBA bytes. Layer checksums are
+            // unchanged.
+            .composite_checksum = 7593017635829738823ull,
             .object_bg1_checksum = 5833978440941290290ull,
             .object_bg2_checksum = 18329464225895248363ull,
             .layout_bg1_checksum = 10260335362238553655ull,
-            .composite_non_backdrop_pixels = 251392,
+            .composite_non_backdrop_pixels = 251360,
             .object_bg1_non_backdrop_pixels = 152256,
             .object_bg2_non_backdrop_pixels = 46592,
         },
