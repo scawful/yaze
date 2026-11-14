@@ -57,6 +57,8 @@ void ProposalWorkspacePanel::Draw(bool* p_open) {
         "%d reference images still need native graphics binding.",
         workspace_.unbound_references);
   }
+  if (!workspace_.context_note.empty())
+    ImGui::TextWrapped("%s", workspace_.context_note.c_str());
   auto& note = notes_[project];
   ImGui::InputTextMultiline("What changed?", note.data(), note.size(),
                             ImVec2(-1, ImGui::GetTextLineHeight() * 4));

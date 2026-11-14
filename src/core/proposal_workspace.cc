@@ -33,6 +33,8 @@ absl::StatusOr<fs::path> ContainedPath(const fs::path& root,
     return absl::InvalidArgumentError("Proposal path must be relative");
   }
   auto current = root;
+  if (fs::is_symlink(current))
+    return absl::InvalidArgumentError("Proposal root contains a symlink");
   for (const auto& part : relative) {
     if (part == "..")
       return absl::InvalidArgumentError("Proposal path escapes its packet");
@@ -57,6 +59,7 @@ absl::StatusOr<ProposalWorkspace> LoadProposalWorkspace(
       return absl::InvalidArgumentError("Unsupported proposal schema");
     result.proposal_id = packet.at("proposal_id").get<std::string>();
     result.domain = packet.at("domain").get<std::string>();
+    result.context_note = packet.value("context_note", std::string());
     if (!packet.at("target").is_number_integer())
       return absl::InvalidArgumentError("Proposal target must be an integer");
     result.target = packet.at("target").get<int>();
@@ -136,6 +139,7 @@ absl::StatusOr<fs::path> ExportProposalFeedback(
       fresh.rom_file != workspace.rom_file ||
       fresh.proposal_id != workspace.proposal_id ||
       fresh.domain != workspace.domain || fresh.target != workspace.target ||
+      fresh.context_note != workspace.context_note ||
       fresh.graphics_entrance_slot != workspace.graphics_entrance_slot ||
       fresh.baseline_rom_sha256 != workspace.baseline_rom_sha256) {
     return absl::FailedPreconditionError(
@@ -175,6 +179,7 @@ absl::StatusOr<fs::path> ExportProposalFeedback(
         {"proposal_id", fresh.proposal_id},
         {"domain", fresh.domain},
         {"target", fresh.target},
+        {"context_note", fresh.context_note},
         {"graphics_entrance_slot", fresh.graphics_entrance_slot},
         {"baseline_rom_sha256", fresh.baseline_rom_sha256},
         {"edited_rom_sha256", edited_hash},

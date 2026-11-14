@@ -106,7 +106,7 @@ def replace_fields(text, changes):
 
 
 def prepare(project, output, domain, target, proposal_id, entrance=None,
-            references=()):
+            references=(), context_note=""):
     project, output = project.resolve(), output.resolve()
     if project.suffix != ".yazeproj" or not (project / "project.yaze").is_file():
         raise ValueError("Use an existing self-contained .yazeproj directory")
@@ -191,6 +191,7 @@ def prepare(project, output, domain, target, proposal_id, entrance=None,
         raise ValueError("Source changed during preparation; incomplete draft retained")
     packet = {"schema": SCHEMA, "proposal_id": proposal_id, "domain": domain,
               "target": target, "graphics_entrance_slot": entrance,
+              "context_note": context_note,
               "original_project": str(project), "original_inventory": original,
               "draft_project": "Draft.yazeproj", "rom": str(rom.relative_to(project)),
               "baseline_inventory_sha256": digest(output / "baseline.json"),
@@ -263,6 +264,7 @@ def feedback(root):
                       within(draft, data["rom"]).read_bytes())
     return {"schema": "yaze.proposal-feedback.v1", "proposal_id": data["proposal_id"],
             "domain": data["domain"], "target": data["target"],
+            "context_note": data.get("context_note", ""),
             "graphics_entrance_slot": data["graphics_entrance_slot"],
             "baseline_rom_sha256": data["baseline_rom_sha256"],
             "edited_rom_sha256": digest(within(draft, data["rom"])),
@@ -284,6 +286,7 @@ def main():
     prep.add_argument("--proposal-id", required=True)
     prep.add_argument("--graphics-entrance", type=lambda x: int(x, 0))
     prep.add_argument("--reference", type=Path, action="append", default=[])
+    prep.add_argument("--context-note", default="")
     launch = sub.add_parser("launch-plan")
     launch.add_argument("packet", type=Path)
     launch.add_argument("--yaze", type=Path, required=True)
@@ -295,7 +298,8 @@ def main():
     try:
         if args.command == "prepare":
             result = prepare(args.project, args.out, args.domain, args.target,
-                             args.proposal_id, args.graphics_entrance, args.reference)
+                             args.proposal_id, args.graphics_entrance, args.reference,
+                             args.context_note)
         elif args.command == "launch-plan":
             result = launch_plan(args.packet, args.yaze)
         else:

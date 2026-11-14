@@ -711,7 +711,23 @@ void EditorManager::InitializeSubsystems() {
   window_manager_.RegisterWindowContent(
       std::make_unique<ProposalWorkspacePanel>(
           [this]() { return current_project_.filepath; },
-          [this]() { return SaveCurrentSession(/*allow_dialogs=*/false); },
+          [this]() -> absl::Status {
+            const auto workspace = core::LoadProposalWorkspace(
+                std::filesystem::path(current_project_.filepath)
+                    .parent_path()
+                    .parent_path());
+            if (!workspace.ok())
+              return workspace.status();
+            std::error_code error;
+            const auto editing_rom = std::filesystem::weakly_canonical(
+                current_project_.GetAbsolutePath(current_project_.rom_filename),
+                error);
+            if (error || editing_rom != workspace->rom_file) {
+              return absl::FailedPreconditionError(
+                  "The active ROM is not this proposal's isolated draft");
+            }
+            return SaveCurrentSession(/*allow_dialogs=*/false);
+          },
           [this](const core::ProposalWorkspace& proposal) {
             AppConfig config;
             config.startup_editor =
@@ -733,6 +749,9 @@ void EditorManager::InitializeSubsystems() {
                 util::FileDialogOptions{{{"Proposal packet", "json"}}});
             if (selected.empty())
               return absl::CancelledError("Open cancelled");
+            if (std::filesystem::path(selected).filename() != "proposal.json")
+              return absl::InvalidArgumentError(
+                  "Select the proposal.json packet");
             const auto proposal = core::LoadProposalWorkspace(
                 std::filesystem::path(selected).parent_path());
             if (!proposal.ok())

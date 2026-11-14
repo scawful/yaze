@@ -14,6 +14,7 @@ struct ProposalWorkspace {
   std::filesystem::path rom_file;
   std::string proposal_id;
   std::string domain;
+  std::string context_note;
   int target = -1;
   int graphics_entrance_slot = -1;
   int unbound_references = 0;
