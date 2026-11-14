@@ -1671,6 +1671,15 @@ bool IsNativeDungeonLayout(const Rom& rom) {
   return rom::IsNativeSpecialOverworldLayout(rom.InspectLyraLayout());
 }
 
+absl::Status RefuseInvalidDungeonLayout(const Rom& rom) {
+  const auto layout = rom.InspectLyraLayout();
+  if (layout.presence != rom::LyraLayoutPresence::kInvalid) {
+    return absl::OkStatus();
+  }
+  return absl::FailedPreconditionError(
+      layout.error.empty() ? "Invalid Lyra layout" : layout.error);
+}
+
 absl::Status CommitNativeDungeonCandidate(
     Rom* rom, const std::vector<uint8_t>& baseline,
     std::vector<uint8_t> candidate,
@@ -1772,6 +1781,7 @@ absl::Status DungeonApplyObjectPlanCommandHandler::Execute(
   if (rom == nullptr || !rom->is_loaded()) {
     return absl::FailedPreconditionError("ROM not loaded");
   }
+  RETURN_IF_ERROR(RefuseInvalidDungeonLayout(*rom));
   const bool do_write = parser.HasFlag("write");
   if (do_write) {
     RETURN_IF_ERROR(ValidateDungeonWriteBaseline(*rom, true));
@@ -1808,6 +1818,7 @@ absl::Status DungeonApplyObjectPlanCommandHandler::Execute(
                : absl::DataLossError(
                      "Saved ROM differs from object-plan preview");
   };
+  RETURN_IF_ERROR(RefuseInvalidDungeonLayout(*rom));
   if (IsNativeDungeonLayout(*rom)) {
     RETURN_IF_ERROR(CommitNativeDungeonCandidate(rom, rom->vector(), candidate,
                                                  staged.write_ranges, manifest,
@@ -1949,6 +1960,7 @@ absl::Status DungeonPlaceSpriteCommandHandler::Execute(
     formatter.AddField("manifest", *manifest_path);
     formatter.AddField("manifest_write_policy", "block");
   }
+  RETURN_IF_ERROR(RefuseInvalidDungeonLayout(*rom));
   if (IsNativeDungeonLayout(*rom)) {
     formatter.AddField("allocator_capability",
                        layout != nullptr ? "copy_on_write" : "none");
@@ -2105,6 +2117,7 @@ absl::Status DungeonRemoveSpriteCommandHandler::Execute(
   formatter.AddField("sprites_after", static_cast<int>(sprites.size()));
   formatter.AddField("mode", do_write ? "write" : "dry-run");
 
+  RETURN_IF_ERROR(RefuseInvalidDungeonLayout(*rom));
   if (IsNativeDungeonLayout(*rom)) {
     const auto status =
         SaveNativeRoomSprites(rom, room_id, room, nullptr, do_write, formatter);
@@ -2171,6 +2184,7 @@ absl::Status DungeonMoveSpriteCommandHandler::Execute(
   sprite.set_y(y);
   room.MarkSpritesDirty();
 
+  RETURN_IF_ERROR(RefuseInvalidDungeonLayout(*rom));
   if (IsNativeDungeonLayout(*rom)) {
     const auto status =
         SaveNativeRoomSprites(rom, room_id, room, nullptr, do_write, formatter);
@@ -2379,6 +2393,7 @@ absl::Status DungeonPlaceObjectCommandHandler::Execute(
                      static_cast<int>(room.GetTileObjects().size()));
   formatter.AddField("mode", do_write ? "write" : "dry-run");
 
+  RETURN_IF_ERROR(RefuseInvalidDungeonLayout(*rom));
   if (IsNativeDungeonLayout(*rom)) {
     const auto status = SaveNativeRoomObjects(
         rom, room_id, room,
@@ -2545,6 +2560,7 @@ absl::Status DungeonRemoveObjectCommandHandler::Execute(
   const bool do_write = parser.HasFlag("write");
   formatter.AddField("mode", do_write ? "write" : "dry-run");
 
+  RETURN_IF_ERROR(RefuseInvalidDungeonLayout(*rom));
   if (IsNativeDungeonLayout(*rom)) {
     const auto status = SaveNativeRoomObjects(
         rom, room_id, room,
@@ -2697,6 +2713,7 @@ absl::Status DungeonImportRoomObjectsCommandHandler::Execute(
   formatter.AddField("stream_matches_source",
                      planned_stream == source_stream.encoded_stream);
 
+  RETURN_IF_ERROR(RefuseInvalidDungeonLayout(*rom));
   if (IsNativeDungeonLayout(*rom)) {
     const auto status = SaveNativeRoomObjects(
         rom, room_id, room,
@@ -3068,6 +3085,7 @@ absl::Status DungeonSetDoorTypeCommandHandler::Execute(
     return absl::OkStatus();
   };
 
+  RETURN_IF_ERROR(RefuseInvalidDungeonLayout(*rom));
   if (IsNativeDungeonLayout(*rom)) {
     formatter.AddField("layout", "native");
     const auto baseline = rom->vector();
@@ -3380,6 +3398,7 @@ absl::Status DungeonSetPotItemCommandHandler::Execute(
       }
     }
   }
+  RETURN_IF_ERROR(RefuseInvalidDungeonLayout(*rom));
   const bool native = IsNativeDungeonLayout(*rom);
   const uint32_t write_begin =
       native || move_position ? target.entry.entry_pc : target.entry.item_pc;
@@ -3562,6 +3581,10 @@ absl::Status DungeonSetPotItemCommandHandler::Execute(
 absl::Status DungeonSetCollisionTileCommandHandler::Execute(
     Rom* rom, const resources::ArgumentParser& parser,
     resources::OutputFormatter& formatter) {
+  if (rom == nullptr || !rom->is_loaded()) {
+    return absl::FailedPreconditionError("ROM not loaded");
+  }
+  RETURN_IF_ERROR(RefuseInvalidDungeonLayout(*rom));
   auto room_id_str_or = GetRequiredString(parser, "room");
   if (!room_id_str_or.ok()) {
     return room_id_str_or.status();

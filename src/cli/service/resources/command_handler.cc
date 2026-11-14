@@ -8,6 +8,7 @@
 #include "absl/flags/flag.h"
 #include "absl/strings/str_format.h"
 #include "cli/service/rom/rom_sandbox_manager.h"
+#include "rom/page_tile16_admission.h"
 #include "util/macro.h"
 
 ABSL_DECLARE_FLAG(bool, sandbox);
@@ -246,6 +247,23 @@ absl::Status CommandHandler::Run(const std::vector<std::string>& args,
     SetRomContext(rom);
     SetProjectContext(context.GetProjectContext());
 
+    // Explicit revision-5 admission: CLI flag and/or saved project opt-in.
+    // Neither path is automatic; absent both, InspectLyraLayout keeps refusing.
+    auto admit_page_tile16 = [&](Rom* target) {
+      if (target == nullptr) {
+        return;
+      }
+      if (parser.HasFlag("experimental-page-tile16")) {
+        target->EnableExperimentalPageTile16();
+        return;
+      }
+      if (const auto* project = context.GetProjectContext();
+          project != nullptr) {
+        rom::AdmitProjectExperimentalPageTile16(*project, target);
+      }
+    };
+    admit_page_tile16(rom);
+
     if (compiled_receipt.has_value()) {
       const auto* project = context.GetProjectContext();
       if (project == nullptr) {
@@ -288,6 +306,13 @@ absl::Status CommandHandler::Run(const std::vector<std::string>& args,
           sandbox_rom->LoadFromFile(sandbox_or->rom_path.string());
       if (!load_status.ok()) {
         return load_status;
+      }
+      // Sandbox reload clears session admission; re-apply the same explicit
+      // flag/project opt-in, or adopt from the already-admitted source bytes.
+      admit_page_tile16(&*sandbox_rom);
+      if (!sandbox_rom->experimental_page_tile16() &&
+          rom->experimental_page_tile16()) {
+        sandbox_rom->AdoptExperimentalPageTile16(*rom);
       }
       rom = &*sandbox_rom;
       SetRomContext(rom);

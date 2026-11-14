@@ -6,6 +6,7 @@
 #include <utility>
 #include <vector>
 
+#include "absl/status/status.h"
 #include "cli/service/resources/command_handler.h"
 
 namespace yaze {
@@ -24,6 +25,11 @@ namespace handlers {
 // are staged into a copy of the ROM image and committed as a whole through
 // Rom::CommitNativeDungeonImage, which accepts only the staged ranges.
 bool IsNativeDungeonLayout(const Rom& rom);
+
+// Revision-5 images without explicit --experimental-page-tile16 or matching
+// project opt-in surface as Invalid; refuse them instead of treating the ROM
+// as a non-native vanilla writer target.
+absl::Status RefuseInvalidDungeonLayout(const Rom& rom);
 
 using NativeImageCheck =
     std::function<absl::Status(const std::vector<uint8_t>& image)>;
@@ -52,7 +58,8 @@ class DungeonApplyObjectPlanCommandHandler : public resources::CommandHandler {
   std::string GetName() const override { return "dungeon-apply-object-plan"; }
   std::string GetUsage() const override {
     return "dungeon-apply-object-plan --room <int> --object-plan <path> "
-           "[--manifest <path>] [--write] [--format <json|text>]";
+           "[--manifest <path>] [--write] [--experimental-page-tile16] "
+           "[--format <json|text>]";
   }
   Descriptor Describe() const override {
     auto descriptor = resources::CommandHandler::Describe();
@@ -63,6 +70,10 @@ class DungeonApplyObjectPlanCommandHandler : public resources::CommandHandler {
         {"manifest", "Optional copy_on_write object stream manifest", ""},
         {"write",
          "Persist once with backup and verified reopen; default is dry-run",
+         ""},
+        {"experimental-page-tile16",
+         "Explicit revision-5 admission (or use project "
+         "experimental_page_tile16)",
          ""}};
     return descriptor;
   }
@@ -85,7 +96,7 @@ class DungeonPlaceSpriteCommandHandler : public resources::CommandHandler {
   std::string GetUsage() const override {
     return "dungeon-place-sprite --room <hex> --id <hex> --x <int> --y <int> "
            "[--subtype <int>] [--layer <0|1>] [--manifest <path>] "
-           "[--write] [--format <json|text>]";
+           "[--write] [--experimental-page-tile16] [--format <json|text>]";
   }
 
   absl::Status ValidateArgs(const resources::ArgumentParser& parser) override {
@@ -110,7 +121,7 @@ class DungeonRemoveSpriteCommandHandler : public resources::CommandHandler {
   std::string GetUsage() const override {
     return "dungeon-remove-sprite --room <hex> "
            "[--index <int> | --x <int> --y <int>] "
-           "[--write] [--format <json|text>]";
+           "[--write] [--experimental-page-tile16] [--format <json|text>]";
   }
 
   absl::Status ValidateArgs(const resources::ArgumentParser& parser) override {
@@ -134,7 +145,8 @@ class DungeonMoveSpriteCommandHandler : public resources::CommandHandler {
   }
   std::string GetUsage() const override {
     return "dungeon-move-sprite --room <hex> --index <int> --x <int> "
-           "--y <int> [--write] [--format <json|text>]";
+           "--y <int> [--write] [--experimental-page-tile16] "
+           "[--format <json|text>]";
   }
 
   absl::Status ValidateArgs(const resources::ArgumentParser& parser) override {
@@ -162,7 +174,7 @@ class DungeonImportRoomObjectsCommandHandler
   std::string GetUsage() const override {
     return "dungeon-import-room-objects --room <hex> --source-rom <path> "
            "[--manifest <path> [--alloc-range <snes_begin>-<snes_end>]] "
-           "[--write] [--format <json|text>]";
+           "[--write] [--experimental-page-tile16] [--format <json|text>]";
   }
 
   absl::Status ValidateArgs(const resources::ArgumentParser& parser) override {
@@ -189,7 +201,7 @@ class DungeonPlaceObjectCommandHandler : public resources::CommandHandler {
            "[--size <int>] [--layer <0|1|2>] "
            "[--chest-item <hex>] "
            "[--manifest <path> [--alloc-range <snes_begin>-<snes_end>]] "
-           "[--write] [--format <json|text>]";
+           "[--write] [--experimental-page-tile16] [--format <json|text>]";
   }
 
   absl::Status ValidateArgs(const resources::ArgumentParser& parser) override {
@@ -216,7 +228,7 @@ class DungeonRemoveObjectCommandHandler : public resources::CommandHandler {
            "--expect-id <hex> --expect-x <int> --expect-y <int> "
            "--expect-size <int> --expect-layer <0|1|2> "
            "[--manifest <path> [--alloc-range <snes_begin>-<snes_end>]] "
-           "[--write] [--format <json|text>]";
+           "[--write] [--experimental-page-tile16] [--format <json|text>]";
   }
 
   absl::Status ValidateArgs(const resources::ArgumentParser& parser) override {
@@ -270,7 +282,7 @@ class DungeonSetPaletteColorCommandHandler : public resources::CommandHandler {
     return "dungeon-set-palette-color --room <hex> --index <0..89> "
            "--expect-palette-set <hex> --expect-palette-index <0..19> "
            "--expect-color <hex> --color <hex> --manifest <path> "
-           "[--write] [--format <json|text>]";
+           "[--write] [--experimental-page-tile16] [--format <json|text>]";
   }
 
   absl::Status ValidateArgs(const resources::ArgumentParser& parser) override {
@@ -298,7 +310,7 @@ class DungeonSetDoorTypeCommandHandler : public resources::CommandHandler {
   std::string GetUsage() const override {
     return "dungeon-set-door-type --room <hex> --x <int> --y <int> "
            "--type <hex> --expect-type <hex> --manifest <path> "
-           "[--write] [--format <json|text>]";
+           "[--write] [--experimental-page-tile16] [--format <json|text>]";
   }
 
   absl::Status ValidateArgs(const resources::ArgumentParser& parser) override {
@@ -350,8 +362,8 @@ class DungeonSetPotItemCommandHandler : public resources::CommandHandler {
   std::string GetUsage() const override {
     return "dungeon-set-pot-item --room <hex> --index <int> "
            "--expect-position <hex> --expect-item <hex> --item <hex> "
-           "[--new-position <hex>] --manifest <path> [--write] [--format "
-           "<json|text>]";
+           "[--new-position <hex>] --manifest <path> [--write] "
+           "[--experimental-page-tile16] [--format <json|text>]";
   }
 
   absl::Status ValidateArgs(const resources::ArgumentParser& parser) override {
@@ -378,7 +390,7 @@ class DungeonSetCollisionTileCommandHandler : public resources::CommandHandler {
   std::string GetUsage() const override {
     return "dungeon-set-collision-tile --room <hex> "
            "--tiles <x,y,tile>[;<x,y,tile>...] "
-           "[--write] [--format <json|text>]";
+           "[--write] [--experimental-page-tile16] [--format <json|text>]";
   }
 
   absl::Status ValidateArgs(const resources::ArgumentParser& parser) override {

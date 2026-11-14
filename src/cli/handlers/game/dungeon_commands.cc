@@ -1021,6 +1021,7 @@ absl::Status DungeonSetRoomPropertyCommandHandler::Execute(
     return property_status;
   }
 
+  RETURN_IF_ERROR(RefuseInvalidDungeonLayout(*rom));
   if (IsNativeDungeonLayout(*rom)) {
     formatter.AddField("layout", "native");
     const auto property_value = [&prop](const zelda3::Room& r) -> int {

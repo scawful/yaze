@@ -23,6 +23,7 @@
 #include "core/project.h"
 #include "core/source_artifact_publisher.h"
 #include "rom/lyra_layout_descriptor.h"
+#include "rom/page_tile16_admission.h"
 #include "rom/rom.h"
 #if defined(YAZE_WITH_JSON) && !defined(__EMSCRIPTEN__)
 #include <nlohmann/json.hpp>
@@ -196,28 +197,7 @@ bool RomLifecycleManager::IsRomHashMismatch() const {
 
 bool RomLifecycleManager::AdmitProjectPageTile16(
     const project::YazeProject& project, Rom* rom) {
-  if (!project.project_opened() || !project.experimental_page_tile16 || !rom ||
-      !rom->is_loaded() || project.rom_filename.empty()) {
-    return false;
-  }
-  const auto layout = rom::InspectLyraLayout(rom->data(), rom->size());
-  if (layout.presence != rom::LyraLayoutPresence::kValid ||
-      layout.revision != 5) {
-    return false;
-  }
-  if (!SessionCoordinator::PathsReferToSameBackingFile(
-          rom->filename(), project.GetAbsolutePath(project.rom_filename))) {
-    return false;
-  }
-  const std::string expected(
-      absl::StripAsciiWhitespace(project.rom_metadata.expected_hash));
-  if (expected.empty() ||
-      util::ComputeRomIdentityHashes(rom->data(), rom->size())
-              .Match(expected) == util::RomHashMatch::kMismatch) {
-    return false;
-  }
-  rom->EnableExperimentalPageTile16();
-  return true;
+  return rom::AdmitProjectExperimentalPageTile16(project, rom);
 }
 
 absl::Status RomLifecycleManager::CheckRomOpenPolicy(Rom* rom) {

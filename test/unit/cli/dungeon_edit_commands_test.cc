@@ -1,6 +1,7 @@
 #include "cli/handlers/game/dungeon_edit_commands.h"
 #include "cli/handlers/game/dungeon_collision_commands.h"
 #include "cli/handlers/game/dungeon_commands.h"
+#include "cli/handlers/game/overworld_commands.h"
 
 #include <array>
 #include <chrono>
@@ -21,12 +22,15 @@
 #include "absl/strings/str_format.h"
 #include "app/gfx/types/snes_palette.h"
 #include "cli/service/command_registry.h"
+#include "core/project.h"
 #include "fixtures/lyra/native_directory_fixture.h"
 #include "framework/rom_save_fault.h"
 #include "rom/lyra_layout_descriptor.h"
 #include "rom/rom.h"
 #include "rom/snes.h"
 #include "rom/transaction.h"
+#include "unique_temp_path.h"
+#include "util/rom_hash.h"
 #include "zelda3/dungeon/dungeon_rom_addresses.h"
 #include "zelda3/dungeon/dungeon_torch_codec.h"
 #include "zelda3/dungeon/object_layer_semantics.h"
@@ -5833,6 +5837,114 @@ TEST(DungeonEditCommandsTest,
   EXPECT_EQ(CountBackupArtifacts(cleanup.rom_path), 0);
   EXPECT_FALSE(std::filesystem::exists(cleanup.rom_path.string() + ".tmp"));
 #endif
+}
+
+TEST(DungeonPageTile16AdmissionTest,
+     WritersRequireExplicitFlagOrProjectOptInOnRevision5) {
+  test::native_overworld::NativeDirectoryFixture fixture(192);
+  fixture.UpgradeToRevision4();
+  fixture.AddPageTile16();
+  fixture.Seal();
+  ASSERT_EQ(rom::InspectLyraLayout(fixture.bytes.data(), fixture.bytes.size())
+                .revision,
+            5);
+
+  const auto root = test::UniqueTempPath("dungeon_page16_admission");
+  std::filesystem::create_directories(root);
+  const auto rom_path = root / "native.sfc";
+  const auto project_path = root / "admit.yaze";
+  test::native_overworld::WriteBytes(rom_path, fixture.bytes);
+
+  auto load = [&] {
+    Rom rom;
+    EXPECT_TRUE(rom.LoadFromFile(rom_path.string()).ok());
+    rom.set_dirty(false);
+    return rom;
+  };
+  auto collision_args = [&](bool admit_flag) {
+    std::vector<std::string> args = {"--room=0x00", "--tiles=1,1,0x00",
+                                     "--format=json"};
+    if (admit_flag)
+      args.push_back("--experimental-page-tile16");
+    return args;
+  };
+  auto cleared_admission = [](const absl::Status& status) {
+    return status.message().find("explicit source-only prototype admission") ==
+           std::string::npos;
+  };
+
+  {
+    Rom plain = load();
+    EXPECT_FALSE(handlers::IsNativeDungeonLayout(plain));
+    const auto gate = handlers::RefuseInvalidDungeonLayout(plain);
+    EXPECT_FALSE(gate.ok());
+    EXPECT_THAT(std::string(gate.message()),
+                HasSubstr("explicit source-only prototype admission"));
+    handlers::DungeonSetCollisionTileCommandHandler writer;
+    std::string output;
+    const auto refused = writer.Run(collision_args(false), &plain, &output);
+    EXPECT_FALSE(refused.ok());
+    EXPECT_THAT(std::string(refused.message()),
+                HasSubstr("explicit source-only prototype admission"));
+    EXPECT_EQ(plain.vector(), fixture.bytes);
+    EXPECT_EQ(test::native_overworld::ReadBytes(rom_path), fixture.bytes);
+  }
+
+  {
+    Rom admitted = load();
+    handlers::DungeonSetCollisionTileCommandHandler writer;
+    std::string output;
+    const auto status = writer.Run(collision_args(true), &admitted, &output);
+    EXPECT_TRUE(cleared_admission(status)) << status;
+    EXPECT_TRUE(admitted.experimental_page_tile16());
+    EXPECT_TRUE(handlers::IsNativeDungeonLayout(admitted));
+    EXPECT_EQ(test::native_overworld::ReadBytes(rom_path), fixture.bytes);
+  }
+
+  {
+    project::YazeProject project;
+    project.name = "Dungeon Page16 Admission";
+    project.filepath = project_path.string();
+    project.rom_filename = rom_path.string();
+    project.rom_metadata.expected_hash =
+        ::yaze::util::ComputeRomIdentityHashes(fixture.bytes.data(),
+                                               fixture.bytes.size())
+            .crc32;
+    project.experimental_page_tile16 = true;
+    ASSERT_TRUE(project.Save().ok()) << "failed to persist project opt-in";
+
+    Rom via_project = load();
+    handlers::DungeonSetCollisionTileCommandHandler writer;
+    std::string output;
+    const auto status =
+        writer.Run({"--room=0x00", "--tiles=1,1,0x00", "--format=json",
+                    "--project-context=" + project_path.string()},
+                   &via_project, &output);
+    EXPECT_TRUE(cleared_admission(status)) << status;
+    EXPECT_TRUE(via_project.experimental_page_tile16());
+    EXPECT_TRUE(handlers::IsNativeDungeonLayout(via_project));
+    EXPECT_EQ(test::native_overworld::ReadBytes(rom_path), fixture.bytes);
+  }
+
+  {
+    // Unrelated overworld get-tile keeps the same explicit-flag contract.
+    Rom ow = load();
+    handlers::OverworldGetTileCommandHandler get;
+    std::string output;
+    const auto denied =
+        get.Run({"--map=80", "--x=0", "--y=0", "--format=json"}, &ow, &output);
+    EXPECT_FALSE(denied.ok());
+    ow = load();
+    const auto allowed =
+        get.Run({"--map=80", "--x=0", "--y=0", "--experimental-page-tile16",
+                 "--format=json"},
+                &ow, &output);
+    EXPECT_TRUE(cleared_admission(allowed)) << allowed;
+    EXPECT_TRUE(ow.experimental_page_tile16());
+  }
+
+  std::error_code ec;
+  std::filesystem::remove_all(root, ec);
 }
 
 }  // namespace
