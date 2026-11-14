@@ -1271,6 +1271,59 @@ TEST(EditorManagerProjectActionsTest,
     EXPECT_EQ(caller_unset->at("OOS_Z3ED_BIN"), companion);
   }
 }
+
+TEST(EditorManagerProjectActionsTest,
+     StartupSeedsCheckoutRecentsOnlyWithoutAppDataOverride) {
+  ScopedTempDir home(MakeTempDir("yaze_recents_seed_home"));
+  const auto checkout = home.path / "src" / "hobby" / "oracle-of-secrets";
+  std::filesystem::create_directories(checkout);
+  const auto checkout_project = (checkout / "Oracle-of-Secrets.yaze").string();
+  std::ofstream(checkout_project) << "[project]\n";
+
+  const auto saved = [](const char* name) -> std::optional<std::string> {
+    const char* value = std::getenv(name);
+    return value == nullptr ? std::nullopt : std::optional<std::string>(value);
+  };
+  const auto saved_home = saved("HOME");
+  const auto saved_app_data = saved("YAZE_APP_DATA_DIR");
+  ASSERT_TRUE(saved_app_data.has_value())
+      << "the test runner sets an isolated YAZE_APP_DATA_DIR";
+  auto& recent = project::RecentFilesManager::GetInstance();
+  const auto saved_recent = recent.GetRecentFiles();
+  absl::Cleanup restore = [&] {
+    if (saved_home.has_value()) {
+      setenv("HOME", saved_home->c_str(), 1);
+    } else {
+      unsetenv("HOME");
+    }
+    setenv("YAZE_APP_DATA_DIR", saved_app_data->c_str(), 1);
+    recent.Clear();
+    for (auto it = saved_recent.rbegin(); it != saved_recent.rend(); ++it) {
+      recent.AddFile(*it);
+    }
+  };
+  ASSERT_EQ(setenv("HOME", home.path.c_str(), 1), 0);
+
+  const auto startup_recents = [&] {
+    ScopedImGuiContext imgui;
+    auto renderer = std::make_unique<gfx::NullRenderer>();
+    auto manager = std::make_unique<EditorManager>();
+    recent.Clear();
+    ::yaze::test::InitializeWithIsolatedSettings(*manager, renderer.get());
+    return recent.GetRecentFiles();
+  };
+  const auto contains_checkout = [&](const std::vector<std::string>& files) {
+    return std::find(files.begin(), files.end(), checkout_project) !=
+           files.end();
+  };
+
+  EXPECT_FALSE(contains_checkout(startup_recents()))
+      << "an isolated app-data root keeps the checkout out of recents";
+
+  ASSERT_EQ(unsetenv("YAZE_APP_DATA_DIR"), 0);
+  EXPECT_TRUE(contains_checkout(startup_recents()))
+      << "normal startup still offers the local Oracle checkout";
+}
 #endif  // _WIN32
 
 TEST(EditorManagerProjectActionsTest,
