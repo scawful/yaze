@@ -98,13 +98,15 @@ absl::StatusOr<ProposalWorkspace> LoadProposalWorkspace(
     ASSIGN_OR_RETURN(auto inventory_hash, ComputeSourceArtifactFileSha256(
                                               result.root / "baseline.json"));
     if (baseline_hash != result.baseline_rom_sha256 ||
-        inventory_hash != packet.at("baseline_inventory_sha256")) {
+        inventory_hash !=
+            packet.at("baseline_inventory_sha256").get<std::string>()) {
       return absl::FailedPreconditionError("Proposal baseline changed");
     }
     ASSIGN_OR_RETURN(
         auto source_inventory_hash,
         ComputeSourceArtifactFileSha256(result.root / "baseline-files.json"));
-    if (source_inventory_hash != packet.at("baseline_files_inventory_sha256"))
+    if (source_inventory_hash !=
+        packet.at("baseline_files_inventory_sha256").get<std::string>())
       return absl::FailedPreconditionError(
           "Proposal source baseline inventory changed");
     const auto sources = ReadJson(result.root / "baseline-files.json");
@@ -112,7 +114,7 @@ absl::StatusOr<ProposalWorkspace> LoadProposalWorkspace(
       ASSIGN_OR_RETURN(auto path,
                        ContainedPath(result.root / "baseline-files", it.key()));
       ASSIGN_OR_RETURN(auto hash, ComputeSourceArtifactFileSha256(path));
-      if (hash != it.value())
+      if (hash != it.value().get<std::string>())
         return absl::FailedPreconditionError(
             "Proposal source baseline changed");
     }
