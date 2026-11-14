@@ -257,6 +257,8 @@ absl::Status ProjectManager::StartPreparedProjectBuild(
     // the task; its failure must not prevent a later valid attempt.
     (void)FinalizeActiveProjectBuild(false);
   }
+  RETURN_IF_ERROR(
+      RemoveProjectBuildRecord(request.origin.project_descriptor_path));
   RevokeRunEligibilityForOwner(request.origin.session_id,
                                request.origin.project_descriptor_path);
   active_build_request_ = request;
@@ -370,6 +372,13 @@ absl::StatusOr<ProjectBuildAttemptResult> ProjectManager::CompleteBuildAttempt(
 
   result.terminal_state = ProjectBuildTerminalState::kSucceeded;
   result.run_eligible = true;
+  if (live_project.lyra_build_request_file.empty()) {
+    // Without the record a later process must build again before Run.
+    (void)WriteProjectBuildRecord(
+        request.origin.project_descriptor_path,
+        {request.origin.editing_source_path, result.output_path,
+         result.output_sha256, result.output_size, result.saved_input});
+  }
   verified_build_provenance_[ProjectBuildResultKey(
       request.origin.session_id, request.origin.project_descriptor_path)] =
       result;
@@ -595,6 +604,20 @@ ProjectManager::ValidateProjectRunSelection(
     // its current saved generation. A local failed/cancelled attempt prevents
     // this external-adoption path until a new successful build.
     authorized = true;
+  }
+
+  if (!last_result.has_value() && project.lyra_build_request_file.empty()) {
+    if (const auto record = ReadProjectBuildRecord(project.filepath,
+                                                   inputs.editing_source_path);
+        record.has_value() && record->output_path == run_target &&
+        record->saved_input.uses_native_receipt ==
+            saved_input.uses_native_receipt &&
+        record->saved_input.fingerprint_sha256 ==
+            saved_input.fingerprint_sha256) {
+      authorized = true;
+      expected_hash = record->output_sha256;
+      expected_size = record->output_size;
+    }
   }
 
   if (!authorized) {

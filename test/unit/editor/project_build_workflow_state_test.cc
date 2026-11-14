@@ -5,15 +5,21 @@
 #include <filesystem>
 #include <fstream>
 #include <functional>
+#include <iterator>
 #include <memory>
 #include <optional>
 #include <thread>
 #include <vector>
 
+#ifndef _WIN32
+#include <unistd.h>
+#endif
+
 #include "absl/cleanup/cleanup.h"
 #include "app/editor/core/content_registry.h"
 #include "app/editor/editor_manager.h"
 #include "app/editor/sprite/sprite_editor.h"
+#include "app/editor/system/session/project_build_workflow.h"
 #include "app/editor/system/session/project_manager.h"
 #include "app/editor/system/session/rom_lifecycle_manager.h"
 #include "app/editor/system/session/session_coordinator.h"
@@ -217,6 +223,28 @@ class ProjectBuildWorkflowStateTest : public ::testing::Test {
     });
   }
 
+  void ReopenManager() {
+    manager_.reset();
+    manager_ = std::make_unique<EditorManager>();
+    test::InitializeWithIsolatedSettings(*manager_, renderer_.get());
+    manager_->SetAssetLoadMode(AssetLoadMode::kLazy);
+  }
+
+#ifndef _WIN32
+  // Saved once before the first build; later attempts are steered by flag
+  // files so the saved inputs, and therefore the fingerprint, never change.
+  void UseFlaggedBuildScript(const ProjectFiles& files) {
+    const auto root = files.descriptor.parent_path();
+    manager_->GetCurrentProject()->build_script =
+        "echo started >> \"" + (root / "started.txt").string() +
+        "\"; test -e \"" + (root / "slow.flag").string() +
+        "\" && sleep 2; test -e \"" + (root / "fail.flag").string() +
+        "\" && exit 7; " + CopyCommand(files.source, files.output);
+    manager_->MarkCurrentProjectDirty();
+    ASSERT_OK(manager_->SaveProject());
+  }
+#endif
+
   std::string EditingSource() {
     const auto* session =
         manager_->session_coordinator()->GetActiveRomSession();
@@ -302,6 +330,161 @@ TEST_F(ProjectBuildWorkflowStateTest, ColdReopenAdmitsUnchangedGenericBuild) {
   EXPECT_EQ(*first, *second);
   ASSERT_OK(manager_->RunCurrentProject());
 }
+
+TEST_F(ProjectBuildWorkflowStateTest, ColdReopenRunsUnchangedBuildOutput) {
+  const auto files = CreateProject("ColdRunRecord");
+  ASSERT_OK(OpenProject(files));
+  ASSERT_OK(manager_->BuildCurrentProject());
+  const auto hash = core::ComputeSourceArtifactFileSha256(files.output);
+  ASSERT_TRUE(hash.ok());
+  ReopenManager();
+  ASSERT_OK(OpenProject(files));
+  ASSERT_OK(manager_->RunCurrentProject());
+  EXPECT_EQ(
+      LoadedLoRomSha256(*manager_, std::filesystem::file_size(files.output)),
+      *hash);
+}
+
+TEST_F(ProjectBuildWorkflowStateTest, ColdRunRefusesChangedSavedInputs) {
+  const auto files = CreateProject("ColdRunInputs");
+  ASSERT_OK(OpenProject(files));
+  ASSERT_OK(manager_->BuildCurrentProject());
+  ReopenManager();
+  ASSERT_OK(OpenProject(files));
+  manager_->GetCurrentProject()->name = "Changed after the build";
+  manager_->MarkCurrentProjectDirty();
+  ASSERT_OK(manager_->SaveProject());
+  const auto refused = manager_->RunCurrentProject();
+  EXPECT_NE(refused.message().find("Build the project before running"),
+            std::string::npos)
+      << refused;
+}
+
+TEST_F(ProjectBuildWorkflowStateTest, ColdRunRefusesChangedOutput) {
+  const auto files = CreateProject("ColdRunOutput");
+  ASSERT_OK(OpenProject(files));
+  ASSERT_OK(manager_->BuildCurrentProject());
+  WriteRomFile(files.output, "CHANGED OUTPUT");
+  ReopenManager();
+  ASSERT_OK(OpenProject(files));
+  const auto refused = manager_->RunCurrentProject();
+  EXPECT_NE(refused.message().find("changed since the last successful build"),
+            std::string::npos)
+      << refused;
+}
+
+TEST_F(ProjectBuildWorkflowStateTest, CopiedProjectDoesNotInheritBuildRecord) {
+  const auto files = CreateProject("ColdRunOriginal");
+  ASSERT_OK(OpenProject(files));
+  ASSERT_OK(manager_->BuildCurrentProject());
+  const auto record = ProjectBuildRecordPath(files.descriptor.string());
+  ASSERT_TRUE(record.ok()) << record.status();
+  ASSERT_TRUE(std::filesystem::is_regular_file(*record));
+  ReopenManager();
+  const auto copy_root = temp_ / "ColdRunCopy";
+  std::filesystem::copy(files.descriptor.parent_path(), copy_root,
+                        std::filesystem::copy_options::recursive);
+  const ProjectFiles copy{copy_root / "project.yaze", copy_root / "source.sfc",
+                          copy_root / "output.sfc"};
+  ASSERT_OK(OpenProject(copy));
+  const auto refused = manager_->RunCurrentProject();
+  EXPECT_NE(refused.message().find("Build the project before running"),
+            std::string::npos)
+      << refused;
+}
+
+TEST_F(ProjectBuildWorkflowStateTest, MalformedBuildRecordReadsAsAbsent) {
+  const auto files = CreateProject("ColdRunMalformed");
+  ASSERT_OK(OpenProject(files));
+  ASSERT_OK(manager_->BuildCurrentProject());
+  const auto record = ProjectBuildRecordPath(files.descriptor.string());
+  ASSERT_TRUE(record.ok()) << record.status();
+  std::ofstream(*record, std::ios::binary | std::ios::trunc) << "not a record";
+  ReopenManager();
+  ASSERT_OK(OpenProject(files));
+  const auto refused = manager_->RunCurrentProject();
+  EXPECT_NE(refused.message().find("Build the project before running"),
+            std::string::npos)
+      << refused;
+}
+
+#ifndef _WIN32
+TEST_F(ProjectBuildWorkflowStateTest, FailedRebuildRevokesRecordAcrossReopen) {
+  const auto files = CreateProject("ColdRunFailedRebuild");
+  ASSERT_OK(OpenProject(files));
+  ASSERT_NO_FATAL_FAILURE(UseFlaggedBuildScript(files));
+  ASSERT_OK(manager_->BuildCurrentProject());
+  const auto output = core::ComputeSourceArtifactFileSha256(files.output);
+  ASSERT_TRUE(output.ok());
+  std::ofstream(files.descriptor.parent_path() / "fail.flag") << "1";
+  EXPECT_FALSE(manager_->BuildCurrentProject().ok());
+  const auto after = core::ComputeSourceArtifactFileSha256(files.output);
+  ASSERT_TRUE(after.ok());
+  ASSERT_EQ(*after, *output);
+  ReopenManager();
+  ASSERT_OK(OpenProject(files));
+  const auto refused = manager_->RunCurrentProject();
+  EXPECT_NE(refused.message().find("Build the project before running"),
+            std::string::npos)
+      << refused;
+}
+
+TEST_F(ProjectBuildWorkflowStateTest,
+       CancelledRebuildRevokesRecordAcrossReopen) {
+  const auto files = CreateProject("ColdRunCancelledRebuild");
+  ASSERT_OK(OpenProject(files));
+  ASSERT_NO_FATAL_FAILURE(UseFlaggedBuildScript(files));
+  ASSERT_OK(manager_->BuildCurrentProject());
+  std::ofstream(files.descriptor.parent_path() / "slow.flag") << "1";
+  manager_->QueueBuildCurrentProject();
+  ASSERT_EQ(ContentRegistry::Context::build_workflow_status().state,
+            ProjectWorkflowState::kRunning);
+  manager_->CancelQueuedProjectBuild();
+  ASSERT_TRUE(WaitFor(ProjectWorkflowState::kFailure));
+  ReopenManager();
+  ASSERT_OK(OpenProject(files));
+  const auto refused = manager_->RunCurrentProject();
+  EXPECT_NE(refused.message().find("Build the project before running"),
+            std::string::npos)
+      << refused;
+}
+
+TEST_F(ProjectBuildWorkflowStateTest,
+       UnremovableBuildRecordRefusesBuildBeforeChildStarts) {
+  if (geteuid() == 0) {
+    GTEST_SKIP() << "Directory permissions do not bind root";
+  }
+  const auto files = CreateProject("ColdRunUnremovable");
+  ASSERT_OK(OpenProject(files));
+  ASSERT_NO_FATAL_FAILURE(UseFlaggedBuildScript(files));
+  ASSERT_OK(manager_->BuildCurrentProject());
+  const auto record = ProjectBuildRecordPath(files.descriptor.string());
+  ASSERT_TRUE(record.ok()) << record.status();
+  const auto record_bytes = [&record] {
+    std::ifstream input(*record, std::ios::binary);
+    return std::string(std::istreambuf_iterator<char>(input), {});
+  };
+  const auto before = record_bytes();
+  const auto started = files.descriptor.parent_path() / "started.txt";
+  ASSERT_TRUE(std::filesystem::remove(started));
+  const auto directory = record->parent_path();
+  std::filesystem::permissions(
+      directory,
+      std::filesystem::perms::owner_read | std::filesystem::perms::owner_exec,
+      std::filesystem::perm_options::replace);
+  const absl::Cleanup restore = [&directory] {
+    std::filesystem::permissions(directory, std::filesystem::perms::owner_all,
+                                 std::filesystem::perm_options::replace);
+  };
+  std::ofstream(files.descriptor.parent_path() / "fail.flag") << "1";
+  const auto refused = manager_->BuildCurrentProject();
+  EXPECT_NE(refused.message().find("Cannot remove the previous build record"),
+            std::string::npos)
+      << refused;
+  EXPECT_FALSE(std::filesystem::exists(started));
+  EXPECT_EQ(record_bytes(), before);
+}
+#endif
 
 TEST_F(ProjectBuildWorkflowStateTest, DeterministicRepeatBuildRetainsProof) {
   const auto files = CreateProject("RepeatBuild");

@@ -127,6 +127,32 @@ absl::StatusOr<std::string> ResolveConfiguredProjectRunTargetPath(
     const project::YazeProject& project,
     const std::string& editing_source_path);
 
+// A successful build persisted in app data so a later process can Run its
+// unchanged output. Keyed by the canonical descriptor path; a copied project
+// therefore never finds the original's record.
+struct ProjectBuildRecord {
+  std::string editing_source_path;
+  std::string output_path;
+  std::string output_sha256;
+  uint64_t output_size = 0;
+  ProjectSavedInputIdentity saved_input;
+};
+
+absl::StatusOr<std::filesystem::path> ProjectBuildRecordPath(
+    const std::string& descriptor_path);
+
+absl::Status WriteProjectBuildRecord(const std::string& descriptor_path,
+                                     const ProjectBuildRecord& record);
+
+// Fails when an existing record cannot be removed; callers must not start a
+// build in that case, or the old record could outlive a failed rebuild.
+absl::Status RemoveProjectBuildRecord(const std::string& descriptor_path);
+
+// Returns the record only when it names this descriptor and editing source.
+// Missing, unreadable and malformed records read as absent.
+std::optional<ProjectBuildRecord> ReadProjectBuildRecord(
+    const std::string& descriptor_path, const std::string& editing_source_path);
+
 }  // namespace yaze::editor
 
 #endif  // YAZE_APP_EDITOR_SYSTEM_PROJECT_BUILD_WORKFLOW_H_
