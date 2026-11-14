@@ -4462,8 +4462,17 @@ TEST(DungeonEditCommandsTest, ListPotItemsRejectsMalformedTerminator) {
   EXPECT_FALSE(rom.dirty());
 }
 
-// Room 0: pots at (10,10), (20,10), (22,10), a hammer peg at (40,10) on the
-// upper list and a pot at (30,30) on the lower list, with one row per status.
+void SetDispatchEntry(Rom* rom, int object_id, uint16_t routine) {
+  const int pc = object_id >= 0xF80 ? 0x0085F0 + (object_id - 0xF80) * 2
+                                    : 0x008200 + object_id * 2;
+  rom->mutable_data()[pc] = routine & 0xFF;
+  rom->mutable_data()[pc + 1] = routine >> 8;
+}
+
+// Room 0: pots at (10,10), (20,10), (22,10), a hammer peg at (40,10), a pot
+// object 0xFB0 whose routine is not the vanilla one at (50,20) and an
+// expanded-code object 0x031 at (60,40) on the upper list, and a pot at
+// (30,30) on the lower list, with one row per status.
 void InitializePotPairingRom(Rom* rom) {
   InitializeTightObjectRom(rom);
   constexpr int kOtherRoomsObjectDataPc = kObjectDataPc + 0x40;
@@ -4480,10 +4489,19 @@ void InitializePotPairingRom(Rom* rom) {
   append_object(zelda3::RoomObject(0xFAF, 10, 10, 0, 0));
   append_object(zelda3::RoomObject(0x0BC, 20, 10, 1, 0));
   append_object(zelda3::RoomObject(0xF96, 40, 10, 0, 0));
+  append_object(zelda3::RoomObject(0xFB0, 50, 20, 0, 0));
+  append_object(zelda3::RoomObject(0x031, 60, 40, 0, 0));
   stream.insert(stream.end(), {0xFF, 0xFF});
   append_object(zelda3::RoomObject(0xFAF, 30, 30, 0, 1));
   stream.insert(stream.end(), {0xFF, 0xFF, 0xF0, 0xFF, 0xFF, 0xFF});
   ASSERT_TRUE(rom->WriteVector(kObjectDataPc, std::move(stream)).ok());
+
+  SetDispatchEntry(rom, 0x0BC, 0xB376);
+  SetDispatchEntry(rom, 0xF96, 0xB493);
+  SetDispatchEntry(rom, 0xFAF, 0xB395);
+  SetDispatchEntry(rom, 0xFB0, 0xB540);
+  SetDispatchEntry(rom, 0x031, 0xB53C);
+  ASSERT_TRUE(rom->WriteVector(0x00B53C, {0x22, 0x17, 0x80, 0x2C}).ok());
 
   SetRoomPotItemPointer(rom, 0, kPotDataPc);
   ASSERT_TRUE(rom->WriteVector(kPotDataPc, {0x14, 0x05, 0x0B,  // paired
@@ -4493,6 +4511,7 @@ void InitializePotPairingRom(Rom* rom) {
                                             0x00, 0x0A, 0x0F,  // nothing
                                             0x15, 0x05, 0x10,  // bit 0 set
                                             0x3C, 0x2F, 0x11,  // lower pot
+                                            0x7C, 0x15, 0x12,  // (62,42)
                                             0xFF, 0xFF})
                   .ok());
   rom->set_dirty(false);
@@ -4517,12 +4536,12 @@ TEST(DungeonEditCommandsTest, ListPotItemsPairsRowsWithReplayedLiftables) {
   ASSERT_TRUE(status.ok()) << status;
   const auto result = nlohmann::json::parse(output).at("Dungeon Pot Items");
   const auto& items = result.at("items");
-  ASSERT_EQ(items.size(), 7u);
+  ASSERT_EQ(items.size(), 8u);
   const char* statuses[] = {
       "paired",   "plane_mismatch", "off_anchor", "non_revealing_target",
-      "orphaned", "extra_bits",     "paired"};
-  const int matched_slots[] = {0, 2, 0, 3, -1, 0, 4};
-  for (int i = 0; i < 7; ++i) {
+      "orphaned", "extra_bits",     "paired",     "unmodeled_target"};
+  const int matched_slots[] = {0, 2, 0, 3, -1, 0, 5, -1};
+  for (int i = 0; i < 8; ++i) {
     EXPECT_EQ(items[i].at("pair_status"), statuses[i]) << i;
     if (matched_slots[i] >= 0) {
       EXPECT_EQ(items[i].at("liftable_slot"), matched_slots[i]) << i;
@@ -4533,10 +4552,15 @@ TEST(DungeonEditCommandsTest, ListPotItemsPairsRowsWithReplayedLiftables) {
   EXPECT_EQ(items[1].at("plane"), "lower");
   EXPECT_EQ(items[6].at("pixel_x"), 240);
   EXPECT_EQ(items[6].at("pixel_y"), 240);
+  EXPECT_FALSE(items[0].contains("liftable_routine_hooked"));
+  EXPECT_EQ(items[7].at("unmodeled_object_index"), 4);
+  EXPECT_FALSE(items[4].contains("unmodeled_object_index"));
 
   const auto& liftables = result.at("liftables");
   const auto& slots = liftables.at("slots");
-  ASSERT_EQ(slots.size(), 5u);
+  ASSERT_EQ(slots.size(), 6u);
+  EXPECT_EQ(slots[0].at("draw_routine"), "vanilla");
+  EXPECT_EQ(slots[0].at("routine"), "0x01B395");
   EXPECT_EQ(slots[0].at("kind"), "pot");
   EXPECT_EQ(slots[0].at("attribute"), "0x70");
   EXPECT_EQ(slots[0].at("position"), "0x0514");
@@ -4550,12 +4574,24 @@ TEST(DungeonEditCommandsTest, ListPotItemsPairsRowsWithReplayedLiftables) {
   EXPECT_EQ(slots[2].at("drop"), "no_drop_row");
   EXPECT_EQ(slots[3].at("kind"), "hammer_peg");
   EXPECT_FALSE(slots[3].contains("drop"));
-  EXPECT_EQ(slots[4].at("plane"), "lower");
-  EXPECT_EQ(slots[4].at("object_list"), 1);
-  EXPECT_EQ(slots[4].at("drop_index"), 6);
+  EXPECT_EQ(slots[3].at("draw_routine"), "vanilla");
+  EXPECT_EQ(slots[4].at("object_id"), "0xFB0");
+  EXPECT_EQ(slots[4].at("draw_routine"), "hooked");
+  EXPECT_EQ(slots[4].at("routine"), "0x01B540");
+  EXPECT_EQ(slots[4].at("drop"), "no_drop_row");
+  EXPECT_EQ(slots[5].at("plane"), "lower");
+  EXPECT_EQ(slots[5].at("object_list"), 1);
+  EXPECT_EQ(slots[5].at("drop_index"), 6);
   EXPECT_EQ(liftables.at("paired_drops"), 2);
-  EXPECT_EQ(liftables.at("unpaired_drops"), 5);
-  EXPECT_EQ(liftables.at("liftables_without_drop"), 2);
+  EXPECT_EQ(liftables.at("unpaired_drops"), 6);
+  EXPECT_EQ(liftables.at("liftables_without_drop"), 3);
+  EXPECT_EQ(liftables.at("hooked_slots"), 1);
+  const auto& unmodeled = liftables.at("unmodeled_objects");
+  ASSERT_EQ(unmodeled.size(), 1u);
+  EXPECT_EQ(unmodeled[0].at("object_index"), 4);
+  EXPECT_EQ(unmodeled[0].at("object_id"), "0x031");
+  EXPECT_EQ(unmodeled[0].at("routine"), "0x01B53C");
+  EXPECT_EQ(unmodeled[0].at("jump_target"), "0x2C8017");
   EXPECT_EQ(rom.vector(), before);
   EXPECT_FALSE(rom.dirty());
 }

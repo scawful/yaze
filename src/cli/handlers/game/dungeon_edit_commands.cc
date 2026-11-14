@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <cstdint>
 #include <limits>
+#include <map>
 #include <memory>
 #include <optional>
 #include <string>
@@ -27,6 +28,7 @@
 #include "util/macro.h"
 #include "zelda3/dungeon/chest_edit.h"
 #include "zelda3/dungeon/dungeon_stream_allocator.h"
+#include "zelda3/dungeon/object_draw_code.h"
 #include "zelda3/dungeon/object_layer_semantics.h"
 #include "zelda3/dungeon/pot_item_position.h"
 #include "zelda3/dungeon/room.h"
@@ -1335,6 +1337,27 @@ const char* PotWordPlane(uint16_t word) {
   return (word & 0x2000) != 0 ? "lower" : "upper";
 }
 
+// The bank-01 draw routines the replay models (usdasm), keyed by object ID.
+struct ModeledLiftableRoutine {
+  int object_id;
+  uint32_t routine;
+};
+constexpr ModeledLiftableRoutine kModeledLiftableRoutines[] = {
+    {0x095, 0x01B381},  // RoomDraw_DownwardsPots2x2_1to16
+    {0x096, 0x01B47F},  // RoomDraw_DownwardsHammerPegs2x2_1to16
+    {0x0BC, 0x01B376},  // RoomDraw_RightwardsPots2x2_1to16
+    {0x0BD, 0x01B474},  // RoomDraw_RightwardsHammerPegs2x2_1to16
+    {0xF96, 0x01B493},  // RoomDraw_HammerPegSingle
+    {0xFAB, 0x01B306},  // RoomDraw_WeirdGloveRequiredPot
+    {0xFAC, 0x01B310},  // RoomDraw_BigGrayRock
+    {0xFAF, 0x01B395},  // RoomDraw_SinglePot
+    {0xFB0, 0x01B30B},  // RoomDraw_WeirdUglyPot
+    {0xFC7, 0x01B3E1},  // RoomDraw_BombableFloor
+};
+// A row this close (tiles right/down) to an expanded-code object's origin is
+// reported against that object instead of as orphaned.
+constexpr int kUnmodeledObjectReach = 4;
+
 // Pairs the pot-item rows with the room's replayed $0500/$0540 list the way
 // Underworld_LiftAndReplaceLiftable (#_01D9EC) and RevealPotItem (#_01E6B2)
 // do: a pot reveals the row equal to its own $0540, a big gray rock the row
@@ -1344,8 +1367,17 @@ struct LiftablePairing {
   std::vector<zelda3::RoomObject> objects;
   std::vector<int> anchor;     // per slot: slot whose word it reveals, or -1
   std::vector<int> slot_drop;  // per anchor slot: first exact row, or -1
+  // Per slot: the loaded ROM's routine for a dispatched object (blocks have
+  // none) and whether it differs from the modeled vanilla routine.
+  std::vector<std::optional<uint32_t>> slot_routine;
+  std::vector<bool> slot_hooked;
+  // Stream objects whose routine jumps to expanded code: they may record
+  // liftables the vanilla replay cannot see.
+  std::vector<zelda3::ObjectDrawCode> unmodeled_code;
+  std::vector<size_t> unmodeled_objects;
   std::vector<std::string> item_status;
-  std::vector<int> item_slot;  // per row: slot it was classified against
+  std::vector<int> item_slot;       // per row: slot it was classified against
+  std::vector<int> item_unmodeled;  // per row: unmodeled object index, or -1
 };
 
 LiftablePairing PairLiftables(Rom* rom, int room_id,
@@ -1356,6 +1388,37 @@ LiftablePairing PairLiftables(Rom* rom, int room_id,
       zelda3::MakeRoomCollisionInput(room, zelda3::RoomTilemaps{});
   pairing.objects = input.objects;
   pairing.slots = zelda3::ResolveVanillaManipulables(*rom, input);
+
+  std::map<int, zelda3::ObjectDrawCode> draw_code;
+  for (const zelda3::ObjectDrawCode& code : zelda3::ReadObjectDrawCode(*rom)) {
+    draw_code[code.object_id] = code;
+  }
+  for (const zelda3::ManipulableSlot& slot : pairing.slots) {
+    const zelda3::RoomObject& object = pairing.objects[slot.object_index];
+    std::optional<uint32_t> routine;
+    bool hooked = false;
+    if (zelda3::UsesRoomObjectStream(object)) {
+      const auto code = draw_code.find(object.id_);
+      routine = code == draw_code.end() ? 0 : code->second.routine_start;
+      hooked = true;
+      for (const auto& modeled : kModeledLiftableRoutines) {
+        if (modeled.object_id == object.id_) {
+          hooked = modeled.routine != *routine;
+        }
+      }
+    }
+    pairing.slot_routine.push_back(routine);
+    pairing.slot_hooked.push_back(hooked);
+  }
+  for (size_t i = 0; i < pairing.objects.size(); ++i) {
+    const zelda3::RoomObject& object = pairing.objects[i];
+    const auto code = draw_code.find(object.id_);
+    if (zelda3::UsesRoomObjectStream(object) && code != draw_code.end() &&
+        code->second.jumps_to_expanded_code) {
+      pairing.unmodeled_objects.push_back(i);
+      pairing.unmodeled_code.push_back(code->second);
+    }
+  }
 
   const auto& slots = pairing.slots;
   pairing.anchor.assign(slots.size(), -1);
@@ -1435,8 +1498,21 @@ LiftablePairing PairLiftables(Rom* rom, int room_id,
                 })) >= 0) {
       status = "non_revealing_target";
     }
+    int unmodeled = -1;
+    if (status == "orphaned") {
+      for (const size_t index : pairing.unmodeled_objects) {
+        const zelda3::RoomObject& object = pairing.objects[index];
+        if (x >= object.x() && x < object.x() + kUnmodeledObjectReach &&
+            y >= object.y() && y < object.y() + kUnmodeledObjectReach) {
+          status = "unmodeled_target";
+          unmodeled = static_cast<int>(index);
+          break;
+        }
+      }
+    }
     pairing.item_status.push_back(status);
     pairing.item_slot.push_back(match);
+    pairing.item_unmodeled.push_back(unmodeled);
   }
   return pairing;
 }
@@ -3125,8 +3201,16 @@ absl::Status DungeonListPotItemsCommandHandler::Execute(
       formatter.AddField("pixel_x", entry.item.GetPixelX());
       formatter.AddField("pixel_y", entry.item.GetPixelY());
       formatter.AddField("pair_status", pairing->item_status[entry.index]);
-      if (pairing->item_slot[entry.index] >= 0) {
-        formatter.AddField("liftable_slot", pairing->item_slot[entry.index]);
+      const int slot = pairing->item_slot[entry.index];
+      if (slot >= 0) {
+        formatter.AddField("liftable_slot", slot);
+        if (pairing->slot_hooked[slot]) {
+          formatter.AddField("liftable_routine_hooked", true);
+        }
+      }
+      if (pairing->item_unmodeled[entry.index] >= 0) {
+        formatter.AddField("unmodeled_object_index",
+                           pairing->item_unmodeled[entry.index]);
       }
     }
     formatter.EndObject();
@@ -3135,6 +3219,7 @@ absl::Status DungeonListPotItemsCommandHandler::Execute(
   if (pairing) {
     int paired = 0;
     int without_drop = 0;
+    int hooked = 0;
     for (const std::string& status : pairing->item_status) {
       paired += status == "paired";
     }
@@ -3166,6 +3251,14 @@ absl::Status DungeonListPotItemsCommandHandler::Execute(
       formatter.AddField("object_x", static_cast<int>(object.x()));
       formatter.AddField("object_y", static_cast<int>(object.y()));
       formatter.AddField("object_list", object.GetLayerValue());
+      if (pairing->slot_routine[i]) {
+        formatter.AddField("draw_routine",
+                           pairing->slot_hooked[i] ? "hooked" : "vanilla");
+        formatter.AddHexField("routine", *pairing->slot_routine[i], 6);
+        hooked += pairing->slot_hooked[i];
+      } else {
+        formatter.AddField("draw_routine", "pushable_block_table");
+      }
       const int anchor = pairing->anchor[i];
       if (anchor >= 0 && anchor != static_cast<int>(i)) {
         formatter.AddField("anchor_slot", anchor);
@@ -3185,6 +3278,23 @@ absl::Status DungeonListPotItemsCommandHandler::Execute(
     formatter.AddField("unpaired_drops",
                        static_cast<int>(stream.entries.size()) - paired);
     formatter.AddField("liftables_without_drop", without_drop);
+    formatter.AddField("hooked_slots", hooked);
+    formatter.BeginArray("unmodeled_objects");
+    for (size_t u = 0; u < pairing->unmodeled_objects.size(); ++u) {
+      const size_t index = pairing->unmodeled_objects[u];
+      const zelda3::RoomObject& object = pairing->objects[index];
+      const zelda3::ObjectDrawCode& code = pairing->unmodeled_code[u];
+      formatter.BeginObject();
+      formatter.AddField("object_index", static_cast<int>(index));
+      formatter.AddHexField("object_id", static_cast<uint16_t>(object.id_), 3);
+      formatter.AddField("object_x", static_cast<int>(object.x()));
+      formatter.AddField("object_y", static_cast<int>(object.y()));
+      formatter.AddField("object_list", object.GetLayerValue());
+      formatter.AddHexField("routine", code.routine_start, 6);
+      formatter.AddHexField("jump_target", code.jump_target, 6);
+      formatter.EndObject();
+    }
+    formatter.EndArray();
     formatter.EndObject();
   }
   formatter.AddField("status", "success");

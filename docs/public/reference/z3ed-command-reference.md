@@ -322,7 +322,12 @@ gray rock) reveals the row whose low 15 bits equal that word, so each row gets
 a `pair_status`: `paired`, `unreachable_slot`, `extra_bits` (same tile and
 plane, other bits set), `plane_mismatch`, `off_anchor` (inside a pot or rock
 but not its top-left word), `non_revealing_target` (a peg or block), or
-`orphaned`. Pots and rocks without a row report `no_drop_row`.
+`orphaned`. Pots and rocks without a row report `no_drop_row`. Each slot's
+`draw_routine` is `vanilla` or `hooked` (the ROM's dispatch entry differs from
+the routine the replay models, so its type may differ). Stream objects whose
+routine jumps to expanded code are listed in `unmodeled_objects`. A row that
+would otherwise be orphaned but lies within four tiles right/down of one of
+those objects' origin reports `unmodeled_target`.
 `dungeon-set-pot-item` changes only that fixed-width item byte. It is
 a dry-run unless `--write` is supplied and requires an exact index plus
 expected raw position/item compare-and-swap and a pot-item stream manifest.
