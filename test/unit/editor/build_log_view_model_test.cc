@@ -85,6 +85,32 @@ TEST(BuildLogViewModelTest, ClassifiesErrorsAndKeepsPlainColonsAsDetail) {
   EXPECT_TRUE(summary.receipt_path.empty());
 }
 
+TEST(BuildLogViewModelTest, KeepsDriveLetterPathsInDiagnostics) {
+  const BuildLogSummary summary = ParseBuildLog(
+      "[*] Assembling\n"
+      "C:\\project\\file.asm:59: warning: warnpc\n"
+      "C:\\project\\file.asm:12:4: error: label not found\n"
+      "D:/Oracle of Secrets/Core/main.asm:7: fatal error: missing include\n"
+      "C:\\project\\file.asm: warning: no line number\n");
+
+  ASSERT_EQ(summary.steps.size(), 1u);
+  const BuildLogStep& step = summary.steps[0];
+  EXPECT_EQ(step.severity, BuildLogSeverity::kError);
+  ASSERT_EQ(step.lines.size(), 4u);
+  EXPECT_EQ(step.lines[0].severity, BuildLogSeverity::kWarning);
+  EXPECT_EQ(step.lines[0].location, "C:\\project\\file.asm:59");
+  EXPECT_EQ(step.lines[0].text, "warnpc");
+  EXPECT_EQ(step.lines[1].severity, BuildLogSeverity::kError);
+  EXPECT_EQ(step.lines[1].location, "C:\\project\\file.asm:12:4");
+  EXPECT_EQ(step.lines[1].text, "label not found");
+  EXPECT_EQ(step.lines[2].severity, BuildLogSeverity::kError);
+  EXPECT_EQ(step.lines[2].location, "D:/Oracle of Secrets/Core/main.asm:7");
+  EXPECT_EQ(step.lines[3].severity, BuildLogSeverity::kInfo);
+  EXPECT_TRUE(step.lines[3].location.empty());
+  EXPECT_EQ(summary.warnings, 1);
+  EXPECT_EQ(summary.errors, 2);
+}
+
 TEST(BuildLogViewModelTest, EmptyLogHasNoSteps) {
   const BuildLogSummary summary = ParseBuildLog("\n\n");
   EXPECT_TRUE(summary.steps.empty());

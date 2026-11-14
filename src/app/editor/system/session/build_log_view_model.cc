@@ -23,6 +23,19 @@ bool StartsWithNoCase(std::string_view text, std::string_view prefix) {
          absl::EqualsIgnoreCase(text.substr(0, prefix.size()), prefix);
 }
 
+// Accepts "path:line" and "path:line:col". The path may itself contain colons
+// (Windows drive letters), so only the trailing numeric segment is required.
+bool HasLineSuffix(std::string_view location) {
+  const size_t colon = location.rfind(':');
+  if (colon == std::string_view::npos || colon == 0 ||
+      colon + 1 == location.size()) {
+    return false;
+  }
+  return std::all_of(location.begin() + colon + 1, location.end(), [](char c) {
+    return std::isdigit(static_cast<unsigned char>(c)) != 0;
+  });
+}
+
 // "file:line: warning: message" or "file:line:col: error: message".
 bool ParseDiagnostic(std::string_view line, BuildLogLine* out) {
   for (const auto& [marker, severity] :
@@ -35,9 +48,7 @@ bool ParseDiagnostic(std::string_view line, BuildLogLine* out) {
       continue;
     }
     const std::string_view location = line.substr(0, at);
-    const size_t colon = location.find(':');
-    if (colon == std::string_view::npos || colon + 1 >= location.size() ||
-        !std::isdigit(static_cast<unsigned char>(location[colon + 1]))) {
+    if (!HasLineSuffix(location)) {
       continue;
     }
     out->severity = severity;
