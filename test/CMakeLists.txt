@@ -340,6 +340,7 @@ if(YAZE_BUILD_TESTS)
     unit/core/source_artifact_publisher_test.cc
     unit/core/native_save_receipt_test.cc
     unit/core/proposal_workspace_test.cc
+    unit/editor/proposal_workspace_save_test.cc
     unit/rom/rom_diff_test.cc
     unit/rom/write_fence_test.cc
     unit/rom/private_lyra_reservation_test.cc

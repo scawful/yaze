@@ -103,6 +103,31 @@ TEST_F(ProposalWorkspaceTest, RefusesDraftEscape) {
   EXPECT_FALSE(LoadProposalWorkspace(root_).ok());
 }
 
+TEST_F(ProposalWorkspaceTest, NativeEntryRefusesDescriptorRomRedirect) {
+  Write("shared-rom", "shared game");
+  Write("Draft.yazeproj/project.yaze", "[files]\nrom_filename=../shared-rom\n");
+  auto result = LoadProposalWorkspace(root_);
+  ASSERT_FALSE(result.ok());
+  EXPECT_NE(std::string(result.status().message()).find("draft ROM"),
+            std::string::npos);
+}
+
+TEST_F(ProposalWorkspaceTest, NativeEntryRefusesExternalSourceAndOutput) {
+  for (const auto& field :
+       {"code_folder", "custom_collision_json", "output_folder"}) {
+    Write("Draft.yazeproj/project.yaze",
+          std::string("[files]\nrom_filename=rom\n") + field + "=../shared\n");
+    EXPECT_FALSE(LoadProposalWorkspace(root_).ok()) << field;
+  }
+}
+
+TEST_F(ProposalWorkspaceTest, NativeEntryRefusesExternalGraphicsSpecification) {
+  Write("Draft.yazeproj/project.yaze",
+        "[files]\nrom_filename=rom\ncode_folder=source\n[graphics_sheets]"
+        "\nsource_spec=../../shared.json\n");
+  EXPECT_FALSE(LoadProposalWorkspace(root_).ok());
+}
+
 TEST_F(ProposalWorkspaceTest, RefusesTamperedBaseline) {
   Write("baseline.rom", "different original");
   EXPECT_FALSE(LoadProposalWorkspace(root_).ok());

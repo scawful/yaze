@@ -798,6 +798,14 @@ absl::Status YazeProject::SaveNew() {
 
 absl::Status YazeProject::LoadFromString(const std::string& content,
                                          const std::string& project_path) {
+  RETURN_IF_ERROR(LoadDescriptorFromString(content, project_path));
+  TryLoadZ3dkConfig();
+  TryLoadHackManifest();
+  return absl::OkStatus();
+}
+
+absl::Status YazeProject::LoadDescriptorFromString(
+    const std::string& content, const std::string& project_path) {
   if (project_path.empty()) {
     return absl::InvalidArgumentError("Project file path cannot be empty");
   }
@@ -822,8 +830,6 @@ absl::Status YazeProject::LoadFromString(const std::string& content,
         absl::StrFormat("Invalid project file value: %s", error.what()));
   }
   NormalizePathsToAbsolute();
-  TryLoadZ3dkConfig();
-  TryLoadHackManifest();
   return absl::OkStatus();
 }
 

@@ -467,6 +467,10 @@ struct YazeProject {
   // draft before it replaces the active descriptor on disk.
   absl::Status LoadFromString(const std::string& content,
                               const std::string& project_path);
+  // Parse/normalize only. Does not load manifests/configs or change global
+  // resource-label providers; use for admission before opening a project.
+  absl::Status LoadDescriptorFromString(const std::string& content,
+                                        const std::string& project_path);
   // Checks the persisted source/build settings against this live context.
   // UI layout, timestamps and recent-file history do not qualify build inputs.
   absl::Status ValidateSavedSourceBindings(const std::string& content) const;

@@ -6,6 +6,10 @@
 
 #include "absl/status/statusor.h"
 
+namespace yaze::project {
+struct YazeProject;
+}
+
 namespace yaze::core {
 
 struct ProposalWorkspace {
@@ -25,6 +29,9 @@ struct ProposalWorkspace {
 // import proposal pixels, load a ROM model, or manufacture a save receipt.
 absl::StatusOr<ProposalWorkspace> LoadProposalWorkspace(
     const std::filesystem::path& packet_root);
+
+absl::Status ValidateProposalProjectBindings(
+    const project::YazeProject& project, const ProposalWorkspace& workspace);
 
 // Export saved-file changes and the user's note. Call normal Save first in
 // the UI; this operation never saves models or writes the project/base ROM.

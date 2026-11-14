@@ -479,6 +479,7 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
   absl::Status OpenLyraTerrain();
   absl::Status OpenLyraTerrainFromPath(const std::string& path);
   absl::Status SaveProject();
+  absl::Status SaveProposalDraft();
   absl::Status SaveProjectAs();
   absl::Status SaveProjectAs(const std::string& filepath);
   absl::Status AutosaveActiveSession();
@@ -540,6 +541,7 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
 
  private:
   absl::Status DrawRomSelector() = delete;  // Moved to UICoordinator
+  void InitializeProposalWorkspace();
   // DrawContextSensitivePanelControl removed - card control moved to sidebar
 
   // Optional loading_handle for WASM progress tracking (0 = create new)

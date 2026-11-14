@@ -49,6 +49,87 @@ absl::StatusOr<fs::path> ContainedPath(const fs::path& root,
 }  // namespace
 #endif
 
+absl::Status ValidateProposalProjectBindings(
+    const project::YazeProject& project, const ProposalWorkspace& workspace) {
+  try {
+    const auto root = fs::canonical(workspace.project_file.parent_path());
+    const auto check = [&](const std::string& value) -> absl::Status {
+      if (value.empty())
+        return absl::OkStatus();
+      const auto resolved =
+          fs::weakly_canonical(project.GetAbsolutePath(value));
+      const auto relative = resolved.lexically_relative(root);
+      if (relative.empty() || relative.is_absolute())
+        return absl::FailedPreconditionError(
+            "Proposal binding is outside its draft: " + value);
+      for (const auto& part : relative) {
+        if (part == "..")
+          return absl::FailedPreconditionError(
+              "Proposal binding is outside its draft: " + value);
+      }
+      return absl::OkStatus();
+    };
+    if (fs::weakly_canonical(project.filepath) != workspace.project_file ||
+        fs::weakly_canonical(project.GetAbsolutePath(project.rom_filename)) !=
+            workspace.rom_file) {
+      return absl::FailedPreconditionError(
+          "Descriptor does not bind this proposal's draft ROM");
+    }
+    for (const auto* value : {&project.rom_backup_folder,
+                              &project.code_folder,
+                              &project.assets_folder,
+                              &project.patches_folder,
+                              &project.labels_filename,
+                              &project.symbols_filename,
+                              &project.cutscene_shots,
+                              &project.overworld_graphics_preview,
+                              &project.dungeon_tile_patterns,
+                              &project.custom_collision_json,
+                              &project.custom_objects_folder,
+                              &project.hack_manifest_file,
+                              &project.sprite_catalog_file,
+                              &project.sprite_source_root,
+                              &project.terrain_catalog_file,
+                              &project.lyra_terrain_file,
+                              &project.lyra_build_request_file,
+                              &project.native_save_producer_file,
+                              &project.native_save_transfer_proof_file,
+                              &project.native_save_receipt_file,
+                              &project.palette_catalog_file,
+                              &project.output_folder,
+                              &project.build_target,
+                              &project.asm_entry_point,
+                              &project.git_repository,
+                              &project.planning.file,
+                              &project.atlas.symbols,
+                              &project.atlas.export_folder}) {
+      RETURN_IF_ERROR(check(*value));
+    }
+    if (!project.additional_roms.empty())
+      return absl::FailedPreconditionError(
+          "Proposal must own exactly one editing ROM");
+    for (const auto& path : project.asm_sources)
+      RETURN_IF_ERROR(check(path));
+    for (const auto& path : project.atlas.annotations)
+      RETURN_IF_ERROR(check(path));
+    if (!project.graphics_sheets.source_spec.empty()) {
+      RETURN_IF_ERROR(
+          check((fs::path(project.GetAbsolutePath(project.code_folder)) /
+                 project.graphics_sheets.source_spec)
+                    .string()));
+    }
+    for (const auto& asset : project.sprite_assets) {
+      RETURN_IF_ERROR(check(asset.zsm_path));
+      RETURN_IF_ERROR(check(asset.source_path));
+      for (const auto& graphics : asset.graphics_sources)
+        RETURN_IF_ERROR(check(graphics.path));
+    }
+    return absl::OkStatus();
+  } catch (const std::exception& error) {
+    return absl::InvalidArgumentError(error.what());
+  }
+}
+
 absl::StatusOr<ProposalWorkspace> LoadProposalWorkspace(
     const fs::path& packet_root) {
 #if defined(YAZE_WITH_JSON)
@@ -123,6 +204,15 @@ absl::StatusOr<ProposalWorkspace> LoadProposalWorkspace(
             "Proposal source baseline changed");
     }
     result.unbound_references = packet.at("references").size();
+    std::ifstream descriptor(result.project_file);
+    std::stringstream contents;
+    contents << descriptor.rdbuf();
+    if (!descriptor.good() && !descriptor.eof())
+      return absl::InvalidArgumentError("Cannot read draft project descriptor");
+    project::YazeProject parsed;
+    RETURN_IF_ERROR(parsed.LoadDescriptorFromString(
+        contents.str(), result.project_file.string()));
+    RETURN_IF_ERROR(ValidateProposalProjectBindings(parsed, result));
     return result;
   } catch (const std::exception& error) {
     return absl::InvalidArgumentError(error.what());
