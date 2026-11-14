@@ -2840,15 +2840,6 @@ absl::Status DungeonSetDoorTypeCommandHandler::Execute(
   formatter.AddField("mode", do_write ? "write" : "dry-run");
   formatter.AddField("preflight_status", "success");
 
-  if (!do_write) {
-    formatter.AddField("write_status", "not_requested");
-    formatter.AddField("save_status", "not_requested");
-    formatter.AddField("readback_status", "not_requested");
-    formatter.AddField("status", "success");
-    formatter.EndObject();
-    return absl::OkStatus();
-  }
-
   const auto finish_error = [&formatter](const absl::Status& status,
                                          const char* field) -> absl::Status {
     formatter.AddField("status", "error");
@@ -2868,6 +2859,36 @@ absl::Status DungeonSetDoorTypeCommandHandler::Execute(
     }
     return absl::OkStatus();
   };
+
+  if (IsNativeDungeonLayout(*rom)) {
+    formatter.AddField("layout", "native");
+    const auto baseline = rom->vector();
+    auto candidate = baseline;
+    candidate[target.type_pc] = static_cast<uint8_t>(new_type);
+    const auto status = CommitNativeDungeonCandidate(
+        rom, baseline, std::move(candidate),
+        {{target.type_pc, target.type_pc + 1u}}, &manifest_context->manifest,
+        do_write, formatter,
+        [&](const std::vector<uint8_t>& image) -> absl::Status {
+          ASSIGN_OR_RETURN(auto reopened, LoadScratchRom(image));
+          ASSIGN_OR_RETURN(const auto readback,
+                           ResolveDoorTypeTarget(reopened.get(), room_id, x, y,
+                                                 *manifest_context));
+          return verify_readback(readback);
+        });
+    formatter.AddField("status", status.ok() ? "success" : "error");
+    formatter.EndObject();
+    return status;
+  }
+
+  if (!do_write) {
+    formatter.AddField("write_status", "not_requested");
+    formatter.AddField("save_status", "not_requested");
+    formatter.AddField("readback_status", "not_requested");
+    formatter.AddField("status", "success");
+    formatter.EndObject();
+    return absl::OkStatus();
+  }
 
   rom::WriteFence write_fence;
   const absl::Status allow_status = write_fence.Allow(
