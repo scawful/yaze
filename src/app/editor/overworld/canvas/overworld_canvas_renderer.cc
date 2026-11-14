@@ -42,6 +42,7 @@
 #include "app/gui/core/ui_config.h"
 #include "app/gui/core/ui_helpers.h"
 #include "app/gui/widgets/tile_selector_widget.h"
+#include "cli/handlers/game/overworld_inspect.h"
 #include "core/lyra_terrain_document.h"
 #include "rom/rom.h"
 #include "util/log.h"
@@ -1278,6 +1279,25 @@ void OverworldCanvasRenderer::DrawMapProperties() {
   // The Background Color and Visual Effects buttons open the same floating
   // editors the canvas context menu uses (drawn in OverworldEditor::Update).
   if (editor_->sidebar_) {
+    if (editor_->tile_painting_ && editor_->overworld_.is_loaded() &&
+        editor_->ow_map_canvas_.IsMouseHovering()) {
+      const auto hover = editor_->tile_painting_->HoveredTile();
+      const int screen_x = hover.x % 32;
+      const int screen_y = hover.y % 32;
+      const int map_x = hover.x / 32;
+      const int map_y = hover.y / 32;
+      const int map_id = editor_->current_world_ * 64 + map_x + map_y * 8;
+      const auto location = cli::overworld::LocateScreenTile(
+          editor_->overworld_, map_id, screen_x, screen_y);
+      if (location.ok()) {
+        editor_->sidebar_->SetTile16ReferenceOccurrence(
+            location->map_id, location->area_x, location->area_y);
+      } else {
+        editor_->sidebar_->ClearTile16ReferenceOccurrence();
+      }
+    } else {
+      editor_->sidebar_->ClearTile16ReferenceOccurrence();
+    }
     editor_->sidebar_->Draw(editor_->current_world_, editor_->current_map_,
                             editor_->current_map_lock_, editor_->game_state_,
                             editor_->show_custom_bg_color_editor_,

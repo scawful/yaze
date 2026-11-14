@@ -6,6 +6,7 @@
 #include <cfloat>
 #include <cstdint>
 #include <cstring>
+#include <optional>
 
 #include "absl/strings/str_format.h"
 #include "app/editor/overworld/maps/overworld_map_metadata.h"
@@ -16,6 +17,7 @@
 #include "app/gui/core/input.h"
 #include "app/gui/core/ui_helpers.h"
 #include "app/gui/widgets/themed_widgets.h"
+#include "cli/handlers/game/overworld_tile_reference.h"
 #include "imgui/imgui.h"
 #include "rom/lyra_layout_descriptor.h"
 #include "zelda3/common.h"
@@ -159,6 +161,9 @@ void OverworldSidebar::Draw(int& current_world, int& current_map,
     }
     if (ImGui::CollapsingHeader(tr("Effects"))) {
       DrawEffectsSection(appearance_map, show_overlay_editor);
+    }
+    if (ImGui::CollapsingHeader(tr("Tile16 reference"))) {
+      DrawTile16ReferenceSection();
     }
 
     if (!edit_error_.empty()) {
@@ -534,6 +539,138 @@ void OverworldSidebar::DrawGraphicsSection(int property_map, int game_state) {
         HexByteField(id.c_str(), label.c_str(), tip.c_str(),
                      OverworldPropertyField::kCustomTileset, i, property_map,
                      map->custom_tileset(i));
+      }
+      ImGui::EndTable();
+    }
+    ImGui::TreePop();
+  }
+}
+
+void OverworldSidebar::SetTile16ReferenceOccurrence(int map_id, int area_x,
+                                                    int area_y) {
+  if (tile16_reference_pinned_)
+    return;
+  tile16_reference_has_occurrence_ = true;
+  tile16_reference_map_ = map_id;
+  tile16_reference_x_ = area_x;
+  tile16_reference_y_ = area_y;
+}
+
+void OverworldSidebar::ClearTile16ReferenceOccurrence() {
+  if (tile16_reference_pinned_)
+    return;
+  tile16_reference_has_occurrence_ = false;
+}
+
+void OverworldSidebar::DrawTile16ReferenceSection() {
+  ImGui::Checkbox(tr("Pin occurrence"), &tile16_reference_pinned_);
+  if (ImGui::IsItemHovered()) {
+    ImGui::SetTooltip("%s", tr("Keep the last map/cell while the cursor moves. "
+                               "Read-only; does not edit terrain or Save."));
+  }
+  ImGui::InputText(tr("Policy JSON"), tile16_reference_policy_path_.data(),
+                   tile16_reference_policy_path_.size());
+  if (ImGui::IsItemHovered()) {
+    ImGui::SetTooltip("%s",
+                      tr("Optional source-reference policy. Absent path leaves "
+                         "status as observed. No auto-repair or blanking."));
+  }
+
+  if (!tile16_reference_has_occurrence_) {
+    ImGui::TextDisabled("%s", tr("Hover a map tile to inspect an occurrence."));
+    return;
+  }
+  if (!overworld_ || !overworld_->is_loaded()) {
+    ImGui::TextDisabled("%s", tr("Overworld is not loaded."));
+    return;
+  }
+
+  const cli::overworld::TileReferencePolicy* policy = nullptr;
+  std::optional<cli::overworld::TileReferencePolicy> loaded;
+  tile16_reference_policy_error_.clear();
+  const std::string policy_path(tile16_reference_policy_path_.data());
+  if (!policy_path.empty()) {
+    auto parsed = cli::overworld::LoadTileReferencePolicy(policy_path);
+    if (!parsed.ok()) {
+      tile16_reference_policy_error_ = std::string(parsed.status().message());
+    } else {
+      loaded = std::move(*parsed);
+      policy = &*loaded;
+    }
+  }
+
+  auto inspection = cli::overworld::InspectTile16Reference(
+      *overworld_, tile16_reference_map_, tile16_reference_x_,
+      tile16_reference_y_, policy);
+  if (!inspection.ok()) {
+    ImGui::TextColored(gui::GetErrorColor(), "%s",
+                       std::string(inspection.status().message()).c_str());
+    return;
+  }
+
+  ImGui::Text("%s", absl::StrFormat("Map $%02X  (%d,%d)  Tile16 $%03X",
+                                    inspection->map_id, inspection->x,
+                                    inspection->y, inspection->tile16)
+                        .c_str());
+  ImGui::Text("%s", absl::StrFormat("Status: %s",
+                                    cli::overworld::TileReferenceStatusName(
+                                        inspection->status))
+                        .c_str());
+  if (!inspection->reason.empty())
+    ImGui::TextWrapped("%s", inspection->reason.c_str());
+  if (!inspection->rule_id.empty())
+    ImGui::TextDisabled("%s", inspection->rule_id.c_str());
+  if (!inspection->user_ruling.empty())
+    ImGui::TextWrapped("%s", inspection->user_ruling.c_str());
+  if (!tile16_reference_policy_error_.empty()) {
+    ImGui::TextColored(gui::GetErrorColor(), "%s",
+                       tile16_reference_policy_error_.c_str());
+  }
+
+  static constexpr const char* kCorners[] = {"TL", "TR", "BL", "BR"};
+  if (ImGui::BeginTable("##Tile16RefQuads", 5,
+                        ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg)) {
+    ImGui::TableSetupColumn("Q");
+    ImGui::TableSetupColumn("Tile8");
+    ImGui::TableSetupColumn("Pal");
+    ImGui::TableSetupColumn("Flip");
+    ImGui::TableSetupColumn("Type");
+    ImGui::TableHeadersRow();
+    for (int i = 0; i < 4; ++i) {
+      const auto& q = inspection->quadrants[i];
+      ImGui::TableNextRow();
+      ImGui::TableNextColumn();
+      ImGui::TextUnformatted(kCorners[i]);
+      ImGui::TableNextColumn();
+      ImGui::Text("$%03X", q.tile8_id);
+      ImGui::TableNextColumn();
+      ImGui::Text("%d", q.palette);
+      ImGui::TableNextColumn();
+      ImGui::Text("%c%c", q.flip_x ? 'H' : '-', q.flip_y ? 'V' : '-');
+      ImGui::TableNextColumn();
+      if (q.tile_type.has_value())
+        ImGui::Text("$%02X", *q.tile_type);
+      else
+        ImGui::TextUnformatted("?");
+    }
+    ImGui::EndTable();
+  }
+
+  if (ImGui::TreeNode(tr("Neighbors (3x3)"))) {
+    if (ImGui::BeginTable("##Tile16RefNeighbors", 3,
+                          ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg)) {
+      for (int row = 0; row < 3; ++row) {
+        ImGui::TableNextRow();
+        for (int col = 0; col < 3; ++col) {
+          ImGui::TableNextColumn();
+          const auto& n = inspection->neighbors[row * 3 + col];
+          if (!n.in_bounds || !n.tile16.has_value())
+            ImGui::TextUnformatted("--");
+          else if (n.dx == 0 && n.dy == 0)
+            ImGui::Text("[$%03X]", *n.tile16);
+          else
+            ImGui::Text("$%03X", *n.tile16);
+        }
       }
       ImGui::EndTable();
     }

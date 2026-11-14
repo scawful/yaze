@@ -1,5 +1,6 @@
 #include "cli/handlers/game/overworld_tile_reference.h"
 
+#include <climits>
 #include <fstream>
 
 #include "absl/strings/ascii.h"
@@ -32,24 +33,47 @@ absl::StatusOr<uint16_t> ParseHexU16(std::string_view text) {
   return static_cast<uint16_t>(value);
 }
 
+// Reject negatives and values above 65535 before any uint16_t cast. JSON
+// integers and hex strings are accepted; floats/bools/null are not.
+absl::StatusOr<uint16_t> ParseU16Field(const nlohmann::json& value,
+                                       absl::string_view field) {
+  if (value.is_number_integer()) {
+    const auto n = value.get<std::int64_t>();
+    if (n < 0 || n > 0xFFFF) {
+      return absl::InvalidArgumentError(absl::StrFormat(
+          "Reference policy %s must be an integer in 0..65535", field));
+    }
+    return static_cast<uint16_t>(n);
+  }
+  if (value.is_string())
+    return ParseHexU16(value.get<std::string>());
+  return absl::InvalidArgumentError(absl::StrFormat(
+      "Reference policy %s must be an integer or hex string", field));
+}
+
+absl::StatusOr<int> ParseCoordField(const nlohmann::json& value,
+                                    absl::string_view field) {
+  if (!value.is_number_integer()) {
+    return absl::InvalidArgumentError(
+        absl::StrFormat("Reference policy %s must be an integer", field));
+  }
+  const auto n = value.get<std::int64_t>();
+  if (n < INT_MIN || n > INT_MAX) {
+    return absl::InvalidArgumentError(
+        absl::StrFormat("Reference policy %s is out of int range", field));
+  }
+  return static_cast<int>(n);
+}
+
 absl::StatusOr<TileReferenceRuleCell> ParseCell(const nlohmann::json& cell) {
   TileReferenceRuleCell out;
   if (cell.is_array()) {
     if (cell.size() != 3)
       return absl::InvalidArgumentError(
           "Reference policy cell arrays must be [x,y,tile16]");
-    if (!cell[0].is_number_integer() || !cell[1].is_number_integer())
-      return absl::InvalidArgumentError(
-          "Reference policy cell x/y must be int");
-    out.x = cell[0].get<int>();
-    out.y = cell[1].get<int>();
-    if (cell[2].is_number_integer())
-      out.tile16 = static_cast<uint16_t>(cell[2].get<int>());
-    else if (cell[2].is_string()) {
-      ASSIGN_OR_RETURN(out.tile16, ParseHexU16(cell[2].get<std::string>()));
-    } else {
-      return absl::InvalidArgumentError("Reference policy cell tile16 invalid");
-    }
+    ASSIGN_OR_RETURN(out.x, ParseCoordField(cell[0], "cell.x"));
+    ASSIGN_OR_RETURN(out.y, ParseCoordField(cell[1], "cell.y"));
+    ASSIGN_OR_RETURN(out.tile16, ParseU16Field(cell[2], "cell.tile16"));
     return out;
   }
   if (!cell.is_object())
@@ -57,14 +81,9 @@ absl::StatusOr<TileReferenceRuleCell> ParseCell(const nlohmann::json& cell) {
         "Reference policy cell must be array/object");
   if (!cell.contains("x") || !cell.contains("y") || !cell.contains("tile16"))
     return absl::InvalidArgumentError("Reference policy cell needs x/y/tile16");
-  out.x = cell.at("x").get<int>();
-  out.y = cell.at("y").get<int>();
-  if (cell.at("tile16").is_number_integer())
-    out.tile16 = static_cast<uint16_t>(cell.at("tile16").get<int>());
-  else {
-    ASSIGN_OR_RETURN(out.tile16,
-                     ParseHexU16(cell.at("tile16").get<std::string>()));
-  }
+  ASSIGN_OR_RETURN(out.x, ParseCoordField(cell.at("x"), "cell.x"));
+  ASSIGN_OR_RETURN(out.y, ParseCoordField(cell.at("y"), "cell.y"));
+  ASSIGN_OR_RETURN(out.tile16, ParseU16Field(cell.at("tile16"), "cell.tile16"));
   return out;
 }
 
@@ -91,13 +110,8 @@ absl::StatusOr<std::array<uint16_t, 4>> ParseWords(
     return absl::InvalidArgumentError("definitions words must be length 4");
   std::array<uint16_t, 4> out{};
   for (size_t i = 0; i < 4; ++i) {
-    if (words[i].is_number_integer())
-      out[i] = static_cast<uint16_t>(words[i].get<int>());
-    else if (words[i].is_string()) {
-      ASSIGN_OR_RETURN(out[i], ParseHexU16(words[i].get<std::string>()));
-    } else {
-      return absl::InvalidArgumentError("definition word must be int/hex");
-    }
+    ASSIGN_OR_RETURN(out[i],
+                     ParseU16Field(words[i], absl::StrFormat("word[%zu]", i)));
   }
   return out;
 }
@@ -193,15 +207,8 @@ absl::StatusOr<TileReferencePolicy> LoadTileReferencePolicy(
                      ParseStatus(item["classification"].get<std::string>()));
     if (!item.contains("map"))
       return absl::InvalidArgumentError("Reference rule requires map");
-    if (item["map"].is_number_integer())
-      rule.map = item["map"].get<int>();
-    else if (item["map"].is_string()) {
-      ASSIGN_OR_RETURN(const auto map_hex,
-                       ParseHexU16(item["map"].get<std::string>()));
-      rule.map = map_hex;
-    } else {
-      return absl::InvalidArgumentError("Reference rule map invalid");
-    }
+    ASSIGN_OR_RETURN(const auto map_id, ParseU16Field(item["map"], "map"));
+    rule.map = static_cast<int>(map_id);
     for (const char* key : {"before", "after", "preserve"}) {
       if (!item.contains(key))
         continue;

@@ -130,14 +130,16 @@ class TilePaintingManager {
     return map_brush_previews_.at(map_id);
   }
 
- private:
   struct TilePosition {
     int x;
     int y;
   };
-  using ChangedMaps = std::array<bool, zelda3::kExpandedMapCount>;
 
+  // World-grid Tile16 under the canvas cursor (may be outside a valid map).
   TilePosition HoveredTile() const;
+
+ private:
+  using ChangedMaps = std::array<bool, zelda3::kExpandedMapCount>;
   int AllocatedRowsForWorld(int world) const;
   bool IsValidMapGridPosition(int world, int map_x, int map_y) const;
   bool IsProjectTile(TilePosition position) const;

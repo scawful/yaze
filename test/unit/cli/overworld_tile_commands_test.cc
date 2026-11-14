@@ -3013,6 +3013,57 @@ TEST(OverworldTileReferencePolicyTest, ClassifiesBeforeAfterAndPreserve) {
   EXPECT_EQ(drifted->status, overworld::TileReferenceStatus::kUnresolved);
 }
 
+TEST(OverworldTileReferencePolicyTest, RejectsOutOfRangeAndNonIntegerFields) {
+  const auto write = [](const std::string& body) {
+    const auto path =
+        test::UniqueTempPath("tile16_reference_policy_bad", ".json");
+    std::ofstream out(path);
+    EXPECT_TRUE(out) << path;
+    out << body;
+    return path;
+  };
+
+  auto neg_tile = overworld::LoadTileReferencePolicy(write(R"json({
+    "rules":[{"id":"bad","classification":"confirmed_error","map":"0D",
+      "before":[[13,5,-1]]}]
+  })json")
+                                                         .string());
+  EXPECT_TRUE(absl::IsInvalidArgument(neg_tile.status())) << neg_tile.status();
+  EXPECT_THAT(std::string(neg_tile.status().message()), HasSubstr("0..65535"));
+
+  auto big_word = overworld::LoadTileReferencePolicy(write(R"json({
+    "rules":[{"id":"bad","classification":"confirmed_error","map":13,
+      "before":[[0,0,1]],
+      "definitions":{"1":[65536,0,0,0]} }]
+  })json")
+                                                         .string());
+  EXPECT_TRUE(absl::IsInvalidArgument(big_word.status())) << big_word.status();
+  EXPECT_THAT(std::string(big_word.status().message()), HasSubstr("0..65535"));
+
+  auto float_tile = overworld::LoadTileReferencePolicy(write(R"json({
+    "rules":[{"id":"bad","classification":"confirmed_error","map":"0D",
+      "before":[[13,5,1.5]]}]
+  })json")
+                                                           .string());
+  EXPECT_TRUE(absl::IsInvalidArgument(float_tile.status()))
+      << float_tile.status();
+
+  auto bad_map = overworld::LoadTileReferencePolicy(write(R"json({
+    "rules":[{"id":"bad","classification":"confirmed_error","map":-3,
+      "before":[[0,0,1]]}]
+  })json")
+                                                        .string());
+  EXPECT_TRUE(absl::IsInvalidArgument(bad_map.status())) << bad_map.status();
+
+  auto object_neg = overworld::LoadTileReferencePolicy(write(R"json({
+    "rules":[{"id":"bad","classification":"confirmed_error","map":"0D",
+      "before":[{"x":13,"y":5,"tile16":70000}]}]
+  })json")
+                                                           .string());
+  EXPECT_TRUE(absl::IsInvalidArgument(object_neg.status()))
+      << object_neg.status();
+}
+
 TEST_F(OverworldTileRomTest, ReferenceInspectReportsNeighborsAndQuadrants) {
   handlers::OverworldTileReferenceInspectCommandHandler handler;
   auto json = RunJson(handler, {"--map=0x0D", "--x=13", "--y=5"}, &rom_);
