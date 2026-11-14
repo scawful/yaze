@@ -25,6 +25,12 @@ absl::Status OverworldUpgradeSystem::ApplyZSCustomOverworldASM(
         "Invalid target version: %d. Must be 2 or 3.", target_version));
   }
 
+  if (zscream::DetectLayout(rom_) == zscream::LayoutDialect::kUnmarked) {
+    return absl::FailedPreconditionError(absl::StrFormat(
+        "ZSCustomOverworld needs an expanded ROM; this ROM is 0x%X bytes and "
+        "ends before the version marker at 0x%X",
+        rom_.size(), OverworldCustomASMHasBeenApplied));
+  }
   if (!zscream::CanUseTailExpansion(rom_)) {
     return absl::FailedPreconditionError(
         "This custom ZScream layout cannot be replaced with the bundled "

@@ -35,6 +35,7 @@
 #include "util/file_util.h"
 #include "util/i18n/language_manager.h"
 #include "zelda3/overworld/overworld_map.h"
+#include "zelda3/overworld/overworld_version_helper.h"
 
 // Menu shortcut labels come from ShortcutManager's live bindings through
 // MenuOrchestrator::GetShortcutForAction; never hard-code key hints here.
@@ -2006,7 +2007,7 @@ void MenuOrchestrator::OnCheckRomVersion() {
     return;
 
   // Check ZSCustomOverworld version
-  uint8_t version = (*rom)[zelda3::OverworldCustomASMHasBeenApplied];
+  const uint8_t version = zelda3::OverworldVersionHelper::GetAsmVersion(*rom);
   std::string version_str =
       (version == 0xFF) ? "Vanilla" : absl::StrFormat("v%d", version);
 

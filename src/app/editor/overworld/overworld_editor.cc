@@ -905,7 +905,7 @@ absl::Status OverworldEditor::Update() {
     ImGui::Separator();
 
     const uint8_t current_version =
-        rom_ != nullptr ? (*rom_)[zelda3::OverworldCustomASMHasBeenApplied]
+        rom_ != nullptr ? zelda3::OverworldVersionHelper::GetAsmVersion(*rom_)
                         : 0xFF;
     ImGui::Text(tr("Current Version: %s"),
                 current_version == 0xFF
@@ -935,6 +935,11 @@ absl::Status OverworldEditor::Update() {
       } else {
         LOG_ERROR("OverworldEditor", "Upgrade failed: %s",
                   upgrade_status.message().data());
+        if (dependencies_.toast_manager) {
+          dependencies_.toast_manager->Show(
+              absl::StrFormat("Upgrade failed: %s", upgrade_status.message()),
+              ToastType::kError);
+        }
       }
     }
     ImGui::SameLine();

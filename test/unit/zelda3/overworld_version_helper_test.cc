@@ -1,9 +1,11 @@
 #include "zelda3/overworld/overworld_version_helper.h"
 
 #include <algorithm>
+#include <string>
 #include <vector>
 
 #include "absl/status/status.h"
+#include "gmock/gmock.h"
 #include "gtest/gtest.h"
 #include "rom/rom.h"
 #include "rom/snes.h"
@@ -285,6 +287,22 @@ TEST(OverworldRomProfileTest, CustomLayoutsRejectBundledAsmBeforeMutation) {
     EXPECT_EQ(rom.vector(), before);
     EXPECT_FALSE(rom.dirty());
   }
+}
+
+TEST(OverworldRomProfileTest, UnexpandedRomRejectsBundledAsmWithSizeReason) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x100000, 0)).ok());
+  rom.set_dirty(false);
+  const auto before = rom.vector();
+  EXPECT_EQ(OverworldVersionHelper::GetAsmVersion(rom), 0xFF);
+
+  OverworldUpgradeSystem upgrade(rom);
+  const auto status = upgrade.ApplyZSCustomOverworldASM(3);
+  EXPECT_EQ(status.code(), absl::StatusCode::kFailedPrecondition);
+  EXPECT_THAT(std::string(status.message()),
+              ::testing::HasSubstr("needs an expanded ROM"));
+  EXPECT_EQ(rom.vector(), before);
+  EXPECT_FALSE(rom.dirty());
 }
 
 TEST(OverworldMap32StorageTest, CapacityTracksDetectedRomProfile) {

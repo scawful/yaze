@@ -19,6 +19,7 @@
 #include "rom/rom.h"
 #include "zelda3/overworld/overworld.h"
 #include "zelda3/overworld/overworld_map.h"
+#include "zelda3/overworld/overworld_version_helper.h"
 
 namespace yaze {
 namespace cli {
@@ -168,7 +169,7 @@ absl::Status ToolsExtractValuesCommandHandler::Execute(
     output << "{\n";
     output << "  \"asm_version\": \"0x" << std::hex << std::setw(2)
            << std::setfill('0')
-           << static_cast<int>((*rom)[OverworldCustomASMHasBeenApplied])
+           << static_cast<int>(OverworldVersionHelper::GetAsmVersion(*rom))
            << "\",\n";
     output << "  \"area_graphics\": [";
     for (int i = 0; i < 10; i++) {
@@ -201,7 +202,7 @@ absl::Status ToolsExtractValuesCommandHandler::Execute(
 
     output << "constexpr uint8_t kVanillaASMVersion = 0x" << std::hex
            << std::setw(2) << std::setfill('0')
-           << static_cast<int>((*rom)[OverworldCustomASMHasBeenApplied])
+           << static_cast<int>(OverworldVersionHelper::GetAsmVersion(*rom))
            << ";\n\n";
 
     output << "// Area graphics for first 10 maps\n";
