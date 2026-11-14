@@ -1028,6 +1028,15 @@ class DungeonApplyObjectPlanTest : public DungeonRenderObjectPlanTest {
     baseline_ = rom_.vector();
   }
 
+  std::vector<uint8_t> HeaderedBaseline() {
+    std::vector<uint8_t> bytes(512, 0xA5);
+    bytes.insert(bytes.end(), baseline_.begin(), baseline_.end());
+    test::native_overworld::WriteBytes(source_, bytes);
+    EXPECT_TRUE(rom_.LoadFromFile(source_.string()).ok());
+    EXPECT_TRUE(rom_.has_copier_header());
+    return bytes;
+  }
+
   nlohmann::json Edits() {
     return Plan(nlohmann::json::array(
         {{{"op", "remove"}, {"index", 0}, {"before", Object(5, 10, 3)}},
@@ -1142,6 +1151,17 @@ TEST_F(DungeonApplyObjectPlanTest, RefusesDirtyAndStaleDiskBaselines) {
   changed[0x100] ^= 1;
   test::native_overworld::WriteBytes(source_, changed);
   EXPECT_TRUE(absl::IsFailedPrecondition(Apply(plan, true)));
+  EXPECT_EQ(ReadBytes(source_), changed);
+  EXPECT_EQ(rom_.vector(), baseline_);
+}
+
+TEST_F(DungeonApplyObjectPlanTest, RefusesHeaderOnlyStaleDiskBaseline) {
+  auto changed = HeaderedBaseline();
+  const auto plan = Edits();
+  changed[17] ^= 1;
+  test::native_overworld::WriteBytes(source_, changed);
+  const auto status = Apply(plan, true);
+  EXPECT_TRUE(absl::IsFailedPrecondition(status)) << status;
   EXPECT_EQ(ReadBytes(source_), changed);
   EXPECT_EQ(rom_.vector(), baseline_);
 }
