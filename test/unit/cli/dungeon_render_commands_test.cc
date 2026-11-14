@@ -1166,6 +1166,32 @@ TEST_F(DungeonApplyObjectPlanTest, RefusesHeaderOnlyStaleDiskBaseline) {
   EXPECT_EQ(rom_.vector(), baseline_);
 }
 
+TEST_F(DungeonApplyObjectPlanTest, HeaderedSavePreservesHeaderBackupAndReopen) {
+  const auto original = HeaderedBaseline();
+  const auto header = rom_.copier_header();
+  const auto plan = Edits();
+  const auto staged = handlers::StageDungeonRenderObjectPlan(rom_, 0, plan);
+  ASSERT_TRUE(staged.ok()) << staged.status();
+  const auto status = Apply(plan, true);
+  ASSERT_TRUE(status.ok()) << status;
+  auto expected = header;
+  expected.insert(expected.end(), staged->rom->vector().begin(),
+                  staged->rom->vector().end());
+  EXPECT_EQ(ReadBytes(source_), expected);
+  Rom reopened;
+  ASSERT_TRUE(reopened.LoadFromFile(source_.string()).ok());
+  EXPECT_EQ(reopened.copier_header(), header);
+  EXPECT_EQ(reopened.vector(), staged->rom->vector());
+  int backups = 0;
+  for (const auto& entry : std::filesystem::directory_iterator(directory_)) {
+    if (entry.path().filename().string().find("source.sfc_backup_") == 0) {
+      ++backups;
+      EXPECT_EQ(ReadBytes(entry.path()), original);
+    }
+  }
+  EXPECT_EQ(backups, 1);
+}
+
 TEST_F(DungeonApplyObjectPlanTest,
        FailedAtomicSavePreservesOriginalAndCleansStage) {
   Rom::SetStagingFailureForTesting(true);

@@ -902,7 +902,8 @@ absl::Status ValidateDungeonWriteBaseline(const Rom& rom,
   options.strip_header = strip_header;
   options.load_resource_labels = false;
   RETURN_IF_ERROR(disk_rom.LoadFromFile(rom.filename(), options));
-  if (disk_rom.vector() != rom.vector()) {
+  if (disk_rom.vector() != rom.vector() ||
+      disk_rom.copier_header() != rom.copier_header()) {
     return absl::FailedPreconditionError(
         "Dungeon write requires in-memory ROM bytes to exactly match "
         "the current file; refusing to persist unrelated or stale bytes");
