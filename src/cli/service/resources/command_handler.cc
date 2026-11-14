@@ -146,6 +146,29 @@ absl::Status CommandHandler::Run(const std::vector<std::string>& args,
   // 1. Parse arguments
   ArgumentParser parser(args);
 
+  const auto compiled_receipt = parser.GetString("compiled-build-receipt");
+  if (compiled_receipt.has_value() ||
+      parser.HasFlag("compiled-build-receipt")) {
+    if (!AcceptsCompiledBuildReceipt()) {
+      return absl::InvalidArgumentError(absl::StrFormat(
+          "%s does not accept --compiled-build-receipt", GetName()));
+    }
+    if (!compiled_receipt.has_value() || compiled_receipt->empty()) {
+      return absl::InvalidArgumentError(
+          "--compiled-build-receipt requires a receipt path");
+    }
+    if (!parser.GetString("project-context").has_value()) {
+      return absl::InvalidArgumentError(
+          "--compiled-build-receipt requires --project-context");
+    }
+    if (parser.HasFlag("write") || parser.GetString("write").has_value() ||
+        parser.HasFlag("sandbox") || absl::GetFlag(FLAGS_sandbox)) {
+      return absl::InvalidArgumentError(
+          "--compiled-build-receipt is read-only; --write and --sandbox are "
+          "refused");
+    }
+  }
+
   // 2. Validate arguments
   auto validation_status = ValidateArgs(parser);
   if (!validation_status.ok()) {
@@ -206,6 +229,7 @@ absl::Status CommandHandler::Run(const std::vector<std::string>& args,
   std::optional<ScopedRomReadOnly> read_only_scope;
   bool sandbox_enabled = false;
   CommandInvocationContext invocation_context;
+  std::optional<core::CompiledBuildIdentity> compiled_build;
 
   // Set symbol provider regardless of ROM loading (it might load its own symbols)
   SetSymbolProvider(context.GetSymbolProvider());
@@ -221,6 +245,28 @@ absl::Status CommandHandler::Run(const std::vector<std::string>& args,
     }
     SetRomContext(rom);
     SetProjectContext(context.GetProjectContext());
+
+    if (compiled_receipt.has_value()) {
+      const auto* project = context.GetProjectContext();
+      if (project == nullptr) {
+        return absl::FailedPreconditionError(
+            "--compiled-build-receipt requires a loaded project context");
+      }
+      std::error_code receipt_ec;
+      const auto receipt_path = std::filesystem::absolute(
+          std::filesystem::u8path(*compiled_receipt), receipt_ec);
+      if (receipt_ec) {
+        return absl::InvalidArgumentError(
+            absl::StrFormat("Cannot resolve --compiled-build-receipt %s: %s",
+                            *compiled_receipt, receipt_ec.message()));
+      }
+      ASSIGN_OR_RETURN(compiled_build,
+                       core::VerifyProjectBuildReceipt(*project, receipt_path));
+      RETURN_IF_ERROR(core::CheckCompiledBuildBytes(*compiled_build,
+                                                    rom->data(), rom->size()));
+      invocation_context.compiled_build = &*compiled_build;
+      read_only_scope.emplace(*rom);
+    }
 
     if (absl::GetFlag(FLAGS_sandbox) || parser.HasFlag("sandbox")) {
       sandbox_enabled = true;

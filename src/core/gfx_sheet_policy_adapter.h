@@ -2,6 +2,7 @@
 #define YAZE_CORE_GFX_SHEET_POLICY_ADAPTER_H_
 
 #include "absl/status/statusor.h"
+#include "core/compiled_build_receipt.h"
 #include "core/hack_manifest.h"
 #include "core/project.h"
 #include "core/rom_settings.h"
@@ -23,6 +24,13 @@ absl::StatusOr<zelda3::ResolvedGfxSheetLayout> ResolveGfxSheetLayout(
 // A role string alone never authorizes writes or source-file publication.
 absl::StatusOr<zelda3::ResolvedGfxSheetLayout> ResolveGfxSheetLayout(
     const Rom& rom, const project::YazeProject& project);
+
+// For bytes that must be a receipt-verified compiled output of `project`.
+// The project's expected_hash stays bound to its authoring ROM (checked by
+// VerifyProjectBuildReceipt); an explicit layout must declare a compiled ROM.
+absl::StatusOr<zelda3::ResolvedGfxSheetLayout> ResolveGfxSheetLayout(
+    const Rom& rom, const project::YazeProject& project,
+    const CompiledBuildIdentity& build);
 
 // Builds the graphics-sheet write policy from a hack manifest:
 // allocation regions and reserved sheets come from `graphics_sheet_regions`,

@@ -13,6 +13,7 @@
 #include "cli/handlers/game/dungeon_render_object_plan.h"
 #include "cli/service/resources/command_context.h"
 #include "core/gfx_sheet_policy_adapter.h"
+#include "core/gfx_sheet_source.h"
 #include "nlohmann/json.hpp"
 #include "rom/rom.h"
 #include "util/macro.h"
@@ -143,6 +144,13 @@ absl::Status DungeonRenderCommandHandler::ValidateArgs(
       !parser.GetString("object-plan").has_value()) {
     return absl::InvalidArgumentError("--manifest requires --object-plan");
   }
+  if (parser.GetString("object-plan").has_value() &&
+      (parser.GetString("compiled-build-receipt").has_value() ||
+       parser.HasFlag("compiled-build-receipt"))) {
+    return absl::InvalidArgumentError(
+        "--object-plan previews authoring edits; it cannot be combined with "
+        "--compiled-build-receipt");
+  }
   if (const auto scale = parser.GetString("scale"); scale.has_value()) {
     RETURN_IF_ERROR(app::service::ParseRenderScale(*scale).status());
   }
@@ -228,10 +236,23 @@ absl::Status DungeonRenderCommandHandler::ExecuteWithContext(
     return absl::FailedPreconditionError("ROM not loaded");
   }
 
-  // Load GameData (palette groups, tileset tables).
+  // Load GameData (palette groups, tileset tables). Sheet pixels always come
+  // from the loaded ROM; the project's graphics source is never selected here.
+  const auto* compiled = invocation_context.compiled_build;
+  if (compiled != nullptr && project_ == nullptr) {
+    return absl::FailedPreconditionError(
+        "A compiled build render requires its project context");
+  }
   zelda3::LoadOptions load_options;
+  if (compiled != nullptr) {
+    load_options.expand_rom = false;
+  }
   if (project_ != nullptr) {
-    ASSIGN_OR_RETURN(auto layout, core::ResolveGfxSheetLayout(*rom, *project_));
+    ASSIGN_OR_RETURN(
+        auto layout,
+        compiled != nullptr
+            ? core::ResolveGfxSheetLayout(*rom, *project_, *compiled)
+            : core::ResolveGfxSheetLayout(*rom, *project_));
     // Keep ordinary ROM decoding unchanged. Expanded inspection must use the
     // identity-bound project layout rather than the legacy sheet limit.
     if (layout.explicit_layout) {
@@ -317,6 +338,22 @@ absl::Status DungeonRenderCommandHandler::ExecuteWithContext(
   }
   if (req.graphics_entrance_id.has_value()) {
     formatter.AddHexField("graphics_entrance_id", *req.graphics_entrance_id, 2);
+  }
+  if (compiled != nullptr) {
+    formatter.BeginObject("compiled_build");
+    formatter.AddField("receipt", compiled->receipt_path);
+    formatter.AddField("receipt_sha256", compiled->receipt_sha256);
+    formatter.AddField("state", compiled->state);
+    formatter.AddField("base_rom_sha256", compiled->base_rom_sha256);
+    formatter.AddField("output_rom_sha256", compiled->output_rom_sha256);
+    formatter.AddField("output_manifest_sha256", compiled->manifest_sha256);
+    formatter.AddField("graphics_pixels", "compiled_rom");
+    formatter.AddField(
+        "project_graphics_source",
+        core::GfxSheetSource::Selected(*project_) ? "not_used" : "none");
+    formatter.AddField("project_metadata", "current_descriptor");
+    formatter.AddField("source_tree_rehashed", false);
+    formatter.EndObject();
   }
   formatter.AddHexField("main_blockset", result.main_blockset, 2);
   AddDefaultEntranceReport(formatter, game_data, room_id);

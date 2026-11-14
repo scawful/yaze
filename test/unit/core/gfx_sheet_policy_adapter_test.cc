@@ -8,10 +8,13 @@
 #include <map>
 #include <set>
 #include <string>
+#include <string_view>
 #include <vector>
 
+#include "core/compiled_build_receipt.h"
 #include "core/hack_manifest.h"
 #include "core/project.h"
+#include "core/source_artifact_publisher.h"
 #include "unique_temp_path.h"
 #include "util/rom_hash.h"
 
@@ -149,6 +152,59 @@ TEST(GfxSheetPolicyAdapterTest,
   EXPECT_FALSE(resolved->write_authorized());
   project.rom_metadata.expected_hash = std::string(40, '0');
   EXPECT_FALSE(ResolveGfxSheetLayout(rom, project).ok());
+}
+
+CompiledBuildIdentity CompiledIdentityFor(const Rom& rom) {
+  CompiledBuildIdentity build;
+  build.output_rom_sha256 = ComputeSourceArtifactSha256(
+      std::string_view(reinterpret_cast<const char*>(rom.data()), rom.size()));
+  build.output_rom_size = rom.size();
+  return build;
+}
+
+TEST(GfxSheetPolicyAdapterTest,
+     CompiledBuildKeepsAuthoringIdentityAndRequiresOutputBytes) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(MakeLayoutRomBytes()).ok());
+  project::YazeProject project;
+  // The authoring hash names a different ROM; the receipt binds this output.
+  project.rom_metadata.expected_hash = std::string(40, '0');
+  EXPECT_FALSE(ResolveGfxSheetLayout(rom, project).ok());
+  const auto build = CompiledIdentityFor(rom);
+  const auto resolved = ResolveGfxSheetLayout(rom, project, build);
+  ASSERT_TRUE(resolved.ok()) << resolved.status();
+  EXPECT_FALSE(resolved->explicit_layout);
+  EXPECT_EQ(project.rom_metadata.expected_hash, std::string(40, '0'));
+
+  auto other = MakeLayoutRomBytes();
+  other[0x100000] ^= 1;
+  Rom changed;
+  ASSERT_TRUE(changed.LoadFromData(other).ok());
+  const auto refused = ResolveGfxSheetLayout(changed, project, build);
+  EXPECT_EQ(refused.status().code(), absl::StatusCode::kFailedPrecondition);
+  EXPECT_NE(std::string(refused.status().message()).find("receipt's output"),
+            std::string::npos);
+}
+
+TEST(GfxSheetPolicyAdapterTest, CompiledBuildRequiresCompiledExplicitLayout) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(MakeLayoutRomBytes()).ok());
+  const auto build = CompiledIdentityFor(rom);
+  project::YazeProject project;
+  ASSERT_TRUE(project.hack_manifest
+                  .LoadFromString(ExpandedLayoutManifest(rom, "development"))
+                  .ok());
+  const auto refused = ResolveGfxSheetLayout(rom, project, build);
+  EXPECT_EQ(refused.status().code(), absl::StatusCode::kFailedPrecondition);
+  EXPECT_NE(std::string(refused.status().message()).find("compiled build"),
+            std::string::npos);
+
+  ASSERT_TRUE(
+      project.hack_manifest.LoadFromString(ExpandedLayoutManifest(rom)).ok());
+  const auto resolved = ResolveGfxSheetLayout(rom, project, build);
+  ASSERT_TRUE(resolved.ok()) << resolved.status();
+  EXPECT_TRUE(resolved->explicit_layout);
+  EXPECT_FALSE(resolved->write_authorized());
 }
 
 TEST(GfxSheetPolicyAdapterTest,

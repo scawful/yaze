@@ -90,6 +90,23 @@ absl::StatusOr<zelda3::ResolvedGfxSheetLayout> ResolveGfxSheetLayout(
                                project.rom_address_overrides);
 }
 
+absl::StatusOr<zelda3::ResolvedGfxSheetLayout> ResolveGfxSheetLayout(
+    const Rom& rom, const project::YazeProject& project,
+    const CompiledBuildIdentity& build) {
+  if (!rom.is_loaded()) {
+    return absl::FailedPreconditionError("ROM not loaded");
+  }
+  RETURN_IF_ERROR(CheckCompiledBuildBytes(build, rom.data(), rom.size()));
+  const auto& declared =
+      project.hack_manifest.graphics_sheet_layout().pointer_layout;
+  if (declared && declared->rom_role != "compiled") {
+    return absl::FailedPreconditionError(
+        "Graphics pointer layout role conflicts with a compiled build");
+  }
+  return ResolveGfxSheetLayout(rom, project.hack_manifest,
+                               project.rom_address_overrides);
+}
+
 absl::StatusOr<zelda3::GfxSheetWritePolicy> BuildGfxSheetWritePolicy(
     const HackManifest& manifest) {
   const auto& declared = manifest.graphics_sheet_layout().pointer_layout;

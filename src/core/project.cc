@@ -23,6 +23,7 @@
 #include "absl/strings/str_split.h"
 #include "absl/strings/strip.h"
 #include "app/gui/core/icons.h"
+#include "core/compiled_build_receipt.h"
 #include "core/lyra_terrain_document.h"
 #include "core/native_save_receipt.h"
 #include "core/source_artifact_publisher.h"
@@ -1054,13 +1055,9 @@ YazeProject::ResolveExpandedBuildRunTarget(
       return ExpandedRunPathText(target.parent_path() / name);
     };
     ASSIGN_OR_RETURN(const auto build, load(sibling("oos168x.build.json")));
-    RETURN_IF_ERROR(ExpandedRunRequire(
-        build.at("schema_version") == 1 &&
-            (build.at("state") == "completed" ||
-             build.at("state") == "completed_with_gaps") &&
-            build.at("finish").at("exit_code") == 0 &&
-            build.at("finish").at("required_gaps") == Json::array(),
-        "the selected build is incomplete or failed"));
+    RETURN_IF_ERROR(
+        ExpandedRunRequire(core::IsSuccessfulBuildReceipt(build),
+                           "the selected build is incomplete or failed"));
     RETURN_IF_ERROR(same_path(build.at("root"), engine));
     const auto& artifacts = build.at("artifacts");
     for (const char* key :

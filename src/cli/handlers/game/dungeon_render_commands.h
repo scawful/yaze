@@ -15,6 +15,7 @@ namespace handlers {
 //                       items,all]
 //           [--scale=<float>] [--entrance=<hex_id>|--graphics-entrance=<hex_id>]
 //           [--project-context=<project.yaze>]
+//           [--compiled-build-receipt=<build.json>]
 //           [--object-plan=<plan.json>] [--manifest=<manifest.json>]
 // Example: dungeon-render --room=0x056 --entrance=0x79 --output=castle79.png
 //
@@ -23,6 +24,11 @@ namespace handlers {
 // Example: dungeon-render --room=0x095 --graphics-entrance=0x29 --output=sky95.png
 //
 // --project-context loads project custom objects; expanded hacks need it.
+//
+// --compiled-build-receipt renders a compiled ROM with its authoring project:
+// the receipt must bind the project ROM, code folder and build target, and the
+// loaded ROM must be its output. Graphics pixels come from the compiled ROM;
+// custom objects and labels come from the current project descriptor.
 //
 // Writes a PNG file to --output. Exits non-zero on failure.
 // Designed for agentic workflows where a long-lived server is inconvenient.
@@ -36,8 +42,11 @@ class DungeonRenderCommandHandler : public resources::CommandHandler {
            "[--scale=<float>] "
            "[--entrance=<hex_id>|--graphics-entrance=<hex_id>] "
            "[--project-context=<project.yaze>] "
+           "[--compiled-build-receipt=<build.json>] "
            "[--object-plan=<plan.json>] [--manifest=<manifest.json>]";
   }
+
+  bool AcceptsCompiledBuildReceipt() const override { return true; }
 
   Descriptor Describe() const override {
     auto descriptor = resources::CommandHandler::Describe();
@@ -62,6 +71,10 @@ class DungeonRenderCommandHandler : public resources::CommandHandler {
         {"project-context",
          "Project file supplying custom objects such as Oracle rails; place "
          "after the subcommand",
+         ""},
+        {"compiled-build-receipt",
+         "Oracle build receipt (oos168x.build.json) proving --rom is the "
+         "compiled output of the --project-context project; read-only",
          ""}};
     return descriptor;
   }

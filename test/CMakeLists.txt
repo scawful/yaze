@@ -323,6 +323,7 @@ if(YAZE_BUILD_TESTS)
   # stable owns its Asar sources through its existing conditional block.
   set(QUICK_UNIT_CORE_TEST_SOURCES
     unit/core/hack_manifest_test.cc
+    unit/core/compiled_build_receipt_test.cc
     unit/core/gfx_sheet_policy_adapter_test.cc
     unit/core/gfx_sheet_source_test.cc
     unit/core/oracle_progression_test.cc

@@ -12,7 +12,8 @@
 #include "absl/strings/string_view.h"
 #include "cli/service/resources/command_context.h"
 #include "core/asar_wrapper.h"  // For AsarWrapper
-#include "core/project.h"       // For YazeProject
+#include "core/compiled_build_receipt.h"
+#include "core/project.h"  // For YazeProject
 #include "rom/rom.h"
 
 namespace yaze {
@@ -26,6 +27,9 @@ struct CommandInvocationContext {
   std::optional<std::filesystem::path> source_rom_path;
   std::optional<std::filesystem::path> active_rom_path;
   bool sandbox_enabled = false;
+  // Set when --compiled-build-receipt authenticated the active ROM as the
+  // compiled output of the --project-context project.
+  const core::CompiledBuildIdentity* compiled_build = nullptr;
 };
 
 // Resolve an artifact destination once and reject aliases of either ROM used
@@ -127,6 +131,14 @@ class CommandHandler {
    * Override to return false if labels are not needed.
    */
   virtual bool RequiresLabels() const { return false; }
+
+  /**
+   * @brief Whether --compiled-build-receipt may select a compiled ROM.
+   *
+   * Only read-only handlers may return true: the active ROM stays read-only
+   * and --write/--sandbox are refused with the receipt.
+   */
+  virtual bool AcceptsCompiledBuildReceipt() const { return false; }
 
   /**
    * @brief Set the YazeProject context.

@@ -18,6 +18,7 @@ endif()
 set(YAZE_CORE_LIB_SOURCES
   asar_wrapper.cc
   $<$<BOOL:${YAZE_ENABLE_Z3DK}>:${CMAKE_CURRENT_SOURCE_DIR}/z3dk_wrapper.cc>
+  compiled_build_receipt.cc
   dungeon_stream_layout_adapter.cc
   gfx_sheet_policy_adapter.cc
   gfx_sheet_source.cc

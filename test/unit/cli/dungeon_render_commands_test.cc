@@ -359,6 +359,172 @@ TEST_F(DungeonRenderCommandsTest,
   EXPECT_FALSE(rom_.dirty());
 }
 
+// An authoring project, its saved ROM and the receipt of a completed build
+// whose output is the loaded ROM.
+class DungeonRenderCompiledBuildTest : public DungeonRenderCommandsTest {
+ protected:
+  void SetUp() override {
+    DungeonRenderCommandsTest::SetUp();
+    root_ = std::filesystem::canonical(directory_);
+    output_bytes_ = rom_.vector();
+    output_bytes_[0x7FD9] = 1;  // US graphics tables.
+    base_bytes_ = output_bytes_;
+    base_bytes_[0x100] ^= 0xFF;
+    ASSERT_TRUE(project_.Create("authoring", Text(root_)).ok());
+    project_.rom_filename = Text(root_ / "authoring.sfc");
+    target_ = root_ / "authoring" / "code" / "Roms" / "oos168x.sfc";
+    project_.build_target = Text(target_);
+    project_.rom_metadata.expected_hash =
+        util::ComputeSha1Hex(base_bytes_.data(), base_bytes_.size());
+    ASSERT_TRUE(project_.Save().ok());
+    std::filesystem::create_directories(target_.parent_path());
+    Write(root_ / "authoring.sfc", base_bytes_);
+    Write(target_, output_bytes_);
+    receipt_ = target_.parent_path() / "oos168x.build.json";
+    const nlohmann::json receipt = {
+        {"schema_version", 1},
+        {"state", "completed"},
+        {"root", Text(root_ / "authoring" / "code")},
+        {"base_rom", Row(root_ / "authoring.sfc", base_bytes_)},
+        {"artifacts", {{"output_rom", Row(target_, output_bytes_)}}},
+        {"finish",
+         {{"exit_code", 0}, {"required_gaps", nlohmann::json::array()}}}};
+    const auto text = receipt.dump();
+    Write(receipt_, std::vector<uint8_t>(text.begin(), text.end()));
+    ASSERT_TRUE(rom_.LoadFromData(output_bytes_).ok());
+    rom_.set_filename(target_.string());
+    png_ = root_ / "room.png";
+  }
+
+  static std::string Text(const std::filesystem::path& path) {
+    const auto text = path.generic_u8string();
+    return std::string(text.begin(), text.end());
+  }
+
+  static void Write(const std::filesystem::path& path,
+                    const std::vector<uint8_t>& bytes) {
+    std::ofstream out(path, std::ios::binary | std::ios::trunc);
+    out.write(reinterpret_cast<const char*>(bytes.data()),
+              static_cast<std::streamsize>(bytes.size()));
+    ASSERT_TRUE(out.good());
+  }
+
+  static nlohmann::json Row(const std::filesystem::path& path,
+                            const std::vector<uint8_t>& bytes) {
+    return {{"path", Text(path)},
+            {"sha256",
+             core::ComputeSourceArtifactSha256(std::string_view(
+                 reinterpret_cast<const char*>(bytes.data()), bytes.size()))},
+            {"size", bytes.size()}};
+  }
+
+  std::vector<std::string> Args(bool with_receipt = true) const {
+    std::vector<std::string> args{"--room=0", "--output", png_.string(),
+                                  "--project-context=" + project_.filepath};
+    if (with_receipt) {
+      args.push_back("--compiled-build-receipt=" + receipt_.string());
+    }
+    return args;
+  }
+
+  void ExpectNothingWritten() {
+    EXPECT_FALSE(std::filesystem::exists(png_));
+    EXPECT_EQ(rom_.vector(), output_bytes_);
+    EXPECT_FALSE(rom_.dirty());
+    EXPECT_EQ(ReadBytes(root_ / "authoring.sfc"), base_bytes_);
+  }
+
+  std::filesystem::path root_, target_, receipt_, png_;
+  std::vector<uint8_t> base_bytes_, output_bytes_;
+  project::YazeProject project_;
+};
+
+TEST_F(DungeonRenderCompiledBuildTest,
+       ReceiptAdmitsTheCompiledOutputUnderAuthoringIdentity) {
+  handlers::DungeonRenderCommandHandler handler;
+  std::string formatted;
+  const auto refused = handler.Run(Args(false), &rom_, &formatted);
+  EXPECT_TRUE(absl::IsFailedPrecondition(refused)) << refused;
+  EXPECT_NE(refused.message().find("expected ROM identity"),
+            absl::string_view::npos)
+      << refused;
+  ExpectNothingWritten();
+
+  const auto status = handler.Run(Args(), &rom_, &formatted);
+  EXPECT_EQ(status.message().find("expected ROM identity"),
+            absl::string_view::npos)
+      << status;
+  EXPECT_EQ(status.message().find("receipt"), absl::string_view::npos)
+      << status;
+  if (status.ok()) {
+    EXPECT_NE(formatted.find("\"graphics_pixels\": \"compiled_rom\""),
+              std::string::npos)
+        << formatted;
+    EXPECT_TRUE(std::filesystem::exists(png_));
+  }
+  EXPECT_EQ(rom_.vector(), output_bytes_);
+  EXPECT_FALSE(rom_.dirty());
+  EXPECT_EQ(ReadBytes(target_), output_bytes_);
+  EXPECT_EQ(ReadBytes(root_ / "authoring.sfc"), base_bytes_);
+}
+
+TEST_F(DungeonRenderCompiledBuildTest, ReceiptRefusesOtherBytesAndStaleOutput) {
+  handlers::DungeonRenderCommandHandler handler;
+  std::string formatted;
+  Rom other;
+  ASSERT_TRUE(other.LoadFromData(base_bytes_).ok());
+  const auto wrong_rom = handler.Run(Args(), &other, &formatted);
+  EXPECT_TRUE(absl::IsFailedPrecondition(wrong_rom)) << wrong_rom;
+  EXPECT_NE(wrong_rom.message().find("not the receipt's output"),
+            absl::string_view::npos)
+      << wrong_rom;
+  EXPECT_FALSE(std::filesystem::exists(png_));
+
+  auto stale = output_bytes_;
+  stale[0x200] ^= 1;
+  Write(target_, stale);
+  const auto changed = handler.Run(Args(), &rom_, &formatted);
+  EXPECT_TRUE(absl::IsFailedPrecondition(changed)) << changed;
+  EXPECT_NE(changed.message().find("changed since the build"),
+            absl::string_view::npos)
+      << changed;
+  ExpectNothingWritten();
+}
+
+TEST_F(DungeonRenderCompiledBuildTest, ReceiptIsReadOnlyAndRenderOnly) {
+  std::string formatted;
+  handlers::DungeonSetDoorTypeCommandHandler door;
+  const auto mutating =
+      door.Run({"--room=0", "--door-type=0", "--write",
+                "--project-context=" + project_.filepath,
+                "--compiled-build-receipt=" + receipt_.string()},
+               &rom_, &formatted);
+  EXPECT_TRUE(absl::IsInvalidArgument(mutating)) << mutating;
+  EXPECT_NE(mutating.message().find("does not accept"), absl::string_view::npos)
+      << mutating;
+
+  handlers::DungeonRenderCommandHandler handler;
+  const std::string receipt = "--compiled-build-receipt=" + receipt_.string();
+  for (const auto& args : std::vector<std::vector<std::string>>{
+           {"--room=0", "--output", png_.string(), receipt},
+           {"--room=0", "--output", png_.string(),
+            "--project-context=" + project_.filepath,
+            "--compiled-build-receipt="},
+           {"--room=0", "--output", png_.string(),
+            "--project-context=" + project_.filepath, receipt, "--sandbox"},
+           {"--room=0", "--output", png_.string(),
+            "--project-context=" + project_.filepath, receipt, "--write"},
+           {"--room=0", "--output", png_.string(),
+            "--project-context=" + project_.filepath, receipt,
+            "--object-plan=plan.json"}}) {
+    SCOPED_TRACE(args.back());
+    const auto status = handler.Run(args, &rom_, &formatted);
+    EXPECT_TRUE(absl::IsInvalidArgument(status)) << status;
+  }
+  ExpectNothingWritten();
+  EXPECT_EQ(ReadBytes(target_), output_bytes_);
+}
+
 TEST_F(DungeonRenderCommandsTest, RejectsDirectAndNormalizedRomOutputAliases) {
   ExpectRejectedAlias(source_);
   ASSERT_TRUE(std::filesystem::create_directory(directory_ / "nested"));
