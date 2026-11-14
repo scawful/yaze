@@ -4,6 +4,7 @@
 #include <string>
 
 #include "app/editor/core/content_registry.h"
+#include "app/editor/hack/workflow/build_log_view.h"
 #include "app/editor/system/editor_panel.h"
 #include "app/gui/core/icons.h"
 
@@ -32,8 +33,11 @@ class ProjectWorkflowOutputPanel : public WindowContent {
 
  private:
   void DrawStatusCard(const char* fallback_icon,
-                      const ProjectWorkflowStatus& status);
+                      const ProjectWorkflowStatus& status,
+                      bool show_output_tail = true);
   void DrawHistoryEntry(const ProjectWorkflowHistoryEntry& entry, int index);
+
+  BuildLogView build_log_view_;
 };
 
 }  // namespace yaze::editor::workflow

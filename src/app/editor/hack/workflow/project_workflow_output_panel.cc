@@ -27,8 +27,10 @@ void ProjectWorkflowOutputPanel::Draw(bool* p_open) {
     return;
   }
 
+  build_log_view_.SetLog(build_log);
   if (build_status.visible) {
-    DrawStatusCard(ICON_MD_BUILD, build_status);
+    DrawStatusCard(ICON_MD_BUILD, build_status,
+                   /*show_output_tail=*/build_log.empty());
     if (build_status.can_cancel && cancel_build) {
       if (ImGui::Button(ICON_MD_CANCEL " Cancel Build")) {
         cancel_build();
@@ -46,16 +48,9 @@ void ProjectWorkflowOutputPanel::Draw(bool* p_open) {
     ImGui::Separator();
     ImGui::TextColored(gui::GetTextSecondaryVec4(), tr("%s Build Output"),
                        ICON_MD_TERMINAL);
-    ImGui::SameLine();
-    DrawCopyCurrentLogButton(build_log);
-    if (ImGui::BeginChild("##workflow_output_log", ImVec2(0, 240), true,
-                          ImGuiWindowFlags_HorizontalScrollbar)) {
-      ImGui::TextUnformatted(build_log.c_str());
-      if (ImGui::GetScrollY() >= ImGui::GetScrollMaxY()) {
-        ImGui::SetScrollHereY(1.0f);
-      }
-    }
-    ImGui::EndChild();
+    build_log_view_.Draw(
+        "workflow_output_log", 240.0f,
+        /*follow_tail=*/build_status.state == ProjectWorkflowState::kRunning);
   }
 
   if (!history.empty()) {
@@ -73,14 +68,15 @@ void ProjectWorkflowOutputPanel::Draw(bool* p_open) {
 }
 
 void ProjectWorkflowOutputPanel::DrawStatusCard(
-    const char* fallback_icon, const ProjectWorkflowStatus& status) {
+    const char* fallback_icon, const ProjectWorkflowStatus& status,
+    bool show_output_tail) {
   ImGui::TextColored(
       WorkflowColor(status.state), "%s %s", WorkflowIcon(status, fallback_icon),
       status.summary.empty() ? status.label.c_str() : status.summary.c_str());
   if (!status.detail.empty()) {
     ImGui::TextWrapped("%s", status.detail.c_str());
   }
-  if (!status.output_tail.empty()) {
+  if (show_output_tail && !status.output_tail.empty()) {
     ImGui::TextWrapped("%s", status.output_tail.c_str());
   }
 }
