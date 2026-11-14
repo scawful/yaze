@@ -634,9 +634,9 @@ PrepareNativeOverworldPaletteSave(const Rom& rom, const GameData& data,
       RETURN_IF_ERROR(prepare_group(*data.palette_groups.get_group(name)));
   }
   // Run the same ownership/preimage validation before an editor changes bytes.
-  RETURN_IF_ERROR(rom::SealNativeOverworldTerrain(rom.vector(), rom.vector(),
-                                                  {}, {}, nullptr, nullptr,
-                                                  &plan)
+  RETURN_IF_ERROR(rom::SealNativeOverworldTerrain(
+                      rom.vector(), rom.vector(), {}, {}, nullptr, nullptr,
+                      &plan, nullptr, nullptr, rom.experimental_page_tile16())
                       .status());
   return plan;
 }
