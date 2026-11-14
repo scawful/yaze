@@ -79,7 +79,8 @@ class OverworldSetTileCommandHandler : public resources::CommandHandler {
 // Imports physical pages into an already-loaded native overworld. Publication
 // is deliberately separate from the caller's ROM and is exclusive-create only.
 // --native-source consumes a hash-bound native-source export instead of a
-// donor ROM: selected special pages' grids and page Tile16 definitions only.
+// donor ROM: selected special pages' grids and page Tile16 definitions, plus
+// their appearance profiles when --apply-native-profiles is set.
 class OverworldImportMapsCommandHandler : public resources::CommandHandler {
  public:
   std::string GetName() const override { return "overworld-import-maps"; }
@@ -99,6 +100,7 @@ class OverworldImportMapsCommandHandler : public resources::CommandHandler {
   std::string GetUsage() const override {
     return "overworld-import-maps (--donor <rom> | --native-source <json>) "
            "[--native-source-sha256 <sha256>] [--experimental-page-tile16] "
+           "[--apply-native-profiles] "
            "--maps <hex,hex,...> --output <new-rom> [--write] "
            "[--format <json|text>]";
   }

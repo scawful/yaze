@@ -360,6 +360,45 @@ absl::Status AppendNativeImportPlan(Rom& rom,
 
 }  // namespace
 
+absl::Status LoadNativeSourceGameData(Rom& rom,
+                                      const project::YazeProject* project,
+                                      zelda3::GameData& game_data) {
+  zelda3::LoadOptions options;
+  options.expand_rom = false;
+  // The project's graphics layout and source, resolved as the editor's ROM
+  // load does, including its ROM identity and source binding checks.
+  if (project &&
+      (project->hack_manifest.graphics_sheet_layout().pointer_layout ||
+       core::GfxSheetSource::Selected(*project))) {
+    ASSIGN_OR_RETURN(auto sheet_layout,
+                     core::ResolveGfxSheetLayout(rom, *project));
+    if (sheet_layout.explicit_layout)
+      options.gfx_sheet_layout = std::move(sheet_layout);
+    if (core::GfxSheetSource::Selected(*project)) {
+      ASSIGN_OR_RETURN(options.gfx_sheet_source,
+                       core::GfxSheetSource::Load(*project));
+    }
+  }
+  return zelda3::LoadGameData(rom, game_data, options);
+}
+
+absl::Status CheckNativeResolvedSheets(const zelda3::OverworldMap& resolved,
+                                       const zelda3::GameData& game_data,
+                                       int map_id, int state) {
+  for (int slot = 0; slot < 16; ++slot) {
+    if (!game_data.HasGraphicsSheet(resolved.static_graphics(slot)))
+      return absl::OutOfRangeError(absl::StrFormat(
+          "A resolved native graphics sheet is unavailable: map $%02X "
+          "phase %d sheet $%02X is in neither the ROM table nor the bound "
+          "graphics source",
+          map_id, state, resolved.static_graphics(slot)));
+  }
+  if (!game_data.HasGraphicsSheet(resolved.animated_sheet()))
+    return absl::OutOfRangeError(
+        "A resolved native animation sheet is unavailable");
+  return absl::OkStatus();
+}
+
 absl::Status OverworldInitPageTile16CommandHandler::Execute(
     Rom* rom, const resources::ArgumentParser& parser,
     resources::OutputFormatter& formatter) {
@@ -491,23 +530,7 @@ absl::Status OverworldExportNativeSourceCommandHandler::Execute(
   ScopedLyraRomAddresses addresses(overrides);
   auto game_data_owner = std::make_unique<zelda3::GameData>();
   auto& game_data = *game_data_owner;
-  zelda3::LoadOptions options;
-  options.expand_rom = false;
-  // The project's graphics layout and source, resolved as the editor's ROM
-  // load does, including its ROM identity and source binding checks.
-  if (project_ &&
-      (project_->hack_manifest.graphics_sheet_layout().pointer_layout ||
-       core::GfxSheetSource::Selected(*project_))) {
-    ASSIGN_OR_RETURN(auto sheet_layout,
-                     core::ResolveGfxSheetLayout(*rom, *project_));
-    if (sheet_layout.explicit_layout)
-      options.gfx_sheet_layout = std::move(sheet_layout);
-    if (core::GfxSheetSource::Selected(*project_)) {
-      ASSIGN_OR_RETURN(options.gfx_sheet_source,
-                       core::GfxSheetSource::Load(*project_));
-    }
-  }
-  RETURN_IF_ERROR(zelda3::LoadGameData(*rom, game_data, options));
+  RETURN_IF_ERROR(LoadNativeSourceGameData(*rom, project_, game_data));
   zelda3::Overworld world(rom, &game_data);
   RETURN_IF_ERROR(world.Load(rom));
   ASSIGN_OR_RETURN(const auto snapshot, world.CaptureNativeAreaSnapshot());
@@ -576,18 +599,9 @@ absl::Status OverworldExportNativeSourceCommandHandler::Execute(
             palette_status.code(),
             absl::StrFormat("Special overworld map $%02X phase %d: %s", map_id,
                             state, palette_status.message()));
-      for (int slot = 0; slot < 16; ++slot) {
-        if (!game_data.HasGraphicsSheet(resolved.static_graphics(slot)))
-          return absl::OutOfRangeError(absl::StrFormat(
-              "A resolved native graphics sheet is unavailable: map $%02X "
-              "phase %d sheet $%02X is in neither the ROM table nor the bound "
-              "graphics source",
-              map_id, state, resolved.static_graphics(slot)));
-      }
+      RETURN_IF_ERROR(
+          CheckNativeResolvedSheets(resolved, game_data, map_id, state));
       const size_t animation = resolved.animated_sheet();
-      if (!game_data.HasGraphicsSheet(animation))
-        return absl::OutOfRangeError(
-            "A resolved native animation sheet is unavailable");
       RETURN_IF_ERROR(resolved.BuildTileset());
       const auto& pixels = resolved.current_graphics();
       const auto& palette = resolved.current_palette();

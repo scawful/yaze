@@ -1,6 +1,7 @@
 #include "cli/handlers/game/overworld_commands.h"
 
 #include <algorithm>
+#include <array>
 #include <filesystem>
 #include <fstream>
 #include <iterator>
@@ -19,11 +20,14 @@
 #include "absl/strings/str_join.h"
 #include "absl/strings/str_split.h"
 #include "cli/handlers/game/overworld_inspect.h"
+#include "cli/handlers/game/overworld_render_commands.h"
 #include "cli/handlers/game/overworld_sprite_edit_commands.h"
 #include "cli/util/hex_util.h"
 #include "cli/util/sprite_label_fields.h"
 #include "core/features.h"
+#include "core/gfx_sheet_source.h"
 #include "core/project.h"
+#include "core/rom_settings.h"
 #include "core/source_artifact_publisher.h"
 #include "nlohmann/json.hpp"
 #include "rom/lyra_layout_descriptor.h"
@@ -468,19 +472,77 @@ uint16_t& SpecialPageCell(zelda3::OverworldBlockset& grid, int map, int x,
   return grid[(map % 8) * 32 + x][((map % 64) / 8) * 32 + y];
 }
 
+// Profile fields --apply-native-profiles may change, with their native
+// directory tables: 1, 5, 6, 31, 410 and 411.
+constexpr std::array<const char*, 6> kAppliedProfileFields = {
+    "background_color", "subscreen_overlay", "graphics_sheets",
+    "palette_set",      "appearance_flags",  "background_palette_words"};
+constexpr std::array<uint16_t, 6> kAppliedProfileTables = {1,  5,   6,
+                                                           31, 410, 411};
+
+std::vector<std::string> ProfileDifferences(const nlohmann::json& expected,
+                                            const nlohmann::json& recorded) {
+  std::vector<std::string> fields;
+  for (const auto& [key, value] : expected.items())
+    if (!recorded.contains(key) || recorded.at(key) != value)
+      fields.push_back(key);
+  for (const auto& [key, value] : recorded.items())
+    if (!expected.contains(key))
+      fields.push_back(key);
+  return fields;
+}
+
+// Sets the applied fields of `map` in `snapshot` from a requested profile.
+// Values the model refuses (appearance flags, colors) are left to
+// RestoreNativeAreaSnapshot.
+void SetAppliedProfile(const nlohmann::json& requested, int map,
+                       zelda3::OverworldAreaSnapshot& snapshot) {
+  auto& page = snapshot.pages[map];
+  page.background = static_cast<uint16_t>(RequireJsonInt(
+      requested.at("background_color"), "background_color", 0, 0x7FFF));
+  page.overlay = static_cast<uint16_t>(RequireJsonInt(
+      requested.at("subscreen_overlay"), "subscreen_overlay", 0, 0xFFFF));
+  const auto& sheets = requested.at("graphics_sheets");
+  if (!sheets.is_array() || sheets.size() != page.graphics.size())
+    throw std::out_of_range("graphics_sheets must list 8 sheets");
+  for (size_t slot = 0; slot < page.graphics.size(); ++slot)
+    page.graphics[slot] = static_cast<uint8_t>(
+        RequireJsonInt(sheets[slot], "graphics_sheets", 0, 0xFF));
+  snapshot.profiles[map].palette = static_cast<uint8_t>(
+      RequireJsonInt(requested.at("palette_set"), "palette_set", 0, 0xFF));
+  page.appearance_flags = static_cast<uint8_t>(RequireJsonInt(
+      requested.at("appearance_flags"), "appearance_flags", 0, 0xFF));
+  const auto& words = requested.at("background_palette_words");
+  if (!words.is_array() || words.size() != page.appearance_bg_palette.size())
+    throw std::out_of_range("background_palette_words must list 128 colors");
+  for (size_t i = 0; i < page.appearance_bg_palette.size(); ++i)
+    page.appearance_bg_palette[i] = static_cast<uint16_t>(
+        RequireJsonInt(words[i], "background_palette_words", 0, 0xFFFF));
+}
+
 // Selected special pages from a native-source export: grids plus page Tile16
-// definitions. Graphics, palettes and area profiles are never written; a page
-// whose recorded profile differs from the target is refused.
+// definitions. Graphics and palette data are never written. A page whose
+// recorded profile differs from the target is refused unless
+// --apply-native-profiles is set; then the page's `expected_source_profile`
+// must equal the target and only the applied fields may change.
 absl::Status ImportNativeSourcePages(
     Rom* rom, const resources::ArgumentParser& parser,
     resources::OutputFormatter& formatter,
-    const resources::CommandInvocationContext& context) {
+    const resources::CommandInvocationContext& context,
+    const project::YazeProject* project) {
   if (!parser.HasFlag("experimental-page-tile16"))
     return absl::FailedPreconditionError(
         "--native-source requires --experimental-page-tile16");
   if (!rom || !rom->is_loaded())
     return absl::FailedPreconditionError(
         "Target must be a loaded native overworld");
+  const bool apply_profiles = parser.HasFlag("apply-native-profiles");
+  const auto saved_addresses = core::RomSettings::Get().address_overrides();
+  if (project)
+    core::RomSettings::Get().SetAddressOverrides(
+        project->rom_address_overrides);
+  auto restore_addresses = absl::MakeCleanup(
+      [&] { core::RomSettings::Get().SetAddressOverrides(saved_addresses); });
   ASSIGN_OR_RETURN(const auto output, resources::ResolveStableArtifactPath(
                                           *parser.GetString("output")));
   ASSIGN_OR_RETURN(
@@ -550,6 +612,7 @@ absl::Status ImportNativeSourcePages(
   // The whole manifest is validated before the model changes, including pages
   // outside the selection.
   std::map<int, std::vector<uint16_t>> source_tiles;
+  auto desired = snapshot;
   try {
     const auto source = nlohmann::json::parse(text);
     if (!source.is_object() || source.at("schema") != kNativeSourceSchema ||
@@ -586,8 +649,19 @@ absl::Status ImportNativeSourcePages(
       if (!by_map.emplace(map, &page).second)
         return absl::InvalidArgumentError(
             absl::StrFormat("Native source repeats page $%02X", map));
-      if (selected.count(map))
+      if (selected.count(map)) {
         source_tiles.emplace(map, std::move(cells));
+      } else if (apply_profiles) {
+        const auto preimage = page.contains("expected_source_profile")
+                                  ? page.at("expected_source_profile")
+                                  : zelda3::NativeSourcePageProfile(
+                                        snapshot, layout.revision, map);
+        if (page.at("source_profile") != preimage)
+          return absl::FailedPreconditionError(absl::StrFormat(
+              "Native source requests a profile change on unselected page "
+              "$%02X",
+              map));
+      }
     }
     for (int map : selected) {
       const auto found = by_map.find(map);
@@ -606,27 +680,81 @@ absl::Status ImportNativeSourcePages(
       const auto expected =
           zelda3::NativeSourcePageProfile(snapshot, layout.revision, map);
       const auto& recorded = found->second->at("source_profile");
-      if (recorded != expected) {
-        std::vector<std::string> fields;
-        for (const auto& [key, value] : expected.items())
-          if (!recorded.contains(key) || recorded.at(key) != value)
-            fields.push_back(key);
-        for (const auto& [key, value] : recorded.items())
-          if (!expected.contains(key))
-            fields.push_back(key);
-        return absl::FailedPreconditionError(absl::StrFormat(
-            "Native source page $%02X profile differs from the target (%s); "
-            "bind a matching graphics/profile before importing",
-            map, absl::StrJoin(fields, ",")));
+      if (!apply_profiles) {
+        if (recorded != expected)
+          return absl::FailedPreconditionError(absl::StrFormat(
+              "Native source page $%02X profile differs from the target (%s); "
+              "bind a matching graphics/profile before importing",
+              map, absl::StrJoin(ProfileDifferences(expected, recorded), ",")));
+        continue;
       }
+      if (!found->second->contains("expected_source_profile"))
+        return absl::FailedPreconditionError(
+            absl::StrFormat("--apply-native-profiles requires page $%02X "
+                            "expected_source_profile",
+                            map));
+      const auto& preimage = found->second->at("expected_source_profile");
+      if (preimage != expected)
+        return absl::FailedPreconditionError(absl::StrFormat(
+            "Native source page $%02X expected_source_profile differs from "
+            "the target (%s); the target changed since the profile was "
+            "planned",
+            map, absl::StrJoin(ProfileDifferences(expected, preimage), ",")));
+      std::vector<std::string> other_fields;
+      for (const auto& field : ProfileDifferences(expected, recorded))
+        if (std::find(kAppliedProfileFields.begin(),
+                      kAppliedProfileFields.end(),
+                      field) == kAppliedProfileFields.end())
+          other_fields.push_back(field);
+      if (!other_fields.empty())
+        return absl::FailedPreconditionError(
+            absl::StrFormat("Native source page $%02X changes profile fields "
+                            "--apply-native-profiles does not apply (%s)",
+                            map, absl::StrJoin(other_fields, ",")));
+      SetAppliedProfile(recorded, map, desired);
+      if (zelda3::NativeSourcePageProfile(desired, layout.revision, map) !=
+          recorded)
+        return absl::InternalError(absl::StrFormat(
+            "Native source page $%02X profile did not map onto the model",
+            map));
     }
   } catch (const std::exception& error) {
     return absl::InvalidArgumentError(std::string("Invalid native source: ") +
                                       error.what());
   }
 
+  // Requested sheets resolve as the exporter resolves them: the ROM's sheet
+  // table or the project's bound graphics source.
+  std::optional<core::GfxSheetSource> bound_source;
+  if (apply_profiles) {
+    Rom probe_rom;
+    RETURN_IF_ERROR(probe_rom.LoadFromData(rom->vector(), rom_options));
+    probe_rom.EnableExperimentalPageTile16();
+    auto game_data = std::make_unique<zelda3::GameData>();
+    RETURN_IF_ERROR(LoadNativeSourceGameData(probe_rom, project, *game_data));
+    zelda3::Overworld probe(&probe_rom, game_data.get());
+    RETURN_IF_ERROR(probe.Load(&probe_rom));
+    RETURN_IF_ERROR(probe.RestoreNativeAreaSnapshot(desired));
+    for (int map : selected) {
+      for (int state = 0; state < 3; ++state) {
+        auto resolved = *probe.overworld_map(map);
+        resolved.set_game_state(state);
+        resolved.LoadAreaGraphics();
+        RETURN_IF_ERROR(
+            CheckNativeResolvedSheets(resolved, *game_data, map, state));
+      }
+    }
+    if (game_data->gfx_sheet_source) {
+      bound_source = game_data->gfx_sheet_source;
+      RETURN_IF_ERROR(bound_source->CheckBinding(*project));
+      RETURN_IF_ERROR(bound_source->CheckDisk());
+    }
+  }
+
   const auto before_global = target.tiles16();
   const auto before_rows = target.page_tile16();
+  if (apply_profiles)
+    RETURN_IF_ERROR(target.RestoreNativeAreaSnapshot(desired));
   auto grid = target.map_tiles();
   std::vector<uint16_t> maps(selected.begin(), selected.end());
   RETURN_IF_ERROR(zelda3::ImportNativePageTile16Source(target, text, maps));
@@ -652,7 +780,7 @@ absl::Status ImportNativeSourcePages(
       absl::MakeCleanup([&] { core::FeatureFlags::get() = old_flags; });
   auto& flags = core::FeatureFlags::get();
   flags.overworld.kSaveOverworldMaps = true;
-  flags.overworld.kSaveOverworldProperties = false;
+  flags.overworld.kSaveOverworldProperties = apply_profiles;
   flags.overworld.kSaveOverworldSprites = false;
   flags.overworld.kSaveOverworldEntrances = false;
   flags.overworld.kSaveOverworldExits = false;
@@ -684,6 +812,31 @@ absl::Status ImportNativeSourcePages(
                          (entry.id >= 210 && entry.id <= 213) ||
                          (entry.id >= 400 && entry.id <= 404) ||
                          entry.id == rom::kNativePageTile16TableId;
+    const bool profile_table =
+        apply_profiles &&
+        std::find(kAppliedProfileTables.begin(), kAppliedProfileTables.end(),
+                  entry.id) != kAppliedProfileTables.end();
+    if (profile_table) {
+      // Table 411 rows start at page $80, as the native writer indexes them.
+      const int first_map = entry.id == 411 ? 0x80 : 0;
+      for (int map = first_map; map < map_count; ++map) {
+        if (selected.count(map))
+          continue;
+        const size_t row = map - first_map;
+        const auto before =
+            rom::LyraLayoutRecord(before_layout, target_bytes.data(),
+                                  target_bytes.size(), entry.id, row);
+        const auto after = rom::LyraLayoutRecord(after_layout, staged.data(),
+                                                 staged.size(), entry.id, row);
+        if (before.has_value() != after.has_value() ||
+            (before && !std::equal(before->begin(), before->end(),
+                                   after->begin(), after->end())))
+          return absl::DataLossError(absl::StrFormat(
+              "Import changed table %d of unselected page $%02X", entry.id,
+              map));
+      }
+      continue;
+    }
     const size_t length = size_t{entry.count} * entry.stride;
     if (!terrain &&
         !std::equal(target_bytes.begin() + entry.pc_address,
@@ -733,7 +886,15 @@ absl::Status ImportNativeSourcePages(
       saved.dark_world != grid.dark_world ||
       saved.special_world != grid.special_world)
     return absl::DataLossError("Imported terrain grid did not read back");
+  ASSIGN_OR_RETURN(const auto saved_areas, fresh.CaptureNativeAreaSnapshot());
+  if (saved_areas != desired)
+    return absl::DataLossError(
+        "Imported area profiles, geometry or sprites did not read back");
 
+  if (bound_source) {
+    RETURN_IF_ERROR(bound_source->CheckBinding(*project));
+    RETURN_IF_ERROR(bound_source->CheckDisk());
+  }
   RETURN_IF_ERROR(CheckImportInputUnchanged(
       source_path, std::vector<uint8_t>(text.begin(), text.end())));
   if (context.active_rom_path)
@@ -759,7 +920,9 @@ absl::Status ImportNativeSourcePages(
   formatter.AddField("selected_page_rows", changed_rows);
   formatter.AddField("changed_cells", changed_cells);
   formatter.AddField("changed_bytes", static_cast<int>(changed_bytes));
-  formatter.AddField("profile_writes", false);
+  formatter.AddField("profile_writes", apply_profiles);
+  formatter.AddField("applied_profile_pages",
+                     apply_profiles ? static_cast<int>(selected.size()) : 0);
   formatter.AddField("verified_reload", true);
   formatter.AddField("output", output.string());
   formatter.EndObject();
@@ -776,6 +939,9 @@ absl::Status OverworldImportMapsCommandHandler::ValidateArgs(
   if (donor == native)
     return absl::InvalidArgumentError(
         "Use exactly one of --donor or --native-source");
+  if (donor && parser.HasFlag("apply-native-profiles"))
+    return absl::InvalidArgumentError(
+        "--apply-native-profiles applies only to --native-source");
   if (native)
     return parser.RequireArgs({"native-source-sha256"});
   return absl::OkStatus();
@@ -797,7 +963,7 @@ absl::Status OverworldImportMapsCommandHandler::ExecuteWithContext(
     resources::OutputFormatter& formatter,
     const resources::CommandInvocationContext& context) {
   if (parser.GetString("native-source").has_value())
-    return ImportNativeSourcePages(rom, parser, formatter, context);
+    return ImportNativeSourcePages(rom, parser, formatter, context, project_);
   if (!rom || !rom->is_loaded() ||
       !rom::IsNativeSpecialOverworldLayout(rom->InspectLyraLayout()))
     return absl::FailedPreconditionError(

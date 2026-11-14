@@ -274,11 +274,12 @@ void RegisterBuiltinAgentTools(ToolRegistry& registry) {
       "overworld-import-maps", "overworld",
       "Import selected physical map grids and ordinary graphics/palette "
       "dependencies from a donor, or selected special-page grids and page "
-      "Tile16 definitions from a hash-bound native-source export, into a "
-      "native overworld; dry-run unless write is set; output must be a new "
-      "file",
+      "Tile16 definitions from a hash-bound native-source export (optionally "
+      "applying their appearance profiles), into a native overworld; dry-run "
+      "unless write is set; output must be a new file",
       "overworld-import-maps (--donor=<rom> | --native-source=<json>) "
       "[--native-source-sha256=<sha256>] [--experimental-page-tile16] "
+      "[--apply-native-profiles] "
       "--maps=<hex,hex,...> --output=<new-rom> [--write]",
       {}, true, true, OverworldImportMapsCommandHandler)
   REGISTER_BUILTIN_AGENT_TOOL(

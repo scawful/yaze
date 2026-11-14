@@ -9,8 +9,25 @@
 #include "zelda3/overworld/graphics_preview.h"
 
 namespace yaze {
+namespace zelda3 {
+struct GameData;
+class OverworldMap;
+}  // namespace zelda3
 namespace cli {
 namespace handlers {
+
+// The native-source exporter's graphics inputs: the ROM's sheet layout and,
+// with a project, its selected graphics source after its identity checks.
+absl::Status LoadNativeSourceGameData(Rom& rom,
+                                      const project::YazeProject* project,
+                                      zelda3::GameData& game_data);
+
+// Refuses a page whose resolved static or animated sheets are in neither the
+// ROM table nor the bound graphics source. `resolved` has loaded its area
+// graphics for `state`.
+absl::Status CheckNativeResolvedSheets(const zelda3::OverworldMap& resolved,
+                                       const zelda3::GameData& game_data,
+                                       int map_id, int state);
 
 class OverworldInitPageTile16CommandHandler : public resources::CommandHandler {
  public:

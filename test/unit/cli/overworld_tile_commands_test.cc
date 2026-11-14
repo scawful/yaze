@@ -2169,6 +2169,44 @@ class OverworldNativeSourceImportTest : public ::testing::Test {
             {"pages", pages}};
   }
 
+  // The six applied fields changed on every selected page; preimages equal the
+  // target.
+  nlohmann::json ProfileSource() const {
+    auto source = source_;
+    std::vector<int> words(128);
+    for (int i = 0; i < 128; ++i)
+      words[i] = (i * 0x0123) & 0x7FFF;
+    for (auto& page : source["pages"]) {
+      page["expected_source_profile"] = page["source_profile"];
+      if (page["map_id"] == kKeptMap)
+        continue;
+      auto& profile = page["source_profile"];
+      profile["background_color"] = 0x1234;
+      profile["subscreen_overlay"] = 0x9C;
+      profile["graphics_sheets"] = {0x10, 0x11, 0x12, 0x13,
+                                    0x14, 0x15, 0x16, 0x17};
+      profile["palette_set"] = 5;
+      profile["appearance_flags"] = 3;
+      profile["background_palette_words"] = words;
+    }
+    return source;
+  }
+
+  zelda3::OverworldAreaSnapshot ProfileSnapshot() const {
+    auto snapshot = *model_->CaptureNativeAreaSnapshot();
+    for (const int map : area_) {
+      auto& page = snapshot.pages[map];
+      page.background = 0x1234;
+      page.overlay = 0x9C;
+      page.graphics = {0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17};
+      page.appearance_flags = 3;
+      for (int i = 0; i < 128; ++i)
+        page.appearance_bg_palette[i] = (i * 0x0123) & 0x7FFF;
+      snapshot.profiles[map].palette = 5;
+    }
+    return snapshot;
+  }
+
   std::string MapsArg(const std::vector<int>& maps) const {
     std::vector<std::string> parts;
     for (const int map : maps) {
@@ -2337,6 +2375,79 @@ TEST_F(OverworldNativeSourceImportTest, RefusesBeforeProducingOutput) {
   ExpectRefused(Run(source_, args), "every physical page");
 }
 
+TEST_F(OverworldNativeSourceImportTest, AppliesSelectedProfilesInOneSave) {
+  const auto source = ProfileSource();
+  auto args = Args(source.dump());
+  args.push_back("--apply-native-profiles");
+  nlohmann::json dry;
+  const auto dry_status = Run(source, args, &dry);
+  ASSERT_TRUE(dry_status.ok()) << dry_status;
+  EXPECT_EQ(dry["write_status"], "dry-run");
+  EXPECT_EQ(dry["profile_writes"], true);
+  EXPECT_EQ(dry["applied_profile_pages"], 2);
+  EXPECT_FALSE(std::filesystem::exists(output_path_));
+
+  args.push_back("--write");
+  const auto write_status = Run(source, args);
+  ASSERT_TRUE(write_status.ok()) << write_status;
+  EXPECT_EQ(target_.vector(), original_);
+  EXPECT_EQ(ReadBytes(target_path_), original_);
+
+  Rom reopened;
+  reopened.LoadFromData(ReadBytes(output_path_));
+  reopened.EnableExperimentalPageTile16();
+  zelda3::Overworld world(&reopened);
+  ASSERT_TRUE(world.Load(&reopened).ok());
+  const auto areas = world.CaptureNativeAreaSnapshot();
+  ASSERT_TRUE(areas.ok()) << areas.status();
+  EXPECT_TRUE(*areas == ProfileSnapshot());
+  EXPECT_EQ(world.page_tile16(),
+            (std::vector<rom::NativePageTile16Definition>{
+                rows_[0], rows_[1], {kKeptMap, 0x10, {9, 9, 9, 9}}}));
+  for (const int map : area_)
+    EXPECT_NE(Cell(world.map_tiles().special_world, map, 3, 4),
+              Cell(grid_, map, 3, 4));
+  EXPECT_EQ(world.map_tiles().light_world, model_->map_tiles().light_world);
+}
+
+TEST_F(OverworldNativeSourceImportTest, ProfileApplyRefusesBeforeOutput) {
+  const auto with_flag = [&](const nlohmann::json& source) {
+    auto args = Args(source.dump());
+    args.push_back("--apply-native-profiles");
+    return Run(source, args);
+  };
+  const auto profile_source = ProfileSource();
+
+  ExpectRefused(Run(profile_source), "profile differs from the target");
+
+  auto source = profile_source;
+  source["pages"][0]["expected_source_profile"]["palette_set"] =
+      source["pages"][0]["expected_source_profile"]["palette_set"].get<int>() ^
+      1;
+  ExpectRefused(with_flag(source), "expected_source_profile differs");
+
+  source = profile_source;
+  source["pages"][0].erase("expected_source_profile");
+  ExpectRefused(with_flag(source), "requires page $8D expected_source_profile");
+
+  source = profile_source;
+  source["pages"][0]["source_profile"]["main_palette"] =
+      source["pages"][0]["source_profile"]["main_palette"].get<int>() ^ 1;
+  ExpectRefused(with_flag(source), "does not apply (main_palette)");
+
+  source = profile_source;
+  source["pages"].back()["source_profile"]["background_color"] = 0x0042;
+  ExpectRefused(with_flag(source), "unselected page $90");
+
+  source = profile_source;
+  source["pages"][0]["source_profile"]["graphics_sheets"][1] = 0xF5;
+  ExpectRefused(with_flag(source), "neither the ROM table nor the bound");
+
+  source = profile_source;
+  source["pages"][0]["source_profile"]["background_palette_words"][0] = 0x8000;
+  ExpectRefused(with_flag(source), "Invalid native screen appearance");
+}
+
 TEST(OverworldNativeSourceImportArgsTest, RequiresExactlyOneSource) {
   handlers::OverworldImportMapsCommandHandler handler;
   Rom rom;
@@ -2349,6 +2460,12 @@ TEST(OverworldNativeSourceImportArgsTest, RequiresExactlyOneSource) {
           .code(),
       absl::StatusCode::kInvalidArgument);
   EXPECT_EQ(handler.Run({"--maps=8D", "--output=c.sfc"}, &rom, &output).code(),
+            absl::StatusCode::kInvalidArgument);
+  EXPECT_EQ(handler
+                .Run({"--donor=a.sfc", "--apply-native-profiles", "--maps=8D",
+                      "--output=c.sfc"},
+                     &rom, &output)
+                .code(),
             absl::StatusCode::kInvalidArgument);
   EXPECT_EQ(handler
                 .Run({"--native-source=b.json", "--maps=8D", "--output=c.sfc"},
