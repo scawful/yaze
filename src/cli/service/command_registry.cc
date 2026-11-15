@@ -223,6 +223,22 @@ void CommandRegistry::RegisterHandlers(
             "--expect-position=0x1A0C --new-position=0x1414 "
             "--expect-item=0x09 --item=0x09 --manifest=hack_manifest.json "
             "--rom=/tmp/oos-work.sfc --format=json"};
+      } else if (name == "dungeon-append-pot-item") {
+        metadata.description =
+            "Append one pot-item row with copy-on-write allocation, "
+            "expect-count/stream-sha256 CAS, and cold readback "
+            "(dry-run by default; preserves shared empty FFFF aliases)";
+        metadata.examples = {
+            "z3ed dungeon-append-pot-item --room=0x78 --x=56 --y=24 "
+            "--item=0x0B --expect-count=0 "
+            "--expect-stream-sha256=<sha256> "
+            "--manifest=Roms/hack_manifest.json --rom=/tmp/private.sfc "
+            "--format=json",
+            "z3ed dungeon-append-pot-item --room=0x78 --x=56 --y=24 "
+            "--item=0x0B --expect-count=0 "
+            "--expect-stream-sha256=<sha256> "
+            "--manifest=Roms/hack_manifest.json --write "
+            "--rom=/tmp/private.sfc --format=json"};
       } else if (name == "dungeon-oracle-preflight") {
         metadata.description =
             "Oracle ROM safety preflight: water-fill region/table, collision "

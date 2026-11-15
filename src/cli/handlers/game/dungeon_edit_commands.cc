@@ -21,6 +21,7 @@
 #include "core/dungeon_stream_layout_adapter.h"
 #include "core/hack_manifest.h"
 #include "core/project.h"
+#include "core/source_artifact_publisher.h"
 #include "rom/rom.h"
 #include "rom/snes.h"
 #include "rom/transaction.h"
@@ -1636,6 +1637,109 @@ absl::StatusOr<PotItemTarget> ResolvePotItemTarget(
       .stream_pc = runtime.stream_pc,
       .stream_end_pc = runtime.stream_end_pc,
   };
+}
+
+std::string HashEncodedStream(const std::vector<uint8_t>& bytes) {
+  return core::ComputeSourceArtifactSha256(std::string_view(
+      reinterpret_cast<const char*>(bytes.data()), bytes.size()));
+}
+
+std::vector<std::pair<uint32_t, uint32_t>> RangesFromDungeonStreamPlan(
+    const zelda3::DungeonStreamWritePlan& plan) {
+  std::vector<std::pair<uint32_t, uint32_t>> ranges;
+  const auto add = [&](const zelda3::DungeonStreamWrite& write) {
+    ranges.emplace_back(write.address, write.address + static_cast<uint32_t>(
+                                                           write.bytes.size()));
+  };
+  for (const auto& write : plan.payload_writes)
+    add(write);
+  for (const auto& write : plan.pointer_writes)
+    add(write);
+  for (const auto& write : plan.auxiliary_pointer_writes)
+    add(write);
+  return ranges;
+}
+
+struct AppendPotItemContext {
+  PotItemManifestContext manifest_context;
+  zelda3::DungeonStreamInventory inventory;
+  PotItemStreamView runtime;
+  const zelda3::DungeonStreamRecord* record = nullptr;
+  bool aliased = false;
+  size_t alias_room_count = 1;
+};
+
+// Unlike ResolvePotItemTarget, append may own an exact alias of an empty
+// terminator so copy-on-write can give the room a unique stream.
+absl::StatusOr<AppendPotItemContext> PrepareAppendPotItemContext(
+    Rom* rom, int room_id, const resources::ArgumentParser& parser) {
+  AppendPotItemContext context;
+  ASSIGN_OR_RETURN(context.manifest_context,
+                   LoadPotItemManifestContext(parser));
+  if (context.manifest_context.layout.pointer_count != zelda3::kNumberOfRooms) {
+    return absl::FailedPreconditionError(absl::StrFormat(
+        "Dungeon pot-item manifest pointer_count must equal %d rooms",
+        zelda3::kNumberOfRooms));
+  }
+  ASSIGN_OR_RETURN(
+      context.inventory,
+      zelda3::InventoryDungeonStreams(*rom, context.manifest_context.layout));
+  if (!context.inventory.issues.empty()) {
+    const auto& issue = context.inventory.issues.front();
+    return absl::FailedPreconditionError(absl::StrFormat(
+        "Pot-item stream inventory is invalid at room 0x%03X: %s",
+        issue.room_id, issue.message));
+  }
+  if (static_cast<size_t>(room_id) >= context.inventory.streams.size()) {
+    return absl::FailedPreconditionError(
+        "Selected room is absent from the pot-item stream inventory");
+  }
+  context.record = &context.inventory.streams[room_id];
+  if (!context.record->valid) {
+    return absl::FailedPreconditionError("Selected pot-item stream is invalid");
+  }
+  for (const auto& alias : context.inventory.aliases) {
+    if (ContainsRoomId(alias.room_ids, room_id)) {
+      context.aliased = true;
+      context.alias_room_count = alias.room_ids.size();
+      break;
+    }
+  }
+  for (const auto& overlap : context.inventory.overlaps) {
+    if (ContainsRoomId(overlap.first_room_ids, room_id) ||
+        ContainsRoomId(overlap.second_room_ids, room_id)) {
+      return absl::FailedPreconditionError(absl::StrFormat(
+          "Selected pot-item stream overlaps PC range [0x%06X, 0x%06X)",
+          overlap.intersection.begin, overlap.intersection.end));
+    }
+  }
+  for (const auto& other_stream : context.inventory.streams) {
+    if (other_stream.room_id == static_cast<uint32_t>(room_id)) {
+      continue;
+    }
+    // Exact aliases share data_pc; those rooms are owned via COW, not refused.
+    if (other_stream.data_pc == context.record->data_pc) {
+      continue;
+    }
+    if (other_stream.data_pc > context.record->data_pc &&
+        other_stream.data_pc < context.record->logical_end_pc) {
+      return absl::FailedPreconditionError(absl::StrFormat(
+          "Room 0x%03X pot-item pointer PC 0x%06X starts inside selected "
+          "pot-item stream [0x%06X, 0x%06X)",
+          other_stream.room_id, other_stream.data_pc, context.record->data_pc,
+          context.record->logical_end_pc));
+    }
+  }
+  ASSIGN_OR_RETURN(context.runtime, ResolveRuntimePotItemStream(rom, room_id));
+  if (context.runtime.pointer_slot_pc != context.record->pointer_slot_pc ||
+      context.runtime.stream_pc != context.record->data_pc ||
+      context.runtime.stream_end_pc != context.record->logical_end_pc ||
+      context.runtime.entries.size() * 3u + 2u !=
+          context.record->encoded_stream.size()) {
+    return absl::DataLossError(
+        "Runtime pot-item stream does not match the manifest inventory");
+  }
+  return context;
 }
 
 }  // namespace
@@ -3738,6 +3842,243 @@ absl::Status DungeonSetPotItemCommandHandler::Execute(
     }
     formatter.AddField("verified_reload", true);
   }
+  formatter.AddField("status", "success");
+  formatter.EndObject();
+  return absl::OkStatus();
+}
+
+// ---------------------------------------------------------------------------
+// dungeon-append-pot-item
+// ---------------------------------------------------------------------------
+
+absl::Status DungeonAppendPotItemCommandHandler::Execute(
+    Rom* rom, const resources::ArgumentParser& parser,
+    resources::OutputFormatter& formatter) {
+  if (rom == nullptr || !rom->is_loaded()) {
+    return absl::FailedPreconditionError("ROM not loaded");
+  }
+  int room_id = 0;
+  int tile_x = 0;
+  int tile_y = 0;
+  int item = 0;
+  int expect_count = 0;
+  ASSIGN_OR_RETURN(room_id, GetRequiredHex(parser, "room"));
+  RETURN_IF_ERROR(ValidateRoomId(room_id));
+  ASSIGN_OR_RETURN(tile_x, GetRequiredInt(parser, "x"));
+  ASSIGN_OR_RETURN(tile_y, GetRequiredInt(parser, "y"));
+  ASSIGN_OR_RETURN(item, GetRequiredHex(parser, "item"));
+  ASSIGN_OR_RETURN(expect_count, GetRequiredInt(parser, "expect-count"));
+  std::string expect_stream_sha256;
+  ASSIGN_OR_RETURN(expect_stream_sha256,
+                   GetRequiredString(parser, "expect-stream-sha256"));
+  if (tile_x < 0 || tile_x > 63 || tile_y < 0 || tile_y > 63) {
+    return absl::InvalidArgumentError(
+        "Pot-item tile coordinates must be in range 0-63");
+  }
+  if (item < 0 || item > 0xFF) {
+    return absl::InvalidArgumentError("--item must be in range 0x00-0xFF");
+  }
+  if (expect_count < 0) {
+    return absl::InvalidArgumentError("--expect-count must be non-negative");
+  }
+  const auto encoded_position =
+      zelda3::EncodePotItemPosition(tile_x * 8, tile_y * 8);
+  if (!encoded_position.has_value()) {
+    return absl::InvalidArgumentError(
+        "Unable to encode pot-item position from tile coordinates");
+  }
+
+  AppendPotItemContext context;
+  ASSIGN_OR_RETURN(context, PrepareAppendPotItemContext(rom, room_id, parser));
+  if (static_cast<int>(context.runtime.entries.size()) != expect_count) {
+    return absl::FailedPreconditionError(absl::StrFormat(
+        "Pot-item count compare-and-swap failed: expected %d, found %d",
+        expect_count, static_cast<int>(context.runtime.entries.size())));
+  }
+  const std::string actual_stream_sha256 =
+      HashEncodedStream(context.record->encoded_stream);
+  if (actual_stream_sha256 != expect_stream_sha256) {
+    return absl::FailedPreconditionError(absl::StrFormat(
+        "Pot-item stream sha256 compare-and-swap failed: expected %s, found %s",
+        expect_stream_sha256, actual_stream_sha256));
+  }
+  for (const auto& entry : context.runtime.entries) {
+    if ((entry.item.position & 0x7FFF) == (*encoded_position & 0x7FFF)) {
+      return absl::FailedPreconditionError(
+          "Pot-item destination is occupied by another item row");
+    }
+  }
+
+  std::vector<uint8_t> encoded = context.record->encoded_stream;
+  if (encoded.size() < 2 || encoded[encoded.size() - 2] != 0xFF ||
+      encoded[encoded.size() - 1] != 0xFF) {
+    return absl::DataLossError(
+        "Selected pot-item stream is missing its 0xFFFF terminator");
+  }
+  encoded.pop_back();
+  encoded.pop_back();
+  encoded.push_back(static_cast<uint8_t>(*encoded_position));
+  encoded.push_back(static_cast<uint8_t>(*encoded_position >> 8));
+  encoded.push_back(static_cast<uint8_t>(item));
+  encoded.push_back(0xFF);
+  encoded.push_back(0xFF);
+
+  ASSIGN_OR_RETURN(
+      const auto plan,
+      zelda3::PlanDungeonStreamWrites(
+          context.inventory, {{static_cast<uint32_t>(room_id), encoded}}));
+  if (plan.payload_writes.size() != 1 || plan.pointer_writes.size() != 1) {
+    return absl::DataLossError(
+        "Pot-item append plan did not produce one payload and one pointer "
+        "write");
+  }
+  if (context.aliased &&
+      plan.payload_writes[0].address == context.record->data_pc) {
+    return absl::FailedPreconditionError(
+        "Refusing in-place append onto a shared pot-item stream");
+  }
+  const auto ranges = RangesFromDungeonStreamPlan(plan);
+  const auto conflicts =
+      context.manifest_context.manifest.AnalyzePcWriteRanges(ranges);
+  if (!conflicts.empty()) {
+    return absl::PermissionDeniedError(
+        "Pot-item append conflicts with Hack Manifest");
+  }
+
+  RETURN_IF_ERROR(RefuseInvalidDungeonLayout(*rom));
+  const bool do_write = parser.HasFlag("write");
+  if (do_write && rom->filename().empty()) {
+    return absl::FailedPreconditionError("Write mode requires a ROM filename");
+  }
+
+  const std::vector<uint8_t> baseline = rom->vector();
+  auto candidate = baseline;
+  RETURN_IF_ERROR(zelda3::StageDungeonStreamWritePlan(*rom, plan, candidate));
+
+  // Shared empty terminator must stay byte-identical for every alias peer.
+  if (context.aliased) {
+    for (uint32_t pc = context.record->data_pc;
+         pc < context.record->logical_end_pc; ++pc) {
+      if (candidate[pc] != baseline[pc]) {
+        return absl::FailedPreconditionError(
+            "Pot-item append mutated the shared empty stream target");
+      }
+    }
+  }
+
+  const uint32_t planned_pc = plan.payload_writes[0].address;
+  const auto verify_readback =
+      [&](const std::vector<uint8_t>& image) -> absl::Status {
+    ASSIGN_OR_RETURN(auto scratch, LoadScratchRom(image));
+    ASSIGN_OR_RETURN(const auto runtime,
+                     ResolveRuntimePotItemStream(scratch.get(), room_id));
+    if (runtime.stream_pc != planned_pc ||
+        runtime.entries.size() != static_cast<size_t>(expect_count) + 1u) {
+      return absl::DataLossError(
+          "Pot-item append readback count/pointer mismatch");
+    }
+    const auto& added = runtime.entries.back();
+    if (added.item.position != *encoded_position || added.item.item != item) {
+      return absl::DataLossError(
+          "Pot-item append readback does not match the requested row");
+    }
+    if (context.aliased) {
+      for (const auto& alias : context.inventory.aliases) {
+        if (!ContainsRoomId(alias.room_ids, room_id)) {
+          continue;
+        }
+        for (const uint32_t peer : alias.room_ids) {
+          if (peer == static_cast<uint32_t>(room_id)) {
+            continue;
+          }
+          ASSIGN_OR_RETURN(const auto peer_runtime,
+                           ResolveRuntimePotItemStream(scratch.get(),
+                                                       static_cast<int>(peer)));
+          if (peer_runtime.stream_pc != context.record->data_pc ||
+              !peer_runtime.entries.empty()) {
+            return absl::DataLossError(
+                "Pot-item append disturbed an aliased peer room");
+          }
+        }
+      }
+    }
+    return absl::OkStatus();
+  };
+
+  formatter.BeginObject("Append Pot Item");
+  formatter.AddHexField("room_id", room_id, 3);
+  formatter.AddField("x", tile_x);
+  formatter.AddField("y", tile_y);
+  formatter.AddHexField("position", *encoded_position, 4);
+  formatter.AddHexField("item", item, 2);
+  formatter.AddField("expect_count", expect_count);
+  formatter.AddField("entries_after", expect_count + 1);
+  formatter.AddField("source_stream_sha256", actual_stream_sha256);
+  formatter.AddHexField("source_stream_pc", context.record->data_pc, 6);
+  formatter.AddHexField("planned_stream_pc", planned_pc, 6);
+  formatter.AddHexField("pointer_slot_pc", context.runtime.pointer_slot_pc, 6);
+  formatter.AddField("stream_alias_status",
+                     context.aliased ? "exact_alias" : "unique");
+  formatter.AddField("alias_room_count",
+                     static_cast<int>(context.alias_room_count));
+  formatter.AddField("storage_strategy", "copy_on_write");
+  formatter.AddField("planned_stream_bytes", static_cast<int>(encoded.size()));
+  formatter.AddField("manifest", *parser.GetString("manifest"));
+  formatter.AddField("manifest_write_policy", "block");
+  formatter.AddField("mode", do_write ? "write" : "dry-run");
+  formatter.AddField("allocator_capability", "copy_on_write");
+
+  if (IsNativeDungeonLayout(*rom)) {
+    const auto status =
+        CommitNativeDungeonCandidate(rom, baseline, std::move(candidate),
+                                     ranges, &context.manifest_context.manifest,
+                                     do_write, formatter, verify_readback);
+    formatter.AddField("layout", "native");
+    formatter.AddField("status", status.ok() ? "success" : "error");
+    formatter.EndObject();
+    return status;
+  }
+
+  formatter.AddField("layout", "legacy");
+  const absl::Status preview = verify_readback(candidate);
+  if (!preview.ok()) {
+    formatter.AddField("preflight_status", "failed");
+    formatter.AddField("preflight_error", std::string(preview.message()));
+    formatter.AddField("status", "error");
+    formatter.EndObject();
+    return preview;
+  }
+  formatter.AddField("preflight_status", "passed");
+  formatter.BeginArray("write_ranges");
+  for (const auto& [begin, end] : ranges) {
+    formatter.BeginObject();
+    formatter.AddHexField("begin", begin, 6);
+    formatter.AddHexField("end", end, 6);
+    formatter.EndObject();
+  }
+  formatter.EndArray();
+  if (!do_write) {
+    formatter.AddField("write_status", "not_requested");
+    formatter.AddField("save_status", "not_requested");
+    formatter.AddField("status", "success");
+    formatter.EndObject();
+    return absl::OkStatus();
+  }
+
+  const absl::Status write_status =
+      MutateAndSaveRomWithBackup(rom, formatter, [&]() {
+        RETURN_IF_ERROR(zelda3::ApplyDungeonStreamWritePlan(rom, plan));
+        return verify_readback(rom->vector());
+      });
+  if (!write_status.ok()) {
+    formatter.AddField("status", "error");
+    formatter.EndObject();
+    return write_status;
+  }
+  Rom disk;
+  RETURN_IF_ERROR(disk.LoadFromFile(rom->filename()));
+  RETURN_IF_ERROR(verify_readback(disk.vector()));
+  formatter.AddField("verified_reload", true);
   formatter.AddField("status", "success");
   formatter.EndObject();
   return absl::OkStatus();

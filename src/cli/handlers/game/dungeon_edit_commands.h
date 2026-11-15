@@ -403,6 +403,35 @@ class DungeonSetPotItemCommandHandler : public resources::CommandHandler {
 };
 
 /**
+ * @brief Append one pot-item row via copy-on-write stream planning.
+ *
+ * Empty aliased FFFF streams get a unique allocated stream; the shared
+ * terminator is never overwritten. CAS on expected entry count and the
+ * current encoded-stream sha256. Dry-run by default.
+ */
+class DungeonAppendPotItemCommandHandler : public resources::CommandHandler {
+ public:
+  std::string GetName() const override { return "dungeon-append-pot-item"; }
+  std::string GetDescription() const {
+    return "Append one dungeon pot-item row with COW allocation";
+  }
+  std::string GetUsage() const override {
+    return "dungeon-append-pot-item --room <hex> --x <tile> --y <tile> "
+           "--item <hex> --expect-count <int> --expect-stream-sha256 <hex> "
+           "--manifest <path> [--write] [--experimental-page-tile16] "
+           "[--format <json|text>]";
+  }
+
+  absl::Status ValidateArgs(const resources::ArgumentParser& parser) override {
+    return parser.RequireArgs({"room", "x", "y", "item", "expect-count",
+                               "expect-stream-sha256", "manifest"});
+  }
+
+  absl::Status Execute(Rom* rom, const resources::ArgumentParser& parser,
+                       resources::OutputFormatter& formatter) override;
+};
+
+/**
  * @brief Set individual custom collision tiles in a dungeon room.
  *
  * Supports setting one or more tiles. Dry-run by default.

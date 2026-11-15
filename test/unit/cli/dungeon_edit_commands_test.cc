@@ -5097,6 +5097,162 @@ TEST(DungeonEditCommandsTest, SetPotItemDiskSaveFailureRollsBackCallerRom) {
   EXPECT_EQ(CountBackupArtifacts(cleanup.rom_path), 1);
 }
 
+constexpr char kEmptyPotStreamSha256[] =
+    "ca2fd00fa001190744c15c317643ab092e7048ce086a243e2be9437c898de1bb";
+
+TEST(DungeonEditCommandsTest,
+     AppendPotItemCowFromAliasedEmptyPreservesSharedTerminator) {
+  Rom rom;
+  InitializePotItemRom(&rom);
+  ScopedRomArtifactsCleanup cleanup(MakeUniqueTempRomPath());
+  ScopedFileCleanup manifest_cleanup(cleanup.rom_path.string() +
+                                     ".manifest.json");
+  WriteRomFile(rom, cleanup.rom_path);
+  WritePotItemManifest(manifest_cleanup.file_path);
+  rom.set_filename(cleanup.rom_path.string());
+  rom.set_dirty(false);
+  const std::vector<uint8_t> before = rom.vector();
+  const std::vector<uint8_t> shared_before(
+      before.begin() + kOtherPotDataPc, before.begin() + kOtherPotDataPc + 2);
+
+  handlers::DungeonAppendPotItemCommandHandler handler;
+  std::string dry_output;
+  const absl::Status dry = handler.Run(
+      {"--room=0x01", "--x=56", "--y=24", "--item=0x0B", "--expect-count=0",
+       absl::StrFormat("--expect-stream-sha256=%s", kEmptyPotStreamSha256),
+       absl::StrFormat("--manifest=%s", manifest_cleanup.file_path.string()),
+       "--format=json"},
+      &rom, &dry_output);
+  ASSERT_TRUE(dry.ok()) << dry << "\n" << dry_output;
+  EXPECT_THAT(dry_output, HasSubstr("\"mode\": \"dry-run\""));
+  EXPECT_THAT(dry_output, HasSubstr("\"storage_strategy\": \"copy_on_write\""));
+  EXPECT_THAT(dry_output,
+              HasSubstr("\"stream_alias_status\": \"exact_alias\""));
+  EXPECT_THAT(dry_output, HasSubstr("\"position\": \"0x0C70\""));
+  EXPECT_EQ(rom.vector(), before);
+  EXPECT_FALSE(rom.dirty());
+
+  std::string write_output;
+  const absl::Status written = handler.Run(
+      {"--room=0x01", "--x=56", "--y=24", "--item=0x0B", "--expect-count=0",
+       absl::StrFormat("--expect-stream-sha256=%s", kEmptyPotStreamSha256),
+       absl::StrFormat("--manifest=%s", manifest_cleanup.file_path.string()),
+       "--write", "--format=json"},
+      &rom, &write_output);
+  ASSERT_TRUE(written.ok()) << written << "\n" << write_output;
+  EXPECT_THAT(write_output, HasSubstr("\"verified_reload\": true"));
+  EXPECT_THAT(write_output, HasSubstr("\"status\": \"success\""));
+  EXPECT_NE(rom.vector(), before);
+  EXPECT_EQ(std::vector<uint8_t>(rom.vector().begin() + kOtherPotDataPc,
+                                 rom.vector().begin() + kOtherPotDataPc + 2),
+            shared_before);
+
+  Rom reopened;
+  ASSERT_TRUE(reopened.LoadFromFile(cleanup.rom_path.string()).ok());
+  zelda3::Room room1(1, &reopened);
+  room1.LoadPotItems();
+  ASSERT_EQ(room1.GetPotItems().size(), 1u);
+  EXPECT_EQ(room1.GetPotItems()[0].position, 0x0C70);
+  EXPECT_EQ(room1.GetPotItems()[0].item, 0x0B);
+  EXPECT_EQ(room1.GetPotItems()[0].GetTileX(), 56);
+  EXPECT_EQ(room1.GetPotItems()[0].GetTileY(), 24);
+
+  zelda3::Room peer(2, &reopened);
+  peer.LoadPotItems();
+  EXPECT_TRUE(peer.GetPotItems().empty());
+}
+
+TEST(DungeonEditCommandsTest, AppendPotItemRejectsCountAndHashCasMisses) {
+  ScopedFileCleanup manifest_cleanup(MakeUniqueTempRomPath().string() +
+                                     ".manifest.json");
+  WritePotItemManifest(manifest_cleanup.file_path);
+  handlers::DungeonAppendPotItemCommandHandler handler;
+
+  {
+    Rom rom;
+    InitializePotItemRom(&rom);
+    const std::vector<uint8_t> before = rom.vector();
+    std::string output;
+    const absl::Status status = handler.Run(
+        {"--room=0x01", "--x=56", "--y=24", "--item=0x0B", "--expect-count=1",
+         absl::StrFormat("--expect-stream-sha256=%s", kEmptyPotStreamSha256),
+         absl::StrFormat("--manifest=%s", manifest_cleanup.file_path.string()),
+         "--format=json"},
+        &rom, &output);
+    EXPECT_TRUE(absl::IsFailedPrecondition(status)) << status;
+    EXPECT_THAT(std::string(status.message()),
+                HasSubstr("count compare-and-swap failed"));
+    EXPECT_EQ(rom.vector(), before);
+  }
+  {
+    Rom rom;
+    InitializePotItemRom(&rom);
+    const std::vector<uint8_t> before = rom.vector();
+    std::string output;
+    const absl::Status status = handler.Run(
+        {"--room=0x01", "--x=56", "--y=24", "--item=0x0B", "--expect-count=0",
+         "--expect-stream-sha256="
+         "0000000000000000000000000000000000000000000000000000000000000000",
+         absl::StrFormat("--manifest=%s", manifest_cleanup.file_path.string()),
+         "--format=json"},
+        &rom, &output);
+    EXPECT_TRUE(absl::IsFailedPrecondition(status)) << status;
+    EXPECT_THAT(std::string(status.message()),
+                HasSubstr("stream sha256 compare-and-swap failed"));
+    EXPECT_EQ(rom.vector(), before);
+  }
+}
+
+TEST(DungeonEditCommandsTest, AppendPotItemRejectsWhenAllocationExhausted) {
+  Rom rom;
+  InitializePotItemRom(&rom);
+  // Shrink allocation to only the already-occupied bytes so first-fit fails.
+  ScopedFileCleanup manifest_cleanup(MakeUniqueTempRomPath().string() +
+                                     ".manifest.json");
+  WritePotItemManifest(manifest_cleanup.file_path, /*protected_pc=*/-1,
+                       /*pointer_count=*/zelda3::kNumberOfRooms,
+                       /*data_start_pc=*/kPotDataPc);
+  // Overwrite allocation_regions end to equal the occupied unique stream end.
+  {
+    std::ofstream out(manifest_cleanup.file_path, std::ios::trunc);
+    ASSERT_TRUE(out.is_open());
+    out << absl::StrFormat(
+        R"json({
+  "manifest_version": 3,
+  "dungeon_stream_regions": {
+    "pot_items": {
+      "pointer_table": "0x%06X",
+      "pointer_count": %d,
+      "pointer_encoding": "bank16",
+      "pointer_bank": "0x01",
+      "strategy": "repack_all",
+      "data_regions": [
+        {"start": "0x%06X", "end": "0x%06X"}
+      ],
+      "allocation_regions": [
+        {"start": "0x%06X", "end": "0x%06X"}
+      ]
+    }
+  }
+})json",
+        PcToSnes(zelda3::kRoomItemsPointers), zelda3::kNumberOfRooms,
+        PcToSnes(kPotDataPc), PcToSnes(kPotDataEndPc), PcToSnes(kPotDataPc),
+        PcToSnes(kPotDataPc + 8));
+  }
+  const std::vector<uint8_t> before = rom.vector();
+  handlers::DungeonAppendPotItemCommandHandler handler;
+  std::string output;
+  const absl::Status status = handler.Run(
+      {"--room=0x01", "--x=56", "--y=24", "--item=0x0B", "--expect-count=0",
+       absl::StrFormat("--expect-stream-sha256=%s", kEmptyPotStreamSha256),
+       absl::StrFormat("--manifest=%s", manifest_cleanup.file_path.string()),
+       "--format=json"},
+      &rom, &output);
+  EXPECT_TRUE(absl::IsResourceExhausted(status)) << status;
+  EXPECT_EQ(rom.vector(), before);
+  EXPECT_FALSE(rom.dirty());
+}
+
 TEST(DungeonEditCommandsTest,
      SetDoorTypeRejectsStaleExpectedTypeWithoutMutation) {
   Rom rom;
