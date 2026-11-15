@@ -36,6 +36,16 @@ zelda3::OverworldBlockset& MapTilesForMapIndex(zelda3::Overworld* overworld,
   return overworld->GetMapTiles(WorldForMapIndex(map_index));
 }
 
+// Match Overworld::BuildMapWithTilesetCache: page-local Tile16 rows must win
+// over the shared global table when rebuilding GUI bitmaps.
+absl::Status BuildMapTiles16GfxForRefresh(zelda3::Overworld* overworld,
+                                          zelda3::OverworldMap* map,
+                                          int map_index) {
+  auto definitions = overworld->Tiles16ForMap(map_index);
+  return map->BuildTiles16Gfx(definitions,
+                              static_cast<int>(definitions.size()));
+}
+
 bool IsMapInCurrentWorld(int map_index, int current_world) {
   return WorldForMapIndex(map_index) == current_world;
 }
@@ -132,8 +142,7 @@ void MapRefreshCoordinator::RefreshChildMap(int map_index) {
   map->LoadAreaGraphics();
   *ctx_.status = map->BuildTileset();
   PRINT_IF_ERROR(*ctx_.status);
-  *ctx_.status = map->BuildTiles16Gfx(*ctx_.overworld->mutable_tiles16(),
-                                      ctx_.overworld->tiles16().size());
+  *ctx_.status = BuildMapTiles16GfxForRefresh(ctx_.overworld, map, map_index);
   PRINT_IF_ERROR(*ctx_.status);
   *ctx_.status =
       map->BuildBitmap(MapTilesForMapIndex(ctx_.overworld, map_index));
@@ -201,9 +210,8 @@ void MapRefreshCoordinator::RefreshChildMapOnDemand(int map_index) {
       return;
     }
 
-    // Rebuild tiles16 graphics
-    status = map->BuildTiles16Gfx(*ctx_.overworld->mutable_tiles16(),
-                                  ctx_.overworld->tiles16().size());
+    // Rebuild tiles16 graphics from per-map definitions (page overrides).
+    status = BuildMapTiles16GfxForRefresh(ctx_.overworld, map, map_index);
     if (!status.ok()) {
       LOG_ERROR("MapRefreshCoordinator",
                 "Failed to build tiles16 graphics for map %d: %s", map_index,
@@ -372,8 +380,8 @@ void MapRefreshCoordinator::RefreshMultiAreaMapsSafely(
         continue;
       }
 
-      status = sibling_map->BuildTiles16Gfx(*ctx_.overworld->mutable_tiles16(),
-                                            ctx_.overworld->tiles16().size());
+      status =
+          BuildMapTiles16GfxForRefresh(ctx_.overworld, sibling_map, sibling);
       if (!status.ok()) {
         LOG_ERROR("MapRefreshCoordinator",
                   "Failed to build tiles16 for sibling %d: %s", sibling,

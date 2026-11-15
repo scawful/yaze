@@ -491,6 +491,31 @@ TEST_F(OverworldPaintRefreshTest, RebuiltModelStillSynchronizesCleanBitmap) {
   EXPECT_FALSE(maps_bmp_[0].modified());
 }
 
+// Ordinary maps have empty page_tile16, so Tiles16ForMap equals the global
+// table. Refresh must keep matching that model path. Page-override visual
+// parity rides on Overworld::BuildMapWithTilesetCache + Tiles16ForMap coverage;
+// the coordinator now calls the same Tiles16ForMap helper.
+TEST_F(OverworldPaintRefreshTest,
+       OrdinaryMapRefreshMatchesTiles16ForMapModelPath) {
+  ASSERT_TRUE(overworld_->page_tile16().empty());
+  EXPECT_EQ(overworld_->Tiles16ForMap(0), overworld_->tiles16());
+
+  auto* map = overworld_->mutable_overworld_map(0);
+  ASSERT_NE(map, nullptr);
+  auto definitions = overworld_->Tiles16ForMap(0);
+  ASSERT_TRUE(map->BuildTileset().ok());
+  ASSERT_TRUE(
+      map->BuildTiles16Gfx(definitions, static_cast<int>(definitions.size()))
+          .ok());
+  ASSERT_TRUE(map->BuildBitmap(overworld_->GetMapTiles(0)).ok());
+  const auto model_bitmap = map->bitmap_data();
+
+  maps_bmp_[0].set_modified(true);
+  coordinator_->RefreshChildMapOnDemand(0);
+  ASSERT_TRUE(status_.ok()) << status_;
+  EXPECT_EQ(maps_bmp_[0].vector(), model_bitmap);
+}
+
 TEST_F(OverworldPaintRefreshTest, GraphicsPreviewSurvivesEditRefreshAndClears) {
   zelda3::PreviewTile8 pixels{};
   pixels.fill(13);

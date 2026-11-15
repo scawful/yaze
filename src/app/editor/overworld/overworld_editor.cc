@@ -666,6 +666,11 @@ absl::Status OverworldEditor::Load() {
     all_gfx_loaded_ = true;
     return absl::OkStatus();
   }
+  // Ownership: the Tile16 editor still binds the shared global table. Page-
+  // local overrides (Tiles16ForMap) are applied only when painting/refreshing
+  // a map's canvas. Editing a definition that a page overrides must not be
+  // mistaken for editing that page's private row; a later owner should bind
+  // the active map's effective table or an explicit page-edit mode.
   tile16_editor_.BindDocument(overworld_.mutable_tiles16(), &undo_manager_,
                               [this]() {
                                 FinishScratchEdit("Edit scratch layout");
@@ -2287,8 +2292,12 @@ absl::Status OverworldEditor::OpenGraphicsForTile16Quadrant(int tile16_id,
     return absl::UnimplementedError(
         "Project graphics overrides need an explicit editable source map");
   }
+  const auto source_definitions = overworld_.Tiles16ForMap(source_map_id);
+  if (tile16_id >= static_cast<int>(source_definitions.size())) {
+    return absl::OutOfRangeError("Tile16 id is outside the map definitions");
+  }
   auto context = MakeOverworldGraphicsEditContext(
-      *map, overworld_.tiles16()[tile16_id], tile16_id, quadrant, game_data_);
+      *map, source_definitions[tile16_id], tile16_id, quadrant, game_data_);
   if (!context.ok()) {
     return context.status();
   }
@@ -2299,8 +2308,11 @@ absl::Status OverworldEditor::OpenGraphicsForTile16Quadrant(int tile16_id,
   const auto* owner = game_data_;
   context->resolve_live_source = [this, owner, source_map_id, tile16_id,
                                   quadrant](GraphicsEditContext& fresh) {
-    if (game_data_ != owner || !overworld_.is_loaded() ||
-        tile16_id >= static_cast<int>(overworld_.tiles16().size())) {
+    if (game_data_ != owner || !overworld_.is_loaded()) {
+      return absl::FailedPreconditionError("Overworld source session changed");
+    }
+    const auto live_definitions = overworld_.Tiles16ForMap(source_map_id);
+    if (tile16_id >= static_cast<int>(live_definitions.size())) {
       return absl::FailedPreconditionError("Overworld source session changed");
     }
     RETURN_IF_ERROR(SyncProjectGraphicsPreview());
@@ -2313,23 +2325,26 @@ absl::Status OverworldEditor::OpenGraphicsForTile16Quadrant(int tile16_id,
     live->LoadAreaGraphics();
     RETURN_IF_ERROR(live->LoadPalette());
     auto resolved = MakeOverworldGraphicsEditContext(
-        *live, overworld_.tiles16()[tile16_id], tile16_id, quadrant, owner);
+        *live, live_definitions[tile16_id], tile16_id, quadrant, owner);
     if (!resolved.ok())
       return resolved.status();
     fresh = std::move(*resolved);
     return absl::OkStatus();
   };
   context->limitation += " Palette colors follow live edits.";
-  context->refresh_palettes = [this, preview_map, owner, tile16_id, quadrant](
-                                  GraphicsEditContext& source) -> absl::Status {
-    if (game_data_ != owner || !overworld_.is_loaded() ||
-        tile16_id >= static_cast<int>(overworld_.tiles16().size())) {
+  context->refresh_palettes =
+      [this, preview_map, owner, source_map_id, tile16_id,
+       quadrant](GraphicsEditContext& source) -> absl::Status {
+    if (game_data_ != owner || !overworld_.is_loaded()) {
+      return absl::FailedPreconditionError("Overworld source session changed");
+    }
+    const auto live_definitions = overworld_.Tiles16ForMap(source_map_id);
+    if (tile16_id >= static_cast<int>(live_definitions.size())) {
       return absl::FailedPreconditionError("Overworld source session changed");
     }
     RETURN_IF_ERROR(preview_map->LoadPalette());
     auto refreshed = MakeOverworldGraphicsEditContext(
-        *preview_map, overworld_.tiles16()[tile16_id], tile16_id, quadrant,
-        owner);
+        *preview_map, live_definitions[tile16_id], tile16_id, quadrant, owner);
     if (!refreshed.ok())
       return refreshed.status();
     return UpdateGraphicsContextPalettes(source, std::move(*refreshed));
@@ -2343,7 +2358,7 @@ absl::Status OverworldEditor::OpenGraphicsForTile16Quadrant(int tile16_id,
     auto add = [&](uint64_t value) {
       hash = (hash ^ value) * kPrime;
     };
-    for (const auto& tile : overworld_.tiles16())
+    for (const auto& tile : overworld_.Tiles16ForMap(source_map_id))
       for (const auto& quadrant : tile.tiles_info)
         add(gfx::TileInfoToWord(quadrant));
     const auto& placements =
@@ -2376,9 +2391,9 @@ absl::Status OverworldEditor::OpenGraphicsForTile16Quadrant(int tile16_id,
     preview_map->SetGraphicsSheetOverrides(
         usage_preview::SnapshotSessionSheets(ids, owner));
     RETURN_IF_ERROR(preview_map->BuildTileset());
+    auto definitions = overworld_.Tiles16ForMap(source_map_id);
     RETURN_IF_ERROR(preview_map->BuildTiles16Gfx(
-        *overworld_.mutable_tiles16(),
-        static_cast<int>(overworld_.tiles16().size())));
+        definitions, static_cast<int>(definitions.size())));
     const int world = zelda3::WorldForOverworldMap(source_map_id);
     RETURN_IF_ERROR(preview_map->BuildBitmap(overworld_.GetMapTiles(world)));
     usage_preview::PreviewImage image;
