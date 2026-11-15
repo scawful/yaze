@@ -158,6 +158,11 @@ void RegisterBuiltinAgentTools(ToolRegistry& registry) {
                               "List room objects",
                               "dungeon-list-objects --room=<id>", {}, true,
                               false, DungeonListObjectsCommandHandler)
+  REGISTER_BUILTIN_AGENT_TOOL(
+      "dungeon-object-extents", "dungeon",
+      "List dungeon object tile footprints from draw routines",
+      "dungeon-object-extents --room=<id>", {}, true, false,
+      DungeonObjectExtentsCommandHandler)
   REGISTER_BUILTIN_AGENT_TOOL("dungeon-list-custom-collision", "dungeon",
                               "List custom collision tiles for a room",
                               "dungeon-list-custom-collision --room=<id>", {},

@@ -39,6 +39,7 @@ CreateCliCommandHandlers() {
   handlers.push_back(std::make_unique<DungeonGetEntranceCommandHandler>());
   handlers.push_back(std::make_unique<DungeonExportRoomCommandHandler>());
   handlers.push_back(std::make_unique<DungeonListObjectsCommandHandler>());
+  handlers.push_back(std::make_unique<DungeonObjectExtentsCommandHandler>());
   handlers.push_back(
       std::make_unique<DungeonListCustomCollisionCommandHandler>());
   handlers.push_back(

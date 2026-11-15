@@ -23,9 +23,11 @@
 #include "rom/transaction.h"
 #include "util/macro.h"
 #include "zelda3/dungeon/custom_collision.h"
+#include "zelda3/dungeon/dimension_service.h"
 #include "zelda3/dungeon/dungeon_editor_system.h"
 #include "zelda3/dungeon/dungeon_rom_addresses.h"
 #include "zelda3/dungeon/dungeon_spawn_point.h"
+#include "zelda3/dungeon/geometry/object_geometry.h"
 #include "zelda3/dungeon/room.h"
 #include "zelda3/dungeon/room_collision.h"
 #include "zelda3/dungeon/room_entrance.h"
@@ -838,6 +840,81 @@ absl::Status DungeonListObjectsCommandHandler::Execute(
     int type = zelda3::RoomObject::DetermineObjectType((obj.id_ & 0xFF),
                                                        (obj.id_ >> 8));
     formatter.AddField("type", type);
+    formatter.EndObject();
+  }
+  formatter.EndArray();
+  formatter.EndObject();
+
+  return absl::OkStatus();
+}
+
+absl::Status DungeonObjectExtentsCommandHandler::Execute(
+    Rom* rom, const resources::ArgumentParser& parser,
+    resources::OutputFormatter& formatter) {
+  auto room_id_str = parser.GetString("room").value();
+
+  int room_id;
+  if (!ParseHexString(room_id_str, &room_id)) {
+    return absl::InvalidArgumentError("Invalid room ID format. Must be hex.");
+  }
+
+  formatter.BeginObject("Dungeon Object Extents");
+  formatter.AddField("room_id", room_id);
+  formatter.AddField("room_id_hex", absl::StrFormat("0x%02X", room_id));
+  formatter.AddField("units", "8px_tiles");
+
+  zelda3::DungeonEditorSystem dungeon_editor(rom);
+  auto room_or = dungeon_editor.GetRoom(room_id);
+  if (!room_or.ok()) {
+    formatter.AddField("status", "error");
+    formatter.AddField("error", room_or.status().ToString());
+    formatter.EndObject();
+    return room_or.status();
+  }
+
+  auto& room = room_or.value();
+  room.LoadObjects();
+
+  const auto& objects = room.GetTileObjects();
+  formatter.AddField("total_objects", static_cast<int>(objects.size()));
+  formatter.AddField("status", "success");
+
+  auto& dims = zelda3::DimensionService::Get();
+  auto& geometry = zelda3::ObjectGeometry::Get();
+
+  formatter.BeginArray("objects");
+  for (size_t index = 0; index < objects.size(); ++index) {
+    const auto& obj = objects[index];
+    const auto hit = dims.GetHitTestBounds(obj);
+    const int x = std::get<0>(hit);
+    const int y = std::get<1>(hit);
+    const int w = std::get<2>(hit);
+    const int h = std::get<3>(hit);
+
+    formatter.BeginObject("");
+    formatter.AddField("index", static_cast<int>(index));
+    formatter.AddField("id", obj.id_);
+    formatter.AddField("id_hex", absl::StrFormat("0x%03X", obj.id_ & 0xFFF));
+    formatter.AddField("size", obj.size_);
+    formatter.AddField("layer", static_cast<int>(obj.layer_));
+    formatter.AddField("anchor_x", obj.x_);
+    formatter.AddField("anchor_y", obj.y_);
+    formatter.AddField("x", x);
+    formatter.AddField("y", y);
+    formatter.AddField("w", w);
+    formatter.AddField("h", h);
+
+    auto geo = geometry.MeasureByObjectId(obj);
+    if (geo.ok() && geo->width_tiles > 0 && geo->height_tiles > 0) {
+      formatter.AddField("source", "object_geometry");
+      formatter.AddField("offset_x", geo->min_x_tiles);
+      formatter.AddField("offset_y", geo->min_y_tiles);
+    } else {
+      const auto fallback = dims.GetDimensions(obj);
+      formatter.AddField("source", "dimension_fallback");
+      formatter.AddField("offset_x", fallback.offset_x_tiles);
+      formatter.AddField("offset_y", fallback.offset_y_tiles);
+    }
     formatter.EndObject();
   }
   formatter.EndArray();

@@ -157,6 +157,29 @@ TEST(ObjectGeometryTest, MeasureByObjectIdKnownObject) {
   EXPECT_EQ(bounds->height_tiles, 2);
 }
 
+TEST(ObjectGeometryTest, MeasureByObjectIdPitEdgesAndStudTrim) {
+  // Queue104 proof objects: pit edges width=size+3; stud trim 034 uses size+4.
+  struct Case {
+    int16_t object_id;
+    uint8_t size;
+    int width_tiles;
+    int height_tiles;
+  };
+  const Case cases[] = {
+      {0x029, 7, 10, 1},  // size+3
+      {0x02A, 7, 10, 1},  // size+3
+      {0x034, 4, 8, 1},   // size+4
+  };
+  for (const auto& test_case : cases) {
+    SCOPED_TRACE(test_case.object_id);
+    RoomObject obj(test_case.object_id, /*x=*/44, /*y=*/23, test_case.size);
+    auto bounds = ObjectGeometry::Get().MeasureByObjectId(obj);
+    ASSERT_TRUE(bounds.ok());
+    EXPECT_EQ(bounds->width_tiles, test_case.width_tiles);
+    EXPECT_EQ(bounds->height_tiles, test_case.height_tiles);
+  }
+}
+
 TEST(ObjectGeometryTest, MeasureByObjectIdSubtype3SpecialsHaveUsdasmBounds) {
   struct Case {
     int16_t object_id;
