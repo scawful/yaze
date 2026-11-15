@@ -163,7 +163,8 @@ class CustomObjectManager {
     std::string base_path;
     std::unordered_map<int, std::vector<std::string>> custom_file_map;
     std::string dungeon_tile_patterns;
-    // Object 0x32 Oracle capacity is 11 unless AdmitObject32PrisonSlots succeeds.
+    // Object 0x32 Oracle capacity is 11 unless AdmitObject32PrisonSlots (13)
+    // and/or AdmitObject32ArmorySlots (15) succeed.
     int object32_runtime_count = 11;
 
     bool operator==(const State&) const = default;
@@ -214,11 +215,20 @@ class CustomObjectManager {
   // Source-bound opt-in for object 0x32 subtypes 0B/0C. Requires project-owned
   // sha256 identities for the append filenames and matching files under
   // base_path. Does not raise capacity from an oversized file map alone and
-  // clears any prior 13-slot state before attempting admission.
+  // clears any prior 13/15-slot state before attempting admission.
   absl::Status AdmitObject32PrisonSlots(
       const std::unordered_map<std::string, std::string>& expected_sha256);
   void ClearObject32PrisonSlots();
   static const std::vector<std::string>& Object32PrisonAppendFilenames();
+
+  // Source-bound opt-in for object 0x32 subtypes 0D/0E (armory furniture).
+  // Requires an active 13-slot prison admission plus project-owned identities
+  // for the two furniture assets. Failed admission clears only the 15-slot
+  // extension back to 13 (or leaves 11 if prison was never admitted).
+  absl::Status AdmitObject32ArmorySlots(
+      const std::unordered_map<std::string, std::string>& expected_sha256);
+  void ClearObject32ArmorySlots();
+  static const std::vector<std::string>& Object32ArmoryAppendFilenames();
 
   // Canonical Oracle object IDs backed by fixed external runtime assets.
   static const std::array<int, 3>& RuntimeObjectIds();

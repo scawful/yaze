@@ -529,11 +529,20 @@ namespace {
 
 constexpr int kObject32DefaultCount = 11;
 constexpr int kObject32PrisonCount = 13;
+constexpr int kObject32ArmoryCount = 15;
 
 const std::vector<std::string>& Object32PrisonAppendFilenamesInternal() {
   static const std::vector<std::string> kAppend = {
       "minish_stump.bin",      // 0B PrisonTable
       "minish_wall_hole.bin",  // 0C PrisonWallHole
+  };
+  return kAppend;
+}
+
+const std::vector<std::string>& Object32ArmoryAppendFilenamesInternal() {
+  static const std::vector<std::string> kAppend = {
+      "prison_armory_worktable.bin",  // 0D ArmoryWorktable
+      "prison_armory_drawers.bin",    // 0E ArmoryDrawers
   };
   return kAppend;
 }
@@ -547,6 +556,16 @@ const std::vector<std::string>& Object32FilenamesWithPrison() {
     return names;
   }();
   return kWithPrison;
+}
+
+const std::vector<std::string>& Object32FilenamesWithArmory() {
+  static const std::vector<std::string> kWithArmory = [] {
+    std::vector<std::string> names = Object32FilenamesWithPrison();
+    const auto& append = Object32ArmoryAppendFilenamesInternal();
+    names.insert(names.end(), append.begin(), append.end());
+    return names;
+  }();
+  return kWithArmory;
 }
 
 absl::Status VerifyProjectOwnedObjectAsset(
@@ -710,9 +729,12 @@ const std::vector<std::string>* CustomObjectManager::ResolveFileList(
     return &kSubtype1Filenames;
   }
   if (object_id == 0x32) {
-    return ActiveContext().state.object32_runtime_count == kObject32PrisonCount
-               ? &Object32FilenamesWithPrison()
-               : &kSubtype2Filenames;
+    const int count = ActiveContext().state.object32_runtime_count;
+    if (count == kObject32ArmoryCount)
+      return &Object32FilenamesWithArmory();
+    if (count == kObject32PrisonCount)
+      return &Object32FilenamesWithPrison();
+    return &kSubtype2Filenames;
   }
   if (object_id == 0x54) {
     return &kSubtype54Filenames;
@@ -825,7 +847,7 @@ CustomObjectManager::Object32PrisonAppendFilenames() {
 
 absl::Status CustomObjectManager::AdmitObject32PrisonSlots(
     const std::unordered_map<std::string, std::string>& expected_sha256) {
-  // Never retain a prior 13-slot admission across a failed or re-run attempt.
+  // Never retain a prior 13/15-slot admission across a failed or re-run attempt.
   ClearObject32PrisonSlots();
 
   auto& state = ActiveContext().state;
@@ -868,8 +890,69 @@ void CustomObjectManager::ClearObject32PrisonSlots() {
   state.object32_runtime_count = kObject32DefaultCount;
   auto mapped = state.custom_file_map.find(0x32);
   if (mapped != state.custom_file_map.end() &&
-      mapped->second.size() == static_cast<size_t>(kObject32PrisonCount)) {
+      mapped->second.size() >= static_cast<size_t>(kObject32PrisonCount)) {
     mapped->second.resize(static_cast<size_t>(kObject32DefaultCount));
+  }
+  InvalidateCaches();
+}
+
+const std::vector<std::string>&
+CustomObjectManager::Object32ArmoryAppendFilenames() {
+  return Object32ArmoryAppendFilenamesInternal();
+}
+
+absl::Status CustomObjectManager::AdmitObject32ArmorySlots(
+    const std::unordered_map<std::string, std::string>& expected_sha256) {
+  // Drop any prior 15-slot extension before re-validating furniture pins.
+  ClearObject32ArmorySlots();
+
+  auto& state = ActiveContext().state;
+  if (state.object32_runtime_count != kObject32PrisonCount) {
+    return absl::FailedPreconditionError(
+        "Object32 armory opt-in requires admitted prison 13-slot capacity");
+  }
+
+  const auto& append = Object32ArmoryAppendFilenamesInternal();
+  for (const auto& filename : append) {
+    RETURN_IF_ERROR(VerifyProjectOwnedObjectAsset(fs::path(state.base_path),
+                                                  filename, expected_sha256));
+  }
+
+  auto mapped = state.custom_file_map.find(0x32);
+  if (mapped == state.custom_file_map.end()) {
+    // Defaults path uses Object32FilenamesWithArmory once count rises.
+  } else if (mapped->second.size() ==
+             static_cast<size_t>(kObject32PrisonCount)) {
+    for (const auto& name : append) {
+      mapped->second.push_back(name);
+    }
+  } else if (mapped->second.size() ==
+             static_cast<size_t>(kObject32ArmoryCount)) {
+    if (mapped->second[kObject32PrisonCount] != append[0] ||
+        mapped->second[kObject32PrisonCount + 1] != append[1]) {
+      return absl::FailedPreconditionError(
+          "Object32 armory opt-in requires 0D/0E append filenames");
+    }
+  } else {
+    return absl::FailedPreconditionError(
+        "Object32 armory opt-in requires a 13- or 15-entry 0x32 file list");
+  }
+
+  state.object32_runtime_count = kObject32ArmoryCount;
+  InvalidateCaches();
+  return absl::OkStatus();
+}
+
+void CustomObjectManager::ClearObject32ArmorySlots() {
+  auto& state = ActiveContext().state;
+  if (state.object32_runtime_count != kObject32ArmoryCount) {
+    return;
+  }
+  state.object32_runtime_count = kObject32PrisonCount;
+  auto mapped = state.custom_file_map.find(0x32);
+  if (mapped != state.custom_file_map.end() &&
+      mapped->second.size() == static_cast<size_t>(kObject32ArmoryCount)) {
+    mapped->second.resize(static_cast<size_t>(kObject32PrisonCount));
   }
   InvalidateCaches();
 }

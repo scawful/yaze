@@ -282,6 +282,18 @@ absl::Status CommandContext::ApplyProjectRuntimeContext() {
       RestoreProjectRuntimeContext();
       return admitted;
     }
+    if (active_project.feature_flags.kEnableObject32ArmorySlots) {
+      const auto armory =
+          zelda3::CustomObjectManager::Get().AdmitObject32ArmorySlots(
+              active_project.custom_object_asset_sha256);
+      if (!armory.ok()) {
+        zelda3::CustomObjectManager::Get().ClearObject32ArmorySlots();
+        RestoreProjectRuntimeContext();
+        return armory;
+      }
+    } else {
+      zelda3::CustomObjectManager::Get().ClearObject32ArmorySlots();
+    }
   } else {
     zelda3::CustomObjectManager::Get().ClearObject32PrisonSlots();
   }

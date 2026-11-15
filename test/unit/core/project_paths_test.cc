@@ -465,6 +465,7 @@ TEST(ProjectPathsTest,
 
   ASSERT_TRUE(project.Open(bare.string()).ok());
   EXPECT_FALSE(project.feature_flags.kEnableObject32PrisonSlots);
+  EXPECT_FALSE(project.feature_flags.kEnableObject32ArmorySlots);
   EXPECT_TRUE(project.custom_object_asset_sha256.empty());
 }
 
@@ -475,16 +476,23 @@ TEST(ProjectPathsTest, JsonPrisonOptInAndIdentitiesRoundTrip) {
   project.filepath = path.string();
   project.name = "Prison JSON";
   project.feature_flags.kEnableObject32PrisonSlots = true;
+  project.feature_flags.kEnableObject32ArmorySlots = true;
   project.custom_object_asset_sha256 = {
       {"minish_stump.bin",
-       "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"}};
+       "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"},
+      {"prison_armory_worktable.bin",
+       "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"}};
   ASSERT_TRUE(project.SaveToJsonFormat().ok());
 
   YazeProject reopened;
   ASSERT_TRUE(reopened.Open(path.string()).ok());
   EXPECT_TRUE(reopened.feature_flags.kEnableObject32PrisonSlots);
+  EXPECT_TRUE(reopened.feature_flags.kEnableObject32ArmorySlots);
   EXPECT_EQ(reopened.custom_object_asset_sha256.at("minish_stump.bin"),
             "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb");
+  EXPECT_EQ(
+      reopened.custom_object_asset_sha256.at("prison_armory_worktable.bin"),
+      "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc");
 }
 #endif  // YAZE_ENABLE_JSON_PROJECT_FORMAT
 
@@ -498,6 +506,7 @@ name=OptedIn
 
 [feature_flags]
 enable_object32_prison_slots=true
+enable_object32_armory_slots=true
 
 [custom_object_asset_sha256]
 minish_stump.bin=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
@@ -509,10 +518,12 @@ name=Bare
   YazeProject project;
   ASSERT_TRUE(project.Open(opted_in.string()).ok());
   EXPECT_TRUE(project.feature_flags.kEnableObject32PrisonSlots);
+  EXPECT_TRUE(project.feature_flags.kEnableObject32ArmorySlots);
   ASSERT_EQ(project.custom_object_asset_sha256.size(), 1u);
 
   ASSERT_TRUE(project.Open(bare.string()).ok());
   EXPECT_FALSE(project.feature_flags.kEnableObject32PrisonSlots);
+  EXPECT_FALSE(project.feature_flags.kEnableObject32ArmorySlots);
   EXPECT_TRUE(project.custom_object_asset_sha256.empty());
 }
 

@@ -1272,5 +1272,92 @@ TEST_F(CustomObjectManagerTest,
   EXPECT_TRUE(CustomObjectManager::Get().ResolveFilename(0x32, 0x0B).empty());
 }
 
+std::unordered_map<std::string, std::string> WriteSyntheticArmoryAssets(
+    const std::filesystem::path& folder) {
+  auto identities = WriteSyntheticPrisonAssets(folder);
+  const auto& names = CustomObjectManager::Object32ArmoryAppendFilenames();
+  const std::vector<uint8_t> table = {0x01, 0x00, 0x41, 0x28, 0x00, 0x00};
+  const std::vector<uint8_t> drawers = {0x01, 0x00, 0x42, 0x28, 0x00, 0x00};
+  {
+    std::ofstream out(folder / names[0], std::ios::binary);
+    out.write(reinterpret_cast<const char*>(table.data()), table.size());
+  }
+  {
+    std::ofstream out(folder / names[1], std::ios::binary);
+    out.write(reinterpret_cast<const char*>(drawers.data()), drawers.size());
+  }
+  identities[names[0]] = Sha256OfTempFile(folder / names[0]);
+  identities[names[1]] = Sha256OfTempFile(folder / names[1]);
+  return identities;
+}
+
+TEST_F(CustomObjectManagerTest, Object32ArmoryRequiresPrisonThirteenFirst) {
+  const auto identities = WriteSyntheticArmoryAssets(temp_dir_);
+  auto& manager = CustomObjectManager::Get();
+  const auto status = manager.AdmitObject32ArmorySlots(identities);
+  EXPECT_TRUE(absl::IsFailedPrecondition(status));
+  EXPECT_EQ(CustomObjectManager::RuntimeSubtypeCountForObject(0x32), 11);
+  EXPECT_TRUE(
+      absl::IsOutOfRange(manager.GetObjectInternal(0x32, 0x0D).status()));
+}
+
+TEST_F(CustomObjectManagerTest, Object32ArmoryOptInAdmitsProjectIdentities) {
+  const auto identities = WriteSyntheticArmoryAssets(temp_dir_);
+  for (const auto& name :
+       CustomObjectManager::DefaultSubtypeFilenamesForObject(0x32)) {
+    WriteBinaryFile(name, {0x01, 0x00, 0x11, 0x28, 0x00, 0x00});
+  }
+  auto& manager = CustomObjectManager::Get();
+  ASSERT_TRUE(manager.AdmitObject32PrisonSlots(identities).ok());
+  ASSERT_TRUE(manager.AdmitObject32ArmorySlots(identities).ok());
+  EXPECT_EQ(CustomObjectManager::RuntimeSubtypeCountForObject(0x32), 15);
+  EXPECT_EQ(manager.ResolveFilename(0x32, 0x0B), "minish_stump.bin");
+  EXPECT_EQ(manager.ResolveFilename(0x32, 0x0C), "minish_wall_hole.bin");
+  EXPECT_EQ(manager.ResolveFilename(0x32, 0x0D), "prison_armory_worktable.bin");
+  EXPECT_EQ(manager.ResolveFilename(0x32, 0x0E), "prison_armory_drawers.bin");
+  EXPECT_TRUE(manager.GetObjectInternal(0x32, 0x0D).ok());
+  EXPECT_TRUE(manager.GetObjectInternal(0x32, 0x0E).ok());
+}
+
+TEST_F(CustomObjectManagerTest, Object32ArmoryFailedAdmitKeepsPrisonThirteen) {
+  const auto identities = WriteSyntheticArmoryAssets(temp_dir_);
+  auto& manager = CustomObjectManager::Get();
+  ASSERT_TRUE(manager.AdmitObject32PrisonSlots(identities).ok());
+  ASSERT_TRUE(manager.AdmitObject32ArmorySlots(identities).ok());
+  EXPECT_EQ(CustomObjectManager::RuntimeSubtypeCountForObject(0x32), 15);
+
+  auto stale = identities;
+  stale["prison_armory_worktable.bin"] = std::string(64, '0');
+  const auto status = manager.AdmitObject32ArmorySlots(stale);
+  EXPECT_TRUE(absl::IsFailedPrecondition(status));
+  EXPECT_EQ(CustomObjectManager::RuntimeSubtypeCountForObject(0x32), 13);
+  EXPECT_TRUE(manager.GetObjectInternal(0x32, 0x0B).ok());
+  EXPECT_TRUE(
+      absl::IsOutOfRange(manager.GetObjectInternal(0x32, 0x0D).status()));
+}
+
+TEST_F(CustomObjectManagerTest, Object32ArmoryOptInRefusesMissingIdentity) {
+  const auto prison = WriteSyntheticPrisonAssets(temp_dir_);
+  auto& manager = CustomObjectManager::Get();
+  ASSERT_TRUE(manager.AdmitObject32PrisonSlots(prison).ok());
+  WriteSyntheticArmoryAssets(temp_dir_);
+  const auto status = manager.AdmitObject32ArmorySlots(prison);
+  EXPECT_TRUE(absl::IsFailedPrecondition(status));
+  EXPECT_EQ(CustomObjectManager::RuntimeSubtypeCountForObject(0x32), 13);
+}
+
+TEST_F(CustomObjectManagerTest,
+       OversizedObject32MapAloneDoesNotInventArmorySlots) {
+  std::vector<std::string> oversized(
+      CustomObjectManager::DefaultSubtypeFilenamesForObject(0x32));
+  oversized.push_back("minish_stump.bin");
+  oversized.push_back("minish_wall_hole.bin");
+  oversized.push_back("prison_armory_worktable.bin");
+  oversized.push_back("prison_armory_drawers.bin");
+  CustomObjectManager::Get().SetObjectFileMap({{0x32, oversized}});
+  EXPECT_EQ(CustomObjectManager::RuntimeSubtypeCountForObject(0x32), 11);
+  EXPECT_TRUE(CustomObjectManager::Get().ResolveFilename(0x32, 0x0D).empty());
+}
+
 }  // namespace
 }  // namespace yaze::zelda3

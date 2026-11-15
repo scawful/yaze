@@ -102,6 +102,17 @@ void EditorManager::ApplyCurrentProjectRuntimeContext() {
       LOG_WARN("CustomObjectManager",
                "Object32 prison slot admission refused: %s",
                std::string(admitted.message()).c_str());
+    } else if (current_project_.feature_flags.kEnableObject32ArmorySlots) {
+      const auto armory = custom_object_manager.AdmitObject32ArmorySlots(
+          current_project_.custom_object_asset_sha256);
+      if (!armory.ok()) {
+        custom_object_manager.ClearObject32ArmorySlots();
+        LOG_WARN("CustomObjectManager",
+                 "Object32 armory slot admission refused: %s",
+                 std::string(armory.message()).c_str());
+      }
+    } else {
+      custom_object_manager.ClearObject32ArmorySlots();
     }
   } else {
     custom_object_manager.ClearObject32PrisonSlots();
@@ -239,6 +250,19 @@ void EditorManager::HandleSessionSwitched(size_t new_index, RomSession* session,
           LOG_WARN("CustomObjectManager",
                    "Object32 prison slot admission refused: %s",
                    std::string(admitted.message()).c_str());
+        } else if (session->project_context->feature_flags
+                       .kEnableObject32ArmorySlots) {
+          const auto armory =
+              zelda3::CustomObjectManager::Get().AdmitObject32ArmorySlots(
+                  session->project_context->custom_object_asset_sha256);
+          if (!armory.ok()) {
+            zelda3::CustomObjectManager::Get().ClearObject32ArmorySlots();
+            LOG_WARN("CustomObjectManager",
+                     "Object32 armory slot admission refused: %s",
+                     std::string(armory.message()).c_str());
+          }
+        } else {
+          zelda3::CustomObjectManager::Get().ClearObject32ArmorySlots();
         }
       } else {
         zelda3::CustomObjectManager::Get().ClearObject32PrisonSlots();

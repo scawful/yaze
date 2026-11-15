@@ -1810,7 +1810,9 @@ absl::StatusOr<std::string> YazeProject::SerializeToString() const {
   file << "enable_custom_objects="
        << (feature_flags.kEnableCustomObjects ? "true" : "false") << "\n";
   file << "enable_object32_prison_slots="
-       << (feature_flags.kEnableObject32PrisonSlots ? "true" : "false")
+       << (feature_flags.kEnableObject32PrisonSlots ? "true" : "false") << "\n";
+  file << "enable_object32_armory_slots="
+       << (feature_flags.kEnableObject32ArmorySlots ? "true" : "false")
        << "\n\n";
 
   // Workspace settings section
@@ -2070,6 +2072,7 @@ absl::Status YazeProject::ParseFromString(const std::string& content) {
   experimental_page_tile16 = false;
   feature_flags.kSaveWithChangeQueue = false;
   feature_flags.kEnableObject32PrisonSlots = false;
+  feature_flags.kEnableObject32ArmorySlots = false;
   custom_object_asset_sha256.clear();
   sprite_catalog_file.clear();
   sprite_source_root.clear();
@@ -2286,6 +2289,8 @@ absl::Status YazeProject::ParseFromString(const std::string& content) {
         feature_flags.kEnableCustomObjects = ParseBool(value);
       else if (key == "enable_object32_prison_slots")
         feature_flags.kEnableObject32PrisonSlots = ParseBool(value);
+      else if (key == "enable_object32_armory_slots")
+        feature_flags.kEnableObject32ArmorySlots = ParseBool(value);
       else
         understood = false;
     } else if (current_section == "workspace") {
@@ -3911,6 +3916,7 @@ absl::Status YazeProject::LoadFromJsonFormat(const std::string& project_path) {
   experimental_page_tile16 = false;
   feature_flags.kSaveWithChangeQueue = false;
   feature_flags.kEnableObject32PrisonSlots = false;
+  feature_flags.kEnableObject32ArmorySlots = false;
   feature_flags.kEnableCustomObjects = false;
   custom_object_asset_sha256.clear();
   terrain_catalog_file.clear();
@@ -4119,6 +4125,9 @@ absl::Status YazeProject::LoadFromJsonFormat(const std::string& project_path) {
         if (flags.contains("kEnableObject32PrisonSlots"))
           feature_flags.kEnableObject32PrisonSlots =
               flags["kEnableObject32PrisonSlots"].get<bool>();
+        if (flags.contains("kEnableObject32ArmorySlots"))
+          feature_flags.kEnableObject32ArmorySlots =
+              flags["kEnableObject32ArmorySlots"].get<bool>();
       }
 
       // Workspace settings
@@ -4412,6 +4421,8 @@ absl::Status YazeProject::SaveToJsonFormat() {
       feature_flags.kEnableCustomObjects;
   proj["feature_flags"]["kEnableObject32PrisonSlots"] =
       feature_flags.kEnableObject32PrisonSlots;
+  proj["feature_flags"]["kEnableObject32ArmorySlots"] =
+      feature_flags.kEnableObject32ArmorySlots;
 
   // Workspace settings
   proj["workspace_settings"]["auto_save_enabled"] =

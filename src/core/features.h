@@ -77,6 +77,11 @@ class FeatureFlags {
     // project folder pins the accepted assets. Default capacity stays 11.
     bool kEnableObject32PrisonSlots = false;
 
+    // Opt into object 0x32 subtypes 0D/0E (prison armory furniture) only after
+    // the 13-slot prison admission is active and the project pins both assets.
+    // Never broadens the default 11-slot table by itself.
+    bool kEnableObject32ArmorySlots = false;
+
     // Use NFD (Native File Dialog) instead of bespoke file dialog
     // implementation.
 #if defined(YAZE_ENABLE_NFD) && YAZE_ENABLE_NFD
@@ -206,6 +211,8 @@ class FeatureFlags {
         "\n";
     result += "kEnableObject32PrisonSlots: " +
               std::to_string(get().kEnableObject32PrisonSlots) + "\n";
+    result += "kEnableObject32ArmorySlots: " +
+              std::to_string(get().kEnableObject32ArmorySlots) + "\n";
     return result;
   }
 };
