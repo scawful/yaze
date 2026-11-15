@@ -550,6 +550,31 @@ absl::Status PreflightObjectRemoval(
                                       : nullptr);
 }
 
+absl::Status PreflightDoorRemoval(
+    const Rom& source_rom, int room_id, size_t door_index,
+    const zelda3::Room& pending_room,
+    const StreamSaveManifestContext* manifest_context) {
+  if (manifest_context != nullptr) {
+    RETURN_IF_ERROR(ValidateObjectSaveManifestConflicts(
+        source_rom, room_id, pending_room, *manifest_context));
+  }
+
+  Rom scratch_rom;
+  Rom::LoadOptions options;
+  options.strip_header = false;
+  options.load_resource_labels = false;
+  RETURN_IF_ERROR(scratch_rom.LoadFromData(source_rom.vector(), options));
+
+  zelda3::Room scratch_room = zelda3::LoadRoomFromRom(&scratch_rom, room_id);
+  if (door_index >= scratch_room.GetDoors().size()) {
+    return absl::OutOfRangeError("Door index out of range during preflight");
+  }
+  scratch_room.RemoveDoor(door_index);
+  return scratch_room.SaveObjects(manifest_context != nullptr
+                                      ? &manifest_context->allocator_layout
+                                      : nullptr);
+}
+
 absl::StatusOr<int> GetRequiredHex(const resources::ArgumentParser& parser,
                                    const char* name) {
   auto value_or = GetRequiredString(parser, name);
@@ -3175,6 +3200,150 @@ absl::Status DungeonSetDoorTypeCommandHandler::Execute(
   }
 
   transaction.Commit();
+  formatter.AddField("status", "success");
+  formatter.EndObject();
+  return absl::OkStatus();
+}
+
+// ---------------------------------------------------------------------------
+// dungeon-remove-door
+// ---------------------------------------------------------------------------
+
+absl::Status DungeonRemoveDoorCommandHandler::Execute(
+    Rom* rom, const resources::ArgumentParser& parser,
+    resources::OutputFormatter& formatter) {
+  int room_id = 0;
+  ASSIGN_OR_RETURN(room_id, GetRequiredHex(parser, "room"));
+  RETURN_IF_ERROR(ValidateRoomId(room_id));
+
+  int x = 0;
+  int y = 0;
+  ASSIGN_OR_RETURN(x, GetRequiredInt(parser, "x"));
+  ASSIGN_OR_RETURN(y, GetRequiredInt(parser, "y"));
+  if (x < 0 || x > 63 || y < 0 || y > 63) {
+    return absl::InvalidArgumentError(
+        "Door tile coordinates must be in range 0-63");
+  }
+
+  int expected_type = 0;
+  ASSIGN_OR_RETURN(expected_type, GetRequiredHex(parser, "expect-type"));
+  RETURN_IF_ERROR(ValidateDoorType(expected_type, "expect-type"));
+
+  std::optional<StreamSaveManifestContext> manifest_context;
+  ASSIGN_OR_RETURN(
+      manifest_context,
+      LoadStreamSaveManifestContext(parser, core::DungeonStreamType::kObjects));
+  if (!manifest_context.has_value()) {
+    return absl::FailedPreconditionError(
+        "--manifest is required for dungeon-remove-door");
+  }
+
+  DoorTypeTarget target;
+  ASSIGN_OR_RETURN(
+      target, ResolveDoorTypeTarget(rom, room_id, x, y, *manifest_context));
+  const int old_type = static_cast<int>(target.door.type);
+  if (old_type != expected_type) {
+    return absl::FailedPreconditionError(absl::StrFormat(
+        "Door type compare-and-swap failed at (%d, %d): expected 0x%02X, "
+        "found 0x%02X",
+        x, y, expected_type, old_type));
+  }
+
+  zelda3::Room room = zelda3::LoadRoomFromRom(rom, room_id);
+  const int doors_before = static_cast<int>(room.GetDoors().size());
+  if (target.door_index < 0 ||
+      target.door_index >= static_cast<int>(room.GetDoors().size())) {
+    return absl::OutOfRangeError("Resolved door index is out of range");
+  }
+
+  // Snapshot remaining doors for the response before mutating.
+  std::vector<std::pair<int, int>> preserved_coords;
+  preserved_coords.reserve(room.GetDoors().size());
+  for (int i = 0; i < static_cast<int>(room.GetDoors().size()); ++i) {
+    if (i == target.door_index) {
+      continue;
+    }
+    preserved_coords.push_back(room.GetDoors()[i].GetTileCoords());
+  }
+
+  room.RemoveDoor(static_cast<size_t>(target.door_index));
+  const int doors_after = static_cast<int>(room.GetDoors().size());
+  if (doors_after != doors_before - 1) {
+    return absl::DataLossError("Door removal did not shrink the door list");
+  }
+
+  const bool do_write = parser.HasFlag("write");
+  formatter.BeginObject("Remove Door");
+  formatter.AddHexField("room_id", room_id, 3);
+  formatter.AddField("door_index", target.door_index);
+  formatter.AddField("x", x);
+  formatter.AddField("y", y);
+  formatter.AddField("position", target.door.position);
+  formatter.AddField("direction", std::string(target.door.GetDirectionName()));
+  formatter.AddHexField("removed_type", old_type, 2);
+  formatter.AddField("removed_type_name",
+                     std::string(target.door.GetTypeName()));
+  formatter.AddField("doors_before", doors_before);
+  formatter.AddField("doors_after", doors_after);
+  formatter.AddField("preserved_door_count",
+                     static_cast<int>(preserved_coords.size()));
+  formatter.AddHexField("object_stream_pc", target.object_stream_pc, 6);
+  formatter.AddHexField("object_stream_end_pc", target.object_stream_end_pc, 6);
+  formatter.AddHexField("door_pointer_pc", target.door_pointer_pc, 6);
+  formatter.AddHexField("door_entry_pc", target.door_entry_pc, 6);
+  formatter.AddField("manifest", *parser.GetString("manifest"));
+  formatter.AddField("manifest_write_policy", "block");
+  formatter.AddField("stream_alias_status", "unique");
+  formatter.AddField("mode", do_write ? "write" : "dry-run");
+  formatter.AddField("allocator_capability", "copy_on_write");
+
+  RETURN_IF_ERROR(RefuseInvalidDungeonLayout(*rom));
+  if (IsNativeDungeonLayout(*rom)) {
+    const auto status = SaveNativeRoomObjects(
+        rom, room_id, room, &*manifest_context, do_write, formatter);
+    formatter.AddField("status", status.ok() ? "success" : "error");
+    formatter.EndObject();
+    return status;
+  }
+
+  const absl::Status preflight_status = PreflightDoorRemoval(
+      *rom, room_id, static_cast<size_t>(target.door_index), room,
+      &*manifest_context);
+  if (!preflight_status.ok()) {
+    formatter.AddField("preflight_status", "failed");
+    formatter.AddField("preflight_error",
+                       std::string(preflight_status.message()));
+    formatter.AddField("status", "error");
+    formatter.EndObject();
+    return preflight_status;
+  }
+  formatter.AddField("preflight_status", "success");
+
+  if (do_write) {
+    const zelda3::DungeonStreamLayout* layout =
+        &manifest_context->allocator_layout;
+    const absl::Status save_status = MutateAndSaveRomWithBackup(
+        rom, formatter, [&room, layout]() { return room.SaveObjects(layout); });
+    if (!save_status.ok()) {
+      formatter.AddField("status", "error");
+      formatter.EndObject();
+      return save_status;
+    }
+    const absl::Status verify =
+        CheckReopenedRoomObjects(rom->vector(), room_id, room);
+    if (!verify.ok()) {
+      formatter.AddField("readback_error", std::string(verify.message()));
+      formatter.AddField("status", "error");
+      formatter.EndObject();
+      return verify;
+    }
+    formatter.AddField("readback_status", "verified");
+  } else {
+    formatter.AddField("write_status", "not_requested");
+    formatter.AddField("save_status", "not_requested");
+    formatter.AddField("readback_status", "not_requested");
+  }
+
   formatter.AddField("status", "success");
   formatter.EndObject();
   return absl::OkStatus();

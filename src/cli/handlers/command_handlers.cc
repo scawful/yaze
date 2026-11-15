@@ -188,6 +188,7 @@ CreateCliCommandHandlers() {
   handlers.push_back(std::make_unique<DungeonGetPaletteCommandHandler>());
   handlers.push_back(std::make_unique<DungeonSetPaletteColorCommandHandler>());
   handlers.push_back(std::make_unique<DungeonSetDoorTypeCommandHandler>());
+  handlers.push_back(std::make_unique<DungeonRemoveDoorCommandHandler>());
   handlers.push_back(std::make_unique<DungeonListPotItemsCommandHandler>());
   handlers.push_back(std::make_unique<DungeonSetPotItemCommandHandler>());
   handlers.push_back(std::make_unique<DungeonSetCollisionTileCommandHandler>());

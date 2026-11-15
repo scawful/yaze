@@ -31,6 +31,7 @@
 #include "rom/transaction.h"
 #include "unique_temp_path.h"
 #include "util/rom_hash.h"
+#include "zelda3/dungeon/door_position.h"
 #include "zelda3/dungeon/dungeon_rom_addresses.h"
 #include "zelda3/dungeon/dungeon_torch_codec.h"
 #include "zelda3/dungeon/object_layer_semantics.h"
@@ -367,6 +368,51 @@ void InitializeDoorTypeRom(Rom* rom, bool duplicate_coordinate = false) {
     selected_stream.insert(selected_stream.end(), {0x81, 0x00});
   }
   selected_stream.insert(selected_stream.end(), {0xFF, 0xFF});
+  ASSERT_TRUE(rom->WriteVector(kObjectDataPc, std::move(selected_stream)).ok());
+  ASSERT_TRUE(
+      rom->WriteVector(kOtherObjectDataPc, {0x00, 0x00, 0xFF, 0xFF, 0xFF, 0xFF,
+                                            0xF0, 0xFF, 0xFF, 0xFF})
+          .ok());
+
+  WriteLong(rom, zelda3::kDoorPointers, PcToSnes(kDoorEntryPc));
+  for (int room_id = 1; room_id < zelda3::kNumberOfRooms; ++room_id) {
+    WriteLong(rom, zelda3::kDoorPointers + room_id * 3,
+              PcToSnes(kOtherObjectDataPc + 8));
+  }
+  rom->set_dirty(false);
+}
+
+// Room 0 has two door records so remove-door can prove the non-target survives.
+// Door 0: (46,58) type 0x18 (same as InitializeDoorTypeRom).
+// Door 1: West lower-style encoding position/dir/type 0x02 at its tile coords.
+void InitializeTwoDoorTypeRom(Rom* rom) {
+  InitializeRoomHeaderRom(rom);
+
+  constexpr int kOtherObjectDataPc = kObjectDataPc + 0x20;
+  SetRoomObjectPointer(rom, 0, kObjectDataPc);
+  for (int room_id = 1; room_id < zelda3::kNumberOfRooms; ++room_id) {
+    SetRoomObjectPointer(rom, room_id, kOtherObjectDataPc);
+  }
+
+  const auto second = zelda3::DoorPositionManager::EncodeDoorBytes(
+      /*position=*/5, zelda3::DoorType::NormalDoorLower,
+      zelda3::DoorDirection::West);
+  std::vector<uint8_t> selected_stream = {
+      kObjectHeaderByte0,
+      kObjectHeaderByte1,
+      0xFF,
+      0xFF,
+      0xFF,
+      0xFF,
+      0xF0,
+      0xFF,
+      0x81,
+      0x18,
+      second.first,
+      second.second,
+      0xFF,
+      0xFF,
+  };
   ASSERT_TRUE(rom->WriteVector(kObjectDataPc, std::move(selected_stream)).ok());
   ASSERT_TRUE(
       rom->WriteVector(kOtherObjectDataPc, {0x00, 0x00, 0xFF, 0xFF, 0xFF, 0xFF,
@@ -4412,6 +4458,110 @@ TEST(DungeonEditCommandsTest,
   EXPECT_FALSE(rom.dirty());
   EXPECT_EQ(ReadFile(cleanup.rom_path), disk_before);
   EXPECT_EQ(CountBackupArtifacts(cleanup.rom_path), 0);
+}
+
+TEST(DungeonEditCommandsTest,
+     RemoveDoorDryRunLeavesRomDiskAndBackupsUnchanged) {
+  Rom rom;
+  InitializeTwoDoorTypeRom(&rom);
+  ScopedRomArtifactsCleanup cleanup(MakeUniqueTempRomPath());
+  ScopedFileCleanup manifest_cleanup(cleanup.rom_path.string() +
+                                     ".manifest.json");
+  WriteRomFile(rom, cleanup.rom_path);
+  WriteObjectCowManifest(manifest_cleanup.file_path);
+  rom.set_filename(cleanup.rom_path.string());
+  rom.set_dirty(false);
+
+  const auto target = zelda3::LoadRoomFromRom(&rom, 0).GetDoors()[1];
+  const auto [tx, ty] = target.GetTileCoords();
+  const std::vector<uint8_t> before = rom.vector();
+  const std::vector<uint8_t> disk_before = ReadFile(cleanup.rom_path);
+
+  handlers::DungeonRemoveDoorCommandHandler handler;
+  std::string output;
+  const absl::Status status = handler.Run(
+      {"--room=0x00", absl::StrFormat("--x=%d", tx),
+       absl::StrFormat("--y=%d", ty), "--expect-type=0x02",
+       absl::StrFormat("--manifest=%s", manifest_cleanup.file_path.string()),
+       "--format=json"},
+      &rom, &output);
+
+  ASSERT_TRUE(status.ok()) << status << "\n" << output;
+  EXPECT_THAT(output, HasSubstr("\"mode\": \"dry-run\""));
+  EXPECT_THAT(output, HasSubstr("\"preflight_status\": \"success\""));
+  EXPECT_THAT(output, HasSubstr("\"door_index\": 1"));
+  EXPECT_THAT(output, HasSubstr("\"doors_before\": 2"));
+  EXPECT_THAT(output, HasSubstr("\"doors_after\": 1"));
+  EXPECT_THAT(output, HasSubstr("\"preserved_door_count\": 1"));
+  EXPECT_EQ(rom.vector(), before);
+  EXPECT_FALSE(rom.dirty());
+  EXPECT_EQ(ReadFile(cleanup.rom_path), disk_before);
+  EXPECT_EQ(CountBackupArtifacts(cleanup.rom_path), 0);
+}
+
+TEST(DungeonEditCommandsTest,
+     RemoveDoorRejectsStaleExpectedTypeWithoutMutation) {
+  Rom rom;
+  InitializeTwoDoorTypeRom(&rom);
+  ScopedRomArtifactsCleanup cleanup(MakeUniqueTempRomPath());
+  ScopedFileCleanup manifest_cleanup(cleanup.rom_path.string() +
+                                     ".manifest.json");
+  WriteRomFile(rom, cleanup.rom_path);
+  WriteObjectCowManifest(manifest_cleanup.file_path);
+  rom.set_filename(cleanup.rom_path.string());
+  rom.set_dirty(false);
+  const std::vector<uint8_t> before = rom.vector();
+
+  handlers::DungeonRemoveDoorCommandHandler handler;
+  std::string output;
+  const absl::Status status = handler.Run(
+      {"--room=0x00", "--x=46", "--y=58", "--expect-type=0x02",
+       absl::StrFormat("--manifest=%s", manifest_cleanup.file_path.string()),
+       "--format=json"},
+      &rom, &output);
+
+  EXPECT_TRUE(absl::IsFailedPrecondition(status)) << status;
+  EXPECT_THAT(std::string(status.message()), HasSubstr("compare-and-swap"));
+  EXPECT_EQ(rom.vector(), before);
+  EXPECT_FALSE(rom.dirty());
+}
+
+TEST(DungeonEditCommandsTest,
+     RemoveDoorWriteRemovesTargetAndPreservesOtherDoor) {
+  Rom rom;
+  InitializeTwoDoorTypeRom(&rom);
+  ScopedRomArtifactsCleanup cleanup(MakeUniqueTempRomPath());
+  ScopedFileCleanup manifest_cleanup(cleanup.rom_path.string() +
+                                     ".manifest.json");
+  WriteRomFile(rom, cleanup.rom_path);
+  WriteObjectCowManifest(manifest_cleanup.file_path);
+  rom.set_filename(cleanup.rom_path.string());
+  rom.set_dirty(false);
+
+  const zelda3::Room before_room = zelda3::LoadRoomFromRom(&rom, 0);
+  ASSERT_EQ(before_room.GetDoors().size(), 2u);
+  const auto [remove_x, remove_y] = before_room.GetDoors()[1].GetTileCoords();
+  const auto preserved = before_room.GetDoors()[0];
+
+  handlers::DungeonRemoveDoorCommandHandler handler;
+  std::string output;
+  const absl::Status status = handler.Run(
+      {"--room=0x00", absl::StrFormat("--x=%d", remove_x),
+       absl::StrFormat("--y=%d", remove_y), "--expect-type=0x02",
+       absl::StrFormat("--manifest=%s", manifest_cleanup.file_path.string()),
+       "--write", "--format=json"},
+      &rom, &output);
+
+  ASSERT_TRUE(status.ok()) << status << "\n" << output;
+  EXPECT_THAT(output, HasSubstr("\"mode\": \"write\""));
+  EXPECT_THAT(output, HasSubstr("\"doors_after\": 1"));
+
+  Rom reopened;
+  ASSERT_TRUE(reopened.LoadFromFile(cleanup.rom_path.string()).ok());
+  const zelda3::Room room = zelda3::LoadRoomFromRom(&reopened, 0);
+  ASSERT_EQ(room.GetDoors().size(), 1u);
+  EXPECT_EQ(room.GetDoors().front().EncodeBytes(), preserved.EncodeBytes());
+  EXPECT_EQ(room.GetDoors().front().GetTileCoords(), preserved.GetTileCoords());
 }
 
 TEST(DungeonEditCommandsTest,

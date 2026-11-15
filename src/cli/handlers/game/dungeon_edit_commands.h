@@ -323,6 +323,33 @@ class DungeonSetDoorTypeCommandHandler : public resources::CommandHandler {
 };
 
 /**
+ * @brief Remove one existing dungeon door by exact tile coordinates.
+ *
+ * Target is guarded by --expect-type (CAS). Rewrites the object stream through
+ * the maintained SaveObjects / native candidate path so remaining doors and
+ * objects are preserved. Dry-run by default; --write commits.
+ */
+class DungeonRemoveDoorCommandHandler : public resources::CommandHandler {
+ public:
+  std::string GetName() const override { return "dungeon-remove-door"; }
+  std::string GetDescription() const {
+    return "Remove an existing dungeon door with coordinate/type CAS";
+  }
+  std::string GetUsage() const override {
+    return "dungeon-remove-door --room <hex> --x <int> --y <int> "
+           "--expect-type <hex> --manifest <path> "
+           "[--write] [--experimental-page-tile16] [--format <json|text>]";
+  }
+
+  absl::Status ValidateArgs(const resources::ArgumentParser& parser) override {
+    return parser.RequireArgs({"room", "x", "y", "expect-type", "manifest"});
+  }
+
+  absl::Status Execute(Rom* rom, const resources::ArgumentParser& parser,
+                       resources::OutputFormatter& formatter) override;
+};
+
+/**
  * @brief List existing pot-item entries and their exact ROM addresses.
  *
  * --pair-liftables also lists the room's replayed pots, pegs, rocks and
