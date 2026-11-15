@@ -12,7 +12,9 @@
 #include "app/gfx/render/tilemap.h"
 #include "app/gfx/resource/arena.h"
 #include "app/gfx/types/snes_palette.h"
+#include "app/gfx/types/snes_tile.h"
 #include "gtest/gtest.h"
+#include "rom/lyra_layout_descriptor.h"
 #include "rom/rom.h"
 #include "test_utils/overworld_model_test_peer.h"
 #include "zelda3/common.h"
@@ -492,9 +494,7 @@ TEST_F(OverworldPaintRefreshTest, RebuiltModelStillSynchronizesCleanBitmap) {
 }
 
 // Ordinary maps have empty page_tile16, so Tiles16ForMap equals the global
-// table. Refresh must keep matching that model path. Page-override visual
-// parity rides on Overworld::BuildMapWithTilesetCache + Tiles16ForMap coverage;
-// the coordinator now calls the same Tiles16ForMap helper.
+// table. Refresh must keep matching that model path.
 TEST_F(OverworldPaintRefreshTest,
        OrdinaryMapRefreshMatchesTiles16ForMapModelPath) {
   ASSERT_TRUE(overworld_->page_tile16().empty());
@@ -514,6 +514,80 @@ TEST_F(OverworldPaintRefreshTest,
   coordinator_->RefreshChildMapOnDemand(0);
   ASSERT_TRUE(status_.ok()) << status_;
   EXPECT_EQ(maps_bmp_[0].vector(), model_bitmap);
+}
+
+// Map 0 overrides Tile16 ID 0 (palette 1); map 1 keeps the global ID 0
+// (palette 0). Coordinator refresh must follow Tiles16ForMap — the old global
+// mutable_tiles16() path paints map 0 like map 1 and fails this assertion.
+TEST_F(OverworldPaintRefreshTest,
+       PageOverrideRefreshDiffersFromGlobalNeighborSameTileId) {
+  PopulateSingleMapForRefresh(1);
+  const gfx::TileInfo override_info(0, 1, false, false, false);
+  const uint16_t override_word = gfx::TileInfoToWord(override_info);
+  zelda3::OverworldModelTestPeer::SetPageTile16(
+      *overworld_,
+      {rom::NativePageTile16Definition{
+          0, 0, {override_word, override_word, override_word, override_word}}});
+
+  ASSERT_NE(overworld_->Tiles16ForMap(0)[0], overworld_->tiles16()[0]);
+  ASSERT_EQ(overworld_->Tiles16ForMap(1)[0], overworld_->tiles16()[0]);
+  ASSERT_EQ(
+      overworld_->Tiles16ForMap(0)[0],
+      gfx::Tile16(override_info, override_info, override_info, override_info));
+
+  overworld_->GetMapTiles(0)[0][0] = 0;
+
+  auto* map0 = overworld_->mutable_overworld_map(0);
+  auto* map1 = overworld_->mutable_overworld_map(1);
+  ASSERT_NE(map0, nullptr);
+  ASSERT_NE(map1, nullptr);
+  ASSERT_TRUE(map1->BuildMap(2, 0, 0, *overworld_->mutable_tiles16(),
+                             overworld_->GetMapTiles(0))
+                  .ok());
+  maps_bmp_[1].Create(512, 512, 8, map1->bitmap_data());
+  maps_bmp_[1].SetPalette(map1->current_palette());
+  maps_bmp_[1].set_modified(false);
+
+  auto expected0 = overworld_->Tiles16ForMap(0);
+  ASSERT_TRUE(map0->BuildTileset().ok());
+  ASSERT_TRUE(
+      map0->BuildTiles16Gfx(expected0, static_cast<int>(expected0.size()))
+          .ok());
+  ASSERT_TRUE(map0->BuildBitmap(overworld_->GetMapTiles(0)).ok());
+  const auto model0 = map0->bitmap_data();
+  EXPECT_EQ(model0[0], 0x10);
+
+  auto global_defs = *overworld_->mutable_tiles16();
+  ASSERT_TRUE(
+      map0->BuildTiles16Gfx(global_defs, static_cast<int>(global_defs.size()))
+          .ok());
+  ASSERT_TRUE(map0->BuildBitmap(overworld_->GetMapTiles(0)).ok());
+  const auto reverted_global0 = map0->bitmap_data();
+  EXPECT_EQ(reverted_global0[0], 0);
+  EXPECT_NE(reverted_global0, model0);
+
+  maps_bmp_[0].set_modified(true);
+  current_map_ = 0;
+  coordinator_->RefreshChildMapOnDemand(0);
+  ASSERT_TRUE(status_.ok()) << status_;
+  EXPECT_EQ(maps_bmp_[0].vector(), model0);
+  EXPECT_NE(maps_bmp_[0].vector(), reverted_global0);
+
+  auto expected1 = overworld_->Tiles16ForMap(1);
+  ASSERT_TRUE(map1->BuildTileset().ok());
+  ASSERT_TRUE(
+      map1->BuildTiles16Gfx(expected1, static_cast<int>(expected1.size()))
+          .ok());
+  ASSERT_TRUE(map1->BuildBitmap(overworld_->GetMapTiles(0)).ok());
+  const auto model1 = map1->bitmap_data();
+  EXPECT_EQ(model1[0], 0);
+
+  maps_bmp_[1].set_modified(true);
+  current_map_ = 1;
+  coordinator_->RefreshChildMapOnDemand(1);
+  ASSERT_TRUE(status_.ok()) << status_;
+  EXPECT_EQ(maps_bmp_[1].vector(), model1);
+  EXPECT_NE(maps_bmp_[0].vector()[0], maps_bmp_[1].vector()[0]);
 }
 
 TEST_F(OverworldPaintRefreshTest, GraphicsPreviewSurvivesEditRefreshAndClears) {
