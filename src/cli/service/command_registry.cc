@@ -146,6 +146,17 @@ void CommandRegistry::RegisterHandlers(
             "--expect-size=0 --expect-layer=0 "
             "--manifest=hack_manifest.json --write "
             "--rom=/tmp/oos-work.sfc --format=json"};
+      } else if (name == "dungeon-remove-door") {
+        metadata.description =
+            "Remove one existing dungeon door by exact tile coordinates with "
+            "type CAS (dry-run by default; preserves other doors/objects)";
+        metadata.examples = {
+            "z3ed dungeon-remove-door --room=0x89 --x=5 --y=47 "
+            "--expect-type=0x02 --manifest=hack_manifest.json "
+            "--rom=/tmp/oos-work.sfc --format=json",
+            "z3ed dungeon-remove-door --room=0x88 --x=55 --y=47 "
+            "--expect-type=0x02 --manifest=hack_manifest.json --write "
+            "--experimental-page-tile16 --rom=/tmp/oos-work.sfc --format=json"};
       } else if (name == "dungeon-get-palette") {
         metadata.description =
             "Resolve a US/OOS room's full 8-bit palette-set ID to its shared "
