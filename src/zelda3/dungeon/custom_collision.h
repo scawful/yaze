@@ -71,12 +71,14 @@ absl::StatusOr<CustomCollisionMap> LoadCustomCollisionMap(Rom* rom,
                                                           int room_id);
 
 // Fully explicit 64x64 rectangle blob (offset 0, w/h 64, all tiles, FFFF).
-// Includes every cell, including explicit floor zeros. Size is always
-// kExplicitFullCollisionRectangleBytes. LoadCustomCollisionMap still accepts
-// the older sparse F0F0 single-tile format.
+// Size is always kExplicitFullCollisionRectangleBytes. WriteTrackCollision
+// selects this only when every cell HasOverride; otherwise it keeps sparse
+// F0F0 singles so absent cells do not become explicit floor zeros.
+// LoadCustomCollisionMap still accepts both formats.
 constexpr int kExplicitFullCollisionRectangleBytes = 2 + 2 + (64 * 64) + 2;
 std::vector<uint8_t> EncodeExplicitFullCollisionRectangle(
     const CustomCollisionMap& map);
+bool IsFullyExplicitCollisionMap(const CustomCollisionMap& map);
 
 struct CustomCollisionTileEntry {
   uint16_t offset = 0;  // Y*64 + X (0..4095)

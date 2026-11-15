@@ -538,8 +538,6 @@ TEST(TrackCollisionGeneratorTest,
   ASSERT_EQ(initial_pointer,
             static_cast<uint32_t>(kCustomCollisionDataPosition));
 
-  // Explicit 64x64 blobs are fixed-size, so a smaller logical map still reuses
-  // the unique current span instead of appending.
   const CustomCollisionMap replacement = MakeCollisionMap({{65, 0xB7}});
   ASSERT_TRUE(WriteTrackCollision(&rom, 0x25, replacement).ok());
 
@@ -548,35 +546,32 @@ TEST(TrackCollisionGeneratorTest,
   ASSERT_TRUE(loaded_or.ok()) << loaded_or.status();
   EXPECT_EQ(loaded_or->tiles, replacement.tiles);
 
-  const size_t append_candidate =
-      initial_pointer + kExplicitFullCollisionRectangleBytes;
-  EXPECT_TRUE(std::all_of(rom.vector().begin() + append_candidate,
-                          rom.vector().begin() + append_candidate +
-                              kExplicitFullCollisionRectangleBytes,
-                          [](uint8_t value) { return value == 0; }));
+  constexpr size_t kInitialEncodedSize = 2 + (3 * 3) + 2;
+  constexpr size_t kReplacementEncodedSize = 2 + 3 + 2;
+  const size_t append_candidate = initial_pointer + kInitialEncodedSize;
+  EXPECT_TRUE(std::all_of(
+      rom.vector().begin() + append_candidate,
+      rom.vector().begin() + append_candidate + kReplacementEncodedSize,
+      [](uint8_t value) { return value == 0; }));
 }
 
 TEST(TrackCollisionGeneratorTest,
-     WriteAppendsWhenCurrentBlobIsSmallerThanFullRectangle) {
+     WriteAppendsWhenReplacementExceedsCurrentBlob) {
   Rom rom;
   ASSERT_TRUE(
       rom.LoadFromData(std::vector<uint8_t>(kCustomCollisionDataEnd, 0x00))
           .ok());
-  // Seed a tiny legacy sparse blob so the fixed 4102-byte rectangle cannot
-  // reuse it and must append.
-  const uint32_t sparse_start = kCustomCollisionDataPosition;
   ASSERT_TRUE(
-      rom.WriteVector(sparse_start, {0xF0, 0xF0, 0x00, 0x00, 0xB0, 0xFF, 0xFF})
-          .ok());
-  SetCollisionPointer(&rom, 0x25, sparse_start);
+      WriteTrackCollision(&rom, 0x25, MakeCollisionMap({{0, 0xB0}})).ok());
   const uint32_t initial_pointer = ReadCollisionPointerPc(rom, 0x25);
 
   const CustomCollisionMap replacement =
       MakeCollisionMap({{0, 0xB0}, {1, 0xB1}});
   ASSERT_TRUE(WriteTrackCollision(&rom, 0x25, replacement).ok());
 
+  constexpr uint32_t kInitialEncodedSize = 2 + 3 + 2;
   EXPECT_EQ(ReadCollisionPointerPc(rom, 0x25),
-            initial_pointer + 7);  // sparse blob length
+            initial_pointer + kInitialEncodedSize);
   auto loaded_or = LoadCustomCollisionMap(&rom, 0x25);
   ASSERT_TRUE(loaded_or.ok()) << loaded_or.status();
   EXPECT_EQ(loaded_or->tiles, replacement.tiles);
@@ -648,12 +643,9 @@ TEST(TrackCollisionGeneratorTest, ExplicitFloorAndClearRoundTrip) {
   ASSERT_TRUE(WriteTrackCollision(&rom, 0x83, map).ok());
   auto loaded = LoadCustomCollisionMap(&rom, 0x83);
   ASSERT_TRUE(loaded.ok()) << loaded.status();
-  // Full-rectangle writes materialize every cell, including floor zeros.
-  EXPECT_EQ(loaded->tiles, map.tiles);
+  EXPECT_EQ(*loaded, map);
   EXPECT_TRUE(loaded->HasOverride(494));
-  EXPECT_EQ(loaded->tiles[494], 0x00);
-  EXPECT_TRUE(loaded->HasOverride(493));
-  EXPECT_EQ(loaded->tiles[493], 0x00);
+  EXPECT_FALSE(loaded->HasOverride(493));
   EXPECT_TRUE(loaded->HasOverride(495));
   EXPECT_EQ(loaded->tiles[495], 0xFF);
 
@@ -661,8 +653,8 @@ TEST(TrackCollisionGeneratorTest, ExplicitFloorAndClearRoundTrip) {
   ASSERT_TRUE(WriteTrackCollision(&rom, 0x83, map).ok());
   loaded = LoadCustomCollisionMap(&rom, 0x83);
   ASSERT_TRUE(loaded.ok()) << loaded.status();
-  EXPECT_EQ(loaded->tiles, map.tiles);
-  EXPECT_EQ(loaded->tiles[494], 0x00);
+  EXPECT_EQ(*loaded, map);
+  EXPECT_FALSE(loaded->HasOverride(494));
   EXPECT_TRUE(loaded->HasOverride(495));
   EXPECT_EQ(loaded->tiles[495], 0xFF);
 }
@@ -674,9 +666,14 @@ TEST(TrackCollisionGeneratorTest,
       rom.LoadFromData(std::vector<uint8_t>(kCustomCollisionDataEnd, 0x00))
           .ok());
   CustomCollisionMap map;
-  map.SetOverride(0, 0x00);     // explicit floor at origin
-  map.SetOverride(4095, 0xB0);  // last cell
+  // Genuinely all-4096 explicit: every cell HasOverride, including floor zeros.
+  for (size_t i = 0; i < map.tiles.size(); ++i) {
+    map.SetOverride(i, 0x00);
+  }
+  map.SetOverride(0, 0x00);
   map.SetOverride(128, 0xB1);
+  map.SetOverride(4095, 0xB0);
+  ASSERT_TRUE(IsFullyExplicitCollisionMap(map));
   const auto encoded = EncodeExplicitFullCollisionRectangle(map);
   ASSERT_EQ(encoded.size(),
             static_cast<size_t>(kExplicitFullCollisionRectangleBytes));
@@ -733,9 +730,31 @@ TEST(TrackCollisionGeneratorTest, WriteRefusesWhenFullRectangleDoesNotFit) {
   ASSERT_TRUE(rom.WriteVector(occupy_end, {0xFF, 0xFF}).ok());
 
   CustomCollisionMap map;
+  for (size_t i = 0; i < map.tiles.size(); ++i) {
+    map.SetOverride(i, 0x00);
+  }
   map.SetOverride(0, 0xB0);
+  ASSERT_TRUE(IsFullyExplicitCollisionMap(map));
   const auto status = WriteTrackCollision(&rom, 0x65, map);
   EXPECT_TRUE(absl::IsResourceExhausted(status)) << status;
+}
+
+TEST(TrackCollisionGeneratorTest,
+     PartialOverrideMapsStaySparseAndDoNotMaterializeAbsentCells) {
+  Rom rom;
+  ASSERT_TRUE(
+      rom.LoadFromData(std::vector<uint8_t>(kCustomCollisionDataEnd, 0x00))
+          .ok());
+  CustomCollisionMap map = MakeCollisionMap({{0, 0xB0}, {128, 0xB1}});
+  ASSERT_FALSE(IsFullyExplicitCollisionMap(map));
+  ASSERT_TRUE(WriteTrackCollision(&rom, 0x65, map).ok());
+  const uint32_t start = ReadCollisionPointerPc(rom, 0x65);
+  EXPECT_EQ(rom.vector()[start], 0xF0);
+  EXPECT_EQ(rom.vector()[start + 1], 0xF0);
+  auto loaded = LoadCustomCollisionMap(&rom, 0x65);
+  ASSERT_TRUE(loaded.ok()) << loaded.status();
+  EXPECT_EQ(*loaded, map);
+  EXPECT_FALSE(loaded->HasOverride(1));
 }
 
 }  // namespace

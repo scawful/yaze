@@ -557,11 +557,32 @@ absl::Status WriteTrackCollision(Rom* rom, int room_id,
                   "CustomCollisionData"));
   yaze::rom::ScopedWriteFence scope(rom, &fence);
 
-  // Fully explicit 64x64 rectangle so every cell (including floor zeros) is
-  // preserved. Sparse F0F0 singles exceeded remaining capacity for prison65's
-  // 4096-cell maps; the rectangle wire format is already understood by
-  // LoadCustomCollisionMap.
-  std::vector<uint8_t> encoded = EncodeExplicitFullCollisionRectangle(map);
+  // Preserve sparse F0F0 semantics for ordinary track maps (only HasOverride
+  // cells). Use the fixed 4102-byte full rectangle only when every cell is an
+  // explicit override, so prison65's all-4096 maps fit without turning absent
+  // cells into floor zeros on smaller maps.
+  std::vector<uint8_t> encoded;
+  if (IsFullyExplicitCollisionMap(map)) {
+    encoded = EncodeExplicitFullCollisionRectangle(map);
+  } else {
+    encoded.push_back(0xF0);
+    encoded.push_back(0xF0);
+    for (int y = 0; y < kGridSize; ++y) {
+      for (int x = 0; x < kGridSize; ++x) {
+        const int index = y * kGridSize + x;
+        if (!map.HasOverride(index)) {
+          continue;
+        }
+        const uint8_t tile = map.tiles[index];
+        const uint16_t offset = static_cast<uint16_t>(index);
+        encoded.push_back(offset & 0xFF);
+        encoded.push_back(offset >> 8);
+        encoded.push_back(tile);
+      }
+    }
+    encoded.push_back(0xFF);
+    encoded.push_back(0xFF);
+  }
   // Find the end of existing collision data by scanning all room pointers
   // to determine the highest used offset.
   const size_t safe_end =

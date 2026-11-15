@@ -144,6 +144,15 @@ absl::StatusOr<CustomCollisionMap> LoadCustomCollisionMap(Rom* rom,
   return result;
 }
 
+bool IsFullyExplicitCollisionMap(const CustomCollisionMap& map) {
+  for (size_t i = 0; i < map.tiles.size(); ++i) {
+    if (!map.HasOverride(i)) {
+      return false;
+    }
+  }
+  return true;
+}
+
 std::vector<uint8_t> EncodeExplicitFullCollisionRectangle(
     const CustomCollisionMap& map) {
   std::vector<uint8_t> encoded;
