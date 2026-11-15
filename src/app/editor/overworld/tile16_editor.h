@@ -118,12 +118,22 @@ class Tile16Editor : public gfx::GfxContext {
   }
 
   void BindDocument(std::vector<gfx::Tile16>* definitions, UndoManager* history,
-                    std::function<void()> before_edit = {}) {
-    session_.BindDocument(definitions, history, std::move(before_edit));
+                    std::function<void()> before_edit = {},
+                    int bound_map_id = -1) {
+    session_.BindDocument(definitions, history, std::move(before_edit),
+                          bound_map_id);
   }
   void set_document_publisher(
       std::function<absl::Status(const std::vector<Tile16Commit>&)> callback) {
     session_.set_document_publisher(std::move(callback));
+  }
+  void set_commit_owner_stamper(
+      std::function<void(Tile16Commit*, Tile16Commit*)> stamper) {
+    session_.set_commit_owner_stamper(std::move(stamper));
+  }
+  absl::Status ImportDefinitions(const std::vector<Tile16Commit>& definitions,
+                                 std::string description = {}) {
+    return session_.ImportDefinitions(definitions, std::move(description));
   }
   // Optional chrome drawn above the Edit Graphics button (definition scope).
   void set_definition_scope_drawer(std::function<void()> drawer) {

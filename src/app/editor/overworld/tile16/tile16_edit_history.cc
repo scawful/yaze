@@ -28,6 +28,20 @@ bool ContainsTile(const std::vector<Tile16Commit>& edits, int tile_id) {
   });
 }
 
+bool SameOwner(const Tile16Commit& a, const Tile16Commit& b) {
+  return a.owner == b.owner && a.owner_map_id == b.owner_map_id;
+}
+
+bool ShouldMutateBoundDocument(const Tile16Commit& edit, int bound_map_id) {
+  if (edit.owner == Tile16DefinitionOwner::kUnbound)
+    return true;
+  if (edit.owner_map_id < 0)
+    return edit.owner == Tile16DefinitionOwner::kGlobal;
+  if (bound_map_id < 0)
+    return edit.owner == Tile16DefinitionOwner::kGlobal;
+  return edit.owner_map_id == bound_map_id;
+}
+
 class Tile16DefinitionEditAction final : public UndoAction {
  public:
   using Apply = std::function<absl::Status(const std::vector<Tile16Commit>&)>;
@@ -55,8 +69,16 @@ class Tile16DefinitionEditAction final : public UndoAction {
   bool CanMergeWith(const UndoAction& prev) const override {
     const auto* previous =
         dynamic_cast<const Tile16DefinitionEditAction*>(&prev);
-    return edit_group_ != 0 && previous != nullptr &&
-           previous->owner_ == owner_ && previous->edit_group_ == edit_group_;
+    if (edit_group_ == 0 || previous == nullptr || previous->owner_ != owner_ ||
+        previous->edit_group_ != edit_group_) {
+      return false;
+    }
+    // Owner-bound page/global commits must not merge across maps or scopes.
+    if (!after_.empty() && !previous->after_.empty() &&
+        !SameOwner(after_.front(), previous->after_.front())) {
+      return false;
+    }
+    return true;
   }
   // Keeps the earliest before state and the latest after state of each tile.
   void MergeWith(UndoAction& prev) override {
@@ -112,17 +134,22 @@ absl::Status Tile16EditSession::ApplyDefinitions(
     RETURN_IF_ERROR(BuildTile16BitmapFromData(edit.tile_data, &bitmaps[i]));
     bitmaps[i].SetPalette(current_tile16_bmp_.palette());
   }
+  // Fallible model publication runs before any session mutation so a refusal
+  // leaves document/preview/history/dirty state unchanged.
+  if (document_publisher_) {
+    RETURN_IF_ERROR(document_publisher_(definitions));
+  }
   for (size_t i = 0; i < definitions.size(); ++i) {
     const auto& edit = definitions[i];
     document_edits_[edit.tile_id] = edit.tile_data;
     edited_tile_bitmaps_[edit.tile_id] = bitmaps[i];
-    if (document_definitions_) {
+    if (document_definitions_ &&
+        ShouldMutateBoundDocument(edit, bound_document_map_id_)) {
       (*document_definitions_)[edit.tile_id] = edit.tile_data;
     }
-    CopyTileBitmapToBlockset(edit.tile_id, bitmaps[i]);
-  }
-  if (document_publisher_) {
-    RETURN_IF_ERROR(document_publisher_(definitions));
+    if (ShouldMutateBoundDocument(edit, bound_document_map_id_)) {
+      CopyTileBitmapToBlockset(edit.tile_id, bitmaps[i]);
+    }
   }
   tile8_usage_cache_dirty_ = true;
   preview_dirty_ = true;
@@ -192,9 +219,25 @@ Tile16EditSession::PrepareDefinitionImport(
     ASSIGN_OR_RETURN(auto original, ReadDocumentTile(edit.tile_id));
     auto normalized = edit.tile_data;
     zelda3::SyncTile16TilesInfo(&normalized);
-    if (!SameDefinition(original, normalized)) {
-      before.push_back({edit.tile_id, std::move(original)});
-      after.push_back({edit.tile_id, std::move(normalized)});
+    Tile16Commit before_commit{edit.tile_id, std::move(original)};
+    Tile16Commit after_commit = edit;
+    after_commit.tile_data = std::move(normalized);
+    if (commit_owner_stamper_) {
+      commit_owner_stamper_(&before_commit, &after_commit);
+    } else if (edit.owner != Tile16DefinitionOwner::kUnbound) {
+      before_commit.owner =
+          edit.owner == Tile16DefinitionOwner::kClearPageOverride
+              ? Tile16DefinitionOwner::kPageLocal
+              : edit.owner;
+      before_commit.owner_map_id = edit.owner_map_id;
+      if (edit.owner == Tile16DefinitionOwner::kClearPageOverride) {
+        // Preserve caller-provided clear after-state.
+      }
+    }
+    if (!SameDefinition(before_commit.tile_data, after_commit.tile_data) ||
+        before_commit.owner != after_commit.owner) {
+      before.push_back(std::move(before_commit));
+      after.push_back(std::move(after_commit));
     }
   }
   if (after.empty())
@@ -244,8 +287,13 @@ absl::Status Tile16EditSession::RunEdit(
       return original.status();
     }
     if (!SameDefinition(*original, data)) {
-      before.push_back({id, *original});
-      after.push_back({id, data});
+      Tile16Commit before_commit{id, *original};
+      Tile16Commit after_commit{id, data};
+      if (commit_owner_stamper_) {
+        commit_owner_stamper_(&before_commit, &after_commit);
+      }
+      before.push_back(std::move(before_commit));
+      after.push_back(std::move(after_commit));
     }
   }
   if (!result.ok()) {
@@ -263,8 +311,10 @@ absl::Status Tile16EditSession::RunEdit(
     return SetCurrentTile(current_tile16_);
   const auto applied = ApplyDefinitions(after);
   if (!applied.ok()) {
-    (void)ApplyDefinitions(before);
+    // Publisher-first ApplyDefinitions leaves session state untouched on
+    // refusal; only roll back if a later step somehow diverged.
     document_edits_ = previous;
+    (void)SetCurrentTile(current_tile16_);
     return applied;
   }
   history_->Push(std::make_unique<Tile16DefinitionEditAction>(

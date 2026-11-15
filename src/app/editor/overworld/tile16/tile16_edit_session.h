@@ -51,12 +51,16 @@ class Tile16EditSession {
 
   // Bind to the owning document before editing. Standalone sessions use their
   // own history and read unchanged definitions from ROM.
+  // bound_map_id identifies which overworld map the document view belongs to
+  // (-1 = unbound/global-only). Undo for another map must not mutate this view.
   void BindDocument(std::vector<gfx::Tile16>* definitions, UndoManager* history,
-                    std::function<void()> before_edit) {
+                    std::function<void()> before_edit, int bound_map_id = -1) {
     document_definitions_ = definitions;
     history_ = history ? history : &undo_manager_;
     before_edit_ = std::move(before_edit);
+    bound_document_map_id_ = bound_map_id;
   }
+  int bound_document_map_id() const { return bound_document_map_id_; }
   bool has_shared_history() const { return history_ != &undo_manager_; }
   // Edits passing the same non-zero group merge into one Undo step while that
   // step is still the newest history entry. Allocate one group per user
@@ -180,12 +184,18 @@ class Tile16EditSession {
       std::function<void(const std::vector<Tile16Commit>&)> callback) {
     on_document_changed_ = std::move(callback);
   }
-  // Optional model publisher invoked after document_definitions_ updates.
+  // Optional model publisher invoked before session document/preview mutation.
   // Overworld page-local edits use this to write ImportPageTile16 / global
-  // tiles16 without a parallel editor document.
+  // tiles16 without a parallel editor document. Owner fields on each commit
+  // must already be stamped when page-aware publishing is required.
   void set_document_publisher(
       std::function<absl::Status(const std::vector<Tile16Commit>&)> callback) {
     document_publisher_ = std::move(callback);
+  }
+  // Stamp immutable map/scope identity onto a before/after pair at edit time.
+  void set_commit_owner_stamper(
+      std::function<void(Tile16Commit* before, Tile16Commit* after)> stamper) {
+    commit_owner_stamper_ = std::move(stamper);
   }
   void set_on_changes_committed(
       std::function<absl::Status(const std::vector<Tile16Commit>&)> callback) {
@@ -378,6 +388,7 @@ class Tile16EditSession {
   std::vector<gfx::Tile16>* document_definitions_ = nullptr;
   UndoManager* history_ = &undo_manager_;
   uint64_t last_edit_group_ = 0;
+  int bound_document_map_id_ = -1;
   Rom* rom_ = nullptr;
   zelda3::GameData* game_data_ = nullptr;
   std::chrono::steady_clock::time_point last_rom_write_time_{};
@@ -391,6 +402,7 @@ class Tile16EditSession {
   std::function<void(const std::vector<Tile16Commit>&)> on_document_changed_;
   std::function<absl::Status(const std::vector<Tile16Commit>&)>
       document_publisher_;
+  std::function<void(Tile16Commit*, Tile16Commit*)> commit_owner_stamper_;
   std::function<absl::Status(const std::vector<Tile16Commit>&)>
       on_changes_committed_;
   std::function<void(int)> on_current_tile_changed_;

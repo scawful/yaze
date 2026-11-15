@@ -23,6 +23,7 @@
 #include <exception>
 #include <filesystem>
 #include <iostream>
+#include <map>
 #include <memory>
 #include <ostream>
 #include <set>
@@ -674,6 +675,10 @@ absl::Status OverworldEditor::Load() {
   tile16_editor_.set_document_publisher(
       [this](const std::vector<Tile16Commit>& edits) {
         return PublishTile16DocumentEdits(edits);
+      });
+  tile16_editor_.set_commit_owner_stamper(
+      [this](Tile16Commit* before, Tile16Commit* after) {
+        StampTile16CommitOwners(before, after);
       });
   tile16_editor_.set_definition_scope_drawer(
       [this]() { DrawTile16DefinitionScopeChrome(); });
@@ -3016,11 +3021,47 @@ void OverworldEditor::SyncTile16DocumentBinding() {
   if (overworld_.HasPageTile16(current_map_, current_tile16_)) {
     tile16_edit_page_local_ = true;
   }
-  tile16_editor_.BindDocument(&tile16_document_, &undo_manager_, [this]() {
-    FinishScratchEdit("Edit scratch layout");
-    lyra_canvas_.FinishStroke(undo_manager_);
-    FinalizePaintOperation();
-  });
+  tile16_editor_.BindDocument(
+      &tile16_document_, &undo_manager_,
+      [this]() {
+        FinishScratchEdit("Edit scratch layout");
+        lyra_canvas_.FinishStroke(undo_manager_);
+        FinalizePaintOperation();
+      },
+      current_map_);
+}
+
+void OverworldEditor::StampTile16CommitOwners(Tile16Commit* before,
+                                              Tile16Commit* after) {
+  if (before == nullptr || after == nullptr)
+    return;
+  // Clear-override and other pre-stamped commits keep their owner identity.
+  if (after->owner != Tile16DefinitionOwner::kUnbound) {
+    if (before->owner == Tile16DefinitionOwner::kUnbound) {
+      before->owner_map_id = after->owner_map_id;
+      before->owner = after->owner == Tile16DefinitionOwner::kClearPageOverride
+                          ? Tile16DefinitionOwner::kPageLocal
+                          : after->owner;
+    }
+    return;
+  }
+
+  const bool can_page = current_map_ >= 0x80 &&
+                        current_map_ < overworld_.materialized_map_count();
+  before->owner_map_id = current_map_;
+  after->owner_map_id = current_map_;
+  if (!can_page || !Tile16EditUsesPageLocal(after->tile_id)) {
+    before->owner = Tile16DefinitionOwner::kGlobal;
+    after->owner = Tile16DefinitionOwner::kGlobal;
+    return;
+  }
+  after->owner = Tile16DefinitionOwner::kPageLocal;
+  if (overworld_.HasPageTile16(current_map_, after->tile_id)) {
+    before->owner = Tile16DefinitionOwner::kPageLocal;
+  } else {
+    // Creating a new override: Undo must remove the page row entirely.
+    before->owner = Tile16DefinitionOwner::kClearPageOverride;
+  }
 }
 
 absl::Status OverworldEditor::PublishTile16DocumentEdits(
@@ -3032,55 +3073,87 @@ absl::Status OverworldEditor::PublishTile16DocumentEdits(
     return absl::FailedPreconditionError("Tile16 dictionary is not loaded");
   }
 
-  const bool can_page = current_map_ >= 0x80 &&
-                        current_map_ < overworld_.materialized_map_count();
-  std::vector<rom::NativePageTile16Definition> page_batch;
-  bool page_touched = false;
-  if (can_page) {
-    for (const auto& row : overworld_.page_tile16()) {
-      if (row.map_id == static_cast<uint16_t>(current_map_))
-        page_batch.push_back(row);
-    }
-  }
+  // Validate the full batch and stage mutations before touching the model.
+  struct PagePlan {
+    uint16_t map = 0;
+    std::vector<rom::NativePageTile16Definition> rows;
+  };
+  std::map<uint16_t, PagePlan> page_plans;
+  std::vector<std::pair<int, gfx::Tile16>> global_writes;
+  global_writes.reserve(edits.size());
 
   for (const auto& edit : edits) {
     if (edit.tile_id < 0 || edit.tile_id >= static_cast<int>(global->size())) {
       return absl::OutOfRangeError("Tile16 edit is outside the dictionary");
     }
-    const bool page_local = can_page && Tile16EditUsesPageLocal(edit.tile_id);
-    if (!page_local) {
-      // Refuse a silent global write that the active page override would hide.
-      if (can_page && overworld_.HasPageTile16(current_map_, edit.tile_id)) {
+
+    Tile16DefinitionOwner owner = edit.owner;
+    int owner_map = edit.owner_map_id;
+    if (owner == Tile16DefinitionOwner::kUnbound) {
+      // Legacy unbound commits follow the live selection (pre-stamp callers).
+      const bool can_page = current_map_ >= 0x80 &&
+                            current_map_ < overworld_.materialized_map_count();
+      owner_map = current_map_;
+      owner = (can_page && Tile16EditUsesPageLocal(edit.tile_id))
+                  ? Tile16DefinitionOwner::kPageLocal
+                  : Tile16DefinitionOwner::kGlobal;
+    }
+
+    if (owner == Tile16DefinitionOwner::kGlobal) {
+      if (owner_map >= 0x80 &&
+          owner_map < overworld_.materialized_map_count() &&
+          overworld_.HasPageTile16(owner_map, edit.tile_id)) {
         return absl::FailedPreconditionError(
             "Selected map has a page-local Tile16 override; edit that row or "
             "clear it before changing the global definition");
       }
-      (*global)[edit.tile_id] = edit.tile_data;
+      global_writes.emplace_back(edit.tile_id, edit.tile_data);
       continue;
     }
 
-    page_touched = true;
-    page_batch.erase(
-        std::remove_if(page_batch.begin(), page_batch.end(),
-                       [&](const auto& row) {
-                         return row.tile_id ==
-                                static_cast<uint16_t>(edit.tile_id);
-                       }),
-        page_batch.end());
-    const bool matches_global =
-        edit.tile_id < static_cast<int>(global->size()) &&
-        (*global)[edit.tile_id] == edit.tile_data;
-    if (!matches_global) {
-      page_batch.push_back(zelda3::Overworld::MakePageTile16Definition(
-          static_cast<uint16_t>(current_map_),
-          static_cast<uint16_t>(edit.tile_id), edit.tile_data));
+    if (owner_map < 0x80 || owner_map >= overworld_.materialized_map_count()) {
+      return absl::FailedPreconditionError(
+          "Page-local Tile16 edit requires a special overworld map owner");
     }
+    auto& plan = page_plans[static_cast<uint16_t>(owner_map)];
+    plan.map = static_cast<uint16_t>(owner_map);
+    if (plan.rows.empty()) {
+      for (const auto& row : overworld_.page_tile16()) {
+        if (row.map_id == plan.map)
+          plan.rows.push_back(row);
+      }
+    }
+    plan.rows.erase(std::remove_if(plan.rows.begin(), plan.rows.end(),
+                                   [&](const auto& row) {
+                                     return row.tile_id ==
+                                            static_cast<uint16_t>(edit.tile_id);
+                                   }),
+                    plan.rows.end());
+    if (owner == Tile16DefinitionOwner::kPageLocal) {
+      const bool matches_global = (*global)[edit.tile_id] == edit.tile_data;
+      if (!matches_global) {
+        plan.rows.push_back(zelda3::Overworld::MakePageTile16Definition(
+            plan.map, static_cast<uint16_t>(edit.tile_id), edit.tile_data));
+      }
+    }
+    // kClearPageOverride leaves the row removed.
   }
 
-  if (page_touched) {
-    const uint16_t map = static_cast<uint16_t>(current_map_);
-    RETURN_IF_ERROR(overworld_.ImportPageTile16(
-        std::span<const uint16_t>(&map, 1), page_batch));
+  // Page imports are one atomic ImportPageTile16 across every touched map;
+  // fallible capacity/saveability checks run before any model mutation there.
+  // Global dictionary writes cannot fail and run only after pages succeed.
+  if (!page_plans.empty()) {
+    std::vector<uint16_t> maps;
+    std::vector<rom::NativePageTile16Definition> rows;
+    maps.reserve(page_plans.size());
+    for (auto& [map, plan] : page_plans) {
+      maps.push_back(map);
+      rows.insert(rows.end(), plan.rows.begin(), plan.rows.end());
+    }
+    RETURN_IF_ERROR(overworld_.ImportPageTile16(maps, rows));
+  }
+  for (const auto& [tile_id, data] : global_writes) {
+    (*global)[tile_id] = data;
   }
   if (rom_)
     rom_->set_dirty(true);
@@ -3124,22 +3197,25 @@ void OverworldEditor::DrawTile16DefinitionScopeChrome() {
         "global definition becomes visible?",
         tile_id, current_map_);
     if (ImGui::Button("Clear override")) {
-      std::vector<rom::NativePageTile16Definition> kept;
-      for (const auto& row : overworld_.page_tile16()) {
-        if (row.map_id == static_cast<uint16_t>(current_map_) &&
-            row.tile_id != static_cast<uint16_t>(tile_id)) {
-          kept.push_back(row);
-        }
-      }
-      const uint16_t map = static_cast<uint16_t>(current_map_);
-      if (overworld_.ImportPageTile16(std::span<const uint16_t>(&map, 1), kept)
-              .ok()) {
-        tile16_edit_page_local_ = false;
-        SyncTile16DocumentBinding();
-        if (map_refresh_) {
-          map_refresh_->InvalidateTile16Definitions();
-          RefreshOverworldMap();
-          status_ = RefreshTile16Blockset();
+      // Route through shared Undo so Clear restores the exact page row.
+      auto* global = overworld_.mutable_tiles16();
+      if (global != nullptr && tile_id >= 0 &&
+          tile_id < static_cast<int>(global->size())) {
+        Tile16Commit clear;
+        clear.tile_id = tile_id;
+        clear.tile_data = (*global)[tile_id];
+        clear.owner = Tile16DefinitionOwner::kClearPageOverride;
+        clear.owner_map_id = current_map_;
+        status_ = tile16_editor_.ImportDefinitions(
+            {clear}, "Clear page-local Tile16 override");
+        if (status_.ok()) {
+          tile16_edit_page_local_ = false;
+          SyncTile16DocumentBinding();
+          if (map_refresh_) {
+            map_refresh_->InvalidateTile16Definitions();
+            RefreshOverworldMap();
+            status_ = RefreshTile16Blockset();
+          }
         }
       }
       ImGui::CloseCurrentPopup();

@@ -39,9 +39,20 @@ struct Tile16ScratchData {
   bool has_data = false;
 };
 
+// Captured into Undo/Redo so Apply publishes to the original owner even after
+// the user selects another map or switches Page-local/Global scope.
+enum class Tile16DefinitionOwner : uint8_t {
+  kUnbound = 0,
+  kGlobal = 1,
+  kPageLocal = 2,
+  kClearPageOverride = 3,
+};
+
 struct Tile16Commit {
   int tile_id = -1;
   gfx::Tile16 tile_data;
+  Tile16DefinitionOwner owner = Tile16DefinitionOwner::kUnbound;
+  int owner_map_id = -1;
 };
 
 /// Logical pixel position within a Tile16 (origin top-left, units = source

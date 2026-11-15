@@ -419,6 +419,7 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   void SyncTile16DocumentBinding();
   absl::Status PublishTile16DocumentEdits(
       const std::vector<Tile16Commit>& edits);
+  void StampTile16CommitOwners(Tile16Commit* before, Tile16Commit* after);
   void DrawTile16DefinitionScopeChrome();
   bool Tile16EditUsesPageLocal(int tile_id) const;
 
