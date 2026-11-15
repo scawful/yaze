@@ -88,20 +88,23 @@ absl::Status CommandContext::Initialize() {
                              ? *config_.rom_path
                              : absl::GetFlag(FLAGS_rom);
 
+  // --mock-rom means skip persistence in handlers. When --rom is also given,
+  // load that image so dry-runs validate against real bytes instead of the
+  // empty InitializeMockRom placeholder (prison65 layout dry-run false refuse).
   if (config_.external_rom_context != nullptr &&
       config_.external_rom_context->is_loaded()) {
     active_rom_ = config_.external_rom_context;
-  } else if (config_.use_mock_rom) {
-    auto status = cli::InitializeMockRom(rom_storage_);
-    if (!status.ok()) {
-      return status;
-    }
-    active_rom_ = &rom_storage_;
   } else if (!rom_path.empty()) {
     auto status = rom_storage_.LoadFromFile(rom_path);
     if (!status.ok()) {
       return absl::FailedPreconditionError(absl::StrFormat(
           "Failed to load ROM from '%s': %s", rom_path, status.message()));
+    }
+    active_rom_ = &rom_storage_;
+  } else if (config_.use_mock_rom) {
+    auto status = cli::InitializeMockRom(rom_storage_);
+    if (!status.ok()) {
+      return status;
     }
     active_rom_ = &rom_storage_;
   }
