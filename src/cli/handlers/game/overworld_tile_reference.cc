@@ -425,7 +425,7 @@ absl::StatusOr<int> ParseCoordinateArg(const resources::ArgumentParser& parser,
 absl::Status OverworldTileReferenceInspectCommandHandler::Execute(
     Rom* rom, const resources::ArgumentParser& parser,
     resources::OutputFormatter& formatter) {
-  if (rom != nullptr && parser.HasFlag("experimental-page-tile16"))
+  if (rom != nullptr && parser.HasLyraWriteAdmission())
     rom->EnableExperimentalPageTile16();
   if (rom == nullptr || !rom->is_loaded())
     return absl::FailedPreconditionError("ROM not loaded");

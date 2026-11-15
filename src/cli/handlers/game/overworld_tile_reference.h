@@ -116,7 +116,8 @@ class OverworldTileReferenceInspectCommandHandler
   std::string GetUsage() const override {
     return "overworld-tile-reference-inspect --map <hex> --x <area_tile_x> "
            "--y <area_tile_y> [--reference-policy <path.json>] "
-           "[--experimental-page-tile16] [--format <json|text>]";
+           "[--allow-lyra-layout-writes|--experimental-page-tile16] [--format "
+           "<json|text>]";
   }
   bool AcceptsCompiledBuildReceipt() const override { return true; }
   absl::Status ValidateArgs(const resources::ArgumentParser& parser) override {

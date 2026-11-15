@@ -23,7 +23,8 @@ class OverworldGroupingPreflightCommandHandler
     return "overworld-grouping-preflight --rom <path> --parent <hex> "
            "--size <large|wide|tall> --members <hex,hex,...> "
            "[--contact <id:label>]... [--project <file.yaze>] "
-           "[--experimental-page-tile16] [--format json|text]";
+           "[--allow-lyra-layout-writes|--experimental-page-tile16] [--format "
+           "json|text]";
   }
 
   std::string GetDefaultFormat() const override { return "text"; }

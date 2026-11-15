@@ -203,7 +203,7 @@ class DungeonSetRoomPropertyCommandHandler : public resources::CommandHandler {
   }
   std::string GetUsage() const {
     return "dungeon-set-room-property --room <room_id> --property <property> "
-           "[--experimental-page-tile16] "
+           "[--allow-lyra-layout-writes|--experimental-page-tile16] "
            "--value <value> [--manifest <path>] [--format <json|text>]";
   }
 

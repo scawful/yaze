@@ -404,6 +404,18 @@ TEST_F(ArgumentParserTest, DetectsFlags) {
   EXPECT_FALSE(parser.HasFlag("format"));  // format is a value, not a flag
 }
 
+TEST_F(ArgumentParserTest, LyraWriteAdmissionAcceptsEitherFlag) {
+  EXPECT_FALSE(ArgumentParser({}).HasLyraWriteAdmission());
+  EXPECT_TRUE(
+      ArgumentParser({"--experimental-page-tile16"}).HasLyraWriteAdmission());
+  EXPECT_TRUE(
+      ArgumentParser({"--allow-lyra-layout-writes"}).HasLyraWriteAdmission());
+  EXPECT_TRUE(ArgumentParser(
+                  {"--allow-lyra-layout-writes", "--experimental-page-tile16"})
+                  .HasLyraWriteAdmission());
+  EXPECT_FALSE(ArgumentParser({"--write"}).HasLyraWriteAdmission());
+}
+
 TEST_F(ArgumentParserTest, GetsPositionalArguments) {
   std::vector<std::string> args = {"command", "--flag", "value", "positional1",
                                    "positional2"};

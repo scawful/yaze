@@ -36,7 +36,8 @@ class OverworldInitPageTile16CommandHandler : public resources::CommandHandler {
     return "overworld-init-page-tile16 --rom=<private-native-rom> "
            "--storage-pc=<hex> --row-capacity=<int> "
            "--expected-rom-sha256=<sha256> --expected-storage-sha256=<sha256> "
-           "--experimental-page-tile16 [--write] --format=json";
+           "[--allow-lyra-layout-writes|--experimental-page-tile16] "
+           "[--write] --format=json";
   }
   absl::Status ValidateArgs(const resources::ArgumentParser& parser) override {
     return parser.RequireArgs({"storage-pc", "row-capacity",
@@ -60,7 +61,8 @@ class OverworldExportNativeSourceCommandHandler
   }
   std::string GetUsage() const override {
     return "overworld-export-native-source --rom=<saved-native-rom> "
-           "[--include-inactive-backgrounds] [--experimental-page-tile16] "
+           "[--include-inactive-backgrounds] "
+           "[--allow-lyra-layout-writes|--experimental-page-tile16] "
            "--format=json";
   }
   absl::Status ValidateArgs(const resources::ArgumentParser&) override {

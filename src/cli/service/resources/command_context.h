@@ -130,6 +130,15 @@ class ArgumentParser {
   bool HasFlag(const std::string& name) const;
 
   /**
+   * @brief Admit revision-5 Lyra layout writes.
+   *
+   * `--experimental-page-tile16` remains the historical name. Prefer
+   * `--allow-lyra-layout-writes` for non-page-tile16 edits (dungeon rooms,
+   * sprites, tiles); both flags enable the same admission bit.
+   */
+  bool HasLyraWriteAdmission() const;
+
+  /**
    * @brief Get all remaining positional arguments
    */
   std::vector<std::string> GetPositional() const;

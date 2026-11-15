@@ -419,6 +419,11 @@ bool ArgumentParser::HasFlag(const std::string& name) const {
   return false;
 }
 
+bool ArgumentParser::HasLyraWriteAdmission() const {
+  return HasFlag("experimental-page-tile16") ||
+         HasFlag("allow-lyra-layout-writes");
+}
+
 std::vector<std::string> ArgumentParser::GetPositional() const {
   std::vector<std::string> positional;
   for (size_t i = 0; i < args_.size(); ++i) {

@@ -73,14 +73,15 @@ absl::Status OverworldGroupingPreflightCommandHandler::Execute(
     }
   }
 
-  if (parser.HasFlag("experimental-page-tile16"))
+  if (parser.HasLyraWriteAdmission())
     rom->EnableExperimentalPageTile16();
 
   const auto layout = rom->InspectLyraLayout();
   if (rom::IsNativeSpecialOverworldLayout(layout) && layout.revision == 5 &&
-      !parser.HasFlag("experimental-page-tile16")) {
+      !parser.HasLyraWriteAdmission()) {
     return absl::FailedPreconditionError(
-        "Revision5 native ROM requires --experimental-page-tile16");
+        "Revision5 native ROM requires --allow-lyra-layout-writes (or "
+        "--experimental-page-tile16)");
   }
 
   zelda3::Overworld overworld(rom);

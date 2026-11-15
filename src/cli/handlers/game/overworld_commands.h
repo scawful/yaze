@@ -18,7 +18,8 @@ class OverworldGetTileCommandHandler : public resources::CommandHandler {
   }
   std::string GetUsage() const {
     return "overworld-get-tile --map <hex> --x <area_tile_x> --y <area_tile_y> "
-           "[--experimental-page-tile16] [--format <json|text>]";
+           "[--allow-lyra-layout-writes|--experimental-page-tile16] [--format "
+           "<json|text>]";
   }
 
   absl::Status ValidateArgs(const resources::ArgumentParser& parser) override {
@@ -61,7 +62,7 @@ class OverworldSetTileCommandHandler : public resources::CommandHandler {
   std::string GetUsage() const {
     return "overworld-set-tile --map <hex> --x <area_tile_x> --y <area_tile_y> "
            "--tile <hex> [--write] [--allow-project-rom] "
-           "[--experimental-page-tile16] [--format "
+           "[--allow-lyra-layout-writes|--experimental-page-tile16] [--format "
            "<json|text>]";
   }
 
@@ -94,7 +95,8 @@ class OverworldApplyEndpointPlanCommandHandler
   }
   std::string GetUsage() const override {
     return "overworld-apply-endpoint-plan --plan <json> --plan-sha256 <sha256> "
-           "--output <new-rom> [--experimental-page-tile16] [--write] "
+           "--output <new-rom> "
+           "[--allow-lyra-layout-writes|--experimental-page-tile16] [--write] "
            "[--format <json|text>]";
   }
   absl::Status ValidateArgs(const resources::ArgumentParser& parser) override;
@@ -129,7 +131,8 @@ class OverworldImportMapsCommandHandler : public resources::CommandHandler {
   }
   std::string GetUsage() const override {
     return "overworld-import-maps (--donor <rom> | --native-source <json>) "
-           "[--native-source-sha256 <sha256>] [--experimental-page-tile16] "
+           "[--native-source-sha256 <sha256>] "
+           "[--allow-lyra-layout-writes|--experimental-page-tile16] "
            "[--apply-native-profiles] "
            "--maps <hex,hex,...> --output <new-rom> [--write] "
            "[--format <json|text>]";
@@ -262,7 +265,8 @@ class OverworldGetEntranceCommandHandler : public resources::CommandHandler {
   }
   std::string GetUsage() const {
     return "overworld-get-entrance --entrance <entrance_id> "
-           "[--experimental-page-tile16] [--format <json|text>]";
+           "[--allow-lyra-layout-writes|--experimental-page-tile16] [--format "
+           "<json|text>]";
   }
 
   absl::Status ValidateArgs(const resources::ArgumentParser& parser) override {

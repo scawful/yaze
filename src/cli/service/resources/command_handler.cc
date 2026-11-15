@@ -253,7 +253,7 @@ absl::Status CommandHandler::Run(const std::vector<std::string>& args,
       if (target == nullptr) {
         return;
       }
-      if (parser.HasFlag("experimental-page-tile16")) {
+      if (parser.HasLyraWriteAdmission()) {
         target->EnableExperimentalPageTile16();
         return;
       }

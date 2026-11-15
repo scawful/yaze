@@ -534,9 +534,10 @@ absl::Status ImportNativeSourcePages(
     resources::OutputFormatter& formatter,
     const resources::CommandInvocationContext& context,
     const project::YazeProject* project) {
-  if (!parser.HasFlag("experimental-page-tile16"))
+  if (!parser.HasLyraWriteAdmission())
     return absl::FailedPreconditionError(
-        "--native-source requires --experimental-page-tile16");
+        "--native-source requires --allow-lyra-layout-writes (or "
+        "--experimental-page-tile16)");
   if (!rom || !rom->is_loaded())
     return absl::FailedPreconditionError(
         "Target must be a loaded native overworld");
@@ -1077,16 +1078,17 @@ absl::Status ApplyNativeEndpointPlan(
   Rom::LoadOptions load_options;
   load_options.load_resource_labels = false;
   RETURN_IF_ERROR(staged.LoadFromData(before, load_options));
-  if (parser.HasFlag("experimental-page-tile16"))
+  if (parser.HasLyraWriteAdmission())
     staged.EnableExperimentalPageTile16();
   RETURN_IF_ERROR(staged.CheckLayoutSaveable());
   const auto layout = staged.InspectLyraLayout();
   if (!rom::IsNativeSpecialOverworldLayout(layout))
     return absl::FailedPreconditionError(
         "Endpoint plan requires native layout");
-  if (layout.revision == 5 && !parser.HasFlag("experimental-page-tile16"))
+  if (layout.revision == 5 && !parser.HasLyraWriteAdmission())
     return absl::FailedPreconditionError(
-        "Revision5 requires --experimental-page-tile16");
+        "Revision5 requires --allow-lyra-layout-writes (or "
+        "--experimental-page-tile16)");
   zelda3::Overworld target(&staged);
   RETURN_IF_ERROR(target.Load(&staged));
   const bool expanded = target.mutable_entrances()->size() == 256;
@@ -1209,7 +1211,7 @@ absl::Status ApplyNativeEndpointPlan(
   }
   Rom reopened;
   RETURN_IF_ERROR(reopened.LoadFromData(staged.vector(), load_options));
-  if (parser.HasFlag("experimental-page-tile16"))
+  if (parser.HasLyraWriteAdmission())
     reopened.EnableExperimentalPageTile16();
   zelda3::Overworld fresh(&reopened);
   RETURN_IF_ERROR(fresh.Load(&reopened));
@@ -1712,7 +1714,7 @@ absl::Status OverworldImportMapsCommandHandler::ExecuteWithContext(
 absl::Status OverworldGetTileCommandHandler::Execute(
     Rom* rom, const resources::ArgumentParser& parser,
     resources::OutputFormatter& formatter) {
-  if (rom != nullptr && parser.HasFlag("experimental-page-tile16"))
+  if (rom != nullptr && parser.HasLyraWriteAdmission())
     rom->EnableExperimentalPageTile16();
   ASSIGN_OR_RETURN(const int map_id,
                    ParseMapIdArg(parser, "map", TileCommandMapCount(rom)));
@@ -1748,7 +1750,7 @@ absl::Status OverworldSetTileCommandHandler::ExecuteWithContext(
     Rom* rom, const resources::ArgumentParser& parser,
     resources::OutputFormatter& formatter,
     const resources::CommandInvocationContext& invocation_context) {
-  if (rom != nullptr && parser.HasFlag("experimental-page-tile16"))
+  if (rom != nullptr && parser.HasLyraWriteAdmission())
     rom->EnableExperimentalPageTile16();
   ASSIGN_OR_RETURN(const int map_id,
                    ParseMapIdArg(parser, "map", TileCommandMapCount(rom)));
@@ -2251,7 +2253,7 @@ absl::Status OverworldGetEntranceCommandHandler::Execute(
         "Invalid entrance ID format. Must be hex.");
   }
 
-  if (parser.HasFlag("experimental-page-tile16"))
+  if (parser.HasLyraWriteAdmission())
     rom->EnableExperimentalPageTile16();
   ScopedRomReadOnly read_only(*rom);
 

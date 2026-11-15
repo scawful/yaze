@@ -283,7 +283,8 @@ void RegisterBuiltinAgentTools(ToolRegistry& registry) {
       "applying their appearance profiles), into a native overworld; dry-run "
       "unless write is set; output must be a new file",
       "overworld-import-maps (--donor=<rom> | --native-source=<json>) "
-      "[--native-source-sha256=<sha256>] [--experimental-page-tile16] "
+      "[--native-source-sha256=<sha256>] "
+      "[--allow-lyra-layout-writes|--experimental-page-tile16] "
       "[--apply-native-profiles] "
       "--maps=<hex,hex,...> --output=<new-rom> [--write]",
       {}, true, true, OverworldImportMapsCommandHandler)
@@ -293,7 +294,8 @@ void RegisterBuiltinAgentTools(ToolRegistry& registry) {
       "hash-bound "
       "endpoint plan; normal model save and cold reopen; dry-run by default",
       "overworld-apply-endpoint-plan --plan=<json> --plan-sha256=<sha256> "
-      "--output=<new-rom> [--experimental-page-tile16] [--write]",
+      "--output=<new-rom> "
+      "[--allow-lyra-layout-writes|--experimental-page-tile16] [--write]",
       {}, true, true, OverworldApplyEndpointPlanCommandHandler)
   REGISTER_BUILTIN_AGENT_TOOL(
       "overworld-find-tile", "overworld",
@@ -317,7 +319,7 @@ void RegisterBuiltinAgentTools(ToolRegistry& registry) {
   REGISTER_BUILTIN_AGENT_TOOL(
       "overworld-get-entrance", "overworld", "Get entrance info",
       "overworld-get-entrance --entrance=<hex> "
-      "[--experimental-page-tile16]",
+      "[--allow-lyra-layout-writes|--experimental-page-tile16]",
       {}, true, false, OverworldGetEntranceCommandHandler)
   REGISTER_BUILTIN_AGENT_TOOL(
       "overworld-tile-stats", "overworld",

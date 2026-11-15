@@ -402,10 +402,10 @@ absl::Status CheckNativeResolvedSheets(const zelda3::OverworldMap& resolved,
 absl::Status OverworldInitPageTile16CommandHandler::Execute(
     Rom* rom, const resources::ArgumentParser& parser,
     resources::OutputFormatter& formatter) {
-  if (!parser.HasFlag("experimental-page-tile16"))
+  if (!parser.HasLyraWriteAdmission())
     return absl::FailedPreconditionError(
-        "Initialization requires --experimental-page-tile16; runtime is "
-        "unsupported");
+        "Initialization requires --allow-lyra-layout-writes "
+        "(or --experimental-page-tile16); runtime is unsupported");
   if (!rom || !rom->is_loaded() || rom->filename().empty() || rom->dirty() ||
       rom->has_copier_header())
     return absl::FailedPreconditionError(
@@ -511,7 +511,7 @@ absl::Status OverworldExportNativeSourceCommandHandler::Execute(
   if (rom->dirty())
     return absl::FailedPreconditionError(
         "Save the ROM before exporting compiler input");
-  if (parser.HasFlag("experimental-page-tile16"))
+  if (parser.HasLyraWriteAdmission())
     rom->EnableExperimentalPageTile16();
   const auto layout = rom->InspectLyraLayout();
   if (!rom::IsNativeSpecialOverworldLayout(layout))

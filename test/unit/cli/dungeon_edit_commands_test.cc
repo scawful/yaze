@@ -6230,6 +6230,20 @@ TEST(DungeonPageTile16AdmissionTest,
   }
 
   {
+    Rom admitted = load();
+    handlers::DungeonSetCollisionTileCommandHandler writer;
+    std::string output;
+    const auto status =
+        writer.Run({"--room=0x00", "--tiles=1,1,0x00", "--format=json",
+                    "--allow-lyra-layout-writes"},
+                   &admitted, &output);
+    EXPECT_TRUE(cleared_admission(status)) << status;
+    EXPECT_TRUE(admitted.experimental_page_tile16());
+    EXPECT_TRUE(handlers::IsNativeDungeonLayout(admitted));
+    EXPECT_EQ(test::native_overworld::ReadBytes(rom_path), fixture.bytes);
+  }
+
+  {
     project::YazeProject project;
     project.name = "Dungeon Page16 Admission";
     project.filepath = project_path.string();
