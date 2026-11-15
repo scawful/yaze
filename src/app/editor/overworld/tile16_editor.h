@@ -121,6 +121,14 @@ class Tile16Editor : public gfx::GfxContext {
                     std::function<void()> before_edit = {}) {
     session_.BindDocument(definitions, history, std::move(before_edit));
   }
+  void set_document_publisher(
+      std::function<absl::Status(const std::vector<Tile16Commit>&)> callback) {
+    session_.set_document_publisher(std::move(callback));
+  }
+  // Optional chrome drawn above the Edit Graphics button (definition scope).
+  void set_definition_scope_drawer(std::function<void()> drawer) {
+    definition_scope_drawer_ = std::move(drawer);
+  }
   absl::Status ReplaceCurrentTile(const gfx::Tile16& data,
                                   uint64_t edit_group = 0) {
     return session_.ReplaceCurrentTile(data, edit_group);
@@ -307,6 +315,7 @@ class Tile16Editor : public gfx::GfxContext {
   absl::Status status_;
   absl::Status graphics_open_status_;
   std::function<absl::Status(int, int)> open_graphics_for_quadrant_;
+  std::function<void()> definition_scope_drawer_;
   // One shared Undo step per open session of the manual properties dialog.
   uint64_t manual_edit_group_ = 0;
 };

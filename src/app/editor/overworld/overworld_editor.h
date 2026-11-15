@@ -415,6 +415,12 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   const TileBrush* selection_brush() const;
   int GetTile16UsageCount(int tile_id) const;
   std::string GetTile16ScopeLabel() const;
+  // Effective Tile16 table for the selected map (page overrides applied).
+  void SyncTile16DocumentBinding();
+  absl::Status PublishTile16DocumentEdits(
+      const std::vector<Tile16Commit>& edits);
+  void DrawTile16DefinitionScopeChrome();
+  bool Tile16EditUsesPageLocal(int tile_id) const;
 
   // ===========================================================================
   // Entity System - Insertion and Editing
@@ -957,6 +963,12 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
 
   // Sub-editors
   Tile16Editor tile16_editor_{rom_, &tile16_blockset_};
+  // Bound Tile16 document for the selected map. Starts as Tiles16ForMap and
+  // publishes page-local or global rows through PublishTile16DocumentEdits.
+  std::vector<gfx::Tile16> tile16_document_;
+  // When true and the selected map can own page rows, definition edits write
+  // ImportPageTile16 instead of the global dictionary.
+  bool tile16_edit_page_local_ = false;
   GfxGroupEditor gfx_group_editor_;
   PaletteEditor palette_editor_;
 

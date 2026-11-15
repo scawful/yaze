@@ -26,6 +26,7 @@
 #include <memory>
 #include <ostream>
 #include <set>
+#include <span>
 #include <string>
 #include <unordered_map>
 #include <utility>
@@ -666,17 +667,16 @@ absl::Status OverworldEditor::Load() {
     all_gfx_loaded_ = true;
     return absl::OkStatus();
   }
-  // Ownership: the Tile16 editor still binds the shared global table. Page-
-  // local overrides (Tiles16ForMap) are applied only when painting/refreshing
-  // a map's canvas. Editing a definition that a page overrides must not be
-  // mistaken for editing that page's private row; a later owner should bind
-  // the active map's effective table or an explicit page-edit mode.
-  tile16_editor_.BindDocument(overworld_.mutable_tiles16(), &undo_manager_,
-                              [this]() {
-                                FinishScratchEdit("Edit scratch layout");
-                                lyra_canvas_.FinishStroke(undo_manager_);
-                                FinalizePaintOperation();
-                              });
+  // Bind the selected map's effective Tile16 table. Page-local overrides are
+  // published through ImportPageTile16; ordinary global edits still write the
+  // shared dictionary when no override hides them.
+  SyncTile16DocumentBinding();
+  tile16_editor_.set_document_publisher(
+      [this](const std::vector<Tile16Commit>& edits) {
+        return PublishTile16DocumentEdits(edits);
+      });
+  tile16_editor_.set_definition_scope_drawer(
+      [this]() { DrawTile16DefinitionScopeChrome(); });
   RETURN_IF_ERROR(
       tile16_editor_.Initialize(tile16_blockset_bmp_, current_gfx_bmp_,
                                 *overworld_.mutable_all_tiles_types()));
@@ -692,8 +692,12 @@ absl::Status OverworldEditor::Load() {
   // CRITICAL FIX: Initialize tile16 editor with the correct overworld palette
   tile16_editor_.set_palette(palette_);
   tile16_editor_.SetRom(rom_);
-  tile16_editor_.set_on_current_tile_changed(
-      [this](int id) { current_tile16_ = id; });
+  tile16_editor_.set_on_current_tile_changed([this](int id) {
+    current_tile16_ = id;
+    if (overworld_.HasPageTile16(current_map_, id)) {
+      tile16_edit_page_local_ = true;
+    }
+  });
   tile16_editor_.SetOpenGraphicsForQuadrant(
       [this](int tile16_id, int quadrant) {
         return OpenGraphicsForTile16Quadrant(tile16_id, quadrant);
@@ -703,8 +707,10 @@ absl::Status OverworldEditor::Load() {
     if (count <= 0) {
       return {};
     }
-    return absl::StrFormat("Placed %d times (%s)", count,
-                           GetTile16ScopeLabel());
+    const char* def_scope =
+        Tile16EditUsesPageLocal(tile_id) ? "page-local" : "global";
+    return absl::StrFormat("Placed %d times (%s); definition %s", count,
+                           GetTile16ScopeLabel(), def_scope);
   });
 
   tile16_editor_.set_on_document_changed(
@@ -1148,6 +1154,7 @@ void OverworldEditor::SelectMapForEditing(int map_id, bool respect_pin) {
 
   EnsureMapTexture(current_map_);
   if (all_gfx_loaded_) {
+    SyncTile16DocumentBinding();
     PRINT_IF_ERROR(RefreshTile16Blockset());
     RefreshMapProperties();
   }
@@ -2993,6 +3000,156 @@ int OverworldEditor::GetTile16UsageCount(int tile_id) const {
 std::string OverworldEditor::GetTile16ScopeLabel() const {
   return canvas_renderer_ ? canvas_renderer_->Tile16ScopeLabel()
                           : std::string();
+}
+
+bool OverworldEditor::Tile16EditUsesPageLocal(int tile_id) const {
+  if (current_map_ < 0x80 ||
+      current_map_ >= overworld_.materialized_map_count())
+    return false;
+  if (overworld_.HasPageTile16(current_map_, tile_id))
+    return true;
+  return tile16_edit_page_local_;
+}
+
+void OverworldEditor::SyncTile16DocumentBinding() {
+  tile16_document_ = overworld_.Tiles16ForMap(current_map_);
+  if (overworld_.HasPageTile16(current_map_, current_tile16_)) {
+    tile16_edit_page_local_ = true;
+  }
+  tile16_editor_.BindDocument(&tile16_document_, &undo_manager_, [this]() {
+    FinishScratchEdit("Edit scratch layout");
+    lyra_canvas_.FinishStroke(undo_manager_);
+    FinalizePaintOperation();
+  });
+}
+
+absl::Status OverworldEditor::PublishTile16DocumentEdits(
+    const std::vector<Tile16Commit>& edits) {
+  if (edits.empty())
+    return absl::OkStatus();
+  auto* global = overworld_.mutable_tiles16();
+  if (global == nullptr || global->empty()) {
+    return absl::FailedPreconditionError("Tile16 dictionary is not loaded");
+  }
+
+  const bool can_page = current_map_ >= 0x80 &&
+                        current_map_ < overworld_.materialized_map_count();
+  std::vector<rom::NativePageTile16Definition> page_batch;
+  bool page_touched = false;
+  if (can_page) {
+    for (const auto& row : overworld_.page_tile16()) {
+      if (row.map_id == static_cast<uint16_t>(current_map_))
+        page_batch.push_back(row);
+    }
+  }
+
+  for (const auto& edit : edits) {
+    if (edit.tile_id < 0 || edit.tile_id >= static_cast<int>(global->size())) {
+      return absl::OutOfRangeError("Tile16 edit is outside the dictionary");
+    }
+    const bool page_local = can_page && Tile16EditUsesPageLocal(edit.tile_id);
+    if (!page_local) {
+      // Refuse a silent global write that the active page override would hide.
+      if (can_page && overworld_.HasPageTile16(current_map_, edit.tile_id)) {
+        return absl::FailedPreconditionError(
+            "Selected map has a page-local Tile16 override; edit that row or "
+            "clear it before changing the global definition");
+      }
+      (*global)[edit.tile_id] = edit.tile_data;
+      continue;
+    }
+
+    page_touched = true;
+    page_batch.erase(
+        std::remove_if(page_batch.begin(), page_batch.end(),
+                       [&](const auto& row) {
+                         return row.tile_id ==
+                                static_cast<uint16_t>(edit.tile_id);
+                       }),
+        page_batch.end());
+    const bool matches_global =
+        edit.tile_id < static_cast<int>(global->size()) &&
+        (*global)[edit.tile_id] == edit.tile_data;
+    if (!matches_global) {
+      page_batch.push_back(zelda3::Overworld::MakePageTile16Definition(
+          static_cast<uint16_t>(current_map_),
+          static_cast<uint16_t>(edit.tile_id), edit.tile_data));
+    }
+  }
+
+  if (page_touched) {
+    const uint16_t map = static_cast<uint16_t>(current_map_);
+    RETURN_IF_ERROR(overworld_.ImportPageTile16(
+        std::span<const uint16_t>(&map, 1), page_batch));
+  }
+  if (rom_)
+    rom_->set_dirty(true);
+  return absl::OkStatus();
+}
+
+void OverworldEditor::DrawTile16DefinitionScopeChrome() {
+  const int tile_id = tile16_editor_.current_tile16();
+  const bool can_page = current_map_ >= 0x80 &&
+                        current_map_ < overworld_.materialized_map_count();
+  const bool has_override =
+      can_page && overworld_.HasPageTile16(current_map_, tile_id);
+  if (!can_page) {
+    ImGui::TextDisabled("Definition scope: global dictionary");
+    return;
+  }
+  if (has_override) {
+    tile16_edit_page_local_ = true;
+  }
+  ImGui::Text("Definition scope:");
+  ImGui::SameLine();
+  if (ImGui::RadioButton("Page-local", tile16_edit_page_local_)) {
+    tile16_edit_page_local_ = true;
+  }
+  ImGui::SameLine();
+  if (ImGui::RadioButton("Global", !tile16_edit_page_local_)) {
+    if (has_override) {
+      ImGui::OpenPopup("##clear_page_tile16_override");
+    } else {
+      tile16_edit_page_local_ = false;
+    }
+  }
+  if (has_override) {
+    ImGui::SameLine();
+    ImGui::TextDisabled("(map $%02X override)", current_map_);
+  }
+  if (ImGui::BeginPopupModal("##clear_page_tile16_override", nullptr,
+                             ImGuiWindowFlags_AlwaysAutoResize)) {
+    ImGui::TextWrapped(
+        "Clear the page-local override for Tile16 $%03X on map $%02X so the "
+        "global definition becomes visible?",
+        tile_id, current_map_);
+    if (ImGui::Button("Clear override")) {
+      std::vector<rom::NativePageTile16Definition> kept;
+      for (const auto& row : overworld_.page_tile16()) {
+        if (row.map_id == static_cast<uint16_t>(current_map_) &&
+            row.tile_id != static_cast<uint16_t>(tile_id)) {
+          kept.push_back(row);
+        }
+      }
+      const uint16_t map = static_cast<uint16_t>(current_map_);
+      if (overworld_.ImportPageTile16(std::span<const uint16_t>(&map, 1), kept)
+              .ok()) {
+        tile16_edit_page_local_ = false;
+        SyncTile16DocumentBinding();
+        if (map_refresh_) {
+          map_refresh_->InvalidateTile16Definitions();
+          RefreshOverworldMap();
+          status_ = RefreshTile16Blockset();
+        }
+      }
+      ImGui::CloseCurrentPopup();
+    }
+    ImGui::SameLine();
+    if (ImGui::Button("Cancel")) {
+      ImGui::CloseCurrentPopup();
+    }
+    ImGui::EndPopup();
+  }
 }
 
 }  // namespace yaze::editor

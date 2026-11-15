@@ -130,6 +130,10 @@ absl::Status Tile16Editor::UpdateAsPanel() {
     }
   }
 
+  if (definition_scope_drawer_) {
+    definition_scope_drawer_();
+  }
+
   if (Button("Edit Graphics")) {
     graphics_open_status_ = OpenGraphicsForActiveQuadrant();
   }

@@ -180,6 +180,13 @@ class Tile16EditSession {
       std::function<void(const std::vector<Tile16Commit>&)> callback) {
     on_document_changed_ = std::move(callback);
   }
+  // Optional model publisher invoked after document_definitions_ updates.
+  // Overworld page-local edits use this to write ImportPageTile16 / global
+  // tiles16 without a parallel editor document.
+  void set_document_publisher(
+      std::function<absl::Status(const std::vector<Tile16Commit>&)> callback) {
+    document_publisher_ = std::move(callback);
+  }
   void set_on_changes_committed(
       std::function<absl::Status(const std::vector<Tile16Commit>&)> callback) {
     on_changes_committed_ = std::move(callback);
@@ -382,6 +389,8 @@ class Tile16EditSession {
   std::vector<zelda3::Tile8PixelData> current_gfx_individual_;
   std::function<void()> before_edit_;
   std::function<void(const std::vector<Tile16Commit>&)> on_document_changed_;
+  std::function<absl::Status(const std::vector<Tile16Commit>&)>
+      document_publisher_;
   std::function<absl::Status(const std::vector<Tile16Commit>&)>
       on_changes_committed_;
   std::function<void(int)> on_current_tile_changed_;

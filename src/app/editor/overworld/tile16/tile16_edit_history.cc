@@ -121,6 +121,9 @@ absl::Status Tile16EditSession::ApplyDefinitions(
     }
     CopyTileBitmapToBlockset(edit.tile_id, bitmaps[i]);
   }
+  if (document_publisher_) {
+    RETURN_IF_ERROR(document_publisher_(definitions));
+  }
   tile8_usage_cache_dirty_ = true;
   preview_dirty_ = true;
   RETURN_IF_ERROR(SetCurrentTile(current_tile16_));

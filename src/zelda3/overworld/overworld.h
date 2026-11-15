@@ -825,6 +825,11 @@ class Overworld {
   const std::vector<rom::NativePageTile16Definition>& page_tile16() const {
     return page_tile16_;
   }
+  // True when the selected map owns a private Tile16 row for tile_id.
+  bool HasPageTile16(int map_id, int tile_id) const;
+  // Encode one page-local row from a Tile16 definition.
+  static rom::NativePageTile16Definition MakePageTile16Definition(
+      uint16_t map_id, uint16_t tile_id, const gfx::Tile16& definition);
   // Replace only selected pages, including deletion by an empty page batch.
   // Validate the complete batch before changing the model. Normal Save owns
   // publication; callers can use the same method for Undo/Redo snapshots.

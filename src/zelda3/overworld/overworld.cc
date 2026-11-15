@@ -2673,6 +2673,31 @@ std::vector<gfx::Tile16> Overworld::Tiles16ForMap(int map_id) const {
   return definitions;
 }
 
+bool Overworld::HasPageTile16(int map_id, int tile_id) const {
+  if (map_id < 0 || tile_id < 0)
+    return false;
+  return std::any_of(page_tile16_.begin(), page_tile16_.end(),
+                     [map_id, tile_id](const auto& row) {
+                       return row.map_id == static_cast<uint16_t>(map_id) &&
+                              row.tile_id == static_cast<uint16_t>(tile_id);
+                     });
+}
+
+rom::NativePageTile16Definition Overworld::MakePageTile16Definition(
+    uint16_t map_id, uint16_t tile_id, const gfx::Tile16& definition) {
+  return rom::NativePageTile16Definition{
+      .map_id = map_id,
+      .tile_id = tile_id,
+      .words =
+          {
+              gfx::TileInfoToShort(definition.tile0_),
+              gfx::TileInfoToShort(definition.tile1_),
+              gfx::TileInfoToShort(definition.tile2_),
+              gfx::TileInfoToShort(definition.tile3_),
+          },
+  };
+}
+
 absl::Status Overworld::ImportPageTile16(
     std::span<const uint16_t> maps,
     std::span<const rom::NativePageTile16Definition> definitions) {
