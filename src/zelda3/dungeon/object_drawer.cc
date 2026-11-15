@@ -3532,11 +3532,59 @@ std::pair<int, int> yaze::zelda3::ObjectDrawer::CalculateObjectDimensions(
   return DimensionService::Get().GetPixelDimensions(object);
 }
 
+namespace {
+
+// Source06 worktable contract: authenticated armory slot binds
+// prison_armory_worktable.bin, and the decoded definition is a 6x4 / 24-word
+// silhouette with every visible word priority-set. Old low-priority assets and
+// foreign 0D hacks fail this without spreading a global hash-only policy.
+bool MatchesAuthenticatedArmoryWorktableDefinition(
+    const yaze::zelda3::CustomObject& custom) {
+  constexpr uint16_t kPriorityBit = 0x2000;
+  if (custom.tiles.size() != 24) {
+    return false;
+  }
+  for (const auto& entry : custom.tiles) {
+    if (entry.tile_data == 0 || (entry.tile_data & kPriorityBit) == 0) {
+      return false;
+    }
+  }
+  const auto box = custom.GetBoundingBox();
+  return box.min_x == 0 && box.min_y == 0 && box.max_x == 5 && box.max_y == 3;
+}
+
+bool HasAuthenticatedArmoryWorktableAdmission(
+    const yaze::zelda3::CustomObjectRenderSnapshot* snapshot) {
+  constexpr int kObject32 = 0x32;
+  constexpr int kWorktableSubtype = 0x0D;
+  constexpr int kArmoryCount = 15;
+  auto& manager = yaze::zelda3::CustomObjectManager::Get();
+  if (yaze::zelda3::CustomObjectManager::RuntimeSubtypeCountForObject(
+          kObject32) != kArmoryCount) {
+    return false;
+  }
+  if (manager.ResolveFilename(kObject32, kWorktableSubtype) !=
+      "prison_armory_worktable.bin") {
+    return false;
+  }
+
+  absl::StatusOr<std::shared_ptr<const yaze::zelda3::CustomObject>> object =
+      snapshot != nullptr
+          ? snapshot->GetObject(kObject32, kWorktableSubtype)
+          : absl::StatusOr<std::shared_ptr<const yaze::zelda3::CustomObject>>(
+                manager.GetObjectInternal(kObject32, kWorktableSubtype));
+  return object.ok() && *object &&
+         MatchesAuthenticatedArmoryWorktableDefinition(**object);
+}
+
+}  // namespace
+
 void yaze::zelda3::ObjectDrawer::MaybeApplyArmoryWorktableFloorUnderlay(
     const RoomObject& obj, bool use_bg2, gfx::BackgroundBuffer& primary_bg,
     gfx::BackgroundBuffer* primary_layout_bg,
     gfx::BackgroundBuffer& lower_object_bg) {
-  // Exact native gate: room $0054, subtype $0D, primary pointer $7E2000.
+  // Exact native gate: room $0054, subtype $0D, primary pointer $7E2000, plus
+  // authenticated armory worktable definition (AdmitObject32ArmorySlots route).
   constexpr int kArmoryRoom = 0x54;
   constexpr int16_t kCustomObject32 = 0x32;
   constexpr int kWorktableSubtype = 0x0D;
@@ -3546,6 +3594,9 @@ void yaze::zelda3::ObjectDrawer::MaybeApplyArmoryWorktableFloorUnderlay(
 
   if (use_bg2 || room_id_ != kArmoryRoom || obj.id_ != kCustomObject32 ||
       (obj.size_ & 0x1F) != kWorktableSubtype) {
+    return;
+  }
+  if (!HasAuthenticatedArmoryWorktableAdmission(custom_objects_)) {
     return;
   }
 

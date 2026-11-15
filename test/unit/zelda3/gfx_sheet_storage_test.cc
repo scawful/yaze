@@ -625,18 +625,21 @@ TEST(GfxSheetStorageRomTest, OracleSheetGrowsRelocatesAndReopens) {
 
 // Private armory/lower-prison preview ROM: admitted native Lyra must write
 // sheets through CommitNativeNonOverworldImage; unadmitted bytes must refuse
-// before mutation. Skipped when the scratch preview image is absent.
+// before mutation. Point YAZE_TEST_ROM_PRIVATE_PREVIEW at the local evidence
+// ROM (e.g. wall-context-review01/lower-prison-preview/input.sfc).
 std::filesystem::path LowerPrisonPreviewRom() {
-  return std::filesystem::path(
-      "/Users/scawful/src/hobby/oracle-of-secrets-scratch/"
-      "prison-cell65-integration-20261114/wall-context-review01/"
-      "lower-prison-preview/input.sfc");
+  if (const char* env = std::getenv("YAZE_TEST_ROM_PRIVATE_PREVIEW");
+      env != nullptr && env[0] != '\0') {
+    return std::filesystem::path(env);
+  }
+  return {};
 }
 
 TEST(GfxSheetNativeWriteTest, UnadmittedLyraRefusesBeforeMutation) {
   const auto path = LowerPrisonPreviewRom();
-  if (!std::filesystem::exists(path)) {
-    GTEST_SKIP() << "lower-prison-preview input.sfc not present";
+  if (path.empty() || !std::filesystem::exists(path)) {
+    GTEST_SKIP()
+        << "Set YAZE_TEST_ROM_PRIVATE_PREVIEW to a private preview ROM";
   }
   Rom rom;
   ASSERT_TRUE(rom.LoadFromFile(path.string()).ok());
@@ -656,8 +659,9 @@ TEST(GfxSheetNativeWriteTest, UnadmittedLyraRefusesBeforeMutation) {
 
 TEST(GfxSheetNativeWriteTest, AdmittedNativeWriteSaveAndColdReadback) {
   const auto path = LowerPrisonPreviewRom();
-  if (!std::filesystem::exists(path)) {
-    GTEST_SKIP() << "lower-prison-preview input.sfc not present";
+  if (path.empty() || !std::filesystem::exists(path)) {
+    GTEST_SKIP()
+        << "Set YAZE_TEST_ROM_PRIVATE_PREVIEW to a private preview ROM";
   }
   Rom rom;
   ASSERT_TRUE(rom.LoadFromFile(path.string()).ok());

@@ -764,8 +764,34 @@ void WriteStubObjectBin(const std::filesystem::path& folder,
   out.write(reinterpret_cast<const char*>(binary.data()), binary.size());
 }
 
+// Four row headers of six tiles (source06 layout) with selectable priority.
+std::vector<uint8_t> MakeWorktableBinary(bool set_priority) {
+  std::vector<uint8_t> bytes;
+  bytes.reserve(58);
+  for (int row = 0; row < 4; ++row) {
+    bytes.push_back(0x06);  // count 6
+    bytes.push_back(0x80);  // jump one tilemap row
+    for (int col = 0; col < 6; ++col) {
+      const uint16_t word = static_cast<uint16_t>(0x14C1 + row * 6 + col +
+                                                  (set_priority ? 0x2000 : 0));
+      bytes.push_back(static_cast<uint8_t>(word & 0xFF));
+      bytes.push_back(static_cast<uint8_t>((word >> 8) & 0xFF));
+    }
+  }
+  bytes.push_back(0x00);
+  bytes.push_back(0x00);
+  return bytes;
+}
+
+void WriteBytes(const std::filesystem::path& path,
+                const std::vector<uint8_t>& bytes) {
+  std::ofstream out(path, std::ios::binary);
+  out.write(reinterpret_cast<const char*>(bytes.data()),
+            static_cast<std::streamsize>(bytes.size()));
+}
+
 std::unordered_map<std::string, std::string> AdmitSyntheticArmoryObjects(
-    const std::filesystem::path& folder) {
+    const std::filesystem::path& folder, bool worktable_priority = true) {
   auto& manager = CustomObjectManager::Get();
   manager.Initialize(folder.string());
 
@@ -777,19 +803,16 @@ std::unordered_map<std::string, std::string> AdmitSyntheticArmoryObjects(
        CustomObjectManager::Object32PrisonAppendFilenames()) {
     WriteStubObjectBin(folder, name, 0x2821);
   }
-  for (const auto& name :
-       CustomObjectManager::Object32ArmoryAppendFilenames()) {
-    // Priority-bearing tabletop word mirrors source06 ($2000 set).
-    WriteStubObjectBin(folder, name, 0x34C1);
-  }
+  const auto& armory = CustomObjectManager::Object32ArmoryAppendFilenames();
+  WriteBytes(folder / armory[0], MakeWorktableBinary(worktable_priority));
+  WriteStubObjectBin(folder, armory[1], 0x28C2);
 
   std::unordered_map<std::string, std::string> identities;
   for (const auto& name :
        CustomObjectManager::Object32PrisonAppendFilenames()) {
     identities[name] = Sha256OfFile(folder / name);
   }
-  for (const auto& name :
-       CustomObjectManager::Object32ArmoryAppendFilenames()) {
+  for (const auto& name : armory) {
     identities[name] = Sha256OfFile(folder / name);
   }
   EXPECT_TRUE(manager.AdmitObject32PrisonSlots(identities).ok());
@@ -887,6 +910,35 @@ TEST_F(CustomObjectRoomRenderTest,
   EXPECT_EQ(bg2.first, 0);
   EXPECT_NE(bg2.second, 0x0ABC);
   EXPECT_EQ(bg2.second & 0x2000, 0x2000);
+}
+
+TEST_F(CustomObjectRoomRenderTest,
+       OldLowPriorityWorktableDefinitionRefusesUnderlay) {
+  core::FeatureFlags::get().kEnableCustomObjects = true;
+  DrawRoutineRegistry::Get().RefreshFeatureFlagMappings();
+  AdmitSyntheticArmoryObjects(temp_dir_, /*worktable_priority=*/false);
+  auto snapshot = CustomObjectManager::Get().CaptureRenderSnapshot(true);
+
+  ObjectDrawer drawer(rom_.get(), /*room_id=*/0x54,
+                      game_data_.graphics_buffer.data(), &snapshot);
+  gfx::BackgroundBuffer primary(512, 512);
+  gfx::BackgroundBuffer lower(512, 512);
+  gfx::BackgroundBuffer layout(512, 512);
+  primary.EnsureBitmapInitialized();
+  lower.EnsureBitmapInitialized();
+  layout.EnsureBitmapInitialized();
+  layout.SetTileAt(13, 14, 0x2ABC);
+
+  RoomObject table(/*id=*/0x32, /*x=*/13, /*y=*/14, /*size=*/0x0D,
+                   RoomObject::LayerType::BG1);
+  gfx::PaletteGroup palette;
+  ASSERT_TRUE(
+      drawer
+          .DrawObject(table, primary, lower, palette, nullptr, &layout, nullptr)
+          .ok());
+  EXPECT_EQ(lower.GetTileAt(13, 14), 0)
+      << "Pre-source06 low-priority worktable must not receive floor underlay";
+  EXPECT_EQ(primary.GetTileAt(13, 14) & 0x2000, 0);
 }
 
 }  // namespace
