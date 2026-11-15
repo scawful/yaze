@@ -191,6 +191,7 @@ CreateCliCommandHandlers() {
   handlers.push_back(std::make_unique<DungeonRemoveDoorCommandHandler>());
   handlers.push_back(std::make_unique<DungeonListPotItemsCommandHandler>());
   handlers.push_back(std::make_unique<DungeonSetPotItemCommandHandler>());
+  handlers.push_back(std::make_unique<DungeonAppendPotItemCommandHandler>());
   handlers.push_back(std::make_unique<DungeonSetCollisionTileCommandHandler>());
 
   handlers.push_back(std::make_unique<OverworldTerrainCatalogCommandHandler>());
