@@ -211,10 +211,12 @@ class CustomObjectManager {
   // new runtime subtypes unless AdmitObject32PrisonSlots succeeds for 0x32.
   static int RuntimeSubtypeCountForObject(int object_id);
 
-  // Source-bound opt-in for object 0x32 subtypes 0B/0C. Requires the active
-  // base_path to contain the pinned prison assets; does not raise capacity from
-  // an oversized custom_object_files map alone. Live slots 00..0A stay intact.
-  absl::Status AdmitObject32PrisonSlots();
+  // Source-bound opt-in for object 0x32 subtypes 0B/0C. Requires project-owned
+  // sha256 identities for the append filenames and matching files under
+  // base_path. Does not raise capacity from an oversized file map alone and
+  // clears any prior 13-slot state before attempting admission.
+  absl::Status AdmitObject32PrisonSlots(
+      const std::unordered_map<std::string, std::string>& expected_sha256);
   void ClearObject32PrisonSlots();
   static const std::vector<std::string>& Object32PrisonAppendFilenames();
 

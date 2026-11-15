@@ -1183,29 +1183,25 @@ TEST_F(CustomObjectManagerTest, GetBoundingBoxFromLoadedObject) {
   EXPECT_EQ(bb.height(), 2);
 }
 
-bool InstallPinnedPrisonAssets(const std::filesystem::path& objects_data) {
-  const char* donor = std::getenv("YAZE_PRISON_OBJECT_DATA");
-  const std::filesystem::path source =
-      donor && *donor
-          ? std::filesystem::path(donor)
-          : std::filesystem::path(
-                "/Users/scawful/src/hobby/oracle-of-secrets-worktrees/"
-                "d4-actor-integration-20261106/Dungeons/Objects/Data");
-  std::error_code ec;
-  for (const auto& name :
-       CustomObjectManager::Object32PrisonAppendFilenames()) {
-    const auto from = source / name;
-    if (!std::filesystem::is_regular_file(from, ec) || ec) {
-      return false;
-    }
-    std::filesystem::copy_file(
-        from, objects_data / name,
-        std::filesystem::copy_options::overwrite_existing, ec);
-    if (ec) {
-      return false;
-    }
+std::string Sha256OfTempFile(const std::filesystem::path& path) {
+  return *core::ComputeSourceArtifactFileSha256(path.string());
+}
+
+std::unordered_map<std::string, std::string> WriteSyntheticPrisonAssets(
+    const std::filesystem::path& folder) {
+  const auto& names = CustomObjectManager::Object32PrisonAppendFilenames();
+  const std::vector<uint8_t> stump = {0x01, 0x00, 0x21, 0x28, 0x00, 0x00};
+  const std::vector<uint8_t> hole = {0x01, 0x00, 0x22, 0x28, 0x00, 0x00};
+  {
+    std::ofstream out(folder / names[0], std::ios::binary);
+    out.write(reinterpret_cast<const char*>(stump.data()), stump.size());
   }
-  return true;
+  {
+    std::ofstream out(folder / names[1], std::ios::binary);
+    out.write(reinterpret_cast<const char*>(hole.data()), hole.size());
+  }
+  return {{names[0], Sha256OfTempFile(folder / names[0])},
+          {names[1], Sha256OfTempFile(folder / names[1])}};
 }
 
 TEST_F(CustomObjectManagerTest, Object32PrisonSlotsStayOffByDefault) {
@@ -1218,35 +1214,51 @@ TEST_F(CustomObjectManagerTest, Object32PrisonSlotsStayOffByDefault) {
       absl::IsOutOfRange(manager.ResolveSlotBinding(0x32, 0x0C).status()));
 }
 
-TEST_F(CustomObjectManagerTest, Object32PrisonOptInAdmitsPinnedAssets) {
-  if (!InstallPinnedPrisonAssets(temp_dir_)) {
-    GTEST_SKIP() << "Pinned prison object assets unavailable";
-  }
-  // Keep live Goron track slots on their default names while admitting 0B/0C.
+TEST_F(CustomObjectManagerTest, Object32PrisonOptInAdmitsProjectIdentities) {
+  const auto identities = WriteSyntheticPrisonAssets(temp_dir_);
   for (const auto& name :
        CustomObjectManager::DefaultSubtypeFilenamesForObject(0x32)) {
     WriteBinaryFile(name, {0x01, 0x00, 0x11, 0x28, 0x00, 0x00});
   }
   auto& manager = CustomObjectManager::Get();
-  ASSERT_TRUE(manager.AdmitObject32PrisonSlots().ok());
+  ASSERT_TRUE(manager.AdmitObject32PrisonSlots(identities).ok());
   EXPECT_EQ(CustomObjectManager::RuntimeSubtypeCountForObject(0x32), 13);
-  EXPECT_EQ(manager.GetSubtypeCount(0x32), 13);
   EXPECT_EQ(manager.ResolveFilename(0x32, 0x03), "track_floor_T_N.bin");
   EXPECT_EQ(manager.ResolveFilename(0x32, 0x04), "track_floor_T_S.bin");
   EXPECT_EQ(manager.ResolveFilename(0x32, 0x0B), "minish_stump.bin");
   EXPECT_EQ(manager.ResolveFilename(0x32, 0x0C), "minish_wall_hole.bin");
   EXPECT_TRUE(manager.GetObjectInternal(0x32, 0x0B).ok());
   EXPECT_TRUE(manager.GetObjectInternal(0x32, 0x0C).ok());
-  manager.ClearObject32PrisonSlots();
+
+  WriteBinaryFile("minish_stump.bin", {0x01, 0x00, 0x31, 0x28, 0x00, 0x00});
+  auto edited = identities;
+  edited["minish_stump.bin"] = Sha256OfTempFile(temp_dir_ / "minish_stump.bin");
+  ASSERT_TRUE(manager.AdmitObject32PrisonSlots(edited).ok());
+  EXPECT_EQ(CustomObjectManager::RuntimeSubtypeCountForObject(0x32), 13);
+  EXPECT_EQ((*manager.GetObjectInternal(0x32, 0x0B))->tiles[0].tile_data,
+            0x2831);
+}
+
+TEST_F(CustomObjectManagerTest, Object32PrisonFailedAdmitClearsPriorThirteen) {
+  const auto identities = WriteSyntheticPrisonAssets(temp_dir_);
+  auto& manager = CustomObjectManager::Get();
+  ASSERT_TRUE(manager.AdmitObject32PrisonSlots(identities).ok());
+  EXPECT_EQ(CustomObjectManager::RuntimeSubtypeCountForObject(0x32), 13);
+
+  auto stale = identities;
+  stale["minish_stump.bin"] = std::string(64, '0');
+  const auto status = manager.AdmitObject32PrisonSlots(stale);
+  EXPECT_TRUE(absl::IsFailedPrecondition(status));
   EXPECT_EQ(CustomObjectManager::RuntimeSubtypeCountForObject(0x32), 11);
   EXPECT_TRUE(
       absl::IsOutOfRange(manager.GetObjectInternal(0x32, 0x0B).status()));
 }
 
-TEST_F(CustomObjectManagerTest, Object32PrisonOptInRefusesMissingAssets) {
+TEST_F(CustomObjectManagerTest, Object32PrisonOptInRefusesMissingIdentity) {
+  WriteSyntheticPrisonAssets(temp_dir_);
   auto& manager = CustomObjectManager::Get();
-  const auto status = manager.AdmitObject32PrisonSlots();
-  EXPECT_TRUE(absl::IsNotFound(status) || absl::IsFailedPrecondition(status));
+  const auto status = manager.AdmitObject32PrisonSlots({});
+  EXPECT_TRUE(absl::IsFailedPrecondition(status));
   EXPECT_EQ(CustomObjectManager::RuntimeSubtypeCountForObject(0x32), 11);
 }
 

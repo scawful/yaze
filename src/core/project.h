@@ -362,6 +362,11 @@ struct YazeProject {
   // Optional custom object file mapping (object_id -> filenames per subtype).
   std::unordered_map<int, std::vector<std::string>> custom_object_files;
 
+  // Optional project-owned identities for custom object assets (filename ->
+  // sha256). Object32 prison opt-in checks 0B/0C against these entries so Save
+  // can refresh identities after authored edits; Yaze does not pin original art.
+  std::unordered_map<std::string, std::string> custom_object_asset_sha256;
+
   // Consolidated settings (previously scattered across multiple files)
   core::FeatureFlags::Flags feature_flags;
   // Saved under [feature_flags] but deliberately outside FeatureFlags::Flags:

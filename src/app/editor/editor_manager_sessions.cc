@@ -95,12 +95,16 @@ void EditorManager::ApplyCurrentProjectRuntimeContext() {
     custom_object_manager.RestoreState(custom_object_state);
   }
   if (current_project_.feature_flags.kEnableObject32PrisonSlots) {
-    const auto admitted = custom_object_manager.AdmitObject32PrisonSlots();
+    const auto admitted = custom_object_manager.AdmitObject32PrisonSlots(
+        current_project_.custom_object_asset_sha256);
     if (!admitted.ok()) {
+      custom_object_manager.ClearObject32PrisonSlots();
       LOG_WARN("CustomObjectManager",
                "Object32 prison slot admission refused: %s",
                std::string(admitted.message()).c_str());
     }
+  } else {
+    custom_object_manager.ClearObject32PrisonSlots();
   }
 
   if (current_project_.project_opened()) {
@@ -228,12 +232,16 @@ void EditorManager::HandleSessionSwitched(size_t new_index, RomSession* session,
       if (session->project_context.has_value() &&
           session->project_context->feature_flags.kEnableObject32PrisonSlots) {
         const auto admitted =
-            zelda3::CustomObjectManager::Get().AdmitObject32PrisonSlots();
+            zelda3::CustomObjectManager::Get().AdmitObject32PrisonSlots(
+                session->project_context->custom_object_asset_sha256);
         if (!admitted.ok()) {
+          zelda3::CustomObjectManager::Get().ClearObject32PrisonSlots();
           LOG_WARN("CustomObjectManager",
                    "Object32 prison slot admission refused: %s",
                    std::string(admitted.message()).c_str());
         }
+      } else {
+        zelda3::CustomObjectManager::Get().ClearObject32PrisonSlots();
       }
     } else {
       runtime_feature_flags_session_id_.reset();

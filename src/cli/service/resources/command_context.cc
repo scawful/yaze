@@ -275,11 +275,15 @@ absl::Status CommandContext::ApplyProjectRuntimeContext() {
   project_runtime_applied_ = true;
   if (active_project.feature_flags.kEnableObject32PrisonSlots) {
     const auto admitted =
-        zelda3::CustomObjectManager::Get().AdmitObject32PrisonSlots();
+        zelda3::CustomObjectManager::Get().AdmitObject32PrisonSlots(
+            active_project.custom_object_asset_sha256);
     if (!admitted.ok()) {
+      zelda3::CustomObjectManager::Get().ClearObject32PrisonSlots();
       RestoreProjectRuntimeContext();
       return admitted;
     }
+  } else {
+    zelda3::CustomObjectManager::Get().ClearObject32PrisonSlots();
   }
   // Do not render a partial preview when an explicitly configured source is
   // invalid. Restore immediately so a retry cannot skip the failed load.

@@ -1920,6 +1920,14 @@ absl::StatusOr<std::string> YazeProject::SerializeToString() const {
     file << "\n";
   }
 
+  if (!custom_object_asset_sha256.empty()) {
+    file << "[custom_object_asset_sha256]\n";
+    for (const auto& [filename, digest] : custom_object_asset_sha256) {
+      file << filename << "=" << digest << "\n";
+    }
+    file << "\n";
+  }
+
   // AI Agent settings section
   file << "[agent_settings]\n";
   file << "ai_provider=" << agent_settings.ai_provider << "\n";
@@ -2373,6 +2381,12 @@ absl::Status YazeProject::ParseFromString(const std::string& content) {
       if (parsed.has_value()) {
         custom_object_files[static_cast<int>(*parsed)] =
             ParsePositionalStringList(value);
+      } else {
+        understood = false;
+      }
+    } else if (current_section == "custom_object_asset_sha256") {
+      if (!key.empty() && !value.empty()) {
+        custom_object_asset_sha256[key] = value;
       } else {
         understood = false;
       }
@@ -4157,6 +4171,18 @@ absl::Status YazeProject::LoadFromJsonFormat(const std::string& project_path) {
         }
       }
 
+      if (proj.contains("custom_object_asset_sha256") &&
+          proj["custom_object_asset_sha256"].is_object()) {
+        custom_object_asset_sha256.clear();
+        for (auto it = proj["custom_object_asset_sha256"].begin();
+             it != proj["custom_object_asset_sha256"].end(); ++it) {
+          if (it.value().is_string()) {
+            custom_object_asset_sha256[it.key()] =
+                it.value().get<std::string>();
+          }
+        }
+      }
+
       if (proj.contains("agent_settings") &&
           proj["agent_settings"].is_object()) {
         auto& agent = proj["agent_settings"];
@@ -4427,6 +4453,13 @@ absl::Status YazeProject::SaveToJsonFormat() {
     auto& objs = proj["custom_objects"];
     for (const auto& [object_id, files] : custom_object_files) {
       objs[absl::StrFormat("0x%X", object_id)] = files;
+    }
+  }
+
+  if (!custom_object_asset_sha256.empty()) {
+    auto& hashes = proj["custom_object_asset_sha256"];
+    for (const auto& [filename, digest] : custom_object_asset_sha256) {
+      hashes[filename] = digest;
     }
   }
 
