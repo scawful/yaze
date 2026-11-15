@@ -107,10 +107,13 @@ absl::StatusOr<WallPrivateSheetResolution> ResolveWallPrivateSheet(
 absl::StatusOr<WallPrivateSheetRecipeReport> DryRunWallPrivateSheetRecipe(
     const WallPrivateSheetBinding& binding, const nlohmann::json& object_plan);
 
-// Compiled-ROM WSP1 mirror. When the room's active WSR1 profile matches a
-// record's required_profile, returns 8bpp overrides keyed by logical BG
-// request and absolute sprite sheet (relative+0x73). Profile 0 / no matching
-// record returns an empty map (ordinary global sheets). Malformed WSP1 fails.
+// Compiled-ROM WSP1 mirror. Matching room+profile records become 8bpp
+// overrides keyed by logical sheet IDs:
+//   - BG kind0 slot3 request 0x08 (high half) may share a source with sprite
+//     kind1 slot3 request 0x36 (room54 armory pair).
+//   - BG kind0 slot6 may use an independent source/request (room64 0x6F).
+// BG-only matches do not synthesize sprite 0xA9. Profile 0 / no match returns
+// an empty map. Malformed or conflicting records fail.
 absl::StatusOr<WallPrivateSheetResolution> ResolveCompiledWallPrivateSheet(
     const Rom& rom, int room, int active_profile);
 

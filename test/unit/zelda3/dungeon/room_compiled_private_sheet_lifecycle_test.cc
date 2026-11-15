@@ -85,4 +85,20 @@ TEST_F(RoomCompiledPrivateSheetLifecycleTest,
   EXPECT_EQ(room.compiled_graphics_sheet_overrides().size(), 2u);
 }
 
+TEST_F(RoomCompiledPrivateSheetLifecycleTest,
+       Room64Slot6CompiledOverridesClearOnInactiveReload) {
+  Room room(/*room_id=*/0x64, &rom_, &game_data_);
+  InstallCompiledOverrides(room,
+                           {{0x08, std::vector<uint8_t>(kSheetBytes, 4)},
+                            {0x6F, std::vector<uint8_t>(kSheetBytes, 6)}});
+  EXPECT_EQ(room.compiled_graphics_sheet_overrides().count(0x6F), 1u);
+  EXPECT_EQ(SheetSource(room, 0x6F)[0], 6);
+
+  // No WSP1 / inactive profile: long-lived room64 must not keep stale slot6.
+  room.LoadRoomGraphics();
+  EXPECT_TRUE(room.compiled_graphics_sheet_overrides().empty());
+  ASSERT_NE(SheetSource(room, 0x6F), nullptr);
+  EXPECT_EQ(SheetSource(room, 0x6F)[0], 2);
+}
+
 }  // namespace yaze::zelda3

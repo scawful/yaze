@@ -353,10 +353,6 @@ absl::StatusOr<WallPrivateSheetResolution> ResolveCompiledWallPrivateSheet(
   auto pc = [](uint32_t a) -> size_t {
     return ((a >> 16) & 0x7F) * 0x8000 + (a & 0x7FFF);
   };
-  auto valid = [&](uint32_t a, size_t count) {
-    return a >= 0x44E000 && a < 0x450000 && count <= 0x450000 - a &&
-           pc(a) <= bytes.size() && count <= bytes.size() - pc(a);
-  };
   auto fail = []() {
     return absl::FailedPreconditionError(
         "Unsupported or malformed compiled WSP1 private-sheet metadata");
@@ -392,9 +388,16 @@ absl::StatusOr<WallPrivateSheetResolution> ResolveCompiledWallPrivateSheet(
   if (d + 8 + table_bytes > bytes.size())
     return fail();
 
-  std::optional<uint32_t> shared_source;
+  struct MatchedRecord {
+    uint8_t kind = 0;
+    uint8_t request = 0;
+    uint8_t slot = 0;
+    uint8_t half = 0;
+    uint32_t source = 0;
+  };
+
   std::set<std::tuple<uint16_t, uint8_t, uint8_t, uint8_t>> seen;
-  bool matched = false;
+  std::vector<MatchedRecord> matched;
   for (uint16_t i = 0; i < count; ++i) {
     const size_t r = d + 8 + static_cast<size_t>(i) * 12;
     const uint16_t rec_room =
@@ -411,9 +414,25 @@ absl::StatusOr<WallPrivateSheetResolution> ResolveCompiledWallPrivateSheet(
     const auto identity = std::make_tuple(rec_room, kind, slot, request);
     if (!seen.insert(identity).second)
       return fail();
-    if (kind > 1 || slot != kWallPrivateSlot || half > 1 ||
-        length != kWallPrivateDecoded3bppBytes)
+    if (kind > 1 || half > 1 || length != kWallPrivateDecoded3bppBytes)
       return fail();
+    // Validated slots: 3 (shared BG08/sprite36 or BG08 alone) and 6
+    // (independent BG stream such as room64's 0x6F).
+    if (slot != kWallPrivateSlot && slot != 6)
+      return fail();
+    if (kind == 0) {
+      if (slot == kWallPrivateSlot) {
+        if (request != kWallPrivateBgRequest || half != 1)
+          return fail();
+      } else if (request == 0) {
+        return fail();
+      }
+    } else {
+      // Sprite streams remain slot-3 / relative-0x36 / low-half only.
+      if (slot != kWallPrivateSlot || request != kWallPrivateSpriteRelative ||
+          half != 0)
+        return fail();
+    }
     // Private kit streams live in kit storage after Glacia ($458000..).
     if (source < 0x458000 || source >= 0x45F000)
       return fail();
@@ -421,24 +440,10 @@ absl::StatusOr<WallPrivateSheetResolution> ResolveCompiledWallPrivateSheet(
       continue;
     if (required_profile != static_cast<uint8_t>(active_profile))
       continue;
-    matched = true;
-    if (!shared_source.has_value())
-      shared_source = source;
-    else if (*shared_source != source)
-      return fail();
-
-    if (kind == 0) {
-      if (request != kWallPrivateBgRequest || half != 1)
-        return fail();
-      result.bg_sheet = request;
-    } else {
-      if (request != kWallPrivateSpriteRelative || half != 0)
-        return fail();
-      result.sprite_sheet = static_cast<uint8_t>(request + 0x73);
-    }
+    matched.push_back(MatchedRecord{kind, request, slot, half, source});
   }
 
-  if (!matched) {
+  if (matched.empty()) {
     result.applied = false;
     result.reason =
         absl::StrFormat("no WSP1 record for room 0x%03X with active profile %d",
@@ -446,26 +451,99 @@ absl::StatusOr<WallPrivateSheetResolution> ResolveCompiledWallPrivateSheet(
     return result;
   }
 
-  const size_t source_pc = pc(*shared_source);
-  ASSIGN_OR_RETURN(auto decoded, gfx::lc_lz2::DecompressExact(
-                                     bytes.data(), bytes.size(), source_pc,
-                                     kWallPrivateDecoded3bppBytes * 4,
-                                     /*big_endian_copy=*/false));
-  if (decoded.data.size() != kWallPrivateDecoded3bppBytes) {
-    return absl::DataLossError(
-        absl::StrFormat("WSP1 private stream decoded to %zu bytes; need %zu",
-                        decoded.data.size(), kWallPrivateDecoded3bppBytes));
+  // Room54-style pair: sprite + BG08/slot3 must share one source. Independent
+  // BG slot6 streams may use different sources and never synthesize sprite A9.
+  std::optional<uint32_t> paired_source;
+  bool saw_bg08 = false;
+  bool saw_sprite = false;
+  for (const auto& rec : matched) {
+    if (rec.kind == 0 && rec.slot == kWallPrivateSlot) {
+      saw_bg08 = true;
+      if (!paired_source.has_value())
+        paired_source = rec.source;
+      else if (*paired_source != rec.source)
+        return fail();
+    } else if (rec.kind == 1) {
+      saw_sprite = true;
+      if (!paired_source.has_value())
+        paired_source = rec.source;
+      else if (*paired_source != rec.source)
+        return fail();
+    }
   }
-  result.decoded_sha256 = core::ComputeSourceArtifactSha256(std::string(
-      reinterpret_cast<const char*>(decoded.data.data()), decoded.data.size()));
-  auto pixels = gfx::SnesTo8bppSheet(
-      std::span<const uint8_t>(decoded.data.data(), decoded.data.size()), 3);
-  if (pixels.size() != kWallPrivateDecoded8bppBytes) {
-    return absl::DataLossError(
-        "WSP1 private stream did not expand to one 8bpp sheet");
+  if (saw_sprite && !saw_bg08)
+    return fail();
+
+  std::map<uint32_t, std::vector<uint8_t>> decoded_by_source;
+  auto DecodeSource =
+      [&](uint32_t source) -> absl::StatusOr<const std::vector<uint8_t>*> {
+    if (auto it = decoded_by_source.find(source); it != decoded_by_source.end())
+      return &it->second;
+    const size_t source_pc = pc(source);
+    ASSIGN_OR_RETURN(auto decoded, gfx::lc_lz2::DecompressExact(
+                                       bytes.data(), bytes.size(), source_pc,
+                                       kWallPrivateDecoded3bppBytes * 4,
+                                       /*big_endian_copy=*/false));
+    if (decoded.data.size() != kWallPrivateDecoded3bppBytes) {
+      return absl::DataLossError(
+          absl::StrFormat("WSP1 private stream decoded to %zu bytes; need %zu",
+                          decoded.data.size(), kWallPrivateDecoded3bppBytes));
+    }
+    auto pixels = gfx::SnesTo8bppSheet(
+        std::span<const uint8_t>(decoded.data.data(), decoded.data.size()), 3);
+    if (pixels.size() != kWallPrivateDecoded8bppBytes) {
+      return absl::DataLossError(
+          "WSP1 private stream did not expand to one 8bpp sheet");
+    }
+    const std::string digest = core::ComputeSourceArtifactSha256(
+        std::string(reinterpret_cast<const char*>(decoded.data.data()),
+                    decoded.data.size()));
+    if (decoded_by_source.empty()) {
+      result.decoded_sha256 = digest;
+    } else if (result.decoded_sha256 != digest) {
+      // Multiple distinct streams: leave a blank digest rather than implying
+      // one shared identity across independent BG sheets.
+      result.decoded_sha256.clear();
+    }
+    auto [inserted, _] = decoded_by_source.emplace(source, std::move(pixels));
+    return &inserted->second;
+  };
+
+  bool applied_sprite = false;
+  bool applied_bg = false;
+  for (const auto& rec : matched) {
+    ASSIGN_OR_RETURN(const std::vector<uint8_t>* pixels,
+                     DecodeSource(rec.source));
+    if (rec.kind == 0) {
+      const uint16_t sheet = rec.request;
+      auto existing = result.sheet_overrides_8bpp.find(sheet);
+      if (existing != result.sheet_overrides_8bpp.end() &&
+          existing->second != *pixels)
+        return fail();
+      result.sheet_overrides_8bpp[sheet] = *pixels;
+      if (!applied_bg || sheet == kWallPrivateBgRequest)
+        result.bg_sheet = static_cast<uint8_t>(sheet);
+      applied_bg = true;
+    } else {
+      const uint16_t sheet =
+          static_cast<uint16_t>(rec.request + 0x73);  // absolute sprite
+      auto existing = result.sheet_overrides_8bpp.find(sheet);
+      if (existing != result.sheet_overrides_8bpp.end() &&
+          existing->second != *pixels)
+        return fail();
+      result.sheet_overrides_8bpp[sheet] = *pixels;
+      result.sprite_sheet = static_cast<uint8_t>(sheet);
+      applied_sprite = true;
+    }
   }
-  result.sheet_overrides_8bpp.emplace(result.bg_sheet, pixels);
-  result.sheet_overrides_8bpp.emplace(result.sprite_sheet, std::move(pixels));
+
+  // BG-only rooms (room64) must not invent a sprite override from the BG
+  // stream. Sprite sheet field stays informational only when paired.
+  if (!applied_sprite) {
+    result.sprite_sheet = 0;
+  }
+  (void)applied_bg;
+
   result.applied = true;
   result.reason =
       "applied compiled WSP1 private stream for matching room/profile";
