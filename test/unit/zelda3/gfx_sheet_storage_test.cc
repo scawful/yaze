@@ -13,6 +13,7 @@
 #include <vector>
 
 #include "absl/status/status.h"
+#include "rom/lyra_layout_descriptor.h"
 #include "rom/rom.h"
 #include "unique_temp_path.h"
 #include "unit/zelda3/gfx_sheet_test_rom.h"
@@ -620,6 +621,68 @@ TEST(GfxSheetStorageRomTest, OracleSheetGrowsRelocatesAndReopens) {
   std::filesystem::remove(path);
   EXPECT_EQ(*zelda3::ReadGfxSheetData(reopened, kSheet), edited);
   ExpectOtherSheetsUnchanged(reopened, before, {kSheet});
+}
+
+// Private armory/lower-prison preview ROM: admitted native Lyra must write
+// sheets through CommitNativeNonOverworldImage; unadmitted bytes must refuse
+// before mutation. Skipped when the scratch preview image is absent.
+std::filesystem::path LowerPrisonPreviewRom() {
+  return std::filesystem::path(
+      "/Users/scawful/src/hobby/oracle-of-secrets-scratch/"
+      "prison-cell65-integration-20261114/wall-context-review01/"
+      "lower-prison-preview/input.sfc");
+}
+
+TEST(GfxSheetNativeWriteTest, UnadmittedLyraRefusesBeforeMutation) {
+  const auto path = LowerPrisonPreviewRom();
+  if (!std::filesystem::exists(path)) {
+    GTEST_SKIP() << "lower-prison-preview input.sfc not present";
+  }
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromFile(path.string()).ok());
+  ASSERT_FALSE(rom.experimental_page_tile16());
+  const auto baseline = rom.vector();
+  const auto current = zelda3::ReadGfxSheetData(rom, 0x00);
+  ASSERT_TRUE(current.ok()) << current.status();
+  auto edited = *current;
+  edited[10] = static_cast<uint8_t>(edited[10] ^ 0x11);
+  const auto written = zelda3::WriteGfxSheet(rom, 0x00, edited, {});
+  EXPECT_FALSE(written.ok()) << written.status();
+  EXPECT_NE(std::string(written.status().message()).find("save refused"),
+            std::string::npos)
+      << written.status();
+  EXPECT_EQ(rom.vector(), baseline);
+}
+
+TEST(GfxSheetNativeWriteTest, AdmittedNativeWriteSaveAndColdReadback) {
+  const auto path = LowerPrisonPreviewRom();
+  if (!std::filesystem::exists(path)) {
+    GTEST_SKIP() << "lower-prison-preview input.sfc not present";
+  }
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromFile(path.string()).ok());
+  rom.EnableExperimentalPageTile16();
+  ASSERT_TRUE(rom::IsNativeSpecialOverworldLayout(rom.InspectLyraLayout()));
+  const auto current = zelda3::ReadGfxSheetData(rom, 0x00);
+  ASSERT_TRUE(current.ok()) << current.status();
+  auto edited = *current;
+  edited[10] = static_cast<uint8_t>(edited[10] ^ 0x11);
+  ASSERT_NE(edited, *current);
+  const auto written = zelda3::WriteGfxSheet(rom, 0x00, edited, {});
+  ASSERT_TRUE(written.ok()) << written.status();
+  EXPECT_EQ(*zelda3::ReadGfxSheetData(rom, 0x00), edited);
+
+  const auto out = UniqueTempPath("native_gfx_sheet_cold", ".sfc");
+  {
+    std::ofstream file(out, std::ios::binary);
+    file.write(reinterpret_cast<const char*>(rom.vector().data()),
+               static_cast<std::streamsize>(rom.vector().size()));
+  }
+  Rom cold;
+  ASSERT_TRUE(cold.LoadFromFile(out.string()).ok());
+  std::filesystem::remove(out);
+  cold.EnableExperimentalPageTile16();
+  EXPECT_EQ(*zelda3::ReadGfxSheetData(cold, 0x00), edited);
 }
 
 }  // namespace

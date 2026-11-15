@@ -173,8 +173,10 @@ struct GfxSheetWriteResult {
  * policy.allocation_regions and all three pointer bytes are updated (keeping
  * the sheet's FastROM/SlowROM bank form). The written sheet is read back and
  * compared; on any failure after the first byte is written, every touched
- * byte is restored. 2bpp sheets and reserved sheets are refused. Writing
- * pixels identical to the stored sheet changes nothing.
+ * byte is restored. Admitted native Lyra images stage through
+ * CommitNativeNonOverworldImage instead of generic WriteVector. 2bpp sheets
+ * and reserved sheets are refused. Writing pixels identical to the stored
+ * sheet changes nothing.
  */
 absl::StatusOr<GfxSheetWriteResult> WriteGfxSheet(
     Rom& rom, uint16_t sheet_id, const std::vector<uint8_t>& snes_3bpp,

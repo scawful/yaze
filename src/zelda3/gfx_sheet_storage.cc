@@ -6,6 +6,7 @@
 #include "absl/strings/str_format.h"
 #include "absl/strings/str_join.h"
 #include "app/gfx/util/compression.h"
+#include "rom/lyra_layout_descriptor.h"
 #include "rom/snes.h"
 #include "util/log.h"
 #include "util/macro.h"
@@ -144,6 +145,90 @@ class RomWriteJournal {
   Rom& rom_;
   std::vector<std::pair<uint32_t, std::vector<uint8_t>>> entries_;
   bool committed_ = false;
+};
+
+// Admitted native Lyra ROMs cannot use WriteByte/WriteVector (inspection-only
+// generic gate). Stage into a candidate image and commit through the same
+// non-overworld transaction dungeon writers use. Refuse via CheckLayoutSaveable
+// before any mutation when admission/layout is missing or unsupported.
+class SheetWriteSession {
+ public:
+  explicit SheetWriteSession(Rom& rom)
+      : rom_(rom),
+        native_non_ow_(
+            rom::IsNativeSpecialOverworldLayout(rom.InspectLyraLayout())),
+        journal_(rom) {
+    if (native_non_ow_) {
+      saveable_ = rom_.CheckLayoutSaveable();
+      if (saveable_.ok()) {
+        baseline_ = rom_.vector();
+        candidate_ = baseline_;
+      }
+    }
+  }
+  SheetWriteSession(const SheetWriteSession&) = delete;
+  SheetWriteSession& operator=(const SheetWriteSession&) = delete;
+
+  absl::Status EnsureWritable() const {
+    if (native_non_ow_) {
+      return saveable_;
+    }
+    return absl::OkStatus();
+  }
+
+  absl::Status Write(uint32_t pc, const std::vector<uint8_t>& data) {
+    if (native_non_ow_) {
+      RETURN_IF_ERROR(saveable_);
+      if (static_cast<size_t>(pc) + data.size() > candidate_.size()) {
+        return absl::OutOfRangeError(
+            absl::StrFormat("Write of %zu bytes at 0x%06X is past the ROM end",
+                            data.size(), pc));
+      }
+      std::copy(data.begin(), data.end(), candidate_.begin() + pc);
+      ranges_.emplace_back(pc, pc + static_cast<uint32_t>(data.size()));
+      view_dirty_ = true;
+      return absl::OkStatus();
+    }
+    return journal_.Write(pc, data);
+  }
+
+  // Post-staging reads (verify/read-back) must observe candidate bytes on the
+  // native path; pre-staging planning still uses the caller's Rom.
+  absl::StatusOr<const Rom*> ReadView() {
+    if (!native_non_ow_) {
+      return &rom_;
+    }
+    RETURN_IF_ERROR(saveable_);
+    if (view_dirty_ || !view_.is_loaded()) {
+      Rom::LoadOptions options;
+      options.strip_header = false;
+      options.load_resource_labels = false;
+      RETURN_IF_ERROR(view_.LoadFromData(candidate_, options));
+      view_dirty_ = false;
+    }
+    return &view_;
+  }
+
+  absl::Status Commit() {
+    if (native_non_ow_) {
+      RETURN_IF_ERROR(saveable_);
+      return rom_.CommitNativeNonOverworldImage(baseline_,
+                                                std::move(candidate_), ranges_);
+    }
+    journal_.Commit();
+    return absl::OkStatus();
+  }
+
+ private:
+  Rom& rom_;
+  bool native_non_ow_ = false;
+  absl::Status saveable_ = absl::OkStatus();
+  std::vector<uint8_t> baseline_;
+  std::vector<uint8_t> candidate_;
+  std::vector<std::pair<uint32_t, uint32_t>> ranges_;
+  Rom view_;
+  bool view_dirty_ = false;
+  RomWriteJournal journal_;
 };
 
 absl::Status CheckPolicyWrite(const GfxSheetWritePolicy& policy, uint32_t begin,
@@ -509,19 +594,23 @@ absl::StatusOr<GfxSheetWriteResult> WriteGfxSheet(
     }
   }
 
-  RomWriteJournal journal(rom);
+  SheetWriteSession session(rom);
+  // Admitted native Lyra: refuse before mutation when saveable layout/admission
+  // is missing. Vanilla keeps the direct WriteVector journal path.
+  RETURN_IF_ERROR(session.EnsureWritable());
 
   if (kind == GfxSheetStorageKind::kRaw3bpp) {
     const uint32_t end = old_pc + static_cast<uint32_t>(kGfxSheet3bppBytes);
     RETURN_IF_ERROR(CheckPolicyWrite(policy, old_pc, end));
-    RETURN_IF_ERROR(journal.Write(old_pc, snes_3bpp));
-    ASSIGN_OR_RETURN(auto readback, ReadGfxSheetData(rom, sheet_id, tables));
+    RETURN_IF_ERROR(session.Write(old_pc, snes_3bpp));
+    ASSIGN_OR_RETURN(const Rom* view, session.ReadView());
+    ASSIGN_OR_RETURN(auto readback, ReadGfxSheetData(*view, sheet_id, tables));
     if (readback != snes_3bpp) {
       return absl::DataLossError(absl::StrFormat(
           "Raw sheet 0x%02X read-back differs from the edited sheet",
           sheet_id));
     }
-    journal.Commit();
+    RETURN_IF_ERROR(session.Commit());
     result.new_pc = old_pc;
     result.old_stored_size = kGfxSheet3bppBytes;
     result.new_stored_size = kGfxSheet3bppBytes;
@@ -590,7 +679,7 @@ absl::StatusOr<GfxSheetWriteResult> WriteGfxSheet(
 
   RETURN_IF_ERROR(CheckPolicyWrite(
       policy, target, target + static_cast<uint32_t>(encoded.size())));
-  RETURN_IF_ERROR(journal.Write(target, encoded));
+  RETURN_IF_ERROR(session.Write(target, encoded));
 
   if (target != old_pc) {
     const uint8_t old_bank = rom.data()[tables.bank + sheet_id];
@@ -606,15 +695,16 @@ absl::StatusOr<GfxSheetWriteResult> WriteGfxSheet(
         {tables.low + sheet_id, static_cast<uint8_t>(addr & 0xFF)}};
     for (const auto& [pc, value] : pointer_bytes) {
       RETURN_IF_ERROR(CheckPolicyWrite(policy, pc, pc + 1));
-      RETURN_IF_ERROR(journal.Write(pc, {value}));
+      RETURN_IF_ERROR(session.Write(pc, {value}));
     }
     result.placement = GfxSheetPlacement::kRelocated;
   }
   result.new_pc = target;
 
-  RETURN_IF_ERROR(VerifyCompressedSheet(rom, sheet_id, target, snes_3bpp,
+  ASSIGN_OR_RETURN(const Rom* view, session.ReadView());
+  RETURN_IF_ERROR(VerifyCompressedSheet(*view, sheet_id, target, snes_3bpp,
                                         encoded.size(), tables));
-  journal.Commit();
+  RETURN_IF_ERROR(session.Commit());
   LOG_INFO("GfxSheetStorage", "Wrote sheet %02X: %zu bytes %s at 0x%06X",
            sheet_id, encoded.size(),
            result.placement == GfxSheetPlacement::kRelocated ? "relocated"
