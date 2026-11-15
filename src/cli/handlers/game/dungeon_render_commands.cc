@@ -71,6 +71,8 @@ uint32_t ParseOverlays(const std::string& s) {
       flags |= app::service::RenderOverlay::kCollision;
     else if (tok == "sprites")
       flags |= app::service::RenderOverlay::kSprites;
+    else if (tok == "sprite-labels")
+      flags |= app::service::RenderOverlay::kSpriteLabels;
     else if (tok == "objects")
       flags |= app::service::RenderOverlay::kObjects;
     else if (tok == "track")

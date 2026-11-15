@@ -22,6 +22,7 @@
 #include "zelda3/overworld/overworld.h"
 #include "zelda3/overworld/overworld_map.h"
 #include "zelda3/overworld/overworld_version_helper.h"
+#include "zelda3/resource_labels.h"
 
 #include <SDL.h>
 #ifdef YAZE_CLI_HAS_PNG
@@ -87,20 +88,26 @@ const uint8_t* GlyphFor(char c) {
       {5, 5, 7, 1, 1}, {7, 4, 7, 1, 7}, {7, 4, 7, 5, 7}, {7, 1, 1, 2, 2},
       {7, 5, 7, 5, 7}, {7, 5, 7, 1, 7}, {2, 5, 7, 5, 5}, {6, 5, 6, 5, 6},
       {3, 4, 4, 4, 3}, {6, 5, 5, 5, 6}, {7, 4, 6, 4, 7}, {7, 4, 6, 4, 4}};
-  static const uint8_t kX[5] = {5, 5, 2, 5, 5};
-  static const uint8_t kH[5] = {5, 5, 7, 5, 5};
-  static const uint8_t kI[5] = {7, 2, 2, 2, 7};
+  // A-Z beyond hex A-F (hex digits above cover A-F already).
+  static const uint8_t kLetters[26][5] = {
+      {2, 5, 7, 5, 5}, {6, 5, 6, 5, 6}, {3, 4, 4, 4, 3}, {6, 5, 5, 5, 6},
+      {7, 4, 6, 4, 7}, {7, 4, 6, 4, 4}, {3, 4, 5, 5, 3}, {5, 5, 7, 5, 5},
+      {7, 2, 2, 2, 7}, {1, 1, 1, 5, 7}, {5, 6, 4, 6, 5}, {4, 4, 4, 4, 7},
+      {5, 7, 5, 5, 5}, {5, 7, 7, 5, 5}, {2, 5, 5, 5, 2}, {6, 5, 6, 4, 4},
+      {2, 5, 5, 7, 3}, {6, 5, 6, 6, 5}, {3, 4, 2, 1, 6}, {7, 2, 2, 2, 2},
+      {5, 5, 5, 5, 7}, {5, 5, 5, 5, 2}, {5, 5, 5, 7, 5}, {5, 5, 2, 5, 5},
+      {5, 5, 2, 2, 2}, {7, 1, 2, 4, 7},
+  };
+  static const uint8_t kSpace[5] = {0, 0, 0, 0, 0};
   static const uint8_t kColon[5] = {0, 2, 0, 2, 0};
+  if (c >= 'a' && c <= 'z')
+    c = static_cast<char>(c - 'a' + 'A');
   if (c >= '0' && c <= '9')
     return kDigits[c - '0'];
-  if (c >= 'A' && c <= 'F')
-    return kDigits[10 + (c - 'A')];
-  if (c == 'X')
-    return kX;
-  if (c == 'H')
-    return kH;
-  if (c == 'I')
-    return kI;
+  if (c >= 'A' && c <= 'Z')
+    return kLetters[c - 'A'];
+  if (c == ' ')
+    return kSpace;
   if (c == ':')
     return kColon;
   return nullptr;
@@ -710,14 +717,24 @@ void RenderService::ApplyOverlays(std::vector<uint8_t>& rgba, int width,
     }
   }
 
-  // Sprites — filled square at sprite tile position.
-  if (flags & RenderOverlay::kSprites) {
+  // Sprites — filled square at sprite tile position; optional ID+name labels.
+  if ((flags & RenderOverlay::kSprites) ||
+      (flags & RenderOverlay::kSpriteLabels)) {
     for (const auto& spr : room.GetSprites()) {
       // Sprite nx/ny are in 16px units (2 tiles per unit).
       const float px = static_cast<float>(spr.nx() * 16);
       const float py = static_cast<float>(spr.ny() * 16);
       draw.DrawFilledRect(px, py, 16.0f, 16.0f, 255, 60, 60, 120);
       draw.DrawRect(px, py, 16.0f, 16.0f, 255, 60, 60, 230);
+      if (flags & RenderOverlay::kSpriteLabels) {
+        std::string name = zelda3::GetSpriteLabel(spr.id());
+        if (name.length() > 14) {
+          name = name.substr(0, 12) + "..";
+        }
+        const std::string label =
+            absl::StrFormat("%02X %s", spr.id() & 0xFF, name.c_str());
+        DrawLabel(draw, px, std::max(0.0f, py - 16.0f), label, 255, 220, 220);
+      }
     }
   }
 

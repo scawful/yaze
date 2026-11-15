@@ -25,14 +25,15 @@ namespace service {
 // Adding new overlays costs nothing for existing callers.
 namespace RenderOverlay {
 constexpr uint32_t kNone = 0;
-constexpr uint32_t kCollision = 1 << 0;    // custom collision tile IDs
-constexpr uint32_t kSprites = 1 << 1;      // sprite positions
-constexpr uint32_t kObjects = 1 << 2;      // tile object extents
-constexpr uint32_t kTrack = 1 << 3;        // minecart track tiles
-constexpr uint32_t kCameraQuads = 1 << 4;  // camera quadrant boundaries
-constexpr uint32_t kGrid = 1 << 5;         // 8×8 tile grid
-constexpr uint32_t kTileTypes = 1 << 6;    // vanilla pits ($7F2000/$7F3000)
-constexpr uint32_t kItems = 1 << 7;        // pot-item and key-drop indicators
+constexpr uint32_t kCollision = 1 << 0;     // custom collision tile IDs
+constexpr uint32_t kSprites = 1 << 1;       // sprite positions
+constexpr uint32_t kObjects = 1 << 2;       // tile object extents
+constexpr uint32_t kTrack = 1 << 3;         // minecart track tiles
+constexpr uint32_t kCameraQuads = 1 << 4;   // camera quadrant boundaries
+constexpr uint32_t kGrid = 1 << 5;          // 8×8 tile grid
+constexpr uint32_t kTileTypes = 1 << 6;     // vanilla pits ($7F2000/$7F3000)
+constexpr uint32_t kItems = 1 << 7;         // pot-item and key-drop indicators
+constexpr uint32_t kSpriteLabels = 1 << 8;  // sprite boxes + "ID Name" text
 constexpr uint32_t kAll = ~0u;
 }  // namespace RenderOverlay
 
