@@ -65,16 +65,26 @@ absl::StatusOr<std::optional<CompiledWallProfile>> ReadCompiledWallProfile(
     return fail();
   const size_t d = pc(descriptor);
   if (std::string(bytes.begin() + d, bytes.begin() + d + 4) != "WSR1" ||
-      u16(d + 4) != 0x128 || bytes[d + 6] != 30 || bytes[d + 7] == 0 ||
-      bytes[d + 7] > 128 || bytes[d + 8] != 0x17 || bytes[d + 9] > 4)
+      u16(d + 4) != 0x128 || bytes[d + 6] == 0 || bytes[d + 6] > 64 ||
+      bytes[d + 7] == 0 || bytes[d + 7] > 128 || bytes[d + 8] != 0x17 ||
+      bytes[d + 9] > 4)
     return fail();
   if (room < 0 || room >= 0x128)
     return absl::OutOfRangeError("Compiled wall profile room is out of range");
+  // Class count is descriptor data (Oracle grew 30 -> 42 for diagonals).
+  const size_t classes = bytes[d + 6];
   const size_t profiles = bytes[d + 7], kits = bytes[d + 9];
   std::array<uint32_t, 10> pointers;
-  const std::array<size_t, 10> lengths = {
-      0x128,         0xF8, 0x40,     profiles * 2, profiles * 60,
-      profiles * 60, 2,    profiles, profiles,     kits * 64};
+  const std::array<size_t, 10> lengths = {0x128,
+                                          0xF8,
+                                          0x40,
+                                          profiles * 2,
+                                          profiles * classes * 2,
+                                          profiles * classes * 2,
+                                          2,
+                                          profiles,
+                                          profiles,
+                                          kits * 64};
   for (size_t i = 0; i < pointers.size(); ++i) {
     pointers[i] = u24(d + 10 + i * 3);
     if (!valid(pointers[i], lengths[i]))
@@ -114,7 +124,7 @@ absl::StatusOr<std::optional<CompiledWallProfile>> ReadCompiledWallProfile(
     return std::nullopt;
   }
   const uint16_t base = u16(pc(pointers[3]) + (profile - 1) * 2);
-  if (base != (profile - 1) * 60)
+  if (base != (profile - 1) * classes * 2)
     return fail();
   for (int object = 0; object < 0x140; ++object) {
     if (object >= 0xF8 && object < 0x100)
@@ -123,7 +133,7 @@ absl::StatusOr<std::optional<CompiledWallProfile>> ReadCompiledWallProfile(
                                    : bytes[pc(pointers[2]) + object - 0x100];
     if (cls == 0xFF)
       continue;
-    if (cls >= 30)
+    if (cls >= static_cast<int>(classes))
       return fail();
     const uint16_t last = u16(pc(pointers[4]) + base + cls * 2);
     const uint16_t span = u16(pc(pointers[5]) + base + cls * 2);
