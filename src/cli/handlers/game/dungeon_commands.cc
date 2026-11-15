@@ -111,11 +111,8 @@ absl::Status ValidateObjectStreamHeaderManifestConflicts(
         "Object-stream header manifest is missing allocator capability");
   }
 
-  // Only the live in-place stream header and pointer slots a header edit may
-  // rewrite without relocating. Do not claim the entire unused allocator pool:
-  // that caused false Hack Manifest refusals for exclusive in-place layout /
-  // floor edits (prison65 layout 5→7). Actual relocation ranges are validated
-  // from the staged/planned write set after the save plan is known.
+  // Legacy object-stream header preflight. Native layouts skip this helper and
+  // validate the staged write ranges in CommitNativeDungeonCandidate instead.
   std::vector<std::pair<uint32_t, uint32_t>> ranges;
 
   uint32_t pointer_table_snes = 0;
@@ -138,6 +135,9 @@ absl::Status ValidateObjectStreamHeaderManifestConflicts(
   }
   ranges.emplace_back(stream_pc, stream_pc + 2u);
 
+  for (const auto& range : context.allocator_layout->allocation_ranges) {
+    ranges.emplace_back(range.begin, range.end);
+  }
   const uint64_t cow_pointer_slot =
       static_cast<uint64_t>(context.allocator_layout->pointer_table_pc) +
       static_cast<uint64_t>(room_id) * 3u;
@@ -979,9 +979,8 @@ absl::Status DungeonSetRoomPropertyCommandHandler::Execute(
           manifest_status = absl::FailedPreconditionError(
               "Object-stream header manifest is missing allocator capability");
         } else if (!IsNativeDungeonLayout(*rom)) {
-          // Legacy: narrow in-place stream/pointer preflight only. Native
-          // validates the staged write ranges in CommitNativeDungeonCandidate
-          // so unused protected allocator pools cannot false-refuse.
+          // Legacy keeps the broad allocator preflight. Native skips it and
+          // validates staged ranges in CommitNativeDungeonCandidate.
           manifest_status = ValidateObjectStreamHeaderManifestConflicts(
               *rom, room_id, *manifest_context);
         }
@@ -1117,38 +1116,14 @@ absl::Status DungeonSetRoomPropertyCommandHandler::Execute(
     return native_status;
   }
 
-  const zelda3::DungeonStreamLayout* allocator_layout =
-      manifest_context.has_value() &&
-              manifest_context->allocator_layout.has_value()
-          ? &*manifest_context->allocator_layout
-          : nullptr;
-  if (is_object_stream_header && manifest_context.has_value()) {
-    // Early preflight intentionally omits unused allocator pools. Validate the
-    // actual planned ranges here so COW relocations into protected allocation
-    // still refuse before any SaveToFile artifacts are created.
-    auto planned_ranges =
-        room.GetObjectStreamHeaderSaveWriteRanges(allocator_layout);
-    if (!planned_ranges.ok()) {
-      formatter.AddField("status", "error");
-      formatter.AddField("error",
-                         std::string(planned_ranges.status().message()));
-      formatter.EndObject();
-      return planned_ranges.status();
-    }
-    const absl::Status planned_manifest_status = ValidateManifestWriteRanges(
-        manifest_context->manifest, *planned_ranges);
-    if (!planned_manifest_status.ok()) {
-      formatter.AddField("status", "error");
-      formatter.AddField("error",
-                         std::string(planned_manifest_status.message()));
-      formatter.EndObject();
-      return planned_manifest_status;
-    }
-  }
-
   const absl::Status write_status =
-      is_object_stream_header ? room.SaveObjectStreamHeader(allocator_layout)
-                              : room.SaveRoomHeader();
+      is_object_stream_header
+          ? room.SaveObjectStreamHeader(
+                manifest_context.has_value() &&
+                        manifest_context->allocator_layout.has_value()
+                    ? &*manifest_context->allocator_layout
+                    : nullptr)
+          : room.SaveRoomHeader();
   if (!write_status.ok()) {
     formatter.AddField("status", "error");
     formatter.AddField("write_error", std::string(write_status.message()));

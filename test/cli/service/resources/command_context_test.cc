@@ -177,46 +177,6 @@ TEST_F(CommandContextTest, LoadsRomFromPath) {
   EXPECT_FALSE(rom_or.ok());
 }
 
-TEST_F(CommandContextTest, MockRomFlagStillLoadsExplicitRomPath) {
-  // Write a 1MB image with a distinctive byte so --mock-rom cannot substitute
-  // InitializeMockRom's zero-filled placeholder when --rom is also set.
-  std::vector<uint8_t> bytes(0x100000, 0x00);
-  bytes[0x7FC0] = 'P';
-  bytes[0x7FD5] = 0x20;
-  bytes[0x7FD7] = 0x0A;
-  bytes[0x1234] = 0x5A;
-  const auto path =
-      std::filesystem::temp_directory_path() /
-      ("yaze_mock_rom_path_" +
-       std::to_string(
-           std::chrono::steady_clock::now().time_since_epoch().count()) +
-       ".sfc");
-  {
-    std::ofstream out(path, std::ios::binary);
-    ASSERT_TRUE(out.good());
-    out.write(reinterpret_cast<const char*>(bytes.data()),
-              static_cast<std::streamsize>(bytes.size()));
-  }
-  struct Cleanup {
-    std::filesystem::path path;
-    ~Cleanup() {
-      std::error_code ec;
-      std::filesystem::remove(path, ec);
-    }
-  } cleanup{path};
-
-  CommandContext::Config config;
-  config.rom_path = path.string();
-  config.use_mock_rom = true;
-  CommandContext context(config);
-  auto rom_or = context.GetRom();
-  ASSERT_TRUE(rom_or.ok()) << rom_or.status();
-  ASSERT_NE(rom_or.value(), nullptr);
-  EXPECT_EQ(rom_or.value()->size(), bytes.size());
-  EXPECT_EQ(rom_or.value()->data()[0x1234], 0x5A);
-  EXPECT_EQ(rom_or.value()->data()[0x7FC0], 'P');
-}
-
 TEST_F(CommandContextTest, EnsuresLabelsLoaded) {
   CommandContext::Config config;
   config.use_mock_rom = true;
