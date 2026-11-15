@@ -45,6 +45,7 @@ class DungeonListChestsCommandHandler;
 class DungeonGetEntranceCommandHandler;
 class DungeonExportRoomCommandHandler;
 class DungeonListObjectsCommandHandler;
+class DungeonObjectExtentsCommandHandler;
 class DungeonGetRoomTilesCommandHandler;
 class DungeonSetRoomPropertyCommandHandler;
 class DungeonListCustomCollisionCommandHandler;

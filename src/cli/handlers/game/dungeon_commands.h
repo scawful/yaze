@@ -147,6 +147,31 @@ class DungeonListObjectsCommandHandler : public resources::CommandHandler {
 };
 
 /**
+ * @brief Read-only: each room object's draw-routine tile rectangle.
+ *
+ * Uses DimensionService / ObjectGeometry so extents match what ObjectDrawer
+ * actually covers (pit masks, pit edges width=size+3, stud trim 034, etc.).
+ */
+class DungeonObjectExtentsCommandHandler : public resources::CommandHandler {
+ public:
+  std::string GetName() const { return "dungeon-object-extents"; }
+  std::string GetDescription() const {
+    return "List dungeon object tile footprints as draw routines cover them";
+  }
+  std::string GetUsage() const {
+    return "dungeon-object-extents --room <room_id> [--rom <path>] "
+           "[--format <json|text>]";
+  }
+
+  absl::Status ValidateArgs(const resources::ArgumentParser& parser) override {
+    return parser.RequireArgs({"room"});
+  }
+
+  absl::Status Execute(Rom* rom, const resources::ArgumentParser& parser,
+                       resources::OutputFormatter& formatter) override;
+};
+
+/**
  * @brief Command handler for getting room tiles
  */
 class DungeonGetRoomTilesCommandHandler : public resources::CommandHandler {
