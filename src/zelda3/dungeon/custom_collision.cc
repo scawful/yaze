@@ -144,6 +144,21 @@ absl::StatusOr<CustomCollisionMap> LoadCustomCollisionMap(Rom* rom,
   return result;
 }
 
+std::vector<uint8_t> EncodeExplicitFullCollisionRectangle(
+    const CustomCollisionMap& map) {
+  std::vector<uint8_t> encoded;
+  encoded.reserve(kExplicitFullCollisionRectangleBytes);
+  // Rectangle format (no F0F0 marker): offset, width, height, tile rows.
+  encoded.push_back(0x00);
+  encoded.push_back(0x00);
+  encoded.push_back(static_cast<uint8_t>(kCollisionMapWidth));
+  encoded.push_back(static_cast<uint8_t>(kCollisionMapHeight));
+  encoded.insert(encoded.end(), map.tiles.begin(), map.tiles.end());
+  encoded.push_back(0xFF);
+  encoded.push_back(0xFF);
+  return encoded;
+}
+
 absl::StatusOr<std::string> DumpCustomCollisionRoomsToJsonString(
     const std::vector<CustomCollisionRoomEntry>& rooms) {
 #if !defined(YAZE_WITH_JSON)

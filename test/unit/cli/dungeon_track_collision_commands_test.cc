@@ -36,7 +36,8 @@ using ::testing::HasSubstr;
 
 constexpr int kObjectPointerTablePc = 0x070000;
 constexpr int kObjectDataPc = 0x060000;
-constexpr int kGeneratedTrackMapSize = 2 + (4 * 3) + 2;
+constexpr int kGeneratedTrackMapSize =
+    zelda3::kExplicitFullCollisionRectangleBytes;
 
 std::filesystem::path MakeUniqueTempRomPath() {
   static std::atomic<uint64_t> counter{0};
