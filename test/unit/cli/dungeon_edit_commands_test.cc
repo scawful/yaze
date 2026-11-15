@@ -1894,6 +1894,16 @@ TEST(DungeonNativeObjectRouteTest, ImportRefusesChestOrderOrKindChange) {
     EXPECT_EQ(status.code(), absl::StatusCode::kFailedPrecondition)
         << status << out.dump();
     EXPECT_THAT(out.value("preflight_error", ""), HasSubstr("chest"));
+    ASSERT_TRUE(out.contains("source_event_slot_objects")) << out.dump();
+    ASSERT_TRUE(out.contains("target_event_slot_objects")) << out.dump();
+    EXPECT_EQ(out.at("target_event_slot_objects").size(), 2u);
+    EXPECT_EQ(out.at("source_event_slot_objects").size(), 2u);
+    EXPECT_EQ(out.at("target_event_slot_objects").at(0).at("id"), "0xF99");
+    EXPECT_EQ(out.at("target_event_slot_objects").at(0).at("tile8_x"), 4);
+    EXPECT_EQ(out.at("target_event_slot_objects").at(0).at("tile8_y"), 4);
+    EXPECT_EQ(out.at("target_event_slot_objects").at(0).at("list"), 0);
+    EXPECT_EQ(out.at("target_event_slot_objects").at(0).at("order"), 0);
+    EXPECT_THAT(out.value("event_slot_guidance", ""), HasSubstr("ordinary"));
   }
   EXPECT_EQ(rom.vector(), baseline.bytes);
   EXPECT_EQ(ReadFile(cleanup.rom_path), baseline.disk_bytes);
@@ -1937,6 +1947,18 @@ TEST(DungeonNativeObjectRouteTest, ImportRefusesBigKeyLockEventSlotChange) {
   EXPECT_EQ(status.code(), absl::StatusCode::kFailedPrecondition)
       << status << out.dump();
   EXPECT_THAT(out.value("preflight_error", ""), HasSubstr("big-key lock"));
+  ASSERT_TRUE(out.contains("source_event_slot_objects")) << out.dump();
+  ASSERT_TRUE(out.contains("target_event_slot_objects")) << out.dump();
+  EXPECT_EQ(out.at("source_event_slot_objects").size(), 3u);
+  EXPECT_EQ(out.at("target_event_slot_objects").size(), 2u);
+  EXPECT_EQ(out.at("source_event_slot_objects").at(0).at("id"), "0xF98");
+  EXPECT_EQ(out.at("source_event_slot_objects").at(0).at("kind"),
+            "big_key_lock");
+  EXPECT_EQ(out.at("source_event_slot_objects").at(0).at("tile8_x"), 16);
+  EXPECT_EQ(out.at("source_event_slot_objects").at(0).at("order"), 0);
+  EXPECT_EQ(out.at("target_event_slot_objects").at(0).at("kind"), "chest");
+  EXPECT_THAT(out.value("event_slot_guidance", ""),
+              HasSubstr("dungeon-place-object"));
   EXPECT_EQ(rom.vector(), baseline.bytes);
   EXPECT_EQ(ReadFile(cleanup.rom_path), baseline.disk_bytes);
   EXPECT_EQ(CountBackupArtifacts(cleanup.rom_path), 0);

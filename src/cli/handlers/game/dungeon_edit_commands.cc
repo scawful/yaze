@@ -2797,21 +2797,60 @@ absl::Status DungeonImportRoomObjectsCommandHandler::Execute(
         "Source and target object stream headers (floor/layout) differ"));
   }
   // Chests and big-key locks share the room's event slots in list order.
+  struct EventSlotObject {
+    int id;
+    int x;
+    int y;
+    int list;
+    int order;
+    bool operator==(const EventSlotObject&) const = default;
+  };
   const auto event_slot_sequence = [](const zelda3::Room& r) {
-    std::vector<std::tuple<int, int, int, int>> out;
+    std::vector<EventSlotObject> out;
+    int order = 0;
     for (int list = 0; list < 3; ++list) {
       for (const auto& object : r.GetTileObjects()) {
         if (zelda3::UsesRoomObjectStream(object) &&
             object.GetLayerValue() == list &&
             (zelda3::IsStatefulChestObjectId(object.id_) ||
              object.id_ == 0xF98)) {
-          out.emplace_back(object.id_, object.x(), object.y(), list);
+          out.push_back(EventSlotObject{object.id_, object.x(), object.y(),
+                                        list, order++});
         }
       }
     }
     return out;
   };
-  if (event_slot_sequence(source_room) != event_slot_sequence(room)) {
+  const auto report_event_slots =
+      [&formatter](const char* field,
+                   const std::vector<EventSlotObject>& slots) {
+        formatter.BeginArray(field);
+        for (const auto& slot : slots) {
+          formatter.BeginObject();
+          formatter.AddHexField("id", slot.id, 3);
+          formatter.AddField("kind",
+                             slot.id == 0xF98
+                                 ? "big_key_lock"
+                                 : (slot.id == 0xFB1 ? "big_chest" : "chest"));
+          formatter.AddField("tile8_x", slot.x);
+          formatter.AddField("tile8_y", slot.y);
+          formatter.AddField("list", slot.list);
+          formatter.AddField("order", slot.order);
+          formatter.EndObject();
+        }
+        formatter.EndArray();
+      };
+  const auto source_slots = event_slot_sequence(source_room);
+  const auto target_slots = event_slot_sequence(room);
+  if (source_slots != target_slots) {
+    report_event_slots("source_event_slot_objects", source_slots);
+    report_event_slots("target_event_slot_objects", target_slots);
+    formatter.AddField(
+        "event_slot_guidance",
+        "Import refuses when chest/big-key-lock event slots differ. "
+        "Intentional new chests or F98 locks need ordinary "
+        "dungeon-place-object / chest authoring and room-state review; this "
+        "command does not insert or reorder event-slot objects.");
     return refuse(absl::FailedPreconditionError(
         "Source and target chest and big-key lock objects differ in order, "
         "kind or position; chest-table rows pair with room event slots in "
