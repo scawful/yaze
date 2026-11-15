@@ -967,19 +967,26 @@ TEST_F(CustomObjectRoomRenderTest,
   DrawRoutineRegistry::Get().RefreshFeatureFlagMappings();
 
   auto prison_dir = temp_dir_ / "prison";
-  auto foreign_dir = temp_dir_ / "foreign";
   ASSERT_TRUE(std::filesystem::create_directories(prison_dir));
-  ASSERT_TRUE(std::filesystem::create_directories(foreign_dir));
 
   AdmitSyntheticArmoryObjects(prison_dir, /*worktable_priority=*/true);
-  EXPECT_TRUE(CustomObjectManager::Get()
-                  .CaptureRenderSnapshot(true)
-                  .HasAuthenticatedArmoryWorktableAdmission());
+  ASSERT_EQ(CustomObjectManager::RuntimeSubtypeCountForObject(0x32), 15);
+  ASSERT_EQ(CustomObjectManager::Get().ResolveFilename(0x32, 0x0D),
+            "prison_armory_worktable.bin");
   const auto prison_snapshot =
       CustomObjectManager::Get().CaptureRenderSnapshot(true);
+  ASSERT_TRUE(prison_snapshot.HasAuthenticatedArmoryWorktableAdmission());
+  EXPECT_EQ(prison_snapshot.object32_runtime_count(), 15);
+  EXPECT_EQ(prison_snapshot.object32_worktable_filename(),
+            "prison_armory_worktable.bin");
 
-  // Switch the live manager to an old/low-priority (foreign) definition.
-  AdmitSyntheticArmoryObjects(foreign_dir, /*worktable_priority=*/false);
+  // Drop live admission metadata to the default 11-slot map (not merely a
+  // different priority-bearing asset under the same count/filename). Old
+  // cf338-era code that re-read RuntimeSubtypeCount/ResolveFilename here would
+  // refuse underlay; snapshot ownership must keep the captured prison result.
+  CustomObjectManager::Get().ClearObject32PrisonSlots();
+  ASSERT_EQ(CustomObjectManager::RuntimeSubtypeCountForObject(0x32), 11);
+  EXPECT_TRUE(CustomObjectManager::Get().ResolveFilename(0x32, 0x0D).empty());
   EXPECT_FALSE(CustomObjectManager::Get()
                    .CaptureRenderSnapshot(true)
                    .HasAuthenticatedArmoryWorktableAdmission());
@@ -987,23 +994,27 @@ TEST_F(CustomObjectRoomRenderTest,
   EXPECT_EQ(DrawWorktableUnderlayWord(
                 rom_.get(), game_data_.graphics_buffer.data(), prison_snapshot),
             0x0ABC)
-      << "Captured authenticated prison snapshot must keep underlay after the "
-         "live manager becomes foreign";
+      << "Captured authenticated prison snapshot must keep underlay after live "
+         "admission metadata falls to count11";
 
-  const auto foreign_snapshot =
+  const auto cleared_snapshot =
       CustomObjectManager::Get().CaptureRenderSnapshot(true);
+  EXPECT_EQ(cleared_snapshot.object32_runtime_count(), 11);
+  EXPECT_TRUE(cleared_snapshot.object32_worktable_filename().empty());
+  EXPECT_FALSE(cleared_snapshot.HasAuthenticatedArmoryWorktableAdmission());
 
-  // Restore live manager to authenticated prison; captured foreign stays off.
+  // Restore live armory admission; the cleared snapshot must stay refused.
   AdmitSyntheticArmoryObjects(prison_dir, /*worktable_priority=*/true);
+  ASSERT_EQ(CustomObjectManager::RuntimeSubtypeCountForObject(0x32), 15);
   EXPECT_TRUE(CustomObjectManager::Get()
                   .CaptureRenderSnapshot(true)
                   .HasAuthenticatedArmoryWorktableAdmission());
   EXPECT_EQ(
       DrawWorktableUnderlayWord(rom_.get(), game_data_.graphics_buffer.data(),
-                                foreign_snapshot),
+                                cleared_snapshot),
       0)
-      << "Captured foreign/old snapshot must refuse underlay even after the "
-         "live manager returns to authenticated prison";
+      << "Captured count11/empty-filename snapshot must refuse underlay even "
+         "after the live manager returns to authenticated prison";
 }
 
 }  // namespace
