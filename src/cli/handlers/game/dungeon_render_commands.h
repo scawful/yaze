@@ -11,8 +11,8 @@ namespace handlers {
 //
 // Usage:
 //   dungeon-render --room=<id> --output=<path.png>
-//           [--overlays=collision,track,sprites,objects,grid,camera,tiletype,
-//                       items,all]
+//           [--overlays=collision,track,sprites,sprite-labels,objects,grid,
+//                       camera,tiletype,items,all]
 //           [--scale=<float>] [--entrance=<hex_id>|--graphics-entrance=<hex_id>]
 //           [--project-context=<project.yaze>]
 //           [--compiled-build-receipt=<build.json>]
@@ -37,8 +37,8 @@ class DungeonRenderCommandHandler : public resources::CommandHandler {
   std::string GetName() const override { return "dungeon-render"; }
   std::string GetUsage() const override {
     return "dungeon-render --room=<id> --output=<path.png> "
-           "[--overlays=collision,track,sprites,objects,grid,camera,tiletype,"
-           "items,all] "
+           "[--overlays=collision,track,sprites,sprite-labels,objects,grid,"
+           "camera,tiletype,items,all] "
            "[--scale=<float>] "
            "[--entrance=<hex_id>|--graphics-entrance=<hex_id>] "
            "[--project-context=<project.yaze>] "
