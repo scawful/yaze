@@ -10,6 +10,7 @@
 #include "absl/strings/str_format.h"
 #include "app/gfx/types/snes_tile.h"
 #include "core/features.h"
+#include "core/source_artifact_publisher.h"
 #include "rom/transaction.h"
 #include "util/log.h"
 #include "util/macro.h"
@@ -618,7 +619,9 @@ absl::Status ObjectTileEditor::BuildTile8Atlas(
   return absl::OkStatus();
 }
 
-absl::Status ObjectTileEditor::WriteBack(ObjectTileLayout& layout) {
+absl::Status ObjectTileEditor::WriteBack(
+    ObjectTileLayout& layout,
+    std::unordered_map<std::string, std::string>* asset_identities) {
   if (!layout.HasModifications()) {
     return absl::OkStatus();
   }
@@ -661,6 +664,12 @@ absl::Status ObjectTileEditor::WriteBack(ObjectTileLayout& layout) {
     }
 
     layout.custom_source_bytes = std::move(*published_or);
+    if (asset_identities != nullptr) {
+      (*asset_identities)[layout.custom_filename] =
+          core::ComputeSourceArtifactSha256(
+              std::string(layout.custom_source_bytes.begin(),
+                          layout.custom_source_bytes.end()));
+    }
     mgr.ReloadAll();
     return absl::OkStatus();
   }

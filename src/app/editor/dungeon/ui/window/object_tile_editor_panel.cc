@@ -4,11 +4,13 @@
 #include <algorithm>
 
 #include "absl/strings/str_format.h"
+#include "app/editor/registry/content_registry.h"
 #include "app/gfx/resource/arena.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/style_guard.h"
 #include "app/gui/core/theme_manager.h"
 #include "core/features.h"
+#include "core/project.h"
 #include "imgui/imgui.h"
 #include "zelda3/dungeon/custom_object.h"
 #include "zelda3/dungeon/room_object.h"
@@ -1140,7 +1142,10 @@ void ObjectTileEditorPanel::DrawTileProperties() {
 
 absl::Status ObjectTileEditorPanel::WriteBackCurrentLayout() {
   if (current_layout_.is_custom) {
-    return tile_editor_->WriteBack(current_layout_);
+    project::YazeProject* project = ContentRegistry::Context::current_project();
+    return tile_editor_->WriteBack(
+        current_layout_,
+        project != nullptr ? &project->custom_object_asset_sha256 : nullptr);
   }
 
   auto plan_or = tile_editor_->BuildStandardWritePlan(current_layout_);

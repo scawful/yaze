@@ -6,6 +6,7 @@
 #include <filesystem>
 #include <optional>
 #include <string>
+#include <unordered_map>
 #include <utility>
 #include <vector>
 
@@ -240,8 +241,13 @@ class ObjectTileEditor {
       std::optional<int16_t> custom_object_id = std::nullopt,
       uint16_t retained_attributes = 0);
 
-  // Write-back: standard objects patch ROM, custom objects write .bin
-  absl::Status WriteBack(ObjectTileLayout& layout);
+  // Write-back: standard objects patch ROM, custom objects write .bin.
+  // When asset_identities is non-null, a successful custom publish refreshes
+  // that project's filename→sha256 entry so prison opt-in survives authored
+  // edits; failures leave the map untouched.
+  absl::Status WriteBack(
+      ObjectTileLayout& layout,
+      std::unordered_map<std::string, std::string>* asset_identities = nullptr);
 
   // Resolve and validate all standard-object writes before any ROM mutation.
   absl::StatusOr<ObjectTileWritePlan> BuildStandardWritePlan(

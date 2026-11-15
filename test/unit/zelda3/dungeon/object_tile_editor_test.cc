@@ -12,6 +12,8 @@
 #include <gtest/gtest.h>
 
 #include "core/features.h"
+#include "core/project.h"
+#include "core/source_artifact_publisher.h"
 #include "rom/rom.h"
 #include "rom/write_fence.h"
 #include "unique_temp_path.h"
@@ -1763,6 +1765,94 @@ TEST(ObjectTileEditorTest,
   ASSERT_TRUE(layout_or.ok());
   EXPECT_FALSE(layout_or->is_custom);
   EXPECT_TRUE(layout_or->custom_filename.empty());
+}
+
+TEST(ObjectTileEditorTest,
+     CustomPublishRefreshesProjectIdentityForSerializeReopenAdmit) {
+  ScopedCustomObjectDirectory custom_dir("yaze_test_custom_identity_refresh");
+  ASSERT_TRUE(custom_dir.ready());
+  const auto& prison_names =
+      CustomObjectManager::Object32PrisonAppendFilenames();
+  ASSERT_GE(prison_names.size(), 1u);
+  const std::string& stump = prison_names[0];
+  WriteTestCustomObject(custom_dir.path() / stump,
+                        CustomObject{.tiles = {{0, 0, 0x2821}}});
+  for (const auto& name :
+       CustomObjectManager::DefaultSubtypeFilenamesForObject(0x32)) {
+    WriteTestCustomObject(custom_dir.path() / name,
+                          CustomObject{.tiles = {{0, 0, 0x2811}}});
+  }
+  WriteTestCustomObject(custom_dir.path() / prison_names[1],
+                        CustomObject{.tiles = {{0, 0, 0x2822}}});
+
+  auto& mgr = CustomObjectManager::Get();
+  mgr.Initialize(custom_dir.path().string());
+  std::unordered_map<std::string, std::string> identities = {
+      {stump, *core::ComputeSourceArtifactFileSha256(
+                  (custom_dir.path() / stump).string())},
+      {prison_names[1], *core::ComputeSourceArtifactFileSha256(
+                            (custom_dir.path() / prison_names[1]).string())},
+  };
+  ASSERT_TRUE(mgr.AdmitObject32PrisonSlots(identities).ok());
+
+  Rom rom;
+  ObjectTileEditor editor(&rom);
+  auto layout_or = editor.LoadCustomObjectLayout(/*object_id=*/0x32,
+                                                 /*subtype=*/0x0B);
+  ASSERT_TRUE(layout_or.ok()) << layout_or.status();
+  ObjectTileLayout layout = std::move(*layout_or);
+  layout.cells[0].tile_info = gfx::WordToTileInfo(0x2831);
+  layout.cells[0].modified = true;
+
+  ASSERT_TRUE(editor.WriteBack(layout, &identities).ok());
+  EXPECT_EQ(identities.at(stump), core::ComputeSourceArtifactSha256(std::string(
+                                      layout.custom_source_bytes.begin(),
+                                      layout.custom_source_bytes.end())));
+
+  project::YazeProject project;
+  project.feature_flags.kEnableObject32PrisonSlots = true;
+  project.custom_objects_folder = custom_dir.path().string();
+  project.custom_object_asset_sha256 = identities;
+  const auto project_file = custom_dir.path() / "PrisonIdentity.yaze";
+  project.filepath = project_file.string();
+  ASSERT_TRUE(project.Save().ok());
+
+  project::YazeProject reopened;
+  ASSERT_TRUE(reopened.Open(project_file.string()).ok());
+  EXPECT_TRUE(reopened.feature_flags.kEnableObject32PrisonSlots);
+  EXPECT_EQ(reopened.custom_object_asset_sha256.at(stump),
+            identities.at(stump));
+
+  mgr.ClearObject32PrisonSlots();
+  ASSERT_TRUE(
+      mgr.AdmitObject32PrisonSlots(reopened.custom_object_asset_sha256).ok());
+  EXPECT_EQ(CustomObjectManager::RuntimeSubtypeCountForObject(0x32), 13);
+  auto reloaded = mgr.GetObjectInternal(0x32, 0x0B);
+  ASSERT_TRUE(reloaded.ok()) << reloaded.status();
+  EXPECT_EQ((*reloaded)->tiles[0].tile_data, 0x2831);
+}
+
+TEST(ObjectTileEditorTest,
+     FailedCustomPublishLeavesProjectIdentitiesUntouched) {
+  ScopedCustomObjectDirectory custom_dir("yaze_test_custom_identity_stale");
+  ASSERT_TRUE(custom_dir.ready());
+  WriteTestCustomObject(custom_dir.path() / "track_LR.bin",
+                        CustomObject{.tiles = {{0, 0, 0x2810}}});
+
+  Rom rom;
+  ObjectTileEditor editor(&rom);
+  auto layout_or = editor.LoadCustomObjectLayout(0x31, 0);
+  ASSERT_TRUE(layout_or.ok()) << layout_or.status();
+  ObjectTileLayout layout = std::move(*layout_or);
+  layout.cells[0].tile_info = gfx::WordToTileInfo(0x2BAD);
+  layout.cells[0].modified = true;
+  layout.custom_source_bytes = {0x01, 0x00, 0xCC, 0x2C, 0x00, 0x00};
+
+  std::unordered_map<std::string, std::string> identities = {
+      {"track_LR.bin", std::string(64, 'a')}};
+  const auto before = identities;
+  EXPECT_TRUE(absl::IsAborted(editor.WriteBack(layout, &identities)));
+  EXPECT_EQ(identities, before);
 }
 
 }  // namespace

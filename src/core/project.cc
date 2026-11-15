@@ -2069,6 +2069,8 @@ absl::Status YazeProject::ParseFromString(const std::string& content) {
   feature_flags.overworld.kEnableSpecialWorldExpansion = false;
   experimental_page_tile16 = false;
   feature_flags.kSaveWithChangeQueue = false;
+  feature_flags.kEnableObject32PrisonSlots = false;
+  custom_object_asset_sha256.clear();
   sprite_catalog_file.clear();
   sprite_source_root.clear();
   sprite_assets.clear();
@@ -3908,6 +3910,9 @@ absl::Status YazeProject::LoadFromJsonFormat(const std::string& project_path) {
   feature_flags.overworld.kEnableSpecialWorldExpansion = false;
   experimental_page_tile16 = false;
   feature_flags.kSaveWithChangeQueue = false;
+  feature_flags.kEnableObject32PrisonSlots = false;
+  feature_flags.kEnableCustomObjects = false;
+  custom_object_asset_sha256.clear();
   terrain_catalog_file.clear();
   lyra_terrain_file.clear();
   lyra_build_request_file.clear();
@@ -4108,6 +4113,12 @@ absl::Status YazeProject::LoadFromJsonFormat(const std::string& project_path) {
           feature_flags.kSaveGfxGroups = flags["kSaveGfxGroups"].get<bool>();
         if (flags.contains("kSaveMessages"))
           feature_flags.kSaveMessages = flags["kSaveMessages"].get<bool>();
+        if (flags.contains("kEnableCustomObjects"))
+          feature_flags.kEnableCustomObjects =
+              flags["kEnableCustomObjects"].get<bool>();
+        if (flags.contains("kEnableObject32PrisonSlots"))
+          feature_flags.kEnableObject32PrisonSlots =
+              flags["kEnableObject32PrisonSlots"].get<bool>();
       }
 
       // Workspace settings
@@ -4171,9 +4182,10 @@ absl::Status YazeProject::LoadFromJsonFormat(const std::string& project_path) {
         }
       }
 
+      // Map already cleared at load start so an absent JSON section cannot
+      // inherit identities from a previously opened project instance.
       if (proj.contains("custom_object_asset_sha256") &&
           proj["custom_object_asset_sha256"].is_object()) {
-        custom_object_asset_sha256.clear();
         for (auto it = proj["custom_object_asset_sha256"].begin();
              it != proj["custom_object_asset_sha256"].end(); ++it) {
           if (it.value().is_string()) {
@@ -4396,6 +4408,10 @@ absl::Status YazeProject::SaveToJsonFormat() {
   proj["feature_flags"]["kSaveAllPalettes"] = feature_flags.kSaveAllPalettes;
   proj["feature_flags"]["kSaveGfxGroups"] = feature_flags.kSaveGfxGroups;
   proj["feature_flags"]["kSaveMessages"] = feature_flags.kSaveMessages;
+  proj["feature_flags"]["kEnableCustomObjects"] =
+      feature_flags.kEnableCustomObjects;
+  proj["feature_flags"]["kEnableObject32PrisonSlots"] =
+      feature_flags.kEnableObject32PrisonSlots;
 
   // Workspace settings
   proj["workspace_settings"]["auto_save_enabled"] =

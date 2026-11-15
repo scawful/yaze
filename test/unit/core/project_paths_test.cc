@@ -441,7 +441,80 @@ TEST(ProjectPathsTest, JsonLyraBuildRequestSurvivesSaveAsAndReopen) {
   ASSERT_TRUE(reopened.Open(unrelated.string()).ok());
   EXPECT_TRUE(reopened.lyra_build_request_file.empty());
 }
+
+TEST(ProjectPathsTest,
+     JsonReusedProjectClearsPrisonOptInAndAssetIdentitiesWhenAbsent) {
+  ScopedTempDir temp(MakeUniqueTempDir("yaze_prison_json_reset"));
+  const auto opted_in = temp.path() / "OptedIn.yaze";
+  const auto bare = temp.path() / "Bare.yaze";
+  WriteTextFile(opted_in, R"json({"yaze_project": {
+    "name": "OptedIn",
+    "feature_flags": {
+      "kEnableObject32PrisonSlots": true
+    },
+    "custom_object_asset_sha256": {
+      "minish_stump.bin": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    }
+  }})json");
+  WriteTextFile(bare, R"json({"yaze_project": {"name": "Bare"}})json");
+
+  YazeProject project;
+  ASSERT_TRUE(project.Open(opted_in.string()).ok());
+  EXPECT_TRUE(project.feature_flags.kEnableObject32PrisonSlots);
+  ASSERT_EQ(project.custom_object_asset_sha256.size(), 1u);
+
+  ASSERT_TRUE(project.Open(bare.string()).ok());
+  EXPECT_FALSE(project.feature_flags.kEnableObject32PrisonSlots);
+  EXPECT_TRUE(project.custom_object_asset_sha256.empty());
+}
+
+TEST(ProjectPathsTest, JsonPrisonOptInAndIdentitiesRoundTrip) {
+  ScopedTempDir temp(MakeUniqueTempDir("yaze_prison_json_roundtrip"));
+  const auto path = temp.path() / "Prison.json";
+  YazeProject project;
+  project.filepath = path.string();
+  project.name = "Prison JSON";
+  project.feature_flags.kEnableObject32PrisonSlots = true;
+  project.custom_object_asset_sha256 = {
+      {"minish_stump.bin",
+       "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"}};
+  ASSERT_TRUE(project.SaveToJsonFormat().ok());
+
+  YazeProject reopened;
+  ASSERT_TRUE(reopened.Open(path.string()).ok());
+  EXPECT_TRUE(reopened.feature_flags.kEnableObject32PrisonSlots);
+  EXPECT_EQ(reopened.custom_object_asset_sha256.at("minish_stump.bin"),
+            "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb");
+}
 #endif  // YAZE_ENABLE_JSON_PROJECT_FORMAT
+
+TEST(ProjectPathsTest,
+     ReusedProjectClearsPrisonOptInAndAssetIdentitiesWhenAbsent) {
+  ScopedTempDir temp(MakeUniqueTempDir("yaze_prison_ini_reset"));
+  const auto opted_in = temp.path() / "OptedIn.yaze";
+  const auto bare = temp.path() / "Bare.yaze";
+  WriteTextFile(opted_in, R"([project]
+name=OptedIn
+
+[feature_flags]
+enable_object32_prison_slots=true
+
+[custom_object_asset_sha256]
+minish_stump.bin=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+)");
+  WriteTextFile(bare, R"([project]
+name=Bare
+)");
+
+  YazeProject project;
+  ASSERT_TRUE(project.Open(opted_in.string()).ok());
+  EXPECT_TRUE(project.feature_flags.kEnableObject32PrisonSlots);
+  ASSERT_EQ(project.custom_object_asset_sha256.size(), 1u);
+
+  ASSERT_TRUE(project.Open(bare.string()).ok());
+  EXPECT_FALSE(project.feature_flags.kEnableObject32PrisonSlots);
+  EXPECT_TRUE(project.custom_object_asset_sha256.empty());
+}
 
 TEST(ProjectPathsTest, OracleIdentityRequiresManifestRatherThanProjectName) {
   YazeProject project;

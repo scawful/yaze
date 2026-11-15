@@ -92,6 +92,8 @@ class ObjectTileEditorPanel : public WindowContent {
     on_tiles_applied_ = std::move(callback);
   }
 
+  bool IsEditingCustomObject() const { return current_layout_.is_custom; }
+
  private:
   enum class ActionStatusTone {
     kNone,

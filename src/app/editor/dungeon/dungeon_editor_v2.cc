@@ -1254,6 +1254,16 @@ absl::Status DungeonEditorV2::Load() {
         if (object_selector_panel_) {
           object_selector_panel_->object_selector().InvalidatePreviewCache();
         }
+        // Custom publishes refresh project asset identities; mark the owning
+        // project dirty so Save persists the new digests.
+        if (object_tile_editor_panel_ != nullptr &&
+            object_tile_editor_panel_->IsEditingCustomObject()) {
+          auto* editor_manager =
+              static_cast<EditorManager*>(dependencies_.custom_data);
+          if (editor_manager != nullptr) {
+            editor_manager->MarkCurrentProjectDirty();
+          }
+        }
       });
 
       object_tile_editor_panel_ = tile_editor_panel.get();
