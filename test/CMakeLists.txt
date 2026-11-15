@@ -528,6 +528,7 @@ if(YAZE_BUILD_TESTS)
     unit/zelda3/dungeon/draw_routine_bothbg_metadata_test.cc
     unit/zelda3/dungeon/room_graphics_palette_test.cc
     unit/zelda3/dungeon/room_graphics_sheet_override_test.cc
+    unit/zelda3/dungeon/room_compiled_private_sheet_lifecycle_test.cc
     unit/zelda3/dungeon/room_header_palette_test.cc
   )
   set(QUICK_INTEGRATION_TEST_SOURCES

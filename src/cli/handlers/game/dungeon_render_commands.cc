@@ -364,9 +364,32 @@ absl::Status DungeonRenderCommandHandler::ExecuteWithContext(
   if (rom != nullptr && rom->is_loaded()) {
     zelda3::Room probe = zelda3::LoadRoomFromRom(rom, room_id);
     probe.SetGameData(&game_data);
+    if (req.graphics_entrance_id.has_value() || req.entrance_id.has_value()) {
+      // Match the rendered entrance context so diagnostics describe the same
+      // main blockset the PNG used (e.g. graphics-entrance 0x32 → main 0x02).
+      const int entrance_id =
+          req.graphics_entrance_id.value_or(*req.entrance_id);
+      const zelda3::RoomEntrance entrance(rom,
+                                          static_cast<uint8_t>(entrance_id),
+                                          /*is_top_of_house=*/false);
+      if (entrance.blockset_ < game_data.main_blockset_ids.size()) {
+        probe.SetRenderEntranceBlockset(entrance.blockset_);
+      }
+    }
     probe.LoadRoomGraphics();
+    formatter.AddHexField("palette", probe.palette(), 2);
+    formatter.AddHexField("room_blockset", probe.blockset(), 2);
     const auto profile = probe.compiled_wall_profile();
     const int active_profile = profile ? profile->profile : 0;
+    formatter.BeginObject("wall_profile");
+    formatter.AddField("active_profile", active_profile);
+    if (profile.has_value()) {
+      formatter.AddHexField("profile_blockset", profile->blockset, 2);
+      formatter.AddField("has_compiled_profile", true);
+    } else {
+      formatter.AddField("has_compiled_profile", false);
+    }
+    formatter.EndObject();
     auto private_sheets =
         zelda3::ResolveCompiledWallPrivateSheet(*rom, room_id, active_profile);
     formatter.BeginObject("private_sheet");
@@ -380,6 +403,9 @@ absl::Status DungeonRenderCommandHandler::ExecuteWithContext(
       formatter.AddField(
           "override_count",
           static_cast<uint64_t>(private_sheets->sheet_overrides_8bpp.size()));
+      formatter.AddField("compiled_override_count",
+                         static_cast<uint64_t>(
+                             probe.compiled_graphics_sheet_overrides().size()));
     } else {
       formatter.AddField("applied", false);
       formatter.AddField("reason",

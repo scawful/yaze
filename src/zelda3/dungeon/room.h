@@ -1142,6 +1142,13 @@ class Room {
       const {
     return graphics_sheet_overrides_;
   }
+  /// Sheets from the last LoadRoomGraphics compiled WSP1 resolve. Cleared and
+  /// rebuilt on every load; never mixed into caller SetGraphicsSheetOverrides.
+  /// Caller overrides still win at GraphicsSheetSource lookup.
+  const std::map<uint16_t, std::vector<uint8_t>>&
+  compiled_graphics_sheet_overrides() const {
+    return compiled_graphics_sheet_overrides_;
+  }
 
   /// True when a sheet this room copied from GameData's sheet store has a
   /// newer store revision than the copy (an unsaved graphics edit).
@@ -1231,8 +1238,11 @@ class Room {
 
   std::array<uint8_t, 0x10000> current_gfx16_;
   std::map<uint16_t, std::vector<uint8_t>> graphics_sheet_overrides_;
+  std::map<uint16_t, std::vector<uint8_t>> compiled_graphics_sheet_overrides_;
   // Sheet id and store revision of each store sheet in current_gfx16_.
   std::vector<std::pair<uint16_t, uint64_t>> source_sheet_revisions_;
+  // Test access for same-Room WSP1 lifecycle regressions.
+  friend class RoomCompiledPrivateSheetLifecycleTest;
   uint64_t graphics_revision_ = 0;
   uint64_t composite_source_revision_ = 0;
   gfx::SnesPalette rendered_dungeon_palette_;

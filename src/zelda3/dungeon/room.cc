@@ -1125,8 +1125,10 @@ void Room::LoadRoomGraphics(std::optional<uint8_t> entrance_blockset) {
   }  // 12-15 sprites
 
   // Compiled WSP1 private streams replace only the logical BG/sprite sheet
-  // pixels for matching room+profile. Caller overrides win; inactive profile 0
-  // and non-matching rooms keep ordinary global 08/36 identities.
+  // pixels for matching room+profile. Kept separate from caller overrides and
+  // rebuilt every load so profile-off / changed-stream cannot leave stale
+  // private 08/36 in a long-lived Room. Caller overrides still win at lookup.
+  compiled_graphics_sheet_overrides_.clear();
   if (rom_ && rom_->is_loaded() && compiled_wall_profile_) {
     const auto private_sheets = ResolveCompiledWallPrivateSheet(
         *rom_, room_id_, compiled_wall_profile_->profile);
@@ -1138,9 +1140,7 @@ void Room::LoadRoomGraphics(std::optional<uint8_t> entrance_blockset) {
     }
     if (private_sheets->applied) {
       for (const auto& [sheet, pixels] : private_sheets->sheet_overrides_8bpp) {
-        if (graphics_sheet_overrides_.count(sheet) == 0) {
-          graphics_sheet_overrides_[sheet] = pixels;
-        }
+        compiled_graphics_sheet_overrides_[sheet] = pixels;
       }
     }
   }
@@ -1328,11 +1328,16 @@ const uint8_t* Room::GraphicsSheetSource(int sheet_id) const {
   if (sheet_id < 0) {
     return nullptr;
   }
-  const auto it =
-      graphics_sheet_overrides_.find(static_cast<uint16_t>(sheet_id));
-  if (it != graphics_sheet_overrides_.end() &&
-      it->second.size() == kSheetBytes) {
-    return it->second.data();
+  const auto sheet = static_cast<uint16_t>(sheet_id);
+  const auto caller = graphics_sheet_overrides_.find(sheet);
+  if (caller != graphics_sheet_overrides_.end() &&
+      caller->second.size() == kSheetBytes) {
+    return caller->second.data();
+  }
+  const auto compiled = compiled_graphics_sheet_overrides_.find(sheet);
+  if (compiled != compiled_graphics_sheet_overrides_.end() &&
+      compiled->second.size() == kSheetBytes) {
+    return compiled->second.data();
   }
   if (game_data_ == nullptr) {
     return nullptr;
@@ -1346,11 +1351,14 @@ const uint8_t* Room::GraphicsSheetSource(int sheet_id) const {
 }
 
 void Room::RecordSourceSheet(int sheet_id) {
-  if (game_data_ == nullptr || sheet_id < 0 ||
-      graphics_sheet_overrides_.count(static_cast<uint16_t>(sheet_id)) != 0) {
+  if (game_data_ == nullptr || sheet_id < 0) {
     return;
   }
   const auto sheet = static_cast<uint16_t>(sheet_id);
+  if (graphics_sheet_overrides_.count(sheet) != 0 ||
+      compiled_graphics_sheet_overrides_.count(sheet) != 0) {
+    return;
+  }
   const uint64_t revision = game_data_->sheet_store.Revision(sheet);
   for (auto& [id, recorded] : source_sheet_revisions_) {
     if (id == sheet) {
@@ -1367,6 +1375,7 @@ bool Room::SourceSheetsChanged() const {
   }
   for (const auto& [sheet, recorded] : source_sheet_revisions_) {
     if (graphics_sheet_overrides_.count(sheet) == 0 &&
+        compiled_graphics_sheet_overrides_.count(sheet) == 0 &&
         game_data_->sheet_store.Revision(sheet) != recorded) {
       return true;
     }
