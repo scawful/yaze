@@ -941,5 +941,70 @@ TEST_F(CustomObjectRoomRenderTest,
   EXPECT_EQ(primary.GetTileAt(13, 14) & 0x2000, 0);
 }
 
+uint16_t DrawWorktableUnderlayWord(Rom* rom, const uint8_t* gfx,
+                                   const CustomObjectRenderSnapshot& snapshot) {
+  ObjectDrawer drawer(rom, /*room_id=*/0x54, gfx, &snapshot);
+  gfx::BackgroundBuffer primary(512, 512);
+  gfx::BackgroundBuffer lower(512, 512);
+  gfx::BackgroundBuffer layout(512, 512);
+  primary.EnsureBitmapInitialized();
+  lower.EnsureBitmapInitialized();
+  layout.EnsureBitmapInitialized();
+  layout.SetTileAt(13, 14, 0x2ABC);
+  RoomObject table(/*id=*/0x32, /*x=*/13, /*y=*/14, /*size=*/0x0D,
+                   RoomObject::LayerType::BG1);
+  gfx::PaletteGroup palette;
+  EXPECT_TRUE(
+      drawer
+          .DrawObject(table, primary, lower, palette, nullptr, &layout, nullptr)
+          .ok());
+  return lower.GetTileAt(13, 14);
+}
+
+TEST_F(CustomObjectRoomRenderTest,
+       SnapshotArmoryAdmissionSurvivesForeignManagerSwitch) {
+  core::FeatureFlags::get().kEnableCustomObjects = true;
+  DrawRoutineRegistry::Get().RefreshFeatureFlagMappings();
+
+  auto prison_dir = temp_dir_ / "prison";
+  auto foreign_dir = temp_dir_ / "foreign";
+  ASSERT_TRUE(std::filesystem::create_directories(prison_dir));
+  ASSERT_TRUE(std::filesystem::create_directories(foreign_dir));
+
+  AdmitSyntheticArmoryObjects(prison_dir, /*worktable_priority=*/true);
+  EXPECT_TRUE(CustomObjectManager::Get()
+                  .CaptureRenderSnapshot(true)
+                  .HasAuthenticatedArmoryWorktableAdmission());
+  const auto prison_snapshot =
+      CustomObjectManager::Get().CaptureRenderSnapshot(true);
+
+  // Switch the live manager to an old/low-priority (foreign) definition.
+  AdmitSyntheticArmoryObjects(foreign_dir, /*worktable_priority=*/false);
+  EXPECT_FALSE(CustomObjectManager::Get()
+                   .CaptureRenderSnapshot(true)
+                   .HasAuthenticatedArmoryWorktableAdmission());
+
+  EXPECT_EQ(DrawWorktableUnderlayWord(
+                rom_.get(), game_data_.graphics_buffer.data(), prison_snapshot),
+            0x0ABC)
+      << "Captured authenticated prison snapshot must keep underlay after the "
+         "live manager becomes foreign";
+
+  const auto foreign_snapshot =
+      CustomObjectManager::Get().CaptureRenderSnapshot(true);
+
+  // Restore live manager to authenticated prison; captured foreign stays off.
+  AdmitSyntheticArmoryObjects(prison_dir, /*worktable_priority=*/true);
+  EXPECT_TRUE(CustomObjectManager::Get()
+                  .CaptureRenderSnapshot(true)
+                  .HasAuthenticatedArmoryWorktableAdmission());
+  EXPECT_EQ(
+      DrawWorktableUnderlayWord(rom_.get(), game_data_.graphics_buffer.data(),
+                                foreign_snapshot),
+      0)
+      << "Captured foreign/old snapshot must refuse underlay even after the "
+         "live manager returns to authenticated prison";
+}
+
 }  // namespace
 }  // namespace yaze::zelda3::test

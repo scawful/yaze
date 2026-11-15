@@ -3534,27 +3534,14 @@ std::pair<int, int> yaze::zelda3::ObjectDrawer::CalculateObjectDimensions(
 
 namespace {
 
-// Source06 worktable contract: authenticated armory slot binds
-// prison_armory_worktable.bin, and the decoded definition is a 6x4 / 24-word
-// silhouette with every visible word priority-set. Old low-priority assets and
-// foreign 0D hacks fail this without spreading a global hash-only policy.
-bool MatchesAuthenticatedArmoryWorktableDefinition(
-    const yaze::zelda3::CustomObject& custom) {
-  constexpr uint16_t kPriorityBit = 0x2000;
-  if (custom.tiles.size() != 24) {
-    return false;
-  }
-  for (const auto& entry : custom.tiles) {
-    if (entry.tile_data == 0 || (entry.tile_data & kPriorityBit) == 0) {
-      return false;
-    }
-  }
-  const auto box = custom.GetBoundingBox();
-  return box.min_x == 0 && box.min_y == 0 && box.max_x == 5 && box.max_y == 3;
-}
-
 bool HasAuthenticatedArmoryWorktableAdmission(
     const yaze::zelda3::CustomObjectRenderSnapshot* snapshot) {
+  // Snapshot owns admission for a background render job. Never re-read the
+  // live manager when a snapshot is supplied.
+  if (snapshot != nullptr) {
+    return snapshot->HasAuthenticatedArmoryWorktableAdmission();
+  }
+
   constexpr int kObject32 = 0x32;
   constexpr int kWorktableSubtype = 0x0D;
   constexpr int kArmoryCount = 15;
@@ -3567,14 +3554,9 @@ bool HasAuthenticatedArmoryWorktableAdmission(
       "prison_armory_worktable.bin") {
     return false;
   }
-
-  absl::StatusOr<std::shared_ptr<const yaze::zelda3::CustomObject>> object =
-      snapshot != nullptr
-          ? snapshot->GetObject(kObject32, kWorktableSubtype)
-          : absl::StatusOr<std::shared_ptr<const yaze::zelda3::CustomObject>>(
-                manager.GetObjectInternal(kObject32, kWorktableSubtype));
+  const auto object = manager.GetObjectInternal(kObject32, kWorktableSubtype);
   return object.ok() && *object &&
-         MatchesAuthenticatedArmoryWorktableDefinition(**object);
+         yaze::zelda3::MatchesAuthenticatedArmoryWorktableDefinition(**object);
 }
 
 }  // namespace

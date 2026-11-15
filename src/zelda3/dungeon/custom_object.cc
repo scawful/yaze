@@ -791,10 +791,41 @@ CustomObjectRenderSnapshot::GetObject(int object_id, int subtype) const {
   return family->second[subtype];
 }
 
+bool MatchesAuthenticatedArmoryWorktableDefinition(const CustomObject& custom) {
+  constexpr uint16_t kPriorityBit = 0x2000;
+  if (custom.tiles.size() != 24) {
+    return false;
+  }
+  for (const auto& entry : custom.tiles) {
+    if (entry.tile_data == 0 || (entry.tile_data & kPriorityBit) == 0) {
+      return false;
+    }
+  }
+  const auto box = custom.GetBoundingBox();
+  return box.min_x == 0 && box.min_y == 0 && box.max_x == 5 && box.max_y == 3;
+}
+
+bool CustomObjectRenderSnapshot::HasAuthenticatedArmoryWorktableAdmission()
+    const {
+  constexpr int kObject32 = 0x32;
+  constexpr int kWorktableSubtype = 0x0D;
+  constexpr int kArmoryCount = 15;
+  if (!enabled_ || object32_runtime_count_ != kArmoryCount ||
+      object32_worktable_filename_ != "prison_armory_worktable.bin") {
+    return false;
+  }
+  const auto object = GetObject(kObject32, kWorktableSubtype);
+  return object.ok() && *object &&
+         MatchesAuthenticatedArmoryWorktableDefinition(**object);
+}
+
 CustomObjectRenderSnapshot CustomObjectManager::CaptureRenderSnapshot(
     bool enabled) {
   CustomObjectRenderSnapshot snapshot;
   snapshot.enabled_ = enabled;
+  snapshot.object32_runtime_count_ =
+      ActiveContext().state.object32_runtime_count;
+  snapshot.object32_worktable_filename_ = ResolveFilename(0x32, 0x0D);
   snapshot.tile_patterns_ = GetTilePatterns();
   if (!enabled) {
     return snapshot;

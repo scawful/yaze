@@ -137,6 +137,10 @@ struct CustomObjectSlotBinding {
 class CustomObjectRenderSnapshot {
  public:
   bool enabled() const { return enabled_; }
+  int object32_runtime_count() const { return object32_runtime_count_; }
+  const std::string& object32_worktable_filename() const {
+    return object32_worktable_filename_;
+  }
   absl::StatusOr<std::shared_ptr<const DungeonTilePatterns>> tile_patterns()
       const {
     return tile_patterns_;
@@ -144,15 +148,25 @@ class CustomObjectRenderSnapshot {
   absl::StatusOr<std::shared_ptr<const CustomObject>> GetObject(
       int object_id, int subtype) const;
 
+  // Source06 underlay admission frozen at capture time. Never consults the
+  // live CustomObjectManager or feature flags.
+  bool HasAuthenticatedArmoryWorktableAdmission() const;
+
  private:
   friend class CustomObjectManager;
   bool enabled_ = false;
+  int object32_runtime_count_ = 11;
+  std::string object32_worktable_filename_;
   absl::StatusOr<std::shared_ptr<const DungeonTilePatterns>> tile_patterns_ =
       std::shared_ptr<const DungeonTilePatterns>{};
   std::unordered_map<
       int, std::vector<absl::StatusOr<std::shared_ptr<const CustomObject>>>>
       objects_;
 };
+
+// Source06 worktable contract used by underlay admission (6x4 / 24 words,
+// every visible word priority-set). Shared by snapshot and live manager paths.
+bool MatchesAuthenticatedArmoryWorktableDefinition(const CustomObject& custom);
 
 /**
  * @brief Manages loading and caching of custom object binary files.
