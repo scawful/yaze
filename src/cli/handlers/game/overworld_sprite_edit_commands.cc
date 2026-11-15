@@ -17,6 +17,7 @@
 #include "core/features.h"
 #include "rom/lyra_layout_descriptor.h"
 #include "rom/native_overworld_authoring_metadata.h"
+#include "rom/page_tile16_admission.h"
 #include "rom/rom.h"
 #include "rom/transaction.h"
 #include "util/macro.h"
@@ -211,6 +212,28 @@ constexpr std::array<std::pair<size_t, size_t>, 5> kNativeSpriteFixedRanges = {{
     {0x1416B8, 0x1416B8 + 320},
     {0x147000, 0x147000 + 1024},
 }};
+
+// Bare LoadFromData / LoadFromFile clears session admission. Re-apply the same
+// explicit CLI flag, saved-project opt-in, or identical-byte adopt used by the
+// outer command runner so staged dry-run and cold reopen keep revision-5 valid.
+void PropagateExperimentalPageTile16Admission(
+    const resources::ArgumentParser& parser, const Rom& source, Rom* target,
+    const project::YazeProject* project) {
+  if (target == nullptr) {
+    return;
+  }
+  if (parser.HasFlag("experimental-page-tile16")) {
+    target->EnableExperimentalPageTile16();
+    return;
+  }
+  if (project != nullptr) {
+    rom::AdmitProjectExperimentalPageTile16(*project, target);
+  }
+  if (!target->experimental_page_tile16() &&
+      source.experimental_page_tile16()) {
+    target->AdoptExperimentalPageTile16(source);
+  }
+}
 
 absl::StatusOr<std::vector<int>> CheckNativeSpriteOwnership(
     const std::vector<uint8_t>& before, const Rom& after, int* changed_bytes) {
@@ -533,6 +556,8 @@ absl::Status OverworldSpriteEditCommandHandler::ExecuteWithContext(
       rom_options.load_resource_labels = false;
       staged.emplace();
       RETURN_IF_ERROR(staged->LoadFromData(rom->vector(), rom_options));
+      PropagateExperimentalPageTile16Admission(parser, *rom, &*staged,
+                                               project_);
       staged_overworld.emplace(&*staged);
       RETURN_IF_ERROR(staged_overworld->Load(&*staged));
       target = &*staged;
@@ -580,8 +605,15 @@ absl::Status OverworldSpriteEditCommandHandler::ExecuteWithContext(
     formatter.AddField("save_status", "saved");
     Rom reopened;
     RETURN_IF_ERROR(reopened.LoadFromFile(rom->filename()));
+    PropagateExperimentalPageTile16Admission(parser, *rom, &reopened, project_);
     if (reopened.vector() != rom->vector())
       return absl::DataLossError("Saved native ROM does not read back");
+    // Cold reopen must keep the same admitted revision-5 view used to save.
+    zelda3::Overworld cold(&reopened);
+    RETURN_IF_ERROR(cold.Load(&reopened));
+    if (CaptureNativeLists(cold) != expected)
+      return absl::DataLossError(
+          "Cold native sprite lists did not read back as planned");
     formatter.AddField("verified_reload", true);
     return absl::OkStatus();
   }

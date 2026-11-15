@@ -1539,6 +1539,102 @@ TEST_F(OverworldTileRomTest, NativeSpriteEditUsesNormalSaveAndReopens) {
   }
 }
 
+// Revision-5 page-tile16 ROMs admit only with an explicit flag/project opt-in.
+// Dry-run stages a private LoadFromData copy; that copy must keep the same
+// admission or native-save refuses before mutation (queue111).
+TEST(OverworldSpriteAdmissionTest,
+     NativeSpriteDryRunPropagatesRevision5PageTile16Admission) {
+  test::native_overworld::NativeDirectoryFixture fixture(192);
+  fixture.SeedNativeSpritePrefix();
+  // One phase-1 sprite on map $00 so remove/add have a real list to stage.
+  fixture.bytes[0x4C881 + 0] = 0x14;  // y tile 20
+  fixture.bytes[0x4C881 + 1] = 0x10;  // x tile 16
+  fixture.bytes[0x4C881 + 2] = 0xEB;  // Heart Piece
+  fixture.bytes[0x4C881 + 3] = 0xFF;
+  // Empty item streams: bank $1B + every map pointer at $8000 → terminator.
+  fixture.bytes[zelda3::overworldItemsAddressBank] = 0x1B;
+  fixture.Word(0xD8000, 0xFFFF);
+  for (int map = 0; map < 192; ++map)
+    fixture.Word(fixture.Entry(23).pc_address + map * 2, 0x8000);
+  fixture.UpgradeToRevision4();
+  fixture.AddPageTile16();
+  const auto dir = test::UniqueTempPath("ow_native_sprite_rev5_admit");
+  std::filesystem::create_directories(dir);
+  auto cleanup = absl::MakeCleanup([&] {
+    std::error_code ec;
+    std::filesystem::remove_all(dir, ec);
+  });
+  const auto path = dir / "edit.sfc";
+  {
+    std::ofstream file(path, std::ios::binary);
+    file.write(reinterpret_cast<const char*>(fixture.bytes.data()),
+               fixture.bytes.size());
+  }
+
+  auto run_json = [](resources::CommandHandler& handler,
+                     const std::vector<std::string>& args, Rom* rom,
+                     absl::Status* status_out) {
+    std::string output;
+    auto all_args = args;
+    all_args.push_back("--format=json");
+    const auto status = handler.Run(all_args, rom, &output);
+    *status_out = status;
+    return nlohmann::json::parse(output, nullptr, /*allow_exceptions=*/false);
+  };
+
+  handlers::OverworldSpriteEditCommandHandler remove(
+      handlers::OverworldSpriteEditAction::kRemove);
+  handlers::OverworldSpriteEditCommandHandler add(
+      handlers::OverworldSpriteEditAction::kAdd);
+  absl::Status status;
+
+  // No flag and no prior admission: revision-5 stays refused.
+  Rom bare;
+  ASSERT_TRUE(bare.LoadFromFile(path.string()).ok());
+  EXPECT_FALSE(bare.experimental_page_tile16());
+  ASSERT_EQ(bare.InspectLyraLayout().presence,
+            rom::LyraLayoutPresence::kInvalid);
+  const auto refused = run_json(
+      remove, {"--screen=0x00", "--phase=1", "--index=0"}, &bare, &status);
+  EXPECT_FALSE(status.ok()) << refused.dump();
+  EXPECT_THAT(std::string(status.message()), HasSubstr("Invalid Lyra"));
+  EXPECT_EQ(bare.vector(), fixture.bytes);
+
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromFile(path.string()).ok());
+  const auto initial = rom.vector();
+  const auto dry = run_json(remove,
+                            {"--experimental-page-tile16", "--screen=0x00",
+                             "--phase=1", "--index=0", "--expect-id=0xEB"},
+                            &rom, &status);
+  ASSERT_TRUE(status.ok()) << status << dry.dump();
+  EXPECT_EQ(dry["strategy"], "native-save");
+  EXPECT_EQ(dry["write_status"], "dry-run");
+  EXPECT_EQ(rom.vector(), initial);
+  EXPECT_TRUE(rom.experimental_page_tile16());
+
+  const auto saved =
+      run_json(remove,
+               {"--experimental-page-tile16", "--screen=0x00", "--phase=1",
+                "--index=0", "--expect-id=0xEB", "--write"},
+               &rom, &status);
+  ASSERT_TRUE(status.ok()) << status << saved.dump();
+  EXPECT_EQ(saved["verified_reload"], true);
+
+  Rom reopened;
+  ASSERT_TRUE(reopened.LoadFromFile(path.string()).ok());
+  ASSERT_EQ(reopened.InspectLyraLayout().presence,
+            rom::LyraLayoutPresence::kInvalid);
+  const auto add_dry = run_json(add,
+                                {"--experimental-page-tile16", "--screen=0x00",
+                                 "--phase=1", "--id=0xEB", "--x=16", "--y=20"},
+                                &reopened, &status);
+  ASSERT_TRUE(status.ok()) << status << add_dry.dump();
+  EXPECT_EQ(add_dry["strategy"], "native-save");
+  EXPECT_EQ(add_dry["write_status"], "dry-run");
+  EXPECT_EQ(add_dry["list_after"][0]["bytes"], "14 10 EB");
+}
+
 TEST_F(OverworldTileRomTest,
        SelectedImportStagesNative192AndPublishesOnlyNewVerifiedOutput) {
   test::native_overworld::NativeDirectoryFixture fixture(192);
