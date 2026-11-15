@@ -58,6 +58,22 @@ absl::StatusOr<std::optional<int>> ParseOptionalEntranceId(
   return std::optional<int>(entrance_id);
 }
 
+}  // namespace
+
+std::optional<int> SelectDiagnosticEntranceId(
+    const std::optional<int>& graphics_entrance_id,
+    const std::optional<int>& entrance_id) {
+  if (graphics_entrance_id.has_value()) {
+    return graphics_entrance_id;
+  }
+  if (entrance_id.has_value()) {
+    return entrance_id;
+  }
+  return std::nullopt;
+}
+
+namespace {
+
 // Parse overlays from a comma-separated string into RenderOverlay flags.
 uint32_t ParseOverlays(const std::string& s) {
   if (s.empty())
@@ -364,13 +380,13 @@ absl::Status DungeonRenderCommandHandler::ExecuteWithContext(
   if (rom != nullptr && rom->is_loaded()) {
     zelda3::Room probe = zelda3::LoadRoomFromRom(rom, room_id);
     probe.SetGameData(&game_data);
-    if (req.graphics_entrance_id.has_value() || req.entrance_id.has_value()) {
+    if (const auto entrance_id = SelectDiagnosticEntranceId(
+            req.graphics_entrance_id, req.entrance_id);
+        entrance_id.has_value()) {
       // Match the rendered entrance context so diagnostics describe the same
       // main blockset the PNG used (e.g. graphics-entrance 0x32 → main 0x02).
-      const int entrance_id =
-          req.graphics_entrance_id.value_or(*req.entrance_id);
       const zelda3::RoomEntrance entrance(rom,
-                                          static_cast<uint8_t>(entrance_id),
+                                          static_cast<uint8_t>(*entrance_id),
                                           /*is_top_of_house=*/false);
       if (entrance.blockset_ < game_data.main_blockset_ids.size()) {
         probe.SetRenderEntranceBlockset(entrance.blockset_);

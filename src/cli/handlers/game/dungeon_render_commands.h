@@ -1,11 +1,20 @@
 #ifndef YAZE_SRC_CLI_HANDLERS_GAME_DUNGEON_RENDER_COMMANDS_H_
 #define YAZE_SRC_CLI_HANDLERS_GAME_DUNGEON_RENDER_COMMANDS_H_
 
+#include <optional>
+
 #include "cli/service/resources/command_handler.h"
 
 namespace yaze {
 namespace cli {
 namespace handlers {
+
+/// Prefer --graphics-entrance when set; never dereference an absent optional.
+/// CLI rejects both together; this still defines graphics precedence for
+/// diagnostics that share the same selection rule.
+std::optional<int> SelectDiagnosticEntranceId(
+    const std::optional<int>& graphics_entrance_id,
+    const std::optional<int>& entrance_id);
 
 // Render a dungeon room to a PNG file without requiring the HTTP server.
 //

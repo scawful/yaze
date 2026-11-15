@@ -609,6 +609,18 @@ TEST_F(DungeonRenderCommandsTest, MalformedScaleDoesNotTouchExistingOutput) {
   EXPECT_EQ(ReadBytes(source_), original_bytes_);
 }
 
+TEST(DungeonRenderEntranceSelectionTest, GraphicsOnlyEntranceOnlyBothNeither) {
+  using handlers::SelectDiagnosticEntranceId;
+  const std::optional<int> none;
+  const std::optional<int> graphics = 0x32;
+  const std::optional<int> entrance = 0x0C;
+
+  EXPECT_EQ(SelectDiagnosticEntranceId(graphics, none), graphics);
+  EXPECT_EQ(SelectDiagnosticEntranceId(none, entrance), entrance);
+  EXPECT_EQ(SelectDiagnosticEntranceId(graphics, entrance), graphics);
+  EXPECT_EQ(SelectDiagnosticEntranceId(none, none), none);
+}
+
 TEST(DungeonRenderEntranceTest, AcceptsOptionalRegularHexEntranceIds) {
   handlers::DungeonRenderCommandHandler handler;
   resources::ArgumentParser defaults({"--room=0", "--output=room.png"});
