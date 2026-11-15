@@ -525,6 +525,71 @@ const std::vector<std::string> CustomObjectManager::kSubtype2Filenames = {
     "track_T_W.bin",        // 0A
 };
 
+namespace {
+
+constexpr int kObject32DefaultCount = 11;
+constexpr int kObject32PrisonCount = 13;
+
+const std::vector<std::string>& Object32PrisonAppendFilenamesInternal() {
+  static const std::vector<std::string> kAppend = {
+      "minish_stump.bin",      // 0B PrisonTable
+      "minish_wall_hole.bin",  // 0C PrisonWallHole
+  };
+  return kAppend;
+}
+
+const std::vector<std::string>& Object32FilenamesWithPrison() {
+  static const std::vector<std::string> kWithPrison = [] {
+    std::vector<std::string> names(
+        CustomObjectManager::DefaultSubtypeFilenamesForObject(0x32));
+    const auto& append = Object32PrisonAppendFilenamesInternal();
+    names.insert(names.end(), append.begin(), append.end());
+    return names;
+  }();
+  return kWithPrison;
+}
+
+struct PinnedPrisonAsset {
+  const char* filename;
+  size_t bytes;
+  const char* sha256;
+};
+
+constexpr PinnedPrisonAsset kPinnedObject32PrisonAssets[] = {
+    {"minish_stump.bin", 58,
+     "dd8a77696d199546c58c9495d510f9de49ce083d594d684f5aadfefc57c7a411"},
+    {"minish_wall_hole.bin", 34,
+     "9db60260592f8863244ee066e7b84e28f6a782eaa373841cd6809a453d5a797e"},
+};
+
+absl::Status VerifyPinnedPrisonAsset(const fs::path& folder,
+                                     const PinnedPrisonAsset& asset) {
+  if (folder.empty()) {
+    return absl::FailedPreconditionError(
+        "Object32 prison slots require a custom objects folder");
+  }
+  const auto path = folder / asset.filename;
+  std::error_code ec;
+  if (!fs::is_regular_file(path, ec) || ec) {
+    return absl::NotFoundError(
+        absl::StrFormat("Object32 prison asset missing: %s", asset.filename));
+  }
+  const auto size = fs::file_size(path, ec);
+  if (ec || size != asset.bytes) {
+    return absl::FailedPreconditionError(absl::StrFormat(
+        "Object32 prison asset size mismatch for %s", asset.filename));
+  }
+  ASSIGN_OR_RETURN(const auto digest,
+                   core::ComputeSourceArtifactFileSha256(path.string()));
+  if (digest != asset.sha256) {
+    return absl::FailedPreconditionError(absl::StrFormat(
+        "Object32 prison asset hash mismatch for %s", asset.filename));
+  }
+  return absl::OkStatus();
+}
+
+}  // namespace
+
 const std::vector<std::string> CustomObjectManager::kSubtype54Filenames = {
     "kydreeok_body.bin",      // 00
     "manhandla_body_1a.bin",  // 01
@@ -568,6 +633,7 @@ void CustomObjectManager::InvalidateCaches() {
 
 void CustomObjectManager::Initialize(const std::string& custom_objects_folder) {
   ActiveContext().state.base_path = custom_objects_folder;
+  ActiveContext().state.object32_runtime_count = kObject32DefaultCount;
   InvalidateCaches();
 #if !defined(NDEBUG)
   LOG_INFO("CustomObjectManager", "Initialize: base_path='%s'",
@@ -655,7 +721,9 @@ const std::vector<std::string>* CustomObjectManager::ResolveFileList(
     return &kSubtype1Filenames;
   }
   if (object_id == 0x32) {
-    return &kSubtype2Filenames;
+    return ActiveContext().state.object32_runtime_count == kObject32PrisonCount
+               ? &Object32FilenamesWithPrison()
+               : &kSubtype2Filenames;
   }
   if (object_id == 0x54) {
     return &kSubtype54Filenames;
@@ -755,7 +823,61 @@ int CustomObjectManager::GetSubtypeCount(int object_id) const {
 }
 
 int CustomObjectManager::RuntimeSubtypeCountForObject(int object_id) {
+  if (object_id == 0x32) {
+    return Get().ActiveContext().state.object32_runtime_count;
+  }
   return static_cast<int>(DefaultSubtypeFilenamesForObject(object_id).size());
+}
+
+const std::vector<std::string>&
+CustomObjectManager::Object32PrisonAppendFilenames() {
+  return Object32PrisonAppendFilenamesInternal();
+}
+
+absl::Status CustomObjectManager::AdmitObject32PrisonSlots() {
+  auto& state = ActiveContext().state;
+  for (const auto& asset : kPinnedObject32PrisonAssets) {
+    RETURN_IF_ERROR(VerifyPinnedPrisonAsset(fs::path(state.base_path), asset));
+  }
+
+  auto mapped = state.custom_file_map.find(0x32);
+  if (mapped == state.custom_file_map.end()) {
+    // Defaults path uses Object32FilenamesWithPrison once count rises.
+  } else if (mapped->second.size() ==
+             static_cast<size_t>(kObject32DefaultCount)) {
+    for (const auto& name : Object32PrisonAppendFilenamesInternal()) {
+      mapped->second.push_back(name);
+    }
+  } else if (mapped->second.size() ==
+             static_cast<size_t>(kObject32PrisonCount)) {
+    const auto& append = Object32PrisonAppendFilenamesInternal();
+    if (mapped->second[kObject32DefaultCount] != append[0] ||
+        mapped->second[kObject32DefaultCount + 1] != append[1]) {
+      return absl::FailedPreconditionError(
+          "Object32 prison opt-in requires pinned 0B/0C filenames");
+    }
+  } else {
+    return absl::FailedPreconditionError(
+        "Object32 prison opt-in requires an 11- or 13-entry 0x32 file list");
+  }
+
+  state.object32_runtime_count = kObject32PrisonCount;
+  InvalidateCaches();
+  return absl::OkStatus();
+}
+
+void CustomObjectManager::ClearObject32PrisonSlots() {
+  auto& state = ActiveContext().state;
+  if (state.object32_runtime_count == kObject32DefaultCount) {
+    return;
+  }
+  state.object32_runtime_count = kObject32DefaultCount;
+  auto mapped = state.custom_file_map.find(0x32);
+  if (mapped != state.custom_file_map.end() &&
+      mapped->second.size() == static_cast<size_t>(kObject32PrisonCount)) {
+    mapped->second.resize(static_cast<size_t>(kObject32DefaultCount));
+  }
+  InvalidateCaches();
 }
 
 const std::array<int, 3>& CustomObjectManager::RuntimeObjectIds() {
@@ -804,8 +926,11 @@ absl::StatusOr<CustomObjectSlotBinding> CustomObjectManager::ResolveSlotBinding(
   const auto& custom_file_map = ActiveContext().state.custom_file_map;
   const auto mapped_it = custom_file_map.find(object_id);
   if (mapped_it == custom_file_map.end()) {
-    const auto& defaults = DefaultSubtypeFilenamesForObject(object_id);
-    binding.filename = defaults[static_cast<size_t>(subtype)];
+    const auto* defaults = ResolveFileList(object_id);
+    if (defaults == nullptr || subtype >= static_cast<int>(defaults->size())) {
+      return absl::OutOfRangeError("Custom runtime subtype is out of range");
+    }
+    binding.filename = (*defaults)[static_cast<size_t>(subtype)];
     binding.origin = CustomObjectMappingOrigin::kDefaultFilename;
   } else if (subtype >= static_cast<int>(mapped_it->second.size()) ||
              mapped_it->second[static_cast<size_t>(subtype)].empty()) {

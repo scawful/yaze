@@ -1808,7 +1808,10 @@ absl::StatusOr<std::string> YazeProject::SerializeToString() const {
   file << "save_messages=" << (feature_flags.kSaveMessages ? "true" : "false")
        << "\n";
   file << "enable_custom_objects="
-       << (feature_flags.kEnableCustomObjects ? "true" : "false") << "\n\n";
+       << (feature_flags.kEnableCustomObjects ? "true" : "false") << "\n";
+  file << "enable_object32_prison_slots="
+       << (feature_flags.kEnableObject32PrisonSlots ? "true" : "false")
+       << "\n\n";
 
   // Workspace settings section
   file << "[workspace]\n";
@@ -2271,6 +2274,8 @@ absl::Status YazeProject::ParseFromString(const std::string& content) {
         feature_flags.kSaveMessages = ParseBool(value);
       else if (key == "enable_custom_objects")
         feature_flags.kEnableCustomObjects = ParseBool(value);
+      else if (key == "enable_object32_prison_slots")
+        feature_flags.kEnableObject32PrisonSlots = ParseBool(value);
       else
         understood = false;
     } else if (current_section == "workspace") {

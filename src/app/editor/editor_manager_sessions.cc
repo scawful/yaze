@@ -7,6 +7,7 @@
 #include "app/gfx/util/palette_manager.h"
 #include "core/features.h"
 #include "core/rom_settings.h"
+#include "util/log.h"
 #include "zelda3/dungeon/custom_object.h"
 #include "zelda3/dungeon/draw_routines/draw_routine_registry.h"
 
@@ -92,6 +93,14 @@ void EditorManager::ApplyCurrentProjectRuntimeContext() {
         custom_object_state);
   } else {
     custom_object_manager.RestoreState(custom_object_state);
+  }
+  if (current_project_.feature_flags.kEnableObject32PrisonSlots) {
+    const auto admitted = custom_object_manager.AdmitObject32PrisonSlots();
+    if (!admitted.ok()) {
+      LOG_WARN("CustomObjectManager",
+               "Object32 prison slot admission refused: %s",
+               std::string(admitted.message()).c_str());
+    }
   }
 
   if (current_project_.project_opened()) {
@@ -216,6 +225,16 @@ void EditorManager::HandleSessionSwitched(size_t new_index, RomSession* session,
               : zelda3::CustomObjectManager::State{};
       zelda3::CustomObjectManager::Get().ActivateRuntimeContext(
           session->session_id(), custom_object_state);
+      if (session->project_context.has_value() &&
+          session->project_context->feature_flags.kEnableObject32PrisonSlots) {
+        const auto admitted =
+            zelda3::CustomObjectManager::Get().AdmitObject32PrisonSlots();
+        if (!admitted.ok()) {
+          LOG_WARN("CustomObjectManager",
+                   "Object32 prison slot admission refused: %s",
+                   std::string(admitted.message()).c_str());
+        }
+      }
     } else {
       runtime_feature_flags_session_id_.reset();
       zelda3::CustomObjectManager::Get().ActivateStandaloneContext();

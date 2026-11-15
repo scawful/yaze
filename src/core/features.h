@@ -73,6 +73,10 @@ class FeatureFlags {
     // Enable custom object panels (Custom Objects, Minecart Editor)
     bool kEnableCustomObjects = false;
 
+    // Opt into object 0x32 subtypes 0B/0C (prison table/wall-hole) when the
+    // project folder pins the accepted assets. Default capacity stays 11.
+    bool kEnableObject32PrisonSlots = false;
+
     // Use NFD (Native File Dialog) instead of bespoke file dialog
     // implementation.
 #if defined(YAZE_ENABLE_NFD) && YAZE_ENABLE_NFD
@@ -200,6 +204,8 @@ class FeatureFlags {
     result +=
         "kEnableCustomObjects: " + std::to_string(get().kEnableCustomObjects) +
         "\n";
+    result += "kEnableObject32PrisonSlots: " +
+              std::to_string(get().kEnableObject32PrisonSlots) + "\n";
     return result;
   }
 };

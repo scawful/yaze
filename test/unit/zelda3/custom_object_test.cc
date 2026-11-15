@@ -1183,5 +1183,82 @@ TEST_F(CustomObjectManagerTest, GetBoundingBoxFromLoadedObject) {
   EXPECT_EQ(bb.height(), 2);
 }
 
+bool InstallPinnedPrisonAssets(const std::filesystem::path& objects_data) {
+  const char* donor = std::getenv("YAZE_PRISON_OBJECT_DATA");
+  const std::filesystem::path source =
+      donor && *donor
+          ? std::filesystem::path(donor)
+          : std::filesystem::path(
+                "/Users/scawful/src/hobby/oracle-of-secrets-worktrees/"
+                "d4-actor-integration-20261106/Dungeons/Objects/Data");
+  std::error_code ec;
+  for (const auto& name :
+       CustomObjectManager::Object32PrisonAppendFilenames()) {
+    const auto from = source / name;
+    if (!std::filesystem::is_regular_file(from, ec) || ec) {
+      return false;
+    }
+    std::filesystem::copy_file(
+        from, objects_data / name,
+        std::filesystem::copy_options::overwrite_existing, ec);
+    if (ec) {
+      return false;
+    }
+  }
+  return true;
+}
+
+TEST_F(CustomObjectManagerTest, Object32PrisonSlotsStayOffByDefault) {
+  auto& manager = CustomObjectManager::Get();
+  EXPECT_EQ(CustomObjectManager::RuntimeSubtypeCountForObject(0x32), 11);
+  EXPECT_EQ(manager.GetSubtypeCount(0x32), 11);
+  EXPECT_TRUE(
+      absl::IsOutOfRange(manager.GetObjectInternal(0x32, 0x0B).status()));
+  EXPECT_TRUE(
+      absl::IsOutOfRange(manager.ResolveSlotBinding(0x32, 0x0C).status()));
+}
+
+TEST_F(CustomObjectManagerTest, Object32PrisonOptInAdmitsPinnedAssets) {
+  if (!InstallPinnedPrisonAssets(temp_dir_)) {
+    GTEST_SKIP() << "Pinned prison object assets unavailable";
+  }
+  // Keep live Goron track slots on their default names while admitting 0B/0C.
+  for (const auto& name :
+       CustomObjectManager::DefaultSubtypeFilenamesForObject(0x32)) {
+    WriteBinaryFile(name, {0x01, 0x00, 0x11, 0x28, 0x00, 0x00});
+  }
+  auto& manager = CustomObjectManager::Get();
+  ASSERT_TRUE(manager.AdmitObject32PrisonSlots().ok());
+  EXPECT_EQ(CustomObjectManager::RuntimeSubtypeCountForObject(0x32), 13);
+  EXPECT_EQ(manager.GetSubtypeCount(0x32), 13);
+  EXPECT_EQ(manager.ResolveFilename(0x32, 0x03), "track_floor_T_N.bin");
+  EXPECT_EQ(manager.ResolveFilename(0x32, 0x04), "track_floor_T_S.bin");
+  EXPECT_EQ(manager.ResolveFilename(0x32, 0x0B), "minish_stump.bin");
+  EXPECT_EQ(manager.ResolveFilename(0x32, 0x0C), "minish_wall_hole.bin");
+  EXPECT_TRUE(manager.GetObjectInternal(0x32, 0x0B).ok());
+  EXPECT_TRUE(manager.GetObjectInternal(0x32, 0x0C).ok());
+  manager.ClearObject32PrisonSlots();
+  EXPECT_EQ(CustomObjectManager::RuntimeSubtypeCountForObject(0x32), 11);
+  EXPECT_TRUE(
+      absl::IsOutOfRange(manager.GetObjectInternal(0x32, 0x0B).status()));
+}
+
+TEST_F(CustomObjectManagerTest, Object32PrisonOptInRefusesMissingAssets) {
+  auto& manager = CustomObjectManager::Get();
+  const auto status = manager.AdmitObject32PrisonSlots();
+  EXPECT_TRUE(absl::IsNotFound(status) || absl::IsFailedPrecondition(status));
+  EXPECT_EQ(CustomObjectManager::RuntimeSubtypeCountForObject(0x32), 11);
+}
+
+TEST_F(CustomObjectManagerTest,
+       OversizedObject32MapAloneDoesNotInventPrisonSlots) {
+  std::vector<std::string> oversized(
+      CustomObjectManager::DefaultSubtypeFilenamesForObject(0x32));
+  oversized.push_back("minish_stump.bin");
+  CustomObjectManager::Get().SetObjectFileMap({{0x32, oversized}});
+  EXPECT_EQ(CustomObjectManager::RuntimeSubtypeCountForObject(0x32), 11);
+  EXPECT_TRUE(CustomObjectManager::Get().ResolveFilename(0x32, 0x0B).empty());
+}
+
 }  // namespace
 }  // namespace yaze::zelda3

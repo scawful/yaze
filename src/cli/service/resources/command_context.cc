@@ -273,6 +273,14 @@ absl::Status CommandContext::ApplyProjectRuntimeContext() {
           : active_project.GetAbsolutePath(
                 active_project.dungeon_tile_patterns));
   project_runtime_applied_ = true;
+  if (active_project.feature_flags.kEnableObject32PrisonSlots) {
+    const auto admitted =
+        zelda3::CustomObjectManager::Get().AdmitObject32PrisonSlots();
+    if (!admitted.ok()) {
+      RestoreProjectRuntimeContext();
+      return admitted;
+    }
+  }
   // Do not render a partial preview when an explicitly configured source is
   // invalid. Restore immediately so a retry cannot skip the failed load.
   const auto patterns = zelda3::CustomObjectManager::Get().GetTilePatterns();

@@ -163,6 +163,8 @@ class CustomObjectManager {
     std::string base_path;
     std::unordered_map<int, std::vector<std::string>> custom_file_map;
     std::string dungeon_tile_patterns;
+    // Object 0x32 Oracle capacity is 11 unless AdmitObject32PrisonSlots succeeds.
+    int object32_runtime_count = 11;
 
     bool operator==(const State&) const = default;
   };
@@ -206,8 +208,15 @@ class CustomObjectManager {
 
   // The current Oracle runtime dispatch tables have fixed capacities. Project
   // filename mappings may replace assets within these slots but cannot add
-  // new runtime subtypes.
+  // new runtime subtypes unless AdmitObject32PrisonSlots succeeds for 0x32.
   static int RuntimeSubtypeCountForObject(int object_id);
+
+  // Source-bound opt-in for object 0x32 subtypes 0B/0C. Requires the active
+  // base_path to contain the pinned prison assets; does not raise capacity from
+  // an oversized custom_object_files map alone. Live slots 00..0A stay intact.
+  absl::Status AdmitObject32PrisonSlots();
+  void ClearObject32PrisonSlots();
+  static const std::vector<std::string>& Object32PrisonAppendFilenames();
 
   // Canonical Oracle object IDs backed by fixed external runtime assets.
   static const std::array<int, 3>& RuntimeObjectIds();
