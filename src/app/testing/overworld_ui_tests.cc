@@ -27,6 +27,8 @@
 #include "app/editor/system/session/project_workflow_status.h"
 #include "app/gui/automation/widget_id_registry.h"
 #include "app/service/screenshot_utils.h"
+#include "core/build_run_acceptance_admission.h"
+#include "core/proposal_workspace.h"
 #include "core/source_artifact_publisher.h"
 #include "imgui.h"
 #include "nlohmann/json.hpp"
@@ -1579,9 +1581,13 @@ static void RegisterBuildRunAcceptanceTest(ImGuiTestEngine* engine) {
     IM_CHECK(fixture_bytes.has_value());
     const auto fixture = nlohmann::json::parse(*fixture_bytes, nullptr, false);
     IM_CHECK(fixture.is_object());
-    const std::string phase = fixture.value("phase", "");
-    IM_CHECK(phase == "edit" || phase == "reopen");
-    if (fixture.value("wait_for_window_observation", false)) {
+    const auto config_or = core::ParseBuildRunAcceptanceConfig(fixture);
+    IM_CHECK(config_or.ok());
+    const core::BuildRunAcceptanceConfig config = *config_or;
+    const std::string phase = config.phase;
+    const bool proposal_edit =
+        config.workflow == core::BuildRunWorkflow::kProposalEdit;
+    if (config.wait_for_window_observation) {
       const auto observed = project_directory / ("ui-window-observed-" + phase);
       const auto deadline =
           std::chrono::steady_clock::now() + std::chrono::seconds(60);
@@ -1590,17 +1596,19 @@ static void RegisterBuildRunAcceptanceTest(ImGuiTestEngine* engine) {
         ctx->Yield(1);
       IM_CHECK(!ec && fs::exists(observed));
     }
-    const int map_id = fixture.value("map_id", -1);
-    const int local_x = fixture.value("x", -1);
-    const int local_y = fixture.value("y", -1);
-    const int brush_id = fixture.value("brush_id", -1);
-    const int original_tile = fixture.value("original_tile", -1);
-    IM_CHECK(map_id >= 0 && map_id < zelda3::kExpandedMapCount);
-    IM_CHECK(local_x >= 0 && local_x < 32 && local_y >= 0 && local_y < 32);
-    IM_CHECK(brush_id >= 0 && brush_id <= 0xFFF);
-    IM_CHECK(original_tile >= 0 && original_tile <= 0xFFF);
+    const int map_id = config.map_id;
+    const int local_x = config.x;
+    const int local_y = config.y;
+    const int brush_id = config.brush_id;
+    const int original_tile = config.original_tile;
     const int world_x = (map_id % 8) * 32 + local_x;
     const int world_y = ((map_id % 0x40) / 8) * 32 + local_y;
+    std::optional<core::ProposalWorkspace> proposal_workspace;
+    if (proposal_edit) {
+      auto workspace = core::LoadProposalWorkspace(config.proposal_root);
+      IM_CHECK(workspace.ok());
+      proposal_workspace = *workspace;
+    }
 
     editor::EditorManager* manager = nullptr;
     project::YazeProject* current_project = nullptr;
@@ -1618,12 +1626,9 @@ static void RegisterBuildRunAcceptanceTest(ImGuiTestEngine* engine) {
     IM_CHECK(manager && current_project && current_project->project_opened());
     IM_CHECK(fs::canonical(current_project->filepath, ec) == expected_project &&
              !ec);
-    IM_CHECK(current_project->name.find("[Build Run acceptance]") !=
-             std::string::npos);
     const auto rom_path = fs::canonical(
         current_project->GetAbsolutePath(current_project->rom_filename), ec);
-    IM_CHECK(!ec && rom_path.parent_path() == project_directory);
-    IM_CHECK(rom_path.filename() == "editing.sfc");
+    IM_CHECK(!ec);
     auto* rom = manager->GetCurrentRom();
     IM_CHECK(rom && rom->is_loaded());
     IM_CHECK(fs::canonical(rom->filename(), ec) == rom_path && !ec);
@@ -1634,6 +1639,17 @@ static void RegisterBuildRunAcceptanceTest(ImGuiTestEngine* engine) {
       return {reinterpret_cast<const char*>(rom->data()), rom->size()};
     };
     const auto loaded_sha256 = core::ComputeSourceArtifactSha256(rom_view());
+    if (proposal_edit) {
+      IM_CHECK(proposal_workspace.has_value());
+      IM_CHECK(core::ValidateProposalEditAdmission(config, *proposal_workspace,
+                                                   current_project->filepath,
+                                                   rom_path, loaded_sha256)
+                   .ok());
+    } else {
+      IM_CHECK(core::ValidateLegacyBuildRunProject(current_project->name,
+                                                   rom_path, project_directory)
+                   .ok());
+    }
 
     struct ExtraCell {
       int world_x, world_y, brush, original;
@@ -1641,7 +1657,7 @@ static void RegisterBuildRunAcceptanceTest(ImGuiTestEngine* engine) {
     // Test-only: optional further cells painted in the same session and
     // published by the one Save, so one launch can reach a dense map.
     std::vector<ExtraCell> extra_cells;
-    if (fixture.contains("extra_cells")) {
+    if (!proposal_edit && fixture.contains("extra_cells")) {
       IM_CHECK(fixture["extra_cells"].is_array());
       for (const auto& cell : fixture["extra_cells"]) {
         const int x = cell.value("x", -1);
@@ -1708,11 +1724,15 @@ static void RegisterBuildRunAcceptanceTest(ImGuiTestEngine* engine) {
 
     nlohmann::json prior;
     if (phase == "edit") {
-      const std::string input_hash = fixture.value("input_rom_sha256", "");
-      IM_CHECK(!input_hash.empty());
-      IM_CHECK(rom_sha256 == input_hash);
-      IM_CHECK(loaded_sha256 == input_hash);
+      IM_CHECK(rom_sha256 == config.input_rom_sha256);
+      IM_CHECK(loaded_sha256 == config.input_rom_sha256);
       IM_CHECK(!rom->dirty() && !manager->IsCurrentProjectDirty());
+    } else if (proposal_edit) {
+      IM_CHECK(rom_sha256 == config.expected_rom_sha256);
+      IM_CHECK(loaded_sha256 == config.expected_rom_sha256);
+      IM_CHECK(!rom->dirty() && !manager->IsCurrentProjectDirty());
+      IM_CHECK(tile_from_disk_bytes(*rom_disk) ==
+               static_cast<uint16_t>(brush_id));
     } else {
       const auto prior_path = project_directory / "native-edit-result.json";
       const auto prior_bytes = read_file(prior_path);
@@ -1904,6 +1924,53 @@ static void RegisterBuildRunAcceptanceTest(ImGuiTestEngine* engine) {
       redo_ok = tile_from_loaded(overworld) == static_cast<uint16_t>(brush_id);
       IM_CHECK(redo_ok);
 
+      if (proposal_edit) {
+        IM_CHECK(rom->dirty() || manager->IsCurrentProjectDirty() ||
+                 overworld->HasPendingProjectDraftChanges());
+        const auto disk_after_edit = read_file(rom_path);
+        IM_CHECK(disk_after_edit.has_value());
+        IM_CHECK(core::ComputeSourceArtifactSha256(*disk_after_edit) ==
+                 config.input_rom_sha256);
+        IM_CHECK(tile_from_disk_bytes(*disk_after_edit) ==
+                 static_cast<uint16_t>(original_tile));
+        const nlohmann::json ready = {
+            {"test", "build_run_acceptance/proposal_edit"},
+            {"result", "PASS"},
+            {"proof", "native editor controls before Save"},
+            {"phase", "edit"},
+            {"workflow", "proposal_edit"},
+            {"proposal_root", config.proposal_root.string()},
+            {"proposal_id", proposal_workspace->proposal_id},
+            {"project", expected_project.string()},
+            {"rom", rom_path.string()},
+            {"input_rom_sha256", config.input_rom_sha256},
+            {"disk_rom_sha256",
+             core::ComputeSourceArtifactSha256(*disk_after_edit)},
+            {"loaded_rom_sha256",
+             core::ComputeSourceArtifactSha256(rom_view())},
+            {"map_id", map_id},
+            {"local_x", local_x},
+            {"local_y", local_y},
+            {"world_x", world_x},
+            {"world_y", world_y},
+            {"original_tile", original_tile},
+            {"brush_id", brush_id},
+            {"model_tile", tile_from_loaded(overworld)},
+            {"dirty", true},
+            {"undo_verified", undo_ok},
+            {"redo_verified", redo_ok},
+            {"baseline_rom_sha256", proposal_workspace->baseline_rom_sha256}};
+        const auto ready_path = project_directory / "proposal-edit-ready.json";
+        std::ofstream output(ready_path, std::ios::binary);
+        IM_CHECK(output.is_open());
+        output << ready.dump(2) << '\n';
+        output.close();
+        IM_CHECK(!output.fail());
+        ctx->LogInfo("Proposal edit ready before Save; receipt: %s",
+                     ready_path.string().c_str());
+        return;
+      }
+
       for (const auto& cell : extra_cells) {
         IM_CHECK_EQ(tile_from_loaded_at(overworld, cell.world_x, cell.world_y),
                     static_cast<uint16_t>(cell.original));
@@ -1962,6 +2029,46 @@ static void RegisterBuildRunAcceptanceTest(ImGuiTestEngine* engine) {
       saved_rom_sha256 = core::ComputeSourceArtifactSha256(*rom_disk_after);
       IM_CHECK(saved_rom_sha256 ==
                core::ComputeSourceArtifactSha256(rom_view()));
+    } else if (proposal_edit) {
+      IM_CHECK_EQ(tile_from_loaded(overworld), static_cast<uint16_t>(brush_id));
+      const auto reopen_png = project_directory / "proposal-reopen-canvas.png";
+      (void)queue_capture(reopen_png);
+      saved_tile = static_cast<uint16_t>(brush_id);
+      saved_rom_sha256 = config.expected_rom_sha256;
+      undo_ok = true;
+      redo_ok = true;
+      save_ok = true;
+      const nlohmann::json ready = {
+          {"test", "build_run_acceptance/proposal_edit"},
+          {"result", "PASS"},
+          {"proof", "cold reopen after committed Save"},
+          {"phase", "reopen"},
+          {"workflow", "proposal_edit"},
+          {"proposal_root", config.proposal_root.string()},
+          {"proposal_id", proposal_workspace->proposal_id},
+          {"project", expected_project.string()},
+          {"rom", rom_path.string()},
+          {"expected_rom_sha256", config.expected_rom_sha256},
+          {"disk_rom_sha256", rom_sha256},
+          {"loaded_rom_sha256", loaded_sha256},
+          {"map_id", map_id},
+          {"local_x", local_x},
+          {"local_y", local_y},
+          {"world_x", world_x},
+          {"world_y", world_y},
+          {"brush_id", brush_id},
+          {"model_tile", tile_from_loaded(overworld)},
+          {"dirty", false},
+          {"baseline_rom_sha256", proposal_workspace->baseline_rom_sha256}};
+      const auto ready_path = project_directory / "proposal-reopen-ready.json";
+      std::ofstream output(ready_path, std::ios::binary);
+      IM_CHECK(output.is_open());
+      output << ready.dump(2) << '\n';
+      output.close();
+      IM_CHECK(!output.fail());
+      ctx->LogInfo("Proposal reopen ready before Build/Run; receipt: %s",
+                   ready_path.string().c_str());
+      return;
     } else {
       IM_CHECK_EQ(tile_from_loaded(overworld), prior.value("saved_tile", 0));
       const auto reopen_png = project_directory / "build-run-canvas-reopen.png";
