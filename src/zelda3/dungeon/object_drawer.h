@@ -293,6 +293,14 @@ class ObjectDrawer {
   void DrawMissingCustomObjectPlaceholder(gfx::BackgroundBuffer& bg, int tile_x,
                                           int tile_y);
 
+  // Oracle object32/subtype 0D room54 floor underlay: copy 6x4 primary words to
+  // the lower object buffer with priority cleared before the table stamp.
+  // Mirrors Dungeons/Objects/object_handler.asm .ArmoryFloorUnderlay.
+  void MaybeApplyArmoryWorktableFloorUnderlay(
+      const RoomObject& obj, bool use_bg2, gfx::BackgroundBuffer& primary_bg,
+      gfx::BackgroundBuffer* primary_layout_bg,
+      gfx::BackgroundBuffer& lower_object_bg);
+
   // Utility methods
   // Execute a DrawRoutineRegistry routine (pure DrawContext function) but render
   // via ObjectDrawer::WriteTile8 so output hits the bitmap-backed buffers used

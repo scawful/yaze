@@ -313,6 +313,14 @@ absl::Status ObjectDrawer::DrawObject(
     // Custom objects default to drawing on the target layer only, unless all_bgs_ is set
     // Mask propagation is difficult without dimensions, so we rely on explicit transparency in the custom object tiles if needed
 
+    // Room54 armory worktable (0x32/0D): copy underlying primary floor words to
+    // the lower map at low priority before the table overwrites the upper map.
+    // Do not fan the table itself through all_bgs_.
+    if (!use_bg2) {
+      MaybeApplyArmoryWorktableFloorUnderlay(object, /*use_bg2=*/false,
+                                             target_bg, layout_bg1, bg2);
+    }
+
     // Draw to target layer
     SetTraceContext(object, use_bg2 ? RoomObject::LayerType::BG2
                                     : RoomObject::LayerType::BG1);
@@ -3522,6 +3530,46 @@ void ObjectDrawer::DrawLargeCanvasObject(const RoomObject& obj,
 std::pair<int, int> yaze::zelda3::ObjectDrawer::CalculateObjectDimensions(
     const RoomObject& object) {
   return DimensionService::Get().GetPixelDimensions(object);
+}
+
+void yaze::zelda3::ObjectDrawer::MaybeApplyArmoryWorktableFloorUnderlay(
+    const RoomObject& obj, bool use_bg2, gfx::BackgroundBuffer& primary_bg,
+    gfx::BackgroundBuffer* primary_layout_bg,
+    gfx::BackgroundBuffer& lower_object_bg) {
+  // Exact native gate: room $0054, subtype $0D, primary pointer $7E2000.
+  constexpr int kArmoryRoom = 0x54;
+  constexpr int16_t kCustomObject32 = 0x32;
+  constexpr int kWorktableSubtype = 0x0D;
+  constexpr int kUnderlayWidth = 6;
+  constexpr int kUnderlayHeight = 4;
+  constexpr uint16_t kPriorityBit = 0x2000;
+
+  if (use_bg2 || room_id_ != kArmoryRoom || obj.id_ != kCustomObject32 ||
+      (obj.size_ & 0x1F) != kWorktableSubtype) {
+    return;
+  }
+
+  for (int row = 0; row < kUnderlayHeight; ++row) {
+    for (int col = 0; col < kUnderlayWidth; ++col) {
+      const int tile_x = obj.x_ + col;
+      const int tile_y = obj.y_ + row;
+      if (!IsValidTilePosition(tile_x, tile_y)) {
+        continue;
+      }
+
+      // SNES reads one physical upper map. Yaze splits that map across layout
+      // and object owners, so prefer the object word when present.
+      uint16_t word = primary_bg.GetTileAt(tile_x, tile_y);
+      if (word == 0 && primary_layout_bg != nullptr) {
+        word = primary_layout_bg->GetTileAt(tile_x, tile_y);
+      }
+      const uint16_t underlay_word =
+          static_cast<uint16_t>(word & static_cast<uint16_t>(~kPriorityBit));
+      SetTraceContext(obj, RoomObject::LayerType::BG2);
+      WriteTile8(lower_object_bg, tile_x, tile_y,
+                 gfx::WordToTileInfo(underlay_word));
+    }
+  }
 }
 
 void yaze::zelda3::ObjectDrawer::DrawCustomObject(

@@ -6,16 +6,20 @@
 #include <filesystem>
 #include <fstream>
 #include <memory>
+#include <string>
+#include <unordered_map>
 #include <utility>
 #include <vector>
 
 #include "core/features.h"
+#include "core/source_artifact_publisher.h"
 #include "rom/rom.h"
 #include "rom/snes.h"
 #include "zelda3/dungeon/custom_object.h"
 #include "zelda3/dungeon/draw_routines/draw_routine_registry.h"
 #include "zelda3/dungeon/dungeon_block_codec.h"
 #include "zelda3/dungeon/dungeon_rom_addresses.h"
+#include "zelda3/dungeon/object_drawer.h"
 #include "zelda3/dungeon/room.h"
 #include "zelda3/dungeon/room_layout.h"
 #include "zelda3/game_data.h"
@@ -740,6 +744,149 @@ TEST_F(CustomObjectRoomRenderTest,
   EXPECT_TRUE(room.AreObjectsLoaded())
       << "Clearing objects in-editor should keep the room in an explicit "
          "loaded state";
+}
+
+std::string Sha256OfFile(const std::filesystem::path& path) {
+  return *core::ComputeSourceArtifactFileSha256(path.string());
+}
+
+void WriteStubObjectBin(const std::filesystem::path& folder,
+                        const std::string& filename, uint16_t tile_word) {
+  const std::vector<uint8_t> binary = {
+      0x01,
+      0x00,
+      static_cast<uint8_t>(tile_word & 0xFF),
+      static_cast<uint8_t>((tile_word >> 8) & 0xFF),
+      0x00,
+      0x00,
+  };
+  std::ofstream out(folder / filename, std::ios::binary);
+  out.write(reinterpret_cast<const char*>(binary.data()), binary.size());
+}
+
+std::unordered_map<std::string, std::string> AdmitSyntheticArmoryObjects(
+    const std::filesystem::path& folder) {
+  auto& manager = CustomObjectManager::Get();
+  manager.Initialize(folder.string());
+
+  for (const auto& name :
+       CustomObjectManager::DefaultSubtypeFilenamesForObject(0x32)) {
+    WriteStubObjectBin(folder, name, 0x2811);
+  }
+  for (const auto& name :
+       CustomObjectManager::Object32PrisonAppendFilenames()) {
+    WriteStubObjectBin(folder, name, 0x2821);
+  }
+  for (const auto& name :
+       CustomObjectManager::Object32ArmoryAppendFilenames()) {
+    // Priority-bearing tabletop word mirrors source06 ($2000 set).
+    WriteStubObjectBin(folder, name, 0x34C1);
+  }
+
+  std::unordered_map<std::string, std::string> identities;
+  for (const auto& name :
+       CustomObjectManager::Object32PrisonAppendFilenames()) {
+    identities[name] = Sha256OfFile(folder / name);
+  }
+  for (const auto& name :
+       CustomObjectManager::Object32ArmoryAppendFilenames()) {
+    identities[name] = Sha256OfFile(folder / name);
+  }
+  EXPECT_TRUE(manager.AdmitObject32PrisonSlots(identities).ok());
+  EXPECT_TRUE(manager.AdmitObject32ArmorySlots(identities).ok());
+  return identities;
+}
+
+TEST_F(CustomObjectRoomRenderTest,
+       ArmoryWorktableUnderlayCopiesFloorToLowerMapInRoom54) {
+  core::FeatureFlags::get().kEnableCustomObjects = true;
+  DrawRoutineRegistry::Get().RefreshFeatureFlagMappings();
+  AdmitSyntheticArmoryObjects(temp_dir_);
+  auto snapshot = CustomObjectManager::Get().CaptureRenderSnapshot(true);
+
+  ObjectDrawer drawer(rom_.get(), /*room_id=*/0x54,
+                      game_data_.graphics_buffer.data(), &snapshot);
+
+  gfx::BackgroundBuffer primary(/*width=*/512, /*height=*/512);
+  gfx::BackgroundBuffer lower(/*width=*/512, /*height=*/512);
+  gfx::BackgroundBuffer layout(/*width=*/512, /*height=*/512);
+  primary.EnsureBitmapInitialized();
+  lower.EnsureBitmapInitialized();
+  layout.EnsureBitmapInitialized();
+
+  constexpr int kTableX = 13;
+  constexpr int kTableY = 14;
+  constexpr uint16_t kFloorWithPriority = 0x2ABC;
+  constexpr uint16_t kFloorLowPriority =
+      static_cast<uint16_t>(kFloorWithPriority & ~0x2000);
+  for (int row = 0; row < 4; ++row) {
+    for (int col = 0; col < 6; ++col) {
+      layout.SetTileAt(kTableX + col, kTableY + row, kFloorWithPriority);
+    }
+  }
+
+  RoomObject table(/*id=*/0x32, /*x=*/kTableX, /*y=*/kTableY, /*size=*/0x0D,
+                   RoomObject::LayerType::BG1);
+  gfx::PaletteGroup palette;
+  ASSERT_TRUE(drawer
+                  .DrawObject(table, primary, lower, palette, /*state=*/nullptr,
+                              &layout, /*layout_bg2=*/nullptr)
+                  .ok());
+
+  for (int row = 0; row < 4; ++row) {
+    for (int col = 0; col < 6; ++col) {
+      EXPECT_EQ(lower.GetTileAt(kTableX + col, kTableY + row),
+                kFloorLowPriority)
+          << "underlay at (" << col << "," << row << ")";
+    }
+  }
+  // Table stamp lands on primary with priority preserved from the asset word.
+  EXPECT_EQ(primary.GetTileAt(kTableX, kTableY) & 0x2000, 0x2000);
+}
+
+TEST_F(CustomObjectRoomRenderTest,
+       ArmoryWorktableUnderlayRefusesWrongRoomSubtypeAndLayer) {
+  core::FeatureFlags::get().kEnableCustomObjects = true;
+  DrawRoutineRegistry::Get().RefreshFeatureFlagMappings();
+  AdmitSyntheticArmoryObjects(temp_dir_);
+  auto snapshot = CustomObjectManager::Get().CaptureRenderSnapshot(true);
+
+  auto draw_once = [&](int room_id, int16_t object_id, uint8_t size,
+                       RoomObject::LayerType layer) {
+    ObjectDrawer drawer(rom_.get(), room_id, game_data_.graphics_buffer.data(),
+                        &snapshot);
+    gfx::BackgroundBuffer primary(512, 512);
+    gfx::BackgroundBuffer lower(512, 512);
+    gfx::BackgroundBuffer layout(512, 512);
+    primary.EnsureBitmapInitialized();
+    lower.EnsureBitmapInitialized();
+    layout.EnsureBitmapInitialized();
+    layout.SetTileAt(13, 14, 0x2ABC);
+    RoomObject obj(object_id, 13, 14, size, layer);
+    gfx::PaletteGroup palette;
+    EXPECT_TRUE(
+        drawer
+            .DrawObject(obj, primary, lower, palette, nullptr, &layout, nullptr)
+            .ok());
+    return std::pair{primary.GetTileAt(13, 14), lower.GetTileAt(13, 14)};
+  };
+
+  // Wrong room / drawers subtype: table (or drawers) stamp primary only; no
+  // floor underlay on the lower map.
+  EXPECT_EQ(
+      draw_once(/*room=*/0x55, 0x32, 0x0D, RoomObject::LayerType::BG1).second,
+      0);
+  EXPECT_EQ(
+      draw_once(/*room=*/0x54, 0x32, 0x0E, RoomObject::LayerType::BG1).second,
+      0);
+
+  // Secondary list targets lower directly; underlay helper must stay off so
+  // the lower word is the table stamp, not the cleared-priority floor copy.
+  const auto bg2 =
+      draw_once(/*room=*/0x54, 0x32, 0x0D, RoomObject::LayerType::BG2);
+  EXPECT_EQ(bg2.first, 0);
+  EXPECT_NE(bg2.second, 0x0ABC);
+  EXPECT_EQ(bg2.second & 0x2000, 0x2000);
 }
 
 }  // namespace
