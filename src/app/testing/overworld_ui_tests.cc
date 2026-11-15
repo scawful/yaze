@@ -28,10 +28,13 @@
 #include "app/gui/automation/widget_id_registry.h"
 #include "app/service/screenshot_utils.h"
 #include "core/build_run_acceptance_admission.h"
+#include "core/gfx_sheet_policy_adapter.h"
+#include "core/gfx_sheet_source.h"
 #include "core/proposal_workspace.h"
 #include "core/source_artifact_publisher.h"
 #include "imgui.h"
 #include "nlohmann/json.hpp"
+#include "rom/page_tile16_admission.h"
 #include "rom/rom.h"
 #include "zelda3/game_data.h"
 #include "zelda3/overworld/overworld.h"
@@ -1560,6 +1563,19 @@ static void RegisterBuildRunAcceptanceTest(ImGuiTestEngine* engine) {
     // Save, Build and Run on a dense map exceed the engine's 60 s default.
     // The owning harness enforces its own progress and total deadlines.
     ctx->EngineIO->ConfigWatchdogKillTest = 1200.0f;
+    // Keep ImGui::FocusWindow / WindowFocus for Ctrl+Z/Y NavWindow routing.
+    // FocusWindow itself does not raise the OS window; Platform_SetWindowFocus
+    // (SDL_RaiseWindow) is the OS path. Null it for this fixture so simulated
+    // input cannot request platform focus (Root 010259).
+    struct SuppressPlatformWindowFocus {
+      ImGuiPlatformIO& io;
+      void (*previous)(ImGuiViewport*);
+      SuppressPlatformWindowFocus()
+          : io(ImGui::GetPlatformIO()), previous(io.Platform_SetWindowFocus) {
+        io.Platform_SetWindowFocus = nullptr;
+      }
+      ~SuppressPlatformWindowFocus() { io.Platform_SetWindowFocus = previous; }
+    } suppress_platform_window_focus;
     const char* requested = std::getenv("YAZE_BUILD_RUN_ACCEPTANCE_PROJECT");
     IM_CHECK(requested && *requested);
     IM_CHECK(fs::path(requested).is_absolute());
@@ -1690,9 +1706,39 @@ static void RegisterBuildRunAcceptanceTest(ImGuiTestEngine* engine) {
       const std::vector<uint8_t> data(bytes.begin(), bytes.end());
       auto disk_rom = std::make_unique<Rom>();
       IM_CHECK_RETV(disk_rom->LoadFromData(data).ok(), std::nullopt);
+      // Same project ROM path the editor admitted; required for path+hash
+      // page16 admission and for post-Save re-reads of that file.
+      disk_rom->set_filename(rom_path.string());
+      if (!rom::AdmitProjectExperimentalPageTile16(*current_project,
+                                                   disk_rom.get())) {
+        // Session already passed project admission for this path; after Save
+        // disk bytes can diverge from expected_hash while remaining the same
+        // project-backed ROM under the same opt-in.
+        if (rom->experimental_page_tile16() &&
+            current_project->experimental_page_tile16) {
+          disk_rom->EnableExperimentalPageTile16();
+        }
+      }
+      zelda3::LoadOptions load_options;
+      load_options.expand_rom = false;
+      if (current_project->hack_manifest.graphics_sheet_layout()
+              .pointer_layout ||
+          core::GfxSheetSource::Selected(*current_project)) {
+        auto sheet_layout =
+            core::ResolveGfxSheetLayout(*disk_rom, *current_project);
+        IM_CHECK_RETV(sheet_layout.ok(), std::nullopt);
+        if (sheet_layout->explicit_layout)
+          load_options.gfx_sheet_layout = std::move(*sheet_layout);
+        if (core::GfxSheetSource::Selected(*current_project)) {
+          auto source = core::GfxSheetSource::Load(*current_project);
+          IM_CHECK_RETV(source.ok(), std::nullopt);
+          load_options.gfx_sheet_source = std::move(*source);
+        }
+      }
       auto game_data = std::make_unique<zelda3::GameData>();
-      IM_CHECK_RETV(zelda3::LoadGameData(*disk_rom, *game_data).ok(),
-                    std::nullopt);
+      IM_CHECK_RETV(
+          zelda3::LoadGameData(*disk_rom, *game_data, load_options).ok(),
+          std::nullopt);
       auto model =
           std::make_unique<zelda3::Overworld>(disk_rom.get(), game_data.get());
       IM_CHECK_RETV(model->Load(disk_rom.get()).ok(), std::nullopt);
