@@ -2691,6 +2691,50 @@ TEST_P(OverworldEndpointPlanTest,
   Preserved();
 }
 
+TEST_P(OverworldEndpointPlanTest, TailMapEntranceMoveDryWriteAndColdReopen) {
+  // $B0 is only valid on expanded 192-map native layouts.
+  auto plan = plan_;
+  plan["returns"] = nlohmann::json::array();
+  // Local (4,5) on map $B0: origin (0, 6*512), tile-aligned pixels.
+  plan["entrances"][0]["value"] = {
+      {"map_id", 0xB0}, {"x", 64}, {"y", 3152}, {"entrance_id", 0x29}};
+  if (GetParam().first != 192) {
+    EXPECT_FALSE(Run(plan, false).ok());
+    EXPECT_FALSE(std::filesystem::exists(output_));
+    Preserved();
+    return;
+  }
+  std::string result;
+  const auto dry = Run(plan, false, {}, true, &result);
+  ASSERT_TRUE(dry.ok()) << dry;
+  // map_word 0x007A→0x00B0 (1 byte) + map_pos 0x0626→0x0288 (2 bytes).
+  EXPECT_EQ(
+      nlohmann::json::parse(result)["Overworld Endpoint Plan"]["changed_bytes"],
+      3);
+  EXPECT_FALSE(std::filesystem::exists(output_));
+  Preserved();
+  const auto write = Run(plan, true);
+  ASSERT_TRUE(write.ok()) << write;
+  Preserved();
+  const auto bytes = ReadBytes(output_);
+  auto expected = original_;
+  expected[0xDBA33] = 0xB0;
+  expected[0xDBB35] = 0x88;  // map_pos ((5<<6)|4)<<1 = 0x288
+  expected[0xDBB36] = 0x02;
+  EXPECT_EQ(bytes, expected);
+  Rom cold;
+  ASSERT_TRUE(cold.LoadFromData(bytes).ok());
+  cold.EnableExperimentalPageTile16();
+  zelda3::Overworld world(&cold);
+  ASSERT_TRUE(world.Load(&cold).ok());
+  const auto& entrance = world.mutable_entrances()->at(0x62);
+  EXPECT_EQ(entrance.map_id_, 0xB0);
+  EXPECT_EQ(entrance.map_pos_, 0x288);
+  EXPECT_EQ(entrance.x_, 64);
+  EXPECT_EQ(entrance.y_, 3152);
+  EXPECT_EQ(entrance.entrance_id_, 0x29);
+}
+
 TEST_P(OverworldEndpointPlanTest,
        RefusesWrongHashesRowsFieldsAndGeometryWithoutMutation) {
   const auto refuse = [&](const nlohmann::json& plan) {
@@ -2739,6 +2783,12 @@ TEST_P(OverworldEndpointPlanTest,
   refuse(plan);
   plan = plan_;
   plan["entrance_layout"] = "expanded256";
+  refuse(plan);
+  plan = plan_;
+  // Beyond native capacity (192 → $C0, 160 → $A0) must refuse without writes.
+  plan["entrances"][0]["value"]["map_id"] = GetParam().first;
+  plan["entrances"][0]["value"]["x"] = 0;
+  plan["entrances"][0]["value"]["y"] = 0;
   refuse(plan);
   plan = plan_;
   plan["entrances"] = nlohmann::json::array();
