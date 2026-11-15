@@ -17,6 +17,8 @@
 #include "nlohmann/json.hpp"
 #include "rom/rom.h"
 #include "util/macro.h"
+#include "zelda3/dungeon/dungeon_wall_private_sheet.h"
+#include "zelda3/dungeon/room.h"
 #include "zelda3/dungeon/room_default_entrance.h"
 #include "zelda3/dungeon/room_entrance.h"
 #include "zelda3/game_data.h"
@@ -357,6 +359,35 @@ absl::Status DungeonRenderCommandHandler::ExecuteWithContext(
   }
   formatter.AddHexField("main_blockset", result.main_blockset, 2);
   AddDefaultEntranceReport(formatter, game_data, room_id);
+  // Report compiled WSP1 private-sheet admission for this room without a
+  // second command. Empty/inactive context keeps global sheets.
+  if (rom != nullptr && rom->is_loaded()) {
+    zelda3::Room probe = zelda3::LoadRoomFromRom(rom, room_id);
+    probe.SetGameData(&game_data);
+    probe.LoadRoomGraphics();
+    const auto profile = probe.compiled_wall_profile();
+    const int active_profile = profile ? profile->profile : 0;
+    auto private_sheets =
+        zelda3::ResolveCompiledWallPrivateSheet(*rom, room_id, active_profile);
+    formatter.BeginObject("private_sheet");
+    if (private_sheets.ok()) {
+      formatter.AddField("applied", private_sheets->applied);
+      formatter.AddField("reason", private_sheets->reason);
+      formatter.AddField("active_profile", active_profile);
+      formatter.AddField("decoded_sha256", private_sheets->decoded_sha256);
+      formatter.AddHexField("bg_sheet", private_sheets->bg_sheet, 2);
+      formatter.AddHexField("sprite_sheet", private_sheets->sprite_sheet, 2);
+      formatter.AddField(
+          "override_count",
+          static_cast<uint64_t>(private_sheets->sheet_overrides_8bpp.size()));
+    } else {
+      formatter.AddField("applied", false);
+      formatter.AddField("reason",
+                         std::string(private_sheets.status().message()));
+      formatter.AddField("active_profile", active_profile);
+    }
+    formatter.EndObject();
+  }
   formatter.AddField("project_objects_without_data",
                      result.project_objects_without_data);
   if (result.project_objects_without_data > 0) {

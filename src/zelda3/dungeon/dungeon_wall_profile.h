@@ -21,6 +21,7 @@ namespace yaze::zelda3 {
 // Read-only runtime view emitted by Oracle's existing wall-kit producer. Never
 // copy these resolved values into room headers, object caches, or source files.
 struct CompiledWallProfile {
+  uint8_t profile = 0;  // WSR1 room→profile index; 0 means no profile
   uint8_t blockset = 0xFF;
   uint8_t palette = 0xFF;
   uint64_t slot6_high_palette = 0;

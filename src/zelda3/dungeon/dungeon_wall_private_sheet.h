@@ -11,6 +11,10 @@
 #include "absl/status/statusor.h"
 #include "nlohmann/json.hpp"
 
+namespace yaze {
+class Rom;
+}
+
 namespace yaze::zelda3 {
 
 // Source-mode mirror of Oracle WSP1 private-stream admission for room 54.
@@ -102,6 +106,13 @@ absl::StatusOr<WallPrivateSheetResolution> ResolveWallPrivateSheet(
 // furniture placements and asset pins. Never writes ROM/project.
 absl::StatusOr<WallPrivateSheetRecipeReport> DryRunWallPrivateSheetRecipe(
     const WallPrivateSheetBinding& binding, const nlohmann::json& object_plan);
+
+// Compiled-ROM WSP1 mirror. When the room's active WSR1 profile matches a
+// record's required_profile, returns 8bpp overrides keyed by logical BG
+// request and absolute sprite sheet (relative+0x73). Profile 0 / no matching
+// record returns an empty map (ordinary global sheets). Malformed WSP1 fails.
+absl::StatusOr<WallPrivateSheetResolution> ResolveCompiledWallPrivateSheet(
+    const Rom& rom, int room, int active_profile);
 
 }  // namespace yaze::zelda3
 

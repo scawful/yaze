@@ -84,6 +84,7 @@ absl::StatusOr<std::optional<CompiledWallProfile>> ReadCompiledWallProfile(
   if (profile > profiles)
     return fail();
   CompiledWallProfile result;
+  result.profile = profile;
   if (profile != 0) {
     result.blockset = bytes[pc(pointers[7]) + profile - 1];
     result.palette = bytes[pc(pointers[8]) + profile - 1];

@@ -29,6 +29,7 @@
 #include "zelda3/dungeon/dungeon_block_codec.h"
 #include "zelda3/dungeon/dungeon_stream_allocator.h"
 #include "zelda3/dungeon/dungeon_torch_codec.h"
+#include "zelda3/dungeon/dungeon_wall_private_sheet.h"
 #include "zelda3/dungeon/editor_dungeon_state.h"
 #include "zelda3/dungeon/object_drawer.h"
 #include "zelda3/dungeon/object_layer_semantics.h"
@@ -1122,6 +1123,27 @@ void Room::LoadRoomGraphics(std::optional<uint8_t> entrance_blockset) {
       blocks_[12 + i] = 0;
     }
   }  // 12-15 sprites
+
+  // Compiled WSP1 private streams replace only the logical BG/sprite sheet
+  // pixels for matching room+profile. Caller overrides win; inactive profile 0
+  // and non-matching rooms keep ordinary global 08/36 identities.
+  if (rom_ && rom_->is_loaded() && compiled_wall_profile_) {
+    const auto private_sheets = ResolveCompiledWallPrivateSheet(
+        *rom_, room_id_, compiled_wall_profile_->profile);
+    if (!private_sheets.ok()) {
+      compiled_wall_profile_status_ = private_sheets.status();
+      std::fill(current_gfx16_.begin(), current_gfx16_.end(), 0);
+      LOG_ERROR("Room", "%s", private_sheets.status().ToString().c_str());
+      return;
+    }
+    if (private_sheets->applied) {
+      for (const auto& [sheet, pixels] : private_sheets->sheet_overrides_8bpp) {
+        if (graphics_sheet_overrides_.count(sheet) == 0) {
+          graphics_sheet_overrides_[sheet] = pixels;
+        }
+      }
+    }
+  }
 
   LOG_DEBUG("Room", "Sheet IDs BG[0-7]: %d %d %d %d %d %d %d %d", blocks_[0],
             blocks_[1], blocks_[2], blocks_[3], blocks_[4], blocks_[5],

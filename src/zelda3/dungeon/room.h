@@ -294,6 +294,9 @@ class Room {
   const absl::Status& compiled_wall_profile_status() const {
     return compiled_wall_profile_status_;
   }
+  const std::optional<CompiledWallProfile>& compiled_wall_profile() const {
+    return compiled_wall_profile_;
+  }
 
   friend ResolvedGraphicsContext DescribeDungeonGraphicsContext(
       const Room& room, const GraphicsContextIdentity& identity);

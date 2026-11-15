@@ -4,12 +4,17 @@
 #include <cctype>
 #include <fstream>
 #include <iterator>
+#include <optional>
+#include <set>
+#include <tuple>
 #include <utility>
 
 #include "absl/status/status.h"
 #include "absl/strings/str_format.h"
 #include "app/gfx/types/snes_tile.h"
+#include "app/gfx/util/compression.h"
 #include "core/source_artifact_publisher.h"
+#include "rom/rom.h"
 #include "util/macro.h"
 
 namespace yaze::zelda3 {
@@ -328,6 +333,143 @@ absl::StatusOr<WallPrivateSheetRecipeReport> DryRunWallPrivateSheetRecipe(
       "recipe dry-run accepted: room54 object plan matches private-sheet "
       "furniture pins; no ROM write";
   return report;
+}
+
+absl::StatusOr<WallPrivateSheetResolution> ResolveCompiledWallPrivateSheet(
+    const Rom& rom, int room, int active_profile) {
+  WallPrivateSheetResolution result;
+  result.bg_sheet = kWallPrivateBgRequest;
+  result.sprite_sheet = kWallPrivateSpriteAbsolute;
+  if (room < 0 || room >= 0x128) {
+    return absl::OutOfRangeError("Compiled WSP1 room is out of range");
+  }
+  if (active_profile <= 0) {
+    result.applied = false;
+    result.reason = "active wall profile is 0; private sheet stays off";
+    return result;
+  }
+
+  const auto& bytes = rom.vector();
+  auto pc = [](uint32_t a) -> size_t {
+    return ((a >> 16) & 0x7F) * 0x8000 + (a & 0x7FFF);
+  };
+  auto valid = [&](uint32_t a, size_t count) {
+    return a >= 0x44E000 && a < 0x450000 && count <= 0x450000 - a &&
+           pc(a) <= bytes.size() && count <= bytes.size() - pc(a);
+  };
+  auto fail = []() {
+    return absl::FailedPreconditionError(
+        "Unsupported or malformed compiled WSP1 private-sheet metadata");
+  };
+
+  // Locate WSP1 inside the existing selector span after WSR1.
+  constexpr uint32_t kSpanBegin = 0x44E000;
+  constexpr uint32_t kSpanEnd = 0x450000;
+  std::optional<size_t> wsp1_pc;
+  for (uint32_t addr = kSpanBegin; addr + 8 <= kSpanEnd; ++addr) {
+    const size_t at = pc(addr);
+    if (at + 8 > bytes.size())
+      break;
+    if (std::string(bytes.begin() + at, bytes.begin() + at + 4) == "WSP1") {
+      wsp1_pc = at;
+      break;
+    }
+  }
+  if (!wsp1_pc.has_value()) {
+    result.applied = false;
+    result.reason = "compiled ROM has no WSP1 metadata";
+    return result;
+  }
+
+  const size_t d = *wsp1_pc;
+  if (bytes[d + 4] != 1 || bytes[d + 5] != 12)
+    return fail();
+  const uint16_t count =
+      static_cast<uint16_t>(bytes[d + 6] | (bytes[d + 7] << 8));
+  if (count == 0 || count > 64)
+    return fail();
+  const size_t table_bytes = static_cast<size_t>(count) * 12;
+  if (d + 8 + table_bytes > bytes.size())
+    return fail();
+
+  std::optional<uint32_t> shared_source;
+  std::set<std::tuple<uint16_t, uint8_t, uint8_t, uint8_t>> seen;
+  bool matched = false;
+  for (uint16_t i = 0; i < count; ++i) {
+    const size_t r = d + 8 + static_cast<size_t>(i) * 12;
+    const uint16_t rec_room =
+        static_cast<uint16_t>(bytes[r] | (bytes[r + 1] << 8));
+    const uint8_t kind = bytes[r + 2];
+    const uint8_t request = bytes[r + 3];
+    const uint8_t slot = bytes[r + 4];
+    const uint8_t half = bytes[r + 5];
+    const uint32_t source = bytes[r + 6] | (bytes[r + 7] << 8) |
+                            (static_cast<uint32_t>(bytes[r + 8]) << 16);
+    const uint16_t length =
+        static_cast<uint16_t>(bytes[r + 9] | (bytes[r + 10] << 8));
+    const uint8_t required_profile = bytes[r + 11];
+    const auto identity = std::make_tuple(rec_room, kind, slot, request);
+    if (!seen.insert(identity).second)
+      return fail();
+    if (kind > 1 || slot != kWallPrivateSlot || half > 1 ||
+        length != kWallPrivateDecoded3bppBytes)
+      return fail();
+    // Private kit streams live in kit storage after Glacia ($458000..).
+    if (source < 0x458000 || source >= 0x45F000)
+      return fail();
+    if (rec_room != static_cast<uint16_t>(room))
+      continue;
+    if (required_profile != static_cast<uint8_t>(active_profile))
+      continue;
+    matched = true;
+    if (!shared_source.has_value())
+      shared_source = source;
+    else if (*shared_source != source)
+      return fail();
+
+    if (kind == 0) {
+      if (request != kWallPrivateBgRequest || half != 1)
+        return fail();
+      result.bg_sheet = request;
+    } else {
+      if (request != kWallPrivateSpriteRelative || half != 0)
+        return fail();
+      result.sprite_sheet = static_cast<uint8_t>(request + 0x73);
+    }
+  }
+
+  if (!matched) {
+    result.applied = false;
+    result.reason =
+        absl::StrFormat("no WSP1 record for room 0x%03X with active profile %d",
+                        room, active_profile);
+    return result;
+  }
+
+  const size_t source_pc = pc(*shared_source);
+  ASSIGN_OR_RETURN(auto decoded, gfx::lc_lz2::DecompressExact(
+                                     bytes.data(), bytes.size(), source_pc,
+                                     kWallPrivateDecoded3bppBytes * 4,
+                                     /*big_endian_copy=*/false));
+  if (decoded.data.size() != kWallPrivateDecoded3bppBytes) {
+    return absl::DataLossError(
+        absl::StrFormat("WSP1 private stream decoded to %zu bytes; need %zu",
+                        decoded.data.size(), kWallPrivateDecoded3bppBytes));
+  }
+  result.decoded_sha256 = core::ComputeSourceArtifactSha256(std::string(
+      reinterpret_cast<const char*>(decoded.data.data()), decoded.data.size()));
+  auto pixels = gfx::SnesTo8bppSheet(
+      std::span<const uint8_t>(decoded.data.data(), decoded.data.size()), 3);
+  if (pixels.size() != kWallPrivateDecoded8bppBytes) {
+    return absl::DataLossError(
+        "WSP1 private stream did not expand to one 8bpp sheet");
+  }
+  result.sheet_overrides_8bpp.emplace(result.bg_sheet, pixels);
+  result.sheet_overrides_8bpp.emplace(result.sprite_sheet, std::move(pixels));
+  result.applied = true;
+  result.reason =
+      "applied compiled WSP1 private stream for matching room/profile";
+  return result;
 }
 
 }  // namespace yaze::zelda3
