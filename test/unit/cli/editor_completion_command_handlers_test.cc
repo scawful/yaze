@@ -49,6 +49,48 @@ TEST(EditorCompletionCommandHandlersTest,
   }
 }
 
+TEST(EditorCompletionCommandHandlersTest, SpecialEntrancesAdmitNativeTailMaps) {
+  handlers::OverworldInspectSpecialEntrancesCommandHandler handler;
+  for (uint16_t capacity : {160, 192}) {
+    test::native_overworld::NativeDirectoryFixture fixture(capacity);
+    Rom rom;
+    ASSERT_TRUE(rom.LoadFromData(fixture.bytes).ok()) << capacity;
+    std::string output;
+    const auto status =
+        handler.Run({"--map=0xB0", "--format=json"}, &rom, &output);
+    // Hermetic fixtures may still fail later load stages; the gate under
+    // test is only the map-id capacity check for $A0-$BF.
+    EXPECT_FALSE(status.ok()) << capacity;
+    if (capacity == 160) {
+      EXPECT_THAT(std::string(status.message()),
+                  HasSubstr("Map ID out of range"));
+    } else {
+      EXPECT_THAT(std::string(status.message()),
+                  Not(HasSubstr("Map ID out of range")));
+    }
+  }
+}
+
+TEST(EditorCompletionCommandHandlersTest, ListWarpsAdmitNativeTailScreens) {
+  handlers::OverworldListWarpsCommandHandler handler;
+  for (uint16_t capacity : {160, 192}) {
+    test::native_overworld::NativeDirectoryFixture fixture(capacity);
+    Rom rom;
+    ASSERT_TRUE(rom.LoadFromData(fixture.bytes).ok()) << capacity;
+    std::string output;
+    const auto status =
+        handler.Run({"--screen=0xB0", "--format=json"}, &rom, &output);
+    EXPECT_FALSE(status.ok()) << capacity;
+    if (capacity == 160) {
+      EXPECT_THAT(std::string(status.message()),
+                  HasSubstr("Map ID out of range"));
+    } else {
+      EXPECT_THAT(std::string(status.message()),
+                  Not(HasSubstr("Map ID out of range")));
+    }
+  }
+}
+
 TEST(EditorCompletionCommandHandlersTest,
      OverworldSetTileRejectsOutOfRangeTileId) {
   handlers::OverworldSetTileCommandHandler handler;

@@ -289,7 +289,8 @@ absl::Status ApplyTileEdit(Rom& rom, zelda3::Overworld& overworld,
 absl::Status OverworldInspectSpecialEntrancesCommandHandler::Execute(
     Rom* rom, const resources::ArgumentParser& parser,
     resources::OutputFormatter& formatter) {
-  ASSIGN_OR_RETURN(const int map_id, ParseMapIdArg(parser, "map"));
+  ASSIGN_OR_RETURN(const int map_id,
+                   ParseMapIdArg(parser, "map", TileCommandMapCount(rom)));
   zelda3::Overworld overworld(rom);
   RETURN_IF_ERROR(overworld.Load(rom));
   const auto inspection =
@@ -2026,22 +2027,20 @@ absl::Status OverworldListWarpsCommandHandler::Execute(
     resources::OutputFormatter& formatter) {
   auto screen_id_str = parser.GetString("screen").value_or("all");
 
+  // Validate the optional screen filter against native capacity before Load
+  // so out-of-range tail IDs report Map ID errors instead of later load noise.
+  overworld::WarpQuery query;
+  if (screen_id_str != "all") {
+    ASSIGN_OR_RETURN(const int map_id,
+                     ParseMapIdArg(parser, "screen", TileCommandMapCount(rom)));
+    query.map_id = map_id;
+  }
+
   // Load the Overworld from ROM
   zelda3::Overworld overworld(rom);
   auto ow_status = overworld.Load(rom);
   if (!ow_status.ok()) {
     return ow_status;
-  }
-
-  // Build the query
-  overworld::WarpQuery query;
-  if (screen_id_str != "all") {
-    int map_id;
-    if (!ParseHexString(screen_id_str, &map_id)) {
-      return absl::InvalidArgumentError(
-          "Invalid screen ID format. Must be hex.");
-    }
-    query.map_id = map_id;
   }
 
   // Call the helper function to collect warp entries

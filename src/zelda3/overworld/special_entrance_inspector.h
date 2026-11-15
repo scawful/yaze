@@ -104,10 +104,13 @@ inline SpecialEntranceInspection InspectSpecialEntrances(const Rom& rom,
   result.provenance = "Loaded ROM " + rom.filename() +
                       ": compiled $0EDE49 reader and $0EDE29 table";
   const int world = map_id / 0x40;
+  const int map_count = overworld.inspected_map_count();
   const auto& grid = overworld.GetMapTiles(world);
   const auto& definitions = overworld.tiles16();
+  // Native Lyra capacity is 192 ($00-$BF); do not clip the special-world
+  // half of the scan at vanilla 160 ($00-$9F).
   for (int screen = world * 0x40;
-       screen < std::min((world + 1) * 0x40, kNumOverworldMaps); ++screen) {
+       screen < std::min((world + 1) * 0x40, map_count); ++screen) {
     const auto* candidate = overworld.overworld_map(screen);
     if (candidate == nullptr || candidate->parent() != result.parent_area) {
       continue;

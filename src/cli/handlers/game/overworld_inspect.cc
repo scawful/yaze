@@ -95,12 +95,17 @@ std::string EntranceLabel(uint8_t id) {
 }
 
 void PopulateCommonWarpFields(WarpEntry& entry, uint16_t raw_map_id,
-                              uint16_t map_pos, int pixel_x, int pixel_y) {
+                              uint16_t map_pos, int pixel_x, int pixel_y,
+                              int map_count = zelda3::kNumOverworldMaps) {
   entry.raw_map_id = raw_map_id;
   entry.map_id = NormalizeMapId(raw_map_id);
-  if (entry.map_id >= zelda3::kNumOverworldMaps) {
-    // Some ROM hacks use sentinel values. Clamp to valid range for reporting
-    entry.map_id %= zelda3::kNumOverworldMaps;
+  // Sentinel / out-of-capacity IDs wrap for reporting. Tail maps $A0-$BF are
+  // in-range when the loaded model admits expanded capacity 192.
+  if (map_count <= 0) {
+    map_count = zelda3::kNumOverworldMaps;
+  }
+  if (entry.map_id >= map_count) {
+    entry.map_id %= map_count;
   }
   entry.world = (entry.map_id >= kSpecialWorldOffset)
                     ? 2
@@ -245,6 +250,7 @@ absl::StatusOr<MapSummary> BuildMapSummary(zelda3::Overworld& overworld,
 absl::StatusOr<std::vector<WarpEntry>> CollectWarpEntries(
     const zelda3::Overworld& overworld, const WarpQuery& query) {
   std::vector<WarpEntry> entries;
+  const int map_count = overworld.inspected_map_count();
 
   const auto& entrances = overworld.entrances();
   for (const auto& entrance : entrances) {
@@ -255,7 +261,7 @@ absl::StatusOr<std::vector<WarpEntry>> CollectWarpEntries(
     entry.entrance_id = entrance.entrance_id_;
     entry.entrance_name = EntranceLabel(entrance.entrance_id_);
     PopulateCommonWarpFields(entry, entrance.map_id_, entrance.map_pos_,
-                             entrance.x_, entrance.y_);
+                             entrance.x_, entrance.y_, map_count);
 
     if (query.type.has_value() && *query.type != entry.type) {
       continue;
@@ -279,7 +285,7 @@ absl::StatusOr<std::vector<WarpEntry>> CollectWarpEntries(
     entry.entrance_id = hole.entrance_id_;
     entry.entrance_name = EntranceLabel(hole.entrance_id_);
     PopulateCommonWarpFields(entry, hole.map_id_, hole.map_pos_, hole.x_,
-                             hole.y_);
+                             hole.y_, map_count);
 
     if (query.type.has_value() && *query.type != entry.type) {
       continue;
