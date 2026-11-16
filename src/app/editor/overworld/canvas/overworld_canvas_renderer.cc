@@ -255,6 +255,8 @@ void OverworldCanvasRenderer::DrawOverworldCanvas() {
                             editor_->current_mode == EditingMode::FILL_TILE);
     if (!tile_tool && editor_->tile_painting_)
       editor_->tile_painting_->SuspendCanvasGestures();
+    // Live proposal ghost: drawn under entities, only while the inbox is open.
+    editor_->DrawLiveProposalGhost();
 
     if (editor_->current_world_ != 2 && editor_->lyra_canvas_.loaded() &&
         editor_->show_entities_) {

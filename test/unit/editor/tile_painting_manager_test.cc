@@ -1,4 +1,5 @@
 #include "app/editor/overworld/painting/tile_painting_manager.h"
+#include "app/editor/overworld/live_proposal.h"
 #include "app/editor/overworld/painting/tile_brush_preview.h"
 
 #include <algorithm>
@@ -1436,6 +1437,95 @@ TEST_F(TilePaintingManagerGestureTest, GuardedStencilRejectsInvalidCells) {
       manager_->ApplyGuardedCells(zelda3::kNumOverworldMaps, {{0, 0, 0, 3}})
           .status()));
   ExpectUnchanged();
+}
+
+TEST_F(TilePaintingManagerGestureTest, ReadMapCellReadsMapLocalWorldCells) {
+  auto& world = overworld_->mutable_map_tiles()->light_world;
+  world[33][2] = 7;
+  auto tile = manager_->ReadMapCell(1, 1, 2);
+  ASSERT_TRUE(tile.ok()) << tile.status();
+  EXPECT_EQ(*tile, 7);
+  EXPECT_TRUE(absl::IsOutOfRange(manager_->ReadMapCell(1, 32, 0).status()));
+  EXPECT_TRUE(absl::IsOutOfRange(manager_->ReadMapCell(-1, 0, 0).status()));
+  EXPECT_TRUE(absl::IsOutOfRange(
+      manager_->ReadMapCell(zelda3::kNumOverworldMaps, 0, 0).status()));
+}
+
+TEST_F(TilePaintingManagerGestureTest,
+       LiveProposalGhostDrawsOnlyTileCellsAndWritesNothing) {
+  int texture_tag = 0;
+  struct ScopedTextureReset {
+    gfx::Bitmap& bitmap;
+    ~ScopedTextureReset() { bitmap.set_texture(nullptr); }
+  } reset{blockset_.atlas};
+  blockset_.atlas.set_texture(&texture_tag);
+  const ImTextureID atlas_texture = (ImTextureID)(intptr_t)&texture_tag;
+  const auto count_images = [&] {
+    int indices = 0;
+    const auto* draw_data = ImGui::GetDrawData();
+    for (const auto* draw_list : draw_data->CmdLists) {
+      for (const auto& command : draw_list->CmdBuffer) {
+        if (command.TexRef._TexData != nullptr &&
+            command.TexRef._TexData->GetTexID() == ImTextureID_Invalid) {
+          continue;
+        }
+        if (command.GetTexID() == atlas_texture)
+          indices += command.ElemCount;
+      }
+    }
+    return indices;
+  };
+  const std::vector<GhostCell> cells = {
+      {0, 0, 3, true, 0, IM_COL32(0, 200, 255, 255)},
+      {2, 1, 4, true, IM_COL32(0, 200, 255, 70), IM_COL32(0, 200, 255, 255)},
+      {5, 5, 2, false, 0, IM_COL32(255, 64, 64, 255)}};
+
+  Frame(Outside(), false, false,
+        [&] { manager_->DrawMapCellsGhost(0, cells, 255); });
+  EXPECT_EQ(count_images(), 12);  // Two tile quads; the outline-only cell
+                                  // and the bounding-box gap draw no image.
+
+  // A map in another world is not on screen: nothing draws.
+  Frame(Outside(), false, false,
+        [&] { manager_->DrawMapCellsGhost(0x40, cells, 255); });
+  EXPECT_EQ(count_images(), 0);
+
+  ExpectUnchanged();
+  EXPECT_TRUE(undo_points_.empty());
+  EXPECT_EQ(finalize_count_, 0);
+  EXPECT_FALSE(rom_.dirty());
+}
+
+TEST_F(TilePaintingManagerGestureTest,
+       LiveProposalPartialAcceptSkipsConflictsInOneUndoStep) {
+  auto& world = overworld_->mutable_map_tiles()->light_world;
+  world[32][0] = 1;  // ready: expected 1
+  world[33][0] = 9;  // conflict: expected 2, someone painted 9
+  world[34][0] = 5;  // already applied: proposed 5
+  initial_tiles_ = *overworld_->mutable_map_tiles();
+  LiveProposal proposal;
+  proposal.id = "partial";
+  proposal.map_id = 1;
+  proposal.cells = {{0, 0, 1, 3}, {1, 0, 2, 4}, {2, 0, 0, 5}};
+  const auto classification =
+      ClassifyLiveProposal(proposal, [&](int x, int y) -> uint16_t {
+        return *manager_->ReadMapCell(1, x, y);
+      });
+  EXPECT_EQ(classification.ready, 1);
+  EXPECT_EQ(classification.conflicts, 1);
+  EXPECT_EQ(classification.already_applied, 1);
+  ASSERT_EQ(classification.conflict_cells.size(), 1u);
+  EXPECT_EQ(classification.conflict_cells[0].found, 9);
+
+  const auto changed =
+      manager_->ApplyGuardedCells(1, classification.ready_cells);
+  ASSERT_TRUE(changed.ok()) << changed.status();
+  EXPECT_EQ(*changed, 1);
+  EXPECT_EQ(world[32][0], 3);
+  EXPECT_EQ(world[33][0], 9);  // the person's edit survives
+  EXPECT_EQ(world[34][0], 5);
+  EXPECT_EQ(undo_points_.size(), 1u);
+  EXPECT_EQ(finalize_count_, 1);
 }
 
 }  // namespace

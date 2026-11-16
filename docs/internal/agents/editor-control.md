@@ -23,7 +23,7 @@ build. Legacy `--rom_file`, `--editor`, and `--room` startup flags remain usable
 
 Discover supported commands in `capabilities.commands` from `status`. In addition
 to the navigation commands above, current builds expose `project.rom.swap`,
-`overworld.stencil.apply`, `project.save`, `project.build`,
+`overworld.stencil.apply`, `proposal.offer`, `project.save`, `project.build`,
 `project.build.cancel`, and `project.run`. Send JSON to `POST /api/v1/editor/control` with
 `X-Yaze-Control: 1`; requests with a browser `Origin`, nonlocal source, or bodies
 over 16 KiB are rejected. Project/proposal paths must be absolute. Room IDs are
@@ -36,6 +36,40 @@ room, palette, project settings, or raw project draft with HTTP 409. It never
 saves/discards work or falls back to a file dialog for missing project ROMs.
 A failed project load restores the previous context. Proposal loading is a
 read-only preview; it does not apply a proposal to the ROM.
+
+## Live Overworld Proposals (`proposal.offer`)
+
+An agent offers Tile16 changes to the person at a running editor without
+writing their ROM. The offer only previews; the person decides.
+
+```json
+{"command": "proposal.offer",
+ "path": "/abs/proposals/woods-trail-a/proposal.json",
+ "proposal_sha256": "<sha256 of the file bytes>",
+ "expected": {"pid": 0, "session_id": "", "project_path": "",
+              "rom_path": "", "rom_sha256": ""}}
+```
+
+`expected` is copied from `status`; a mismatch or a changed file returns 409.
+The packet (`yaze.overworld_live_proposal.v1`, at most 1024 cells):
+
+```json
+{"schema": "yaze.overworld_live_proposal.v1", "id": "woods-trail.a",
+ "title": "Woods trail A", "author": "Claude", "why": "Connect woods to docks",
+ "map_id": 40, "cells": [{"x": 3, "y": 7, "expected": 1, "proposed": 2}]}
+```
+
+Cells are map-local (0..31). Against the live, unsaved map each cell is
+**ready** (holds `expected`), **already applied** (holds `proposed`) or a
+**conflict**. The Overworld editor opens the **Proposals** panel and draws a
+ghost over the real canvas (After / Before / Diff) while that panel is open.
+
+- **Accept** writes only the ready cells as one undo step; conflicts are skipped.
+- **Reject** and **Comment** change nothing in the ROM; a comment keeps it pending.
+- Every decision appends to `feedback.json` beside the packet
+  (`yaze.overworld_live_proposal_feedback.v1`, history per proposal id).
+- Re-offering the same `id` replaces it and resets it to pending.
+- Saving stays the person's normal save; nothing here saves the ROM.
 
 ## Background Save, Build and Run
 

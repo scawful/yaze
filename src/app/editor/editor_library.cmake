@@ -185,6 +185,8 @@ set(
   app/editor/overworld/maps/overworld_map_metadata.cc
   app/editor/overworld/maps/overworld_property_edit.cc
   app/editor/overworld/overworld_editor.cc
+  app/editor/overworld/live_proposal.cc
+  app/editor/overworld/live_proposal_editor.cc
   app/editor/overworld/project_graphics_source.cc
   app/editor/overworld/project_graphics_source_ui.cc
   app/editor/overworld/project_graphics_import.cc
@@ -203,6 +205,7 @@ set(
   app/editor/overworld/panels/map_properties_panel.cc
   app/editor/overworld/panels/overworld_item_list_panel.cc
   app/editor/overworld/panels/scratch_space_panel.cc
+  app/editor/overworld/panels/live_proposals_panel.cc
   app/editor/overworld/panels/usage_statistics_panel.cc
   app/editor/overworld/panels/v3_settings_panel.cc
   app/editor/overworld/tile16_editor.cc

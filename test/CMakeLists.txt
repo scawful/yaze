@@ -438,6 +438,7 @@ if(YAZE_BUILD_TESTS)
     unit/editor/minecart_palette_workflow_test.cc
     unit/editor/project_manager_validator_test.cc
     unit/editor/tile_painting_manager_test.cc
+    unit/editor/live_proposal_test.cc
     unit/zelda3/overworld_graphics_preview_test.cc
     unit/editor/project_graphics_source_test.cc
     unit/editor/project_graphics_import_test.cc

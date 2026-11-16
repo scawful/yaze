@@ -3,6 +3,7 @@
 
 #include <array>
 #include <functional>
+#include <memory>
 #include <vector>
 
 #include "absl/status/status.h"
@@ -72,6 +73,18 @@ struct GuardedTileCell {
   uint16_t proposed = 0;
 };
 
+/// One map-local cell of a read-only overlay drawn over the canvas (a live
+/// proposal ghost). `draw_tile` draws `tile` with the map's own graphics;
+/// zero colors skip the fill or outline.
+struct GhostCell {
+  int x = 0;
+  int y = 0;
+  uint16_t tile = 0;
+  bool draw_tile = false;
+  uint32_t fill_color = 0;     // ImU32
+  uint32_t outline_color = 0;  // ImU32
+};
+
 /// @brief Manages tile painting, fill, selection, and eyedropper operations.
 ///
 /// Owns captured brush contents and canvas gestures. All destinations use
@@ -110,6 +123,15 @@ class TilePaintingManager {
   /// `expected` refuses the whole stencil. Returns the number of cells changed.
   absl::StatusOr<int> ApplyGuardedCells(
       int map_id, const std::vector<GuardedTileCell>& cells);
+
+  /// Live Tile16 at a map-local cell of any ROM map (unsaved edits included).
+  absl::StatusOr<uint16_t> ReadMapCell(int map_id, int x, int y) const;
+
+  /// Draw a read-only ghost over one ROM map of the displayed world. Tiles use
+  /// their own preview textures, so the hover brush preview is unaffected.
+  /// Nothing is written; maps outside the displayed world draw nothing.
+  void DrawMapCellsGhost(int map_id, const std::vector<GhostCell>& cells,
+                         int tile_alpha);
 
   /// @brief Update bitmap pixels after a single tile paint.
   void RenderUpdatedMapBitmap(const ImVec2& click_position,
@@ -152,6 +174,12 @@ class TilePaintingManager {
   // palette. `mark_selection` also moves the canvas selection rectangle.
   void DrawBrushPreview(const TileBrush& brush, TilePosition anchor,
                         bool mark_selection, int alpha);
+  // Draws brush cells (only those set in `mask`, when given) using `storage`
+  // for per-map preview textures.
+  void DrawBrushPieces(
+      const TileBrush& brush, TilePosition anchor, int alpha,
+      std::array<gfx::Bitmap, zelda3::kExpandedMapCount>& storage,
+      const std::vector<bool>* mask);
   // Pixels of `tile_id` as `map_id` draws it (its own tile16 blockset);
   // falls back to the shared blockset when that map has none built.
   std::vector<uint8_t> Tile16PixelsForMap(int map_id, int tile_id) const;
@@ -174,6 +202,10 @@ class TilePaintingManager {
   bool external_brush_active_ = false;
   TileBrush brush_;
   std::array<gfx::Bitmap, zelda3::kExpandedMapCount> map_brush_previews_;
+  // Separate textures: ImGui draws are deferred, so sharing the hover brush
+  // storage would overwrite a ghost texture within the same frame.
+  std::unique_ptr<std::array<gfx::Bitmap, zelda3::kExpandedMapCount>>
+      ghost_previews_;
 };
 
 }  // namespace editor

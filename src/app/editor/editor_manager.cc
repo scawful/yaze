@@ -70,6 +70,7 @@
 #include "app/editor/menu/activity_bar.h"
 #include "app/editor/menu/menu_orchestrator.h"
 #include "app/editor/message/message_editor.h"
+#include "app/editor/overworld/live_proposal.h"
 #include "app/editor/overworld/overworld_editor.h"
 #include "app/editor/session_types.h"
 #include "app/editor/shell/coordinator/ui_coordinator.h"
@@ -3205,11 +3206,18 @@ std::string EditorManager::ExecuteEditorControl(const std::string& request) {
   json response = {{"protocol", "yaze-editor-control/v1"},
                    {"status", "ok"},
                    {"http_status", 200}};
-  response["capabilities"]["commands"] = {
-      "status",       "project.open",           "project.rom.swap",
-      "project.save", "project.build",          "project.build.cancel",
-      "project.run",  "dungeon.select",         "proposal.load",
-      "panel.hide",   "overworld.stencil.apply"};
+  response["capabilities"]["commands"] = {"status",
+                                          "project.open",
+                                          "project.rom.swap",
+                                          "project.save",
+                                          "project.build",
+                                          "project.build.cancel",
+                                          "project.run",
+                                          "dungeon.select",
+                                          "proposal.load",
+                                          "panel.hide",
+                                          "overworld.stencil.apply",
+                                          "proposal.offer"};
 #ifdef _WIN32
   const auto pid = _getpid();
 #else
@@ -3410,6 +3418,71 @@ std::string EditorManager::ExecuteEditorControl(const std::string& request) {
             response["cells"] = cells.size();
             response["cells_changed"] = *changed;
             response["stencil_sha256"] = stencil_sha256;
+          }
+        }
+      }
+    } else if (command == "proposal.offer") {
+      // Live overworld proposal: preview only. Nothing is written until the
+      // person at the editor accepts it in the Proposals panel, so unsaved
+      // work does not block an offer.
+      const auto path = path_argument();
+      const auto proposal_sha256 = hash_argument(body.at("proposal_sha256"));
+      const bool identity_matches =
+          expected_editor_matches(body.at("expected"));
+      std::ifstream file(path, std::ios::binary);
+      const std::string bytes((std::istreambuf_iterator<char>(file)),
+                              std::istreambuf_iterator<char>());
+      if (!file.good() && !file.eof()) {
+        fail(422, "Proposal file could not be read");
+      } else if (core::ComputeSourceArtifactSha256(bytes) != proposal_sha256) {
+        fail(409, "Proposal file does not match proposal_sha256");
+      } else if (!identity_matches) {
+        fail(409,
+             "Proposal expected identity does not match the active editor");
+      } else {
+        const auto loaded = EnsureEditorAssetsLoaded(EditorType::kOverworld);
+        auto* editors = GetCurrentEditorSet();
+        auto* overworld =
+            editors
+                ? editors->GetEditorAs<OverworldEditor>(EditorType::kOverworld)
+                : nullptr;
+        if (!loaded.ok()) {
+          fail(422, std::string(loaded.message()));
+        } else if (!overworld) {
+          fail(503, "Overworld editor is unavailable");
+        } else {
+          auto proposal = ParseLiveProposal(
+              bytes, overworld->overworld().materialized_map_count(),
+              zelda3::kNumTile16Individual);
+          if (!proposal.ok()) {
+            fail(422, std::string(proposal.status().message()));
+          } else {
+            proposal->packet_path = path;
+            proposal->packet_sha256 = proposal_sha256;
+            const std::string id = proposal->id;
+            const std::string title = proposal->title;
+            const int map_id = proposal->map_id;
+            const size_t cells = proposal->cells.size();
+            const auto offered =
+                overworld->OfferLiveProposal(*std::move(proposal));
+            if (!offered.ok()) {
+              fail(absl::IsFailedPrecondition(offered.status()) ? 409 : 422,
+                   std::string(offered.status().message()));
+            } else {
+              SwitchToEditor(EditorType::kOverworld, true);
+              window_manager_.OpenWindow(OverworldPanelIds::kLiveProposals);
+              toast_manager_.Show(
+                  absl::StrFormat("New proposal: %s (map 0x%02X)", title,
+                                  map_id),
+                  ToastType::kInfo);
+              response["id"] = id;
+              response["map_id"] = map_id;
+              response["cells"] = cells;
+              response["ready"] = offered->ready;
+              response["conflicts"] = offered->conflicts;
+              response["already_applied"] = offered->already_applied;
+              response["feedback_path"] = LiveProposalFeedbackPath(path);
+            }
           }
         }
       }

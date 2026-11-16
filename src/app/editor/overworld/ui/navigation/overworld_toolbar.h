@@ -33,6 +33,7 @@ struct OverworldPanelIds {
   static constexpr const char* kMapProperties = "overworld.properties";
   static constexpr const char* kV3Settings = "overworld.v3_settings";
   static constexpr const char* kDebugWindow = "overworld.debug";
+  static constexpr const char* kLiveProposals = "overworld.proposals";
 };
 
 /// Canvas navigation, labeled drawing tools, view controls and editing windows.

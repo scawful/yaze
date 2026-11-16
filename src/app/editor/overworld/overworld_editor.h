@@ -17,6 +17,7 @@
 #include "app/editor/overworld/entity/entity_operations.h"
 #include "app/editor/overworld/entity/entity_workbench.h"
 #include "app/editor/overworld/entity/overworld_entity_renderer.h"
+#include "app/editor/overworld/live_proposal.h"
 #include "app/editor/overworld/lyra_terrain_canvas.h"
 #include "app/editor/overworld/maps/map_properties.h"
 #include "app/editor/overworld/maps/map_refresh_coordinator.h"
@@ -198,6 +199,19 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   /// Select `map_id` and apply a guarded stencil as one undoable paint.
   absl::StatusOr<int> ApplyTile16Stencil(
       int map_id, const std::vector<GuardedTileCell>& cells);
+
+  // Live proposals: agent-offered Tile16 cells previewed as a canvas ghost.
+  // Only the person at the editor accepts; acceptance is one undo step.
+  absl::StatusOr<LiveProposalClassification> OfferLiveProposal(
+      LiveProposal proposal);
+  absl::StatusOr<LiveProposalClassification> ClassifyLiveProposalCells(
+      const LiveProposal& proposal) const;
+  absl::StatusOr<int> AcceptLiveProposal(std::string_view id);
+  absl::Status RejectLiveProposal(std::string_view id, std::string comment);
+  absl::Status CommentLiveProposal(std::string_view id, std::string comment);
+  absl::Status FocusLiveProposal(std::string_view id);
+  void DrawLiveProposalGhost();
+  LiveProposalInbox& live_proposals() { return live_proposals_; }
   absl::Status Find() override { return absl::UnimplementedError("Find"); }
   absl::Status Save() override;
   // ROM serializer only; the caller owns scratch-asset publication separately.
@@ -907,6 +921,7 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   std::unique_ptr<OverworldCanvasRenderer> canvas_renderer_;
   std::unique_ptr<CanvasNavigationManager> canvas_nav_;
   std::unique_ptr<TilePaintingManager> tile_painting_;
+  LiveProposalInbox live_proposals_;
   std::unique_ptr<zelda3::OverworldUpgradeSystem> upgrade_system_;
   std::unique_ptr<EntityMutationService> entity_mutation_service_;
   std::unique_ptr<OverworldInteractionCoordinator> interaction_coordinator_;

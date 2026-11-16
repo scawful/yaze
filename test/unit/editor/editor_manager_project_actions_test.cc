@@ -5117,6 +5117,50 @@ TEST_F(EditorControlRomSwapTest, StencilRefusesBeforeTouchingTheEditor) {
   EXPECT_FALSE(manager_->HasPendingUnsavedSessionAction());
 }
 
+TEST_F(EditorControlRomSwapTest, ProposalOfferRefusesBadRequestsWithoutWrites) {
+  const auto packet_path = temp_dir_.path / "proposal.json";
+  std::ofstream(packet_path, std::ios::binary | std::ios::trunc)
+      << nlohmann::json(
+             {{"schema", "yaze.overworld_live_proposal.v1"},
+              {"id", "trail-a"},
+              {"title", "Trail A"},
+              {"map_id", 0x28},
+              {"cells",
+               {{{"x", 0}, {"y", 0}, {"expected", 1}, {"proposed", 2}}}}})
+             .dump();
+  const nlohmann::json request = {
+      {"command", "proposal.offer"},
+      {"path", packet_path.string()},
+      {"proposal_sha256",
+       core::ComputeSourceArtifactSha256(ReadFile(packet_path))},
+      {"expected", State()}};
+
+  auto changed = request;
+  changed["proposal_sha256"] = std::string(64, '0');
+  EXPECT_EQ(Execute(changed)["http_status"], 409);
+  changed = request;
+  changed["expected"]["pid"] = request["expected"]["pid"].get<int>() + 1;
+  EXPECT_EQ(Execute(changed)["http_status"], 409);
+  changed = request;
+  changed["path"] = "relative.json";
+  EXPECT_EQ(Execute(changed)["http_status"], 400);
+  changed = request;
+  changed["path"] = (temp_dir_.path / "missing.json").string();
+  EXPECT_EQ(Execute(changed)["http_status"], 422);
+  for (const auto* field : {"expected", "proposal_sha256", "path"}) {
+    changed = request;
+    changed.erase(field);
+    EXPECT_EQ(Execute(changed)["http_status"], 400) << field;
+  }
+  ExpectUnchanged();
+  EXPECT_FALSE(std::filesystem::exists(temp_dir_.path / "feedback.json"));
+  EXPECT_FALSE(manager_->HasPendingUnsavedSessionAction());
+  const auto status = Execute({{"command", "status"}});
+  const auto& commands = status["capabilities"]["commands"];
+  EXPECT_NE(std::find(commands.begin(), commands.end(), "proposal.offer"),
+            commands.end());
+}
+
 TEST_F(EditorControlRomSwapTest, RejectsCandidateChangedAfterReceipt) {
   const auto request = Request();
   WriteRomFile(candidate_path_, "CHANGED AFTER RECEIPT");
@@ -5237,6 +5281,106 @@ TEST_F(EditorControlRomSwapTest, RejectsLyraDraftThroughRemoteAndGuiPaths) {
   EXPECT_EQ(ReadFile(project_path_), descriptor_before_);
   EXPECT_FALSE(std::filesystem::exists(
       manager_->GetCurrentProject()->lyra_terrain_file));
+}
+
+TEST_F(EditorControlRomSwapTest, ProposalAcceptWritesOneUndoStepAndFeedback) {
+  const char* fixture = std::getenv("YAZE_TEST_ROM_OOS");
+  if (!fixture || !*fixture)
+    GTEST_SKIP() << "Set YAZE_TEST_ROM_OOS to an Oracle ROM copy";
+  std::filesystem::copy_file(fixture, rom_path_,
+                             std::filesystem::copy_options::overwrite_existing);
+  ASSERT_OK(manager_->ReloadProjectRom());
+  ASSERT_OK(manager_->EnsureEditorAssetsLoaded(EditorType::kOverworld));
+  auto* editor = manager_->GetCurrentEditorSet()->GetEditorAs<OverworldEditor>(
+      EditorType::kOverworld);
+  ASSERT_NE(editor, nullptr);
+  ASSERT_FALSE(editor->is_lyra_preview());
+  auto cell = [&](int x, int y) -> uint16_t& {
+    return editor->overworld().GetMapTiles(0)[x][y];
+  };
+  const auto other = [](uint16_t tile) -> int {
+    return tile == 1 ? 2 : 1;
+  };
+  // (2,8),(3,8): ready. (4,8): already applied. (5,8): conflict.
+  const uint16_t ready_a = cell(2, 8), ready_b = cell(3, 8);
+  const uint16_t applied = cell(4, 8), conflict = cell(5, 8);
+  const int conflict_expected = conflict == 3 ? 4 : 3;
+  const auto packet_path = temp_dir_.path / "accept" / "proposal.json";
+  std::filesystem::create_directories(packet_path.parent_path());
+  std::ofstream(packet_path, std::ios::binary | std::ios::trunc)
+      << nlohmann::json({{"schema", "yaze.overworld_live_proposal.v1"},
+                         {"id", "accept-proof"},
+                         {"title", "Accept proof"},
+                         {"map_id", 0},
+                         {"cells",
+                          {{{"x", 2},
+                            {"y", 8},
+                            {"expected", ready_a},
+                            {"proposed", other(ready_a)}},
+                           {{"x", 3},
+                            {"y", 8},
+                            {"expected", ready_b},
+                            {"proposed", other(ready_b)}},
+                           {{"x", 4},
+                            {"y", 8},
+                            {"expected", other(applied)},
+                            {"proposed", applied}},
+                           {{"x", 5},
+                            {"y", 8},
+                            {"expected", conflict_expected},
+                            {"proposed", other(conflict_expected)}}}}})
+             .dump();
+  const auto before = manager_->GetCurrentRom()->vector();
+  const std::string rom_file_before = ReadFile(rom_path_);
+  const auto offered =
+      Execute({{"command", "proposal.offer"},
+               {"path", packet_path.string()},
+               {"proposal_sha256",
+                core::ComputeSourceArtifactSha256(ReadFile(packet_path))},
+               {"expected", State()}});
+  ASSERT_EQ(offered["http_status"], 200) << offered.dump();
+  EXPECT_EQ(offered["ready"], 2);
+  EXPECT_EQ(offered["already_applied"], 1);
+  EXPECT_EQ(offered["conflicts"], 1);
+  // An offer changes nothing: no tiles, no ROM bytes, no feedback.
+  EXPECT_EQ(cell(2, 8), ready_a);
+  EXPECT_EQ(manager_->GetCurrentRom()->vector(), before);
+  const auto feedback_path = packet_path.parent_path() / "feedback.json";
+  EXPECT_FALSE(std::filesystem::exists(feedback_path));
+
+  const auto accepted = editor->AcceptLiveProposal("accept-proof");
+  ASSERT_TRUE(accepted.ok()) << accepted.status();
+  EXPECT_EQ(*accepted, 2);
+  EXPECT_EQ(cell(2, 8), other(ready_a));
+  EXPECT_EQ(cell(3, 8), other(ready_b));
+  EXPECT_EQ(cell(4, 8), applied);
+  EXPECT_EQ(cell(5, 8), conflict);
+  // Accept edits the session only; the ROM file on disk is untouched.
+  EXPECT_EQ(ReadFile(rom_path_), rom_file_before);
+  EXPECT_EQ(editor->AcceptLiveProposal("accept-proof").status().code(),
+            absl::StatusCode::kFailedPrecondition);
+
+  const auto feedback = nlohmann::json::parse(ReadFile(feedback_path));
+  EXPECT_EQ(feedback["schema"], "yaze.overworld_live_proposal_feedback.v1");
+  EXPECT_EQ(feedback["status"], "accepted");
+  ASSERT_EQ(feedback["history"].size(), 1u);
+  const auto& entry = feedback["history"][0];
+  EXPECT_EQ(entry["decision"], "accepted");
+  EXPECT_EQ(entry["cells_applied"], 2);
+  EXPECT_EQ(entry["already_applied"], 1);
+  ASSERT_EQ(entry["conflicts"].size(), 1u);
+  EXPECT_EQ(entry["conflicts"][0]["x"], 5);
+  EXPECT_EQ(entry["conflicts"][0]["found"], conflict);
+  EXPECT_EQ(entry["packet_sha256"],
+            core::ComputeSourceArtifactSha256(ReadFile(packet_path)));
+
+  // Both written cells revert together: Accept is one undo step.
+  ASSERT_OK(editor->Undo());
+  EXPECT_EQ(cell(2, 8), ready_a);
+  EXPECT_EQ(cell(3, 8), ready_b);
+  ASSERT_OK(editor->Redo());
+  EXPECT_EQ(cell(2, 8), other(ready_a));
+  EXPECT_EQ(cell(3, 8), other(ready_b));
 }
 
 }  // namespace

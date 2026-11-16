@@ -358,6 +358,100 @@ absl::StatusOr<int> TilePaintingManager::ApplyGuardedCells(
   return changed;
 }
 
+absl::StatusOr<uint16_t> TilePaintingManager::ReadMapCell(int map_id, int x,
+                                                          int y) const {
+  if (map_id < 0 || map_id >= deps_.overworld->materialized_map_count()) {
+    return absl::OutOfRangeError("Map is outside the ROM map model");
+  }
+  if (x < 0 || x >= kTilesPerMap || y < 0 || y >= kTilesPerMap) {
+    return absl::OutOfRangeError("Cell is outside the map");
+  }
+  const int world = map_id / 0x40;
+  if (world > 2) {
+    return absl::OutOfRangeError("Map is outside the three overworld worlds");
+  }
+  const int world_x = (map_id % 0x40) % 8 * kTilesPerMap + x;
+  const int world_y = (map_id % 0x40) / 8 * kTilesPerMap + y;
+  if (callbacks_.is_project_tile &&
+      callbacks_.is_project_tile(world, world_x, world_y)) {
+    return absl::FailedPreconditionError("Cell is project terrain");
+  }
+  const auto& tiles = deps_.overworld->GetMapTiles(world);
+  if (world_x >= static_cast<int>(tiles.size()) ||
+      world_y >= static_cast<int>(tiles[world_x].size())) {
+    return absl::OutOfRangeError("Cell is outside the loaded world");
+  }
+  return tiles[world_x][world_y];
+}
+
+void TilePaintingManager::DrawMapCellsGhost(int map_id,
+                                            const std::vector<GhostCell>& cells,
+                                            int tile_alpha) {
+  if (cells.empty() || map_id < 0 ||
+      map_id >= deps_.overworld->materialized_map_count() ||
+      map_id / 0x40 != *deps_.current_world) {
+    return;
+  }
+  const int origin_x = (map_id % 0x40) % 8 * kTilesPerMap;
+  const int origin_y = (map_id % 0x40) / 8 * kTilesPerMap;
+  int min_x = kTilesPerMap, min_y = kTilesPerMap, max_x = -1, max_y = -1;
+  for (const auto& cell : cells) {
+    if (!cell.draw_tile)
+      continue;
+    min_x = std::min(min_x, cell.x);
+    min_y = std::min(min_y, cell.y);
+    max_x = std::max(max_x, cell.x);
+    max_y = std::max(max_y, cell.y);
+  }
+  if (max_x >= 0) {
+    // One brush over the bounding box; only proposal cells are drawn.
+    TileBrush brush{max_x - min_x + 1, max_y - min_y + 1, {}};
+    brush.tile_ids.assign(brush.width * brush.height, 0);
+    std::vector<bool> mask(brush.tile_ids.size(), false);
+    for (const auto& cell : cells) {
+      if (!cell.draw_tile || cell.x < 0 || cell.x >= kTilesPerMap ||
+          cell.y < 0 || cell.y >= kTilesPerMap)
+        continue;
+      const int index = (cell.y - min_y) * brush.width + (cell.x - min_x);
+      brush.tile_ids[index] = cell.tile;
+      mask[index] = true;
+    }
+    if (!ghost_previews_) {
+      ghost_previews_ = std::make_unique<
+          std::array<gfx::Bitmap, zelda3::kExpandedMapCount>>();
+    }
+    DrawBrushPieces(brush, {origin_x + min_x, origin_y + min_y}, tile_alpha,
+                    *ghost_previews_, &mask);
+  }
+
+  auto& canvas = *deps_.ow_map_canvas;
+  const float scale = canvas.global_scale() > 0 ? canvas.global_scale() : 1.0f;
+  const float size = kTile16Size * scale;
+  const ImVec2 origin(canvas.zero_point().x + canvas.scrolling().x,
+                      canvas.zero_point().y + canvas.scrolling().y);
+  auto* draw = canvas.draw_list();
+  if (!draw)
+    return;
+  draw->PushClipRect(
+      canvas.zero_point(),
+      ImVec2(canvas.zero_point().x + canvas.canvas_size().x * scale,
+             canvas.zero_point().y + canvas.canvas_size().y * scale),
+      true);
+  for (const auto& cell : cells) {
+    if (cell.x < 0 || cell.x >= kTilesPerMap || cell.y < 0 ||
+        cell.y >= kTilesPerMap)
+      continue;
+    const ImVec2 start(origin.x + (origin_x + cell.x) * size,
+                       origin.y + (origin_y + cell.y) * size);
+    const ImVec2 end(start.x + size, start.y + size);
+    if (cell.fill_color != 0)
+      draw->AddRectFilled(start, end, cell.fill_color);
+    if (cell.outline_color != 0)
+      draw->AddRect(start, end, cell.outline_color, 0.0f, 0, 2.0f);
+  }
+  draw->PopClipRect();
+}
+
 void TilePaintingManager::RefreshChangedMaps(const ChangedMaps& changed_maps) {
   for (int map = 0; map < deps_.overworld->materialized_map_count(); ++map) {
     if (changed_maps[map]) {
@@ -546,7 +640,14 @@ void TilePaintingManager::DrawBrushPreview(const TileBrush& brush,
     points->push_back(ImVec2((anchor.x + brush.width - 1) * kTile16Size,
                              (anchor.y + brush.height - 1) * kTile16Size));
   }
+  DrawBrushPieces(brush, anchor, alpha, map_brush_previews_, nullptr);
+}
 
+void TilePaintingManager::DrawBrushPieces(
+    const TileBrush& brush, TilePosition anchor, int alpha,
+    std::array<gfx::Bitmap, zelda3::kExpandedMapCount>& storage,
+    const std::vector<bool>* mask) {
+  auto& canvas = *deps_.ow_map_canvas;
   // Build each destination piece once. The selected/pinned map's atlas is
   // only a fallback for synthetic or unavailable map data.
   std::array<MapBrushPreview, zelda3::kExpandedMapCount> pieces;
@@ -576,7 +677,7 @@ void TilePaintingManager::DrawBrushPreview(const TileBrush& brush,
       piece = BuildMapBrushPreview(brush, anchor.x, anchor.y, mx, my, source);
       if (piece.pixels.empty())
         continue;
-      auto& preview = map_brush_previews_[map_id];
+      auto& preview = storage[map_id];
       SyncMapBrushPreview(piece, map->current_palette(), preview);
       has_piece[map_id] = true;
     }
@@ -593,6 +694,8 @@ void TilePaintingManager::DrawBrushPreview(const TileBrush& brush,
       true);
   for (int y = 0; y < brush.height; ++y) {
     for (int x = 0; x < brush.width; ++x) {
+      if (mask && !(*mask)[y * brush.width + x])
+        continue;
       const int id = brush.at(x, y);
       const TilePosition position{anchor.x + x, anchor.y + y};
       if (!IsValidTile(position))
@@ -602,11 +705,11 @@ void TilePaintingManager::DrawBrushPreview(const TileBrush& brush,
       const bool project_tile = IsProjectTile(position);
       const bool use_piece = !project_tile && has_piece[map_id];
       const gfx::Bitmap* source_atlas =
-          project_tile ? (callbacks_.project_tile_atlas
-                              ? callbacks_.project_tile_atlas(map_id)
-                              : nullptr)
-                       : (use_piece ? &map_brush_previews_[map_id]
-                                    : &deps_.tile16_blockset->atlas);
+          project_tile
+              ? (callbacks_.project_tile_atlas
+                     ? callbacks_.project_tile_atlas(map_id)
+                     : nullptr)
+              : (use_piece ? &storage[map_id] : &deps_.tile16_blockset->atlas);
       if (!source_atlas)
         continue;
       const auto& atlas = *source_atlas;
