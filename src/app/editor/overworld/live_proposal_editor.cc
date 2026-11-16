@@ -36,19 +36,46 @@ OverworldEditor::ClassifyLiveProposalCells(const LiveProposal& proposal) const {
   if (!overworld_.is_loaded() || !tile_painting_) {
     return absl::FailedPreconditionError("Overworld is not loaded");
   }
-  absl::Status read_error = absl::OkStatus();
-  auto result = ClassifyLiveProposal(proposal, [&](int x, int y) -> uint16_t {
-    auto tile = tile_painting_->ReadMapCell(proposal.map_id, x, y);
-    if (!tile.ok()) {
-      if (read_error.ok())
-        read_error = tile.status();
-      return 0xFFFF;  // never a valid Tile16: classifies as a conflict
+  LiveProposalHooks hooks;
+  hooks.read = [this](int map_id, int x, int y) {
+    return tile_painting_->ReadMapCell(map_id, x, y);
+  };
+  return ClassifyLiveProposalWith(proposal, hooks);
+}
+
+LiveProposalHooks OverworldEditor::MakeLiveProposalHooks(bool* switched) {
+  LiveProposalHooks hooks;
+  hooks.read = [this](int map_id, int x, int y) {
+    return ReadLiveMapCell(map_id, x, y);
+  };
+  hooks.apply =
+      [this, switched](
+          int map_id,
+          const std::vector<GuardedTileCell>& cells) -> absl::StatusOr<int> {
+    if (is_lyra_preview())
+      return absl::FailedPreconditionError("Lyra preview is read-only");
+    if (!overworld_.is_loaded() || !tile_painting_)
+      return absl::FailedPreconditionError("Overworld is not loaded");
+    // Guarded cells need only the map's world on screen; the selected map
+    // and its pin stay as the person left them.
+    if (map_id / 0x40 != current_world_) {
+      if (current_map_lock_) {
+        return absl::FailedPreconditionError(
+            "The map is pinned in another world; unpin it or use Jump to map");
+      }
+      SelectMapForEditing(map_id, /*respect_pin=*/false);
+      if (map_id / 0x40 != current_world_) {
+        return absl::FailedPreconditionError(
+            "Proposal map could not be selected");
+      }
+      if (switched)
+        *switched = true;
     }
-    return *tile;
-  });
-  if (!read_error.ok())
-    return read_error;
-  return result;
+    return tile_painting_->ApplyGuardedCells(map_id, cells);
+  };
+  hooks.rom_path = rom_ ? rom_->filename() : std::string();
+  hooks.at_utc = NowUtc();
+  return hooks;
 }
 
 absl::StatusOr<uint16_t> OverworldEditor::ReadLiveMapCell(int map_id, int x,
@@ -95,45 +122,22 @@ absl::StatusOr<int> OverworldEditor::AcceptLiveProposal(std::string_view id) {
   LiveProposal* proposal = live_proposals_.Find(id);
   if (!proposal)
     return absl::NotFoundError("No live proposal with that id");
-  if (proposal->decision != LiveProposalDecision::kPending) {
-    return absl::FailedPreconditionError("Proposal is already decided");
+  // Refuse a pinned other-world map before any feedback is written.
+  if (proposal->decision == LiveProposalDecision::kPending &&
+      proposal->map_id / 0x40 != current_world_ && current_map_lock_) {
+    proposal->last_result = absl::StrFormat(
+        "Not accepted: map 0x%02X is pinned in another world. Unpin it or use "
+        "Jump to map, then Accept.",
+        current_map_);
+    return absl::FailedPreconditionError(proposal->last_result);
   }
-  auto classification = ClassifyLiveProposalCells(*proposal);
-  if (!classification.ok())
-    return classification.status();
-  if (classification->ready == 0 && classification->already_applied == 0) {
-    return absl::FailedPreconditionError(
-        "Every cell conflicts with the current map; nothing to accept");
+  bool switched = false;
+  auto applied =
+      AcceptLiveProposalWith(*proposal, MakeLiveProposalHooks(&switched));
+  if (applied.ok() && switched) {
+    proposal->last_result +=
+        absl::StrFormat("; switched to map 0x%02X", proposal->map_id);
   }
-  int applied = 0;
-  if (classification->ready > 0) {
-    // ApplyGuardedCells re-checks every ready cell and writes all or none,
-    // as one non-merging undo step.
-    auto result =
-        ApplyTile16Stencil(proposal->map_id, classification->ready_cells);
-    if (!result.ok())
-      return result.status();
-    applied = *result;
-  }
-  proposal->decision = LiveProposalDecision::kAccepted;
-  proposal->applied_cells = applied > 0 ? classification->ready_cells
-                                        : std::vector<GuardedTileCell>{};
-  proposal->undone = false;
-  LiveProposalFeedbackEntry entry;
-  entry.decision = "accepted";
-  entry.cells_applied = applied;
-  entry.already_applied = classification->already_applied;
-  entry.conflicts = classification->conflict_cells;
-  entry.rom_path = rom_ ? rom_->filename() : std::string();
-  entry.at_utc = NowUtc();
-  const auto written = WriteLiveProposalFeedback(*proposal, entry);
-  proposal->last_result = absl::StrFormat(
-      "Accepted: %s written (one undo step), %s skipped%s",
-      CountLabel(applied, "cell", "cells"),
-      CountLabel(classification->conflicts, "conflict", "conflicts"),
-      written.ok() ? "" : " — feedback file NOT written");
-  if (!written.ok())
-    return written;
   return applied;
 }
 
@@ -142,19 +146,8 @@ absl::Status OverworldEditor::RejectLiveProposal(std::string_view id,
   LiveProposal* proposal = live_proposals_.Find(id);
   if (!proposal)
     return absl::NotFoundError("No live proposal with that id");
-  if (proposal->decision != LiveProposalDecision::kPending) {
-    return absl::FailedPreconditionError("Proposal is already decided");
-  }
-  proposal->decision = LiveProposalDecision::kRejected;
-  LiveProposalFeedbackEntry entry;
-  entry.decision = "rejected";
-  entry.comment = std::move(comment);
-  entry.rom_path = rom_ ? rom_->filename() : std::string();
-  entry.at_utc = NowUtc();
-  const auto written = WriteLiveProposalFeedback(*proposal, entry);
-  proposal->last_result = written.ok() ? "Rejected; feedback written"
-                                       : "Rejected — feedback file NOT written";
-  return written;
+  return RejectLiveProposalWith(*proposal, std::move(comment),
+                                MakeLiveProposalHooks());
 }
 
 absl::Status OverworldEditor::CommentLiveProposal(std::string_view id,
@@ -162,17 +155,8 @@ absl::Status OverworldEditor::CommentLiveProposal(std::string_view id,
   LiveProposal* proposal = live_proposals_.Find(id);
   if (!proposal)
     return absl::NotFoundError("No live proposal with that id");
-  if (comment.empty())
-    return absl::InvalidArgumentError("Comment is empty");
-  LiveProposalFeedbackEntry entry;
-  entry.decision = "commented";
-  entry.comment = std::move(comment);
-  entry.rom_path = rom_ ? rom_->filename() : std::string();
-  entry.at_utc = NowUtc();
-  const auto written = WriteLiveProposalFeedback(*proposal, entry);
-  proposal->last_result = written.ok() ? "Comment sent; proposal stays pending"
-                                       : "Comment NOT written";
-  return written;
+  return CommentLiveProposalWith(*proposal, std::move(comment),
+                                 MakeLiveProposalHooks());
 }
 
 absl::Status OverworldEditor::FocusLiveProposal(std::string_view id) {
@@ -188,49 +172,10 @@ absl::Status OverworldEditor::FocusLiveProposal(std::string_view id) {
 void OverworldEditor::SyncLiveProposalsAfterHistory() {
   if (!overworld_.is_loaded() || !tile_painting_)
     return;
+  const auto hooks = MakeLiveProposalHooks();
   for (const auto& listed : live_proposals_.proposals()) {
-    LiveProposal* proposal = live_proposals_.Find(listed.id);
-    if (!proposal || proposal->applied_cells.empty())
-      continue;
-    const bool accepted = proposal->decision == LiveProposalDecision::kAccepted;
-    const bool undone = proposal->undone &&
-                        proposal->decision == LiveProposalDecision::kPending;
-    if (!accepted && !undone)
-      continue;
-    bool all_expected = true;
-    bool all_proposed = true;
-    for (const auto& cell : proposal->applied_cells) {
-      auto tile = tile_painting_->ReadMapCell(proposal->map_id, cell.x, cell.y);
-      if (!tile.ok()) {
-        all_expected = all_proposed = false;
-        break;
-      }
-      all_expected &= *tile == cell.expected;
-      all_proposed &= *tile == cell.proposed;
-    }
-    const int count = static_cast<int>(proposal->applied_cells.size());
-    LiveProposalFeedbackEntry entry;
-    if (accepted && all_expected) {
-      // Back to pending: the ghost returns and Accept works again.
-      proposal->decision = LiveProposalDecision::kPending;
-      proposal->undone = true;
-      entry.decision = "undone";
-    } else if (undone && all_proposed) {
-      proposal->decision = LiveProposalDecision::kAccepted;
-      proposal->undone = false;
-      entry.decision = "redone";
-      entry.cells_applied = count;
-    } else {
-      continue;
-    }
-    entry.rom_path = rom_ ? rom_->filename() : std::string();
-    entry.at_utc = NowUtc();
-    const auto written = WriteLiveProposalFeedback(*proposal, entry);
-    proposal->last_result =
-        absl::StrFormat("%s: %s %s%s", accepted ? "Undone" : "Redone",
-                        CountLabel(count, "cell", "cells"),
-                        accepted ? "restored" : "written again",
-                        written.ok() ? "" : " — feedback file NOT written");
+    if (LiveProposal* proposal = live_proposals_.Find(listed.id))
+      SyncLiveProposalWith(*proposal, hooks);
   }
 }
 

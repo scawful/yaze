@@ -1,11 +1,15 @@
 #include "app/editor/overworld/live_proposal.h"
 
+#include <algorithm>
 #include <chrono>
 #include <filesystem>
 #include <fstream>
 #include <functional>
 #include <iterator>
+#include <map>
 #include <string>
+#include <utility>
+#include <vector>
 
 #include "gtest/gtest.h"
 #include "nlohmann/json.hpp"
@@ -93,12 +97,13 @@ TEST(LiveProposalTest, ClassifiesReadyConflictAndAlreadyApplied) {
   EXPECT_EQ(result.conflict_cells[0].found, 7);
 }
 
-TEST(LiveProposalTest, FeedbackKeepsHistoryForTheSameIdOnly) {
+TEST(LiveProposalTest, FeedbackKeepsHistoryAndRefusesForeignOrBrokenFiles) {
   LiveProposal proposal = *Parse(ValidPacket());
   proposal.packet_sha256 = std::string(64, 'a');
   LiveProposalFeedbackEntry comment{"commented", "move it one tile north"};
-  const auto first =
-      json::parse(BuildLiveProposalFeedback(proposal, comment, ""));
+  auto first_text = BuildLiveProposalFeedback(proposal, comment, "");
+  ASSERT_TRUE(first_text.ok()) << first_text.status();
+  const auto first = json::parse(*first_text);
   EXPECT_EQ(first["schema"], "yaze.overworld_live_proposal_feedback.v1");
   EXPECT_EQ(first["status"], "pending");
   ASSERT_EQ(first["history"].size(), 1u);
@@ -106,44 +111,367 @@ TEST(LiveProposalTest, FeedbackKeepsHistoryForTheSameIdOnly) {
 
   proposal.decision = LiveProposalDecision::kAccepted;
   LiveProposalFeedbackEntry accept{"accepted", "", 2, 0, {{1, 0, 1, 9}}};
-  const auto second =
-      json::parse(BuildLiveProposalFeedback(proposal, accept, first.dump()));
+  auto second_text = BuildLiveProposalFeedback(proposal, accept, first.dump());
+  ASSERT_TRUE(second_text.ok()) << second_text.status();
+  const auto second = json::parse(*second_text);
   EXPECT_EQ(second["status"], "accepted");
   ASSERT_EQ(second["history"].size(), 2u);
   EXPECT_EQ(second["history"][1]["cells_applied"], 2);
   EXPECT_EQ(second["history"][1]["conflicts"][0]["found"], 9);
 
+  // History is never dropped: another id or a broken file is refused.
   json other = first;
   other["id"] = "someone-else";
-  const auto fresh =
-      json::parse(BuildLiveProposalFeedback(proposal, accept, other.dump()));
-  EXPECT_EQ(fresh["history"].size(), 1u);
-  const auto garbage =
-      json::parse(BuildLiveProposalFeedback(proposal, accept, "{broken"));
-  EXPECT_EQ(garbage["history"].size(), 1u);
+  EXPECT_FALSE(BuildLiveProposalFeedback(proposal, accept, other.dump()).ok());
+  json no_id = first;
+  no_id.erase("id");
+  EXPECT_FALSE(BuildLiveProposalFeedback(proposal, accept, no_id.dump()).ok());
+  json no_history = first;
+  no_history.erase("history");
+  EXPECT_FALSE(
+      BuildLiveProposalFeedback(proposal, accept, no_history.dump()).ok());
+  EXPECT_FALSE(BuildLiveProposalFeedback(proposal, accept, "{broken").ok());
+  EXPECT_FALSE(BuildLiveProposalFeedback(proposal, accept, "[1,2]").ok());
 }
 
-TEST(LiveProposalTest, WritesFeedbackBesideThePacket) {
-  const auto dir =
-      std::filesystem::temp_directory_path() /
-      ("yaze_live_proposal_" +
-       std::to_string(
-           std::chrono::steady_clock::now().time_since_epoch().count()));
-  std::filesystem::create_directories(dir);
+// A fresh empty folder under the system temp directory.
+class TempDir {
+ public:
+  TempDir() {
+    static int counter = 0;
+    path_ = std::filesystem::temp_directory_path() /
+            ("yaze_live_proposal_" +
+             std::to_string(
+                 std::chrono::steady_clock::now().time_since_epoch().count()) +
+             "_" + std::to_string(counter++));
+    std::filesystem::create_directories(path_);
+  }
+  ~TempDir() {
+    std::error_code ignored;
+    std::filesystem::remove_all(path_, ignored);
+  }
+  const std::filesystem::path& path() const { return path_; }
+  std::vector<std::string> Names() const {
+    std::vector<std::string> names;
+    for (const auto& entry : std::filesystem::directory_iterator(path_))
+      names.push_back(entry.path().filename().string());
+    std::sort(names.begin(), names.end());
+    return names;
+  }
+
+ private:
+  std::filesystem::path path_;
+};
+
+std::string ReadText(const std::filesystem::path& path) {
+  std::ifstream in(path, std::ios::binary);
+  return std::string(std::istreambuf_iterator<char>(in),
+                     std::istreambuf_iterator<char>());
+}
+
+json ReadJson(const std::filesystem::path& path) {
+  return json::parse(ReadText(path));
+}
+
+TEST(LiveProposalTest, WritesFeedbackBesideThePacketNamedById) {
+  TempDir dir;
   LiveProposal proposal = *Parse(ValidPacket());
   EXPECT_FALSE(WriteLiveProposalFeedback(proposal, {"rejected"}).ok());
-  proposal.packet_path = (dir / "proposal.json").string();
-  EXPECT_EQ(LiveProposalFeedbackPath(proposal.packet_path),
-            (dir / "feedback.json").string());
+  proposal.packet_path = (dir.path() / "proposal.json").string();
+  EXPECT_EQ(LiveProposalFeedbackPath(proposal.packet_path, proposal.id),
+            (dir.path() / "feedback-woods-trail.a.json").string());
   ASSERT_TRUE(WriteLiveProposalFeedback(proposal, {"commented", "a"}).ok());
   ASSERT_TRUE(WriteLiveProposalFeedback(proposal, {"commented", "b"}).ok());
-  std::ifstream in(dir / "feedback.json");
-  const auto feedback = json::parse(std::string(
-      std::istreambuf_iterator<char>(in), std::istreambuf_iterator<char>()));
+  const auto feedback = ReadJson(dir.path() / "feedback-woods-trail.a.json");
   ASSERT_EQ(feedback["history"].size(), 2u);
   EXPECT_EQ(feedback["history"][1]["comment"], "b");
-  EXPECT_FALSE(std::filesystem::exists(dir / "feedback.json.tmp"));
-  std::filesystem::remove_all(dir);
+  // The unique temp file is renamed onto the target; nothing is left over.
+  EXPECT_EQ(dir.Names(),
+            std::vector<std::string>{"feedback-woods-trail.a.json"});
+}
+
+TEST(LiveProposalTest, TwoPacketsInOneFolderKeepSeparateFeedback) {
+  TempDir dir;
+  LiveProposal a = *Parse(ValidPacket());
+  LiveProposal b = a;
+  b.id = "woods-trail.b";
+  a.packet_path = b.packet_path = (dir.path() / "proposal.json").string();
+  ASSERT_TRUE(WriteLiveProposalFeedback(a, {"commented", "for a"}).ok());
+  ASSERT_TRUE(WriteLiveProposalFeedback(b, {"rejected", "for b"}).ok());
+  ASSERT_TRUE(WriteLiveProposalFeedback(a, {"commented", "a again"}).ok());
+  const auto fa = ReadJson(dir.path() / "feedback-woods-trail.a.json");
+  const auto fb = ReadJson(dir.path() / "feedback-woods-trail.b.json");
+  EXPECT_EQ(fa["id"], "woods-trail.a");
+  EXPECT_EQ(fb["id"], "woods-trail.b");
+  EXPECT_EQ(fa["history"].size(), 2u);
+  ASSERT_EQ(fb["history"].size(), 1u);
+  EXPECT_EQ(fb["history"][0]["comment"], "for b");
+}
+
+TEST(LiveProposalTest, WriteRefusesAndKeepsAForeignOrBrokenFile) {
+  TempDir dir;
+  LiveProposal proposal = *Parse(ValidPacket());
+  proposal.packet_path = (dir.path() / "proposal.json").string();
+  const auto target = dir.path() / "feedback-woods-trail.a.json";
+  for (const std::string existing :
+       {std::string("{broken"), std::string(""),
+        json({{"schema", "yaze.overworld_live_proposal_feedback.v1"},
+              {"id", "someone-else"},
+              {"history", json::array()}})
+            .dump()}) {
+    SCOPED_TRACE(existing);
+    std::ofstream(target, std::ios::binary) << existing;
+    EXPECT_FALSE(WriteLiveProposalFeedback(proposal, {"commented", "x"}).ok());
+    EXPECT_EQ(ReadText(target), existing);
+    EXPECT_EQ(dir.Names(),
+              std::vector<std::string>{"feedback-woods-trail.a.json"});
+  }
+}
+
+TEST(LiveProposalTest, RejectsCellsThatChangeNothingAndOutOfRangeIntegers) {
+  json same = ValidPacket();
+  same["cells"][0]["proposed"] = same["cells"][0]["expected"];
+  EXPECT_FALSE(Parse(same).ok());
+  // 2^32 + 0x28 would wrap to 0x28 if narrowed without a range check.
+  json wrapped = ValidPacket();
+  wrapped["map_id"] = 4294967336ull;
+  EXPECT_FALSE(Parse(wrapped).ok());
+  json negative = ValidPacket();
+  negative["cells"][0]["x"] = -4294967296ll;
+  EXPECT_FALSE(Parse(negative).ok());
+  json big = ValidPacket();
+  big["cells"][0]["proposed"] = 18446744073709551615ull;
+  EXPECT_FALSE(Parse(big).ok());
+}
+
+// A fake 32x32 map behind LiveProposalHooks, with the feedback history kept
+// in memory. `apply` mirrors ApplyGuardedCells: it re-checks every cell and
+// writes all or none.
+struct FakeEditor {
+  std::map<std::pair<int, int>, uint16_t> tiles;
+  std::vector<LiveProposalFeedbackEntry> history;
+  int apply_calls = 0;
+  absl::Status apply_error = absl::OkStatus();
+  absl::Status write_error = absl::OkStatus();
+
+  uint16_t At(int x, int y) const {
+    auto it = tiles.find({x, y});
+    return it == tiles.end() ? 0 : it->second;
+  }
+
+  LiveProposalHooks Hooks() {
+    LiveProposalHooks hooks;
+    hooks.read = [this](int, int x, int y) -> absl::StatusOr<uint16_t> {
+      return At(x, y);
+    };
+    hooks.apply = [this](int, const std::vector<GuardedTileCell>& cells)
+        -> absl::StatusOr<int> {
+      ++apply_calls;
+      if (!apply_error.ok())
+        return apply_error;
+      for (const auto& cell : cells) {
+        if (At(cell.x, cell.y) != cell.expected)
+          return absl::AbortedError("cell changed");
+      }
+      for (const auto& cell : cells)
+        tiles[{cell.x, cell.y}] = cell.proposed;
+      return static_cast<int>(cells.size());
+    };
+    hooks.write_feedback = [this](const LiveProposal&,
+                                  const LiveProposalFeedbackEntry& entry) {
+      if (!write_error.ok())
+        return write_error;
+      history.push_back(entry);
+      return absl::OkStatus();
+    };
+    hooks.rom_path = "/private/test.sfc";
+    hooks.at_utc = "2026-11-16T15:00:00Z";
+    return hooks;
+  }
+
+  void Restore(const std::vector<GuardedTileCell>& cells) {
+    for (const auto& cell : cells)
+      tiles[{cell.x, cell.y}] = cell.expected;
+  }
+  void Redo(const std::vector<GuardedTileCell>& cells) {
+    for (const auto& cell : cells)
+      tiles[{cell.x, cell.y}] = cell.proposed;
+  }
+};
+
+LiveProposal ThreeCellProposal() {
+  LiveProposal proposal = *Parse(ValidPacket());
+  proposal.cells = {{0, 0, 1, 2}, {1, 0, 1, 2}, {2, 0, 1, 2}};
+  return proposal;
+}
+
+TEST(LiveProposalTest, AcceptSkipsACellEditedAfterTheOffer) {
+  FakeEditor editor;
+  editor.tiles = {{{0, 0}, 1}, {{1, 0}, 1}, {{2, 0}, 1}};
+  LiveProposal proposal = ThreeCellProposal();
+  // The person paints (1,0) between the offer and Accept; (2,0) already
+  // holds the proposed tile.
+  editor.tiles[{1, 0}] = 7;
+  editor.tiles[{2, 0}] = 2;
+  auto applied = AcceptLiveProposalWith(proposal, editor.Hooks());
+  ASSERT_TRUE(applied.ok()) << applied.status();
+  EXPECT_EQ(*applied, 1);
+  EXPECT_EQ(proposal.decision, LiveProposalDecision::kAccepted);
+  EXPECT_EQ(editor.At(0, 0), 2);
+  EXPECT_EQ(editor.At(1, 0), 7);  // the person's edit stays
+  EXPECT_EQ(editor.At(2, 0), 2);
+  ASSERT_EQ(editor.history.size(), 1u);
+  EXPECT_EQ(editor.history[0].decision, "accepted");
+  EXPECT_EQ(editor.history[0].cells_applied, 1);
+  EXPECT_EQ(editor.history[0].already_applied, 1);
+  ASSERT_EQ(editor.history[0].conflicts.size(), 1u);
+  EXPECT_EQ(editor.history[0].conflicts[0].found, 7);
+  ASSERT_EQ(proposal.applied_cells.size(), 1u);
+  EXPECT_EQ(proposal.applied_cells[0].x, 0);
+}
+
+TEST(LiveProposalTest, AcceptWritesNoCellWhenFeedbackFailsAndCanRetry) {
+  FakeEditor editor;
+  editor.tiles = {{{0, 0}, 1}, {{1, 0}, 1}, {{2, 0}, 1}};
+  LiveProposal proposal = ThreeCellProposal();
+  editor.write_error = absl::PermissionDeniedError("read-only folder");
+  EXPECT_FALSE(AcceptLiveProposalWith(proposal, editor.Hooks()).ok());
+  EXPECT_EQ(proposal.decision, LiveProposalDecision::kPending);
+  EXPECT_EQ(editor.apply_calls, 0);
+  EXPECT_EQ(editor.At(0, 0), 1);
+  EXPECT_NE(proposal.last_result.find("read-only folder"), std::string::npos);
+
+  editor.write_error = absl::OkStatus();
+  auto retry = AcceptLiveProposalWith(proposal, editor.Hooks());
+  ASSERT_TRUE(retry.ok()) << retry.status();
+  EXPECT_EQ(*retry, 3);
+  EXPECT_EQ(proposal.decision, LiveProposalDecision::kAccepted);
+  ASSERT_EQ(editor.history.size(), 1u);
+  EXPECT_EQ(editor.history[0].decision, "accepted");
+}
+
+TEST(LiveProposalTest, AcceptThatFailsToWriteCellsStaysPending) {
+  FakeEditor editor;
+  editor.tiles = {{{0, 0}, 1}, {{1, 0}, 1}, {{2, 0}, 1}};
+  LiveProposal proposal = ThreeCellProposal();
+  editor.apply_error = absl::FailedPreconditionError("Lyra preview");
+  EXPECT_FALSE(AcceptLiveProposalWith(proposal, editor.Hooks()).ok());
+  EXPECT_EQ(proposal.decision, LiveProposalDecision::kPending);
+  EXPECT_TRUE(proposal.applied_cells.empty());
+  ASSERT_EQ(editor.history.size(), 2u);
+  EXPECT_EQ(editor.history[0].decision, "accepted");
+  EXPECT_EQ(editor.history[1].decision, "accept_failed");
+  EXPECT_EQ(editor.history[1].comment, "Lyra preview");
+}
+
+TEST(LiveProposalTest, AcceptRefusesWhenEveryCellConflicts) {
+  FakeEditor editor;
+  editor.tiles = {{{0, 0}, 5}, {{1, 0}, 5}, {{2, 0}, 5}};
+  LiveProposal proposal = ThreeCellProposal();
+  EXPECT_FALSE(AcceptLiveProposalWith(proposal, editor.Hooks()).ok());
+  EXPECT_EQ(proposal.decision, LiveProposalDecision::kPending);
+  EXPECT_TRUE(editor.history.empty());
+  EXPECT_EQ(editor.apply_calls, 0);
+}
+
+TEST(LiveProposalTest, UndoReturnsToPendingAndRedoAcceptsAgain) {
+  FakeEditor editor;
+  editor.tiles = {{{0, 0}, 1}, {{1, 0}, 1}, {{2, 0}, 7}};
+  LiveProposal proposal = ThreeCellProposal();
+  ASSERT_TRUE(AcceptLiveProposalWith(proposal, editor.Hooks()).ok());
+  const auto written = proposal.applied_cells;
+  ASSERT_EQ(written.size(), 2u);
+
+  // Nothing changed on the map: no sync.
+  EXPECT_FALSE(SyncLiveProposalWith(proposal, editor.Hooks()));
+
+  editor.Restore(written);  // Undo
+  ASSERT_TRUE(SyncLiveProposalWith(proposal, editor.Hooks()));
+  EXPECT_EQ(proposal.decision, LiveProposalDecision::kPending);
+  EXPECT_TRUE(proposal.undone);
+  EXPECT_EQ(editor.history.back().decision, "undone");
+
+  editor.Redo(written);  // Redo
+  ASSERT_TRUE(SyncLiveProposalWith(proposal, editor.Hooks()));
+  EXPECT_EQ(proposal.decision, LiveProposalDecision::kAccepted);
+  EXPECT_FALSE(proposal.undone);
+  EXPECT_EQ(editor.history.back().decision, "redone");
+  EXPECT_EQ(editor.history.back().cells_applied, 2);
+
+  // Undo again, then Accept from the panel instead of Redo.
+  editor.Restore(written);
+  ASSERT_TRUE(SyncLiveProposalWith(proposal, editor.Hooks()));
+  auto again = AcceptLiveProposalWith(proposal, editor.Hooks());
+  ASSERT_TRUE(again.ok()) << again.status();
+  EXPECT_EQ(*again, 2);
+  EXPECT_EQ(proposal.decision, LiveProposalDecision::kAccepted);
+  EXPECT_FALSE(proposal.undone);
+  std::vector<std::string> decisions;
+  for (const auto& entry : editor.history)
+    decisions.push_back(entry.decision);
+  EXPECT_EQ(decisions, (std::vector<std::string>{"accepted", "undone", "redone",
+                                                 "undone", "accepted"}));
+}
+
+TEST(LiveProposalTest, UndoSyncFollowsTheMapEvenWhenFeedbackFails) {
+  FakeEditor editor;
+  editor.tiles = {{{0, 0}, 1}, {{1, 0}, 1}, {{2, 0}, 1}};
+  LiveProposal proposal = ThreeCellProposal();
+  ASSERT_TRUE(AcceptLiveProposalWith(proposal, editor.Hooks()).ok());
+  editor.Restore(proposal.applied_cells);
+  editor.write_error = absl::PermissionDeniedError("disk full");
+  ASSERT_TRUE(SyncLiveProposalWith(proposal, editor.Hooks()));
+  EXPECT_EQ(proposal.decision, LiveProposalDecision::kPending);
+  EXPECT_NE(proposal.last_result.find("disk full"), std::string::npos);
+}
+
+TEST(LiveProposalTest, RejectAndCommentAddToTheHistory) {
+  FakeEditor editor;
+  LiveProposal proposal = ThreeCellProposal();
+  ASSERT_TRUE(
+      CommentLiveProposalWith(proposal, "one tile north", editor.Hooks()).ok());
+  EXPECT_EQ(proposal.decision, LiveProposalDecision::kPending);
+  EXPECT_FALSE(CommentLiveProposalWith(proposal, "", editor.Hooks()).ok());
+
+  editor.write_error = absl::PermissionDeniedError("read-only folder");
+  EXPECT_FALSE(
+      RejectLiveProposalWith(proposal, "too wide", editor.Hooks()).ok());
+  EXPECT_EQ(proposal.decision, LiveProposalDecision::kPending);
+  EXPECT_FALSE(CommentLiveProposalWith(proposal, "lost", editor.Hooks()).ok());
+  EXPECT_NE(proposal.last_result.find("NOT written"), std::string::npos);
+
+  editor.write_error = absl::OkStatus();
+  ASSERT_TRUE(
+      RejectLiveProposalWith(proposal, "too wide", editor.Hooks()).ok());
+  EXPECT_EQ(proposal.decision, LiveProposalDecision::kRejected);
+  EXPECT_FALSE(AcceptLiveProposalWith(proposal, editor.Hooks()).ok());
+  ASSERT_EQ(editor.history.size(), 2u);
+  EXPECT_EQ(editor.history[0].decision, "commented");
+  EXPECT_EQ(editor.history[0].comment, "one tile north");
+  EXPECT_EQ(editor.history[1].decision, "rejected");
+  EXPECT_EQ(editor.history[1].comment, "too wide");
+  EXPECT_EQ(editor.history[1].rom_path, "/private/test.sfc");
+}
+
+TEST(LiveProposalTest, DecisionsReachTheFeedbackFileOnDisk) {
+  TempDir dir;
+  FakeEditor editor;
+  editor.tiles = {{{0, 0}, 1}, {{1, 0}, 1}, {{2, 0}, 1}};
+  LiveProposal proposal = ThreeCellProposal();
+  proposal.packet_path = (dir.path() / "proposal.json").string();
+  auto hooks = editor.Hooks();
+  hooks.write_feedback = WriteLiveProposalFeedback;
+  ASSERT_TRUE(CommentLiveProposalWith(proposal, "ok", hooks).ok());
+  ASSERT_TRUE(AcceptLiveProposalWith(proposal, hooks).ok());
+  editor.Restore(proposal.applied_cells);
+  ASSERT_TRUE(SyncLiveProposalWith(proposal, hooks));
+  const auto feedback = ReadJson(dir.path() / "feedback-woods-trail.a.json");
+  EXPECT_EQ(feedback["status"], "pending");
+  ASSERT_EQ(feedback["history"].size(), 3u);
+  EXPECT_EQ(feedback["history"][0]["decision"], "commented");
+  EXPECT_EQ(feedback["history"][1]["decision"], "accepted");
+  EXPECT_EQ(feedback["history"][1]["cells_applied"], 3);
+  EXPECT_EQ(feedback["history"][2]["decision"], "undone");
 }
 
 TEST(LiveProposalTest, InboxReofferReplacesAndResetsToPending) {

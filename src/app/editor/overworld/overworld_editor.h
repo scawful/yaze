@@ -218,6 +218,10 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   // read `expected` again was undone (back to pending, "undone" feedback);
   // an undone one whose cells all read `proposed` again was redone.
   void SyncLiveProposalsAfterHistory();
+  // Editor callbacks for the LiveProposal decision functions. Accept writes
+  // in the displayed world without moving the map selection; a map in another
+  // world is selected only when no map is pinned (`switched` is then set).
+  LiveProposalHooks MakeLiveProposalHooks(bool* switched = nullptr);
   LiveProposalInbox& live_proposals() { return live_proposals_; }
   absl::Status Find() override { return absl::UnimplementedError("Find"); }
   absl::Status Save() override;

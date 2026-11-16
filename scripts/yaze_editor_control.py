@@ -15,7 +15,7 @@ proposal-offer reads the live map (unsaved edits included) for each draft cell,
 writes <out-dir>/<id>/proposal.json with those values as `expected`, and offers
 it to the running editor. The draft is {id, title, author, why, map_id,
 cells: [{x, y, proposed}]}. Nothing is written to the map until the person at
-the editor accepts; their decisions land in <out-dir>/<id>/feedback.json.
+the editor accepts; their decisions land in <out-dir>/<id>/feedback-<id>.json.
 
 --launch starts /Applications/yaze.app only if no Yaze process is running.
 An already running app without --editor_control must be restarted deliberately.
@@ -235,7 +235,7 @@ def main():
                            help="Offer a live overworld proposal from a draft")
     offer.add_argument("path", type=Path, help="Draft JSON")
     offer.add_argument("--out-dir", type=Path, required=True,
-                       help="Folder that receives <id>/proposal.json and feedback.json")
+                       help="Folder that receives <id>/proposal.json and feedback-<id>.json")
     panel = sub.add_parser("panel-hide")
     panel.add_argument("panel")
     args = parser.parse_args()

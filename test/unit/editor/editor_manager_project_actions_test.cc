@@ -5153,7 +5153,8 @@ TEST_F(EditorControlRomSwapTest, ProposalOfferRefusesBadRequestsWithoutWrites) {
     EXPECT_EQ(Execute(changed)["http_status"], 400) << field;
   }
   ExpectUnchanged();
-  EXPECT_FALSE(std::filesystem::exists(temp_dir_.path / "feedback.json"));
+  EXPECT_FALSE(
+      std::filesystem::exists(temp_dir_.path / "feedback-trail-a.json"));
   EXPECT_FALSE(manager_->HasPendingUnsavedSessionAction());
   const auto status = Execute({{"command", "status"}});
   const auto& commands = status["capabilities"]["commands"];
@@ -5345,7 +5346,8 @@ TEST_F(EditorControlRomSwapTest, ProposalAcceptWritesOneUndoStepAndFeedback) {
   // An offer changes nothing: no tiles, no ROM bytes, no feedback.
   EXPECT_EQ(cell(2, 8), ready_a);
   EXPECT_EQ(manager_->GetCurrentRom()->vector(), before);
-  const auto feedback_path = packet_path.parent_path() / "feedback.json";
+  const auto feedback_path =
+      packet_path.parent_path() / "feedback-accept-proof.json";
   EXPECT_FALSE(std::filesystem::exists(feedback_path));
 
   const auto accepted = editor->AcceptLiveProposal("accept-proof");

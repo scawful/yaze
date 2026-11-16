@@ -3482,7 +3482,7 @@ std::string EditorManager::ExecuteEditorControl(const std::string& request) {
               response["ready"] = offered->ready;
               response["conflicts"] = offered->conflicts;
               response["already_applied"] = offered->already_applied;
-              response["feedback_path"] = LiveProposalFeedbackPath(path);
+              response["feedback_path"] = LiveProposalFeedbackPath(path, id);
             }
           }
         }
@@ -3490,10 +3490,18 @@ std::string EditorManager::ExecuteEditorControl(const std::string& request) {
     } else if (command == "overworld.cells.read") {
       // Read-only: live Tile16 values (unsaved edits included) for a proposal
       // author's `expected`. The response's `state` is the matching identity.
-      if (!body.at("map_id").is_number_integer()) {
-        throw std::invalid_argument("map_id must be an integer");
-      }
-      const int map_id = body.at("map_id").get<int>();
+      // Range-check before narrowing: get<int>() would wrap 2^32 + 5 to 5.
+      const auto small_int = [](const json& value, const char* field) {
+        if (!value.is_number_integer() ||
+            (value.is_number_unsigned() ? value.get<uint64_t>() > 0xFFFF
+                                        : value.get<int64_t>() < -0xFFFF ||
+                                              value.get<int64_t>() > 0xFFFF)) {
+          throw std::invalid_argument(std::string(field) +
+                                      " must be a small integer");
+        }
+        return value.get<int>();
+      };
+      const int map_id = small_int(body.at("map_id"), "map_id");
       std::vector<std::pair<int, int>> wanted;
       if (body.contains("cells")) {
         if (!body.at("cells").is_array() ||
@@ -3501,7 +3509,8 @@ std::string EditorManager::ExecuteEditorControl(const std::string& request) {
           throw std::invalid_argument("cells must be an array of at most 1024");
         }
         for (const auto& cell : body.at("cells")) {
-          wanted.emplace_back(cell.at("x").get<int>(), cell.at("y").get<int>());
+          wanted.emplace_back(small_int(cell.at("x"), "x"),
+                              small_int(cell.at("y"), "y"));
         }
       } else {
         for (int y = 0; y < 32; ++y) {

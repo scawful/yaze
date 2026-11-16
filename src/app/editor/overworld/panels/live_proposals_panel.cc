@@ -25,6 +25,12 @@ const char* DecisionLabel(LiveProposalDecision decision) {
 
 }  // namespace
 
+void LiveProposalsPanel::Remember(const std::string& id,
+                                  const absl::Status& status) {
+  error_id_ = id;
+  error_ = status.ok() ? std::string() : std::string(status.message());
+}
+
 void LiveProposalsPanel::Draw(bool* /*p_open*/) {
   auto* editor = CurrentOverworldEditor();
   if (!editor)
@@ -101,7 +107,7 @@ void LiveProposalsPanel::Draw(bool* /*p_open*/) {
   inbox.view = static_cast<LiveProposalView>(view);
   ImGui::SameLine();
   if (ImGui::SmallButton(ICON_MD_CENTER_FOCUS_STRONG " Jump to map"))
-    (void)editor->FocusLiveProposal(id);
+    Remember(id, editor->FocusLiveProposal(id));
 
   const bool pending = selected->decision == LiveProposalDecision::kPending;
   ImGui::BeginDisabled(!pending || classification->ready == 0);
@@ -109,7 +115,7 @@ void LiveProposalsPanel::Draw(bool* /*p_open*/) {
       absl::StrFormat(ICON_MD_CHECK " Accept %s",
                       CountLabel(classification->ready, "cell", "cells"));
   if (ImGui::Button(accept.c_str()))
-    (void)editor->AcceptLiveProposal(id);
+    Remember(id, editor->AcceptLiveProposal(id).status());
   ImGui::EndDisabled();
   if (pending && classification->ready == 0) {
     ImGui::SameLine();
@@ -118,8 +124,10 @@ void LiveProposalsPanel::Draw(bool* /*p_open*/) {
   ImGui::SameLine();
   ImGui::BeginDisabled(!pending);
   if (ImGui::Button(ICON_MD_CLOSE " Reject")) {
-    (void)editor->RejectLiveProposal(id, comment_);
-    comment_[0] = '\0';
+    const auto status = editor->RejectLiveProposal(id, comment_);
+    Remember(id, status);
+    if (status.ok())  // keep the comment for a retry
+      comment_[0] = '\0';
   }
   ImGui::EndDisabled();
 
@@ -128,15 +136,24 @@ void LiveProposalsPanel::Draw(bool* /*p_open*/) {
   ImGui::SameLine();
   ImGui::BeginDisabled(comment_[0] == '\0');
   if (ImGui::Button(ICON_MD_SEND " Send")) {
-    (void)editor->CommentLiveProposal(id, comment_);
-    comment_[0] = '\0';
+    const auto status = editor->CommentLiveProposal(id, comment_);
+    Remember(id, status);
+    if (status.ok())
+      comment_[0] = '\0';
   }
   ImGui::EndDisabled();
 
   // Re-fetch: a button above may have changed the result text.
+  const bool failed = !error_.empty() && error_id_ == id;
   if (const LiveProposal* now = inbox.Find(id);
-      now && !now->last_result.empty())
+      now && !now->last_result.empty() && !failed)
     ImGui::TextWrapped("%s", now->last_result.c_str());
+  if (failed) {
+    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.4f, 0.4f, 1.0f));
+    ImGui::TextWrapped("%s", error_.c_str());
+    ImGui::PopStyleColor();
+    ImGui::TextDisabled("Nothing changed. Fix the cause, then try again.");
+  }
 
   if (!classification->conflict_cells.empty() && ImGui::TreeNode("Conflicts")) {
     for (const auto& conflict : classification->conflict_cells) {

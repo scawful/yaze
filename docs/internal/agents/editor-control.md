@@ -39,8 +39,8 @@ read-only preview; it does not apply a proposal to the ROM.
 
 ## Live Overworld Proposals (`proposal.offer`)
 
-An agent offers Tile16 changes to the person at a running editor without
-writing their ROM. The offer only previews; the person decides.
+An agent offers Tile16 changes to the person at a running editor. The offer
+only previews and changes no tile; the person decides.
 
 ```json
 {"command": "proposal.offer",
@@ -59,17 +59,30 @@ The packet (`yaze.overworld_live_proposal.v1`, at most 1024 cells):
  "map_id": 40, "cells": [{"x": 3, "y": 7, "expected": 1, "proposed": 2}]}
 ```
 
-Cells are map-local (0..31). Against the live, unsaved map each cell is
+Cells are map-local (0..31) and must change the cell (`expected` !=
+`proposed`). Against the live, unsaved map each cell is
 **ready** (holds `expected`), **already applied** (holds `proposed`) or a
 **conflict**. The Overworld editor opens the **Proposals** panel and draws a
 ghost over the real canvas (After / Before / Diff) while that panel is open.
 
-- **Accept** writes only the ready cells as one undo step; conflicts are skipped.
-- **Reject** and **Comment** change nothing in the ROM; a comment keeps it pending.
-- Every decision appends to `feedback.json` beside the packet
-  (`yaze.overworld_live_proposal_feedback.v1`, history per proposal id).
+- **Accept** writes only the ready cells into the open map as one undo step;
+  conflicts are skipped. It keeps the selected map and its pin when the
+  proposal's map is in the displayed world. Otherwise it selects that map,
+  and says so, only when no map is pinned.
+- **Reject** and **Comment** change no tile; a comment keeps it pending.
+- Every decision appends to `feedback-<id>.json` beside the packet
+  (`yaze.overworld_live_proposal_feedback.v1`), so packets may share a folder.
+  The feedback entry is written before Accept or Reject takes effect: if the
+  file cannot be written (or exists but does not parse, or names another id,
+  which is refused, never overwritten), nothing changes and the panel shows
+  the error for a retry. History entries: `accepted`, `accept_failed`,
+  `rejected`, `commented`, `undone`, `redone`.
+- Undo of an accepted step returns the proposal to pending (ghost shown again,
+  `undone` entry); Redo accepts it again (`redone`).
 - Re-offering the same `id` replaces it and resets it to pending.
-- Saving stays the person's normal save; nothing here saves the ROM.
+- Accepted cells are unsaved edits like any brush stroke. They reach the ROM
+  file on the person's Save, **or on the next autosave when autosave is on**.
+  Offer, Reject and Comment never write the ROM.
 
 ## Background Save, Build and Run
 

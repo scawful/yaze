@@ -3,6 +3,8 @@
 
 #include <string>
 
+#include "absl/status/status.h"
+
 #include "app/editor/system/editor_panel.h"
 #include "app/gui/core/icons.h"
 
@@ -23,7 +25,12 @@ class LiveProposalsPanel : public EditorPanel {
   void Draw(bool* p_open) override;
 
  private:
+  // Shows `status` under the buttons until the next action; ok clears it.
+  void Remember(const std::string& id, const absl::Status& status);
+
   char comment_[512] = {};
+  std::string error_id_;  // proposal the error belongs to
+  std::string error_;
 };
 
 }  // namespace yaze::editor

@@ -1,9 +1,14 @@
 #include "app/editor/overworld/live_proposal.h"
 
+#include <atomic>
+#include <cstdint>
 #include <filesystem>
 #include <fstream>
 #include <iterator>
+#include <limits>
+#include <random>
 #include <system_error>
+#include <utility>
 
 #include "absl/strings/str_format.h"
 #include "nlohmann/json.hpp"
@@ -38,7 +43,17 @@ std::string OptionalString(const json& object, const char* field) {
 int RequiredInt(const json& object, const char* field) {
   if (!object.contains(field) || !object.at(field).is_number_integer())
     throw std::invalid_argument(std::string(field) + " must be an integer");
-  return object.at(field).get<int>();
+  // Range-check before narrowing: get<int>() would wrap 2^32 + 5 to 5.
+  const auto& value = object.at(field);
+  const bool in_range =
+      value.is_number_unsigned()
+          ? value.get<uint64_t>() <=
+                static_cast<uint64_t>(std::numeric_limits<int>::max())
+          : value.get<int64_t>() >= std::numeric_limits<int>::min() &&
+                value.get<int64_t>() <= std::numeric_limits<int>::max();
+  if (!in_range)
+    throw std::invalid_argument(std::string(field) + " is out of range");
+  return value.get<int>();
 }
 
 const char* DecisionName(LiveProposalDecision decision) {
@@ -114,6 +129,10 @@ absl::StatusOr<LiveProposal> ParseLiveProposal(std::string_view json_text,
             absl::StrFormat("Cell (%d,%d) names a Tile16 outside 0..0x%X", x, y,
                             tile16_count - 1));
       }
+      if (expected == proposed) {
+        return absl::InvalidArgumentError(absl::StrFormat(
+            "Cell (%d,%d) proposes the tile it expects; leave it out", x, y));
+      }
       if (seen[y * kMapCells + x]) {
         return absl::InvalidArgumentError(
             absl::StrFormat("Proposal repeats cell (%d,%d)", x, y));
@@ -152,22 +171,32 @@ LiveProposalClassification ClassifyLiveProposal(
   return result;
 }
 
-std::string LiveProposalFeedbackPath(std::string_view packet_path) {
+std::string LiveProposalFeedbackPath(std::string_view packet_path,
+                                     std::string_view id) {
   return (std::filesystem::path(packet_path).parent_path() /
-          kLiveProposalFeedbackFile)
+          absl::StrFormat("feedback-%s.json", id))
       .string();
 }
 
-std::string BuildLiveProposalFeedback(const LiveProposal& proposal,
-                                      const LiveProposalFeedbackEntry& entry,
-                                      std::string_view existing_json) {
+absl::StatusOr<std::string> BuildLiveProposalFeedback(
+    const LiveProposal& proposal, const LiveProposalFeedbackEntry& entry,
+    std::string_view existing_json) {
   json history = json::array();
   if (!existing_json.empty()) {
     const auto existing = json::parse(existing_json, nullptr, false);
-    if (existing.is_object() && existing.value("id", "") == proposal.id &&
-        existing.contains("history") && existing.at("history").is_array()) {
-      history = existing.at("history");
+    if (existing.is_discarded() || !existing.is_object() ||
+        !existing.contains("history") || !existing.at("history").is_array()) {
+      return absl::FailedPreconditionError(
+          "Existing feedback file is not a feedback object; it was left "
+          "untouched");
     }
+    if (!existing.contains("id") || !existing.at("id").is_string() ||
+        existing.at("id").get<std::string>() != proposal.id) {
+      return absl::FailedPreconditionError(
+          "Existing feedback file belongs to another proposal id; it was left "
+          "untouched");
+    }
+    history = existing.at("history");
   }
   json conflicts = json::array();
   for (const auto& conflict : entry.conflicts) {
@@ -198,25 +227,44 @@ absl::Status WriteLiveProposalFeedback(const LiveProposal& proposal,
   if (proposal.packet_path.empty())
     return absl::FailedPreconditionError("Proposal has no packet path");
   const std::filesystem::path target =
-      LiveProposalFeedbackPath(proposal.packet_path);
+      LiveProposalFeedbackPath(proposal.packet_path, proposal.id);
   std::string existing;
-  if (std::ifstream in(target, std::ios::binary); in) {
+  std::error_code error;
+  if (std::filesystem::exists(target, error)) {
+    std::ifstream in(target, std::ios::binary);
+    if (!in) {
+      return absl::UnavailableError(
+          absl::StrFormat("Could not read %s", target.string()));
+    }
     existing.assign(std::istreambuf_iterator<char>(in),
                     std::istreambuf_iterator<char>());
+    if (existing.empty()) {
+      return absl::FailedPreconditionError(absl::StrFormat(
+          "%s is empty; it was left untouched", target.string()));
+    }
   }
-  const auto text = BuildLiveProposalFeedback(proposal, entry, existing);
+  auto text = BuildLiveProposalFeedback(proposal, entry, existing);
+  if (!text.ok()) {
+    return absl::Status(
+        text.status().code(),
+        absl::StrFormat("%s: %s", target.string(), text.status().message()));
+  }
+  // Unique temp name: two writers never share or clobber a temp file.
+  static std::atomic<uint64_t> counter{0};
   auto temp = target;
-  temp += ".tmp";
+  temp += absl::StrFormat(".tmp-%08x-%d", std::random_device{}(),
+                          counter.fetch_add(1));
   {
     std::ofstream out(temp, std::ios::binary | std::ios::trunc);
-    out << text;
+    out << *text;
     out.flush();
     if (!out) {
+      out.close();
+      std::filesystem::remove(temp, error);
       return absl::UnavailableError(
           absl::StrFormat("Could not write %s", temp.string()));
     }
   }
-  std::error_code error;
   std::filesystem::rename(temp, target, error);
   if (error) {
     std::filesystem::remove(temp, error);
@@ -224,6 +272,171 @@ absl::Status WriteLiveProposalFeedback(const LiveProposal& proposal,
         absl::StrFormat("Could not publish %s", target.string()));
   }
   return absl::OkStatus();
+}
+
+absl::StatusOr<LiveProposalClassification> ClassifyLiveProposalWith(
+    const LiveProposal& proposal, const LiveProposalHooks& hooks) {
+  absl::Status read_error = absl::OkStatus();
+  auto result = ClassifyLiveProposal(proposal, [&](int x, int y) -> uint16_t {
+    auto tile = hooks.read(proposal.map_id, x, y);
+    if (!tile.ok()) {
+      if (read_error.ok())
+        read_error = tile.status();
+      return 0xFFFF;  // never a valid Tile16: classifies as a conflict
+    }
+    return *tile;
+  });
+  if (!read_error.ok())
+    return read_error;
+  return result;
+}
+
+absl::StatusOr<int> AcceptLiveProposalWith(LiveProposal& proposal,
+                                           const LiveProposalHooks& hooks) {
+  if (proposal.decision != LiveProposalDecision::kPending)
+    return absl::FailedPreconditionError("Proposal is already decided");
+  auto classification = ClassifyLiveProposalWith(proposal, hooks);
+  if (!classification.ok())
+    return classification.status();
+  if (classification->ready == 0 && classification->already_applied == 0) {
+    return absl::FailedPreconditionError(
+        "Every cell conflicts with the current map; nothing to accept");
+  }
+  // Feedback first: the agent's record must never miss a decision the map
+  // already shows. A failed write leaves everything as it was.
+  LiveProposal decided = proposal;
+  decided.decision = LiveProposalDecision::kAccepted;
+  LiveProposalFeedbackEntry entry;
+  entry.decision = "accepted";
+  entry.cells_applied = classification->ready;
+  entry.already_applied = classification->already_applied;
+  entry.conflicts = classification->conflict_cells;
+  entry.rom_path = hooks.rom_path;
+  entry.at_utc = hooks.at_utc;
+  if (const auto written = hooks.write_feedback(decided, entry);
+      !written.ok()) {
+    proposal.last_result = absl::StrFormat(
+        "Not accepted: feedback file could not be written (%s). Nothing "
+        "changed; Accept again to retry.",
+        written.message());
+    return written;
+  }
+  int applied = 0;
+  if (classification->ready > 0) {
+    // `apply` re-checks every ready cell and writes all or none, as one
+    // non-merging undo step.
+    auto result = hooks.apply(proposal.map_id, classification->ready_cells);
+    if (!result.ok()) {
+      LiveProposalFeedbackEntry failed;
+      failed.decision = "accept_failed";
+      failed.comment = std::string(result.status().message());
+      failed.rom_path = hooks.rom_path;
+      failed.at_utc = hooks.at_utc;
+      const auto noted = hooks.write_feedback(proposal, failed);
+      proposal.last_result = absl::StrFormat(
+          "Not accepted: %s. No cell was written%s.", result.status().message(),
+          noted.ok() ? "" : "; feedback file NOT updated");
+      return result.status();
+    }
+    applied = *result;
+  }
+  proposal.decision = LiveProposalDecision::kAccepted;
+  proposal.applied_cells = applied > 0 ? classification->ready_cells
+                                       : std::vector<GuardedTileCell>{};
+  proposal.undone = false;
+  proposal.last_result = absl::StrFormat(
+      "Accepted: %s written (one undo step), %s skipped",
+      CountLabel(applied, "cell", "cells"),
+      CountLabel(classification->conflicts, "conflict", "conflicts"));
+  return applied;
+}
+
+absl::Status RejectLiveProposalWith(LiveProposal& proposal, std::string comment,
+                                    const LiveProposalHooks& hooks) {
+  if (proposal.decision != LiveProposalDecision::kPending)
+    return absl::FailedPreconditionError("Proposal is already decided");
+  LiveProposal decided = proposal;
+  decided.decision = LiveProposalDecision::kRejected;
+  LiveProposalFeedbackEntry entry;
+  entry.decision = "rejected";
+  entry.comment = std::move(comment);
+  entry.rom_path = hooks.rom_path;
+  entry.at_utc = hooks.at_utc;
+  if (const auto written = hooks.write_feedback(decided, entry);
+      !written.ok()) {
+    proposal.last_result = absl::StrFormat(
+        "Not rejected: feedback file could not be written (%s). Reject again "
+        "to retry.",
+        written.message());
+    return written;
+  }
+  proposal.decision = LiveProposalDecision::kRejected;
+  proposal.last_result = "Rejected; feedback written";
+  return absl::OkStatus();
+}
+
+absl::Status CommentLiveProposalWith(LiveProposal& proposal,
+                                     std::string comment,
+                                     const LiveProposalHooks& hooks) {
+  if (comment.empty())
+    return absl::InvalidArgumentError("Comment is empty");
+  LiveProposalFeedbackEntry entry;
+  entry.decision = "commented";
+  entry.comment = std::move(comment);
+  entry.rom_path = hooks.rom_path;
+  entry.at_utc = hooks.at_utc;
+  const auto written = hooks.write_feedback(proposal, entry);
+  proposal.last_result =
+      written.ok()
+          ? "Comment sent; proposal stays pending"
+          : absl::StrFormat("Comment NOT written (%s)", written.message());
+  return written;
+}
+
+bool SyncLiveProposalWith(LiveProposal& proposal,
+                          const LiveProposalHooks& hooks) {
+  if (proposal.applied_cells.empty())
+    return false;
+  const bool accepted = proposal.decision == LiveProposalDecision::kAccepted;
+  const bool undone =
+      proposal.undone && proposal.decision == LiveProposalDecision::kPending;
+  if (!accepted && !undone)
+    return false;
+  bool all_expected = true;
+  bool all_proposed = true;
+  for (const auto& cell : proposal.applied_cells) {
+    auto tile = hooks.read(proposal.map_id, cell.x, cell.y);
+    if (!tile.ok())
+      return false;
+    all_expected &= *tile == cell.expected;
+    all_proposed &= *tile == cell.proposed;
+  }
+  const int count = static_cast<int>(proposal.applied_cells.size());
+  LiveProposalFeedbackEntry entry;
+  if (accepted && all_expected) {
+    // Back to pending: the ghost returns and Accept works again.
+    proposal.decision = LiveProposalDecision::kPending;
+    proposal.undone = true;
+    entry.decision = "undone";
+  } else if (undone && all_proposed) {
+    proposal.decision = LiveProposalDecision::kAccepted;
+    proposal.undone = false;
+    entry.decision = "redone";
+    entry.cells_applied = count;
+  } else {
+    return false;
+  }
+  entry.rom_path = hooks.rom_path;
+  entry.at_utc = hooks.at_utc;
+  const auto written = hooks.write_feedback(proposal, entry);
+  proposal.last_result = absl::StrFormat(
+      "%s: %s %s%s", accepted ? "Undone" : "Redone",
+      CountLabel(count, "cell", "cells"),
+      accepted ? "restored" : "written again",
+      written.ok() ? ""
+                   : absl::StrFormat(" — feedback file NOT written (%s)",
+                                     written.message()));
+  return true;
 }
 
 int LiveProposalInbox::Offer(LiveProposal proposal) {

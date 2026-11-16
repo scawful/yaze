@@ -1528,5 +1528,89 @@ TEST_F(TilePaintingManagerGestureTest,
   EXPECT_EQ(finalize_count_, 1);
 }
 
+TEST_F(TilePaintingManagerGestureTest,
+       LiveProposalAcceptUndoAndDirtyBitOnTheRealManager) {
+  auto& world = overworld_->mutable_map_tiles()->light_world;
+  world[32][0] = 1;  // ready
+  world[33][0] = 2;  // ready at offer time; the person paints it before Accept
+  world[34][0] = 5;  // already applied
+  initial_tiles_ = *overworld_->mutable_map_tiles();
+  LiveProposal proposal;
+  proposal.id = "real-manager";
+  proposal.map_id = 1;
+  proposal.cells = {{0, 0, 1, 3}, {1, 0, 2, 4}, {2, 0, 0, 5}};
+
+  std::vector<LiveProposalFeedbackEntry> history;
+  absl::Status write_error = absl::OkStatus();
+  LiveProposalHooks hooks;
+  hooks.read = [&](int map_id, int x, int y) {
+    return manager_->ReadMapCell(map_id, x, y);
+  };
+  hooks.apply = [&](int map_id, const std::vector<GuardedTileCell>& cells) {
+    return manager_->ApplyGuardedCells(map_id, cells);
+  };
+  hooks.write_feedback = [&](const LiveProposal&,
+                             const LiveProposalFeedbackEntry& entry) {
+    if (!write_error.ok())
+      return write_error;
+    history.push_back(entry);
+    return absl::OkStatus();
+  };
+
+  auto offered = ClassifyLiveProposalWith(proposal, hooks);
+  ASSERT_TRUE(offered.ok());
+  EXPECT_EQ(offered->ready, 2);
+
+  // An edit between the offer and Accept.
+  world[33][0] = 9;
+
+  // A failed feedback write changes no tile and leaves the ROM clean.
+  write_error = absl::PermissionDeniedError("read-only folder");
+  EXPECT_FALSE(AcceptLiveProposalWith(proposal, hooks).ok());
+  EXPECT_EQ(proposal.decision, LiveProposalDecision::kPending);
+  EXPECT_EQ(world[32][0], 1);
+  EXPECT_TRUE(undo_points_.empty());
+  EXPECT_EQ(finalize_count_, 0);
+  EXPECT_FALSE(rom_.dirty());
+
+  write_error = absl::OkStatus();
+  auto applied = AcceptLiveProposalWith(proposal, hooks);
+  ASSERT_TRUE(applied.ok()) << applied.status();
+  EXPECT_EQ(*applied, 1);
+  EXPECT_EQ(world[32][0], 3);
+  EXPECT_EQ(world[33][0], 9);  // conflict left as the person painted it
+  EXPECT_EQ(world[34][0], 5);  // already applied, untouched
+  ASSERT_EQ(undo_points_.size(), 1u);
+  EXPECT_EQ(finalize_count_, 1);
+  EXPECT_TRUE(rom_.dirty());
+  ASSERT_EQ(history.size(), 1u);
+  EXPECT_EQ(history[0].decision, "accepted");
+  EXPECT_EQ(history[0].cells_applied, 1);
+  EXPECT_EQ(history[0].already_applied, 1);
+  ASSERT_EQ(history[0].conflicts.size(), 1u);
+  EXPECT_EQ(history[0].conflicts[0].found, 9);
+
+  // Undo restores each recorded old tile; the proposal returns to pending,
+  // so the ghost (drawn for pending proposals only) shows again.
+  for (const auto& point : undo_points_)
+    world[point[2]][point[3]] = static_cast<uint16_t>(point[4]);
+  ASSERT_TRUE(SyncLiveProposalWith(proposal, hooks));
+  EXPECT_EQ(proposal.decision, LiveProposalDecision::kPending);
+  EXPECT_TRUE(proposal.undone);
+  EXPECT_EQ(history.back().decision, "undone");
+  EXPECT_EQ(world[33][0], 9);
+
+  // Accept with nothing left to write changes nothing and keeps the ROM
+  // clean.
+  world[32][0] = 3;
+  rom_.ClearDirty();
+  const size_t points = undo_points_.size();
+  auto none = AcceptLiveProposalWith(proposal, hooks);
+  ASSERT_TRUE(none.ok()) << none.status();
+  EXPECT_EQ(*none, 0);
+  EXPECT_EQ(undo_points_.size(), points);
+  EXPECT_FALSE(rom_.dirty());
+}
+
 }  // namespace
 }  // namespace yaze::editor

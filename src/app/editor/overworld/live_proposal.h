@@ -22,7 +22,6 @@ inline constexpr std::string_view kLiveProposalSchema =
 inline constexpr std::string_view kLiveProposalFeedbackSchema =
     "yaze.overworld_live_proposal_feedback.v1";
 inline constexpr int kLiveProposalMaxCells = 1024;
-inline constexpr char kLiveProposalFeedbackFile[] = "feedback.json";
 
 enum class LiveProposalCellState { kReady, kConflict, kAlreadyApplied };
 enum class LiveProposalView { kAfter, kBefore, kDiff };
@@ -35,7 +34,8 @@ struct LiveProposal {
   std::string why;
   int map_id = -1;
   std::vector<GuardedTileCell> cells;
-  // Absolute path of the offered packet; feedback.json is written beside it.
+  // Absolute path of the offered packet; feedback-<id>.json is written beside
+  // it, so packets that share a folder never share a feedback file.
   std::string packet_path;
   std::string packet_sha256;
   LiveProposalDecision decision = LiveProposalDecision::kPending;
@@ -68,7 +68,9 @@ struct LiveProposalClassification {
 };
 
 // Parses and validates a packet. Cells must be unique, inside one 32x32 map,
-// and name Tile16 IDs below `tile16_count`; maps must be below `map_count`.
+// name Tile16 IDs below `tile16_count`, and change the cell (expected !=
+// proposed); maps must be below `map_count`. Integers outside int range are
+// refused before narrowing.
 absl::StatusOr<LiveProposal> ParseLiveProposal(std::string_view json_text,
                                                int map_count, int tile16_count);
 
@@ -79,10 +81,13 @@ LiveProposalClassification ClassifyLiveProposal(
     const LiveProposal& proposal,
     const std::function<uint16_t(int x, int y)>& current);
 
-std::string LiveProposalFeedbackPath(std::string_view packet_path);
+// `<packet folder>/feedback-<id>.json`.
+std::string LiveProposalFeedbackPath(std::string_view packet_path,
+                                     std::string_view id);
 
 struct LiveProposalFeedbackEntry {
-  std::string decision;  // accepted | rejected | commented | undone | redone
+  // accepted | accept_failed | rejected | commented | undone | redone
+  std::string decision;
   std::string comment;
   int cells_applied = 0;
   int already_applied = 0;
@@ -91,15 +96,56 @@ struct LiveProposalFeedbackEntry {
   std::string at_utc;  // 2026-11-16T14:12:00Z
 };
 
-// Builds feedback JSON. `existing_json` is the current feedback file text, if
-// any: history from the same proposal id is kept and the new entry appended.
-std::string BuildLiveProposalFeedback(const LiveProposal& proposal,
-                                      const LiveProposalFeedbackEntry& entry,
-                                      std::string_view existing_json);
+// Builds feedback JSON with `entry` appended to the history in
+// `existing_json` (the current file text; empty when there is none). Refuses
+// rather than drops history: an existing file that does not parse, is not a
+// feedback object, or belongs to another proposal id is an error.
+absl::StatusOr<std::string> BuildLiveProposalFeedback(
+    const LiveProposal& proposal, const LiveProposalFeedbackEntry& entry,
+    std::string_view existing_json);
 
-// Appends `entry` to the feedback file next to the packet (temp + rename).
+// Appends `entry` to the proposal's feedback file (unique temp + rename).
 absl::Status WriteLiveProposalFeedback(const LiveProposal& proposal,
                                        const LiveProposalFeedbackEntry& entry);
+
+// What the decision functions below need from the editor. `read` returns the
+// live Tile16 at a map-local cell (unsaved edits included). `apply` writes
+// guarded cells as one undo step, all or none, and returns the count changed.
+struct LiveProposalHooks {
+  std::function<absl::StatusOr<uint16_t>(int map_id, int x, int y)> read;
+  std::function<absl::StatusOr<int>(int map_id,
+                                    const std::vector<GuardedTileCell>& cells)>
+      apply;
+  std::function<absl::Status(const LiveProposal&,
+                             const LiveProposalFeedbackEntry&)>
+      write_feedback = WriteLiveProposalFeedback;
+  std::string rom_path;
+  std::string at_utc;
+};
+
+// Classifies against `hooks.read`; the first read error is returned.
+absl::StatusOr<LiveProposalClassification> ClassifyLiveProposalWith(
+    const LiveProposal& proposal, const LiveProposalHooks& hooks);
+
+// Accept writes the "accepted" feedback entry first. If that write fails,
+// nothing changes (the proposal stays pending and Accept can be retried). If
+// the cell write then fails, the proposal stays pending and an
+// "accept_failed" entry follows. Returns the number of cells written.
+absl::StatusOr<int> AcceptLiveProposalWith(LiveProposal& proposal,
+                                           const LiveProposalHooks& hooks);
+// Reject and Comment also write feedback before changing the proposal.
+absl::Status RejectLiveProposalWith(LiveProposal& proposal, std::string comment,
+                                    const LiveProposalHooks& hooks);
+absl::Status CommentLiveProposalWith(LiveProposal& proposal,
+                                     std::string comment,
+                                     const LiveProposalHooks& hooks);
+// After Undo/Redo: an accepted proposal whose written cells all read
+// `expected` again returns to pending (ghost shown again, "undone" entry); an
+// undone one whose cells all read `proposed` again is accepted ("redone").
+// The map is the truth here, so a failed feedback write is reported in
+// last_result but does not block the state change. Returns true on a change.
+bool SyncLiveProposalWith(LiveProposal& proposal,
+                          const LiveProposalHooks& hooks);
 
 // Pending and decided proposals for one editor session. Not persisted: the
 // packets and feedback files in the proposal folder are the durable record.
