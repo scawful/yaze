@@ -204,7 +204,8 @@ absl::Status SaveNativeSprites(zelda3::Overworld& overworld) {
 // A native sprite Save may only rewrite the storage PlanNativeOverworldSpriteSave
 // owns: maps $00-$9F pack into the original list region and its three pointer
 // mirrors; tail maps, pointers and metadata live in directory tables. The
-// revision 3/4 directory (1 KiB at PC 0x147000) changes only in its CRCs.
+// revision 3/4 directory (1 KiB at PC 0x147000) changes only in its CRCs and,
+// when tail lists grow, in table 100's count.
 constexpr std::array<std::pair<size_t, size_t>, 5> kNativeSpriteFixedRanges = {{
     {0x4C881, 0x4D62E},
     {0x141438, 0x141438 + 320},
