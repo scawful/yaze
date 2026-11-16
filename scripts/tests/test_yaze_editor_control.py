@@ -100,6 +100,86 @@ class EditorControlClientTest(unittest.TestCase):
                 control.connect(8080, True, Path("/Applications/yaze.app/Contents/MacOS/yaze"))
             launch.assert_not_called()
 
+    def offer_status(self, commands=("overworld.cells.read", "proposal.offer")):
+        return {**self.swap_receipt(), "capabilities": {"commands": list(commands)}}
+
+    def write_draft(self, directory, **overrides):
+        draft = {"id": "ridge-a", "title": "Ridge A", "author": "agent",
+                 "why": "test", "map_id": 0x28,
+                 "cells": [{"x": 1, "y": 2, "proposed": 0x10},
+                           {"x": 3, "y": 4, "proposed": 0x20}], **overrides}
+        path = Path(directory) / "draft.json"
+        path.write_text(json.dumps(draft))
+        return path
+
+    def test_offer_uses_one_read_for_expected_tiles_and_identity(self):
+        state = self.swap_receipt()["state"]
+        read = {"protocol": control.PROTOCOL, "status": "ok", "map_id": 0x28,
+                "state": state,
+                "cells": [{"x": 1, "y": 2, "tile16": 0x05},
+                          {"x": 3, "y": 4, "tile16": 0x20}]}
+        offered = {"protocol": control.PROTOCOL, "status": "ok", "ready": 1}
+        with tempfile.TemporaryDirectory() as directory:
+            draft = self.write_draft(directory)
+            out = Path(directory) / "proposals"
+            argv = ["control", "proposal-offer", str(draft), "--out-dir", str(out)]
+            with patch.object(control.sys, "argv", argv), \
+                 patch.object(control, "connect", return_value=self.offer_status()), \
+                 patch.object(control, "command", side_effect=[read, offered]) as command, \
+                 patch.object(control.sys, "stdout", io.StringIO()) as stdout:
+                self.assertEqual(control.main(), 0)
+            reader, offer = (call.args[1] for call in command.call_args_list)
+            self.assertEqual(reader, {"command": "overworld.cells.read", "map_id": 0x28,
+                                      "cells": [{"x": 1, "y": 2}, {"x": 3, "y": 4}]})
+            packet_path = out / "ridge-a" / "proposal.json"
+            data = packet_path.read_bytes()
+            packet = json.loads(data)
+            self.assertEqual(packet["schema"], control.PROPOSAL_SCHEMA)
+            # (3,4) already holds its proposed tile, so it is left out.
+            self.assertEqual(packet["cells"],
+                             [{"x": 1, "y": 2, "expected": 0x05, "proposed": 0x10}])
+            self.assertEqual(offer["path"], str(packet_path.resolve()))
+            self.assertEqual(offer["proposal_sha256"],
+                             control.hashlib.sha256(data).hexdigest())
+            self.assertEqual(offer["expected"], state)
+            result = json.loads(stdout.getvalue())
+            self.assertEqual(result["unchanged_cells"], [{"x": 3, "y": 4}])
+
+    def test_offer_refuses_bad_draft_before_contacting_editor(self):
+        bad_drafts = [{"id": ".."}, {"id": "a/b"}, {"title": ""},
+                      {"cells": [{"x": 32, "y": 0, "proposed": 1}]},
+                      {"cells": [{"x": 0, "y": 0, "proposed": 1},
+                                 {"x": 0, "y": 0, "proposed": 2}]}]
+        for override in bad_drafts:
+            with tempfile.TemporaryDirectory() as directory:
+                draft = self.write_draft(directory, **override)
+                argv = ["control", "proposal-offer", str(draft),
+                        "--out-dir", str(Path(directory) / "out")]
+                with patch.object(control.sys, "argv", argv), \
+                     patch.object(control, "connect") as connect, \
+                     patch.object(control, "command") as command, \
+                     patch.object(control.sys, "stderr", io.StringIO()):
+                    self.assertEqual(control.main(), 1, override)
+                connect.assert_not_called()
+                command.assert_not_called()
+
+    def test_offer_writes_nothing_when_read_fails_or_editor_lacks_support(self):
+        failed = {"protocol": control.PROTOCOL, "status": "error",
+                  "error": "Map must be a ROM overworld map"}
+        for status, reads in ((self.offer_status(), [failed]),
+                              (self.offer_status(("proposal.offer",)), [])):
+            with tempfile.TemporaryDirectory() as directory:
+                draft = self.write_draft(directory)
+                out = Path(directory) / "out"
+                argv = ["control", "proposal-offer", str(draft), "--out-dir", str(out)]
+                with patch.object(control.sys, "argv", argv), \
+                     patch.object(control, "connect", return_value=status), \
+                     patch.object(control, "command", side_effect=reads) as command, \
+                     patch.object(control.sys, "stderr", io.StringIO()):
+                    self.assertEqual(control.main(), 1)
+                self.assertEqual(command.call_count, len(reads))
+                self.assertFalse(out.exists())
+
     def test_rejects_unrelated_service(self):
         opener = Mock()
         opener.open.return_value = io.BytesIO(b'{"status":"ok"}')

@@ -8,6 +8,14 @@ Example:
   yaze_editor_control.py status > /absolute/expected-editor.json
   yaze_editor_control.py project-rom-swap /absolute/candidate.sfc \
     --sha256 <candidate-sha256> --expected-state /absolute/expected-editor.json
+  yaze_editor_control.py proposal-offer /absolute/draft.json \
+    --out-dir /absolute/proposals
+
+proposal-offer reads the live map (unsaved edits included) for each draft cell,
+writes <out-dir>/<id>/proposal.json with those values as `expected`, and offers
+it to the running editor. The draft is {id, title, author, why, map_id,
+cells: [{x, y, proposed}]}. Nothing is written to the map until the person at
+the editor accepts; their decisions land in <out-dir>/<id>/feedback.json.
 
 --launch starts /Applications/yaze.app only if no Yaze process is running.
 An already running app without --editor_control must be restarted deliberately.
@@ -16,7 +24,9 @@ checks. The client never saves pending edits, discards, edits ROM bytes, or
 closes a running app. A rejected swap is never retried with a refreshed identity.
 """
 import argparse
+import hashlib
 import json
+import re
 from pathlib import Path
 import subprocess
 import sys
@@ -25,6 +35,8 @@ import urllib.error
 import urllib.request
 
 PROTOCOL = "yaze-editor-control/v1"
+PROPOSAL_SCHEMA = "yaze.overworld_live_proposal.v1"
+PROPOSAL_ID = re.compile(r"[A-Za-z0-9._-]{1,64}")
 
 
 def swap_request(path, sha256, expected_state):
@@ -53,6 +65,91 @@ def swap_request(path, sha256, expected_state):
     digest(expected["rom_sha256"])
     return {"command": "project.rom.swap", "path": str(path.expanduser().resolve()),
             "candidate_sha256": digest(sha256), "expected": expected}
+
+
+def proposal_draft(path):
+    """Checks a draft before anything is sent; the editor checks it again."""
+    draft = json.loads(path.expanduser().read_text())
+    if not isinstance(draft, dict):
+        raise ValueError("Draft must be a JSON object")
+    proposal_id = draft.get("id")
+    if (not isinstance(proposal_id, str) or not PROPOSAL_ID.fullmatch(proposal_id)
+            or set(proposal_id) == {"."}):
+        raise ValueError("Draft id must be 1-64 characters of [A-Za-z0-9._-]")
+    if not isinstance(draft.get("title"), str) or not draft["title"]:
+        raise ValueError("Draft title is required")
+    for field in ("author", "why"):
+        if not isinstance(draft.get(field, ""), str):
+            raise ValueError(f"Draft {field} must be a string")
+    if type(draft.get("map_id")) is not int or draft["map_id"] < 0:
+        raise ValueError("Draft map_id must be a nonnegative integer")
+    cells = draft.get("cells")
+    if not isinstance(cells, list) or not 1 <= len(cells) <= 1024:
+        raise ValueError("Draft needs 1-1024 cells")
+    seen = set()
+    for cell in cells:
+        if not isinstance(cell, dict) or any(
+                type(cell.get(key)) is not int for key in ("x", "y", "proposed")):
+            raise ValueError("Each draft cell needs integer x, y and proposed")
+        if not (0 <= cell["x"] < 32 and 0 <= cell["y"] < 32):
+            raise ValueError(f"Cell ({cell['x']},{cell['y']}) is outside the 32x32 map")
+        if not 0 <= cell["proposed"] <= 0xFFFF:
+            raise ValueError(f"Cell ({cell['x']},{cell['y']}) proposed is not a Tile16 ID")
+        if (cell["x"], cell["y"]) in seen:
+            raise ValueError(f"Draft repeats cell ({cell['x']},{cell['y']})")
+        seen.add((cell["x"], cell["y"]))
+    return draft
+
+
+def proposal_packet(draft, read):
+    """Packet + expected identity from one overworld.cells.read response.
+
+    Cells whose live tile already equals `proposed` are dropped: accepting them
+    would change nothing. Returns (packet, expected, unchanged_cells).
+    """
+    if read.get("status") != "ok" or read.get("map_id") != draft["map_id"]:
+        raise RuntimeError("Live map read failed: " + str(read.get("error", read)))
+    live = {(cell["x"], cell["y"]): cell["tile16"] for cell in read["cells"]}
+    cells, unchanged = [], []
+    for cell in draft["cells"]:
+        key = (cell["x"], cell["y"])
+        if key not in live:
+            raise RuntimeError(f"Live map read did not return cell {key}")
+        if live[key] == cell["proposed"]:
+            unchanged.append({"x": key[0], "y": key[1]})
+            continue
+        cells.append({"x": key[0], "y": key[1], "expected": live[key],
+                      "proposed": cell["proposed"]})
+    if not cells:
+        raise RuntimeError("Every draft cell already holds its proposed tile")
+    packet = {"schema": PROPOSAL_SCHEMA, "id": draft["id"], "title": draft["title"],
+              "author": draft.get("author", ""), "why": draft.get("why", ""),
+              "map_id": draft["map_id"], "cells": cells}
+    state = read.get("state") or {}
+    expected = {key: state.get(key) for key in
+                ("pid", "session_id", "project_path", "rom_path", "rom_sha256")}
+    if any(value is None for value in expected.values()):
+        raise RuntimeError("Editor has no loaded project ROM identity")
+    return packet, expected, unchanged
+
+
+def offer_proposal(port, draft, out_dir):
+    """Read live cells, write the packet, and offer it. Never retries."""
+    read = command(port, {"command": "overworld.cells.read",
+                          "map_id": draft["map_id"],
+                          "cells": [{"x": c["x"], "y": c["y"]} for c in draft["cells"]]})
+    packet, expected, unchanged = proposal_packet(draft, read)
+    folder = out_dir.expanduser().resolve() / draft["id"]
+    folder.mkdir(parents=True, exist_ok=True)
+    path = folder / "proposal.json"
+    data = (json.dumps(packet, indent=2) + "\n").encode()
+    path.write_bytes(data)
+    result = command(port, {"command": "proposal.offer", "path": str(path),
+                            "proposal_sha256": hashlib.sha256(data).hexdigest(),
+                            "expected": expected})
+    result["packet_path"] = str(path)
+    result["unchanged_cells"] = unchanged
+    return result
 
 
 def command(port, body, timeout=120):
@@ -134,12 +231,19 @@ def main():
     room.add_argument("room", type=lambda value: int(value, 0))
     proposal = sub.add_parser("proposal-load")
     proposal.add_argument("path", type=Path)
+    offer = sub.add_parser("proposal-offer",
+                           help="Offer a live overworld proposal from a draft")
+    offer.add_argument("path", type=Path, help="Draft JSON")
+    offer.add_argument("--out-dir", type=Path, required=True,
+                       help="Folder that receives <id>/proposal.json and feedback.json")
     panel = sub.add_parser("panel-hide")
     panel.add_argument("panel")
     args = parser.parse_args()
     try:
         swap_body = (swap_request(args.path, args.sha256, args.expected_state)
                      if args.action == "project-rom-swap" else None)
+        draft = (proposal_draft(args.path)
+                 if args.action == "proposal-offer" else None)
         status = connect(args.port, args.launch, args.executable)
         if status.get("status") != "ok":
             print(json.dumps(status, indent=2))
@@ -147,6 +251,13 @@ def main():
         if swap_body and "project.rom.swap" not in status.get(
                 "capabilities", {}).get("commands", []):
             raise RuntimeError("This editor does not support guarded project.rom.swap")
+        if args.action == "proposal-offer":
+            commands = status.get("capabilities", {}).get("commands", [])
+            if not {"overworld.cells.read", "proposal.offer"} <= set(commands):
+                raise RuntimeError("This editor does not support live proposals")
+            result = offer_proposal(args.port, draft, args.out_dir)
+            print(json.dumps(result, indent=2))
+            return 0 if result.get("status") == "ok" else 1
         operations = []
         if args.action != "status":
             body = swap_body or {"command": args.action.replace("-", ".")}
