@@ -1146,6 +1146,10 @@ TEST_F(OverworldTileRomTest, TerrainCatalogRefusesACharacterWithoutASource) {
 }
 
 TEST_F(OverworldTileRomTest, TerrainCatalogAdmitsOnlyPagesThatMatchTheArea) {
+  const auto flags = core::FeatureFlags::get();
+  auto restore_flags =
+      absl::MakeCleanup([&] { core::FeatureFlags::get() = flags; });
+  core::FeatureFlags::get().overworld.kPreviewChildScreenAppearance = false;
   test::native_overworld::NativeDirectoryFixture fixture(192);
   ASSERT_NO_FATAL_FAILURE(SeedValidationFixture(&fixture));
   fixture.UpgradeToRevision4();
@@ -1191,11 +1195,18 @@ TEST_F(OverworldTileRomTest, TerrainCatalogAdmitsOnlyPagesThatMatchTheArea) {
   EXPECT_EQ(same["profile_fingerprint"], control["profile_fingerprint"]);
   EXPECT_EQ(same["records"], control["records"]);
 
-  // A different main sheet on that page is not described by the area profile.
   const uint32_t slot0 = fixture.Entry(6).pc_address;
   fixture.bytes[slot0 + parent * 8] = 0x10;
   fixture.bytes[slot0 + page * 8] = 0x11;
+  // By default the page draws with the parent's profile, so the area profile
+  // describes it even with its own different main sheet stored.
   auto status = catalog_of(nullptr);
+  EXPECT_TRUE(status.ok()) << status;
+
+  // Preview mode draws the page with its own rows: a different main sheet on
+  // that page is not described by the area profile.
+  core::FeatureFlags::get().overworld.kPreviewChildScreenAppearance = true;
+  status = catalog_of(nullptr);
   EXPECT_TRUE(absl::IsFailedPrecondition(status)) << status;
   EXPECT_THAT(std::string(status.message()),
               HasSubstr("differs from the parent's"));
