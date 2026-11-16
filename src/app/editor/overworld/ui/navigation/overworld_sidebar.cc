@@ -19,6 +19,7 @@
 #include "app/gui/core/ui_helpers.h"
 #include "app/gui/widgets/themed_widgets.h"
 #include "cli/handlers/game/overworld_tile_reference.h"
+#include "core/features.h"
 #include "imgui/imgui.h"
 #include "rom/lyra_layout_descriptor.h"
 #include "zelda3/common.h"
@@ -795,6 +796,16 @@ void OverworldSidebar::DrawPaletteSection(int property_map, int current_map,
   map = overworld_->overworld_map(current_map);
   if (!map)
     return;
+  if (map->parent() != current_map &&
+      !core::FeatureFlags::get().overworld.kPreviewChildScreenAppearance) {
+    // The game reads every page of a multi-screen area through its parent.
+    ImGui::Spacing();
+    ImGui::TextWrapped("%s", absl::StrFormat("Screen BG follows area parent "
+                                             "0x%02X.",
+                                             map->parent())
+                                 .c_str());
+    return;
+  }
   const auto admission = map_properties_system_->CheckPropertyEditSupported(
       {current_map, OverworldPropertyField::kScreenColor, 0, 0});
   const bool read_only_layout = !admission.ok();

@@ -79,6 +79,17 @@ struct FlagsMenu {
       ImGui::Text(tr("blank tiles (safe fallback behavior)."));
       ImGui::EndPopup();
     }
+
+    Checkbox(
+        tr("Preview Child Screen Appearance"),
+        &core::FeatureFlags::get().overworld.kPreviewChildScreenAppearance);
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip(
+          "%s", tr("Draw child pages of a multi-screen special area with "
+                   "their own screen colors. The game draws every page "
+                   "with the area parent's profile. Reopen the ROM after "
+                   "changing this."));
+    }
   }
 
   void DrawDungeonFlags() {

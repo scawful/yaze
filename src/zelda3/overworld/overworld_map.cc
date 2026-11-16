@@ -307,14 +307,25 @@ AreaRenderProperties OverworldMap::area_render_properties() const {
     p.custom_gfx_ids = custom_gfx_ids_;
     p.subscreen_overlay = subscreen_overlay_;
     p.area_specific_bg_color = area_specific_bg_color_;
+    p.appearance_flags = appearance_flags_;
+    p.appearance_bg_palette = appearance_bg_palette_;
     return p;
   };
-  if (inherited_area_.has_value()) {
-    if (uses_native_screen_appearance())
-      return physical();
+  if (uses_native_screen_appearance())
+    return physical();
+  if (inherited_area_.has_value())
     return *inherited_area_;
-  }
   return physical();
+}
+
+bool OverworldMap::uses_native_screen_appearance() const {
+  if (!descriptor_layout_ ||
+      !rom::IsNativeSpecialOverworldLayout(*descriptor_layout_) ||
+      descriptor_layout_->revision < 4 || (appearance_flags_ & 1) == 0) {
+    return false;
+  }
+  return parent_ == index_ ||
+         core::FeatureFlags::get().overworld.kPreviewChildScreenAppearance;
 }
 
 void OverworldMap::InheritAreaProperties(const OverworldMap& area_parent) {
@@ -328,6 +339,8 @@ void OverworldMap::InheritAreaProperties(const OverworldMap& area_parent) {
   props.custom_gfx_ids = area_parent.custom_gfx_ids_;
   props.subscreen_overlay = area_parent.subscreen_overlay_;
   props.area_specific_bg_color = area_parent.area_specific_bg_color_;
+  props.appearance_flags = area_parent.appearance_flags_;
+  props.appearance_bg_palette = area_parent.appearance_bg_palette_;
   inherited_area_ = props;
 }
 
@@ -1566,9 +1579,13 @@ absl::Status OverworldMap::LoadPalette() {
       *rom_, game_data_, parent_, current_palette_, main, animated, aux1, aux2,
       hud, bgr, spr, spr2, &palette_addresses_, palette_ids));
 
-  if (uses_native_screen_appearance() && (appearance_flags_ & 2) != 0)
-    RETURN_IF_ERROR(ApplyLyraBackgroundPaletteWords128(current_palette_,
-                                                       appearance_bg_palette_));
+  // Child pages take the area root's full BG128 row, like its profile.
+  if (const auto area = area_render_properties();
+      descriptor_layout_ &&
+      rom::IsNativeSpecialOverworldLayout(*descriptor_layout_) &&
+      descriptor_layout_->revision >= 4 && (area.appearance_flags & 3) == 3)
+    RETURN_IF_ERROR(ApplyLyraBackgroundPaletteWords128(
+        current_palette_, area.appearance_bg_palette));
 
   // current_palette_ is this map's resolved palette. Do not populate the
   // unused process-wide GfxContext cache here: maps load concurrently, and

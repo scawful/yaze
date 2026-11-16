@@ -2515,8 +2515,10 @@ TEST_F(NativeSpecialOverworldEditorTest, SavedNativeSourceExport) {
         EXPECT_EQ(page["source_profile"]["appearance_flags"], 3);
         EXPECT_EQ(page["source_profile"]["background_palette_words"][127],
                   0x3210);
+        // The selected page is a child of a wide area: its own BG row stays in
+        // the source profile, but it renders with the area parent's colors.
         for (const auto& state : page["resolved_states"])
-          EXPECT_EQ(state["palette"]["words"][127], 0x3210);
+          EXPECT_NE(state["palette"]["words"][127], 0x3210);
       } else {
         EXPECT_TRUE(
             page["source_profile"]["background_palette_words"].is_null());
@@ -2924,6 +2926,80 @@ TEST_F(NativeSpecialOverworldEditorTest, SidecarLifecycle) {
   EXPECT_EQ(document.vector(), fixture.bytes);
 }
 
+// The game reads every page of a large area through its parent ($8A). A child
+// page whose own table 410 row asks for a physical-page BG profile still
+// renders with the parent's graphics, palette set, main palette and BG128 row,
+// while its own rows stay stored as authored.
+TEST_F(NativeSpecialOverworldEditorTest,
+       ChildPagesRenderWithAreaParentProfile) {
+  const char* path = std::getenv("YAZE_TEST_ROM_OOS");
+  if (!path || !std::filesystem::exists(path))
+    GTEST_SKIP() << "Set YAZE_TEST_ROM_OOS for native area parent profiles";
+  const auto flags = core::FeatureFlags::get();
+  auto restore_flags =
+      absl::MakeCleanup([&] { core::FeatureFlags::get() = flags; });
+  core::FeatureFlags::get().overworld.kPreviewChildScreenAppearance = false;
+  Rom legacy;
+  ASSERT_TRUE(legacy.LoadFromData(ReadBytes(path)).ok());
+  zelda3::Overworld reference(&legacy);
+  ASSERT_TRUE(reference.Load(&legacy).ok());
+  NativeDirectoryFixture fixture(192);
+  fixture.SeedLoadedLegacyForModelTest(legacy, reference);
+  fixture.UpgradeToRevision4();
+  for (int member : {0xB0, 0xB1, 0xB8, 0xB9}) {
+    const bool root = member == 0xB0;
+    fixture.bytes[fixture.Entry(7).pc_address + member] = 0xB0;
+    fixture.bytes[fixture.Entry(30).pc_address + member] = 1;
+    fixture.bytes[fixture.Entry(410).pc_address + member] = root ? 3 : 1;
+    fixture.bytes[fixture.Entry(2).pc_address + member] = root ? 2 : 1;
+    fixture.bytes[fixture.Entry(27).pc_address + member] = root ? 2 : 1;
+    fixture.bytes[fixture.Entry(31).pc_address + member] = root ? 2 : 1;
+    fixture.Word(fixture.Entry(411).pc_address + (member - 0x80) * 256 + 10,
+                 root ? 0x1234 : 0x4321);
+  }
+  fixture.Seal();
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(fixture.bytes).ok());
+  zelda3::GameData data;
+  zelda3::LoadOptions options;
+  options.expand_rom = false;
+  ASSERT_TRUE(zelda3::LoadGameData(rom, data, options).ok());
+  zelda3::Overworld world(&rom, &data);
+  ASSERT_TRUE(world.Load(&rom).ok());
+  const auto* area_root = world.overworld_map(0xB0);
+  ASSERT_TRUE(area_root->uses_native_screen_appearance());
+  ASSERT_EQ(area_root->area_graphics(), 2);
+  ASSERT_EQ(area_root->area_palette(), 2);
+  ASSERT_EQ(area_root->native_appearance_bg_palette()[5], 0x1234);
+  ASSERT_TRUE(world.mutable_overworld_map(0xB0)->LoadPalette().ok());
+  EXPECT_EQ(area_root->current_palette()[5].snes(), 0x1234);
+  const auto snapshot = world.CaptureNativeAreaSnapshot();
+  ASSERT_TRUE(snapshot.ok()) << snapshot.status();
+  for (int child : {0xB1, 0xB8, 0xB9}) {
+    SCOPED_TRACE(child);
+    auto* map = world.mutable_overworld_map(child);
+    EXPECT_FALSE(map->uses_native_screen_appearance());
+    EXPECT_EQ(map->area_graphics(), 2);
+    EXPECT_EQ(map->area_palette(), 2);
+    EXPECT_EQ(map->render_main_palette(), 2);
+    EXPECT_EQ(map->area_render_properties().appearance_flags, 3);
+    ASSERT_TRUE(map->LoadPalette().ok());
+    EXPECT_EQ(map->current_palette()[5].snes(), 0x1234);
+    // Raw child rows stay as authored, so Save writes them back unchanged.
+    EXPECT_EQ(map->native_appearance_flags(), 1);
+    EXPECT_EQ(map->native_appearance_bg_palette()[5], 0x4321);
+    EXPECT_EQ(snapshot->profiles[child].graphics, 1);
+    EXPECT_EQ(snapshot->profiles[child].palette, 1);
+  }
+  // Preview mode draws a child page with its own rows.
+  core::FeatureFlags::get().overworld.kPreviewChildScreenAppearance = true;
+  zelda3::Overworld preview(&rom, &data);
+  ASSERT_TRUE(preview.Load(&rom).ok());
+  EXPECT_TRUE(preview.overworld_map(0xB1)->uses_native_screen_appearance());
+  EXPECT_EQ(preview.overworld_map(0xB1)->area_graphics(), 1);
+  EXPECT_EQ(preview.overworld_map(0xB1)->render_main_palette(), 1);
+}
+
 TEST_F(NativeSpecialOverworldEditorTest, ScreenAppearanceSaveUndoAndReopen) {
   const char* path = std::getenv("YAZE_TEST_ROM_OOS");
   if (!path || !std::filesystem::exists(path))
@@ -2931,6 +3007,8 @@ TEST_F(NativeSpecialOverworldEditorTest, ScreenAppearanceSaveUndoAndReopen) {
   const auto flags = core::FeatureFlags::get();
   auto restore_flags =
       absl::MakeCleanup([&] { core::FeatureFlags::get() = flags; });
+  // Child page $B1 authors its own screen appearance (editor preview mode).
+  core::FeatureFlags::get().overworld.kPreviewChildScreenAppearance = true;
   for (int capacity : {160, 192}) {
     SCOPED_TRACE(capacity);
     Rom legacy;
@@ -2969,6 +3047,8 @@ TEST_F(NativeSpecialOverworldEditorTest, ScreenAppearanceSaveUndoAndReopen) {
     manager->SetAssetLoadMode(AssetLoadMode::kLazy);
     manager->user_settings().prefs().backup_before_save = false;
     ASSERT_TRUE(manager->OpenRomOrProject(source.string()).ok());
+    // Opening a ROM applies its project flags; re-enable preview mode.
+    core::FeatureFlags::get().overworld.kPreviewChildScreenAppearance = true;
     ASSERT_TRUE(
         manager->EnsureEditorAssetsLoaded(editor::EditorType::kOverworld).ok());
     auto* editor = manager->GetCurrentEditorSet()->GetOverworldEditor();
@@ -3075,6 +3155,11 @@ TEST_F(NativeSpecialOverworldEditorTest,
   const char* path = std::getenv("YAZE_TEST_ROM_OOS");
   if (!path || !std::filesystem::exists(path))
     GTEST_SKIP() << "Set YAZE_TEST_ROM_OOS for native screen color UI harness";
+  const auto flags = core::FeatureFlags::get();
+  auto restore_flags =
+      absl::MakeCleanup([&] { core::FeatureFlags::get() = flags; });
+  // Child page $B1 authors its own screen appearance (editor preview mode).
+  core::FeatureFlags::get().overworld.kPreviewChildScreenAppearance = true;
   Rom legacy;
   ASSERT_TRUE(legacy.LoadFromData(ReadBytes(path)).ok());
   zelda3::Overworld reference(&legacy);
@@ -3108,6 +3193,8 @@ TEST_F(NativeSpecialOverworldEditorTest,
   manager->SetAssetLoadMode(AssetLoadMode::kLazy);
   manager->user_settings().prefs().backup_before_save = false;
   ASSERT_TRUE(manager->OpenRomOrProject(source.string()).ok());
+  // Opening a ROM applies its project flags; re-enable preview mode.
+  core::FeatureFlags::get().overworld.kPreviewChildScreenAppearance = true;
   ASSERT_TRUE(
       manager->EnsureEditorAssetsLoaded(editor::EditorType::kOverworld).ok());
   auto* editor = manager->GetCurrentEditorSet()->GetOverworldEditor();

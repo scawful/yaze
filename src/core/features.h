@@ -120,6 +120,12 @@ class FeatureFlags {
       // When disabled, the editor/runtime will ignore those maps and fall back
       // to blanks for safety.
       bool kEnableSpecialWorldExpansion = false;
+
+      // Render child pages of a multi-screen native special area with their
+      // own table 410/411 screen appearance. Off by default: the game reads
+      // every page of an area through its parent ($8A), so child rows do not
+      // reach the screen until game build support lands.
+      bool kPreviewChildScreenAppearance = false;
     } overworld;
   };
 
@@ -195,6 +201,9 @@ class FeatureFlags {
               std::to_string(get().overworld.kApplyZSCustomOverworldASM) + "\n";
     result += "kEnableSpecialWorldExpansion: " +
               std::to_string(get().overworld.kEnableSpecialWorldExpansion) +
+              "\n";
+    result += "kPreviewChildScreenAppearance: " +
+              std::to_string(get().overworld.kPreviewChildScreenAppearance) +
               "\n";
     result +=
         "kUseNativeFileDialog: " + std::to_string(get().kUseNativeFileDialog) +
