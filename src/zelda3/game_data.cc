@@ -10,6 +10,7 @@
 #include <algorithm>
 #include <iterator>
 #include <memory>
+#include <optional>
 #include <set>
 #include <utility>
 
@@ -124,12 +125,75 @@ uint32_t GetGraphicsAddress(const uint8_t* data, uint8_t addr, uint32_t ptr1,
                                    data[ptr3 + addr]));
 }
 
+namespace {
+
+// The bank $23 arrays as data, for project ROMs the reader hook is not
+// assembled into. No manifest or ROM hash: the project ROM changes on every
+// write, so validity comes from the rows themselves.
+std::optional<GfxSheetPointerTable> DetectBank23TableInRomData(const Rom& rom,
+                                                               uint32_t ptr1,
+                                                               uint32_t ptr2,
+                                                               uint32_t ptr3) {
+  const auto& data = rom.vector();
+  const uint32_t bank = SnesToPc(kOracleSheetBankArraySnes);
+  const uint32_t high = SnesToPc(kOracleSheetHighArraySnes);
+  const uint32_t low = SnesToPc(kOracleSheetLowArraySnes);
+  for (uint32_t array : {bank, high, low}) {
+    if (static_cast<size_t>(array) + kMaxGfxSheets > data.size()) {
+      return std::nullopt;
+    }
+  }
+  for (uint32_t array : {ptr1, ptr2, ptr3}) {
+    if (static_cast<size_t>(array) + kLegacyNumGfxSheets > data.size()) {
+      return std::nullopt;
+    }
+  }
+  for (uint32_t i = 0; i < kLegacyNumGfxSheets; ++i) {
+    if (data[bank + i] != data[ptr1 + i] || data[high + i] != data[ptr2 + i] ||
+        data[low + i] != data[ptr3 + i]) {
+      return std::nullopt;
+    }
+  }
+  for (uint32_t i = kLegacyNumGfxSheets; i < kNumGfxSheets; ++i) {
+    const uint32_t snes = static_cast<uint32_t>(data[bank + i]) << 16 |
+                          static_cast<uint32_t>(data[high + i]) << 8 |
+                          data[low + i];
+    if (snes == 0x000000 || snes == 0xFFFFFF) {
+      continue;  // Unclaimed row.
+    }
+    const uint8_t snes_bank = static_cast<uint8_t>(snes >> 16);
+    if ((snes & 0xFFFF) < 0x8000 || snes_bank == 0x7E || snes_bank == 0x7F) {
+      return std::nullopt;
+    }
+    const uint32_t pc = SnesToPc(snes);
+    if (pc >= data.size() ||
+        !gfx::lc_lz2::DecompressExact(data.data(), data.size(), pc,
+                                      /*max_output=*/0x8000,
+                                      /*big_endian_copy=*/false)
+             .ok()) {
+      return std::nullopt;
+    }
+  }
+  GfxSheetPointerTable table;
+  table.bank_pc = bank;
+  table.high_pc = high;
+  table.low_pc = low;
+  table.count = kNumGfxSheets;
+  table.expanded_from_rom_data = true;
+  return table;
+}
+
+}  // namespace
+
 GfxSheetPointerTable ResolveGfxSheetPointerTable(const Rom& rom, uint32_t ptr1,
                                                  uint32_t ptr2, uint32_t ptr3) {
   GfxSheetPointerTable vanilla;
   vanilla.bank_pc = ptr1;
   vanilla.high_pc = ptr2;
   vanilla.low_pc = ptr3;
+  auto no_hook = [&] {
+    return DetectBank23TableInRomData(rom, ptr1, ptr2, ptr3).value_or(vanilla);
+  };
 
   const auto& data = rom.vector();
   auto long_at = [&](size_t pc) {
@@ -139,7 +203,7 @@ GfxSheetPointerTable ResolveGfxSheetPointerTable(const Rom& rom, uint32_t ptr1,
   };
   const uint32_t site = SnesToPc(kOracleSheetReaderSnes);
   if (site + 4 > data.size() || data[site] != 0x22) {  // JSL long
-    return vanilla;
+    return no_hook();
   }
 
   // GfxSheet_GetPtr_BgCA: PHP; SEP #$30; PHX; REP #$10; TYX; then
@@ -153,18 +217,18 @@ GfxSheetPointerTable ResolveGfxSheetPointerTable(const Rom& rom, uint32_t ptr1,
   if (helper_end > data.size() ||
       !std::equal(std::begin(kPrologue), std::end(kPrologue),
                   data.begin() + helper)) {
-    return vanilla;
+    return no_hook();
   }
   uint32_t arrays[3];
   for (int i = 0; i < 3; ++i) {
     const size_t op = helper + sizeof(kPrologue) + i * 6;
     if (data[op] != 0xBF || data[op + 4] != 0x85 ||
         data[op + 5] != kStores[i]) {
-      return vanilla;
+      return no_hook();
     }
     arrays[i] = SnesToPc(long_at(op + 1));
     if (static_cast<size_t>(arrays[i]) + kMaxGfxSheets > data.size()) {
-      return vanilla;
+      return no_hook();
     }
   }
 
@@ -895,7 +959,9 @@ absl::Status LoadGraphics(Rom& rom, GameData& data) {
   diag.sheets.assign(sheet_count, {});
 
   LOG_INFO("Graphics", "Loading %zu graphics sheets%s...", sheet_count,
-           table.oracle_expanded ? " (Oracle bank $23 table)" : "");
+           table.oracle_expanded          ? " (Oracle bank $23 table)"
+           : table.expanded_from_rom_data ? " (bank $23 table in ROM data)"
+                                          : "");
 
   for (uint32_t i = 0; i < sheet_count; i++) {
 #ifdef __EMSCRIPTEN__

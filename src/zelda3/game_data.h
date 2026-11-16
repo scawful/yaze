@@ -69,12 +69,21 @@ struct GfxSheetPointerTable {
   uint32_t high_pc = 0;
   uint32_t low_pc = 0;
   uint32_t count = kLegacyNumGfxSheets;
+  // Built ROM: the reader hook proves the game reads the bank $23 arrays.
   bool oracle_expanded = false;
+  // Unbuilt project ROM: valid bank $23 arrays without the hook. Vanilla
+  // rows still drive the writer; relocations must update both arrays.
+  bool expanded_from_rom_data = false;
 };
 
 /// Oracle's Decompress_background_arbitrary reader site ($00:E78F). With the
 /// expanded table it holds a JSL to GfxSheet_GetPtr_BgCA.
 constexpr uint32_t kOracleSheetReaderSnes = 0x00E78F;
+
+/// Oracle's bank $23 sheet pointer arrays (Core/gfx_sheet_table.asm).
+constexpr uint32_t kOracleSheetBankArraySnes = 0x23FD00;
+constexpr uint32_t kOracleSheetHighArraySnes = 0x23FE00;
+constexpr uint32_t kOracleSheetLowArraySnes = 0x23FF00;
 
 // Sheet sizes
 constexpr uint32_t kUncompressedSheetSize = 0x0800;  // 2048 bytes
@@ -297,8 +306,14 @@ uint32_t GetGraphicsAddress(const uint8_t* data, uint8_t addr, uint32_t ptr1,
  *
  * When the reader at kOracleSheetReaderSnes is a JSL to Oracle's
  * GfxSheet_GetPtr_BgCA helper, returns the bank $23 arrays it loads from
- * (kMaxGfxSheets physical rows, kNumGfxSheets usable). Otherwise returns the
- * given vanilla arrays with kLegacyNumGfxSheets rows.
+ * (kMaxGfxSheets physical rows, kNumGfxSheets usable, oracle_expanded).
+ *
+ * Without the hook (an unbuilt project ROM), returns the bank $23 arrays
+ * with expanded_from_rom_data when they are valid: rows $00-$DE equal the
+ * vanilla arrays, and every row $DF-$FE is empty ($000000 or $FFFFFF) or a
+ * LoROM pointer into the ROM whose data decodes as LZ2. Row $FF is the
+ * sentinel and is not checked. Otherwise returns the given vanilla arrays
+ * with kLegacyNumGfxSheets rows.
  */
 GfxSheetPointerTable ResolveGfxSheetPointerTable(const Rom& rom, uint32_t ptr1,
                                                  uint32_t ptr2, uint32_t ptr3);

@@ -457,6 +457,11 @@ GraphicsEditor::PrepareGraphicsSave() {
   for (uint16_t sheet_id : state_.modified_sheets) {
     if (sheet_id >= zelda3::kNumGfxSheets) {
       prepared.refusals[sheet_id] = "out of range";
+    } else if (sheet_id >= zelda3::kGfxSheetCount) {
+      // Rows $DF+ exist only in the bank $23 table; the writer packs through
+      // the vanilla arrays.
+      prepared.refusals[sheet_id] =
+          "bank $23 table row; edit it in the Oracle sources";
     } else if (prepared.policy.reserved_sheets.count(sheet_id) != 0) {
       prepared.refusals[sheet_id] = "reserved by the project";
     } else if (zelda3::GetGfxSheetStorageKind(sheet_id) ==
@@ -738,6 +743,26 @@ absl::Status GraphicsEditor::SaveRomData() {
       return absl::Status(result.status().code(),
                           absl::StrFormat("Graphics sheet 0x%02X not saved: %s",
                                           sheet_id, result.status().message()));
+    }
+    // Keep the bank $23 copy of a relocated vanilla row equal to the vanilla
+    // row, or the next load no longer finds a valid table.
+    if (const auto& table = game_data()->gfx_sheet_table;
+        table.expanded_from_rom_data &&
+        result->placement == zelda3::GfxSheetPlacement::kRelocated) {
+      const auto& bytes = rom_->vector();
+      const std::pair<uint32_t, uint32_t> rows[] = {
+          {table.bank_pc, prepared.tables.bank},
+          {table.high_pc, prepared.tables.high},
+          {table.low_pc, prepared.tables.low}};
+      for (const auto& [mirror, vanilla] : rows) {
+        const uint8_t value = bytes[vanilla + sheet_id];
+        if (auto status =
+                rom_->WriteVector(static_cast<int>(mirror + sheet_id), {value});
+            !status.ok()) {
+          restore();
+          return status;
+        }
+      }
     }
     LOG_INFO("GraphicsEditor", "Saved sheet %02X (%zu bytes, %s) at 0x%06X",
              sheet_id, result->new_stored_size,

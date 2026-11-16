@@ -435,11 +435,14 @@ TEST(GraphicsSheetStoreRomTest, LoadGameDataFillsTheStore) {
   ASSERT_TRUE(LoadGameData(rom, data, options).ok());
 
   const size_t loaded_sheets = data.diagnostics.sheets.size();
-  // A ROM whose $00:E78F reader JSLs into Oracle's expanded table loads
-  // kNumGfxSheets; every other ROM loads the vanilla kLegacyNumGfxSheets.
-  const size_t expected_sheets = data.gfx_sheet_table.oracle_expanded
-                                     ? kNumGfxSheets
-                                     : kLegacyNumGfxSheets;
+  // A ROM with Oracle's expanded table (reader hook, or valid bank $23
+  // arrays as data) loads kNumGfxSheets; every other ROM loads
+  // kLegacyNumGfxSheets.
+  const size_t expected_sheets =
+      data.gfx_sheet_table.oracle_expanded ||
+              data.gfx_sheet_table.expanded_from_rom_data
+          ? kNumGfxSheets
+          : kLegacyNumGfxSheets;
   ASSERT_EQ(loaded_sheets, expected_sheets);
   ASSERT_EQ(loaded_sheets, data.gfx_sheet_table.count);
   ASSERT_EQ(data.graphics_buffer.size(), loaded_sheets * kSheetBytes);

@@ -110,6 +110,31 @@ OracleRom BuildOracleRom() {
   return out;
 }
 
+// An unbuilt project ROM: the bank $23 table and sheets as data, no reader
+// hook, and rows $00-$DE equal to the vanilla arrays.
+OracleRom BuildTableOnlyRom() {
+  auto out = BuildOracleRom();
+  const auto vanilla_bytes = BuildGfxSheetTestRom().bytes;
+  const uint32_t site = SnesToPc(zelda3::kOracleSheetReaderSnes);
+  std::copy_n(vanilla_bytes.begin() + site, 4, out.bytes.begin() + site);
+  const zelda3::GfxSheetPointerTables vanilla;
+  out.bytes[SnesToPc(kBankSnes) + kReplacedSheet] =
+      out.bytes[vanilla.bank + kReplacedSheet];
+  out.bytes[SnesToPc(kHighSnes) + kReplacedSheet] =
+      out.bytes[vanilla.high + kReplacedSheet];
+  out.bytes[SnesToPc(kLowSnes) + kReplacedSheet] =
+      out.bytes[vanilla.low + kReplacedSheet];
+  return out;
+}
+
+zelda3::GfxSheetPointerTable Resolve(const std::vector<uint8_t>& bytes) {
+  Rom rom;
+  EXPECT_TRUE(rom.LoadFromData(bytes).ok());
+  const zelda3::GfxSheetPointerTables vanilla;
+  return zelda3::ResolveGfxSheetPointerTable(rom, vanilla.bank, vanilla.high,
+                                             vanilla.low);
+}
+
 std::vector<uint8_t> BufferSheet(const zelda3::GameData& data, uint16_t sheet) {
   const auto span = data.sheet_store.Sheet(sheet);
   return std::vector<uint8_t>(span.begin(), span.end());
@@ -159,6 +184,65 @@ TEST(OracleGfxSheetTableTest, VanillaRomKeeps223Sheets) {
   EXPECT_EQ(BufferSheet(*data, kReplacedSheet),
             Pixels(fixture.sheets.at(kReplacedSheet)));
   EXPECT_FALSE(data->sheet_store.HasSheet(zelda3::kLegacyNumGfxSheets));
+}
+
+TEST(OracleGfxSheetTableTest, TableInProjectRomDataLoads255Sheets) {
+  auto fixture = BuildTableOnlyRom();
+  // An unclaimed row may also be all zero.
+  const uint16_t zero_row = 0xF0;
+  fixture.bytes[SnesToPc(kBankSnes) + zero_row] = 0;
+  fixture.bytes[SnesToPc(kHighSnes) + zero_row] = 0;
+  fixture.bytes[SnesToPc(kLowSnes) + zero_row] = 0;
+
+  const auto table = Resolve(fixture.bytes);
+  EXPECT_FALSE(table.oracle_expanded);
+  EXPECT_TRUE(table.expanded_from_rom_data);
+  EXPECT_EQ(table.count, zelda3::kNumGfxSheets);
+  EXPECT_EQ(table.bank_pc, SnesToPc(kBankSnes));
+
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(fixture.bytes).ok());
+  auto data = std::make_unique<zelda3::GameData>();
+  ASSERT_TRUE(zelda3::LoadGraphics(rom, *data).ok());
+  EXPECT_TRUE(data->gfx_sheet_table.expanded_from_rom_data);
+  EXPECT_EQ(data->graphics_buffer.size(), zelda3::kNumGfxSheets * 4096u);
+  EXPECT_EQ(BufferSheet(*data, kNewSheet), Pixels(fixture.added));
+  EXPECT_EQ(BufferSheet(*data, kLastSheet), Pixels(fixture.last));
+}
+
+TEST(OracleGfxSheetTableTest, ZeroedBank23ArraysKeep223Sheets) {
+  auto fixture = BuildTableOnlyRom();
+  std::fill(fixture.bytes.begin() + SnesToPc(kBankSnes),
+            fixture.bytes.begin() + SnesToPc(kLowSnes) + zelda3::kMaxGfxSheets,
+            0);
+  const auto table = Resolve(fixture.bytes);
+  EXPECT_FALSE(table.expanded_from_rom_data);
+  EXPECT_EQ(table.count, zelda3::kLegacyNumGfxSheets);
+}
+
+TEST(OracleGfxSheetTableTest, VanillaRowMismatchKeeps223Sheets) {
+  auto fixture = BuildTableOnlyRom();
+  fixture.bytes[SnesToPc(kLowSnes) + 0x20] ^= 0x01;
+  const auto table = Resolve(fixture.bytes);
+  EXPECT_FALSE(table.expanded_from_rom_data);
+  EXPECT_EQ(table.count, zelda3::kLegacyNumGfxSheets);
+}
+
+TEST(OracleGfxSheetTableTest, ExpandedRowNamingWramKeeps223Sheets) {
+  auto fixture = BuildTableOnlyRom();
+  fixture.bytes[SnesToPc(kBankSnes) + kNewSheet] = 0x7E;
+  const auto table = Resolve(fixture.bytes);
+  EXPECT_FALSE(table.expanded_from_rom_data);
+  EXPECT_EQ(table.count, zelda3::kLegacyNumGfxSheets);
+}
+
+TEST(OracleGfxSheetTableTest, ExpandedRowWithBadLz2Keeps223Sheets) {
+  auto fixture = BuildTableOnlyRom();
+  // Zero fill decodes as one-byte copies until it runs past the output limit.
+  SetOracleRow(fixture.bytes, kNewSheet, 0x1F0000);
+  const auto table = Resolve(fixture.bytes);
+  EXPECT_FALSE(table.expanded_from_rom_data);
+  EXPECT_EQ(table.count, zelda3::kLegacyNumGfxSheets);
 }
 
 }  // namespace
