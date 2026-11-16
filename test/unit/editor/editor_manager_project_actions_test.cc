@@ -5374,13 +5374,87 @@ TEST_F(EditorControlRomSwapTest, ProposalAcceptWritesOneUndoStepAndFeedback) {
   EXPECT_EQ(entry["packet_sha256"],
             core::ComputeSourceArtifactSha256(ReadFile(packet_path)));
 
-  // Both written cells revert together: Accept is one undo step.
+  // Both written cells revert together: Accept is one undo step. The undo
+  // appends an "undone" entry and returns the proposal to pending.
   ASSERT_OK(editor->Undo());
   EXPECT_EQ(cell(2, 8), ready_a);
   EXPECT_EQ(cell(3, 8), ready_b);
+  const auto undone = nlohmann::json::parse(ReadFile(feedback_path));
+  EXPECT_EQ(undone["status"], "pending");
+  ASSERT_EQ(undone["history"].size(), 2u);
+  EXPECT_EQ(undone["history"][1]["decision"], "undone");
+  EXPECT_EQ(undone["history"][1]["cells_applied"], 0);
+  EXPECT_EQ(editor->live_proposals().Find("accept-proof")->decision,
+            LiveProposalDecision::kPending);
+
+  // Redo writes the cells again and records "redone".
   ASSERT_OK(editor->Redo());
   EXPECT_EQ(cell(2, 8), other(ready_a));
   EXPECT_EQ(cell(3, 8), other(ready_b));
+  const auto redone = nlohmann::json::parse(ReadFile(feedback_path));
+  EXPECT_EQ(redone["status"], "accepted");
+  ASSERT_EQ(redone["history"].size(), 3u);
+  EXPECT_EQ(redone["history"][2]["decision"], "redone");
+  EXPECT_EQ(redone["history"][2]["cells_applied"], 2);
+
+  // Undo, then Accept again: a fresh accepted step, and the ROM file on disk
+  // still never changed.
+  ASSERT_OK(editor->Undo());
+  const auto reapplied = editor->AcceptLiveProposal("accept-proof");
+  ASSERT_TRUE(reapplied.ok()) << reapplied.status();
+  EXPECT_EQ(*reapplied, 2);
+  const auto again = nlohmann::json::parse(ReadFile(feedback_path));
+  ASSERT_EQ(again["history"].size(), 5u);
+  EXPECT_EQ(again["history"][3]["decision"], "undone");
+  EXPECT_EQ(again["history"][4]["decision"], "accepted");
+  EXPECT_EQ(again["status"], "accepted");
+  EXPECT_EQ(ReadFile(rom_path_), rom_file_before);
+}
+
+TEST_F(EditorControlRomSwapTest, CellsReadReportsLiveTilesWithoutWrites) {
+  const char* fixture = std::getenv("YAZE_TEST_ROM_OOS");
+  if (!fixture || !*fixture)
+    GTEST_SKIP() << "Set YAZE_TEST_ROM_OOS to an Oracle ROM copy";
+  std::filesystem::copy_file(fixture, rom_path_,
+                             std::filesystem::copy_options::overwrite_existing);
+  ASSERT_OK(manager_->ReloadProjectRom());
+  ASSERT_OK(manager_->EnsureEditorAssetsLoaded(EditorType::kOverworld));
+  auto* editor = manager_->GetCurrentEditorSet()->GetEditorAs<OverworldEditor>(
+      EditorType::kOverworld);
+  ASSERT_NE(editor, nullptr);
+  // An unsaved edit in memory is what a reader must see.
+  uint16_t& edited = editor->overworld().GetMapTiles(0)[2][8];
+  edited = edited == 1 ? 2 : 1;
+  const uint16_t live = edited;
+  const auto rom_bytes_before = manager_->GetCurrentRom()->vector();
+  const std::string rom_file_before = ReadFile(rom_path_);
+
+  const auto some = Execute({{"command", "overworld.cells.read"},
+                             {"map_id", 0},
+                             {"cells", {{{"x", 2}, {"y", 8}}}}});
+  ASSERT_EQ(some["http_status"], 200) << some.dump();
+  ASSERT_EQ(some["cells"].size(), 1u);
+  EXPECT_EQ(some["cells"][0]["tile16"], live);
+  EXPECT_EQ(some["state"]["rom_sha256"], State()["rom_sha256"]);
+
+  const auto all =
+      Execute({{"command", "overworld.cells.read"}, {"map_id", 0}});
+  ASSERT_EQ(all["http_status"], 200) << all.dump();
+  ASSERT_EQ(all["cells"].size(), 1024u);
+  EXPECT_EQ(all["cells"][8 * 32 + 2]["tile16"], live);  // row-major
+
+  for (const auto& bad :
+       {nlohmann::json{{"command", "overworld.cells.read"}, {"map_id", 0x1000}},
+        nlohmann::json{{"command", "overworld.cells.read"},
+                       {"map_id", 0},
+                       {"cells", {{{"x", 32}, {"y", 0}}}}},
+        nlohmann::json{{"command", "overworld.cells.read"}, {"map_id", "0"}}}) {
+    const auto refused = Execute(bad);
+    EXPECT_EQ(refused["status"], "error") << bad.dump();
+    EXPECT_FALSE(refused.contains("cells")) << refused.dump();
+  }
+  EXPECT_EQ(manager_->GetCurrentRom()->vector(), rom_bytes_before);
+  EXPECT_EQ(ReadFile(rom_path_), rom_file_before);
 }
 
 }  // namespace

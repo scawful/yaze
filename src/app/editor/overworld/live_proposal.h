@@ -39,8 +39,17 @@ struct LiveProposal {
   std::string packet_path;
   std::string packet_sha256;
   LiveProposalDecision decision = LiveProposalDecision::kPending;
+  // Cells Accept wrote (expected -> proposed). Empty until an Accept writes
+  // at least one cell. Undo/Redo compare the live map against these to tell
+  // the agent when the accepted step was undone or redone.
+  std::vector<GuardedTileCell> applied_cells;
+  bool undone = false;      // the accepted step is currently undone
   std::string last_result;  // shown in the inbox panel
 };
+
+// "1 cell", "2 cells": count text for the inbox panel and result lines.
+std::string CountLabel(int count, std::string_view singular,
+                       std::string_view plural);
 
 struct LiveProposalConflict {
   int x = 0;
@@ -73,7 +82,7 @@ LiveProposalClassification ClassifyLiveProposal(
 std::string LiveProposalFeedbackPath(std::string_view packet_path);
 
 struct LiveProposalFeedbackEntry {
-  std::string decision;  // accepted | rejected | commented
+  std::string decision;  // accepted | rejected | commented | undone | redone
   std::string comment;
   int cells_applied = 0;
   int already_applied = 0;

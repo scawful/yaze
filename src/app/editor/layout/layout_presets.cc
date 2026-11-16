@@ -34,12 +34,14 @@ PanelLayoutPreset LayoutPresets::GetDefaultPreset(EditorType type) {
           {Panels::kOverworldItemList, DockPosition::Right},
           {Panels::kOverworldV3Settings, DockPosition::Right},
           {Panels::kOverworldDebug, DockPosition::Right},
+          {Panels::kOverworldProposals, DockPosition::Right},
       };
       preset.optional_panels = {
           Panels::kOverworldTile16Editor,  Panels::kOverworldTile8Selector,
           Panels::kOverworldMapProperties, Panels::kOverworldGfxGroups,
           Panels::kOverworldUsageStats,    Panels::kOverworldItemList,
           Panels::kOverworldV3Settings,    Panels::kOverworldDebug,
+          Panels::kOverworldProposals,
       };
       break;
 
@@ -554,6 +556,7 @@ PanelLayoutPreset LayoutPresets::GetOverworldArtistPreset() {
       {Panels::kOverworldItemList, DockPosition::Bottom},
       {Panels::kOverworldV3Settings, DockPosition::RightBottom},
       {Panels::kOverworldDebug, DockPosition::RightBottom},
+      {Panels::kOverworldProposals, DockPosition::Right},
       {Panels::kPaletteControlPanel, DockPosition::LeftTop},
       {Panels::kPaletteOwMain, DockPosition::Bottom},
       {Panels::kGraphicsSheetEditor, DockPosition::LeftBottom},

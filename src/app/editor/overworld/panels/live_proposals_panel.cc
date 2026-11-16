@@ -76,13 +76,16 @@ void LiveProposalsPanel::Draw(bool* /*p_open*/) {
                        std::string(classification.status().message()).c_str());
     return;
   }
-  ImGui::Text("Map 0x%02X: %d cells", selected->map_id,
-              static_cast<int>(selected->cells.size()));
+  ImGui::Text(
+      "Map 0x%02X: %s", selected->map_id,
+      CountLabel(static_cast<int>(selected->cells.size()), "cell", "cells")
+          .c_str());
   ImGui::TextColored(ImVec4(0.0f, 0.78f, 1.0f, 1.0f), "%d ready",
                      classification->ready);
   ImGui::SameLine();
-  ImGui::TextColored(ImVec4(1.0f, 0.25f, 0.25f, 1.0f), "%d conflicts",
-                     classification->conflicts);
+  ImGui::TextColored(
+      ImVec4(1.0f, 0.25f, 0.25f, 1.0f), "%s",
+      CountLabel(classification->conflicts, "conflict", "conflicts").c_str());
   ImGui::SameLine();
   ImGui::TextColored(ImVec4(0.25f, 0.86f, 0.38f, 1.0f), "%d already applied",
                      classification->already_applied);
@@ -103,7 +106,8 @@ void LiveProposalsPanel::Draw(bool* /*p_open*/) {
   const bool pending = selected->decision == LiveProposalDecision::kPending;
   ImGui::BeginDisabled(!pending || classification->ready == 0);
   const std::string accept =
-      absl::StrFormat(ICON_MD_CHECK " Accept %d cells", classification->ready);
+      absl::StrFormat(ICON_MD_CHECK " Accept %s",
+                      CountLabel(classification->ready, "cell", "cells"));
   if (ImGui::Button(accept.c_str()))
     (void)editor->AcceptLiveProposal(id);
   ImGui::EndDisabled();

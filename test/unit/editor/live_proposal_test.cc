@@ -163,5 +163,11 @@ TEST(LiveProposalTest, InboxReofferReplacesAndResetsToPending) {
   EXPECT_EQ(inbox.Find("missing"), nullptr);
 }
 
+TEST(LiveProposalTest, CountLabelUsesSingularOnlyForOne) {
+  EXPECT_EQ(CountLabel(0, "conflict", "conflicts"), "0 conflicts");
+  EXPECT_EQ(CountLabel(1, "conflict", "conflicts"), "1 conflict");
+  EXPECT_EQ(CountLabel(2, "cell", "cells"), "2 cells");
+}
+
 }  // namespace
 }  // namespace yaze::editor

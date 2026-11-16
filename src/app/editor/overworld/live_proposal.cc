@@ -55,6 +55,11 @@ const char* DecisionName(LiveProposalDecision decision) {
 
 }  // namespace
 
+std::string CountLabel(int count, std::string_view singular,
+                       std::string_view plural) {
+  return absl::StrFormat("%d %s", count, count == 1 ? singular : plural);
+}
+
 absl::StatusOr<LiveProposal> ParseLiveProposal(std::string_view json_text,
                                                int map_count,
                                                int tile16_count) {

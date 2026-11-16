@@ -1,4 +1,5 @@
 #include "app/editor/layout/layout_presets.h"
+#include "app/editor/overworld/ui/navigation/overworld_toolbar.h"
 #include "app/editor/overworld/ui/tiles/tile16_editor_view.h"
 
 #include <algorithm>
@@ -73,6 +74,16 @@ TEST(LayoutPresetsTest, OverworldDefaultUsesMinimalWorkbenchArrangement) {
 
   EXPECT_TRUE(ContainsPanel(preset.optional_panels,
                             LayoutPresets::Panels::kOverworldDebug));
+
+  // Agent proposals open on demand and dock right beside the canvas.
+  auto proposals_pos =
+      preset.panel_positions.find(LayoutPresets::Panels::kOverworldProposals);
+  ASSERT_NE(proposals_pos, preset.panel_positions.end());
+  EXPECT_EQ(proposals_pos->second, DockPosition::Right);
+  EXPECT_TRUE(ContainsPanel(preset.optional_panels,
+                            LayoutPresets::Panels::kOverworldProposals));
+  EXPECT_STREQ(OverworldPanelIds::kLiveProposals,
+               LayoutPresets::Panels::kOverworldProposals);
 
   for (const auto& panel_id : preset.default_visible_panels) {
     auto position = preset.panel_positions.find(panel_id);

@@ -2049,7 +2049,9 @@ absl::Status OverworldEditor::Undo() {
   }
   // Finalize any pending paint operation first
   FinalizePaintOperation();
-  return undo_manager_.Undo();
+  RETURN_IF_ERROR(undo_manager_.Undo());
+  SyncLiveProposalsAfterHistory();
+  return absl::OkStatus();
 }
 
 absl::Status OverworldEditor::Redo() {
@@ -2059,7 +2061,9 @@ absl::Status OverworldEditor::Redo() {
     return absl::FailedPreconditionError("Lyra preview is read-only");
   }
   FinalizePaintOperation();
-  return undo_manager_.Redo();
+  RETURN_IF_ERROR(undo_manager_.Redo());
+  SyncLiveProposalsAfterHistory();
+  return absl::OkStatus();
 }
 
 // ============================================================================

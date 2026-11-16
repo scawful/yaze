@@ -206,11 +206,18 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
       LiveProposal proposal);
   absl::StatusOr<LiveProposalClassification> ClassifyLiveProposalCells(
       const LiveProposal& proposal) const;
+  // Live Tile16 at a map-local cell, including unsaved edits: the value an
+  // offer classifies against. Same map rules as OfferLiveProposal.
+  absl::StatusOr<uint16_t> ReadLiveMapCell(int map_id, int x, int y) const;
   absl::StatusOr<int> AcceptLiveProposal(std::string_view id);
   absl::Status RejectLiveProposal(std::string_view id, std::string comment);
   absl::Status CommentLiveProposal(std::string_view id, std::string comment);
   absl::Status FocusLiveProposal(std::string_view id);
   void DrawLiveProposalGhost();
+  // After a successful Undo/Redo: an accepted proposal whose written cells all
+  // read `expected` again was undone (back to pending, "undone" feedback);
+  // an undone one whose cells all read `proposed` again was redone.
+  void SyncLiveProposalsAfterHistory();
   LiveProposalInbox& live_proposals() { return live_proposals_; }
   absl::Status Find() override { return absl::UnimplementedError("Find"); }
   absl::Status Save() override;

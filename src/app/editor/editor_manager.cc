@@ -3217,7 +3217,8 @@ std::string EditorManager::ExecuteEditorControl(const std::string& request) {
                                           "proposal.load",
                                           "panel.hide",
                                           "overworld.stencil.apply",
-                                          "proposal.offer"};
+                                          "proposal.offer",
+                                          "overworld.cells.read"};
 #ifdef _WIN32
   const auto pid = _getpid();
 #else
@@ -3484,6 +3485,54 @@ std::string EditorManager::ExecuteEditorControl(const std::string& request) {
               response["feedback_path"] = LiveProposalFeedbackPath(path);
             }
           }
+        }
+      }
+    } else if (command == "overworld.cells.read") {
+      // Read-only: live Tile16 values (unsaved edits included) for a proposal
+      // author's `expected`. The response's `state` is the matching identity.
+      if (!body.at("map_id").is_number_integer()) {
+        throw std::invalid_argument("map_id must be an integer");
+      }
+      const int map_id = body.at("map_id").get<int>();
+      std::vector<std::pair<int, int>> wanted;
+      if (body.contains("cells")) {
+        if (!body.at("cells").is_array() ||
+            body.at("cells").size() > kLiveProposalMaxCells) {
+          throw std::invalid_argument("cells must be an array of at most 1024");
+        }
+        for (const auto& cell : body.at("cells")) {
+          wanted.emplace_back(cell.at("x").get<int>(), cell.at("y").get<int>());
+        }
+      } else {
+        for (int y = 0; y < 32; ++y) {
+          for (int x = 0; x < 32; ++x)
+            wanted.emplace_back(x, y);
+        }
+      }
+      const auto loaded = EnsureEditorAssetsLoaded(EditorType::kOverworld);
+      auto* editors = GetCurrentEditorSet();
+      auto* overworld =
+          editors
+              ? editors->GetEditorAs<OverworldEditor>(EditorType::kOverworld)
+              : nullptr;
+      if (!loaded.ok()) {
+        fail(422, std::string(loaded.message()));
+      } else if (!overworld) {
+        fail(503, "Overworld editor is unavailable");
+      } else {
+        json cells = json::array();
+        for (const auto& [x, y] : wanted) {
+          const auto tile = overworld->ReadLiveMapCell(map_id, x, y);
+          if (!tile.ok()) {
+            fail(absl::IsFailedPrecondition(tile.status()) ? 409 : 422,
+                 std::string(tile.status().message()));
+            break;
+          }
+          cells.push_back({{"x", x}, {"y", y}, {"tile16", *tile}});
+        }
+        if (response["status"] == "ok") {
+          response["map_id"] = map_id;
+          response["cells"] = std::move(cells);
         }
       }
     } else if (command == "dungeon.select" || command == "proposal.load") {

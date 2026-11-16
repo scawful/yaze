@@ -51,6 +51,25 @@ OverworldEditor::ClassifyLiveProposalCells(const LiveProposal& proposal) const {
   return result;
 }
 
+absl::StatusOr<uint16_t> OverworldEditor::ReadLiveMapCell(int map_id, int x,
+                                                          int y) const {
+  if (!overworld_.is_loaded() || !tile_painting_) {
+    return absl::FailedPreconditionError("Overworld is not loaded");
+  }
+  if (is_lyra_preview()) {
+    return absl::FailedPreconditionError("Lyra preview is read-only");
+  }
+  if (map_id < 0 || map_id >= overworld_.materialized_map_count() ||
+      IsProjectTerrainMap(map_id)) {
+    return absl::OutOfRangeError("Map must be a ROM overworld map");
+  }
+  if (x < 0 || x >= 32 || y < 0 || y >= 32) {
+    return absl::OutOfRangeError(
+        absl::StrFormat("Cell (%d,%d) is outside the 32x32 map", x, y));
+  }
+  return tile_painting_->ReadMapCell(map_id, x, y);
+}
+
 absl::StatusOr<LiveProposalClassification> OverworldEditor::OfferLiveProposal(
     LiveProposal proposal) {
   if (is_lyra_preview()) {
@@ -64,10 +83,10 @@ absl::StatusOr<LiveProposalClassification> OverworldEditor::OfferLiveProposal(
   auto classification = ClassifyLiveProposalCells(proposal);
   if (!classification.ok())
     return classification.status();
-  proposal.last_result =
-      absl::StrFormat("Offered: %d ready, %d conflicts, %d already applied",
-                      classification->ready, classification->conflicts,
-                      classification->already_applied);
+  proposal.last_result = absl::StrFormat(
+      "Offered: %d ready, %s, %d already applied", classification->ready,
+      CountLabel(classification->conflicts, "conflict", "conflicts"),
+      classification->already_applied);
   live_proposals_.Offer(std::move(proposal));
   return classification;
 }
@@ -97,6 +116,9 @@ absl::StatusOr<int> OverworldEditor::AcceptLiveProposal(std::string_view id) {
     applied = *result;
   }
   proposal->decision = LiveProposalDecision::kAccepted;
+  proposal->applied_cells = applied > 0 ? classification->ready_cells
+                                        : std::vector<GuardedTileCell>{};
+  proposal->undone = false;
   LiveProposalFeedbackEntry entry;
   entry.decision = "accepted";
   entry.cells_applied = applied;
@@ -106,8 +128,9 @@ absl::StatusOr<int> OverworldEditor::AcceptLiveProposal(std::string_view id) {
   entry.at_utc = NowUtc();
   const auto written = WriteLiveProposalFeedback(*proposal, entry);
   proposal->last_result = absl::StrFormat(
-      "Accepted: %d cells written (one undo step), %d skipped as conflicts%s",
-      applied, classification->conflicts,
+      "Accepted: %s written (one undo step), %s skipped%s",
+      CountLabel(applied, "cell", "cells"),
+      CountLabel(classification->conflicts, "conflict", "conflicts"),
       written.ok() ? "" : " — feedback file NOT written");
   if (!written.ok())
     return written;
@@ -160,6 +183,55 @@ absl::Status OverworldEditor::FocusLiveProposal(std::string_view id) {
   if (canvas_nav_)
     canvas_nav_->CenterOnMap(proposal->map_id);
   return absl::OkStatus();
+}
+
+void OverworldEditor::SyncLiveProposalsAfterHistory() {
+  if (!overworld_.is_loaded() || !tile_painting_)
+    return;
+  for (const auto& listed : live_proposals_.proposals()) {
+    LiveProposal* proposal = live_proposals_.Find(listed.id);
+    if (!proposal || proposal->applied_cells.empty())
+      continue;
+    const bool accepted = proposal->decision == LiveProposalDecision::kAccepted;
+    const bool undone = proposal->undone &&
+                        proposal->decision == LiveProposalDecision::kPending;
+    if (!accepted && !undone)
+      continue;
+    bool all_expected = true;
+    bool all_proposed = true;
+    for (const auto& cell : proposal->applied_cells) {
+      auto tile = tile_painting_->ReadMapCell(proposal->map_id, cell.x, cell.y);
+      if (!tile.ok()) {
+        all_expected = all_proposed = false;
+        break;
+      }
+      all_expected &= *tile == cell.expected;
+      all_proposed &= *tile == cell.proposed;
+    }
+    const int count = static_cast<int>(proposal->applied_cells.size());
+    LiveProposalFeedbackEntry entry;
+    if (accepted && all_expected) {
+      // Back to pending: the ghost returns and Accept works again.
+      proposal->decision = LiveProposalDecision::kPending;
+      proposal->undone = true;
+      entry.decision = "undone";
+    } else if (undone && all_proposed) {
+      proposal->decision = LiveProposalDecision::kAccepted;
+      proposal->undone = false;
+      entry.decision = "redone";
+      entry.cells_applied = count;
+    } else {
+      continue;
+    }
+    entry.rom_path = rom_ ? rom_->filename() : std::string();
+    entry.at_utc = NowUtc();
+    const auto written = WriteLiveProposalFeedback(*proposal, entry);
+    proposal->last_result =
+        absl::StrFormat("%s: %s %s%s", accepted ? "Undone" : "Redone",
+                        CountLabel(count, "cell", "cells"),
+                        accepted ? "restored" : "written again",
+                        written.ok() ? "" : " — feedback file NOT written");
+  }
 }
 
 void OverworldEditor::DrawLiveProposalGhost() {
