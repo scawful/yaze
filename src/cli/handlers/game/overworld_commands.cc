@@ -748,6 +748,19 @@ absl::Status ImportNativeSourcePages(
         RETURN_IF_ERROR(
             CheckNativeResolvedSheets(resolved, *game_data, map, state));
       }
+      // A child page of a large, wide or tall area draws with the area
+      // parent's sheets, so the resolved check above never sees its own
+      // stored row. That row is still written, so it must name real sheets
+      // too ($FF means "world default").
+      const auto& stored = desired.pages[map].graphics;
+      for (size_t slot = 0; slot < stored.size(); ++slot) {
+        if (stored[slot] != 0xFF && !game_data->HasGraphicsSheet(stored[slot]))
+          return absl::OutOfRangeError(absl::StrFormat(
+              "A stored native graphics sheet is unavailable: page $%02X "
+              "slot %d sheet $%02X is in neither the ROM table nor the bound "
+              "graphics source",
+              map, static_cast<int>(slot), stored[slot]));
+      }
     }
     if (game_data->gfx_sheet_source) {
       bound_source = game_data->gfx_sheet_source;
