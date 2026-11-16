@@ -3455,15 +3455,20 @@ std::string EditorManager::ExecuteEditorControl(const std::string& request) {
           auto proposal = ParseLiveProposal(
               bytes, overworld->overworld().materialized_map_count(),
               zelda3::kNumTile16Individual);
-          if (!proposal.ok()) {
-            fail(422, std::string(proposal.status().message()));
-          } else {
+          absl::Status images = proposal.status();
+          if (proposal.ok()) {
             proposal->packet_path = path;
             proposal->packet_sha256 = proposal_sha256;
+            images = LoadLiveProposalAttachments(*proposal);
+          }
+          if (!images.ok()) {
+            fail(422, std::string(images.message()));
+          } else {
             const std::string id = proposal->id;
             const std::string title = proposal->title;
             const int map_id = proposal->map_id;
             const size_t cells = proposal->cells.size();
+            const size_t attachments = proposal->attachments.size();
             const auto offered =
                 overworld->OfferLiveProposal(*std::move(proposal));
             if (!offered.ok()) {
@@ -3482,6 +3487,7 @@ std::string EditorManager::ExecuteEditorControl(const std::string& request) {
               response["ready"] = offered->ready;
               response["conflicts"] = offered->conflicts;
               response["already_applied"] = offered->already_applied;
+              response["attachments"] = attachments;
               response["feedback_path"] = LiveProposalFeedbackPath(path, id);
             }
           }

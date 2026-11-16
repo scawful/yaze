@@ -14,7 +14,10 @@ Example:
 proposal-offer reads the live map (unsaved edits included) for each draft cell,
 writes <out-dir>/<id>/proposal.json with those values as `expected`, and offers
 it to the running editor. The draft is {id, title, author, why, map_id,
-cells: [{x, y, proposed}]}. Nothing is written to the map until the person at
+cells: [{x, y, proposed}], attachments: [{path, caption}]}. Up to 4 optional
+PNG attachments (mockups, before/after renders) are copied into
+<out-dir>/<id>/attachments/ and shown next to the proposal; a relative path is
+read from the draft's folder. Nothing is written to the map until the person at
 the editor accepts; their decisions land in <out-dir>/<id>/feedback-<id>.json.
 
 --launch starts /Applications/yaze.app only if no Yaze process is running.
@@ -37,6 +40,9 @@ import urllib.request
 PROTOCOL = "yaze-editor-control/v1"
 PROPOSAL_SCHEMA = "yaze.overworld_live_proposal.v1"
 PROPOSAL_ID = re.compile(r"[A-Za-z0-9._-]{1,64}")
+MAX_ATTACHMENTS = 4
+MAX_ATTACHMENT_BYTES = 8 << 20
+PNG_SIGNATURE = b"\x89PNG\r\n\x1a\n"
 
 
 def swap_request(path, sha256, expected_state):
@@ -98,7 +104,42 @@ def proposal_draft(path):
         if (cell["x"], cell["y"]) in seen:
             raise ValueError(f"Draft repeats cell ({cell['x']},{cell['y']})")
         seen.add((cell["x"], cell["y"]))
+    attachments = draft.get("attachments", [])
+    if not isinstance(attachments, list) or len(attachments) > MAX_ATTACHMENTS:
+        raise ValueError(f"Draft attachments must be a list of at most {MAX_ATTACHMENTS}")
+    for item in attachments:
+        if not isinstance(item, dict) or not isinstance(item.get("path"), str):
+            raise ValueError("Each attachment needs a string path")
+        caption = item.get("caption", "")
+        if not isinstance(caption, str) or len(caption) > 200:
+            raise ValueError("Attachment caption must be a string of at most 200 characters")
+        source = Path(item["path"]).expanduser()
+        if not source.is_absolute():
+            source = path.expanduser().resolve().parent / source
+        if source.suffix.lower() != ".png" or not source.is_file():
+            raise ValueError(f"Attachment is not a PNG file: {source}")
+        if source.stat().st_size > MAX_ATTACHMENT_BYTES:
+            raise ValueError(f"Attachment is larger than 8 MiB: {source}")
+        with source.open("rb") as handle:
+            if handle.read(8) != PNG_SIGNATURE:
+                raise ValueError(f"Attachment is not a PNG file: {source}")
+        item["path"] = str(source)
     return draft
+
+
+def copy_attachments(draft, folder):
+    """Copies draft PNGs beside the packet; returns packet attachment entries."""
+    entries = []
+    for index, item in enumerate(draft.get("attachments", []), start=1):
+        data = Path(item["path"]).read_bytes()
+        name = re.sub(r"[^A-Za-z0-9._-]", "_", Path(item["path"]).stem)[:48] or "image"
+        relative = f"attachments/{index}-{name}.png"
+        target = folder / relative
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_bytes(data)
+        entries.append({"path": relative, "sha256": hashlib.sha256(data).hexdigest(),
+                        "caption": item.get("caption", "")})
+    return entries
 
 
 def proposal_packet(draft, read):
@@ -141,6 +182,9 @@ def offer_proposal(port, draft, out_dir):
     packet, expected, unchanged = proposal_packet(draft, read)
     folder = out_dir.expanduser().resolve() / draft["id"]
     folder.mkdir(parents=True, exist_ok=True)
+    attachments = copy_attachments(draft, folder)
+    if attachments:
+        packet["attachments"] = attachments
     path = folder / "proposal.json"
     data = (json.dumps(packet, indent=2) + "\n").encode()
     path.write_bytes(data)

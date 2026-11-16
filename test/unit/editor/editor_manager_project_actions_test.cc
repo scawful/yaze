@@ -41,6 +41,7 @@
 #include "test_utils.h"
 #include "testing.h"
 #include "util/i18n/tr.h"
+#include "util/indexed_png.h"
 #include "util/platform_paths.h"
 #include "util/rom_hash.h"
 #include "zelda3/overworld/overworld_version_helper.h"
@@ -5160,6 +5161,67 @@ TEST_F(EditorControlRomSwapTest, ProposalOfferRefusesBadRequestsWithoutWrites) {
   const auto& commands = status["capabilities"]["commands"];
   EXPECT_NE(std::find(commands.begin(), commands.end(), "proposal.offer"),
             commands.end());
+}
+
+TEST_F(EditorControlRomSwapTest, ProposalOfferLoadsImageAttachments) {
+  const char* fixture = std::getenv("YAZE_TEST_ROM_OOS");
+  if (!fixture || !*fixture)
+    GTEST_SKIP() << "Set YAZE_TEST_ROM_OOS to an Oracle ROM copy";
+  std::filesystem::copy_file(fixture, rom_path_,
+                             std::filesystem::copy_options::overwrite_existing);
+  ASSERT_OK(manager_->ReloadProjectRom());
+  ASSERT_OK(manager_->EnsureEditorAssetsLoaded(EditorType::kOverworld));
+  auto* editor = manager_->GetCurrentEditorSet()->GetEditorAs<OverworldEditor>(
+      EditorType::kOverworld);
+  ASSERT_NE(editor, nullptr);
+  const uint16_t tile = editor->overworld().GetMapTiles(0)[2][8];
+  const auto dir = temp_dir_.path / "images";
+  std::filesystem::create_directories(dir / "attachments");
+  auto png = util::EncodeIndexedPng(2, 2, {0, 1, 1, 0},
+                                    {{0, 0, 0, 255}, {255, 255, 255, 255}});
+  ASSERT_TRUE(png.ok()) << png.status();
+  ASSERT_OK(util::WriteBinaryFile((dir / "attachments/a.png").string(), *png));
+  const std::string png_sha =
+      core::ComputeSourceArtifactSha256(std::string_view(
+          reinterpret_cast<const char*>(png->data()), png->size()));
+  auto offer = [&](const std::string& id, const std::string& sha) {
+    const auto packet_path = dir / (id + ".json");
+    std::ofstream(packet_path, std::ios::binary | std::ios::trunc)
+        << nlohmann::json({{"schema", "yaze.overworld_live_proposal.v1"},
+                           {"id", id},
+                           {"title", "Images"},
+                           {"map_id", 0},
+                           {"cells",
+                            {{{"x", 2},
+                              {"y", 8},
+                              {"expected", tile},
+                              {"proposed", tile == 1 ? 2 : 1}}}},
+                           {"attachments",
+                            {{{"path", "attachments/a.png"},
+                              {"sha256", sha},
+                              {"caption", "Before/after"}}}}})
+               .dump();
+    return Execute({{"command", "proposal.offer"},
+                    {"path", packet_path.string()},
+                    {"proposal_sha256",
+                     core::ComputeSourceArtifactSha256(ReadFile(packet_path))},
+                    {"expected", State()}});
+  };
+  const auto changed = offer("image-changed", std::string(64, '0'));
+  EXPECT_EQ(changed["http_status"], 422) << changed.dump();
+  EXPECT_EQ(editor->live_proposals().Find("image-changed"), nullptr);
+
+  const auto offered = offer("image-ok", png_sha);
+  ASSERT_EQ(offered["http_status"], 200) << offered.dump();
+  EXPECT_EQ(offered["attachments"], 1);
+  const auto* proposal = editor->live_proposals().Find("image-ok");
+  ASSERT_NE(proposal, nullptr);
+  ASSERT_EQ(proposal->attachments.size(), 1u);
+  EXPECT_EQ(proposal->attachments[0].width, 2);
+  EXPECT_EQ(proposal->attachments[0].caption, "Before/after");
+  ASSERT_NE(proposal->attachments[0].rgba, nullptr);
+  EXPECT_EQ(proposal->attachments[0].rgba->size(), 16u);
+  EXPECT_EQ(editor->overworld().GetMapTiles(0)[2][8], tile);
 }
 
 TEST_F(EditorControlRomSwapTest, RejectsCandidateChangedAfterReceipt) {

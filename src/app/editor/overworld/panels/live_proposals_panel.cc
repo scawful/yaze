@@ -1,11 +1,14 @@
 #include "app/editor/overworld/panels/live_proposals_panel.h"
 
+#include <algorithm>
+#include <cmath>
 #include <string>
 
 #include "absl/strings/str_format.h"
 #include "app/editor/core/panel_registration.h"
 #include "app/editor/overworld/live_proposal.h"
 #include "app/editor/overworld/panels/overworld_panel_access.h"
+#include "app/gfx/resource/arena.h"
 #include "imgui/imgui.h"
 
 namespace yaze::editor {
@@ -25,6 +28,83 @@ const char* DecisionLabel(LiveProposalDecision decision) {
 
 }  // namespace
 
+LiveProposalsPanel::~LiveProposalsPanel() {
+  ReleaseImages();
+}
+
+void LiveProposalsPanel::ReleaseImages() {
+  for (auto& bitmap : images_) {
+    if (bitmap)
+      gfx::Arena::Get().RetireBitmap(*bitmap);
+  }
+  images_.clear();
+  images_for_.clear();
+  enlarged_ = -1;
+}
+
+void LiveProposalsPanel::DrawAttachments(const LiveProposal& proposal) {
+  const std::string key = proposal.id + "@" + proposal.packet_sha256;
+  if (key != images_for_) {
+    ReleaseImages();
+    images_for_ = key;
+    for (const auto& attachment : proposal.attachments) {
+      auto bitmap = std::make_unique<gfx::Bitmap>();
+      if (attachment.rgba) {
+        bitmap->Create(attachment.width, attachment.height, 32,
+                       *attachment.rgba);
+        gfx::Arena::Get().QueueTextureCommand(
+            gfx::Arena::TextureCommandType::CREATE, bitmap.get());
+      }
+      images_.push_back(std::move(bitmap));
+    }
+  }
+  if (proposal.attachments.empty())
+    return;
+
+  ImGui::SeparatorText(CountLabel(static_cast<int>(proposal.attachments.size()),
+                                  "image", "images")
+                           .c_str());
+  const float avail = ImGui::GetContentRegionAvail().x;
+  for (size_t i = 0; i < proposal.attachments.size(); ++i) {
+    const auto& attachment = proposal.attachments[i];
+    const gfx::Bitmap* bitmap = i < images_.size() ? images_[i].get() : nullptr;
+    ImGui::PushID(static_cast<int>(i));
+    if (bitmap && bitmap->texture() && attachment.width > 0) {
+      // Fit the panel width; never upscale past 2x (pixel art stays crisp
+      // enough, and a tiny icon does not fill the panel).
+      const float scale = std::min(avail / attachment.width, 2.0f);
+      const ImVec2 size(attachment.width * scale, attachment.height * scale);
+      if (ImGui::ImageButton("##image",
+                             (ImTextureID)(intptr_t)bitmap->texture(), size)) {
+        enlarged_ = static_cast<int>(i);
+        ImGui::OpenPopup("##enlarged");
+      }
+      if (ImGui::IsItemHovered())
+        ImGui::SetTooltip("Click to enlarge (%dx%d)", attachment.width,
+                          attachment.height);
+    } else {
+      ImGui::TextDisabled("Loading %s...", attachment.path.c_str());
+    }
+    if (!attachment.caption.empty())
+      ImGui::TextWrapped("%s", attachment.caption.c_str());
+    else
+      ImGui::TextDisabled("%s", attachment.path.c_str());
+    if (enlarged_ == static_cast<int>(i) && ImGui::BeginPopup("##enlarged")) {
+      // Integer zoom up to what fits in 80% of the viewport.
+      const ImVec2 view = ImGui::GetMainViewport()->Size;
+      const float fit = std::min(view.x * 0.8f / attachment.width,
+                                 view.y * 0.8f / attachment.height);
+      const float zoom = std::max(1.0f, std::floor(std::min(fit, 4.0f)));
+      ImGui::Image((ImTextureID)(intptr_t)bitmap->texture(),
+                   ImVec2(attachment.width * zoom, attachment.height * zoom));
+      ImGui::TextDisabled("%s  %dx%d at %.0fx", attachment.path.c_str(),
+                          attachment.width, attachment.height, zoom);
+      ImGui::EndPopup();
+    }
+    ImGui::PopID();
+  }
+}
+
 void LiveProposalsPanel::Remember(const std::string& id,
                                   const absl::Status& status) {
   error_id_ = id;
@@ -40,6 +120,8 @@ void LiveProposalsPanel::Draw(bool* /*p_open*/) {
     return;
   }
   auto& inbox = editor->live_proposals();
+  if (inbox.proposals().empty() && !images_for_.empty())
+    ReleaseImages();
   // The canvas ghost draws only while this panel is drawing.
   inbox.panel_frame = ImGui::GetFrameCount();
 
@@ -162,6 +244,9 @@ void LiveProposalsPanel::Draw(bool* /*p_open*/) {
     }
     ImGui::TreePop();
   }
+
+  if (const LiveProposal* now = inbox.Find(id))
+    DrawAttachments(*now);
 }
 
 REGISTER_PANEL(LiveProposalsPanel);

@@ -1,5 +1,6 @@
 #include "app/editor/overworld/live_proposal.h"
 
+#include <array>
 #include <atomic>
 #include <cstdint>
 #include <filesystem>
@@ -10,8 +11,12 @@
 #include <system_error>
 #include <utility>
 
+#include "absl/strings/ascii.h"
+#include "absl/strings/match.h"
 #include "absl/strings/str_format.h"
+#include "core/source_artifact_publisher.h"
 #include "nlohmann/json.hpp"
+#include "util/indexed_png.h"
 
 namespace yaze::editor {
 namespace {
@@ -54,6 +59,34 @@ int RequiredInt(const json& object, const char* field) {
   if (!in_range)
     throw std::invalid_argument(std::string(field) + " is out of range");
   return value.get<int>();
+}
+
+// A packet-relative PNG path: no root, no "..", no backslash, ends in .png.
+bool ValidAttachmentPath(std::string_view path) {
+  if (path.empty() || path.size() > 255 ||
+      path.find('\\') != std::string_view::npos ||
+      path.find('\0') != std::string_view::npos ||
+      !absl::EndsWithIgnoreCase(path, ".png"))
+    return false;
+  const std::filesystem::path parsed{std::string(path)};
+  if (parsed.is_absolute() || parsed.has_root_name() ||
+      parsed.has_root_directory())
+    return false;
+  for (const auto& part : parsed) {
+    if (part == "..")
+      return false;
+  }
+  return true;
+}
+
+bool ValidSha256(std::string_view hash) {
+  if (hash.size() != 64)
+    return false;
+  for (const char c : hash) {
+    if (!((c >= '0' && c <= '9') || (c >= 'a' && c <= 'f')))
+      return false;
+  }
+  return true;
 }
 
 const char* DecisionName(LiveProposalDecision decision) {
@@ -141,11 +174,109 @@ absl::StatusOr<LiveProposal> ParseLiveProposal(std::string_view json_text,
       proposal.cells.push_back({x, y, static_cast<uint16_t>(expected),
                                 static_cast<uint16_t>(proposed)});
     }
+    if (packet.contains("attachments") && !packet.at("attachments").is_null()) {
+      const auto& list = packet.at("attachments");
+      if (!list.is_array())
+        return absl::InvalidArgumentError("attachments must be an array");
+      if (list.size() > kLiveProposalMaxAttachments) {
+        return absl::InvalidArgumentError(
+            absl::StrFormat("Proposal has more than %d attachments",
+                            kLiveProposalMaxAttachments));
+      }
+      for (const auto& item : list) {
+        if (!item.is_object())
+          return absl::InvalidArgumentError(
+              "Each attachment must be an object");
+        LiveProposalAttachment attachment;
+        attachment.path = OptionalString(item, "path");
+        attachment.sha256 = OptionalString(item, "sha256");
+        attachment.caption = OptionalString(item, "caption");
+        if (!ValidAttachmentPath(attachment.path)) {
+          return absl::InvalidArgumentError(absl::StrFormat(
+              "Attachment path \"%s\" must be a .png path inside the packet "
+              "folder (relative, no \"..\")",
+              attachment.path));
+        }
+        if (!ValidSha256(attachment.sha256)) {
+          return absl::InvalidArgumentError(absl::StrFormat(
+              "Attachment %s needs a lowercase hex sha256", attachment.path));
+        }
+        if (attachment.caption.size() > 200) {
+          return absl::InvalidArgumentError(absl::StrFormat(
+              "Attachment %s caption is longer than 200 characters",
+              attachment.path));
+        }
+        proposal.attachments.push_back(std::move(attachment));
+      }
+    }
     return proposal;
   } catch (const std::exception& error) {
     return absl::InvalidArgumentError(
         absl::StrFormat("Proposal JSON is invalid: %s", error.what()));
   }
+}
+
+absl::Status LoadLiveProposalAttachments(LiveProposal& proposal) {
+  if (proposal.attachments.empty())
+    return absl::OkStatus();
+  const auto folder = std::filesystem::path(proposal.packet_path).parent_path();
+  for (auto& attachment : proposal.attachments) {
+    const auto file = (folder / attachment.path).string();
+    std::error_code error;
+    const auto size = std::filesystem::file_size(file, error);
+    if (error) {
+      return absl::NotFoundError(
+          absl::StrFormat("Attachment %s could not be read", attachment.path));
+    }
+    if (size > kLiveProposalMaxAttachmentBytes) {
+      return absl::InvalidArgumentError(absl::StrFormat(
+          "Attachment %s is larger than %d MiB", attachment.path,
+          kLiveProposalMaxAttachmentBytes >> 20));
+    }
+    auto bytes = util::ReadBinaryFile(file);
+    if (!bytes.ok()) {
+      return absl::NotFoundError(
+          absl::StrFormat("Attachment %s could not be read", attachment.path));
+    }
+    const std::string_view view(reinterpret_cast<const char*>(bytes->data()),
+                                bytes->size());
+    if (core::ComputeSourceArtifactSha256(view) != attachment.sha256) {
+      return absl::FailedPreconditionError(absl::StrFormat(
+          "Attachment %s does not match its sha256", attachment.path));
+    }
+    auto png = util::DecodePng(*bytes);
+    if (!png.ok()) {
+      return absl::InvalidArgumentError(
+          absl::StrFormat("Attachment %s is not a readable PNG: %s",
+                          attachment.path, png.status().message()));
+    }
+    if (png->width <= 0 || png->height <= 0 ||
+        png->width > kLiveProposalMaxAttachmentSide ||
+        png->height > kLiveProposalMaxAttachmentSide) {
+      return absl::InvalidArgumentError(absl::StrFormat(
+          "Attachment %s is %dx%d; each side must be 1..%d px", attachment.path,
+          png->width, png->height, kLiveProposalMaxAttachmentSide));
+    }
+    std::vector<uint8_t> rgba;
+    if (png->indexed) {
+      rgba.resize(png->indices.size() * 4);
+      for (size_t i = 0; i < png->indices.size(); ++i) {
+        const uint8_t index = png->indices[i];
+        const auto color = index < png->palette.size()
+                               ? png->palette[index]
+                               : std::array<uint8_t, 4>{0, 0, 0, 0};
+        for (int c = 0; c < 4; ++c)
+          rgba[i * 4 + c] = color[c];
+      }
+    } else {
+      rgba = std::move(png->rgba);
+    }
+    attachment.width = png->width;
+    attachment.height = png->height;
+    attachment.rgba =
+        std::make_shared<const std::vector<uint8_t>>(std::move(rgba));
+  }
+  return absl::OkStatus();
 }
 
 LiveProposalClassification ClassifyLiveProposal(

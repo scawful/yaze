@@ -1,8 +1,10 @@
 #ifndef YAZE_APP_EDITOR_OVERWORLD_LIVE_PROPOSAL_H_
 #define YAZE_APP_EDITOR_OVERWORLD_LIVE_PROPOSAL_H_
 
+#include <cstddef>
 #include <cstdint>
 #include <functional>
+#include <memory>
 #include <string>
 #include <string_view>
 #include <vector>
@@ -22,10 +24,28 @@ inline constexpr std::string_view kLiveProposalSchema =
 inline constexpr std::string_view kLiveProposalFeedbackSchema =
     "yaze.overworld_live_proposal_feedback.v1";
 inline constexpr int kLiveProposalMaxCells = 1024;
+// Images an agent attaches to a proposal (mockups, before/after renders,
+// design sheets). They are shown in the Proposals panel and never written.
+inline constexpr int kLiveProposalMaxAttachments = 4;
+inline constexpr int kLiveProposalMaxAttachmentSide = 1024;
+inline constexpr size_t kLiveProposalMaxAttachmentBytes = 8u << 20;
 
 enum class LiveProposalCellState { kReady, kConflict, kAlreadyApplied };
 enum class LiveProposalView { kAfter, kBefore, kDiff };
 enum class LiveProposalDecision { kPending, kAccepted, kRejected };
+
+// One PNG attached to a proposal. `path` is relative to the packet folder;
+// `sha256` names the file's exact bytes. LoadLiveProposalAttachments fills the
+// decoded pixels once at offer time, so a later change to the file cannot
+// change what the panel shows. Copies share the pixels.
+struct LiveProposalAttachment {
+  std::string path;
+  std::string sha256;
+  std::string caption;
+  int width = 0;
+  int height = 0;
+  std::shared_ptr<const std::vector<uint8_t>> rgba;  // width * height * 4
+};
 
 struct LiveProposal {
   std::string id;
@@ -34,6 +54,7 @@ struct LiveProposal {
   std::string why;
   int map_id = -1;
   std::vector<GuardedTileCell> cells;
+  std::vector<LiveProposalAttachment> attachments;
   // Absolute path of the offered packet; feedback-<id>.json is written beside
   // it, so packets that share a folder never share a feedback file.
   std::string packet_path;
@@ -73,6 +94,11 @@ struct LiveProposalClassification {
 // refused before narrowing.
 absl::StatusOr<LiveProposal> ParseLiveProposal(std::string_view json_text,
                                                int map_count, int tile16_count);
+
+// Reads every attachment beside `proposal.packet_path`, checks its sha256,
+// size and dimensions, and decodes it to RGBA. Any failure refuses the whole
+// proposal, so the agent learns at offer time that an image is wrong.
+absl::Status LoadLiveProposalAttachments(LiveProposal& proposal);
 
 // `current(x, y)` returns the live Tile16 at a map-local cell, including
 // unsaved edits. A cell is ready when it still holds `expected`, already

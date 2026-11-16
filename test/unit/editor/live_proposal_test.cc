@@ -11,8 +11,10 @@
 #include <utility>
 #include <vector>
 
+#include "core/source_artifact_publisher.h"
 #include "gtest/gtest.h"
 #include "nlohmann/json.hpp"
+#include "util/indexed_png.h"
 
 namespace yaze::editor {
 namespace {
@@ -489,6 +491,120 @@ TEST(LiveProposalTest, InboxReofferReplacesAndResetsToPending) {
   EXPECT_EQ(inbox.Selected()->title, "Woods trail A v2");
   EXPECT_EQ(inbox.PendingCount(), 2);
   EXPECT_EQ(inbox.Find("missing"), nullptr);
+}
+
+const std::string kZeroSha(64, '0');
+
+TEST(LiveProposalTest, ParsesOptionalAttachments) {
+  json packet = ValidPacket();
+  auto plain = Parse(packet);
+  ASSERT_TRUE(plain.ok()) << plain.status();
+  EXPECT_TRUE(plain->attachments.empty());
+  packet["attachments"] = {{{"path", "attachments/before.png"},
+                            {"sha256", kZeroSha},
+                            {"caption", "Before"}},
+                           {{"path", "after.PNG"}, {"sha256", kZeroSha}}};
+  auto proposal = Parse(packet);
+  ASSERT_TRUE(proposal.ok()) << proposal.status();
+  ASSERT_EQ(proposal->attachments.size(), 2u);
+  EXPECT_EQ(proposal->attachments[0].path, "attachments/before.png");
+  EXPECT_EQ(proposal->attachments[0].caption, "Before");
+  EXPECT_EQ(proposal->attachments[1].caption, "");
+  EXPECT_EQ(proposal->attachments[1].rgba, nullptr);  // not loaded yet
+}
+
+TEST(LiveProposalTest, RejectsAttachmentsOutsideThePacketFolderOrMalformed) {
+  const auto rejects = [](const std::function<void(json&)>& edit) {
+    json packet = ValidPacket();
+    packet["attachments"] = {{{"path", "a.png"}, {"sha256", kZeroSha}}};
+    edit(packet["attachments"]);
+    return !Parse(packet).ok();
+  };
+  EXPECT_FALSE(rejects([](json&) {}));
+  EXPECT_TRUE(rejects([](json& a) { a[0]["path"] = "/tmp/a.png"; }));
+  EXPECT_TRUE(rejects([](json& a) { a[0]["path"] = "../a.png"; }));
+  EXPECT_TRUE(rejects([](json& a) { a[0]["path"] = "x/../../a.png"; }));
+  EXPECT_TRUE(rejects([](json& a) { a[0]["path"] = "x\\a.png"; }));
+  EXPECT_TRUE(rejects([](json& a) { a[0]["path"] = "a.jpg"; }));
+  EXPECT_TRUE(rejects([](json& a) { a[0]["path"] = ""; }));
+  EXPECT_TRUE(rejects([](json& a) { a[0]["path"] = 7; }));
+  EXPECT_TRUE(rejects([](json& a) { a[0]["sha256"] = std::string(64, 'A'); }));
+  EXPECT_TRUE(rejects([](json& a) { a[0]["sha256"] = std::string(63, '0'); }));
+  EXPECT_TRUE(rejects([](json& a) { a[0].erase("sha256"); }));
+  EXPECT_TRUE(
+      rejects([](json& a) { a[0]["caption"] = std::string(201, 'c'); }));
+  EXPECT_TRUE(rejects([](json& a) { a[0] = "a.png"; }));
+  EXPECT_TRUE(rejects([](json& a) { a = "a.png"; }));
+  EXPECT_TRUE(rejects([](json& a) {
+    for (int i = 0; i < kLiveProposalMaxAttachments; ++i)
+      a.push_back(a[0]);
+  }));
+}
+
+// Writes `bytes` as `name` under `dir` and returns its sha256.
+std::string WriteBytes(const std::filesystem::path& dir,
+                       const std::string& name,
+                       const std::vector<uint8_t>& bytes) {
+  std::filesystem::create_directories((dir / name).parent_path());
+  EXPECT_TRUE(util::WriteBinaryFile((dir / name).string(), bytes).ok());
+  return core::ComputeSourceArtifactSha256(std::string_view(
+      reinterpret_cast<const char*>(bytes.data()), bytes.size()));
+}
+
+LiveProposal ProposalWithImage(const std::filesystem::path& dir,
+                               const std::string& name,
+                               const std::string& sha256) {
+  LiveProposal proposal = *Parse(ValidPacket());
+  proposal.packet_path = (dir / "proposal.json").string();
+  proposal.attachments.push_back({name, sha256, "caption"});
+  return proposal;
+}
+
+TEST(LiveProposalTest, LoadsAttachmentPixelsAfterCheckingTheHash) {
+  TempDir dir;
+  // 2x1 indexed PNG: a red pixel, then a half-transparent blue one.
+  auto png = util::EncodeIndexedPng(2, 1, {0, 1},
+                                    {{255, 0, 0, 255}, {0, 0, 255, 128}});
+  ASSERT_TRUE(png.ok()) << png.status();
+  const std::string sha = WriteBytes(dir.path(), "attachments/mock.png", *png);
+  LiveProposal proposal =
+      ProposalWithImage(dir.path(), "attachments/mock.png", sha);
+  ASSERT_TRUE(LoadLiveProposalAttachments(proposal).ok());
+  const auto& image = proposal.attachments[0];
+  EXPECT_EQ(image.width, 2);
+  EXPECT_EQ(image.height, 1);
+  ASSERT_NE(image.rgba, nullptr);
+  EXPECT_EQ(*image.rgba,
+            (std::vector<uint8_t>{255, 0, 0, 255, 0, 0, 255, 128}));
+  // Copies share the decoded pixels.
+  LiveProposal copy = proposal;
+  EXPECT_EQ(copy.attachments[0].rgba.get(), image.rgba.get());
+}
+
+TEST(LiveProposalTest, RefusesMissingChangedOrUnreadableAttachments) {
+  TempDir dir;
+  auto png = util::EncodeIndexedPng(1, 1, {0}, {{1, 2, 3, 255}});
+  ASSERT_TRUE(png.ok());
+  const std::string sha = WriteBytes(dir.path(), "a.png", *png);
+
+  LiveProposal missing = ProposalWithImage(dir.path(), "b.png", sha);
+  EXPECT_TRUE(absl::IsNotFound(LoadLiveProposalAttachments(missing)));
+
+  LiveProposal changed = ProposalWithImage(dir.path(), "a.png", kZeroSha);
+  EXPECT_TRUE(absl::IsFailedPrecondition(LoadLiveProposalAttachments(changed)));
+
+  const std::string text_sha =
+      WriteBytes(dir.path(), "text.png", {'n', 'o', 't', ' ', 'p', 'n', 'g'});
+  LiveProposal text = ProposalWithImage(dir.path(), "text.png", text_sha);
+  EXPECT_TRUE(absl::IsInvalidArgument(LoadLiveProposalAttachments(text)));
+
+  const int wide = kLiveProposalMaxAttachmentSide + 1;
+  auto big = util::EncodeIndexedPng(wide, 1, std::vector<uint8_t>(wide, 0),
+                                    {{0, 0, 0, 255}});
+  ASSERT_TRUE(big.ok());
+  const std::string big_sha = WriteBytes(dir.path(), "big.png", *big);
+  LiveProposal oversize = ProposalWithImage(dir.path(), "big.png", big_sha);
+  EXPECT_TRUE(absl::IsInvalidArgument(LoadLiveProposalAttachments(oversize)));
 }
 
 TEST(LiveProposalTest, CountLabelUsesSingularOnlyForOne) {

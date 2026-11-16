@@ -163,6 +163,53 @@ class EditorControlClientTest(unittest.TestCase):
                 connect.assert_not_called()
                 command.assert_not_called()
 
+    def test_offer_copies_png_attachments_with_their_hash(self):
+        state = self.swap_receipt()["state"]
+        read = {"protocol": control.PROTOCOL, "status": "ok", "map_id": 0x28,
+                "state": state,
+                "cells": [{"x": 1, "y": 2, "tile16": 0x05},
+                          {"x": 3, "y": 4, "tile16": 0x05}]}
+        offered = {"protocol": control.PROTOCOL, "status": "ok", "attachments": 1}
+        png = control.PNG_SIGNATURE + b"rest of image"
+        with tempfile.TemporaryDirectory() as directory:
+            (Path(directory) / "Before After.png").write_bytes(png)
+            draft = self.write_draft(directory, attachments=[
+                {"path": "Before After.png", "caption": "Ridge before/after"}])
+            out = Path(directory) / "proposals"
+            argv = ["control", "proposal-offer", str(draft), "--out-dir", str(out)]
+            with patch.object(control.sys, "argv", argv), \
+                 patch.object(control, "connect", return_value=self.offer_status()), \
+                 patch.object(control, "command", side_effect=[read, offered]), \
+                 patch.object(control.sys, "stdout", io.StringIO()):
+                self.assertEqual(control.main(), 0)
+            folder = out / "ridge-a"
+            packet = json.loads((folder / "proposal.json").read_text())
+            self.assertEqual(packet["attachments"], [
+                {"path": "attachments/1-Before_After.png",
+                 "sha256": control.hashlib.sha256(png).hexdigest(),
+                 "caption": "Ridge before/after"}])
+            self.assertEqual((folder / "attachments/1-Before_After.png").read_bytes(), png)
+
+    def test_offer_refuses_bad_attachments_before_contacting_editor(self):
+        png = control.PNG_SIGNATURE + b"x"
+        bad = [[{"path": "a.png"}] * 5, [{"path": "a.jpg"}], [{"path": "text.png"}],
+               [{"path": "missing.png"}], [{"path": "a.png", "caption": "c" * 201}],
+               [{"caption": "no path"}], {"path": "a.png"}]
+        for attachments in bad:
+            with tempfile.TemporaryDirectory() as directory:
+                (Path(directory) / "a.png").write_bytes(png)
+                (Path(directory) / "a.jpg").write_bytes(png)
+                (Path(directory) / "text.png").write_bytes(b"not a png")
+                draft = self.write_draft(directory, attachments=attachments)
+                argv = ["control", "proposal-offer", str(draft),
+                        "--out-dir", str(Path(directory) / "out")]
+                with patch.object(control.sys, "argv", argv), \
+                     patch.object(control, "connect") as connect, \
+                     patch.object(control.sys, "stderr", io.StringIO()):
+                    self.assertEqual(control.main(), 1, attachments)
+                connect.assert_not_called()
+                self.assertFalse((Path(directory) / "out").exists())
+
     def test_offer_writes_nothing_when_read_fails_or_editor_lacks_support(self):
         failed = {"protocol": control.PROTOCOL, "status": "error",
                   "error": "Map must be a ROM overworld map"}
