@@ -302,7 +302,8 @@ TEST_F(CollisionSourcePairingTest, RemovedExplicitFloorRefusesSaveAndRebind) {
       "{\"rooms\":[{\"room_id\":\"0x25\",\"tiles\":[[200,183]]}],"
       "\"version\":1}\n";
   WriteFile(json_path_, removed_floor);
-  ASSERT_TRUE(rom_.WriteByte(0x100, 0x42).ok());
+  map.SetOverride(300, 0xB0);
+  ASSERT_TRUE(zelda3::WriteTrackCollision(&rom_, kRoom, map).ok());
 
   EXPECT_TRUE(absl::IsFailedPrecondition(
       ValidateRomCollisionSourceBinding(&rom_, json_path_)));
@@ -314,9 +315,47 @@ TEST_F(CollisionSourcePairingTest, RemovedExplicitFloorRefusesSaveAndRebind) {
   EXPECT_TRUE(rom_.dirty());
 }
 
+// A pair that was already out of step must not block saves that leave
+// collision alone (e.g. an overworld tile edit). The JSON stays byte-identical
+// and the drift stays exactly as it was.
+TEST_F(CollisionSourcePairingTest,
+       DriftedSourceAllowsSaveWithoutCollisionEdit) {
+  Rom other;
+  ASSERT_TRUE(other.LoadFromData(std::vector<uint8_t>(0x200000, 0x00)).ok());
+  SetCollisionTile(&other, 300, 0xB8);
+  auto drifted = zelda3::DumpCustomCollisionSourceFromRom(&other);
+  ASSERT_TRUE(drifted.ok());
+  WriteFile(json_path_, *drifted);
+  const auto json_time = fs::last_write_time(json_path_);
+  std::string expected_rom = ReadFile(rom_path_);
+  ASSERT_TRUE(rom_.WriteByte(0x100, 0x42).ok());
+  expected_rom[0x100] = '\x42';
+
+  const auto save = SaveRomWithCollisionSource(&rom_, json_path_);
+  ASSERT_TRUE(save.ok()) << save;
+
+  EXPECT_EQ(ReadFile(json_path_), *drifted);
+  EXPECT_EQ(fs::last_write_time(json_path_), json_time);
+  EXPECT_EQ(ReadFile(rom_path_), expected_rom);
+  EXPECT_FALSE(rom_.dirty());
+
+  // The staged (native) save path follows the same rule.
+  const auto disk_rom = ReadFile(rom_path_);
+  ASSERT_TRUE(rom_.WriteByte(0x101, 0x43).ok());
+  const auto prepared = RomFileManager::PrepareSaveArtifacts(
+      &rom_, rom_path_, disk_rom, json_path_, *drifted);
+  ASSERT_TRUE(prepared.ok()) << prepared.status();
+  ASSERT_EQ(prepared->updates.size(), 2u);
+  EXPECT_EQ(prepared->updates[1].before, std::optional<std::string>(*drifted));
+  EXPECT_EQ(prepared->updates[1].after, *drifted);
+}
+
 TEST_F(CollisionSourcePairingTest, MalformedSourceRefusesSaveAndRebind) {
   const auto rom_before = ReadFile(rom_path_);
-  ASSERT_TRUE(rom_.WriteByte(0x100, 0x42).ok());
+  // A collision edit: a source that is not the ROM's canonical document must
+  // never be overwritten. (Parseable drift without a collision edit is covered
+  // by DriftedSourceAllowsSaveWithoutCollisionEdit.)
+  SetCollisionTile(&rom_, 300, 0xB0);
   const std::vector<std::string> invalid_sources = {
       "{",
       ReadFile(json_path_) + '\0' + "ignored trailing data",

@@ -3058,6 +3058,13 @@ absl::Status EditorManager::StartPendingRomSave(
 }
 
 void EditorManager::FinishPendingRomSaveAttempt(const absl::Status& status) {
+  // Toasts fade; keep each save outcome in yaze.log for later diagnosis.
+  if (status.ok()) {
+    LOG_INFO("EditorManager", "ROM save completed");
+  } else if (!absl::IsCancelled(status)) {
+    LOG_ERROR("EditorManager", "ROM save failed: %s",
+              std::string(status.message()).c_str());
+  }
   rom_lifecycle_.FinishPendingRomSaveAttempt(status);
 }
 
