@@ -13,6 +13,8 @@
 #include "absl/strings/match.h"
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
+#include "core/project.h"
+#include "util/macro.h"
 #include "util/rom_hash.h"
 
 namespace yaze::project {
@@ -453,24 +455,20 @@ absl::StatusOr<std::string> UpdateProjectDescriptorKey(
     return updated;
   }
 
-  const fs::path tmp = project_file.string() + ".tmp";
-  {
-    std::ofstream out(tmp, std::ios::binary | std::ios::trunc);
-    if (!out) {
-      return absl::PermissionDeniedError(
-          absl::StrFormat("Cannot write %s", tmp.string()));
-    }
-    out.write(updated.data(), static_cast<std::streamsize>(updated.size()));
-    if (!out) {
-      return absl::DataLossError(
-          absl::StrFormat("Short write to %s", tmp.string()));
+  fs::path write_target = project_file;
+  if (fs::is_symlink(project_file, ec) && !ec) {
+    const fs::path resolved = fs::canonical(project_file, ec);
+    if (!ec) {
+      write_target = resolved;
     }
   }
-  fs::rename(tmp, project_file, ec);
-  if (ec) {
-    fs::remove(tmp, ec);
-    return absl::InternalError(absl::StrFormat(
-        "Cannot replace %s: %s", project_file.string(), ec.message()));
+  std::error_code perm_ec;
+  const auto prior_status = fs::status(write_target, perm_ec);
+  const bool had_perms = !perm_ec && fs::exists(prior_status);
+  RETURN_IF_ERROR(WriteProjectFileAtomically(write_target.string(), updated,
+                                             /*replace_existing=*/true));
+  if (had_perms) {
+    fs::permissions(write_target, prior_status.permissions(), perm_ec);
   }
   return updated;
 }

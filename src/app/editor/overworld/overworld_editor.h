@@ -848,6 +848,7 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   absl::Status ApplyOverworldPropertyEdits(
       const std::vector<OverworldPropertyEdit>& edits,
       const std::string& description, bool record_undo = true);
+  friend class ProjectOpenResilienceTestPeer;
   absl::Status RenameProjectResourceLabelWithUndo(const std::string& type,
                                                   int id,
                                                   const std::string& label);

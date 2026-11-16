@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <cstdint>
 #include <map>
+#include <memory>
 #include <optional>
 #include <string>
 #include <unordered_map>
@@ -522,8 +523,10 @@ struct YazeProject {
   absl::Status UpdateDescriptorKeyOnDisk(absl::string_view section,
                                          absl::string_view key,
                                          absl::string_view value);
+  void RestoreDescriptorBaselineBytes(std::optional<std::string> bytes);
   const std::optional<std::string>& loaded_descriptor_bytes() const {
-    return loaded_descriptor_bytes_;
+    static const std::optional<std::string> kEmpty = std::nullopt;
+    return descriptor_baseline_ ? descriptor_baseline_->bytes : kEmpty;
   }
   absl::StatusOr<std::string> SaveWithSourceArtifacts(
       std::vector<core::SourceArtifactUpdate> updates,
@@ -623,8 +626,17 @@ struct YazeProject {
   void TryLoadHackManifest();
   std::string GenerateProjectId() const;
 
-  std::optional<std::string> loaded_descriptor_bytes_;
-  std::string loaded_descriptor_path_;
+  struct DescriptorBaseline {
+    std::optional<std::string> bytes;
+    std::string path;
+  };
+  void ResetDescriptorBaseline(std::optional<std::string> bytes = std::nullopt,
+                               std::string normalized_path = {});
+  void RecordSavedDescriptorBaseline(std::string bytes,
+                                     const std::string& target_path);
+
+  std::shared_ptr<DescriptorBaseline> descriptor_baseline_ =
+      std::make_shared<DescriptorBaseline>();
 };
 
 /**

@@ -96,6 +96,21 @@ std::string NormalizeDescriptorPath(const std::string& path) {
             : abs.string();
 }
 
+bool SameDescriptorBackingFile(const std::string& target_path,
+                               const std::string& target_norm,
+                               const std::string& baseline_norm) {
+  if (baseline_norm.empty() || target_norm == baseline_norm) {
+    return true;
+  }
+#ifdef __EMSCRIPTEN__
+  return false;
+#else
+  std::error_code eq_ec;
+  return std::filesystem::equivalent(target_path, baseline_norm, eq_ec) &&
+         !eq_ec;
+#endif
+}
+
 absl::StatusOr<std::string> ReadDescriptorBytes(const std::string& path) {
   std::error_code ec;
   if (!std::filesystem::is_regular_file(path, ec) || ec ||
@@ -706,6 +721,7 @@ absl::Status YazeProject::Open(const std::string& project_path) {
 
     if (!std::filesystem::exists(project_file, ec) || ec) {
       // Create a minimal portable project file for the bundle if missing.
+      ResetDescriptorBaseline();
       InitializeDefaults();
       name = bundle_path.stem().string();
 
@@ -784,8 +800,8 @@ absl::Status YazeProject::Open(const std::string& project_path) {
       load_status = ParseFromString(content);
 #endif
       if (load_status.ok()) {
-        loaded_descriptor_bytes_ = std::move(content);
-        loaded_descriptor_path_ = NormalizeDescriptorPath(resolved_path);
+        ResetDescriptorBaseline(std::move(content),
+                                NormalizeDescriptorPath(resolved_path));
       }
     } else {
       return absl::InvalidArgumentError(
@@ -793,6 +809,7 @@ absl::Status YazeProject::Open(const std::string& project_path) {
     }
   } else if (resolved_path.ends_with(".zsproj")) {
     format = ProjectFormat::kZScreamCompat;
+    ResetDescriptorBaseline();
     load_status = ImportFromZScreamFormat(resolved_path);
   } else {
     return absl::InvalidArgumentError("Unsupported project file format");
@@ -826,26 +843,48 @@ absl::Status YazeProject::SaveAllowingExternalDescriptorOverwrite() {
                           /*allow_external_descriptor_overwrite=*/true);
 }
 
+void YazeProject::ResetDescriptorBaseline(std::optional<std::string> bytes,
+                                          std::string normalized_path) {
+  descriptor_baseline_ = std::make_shared<DescriptorBaseline>(
+      DescriptorBaseline{std::move(bytes), std::move(normalized_path)});
+}
+
+void YazeProject::RecordSavedDescriptorBaseline(
+    std::string bytes, const std::string& target_path) {
+  std::string norm = NormalizeDescriptorPath(target_path);
+  if (descriptor_baseline_ != nullptr &&
+      SameDescriptorBackingFile(target_path, norm,
+                                descriptor_baseline_->path)) {
+    descriptor_baseline_->bytes = std::move(bytes);
+    descriptor_baseline_->path = std::move(norm);
+  } else {
+    ResetDescriptorBaseline(std::move(bytes), std::move(norm));
+  }
+}
+
+void YazeProject::RestoreDescriptorBaselineBytes(
+    std::optional<std::string> bytes) {
+  if (descriptor_baseline_ == nullptr) {
+    descriptor_baseline_ = std::make_shared<DescriptorBaseline>();
+  }
+  descriptor_baseline_->bytes = std::move(bytes);
+}
+
 absl::Status YazeProject::CheckDescriptorUnchangedOnDisk() const {
 #ifdef __EMSCRIPTEN__
   return absl::OkStatus();
 #else
-  if (filepath.empty() || !loaded_descriptor_bytes_.has_value()) {
+  if (filepath.empty() || descriptor_baseline_ == nullptr ||
+      !descriptor_baseline_->bytes.has_value()) {
     return absl::OkStatus();
   }
   const std::string target_norm = NormalizeDescriptorPath(filepath);
-  if (!loaded_descriptor_path_.empty() &&
-      target_norm != loaded_descriptor_path_) {
-    std::error_code eq_ec;
-    const bool same_file =
-        std::filesystem::equivalent(filepath, loaded_descriptor_path_, eq_ec) &&
-        !eq_ec;
-    if (!same_file) {
-      return absl::OkStatus();
-    }
+  if (!SameDescriptorBackingFile(filepath, target_norm,
+                                 descriptor_baseline_->path)) {
+    return absl::OkStatus();
   }
   auto disk_bytes = ReadDescriptorBytes(filepath);
-  if (!disk_bytes.ok() || *disk_bytes != *loaded_descriptor_bytes_) {
+  if (!disk_bytes.ok() || *disk_bytes != *descriptor_baseline_->bytes) {
     return absl::FailedPreconditionError(
         "Project descriptor changed on disk since open");
   }
@@ -862,8 +901,7 @@ absl::Status YazeProject::RefreshDescriptorBaselineFromDisk() {
     return absl::FailedPreconditionError("Project file path is empty");
   }
   ASSIGN_OR_RETURN(auto disk_bytes, ReadDescriptorBytes(filepath));
-  loaded_descriptor_bytes_ = std::move(disk_bytes);
-  loaded_descriptor_path_ = NormalizeDescriptorPath(filepath);
+  RecordSavedDescriptorBaseline(std::move(disk_bytes), filepath);
   return absl::OkStatus();
 #endif
 }
@@ -878,10 +916,10 @@ absl::Status YazeProject::UpdateDescriptorKeyOnDisk(absl::string_view section,
   if (filepath.empty()) {
     return absl::FailedPreconditionError("Project file path is empty");
   }
+  RETURN_IF_ERROR(CheckDescriptorUnchangedOnDisk());
   ASSIGN_OR_RETURN(auto updated,
                    UpdateProjectDescriptorKey(filepath, section, key, value));
-  loaded_descriptor_bytes_ = std::move(updated);
-  loaded_descriptor_path_ = NormalizeDescriptorPath(filepath);
+  RecordSavedDescriptorBaseline(std::move(updated), filepath);
   if (section == "rom" && key == "expected_hash") {
     rom_metadata.expected_hash = std::string(value);
   } else if (section == "graphics_sheets" && key == "source_spec_sha1") {
@@ -1492,6 +1530,7 @@ absl::Status YazeProject::SaveAsWithLyraTerrain(
         return core::LyraTerrainDocument::Parse(*saved, terrain.profile())
             .status();
       }));
+  candidate.RecordSavedDescriptorBaseline(descriptor, destination.string());
   *this = std::move(candidate);
   return absl::OkStatus();
 #endif
@@ -2689,8 +2728,8 @@ absl::Status YazeProject::LoadFromYazeFormat(const std::string& project_path) {
   }
   file.close();
   RETURN_IF_ERROR(ParseFromString(content));
-  loaded_descriptor_bytes_ = std::move(content);
-  loaded_descriptor_path_ = NormalizeDescriptorPath(project_path);
+  ResetDescriptorBaseline(std::move(content),
+                          NormalizeDescriptorPath(project_path));
   return absl::OkStatus();
 }
 
@@ -2767,16 +2806,14 @@ absl::Status YazeProject::SaveToYazeFormat(
     RETURN_IF_ERROR(core::PublishSourceArtifacts(
         *lock, std::move(updates), core::ComputeSourceArtifactSha256(before),
         std::move(validator)));
-    loaded_descriptor_bytes_ = serialized;
-    loaded_descriptor_path_ = NormalizeDescriptorPath(filepath);
+    RecordSavedDescriptorBaseline(serialized, filepath);
   } else if (!filepath.empty()) {
     if (replace_existing && !allow_external_descriptor_overwrite) {
       RETURN_IF_ERROR(CheckDescriptorUnchangedOnDisk());
     }
     RETURN_IF_ERROR(
         WriteProjectFileAtomically(filepath, serialized, replace_existing));
-    loaded_descriptor_bytes_ = serialized;
-    loaded_descriptor_path_ = NormalizeDescriptorPath(filepath);
+    RecordSavedDescriptorBaseline(serialized, filepath);
   }
 #endif
 
@@ -2798,6 +2835,7 @@ absl::Status YazeProject::ImportZScreamProject(
   zscream_mappings["source_code"] = "code_folder";
   zscream_mappings["project_name"] = "name";
 
+  ResetDescriptorBaseline();
   InitializeDefaults();
 
   // TODO: Implement actual ZScream format parsing when format is known

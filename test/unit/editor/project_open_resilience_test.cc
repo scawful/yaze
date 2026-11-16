@@ -19,8 +19,12 @@
 #include "app/editor/graphics/graphics_sheet_sync.h"
 #include "app/editor/graphics/graphics_undo_actions.h"
 #include "app/editor/menu/status_bar.h"
+#include "app/editor/overworld/maps/overworld_map_metadata.h"
+#include "app/editor/overworld/overworld_editor.h"
+#include "app/editor/session_types.h"
 #include "app/editor/shell/feedback/popup_manager.h"
 #include "app/editor/shell/feedback/toast_manager.h"
+#include "app/editor/system/session/session_coordinator.h"
 #include "app/gfx/backend/null_renderer.h"
 #include "app/gfx/resource/arena.h"
 #include "app/gfx/util/palette_manager.h"
@@ -63,6 +67,12 @@ class ProjectOpenResilienceTestPeer {
         &state, MakeSheetPixelDiff(sheet_id, before, after),
         "Resilience source pixel"));
     return absl::OkStatus();
+  }
+
+  static absl::Status RenameResourceLabel(OverworldEditor* editor,
+                                          const std::string& type, int id,
+                                          const std::string& label) {
+    return editor->RenameProjectResourceLabelWithUndo(type, id, label);
   }
 };
 
@@ -764,6 +774,188 @@ TEST_F(ProjectOpenResilienceTest,
   }
   EXPECT_TRUE(found) << out;
   EXPECT_EQ(ReadText(b.project_path), before_yaze);
+}
+
+TEST_F(ProjectOpenResilienceTest,
+       SingleKeyRomHashAdoptRefusesExternalDiskEditsAndStagesConflictModal) {
+  auto b =
+      CreateSourceBundle("SingleKeyGuard", "", /*adopt_hash_on_open=*/false);
+  ASSERT_OK(manager_->OpenRomOrProject(b.project_path.string()));
+
+  std::string external_disk = ReadText(b.project_path);
+  const auto name_pos = external_disk.find("name=SingleKeyGuard");
+  ASSERT_NE(name_pos, std::string::npos);
+  external_disk.replace(name_pos, std::string("name=SingleKeyGuard").size(),
+                        "name=ExternalTextEdit");
+  external_disk += "\n# external user note\n";
+  WriteText(b.project_path, external_disk);
+
+  // Settings "Use Current ROM Hash" / RecordProjectRomHash must refuse without
+  // poisoning loaded_descriptor_bytes_, preserve external disk edits, and
+  // stage the descriptor-changed modal.
+  EXPECT_EQ(manager_->RecordProjectRomHash("cafebabe").code(),
+            absl::StatusCode::kFailedPrecondition);
+  EXPECT_EQ(ReadText(b.project_path), external_disk);
+  EXPECT_EQ(manager_->GetCurrentProject()->rom_metadata.expected_hash,
+            b.rom_hashes.crc32);
+  ASSERT_TRUE(manager_->has_pending_descriptor_save_conflict());
+  EXPECT_TRUE(
+      manager_->popup_manager()->IsVisible(PopupID::kProjectDescriptorChanged));
+
+  // Cancel must keep the external edit intact and must NOT allow a subsequent
+  // SaveProject() (Ctrl+S) to overwrite disk.
+  manager_->CancelDescriptorConflict();
+  EXPECT_EQ(ReadText(b.project_path), external_disk);
+  EXPECT_EQ(manager_->SaveProject().code(),
+            absl::StatusCode::kFailedPrecondition);
+  EXPECT_EQ(ReadText(b.project_path), external_disk);
+  ASSERT_TRUE(manager_->has_pending_descriptor_save_conflict());
+  manager_->CancelDescriptorConflict();
+
+  // Explicit two-step Overwrite anyway on a non-source project after a refused
+  // RecordProjectRomHash applies the pending hash adoption once confirmed.
+  ResetManager();
+  const fs::path plain_rom = root_ / "plain_adopt.sfc";
+  auto fixture = test::BuildGfxSheetTestRom();
+  WriteBytes(plain_rom, fixture.bytes);
+  const fs::path plain_proj = root_ / "PlainAdopt.yaze";
+  WriteText(plain_proj,
+            "[project]\n"
+            "name=PlainAdopt\n"
+            "project_id=plain_adopt_1\n\n"
+            "[files]\n"
+            "rom_filename=plain_adopt.sfc\n\n"
+            "[rom]\n"
+            "role=dev\n"
+            "expected_hash=11111111\n");
+  ASSERT_OK(manager_->OpenRomOrProject(plain_proj.string()));
+  const std::string plain_external =
+      ReadText(plain_proj) + "# external comment\n";
+  WriteText(plain_proj, plain_external);
+
+  EXPECT_EQ(manager_->RecordProjectRomHash("cafebabe").code(),
+            absl::StatusCode::kFailedPrecondition);
+  ASSERT_TRUE(manager_->has_pending_descriptor_save_conflict());
+  manager_->RequestOverwriteDescriptorConflict();
+  ASSERT_OK(manager_->ConfirmOverwriteDescriptorConflict());
+  EXPECT_FALSE(manager_->has_pending_descriptor_save_conflict());
+  EXPECT_THAT(ReadText(plain_proj), HasSubstr("expected_hash=cafebabe"));
+}
+
+TEST_F(ProjectOpenResilienceTest,
+       DualProjectCopiesSyncBaselineAcrossLabelRenameAndDirectSessionSave) {
+  const fs::path rom_path = root_ / "label_sync.sfc";
+  auto fixture = test::BuildGfxSheetTestRom();
+  WriteBytes(rom_path, fixture.bytes);
+  const fs::path proj_path = root_ / "LabelSync.yaze";
+  WriteText(proj_path,
+            "[project]\n"
+            "name=LabelSync\n"
+            "project_id=label_sync_1\n\n"
+            "[files]\n"
+            "rom_filename=label_sync.sfc\n\n"
+            "[rom]\n"
+            "role=dev\n");
+
+  // Case A: OverworldEditor::RenameProjectResourceLabelWithUndo followed by
+  // EditorManager::SaveProject() must NOT trigger a false conflict modal and
+  // must NOT overwrite the renamed label with stale in-memory state.
+  ASSERT_OK(manager_->OpenRomOrProject(proj_path.string()));
+  auto* overworld = manager_->GetCurrentEditorSet()->GetOverworldEditor();
+  ASSERT_NE(overworld, nullptr);
+  ASSERT_OK(ProjectOpenResilienceTestPeer::RenameResourceLabel(
+      overworld, "overworld", 0, "Kalyxo"));
+  EXPECT_THAT(ReadText(proj_path), HasSubstr("0=Kalyxo"));
+  EXPECT_OK(manager_->SaveProject());
+  EXPECT_FALSE(manager_->has_pending_descriptor_save_conflict());
+  EXPECT_FALSE(
+      manager_->popup_manager()->IsVisible(PopupID::kProjectDescriptorChanged));
+  EXPECT_THAT(ReadText(proj_path), HasSubstr("0=Kalyxo"));
+
+  // Undo and Redo of the label rename must also keep both project copies
+  // and their shared descriptor baseline in sync.
+  ASSERT_OK(overworld->Undo());
+  EXPECT_THAT(ReadText(proj_path), ::testing::Not(HasSubstr("0=Kalyxo")));
+  EXPECT_OK(manager_->SaveProject());
+  EXPECT_FALSE(manager_->has_pending_descriptor_save_conflict());
+  EXPECT_THAT(ReadText(proj_path), ::testing::Not(HasSubstr("0=Kalyxo")));
+  ASSERT_OK(overworld->Redo());
+  EXPECT_THAT(ReadText(proj_path), HasSubstr("0=Kalyxo"));
+  EXPECT_OK(manager_->SaveProject());
+  EXPECT_FALSE(manager_->has_pending_descriptor_save_conflict());
+  EXPECT_THAT(ReadText(proj_path), HasSubstr("0=Kalyxo"));
+
+  // Case B: Direct save on session->project_context (e.g. direct
+  // RenameProjectResourceLabel call on the session copy) keeps
+  // current_project_'s shared baseline in sync, while still detecting true
+  // external edits afterward.
+  auto* session = manager_->session_coordinator()->GetActiveRomSession();
+  ASSERT_NE(session, nullptr);
+  ASSERT_TRUE(session->project_context.has_value());
+  ASSERT_OK(RenameProjectResourceLabel(&*session->project_context, "overworld",
+                                       1, "TailPond"));
+  EXPECT_OK(manager_->GetCurrentProject()->CheckDescriptorUnchangedOnDisk());
+  EXPECT_THAT(ReadText(proj_path), HasSubstr("1=TailPond"));
+
+  const std::string external_after =
+      ReadText(proj_path) + "\n# external after label rename\n";
+  WriteText(proj_path, external_after);
+  EXPECT_EQ(manager_->SaveProject().code(),
+            absl::StatusCode::kFailedPrecondition);
+  EXPECT_TRUE(manager_->has_pending_descriptor_save_conflict());
+  EXPECT_EQ(ReadText(proj_path), external_after);
+}
+
+TEST_F(ProjectOpenResilienceTest,
+       DirtyProjectSettingsBlocksDescriptorConflictReload) {
+  const fs::path rom_path = root_ / "dirty_settings.sfc";
+  auto fixture = test::BuildGfxSheetTestRom();
+  WriteBytes(rom_path, fixture.bytes);
+  const fs::path proj_path = root_ / "DirtySettings.yaze";
+  WriteText(proj_path,
+            "[project]\n"
+            "name=DirtySettings\n"
+            "project_id=dirty_settings_1\n\n"
+            "[files]\n"
+            "rom_filename=dirty_settings.sfc\n\n"
+            "[rom]\n"
+            "role=dev\n");
+
+  ASSERT_OK(manager_->OpenRomOrProject(proj_path.string()));
+  // Simulate project settings edits on a clean ROM with no editor drafts.
+  manager_->MarkCurrentProjectDirty();
+
+  const std::string external_disk = ReadText(proj_path) + "\n# outside edit\n";
+  WriteText(proj_path, external_disk);
+
+  EXPECT_EQ(manager_->SaveProject().code(),
+            absl::StatusCode::kFailedPrecondition);
+  ASSERT_TRUE(manager_->has_pending_descriptor_save_conflict());
+  EXPECT_FALSE(manager_->pending_descriptor_save_conflict()->can_reload);
+  EXPECT_THAT(
+      manager_->pending_descriptor_save_conflict()->reload_disabled_reason,
+      HasSubstr("project-setting"));
+  EXPECT_EQ(manager_->ReloadProjectAfterDescriptorConflict().code(),
+            absl::StatusCode::kFailedPrecondition);
+  EXPECT_EQ(ReadText(proj_path), external_disk);
+}
+
+TEST_F(ProjectOpenResilienceTest,
+       OpenAttentionAdoptRefusesExternalDescriptorEditDuringModal) {
+  auto b = CreateSourceBundle("ModalExternal", "deadbeef",
+                              /*adopt_hash_on_open=*/false);
+  ASSERT_OK(manager_->OpenRomOrProject(b.project_path.string()));
+  ASSERT_TRUE(manager_->has_pending_project_open_attention());
+
+  const std::string external_edit =
+      ReadText(b.project_path) + "\n# edited while modal open\n";
+  WriteText(b.project_path, external_edit);
+
+  EXPECT_EQ(manager_->AdoptPendingProjectOpenAttention().code(),
+            absl::StatusCode::kFailedPrecondition);
+  EXPECT_EQ(ReadText(b.project_path), external_edit);
+  EXPECT_EQ(manager_->GetActiveSessionCount(), 0u);
+  manager_->CancelPendingProjectOpenAttention();
 }
 
 }  // namespace

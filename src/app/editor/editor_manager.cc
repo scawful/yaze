@@ -4419,6 +4419,41 @@ absl::Status EditorManager::AdoptCurrentRomHashForProject() {
   return RecordProjectRomHash(adopted);
 }
 
+void EditorManager::StageDescriptorSaveConflict(
+    std::optional<std::string> pending_rom_hash_adoption) {
+  CaptureActiveProjectEditingState();
+  auto* save_session = session_coordinator_
+                           ? session_coordinator_->GetActiveRomSession()
+                           : nullptr;
+  const auto mismatch = project::InspectRomIdentityMismatch(
+      nullptr, 0, current_project_.filepath, current_project_);
+  DescriptorSaveConflict conflict;
+  conflict.project_filepath = current_project_.filepath;
+  conflict.disk_mtime = mismatch.rom_mtime;
+  conflict.pending_rom_hash_adoption = std::move(pending_rom_hash_adoption);
+  const size_t active_idx = GetCurrentSessionIndex();
+  const bool has_rom_work = SessionHasPendingRomWork(active_idx);
+  const bool has_project_settings_edits =
+      (save_session != nullptr && save_session->project_dirty) ||
+      (project_management_panel_ != nullptr &&
+       project_management_panel_->IsProjectDirty());
+  const bool has_editor_drafts =
+      save_session != nullptr &&
+      (save_session->editors.HasPendingProjectDraftChanges() ||
+       (save_session->project_file_editor_state.initialized &&
+        save_session->project_file_editor_state.modified));
+  if (has_rom_work || has_editor_drafts || has_project_settings_edits) {
+    conflict.can_reload = false;
+    conflict.reload_disabled_reason =
+        "Save As or discard unsaved ROM, project-setting, or editor edits "
+        "before reloading project.yaze from disk";
+  }
+  pending_descriptor_save_conflict_ = std::move(conflict);
+  if (popup_manager_) {
+    popup_manager_->Show(PopupID::kProjectDescriptorChanged);
+  }
+}
+
 absl::Status EditorManager::RecordProjectRomHash(const std::string& adopted) {
   if (!current_project_.project_opened()) {
     return absl::FailedPreconditionError("No project is open");
@@ -4435,7 +4470,7 @@ absl::Status EditorManager::RecordProjectRomHash(const std::string& adopted) {
     if (!status.ok() &&
         absl::StrContains(status.message(), "not an INI project file")) {
       current_project_.rom_metadata.expected_hash = adopted;
-      status = current_project_.SaveAllowingExternalDescriptorOverwrite();
+      status = current_project_.Save();
     }
   } else {
     current_project_.rom_metadata.expected_hash = adopted;
@@ -4443,6 +4478,12 @@ absl::Status EditorManager::RecordProjectRomHash(const std::string& adopted) {
   }
   if (!status.ok()) {
     current_project_.rom_metadata.expected_hash = previous;
+    if (!pending_project_open_transition_ &&
+        absl::IsFailedPrecondition(status) &&
+        absl::StrContains(status.message(),
+                          "Project descriptor changed on disk")) {
+      StageDescriptorSaveConflict(adopted);
+    }
     return status;
   }
   const std::string sha1 = rom_lifecycle_.current_rom_sha1();
@@ -4462,8 +4503,6 @@ absl::Status EditorManager::RecordProjectRomHash(const std::string& adopted) {
     if (auto* session = session_coordinator_->GetActiveRomSession();
         session && session->project_context) {
       session->project_context->rom_metadata.expected_hash = adopted;
-      session->project_context->RefreshDescriptorBaselineFromDisk()
-          .IgnoreError();
     }
   }
   return absl::OkStatus();
@@ -4505,28 +4544,7 @@ absl::Status EditorManager::SaveProject() {
       !allow_external_descriptor_overwrite_once_) {
     auto desc_status = current_project_.CheckDescriptorUnchangedOnDisk();
     if (!desc_status.ok()) {
-      const auto mismatch = project::InspectRomIdentityMismatch(
-          nullptr, 0, current_project_.filepath, current_project_);
-      DescriptorSaveConflict conflict;
-      conflict.project_filepath = current_project_.filepath;
-      conflict.disk_mtime = mismatch.rom_mtime;
-      const size_t active_idx = GetCurrentSessionIndex();
-      const bool has_rom_work = SessionHasPendingRomWork(active_idx);
-      const bool has_editor_drafts =
-          save_session != nullptr &&
-          (save_session->editors.HasPendingProjectDraftChanges() ||
-           (save_session->project_file_editor_state.initialized &&
-            save_session->project_file_editor_state.modified));
-      if (has_rom_work || has_editor_drafts) {
-        conflict.can_reload = false;
-        conflict.reload_disabled_reason =
-            "Save As or discard unsaved ROM/editor edits before reloading "
-            "project.yaze from disk";
-      }
-      pending_descriptor_save_conflict_ = std::move(conflict);
-      if (popup_manager_) {
-        popup_manager_->Show(PopupID::kProjectDescriptorChanged);
-      }
+      StageDescriptorSaveConflict();
       return desc_status;
     }
   }
@@ -5063,6 +5081,7 @@ absl::Status EditorManager::SaveProjectAs(const std::string& filepath) {
     }
     SyncLayoutScopeFromCurrentProject();
     RebaseCleanProjectFileDraft(file_path);
+    CaptureActiveProjectContext();
 
     // Add to recent files
     auto& manager = project::RecentFilesManager::GetInstance();

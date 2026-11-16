@@ -460,5 +460,49 @@ TEST(ProjectWorkspaceTest, InspectRomIdentityMismatchReportsBackupsAndHashes) {
   EXPECT_EQ(sha_info.loaded_hash, id.sha1);
 }
 
+TEST(ProjectWorkspaceTest,
+     UpdateDescriptorKeyOnDiskRefusesExternalEditAndPreservesDisk) {
+  ScopedDir dir(yaze::test::UniqueTempPath("project_key_external_guard"));
+  const fs::path path = dir.path() / "project.yaze";
+  const std::string initial =
+      "[project]\nname=GuardTest\n[rom]\nexpected_hash=11111111\n";
+  WriteFile(path, initial);
+
+  YazeProject proj;
+  ASSERT_TRUE(proj.Open(path.string()).ok());
+
+  const std::string external =
+      "[project]\nname=ExternalEdit\n[rom]\nexpected_hash=11111111\n";
+  WriteFile(path, external);
+
+  const absl::Status status =
+      proj.UpdateDescriptorKeyOnDisk("rom", "expected_hash", "cafebabe");
+  EXPECT_EQ(status.code(), absl::StatusCode::kFailedPrecondition);
+  EXPECT_EQ(ReadFile(path), external);
+  EXPECT_EQ(proj.rom_metadata.expected_hash, "11111111");
+  EXPECT_EQ(proj.Save().code(), absl::StatusCode::kFailedPrecondition);
+  EXPECT_EQ(ReadFile(path), external);
+}
+
+TEST(ProjectWorkspaceTest, UpdateProjectDescriptorKeyPreservesSymlinkTarget) {
+  ScopedDir dir(yaze::test::UniqueTempPath("project_descriptor_symlink"));
+  const fs::path real_path = dir.path() / "real_project.yaze";
+  const fs::path symlink_path = dir.path() / "project.yaze";
+  WriteFile(real_path,
+            "[project]\nname=Symlinked\n[rom]\nexpected_hash=11111111\n");
+  std::error_code ec;
+  fs::create_symlink(real_path, symlink_path, ec);
+  if (ec) {
+    GTEST_SKIP() << "Symlinks unsupported in test environment: "
+                 << ec.message();
+  }
+
+  auto updated = UpdateProjectDescriptorKey(symlink_path, "rom",
+                                            "expected_hash", "cafebabe");
+  ASSERT_TRUE(updated.ok()) << updated.status();
+  EXPECT_TRUE(fs::is_symlink(symlink_path));
+  EXPECT_THAT(ReadFile(real_path), HasSubstr("expected_hash=cafebabe\n"));
+}
+
 }  // namespace
 }  // namespace yaze::project

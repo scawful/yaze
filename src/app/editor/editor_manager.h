@@ -252,6 +252,7 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
     project::RomIdentityMismatchInfo rom_mismatch;
     std::string adopt_rom_hash;
     core::GfxSheetSource::SpecSha1MismatchInfo spec_mismatch;
+    std::optional<std::string> expected_descriptor_bytes;
     bool can_adopt = false;
     std::string adopt_disabled_reason;
     std::string cancel_reason;
@@ -270,6 +271,7 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
   struct DescriptorSaveConflict {
     std::string project_filepath;
     std::string disk_mtime;
+    std::optional<std::string> pending_rom_hash_adoption;
     bool can_reload = true;
     std::string reload_disabled_reason;
     bool confirming_overwrite = false;
@@ -852,6 +854,8 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
       std::optional<size_t> previous_session_id);
   absl::Status DiscardProvisionalSessionCreatedSince(
       size_t previous_session_count);
+  void StageDescriptorSaveConflict(
+      std::optional<std::string> pending_rom_hash_adoption = std::nullopt);
   void ApplyCurrentProjectRuntimeContext();
   absl::StatusOr<const project::YazeProject*>
   PrepareActiveProjectContextForSave();
