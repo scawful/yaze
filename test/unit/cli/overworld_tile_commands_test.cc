@@ -2566,6 +2566,18 @@ TEST_F(OverworldNativeSourceImportTest, ProfileApplyRefusesBeforeOutput) {
   source["pages"][0]["source_profile"]["graphics_sheets"][1] = 0xF5;
   ExpectRefused(with_flag(source), "neither the ROM table nor the bound");
 
+  // Child page $8E draws with parent $8D's sheets, so only its stored row
+  // names $F5; that row is still written and must be refused.
+  ASSERT_EQ(source["pages"][1]["map_id"], kSelectedMap + 1);
+  ASSERT_EQ(model_->overworld_map(kSelectedMap + 1)->parent(), kSelectedMap);
+  source = profile_source;
+  source["pages"][1]["source_profile"]["graphics_sheets"][1] = 0xF5;
+  ExpectRefused(with_flag(source), "page $8E slot 1 sheet $F5");
+  // $FF ("world default") in a child row is not a missing sheet.
+  source = profile_source;
+  source["pages"][1]["source_profile"]["graphics_sheets"][1] = 0xFF;
+  EXPECT_TRUE(with_flag(source).ok());
+
   source = profile_source;
   source["pages"][0]["source_profile"]["background_palette_words"][0] = 0x8000;
   ExpectRefused(with_flag(source), "Invalid native screen appearance");
