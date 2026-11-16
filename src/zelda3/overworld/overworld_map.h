@@ -371,6 +371,8 @@ class OverworldMap : public gfx::GfxContext {
   const std::string& sprite_palette_warning() const {
     return sprite_palette_warning_;
   }
+  // Set by LoadAreaGraphics() when a BG slot uses a sheet that loads blank.
+  const std::string& graphics_warning() const { return graphics_warning_; }
   const std::vector<uint8_t>& bitmap_data() const { return bitmap_data_; }
   auto is_large_map() const { return large_map_; }
   auto is_initialized() const { return initialized_; }
@@ -691,6 +693,8 @@ class OverworldMap : public gfx::GfxContext {
   // Display-only diagnostic. Unavailable OBJ colors must not hide valid BG
   // terrain or rewrite the authored sprite palette selectors.
   std::string sprite_palette_warning_;
+  // Display-only diagnostic for BG sheets with no table address or source row.
+  std::string graphics_warning_;
   PaletteAddressMap palette_addresses_{};
   std::map<uint16_t, std::vector<uint8_t>> graphics_sheet_overrides_;
   AreaGraphicsPreview graphics_preview_;

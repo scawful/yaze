@@ -5,6 +5,7 @@
 #include <cstdint>
 #include <map>
 #include <optional>
+#include <set>
 #include <vector>
 
 #include "absl/status/status.h"
@@ -151,6 +152,15 @@ struct GameData : GraphicsSheetStoreHolder {
   // in graphics_buffer after a full load.
   GfxSheetPointerTable gfx_sheet_table;
 
+  // Expanded bank $23 rows with no address (0 or $FFFFFF) and no bound source
+  // row. They count as native sheets but load blank, so a map that uses one
+  // needs a warning.
+  std::set<uint16_t> unclaimed_gfx_sheets;
+  bool IsUnclaimedGraphicsSheet(size_t sheet) const {
+    return sheet <= UINT16_MAX &&
+           unclaimed_gfx_sheets.contains(static_cast<uint16_t>(sheet));
+  }
+
   // Diagnostics
   GraphicsLoadDiagnostics diagnostics;
 
@@ -177,6 +187,7 @@ struct GameData : GraphicsSheetStoreHolder {
     gfx_groups_loaded = false;
     gfx_main_group_address = 0;
     gfx_sheet_table = GfxSheetPointerTable();
+    unclaimed_gfx_sheets.clear();
     room_default_entrances.clear();
     sheet_store.Clear();
     for (auto& sheet : raw_gfx_sheets)

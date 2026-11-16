@@ -1235,6 +1235,25 @@ void OverworldMap::LoadAreaGraphics() {
   LoadMainBlocksetId();
   static_graphics_ = ResolveStaticGraphics();
   LoadDeathMountainGFX();
+
+  graphics_warning_.clear();
+  if (game_data_ != nullptr) {
+    std::string unclaimed;
+    for (int slot = 0; slot < 8; ++slot) {
+      if (game_data_->IsUnclaimedGraphicsSheet(static_graphics_[slot])) {
+        absl::StrAppendFormat(&unclaimed, "%sslot %d sheet $%02X",
+                              unclaimed.empty() ? "" : ", ", slot,
+                              static_graphics_[slot]);
+      }
+    }
+    if (!unclaimed.empty()) {
+      graphics_warning_ = absl::StrFormat(
+          "Blank graphics (%s): the bank $23 sheet table has no address for "
+          "this sheet and no graphics source is bound for it. Bind it with "
+          "the project's [graphics_sheets] source_spec.",
+          unclaimed);
+    }
+  }
 }
 
 namespace palette_internal {

@@ -402,6 +402,10 @@ absl::StatusOr<OverworldRenderResult> RenderService::RenderOverworldArea(
         result.warnings.push_back(absl::StrFormat(
             "Map 0x%02X: %s", screen, map->sprite_palette_warning()));
       }
+      if (!map->graphics_warning().empty()) {
+        result.warnings.push_back(
+            absl::StrFormat("Map 0x%02X: %s", screen, map->graphics_warning()));
+      }
       if (pixels.size() < static_cast<size_t>(kScreen) * kScreen) {
         return absl::InternalError(
             absl::StrFormat("Map 0x%02X has no bitmap after build", screen));

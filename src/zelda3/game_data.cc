@@ -1023,6 +1023,29 @@ absl::Status LoadGraphics(Rom& rom, GameData& data) {
                             data.palette_groups.hud.palette(0));
     }
   }
+  // Expanded rows the table leaves unclaimed decode to nothing unless the
+  // bound source supplies them. An explicit layout validates every row.
+  data.unclaimed_gfx_sheets.clear();
+  if (!layout) {
+    const auto& bytes = rom.vector();
+    for (uint32_t i = kLegacyNumGfxSheets; i < sheet_count; ++i) {
+      if (static_cast<size_t>(tables.bank) + i >= bytes.size() ||
+          static_cast<size_t>(tables.high) + i >= bytes.size() ||
+          static_cast<size_t>(tables.low) + i >= bytes.size()) {
+        break;
+      }
+      const uint32_t snes = static_cast<uint32_t>(bytes[tables.bank + i])
+                                << 16 |
+                            static_cast<uint32_t>(bytes[tables.high + i]) << 8 |
+                            bytes[tables.low + i];
+      const bool sourced =
+          data.gfx_sheet_source &&
+          data.gfx_sheet_source->sheets().contains(static_cast<uint16_t>(i));
+      if ((snes == 0x000000 || snes == 0xFFFFFF) && !sourced) {
+        data.unclaimed_gfx_sheets.insert(static_cast<uint16_t>(i));
+      }
+    }
+  }
   // The sheets were appended through the graphics_buffer alias.
   data.sheet_store.MarkAllSheetsChanged();
   diag.Analyze();

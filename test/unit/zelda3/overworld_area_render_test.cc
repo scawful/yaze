@@ -327,6 +327,29 @@ TEST(OverworldAreaRenderTest, EmptyZeroAndCustomDefaultFallbackStayDistinct) {
   }
 }
 
+TEST(OverworldAreaRenderTest, UnclaimedTableRowNamesTheBlankSlot) {
+  auto bytes = MakeV3Rom();
+  bytes[OverworldCustomTileGFXGroupArray + kParent * 8 + 2] = 0xE3;
+  auto rom = LoadRom(bytes);
+  GameData data;
+  data.graphics_buffer.assign(0x100 * 0x1000, 0);
+  OverworldMap map(kParent, rom.get(), &data);
+  map.LoadAreaGraphics();
+  ASSERT_EQ(map.static_graphics(2), 0xE3);
+  EXPECT_TRUE(map.graphics_warning().empty());
+
+  data.unclaimed_gfx_sheets = {0xE3};
+  map.LoadAreaGraphics();
+  EXPECT_NE(map.graphics_warning().find("slot 2 sheet $E3"), std::string::npos)
+      << map.graphics_warning();
+  EXPECT_NE(map.graphics_warning().find("source_spec"), std::string::npos);
+
+  // A slot change that leaves the unclaimed sheet clears the warning.
+  map.set_custom_tileset(2, 0x10);
+  map.LoadAreaGraphics();
+  EXPECT_TRUE(map.graphics_warning().empty());
+}
+
 TEST(OverworldAreaRenderTest,
      ExplicitSheetZeroRevisionAndPresenceChangesInvalidateMapSources) {
   auto bytes = MakeV3Rom();

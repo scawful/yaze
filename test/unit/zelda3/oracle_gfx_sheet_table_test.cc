@@ -208,6 +208,12 @@ TEST(OracleGfxSheetTableTest, TableInProjectRomDataLoads255Sheets) {
   EXPECT_EQ(data->graphics_buffer.size(), zelda3::kNumGfxSheets * 4096u);
   EXPECT_EQ(BufferSheet(*data, kNewSheet), Pixels(fixture.added));
   EXPECT_EQ(BufferSheet(*data, kLastSheet), Pixels(fixture.last));
+  // The zero row still counts as native, so maps that use it need a warning.
+  EXPECT_TRUE(data->HasGraphicsSheet(zero_row));
+  EXPECT_TRUE(data->IsUnclaimedGraphicsSheet(zero_row));
+  EXPECT_FALSE(data->IsUnclaimedGraphicsSheet(kNewSheet));
+  EXPECT_FALSE(data->IsUnclaimedGraphicsSheet(kLastSheet));
+  EXPECT_FALSE(data->IsUnclaimedGraphicsSheet(0x10));
 }
 
 TEST(OracleGfxSheetTableTest, ZeroedBank23ArraysKeep223Sheets) {
