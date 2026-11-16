@@ -64,16 +64,22 @@ void LiveProposalsPanel::DrawAttachments(const LiveProposal& proposal) {
   ImGui::SeparatorText(CountLabel(static_cast<int>(proposal.attachments.size()),
                                   "image", "images")
                            .c_str());
-  const float avail = ImGui::GetContentRegionAvail().x;
+  // ImageButton adds frame padding on both sides of the image.
+  const float avail = ImGui::GetContentRegionAvail().x -
+                      ImGui::GetStyle().FramePadding.x * 2.0f;
   for (size_t i = 0; i < proposal.attachments.size(); ++i) {
     const auto& attachment = proposal.attachments[i];
     const gfx::Bitmap* bitmap = i < images_.size() ? images_[i].get() : nullptr;
+    const bool drawable = bitmap && bitmap->texture() && attachment.width > 0 &&
+                          attachment.height > 0;
     ImGui::PushID(static_cast<int>(i));
-    if (bitmap && bitmap->texture() && attachment.width > 0) {
-      // Fit the panel width; never upscale past 2x (pixel art stays crisp
-      // enough, and a tiny icon does not fill the panel).
-      const float scale = std::min(avail / attachment.width, 2.0f);
-      const ImVec2 size(attachment.width * scale, attachment.height * scale);
+    // Fit the panel width; never upscale past 2x (pixel art stays crisp
+    // enough, and a tiny icon does not fill the panel).
+    const float scale =
+        drawable ? std::min(avail / attachment.width, 2.0f) : 0.0f;
+    if (drawable && scale > 0.0f) {
+      const ImVec2 size(std::max(1.0f, attachment.width * scale),
+                        std::max(1.0f, attachment.height * scale));
       if (ImGui::ImageButton("##image",
                              (ImTextureID)(intptr_t)bitmap->texture(), size)) {
         enlarged_ = static_cast<int>(i);
@@ -82,6 +88,8 @@ void LiveProposalsPanel::DrawAttachments(const LiveProposal& proposal) {
       if (ImGui::IsItemHovered())
         ImGui::SetTooltip("Click to enlarge (%dx%d)", attachment.width,
                           attachment.height);
+    } else if (drawable) {
+      ImGui::TextDisabled("Panel too narrow for %s", attachment.path.c_str());
     } else {
       ImGui::TextDisabled("Loading %s...", attachment.path.c_str());
     }
@@ -89,7 +97,8 @@ void LiveProposalsPanel::DrawAttachments(const LiveProposal& proposal) {
       ImGui::TextWrapped("%s", attachment.caption.c_str());
     else
       ImGui::TextDisabled("%s", attachment.path.c_str());
-    if (enlarged_ == static_cast<int>(i) && ImGui::BeginPopup("##enlarged")) {
+    if (drawable && enlarged_ == static_cast<int>(i) &&
+        ImGui::BeginPopup("##enlarged")) {
       // Integer zoom up to what fits in 80% of the viewport.
       const ImVec2 view = ImGui::GetMainViewport()->Size;
       const float fit = std::min(view.x * 0.8f / attachment.width,
@@ -105,9 +114,10 @@ void LiveProposalsPanel::DrawAttachments(const LiveProposal& proposal) {
   }
 }
 
-void LiveProposalsPanel::Remember(const std::string& id,
+void LiveProposalsPanel::Remember(const std::string& id, int offer_serial,
                                   const absl::Status& status) {
   error_id_ = id;
+  error_offer_serial_ = offer_serial;
   error_ = status.ok() ? std::string() : std::string(status.message());
 }
 
@@ -151,6 +161,7 @@ void LiveProposalsPanel::Draw(bool* /*p_open*/) {
   if (!selected)
     return;
   const std::string id = selected->id;
+  const int serial = selected->offer_serial;
   ImGui::Separator();
   ImGui::TextWrapped("%s", selected->title.c_str());
   if (!selected->author.empty())
@@ -189,17 +200,24 @@ void LiveProposalsPanel::Draw(bool* /*p_open*/) {
   inbox.view = static_cast<LiveProposalView>(view);
   ImGui::SameLine();
   if (ImGui::SmallButton(ICON_MD_CENTER_FOCUS_STRONG " Jump to map"))
-    Remember(id, editor->FocusLiveProposal(id));
+    Remember(id, serial, editor->FocusLiveProposal(id));
 
   const bool pending = selected->decision == LiveProposalDecision::kPending;
-  ImGui::BeginDisabled(!pending || classification->ready == 0);
+  // Same rule as AcceptLiveProposalWith: Accept needs a ready cell, or cells
+  // that already hold their proposed tile (then it records the decision and
+  // writes nothing).
+  const bool acceptable =
+      classification->ready > 0 || classification->already_applied > 0;
+  ImGui::BeginDisabled(!pending || !acceptable);
   const std::string accept =
-      absl::StrFormat(ICON_MD_CHECK " Accept %s",
-                      CountLabel(classification->ready, "cell", "cells"));
+      classification->ready > 0
+          ? absl::StrFormat(ICON_MD_CHECK " Accept %s",
+                            CountLabel(classification->ready, "cell", "cells"))
+          : std::string(ICON_MD_CHECK " Accept (already applied)");
   if (ImGui::Button(accept.c_str()))
-    Remember(id, editor->AcceptLiveProposal(id).status());
+    Remember(id, serial, editor->AcceptLiveProposal(id).status());
   ImGui::EndDisabled();
-  if (pending && classification->ready == 0) {
+  if (pending && !acceptable) {
     ImGui::SameLine();
     ImGui::TextDisabled("No cell still matches");
   }
@@ -207,7 +225,7 @@ void LiveProposalsPanel::Draw(bool* /*p_open*/) {
   ImGui::BeginDisabled(!pending);
   if (ImGui::Button(ICON_MD_CLOSE " Reject")) {
     const auto status = editor->RejectLiveProposal(id, comment_);
-    Remember(id, status);
+    Remember(id, serial, status);
     if (status.ok())  // keep the comment for a retry
       comment_[0] = '\0';
   }
@@ -219,16 +237,18 @@ void LiveProposalsPanel::Draw(bool* /*p_open*/) {
   ImGui::BeginDisabled(comment_[0] == '\0');
   if (ImGui::Button(ICON_MD_SEND " Send")) {
     const auto status = editor->CommentLiveProposal(id, comment_);
-    Remember(id, status);
+    Remember(id, serial, status);
     if (status.ok())
       comment_[0] = '\0';
   }
   ImGui::EndDisabled();
 
   // Re-fetch: a button above may have changed the result text.
-  const bool failed = !error_.empty() && error_id_ == id;
-  if (const LiveProposal* now = inbox.Find(id);
-      now && !now->last_result.empty() && !failed)
+  // An error belongs to one offer; a re-offer of the same id starts clean.
+  const LiveProposal* now = inbox.Find(id);
+  const bool failed = !error_.empty() && error_id_ == id && now &&
+                      error_offer_serial_ == now->offer_serial;
+  if (now && !now->last_result.empty() && !failed)
     ImGui::TextWrapped("%s", now->last_result.c_str());
   if (failed) {
     ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.4f, 0.4f, 1.0f));
@@ -245,7 +265,7 @@ void LiveProposalsPanel::Draw(bool* /*p_open*/) {
     ImGui::TreePop();
   }
 
-  if (const LiveProposal* now = inbox.Find(id))
+  if (now)
     DrawAttachments(*now);
 }
 

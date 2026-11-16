@@ -1,5 +1,6 @@
 #include "app/editor/overworld/live_proposal.h"
 
+#include <algorithm>
 #include <array>
 #include <atomic>
 #include <cstdint>
@@ -26,7 +27,9 @@ using nlohmann::json;
 constexpr int kMapCells = 32;
 
 bool ValidId(std::string_view id) {
-  if (id.empty() || id.size() > 64)
+  // All dots ("." / "..") is refused, as the editor-control client does.
+  if (id.empty() || id.size() > 64 ||
+      id.find_first_not_of('.') == std::string_view::npos)
     return false;
   for (const char c : id) {
     const bool ok = (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') ||
@@ -76,6 +79,35 @@ bool ValidAttachmentPath(std::string_view path) {
     if (part == "..")
       return false;
   }
+  return true;
+}
+
+// Reads width and height from the PNG signature and the leading IHDR chunk.
+// Returns false when the bytes do not start that way. Values above INT_MAX
+// come back negative and fail the caller's range check.
+bool PngHeaderSize(const std::vector<uint8_t>& bytes, int& width, int& height) {
+  static constexpr uint8_t kSignature[8] = {0x89, 'P',  'N',  'G',
+                                            '\r', '\n', 0x1A, '\n'};
+  if (bytes.size() < 24 ||
+      !std::equal(kSignature, kSignature + 8, bytes.begin()))
+    return false;
+  const auto be32 = [&](size_t at) {
+    return (static_cast<uint32_t>(bytes[at]) << 24) |
+           (static_cast<uint32_t>(bytes[at + 1]) << 16) |
+           (static_cast<uint32_t>(bytes[at + 2]) << 8) |
+           static_cast<uint32_t>(bytes[at + 3]);
+  };
+  if (be32(8) != 13 || bytes[12] != 'I' || bytes[13] != 'H' ||
+      bytes[14] != 'D' || bytes[15] != 'R')
+    return false;
+  const uint32_t w = be32(16);
+  const uint32_t h = be32(20);
+  width = w > static_cast<uint32_t>(std::numeric_limits<int>::max())
+              ? -1
+              : static_cast<int>(w);
+  height = h > static_cast<uint32_t>(std::numeric_limits<int>::max())
+               ? -1
+               : static_cast<int>(h);
   return true;
 }
 
@@ -219,11 +251,37 @@ absl::StatusOr<LiveProposal> ParseLiveProposal(std::string_view json_text,
 absl::Status LoadLiveProposalAttachments(LiveProposal& proposal) {
   if (proposal.attachments.empty())
     return absl::OkStatus();
-  const auto folder = std::filesystem::path(proposal.packet_path).parent_path();
+  namespace fs = std::filesystem;
+  const fs::path packet(proposal.packet_path);
+  if (!packet.is_absolute()) {
+    return absl::FailedPreconditionError(
+        "Proposal packet path must be absolute to load attachments");
+  }
+  // Symlinks are resolved first, so a link (on the file or on a folder above
+  // it) that points outside the packet folder is refused.
+  std::error_code error;
+  const fs::path folder = fs::canonical(packet.parent_path(), error);
+  if (error) {
+    return absl::NotFoundError("Proposal folder could not be read");
+  }
   for (auto& attachment : proposal.attachments) {
-    const auto file = (folder / attachment.path).string();
-    std::error_code error;
-    const auto size = std::filesystem::file_size(file, error);
+    const fs::path file = fs::canonical(folder / attachment.path, error);
+    if (error) {
+      return absl::NotFoundError(
+          absl::StrFormat("Attachment %s could not be read", attachment.path));
+    }
+    const fs::path inside = file.lexically_relative(folder);
+    if (inside.empty() || *inside.begin() == ".." || *inside.begin() == ".") {
+      return absl::InvalidArgumentError(
+          absl::StrFormat("Attachment %s resolves outside the proposal folder",
+                          attachment.path));
+    }
+    // Regular files only: a FIFO or device would block the UI thread.
+    if (!fs::is_regular_file(file, error) || error) {
+      return absl::InvalidArgumentError(absl::StrFormat(
+          "Attachment %s is not a regular file", attachment.path));
+    }
+    const auto size = fs::file_size(file, error);
     if (error) {
       return absl::NotFoundError(
           absl::StrFormat("Attachment %s could not be read", attachment.path));
@@ -233,10 +291,16 @@ absl::Status LoadLiveProposalAttachments(LiveProposal& proposal) {
           "Attachment %s is larger than %d MiB", attachment.path,
           kLiveProposalMaxAttachmentBytes >> 20));
     }
-    auto bytes = util::ReadBinaryFile(file);
+    auto bytes = util::ReadBinaryFile(file.string());
     if (!bytes.ok()) {
       return absl::NotFoundError(
           absl::StrFormat("Attachment %s could not be read", attachment.path));
+    }
+    // The file may have grown between file_size and the read.
+    if (bytes->size() > kLiveProposalMaxAttachmentBytes) {
+      return absl::InvalidArgumentError(absl::StrFormat(
+          "Attachment %s is larger than %d MiB", attachment.path,
+          kLiveProposalMaxAttachmentBytes >> 20));
     }
     const std::string_view view(reinterpret_cast<const char*>(bytes->data()),
                                 bytes->size());
@@ -244,18 +308,32 @@ absl::Status LoadLiveProposalAttachments(LiveProposal& proposal) {
       return absl::FailedPreconditionError(absl::StrFormat(
           "Attachment %s does not match its sha256", attachment.path));
     }
+    // Check the IHDR size before decoding: DecodePng would otherwise allocate
+    // buffers for up to 64M pixels before the side limit applies.
+    int header_width = 0;
+    int header_height = 0;
+    if (!PngHeaderSize(*bytes, header_width, header_height)) {
+      return absl::InvalidArgumentError(
+          absl::StrFormat("Attachment %s is not a readable PNG: no IHDR header",
+                          attachment.path));
+    }
+    if (header_width <= 0 || header_height <= 0 ||
+        header_width > kLiveProposalMaxAttachmentSide ||
+        header_height > kLiveProposalMaxAttachmentSide) {
+      return absl::InvalidArgumentError(absl::StrFormat(
+          "Attachment %s is %dx%d; each side must be 1..%d px", attachment.path,
+          header_width, header_height, kLiveProposalMaxAttachmentSide));
+    }
     auto png = util::DecodePng(*bytes);
     if (!png.ok()) {
       return absl::InvalidArgumentError(
           absl::StrFormat("Attachment %s is not a readable PNG: %s",
                           attachment.path, png.status().message()));
     }
-    if (png->width <= 0 || png->height <= 0 ||
-        png->width > kLiveProposalMaxAttachmentSide ||
-        png->height > kLiveProposalMaxAttachmentSide) {
+    if (png->width != header_width || png->height != header_height) {
       return absl::InvalidArgumentError(absl::StrFormat(
-          "Attachment %s is %dx%d; each side must be 1..%d px", attachment.path,
-          png->width, png->height, kLiveProposalMaxAttachmentSide));
+          "Attachment %s decoded to a different size than its header",
+          attachment.path));
     }
     std::vector<uint8_t> rgba;
     if (png->indexed) {
@@ -572,6 +650,7 @@ bool SyncLiveProposalWith(LiveProposal& proposal,
 
 int LiveProposalInbox::Offer(LiveProposal proposal) {
   proposal.decision = LiveProposalDecision::kPending;
+  proposal.offer_serial = next_offer_serial_++;
   for (size_t i = 0; i < proposals_.size(); ++i) {
     if (proposals_[i].id == proposal.id) {
       proposals_[i] = std::move(proposal);
@@ -582,6 +661,11 @@ int LiveProposalInbox::Offer(LiveProposal proposal) {
   proposals_.push_back(std::move(proposal));
   selected_ = static_cast<int>(proposals_.size()) - 1;
   return selected_;
+}
+
+void LiveProposalInbox::Clear() {
+  proposals_.clear();
+  selected_ = -1;
 }
 
 LiveProposal* LiveProposalInbox::Find(std::string_view id) {

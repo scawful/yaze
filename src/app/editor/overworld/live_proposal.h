@@ -66,6 +66,9 @@ struct LiveProposal {
   std::vector<GuardedTileCell> applied_cells;
   bool undone = false;      // the accepted step is currently undone
   std::string last_result;  // shown in the inbox panel
+  // Set by LiveProposalInbox::Offer; a re-offer of the same id gets a new
+  // value, so the panel can drop an error shown for the previous offer.
+  int offer_serial = 0;
 };
 
 // "1 cell", "2 cells": count text for the inbox panel and result lines.
@@ -186,6 +189,8 @@ class LiveProposalInbox {
   int PendingCount() const;
   int selected_index() const { return selected_; }
   void Select(int index);
+  // Drops every proposal (the ROM they were offered against is gone).
+  void Clear();
 
   LiveProposalView view = LiveProposalView::kAfter;
   // ImGui frame on which the inbox panel last drew; the canvas ghost shows
@@ -195,6 +200,7 @@ class LiveProposalInbox {
  private:
   std::vector<LiveProposal> proposals_;
   int selected_ = -1;
+  int next_offer_serial_ = 1;
 };
 
 }  // namespace yaze::editor

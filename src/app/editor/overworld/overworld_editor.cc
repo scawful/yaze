@@ -656,6 +656,9 @@ absl::Status OverworldEditor::Load() {
   // Clear undo/redo state when loading new ROM data
   current_paint_operation_.reset();
   undo_manager_.Clear();
+  // Proposals were offered against the previous ROM data; accepting one
+  // here would bypass proposal.offer's ROM identity check.
+  live_proposals_.Clear();
   CancelScreenColorEdit();
   if (sidebar_)
     sidebar_->InvalidateTile16ReferenceContext();
@@ -2481,6 +2484,7 @@ absl::Status OverworldEditor::Clear() {
   if (is_lyra_preview()) {
     show_overlay_preview_ = true;
   }
+  live_proposals_.Clear();
 
   // Unregister palette listener
   if (palette_listener_id_ >= 0) {

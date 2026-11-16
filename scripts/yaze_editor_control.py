@@ -29,6 +29,7 @@ closes a running app. A rejected swap is never retried with a refreshed identity
 import argparse
 import hashlib
 import json
+import os
 import re
 from pathlib import Path
 import subprocess
@@ -127,16 +128,44 @@ def proposal_draft(path):
     return draft
 
 
+def write_file_no_follow(path, data):
+    """Writes bytes to `path`, refusing a symlink (or other non-file) there."""
+    flags = os.O_WRONLY | os.O_CREAT | os.O_TRUNC | getattr(os, "O_NOFOLLOW", 0)
+    if path.is_symlink() or (path.exists() and not path.is_file()):
+        raise ValueError(f"Refusing to write through a non-regular file: {path}")
+    descriptor = os.open(path, flags, 0o644)
+    with os.fdopen(descriptor, "wb") as handle:
+        handle.write(data)
+
+
+def packet_folder(out_dir, proposal_id):
+    """`<out-dir>/<id>`, created as a real directory (never a symlink)."""
+    root = out_dir.expanduser().resolve()
+    folder = root / proposal_id
+    if folder.is_symlink():
+        raise ValueError(f"Proposal folder is a symlink: {folder}")
+    folder.mkdir(parents=True, exist_ok=True)
+    if folder.resolve().parent != root:
+        raise ValueError(f"Proposal folder resolves outside {root}: {folder}")
+    return folder
+
+
 def copy_attachments(draft, folder):
     """Copies draft PNGs beside the packet; returns packet attachment entries."""
     entries = []
-    for index, item in enumerate(draft.get("attachments", []), start=1):
+    if not draft.get("attachments"):
+        return entries
+    directory = folder / "attachments"
+    if directory.is_symlink():
+        raise ValueError(f"Attachment folder is a symlink: {directory}")
+    directory.mkdir(parents=True, exist_ok=True)
+    if directory.resolve() != folder.resolve() / "attachments":
+        raise ValueError(f"Attachment folder resolves outside {folder}")
+    for index, item in enumerate(draft["attachments"], start=1):
         data = Path(item["path"]).read_bytes()
         name = re.sub(r"[^A-Za-z0-9._-]", "_", Path(item["path"]).stem)[:48] or "image"
         relative = f"attachments/{index}-{name}.png"
-        target = folder / relative
-        target.parent.mkdir(parents=True, exist_ok=True)
-        target.write_bytes(data)
+        write_file_no_follow(folder / relative, data)
         entries.append({"path": relative, "sha256": hashlib.sha256(data).hexdigest(),
                         "caption": item.get("caption", "")})
     return entries
@@ -180,14 +209,13 @@ def offer_proposal(port, draft, out_dir):
                           "map_id": draft["map_id"],
                           "cells": [{"x": c["x"], "y": c["y"]} for c in draft["cells"]]})
     packet, expected, unchanged = proposal_packet(draft, read)
-    folder = out_dir.expanduser().resolve() / draft["id"]
-    folder.mkdir(parents=True, exist_ok=True)
+    folder = packet_folder(out_dir, draft["id"])
     attachments = copy_attachments(draft, folder)
     if attachments:
         packet["attachments"] = attachments
     path = folder / "proposal.json"
     data = (json.dumps(packet, indent=2) + "\n").encode()
-    path.write_bytes(data)
+    write_file_no_follow(path, data)
     result = command(port, {"command": "proposal.offer", "path": str(path),
                             "proposal_sha256": hashlib.sha256(data).hexdigest(),
                             "expected": expected})

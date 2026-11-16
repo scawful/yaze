@@ -30,11 +30,19 @@ class LiveProposalsPanel : public EditorPanel {
   std::string GetEditorCategory() const override { return "Overworld"; }
   // Wide enough for the proposal list, the Accept/Reject row and a comment.
   float GetPreferredWidth() const override { return 320.0f; }
+  // A standalone inbox: listed in the window browser, opened on demand (an
+  // offer opens it). Not an inspector section, since it lists proposals for
+  // every map, not the canvas selection.
+  WindowPresentationPolicy GetPresentationPolicy() const override {
+    return WindowPresentationPolicy::OptionalPopOut();
+  }
   void Draw(bool* p_open) override;
 
  private:
-  // Shows `status` under the buttons until the next action; ok clears it.
-  void Remember(const std::string& id, const absl::Status& status);
+  // Shows `status` under the buttons until the next action or a re-offer of
+  // the same id; ok clears it.
+  void Remember(const std::string& id, int offer_serial,
+                const absl::Status& status);
   // Images: one texture per attachment of the selected proposal. The cache is
   // rebuilt when the selection (id + packet sha) changes.
   void DrawAttachments(const LiveProposal& proposal);
@@ -45,7 +53,8 @@ class LiveProposalsPanel : public EditorPanel {
   int enlarged_ = -1;  // attachment shown in the enlarge popup
 
   char comment_[512] = {};
-  std::string error_id_;  // proposal the error belongs to
+  std::string error_id_;        // proposal the error belongs to
+  int error_offer_serial_ = 0;  // ...and which offer of it
   std::string error_;
 };
 

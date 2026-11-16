@@ -16,6 +16,10 @@
 #include "nlohmann/json.hpp"
 #include "util/indexed_png.h"
 
+#if !defined(_WIN32)
+#include <sys/stat.h>
+#endif
+
 namespace yaze::editor {
 namespace {
 
@@ -59,6 +63,8 @@ TEST(LiveProposalTest, RejectsInvalidPackets) {
   EXPECT_TRUE(rejects([](json& p) { p["schema"] = "other"; }));
   EXPECT_TRUE(rejects([](json& p) { p["id"] = "../escape"; }));
   EXPECT_TRUE(rejects([](json& p) { p["id"] = ""; }));
+  EXPECT_TRUE(rejects([](json& p) { p["id"] = "."; }));
+  EXPECT_TRUE(rejects([](json& p) { p["id"] = ".."; }));
   EXPECT_TRUE(rejects([](json& p) { p["id"] = std::string(65, 'a'); }));
   EXPECT_TRUE(rejects([](json& p) { p.erase("title"); }));
   EXPECT_TRUE(rejects([](json& p) { p["map_id"] = 0xA0; }));
@@ -493,6 +499,19 @@ TEST(LiveProposalTest, InboxReofferReplacesAndResetsToPending) {
   EXPECT_EQ(inbox.Find("missing"), nullptr);
 }
 
+TEST(LiveProposalTest, InboxReofferGetsANewSerialAndClearEmptiesIt) {
+  LiveProposalInbox inbox;
+  LiveProposal a = *Parse(ValidPacket());
+  inbox.Offer(a);
+  const int first = inbox.Find("woods-trail.a")->offer_serial;
+  inbox.Offer(a);
+  EXPECT_NE(inbox.Find("woods-trail.a")->offer_serial, first);
+  inbox.Clear();
+  EXPECT_TRUE(inbox.proposals().empty());
+  EXPECT_EQ(inbox.Selected(), nullptr);
+  EXPECT_EQ(inbox.selected_index(), -1);
+}
+
 const std::string kZeroSha(64, '0');
 
 TEST(LiveProposalTest, ParsesOptionalAttachments) {
@@ -605,6 +624,74 @@ TEST(LiveProposalTest, RefusesMissingChangedOrUnreadableAttachments) {
   const std::string big_sha = WriteBytes(dir.path(), "big.png", *big);
   LiveProposal oversize = ProposalWithImage(dir.path(), "big.png", big_sha);
   EXPECT_TRUE(absl::IsInvalidArgument(LoadLiveProposalAttachments(oversize)));
+}
+
+TEST(LiveProposalTest, RefusesAttachmentsThatResolveOutsideThePacketFolder) {
+  TempDir dir;
+  TempDir outside;
+  auto png = util::EncodeIndexedPng(1, 1, {0}, {{1, 2, 3, 255}});
+  ASSERT_TRUE(png.ok());
+  const std::string sha = WriteBytes(outside.path(), "secret.png", *png);
+  std::error_code error;
+
+  // A symlinked file that points outside, with the right hash.
+  std::filesystem::create_symlink(outside.path() / "secret.png",
+                                  dir.path() / "link.png", error);
+  if (error)
+    GTEST_SKIP() << "symlinks unavailable: " << error.message();
+  LiveProposal file_link = ProposalWithImage(dir.path(), "link.png", sha);
+  const auto file_status = LoadLiveProposalAttachments(file_link);
+  EXPECT_TRUE(absl::IsInvalidArgument(file_status)) << file_status;
+  EXPECT_EQ(file_link.attachments[0].rgba, nullptr);
+
+  // A symlinked folder above the file.
+  std::filesystem::create_directory_symlink(outside.path(),
+                                            dir.path() / "attachments", error);
+  ASSERT_FALSE(error) << error.message();
+  LiveProposal dir_link =
+      ProposalWithImage(dir.path(), "attachments/secret.png", sha);
+  EXPECT_TRUE(absl::IsInvalidArgument(LoadLiveProposalAttachments(dir_link)));
+
+  // A link that stays inside the folder is fine.
+  const std::string inside_sha = WriteBytes(dir.path(), "real.png", *png);
+  std::filesystem::create_symlink(dir.path() / "real.png",
+                                  dir.path() / "alias.png", error);
+  ASSERT_FALSE(error) << error.message();
+  LiveProposal alias = ProposalWithImage(dir.path(), "alias.png", inside_sha);
+  EXPECT_TRUE(LoadLiveProposalAttachments(alias).ok());
+}
+
+TEST(LiveProposalTest, RefusesNonRegularAttachmentsAndRelativePackets) {
+  TempDir dir;
+  std::filesystem::create_directories(dir.path() / "folder.png");
+  LiveProposal folder = ProposalWithImage(dir.path(), "folder.png", kZeroSha);
+  EXPECT_TRUE(absl::IsInvalidArgument(LoadLiveProposalAttachments(folder)));
+#if !defined(_WIN32)
+  ASSERT_EQ(::mkfifo((dir.path() / "pipe.png").c_str(), 0600), 0);
+  LiveProposal pipe = ProposalWithImage(dir.path(), "pipe.png", kZeroSha);
+  EXPECT_TRUE(absl::IsInvalidArgument(LoadLiveProposalAttachments(pipe)));
+#endif
+  LiveProposal relative = ProposalWithImage(dir.path(), "a.png", kZeroSha);
+  relative.packet_path = "proposal.json";
+  EXPECT_TRUE(
+      absl::IsFailedPrecondition(LoadLiveProposalAttachments(relative)));
+}
+
+TEST(LiveProposalTest, RefusesHugePngHeaderBeforeDecoding) {
+  TempDir dir;
+  // Signature + an IHDR claiming 60000x60000 and nothing else. DecodePng
+  // would call this "Incomplete PNG"; the header check must answer first.
+  std::vector<uint8_t> bytes = {0x89, 'P',  'N', 'G', '\r', '\n', 0x1A, '\n', 0,
+                                0,    0,    13,  'I', 'H',  'D',  'R',  0,    0,
+                                0xEA, 0x60, 0,   0,   0xEA, 0x60, 8,    6,    0,
+                                0,    0,    0,   0,   0,    0};
+  const std::string sha = WriteBytes(dir.path(), "huge.png", bytes);
+  LiveProposal huge = ProposalWithImage(dir.path(), "huge.png", sha);
+  const auto status = LoadLiveProposalAttachments(huge);
+  EXPECT_TRUE(absl::IsInvalidArgument(status));
+  EXPECT_NE(std::string(status.message()).find("60000x60000"),
+            std::string::npos)
+      << status;
 }
 
 TEST(LiveProposalTest, CountLabelUsesSingularOnlyForOne) {

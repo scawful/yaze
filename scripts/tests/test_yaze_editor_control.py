@@ -190,6 +190,48 @@ class EditorControlClientTest(unittest.TestCase):
                  "caption": "Ridge before/after"}])
             self.assertEqual((folder / "attachments/1-Before_After.png").read_bytes(), png)
 
+    def test_offer_refuses_to_write_through_symlinks(self):
+        state = self.swap_receipt()["state"]
+        read = {"protocol": control.PROTOCOL, "status": "ok", "map_id": 0x28,
+                "state": state,
+                "cells": [{"x": 1, "y": 2, "tile16": 0x05},
+                          {"x": 3, "y": 4, "tile16": 0x05}]}
+        png = control.PNG_SIGNATURE + b"x"
+        layouts = ["attachments", "file", "folder", "packet"]
+        for layout in layouts:
+            with tempfile.TemporaryDirectory() as directory, \
+                 tempfile.TemporaryDirectory() as elsewhere:
+                (Path(directory) / "a.png").write_bytes(png)
+                victim = Path(elsewhere) / "victim"
+                victim.write_bytes(b"keep")
+                draft = self.write_draft(directory, attachments=[{"path": "a.png"}])
+                out = Path(directory) / "out"
+                folder = out / "ridge-a"
+                if layout == "folder":
+                    out.mkdir()
+                    folder.symlink_to(elsewhere, target_is_directory=True)
+                else:
+                    (folder / "attachments").mkdir(parents=True)
+                if layout == "attachments":
+                    (folder / "attachments").rmdir()
+                    (folder / "attachments").symlink_to(elsewhere,
+                                                        target_is_directory=True)
+                elif layout == "file":
+                    (folder / "attachments/1-a.png").symlink_to(victim)
+                elif layout == "packet":
+                    (folder / "proposal.json").symlink_to(victim)
+                argv = ["control", "proposal-offer", str(draft), "--out-dir", str(out)]
+                with patch.object(control.sys, "argv", argv), \
+                     patch.object(control, "connect", return_value=self.offer_status()), \
+                     patch.object(control, "command", side_effect=[read]) as command, \
+                     patch.object(control.sys, "stderr", io.StringIO()), \
+                     patch.object(control.sys, "stdout", io.StringIO()):
+                    self.assertEqual(control.main(), 1, layout)
+                self.assertEqual(command.call_count, 1, layout)  # read only, no offer
+                self.assertEqual(victim.read_bytes(), b"keep", layout)
+                self.assertEqual(sorted(p.name for p in Path(elsewhere).iterdir()),
+                                 ["victim"], layout)
+
     def test_offer_refuses_bad_attachments_before_contacting_editor(self):
         png = control.PNG_SIGNATURE + b"x"
         bad = [[{"path": "a.png"}] * 5, [{"path": "a.jpg"}], [{"path": "text.png"}],
