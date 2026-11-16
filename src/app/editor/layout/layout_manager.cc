@@ -656,6 +656,14 @@ constexpr float kPinRatio = 0.22f;
 constexpr float kPinMinRatio = 0.05f;
 constexpr float kPinMaxRatio = 0.6f;
 
+// Width floor for a side region that lazy first-open docking splits off the
+// center. The floor is the panel's preferred width, kept within
+// [kMinLazySideWidth, kMaxLazySideFloor] and at most kMaxLazySideRatio of
+// the editor dockspace.
+constexpr float kMinLazySideWidth = 240.0f;
+constexpr float kMaxLazySideFloor = 360.0f;
+constexpr float kMaxLazySideRatio = 0.42f;
+
 // imgui.ini names for ImGuiDir_Left..ImGuiDir_Down.
 constexpr std::array<const char*, 4> kPinSideNames = {"Left", "Right", "Up",
                                                       "Down"};
@@ -1474,6 +1482,25 @@ bool LayoutManager::DockPresetPositionOnFirstOpen(size_t session_id,
     }
     *region = ImGui::DockBuilderSplitNode(state.center, direction, ratio,
                                           nullptr, &state.center);
+    // A center restored from imgui.ini can still have a tiny size before its
+    // first layout, so the ratio split comes out a few pixels wide. ImGui
+    // keeps a non-central child's SizeRef exactly, so that sliver would stay.
+    // Raise a new side region to a usable width instead.
+    if (direction == ImGuiDir_Left || direction == ImGuiDir_Right) {
+      if (ImGuiDockNode* node = ImGui::DockBuilderGetNode(*region)) {
+        const WindowContent* content =
+            window_manager_->GetWindowContent(panel_id);
+        float floor_width =
+            std::clamp(content ? content->GetPreferredWidth() : 0.0f,
+                       kMinLazySideWidth, kMaxLazySideFloor);
+        floor_width =
+            std::min(floor_width, kMaxLazySideRatio * EditorDockspaceSize().x);
+        if (node->SizeRef.x < floor_width) {
+          node->SizeRef.x = floor_width;
+          node->Size.x = floor_width;
+        }
+      }
+    }
     return *region;
   };
 

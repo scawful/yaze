@@ -22,6 +22,8 @@ class LiveProposalsPanel : public EditorPanel {
   std::string GetDisplayName() const override { return "Proposals"; }
   std::string GetIcon() const override { return ICON_MD_INBOX; }
   std::string GetEditorCategory() const override { return "Overworld"; }
+  // Wide enough for the proposal list, the Accept/Reject row and a comment.
+  float GetPreferredWidth() const override { return 320.0f; }
   void Draw(bool* p_open) override;
 
  private:

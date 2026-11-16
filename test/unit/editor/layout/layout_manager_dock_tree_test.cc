@@ -471,6 +471,32 @@ TEST_F(LayoutManagerDockTreeTest,
             right->ChildNodes[1]->ID);
 }
 
+// A side region split off a center that has not been laid out yet (an
+// imgui.ini restore) used to keep a ratio of that tiny size: the Proposals
+// panel opened as a 17-px strip. The new region must get a usable width.
+TEST_F(LayoutManagerDockTreeTest, LazySideRegionOffNarrowCenterGetsMinWidth) {
+  bool workbench_visible = true;
+  RegisterPanel(LayoutPresets::Panels::kDungeonWorkbench, &workbench_visible);
+  window_manager_.RegisterWindowContent(std::make_unique<WidthPanel>(
+      LayoutPresets::Panels::kDungeonObjectSelector, 320.0f, false));
+
+  layout_manager_.InitializeEditorLayout(EditorType::kDungeon, kDockspaceId);
+  ImGuiDockNode* root = ImGui::DockBuilderGetNode(kDockspaceId);
+  ASSERT_NE(root, nullptr);
+  ASSERT_TRUE(root->IsLeafNode());
+  root->Size.x = 64.0f;  // the restored center before its first layout
+
+  ASSERT_TRUE(layout_manager_.DockDefaultPositionOnFirstOpen(
+      0, LayoutPresets::Panels::kDungeonObjectSelector));
+  root = ImGui::DockBuilderGetNode(kDockspaceId);
+  ASSERT_TRUE(root->IsSplitNode());
+  ImGuiDockNode* right = root->ChildNodes[1];
+  ASSERT_NE(right, nullptr);
+  EXPECT_EQ(GetPanelDockId(LayoutPresets::Panels::kDungeonObjectSelector),
+            right->ID);
+  EXPECT_GE(right->SizeRef.x, 320.0f);
+}
+
 TEST_F(LayoutManagerDockTreeTest,
        DungeonLazyDockingRefreshesAfterOverworldActivation) {
   bool dungeon_workbench_visible = false;
