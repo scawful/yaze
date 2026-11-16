@@ -5,6 +5,7 @@
 #include <cstring>
 #include <fstream>
 #include <iterator>
+#include <limits>
 
 #include "absl/status/status.h"
 #include "absl/strings/str_format.h"
@@ -280,6 +281,31 @@ absl::StatusOr<PngImage> DecodePng(const std::vector<uint8_t>& bytes) {
     std::swap(previous, row);
   }
   return image;
+}
+
+bool ReadPngHeaderSize(const std::vector<uint8_t>& bytes, int& width,
+                       int& height) {
+  static constexpr uint8_t kSignature[8] = {0x89, 'P',  'N',  'G',
+                                            '\r', '\n', 0x1A, '\n'};
+  if (bytes.size() < 24 ||
+      !std::equal(kSignature, kSignature + 8, bytes.begin()))
+    return false;
+  const auto be32 = [&](size_t at) {
+    return (static_cast<uint32_t>(bytes[at]) << 24) |
+           (static_cast<uint32_t>(bytes[at + 1]) << 16) |
+           (static_cast<uint32_t>(bytes[at + 2]) << 8) |
+           static_cast<uint32_t>(bytes[at + 3]);
+  };
+  if (be32(8) != 13 || bytes[12] != 'I' || bytes[13] != 'H' ||
+      bytes[14] != 'D' || bytes[15] != 'R')
+    return false;
+  const uint32_t w = be32(16);
+  const uint32_t h = be32(20);
+  constexpr uint32_t kMax =
+      static_cast<uint32_t>(std::numeric_limits<int>::max());
+  width = w > kMax ? -1 : static_cast<int>(w);
+  height = h > kMax ? -1 : static_cast<int>(h);
+  return true;
 }
 
 absl::StatusOr<std::vector<uint8_t>> ReadBinaryFile(const std::string& path) {

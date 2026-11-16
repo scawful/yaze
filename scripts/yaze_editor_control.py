@@ -20,6 +20,11 @@ PNG attachments (mockups, before/after renders) are copied into
 read from the draft's folder. Nothing is written to the map until the person at
 the editor accepts; their decisions land in <out-dir>/<id>/feedback-<id>.json.
 
+board-write copies a review board ({id, title, why, author, group, subject,
+status, order, media: [{path, kind, caption}], comments, details}) into
+<boards-dir>/<id>/ without contacting the editor. The Agent editor's Review
+Boards panel lists it; replies land in <boards-dir>/<id>/feedback-<id>.json.
+
 --launch starts /Applications/yaze.app only if no Yaze process is running.
 An already running app without --editor_control must be restarted deliberately.
 ROM swap updates the project descriptor only after exact identity and digest
@@ -224,6 +229,107 @@ def offer_proposal(port, draft, out_dir):
     return result
 
 
+BOARD_SCHEMA = "yaze.review_board.v1"
+BOARD_ID = re.compile(r"[A-Za-z0-9._-]{1,96}")
+MAX_BOARD_MEDIA = 8
+MAX_BOARD_MEDIA_BYTES = 64 << 20
+BOARD_TEXT_FIELDS = ("why", "author", "group", "created_at", "status", "status_reason")
+
+
+def default_boards_dir():
+    """`$YAZE_APP_DATA_DIR/review_boards`, else `~/.yaze/review_boards`."""
+    base = os.environ.get("YAZE_APP_DATA_DIR")
+    return (Path(base) if base else Path.home() / ".yaze") / "review_boards"
+
+
+def board_draft(path):
+    """Checks a review-board draft. Media paths may be relative to the draft."""
+    draft = json.loads(path.expanduser().read_text())
+    if not isinstance(draft, dict):
+        raise ValueError("Board draft must be a JSON object")
+    board_id = draft.get("id")
+    if (not isinstance(board_id, str) or not BOARD_ID.fullmatch(board_id)
+            or set(board_id) == {"."}):
+        raise ValueError("Board id must be 1-96 characters of [A-Za-z0-9._-]")
+    if not isinstance(draft.get("title"), str) or not draft["title"]:
+        raise ValueError("Board title is required")
+    for field in BOARD_TEXT_FIELDS:
+        if not isinstance(draft.get(field, ""), str):
+            raise ValueError(f"Board {field} must be a string")
+    media = draft.get("media")
+    if not isinstance(media, list) or not 1 <= len(media) <= MAX_BOARD_MEDIA:
+        raise ValueError(f"Board needs 1-{MAX_BOARD_MEDIA} media files")
+    for item in media:
+        if not isinstance(item, dict) or not isinstance(item.get("path"), str):
+            raise ValueError("Each media entry needs a string path")
+        source = Path(item["path"]).expanduser()
+        if not source.is_absolute():
+            source = path.expanduser().resolve().parent / source
+        kind = item.get("kind", "image")
+        if kind not in ("image", "video"):
+            raise ValueError(f"Media kind must be image or video: {source}")
+        if not source.is_file() or source.is_symlink():
+            raise ValueError(f"Media is not a regular file: {source}")
+        if source.stat().st_size > MAX_BOARD_MEDIA_BYTES:
+            raise ValueError(f"Media is larger than 64 MiB: {source}")
+        if kind == "image":
+            with source.open("rb") as handle:
+                if source.suffix.lower() != ".png" or handle.read(8) != PNG_SIGNATURE:
+                    raise ValueError(f"Image media must be a PNG file: {source}")
+        expected = item.get("sha256")
+        if expected is not None and (not isinstance(expected, str) or len(expected) != 64):
+            raise ValueError(f"Media sha256 must be 64 hex characters: {source}")
+        item["path"] = str(source)
+        item["kind"] = kind
+    return draft
+
+
+def write_board(draft, boards_dir):
+    """Copies media into <boards-dir>/<id>/media/ and writes board.json.
+
+    Offline: no editor is contacted. A given `sha256` must match the source.
+    Re-running replaces board.json and media; feedback-<id>.json is kept.
+    """
+    folder = packet_folder(boards_dir, draft["id"])
+    directory = folder / "media"
+    if directory.is_symlink():
+        raise ValueError(f"Media folder is a symlink: {directory}")
+    directory.mkdir(parents=True, exist_ok=True)
+    if directory.resolve() != folder.resolve() / "media":
+        raise ValueError(f"Media folder resolves outside {folder}")
+    entries = []
+    for index, item in enumerate(draft["media"], start=1):
+        data = Path(item["path"]).read_bytes()
+        digest = hashlib.sha256(data).hexdigest()
+        if item.get("sha256") and item["sha256"] != digest:
+            raise ValueError(f"Media does not match its sha256: {item['path']}")
+        source = Path(item["path"])
+        name = re.sub(r"[^A-Za-z0-9._-]", "_", source.stem)[:48] or "media"
+        suffix = ".png" if item["kind"] == "image" else (
+            re.sub(r"[^A-Za-z0-9.]", "", source.suffix.lower())[:8] or ".bin")
+        relative = f"media/{index}-{name}{suffix}"
+        write_file_no_follow(folder / relative, data)
+        entry = {"path": relative, "sha256": digest, "kind": item["kind"],
+                 "caption": item.get("caption", "")}
+        for key in ("width", "height"):
+            if type(item.get(key)) is int:
+                entry[key] = item[key]
+        entries.append(entry)
+    board = {"schema": BOARD_SCHEMA, "id": draft["id"], "title": draft["title"]}
+    for field in BOARD_TEXT_FIELDS:
+        if draft.get(field):
+            board[field] = draft[field]
+    if type(draft.get("order")) is int:
+        board["order"] = draft["order"]
+    for field in ("subject", "supersedes", "superseded_by", "details", "comments"):
+        if draft.get(field):
+            board[field] = draft[field]
+    board["media"] = entries
+    path = folder / "board.json"
+    write_file_no_follow(path, (json.dumps(board, indent=2) + "\n").encode())
+    return {"status": "ok", "board_path": str(path), "media": len(entries)}
+
+
 def command(port, body, timeout=120):
     request = urllib.request.Request(
         f"http://127.0.0.1:{port}/api/v1/editor/control",
@@ -310,8 +416,18 @@ def main():
                        help="Folder that receives <id>/proposal.json and feedback-<id>.json")
     panel = sub.add_parser("panel-hide")
     panel.add_argument("panel")
+    board = sub.add_parser("board-write",
+                           help="Write a review board for the Agent editor (offline)")
+    board.add_argument("path", type=Path, help="Board draft JSON")
+    board.add_argument("--boards-dir", type=Path, default=None,
+                       help="Default: $YAZE_APP_DATA_DIR/review_boards or ~/.yaze/review_boards")
     args = parser.parse_args()
     try:
+        if args.action == "board-write":
+            result = write_board(board_draft(args.path),
+                                 args.boards_dir or default_boards_dir())
+            print(json.dumps(result, indent=2))
+            return 0
         swap_body = (swap_request(args.path, args.sha256, args.expected_state)
                      if args.action == "project-rom-swap" else None)
         draft = (proposal_draft(args.path)

@@ -163,6 +163,70 @@ class EditorControlClientTest(unittest.TestCase):
                 connect.assert_not_called()
                 command.assert_not_called()
 
+    def test_board_write_copies_media_offline_and_keeps_feedback(self):
+        png = control.PNG_SIGNATURE + b"board image"
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / "shot.png").write_bytes(png)
+            (root / "clip.mp4").write_bytes(b"video")
+            draft = {"id": "q195-001", "title": "Docks boat", "author": "codex",
+                     "status": "current", "order": 3,
+                     "subject": {"kind": "map", "id": "$4B", "label": "Docks"},
+                     "media": [{"path": "shot.png", "caption": "Before"},
+                               {"path": "clip.mp4", "kind": "video"}]}
+            (root / "draft.json").write_text(json.dumps(draft))
+            boards = root / "boards"
+            argv = ["control", "board-write", str(root / "draft.json"),
+                    "--boards-dir", str(boards)]
+            with patch.object(control.sys, "argv", argv), \
+                 patch.object(control, "connect") as connect, \
+                 patch.object(control.sys, "stdout", io.StringIO()):
+                self.assertEqual(control.main(), 0)
+            connect.assert_not_called()
+            board = json.loads((boards / "q195-001" / "board.json").read_text())
+            self.assertEqual(board["schema"], "yaze.review_board.v1")
+            self.assertEqual(board["order"], 3)
+            self.assertEqual(board["media"][0]["path"], "media/1-shot.png")
+            self.assertEqual(board["media"][1]["path"], "media/2-clip.mp4")
+            self.assertEqual(board["media"][1]["kind"], "video")
+            self.assertEqual((boards / "q195-001" / board["media"][0]["path"]).read_bytes(), png)
+            feedback = boards / "q195-001" / "feedback-q195-001.json"
+            feedback.write_text("{}")
+            with patch.object(control.sys, "argv", argv), \
+                 patch.object(control.sys, "stdout", io.StringIO()):
+                self.assertEqual(control.main(), 0)
+            self.assertEqual(feedback.read_text(), "{}")
+
+    def test_board_write_refuses_bad_media_and_hash_mismatch(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / "shot.png").write_bytes(control.PNG_SIGNATURE + b"x")
+            (root / "fake.png").write_bytes(b"not a png")
+            def draft(**media):
+                path = root / "draft.json"
+                path.write_text(json.dumps({"id": "b1", "title": "T", "media": [media]}))
+                return path
+            with self.assertRaises(ValueError):
+                control.board_draft(draft(path="fake.png"))
+            with self.assertRaises(ValueError):
+                control.board_draft(draft(path="shot.png", kind="audio"))
+            with self.assertRaises(ValueError):
+                control.board_draft(draft(path="missing.png"))
+            bad = control.board_draft(draft(path="shot.png", sha256="0" * 64))
+            with self.assertRaises(ValueError):
+                control.write_board(bad, root / "boards")
+            path = root / "draft.json"
+            path.write_text(json.dumps({"id": "..", "title": "T",
+                                        "media": [{"path": "shot.png"}]}))
+            with self.assertRaises(ValueError):
+                control.board_draft(path)
+
+    def test_default_boards_dir_follows_app_data_override(self):
+        with patch.dict(control.os.environ, {"YAZE_APP_DATA_DIR": "/private/appdata"}):
+            self.assertEqual(control.default_boards_dir(),
+                             Path("/private/appdata/review_boards"))
+
+
     def test_offer_copies_png_attachments_with_their_hash(self):
         state = self.swap_receipt()["state"]
         read = {"protocol": control.PROTOCOL, "status": "ok", "map_id": 0x28,

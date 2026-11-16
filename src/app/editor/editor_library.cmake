@@ -2,6 +2,7 @@ set(
   YAZE_APP_EDITOR_SRC
   app/editor/cutscene/ui/window/cutscene_camera_panel.cc
   app/editor/agent/agent_chat_history_codec.cc
+  app/editor/agent/review_board.cc
   app/editor/code/assembly_editor.cc
   app/editor/code/diagnostics_panel.cc
   app/editor/code/memory_editor.cc
@@ -385,6 +386,7 @@ if(YAZE_BUILD_AGENT_UI)
     app/editor/agent/panels/mesen_debug_panel.cc
     app/editor/agent/panels/mesen_screenshot_panel.cc
     app/editor/agent/panels/oracle_state_library_panel.cc
+    app/editor/agent/ui/review_boards/review_boards_view.cc
     app/editor/agent/panels/sram_viewer_panel.cc
   )
 endif()

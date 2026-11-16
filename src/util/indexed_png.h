@@ -38,6 +38,12 @@ absl::StatusOr<std::vector<uint8_t>> EncodeIndexedPng(
 
 absl::StatusOr<PngImage> DecodePng(const std::vector<uint8_t>& bytes);
 
+/// Reads width and height from the PNG signature and the leading IHDR chunk
+/// without decoding. Returns false when the bytes do not start that way.
+/// Values above INT_MAX come back as -1, so callers' range checks fail.
+bool ReadPngHeaderSize(const std::vector<uint8_t>& bytes, int& width,
+                       int& height);
+
 absl::StatusOr<std::vector<uint8_t>> ReadBinaryFile(const std::string& path);
 absl::Status WriteBinaryFile(const std::string& path,
                              const std::vector<uint8_t>& bytes);

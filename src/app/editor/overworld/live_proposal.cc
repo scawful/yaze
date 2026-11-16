@@ -82,35 +82,6 @@ bool ValidAttachmentPath(std::string_view path) {
   return true;
 }
 
-// Reads width and height from the PNG signature and the leading IHDR chunk.
-// Returns false when the bytes do not start that way. Values above INT_MAX
-// come back negative and fail the caller's range check.
-bool PngHeaderSize(const std::vector<uint8_t>& bytes, int& width, int& height) {
-  static constexpr uint8_t kSignature[8] = {0x89, 'P',  'N',  'G',
-                                            '\r', '\n', 0x1A, '\n'};
-  if (bytes.size() < 24 ||
-      !std::equal(kSignature, kSignature + 8, bytes.begin()))
-    return false;
-  const auto be32 = [&](size_t at) {
-    return (static_cast<uint32_t>(bytes[at]) << 24) |
-           (static_cast<uint32_t>(bytes[at + 1]) << 16) |
-           (static_cast<uint32_t>(bytes[at + 2]) << 8) |
-           static_cast<uint32_t>(bytes[at + 3]);
-  };
-  if (be32(8) != 13 || bytes[12] != 'I' || bytes[13] != 'H' ||
-      bytes[14] != 'D' || bytes[15] != 'R')
-    return false;
-  const uint32_t w = be32(16);
-  const uint32_t h = be32(20);
-  width = w > static_cast<uint32_t>(std::numeric_limits<int>::max())
-              ? -1
-              : static_cast<int>(w);
-  height = h > static_cast<uint32_t>(std::numeric_limits<int>::max())
-               ? -1
-               : static_cast<int>(h);
-  return true;
-}
-
 bool ValidSha256(std::string_view hash) {
   if (hash.size() != 64)
     return false;
@@ -312,7 +283,7 @@ absl::Status LoadLiveProposalAttachments(LiveProposal& proposal) {
     // buffers for up to 64M pixels before the side limit applies.
     int header_width = 0;
     int header_height = 0;
-    if (!PngHeaderSize(*bytes, header_width, header_height)) {
+    if (!util::ReadPngHeaderSize(*bytes, header_width, header_height)) {
       return absl::InvalidArgumentError(
           absl::StrFormat("Attachment %s is not a readable PNG: no IHDR header",
                           attachment.path));
