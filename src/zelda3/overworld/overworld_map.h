@@ -175,6 +175,9 @@ struct AreaRenderProperties {
   std::array<uint8_t, 8> custom_gfx_ids = {};
   uint16_t subscreen_overlay = 0x00FF;
   uint16_t area_specific_bg_color = 0;
+  /// Native revision-4 table 410/411 values of the area root.
+  uint8_t appearance_flags = 0;
+  std::array<uint16_t, 128> appearance_bg_palette = {};
 };
 
 /// Source of slots 3-6 for roomset impact reporting. Custom v3 background
@@ -450,11 +453,12 @@ class OverworldMap : public gfx::GfxContext {
   }
   /// Native revision-4 per-physical-page appearance flags (table 410); 0 if absent.
   uint8_t native_appearance_flags() const { return appearance_flags_; }
-  bool uses_native_screen_appearance() const {
-    return descriptor_layout_ &&
-           rom::IsNativeSpecialOverworldLayout(*descriptor_layout_) &&
-           descriptor_layout_->revision >= 4 && (appearance_flags_ & 1) != 0;
-  }
+  /// True when this page's own table 410 BG profile is the effective one.
+  /// By default only an area root qualifies: the game reads every page of a
+  /// large, wide or tall area through $8A (the parent), so a child page's own
+  /// profile rows stay stored but do not render. The overworld feature flag
+  /// kPreviewChildScreenAppearance lets child pages preview their own rows.
+  bool uses_native_screen_appearance() const;
   void set_native_appearance_flags(uint8_t flags) { appearance_flags_ = flags; }
   /// Raw authored colors persist independently of the override presence flag.
   void set_native_appearance_bg_palette(std::array<uint16_t, 128> row) {
