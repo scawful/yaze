@@ -21,6 +21,17 @@ std::filesystem::path ProjectFileForPath(const std::filesystem::path& path);
 ProjectWorkspaceFolders ReadProjectWorkspaceFolders(
     const std::filesystem::path& project_file);
 
+// Read only the [rom] editor_control key from a project.yaze file (INI).
+// Missing file or key yields false.
+bool ReadProjectEditorControl(const std::filesystem::path& project_file);
+
+// Whether yaze starts with editor control: an explicit --editor_control flag
+// (on or off) wins; otherwise the project setting decides.
+inline bool ResolveEditorControl(bool flag_specified, bool flag_value,
+                                 bool project_setting) {
+  return flag_specified ? flag_value : project_setting;
+}
+
 // Environment variables a project's workspace folders map to.
 inline constexpr char kAppDataDirEnv[] = "YAZE_APP_DATA_DIR";
 inline constexpr char kProposalRootEnv[] = "YAZE_PROPOSAL_ROOT";

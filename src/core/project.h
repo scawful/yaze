@@ -240,6 +240,10 @@ struct RomMetadata {
   // a .yazeproj). Empty = no lock. yaze holds it while the project is open;
   // format matches Oracle's Scripts/Agents/project_rom_lock.py.
   std::string editor_lock_file;
+  // Turn on guarded editor commands on the loopback HTTP API when yaze opens
+  // this project from the command line, as --editor_control=true does. An
+  // explicit --editor_control flag (true or false) still wins.
+  bool editor_control = false;
 };
 
 // Per-project roots for app data, live proposals and ROM sandboxes. Paths

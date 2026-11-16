@@ -75,6 +75,37 @@ ProjectWorkspaceFolders ReadProjectWorkspaceFolders(
   return folders;
 }
 
+bool ReadProjectEditorControl(const fs::path& project_file) {
+  std::ifstream in(project_file);
+  if (!in) {
+    return false;
+  }
+  std::string line;
+  bool in_rom = false;
+  bool enabled = false;
+  while (std::getline(in, line)) {
+    const std::string trimmed(absl::StripAsciiWhitespace(line));
+    if (trimmed.empty() || trimmed[0] == '#' || trimmed[0] == ';') {
+      continue;
+    }
+    if (trimmed.front() == '[' && trimmed.back() == ']') {
+      in_rom = trimmed == "[rom]";
+      continue;
+    }
+    const size_t eq = trimmed.find('=');
+    if (!in_rom || eq == std::string::npos) {
+      continue;
+    }
+    if (absl::StripAsciiWhitespace(trimmed.substr(0, eq)) == "editor_control") {
+      const std::string value = absl::AsciiStrToLower(
+          absl::StripAsciiWhitespace(trimmed.substr(eq + 1)));
+      enabled =
+          value == "true" || value == "1" || value == "yes" || value == "on";
+    }
+  }
+  return enabled;
+}
+
 std::vector<std::pair<std::string, std::string>>
 ApplyProjectWorkspaceEnvironment(const fs::path& rom_or_project) {
   std::vector<std::pair<std::string, std::string>> applied;

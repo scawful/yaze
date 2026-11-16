@@ -451,6 +451,21 @@ int main(int argc, char** argv) {
 
   // Build AppConfig from flags
   auto config = BuildAppConfig(log_level, log_path);
+  // A project opened from the command line may turn on editor control
+  // ([rom] editor_control=true). An explicit --editor_control flag wins.
+  if (FLAGS_proposal->Get().empty() && !FLAGS_rom_file->Get().empty()) {
+    const bool project_editor_control = yaze::project::ReadProjectEditorControl(
+        yaze::project::ProjectFileForPath(FLAGS_rom_file->Get()));
+    config.editor_control = yaze::project::ResolveEditorControl(
+        FLAGS_editor_control->specified(), FLAGS_editor_control->Get(),
+        project_editor_control);
+    if (config.editor_control) {
+      config.enable_api = true;
+    }
+    if (project_editor_control && !FLAGS_editor_control->specified()) {
+      LOG_INFO("Main", "Editor control on (project setting)");
+    }
+  }
   if (!FLAGS_proposal->Get().empty()) {
     const auto proposal =
         yaze::core::LoadProposalWorkspace(FLAGS_proposal->Get());

@@ -10,12 +10,14 @@
 #include <optional>
 #include <sstream>
 #include <string>
+#include <vector>
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
 #include "core/project.h"
 #include "unique_temp_path.h"
+#include "util/flag.h"
 
 namespace yaze::project {
 namespace {
@@ -93,6 +95,7 @@ expected_hash=0123456789abcdef0123456789abcdef01234567
 write_policy=block
 adopt_hash_on_open=true
 editor_lock_file=../.rom-editor.lock
+editor_control=true
 
 [workspace]
 app_data_folder=.workspace/yaze
@@ -110,6 +113,7 @@ TEST(ProjectWorkspaceTest, ProjectKeysRoundTrip) {
   ASSERT_TRUE(project.Open(path.string()).ok());
   EXPECT_TRUE(project.rom_metadata.adopt_hash_on_open);
   EXPECT_EQ(project.rom_metadata.editor_lock_file, "../.rom-editor.lock");
+  EXPECT_TRUE(project.rom_metadata.editor_control);
   EXPECT_EQ(project.workspace_folders.app_data_folder, ".workspace/yaze");
   EXPECT_EQ(project.workspace_folders.proposal_folder, ".workspace/proposals");
   EXPECT_EQ(project.workspace_folders.sandbox_folder, "/abs/sandboxes");
@@ -118,6 +122,7 @@ TEST(ProjectWorkspaceTest, ProjectKeysRoundTrip) {
   const std::string saved = ReadFile(path);
   EXPECT_THAT(saved, HasSubstr("adopt_hash_on_open=true\n"));
   EXPECT_THAT(saved, HasSubstr("editor_lock_file=../.rom-editor.lock\n"));
+  EXPECT_THAT(saved, HasSubstr("editor_control=true\n"));
   // The folders share the existing [workspace] section; no second one.
   const auto first = saved.find("[workspace]");
   ASSERT_NE(first, std::string::npos);
@@ -128,6 +133,7 @@ TEST(ProjectWorkspaceTest, ProjectKeysRoundTrip) {
   ASSERT_TRUE(reopened.Open(path.string()).ok());
   EXPECT_TRUE(reopened.rom_metadata.adopt_hash_on_open);
   EXPECT_EQ(reopened.rom_metadata.editor_lock_file, "../.rom-editor.lock");
+  EXPECT_TRUE(reopened.rom_metadata.editor_control);
   EXPECT_EQ(reopened.workspace_folders.sandbox_folder, "/abs/sandboxes");
   EXPECT_FLOAT_EQ(reopened.workspace_settings.font_global_scale, 1.25f);
 }
@@ -143,7 +149,51 @@ TEST(ProjectWorkspaceTest, UnsetKeysAreNotWritten) {
   const std::string saved = ReadFile(path);
   EXPECT_EQ(saved.find("adopt_hash_on_open"), std::string::npos);
   EXPECT_EQ(saved.find("editor_lock_file"), std::string::npos);
+  EXPECT_EQ(saved.find("editor_control"), std::string::npos);
   EXPECT_EQ(saved.find("app_data_folder"), std::string::npos);
+}
+
+TEST(ProjectWorkspaceTest, EditorControlReadsOnlyTheRomSection) {
+  ScopedDir dir(yaze::test::UniqueTempPath("project_editor_control"));
+  const fs::path on = dir.path() / "On.yaze";
+  WriteFile(on, kProjectText);
+  EXPECT_TRUE(ReadProjectEditorControl(on));
+
+  const fs::path off = dir.path() / "Off.yaze";
+  WriteFile(off, "[rom]\nrole=dev\neditor_control=false\n");
+  EXPECT_FALSE(ReadProjectEditorControl(off));
+
+  // The same key in another section does not count.
+  const fs::path elsewhere = dir.path() / "Elsewhere.yaze";
+  WriteFile(elsewhere, "[rom]\nrole=dev\n[workspace]\neditor_control=true\n");
+  EXPECT_FALSE(ReadProjectEditorControl(elsewhere));
+
+  EXPECT_FALSE(ReadProjectEditorControl(dir.path() / "Missing.yaze"));
+}
+
+TEST(ProjectWorkspaceTest, EditorControlFlagOverridesProjectBothWays) {
+  // No flag: the project decides.
+  EXPECT_TRUE(ResolveEditorControl(false, false, true));
+  EXPECT_FALSE(ResolveEditorControl(false, false, false));
+  // --editor_control=false turns a project's setting off.
+  EXPECT_FALSE(ResolveEditorControl(true, false, true));
+  // --editor_control=true turns it on for a project without the setting.
+  EXPECT_TRUE(ResolveEditorControl(true, true, false));
+}
+
+TEST(ProjectWorkspaceTest, FlagParserMarksOnlyGivenFlagsSpecified) {
+  yaze::util::FlagRegistry registry;
+  auto* given_off = registry.RegisterFlag<bool>("--given_off", false, "");
+  auto* given_bare = registry.RegisterFlag<bool>("--given_bare", false, "");
+  auto* absent = registry.RegisterFlag<bool>("--absent", false, "");
+  std::vector<std::string> tokens = {"yaze", "--given_off=false",
+                                     "--given_bare"};
+  yaze::util::FlagParser(&registry).Parse(&tokens);
+  EXPECT_TRUE(given_off->specified());
+  EXPECT_FALSE(given_off->Get());
+  EXPECT_TRUE(given_bare->specified());
+  EXPECT_TRUE(given_bare->Get());
+  EXPECT_FALSE(absent->specified());
 }
 
 TEST(ProjectWorkspaceTest, BundlePathResolvesToDescriptor) {

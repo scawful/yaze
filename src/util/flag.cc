@@ -53,6 +53,7 @@ void FlagParser::Parse(std::vector<std::string>* tokens) {
 
       // Set the parsed value on the matching flag.
       flag_ptr->ParseValue(value_string);
+      flag_ptr->MarkSpecified();
     } else if (token.rfind("-", 0) == 0) {
       if (token == "-v" || token == "-version") {
         std::cout << "Version: " << YAZE_VERSION_MAJOR << "."

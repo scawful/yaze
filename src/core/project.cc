@@ -1742,6 +1742,9 @@ absl::StatusOr<std::string> YazeProject::SerializeToString() const {
   if (!rom_metadata.editor_lock_file.empty()) {
     file << "editor_lock_file=" << rom_metadata.editor_lock_file << "\n";
   }
+  if (rom_metadata.editor_control) {
+    file << "editor_control=true\n";
+  }
   file << "\n";
 
   // Feature flags section
@@ -2243,6 +2246,8 @@ absl::Status YazeProject::ParseFromString(const std::string& content) {
         rom_metadata.adopt_hash_on_open = ParseBool(value);
       else if (key == "editor_lock_file")
         rom_metadata.editor_lock_file = value;
+      else if (key == "editor_control")
+        rom_metadata.editor_control = ParseBool(value);
       else
         understood = false;
     } else if (current_section == "feature_flags") {
@@ -4059,6 +4064,9 @@ absl::Status YazeProject::LoadFromJsonFormat(const std::string& project_path) {
             rom["editor_lock_file"].is_string())
           rom_metadata.editor_lock_file =
               rom["editor_lock_file"].get<std::string>();
+        if (rom.contains("editor_control") &&
+            rom["editor_control"].is_boolean())
+          rom_metadata.editor_control = rom["editor_control"].get<bool>();
       }
 
       // Embedded labels flag
@@ -4394,6 +4402,9 @@ absl::Status YazeProject::SaveToJsonFormat() {
   }
   if (!rom_metadata.editor_lock_file.empty()) {
     proj["rom"]["editor_lock_file"] = rom_metadata.editor_lock_file;
+  }
+  if (rom_metadata.editor_control) {
+    proj["rom"]["editor_control"] = true;
   }
 
   // Embedded labels

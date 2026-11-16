@@ -27,6 +27,14 @@ class IFlag {
 
   // Parses a string value into the underlying type.
   virtual void ParseValue(const std::string& text) = 0;
+
+  // True once the command line set this flag (to any value, including the
+  // default). Lets a caller tell `--x=false` from "not given".
+  bool specified() const { return specified_; }
+  void MarkSpecified() { specified_ = true; }
+
+ private:
+  bool specified_ = false;
 };
 
 template <typename T>
