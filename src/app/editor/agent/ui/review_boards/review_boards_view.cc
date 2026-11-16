@@ -14,6 +14,7 @@
 #include "app/gui/core/theme_manager.h"
 #include "app/gui/core/ui_helpers.h"
 #include "app/gui/widgets/empty_state.h"
+#include "app/gui/widgets/themed_widgets.h"
 #include "imgui/imgui.h"
 #include "util/i18n/translator.h"
 
@@ -24,18 +25,40 @@ using i18n::tr;
 
 constexpr const char* kFilterLabels[] = {"Needs review", "Current",
                                          "Superseded", "Stale", "All"};
+constexpr const char* kFilterIcons[] = {ICON_MD_RADIO_BUTTON_UNCHECKED,
+                                        ICON_MD_RATE_REVIEW, ICON_MD_HISTORY,
+                                        ICON_MD_SCHEDULE, ICON_MD_INBOX};
 constexpr const char* kCategories[] = {"general", "layout"};
 
 bool IsStale(const ReviewBoard& board) {
   return absl::StartsWith(board.status, "stale");
 }
 
-const char* DecisionText(const std::string& decision) {
+// One icon, color and label per board state. Material icons only: the list,
+// the conversation and the answer bar all read from here.
+struct StateLook {
+  const char* icon;
+  ImVec4 color;
+  const char* label;
+};
+
+StateLook DecisionLook(const std::string& decision) {
   if (decision == "looks_good")
-    return "Looks good";
+    return {ICON_MD_CHECK_CIRCLE, gui::GetSuccessColor(), "Looks good"};
   if (decision == "needs_changes")
-    return "Needs changes";
-  return "Comment";
+    return {ICON_MD_EDIT_NOTE, gui::GetWarningColor(), "Needs changes"};
+  return {ICON_MD_CHAT_BUBBLE_OUTLINE, gui::GetInfoColor(), "Comment"};
+}
+
+StateLook BoardLook(const ReviewBoard& board, const std::string& decision) {
+  if (!decision.empty())
+    return DecisionLook(decision);
+  if (board.status == "current")
+    return {ICON_MD_RADIO_BUTTON_UNCHECKED, gui::GetAccentColor(),
+            "Needs review"};
+  if (IsStale(board))
+    return {ICON_MD_SCHEDULE, gui::GetTextDisabledVec4(), "Stale"};
+  return {ICON_MD_HISTORY, gui::GetTextDisabledVec4(), "Superseded"};
 }
 
 std::string SubjectLine(const ReviewBoard& board) {
@@ -225,14 +248,15 @@ void ReviewBoardsView::DrawToolbar() {
         ++counts[f];
     }
   }
+  const int current = static_cast<int>(filter_);
   const std::string preview =
-      absl::StrFormat("%s (%d)", tr(kFilterLabels[static_cast<int>(filter_)]),
-                      counts[static_cast<int>(filter_)]);
+      absl::StrFormat("%s %s (%d)", kFilterIcons[current],
+                      tr(kFilterLabels[current]), counts[current]);
   ImGui::SetNextItemWidth(ImGui::GetFontSize() * 11.0f);
   if (ImGui::BeginCombo("##board_filter", preview.c_str())) {
     for (int f = 0; f < 5; ++f) {
-      const std::string label =
-          absl::StrFormat("%s (%d)", tr(kFilterLabels[f]), counts[f]);
+      const std::string label = absl::StrFormat(
+          "%s %s (%d)", kFilterIcons[f], tr(kFilterLabels[f]), counts[f]);
       if (ImGui::Selectable(label.c_str(), f == static_cast<int>(filter_))) {
         filter_ = static_cast<Filter>(f);
         RefreshVisible({});
@@ -241,11 +265,10 @@ void ReviewBoardsView::DrawToolbar() {
     ImGui::EndCombo();
   }
   ImGui::SameLine();
-  if (ImGui::Button(ICON_MD_REFRESH)) {
+  if (gui::ThemedIconButton(ICON_MD_REFRESH,
+                            tr("Read the boards folder again"))) {
     Rescan();
   }
-  if (ImGui::IsItemHovered())
-    ImGui::SetTooltip("%s", tr("Read the boards folder again"));
   ImGui::SameLine();
   ImGui::TextDisabled("%s", dir_.string().c_str());
   if (ImGui::IsItemHovered()) {
@@ -272,29 +295,42 @@ void ReviewBoardsView::DrawToolbar() {
 
 void ReviewBoardsView::DrawList() {
   if (visible_.empty()) {
-    ImGui::TextDisabled("%s", filter_ == Filter::kNeedsReview
-                                  ? tr("Every current board has an answer.")
-                                  : tr("No boards in this view."));
+    if (filter_ == Filter::kNeedsReview) {
+      gui::StyleColorGuard done(ImGuiCol_Text, gui::GetSuccessColor());
+      ImGui::TextWrapped("%s %s", ICON_MD_TASK_ALT,
+                         tr("Every current board has an answer."));
+    } else {
+      ImGui::TextDisabled("%s", tr("No boards in this view."));
+    }
     return;
   }
+  ImDrawList* draw = ImGui::GetWindowDrawList();
+  // Fixed icon column so titles line up whatever the glyph width.
+  const float title_x =
+      ImGui::GetFontSize() * 1.25f + ImGui::GetStyle().ItemInnerSpacing.x;
   ImGuiListClipper clipper;
   clipper.Begin(static_cast<int>(visible_.size()));
   while (clipper.Step()) {
     for (int row = clipper.DisplayStart; row < clipper.DisplayEnd; ++row) {
       const ReviewBoard& board = scan_.boards[visible_[row]];
-      const std::string decision = ReviewBoardDecision(board);
-      const char* icon = decision == "looks_good"      ? ICON_MD_THUMB_UP
-                         : decision == "needs_changes" ? ICON_MD_EDIT_NOTE
-                         : board.status == "current"   ? ICON_MD_FIBER_NEW
-                                                       : ICON_MD_HISTORY;
+      const StateLook look = BoardLook(board, ReviewBoardDecision(board));
+      const std::string& title = board.title.empty() ? board.id : board.title;
       ImGui::PushID(visible_[row]);
-      const std::string label = absl::StrFormat(
-          "%s %s", icon, board.title.empty() ? board.id : board.title);
-      if (ImGui::Selectable(label.c_str(), board.id == selected_id_)) {
+      const ImVec2 pos = ImGui::GetCursorScreenPos();
+      if (ImGui::Selectable("##board", board.id == selected_id_)) {
         Select(board.id);
       }
-      if (ImGui::IsItemHovered() && !board.group.empty())
-        ImGui::SetTooltip("%s\n%s", board.group.c_str(), board.id.c_str());
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("%s %s\n%s\n%s", look.icon, tr(look.label),
+                          board.group.c_str(), board.id.c_str());
+      }
+      // Only the icon takes the state color; old boards dim the title too.
+      draw->AddText(pos, ImGui::GetColorU32(look.color), look.icon);
+      draw->AddText(
+          ImVec2(pos.x + title_x, pos.y),
+          ImGui::GetColorU32(board.status == "current" ? ImGuiCol_Text
+                                                       : ImGuiCol_TextDisabled),
+          title.c_str());
       ImGui::PopID();
     }
   }
@@ -460,7 +496,7 @@ void ReviewBoardsView::DrawConversation(const ReviewBoard& board) {
     if (comment.has_pin) {
       ImGui::TextDisabled("%s%d", ICON_MD_PLACE, number);
     } else {
-      ImGui::TextDisabled("%s", ICON_MD_COMMENT);
+      ImGui::TextDisabled("%s", ICON_MD_SPEAKER_NOTES);
     }
     ImGui::SameLine();
     ImGui::TextDisabled("%s %s", comment.author.c_str(), comment.at.c_str());
@@ -469,21 +505,13 @@ void ReviewBoardsView::DrawConversation(const ReviewBoard& board) {
     ImGui::PopTextWrapPos();
   }
   for (const auto& entry : board.feedback) {
-    const bool good = entry.decision == "looks_good";
-    const bool changes = entry.decision == "needs_changes";
+    const StateLook look = DecisionLook(entry.decision);
     {
-      gui::StyleColorGuard color(ImGuiCol_Text,
-                                 good      ? gui::GetSuccessColor()
-                                 : changes ? gui::GetWarningColor()
-                                           : gui::GetTextSecondaryVec4());
-      ImGui::Text("%s %s (%s)",
-                  good      ? ICON_MD_THUMB_UP
-                  : changes ? ICON_MD_EDIT_NOTE
-                            : ICON_MD_COMMENT,
-                  tr(DecisionText(entry.decision)), entry.category.c_str());
+      gui::StyleColorGuard color(ImGuiCol_Text, look.color);
+      ImGui::Text("%s %s", look.icon, tr(look.label));
     }
     ImGui::SameLine();
-    ImGui::TextDisabled("%s", entry.at_utc.c_str());
+    ImGui::TextDisabled("%s  %s", entry.category.c_str(), entry.at_utc.c_str());
     if (!entry.comment.empty()) {
       ImGui::PushTextWrapPos(0.0f);
       ImGui::TextUnformatted(entry.comment.c_str());
@@ -502,22 +530,35 @@ void ReviewBoardsView::DrawReply(ReviewBoard& board) {
   if (ImGui::IsItemHovered()) {
     ImGui::SetTooltip("%s", tr("Kind of feedback: general or layout."));
   }
+  const std::string last = ReviewBoardDecision(board);
+  if (!last.empty()) {
+    const StateLook look = DecisionLook(last);
+    ImGui::SameLine();
+    {
+      gui::StyleColorGuard color(ImGuiCol_Text, look.color);
+      ImGui::Text("%s %s: %s", look.icon, tr("Current answer"), tr(look.label));
+    }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("%s", tr("The newest Looks good or Needs changes "
+                                 "answer counts. Comments do not change it."));
+    }
+  }
   ImGui::InputTextMultiline("##board_comment", comment_, sizeof(comment_),
                             ImVec2(-FLT_MIN, ImGui::GetTextLineHeight() * 3));
 
   const bool has_comment = comment_[0] != '\0';
-  if (ImGui::Button(
-          absl::StrFormat("%s %s", ICON_MD_THUMB_UP, tr("Looks good - next"))
+  if (gui::SuccessButton(
+          absl::StrFormat("%s %s", ICON_MD_CHECK_CIRCLE, tr("Looks good, next"))
               .c_str())) {
     Answer(board, "looks_good");
   }
   if (ImGui::IsItemHovered()) {
-    ImGui::SetTooltip("%s", tr("Saves a thumbs-up (and the comment, if any), "
+    ImGui::SetTooltip("%s", tr("Saves Looks good (and the comment, if any), "
                                "then opens the next board needing review."));
   }
   ImGui::SameLine();
   ImGui::BeginDisabled(!has_comment);
-  if (ImGui::Button(
+  if (gui::ThemedButton(
           absl::StrFormat("%s %s", ICON_MD_EDIT_NOTE, tr("Needs changes"))
               .c_str())) {
     Answer(board, "needs_changes");
@@ -529,8 +570,9 @@ void ReviewBoardsView::DrawReply(ReviewBoard& board) {
   }
   ImGui::SameLine();
   ImGui::BeginDisabled(!has_comment);
-  if (ImGui::Button(
-          absl::StrFormat("%s %s", ICON_MD_COMMENT, tr("Comment")).c_str())) {
+  if (gui::ThemedButton(
+          absl::StrFormat("%s %s", ICON_MD_CHAT_BUBBLE_OUTLINE, tr("Comment"))
+              .c_str())) {
     Answer(board, "comment");
   }
   ImGui::EndDisabled();
@@ -544,7 +586,8 @@ void ReviewBoardsView::DrawReply(ReviewBoard& board) {
                                                   ? gui::GetErrorColor()
                                                   : gui::GetSuccessColor());
     ImGui::PushTextWrapPos(0.0f);
-    ImGui::TextUnformatted(status_.c_str());
+    ImGui::Text("%s %s", status_is_error_ ? ICON_MD_ERROR : ICON_MD_CHECK,
+                status_.c_str());
     ImGui::PopTextWrapPos();
   }
 }
@@ -565,9 +608,9 @@ void ReviewBoardsView::Answer(ReviewBoard& board, const char* decision) {
     return;
   }
   comment_[0] = '\0';
-  const std::string saved =
-      absl::StrFormat("Saved \"%s\" to %s", tr(DecisionText(entry.decision)),
-                      ReviewBoardFeedbackPath(board).filename().string());
+  const std::string saved = absl::StrFormat(
+      "Saved \"%s\" to %s", tr(DecisionLook(entry.decision).label),
+      ReviewBoardFeedbackPath(board).filename().string());
   if (entry.decision == "looks_good") {
     SelectNextNeedingReview();
   }
