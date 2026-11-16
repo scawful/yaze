@@ -5020,6 +5020,330 @@ TEST(ExpandedEntranceLayoutTest, OracleAndVanillaSaveAsFreshReopen) {
   }
 }
 
+// Pot-item data relocated out of bank $01. The pointer table stays at PC
+// 0xDB69; the RevealPotItem operand at PC 0xE6C8 names the data bank.
+class DungeonSaveRelocatedPotTest : public DungeonSaveTest {
+ protected:
+  static constexpr int kRelocatedRomSize = 0x300000;
+  static constexpr uint8_t kRelocatedBank = 0x5A;
+  static constexpr int kRelocatedBegin = 0x2D0000;
+  static constexpr int kRelocatedEnd = 0x2D8000;
+  static constexpr int kPotTableEnd = kRoomItemsPointers + kNumberOfRooms * 2;
+
+  void SetUp() override {
+    rom_ = std::make_unique<Rom>();
+    ASSERT_TRUE(
+        rom_->LoadFromData(std::vector<uint8_t>(kRelocatedRomSize, 0)).ok());
+    SetupRoomObjectPointers();
+    SetupSpritePointers();
+    room_ = std::make_unique<Room>(0, rom_.get());
+    SetPotBankOperand(0xA9, kRelocatedBank, 0x00);
+  }
+
+  void SetPotBankOperand(uint8_t opcode, uint8_t bank, uint8_t high) {
+    SeedPotItemBytes(kRoomItemsBankOpcode, {opcode, bank, high});
+  }
+
+  // Seeds room 0 (one item), room 1 (two items) and one empty stream shared by
+  // every other room, already packed in the order a repack produces.
+  void SetupPackedRelocatedPots() {
+    SeedPotItemBytes(kRelocatedBegin, {0x34, 0x12, 0x56, 0xFF, 0xFF});
+    SeedPotItemBytes(kRelocatedBegin + 5,
+                     {0x11, 0x11, 0x22, 0x33, 0x33, 0x44, 0xFF, 0xFF});
+    SeedPotItemBytes(kRelocatedBegin + 13, {0xFF, 0xFF});
+    for (int room_id = 0; room_id < kNumberOfRooms; ++room_id) {
+      SetPotRoomPointer(room_id, kRelocatedBegin + 13);
+    }
+    SetPotRoomPointer(0, kRelocatedBegin);
+    SetPotRoomPointer(1, kRelocatedBegin + 5);
+    // Different bytes at the same pointer words in bank $01. A reader or
+    // writer that still assumes bank $01 touches these instead.
+    SeedPotItemBytes(kPotRoom0Pc, {0xAA, 0xAA, 0xBB, 0xFF, 0xFF});
+  }
+
+  DungeonStreamLayout MakeRelocatedRepackLayout() const {
+    DungeonStreamLayout layout;
+    layout.kind = DungeonStreamKind::kPotItem;
+    layout.pointer_table_pc = kRoomItemsPointers;
+    layout.pointer_count = kNumberOfRooms;
+    layout.pointer_encoding = DungeonPointerEncoding::kFixedBank16;
+    layout.pointer_bank = kRelocatedBank;
+    layout.data_ranges = {{kRelocatedBegin, kRelocatedEnd}};
+    layout.allocation_ranges = {{kRelocatedBegin, kRelocatedEnd}};
+    return layout;
+  }
+
+  int GetRelocatedPotRoomPointer(int room_id) const {
+    const int ptr_off = kRoomItemsPointers + room_id * 2;
+    const uint16_t pointer =
+        static_cast<uint16_t>(rom_->data()[ptr_off]) |
+        (static_cast<uint16_t>(rom_->data()[ptr_off + 1]) << 8);
+    return static_cast<int>(
+        SnesToPc((static_cast<uint32_t>(kRelocatedBank) << 16) | pointer));
+  }
+
+  std::vector<PotItem> LoadRoomPotItems(int room_id) {
+    Room room(room_id, rom_.get());
+    room.LoadPotItems();
+    return room.GetPotItems();
+  }
+
+  // Every changed byte must be in the pointer table or in bank $5A.
+  void ExpectOnlyTableAndRelocatedBankChanged(
+      const std::vector<uint8_t>& before, bool expect_table_change) const {
+    const auto& after = rom_->vector();
+    ASSERT_EQ(after.size(), before.size());
+    size_t table_changes = 0;
+    size_t data_changes = 0;
+    for (size_t pc = 0; pc < after.size(); ++pc) {
+      if (after[pc] == before[pc]) {
+        continue;
+      }
+      if (pc >= static_cast<size_t>(kRoomItemsPointers) &&
+          pc < static_cast<size_t>(kPotTableEnd)) {
+        ++table_changes;
+      } else if (pc >= static_cast<size_t>(kRelocatedBegin) &&
+                 pc < static_cast<size_t>(kRelocatedEnd)) {
+        ++data_changes;
+      } else {
+        ADD_FAILURE() << "Pot save changed PC 0x" << std::hex << pc
+                      << " outside the pointer table and bank $5A";
+        return;
+      }
+    }
+    EXPECT_GT(data_changes, 0u);
+    EXPECT_EQ(table_changes > 0, expect_table_change);
+  }
+};
+
+TEST_F(DungeonSaveRelocatedPotTest, LoadPotItems_ReadsBankNamedByOperand) {
+  SetupPackedRelocatedPots();
+
+  const auto relocated = LoadRoomPotItems(0);
+  ASSERT_EQ(relocated.size(), 1u);
+  EXPECT_EQ(relocated[0].position, 0x1234);
+  EXPECT_EQ(relocated[0].item, 0x56);
+  const auto relocated_room1 = LoadRoomPotItems(1);
+  ASSERT_EQ(relocated_room1.size(), 2u);
+  EXPECT_EQ(relocated_room1[0].position, 0x1111);
+  EXPECT_EQ(relocated_room1[0].item, 0x22);
+  EXPECT_EQ(relocated_room1[1].position, 0x3333);
+  EXPECT_EQ(relocated_room1[1].item, 0x44);
+  EXPECT_TRUE(LoadRoomPotItems(2).empty());
+
+  // The same pointer word reads bank $01 when the operand is vanilla, and
+  // when the bytes at PC 0xE6C7 are not "A9 xx 00" at all.
+  SetPotBankOperand(0xA9, 0x01, 0x00);
+  const auto vanilla = LoadRoomPotItems(0);
+  ASSERT_EQ(vanilla.size(), 1u);
+  EXPECT_EQ(vanilla[0].position, 0xAAAA);
+  EXPECT_EQ(vanilla[0].item, 0xBB);
+
+  SetPotBankOperand(0x00, 0x00, 0x00);
+  const auto zeroed = LoadRoomPotItems(0);
+  ASSERT_EQ(zeroed.size(), 1u);
+  EXPECT_EQ(zeroed[0].position, 0xAAAA);
+  EXPECT_EQ(zeroed[0].item, 0xBB);
+}
+
+TEST_F(DungeonSaveRelocatedPotTest,
+       LoadPotItems_UnreadableOperandBankLoadsNoItems) {
+  SetupPackedRelocatedPots();
+
+  // WRAM banks and their mirrors have no ROM bytes; bank $70 word $8000 is PC
+  // 0x380000, past this 0x300000-byte image.
+  for (const uint8_t bank : {0x7E, 0x7F, 0xFE, 0xFF, 0x70}) {
+    SCOPED_TRACE(::testing::Message()
+                 << "bank=0x" << std::hex << static_cast<int>(bank));
+    SetPotBankOperand(0xA9, bank, 0x00);
+    Room room(0, rom_.get());
+    room.LoadPotItems();
+    EXPECT_TRUE(room.GetPotItems().empty());
+
+    std::vector<Room> rooms(kNumberOfRooms);
+    rooms[0].GetPotItems().push_back(PotItem{0x1234, 0x56});
+    rooms[0].MarkPotItemsDirty();
+    const auto before = rom_->vector();
+    const auto status = SaveAllPotItems(rom_.get(), rooms);
+    EXPECT_EQ(status.code(), absl::StatusCode::kFailedPrecondition) << status;
+    EXPECT_EQ(rom_->vector(), before);
+    EXPECT_TRUE(rooms[0].pot_items_dirty());
+  }
+}
+
+TEST_F(DungeonSaveRelocatedPotTest,
+       SaveAllPotItems_RepackAddsItemInsideRelocatedBank) {
+  SetupPackedRelocatedPots();
+  auto layout = MakeRelocatedRepackLayout();
+  std::vector<Room> rooms(kNumberOfRooms);
+  rooms[0].GetPotItems() = LoadRoomPotItems(0);
+  rooms[0].GetPotItems().push_back(PotItem{0x5678, 0x9A});
+  rooms[0].MarkPotItemsDirty();
+  const auto before = rom_->vector();
+
+  const auto status =
+      SaveAllPotItems(rom_.get(), absl::MakeConstSpan(rooms), &layout);
+
+  ASSERT_TRUE(status.ok()) << status;
+  EXPECT_FALSE(rooms[0].pot_items_dirty());
+  ExpectOnlyTableAndRelocatedBankChanged(before, /*expect_table_change=*/true);
+  EXPECT_EQ(rom_->data()[kRoomItemsBankOperand], kRelocatedBank);
+  EXPECT_EQ(GetRelocatedPotRoomPointer(0), kRelocatedBegin);
+  EXPECT_EQ(GetRelocatedPotRoomPointer(1), kRelocatedBegin + 8);
+  EXPECT_EQ(GetRelocatedPotRoomPointer(2), kRelocatedBegin + 16);
+  EXPECT_EQ(GetRelocatedPotRoomPointer(kNumberOfRooms - 1),
+            kRelocatedBegin + 16);
+
+  const auto room0 = LoadRoomPotItems(0);
+  ASSERT_EQ(room0.size(), 2u);
+  EXPECT_EQ(room0[0].position, 0x1234);
+  EXPECT_EQ(room0[0].item, 0x56);
+  EXPECT_EQ(room0[1].position, 0x5678);
+  EXPECT_EQ(room0[1].item, 0x9A);
+  const auto room1 = LoadRoomPotItems(1);
+  ASSERT_EQ(room1.size(), 2u);
+  EXPECT_EQ(room1[0].position, 0x1111);
+  EXPECT_EQ(room1[1].position, 0x3333);
+  EXPECT_TRUE(LoadRoomPotItems(2).empty());
+  EXPECT_TRUE(LoadRoomPotItems(kNumberOfRooms - 1).empty());
+}
+
+TEST_F(DungeonSaveRelocatedPotTest,
+       SaveAllPotItems_RepackRefusesLayoutBankMismatch) {
+  SetupPackedRelocatedPots();
+  SeedPotItemBytes(kPotRoom0Pc + 13, {0xFF, 0xFF});
+  const auto expect_refused = [this](DungeonStreamLayout layout,
+                                     const std::string& layout_bank,
+                                     const std::string& rom_bank) {
+    std::vector<Room> rooms(kNumberOfRooms);
+    rooms[0].GetPotItems().push_back(PotItem{0x5678, 0x9A});
+    rooms[0].MarkPotItemsDirty();
+    const auto before = rom_->vector();
+
+    const auto status =
+        SaveAllPotItems(rom_.get(), absl::MakeConstSpan(rooms), &layout);
+
+    EXPECT_EQ(status.code(), absl::StatusCode::kFailedPrecondition) << status;
+    const std::string message(status.message());
+    EXPECT_NE(message.find("pointer bank " + layout_bank), std::string::npos)
+        << message;
+    EXPECT_NE(message.find("data bank " + rom_bank), std::string::npos)
+        << message;
+    EXPECT_NE(message.find("0x00E6C8"), std::string::npos) << message;
+    EXPECT_EQ(rom_->vector(), before);
+    EXPECT_TRUE(rooms[0].pot_items_dirty());
+  };
+
+  {
+    SCOPED_TRACE("vanilla layout, relocated ROM");
+    expect_refused(MakePotRepackLayout({0x00E100, 0x00E140}), "0x01", "0x5A");
+  }
+  {
+    SCOPED_TRACE("relocated layout, vanilla ROM");
+    SetPotBankOperand(0xA9, 0x01, 0x00);
+    expect_refused(MakeRelocatedRepackLayout(), "0x5A", "0x01");
+  }
+  {
+    SCOPED_TRACE("relocated layout, no LDA at the operand");
+    SetPotBankOperand(0x00, 0x00, 0x00);
+    expect_refused(MakeRelocatedRepackLayout(), "0x5A", "0x01");
+  }
+}
+
+TEST_F(DungeonSaveRelocatedPotTest,
+       SaveAllPotItems_NoOpSaveLeavesRelocatedRomByteIdentical) {
+  SetupPackedRelocatedPots();
+  const auto before = rom_->vector();
+
+  {
+    SCOPED_TRACE("in-place save, dirty room with unchanged items");
+    std::vector<Room> rooms(kNumberOfRooms);
+    rooms[0].GetPotItems() = LoadRoomPotItems(0);
+    rooms[0].MarkPotItemsDirty();
+    rooms[1].GetPotItems() = LoadRoomPotItems(1);
+    rooms[1].MarkPotItemsDirty();
+    const auto status = SaveAllPotItems(rom_.get(), rooms);
+    ASSERT_TRUE(status.ok()) << status;
+    EXPECT_FALSE(rooms[0].pot_items_dirty());
+    EXPECT_FALSE(rooms[1].pot_items_dirty());
+    EXPECT_EQ(rom_->vector(), before);
+  }
+  {
+    SCOPED_TRACE("repack save, dirty room with unchanged items");
+    auto layout = MakeRelocatedRepackLayout();
+    std::vector<Room> rooms(kNumberOfRooms);
+    rooms[0].GetPotItems() = LoadRoomPotItems(0);
+    rooms[0].MarkPotItemsDirty();
+    const auto status =
+        SaveAllPotItems(rom_.get(), absl::MakeConstSpan(rooms), &layout);
+    ASSERT_TRUE(status.ok()) << status;
+    EXPECT_FALSE(rooms[0].pot_items_dirty());
+    EXPECT_EQ(rom_->vector(), before);
+  }
+  {
+    SCOPED_TRACE("repack save, no dirty room");
+    auto layout = MakeRelocatedRepackLayout();
+    std::vector<Room> rooms(kNumberOfRooms);
+    const auto status =
+        SaveAllPotItems(rom_.get(), absl::MakeConstSpan(rooms), &layout);
+    ASSERT_TRUE(status.ok()) << status;
+    EXPECT_EQ(rom_->vector(), before);
+  }
+}
+
+TEST_F(DungeonSaveRelocatedPotTest,
+       SaveAllPotItems_InPlaceEditStaysInRelocatedBank) {
+  SetupPackedRelocatedPots();
+  std::vector<Room> rooms(kNumberOfRooms);
+  rooms[0].GetPotItems().push_back(PotItem{0x4321, 0x65});
+  rooms[0].MarkPotItemsDirty();
+  const auto before = rom_->vector();
+
+  const auto status = SaveAllPotItems(rom_.get(), rooms);
+
+  ASSERT_TRUE(status.ok()) << status;
+  ExpectOnlyTableAndRelocatedBankChanged(before, /*expect_table_change=*/false);
+  const auto room0 = LoadRoomPotItems(0);
+  ASSERT_EQ(room0.size(), 1u);
+  EXPECT_EQ(room0[0].position, 0x4321);
+  EXPECT_EQ(room0[0].item, 0x65);
+  // Room 0 owns five bytes before room 1's stream; a second item cannot fit.
+  rooms[0].GetPotItems().push_back(PotItem{0x5678, 0x9A});
+  rooms[0].MarkPotItemsDirty();
+  const auto full = rom_->vector();
+  const auto too_large = SaveAllPotItems(rom_.get(), rooms);
+  EXPECT_EQ(too_large.code(), absl::StatusCode::kResourceExhausted);
+  EXPECT_EQ(rom_->vector(), full);
+}
+
+TEST_F(DungeonSaveRelocatedPotTest,
+       SaveAllPotItems_InPlaceFinalStreamStopsAtRelocatedBankEnd) {
+  // Room 0 holds the physically last stream: eight bytes up to the end of
+  // bank $5A. It is past kRoomItemsDataEnd, which only bounds bank $01.
+  constexpr int kStreamStart = kRelocatedEnd - 8;
+  SetPotRoomPointer(0, kStreamStart);
+  SeedPotItemBytes(kStreamStart, {0xFF, 0xFF});
+  SeedPotItemBytes(kRelocatedEnd, {0x5A, 0x5A, 0x5A});
+
+  std::vector<Room> rooms(kNumberOfRooms);
+  rooms[0].GetPotItems().push_back(PotItem{0x1234, 0x56});
+  rooms[0].GetPotItems().push_back(PotItem{0x5678, 0x9A});
+  rooms[0].MarkPotItemsDirty();
+  auto status = SaveAllPotItems(rom_.get(), rooms);
+  ASSERT_TRUE(status.ok()) << status;
+  EXPECT_EQ(LoadRoomPotItems(0).size(), 2u);
+  EXPECT_EQ(rom_->data()[kRelocatedEnd - 2], 0xFF);
+  EXPECT_EQ(rom_->data()[kRelocatedEnd - 1], 0xFF);
+
+  rooms[0].GetPotItems().push_back(PotItem{0x1357, 0x24});
+  rooms[0].MarkPotItemsDirty();
+  const auto before = rom_->vector();
+  status = SaveAllPotItems(rom_.get(), rooms);
+  EXPECT_EQ(status.code(), absl::StatusCode::kResourceExhausted) << status;
+  EXPECT_EQ(rom_->vector(), before);
+  EXPECT_EQ(rom_->data()[kRelocatedEnd], 0x5A);
+}
+
 }  // namespace test
 }  // namespace zelda3
 }  // namespace yaze

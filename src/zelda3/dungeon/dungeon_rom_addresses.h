@@ -4,6 +4,7 @@
 #include <array>  // Added for std::array
 #include <cstddef>
 #include <cstdint>
+#include <span>
 
 namespace yaze {
 namespace zelda3 {
@@ -49,8 +50,18 @@ constexpr int kDungeonsMainBgPalettePointers = 0xDEC4B;  // JP Same
 constexpr int kDungeonsPalettes = 0xDD734;               // Dungeon palette data
 
 // === Item & Sprite Data ===
-constexpr int kRoomItemsPointers = 0xDB69;      // JP 0xDB67
-constexpr int kRoomItemsDataEnd = 0xE6B2;       // Exclusive PC boundary
+constexpr int kRoomItemsPointers = 0xDB69;  // JP 0xDB67
+constexpr int kRoomItemsDataEnd = 0xE6B2;   // Exclusive PC boundary
+// RevealPotItem ($01:E6B2) is the only runtime reader of pot-item data. It
+// reads a 16-bit pointer from kRoomItemsPointers and takes the data bank from
+// the immediate `LDA.w #$0001` at $01:E6C7 (bytes A9 01 00 at PC
+// 0xE6C7-0xE6C9). The low operand byte is the bank of every pot-item stream;
+// a hack relocates the streams by patching that byte. The pointer table
+// itself never moves.
+constexpr int kRoomItemsBankOpcode = 0xE6C7;       // A9 (LDA #imm16)
+constexpr int kRoomItemsBankOperand = 0xE6C8;      // Data bank, vanilla 0x01
+constexpr int kRoomItemsBankOperandHigh = 0xE6C9;  // Always 0x00
+constexpr uint8_t kRoomItemsVanillaDataBank = 0x01;
 constexpr int kRoomsSpritePointer = 0x4C298;    // JP Same (2-byte bank 09D62E)
 constexpr int kSpriteBlocksetPointer = 0x5B57;  // Sprite graphics pointer
 // Dungeon IDs index the 144-entry graphics table after its first 64 groups.
@@ -203,6 +214,31 @@ static const std::array<int, 8> kRoomLayoutPointers = {
 // Exclusive end of LayoutData_07; WaterOverlayData starts here (USDASM bank04).
 // The fixed layouts occupy successive spans beginning at the pointers above.
 inline constexpr int kRoomLayoutDataEnd = 0x04F1CD;
+
+// Returns the SNES bank RevealPotItem loads pot-item streams from.
+//
+// Rule: when the ROM holds `A9 xx 00` at PC 0xE6C7-0xE6C9 the result is `xx`;
+// any other byte pattern (short ROM, zero-filled test image, rewritten
+// routine) falls back to the vanilla bank 0x01. The returned byte is not
+// validated here. Every consumer must:
+//   1. refuse a bank rejected by IsRoomItemsDataBankReadable(), and
+//   2. bounds-check the resulting PC offset against the ROM size,
+// and report either case as its existing null/invalid-pointer failure.
+inline uint8_t ResolveRoomItemsDataBank(std::span<const uint8_t> rom) {
+  if (rom.size() > static_cast<std::size_t>(kRoomItemsBankOperandHigh) &&
+      rom[kRoomItemsBankOpcode] == 0xA9 &&
+      rom[kRoomItemsBankOperandHigh] == 0x00) {
+    return rom[kRoomItemsBankOperand];
+  }
+  return kRoomItemsVanillaDataBank;
+}
+
+// Banks $7E/$7F are WRAM, and LoROM maps their $FE/$FF mirrors onto the same
+// PC range (0x3F0000-0x3FFFFF) that the editor treats as WRAM-backed. A
+// pot-item operand naming one of them cannot be read from the ROM image.
+constexpr bool IsRoomItemsDataBankReadable(uint8_t bank) {
+  return bank != 0x7E && bank != 0x7F && bank != 0xFE && bank != 0xFF;
+}
 
 }  // namespace zelda3
 }  // namespace yaze

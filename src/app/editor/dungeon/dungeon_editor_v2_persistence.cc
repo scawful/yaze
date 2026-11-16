@@ -235,6 +235,12 @@ std::vector<std::pair<uint32_t, uint32_t>> CollectDirtyPotItemWriteRanges(
   }
 
   const auto& rom_data = rom->vector();
+  // RevealPotItem supplies the data bank from its operand at PC 0xE6C8. A
+  // WRAM bank has no ROM bytes, so no write range can be reported for it.
+  const uint8_t data_bank = zelda3::ResolveRoomItemsDataBank(rom_data);
+  if (!zelda3::IsRoomItemsDataBankReadable(data_bank)) {
+    return ranges;
+  }
   rooms.ForEachMaterialized([&](int room_id, const zelda3::Room& room) {
     if (!room.pot_items_dirty()) {
       return;
@@ -250,7 +256,11 @@ std::vector<std::pair<uint32_t, uint32_t>> CollectDirtyPotItemWriteRanges(
     if (pointer < 0x8000) {
       return;
     }
-    const uint32_t stream_pc = yaze::SnesToPc(0x010000u | pointer);
+    const uint32_t stream_pc =
+        yaze::SnesToPc((static_cast<uint32_t>(data_bank) << 16) | pointer);
+    if (stream_pc >= rom_data.size()) {
+      return;
+    }
     const uint32_t encoded_size =
         static_cast<uint32_t>(room.GetPotItems().size() * 3 + 2);
     ranges.emplace_back(stream_pc, stream_pc + encoded_size);

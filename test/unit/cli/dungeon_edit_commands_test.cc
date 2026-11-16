@@ -756,6 +756,68 @@ void WritePotItemManifest(const std::filesystem::path& path,
   ASSERT_TRUE(output.good());
 }
 
+// Oracle moves pot-item DATA into LoROM bank $5A by rewriting the bank operand
+// of RevealPotItem (PC 0xE6C8). The pointer table stays at PC 0xDB69.
+constexpr uint8_t kRelocatedPotBank = 0x5A;
+constexpr int kRelocatedPotDataPc = 0x2D0000;
+constexpr int kRelocatedOtherPotDataPc = 0x2D0040;
+constexpr int kRelocatedPotDataEndPc = 0x2D8000;
+constexpr int kRelocatedPotItemBytePc = kRelocatedPotDataPc + 2;
+
+void SetPotItemBankOperand(Rom* rom, uint8_t bank) {
+  rom->mutable_data()[zelda3::kRoomItemsBankOpcode] = 0xA9;
+  rom->mutable_data()[zelda3::kRoomItemsBankOperand] = bank;
+  rom->mutable_data()[zelda3::kRoomItemsBankOperandHigh] = 0x00;
+}
+
+void InitializeRelocatedPotItemRom(Rom* rom) {
+  InitializeRoomHeaderRom(rom);
+  rom->Expand(0x300000);
+  SetPotItemBankOperand(rom, kRelocatedPotBank);
+  // Both pointer words are bank-relative: $8000 and $8040.
+  SetRoomPotItemPointer(rom, 0, kRelocatedPotDataPc);
+  for (int room_id = 1; room_id < zelda3::kNumberOfRooms; ++room_id) {
+    SetRoomPotItemPointer(rom, room_id, kRelocatedOtherPotDataPc);
+  }
+  ASSERT_TRUE(rom->WriteVector(kRelocatedPotDataPc,
+                               {0x34, 0x12, 0x56, 0x78, 0x56, 0x9A, 0xFF, 0xFF})
+                  .ok());
+  ASSERT_TRUE(rom->WriteVector(kRelocatedOtherPotDataPc, {0xFF, 0xFF}).ok());
+  rom->set_dirty(false);
+}
+
+// `region_end_snes` is the half-open end of the data and allocation region.
+void WriteRelocatedPotItemManifest(
+    const std::filesystem::path& path,
+    uint32_t region_end_snes = PcToSnes(kRelocatedPotDataEndPc)) {
+  const std::string json = absl::StrFormat(
+      R"json({
+  "manifest_version": 3,
+  "dungeon_stream_regions": {
+    "pot_items": {
+      "pointer_table": "0x%06X",
+      "pointer_count": %d,
+      "pointer_encoding": "bank16",
+      "pointer_bank": "0x%02X",
+      "strategy": "repack_all",
+      "data_regions": [
+        {"start": "0x%06X", "end": "0x%06X"}
+      ],
+      "allocation_regions": [
+        {"start": "0x%06X", "end": "0x%06X"}
+      ]
+    }
+  }
+})json",
+      PcToSnes(zelda3::kRoomItemsPointers), zelda3::kNumberOfRooms,
+      kRelocatedPotBank, PcToSnes(kRelocatedPotDataPc), region_end_snes,
+      PcToSnes(kRelocatedPotDataPc), region_end_snes);
+  std::ofstream output(path, std::ios::trunc);
+  ASSERT_TRUE(output.is_open());
+  output << json;
+  ASSERT_TRUE(output.good());
+}
+
 void SetRoomSpritePointer(Rom* rom, int table_pc, int room_id, int pc_addr) {
   const uint32_t snes = PcToSnes(pc_addr);
   const int ptr_off = table_pc + room_id * 2;
@@ -5081,6 +5143,226 @@ TEST(DungeonEditCommandsTest, SetPotItemWriteChangesOneByteBacksUpAndReopens) {
   EXPECT_EQ(reopened_room.GetPotItems()[1].item, 0x9A);
 }
 
+TEST(DungeonEditCommandsTest,
+     ListPotItemsReadsBankNamedByRevealPotItemOperand) {
+  Rom rom;
+  InitializeRelocatedPotItemRom(&rom);
+  // Bank $01 decoy at the same pointer word must not be read.
+  ASSERT_TRUE(rom.WriteVector(0x008000, {0xAA, 0xAA, 0xBB, 0xFF, 0xFF}).ok());
+  rom.set_dirty(false);
+  const std::vector<uint8_t> before = rom.vector();
+
+  handlers::DungeonListPotItemsCommandHandler handler;
+  std::string output;
+  const absl::Status status =
+      handler.Run({"--room=0x00", "--format=json"}, &rom, &output);
+
+  ASSERT_TRUE(status.ok()) << status;
+  const auto report = nlohmann::json::parse(output);
+  const auto& result = report.at("Dungeon Pot Items");
+  EXPECT_EQ(result.at("stream_pc"), "0x2D0000");
+  EXPECT_EQ(result.at("stream_end_pc"), "0x2D0008");
+  ASSERT_EQ(result.at("items").size(), 2u);
+  EXPECT_EQ(result.at("items")[0].at("position"), "0x1234");
+  EXPECT_EQ(result.at("items")[0].at("item_id"), "0x56");
+  EXPECT_EQ(result.at("items")[0].at("item_pc"), "0x2D0002");
+  EXPECT_EQ(result.at("items")[0].at("item_snes"), "0x5A8002");
+  EXPECT_EQ(result.at("items")[1].at("position"), "0x5678");
+  EXPECT_EQ(result.at("items")[1].at("item_id"), "0x9A");
+  EXPECT_EQ(rom.vector(), before);
+  EXPECT_FALSE(rom.dirty());
+
+  // The same pointer word resolves into bank $01 once the operand says so.
+  SetPotItemBankOperand(&rom, 0x01);
+  rom.set_dirty(false);
+  std::string vanilla_output;
+  const absl::Status vanilla_status =
+      handler.Run({"--room=0x00", "--format=json"}, &rom, &vanilla_output);
+  ASSERT_TRUE(vanilla_status.ok()) << vanilla_status;
+  const auto vanilla_report = nlohmann::json::parse(vanilla_output);
+  const auto& vanilla_result = vanilla_report.at("Dungeon Pot Items");
+  EXPECT_EQ(vanilla_result.at("stream_pc"), "0x008000");
+  ASSERT_EQ(vanilla_result.at("items").size(), 1u);
+  EXPECT_EQ(vanilla_result.at("items")[0].at("position"), "0xAAAA");
+  EXPECT_EQ(vanilla_result.at("items")[0].at("item_snes"), "0x018002");
+}
+
+TEST(DungeonEditCommandsTest, ListPotItemsRejectsUnreadableOperandBank) {
+  for (const int bank_value : {0x7E, 0x7F, 0xFE, 0xFF}) {
+    const auto bank = static_cast<uint8_t>(bank_value);
+    SCOPED_TRACE(absl::StrFormat("bank 0x%02X", bank));
+    Rom rom;
+    InitializeRelocatedPotItemRom(&rom);
+    SetPotItemBankOperand(&rom, bank);
+    rom.set_dirty(false);
+    const std::vector<uint8_t> before = rom.vector();
+
+    handlers::DungeonListPotItemsCommandHandler handler;
+    std::string output;
+    const absl::Status status =
+        handler.Run({"--room=0x00", "--format=json"}, &rom, &output);
+
+    EXPECT_TRUE(absl::IsFailedPrecondition(status)) << status;
+    EXPECT_THAT(std::string(status.message()),
+                HasSubstr(absl::StrFormat("pot-item data bank 0x%02X", bank)));
+    EXPECT_THAT(std::string(status.message()), HasSubstr("0x00E6C8"));
+    EXPECT_EQ(rom.vector(), before);
+  }
+}
+
+TEST(DungeonEditCommandsTest,
+     SetPotItemAcceptsBank5AManifestWhenOperandIsBank5A) {
+  Rom rom;
+  InitializeRelocatedPotItemRom(&rom);
+  ScopedRomArtifactsCleanup cleanup(MakeUniqueTempRomPath());
+  ScopedFileCleanup manifest_cleanup(cleanup.rom_path.string() +
+                                     ".manifest.json");
+  WriteRomFile(rom, cleanup.rom_path);
+  WriteRelocatedPotItemManifest(manifest_cleanup.file_path);
+  rom.set_filename(cleanup.rom_path.string());
+  rom.set_dirty(false);
+  const std::vector<uint8_t> before = rom.vector();
+  const std::vector<uint8_t> disk_before = ReadFile(cleanup.rom_path);
+  const std::string manifest_arg =
+      absl::StrFormat("--manifest=%s", manifest_cleanup.file_path.string());
+
+  handlers::DungeonSetPotItemCommandHandler handler;
+  std::string dry_output;
+  const absl::Status dry = handler.Run(
+      {"--room=0x00", "--index=0", "--expect-position=0x1234",
+       "--expect-item=0x56", "--item=0x06", manifest_arg, "--format=json"},
+      &rom, &dry_output);
+  ASSERT_TRUE(dry.ok()) << dry << "\n" << dry_output;
+  EXPECT_THAT(dry_output, HasSubstr("\"mode\": \"dry-run\""));
+  EXPECT_THAT(dry_output, HasSubstr("0x2D0002"));
+  EXPECT_THAT(dry_output, HasSubstr("0x5A8002"));
+  EXPECT_EQ(rom.vector(), before);
+  EXPECT_EQ(ReadFile(cleanup.rom_path), disk_before);
+  EXPECT_EQ(CountBackupArtifacts(cleanup.rom_path), 0);
+
+  std::string output;
+  const absl::Status status =
+      handler.Run({"--room=0x00", "--index=0", "--expect-position=0x1234",
+                   "--expect-item=0x56", "--item=0x06", manifest_arg, "--write",
+                   "--format=json"},
+                  &rom, &output);
+  ASSERT_TRUE(status.ok()) << status << "\n" << output;
+  EXPECT_THAT(output, HasSubstr("\"write_status\": \"success\""));
+  EXPECT_THAT(output, HasSubstr("\"save_status\": \"saved\""));
+  std::vector<uint8_t> expected = before;
+  expected[kRelocatedPotItemBytePc] = 0x06;
+  EXPECT_EQ(rom.vector(), expected);
+  EXPECT_EQ(ReadFile(cleanup.rom_path), expected);
+
+  Rom reopened;
+  ASSERT_TRUE(reopened.LoadFromFile(cleanup.rom_path.string()).ok());
+  zelda3::Room reopened_room(0, &reopened);
+  reopened_room.LoadPotItems();
+  ASSERT_EQ(reopened_room.GetPotItems().size(), 2u);
+  EXPECT_EQ(reopened_room.GetPotItems()[0].position, 0x1234);
+  EXPECT_EQ(reopened_room.GetPotItems()[0].item, 0x06);
+  EXPECT_EQ(reopened_room.GetPotItems()[1].position, 0x5678);
+  EXPECT_EQ(reopened_room.GetPotItems()[1].item, 0x9A);
+}
+
+// A region written as 0x5A8000-0x5AFFFF is half-open: it ends one byte before
+// the bank end and is still a valid bank-$5A layout.
+TEST(DungeonEditCommandsTest, SetPotItemAcceptsBank5AManifestEndingAt5AFFFF) {
+  Rom rom;
+  InitializeRelocatedPotItemRom(&rom);
+  ScopedFileCleanup manifest_cleanup(MakeUniqueTempRomPath().string() +
+                                     ".manifest.json");
+  WriteRelocatedPotItemManifest(manifest_cleanup.file_path, 0x5AFFFF);
+  const std::vector<uint8_t> before = rom.vector();
+
+  handlers::DungeonSetPotItemCommandHandler handler;
+  std::string output;
+  const absl::Status status = handler.Run(
+      {"--room=0x00", "--index=0", "--expect-position=0x1234",
+       "--expect-item=0x56", "--item=0x06",
+       absl::StrFormat("--manifest=%s", manifest_cleanup.file_path.string()),
+       "--format=json"},
+      &rom, &output);
+
+  ASSERT_TRUE(status.ok()) << status << "\n" << output;
+  EXPECT_THAT(output, HasSubstr("0x2D0002"));
+  EXPECT_EQ(rom.vector(), before);
+  EXPECT_FALSE(rom.dirty());
+}
+
+TEST(DungeonEditCommandsTest,
+     SetPotItemRefusesBank5AManifestWhenOperandIsStillBank01) {
+  for (const bool write : {false, true}) {
+    SCOPED_TRACE(write ? "write" : "dry-run");
+    Rom rom;
+    InitializeRelocatedPotItemRom(&rom);
+    SetPotItemBankOperand(&rom, 0x01);
+    ScopedRomArtifactsCleanup cleanup(MakeUniqueTempRomPath());
+    ScopedFileCleanup manifest_cleanup(cleanup.rom_path.string() +
+                                       ".manifest.json");
+    WriteRomFile(rom, cleanup.rom_path);
+    WriteRelocatedPotItemManifest(manifest_cleanup.file_path);
+    rom.set_filename(cleanup.rom_path.string());
+    rom.set_dirty(false);
+    const std::vector<uint8_t> before = rom.vector();
+    const std::vector<uint8_t> disk_before = ReadFile(cleanup.rom_path);
+
+    std::vector<std::string> args = {
+        "--room=0x00",
+        "--index=0",
+        "--expect-position=0x1234",
+        "--expect-item=0x56",
+        "--item=0x06",
+        absl::StrFormat("--manifest=%s", manifest_cleanup.file_path.string()),
+        "--format=json"};
+    if (write) {
+      args.push_back("--write");
+    }
+    handlers::DungeonSetPotItemCommandHandler handler;
+    std::string output;
+    const absl::Status status = handler.Run(args, &rom, &output);
+
+    EXPECT_TRUE(absl::IsFailedPrecondition(status)) << status;
+    EXPECT_THAT(std::string(status.message()),
+                HasSubstr("layout pointer bank 0x5A"));
+    EXPECT_THAT(std::string(status.message()),
+                HasSubstr("ROM pot-item data bank 0x01"));
+    EXPECT_THAT(std::string(status.message()), HasSubstr("0x00E6C8"));
+    EXPECT_EQ(rom.vector(), before);
+    EXPECT_FALSE(rom.dirty());
+    EXPECT_EQ(ReadFile(cleanup.rom_path), disk_before);
+    EXPECT_EQ(CountBackupArtifacts(cleanup.rom_path), 0);
+  }
+}
+
+TEST(DungeonEditCommandsTest,
+     SetPotItemRefusesBank01ManifestWhenOperandIsBank5A) {
+  Rom rom;
+  InitializeRelocatedPotItemRom(&rom);
+  ScopedFileCleanup manifest_cleanup(MakeUniqueTempRomPath().string() +
+                                     ".manifest.json");
+  WritePotItemManifest(manifest_cleanup.file_path);
+  const std::vector<uint8_t> before = rom.vector();
+
+  handlers::DungeonSetPotItemCommandHandler handler;
+  std::string output;
+  const absl::Status status = handler.Run(
+      {"--room=0x00", "--index=0", "--expect-position=0x1234",
+       "--expect-item=0x56", "--item=0x06",
+       absl::StrFormat("--manifest=%s", manifest_cleanup.file_path.string()),
+       "--format=json"},
+      &rom, &output);
+
+  EXPECT_TRUE(absl::IsFailedPrecondition(status)) << status;
+  EXPECT_THAT(std::string(status.message()),
+              HasSubstr("layout pointer bank 0x01"));
+  EXPECT_THAT(std::string(status.message()),
+              HasSubstr("ROM pot-item data bank 0x5A"));
+  EXPECT_THAT(std::string(status.message()), HasSubstr("0x00E6C8"));
+  EXPECT_EQ(rom.vector(), before);
+  EXPECT_FALSE(rom.dirty());
+}
+
 TEST(DungeonEditCommandsTest, SetPotItemDiskSaveFailureRollsBackCallerRom) {
   Rom rom;
   InitializePotItemRom(&rom);
@@ -5179,6 +5461,64 @@ TEST(DungeonEditCommandsTest,
   EXPECT_EQ(room1.GetPotItems()[0].GetTileX(), 56);
   EXPECT_EQ(room1.GetPotItems()[0].GetTileY(), 24);
 
+  zelda3::Room peer(2, &reopened);
+  peer.LoadPotItems();
+  EXPECT_TRUE(peer.GetPotItems().empty());
+}
+
+TEST(DungeonEditCommandsTest, AppendPotItemStaysInsideRelocatedBank) {
+  Rom rom;
+  InitializeRelocatedPotItemRom(&rom);
+  ScopedRomArtifactsCleanup cleanup(MakeUniqueTempRomPath());
+  ScopedFileCleanup manifest_cleanup(cleanup.rom_path.string() +
+                                     ".manifest.json");
+  WriteRomFile(rom, cleanup.rom_path);
+  WriteRelocatedPotItemManifest(manifest_cleanup.file_path);
+  rom.set_filename(cleanup.rom_path.string());
+  rom.set_dirty(false);
+  const std::vector<uint8_t> before = rom.vector();
+
+  handlers::DungeonAppendPotItemCommandHandler handler;
+  std::string output;
+  const absl::Status status = handler.Run(
+      {"--room=0x01", "--x=56", "--y=24", "--item=0x0B", "--expect-count=0",
+       absl::StrFormat("--expect-stream-sha256=%s", kEmptyPotStreamSha256),
+       absl::StrFormat("--manifest=%s", manifest_cleanup.file_path.string()),
+       "--write", "--format=json"},
+      &rom, &output);
+  ASSERT_TRUE(status.ok()) << status << "\n" << output;
+  EXPECT_THAT(output, HasSubstr("\"verified_reload\": true"));
+
+  const int table_begin = zelda3::kRoomItemsPointers;
+  const int table_end = table_begin + zelda3::kNumberOfRooms * 2;
+  ASSERT_EQ(rom.vector().size(), before.size());
+  size_t changed = 0;
+  for (size_t pc = 0; pc < before.size(); ++pc) {
+    if (rom.vector()[pc] == before[pc]) {
+      continue;
+    }
+    ++changed;
+    const bool in_table = pc >= static_cast<size_t>(table_begin) &&
+                          pc < static_cast<size_t>(table_end);
+    const bool in_bank = pc >= static_cast<size_t>(kRelocatedPotDataPc) &&
+                         pc < static_cast<size_t>(kRelocatedPotDataEndPc);
+    ASSERT_TRUE(in_table || in_bank)
+        << absl::StrFormat("unexpected write at PC 0x%06X", pc);
+  }
+  EXPECT_GT(changed, 0u);
+  EXPECT_EQ(rom.vector()[zelda3::kRoomItemsBankOperand], kRelocatedPotBank);
+
+  Rom reopened;
+  ASSERT_TRUE(reopened.LoadFromFile(cleanup.rom_path.string()).ok());
+  zelda3::Room room1(1, &reopened);
+  room1.LoadPotItems();
+  ASSERT_EQ(room1.GetPotItems().size(), 1u);
+  EXPECT_EQ(room1.GetPotItems()[0].position, 0x0C70);
+  EXPECT_EQ(room1.GetPotItems()[0].item, 0x0B);
+  zelda3::Room room0(0, &reopened);
+  room0.LoadPotItems();
+  ASSERT_EQ(room0.GetPotItems().size(), 2u);
+  EXPECT_EQ(room0.GetPotItems()[0].position, 0x1234);
   zelda3::Room peer(2, &reopened);
   peer.LoadPotItems();
   EXPECT_TRUE(peer.GetPotItems().empty());

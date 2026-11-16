@@ -165,18 +165,29 @@ absl::Status ValidateKnownPointerTableSource(
       }
       return absl::OkStatus();
     }
-    case DungeonStreamKind::kPotItem:
-      if (layout.pointer_encoding != DungeonPointerEncoding::kFixedBank16 ||
-          layout.pointer_bank != 0x01) {
+    case DungeonStreamKind::kPotItem: {
+      if (layout.pointer_encoding != DungeonPointerEncoding::kFixedBank16) {
         return absl::InvalidArgumentError(
-            "Pot-item streams require fixed-bank-16 pointers in bank 0x01");
+            "Pot-item streams require fixed-bank-16 pointers");
       }
       if (layout.pointer_table_pc != kRoomItemsPointers) {
         return absl::FailedPreconditionError(absl::StrFormat(
             "Pot-item pointer table must be the fixed PC table at 0x%06X",
             kRoomItemsPointers));
       }
+      // The table only stores 16-bit words. RevealPotItem supplies the bank
+      // from its `LDA.w #$00xx` operand, so a layout that names any other
+      // bank would repack streams the game never reads.
+      const uint8_t runtime_bank = ResolveRoomItemsDataBank(
+          std::span<const uint8_t>(rom.data(), rom.size()));
+      if (layout.pointer_bank != runtime_bank) {
+        return absl::FailedPreconditionError(absl::StrFormat(
+            "Pot-item layout pointer bank 0x%02X does not match the ROM "
+            "pot-item data bank 0x%02X (RevealPotItem operand at PC 0x%06X)",
+            layout.pointer_bank, runtime_bank, kRoomItemsBankOperand));
+      }
       return absl::OkStatus();
+    }
   }
   return absl::InvalidArgumentError("Unknown dungeon stream kind");
 }
@@ -499,7 +510,10 @@ absl::StatusOr<DungeonStreamRecord> ReadFixedBankRoomStream(
     layout.pointer_table_pc = kRoomsSpritePointer;
     ASSIGN_OR_RETURN(layout.pointer_table_pc, DecodePointer(rom, layout, 0));
   } else {
-    layout.pointer_bank = 0x01;
+    // The pot-item table is fixed; its data bank is the RevealPotItem operand.
+    // DecodePointer rejects a WRAM bank or a stream outside the ROM image.
+    layout.pointer_bank = ResolveRoomItemsDataBank(
+        std::span<const uint8_t>(rom.data(), rom.size()));
     layout.pointer_table_pc = kRoomItemsPointers;
   }
   const uint32_t table_end = layout.pointer_table_pc + kNumberOfRooms * 2;
@@ -523,6 +537,8 @@ absl::StatusOr<DungeonStreamRecord> ReadFixedBankRoomStream(
       start < kSpritesDataEndExclusive) {
     limit = std::min(limit, static_cast<uint32_t>(kSpritesDataEndExclusive));
   }
+  // Only the vanilla bank-$01 region between the table and RevealPotItem has
+  // a code boundary. A relocated stream keeps the bank/ROM limit above.
   if (kind == DungeonStreamKind::kPotItem && start >= table_end &&
       start < kRoomItemsDataEnd) {
     limit = std::min(limit, static_cast<uint32_t>(kRoomItemsDataEnd));

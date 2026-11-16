@@ -1280,10 +1280,16 @@ absl::StatusOr<PotItemStreamView> ResolveRuntimePotItemStream(Rom* rom,
   uint16_t pointer_word = 0;
   ASSIGN_OR_RETURN(pointer_word,
                    rom->ReadWord(static_cast<int>(pointer_slot_pc)));
-  const uint32_t pointer_snes = 0x010000u | pointer_word;
-  if (!IsLoRomDataPointer(pointer_snes)) {
-    return absl::FailedPreconditionError(
-        "Selected pot-item pointer is not a valid bank-01 LoROM pointer");
+  // RevealPotItem supplies the data bank from its operand at PC 0xE6C8.
+  const uint8_t data_bank = zelda3::ResolveRoomItemsDataBank(rom->vector());
+  const uint32_t pointer_snes =
+      (static_cast<uint32_t>(data_bank) << 16) | pointer_word;
+  if (!zelda3::IsRoomItemsDataBankReadable(data_bank) ||
+      !IsLoRomDataPointer(pointer_snes)) {
+    return absl::FailedPreconditionError(absl::StrFormat(
+        "Selected pot-item pointer 0x%04X is not a valid LoROM pointer in "
+        "pot-item data bank 0x%02X (RevealPotItem operand at PC 0x%06X)",
+        pointer_word, data_bank, zelda3::kRoomItemsBankOperand));
   }
   const uint32_t stream_pc = SnesToPc(pointer_snes);
   const uint64_t bank_end =

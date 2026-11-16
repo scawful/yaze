@@ -168,9 +168,12 @@ absl::StatusOr<DungeonStreamRecord> ReadDungeonObjectStream(const Rom& rom,
 absl::StatusOr<uint32_t> DungeonObjectDoorListOffset(
     const std::vector<uint8_t>& encoded_stream);
 
-// Strict read-only counterparts for the live bank-09 sprite table and fixed
-// bank-01 pot-item table. Parsing cannot cross a pointer table/source, a known
-// data-region boundary, the next distinct room pointer, or a ROM/bank boundary.
+// Strict read-only counterparts for the live bank-09 sprite table and the fixed
+// pot-item table at PC 0xDB69. Pot-item words resolve in the bank named by the
+// RevealPotItem operand (ResolveRoomItemsDataBank: vanilla bank 01, or the
+// bank a hack relocated the streams to). Parsing cannot cross a pointer
+// table/source, a known data-region boundary, the next distinct room pointer,
+// or a ROM/bank boundary.
 // Exact aliases are allowed; suffix/interior overlaps are not inferred safe.
 absl::StatusOr<DungeonStreamRecord> ReadDungeonSpriteStream(const Rom& rom,
                                                             int room_id);

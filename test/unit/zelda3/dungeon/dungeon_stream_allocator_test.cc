@@ -1156,5 +1156,286 @@ TEST_F(DungeonStreamAllocatorTest,
   EXPECT_EQ(rom_->dirty(), was_dirty);
 }
 
+// Pot-item streams relocated out of bank $01: the fixed pointer table stays at
+// PC 0xDB69 and the RevealPotItem operand at PC 0xE6C8 names the data bank.
+class DungeonRelocatedPotStreamTest : public DungeonStreamAllocatorTest {
+ protected:
+  static constexpr uint32_t kRelocatedRomSize = 0x300000;
+  static constexpr uint8_t kRelocatedBank = 0x5A;
+  static constexpr uint32_t kRelocatedBegin = 0x2D0000;
+  static constexpr uint32_t kRelocatedEnd = 0x2D8000;
+  static constexpr uint32_t kTableEnd = kRoomItemsPointers + kNumberOfRooms * 2;
+
+  void SetUp() override {
+    rom_ = std::make_unique<Rom>();
+    ASSERT_TRUE(
+        rom_->LoadFromData(std::vector<uint8_t>(kRelocatedRomSize, 0)).ok());
+    SetBankOperand(0xA9, kRelocatedBank, 0x00);
+  }
+
+  void SetBankOperand(uint8_t opcode, uint8_t bank, uint8_t high) {
+    WriteBytes(kRoomItemsBankOpcode, {opcode, bank, high});
+  }
+
+  DungeonStreamLayout RelocatedLayout() {
+    auto layout = PotLayout(kNumberOfRooms, {{kRelocatedBegin, kRelocatedEnd}},
+                            {{kRelocatedBegin, kRelocatedEnd}});
+    layout.pointer_bank = kRelocatedBank;
+    return layout;
+  }
+
+  DungeonStreamLayout VanillaLayout() {
+    return PotLayout(kNumberOfRooms, {{0x008000, kRoomItemsPointers}},
+                     {{0x008100, 0x008200}});
+  }
+
+  void SetAllPointerWords(uint16_t word) {
+    for (int room_id = 0; room_id < kNumberOfRooms; ++room_id) {
+      WriteWord(kRoomItemsPointers + room_id * 2, word);
+    }
+  }
+
+  static void ExpectBankMismatch(const absl::Status& status,
+                                 const std::string& layout_bank,
+                                 const std::string& rom_bank) {
+    EXPECT_EQ(status.code(), absl::StatusCode::kFailedPrecondition) << status;
+    const std::string message(status.message());
+    EXPECT_NE(message.find("pointer bank " + layout_bank), std::string::npos)
+        << message;
+    EXPECT_NE(message.find("data bank " + rom_bank), std::string::npos)
+        << message;
+    EXPECT_NE(message.find("0x00E6C8"), std::string::npos) << message;
+  }
+};
+
+TEST_F(DungeonRelocatedPotStreamTest, OperandSelectsThePotItemDataBank) {
+  const std::vector<uint8_t> relocated{0x11, 0x22, 0x33, 0xFF, 0xFF};
+  const std::vector<uint8_t> vanilla{0x44, 0x55, 0x66, 0x77,
+                                     0x88, 0x99, 0xFF, 0xFF};
+  SetAllPointerWords(0x8010);
+  WriteWord(kRoomItemsPointers, 0x8000);
+  WriteBytes(kRelocatedBegin, relocated);
+  WriteBytes(kRelocatedBegin + 0x10, {0xFF, 0xFF});
+  WriteBytes(0x008000, vanilla);
+  WriteBytes(0x008010, {0xFF, 0xFF});
+
+  const auto in_relocated_bank = ReadDungeonPotItemStream(*rom_, 0);
+  ASSERT_TRUE(in_relocated_bank.ok()) << in_relocated_bank.status();
+  EXPECT_EQ(in_relocated_bank->data_pc, kRelocatedBegin);
+  EXPECT_EQ(in_relocated_bank->encoded_stream, relocated);
+  EXPECT_EQ(in_relocated_bank->pointer_slot_pc,
+            static_cast<uint32_t>(kRoomItemsPointers));
+
+  struct Case {
+    const char* name;
+    uint8_t opcode;
+    uint8_t bank;
+    uint8_t high;
+  };
+  // Anything other than "A9 xx 00" is not the vanilla LDA.w #$00xx, so the
+  // reader keeps bank $01 rather than trusting an unknown byte.
+  for (const Case& c :
+       {Case{"vanilla operand", 0xA9, 0x01, 0x00},
+        Case{"zero bytes", 0x00, 0x00, 0x00},
+        Case{"other opcode", 0xA2, kRelocatedBank, 0x00},
+        Case{"nonzero high byte", 0xA9, kRelocatedBank, 0x01}}) {
+    SCOPED_TRACE(c.name);
+    SetBankOperand(c.opcode, c.bank, c.high);
+    const auto record = ReadDungeonPotItemStream(*rom_, 0);
+    ASSERT_TRUE(record.ok()) << record.status();
+    EXPECT_EQ(record->data_pc, 0x008000u);
+    EXPECT_EQ(record->encoded_stream, vanilla);
+  }
+}
+
+TEST_F(DungeonRelocatedPotStreamTest, ResolveHelperFollowsTheDocumentedRule) {
+  std::vector<uint8_t> bytes(kRoomItemsBankOperandHigh + 1, 0);
+  bytes[kRoomItemsBankOpcode] = 0xA9;
+  bytes[kRoomItemsBankOperand] = 0x5A;
+  EXPECT_EQ(ResolveRoomItemsDataBank(bytes), 0x5A);
+  bytes[kRoomItemsBankOperandHigh] = 0x01;
+  EXPECT_EQ(ResolveRoomItemsDataBank(bytes), 0x01);
+  bytes[kRoomItemsBankOperandHigh] = 0x00;
+  bytes[kRoomItemsBankOpcode] = 0xAD;
+  EXPECT_EQ(ResolveRoomItemsDataBank(bytes), 0x01);
+  bytes[kRoomItemsBankOpcode] = 0xA9;
+  // One byte short of the operand high byte: too small to trust.
+  bytes.pop_back();
+  EXPECT_EQ(ResolveRoomItemsDataBank(bytes), 0x01);
+  EXPECT_EQ(ResolveRoomItemsDataBank({}), 0x01);
+}
+
+TEST_F(DungeonRelocatedPotStreamTest, WramOperandBankFailsWithoutReading) {
+  SetAllPointerWords(0x8000);
+  WriteBytes(kRelocatedBegin, {0xFF, 0xFF});
+  for (const uint8_t bank : {0x7E, 0x7F, 0xFE, 0xFF}) {
+    SCOPED_TRACE(::testing::Message()
+                 << "bank=0x" << std::hex << static_cast<int>(bank));
+    SetBankOperand(0xA9, bank, 0x00);
+    const auto before = rom_->vector();
+    EXPECT_FALSE(ReadDungeonPotItemStream(*rom_, 0).ok());
+    EXPECT_EQ(rom_->vector(), before);
+  }
+}
+
+TEST_F(DungeonRelocatedPotStreamTest, OperandBankOutsideRomFailsCleanly) {
+  // Bank $70 word $8000 is PC 0x380000, past this 0x300000-byte image.
+  SetBankOperand(0xA9, 0x70, 0x00);
+  SetAllPointerWords(0x8000);
+  const auto before = rom_->vector();
+  EXPECT_FALSE(ReadDungeonPotItemStream(*rom_, 0).ok());
+  EXPECT_EQ(rom_->vector(), before);
+}
+
+TEST_F(DungeonRelocatedPotStreamTest, RepackStaysInsideTheRelocatedBank) {
+  const auto layout = RelocatedLayout();
+  const std::vector<uint8_t> room0{0x01, 0x00, 0x44, 0xFF, 0xFF};
+  const std::vector<uint8_t> room1{0x02, 0x00, 0x45, 0x03,
+                                   0x00, 0x46, 0xFF, 0xFF};
+  const std::vector<uint8_t> empty{0xFF, 0xFF};
+  WriteBytes(kRelocatedBegin, room0);
+  WriteBytes(kRelocatedBegin + 0x08, room1);
+  WriteBytes(kRelocatedBegin + 0x20, empty);
+  SetPointersFrom(layout, 0, kRelocatedBegin + 0x20);
+  SetPointer(layout, 0, kRelocatedBegin);
+  SetPointer(layout, 1, kRelocatedBegin + 0x08);
+  // Bank $01 bytes a bank-blind writer would damage: the old stream area on
+  // both sides of the table and the RevealPotItem code after it.
+  WriteBytes(0x008000, {0xDE, 0xAD, 0xBE, 0xEF});
+  WriteBytes(kTableEnd, {0xCA, 0xFE});
+  const auto before = rom_->vector();
+
+  auto inventory = InventoryDungeonStreams(*rom_, layout);
+  ASSERT_TRUE(inventory.ok()) << inventory.status();
+  ASSERT_TRUE(inventory->ok());
+  ASSERT_EQ(inventory->streams.size(), static_cast<size_t>(kNumberOfRooms));
+  EXPECT_EQ(inventory->streams[0].data_pc, kRelocatedBegin);
+  EXPECT_EQ(inventory->streams[0].encoded_stream, room0);
+  EXPECT_EQ(inventory->streams[1].encoded_stream, room1);
+
+  const std::vector<uint8_t> room0_added{0x01, 0x00, 0x44, 0x09,
+                                         0x00, 0x47, 0xFF, 0xFF};
+  auto plan = PlanDungeonStreamRepack(*inventory, {{0, room0_added}});
+  ASSERT_TRUE(plan.ok()) << plan.status();
+  ASSERT_EQ(plan->payload_writes.size(), 3u);
+  for (const DungeonStreamWrite& write : plan->payload_writes) {
+    EXPECT_GE(write.address, kRelocatedBegin);
+    EXPECT_LE(write.address + write.bytes.size(), kRelocatedEnd);
+  }
+  ASSERT_EQ(plan->pointer_writes.size(), static_cast<size_t>(kNumberOfRooms));
+  ASSERT_TRUE(ApplyDungeonStreamWritePlan(rom_.get(), *plan).ok());
+
+  const auto& after = rom_->vector();
+  ASSERT_EQ(after.size(), before.size());
+  size_t table_changes = 0;
+  size_t data_changes = 0;
+  for (size_t pc = 0; pc < after.size(); ++pc) {
+    if (after[pc] == before[pc]) {
+      continue;
+    }
+    if (pc >= kRoomItemsPointers && pc < kTableEnd) {
+      ++table_changes;
+    } else if (pc >= kRelocatedBegin && pc < kRelocatedEnd) {
+      ++data_changes;
+    } else {
+      ADD_FAILURE() << "Repack changed PC 0x" << std::hex << pc
+                    << " outside the pointer table and bank $5A";
+      break;
+    }
+  }
+  EXPECT_GT(table_changes, 0u);
+  EXPECT_GT(data_changes, 0u);
+  // The operand itself is still the relocated one.
+  EXPECT_EQ(after[kRoomItemsBankOperand], kRelocatedBank);
+
+  const auto read0 = ReadDungeonPotItemStream(*rom_, 0);
+  ASSERT_TRUE(read0.ok()) << read0.status();
+  EXPECT_EQ(read0->encoded_stream, room0_added);
+  EXPECT_GE(read0->data_pc, kRelocatedBegin);
+  EXPECT_LT(read0->data_pc, kRelocatedEnd);
+  const auto read1 = ReadDungeonPotItemStream(*rom_, 1);
+  ASSERT_TRUE(read1.ok()) << read1.status();
+  EXPECT_EQ(read1->encoded_stream, room1);
+  const auto read_last = ReadDungeonPotItemStream(*rom_, kNumberOfRooms - 1);
+  ASSERT_TRUE(read_last.ok()) << read_last.status();
+  EXPECT_EQ(read_last->encoded_stream, empty);
+  EXPECT_EQ(ReadFixedPointer(layout, 2),
+            ReadFixedPointer(layout, kNumberOfRooms - 1));
+
+  auto reread = InventoryDungeonStreams(*rom_, layout);
+  ASSERT_TRUE(reread.ok()) << reread.status();
+  EXPECT_TRUE(reread->ok());
+}
+
+TEST_F(DungeonRelocatedPotStreamTest, RepackWithNoReplacementIsIdempotent) {
+  const auto layout = RelocatedLayout();
+  WriteBytes(kRelocatedBegin, {0x01, 0x00, 0x44, 0xFF, 0xFF});
+  WriteBytes(kRelocatedBegin + 0x05, {0xFF, 0xFF});
+  SetPointersFrom(layout, 0, kRelocatedBegin + 0x05);
+  SetPointer(layout, 0, kRelocatedBegin);
+  const auto before = rom_->vector();
+
+  auto inventory = InventoryDungeonStreams(*rom_, layout);
+  ASSERT_TRUE(inventory.ok()) << inventory.status();
+  auto plan = PlanDungeonStreamRepack(*inventory, {});
+  ASSERT_TRUE(plan.ok()) << plan.status();
+  ASSERT_TRUE(ApplyDungeonStreamWritePlan(rom_.get(), *plan).ok());
+
+  // The source was already packed in owner order, so the repack rewrites the
+  // same bytes at the same addresses.
+  EXPECT_EQ(rom_->vector(), before);
+}
+
+TEST_F(DungeonRelocatedPotStreamTest, VanillaLayoutIsRefusedOnRelocatedRom) {
+  const auto layout = VanillaLayout();
+  SetAllPointerWords(0x8000);
+  WriteBytes(0x008000, {0xFF, 0xFF});
+  WriteBytes(kRelocatedBegin, {0xFF, 0xFF});
+  const auto before = rom_->vector();
+
+  const auto inventory = InventoryDungeonStreams(*rom_, layout);
+
+  ExpectBankMismatch(inventory.status(), "0x01", "0x5A");
+  EXPECT_EQ(rom_->vector(), before);
+}
+
+TEST_F(DungeonRelocatedPotStreamTest, RelocatedLayoutIsRefusedOnVanillaRom) {
+  const auto layout = RelocatedLayout();
+  SetAllPointerWords(0x8000);
+  WriteBytes(0x008000, {0xFF, 0xFF});
+  WriteBytes(kRelocatedBegin, {0xFF, 0xFF});
+
+  for (const bool zero_bytes : {false, true}) {
+    SCOPED_TRACE(zero_bytes ? "zero bytes at the operand" : "A9 01 00");
+    if (zero_bytes) {
+      SetBankOperand(0x00, 0x00, 0x00);
+    } else {
+      SetBankOperand(0xA9, 0x01, 0x00);
+    }
+    const auto before = rom_->vector();
+    const auto inventory = InventoryDungeonStreams(*rom_, layout);
+    ExpectBankMismatch(inventory.status(), "0x5A", "0x01");
+    EXPECT_EQ(rom_->vector(), before);
+  }
+}
+
+TEST_F(DungeonRelocatedPotStreamTest, ApplyRefusesPlanAfterOperandReverts) {
+  const auto layout = RelocatedLayout();
+  WriteBytes(kRelocatedBegin, {0xFF, 0xFF});
+  SetPointersFrom(layout, 0, kRelocatedBegin);
+  auto inventory = InventoryDungeonStreams(*rom_, layout);
+  ASSERT_TRUE(inventory.ok()) << inventory.status();
+  auto plan = PlanDungeonStreamRepack(*inventory,
+                                      {{0, {0x01, 0x00, 0x44, 0xFF, 0xFF}}});
+  ASSERT_TRUE(plan.ok()) << plan.status();
+
+  // The ROM changes back to the vanilla operand between plan and apply.
+  SetBankOperand(0xA9, 0x01, 0x00);
+  const auto before = rom_->vector();
+
+  EXPECT_FALSE(ApplyDungeonStreamWritePlan(rom_.get(), *plan).ok());
+  EXPECT_EQ(rom_->vector(), before);
+}
+
 }  // namespace
 }  // namespace yaze::zelda3::test

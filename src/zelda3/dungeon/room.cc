@@ -4141,9 +4141,27 @@ absl::Status SaveAllCollision(Rom* rom, int room_count,
 
 namespace {
 
-int ReadRoomPotItemAddressPc(const std::vector<uint8_t>& rom_data,
-                             int room_id) {
+// Exclusive PC end of the 32 KiB LoROM bank that contains `pc`.
+int LoRomBankEndPc(int pc) {
+  constexpr int kLoRomBankSize = 0x8000;
+  return ((pc / kLoRomBankSize) + 1) * kLoRomBankSize;
+}
+
+// True when `data_bank` maps onto the PC range of vanilla bank $01, where the
+// pot-item streams sit between the pointer table and RevealPotItem's code.
+bool IsVanillaRoomItemsDataBank(uint8_t data_bank) {
+  return (data_bank & 0x7F) == kRoomItemsVanillaDataBank;
+}
+
+// `data_bank` is the bank RevealPotItem loads (ResolveRoomItemsDataBank).
+// Returns -1 for a null pointer word, a bank that is not ROM-backed, or a PC
+// offset outside the ROM image.
+int ReadRoomPotItemAddressPc(const std::vector<uint8_t>& rom_data, int room_id,
+                             uint8_t data_bank) {
   if (room_id < 0 || room_id >= kNumberOfRooms) {
+    return -1;
+  }
+  if (!IsRoomItemsDataBankReadable(data_bank)) {
     return -1;
   }
   const int ptr_off = kRoomItemsPointers + (room_id * 2);
@@ -4155,10 +4173,10 @@ int ReadRoomPotItemAddressPc(const std::vector<uint8_t>& rom_data,
   if (item_ptr < 0x8000) {
     return -1;
   }
-  const int item_addr = static_cast<int>(SnesToPc(0x010000 | item_ptr));
-  return item_addr >= 0 && item_addr < static_cast<int>(rom_data.size())
-             ? item_addr
-             : -1;
+  const uint32_t item_snes =
+      (static_cast<uint32_t>(data_bank) << 16) | item_ptr;
+  const uint32_t item_addr = SnesToPc(item_snes);
+  return item_addr < rom_data.size() ? static_cast<int>(item_addr) : -1;
 }
 
 absl::StatusOr<PhysicalStreamInfo> GetPotItemStreamInfo(
@@ -4171,12 +4189,19 @@ absl::StatusOr<PhysicalStreamInfo> GetPotItemStreamInfo(
     return absl::OutOfRangeError("Room ID out of range");
   }
 
+  const uint8_t data_bank = ResolveRoomItemsDataBank(rom_data);
   std::vector<int> addresses(kNumberOfRooms, -1);
   for (int id = 0; id < kNumberOfRooms; ++id) {
-    addresses[id] = ReadRoomPotItemAddressPc(rom_data, id);
+    addresses[id] = ReadRoomPotItemAddressPc(rom_data, id, data_bank);
   }
-  const int hard_end =
-      std::min(static_cast<int>(rom_data.size()), kRoomItemsDataEnd);
+  // Vanilla bank $01 shares its bank with code, so streams must end before
+  // RevealPotItem. A relocated data bank is bounded by its own LoROM bank.
+  int hard_end = static_cast<int>(rom_data.size());
+  if (IsVanillaRoomItemsDataBank(data_bank)) {
+    hard_end = std::min(hard_end, kRoomItemsDataEnd);
+  } else if (addresses[room_id] >= 0) {
+    hard_end = std::min(hard_end, LoRomBankEndPc(addresses[room_id]));
+  }
   PhysicalStreamInfo info = AnalyzePhysicalStream(addresses, room_id, hard_end);
   if (info.address < 0 || info.address >= hard_end) {
     return absl::FailedPreconditionError(
@@ -4430,15 +4455,17 @@ void Room::LoadPotItems() {
   pot_items_loaded_ = false;
 
   // Load pot items
-  // Format per ASM analysis (bank_01.asm):
-  //   - Pointer table at kRoomItemsPointers (0x01DB69)
-  //   - Each room has a pointer to item data
+  // Format per ASM analysis (bank_01.asm, RevealPotItem $01:E6B2):
+  //   - Pointer table at kRoomItemsPointers (PC 0xDB69, SNES $01:DB69)
+  //   - Each room has a 16-bit pointer to item data
+  //   - The data bank is the `LDA.w #$00xx` operand at $01:E6C7: vanilla
+  //     $01, or the bank a hack relocated the streams to
   //   - Item data format: 3 bytes per item
   //     - 2 bytes: position word (Y_hi, X_lo encoding)
   //     - 1 byte: item type
   //   - Terminated by 0xFFFF position word
 
-  int table_addr = kRoomItemsPointers;  // 0x01DB69
+  int table_addr = kRoomItemsPointers;  // PC 0xDB69
 
   // Read pointer for this room
   int ptr_addr = table_addr + (room_id_ * 2);
@@ -4447,11 +4474,30 @@ void Room::LoadPotItems() {
 
   uint16_t item_ptr = (rom_data[ptr_addr + 1] << 8) | rom_data[ptr_addr];
 
-  // Convert to PC address (Bank 01 offset)
-  int item_addr = SnesToPc(0x010000 | item_ptr);
+  // A WRAM bank has no ROM bytes to read; the room loads with no pot items,
+  // the same result as a pointer outside the ROM image.
+  const uint8_t data_bank = ResolveRoomItemsDataBank(rom_data);
+  if (!IsRoomItemsDataBankReadable(data_bank)) {
+    pot_items_loaded_ = true;
+    return;
+  }
+
+  // Convert to a PC address in the resolved data bank. The CPU address after
+  // $xx:FFFF is $xx+1:0000, which LoROM does not map to ROM, so a stream
+  // cannot continue there: parsing stops at the end of this LoROM bank (or
+  // the ROM image, whichever comes first).
+  const uint32_t item_pc =
+      SnesToPc((static_cast<uint32_t>(data_bank) << 16) | item_ptr);
+  if (item_pc >= rom_data.size()) {
+    pot_items_loaded_ = true;
+    return;
+  }
+  int item_addr = static_cast<int>(item_pc);
+  const int stream_limit =
+      std::min(static_cast<int>(rom_data.size()), LoRomBankEndPc(item_addr));
 
   // Read 3-byte entries until 0xFFFF terminator
-  while (item_addr + 2 < static_cast<int>(rom_data.size())) {
+  while (item_addr + 2 < stream_limit) {
     // Read position word (little endian)
     uint16_t position = (rom_data[item_addr + 1] << 8) | rom_data[item_addr];
 
