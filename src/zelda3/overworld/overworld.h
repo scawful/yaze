@@ -626,6 +626,11 @@ class Overworld {
   void StageSavedMapTiles();
   void CommitSavedMapTiles();
   void RollbackSavedMapTiles();
+  // The descriptor this model reads native tables through. A native save can
+  // grow table 100; the new directory count is published on commit.
+  const rom::LyraLayoutInspection& descriptor_layout() const {
+    return descriptor_layout_;
+  }
 
   /// @brief Save large map parent/sibling relationships
   absl::Status SaveLargeMaps();
@@ -1036,6 +1041,8 @@ class Overworld {
   NativeModelState native_nonterrain_baseline_;
   std::optional<std::vector<int64_t>> staged_native_properties_;
   std::optional<std::vector<int64_t>> staged_native_sprites_;
+  std::optional<rom::LyraLayoutInspection> staged_descriptor_layout_;
+  void StageCommittedDescriptorLayout();
   std::array<std::optional<std::vector<int64_t>>, 2> staged_native_endpoints_;
   std::optional<rom::NativeOverworldAuthoringMetadata>
       native_authoring_metadata_draft_;

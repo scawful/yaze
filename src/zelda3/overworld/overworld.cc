@@ -1966,7 +1966,22 @@ void Overworld::StageSavedMapTiles() {
   staged_map_tiles_valid_ = true;
 }
 
+void Overworld::StageCommittedDescriptorLayout() {
+  // A sprite save can grow table 100 and rewrite its directory count. Read
+  // the stored directory back; CommitSavedMapTiles publishes it so later
+  // reads of moved tail lists use the grown bound instead of the load-time
+  // count.
+  auto layout = rom_->InspectLyraLayout();
+  if (layout.presence == rom::LyraLayoutPresence::kValid &&
+      rom::IsNativeSpecialOverworldLayout(layout))
+    staged_descriptor_layout_ = std::move(layout);
+}
+
 void Overworld::CommitSavedMapTiles() {
+  if (staged_descriptor_layout_) {
+    descriptor_layout_ = std::move(*staged_descriptor_layout_);
+    staged_descriptor_layout_.reset();
+  }
   if (staged_expanded_geometry_) {
     expanded_geometry_baseline_ = std::move(staged_expanded_geometry_);
     staged_expanded_geometry_.reset();
@@ -2037,6 +2052,7 @@ void Overworld::RollbackSavedMapTiles() {
   staged_native_authoring_domains_ = {};
   staged_native_geometry_.reset();
   staged_native_sprites_.reset();
+  staged_descriptor_layout_.reset();
   staged_native_properties_.reset();
   staged_map_tiles_ = OverworldMapTiles{};
   staged_map_tiles_valid_ = false;
@@ -2816,6 +2832,7 @@ absl::Status Overworld::SaveNativeTerrain() {
         rom_->vector(), rom_->vector(), property_edits, sprite_edits,
         baseline_metadata_ptr, publish_metadata_ptr, palette_ptr,
         &endpoint_edits, page_edits_ptr));
+    StageCommittedDescriptorLayout();
     if (flags.kSaveOverworldEntrances)
       staged_native_endpoints_[0] = current[1];
     if (flags.kSaveOverworldExits)
@@ -2881,6 +2898,7 @@ absl::Status Overworld::SaveNativeTerrain() {
       rom_->vector(), std::move(candidate), property_edits, sprite_edits,
       baseline_metadata_ptr, publish_metadata_ptr, palette_ptr, &endpoint_edits,
       page_edits_ptr));
+  StageCommittedDescriptorLayout();
   if (flags.kSaveOverworldEntrances)
     staged_native_endpoints_[0] = current[1];
   if (flags.kSaveOverworldExits)

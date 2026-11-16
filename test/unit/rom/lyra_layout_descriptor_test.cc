@@ -2143,6 +2143,117 @@ TEST(LyraLayoutDescriptorTest, NativeTailSpriteSaveGrowsTable100IntoFreeBytes) {
   EXPECT_EQ(reopened.vector(), saved);
 }
 
+TEST(LyraLayoutDescriptorTest, NativeTailSpriteGrowthStopsAtFirstUsedByte) {
+  // 22 bytes are needed. A used byte at +22 leaves exactly enough room; a
+  // used byte at +21 is one short. FF bytes count as free like 00 bytes.
+  const std::vector<rom::NativeOverworldSpriteEdit> edits = {
+      {0, 0xA0, {1, 2, 3, 4, 5, 6, 0xFF}},
+      {1, 0xA1, {1, 2, 4, 4, 5, 7, 0xFF}},
+      {2, 0xBF, {1, 2, 5, 4, 5, 8, 0xFF}}};
+  struct Case {
+    size_t used_at;
+    uint8_t fill;
+    bool fits;
+  };
+  for (const auto& c : {Case{22, 0x00, true}, Case{21, 0x00, false},
+                        Case{22, 0xFF, true}, Case{21, 0xFF, false}}) {
+    SCOPED_TRACE(
+        absl::StrFormat("used byte at +%d, fill %02X", c.used_at, c.fill));
+    NativeDirectoryFixture fixture;
+    fixture.SeedNativeSpritePrefix();
+    const size_t actors = fixture.Entry(100).pc_address;
+    std::fill(fixture.bytes.begin() + actors + 16,
+              fixture.bytes.begin() + actors + 64, c.fill);
+    fixture.bytes[actors + c.used_at] = 0x12;
+    fixture.Seal();
+    Rom document;
+    ASSERT_TRUE(document.LoadFromData(fixture.bytes).ok());
+    const auto before = document.vector();
+    const auto saved =
+        document.CommitNativeTerrainImage(before, before, {}, edits);
+    EXPECT_EQ(saved.ok(), c.fits) << saved;
+    if (!c.fits) {
+      EXPECT_EQ(document.vector(), before);
+      continue;
+    }
+    const auto layout = document.InspectLyraLayout();
+    const auto grown =
+        std::find_if(layout.entries.begin(), layout.entries.end(),
+                     [](const auto& e) { return e.id == 100; });
+    ASSERT_NE(grown, layout.entries.end());
+    EXPECT_EQ(grown->count, 22);
+    EXPECT_EQ(document.vector()[actors + c.used_at], 0x12);
+  }
+}
+
+TEST(LyraLayoutDescriptorTest, NativeTailSpriteGrowthPublishesLayoutOnCommit) {
+  const auto flags = core::FeatureFlags::get();
+  auto restore = absl::MakeCleanup([&] { core::FeatureFlags::get() = flags; });
+  auto& save = core::FeatureFlags::get().overworld;
+  save.kSaveOverworldMaps = false;
+  save.kSaveOverworldSprites = true;
+  save.kSaveOverworldProperties = false;
+  save.kSaveOverworldEntrances = false;
+  save.kSaveOverworldExits = false;
+  save.kSaveOverworldItems = false;
+  NativeDirectoryFixture fixture;
+  fixture.SeedNativeSpritePrefix();
+  // A full model load also reads items and map properties.
+  fixture.bytes[zelda3::overworldItemsAddressBank] = 0x1B;
+  fixture.Word(0xD8000, 0xFFFF);
+  for (int map = 0; map < 192; ++map)
+    fixture.Word(fixture.Entry(23).pc_address + map * 2, 0x8000);
+  fixture.Seal();
+  ASSERT_EQ(fixture.Entry(100).count, 16);
+  for (const bool commit : {false, true}) {
+    SCOPED_TRACE(commit ? "commit" : "rollback");
+    Rom image;
+    ASSERT_TRUE(image.LoadFromData(fixture.bytes).ok());
+    auto world = std::make_unique<zelda3::Overworld>(&image);
+    const auto loaded = world->Load(&image);
+    ASSERT_TRUE(loaded.ok()) << loaded;
+    const int owner = world->overworld_map(0xA0)->parent();
+    // Five sprites on one tail map: 5 * 3 + 1 bytes plus the shared empty
+    // list is 17 bytes, one past the stored 16.
+    for (int i = 0; i < 5; ++i) {
+      const ImVec2 position((owner % 8) * 512 + 16 + i * 32,
+                            ((owner % 64) / 8) * 512 + 16);
+      const auto added = editor::InsertSprite(world.get(), position, owner, 0,
+                                              static_cast<uint8_t>(0x10 + i));
+      ASSERT_TRUE(added.ok()) << added.status();
+    }
+    const auto saved = world->SaveNativeTerrain();
+    ASSERT_TRUE(saved.ok()) << saved;
+    const auto stored = image.InspectLyraLayout();
+    const auto stored_100 =
+        std::find_if(stored.entries.begin(), stored.entries.end(),
+                     [](const auto& e) { return e.id == 100; });
+    ASSERT_NE(stored_100, stored.entries.end());
+    ASSERT_GT(stored_100->count, 16);
+    auto model_count = [&] {
+      const auto& model = world->descriptor_layout();
+      return std::find_if(model.entries.begin(), model.entries.end(),
+                          [](const auto& e) { return e.id == 100; })
+          ->count;
+    };
+    // Until the save transaction commits, the model keeps the loaded bound.
+    EXPECT_EQ(model_count(), 16);
+    if (!commit) {
+      world->RollbackSavedMapTiles();
+      EXPECT_EQ(model_count(), 16);
+      continue;
+    }
+    world->CommitSavedMapTiles();
+    EXPECT_EQ(model_count(), stored_100->count);
+    // The tail list now reaches past byte 16; reading it through the model's
+    // descriptor must use the grown bound.
+    const auto list = zelda3::ReadOverworldSpriteList(
+        image, world->descriptor_layout(), 0, owner);
+    ASSERT_TRUE(list.ok()) << list.status();
+    EXPECT_EQ(list->size(), 16u);
+  }
+}
+
 class NativeSpecialOverworldEditorTest : public test::HeadlessEditorTest {};
 
 TEST_F(NativeSpecialOverworldEditorTest,
