@@ -1,5 +1,6 @@
 #include "app/editor/system/session/collision_source_pairing.h"
 
+#include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
 #include <atomic>
@@ -136,6 +137,7 @@ TEST_F(CollisionSourcePairingTest, StageRomAndCollisionWithoutPublishing) {
             std::string(candidate.begin(), candidate.end()));
   EXPECT_EQ(prepared->updates[1].target, json_path_);
   EXPECT_NE(prepared->updates[1].after, disk_json);
+  EXPECT_TRUE(prepared->warnings.empty());
   EXPECT_EQ(ReadFile(rom_path_), disk_rom);
   EXPECT_EQ(ReadFile(json_path_), disk_json);
   EXPECT_TRUE(rom_.dirty());
@@ -187,9 +189,12 @@ TEST_F(CollisionSourcePairingTest, UnchangedCollisionLeavesJsonUntouched) {
   const auto json_time = fs::last_write_time(json_path_);
   ASSERT_TRUE(rom_.WriteByte(0x100, 0x42).ok());
 
-  const auto save = SaveRomWithCollisionSource(&rom_, json_path_);
+  std::string drift_warning = "stale";
+  const auto save =
+      SaveRomWithCollisionSource(&rom_, json_path_, &drift_warning);
   ASSERT_TRUE(save.ok()) << save;
 
+  EXPECT_TRUE(drift_warning.empty()) << drift_warning;
   EXPECT_EQ(ReadFile(json_path_), json_before);
   EXPECT_EQ(fs::last_write_time(json_path_), json_time);
   EXPECT_EQ(static_cast<uint8_t>(ReadFile(rom_path_)[0x100]), 0x42);
@@ -331,9 +336,16 @@ TEST_F(CollisionSourcePairingTest,
   ASSERT_TRUE(rom_.WriteByte(0x100, 0x42).ok());
   expected_rom[0x100] = '\x42';
 
-  const auto save = SaveRomWithCollisionSource(&rom_, json_path_);
+  std::string drift_warning;
+  const auto save =
+      SaveRomWithCollisionSource(&rom_, json_path_, &drift_warning);
   ASSERT_TRUE(save.ok()) << save;
 
+  // The user is told the pair is out of step and how to reconcile it.
+  EXPECT_THAT(drift_warning, ::testing::HasSubstr(json_path_.string()));
+  EXPECT_THAT(drift_warning, ::testing::HasSubstr("out of step"));
+  EXPECT_THAT(drift_warning,
+              ::testing::HasSubstr("validate_custom_collision_source.py"));
   EXPECT_EQ(ReadFile(json_path_), *drifted);
   EXPECT_EQ(fs::last_write_time(json_path_), json_time);
   EXPECT_EQ(ReadFile(rom_path_), expected_rom);
@@ -348,6 +360,8 @@ TEST_F(CollisionSourcePairingTest,
   ASSERT_EQ(prepared->updates.size(), 2u);
   EXPECT_EQ(prepared->updates[1].before, std::optional<std::string>(*drifted));
   EXPECT_EQ(prepared->updates[1].after, *drifted);
+  ASSERT_EQ(prepared->warnings.size(), 1u);
+  EXPECT_EQ(prepared->warnings[0], drift_warning);
 }
 
 TEST_F(CollisionSourcePairingTest, MalformedSourceRefusesSaveAndRebind) {

@@ -4318,6 +4318,7 @@ absl::Status EditorManager::SaveProject() {
   }
 
   absl::Status status;
+  std::vector<std::string> save_warnings;
   if (source_plan) {
     auto candidate = current_project_;
     ApplyProjectSaveSettings(&candidate, /*include_recent_files=*/true);
@@ -4374,6 +4375,7 @@ absl::Status EditorManager::SaveProject() {
       candidate.rom_metadata.expected_hash = artifacts.rom_identity.crc32;
       for (auto& update : artifacts.updates)
         updates.push_back(std::move(update));
+      save_warnings = std::move(artifacts.warnings);
     } else {
       updates.push_back({rom_path, disk_rom, disk_rom});
     }
@@ -4426,6 +4428,8 @@ absl::Status EditorManager::SaveProject() {
       }
     }
     RebaseCleanProjectFileDraft(current_project_.filepath);
+    for (const auto& warning : save_warnings)
+      toast_manager_.Show(warning, ToastType::kWarning, 10.0f);
   }
   CaptureActiveProjectContext();
   if (!status.ok() || !build_owned) {

@@ -77,15 +77,19 @@ absl::Status RomFileManager::SaveRom(
   settings.backup = false;
   settings.save_new = false;
 
-  auto status = collision_source.empty()
-                    ? rom->SaveToFile(settings)
-                    : SaveRomWithCollisionSource(rom, collision_source);
+  std::string drift_warning;
+  auto status =
+      collision_source.empty()
+          ? rom->SaveToFile(settings)
+          : SaveRomWithCollisionSource(rom, collision_source, &drift_warning);
   if (!status.ok() && toast_manager_) {
     toast_manager_->Show(
         absl::StrFormat("Failed to save ROM: %s", status.message()),
         ToastType::kError);
   } else if (toast_manager_) {
     toast_manager_->Show("ROM saved successfully", ToastType::kSuccess);
+    if (!drift_warning.empty())
+      toast_manager_->Show(drift_warning, ToastType::kWarning, 10.0f);
   }
   return status;
 }
@@ -161,10 +165,13 @@ RomFileManager::PrepareSaveArtifacts(
     if (!disk_rom.has_value())
       return absl::FailedPreconditionError(
           "Collision-source preparation requires the previous ROM bytes");
+    std::string drift_warning;
     ASSIGN_OR_RETURN(auto update, PrepareRomCollisionSourceUpdate(
                                       candidate, collision_source, *disk_rom,
-                                      disk_collision));
+                                      disk_collision, &drift_warning));
     prepared.updates.push_back(std::move(update));
+    if (!drift_warning.empty())
+      prepared.warnings.push_back(std::move(drift_warning));
   }
   return prepared;
 }

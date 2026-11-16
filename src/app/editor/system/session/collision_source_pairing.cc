@@ -132,7 +132,9 @@ absl::Status ValidateRomCollisionSourceBinding(Rom* replacement_rom,
 
 absl::StatusOr<core::SourceArtifactUpdate> PrepareRomCollisionSourceUpdate(
     Rom* candidate, const fs::path& json_path, const std::string& disk_rom,
-    const std::optional<std::string>& disk_json) {
+    const std::optional<std::string>& disk_json, std::string* drift_warning) {
+  if (drift_warning != nullptr)
+    drift_warning->clear();
   if (candidate == nullptr || !candidate->is_loaded()) {
     return absl::FailedPreconditionError("No candidate ROM loaded");
   }
@@ -148,12 +150,15 @@ absl::StatusOr<core::SourceArtifactUpdate> PrepareRomCollisionSourceUpdate(
       // The pair was already out of step and this save does not change
       // collision, so it can neither overwrite an outside JSON edit nor widen
       // the drift. Keep the JSON byte-identical and let the ROM save proceed.
-      LOG_WARN("CollisionSource",
-               "%s is out of step with the custom collision in %s. This "
-               "save does not change collision, so the file was left as it "
-               "is; reconcile them (Oracle: "
-               "Scripts/Generate/validate_custom_collision_source.py).",
-               json_path.string().c_str(), candidate->filename().c_str());
+      const std::string warning = absl::StrFormat(
+          "%s is out of step with the custom collision in %s. This save does "
+          "not change collision, so the file was left as it is; reconcile "
+          "them (Oracle: "
+          "Scripts/Generate/validate_custom_collision_source.py).",
+          json_path.string(), candidate->filename());
+      LOG_WARN("CollisionSource", "%s", warning.c_str());
+      if (drift_warning != nullptr)
+        *drift_warning = warning;
       return core::SourceArtifactUpdate{
           .target = json_path, .before = disk_json, .after = *disk_json};
     }
@@ -180,7 +185,10 @@ absl::StatusOr<core::SourceArtifactUpdate> PrepareRomCollisionSourceUpdate(
       .target = json_path, .before = disk_json, .after = next};
 }
 
-absl::Status SaveRomWithCollisionSource(Rom* rom, const fs::path& json_path) {
+absl::Status SaveRomWithCollisionSource(Rom* rom, const fs::path& json_path,
+                                        std::string* drift_warning) {
+  if (drift_warning != nullptr)
+    drift_warning->clear();
   if (rom == nullptr || !rom->is_loaded() || rom->filename().empty()) {
     return absl::FailedPreconditionError("No ROM file to save");
   }
@@ -221,9 +229,9 @@ absl::Status SaveRomWithCollisionSource(Rom* rom, const fs::path& json_path) {
         "%s changed while saving; nothing was written. Save again.",
         json_path.string()));
   }
-  ASSIGN_OR_RETURN(
-      auto collision_update,
-      PrepareRomCollisionSourceUpdate(rom, json_path, *disk_rom, locked_json));
+  ASSIGN_OR_RETURN(auto collision_update,
+                   PrepareRomCollisionSourceUpdate(rom, json_path, *disk_rom,
+                                                   locked_json, drift_warning));
 
   const std::vector<uint8_t>& bytes = rom->vector();
   std::vector<core::SourceArtifactUpdate> updates;

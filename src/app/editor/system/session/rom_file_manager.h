@@ -44,6 +44,9 @@ class RomFileManager {
     // retained copier header; project identity always hashes the ROM body.
     std::vector<core::SourceArtifactUpdate> updates;
     util::RomIdentityHashes rom_identity;
+    // Messages for the user about a save that may proceed, e.g. a collision
+    // source that was already out of step and is left as it is.
+    std::vector<std::string> warnings;
   };
   // Read-only staging from a serialized in-memory candidate. The caller pins
   // old bytes under its publication lock and must CAS every returned update.

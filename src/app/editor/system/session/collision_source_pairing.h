@@ -23,9 +23,13 @@ absl::Status ValidateRomCollisionSourceBinding(
 // Prepare a collision-source update from caller-pinned on-disk ROM/JSON bytes.
 // This is read-only: the caller must hold the publication lock and CAS both
 // inputs through publication. Unchanged semantic data retains its formatting.
+// When the JSON was already out of step and this save leaves collision alone,
+// the JSON is kept as it is and `drift_warning` (if given) receives a message
+// for the user; otherwise it is cleared.
 absl::StatusOr<core::SourceArtifactUpdate> PrepareRomCollisionSourceUpdate(
     Rom* candidate, const std::filesystem::path& json_path,
-    const std::string& disk_rom, const std::optional<std::string>& disk_json);
+    const std::string& disk_rom, const std::optional<std::string>& disk_json,
+    std::string* drift_warning = nullptr);
 
 // Saves `rom` to its own filename and keeps a tracked custom_collision.json in
 // step with it. Projects that name `custom_collision_json` (Oracle of Secrets)
@@ -39,8 +43,11 @@ absl::StatusOr<core::SourceArtifactUpdate> PrepareRomCollisionSourceUpdate(
 //   previous bytes. A crash between the two replacements is not covered.
 // - The save is refused, writing nothing, when the JSON on disk matches
 //   neither the ROM on disk nor the new ROM: it was changed outside yaze.
+// - A save that leaves collision alone proceeds when the pair was already out
+//   of step; `drift_warning` (if given) then receives a message for the user.
 absl::Status SaveRomWithCollisionSource(Rom* rom,
-                                        const std::filesystem::path& json_path);
+                                        const std::filesystem::path& json_path,
+                                        std::string* drift_warning = nullptr);
 
 }  // namespace yaze::editor
 
