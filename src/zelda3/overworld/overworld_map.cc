@@ -11,6 +11,7 @@
 
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
+#include "absl/strings/str_format.h"
 #include "app/gfx/types/snes_color.h"
 #include "app/gfx/types/snes_palette.h"
 #include "app/gfx/types/snes_tile.h"
@@ -1487,6 +1488,19 @@ absl::Status OverworldMap::LoadPalette() {
   std::array<int, 3>
       palette_ids{};  // Main, aux1, aux2 after all loader fallbacks.
   auto& ow_aux_pal_group = game_data_->palette_groups.overworld_aux;
+  // Aux rows past the built-in ones live in an extension that only the
+  // project binds (Oracle: PC 0x22F900). Name the missing binding instead of
+  // the generic selector refusal.
+  for (const uint8_t aux : {pal1, pal2}) {
+    if (!bound_aux && aux != 0xFF && aux >= ow_aux_pal_group.size()) {
+      return absl::OutOfRangeError(absl::StrFormat(
+          "Aux palette $%02X is past the %d built-in aux palettes and no aux "
+          "palette extension is bound; set %s in the project's "
+          "[rom_addresses]",
+          aux, static_cast<int>(ow_aux_pal_group.size()),
+          core::RomAddressKey::kOverworldAuxPaletteExtensionPc));
+    }
+  }
   ASSIGN_OR_RETURN(gfx::SnesPalette aux1,
                    GetPalette(ow_aux_pal_group, pal1, previous_pal_id,
                               ow_aux_pal_group.size(), &palette_ids[1]));
