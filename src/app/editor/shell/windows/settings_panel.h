@@ -102,6 +102,11 @@ class SettingsPanel : public Editor {
     project_provider_ = std::move(project_provider);
     rom_hash_provider_ = std::move(hash_provider);
   }
+  // "Use Current ROM Hash" runs this so it shares the ROM Information
+  // popup's adopt path (hash format and session project copy).
+  void SetAdoptRomHashCallback(std::function<absl::Status()> callback) {
+    adopt_rom_hash_callback_ = std::move(callback);
+  }
 
   // Main draw entry point
   void Draw();
@@ -161,6 +166,8 @@ class SettingsPanel : public Editor {
   StatusBar* status_bar_ = nullptr;
   std::function<project::YazeProject*()> project_provider_;
   std::function<std::string()> rom_hash_provider_;
+  std::function<absl::Status()> adopt_rom_hash_callback_;
+  std::string rom_hash_status_message_;
   Rom* rom_ = nullptr;
   project::YazeProject* project_ = nullptr;  // Project reference
 

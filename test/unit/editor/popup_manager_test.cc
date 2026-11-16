@@ -549,5 +549,46 @@ TEST_F(SaveAsPopupTest, SettingsHashUsesSaveIdentityAndSurvivesProjectCapture) {
             identity_hash);
 }
 
+TEST_F(SaveAsPopupTest, SettingsHashUsesAdoptPathAndKeepsSha1Format) {
+  auto* project = manager_->GetCurrentProject();
+  project->name = "Settings adopt fixture";
+  project->filepath = (root_ / "adopt.yaze").string();
+  // A configured target other than the loaded ROM, so the editable-target
+  // exemption does not hide the identity check.
+  project->rom_filename = (root_ / "configured-other.sfc").string();
+  project->rom_metadata.write_policy = project::RomWritePolicy::kBlock;
+  auto* rom = manager_->GetCurrentRom();
+  const auto identity =
+      util::ComputeRomIdentityHashes(rom->data(), rom->size());
+  auto foreign = rom->vector();
+  foreign[0] ^= 1;
+  const auto foreign_sha1 =
+      util::ComputeRomIdentityHashes(foreign.data(), foreign.size()).sha1;
+  ASSERT_EQ(foreign_sha1.size(), 40u);
+  project->rom_metadata.expected_hash = foreign_sha1;
+  ASSERT_TRUE(project->Save().ok());
+  ASSERT_TRUE(manager_->IsRomIdentityMismatch());
+
+  draw_settings_ = true;
+  Frame();
+  Frame();
+  Click("Settings/tab:Project");
+  Frame();
+  Click("Settings/button:Use Current ROM Hash");
+  Frame();
+  // Same result as ROM Information > Adopt Current ROM Hash: SHA-1 stays
+  // SHA-1, and the session's project copy (read by graphics layout) follows.
+  EXPECT_EQ(project->rom_metadata.expected_hash, identity.sha1);
+  EXPECT_FALSE(manager_->IsRomIdentityMismatch());
+  project::YazeProject on_disk;
+  ASSERT_TRUE(on_disk.Open((root_ / "adopt.yaze").string()).ok());
+  EXPECT_EQ(on_disk.rom_metadata.expected_hash, identity.sha1);
+  auto* session = manager_->session_coordinator()->GetActiveRomSession();
+  ASSERT_NE(session, nullptr);
+  ASSERT_TRUE(session->project_context.has_value());
+  EXPECT_EQ(session->project_context->rom_metadata.expected_hash,
+            identity.sha1);
+}
+
 }  // namespace
 }  // namespace yaze::editor

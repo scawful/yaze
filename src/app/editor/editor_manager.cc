@@ -6465,10 +6465,19 @@ void EditorManager::ConfigureEditorDependencies(EditorSet* editor_set, Rom* rom,
                      ? &current_project_
                      : nullptr;
         },
+        // Show the hash the button will write (SHA-1 or CRC32 by project).
         [this, session_id]() -> std::string {
           return IsCurrentProjectContextOwnedBySession(session_id)
-                     ? GetCurrentRomHash()
+                     ? rom_lifecycle_.AdoptableRomHash()
                      : std::string();
+        });
+    settings_panel->SetAdoptRomHashCallback(
+        [this, session_id]() -> absl::Status {
+          if (!IsCurrentProjectContextOwnedBySession(session_id)) {
+            return absl::FailedPreconditionError(
+                "ROM hash adoption requires its project session to be active.");
+          }
+          return AdoptCurrentRomHashForProject();
         });
     settings_panel->SetOpenMinecartTracksCallback(
         [this, session_id]() -> absl::Status {

@@ -563,9 +563,22 @@ void SettingsPanel::DrawProjectSettings() {
     const bool use_hash = ImGui::Button(tr("Use Current ROM Hash"));
     gui::WidgetIdRegistry::Instance().RegisterWidget(
         "Settings/button:Use Current ROM Hash", "button", ImGui::GetItemID());
-    if (use_hash && !current_hash.empty()) {
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip(
+          "%s", tr("Writes this hash to the project file. Save first if the "
+                   "ROM has unsaved edits."));
+    }
+    if (use_hash && adopt_rom_hash_callback_) {
+      const absl::Status status = adopt_rom_hash_callback_();
+      rom_hash_status_message_ =
+          status.ok() ? std::string() : std::string(status.message());
+    } else if (use_hash && !current_hash.empty()) {
       project_->rom_metadata.expected_hash = current_hash;
       project_->Save();
+    }
+    if (!rom_hash_status_message_.empty()) {
+      ImGui::TextColored(gui::GetErrorColor(), "%s",
+                         rom_hash_status_message_.c_str());
     }
   } else {
     ImGui::TextDisabled(tr("Current ROM Hash: (no ROM loaded)"));
