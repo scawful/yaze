@@ -187,12 +187,35 @@ bool RomLifecycleManager::IsRomHashMismatch() const {
       !target_info.matches_build_output) {
     return false;
   }
+  return IsRomIdentityMismatch();
+}
+
+bool RomLifecycleManager::IsRomIdentityMismatch() const {
+  if (!project_ || !project_->project_opened()) {
+    return false;
+  }
   const std::string expected(
       absl::StripAsciiWhitespace(project_->rom_metadata.expected_hash));
   if (expected.empty() || current_rom_identity_.crc32.empty()) {
     return false;
   }
   return current_rom_identity_.Match(expected) == util::RomHashMatch::kMismatch;
+}
+
+std::string RomLifecycleManager::AdoptableRomHash() const {
+  if (current_rom_identity_.crc32.empty()) {
+    return {};
+  }
+  std::string expected = project_ ? std::string(absl::StripAsciiWhitespace(
+                                        project_->rom_metadata.expected_hash))
+                                  : std::string();
+  if (absl::StartsWithIgnoreCase(expected, "0x")) {
+    expected.erase(0, 2);
+  }
+  // Keep the project's format: launchers compare SHA-1 directly.
+  return expected.size() == 40 && !current_rom_identity_.sha1.empty()
+             ? current_rom_identity_.sha1
+             : current_rom_identity_.crc32;
 }
 
 bool RomLifecycleManager::AdmitProjectPageTile16(
