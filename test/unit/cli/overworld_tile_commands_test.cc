@@ -2551,6 +2551,17 @@ TEST_F(OverworldNativeSourceImportTest, ProfileApplyRefusesBeforeOutput) {
   source["pages"].back()["source_profile"]["background_color"] = 0x0042;
   ExpectRefused(with_flag(source), "unselected page $90");
 
+  // The fixture's vanilla pointer arrays and its bank $23 arrays are both
+  // zero, so it reads as a 255-sheet table and every byte names a sheet
+  // ($FF means "world default"). Break bank $23 row $00 so the loader falls
+  // back to 223 sheets and $F5 is unavailable.
+  {
+    auto bytes = fixture_.bytes;
+    bytes[SnesToPc(zelda3::kOracleSheetBankArraySnes)] ^= 0x01;
+    WriteBytes(target_path_, bytes);
+    ASSERT_TRUE(target_.LoadFromFile(target_path_.string()).ok());
+    original_ = target_.vector();
+  }
   source = profile_source;
   source["pages"][0]["source_profile"]["graphics_sheets"][1] = 0xF5;
   ExpectRefused(with_flag(source), "neither the ROM table nor the bound");
