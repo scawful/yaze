@@ -8,6 +8,7 @@
 
 #include <algorithm>
 #include <memory>
+#include <string>
 #include <vector>
 
 #include "rom/rom.h"
@@ -136,7 +137,13 @@ TEST(OverworldAreaRenderTest,
                   *data.overworld_palette_layout, rom->vector(),
                   data.palette_groups.overworld_aux)
                   .ok());
-  EXPECT_FALSE(map.LoadPalette().ok());
+  const auto unbound = map.LoadPalette();
+  EXPECT_EQ(unbound.code(), absl::StatusCode::kOutOfRange);
+  EXPECT_NE(unbound.message().find("Aux palette $15"), std::string::npos)
+      << unbound;
+  EXPECT_NE(unbound.message().find("overworld_aux_palette_extension_pc"),
+            std::string::npos)
+      << unbound;
 }
 
 TEST(OverworldAreaRenderTest, UnavailableSpriteColorsDoNotHideBackground) {
