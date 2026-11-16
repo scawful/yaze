@@ -553,6 +553,8 @@ if(YAZE_BUILD_TESTS)
     unit/rom/native_overworld_placement_save_test.cc
     unit/core/oracle_rom_fixture_test.cc
     unit/core/project_file_passthrough_test.cc
+    unit/core/project_editor_lock_test.cc
+    unit/core/project_workspace_test.cc
     unit/core/project_atlas_settings_test.cc
     unit/core/project_plan_test.cc
     unit/core/project_plan_agent_test.cc

@@ -6,6 +6,7 @@
 #include <atomic>
 #include <cstddef>
 #include <functional>
+#include <map>
 #include <memory>
 #include <optional>
 #include <string>
@@ -52,6 +53,7 @@
 #include "app/emu/emulator.h"
 #include "app/startup_flags.h"
 #include "core/project.h"
+#include "core/project_editor_lock.h"
 #include "core/version_manager.h"
 #include "imgui/imgui.h"
 #include "rom/rom.h"
@@ -227,6 +229,9 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
   /// project's SHA-1 or CRC32 format), save the project file, and update the
   /// active session's project copy. Restores the old value on save failure.
   absl::Status AdoptCurrentRomHashForProject();
+  /// Write `hash` as the project's expected hash, as AdoptCurrentRomHashForProject
+  /// does for the hash it picks.
+  absl::Status RecordProjectRomHash(const std::string& hash);
   std::vector<editor::RomFileManager::BackupEntry> GetRomBackups() const;
   bool IsRomBackupRestorePending() const;
   absl::Status RestoreRomBackup(const std::string& backup_path);
@@ -584,6 +589,16 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
                              bool transient = false);
   void HandleSessionCreated(size_t index, RomSession* session);
   void HandleSessionClosed(size_t index);
+  // Project editor lock ([rom] editor_lock_file): taken when a project opens,
+  // released once no open session uses that project's lock path.
+  std::string ResolveProjectEditorLockPath(
+      const project::YazeProject& project) const;
+  absl::Status AcquireProjectEditorLock(const project::YazeProject& project);
+  void ReleaseUnusedProjectEditorLocks(
+      std::optional<size_t> closing_index = std::nullopt);
+  // [rom] adopt_hash_on_open: record the loaded ROM's hash when it no longer
+  // matches the project's, so an agent's ROM write does not block the open.
+  void MaybeAdoptRomHashOnOpen();
   // Initialization helpers (extracted from constructor for readability)
   void SubscribeToEvents();
   void InitializeSubsystems();
@@ -694,6 +709,8 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
   gfx::IRenderer* renderer_ = nullptr;
 
   project::YazeProject current_project_;
+  std::map<std::string, std::unique_ptr<core::ProjectEditorLock>>
+      project_editor_locks_;
   struct PendingProjectRomSelection {
     std::string previous_path;
     std::string candidate_path;

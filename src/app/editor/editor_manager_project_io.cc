@@ -20,6 +20,7 @@
 #include <TargetConditionals.h>
 #endif
 
+#include "absl/cleanup/cleanup.h"
 #include "absl/status/status.h"
 #include "absl/strings/match.h"
 #include "absl/strings/str_format.h"
@@ -1576,6 +1577,16 @@ absl::Status EditorManager::LoadProjectWithRom(bool allow_dialogs) {
       pending_selection.has_value() ? pending_selection->previous_path
                                     : current_project_.rom_filename;
   bool persist_selected_rom = pending_selection.has_value();
+  // Hold the project's editor lock while it is open. Every exit reconciles:
+  // a failed open leaves no session using the lock, so it is released.
+  if (auto lock_status = AcquireProjectEditorLock(current_project_);
+      !lock_status.ok()) {
+    toast_manager_.Show(std::string(lock_status.message()), ToastType::kError);
+    return lock_status;
+  }
+  absl::Cleanup reconcile_editor_locks = [this] {
+    ReleaseUnusedProjectEditorLocks();
+  };
   auto abandon_selected_rom = [&]() {
     if (!persist_selected_rom) {
       return;
@@ -1856,6 +1867,7 @@ absl::Status EditorManager::LoadProjectWithRom(bool allow_dialogs) {
   }
 
   if (auto* rom = GetCurrentRom(); rom && rom->is_loaded()) {
+    MaybeAdoptRomHashOnOpen();
     if (IsRomHashMismatch()) {
       toast_manager_.Show(
           "Project ROM hash mismatch detected. Check ROM Identity settings.",

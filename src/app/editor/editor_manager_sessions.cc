@@ -1,11 +1,15 @@
 #include "app/editor/editor_manager.h"
 
+#include <filesystem>
 #include <memory>
+#include <set>
 #include <string>
 
+#include "absl/strings/str_format.h"
 #include "app/gfx/resource/arena.h"
 #include "app/gfx/util/palette_manager.h"
 #include "core/features.h"
+#include "core/project_workspace.h"
 #include "core/rom_settings.h"
 #include "util/log.h"
 #include "zelda3/dungeon/custom_object.h"
@@ -429,6 +433,9 @@ void EditorManager::HandleSessionClosed(size_t index) {
     ContentRegistry::Context::Clear();
   }
 
+  // The closing session is still listed; release locks only it was using.
+  ReleaseUnusedProjectEditorLocks(index);
+
   // Avoid dangling/stale label map pointers after session close.
   RefreshResourceLabelProvider();
 
@@ -514,6 +521,112 @@ EditorManager::SessionScope::SessionScope(EditorManager* manager,
 EditorManager::SessionScope::~SessionScope() {
   // Restore previous context
   manager_->session_coordinator_->SwitchToSession(prev_session_index_);
+}
+
+std::string EditorManager::ResolveProjectEditorLockPath(
+    const project::YazeProject& project) const {
+  if (project.rom_metadata.editor_lock_file.empty() ||
+      project.filepath.empty()) {
+    return "";
+  }
+  return std::filesystem::path(
+             project.GetAbsolutePath(project.rom_metadata.editor_lock_file))
+      .lexically_normal()
+      .string();
+}
+
+absl::Status EditorManager::AcquireProjectEditorLock(
+    const project::YazeProject& project) {
+  const std::string path = ResolveProjectEditorLockPath(project);
+  if (path.empty() || project_editor_locks_.count(path) > 0) {
+    return absl::OkStatus();
+  }
+  auto lock = std::make_unique<core::ProjectEditorLock>();
+  if (auto status = lock->Acquire(path, /*owner=*/""); !status.ok()) {
+    return status;
+  }
+  LOG_INFO("EditorManager", "Project editor lock %s: %s", path.c_str(),
+           lock->owns_file() ? "taken" : "already held by this process");
+  project_editor_locks_.emplace(path, std::move(lock));
+  return absl::OkStatus();
+}
+
+void EditorManager::ReleaseUnusedProjectEditorLocks(
+    std::optional<size_t> closing_index) {
+  if (project_editor_locks_.empty()) {
+    return;
+  }
+  std::set<std::string> in_use;
+  if (session_coordinator_) {
+    for (size_t i = 0; i < session_coordinator_->GetTotalSessionCount(); ++i) {
+      if (closing_index.has_value() && *closing_index == i) {
+        continue;
+      }
+      auto* session =
+          static_cast<RomSession*>(session_coordinator_->GetSession(i));
+      if (session != nullptr && session->project_context.has_value()) {
+        const std::string path =
+            ResolveProjectEditorLockPath(*session->project_context);
+        if (!path.empty()) {
+          in_use.insert(path);
+        }
+      }
+    }
+  }
+  for (auto it = project_editor_locks_.begin();
+       it != project_editor_locks_.end();) {
+    if (in_use.count(it->first) == 0) {
+      LOG_INFO("EditorManager", "Project editor lock released: %s",
+               it->first.c_str());
+      it = project_editor_locks_.erase(it);
+    } else {
+      ++it;
+    }
+  }
+}
+
+void EditorManager::MaybeAdoptRomHashOnOpen() {
+  if (!current_project_.rom_metadata.adopt_hash_on_open) {
+    return;
+  }
+  // Same result as Oracle's refresh_rom_hash.py --apply: project.yaze and the
+  // bundle manifest both hold the ROM SHA-1 after open.
+  const std::string previous = current_project_.rom_metadata.expected_hash;
+  const bool rom_changed = IsRomIdentityMismatch();
+  const std::string sha1 = rom_lifecycle_.current_rom_sha1();
+  const std::string record = project::RomHashToRecordOnOpen(
+      previous, sha1, rom_lifecycle_.current_rom_hash());
+  if (!record.empty()) {
+    if (auto status = RecordProjectRomHash(record); !status.ok()) {
+      LOG_WARN("EditorManager", "ROM hash adopt failed: %s",
+               std::string(status.message()).c_str());
+      toast_manager_.Show(
+          absl::StrFormat("ROM changed; recording its hash failed: %s",
+                          status.message()),
+          ToastType::kWarning);
+      return;
+    }
+    LOG_INFO("EditorManager", "ROM hash adopted on open: %s -> %s",
+             previous.c_str(), record.c_str());
+  }
+  // A bundle manifest records the ROM sha1 too (z3ed project-bundle-verify).
+  // UpdateBundleManifestRomChecksum leaves a matching manifest untouched.
+  const std::filesystem::path bundle =
+      std::filesystem::path(current_project_.filepath).parent_path();
+  if (sha1.size() == 40 && bundle.extension() == ".yazeproj" &&
+      std::filesystem::exists(bundle / "manifest.json")) {
+    if (auto status = project::UpdateBundleManifestRomChecksum(bundle, sha1);
+        !status.ok()) {
+      LOG_WARN("EditorManager", "manifest romChecksum not updated: %s",
+               std::string(status.message()).c_str());
+    }
+  }
+  if (rom_changed && !record.empty()) {
+    toast_manager_.Show(
+        absl::StrFormat("ROM changed since last open: %s -> %s. Hash recorded.",
+                        previous.substr(0, 8), record.substr(0, 8)),
+        ToastType::kInfo);
+  }
 }
 
 }  // namespace yaze::editor

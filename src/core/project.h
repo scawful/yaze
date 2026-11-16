@@ -232,6 +232,24 @@ struct RomMetadata {
   RomRole role = RomRole::kDev;
   std::string expected_hash;  // CRC32 or SHA1 (hex)
   RomWritePolicy write_policy = RomWritePolicy::kWarn;
+  // When the loaded ROM no longer matches expected_hash, record its hash in
+  // the project (and bundle manifest) on open instead of refusing it. For
+  // projects whose ROM other tools write between editor sessions.
+  bool adopt_hash_on_open = false;
+  // Editor lock file, relative to the project directory (the bundle root for
+  // a .yazeproj). Empty = no lock. yaze holds it while the project is open;
+  // format matches Oracle's Scripts/Agents/project_rom_lock.py.
+  std::string editor_lock_file;
+};
+
+// Per-project roots for app data, live proposals and ROM sandboxes. Paths
+// are relative to the project directory. Empty = the global default. An
+// explicit YAZE_APP_DATA_DIR / YAZE_PROPOSAL_ROOT / YAZE_SANDBOX_ROOT in the
+// environment still wins (see core/project_workspace.h).
+struct ProjectWorkspaceFolders {
+  std::string app_data_folder;
+  std::string proposal_folder;
+  std::string sandbox_folder;
 };
 
 struct Z3dkMemoryRange {
@@ -314,6 +332,7 @@ struct YazeProject {
   std::string rom_backup_folder;
   std::vector<std::string> additional_roms;  // For multi-ROM projects
   RomMetadata rom_metadata;
+  ProjectWorkspaceFolders workspace_folders;
 
   // Code and assets
   std::string code_folder;

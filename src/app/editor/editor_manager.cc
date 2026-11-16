@@ -4373,6 +4373,13 @@ absl::Status EditorManager::AdoptCurrentRomHashForProject() {
   if (adopted.empty()) {
     return absl::FailedPreconditionError("No loaded ROM identity to adopt");
   }
+  return RecordProjectRomHash(adopted);
+}
+
+absl::Status EditorManager::RecordProjectRomHash(const std::string& adopted) {
+  if (!current_project_.project_opened()) {
+    return absl::FailedPreconditionError("No project is open");
+  }
   // Write only the project descriptor, as the Settings "Use Current ROM Hash"
   // button does; a full project Save would also run a native ROM save.
   const std::string previous = current_project_.rom_metadata.expected_hash;

@@ -79,6 +79,10 @@ class RomLifecycleManager {
   const std::string& current_rom_hash() const {
     return current_rom_identity_.crc32;
   }
+  /// SHA-1 of the loaded ROM identity; empty when none is active.
+  const std::string& current_rom_sha1() const {
+    return current_rom_identity_.sha1;
+  }
 
   /// Check whether the ROM hash mismatches the project's expected hash.
   bool IsRomHashMismatch() const;

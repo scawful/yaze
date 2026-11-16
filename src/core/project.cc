@@ -1735,7 +1735,14 @@ absl::StatusOr<std::string> YazeProject::SerializeToString() const {
   file << "role=" << RomRoleToString(rom_metadata.role) << "\n";
   file << "expected_hash=" << rom_metadata.expected_hash << "\n";
   file << "write_policy=" << RomWritePolicyToString(rom_metadata.write_policy)
-       << "\n\n";
+       << "\n";
+  if (rom_metadata.adopt_hash_on_open) {
+    file << "adopt_hash_on_open=true\n";
+  }
+  if (!rom_metadata.editor_lock_file.empty()) {
+    file << "editor_lock_file=" << rom_metadata.editor_lock_file << "\n";
+  }
+  file << "\n";
 
   // Feature flags section
   file << "[feature_flags]\n";
@@ -1815,6 +1822,15 @@ absl::StatusOr<std::string> YazeProject::SerializeToString() const {
 
   // Workspace settings section
   file << "[workspace]\n";
+  if (!workspace_folders.app_data_folder.empty()) {
+    file << "app_data_folder=" << workspace_folders.app_data_folder << "\n";
+  }
+  if (!workspace_folders.proposal_folder.empty()) {
+    file << "proposal_folder=" << workspace_folders.proposal_folder << "\n";
+  }
+  if (!workspace_folders.sandbox_folder.empty()) {
+    file << "sandbox_folder=" << workspace_folders.sandbox_folder << "\n";
+  }
   file << "font_global_scale=" << workspace_settings.font_global_scale << "\n";
   file << "dark_mode=" << (workspace_settings.dark_mode ? "true" : "false")
        << "\n";
@@ -2223,6 +2239,10 @@ absl::Status YazeProject::ParseFromString(const std::string& content) {
         rom_metadata.expected_hash = value;
       else if (key == "write_policy")
         rom_metadata.write_policy = ParseRomWritePolicy(value);
+      else if (key == "adopt_hash_on_open")
+        rom_metadata.adopt_hash_on_open = ParseBool(value);
+      else if (key == "editor_lock_file")
+        rom_metadata.editor_lock_file = value;
       else
         understood = false;
     } else if (current_section == "feature_flags") {
@@ -2289,7 +2309,13 @@ absl::Status YazeProject::ParseFromString(const std::string& content) {
       else
         understood = false;
     } else if (current_section == "workspace") {
-      if (key == "font_global_scale")
+      if (key == "app_data_folder")
+        workspace_folders.app_data_folder = value;
+      else if (key == "proposal_folder")
+        workspace_folders.proposal_folder = value;
+      else if (key == "sandbox_folder")
+        workspace_folders.sandbox_folder = value;
+      else if (key == "font_global_scale")
         workspace_settings.font_global_scale = ParseFloat(value);
       else if (key == "dark_mode")
         workspace_settings.dark_mode = ParseBool(value);
@@ -4025,6 +4051,14 @@ absl::Status YazeProject::LoadFromJsonFormat(const std::string& project_path) {
         if (rom.contains("write_policy"))
           rom_metadata.write_policy =
               ParseRomWritePolicy(rom["write_policy"].get<std::string>());
+        if (rom.contains("adopt_hash_on_open") &&
+            rom["adopt_hash_on_open"].is_boolean())
+          rom_metadata.adopt_hash_on_open =
+              rom["adopt_hash_on_open"].get<bool>();
+        if (rom.contains("editor_lock_file") &&
+            rom["editor_lock_file"].is_string())
+          rom_metadata.editor_lock_file =
+              rom["editor_lock_file"].get<std::string>();
       }
 
       // Embedded labels flag
@@ -4355,6 +4389,12 @@ absl::Status YazeProject::SaveToJsonFormat() {
   proj["rom"]["expected_hash"] = rom_metadata.expected_hash;
   proj["rom"]["write_policy"] =
       RomWritePolicyToString(rom_metadata.write_policy);
+  if (rom_metadata.adopt_hash_on_open) {
+    proj["rom"]["adopt_hash_on_open"] = true;
+  }
+  if (!rom_metadata.editor_lock_file.empty()) {
+    proj["rom"]["editor_lock_file"] = rom_metadata.editor_lock_file;
+  }
 
   // Embedded labels
   proj["use_embedded_labels"] = use_embedded_labels;

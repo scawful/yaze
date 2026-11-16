@@ -15,6 +15,8 @@
 #include <iostream>
 #include <set>
 #include <thread>
+#include <utility>
+#include <vector>
 
 #include "absl/debugging/symbolize.h"
 #include "absl/strings/ascii.h"
@@ -29,6 +31,7 @@
 #include "app/service/editor_http_server.h"
 #endif
 #include "core/features.h"
+#include "core/project_workspace.h"
 #include "core/proposal_workspace.h"
 #include "util/crash_handler.h"
 #include "util/flag.h"
@@ -421,6 +424,15 @@ int main(int argc, char** argv) {
   yaze::util::FlagParser parser(yaze::util::global_flag_registry());
   RETURN_IF_EXCEPTION(parser.Parse(argc, argv));
 
+  // A project opened from the command line may name its own app-data,
+  // proposal and sandbox roots ([workspace] in project.yaze). Apply them
+  // before anything resolves the app data directory (logs, recents).
+  std::vector<std::pair<std::string, std::string>> project_workspace_env;
+  if (FLAGS_proposal->Get().empty() && !FLAGS_rom_file->Get().empty()) {
+    project_workspace_env =
+        yaze::project::ApplyProjectWorkspaceEnvironment(FLAGS_rom_file->Get());
+  }
+
   // Set up logging
   const bool debug_flag = FLAGS_debug->Get();
   const bool log_to_console_flag = FLAGS_log_to_console->Get();
@@ -431,6 +443,10 @@ int main(int argc, char** argv) {
     if (logs_dir.ok()) {
       log_path = (*logs_dir / "yaze.log").string();
     }
+  }
+
+  for (const auto& [name, value] : project_workspace_env) {
+    LOG_INFO("Main", "Project workspace: %s=%s", name.c_str(), value.c_str());
   }
 
   // Build AppConfig from flags
