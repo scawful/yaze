@@ -10,6 +10,7 @@
 
 #include "absl/strings/str_format.h"
 #include "core/source_artifact_publisher.h"
+#include "util/log.h"
 #include "util/macro.h"
 #include "zelda3/dungeon/custom_collision.h"
 
@@ -143,7 +144,24 @@ absl::StatusOr<core::SourceArtifactUpdate> PrepareRomCollisionSourceUpdate(
                      CollisionSourceOfRomBytes(disk_rom));
     ASSIGN_OR_RETURN(const bool matches,
                      CollisionSourcesMatch(*disk_json, original, json_path));
+    if (!matches && next == original) {
+      // The pair was already out of step and this save does not change
+      // collision, so it can neither overwrite an outside JSON edit nor widen
+      // the drift. Keep the JSON byte-identical and let the ROM save proceed.
+      LOG_WARN("CollisionSource",
+               "%s is out of step with the custom collision in %s. This "
+               "save does not change collision, so the file was left as it "
+               "is; reconcile them (Oracle: "
+               "Scripts/Generate/validate_custom_collision_source.py).",
+               json_path.string().c_str(), candidate->filename().c_str());
+      return core::SourceArtifactUpdate{
+          .target = json_path, .before = disk_json, .after = *disk_json};
+    }
     if (!matches) {
+      LOG_ERROR("CollisionSource",
+                "Refused save: %s does not match the custom collision in %s "
+                "and this save changes collision.",
+                json_path.string().c_str(), candidate->filename().c_str());
       return absl::FailedPreconditionError(absl::StrFormat(
           "%s does not match the custom collision in %s. It was changed "
           "outside yaze, or the two were already out of step. Nothing was "
