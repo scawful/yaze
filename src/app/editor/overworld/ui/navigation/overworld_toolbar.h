@@ -4,6 +4,7 @@
 #include <functional>
 #include <string>
 
+#include "app/editor/overworld/canvas/overworld_canvas_layout.h"
 #include "app/editor/overworld/ui/ui_constants.h"
 #include "app/gui/core/icons.h"
 #include "imgui/imgui.h"
@@ -71,6 +72,10 @@ class OverworldToolbar {
   std::function<void()> on_zoom_fit;
   std::function<void()> on_center_map;
   std::function<float()> get_zoom;
+
+  // Canvas layout mode (Phase 1: Single world vs read-only Unified overview)
+  std::function<OverworldCanvasLayoutMode()> get_layout_mode;
+  std::function<void(OverworldCanvasLayoutMode)> on_set_layout_mode;
 
   // ROM version upgrade callback (vanilla ROMs only)
   std::function<void(int)> on_upgrade_rom_version;

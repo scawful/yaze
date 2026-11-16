@@ -23,7 +23,7 @@ void OverworldEditor::SetupCanvasAutomation() {
 }
 
 bool OverworldEditor::AutomationSetTile(int x, int y, int tile_id) {
-  if (!overworld_.is_loaded()) {
+  if (!overworld_.is_loaded() || IsUnifiedCanvas()) {
     return false;
   }
 

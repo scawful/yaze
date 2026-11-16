@@ -26,6 +26,11 @@ namespace yaze::editor {
 
 namespace {
 
+OverworldCanvasLayout LayoutFor(const CanvasNavigationCallbacks& callbacks) {
+  return callbacks.canvas_layout ? callbacks.canvas_layout()
+                                 : OverworldCanvasLayout();
+}
+
 int DisplayedMapCount(const CanvasNavigationContext& ctx,
                       const CanvasNavigationCallbacks& callbacks) {
   return callbacks.displayed_map_count
@@ -49,8 +54,9 @@ std::optional<int> MapFromCanvasPosition(
   // Use the same bounds and scale validation as right-click targeting. Integer
   // truncation previously mapped small negative positions onto screen zero.
   const auto target = ResolveOverworldContextTarget(
-      *ctx.current_world, 0, scaled_position, ImVec2(0, 0), ImVec2(0, 0),
-      ctx.ow_map_canvas->global_scale(), DisplayedMapCount(ctx, callbacks));
+      LayoutFor(callbacks), *ctx.current_world, 0, scaled_position,
+      ImVec2(0, 0), ImVec2(0, 0), ctx.ow_map_canvas->global_scale(),
+      DisplayedMapCount(ctx, callbacks));
   if (!target || (!IsProjectTerrainMap(callbacks, target->map_id) &&
                   !ctx.overworld->overworld_map(target->map_id))) {
     return std::nullopt;
@@ -83,7 +89,7 @@ void SelectMapFallback(const CanvasNavigationContext& ctx,
     return;
   }
   *ctx.current_map = map_id;
-  *ctx.current_world = std::clamp(map_id / 0x40, 0, 2);
+  *ctx.current_world = OverworldCanvasLayout::ClampedWorldForMap(map_id);
   *ctx.current_parent = project_terrain ? map_id : map->parent();
   if (project_terrain) {
     return;
@@ -206,15 +212,16 @@ absl::Status CanvasNavigationManager::CheckForCurrentMap() {
       current_highlighted_map >= DisplayedMapCount(ctx_, callbacks_)) {
     return absl::OkStatus();
   }
+  const OverworldCanvasLayout layout = LayoutFor(callbacks_);
   if (IsProjectTerrainMap(callbacks_, current_highlighted_map)) {
-    const int local_map = current_highlighted_map % 0x40;
-    ctx_.ow_map_canvas->DrawOutline((local_map % 8) * kOverworldMapSize,
-                                    (local_map / 8) * kOverworldMapSize,
+    const ImVec2 origin = layout.MapOrigin(current_highlighted_map);
+    ctx_.ow_map_canvas->DrawOutline(static_cast<int>(origin.x),
+                                    static_cast<int>(origin.y),
                                     kOverworldMapSize, kOverworldMapSize);
     if (*hovered_map >= 0 && *hovered_map != current_highlighted_map) {
-      const int h_local = *hovered_map % 0x40;
-      ctx_.ow_map_canvas->DrawOutline((h_local % 8) * kOverworldMapSize,
-                                      (h_local / 8) * kOverworldMapSize,
+      const ImVec2 hover_origin = layout.MapOrigin(*hovered_map);
+      ctx_.ow_map_canvas->DrawOutline(static_cast<int>(hover_origin.x),
+                                      static_cast<int>(hover_origin.y),
                                       kOverworldMapSize, kOverworldMapSize);
     }
     if (!hovered_project_terrain && callbacks_.ensure_map_texture) {
@@ -238,43 +245,27 @@ absl::Status CanvasNavigationManager::CheckForCurrentMap() {
         ctx_.overworld->overworld_map(current_highlighted_map)->area_size();
     const int highlight_parent =
         ctx_.overworld->overworld_map(current_highlighted_map)->parent();
-
-    // Calculate parent map coordinates accounting for world offset
-    int parent_map_x;
-    int parent_map_y;
-    if (*ctx_.current_world == 0) {
-      parent_map_x = highlight_parent % 8;
-      parent_map_y = highlight_parent / 8;
-    } else if (*ctx_.current_world == 1) {
-      parent_map_x = (highlight_parent - 0x40) % 8;
-      parent_map_y = (highlight_parent - 0x40) / 8;
-    } else {
-      parent_map_x = (highlight_parent - 0x80) % 8;
-      parent_map_y = (highlight_parent - 0x80) / 8;
-    }
+    const ImVec2 parent_origin = layout.MapOrigin(highlight_parent);
+    const int ox = static_cast<int>(parent_origin.x);
+    const int oy = static_cast<int>(parent_origin.y);
 
     // Draw outline based on area size
     switch (area_size) {
       case AreaSizeEnum::LargeArea:
-        ctx_.ow_map_canvas->DrawOutline(parent_map_x * kOverworldMapSize,
-                                        parent_map_y * kOverworldMapSize,
-                                        large_map_size, large_map_size);
+        ctx_.ow_map_canvas->DrawOutline(ox, oy, large_map_size, large_map_size);
         break;
       case AreaSizeEnum::WideArea:
-        ctx_.ow_map_canvas->DrawOutline(parent_map_x * kOverworldMapSize,
-                                        parent_map_y * kOverworldMapSize,
-                                        large_map_size, kOverworldMapSize);
+        ctx_.ow_map_canvas->DrawOutline(ox, oy, large_map_size,
+                                        kOverworldMapSize);
         break;
       case AreaSizeEnum::TallArea:
-        ctx_.ow_map_canvas->DrawOutline(parent_map_x * kOverworldMapSize,
-                                        parent_map_y * kOverworldMapSize,
-                                        kOverworldMapSize, large_map_size);
+        ctx_.ow_map_canvas->DrawOutline(ox, oy, kOverworldMapSize,
+                                        large_map_size);
         break;
       case AreaSizeEnum::SmallArea:
       default:
-        ctx_.ow_map_canvas->DrawOutline(parent_map_x * kOverworldMapSize,
-                                        parent_map_y * kOverworldMapSize,
-                                        kOverworldMapSize, kOverworldMapSize);
+        ctx_.ow_map_canvas->DrawOutline(ox, oy, kOverworldMapSize,
+                                        kOverworldMapSize);
         break;
     }
   } else {
@@ -285,38 +276,14 @@ absl::Status CanvasNavigationManager::CheckForCurrentMap() {
             0) {
       const int highlight_parent =
           ctx_.overworld->overworld_map(current_highlighted_map)->parent();
-
-      int parent_map_x;
-      int parent_map_y;
-      if (*ctx_.current_world == 0) {
-        parent_map_x = highlight_parent % 8;
-        parent_map_y = highlight_parent / 8;
-      } else if (*ctx_.current_world == 1) {
-        parent_map_x = (highlight_parent - 0x40) % 8;
-        parent_map_y = (highlight_parent - 0x40) / 8;
-      } else {
-        parent_map_x = (highlight_parent - 0x80) % 8;
-        parent_map_y = (highlight_parent - 0x80) / 8;
-      }
-
-      ctx_.ow_map_canvas->DrawOutline(parent_map_x * kOverworldMapSize,
-                                      parent_map_y * kOverworldMapSize,
+      const ImVec2 parent_origin = layout.MapOrigin(highlight_parent);
+      ctx_.ow_map_canvas->DrawOutline(static_cast<int>(parent_origin.x),
+                                      static_cast<int>(parent_origin.y),
                                       large_map_size, large_map_size);
     } else {
-      int current_map_x;
-      int current_map_y;
-      if (*ctx_.current_world == 0) {
-        current_map_x = current_highlighted_map % 8;
-        current_map_y = current_highlighted_map / 8;
-      } else if (*ctx_.current_world == 1) {
-        current_map_x = (current_highlighted_map - 0x40) % 8;
-        current_map_y = (current_highlighted_map - 0x40) / 8;
-      } else {
-        current_map_x = (current_highlighted_map - 0x80) % 8;
-        current_map_y = (current_highlighted_map - 0x80) / 8;
-      }
-      ctx_.ow_map_canvas->DrawOutline(current_map_x * kOverworldMapSize,
-                                      current_map_y * kOverworldMapSize,
+      const ImVec2 current_origin = layout.MapOrigin(current_highlighted_map);
+      ctx_.ow_map_canvas->DrawOutline(static_cast<int>(current_origin.x),
+                                      static_cast<int>(current_origin.y),
                                       kOverworldMapSize, kOverworldMapSize);
     }
   }
@@ -502,8 +469,8 @@ ImVec2 ScrollForZoomAtAnchor(ImVec2 scroll, ImVec2 anchor, float old_scale,
 ImVec2 CanvasNavigationManager::ContentSize() const {
   const float scale =
       ctx_.ow_map_canvas ? ctx_.ow_map_canvas->global_scale() : 1.0f;
-  constexpr float kWorldSize = kOverworldMapSize * 8.0f;  // 4096
-  return ImVec2(kWorldSize * scale, kWorldSize * scale);
+  const ImVec2 canvas_size = LayoutFor(callbacks_).CanvasSize();
+  return ImVec2(canvas_size.x * scale, canvas_size.y * scale);
 }
 
 ImVec2 CanvasNavigationManager::ClampScroll(ImVec2 scroll) const {
@@ -520,7 +487,12 @@ void CanvasNavigationManager::SetScaleAboutAnchor(float new_scale,
   if (!ctx_.ow_map_canvas)
     return;
   const float old_scale = ctx_.ow_map_canvas->global_scale();
-  new_scale = std::clamp(new_scale, kOverworldMinZoom, kOverworldMaxZoom);
+  const int world = ctx_.current_world ? *ctx_.current_world : 0;
+  const float min_zoom =
+      LayoutFor(callbacks_)
+          .MinZoom(viewport_size_, world, DisplayedMapCount(ctx_, callbacks_),
+                   kOverworldMinZoom);
+  new_scale = std::clamp(new_scale, min_zoom, kOverworldMaxZoom);
   if (new_scale == old_scale)
     return;
   const ImVec2 base = pending_scroll_.value_or(last_scroll_);
@@ -663,6 +635,14 @@ void CanvasNavigationManager::EndCanvasViewport(bool canvas_item_hovered) {
     }
     CenterOnMap(map);
   }
+  if (viewport_known_ && pending_scroll_world_) {
+    const int world = *pending_scroll_world_;
+    if (had_viewport && previous_size.x == viewport_size_.x &&
+        previous_size.y == viewport_size_.y) {
+      pending_scroll_world_.reset();
+    }
+    ScrollToWorldBlock(world);
+  }
 }
 
 void CanvasNavigationManager::SuspendHoverFollowUntilMouseMoves() {
@@ -682,20 +662,18 @@ void CanvasNavigationManager::ZoomToFit() {
   if (!ctx_.ow_map_canvas || !viewport_known_) {
     return;
   }
-  constexpr float kWorldSize = kOverworldMapSize * 8.0f;
   const int world = ctx_.current_world ? *ctx_.current_world : 0;
-  const int world_maps =
-      std::clamp(DisplayedMapCount(ctx_, callbacks_) - world * 0x40, 1, 64);
-  const float world_height = ((world_maps + 7) / 8) * kOverworldMapSize;
   const float scale =
-      std::min(viewport_size_.x / kWorldSize, viewport_size_.y / world_height);
-  ctx_.ow_map_canvas->set_global_scale(
-      std::clamp(scale, kOverworldMinZoom, kOverworldMaxZoom));
+      LayoutFor(callbacks_)
+          .FitScale(viewport_size_, world, DisplayedMapCount(ctx_, callbacks_),
+                    kOverworldMaxZoom);
+  ctx_.ow_map_canvas->set_global_scale(scale);
   pending_scroll_ = ImVec2(0.0f, 0.0f);
 }
 
 void CanvasNavigationManager::ResetOverworldView() {
   pending_center_map_.reset();
+  pending_scroll_world_.reset();
   if (ctx_.ow_map_canvas) {
     ctx_.ow_map_canvas->set_global_scale(1.0f);
   }
@@ -713,6 +691,7 @@ void CanvasNavigationManager::CenterOnMap(int map_id) {
   if (!ctx_.ow_map_canvas || map_id < 0 || map_id >= map_count) {
     return;
   }
+  pending_scroll_world_.reset();
   // Startup jumps arrive before the canvas child has a measured viewport.
   // Wait for that size rather than placing the map's center at the top-left.
   if (!viewport_known_) {
@@ -722,13 +701,9 @@ void CanvasNavigationManager::CenterOnMap(int map_id) {
   float scale = ctx_.ow_map_canvas->global_scale();
   if (scale <= 0.0f)
     scale = 1.0f;
-  const int map_in_world = map_id % 0x40;
-  const float center_x =
-      ((map_in_world % 8) * kOverworldMapSize + kOverworldMapSize / 2.0f) *
-      scale;
-  const float center_y =
-      ((map_in_world / 8) * kOverworldMapSize + kOverworldMapSize / 2.0f) *
-      scale;
+  const ImVec2 map_origin = LayoutFor(callbacks_).MapOrigin(map_id);
+  const float center_x = (map_origin.x + kOverworldMapSize / 2.0f) * scale;
+  const float center_y = (map_origin.y + kOverworldMapSize / 2.0f) * scale;
   pending_scroll_ = ImVec2(center_x - viewport_size_.x * 0.5f,
                            center_y - viewport_size_.y * 0.5f);
 }
@@ -737,10 +712,41 @@ void CanvasNavigationManager::CenterOnWorldTile(int world_x, int world_y) {
   if (!ctx_.ow_map_canvas || !viewport_known_) {
     return;
   }
+  const int world = ctx_.current_world ? *ctx_.current_world : 0;
+  const ImVec2 block = LayoutFor(callbacks_).BlockOrigin(world);
   const float scale = std::max(ctx_.ow_map_canvas->global_scale(), 0.01f);
-  pending_scroll_ =
-      ImVec2((world_x * 16.0f + 8.0f) * scale - viewport_size_.x * 0.5f,
-             (world_y * 16.0f + 8.0f) * scale - viewport_size_.y * 0.5f);
+  pending_scroll_ = ImVec2(
+      (block.x + world_x * 16.0f + 8.0f) * scale - viewport_size_.x * 0.5f,
+      (block.y + world_y * 16.0f + 8.0f) * scale - viewport_size_.y * 0.5f);
+}
+
+void CanvasNavigationManager::ScrollToWorldBlock(int world) {
+  if (!ctx_.ow_map_canvas) {
+    return;
+  }
+  pending_center_map_.reset();
+  if (!viewport_known_) {
+    pending_scroll_world_ = world;
+    return;
+  }
+  const OverworldCanvasLayout layout = LayoutFor(callbacks_);
+  const int clamped_world = std::clamp(world, 0, kOverworldWorldCount - 1);
+  if (layout.IsSingleWorld()) {
+    CenterOnMap(OverworldCanvasLayout::WorldStartMap(clamped_world));
+    return;
+  }
+  float scale = ctx_.ow_map_canvas->global_scale();
+  const float block_fit = std::min(viewport_size_.x / kOverworldWorldBlockPx,
+                                   viewport_size_.y / kOverworldWorldBlockPx);
+  if (scale < block_fit * 0.9f) {
+    scale = std::clamp(block_fit, kOverworldMinZoom, kOverworldMaxZoom);
+    ctx_.ow_map_canvas->set_global_scale(scale);
+  }
+  const ImVec2 block = layout.BlockOrigin(clamped_world);
+  const float center_x = (block.x + kOverworldWorldBlockPx * 0.5f) * scale;
+  const float center_y = (block.y + kOverworldWorldBlockPx * 0.5f) * scale;
+  pending_scroll_ = ImVec2(center_x - viewport_size_.x * 0.5f,
+                           center_y - viewport_size_.y * 0.5f);
 }
 
 // =============================================================================
@@ -795,10 +801,10 @@ void CanvasNavigationManager::QueueAdjacentMapsForPreload(int center_map) {
   preload_queue_.clear();
 
   // Calculate grid position (8x8 maps per world)
-  int world_offset = (center_map / 64) * 64;
-  int local_index = center_map % 64;
-  int map_x = local_index % 8;
-  int map_y = local_index / 8;
+  const int world = OverworldCanvasLayout::WorldForMap(center_map);
+  const int world_offset = OverworldCanvasLayout::WorldStartMap(world);
+  const int map_x = OverworldCanvasLayout::GridX(center_map);
+  const int map_y = OverworldCanvasLayout::GridY(center_map);
   const int max_rows =
       center_map >= zelda3::kSpecialWorldMapIdStart &&
               DisplayedMapCount(ctx_, callbacks_) <= zelda3::kNumOverworldMaps

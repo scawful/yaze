@@ -54,12 +54,18 @@ void OverworldMapTextureCoordinator::ProcessDeferredTextures() {
 
   try_refresh_map(*ctx_.current_map);
 
+  const OverworldCanvasLayout layout =
+      ctx_.canvas_layout ? ctx_.canvas_layout() : OverworldCanvasLayout();
   const int current_world = std::clamp(*ctx_.current_world, 0, 2);
-  const int world_start = current_world * 0x40;
-  const int world_end =
-      std::min(world_start + 0x40, ctx_.overworld->inspected_map_count());
-  for (int map_index = world_start;
-       map_index < world_end && refresh_count < kMaxRefreshesPerFrame;
+  const int range_start =
+      layout.IsUnified() ? 0
+                         : OverworldCanvasLayout::WorldStartMap(current_world);
+  const int range_end = layout.IsUnified()
+                            ? ctx_.overworld->inspected_map_count()
+                            : std::min(range_start + kOverworldMapsPerWorld,
+                                       ctx_.overworld->inspected_map_count());
+  for (int map_index = range_start;
+       map_index < range_end && refresh_count < kMaxRefreshesPerFrame;
        ++map_index) {
     if (map_index == *ctx_.current_map) {
       continue;
@@ -126,9 +132,9 @@ void OverworldMapTextureCoordinator::PrimeWorldMaps(
   }
 
   const int clamped_world = std::clamp(world, 0, 2);
-  const int world_start = clamped_world * 0x40;
-  const int world_end =
-      std::min(world_start + 0x40, ctx_.overworld->inspected_map_count());
+  const int world_start = OverworldCanvasLayout::WorldStartMap(clamped_world);
+  const int world_end = std::min(world_start + kOverworldMapsPerWorld,
+                                 ctx_.overworld->inspected_map_count());
   if (world_start >= ctx_.overworld->inspected_map_count()) {
     return;
   }

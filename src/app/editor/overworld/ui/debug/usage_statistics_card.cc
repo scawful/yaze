@@ -4,6 +4,7 @@
 #include <algorithm>
 
 #include "absl/strings/str_format.h"
+#include "app/editor/overworld/canvas/overworld_canvas_layout.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/style_guard.h"
 #include "app/gui/core/ui_helpers.h"
@@ -40,7 +41,7 @@ void UsageStatisticsCard::Draw(bool* p_open) {
 
 void UsageStatisticsCard::DrawUsageGrid() {
   const int world = std::clamp(overworld_->current_world(), 0, 2);
-  const int world_start = (world == 0) ? 0 : ((world == 1) ? 0x40 : 0x80);
+  const int world_start = OverworldCanvasLayout::WorldStartMap(world);
   const int world_count = (world == 2) ? 32 : 64;
 
   ImGui::Text(tr("Map Usage Grid (World %d)"), world);
@@ -113,7 +114,7 @@ void UsageStatisticsCard::DrawUsageGrid() {
 
 void UsageStatisticsCard::DrawUsageStates() {
   const int world = std::clamp(overworld_->current_world(), 0, 2);
-  const int world_start = (world == 0) ? 0 : ((world == 1) ? 0x40 : 0x80);
+  const int world_start = OverworldCanvasLayout::WorldStartMap(world);
   const int world_count = (world == 2) ? 32 : 64;
 
   int small_count = 0;

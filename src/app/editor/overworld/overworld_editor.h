@@ -9,6 +9,7 @@
 #include "app/editor/editor.h"
 #include "app/editor/graphics/gfx_group_editor.h"
 #include "app/editor/overworld/canvas/canvas_navigation_manager.h"
+#include "app/editor/overworld/canvas/overworld_canvas_layout.h"
 #include "app/editor/overworld/canvas/overworld_canvas_renderer.h"
 #include "app/editor/overworld/core/interaction_coordinator.h"
 #include "app/editor/overworld/entity/entity_editing_target.h"
@@ -329,8 +330,7 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
       FinalizePaintOperation();
       lyra_canvas_.FinishStroke(undo_manager_);
       current_map_ = map_id;
-      current_world_ =
-          map_id / 0x40;  // Calculate which world the map belongs to
+      current_world_ = OverworldCanvasLayout::WorldForMap(map_id);
       if (const auto* map = overworld_.overworld_map(current_map_)) {
         current_parent_ = map->parent();
       } else {
@@ -525,6 +525,18 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   void ZoomToFit();
   void ResetOverworldView();
   void CenterOverworldView();
+  OverworldCanvasLayoutMode canvas_layout_mode() const {
+    return canvas_layout_mode_;
+  }
+  bool IsUnifiedCanvas() const {
+    return canvas_layout_mode_ == OverworldCanvasLayoutMode::kUnified;
+  }
+  OverworldCanvasLayout GetCanvasLayout() const;
+  void SetCanvasLayoutMode(OverworldCanvasLayoutMode mode);
+  void ScrollToWorldBlock(int world);
+  void SwitchToWorldUnified(int world);
+  void NotifyUnifiedReadOnly();
+  bool ContributeHoverPosToStatusBar(StatusBar* status_bar) const;
   /// Entity focus (entrances/exits/items/sprites); NONE = all entities.
   void SetEntityEditMode(EntityEditMode mode);
   void ToggleEntityVisibility() { show_entities_ = !show_entities_; }
@@ -642,6 +654,7 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   friend class ProjectGraphicsImportSaveTestPeer;
   friend class ProjectGraphicsImportWorkflowTestPeer;
   friend class NativePropertySaveTestPeer;
+  friend class OverworldEditorStateTestPeer;
   void DrawProjectGraphicsSource();
   void DrawProjectGraphicsImport();
   std::string ProjectGraphicsPath() const;
@@ -913,6 +926,10 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   std::optional<OverworldItemsSnapshot> drag_item_snapshot_;
   bool dragged_entity_free_movement_ = false;
   bool current_map_lock_ = false;
+  OverworldCanvasLayoutMode canvas_layout_mode_ =
+      OverworldCanvasLayoutMode::kSingleWorld;
+  double unified_readonly_banner_until_ = 0.0;
+  float pre_unified_scale_ = 1.0f;
 
   // ===========================================================================
   // Property Windows (Standalone, Not PanelManager)

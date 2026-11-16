@@ -9,6 +9,7 @@
 #include <vector>
 
 #include "app/editor/core/undo_manager.h"
+#include "app/editor/overworld/canvas/overworld_canvas_layout.h"
 #include "app/editor/overworld/painting/tile_brush.h"
 #include "app/gfx/core/bitmap.h"
 #include "app/gui/canvas/canvas.h"
@@ -55,7 +56,9 @@ class LyraTerrainCanvas {
   void ProjectSaveCommitted() { pending_project_commit_ = false; }
   bool loaded() const { return document_ != nullptr; }
   // Rendering only. TilePaintingManager owns the shared Overworld gestures.
-  void DrawSpecialWorld(const gui::CanvasRuntime& canvas);
+  void DrawSpecialWorld(const gui::CanvasRuntime& canvas,
+                        ImVec2 tail_origin_px = ImVec2(
+                            0.0f, static_cast<float>(kOverworldMapSizePx * 4)));
   // Coordinates are document-relative Tile16 cells; footprints clip at its
   // edge. The entire brush is validated before any cells are changed.
   absl::Status PaintPattern(const TileBrush& brush, int x, int y, int width,
@@ -84,9 +87,14 @@ class LyraTerrainCanvas {
   bool entity_placement_active() const {
     return document_ && placement_kind_ != 0;
   }
-  void DrawSpritePreview(const gui::CanvasRuntime& canvas, int map_id,
-                         const core::LyraSpritePlacement& sprite);
-  void DrawEntities(const gui::CanvasRuntime& canvas, int world, int state);
+  void CancelEntityPlacement() { placement_kind_ = 0; }
+  void DrawSpritePreview(
+      const gui::CanvasRuntime& canvas, int map_id,
+      const core::LyraSpritePlacement& sprite,
+      const OverworldCanvasLayout& layout = OverworldCanvasLayout());
+  void DrawEntities(
+      const gui::CanvasRuntime& canvas, int world, int state,
+      const OverworldCanvasLayout& layout = OverworldCanvasLayout());
   void HandleEntityInput(const gui::CanvasRuntime& canvas, int world,
                          zelda3::Overworld& overworld, UndoManager& history);
 

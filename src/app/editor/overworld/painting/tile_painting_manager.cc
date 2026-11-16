@@ -18,12 +18,14 @@ namespace {
 constexpr int kTilesPerMap = kOverworldMapSize / kTile16Size;
 
 int AllocatedRowsForMapCount(int world, int map_count) {
-  const int world_start = std::clamp(world, 0, 2) * 0x40;
-  return (std::clamp(map_count - world_start, 0, 0x40) + 7) / 8;
+  const int world_start = OverworldCanvasLayout::WorldStartMap(
+      std::clamp(world, 0, kOverworldWorldCount - 1));
+  return (std::clamp(map_count - world_start, 0, kOverworldMapsPerWorld) + 7) /
+         8;
 }
 
 int MapIndexForGridPosition(int world, int map_x, int map_y) {
-  return world * 0x40 + map_x + map_y * 8;
+  return OverworldCanvasLayout::MapIdFromLocal(world, map_x, map_y);
 }
 
 }  // namespace
@@ -31,6 +33,11 @@ int MapIndexForGridPosition(int world, int map_x, int map_y) {
 TilePaintingManager::TilePaintingManager(const TilePaintingDependencies& deps,
                                          const TilePaintingCallbacks& callbacks)
     : deps_(deps), callbacks_(callbacks) {}
+
+OverworldCanvasLayout TilePaintingManager::Layout() const {
+  return callbacks_.canvas_layout ? callbacks_.canvas_layout()
+                                  : OverworldCanvasLayout();
+}
 
 std::vector<std::vector<uint16_t>>& TilePaintingManager::WorldTiles() const {
   return deps_.overworld->GetMapTiles(*deps_.current_world);
@@ -67,36 +74,49 @@ bool TilePaintingManager::IsValidMapGridPosition(int world, int map_x,
          map_y < AllocatedRowsForWorld(world);
 }
 
-bool TilePaintingManager::IsProjectTile(TilePosition position) const {
+bool TilePaintingManager::IsProjectTileForWorld(int world,
+                                                TilePosition position) const {
   return callbacks_.is_project_tile &&
-         callbacks_.is_project_tile(*deps_.current_world, position.x,
-                                    position.y);
+         callbacks_.is_project_tile(world, position.x, position.y);
 }
 
-absl::StatusOr<uint16_t> TilePaintingManager::ReadTile(
-    TilePosition position) const {
+bool TilePaintingManager::IsProjectTile(TilePosition position) const {
+  return IsProjectTileForWorld(*deps_.current_world, position);
+}
+
+absl::StatusOr<uint16_t> TilePaintingManager::ReadWorldTile(
+    int world, TilePosition position) const {
   if (position.x < 0 || position.y < 0 ||
-      !IsValidMapGridPosition(*deps_.current_world, position.x / kTilesPerMap,
+      !IsValidMapGridPosition(world, position.x / kTilesPerMap,
                               position.y / kTilesPerMap)) {
     return absl::OutOfRangeError("Tile is outside the displayed world");
   }
-  if (IsProjectTile(position)) {
+  if (IsProjectTileForWorld(world, position)) {
     if (!callbacks_.read_project_tile)
       return absl::FailedPreconditionError("Project tile reader unavailable");
-    return callbacks_.read_project_tile(*deps_.current_world, position.x,
-                                        position.y);
+    return callbacks_.read_project_tile(world, position.x, position.y);
   }
-  if (MapIndexForGridPosition(*deps_.current_world, position.x / kTilesPerMap,
+  if (MapIndexForGridPosition(world, position.x / kTilesPerMap,
                               position.y / kTilesPerMap) >=
       deps_.overworld->materialized_map_count()) {
     return absl::OutOfRangeError("Tile is outside the ROM map model");
   }
-  const auto& tiles = WorldTiles();
+  const auto& tiles = deps_.overworld->GetMapTiles(world);
   if (position.x >= static_cast<int>(tiles.size()) ||
       position.y >= static_cast<int>(tiles[position.x].size())) {
     return absl::OutOfRangeError("Tile is outside the loaded world");
   }
   return tiles[position.x][position.y];
+}
+
+absl::StatusOr<uint16_t> TilePaintingManager::ReadTile(
+    TilePosition position) const {
+  return ReadWorldTile(*deps_.current_world, position);
+}
+
+bool TilePaintingManager::IsValidTileForWorld(int world,
+                                              TilePosition position) const {
+  return ReadWorldTile(world, position).ok();
 }
 
 bool TilePaintingManager::IsValidTile(TilePosition position) const {
@@ -148,6 +168,15 @@ void TilePaintingManager::SuspendCanvasGestures() {
 }
 
 void TilePaintingManager::CheckForOverworldEdits() {
+  if (Layout().IsUnified()) {
+    SuspendCanvasGestures();
+    if (deps_.ow_map_canvas && deps_.ow_map_canvas->IsMouseHovering() &&
+        ImGui::IsMouseClicked(ImGuiMouseButton_Left) &&
+        callbacks_.on_read_only_blocked) {
+      callbacks_.on_read_only_blocked();
+    }
+    return;
+  }
   CheckForSelectRectangle();
   auto& canvas = *deps_.ow_map_canvas;
   const auto anchor = HoveredTile();
@@ -219,6 +248,12 @@ void TilePaintingManager::CheckForOverworldEdits() {
 }
 
 absl::Status TilePaintingManager::PasteBrush(const TileBrush& brush) {
+  if (Layout().IsUnified()) {
+    if (callbacks_.on_read_only_blocked) {
+      callbacks_.on_read_only_blocked();
+    }
+    return absl::FailedPreconditionError(kUnifiedReadOnlyReason);
+  }
   if (!brush.valid()) {
     return absl::InvalidArgumentError("Clipboard tile pattern is invalid");
   }
@@ -227,6 +262,18 @@ absl::Status TilePaintingManager::PasteBrush(const TileBrush& brush) {
   }
   FinalizePendingPaint();
   return PaintPattern(brush, HoveredTile(), brush.width, brush.height);
+}
+
+absl::Status TilePaintingManager::PlaceBrushAt(const TileBrush& brush, int x,
+                                               int y) {
+  if (Layout().IsUnified()) {
+    if (callbacks_.on_read_only_blocked) {
+      callbacks_.on_read_only_blocked();
+    }
+    return absl::FailedPreconditionError(kUnifiedReadOnlyReason);
+  }
+  FinalizePendingPaint();
+  return PaintPattern(brush, {x, y}, brush.width, brush.height);
 }
 
 absl::Status TilePaintingManager::PaintPattern(const TileBrush& brush,
@@ -291,15 +338,15 @@ absl::StatusOr<int> TilePaintingManager::ApplyGuardedCells(
   if (map_id < 0 || map_id >= deps_.overworld->materialized_map_count()) {
     return absl::OutOfRangeError("Stencil map is outside the ROM map model");
   }
-  if (map_id / 0x40 != *deps_.current_world) {
+  if (OverworldCanvasLayout::WorldForMap(map_id) != *deps_.current_world) {
     return absl::FailedPreconditionError(
         "Stencil map is not in the displayed world");
   }
   if (cells.empty()) {
     return absl::InvalidArgumentError("Stencil has no cells");
   }
-  const int origin_x = (map_id % 0x40) % 8 * kTilesPerMap;
-  const int origin_y = (map_id % 0x40) / 8 * kTilesPerMap;
+  const int origin_x = OverworldCanvasLayout::GridX(map_id) * kTilesPerMap;
+  const int origin_y = OverworldCanvasLayout::GridY(map_id) * kTilesPerMap;
   std::vector<bool> seen(kTilesPerMap * kTilesPerMap, false);
   int mismatches = 0;
   std::string first_mismatch;
@@ -366,12 +413,12 @@ absl::StatusOr<uint16_t> TilePaintingManager::ReadMapCell(int map_id, int x,
   if (x < 0 || x >= kTilesPerMap || y < 0 || y >= kTilesPerMap) {
     return absl::OutOfRangeError("Cell is outside the map");
   }
-  const int world = map_id / 0x40;
-  if (world > 2) {
+  const int world = OverworldCanvasLayout::WorldForMap(map_id);
+  if (world >= kOverworldWorldCount) {
     return absl::OutOfRangeError("Map is outside the three overworld worlds");
   }
-  const int world_x = (map_id % 0x40) % 8 * kTilesPerMap + x;
-  const int world_y = (map_id % 0x40) / 8 * kTilesPerMap + y;
+  const int world_x = OverworldCanvasLayout::GridX(map_id) * kTilesPerMap + x;
+  const int world_y = OverworldCanvasLayout::GridY(map_id) * kTilesPerMap + y;
   if (callbacks_.is_project_tile &&
       callbacks_.is_project_tile(world, world_x, world_y)) {
     return absl::FailedPreconditionError("Cell is project terrain");
@@ -387,13 +434,18 @@ absl::StatusOr<uint16_t> TilePaintingManager::ReadMapCell(int map_id, int x,
 void TilePaintingManager::DrawMapCellsGhost(int map_id,
                                             const std::vector<GhostCell>& cells,
                                             int tile_alpha) {
+  const OverworldCanvasLayout layout = Layout();
   if (cells.empty() || map_id < 0 ||
-      map_id >= deps_.overworld->materialized_map_count() ||
-      map_id / 0x40 != *deps_.current_world) {
+      map_id >= deps_.overworld->materialized_map_count()) {
     return;
   }
-  const int origin_x = (map_id % 0x40) % 8 * kTilesPerMap;
-  const int origin_y = (map_id % 0x40) / 8 * kTilesPerMap;
+  const int target_world = OverworldCanvasLayout::WorldForMap(map_id);
+  if (layout.IsSingleWorld() && target_world != *deps_.current_world) {
+    return;
+  }
+  const ImVec2 block_origin_px = layout.BlockOrigin(target_world);
+  const int origin_x = OverworldCanvasLayout::GridX(map_id) * kTilesPerMap;
+  const int origin_y = OverworldCanvasLayout::GridY(map_id) * kTilesPerMap;
   int min_x = kTilesPerMap, min_y = kTilesPerMap, max_x = -1, max_y = -1;
   for (const auto& cell : cells) {
     if (!cell.draw_tile)
@@ -421,14 +473,15 @@ void TilePaintingManager::DrawMapCellsGhost(int map_id,
           std::array<gfx::Bitmap, zelda3::kExpandedMapCount>>();
     }
     DrawBrushPieces(brush, {origin_x + min_x, origin_y + min_y}, tile_alpha,
-                    *ghost_previews_, &mask);
+                    *ghost_previews_, &mask, target_world, block_origin_px);
   }
 
   auto& canvas = *deps_.ow_map_canvas;
   const float scale = canvas.global_scale() > 0 ? canvas.global_scale() : 1.0f;
   const float size = kTile16Size * scale;
-  const ImVec2 origin(canvas.zero_point().x + canvas.scrolling().x,
-                      canvas.zero_point().y + canvas.scrolling().y);
+  const ImVec2 origin(
+      canvas.zero_point().x + canvas.scrolling().x + block_origin_px.x * scale,
+      canvas.zero_point().y + canvas.scrolling().y + block_origin_px.y * scale);
   auto* draw = canvas.draw_list();
   if (!draw)
     return;
@@ -646,13 +699,14 @@ void TilePaintingManager::DrawBrushPreview(const TileBrush& brush,
 void TilePaintingManager::DrawBrushPieces(
     const TileBrush& brush, TilePosition anchor, int alpha,
     std::array<gfx::Bitmap, zelda3::kExpandedMapCount>& storage,
-    const std::vector<bool>* mask) {
+    const std::vector<bool>* mask, std::optional<int> target_world,
+    ImVec2 block_origin_px) {
   auto& canvas = *deps_.ow_map_canvas;
   // Build each destination piece once. The selected/pinned map's atlas is
   // only a fallback for synthetic or unavailable map data.
   std::array<MapBrushPreview, zelda3::kExpandedMapCount> pieces;
   std::array<bool, zelda3::kExpandedMapCount> has_piece{};
-  const int world = *deps_.current_world;
+  const int world = target_world.value_or(*deps_.current_world);
   const int first_x = std::max(0, anchor.x) / kTilesPerMap;
   const int first_y = std::max(0, anchor.y) / kTilesPerMap;
   const int last_x = std::min(255, anchor.x + brush.width - 1) / kTilesPerMap;
@@ -662,7 +716,8 @@ void TilePaintingManager::DrawBrushPieces(
       if (!IsValidMapGridPosition(world, mx, my))
         continue;
       const int map_id = MapIndexForGridPosition(world, mx, my);
-      if (IsProjectTile({mx * kTilesPerMap, my * kTilesPerMap}) ||
+      if (IsProjectTileForWorld(world,
+                                {mx * kTilesPerMap, my * kTilesPerMap}) ||
           map_id >= deps_.overworld->materialized_map_count())
         continue;
       const auto* map = deps_.overworld->overworld_map(map_id);
@@ -684,8 +739,9 @@ void TilePaintingManager::DrawBrushPieces(
   }
   const float scale = canvas.global_scale() > 0 ? canvas.global_scale() : 1.0f;
   const float size = kTile16Size * scale;
-  const ImVec2 origin(canvas.zero_point().x + canvas.scrolling().x,
-                      canvas.zero_point().y + canvas.scrolling().y);
+  const ImVec2 origin(
+      canvas.zero_point().x + canvas.scrolling().x + block_origin_px.x * scale,
+      canvas.zero_point().y + canvas.scrolling().y + block_origin_px.y * scale);
   auto* draw = canvas.draw_list();
   draw->PushClipRect(
       canvas.zero_point(),
@@ -698,11 +754,11 @@ void TilePaintingManager::DrawBrushPieces(
         continue;
       const int id = brush.at(x, y);
       const TilePosition position{anchor.x + x, anchor.y + y};
-      if (!IsValidTile(position))
+      if (!IsValidTileForWorld(world, position))
         continue;
       const int map_id = MapIndexForGridPosition(
           world, position.x / kTilesPerMap, position.y / kTilesPerMap);
-      const bool project_tile = IsProjectTile(position);
+      const bool project_tile = IsProjectTileForWorld(world, position);
       const bool use_piece = !project_tile && has_piece[map_id];
       const gfx::Bitmap* source_atlas =
           project_tile
@@ -745,7 +801,31 @@ bool TilePaintingManager::PickTile16FromHoveredCanvas() {
     return false;
   }
 
-  const auto tile = ReadTile(HoveredTile());
+  absl::StatusOr<uint16_t> tile;
+  const OverworldCanvasLayout layout = Layout();
+  if (layout.IsUnified()) {
+    const auto& canvas = *deps_.ow_map_canvas;
+    const float scale =
+        canvas.global_scale() > 0 ? canvas.global_scale() : 1.0f;
+    const ImVec2 origin(canvas.zero_point().x + canvas.scrolling().x,
+                        canvas.zero_point().y + canvas.scrolling().y);
+    const ImVec2 mouse = ImGui::GetIO().MousePos;
+    const ImVec2 canvas_point((mouse.x - origin.x) / scale,
+                              (mouse.y - origin.y) / scale);
+    const auto world_point =
+        layout.WorldLocalFromCanvas(canvas_point, *deps_.current_world);
+    if (!world_point) {
+      return false;
+    }
+    const TilePosition local_tile{
+        static_cast<int>(
+            std::floor(world_point->local_position.x / kTile16Size)),
+        static_cast<int>(
+            std::floor(world_point->local_position.y / kTile16Size))};
+    tile = ReadWorldTile(world_point->world, local_tile);
+  } else {
+    tile = ReadTile(HoveredTile());
+  }
   if (!tile.ok()) {
     return false;
   }
@@ -771,6 +851,14 @@ bool TilePaintingManager::PickTile16FromHoveredCanvas() {
 // ToggleBrushTool - switch between DRAW_TILE and MOUSE modes
 // ---------------------------------------------------------------------------
 void TilePaintingManager::ToggleBrushTool() {
+  if (Layout().IsUnified()) {
+    if (callbacks_.on_read_only_blocked) {
+      callbacks_.on_read_only_blocked();
+    }
+    *deps_.current_mode = EditingMode::MOUSE;
+    deps_.ow_map_canvas->SetUsageMode(gui::CanvasUsage::kEntityManipulation);
+    return;
+  }
   if (*deps_.current_mode == EditingMode::DRAW_TILE) {
     *deps_.current_mode = EditingMode::MOUSE;
   } else {
@@ -788,6 +876,14 @@ void TilePaintingManager::ToggleBrushTool() {
 // ActivateFillTool - toggle FILL_TILE mode on/off
 // ---------------------------------------------------------------------------
 void TilePaintingManager::ActivateFillTool() {
+  if (Layout().IsUnified()) {
+    if (callbacks_.on_read_only_blocked) {
+      callbacks_.on_read_only_blocked();
+    }
+    *deps_.current_mode = EditingMode::MOUSE;
+    deps_.ow_map_canvas->SetUsageMode(gui::CanvasUsage::kEntityManipulation);
+    return;
+  }
   if (*deps_.current_mode == EditingMode::FILL_TILE) {
     *deps_.current_mode = EditingMode::DRAW_TILE;
   } else {

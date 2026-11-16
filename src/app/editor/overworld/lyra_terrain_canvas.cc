@@ -458,7 +458,8 @@ gfx::Bitmap* LyraTerrainCanvas::MapGraphics(int map_id) {
 
 void LyraTerrainCanvas::DrawSpritePreview(
     const gui::CanvasRuntime& canvas, int map_id,
-    const core::LyraSpritePlacement& sprite) {
+    const core::LyraSpritePlacement& sprite,
+    const OverworldCanvasLayout& layout) {
   if (map_id < 0xA0 || map_id >= 0xC0 || !canvas.draw_list)
     return;
   auto* assets = displayed_assets_[map_id - 0xA0];
@@ -482,11 +483,12 @@ void LyraTerrainCanvas::DrawSpritePreview(
   if (!bitmap.texture())
     return;
   const auto bounds = assets->sprite_bounds.at(sprite.sprite_id);
+  const ImVec2 map_origin = layout.MapOrigin(map_id);
   const ImVec2 min(
       canvas.canvas_p0.x + canvas.scrolling.x +
-          (map_id % 8 * 512 + sprite.x * 16 + bounds.x) * canvas.scale,
+          (map_origin.x + sprite.x * 16 + bounds.x) * canvas.scale,
       canvas.canvas_p0.y + canvas.scrolling.y +
-          (map_id % 64 / 8 * 512 + sprite.y * 16 + bounds.y) * canvas.scale);
+          (map_origin.y + sprite.y * 16 + bounds.y) * canvas.scale);
   canvas.draw_list->AddImage(
       (ImTextureID)(intptr_t)bitmap.texture(), min,
       ImVec2(min.x + bounds.w * canvas.scale, min.y + bounds.h * canvas.scale));
@@ -891,20 +893,20 @@ void LyraTerrainCanvas::DrawTile(ImDrawList* draw, const gfx::Bitmap& atlas,
                  ImVec2(min.x + size, min.y + size), uv0, uv1);
 }
 
-void LyraTerrainCanvas::DrawSpecialWorld(const gui::CanvasRuntime& canvas) {
+void LyraTerrainCanvas::DrawSpecialWorld(const gui::CanvasRuntime& canvas,
+                                         ImVec2 tail_origin_px) {
   if (!document_ || !canvas.draw_list || !atlas_.texture() ||
       !std::isfinite(canvas.scale) || canvas.scale <= 0) {
     return;
   }
 
-  // The existing special maps occupy world pixels Y=0..2047. Sidecar map A0
-  // begins directly below them; navigation and scrolling remain canvas-owned.
-  constexpr float kWorldYOffset =
-      4 * Document::kMapSize * Document::kTilePixels;
+  // The existing special maps occupy the upper 4 rows (Y=0..2047 within the
+  // Special Overworld block). Sidecar map A0 begins at `tail_origin_px`.
   const float cell = Document::kTilePixels * canvas.scale;
   const ImVec2 start(
-      canvas.canvas_p0.x + canvas.scrolling.x,
-      canvas.canvas_p0.y + canvas.scrolling.y + kWorldYOffset * canvas.scale);
+      canvas.canvas_p0.x + canvas.scrolling.x + tail_origin_px.x * canvas.scale,
+      canvas.canvas_p0.y + canvas.scrolling.y +
+          tail_origin_px.y * canvas.scale);
   if (!std::isfinite(start.x) || !std::isfinite(start.y)) {
     return;
   }

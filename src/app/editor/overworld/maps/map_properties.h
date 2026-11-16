@@ -135,6 +135,11 @@ class MapPropertiesSystem {
     current_map_provider_ = std::move(provider);
   }
 
+  /// True while canvas-originated mutations are disabled (e.g. Unified Phase 1).
+  void SetCanvasReadOnlyProvider(std::function<bool()> provider) {
+    canvas_read_only_provider_ = std::move(provider);
+  }
+
   /// Selects a map that may be off screen or in the other world, and brings
   /// it into view (Related Maps). Falls back to the map selection callback.
   void SetMapJumpCallback(std::function<void(int)> callback) {
@@ -250,6 +255,7 @@ class MapPropertiesSystem {
   std::function<void(int, bool)> map_selection_callback_;
   std::function<void(int)> map_jump_callback_;
   std::function<int()> current_map_provider_;
+  std::function<bool()> canvas_read_only_provider_;
   ContextViewToggle grid_toggle_;
   ContextViewToggle entities_toggle_;
   ContextViewToggle overlay_toggle_;

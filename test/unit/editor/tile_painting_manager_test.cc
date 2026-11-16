@@ -8,6 +8,7 @@
 #include <vector>
 
 #include "absl/status/status.h"
+#include "app/editor/overworld/canvas/overworld_canvas_layout.h"
 #include "app/editor/overworld/ui/ui_constants.h"
 #include "app/gfx/resource/arena.h"
 #include "app/gui/canvas/canvas.h"
@@ -346,6 +347,12 @@ class TilePaintingManagerGestureTest : public ::testing::Test {
     callbacks.allocated_rows = [this](int world) {
       return world == 2 && !project_document_ ? 4 : 8;
     };
+    callbacks.canvas_layout = [this]() {
+      return OverworldCanvasLayout(layout_mode_);
+    };
+    callbacks.on_read_only_blocked = [this]() {
+      ++read_only_blocked_count_;
+    };
     manager_ = std::make_unique<TilePaintingManager>(deps, callbacks);
 
     // Establish the window before delivering input to its canvas item.
@@ -559,6 +566,9 @@ class TilePaintingManagerGestureTest : public ::testing::Test {
   std::vector<core::LyraTerrainStroke> project_strokes_;
   int project_paint_calls_ = 0;
   bool project_write_error_ = false;
+  OverworldCanvasLayoutMode layout_mode_ =
+      OverworldCanvasLayoutMode::kSingleWorld;
+  int read_only_blocked_count_ = 0;
   std::unique_ptr<TilePaintingManager> manager_;
 };
 
@@ -1610,6 +1620,85 @@ TEST_F(TilePaintingManagerGestureTest,
   EXPECT_EQ(*none, 0);
   EXPECT_EQ(undo_points_.size(), points);
   EXPECT_FALSE(rom_.dirty());
+}
+
+TEST_F(
+    TilePaintingManagerGestureTest,
+    UnifiedModeRefusesCanvasWritesSupportsEyedropperAndDrawsCrossWorldGhost) {
+  layout_mode_ = OverworldCanvasLayoutMode::kUnified;
+  current_world_ = 0;
+  current_map_ = 0;
+  auto& dark = overworld_->mutable_map_tiles()->dark_world;
+  dark[0][0] = 4;
+  initial_tiles_ = *overworld_->mutable_map_tiles();
+
+  // Tool toggles refuse DRAW_TILE / FILL_TILE and stay in MOUSE mode.
+  current_mode_ = EditingMode::MOUSE;
+  manager_->ToggleBrushTool();
+  EXPECT_EQ(current_mode_, EditingMode::MOUSE);
+  EXPECT_GE(read_only_blocked_count_, 1);
+  manager_->ActivateFillTool();
+  EXPECT_EQ(current_mode_, EditingMode::MOUSE);
+  EXPECT_GE(read_only_blocked_count_, 2);
+
+  // PasteBrush & PlaceBrushAt refuse with exact read-only reason and no edits.
+  const TileBrush brush{1, 1, {3}};
+  const auto paste_status = PasteAt(At(8, 8), brush);
+  EXPECT_EQ(paste_status.code(), absl::StatusCode::kFailedPrecondition);
+  EXPECT_NE(paste_status.message().find(kUnifiedReadOnlyReason),
+            std::string::npos);
+  const auto place_status = manager_->PlaceBrushAt(brush, 0, 0);
+  EXPECT_EQ(place_status.code(), absl::StatusCode::kFailedPrecondition);
+  EXPECT_NE(place_status.message().find(kUnifiedReadOnlyReason),
+            std::string::npos);
+
+  // Left-click paint gesture does not mutate tiles or set dirty.
+  current_mode_ = EditingMode::DRAW_TILE;
+  ClickWorld(8, 8);
+  ExpectUnchanged();
+
+  // Eyedropper works read-only across DW block when current_world_ == 0.
+  const OverworldCanvasLayout unified(OverworldCanvasLayoutMode::kUnified);
+  const ImVec2 dw_origin = unified.BlockOrigin(1);
+  SetView(0.25f, ImVec2(dw_origin.x, dw_origin.y));
+  bool picked = false;
+  Frame(At(2, 2), false, false,
+        [&] { picked = manager_->PickTile16FromHoveredCanvas(); });
+  EXPECT_TRUE(picked);
+  EXPECT_EQ(current_tile_, 4);
+  ExpectUnchanged();
+
+  // DrawMapCellsGhost draws the cross-world ghost for DW map $40 even while
+  // current_world==0, using the Unified block origin and without mutating map tiles.
+  int texture_tag = 0;
+  struct ScopedTextureReset {
+    gfx::Bitmap& bitmap;
+    ~ScopedTextureReset() { bitmap.set_texture(nullptr); }
+  } reset{blockset_.atlas};
+  blockset_.atlas.set_texture(&texture_tag);
+  const ImTextureID atlas_texture = (ImTextureID)(intptr_t)&texture_tag;
+  const auto count_images = [&] {
+    int indices = 0;
+    const auto* draw_data = ImGui::GetDrawData();
+    for (const auto* draw_list : draw_data->CmdLists) {
+      for (const auto& command : draw_list->CmdBuffer) {
+        if (command.TexRef._TexData != nullptr &&
+            command.TexRef._TexData->GetTexID() == ImTextureID_Invalid) {
+          continue;
+        }
+        if (command.GetTexID() == atlas_texture)
+          indices += command.ElemCount;
+      }
+    }
+    return indices;
+  };
+  canvas_.SetCanvasSize(unified.CanvasSize());
+  SetView(1.0f, ImVec2(0.0f, 0.0f));
+  Frame(Outside(), false, false, [&] {
+    manager_->DrawMapCellsGhost(0x40, {{0, 0, 3, true, 0, 0}}, 180);
+  });
+  EXPECT_EQ(count_images(), 6);
+  ExpectUnchanged();
 }
 
 }  // namespace

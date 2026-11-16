@@ -42,18 +42,24 @@ ImVec4 GetDiggableTileColor() {
   return ImVec4{theme.status_active.x, theme.status_active.y,
                 theme.status_active.z, 0.5f};
 }
+gui::CanvasRuntime OffsetRuntime(const gui::CanvasRuntime& rt,
+                                 ImVec2 block_origin) {
+  gui::CanvasRuntime shifted = rt;
+  shifted.scrolling.x += block_origin.x * rt.scale;
+  shifted.scrolling.y += block_origin.y * rt.scale;
+  return shifted;
+}
 }  // namespace
 
 // =============================================================================
 // Modern CanvasRuntime-based rendering methods (Phase 2)
 // =============================================================================
 
-void OverworldEntityRenderer::DrawEntrances(const gui::CanvasRuntime& rt,
-                                            int current_world) {
-  // Don't reset hovered_entity_ here - DrawExits resets it (called first)
+void OverworldEntityRenderer::DrawEntrancesForWorld(
+    const gui::CanvasRuntime& rt, int world) {
   for (auto& each : overworld_->entrances()) {
-    if (each.map_id_ < 0x40 + (current_world * 0x40) &&
-        each.map_id_ >= (current_world * 0x40) && !each.deleted) {
+    if (OverworldCanvasLayout::WorldForMap(each.map_id_) == world &&
+        !each.deleted) {
       gui::DrawRect(rt, each.x_, each.y_, 16, 16,
                     MarkerColor(EntityType::kEntrance, each.is_hole_));
       if (IsMouseHoveringOverEntity(each, rt)) {
@@ -65,15 +71,12 @@ void OverworldEntityRenderer::DrawEntrances(const gui::CanvasRuntime& rt,
   }
 }
 
-void OverworldEntityRenderer::DrawExits(const gui::CanvasRuntime& rt,
-                                        int current_world) {
-  // Reset hover state at the start of entity rendering (DrawExits is called first)
-  hovered_entity_ = nullptr;
-
+void OverworldEntityRenderer::DrawExitsForWorld(const gui::CanvasRuntime& rt,
+                                                int world) {
   int i = 0;
   for (auto& each : *overworld_->mutable_exits()) {
-    if (each.map_id_ < 0x40 + (current_world * 0x40) &&
-        each.map_id_ >= (current_world * 0x40) && !each.deleted_) {
+    if (OverworldCanvasLayout::WorldForMap(each.map_id_) == world &&
+        !each.deleted_) {
       gui::DrawRect(rt, each.x_, each.y_, 16, 16,
                     MarkerColor(EntityType::kExit));
       if (IsMouseHoveringOverEntity(each, rt)) {
@@ -87,11 +90,11 @@ void OverworldEntityRenderer::DrawExits(const gui::CanvasRuntime& rt,
   }
 }
 
-void OverworldEntityRenderer::DrawItems(const gui::CanvasRuntime& rt,
-                                        int current_world) {
+void OverworldEntityRenderer::DrawItemsForWorld(const gui::CanvasRuntime& rt,
+                                                int world) {
   for (auto& item : *overworld_->mutable_all_items()) {
-    if (item.room_map_id_ < 0x40 + (current_world * 0x40) &&
-        item.room_map_id_ >= (current_world * 0x40) && !item.deleted) {
+    if (OverworldCanvasLayout::WorldForMap(item.room_map_id_) == world &&
+        !item.deleted) {
       gui::DrawRect(rt, item.x_, item.y_, 16, 16,
                     MarkerColor(EntityType::kItem));
       if (IsMouseHoveringOverEntity(item, rt)) {
@@ -108,11 +111,12 @@ void OverworldEntityRenderer::DrawItems(const gui::CanvasRuntime& rt,
   }
 }
 
-void OverworldEntityRenderer::DrawSprites(const gui::CanvasRuntime& rt,
-                                          int current_world, int game_state) {
+void OverworldEntityRenderer::DrawSpritesForWorld(const gui::CanvasRuntime& rt,
+                                                  int world, int game_state,
+                                                  bool unified_bitmap) {
   for (auto& sprite : *overworld_->mutable_sprites(game_state)) {
-    if (!sprite.deleted() && sprite.map_id() < 0x40 + (current_world * 0x40) &&
-        sprite.map_id() >= (current_world * 0x40)) {
+    if (!sprite.deleted() &&
+        OverworldCanvasLayout::WorldForMap(sprite.map_id()) == world) {
       int sprite_x = sprite.x_;
       int sprite_y = sprite.y_;
 
@@ -122,10 +126,16 @@ void OverworldEntityRenderer::DrawSprites(const gui::CanvasRuntime& rt,
         hovered_entity_ = &sprite;
       }
 
-      if (core::FeatureFlags::get().overworld.kDrawOverworldSprites) {
-        if ((*sprite_previews_)[sprite.id()].is_active()) {
-          // For bitmap drawing, we still use the canvas pointer for now
-          // as runtime-based bitmap drawing needs the texture
+      if (core::FeatureFlags::get().overworld.kDrawOverworldSprites &&
+          sprite.id() < sprite_previews_->size() &&
+          (*sprite_previews_)[sprite.id()].is_active()) {
+        if (unified_bitmap) {
+          gui::DrawBitmap(rt, (*sprite_previews_)[sprite.id()],
+                          static_cast<int>(sprite_x * rt.scale),
+                          static_cast<int>(sprite_y * rt.scale),
+                          2.0f * rt.scale, 255);
+        } else {
+          // Preserve byte-for-byte Single-mode DrawBitmap semantics.
           canvas_->DrawBitmap((*sprite_previews_)[sprite.id()], sprite_x,
                               sprite_y, 2.0f);
         }
@@ -134,6 +144,62 @@ void OverworldEntityRenderer::DrawSprites(const gui::CanvasRuntime& rt,
       gui::DrawText(rt, absl::StrFormat("%s", sprite.name()), sprite_x,
                     sprite_y);
     }
+  }
+}
+
+void OverworldEntityRenderer::DrawEntrances(const gui::CanvasRuntime& rt,
+                                            int current_world) {
+  DrawEntrancesForWorld(rt, current_world);
+}
+
+void OverworldEntityRenderer::DrawExits(const gui::CanvasRuntime& rt,
+                                        int current_world) {
+  // Reset hover state at the start of entity rendering (DrawExits is called first)
+  hovered_entity_ = nullptr;
+  DrawExitsForWorld(rt, current_world);
+}
+
+void OverworldEntityRenderer::DrawItems(const gui::CanvasRuntime& rt,
+                                        int current_world) {
+  DrawItemsForWorld(rt, current_world);
+}
+
+void OverworldEntityRenderer::DrawSprites(const gui::CanvasRuntime& rt,
+                                          int current_world, int game_state) {
+  DrawSpritesForWorld(rt, current_world, game_state, /*unified_bitmap=*/false);
+}
+
+void OverworldEntityRenderer::DrawAllEntities(
+    const gui::CanvasRuntime& rt, const OverworldCanvasLayout& layout,
+    int current_world, int game_state) {
+  if (layout.IsSingleWorld()) {
+    DrawExits(rt, current_world);
+    DrawEntrances(rt, current_world);
+    DrawItems(rt, current_world);
+    DrawSprites(rt, current_world, game_state);
+    return;
+  }
+
+  hovered_entity_ = nullptr;
+  for (int world = 0; world < kOverworldWorldCount; ++world) {
+    const gui::CanvasRuntime world_rt =
+        OffsetRuntime(rt, layout.BlockOrigin(world));
+    DrawExitsForWorld(world_rt, world);
+  }
+  for (int world = 0; world < kOverworldWorldCount; ++world) {
+    const gui::CanvasRuntime world_rt =
+        OffsetRuntime(rt, layout.BlockOrigin(world));
+    DrawEntrancesForWorld(world_rt, world);
+  }
+  for (int world = 0; world < kOverworldWorldCount; ++world) {
+    const gui::CanvasRuntime world_rt =
+        OffsetRuntime(rt, layout.BlockOrigin(world));
+    DrawItemsForWorld(world_rt, world);
+  }
+  for (int world = 0; world < kOverworldWorldCount; ++world) {
+    const gui::CanvasRuntime world_rt =
+        OffsetRuntime(rt, layout.BlockOrigin(world));
+    DrawSpritesForWorld(world_rt, world, game_state, /*unified_bitmap=*/true);
   }
 }
 
@@ -148,8 +214,8 @@ void OverworldEntityRenderer::DrawEntrances(ImVec2 canvas_p0, ImVec2 scrolling,
   float scale = canvas_->global_scale();
   int i = 0;
   for (auto& each : overworld_->entrances()) {
-    if (each.map_id_ < 0x40 + (current_world * 0x40) &&
-        each.map_id_ >= (current_world * 0x40) && !each.deleted) {
+    if (OverworldCanvasLayout::WorldForMap(each.map_id_) == current_world &&
+        !each.deleted) {
       canvas_->DrawRect(each.x_, each.y_, 16, 16,
                         MarkerColor(EntityType::kEntrance, each.is_hole_));
       if (IsMouseHoveringOverEntity(each, canvas_p0, scrolling, scale)) {
@@ -172,8 +238,8 @@ void OverworldEntityRenderer::DrawExits(ImVec2 canvas_p0, ImVec2 scrolling,
 
   int i = 0;
   for (auto& each : *overworld_->mutable_exits()) {
-    if (each.map_id_ < 0x40 + (current_world * 0x40) &&
-        each.map_id_ >= (current_world * 0x40) && !each.deleted_) {
+    if (OverworldCanvasLayout::WorldForMap(each.map_id_) == current_world &&
+        !each.deleted_) {
       canvas_->DrawRect(each.x_, each.y_, 16, 16,
                         MarkerColor(EntityType::kExit));
 
@@ -194,8 +260,9 @@ void OverworldEntityRenderer::DrawItems(int current_world, int current_mode) {
   int i = 0;
   for (auto& item : *overworld_->mutable_all_items()) {
     // Get the item's bitmap and real X and Y positions
-    if (item.room_map_id_ < 0x40 + (current_world * 0x40) &&
-        item.room_map_id_ >= (current_world * 0x40) && !item.deleted) {
+    if (OverworldCanvasLayout::WorldForMap(item.room_map_id_) ==
+            current_world &&
+        !item.deleted) {
       canvas_->DrawRect(item.x_, item.y_, 16, 16,
                         MarkerColor(EntityType::kItem));
 
@@ -222,8 +289,8 @@ void OverworldEntityRenderer::DrawSprites(int current_world, int game_state,
   int i = 0;
   for (auto& sprite : *overworld_->mutable_sprites(game_state)) {
     // Filter sprites by current world - only show sprites for the current world
-    if (!sprite.deleted() && sprite.map_id() < 0x40 + (current_world * 0x40) &&
-        sprite.map_id() >= (current_world * 0x40)) {
+    if (!sprite.deleted() &&
+        OverworldCanvasLayout::WorldForMap(sprite.map_id()) == current_world) {
       // Sprites are already stored with global coordinates (realX, realY from
       // ROM loading) So we can use sprite.x_ and sprite.y_ directly
       int sprite_x = sprite.x_;

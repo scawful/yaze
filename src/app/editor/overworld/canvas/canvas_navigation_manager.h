@@ -8,6 +8,7 @@
 #include <vector>
 
 #include "absl/status/status.h"
+#include "app/editor/overworld/canvas/overworld_canvas_layout.h"
 #include "app/editor/overworld/ui/ui_constants.h"
 #include "app/gfx/core/bitmap.h"
 #include "app/gfx/render/tilemap.h"
@@ -102,6 +103,8 @@ struct CanvasNavigationCallbacks {
   std::function<bool()> is_entity_hovered;
   /// Opens (and focuses) the Map Properties window. Double-click target.
   std::function<void()> open_map_properties;
+  /// Supplies the active canvas layout (Single world vs Unified).
+  std::function<OverworldCanvasLayout()> canvas_layout;
 };
 
 /// One frame of canvas mouse input, reduced to what map selection needs.
@@ -194,6 +197,7 @@ class CanvasNavigationManager {
   /// @brief Center the viewport on @p map_id (same world grid).
   void CenterOnMap(int map_id);
   void CenterOnWorldTile(int world_x, int world_y);
+  void ScrollToWorldBlock(int world);
 
   bool is_panning() const { return pan_active_; }
 
@@ -262,6 +266,7 @@ class CanvasNavigationManager {
   // Scroll to apply at the next BeginCanvasViewport.
   std::optional<ImVec2> pending_scroll_;
   std::optional<int> pending_center_map_;
+  std::optional<int> pending_scroll_world_;
 
   // Wheel state
   StickyWheelPan wheel_pan_;

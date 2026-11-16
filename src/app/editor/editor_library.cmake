@@ -170,6 +170,7 @@ set(
   app/editor/oracle/panels/story_event_graph_panel.cc
   app/editor/overworld/automation.cc
   app/editor/overworld/canvas/canvas_navigation_manager.cc
+  app/editor/overworld/canvas/overworld_canvas_layout.cc
   app/editor/overworld/canvas/overworld_canvas_renderer.cc
   app/editor/overworld/canvas/overworld_context_actions.cc
   app/editor/overworld/canvas/overworld_navigation.cc

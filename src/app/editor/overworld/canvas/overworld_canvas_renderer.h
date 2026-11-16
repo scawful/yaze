@@ -9,6 +9,7 @@
 
 #include "absl/status/status.h"
 #include "app/gfx/core/bitmap.h"
+#include "app/gui/canvas/canvas_types.h"
 #include "app/gui/layout/adaptive_sheet_layout.h"
 #include "imgui/imgui.h"
 #include "zelda3/overworld/tile16_usage_index.h"
@@ -91,8 +92,11 @@ class OverworldCanvasRenderer {
   // Internal Canvas Drawing Helpers
   // =========================================================================
 
-  /// @brief Render the 64 overworld map bitmaps to the canvas
+  /// @brief Render overworld map bitmaps for the active canvas layout.
   void DrawOverworldMaps();
+  void DrawUnifiedBlockChrome(const gui::CanvasRuntime& canvas_rt,
+                              const class OverworldCanvasLayout& layout);
+  void DrawUnifiedReadOnlyBanner();
   void DrawMapWithAreaLayers(int map_index, int map_x, int map_y, float scale);
 
   // Subscreen overlay layer per map (sky, fog, lava, canopy, rain), built in
