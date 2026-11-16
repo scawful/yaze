@@ -1464,9 +1464,13 @@ absl::StatusOr<std::vector<uint8_t>> SealNativeOverworldTerrain(
         (!sprites.empty() && (e.id == 100 || (e.id >= 16 && e.id <= 18))) ||
         std::find(changed_properties.begin(), changed_properties.end(), e.id) !=
             changed_properties.end() ||
-        (publish_metadata && e.id == kNativeAuthoringMetadataTableId))
-      put32(kDescriptorPc + kHeaderSize + i * kEntrySize + 12,
-            Crc32(candidate.data() + e.pc_address, e.count * e.stride));
+        (publish_metadata && e.id == kNativeAuthoringMetadataTableId)) {
+      // A tail sprite Save may grow table 100, so read the candidate count.
+      const size_t row = kDescriptorPc + kHeaderSize + i * kEntrySize;
+      put32(row + 12,
+            Crc32(candidate.data() + e.pc_address,
+                  size_t{U16(candidate.data() + row + 8)} * e.stride));
+    }
   }
   put32(kDescriptorPc + 28, 0);
   put32(kDescriptorPc + 28,

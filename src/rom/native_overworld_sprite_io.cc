@@ -6,6 +6,7 @@
 #include <utility>
 #include <vector>
 
+#include "absl/strings/str_format.h"
 #include "rom/native_overworld_authoring_metadata.h"
 #include "rom/native_overworld_storage.h"
 
@@ -162,6 +163,20 @@ PlanNativeOverworldSpriteSave(
     if (end <= begin || end > baseline.size())
       return absl::FailedPreconditionError(
           "Native sprite storage is empty or truncated");
+    // Tail lists may grow table 100 into the free (00/FF) bytes that follow
+    // it, up to the next directory allocation, the end of its bank, or 32 KiB.
+    // This is the rule Oracle's tail_sprite_append.py applies.
+    size_t limit = end;
+    if (partition == 1) {
+      size_t stop = std::min({static_cast<size_t>(bank_base) + 0x10000,
+                              begin + 0x8000, baseline.size()});
+      for (const auto& other : layout.entries)
+        if (other.pc_address >= end && other.pc_address < stop)
+          stop = other.pc_address;
+      while (limit < stop &&
+             (baseline[limit] == 0x00 || baseline[limit] == 0xFF))
+        ++limit;
+    }
     std::array<std::vector<std::vector<uint8_t>>, 3> lists;
     bool any_change = false;
     for (int phase = 0; phase < 3; ++phase) {
@@ -226,10 +241,18 @@ PlanNativeOverworldSpriteSave(
       for (const auto& bytes : lists[phase]) {
         auto found = shared.find(bytes);
         if (found == shared.end()) {
-          if (payload.size() + bytes.size() > end - begin)
-            return absl::ResourceExhaustedError(
-                "Native sprite data exceeds declared storage; no bytes "
-                "written");
+          if (payload.size() + bytes.size() > limit - begin) {
+            if (partition == 0)
+              return absl::ResourceExhaustedError(
+                  "Native sprite data exceeds declared storage; no bytes "
+                  "written");
+            return absl::ResourceExhaustedError(absl::StrFormat(
+                "Native tail sprite data does not fit. Table 100 holds %d "
+                "bytes and can grow only to %d: at PC $%06X the next byte is "
+                "in use, another table starts, or bank $%02X ends. No bytes "
+                "written",
+                end - begin, limit - begin, limit, layout.tail_actor_bank));
+          }
           const size_t address = begin + payload.size() - bank_base;
           if (address < 0x8000 || address > 0xFFFF)
             return absl::FailedPreconditionError(
@@ -248,6 +271,23 @@ PlanNativeOverworldSpriteSave(
         plan.push_back({static_cast<int>(mirrors[phase]), pointers});
       }
       plan.push_back({static_cast<int>(at), std::move(pointers)});
+    }
+    if (partition == 1 && payload.size() > end - begin) {
+      // Grow table 100. The count never shrinks; the caller reseals CRCs.
+      const auto grown_status =
+          CheckStorage(layout, begin, payload.size(), 100, false);
+      if (!grown_status.ok())
+        return grown_status;
+      const size_t row =
+          0x147000 + 32 +
+          static_cast<size_t>(&actors - layout.entries.data()) * 16;
+      if (Word(baseline, row) != 100 || Word(baseline, row + 8) != actors.count)
+        return absl::FailedPreconditionError(
+            "Native actor directory row does not match table 100");
+      const auto grown = static_cast<uint16_t>(payload.size());
+      plan.push_back(
+          {static_cast<int>(row + 8),
+           {static_cast<uint8_t>(grown), static_cast<uint8_t>(grown >> 8)}});
     }
     plan.push_back({static_cast<int>(begin), std::move(payload)});
   }

@@ -2054,6 +2054,9 @@ TEST(LyraLayoutDescriptorTest,
      NativeSpriteSaveRefusesOverflowAliasesAndReadOnlyWithoutMutation) {
   NativeDirectoryFixture fixture;
   fixture.SeedNativeSpritePrefix();
+  // The byte after table 100 is in use, so the tail lists cannot grow.
+  fixture.bytes[fixture.Entry(100).pc_address + fixture.Entry(100).count] =
+      0x12;
   Rom document;
   ASSERT_TRUE(document.LoadFromData(fixture.bytes).ok());
   const auto before = document.vector();
@@ -2093,6 +2096,51 @@ TEST(LyraLayoutDescriptorTest,
             rom::LyraLayoutPresence::kValid);
   const auto refused = rom::PlanNativeOverworldSpriteSave(fixture.bytes, edits);
   EXPECT_EQ(refused.status().code(), absl::StatusCode::kPermissionDenied);
+}
+
+TEST(LyraLayoutDescriptorTest, NativeTailSpriteSaveGrowsTable100IntoFreeBytes) {
+  NativeDirectoryFixture fixture;
+  fixture.SeedNativeSpritePrefix();
+  const size_t actors = fixture.Entry(100).pc_address;
+  ASSERT_EQ(fixture.Entry(100).count, 16);
+  Rom document;
+  ASSERT_TRUE(document.LoadFromData(fixture.bytes).ok());
+  const auto before = document.vector();
+  const std::vector<rom::NativeOverworldSpriteEdit> edits = {
+      {0, 0xA0, {1, 2, 3, 4, 5, 6, 0xFF}},
+      {1, 0xA1, {1, 2, 4, 4, 5, 7, 0xFF}},
+      {2, 0xBF, {1, 2, 5, 4, 5, 8, 0xFF}}};
+  // One shared empty list plus three 7-byte lists = 22 bytes > 16.
+  ASSERT_TRUE(
+      document.CommitNativeTerrainImage(before, before, {}, edits).ok());
+  const auto& after = document.vector();
+  const auto layout = rom::InspectLyraLayout(after.data(), after.size());
+  ASSERT_EQ(layout.presence, rom::LyraLayoutPresence::kValid) << layout.error;
+  const auto grown = std::find_if(layout.entries.begin(), layout.entries.end(),
+                                  [](const auto& e) { return e.id == 100; });
+  ASSERT_NE(grown, layout.entries.end());
+  EXPECT_EQ(grown->count, 22);
+  EXPECT_EQ(grown->pc_address, actors);
+  const int bank_base = (layout.tail_actor_bank & 0x7F) * 0x8000 - 0x8000;
+  for (const auto& edit : edits) {
+    const auto& table = fixture.Entry(16 + edit.phase);
+    const size_t pointer = after[table.pc_address + edit.map_id * 2] |
+                           (after[table.pc_address + edit.map_id * 2 + 1] << 8);
+    const size_t at = bank_base + pointer;
+    ASSERT_GE(at, actors);
+    ASSERT_LE(at + edit.value.size(), actors + grown->count);
+    EXPECT_TRUE(
+        std::equal(edit.value.begin(), edit.value.end(), after.begin() + at));
+  }
+  // Nothing past the grown table changes.
+  EXPECT_TRUE(std::equal(after.begin() + actors + 22, after.end(),
+                         before.begin() + actors + 22));
+  // A cold reopen keeps the grown table, and a second Save is a no-op.
+  Rom reopened;
+  ASSERT_TRUE(reopened.LoadFromData(after).ok());
+  const auto saved = reopened.vector();
+  ASSERT_TRUE(reopened.CommitNativeTerrainImage(saved, saved, {}, edits).ok());
+  EXPECT_EQ(reopened.vector(), saved);
 }
 
 class NativeSpecialOverworldEditorTest : public test::HeadlessEditorTest {};
