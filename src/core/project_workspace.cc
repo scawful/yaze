@@ -1,14 +1,19 @@
 #include "core/project_workspace.h"
 
+#include <chrono>
 #include <cstdlib>
+#include <ctime>
 #include <fstream>
+#include <optional>
 #include <regex>
 #include <sstream>
 #include <system_error>
 
 #include "absl/strings/ascii.h"
 #include "absl/strings/match.h"
+#include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
+#include "util/rom_hash.h"
 
 namespace yaze::project {
 namespace {
@@ -24,6 +29,114 @@ std::string ResolveAgainst(const fs::path& base, const std::string& value) {
     path = base / path;
   }
   return path.lexically_normal().string();
+}
+
+struct PreservedLine {
+  std::string body;
+  std::string ending;
+};
+
+std::vector<PreservedLine> SplitLinesPreservingEndings(absl::string_view text) {
+  std::vector<PreservedLine> lines;
+  size_t pos = 0;
+  while (pos < text.size()) {
+    size_t line_end = text.find('\n', pos);
+    if (line_end == absl::string_view::npos) {
+      std::string body(text.substr(pos));
+      lines.push_back({std::move(body), ""});
+      break;
+    }
+    if (line_end > pos && text[line_end - 1] == '\r') {
+      lines.push_back(
+          {std::string(text.substr(pos, line_end - pos - 1)), "\r\n"});
+    } else {
+      lines.push_back({std::string(text.substr(pos, line_end - pos)), "\n"});
+    }
+    pos = line_end + 1;
+  }
+  return lines;
+}
+
+std::string JoinPreservedLines(const std::vector<PreservedLine>& lines) {
+  std::string out;
+  for (const auto& line : lines) {
+    out.append(line.body);
+    out.append(line.ending);
+  }
+  return out;
+}
+
+std::string FormatLocalFileTime(fs::file_time_type ftime) {
+  const auto sys_now = std::chrono::system_clock::now();
+  const auto file_now = fs::file_time_type::clock::now();
+  const auto sctp =
+      std::chrono::time_point_cast<std::chrono::system_clock::duration>(
+          ftime - file_now + sys_now);
+  const std::time_t tt = std::chrono::system_clock::to_time_t(sctp);
+  std::tm local_tm{};
+#ifdef _WIN32
+  localtime_s(&local_tm, &tt);
+#else
+  localtime_r(&tt, &local_tm);
+#endif
+  char buf[32] = {};
+  if (std::strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M:%S", &local_tm) == 0) {
+    return "unknown";
+  }
+  return std::string(buf);
+}
+
+std::string DescribePathMtime(const fs::path& path) {
+  if (path.empty()) {
+    return "unknown";
+  }
+  std::error_code ec;
+  if (!fs::is_regular_file(path, ec) || ec) {
+    return "unknown";
+  }
+  const auto mtime = fs::last_write_time(path, ec);
+  if (ec) {
+    return "unknown";
+  }
+  return FormatLocalFileTime(mtime);
+}
+
+std::string FindNewestBackupInDir(const fs::path& dir) {
+  if (dir.empty()) {
+    return "";
+  }
+  std::error_code ec;
+  if (!fs::is_directory(dir, ec) || ec) {
+    return "";
+  }
+  fs::path newest_path;
+  fs::file_time_type newest_time{};
+  bool found = false;
+  for (fs::directory_iterator it(dir, ec), end; !ec && it != end;
+       it.increment(ec)) {
+    std::error_code entry_ec;
+    if (!it->is_regular_file(entry_ec) || entry_ec) {
+      continue;
+    }
+    const std::string name = it->path().filename().string();
+    if (name.empty() || name.front() == '.' || absl::EndsWith(name, ".tmp")) {
+      continue;
+    }
+    const auto mtime = fs::last_write_time(it->path(), entry_ec);
+    if (entry_ec) {
+      continue;
+    }
+    if (!found || mtime > newest_time) {
+      found = true;
+      newest_time = mtime;
+      newest_path = it->path();
+    }
+  }
+  if (!found) {
+    return "";
+  }
+  return absl::StrFormat("%s (%s)", newest_path.filename().string(),
+                         FormatLocalFileTime(newest_time));
 }
 
 }  // namespace
@@ -223,6 +336,206 @@ std::string RomHashToRecordOnOpen(const std::string& expected_hash,
     return "";
   }
   return target;
+}
+
+absl::StatusOr<std::string> UpdateProjectDescriptorKey(
+    const fs::path& project_file, absl::string_view section,
+    absl::string_view key, absl::string_view value) {
+  if (project_file.empty() || section.empty() || key.empty()) {
+    return absl::InvalidArgumentError(
+        "Project file, section, and key are required");
+  }
+  if (value.find('\n') != absl::string_view::npos ||
+      value.find('\r') != absl::string_view::npos) {
+    return absl::InvalidArgumentError(
+        "Descriptor value must not contain newline characters");
+  }
+  std::error_code ec;
+  if (!fs::is_regular_file(project_file, ec) || ec ||
+      fs::file_size(project_file, ec) > 16 * 1024 * 1024 || ec) {
+    return absl::FailedPreconditionError(absl::StrFormat(
+        "Project descriptor is missing, unreadable, or oversized: %s",
+        project_file.string()));
+  }
+  std::string before;
+  {
+    std::ifstream in(project_file, std::ios::binary);
+    if (!in) {
+      return absl::FailedPreconditionError(
+          absl::StrFormat("Cannot read %s", project_file.string()));
+    }
+    before.assign(std::istreambuf_iterator<char>(in),
+                  std::istreambuf_iterator<char>());
+    if (in.bad()) {
+      return absl::DataLossError(
+          absl::StrFormat("Read failed for %s", project_file.string()));
+    }
+  }
+  const absl::string_view trimmed_all = absl::StripAsciiWhitespace(before);
+  if (trimmed_all.empty() || trimmed_all.front() == '{') {
+    return absl::FailedPreconditionError(
+        absl::StrFormat("Project descriptor is not an INI project file: %s",
+                        project_file.string()));
+  }
+
+  std::vector<PreservedLine> lines = SplitLinesPreservingEndings(before);
+  const std::string newline =
+      before.find("\r\n") != std::string::npos ? "\r\n" : "\n";
+  std::optional<size_t> matched_line;
+  std::optional<size_t> section_header_line;
+  std::optional<size_t> last_nonblank_in_section;
+  bool in_target = false;
+  for (size_t i = 0; i < lines.size(); ++i) {
+    const absl::string_view trimmed = absl::StripAsciiWhitespace(lines[i].body);
+    if (trimmed.empty() || trimmed.front() == '#' || trimmed.front() == ';') {
+      continue;
+    }
+    if (trimmed.front() == '[' && trimmed.back() == ']') {
+      const absl::string_view sec_name =
+          absl::StripAsciiWhitespace(trimmed.substr(1, trimmed.size() - 2));
+      in_target = (sec_name == section);
+      if (in_target) {
+        if (section_header_line.has_value()) {
+          return absl::FailedPreconditionError(
+              absl::StrFormat("%s has duplicate [%s] sections",
+                              project_file.string(), section));
+        }
+        section_header_line = i;
+        last_nonblank_in_section = i;
+      }
+      continue;
+    }
+    if (!in_target) {
+      continue;
+    }
+    last_nonblank_in_section = i;
+    const size_t eq = lines[i].body.find('=');
+    if (eq == std::string::npos) {
+      continue;
+    }
+    const absl::string_view line_key = absl::StripAsciiWhitespace(
+        absl::string_view(lines[i].body).substr(0, eq));
+    if (line_key == key) {
+      if (matched_line.has_value()) {
+        return absl::FailedPreconditionError(
+            absl::StrFormat("%s has multiple '%s' entries in [%s]",
+                            project_file.string(), key, section));
+      }
+      matched_line = i;
+    }
+  }
+
+  const std::string assignment = absl::StrCat(key, "=", value);
+  if (matched_line.has_value()) {
+    lines[*matched_line].body = assignment;
+  } else if (last_nonblank_in_section.has_value()) {
+    const size_t idx = *last_nonblank_in_section;
+    if (lines[idx].ending.empty()) {
+      lines[idx].ending = newline;
+    }
+    const std::string ins_ending = lines[idx].ending;
+    lines.insert(lines.begin() + static_cast<std::ptrdiff_t>(idx + 1),
+                 PreservedLine{assignment, ins_ending});
+  } else {
+    if (!lines.empty() && lines.back().ending.empty()) {
+      lines.back().ending = newline;
+    }
+    if (!lines.empty() &&
+        !absl::StripAsciiWhitespace(lines.back().body).empty()) {
+      lines.push_back(PreservedLine{"", newline});
+    }
+    lines.push_back(PreservedLine{absl::StrCat("[", section, "]"), newline});
+    lines.push_back(PreservedLine{assignment, newline});
+  }
+
+  const std::string updated = JoinPreservedLines(lines);
+  if (updated == before) {
+    return updated;
+  }
+
+  const fs::path tmp = project_file.string() + ".tmp";
+  {
+    std::ofstream out(tmp, std::ios::binary | std::ios::trunc);
+    if (!out) {
+      return absl::PermissionDeniedError(
+          absl::StrFormat("Cannot write %s", tmp.string()));
+    }
+    out.write(updated.data(), static_cast<std::streamsize>(updated.size()));
+    if (!out) {
+      return absl::DataLossError(
+          absl::StrFormat("Short write to %s", tmp.string()));
+    }
+  }
+  fs::rename(tmp, project_file, ec);
+  if (ec) {
+    fs::remove(tmp, ec);
+    return absl::InternalError(absl::StrFormat(
+        "Cannot replace %s: %s", project_file.string(), ec.message()));
+  }
+  return updated;
+}
+
+RomIdentityMismatchInfo InspectRomIdentityMismatch(
+    const uint8_t* rom_data, size_t rom_size, absl::string_view rom_filename,
+    const YazeProject& project) {
+  RomIdentityMismatchInfo info;
+  info.expected_hash = std::string(
+      absl::StripAsciiWhitespace(project.rom_metadata.expected_hash));
+
+  std::string effective_rom_path(rom_filename);
+  if (effective_rom_path.empty() && !project.rom_filename.empty()) {
+    effective_rom_path = project.GetAbsolutePath(project.rom_filename);
+  }
+  info.rom_path = effective_rom_path;
+  info.rom_mtime = DescribePathMtime(effective_rom_path);
+
+  if (rom_data != nullptr && rom_size > 0) {
+    const auto identity = util::ComputeRomIdentityHashes(rom_data, rom_size);
+    info.loaded_sha1 = identity.sha1;
+    info.loaded_crc32 = identity.crc32;
+    std::string normalized_expected = absl::AsciiStrToLower(info.expected_hash);
+    if (absl::StartsWith(normalized_expected, "0x")) {
+      normalized_expected.erase(0, 2);
+    }
+    if (normalized_expected.size() == 8) {
+      info.loaded_hash = identity.crc32;
+    } else {
+      info.loaded_hash =
+          !identity.sha1.empty() ? identity.sha1 : identity.crc32;
+    }
+  }
+
+  std::string backup_summary;
+  if (!project.filepath.empty()) {
+    const fs::path parent = fs::path(project.filepath).parent_path();
+    if (parent.extension() == ".yazeproj") {
+      backup_summary = FindNewestBackupInDir(parent / "backups");
+    }
+  }
+  if (backup_summary.empty() && !project.rom_backup_folder.empty()) {
+    backup_summary = FindNewestBackupInDir(
+        fs::path(project.GetAbsolutePath(project.rom_backup_folder)));
+  }
+  info.newest_backup = backup_summary.empty() ? "(none)" : backup_summary;
+  return info;
+}
+
+std::string FormatRomIdentityMismatchFields(
+    const RomIdentityMismatchInfo& info) {
+  std::string out = absl::StrFormat(
+      "expected_hash=%s, loaded_hash=%s",
+      info.expected_hash.empty() ? "(unset)" : info.expected_hash,
+      info.loaded_hash.empty() ? "unknown" : info.loaded_hash);
+  if (!info.loaded_sha1.empty() && !info.loaded_crc32.empty()) {
+    absl::StrAppend(&out, absl::StrFormat(" (sha1=%s, crc32=%s)",
+                                          info.loaded_sha1, info.loaded_crc32));
+  }
+  absl::StrAppend(
+      &out, absl::StrFormat(
+                ", rom_mtime=%s, newest_backup=%s",
+                info.rom_mtime.empty() ? "unknown" : info.rom_mtime,
+                info.newest_backup.empty() ? "(none)" : info.newest_backup));
+  return out;
 }
 
 }  // namespace yaze::project

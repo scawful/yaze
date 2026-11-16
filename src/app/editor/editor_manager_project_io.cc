@@ -47,8 +47,10 @@
 #include "app/platform/timing.h"
 #include "core/features.h"
 #include "core/gfx_sheet_policy_adapter.h"
+#include "core/gfx_sheet_source.h"
 #include "core/native_save_receipt.h"
 #include "core/project.h"
+#include "core/project_workspace.h"
 #include "core/rom_settings.h"
 #include "core/source_artifact_publisher.h"
 #include "editor/core/content_registry.h"
@@ -74,6 +76,38 @@
 
 namespace yaze::editor {
 namespace {
+
+bool SessionSharesGraphicsSpec(const RomSession& existing,
+                               const std::string& target_project_filepath,
+                               const std::string& target_spec_path) {
+  if (!existing.project_context.has_value() ||
+      existing.project_context->filepath.empty()) {
+    return false;
+  }
+  if (SessionCoordinator::PathsReferToSameBackingFile(
+          existing.project_context->filepath, target_project_filepath)) {
+    return true;
+  }
+  if (existing.game_data.gfx_sheet_source.has_value() &&
+      SessionCoordinator::PathsReferToSameBackingFile(
+          existing.game_data.gfx_sheet_source->spec_path(), target_spec_path)) {
+    return true;
+  }
+  if (!core::GfxSheetSource::Selected(*existing.project_context)) {
+    return false;
+  }
+  const std::filesystem::path code_root(
+      existing.project_context->GetAbsolutePath(
+          existing.project_context->code_folder.empty()
+              ? "."
+              : existing.project_context->code_folder));
+  const std::filesystem::path existing_spec =
+      (code_root / existing.project_context->graphics_sheets.source_spec)
+          .lexically_normal();
+  return SessionCoordinator::PathsReferToSameBackingFile(existing_spec.string(),
+                                                         target_spec_path);
+}
+
 // Declared source files only. Build outputs and the next build request are
 // consumers of the saved state, not inputs that a build may refresh in place.
 std::map<std::string, std::string> ProjectSaveSources(
@@ -423,6 +457,7 @@ void EditorManager::SetupDialogCallbacks() {
                   : "ROM load options applied",
               ToastType::kSuccess);
         } else {
+          status_bar_.ClearNotification();
           ShowPostLoadSurface();
         }
 
@@ -435,6 +470,7 @@ void EditorManager::SetupDialogCallbacks() {
     show_rom_load_options_ = false;
     rom_load_options_owner_.reset();
     if (!rom_load_options_dialog_.reviewing()) {
+      status_bar_.ClearNotification();
       ShowPostLoadSurface();
     }
   });
@@ -524,6 +560,7 @@ void EditorManager::AnnounceRememberedRomLoadChoice() {
 void EditorManager::FinishRawRomOpen(bool remembered_load_options,
                                      bool ask_for_load_options,
                                      bool is_first_time_rom_path) {
+  status_bar_.ClearNotification();
   if (ask_for_load_options && ui_coordinator_) {
     // The dialog's confirm and cancel callbacks show the post-load surface.
     // A path new to recent files leans toward creating a project.
@@ -533,6 +570,7 @@ void EditorManager::FinishRawRomOpen(bool remembered_load_options,
     BindRomLoadOptionsToCurrentSession();
     return;
   }
+  status_bar_.ClearNotification();
   ShowPostLoadSurface();
   if (remembered_load_options) {
     AnnounceRememberedRomLoadChoice();
@@ -1912,6 +1950,94 @@ absl::Status EditorManager::LoadProjectWithRom(bool allow_dialogs) {
 
   auto asset_status = LoadAssetsForMode();
   if (!asset_status.ok()) {
+    std::optional<ProjectOpenAttention> staged_attention;
+    if (allow_dialogs) {
+      const bool rom_identity_fail =
+          !current_project_.rom_metadata.adopt_hash_on_open &&
+          IsRomIdentityMismatch() &&
+          absl::StrContains(asset_status.message(), "expected ROM identity");
+      if (rom_identity_fail) {
+        ProjectOpenAttention att;
+        att.kind = ProjectOpenAttention::Kind::kRomIdentityMismatch;
+        att.project_name = current_project_.GetDisplayName();
+        att.project_filepath = current_project_.filepath;
+        att.open_target_path = current_project_open_target_path_.empty()
+                                   ? current_project_.filepath
+                                   : current_project_open_target_path_;
+        att.prompt = current_project_open_prompt_;
+        att.rom_mismatch = project::InspectRomIdentityMismatch(
+            session->rom.data(), session->rom.size(), session->rom.filename(),
+            current_project_);
+        att.adopt_rom_hash = rom_lifecycle_.AdoptableRomHash();
+        att.can_adopt = !att.adopt_rom_hash.empty();
+        if (!att.can_adopt) {
+          att.adopt_disabled_reason = "Loaded ROM has no adoptable hash";
+        }
+        att.cancel_reason = std::string(asset_status.message());
+        staged_attention = std::move(att);
+      } else if (core::GfxSheetSource::Selected(current_project_) &&
+                 absl::StrContains(asset_status.message(),
+                                   "current spec SHA1 mismatch")) {
+        auto spec_info =
+            core::GfxSheetSource::InspectSpecSha1Mismatch(current_project_);
+        if (spec_info.has_value()) {
+          std::string draft_reason;
+          if (session_coordinator_) {
+            for (size_t i = 0; i < previous_session_count; ++i) {
+              auto* existing =
+                  static_cast<RomSession*>(session_coordinator_->GetSession(i));
+              if (!existing) {
+                continue;
+              }
+              const bool same_project = SessionSharesGraphicsSpec(
+                  *existing, current_project_.filepath, spec_info->spec_path);
+              if (same_project) {
+                if (auto* gfx = static_cast<GraphicsEditor*>(
+                        existing->editors.GetExistingEditor(
+                            EditorType::kGraphics));
+                    gfx != nullptr && (gfx->HasPendingSourceChanges() ||
+                                       gfx->HasPendingScratchChanges())) {
+                  draft_reason =
+                      "An unsaved graphics source draft is open; save or "
+                      "discard it before adopting the spec on disk";
+                  break;
+                }
+              }
+              if (existing->project_file_editor_state.initialized &&
+                  existing->project_file_editor_state.modified &&
+                  SessionCoordinator::PathsReferToSameBackingFile(
+                      existing->project_file_editor_state.filepath,
+                      current_project_.filepath)) {
+                draft_reason =
+                    "The raw project file editor has unsaved changes; save or "
+                    "discard them before adopting the spec on disk";
+                break;
+              }
+            }
+          }
+          ProjectOpenAttention att;
+          att.kind = ProjectOpenAttention::Kind::kGraphicsSpecSha1Mismatch;
+          att.project_name = current_project_.GetDisplayName();
+          att.project_filepath = current_project_.filepath;
+          att.open_target_path = current_project_open_target_path_.empty()
+                                     ? current_project_.filepath
+                                     : current_project_open_target_path_;
+          att.prompt = current_project_open_prompt_;
+          att.spec_mismatch = std::move(*spec_info);
+          if (!draft_reason.empty()) {
+            att.can_adopt = false;
+            att.adopt_disabled_reason = std::move(draft_reason);
+          } else if (!att.spec_mismatch.spec_valid) {
+            att.can_adopt = false;
+            att.adopt_disabled_reason = att.spec_mismatch.validation_error;
+          } else {
+            att.can_adopt = true;
+          }
+          att.cancel_reason = std::string(asset_status.message());
+          staged_attention = std::move(att);
+        }
+      }
+    }
     abandon_selected_rom();
     auto rollback_status =
         DiscardProvisionalSessionCreatedSince(previous_session_count);
@@ -1919,6 +2045,9 @@ absl::Status EditorManager::LoadProjectWithRom(bool allow_dialogs) {
       return absl::InternalError(
           absl::StrFormat("%s; session rollback failed: %s",
                           asset_status.message(), rollback_status.message()));
+    }
+    if (staged_attention.has_value()) {
+      staged_project_open_attention_ = std::move(staged_attention);
     }
     return asset_status;
   }
@@ -1939,6 +2068,7 @@ absl::Status EditorManager::LoadProjectWithRom(bool allow_dialogs) {
     pending_project_rom_selection_.reset();
   }
 
+  status_bar_.ClearNotification();
   ShowPostLoadSurface();
 
   MaybeEmitZScreamRomLoadHints();
@@ -2202,6 +2332,273 @@ absl::Status EditorManager::SaveCurrentSessionAs() {
   }
   popup_manager_->Show(PopupID::kSaveAs);
   return absl::OkStatus();
+}
+
+absl::Status EditorManager::AdoptPendingProjectOpenAttention() {
+  if (!pending_project_open_attention_.has_value()) {
+    return absl::FailedPreconditionError(
+        "No pending project open attention request");
+  }
+  ProjectOpenAttention att = *pending_project_open_attention_;
+  if (!att.can_adopt) {
+    return absl::FailedPreconditionError(
+        att.adopt_disabled_reason.empty()
+            ? "Pending project issue cannot be auto-adopted"
+            : att.adopt_disabled_reason);
+  }
+
+  if (att.kind == ProjectOpenAttention::Kind::kRomIdentityMismatch) {
+    if (att.project_filepath.empty() || att.adopt_rom_hash.empty()) {
+      return absl::FailedPreconditionError(
+          "Missing project path or ROM identity to adopt");
+    }
+    auto update = project::UpdateProjectDescriptorKey(
+        att.project_filepath, "rom", "expected_hash", att.adopt_rom_hash);
+    if (!update.ok()) {
+      if (absl::StrContains(update.status().message(),
+                            "not an INI project file")) {
+        project::YazeProject tmp;
+        RETURN_IF_ERROR(tmp.Open(att.project_filepath));
+        tmp.rom_metadata.expected_hash = att.adopt_rom_hash;
+        RETURN_IF_ERROR(tmp.Save());
+      } else {
+        return update.status();
+      }
+    }
+    const std::filesystem::path bundle =
+        std::filesystem::path(att.project_filepath).parent_path();
+    if (att.rom_mismatch.loaded_sha1.size() == 40 &&
+        bundle.extension() == ".yazeproj" &&
+        std::filesystem::exists(bundle / "manifest.json")) {
+      if (auto manifest_status = project::UpdateBundleManifestRomChecksum(
+              bundle, att.rom_mismatch.loaded_sha1);
+          !manifest_status.ok()) {
+        LOG_WARN("EditorManager", "manifest romChecksum not updated: %s",
+                 std::string(manifest_status.message()).c_str());
+      }
+    }
+  } else {
+    if (att.project_filepath.empty()) {
+      return absl::FailedPreconditionError("Missing project descriptor path");
+    }
+    if (session_coordinator_) {
+      for (size_t i = 0; i < session_coordinator_->GetTotalSessionCount();
+           ++i) {
+        auto* existing =
+            static_cast<RomSession*>(session_coordinator_->GetSession(i));
+        if (!existing) {
+          continue;
+        }
+        const bool same_project = SessionSharesGraphicsSpec(
+            *existing, att.project_filepath, att.spec_mismatch.spec_path);
+        if (same_project) {
+          if (auto* gfx = static_cast<GraphicsEditor*>(
+                  existing->editors.GetExistingEditor(EditorType::kGraphics));
+              gfx != nullptr && (gfx->HasPendingSourceChanges() ||
+                                 gfx->HasPendingScratchChanges())) {
+            const std::string reason =
+                "An unsaved graphics source draft is open; save or discard "
+                "it before adopting the spec on disk";
+            pending_project_open_attention_->can_adopt = false;
+            pending_project_open_attention_->adopt_disabled_reason = reason;
+            return absl::FailedPreconditionError(reason);
+          }
+        }
+      }
+    }
+
+    project::YazeProject fresh;
+    RETURN_IF_ERROR(fresh.Open(att.project_filepath));
+    auto recheck = core::GfxSheetSource::InspectSpecSha1Mismatch(fresh);
+    if (recheck.has_value()) {
+      if (!recheck->spec_valid) {
+        pending_project_open_attention_->spec_mismatch = *recheck;
+        pending_project_open_attention_->can_adopt = false;
+        pending_project_open_attention_->adopt_disabled_reason =
+            recheck->validation_error;
+        return absl::FailedPreconditionError(recheck->validation_error);
+      }
+      if (recheck->on_disk_sha1 != att.spec_mismatch.on_disk_sha1) {
+        pending_project_open_attention_->spec_mismatch = *recheck;
+        pending_project_open_attention_->can_adopt = true;
+        pending_project_open_attention_->adopt_disabled_reason.clear();
+        return absl::FailedPreconditionError(
+            "Graphics spec on disk changed again while the dialog was open; "
+            "review the updated SHA1 before adopting");
+      }
+      RETURN_IF_ERROR(fresh.UpdateDescriptorKeyOnDisk(
+          "graphics_sheets", "source_spec_sha1", recheck->on_disk_sha1));
+    }
+  }
+
+  auto startup_action = std::move(deferred_startup_action_);
+  deferred_startup_action_ = nullptr;
+  pending_project_open_attention_.reset();
+  if (popup_manager_) {
+    popup_manager_->Hide(PopupID::kProjectNeedsAttention);
+  }
+
+  const std::string target = att.open_target_path.empty()
+                                 ? att.project_filepath
+                                 : att.open_target_path;
+  const absl::Status open_status =
+      OpenRomOrProjectInternal(target, /*allow_dialogs=*/true, att.prompt);
+  if (!open_status.ok()) {
+    return open_status;
+  }
+  if (has_pending_project_open_attention()) {
+    if (startup_action) {
+      deferred_startup_action_ = std::move(startup_action);
+    }
+    return absl::OkStatus();
+  }
+  status_bar_.ClearNotification();
+  if (startup_action) {
+    startup_action();
+  }
+  return absl::OkStatus();
+}
+
+void EditorManager::CancelPendingProjectOpenAttention() {
+  std::string reason = "Project open cancelled";
+  if (pending_project_open_attention_.has_value() &&
+      !pending_project_open_attention_->cancel_reason.empty()) {
+    reason = absl::StrCat("Project open cancelled: ",
+                          pending_project_open_attention_->cancel_reason);
+  }
+  pending_project_open_attention_.reset();
+  staged_project_open_attention_.reset();
+  deferred_startup_action_ = nullptr;
+  if (popup_manager_) {
+    popup_manager_->Hide(PopupID::kProjectNeedsAttention);
+  }
+  toast_manager_.Show(reason, ToastType::kWarning, 8.0f);
+  status_bar_.SetEnabled(user_settings_.prefs().show_status_bar);
+  status_bar_.SetNotification(reason);
+}
+
+absl::Status EditorManager::ReloadProjectAfterDescriptorConflict() {
+  if (!pending_descriptor_save_conflict_.has_value()) {
+    return absl::FailedPreconditionError(
+        "No pending project descriptor conflict");
+  }
+  if (!pending_descriptor_save_conflict_->can_reload) {
+    return absl::FailedPreconditionError(
+        pending_descriptor_save_conflict_->reload_disabled_reason.empty()
+            ? "Cannot reload project while unsaved work is pending"
+            : pending_descriptor_save_conflict_->reload_disabled_reason);
+  }
+  std::string reload_path = current_project_.filepath;
+  if (reload_path.empty()) {
+    reload_path = pending_descriptor_save_conflict_->project_filepath;
+  }
+  const std::filesystem::path parent =
+      std::filesystem::path(reload_path).parent_path();
+  if (parent.extension() == ".yazeproj") {
+    reload_path = parent.string();
+  }
+  const std::optional<EditorType> prev_editor =
+      current_editor_ ? std::optional<EditorType>(current_editor_->type())
+                      : std::nullopt;
+
+  pending_descriptor_save_conflict_.reset();
+  if (popup_manager_) {
+    popup_manager_->Hide(PopupID::kProjectDescriptorChanged);
+  }
+
+  DetachActiveProjectContext();
+  if (session_coordinator_) {
+    if (auto* session = session_coordinator_->GetActiveRomSession()) {
+      RETURN_IF_ERROR(session_coordinator_->DiscardProvisionalSession(
+          session->session_id()));
+    }
+  }
+  current_project_ = project::YazeProject();
+  ReleaseUnusedProjectEditorLocks();
+
+  const absl::Status open_status = OpenRomOrProjectInternal(
+      reload_path, /*allow_dialogs=*/true, LoadOptionsPrompt::kNoPrompt);
+  if (!open_status.ok()) {
+    toast_manager_.Show(
+        absl::StrFormat("Failed to reload project: %s", open_status.message()),
+        ToastType::kError);
+    return open_status;
+  }
+  if (!has_pending_project_open_attention() && prev_editor.has_value()) {
+    SwitchToEditor(*prev_editor, true);
+  }
+  status_bar_.ClearNotification();
+  toast_manager_.Show("Reloaded project from disk", ToastType::kInfo);
+  return absl::OkStatus();
+}
+
+void EditorManager::RequestOverwriteDescriptorConflict() {
+  if (pending_descriptor_save_conflict_.has_value()) {
+    pending_descriptor_save_conflict_->confirming_overwrite = true;
+  }
+}
+
+void EditorManager::BackFromOverwriteDescriptorConflict() {
+  if (pending_descriptor_save_conflict_.has_value()) {
+    pending_descriptor_save_conflict_->confirming_overwrite = false;
+  }
+}
+
+absl::Status EditorManager::ConfirmOverwriteDescriptorConflict() {
+  if (!pending_descriptor_save_conflict_.has_value()) {
+    return absl::FailedPreconditionError(
+        "No pending project descriptor conflict");
+  }
+  if (!pending_descriptor_save_conflict_->confirming_overwrite) {
+    return absl::FailedPreconditionError(
+        "Overwrite anyway requires explicit confirmation");
+  }
+  RETURN_IF_ERROR(current_project_.RefreshDescriptorBaselineFromDisk());
+  if (session_coordinator_) {
+    if (auto* session = session_coordinator_->GetActiveRomSession()) {
+      if (session->project_context) {
+        session->project_context->RefreshDescriptorBaselineFromDisk()
+            .IgnoreError();
+      }
+      if (session->game_data.gfx_sheet_source &&
+          current_project_.loaded_descriptor_bytes().has_value()) {
+        session->game_data.gfx_sheet_source->RebaseDescriptorBaseline(
+            *current_project_.loaded_descriptor_bytes());
+      }
+    }
+  }
+  if (popup_manager_) {
+    popup_manager_->Hide(PopupID::kProjectDescriptorChanged);
+  }
+  pending_descriptor_save_conflict_.reset();
+
+  allow_external_descriptor_overwrite_once_ = true;
+  absl::Cleanup reset_allow = [this] {
+    allow_external_descriptor_overwrite_once_ = false;
+  };
+  const absl::Status status = SaveProject();
+  if (status.ok()) {
+    status_bar_.ClearNotification();
+    toast_manager_.Show("Project saved (overwrote external changes on disk)",
+                        ToastType::kSuccess);
+  } else {
+    toast_manager_.Show(
+        absl::StrFormat("Failed to save project: %s", status.message()),
+        ToastType::kError);
+  }
+  return status;
+}
+
+void EditorManager::CancelDescriptorConflict() {
+  pending_descriptor_save_conflict_.reset();
+  if (popup_manager_) {
+    popup_manager_->Hide(PopupID::kProjectDescriptorChanged);
+  }
+  const std::string reason =
+      "Save cancelled: project.yaze changed on disk since open";
+  toast_manager_.Show(reason, ToastType::kWarning, 6.0f);
+  status_bar_.SetEnabled(user_settings_.prefs().show_status_bar);
+  status_bar_.SetNotification(reason);
 }
 
 }  // namespace yaze::editor

@@ -212,10 +212,13 @@ std::string RomLifecycleManager::AdoptableRomHash() const {
   if (absl::StartsWithIgnoreCase(expected, "0x")) {
     expected.erase(0, 2);
   }
-  // Keep the project's format: launchers compare SHA-1 directly.
-  return expected.size() == 40 && !current_rom_identity_.sha1.empty()
-             ? current_rom_identity_.sha1
-             : current_rom_identity_.crc32;
+  // Keep the project's CRC32 format for 8-char legacy hashes; use SHA-1
+  // (when available) for SHA-1 or unrecognized expectations so launchers match.
+  if (expected.size() == 8) {
+    return current_rom_identity_.crc32;
+  }
+  return !current_rom_identity_.sha1.empty() ? current_rom_identity_.sha1
+                                             : current_rom_identity_.crc32;
 }
 
 bool RomLifecycleManager::AdmitProjectPageTile16(

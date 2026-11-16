@@ -1,12 +1,16 @@
 #ifndef YAZE_CORE_PROJECT_WORKSPACE_H_
 #define YAZE_CORE_PROJECT_WORKSPACE_H_
 
+#include <cstddef>
+#include <cstdint>
 #include <filesystem>
 #include <string>
 #include <utility>
 #include <vector>
 
 #include "absl/status/status.h"
+#include "absl/status/statusor.h"
+#include "absl/strings/string_view.h"
 #include "core/project.h"
 
 namespace yaze::project {
@@ -60,6 +64,32 @@ absl::Status UpdateBundleManifestRomChecksum(
 std::string RomHashToRecordOnOpen(const std::string& expected_hash,
                                   const std::string& rom_sha1,
                                   const std::string& rom_crc32);
+
+// Atomically update or insert a single `<key>=<value>` entry inside `[<section>]`
+// of an INI-format `project.yaze` descriptor without re-serializing comments,
+// timestamps, blank lines, or unrelated sections. Returns the full updated text.
+absl::StatusOr<std::string> UpdateProjectDescriptorKey(
+    const std::filesystem::path& project_file, absl::string_view section,
+    absl::string_view key, absl::string_view value);
+
+// Structured diagnostic details collected when a ROM's identity fails to match
+// `[rom] expected_hash`. Shared between the GUI attention modal and CLI errors.
+struct RomIdentityMismatchInfo {
+  std::string expected_hash;
+  std::string loaded_sha1;
+  std::string loaded_crc32;
+  std::string loaded_hash;
+  std::string rom_path;
+  std::string rom_mtime;
+  std::string newest_backup;
+};
+
+RomIdentityMismatchInfo InspectRomIdentityMismatch(
+    const uint8_t* rom_data, size_t rom_size, absl::string_view rom_filename,
+    const YazeProject& project);
+
+std::string FormatRomIdentityMismatchFields(
+    const RomIdentityMismatchInfo& info);
 
 }  // namespace yaze::project
 

@@ -179,6 +179,23 @@ void StatusBar::ClearDirtyScope() {
   dirty_scope_options_ = {};
 }
 
+void StatusBar::SetNotification(const std::string& message) {
+  SetNotification(message, StatusBarSegmentOptions{});
+}
+
+void StatusBar::SetNotification(const std::string& message,
+                                StatusBarSegmentOptions options) {
+  has_notification_ = !message.empty();
+  notification_ = message;
+  notification_options_ = std::move(options);
+}
+
+void StatusBar::ClearNotification() {
+  has_notification_ = false;
+  notification_.clear();
+  notification_options_ = {};
+}
+
 void StatusBar::SetCursorPosition(int x, int y, const char* label) {
   has_cursor_ = true;
   cursor_x_ = x;
@@ -357,6 +374,11 @@ void StatusBar::Draw() {
     if (has_active_editor_) {
       DrawSeparator();
       DrawActiveEditorSegment();
+    }
+
+    if (has_notification_) {
+      DrawSeparator();
+      DrawNotificationSegment();
     }
 
     // Middle section: Editor context (cursor, selection)
@@ -567,6 +589,23 @@ void StatusBar::DrawDirtyScopeSegment() {
   gui::ColoredTextF(gui::ConvertColorToImVec4(theme.warning), "%s %s",
                     ICON_MD_WARNING_AMBER, dirty_scope_.c_str());
   ApplySegmentInteraction(dirty_scope_options_);
+}
+
+void StatusBar::DrawNotificationSegment() {
+  const auto& theme = gui::ThemeManager::Get().GetCurrentTheme();
+  std::string display = notification_;
+  constexpr size_t kMaxChars = 96;
+  if (display.size() > kMaxChars) {
+    display = display.substr(0, kMaxChars - 3) + "...";
+  }
+  gui::ColoredTextF(gui::ConvertColorToImVec4(theme.warning), "%s %s",
+                    ICON_MD_WARNING, display.c_str());
+  if (!notification_options_.tooltip.empty() ||
+      notification_options_.on_click) {
+    ApplySegmentInteraction(notification_options_);
+  } else if (ImGui::IsItemHovered()) {
+    ImGui::SetTooltip("%s", notification_.c_str());
+  }
 }
 
 void StatusBar::DrawCursorSegment() {

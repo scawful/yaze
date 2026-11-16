@@ -35,6 +35,7 @@ namespace yaze {
 namespace editor {
 
 class GraphicsEditorSaveStoplossTestPeer;
+class ProjectOpenResilienceTestPeer;
 
 // Super Donkey prototype graphics offsets (from leaked dev materials)
 const std::string kSuperDonkeyTiles[] = {
@@ -286,6 +287,8 @@ class GraphicsEditor : public Editor {
 
   friend class EditorManagerLayoutTestPeer;
   friend class GraphicsEditorSaveStoplossTestPeer;
+  friend class ProjectOpenResilienceTestPeer;
+  class ProjectOpenResilienceTestPeer;
   friend class AuthoringSaveWorkflowTestPeer;
   friend class DungeonPaletteSourceTestPeer;
 

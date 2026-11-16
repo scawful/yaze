@@ -1298,9 +1298,11 @@ void MenuOrchestrator::OnSaveProject() {
   if (editor_manager_) {
     auto status = editor_manager_->SaveProject();
     if (!status.ok()) {
-      toast_manager_.Show(
-          absl::StrFormat("Failed to save project: %s", status.message()),
-          ToastType::kError);
+      if (!popup_manager_.IsVisible(PopupID::kProjectDescriptorChanged)) {
+        toast_manager_.Show(
+            absl::StrFormat("Failed to save project: %s", status.message()),
+            ToastType::kError);
+      }
     } else {
       toast_manager_.Show("Project saved successfully", ToastType::kSuccess);
     }

@@ -12,6 +12,7 @@
 #include "absl/status/status.h"
 #include "absl/strings/str_format.h"
 #include "core/project.h"
+#include "core/project_workspace.h"
 #include "nlohmann/json.hpp"
 #include "rom/rom.h"
 #include "util/rom_hash.h"
@@ -543,10 +544,15 @@ absl::Status ProjectBundleVerifyCommandHandler::Execute(
                         : absl::StrFormat("%s match: %s", algorithm, actual);
           checks.push_back({"rom_hash_check", "pass", detail});
         } else {
+          const auto mismatch =
+              project::InspectRomIdentityMismatch(nullptr, 0, rom_abs, proj);
           checks.push_back(
               {"rom_hash_check", "fail",
-               absl::StrFormat("%s mismatch: expected=%s actual=%s", algorithm,
-                               expected, actual)});
+               absl::StrFormat(
+                   "%s mismatch: expected=%s actual=%s (rom_mtime=%s, "
+                   "newest_backup=%s)",
+                   algorithm, expected, actual, mismatch.rom_mtime,
+                   mismatch.newest_backup)});
           any_fail = true;
         }
       }

@@ -1,5 +1,6 @@
 #include "core/project.h"
 #include "core/project_sections.h"
+#include "core/project_workspace.h"
 #include "core/sprite_asset_json.h"
 
 #include <algorithm>
@@ -83,6 +84,35 @@ std::pair<std::string, std::string> ParseKeyValue(const std::string& line) {
   value.erase(value.find_last_not_of(" \t") + 1);
 
   return {key, value};
+}
+
+std::string NormalizeDescriptorPath(const std::string& path) {
+  if (path.empty()) {
+    return "";
+  }
+  std::error_code ec;
+  const auto abs = std::filesystem::absolute(path, ec).lexically_normal();
+  return ec ? std::filesystem::path(path).lexically_normal().string()
+            : abs.string();
+}
+
+absl::StatusOr<std::string> ReadDescriptorBytes(const std::string& path) {
+  std::error_code ec;
+  if (!std::filesystem::is_regular_file(path, ec) || ec ||
+      std::filesystem::file_size(path, ec) > 16 * 1024 * 1024 || ec) {
+    return absl::FailedPreconditionError(
+        "Project descriptor is missing, unreadable or oversized");
+  }
+  std::ifstream input(path, std::ios::binary);
+  if (!input) {
+    return absl::FailedPreconditionError(
+        "Project descriptor is missing or unreadable");
+  }
+  std::string bytes{std::istreambuf_iterator<char>(input), {}};
+  if (input.bad()) {
+    return absl::DataLossError("Cannot read project descriptor");
+  }
+  return bytes;
 }
 
 absl::Status ParseProjectInteger(const std::string& value,
@@ -735,11 +765,13 @@ absl::Status YazeProject::Open(const std::string& project_path) {
     format = ProjectFormat::kYazeNative;
 
     // Try to detect if it's JSON format by peeking at first character
-    std::ifstream file(resolved_path);
+    std::ifstream file(resolved_path, std::ios::binary);
     if (file.is_open()) {
-      std::stringstream buffer;
-      buffer << file.rdbuf();
-      std::string content = buffer.str();
+      std::string content{std::istreambuf_iterator<char>(file), {}};
+      if (file.bad()) {
+        return absl::DataLossError(
+            absl::StrFormat("Cannot read project file: %s", resolved_path));
+      }
 
 #ifdef YAZE_ENABLE_JSON_PROJECT_FORMAT
       if (!content.empty() && content.front() == '{') {
@@ -751,6 +783,10 @@ absl::Status YazeProject::Open(const std::string& project_path) {
 #else
       load_status = ParseFromString(content);
 #endif
+      if (load_status.ok()) {
+        loaded_descriptor_bytes_ = std::move(content);
+        loaded_descriptor_path_ = NormalizeDescriptorPath(resolved_path);
+      }
     } else {
       return absl::InvalidArgumentError(
           absl::StrFormat("Cannot open project file: %s", resolved_path));
@@ -781,6 +817,78 @@ absl::Status YazeProject::Open(const std::string& project_path) {
 
 absl::Status YazeProject::Save() {
   return SaveToYazeFormat();
+}
+
+absl::Status YazeProject::SaveAllowingExternalDescriptorOverwrite() {
+  return SaveToYazeFormat(/*replace_existing=*/true, /*updates=*/{},
+                          /*validator=*/{},
+                          /*expected_descriptor=*/std::nullopt,
+                          /*allow_external_descriptor_overwrite=*/true);
+}
+
+absl::Status YazeProject::CheckDescriptorUnchangedOnDisk() const {
+#ifdef __EMSCRIPTEN__
+  return absl::OkStatus();
+#else
+  if (filepath.empty() || !loaded_descriptor_bytes_.has_value()) {
+    return absl::OkStatus();
+  }
+  const std::string target_norm = NormalizeDescriptorPath(filepath);
+  if (!loaded_descriptor_path_.empty() &&
+      target_norm != loaded_descriptor_path_) {
+    std::error_code eq_ec;
+    const bool same_file =
+        std::filesystem::equivalent(filepath, loaded_descriptor_path_, eq_ec) &&
+        !eq_ec;
+    if (!same_file) {
+      return absl::OkStatus();
+    }
+  }
+  auto disk_bytes = ReadDescriptorBytes(filepath);
+  if (!disk_bytes.ok() || *disk_bytes != *loaded_descriptor_bytes_) {
+    return absl::FailedPreconditionError(
+        "Project descriptor changed on disk since open");
+  }
+  return absl::OkStatus();
+#endif
+}
+
+absl::Status YazeProject::RefreshDescriptorBaselineFromDisk() {
+#ifdef __EMSCRIPTEN__
+  return absl::UnimplementedError(
+      "Descriptor baseline refresh requires filesystem storage");
+#else
+  if (filepath.empty()) {
+    return absl::FailedPreconditionError("Project file path is empty");
+  }
+  ASSIGN_OR_RETURN(auto disk_bytes, ReadDescriptorBytes(filepath));
+  loaded_descriptor_bytes_ = std::move(disk_bytes);
+  loaded_descriptor_path_ = NormalizeDescriptorPath(filepath);
+  return absl::OkStatus();
+#endif
+}
+
+absl::Status YazeProject::UpdateDescriptorKeyOnDisk(absl::string_view section,
+                                                    absl::string_view key,
+                                                    absl::string_view value) {
+#ifdef __EMSCRIPTEN__
+  return absl::UnimplementedError(
+      "Surgical descriptor updates require filesystem storage");
+#else
+  if (filepath.empty()) {
+    return absl::FailedPreconditionError("Project file path is empty");
+  }
+  ASSIGN_OR_RETURN(auto updated,
+                   UpdateProjectDescriptorKey(filepath, section, key, value));
+  loaded_descriptor_bytes_ = std::move(updated);
+  loaded_descriptor_path_ = NormalizeDescriptorPath(filepath);
+  if (section == "rom" && key == "expected_hash") {
+    rom_metadata.expected_hash = std::string(value);
+  } else if (section == "graphics_sheets" && key == "source_spec_sha1") {
+    graphics_sheets.source_spec_sha1 = std::string(value);
+  }
+  return absl::OkStatus();
+#endif
 }
 
 absl::StatusOr<std::string> YazeProject::SaveWithSourceArtifacts(
@@ -2568,22 +2676,29 @@ absl::Status YazeProject::LoadFromYazeFormat(const std::string& project_path) {
   }
 #endif  // __EMSCRIPTEN__
 
-  std::ifstream file(project_path);
+  std::ifstream file(project_path, std::ios::binary);
   if (!file.is_open()) {
     return absl::InvalidArgumentError(
         absl::StrFormat("Cannot open project file: %s", project_path));
   }
 
-  std::stringstream buffer;
-  buffer << file.rdbuf();
+  std::string content{std::istreambuf_iterator<char>(file), {}};
+  if (file.bad()) {
+    return absl::DataLossError(
+        absl::StrFormat("Cannot read project file: %s", project_path));
+  }
   file.close();
-  return ParseFromString(buffer.str());
+  RETURN_IF_ERROR(ParseFromString(content));
+  loaded_descriptor_bytes_ = std::move(content);
+  loaded_descriptor_path_ = NormalizeDescriptorPath(project_path);
+  return absl::OkStatus();
 }
 
 absl::Status YazeProject::SaveToYazeFormat(
     bool replace_existing, std::vector<core::SourceArtifactUpdate> updates,
     core::SourceArtifactReadbackValidator validator,
-    std::optional<std::string> expected_descriptor) {
+    std::optional<std::string> expected_descriptor,
+    bool allow_external_descriptor_overwrite) {
   // Update last modified timestamp
   auto now = std::chrono::system_clock::now();
   auto time_t = std::chrono::system_clock::to_time_t(now);
@@ -2652,9 +2767,16 @@ absl::Status YazeProject::SaveToYazeFormat(
     RETURN_IF_ERROR(core::PublishSourceArtifacts(
         *lock, std::move(updates), core::ComputeSourceArtifactSha256(before),
         std::move(validator)));
+    loaded_descriptor_bytes_ = serialized;
+    loaded_descriptor_path_ = NormalizeDescriptorPath(filepath);
   } else if (!filepath.empty()) {
+    if (replace_existing && !allow_external_descriptor_overwrite) {
+      RETURN_IF_ERROR(CheckDescriptorUnchangedOnDisk());
+    }
     RETURN_IF_ERROR(
         WriteProjectFileAtomically(filepath, serialized, replace_existing));
+    loaded_descriptor_bytes_ = serialized;
+    loaded_descriptor_path_ = NormalizeDescriptorPath(filepath);
   }
 #endif
 

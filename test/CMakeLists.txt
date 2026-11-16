@@ -409,6 +409,7 @@ if(YAZE_BUILD_TESTS)
     unit/editor/build_log_view_model_test.cc
     unit/editor/project_build_workflow_state_test.cc
     unit/editor/popup_manager_test.cc
+    unit/editor/project_open_resilience_test.cc
     unit/editor/cutscene_camera_panel_test.cc
     unit/editor/collision_source_pairing_test.cc
     unit/editor/editor_manager_rom_write_policy_test.cc

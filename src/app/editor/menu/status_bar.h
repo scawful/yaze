@@ -106,11 +106,20 @@ class StatusBar {
                      StatusBarSegmentOptions options);
   void ClearDirtyScope();
 
+  // Persistent status-bar notification (for cancelled project opens / save
+  // refusals). Not cleared by ClearEditorContributions().
+  void SetNotification(const std::string& message);
+  void SetNotification(const std::string& message,
+                       StatusBarSegmentOptions options);
+  void ClearNotification();
+
   // Test / introspection helpers (display state only).
   const std::string& active_editor_for_test() const { return active_editor_; }
   bool has_active_editor_for_test() const { return has_active_editor_; }
   const std::string& dirty_scope_for_test() const { return dirty_scope_; }
   bool has_dirty_scope_for_test() const { return has_dirty_scope_; }
+  const std::string& notification_for_test() const { return notification_; }
+  bool has_notification_for_test() const { return has_notification_; }
   const std::string& session_display_name_for_test() const {
     return session_display_name_;
   }
@@ -248,6 +257,7 @@ class StatusBar {
   void DrawSessionSegment();
   void DrawActiveEditorSegment();
   void DrawDirtyScopeSegment();
+  void DrawNotificationSegment();
   void DrawCursorSegment();
   void DrawSelectionSegment();
   void DrawZoomSegment();
@@ -276,6 +286,11 @@ class StatusBar {
   bool has_dirty_scope_ = false;
   std::string dirty_scope_;
   StatusBarSegmentOptions dirty_scope_options_;
+
+  // Manager-owned persistent notification (survives ClearEditorContributions)
+  bool has_notification_ = false;
+  std::string notification_;
+  StatusBarSegmentOptions notification_options_;
 
   // Cursor position
   bool has_cursor_ = false;

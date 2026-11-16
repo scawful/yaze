@@ -152,6 +152,12 @@ void PopupManager::Initialize() {
   popups_[PopupID::kUnsavedSessionChanges] = {
       PopupID::kUnsavedSessionChanges, PopupType::kConfirmation, false, false,
       [this]() { DrawUnsavedSessionChangesPopup(); }};
+  popups_[PopupID::kProjectNeedsAttention] = {
+      PopupID::kProjectNeedsAttention, PopupType::kConfirmation, false, false,
+      [this]() { DrawProjectNeedsAttentionPopup(); }};
+  popups_[PopupID::kProjectDescriptorChanged] = {
+      PopupID::kProjectDescriptorChanged, PopupType::kConfirmation, false,
+      false, [this]() { DrawProjectDescriptorChangedPopup(); }};
 }
 
 void PopupManager::DrawPopups() {
@@ -1843,6 +1849,264 @@ void PopupManager::DrawUnsavedSessionChangesPopup() {
   if (Button(tr("Cancel"), ::yaze::gui::kDefaultModalSize) ||
       IsKeyPressed(ImGuiKey_Escape)) {
     editor_manager_->CancelPendingUnsavedSessionAction();
+  }
+}
+
+void PopupManager::DrawProjectNeedsAttentionPopup() {
+  using namespace ImGui;
+
+  if (!editor_manager_ ||
+      !editor_manager_->pending_project_open_attention().has_value()) {
+    Hide(PopupID::kProjectNeedsAttention);
+    return;
+  }
+
+  const auto& att = *editor_manager_->pending_project_open_attention();
+  auto register_widget = [](const char* name, const char* type) {
+    gui::WidgetIdRegistry::Instance().RegisterWidget(
+        std::string("ProjectNeedsAttention/") + type + ":" + name, type,
+        GetItemID());
+  };
+
+  const float modal_content_width = 560.0f;
+  Dummy(ImVec2(modal_content_width, 0.0f));
+  TextColored(gui::GetWarningColor(), "%s %s", ICON_MD_WARNING,
+              tr("Project needs attention"));
+  Separator();
+  Spacing();
+
+  if (!att.project_name.empty()) {
+    Text("%s %s", tr("Project:"), att.project_name.c_str());
+  }
+  if (!att.project_filepath.empty()) {
+    PushTextWrapPos(GetCursorPos().x + modal_content_width);
+    TextDisabled("%s", att.project_filepath.c_str());
+    PopTextWrapPos();
+  }
+  Spacing();
+
+  if (att.kind ==
+      EditorManager::ProjectOpenAttention::Kind::kRomIdentityMismatch) {
+    TextWrapped(
+        "%s",
+        tr("The ROM on disk does not match the project's expected ROM "
+           "identity. Choose Adopt this ROM to record the loaded ROM hash and "
+           "continue opening, or Cancel to leave the project closed."));
+    Spacing();
+
+    if (BeginTable("##RomMismatchDetails", 2,
+                   ImGuiTableFlags_BordersInnerH | ImGuiTableFlags_RowBg |
+                       ImGuiTableFlags_SizingFixedFit,
+                   ImVec2(modal_content_width, 0.0f))) {
+      TableSetupColumn("Field", ImGuiTableColumnFlags_WidthFixed, 145.0f);
+      TableSetupColumn("Value", ImGuiTableColumnFlags_WidthStretch);
+
+      auto row = [](const char* label, const std::string& val) {
+        TableNextRow();
+        TableNextColumn();
+        TextDisabled("%s", label);
+        TableNextColumn();
+        TextWrapped("%s", val.empty() ? "(none)" : val.c_str());
+      };
+
+      row("Expected hash", att.rom_mismatch.expected_hash);
+      row("Loaded hash", att.rom_mismatch.loaded_hash);
+      if (!att.rom_mismatch.loaded_sha1.empty() &&
+          att.rom_mismatch.loaded_sha1 != att.rom_mismatch.loaded_hash) {
+        row("Loaded SHA-1", att.rom_mismatch.loaded_sha1);
+      }
+      if (!att.rom_mismatch.loaded_crc32.empty() &&
+          att.rom_mismatch.loaded_crc32 != att.rom_mismatch.loaded_hash) {
+        row("Loaded CRC32", att.rom_mismatch.loaded_crc32);
+      }
+      row("ROM modified", att.rom_mismatch.rom_mtime);
+      row("Newest backup", att.rom_mismatch.newest_backup);
+      EndTable();
+    }
+  } else {
+    TextWrapped(
+        "%s",
+        tr("The graphics source spec on disk no longer matches the project's "
+           "recorded source_spec_sha1. Choose Use spec on disk to validate "
+           "the spec, record its SHA-1, and continue opening, or Cancel to "
+           "leave the project closed."));
+    Spacing();
+
+    if (BeginTable("##SpecMismatchDetails", 2,
+                   ImGuiTableFlags_BordersInnerH | ImGuiTableFlags_RowBg |
+                       ImGuiTableFlags_SizingFixedFit,
+                   ImVec2(modal_content_width, 0.0f))) {
+      TableSetupColumn("Field", ImGuiTableColumnFlags_WidthFixed, 145.0f);
+      TableSetupColumn("Value", ImGuiTableColumnFlags_WidthStretch);
+
+      auto row = [](const char* label, const std::string& val) {
+        TableNextRow();
+        TableNextColumn();
+        TextDisabled("%s", label);
+        TableNextColumn();
+        TextWrapped("%s", val.empty() ? "(none)" : val.c_str());
+      };
+
+      row("Spec path", att.spec_mismatch.spec_path);
+      row("Recorded SHA-1", att.spec_mismatch.recorded_sha1);
+      row("On-disk SHA-1", att.spec_mismatch.on_disk_sha1);
+      EndTable();
+    }
+  }
+
+  if (!att.can_adopt && !att.adopt_disabled_reason.empty()) {
+    Spacing();
+    PushTextWrapPos(GetCursorPos().x + modal_content_width);
+    TextColored(gui::GetErrorColor(), "%s %s", ICON_MD_ERROR,
+                att.adopt_disabled_reason.c_str());
+    PopTextWrapPos();
+  }
+
+  Spacing();
+  Separator();
+  Spacing();
+
+  const bool is_rom_case =
+      att.kind ==
+      EditorManager::ProjectOpenAttention::Kind::kRomIdentityMismatch;
+  const char* primary_label =
+      is_rom_case ? tr("Adopt this ROM") : tr("Use spec on disk");
+  const char* primary_widget_name =
+      is_rom_case ? "AdoptThisRom" : "UseSpecOnDisk";
+
+  BeginDisabled(!att.can_adopt);
+  const bool clicked_primary = Button(primary_label);
+  register_widget(primary_widget_name, "button");
+  EndDisabled();
+  if (!att.can_adopt && !att.adopt_disabled_reason.empty() &&
+      IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
+    SetTooltip("%s", att.adopt_disabled_reason.c_str());
+  }
+  if (clicked_primary) {
+    const absl::Status status =
+        editor_manager_->AdoptPendingProjectOpenAttention();
+    if (!status.ok()) {
+      if (auto* toast = editor_manager_->toast_manager()) {
+        toast->Show(absl::StrFormat("Failed to adopt project change: %s",
+                                    status.message()),
+                    ToastType::kError, 6.0f);
+      }
+    }
+    return;
+  }
+
+  SameLine();
+  const bool clicked_cancel =
+      Button(tr("Cancel")) || IsKeyPressed(ImGuiKey_Escape);
+  register_widget("Cancel", "button");
+  if (clicked_cancel) {
+    editor_manager_->CancelPendingProjectOpenAttention();
+    return;
+  }
+}
+
+void PopupManager::DrawProjectDescriptorChangedPopup() {
+  using namespace ImGui;
+
+  if (!editor_manager_ ||
+      !editor_manager_->pending_descriptor_save_conflict().has_value()) {
+    Hide(PopupID::kProjectDescriptorChanged);
+    return;
+  }
+
+  const auto conflict = *editor_manager_->pending_descriptor_save_conflict();
+  auto register_widget = [](const char* name, const char* type) {
+    gui::WidgetIdRegistry::Instance().RegisterWidget(
+        std::string("ProjectDescriptorChanged/") + type + ":" + name, type,
+        GetItemID());
+  };
+
+  const float modal_content_width = 540.0f;
+  Dummy(ImVec2(modal_content_width, 0.0f));
+  TextColored(gui::GetWarningColor(), "%s %s", ICON_MD_WARNING,
+              tr("Project file changed on disk"));
+  Separator();
+  Spacing();
+
+  TextWrapped(
+      "%s",
+      tr("project.yaze changed on disk since this project was opened. Saving "
+         "from memory was stopped so external edits are not overwritten."));
+  Spacing();
+  if (!conflict.project_filepath.empty()) {
+    PushTextWrapPos(GetCursorPos().x + modal_content_width);
+    Text("%s %s", tr("File:"), conflict.project_filepath.c_str());
+    PopTextWrapPos();
+  }
+  if (!conflict.disk_mtime.empty()) {
+    TextDisabled("%s %s", tr("Disk modified:"), conflict.disk_mtime.c_str());
+  }
+
+  if (!conflict.can_reload && !conflict.reload_disabled_reason.empty()) {
+    Spacing();
+    PushTextWrapPos(GetCursorPos().x + modal_content_width);
+    TextColored(gui::GetWarningColor(), "%s %s", ICON_MD_INFO,
+                conflict.reload_disabled_reason.c_str());
+    PopTextWrapPos();
+  }
+
+  Spacing();
+  Separator();
+  Spacing();
+
+  if (!conflict.confirming_overwrite) {
+    BeginDisabled(!conflict.can_reload);
+    const bool clicked_reload = Button(tr("Reload project"));
+    register_widget("ReloadProject", "button");
+    EndDisabled();
+    if (!conflict.can_reload && !conflict.reload_disabled_reason.empty() &&
+        IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
+      SetTooltip("%s", conflict.reload_disabled_reason.c_str());
+    }
+    if (clicked_reload) {
+      editor_manager_->ReloadProjectAfterDescriptorConflict().IgnoreError();
+      return;
+    }
+
+    SameLine();
+    if (Button(tr("Overwrite anyway"))) {
+      editor_manager_->RequestOverwriteDescriptorConflict();
+    }
+    register_widget("OverwriteAnyway", "button");
+
+    SameLine();
+    const bool clicked_cancel =
+        Button(tr("Cancel")) || IsKeyPressed(ImGuiKey_Escape);
+    register_widget("Cancel", "button");
+    if (clicked_cancel) {
+      editor_manager_->CancelDescriptorConflict();
+      return;
+    }
+  } else {
+    TextColored(
+        gui::GetErrorColor(), "%s %s", ICON_MD_WARNING,
+        tr("Confirm overwriting external changes to project.yaze on disk?"));
+    Spacing();
+    if (Button(tr("Confirm overwrite"))) {
+      editor_manager_->ConfirmOverwriteDescriptorConflict().IgnoreError();
+      return;
+    }
+    register_widget("ConfirmOverwrite", "button");
+
+    SameLine();
+    if (Button(tr("Back"))) {
+      editor_manager_->BackFromOverwriteDescriptorConflict();
+    }
+    register_widget("Back", "button");
+
+    SameLine();
+    const bool clicked_cancel =
+        Button(tr("Cancel")) || IsKeyPressed(ImGuiKey_Escape);
+    register_widget("Cancel", "button");
+    if (clicked_cancel) {
+      editor_manager_->CancelDescriptorConflict();
+      return;
+    }
   }
 }
 

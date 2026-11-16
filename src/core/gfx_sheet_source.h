@@ -37,8 +37,17 @@ class GfxSheetSource {
     std::vector<SourceArtifactUpdate> updates;
     std::map<uint16_t, Sheet> sheets;
   };
+  struct SpecSha1MismatchInfo {
+    std::string spec_path;
+    std::string recorded_sha1;
+    std::string on_disk_sha1;
+    bool spec_valid = false;
+    std::string validation_error;
+  };
   static bool Selected(const project::YazeProject& project);
   static absl::StatusOr<GfxSheetSource> Load(
+      const project::YazeProject& project);
+  static std::optional<SpecSha1MismatchInfo> InspectSpecSha1Mismatch(
       const project::YazeProject& project);
   // Test-only: install already-validated sheet rows without a project spec.
   static GfxSheetSource WithSheetsForTest(std::map<uint16_t, Sheet> sheets);
@@ -58,6 +67,9 @@ class GfxSheetSource {
       const project::YazeProject& project,
       const std::map<uint16_t, std::vector<uint8_t>>& pixels) const;
   void Commit(Plan plan, std::string descriptor);
+  void RebaseDescriptorBaseline(std::string descriptor) {
+    descriptor_ = std::move(descriptor);
+  }
 
  private:
   std::map<std::string, std::string> inputs_;

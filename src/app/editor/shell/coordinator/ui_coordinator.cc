@@ -138,7 +138,7 @@ UICoordinator::UICoordinator(
         toast_manager_.Show(
             absl::StrFormat("Failed to open project: %s", status.message()),
             ToastType::kError);
-      } else {
+      } else if (!editor_manager_->has_pending_project_open_attention()) {
         // Transition to Dashboard on successful project open
         SetStartupSurface(StartupSurface::kDashboard);
       }

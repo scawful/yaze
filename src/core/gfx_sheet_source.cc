@@ -13,6 +13,7 @@
 #include <string_view>
 #include <utility>
 
+#include "absl/strings/str_format.h"
 #include "app/gfx/types/snes_tile.h"
 #include "core/project.h"
 #include "nlohmann/json.hpp"
@@ -375,6 +376,47 @@ bool GfxSheetSource::Selected(const project::YazeProject& project) {
   return !project.graphics_sheets.source_spec.empty() ||
          !project.graphics_sheets.source_spec_sha1.empty();
 }
+
+std::optional<GfxSheetSource::SpecSha1MismatchInfo>
+GfxSheetSource::InspectSpecSha1Mismatch(const project::YazeProject& project) {
+  const auto& selected = project.graphics_sheets.source_spec;
+  const bool d4 = selected == kD4Spec;
+  if ((selected != kSpec && !d4) ||
+      !Hex(project.graphics_sheets.source_spec_sha1, 40)) {
+    return std::nullopt;
+  }
+  auto root = Root(project);
+  if (!root.ok()) {
+    return std::nullopt;
+  }
+  const auto expected = *root / selected;
+  std::error_code ec;
+  auto spec_path = fs::canonical(expected, ec);
+  if (ec || spec_path != expected) {
+    return std::nullopt;
+  }
+  auto bytes = Read(spec_path);
+  if (!bytes.ok()) {
+    return std::nullopt;
+  }
+  const std::string actual_sha1 = SpecSha1(*bytes);
+  if (actual_sha1 == project.graphics_sheets.source_spec_sha1) {
+    return std::nullopt;
+  }
+
+  SpecSha1MismatchInfo info;
+  info.spec_path = spec_path.string();
+  info.recorded_sha1 = project.graphics_sheets.source_spec_sha1;
+  info.on_disk_sha1 = actual_sha1;
+  project::YazeProject candidate = project;
+  candidate.graphics_sheets.source_spec_sha1 = actual_sha1;
+  auto loaded = GfxSheetSource::Load(candidate);
+  info.spec_valid = loaded.ok();
+  if (!loaded.ok()) {
+    info.validation_error = std::string(loaded.status().message());
+  }
+  return info;
+}
 GfxSheetSource GfxSheetSource::WithSheetsForTest(
     std::map<uint16_t, Sheet> sheets) {
   GfxSheetSource source;
@@ -456,7 +498,11 @@ absl::StatusOr<GfxSheetSource> GfxSheetSource::Load(
     return Bad("canonical spec must not be redirected");
   ASSIGN_OR_RETURN(auto bytes, Read(spec_path));
   if (SpecSha1(bytes) != project.graphics_sheets.source_spec_sha1)
-    return Bad("current spec SHA1 mismatch; draft retained");
+    return Bad(absl::StrFormat(
+        "current spec SHA1 mismatch; draft retained (recorded_sha1=%s, "
+        "on_disk_sha1=%s, spec_path=%s)",
+        project.graphics_sheets.source_spec_sha1, SpecSha1(bytes),
+        spec_path.string()));
   ASSIGN_OR_RETURN(auto descriptor, Read(project.filepath));
   GfxSheetSource result;
   result.descriptor_ = std::move(descriptor);
