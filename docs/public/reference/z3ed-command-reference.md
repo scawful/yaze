@@ -383,6 +383,16 @@ because they come from separate global tables rather than the encoded room
 object stream. Without the flag, the legacy output and count are unchanged.
 
 ### Overworld Commands
+
+Revision-5 native page Tile16 ROMs (Lyra layout) are refused unless admitted.
+Admission comes from `--experimental-page-tile16`, a saved project with
+`experimental_page_tile16=true` whose backing ROM matches, or the environment
+variable `YAZE_EXPERIMENTAL_PAGE_TILE16=1` (exactly `1`; other values are
+ignored). The variable has the same effect as passing the flag on every command:
+writes still need `--write` (and `--allow-project-rom` for a project ROM), and
+commands that name the flag explicitly, such as `--native-source` imports and
+`overworld-apply-endpoint-plan`, still require it.
+
 - `overworld-describe-map --screen <hex>`
 - `overworld-get-tile --map <hex> --x <area_tile_x> --y <area_tile_y>`
 - `overworld-set-tile --map <hex> --x <area_tile_x> --y <area_tile_y> --tile <hex> [--write] [--allow-project-rom]`

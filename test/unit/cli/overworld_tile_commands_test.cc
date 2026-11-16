@@ -1,6 +1,7 @@
 #include <algorithm>
 #include <array>
 #include <cstdint>
+#include <cstdlib>
 #include <filesystem>
 #include <fstream>
 #include <iterator>
@@ -32,6 +33,7 @@
 #include "framework/rom_save_fault.h"
 #include "oracle_rom_fixture.h"
 #include "rom/lyra_layout_descriptor.h"
+#include "rom/page_tile16_admission.h"
 #include "rom/rom.h"
 #include "rom/transaction.h"
 #include "rom/write_fence.h"
@@ -2982,6 +2984,42 @@ TEST_P(OverworldEndpointPlanTest, GetEntranceAdmitsRevision5OnlyWhenExplicit) {
     ASSERT_TRUE(plain_status.ok()) << plain_status;
     EXPECT_EQ(plain, admitted);
   }
+  EXPECT_EQ(ReadBytes(input_), original_);
+}
+
+TEST_P(OverworldEndpointPlanTest, EnvOptInAdmitsRevision5ReadsOnlyWhenOne) {
+  const char* saved = std::getenv(rom::kExperimentalPageTile16EnvVar);
+  const std::optional<std::string> previous =
+      saved ? std::optional<std::string>(saved) : std::nullopt;
+  auto restore = absl::MakeCleanup([&] {
+    if (previous.has_value()) {
+      setenv(rom::kExperimentalPageTile16EnvVar, previous->c_str(), 1);
+    } else {
+      unsetenv(rom::kExperimentalPageTile16EnvVar);
+    }
+  });
+  const auto read = [&](const char* env_value) {
+    if (env_value != nullptr) {
+      setenv(rom::kExperimentalPageTile16EnvVar, env_value, 1);
+    } else {
+      unsetenv(rom::kExperimentalPageTile16EnvVar);
+    }
+    Rom rom;
+    EXPECT_TRUE(rom.LoadFromFile(input_.string()).ok());
+    std::string output;
+    handlers::OverworldGetTileCommandHandler get;
+    const auto status = get.Run(
+        {"--map=0D", "--x=13", "--y=5", "--format=json"}, &rom, &output);
+    EXPECT_EQ(rom.vector(), original_);
+    EXPECT_FALSE(rom.dirty());
+    return status;
+  };
+  const bool revision5 = GetParam().second == 5;
+  EXPECT_EQ(read(nullptr).ok(), !revision5);
+  EXPECT_EQ(read("0").ok(), !revision5);
+  EXPECT_EQ(read("true").ok(), !revision5);
+  const auto admitted = read("1");
+  EXPECT_TRUE(admitted.ok()) << admitted;
   EXPECT_EQ(ReadBytes(input_), original_);
 }
 

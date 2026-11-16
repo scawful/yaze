@@ -247,13 +247,17 @@ absl::Status CommandHandler::Run(const std::vector<std::string>& args,
     SetRomContext(rom);
     SetProjectContext(context.GetProjectContext());
 
-    // Explicit revision-5 admission: CLI flag and/or saved project opt-in.
-    // Neither path is automatic; absent both, InspectLyraLayout keeps refusing.
+    // Explicit revision-5 admission: CLI flag, YAZE_EXPERIMENTAL_PAGE_TILE16=1,
+    // or saved project opt-in. None is automatic; absent all three,
+    // InspectLyraLayout keeps refusing. Writes still need --write, and handlers
+    // that check the flag directly (native-source import, endpoint plans)
+    // still require it.
     auto admit_page_tile16 = [&](Rom* target) {
       if (target == nullptr) {
         return;
       }
-      if (parser.HasLyraWriteAdmission()) {
+      if (parser.HasLyraWriteAdmission() ||
+          rom::EnvRequestsExperimentalPageTile16()) {
         target->EnableExperimentalPageTile16();
         return;
       }

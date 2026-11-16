@@ -1,5 +1,7 @@
 #include "rom/page_tile16_admission.h"
 
+#include <cstdlib>
+#include <cstring>
 #include <filesystem>
 #include <string>
 
@@ -56,6 +58,11 @@ bool AdmitProjectExperimentalPageTile16(const project::YazeProject& project,
   }
   rom->EnableExperimentalPageTile16();
   return true;
+}
+
+bool EnvRequestsExperimentalPageTile16() {
+  const char* value = std::getenv(kExperimentalPageTile16EnvVar);
+  return value != nullptr && std::strcmp(value, "1") == 0;
 }
 
 }  // namespace rom

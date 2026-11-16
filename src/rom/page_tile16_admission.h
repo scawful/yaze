@@ -13,6 +13,15 @@ namespace rom {
 bool AdmitProjectExperimentalPageTile16(const project::YazeProject& project,
                                         Rom* rom);
 
+// Environment variable that opts this machine into revision-5 reads, with the
+// same effect as passing --experimental-page-tile16 on every z3ed command.
+inline constexpr char kExperimentalPageTile16EnvVar[] =
+    "YAZE_EXPERIMENTAL_PAGE_TILE16";
+
+// True only when YAZE_EXPERIMENTAL_PAGE_TILE16 is exactly "1". Any other value,
+// or an unset variable, leaves revision 5 refused.
+bool EnvRequestsExperimentalPageTile16();
+
 }  // namespace rom
 }  // namespace yaze
 
