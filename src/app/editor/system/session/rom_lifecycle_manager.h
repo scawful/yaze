@@ -83,6 +83,16 @@ class RomLifecycleManager {
   /// Check whether the ROM hash mismatches the project's expected hash.
   bool IsRomHashMismatch() const;
 
+  /// Check the loaded ROM identity against the project's expected hash with
+  /// no editable-target exemption. Graphics layout resolution refuses on this
+  /// even for the project's own editable ROM.
+  bool IsRomIdentityMismatch() const;
+
+  /// The loaded ROM's hash in the format of the project's expected hash:
+  /// SHA-1 when the expected value is 40 hex digits, CRC32 otherwise. Empty
+  /// when no ROM identity is active.
+  std::string AdoptableRomHash() const;
+
   /// Admit a freshly loaded native page Tile16 (revision 5) ROM for a saved
   /// project that opted in. The ROM must be the project's ROM backing file and
   /// match its saved expected hash; otherwise revision 5 keeps refusing.

@@ -220,6 +220,13 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
     return current_project_.rom_metadata.expected_hash;
   }
   bool IsRomHashMismatch() const { return rom_lifecycle_.IsRomHashMismatch(); }
+  bool IsRomIdentityMismatch() const {
+    return rom_lifecycle_.IsRomIdentityMismatch();
+  }
+  /// Set the project's expected hash to the loaded ROM's identity (keeping the
+  /// project's SHA-1 or CRC32 format), save the project file, and update the
+  /// active session's project copy. Restores the old value on save failure.
+  absl::Status AdoptCurrentRomHashForProject();
   std::vector<editor::RomFileManager::BackupEntry> GetRomBackups() const;
   bool IsRomBackupRestorePending() const;
   absl::Status RestoreRomBackup(const std::string& backup_path);

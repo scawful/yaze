@@ -368,9 +368,30 @@ void PopupManager::DrawRomInfoPopup() {
              ? "(unset)"
              : project->rom_metadata.expected_hash.c_str());
     if (editor_manager_->IsRomHashMismatch()) {
-      const auto& theme = gui::ThemeManager::Get().GetCurrentTheme();
-      TextColored(gui::ConvertColorToImVec4(theme.warning),
+      TextColored(gui::GetWarningColor(), "%s",
                   tr("ROM hash mismatch detected"));
+    } else if (editor_manager_->IsRomIdentityMismatch()) {
+      // The editable ROM is exempt from the mismatch warning, but graphics
+      // layout resolution still refuses it.
+      TextColored(gui::GetWarningColor(), "%s",
+                  tr("Loaded ROM differs from the expected hash; custom "
+                     "graphics will refuse to load"));
+    }
+    if (editor_manager_->IsRomIdentityMismatch()) {
+      if (Button(tr("Adopt Current ROM Hash"))) {
+        const absl::Status status =
+            editor_manager_->AdoptCurrentRomHashForProject();
+        if (auto* toast = editor_manager_->toast_manager()) {
+          toast->Show(status.ok() ? std::string("Project expected hash updated")
+                                  : absl::StrFormat("Adopt ROM hash failed: %s",
+                                                    status.message()),
+                      status.ok() ? ToastType::kSuccess : ToastType::kError);
+        }
+      }
+      gui::WidgetIdRegistry::Instance().RegisterWidget(
+          "RomInfo/button:AdoptCurrentRomHash", "button", GetItemID());
+      SameLine();
+      TextDisabled("%s", tr("(saves the project file)"));
     }
   }
 

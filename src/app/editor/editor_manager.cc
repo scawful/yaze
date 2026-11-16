@@ -2528,9 +2528,22 @@ absl::Status EditorManager::EnsureGameDataLoaded() {
       (session->project_context->hack_manifest.graphics_sheet_layout()
            .pointer_layout ||
        core::GfxSheetSource::Selected(*session->project_context))) {
-    ASSIGN_OR_RETURN(
-        graphics_options.gfx_sheet_layout,
-        core::ResolveGfxSheetLayout(session->rom, *session->project_context));
+    auto gfx_sheet_layout =
+        core::ResolveGfxSheetLayout(session->rom, *session->project_context);
+    if (!gfx_sheet_layout.ok()) {
+      if (IsRomIdentityMismatch()) {
+        // Default stays refuse; name where the user can adopt the new hash.
+        return absl::Status(
+            gfx_sheet_layout.status().code(),
+            absl::StrFormat(
+                "%s. To accept this ROM, use Adopt Current ROM Hash in ROM "
+                "Information, or Use Current ROM Hash in Settings > Project "
+                "> ROM Identity.",
+                gfx_sheet_layout.status().message()));
+      }
+      return gfx_sheet_layout.status();
+    }
+    graphics_options.gfx_sheet_layout = *std::move(gfx_sheet_layout);
     if (core::GfxSheetSource::Selected(*session->project_context)) {
       ASSIGN_OR_RETURN(graphics_options.gfx_sheet_source,
                        core::GfxSheetSource::Load(*session->project_context));
@@ -4212,6 +4225,32 @@ absl::Status EditorManager::OpenLyraTerrainFromPath(const std::string& path) {
   }
   CaptureActiveProjectContext();
   SwitchToEditor(EditorType::kOverworld, true);
+  return absl::OkStatus();
+}
+
+absl::Status EditorManager::AdoptCurrentRomHashForProject() {
+  if (!current_project_.project_opened()) {
+    return absl::FailedPreconditionError("No project is open");
+  }
+  const std::string adopted = rom_lifecycle_.AdoptableRomHash();
+  if (adopted.empty()) {
+    return absl::FailedPreconditionError("No loaded ROM identity to adopt");
+  }
+  // Write only the project descriptor, as the Settings "Use Current ROM Hash"
+  // button does; a full project Save would also run a native ROM save.
+  const std::string previous = current_project_.rom_metadata.expected_hash;
+  current_project_.rom_metadata.expected_hash = adopted;
+  if (auto status = current_project_.Save(); !status.ok()) {
+    current_project_.rom_metadata.expected_hash = previous;
+    return status;
+  }
+  // Graphics layout resolution reads the session's copy of the project.
+  if (session_coordinator_) {
+    if (auto* session = session_coordinator_->GetActiveRomSession();
+        session && session->project_context) {
+      session->project_context->rom_metadata.expected_hash = adopted;
+    }
+  }
   return absl::OkStatus();
 }
 

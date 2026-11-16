@@ -17,6 +17,7 @@
 
 #include "absl/status/status.h"
 #include "absl/strings/ascii.h"
+#include "absl/strings/match.h"
 #include "absl/strings/str_format.h"
 #include "app/application.h"
 #include "app/editor/core/content_registry.h"
@@ -2726,6 +2727,55 @@ TEST_F(NativeSaveReceiptIntegrationTest,
       binding, false,
       EditorManagerProjectSaveBindingTestPeer::MakeCallbacks(*manager_)));
   EXPECT_FALSE(manager_->GetCurrentRom()->is_loaded());
+}
+
+TEST_F(NativeSaveReceiptIntegrationTest,
+       AdoptRomHashClearsEditableIdentityMismatchInSha1Format) {
+  ASSERT_NO_FATAL_FAILURE(BindProject());
+  auto* project = manager_->GetCurrentProject();
+  project->rom_metadata.expected_hash = std::string(40, 'a');
+  auto* session = manager_->session_coordinator()->GetActiveRomSession();
+  ASSERT_NE(session, nullptr);
+  session->project_context = *project;
+  // The bound editing source is exempt from the warning, yet graphics layout
+  // resolution still refuses it.
+  ASSERT_FALSE(manager_->IsRomHashMismatch());
+  ASSERT_TRUE(manager_->IsRomIdentityMismatch());
+  const auto refused =
+      core::ResolveGfxSheetLayout(session->rom, *session->project_context);
+  ASSERT_FALSE(refused.ok());
+  ASSERT_TRUE(
+      absl::StrContains(refused.status().message(), "expected ROM identity"))
+      << refused.status();
+
+  ASSERT_OK(manager_->AdoptCurrentRomHashForProject());
+
+  const std::string adopted = project->rom_metadata.expected_hash;
+  EXPECT_EQ(adopted.size(), 40u);
+  EXPECT_NE(adopted, std::string(40, 'a'));
+  EXPECT_FALSE(manager_->IsRomIdentityMismatch());
+  EXPECT_EQ(session->project_context->rom_metadata.expected_hash, adopted);
+  EXPECT_NE(ReadText(project->filepath).find(adopted), std::string::npos);
+  // The identity gate passes; later layout checks may still reject the
+  // synthetic test ROM for unrelated reasons.
+  const auto layout =
+      core::ResolveGfxSheetLayout(session->rom, *session->project_context);
+  EXPECT_FALSE(!layout.ok() && absl::StrContains(layout.status().message(),
+                                                 "expected ROM identity"))
+      << layout.status();
+}
+
+TEST_F(NativeSaveReceiptIntegrationTest, AdoptRomHashKeepsCrc32Format) {
+  ASSERT_NO_FATAL_FAILURE(BindProject());
+  auto* project = manager_->GetCurrentProject();
+  project->rom_metadata.expected_hash = "deadbeef";
+  ASSERT_TRUE(manager_->IsRomIdentityMismatch());
+
+  ASSERT_OK(manager_->AdoptCurrentRomHashForProject());
+
+  EXPECT_EQ(project->rom_metadata.expected_hash.size(), 8u);
+  EXPECT_FALSE(manager_->IsRomIdentityMismatch());
+  EXPECT_FALSE(manager_->IsRomHashMismatch());
 }
 
 TEST_F(NativeSaveReceiptIntegrationTest,
