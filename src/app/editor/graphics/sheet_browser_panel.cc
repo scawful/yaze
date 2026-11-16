@@ -49,6 +49,7 @@ absl::Status SheetBrowserPanel::Update() {
     RefreshInventory();
   }
   DrawPendingSave();
+  DrawSharedSheetWarning();
   if (ImGui::BeginTabBar("##SheetBrowserTabs")) {
     const bool show_sheets = ImGui::BeginTabItem(tr("Sheets"));
     gui::AutoRegisterLastItem("tab", "Sheets");
@@ -326,6 +327,20 @@ std::string SheetBrowserPanel::SheetUsageSummary(uint16_t sheet_id) const {
                        : "used by " + absl::StrJoin(parts, ", ");
 }
 
+void SheetBrowserPanel::DrawSharedSheetWarning() {
+  const uint16_t sheet_id = state_->current_sheet_id;
+  if (!shared_sheet_query_ || !shared_sheet_query_(sheet_id))
+    return;
+  ImGui::TextColored(gui::GetWarningColor(),
+                     ICON_MD_WARNING " Sheet 0x%02X is shared with other areas",
+                     sheet_id);
+  HOVER_HINT(
+      "The project's graphics source does not own this vanilla sheet, so Save "
+      "Project writes it into the ROM in place. Every area that loads it "
+      "changes too. An edit that compresses larger than the stored sheet is "
+      "refused.");
+}
+
 void SheetBrowserPanel::DrawPendingSave() {
   if (!save_planner_ || state_->modified_sheets.empty()) {
     return;
@@ -372,6 +387,10 @@ void SheetBrowserPanel::DrawPendingSave() {
             : gui::GetSuccessColor();
     ImGui::TextColored(color, "%s",
                        DescribeGraphicsSavePlanEntry(entry).c_str());
+    if (shared_sheet_query_ && shared_sheet_query_(entry.sheet_id)) {
+      ImGui::SameLine();
+      ImGui::TextColored(gui::GetWarningColor(), "%s", tr("shared sheet"));
+    }
     const std::string usage = SheetUsageSummary(entry.sheet_id);
     if (!usage.empty()) {
       ImGui::SameLine();

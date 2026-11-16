@@ -119,6 +119,14 @@ class SheetBrowserPanel : public WindowContent {
   void SetSavePlanner(SavePlanner planner) {
     save_planner_ = std::move(planner);
   }
+  /**
+   * @brief True for sheets that save into the ROM in place under a bound
+   * graphics source (GraphicsEditor::IsSharedRomSheet). Unset shows no
+   * shared-sheet warning.
+   */
+  void SetSharedSheetQuery(std::function<bool(uint16_t)> query) {
+    shared_sheet_query_ = std::move(query);
+  }
 
  private:
   /**
@@ -204,6 +212,9 @@ class SheetBrowserPanel : public WindowContent {
   void DrawPendingSave();
   std::string SheetUsageSummary(uint16_t sheet_id) const;
   SavePlanner save_planner_;
+  // Warns that the current sheet is shared with other areas.
+  void DrawSharedSheetWarning();
+  std::function<bool(uint16_t)> shared_sheet_query_;
   std::vector<GraphicsSavePlanEntry> save_plan_;
   std::string save_plan_error_;
   std::set<uint16_t> save_plan_sheets_;  // the dirty set the plan describes

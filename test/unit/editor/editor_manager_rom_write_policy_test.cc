@@ -151,6 +151,19 @@ class GraphicsEditorSaveStoplossTestPeer {
         &state, MakeSheetPixelDiff(sheet_id, before, after), "Session pixel"));
     return absl::OkStatus();
   }
+  // Replaces a whole sheet's decoded pixels, as a PNG import does.
+  static absl::Status PaintSheet(GraphicsEditor* editor, uint16_t sheet_id,
+                                 const std::vector<uint8_t>& after) {
+    auto& state = editor->state_;
+    const auto pixels = state.game_data->sheet_store.Sheet(sheet_id);
+    std::vector<uint8_t> before(pixels.begin(), pixels.end());
+    auto status = CommitSheetPixels(state, sheet_id, after);
+    if (!status.ok())
+      return status;
+    editor->undo_manager_.Push(std::make_unique<GraphicsPixelEditAction>(
+        &state, MakeSheetPixelDiff(sheet_id, before, after), "Session sheet"));
+    return absl::OkStatus();
+  }
   static absl::Status CaptureScratch(GraphicsEditor* editor) {
     editor->state_.SelectSheet(0);
     return editor->scratch_view_->CaptureSheet();
@@ -1083,6 +1096,53 @@ class CoordinatedSourceSaveTest : public NativeSaveReceiptIntegrationTest {
     EXPECT_EQ(manager_->GetCurrentRom()->vector()[0x200], 0x5A);
     EXPECT_EQ(graphics_->game_data()->sheet_store.Sheet(0xFE)[0], 7);
   }
+  void ExpectSharedSheetSavesInPlace(bool native, bool source_edit) {
+    ASSERT_NO_FATAL_FAILURE(OpenSources(native));
+    constexpr uint16_t kShared = 0x07;
+    ASSERT_TRUE(graphics_->IsSharedRomSheet(kShared));
+    ASSERT_FALSE(graphics_->IsSharedRomSheet(0xFE));
+    auto* rom = manager_->GetCurrentRom();
+    const auto baseline = rom->vector();
+    const zelda3::GfxSheetPointerTables tables;
+    auto old_extent = zelda3::ReadGfxSheetExtent(*rom, kShared, tables);
+    ASSERT_TRUE(old_extent.ok()) << old_extent.status();
+    // A flat sheet compresses far below the fixture's noisy stream.
+    const std::vector<uint8_t> flat(4096, 3);
+    ASSERT_OK(GraphicsEditorSaveStoplossTestPeer::PaintSheet(graphics_, kShared,
+                                                             flat));
+    if (source_edit) {
+      ASSERT_OK(
+          GraphicsEditorSaveStoplossTestPeer::PaintPixel(graphics_, 7, 0xFE));
+    }
+    ASSERT_OK(manager_->SaveCurrentSession());
+    EXPECT_FALSE(rom->dirty());
+    EXPECT_FALSE(graphics_->HasPendingSourceChanges());
+    EXPECT_FALSE(graphics_->HasPendingRomGraphicsChanges());
+
+    Rom reopened;
+    ASSERT_OK(reopened.LoadFromFile(source_.string()));
+    // The pointer rows never move; only bytes inside the old stream change.
+    for (auto at : {tables.bank, tables.high, tables.low})
+      EXPECT_TRUE(std::equal(baseline.begin() + at,
+                             baseline.begin() + at + zelda3::kGfxSheetCount,
+                             reopened.vector().begin() + at));
+    for (size_t i = 0x80000; i < 0xE0000; ++i) {
+      if (i >= old_extent->pc && i < old_extent->pc + old_extent->stored_size)
+        continue;
+      ASSERT_EQ(reopened.vector()[i], baseline[i]) << "pc 0x" << std::hex << i;
+    }
+    auto data = zelda3::ReadGfxSheetData(reopened, kShared, tables);
+    ASSERT_TRUE(data.ok()) << data.status();
+    EXPECT_EQ(*data, gfx::IndexedToSnesSheet(flat, /*bpp=*/3));
+    if (native) {
+      EXPECT_TRUE(
+          rom::IsNativeSpecialOverworldLayout(reopened.InspectLyraLayout()));
+    }
+    auto source = core::GfxSheetSource::Load(*manager_->GetCurrentProject());
+    ASSERT_TRUE(source.ok()) << source.status();
+    EXPECT_EQ(source->sheets().at(0xFE).pixels[0], source_edit ? 7 : 2);
+    EXPECT_FALSE(source->sheets().contains(kShared));
+  }
   GraphicsEditor* graphics_ = nullptr;
   std::filesystem::path spec_;
   std::vector<uint8_t> original_body_;
@@ -1161,6 +1221,51 @@ TEST_F(CoordinatedSourceSaveTest, NativeTerrainAndSourcePixelsPublishTogether) {
     EXPECT_TRUE(std::equal(baseline.begin() + at,
                            baseline.begin() + at + zelda3::kGfxSheetCount,
                            reopened.vector().begin() + at));
+}
+
+// Vanilla sheet IDs below $DF cannot be bound in a graphics source. A
+// source-bound project saves their edits into the ROM in place, never moving
+// the stream or its pointer row.
+TEST_F(CoordinatedSourceSaveTest, SharedRomSheetSavesInPlaceAndReopens) {
+  ASSERT_NO_FATAL_FAILURE(
+      ExpectSharedSheetSavesInPlace(/*native=*/false, /*source_edit=*/true));
+}
+
+TEST_F(CoordinatedSourceSaveTest, SharedRomSheetAloneSavesInPlace) {
+  ASSERT_NO_FATAL_FAILURE(
+      ExpectSharedSheetSavesInPlace(/*native=*/true, /*source_edit=*/false));
+}
+
+TEST_F(CoordinatedSourceSaveTest, NativeSharedRomSheetSavesInPlaceAndReopens) {
+  ASSERT_NO_FATAL_FAILURE(
+      ExpectSharedSheetSavesInPlace(/*native=*/true, /*source_edit=*/true));
+}
+
+TEST_F(CoordinatedSourceSaveTest, SharedRomSheetGrowthIsRefused) {
+  ASSERT_NO_FATAL_FAILURE(OpenSources(/*native=*/true));
+  const auto before = ReadText(source_);
+  const auto spec = ReadText(spec_);
+  constexpr uint16_t kShared = 0x07;
+  // Noise in every pixel cannot compress into the original stream.
+  std::vector<uint8_t> noise(4096);
+  uint32_t state = 0x12345678u;
+  for (auto& px : noise) {
+    state = state * 1664525u + 1013904223u;
+    px = static_cast<uint8_t>(state >> 29);
+  }
+  ASSERT_OK(GraphicsEditorSaveStoplossTestPeer::PaintSheet(graphics_, kShared,
+                                                           noise));
+  ASSERT_OK(GraphicsEditorSaveStoplossTestPeer::PaintPixel(graphics_, 7, 0xFE));
+  const auto status = manager_->SaveCurrentSession();
+  EXPECT_FALSE(status.ok());
+  EXPECT_THAT(std::string(status.message()),
+              ::testing::HasSubstr("can only be saved in place"));
+  EXPECT_EQ(ReadText(source_), before);
+  EXPECT_EQ(ReadText(spec_), spec);
+  EXPECT_FALSE(std::filesystem::exists(receipt_));
+  EXPECT_TRUE(graphics_->HasPendingRomGraphicsChanges());
+  EXPECT_TRUE(graphics_->HasPendingSourceChanges());
+  EXPECT_EQ(graphics_->game_data()->sheet_store.Sheet(kShared)[1], noise[1]);
 }
 
 TEST_F(CoordinatedSourceSaveTest, ExternalRomConflictRetainsEveryDraft) {

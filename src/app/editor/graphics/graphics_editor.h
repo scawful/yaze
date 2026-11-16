@@ -131,6 +131,15 @@ class GraphicsEditor : public Editor {
   absl::StatusOr<core::GfxSheetSource::Plan> PrepareSourceProjectSave();
   void ProjectSourceSaveCommitted(core::GfxSheetSource::Plan plan,
                                   std::string descriptor);
+  // With a graphics source bound, edits to vanilla sheets (IDs below the
+  // source global range) that the source does not own are written into the
+  // ROM in place. A sheet whose stream would grow is refused, never moved.
+  absl::Status SaveRomOwnedSheetsInPlace();
+  // True when `sheet_id` would save into the ROM in place under a bound
+  // graphics source; those sheets are shared with every area that loads them.
+  bool IsSharedRomSheet(uint16_t sheet_id) const;
+  // True when a modified sheet is not owned by the bound graphics source.
+  bool HasPendingSharedRomSheets() const;
   absl::Status Update() override;
   // Cut, Copy and Paste use the system clipboard as PNG (pixel editor).
   /**

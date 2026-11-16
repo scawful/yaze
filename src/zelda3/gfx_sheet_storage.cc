@@ -435,9 +435,13 @@ absl::StatusOr<std::vector<uint8_t>> ReadGfxSheetDataResolved(
   return ReadSheetDataAt(rom, extent);
 }
 
-absl::StatusOr<GfxSheetWriteResult> WriteGfxSheet(
-    Rom& rom, uint16_t sheet_id, const std::vector<uint8_t>& snes_3bpp,
-    const GfxSheetWritePolicy& policy, const GfxSheetPointerTables& tables) {
+namespace {
+
+// Checks every write rule that does not depend on where the sheet lands.
+absl::Status ValidateGfxSheetWrite(const Rom& rom, uint16_t sheet_id,
+                                   const std::vector<uint8_t>& snes_3bpp,
+                                   const GfxSheetWritePolicy& policy,
+                                   const GfxSheetPointerTables& tables) {
   if (!rom.is_loaded()) {
     return absl::FailedPreconditionError("ROM not loaded");
   }
@@ -489,6 +493,17 @@ absl::StatusOr<GfxSheetWriteResult> WriteGfxSheet(
     }
   }
 
+  return absl::OkStatus();
+}
+
+}  // namespace
+
+absl::StatusOr<GfxSheetWriteResult> WriteGfxSheet(
+    Rom& rom, uint16_t sheet_id, const std::vector<uint8_t>& snes_3bpp,
+    const GfxSheetWritePolicy& policy, const GfxSheetPointerTables& tables) {
+  RETURN_IF_ERROR(
+      ValidateGfxSheetWrite(rom, sheet_id, snes_3bpp, policy, tables));
+  const GfxSheetStorageKind kind = GetGfxSheetStorageKind(sheet_id);
   ASSIGN_OR_RETURN(const uint32_t old_pc,
                    ReadGfxSheetPc(rom, sheet_id, tables));
   GfxSheetWriteResult result;
@@ -621,6 +636,82 @@ absl::StatusOr<GfxSheetWriteResult> WriteGfxSheet(
                                                              : "in place",
            target);
   return result;
+}
+
+absl::StatusOr<GfxSheetInPlaceWrite> PlanGfxSheetInPlaceWrite(
+    const Rom& rom, uint16_t sheet_id, const std::vector<uint8_t>& snes_3bpp,
+    const GfxSheetWritePolicy& policy, const GfxSheetPointerTables& tables) {
+  RETURN_IF_ERROR(
+      ValidateGfxSheetWrite(rom, sheet_id, snes_3bpp, policy, tables));
+  ASSIGN_OR_RETURN(const uint32_t old_pc,
+                   ReadGfxSheetPc(rom, sheet_id, tables));
+  GfxSheetInPlaceWrite plan;
+  plan.sheet_id = sheet_id;
+  plan.pc = old_pc;
+
+  if (GetGfxSheetStorageKind(sheet_id) == GfxSheetStorageKind::kRaw3bpp) {
+    const uint32_t end = old_pc + static_cast<uint32_t>(kGfxSheet3bppBytes);
+    if (end > rom.size()) {
+      return absl::OutOfRangeError(
+          absl::StrFormat("Raw sheet 0x%02X at 0x%06X runs past the ROM end",
+                          sheet_id, old_pc));
+    }
+    RETURN_IF_ERROR(CheckPolicyWrite(policy, old_pc, end));
+    plan.old_stored_size = kGfxSheet3bppBytes;
+    if (!std::equal(snes_3bpp.begin(), snes_3bpp.end(),
+                    rom.vector().begin() + old_pc)) {
+      plan.bytes = snes_3bpp;
+    }
+    return plan;
+  }
+
+  ASSIGN_OR_RETURN(const GfxSheetExtent extent,
+                   ReadGfxSheetExtent(rom, sheet_id, tables));
+  plan.old_stored_size = extent.stored_size;
+  // Unchanged pixels plan no bytes; re-encoding would churn a valid stream.
+  if (auto current = ReadGfxSheetData(rom, sheet_id, tables);
+      current.ok() && current->size() >= kGfxSheet3bppBytes &&
+      extent.decoded_size == kGfxSheet3bppBytes &&
+      std::equal(snes_3bpp.begin(), snes_3bpp.end(), current->begin())) {
+    return plan;
+  }
+
+  int encoded_size = 0;
+  std::vector<uint8_t> encoded = gfx::HyruleMagicCompress(
+      snes_3bpp.data(), static_cast<int>(snes_3bpp.size()), &encoded_size,
+      /*flag=*/0);
+  encoded.resize(encoded_size);
+  auto check = gfx::lc_lz2::DecompressExact(encoded.data(), encoded.size(), 0,
+                                            kGfxSheet3bppBytes,
+                                            /*big_endian_copy=*/false);
+  if (!check.ok() || check->data != snes_3bpp ||
+      check->compressed_size != encoded.size()) {
+    return absl::InternalError(absl::StrFormat(
+        "Encoding sheet 0x%02X did not round-trip; nothing was written",
+        sheet_id));
+  }
+  if (encoded.size() > extent.stored_size) {
+    return absl::FailedPreconditionError(absl::StrFormat(
+        "Sheet 0x%02X needs %zu bytes but its stream holds %zu; this sheet "
+        "can only be saved in place, so the edit must compress to the same "
+        "size or smaller",
+        sheet_id, encoded.size(), extent.stored_size));
+  }
+  const uint32_t old_end = old_pc + static_cast<uint32_t>(extent.stored_size);
+  const OtherSheetExtents others = CollectOtherExtents(rom, sheet_id, tables);
+  for (const auto& other : others.extents) {
+    if (Overlaps(old_pc, old_end, other.pc,
+                 other.pc + static_cast<uint32_t>(other.stored_size))) {
+      return absl::FailedPreconditionError(absl::StrFormat(
+          "Sheet 0x%02X shares ROM bytes with sheet 0x%02X; an in-place "
+          "write would change both",
+          sheet_id, other.sheet_id));
+    }
+  }
+  RETURN_IF_ERROR(CheckPolicyWrite(
+      policy, old_pc, old_pc + static_cast<uint32_t>(encoded.size())));
+  plan.bytes = std::move(encoded);
+  return plan;
 }
 
 }  // namespace yaze::zelda3

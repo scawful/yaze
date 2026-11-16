@@ -9,6 +9,7 @@
 #include <iterator>
 #include <limits>
 #include <random>
+#include <string>
 #include <utility>
 #include <vector>
 
@@ -536,6 +537,66 @@ TEST(GfxSheetStorageTest, AliasedSheetMovesInsteadOfChangingItsTwin) {
   EXPECT_EQ(result->placement, GfxSheetPlacement::kRelocated);
   EXPECT_EQ(*zelda3::ReadGfxSheetData(rom, 0x40), before.at(0x40));
   EXPECT_EQ(*zelda3::ReadGfxSheetData(rom, 0x41), edited);
+}
+
+TEST(GfxSheetStorageTest, InPlacePlanFitsOldStreamAndLeavesRomUntouched) {
+  const auto fixture = BuildGfxSheetTestRom();
+  Rom rom = LoadTestRom(fixture.bytes);
+  auto old_extent = zelda3::ReadGfxSheetExtent(rom, 0x20);
+  ASSERT_TRUE(old_extent.ok());
+  std::vector<uint8_t> edited(zelda3::kGfxSheet3bppBytes, 0x00);
+  edited[0x40] = 0x7E;
+  auto plan = zelda3::PlanGfxSheetInPlaceWrite(rom, 0x20, edited, {});
+  ASSERT_TRUE(plan.ok()) << plan.status();
+  EXPECT_EQ(plan->pc, old_extent->pc);
+  EXPECT_EQ(plan->old_stored_size, old_extent->stored_size);
+  EXPECT_LE(plan->bytes.size(), old_extent->stored_size);
+  EXPECT_EQ(rom.vector(), fixture.bytes);  // Planning never writes.
+
+  auto applied = fixture.bytes;
+  std::copy(plan->bytes.begin(), plan->bytes.end(), applied.begin() + plan->pc);
+  Rom written = LoadTestRom(applied);
+  EXPECT_EQ(*zelda3::ReadGfxSheetData(written, 0x20), edited);
+
+  // Unchanged pixels need no bytes.
+  auto same =
+      zelda3::PlanGfxSheetInPlaceWrite(rom, 0x21, fixture.sheets.at(0x21), {});
+  ASSERT_TRUE(same.ok()) << same.status();
+  EXPECT_TRUE(same->bytes.empty());
+}
+
+TEST(GfxSheetStorageTest, InPlacePlanRefusesGrowthAndSharedStreams) {
+  const auto fixture = BuildGfxSheetTestRom();
+  Rom rom = LoadTestRom(fixture.bytes);
+  auto grown = zelda3::PlanGfxSheetInPlaceWrite(
+      rom, 0x20, IncompressibleSheet(7), PolicyWithFreeSpace());
+  EXPECT_FALSE(grown.ok());
+  EXPECT_NE(std::string(grown.status().message()).find("in place"),
+            std::string::npos)
+      << grown.status();
+
+  auto bytes = fixture.bytes;
+  const zelda3::GfxSheetPointerTables tables;
+  for (uint32_t table : {tables.bank, tables.high, tables.low})
+    bytes[table + 0x41] = bytes[table + 0x40];
+  Rom aliased = LoadTestRom(bytes);
+  std::vector<uint8_t> edited(zelda3::kGfxSheet3bppBytes, 0x00);
+  auto shared = zelda3::PlanGfxSheetInPlaceWrite(aliased, 0x41, edited, {});
+  EXPECT_FALSE(shared.ok());
+  EXPECT_NE(std::string(shared.status().message()).find("shares ROM bytes"),
+            std::string::npos)
+      << shared.status();
+  EXPECT_EQ(aliased.vector(), bytes);
+}
+
+TEST(GfxSheetStorageTest, InPlacePlanWritesRawSheetsExactly) {
+  const auto fixture = BuildGfxSheetTestRom();
+  Rom rom = LoadTestRom(fixture.bytes);
+  std::vector<uint8_t> edited(zelda3::kGfxSheet3bppBytes, 0x5A);
+  auto plan = zelda3::PlanGfxSheetInPlaceWrite(rom, 115, edited, {});
+  ASSERT_TRUE(plan.ok()) << plan.status();
+  EXPECT_EQ(plan->bytes, edited);
+  EXPECT_EQ(plan->old_stored_size, zelda3::kGfxSheet3bppBytes);
 }
 
 TEST(GfxSheetStorageTest, VerifiedWriteSurvivesSaveAndReopen) {

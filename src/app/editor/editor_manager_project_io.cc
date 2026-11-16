@@ -932,6 +932,22 @@ EditorManager::PrepareRomSave(
         "Sheets is disabled. Enable it, or discard the graphics sheet edits "
         "before saving the ROM.");
   }
+  // With a graphics source bound, vanilla sheets the source does not own are
+  // written into the ROM in place (GraphicsEditor::SaveRomOwnedSheetsInPlace).
+  auto* shared_sheet_graphics =
+      source_graphics
+          ? static_cast<GraphicsEditor*>(
+                current_editor_set->GetExistingEditor(EditorType::kGraphics))
+          : nullptr;
+  const bool pending_shared_sheets =
+      shared_sheet_graphics != nullptr &&
+      shared_sheet_graphics->HasPendingSharedRomSheets();
+  if (pending_shared_sheets && !core::FeatureFlags::get().kSaveGraphicsSheet) {
+    return absl::FailedPreconditionError(
+        "Save blocked: edits to shared ROM graphics sheets are pending, but "
+        "Save Graphics Sheets is disabled. Enable it, or discard those edits "
+        "before saving.");
+  }
 
   // Preflight map-only Screen edits before any serializer can mutate the ROM.
   // Retain the exact planned extents for manifest protection if disk diffing
@@ -1099,6 +1115,10 @@ EditorManager::PrepareRomSave(
       RETURN_IF_ERROR(graphics->SaveRomData());
       prepared->graphics_scratch = graphics;
     }
+  }
+  if (pending_shared_sheets) {
+    RETURN_IF_ERROR(editor_transactions.Begin(shared_sheet_graphics));
+    RETURN_IF_ERROR(shared_sheet_graphics->SaveRomOwnedSheetsInPlace());
   }
 
   // Gfx group tables are written byte-for-byte where they differ, then read

@@ -7,6 +7,8 @@
 // C++ standard library headers
 #include <algorithm>
 #include <filesystem>
+#include <map>
+#include <optional>
 #include <set>
 
 // Third-party library headers
@@ -75,6 +77,8 @@ void GraphicsEditor::Initialize() {
       [this]() -> const project::YazeProject* { return project(); });
   sheet_browser_panel_->SetUndoManager(&undo_manager_);
   sheet_browser_panel_->SetSavePlanner([this]() { return PlanGraphicsSave(); });
+  sheet_browser_panel_->SetSharedSheetQuery(
+      [this](uint16_t sheet_id) { return IsSharedRomSheet(sheet_id); });
   sheet_browser_panel_->SetLabelCallbacks(
       [this](uint16_t sheet, const std::string& label) {
         return EditProject([&](project::YazeProject& target) {
@@ -527,6 +531,9 @@ GraphicsEditor::PrepareSourceProjectSave() {
         "Graphics source belongs to another active session");
   std::map<uint16_t, std::vector<uint8_t>> edited;
   for (uint16_t id : state_.modified_sheets) {
+    // Unbound vanilla sheets save into the ROM (SaveRomOwnedSheetsInPlace).
+    if (IsSharedRomSheet(id))
+      continue;
     const auto pixels = game_data()->sheet_store.Sheet(id);
     edited[id] = std::vector<uint8_t>(pixels.begin(), pixels.end());
   }
@@ -540,6 +547,132 @@ void GraphicsEditor::ProjectSourceSaveCommitted(core::GfxSheetSource::Plan plan,
     saved.insert(id);
   game_data()->gfx_sheet_source->Commit(std::move(plan), std::move(descriptor));
   state_.ClearModifiedSheets(saved);
+}
+
+namespace {
+// Source-authored global sheets start here; IDs below are vanilla sheets.
+constexpr uint16_t kFirstSourceGlobalSheet = 0xDF;
+}  // namespace
+
+bool GraphicsEditor::IsSharedRomSheet(uint16_t sheet_id) const {
+  return game_data() && game_data()->gfx_sheet_source &&
+         sheet_id < kFirstSourceGlobalSheet &&
+         !game_data()->gfx_sheet_source->sheets().contains(sheet_id);
+}
+
+bool GraphicsEditor::HasPendingSharedRomSheets() const {
+  if (!game_data() || !game_data()->gfx_sheet_source)
+    return false;
+  for (uint16_t id : state_.modified_sheets)
+    if (!game_data()->gfx_sheet_source->sheets().contains(id))
+      return true;
+  return false;
+}
+
+absl::Status GraphicsEditor::SaveRomOwnedSheetsInPlace() {
+  if (state_.selection.is_floating)
+    return absl::FailedPreconditionError(
+        "Commit or cancel the floating paste in Graphics before saving "
+        "(Enter to commit, Esc to cancel)");
+  if (pixel_editor_panel_ && pixel_editor_panel_->HasActiveStroke())
+    return absl::FailedPreconditionError(
+        "Finish the pixel stroke before saving");
+  if (!rom_ || !rom_->is_loaded())
+    return absl::FailedPreconditionError("ROM not loaded");
+  if (!game_data() || !game_data()->gfx_sheet_source)
+    return absl::FailedPreconditionError(
+        "In-place sheet save needs a bound graphics source; use Save");
+
+  std::set<uint16_t> sheet_ids;
+  std::vector<std::string> refused;
+  for (uint16_t id : state_.modified_sheets) {
+    if (game_data()->gfx_sheet_source->sheets().contains(id))
+      continue;
+    if (IsSharedRomSheet(id))
+      sheet_ids.insert(id);
+    else
+      refused.push_back(absl::StrFormat(
+          "0x%02X (source-range ID the graphics source does not bind)", id));
+  }
+  if (sheet_ids.empty() && refused.empty())
+    return absl::OkStatus();
+
+  ASSIGN_OR_RETURN(PreparedGraphicsSave prepared, PrepareGraphicsSave());
+  for (const auto& [id, reason] : prepared.refusals)
+    if (sheet_ids.contains(id))
+      refused.push_back(absl::StrFormat("0x%02X (%s)", id, reason));
+  if (!refused.empty())
+    return absl::FailedPreconditionError(absl::StrFormat(
+        "Graphics save refused for sheet(s) %s. Discard those edits to save "
+        "the rest.",
+        absl::StrJoin(refused, ", ")));
+
+  // Plan every sheet against the unchanged ROM, then verify the combined
+  // image on a scratch copy before the ROM changes.
+  const std::vector<uint8_t> baseline = rom_->vector();
+  std::vector<uint8_t> candidate = baseline;
+  std::vector<std::pair<uint32_t, uint32_t>> ranges;
+  std::map<uint16_t, std::vector<uint8_t>> pixels_by_id;
+  for (uint16_t id : sheet_ids) {
+    const auto stored = game_data()->sheet_store.Sheet(id);
+    std::vector<uint8_t> pixels(stored.begin(), stored.end());
+    auto plan = zelda3::PlanGfxSheetInPlaceWrite(
+        *rom_, id, gfx::IndexedToSnesSheet(pixels, /*bpp=*/3), prepared.policy,
+        prepared.tables);
+    if (!plan.ok())
+      return absl::Status(plan.status().code(),
+                          absl::StrFormat("Graphics sheet 0x%02X not saved: %s",
+                                          id, plan.status().message()));
+    if (!plan->bytes.empty()) {
+      std::copy(plan->bytes.begin(), plan->bytes.end(),
+                candidate.begin() + plan->pc);
+      ranges.emplace_back(plan->pc,
+                          plan->pc + static_cast<uint32_t>(plan->bytes.size()));
+      LOG_INFO("GraphicsEditor",
+               "Sheet %02X planned in place at 0x%06X (%zu of %zu bytes)", id,
+               plan->pc, plan->bytes.size(), plan->old_stored_size);
+    }
+    pixels_by_id.emplace(id, std::move(pixels));
+  }
+  if (ranges.empty()) {
+    state_.ClearModifiedSheets(sheet_ids);
+    return absl::OkStatus();
+  }
+
+  Rom scratch;
+  RETURN_IF_ERROR(scratch.LoadFromData(candidate));
+  scratch.AdoptExperimentalPageTile16(*rom_);
+  for (const auto& [id, pixels] : pixels_by_id) {
+    const absl::Status verified =
+        verify_written_sheet_(scratch, id, pixels, prepared.tables);
+    if (!verified.ok())
+      return absl::Status(
+          verified.code(),
+          absl::StrFormat("Graphics save stopped; nothing was written: %s",
+                          verified.message()));
+  }
+
+  // Native layouts refuse generic writes; their commit checks every changed
+  // byte against these ranges and the native overworld storage.
+  if (rom::IsNativeSpecialOverworldLayout(rom_->InspectLyraLayout())) {
+    RETURN_IF_ERROR(
+        rom_->CommitNativeNonOverworldImage(baseline, candidate, ranges));
+  } else {
+    const bool rom_was_dirty = rom_->dirty();
+    for (const auto& [begin, end] : ranges) {
+      const absl::Status written =
+          rom_->WriteVector(static_cast<int>(begin),
+                            std::vector<uint8_t>(candidate.begin() + begin,
+                                                 candidate.begin() + end));
+      if (!written.ok()) {
+        rom_->mutable_vector() = baseline;
+        rom_->set_dirty(rom_was_dirty);
+        return written;
+      }
+    }
+  }
+  state_.ClearModifiedSheets(sheet_ids);
+  return absl::OkStatus();
 }
 
 absl::Status GraphicsEditor::Save() {
@@ -639,11 +772,42 @@ absl::StatusOr<std::vector<GraphicsSavePlanEntry>>
 GraphicsEditor::PlanGraphicsSave() {
   if (game_data() && game_data()->gfx_sheet_source) {
     ASSIGN_OR_RETURN(auto plan, PrepareSourceProjectSave());
+    std::optional<PreparedGraphicsSave> rom_prepared;
     std::vector<GraphicsSavePlanEntry> entries;
     for (uint16_t id : state_.modified_sheets) {
       GraphicsSavePlanEntry entry;
       entry.sheet_id = id;
-      entry.source_path = plan.sheets.at(id).path;
+      if (auto it = plan.sheets.find(id); it != plan.sheets.end()) {
+        entry.source_path = it->second.path;
+      } else if (!IsSharedRomSheet(id)) {
+        entry.refusal = "source-range ID the graphics source does not bind";
+      } else {
+        if (!rom_prepared) {
+          ASSIGN_OR_RETURN(rom_prepared, PrepareGraphicsSave());
+        }
+        if (auto refusal = rom_prepared->refusals.find(id);
+            refusal != rom_prepared->refusals.end()) {
+          entry.refusal = refusal->second;
+        } else {
+          const auto stored = game_data()->sheet_store.Sheet(id);
+          auto in_place = zelda3::PlanGfxSheetInPlaceWrite(
+              *rom_, id,
+              gfx::IndexedToSnesSheet(
+                  std::vector<uint8_t>(stored.begin(), stored.end()),
+                  /*bpp=*/3),
+              rom_prepared->policy, rom_prepared->tables);
+          if (!in_place.ok()) {
+            entry.refusal = std::string(in_place.status().message());
+          } else {
+            entry.placement = zelda3::GfxSheetPlacement::kInPlace;
+            entry.old_pc = entry.new_pc = in_place->pc;
+            entry.old_stored_size = in_place->old_stored_size;
+            entry.new_stored_size = in_place->bytes.empty()
+                                        ? in_place->old_stored_size
+                                        : in_place->bytes.size();
+          }
+        }
+      }
       entries.push_back(std::move(entry));
     }
     return entries;

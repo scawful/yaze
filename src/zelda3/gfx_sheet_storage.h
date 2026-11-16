@@ -181,6 +181,28 @@ absl::StatusOr<GfxSheetWriteResult> WriteGfxSheet(
     const GfxSheetWritePolicy& policy,
     const GfxSheetPointerTables& tables = {});
 
+/// Bytes that store an edited 3bpp sheet in its current ROM location.
+struct GfxSheetInPlaceWrite {
+  uint16_t sheet_id = 0;
+  uint32_t pc = 0;
+  // Empty when the pixels already match the stored sheet.
+  std::vector<uint8_t> bytes;
+  size_t old_stored_size = 0;
+};
+
+/**
+ * @brief Plans an in-place sheet write without touching the ROM.
+ *
+ * Applies the same checks as WriteGfxSheet, but never relocates: an edit
+ * whose stream would grow, or whose bytes another sheet shares, is refused.
+ * Callers apply `bytes` at `pc` through their own commit path (for example
+ * Rom::CommitNativeNonOverworldImage on native layouts).
+ */
+absl::StatusOr<GfxSheetInPlaceWrite> PlanGfxSheetInPlaceWrite(
+    const Rom& rom, uint16_t sheet_id, const std::vector<uint8_t>& snes_3bpp,
+    const GfxSheetWritePolicy& policy,
+    const GfxSheetPointerTables& tables = {});
+
 }  // namespace yaze::zelda3
 
 #endif  // YAZE_ZELDA3_GFX_SHEET_STORAGE_H
