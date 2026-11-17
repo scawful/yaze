@@ -177,6 +177,15 @@ void ReviewBoardsView::ForceRefresh() {
   Rescan(/*reset_watcher=*/false);
 }
 
+void ReviewBoardsView::SetBoardsDirectory(const std::filesystem::path& dir) {
+  dir_ = dir;
+  scanned_ = false;
+  drafts_.clear();
+  selected_id_.clear();
+  ReleaseImages();
+  Rescan(/*reset_watcher=*/true);
+}
+
 void ReviewBoardsView::Rescan(bool reset_watcher) {
   scanned_ = true;
   last_rescan_at_ = absl::Now();
@@ -232,6 +241,25 @@ void ReviewBoardsView::SyncCleanDraftsAfterScan() {
     if (!HasUnsavedDraft(board)) {
       it->second = BoardDraft{};
       EnsureDraft(board);
+    } else if (!it->second.draft_board_sha256.empty() &&
+               it->second.draft_board_sha256 != board.board_sha256) {
+      it->second.stale_after_republish = true;
+      const ReviewBoardAnswerMap fresh_defaults =
+          InitialReviewBoardAnswers(board);
+      for (const auto& q : board.questions) {
+        if (!it->second.answers.contains(q.id)) {
+          const auto def_it = fresh_defaults.find(q.id);
+          const ReviewBoardAnswer seeded = def_it != fresh_defaults.end()
+                                               ? def_it->second
+                                               : ReviewBoardAnswer{};
+          it->second.answers[q.id] = seeded;
+          if (q.kind == "number" &&
+              std::holds_alternative<double>(seeded.value)) {
+            it->second.number_inputs[q.id] =
+                FormatDoubleInput(std::get<double>(seeded.value));
+          }
+        }
+      }
     }
   }
 }
@@ -366,8 +394,82 @@ ReviewBoardsView::BoardDraft& ReviewBoardsView::EnsureDraft(
     }
   }
 
+  draft.draft_board_sha256 = board.board_sha256;
+  draft.stale_after_republish = false;
   draft.initialized = true;
   return draft;
+}
+
+void ReviewBoardsView::SetDraftAnswer(const std::string& board_id,
+                                      const std::string& question_id,
+                                      ReviewBoardAnswer answer) {
+  for (const auto& board : scan_.boards) {
+    if (board.id == board_id) {
+      BoardDraft& draft = EnsureDraft(board);
+      draft.answers[question_id] = std::move(answer);
+      return;
+    }
+  }
+}
+
+bool ReviewBoardsView::IsDraftStaleAfterRepublish(
+    const std::string& board_id) const {
+  const auto it = drafts_.find(board_id);
+  return it != drafts_.end() && it->second.initialized &&
+         it->second.stale_after_republish;
+}
+
+void ReviewBoardsView::ReloadDraftFromBoard(const ReviewBoard& board) {
+  drafts_[board.id] = BoardDraft{};
+  EnsureDraft(board);
+}
+
+void ReviewBoardsView::KeepDraftEditsOnUpdatedBoard(const ReviewBoard& board) {
+  BoardDraft& draft = EnsureDraft(board);
+  draft.answers = board.questions.empty() ? ReviewBoardAnswerMap{}
+                                          : FilterReviewBoardAnswersToQuestions(
+                                                board, draft.answers);
+
+  std::unordered_set<std::string> valid_ids;
+  valid_ids.reserve(board.questions.size());
+  for (const auto& q : board.questions) {
+    valid_ids.insert(q.id);
+  }
+  for (auto it = draft.single_other_selected.begin();
+       it != draft.single_other_selected.end();) {
+    if (!valid_ids.contains(it->first)) {
+      it = draft.single_other_selected.erase(it);
+    } else {
+      ++it;
+    }
+  }
+  for (auto it = draft.number_inputs.begin();
+       it != draft.number_inputs.end();) {
+    if (!valid_ids.contains(it->first)) {
+      it = draft.number_inputs.erase(it);
+    } else {
+      ++it;
+    }
+  }
+
+  ReviewBoardAnswerMap fresh_baseline = InitialReviewBoardAnswers(board);
+  for (const auto& q : board.questions) {
+    if (!draft.answers.contains(q.id)) {
+      const auto base_it = fresh_baseline.find(q.id);
+      const ReviewBoardAnswer seeded = base_it != fresh_baseline.end()
+                                           ? base_it->second
+                                           : ReviewBoardAnswer{};
+      draft.answers[q.id] = seeded;
+      if (q.kind == "number" && std::holds_alternative<double>(seeded.value)) {
+        draft.number_inputs[q.id] =
+            FormatDoubleInput(std::get<double>(seeded.value));
+      }
+    }
+    (void)fresh_baseline[q.id];
+  }
+  draft.baseline_answers = std::move(fresh_baseline);
+  draft.draft_board_sha256 = board.board_sha256;
+  draft.stale_after_republish = false;
 }
 
 bool ReviewBoardsView::HasUnsavedDraft(const ReviewBoard& board) const {
@@ -956,6 +1058,25 @@ void ReviewBoardsView::DrawDetail(ReviewBoard& board) {
     ImGui::PopTextWrapPos();
   }
 
+  if (draft.stale_after_republish) {
+    {
+      gui::StyleColorGuard warn(ImGuiCol_Text, gui::GetWarningColor());
+      ImGui::PushTextWrapPos(0.0f);
+      ImGui::Text(
+          "%s %s", ICON_MD_WARNING,
+          tr("This board was updated on disk while you had unsaved draft "
+             "answers."));
+      ImGui::PopTextWrapPos();
+    }
+    if (ImGui::SmallButton(tr("Reload from board"))) {
+      ReloadDraftFromBoard(board);
+    }
+    ImGui::SameLine();
+    if (ImGui::SmallButton(tr("Keep my edits"))) {
+      KeepDraftEditsOnUpdatedBoard(board);
+    }
+  }
+
   ImGui::Separator();
 
   // Detail order per SPEC.md #6: ask first, then questions, then media, then
@@ -1408,7 +1529,9 @@ void ReviewBoardsView::SubmitFeedback(ReviewBoard& board, BoardDraft& draft) {
   entry.comment = draft.comment;
   entry.at_utc =
       absl::FormatTime("%Y-%m-%dT%H:%M:%SZ", absl::Now(), absl::UTCTimeZone());
-  entry.answers = draft.answers;
+  entry.answers = board.questions.empty() ? ReviewBoardAnswerMap{}
+                                          : FilterReviewBoardAnswersToQuestions(
+                                                board, draft.answers);
 
   const std::string id = board.id;
   const absl::Status status = WriteReviewBoardFeedback(board, entry);
@@ -1432,8 +1555,14 @@ void ReviewBoardsView::SubmitFeedback(ReviewBoard& board, BoardDraft& draft) {
   }
 
   draft.comment[0] = '\0';
+  draft.answers = entry.answers;
+  for (const auto& q : board.questions) {
+    (void)draft.answers[q.id];
+  }
   draft.baseline_answers = draft.answers;
   draft.baseline_decision = draft.decision;
+  draft.draft_board_sha256 = board.board_sha256;
+  draft.stale_after_republish = false;
 
   const std::string saved = absl::StrFormat(
       "%s \"%s\" -> %s", tr("Submitted"),

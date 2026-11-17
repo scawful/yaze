@@ -39,6 +39,12 @@ class ReviewBoardsView : public WindowContent {
   void ForceRefresh();
   void SelectNextWaiting();
   void SelectBoardById(const std::string& id);
+  void SetBoardsDirectory(const std::filesystem::path& dir);
+  void SetDraftAnswer(const std::string& board_id,
+                      const std::string& question_id, ReviewBoardAnswer answer);
+  bool IsDraftStaleAfterRepublish(const std::string& board_id) const;
+  void ReloadDraftFromBoard(const ReviewBoard& board);
+  void KeepDraftEditsOnUpdatedBoard(const ReviewBoard& board);
 
   const std::string& selected_id() const { return selected_id_; }
   ReviewBoardFilter filter() const { return filter_; }
@@ -57,9 +63,11 @@ class ReviewBoardsView : public WindowContent {
     std::unordered_map<std::string, std::string> number_inputs;
     std::string decision = "looks_good";
     std::string baseline_decision = "looks_good";
+    std::string draft_board_sha256;
     int category = 0;  // 0 general, 1 layout
     char comment[2048] = {};
     bool initialized = false;
+    bool stale_after_republish = false;
   };
 
   void Rescan(bool reset_watcher);

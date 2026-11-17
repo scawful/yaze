@@ -204,6 +204,12 @@ std::string ReviewBoardDecision(const ReviewBoard& board);
 
 // Question answer helpers & gating.
 ReviewBoardAnswerMap InitialReviewBoardAnswers(const ReviewBoard& board);
+// Returns a copy of `answers` containing only keys matching a current
+// question id in `board.questions` (prevents stale/renamed question ids from
+// being written after a board republish). When `board.questions` is empty,
+// returns an empty map.
+ReviewBoardAnswerMap FilterReviewBoardAnswersToQuestions(
+    const ReviewBoard& board, const ReviewBoardAnswerMap& answers);
 bool IsReviewBoardQuestionAnswered(const ReviewBoardQuestion& question,
                                    const ReviewBoardAnswerMap& answers);
 const ReviewBoardQuestion* FirstUnansweredRequiredQuestion(

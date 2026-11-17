@@ -861,6 +861,25 @@ ReviewBoardAnswerMap InitialReviewBoardAnswers(const ReviewBoard& board) {
   return out;
 }
 
+ReviewBoardAnswerMap FilterReviewBoardAnswersToQuestions(
+    const ReviewBoard& board, const ReviewBoardAnswerMap& answers) {
+  ReviewBoardAnswerMap filtered;
+  if (board.questions.empty()) {
+    return filtered;
+  }
+  std::unordered_set<std::string> valid_ids;
+  valid_ids.reserve(board.questions.size());
+  for (const auto& q : board.questions) {
+    valid_ids.insert(q.id);
+  }
+  for (const auto& [qid, ans] : answers) {
+    if (valid_ids.contains(qid)) {
+      filtered.emplace(qid, ans);
+    }
+  }
+  return filtered;
+}
+
 bool IsReviewBoardQuestionAnswered(const ReviewBoardQuestion& question,
                                    const ReviewBoardAnswerMap& answers) {
   const auto it = answers.find(question.id);
@@ -965,6 +984,8 @@ bool ReviewBoardWaitingOnUser(const ReviewBoard& board) {
     return false;
   if (FirstUnansweredRequiredQuestion(board, board.latest_answers) != nullptr)
     return true;
+  if (board.feedback.empty())
+    return true;
   if (board.questions.empty() && ReviewBoardDecision(board).empty())
     return true;
   return false;
@@ -1034,9 +1055,26 @@ absl::StatusOr<std::string> BuildReviewBoardFeedback(
     }
     history = existing.at("history");
   }
-  const json serialized_answers = AnswerMapToJson(entry.answers);
+  const ReviewBoardAnswerMap effective_answers =
+      board.questions.empty()
+          ? entry.answers
+          : FilterReviewBoardAnswersToQuestions(board, entry.answers);
+  const json serialized_answers = AnswerMapToJson(effective_answers);
   if (!serialized_answers.empty()) {
     latest_answers = serialized_answers;
+  } else if (!board.questions.empty() && latest_answers.is_object()) {
+    std::unordered_set<std::string> valid_ids;
+    valid_ids.reserve(board.questions.size());
+    for (const auto& q : board.questions) {
+      valid_ids.insert(q.id);
+    }
+    for (auto it = latest_answers.begin(); it != latest_answers.end();) {
+      if (!valid_ids.contains(it.key())) {
+        it = latest_answers.erase(it);
+      } else {
+        ++it;
+      }
+    }
   }
   history.push_back({{"at", entry.at_utc},
                      {"board_sha256", board.board_sha256},
@@ -1046,7 +1084,12 @@ absl::StatusOr<std::string> BuildReviewBoardFeedback(
                      {"answers", serialized_answers}});
   std::string status = "commented";
   for (auto it = history.rbegin(); it != history.rend(); ++it) {
-    const auto decision = it->value("decision", std::string());
+    if (!it->is_object())
+      continue;
+    const auto dec_it = it->find("decision");
+    if (dec_it == it->end() || !dec_it->is_string())
+      continue;
+    const std::string decision = dec_it->get<std::string>();
     if (decision == "looks_good" || decision == "needs_changes") {
       status = decision;
       break;
@@ -1125,9 +1168,14 @@ absl::Status WriteReviewBoardFeedback(ReviewBoard& board,
     return absl::UnavailableError(
         absl::StrFormat("Could not replace %s", target.string()));
   }
-  board.feedback.push_back(entry);
-  if (!entry.answers.empty()) {
-    board.latest_answers = entry.answers;
+  ReviewBoardFeedbackEntry saved_entry = entry;
+  if (!board.questions.empty()) {
+    saved_entry.answers =
+        FilterReviewBoardAnswersToQuestions(board, entry.answers);
+  }
+  board.feedback.push_back(saved_entry);
+  if (!saved_entry.answers.empty()) {
+    board.latest_answers = saved_entry.answers;
   }
   board.feedback_error.clear();
   return absl::OkStatus();
