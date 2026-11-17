@@ -250,6 +250,7 @@ PlanNativeOverworldItemSave(const std::vector<uint8_t>& baseline,
   }
 
   const size_t bank_limit = std::min(baseline.size(), kItemBankEndPc);
+  std::vector<bool> base_is_child_map(capacity, false);
   std::vector<bool> base_valid_stream(capacity, false);
   std::vector<size_t> base_start(capacity, 0);
   std::vector<size_t> base_end(capacity, 0);
@@ -257,6 +258,7 @@ PlanNativeOverworldItemSave(const std::vector<uint8_t>& baseline,
   for (size_t map = 0; map < capacity; ++map) {
     const bool base_is_child = (baseline[sizes->pc_address + map] != 0 &&
                                 baseline[parents->pc_address + map] != map);
+    base_is_child_map[map] = base_is_child;
     const uint16_t word = ReadWord(baseline, entry23->pc_address + map * 2);
     auto invalid_slot = [&](std::string msg) -> absl::Status {
       if (base_is_child) {
@@ -575,6 +577,10 @@ PlanNativeOverworldItemSave(const std::vector<uint8_t>& baseline,
       baseline.begin() + kBombDoorMirrorPc,
       baseline.begin() + kBombDoorMirrorPc + kLegacyMirrorRowCount * 2);
   for (const auto& [map_id, edit] : edits_by_map) {
+    if (base_is_child_map[map_id] && final_is_child_map[map_id] &&
+        edit->items.empty()) {
+      continue;
+    }
     uint16_t bomb_word = 0;
     for (const auto& item : edit->items) {
       if (item.item_id == 0x86) {

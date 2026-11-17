@@ -34,6 +34,12 @@ struct OverworldSpriteArea {
   std::optional<uint32_t> placement_id = std::nullopt;
   bool operator==(const OverworldSpriteArea&) const = default;
 };
+struct OverworldItemArea {
+  uint16_t owner = 0;
+  uint8_t x = 0;
+  uint8_t y = 0;
+  bool operator==(const OverworldItemArea&) const = default;
+};
 struct OverworldPageProperties {
   uint16_t background = 0;
   uint16_t overlay = 0;
@@ -53,6 +59,7 @@ struct OverworldAreaSnapshot {
   std::vector<OverworldPageProperties> pages;
   std::array<std::vector<OverworldSpriteArea>, 3> sprites;
   std::array<std::vector<bool>, 3> loaded_sprite_maps;
+  std::vector<OverworldItemArea> items;
   bool operator==(const OverworldAreaSnapshot&) const = default;
 };
 

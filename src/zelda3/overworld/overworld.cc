@@ -2024,6 +2024,20 @@ void Overworld::CommitSavedMapTiles() {
                                         return item.deleted;
                                       }),
                        all_items_.end());
+      for (auto& item : all_items_) {
+        const int map = static_cast<int>(item.room_map_id_);
+        if (map < 0 || map >= materialized_map_count() || item.x_ < 0 ||
+            item.x_ >= 4096 || item.y_ < 0 || item.y_ >= 4096) {
+          continue;
+        }
+        const int page =
+            (map / 64) * 64 + (item.y_ / 512) * 8 + (item.x_ / 512);
+        if (page >= 0 && page < materialized_map_count() &&
+            (overworld_maps_[map].parent() != map ||
+             overworld_maps_[page].parent() != map)) {
+          item.UpdateMapProperties(static_cast<uint16_t>(page), this);
+        }
+      }
       native_nonterrain_baseline_[3] = CaptureNativeItemState();
     } else {
       native_nonterrain_baseline_[3] = std::move(*staged_native_items_);

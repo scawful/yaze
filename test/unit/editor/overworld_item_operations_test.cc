@@ -5,6 +5,7 @@
 #include <memory>
 #include <vector>
 
+#include "fixtures/lyra/native_directory_fixture.h"
 #include "gtest/gtest.h"
 #include "rom/rom.h"
 #include "zelda3/overworld/overworld_item.h"
@@ -401,6 +402,46 @@ TEST_F(OverworldItemOperationsTest,
   EXPECT_FALSE(std::any_of(
       loaded.begin(), loaded.end(),
       [](const zelda3::OverworldItem& item) { return item.id_ == 0x22; }));
+}
+
+TEST_F(OverworldItemOperationsTest,
+       NudgeItemCrossesScreenAndResolvesParentArea) {
+  test::native_overworld::NativeDirectoryFixture fixture;
+  fixture.SeedNativeSpritePrefix();
+  fixture.UpgradeToRevision4();
+  fixture.AddAuthoringMetadata();
+  fixture.bytes[0x7FD9] = 0x01;
+  fixture.bytes[zelda3::overworldItemsAddressBank] = 0x1B;
+  fixture.Word(0x0DC2F9, 0xFFFF);
+  for (int map = 0; map < 192; ++map) {
+    fixture.Word(fixture.Entry(23).pc_address + map * 2, 0xC2F9);
+  }
+  for (int map : {0x00, 0x01, 0x08, 0x09}) {
+    fixture.bytes[fixture.Entry(7).pc_address + map] = 0x00;
+    fixture.bytes[fixture.Entry(30).pc_address + map] =
+        static_cast<uint8_t>(zelda3::AreaSizeEnum::LargeArea);
+  }
+  fixture.Seal();
+
+  ASSERT_TRUE(rom_.LoadFromData(fixture.bytes).ok());
+  zelda3::Overworld world(&rom_);
+  ASSERT_TRUE(world.Load(&rom_).ok());
+
+  // 1) Crossing out of LargeArea $00 right quadrant ($01) into SmallArea $02.
+  zelda3::OverworldItem item(0x42, 0x00, 1008, 160, false);
+  ASSERT_TRUE(NudgeItem(&item, 32, 0, &world).ok());
+  EXPECT_EQ(item.x_, 1040);
+  EXPECT_EQ(item.y_, 160);
+  EXPECT_EQ(item.room_map_id_, 0x02);
+  EXPECT_EQ(item.game_x_, 1);
+  EXPECT_EQ(item.game_y_, 10);
+
+  // 2) Nudging back across edge into child quadrant $01 resolves parent $00.
+  ASSERT_TRUE(NudgeItem(&item, -32, 0, &world).ok());
+  EXPECT_EQ(item.x_, 1008);
+  EXPECT_EQ(item.room_map_id_, 0x00);
+  EXPECT_EQ(item.game_x_, 63);
+  EXPECT_EQ(item.game_y_, 10);
 }
 
 }  // namespace

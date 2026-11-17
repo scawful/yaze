@@ -599,7 +599,8 @@ absl::StatusOr<zelda3::OverworldItem*> DuplicateItemByIdentity(
   return &items->back();
 }
 
-absl::Status NudgeItem(zelda3::OverworldItem* item, int delta_x, int delta_y) {
+absl::Status NudgeItem(zelda3::OverworldItem* item, int delta_x, int delta_y,
+                       const zelda3::Overworld* overworld) {
   if (!item) {
     return absl::InvalidArgumentError("Item pointer is null");
   }
@@ -608,7 +609,22 @@ absl::Status NudgeItem(zelda3::OverworldItem* item, int delta_x, int delta_y) {
                                     static_cast<float>(item->y_ + delta_y)));
   item->x_ = static_cast<int>(clamped_pos.x);
   item->y_ = static_cast<int>(clamped_pos.y);
-  item->UpdateMapProperties(item->room_map_id_);
+
+  uint16_t target_map = item->room_map_id_;
+  if (overworld != nullptr) {
+    const int world_base = (item->room_map_id_ / 0x40) * 0x40;
+    const int max_maps = overworld->materialized_map_count();
+    if (world_base == 0x80 && max_maps > 0 && max_maps <= 160) {
+      // Standard 160-map Special World only materializes rows 0..3 ($80..$9F).
+      item->y_ = std::min(item->y_, 2032);
+    }
+    const int candidate_map =
+        world_base + (item->x_ / 512) + (item->y_ / 512) * 8;
+    if (candidate_map >= 0 && candidate_map < max_maps) {
+      target_map = static_cast<uint16_t>(candidate_map);
+    }
+  }
+  item->UpdateMapProperties(target_map, overworld);
   return absl::OkStatus();
 }
 

@@ -5746,7 +5746,9 @@ TEST_F(NativeSpecialOverworldEditorTest,
   EXPECT_FALSE(ow_editor->HasPendingNativeItemChanges());
 
   // Disable item saving while saving terrain: terrain persists, item bytes on
-  // disk are unchanged, and HasPendingNativeItemChanges remains true.
+  // disk are unchanged, HasPendingNativeItemChanges remains true, and a
+  // warning toast informs the user after transaction commit (while a failed
+  // save emits no spurious skipped-items warning).
   ow_flags.kSaveOverworldItems = false;
   ASSERT_TRUE(
       editor::InsertItem(&ow_editor->overworld(), ImVec2(1632, 160), 0x03, 0x10)
@@ -5756,7 +5758,28 @@ TEST_F(NativeSpecialOverworldEditorTest,
   const uint16_t new_tile = old_tile == 1 ? 2 : 1;
   ASSERT_TRUE(
       ow_editor->ApplyTile16Stencil(0x03, {{5, 5, old_tile, new_tile}}).ok());
+
+  const auto contains_skipped_item_warning = [&](size_t from_idx) {
+    for (size_t i = from_idx; i < manager->toast_manager()->pending_count();
+         ++i) {
+      const auto* toast = manager->toast_manager()->GetPendingToast(i);
+      if (toast->type == editor::ToastType::kWarning &&
+          toast->message.find("not saved") != std::string::npos) {
+        return true;
+      }
+    }
+    return false;
+  };
+  {
+    const size_t toast_begin = manager->toast_manager()->pending_count();
+    test::ScopedRomStagingFailure fault;
+    EXPECT_FALSE(manager->SaveRom().ok());
+    EXPECT_FALSE(contains_skipped_item_warning(toast_begin));
+  }
+
+  const size_t toast_begin = manager->toast_manager()->pending_count();
   ASSERT_TRUE(manager->SaveRom().ok());
+  EXPECT_TRUE(contains_skipped_item_warning(toast_begin));
   EXPECT_TRUE(ow_editor->HasPendingNativeItemChanges());
   EXPECT_TRUE(manager->session_coordinator()->IsSessionModified(
       manager->GetCurrentSessionIndex()));
@@ -5861,25 +5884,34 @@ TEST(LyraLayoutDescriptorTest,
   EXPECT_EQ(image.vector(), rom_exact_cap);
   world.mutable_all_items()->pop_back();
 
-  // Direct child-map item must reject with kInvalidArgument and zero ROM diff.
+  // Direct child-map planner edits still fail kInvalidArgument, while
+  // Overworld::PrepareNativeItemSave / SaveNativeTerrain re-homes child items
+  // onto their owning parent area. Out-of-bounds coordinates still refuse with
+  // kInvalidArgument and zero ROM bytes mutated.
   {
-    auto child_rom_bytes = fixture.bytes;
     NativeDirectoryFixture child_fixture = fixture;
     ConfigureMultiScreenNativeFixture(&child_fixture);
     SeedNativeItemsRegion(&child_fixture, {{0x02, {{1, 1, 0x05}}}});
+    child_fixture.Word(child_fixture.Entry(22).pc_address + 0x01 * 2, 0x1234);
+    child_fixture.Word(zelda3::kOverworldBombDoorItemLocationsNew + 0x01 * 2,
+                       0x1234);
     child_fixture.Seal();
     Rom child_image;
     ASSERT_TRUE(child_image.LoadFromData(child_fixture.bytes).ok());
     const auto rom_before_invalid = child_image.vector();
+    const auto direct_child_plan = rom::PlanNativeOverworldItemSave(
+        child_image.vector(), {{{0x01, {{EncodeItemPos(1, 1), 0x09}}}}});
+    EXPECT_EQ(direct_child_plan.status().code(),
+              absl::StatusCode::kInvalidArgument)
+        << direct_child_plan.status();
+    const auto direct_child_empty_plan =
+        rom::PlanNativeOverworldItemSave(child_image.vector(), {{{0x01, {}}}});
+    ASSERT_TRUE(direct_child_empty_plan.ok())
+        << direct_child_empty_plan.status();
+    EXPECT_TRUE(direct_child_empty_plan->empty());
+
     zelda3::Overworld child_world(&child_image);
     ASSERT_TRUE(child_world.Load(&child_image).ok());
-
-    child_world.mutable_all_items()->emplace_back(0x09, 0x01, 528, 16, false);
-    const absl::Status bad_child = child_world.SaveNativeTerrain();
-    EXPECT_EQ(bad_child.code(), absl::StatusCode::kInvalidArgument)
-        << bad_child;
-    EXPECT_EQ(child_image.vector(), rom_before_invalid);
-    child_world.mutable_all_items()->pop_back();
 
     // Out-of-area coordinate on SmallArea $02 -> kInvalidArgument, 0 bytes diff.
     child_world.mutable_all_items()->emplace_back(0x09, 0x02, 1600, 16, false);
@@ -5887,7 +5919,193 @@ TEST(LyraLayoutDescriptorTest,
     EXPECT_EQ(bad_bounds.code(), absl::StatusCode::kInvalidArgument)
         << bad_bounds;
     EXPECT_EQ(child_image.vector(), rom_before_invalid);
+    child_world.mutable_all_items()->pop_back();
+
+    // Child-map $01 item inside LargeArea $00 re-homes cleanly onto $00.
+    child_world.mutable_all_items()->emplace_back(0x09, 0x01, 528, 16, false);
+    ASSERT_TRUE(child_world.SaveNativeTerrain().ok());
+    child_world.CommitSavedMapTiles();
+    EXPECT_FALSE(child_world.HasPendingNativeItemChanges());
+    zelda3::Overworld child_reopened(&child_image);
+    ASSERT_TRUE(child_reopened.Load(&child_image).ok());
+    const auto& reopened_items = child_reopened.all_items();
+    const auto rehomed = std::find_if(
+        reopened_items.begin(), reopened_items.end(), [](const auto& it) {
+          return it.room_map_id_ == 0x00 && it.id_ == 0x09;
+        });
+    ASSERT_NE(rehomed, reopened_items.end());
+    EXPECT_EQ(rehomed->game_x_, 33);
+    EXPECT_EQ(rehomed->game_y_, 1);
   }
+}
+
+TEST_F(NativeSpecialOverworldEditorTest,
+       NativeItemsAreaMergeSplitRehomingAndCrossEdgeNudge) {
+  const auto flags = core::FeatureFlags::get();
+  auto restore = absl::MakeCleanup([&] { core::FeatureFlags::get() = flags; });
+
+  NativeDirectoryFixture fixture;
+  fixture.SeedNativeSpritePrefix();
+  fixture.UpgradeToRevision4();
+  fixture.AddAuthoringMetadata();
+  ConfigureMultiScreenNativeFixture(&fixture);
+  SeedNativeItemsRegion(&fixture, {
+                                      {0x00, {{63, 10, 0x04}}},
+                                      {0x03, {{4, 6, 0x07}, {6, 6, 0x86}}},
+                                  });
+  // Dormant Entry 22 bomb-door word on LargeArea child $01 must not be cleared
+  // when empty child map $01 is untouched or re-homed.
+  fixture.Word(fixture.Entry(22).pc_address + 0x01 * 2, 0x1234);
+  fixture.Word(zelda3::kOverworldBombDoorItemLocationsNew + 0x01 * 2, 0x1234);
+  fixture.Seal();
+
+  const auto root = test::UniqueTempPath("ow_items_merge_nudge");
+  std::filesystem::create_directories(root);
+  auto cleanup = absl::MakeCleanup([&] { std::filesystem::remove_all(root); });
+  const auto source = root / "in.sfc";
+  const auto target = root / "out.sfc";
+  WriteBytes(source, fixture.bytes);
+
+  auto manager = std::make_unique<editor::EditorManager>();
+  test::InitializeWithIsolatedSettings(*manager, renderer_.get());
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+  manager->user_settings().prefs().backup_before_save = false;
+  ASSERT_TRUE(manager->OpenRomOrProject(source.string()).ok());
+  auto& ow_flags = core::FeatureFlags::get().overworld;
+  ow_flags.kSaveOverworldMaps = false;
+  ow_flags.kSaveOverworldProperties = true;
+  ow_flags.kSaveOverworldSprites = true;
+  ow_flags.kSaveOverworldEntrances = false;
+  ow_flags.kSaveOverworldExits = false;
+  ow_flags.kSaveOverworldItems = false;
+  ASSERT_TRUE(
+      manager->EnsureEditorAssetsLoaded(editor::EditorType::kOverworld).ok());
+
+  auto* ow_editor = manager->GetCurrentEditorSet()->GetOverworldEditor();
+  ASSERT_NE(ow_editor, nullptr);
+  auto& world = ow_editor->overworld();
+
+  // 1) Merge SmallAreas $02+$03 (where $03 owns normal + 0x86 items) into
+  // WideArea $02 via the editor property edit command.
+  using Field = editor::OverworldPropertyField;
+  ASSERT_TRUE(
+      editor::NativePropertySaveTestPeer::Apply(
+          *ow_editor, {0x02, Field::kAreaSize, 0,
+                       static_cast<int>(zelda3::AreaSizeEnum::WideArea)})
+          .ok());
+  auto find_item = [&](uint8_t id) -> const zelda3::OverworldItem* {
+    const auto& items = world.all_items();
+    for (const auto& item : items) {
+      if (!item.deleted && item.id_ == id) {
+        return &item;
+      }
+    }
+    return nullptr;
+  };
+  ASSERT_NE(find_item(0x07), nullptr);
+  EXPECT_EQ(find_item(0x07)->room_map_id_, 0x02);
+  EXPECT_EQ(find_item(0x07)->game_x_, 36);
+  EXPECT_EQ(find_item(0x07)->game_y_, 6);
+  ASSERT_NE(find_item(0x86), nullptr);
+  EXPECT_EQ(find_item(0x86)->room_map_id_, 0x02);
+  EXPECT_EQ(find_item(0x86)->game_x_, 38);
+
+  // Undo/Redo restores item ownership between $03 and $02 cleanly.
+  ASSERT_TRUE(ow_editor->Undo().ok());
+  EXPECT_EQ(find_item(0x07)->room_map_id_, 0x03);
+  EXPECT_EQ(find_item(0x07)->game_x_, 4);
+  ASSERT_TRUE(ow_editor->Redo().ok());
+  EXPECT_EQ(find_item(0x07)->room_map_id_, 0x02);
+  EXPECT_EQ(find_item(0x07)->game_x_, 36);
+
+  // Saving the item-affecting resize while kSaveOverworldItems=false refuses
+  // before touching disk.
+  const absl::Status blocked = manager->SaveRomAs(target.string());
+  EXPECT_EQ(blocked.code(), absl::StatusCode::kFailedPrecondition) << blocked;
+  EXPECT_FALSE(std::filesystem::exists(target));
+
+  ow_flags.kSaveOverworldItems = true;
+  ASSERT_TRUE(manager->SaveRomAs(target.string()).ok());
+  EXPECT_FALSE(ow_editor->HasPendingNativeItemChanges());
+  {
+    Rom reopened;
+    ASSERT_TRUE(reopened.LoadFromFile(target.string()).ok());
+    EXPECT_EQ(
+        ReadWordAt(reopened.vector(), fixture.Entry(22).pc_address + 0x01 * 2),
+        0x1234);
+    EXPECT_EQ(
+        ReadWordAt(reopened.vector(), fixture.Entry(22).pc_address + 0x02 * 2),
+        EncodeItemPos(38, 6));
+    EXPECT_EQ(
+        ReadWordAt(reopened.vector(), fixture.Entry(22).pc_address + 0x03 * 2),
+        0x0000);
+    zelda3::Overworld disk_world(&reopened);
+    ASSERT_TRUE(disk_world.Load(&reopened).ok());
+    EXPECT_EQ(disk_world.overworld_map(0x02)->area_size(),
+              zelda3::AreaSizeEnum::WideArea);
+    bool saw_07 = false;
+    bool saw_86 = false;
+    for (const auto& item : disk_world.all_items()) {
+      if (item.room_map_id_ == 0x02 && item.id_ == 0x07) {
+        saw_07 = true;
+        EXPECT_EQ(item.game_x_, 36);
+        EXPECT_EQ(item.game_y_, 6);
+      } else if (item.room_map_id_ == 0x02 && item.id_ == 0x86) {
+        saw_86 = true;
+        EXPECT_EQ(item.game_x_, 38);
+      }
+    }
+    EXPECT_TRUE(saw_07);
+    EXPECT_TRUE(saw_86);
+  }
+
+  // 2) Split $02 back into SmallAreas: items re-home back to $03 cleanly.
+  ASSERT_TRUE(
+      editor::NativePropertySaveTestPeer::Apply(
+          *ow_editor, {0x02, Field::kAreaSize, 0,
+                       static_cast<int>(zelda3::AreaSizeEnum::SmallArea)})
+          .ok());
+  EXPECT_EQ(find_item(0x07)->room_map_id_, 0x03);
+  EXPECT_EQ(find_item(0x07)->game_x_, 4);
+  EXPECT_EQ(find_item(0x86)->room_map_id_, 0x03);
+  EXPECT_EQ(find_item(0x86)->game_x_, 6);
+  ASSERT_TRUE(manager->SaveRom().ok());
+  EXPECT_FALSE(ow_editor->HasPendingNativeItemChanges());
+
+  // 3) Nudge $00 edge item 0x04 at (1008, 160) by +32 px into $02 and save.
+  const zelda3::OverworldItem* edge_item = find_item(0x04);
+  ASSERT_NE(edge_item, nullptr);
+  ASSERT_TRUE(ow_editor->SelectItemByIdentity(*edge_item));
+  ASSERT_TRUE(ow_editor->NudgeSelectedItem(32, 0));
+  edge_item = find_item(0x04);
+  ASSERT_NE(edge_item, nullptr);
+  EXPECT_EQ(edge_item->room_map_id_, 0x02);
+  EXPECT_EQ(edge_item->game_x_, 1);
+  EXPECT_EQ(edge_item->game_y_, 10);
+  ASSERT_TRUE(manager->SaveRom().ok());
+
+  Rom final_rom;
+  ASSERT_TRUE(final_rom.LoadFromFile(target.string()).ok());
+  zelda3::Overworld final_world(&final_rom);
+  ASSERT_TRUE(final_world.Load(&final_rom).ok());
+  bool saw_nudged_04 = false;
+  bool saw_split_07 = false;
+  bool saw_split_86 = false;
+  for (const auto& item : final_world.all_items()) {
+    if (item.id_ == 0x04 && item.room_map_id_ == 0x02 && item.game_x_ == 1 &&
+        item.game_y_ == 10) {
+      saw_nudged_04 = true;
+    } else if (item.id_ == 0x07 && item.room_map_id_ == 0x03 &&
+               item.game_x_ == 4 && item.game_y_ == 6) {
+      saw_split_07 = true;
+    } else if (item.id_ == 0x86 && item.room_map_id_ == 0x03 &&
+               item.game_x_ == 6 && item.game_y_ == 6) {
+      saw_split_86 = true;
+    }
+  }
+  EXPECT_TRUE(saw_nudged_04);
+  EXPECT_TRUE(saw_split_07);
+  EXPECT_TRUE(saw_split_86);
 }
 
 TEST_F(NativeSpecialOverworldEditorTest,

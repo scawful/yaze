@@ -428,7 +428,24 @@ bool Overworld::HasPendingNativeItemChanges() const {
   if (!loaded_map_tiles_valid_ ||
       !rom::IsNativeSpecialOverworldLayout(descriptor_layout_))
     return false;
-  return CaptureNativeItemState() != native_nonterrain_baseline_[3];
+  if (CaptureNativeItemState() != native_nonterrain_baseline_[3])
+    return true;
+  for (const auto& item : all_items_) {
+    if (item.deleted)
+      continue;
+    const int map = static_cast<int>(item.room_map_id_);
+    if (map < 0 || map >= materialized_map_count() ||
+        map >= static_cast<int>(native_geometry_baseline_.size())) {
+      return true;
+    }
+    const auto& area = overworld_maps_[map];
+    if (area.parent() != map ||
+        native_geometry_baseline_[map].parent != area.parent() ||
+        native_geometry_baseline_[map].size != area.area_size()) {
+      return true;
+    }
+  }
+  return false;
 }
 
 absl::StatusOr<rom::NativeOverworldItemEdits> Overworld::PrepareNativeItemSave()
@@ -506,7 +523,7 @@ absl::StatusOr<rom::NativeOverworldItemEdits> Overworld::PrepareNativeItemSave()
     const BaselineItemKey key{item.room_map_id_, item.id_, item.game_x_,
                               item.game_y_,      item.x_,  item.y_};
     const auto baseline_it =
-        unchanged_geometry
+        (unchanged_geometry && area.parent() == map)
             ? std::find(unused_baseline.begin(), unused_baseline.end(), key)
             : unused_baseline.end();
     if (baseline_it != unused_baseline.end()) {
@@ -517,13 +534,31 @@ absl::StatusOr<rom::NativeOverworldItemEdits> Overworld::PrepareNativeItemSave()
       continue;
     }
 
-    if (area.parent() != map) {
-      return absl::InvalidArgumentError(absl::StrFormat(
-          "Native overworld item on child map $%02X must belong to parent "
-          "area $%02X",
-          map, area.parent()));
+    // Resolve an owning parent area when geometry merged/split since load or
+    // when an item references a child page, rather than failing the whole save.
+    int owner_map = map;
+    if (!unchanged_geometry) {
+      if (item.x_ < 0 || item.x_ >= 4096 || item.y_ < 0 || item.y_ >= 4096) {
+        return absl::InvalidArgumentError(absl::StrFormat(
+            "Native overworld item at (%d,%d) is outside world bounds", item.x_,
+            item.y_));
+      }
+      const int page = (map / 64) * 64 + (item.y_ / 512) * 8 + (item.x_ / 512);
+      if (page < 0 || page >= map_count) {
+        return absl::InvalidArgumentError(absl::StrFormat(
+            "Native overworld item on page $%02X is out of range", page));
+      }
+      owner_map = overworld_maps_[page].parent();
+    } else if (area.parent() != map) {
+      owner_map = area.parent();
     }
-    const auto size = area.area_size();
+    if (owner_map < 0 || owner_map >= map_count ||
+        overworld_maps_[owner_map].parent() != owner_map) {
+      return absl::InvalidArgumentError(absl::StrFormat(
+          "Native overworld item on map $%02X has invalid parent area $%02X",
+          map, owner_map));
+    }
+    const auto size = overworld_maps_[owner_map].area_size();
     const int width =
         (size == AreaSizeEnum::LargeArea || size == AreaSizeEnum::WideArea)
             ? 1024
@@ -532,20 +567,20 @@ absl::StatusOr<rom::NativeOverworldItemEdits> Overworld::PrepareNativeItemSave()
         (size == AreaSizeEnum::LargeArea || size == AreaSizeEnum::TallArea)
             ? 1024
             : 512;
-    const int origin_x = (map % 8) * 512;
-    const int origin_y = ((map % 64) / 8) * 512;
+    const int origin_x = (owner_map % 8) * 512;
+    const int origin_y = ((owner_map % 64) / 8) * 512;
     const int local_x = item.x_ - origin_x;
     const int local_y = item.y_ - origin_y;
     if (local_x < 0 || local_y < 0 || local_x >= width || local_y >= height) {
       return absl::InvalidArgumentError(absl::StrFormat(
           "Native overworld item at (%d,%d) is outside parent area $%02X",
-          item.x_, item.y_, map));
+          item.x_, item.y_, owner_map));
     }
     const int game_x = local_x / 16;
     const int game_y = local_y / 16;
     const uint16_t map_pos =
         static_cast<uint16_t>(((game_y << 6) | game_x) << 1);
-    cur_by_map[map].push_back({map_pos, item.id_});
+    cur_by_map[owner_map].push_back({map_pos, item.id_});
   }
 
   for (int map = 0; map < map_count; ++map) {

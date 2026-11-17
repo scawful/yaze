@@ -932,6 +932,7 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   bool current_map_lock_ = false;
   OverworldCanvasLayoutMode canvas_layout_mode_ =
       OverworldCanvasLayoutMode::kSingleWorld;
+  bool pending_skipped_native_items_warning_ = false;
   double unified_readonly_banner_until_ = 0.0;
   float pre_unified_scale_ = 1.0f;
 

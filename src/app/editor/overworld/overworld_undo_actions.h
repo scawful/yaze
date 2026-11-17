@@ -463,6 +463,7 @@ class OverworldAreaEditAction : public UndoAction {
         result += value.sprites[phase].capacity() *
                       sizeof(zelda3::OverworldSpriteArea) +
                   (value.loaded_sprite_maps[phase].capacity() + 7) / 8;
+      result += value.items.capacity() * sizeof(zelda3::OverworldItemArea);
       return result;
     };
     return sizeof(*this) + bytes(before_) + bytes(after_) +
