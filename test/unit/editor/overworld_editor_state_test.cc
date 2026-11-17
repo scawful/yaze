@@ -7,6 +7,7 @@
 #include <gtest/gtest.h>
 
 #include "rom/rom.h"
+#include "test_utils/overworld_model_test_peer.h"
 #include "zelda3/overworld/overworld_entrance.h"
 #include "zelda3/overworld/overworld_exit.h"
 #include "zelda3/overworld/overworld_map.h"
@@ -21,6 +22,17 @@ class OverworldEditorStateTestPeer {
   static bool AutomationSetTile(OverworldEditor& editor, int x, int y,
                                 int tile_id) {
     return editor.AutomationSetTile(x, y, tile_id);
+  }
+  static int AutomationGetTile(OverworldEditor& editor, int x, int y) {
+    return editor.AutomationGetTile(x, y);
+  }
+  static void InitEditorPaintingForTest(OverworldEditor& editor) {
+    zelda3::OverworldModelTestPeer::SetLoaded(editor.overworld_, true);
+    auto& tiles = *editor.overworld_.mutable_map_tiles();
+    tiles.light_world.assign(256, std::vector<uint16_t>(256, 0));
+    tiles.dark_world.assign(256, std::vector<uint16_t>(256, 0));
+    tiles.special_world.assign(256, std::vector<uint16_t>(256, 0));
+    editor.InitTilePaintingManager();
   }
 };
 
@@ -740,60 +752,105 @@ TEST_F(OverworldRecordEditLifecycleTest,
 }
 
 TEST_F(OverworldRecordEditLifecycleTest,
-       UnifiedLayoutEnforcesReadOnlyOnEditorEntryPoints) {
+       UnifiedLayoutSupportsToolsItemMutationsAutomationAndCrossWorldUndoRedo) {
+  OverworldEditorStateTestPeer::InitEditorPaintingForTest(*editor_);
   EXPECT_EQ(editor_->canvas_layout_mode(),
             OverworldCanvasLayoutMode::kSingleWorld);
   editor_->SetEditingMode(EditingMode::DRAW_TILE);
   EXPECT_EQ(OverworldEditorStateTestPeer::CurrentMode(*editor_),
             EditingMode::DRAW_TILE);
 
+  // Switching to Unified preserves the active tool mode.
   editor_->SetCanvasLayoutMode(OverworldCanvasLayoutMode::kUnified);
   EXPECT_TRUE(editor_->IsUnifiedCanvas());
-  // Entering Unified returns paint/fill mode back to safe Select (MOUSE).
   EXPECT_EQ(OverworldEditorStateTestPeer::CurrentMode(*editor_),
-            EditingMode::MOUSE);
+            EditingMode::DRAW_TILE);
 
-  // Attempting to switch back to paint tools stays in MOUSE.
-  editor_->SetEditingMode(EditingMode::DRAW_TILE);
+  editor_->ToggleBrushTool();
   EXPECT_EQ(OverworldEditorStateTestPeer::CurrentMode(*editor_),
             EditingMode::MOUSE);
   editor_->ToggleBrushTool();
   EXPECT_EQ(OverworldEditorStateTestPeer::CurrentMode(*editor_),
-            EditingMode::MOUSE);
+            EditingMode::DRAW_TILE);
   editor_->ActivateFillTool();
   EXPECT_EQ(OverworldEditorStateTestPeer::CurrentMode(*editor_),
-            EditingMode::MOUSE);
+            EditingMode::FILL_TILE);
 
-  // Paste, Undo, Redo, PaintLyraA0Terrain, item ops & AutomationSetTile refuse.
-  auto status = editor_->Paste();
-  EXPECT_EQ(status.code(), absl::StatusCode::kFailedPrecondition);
-  EXPECT_NE(status.message().find(kUnifiedReadOnlyReason), std::string::npos);
-
-  status = editor_->Undo();
-  EXPECT_EQ(status.code(), absl::StatusCode::kFailedPrecondition);
-  EXPECT_NE(status.message().find(kUnifiedReadOnlyReason), std::string::npos);
-
-  status = editor_->Redo();
-  EXPECT_EQ(status.code(), absl::StatusCode::kFailedPrecondition);
-  EXPECT_NE(status.message().find(kUnifiedReadOnlyReason), std::string::npos);
-
-  status = editor_->PaintLyraA0Terrain(0xA0, 0, 0, 0x2103);
-  EXPECT_EQ(status.code(), absl::StatusCode::kFailedPrecondition);
-  EXPECT_NE(status.message().find(kUnifiedReadOnlyReason), std::string::npos);
-
-  EXPECT_FALSE(editor_->DuplicateSelectedItem());
-  EXPECT_FALSE(editor_->NudgeSelectedItem(16, 0));
-  EXPECT_FALSE(editor_->DeleteSelectedItem());
+  // Gutter (tile 256, 3 -> px 4096, 48) and empty SE quadrant (300, 300)
+  // write nothing and leave rom_.dirty() false.
   EXPECT_FALSE(
-      OverworldEditorStateTestPeer::AutomationSetTile(*editor_, 0, 0, 1));
+      OverworldEditorStateTestPeer::AutomationSetTile(*editor_, 256, 3, 7));
+  EXPECT_FALSE(
+      OverworldEditorStateTestPeer::AutomationSetTile(*editor_, 300, 300, 7));
+  EXPECT_EQ(OverworldEditorStateTestPeer::AutomationGetTile(*editor_, 256, 3),
+            -1);
   EXPECT_FALSE(rom_.dirty());
 
-  // Returning to Single restores normal mode capability.
+  // Paint on LW $00 (2,3), DW $40 (2, 258+4), and SW $80 (258+5, 6) in Unified.
+  // Never write Fortress maps ($4B, $4C, $53, $54, $9C).
+  ASSERT_TRUE(
+      OverworldEditorStateTestPeer::AutomationSetTile(*editor_, 2, 3, 7));
+  ASSERT_TRUE(
+      OverworldEditorStateTestPeer::AutomationSetTile(*editor_, 2, 262, 9));
+  ASSERT_TRUE(
+      OverworldEditorStateTestPeer::AutomationSetTile(*editor_, 263, 6, 11));
+  EXPECT_TRUE(rom_.dirty());
+  EXPECT_EQ(OverworldEditorStateTestPeer::AutomationGetTile(*editor_, 2, 3), 7);
+  EXPECT_EQ(OverworldEditorStateTestPeer::AutomationGetTile(*editor_, 2, 262),
+            9);
+  EXPECT_EQ(OverworldEditorStateTestPeer::AutomationGetTile(*editor_, 263, 6),
+            11);
+
+  // Also test Item duplicate, nudge, and delete in Unified on DW $40.
+  editor_->SetEditingMode(EditingMode::MOUSE);
+  zelda3::OverworldItem seed_item(0x01, 0x40, 64, 64, false);
+  editor_->overworld().mutable_all_items()->push_back(seed_item);
+  ASSERT_TRUE(editor_->SelectItemByIdentity(seed_item));
+  ASSERT_TRUE(editor_->DuplicateSelectedItem(16, 0));
+  ASSERT_TRUE(editor_->NudgeSelectedItem(0, 16));
+  EXPECT_EQ(editor_->overworld().all_items().size(), 2u);
+  ASSERT_TRUE(editor_->DeleteSelectedItem());
+  EXPECT_EQ(editor_->overworld().all_items().size(), 1u);
+
+  // Scroll/switch world away from DW/SW before Undo/Redo: each undo entry
+  // carries its own target map/world and restores cleanly in Unified.
+  editor_->SwitchToWorld(0);
+  EXPECT_EQ(editor_->current_world_id(), 0);
+
+  // Undo item delete -> nudge -> duplicate (3 steps).
+  ASSERT_TRUE(editor_->Undo().ok());
+  EXPECT_EQ(editor_->overworld().all_items().size(), 2u);
+  ASSERT_TRUE(editor_->Undo().ok());
+  ASSERT_TRUE(editor_->Undo().ok());
+  EXPECT_EQ(editor_->overworld().all_items().size(), 1u);
+
+  // Undo SW $80 -> DW $40 -> LW $00 tile writes (3 steps).
+  ASSERT_TRUE(editor_->Undo().ok());
+  EXPECT_EQ(OverworldEditorStateTestPeer::AutomationGetTile(*editor_, 263, 6),
+            0);
+  EXPECT_EQ(OverworldEditorStateTestPeer::AutomationGetTile(*editor_, 2, 262),
+            9);
+
+  ASSERT_TRUE(editor_->Undo().ok());
+  EXPECT_EQ(OverworldEditorStateTestPeer::AutomationGetTile(*editor_, 2, 262),
+            0);
+  EXPECT_EQ(OverworldEditorStateTestPeer::AutomationGetTile(*editor_, 2, 3), 7);
+
+  ASSERT_TRUE(editor_->Undo().ok());
+  EXPECT_EQ(OverworldEditorStateTestPeer::AutomationGetTile(*editor_, 2, 3), 0);
+
+  // Redo all 3 cross-world tile writes in Unified.
+  ASSERT_TRUE(editor_->Redo().ok());
+  ASSERT_TRUE(editor_->Redo().ok());
+  ASSERT_TRUE(editor_->Redo().ok());
+  EXPECT_EQ(OverworldEditorStateTestPeer::AutomationGetTile(*editor_, 2, 3), 7);
+  EXPECT_EQ(OverworldEditorStateTestPeer::AutomationGetTile(*editor_, 2, 262),
+            9);
+  EXPECT_EQ(OverworldEditorStateTestPeer::AutomationGetTile(*editor_, 263, 6),
+            11);
+
   editor_->SetCanvasLayoutMode(OverworldCanvasLayoutMode::kSingleWorld);
   EXPECT_FALSE(editor_->IsUnifiedCanvas());
-  editor_->SetEditingMode(EditingMode::DRAW_TILE);
-  EXPECT_EQ(OverworldEditorStateTestPeer::CurrentMode(*editor_),
-            EditingMode::DRAW_TILE);
 }
 
 }  // namespace

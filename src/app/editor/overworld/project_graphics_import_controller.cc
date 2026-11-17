@@ -312,7 +312,8 @@ absl::Status OverworldEditor::PlaceProjectGraphicsImport(int world_x,
       return absl::FailedPreconditionError(
           "This background needs different Tile16 definitions; preview a "
           "separate import");
-  return tile_painting_->PlaceBrushAt(plan.stamp, world_x, world_y);
+  return tile_painting_->PlaceBrushAt(
+      plan.stamp, world_x, world_y, OverworldCanvasLayout::WorldForMap(parent));
 }
 
 }  // namespace yaze::editor

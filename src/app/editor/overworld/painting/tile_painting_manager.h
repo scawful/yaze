@@ -117,7 +117,8 @@ class TilePaintingManager {
   /// Paste a validated pattern at the current canvas cursor, using the same
   /// clipping, per-map refresh, and undo path as rectangle painting.
   absl::Status PasteBrush(const TileBrush& brush);
-  absl::Status PlaceBrushAt(const TileBrush& brush, int x, int y);
+  absl::Status PlaceBrushAt(const TileBrush& brush, int x, int y,
+                            std::optional<int> world = std::nullopt);
 
   /// Write every cell of one ROM map in the displayed world as a single undo
   /// step, or none of them: any cell whose live Tile16 differs from
@@ -163,7 +164,15 @@ class TilePaintingManager {
 
  private:
   using ChangedMaps = std::array<bool, zelda3::kExpandedMapCount>;
+  struct ResolvedCanvasTile {
+    int world = 0;
+    int map_id = -1;
+    TilePosition position{0, 0};
+  };
   OverworldCanvasLayout Layout() const;
+  std::optional<ResolvedCanvasTile> ResolveCanvasPoint(
+      ImVec2 canvas_point) const;
+  std::optional<ResolvedCanvasTile> ResolveHoveredCanvasTile() const;
   int AllocatedRowsForWorld(int world) const;
   bool IsValidMapGridPosition(int world, int map_x, int map_y) const;
   bool IsProjectTileForWorld(int world, TilePosition position) const;
@@ -179,7 +188,9 @@ class TilePaintingManager {
   // Draws `brush` at `anchor` with each destination map's own graphics and
   // palette. `mark_selection` also moves the canvas selection rectangle.
   void DrawBrushPreview(const TileBrush& brush, TilePosition anchor,
-                        bool mark_selection, int alpha);
+                        bool mark_selection, int alpha,
+                        std::optional<int> target_world = std::nullopt,
+                        ImVec2 block_origin_px = ImVec2(0.0f, 0.0f));
   // Draws brush cells (only those set in `mask`, when given) using `storage`
   // for per-map preview textures.
   void DrawBrushPieces(
@@ -191,8 +202,13 @@ class TilePaintingManager {
   // Pixels of `tile_id` as `map_id` draws it (its own tile16 blockset);
   // falls back to the shared blockset when that map has none built.
   std::vector<uint8_t> Tile16PixelsForMap(int map_id, int tile_id) const;
+  absl::Status PaintPatternForWorld(int world, const TileBrush& brush,
+                                    TilePosition anchor, int width, int height,
+                                    bool finalize = true);
   absl::Status PaintPattern(const TileBrush& brush, TilePosition anchor,
                             int width, int height, bool finalize = true);
+  bool PaintWorldTile(int world, TilePosition position, int tile_id,
+                      ChangedMaps& changed_maps);
   bool PaintTile(TilePosition position, int tile_id, ChangedMaps& changed_maps);
   void RefreshChangedMaps(const ChangedMaps& changed_maps);
   void RenderMapTile(int map_id, TilePosition position,
@@ -205,6 +221,7 @@ class TilePaintingManager {
   bool project_paint_pending_ = false;
   bool gesture_project_ = false;
   int gesture_world_ = 0;
+  std::optional<int> gesture_start_map_;
   EditingMode gesture_mode_ = EditingMode::DRAW_TILE;
   bool selection_gesture_owned_ = false;
   bool external_brush_active_ = false;

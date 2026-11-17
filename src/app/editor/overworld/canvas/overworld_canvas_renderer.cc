@@ -52,6 +52,67 @@
 #include "zelda3/resource_labels.h"
 
 namespace yaze::editor {
+namespace {
+
+int EntityMapId(const zelda3::GameEntity& entity) {
+  switch (entity.entity_type_) {
+    case zelda3::GameEntity::EntityType::kItem:
+      return static_cast<const zelda3::OverworldItem&>(entity).room_map_id_;
+    case zelda3::GameEntity::EntityType::kSprite:
+      return static_cast<const zelda3::Sprite&>(entity).map_id();
+    case zelda3::GameEntity::EntityType::kEntrance:
+    case zelda3::GameEntity::EntityType::kExit:
+    default:
+      return entity.map_id_;
+  }
+}
+
+ImVec2 ClampUnifiedEntityLocalPos(const zelda3::Overworld& overworld,
+                                  const zelda3::GameEntity& entity,
+                                  int entity_world, int displayed_map_count,
+                                  ImVec2 local_pos, int grid_size) {
+  if (entity.entity_type_ == zelda3::GameEntity::EntityType::kSprite) {
+    const int owner = static_cast<const zelda3::Sprite&>(entity).map_id();
+    const auto* parent = overworld.overworld_map(owner);
+    const int min_x = OverworldCanvasLayout::GridX(owner) * kOverworldMapSizePx;
+    const int min_y = OverworldCanvasLayout::GridY(owner) * kOverworldMapSizePx;
+    int width = kOverworldMapSizePx;
+    int height = kOverworldMapSizePx;
+    if (parent) {
+      const auto size = parent->area_size();
+      if (size == zelda3::AreaSizeEnum::LargeArea ||
+          size == zelda3::AreaSizeEnum::WideArea) {
+        width = 1024;
+      }
+      if (size == zelda3::AreaSizeEnum::LargeArea ||
+          size == zelda3::AreaSizeEnum::TallArea) {
+        height = 1024;
+      }
+    }
+    return ImVec2(std::clamp(local_pos.x, static_cast<float>(min_x),
+                             static_cast<float>(min_x + width - grid_size)),
+                  std::clamp(local_pos.y, static_cast<float>(min_y),
+                             static_cast<float>(min_y + height - grid_size)));
+  }
+
+  const int max_x = kOverworldWorldBlockPx - grid_size;
+  int max_rows = 8;
+  if (entity_world == 2) {
+    if (entity.entity_type_ == zelda3::GameEntity::EntityType::kItem) {
+      max_rows = 4;
+    } else {
+      max_rows = std::clamp(
+          (displayed_map_count - OverworldCanvasLayout::WorldStartMap(2) + 7) /
+              8,
+          1, 8);
+    }
+  }
+  const int max_y = max_rows * kOverworldMapSizePx - grid_size;
+  return ImVec2(std::clamp(local_pos.x, 0.0f, static_cast<float>(max_x)),
+                std::clamp(local_pos.y, 0.0f, static_cast<float>(max_y)));
+}
+
+}  // namespace
 
 void DrawSheetScaleControl(const char* id, gui::AdaptiveSheetScaleMode* mode) {
   if (mode == nullptr) {
@@ -202,20 +263,16 @@ void OverworldCanvasRenderer::DrawOverworldCanvas() {
       editor_->status_ = editor_->CheckForCurrentMap();
       if (lyra_writable && canvas_rt.hovered &&
           ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
-        if (unified_layout) {
-          editor_->NotifyUnifiedReadOnly();
-        } else {
-          const auto target = ResolveOverworldContextTarget(
-              layout, editor_->current_world_, editor_->game_state_,
-              ImGui::GetMousePos(), canvas_rt.canvas_p0, canvas_rt.scrolling,
-              canvas_rt.scale, zelda3::kExpandedMapCount);
-          if (target && target->map_id == 0xA0) {
-            editor_->status_ = editor_->PaintLyraA0Terrain(
-                target->map_id,
-                static_cast<int>(target->world_position.x) % 512 / 32,
-                static_cast<int>(target->world_position.y) % 512 / 32,
-                static_cast<uint16_t>(editor_->lyra_terrain_brush_));
-          }
+        const auto target = ResolveOverworldContextTarget(
+            layout, editor_->current_world_, editor_->game_state_,
+            ImGui::GetMousePos(), canvas_rt.canvas_p0, canvas_rt.scrolling,
+            canvas_rt.scale, zelda3::kExpandedMapCount);
+        if (target && target->map_id == 0xA0) {
+          editor_->status_ = editor_->PaintLyraA0Terrain(
+              target->map_id,
+              static_cast<int>(target->world_position.x) % 512 / 32,
+              static_cast<int>(target->world_position.y) % 512 / 32,
+              static_cast<uint16_t>(editor_->lyra_terrain_brush_));
         }
       }
       if (unified_layout) {
@@ -233,15 +290,11 @@ void OverworldCanvasRenderer::DrawOverworldCanvas() {
     gui::TileDragPayload tile_drop;
     if (gui::AcceptTileDrop(&tile_drop)) {
       editor_->RequestTile16Selection(tile_drop.tile_id);
-      if (unified_layout) {
-        editor_->NotifyUnifiedReadOnly();
-      } else {
-        editor_->current_mode = EditingMode::DRAW_TILE;
-        editor_->ow_map_canvas_.SetUsageMode(gui::CanvasUsage::kTilePainting);
-      }
+      editor_->current_mode = EditingMode::DRAW_TILE;
+      editor_->ow_map_canvas_.SetUsageMode(gui::CanvasUsage::kTilePainting);
     }
     const bool placing_project_entity =
-        !unified_layout && editor_->lyra_canvas_.entity_placement_active();
+        editor_->lyra_canvas_.entity_placement_active();
     const bool draw_special_project_terrain =
         editor_->lyra_canvas_.loaded() &&
         (unified_layout || editor_->current_world_ == 2);
@@ -255,11 +308,9 @@ void OverworldCanvasRenderer::DrawOverworldCanvas() {
       if (editor_->show_entities_) {
         editor_->lyra_canvas_.DrawEntities(canvas_rt, editor_->current_world_,
                                            editor_->game_state_, layout);
-        if (!unified_layout) {
-          editor_->lyra_canvas_.HandleEntityInput(
-              canvas_rt, editor_->current_world_, editor_->overworld_,
-              editor_->undo_manager_);
-        }
+        editor_->lyra_canvas_.HandleEntityInput(
+            canvas_rt, editor_->current_world_, editor_->overworld_,
+            editor_->undo_manager_, layout);
       }
       if (editor_->IsProjectTerrainMap(editor_->current_map_)) {
         const ImVec2 outline_origin = layout.MapOrigin(editor_->current_map_);
@@ -269,18 +320,13 @@ void OverworldCanvasRenderer::DrawOverworldCanvas() {
                                             kOverworldMapSize);
       }
     }
-    if (!draw_special_project_terrain || unified_layout) {
+    if (!draw_special_project_terrain) {
       editor_->lyra_canvas_.FinishStroke(editor_->undo_manager_);
-    }
-    if (unified_layout && editor_->lyra_canvas_.entity_placement_active() &&
-        canvas_rt.hovered && ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
-      editor_->lyra_canvas_.CancelEntityPlacement();
-      editor_->NotifyUnifiedReadOnly();
     }
     const bool tile_tool = !placing_project_entity &&
                            (editor_->current_mode == EditingMode::DRAW_TILE ||
                             editor_->current_mode == EditingMode::FILL_TILE);
-    if ((!tile_tool || unified_layout) && editor_->tile_painting_)
+    if (!tile_tool && editor_->tile_painting_)
       editor_->tile_painting_->SuspendCanvasGestures();
     // Live proposal ghost: drawn under entities, only while the inbox is open.
     editor_->DrawLiveProposalGhost();
@@ -291,7 +337,7 @@ void OverworldCanvasRenderer::DrawOverworldCanvas() {
                                          editor_->game_state_, layout);
       editor_->lyra_canvas_.HandleEntityInput(
           canvas_rt, editor_->current_world_, editor_->overworld_,
-          editor_->undo_manager_);
+          editor_->undo_manager_, layout);
     }
     // Draw all entities using the new CanvasRuntime-based methods
     if (editor_->entity_renderer_ && editor_->show_entities_) {
@@ -313,15 +359,8 @@ void OverworldCanvasRenderer::DrawOverworldCanvas() {
       editor_->HandleMapInteraction();
     }
 
-    if (tile_tool && !unified_layout) {
+    if (tile_tool) {
       editor_->CheckForOverworldEdits();
-    } else if (unified_layout && canvas_rt.hovered &&
-               editor_->current_mode != EditingMode::MOUSE &&
-               ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
-      editor_->current_mode = EditingMode::MOUSE;
-      editor_->ow_map_canvas_.SetUsageMode(
-          gui::CanvasUsage::kEntityManipulation);
-      editor_->NotifyUnifiedReadOnly();
     }
 
     if (placing_project_entity) {
@@ -330,39 +369,31 @@ void OverworldCanvasRenderer::DrawOverworldCanvas() {
       return;
     }
     // --- BEGIN ENTITY DRAG/DROP LOGIC ---
-    if (unified_layout) {
-      auto* hovered_entity = editor_->entity_renderer_
-                                 ? editor_->entity_renderer_->hovered_entity()
-                                 : nullptr;
-      if (canvas_rt.hovered &&
-          (ImGui::IsMouseClicked(ImGuiMouseButton_Left) ||
-           ImGui::IsMouseDragging(ImGuiMouseButton_Left))) {
-        if (editor_->item_placement_armed_) {
-          editor_->item_placement_armed_ = false;
-          editor_->NotifyUnifiedReadOnly();
-        } else if (hovered_entity &&
-                   ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
-          editor_->SetCurrentEntity(hovered_entity);
-          editor_->NotifyUnifiedReadOnly();
-        } else if (hovered_entity &&
-                   ImGui::IsMouseDragging(ImGuiMouseButton_Left)) {
-          editor_->NotifyUnifiedReadOnly();
-        }
-      }
-    } else if (editor_->current_mode == EditingMode::MOUSE &&
-               editor_->TryPlaceArmedItem()) {
+    if (editor_->current_mode == EditingMode::MOUSE &&
+        editor_->TryPlaceArmedItem()) {
       // The click placed the item chosen from Insert Item.
     } else if (editor_->current_mode == EditingMode::MOUSE &&
                editor_->entity_renderer_) {
       auto hovered_entity = editor_->entity_renderer_->hovered_entity();
 
       if (hovered_entity && !editor_->is_dragging_entity_ &&
-          ImGui::IsMouseClicked(ImGuiMouseButton_Left) &&
-          hovered_entity->entity_type_ ==
-              zelda3::GameEntity::EntityType::kSprite) {
-        auto* sprite = static_cast<zelda3::Sprite*>(hovered_entity);
-        if (!editor_->ValidateSpriteEdit(sprite, *sprite).ok())
-          hovered_entity = nullptr;
+          ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
+        // Plain select is a read: always update selection, even if a sprite
+        // cannot be dragged.
+        editor_->SetCurrentEntity(hovered_entity);
+        if (hovered_entity->entity_type_ ==
+            zelda3::GameEntity::EntityType::kItem) {
+          editor_->SelectItemByIdentity(
+              *static_cast<zelda3::OverworldItem*>(hovered_entity));
+        } else if (auto* workbench = editor_->GetWorkbench()) {
+          workbench->SetActiveEntity(hovered_entity);
+        }
+        if (hovered_entity->entity_type_ ==
+            zelda3::GameEntity::EntityType::kSprite) {
+          auto* sprite = static_cast<zelda3::Sprite*>(hovered_entity);
+          if (!editor_->ValidateSpriteEdit(sprite, *sprite).ok())
+            hovered_entity = nullptr;
+        }
       }
       // 1. Initiate drag
       if (!editor_->is_dragging_entity_ && hovered_entity &&
@@ -370,12 +401,13 @@ void OverworldCanvasRenderer::DrawOverworldCanvas() {
         editor_->dragged_entity_ = hovered_entity;
         entity_drag_origin_ = ImVec2(hovered_entity->x_, hovered_entity->y_);
         entity_drag_position_ = entity_drag_origin_;
+        entity_drag_world_ = OverworldCanvasLayout::ClampedWorldForMap(
+            EntityMapId(*hovered_entity));
+        entity_drag_moved_ = false;
         editor_->is_dragging_entity_ = true;
         editor_->drag_item_snapshot_.reset();
         if (hovered_entity->entity_type_ ==
             zelda3::GameEntity::EntityType::kItem) {
-          editor_->SelectItemByIdentity(
-              *static_cast<zelda3::OverworldItem*>(hovered_entity));
           // Items have snapshot undo; capture before the drag moves it.
           editor_->drag_item_snapshot_ = editor_->CaptureItemUndoSnapshot();
         }
@@ -388,6 +420,7 @@ void OverworldCanvasRenderer::DrawOverworldCanvas() {
       // 2. Update drag
       if (editor_->is_dragging_entity_ && editor_->dragged_entity_ &&
           ImGui::IsMouseDragging(ImGuiMouseButton_Left)) {
+        entity_drag_moved_ = true;
         ImGui::SetMouseCursor(ImGuiMouseCursor_Hand);
         ImVec2 mouse_delta = ImGui::GetIO().MouseDelta;
         float scale = canvas_rt.scale;
@@ -397,17 +430,36 @@ void OverworldCanvasRenderer::DrawOverworldCanvas() {
               entity_drag_position_) {
             entity_drag_position_->x += mouse_delta.x / scale;
             entity_drag_position_->y += mouse_delta.y / scale;
+            ImVec2 candidate = *entity_drag_position_;
+            if (unified_layout) {
+              candidate = ClampUnifiedEntityLocalPos(
+                  editor_->overworld_, *editor_->dragged_entity_,
+                  entity_drag_world_, editor_->DisplayedMapCount(), candidate,
+                  16);
+            }
             auto* sprite =
                 static_cast<zelda3::Sprite*>(editor_->dragged_entity_);
             auto draft = *sprite;
-            draft.set_x(static_cast<int>(entity_drag_position_->x / 16) * 16);
-            draft.set_y(static_cast<int>(entity_drag_position_->y / 16) * 16);
+            draft.set_x(static_cast<int>(candidate.x / 16) * 16);
+            draft.set_y(static_cast<int>(candidate.y / 16) * 16);
             if ((draft.x() != sprite->x() || draft.y() != sprite->y()) &&
                 editor_->ValidateSpriteEdit(sprite, draft).ok())
               *sprite = std::move(draft);
           } else {
             editor_->dragged_entity_->x_ += mouse_delta.x / scale;
             editor_->dragged_entity_->y_ += mouse_delta.y / scale;
+            if (unified_layout) {
+              const int grid_size =
+                  editor_->dragged_entity_free_movement_ ? 8 : 16;
+              const ImVec2 clamped = ClampUnifiedEntityLocalPos(
+                  editor_->overworld_, *editor_->dragged_entity_,
+                  entity_drag_world_, editor_->DisplayedMapCount(),
+                  ImVec2(static_cast<float>(editor_->dragged_entity_->x_),
+                         static_cast<float>(editor_->dragged_entity_->y_)),
+                  grid_size);
+              editor_->dragged_entity_->x_ = static_cast<int>(clamped.x);
+              editor_->dragged_entity_->y_ = static_cast<int>(clamped.y);
+            }
           }
         }
       }
@@ -415,34 +467,80 @@ void OverworldCanvasRenderer::DrawOverworldCanvas() {
       // 3. End drag
       if (editor_->is_dragging_entity_ &&
           ImGui::IsMouseReleased(ImGuiMouseButton_Left)) {
-        if (editor_->dragged_entity_) {
-          float end_scale = canvas_rt.scale;
+        if (editor_->dragged_entity_ && entity_drag_moved_) {
+          float end_scale = canvas_rt.scale > 0.0f ? canvas_rt.scale : 1.0f;
           if (editor_->dragged_entity_->entity_type_ ==
                   zelda3::GameEntity::EntityType::kSprite &&
               entity_drag_origin_) {
             auto* sprite =
                 static_cast<zelda3::Sprite*>(editor_->dragged_entity_);
             auto draft = *sprite;
-            MoveEntityOnGrid(&draft, canvas_rt.canvas_p0, canvas_rt.scrolling,
-                             false, end_scale);
+            if (unified_layout) {
+              const ImVec2 block_origin =
+                  layout.BlockOrigin(entity_drag_world_);
+              const ImGuiIO& io = ImGui::GetIO();
+              const ImVec2 raw_local((io.MousePos.x - canvas_rt.canvas_p0.x -
+                                      canvas_rt.scrolling.x) /
+                                             end_scale -
+                                         block_origin.x,
+                                     (io.MousePos.y - canvas_rt.canvas_p0.y -
+                                      canvas_rt.scrolling.y) /
+                                             end_scale -
+                                         block_origin.y);
+              const ImVec2 clamped = ClampUnifiedEntityLocalPos(
+                  editor_->overworld_, *sprite, entity_drag_world_,
+                  editor_->DisplayedMapCount(), raw_local, 16);
+              draft.set_x(static_cast<int>(clamped.x) / 16 * 16);
+              draft.set_y(static_cast<int>(clamped.y) / 16 * 16);
+            } else {
+              MoveEntityOnGrid(&draft, canvas_rt.canvas_p0, canvas_rt.scrolling,
+                               false, end_scale);
+            }
             // Restore the preview origin, then commit one checked Undo action.
             sprite->set_x(static_cast<int>(entity_drag_origin_->x));
             sprite->set_y(static_cast<int>(entity_drag_origin_->y));
             editor_->status_.Update(editor_->ApplySpriteEdit(sprite, draft));
           } else {
-            MoveEntityOnGrid(editor_->dragged_entity_, canvas_rt.canvas_p0,
-                             canvas_rt.scrolling,
-                             editor_->dragged_entity_free_movement_, end_scale);
+            if (unified_layout) {
+              const ImVec2 block_origin =
+                  layout.BlockOrigin(entity_drag_world_);
+              const ImGuiIO& io = ImGui::GetIO();
+              const int grid_size =
+                  editor_->dragged_entity_free_movement_ ? 8 : 16;
+              const ImVec2 raw_local((io.MousePos.x - canvas_rt.canvas_p0.x -
+                                      canvas_rt.scrolling.x) /
+                                             end_scale -
+                                         block_origin.x,
+                                     (io.MousePos.y - canvas_rt.canvas_p0.y -
+                                      canvas_rt.scrolling.y) /
+                                             end_scale -
+                                         block_origin.y);
+              const ImVec2 clamped = ClampUnifiedEntityLocalPos(
+                  editor_->overworld_, *editor_->dragged_entity_,
+                  entity_drag_world_, editor_->DisplayedMapCount(), raw_local,
+                  grid_size);
+              editor_->dragged_entity_->set_x(static_cast<int>(clamped.x) /
+                                              grid_size * grid_size);
+              editor_->dragged_entity_->set_y(static_cast<int>(clamped.y) /
+                                              grid_size * grid_size);
+            } else {
+              MoveEntityOnGrid(editor_->dragged_entity_, canvas_rt.canvas_p0,
+                               canvas_rt.scrolling,
+                               editor_->dragged_entity_free_movement_,
+                               end_scale);
+            }
+            const int world_for_entity =
+                unified_layout ? entity_drag_world_ : editor_->current_world_;
             // Pass overworld context for proper area size detection
             const int new_map = OverworldCanvasLayout::MapIdFromLocal(
-                editor_->current_world_, editor_->dragged_entity_->x_ / 512,
+                world_for_entity, editor_->dragged_entity_->x_ / 512,
                 editor_->dragged_entity_->y_ / 512);
             if (new_map >= 0 && new_map < editor_->DisplayedMapCount()) {
               editor_->dragged_entity_->UpdateMapProperties(
                   new_map, &editor_->overworld_);
             } else {
               editor_->dragged_entity_->UpdateMapProperties(
-                  editor_->dragged_entity_->map_id_, &editor_->overworld_);
+                  EntityMapId(*editor_->dragged_entity_), &editor_->overworld_);
             }
             if (editor_->drag_item_snapshot_) {
               // No-op if the item ended where it started.
@@ -459,8 +557,7 @@ void OverworldCanvasRenderer::DrawOverworldCanvas() {
         editor_->is_dragging_entity_ = false;
         editor_->dragged_entity_ = nullptr;
         editor_->dragged_entity_free_movement_ = false;
-        entity_drag_origin_.reset();
-        entity_drag_position_.reset();
+        CancelEntityDrag();
       }
     }
     // --- END ENTITY DRAG/DROP LOGIC ---
@@ -1379,10 +1476,6 @@ void OverworldCanvasRenderer::DrawEntityHoverTooltip() {
       }
       default:
         break;
-    }
-    if (editor_->IsUnifiedCanvas()) {
-      ImGui::Separator();
-      ImGui::TextDisabled("%s", kUnifiedReadOnlyReason);
     }
     ImGui::EndTooltip();
   }

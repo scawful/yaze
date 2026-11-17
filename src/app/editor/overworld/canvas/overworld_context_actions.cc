@@ -73,11 +73,7 @@ bool OverworldCanvasRenderer::PrepareContextMenu(
 
 void OverworldEditor::HandleEntityInsertion(
     const std::string& entity_type, const OverworldContextTarget& target) {
-  if (IsUnifiedCanvas()) {
-    NotifyUnifiedReadOnly();
-    return;
-  }
-  if (!target.valid()) {
+  if (!target.valid(DisplayedMapCount())) {
     return;
   }
   if (entity_type == "item") {
@@ -130,10 +126,6 @@ absl::Status OverworldEditor::OpenGraphicsForContextTile16(
 
 void OverworldEditor::RequestItemInsertPopup(
     const std::optional<OverworldContextTarget>& target) {
-  if (IsUnifiedCanvas()) {
-    NotifyUnifiedReadOnly();
-    return;
-  }
   item_insert_target_ = target;
   item_insert_popup_requested_ = true;
 }
@@ -146,13 +138,16 @@ void OverworldEditor::DrawItemInsertPopup() {
   if (!ImGui::BeginPopup("Insert Item")) {
     return;
   }
-  if (current_map_ >= 0xA0 && current_map_ < 0xC0) {
+  const int target_map =
+      item_insert_target_ ? item_insert_target_->map_id : current_map_;
+  if (target_map >= 0xA0 && target_map < 0xC0) {
     ImGui::TextColored(ImVec4(1.0f, 0.4f, 0.4f, 1.0f),
-                       "Item Placement Unavailable ($%02X)", current_map_);
+                       "Item Placement Unavailable ($%02X)", target_map);
     ImGui::TextWrapped(
         "Persistent event storage (SRAM $7EF000-$7EF4FF) is not yet allocated "
         "for maps $A0-$BF.");
     if (ImGui::Button("Close")) {
+      item_insert_target_.reset();
       ImGui::CloseCurrentPopup();
     }
     ImGui::EndPopup();
@@ -164,7 +159,8 @@ void OverworldEditor::DrawItemInsertPopup() {
   for (size_t i = 0; i < zelda3::kSecretItemNames.size(); ++i) {
     if (ImGui::Selectable(zelda3::kSecretItemNames[i].c_str())) {
       const auto item_id = static_cast<uint8_t>(i);
-      if (item_insert_target_ && item_insert_target_->valid()) {
+      if (item_insert_target_ &&
+          item_insert_target_->valid(DisplayedMapCount())) {
         pending_entity_insertion_ = OverworldEntityInsertionRequest{
             "item", *item_insert_target_, item_id};
         item_placement_armed_ = false;
@@ -190,11 +186,6 @@ bool OverworldEditor::TryPlaceArmedItem() {
       !ow_map_canvas_.IsMouseHovering()) {
     return false;
   }
-  if (IsUnifiedCanvas()) {
-    item_placement_armed_ = false;
-    NotifyUnifiedReadOnly();
-    return false;
-  }
   if (entity_renderer_ && entity_renderer_->hovered_entity() != nullptr) {
     return false;
   }
@@ -204,8 +195,8 @@ bool OverworldEditor::TryPlaceArmedItem() {
   auto target = ResolveOverworldContextTarget(
       GetCanvasLayout(), current_world_, game_state_,
       ow_map_canvas_.hover_mouse_pos(), ImVec2(0.0f, 0.0f), ImVec2(0.0f, 0.0f),
-      scale);
-  if (!target) {
+      scale, DisplayedMapCount());
+  if (!target || target->map_id >= 0xA0) {
     return false;
   }
   const auto* map = overworld_.overworld_map(target->map_id);
@@ -214,7 +205,7 @@ bool OverworldEditor::TryPlaceArmedItem() {
   }
   target->parent_map_id =
       map->parent() == 0xFF ? target->map_id : map->parent();
-  if (!target->valid()) {
+  if (!target->valid(DisplayedMapCount())) {
     return false;
   }
   pending_entity_insertion_ =

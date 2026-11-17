@@ -369,8 +369,7 @@ void OverworldEditor::Initialize() {
        [this]() { show_overlay_preview_ = !show_overlay_preview_; }});
   map_properties_system_->SetCurrentMapProvider(
       [this]() { return current_map_; });
-  map_properties_system_->SetCanvasReadOnlyProvider(
-      [this]() { return IsUnifiedCanvas(); });
+  map_properties_system_->SetCanvasReadOnlyProvider([]() { return false; });
   map_properties_system_->SetMapJumpCallback(
       [this](int map_id) { JumpToMap(map_id); });
   map_properties_system_->SetShortcutHintProvider(
@@ -1342,10 +1341,6 @@ void OverworldEditor::PushItemUndoAction(OverworldItemsSnapshot before,
 }
 
 bool OverworldEditor::DuplicateSelectedItem(int offset_x, int offset_y) {
-  if (IsUnifiedCanvas()) {
-    NotifyUnifiedReadOnly();
-    return false;
-  }
   auto* selected_item = GetSelectedItem();
   if (!selected_item) {
     if (dependencies_.toast_manager) {
@@ -1406,10 +1401,6 @@ bool OverworldEditor::DuplicateSelectedItem(int offset_x, int offset_y) {
 }
 
 bool OverworldEditor::NudgeSelectedItem(int delta_x, int delta_y) {
-  if (IsUnifiedCanvas()) {
-    NotifyUnifiedReadOnly();
-    return false;
-  }
   auto* selected_item = GetSelectedItem();
   if (!selected_item) {
     return false;
@@ -1439,10 +1430,6 @@ bool OverworldEditor::NudgeSelectedItem(int delta_x, int delta_y) {
 }
 
 bool OverworldEditor::DeleteSelectedItem() {
-  if (IsUnifiedCanvas()) {
-    NotifyUnifiedReadOnly();
-    return false;
-  }
   auto* selected_item = GetSelectedItem();
   if (!selected_item) {
     return false;
@@ -1537,10 +1524,6 @@ absl::Status OverworldEditor::Copy() {
 }
 
 absl::Status OverworldEditor::Paste() {
-  if (IsUnifiedCanvas()) {
-    NotifyUnifiedReadOnly();
-    return absl::FailedPreconditionError(kUnifiedReadOnlyReason);
-  }
   if (is_lyra_preview()) {
     return absl::FailedPreconditionError("Lyra preview is read-only");
   }
@@ -1746,10 +1729,6 @@ absl::Status OverworldEditor::SaveRomData() {
 
 absl::Status OverworldEditor::PaintLyraA0Terrain(int map_id, int x, int y,
                                                  uint16_t tile) {
-  if (IsUnifiedCanvas()) {
-    NotifyUnifiedReadOnly();
-    return absl::FailedPreconditionError(kUnifiedReadOnlyReason);
-  }
   if (map_id != 0xA0 || !lyra_a0_terrain_writable() || x < 0 || x >= 16 ||
       y < 0 || y >= 16) {
     return absl::FailedPreconditionError("Only Lyra A0 terrain is writable");
@@ -2103,10 +2082,6 @@ absl::Status OverworldEditor::RenameProjectResourceLabelWithUndo(
 }
 
 absl::Status OverworldEditor::Undo() {
-  if (IsUnifiedCanvas()) {
-    NotifyUnifiedReadOnly();
-    return absl::FailedPreconditionError(kUnifiedReadOnlyReason);
-  }
   FinishScratchEdit("Edit scratch layout");
   lyra_canvas_.FinishStroke(undo_manager_);
   if (is_lyra_preview() && !lyra_a0_terrain_writable()) {
@@ -2120,10 +2095,6 @@ absl::Status OverworldEditor::Undo() {
 }
 
 absl::Status OverworldEditor::Redo() {
-  if (IsUnifiedCanvas()) {
-    NotifyUnifiedReadOnly();
-    return absl::FailedPreconditionError(kUnifiedReadOnlyReason);
-  }
   FinishScratchEdit("Edit scratch layout");
   lyra_canvas_.FinishStroke(undo_manager_);
   if (is_lyra_preview() && !lyra_a0_terrain_writable()) {
@@ -2664,12 +2635,6 @@ void OverworldEditor::LocateOverworldTile(int map_id, int world_x,
 
 void OverworldEditor::SetEditingMode(EditingMode mode) {
   if (is_lyra_preview()) {
-    return;
-  }
-  if (IsUnifiedCanvas() && mode != EditingMode::MOUSE) {
-    NotifyUnifiedReadOnly();
-    current_mode = EditingMode::MOUSE;
-    ow_map_canvas_.SetUsageMode(gui::CanvasUsage::kEntityManipulation);
     return;
   }
   if (mode != current_mode) {
