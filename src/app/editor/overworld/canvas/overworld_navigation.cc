@@ -67,10 +67,6 @@ void OverworldEditor::SetCanvasLayoutMode(OverworldCanvasLayoutMode mode) {
     pre_unified_scale_ = std::clamp(ow_map_canvas_.global_scale(),
                                     kOverworldMinZoom, kOverworldMaxZoom);
     canvas_layout_mode_ = mode;
-    if (current_mode != EditingMode::MOUSE) {
-      current_mode = EditingMode::MOUSE;
-      ow_map_canvas_.SetUsageMode(gui::CanvasUsage::kEntityManipulation);
-    }
     if (canvas_nav_) {
       canvas_nav_->ZoomToFit();
     }

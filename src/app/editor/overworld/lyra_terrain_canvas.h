@@ -95,8 +95,10 @@ class LyraTerrainCanvas {
   void DrawEntities(
       const gui::CanvasRuntime& canvas, int world, int state,
       const OverworldCanvasLayout& layout = OverworldCanvasLayout());
-  void HandleEntityInput(const gui::CanvasRuntime& canvas, int world,
-                         zelda3::Overworld& overworld, UndoManager& history);
+  void HandleEntityInput(
+      const gui::CanvasRuntime& canvas, int world, zelda3::Overworld& overworld,
+      UndoManager& history,
+      const OverworldCanvasLayout& layout = OverworldCanvasLayout());
 
  private:
   friend class LyraTerrainCanvasTestPeer;

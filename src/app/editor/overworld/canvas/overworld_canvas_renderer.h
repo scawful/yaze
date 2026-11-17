@@ -85,6 +85,8 @@ class OverworldCanvasRenderer {
   void CancelEntityDrag() {
     entity_drag_origin_.reset();
     entity_drag_position_.reset();
+    entity_drag_world_ = 0;
+    entity_drag_moved_ = false;
   }
 
  private:
@@ -131,6 +133,8 @@ class OverworldCanvasRenderer {
   OverworldEditor* editor_;  ///< Non-owning pointer to the parent editor
   std::optional<ImVec2> entity_drag_origin_;
   std::optional<ImVec2> entity_drag_position_;
+  int entity_drag_world_ = 0;
+  bool entity_drag_moved_ = false;
   gui::AdaptiveSheetScaleMode tile16_scale_mode_ =
       gui::AdaptiveSheetScaleMode::kFit;
   gui::AdaptiveSheetScaleMode area_graphics_scale_mode_ =

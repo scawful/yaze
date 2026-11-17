@@ -39,6 +39,48 @@ OverworldCanvasLayout TilePaintingManager::Layout() const {
                                   : OverworldCanvasLayout();
 }
 
+std::optional<TilePaintingManager::ResolvedCanvasTile>
+TilePaintingManager::ResolveCanvasPoint(ImVec2 canvas_point) const {
+  if (!std::isfinite(canvas_point.x) || !std::isfinite(canvas_point.y)) {
+    return std::nullopt;
+  }
+  const OverworldCanvasLayout layout = Layout();
+  const int displayed_maps = AllocatedRowsForWorld(2) == 8
+                                 ? zelda3::kExpandedMapCount
+                                 : deps_.overworld->materialized_map_count();
+  const auto map_id =
+      layout.MapAt(canvas_point, *deps_.current_world, displayed_maps);
+  const auto world_point =
+      layout.WorldLocalFromCanvas(canvas_point, *deps_.current_world);
+  if (!map_id || !world_point) {
+    return std::nullopt;
+  }
+  const TilePosition local_tile{
+      static_cast<int>(std::floor(world_point->local_position.x / kTile16Size)),
+      static_cast<int>(
+          std::floor(world_point->local_position.y / kTile16Size))};
+  if (!IsValidTileForWorld(world_point->world, local_tile)) {
+    return std::nullopt;
+  }
+  return ResolvedCanvasTile{world_point->world, *map_id, local_tile};
+}
+
+std::optional<TilePaintingManager::ResolvedCanvasTile>
+TilePaintingManager::ResolveHoveredCanvasTile() const {
+  const auto& canvas = *deps_.ow_map_canvas;
+  const float scale = canvas.global_scale() > 0 ? canvas.global_scale() : 1.0f;
+  const ImVec2 origin(canvas.zero_point().x + canvas.scrolling().x,
+                      canvas.zero_point().y + canvas.scrolling().y);
+  const ImVec2 mouse = ImGui::GetIO().MousePos;
+  const float cx = (mouse.x - origin.x) / scale;
+  const float cy = (mouse.y - origin.y) / scale;
+  if (!ImGui::IsMousePosValid(&mouse) || !std::isfinite(cx) ||
+      !std::isfinite(cy)) {
+    return std::nullopt;
+  }
+  return ResolveCanvasPoint(ImVec2(cx, cy));
+}
+
 std::vector<std::vector<uint16_t>>& TilePaintingManager::WorldTiles() const {
   return deps_.overworld->GetMapTiles(*deps_.current_world);
 }
@@ -164,57 +206,92 @@ void TilePaintingManager::FinalizePendingPaint() {
 void TilePaintingManager::SuspendCanvasGestures() {
   FinalizePendingPaint();
   paint_gesture_owned_ = false;
+  gesture_start_map_.reset();
   selection_gesture_owned_ = false;
 }
 
 void TilePaintingManager::CheckForOverworldEdits() {
-  if (Layout().IsUnified()) {
-    SuspendCanvasGestures();
-    if (deps_.ow_map_canvas && deps_.ow_map_canvas->IsMouseHovering() &&
-        ImGui::IsMouseClicked(ImGuiMouseButton_Left) &&
-        callbacks_.on_read_only_blocked) {
-      callbacks_.on_read_only_blocked();
-    }
-    return;
-  }
   CheckForSelectRectangle();
   auto& canvas = *deps_.ow_map_canvas;
-  const auto anchor = HoveredTile();
+  const OverworldCanvasLayout layout = Layout();
+  const bool unified = layout.IsUnified();
+  const std::optional<ResolvedCanvasTile> unified_target =
+      unified ? ResolveHoveredCanvasTile() : std::nullopt;
+  const TilePosition anchor = unified
+                                  ? (unified_target ? unified_target->position
+                                                    : TilePosition{-256, -256})
+                                  : HoveredTile();
+
   if (!ImGui::IsMouseDown(ImGuiMouseButton_Left)) {
     FinalizePendingPaint();
   }
   if (ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
-    paint_gesture_owned_ = canvas.IsMouseHovering() && ImGui::IsItemActive();
-    gesture_project_ = IsProjectTile(anchor);
-    gesture_world_ = *deps_.current_world;
-    gesture_mode_ = *deps_.current_mode;
+    if (unified) {
+      if (unified_target && canvas.IsMouseHovering() && ImGui::IsItemActive()) {
+        paint_gesture_owned_ = true;
+        gesture_world_ = unified_target->world;
+        gesture_start_map_ = unified_target->map_id;
+        gesture_project_ = IsProjectTileForWorld(unified_target->world,
+                                                 unified_target->position);
+        gesture_mode_ = *deps_.current_mode;
+      } else {
+        paint_gesture_owned_ = false;
+        gesture_start_map_.reset();
+      }
+    } else {
+      paint_gesture_owned_ = canvas.IsMouseHovering() && ImGui::IsItemActive();
+      gesture_project_ = IsProjectTile(anchor);
+      gesture_world_ = *deps_.current_world;
+      gesture_start_map_.reset();
+      gesture_mode_ = *deps_.current_mode;
+    }
   } else if (!ImGui::IsMouseDown(ImGuiMouseButton_Left)) {
     paint_gesture_owned_ = false;
+    gesture_start_map_.reset();
   }
-  if (paint_gesture_owned_ &&
-      (gesture_world_ != *deps_.current_world ||
-       gesture_mode_ != *deps_.current_mode ||
-       (gesture_project_ &&
-        (!canvas.IsMouseHovering() || !IsValidTile(anchor))) ||
-       (canvas.IsMouseHovering() && IsValidTile(anchor) &&
-        gesture_project_ != IsProjectTile(anchor)))) {
-    // A held gesture cannot acquire another storage backend or interpolate a
-    // project stroke across an unobserved gap outside its canvas/document.
-    FinalizePendingPaint();
-    paint_gesture_owned_ = false;
+
+  if (paint_gesture_owned_) {
+    const bool stop_gesture =
+        unified ? (gesture_mode_ != *deps_.current_mode ||
+                   !canvas.IsMouseHovering() || !unified_target ||
+                   unified_target->world != gesture_world_ ||
+                   gesture_project_ !=
+                       IsProjectTileForWorld(unified_target->world,
+                                             unified_target->position))
+                : (gesture_world_ != *deps_.current_world ||
+                   gesture_mode_ != *deps_.current_mode ||
+                   (gesture_project_ &&
+                    (!canvas.IsMouseHovering() || !IsValidTile(anchor))) ||
+                   (canvas.IsMouseHovering() && IsValidTile(anchor) &&
+                    gesture_project_ != IsProjectTile(anchor)));
+    if (stop_gesture) {
+      // A held gesture cannot cross a gutter/block edge into another world or
+      // switch between ROM and project terrain storage.
+      FinalizePendingPaint();
+      paint_gesture_owned_ = false;
+      gesture_start_map_.reset();
+    }
   }
+
   const bool can_paint =
       paint_gesture_owned_ && canvas.IsMouseHovering() && ImGui::IsItemActive();
+  const int target_world =
+      unified ? (can_paint ? gesture_world_
+                           : (unified_target ? unified_target->world
+                                             : *deps_.current_world))
+              : *deps_.current_world;
+  const bool valid_hover =
+      unified ? unified_target.has_value() : IsValidTile(anchor);
   const auto* selected = selection_brush();
   const TileBrush single{1, 1, {*deps_.current_tile16}};
 
   if (*deps_.current_mode == EditingMode::FILL_TILE) {
     if (can_paint && ImGui::IsMouseClicked(ImGuiMouseButton_Left) &&
-        IsValidTile(anchor)) {
+        valid_hover) {
       const TilePosition screen{anchor.x / kTilesPerMap * kTilesPerMap,
                                 anchor.y / kTilesPerMap * kTilesPerMap};
-      (void)PaintPattern(selected ? *selected : single, screen, kTilesPerMap,
-                         kTilesPerMap);
+      (void)PaintPatternForWorld(target_world, selected ? *selected : single,
+                                 screen, kTilesPerMap, kTilesPerMap);
     }
     return;
   }
@@ -224,36 +301,35 @@ void TilePaintingManager::CheckForOverworldEdits() {
   if (selected) {
     if (can_paint && (ImGui::IsMouseClicked(ImGuiMouseButton_Left) ||
                       ImGui::IsMouseDragging(ImGuiMouseButton_Left))) {
-      (void)PaintPattern(*selected, anchor, selected->width, selected->height,
-                         false);
+      (void)PaintPatternForWorld(target_world, *selected, anchor,
+                                 selected->width, selected->height, false);
     }
   } else if (single.valid()) {
     // The hovered tile shows the selected Tile16 as the map under the cursor
     // draws it (its own graphics and palette), not as the current map does.
     auto* points = canvas.mutable_points();
     points->clear();
-    if (canvas.IsMouseHovering() && IsValidTile(anchor)) {
+    if (canvas.IsMouseHovering() && valid_hover) {
       const float scale =
           canvas.global_scale() > 0 ? canvas.global_scale() : 1.0f;
       const float size = kTile16Size * scale;
-      points->push_back(ImVec2(anchor.x * size, anchor.y * size));
-      points->push_back(ImVec2((anchor.x + 1) * size, (anchor.y + 1) * size));
-      DrawBrushPreview(single, anchor, /*mark_selection=*/false, 255);
+      const ImVec2 block_origin = layout.BlockOrigin(target_world);
+      const float ox = block_origin.x * scale;
+      const float oy = block_origin.y * scale;
+      points->push_back(ImVec2(ox + anchor.x * size, oy + anchor.y * size));
+      points->push_back(
+          ImVec2(ox + (anchor.x + 1) * size, oy + (anchor.y + 1) * size));
+      DrawBrushPreview(single, anchor, /*mark_selection=*/false, 255,
+                       target_world, block_origin);
     }
     if (can_paint && (ImGui::IsMouseClicked(ImGuiMouseButton_Left) ||
                       ImGui::IsMouseDragging(ImGuiMouseButton_Left))) {
-      (void)PaintPattern(single, anchor, 1, 1, false);
+      (void)PaintPatternForWorld(target_world, single, anchor, 1, 1, false);
     }
   }
 }
 
 absl::Status TilePaintingManager::PasteBrush(const TileBrush& brush) {
-  if (Layout().IsUnified()) {
-    if (callbacks_.on_read_only_blocked) {
-      callbacks_.on_read_only_blocked();
-    }
-    return absl::FailedPreconditionError(kUnifiedReadOnlyReason);
-  }
   if (!brush.valid()) {
     return absl::InvalidArgumentError("Clipboard tile pattern is invalid");
   }
@@ -261,28 +337,57 @@ absl::Status TilePaintingManager::PasteBrush(const TileBrush& brush) {
     return absl::FailedPreconditionError("Hover the overworld canvas to paste");
   }
   FinalizePendingPaint();
+  if (Layout().IsUnified()) {
+    const auto resolved = ResolveHoveredCanvasTile();
+    if (!resolved) {
+      return absl::OkStatus();
+    }
+    return PaintPatternForWorld(resolved->world, brush, resolved->position,
+                                brush.width, brush.height);
+  }
   return PaintPattern(brush, HoveredTile(), brush.width, brush.height);
 }
 
 absl::Status TilePaintingManager::PlaceBrushAt(const TileBrush& brush, int x,
-                                               int y) {
-  if (Layout().IsUnified()) {
-    if (callbacks_.on_read_only_blocked) {
-      callbacks_.on_read_only_blocked();
-    }
-    return absl::FailedPreconditionError(kUnifiedReadOnlyReason);
+                                               int y,
+                                               std::optional<int> world) {
+  if (!brush.valid()) {
+    return absl::InvalidArgumentError("Tile pattern is invalid");
   }
   FinalizePendingPaint();
+  if (world.has_value()) {
+    return PaintPatternForWorld(*world, brush, {x, y}, brush.width,
+                                brush.height);
+  }
+  if (Layout().IsUnified()) {
+    const auto resolved =
+        ResolveCanvasPoint(ImVec2(static_cast<float>(x * kTile16Size),
+                                  static_cast<float>(y * kTile16Size)));
+    if (!resolved) {
+      return absl::OkStatus();
+    }
+    return PaintPatternForWorld(resolved->world, brush, resolved->position,
+                                brush.width, brush.height);
+  }
   return PaintPattern(brush, {x, y}, brush.width, brush.height);
 }
 
 absl::Status TilePaintingManager::PaintPattern(const TileBrush& brush,
                                                TilePosition anchor, int width,
                                                int height, bool finalize) {
+  return PaintPatternForWorld(*deps_.current_world, brush, anchor, width,
+                              height, finalize);
+}
+
+absl::Status TilePaintingManager::PaintPatternForWorld(int world,
+                                                       const TileBrush& brush,
+                                                       TilePosition anchor,
+                                                       int width, int height,
+                                                       bool finalize) {
   if (!brush.valid()) {
     return absl::InvalidArgumentError("Tile pattern is invalid");
   }
-  if (IsProjectTile(anchor)) {
+  if (IsProjectTileForWorld(world, anchor)) {
     if (!callbacks_.paint_project_pattern)
       return absl::FailedPreconditionError("Project tile writer unavailable");
     auto status = callbacks_.paint_project_pattern(brush, anchor.x, anchor.y,
@@ -290,21 +395,22 @@ absl::Status TilePaintingManager::PaintPattern(const TileBrush& brush,
     if (!status.ok()) {
       FinalizePendingPaint();
       paint_gesture_owned_ = false;
+      gesture_start_map_.reset();
       return status;
     }
     project_paint_pending_ = !finalize;
-    if (IsValidTile(anchor) && callbacks_.select_map_for_editing) {
-      callbacks_.select_map_for_editing(
-          MapIndexForGridPosition(*deps_.current_world, anchor.x / kTilesPerMap,
-                                  anchor.y / kTilesPerMap));
+    if (IsValidTileForWorld(world, anchor) &&
+        callbacks_.select_map_for_editing) {
+      callbacks_.select_map_for_editing(MapIndexForGridPosition(
+          world, anchor.x / kTilesPerMap, anchor.y / kTilesPerMap));
     }
     return absl::OkStatus();
   }
   ChangedMaps changed_maps{};
   for (int y = 0; y < height; ++y) {
     for (int x = 0; x < width; ++x) {
-      PaintTile({anchor.x + x, anchor.y + y},
-                brush.at(x % brush.width, y % brush.height), changed_maps);
+      PaintWorldTile(world, {anchor.x + x, anchor.y + y},
+                     brush.at(x % brush.width, y % brush.height), changed_maps);
     }
   }
   if (std::none_of(changed_maps.begin(), changed_maps.end(),
@@ -318,9 +424,9 @@ absl::Status TilePaintingManager::PaintPattern(const TileBrush& brush,
   } else {
     single_paint_pending_ = true;
   }
-  if (IsValidTile(anchor)) {
+  if (IsValidTileForWorld(world, anchor)) {
     const int anchor_map = MapIndexForGridPosition(
-        *deps_.current_world, anchor.x / kTilesPerMap, anchor.y / kTilesPerMap);
+        world, anchor.x / kTilesPerMap, anchor.y / kTilesPerMap);
     // A direct write changes the selected map without refreshing its Tile16
     // palette and ignores the pin. The editor callback does both.
     if (callbacks_.select_map_for_editing) {
@@ -338,7 +444,8 @@ absl::StatusOr<int> TilePaintingManager::ApplyGuardedCells(
   if (map_id < 0 || map_id >= deps_.overworld->materialized_map_count()) {
     return absl::OutOfRangeError("Stencil map is outside the ROM map model");
   }
-  if (OverworldCanvasLayout::WorldForMap(map_id) != *deps_.current_world) {
+  const int target_world = OverworldCanvasLayout::WorldForMap(map_id);
+  if (Layout().IsSingleWorld() && target_world != *deps_.current_world) {
     return absl::FailedPreconditionError(
         "Stencil map is not in the displayed world");
   }
@@ -368,11 +475,11 @@ absl::StatusOr<int> TilePaintingManager::ApplyGuardedCells(
     }
     seen[index] = true;
     const TilePosition position{origin_x + cell.x, origin_y + cell.y};
-    if (IsProjectTile(position)) {
+    if (IsProjectTileForWorld(target_world, position)) {
       return absl::FailedPreconditionError(
           "Stencil cells must be ROM map tiles, not project terrain");
     }
-    const auto current = ReadTile(position);
+    const auto current = ReadWorldTile(target_world, position);
     if (!current.ok()) {
       return current.status();
     }
@@ -391,8 +498,8 @@ absl::StatusOr<int> TilePaintingManager::ApplyGuardedCells(
   ChangedMaps changed_maps{};
   int changed = 0;
   for (const auto& cell : cells) {
-    if (PaintTile({origin_x + cell.x, origin_y + cell.y}, cell.proposed,
-                  changed_maps)) {
+    if (PaintWorldTile(target_world, {origin_x + cell.x, origin_y + cell.y},
+                       cell.proposed, changed_maps)) {
       ++changed;
     }
   }
@@ -519,18 +626,23 @@ void TilePaintingManager::RefreshChangedMaps(const ChangedMaps& changed_maps) {
 
 bool TilePaintingManager::PaintTile(TilePosition position, int tile_id,
                                     ChangedMaps& changed_maps) {
-  if (IsProjectTile(position) || !IsValidTile(position)) {
+  return PaintWorldTile(*deps_.current_world, position, tile_id, changed_maps);
+}
+
+bool TilePaintingManager::PaintWorldTile(int world, TilePosition position,
+                                         int tile_id,
+                                         ChangedMaps& changed_maps) {
+  if (IsProjectTileForWorld(world, position) ||
+      !IsValidTileForWorld(world, position)) {
     return false;
   }
-  auto& old_id = WorldTiles()[position.x][position.y];
+  auto& old_id = deps_.overworld->GetMapTiles(world)[position.x][position.y];
   if (old_id == tile_id) {
     return false;
   }
-  const int map =
-      MapIndexForGridPosition(*deps_.current_world, position.x / kTilesPerMap,
-                              position.y / kTilesPerMap);
-  callbacks_.create_undo_point(map, *deps_.current_world, position.x,
-                               position.y, old_id);
+  const int map = MapIndexForGridPosition(world, position.x / kTilesPerMap,
+                                          position.y / kTilesPerMap);
+  callbacks_.create_undo_point(map, world, position.x, position.y, old_id);
   old_id = tile_id;
   changed_maps[map] = true;
   (*deps_.maps_bmp)[map].set_modified(true);
@@ -603,20 +715,39 @@ void TilePaintingManager::CaptureSelection() {
   if (points.size() != 2) {
     return;
   }
-  const int left = std::max(
-      0, static_cast<int>(
-             std::floor(std::min(points[0].x, points[1].x) / kTile16Size)));
-  const int top = std::max(
-      0, static_cast<int>(
-             std::floor(std::min(points[0].y, points[1].y) / kTile16Size)));
-  const int right =
-      std::min(8 * kTilesPerMap - 1,
-               static_cast<int>(std::floor(std::max(points[0].x, points[1].x) /
-                                           kTile16Size)));
-  const int bottom =
-      std::min(AllocatedRowsForWorld(*deps_.current_world) * kTilesPerMap - 1,
-               static_cast<int>(std::floor(std::max(points[0].y, points[1].y) /
-                                           kTile16Size)));
+  const OverworldCanvasLayout layout = Layout();
+  int target_world = *deps_.current_world;
+  ImVec2 block_origin(0.0f, 0.0f);
+  ImVec2 p0 = points[0];
+  ImVec2 p1 = points[1];
+  if (layout.IsUnified()) {
+    const auto start = ResolveCanvasPoint(points[0]);
+    if (!start) {
+      canvas.ClearSelection();
+      return;
+    }
+    target_world = start->world;
+    block_origin = layout.BlockOrigin(target_world);
+    p0 = ImVec2(points[0].x - block_origin.x, points[0].y - block_origin.y);
+    p1 = ImVec2(points[1].x - block_origin.x, points[1].y - block_origin.y);
+  }
+  const int max_rows = AllocatedRowsForWorld(target_world);
+  if (max_rows <= 0) {
+    canvas.ClearSelection();
+    return;
+  }
+  const int left = std::clamp(
+      static_cast<int>(std::floor(std::min(p0.x, p1.x) / kTile16Size)), 0,
+      8 * kTilesPerMap - 1);
+  const int top = std::clamp(
+      static_cast<int>(std::floor(std::min(p0.y, p1.y) / kTile16Size)), 0,
+      max_rows * kTilesPerMap - 1);
+  const int right = std::clamp(
+      static_cast<int>(std::floor(std::max(p0.x, p1.x) / kTile16Size)), 0,
+      8 * kTilesPerMap - 1);
+  const int bottom = std::clamp(
+      static_cast<int>(std::floor(std::max(p0.y, p1.y) / kTile16Size)), 0,
+      max_rows * kTilesPerMap - 1);
   TileBrush captured{right - left + 1, bottom - top + 1, {}};
   if (captured.width <= 0 || captured.height <= 0) {
     canvas.ClearSelection();
@@ -624,7 +755,7 @@ void TilePaintingManager::CaptureSelection() {
   }
   for (int y = top; y <= bottom; ++y) {
     for (int x = left; x <= right; ++x) {
-      const auto tile = ReadTile({x, y});
+      const auto tile = ReadWorldTile(target_world, {x, y});
       if (!tile.ok()) {
         canvas.ClearSelection();
         return;
@@ -632,24 +763,41 @@ void TilePaintingManager::CaptureSelection() {
       captured.tile_ids.push_back(*tile);
     }
   }
+  if (layout.IsUnified()) {
+    auto* sel = canvas.mutable_selected_points();
+    sel->clear();
+    sel->push_back(ImVec2(block_origin.x + left * kTile16Size,
+                          block_origin.y + top * kTile16Size));
+    sel->push_back(ImVec2(block_origin.x + right * kTile16Size,
+                          block_origin.y + bottom * kTile16Size));
+  }
   brush_ = std::move(captured);
   *deps_.selected_tile16_ids = brush_.tile_ids;
 }
 
 void TilePaintingManager::CheckForSelectRectangle() {
   auto& canvas = *deps_.ow_map_canvas;
+  const OverworldCanvasLayout layout = Layout();
+  const bool unified = layout.IsUnified();
   const bool was_active = canvas.select_rect_active();
   if (ImGui::IsMouseClicked(ImGuiMouseButton_Right)) {
     // Shift+right-click opens the map context menu instead of sampling.
-    selection_gesture_owned_ = canvas.IsMouseHovering() &&
-                               ImGui::IsItemActive() &&
-                               !ImGui::GetIO().KeyShift;
+    selection_gesture_owned_ =
+        canvas.IsMouseHovering() && ImGui::IsItemActive() &&
+        !ImGui::GetIO().KeyShift &&
+        (!unified || ResolveHoveredCanvasTile().has_value());
   }
   const float scale = canvas.global_scale() > 0 ? canvas.global_scale() : 1.0f;
   canvas.DrawSelectRect(*deps_.current_map, kTile16Size, scale);
   if (canvas.selected_tile_pos().x != -1) {
-    const auto source = HoveredTile();
-    const auto tile = ReadTile(source);
+    absl::StatusOr<uint16_t> tile = absl::OutOfRangeError("Outside world");
+    if (unified) {
+      if (const auto resolved = ResolveHoveredCanvasTile()) {
+        tile = ReadWorldTile(resolved->world, resolved->position);
+      }
+    } else {
+      tile = ReadTile(HoveredTile());
+    }
     if (selection_gesture_owned_ && tile.ok()) {
       // Same path as the I key: keeps staged Tile16 edits guarded.
       const int tile_id = *tile;
@@ -678,22 +826,35 @@ void TilePaintingManager::CheckForSelectRectangle() {
     deps_.selected_tile16_ids->clear();
   }
   if (selection_brush() && canvas.IsMouseHovering()) {
-    DrawBrushPreview(brush_, HoveredTile(), /*mark_selection=*/true, 180);
+    if (unified) {
+      if (const auto resolved = ResolveHoveredCanvasTile()) {
+        DrawBrushPreview(brush_, resolved->position, /*mark_selection=*/true,
+                         180, resolved->world,
+                         layout.BlockOrigin(resolved->world));
+      }
+    } else {
+      DrawBrushPreview(brush_, HoveredTile(), /*mark_selection=*/true, 180);
+    }
   }
 }
 
 void TilePaintingManager::DrawBrushPreview(const TileBrush& brush,
                                            TilePosition anchor,
-                                           bool mark_selection, int alpha) {
+                                           bool mark_selection, int alpha,
+                                           std::optional<int> target_world,
+                                           ImVec2 block_origin_px) {
   auto& canvas = *deps_.ow_map_canvas;
   if (mark_selection) {
     auto* points = canvas.mutable_selected_points();
     points->clear();
-    points->push_back(ImVec2(anchor.x * kTile16Size, anchor.y * kTile16Size));
-    points->push_back(ImVec2((anchor.x + brush.width - 1) * kTile16Size,
-                             (anchor.y + brush.height - 1) * kTile16Size));
+    points->push_back(ImVec2(block_origin_px.x + anchor.x * kTile16Size,
+                             block_origin_px.y + anchor.y * kTile16Size));
+    points->push_back(ImVec2(
+        block_origin_px.x + (anchor.x + brush.width - 1) * kTile16Size,
+        block_origin_px.y + (anchor.y + brush.height - 1) * kTile16Size));
   }
-  DrawBrushPieces(brush, anchor, alpha, map_brush_previews_, nullptr);
+  DrawBrushPieces(brush, anchor, alpha, map_brush_previews_, nullptr,
+                  target_world, block_origin_px);
 }
 
 void TilePaintingManager::DrawBrushPieces(
@@ -801,28 +962,11 @@ bool TilePaintingManager::PickTile16FromHoveredCanvas() {
     return false;
   }
 
-  absl::StatusOr<uint16_t> tile;
-  const OverworldCanvasLayout layout = Layout();
-  if (layout.IsUnified()) {
-    const auto& canvas = *deps_.ow_map_canvas;
-    const float scale =
-        canvas.global_scale() > 0 ? canvas.global_scale() : 1.0f;
-    const ImVec2 origin(canvas.zero_point().x + canvas.scrolling().x,
-                        canvas.zero_point().y + canvas.scrolling().y);
-    const ImVec2 mouse = ImGui::GetIO().MousePos;
-    const ImVec2 canvas_point((mouse.x - origin.x) / scale,
-                              (mouse.y - origin.y) / scale);
-    const auto world_point =
-        layout.WorldLocalFromCanvas(canvas_point, *deps_.current_world);
-    if (!world_point) {
-      return false;
+  absl::StatusOr<uint16_t> tile = absl::OutOfRangeError("Outside world");
+  if (Layout().IsUnified()) {
+    if (const auto resolved = ResolveHoveredCanvasTile()) {
+      tile = ReadWorldTile(resolved->world, resolved->position);
     }
-    const TilePosition local_tile{
-        static_cast<int>(
-            std::floor(world_point->local_position.x / kTile16Size)),
-        static_cast<int>(
-            std::floor(world_point->local_position.y / kTile16Size))};
-    tile = ReadWorldTile(world_point->world, local_tile);
   } else {
     tile = ReadTile(HoveredTile());
   }
@@ -851,14 +995,6 @@ bool TilePaintingManager::PickTile16FromHoveredCanvas() {
 // ToggleBrushTool - switch between DRAW_TILE and MOUSE modes
 // ---------------------------------------------------------------------------
 void TilePaintingManager::ToggleBrushTool() {
-  if (Layout().IsUnified()) {
-    if (callbacks_.on_read_only_blocked) {
-      callbacks_.on_read_only_blocked();
-    }
-    *deps_.current_mode = EditingMode::MOUSE;
-    deps_.ow_map_canvas->SetUsageMode(gui::CanvasUsage::kEntityManipulation);
-    return;
-  }
   if (*deps_.current_mode == EditingMode::DRAW_TILE) {
     *deps_.current_mode = EditingMode::MOUSE;
   } else {
@@ -876,14 +1012,6 @@ void TilePaintingManager::ToggleBrushTool() {
 // ActivateFillTool - toggle FILL_TILE mode on/off
 // ---------------------------------------------------------------------------
 void TilePaintingManager::ActivateFillTool() {
-  if (Layout().IsUnified()) {
-    if (callbacks_.on_read_only_blocked) {
-      callbacks_.on_read_only_blocked();
-    }
-    *deps_.current_mode = EditingMode::MOUSE;
-    deps_.ow_map_canvas->SetUsageMode(gui::CanvasUsage::kEntityManipulation);
-    return;
-  }
   if (*deps_.current_mode == EditingMode::FILL_TILE) {
     *deps_.current_mode = EditingMode::DRAW_TILE;
   } else {

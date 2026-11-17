@@ -1622,40 +1622,186 @@ TEST_F(TilePaintingManagerGestureTest,
   EXPECT_FALSE(rom_.dirty());
 }
 
-TEST_F(
-    TilePaintingManagerGestureTest,
-    UnifiedModeRefusesCanvasWritesSupportsEyedropperAndDrawsCrossWorldGhost) {
+TEST_F(TilePaintingManagerGestureTest,
+       UnifiedTilePaintMatchesSingleModeOnLwDwAndSpecialMaps) {
+  // Safe non-Fortress maps across all 3 worlds: LW $00, DW $40, SW $80.
+  InitializeMapBitmap(0x00);
+  InitializeMapBitmap(0x40);
+  InitializeMapBitmap(0x80);
+
+  // 1. Paint in Single mode on $00 (3,5)->2, $40 (4,6)->3, $80 (2,7)->4.
+  layout_mode_ = OverworldCanvasLayoutMode::kSingleWorld;
+  current_mode_ = EditingMode::DRAW_TILE;
+  SetView(1.0f, ImVec2(0.0f, 0.0f));
+
+  current_world_ = 0;
+  current_map_ = 0x00;
+  current_tile_ = 2;
+  ClickWorld(3 * 16 + 8, 5 * 16 + 8);
+
+  current_world_ = 1;
+  current_map_ = 0x40;
+  current_tile_ = 3;
+  ClickWorld(4 * 16 + 8, 6 * 16 + 8);
+
+  current_world_ = 2;
+  current_map_ = 0x80;
+  current_tile_ = 4;
+  ClickWorld(2 * 16 + 8, 7 * 16 + 8);
+
+  const auto single_tiles = *overworld_->mutable_map_tiles();
+  const auto single_bmp_00 = (*maps_)[0x00].vector();
+  const auto single_bmp_40 = (*maps_)[0x40].vector();
+  const auto single_bmp_80 = (*maps_)[0x80].vector();
+  const auto single_undo = undo_points_;
+  ASSERT_EQ(single_undo.size(), 3u);
+
+  // Reset model, bitmaps, and undo state back to initial baseline.
+  *overworld_->mutable_map_tiles() = initial_tiles_;
+  InitializeMapBitmap(0x00);
+  InitializeMapBitmap(0x40);
+  InitializeMapBitmap(0x80);
+  rom_.ClearDirty();
+  undo_points_.clear();
+  finalize_count_ = 0;
+  refresh_count_ = 0;
+  refreshed_maps_.clear();
+
+  // 2. Paint the same three cells in Unified mode while current_world_ stays 0
+  // (simulating a pinned LW map or cross-world click before world switch).
+  const OverworldCanvasLayout unified(OverworldCanvasLayoutMode::kUnified);
+  layout_mode_ = OverworldCanvasLayoutMode::kUnified;
+  canvas_.SetCanvasSize(unified.CanvasSize());
+  current_world_ = 0;
+  current_map_ = 0x00;
+
+  const auto paint_unified = [&](int map_id, int tx, int ty, int tile_id) {
+    const ImVec2 origin = unified.MapOrigin(map_id);
+    SetView(1.0f, origin);
+    current_tile_ = tile_id;
+    ClickWorld(origin.x + tx * 16 + 8, origin.y + ty * 16 + 8);
+  };
+  paint_unified(0x00, 3, 5, 2);
+  paint_unified(0x40, 4, 6, 3);
+  paint_unified(0x80, 2, 7, 4);
+
+  EXPECT_EQ(overworld_->mutable_map_tiles()->light_world,
+            single_tiles.light_world);
+  EXPECT_EQ(overworld_->mutable_map_tiles()->dark_world,
+            single_tiles.dark_world);
+  EXPECT_EQ(overworld_->mutable_map_tiles()->special_world,
+            single_tiles.special_world);
+  EXPECT_EQ((*maps_)[0x00].vector(), single_bmp_00);
+  EXPECT_EQ((*maps_)[0x40].vector(), single_bmp_40);
+  EXPECT_EQ((*maps_)[0x80].vector(), single_bmp_80);
+  EXPECT_EQ(undo_points_, single_undo);
+  EXPECT_TRUE(rom_.dirty());
+}
+
+TEST_F(TilePaintingManagerGestureTest,
+       UnifiedCrossGutterStrokeAndBrushWriteOnlyStartMap) {
+  const OverworldCanvasLayout unified(OverworldCanvasLayoutMode::kUnified);
+  layout_mode_ = OverworldCanvasLayoutMode::kUnified;
+  canvas_.SetCanvasSize(unified.CanvasSize());
+  InitializeMapBitmap(0x07);
+  InitializeMapBitmap(0x80);
+  current_world_ = 0;
+  current_map_ = 0x07;
+  current_mode_ = EditingMode::DRAW_TILE;
+  current_tile_ = 3;
+
+  // Center viewport across the LW $07 -> 32px gutter [4096,4128) -> SW $80 seam.
+  SetView(1.0f, ImVec2(4000.0f, 0.0f));
+  const ImVec2 start_lw = AtWorld(4088.0f, 40.0f);   // LW $07 tile (255, 2)
+  const ImVec2 in_gutter = AtWorld(4112.0f, 40.0f);  // Gutter x=4112
+  const ImVec2 on_sw = AtWorld(4136.0f, 40.0f);      // SW $80 tile (0, 2)
+  const ImVec2 back_lw = AtWorld(4072.0f, 40.0f);    // LW $07 tile (254, 2)
+
+  Frame(start_lw);
+  Frame(start_lw, /*left_down=*/true);
+  Frame(in_gutter, /*left_down=*/true);
+  Frame(on_sw, /*left_down=*/true);
+  // Returning to LW without releasing must NOT resume a stopped stroke.
+  Frame(back_lw, /*left_down=*/true);
+  Frame(back_lw, /*left_down=*/false);
+
+  EXPECT_EQ(overworld_->mutable_map_tiles()->light_world[255][2], 3);
+  EXPECT_EQ(overworld_->mutable_map_tiles()->light_world[254][2],
+            initial_tiles_.light_world[254][2]);
+  EXPECT_EQ(overworld_->mutable_map_tiles()->special_world,
+            initial_tiles_.special_world);
+  EXPECT_EQ(overworld_->mutable_map_tiles()->dark_world,
+            initial_tiles_.dark_world);
+  EXPECT_EQ(undo_points_,
+            (std::vector<std::array<int, 5>>{{0x07, 0, 255, 2, 0}}));
+  EXPECT_EQ(finalize_count_, 1);
+
+  // A 2x2 paste anchored at the east edge of LW $07 clips at x=255 and never
+  // spills into SW $80.
+  const TileBrush two_by_two{2, 2, {1, 2, 3, 4}};
+  ASSERT_TRUE(PasteAt(AtWorld(4088.0f, 80.0f), two_by_two).ok());
+  EXPECT_EQ(overworld_->mutable_map_tiles()->light_world[255][5], 1);
+  EXPECT_EQ(overworld_->mutable_map_tiles()->light_world[255][6], 3);
+  EXPECT_EQ(overworld_->mutable_map_tiles()->special_world,
+            initial_tiles_.special_world);
+}
+
+TEST_F(TilePaintingManagerGestureTest,
+       UnifiedGutterAndSouthEastQuadrantClicksWriteNothing) {
+  const OverworldCanvasLayout unified(OverworldCanvasLayoutMode::kUnified);
+  layout_mode_ = OverworldCanvasLayoutMode::kUnified;
+  canvas_.SetCanvasSize(unified.CanvasSize());
+  current_world_ = 0;
+  current_map_ = 0x00;
+  current_tile_ = 3;
+
+  const std::vector<ImVec2> dead_zones = {
+      ImVec2(4112.0f, 64.0f),    // Vertical gutter between LW and SW
+      ImVec2(64.0f, 4112.0f),    // Horizontal gutter between LW and DW
+      ImVec2(4112.0f, 4112.0f),  // Gutter intersection
+      ImVec2(4200.0f, 4200.0f),  // Empty south-east quadrant
+  };
+
+  for (const ImVec2& pt : dead_zones) {
+    SetView(1.0f, ImVec2(pt.x - 64.0f, pt.y - 64.0f));
+    current_mode_ = EditingMode::DRAW_TILE;
+    ClickWorld(pt.x, pt.y);
+    ExpectUnchanged();
+
+    current_mode_ = EditingMode::FILL_TILE;
+    ClickWorld(pt.x, pt.y);
+    ExpectUnchanged();
+
+    ASSERT_TRUE(
+        PasteAt(AtWorld(pt.x, pt.y), TileBrush{2, 2, {1, 2, 3, 4}}).ok());
+    ExpectUnchanged();
+  }
+
+  // PlaceBrushAt on gutter (tile 256, 0 -> px 4096, 0) and SE quadrant (300, 300).
+  ASSERT_TRUE(manager_->PlaceBrushAt({1, 1, {3}}, 256, 0).ok());
+  ASSERT_TRUE(manager_->PlaceBrushAt({1, 1, {3}}, 300, 300).ok());
+  ExpectUnchanged();
+}
+
+TEST_F(TilePaintingManagerGestureTest,
+       UnifiedModeSupportsToolsEyedropperGuardedCellsAndCrossWorldGhost) {
   layout_mode_ = OverworldCanvasLayoutMode::kUnified;
   current_world_ = 0;
   current_map_ = 0;
+  InitializeMapBitmap(0x40);
+  InitializeMapBitmap(0x80);
   auto& dark = overworld_->mutable_map_tiles()->dark_world;
   dark[0][0] = 4;
   initial_tiles_ = *overworld_->mutable_map_tiles();
 
-  // Tool toggles refuse DRAW_TILE / FILL_TILE and stay in MOUSE mode.
+  // Tool toggles enable DRAW_TILE and FILL_TILE in Unified without blocking.
   current_mode_ = EditingMode::MOUSE;
   manager_->ToggleBrushTool();
-  EXPECT_EQ(current_mode_, EditingMode::MOUSE);
-  EXPECT_GE(read_only_blocked_count_, 1);
+  EXPECT_EQ(current_mode_, EditingMode::DRAW_TILE);
   manager_->ActivateFillTool();
-  EXPECT_EQ(current_mode_, EditingMode::MOUSE);
-  EXPECT_GE(read_only_blocked_count_, 2);
-
-  // PasteBrush & PlaceBrushAt refuse with exact read-only reason and no edits.
-  const TileBrush brush{1, 1, {3}};
-  const auto paste_status = PasteAt(At(8, 8), brush);
-  EXPECT_EQ(paste_status.code(), absl::StatusCode::kFailedPrecondition);
-  EXPECT_NE(paste_status.message().find(kUnifiedReadOnlyReason),
-            std::string::npos);
-  const auto place_status = manager_->PlaceBrushAt(brush, 0, 0);
-  EXPECT_EQ(place_status.code(), absl::StatusCode::kFailedPrecondition);
-  EXPECT_NE(place_status.message().find(kUnifiedReadOnlyReason),
-            std::string::npos);
-
-  // Left-click paint gesture does not mutate tiles or set dirty.
-  current_mode_ = EditingMode::DRAW_TILE;
-  ClickWorld(8, 8);
-  ExpectUnchanged();
+  EXPECT_EQ(current_mode_, EditingMode::FILL_TILE);
+  EXPECT_EQ(read_only_blocked_count_, 0);
+  current_mode_ = EditingMode::MOUSE;
 
   // Eyedropper works read-only across DW block when current_world_ == 0.
   const OverworldCanvasLayout unified(OverworldCanvasLayoutMode::kUnified);
@@ -1699,6 +1845,18 @@ TEST_F(
   });
   EXPECT_EQ(count_images(), 6);
   ExpectUnchanged();
+
+  // ApplyGuardedCells in Unified addresses the proposal's map_id directly
+  // without requiring current_world_ == WorldForMap(map_id).
+  const auto applied_dw = manager_->ApplyGuardedCells(0x40, {{0, 0, 4, 2}});
+  ASSERT_TRUE(applied_dw.ok()) << applied_dw.status();
+  EXPECT_EQ(*applied_dw, 1);
+  EXPECT_EQ(overworld_->mutable_map_tiles()->dark_world[0][0], 2);
+
+  const auto applied_sw = manager_->ApplyGuardedCells(0x80, {{1, 1, 0, 3}});
+  ASSERT_TRUE(applied_sw.ok()) << applied_sw.status();
+  EXPECT_EQ(*applied_sw, 1);
+  EXPECT_EQ(overworld_->mutable_map_tiles()->special_world[1][1], 3);
 }
 
 }  // namespace

@@ -1000,7 +1000,8 @@ void LyraTerrainCanvas::DrawEntities(const gui::CanvasRuntime& canvas,
 void LyraTerrainCanvas::HandleEntityInput(const gui::CanvasRuntime& canvas,
                                           int world,
                                           zelda3::Overworld& overworld,
-                                          UndoManager& history) {
+                                          UndoManager& history,
+                                          const OverworldCanvasLayout& layout) {
   if (ImGui::IsKeyPressed(ImGuiKey_Escape)) {
     placement_kind_ = 0;
   }
@@ -1018,34 +1019,32 @@ void LyraTerrainCanvas::HandleEntityInput(const gui::CanvasRuntime& canvas,
   }
 
   const ImVec2 mouse_pos = ImGui::GetIO().MousePos;
-  const float world_x_px =
+  const float canvas_x_px =
       (mouse_pos.x - canvas.canvas_p0.x - canvas.scrolling.x) / canvas.scale;
-  const float world_y_px =
+  const float canvas_y_px =
       (mouse_pos.y - canvas.canvas_p0.y - canvas.scrolling.y) / canvas.scale;
 
-  if (!std::isfinite(world_x_px) || !std::isfinite(world_y_px)) {
+  if (!std::isfinite(canvas_x_px) || !std::isfinite(canvas_y_px)) {
     return;
   }
 
-  if (world_x_px < 0 || world_x_px >= 4096 || world_y_px < 0 ||
-      world_y_px >= 4096)
+  const ImVec2 canvas_point(canvas_x_px, canvas_y_px);
+  const auto target_map =
+      layout.MapAt(canvas_point, world, zelda3::kExpandedMapCount);
+  const auto world_point = layout.WorldLocalFromCanvas(canvas_point, world);
+  if (!target_map || !world_point) {
     return;
-  const int tile_x = static_cast<int>(std::floor(world_x_px / 16.0f));
-  const int tile_y = static_cast<int>(std::floor(world_y_px / 16.0f));
+  }
 
+  const int tile_x =
+      static_cast<int>(std::floor(world_point->local_position.x / 16.0f));
+  const int tile_y =
+      static_cast<int>(std::floor(world_point->local_position.y / 16.0f));
   if (tile_x < 0 || tile_x > 255 || tile_y < 0 || tile_y > 255) {
     return;
   }
 
-  const int map_col = tile_x / 32;
-  const int map_row = tile_y / 32;
-  if (map_col < 0 || map_col >= 8 || map_row < 0 || map_row >= 8) {
-    return;
-  }
-
-  const int local_map = map_row * 8 + map_col;
-  const int explicit_map_id =
-      OverworldCanvasLayout::MapIdFromLocalIndex(world, local_map);
+  const int explicit_map_id = *target_map;
   const int local_x = tile_x % 32;
   const int local_y = tile_y % 32;
 

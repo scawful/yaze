@@ -150,14 +150,13 @@ void OverworldToolbar::DrawViewControls(bool in_menu) {
     if (ImGui::IsItemHovered()) {
       ImGui::SetTooltip("Show one overworld block at a time (full editing)");
     }
-    if (ImGui::MenuItem("Unified (read-only)", nullptr, unified_layout)) {
+    if (ImGui::MenuItem("Unified", nullptr, unified_layout)) {
       on_set_layout_mode(OverworldCanvasLayoutMode::kUnified);
     }
     if (ImGui::IsItemHovered()) {
       ImGui::SetTooltip(
           "Show Light World, Dark World (south), and Special Overworld (east) "
-          "on one canvas\n%s",
-          kUnifiedReadOnlyReason);
+          "on one canvas");
     }
     ImGui::Separator();
   }
@@ -258,20 +257,10 @@ void OverworldToolbar::Draw(int& current_world, int& current_map,
     if (ToolButton(
             "Unified",
             "Show Light World, Dark World (south), and Special Overworld "
-            "(east) "
-            "on one canvas\nRead-only in Phase 1 (Map Properties & Proposals "
-            "Accept stay active)",
+            "(east) on one canvas",
             unified_layout, "Unified") &&
         on_set_layout_mode) {
       on_set_layout_mode(OverworldCanvasLayoutMode::kUnified);
-    }
-    if (unified_layout) {
-      ImGui::SameLine(0, 6);
-      ImGui::AlignTextToFramePadding();
-      ImGui::TextDisabled("%s", ICON_MD_LOCK " Read-only");
-      if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip("%s", kUnifiedReadOnlyReason);
-      }
     }
   }
 
@@ -403,7 +392,7 @@ void OverworldToolbar::Draw(int& current_world, int& current_map,
           on_set_layout_mode) {
         on_set_layout_mode(OverworldCanvasLayoutMode::kSingleWorld);
       }
-      if (ImGui::MenuItem("Unified (read-only)", nullptr, unified_layout) &&
+      if (ImGui::MenuItem("Unified", nullptr, unified_layout) &&
           on_set_layout_mode) {
         on_set_layout_mode(OverworldCanvasLayoutMode::kUnified);
       }
@@ -428,43 +417,30 @@ void OverworldToolbar::Draw(int& current_world, int& current_map,
     set_mode(EditingMode::MOUSE);
   }
   ImGui::SameLine(0, 2);
-  ImGui::BeginDisabled(unified_layout);
-  const std::string brush_tip =
-      unified_layout
-          ? std::string(kUnifiedReadOnlyReason)
-          : WithHint(
-                "Brush (2)\nLeft-drag: paint the selected tile16\n"
-                "Right-click: sample tile16 (or I)   Right-drag: capture a "
-                "brush\n"
-                "[ / ]: previous / next tile16   Shift+Right-click: map menu",
-                "overworld.brush_toggle");
+  const std::string brush_tip = WithHint(
+      "Brush (2)\nLeft-drag: paint the selected tile16\n"
+      "Right-click: sample tile16 (or I)   Right-drag: capture a "
+      "brush\n"
+      "[ / ]: previous / next tile16   Shift+Right-click: map menu",
+      "overworld.brush_toggle");
   if (ToolButton(ICON_MD_DRAW, brush_tip.c_str(),
-                 !unified_layout && current_mode == EditingMode::DRAW_TILE,
-                 "Paint")) {
+                 current_mode == EditingMode::DRAW_TILE, "Paint")) {
     set_mode(EditingMode::DRAW_TILE);
   }
   ImGui::SameLine(0, 2);
-  const std::string fill_tip =
-      unified_layout
-          ? std::string(kUnifiedReadOnlyReason)
-          : WithHint(
-                "Fill screen\nClick fills the 32x32 screen under the cursor\n"
-                "Right-click: sample tile16   Shift+Right-click: map menu",
-                "overworld.fill");
+  const std::string fill_tip = WithHint(
+      "Fill screen\nClick fills the 32x32 screen under the cursor\n"
+      "Right-click: sample tile16   Shift+Right-click: map menu",
+      "overworld.fill");
   if (ToolButton(ICON_MD_FORMAT_COLOR_FILL, fill_tip.c_str(),
-                 !unified_layout && current_mode == EditingMode::FILL_TILE,
-                 "Fill")) {
+                 current_mode == EditingMode::FILL_TILE, "Fill")) {
     set_mode(EditingMode::FILL_TILE);
   }
-  ImGui::EndDisabled();
-  ImGui::BeginDisabled(project_terrain || unified_layout);
+  ImGui::BeginDisabled(project_terrain);
   ImGui::SameLine(0, 2);
-  const char* insert_item_tip =
-      unified_layout
-          ? kUnifiedReadOnlyReason
-          : "Pick an item from the list, then click the map to place it";
-  if (ToolButton(ICON_MD_GRASS " Insert Item", insert_item_tip, false,
-                 "Insert Item")) {
+  if (ToolButton(ICON_MD_GRASS " Insert Item",
+                 "Pick an item from the list, then click the map to place it",
+                 false, "Insert Item")) {
     if (on_insert_item) {
       on_insert_item();
     }
