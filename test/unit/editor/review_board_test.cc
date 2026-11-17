@@ -2,10 +2,14 @@
 #include "app/editor/agent/ui/review_boards/review_boards_view.h"
 
 #include <chrono>
+#include <cmath>
+#include <cstdint>
 #include <filesystem>
 #include <fstream>
 #include <functional>
 #include <iterator>
+#include <limits>
+#include <memory>
 #include <string>
 #include <thread>
 #include <vector>
@@ -749,6 +753,262 @@ TEST(ReviewBoardTest, MalformedFeedbackHistoryEntriesDoNotThrowOnAppend) {
   const json out = json::parse(*appended);
   EXPECT_EQ(out["status"], "looks_good");
   ASSERT_EQ(out["history"].size(), 5u);
+}
+
+TEST(ReviewBoardTest, ViewerFitAndActualPixelsRespectDisplayFramebufferScale) {
+  const ImVec2 image_size(2624.0f, 2024.0f);
+  const ImVec2 avail_logical(1152.0f, 700.0f);
+  const ImVec2 fb_1x(1.0f, 1.0f);
+  const ImVec2 fb_2x(2.0f, 2.0f);
+
+  const ReviewBoardViewerLayout fit_1x = ResolveReviewBoardViewerLayout(
+      ReviewBoardViewerState{}, image_size, avail_logical, fb_1x);
+  EXPECT_EQ(fit_1x.target_physical_width, 908);
+  EXPECT_EQ(fit_1x.target_physical_height, 700);
+  EXPECT_FALSE(fit_1x.use_nearest_sampling);
+  EXPECT_EQ(fit_1x.zoom_percent, 35);
+  EXPECT_FLOAT_EQ(fit_1x.pan.x, 122.0f);
+  EXPECT_FLOAT_EQ(fit_1x.pan.y, 0.0f);
+
+  const ReviewBoardViewerLayout fit_2x = ResolveReviewBoardViewerLayout(
+      ReviewBoardViewerState{}, image_size, avail_logical, fb_2x);
+  EXPECT_EQ(fit_2x.target_physical_width, 1815);
+  EXPECT_EQ(fit_2x.target_physical_height, 1400);
+  EXPECT_FLOAT_EQ(fit_2x.drawn_logical_size.x, 907.5f);
+  EXPECT_FLOAT_EQ(fit_2x.drawn_logical_size.y, 700.0f);
+  EXPECT_FALSE(fit_2x.use_nearest_sampling);
+  EXPECT_EQ(fit_2x.zoom_percent, 69);
+
+  // Actual pixels (100% physical) on a 2x Retina display maps 1 image pixel to
+  // 1 physical pixel (half logical dimensions), using nearest sampling.
+  ReviewBoardViewerState actual_state;
+  actual_state.fit_mode = false;
+  actual_state.zoom = 1.0f;
+  const ReviewBoardViewerLayout actual_2x = ResolveReviewBoardViewerLayout(
+      actual_state, image_size, avail_logical, fb_2x);
+  EXPECT_EQ(actual_2x.target_physical_width, 2624);
+  EXPECT_EQ(actual_2x.target_physical_height, 2024);
+  EXPECT_FLOAT_EQ(actual_2x.drawn_logical_size.x, 1312.0f);
+  EXPECT_FLOAT_EQ(actual_2x.drawn_logical_size.y, 1012.0f);
+  EXPECT_TRUE(actual_2x.use_nearest_sampling);
+  EXPECT_EQ(actual_2x.zoom_percent, 100);
+
+  ReviewBoardViewerState zoom_2x_state = actual_state;
+  zoom_2x_state.zoom = 2.0f;
+  const ReviewBoardViewerLayout mag_2x = ResolveReviewBoardViewerLayout(
+      zoom_2x_state, image_size, avail_logical, fb_2x);
+  EXPECT_EQ(mag_2x.target_physical_width, 5248);
+  EXPECT_EQ(mag_2x.target_physical_height, 4048);
+  EXPECT_FLOAT_EQ(mag_2x.drawn_logical_size.x, 2624.0f);
+  EXPECT_FLOAT_EQ(mag_2x.drawn_logical_size.y, 2024.0f);
+  EXPECT_TRUE(mag_2x.use_nearest_sampling);
+  EXPECT_EQ(mag_2x.zoom_percent, 200);
+}
+
+TEST(ReviewBoardTest, ViewerWheelZoomLocksImageCoordinateUnderCursor) {
+  const ImVec2 image_size(2460.0f, 1740.0f);
+  const ImVec2 avail(1100.0f, 760.0f);
+  const ImVec2 canvas_p0(120.0f, 80.0f);
+  const ImVec2 fb(2.0f, 2.0f);
+  const ImVec2 anchor(430.0f, 290.0f);
+
+  const ReviewBoardViewerState state0{};
+  const ReviewBoardViewerLayout lay0 =
+      ResolveReviewBoardViewerLayout(state0, image_size, avail, fb);
+  const float u0 =
+      (anchor.x - (canvas_p0.x + lay0.pan.x)) / lay0.logical_scale.x;
+  const float v0 =
+      (anchor.y - (canvas_p0.y + lay0.pan.y)) / lay0.logical_scale.y;
+
+  const ReviewBoardViewerState state1 = StepReviewBoardWheelZoom(
+      state0, 1.0f, anchor, canvas_p0, image_size, avail, fb);
+  EXPECT_FALSE(state1.fit_mode);
+  EXPECT_NEAR(state1.zoom, lay0.physical_zoom * 1.25f, 1e-5f);
+
+  const ReviewBoardViewerLayout lay1 =
+      ResolveReviewBoardViewerLayout(state1, image_size, avail, fb);
+  const float u1 =
+      (anchor.x - (canvas_p0.x + lay1.pan.x)) / lay1.logical_scale.x;
+  const float v1 =
+      (anchor.y - (canvas_p0.y + lay1.pan.y)) / lay1.logical_scale.y;
+  EXPECT_NEAR(u1, u0, 1.0f);
+  EXPECT_NEAR(v1, v0, 1.0f);
+
+  const ReviewBoardViewerState state_mag = StepReviewBoardWheelZoom(
+      state1, 3.0f, anchor, canvas_p0, image_size, avail, fb);
+  const ReviewBoardViewerLayout lay_mag =
+      ResolveReviewBoardViewerLayout(state_mag, image_size, avail, fb);
+  EXPECT_TRUE(lay_mag.use_nearest_sampling);
+  const float u_mag =
+      (anchor.x - (canvas_p0.x + lay_mag.pan.x)) / lay_mag.logical_scale.x;
+  const float v_mag =
+      (anchor.y - (canvas_p0.y + lay_mag.pan.y)) / lay_mag.logical_scale.y;
+  EXPECT_NEAR(u_mag, u0, 1.0f);
+  EXPECT_NEAR(v_mag, v0, 1.0f);
+
+  // Range clamp: 10%..1600%.
+  const ReviewBoardViewerState max_zoom = StepReviewBoardWheelZoom(
+      state1, 100.0f, anchor, canvas_p0, image_size, avail, fb);
+  EXPECT_FLOAT_EQ(max_zoom.zoom, 16.0f);
+  EXPECT_EQ(ResolveReviewBoardViewerLayout(max_zoom, image_size, avail, fb)
+                .zoom_percent,
+            1600);
+
+  const ReviewBoardViewerState min_zoom = StepReviewBoardWheelZoom(
+      state1, -100.0f, anchor, canvas_p0, image_size, avail, fb);
+  EXPECT_FLOAT_EQ(min_zoom.zoom, 0.10f);
+  EXPECT_EQ(ResolveReviewBoardViewerLayout(min_zoom, image_size, avail, fb)
+                .zoom_percent,
+            10);
+}
+
+TEST(ReviewBoardTest, ViewerWheelGuardrailAndDoubleClickFitActualToggle) {
+  EXPECT_TRUE(ShouldHandleReviewBoardCanvasWheel(true, false, 1.0f));
+  EXPECT_FALSE(ShouldHandleReviewBoardCanvasWheel(false, false, 1.0f));
+  EXPECT_FALSE(ShouldHandleReviewBoardCanvasWheel(true, true, 1.0f));
+  EXPECT_FALSE(ShouldHandleReviewBoardCanvasWheel(true, false, 0.0f));
+  EXPECT_FALSE(ShouldHandleReviewBoardCanvasWheel(
+      true, false, std::numeric_limits<float>::quiet_NaN()));
+
+  const ImVec2 image_size(2120.0f, 1940.0f);
+  const ImVec2 avail(1000.0f, 700.0f);
+  const ImVec2 canvas_p0(50.0f, 40.0f);
+  const ImVec2 fb(1.0f, 1.0f);
+  const ImVec2 click_pos(520.0f, 360.0f);
+
+  const ReviewBoardViewerState fit_state{};
+  const ReviewBoardViewerLayout fit_lay =
+      ResolveReviewBoardViewerLayout(fit_state, image_size, avail, fb);
+  const float u_before =
+      (click_pos.x - (canvas_p0.x + fit_lay.pan.x)) / fit_lay.logical_scale.x;
+  const float v_before =
+      (click_pos.y - (canvas_p0.y + fit_lay.pan.y)) / fit_lay.logical_scale.y;
+
+  const ReviewBoardViewerState actual_state =
+      ToggleReviewBoardViewerFitOrActual(fit_state, click_pos, canvas_p0,
+                                         image_size, avail, fb);
+  EXPECT_FALSE(actual_state.fit_mode);
+  EXPECT_FLOAT_EQ(actual_state.zoom, 1.0f);
+  const ReviewBoardViewerLayout actual_lay =
+      ResolveReviewBoardViewerLayout(actual_state, image_size, avail, fb);
+  const float u_after = (click_pos.x - (canvas_p0.x + actual_lay.pan.x)) /
+                        actual_lay.logical_scale.x;
+  const float v_after = (click_pos.y - (canvas_p0.y + actual_lay.pan.y)) /
+                        actual_lay.logical_scale.y;
+  EXPECT_NEAR(u_after, u_before, 1.0f);
+  EXPECT_NEAR(v_after, v_before, 1.0f);
+
+  const ReviewBoardViewerState back_to_fit = ToggleReviewBoardViewerFitOrActual(
+      actual_state, click_pos, canvas_p0, image_size, avail, fb);
+  EXPECT_TRUE(back_to_fit.fit_mode);
+}
+
+TEST(ReviewBoardTest,
+     BoxDownscaleAndMipChainPreserveThinLinesOddBordersAndAlpha) {
+  // 90x90 dark canvas with a single 1px bright grid line at x=1 and y=1.
+  // Nearest-neighbor 3x decimation (90 -> 30) samples {0, 3, 6, ...} and drops
+  // x=1 and y=1 completely; area downscaling preserves them.
+  const int src_w = 90;
+  const int src_h = 90;
+  auto grid_rgba = std::make_shared<std::vector<uint8_t>>(
+      static_cast<size_t>(src_w * src_h * 4), 20u);
+  for (int y = 0; y < src_h; ++y) {
+    for (int x = 0; x < src_w; ++x) {
+      uint8_t* px =
+          grid_rgba->data() + static_cast<size_t>((y * src_w + x) * 4);
+      if (x == 1 || y == 1) {
+        px[0] = 250u;
+        px[1] = 250u;
+        px[2] = 250u;
+      }
+      px[3] = 255u;
+    }
+  }
+  const auto mips = BuildReviewBoardMipChain(src_w, src_h, grid_rgba);
+  ASSERT_GE(mips.size(), 3u);
+  const std::vector<uint8_t> scaled_30 =
+      DownscaleReviewBoardFromMips(mips, 30, 30);
+  ASSERT_EQ(scaled_30.size(), 30u * 30u * 4u);
+  // Output column 0 covers source x in [0, 3), which includes x=1; interior
+  // column 5 covers [15, 18), which is pure background (20).
+  const uint8_t line_col_r = scaled_30[(10 * 30 + 0) * 4];
+  const uint8_t bg_col_r = scaled_30[(10 * 30 + 5) * 4];
+  EXPECT_EQ(bg_col_r, 20u);
+  EXPECT_GT(line_col_r, 80u);
+
+  // Odd-dimension border preservation: 15x11 with rightmost column x=14 green.
+  auto odd_rgba = std::make_shared<std::vector<uint8_t>>(15u * 11u * 4u, 0u);
+  for (int y = 0; y < 11; ++y) {
+    for (int x = 0; x < 15; ++x) {
+      uint8_t* px = odd_rgba->data() + static_cast<size_t>((y * 15 + x) * 4);
+      px[1] = (x == 14) ? 240u : 0u;
+      px[3] = 255u;
+    }
+  }
+  const auto odd_mips = BuildReviewBoardMipChain(15, 11, odd_rgba);
+  const std::vector<uint8_t> odd_scaled =
+      DownscaleReviewBoardFromMips(odd_mips, 5, 4);
+  ASSERT_EQ(odd_scaled.size(), 5u * 4u * 4u);
+  EXPECT_GT(odd_scaled[(2 * 5 + 4) * 4 + 1], 60u);
+
+  // Premultiplied-alpha weighting prevents dark halos next to transparent
+  // pixels: {(255, 0, 0, 255), (0, 0, 0, 0)} -> (255, 0, 0, 128).
+  const std::vector<uint8_t> two_px = {255, 0, 0, 255, 0, 0, 0, 0};
+  const std::vector<uint8_t> one_px = BoxDownscaleRgba(two_px, 2, 1, 1, 1);
+  ASSERT_EQ(one_px.size(), 4u);
+  EXPECT_EQ(one_px[0], 255u);
+  EXPECT_EQ(one_px[1], 0u);
+  EXPECT_EQ(one_px[2], 0u);
+  EXPECT_EQ(one_px[3], 128u);
+}
+
+TEST(ReviewBoardTest, ViewerAndDownscaleBreakItEdgeCases) {
+  const float nan = std::numeric_limits<float>::quiet_NaN();
+
+  // Invalid / zero / NaN framebuffer scales sanitize cleanly to 1x.
+  const ImVec2 clean_fb =
+      SanitizeReviewBoardFramebufferScale(ImVec2(0.0f, -2.0f));
+  EXPECT_FLOAT_EQ(clean_fb.x, 1.0f);
+  EXPECT_FLOAT_EQ(clean_fb.y, 1.0f);
+  const ImVec2 nan_fb = SanitizeReviewBoardFramebufferScale(ImVec2(nan, nan));
+  EXPECT_FLOAT_EQ(nan_fb.x, 1.0f);
+  EXPECT_FLOAT_EQ(nan_fb.y, 1.0f);
+
+  // Zero/negative image sizes and NaN pan/zoom never produce NaN layout fields.
+  EXPECT_FLOAT_EQ(
+      ComputeReviewBoardFitZoom(ImVec2(0.0f, 100.0f), ImVec2(800.0f, 600.0f),
+                                ImVec2(2.0f, 2.0f)),
+      1.0f);
+  ReviewBoardViewerState bad_state;
+  bad_state.fit_mode = false;
+  bad_state.zoom = nan;
+  bad_state.pan = ImVec2(1.0e7f, -1.0e7f);
+  const ReviewBoardViewerLayout clamped_lay = ResolveReviewBoardViewerLayout(
+      bad_state, ImVec2(1000.0f, 800.0f), ImVec2(500.0f, 400.0f),
+      ImVec2(1.0f, 1.0f));
+  EXPECT_TRUE(std::isfinite(clamped_lay.pan.x));
+  EXPECT_TRUE(std::isfinite(clamped_lay.pan.y));
+  // At least 64px of the 1000x800 image stays inside the 500x400 canvas.
+  EXPECT_LE(clamped_lay.pan.x, 500.0f - 64.0f);
+  EXPECT_GE(clamped_lay.pan.y, 64.0f - 800.0f);
+
+  // Truncated or non-positive downscale inputs return empty safely.
+  const std::vector<uint8_t> short_buf(10, 255u);
+  EXPECT_TRUE(BoxDownscaleRgba(short_buf, 4, 4, 2, 2).empty());
+  EXPECT_TRUE(BoxDownscaleRgba(short_buf, 1, 1, 0, 1).empty());
+  EXPECT_TRUE(BuildReviewBoardMipChain(
+                  4, 4, std::make_shared<std::vector<uint8_t>>(short_buf))
+                  .empty());
+  EXPECT_TRUE(DownscaleReviewBoardFromMips({}, 4, 4).empty());
+
+  // Ultra-wide strip (e.g., 64x2 -> 16x1) downscales cleanly even when mip
+  // halving stops early on the short axis.
+  auto strip = std::make_shared<std::vector<uint8_t>>(64u * 2u * 4u, 200u);
+  const auto strip_mips = BuildReviewBoardMipChain(64, 2, strip);
+  ASSERT_EQ(strip_mips.size(), 1u);
+  const std::vector<uint8_t> strip_thumb =
+      DownscaleReviewBoardFromMips(strip_mips, 16, 1);
+  EXPECT_EQ(strip_thumb.size(), 16u * 1u * 4u);
 }
 
 }  // namespace

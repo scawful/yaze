@@ -3,11 +3,16 @@
 #include <algorithm>
 #include <cctype>
 #include <cmath>
+#include <cstdint>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <limits>
+#include <optional>
 #include <set>
+#include <span>
 #include <string>
+#include <unordered_set>
 #include <utility>
 #include <vector>
 
@@ -20,6 +25,8 @@
 #include "app/editor/registry/content_registry.h"
 #include "app/editor/shell/feedback/toast_manager.h"
 #include "app/gfx/resource/arena.h"
+#include "app/gui/canvas/canvas_geometry.h"
+#include "app/gui/core/draw_sampling.h"
 #include "app/gui/core/style_guard.h"
 #include "app/gui/core/theme_manager.h"
 #include "app/gui/core/ui_helpers.h"
@@ -32,6 +39,8 @@ namespace yaze::editor {
 namespace {
 
 using i18n::tr;
+
+constexpr size_t kMaxDownscaleCacheEntries = 32;
 
 constexpr const char* kFilterLabels[] = {
     "Waiting on you", "Current", "Superseded", "Stale", "All",
@@ -53,6 +62,109 @@ constexpr const char* kSortLabels[] = {
     "Priority",
 };
 constexpr const char* kCategories[] = {"general", "layout"};
+
+struct AxisSpan {
+  int start = 0;
+  uint32_t offset = 0;
+  uint32_t count = 0;
+};
+
+void BuildAxisSpans(int src_len, int dst_len, std::vector<AxisSpan>* out_spans,
+                    std::vector<uint32_t>* out_weights) {
+  out_spans->assign(static_cast<size_t>(dst_len), AxisSpan{});
+  out_weights->clear();
+  if (dst_len >= src_len) {
+    out_weights->resize(static_cast<size_t>(dst_len), 1024u);
+    for (int d = 0; d < dst_len; ++d) {
+      const int idx = std::clamp(
+          static_cast<int>((static_cast<int64_t>(d) * src_len) / dst_len), 0,
+          src_len - 1);
+      auto& span = (*out_spans)[static_cast<size_t>(d)];
+      span.start = idx;
+      span.offset = static_cast<uint32_t>(d);
+      span.count = 1u;
+    }
+    return;
+  }
+
+  constexpr double kWeightScale = 1024.0;
+  out_weights->reserve(static_cast<size_t>(src_len) +
+                       static_cast<size_t>(dst_len) * 2u);
+  for (int d = 0; d < dst_len; ++d) {
+    const double s0 = (static_cast<double>(d) * src_len) / dst_len;
+    const double s1 = (static_cast<double>(d + 1) * src_len) / dst_len;
+    const int i0 = std::clamp(static_cast<int>(std::floor(s0)), 0, src_len - 1);
+    const int i1 =
+        std::clamp(static_cast<int>(std::ceil(s1)) - 1, i0, src_len - 1);
+    AxisSpan span;
+    span.start = i0;
+    span.offset = static_cast<uint32_t>(out_weights->size());
+    span.count = static_cast<uint32_t>(i1 - i0 + 1);
+    uint32_t total = 0;
+    for (int i = i0; i <= i1; ++i) {
+      const double left = std::max(s0, static_cast<double>(i));
+      const double right = std::min(s1, static_cast<double>(i + 1));
+      const double overlap = std::max(0.0, right - left);
+      const auto w = static_cast<uint32_t>(std::lround(overlap * kWeightScale));
+      out_weights->push_back(w);
+      total += w;
+    }
+    if (total == 0 && span.count > 0) {
+      (*out_weights)[span.offset] = 1024u;
+    }
+    (*out_spans)[static_cast<size_t>(d)] = span;
+  }
+}
+
+std::vector<uint8_t> HalveRgba2x2(const std::vector<uint8_t>& src, int src_w,
+                                  int src_h) {
+  const int dst_w = src_w / 2;
+  const int dst_h = src_h / 2;
+  std::vector<uint8_t> out(static_cast<size_t>(dst_w) *
+                           static_cast<size_t>(dst_h) * 4u);
+  const size_t src_stride = static_cast<size_t>(src_w) * 4u;
+  for (int dy = 0; dy < dst_h; ++dy) {
+    const uint8_t* row0 = src.data() + static_cast<size_t>(dy * 2) * src_stride;
+    const uint8_t* row1 = row0 + src_stride;
+    uint8_t* dst_row =
+        out.data() + static_cast<size_t>(dy) * static_cast<size_t>(dst_w) * 4u;
+    for (int dx = 0; dx < dst_w; ++dx) {
+      const uint8_t* p0 = row0 + static_cast<size_t>(dx * 2) * 4u;
+      const uint8_t* p1 = p0 + 4u;
+      const uint8_t* p2 = row1 + static_cast<size_t>(dx * 2) * 4u;
+      const uint8_t* p3 = p2 + 4u;
+      uint8_t* dst = dst_row + static_cast<size_t>(dx) * 4u;
+      if ((p0[3] & p1[3] & p2[3] & p3[3]) == 255u) {
+        dst[0] = static_cast<uint8_t>(
+            (uint32_t{p0[0]} + p1[0] + p2[0] + p3[0] + 2u) >> 2);
+        dst[1] = static_cast<uint8_t>(
+            (uint32_t{p0[1]} + p1[1] + p2[1] + p3[1] + 2u) >> 2);
+        dst[2] = static_cast<uint8_t>(
+            (uint32_t{p0[2]} + p1[2] + p2[2] + p3[2] + 2u) >> 2);
+        dst[3] = 255u;
+      } else {
+        const uint32_t a0 = p0[3];
+        const uint32_t a1 = p1[3];
+        const uint32_t a2 = p2[3];
+        const uint32_t a3 = p3[3];
+        const uint32_t sum_a = a0 + a1 + a2 + a3;
+        if (sum_a > 0) {
+          dst[0] = static_cast<uint8_t>((p0[0] * a0 + p1[0] * a1 + p2[0] * a2 +
+                                         p3[0] * a3 + (sum_a >> 1)) /
+                                        sum_a);
+          dst[1] = static_cast<uint8_t>((p0[1] * a0 + p1[1] * a1 + p2[1] * a2 +
+                                         p3[1] * a3 + (sum_a >> 1)) /
+                                        sum_a);
+          dst[2] = static_cast<uint8_t>((p0[2] * a0 + p1[2] * a1 + p2[2] * a2 +
+                                         p3[2] * a3 + (sum_a >> 1)) /
+                                        sum_a);
+          dst[3] = static_cast<uint8_t>((sum_a + 2u) >> 2);
+        }
+      }
+    }
+  }
+  return out;
+}
 
 bool IsStale(const ReviewBoard& board) {
   return absl::StartsWith(board.status, "stale");
@@ -153,11 +265,310 @@ bool AnswerMapsSemanticallyEqual(const ReviewBoardAnswerMap& a,
 
 }  // namespace
 
+ImVec2 SanitizeReviewBoardFramebufferScale(ImVec2 fb_scale) {
+  const float sx =
+      (std::isfinite(fb_scale.x) && fb_scale.x > 0.0f) ? fb_scale.x : 1.0f;
+  const float sy =
+      (std::isfinite(fb_scale.y) && fb_scale.y > 0.0f) ? fb_scale.y : 1.0f;
+  return ImVec2(sx, sy);
+}
+
+float ComputeReviewBoardFitZoom(ImVec2 image_size, ImVec2 avail_logical,
+                                ImVec2 fb_scale) {
+  if (image_size.x <= 0.0f || image_size.y <= 0.0f ||
+      !std::isfinite(image_size.x) || !std::isfinite(image_size.y)) {
+    return 1.0f;
+  }
+  const ImVec2 fb = SanitizeReviewBoardFramebufferScale(fb_scale);
+  const float avail_phys_w =
+      std::max(1.0f, std::floor(std::max(1.0f, avail_logical.x) * fb.x));
+  const float avail_phys_h =
+      std::max(1.0f, std::floor(std::max(1.0f, avail_logical.y) * fb.y));
+  const float raw =
+      std::min(avail_phys_w / image_size.x, avail_phys_h / image_size.y);
+  return std::clamp(raw, kReviewBoardViewerMinZoom, 4.0f);
+}
+
+ImVec2 ClampReviewBoardViewerPan(ImVec2 pan, ImVec2 drawn_logical_size,
+                                 ImVec2 avail_logical) {
+  const float avail_w = std::max(1.0f, avail_logical.x);
+  const float avail_h = std::max(1.0f, avail_logical.y);
+  const float drawn_w = std::max(1.0f, drawn_logical_size.x);
+  const float drawn_h = std::max(1.0f, drawn_logical_size.y);
+  const float keep_x = std::min(64.0f, std::min(drawn_w, avail_w) * 0.5f);
+  const float keep_y = std::min(64.0f, std::min(drawn_h, avail_h) * 0.5f);
+  const float min_x = keep_x - drawn_w;
+  const float max_x = avail_w - keep_x;
+  const float min_y = keep_y - drawn_h;
+  const float max_y = avail_h - keep_y;
+  const float px = std::isfinite(pan.x) ? pan.x : 0.0f;
+  const float py = std::isfinite(pan.y) ? pan.y : 0.0f;
+  return ImVec2(std::clamp(px, std::min(min_x, max_x), std::max(min_x, max_x)),
+                std::clamp(py, std::min(min_y, max_y), std::max(min_y, max_y)));
+}
+
+ReviewBoardViewerLayout ResolveReviewBoardViewerLayout(
+    const ReviewBoardViewerState& state, ImVec2 image_size,
+    ImVec2 avail_logical, ImVec2 fb_scale) {
+  ReviewBoardViewerLayout out;
+  const ImVec2 fb = SanitizeReviewBoardFramebufferScale(fb_scale);
+  const ImVec2 avail(std::max(1.0f, avail_logical.x),
+                     std::max(1.0f, avail_logical.y));
+  if (image_size.x <= 0.0f || image_size.y <= 0.0f ||
+      !std::isfinite(image_size.x) || !std::isfinite(image_size.y)) {
+    return out;
+  }
+
+  if (state.fit_mode) {
+    out.physical_zoom = ComputeReviewBoardFitZoom(image_size, avail, fb);
+  } else {
+    const float requested = std::isfinite(state.zoom) ? state.zoom : 1.0f;
+    out.physical_zoom = std::clamp(requested, kReviewBoardViewerMinZoom,
+                                   kReviewBoardViewerMaxZoom);
+  }
+
+  out.target_physical_width = std::max(
+      1, static_cast<int>(std::lround(image_size.x * out.physical_zoom)));
+  out.target_physical_height = std::max(
+      1, static_cast<int>(std::lround(image_size.y * out.physical_zoom)));
+  const int src_w = std::max(1, static_cast<int>(std::lround(image_size.x)));
+  const int src_h = std::max(1, static_cast<int>(std::lround(image_size.y)));
+  out.use_nearest_sampling = (out.target_physical_width >= src_w &&
+                              out.target_physical_height >= src_h);
+
+  out.drawn_logical_size =
+      ImVec2(static_cast<float>(out.target_physical_width) / fb.x,
+             static_cast<float>(out.target_physical_height) / fb.y);
+  out.logical_scale = ImVec2(out.drawn_logical_size.x / image_size.x,
+                             out.drawn_logical_size.y / image_size.y);
+  out.zoom_percent =
+      std::max(1, static_cast<int>(std::lround(out.physical_zoom * 100.0f)));
+
+  if (state.fit_mode) {
+    out.pan = ImVec2(
+        std::round((avail.x - out.drawn_logical_size.x) * 0.5f * fb.x) / fb.x,
+        std::round((avail.y - out.drawn_logical_size.y) * 0.5f * fb.y) / fb.y);
+  } else {
+    out.pan =
+        ClampReviewBoardViewerPan(state.pan, out.drawn_logical_size, avail);
+  }
+  return out;
+}
+
+ReviewBoardViewerState ZoomReviewBoardAroundScreenPos(
+    const ReviewBoardViewerState& state, float target_physical_zoom,
+    ImVec2 anchor_screen_pos, ImVec2 canvas_p0, ImVec2 image_size,
+    ImVec2 avail_logical, ImVec2 fb_scale) {
+  const ImVec2 fb = SanitizeReviewBoardFramebufferScale(fb_scale);
+  const ImVec2 avail(std::max(1.0f, avail_logical.x),
+                     std::max(1.0f, avail_logical.y));
+  const float clamped_zoom =
+      std::isfinite(target_physical_zoom)
+          ? std::clamp(target_physical_zoom, kReviewBoardViewerMinZoom,
+                       kReviewBoardViewerMaxZoom)
+          : 1.0f;
+
+  ReviewBoardViewerState next;
+  next.fit_mode = false;
+  next.zoom = clamped_zoom;
+  if (image_size.x <= 0.0f || image_size.y <= 0.0f ||
+      !std::isfinite(image_size.x) || !std::isfinite(image_size.y)) {
+    return next;
+  }
+
+  const ReviewBoardViewerLayout cur =
+      ResolveReviewBoardViewerLayout(state, image_size, avail, fb);
+
+  ReviewBoardViewerState target_probe = next;
+  target_probe.pan = cur.pan;
+  const ReviewBoardViewerLayout next_geom =
+      ResolveReviewBoardViewerLayout(target_probe, image_size, avail, fb);
+
+  gui::CanvasGeometry geom;
+  geom.canvas_p0 = canvas_p0;
+  geom.scrolling = cur.pan;
+  const ImVec2 scroll_x = gui::ComputeScrollForZoomAtScreenPos(
+      geom, cur.logical_scale.x, next_geom.logical_scale.x, anchor_screen_pos);
+  ImVec2 new_pan = scroll_x;
+  if (std::abs(cur.logical_scale.x - cur.logical_scale.y) > 1e-6f ||
+      std::abs(next_geom.logical_scale.x - next_geom.logical_scale.y) > 1e-6f) {
+    const ImVec2 scroll_y = gui::ComputeScrollForZoomAtScreenPos(
+        geom, cur.logical_scale.y, next_geom.logical_scale.y,
+        anchor_screen_pos);
+    new_pan.y = scroll_y.y;
+  }
+  next.pan =
+      ClampReviewBoardViewerPan(new_pan, next_geom.drawn_logical_size, avail);
+  return next;
+}
+
+ReviewBoardViewerState StepReviewBoardWheelZoom(
+    const ReviewBoardViewerState& state, float wheel_y,
+    ImVec2 anchor_screen_pos, ImVec2 canvas_p0, ImVec2 image_size,
+    ImVec2 avail_logical, ImVec2 fb_scale) {
+  if (!std::isfinite(wheel_y) || wheel_y == 0.0f) {
+    return state;
+  }
+  const ReviewBoardViewerLayout cur = ResolveReviewBoardViewerLayout(
+      state, image_size, avail_logical, fb_scale);
+  const float bounded_notches = std::clamp(wheel_y, -32.0f, 32.0f);
+  const float target_zoom =
+      std::clamp(cur.physical_zoom *
+                     std::pow(kReviewBoardViewerWheelStep, bounded_notches),
+                 kReviewBoardViewerMinZoom, kReviewBoardViewerMaxZoom);
+  return ZoomReviewBoardAroundScreenPos(state, target_zoom, anchor_screen_pos,
+                                        canvas_p0, image_size, avail_logical,
+                                        fb_scale);
+}
+
+ReviewBoardViewerState ToggleReviewBoardViewerFitOrActual(
+    const ReviewBoardViewerState& state, ImVec2 anchor_screen_pos,
+    ImVec2 canvas_p0, ImVec2 image_size, ImVec2 avail_logical,
+    ImVec2 fb_scale) {
+  if (!state.fit_mode) {
+    return ReviewBoardViewerState{};
+  }
+  return ZoomReviewBoardAroundScreenPos(state, 1.0f, anchor_screen_pos,
+                                        canvas_p0, image_size, avail_logical,
+                                        fb_scale);
+}
+
+bool ShouldHandleReviewBoardCanvasWheel(bool canvas_hovered,
+                                        bool want_text_input, float wheel_y) {
+  return canvas_hovered && !want_text_input && std::isfinite(wheel_y) &&
+         wheel_y != 0.0f;
+}
+
+std::vector<uint8_t> BoxDownscaleRgba(std::span<const uint8_t> src_rgba,
+                                      int src_w, int src_h, int dst_w,
+                                      int dst_h) {
+  if (src_w <= 0 || src_h <= 0 || dst_w <= 0 || dst_h <= 0) {
+    return {};
+  }
+  const size_t expected_bytes =
+      static_cast<size_t>(src_w) * static_cast<size_t>(src_h) * 4u;
+  if (src_rgba.size() < expected_bytes) {
+    return {};
+  }
+  if (src_w == dst_w && src_h == dst_h) {
+    return std::vector<uint8_t>(src_rgba.begin(),
+                                src_rgba.begin() + expected_bytes);
+  }
+
+  std::vector<AxisSpan> x_spans;
+  std::vector<uint32_t> x_weights;
+  std::vector<AxisSpan> y_spans;
+  std::vector<uint32_t> y_weights;
+  BuildAxisSpans(src_w, dst_w, &x_spans, &x_weights);
+  BuildAxisSpans(src_h, dst_h, &y_spans, &y_weights);
+
+  std::vector<uint8_t> out(
+      static_cast<size_t>(dst_w) * static_cast<size_t>(dst_h) * 4u, 0u);
+  const size_t src_stride = static_cast<size_t>(src_w) * 4u;
+  for (int dy = 0; dy < dst_h; ++dy) {
+    const AxisSpan& ys = y_spans[static_cast<size_t>(dy)];
+    uint8_t* dst_row =
+        out.data() + static_cast<size_t>(dy) * static_cast<size_t>(dst_w) * 4u;
+    for (int dx = 0; dx < dst_w; ++dx) {
+      const AxisSpan& xs = x_spans[static_cast<size_t>(dx)];
+      uint64_t sum_w = 0;
+      uint64_t sum_a = 0;
+      uint64_t sum_r = 0;
+      uint64_t sum_g = 0;
+      uint64_t sum_b = 0;
+      for (uint32_t ky = 0; ky < ys.count; ++ky) {
+        const uint64_t wy = y_weights[ys.offset + ky];
+        if (wy == 0)
+          continue;
+        const uint8_t* src_row =
+            src_rgba.data() +
+            static_cast<size_t>(ys.start + static_cast<int>(ky)) * src_stride;
+        for (uint32_t kx = 0; kx < xs.count; ++kx) {
+          const uint64_t wx = x_weights[xs.offset + kx];
+          if (wx == 0)
+            continue;
+          const uint64_t w = wy * wx;
+          const uint8_t* px =
+              src_row +
+              static_cast<size_t>(xs.start + static_cast<int>(kx)) * 4u;
+          const uint64_t a = px[3];
+          sum_w += w;
+          sum_a += w * a;
+          sum_r += w * px[0] * a;
+          sum_g += w * px[1] * a;
+          sum_b += w * px[2] * a;
+        }
+      }
+      uint8_t* dst = dst_row + static_cast<size_t>(dx) * 4u;
+      if (sum_w > 0 && sum_a > 0) {
+        dst[0] = static_cast<uint8_t>((sum_r + (sum_a >> 1)) / sum_a);
+        dst[1] = static_cast<uint8_t>((sum_g + (sum_a >> 1)) / sum_a);
+        dst[2] = static_cast<uint8_t>((sum_b + (sum_a >> 1)) / sum_a);
+        dst[3] = static_cast<uint8_t>((sum_a + (sum_w >> 1)) / sum_w);
+      }
+    }
+  }
+  return out;
+}
+
+std::vector<ReviewBoardRgbaMip> BuildReviewBoardMipChain(
+    int width, int height, std::shared_ptr<const std::vector<uint8_t>> rgba) {
+  std::vector<ReviewBoardRgbaMip> chain;
+  if (width <= 0 || height <= 0 || !rgba ||
+      rgba->size() <
+          static_cast<size_t>(width) * static_cast<size_t>(height) * 4u) {
+    return chain;
+  }
+  chain.push_back(ReviewBoardRgbaMip{width, height, std::move(rgba)});
+  while (chain.back().width >= 4 && chain.back().height >= 4) {
+    const ReviewBoardRgbaMip& prev = chain.back();
+    const int next_w = prev.width / 2;
+    const int next_h = prev.height / 2;
+    std::vector<uint8_t> level_rgba;
+    if (prev.width == next_w * 2 && prev.height == next_h * 2) {
+      level_rgba = HalveRgba2x2(*prev.rgba, prev.width, prev.height);
+    } else {
+      level_rgba =
+          BoxDownscaleRgba(*prev.rgba, prev.width, prev.height, next_w, next_h);
+    }
+    if (level_rgba.empty())
+      break;
+    chain.push_back(ReviewBoardRgbaMip{
+        next_w, next_h,
+        std::make_shared<const std::vector<uint8_t>>(std::move(level_rgba))});
+  }
+  return chain;
+}
+
+std::vector<uint8_t> DownscaleReviewBoardFromMips(
+    const std::vector<ReviewBoardRgbaMip>& mips, int dst_w, int dst_h) {
+  if (mips.empty() || dst_w <= 0 || dst_h <= 0) {
+    return {};
+  }
+  size_t best = 0;
+  for (size_t i = 1; i < mips.size(); ++i) {
+    if (mips[i].width >= dst_w && mips[i].height >= dst_h) {
+      best = i;
+    } else {
+      break;
+    }
+  }
+  const ReviewBoardRgbaMip& src = mips[best];
+  return BoxDownscaleRgba(*src.rgba, src.width, src.height, dst_w, dst_h);
+}
+
 ReviewBoardsView::~ReviewBoardsView() {
   ReleaseImages();
 }
 
 void ReviewBoardsView::ReleaseImages() {
+  for (auto& entry : downscale_cache_) {
+    if (entry.bitmap)
+      gfx::Arena::Get().RetireBitmap(*entry.bitmap);
+  }
+  downscale_cache_.clear();
+  image_mips_.clear();
+  image_sources_.clear();
   for (auto& bitmap : images_) {
     if (bitmap)
       gfx::Arena::Get().RetireBitmap(*bitmap);
@@ -498,6 +909,8 @@ void ReviewBoardsView::EnsureImagesLoaded(const ReviewBoard& board) {
     return;
   ReleaseImages();
   images_for_ = key;
+  image_sources_.resize(board.media.size());
+  image_mips_.resize(board.media.size());
   for (size_t i = 0; i < board.media.size(); ++i) {
     auto bitmap = std::make_unique<gfx::Bitmap>();
     std::string error;
@@ -507,6 +920,7 @@ void ReviewBoardsView::EnsureImagesLoaded(const ReviewBoard& board) {
         bitmap->Create(image->width, image->height, 32, *image->rgba);
         gfx::Arena::Get().QueueTextureCommand(
             gfx::Arena::TextureCommandType::CREATE, bitmap.get());
+        image_sources_[i] = std::move(*image);
       } else if (!image.ok()) {
         error = std::string(image.status().message());
       }
@@ -516,9 +930,117 @@ void ReviewBoardsView::EnsureImagesLoaded(const ReviewBoard& board) {
   }
 }
 
+void ReviewBoardsView::EnsureImageMipsBuilt(size_t media_index) {
+  if (media_index >= image_sources_.size() ||
+      media_index >= image_mips_.size()) {
+    return;
+  }
+  if (!image_mips_[media_index].empty())
+    return;
+  const ReviewBoardImage& src = image_sources_[media_index];
+  if (src.width > 0 && src.height > 0 && src.rgba) {
+    image_mips_[media_index] =
+        BuildReviewBoardMipChain(src.width, src.height, src.rgba);
+  }
+}
+
+gfx::TextureHandle ReviewBoardsView::GetTextureForPhysicalSize(
+    size_t media_index, int target_phys_w, int target_phys_h,
+    bool* out_nearest_sampling) {
+  if (media_index >= images_.size() || !images_[media_index] ||
+      !images_[media_index]->is_active()) {
+    if (out_nearest_sampling != nullptr)
+      *out_nearest_sampling = true;
+    return nullptr;
+  }
+  const int src_w = images_[media_index]->width();
+  const int src_h = images_[media_index]->height();
+  if (src_w <= 0 || src_h <= 0) {
+    if (out_nearest_sampling != nullptr)
+      *out_nearest_sampling = true;
+    return nullptr;
+  }
+  const int phys_w = std::max(1, target_phys_w);
+  const int phys_h = std::max(1, target_phys_h);
+  if (phys_w >= src_w && phys_h >= src_h) {
+    if (out_nearest_sampling != nullptr)
+      *out_nearest_sampling = true;
+    return images_[media_index]->texture();
+  }
+
+  if (out_nearest_sampling != nullptr)
+    *out_nearest_sampling = false;
+
+  ++downscale_cache_tick_;
+  gfx::TextureHandle closest_ready = nullptr;
+  int closest_dist = std::numeric_limits<int>::max();
+  DownscaleCacheEntry* exact_entry = nullptr;
+  for (auto& entry : downscale_cache_) {
+    if (entry.media_index != media_index)
+      continue;
+    if (entry.phys_width == phys_w && entry.phys_height == phys_h) {
+      exact_entry = &entry;
+    }
+    if (entry.bitmap && entry.bitmap->texture() != nullptr) {
+      const int dist = std::abs(entry.phys_width - phys_w) +
+                       std::abs(entry.phys_height - phys_h);
+      if (dist < closest_dist) {
+        closest_dist = dist;
+        closest_ready = entry.bitmap->texture();
+      }
+    }
+  }
+
+  if (exact_entry != nullptr) {
+    exact_entry->last_used_tick = downscale_cache_tick_;
+    if (exact_entry->bitmap && exact_entry->bitmap->texture() != nullptr) {
+      return exact_entry->bitmap->texture();
+    }
+    return closest_ready != nullptr ? closest_ready
+                                    : images_[media_index]->texture();
+  }
+
+  EnsureImageMipsBuilt(media_index);
+  if (media_index >= image_mips_.size() || image_mips_[media_index].empty()) {
+    return images_[media_index]->texture();
+  }
+  const std::vector<uint8_t> scaled_rgba =
+      DownscaleReviewBoardFromMips(image_mips_[media_index], phys_w, phys_h);
+  if (scaled_rgba.empty()) {
+    return images_[media_index]->texture();
+  }
+
+  if (downscale_cache_.size() >= kMaxDownscaleCacheEntries) {
+    auto lru_it = std::min_element(
+        downscale_cache_.begin(), downscale_cache_.end(),
+        [](const DownscaleCacheEntry& a, const DownscaleCacheEntry& b) {
+          return a.last_used_tick < b.last_used_tick;
+        });
+    if (lru_it != downscale_cache_.end()) {
+      if (lru_it->bitmap)
+        gfx::Arena::Get().RetireBitmap(*lru_it->bitmap);
+      downscale_cache_.erase(lru_it);
+    }
+  }
+
+  auto scaled_bmp = std::make_unique<gfx::Bitmap>();
+  scaled_bmp->Create(phys_w, phys_h, 32, scaled_rgba);
+  gfx::Arena::Get().QueueTextureCommand(gfx::Arena::TextureCommandType::CREATE,
+                                        scaled_bmp.get());
+  downscale_cache_.push_back(DownscaleCacheEntry{media_index, phys_w, phys_h,
+                                                 downscale_cache_tick_,
+                                                 std::move(scaled_bmp)});
+
+  return closest_ready != nullptr ? closest_ready
+                                  : images_[media_index]->texture();
+}
+
 void ReviewBoardsView::OpenImageViewer(int media_index) {
   viewer_media_index_ = media_index;
-  viewer_zoom_ = 0.0f;
+  viewer_state_ = ReviewBoardViewerState{};
+  viewer_last_canvas_avail_ = ImVec2(0.0f, 0.0f);
+  viewer_last_modal_size_ = ImVec2(0.0f, 0.0f);
+  viewer_dragging_ = false;
   image_viewer_open_ = true;
   open_image_viewer_popup_ = true;
 }
@@ -530,24 +1052,77 @@ void ReviewBoardsView::DrawImageViewerModal(const ReviewBoard& board) {
     ImGui::OpenPopup(modal_title.c_str());
     open_image_viewer_popup_ = false;
   }
-  ImGui::SetNextWindowSize(ImVec2(820.0f, 620.0f), ImGuiCond_Appearing);
+  const ImGuiViewport* viewport = ImGui::GetMainViewport();
+  const ImVec2 vp_size = (viewport != nullptr && viewport->WorkSize.x > 0.0f &&
+                          viewport->WorkSize.y > 0.0f)
+                             ? viewport->WorkSize
+                             : ImVec2(1280.0f, 800.0f);
+  ImGui::SetNextWindowSize(
+      ImVec2(std::floor(vp_size.x * 0.90f), std::floor(vp_size.y * 0.90f)),
+      ImGuiCond_FirstUseEver);
+  ImGui::SetNextWindowPos(viewport != nullptr
+                              ? viewport->GetWorkCenter()
+                              : ImVec2(vp_size.x * 0.5f, vp_size.y * 0.5f),
+                          ImGuiCond_FirstUseEver, ImVec2(0.5f, 0.5f));
+  ImGui::SetNextWindowSizeConstraints(
+      ImVec2(420.0f, 320.0f), ImVec2(std::max(420.0f, vp_size.x * 0.98f),
+                                     std::max(320.0f, vp_size.y * 0.98f)));
   if (!ImGui::BeginPopupModal(modal_title.c_str(), &image_viewer_open_,
                               ImGuiWindowFlags_NoSavedSettings)) {
+    viewer_dragging_ = false;
     return;
   }
   EnsureImagesLoaded(board);
   const int count = static_cast<int>(board.media.size());
   if (count <= 0) {
+    viewer_dragging_ = false;
     ImGui::CloseCurrentPopup();
     ImGui::EndPopup();
     return;
   }
+  const int prev_index = viewer_media_index_;
   viewer_media_index_ = std::clamp(viewer_media_index_, 0, count - 1);
-  const auto& media = board.media[viewer_media_index_];
+  if (viewer_media_index_ != prev_index) {
+    viewer_state_ = ReviewBoardViewerState{};
+    viewer_dragging_ = false;
+  }
+  const auto& media = board.media[static_cast<size_t>(viewer_media_index_)];
+  const ImGuiIO& io = ImGui::GetIO();
+  const ImVec2 fb =
+      SanitizeReviewBoardFramebufferScale(io.DisplayFramebufferScale);
+  const ImGuiStyle& style = ImGui::GetStyle();
+  const float footer =
+      media.caption.empty() ? 0.0f : ImGui::GetTextLineHeightWithSpacing() * 2;
+  const size_t idx = static_cast<size_t>(viewer_media_index_);
+  const bool has_valid_image = media.kind == "image" && idx < images_.size() &&
+                               images_[idx] && images_[idx]->is_active() &&
+                               images_[idx]->width() > 0 &&
+                               images_[idx]->height() > 0;
+  const ImVec2 image_size =
+      has_valid_image ? ImVec2(static_cast<float>(images_[idx]->width()),
+                               static_cast<float>(images_[idx]->height()))
+                      : ImVec2(0.0f, 0.0f);
+
+  const ImVec2 modal_win_size = ImGui::GetWindowSize();
+  ImVec2 toolbar_canvas_avail = viewer_last_canvas_avail_;
+  if (toolbar_canvas_avail.x <= 1.0f || toolbar_canvas_avail.y <= 1.0f ||
+      std::abs(modal_win_size.x - viewer_last_modal_size_.x) > 0.5f ||
+      std::abs(modal_win_size.y - viewer_last_modal_size_.y) > 0.5f) {
+    const ImVec2 modal_avail = ImGui::GetContentRegionAvail();
+    const float est_toolbar_h =
+        ImGui::GetFrameHeightWithSpacing() + style.ItemSpacing.y + 1.0f;
+    toolbar_canvas_avail =
+        ImVec2(std::max(1.0f, modal_avail.x - style.ChildBorderSize * 2.0f),
+               std::max(1.0f, modal_avail.y - est_toolbar_h - footer -
+                                  style.ChildBorderSize * 2.0f));
+  }
+  viewer_last_modal_size_ = modal_win_size;
 
   ImGui::BeginDisabled(viewer_media_index_ <= 0);
   if (gui::ThemedButton(ICON_MD_CHEVRON_LEFT)) {
     --viewer_media_index_;
+    viewer_state_ = ReviewBoardViewerState{};
+    viewer_dragging_ = false;
   }
   ImGui::EndDisabled();
   if (viewer_media_index_ <= 0 &&
@@ -558,55 +1133,227 @@ void ReviewBoardsView::DrawImageViewerModal(const ReviewBoard& board) {
   ImGui::BeginDisabled(viewer_media_index_ >= count - 1);
   if (gui::ThemedButton(ICON_MD_CHEVRON_RIGHT)) {
     ++viewer_media_index_;
+    viewer_state_ = ReviewBoardViewerState{};
+    viewer_dragging_ = false;
   }
   ImGui::EndDisabled();
   if (viewer_media_index_ >= count - 1 &&
       ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
     ImGui::SetTooltip("%s", tr("Already at the last media item."));
   }
+
+  std::optional<float> pending_toolbar_zoom;
   ImGui::SameLine();
-  if (gui::ThemedButton(tr("Fit")))
-    viewer_zoom_ = 0.0f;
+  if (gui::ThemedButton(tr("Fit"))) {
+    viewer_state_ = ReviewBoardViewerState{};
+    viewer_dragging_ = false;
+  }
+  if (ImGui::IsItemHovered()) {
+    ImGui::SetTooltip(
+        "%s",
+        tr("Fit image in viewer (double-click canvas to toggle Fit / 100%)"));
+  }
   ImGui::SameLine();
-  if (gui::ThemedButton("1x"))
-    viewer_zoom_ = 1.0f;
+  if (gui::ThemedButton(tr("Actual pixels"))) {
+    pending_toolbar_zoom = 1.0f;
+  }
+  if (ImGui::IsItemHovered()) {
+    ImGui::SetTooltip("%s", tr("1 image pixel = 1 physical pixel (100%)"));
+  }
   ImGui::SameLine();
-  if (gui::ThemedButton("2x"))
-    viewer_zoom_ = 2.0f;
+  if (gui::ThemedButton(tr("1x"))) {
+    pending_toolbar_zoom = 1.0f;
+  }
   ImGui::SameLine();
-  if (gui::ThemedButton("4x"))
-    viewer_zoom_ = 4.0f;
+  if (gui::ThemedButton(tr("2x"))) {
+    pending_toolbar_zoom = 2.0f;
+  }
   ImGui::SameLine();
-  ImGui::TextDisabled("%d/%d  %s", viewer_media_index_ + 1, count,
-                      media.path.c_str());
+  if (gui::ThemedButton(tr("4x"))) {
+    pending_toolbar_zoom = 4.0f;
+  }
+  if (has_valid_image) {
+    ReviewBoardViewerState label_state = viewer_state_;
+    if (pending_toolbar_zoom.has_value()) {
+      label_state.fit_mode = false;
+      label_state.zoom = *pending_toolbar_zoom;
+    }
+    const ReviewBoardViewerLayout label_layout = ResolveReviewBoardViewerLayout(
+        label_state, image_size, toolbar_canvas_avail, fb);
+    ImGui::SameLine();
+    if (label_state.fit_mode) {
+      ImGui::TextDisabled("%d%% (%s)", label_layout.zoom_percent, tr("Fit"));
+    } else {
+      ImGui::TextDisabled("%d%%", label_layout.zoom_percent);
+    }
+  }
+  const std::string info_text =
+      has_valid_image
+          ? absl::StrFormat("%d/%d  %s (%dx%d)", viewer_media_index_ + 1, count,
+                            media.path.c_str(), images_[idx]->width(),
+                            images_[idx]->height())
+          : absl::StrFormat("%d/%d  %s", viewer_media_index_ + 1, count,
+                            media.path.c_str());
+  const float close_w =
+      ImGui::CalcTextSize(tr("Close")).x + style.FramePadding.x * 2.0f;
+  const float info_w = ImGui::CalcTextSize(info_text.c_str()).x;
   ImGui::SameLine();
-  if (gui::ThemedButton(tr("Close"))) {
-    image_viewer_open_ = false;
-    ImGui::CloseCurrentPopup();
+  const float rem_after_zoom = ImGui::GetContentRegionAvail().x;
+  if (rem_after_zoom >= info_w + style.ItemSpacing.x + close_w) {
+    ImGui::TextDisabled("%s", info_text.c_str());
+    ImGui::SameLine();
+    const float right_offset = ImGui::GetContentRegionAvail().x - close_w;
+    if (right_offset > 0.0f) {
+      ImGui::SetCursorPosX(ImGui::GetCursorPosX() + right_offset);
+    }
+    if (gui::ThemedButton(tr("Close"))) {
+      viewer_dragging_ = false;
+      image_viewer_open_ = false;
+      ImGui::CloseCurrentPopup();
+    }
+  } else {
+    if (rem_after_zoom < close_w) {
+      ImGui::NewLine();
+    } else {
+      const float right_offset = rem_after_zoom - close_w;
+      if (right_offset > 0.0f) {
+        ImGui::SetCursorPosX(ImGui::GetCursorPosX() + right_offset);
+      }
+    }
+    if (gui::ThemedButton(tr("Close"))) {
+      viewer_dragging_ = false;
+      image_viewer_open_ = false;
+      ImGui::CloseCurrentPopup();
+    }
+    ImGui::TextDisabled("%s", info_text.c_str());
   }
   ImGui::Separator();
 
-  const float footer =
-      media.caption.empty() ? 0.0f : ImGui::GetTextLineHeightWithSpacing() * 2;
-  if (ImGui::BeginChild("##viewer_canvas", ImVec2(0.0f, -footer),
-                        ImGuiChildFlags_Borders,
-                        ImGuiWindowFlags_HorizontalScrollbar)) {
-    const size_t idx = static_cast<size_t>(viewer_media_index_);
-    if (idx < images_.size() && images_[idx] && images_[idx]->texture()) {
-      const float w = static_cast<float>(images_[idx]->width());
-      const float h = static_cast<float>(images_[idx]->height());
-      float scale = viewer_zoom_;
-      if (scale <= 0.0f && w > 0.0f && h > 0.0f) {
-        const ImVec2 avail = ImGui::GetContentRegionAvail();
-        scale = std::min(avail.x / w, avail.y / h);
-        scale = std::clamp(scale, 0.1f, 4.0f);
+  if (ImGui::BeginChild(
+          "##viewer_canvas", ImVec2(0.0f, -footer), ImGuiChildFlags_Borders,
+          ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse)) {
+    const ImVec2 canvas_p0 = ImGui::GetCursorScreenPos();
+    const ImVec2 raw_avail = ImGui::GetContentRegionAvail();
+    const ImVec2 canvas_avail(std::max(1.0f, raw_avail.x),
+                              std::max(1.0f, raw_avail.y));
+    viewer_last_canvas_avail_ = canvas_avail;
+
+    if (has_valid_image) {
+      if (pending_toolbar_zoom.has_value()) {
+        const ImVec2 center_screen(canvas_p0.x + canvas_avail.x * 0.5f,
+                                   canvas_p0.y + canvas_avail.y * 0.5f);
+        viewer_state_ = ZoomReviewBoardAroundScreenPos(
+            viewer_state_, *pending_toolbar_zoom, center_screen, canvas_p0,
+            image_size, canvas_avail, fb);
+        viewer_dragging_ = false;
       }
-      ImGui::Image((ImTextureID)(intptr_t)images_[idx]->texture(),
-                   ImVec2(w * scale, h * scale));
+
+      ImGui::InvisibleButton("##viewer_canvas_surface", canvas_avail,
+                             ImGuiButtonFlags_MouseButtonLeft |
+                                 ImGuiButtonFlags_MouseButtonMiddle);
+      const bool canvas_hovered = ImGui::IsItemHovered();
+      const bool canvas_active = ImGui::IsItemActive();
+
+      if (!canvas_active) {
+        viewer_dragging_ = false;
+      }
+
+      if (canvas_hovered && !io.WantTextInput &&
+          ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
+        viewer_state_ = ToggleReviewBoardViewerFitOrActual(
+            viewer_state_, io.MousePos, canvas_p0, image_size, canvas_avail,
+            fb);
+        viewer_dragging_ = false;
+      } else {
+        if (canvas_active && !viewer_dragging_) {
+          const bool left_drag = ImGui::IsMouseDragging(ImGuiMouseButton_Left);
+          const bool mid_drag =
+              !left_drag && ImGui::IsMouseDragging(ImGuiMouseButton_Middle);
+          if (left_drag || mid_drag) {
+            const ReviewBoardViewerLayout base = ResolveReviewBoardViewerLayout(
+                viewer_state_, image_size, canvas_avail, fb);
+            viewer_dragging_ = true;
+            viewer_drag_button_ =
+                left_drag ? ImGuiMouseButton_Left : ImGuiMouseButton_Middle;
+            viewer_drag_start_pan_ = base.pan;
+            viewer_state_.fit_mode = false;
+            viewer_state_.zoom = base.physical_zoom;
+            viewer_state_.pan = base.pan;
+          }
+        }
+        if (viewer_dragging_) {
+          if (!ImGui::IsMouseDown(viewer_drag_button_)) {
+            viewer_dragging_ = false;
+          } else {
+            const ImVec2 delta =
+                ImGui::GetMouseDragDelta(viewer_drag_button_, 0.0f);
+            const ReviewBoardViewerLayout cur = ResolveReviewBoardViewerLayout(
+                viewer_state_, image_size, canvas_avail, fb);
+            viewer_state_.pan = ClampReviewBoardViewerPan(
+                ImVec2(viewer_drag_start_pan_.x + delta.x,
+                       viewer_drag_start_pan_.y + delta.y),
+                cur.drawn_logical_size, canvas_avail);
+            ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeAll);
+          }
+        }
+      }
+
+      if (ShouldHandleReviewBoardCanvasWheel(canvas_hovered, io.WantTextInput,
+                                             io.MouseWheel)) {
+        viewer_state_ =
+            StepReviewBoardWheelZoom(viewer_state_, io.MouseWheel, io.MousePos,
+                                     canvas_p0, image_size, canvas_avail, fb);
+        if (viewer_dragging_) {
+          const ImVec2 delta =
+              ImGui::GetMouseDragDelta(viewer_drag_button_, 0.0f);
+          viewer_drag_start_pan_ = ImVec2(viewer_state_.pan.x - delta.x,
+                                          viewer_state_.pan.y - delta.y);
+        }
+      }
+
+      const ReviewBoardViewerLayout layout = ResolveReviewBoardViewerLayout(
+          viewer_state_, image_size, canvas_avail, fb);
+      if (!viewer_state_.fit_mode) {
+        viewer_state_.pan = layout.pan;
+      }
+
+      bool use_nearest = layout.use_nearest_sampling;
+      gfx::TextureHandle tex = GetTextureForPhysicalSize(
+          idx, layout.target_physical_width, layout.target_physical_height,
+          &use_nearest);
+      ImDrawList* draw = ImGui::GetWindowDrawList();
+      draw->PushClipRect(
+          canvas_p0,
+          ImVec2(canvas_p0.x + canvas_avail.x, canvas_p0.y + canvas_avail.y),
+          true);
+      if (tex != nullptr) {
+        const ImVec2 img_min(
+            std::round((canvas_p0.x + layout.pan.x) * fb.x) / fb.x,
+            std::round((canvas_p0.y + layout.pan.y) * fb.y) / fb.y);
+        const ImVec2 img_max(img_min.x + layout.drawn_logical_size.x,
+                             img_min.y + layout.drawn_logical_size.y);
+        if (use_nearest) {
+          gui::ScopedNearestSampling nearest(draw);
+          draw->AddImage((ImTextureID)(intptr_t)tex, img_min, img_max);
+        } else {
+          draw->AddImage((ImTextureID)(intptr_t)tex, img_min, img_max);
+        }
+      } else {
+        const std::string loading =
+            absl::StrFormat("%s %s", ICON_MD_IMAGE, tr("Loading image..."));
+        draw->AddText(ImVec2(canvas_p0.x + style.FramePadding.x,
+                             canvas_p0.y + style.FramePadding.y),
+                      ImGui::GetColorU32(ImGuiCol_TextDisabled),
+                      loading.c_str());
+      }
+      draw->PopClipRect();
     } else if (idx < image_errors_.size() && !image_errors_[idx].empty()) {
       gui::StyleColorGuard err(ImGuiCol_Text, gui::GetErrorColor());
       ImGui::TextWrapped("%s %s", ICON_MD_BROKEN_IMAGE,
                          image_errors_[idx].c_str());
+    } else if (media.kind != "image") {
+      ImGui::TextDisabled("%s %s", ICON_MD_VIDEOCAM,
+                          tr("Videos are listed, not played, in yaze."));
     } else {
       ImGui::TextDisabled("%s", tr("Image unavailable."));
     }
@@ -1128,19 +1875,37 @@ void ReviewBoardsView::DrawOptionThumbnail(const ReviewBoard& board,
     return;
   }
   const size_t idx = static_cast<size_t>(media_index);
-  if (!images_[idx] || !images_[idx]->texture())
+  if (!images_[idx] || !images_[idx]->is_active())
     return;
   const float w = static_cast<float>(images_[idx]->width());
   const float h = static_cast<float>(images_[idx]->height());
   if (w <= 0.0f || h <= 0.0f)
     return;
-  const float max_side = ImGui::GetFontSize() * 6.5f;
+  const ImVec2 fb = SanitizeReviewBoardFramebufferScale(
+      ImGui::GetIO().DisplayFramebufferScale);
+  const float max_side = ImGui::GetFontSize() * 8.5f;
   const float scale = std::min(max_side / w, max_side / h);
-  const ImVec2 thumb_size(std::max(24.0f, w * scale),
-                          std::max(24.0f, h * scale));
-  if (ImGui::ImageButton("##opt_thumb",
-                         (ImTextureID)(intptr_t)images_[idx]->texture(),
-                         thumb_size)) {
+  const int phys_w =
+      std::max(1, static_cast<int>(std::lround(w * scale * fb.x)));
+  const int phys_h =
+      std::max(1, static_cast<int>(std::lround(h * scale * fb.y)));
+  bool use_nearest = false;
+  gfx::TextureHandle tex =
+      GetTextureForPhysicalSize(idx, phys_w, phys_h, &use_nearest);
+  if (tex == nullptr)
+    return;
+  const ImVec2 thumb_size(static_cast<float>(phys_w) / fb.x,
+                          static_cast<float>(phys_h) / fb.y);
+  bool clicked = false;
+  if (use_nearest) {
+    gui::ScopedNearestSampling nearest(ImGui::GetWindowDrawList());
+    clicked = ImGui::ImageButton("##opt_thumb", (ImTextureID)(intptr_t)tex,
+                                 thumb_size);
+  } else {
+    clicked = ImGui::ImageButton("##opt_thumb", (ImTextureID)(intptr_t)tex,
+                                 thumb_size);
+  }
+  if (clicked) {
     OpenImageViewer(media_index);
   }
   if (ImGui::IsItemHovered()) {
@@ -1339,6 +2104,8 @@ void ReviewBoardsView::DrawMedia(const ReviewBoard& board) {
 
   ImGui::SeparatorText(tr("Media"));
   ImGui::Checkbox(tr("Fit width"), &fit_width_);
+  const ImVec2 fb = SanitizeReviewBoardFramebufferScale(
+      ImGui::GetIO().DisplayFramebufferScale);
   for (size_t i = 0; i < board.media.size(); ++i) {
     const auto& media = board.media[i];
     ImGui::PushID(static_cast<int>(i));
@@ -1352,41 +2119,63 @@ void ReviewBoardsView::DrawMedia(const ReviewBoard& board) {
       ImGui::Text("%s %s: %s", ICON_MD_BROKEN_IMAGE, media.path.c_str(),
                   image_errors_[i].c_str());
       ImGui::PopTextWrapPos();
-    } else if (images_[i] && images_[i]->texture()) {
+    } else if (images_[i] && images_[i]->is_active()) {
       const float w = static_cast<float>(images_[i]->width());
       const float h = static_cast<float>(images_[i]->height());
-      float scale = 1.0f;
-      if (fit_width_ && w > 0.0f)
-        scale = std::min(4.0f, ImGui::GetContentRegionAvail().x / w);
-      const ImVec2 size(w * scale, h * scale);
-      const ImVec2 origin = ImGui::GetCursorScreenPos();
-      ImGui::Image((ImTextureID)(intptr_t)images_[i]->texture(), size);
-      if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip("%s", tr("Click to inspect in full image viewer"));
-        if (ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
-          OpenImageViewer(static_cast<int>(i));
-        }
+      float physical_zoom = 1.0f;
+      if (fit_width_ && w > 0.0f) {
+        const float avail_phys_w = std::max(
+            1.0f, std::floor(std::max(1.0f, ImGui::GetContentRegionAvail().x) *
+                             fb.x));
+        physical_zoom =
+            std::clamp(avail_phys_w / w, kReviewBoardViewerMinZoom, 4.0f);
       }
-      if (i == 0) {
-        ImDrawList* draw = ImGui::GetWindowDrawList();
-        const ImU32 fill = ImGui::GetColorU32(gui::GetAccentColor());
-        const ImU32 text = ImGui::GetColorU32(ImGuiCol_Text);
-        const ImU32 back = ImGui::GetColorU32(ImGuiCol_WindowBg);
-        const float radius = ImGui::GetFontSize() * 0.6f;
-        int number = 0;
-        for (const auto& comment : board.comments) {
-          ++number;
-          if (!comment.has_pin)
-            continue;
-          const ImVec2 at(origin.x + comment.pin_x * size.x,
-                          origin.y + comment.pin_y * size.y);
-          draw->AddCircleFilled(at, radius + 1.5f, back);
-          draw->AddCircleFilled(at, radius, fill);
-          const std::string n = std::to_string(number);
-          const ImVec2 ts = ImGui::CalcTextSize(n.c_str());
-          draw->AddText(ImVec2(at.x - ts.x * 0.5f, at.y - ts.y * 0.5f), text,
-                        n.c_str());
+      const int phys_w =
+          std::max(1, static_cast<int>(std::lround(w * physical_zoom)));
+      const int phys_h =
+          std::max(1, static_cast<int>(std::lround(h * physical_zoom)));
+      bool use_nearest = false;
+      gfx::TextureHandle tex =
+          GetTextureForPhysicalSize(i, phys_w, phys_h, &use_nearest);
+      if (tex != nullptr) {
+        const ImVec2 size(static_cast<float>(phys_w) / fb.x,
+                          static_cast<float>(phys_h) / fb.y);
+        const ImVec2 origin = ImGui::GetCursorScreenPos();
+        if (use_nearest) {
+          gui::ScopedNearestSampling nearest(ImGui::GetWindowDrawList());
+          ImGui::Image((ImTextureID)(intptr_t)tex, size);
+        } else {
+          ImGui::Image((ImTextureID)(intptr_t)tex, size);
         }
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip("%s", tr("Click to inspect in full image viewer"));
+          if (ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
+            OpenImageViewer(static_cast<int>(i));
+          }
+        }
+        if (i == 0) {
+          ImDrawList* draw = ImGui::GetWindowDrawList();
+          const ImU32 fill = ImGui::GetColorU32(gui::GetAccentColor());
+          const ImU32 text = ImGui::GetColorU32(ImGuiCol_Text);
+          const ImU32 back = ImGui::GetColorU32(ImGuiCol_WindowBg);
+          const float radius = ImGui::GetFontSize() * 0.6f;
+          int number = 0;
+          for (const auto& comment : board.comments) {
+            ++number;
+            if (!comment.has_pin)
+              continue;
+            const ImVec2 at(origin.x + comment.pin_x * size.x,
+                            origin.y + comment.pin_y * size.y);
+            draw->AddCircleFilled(at, radius + 1.5f, back);
+            draw->AddCircleFilled(at, radius, fill);
+            const std::string n = std::to_string(number);
+            const ImVec2 ts = ImGui::CalcTextSize(n.c_str());
+            draw->AddText(ImVec2(at.x - ts.x * 0.5f, at.y - ts.y * 0.5f), text,
+                          n.c_str());
+          }
+        }
+      } else {
+        ImGui::TextDisabled("%s %s", ICON_MD_IMAGE, tr("Loading image..."));
       }
     } else {
       ImGui::TextDisabled("%s %s", ICON_MD_IMAGE, tr("Loading image..."));
