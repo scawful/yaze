@@ -1,4 +1,5 @@
 #include "app/editor/agent/review_board.h"
+#include "app/editor/agent/ui/review_boards/review_boards_view.h"
 
 #include <chrono>
 #include <filesystem>
@@ -627,6 +628,128 @@ TEST(ReviewBoardTest, RefusesImagesThatResolveOutsideTheBoardFolder) {
   EXPECT_FALSE(LoadReviewBoardImage(relative, 0).ok());
 }
 #endif
+
+TEST(ReviewBoardTest, OptionalOnlyBoardWaitsUntilFirstFeedbackHistory) {
+  TempDir dir;
+  json packet = ValidBoardV2("q237-optional-only");
+  for (auto& q : packet["questions"]) {
+    q["required"] = false;
+  }
+  const fs::path folder = dir.path() / "q237-optional-only";
+  WriteText(folder / "board.json", packet.dump());
+
+  auto scan = ScanReviewBoards(dir.path());
+  ASSERT_EQ(scan.boards.size(), 1u);
+  ReviewBoard& board = scan.boards[0];
+  EXPECT_TRUE(board.feedback.empty());
+  EXPECT_TRUE(ReviewBoardWaitingOnUser(board));
+
+  ASSERT_TRUE(WriteReviewBoardFeedback(board, {"comment",
+                                               "general",
+                                               "Noted optional choices",
+                                               "2026-11-17T13:00:00Z",
+                                               {}})
+                  .ok());
+  EXPECT_FALSE(ReviewBoardWaitingOnUser(board));
+
+  auto rescan = ScanReviewBoards(dir.path());
+  ASSERT_EQ(rescan.boards.size(), 1u);
+  EXPECT_FALSE(ReviewBoardWaitingOnUser(rescan.boards[0]));
+}
+
+TEST(ReviewBoardTest,
+     StaleDraftAfterRepublishFlagsBannerAndPrunesRemovedQuestionIds) {
+  TempDir dir;
+  json v1_packet = ValidBoardV2("q237-repub");
+  const fs::path board_file = dir.path() / "q237-repub" / "board.json";
+  WriteText(board_file, v1_packet.dump());
+
+  ReviewBoardsView view;
+  view.SetBoardsDirectory(dir.path());
+  view.SelectBoardById("q237-repub");
+  ASSERT_EQ(view.scan().boards.size(), 1u);
+
+  const ReviewBoard* initial_board = &view.scan().boards[0];
+  EXPECT_FALSE(view.HasUnsavedDraft(*initial_board));
+  EXPECT_FALSE(view.IsDraftStaleAfterRepublish("q237-repub"));
+
+  view.SetDraftAnswer("q237-repub", "cliff_style",
+                      ReviewBoardAnswer{std::string("b"), ""});
+  view.SetDraftAnswer("q237-repub", "notes",
+                      ReviewBoardAnswer{std::string("keep this note"), ""});
+  EXPECT_TRUE(view.HasUnsavedDraft(*initial_board));
+  EXPECT_FALSE(view.IsDraftStaleAfterRepublish("q237-repub"));
+
+  // Republish replacing `cliff_style` with `shore_style`, bumping file mtime
+  // explicitly so the incremental watcher detects the update cleanly.
+  json v2_packet = v1_packet;
+  v2_packet["questions"][0]["id"] = "shore_style";
+  v2_packet["questions"][0]["prompt"] = "Which shoreline style for $8C?";
+  v2_packet["questions"][0]["options"][0]["recommended"] = false;
+  WriteText(board_file, v2_packet.dump());
+  const auto bumped = fs::last_write_time(board_file) + std::chrono::seconds(2);
+  fs::last_write_time(board_file, bumped);
+
+  view.ForceRefresh();
+  ASSERT_EQ(view.scan().boards.size(), 1u);
+  const ReviewBoard& updated_board = view.scan().boards[0];
+  EXPECT_TRUE(view.IsDraftStaleAfterRepublish("q237-repub"));
+  const auto* stale_answers = view.DraftAnswersFor("q237-repub");
+  ASSERT_NE(stale_answers, nullptr);
+  EXPECT_TRUE(stale_answers->contains("shore_style"));
+
+  // BuildReviewBoardFeedback filters any orphaned question ID before writing.
+  auto filtered_json = BuildReviewBoardFeedback(
+      updated_board, {"looks_good", "general", "", "t1", *stale_answers}, "");
+  ASSERT_TRUE(filtered_json.ok());
+  const json parsed_fb = json::parse(*filtered_json);
+  EXPECT_FALSE(parsed_fb["answers"].contains("cliff_style"));
+
+  // Keeping edits prunes `cliff_style`, retains `notes`, and clears banner.
+  view.KeepDraftEditsOnUpdatedBoard(updated_board);
+  EXPECT_FALSE(view.IsDraftStaleAfterRepublish("q237-repub"));
+  const auto* kept_answers = view.DraftAnswersFor("q237-repub");
+  ASSERT_NE(kept_answers, nullptr);
+  EXPECT_FALSE(kept_answers->contains("cliff_style"));
+  EXPECT_TRUE(kept_answers->contains("shore_style"));
+  EXPECT_EQ(std::get<std::string>(kept_answers->at("notes").value),
+            "keep this note");
+  EXPECT_TRUE(view.HasUnsavedDraft(updated_board));
+
+  // Second republish + Reload resets the dirty draft back to board defaults.
+  json v3_packet = v2_packet;
+  v3_packet["title"] = "Sky Island $8C cliff style v3";
+  WriteText(board_file, v3_packet.dump());
+  fs::last_write_time(board_file, bumped + std::chrono::seconds(2));
+  view.ForceRefresh();
+  ASSERT_EQ(view.scan().boards.size(), 1u);
+  EXPECT_TRUE(view.IsDraftStaleAfterRepublish("q237-repub"));
+
+  view.ReloadDraftFromBoard(view.scan().boards[0]);
+  EXPECT_FALSE(view.IsDraftStaleAfterRepublish("q237-repub"));
+  EXPECT_FALSE(view.HasUnsavedDraft(view.scan().boards[0]));
+}
+
+TEST(ReviewBoardTest, MalformedFeedbackHistoryEntriesDoNotThrowOnAppend) {
+  auto board = ParseReviewBoard(ValidBoard("q237-malformed").dump(), "/b");
+  ASSERT_TRUE(board.ok());
+
+  const json existing = {
+      {"schema", "yaze.review_board_feedback.v2"},
+      {"id", "q237-malformed"},
+      {"status", "looks_good"},
+      {"answers", json::object()},
+      {"history",
+       json::array({123, json{{"decision", 42}},
+                    json{{"decision", "looks_good"}, {"comment", "ok"}},
+                    "trailing-string"})}};
+  ReviewBoardFeedbackEntry comment{"comment", "layout", "Check seam", "t2"};
+  auto appended = BuildReviewBoardFeedback(*board, comment, existing.dump());
+  ASSERT_TRUE(appended.ok()) << appended.status().message();
+  const json out = json::parse(*appended);
+  EXPECT_EQ(out["status"], "looks_good");
+  ASSERT_EQ(out["history"].size(), 5u);
+}
 
 }  // namespace
 }  // namespace yaze::editor
