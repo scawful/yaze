@@ -172,6 +172,15 @@ std::string ExtractErrorString(const nlohmann::json& obj) {
 }
 #endif  // YAZE_WITH_JSON
 
+// Cli harnesses whose -p flag is boolean take the prompt as a positional arg,
+// so a leading '-' would be misparsed as an option unless prefixed with a space.
+std::string SafeOptionPromptArg(const std::string& prompt) {
+  if (!prompt.empty() && prompt.front() == '-') {
+    return absl::StrCat(" ", prompt);
+  }
+  return prompt;
+}
+
 }  // namespace
 
 std::string NormalizeCliHarnessProviderId(absl::string_view provider) {
@@ -204,7 +213,9 @@ absl::StatusOr<CliHarnessProfile> GetCliHarnessProfile(
         .display_name = "Claude Code",
         .binary_name = "claude",
         .default_model = "claude-sonnet-5-5",
-        .read_only_summary = "--permission-mode plan",
+        .read_only_summary =
+            "--permission-mode plan --setting-sources user "
+            "--strict-mcp-config",
         .supports_live_model_list = false,
     };
   }
@@ -214,7 +225,7 @@ absl::StatusOr<CliHarnessProfile> GetCliHarnessProfile(
         .display_name = "Codex",
         .binary_name = "codex",
         .default_model = "gpt-5.2",
-        .read_only_summary = "--sandbox read-only",
+        .read_only_summary = "--sandbox read-only --skip-git-repo-check",
         .supports_live_model_list = false,
     };
   }
@@ -265,8 +276,15 @@ absl::StatusOr<std::vector<std::string>> BuildCliHarnessArgv(
   const int clamped_timeout = std::clamp(timeout_seconds, 5, 3600);
 
   if (canonical == kProviderClaudeCode) {
-    std::vector<std::string> args = {
-        "-p", prompt, "--output-format", "json", "--permission-mode", "plan"};
+    std::vector<std::string> args = {"-p",
+                                     SafeOptionPromptArg(prompt),
+                                     "--output-format",
+                                     "json",
+                                     "--permission-mode",
+                                     "plan",
+                                     "--setting-sources",
+                                     "user",
+                                     "--strict-mcp-config"};
     if (!trimmed_model.empty()) {
       args.push_back("--model");
       args.push_back(trimmed_model);
@@ -275,8 +293,8 @@ absl::StatusOr<std::vector<std::string>> BuildCliHarnessArgv(
   }
 
   if (canonical == kProviderCodex) {
-    std::vector<std::string> args = {"exec", "--json", "--sandbox",
-                                     "read-only"};
+    std::vector<std::string> args = {"exec", "--json", "--sandbox", "read-only",
+                                     "--skip-git-repo-check"};
     if (!trimmed_model.empty()) {
       args.push_back("-m");
       args.push_back(trimmed_model);
@@ -288,7 +306,8 @@ absl::StatusOr<std::vector<std::string>> BuildCliHarnessArgv(
 
   if (canonical == kProviderCursorAgent) {
     std::vector<std::string> args = {
-        "-p", prompt, "--mode", "plan", "--output-format", "json"};
+        "-p",   SafeOptionPromptArg(prompt), "--mode",
+        "plan", "--output-format",           "json"};
     if (!trimmed_model.empty()) {
       args.push_back("--model");
       args.push_back(trimmed_model);
@@ -298,7 +317,7 @@ absl::StatusOr<std::vector<std::string>> BuildCliHarnessArgv(
 
   if (canonical == kProviderAgy) {
     std::vector<std::string> args = {"-p",
-                                     prompt,
+                                     SafeOptionPromptArg(prompt),
                                      "--mode",
                                      "plan",
                                      "--output-format",
@@ -314,7 +333,8 @@ absl::StatusOr<std::vector<std::string>> BuildCliHarnessArgv(
 
   if (canonical == kProviderGeminiCli) {
     std::vector<std::string> args = {
-        "-p", prompt, "--output-format", "json", "--approval-mode", "plan"};
+        "-p",   SafeOptionPromptArg(prompt), "--output-format",
+        "json", "--approval-mode",           "plan"};
     if (!trimmed_model.empty()) {
       args.push_back("--model");
       args.push_back(trimmed_model);

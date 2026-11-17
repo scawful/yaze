@@ -14,6 +14,12 @@ struct AiHttpResponse {
   std::string body;
 };
 
+// Returns true if HTTP redirects should be followed for the given headers.
+// Disabled whenever authentication headers are present so credentials such as
+// x-api-key, x-goog-api-key, or Authorization are never forwarded on 3xx hops.
+bool ShouldFollowAiHttpRedirects(
+    const std::map<std::string, std::string>& headers);
+
 // Performs an HTTP/HTTPS GET or POST without spawning a shell and without
 // passing API keys or headers on process argv.
 absl::StatusOr<AiHttpResponse> PerformAiHttpRequest(

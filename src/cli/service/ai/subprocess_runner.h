@@ -12,16 +12,6 @@
 
 namespace yaze::cli {
 
-struct SubprocessOptions {
-  std::string executable;
-  std::vector<std::string> args;
-  std::string working_directory;
-  std::string stdin_data;
-  std::chrono::milliseconds timeout = std::chrono::seconds(300);
-  std::atomic<bool>* cancel_requested = nullptr;
-  size_t max_output_bytes = 8 * 1024 * 1024;
-};
-
 struct SubprocessResult {
   int exit_code = -1;
   std::string stdout_output;
@@ -29,6 +19,25 @@ struct SubprocessResult {
   double duration_seconds = 0.0;
   bool timed_out = false;
   bool cancelled = false;
+  bool post_exit_eof_timed_out = false;
+  bool output_truncated = false;
+};
+
+struct SubprocessOptions {
+  std::string executable;
+  std::vector<std::string> args;
+  std::string working_directory;
+  std::string stdin_data;
+  std::chrono::milliseconds timeout = std::chrono::seconds(300);
+  // Maximum grace period to continue draining stdout/stderr after the direct
+  // child exits if a descendant keeps the pipe write ends open.
+  std::chrono::milliseconds post_exit_drain_grace =
+      std::chrono::milliseconds(300);
+  std::atomic<bool>* cancel_requested = nullptr;
+  size_t max_output_bytes = 8 * 1024 * 1024;
+  // Optional out-pointer populated with captured stdout/stderr/timing even when
+  // RunSubprocess returns DeadlineExceededError or CancelledError.
+  SubprocessResult* partial_result = nullptr;
 };
 
 // Expands a leading "~/" or exact "~" using HOME (or USERPROFILE on Windows).

@@ -70,6 +70,22 @@ std::string EscapeCurlConfigString(absl::string_view value) {
 
 }  // namespace
 
+bool ShouldFollowAiHttpRedirects(
+    const std::map<std::string, std::string>& headers) {
+  for (const auto& [k, v] : headers) {
+    if (v.empty()) {
+      continue;
+    }
+    if (absl::EqualsIgnoreCase(k, "authorization") ||
+        absl::EqualsIgnoreCase(k, "proxy-authorization") ||
+        absl::EqualsIgnoreCase(k, "x-api-key") ||
+        absl::EqualsIgnoreCase(k, "x-goog-api-key")) {
+      return false;
+    }
+  }
+  return true;
+}
+
 absl::StatusOr<AiHttpResponse> PerformAiHttpRequest(
     absl::string_view method, absl::string_view base_url,
     absl::string_view path_and_query,
@@ -103,7 +119,7 @@ absl::StatusOr<AiHttpResponse> PerformAiHttpRequest(
       cli.set_connection_timeout(conn_sec, 0);
       cli.set_read_timeout(io_sec, 0);
       cli.set_write_timeout(io_sec, 0);
-      cli.set_follow_location(true);
+      cli.set_follow_location(ShouldFollowAiHttpRedirects(headers));
 
       httplib::Headers req_headers;
       std::string content_type = "application/json";

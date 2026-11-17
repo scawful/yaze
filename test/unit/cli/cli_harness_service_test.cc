@@ -1,20 +1,32 @@
 #include "cli/service/ai/cli_harness_service.h"
 
 #include <atomic>
+#include <cerrno>
 #include <chrono>
+#include <condition_variable>
 #include <cstdlib>
 #include <filesystem>
 #include <fstream>
+#include <map>
+#include <mutex>
 #include <string>
 #include <thread>
 #include <vector>
+
+#ifndef _WIN32
+#include <signal.h>
+#include <sys/wait.h>
+#include <unistd.h>
+#endif
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
 #include "absl/status/status.h"
 #include "absl/strings/ascii.h"
+#include "absl/strings/numbers.h"
 #include "absl/strings/str_cat.h"
+#include "cli/service/ai/ai_http_client.h"
 #include "cli/service/ai/provider_ids.h"
 #include "cli/service/ai/service_factory.h"
 #include "cli/service/ai/subprocess_runner.h"
@@ -94,6 +106,59 @@ fs::path WriteExecutablePythonScript(const fs::path& dir,
                   fs::perm_options::replace);
   return script_path;
 }
+
+class ScopedPidCleanup {
+ public:
+  explicit ScopedPidCleanup(fs::path pid_file)
+      : pid_file_(std::move(pid_file)) {}
+
+  ~ScopedPidCleanup() { KillRecordedPid(); }
+
+  pid_t ReadPid() const {
+    std::ifstream in(pid_file_);
+    std::string contents;
+    std::getline(in, contents);
+    pid_t pid = -1;
+    int parsed = 0;
+    if (absl::SimpleAtoi(absl::StripAsciiWhitespace(contents), &parsed) &&
+        parsed > 1) {
+      pid = static_cast<pid_t>(parsed);
+    }
+    return pid;
+  }
+
+  void KillRecordedPid() const {
+    const pid_t pid = ReadPid();
+    if (pid > 1) {
+      ::kill(pid, SIGKILL);
+      int status = 0;
+      ::waitpid(pid, &status, WNOHANG);
+    }
+  }
+
+ private:
+  fs::path pid_file_;
+};
+
+class ScopedFdPair {
+ public:
+  ScopedFdPair() = default;
+  ~ScopedFdPair() {
+    for (int& fd : fds_) {
+      if (fd >= 0) {
+        ::close(fd);
+        fd = -1;
+      }
+    }
+  }
+
+  int* data() { return fds_; }
+  int read_fd() const { return fds_[0]; }
+  int write_fd() const { return fds_[1]; }
+
+ private:
+  int fds_[2] = {-1, -1};
+};
 #endif
 
 TEST(SubprocessRunnerTest, EmptyExecutableReturnsInvalidArgument) {
@@ -282,6 +347,206 @@ TEST(SubprocessRunnerTest, CancelsRunningChildWhenFlagFlipped) {
   EXPECT_EQ(result_or.status().code(), absl::StatusCode::kCancelled);
   EXPECT_LT(elapsed, std::chrono::seconds(3));
 }
+
+TEST(SubprocessRunnerTest,
+     ReturnsPromptlyWhenGrandchildKeepsStdoutAndStderrOpen) {
+  TempTestDir temp;
+  const fs::path pid_file = temp.path() / "grandchild.pid";
+  ScopedPidCleanup grandchild_cleanup(pid_file);
+
+  const fs::path script = WriteExecutablePythonScript(
+      temp.path(), "grandchild_holder",
+      absl::StrCat(
+          "import json, subprocess, sys\n"
+          "proc = subprocess.Popen(\n"
+          "    [sys.executable, '-c', 'import time; time.sleep(30)'],\n"
+          "    stdout=sys.stdout, stderr=sys.stderr, start_new_session=True)\n"
+          "with open(",
+          nlohmann::json(pid_file.string()).dump(),
+          ", 'w') as f:\n"
+          "  f.write(str(proc.pid))\n"
+          "print(json.dumps({'type':'result','subtype':'success','is_error':"
+          "False,"
+          "'result':'GRANDCHILD OK'}), flush=True)\n"));
+
+  SubprocessOptions options;
+  options.executable = script.string();
+  options.timeout = std::chrono::seconds(30);
+  options.post_exit_drain_grace = std::chrono::milliseconds(150);
+
+  const auto start = std::chrono::steady_clock::now();
+  auto direct_or = RunSubprocess(options);
+  const auto elapsed = std::chrono::steady_clock::now() - start;
+  grandchild_cleanup.KillRecordedPid();
+
+  ASSERT_TRUE(direct_or.ok()) << direct_or.status().message();
+  EXPECT_EQ(direct_or->exit_code, 0);
+  EXPECT_FALSE(direct_or->timed_out);
+  EXPECT_TRUE(direct_or->post_exit_eof_timed_out);
+  EXPECT_THAT(direct_or->stdout_output, testing::HasSubstr("GRANDCHILD OK"));
+  EXPECT_LT(elapsed, std::chrono::seconds(3));
+
+  CliHarnessConfig cfg;
+  cfg.provider = kProviderClaudeCode;
+  cfg.model = "claude-sonnet-5-5";
+  cfg.binary_override = script.string();
+  cfg.timeout_seconds = 30;
+  CliHarnessService service(cfg);
+
+  const auto svc_start = std::chrono::steady_clock::now();
+  auto resp_or = service.GenerateResponse("hello");
+  const auto svc_elapsed = std::chrono::steady_clock::now() - svc_start;
+  grandchild_cleanup.KillRecordedPid();
+
+  ASSERT_TRUE(resp_or.ok()) << resp_or.status().message();
+  EXPECT_EQ(resp_or->text_response, "GRANDCHILD OK");
+  EXPECT_LT(svc_elapsed, std::chrono::seconds(3));
+}
+
+TEST(SubprocessRunnerTest, TimeoutKillsProcessGroupAndPreservesPartialOutput) {
+  TempTestDir temp;
+  const fs::path group_pid_file = temp.path() / "group_child.pid";
+  ScopedPidCleanup group_cleanup(group_pid_file);
+
+  const fs::path script = WriteExecutablePythonScript(
+      temp.path(), "group_sleeper",
+      absl::StrCat(
+          "import subprocess, sys, time\n"
+          "proc = subprocess.Popen(\n"
+          "    [sys.executable, '-c', 'import time; time.sleep(30)'])\n"
+          "with open(",
+          nlohmann::json(group_pid_file.string()).dump(),
+          ", 'w') as f:\n"
+          "  f.write(str(proc.pid))\n"
+          "print('partial-stdout-line', flush=True)\n"
+          "sys.stderr.write('partial-stderr-line\\n')\n"
+          "sys.stderr.flush()\n"
+          "time.sleep(30)\n"));
+
+  SubprocessResult partial;
+  SubprocessOptions options;
+  options.executable = script.string();
+  options.timeout = std::chrono::milliseconds(350);
+  options.partial_result = &partial;
+
+  auto result_or = RunSubprocess(options);
+  EXPECT_FALSE(result_or.ok());
+  EXPECT_EQ(result_or.status().code(), absl::StatusCode::kDeadlineExceeded);
+  EXPECT_THAT(std::string(result_or.status().message()),
+              testing::HasSubstr("partial-stderr-line"));
+  EXPECT_TRUE(partial.timed_out);
+  EXPECT_THAT(partial.stdout_output, testing::HasSubstr("partial-stdout-line"));
+  EXPECT_THAT(partial.stderr_output, testing::HasSubstr("partial-stderr-line"));
+
+  const pid_t child_pid = group_cleanup.ReadPid();
+  ASSERT_GT(child_pid, 1);
+  bool process_gone = false;
+  for (int i = 0; i < 20; ++i) {
+    if (::kill(child_pid, 0) != 0 && errno == ESRCH) {
+      process_gone = true;
+      break;
+    }
+    std::this_thread::sleep_for(std::chrono::milliseconds(25));
+  }
+  EXPECT_TRUE(process_gone)
+      << "In-group child pid " << child_pid << " survived group timeout kill";
+}
+
+TEST(SubprocessRunnerTest, ConcurrentSpawnsDoNotInheritPipesOrLeakFds) {
+  TempTestDir temp;
+
+#ifdef __APPLE__
+  ScopedFdPair leaked_pipe;
+  ASSERT_EQ(::pipe(leaked_pipe.data()), 0);
+  const fs::path fd_probe =
+      WriteExecutablePythonScript(temp.path(), "fd_probe",
+                                  "import os, sys\n"
+                                  "results = []\n"
+                                  "for arg in sys.argv[1:]:\n"
+                                  "  try:\n"
+                                  "    os.fstat(int(arg))\n"
+                                  "    results.append('OPEN')\n"
+                                  "  except OSError:\n"
+                                  "    results.append('EBADF')\n"
+                                  "print(','.join(results))\n");
+  SubprocessOptions fd_opts;
+  fd_opts.executable = fd_probe.string();
+  fd_opts.args = {absl::StrCat(leaked_pipe.read_fd()),
+                  absl::StrCat(leaked_pipe.write_fd())};
+  auto fd_res = RunSubprocess(fd_opts);
+  ASSERT_TRUE(fd_res.ok()) << fd_res.status().message();
+  EXPECT_EQ(absl::StripAsciiWhitespace(fd_res->stdout_output), "EBADF,EBADF");
+#endif
+
+  const fs::path fast_script =
+      WriteExecutablePythonScript(temp.path(), "fast_echo",
+                                  "import sys\n"
+                                  "print('fast-' + sys.argv[1])\n");
+  const fs::path slow_script =
+      WriteExecutablePythonScript(temp.path(), "slow_echo",
+                                  "import sys, time\n"
+                                  "time.sleep(1.2)\n"
+                                  "print('slow-' + sys.argv[1])\n");
+
+  constexpr int kSlowCount = 2;
+  constexpr int kFastCount = 8;
+  constexpr int kTotal = kSlowCount + kFastCount;
+
+  std::mutex mu;
+  std::condition_variable cv;
+  int ready_count = 0;
+  bool go = false;
+
+  std::vector<absl::StatusOr<SubprocessResult>> results(kTotal);
+  std::vector<std::chrono::milliseconds> elapsed_ms(kTotal);
+  std::vector<std::thread> threads;
+  threads.reserve(kTotal);
+
+  for (int i = 0; i < kTotal; ++i) {
+    threads.emplace_back([&, i]() {
+      {
+        std::unique_lock<std::mutex> lock(mu);
+        ++ready_count;
+        if (ready_count == kTotal) {
+          go = true;
+          cv.notify_all();
+        } else {
+          cv.wait(lock, [&]() { return go; });
+        }
+      }
+      SubprocessOptions opts;
+      opts.executable =
+          (i < kSlowCount) ? slow_script.string() : fast_script.string();
+      opts.args = {absl::StrCat(i)};
+      opts.timeout = std::chrono::seconds(10);
+      opts.post_exit_drain_grace = std::chrono::seconds(5);
+      const auto t0 = std::chrono::steady_clock::now();
+      results[i] = RunSubprocess(opts);
+      elapsed_ms[i] = std::chrono::duration_cast<std::chrono::milliseconds>(
+          std::chrono::steady_clock::now() - t0);
+    });
+  }
+  for (auto& t : threads) {
+    t.join();
+  }
+
+  for (int i = 0; i < kTotal; ++i) {
+    ASSERT_TRUE(results[i].ok())
+        << "worker " << i << ": " << results[i].status().message();
+    EXPECT_EQ(results[i]->exit_code, 0);
+    EXPECT_FALSE(results[i]->post_exit_eof_timed_out);
+    if (i < kSlowCount) {
+      EXPECT_EQ(absl::StripAsciiWhitespace(results[i]->stdout_output),
+                absl::StrCat("slow-", i));
+    } else {
+      EXPECT_EQ(absl::StripAsciiWhitespace(results[i]->stdout_output),
+                absl::StrCat("fast-", i));
+      EXPECT_LT(elapsed_ms[i].count(), 1000)
+          << "fast worker " << i << " stalled for " << elapsed_ms[i].count()
+          << "ms (likely inherited a slow worker's pipe write end)";
+    }
+  }
+}
 #endif  // !_WIN32
 
 TEST(CliHarnessServiceTest, BuildsReadOnlyArgvPerProfileWithoutSkipFlags) {
@@ -300,9 +565,10 @@ TEST(CliHarnessServiceTest, BuildsReadOnlyArgvPerProfileWithoutSkipFlags) {
                                          "claude-sonnet-5-5", 120);
   ASSERT_TRUE(claude_args.ok());
   EXPECT_THAT(*claude_args,
-              testing::ElementsAre("-p", "Inspect room", "--output-format",
-                                   "json", "--permission-mode", "plan",
-                                   "--model", "claude-sonnet-5-5"));
+              testing::ElementsAre(
+                  "-p", "Inspect room", "--output-format", "json",
+                  "--permission-mode", "plan", "--setting-sources", "user",
+                  "--strict-mcp-config", "--model", "claude-sonnet-5-5"));
   assert_no_forbidden_flags(*claude_args);
 
   auto codex_args =
@@ -310,8 +576,28 @@ TEST(CliHarnessServiceTest, BuildsReadOnlyArgvPerProfileWithoutSkipFlags) {
   ASSERT_TRUE(codex_args.ok());
   EXPECT_THAT(*codex_args,
               testing::ElementsAre("exec", "--json", "--sandbox", "read-only",
-                                   "-m", "gpt-5.2", "--", "Inspect room"));
+                                   "--skip-git-repo-check", "-m", "gpt-5.2",
+                                   "--", "Inspect room"));
   assert_no_forbidden_flags(*codex_args);
+
+  // Leading-dash prompts must not be misparsed as flags on any provider.
+  for (const char* provider : {kProviderClaudeCode, kProviderCursorAgent,
+                               kProviderAgy, kProviderGeminiCli}) {
+    auto dash_args =
+        BuildCliHarnessArgv(provider, "--help inspect room", "", 120);
+    ASSERT_TRUE(dash_args.ok()) << provider;
+    ASSERT_GE(dash_args->size(), 2u) << provider;
+    EXPECT_EQ((*dash_args)[0], "-p");
+    EXPECT_EQ((*dash_args)[1], " --help inspect room");
+    EXPECT_NE((*dash_args)[1].front(), '-');
+  }
+  auto codex_dash_args =
+      BuildCliHarnessArgv(kProviderCodex, "--help inspect room", "", 120);
+  ASSERT_TRUE(codex_dash_args.ok());
+  EXPECT_THAT(*codex_dash_args,
+              testing::ElementsAre("exec", "--json", "--sandbox", "read-only",
+                                   "--skip-git-repo-check", "--",
+                                   "--help inspect room"));
 
   auto cursor_args =
       BuildCliHarnessArgv(kProviderCursorAgent, "Inspect room", "auto", 120);
@@ -433,6 +719,21 @@ TEST(CliHarnessServiceTest, FallsBackToRawTextAndDetectsEnvelopeErrors) {
       "{\"type\":\"error\",\"message\":\"Sandbox denied\"}\n");
   EXPECT_FALSE(codex_err.ok());
   EXPECT_EQ(codex_err.status().code(), absl::StatusCode::kInternal);
+}
+
+TEST(CliHarnessServiceTest, DisablesHttpRedirectFollowWhenAuthHeadersPresent) {
+  EXPECT_TRUE(ShouldFollowAiHttpRedirects({}));
+  EXPECT_TRUE(
+      ShouldFollowAiHttpRedirects({{"Content-Type", "application/json"}}));
+  EXPECT_TRUE(ShouldFollowAiHttpRedirects({{"Authorization", ""}}));
+
+  EXPECT_FALSE(ShouldFollowAiHttpRedirects({{"x-api-key", "secret"}}));
+  EXPECT_FALSE(ShouldFollowAiHttpRedirects({{"X-Api-Key", "secret"}}));
+  EXPECT_FALSE(ShouldFollowAiHttpRedirects({{"x-goog-api-key", "secret"}}));
+  EXPECT_FALSE(
+      ShouldFollowAiHttpRedirects({{"Authorization", "Bearer token"}}));
+  EXPECT_FALSE(
+      ShouldFollowAiHttpRedirects({{"Proxy-Authorization", "Basic abc"}}));
 }
 
 TEST(CliHarnessServiceTest, ParsesAgyAndCursorModelListingsCleanly) {
