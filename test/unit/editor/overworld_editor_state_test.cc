@@ -12,6 +12,18 @@
 #include "zelda3/overworld/overworld_map.h"
 
 namespace yaze::editor {
+
+class OverworldEditorStateTestPeer {
+ public:
+  static EditingMode CurrentMode(const OverworldEditor& editor) {
+    return editor.current_mode;
+  }
+  static bool AutomationSetTile(OverworldEditor& editor, int x, int y,
+                                int tile_id) {
+    return editor.AutomationSetTile(x, y, tile_id);
+  }
+};
+
 namespace {
 
 TEST(OverworldEditorStateTest,
@@ -725,6 +737,63 @@ TEST_F(OverworldRecordEditLifecycleTest,
   EXPECT_EQ(entrances->at(kEntranceRow + 1).map_id_, entrance_neighbor.map_id_);
   EXPECT_EQ(returns->at(kReturnRow + 1).room_id_, return_neighbor.room_id_);
   EXPECT_EQ(returns->at(kReturnRow + 1).x_player_, return_neighbor.x_player_);
+}
+
+TEST_F(OverworldRecordEditLifecycleTest,
+       UnifiedLayoutEnforcesReadOnlyOnEditorEntryPoints) {
+  EXPECT_EQ(editor_->canvas_layout_mode(),
+            OverworldCanvasLayoutMode::kSingleWorld);
+  editor_->SetEditingMode(EditingMode::DRAW_TILE);
+  EXPECT_EQ(OverworldEditorStateTestPeer::CurrentMode(*editor_),
+            EditingMode::DRAW_TILE);
+
+  editor_->SetCanvasLayoutMode(OverworldCanvasLayoutMode::kUnified);
+  EXPECT_TRUE(editor_->IsUnifiedCanvas());
+  // Entering Unified returns paint/fill mode back to safe Select (MOUSE).
+  EXPECT_EQ(OverworldEditorStateTestPeer::CurrentMode(*editor_),
+            EditingMode::MOUSE);
+
+  // Attempting to switch back to paint tools stays in MOUSE.
+  editor_->SetEditingMode(EditingMode::DRAW_TILE);
+  EXPECT_EQ(OverworldEditorStateTestPeer::CurrentMode(*editor_),
+            EditingMode::MOUSE);
+  editor_->ToggleBrushTool();
+  EXPECT_EQ(OverworldEditorStateTestPeer::CurrentMode(*editor_),
+            EditingMode::MOUSE);
+  editor_->ActivateFillTool();
+  EXPECT_EQ(OverworldEditorStateTestPeer::CurrentMode(*editor_),
+            EditingMode::MOUSE);
+
+  // Paste, Undo, Redo, PaintLyraA0Terrain, item ops & AutomationSetTile refuse.
+  auto status = editor_->Paste();
+  EXPECT_EQ(status.code(), absl::StatusCode::kFailedPrecondition);
+  EXPECT_NE(status.message().find(kUnifiedReadOnlyReason), std::string::npos);
+
+  status = editor_->Undo();
+  EXPECT_EQ(status.code(), absl::StatusCode::kFailedPrecondition);
+  EXPECT_NE(status.message().find(kUnifiedReadOnlyReason), std::string::npos);
+
+  status = editor_->Redo();
+  EXPECT_EQ(status.code(), absl::StatusCode::kFailedPrecondition);
+  EXPECT_NE(status.message().find(kUnifiedReadOnlyReason), std::string::npos);
+
+  status = editor_->PaintLyraA0Terrain(0xA0, 0, 0, 0x2103);
+  EXPECT_EQ(status.code(), absl::StatusCode::kFailedPrecondition);
+  EXPECT_NE(status.message().find(kUnifiedReadOnlyReason), std::string::npos);
+
+  EXPECT_FALSE(editor_->DuplicateSelectedItem());
+  EXPECT_FALSE(editor_->NudgeSelectedItem(16, 0));
+  EXPECT_FALSE(editor_->DeleteSelectedItem());
+  EXPECT_FALSE(
+      OverworldEditorStateTestPeer::AutomationSetTile(*editor_, 0, 0, 1));
+  EXPECT_FALSE(rom_.dirty());
+
+  // Returning to Single restores normal mode capability.
+  editor_->SetCanvasLayoutMode(OverworldCanvasLayoutMode::kSingleWorld);
+  EXPECT_FALSE(editor_->IsUnifiedCanvas());
+  editor_->SetEditingMode(EditingMode::DRAW_TILE);
+  EXPECT_EQ(OverworldEditorStateTestPeer::CurrentMode(*editor_),
+            EditingMode::DRAW_TILE);
 }
 
 }  // namespace

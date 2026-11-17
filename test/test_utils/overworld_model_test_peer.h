@@ -19,6 +19,10 @@ class OverworldModelTestPeer {
       map.built_ = true;
   }
 
+  static void SetLoaded(Overworld& world, bool loaded = true) {
+    world.is_loaded_ = loaded;
+  }
+
   // Inject page-local Tile16 rows without a full revision-5 ImportPageTile16
   // load. Keeps page state private on Overworld; no public setter.
   static void SetPageTile16(Overworld& world,

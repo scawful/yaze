@@ -193,6 +193,9 @@ void RenderMenuItem(
         RenderMenuItem(subitem, popup_opened_callback);
       }
       ImGui::EndMenu();
+    } else if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled) &&
+               !item.tooltip.empty()) {
+      ImGui::SetTooltip("%s", item.tooltip.c_str());
     }
   }
 

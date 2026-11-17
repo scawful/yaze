@@ -916,7 +916,8 @@ void LyraTerrainCanvas::DrawEdgeConnections(int map_id,
 }
 
 void LyraTerrainCanvas::DrawEntities(const gui::CanvasRuntime& canvas,
-                                     int world, int state) {
+                                     int world, int state,
+                                     const OverworldCanvasLayout& layout) {
   if (!document_ || !canvas.draw_list || !std::isfinite(canvas.scale) ||
       canvas.scale <= 0) {
     return;
@@ -928,11 +929,11 @@ void LyraTerrainCanvas::DrawEntities(const gui::CanvasRuntime& canvas,
   const ImVec2 scroll = canvas.scrolling;
 
   auto ToScreen = [&](int map_id, int x, int y) -> ImVec2 {
-    const int local_map = map_id % 64;
-    const int world_x = (local_map % 8) * 512 + x * 16;
-    const int world_y = (local_map / 8) * 512 + y * 16;
-    return ImVec2(origin.x + scroll.x + world_x * scale,
-                  origin.y + scroll.y + world_y * scale);
+    const ImVec2 map_origin = layout.MapOrigin(map_id);
+    const float canvas_x = map_origin.x + x * 16;
+    const float canvas_y = map_origin.y + y * 16;
+    return ImVec2(origin.x + scroll.x + canvas_x * scale,
+                  origin.y + scroll.y + canvas_y * scale);
   };
 
   const float marker_size = 16.0f * scale;
@@ -940,7 +941,8 @@ void LyraTerrainCanvas::DrawEntities(const gui::CanvasRuntime& canvas,
   // Draw project map entities (sprites, doors, exits)
   for (int map_idx = 0; map_idx < Document::kMapCount; ++map_idx) {
     const int map_id = Document::kFirstMap + map_idx;
-    if (map_id / 0x40 != world) {
+    if (layout.IsSingleWorld() &&
+        OverworldCanvasLayout::WorldForMap(map_id) != world) {
       continue;
     }
     const auto& map_auth = document_->authoring().maps[map_idx];
@@ -970,7 +972,7 @@ void LyraTerrainCanvas::DrawEntities(const gui::CanvasRuntime& canvas,
       if (sprite.state != state) {
         continue;
       }
-      DrawSpritePreview(canvas, map_id, sprite);
+      DrawSpritePreview(canvas, map_id, sprite, layout);
       const ImVec2 p_min = ToScreen(map_id, sprite.x, sprite.y);
       const ImVec2 p_max(p_min.x + marker_size, p_min.y + marker_size);
 
@@ -980,9 +982,10 @@ void LyraTerrainCanvas::DrawEntities(const gui::CanvasRuntime& canvas,
     }
   }
 
-  // Flight points matching explicit map_id / 0x40 == world (Distinct color: cyan / blue)
+  // Flight points matching world in Single mode, or all worlds in Unified.
   for (const auto& flight : document_->authoring().flight_points) {
-    if (flight.map_id / 0x40 != world) {
+    if (layout.IsSingleWorld() &&
+        OverworldCanvasLayout::WorldForMap(flight.map_id) != world) {
       continue;
     }
     const ImVec2 p_min = ToScreen(flight.map_id, flight.x, flight.y);
@@ -1041,7 +1044,8 @@ void LyraTerrainCanvas::HandleEntityInput(const gui::CanvasRuntime& canvas,
   }
 
   const int local_map = map_row * 8 + map_col;
-  const int explicit_map_id = world * 0x40 + local_map;
+  const int explicit_map_id =
+      OverworldCanvasLayout::MapIdFromLocalIndex(world, local_map);
   const int local_x = tile_x % 32;
   const int local_y = tile_y % 32;
 

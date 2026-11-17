@@ -1,6 +1,8 @@
 // Related header
 #include "app/editor/overworld/canvas/overworld_canvas_renderer.h"
+#include "app/editor/overworld/canvas/overworld_canvas_layout.h"
 #include "app/editor/overworld/canvas/overworld_context_target.h"
+#include "app/gui/canvas/canvas_utils.h"
 #include "util/i18n/tr.h"
 
 #ifndef IM_PI
@@ -141,7 +143,9 @@ void OverworldCanvasRenderer::DrawOverworldCanvas() {
         });
     editor_->NormalizeCurrentSelectionState();
   }
-  if (!lyra_preview && editor_->current_world_ == 2 &&
+  const OverworldCanvasLayout layout = editor_->GetCanvasLayout();
+  const bool unified_layout = layout.IsUnified();
+  if (!lyra_preview && (editor_->current_world_ == 2 || unified_layout) &&
       !editor_->lyra_canvas_status_.ok()) {
     ImGui::TextWrapped("%s", editor_->lyra_canvas_status_.ToString().c_str());
   }
@@ -157,8 +161,10 @@ void OverworldCanvasRenderer::DrawOverworldCanvas() {
 
   // Configure canvas frame options
   gui::CanvasFrameOptions frame_opts;
-  frame_opts.canvas_size = kOverworldCanvasSize;
-  frame_opts.draw_grid = true;
+  frame_opts.canvas_size = layout.CanvasSize();
+  // In Unified mode we draw aligned per-block grids so the 32px gutter and
+  // empty south-east quadrant remain ungridded.
+  frame_opts.draw_grid = !unified_layout;
   frame_opts.draw_context_menu = show_context_menu;
   frame_opts.draw_overlay = true;
   frame_opts.render_popups = !lyra_preview;
@@ -190,23 +196,31 @@ void OverworldCanvasRenderer::DrawOverworldCanvas() {
   }
 
   if (editor_->overworld_.is_loaded()) {
-    // Draw the 64 overworld map bitmaps
+    // Draw the active world's maps (Single) or all 3 worlds (Unified).
     DrawOverworldMaps();
     if (lyra_preview) {
       editor_->status_ = editor_->CheckForCurrentMap();
       if (lyra_writable && canvas_rt.hovered &&
           ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
-        const auto target = ResolveOverworldContextTarget(
-            editor_->current_world_, editor_->game_state_, ImGui::GetMousePos(),
-            canvas_rt.canvas_p0, canvas_rt.scrolling, canvas_rt.scale,
-            zelda3::kExpandedMapCount);
-        if (target && target->map_id == 0xA0) {
-          editor_->status_ = editor_->PaintLyraA0Terrain(
-              target->map_id,
-              static_cast<int>(target->world_position.x) % 512 / 32,
-              static_cast<int>(target->world_position.y) % 512 / 32,
-              static_cast<uint16_t>(editor_->lyra_terrain_brush_));
+        if (unified_layout) {
+          editor_->NotifyUnifiedReadOnly();
+        } else {
+          const auto target = ResolveOverworldContextTarget(
+              layout, editor_->current_world_, editor_->game_state_,
+              ImGui::GetMousePos(), canvas_rt.canvas_p0, canvas_rt.scrolling,
+              canvas_rt.scale, zelda3::kExpandedMapCount);
+          if (target && target->map_id == 0xA0) {
+            editor_->status_ = editor_->PaintLyraA0Terrain(
+                target->map_id,
+                static_cast<int>(target->world_position.x) % 512 / 32,
+                static_cast<int>(target->world_position.y) % 512 / 32,
+                static_cast<uint16_t>(editor_->lyra_terrain_brush_));
+          }
         }
+      }
+      if (unified_layout) {
+        DrawUnifiedBlockChrome(canvas_rt, layout);
+        DrawUnifiedReadOnlyBanner();
       }
       gui::EndCanvas(editor_->ow_map_canvas_, canvas_rt, frame_opts);
       ImGui::EndChild();
@@ -219,61 +233,70 @@ void OverworldCanvasRenderer::DrawOverworldCanvas() {
     gui::TileDragPayload tile_drop;
     if (gui::AcceptTileDrop(&tile_drop)) {
       editor_->RequestTile16Selection(tile_drop.tile_id);
-      editor_->current_mode = EditingMode::DRAW_TILE;
-      editor_->ow_map_canvas_.SetUsageMode(gui::CanvasUsage::kTilePainting);
+      if (unified_layout) {
+        editor_->NotifyUnifiedReadOnly();
+      } else {
+        editor_->current_mode = EditingMode::DRAW_TILE;
+        editor_->ow_map_canvas_.SetUsageMode(gui::CanvasUsage::kTilePainting);
+      }
     }
     const bool placing_project_entity =
-        editor_->lyra_canvas_.entity_placement_active();
-    const bool project_terrain =
-        editor_->IsProjectTerrainMap(editor_->current_map_) ||
-        editor_->IsProjectTerrainMap(editor_->hovered_map_);
-    if (editor_->current_world_ == 2 && editor_->lyra_canvas_.loaded()) {
+        !unified_layout && editor_->lyra_canvas_.entity_placement_active();
+    const bool draw_special_project_terrain =
+        editor_->lyra_canvas_.loaded() &&
+        (unified_layout || editor_->current_world_ == 2);
+    if (draw_special_project_terrain) {
       const auto assets = editor_->lyra_canvas_.PrepareMapAssets(
           editor_->overworld_, editor_->game_state_);
       if (!assets.ok())
         editor_->status_ = assets;
-      editor_->lyra_canvas_.DrawSpecialWorld(canvas_rt);
+      editor_->lyra_canvas_.DrawSpecialWorld(canvas_rt,
+                                             layout.LyraTailOrigin());
       if (editor_->show_entities_) {
         editor_->lyra_canvas_.DrawEntities(canvas_rt, editor_->current_world_,
-                                           editor_->game_state_);
-        editor_->lyra_canvas_.HandleEntityInput(
-            canvas_rt, editor_->current_world_, editor_->overworld_,
-            editor_->undo_manager_);
+                                           editor_->game_state_, layout);
+        if (!unified_layout) {
+          editor_->lyra_canvas_.HandleEntityInput(
+              canvas_rt, editor_->current_world_, editor_->overworld_,
+              editor_->undo_manager_);
+        }
       }
       if (editor_->IsProjectTerrainMap(editor_->current_map_)) {
-        const int local_map = editor_->current_map_ - 0x80;
-        editor_->ow_map_canvas_.DrawOutline(local_map % 8 * kOverworldMapSize,
-                                            local_map / 8 * kOverworldMapSize,
+        const ImVec2 outline_origin = layout.MapOrigin(editor_->current_map_);
+        editor_->ow_map_canvas_.DrawOutline(static_cast<int>(outline_origin.x),
+                                            static_cast<int>(outline_origin.y),
                                             kOverworldMapSize,
                                             kOverworldMapSize);
       }
-    } else {
+    }
+    if (!draw_special_project_terrain || unified_layout) {
       editor_->lyra_canvas_.FinishStroke(editor_->undo_manager_);
+    }
+    if (unified_layout && editor_->lyra_canvas_.entity_placement_active() &&
+        canvas_rt.hovered && ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
+      editor_->lyra_canvas_.CancelEntityPlacement();
+      editor_->NotifyUnifiedReadOnly();
     }
     const bool tile_tool = !placing_project_entity &&
                            (editor_->current_mode == EditingMode::DRAW_TILE ||
                             editor_->current_mode == EditingMode::FILL_TILE);
-    if (!tile_tool && editor_->tile_painting_)
+    if ((!tile_tool || unified_layout) && editor_->tile_painting_)
       editor_->tile_painting_->SuspendCanvasGestures();
     // Live proposal ghost: drawn under entities, only while the inbox is open.
     editor_->DrawLiveProposalGhost();
 
-    if (editor_->current_world_ != 2 && editor_->lyra_canvas_.loaded() &&
-        editor_->show_entities_) {
+    if (!unified_layout && editor_->current_world_ != 2 &&
+        editor_->lyra_canvas_.loaded() && editor_->show_entities_) {
       editor_->lyra_canvas_.DrawEntities(canvas_rt, editor_->current_world_,
-                                         editor_->game_state_);
+                                         editor_->game_state_, layout);
       editor_->lyra_canvas_.HandleEntityInput(
           canvas_rt, editor_->current_world_, editor_->overworld_,
           editor_->undo_manager_);
     }
     // Draw all entities using the new CanvasRuntime-based methods
     if (editor_->entity_renderer_ && editor_->show_entities_) {
-      editor_->entity_renderer_->DrawExits(canvas_rt, editor_->current_world_);
-      editor_->entity_renderer_->DrawEntrances(canvas_rt,
-                                               editor_->current_world_);
-      editor_->entity_renderer_->DrawItems(canvas_rt, editor_->current_world_);
-      editor_->entity_renderer_->DrawSprites(canvas_rt, editor_->current_world_,
-                                             editor_->game_state_);
+      editor_->entity_renderer_->DrawAllEntities(
+          canvas_rt, layout, editor_->current_world_, editor_->game_state_);
       FilterHoveredEntityByMode();
       DrawEntityHoverTooltip();
     } else if (editor_->entity_renderer_) {
@@ -290,8 +313,15 @@ void OverworldCanvasRenderer::DrawOverworldCanvas() {
       editor_->HandleMapInteraction();
     }
 
-    if (tile_tool) {
+    if (tile_tool && !unified_layout) {
       editor_->CheckForOverworldEdits();
+    } else if (unified_layout && canvas_rt.hovered &&
+               editor_->current_mode != EditingMode::MOUSE &&
+               ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
+      editor_->current_mode = EditingMode::MOUSE;
+      editor_->ow_map_canvas_.SetUsageMode(
+          gui::CanvasUsage::kEntityManipulation);
+      editor_->NotifyUnifiedReadOnly();
     }
 
     if (placing_project_entity) {
@@ -300,8 +330,27 @@ void OverworldCanvasRenderer::DrawOverworldCanvas() {
       return;
     }
     // --- BEGIN ENTITY DRAG/DROP LOGIC ---
-    if (editor_->current_mode == EditingMode::MOUSE &&
-        editor_->TryPlaceArmedItem()) {
+    if (unified_layout) {
+      auto* hovered_entity = editor_->entity_renderer_
+                                 ? editor_->entity_renderer_->hovered_entity()
+                                 : nullptr;
+      if (canvas_rt.hovered &&
+          (ImGui::IsMouseClicked(ImGuiMouseButton_Left) ||
+           ImGui::IsMouseDragging(ImGuiMouseButton_Left))) {
+        if (editor_->item_placement_armed_) {
+          editor_->item_placement_armed_ = false;
+          editor_->NotifyUnifiedReadOnly();
+        } else if (hovered_entity &&
+                   ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
+          editor_->SetCurrentEntity(hovered_entity);
+          editor_->NotifyUnifiedReadOnly();
+        } else if (hovered_entity &&
+                   ImGui::IsMouseDragging(ImGuiMouseButton_Left)) {
+          editor_->NotifyUnifiedReadOnly();
+        }
+      }
+    } else if (editor_->current_mode == EditingMode::MOUSE &&
+               editor_->TryPlaceArmedItem()) {
       // The click placed the item chosen from Insert Item.
     } else if (editor_->current_mode == EditingMode::MOUSE &&
                editor_->entity_renderer_) {
@@ -385,9 +434,9 @@ void OverworldCanvasRenderer::DrawOverworldCanvas() {
                              canvas_rt.scrolling,
                              editor_->dragged_entity_free_movement_, end_scale);
             // Pass overworld context for proper area size detection
-            const int new_map = editor_->current_world_ * 64 +
-                                editor_->dragged_entity_->x_ / 512 +
-                                (editor_->dragged_entity_->y_ / 512) * 8;
+            const int new_map = OverworldCanvasLayout::MapIdFromLocal(
+                editor_->current_world_, editor_->dragged_entity_->x_ / 512,
+                editor_->dragged_entity_->y_ / 512);
             if (new_map >= 0 && new_map < editor_->DisplayedMapCount()) {
               editor_->dragged_entity_->UpdateMapProperties(
                   new_map, &editor_->overworld_);
@@ -417,10 +466,86 @@ void OverworldCanvasRenderer::DrawOverworldCanvas() {
     // --- END ENTITY DRAG/DROP LOGIC ---
   }
 
+  if (unified_layout) {
+    DrawUnifiedBlockChrome(canvas_rt, layout);
+    DrawUnifiedReadOnlyBanner();
+  }
+
   // End canvas frame - draws grid/overlay based on frame_opts
   gui::EndCanvas(editor_->ow_map_canvas_, canvas_rt, frame_opts);
   ImGui::EndChild();
   editor_->DrawItemInsertPopup();
+}
+
+void OverworldCanvasRenderer::DrawUnifiedBlockChrome(
+    const gui::CanvasRuntime& canvas_rt, const OverworldCanvasLayout& layout) {
+  if (!canvas_rt.draw_list || canvas_rt.scale <= 0.0f) {
+    return;
+  }
+  const float scale = canvas_rt.scale;
+  const ImVec2 origin(canvas_rt.canvas_p0.x + canvas_rt.scrolling.x,
+                      canvas_rt.canvas_p0.y + canvas_rt.scrolling.y);
+  const float block_extent = static_cast<float>(kOverworldWorldBlockPx) * scale;
+  const ImU32 border_col = ImGui::GetColorU32(ImGuiCol_Border);
+  const ImU32 badge_bg = ImGui::GetColorU32(ImGuiCol_PopupBg);
+  const ImU32 text_col = ImGui::GetColorU32(ImGuiCol_Text);
+  const bool draw_grid = editor_->grid_visible();
+  const bool has_tail =
+      editor_->overworld_.inspected_map_count() > zelda3::kNumOverworldMaps ||
+      editor_->lyra_canvas_.loaded();
+  const char* kBlockLabels[kOverworldWorldCount] = {
+      "Light World ($00-$3F)",
+      "Dark World ($40-$7F)",
+      has_tail ? "Special Overworld ($80-$9F, tail $A0-$BF)"
+               : "Special Overworld ($80-$9F)",
+  };
+
+  for (int world = 0; world < kOverworldWorldCount; ++world) {
+    const ImVec2 block_origin = layout.BlockOrigin(world);
+    const ImVec2 p0(origin.x + block_origin.x * scale,
+                    origin.y + block_origin.y * scale);
+    const ImVec2 p1(p0.x + block_extent, p0.y + block_extent);
+    if (draw_grid) {
+      canvas_rt.draw_list->PushClipRect(p0, p1, true);
+      gui::CanvasUtils::DrawCanvasGridLines(canvas_rt.draw_list, p0, p1,
+                                            ImVec2(0.0f, 0.0f), 64.0f, scale);
+      canvas_rt.draw_list->PopClipRect();
+    }
+    canvas_rt.draw_list->AddRect(p0, p1, border_col, 0.0f, 0, 1.5f);
+
+    const char* label = kBlockLabels[world];
+    const ImVec2 text_sz = ImGui::CalcTextSize(label);
+    const ImVec2 pad(6.0f, 3.0f);
+    const ImVec2 badge_min(p0.x + 6.0f, p0.y + 6.0f);
+    const ImVec2 badge_max(badge_min.x + text_sz.x + pad.x * 2.0f,
+                           badge_min.y + text_sz.y + pad.y * 2.0f);
+    canvas_rt.draw_list->AddRectFilled(badge_min, badge_max, badge_bg, 3.0f);
+    canvas_rt.draw_list->AddRect(badge_min, badge_max, border_col, 3.0f);
+    canvas_rt.draw_list->AddText(
+        ImVec2(badge_min.x + pad.x, badge_min.y + pad.y), text_col, label);
+  }
+}
+
+void OverworldCanvasRenderer::DrawUnifiedReadOnlyBanner() {
+  if (!editor_->IsUnifiedCanvas() ||
+      ImGui::GetTime() >= editor_->unified_readonly_banner_until_) {
+    return;
+  }
+  ImDrawList* draw_list = ImGui::GetWindowDrawList();
+  if (!draw_list) {
+    return;
+  }
+  const ImVec2 clip_min = draw_list->GetClipRectMin();
+  const char* text = ICON_MD_LOCK " Unified view is read-only in Phase 1";
+  const ImVec2 text_sz = ImGui::CalcTextSize(text);
+  const ImVec2 pad(10.0f, 6.0f);
+  const ImVec2 p0(clip_min.x + 12.0f, clip_min.y + 12.0f);
+  const ImVec2 p1(p0.x + text_sz.x + pad.x * 2.0f,
+                  p0.y + text_sz.y + pad.y * 2.0f);
+  draw_list->AddRectFilled(p0, p1, ImGui::GetColorU32(ImGuiCol_PopupBg), 4.0f);
+  draw_list->AddRect(p0, p1, ImGui::GetColorU32(ImGuiCol_Border), 4.0f);
+  draw_list->AddText(ImVec2(p0.x + pad.x, p0.y + pad.y),
+                     ImGui::GetColorU32(ImGuiCol_Text), text);
 }
 
 // =============================================================================
@@ -517,11 +642,13 @@ void OverworldCanvasRenderer::DrawOverworldMaps() {
     scale = 1.0f;
 
   // Build only maps that intersect the visible canvas, and at most a few per
-  // frame: building all 64 maps of a world in the first frame stalled the UI.
-  // Off-screen maps are built when scrolled into view; visible ones that are
-  // over the budget show the loading placeholder for a frame or two.
+  // frame: building all maps in the first frame stalls the UI.
+  // Unified mode shares this single budget (kMaxMapBuildsPerFrame = 4) across
+  // all three worlds.
   constexpr int kMaxMapBuildsPerFrame = 4;
   int builds_this_frame = 0;
+  const OverworldCanvasLayout layout = editor_->GetCanvasLayout();
+  const bool unified_layout = layout.IsUnified();
   const ImVec2 clip_min = ImGui::GetWindowDrawList()->GetClipRectMin();
   const ImVec2 clip_max = ImGui::GetWindowDrawList()->GetClipRectMax();
   const ImVec2 canvas_origin(editor_->ow_map_canvas_.zero_point().x +
@@ -529,83 +656,86 @@ void OverworldCanvasRenderer::DrawOverworldMaps() {
                              editor_->ow_map_canvas_.zero_point().y +
                                  editor_->ow_map_canvas_.scrolling().y);
   const float map_extent = kOverworldMapSize * scale;
+  const auto& theme = AgentUI::GetTheme();
+  const ImU32 empty_fill = ImGui::GetColorU32(theme.editor_background);
+  const ImU32 empty_border = ImGui::GetColorU32(ImGuiCol_Border);
 
-  for (int i = 0; i < 0x40; i++) {
-    const int xx = i % 8;
-    const int yy = i / 8;
-    int world_index = i + (editor_->current_world_ * 0x40);
+  const int first_world = unified_layout ? 0 : editor_->current_world_;
+  const int end_world = unified_layout ? kOverworldWorldCount : first_world + 1;
 
-    // Bounds checking to prevent crashes
-    if (world_index < 0 ||
-        world_index >= editor_->overworld_.inspected_map_count()) {
-      continue;  // Skip invalid map index
-    }
+  for (int world = first_world; world < end_world; ++world) {
+    for (int i = 0; i < kOverworldMapsPerWorld; i++) {
+      const int world_index =
+          OverworldCanvasLayout::MapIdFromLocalIndex(world, i);
+      const ImVec2 map_origin_px = layout.MapOrigin(world_index);
+      const int map_x = static_cast<int>(map_origin_px.x * scale);
+      const int map_y = static_cast<int>(map_origin_px.y * scale);
 
-    // Apply scale to positions for proper zoom support
-    int map_x = static_cast<int>(xx * kOverworldMapSize * scale);
-    int map_y = static_cast<int>(yy * kOverworldMapSize * scale);
-
-    const float left = canvas_origin.x + map_x;
-    const float top = canvas_origin.y + map_y;
-    if (left >= clip_max.x || top >= clip_max.y ||
-        left + map_extent <= clip_min.x || top + map_extent <= clip_min.y) {
-      continue;  // Not visible
-    }
-
-    // Ensure visible maps are materialized on demand before drawing. A map
-    // whose bitmap exists only waits for its queued texture (cheap).
-    auto& map_bitmap = editor_->maps_bmp_[world_index];
-    if (!map_bitmap.is_active()) {
-      if (builds_this_frame < kMaxMapBuildsPerFrame) {
-        editor_->EnsureMapTexture(world_index);
-        ++builds_this_frame;
+      const float left = canvas_origin.x + map_x;
+      const float top = canvas_origin.y + map_y;
+      if (left >= clip_max.x || top >= clip_max.y ||
+          left + map_extent <= clip_min.x || top + map_extent <= clip_min.y) {
+        continue;  // Not visible
       }
-    } else if (!map_bitmap.texture()) {
-      editor_->EnsureMapTexture(world_index);
-    }
 
-    // Only draw if the map has a valid texture AND is active (has bitmap data)
-    // The current_map_ check was causing crashes when hovering over unbuilt maps
-    // because the bitmap would be drawn before EnsureMapBuilt() was called
-    bool can_draw = editor_->maps_bmp_[world_index].texture() &&
-                    editor_->maps_bmp_[world_index].is_active();
+      if (world_index < 0 ||
+          world_index >= editor_->overworld_.inspected_map_count()) {
+        // ROMs without tail maps ($A0-$BF): draw empty lower special rows as
+        // clean empty cells in Unified when no Lyra sidecar supplies them.
+        if (unified_layout && world == 2 && i >= 0x20 &&
+            !editor_->lyra_canvas_.loaded()) {
+          ImDrawList* draw_list = ImGui::GetWindowDrawList();
+          const ImVec2 cell_max(left + map_extent, top + map_extent);
+          draw_list->AddRectFilled(ImVec2(left, top), cell_max, empty_fill);
+          draw_list->AddRect(ImVec2(left, top), cell_max, empty_border);
+        }
+        continue;
+      }
 
-    if (can_draw) {
-      DrawMapWithAreaLayers(world_index, map_x, map_y, scale);
-    } else {
-      // Draw a placeholder for maps that haven't loaded yet
-      ImDrawList* draw_list = ImGui::GetWindowDrawList();
-      ImVec2 canvas_pos = editor_->ow_map_canvas_.zero_point();
-      ImVec2 scrolling = editor_->ow_map_canvas_.scrolling();
-      // Apply scrolling offset and use already-scaled map_x/map_y
-      ImVec2 placeholder_pos = ImVec2(canvas_pos.x + scrolling.x + map_x,
-                                      canvas_pos.y + scrolling.y + map_y);
-      // Scale the placeholder size to match zoomed maps
-      float scaled_size = kOverworldMapSize * scale;
-      ImVec2 placeholder_size = ImVec2(scaled_size, scaled_size);
+      // Ensure visible maps are materialized on demand before drawing. A map
+      // whose bitmap exists only waits for its queued texture (cheap).
+      auto& map_bitmap = editor_->maps_bmp_[world_index];
+      if (!map_bitmap.is_active()) {
+        if (builds_this_frame < kMaxMapBuildsPerFrame) {
+          editor_->EnsureMapTexture(world_index);
+          ++builds_this_frame;
+        }
+      } else if (!map_bitmap.texture()) {
+        editor_->EnsureMapTexture(world_index);
+      }
 
-      // Modern loading indicator with theme colors
-      const auto& theme = AgentUI::GetTheme();
-      draw_list->AddRectFilled(
-          placeholder_pos,
-          ImVec2(placeholder_pos.x + placeholder_size.x,
-                 placeholder_pos.y + placeholder_size.y),
-          ImGui::GetColorU32(
-              theme.editor_background));  // Theme-aware background
+      // Only draw if the map has a valid texture AND is active (has bitmap data)
+      bool can_draw = editor_->maps_bmp_[world_index].texture() &&
+                      editor_->maps_bmp_[world_index].is_active();
 
-      // Animated loading spinner - scale spinner radius with zoom
-      ImVec2 spinner_pos = ImVec2(placeholder_pos.x + placeholder_size.x / 2,
-                                  placeholder_pos.y + placeholder_size.y / 2);
+      if (can_draw) {
+        DrawMapWithAreaLayers(world_index, map_x, map_y, scale);
+      } else {
+        // Draw a placeholder for maps that haven't loaded yet
+        ImDrawList* draw_list = ImGui::GetWindowDrawList();
+        const ImVec2 placeholder_pos(left, top);
+        const ImVec2 placeholder_size(map_extent, map_extent);
 
-      const float spinner_radius = 8.0f * scale;
-      const float rotation = static_cast<float>(ImGui::GetTime()) * 3.0f;
-      const float start_angle = rotation;
-      const float end_angle = rotation + IM_PI * 1.5f;
+        // Modern loading indicator with theme colors
+        draw_list->AddRectFilled(placeholder_pos,
+                                 ImVec2(placeholder_pos.x + placeholder_size.x,
+                                        placeholder_pos.y + placeholder_size.y),
+                                 empty_fill);
 
-      draw_list->PathArcTo(spinner_pos, spinner_radius, start_angle, end_angle,
-                           12);
-      draw_list->PathStroke(ImGui::GetColorU32(theme.status_active), 0,
-                            2.5f * scale);
+        // Animated loading spinner - scale spinner radius with zoom
+        const ImVec2 spinner_pos(placeholder_pos.x + placeholder_size.x / 2,
+                                 placeholder_pos.y + placeholder_size.y / 2);
+
+        const float spinner_radius = 8.0f * scale;
+        const float rotation = static_cast<float>(ImGui::GetTime()) * 3.0f;
+        const float start_angle = rotation;
+        const float end_angle = rotation + IM_PI * 1.5f;
+
+        draw_list->PathArcTo(spinner_pos, spinner_radius, start_angle,
+                             end_angle, 12);
+        draw_list->PathStroke(ImGui::GetColorU32(theme.status_active), 0,
+                              2.5f * scale);
+      }
     }
   }
 }
@@ -793,7 +923,8 @@ std::vector<int> OverworldCanvasRenderer::Tile16ScopeMaps() const {
       break;
     case Tile16UsageScope::kCurrentWorld:
       for (int id = 0; id < map_count; ++id) {
-        if (std::min(id / 0x40, 2) == editor_->current_world_) {
+        if (OverworldCanvasLayout::ClampedWorldForMap(id) ==
+            editor_->current_world_) {
           map_ids.push_back(id);
         }
       }
@@ -850,8 +981,9 @@ void OverworldCanvasRenderer::RefreshTile16Order(bool grid_hovered) {
     if (map_id <
         static_cast<int>(editor_->overworld_.overworld_maps().size())) {
       zelda3::AccumulateTile16MapUsage(
-          editor_->overworld_.GetMapTiles(std::min(map_id / 0x40, 2)),
-          map_id % 0x40, &counts);
+          editor_->overworld_.GetMapTiles(
+              OverworldCanvasLayout::ClampedWorldForMap(map_id)),
+          OverworldCanvasLayout::LocalIndex(map_id), &counts);
     }
   }
   if (editor_->lyra_canvas_.loaded() && editor_->lyra_canvas_.document()) {
@@ -1248,6 +1380,10 @@ void OverworldCanvasRenderer::DrawEntityHoverTooltip() {
       default:
         break;
     }
+    if (editor_->IsUnifiedCanvas()) {
+      ImGui::Separator();
+      ImGui::TextDisabled("%s", kUnifiedReadOnlyReason);
+    }
     ImGui::EndTooltip();
   }
 }
@@ -1270,14 +1406,23 @@ void OverworldCanvasRenderer::DrawMapProperties() {
     // canvas must not clear the last valid selection (sidebar Pin needs it).
     if (editor_->tile_painting_ && editor_->overworld_.is_loaded() &&
         editor_->ow_map_canvas_.IsMouseHovering()) {
-      const auto hover = editor_->tile_painting_->HoveredTile();
-      const int screen_x = hover.x % 32;
-      const int screen_y = hover.y % 32;
-      const int map_x = hover.x / 32;
-      const int map_y = hover.y / 32;
-      const int map_id = editor_->current_world_ * 64 + map_x + map_y * 8;
-      const auto location = cli::overworld::LocateScreenTile(
-          editor_->overworld_, map_id, screen_x, screen_y);
+      const float scale = editor_->ow_map_canvas_.global_scale() > 0.0f
+                              ? editor_->ow_map_canvas_.global_scale()
+                              : 1.0f;
+      const ImVec2 mouse = editor_->ow_map_canvas_.hover_mouse_pos();
+      const ImVec2 canvas_pt(mouse.x / scale, mouse.y / scale);
+      const auto wp = editor_->GetCanvasLayout().WorldLocalFromCanvas(
+          canvas_pt, editor_->current_world_);
+      absl::StatusOr<cli::overworld::AreaTileLocation> location =
+          absl::OutOfRangeError("Outside overworld canvas");
+      if (wp) {
+        const int tx = static_cast<int>(wp->local_position.x / kTile16Size);
+        const int ty = static_cast<int>(wp->local_position.y / kTile16Size);
+        const int map_id =
+            OverworldCanvasLayout::MapIdFromLocal(wp->world, tx / 32, ty / 32);
+        location = cli::overworld::LocateScreenTile(editor_->overworld_, map_id,
+                                                    tx % 32, ty % 32);
+      }
       if (location.ok()) {
         editor_->sidebar_->SetTile16ReferenceHover(
             location->map_id, location->area_x, location->area_y);

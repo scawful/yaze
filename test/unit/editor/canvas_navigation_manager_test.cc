@@ -3,6 +3,7 @@
 #include <limits>
 #include <memory>
 
+#include "app/editor/overworld/canvas/overworld_canvas_layout.h"
 #include "app/editor/overworld/ui/ui_constants.h"
 #include "app/gui/canvas/canvas.h"
 #include "app/gui/widgets/tile_selector_widget.h"
@@ -603,6 +604,38 @@ TEST(MapSelectClickTest, SelectToolReleaseNeedsCanvasOwnedPress) {
   paint.mode = EditingMode::DRAW_TILE;
   paint.right_clicked = true;
   EXPECT_TRUE(IsMapSelectClick(paint));
+}
+
+TEST_F(CanvasMapTrackingTest, UnifiedModeHoverSyncsWorldAndRejectsGutters) {
+  const OverworldCanvasLayout unified(OverworldCanvasLayoutMode::kUnified);
+  callbacks_.canvas_layout = [&]() {
+    return unified;
+  };
+  manager_.Initialize(ctx_, callbacks_);
+
+  const ImVec2 dw_pos = unified.MapOrigin(0x45);
+  ASSERT_EQ(
+      manager_.TrackMapAtCanvasPosition(ImVec2(dw_pos.x + 16, dw_pos.y + 16)),
+      0x45);
+  EXPECT_EQ(current_map_, 0x45);
+  EXPECT_EQ(current_world_, 1);
+  EXPECT_EQ(hovered_map_, 0x45);
+
+  const ImVec2 sp_pos = unified.MapOrigin(0x82);
+  ASSERT_EQ(
+      manager_.TrackMapAtCanvasPosition(ImVec2(sp_pos.x + 16, sp_pos.y + 16)),
+      0x82);
+  EXPECT_EQ(current_map_, 0x82);
+  EXPECT_EQ(current_world_, 2);
+  EXPECT_EQ(hovered_map_, 0x82);
+
+  // Gutter and south-east quadrant yield nullopt without changing current_map_.
+  EXPECT_FALSE(
+      manager_.TrackMapAtCanvasPosition(ImVec2(4100, 100)).has_value());
+  EXPECT_EQ(hovered_map_, -1);
+  EXPECT_EQ(current_map_, 0x82);
+  EXPECT_FALSE(
+      manager_.TrackMapAtCanvasPosition(ImVec2(5000, 5000)).has_value());
 }
 
 }  // namespace

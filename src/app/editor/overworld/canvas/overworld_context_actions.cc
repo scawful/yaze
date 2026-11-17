@@ -28,9 +28,9 @@ bool OverworldCanvasRenderer::PrepareContextMenu(
     return false;
   }
   auto target = ResolveOverworldContextTarget(
-      editor_->current_world_, editor_->game_state_, screen_position,
-      canvas.zero_point(), canvas.scrolling(), canvas.global_scale(),
-      editor_->DisplayedMapCount());
+      editor_->GetCanvasLayout(), editor_->current_world_, editor_->game_state_,
+      screen_position, canvas.zero_point(), canvas.scrolling(),
+      canvas.global_scale(), editor_->DisplayedMapCount());
   if (!target) {
     return false;
   }
@@ -73,6 +73,10 @@ bool OverworldCanvasRenderer::PrepareContextMenu(
 
 void OverworldEditor::HandleEntityInsertion(
     const std::string& entity_type, const OverworldContextTarget& target) {
+  if (IsUnifiedCanvas()) {
+    NotifyUnifiedReadOnly();
+    return;
+  }
   if (!target.valid()) {
     return;
   }
@@ -126,6 +130,10 @@ absl::Status OverworldEditor::OpenGraphicsForContextTile16(
 
 void OverworldEditor::RequestItemInsertPopup(
     const std::optional<OverworldContextTarget>& target) {
+  if (IsUnifiedCanvas()) {
+    NotifyUnifiedReadOnly();
+    return;
+  }
   item_insert_target_ = target;
   item_insert_popup_requested_ = true;
 }
@@ -182,6 +190,11 @@ bool OverworldEditor::TryPlaceArmedItem() {
       !ow_map_canvas_.IsMouseHovering()) {
     return false;
   }
+  if (IsUnifiedCanvas()) {
+    item_placement_armed_ = false;
+    NotifyUnifiedReadOnly();
+    return false;
+  }
   if (entity_renderer_ && entity_renderer_->hovered_entity() != nullptr) {
     return false;
   }
@@ -189,8 +202,9 @@ bool OverworldEditor::TryPlaceArmedItem() {
                           ? ow_map_canvas_.global_scale()
                           : 1.0f;
   auto target = ResolveOverworldContextTarget(
-      current_world_, game_state_, ow_map_canvas_.hover_mouse_pos(),
-      ImVec2(0.0f, 0.0f), ImVec2(0.0f, 0.0f), scale);
+      GetCanvasLayout(), current_world_, game_state_,
+      ow_map_canvas_.hover_mouse_pos(), ImVec2(0.0f, 0.0f), ImVec2(0.0f, 0.0f),
+      scale);
   if (!target) {
     return false;
   }

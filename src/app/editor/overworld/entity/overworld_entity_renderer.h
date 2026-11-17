@@ -3,6 +3,7 @@
 
 #include <vector>
 
+#include "app/editor/overworld/canvas/overworld_canvas_layout.h"
 #include "app/gfx/core/bitmap.h"
 #include "app/gui/canvas/canvas.h"
 #include "imgui/imgui.h"
@@ -52,6 +53,9 @@ class OverworldEntityRenderer {
   void DrawItems(const gui::CanvasRuntime& rt, int current_world);
   void DrawSprites(const gui::CanvasRuntime& rt, int current_world,
                    int game_state);
+  void DrawAllEntities(const gui::CanvasRuntime& rt,
+                       const OverworldCanvasLayout& layout, int current_world,
+                       int game_state);
 
   // ==========================================================================
   // Legacy rendering methods (kept for backward compatibility)
@@ -80,6 +84,12 @@ class OverworldEntityRenderer {
   void set_show_diggable_tiles(bool show) { show_diggable_tiles_ = show; }
 
  private:
+  void DrawExitsForWorld(const gui::CanvasRuntime& rt, int world);
+  void DrawEntrancesForWorld(const gui::CanvasRuntime& rt, int world);
+  void DrawItemsForWorld(const gui::CanvasRuntime& rt, int world);
+  void DrawSpritesForWorld(const gui::CanvasRuntime& rt, int world,
+                           int game_state, bool unified_bitmap);
+
   zelda3::GameEntity* hovered_entity_ = nullptr;
   zelda3::Overworld* overworld_;
   gui::Canvas* canvas_;

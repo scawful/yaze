@@ -10,6 +10,7 @@
 #include <optional>
 
 #include "absl/strings/str_format.h"
+#include "app/editor/overworld/canvas/overworld_canvas_layout.h"
 #include "app/editor/overworld/maps/overworld_map_metadata.h"
 #include "app/editor/overworld/ui/ui_constants.h"
 #include "app/gfx/types/snes_palette.h"
@@ -583,7 +584,8 @@ void OverworldSidebar::NotifyTile16ReferenceMapContext(int current_world) {
   }
   if (!tile16_reference_has_selection_)
     return;
-  const int occ_world = tile16_reference_map_ / 64;
+  const int occ_world =
+      OverworldCanvasLayout::WorldForMap(tile16_reference_map_);
   if (occ_world != current_world)
     InvalidateTile16ReferenceContext();
 }

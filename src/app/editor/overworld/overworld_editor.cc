@@ -187,10 +187,12 @@ bool OverworldEditor::NormalizeMapSelection(int& current_world,
   const int clamped_world = std::clamp(current_world, 0, 2);
   int normalized_map = current_map;
   if (normalized_map < 0 || normalized_map >= map_count) {
-    normalized_map = std::min(clamped_world * 0x40, map_count - 1);
+    normalized_map = std::min(
+        OverworldCanvasLayout::WorldStartMap(clamped_world), map_count - 1);
   }
 
-  const int normalized_world = std::clamp(normalized_map / 0x40, 0, 2);
+  const int normalized_world =
+      OverworldCanvasLayout::ClampedWorldForMap(normalized_map);
   const bool changed =
       normalized_world != current_world || normalized_map != current_map;
   current_world = normalized_world;
@@ -335,6 +337,12 @@ void OverworldEditor::Initialize() {
   toolbar_->get_zoom = [this]() {
     return ow_map_canvas_.global_scale();
   };
+  toolbar_->get_layout_mode = [this]() {
+    return canvas_layout_mode();
+  };
+  toolbar_->on_set_layout_mode = [this](OverworldCanvasLayoutMode mode) {
+    SetCanvasLayoutMode(mode);
+  };
   toolbar_->on_toggle_overlay_preview = [this]() {
     show_overlay_preview_ = !show_overlay_preview_;
   };
@@ -361,6 +369,8 @@ void OverworldEditor::Initialize() {
        [this]() { show_overlay_preview_ = !show_overlay_preview_; }});
   map_properties_system_->SetCurrentMapProvider(
       [this]() { return current_map_; });
+  map_properties_system_->SetCanvasReadOnlyProvider(
+      [this]() { return IsUnifiedCanvas(); });
   map_properties_system_->SetMapJumpCallback(
       [this](int map_id) { JumpToMap(map_id); });
   map_properties_system_->SetShortcutHintProvider(
@@ -506,10 +516,17 @@ void OverworldEditor::InitTilePaintingManager() {
   callbacks.allocated_rows = [this](int world) {
     if (world == 2 && lyra_canvas_.loaded())
       return 8;
-    return (std::clamp(overworld_.materialized_map_count() - world * 0x40, 0,
-                       0x40) +
+    return (std::clamp(overworld_.materialized_map_count() -
+                           OverworldCanvasLayout::WorldStartMap(world),
+                       0, kOverworldMapsPerWorld) +
             7) /
            8;
+  };
+  callbacks.canvas_layout = [this]() {
+    return GetCanvasLayout();
+  };
+  callbacks.on_read_only_blocked = [this]() {
+    NotifyUnifiedReadOnly();
   };
 
   tile_painting_ = std::make_unique<TilePaintingManager>(deps, callbacks);
@@ -559,6 +576,9 @@ void OverworldEditor::InitCanvasNavigationManager() {
   };
   callbacks.open_map_properties = [this]() {
     OpenMapPropertiesWindow();
+  };
+  callbacks.canvas_layout = [this]() {
+    return GetCanvasLayout();
   };
 
   canvas_nav_ = std::make_unique<CanvasNavigationManager>();
@@ -1065,7 +1085,7 @@ bool OverworldEditor::NormalizeCurrentSelectionState() {
   if (overworld_.is_lyra_preview()) {
     const int normalized =
         std::clamp(current_map_, 0, overworld_.inspected_map_count() - 1);
-    const int world = normalized / 0x40;
+    const int world = OverworldCanvasLayout::WorldForMap(normalized);
     changed = normalized != current_map_ || world != current_world_;
     current_map_ = normalized;
     current_world_ = world;
@@ -1106,7 +1126,7 @@ void OverworldEditor::SelectMapForEditing(int map_id, bool respect_pin) {
   }
   if (overworld_.is_lyra_preview()) {
     current_map_ = map_id;
-    current_world_ = map_id / 0x40;
+    current_world_ = OverworldCanvasLayout::WorldForMap(map_id);
     current_parent_ = map->parent();
     overworld_.set_current_map(current_map_);
     overworld_.set_current_world(current_world_);
@@ -1119,10 +1139,11 @@ void OverworldEditor::SelectMapForEditing(int map_id, bool respect_pin) {
 
   // Cursor tracking may cross screens during one paint stroke. Preserve its
   // undo batch within the same world; explicit selection still finalizes it.
-  const bool tracking_paint = respect_pin &&
-                              (current_mode == EditingMode::DRAW_TILE ||
-                               current_mode == EditingMode::FILL_TILE) &&
-                              map_id / 0x40 == current_world_;
+  const bool tracking_paint =
+      respect_pin &&
+      (current_mode == EditingMode::DRAW_TILE ||
+       current_mode == EditingMode::FILL_TILE) &&
+      OverworldCanvasLayout::WorldForMap(map_id) == current_world_;
   if (!tracking_paint) {
     FinalizePaintOperation();
   }
@@ -1130,7 +1151,7 @@ void OverworldEditor::SelectMapForEditing(int map_id, bool respect_pin) {
     lyra_canvas_.FinishStroke(undo_manager_);
   }
   current_map_ = map_id;
-  current_world_ = std::clamp(map_id / 0x40, 0, 2);
+  current_world_ = OverworldCanvasLayout::ClampedWorldForMap(map_id);
   current_parent_ = project_terrain ? map_id : map->parent();
   if (project_terrain) {
     SetCurrentEntity(nullptr);
@@ -1164,10 +1185,14 @@ void OverworldEditor::PrimeWorldMaps(int world, bool process_texture_queue) {
 void OverworldEditor::SwitchToWorld(int world) {
   FinalizePaintOperation();
   lyra_canvas_.FinishStroke(undo_manager_);
+  if (IsUnifiedCanvas()) {
+    SwitchToWorldUnified(world);
+    return;
+  }
 
   const int clamped_world = std::clamp(world, 0, 2);
-  const int local_map = current_map_ & 0x3F;
-  const int world_start = clamped_world * 0x40;
+  const int local_map = OverworldCanvasLayout::LocalIndex(current_map_);
+  const int world_start = OverworldCanvasLayout::WorldStartMap(clamped_world);
   const int maps_remaining = DisplayedMapCount() - world_start;
   if (maps_remaining <= 0) {
     return;
@@ -1317,6 +1342,10 @@ void OverworldEditor::PushItemUndoAction(OverworldItemsSnapshot before,
 }
 
 bool OverworldEditor::DuplicateSelectedItem(int offset_x, int offset_y) {
+  if (IsUnifiedCanvas()) {
+    NotifyUnifiedReadOnly();
+    return false;
+  }
   auto* selected_item = GetSelectedItem();
   if (!selected_item) {
     if (dependencies_.toast_manager) {
@@ -1377,6 +1406,10 @@ bool OverworldEditor::DuplicateSelectedItem(int offset_x, int offset_y) {
 }
 
 bool OverworldEditor::NudgeSelectedItem(int delta_x, int delta_y) {
+  if (IsUnifiedCanvas()) {
+    NotifyUnifiedReadOnly();
+    return false;
+  }
   auto* selected_item = GetSelectedItem();
   if (!selected_item) {
     return false;
@@ -1406,6 +1439,10 @@ bool OverworldEditor::NudgeSelectedItem(int delta_x, int delta_y) {
 }
 
 bool OverworldEditor::DeleteSelectedItem() {
+  if (IsUnifiedCanvas()) {
+    NotifyUnifiedReadOnly();
+    return false;
+  }
   auto* selected_item = GetSelectedItem();
   if (!selected_item) {
     return false;
@@ -1500,6 +1537,10 @@ absl::Status OverworldEditor::Copy() {
 }
 
 absl::Status OverworldEditor::Paste() {
+  if (IsUnifiedCanvas()) {
+    NotifyUnifiedReadOnly();
+    return absl::FailedPreconditionError(kUnifiedReadOnlyReason);
+  }
   if (is_lyra_preview()) {
     return absl::FailedPreconditionError("Lyra preview is read-only");
   }
@@ -1705,6 +1746,10 @@ absl::Status OverworldEditor::SaveRomData() {
 
 absl::Status OverworldEditor::PaintLyraA0Terrain(int map_id, int x, int y,
                                                  uint16_t tile) {
+  if (IsUnifiedCanvas()) {
+    NotifyUnifiedReadOnly();
+    return absl::FailedPreconditionError(kUnifiedReadOnlyReason);
+  }
   if (map_id != 0xA0 || !lyra_a0_terrain_writable() || x < 0 || x >= 16 ||
       y < 0 || y >= 16) {
     return absl::FailedPreconditionError("Only Lyra A0 terrain is writable");
@@ -2045,6 +2090,10 @@ absl::Status OverworldEditor::RenameProjectResourceLabelWithUndo(
 }
 
 absl::Status OverworldEditor::Undo() {
+  if (IsUnifiedCanvas()) {
+    NotifyUnifiedReadOnly();
+    return absl::FailedPreconditionError(kUnifiedReadOnlyReason);
+  }
   FinishScratchEdit("Edit scratch layout");
   lyra_canvas_.FinishStroke(undo_manager_);
   if (is_lyra_preview() && !lyra_a0_terrain_writable()) {
@@ -2058,6 +2107,10 @@ absl::Status OverworldEditor::Undo() {
 }
 
 absl::Status OverworldEditor::Redo() {
+  if (IsUnifiedCanvas()) {
+    NotifyUnifiedReadOnly();
+    return absl::FailedPreconditionError(kUnifiedReadOnlyReason);
+  }
   FinishScratchEdit("Edit scratch layout");
   lyra_canvas_.FinishStroke(undo_manager_);
   if (is_lyra_preview() && !lyra_a0_terrain_writable()) {
@@ -2236,6 +2289,9 @@ void OverworldEditor::InitMapTextureCoordinator() {
   ctx.current_map = &current_map_;
   ctx.refresh_map_on_demand = [this](int map_index) {
     this->RefreshOverworldMapOnDemand(map_index);
+  };
+  ctx.canvas_layout = [this]() {
+    return GetCanvasLayout();
   };
   map_texture_ = std::make_unique<OverworldMapTextureCoordinator>(ctx);
 }
@@ -2544,14 +2600,15 @@ void OverworldEditor::ToggleItemListWindow() {
 
 void OverworldEditor::SelectAdjacentMap(int dx, int dy) {
   const int world = std::clamp(current_world_, 0, 2);
-  const int local = current_map_ - world * 0x40;
-  const int rows = std::min(64, DisplayedMapCount() - world * 0x40) / 8;
+  const int world_start = OverworldCanvasLayout::WorldStartMap(world);
+  const int local = current_map_ - world_start;
+  const int rows = std::min(64, DisplayedMapCount() - world_start) / 8;
   const int x = local % 8 + dx;
   const int y = local / 8 + dy;
   if (x < 0 || x >= 8 || y < 0 || y >= rows) {
     return;
   }
-  const int target = world * 0x40 + y * 8 + x;
+  const int target = OverworldCanvasLayout::MapIdFromLocal(world, x, y);
   if (target >= DisplayedMapCount()) {
     return;
   }
@@ -2572,7 +2629,7 @@ void OverworldEditor::JumpToMap(int map_id) {
     set_current_map(map_id);
     return;
   }
-  const int world = std::clamp(map_id / 0x40, 0, 2);
+  const int world = OverworldCanvasLayout::ClampedWorldForMap(map_id);
   if (world != current_world_) {
     SwitchToWorld(world);
   }
@@ -2594,6 +2651,12 @@ void OverworldEditor::LocateOverworldTile(int map_id, int world_x,
 
 void OverworldEditor::SetEditingMode(EditingMode mode) {
   if (is_lyra_preview()) {
+    return;
+  }
+  if (IsUnifiedCanvas() && mode != EditingMode::MOUSE) {
+    NotifyUnifiedReadOnly();
+    current_mode = EditingMode::MOUSE;
+    ow_map_canvas_.SetUsageMode(gui::CanvasUsage::kEntityManipulation);
     return;
   }
   if (mode != current_mode) {
@@ -2814,17 +2877,7 @@ void OverworldEditor::ContributeStatus(StatusBar* status_bar) {
                             hovered_map_, ow_map_canvas_.IsMouseHovering())));
   status_bar->SetCustomSegment("Tile16",
                                absl::StrFormat("0x%03X", current_tile16_));
-  if (ow_map_canvas_.IsMouseHovering()) {
-    const auto mouse = ow_map_canvas_.hover_mouse_pos();
-    const float scale = ow_map_canvas_.global_scale() > 0
-                            ? ow_map_canvas_.global_scale()
-                            : 1.0f;
-    const int tx = static_cast<int>(mouse.x / (16.0f * scale)) % 32;
-    const int ty = static_cast<int>(mouse.y / (16.0f * scale)) % 32;
-    status_bar->SetCustomSegment("Pos", absl::StrFormat("(%d, %d)", tx, ty));
-  } else {
-    status_bar->ClearCustomSegment("Pos");
-  }
+  (void)ContributeHoverPosToStatusBar(status_bar);
 
   const char* mode_label;
   switch (entity_edit_mode_) {

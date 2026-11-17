@@ -16,6 +16,7 @@
 #include "absl/status/status.h"
 #include "absl/strings/str_format.h"
 #include "app/editor/core/undo_action.h"
+#include "app/editor/overworld/canvas/overworld_canvas_layout.h"
 #include "app/editor/overworld/maps/overworld_property_edit.h"
 #include "util/macro.h"
 #include "zelda3/overworld/overworld.h"
@@ -230,7 +231,8 @@ class OverworldTilePaintAction : public UndoAction {
     // Derive this set at replay time: MergeWith can add changes on other maps.
     std::array<bool, zelda3::kExpandedMapCount> changed_maps{};
     for (const auto& change : tile_changes_) {
-      const int map_id = world_ * 0x40 + change.x / 32 + (change.y / 32) * 8;
+      const int map_id = OverworldCanvasLayout::MapIdFromLocal(
+          world_, change.x / 32, change.y / 32);
       if (map_id >= 0 && map_id < overworld_->materialized_map_count())
         changed_maps[map_id] = true;
     }

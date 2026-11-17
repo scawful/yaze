@@ -4,10 +4,12 @@
 #include <array>
 #include <functional>
 #include <memory>
+#include <optional>
 #include <vector>
 
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
+#include "app/editor/overworld/canvas/overworld_canvas_layout.h"
 #include "app/editor/overworld/painting/tile_brush.h"
 #include "app/editor/overworld/ui/ui_constants.h"
 #include "app/gfx/core/bitmap.h"
@@ -63,6 +65,8 @@ struct TilePaintingCallbacks {
   std::function<void()> finalize_project_paint;
   std::function<const gfx::Bitmap*(int map_id)> project_tile_atlas;
   std::function<int(int world)> allocated_rows;
+  std::function<OverworldCanvasLayout()> canvas_layout;
+  std::function<void()> on_read_only_blocked;
 };
 
 /// One cell of a guarded stencil, in Tile16 cells local to its map (0..31).
@@ -113,10 +117,7 @@ class TilePaintingManager {
   /// Paste a validated pattern at the current canvas cursor, using the same
   /// clipping, per-map refresh, and undo path as rectangle painting.
   absl::Status PasteBrush(const TileBrush& brush);
-  absl::Status PlaceBrushAt(const TileBrush& brush, int x, int y) {
-    FinalizePendingPaint();
-    return PaintPattern(brush, {x, y}, brush.width, brush.height);
-  }
+  absl::Status PlaceBrushAt(const TileBrush& brush, int x, int y);
 
   /// Write every cell of one ROM map in the displayed world as a single undo
   /// step, or none of them: any cell whose live Tile16 differs from
@@ -162,10 +163,15 @@ class TilePaintingManager {
 
  private:
   using ChangedMaps = std::array<bool, zelda3::kExpandedMapCount>;
+  OverworldCanvasLayout Layout() const;
   int AllocatedRowsForWorld(int world) const;
   bool IsValidMapGridPosition(int world, int map_x, int map_y) const;
+  bool IsProjectTileForWorld(int world, TilePosition position) const;
   bool IsProjectTile(TilePosition position) const;
+  absl::StatusOr<uint16_t> ReadWorldTile(int world,
+                                         TilePosition position) const;
   absl::StatusOr<uint16_t> ReadTile(TilePosition position) const;
+  bool IsValidTileForWorld(int world, TilePosition position) const;
   bool IsValidTile(TilePosition position) const;
   void FinalizePendingPaint();
   std::vector<std::vector<uint16_t>>& WorldTiles() const;
@@ -179,7 +185,9 @@ class TilePaintingManager {
   void DrawBrushPieces(
       const TileBrush& brush, TilePosition anchor, int alpha,
       std::array<gfx::Bitmap, zelda3::kExpandedMapCount>& storage,
-      const std::vector<bool>* mask);
+      const std::vector<bool>* mask,
+      std::optional<int> target_world = std::nullopt,
+      ImVec2 block_origin_px = ImVec2(0.0f, 0.0f));
   // Pixels of `tile_id` as `map_id` draws it (its own tile16 blockset);
   // falls back to the shared blockset when that map has none built.
   std::vector<uint8_t> Tile16PixelsForMap(int map_id, int tile_id) const;

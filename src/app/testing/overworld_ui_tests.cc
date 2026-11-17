@@ -3246,6 +3246,344 @@ static void RegisterEndpointPairMoveAcceptanceTest(ImGuiTestEngine* engine) {
   ImGuiTestEngine_QueueTest(engine, test, ImGuiTestRunFlags_RunFromCommandLine);
 }
 
+static void RegisterUnifiedCanvasPhase1AcceptanceTest(ImGuiTestEngine* engine) {
+  const char* out_dir_env = std::getenv("YAZE_UNIFIED_CANVAS_P1_ACCEPTANCE");
+  if (!out_dir_env || !*out_dir_env)
+    return;
+  ImGuiTestEngine_GetIO(engine).ConfigLogToTTY = true;
+  ImGuiTest* test = IM_REGISTER_TEST(engine, "unified_canvas_p1_acceptance",
+                                     "single_unified_hover_b0_readonly");
+  test->TestFunc = [](ImGuiTestContext* ctx) {
+    namespace fs = std::filesystem;
+    ctx->EngineIO->ConfigWatchdogKillTest = 600.0f;
+    const char* out_dir_env = std::getenv("YAZE_UNIFIED_CANVAS_P1_ACCEPTANCE");
+    IM_CHECK(out_dir_env && *out_dir_env);
+    std::error_code ec;
+    const fs::path out_dir(out_dir_env);
+    fs::create_directories(out_dir, ec);
+    IM_CHECK(!ec);
+
+    const auto read_file =
+        [](const fs::path& path) -> std::optional<std::string> {
+      std::ifstream file(path, std::ios::binary);
+      if (!file)
+        return std::nullopt;
+      std::string bytes{std::istreambuf_iterator<char>(file), {}};
+      return file.bad() ? std::nullopt
+                        : std::optional<std::string>(std::move(bytes));
+    };
+
+    Controller* controller = nullptr;
+    editor::EditorManager* manager = nullptr;
+    project::YazeProject* current_project = nullptr;
+    editor::OverworldEditor* overworld = nullptr;
+    for (int frame = 0; frame < 300; ++frame) {
+      controller = Application::Instance().GetController();
+      manager = controller ? controller->editor_manager() : nullptr;
+      current_project = manager ? manager->GetCurrentProject() : nullptr;
+      auto* editors = manager ? manager->GetCurrentEditorSet() : nullptr;
+      overworld = editors ? editors->GetEditorAs<editor::OverworldEditor>(
+                                editor::EditorType::kOverworld)
+                          : nullptr;
+      if (current_project && current_project->project_opened() && overworld &&
+          overworld->overworld().is_loaded() && ctx->ItemExists("**/OwMap")) {
+        break;
+      }
+      ctx->Yield(1);
+    }
+    IM_CHECK(controller && manager && current_project &&
+             current_project->project_opened());
+    IM_CHECK(overworld && overworld->overworld().is_loaded());
+    IM_CHECK(current_project->filepath.find("oracle-of-secrets-scratch") !=
+             std::string::npos);
+
+    auto* rom = manager->GetCurrentRom();
+    IM_CHECK(rom && rom->is_loaded());
+    const auto rom_path = fs::canonical(
+        current_project->GetAbsolutePath(current_project->rom_filename), ec);
+    IM_CHECK(!ec);
+    const auto rom_bytes_before = read_file(rom_path);
+    IM_CHECK(rom_bytes_before.has_value());
+    const std::string rom_sha256_before =
+        core::ComputeSourceArtifactSha256(*rom_bytes_before);
+    IM_CHECK(!rom->dirty() && !manager->IsCurrentProjectDirty());
+    IM_CHECK_EQ(overworld->DisplayedMapCount(), 192);
+    IM_CHECK(!overworld->IsUnifiedCanvas());
+
+    const auto session = manager->GetCurrentSessionId();
+    auto& window_manager = manager->window_manager();
+    const auto canvas_window =
+        window_manager.GetWorkspaceWindowName(session, "overworld.canvas");
+    auto* toasts = manager->toast_manager();
+    IM_CHECK(toasts != nullptr);
+
+    auto wait_toasts_clear = [&]() {
+      const auto deadline =
+          std::chrono::steady_clock::now() + std::chrono::seconds(10);
+      while (toasts->pending_count() != 0 &&
+             std::chrono::steady_clock::now() < deadline && !ctx->IsError()) {
+        ctx->Yield(2);
+      }
+    };
+
+    auto& widgets = gui::WidgetIdRegistry::Instance();
+    const auto visible_widget = [&](const std::string& suffix) -> ImGuiID {
+      const std::string tail = "/" + suffix;
+      for (const auto& path : widgets.FindWidgets("*" + suffix)) {
+        const bool match =
+            path == suffix ||
+            (path.size() > tail.size() &&
+             path.compare(path.size() - tail.size(), tail.size(), tail) == 0);
+        const ImGuiID id = match ? widgets.GetWidgetId(path) : 0;
+        if (id != 0) {
+          const auto info = widgets.GetWidgetInfo(path);
+          if (info && !info->window_name.empty())
+            ctx->SetRef(info->window_name.c_str());
+          if (ctx->ItemExists(id))
+            return id;
+        }
+      }
+      return 0;
+    };
+
+    struct ShotState {
+      bool done = false;
+      absl::StatusOr<test::ScreenshotArtifact> result =
+          absl::InternalError("uninitialized");
+    };
+    const auto take_shot = [&](const std::string& filename) -> fs::path {
+      const fs::path dest = out_dir / filename;
+      auto state = std::make_shared<ShotState>();
+      Controller::ScreenshotRequest req;
+      req.preferred_path = dest.string();
+      req.window_title = "";
+      req.format = test::ScreenshotFormat::kPng;
+      req.reveal_to_user = false;
+      req.callback = [state](absl::StatusOr<test::ScreenshotArtifact> res) {
+        state->result = std::move(res);
+        state->done = true;
+      };
+      controller->RequestScreenshot(req);
+      for (int i = 0; i < 60 && !state->done && !ctx->IsError(); ++i) {
+        ctx->Yield(1);
+      }
+      if (!state->done) {
+        IM_ERRORF("Screenshot %s timed out", filename.c_str());
+        return fs::path{};
+      }
+      if (!state->result.ok()) {
+        IM_ERRORF("Screenshot %s failed: %s", filename.c_str(),
+                  std::string(state->result.status().message()).c_str());
+        return fs::path{};
+      }
+      return fs::path(state->result->file_path);
+    };
+
+    ctx->SetRef(canvas_window.c_str());
+    auto terrain = ctx->ItemInfo("**/OwMap");
+    IM_CHECK(terrain.ID != 0 && terrain.Window != nullptr);
+    ctx->SetRef(terrain.Window);
+    ctx->WindowFocus("");
+    ctx->Yield(3);
+
+    auto park_cursor_off_canvas = [&]() {
+      ctx->SetRef(canvas_window.c_str());
+      terrain = ctx->ItemInfo("**/OwMap");
+      IM_CHECK(terrain.Window != nullptr);
+      ctx->MouseSetViewport(terrain.Window);
+      ctx->MouseMoveToPos(
+          ImVec2(terrain.Window->Pos.x + 8.0f, terrain.Window->Pos.y + 8.0f));
+      ctx->Yield(3);
+    };
+
+    // 1. Single mode baseline capture (default layout, map 0x00, 100% scale).
+    overworld->ResetOverworldView();
+    overworld->JumpToMap(0x00);
+    park_cursor_off_canvas();
+    wait_toasts_clear();
+    ctx->Yield(30);
+    const fs::path single_shot = take_shot("single_candidate.png");
+
+    // 2. Toggle Unified via toolbar button & capture full overview.
+    const ImGuiID unified_btn =
+        visible_widget("OverworldToolbar/button:Unified");
+    IM_CHECK(unified_btn != 0);
+    ctx->ItemClick(unified_btn);
+    ctx->Yield(4);
+    IM_CHECK(overworld->IsUnifiedCanvas());
+    park_cursor_off_canvas();
+    ctx->Yield(
+        85);  // Allow all 192 maps (4 builds/frame = 48 frames) + GPU upload.
+    const float fit_scale = overworld->ow_map_canvas().global_scale();
+    IM_CHECK(fit_scale > 0.0f && fit_scale < 0.5f);
+    const fs::path overview_shot = take_shot("unified_overview.png");
+
+    // 3. Hover tail page $B0 in Unified mode (starting adjacent on $A9).
+    auto& canvas = overworld->ow_map_canvas();
+    canvas.set_global_scale(0.5f);
+    overworld->JumpToMap(0xA9);
+    ctx->Yield(15);
+    IM_CHECK_EQ(overworld->current_map_id(), 0xA9);
+    ctx->SetRef(canvas_window.c_str());
+    terrain = ctx->ItemInfo("**/OwMap");
+    IM_CHECK(terrain.ID != 0 && terrain.Window != nullptr);
+    const ImVec2 b0_origin = overworld->GetCanvasLayout().MapOrigin(0xB0);
+    const ImVec2 b0_screen(canvas.zero_point().x + canvas.scrolling().x +
+                               (b0_origin.x + 256.0f) * canvas.global_scale(),
+                           canvas.zero_point().y + canvas.scrolling().y +
+                               (b0_origin.y + 256.0f) * canvas.global_scale());
+    IM_CHECK(terrain.RectClipped.Contains(b0_screen));
+    ctx->MouseSetViewport(terrain.Window);
+    ctx->MouseMoveToPos(b0_screen);
+    ctx->Yield(8);
+    IM_CHECK_EQ(overworld->hovered_map_id(), 0xB0);
+    IM_CHECK_EQ(overworld->current_map_id(), 0xB0);
+    IM_CHECK_EQ(overworld->current_world_id(), 2);
+    const int hovered_b0_map = overworld->hovered_map_id();
+    const fs::path hover_b0_shot = take_shot("unified_hover_b0.png");
+
+    // 4. Scroll to Dark World block via toolbar DW button in Unified mode.
+    park_cursor_off_canvas();
+    const ImGuiID dw_btn = visible_widget("OverworldToolbar/world:1");
+    IM_CHECK(dw_btn != 0);
+    ctx->ItemClick(dw_btn);
+    ctx->Yield(25);
+    IM_CHECK_EQ(overworld->current_world_id(), 1);
+    const fs::path dw_shot = take_shot("unified_dw_block.png");
+
+    // 5. Try one tile paint on map 0x00 tile (4,4) in Unified -> read-only proof.
+    canvas.set_global_scale(1.0f);
+    overworld->JumpToMap(0x00);
+    ctx->Yield(10);
+    overworld->overworld().set_current_world(0);
+    const uint16_t tile_before = overworld->overworld().GetTile(4, 4);
+    ctx->SetRef(canvas_window.c_str());
+    terrain = ctx->ItemInfo("**/OwMap");
+    ctx->SetRef(terrain.Window);
+    ctx->WindowFocus("");
+    ctx->Yield(2);
+    const ImVec2 tile_screen(canvas.zero_point().x + canvas.scrolling().x +
+                                 (4.5f * 16.0f) * canvas.global_scale(),
+                             canvas.zero_point().y + canvas.scrolling().y +
+                                 (4.5f * 16.0f) * canvas.global_scale());
+    IM_CHECK(terrain.RectClipped.Contains(tile_screen));
+    ctx->MouseSetViewport(terrain.Window);
+    ctx->MouseMoveToPos(tile_screen);
+    ctx->Yield(2);
+    ctx->KeyPress(ImGuiKey_2);
+    ctx->Yield(2);
+    ctx->MouseClick(ImGuiMouseButton_Left);
+    ctx->Yield(3);
+    IM_CHECK_EQ(overworld->overworld().GetTile(4, 4), tile_before);
+    IM_CHECK_EQ(overworld->undo_manager().UndoStackSize(), 0u);
+    IM_CHECK(!rom->dirty() && !manager->IsCurrentProjectDirty());
+    IM_CHECK(toasts->pending_count() >= 1);
+    IM_CHECK(toasts->GetPendingToast(0) &&
+             toasts->GetPendingToast(0)->message ==
+                 editor::kUnifiedReadOnlyReason);
+    const fs::path readonly_tile_shot =
+        take_shot("unified_readonly_tile_paint.png");
+
+    // Wait for prior read-only banner/toast to clear so entity drag proves it independently.
+    wait_toasts_clear();
+    ctx->Yield(40);
+
+    // 6. Try one entity drag on a Light World entrance -> read-only proof.
+    const zelda3::OverworldEntrance* target_ent = nullptr;
+    for (const auto& ent : overworld->overworld().entrances()) {
+      if (!ent.deleted && ent.map_id_ >= 0 && ent.map_id_ < 0x40 &&
+          ent.x_ >= 32 && ent.y_ >= 32 && ent.x_ < 4048 && ent.y_ < 4048) {
+        target_ent = &ent;
+        break;
+      }
+    }
+    IM_CHECK(target_ent != nullptr);
+    const int ent_x = target_ent->x_;
+    const int ent_y = target_ent->y_;
+    const int ent_map = target_ent->map_id_;
+    canvas.set_global_scale(1.0f);
+    overworld->JumpToMap(ent_map);
+    ctx->Yield(10);
+    ctx->SetRef(canvas_window.c_str());
+    terrain = ctx->ItemInfo("**/OwMap");
+    ctx->SetRef(terrain.Window);
+    ctx->WindowFocus("");
+    ctx->Yield(2);
+    const ImVec2 ent_screen(
+        canvas.zero_point().x + canvas.scrolling().x +
+            (static_cast<float>(ent_x) + 8.0f) * canvas.global_scale(),
+        canvas.zero_point().y + canvas.scrolling().y +
+            (static_cast<float>(ent_y) + 8.0f) * canvas.global_scale());
+    IM_CHECK(terrain.RectClipped.Contains(ent_screen));
+    ctx->MouseSetViewport(terrain.Window);
+    ctx->MouseMoveToPos(ent_screen);
+    ctx->Yield(3);
+    ctx->MouseDown(ImGuiMouseButton_Left);
+    ctx->Yield(2);
+    ctx->MouseMoveToPos(ImVec2(ent_screen.x + 12.0f, ent_screen.y + 8.0f));
+    ctx->Yield(2);
+    IM_CHECK_EQ(target_ent->x_, ent_x);
+    IM_CHECK_EQ(target_ent->y_, ent_y);
+    IM_CHECK_EQ(target_ent->map_id_, ent_map);
+    IM_CHECK_EQ(overworld->undo_manager().UndoStackSize(), 0u);
+    IM_CHECK(!rom->dirty() && !manager->IsCurrentProjectDirty());
+    IM_CHECK(toasts->pending_count() >= 1);
+    IM_CHECK(toasts->GetPendingToast(0) &&
+             toasts->GetPendingToast(0)->message ==
+                 editor::kUnifiedReadOnlyReason);
+    const fs::path readonly_drag_shot =
+        take_shot("unified_readonly_entity_drag.png");
+    ctx->MouseUp(ImGuiMouseButton_Left);
+    ctx->Yield(2);
+
+    const auto rom_bytes_after = read_file(rom_path);
+    IM_CHECK(rom_bytes_after.has_value());
+    const std::string rom_sha256_after =
+        core::ComputeSourceArtifactSha256(*rom_bytes_after);
+    IM_CHECK(rom_sha256_after == rom_sha256_before);
+
+    nlohmann::json receipt = {
+        {"result", "PASS"},
+        {"project_path", current_project->filepath},
+        {"rom_path", rom_path.string()},
+        {"rom_sha256_before", rom_sha256_before},
+        {"rom_sha256_after", rom_sha256_after},
+        {"displayed_map_count", overworld->DisplayedMapCount()},
+        {"unified_fit_scale", fit_scale},
+        {"hover_b0_map", hovered_b0_map},
+        {"tile_before", tile_before},
+        {"tile_after", overworld->overworld().GetTile(4, 4)},
+        {"entity_map", ent_map},
+        {"entity_x_before", ent_x},
+        {"entity_y_before", ent_y},
+        {"entity_x_after", target_ent->x_},
+        {"entity_y_after", target_ent->y_},
+        {"screenshots",
+         {
+             {"single_candidate", single_shot.string()},
+             {"unified_overview", overview_shot.string()},
+             {"unified_hover_b0", hover_b0_shot.string()},
+             {"unified_dw_block", dw_shot.string()},
+             {"unified_readonly_tile_paint", readonly_tile_shot.string()},
+             {"unified_readonly_entity_drag", readonly_drag_shot.string()},
+         }},
+    };
+    const fs::path receipt_path = out_dir / "acceptance_receipt.json";
+    const fs::path tmp_receipt = out_dir / "acceptance_receipt.json.part";
+    {
+      std::ofstream out(tmp_receipt, std::ios::binary);
+      out << receipt.dump(2) << '\n';
+      IM_CHECK(out.good());
+    }
+    fs::rename(tmp_receipt, receipt_path, ec);
+    IM_CHECK(!ec);
+    ctx->LogInfo("Unified Canvas Phase 1 acceptance PASS; receipt: %s",
+                 receipt_path.string().c_str());
+    manager->Quit();
+  };
+  ImGuiTestEngine_QueueTest(engine, test, ImGuiTestRunFlags_RunFromCommandLine);
+}
+
 void RegisterOverworldUITests(ImGuiTestEngine* engine) {
   if (engine == nullptr)
     return;
@@ -3260,6 +3598,7 @@ void RegisterOverworldUITests(ImGuiTestEngine* engine) {
   RegisterEndpointBindAcceptanceTest(engine);
   RegisterEndpointPairMoveAcceptanceTest(engine);
   RegisterProjectGraphicsImportPreviewTest(engine);
+  RegisterUnifiedCanvasPhase1AcceptanceTest(engine);
 }
 
 }  // namespace yaze::test

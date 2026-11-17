@@ -449,6 +449,7 @@ if(YAZE_BUILD_TESTS)
     unit/editor/overworld_undo_actions_test.cc
     unit/editor/tile16_document_history_test.cc
     unit/editor/tile16_editor_shortcuts_test.cc
+    unit/editor/overworld_canvas_layout_test.cc
     unit/editor/canvas_navigation_manager_test.cc
     unit/editor/map_refresh_coordinator_test.cc
     unit/editor/overworld_map_metadata_test.cc

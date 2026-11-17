@@ -332,8 +332,9 @@ absl::Status OverworldEditor::ValidateSpriteEdit(zelda3::Sprite* target,
   if (draft.placement_id() != target->placement_id())
     return absl::InvalidArgumentError(
         "Native stable placement identity cannot change");
-  const int screen =
-      (draft.map_id() / 64) * 64 + draft.x() / 512 + (draft.y() / 512) * 8;
+  const int screen = OverworldCanvasLayout::MapIdFromLocal(
+      OverworldCanvasLayout::WorldForMap(draft.map_id()), draft.x() / 512,
+      draft.y() / 512);
   ASSIGN_OR_RETURN(auto position,
                    BuildOverworldSpriteForInsertion(
                        overworld_.overworld_maps(),
@@ -829,6 +830,10 @@ void OverworldEntityWorkbench::ProcessPendingInsertion(
   auto request = editor->TakePendingEntityInsertion();
   if (!request)
     return;
+  if (editor->IsUnifiedCanvas()) {
+    editor->NotifyUnifiedReadOnly();
+    return;
+  }
 
   auto res = mutation_service->InsertEntity(request->type, request->target,
                                             request->item_id);
@@ -853,10 +858,17 @@ zelda3::GameEntity* OverworldEntityWorkbench::DrawEntityContextMenu() {
     return nullptr;
 
   zelda3::GameEntity* entity_to_edit = nullptr;
+  const bool unified_read_only = editor->IsUnifiedCanvas();
   std::vector<gui::MenuItemSpec> items;
-  items.emplace_back(
-      "Edit Properties...", ICON_MD_EDIT,
-      [&entity_to_edit, active_entity]() { entity_to_edit = active_entity; });
+  auto edit_item = gui::MenuItemSpec::Conditional(
+      "Edit Properties...",
+      [&entity_to_edit, active_entity]() { entity_to_edit = active_entity; },
+      [unified_read_only]() { return !unified_read_only; });
+  edit_item.icon = ICON_MD_EDIT;
+  if (unified_read_only) {
+    edit_item.tooltip = kUnifiedReadOnlyReason;
+  }
+  items.push_back(std::move(edit_item));
 
   if (active_entity->entity_type_ == zelda3::GameEntity::EntityType::kExit) {
     auto* exit = static_cast<zelda3::OverworldExit*>(active_entity);

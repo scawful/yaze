@@ -4,6 +4,7 @@
 #include <array>
 #include <functional>
 
+#include "app/editor/overworld/canvas/overworld_canvas_layout.h"
 #include "app/gfx/core/bitmap.h"
 #include "zelda3/overworld/overworld.h"
 
@@ -22,6 +23,7 @@ struct MapTextureContext {
   int* current_map = nullptr;
 
   std::function<void(int map_index)> refresh_map_on_demand;
+  std::function<OverworldCanvasLayout()> canvas_layout;
 };
 
 class OverworldMapTextureCoordinator {

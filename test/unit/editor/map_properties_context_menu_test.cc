@@ -16,6 +16,7 @@
 #include "imgui/imgui.h"
 #include "imgui/imgui_internal.h"
 #include "rom/rom.h"
+#include "test_utils/overworld_model_test_peer.h"
 
 namespace yaze::editor {
 namespace {
@@ -754,6 +755,53 @@ TEST_F(CanvasContextMenuOpenTest, OutsideClicksAndRightDragDoNotCaptureOrOpen) {
   EXPECT_EQ(open_calls_, 0);
   EXPECT_FALSE(popup_open_);
   EXPECT_TRUE(rendered_targets_.empty());
+}
+
+TEST(MapPropertiesContextMenuUnifiedTest,
+     ReadOnlyProviderDisablesWriteItemsAndExplainsReason) {
+  Rom rom;
+  std::vector<uint8_t> rom_data(0x200000, 0);
+  ASSERT_TRUE(rom.LoadFromData(rom_data).ok());
+  zelda3::Overworld overworld(&rom);
+  zelda3::OverworldModelTestPeer::InitializeMapSlots(overworld,
+                                                     zelda3::kNumOverworldMaps);
+  zelda3::OverworldModelTestPeer::SetLoaded(overworld, true);
+  gui::Canvas canvas;
+  int game_state = 0;
+  MapPropertiesSystem props(&overworld, &rom, nullptr, &canvas, &game_state);
+  bool locked = false;
+  SharedClipboard clipboard;
+  clipboard.has_overworld_map_metadata = true;
+  clipboard.overworld_map_metadata.valid = true;
+  clipboard.overworld_map_metadata.area_graphics = 0x10;
+
+  OverworldContextTarget target;
+  target.map_id = 0x42;
+  target.parent_map_id = 0x42;
+  target.world = 1;
+  target.world_position = ImVec2(1024.0f + 32.0f, 32.0f);
+  target.tile16_id = 5;
+
+  props.SetMapSelectionCallback([](int, bool) {});
+  props.SetOpenMapPropertiesCallback([]() {});
+  props.SetEntityCallbacks(
+      [](const std::string&, const OverworldContextTarget&) {});
+  props.SetCanvasReadOnlyProvider([]() { return true; });
+  props.SetupCanvasContextMenu(canvas, target, locked, 0, nullptr, &clipboard);
+
+  const auto* paste_item = FindMenuItem(canvas, "Paste Map Properties");
+  ASSERT_NE(paste_item, nullptr);
+  EXPECT_FALSE(paste_item->enabled_condition());
+  EXPECT_EQ(paste_item->tooltip, kUnifiedReadOnlyReason);
+
+  const auto* insert_menu = FindRootMenuItem(canvas, "Insert");
+  ASSERT_NE(insert_menu, nullptr);
+  EXPECT_FALSE(insert_menu->enabled_condition());
+  EXPECT_EQ(insert_menu->tooltip, kUnifiedReadOnlyReason);
+
+  const auto* properties_item = FindRootMenuItem(canvas, "Map Properties...");
+  ASSERT_NE(properties_item, nullptr);
+  EXPECT_TRUE(properties_item->enabled_condition());
 }
 
 }  // namespace
