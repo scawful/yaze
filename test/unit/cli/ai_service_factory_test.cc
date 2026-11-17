@@ -250,12 +250,34 @@ TEST(AIServiceFactoryTest, ChatGptAliasMapsToOpenAI) {
 TEST(AIServiceFactoryTest, LmStudioAliasUsesOpenAIWithLocalBase) {
   AIServiceConfig config;
   config.provider = "lmstudio";
-  config.openai_base_url = "http://localhost:1234";
 
   auto service_or = CreateAIServiceStrict(config);
 
   ASSERT_TRUE(service_or.ok());
   EXPECT_EQ(service_or.value()->GetProviderName(), "openai");
+}
+
+TEST(AIServiceFactoryTest, CliHarnessProvidersCreateCliHarnessService) {
+  const std::vector<std::pair<std::string, std::string>> cases = {
+      {"claude-code", "claude-code"},
+      {"claude-cli", "claude-code"},
+      {"codex", "codex"},
+      {"codex-cli", "codex"},
+      {"cursor-agent", "cursor-agent"},
+      {"cursor", "cursor-agent"},
+      {"agy", "agy"},
+      {"antigravity", "agy"},
+      {"gemini-cli", "gemini-cli"},
+      {"local-gemini", "gemini-cli"},
+  };
+  for (const auto& [input_provider, expected_canonical] : cases) {
+    AIServiceConfig config;
+    config.provider = input_provider;
+    auto service_or = CreateAIServiceStrict(config);
+    ASSERT_TRUE(service_or.ok())
+        << input_provider << ": " << service_or.status().message();
+    EXPECT_EQ(service_or.value()->GetProviderName(), expected_canonical);
+  }
 }
 
 TEST(AIServiceFactoryTest, OpenAILocalBaseAllowsEmptyKey) {

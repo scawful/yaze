@@ -366,6 +366,8 @@ absl::Status LoadPreferencesFromIni(const std::filesystem::path& path,
     // AI Agent
     else if (key == "ai_provider") {
       prefs->ai_provider = to_int(val, prefs->ai_provider);
+    } else if (key == "ai_provider_name") {
+      prefs->ai_provider_name = val;
     } else if (key == "ai_model") {
       prefs->ai_model = val;
     } else if (key == "ollama_url") {
@@ -376,6 +378,9 @@ absl::Status LoadPreferencesFromIni(const std::filesystem::path& path,
       prefs->openai_api_key = val;
     } else if (key == "anthropic_api_key") {
       prefs->anthropic_api_key = val;
+    } else if (key == "cli_timeout_seconds") {
+      prefs->cli_timeout_seconds =
+          std::clamp(to_int(val, prefs->cli_timeout_seconds), 5, 3600);
     } else if (key == "ai_temperature") {
       prefs->ai_temperature = to_float(val, prefs->ai_temperature);
     } else if (key == "ai_max_tokens") {
@@ -560,11 +565,13 @@ absl::Status SavePreferencesToIni(const std::filesystem::path& path,
 
   // AI Agent
   ss << "ai_provider=" << prefs.ai_provider << "\n";
+  ss << "ai_provider_name=" << prefs.ai_provider_name << "\n";
   ss << "ai_model=" << prefs.ai_model << "\n";
   ss << "ollama_url=" << prefs.ollama_url << "\n";
   ss << "gemini_api_key=" << prefs.gemini_api_key << "\n";
   ss << "openai_api_key=" << prefs.openai_api_key << "\n";
   ss << "anthropic_api_key=" << prefs.anthropic_api_key << "\n";
+  ss << "cli_timeout_seconds=" << prefs.cli_timeout_seconds << "\n";
   ss << "ai_temperature=" << prefs.ai_temperature << "\n";
   ss << "ai_max_tokens=" << prefs.ai_max_tokens << "\n";
   ss << "ai_proactive=" << (prefs.ai_proactive ? 1 : 0) << "\n";
@@ -998,12 +1005,24 @@ absl::Status LoadPreferencesFromJson(const std::filesystem::path& path,
   if (root.contains("ai")) {
     const auto& ai = root["ai"];
     prefs->ai_provider = ai.value("provider", prefs->ai_provider);
+    prefs->ai_provider_name =
+        ai.value("provider_name", prefs->ai_provider_name);
     prefs->ai_model = ai.value("model", prefs->ai_model);
     prefs->ollama_url = ai.value("ollama_url", prefs->ollama_url);
     prefs->gemini_api_key = ai.value("gemini_api_key", prefs->gemini_api_key);
     prefs->openai_api_key = ai.value("openai_api_key", prefs->openai_api_key);
     prefs->anthropic_api_key =
         ai.value("anthropic_api_key", prefs->anthropic_api_key);
+    prefs->cli_timeout_seconds = std::clamp(
+        ai.value("cli_timeout_seconds", prefs->cli_timeout_seconds), 5, 3600);
+    if (ai.contains("cli_binary_paths") && ai["cli_binary_paths"].is_object()) {
+      prefs->cli_binary_paths.clear();
+      for (const auto& [k, v] : ai["cli_binary_paths"].items()) {
+        if (v.is_string() && !v.get<std::string>().empty()) {
+          prefs->cli_binary_paths[k] = v.get<std::string>();
+        }
+      }
+    }
     std::string google_key = ai.value("google_api_key", std::string());
     if (prefs->gemini_api_key.empty() && !google_key.empty()) {
       prefs->gemini_api_key = google_key;
@@ -1326,12 +1345,15 @@ absl::Status SavePreferencesToJson(const std::filesystem::path& path,
 
   root["ai"] = {
       {"provider", prefs.ai_provider},
+      {"provider_name", prefs.ai_provider_name},
       {"model", prefs.ai_model},
       {"ollama_url", prefs.ollama_url},
       {"gemini_api_key", prefs.gemini_api_key},
       {"google_api_key", prefs.gemini_api_key},
       {"openai_api_key", prefs.openai_api_key},
       {"anthropic_api_key", prefs.anthropic_api_key},
+      {"cli_timeout_seconds", prefs.cli_timeout_seconds},
+      {"cli_binary_paths", prefs.cli_binary_paths},
       {"temperature", prefs.ai_temperature},
       {"max_tokens", prefs.ai_max_tokens},
       {"proactive", prefs.ai_proactive},

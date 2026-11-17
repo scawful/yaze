@@ -188,6 +188,7 @@ struct ModelCache {
   std::string last_provider;
   std::string last_openai_base;
   std::string last_ollama_host;
+  std::string last_cli_binary_override;
   char search_buffer[128] = {};
   char new_preset_name[128] = {};
   int active_preset_index = -1;
@@ -205,6 +206,9 @@ struct AgentConfigState {
   std::string openai_api_key;
   std::string openai_base_url = "https://api.openai.com";
   std::string host_id;
+  int cli_timeout_seconds = 300;
+  std::map<std::string, std::string> cli_binary_paths;
+  std::string working_directory;
   bool verbose = false;
   bool show_reasoning = true;
   int max_tool_iterations = 4;
@@ -227,6 +231,7 @@ struct AgentConfigState {
   char anthropic_key_buffer[256] = {};
   char openai_key_buffer[256] = {};
   char openai_base_url_buffer[256] = "https://api.openai.com";
+  char cli_binary_override_buffer[256] = {};
 };
 
 // ============================================================================

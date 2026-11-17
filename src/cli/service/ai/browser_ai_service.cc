@@ -439,33 +439,31 @@ absl::StatusOr<std::vector<ModelInfo>> BrowserAIService::ListAvailableModels() {
                         .is_local = false});
     }
   } else {
-    models.push_back(
-        {.name = "gemini-2.5-flash",
-         .display_name = "Gemini 2.0 Flash (Experimental)",
-         .provider = kProviderGemini,
-         .description = "Fastest Gemini model with experimental features",
-         .family = "gemini",
-         .is_local = false});
-
-    models.push_back({.name = "gemini-1.5-flash",
-                      .display_name = "Gemini 1.5 Flash",
+    models.push_back({.name = "gemini-2.5-flash",
+                      .display_name = "Gemini 2.5 Flash",
                       .provider = kProviderGemini,
-                      .description = "Fast and efficient for most tasks",
+                      .description = "Fast multimodal Gemini model",
                       .family = "gemini",
                       .is_local = false});
 
-    models.push_back({.name = "gemini-1.5-flash-8b",
-                      .display_name = "Gemini 1.5 Flash 8B",
+    models.push_back({.name = "gemini-3.5-flash",
+                      .display_name = "Gemini 3.5 Flash",
                       .provider = kProviderGemini,
-                      .description = "Smaller, faster variant of Flash",
+                      .description = "Current fast Gemini model",
                       .family = "gemini",
-                      .parameter_size = "8B",
                       .is_local = false});
 
-    models.push_back({.name = "gemini-1.5-pro",
-                      .display_name = "Gemini 1.5 Pro",
+    models.push_back({.name = "gemini-2.5-pro",
+                      .display_name = "Gemini 2.5 Pro",
                       .provider = kProviderGemini,
-                      .description = "Most capable model for complex tasks",
+                      .description = "Most capable Gemini 2.5 model",
+                      .family = "gemini",
+                      .is_local = false});
+
+    models.push_back({.name = "gemini-2.5-flash-lite",
+                      .display_name = "Gemini 2.5 Flash-Lite",
+                      .provider = kProviderGemini,
+                      .description = "Lightweight Gemini 2.5 Flash",
                       .family = "gemini",
                       .is_local = false});
   }

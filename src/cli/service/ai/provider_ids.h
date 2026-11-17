@@ -1,6 +1,8 @@
 #ifndef YAZE_SRC_CLI_SERVICE_AI_PROVIDER_IDS_H_
 #define YAZE_SRC_CLI_SERVICE_AI_PROVIDER_IDS_H_
 
+#include "absl/strings/string_view.h"
+
 namespace yaze::cli {
 
 inline constexpr char kProviderAuto[] = "auto";
@@ -25,8 +27,26 @@ inline constexpr char kProviderLmStudio[] = "lmstudio";
 inline constexpr char kProviderLmStudioDashed[] = "lm-studio";
 inline constexpr char kProviderCustomOpenAi[] = "custom-openai";
 inline constexpr char kProviderOpenAiCompatible[] = "openai-compatible";
+
+// CLI harness providers (spawned directly via SubprocessRunner in read-only/plan mode)
+inline constexpr char kProviderClaudeCode[] = "claude-code";
+inline constexpr char kProviderClaudeCli[] = "claude-cli";
+inline constexpr char kProviderCodex[] = "codex";
+inline constexpr char kProviderCodexCli[] = "codex-cli";
+inline constexpr char kProviderCursorAgent[] = "cursor-agent";
+inline constexpr char kProviderCursor[] = "cursor";
+inline constexpr char kProviderAgy[] = "agy";
+inline constexpr char kProviderAntigravity[] = "antigravity";
 inline constexpr char kProviderGeminiCli[] = "gemini-cli";
 inline constexpr char kProviderLocalGemini[] = "local-gemini";
+
+inline bool IsCliHarnessProvider(absl::string_view provider) {
+  return provider == kProviderClaudeCode || provider == kProviderClaudeCli ||
+         provider == kProviderCodex || provider == kProviderCodexCli ||
+         provider == kProviderCursorAgent || provider == kProviderCursor ||
+         provider == kProviderAgy || provider == kProviderAntigravity ||
+         provider == kProviderGeminiCli || provider == kProviderLocalGemini;
+}
 
 }  // namespace yaze::cli
 

@@ -1,6 +1,7 @@
 #ifndef YAZE_CLI_SERVICE_AI_SERVICE_FACTORY_H_
 #define YAZE_CLI_SERVICE_AI_SERVICE_FACTORY_H_
 
+#include <map>
 #include <memory>
 #include <string>
 #include <vector>
@@ -21,7 +22,8 @@ enum class AgentPromptProfile {
 
 struct AIServiceConfig {
   // "auto" (auto-detect configured provider), "gemini",
-  // "anthropic", "openai", "ollama", or "mock".
+  // "anthropic", "openai", "ollama", "claude-code", "codex",
+  // "cursor-agent", "agy", "gemini-cli", or "mock".
   // Aliases: "claude" => anthropic, "chatgpt"/"lmstudio" => openai.
   std::string provider = kProviderAuto;
   // Provider-specific model name.
@@ -35,6 +37,11 @@ struct AIServiceConfig {
   std::string anthropic_api_key;
   // For Ollama.
   std::string ollama_host = "http://localhost:11434";
+  // For CLI harness providers (defaults to read-only/plan mode in cwd).
+  std::string working_directory;
+  int cli_timeout_seconds = 300;
+  std::string cli_binary_override;
+  std::map<std::string, std::string> cli_binary_paths;
   // Hint for ROM-aware prompt selection when a loaded ROM object is not yet
   // available.
   std::string rom_path_hint;

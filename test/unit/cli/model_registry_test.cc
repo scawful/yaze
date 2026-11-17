@@ -1,15 +1,26 @@
 #include "cli/service/ai/model_registry.h"
 
+#include <algorithm>
 #include <cstdlib>
 #include <memory>
 #include <string>
 #include <vector>
 
+#include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
 #include "absl/flags/declare.h"
 #include "absl/flags/flag.h"
+#include "absl/strings/match.h"
 #include "cli/service/ai/ai_service.h"
+#include "cli/service/ai/cli_harness_service.h"
+#include "cli/service/ai/provider_ids.h"
+
+#ifdef YAZE_WITH_JSON
+#include "cli/service/ai/anthropic_ai_service.h"
+#include "cli/service/ai/gemini_ai_service.h"
+#include "cli/service/ai/openai_ai_service.h"
+#endif
 
 ABSL_DECLARE_FLAG(std::string, ai_provider);
 ABSL_DECLARE_FLAG(std::string, ai_model);
@@ -220,6 +231,108 @@ TEST(ModelRegistryTest, AutoDiscoversConfiguredAnthropicProviderFromEnv) {
   ASSERT_FALSE(models_or->empty());
   EXPECT_EQ(models_or->front().provider, "anthropic");
 }
+
+#ifdef YAZE_WITH_JSON
+TEST(ModelRegistryTest, ParsesRecordedAnthropicOpenAiAndGeminiModelResponses) {
+  const std::string anthropic_json = R"({
+    "data": [
+      {"id": "claude-opus-5-5", "display_name": "Claude Opus 5.5"},
+      {"id": "claude-sonnet-5-5", "display_name": "Claude Sonnet 5.5"},
+      {"id": "claude-3-5-sonnet-20241022", "display_name": "Legacy 3.5"}
+    ]
+  })";
+  auto anthropic_models = ParseAnthropicModelsJson(anthropic_json);
+  ASSERT_EQ(anthropic_models.size(), 2u);
+  EXPECT_EQ(anthropic_models[0].name, "claude-opus-5-5");
+  EXPECT_EQ(anthropic_models[1].name, "claude-sonnet-5-5");
+
+  const std::string openai_cloud_json = R"({
+    "data": [
+      {"id": "gpt-5.2"},
+      {"id": "gpt-5-mini"},
+      {"id": "gpt-4.1"},
+      {"id": "o3"},
+      {"id": "gpt-3.5-turbo"},
+      {"id": "whisper-1"},
+      {"id": "gpt-realtime"},
+      {"id": "text-embedding-3-large"}
+    ]
+  })";
+  auto cloud_models = ParseOpenAIModelsJson(openai_cloud_json, false);
+  std::vector<std::string> cloud_names;
+  for (const auto& m : cloud_models) {
+    cloud_names.push_back(m.name);
+  }
+  EXPECT_THAT(cloud_names,
+              testing::ElementsAre("gpt-5.2", "gpt-5-mini", "gpt-4.1", "o3"));
+
+  const std::string lmstudio_json = R"({
+    "data": [
+      {"id": "scawfulbot-qwen3-8b-v1p1-repair-dpo"},
+      {"id": "oracle-tools-7b"}
+    ]
+  })";
+  auto local_models = ParseOpenAIModelsJson(lmstudio_json, true);
+  ASSERT_EQ(local_models.size(), 2u);
+  EXPECT_TRUE(local_models[0].is_local);
+  EXPECT_EQ(local_models[1].name, "oracle-tools-7b");
+
+  const std::string gemini_json = R"({
+    "models": [
+      {"name": "models/gemini-3.5-flash", "displayName": "Gemini 3.5 Flash", "supportedGenerationMethods": ["generateContent"]},
+      {"name": "models/gemini-2.5-pro", "displayName": "Gemini 2.5 Pro", "supportedGenerationMethods": ["generateContent"]},
+      {"name": "models/gemini-1.5-flash", "displayName": "Legacy 1.5", "supportedGenerationMethods": ["generateContent"]},
+      {"name": "models/gemini-embedding-001", "displayName": "Embed", "supportedGenerationMethods": ["embedContent"]}
+    ]
+  })";
+  auto gemini_models = ParseGeminiModelsJson(gemini_json);
+  ASSERT_EQ(gemini_models.size(), 2u);
+  EXPECT_EQ(gemini_models[0].name, "gemini-3.5-flash");
+  EXPECT_EQ(gemini_models[1].name, "gemini-2.5-pro");
+}
+
+TEST(ModelRegistryTest, FallbackModelListsContainNoLegacy2024Ids) {
+  std::vector<ModelInfo> all_fallbacks;
+  auto append_all = [&](std::vector<ModelInfo> items) {
+    all_fallbacks.insert(all_fallbacks.end(), items.begin(), items.end());
+  };
+  append_all(GetFallbackAnthropicModels());
+  append_all(GetFallbackOpenAIModels());
+  append_all(GetFallbackGeminiModels());
+  for (const char* cli_id :
+       {kProviderClaudeCode, kProviderCodex, kProviderCursorAgent, kProviderAgy,
+        kProviderGeminiCli}) {
+    append_all(GetFallbackCliModels(cli_id));
+  }
+
+  EXPECT_FALSE(all_fallbacks.empty());
+  for (const auto& model : all_fallbacks) {
+    EXPECT_FALSE(absl::StartsWith(model.name, "claude-3")) << model.name;
+    EXPECT_FALSE(absl::StartsWith(model.name, "gpt-3.5")) << model.name;
+    EXPECT_FALSE(absl::StartsWith(model.name, "gemini-1.5")) << model.name;
+  }
+}
+
+TEST(ModelRegistryTest, SessionCachesPerProviderUntilForceRefresh) {
+  ModelRegistryGuard guard;
+  AIServiceConfig cfg;
+  cfg.provider = kProviderAnthropic;
+  cfg.anthropic_api_key = "";
+
+  auto first = ModelRegistry::GetInstance().ListModelsForProvider(cfg, false);
+  ASSERT_TRUE(first.ok());
+  EXPECT_FALSE(first->empty());
+
+  auto second = ModelRegistry::GetInstance().ListModelsForProvider(cfg, false);
+  ASSERT_TRUE(second.ok());
+  EXPECT_EQ(second->size(), first->size());
+
+  auto refreshed =
+      ModelRegistry::GetInstance().ListModelsForProvider(cfg, true);
+  ASSERT_TRUE(refreshed.ok());
+  EXPECT_FALSE(refreshed->empty());
+}
+#endif  // YAZE_WITH_JSON
 
 }  // namespace
 }  // namespace yaze::cli

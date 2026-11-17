@@ -18,6 +18,8 @@
 #include "app/editor/system/session/user_settings.h"
 #include "cli/service/agent/conversational_agent_service.h"
 #include "cli/service/ai/ai_config_utils.h"
+#include "cli/service/ai/cli_harness_service.h"
+#include "cli/service/ai/model_registry.h"
 #include "cli/service/ai/provider_ids.h"
 #include "cli/service/ai/service_factory.h"
 #ifndef __EMSCRIPTEN__
@@ -289,51 +291,69 @@ void AgentEditor::ApplyUserSettingsDefaults(bool force) {
     return;
   }
   const auto& prefs = settings->prefs();
-  if (prefs.ai_hosts.empty() && prefs.ai_profiles.empty()) {
-    return;
-  }
   bool applied = false;
-  if (!force) {
-    if (!current_profile_.host_id.empty()) {
-      return;
+  const bool can_apply_profile_defaults =
+      force || (current_profile_.host_id.empty() &&
+                current_profile_.provider == cli::kProviderMock);
+  if (can_apply_profile_defaults &&
+      (!prefs.ai_hosts.empty() || !prefs.ai_profiles.empty())) {
+    if (!prefs.ai_hosts.empty()) {
+      const std::string& active_id = prefs.active_ai_host_id.empty()
+                                         ? prefs.ai_hosts.front().id
+                                         : prefs.active_ai_host_id;
+      if (!active_id.empty()) {
+        for (const auto& host : prefs.ai_hosts) {
+          if (host.id == active_id) {
+            internal::ApplyHostPresetToProfile(&current_profile_, host, &prefs);
+            applied = true;
+            break;
+          }
+        }
+      }
     }
-    if (current_profile_.provider != cli::kProviderMock) {
-      return;
-    }
-  }
-  if (!prefs.ai_hosts.empty()) {
-    const std::string& active_id = prefs.active_ai_host_id.empty()
-                                       ? prefs.ai_hosts.front().id
-                                       : prefs.active_ai_host_id;
-    if (!active_id.empty()) {
-      for (const auto& host : prefs.ai_hosts) {
-        if (host.id == active_id) {
-          internal::ApplyHostPresetToProfile(&current_profile_, host, &prefs);
+    if (!prefs.ai_profiles.empty()) {
+      const UserSettings::Preferences::AiModelProfile* active_profile = nullptr;
+      if (!prefs.active_ai_profile.empty()) {
+        for (const auto& profile : prefs.ai_profiles) {
+          if (profile.name == prefs.active_ai_profile) {
+            active_profile = &profile;
+            break;
+          }
+        }
+      }
+      if (!active_profile) {
+        active_profile = &prefs.ai_profiles.front();
+      }
+      if (active_profile && (force || current_profile_.model.empty())) {
+        if (!active_profile->model.empty()) {
+          current_profile_.model = active_profile->model;
+          current_profile_.temperature = active_profile->temperature;
+          current_profile_.top_p = active_profile->top_p;
+          current_profile_.max_output_tokens =
+              active_profile->max_output_tokens;
           applied = true;
-          break;
         }
       }
     }
   }
-  if (!prefs.ai_profiles.empty()) {
-    const UserSettings::Preferences::AiModelProfile* active_profile = nullptr;
-    if (!prefs.active_ai_profile.empty()) {
-      for (const auto& profile : prefs.ai_profiles) {
-        if (profile.name == prefs.active_ai_profile) {
-          active_profile = &profile;
-          break;
-        }
-      }
+  if (!prefs.ai_provider_name.empty() &&
+      (force || (current_profile_.host_id.empty() &&
+                 current_profile_.provider == cli::kProviderMock))) {
+    current_profile_.provider = prefs.ai_provider_name;
+    if (!prefs.ai_model.empty() && current_profile_.model.empty()) {
+      current_profile_.model = prefs.ai_model;
     }
-    if (!active_profile) {
-      active_profile = &prefs.ai_profiles.front();
-    }
-    if (active_profile && (force || current_profile_.model.empty())) {
-      if (!active_profile->model.empty()) {
-        current_profile_.model = active_profile->model;
-        current_profile_.temperature = active_profile->temperature;
-        current_profile_.top_p = active_profile->top_p;
-        current_profile_.max_output_tokens = active_profile->max_output_tokens;
+    applied = true;
+  }
+  if (prefs.cli_timeout_seconds >= 5 &&
+      current_profile_.cli_timeout_seconds != prefs.cli_timeout_seconds) {
+    current_profile_.cli_timeout_seconds = prefs.cli_timeout_seconds;
+    applied = true;
+  }
+  if (!prefs.cli_binary_paths.empty()) {
+    for (const auto& [k, v] : prefs.cli_binary_paths) {
+      if (!v.empty() && current_profile_.cli_binary_paths[k].empty()) {
+        current_profile_.cli_binary_paths[k] = v;
         applied = true;
       }
     }
@@ -447,7 +467,7 @@ void AgentEditor::InitializeWithDependencies(ToastManager* toast_manager,
       current_config_.provider = cli::kProviderAnthropic;
       if (current_profile_.model.empty()) {
         current_profile_.model = env_anthropic_model.empty()
-                                     ? "claude-3-5-sonnet-20241022"
+                                     ? "claude-sonnet-5-5"
                                      : env_anthropic_model;
         current_config_.model = current_profile_.model;
       }
@@ -575,6 +595,12 @@ void AgentEditor::RefreshModelCache(bool force) {
   }
 
   const auto& config = context_->agent_config();
+  std::string cli_override;
+  if (auto it = config.cli_binary_paths.find(config.ai_provider);
+      it != config.cli_binary_paths.end()) {
+    cli_override = it->second;
+  }
+
   ModelServiceKey next_key;
   next_key.provider =
       config.ai_provider.empty() ? cli::kProviderMock : config.ai_provider;
@@ -585,16 +611,9 @@ void AgentEditor::RefreshModelCache(bool force) {
   next_key.openai_api_key = config.openai_api_key;
   next_key.openai_base_url =
       cli::NormalizeOpenAiBaseUrl(config.openai_base_url);
+  next_key.cli_binary_override = cli_override;
+  next_key.cli_timeout_seconds = config.cli_timeout_seconds;
   next_key.verbose = config.verbose;
-
-  auto same_key = [](const ModelServiceKey& a, const ModelServiceKey& b) {
-    return a.provider == b.provider && a.model == b.model &&
-           a.ollama_host == b.ollama_host &&
-           a.gemini_api_key == b.gemini_api_key &&
-           a.anthropic_api_key == b.anthropic_api_key &&
-           a.openai_api_key == b.openai_api_key &&
-           a.openai_base_url == b.openai_base_url && a.verbose == b.verbose;
-  };
 
   if (next_key.provider == cli::kProviderMock) {
     model_cache.loading = false;
@@ -603,38 +622,31 @@ void AgentEditor::RefreshModelCache(bool force) {
     return;
   }
 
-  if (!model_service_ || !same_key(next_key, last_model_service_key_)) {
-    cli::AIServiceConfig service_config;
-    service_config.provider = next_key.provider;
-    service_config.model = next_key.model;
-    service_config.ollama_host = next_key.ollama_host;
-    service_config.gemini_api_key = next_key.gemini_api_key;
-    service_config.anthropic_api_key = next_key.anthropic_api_key;
-    service_config.openai_api_key = next_key.openai_api_key;
-    service_config.openai_base_url = next_key.openai_base_url;
-    service_config.verbose = next_key.verbose;
-    service_config.rom_context = rom_;
-    if (rom_ != nullptr) {
-      service_config.rom_path_hint = rom_->filename();
-    }
-
-    auto service_or = cli::CreateAIServiceStrict(service_config);
-    if (!service_or.ok()) {
-      model_service_.reset();
-      model_cache.loading = false;
-      model_cache.model_names = model_cache.local_model_names;
-      model_cache.last_refresh = absl::Now();
-      if (toast_manager_) {
-        toast_manager_->Show(std::string(service_or.status().message()),
-                             ToastType::kWarning, 2.0f);
-      }
-      return;
-    }
-    model_service_ = std::move(service_or.value());
-    last_model_service_key_ = next_key;
+  cli::AIServiceConfig service_config;
+  service_config.provider = next_key.provider;
+  service_config.model = next_key.model;
+  service_config.ollama_host = next_key.ollama_host;
+  service_config.gemini_api_key = next_key.gemini_api_key;
+  service_config.anthropic_api_key = next_key.anthropic_api_key;
+  service_config.openai_api_key = next_key.openai_api_key;
+  service_config.openai_base_url = next_key.openai_base_url;
+  service_config.cli_timeout_seconds = next_key.cli_timeout_seconds;
+  service_config.cli_binary_override = next_key.cli_binary_override;
+  service_config.cli_binary_paths = config.cli_binary_paths;
+  service_config.working_directory =
+      config.working_directory.empty()
+          ? internal::ResolveProjectWorkingDirectory(
+                context_->GetProject() ? context_->GetProject()
+                                       : dependencies_.project)
+          : config.working_directory;
+  service_config.verbose = next_key.verbose;
+  service_config.rom_context = rom_;
+  if (rom_ != nullptr) {
+    service_config.rom_path_hint = rom_->filename();
   }
 
-  auto models_or = model_service_->ListAvailableModels();
+  auto models_or = cli::ModelRegistry::GetInstance().ListModelsForProvider(
+      service_config, force);
   if (!models_or.ok()) {
     model_cache.loading = false;
     model_cache.model_names = model_cache.local_model_names;
@@ -645,6 +657,7 @@ void AgentEditor::RefreshModelCache(bool force) {
     }
     return;
   }
+  last_model_service_key_ = next_key;
 
   model_cache.available_models = models_or.value();
   std::unordered_set<std::string> seen;
@@ -851,6 +864,12 @@ void AgentEditor::ApplyConfig(const AgentConfig& config) {
       provider_config.openai_api_key = config.openai_api_key;
       provider_config.openai_base_url =
           cli::NormalizeOpenAiBaseUrl(config.openai_base_url);
+      provider_config.cli_timeout_seconds = config.cli_timeout_seconds;
+      provider_config.cli_binary_paths = config.cli_binary_paths;
+      provider_config.working_directory =
+          internal::ResolveProjectWorkingDirectory(
+              (context_ && context_->GetProject()) ? context_->GetProject()
+                                                   : dependencies_.project);
       provider_config.verbose = config.verbose;
       provider_config.rom_context = rom_;
       if (rom_ != nullptr) {

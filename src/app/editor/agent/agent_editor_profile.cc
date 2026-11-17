@@ -174,8 +174,11 @@ absl::Status AgentEditor::LoadBotProfile(const std::string& name) {
   current_config_.model = current_profile_.model;
   current_config_.ollama_host = current_profile_.ollama_host;
   current_config_.gemini_api_key = current_profile_.gemini_api_key;
+  current_config_.anthropic_api_key = current_profile_.anthropic_api_key;
   current_config_.openai_api_key = current_profile_.openai_api_key;
   current_config_.openai_base_url = current_profile_.openai_base_url;
+  current_config_.cli_timeout_seconds = current_profile_.cli_timeout_seconds;
+  current_config_.cli_binary_paths = current_profile_.cli_binary_paths;
   current_config_.verbose = current_profile_.verbose;
   current_config_.show_reasoning = current_profile_.show_reasoning;
   current_config_.max_tool_iterations = current_profile_.max_tool_iterations;
@@ -216,8 +219,11 @@ void AgentEditor::SetCurrentProfile(const BotProfile& profile) {
   current_config_.model = profile.model;
   current_config_.ollama_host = profile.ollama_host;
   current_config_.gemini_api_key = profile.gemini_api_key;
+  current_config_.anthropic_api_key = profile.anthropic_api_key;
   current_config_.openai_api_key = profile.openai_api_key;
   current_config_.openai_base_url = profile.openai_base_url;
+  current_config_.cli_timeout_seconds = profile.cli_timeout_seconds;
+  current_config_.cli_binary_paths = profile.cli_binary_paths;
   current_config_.verbose = profile.verbose;
   current_config_.show_reasoning = profile.show_reasoning;
   current_config_.max_tool_iterations = profile.max_tool_iterations;
@@ -313,6 +319,8 @@ std::string AgentEditor::ProfileToJson(const BotProfile& profile) const {
   json["anthropic_api_key"] = profile.anthropic_api_key;
   json["openai_api_key"] = profile.openai_api_key;
   json["openai_base_url"] = profile.openai_base_url;
+  json["cli_timeout_seconds"] = profile.cli_timeout_seconds;
+  json["cli_binary_paths"] = profile.cli_binary_paths;
   json["system_prompt"] = profile.system_prompt;
   json["verbose"] = profile.verbose;
   json["show_reasoning"] = profile.show_reasoning;
@@ -353,6 +361,16 @@ absl::StatusOr<AgentEditor::BotProfile> AgentEditor::JsonToProfile(
     profile.openai_api_key = json.value("openai_api_key", "");
     profile.openai_base_url =
         json.value("openai_base_url", "https://api.openai.com");
+    profile.cli_timeout_seconds =
+        std::clamp(json.value("cli_timeout_seconds", 300), 5, 3600);
+    if (json.contains("cli_binary_paths") &&
+        json["cli_binary_paths"].is_object()) {
+      for (const auto& [k, v] : json["cli_binary_paths"].items()) {
+        if (v.is_string() && !v.get<std::string>().empty()) {
+          profile.cli_binary_paths[k] = v.get<std::string>();
+        }
+      }
+    }
     profile.system_prompt = json.value("system_prompt", "");
     profile.verbose = json.value("verbose", false);
     profile.show_reasoning = json.value("show_reasoning", true);
@@ -407,6 +425,8 @@ void AgentEditor::SyncConfigFromProfile() {
   current_config_.openai_api_key = current_profile_.openai_api_key;
   current_config_.openai_base_url =
       cli::NormalizeOpenAiBaseUrl(current_profile_.openai_base_url);
+  current_config_.cli_timeout_seconds = current_profile_.cli_timeout_seconds;
+  current_config_.cli_binary_paths = current_profile_.cli_binary_paths;
   current_config_.verbose = current_profile_.verbose;
   current_config_.show_reasoning = current_profile_.show_reasoning;
   current_config_.max_tool_iterations = current_profile_.max_tool_iterations;
@@ -437,6 +457,11 @@ void AgentEditor::SyncContextFromProfile() {
       cli::NormalizeOpenAiBaseUrl(current_profile_.openai_base_url);
   current_profile_.openai_base_url = ctx_config.openai_base_url;
   ctx_config.host_id = current_profile_.host_id;
+  ctx_config.cli_timeout_seconds =
+      std::clamp(current_profile_.cli_timeout_seconds, 5, 3600);
+  ctx_config.cli_binary_paths = current_profile_.cli_binary_paths;
+  ctx_config.working_directory =
+      internal::ResolveProjectWorkingDirectory(context_->GetProject());
   ctx_config.verbose = current_profile_.verbose;
   ctx_config.show_reasoning = current_profile_.show_reasoning;
   ctx_config.max_tool_iterations = current_profile_.max_tool_iterations;
@@ -459,6 +484,15 @@ void AgentEditor::SyncContextFromProfile() {
                                ctx_config.openai_key_buffer);
   internal::CopyStringToBuffer(ctx_config.openai_base_url,
                                ctx_config.openai_base_url_buffer);
+  {
+    std::string override_path;
+    if (auto it = ctx_config.cli_binary_paths.find(ctx_config.ai_provider);
+        it != ctx_config.cli_binary_paths.end()) {
+      override_path = it->second;
+    }
+    internal::CopyStringToBuffer(override_path,
+                                 ctx_config.cli_binary_override_buffer);
+  }
 
   SyncConfigFromProfile();
 
@@ -474,6 +508,8 @@ void AgentEditor::ApplyConfigFromContext(const AgentConfigState& config) {
   const std::string prev_provider = ctx_config.ai_provider;
   const std::string prev_openai_base = ctx_config.openai_base_url;
   const std::string prev_ollama_host = ctx_config.ollama_host;
+  const std::map<std::string, std::string> prev_cli_paths =
+      ctx_config.cli_binary_paths;
   ctx_config.ai_provider =
       config.ai_provider.empty() ? cli::kProviderMock : config.ai_provider;
   ctx_config.ai_model = config.ai_model;
@@ -485,6 +521,15 @@ void AgentEditor::ApplyConfigFromContext(const AgentConfigState& config) {
   ctx_config.openai_base_url =
       cli::NormalizeOpenAiBaseUrl(config.openai_base_url);
   ctx_config.host_id = config.host_id;
+  ctx_config.cli_timeout_seconds =
+      std::clamp(config.cli_timeout_seconds, 5, 3600);
+  ctx_config.cli_binary_paths = config.cli_binary_paths;
+  if (!config.working_directory.empty()) {
+    ctx_config.working_directory = config.working_directory;
+  } else {
+    ctx_config.working_directory =
+        internal::ResolveProjectWorkingDirectory(context_->GetProject());
+  }
   ctx_config.verbose = config.verbose;
   ctx_config.show_reasoning = config.show_reasoning;
   ctx_config.max_tool_iterations = config.max_tool_iterations;
@@ -501,7 +546,8 @@ void AgentEditor::ApplyConfigFromContext(const AgentConfigState& config) {
 
   if (prev_provider != ctx_config.ai_provider ||
       prev_openai_base != ctx_config.openai_base_url ||
-      prev_ollama_host != ctx_config.ollama_host) {
+      prev_ollama_host != ctx_config.ollama_host ||
+      prev_cli_paths != ctx_config.cli_binary_paths) {
     auto& model_cache = context_->model_cache();
     model_cache.available_models.clear();
     model_cache.model_names.clear();
@@ -534,6 +580,8 @@ void AgentEditor::ApplyConfigFromContext(const AgentConfigState& config) {
   current_profile_.openai_api_key = ctx_config.openai_api_key;
   current_profile_.openai_base_url = ctx_config.openai_base_url;
   current_profile_.host_id = ctx_config.host_id;
+  current_profile_.cli_timeout_seconds = ctx_config.cli_timeout_seconds;
+  current_profile_.cli_binary_paths = ctx_config.cli_binary_paths;
   current_profile_.verbose = ctx_config.verbose;
   current_profile_.show_reasoning = ctx_config.show_reasoning;
   current_profile_.max_tool_iterations = ctx_config.max_tool_iterations;
@@ -550,8 +598,11 @@ void AgentEditor::ApplyConfigFromContext(const AgentConfigState& config) {
   current_config_.model = ctx_config.ai_model;
   current_config_.ollama_host = ctx_config.ollama_host;
   current_config_.gemini_api_key = ctx_config.gemini_api_key;
+  current_config_.anthropic_api_key = ctx_config.anthropic_api_key;
   current_config_.openai_api_key = ctx_config.openai_api_key;
   current_config_.openai_base_url = ctx_config.openai_base_url;
+  current_config_.cli_timeout_seconds = ctx_config.cli_timeout_seconds;
+  current_config_.cli_binary_paths = ctx_config.cli_binary_paths;
   current_config_.verbose = ctx_config.verbose;
   current_config_.show_reasoning = ctx_config.show_reasoning;
   current_config_.max_tool_iterations = ctx_config.max_tool_iterations;

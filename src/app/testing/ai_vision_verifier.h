@@ -44,7 +44,7 @@ struct VisionVerificationResult {
 struct VisionVerifierConfig {
   // AI model settings
   std::string model_provider = "gemini";  // "gemini", "ollama", "openai"
-  std::string model_name = "gemini-1.5-flash";
+  std::string model_name = "gemini-2.5-flash";
   float temperature = 0.1f;  // Low temperature for consistent verification
 
   // Screenshot settings

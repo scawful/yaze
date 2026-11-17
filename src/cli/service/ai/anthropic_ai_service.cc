@@ -8,6 +8,7 @@
 #include <string>
 #include <vector>
 
+#include "absl/strings/match.h"
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
 #include "absl/strings/str_split.h"
@@ -15,6 +16,7 @@
 #include "absl/time/clock.h"
 #include "absl/time/time.h"
 #include "cli/service/agent/conversational_agent_service.h"
+#include "cli/service/ai/ai_http_client.h"
 #include "cli/service/ai/provider_ids.h"
 #include "cli/service/ai/tool_call_argument_codec.h"
 #include "cli/service/ai/tool_schema_builder.h"
@@ -130,22 +132,29 @@ void AnthropicAIService::SetRomContext(Rom* rom) {
 
 absl::StatusOr<std::vector<ModelInfo>>
 AnthropicAIService::ListAvailableModels() {
-  // Anthropic doesn't have a simple public "list models" endpoint like OpenAI/Gemini
-  // We'll return a hardcoded list of supported models
-  std::vector<ModelInfo> defaults = {
-      {.name = "claude-3-5-sonnet-20241022",
-       .display_name = "Claude 3.5 Sonnet",
-       .provider = kProviderAnthropic,
-       .description = "Most intelligent model"},
-      {.name = "claude-3-5-haiku-20241022",
-       .display_name = "Claude 3.5 Haiku",
-       .provider = kProviderAnthropic,
-       .description = "Fastest and most cost-effective"},
-      {.name = "claude-3-opus-20240229",
-       .display_name = "Claude 3 Opus",
-       .provider = kProviderAnthropic,
-       .description = "Strong reasoning model"}};
-  return defaults;
+#ifndef YAZE_WITH_JSON
+  return absl::UnimplementedError("Anthropic AI service requires JSON support");
+#else
+  if (config_.api_key.empty()) {
+    return GetFallbackAnthropicModels();
+  }
+
+  std::map<std::string, std::string> headers = {
+      {"x-api-key", config_.api_key},
+      {"anthropic-version", "2023-06-01"},
+  };
+  auto resp_or = PerformAiHttpRequest("GET", "https://api.anthropic.com",
+                                      "/v1/models", headers, "", 8000);
+  if (!resp_or.ok() || resp_or->status_code != 200) {
+    return GetFallbackAnthropicModels();
+  }
+
+  auto parsed = ParseAnthropicModelsJson(resp_or->body);
+  if (parsed.empty()) {
+    return GetFallbackAnthropicModels();
+  }
+  return parsed;
+#endif
 }
 
 absl::Status AnthropicAIService::CheckAvailability() {
@@ -189,8 +198,7 @@ absl::StatusOr<AgentResponse> AnthropicAIService::GenerateResponse(
 
   try {
     if (config_.verbose) {
-      std::cerr << "[DEBUG] Using curl for Anthropic HTTPS request"
-                << std::endl;
+      std::cerr << "[DEBUG] Sending Anthropic API HTTPS request" << std::endl;
     }
 
     // Build messages array
@@ -237,15 +245,14 @@ absl::StatusOr<AgentResponse> AnthropicAIService::GenerateResponse(
                 << " messages to Anthropic" << std::endl;
     }
 
-    std::string response_str;
-#if defined(YAZE_AI_IOS_URLSESSION)
-    std::map<std::string, std::string> headers;
-    headers.emplace("x-api-key", config_.api_key);
-    headers.emplace("anthropic-version", "2023-06-01");
-    headers.emplace("content-type", "application/json");
-    auto resp_or = ios::UrlSessionHttpRequest(
-        "POST", "https://api.anthropic.com/v1/messages", headers,
-        request_body.dump(), 60000);
+    std::map<std::string, std::string> headers = {
+        {"x-api-key", config_.api_key},
+        {"anthropic-version", "2023-06-01"},
+        {"content-type", "application/json"},
+    };
+    auto resp_or = PerformAiHttpRequest("POST", "https://api.anthropic.com",
+                                        "/v1/messages", headers,
+                                        request_body.dump(), 60000);
     if (!resp_or.ok()) {
       return resp_or.status();
     }
@@ -253,55 +260,7 @@ absl::StatusOr<AgentResponse> AnthropicAIService::GenerateResponse(
       return absl::InternalError(absl::StrCat(
           "Anthropic API error: ", resp_or->status_code, "\n", resp_or->body));
     }
-    response_str = resp_or->body;
-#else
-    // Write request body to temp file
-    std::string temp_file = "/tmp/anthropic_request.json";
-    std::ofstream out(temp_file);
-    out << request_body.dump();
-    out.close();
-
-    // Use curl to make the request
-    std::string curl_cmd =
-        "curl -s -X POST 'https://api.anthropic.com/v1/messages' "
-        "-H 'x-api-key: " +
-        config_.api_key +
-        "' "
-        "-H 'anthropic-version: 2023-06-01' "
-        "-H 'content-type: application/json' "
-        "-d @" +
-        temp_file + " 2>&1";
-
-    if (config_.verbose) {
-      std::cerr << "[DEBUG] Executing Anthropic API request..." << std::endl;
-    }
-
-#ifdef _WIN32
-    FILE* pipe = _popen(curl_cmd.c_str(), "r");
-#else
-    FILE* pipe = popen(curl_cmd.c_str(), "r");
-#endif
-    if (!pipe) {
-      return absl::InternalError("Failed to execute curl command");
-    }
-
-    char buffer[4096];
-    while (fgets(buffer, sizeof(buffer), pipe) != nullptr) {
-      response_str += buffer;
-    }
-
-#ifdef _WIN32
-    int status = _pclose(pipe);
-#else
-    int status = pclose(pipe);
-#endif
-    std::remove(temp_file.c_str());
-
-    if (status != 0) {
-      return absl::InternalError(
-          absl::StrCat("Curl failed with status ", status));
-    }
-#endif  // YAZE_AI_IOS_URLSESSION
+    std::string response_str = std::move(resp_or->body);
 
     if (response_str.empty()) {
       return absl::InternalError("Empty response from Anthropic API");
@@ -460,6 +419,69 @@ absl::StatusOr<AgentResponse> AnthropicAIService::ParseAnthropicResponse(
 }
 
 #endif  // YAZE_AI_RUNTIME_AVAILABLE
+
+std::vector<ModelInfo> GetFallbackAnthropicModels() {
+  return {
+      {.name = "claude-opus-5-5",
+       .display_name = "Claude Opus 5.5",
+       .provider = kProviderAnthropic,
+       .description = "Highest capability Anthropic model",
+       .family = "claude",
+       .is_local = false},
+      {.name = "claude-sonnet-5-5",
+       .display_name = "Claude Sonnet 5.5",
+       .provider = kProviderAnthropic,
+       .description = "Balanced intelligence and speed",
+       .family = "claude",
+       .is_local = false},
+      {.name = "claude-haiku-5-5",
+       .display_name = "Claude Haiku 5.5",
+       .provider = kProviderAnthropic,
+       .description = "Fastest Anthropic model",
+       .family = "claude",
+       .is_local = false},
+      {.name = "claude-fable-5-2",
+       .display_name = "Claude Fable 5.2",
+       .provider = kProviderAnthropic,
+       .description = "Anthropic Fable 5.2",
+       .family = "claude",
+       .is_local = false},
+  };
+}
+
+std::vector<ModelInfo> ParseAnthropicModelsJson(
+    absl::string_view response_body) {
+  std::vector<ModelInfo> models;
+#ifdef YAZE_WITH_JSON
+  auto json = nlohmann::json::parse(response_body, nullptr, false);
+  if (json.is_discarded() || !json.contains("data") ||
+      !json["data"].is_array()) {
+    return models;
+  }
+  for (const auto& entry : json["data"]) {
+    if (!entry.is_object()) {
+      continue;
+    }
+    const std::string id = entry.value("id", "");
+    if (id.empty() || absl::StartsWith(id, "claude-3")) {
+      continue;
+    }
+    ModelInfo info;
+    info.name = id;
+    info.display_name = entry.value("display_name", id);
+    if (info.display_name.empty()) {
+      info.display_name = id;
+    }
+    info.provider = kProviderAnthropic;
+    info.family = "claude";
+    info.is_local = false;
+    models.push_back(std::move(info));
+  }
+#else
+  (void)response_body;
+#endif
+  return models;
+}
 
 }  // namespace cli
 }  // namespace yaze

@@ -6,6 +6,7 @@
 
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
+#include "absl/strings/string_view.h"
 #include "cli/service/ai/ai_service.h"
 #include "cli/service/ai/provider_ids.h"
 
@@ -109,6 +110,9 @@ class GeminiAIService : public AIService {
 };
 
 #endif  // YAZE_AI_RUNTIME_AVAILABLE
+
+std::vector<ModelInfo> GetFallbackGeminiModels();
+std::vector<ModelInfo> ParseGeminiModelsJson(absl::string_view response_body);
 
 }  // namespace cli
 }  // namespace yaze

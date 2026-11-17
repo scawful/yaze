@@ -8,6 +8,7 @@
 #include <string>
 #include <vector>
 
+#include "absl/strings/match.h"
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
 #include "absl/strings/str_split.h"
@@ -15,6 +16,7 @@
 #include "absl/time/clock.h"
 #include "absl/time/time.h"
 #include "cli/service/agent/conversational_agent_service.h"
+#include "cli/service/ai/ai_http_client.h"
 #include "cli/service/ai/provider_ids.h"
 #include "cli/service/ai/tool_call_argument_codec.h"
 #include "cli/service/ai/tool_schema_builder.h"
@@ -183,115 +185,30 @@ absl::StatusOr<std::vector<ModelInfo>> GeminiAIService::ListAvailableModels() {
   return absl::UnimplementedError("Gemini AI service requires JSON support");
 #else
   if (config_.api_key.empty()) {
-    // Return default known models if API key is missing
-    std::vector<ModelInfo> defaults = {
-        {.name = "gemini-3.0-preview",
-         .display_name = "Gemini 3.0 Preview",
-         .provider = kProviderGemini,
-         .description = "Cutting-edge model, currently in preview"},
-        {.name = "gemini-3.0-flash-preview",
-         .display_name = "Gemini 3.0 Flash Preview",
-         .provider = kProviderGemini,
-         .description = "Fastest preview model"},
-        {.name = "gemini-2.5-pro",
-         .display_name = "Gemini 2.5 Pro",
-         .provider = kProviderGemini,
-         .description = "High intelligence for complex tasks"},
-        {.name = "gemini-2.5-flash",
-         .display_name = "Gemini 2.5 Flash",
-         .provider = kProviderGemini,
-         .description = "Fastest multimodal model"}};
-    return defaults;
+    return GetFallbackGeminiModels();
   }
 
   try {
-    std::string endpoint =
-        "https://generativelanguage.googleapis.com/v1beta/models?key=" +
-        config_.api_key;
-
     if (config_.verbose) {
-      std::cerr << "[DEBUG] Listing models: "
-                << endpoint.substr(0, endpoint.find("key=")) << "...'"
+      std::cerr << "[DEBUG] Listing Gemini models via /v1beta/models"
                 << std::endl;
     }
 
-    std::string response_str;
-#if defined(YAZE_AI_IOS_URLSESSION)
-    auto resp_or = ios::UrlSessionHttpRequest("GET", endpoint, {}, "", 8000);
-    if (!resp_or.ok()) {
-      if (config_.verbose) {
-        std::cerr << "[DEBUG] Gemini models request failed: "
-                  << resp_or.status().message() << std::endl;
-      }
-      return absl::InternalError("Failed to list Gemini models");
-    }
-    response_str = resp_or->body;
-#else
-    // Use curl to list models from the API
-    std::string curl_cmd = "curl -s -X GET '" + endpoint + "' 2>&1";
-
-#ifdef _WIN32
-    FILE* pipe = _popen(curl_cmd.c_str(), "r");
-#else
-    FILE* pipe = popen(curl_cmd.c_str(), "r");
-#endif
-    if (!pipe) {
-      return absl::InternalError("Failed to execute curl command");
+    std::map<std::string, std::string> headers = {
+        {"x-goog-api-key", config_.api_key},
+    };
+    auto resp_or =
+        PerformAiHttpRequest("GET", "https://generativelanguage.googleapis.com",
+                             "/v1beta/models", headers, "", 8000);
+    if (!resp_or.ok() || resp_or->status_code != 200) {
+      return GetFallbackGeminiModels();
     }
 
-    char buffer[4096];
-    while (fgets(buffer, sizeof(buffer), pipe) != nullptr) {
-      response_str += buffer;
-    }
-
-#ifdef _WIN32
-    _pclose(pipe);
-#else
-    pclose(pipe);
-#endif
-#endif  // YAZE_AI_IOS_URLSESSION
-
-    auto models_json = nlohmann::json::parse(response_str, nullptr, false);
-    if (models_json.is_discarded()) {
-      return absl::InternalError("Failed to parse Gemini models JSON");
-    }
-
-    if (!models_json.contains("models")) {
-      // Return defaults on error
-      std::vector<ModelInfo> defaults = {{.name = "gemini-2.5-flash",
-                                          .display_name = "Gemini 2.0 Flash",
-                                          .provider = kProviderGemini},
-                                         {.name = "gemini-1.5-flash",
-                                          .display_name = "Gemini 1.5 Flash",
-                                          .provider = kProviderGemini},
-                                         {.name = "gemini-1.5-pro",
-                                          .display_name = "Gemini 1.5 Pro",
-                                          .provider = kProviderGemini}};
-      return defaults;
-    }
-
-    std::vector<ModelInfo> models;
-    for (const auto& m : models_json["models"]) {
-      std::string name = m.value("name", "");
-      // Name comes as "models/gemini-pro", strip prefix
-      if (absl::StartsWith(name, "models/")) {
-        name = name.substr(7);
-      }
-
-      // Filter for gemini models
-      if (absl::StartsWith(name, "gemini")) {
-        ModelInfo info;
-        info.name = name;
-        info.display_name = m.value("displayName", name);
-        info.provider = kProviderGemini;
-        info.description = m.value("description", "");
-        info.family = "gemini";
-        info.is_local = false;
-        models.push_back(std::move(info));
-      }
+    auto models = ParseGeminiModelsJson(resp_or->body);
+    if (models.empty()) {
+      return GetFallbackGeminiModels();
     }
     return models;
-
   } catch (const std::exception& e) {
     return absl::InternalError(
         absl::StrCat("Failed to list models: ", e.what()));
@@ -362,7 +279,7 @@ absl::Status GeminiAIService::CheckAvailability() {
     if (res->status == 404) {
       return absl::NotFoundError(
           absl::StrCat("❌ Model '", config_.model, "' not found\n",
-                       "   Try: gemini-2.5-flash or gemini-1.5-pro"));
+                       "   Try: gemini-2.5-flash or gemini-2.5-pro"));
     }
 
     if (res->status != 200) {
@@ -493,16 +410,15 @@ absl::StatusOr<AgentResponse> GeminiAIService::GenerateResponse(
       }
     }
 
-    std::string endpoint =
-        "https://generativelanguage.googleapis.com/v1beta/models/" +
-        config_.model + ":generateContent";
-    std::string response_str;
-#if defined(YAZE_AI_IOS_URLSESSION)
-    std::map<std::string, std::string> headers;
-    headers.emplace("Content-Type", "application/json");
-    headers.emplace("x-goog-api-key", config_.api_key);
-    auto resp_or = ios::UrlSessionHttpRequest("POST", endpoint, headers,
-                                              request_body.dump(), 60000);
+    const std::string path_and_query =
+        absl::StrCat("/v1beta/models/", config_.model, ":generateContent");
+    std::map<std::string, std::string> headers = {
+        {"Content-Type", "application/json"},
+        {"x-goog-api-key", config_.api_key},
+    };
+    auto resp_or = PerformAiHttpRequest(
+        "POST", "https://generativelanguage.googleapis.com", path_and_query,
+        headers, request_body.dump(), 60000);
     if (!resp_or.ok()) {
       return resp_or.status();
     }
@@ -510,54 +426,7 @@ absl::StatusOr<AgentResponse> GeminiAIService::GenerateResponse(
       return absl::InternalError(absl::StrCat(
           "Gemini API error: ", resp_or->status_code, "\n", resp_or->body));
     }
-    response_str = resp_or->body;
-#else
-    // Write request body to temp file
-    std::string temp_file = "/tmp/gemini_request.json";
-    std::ofstream out(temp_file);
-    out << request_body.dump();
-    out.close();
-
-    // Use curl to make the request (avoiding httplib SSL issues)
-    std::string curl_cmd = "curl -s -X POST '" + endpoint +
-                           "' "
-                           "-H 'Content-Type: application/json' "
-                           "-H 'x-goog-api-key: " +
-                           config_.api_key +
-                           "' "
-                           "-d @" +
-                           temp_file + " 2>&1";
-
-    if (config_.verbose) {
-      std::cerr << "[DEBUG] Executing API request..." << std::endl;
-    }
-
-#ifdef _WIN32
-    FILE* pipe = _popen(curl_cmd.c_str(), "r");
-#else
-    FILE* pipe = popen(curl_cmd.c_str(), "r");
-#endif
-    if (!pipe) {
-      return absl::InternalError("Failed to execute curl command");
-    }
-
-    char buffer[4096];
-    while (fgets(buffer, sizeof(buffer), pipe) != nullptr) {
-      response_str += buffer;
-    }
-
-#ifdef _WIN32
-    int status = _pclose(pipe);
-#else
-    int status = pclose(pipe);
-#endif
-    std::remove(temp_file.c_str());
-
-    if (status != 0) {
-      return absl::InternalError(
-          absl::StrCat("Curl failed with status ", status));
-    }
-#endif  // YAZE_AI_IOS_URLSESSION
+    std::string response_str = std::move(resp_or->body);
 
     if (response_str.empty()) {
       return absl::InternalError("Empty response from Gemini API");
@@ -872,16 +741,15 @@ absl::StatusOr<AgentResponse> GeminiAIService::GenerateMultimodalResponse(
          {{"temperature", config_.temperature},
           {"maxOutputTokens", config_.max_output_tokens}}}};
 
-    std::string endpoint =
-        "https://generativelanguage.googleapis.com/v1beta/models/" +
-        config_.model + ":generateContent";
-    std::string response_str;
-#if defined(YAZE_AI_IOS_URLSESSION)
-    std::map<std::string, std::string> headers;
-    headers.emplace("Content-Type", "application/json");
-    headers.emplace("x-goog-api-key", config_.api_key);
-    auto resp_or = ios::UrlSessionHttpRequest("POST", endpoint, headers,
-                                              request_body.dump(), 60000);
+    const std::string path_and_query =
+        absl::StrCat("/v1beta/models/", config_.model, ":generateContent");
+    std::map<std::string, std::string> headers = {
+        {"Content-Type", "application/json"},
+        {"x-goog-api-key", config_.api_key},
+    };
+    auto resp_or = PerformAiHttpRequest(
+        "POST", "https://generativelanguage.googleapis.com", path_and_query,
+        headers, request_body.dump(), 60000);
     if (!resp_or.ok()) {
       return resp_or.status();
     }
@@ -889,54 +757,7 @@ absl::StatusOr<AgentResponse> GeminiAIService::GenerateMultimodalResponse(
       return absl::InternalError(absl::StrCat(
           "Gemini API error: ", resp_or->status_code, "\n", resp_or->body));
     }
-    response_str = resp_or->body;
-#else
-    // Write request body to temp file
-    std::string temp_file = "/tmp/gemini_multimodal_request.json";
-    std::ofstream out(temp_file);
-    out << request_body.dump();
-    out.close();
-
-    // Use curl to make the request
-    std::string curl_cmd = "curl -s -X POST '" + endpoint +
-                           "' "
-                           "-H 'Content-Type: application/json' "
-                           "-H 'x-goog-api-key: " +
-                           config_.api_key +
-                           "' "
-                           "-d @" +
-                           temp_file + " 2>&1";
-
-    if (config_.verbose) {
-      std::cerr << "[DEBUG] Executing multimodal API request..." << std::endl;
-    }
-
-#ifdef _WIN32
-    FILE* pipe = _popen(curl_cmd.c_str(), "r");
-#else
-    FILE* pipe = popen(curl_cmd.c_str(), "r");
-#endif
-    if (!pipe) {
-      return absl::InternalError("Failed to execute curl command");
-    }
-
-    char buffer[4096];
-    while (fgets(buffer, sizeof(buffer), pipe) != nullptr) {
-      response_str += buffer;
-    }
-
-#ifdef _WIN32
-    int status = _pclose(pipe);
-#else
-    int status = pclose(pipe);
-#endif
-    std::remove(temp_file.c_str());
-
-    if (status != 0) {
-      return absl::InternalError(
-          absl::StrCat("Curl failed with status ", status));
-    }
-#endif  // YAZE_AI_IOS_URLSESSION
+    std::string response_str = std::move(resp_or->body);
 
     if (response_str.empty()) {
       return absl::InternalError("Empty response from Gemini API");
@@ -962,6 +783,104 @@ absl::StatusOr<AgentResponse> GeminiAIService::GenerateMultimodalResponse(
         absl::StrCat("Exception during multimodal generation: ", e.what()));
   }
 #endif
+}
+
+std::vector<ModelInfo> GetFallbackGeminiModels() {
+  return {
+      {.name = "gemini-3.5-flash",
+       .display_name = "Gemini 3.5 Flash",
+       .provider = kProviderGemini,
+       .description = "Current fast multimodal Gemini model",
+       .family = "gemini",
+       .is_local = false},
+      {.name = "gemini-3.5-flash-lite",
+       .display_name = "Gemini 3.5 Flash-Lite",
+       .provider = kProviderGemini,
+       .description = "Lightweight Gemini 3.5 Flash",
+       .family = "gemini",
+       .is_local = false},
+      {.name = "gemini-3.1-pro-preview",
+       .display_name = "Gemini 3.1 Pro Preview",
+       .provider = kProviderGemini,
+       .description = "High-capability preview Gemini model",
+       .family = "gemini",
+       .is_local = false},
+      {.name = "gemini-2.5-pro",
+       .display_name = "Gemini 2.5 Pro",
+       .provider = kProviderGemini,
+       .description = "High intelligence Gemini 2.5 model",
+       .family = "gemini",
+       .is_local = false},
+      {.name = "gemini-2.5-flash",
+       .display_name = "Gemini 2.5 Flash",
+       .provider = kProviderGemini,
+       .description = "Balanced Gemini 2.5 Flash model",
+       .family = "gemini",
+       .is_local = false},
+      {.name = "gemini-2.5-flash-lite",
+       .display_name = "Gemini 2.5 Flash-Lite",
+       .provider = kProviderGemini,
+       .description = "Fastest lightweight Gemini 2.5 model",
+       .family = "gemini",
+       .is_local = false},
+  };
+}
+
+std::vector<ModelInfo> ParseGeminiModelsJson(absl::string_view response_body) {
+  std::vector<ModelInfo> models;
+#ifdef YAZE_WITH_JSON
+  auto models_json = nlohmann::json::parse(response_body, nullptr, false);
+  if (models_json.is_discarded() || !models_json.contains("models") ||
+      !models_json["models"].is_array()) {
+    return models;
+  }
+
+  for (const auto& m : models_json["models"]) {
+    if (!m.is_object()) {
+      continue;
+    }
+    std::string name = m.value("name", "");
+    if (absl::StartsWith(name, "models/")) {
+      name = name.substr(7);
+    }
+    if (!absl::StartsWith(name, "gemini")) {
+      continue;
+    }
+    if (absl::StartsWith(name, "gemini-1.5") ||
+        absl::StartsWith(name, "gemini-1.0") ||
+        absl::StrContains(name, "embedding") ||
+        absl::StrContains(name, "tts") ||
+        absl::StrContains(name, "image-generation")) {
+      continue;
+    }
+    if (m.contains("supportedGenerationMethods") &&
+        m["supportedGenerationMethods"].is_array()) {
+      bool supports_generate = false;
+      for (const auto& method : m["supportedGenerationMethods"]) {
+        if (method.is_string() &&
+            method.get<std::string>() == "generateContent") {
+          supports_generate = true;
+          break;
+        }
+      }
+      if (!supports_generate) {
+        continue;
+      }
+    }
+
+    ModelInfo info;
+    info.name = name;
+    info.display_name = m.value("displayName", name);
+    info.provider = kProviderGemini;
+    info.description = m.value("description", "");
+    info.family = "gemini";
+    info.is_local = false;
+    models.push_back(std::move(info));
+  }
+#else
+  (void)response_body;
+#endif
+  return models;
 }
 
 }  // namespace cli

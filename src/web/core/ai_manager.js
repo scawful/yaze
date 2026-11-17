@@ -287,9 +287,9 @@
       const provider = this.normalizeProvider(providerOverride || this.config.provider);
       if (!this.isOpenAiCompatibleProvider(provider)) {
         return [
+          { name: 'gemini-3.5-flash', displayName: 'Gemini 3.5 Flash', local: false },
           { name: 'gemini-2.5-flash', displayName: 'Gemini 2.5 Flash', local: false },
-          { name: 'gemini-2.5-pro', displayName: 'Gemini 2.5 Pro', local: false },
-          { name: 'gemini-1.5-flash', displayName: 'Gemini 1.5 Flash', local: false }
+          { name: 'gemini-2.5-pro', displayName: 'Gemini 2.5 Pro', local: false }
         ];
       }
 

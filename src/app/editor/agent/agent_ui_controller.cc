@@ -1,5 +1,7 @@
 #include "app/editor/agent/agent_ui_controller.h"
+
 #include "absl/time/clock.h"
+#include "app/editor/agent/agent_editor_internal.h"
 
 #if defined(YAZE_BUILD_AGENT_UI)
 
@@ -124,10 +126,14 @@ void AgentUiController::SetRomContext(Rom* rom) {
 
 void AgentUiController::SetProjectContext(project::YazeProject* project) {
   agent_ui_context_.SetProject(project);
+  const std::string working_dir =
+      internal::ResolveProjectWorkingDirectory(project);
+  agent_ui_context_.agent_config().working_directory = working_dir;
 
   // Propagate to active session context
   if (AgentSession* session = session_manager_.GetActiveSession()) {
     session->context.SetProject(project);
+    session->context.agent_config().working_directory = working_dir;
   }
 }
 
@@ -178,6 +184,10 @@ void AgentUiController::SyncStateFromEditor() {
     changed = true;
   if (ctx_config.host_id != profile.host_id)
     changed = true;
+  if (ctx_config.cli_timeout_seconds != profile.cli_timeout_seconds)
+    changed = true;
+  if (ctx_config.cli_binary_paths != profile.cli_binary_paths)
+    changed = true;
   // ... (Simplified sync logic for now)
 
   if (changed) {
@@ -189,6 +199,8 @@ void AgentUiController::SyncStateFromEditor() {
     ctx_config.openai_api_key = profile.openai_api_key;
     ctx_config.openai_base_url = profile.openai_base_url;
     ctx_config.host_id = profile.host_id;
+    ctx_config.cli_timeout_seconds = profile.cli_timeout_seconds;
+    ctx_config.cli_binary_paths = profile.cli_binary_paths;
 
     // Update last synced state
     last_synced_config_ = ctx_config;
