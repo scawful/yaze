@@ -2,6 +2,7 @@
 #define YAZE_APP_EDITOR_AGENT_AGENT_EDITOR_INTERNAL_H_
 
 #include <cstring>
+#include <filesystem>
 #include <optional>
 #include <string>
 
@@ -9,6 +10,7 @@
 #include "app/editor/system/session/user_settings.h"
 #include "cli/service/ai/ai_config_utils.h"
 #include "cli/service/ai/provider_ids.h"
+#include "core/project.h"
 
 #if defined(__APPLE__)
 #include <CoreFoundation/CoreFoundation.h>
@@ -139,6 +141,23 @@ inline void ApplyHostPresetToProfile(
       profile->anthropic_api_key = api_key;
     }
   }
+}
+
+inline std::string ResolveProjectWorkingDirectory(
+    const project::YazeProject* project) {
+  if (!project || project->filepath.empty()) {
+    return {};
+  }
+  std::error_code ec;
+  const std::filesystem::path fp(project->filepath);
+  if (std::filesystem::is_directory(fp, ec)) {
+    return fp.string();
+  }
+  const std::filesystem::path parent = fp.parent_path();
+  if (!parent.empty() && std::filesystem::is_directory(parent, ec)) {
+    return parent.string();
+  }
+  return {};
 }
 
 }  // namespace internal

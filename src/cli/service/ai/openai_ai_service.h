@@ -6,6 +6,7 @@
 
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
+#include "absl/strings/string_view.h"
 #include "cli/service/ai/ai_service.h"
 #include "cli/service/ai/provider_ids.h"
 
@@ -19,8 +20,8 @@ namespace cli {
 struct OpenAIConfig {
   std::string api_key;
   std::string base_url =
-      "https://api.openai.com";       // LMStudio: http://localhost:1234
-  std::string model = "gpt-4o-mini";  // Default to cost-effective model
+      "https://api.openai.com";  // LMStudio: http://localhost:1234
+  std::string model = "gpt-5-mini";
   float temperature = 0.7f;
   int max_output_tokens = 2048;
   std::string system_instruction;
@@ -96,6 +97,11 @@ class OpenAIAIService : public AIService {
 };
 
 #endif  // YAZE_AI_RUNTIME_AVAILABLE
+
+std::vector<ModelInfo> GetFallbackOpenAIModels();
+std::vector<ModelInfo> ParseOpenAIModelsJson(
+    absl::string_view response_body, bool is_local_endpoint,
+    absl::string_view provider_label = kProviderOpenAi);
 
 }  // namespace cli
 }  // namespace yaze

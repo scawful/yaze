@@ -3,6 +3,7 @@
 
 #include <filesystem>
 #include <functional>
+#include <map>
 #include <memory>
 #include <optional>
 #include <string>
@@ -122,6 +123,8 @@ class AgentEditor : public Editor {
     std::string anthropic_api_key;
     std::string openai_api_key;
     std::string openai_base_url = "https://api.openai.com";
+    int cli_timeout_seconds = 300;
+    std::map<std::string, std::string> cli_binary_paths;
     std::string system_prompt;
     bool verbose = false;
     bool show_reasoning = true;
@@ -149,6 +152,8 @@ class AgentEditor : public Editor {
     std::string anthropic_api_key;
     std::string openai_api_key;
     std::string openai_base_url = "https://api.openai.com";
+    int cli_timeout_seconds = 300;
+    std::map<std::string, std::string> cli_binary_paths;
     bool verbose = false;
     bool show_reasoning = true;
     int max_tool_iterations = 4;
@@ -347,6 +352,8 @@ class AgentEditor : public Editor {
     std::string anthropic_api_key;
     std::string openai_api_key;
     std::string openai_base_url;
+    std::string cli_binary_override;
+    int cli_timeout_seconds = 300;
     bool verbose = false;
   };
   ModelServiceKey last_model_service_key_;

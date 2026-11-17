@@ -375,5 +375,28 @@ TEST_F(UserSettingsLoadValidationTest, LegacyIniRomLoadChoiceSplitsAtFirstTab) {
   EXPECT_EQ(choices.at("/roms/a=b.sfc"), "v=1;zso=3");
 }
 
+#ifdef YAZE_WITH_JSON
+TEST_F(UserSettingsLoadValidationTest,
+       CliHarnessPreferencesSurviveSaveAndReload) {
+  settings_.prefs().ai_provider_name = "agy";
+  settings_.prefs().ai_model = "gemini-4-argon-low";
+  settings_.prefs().cli_timeout_seconds = 180;
+  settings_.prefs().cli_binary_paths["agy"] = "/opt/homebrew/bin/agy";
+  settings_.prefs().cli_binary_paths["claude-code"] = "~/.local/bin/claude";
+  ASSERT_TRUE(settings_.Save().ok());
+
+  UserSettings reloaded;
+  reloaded.SetSettingsFilePathForTesting(settings_.settings_file_path());
+  ASSERT_TRUE(reloaded.Load().ok());
+  EXPECT_EQ(reloaded.prefs().ai_provider_name, "agy");
+  EXPECT_EQ(reloaded.prefs().ai_model, "gemini-4-argon-low");
+  EXPECT_EQ(reloaded.prefs().cli_timeout_seconds, 180);
+  EXPECT_EQ(reloaded.prefs().cli_binary_paths.at("agy"),
+            "/opt/homebrew/bin/agy");
+  EXPECT_EQ(reloaded.prefs().cli_binary_paths.at("claude-code"),
+            "~/.local/bin/claude");
+}
+#endif
+
 }  // namespace
 }  // namespace yaze::editor

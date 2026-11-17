@@ -1,12 +1,23 @@
 #include "app/editor/agent/panels/agent_configuration_panel.h"
 
 #include <algorithm>
+#include <atomic>
+#include <chrono>
 #include <cstdio>
 #include <cstdlib>
+#include <deque>
+#include <filesystem>
+#include <future>
+#include <map>
+#include <mutex>
+#include <optional>
 #include <string>
+#include <thread>
 #include <vector>
 
 #include "absl/strings/ascii.h"
+#include "absl/strings/match.h"
+#include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
 #include "absl/strings/str_join.h"
 #include "absl/time/clock.h"
@@ -15,8 +26,15 @@
 #include "app/gui/core/icons.h"
 #include "app/gui/core/style_guard.h"
 #include "app/gui/core/ui_helpers.h"
+#include "cli/service/ai/ai_config_utils.h"
+#include "cli/service/ai/ai_http_client.h"
+#include "cli/service/ai/cli_harness_service.h"
 #include "cli/service/ai/provider_ids.h"
+#include "cli/service/ai/service_factory.h"
+#include "cli/service/ai/subprocess_runner.h"
+#include "core/project.h"
 #include "imgui/imgui.h"
+#include "util/i18n/tr.h"
 
 #if defined(__EMSCRIPTEN__)
 #include <emscripten/emscripten.h>
@@ -80,7 +98,102 @@ bool IsHalextEndpoint(const std::string& base_url) {
   return ContainsText(lower, "halext.org");
 }
 
+struct CachedRowStatus {
+  bool checked = false;
+  bool checking = false;
+  bool ready = false;
+  std::string status_label;
+  std::string tooltip;
+  std::string override_used;
+  std::string endpoint_used;
+};
+
+struct QueuedToastMessage {
+  std::string text;
+  ToastType type = ToastType::kInfo;
+  float duration_seconds = 4.0f;
+};
+
+struct ProviderEntry {
+  const char* id;
+  const char* label;
+  const char* group;
+};
+
+std::string SanitizeProbeSnippet(absl::string_view text) {
+  std::string clean;
+  clean.reserve(80);
+  bool last_space = false;
+  for (unsigned char c : text) {
+    if (c == '\r' || c == '\n' || c == '\t' || c == ' ') {
+      if (!clean.empty() && !last_space) {
+        clean.push_back(' ');
+        last_space = true;
+      }
+      continue;
+    }
+    if (c < 0x20) {
+      continue;
+    }
+    clean.push_back(static_cast<char>(c));
+    last_space = false;
+    if (clean.size() >= 72) {
+      clean += "...";
+      break;
+    }
+  }
+  return clean;
+}
+
+std::string ResolveWorkingDirForConfig(const AgentUIContext* context,
+                                       const AgentConfigState& config) {
+  if (!config.working_directory.empty()) {
+    return config.working_directory;
+  }
+  if (context && context->GetProject() &&
+      !context->GetProject()->filepath.empty()) {
+    std::error_code ec;
+    const std::filesystem::path fp(context->GetProject()->filepath);
+    if (std::filesystem::is_directory(fp, ec)) {
+      return fp.string();
+    }
+    const std::filesystem::path parent = fp.parent_path();
+    if (!parent.empty() && std::filesystem::is_directory(parent, ec)) {
+      return parent.string();
+    }
+  }
+  return {};
+}
+
+std::string ResolveEnvFallback(const char* env_var) {
+  if (!env_var || !*env_var) {
+    return {};
+  }
+  if (const char* val = std::getenv(env_var); val != nullptr && *val != '\0') {
+    return val;
+  }
+  return {};
+}
+
 }  // namespace
+
+struct AgentConfigPanel::ProbeSharedState {
+  std::mutex mutex;
+  std::atomic<bool> shutting_down{false};
+  std::map<std::string, CachedRowStatus> statuses;
+  std::map<std::string, bool> probes_in_flight;
+  std::deque<QueuedToastMessage> pending_toasts;
+  bool initial_local_probe_started = false;
+};
+
+AgentConfigPanel::AgentConfigPanel()
+    : probe_state_(std::make_shared<ProbeSharedState>()) {}
+
+AgentConfigPanel::~AgentConfigPanel() {
+  if (probe_state_) {
+    probe_state_->shutting_down.store(true, std::memory_order_relaxed);
+  }
+}
 
 void AgentConfigPanel::Draw(AgentUIContext* context, const Callbacks& callbacks,
                             ToastManager* toast_manager) {
@@ -131,13 +244,35 @@ void AgentConfigPanel::RenderModelConfigControls(AgentUIContext* context,
   auto& model_cache = context->model_cache();
   static bool filter_by_provider = false;
 
+  // Drain any completed async Test/probe toasts onto the UI thread.
+  if (probe_state_) {
+    std::deque<QueuedToastMessage> toasts;
+    {
+      std::lock_guard<std::mutex> lock(probe_state_->mutex);
+      toasts.swap(probe_state_->pending_toasts);
+    }
+    if (toast_manager) {
+      for (const auto& msg : toasts) {
+        toast_manager->Show(msg.text, msg.type, msg.duration_seconds);
+      }
+    }
+  }
+
+  const std::string active_override =
+      config.cli_binary_paths.count(config.ai_provider)
+          ? config.cli_binary_paths.at(config.ai_provider)
+          : "";
+
   if (model_cache.last_provider != config.ai_provider ||
       model_cache.last_openai_base != config.openai_base_url ||
-      model_cache.last_ollama_host != config.ollama_host) {
+      model_cache.last_ollama_host != config.ollama_host ||
+      model_cache.last_cli_binary_override != active_override) {
     model_cache.auto_refresh_requested = false;
+    model_cache.last_refresh = absl::InfinitePast();
     model_cache.last_provider = config.ai_provider;
     model_cache.last_openai_base = config.openai_base_url;
     model_cache.last_ollama_host = config.ollama_host;
+    model_cache.last_cli_binary_override = active_override;
   }
 
   if (callbacks.refresh_models && !model_cache.loading &&
@@ -145,7 +280,8 @@ void AgentConfigPanel::RenderModelConfigControls(AgentUIContext* context,
     model_cache.auto_refresh_requested = true;
     callbacks.refresh_models(false);
   }
-  const float label_width = 120.0f;
+
+  const float label_width = 124.0f;
   const ImVec2 compact_padding(style.FramePadding.x,
                                std::max(2.0f, style.FramePadding.y * 0.6f));
   const ImVec2 compact_spacing(style.ItemSpacing.x,
@@ -153,176 +289,696 @@ void AgentConfigPanel::RenderModelConfigControls(AgentUIContext* context,
   const float env_button_width =
       ImGui::CalcTextSize(ICON_MD_SYNC " Env").x + compact_padding.x * 2.0f;
 
+  auto copy_to_buf = [](const std::string& src, char* dst, size_t dst_size) {
+    if (dst_size == 0) {
+      return;
+    }
+    std::snprintf(dst, dst_size, "%s", src.c_str());
+  };
+
   auto set_openai_base = [&](const std::string& base_url) {
-    std::snprintf(config.openai_base_url_buffer,
-                  sizeof(config.openai_base_url_buffer), "%s",
-                  base_url.c_str());
+    copy_to_buf(base_url, config.openai_base_url_buffer,
+                sizeof(config.openai_base_url_buffer));
     config.openai_base_url = config.openai_base_url_buffer;
   };
 
-  // Provider selection buttons using theme colors
-  auto provider_button = [&](const char* label, const char* value,
-                             const ImVec4& color) {
-    bool active = config.ai_provider == value;
-    ImGui::TableNextColumn();
-    std::optional<gui::StyleColorGuard> btn_guard;
-    if (active) {
-      btn_guard.emplace(std::initializer_list<gui::StyleColorGuard::Entry>{
-          {ImGuiCol_Button, color},
-          {ImGuiCol_ButtonHovered, ImVec4(color.x * 1.15f, color.y * 1.15f,
-                                          color.z * 1.15f, color.w)}});
+  auto select_provider = [&](const std::string& provider_id) {
+    config.ai_provider = provider_id;
+    copy_to_buf(provider_id, config.provider_buffer,
+                sizeof(config.provider_buffer));
+    if (provider_id == cli::kProviderLmStudio) {
+      if (config.openai_base_url.empty() ||
+          cli::NormalizeOpenAiBaseUrl(config.openai_base_url) ==
+              "https://api.openai.com") {
+        set_openai_base("http://localhost:1234");
+      }
+    } else if (provider_id == cli::kProviderOpenAi) {
+      if (IsLocalEndpoint(config.openai_base_url)) {
+        set_openai_base("https://api.openai.com");
+      }
     }
-    if (ImGui::Button(label, ImVec2(-FLT_MIN, 28))) {
-      config.ai_provider = value;
-      std::snprintf(config.provider_buffer, sizeof(config.provider_buffer),
-                    "%s", value);
+    std::string override_path;
+    if (auto it = config.cli_binary_paths.find(provider_id);
+        it != config.cli_binary_paths.end()) {
+      override_path = it->second;
     }
+    copy_to_buf(override_path, config.cli_binary_override_buffer,
+                sizeof(config.cli_binary_override_buffer));
+  };
+
+  auto trigger_local_probe = [&](const std::string& provider_id,
+                                 const std::string& base_url, const char* path,
+                                 bool force) {
+    if (!probe_state_) {
+      return;
+    }
+    const std::string normalized_base = cli::NormalizeOpenAiBaseUrl(base_url);
+    {
+      std::lock_guard<std::mutex> lock(probe_state_->mutex);
+      auto& entry = probe_state_->statuses[provider_id];
+      if (!force &&
+          (entry.checking ||
+           (entry.checked && entry.endpoint_used == normalized_base))) {
+        return;
+      }
+      entry.checked = true;
+      entry.checking = true;
+      entry.ready = false;
+      entry.endpoint_used = normalized_base;
+      entry.status_label = "Checking...";
+      entry.tooltip = normalized_base;
+    }
+    std::thread([state = probe_state_, provider_id, normalized_base,
+                 req_path = std::string(path)]() {
+      auto resp_or = cli::PerformAiHttpRequest("GET", normalized_base, req_path,
+                                               {}, "", 500);
+      const bool reachable = resp_or.ok() && resp_or->status_code > 0 &&
+                             resp_or->status_code < 500;
+      std::lock_guard<std::mutex> lock(state->mutex);
+      auto& entry = state->statuses[provider_id];
+      if (entry.endpoint_used != normalized_base) {
+        return;
+      }
+      entry.checked = true;
+      entry.checking = false;
+      entry.ready = reachable;
+      entry.status_label = reachable ? "Reachable" : "Offline";
+      entry.tooltip =
+          reachable
+              ? absl::StrCat(normalized_base, " reachable")
+              : (resp_or.ok() ? absl::StrFormat("%s HTTP %d", normalized_base,
+                                                resp_or->status_code)
+                              : absl::StrCat(normalized_base, ": ",
+                                             resp_or.status().message()));
+    }).detach();
+  };
+
+  auto compute_row_status =
+      [&](const std::string& provider_id) -> CachedRowStatus {
+    if (provider_id == cli::kProviderMock) {
+      return {.checked = true,
+              .checking = false,
+              .ready = true,
+              .status_label = "Ready",
+              .tooltip = tr("Offline mock provider for local UI testing.")};
+    }
+
+    auto api_key_status = [&](const std::string& configured,
+                              const char* env_var,
+                              const char* label) -> CachedRowStatus {
+      const bool has_configured = !configured.empty();
+      const bool has_env = !ResolveEnvFallback(env_var).empty();
+      if (has_configured || has_env) {
+        return {.checked = true,
+                .checking = false,
+                .ready = true,
+                .status_label = "Key set",
+                .tooltip = has_configured
+                               ? absl::StrCat(label, " API key configured.")
+                               : absl::StrCat("Using ", env_var,
+                                              " from environment.")};
+      }
+      return {.checked = true,
+              .checking = false,
+              .ready = false,
+              .status_label = "No API key",
+              .tooltip = absl::StrCat("Set ", label, " API key or ", env_var,
+                                      " environment variable.")};
+    };
+
+    if (provider_id == cli::kProviderAnthropic) {
+      return api_key_status(config.anthropic_api_key, "ANTHROPIC_API_KEY",
+                            "Anthropic");
+    }
+    if (provider_id == cli::kProviderOpenAi) {
+      if (!IsLocalEndpoint(config.openai_base_url) ||
+          cli::NormalizeOpenAiBaseUrl(config.openai_base_url) ==
+              "https://api.openai.com") {
+        return api_key_status(config.openai_api_key, "OPENAI_API_KEY",
+                              "OpenAI");
+      }
+      return {.checked = true,
+              .checking = false,
+              .ready = true,
+              .status_label = "Custom base",
+              .tooltip = config.openai_base_url};
+    }
+    if (provider_id == cli::kProviderGemini) {
+      return api_key_status(config.gemini_api_key, "GEMINI_API_KEY", "Gemini");
+    }
+
+    if (cli::IsCliHarnessProvider(provider_id)) {
+      const std::string override_path =
+          config.cli_binary_paths.count(provider_id)
+              ? config.cli_binary_paths.at(provider_id)
+              : "";
+      if (probe_state_) {
+        std::lock_guard<std::mutex> lock(probe_state_->mutex);
+        auto it = probe_state_->statuses.find(provider_id);
+        if (it != probe_state_->statuses.end() && it->second.checked &&
+            it->second.override_used == override_path) {
+          return it->second;
+        }
+      }
+      CachedRowStatus status;
+      status.checked = true;
+      status.override_used = override_path;
+      auto profile_or = cli::GetCliHarnessProfile(provider_id);
+      if (!profile_or.ok()) {
+        status.ready = false;
+        status.status_label = "Invalid";
+        status.tooltip = std::string(profile_or.status().message());
+      } else {
+        auto resolved_or =
+            cli::ResolveCliBinary(profile_or->binary_name, override_path);
+        if (resolved_or.ok()) {
+          status.ready = true;
+          status.status_label = "Found";
+          status.tooltip = absl::StrCat(*resolved_or, "\n", tr("Mode: "),
+                                        profile_or->read_only_summary);
+        } else {
+          status.ready = false;
+          status.status_label = "Not found";
+          status.tooltip = absl::StrCat(
+              resolved_or.status().message(), "\n",
+              tr("Set a custom path under CLI Binary Overrides below."));
+        }
+      }
+      if (probe_state_) {
+        std::lock_guard<std::mutex> lock(probe_state_->mutex);
+        probe_state_->statuses[provider_id] = status;
+      }
+      return status;
+    }
+
+    if (provider_id == cli::kProviderOllama) {
+      trigger_local_probe(cli::kProviderOllama, config.ollama_host,
+                          "/api/version", false);
+    } else if (provider_id == cli::kProviderLmStudio) {
+      const std::string lms_url = IsLocalEndpoint(config.openai_base_url)
+                                      ? config.openai_base_url
+                                      : "http://localhost:1234";
+      trigger_local_probe(cli::kProviderLmStudio, lms_url, "/v1/models", false);
+    }
+
+    if (probe_state_) {
+      std::lock_guard<std::mutex> lock(probe_state_->mutex);
+      if (auto it = probe_state_->statuses.find(provider_id);
+          it != probe_state_->statuses.end()) {
+        return it->second;
+      }
+    }
+    return {.checked = false,
+            .checking = false,
+            .ready = false,
+            .status_label = "Offline",
+            .tooltip = tr("Server not probed yet.")};
+  };
+
+  auto launch_test_probe = [&](const ProviderEntry& entry) {
+    if (!probe_state_) {
+      return;
+    }
+    {
+      std::lock_guard<std::mutex> lock(probe_state_->mutex);
+      if (probe_state_->probes_in_flight[entry.id]) {
+        return;
+      }
+      probe_state_->probes_in_flight[entry.id] = true;
+    }
+
+    cli::AIServiceConfig probe_cfg;
+    probe_cfg.provider = entry.id;
+    probe_cfg.ollama_host = config.ollama_host;
+    probe_cfg.gemini_api_key = config.gemini_api_key.empty()
+                                   ? ResolveEnvFallback("GEMINI_API_KEY")
+                                   : config.gemini_api_key;
+    probe_cfg.anthropic_api_key = config.anthropic_api_key.empty()
+                                      ? ResolveEnvFallback("ANTHROPIC_API_KEY")
+                                      : config.anthropic_api_key;
+    probe_cfg.openai_api_key = config.openai_api_key.empty()
+                                   ? ResolveEnvFallback("OPENAI_API_KEY")
+                                   : config.openai_api_key;
+    probe_cfg.openai_base_url =
+        (std::string(entry.id) == cli::kProviderLmStudio)
+            ? (IsLocalEndpoint(config.openai_base_url)
+                   ? config.openai_base_url
+                   : "http://localhost:1234")
+            : (std::string(entry.id) == cli::kProviderOpenAi &&
+                       IsLocalEndpoint(config.openai_base_url)
+                   ? "https://api.openai.com"
+                   : config.openai_base_url);
+    probe_cfg.cli_timeout_seconds =
+        std::clamp(config.cli_timeout_seconds, 5, 3600);
+    probe_cfg.cli_binary_paths = config.cli_binary_paths;
+    probe_cfg.working_directory = ResolveWorkingDirForConfig(context, config);
+
+    if (config.ai_provider == entry.id && !config.ai_model.empty()) {
+      probe_cfg.model = config.ai_model;
+    } else if (std::string(entry.id) == cli::kProviderLmStudio ||
+               std::string(entry.id) == cli::kProviderOllama) {
+      for (const auto& info : model_cache.available_models) {
+        if (absl::StrContains(absl::AsciiStrToLower(info.name), "embedding")) {
+          continue;
+        }
+        if (info.provider == entry.id ||
+            (std::string(entry.id) == cli::kProviderLmStudio &&
+             info.provider == cli::kProviderOpenAi && info.is_local)) {
+          probe_cfg.model = info.name;
+          break;
+        }
+      }
+    }
+
+    if (toast_manager) {
+      toast_manager->Show(
+          absl::StrCat(tr("Testing"), " ", tr(entry.label), "..."),
+          ToastType::kInfo, 2.0f);
+    }
+
+    std::thread([state = probe_state_, label = std::string(entry.label),
+                 provider_id = std::string(entry.id), probe_cfg]() {
+      const auto start = std::chrono::steady_clock::now();
+      std::string outcome_msg;
+      ToastType outcome_type = ToastType::kInfo;
+
+      auto service_or = cli::CreateAIServiceStrict(probe_cfg);
+      if (!service_or.ok()) {
+        const double secs = std::chrono::duration<double>(
+                                std::chrono::steady_clock::now() - start)
+                                .count();
+        outcome_type = ToastType::kError;
+        outcome_msg = absl::StrFormat(
+            "%s probe failed (%.2fs): %s", label, secs,
+            SanitizeProbeSnippet(service_or.status().message()));
+      } else {
+        auto resp_or = (*service_or)->GenerateResponse("Reply PROBE OK");
+        const double secs = std::chrono::duration<double>(
+                                std::chrono::steady_clock::now() - start)
+                                .count();
+        if (!resp_or.ok()) {
+          outcome_type = ToastType::kError;
+          outcome_msg =
+              absl::StrFormat("%s probe failed (%.2fs): %s", label, secs,
+                              SanitizeProbeSnippet(resp_or.status().message()));
+        } else {
+          std::string reply = SanitizeProbeSnippet(resp_or->text_response);
+          if (reply.empty()) {
+            reply = "OK";
+          }
+          outcome_type = ToastType::kSuccess;
+          outcome_msg = absl::StrFormat("%s: %s (%.2fs)", label, reply, secs);
+        }
+      }
+
+      if (!state->shutting_down.load(std::memory_order_relaxed)) {
+        std::lock_guard<std::mutex> lock(state->mutex);
+        state->probes_in_flight[provider_id] = false;
+        state->pending_toasts.push_back(
+            {std::move(outcome_msg), outcome_type, 5.0f});
+      }
+    }).detach();
   };
 
   {
     gui::StyleVarGuard provider_var_guard(
         {{ImGuiStyleVar_FramePadding, compact_padding},
          {ImGuiStyleVar_ItemSpacing, compact_spacing}});
-    if (ImGui::BeginTable(
-            "AgentProviderConfigTable", 2,
-            ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_BordersInnerV)) {
-      ImGui::TableSetupColumn("Label", ImGuiTableColumnFlags_WidthFixed,
-                              label_width);
-      ImGui::TableSetupColumn("Value", ImGuiTableColumnFlags_WidthStretch);
 
-      ImGui::TableNextRow();
-      ImGui::TableSetColumnIndex(0);
-      ImGui::TextDisabled("Provider");
-      ImGui::TableSetColumnIndex(1);
-      float provider_width = ImGui::GetContentRegionAvail().x;
-      int provider_columns = provider_width > 560.0f   ? 3
-                             : provider_width > 360.0f ? 2
-                                                       : 1;
-      if (ImGui::BeginTable("AgentProviderButtons", provider_columns,
-                            ImGuiTableFlags_SizingStretchSame)) {
-        provider_button(ICON_MD_SETTINGS " Mock", cli::kProviderMock,
-                        theme.provider_mock);
-        provider_button(ICON_MD_CLOUD " Ollama", cli::kProviderOllama,
-                        theme.provider_ollama);
-        provider_button(ICON_MD_SMART_TOY " Gemini", cli::kProviderGemini,
-                        theme.provider_gemini);
-        provider_button(ICON_MD_PSYCHOLOGY " Anthropic",
-                        cli::kProviderAnthropic, theme.provider_openai);
-        provider_button(ICON_MD_AUTO_AWESOME " OpenAI", cli::kProviderOpenAi,
-                        theme.provider_openai);
+    const ProviderEntry provider_entries[] = {
+        {cli::kProviderAnthropic, "Anthropic", "API"},
+        {cli::kProviderOpenAi, "OpenAI", "API"},
+        {cli::kProviderGemini, "Gemini", "API"},
+        {cli::kProviderClaudeCode, "Claude Code", "Harness (CLI)"},
+        {cli::kProviderCodex, "Codex", "Harness (CLI)"},
+        {cli::kProviderCursorAgent, "Cursor Agent", "Harness (CLI)"},
+        {cli::kProviderAgy, "Antigravity (agy)", "Harness (CLI)"},
+        {cli::kProviderGeminiCli, "Gemini CLI", "Harness (CLI)"},
+        {cli::kProviderOllama, "Ollama", "Local"},
+        {cli::kProviderLmStudio, "LM Studio", "Local"},
+        {cli::kProviderMock, "Mock", "Local"},
+    };
+
+    if (ImGui::BeginTable("AgentGroupedProviderTable", 3,
+                          ImGuiTableFlags_RowBg |
+                              ImGuiTableFlags_BordersInnerH |
+                              ImGuiTableFlags_SizingStretchProp)) {
+      ImGui::TableSetupColumn(tr("Provider"),
+                              ImGuiTableColumnFlags_WidthStretch);
+      ImGui::TableSetupColumn(tr("Status"), ImGuiTableColumnFlags_WidthFixed,
+                              92.0f);
+      ImGui::TableSetupColumn(tr("Test"), ImGuiTableColumnFlags_WidthFixed,
+                              64.0f);
+      ImGui::TableHeadersRow();
+
+      std::string current_group;
+      for (const auto& entry : provider_entries) {
+        if (current_group != entry.group) {
+          current_group = entry.group;
+          ImGui::TableNextRow();
+          ImGui::TableSetColumnIndex(0);
+          ImGui::TextColored(theme.text_info, "%s", tr(entry.group));
+          ImGui::TableSetColumnIndex(1);
+          ImGui::TableSetColumnIndex(2);
+        }
+
+        const CachedRowStatus status = compute_row_status(entry.id);
+        const bool is_cli_harness = cli::IsCliHarnessProvider(entry.id);
+        const bool disable_select = is_cli_harness && !status.ready;
+        const bool active = (config.ai_provider == entry.id);
+        bool probe_running = false;
+        if (probe_state_) {
+          std::lock_guard<std::mutex> lock(probe_state_->mutex);
+          probe_running = probe_state_->probes_in_flight[entry.id];
+        }
+
+        ImGui::PushID(entry.id);
+        ImGui::TableNextRow();
+
+        ImGui::TableSetColumnIndex(0);
+        if (disable_select) {
+          ImGui::BeginDisabled(true);
+        }
+        std::optional<gui::StyleColorGuard> active_color;
+        if (active) {
+          active_color.emplace(
+              std::initializer_list<gui::StyleColorGuard::Entry>{
+                  {ImGuiCol_Header, theme.accent_color},
+                  {ImGuiCol_HeaderHovered, theme.accent_color}});
+        }
+        if (ImGui::Selectable(tr(entry.label), active)) {
+          select_provider(entry.id);
+        }
+        active_color.reset();
+        if (disable_select) {
+          ImGui::EndDisabled();
+          if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled) &&
+              !status.tooltip.empty()) {
+            ImGui::SetTooltip("%s", status.tooltip.c_str());
+          }
+        } else if (ImGui::IsItemHovered() && !status.tooltip.empty()) {
+          ImGui::SetTooltip("%s", status.tooltip.c_str());
+        }
+
+        ImGui::TableSetColumnIndex(1);
+        const ImVec4 status_color = status.checking ? theme.text_secondary_color
+                                    : status.ready  ? theme.status_success
+                                                    : theme.status_warning;
+        ImGui::TextColored(status_color, "%s", tr(status.status_label));
+        if (ImGui::IsItemHovered() && !status.tooltip.empty()) {
+          ImGui::SetTooltip("%s", status.tooltip.c_str());
+        }
+
+        ImGui::TableSetColumnIndex(2);
+        const bool disable_test = !status.ready || probe_running;
+        if (disable_test) {
+          ImGui::BeginDisabled(true);
+        }
+        const std::string test_label =
+            absl::StrCat(tr("Test"), "##probe_", entry.id);
+        if (ImGui::SmallButton(test_label.c_str())) {
+          launch_test_probe(entry);
+        }
+        if (disable_test) {
+          ImGui::EndDisabled();
+          if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
+            const std::string reason =
+                probe_running ? std::string(tr("Probe already running..."))
+                              : status.tooltip;
+            if (!reason.empty()) {
+              ImGui::SetTooltip("%s", reason.c_str());
+            }
+          }
+        } else if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip("%s", tr("Send \"Reply PROBE OK\" test prompt"));
+        }
+
+        ImGui::PopID();
+      }
+      ImGui::EndTable();
+    }
+
+    ImGui::Spacing();
+
+    if (cli::IsCliHarnessProvider(config.ai_provider)) {
+      if (auto profile_or = cli::GetCliHarnessProfile(config.ai_provider);
+          profile_or.ok()) {
+        if (ImGui::BeginTable("AgentHarnessDetailTable", 2,
+                              ImGuiTableFlags_SizingFixedFit |
+                                  ImGuiTableFlags_BordersInnerV)) {
+          ImGui::TableSetupColumn("Label", ImGuiTableColumnFlags_WidthFixed,
+                                  label_width);
+          ImGui::TableSetupColumn("Value", ImGuiTableColumnFlags_WidthStretch);
+
+          ImGui::TableNextRow();
+          ImGui::TableSetColumnIndex(0);
+          ImGui::TextDisabled("%s", tr("Binary Override"));
+          ImGui::TableSetColumnIndex(1);
+          ImGui::SetNextItemWidth(-1);
+          const std::string current_override =
+              config.cli_binary_paths.count(config.ai_provider)
+                  ? config.cli_binary_paths.at(config.ai_provider)
+                  : "";
+          if (std::string(config.cli_binary_override_buffer) !=
+              current_override) {
+            copy_to_buf(current_override, config.cli_binary_override_buffer,
+                        sizeof(config.cli_binary_override_buffer));
+          }
+          if (ImGui::InputTextWithHint(
+                  "##cli_binary_override", profile_or->binary_name.c_str(),
+                  config.cli_binary_override_buffer,
+                  IM_ARRAYSIZE(config.cli_binary_override_buffer))) {
+            std::string edited = std::string(
+                absl::StripAsciiWhitespace(config.cli_binary_override_buffer));
+            if (edited.empty()) {
+              config.cli_binary_paths.erase(config.ai_provider);
+            } else {
+              config.cli_binary_paths[config.ai_provider] = edited;
+            }
+            if (probe_state_) {
+              std::lock_guard<std::mutex> lock(probe_state_->mutex);
+              probe_state_->statuses.erase(config.ai_provider);
+            }
+          }
+
+          ImGui::TableNextRow();
+          ImGui::TableSetColumnIndex(0);
+          ImGui::TextDisabled("%s", tr("CLI Timeout (s)"));
+          ImGui::TableSetColumnIndex(1);
+          ImGui::SetNextItemWidth(140.0f);
+          if (ImGui::InputInt("##cli_timeout_seconds",
+                              &config.cli_timeout_seconds, 15, 60)) {
+            config.cli_timeout_seconds =
+                std::clamp(config.cli_timeout_seconds, 5, 3600);
+          }
+
+          ImGui::TableNextRow();
+          ImGui::TableSetColumnIndex(0);
+          ImGui::TextDisabled("%s", tr("Sandbox Mode"));
+          ImGui::TableSetColumnIndex(1);
+          ImGui::TextColored(theme.status_success, "%s (%s)", tr("Read-only"),
+                             profile_or->read_only_summary.c_str());
+
+          const std::string work_dir =
+              ResolveWorkingDirForConfig(context, config);
+          ImGui::TableNextRow();
+          ImGui::TableSetColumnIndex(0);
+          ImGui::TextDisabled("%s", tr("Working Dir"));
+          ImGui::TableSetColumnIndex(1);
+          ImGui::TextDisabled(
+              "%s", work_dir.empty() ? tr("(none)") : work_dir.c_str());
+
+          ImGui::EndTable();
+        }
+      }
+    }
+
+    if (ImGui::TreeNode(tr("CLI Binary Overrides"))) {
+      static char override_bufs[5][256] = {};
+      const char* harness_ids[5] = {cli::kProviderClaudeCode,
+                                    cli::kProviderCodex,
+                                    cli::kProviderCursorAgent,
+                                    cli::kProviderAgy, cli::kProviderGeminiCli};
+      const char* harness_names[5] = {"Claude Code", "Codex", "Cursor Agent",
+                                      "Antigravity (agy)", "Gemini CLI"};
+      if (ImGui::BeginTable(
+              "AgentCliOverridesTable", 2,
+              ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_BordersInnerV)) {
+        ImGui::TableSetupColumn("Label", ImGuiTableColumnFlags_WidthFixed,
+                                label_width);
+        ImGui::TableSetupColumn("Value", ImGuiTableColumnFlags_WidthStretch);
+        for (int i = 0; i < 5; ++i) {
+          const std::string hid = harness_ids[i];
+          std::string cur = config.cli_binary_paths.count(hid)
+                                ? config.cli_binary_paths.at(hid)
+                                : "";
+          if (std::string(override_bufs[i]) != cur) {
+            copy_to_buf(cur, override_bufs[i], sizeof(override_bufs[i]));
+          }
+          ImGui::PushID(hid.c_str());
+          ImGui::TableNextRow();
+          ImGui::TableSetColumnIndex(0);
+          ImGui::TextDisabled("%s", tr(harness_names[i]));
+          ImGui::TableSetColumnIndex(1);
+          ImGui::SetNextItemWidth(-1);
+          auto prof_or = cli::GetCliHarnessProfile(hid);
+          const char* hint =
+              prof_or.ok() ? prof_or->binary_name.c_str() : "path...";
+          if (ImGui::InputTextWithHint("##path", hint, override_bufs[i],
+                                       IM_ARRAYSIZE(override_bufs[i]))) {
+            std::string edited =
+                std::string(absl::StripAsciiWhitespace(override_bufs[i]));
+            if (edited.empty()) {
+              config.cli_binary_paths.erase(hid);
+            } else {
+              config.cli_binary_paths[hid] = edited;
+            }
+            if (probe_state_) {
+              std::lock_guard<std::mutex> lock(probe_state_->mutex);
+              probe_state_->statuses.erase(hid);
+            }
+          }
+          ImGui::PopID();
+        }
         ImGui::EndTable();
       }
+      ImGui::TreePop();
+    }
 
-      ImGui::TableNextRow();
-      ImGui::TableSetColumnIndex(0);
-      ImGui::TextDisabled("Ollama Host");
-      ImGui::TableSetColumnIndex(1);
-      ImGui::SetNextItemWidth(-1);
-      if (ImGui::InputTextWithHint("##ollama_host", "http://localhost:11434",
-                                   config.ollama_host_buffer,
-                                   IM_ARRAYSIZE(config.ollama_host_buffer))) {
-        config.ollama_host = config.ollama_host_buffer;
-      }
+    const bool open_keys_by_default =
+        !cli::IsCliHarnessProvider(config.ai_provider);
+    if (ImGui::CollapsingHeader(
+            tr("API Keys & Endpoints"),
+            open_keys_by_default ? ImGuiTreeNodeFlags_DefaultOpen : 0)) {
+      if (ImGui::BeginTable(
+              "AgentProviderConfigTable", 2,
+              ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_BordersInnerV)) {
+        ImGui::TableSetupColumn("Label", ImGuiTableColumnFlags_WidthFixed,
+                                label_width);
+        ImGui::TableSetupColumn("Value", ImGuiTableColumnFlags_WidthStretch);
 
-      auto key_row = [&](const char* label, const char* hint, char* buffer,
-                         size_t buffer_len, std::string* target,
-                         const char* env_var, const char* input_id,
-                         const char* button_id) {
         ImGui::TableNextRow();
         ImGui::TableSetColumnIndex(0);
-        ImGui::TextDisabled("%s", label);
+        ImGui::TextDisabled("Ollama Host");
         ImGui::TableSetColumnIndex(1);
-        float input_width = ImGui::GetContentRegionAvail().x -
-                            env_button_width - style.ItemSpacing.x;
-        bool stack = input_width < 140.0f;
-        ImGui::SetNextItemWidth(stack ? -1 : input_width);
-        if (ImGui::InputTextWithHint(input_id, hint, buffer, buffer_len,
-                                     ImGuiInputTextFlags_Password)) {
-          if (target) {
-            *target = buffer;
-          }
+        ImGui::SetNextItemWidth(-1);
+        if (ImGui::InputTextWithHint("##ollama_host", "http://localhost:11434",
+                                     config.ollama_host_buffer,
+                                     IM_ARRAYSIZE(config.ollama_host_buffer))) {
+          config.ollama_host = config.ollama_host_buffer;
         }
-        if (!stack) {
+        if (ImGui::IsItemDeactivatedAfterEdit()) {
+          trigger_local_probe(cli::kProviderOllama, config.ollama_host,
+                              "/api/version", true);
+        }
+
+        auto key_row = [&](const char* label, const char* hint, char* buffer,
+                           size_t buffer_len, std::string* target,
+                           const char* env_var, const char* input_id,
+                           const char* button_id) {
+          ImGui::TableNextRow();
+          ImGui::TableSetColumnIndex(0);
+          ImGui::TextDisabled("%s", label);
+          ImGui::TableSetColumnIndex(1);
+          float input_width = ImGui::GetContentRegionAvail().x -
+                              env_button_width - style.ItemSpacing.x;
+          bool stack = input_width < 140.0f;
+          ImGui::SetNextItemWidth(stack ? -1 : input_width);
+          if (ImGui::InputTextWithHint(input_id, hint, buffer, buffer_len,
+                                       ImGuiInputTextFlags_Password)) {
+            if (target) {
+              *target = buffer;
+            }
+          }
+          if (!stack) {
+            ImGui::SameLine();
+          }
+          if (ImGui::SmallButton(button_id)) {
+            const char* env_key = std::getenv(env_var);
+            if (env_key) {
+              std::snprintf(buffer, buffer_len, "%s", env_key);
+              if (target) {
+                *target = env_key;
+              }
+              if (toast_manager) {
+                toast_manager->Show(
+                    absl::StrFormat("Loaded %s from environment", env_var),
+                    ToastType::kInfo, 2.0f);
+              }
+            } else if (toast_manager) {
+              toast_manager->Show(absl::StrFormat("%s not set", env_var),
+                                  ToastType::kWarning, 2.0f);
+            }
+          }
+        };
+
+        key_row("Gemini Key", "API key...", config.gemini_key_buffer,
+                IM_ARRAYSIZE(config.gemini_key_buffer), &config.gemini_api_key,
+                "GEMINI_API_KEY", "##gemini_key", ICON_MD_SYNC " Env##gemini");
+        key_row("Anthropic Key", "API key...", config.anthropic_key_buffer,
+                IM_ARRAYSIZE(config.anthropic_key_buffer),
+                &config.anthropic_api_key, "ANTHROPIC_API_KEY",
+                "##anthropic_key", ICON_MD_SYNC " Env##anthropic");
+        key_row("OpenAI Key", "API key...", config.openai_key_buffer,
+                IM_ARRAYSIZE(config.openai_key_buffer), &config.openai_api_key,
+                "OPENAI_API_KEY", "##openai_key", ICON_MD_SYNC " Env##openai");
+
+        ImGui::TableNextRow();
+        ImGui::TableSetColumnIndex(0);
+        ImGui::TextDisabled("OpenAI Base");
+        ImGui::TableSetColumnIndex(1);
+        float openai_button_width =
+            ImGui::CalcTextSize("OpenAI").x + compact_padding.x * 2.0f;
+        float lm_button_width =
+            ImGui::CalcTextSize("LM Studio").x + compact_padding.x * 2.0f;
+        float afs_button_width =
+            ImGui::CalcTextSize("AFS Bridge").x + compact_padding.x * 2.0f;
+        float reset_button_width =
+            ImGui::CalcTextSize("Reset").x + compact_padding.x * 2.0f;
+        float total_buttons = openai_button_width + lm_button_width +
+                              afs_button_width + reset_button_width +
+                              style.ItemSpacing.x * 3.0f;
+        float base_available = ImGui::GetContentRegionAvail().x;
+        bool base_stack = base_available < total_buttons + 160.0f;
+        ImGui::SetNextItemWidth(base_stack ? -1
+                                           : base_available - total_buttons -
+                                                 style.ItemSpacing.x);
+        if (ImGui::InputTextWithHint(
+                "##openai_base", "http://localhost:1234",
+                config.openai_base_url_buffer,
+                IM_ARRAYSIZE(config.openai_base_url_buffer))) {
+          config.openai_base_url = config.openai_base_url_buffer;
+        }
+        if (ImGui::IsItemDeactivatedAfterEdit() &&
+            IsLocalEndpoint(config.openai_base_url)) {
+          trigger_local_probe(cli::kProviderLmStudio, config.openai_base_url,
+                              "/v1/models", true);
+        }
+        if (base_stack) {
+          ImGui::Spacing();
+        } else {
           ImGui::SameLine();
         }
-        if (ImGui::SmallButton(button_id)) {
-          const char* env_key = std::getenv(env_var);
-          if (env_key) {
-            std::snprintf(buffer, buffer_len, "%s", env_key);
-            if (target) {
-              *target = env_key;
-            }
-            if (toast_manager) {
-              toast_manager->Show(
-                  absl::StrFormat("Loaded %s from environment", env_var),
-                  ToastType::kInfo, 2.0f);
-            }
-          } else if (toast_manager) {
-            toast_manager->Show(absl::StrFormat("%s not set", env_var),
-                                ToastType::kWarning, 2.0f);
-          }
+        if (ImGui::SmallButton("OpenAI")) {
+          set_openai_base("https://api.openai.com");
         }
-      };
-
-      key_row("Gemini Key", "API key...", config.gemini_key_buffer,
-              IM_ARRAYSIZE(config.gemini_key_buffer), &config.gemini_api_key,
-              "GEMINI_API_KEY", "##gemini_key", ICON_MD_SYNC " Env##gemini");
-      key_row("Anthropic Key", "API key...", config.anthropic_key_buffer,
-              IM_ARRAYSIZE(config.anthropic_key_buffer),
-              &config.anthropic_api_key, "ANTHROPIC_API_KEY", "##anthropic_key",
-              ICON_MD_SYNC " Env##anthropic");
-      key_row("OpenAI Key", "API key...", config.openai_key_buffer,
-              IM_ARRAYSIZE(config.openai_key_buffer), &config.openai_api_key,
-              "OPENAI_API_KEY", "##openai_key", ICON_MD_SYNC " Env##openai");
-
-      ImGui::TableNextRow();
-      ImGui::TableSetColumnIndex(0);
-      ImGui::TextDisabled("OpenAI Base");
-      ImGui::TableSetColumnIndex(1);
-      float openai_button_width =
-          ImGui::CalcTextSize("OpenAI").x + compact_padding.x * 2.0f;
-      float lm_button_width =
-          ImGui::CalcTextSize("LM Studio").x + compact_padding.x * 2.0f;
-      float afs_button_width =
-          ImGui::CalcTextSize("AFS Bridge").x + compact_padding.x * 2.0f;
-      float reset_button_width =
-          ImGui::CalcTextSize("Reset").x + compact_padding.x * 2.0f;
-      float total_buttons = openai_button_width + lm_button_width +
-                            afs_button_width + reset_button_width +
-                            style.ItemSpacing.x * 3.0f;
-      float base_available = ImGui::GetContentRegionAvail().x;
-      bool base_stack = base_available < total_buttons + 160.0f;
-      ImGui::SetNextItemWidth(base_stack ? -1
-                                         : base_available - total_buttons -
-                                               style.ItemSpacing.x);
-      if (ImGui::InputTextWithHint(
-              "##openai_base", "http://localhost:1234",
-              config.openai_base_url_buffer,
-              IM_ARRAYSIZE(config.openai_base_url_buffer))) {
-        config.openai_base_url = config.openai_base_url_buffer;
-      }
-      if (base_stack) {
-        ImGui::Spacing();
-      } else {
         ImGui::SameLine();
-      }
-      if (ImGui::SmallButton("OpenAI")) {
-        set_openai_base("https://api.openai.com");
-      }
-      ImGui::SameLine();
-      if (ImGui::SmallButton("LM Studio")) {
-        set_openai_base("http://localhost:1234");
-      }
-      ImGui::SameLine();
-      if (ImGui::SmallButton("AFS Bridge")) {
-        set_openai_base("https://halext.org");
-      }
-      ImGui::SameLine();
-      if (ImGui::SmallButton("Reset")) {
-        set_openai_base("https://api.openai.com");
-      }
+        if (ImGui::SmallButton("LM Studio")) {
+          set_openai_base("http://localhost:1234");
+          trigger_local_probe(cli::kProviderLmStudio, "http://localhost:1234",
+                              "/v1/models", true);
+        }
+        ImGui::SameLine();
+        if (ImGui::SmallButton("AFS Bridge")) {
+          set_openai_base("https://halext.org");
+        }
+        ImGui::SameLine();
+        if (ImGui::SmallButton("Reset")) {
+          set_openai_base("https://api.openai.com");
+        }
 
-      ImGui::EndTable();
+        ImGui::EndTable();
+      }
     }
   }  // provider_var_guard scope
 
@@ -354,11 +1010,44 @@ void AgentConfigPanel::RenderModelConfigControls(AgentUIContext* context,
       ImGui::TableSetColumnIndex(0);
       ImGui::TextDisabled("Model");
       ImGui::TableSetColumnIndex(1);
-      ImGui::SetNextItemWidth(-1);
+      const float suggestions_width = 128.0f;
+      const float avail_model_w = ImGui::GetContentRegionAvail().x;
+      const bool stack_suggestions = avail_model_w < suggestions_width + 140.0f;
+      ImGui::SetNextItemWidth(stack_suggestions
+                                  ? -1
+                                  : avail_model_w - suggestions_width -
+                                        style.ItemSpacing.x);
       if (ImGui::InputTextWithHint("##ai_model", "Model name...",
                                    config.model_buffer,
                                    IM_ARRAYSIZE(config.model_buffer))) {
         config.ai_model = config.model_buffer;
+      }
+      if (!stack_suggestions) {
+        ImGui::SameLine();
+      }
+      ImGui::SetNextItemWidth(stack_suggestions ? -1 : suggestions_width);
+      if (ImGui::BeginCombo("##model_suggestions", tr("Suggestions"))) {
+        bool any_suggestion = false;
+        for (const auto& info : model_cache.available_models) {
+          const bool matches =
+              info.provider.empty() || info.provider == config.ai_provider ||
+              (config.ai_provider == cli::kProviderLmStudio &&
+               info.provider == cli::kProviderOpenAi && info.is_local);
+          if (!matches) {
+            continue;
+          }
+          any_suggestion = true;
+          const bool selected = config.ai_model == info.name;
+          if (ImGui::Selectable(info.name.c_str(), selected)) {
+            config.ai_model = info.name;
+            std::snprintf(config.model_buffer, sizeof(config.model_buffer),
+                          "%s", info.name.c_str());
+          }
+        }
+        if (!any_suggestion) {
+          ImGui::TextDisabled("%s", tr("No cached suggestions"));
+        }
+        ImGui::EndCombo();
       }
 
       ImGui::TableNextRow();
@@ -395,9 +1084,30 @@ void AgentConfigPanel::RenderModelConfigControls(AgentUIContext* context,
       }
       if (ImGui::SmallButton(model_cache.loading ? ICON_MD_SYNC
                                                  : ICON_MD_REFRESH)) {
+        if (probe_state_) {
+          {
+            std::lock_guard<std::mutex> lock(probe_state_->mutex);
+            for (const char* hid :
+                 {cli::kProviderClaudeCode, cli::kProviderCodex,
+                  cli::kProviderCursorAgent, cli::kProviderAgy,
+                  cli::kProviderGeminiCli}) {
+              probe_state_->statuses.erase(hid);
+            }
+          }
+          const std::string lms_url = IsLocalEndpoint(config.openai_base_url)
+                                          ? config.openai_base_url
+                                          : "http://localhost:1234";
+          trigger_local_probe(cli::kProviderOllama, config.ollama_host,
+                              "/api/version", true);
+          trigger_local_probe(cli::kProviderLmStudio, lms_url, "/v1/models",
+                              true);
+        }
         if (callbacks.refresh_models) {
           callbacks.refresh_models(true);
         }
+      }
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("%s", tr("Refresh provider models and statuses"));
       }
 
       ImGui::EndTable();
@@ -471,14 +1181,14 @@ void AgentConfigPanel::RenderModelConfigControls(AgentUIContext* context,
   }
 
   auto get_provider_color = [&theme](const std::string& provider) -> ImVec4 {
-    if (provider == cli::kProviderOllama)
+    if (provider == cli::kProviderOllama || provider == cli::kProviderLmStudio)
       return theme.provider_ollama;
-    if (provider == cli::kProviderGemini)
+    if (provider == cli::kProviderGemini || provider == cli::kProviderGeminiCli)
       return theme.provider_gemini;
-    if (provider == cli::kProviderAnthropic)
+    if (provider == cli::kProviderAnthropic || provider == cli::kProviderOpenAi)
       return theme.provider_openai;
-    if (provider == cli::kProviderOpenAi)
-      return theme.provider_openai;
+    if (cli::IsCliHarnessProvider(provider))
+      return theme.accent_color;
     return theme.provider_mock;
   };
 
@@ -541,7 +1251,11 @@ void AgentConfigPanel::RenderModelConfigControls(AgentUIContext* context,
           if (row.provider == "local") {
             continue;
           }
-          if (!row.provider.empty() && row.provider != config.ai_provider) {
+          const bool matches_provider =
+              row.provider.empty() || row.provider == config.ai_provider ||
+              (config.ai_provider == cli::kProviderLmStudio &&
+               row.provider == cli::kProviderOpenAi && row.is_local);
+          if (!matches_provider) {
             continue;
           }
         }

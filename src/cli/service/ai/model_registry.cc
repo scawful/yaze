@@ -6,8 +6,10 @@
 #include <string>
 #include <utility>
 
+#include "absl/strings/ascii.h"
 #include "absl/strings/str_cat.h"
-#include "cli/service/ai/local_gemini_cli_service.h"
+#include "cli/service/ai/ai_config_utils.h"
+#include "cli/service/ai/cli_harness_service.h"
 #include "cli/service/ai/ollama_ai_service.h"
 #include "cli/service/ai/provider_ids.h"
 #include "cli/service/ai/service_factory.h"
@@ -41,11 +43,22 @@ absl::StatusOr<std::shared_ptr<yaze::cli::AIService>> CreateDiscoveryService(
         std::make_shared<yaze::cli::OllamaAIService>(ollama_config));
   }
 
-  if (provider == yaze::cli::kProviderGeminiCli ||
-      provider == yaze::cli::kProviderLocalGemini) {
+  if (yaze::cli::IsCliHarnessProvider(provider)) {
+    yaze::cli::CliHarnessConfig harness_config;
+    harness_config.provider = provider;
+    harness_config.model = config.model;
+    harness_config.working_directory = config.working_directory;
+    harness_config.timeout_seconds = config.cli_timeout_seconds;
+    harness_config.verbose = config.verbose;
+    if (!config.cli_binary_override.empty()) {
+      harness_config.binary_override = config.cli_binary_override;
+    } else if (auto it = config.cli_binary_paths.find(provider);
+               it != config.cli_binary_paths.end()) {
+      harness_config.binary_override = it->second;
+    }
     return std::static_pointer_cast<yaze::cli::AIService>(
-        std::make_shared<yaze::cli::LocalGeminiCliService>(
-            config.model.empty() ? "gemini-2.5-flash" : config.model));
+        std::make_shared<yaze::cli::CliHarnessService>(
+            std::move(harness_config)));
   }
 
 #ifdef YAZE_WITH_JSON
@@ -130,7 +143,69 @@ void ModelRegistry::EnsureDiscoveredServicesLocked() {
 
 void ModelRegistry::InvalidateCacheLocked() {
   cached_models_.clear();
+  provider_session_cache_.clear();
   cache_valid_ = false;
+}
+
+absl::StatusOr<std::vector<ModelInfo>> ModelRegistry::ListModelsForProvider(
+    const AIServiceConfig& config, bool force_refresh) {
+  auto discovery_configs = DiscoverModelRegistryConfigs(config);
+  if (discovery_configs.empty()) {
+    return absl::InvalidArgumentError(absl::StrCat(
+        "No model discovery provider resolved for '", config.provider, "'"));
+  }
+  const AIServiceConfig& target = discovery_configs.front();
+  std::string override_path = target.cli_binary_override;
+  if (override_path.empty()) {
+    if (auto it = target.cli_binary_paths.find(target.provider);
+        it != target.cli_binary_paths.end()) {
+      override_path = it->second;
+    }
+  }
+  const bool has_key =
+      (target.provider == kProviderGemini && !target.gemini_api_key.empty()) ||
+      (target.provider == kProviderAnthropic &&
+       !target.anthropic_api_key.empty()) ||
+      (target.provider == kProviderOpenAi && !target.openai_api_key.empty());
+  const std::string cache_key = absl::StrCat(
+      target.provider, "|", NormalizeOpenAiBaseUrl(target.openai_base_url), "|",
+      target.ollama_host, "|", override_path, "|", has_key ? "1" : "0");
+
+  {
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (!force_refresh) {
+      auto it = provider_session_cache_.find(cache_key);
+      if (it != provider_session_cache_.end()) {
+        return it->second;
+      }
+    }
+  }
+
+  auto service_or = CreateDiscoveryService(target);
+  if (!service_or.ok()) {
+    return service_or.status();
+  }
+  auto models_or = (*service_or)->ListAvailableModels();
+  if (!models_or.ok()) {
+    return models_or.status();
+  }
+  std::vector<ModelInfo> models = std::move(*models_or);
+  const std::string lower_requested = absl::AsciiStrToLower(config.provider);
+  for (auto& model : models) {
+    if (lower_requested == kProviderLmStudio ||
+        lower_requested == kProviderLmStudioDashed) {
+      model.provider = kProviderLmStudio;
+    }
+    if (model.display_name.empty()) {
+      model.display_name = model.name;
+    }
+  }
+
+  {
+    std::lock_guard<std::mutex> lock(mutex_);
+    provider_session_cache_[cache_key] = models;
+  }
+  return models;
 }
 
 absl::StatusOr<std::vector<ModelInfo>> ModelRegistry::ListAllModels(

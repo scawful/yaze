@@ -6,6 +6,7 @@
 
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
+#include "absl/strings/string_view.h"
 #include "cli/service/ai/ai_service.h"
 #include "cli/service/ai/provider_ids.h"
 
@@ -18,7 +19,7 @@ namespace cli {
 
 struct AnthropicConfig {
   std::string api_key;
-  std::string model = "claude-3-5-sonnet-20241022";  // Default to 3.5 Sonnet
+  std::string model = "claude-sonnet-5-5";
   float temperature = 0.7f;
   int max_output_tokens = 4096;  // Anthropic supports larger output context
   std::string system_instruction;
@@ -94,6 +95,10 @@ class AnthropicAIService : public AIService {
 };
 
 #endif  // YAZE_AI_RUNTIME_AVAILABLE
+
+std::vector<ModelInfo> GetFallbackAnthropicModels();
+std::vector<ModelInfo> ParseAnthropicModelsJson(
+    absl::string_view response_body);
 
 }  // namespace cli
 }  // namespace yaze

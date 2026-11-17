@@ -16,7 +16,7 @@ ABSL_FLAG(std::string, ai_provider, "auto",
           "'gemini', 'anthropic', 'openai', 'ollama', or 'mock'");
 ABSL_FLAG(std::string, ai_model, "",
           "AI model to use (provider-specific, e.g., 'llama3' for Ollama, "
-          "'gemini-1.5-flash' for Gemini, 'gpt-4o-mini' for OpenAI)");
+          "'gemini-2.5-flash' for Gemini, 'gpt-5-mini' for OpenAI)");
 ABSL_FLAG(std::string, gemini_api_key, "",
           "Gemini API key (can also use GEMINI_API_KEY environment variable)");
 ABSL_FLAG(

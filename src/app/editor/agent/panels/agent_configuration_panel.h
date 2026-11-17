@@ -2,6 +2,7 @@
 #define YAZE_APP_EDITOR_AGENT_PANELS_AGENT_CONFIGURATION_PANEL_H_
 
 #include <functional>
+#include <memory>
 #include <string>
 
 #include "app/editor/agent/agent_state.h"
@@ -20,12 +21,16 @@ class AgentConfigPanel {
     std::function<void()> apply_tool_preferences;
   };
 
-  AgentConfigPanel() = default;
+  AgentConfigPanel();
+  ~AgentConfigPanel();
 
   void Draw(AgentUIContext* context, const Callbacks& callbacks,
             ToastManager* toast_manager);
 
  private:
+  struct ProbeSharedState;
+  std::shared_ptr<ProbeSharedState> probe_state_;
+
   void RenderModelConfigControls(AgentUIContext* context,
                                  const Callbacks& callbacks,
                                  ToastManager* toast_manager);

@@ -125,6 +125,7 @@ set(YAZE_AGENT_CORE_SOURCES
   cli/service/ai/ai_service.cc
   cli/service/ai/model_registry.cc
   cli/service/ai/subprocess_runner.cc
+  cli/service/ai/cli_harness_service.cc
   cli/service/ai/vision_action_refiner.cc
   cli/service/api/http_server.cc
   cli/service/api/api_handlers.cc
@@ -145,8 +146,8 @@ if(YAZE_ENABLE_AI_RUNTIME)
     cli/service/agent/advanced_routing.cc
     cli/service/agent/agent_pretraining.cc
     cli/service/ai/ai_gui_controller.cc
+    cli/service/ai/ai_http_client.cc
     cli/service/ai/ollama_ai_service.cc
-    cli/service/ai/local_gemini_cli_service.cc
     cli/service/ai/prompt_builder.cc
     cli/service/ai/tool_schema_builder.cc
     cli/service/ai/service_factory.cc

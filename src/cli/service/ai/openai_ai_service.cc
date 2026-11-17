@@ -16,6 +16,7 @@
 #include "absl/time/clock.h"
 #include "absl/time/time.h"
 #include "cli/service/agent/conversational_agent_service.h"
+#include "cli/service/ai/ai_http_client.h"
 #include "cli/service/ai/provider_ids.h"
 #include "cli/service/ai/tool_call_argument_codec.h"
 #include "cli/service/ai/tool_schema_builder.h"
@@ -167,160 +168,38 @@ absl::StatusOr<std::vector<ModelInfo>> OpenAIAIService::ListAvailableModels() {
   const bool is_openai_cloud =
       absl::StrContains(config_.base_url, "api.openai.com");
   if (config_.api_key.empty() && is_openai_cloud) {
-    // Return default known models if API key is missing
-    std::vector<ModelInfo> defaults = {
-        {.name = "gpt-4o",
-         .display_name = "GPT-4o",
-         .provider = kProviderOpenAi,
-         .description = "Most capable GPT-4 model"},
-        {.name = "gpt-4o-mini",
-         .display_name = "GPT-4o Mini",
-         .provider = kProviderOpenAi,
-         .description = "Fast and cost-effective"},
-        {.name = "gpt-4-turbo",
-         .display_name = "GPT-4 Turbo",
-         .provider = kProviderOpenAi,
-         .description = "GPT-4 with larger context"},
-        {.name = "gpt-3.5-turbo",
-         .display_name = "GPT-3.5 Turbo",
-         .provider = kProviderOpenAi,
-         .description = "Fast and efficient"}};
-    return defaults;
+    return GetFallbackOpenAIModels();
   }
 
   try {
     if (config_.verbose) {
-      std::cerr << "[DEBUG] Listing OpenAI models..." << std::endl;
+      std::cerr << "[DEBUG] Listing OpenAI-compatible models..." << std::endl;
     }
 
-    std::string response_str;
-#if defined(YAZE_AI_IOS_URLSESSION)
     std::map<std::string, std::string> headers;
     if (!config_.api_key.empty()) {
       headers.emplace("Authorization", "Bearer " + config_.api_key);
     }
-    auto resp_or = ios::UrlSessionHttpRequest(
-        "GET", config_.base_url + "/v1/models", headers, "", 8000);
-    if (!resp_or.ok()) {
-      if (config_.verbose) {
-        std::cerr << "[DEBUG] OpenAI /v1/models failed: "
-                  << resp_or.status().message() << std::endl;
+
+    auto resp_or = PerformAiHttpRequest("GET", config_.base_url, "/v1/models",
+                                        headers, "", 8000);
+    if (!resp_or.ok() || resp_or->status_code != 200) {
+      if (!is_openai_cloud) {
+        return absl::UnavailableError(
+            absl::StrCat("Cannot reach local OpenAI-compatible server at ",
+                         config_.base_url));
       }
-      // Return defaults on failure so the UI remains usable.
-      std::vector<ModelInfo> defaults = {{.name = "gpt-4o-mini",
-                                          .display_name = "GPT-4o Mini",
-                                          .provider = kProviderOpenAi},
-                                         {.name = "gpt-4o",
-                                          .display_name = "GPT-4o",
-                                          .provider = kProviderOpenAi},
-                                         {.name = "gpt-3.5-turbo",
-                                          .display_name = "GPT-3.5 Turbo",
-                                          .provider = kProviderOpenAi}};
-      return defaults;
+      return GetFallbackOpenAIModels();
     }
-    if (resp_or->status_code != 200) {
-      if (config_.verbose) {
-        std::cerr << "[DEBUG] OpenAI /v1/models HTTP " << resp_or->status_code
-                  << std::endl;
+
+    auto models = ParseOpenAIModelsJson(resp_or->body, !is_openai_cloud);
+    if (models.empty()) {
+      if (!is_openai_cloud) {
+        return models;
       }
-      std::vector<ModelInfo> defaults = {{.name = "gpt-4o-mini",
-                                          .display_name = "GPT-4o Mini",
-                                          .provider = kProviderOpenAi},
-                                         {.name = "gpt-4o",
-                                          .display_name = "GPT-4o",
-                                          .provider = kProviderOpenAi},
-                                         {.name = "gpt-3.5-turbo",
-                                          .display_name = "GPT-3.5 Turbo",
-                                          .provider = kProviderOpenAi}};
-      return defaults;
-    }
-    response_str = resp_or->body;
-#else
-    // Use curl to list models from the API
-    std::string auth_header =
-        config_.api_key.empty()
-            ? ""
-            : "-H 'Authorization: Bearer " + config_.api_key + "' ";
-    std::string curl_cmd = "curl -s -X GET '" + config_.base_url +
-                           "/v1/models' " + auth_header + "2>&1";
-
-#ifdef _WIN32
-    FILE* pipe = _popen(curl_cmd.c_str(), "r");
-#else
-    FILE* pipe = popen(curl_cmd.c_str(), "r");
-#endif
-    if (!pipe) {
-      return absl::InternalError("Failed to execute curl command");
-    }
-
-    char buffer[4096];
-    while (fgets(buffer, sizeof(buffer), pipe) != nullptr) {
-      response_str += buffer;
-    }
-
-#ifdef _WIN32
-    _pclose(pipe);
-#else
-    pclose(pipe);
-#endif
-#endif  // YAZE_AI_IOS_URLSESSION
-
-    auto models_json = nlohmann::json::parse(response_str, nullptr, false);
-    if (models_json.is_discarded()) {
-      return absl::InternalError("Failed to parse OpenAI models JSON");
-    }
-
-    if (!models_json.contains("data")) {
-      // Return defaults on error
-      std::vector<ModelInfo> defaults = {{.name = "gpt-4o-mini",
-                                          .display_name = "GPT-4o Mini",
-                                          .provider = kProviderOpenAi},
-                                         {.name = "gpt-4o",
-                                          .display_name = "GPT-4o",
-                                          .provider = kProviderOpenAi},
-                                         {.name = "gpt-3.5-turbo",
-                                          .display_name = "GPT-3.5 Turbo",
-                                          .provider = kProviderOpenAi}};
-      return defaults;
-    }
-
-    std::vector<ModelInfo> models;
-    for (const auto& m : models_json["data"]) {
-      std::string id = m.value("id", "");
-
-      // Filter for chat models (gpt-4*, gpt-3.5-turbo*, o1*, chatgpt*)
-      // For local servers (LM Studio), we accept all models.
-      bool is_local = !absl::StrContains(config_.base_url, "api.openai.com");
-
-      if (is_local || absl::StartsWith(id, "gpt-4") ||
-          absl::StartsWith(id, "gpt-3.5") || absl::StartsWith(id, "o1") ||
-          absl::StartsWith(id, "chatgpt")) {
-        ModelInfo info;
-        info.name = id;
-        info.display_name = id;
-        info.provider = kProviderOpenAi;
-        info.family = is_local ? "local" : "gpt";
-        info.is_local = is_local;
-
-        // Set display name based on model
-        if (id == "gpt-4o")
-          info.display_name = "GPT-4o";
-        else if (id == "gpt-4o-mini")
-          info.display_name = "GPT-4o Mini";
-        else if (id == "gpt-4-turbo")
-          info.display_name = "GPT-4 Turbo";
-        else if (id == "gpt-3.5-turbo")
-          info.display_name = "GPT-3.5 Turbo";
-        else if (id == "o1-preview")
-          info.display_name = "o1 Preview";
-        else if (id == "o1-mini")
-          info.display_name = "o1 Mini";
-
-        models.push_back(std::move(info));
-      }
+      return GetFallbackOpenAIModels();
     }
     return models;
-
   } catch (const std::exception& e) {
     return absl::InternalError(
         absl::StrCat("Failed to list models: ", e.what()));
@@ -431,7 +310,8 @@ absl::StatusOr<AgentResponse> OpenAIAIService::GenerateResponse(
 
   try {
     if (config_.verbose) {
-      std::cerr << "[DEBUG] Using curl for OpenAI HTTPS request" << std::endl;
+      std::cerr << "[DEBUG] Sending OpenAI-compatible HTTP request"
+                << std::endl;
       std::cerr << "[DEBUG] Processing " << history.size()
                 << " messages in history" << std::endl;
     }
@@ -484,16 +364,15 @@ absl::StatusOr<AgentResponse> OpenAIAIService::GenerateResponse(
                 << " messages to OpenAI" << std::endl;
     }
 
-    std::string response_str;
-#if defined(YAZE_AI_IOS_URLSESSION)
-    std::map<std::string, std::string> headers;
-    headers.emplace("Content-Type", "application/json");
+    std::map<std::string, std::string> headers = {
+        {"Content-Type", "application/json"},
+    };
     if (!config_.api_key.empty()) {
       headers.emplace("Authorization", "Bearer " + config_.api_key);
     }
-    auto resp_or = ios::UrlSessionHttpRequest(
-        "POST", config_.base_url + "/v1/chat/completions", headers,
-        request_body.dump(), 60000);
+    auto resp_or =
+        PerformAiHttpRequest("POST", config_.base_url, "/v1/chat/completions",
+                             headers, request_body.dump(), 60000);
     if (!resp_or.ok()) {
       return resp_or.status();
     }
@@ -507,54 +386,7 @@ absl::StatusOr<AgentResponse> OpenAIAIService::GenerateResponse(
           absl::StrCat("❌ OpenAI API error: ", resp_or->status_code, "\n   ",
                        resp_or->body));
     }
-    response_str = resp_or->body;
-#else
-    // Write request body to temp file
-    std::string temp_file = "/tmp/openai_request.json";
-    std::ofstream out(temp_file);
-    out << request_body.dump();
-    out.close();
-
-    // Use curl to make the request
-    std::string auth_header =
-        config_.api_key.empty()
-            ? ""
-            : "-H 'Authorization: Bearer " + config_.api_key + "' ";
-    std::string curl_cmd = "curl -s -X POST '" + config_.base_url +
-                           "/v1/chat/completions' "
-                           "-H 'Content-Type: application/json' " +
-                           auth_header + "-d @" + temp_file + " 2>&1";
-
-    if (config_.verbose) {
-      std::cerr << "[DEBUG] Executing OpenAI API request..." << std::endl;
-    }
-
-#ifdef _WIN32
-    FILE* pipe = _popen(curl_cmd.c_str(), "r");
-#else
-    FILE* pipe = popen(curl_cmd.c_str(), "r");
-#endif
-    if (!pipe) {
-      return absl::InternalError("Failed to execute curl command");
-    }
-
-    char buffer[4096];
-    while (fgets(buffer, sizeof(buffer), pipe) != nullptr) {
-      response_str += buffer;
-    }
-
-#ifdef _WIN32
-    int status = _pclose(pipe);
-#else
-    int status = pclose(pipe);
-#endif
-    std::remove(temp_file.c_str());
-
-    if (status != 0) {
-      return absl::InternalError(
-          absl::StrCat("Curl failed with status ", status));
-    }
-#endif  // YAZE_AI_IOS_URLSESSION
+    std::string response_str = std::move(resp_or->body);
 
     if (response_str.empty()) {
       return absl::InternalError("Empty response from OpenAI API");
@@ -744,6 +576,126 @@ absl::StatusOr<AgentResponse> OpenAIAIService::ParseOpenAIResponse(
 }
 
 #endif  // YAZE_AI_RUNTIME_AVAILABLE
+
+std::vector<ModelInfo> GetFallbackOpenAIModels() {
+  return {
+      {.name = "gpt-5.2",
+       .display_name = "GPT-5.2",
+       .provider = kProviderOpenAi,
+       .description = "Flagship OpenAI reasoning model",
+       .family = "gpt-5",
+       .is_local = false},
+      {.name = "gpt-5.1",
+       .display_name = "GPT-5.1",
+       .provider = kProviderOpenAi,
+       .description = "High capability OpenAI model",
+       .family = "gpt-5",
+       .is_local = false},
+      {.name = "gpt-5",
+       .display_name = "GPT-5",
+       .provider = kProviderOpenAi,
+       .description = "General purpose GPT-5 model",
+       .family = "gpt-5",
+       .is_local = false},
+      {.name = "gpt-5-mini",
+       .display_name = "GPT-5 Mini",
+       .provider = kProviderOpenAi,
+       .description = "Fast and cost-effective GPT-5 model",
+       .family = "gpt-5",
+       .is_local = false},
+      {.name = "gpt-4.1",
+       .display_name = "GPT-4.1",
+       .provider = kProviderOpenAi,
+       .description = "GPT-4.1",
+       .family = "gpt-4.1",
+       .is_local = false},
+      {.name = "gpt-4.1-mini",
+       .display_name = "GPT-4.1 Mini",
+       .provider = kProviderOpenAi,
+       .description = "GPT-4.1 Mini",
+       .family = "gpt-4.1",
+       .is_local = false},
+      {.name = "gpt-4o",
+       .display_name = "GPT-4o",
+       .provider = kProviderOpenAi,
+       .description = "Multimodal GPT-4o",
+       .family = "gpt-4o",
+       .is_local = false},
+      {.name = "gpt-4o-mini",
+       .display_name = "GPT-4o Mini",
+       .provider = kProviderOpenAi,
+       .description = "Lightweight GPT-4o Mini",
+       .family = "gpt-4o",
+       .is_local = false},
+  };
+}
+
+std::vector<ModelInfo> ParseOpenAIModelsJson(absl::string_view response_body,
+                                             bool is_local_endpoint,
+                                             absl::string_view provider_label) {
+  std::vector<ModelInfo> models;
+#ifdef YAZE_WITH_JSON
+  auto models_json = nlohmann::json::parse(response_body, nullptr, false);
+  if (models_json.is_discarded() || !models_json.contains("data") ||
+      !models_json["data"].is_array()) {
+    return models;
+  }
+
+  for (const auto& m : models_json["data"]) {
+    if (!m.is_object()) {
+      continue;
+    }
+    const std::string id = m.value("id", "");
+    if (id.empty()) {
+      continue;
+    }
+    if (!is_local_endpoint) {
+      if (absl::StartsWith(id, "gpt-3.5") || absl::StrContains(id, "audio") ||
+          absl::StrContains(id, "realtime") ||
+          absl::StrContains(id, "transcribe") || absl::StrContains(id, "tts") ||
+          absl::StrContains(id, "image") || absl::StrContains(id, "search")) {
+        continue;
+      }
+      const bool allowed =
+          absl::StartsWith(id, "gpt-5") || absl::StartsWith(id, "gpt-4.1") ||
+          absl::StartsWith(id, "gpt-4o") || absl::StartsWith(id, "o3") ||
+          absl::StartsWith(id, "o4") || absl::StartsWith(id, "o1") ||
+          absl::StartsWith(id, "chatgpt");
+      if (!allowed) {
+        continue;
+      }
+    }
+
+    ModelInfo info;
+    info.name = id;
+    info.display_name = id;
+    info.provider = std::string(provider_label);
+    info.family = is_local_endpoint ? "local" : "gpt";
+    info.is_local = is_local_endpoint;
+
+    if (id == "gpt-5.2") {
+      info.display_name = "GPT-5.2";
+    } else if (id == "gpt-5.1") {
+      info.display_name = "GPT-5.1";
+    } else if (id == "gpt-5") {
+      info.display_name = "GPT-5";
+    } else if (id == "gpt-5-mini") {
+      info.display_name = "GPT-5 Mini";
+    } else if (id == "gpt-4o") {
+      info.display_name = "GPT-4o";
+    } else if (id == "gpt-4o-mini") {
+      info.display_name = "GPT-4o Mini";
+    }
+
+    models.push_back(std::move(info));
+  }
+#else
+  (void)response_body;
+  (void)is_local_endpoint;
+  (void)provider_label;
+#endif
+  return models;
+}
 
 }  // namespace cli
 }  // namespace yaze

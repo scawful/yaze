@@ -100,11 +100,14 @@ class UserSettings {
     // AI Agent
     int ai_provider =
         0;  // Legacy default provider (0=Ollama, 1=Gemini, 2=Mock)
+    std::string ai_provider_name;
     std::string ai_model;
     std::string ollama_url = "http://localhost:11434";
     std::string gemini_api_key;
     std::string openai_api_key;
     std::string anthropic_api_key;
+    int cli_timeout_seconds = 300;
+    std::unordered_map<std::string, std::string> cli_binary_paths;
     float ai_temperature = 0.7f;
     int ai_max_tokens = 2048;
     bool ai_proactive = true;

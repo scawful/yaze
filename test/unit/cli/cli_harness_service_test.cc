@@ -1,4 +1,4 @@
-#include "cli/service/ai/subprocess_runner.h"
+#include "cli/service/ai/cli_harness_service.h"
 
 #include <atomic>
 #include <chrono>
@@ -15,11 +15,10 @@
 #include "absl/status/status.h"
 #include "absl/strings/ascii.h"
 #include "absl/strings/str_cat.h"
+#include "cli/service/ai/provider_ids.h"
+#include "cli/service/ai/service_factory.h"
+#include "cli/service/ai/subprocess_runner.h"
 #include "nlohmann/json.hpp"
-
-#ifdef YAZE_AI_RUNTIME_AVAILABLE
-#include "cli/service/ai/local_gemini_cli_service.h"
-#endif
 
 namespace yaze::cli {
 namespace {
@@ -195,12 +194,12 @@ TEST(SubprocessRunnerTest, PassesShellMetacharactersVerbatimWithoutShell) {
   EXPECT_EQ(direct_argv[2], "--model");
   EXPECT_EQ(direct_argv[3], nasty_model);
 
-#ifdef YAZE_AI_RUNTIME_AVAILABLE
-  // LocalGeminiCliService end-to-end check (PATH prepended with fake gemini).
-  const char* orig_path = std::getenv("PATH");
-  ScopedEnvVar path_guard("PATH", absl::StrCat(temp.path().string(), ":",
-                                               orig_path ? orig_path : ""));
-  LocalGeminiCliService service(nasty_model);
+  // CliHarnessService (gemini-cli) end-to-end check with binary override.
+  CliHarnessConfig cfg;
+  cfg.provider = kProviderGeminiCli;
+  cfg.model = nasty_model;
+  cfg.binary_override = script.string();
+  CliHarnessService service(cfg);
   auto resp_or = service.GenerateResponse(nasty_prompt);
   ASSERT_TRUE(resp_or.ok()) << resp_or.status().message();
   auto cli_argv = nlohmann::json::parse(resp_or->text_response);
@@ -208,7 +207,6 @@ TEST(SubprocessRunnerTest, PassesShellMetacharactersVerbatimWithoutShell) {
       cli_argv.get<std::vector<std::string>>(),
       testing::ElementsAre("-p", nasty_prompt, "--output-format", "json",
                            "--approval-mode", "plan", "--model", nasty_model));
-#endif
 
   EXPECT_FALSE(fs::exists(sentinel_prompt));
   EXPECT_FALSE(fs::exists(sentinel_backtick));
@@ -285,6 +283,267 @@ TEST(SubprocessRunnerTest, CancelsRunningChildWhenFlagFlipped) {
   EXPECT_LT(elapsed, std::chrono::seconds(3));
 }
 #endif  // !_WIN32
+
+TEST(CliHarnessServiceTest, BuildsReadOnlyArgvPerProfileWithoutSkipFlags) {
+  auto assert_no_forbidden_flags = [](const std::vector<std::string>& args) {
+    for (const std::string& arg : args) {
+      EXPECT_THAT(arg, testing::Not(testing::HasSubstr("dangerously")));
+      EXPECT_NE(arg, "danger-full-access");
+      EXPECT_NE(arg, "--yolo");
+      EXPECT_NE(arg, "-y");
+      EXPECT_NE(arg, "--force");
+      EXPECT_NE(arg, "bypassPermissions");
+    }
+  };
+
+  auto claude_args = BuildCliHarnessArgv(kProviderClaudeCode, "Inspect room",
+                                         "claude-sonnet-5-5", 120);
+  ASSERT_TRUE(claude_args.ok());
+  EXPECT_THAT(*claude_args,
+              testing::ElementsAre("-p", "Inspect room", "--output-format",
+                                   "json", "--permission-mode", "plan",
+                                   "--model", "claude-sonnet-5-5"));
+  assert_no_forbidden_flags(*claude_args);
+
+  auto codex_args =
+      BuildCliHarnessArgv(kProviderCodex, "Inspect room", "gpt-5.2", 120);
+  ASSERT_TRUE(codex_args.ok());
+  EXPECT_THAT(*codex_args,
+              testing::ElementsAre("exec", "--json", "--sandbox", "read-only",
+                                   "-m", "gpt-5.2", "--", "Inspect room"));
+  assert_no_forbidden_flags(*codex_args);
+
+  auto cursor_args =
+      BuildCliHarnessArgv(kProviderCursorAgent, "Inspect room", "auto", 120);
+  ASSERT_TRUE(cursor_args.ok());
+  EXPECT_THAT(*cursor_args, testing::ElementsAre("-p", "Inspect room", "--mode",
+                                                 "plan", "--output-format",
+                                                 "json", "--model", "auto"));
+  assert_no_forbidden_flags(*cursor_args);
+
+  auto agy_args = BuildCliHarnessArgv(kProviderAgy, "Inspect room",
+                                      "gemini-4-argon-low", 90);
+  ASSERT_TRUE(agy_args.ok());
+  EXPECT_THAT(*agy_args,
+              testing::ElementsAre("-p", "Inspect room", "--mode", "plan",
+                                   "--output-format", "json", "--print-timeout",
+                                   "90s", "--model", "gemini-4-argon-low"));
+  assert_no_forbidden_flags(*agy_args);
+
+  auto gemini_args = BuildCliHarnessArgv(kProviderGeminiCli, "Inspect room",
+                                         "gemini-2.5-flash", 120);
+  ASSERT_TRUE(gemini_args.ok());
+  EXPECT_THAT(*gemini_args,
+              testing::ElementsAre("-p", "Inspect room", "--output-format",
+                                   "json", "--approval-mode", "plan", "--model",
+                                   "gemini-2.5-flash"));
+  assert_no_forbidden_flags(*gemini_args);
+
+  EXPECT_EQ(NormalizeCliHarnessProviderId("claude-cli"), kProviderClaudeCode);
+  EXPECT_EQ(NormalizeCliHarnessProviderId("codex-cli"), kProviderCodex);
+  EXPECT_EQ(NormalizeCliHarnessProviderId("cursor"), kProviderCursorAgent);
+  EXPECT_EQ(NormalizeCliHarnessProviderId("antigravity"), kProviderAgy);
+  EXPECT_EQ(NormalizeCliHarnessProviderId("local-gemini"), kProviderGeminiCli);
+}
+
+TEST(CliHarnessServiceTest, ParsesRecordedOutputsAcrossProfiles) {
+  // 1. agy JSON envelope (captured structure from live agy -p --output-format json)
+  const std::string agy_json = R"({
+    "conversation_id": "conv-123",
+    "status": "SUCCESS",
+    "response": "PROBE OK\n",
+    "duration_seconds": 5.91,
+    "num_turns": 1,
+    "usage": {"input_tokens": 120, "output_tokens": 4, "total_tokens": 124}
+  })";
+  auto agy_or =
+      ParseCliHarnessOutput(kProviderAgy, "gemini-4-argon-low", agy_json);
+  ASSERT_TRUE(agy_or.ok()) << agy_or.status().message();
+  EXPECT_EQ(agy_or->text_response, "PROBE OK\n");
+  EXPECT_DOUBLE_EQ(agy_or->latency_seconds, 5.91);
+  EXPECT_EQ(agy_or->parameters.at("input_tokens"), "120");
+  EXPECT_EQ(agy_or->parameters.at("output_tokens"), "4");
+
+  // 2. claude-code JSON output
+  const std::string claude_json = R"({
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "duration_ms": 1450,
+    "result": "PROBE OK",
+    "usage": {"input_tokens": 10, "output_tokens": 2}
+  })";
+  auto claude_or = ParseCliHarnessOutput(kProviderClaudeCode,
+                                         "claude-sonnet-5-5", claude_json);
+  ASSERT_TRUE(claude_or.ok()) << claude_or.status().message();
+  EXPECT_EQ(claude_or->text_response, "PROBE OK");
+  EXPECT_NEAR(claude_or->latency_seconds, 1.45, 0.01);
+  EXPECT_EQ(claude_or->parameters.at("output_tokens"), "2");
+
+  // 3. codex JSONL output
+  const std::string codex_jsonl =
+      "{\"type\":\"thread.started\",\"thread_id\":\"t1\"}\n"
+      "{\"type\":\"item.completed\",\"item\":{\"id\":\"i1\",\"type\":"
+      "\"reasoning\",\"text\":\"thinking\"}}\n"
+      "{\"type\":\"item.completed\",\"item\":{\"id\":\"i2\",\"type\":\"agent_"
+      "message\",\"text\":\"PROBE OK\"}}\n"
+      "{\"type\":\"turn.completed\",\"usage\":{\"input_tokens\":55,\"cached_"
+      "input_tokens\":10,\"output_tokens\":3}}\n";
+  auto codex_or = ParseCliHarnessOutput(kProviderCodex, "gpt-5.2", codex_jsonl);
+  ASSERT_TRUE(codex_or.ok()) << codex_or.status().message();
+  EXPECT_EQ(codex_or->text_response, "PROBE OK");
+  EXPECT_EQ(codex_or->parameters.at("input_tokens"), "55");
+  EXPECT_EQ(codex_or->parameters.at("cached_input_tokens"), "10");
+  EXPECT_EQ(codex_or->parameters.at("output_tokens"), "3");
+
+  // 4. cursor-agent + gemini-cli with preamble & inner commands
+  const std::string gemini_stdout =
+      "Loaded extensions...\n"
+      "{\"response\":\"```json\\n{\\\"text_response\\\":\\\"Inspecting "
+      "room\\\",\\\"commands\\\":[\\\"z3ed dungeon list\\\"]}\\n```\"}";
+  auto gemini_or = ParseCliHarnessOutput(kProviderGeminiCli, "gemini-2.5-flash",
+                                         gemini_stdout);
+  ASSERT_TRUE(gemini_or.ok()) << gemini_or.status().message();
+  EXPECT_EQ(gemini_or->text_response, "Inspecting room");
+  EXPECT_THAT(gemini_or->commands, testing::ElementsAre("dungeon list"));
+
+  const std::string cursor_json =
+      "{\"type\":\"result\",\"result\":\"PROBE OK\"}";
+  auto cursor_or =
+      ParseCliHarnessOutput(kProviderCursorAgent, "auto", cursor_json);
+  ASSERT_TRUE(cursor_or.ok()) << cursor_or.status().message();
+  EXPECT_EQ(cursor_or->text_response, "PROBE OK");
+}
+
+TEST(CliHarnessServiceTest, FallsBackToRawTextAndDetectsEnvelopeErrors) {
+  auto raw_or = ParseCliHarnessOutput(kProviderAgy, "gemini-4-argon-low",
+                                      "  plain response line\n");
+  ASSERT_TRUE(raw_or.ok()) << raw_or.status().message();
+  EXPECT_EQ(raw_or->text_response, "plain response line");
+  EXPECT_EQ(raw_or->parameters.at("raw_output"), "true");
+
+  auto claude_err = ParseCliHarnessOutput(
+      kProviderClaudeCode, "claude-sonnet-5-5",
+      R"({"is_error":true,"result":"Authentication required"})");
+  EXPECT_FALSE(claude_err.ok());
+  EXPECT_EQ(claude_err.status().code(), absl::StatusCode::kInternal);
+
+  auto codex_err = ParseCliHarnessOutput(
+      kProviderCodex, "gpt-5.2",
+      "{\"type\":\"error\",\"message\":\"Sandbox denied\"}\n");
+  EXPECT_FALSE(codex_err.ok());
+  EXPECT_EQ(codex_err.status().code(), absl::StatusCode::kInternal);
+}
+
+TEST(CliHarnessServiceTest, ParsesAgyAndCursorModelListingsCleanly) {
+  const std::string agy_out =
+      "Fetching available models...\n"
+      "gemini-4-argon-low\tGemini 4 Argon (Low)\n"
+      "gemini-4-carbon-medium\tGemini 4 Carbon (Medium)\n"
+      "claude-sonnet-5-5-medium\tClaude Sonnet 5.5 (Medium)\n";
+  auto agy_models = ParseAgyModelsOutput(agy_out);
+  ASSERT_EQ(agy_models.size(), 3u);
+  EXPECT_EQ(agy_models[0].name, "gemini-4-argon-low");
+  EXPECT_EQ(agy_models[0].display_name, "Gemini 4 Argon (Low)");
+  EXPECT_EQ(agy_models[0].provider, kProviderAgy);
+
+  // Include UTF-8 zero-width spaces (\xE2\x80\x8B) and ANSI CSI codes as seen
+  // in real cursor-agent --list-models output.
+  const std::string cursor_out =
+      "\x1b[1mAvailable models\x1b[0m\n\n"
+      "auto - Auto (default)\n"
+      "composer-2.5 - Composer 2.5 (current)\n"
+      "grok-4.7-low-fast - Grok 4.7  Low Fast\xE2\x80\x8B\xE2\x80\x8B\n"
+      "\nTip: Use --model <id>\n";
+  auto cursor_models = ParseCursorAgentModelsOutput(cursor_out);
+  ASSERT_EQ(cursor_models.size(), 3u);
+  EXPECT_EQ(cursor_models[0].name, "auto");
+  EXPECT_EQ(cursor_models[1].name, "composer-2.5");
+  EXPECT_EQ(cursor_models[2].name, "grok-4.7-low-fast");
+  EXPECT_EQ(cursor_models[2].display_name, "Grok 4.7  Low Fast");
+  EXPECT_EQ(cursor_models[2].provider, kProviderCursorAgent);
+}
+
+#ifndef _WIN32
+TEST(CliHarnessServiceTest,
+     ExecutesFakeHarnessWithWorkingDirectoryAndOverride) {
+  TempTestDir temp;
+  const fs::path project_dir = temp.path() / "my_project";
+  fs::create_directories(project_dir);
+
+  const fs::path script = WriteExecutablePythonScript(
+      temp.path(), "fake-codex",
+      "import json, os, sys\n"
+      "print(json.dumps({'type':'item.completed','item':{'id':'1','type':'"
+      "agent_message','text':os.getcwd()}}))\n"
+      "print(json.dumps({'type':'turn.completed','usage':{'input_tokens':3,'"
+      "output_tokens':2}}))\n");
+
+  CliHarnessConfig cfg;
+  cfg.provider = kProviderCodex;
+  cfg.model = "gpt-5.2";
+  cfg.binary_override = script.string();
+  cfg.working_directory = project_dir.string();
+  CliHarnessService service(cfg);
+
+  ASSERT_TRUE(service.CheckAvailability().ok());
+  auto resp_or = service.GenerateResponse("hello");
+  ASSERT_TRUE(resp_or.ok()) << resp_or.status().message();
+  EXPECT_EQ(fs::canonical(absl::StripAsciiWhitespace(resp_or->text_response)),
+            fs::canonical(project_dir));
+  EXPECT_EQ(resp_or->parameters.at("input_tokens"), "3");
+}
+#endif  // !_WIN32
+
+#ifdef YAZE_AI_RUNTIME_AVAILABLE
+TEST(CliHarnessServiceTest, OptionalLiveProbeRoundTrip) {
+  if (std::getenv("YAZE_RUN_LIVE_AI_PROBES") == nullptr) {
+    GTEST_SKIP()
+        << "Set YAZE_RUN_LIVE_AI_PROBES=1 to run live agy/local probes";
+  }
+
+  AIServiceConfig agy_cfg;
+  agy_cfg.provider = kProviderAgy;
+  agy_cfg.model = "gemini-4-argon-low";
+  agy_cfg.cli_timeout_seconds = 45;
+  auto agy_service_or = CreateAIServiceStrict(agy_cfg);
+  ASSERT_TRUE(agy_service_or.ok()) << agy_service_or.status().message();
+  auto agy_resp = (*agy_service_or)->GenerateResponse("Reply PROBE OK");
+  ASSERT_TRUE(agy_resp.ok()) << agy_resp.status().message();
+  EXPECT_FALSE(agy_resp->text_response.empty());
+  std::cout << "[LIVE_PROBE] agy (" << agy_cfg.model
+            << ") latency=" << agy_resp->latency_seconds
+            << "s text=" << absl::StripAsciiWhitespace(agy_resp->text_response)
+            << std::endl;
+
+  AIServiceConfig lms_cfg;
+  lms_cfg.provider = kProviderLmStudio;
+  auto lms_service_or = CreateAIServiceStrict(lms_cfg);
+  ASSERT_TRUE(lms_service_or.ok()) << lms_service_or.status().message();
+  auto lms_models_or = (*lms_service_or)->ListAvailableModels();
+  if (lms_models_or.ok() && !lms_models_or->empty()) {
+    std::string chat_model;
+    for (const auto& m : *lms_models_or) {
+      if (m.name.find("embedding") == std::string::npos) {
+        chat_model = m.name;
+        break;
+      }
+    }
+    if (!chat_model.empty()) {
+      lms_cfg.model = chat_model;
+      auto lms_chat_or = CreateAIServiceStrict(lms_cfg);
+      ASSERT_TRUE(lms_chat_or.ok()) << lms_chat_or.status().message();
+      auto lms_resp = (*lms_chat_or)->GenerateResponse("Reply PROBE OK");
+      ASSERT_TRUE(lms_resp.ok()) << lms_resp.status().message();
+      EXPECT_FALSE(lms_resp->text_response.empty());
+      std::cout << "[LIVE_PROBE] lmstudio (" << chat_model
+                << ") latency=" << lms_resp->latency_seconds << "s text="
+                << absl::StripAsciiWhitespace(lms_resp->text_response)
+                << std::endl;
+    }
+  }
+}
+#endif
 
 }  // namespace
 }  // namespace yaze::cli

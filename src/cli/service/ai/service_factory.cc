@@ -13,7 +13,7 @@
 #include "absl/strings/str_format.h"
 #include "cli/service/ai/ai_config_utils.h"
 #include "cli/service/ai/ai_service.h"
-#include "cli/service/ai/local_gemini_cli_service.h"
+#include "cli/service/ai/cli_harness_service.h"
 #include "cli/service/ai/ollama_ai_service.h"
 #include "cli/service/ai/provider_ids.h"
 #include "rom/rom.h"
@@ -50,6 +50,9 @@ std::string NormalizeProviderAlias(std::string provider) {
   if (provider == yaze::cli::kProviderGoogle ||
       provider == yaze::cli::kProviderGoogleGemini) {
     return yaze::cli::kProviderGemini;
+  }
+  if (yaze::cli::IsCliHarnessProvider(provider)) {
+    return yaze::cli::NormalizeCliHarnessProviderId(provider);
   }
   return provider;
 }
@@ -134,12 +137,23 @@ void ApplyEnvironmentFallbacks(yaze::cli::AIServiceConfig& config) {
 }
 
 yaze::cli::AIServiceConfig NormalizeConfig(yaze::cli::AIServiceConfig config) {
+  const std::string raw_lower = absl::AsciiStrToLower(config.provider);
+  if ((raw_lower == yaze::cli::kProviderLmStudio ||
+       raw_lower == yaze::cli::kProviderLmStudioDashed) &&
+      (config.openai_base_url.empty() ||
+       yaze::cli::NormalizeOpenAiBaseUrl(config.openai_base_url) ==
+           kDefaultOpenAiBaseUrl)) {
+    config.openai_base_url = "http://localhost:1234";
+  }
   config.provider = NormalizeProviderAlias(std::move(config.provider));
   if (config.provider.empty()) {
     config.provider = yaze::cli::kProviderAuto;
   }
   config.openai_base_url =
       yaze::cli::NormalizeOpenAiBaseUrl(config.openai_base_url);
+  if (config.cli_timeout_seconds <= 0) {
+    config.cli_timeout_seconds = 300;
+  }
   return config;
 }
 
@@ -266,7 +280,7 @@ std::unique_ptr<AIService> CreateAIService(const AIServiceConfig& config) {
       std::cout << "   Found OpenAI API key, using OpenAI\n";
       effective_config.provider = kProviderOpenAi;
       if (effective_config.model.empty()) {
-        effective_config.model = "gpt-4o-mini";
+        effective_config.model = "gpt-5-mini";
       }
     } else if (HasOllamaHint(effective_config)) {
       std::cout << "🤖 Auto-detecting AI provider...\n";
@@ -326,11 +340,22 @@ absl::StatusOr<std::unique_ptr<AIService>> CreateAIServiceStrict(
                            effective_config);
   }
 
-  if (provider == kProviderGeminiCli || provider == kProviderLocalGemini) {
+  if (IsCliHarnessProvider(provider)) {
+    CliHarnessConfig harness_config;
+    harness_config.provider = provider;
+    harness_config.model = effective_config.model;
+    harness_config.working_directory = effective_config.working_directory;
+    harness_config.timeout_seconds = effective_config.cli_timeout_seconds;
+    harness_config.system_instruction = oracle_system_instruction;
+    harness_config.verbose = effective_config.verbose;
+    if (!effective_config.cli_binary_override.empty()) {
+      harness_config.binary_override = effective_config.cli_binary_override;
+    } else if (auto it = effective_config.cli_binary_paths.find(provider);
+               it != effective_config.cli_binary_paths.end()) {
+      harness_config.binary_override = it->second;
+    }
     return FinalizeService(
-        std::make_unique<LocalGeminiCliService>(effective_config.model.empty()
-                                                    ? "gemini-2.5-flash"
-                                                    : effective_config.model),
+        std::make_unique<CliHarnessService>(std::move(harness_config)),
         effective_config);
   }
 
