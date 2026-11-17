@@ -617,6 +617,7 @@ void EditorManager::InitializeSubsystems() {
   // injection (e.g. Layout Designer, which reads named_layouts). The
   // LayoutManager setter happens below once the unique_ptr is constructed.
   ContentRegistry::Context::SetUserSettings(&user_settings_);
+  ContentRegistry::Context::SetToastManager(&toast_manager_);
 
   // STEP 3.5: Initialize RomLifecycleManager (depends on popup_manager_,
   // session_coordinator_, rom_file_manager_, toast_manager_)

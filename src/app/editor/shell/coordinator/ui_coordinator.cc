@@ -16,6 +16,7 @@
 #include <emscripten.h>
 #endif
 #include "app/application.h"
+#include "app/editor/agent/ui/review_boards/review_boards_view.h"
 #include "app/editor/core/content_registry.h"
 #include "app/editor/editor.h"
 #include "app/editor/editor_manager.h"
@@ -1868,6 +1869,52 @@ void UICoordinator::RefreshWorkflowActions() {
          }});
   }
 #endif
+
+  auto reveal_review_boards = [this]() -> ReviewBoardsView* {
+    const size_t sid = session_coordinator_.GetActiveSessionId();
+    if (window_manager_.GetWindowContent(sid, "agent.review_boards") ==
+        nullptr) {
+      window_manager_.RegisterRegistryWindowContentsForSession(sid);
+    }
+    if (!editor_manager_ || !editor_manager_->GetCurrentRom()) {
+      welcome_screen_manually_closed_ = true;
+      if (current_startup_surface_ == StartupSurface::kWelcome) {
+        SetStartupSurface(StartupSurface::kDashboard);
+      }
+      window_manager_.SetActiveCategory("Agent", /*notify=*/false);
+    }
+    window_manager_.OpenWindowFloating(sid, "agent.review_boards");
+    return dynamic_cast<ReviewBoardsView*>(
+        window_manager_.GetWindowContent(sid, "agent.review_boards"));
+  };
+
+  ContentRegistry::WorkflowActions::Register(
+      {.id = "workflow.review_boards.next_waiting",
+       .group = i18n::tr("Review Boards"),
+       .label = i18n::tr("Next waiting"),
+       .description = i18n::tr(
+           "Open Review Boards and jump to the next board waiting on you"),
+       .shortcut = "",
+       .priority = 10,
+       .callback = [reveal_review_boards]() {
+         if (auto* view = reveal_review_boards()) {
+           view->SelectNextWaiting();
+         }
+       }});
+  ContentRegistry::WorkflowActions::Register(
+      {.id = "workflow.review_boards.refresh",
+       .group = i18n::tr("Review Boards"),
+       .label = i18n::tr("Refresh"),
+       .description = i18n::tr("Rescan the Review Boards folder"),
+       .shortcut = "",
+       .priority = 20,
+       .callback = [this, reveal_review_boards]() {
+         if (auto* view = reveal_review_boards()) {
+           view->ForceRefresh();
+           toast_manager_.Show(i18n::tr("Refreshed Review Boards"),
+                               ToastType::kInfo);
+         }
+       }});
 }
 
 void UICoordinator::RefreshCommandPalette(size_t session_id) {
