@@ -2989,7 +2989,7 @@ EditorContextSnapshot OverworldEditor::BuildContextSnapshot() const {
     return static_cast<int>(entity.map_id_) == owner_map;
   };
   const auto sprites = overworld_.sprites(game_state_);
-  const auto items = overworld_.all_items();
+  const auto& items = overworld_.all_items();
   const auto* exits = overworld_.exits();
   snapshot.counts = {
       {.id = "sprites",
