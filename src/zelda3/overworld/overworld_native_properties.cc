@@ -171,15 +171,22 @@ Overworld::NativeModelState Overworld::CaptureNativeNonTerrainState() const {
   auto endpoints = CaptureNativeEndpointState();
   state[1] = std::move(endpoints[0]);
   state[2] = std::move(endpoints[1]);
-  add(3, {static_cast<int64_t>(all_items_.size())});
-  for (const auto& e : all_items_)
-    add(3, {e.room_map_id_, e.id_, e.game_x_, e.game_y_, e.x_, e.y_, e.bg2_,
-            e.deleted});
+  state[3] = CaptureNativeItemState();
   state[4] = CaptureNativeSpriteState();
   state[5].insert(state[5].end(), all_tiles_types_.begin(),
                   all_tiles_types_.end());
   const auto& diggable = diggable_tiles_.GetRawData();
   state[5].insert(state[5].end(), diggable.begin(), diggable.end());
+  return state;
+}
+
+std::vector<int64_t> Overworld::CaptureNativeItemState() const {
+  std::vector<int64_t> state;
+  state.push_back(static_cast<int64_t>(all_items_.size()));
+  for (const auto& e : all_items_) {
+    state.insert(state.end(), {e.room_map_id_, e.id_, e.game_x_, e.game_y_,
+                               e.x_, e.y_, e.bg2_, e.deleted});
+  }
   return state;
 }
 
@@ -415,6 +422,147 @@ bool Overworld::HasPendingNativeSpriteChanges() const {
   // reserved identities after another domain has cleared the ROM dirty flag.
   return CaptureNativeSpriteState() != native_nonterrain_baseline_[4] ||
          HasPendingNativeAuthoringMetadataChanges(1);
+}
+
+bool Overworld::HasPendingNativeItemChanges() const {
+  if (!loaded_map_tiles_valid_ ||
+      !rom::IsNativeSpecialOverworldLayout(descriptor_layout_))
+    return false;
+  return CaptureNativeItemState() != native_nonterrain_baseline_[3];
+}
+
+absl::StatusOr<rom::NativeOverworldItemEdits> Overworld::PrepareNativeItemSave()
+    const {
+  rom::NativeOverworldItemEdits edits;
+  if (!rom::IsNativeSpecialOverworldLayout(descriptor_layout_)) {
+    return absl::FailedPreconditionError(
+        "Native special-overworld layout required for native item save");
+  }
+  const int map_count = materialized_map_count();
+  if (map_count <= 0 || map_count > 192 ||
+      static_cast<int>(overworld_maps_.size()) != map_count) {
+    return absl::FailedPreconditionError(
+        "Native overworld map model is incomplete");
+  }
+
+  constexpr size_t kItemFields = 8;
+  const auto& baseline = native_nonterrain_baseline_[3];
+  const size_t base_count =
+      baseline.empty() ? 0 : static_cast<size_t>(baseline[0]);
+  if (baseline.size() < 1 + base_count * kItemFields) {
+    return absl::FailedPreconditionError("Native item baseline is incomplete");
+  }
+
+  struct BaselineItemKey {
+    int64_t map_id;
+    int64_t id;
+    int64_t game_x;
+    int64_t game_y;
+    int64_t x;
+    int64_t y;
+    bool operator==(const BaselineItemKey&) const = default;
+  };
+  std::vector<BaselineItemKey> unused_baseline;
+  std::vector<std::vector<rom::NativeOverworldItemRecord>> base_by_map(
+      map_count);
+  for (size_t idx = 0; idx < base_count; ++idx) {
+    const size_t off = 1 + idx * kItemFields;
+    const int64_t map_id = baseline[off];
+    const int64_t item_id = baseline[off + 1];
+    const int64_t game_x = baseline[off + 2];
+    const int64_t game_y = baseline[off + 3];
+    const int64_t x = baseline[off + 4];
+    const int64_t y = baseline[off + 5];
+    const int64_t deleted = baseline[off + 7];
+    if (deleted != 0) {
+      continue;
+    }
+    unused_baseline.push_back({map_id, item_id, game_x, game_y, x, y});
+    if (map_id >= 0 && map_id < map_count) {
+      const uint16_t map_pos =
+          static_cast<uint16_t>((((static_cast<int>(game_y) & 0x3F) << 6) |
+                                 (static_cast<int>(game_x) & 0x3F))
+                                << 1);
+      base_by_map[map_id].push_back({map_pos, static_cast<uint8_t>(item_id)});
+    }
+  }
+
+  std::vector<std::vector<rom::NativeOverworldItemRecord>> cur_by_map(
+      map_count);
+  for (const auto& item : all_items_) {
+    if (item.deleted) {
+      continue;
+    }
+    const int map = static_cast<int>(item.room_map_id_);
+    if (map < 0 || map >= map_count) {
+      return absl::InvalidArgumentError(absl::StrFormat(
+          "Native overworld item references invalid map $%02X", map));
+    }
+    const auto& area = overworld_maps_[map];
+    const bool unchanged_geometry =
+        map < static_cast<int>(native_geometry_baseline_.size()) &&
+        native_geometry_baseline_[map].parent == area.parent() &&
+        native_geometry_baseline_[map].size == area.area_size();
+    const BaselineItemKey key{item.room_map_id_, item.id_, item.game_x_,
+                              item.game_y_,      item.x_,  item.y_};
+    const auto baseline_it =
+        unchanged_geometry
+            ? std::find(unused_baseline.begin(), unused_baseline.end(), key)
+            : unused_baseline.end();
+    if (baseline_it != unused_baseline.end()) {
+      unused_baseline.erase(baseline_it);
+      const uint16_t map_pos = static_cast<uint16_t>(
+          (((item.game_y_ & 0x3Fu) << 6) | (item.game_x_ & 0x3Fu)) << 1);
+      cur_by_map[map].push_back({map_pos, item.id_});
+      continue;
+    }
+
+    if (area.parent() != map) {
+      return absl::InvalidArgumentError(absl::StrFormat(
+          "Native overworld item on child map $%02X must belong to parent "
+          "area $%02X",
+          map, area.parent()));
+    }
+    const auto size = area.area_size();
+    const int width =
+        (size == AreaSizeEnum::LargeArea || size == AreaSizeEnum::WideArea)
+            ? 1024
+            : 512;
+    const int height =
+        (size == AreaSizeEnum::LargeArea || size == AreaSizeEnum::TallArea)
+            ? 1024
+            : 512;
+    const int origin_x = (map % 8) * 512;
+    const int origin_y = ((map % 64) / 8) * 512;
+    const int local_x = item.x_ - origin_x;
+    const int local_y = item.y_ - origin_y;
+    if (local_x < 0 || local_y < 0 || local_x >= width || local_y >= height) {
+      return absl::InvalidArgumentError(absl::StrFormat(
+          "Native overworld item at (%d,%d) is outside parent area $%02X",
+          item.x_, item.y_, map));
+    }
+    const int game_x = local_x / 16;
+    const int game_y = local_y / 16;
+    const uint16_t map_pos =
+        static_cast<uint16_t>(((game_y << 6) | game_x) << 1);
+    cur_by_map[map].push_back({map_pos, item.id_});
+  }
+
+  for (int map = 0; map < map_count; ++map) {
+    const bool became_child =
+        overworld_maps_[map].parent() != map && !base_by_map[map].empty();
+    const bool was_child =
+        map < static_cast<int>(native_geometry_baseline_.size()) &&
+        native_geometry_baseline_[map].size != AreaSizeEnum::SmallArea &&
+        native_geometry_baseline_[map].parent != map;
+    const bool became_parent =
+        was_child && overworld_maps_[map].parent() == map;
+    if (cur_by_map[map] != base_by_map[map] || became_child || became_parent) {
+      edits.maps.push_back(
+          {static_cast<uint16_t>(map), std::move(cur_by_map[map])});
+    }
+  }
+  return edits;
 }
 
 }  // namespace yaze::zelda3

@@ -1369,6 +1369,15 @@ bool SessionCoordinator::IsSessionModified(size_t index) const {
     return true;
   }
 
+  if (auto* overworld_editor = static_cast<OverworldEditor*>(
+          session->editors.GetExistingEditor(EditorType::kOverworld))) {
+    if (overworld_editor->HasPendingNativeSpriteChanges() ||
+        overworld_editor->HasPendingNativeEndpointChanges() ||
+        overworld_editor->HasPendingNativeItemChanges()) {
+      return true;
+    }
+  }
+
   if (auto* dungeon_editor = static_cast<DungeonEditorV2*>(
           session->editors.GetExistingEditor(EditorType::kDungeon))) {
     return dungeon_editor->HasPendingDungeonChanges();

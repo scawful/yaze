@@ -2017,6 +2017,19 @@ void Overworld::CommitSavedMapTiles() {
     native_geometry_baseline_ = std::move(*staged_native_geometry_);
     staged_native_geometry_.reset();
   }
+  if (staged_native_items_) {
+    if (CaptureNativeItemState() == *staged_native_items_) {
+      all_items_.erase(std::remove_if(all_items_.begin(), all_items_.end(),
+                                      [](const OverworldItem& item) {
+                                        return item.deleted;
+                                      }),
+                       all_items_.end());
+      native_nonterrain_baseline_[3] = CaptureNativeItemState();
+    } else {
+      native_nonterrain_baseline_[3] = std::move(*staged_native_items_);
+    }
+    staged_native_items_.reset();
+  }
   if (staged_native_sprites_) {
     native_nonterrain_baseline_[4] = std::move(*staged_native_sprites_);
     staged_native_sprites_.reset();
@@ -2051,6 +2064,7 @@ void Overworld::RollbackSavedMapTiles() {
   staged_native_authoring_metadata_.reset();
   staged_native_authoring_domains_ = {};
   staged_native_geometry_.reset();
+  staged_native_items_.reset();
   staged_native_sprites_.reset();
   staged_descriptor_layout_.reset();
   staged_native_properties_.reset();
@@ -2141,6 +2155,10 @@ std::vector<std::pair<uint32_t, uint32_t>> Overworld::GetProjectedWriteRanges()
             ? PrepareNativeSpriteSave()
             : absl::StatusOr<std::vector<rom::NativeOverworldSpriteEdit>>(
                   std::vector<rom::NativeOverworldSpriteEdit>{});
+    const auto items = flags.kSaveOverworldItems
+                           ? PrepareNativeItemSave()
+                           : absl::StatusOr<rom::NativeOverworldItemEdits>(
+                                 rom::NativeOverworldItemEdits{});
     std::optional<rom::NativeOverworldAuthoringMetadata> baseline_meta;
     std::optional<rom::NativeOverworldAuthoringMetadata> publish_meta;
     const rom::NativeOverworldAuthoringMetadata* baseline_ptr = nullptr;
@@ -2167,11 +2185,13 @@ std::vector<std::pair<uint32_t, uint32_t>> Overworld::GetProjectedWriteRanges()
                       core::FeatureFlags::get().dungeon.kSavePalettes)
             : absl::StatusOr<rom::NativeOverworldPaletteEdits>(
                   rom::NativeOverworldPaletteEdits{});
-    if (properties.ok() && sprites.ok() && palettes.ok() && endpoints.ok()) {
+    if (properties.ok() && sprites.ok() && items.ok() && palettes.ok() &&
+        endpoints.ok()) {
+      const auto* items_ptr = flags.kSaveOverworldItems ? &*items : nullptr;
       const auto candidate = rom::SealNativeOverworldTerrain(
           rom_->vector(), rom_->vector(), *properties, *sprites, baseline_ptr,
           publish_ptr, &*palettes, &*endpoints, nullptr,
-          rom_->experimental_page_tile16());
+          rom_->experimental_page_tile16(), items_ptr);
       if (candidate.ok()) {
         for (size_t pc = 0; pc < candidate->size();) {
           if ((*candidate)[pc] == rom_->vector()[pc]) {
@@ -2761,7 +2781,7 @@ absl::Status Overworld::SaveNativeTerrain() {
   const std::array<bool, 7> enabled = {false,
                                        false,
                                        false,
-                                       flags.kSaveOverworldItems,
+                                       false,
                                        false,
                                        flags.kSaveOverworldProperties,
                                        flags.kSaveOverworldProperties};
@@ -2810,6 +2830,12 @@ absl::Status Overworld::SaveNativeTerrain() {
   if (flags.kSaveOverworldSprites) {
     ASSIGN_OR_RETURN(sprite_edits, PrepareNativeSpriteSave());
   }
+  rom::NativeOverworldItemEdits item_edits;
+  if (flags.kSaveOverworldItems) {
+    ASSIGN_OR_RETURN(item_edits, PrepareNativeItemSave());
+  }
+  const auto* item_edits_ptr =
+      flags.kSaveOverworldItems ? &item_edits : nullptr;
   std::optional<rom::NativeOverworldPaletteEdits> palette_edits;
   if (game_data_) {
     ASSIGN_OR_RETURN(
@@ -2830,7 +2856,7 @@ absl::Status Overworld::SaveNativeTerrain() {
     RETURN_IF_ERROR(rom_->CommitNativeTerrainImage(
         rom_->vector(), rom_->vector(), property_edits, sprite_edits,
         baseline_metadata_ptr, publish_metadata_ptr, palette_ptr,
-        &endpoint_edits, page_edits_ptr));
+        &endpoint_edits, page_edits_ptr, item_edits_ptr));
     StageCommittedDescriptorLayout();
     if (flags.kSaveOverworldEntrances)
       staged_native_endpoints_[0] = current[1];
@@ -2842,6 +2868,9 @@ absl::Status Overworld::SaveNativeTerrain() {
       staged_native_properties_ = current[0];
       ASSIGN_OR_RETURN(staged_native_geometry_,
                        PlanExpandedOverworldGeometry(overworld_maps_));
+    }
+    if (flags.kSaveOverworldItems) {
+      staged_native_items_ = current[3];
     }
     if (flags.kSaveOverworldSprites) {
       staged_native_sprites_ = current[4];
@@ -2896,7 +2925,7 @@ absl::Status Overworld::SaveNativeTerrain() {
   RETURN_IF_ERROR(rom_->CommitNativeTerrainImage(
       rom_->vector(), std::move(candidate), property_edits, sprite_edits,
       baseline_metadata_ptr, publish_metadata_ptr, palette_ptr, &endpoint_edits,
-      page_edits_ptr));
+      page_edits_ptr, item_edits_ptr));
   StageCommittedDescriptorLayout();
   if (flags.kSaveOverworldEntrances)
     staged_native_endpoints_[0] = current[1];
@@ -2907,6 +2936,9 @@ absl::Status Overworld::SaveNativeTerrain() {
     staged_native_properties_ = current[0];
     ASSIGN_OR_RETURN(staged_native_geometry_,
                      PlanExpandedOverworldGeometry(overworld_maps_));
+  }
+  if (flags.kSaveOverworldItems) {
+    staged_native_items_ = current[3];
   }
   if (flags.kSaveOverworldSprites) {
     staged_native_sprites_ = current[4];

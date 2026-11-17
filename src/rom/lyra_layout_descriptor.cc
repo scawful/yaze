@@ -1,6 +1,7 @@
 #include "rom/lyra_layout_descriptor.h"
 #include "rom/native_overworld_authoring_metadata.h"
 #include "rom/native_overworld_endpoint_io.h"
+#include "rom/native_overworld_item_io.h"
 #include "rom/native_overworld_storage.h"
 #include "util/macro.h"
 
@@ -1028,7 +1029,8 @@ absl::StatusOr<std::vector<uint8_t>> SealNativeOverworldTerrain(
     const NativeOverworldPaletteEdits* palettes,
     const NativeOverworldEndpointEdits* endpoints,
     const NativePageTile16Edits* page_tile16,
-    bool allow_experimental_page_tile16) {
+    bool allow_experimental_page_tile16,
+    const NativeOverworldItemEdits* items) {
   const auto layout = InspectLyraLayout(baseline.data(), baseline.size());
   if (layout.presence != LyraLayoutPresence::kValid ||
       !IsNativeSpecialOverworldLayout(layout) ||
@@ -1443,6 +1445,20 @@ absl::StatusOr<std::vector<uint8_t>> SealNativeOverworldTerrain(
                 candidate.begin() + write.address);
     }
   }
+  bool wrote_items = false;
+  if (items) {
+    ASSIGN_OR_RETURN(auto item_plan,
+                     PlanNativeOverworldItemSave(baseline, *items, candidate));
+    wrote_items = !item_plan.empty();
+    for (const auto& write : item_plan) {
+      if (!std::equal(candidate.begin() + write.address,
+                      candidate.begin() + write.address + write.bytes.size(),
+                      baseline.begin() + write.address))
+        return absl::PermissionDeniedError("Native edit aliases item storage");
+      std::copy(write.bytes.begin(), write.bytes.end(),
+                candidate.begin() + write.address);
+    }
+  }
   for (const auto& write : palette_writes) {
     // Properties/sprites must not gain a second authority over palette bytes.
     if (!std::equal(candidate.begin() + write.pc,
@@ -1462,6 +1478,7 @@ absl::StatusOr<std::vector<uint8_t>> SealNativeOverworldTerrain(
     if (writable_table(e.id) ||
         (page_tile16 && e.id == kNativePageTile16TableId) ||
         (!sprites.empty() && (e.id == 100 || (e.id >= 16 && e.id <= 18))) ||
+        (wrote_items && (e.id == 22 || e.id == 23)) ||
         std::find(changed_properties.begin(), changed_properties.end(), e.id) !=
             changed_properties.end() ||
         (publish_metadata && e.id == kNativeAuthoringMetadataTableId)) {
@@ -1627,6 +1644,12 @@ NativeOverworldOwnedRanges(const LyraLayoutInspection& layout,
       0x40000 + room_table < sprite_end)
     sprite_end = 0x40000 + room_table;
   add(kSpriteBegin, sprite_end - kSpriteBegin);
+  constexpr size_t kItemBegin = 0x0DC2F9;
+  constexpr size_t kItemEnd = 0x0DC89C;
+  if (size < kItemEnd)
+    return absl::FailedPreconditionError(
+        "Image ends inside original item storage");
+  add(kItemBegin, kItemEnd - kItemBegin);
   std::sort(ranges.begin(), ranges.end());
   return ranges;
 }

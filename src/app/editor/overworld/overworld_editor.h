@@ -243,6 +243,9 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   bool HasPendingNativeEndpointChanges() const {
     return overworld_.HasPendingNativeEndpointChanges();
   }
+  bool HasPendingNativeItemChanges() const {
+    return overworld_.HasPendingNativeItemChanges();
+  }
   bool HasUnpublishedProjectGraphics() const {
     return graphics_source_ && graphics_source_->any_dirty();
   }

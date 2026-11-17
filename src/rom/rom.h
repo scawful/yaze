@@ -260,7 +260,8 @@ class Rom {
       const rom::NativeOverworldAuthoringMetadata* publish_metadata = nullptr,
       const rom::NativeOverworldPaletteEdits* palettes = nullptr,
       const rom::NativeOverworldEndpointEdits* endpoints = nullptr,
-      const rom::NativePageTile16Edits* page_tile16 = nullptr);
+      const rom::NativePageTile16Edits* page_tile16 = nullptr,
+      const rom::NativeOverworldItemEdits* items = nullptr);
   // Commits a planned non-overworld edit on a native layout. Every changed
   // byte must lie inside `allowed`, and no allowed range may touch bytes that
   // native overworld Save owns.

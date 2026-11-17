@@ -553,10 +553,10 @@ void OverworldEntityWorkbench::Draw(bool* p_open) {
     if (rom::IsNativeSpecialOverworldLayout(
             editor->overworld().resolved_layout().lyra_layout)) {
       ImGui::TextWrapped(
-          "Entrances and returns use existing table rows. Sprites use the "
-          "native Save workflow. Hidden items and bomb-door events are not "
-          "supported here yet. Pending placements need an explicit table-row "
-          "assignment before they become playable connections.");
+          "Entrances and returns use existing table rows. Sprites and hidden "
+          "items use the native Save workflow. Pending placements need an "
+          "explicit table-row assignment before they become playable "
+          "connections.");
     } else {
       ImGui::TextWrapped(
           "Entity support depends on the loaded ROM layout. Use an integrated "

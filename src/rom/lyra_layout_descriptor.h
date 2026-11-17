@@ -18,6 +18,7 @@
 namespace yaze::rom {
 
 struct NativeOverworldEndpointEdits;
+struct NativeOverworldItemEdits;
 
 // Source-only prototype. No runtime producer/reader is admitted by revision 5.
 // Entry 413 holds sorted (page, local Tile16 ID, TL/TR/BL/BR words) rows;
@@ -183,7 +184,8 @@ absl::StatusOr<std::vector<uint8_t>> SealNativeOverworldTerrain(
     const NativeOverworldPaletteEdits* palettes = nullptr,
     const NativeOverworldEndpointEdits* endpoints = nullptr,
     const NativePageTile16Edits* page_tile16 = nullptr,
-    bool allow_experimental_page_tile16 = false);
+    bool allow_experimental_page_tile16 = false,
+    const NativeOverworldItemEdits* items = nullptr);
 
 // Byte ranges [begin, end) that native special-overworld Save owns: the
 // directory, every directory table, the original-engine prefix copies kept in

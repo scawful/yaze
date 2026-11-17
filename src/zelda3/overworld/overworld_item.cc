@@ -12,10 +12,34 @@
 #include "util/log.h"
 #include "util/macro.h"
 #include "zelda3/common.h"
+#include "zelda3/overworld/overworld.h"
 #include "zelda3/overworld/overworld_map.h"
 #include "zelda3/overworld/overworld_version_helper.h"
 
 namespace yaze::zelda3 {
+
+void OverworldItem::UpdateMapProperties(uint16_t room_map_id,
+                                        const void* context) {
+  if (context != nullptr) {
+    const auto* overworld = static_cast<const Overworld*>(context);
+    if (const auto* map = overworld->overworld_map(room_map_id)) {
+      const int raw_parent = map->parent();
+      if (raw_parent >= 0 && raw_parent != 0xFF &&
+          overworld->overworld_map(raw_parent) != nullptr) {
+        room_map_id = static_cast<uint16_t>(raw_parent);
+      }
+    }
+  }
+  room_map_id_ = room_map_id;
+  map_id_ = room_map_id;
+
+  const uint8_t normalized_map_id = static_cast<uint8_t>(room_map_id % 0x40);
+  const int origin_x = (normalized_map_id % 8) * 512;
+  const int origin_y = (normalized_map_id / 8) * 512;
+
+  game_x_ = static_cast<uint8_t>(std::clamp((x_ - origin_x) / 16, 0, 63));
+  game_y_ = static_cast<uint8_t>(std::clamp((y_ - origin_y) / 16, 0, 63));
+}
 
 absl::StatusOr<std::vector<OverworldItem>> LoadItems(
     Rom* rom, std::vector<OverworldMap>& overworld_maps,

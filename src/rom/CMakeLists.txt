@@ -15,6 +15,7 @@ set(YAZE_ROM_LIB_SOURCES
   page_tile16_admission.cc
   native_overworld_authoring_metadata.cc
   native_overworld_endpoint_io.cc
+  native_overworld_item_io.cc
   native_overworld_sprite_io.cc
   hm_support.cc
 )

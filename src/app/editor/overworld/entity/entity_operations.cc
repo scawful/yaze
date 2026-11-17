@@ -589,7 +589,10 @@ absl::StatusOr<zelda3::OverworldItem*> DuplicateItemByIdentity(
   duplicate.x_ = static_cast<int>(clamped_pos.x);
   duplicate.y_ = static_cast<int>(clamped_pos.y);
   duplicate.deleted = false;
-  duplicate.UpdateMapProperties(duplicate.room_map_id_);
+  const int world_base = (source_item->room_map_id_ / 64) * 64;
+  const int dest_screen =
+      world_base + (duplicate.x_ / 512) + (duplicate.y_ / 512) * 8;
+  duplicate.UpdateMapProperties(static_cast<uint16_t>(dest_screen), overworld);
 
   auto* items = overworld->mutable_all_items();
   items->push_back(duplicate);

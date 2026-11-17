@@ -19,6 +19,7 @@
 #include "rom/lyra_layout_descriptor.h"
 #include "rom/native_overworld_authoring_metadata.h"
 #include "rom/native_overworld_endpoint_io.h"
+#include "rom/native_overworld_item_io.h"
 #include "rom/rom.h"
 #include "zelda3/common.h"
 #include "zelda3/game_data.h"
@@ -615,6 +616,7 @@ class Overworld {
   absl::Status SaveNativeTerrain();
   bool HasPendingNativeSpriteChanges() const;
   bool HasPendingNativeEndpointChanges() const;
+  bool HasPendingNativeItemChanges() const;
 
   /// @brief Save compressed map tile data to ROM
   absl::Status SaveOverworldMaps();
@@ -1008,6 +1010,8 @@ class Overworld {
   NativeEndpointState CaptureNativeEndpointState() const;
   absl::StatusOr<rom::NativeOverworldEndpointEdits> PrepareNativeEndpointSave(
       bool save_entrances, bool save_returns) const;
+  std::vector<int64_t> CaptureNativeItemState() const;
+  absl::StatusOr<rom::NativeOverworldItemEdits> PrepareNativeItemSave() const;
   std::vector<int64_t> CaptureNativeSpriteState() const;
   absl::Status BindNativeSpritePlacements();
   absl::Status BindNativeEndpointPlacements();
@@ -1043,6 +1047,7 @@ class Overworld {
   std::optional<ExpandedGeometryState> staged_expanded_geometry_;
   NativeModelState native_nonterrain_baseline_;
   std::optional<std::vector<int64_t>> staged_native_properties_;
+  std::optional<std::vector<int64_t>> staged_native_items_;
   std::optional<std::vector<int64_t>> staged_native_sprites_;
   std::optional<rom::LyraLayoutInspection> staged_descriptor_layout_;
   void StageCommittedDescriptorLayout();

@@ -6253,7 +6253,8 @@ bool EditorManager::SessionHasPendingRomWork(size_t session_index) const {
             const auto* overworld = static_cast<OverworldEditor*>(
                 session->editors.GetExistingEditor(EditorType::kOverworld));
             return overworld && (overworld->HasPendingNativeSpriteChanges() ||
-                                 overworld->HasPendingNativeEndpointChanges());
+                                 overworld->HasPendingNativeEndpointChanges() ||
+                                 overworld->HasPendingNativeItemChanges());
           }()) ||
           HasPendingDungeonChangesForSession(session_index) ||
           gfx::PaletteManager::Get().HasUnsavedChanges(&session->game_data));

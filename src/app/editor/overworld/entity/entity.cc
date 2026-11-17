@@ -410,7 +410,7 @@ bool DrawItemEditorPopup(zelda3::OverworldItem& item) {
       if (Selectable(zelda3::kSecretItemNames[i].c_str(), item.id_ == i)) {
         item.id_ = i;
         item.entity_id_ = i;
-        item.UpdateMapProperties(item.map_id_, nullptr);
+        item.UpdateMapProperties(item.room_map_id_, nullptr);
       }
     }
     ImGui::EndGroup();

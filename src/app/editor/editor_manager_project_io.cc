@@ -1118,7 +1118,8 @@ EditorManager::PrepareRomSave(
       RETURN_IF_ERROR(overworld->SaveRomData());
       prepared->overworld_scratch = overworld;
     } else if (overworld->HasPendingNativeSpriteChanges() ||
-               overworld->HasPendingNativeEndpointChanges()) {
+               overworld->HasPendingNativeEndpointChanges() ||
+               overworld->HasPendingNativeItemChanges()) {
       return absl::FailedPreconditionError(
           "Pending native overworld drafts need their loaded model; edits "
           "retained");

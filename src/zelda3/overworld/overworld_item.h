@@ -59,19 +59,7 @@ class OverworldItem : public GameEntity {
   }
 
   void UpdateMapProperties(uint16_t room_map_id,
-                           const void* context = nullptr) override {
-    (void)context;  // Not used by items currently
-    room_map_id_ = room_map_id;
-
-    // Use normalized map_id for calculations (don't corrupt stored value)
-    uint8_t normalized_map_id = room_map_id % 0x40;
-    int map_x = normalized_map_id % 8;
-    int map_y = normalized_map_id / 8;
-
-    // Update game coordinates from world coordinates
-    game_x_ = static_cast<uint8_t>(std::abs(x_ - (map_x * 512)) / 16);
-    game_y_ = static_cast<uint8_t>(std::abs(y_ - (map_y * 512)) / 16);
-  }
+                           const void* context = nullptr) override;
 
   bool bg2_ = false;
   uint8_t id_;
