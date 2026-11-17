@@ -1,6 +1,7 @@
 #include "app/editor/overworld/entity/entity.h"
 #include "util/i18n/tr.h"
 
+#include <cctype>
 #include <fstream>
 #include <string>
 
@@ -437,15 +438,39 @@ bool DrawItemEditorPopup(zelda3::OverworldItem& item) {
 
 const ImGuiTableSortSpecs* SpriteItem::s_current_sort_specs = nullptr;
 
+std::vector<SpriteItem> BuildSpriteTableItems(
+    const zelda3::ResourceLabelProvider& labels) {
+  std::vector<SpriteItem> items;
+  items.reserve(256);
+  for (int i = 0; i < 256; ++i) {
+    std::string name = labels.GetLabel(zelda3::ResourceType::kSprite, i);
+    // The vanilla table is "XX Name"; the picker already has an ID column.
+    if (name.size() > 3 && std::isxdigit(static_cast<unsigned char>(name[0])) &&
+        std::isxdigit(static_cast<unsigned char>(name[1])) && name[2] == ' ') {
+      name.erase(0, 3);
+    }
+    items.push_back(SpriteItem{i, std::move(name)});
+  }
+  return items;
+}
+
 void DrawSpriteTable(std::function<void(int)> onSpriteSelect,
                      int& selected_id) {
   static ImGuiTextFilter filter;
   static std::vector<SpriteItem> items;
 
-  // Initialize items if empty
-  if (items.empty()) {
-    for (int i = 0; i < 256; ++i) {
-      items.push_back(SpriteItem{i, zelda3::kSpriteDefaultNames[i].data()});
+  // Names come from the label provider so Oracle project/registry labels show
+  // up here (this table used to read the vanilla kSpriteDefaultNames array and
+  // cache it forever). Refresh names in place on every draw so a project
+  // switch or label edit is picked up without losing the user's sort order.
+  {
+    const auto fresh = BuildSpriteTableItems(zelda3::GetResourceLabels());
+    if (items.size() != fresh.size()) {
+      items = fresh;
+    } else {
+      for (auto& item : items) {
+        item.name = fresh[item.id].name;
+      }
     }
   }
 
@@ -468,13 +493,13 @@ void DrawSpriteTable(std::function<void(int)> onSpriteSelect,
 
     // Display filtered and sorted items
     for (const auto& item : items) {
-      if (filter.PassFilter(item.name)) {
+      if (filter.PassFilter(item.name.c_str())) {
         ImGui::TableNextRow();
         ImGui::TableSetColumnIndex(0);
         Text("%d", item.id);
         ImGui::TableSetColumnIndex(1);
 
-        if (Selectable(item.name, selected_id == item.id,
+        if (Selectable(item.name.c_str(), selected_id == item.id,
                        ImGuiSelectableFlags_SpanAllColumns)) {
           selected_id = item.id;
           onSpriteSelect(item.id);

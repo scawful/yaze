@@ -454,6 +454,7 @@ if(YAZE_BUILD_TESTS)
     unit/editor/canvas_navigation_manager_test.cc
     unit/editor/map_refresh_coordinator_test.cc
     unit/editor/overworld_map_metadata_test.cc
+    unit/editor/overworld_sprite_table_test.cc
     unit/editor/overworld_property_edit_test.cc
     unit/editor/gfx_group_editor_render_test.cc
     unit/editor/sheet_png_transfer_test.cc

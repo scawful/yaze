@@ -2,6 +2,7 @@
 #define YAZE_APP_EDITOR_OVERWORLD_ENTITY_H
 
 #include <array>
+#include <string>
 #include <vector>
 
 #include "app/gfx/types/snes_tile.h"
@@ -13,6 +14,7 @@
 #include "zelda3/overworld/overworld_entrance.h"
 #include "zelda3/overworld/overworld_exit.h"
 #include "zelda3/overworld/overworld_item.h"
+#include "zelda3/resource_labels.h"
 #include "zelda3/sprite/sprite.h"
 
 namespace yaze {
@@ -73,7 +75,7 @@ enum SpriteItemColumnID {
 
 struct SpriteItem {
   int id;
-  const char* name;
+  std::string name;
   static const ImGuiTableSortSpecs* s_current_sort_specs;
 
   static void SortWithSortSpecs(ImGuiTableSortSpecs* sort_specs,
@@ -95,7 +97,7 @@ struct SpriteItem {
           delta = (a.id - b.id);
           break;
         case SpriteItemColumnID_Name:
-          delta = strcmp(a.name + 2, b.name + 2);
+          delta = a.name.compare(b.name);
           break;
       }
       if (delta != 0)
@@ -107,6 +109,13 @@ struct SpriteItem {
   }
 };
 
+/**
+ * @brief Build the 256-row sprite picker list from the project-aware label
+ * provider (project/registry labels first, then HMagic or vanilla). Entries
+ * are indexed by sprite id and carry no leading "XX " id prefix.
+ */
+std::vector<SpriteItem> BuildSpriteTableItems(
+    const zelda3::ResourceLabelProvider& labels);
 void DrawSpriteTable(std::function<void(int)> onSpriteSelect, int& selected_id);
 void DrawSpriteInserterPopup();
 bool DrawSpriteEditorPopup(zelda3::Sprite& sprite);
