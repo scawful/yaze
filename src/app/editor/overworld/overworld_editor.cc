@@ -1407,7 +1407,7 @@ bool OverworldEditor::NudgeSelectedItem(int delta_x, int delta_y) {
   }
 
   auto before_snapshot = CaptureItemUndoSnapshot();
-  auto status = NudgeItem(selected_item, delta_x, delta_y);
+  auto status = NudgeItem(selected_item, delta_x, delta_y, &overworld_);
   if (!status.ok()) {
     if (dependencies_.toast_manager) {
       dependencies_.toast_manager->Show("Failed to move selected item",
@@ -1591,6 +1591,7 @@ absl::Status OverworldEditor::BeginSaveTransaction() {
         "Overworld save transaction is already active");
   }
   overworld_.RollbackSavedMapTiles();
+  pending_skipped_native_items_warning_ = false;
   map_tile_save_transaction_open_ = true;
   return absl::OkStatus();
 }
@@ -1600,6 +1601,7 @@ void OverworldEditor::RollbackSaveTransaction() {
     return;
   }
   overworld_.RollbackSavedMapTiles();
+  pending_skipped_native_items_warning_ = false;
   map_tile_save_transaction_open_ = false;
 }
 
@@ -1609,6 +1611,14 @@ void OverworldEditor::CommitSaveTransaction() {
   }
   overworld_.CommitSavedMapTiles();
   map_tile_save_transaction_open_ = false;
+  if (pending_skipped_native_items_warning_) {
+    pending_skipped_native_items_warning_ = false;
+    if (dependencies_.toast_manager) {
+      dependencies_.toast_manager->Show(
+          tr("Overworld item edits were not saved (Save items is disabled)"),
+          ToastType::kWarning);
+    }
+  }
 }
 
 absl::Status OverworldEditor::Save() {
@@ -1646,7 +1656,20 @@ absl::Status OverworldEditor::SaveRomData() {
           dependencies_.project->rom_metadata.write_policy,
           overworld_.GetProjectedWriteRanges(), "native overworld terrain",
           "OverworldEditor", dependencies_.toast_manager));
-    return overworld_.SaveNativeTerrain();
+    const bool skipped_native_items =
+        !core::FeatureFlags::get().overworld.kSaveOverworldItems &&
+        overworld_.HasPendingNativeItemChanges();
+    RETURN_IF_ERROR(overworld_.SaveNativeTerrain());
+    if (skipped_native_items) {
+      if (map_tile_save_transaction_open_) {
+        pending_skipped_native_items_warning_ = true;
+      } else if (dependencies_.toast_manager) {
+        dependencies_.toast_manager->Show(
+            tr("Overworld item edits were not saved (Save items is disabled)"),
+            ToastType::kWarning);
+      }
+    }
+    return absl::OkStatus();
   }
   RETURN_IF_ERROR(rom_->CheckLayoutWritable());
   // A disabled save domain must neither validate nor serialize staged edits.
@@ -2931,7 +2954,7 @@ EditorContextSnapshot OverworldEditor::BuildContextSnapshot() const {
     return static_cast<int>(entity.map_id_) == owner_map;
   };
   const auto sprites = overworld_.sprites(game_state_);
-  const auto items = overworld_.all_items();
+  const auto& items = overworld_.all_items();
   const auto* exits = overworld_.exits();
   snapshot.counts = {
       {.id = "sprites",

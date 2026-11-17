@@ -931,7 +931,7 @@ class Overworld {
   }
   auto map_tiles() const { return map_tiles_; }
   auto mutable_map_tiles() { return &map_tiles_; }
-  auto all_items() const { return all_items_; }
+  const std::vector<OverworldItem>& all_items() const { return all_items_; }
   auto mutable_all_items() { return &all_items_; }
   auto all_tiles_types() const { return all_tiles_types_; }
   auto mutable_all_tiles_types() { return &all_tiles_types_; }

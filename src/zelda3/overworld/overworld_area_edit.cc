@@ -143,6 +143,10 @@ absl::StatusOr<OverworldAreaSnapshot> Overworld::CaptureNativeAreaSnapshot()
         sprite_maps_loaded_[phase].begin(),
         sprite_maps_loaded_[phase].begin() + materialized_map_count());
   }
+  snapshot.items.reserve(all_items_.size());
+  for (const auto& item : all_items_) {
+    snapshot.items.push_back({item.room_map_id_, item.game_x_, item.game_y_});
+  }
   return snapshot;
 }
 
@@ -158,6 +162,21 @@ absl::Status Overworld::RestoreNativeAreaSnapshot(
   const auto checked = PlanExpandedOverworldGeometry(snapshot.geometry);
   if (!checked.ok())
     return checked.status();
+  if (snapshot.items.size() != all_items_.size()) {
+    return absl::FailedPreconditionError(
+        "Item edits prevent restoring this area snapshot");
+  }
+  for (size_t row = 0; row < all_items_.size(); ++row) {
+    if (all_items_[row].deleted) {
+      continue;
+    }
+    const auto& value = snapshot.items[row];
+    if (value.owner >= snapshot.geometry.size() || value.x >= 64 ||
+        value.y >= 64 || snapshot.geometry[value.owner].parent != value.owner) {
+      return absl::InvalidArgumentError(
+          "Invalid native item ownership snapshot");
+    }
+  }
   for (size_t map = 0; map < snapshot.pages.size(); ++map) {
     const auto& page = snapshot.pages[map];
     const bool has_appearance = descriptor_layout_.revision >= 4 && map >= 0x80;
@@ -245,6 +264,16 @@ absl::Status Overworld::RestoreNativeAreaSnapshot(
           value.owner, value.x, value.y);
     }
   }
+  for (size_t row = 0; row < all_items_.size(); ++row) {
+    if (all_items_[row].deleted) {
+      continue;
+    }
+    const auto& value = snapshot.items[row];
+    all_items_[row].room_map_id_ = value.owner;
+    all_items_[row].map_id_ = value.owner;
+    all_items_[row].game_x_ = value.x;
+    all_items_[row].game_y_ = value.y;
+  }
   ApplyNativeAreaProfiles();
   rom_->set_dirty(true);
   return absl::OkStatus();
@@ -298,29 +327,94 @@ absl::Status Overworld::ConfigureNativeMultiAreaMap(int parent,
     if (!e.deleted_ && touches(e.map_id_))
       return absl::FailedPreconditionError(
           "Area resize needs return-exit migration first");
-  for (const auto& item : all_items_)
-    if (!item.deleted && touches(item.room_map_id_))
-      return absl::FailedPreconditionError(
-          "Area resize needs item migration first");
-  ASSIGN_OR_RETURN(const auto item_bank,
-                   rom_->ReadByte(overworldItemsAddressBank));
-  for (size_t i = 0; i < affected.size(); ++i) {
-    if (!affected[i])
+  if (!core::FeatureFlags::get().overworld.kSaveOverworldItems) {
+    auto item_on_touched_area = [&](int map_id, int x, int y) {
+      if (touches(map_id))
+        return true;
+      if (x >= 0 && x < 4096 && y >= 0 && y < 4096 && map_id >= 0 &&
+          map_id < materialized_map_count()) {
+        const int page = (map_id / 64) * 64 + (y / 512) * 8 + (x / 512);
+        if (touches(page))
+          return true;
+      }
+      return false;
+    };
+    for (const auto& item : all_items_) {
+      if (!item.deleted &&
+          item_on_touched_area(item.room_map_id_, item.x_, item.y_)) {
+        return absl::FailedPreconditionError(absl::StrFormat(
+            "Enable item saving before resizing areas with items (map $%02X)",
+            item.room_map_id_));
+      }
+    }
+    constexpr size_t kItemFields = 8;
+    const auto& baseline = native_nonterrain_baseline_[3];
+    const size_t base_count =
+        baseline.empty() ? 0 : static_cast<size_t>(baseline[0]);
+    for (size_t idx = 0; idx < base_count; ++idx) {
+      const size_t off = 1 + idx * kItemFields;
+      if (off + 7 < baseline.size() && baseline[off + 7] == 0) {
+        const int base_map = static_cast<int>(baseline[off]);
+        if (item_on_touched_area(base_map, static_cast<int>(baseline[off + 4]),
+                                 static_cast<int>(baseline[off + 5]))) {
+          return absl::FailedPreconditionError(absl::StrFormat(
+              "Enable item saving before resizing areas with pending items "
+              "(map $%02X)",
+              base_map));
+        }
+      }
+    }
+  }
+  for (size_t i = 0; i < before.size(); ++i) {
+    if (!affected[i] || before[i].parent == static_cast<int>(i) ||
+        after.geometry[i].parent != static_cast<int>(i)) {
       continue;
-    const auto pointer = rom::LyraLayoutRecord(descriptor_layout_, rom_->data(),
-                                               rom_->size(), 23, i);
+    }
     const auto bomb = rom::LyraLayoutRecord(descriptor_layout_, rom_->data(),
                                             rom_->size(), 22, i);
-    if (!pointer || !bomb)
+    const auto pointer = rom::LyraLayoutRecord(descriptor_layout_, rom_->data(),
+                                               rom_->size(), 23, i);
+    if (!bomb || !pointer)
       return absl::FailedPreconditionError("Native item source is unavailable");
+    if ((*bomb)[0] != 0 || (*bomb)[1] != 0)
+      return absl::FailedPreconditionError(absl::StrFormat(
+          "Map 0x%02X has dormant bomb-door data; preserve it before "
+          "splitting",
+          i));
     const uint16_t word = (*pointer)[0] | ((*pointer)[1] << 8);
-    ASSIGN_OR_RETURN(const auto terminator,
-                     rom_->ReadWord(SnesToPc((item_bank << 16) | word)));
-    if (terminator != 0xFFFF || (*bomb)[0] || (*bomb)[1])
+    if ((word & 0x8000u) != 0) {
+      ASSIGN_OR_RETURN(const auto item_bank,
+                       rom_->ReadByte(overworldItemsAddressBank));
+      const int bank = item_bank & 0x7F;
+      if (bank != 0x7E && bank != 0x7F) {
+        const int pc = SnesToPc((bank << 16) | word);
+        if (pc >= 0 && static_cast<size_t>(pc + 1) < rom_->size() &&
+            (rom_->data()[pc] != 0xFF || rom_->data()[pc + 1] != 0xFF)) {
+          return absl::FailedPreconditionError(absl::StrFormat(
+              "Map 0x%02X has dormant item data; preserve it before splitting",
+              i));
+        }
+      }
+    }
+  }
+  for (size_t row = 0; row < all_items_.size(); ++row) {
+    const auto& item = all_items_[row];
+    if (item.deleted || !touches(item.room_map_id_))
+      continue;
+    if (item.x_ < 0 || item.x_ >= 4096 || item.y_ < 0 || item.y_ >= 4096)
+      return absl::InvalidArgumentError(
+          "Item position cannot be rebased to an area");
+    const int page =
+        item.room_map_id_ / 64 * 64 + item.y_ / 512 * 8 + item.x_ / 512;
+    if (page >= materialized_map_count() ||
+        before[page].parent != item.room_map_id_)
       return absl::FailedPreconditionError(
-          absl::StrFormat("Map 0x%02X has item/bomb-door data that needs "
-                          "migration before resizing",
-                          i));
+          "Move offscreen area items inside their area before resizing");
+    const int owner = after.geometry[page].parent;
+    const int x = (item.x_ - owner % 8 * 512) / 16;
+    const int y = (item.y_ - owner % 64 / 8 * 512) / 16;
+    after.items[row] = {static_cast<uint16_t>(owner), static_cast<uint8_t>(x),
+                        static_cast<uint8_t>(y)};
   }
   for (int phase = 0; phase < 3; ++phase) {
     for (size_t i = 0; i < before.size(); ++i) {
@@ -424,11 +518,56 @@ Overworld::PrepareNativeGeometrySave() const {
 absl::Status Overworld::ValidateNativeGeometrySaveFlags() const {
   const auto& flags = core::FeatureFlags::get().overworld;
   ASSIGN_OR_RETURN(const auto geometry, PrepareNativeGeometrySave());
-  if (!geometry.empty() &&
-      (!flags.kSaveOverworldProperties || !flags.kSaveOverworldSprites))
+  if (geometry.empty())
+    return absl::OkStatus();
+  if (!flags.kSaveOverworldProperties || !flags.kSaveOverworldSprites)
     return absl::FailedPreconditionError(
         "Enable both area-property and sprite saving to publish pending "
         "geometry");
+  if (!flags.kSaveOverworldItems) {
+    const int map_count = materialized_map_count();
+    std::vector<bool> geometry_changed(map_count, false);
+    for (const auto& edit : geometry) {
+      if (edit.map_id < map_count) {
+        geometry_changed[edit.map_id] = true;
+      }
+    }
+    auto touches_item = [&](int map_id, int x, int y) {
+      if (map_id >= 0 && map_id < map_count && geometry_changed[map_id]) {
+        return true;
+      }
+      if (x >= 0 && x < 4096 && y >= 0 && y < 4096 && map_id >= 0 &&
+          map_id < map_count) {
+        const int page = (map_id / 64) * 64 + (y / 512) * 8 + (x / 512);
+        if (page >= 0 && page < map_count && geometry_changed[page]) {
+          return true;
+        }
+      }
+      return false;
+    };
+    for (const auto& item : all_items_) {
+      if (!item.deleted && touches_item(item.room_map_id_, item.x_, item.y_)) {
+        return absl::FailedPreconditionError(
+            "Enable item saving to publish pending area resize affecting "
+            "items");
+      }
+    }
+    constexpr size_t kItemFields = 8;
+    const auto& baseline = native_nonterrain_baseline_[3];
+    const size_t base_count =
+        baseline.empty() ? 0 : static_cast<size_t>(baseline[0]);
+    for (size_t idx = 0; idx < base_count; ++idx) {
+      const size_t off = 1 + idx * kItemFields;
+      if (off + 7 < baseline.size() && baseline[off + 7] == 0 &&
+          touches_item(static_cast<int>(baseline[off]),
+                       static_cast<int>(baseline[off + 4]),
+                       static_cast<int>(baseline[off + 5]))) {
+        return absl::FailedPreconditionError(
+            "Enable item saving to publish pending area resize affecting "
+            "items");
+      }
+    }
+  }
   return absl::OkStatus();
 }
 }  // namespace yaze::zelda3

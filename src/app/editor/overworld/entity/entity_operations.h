@@ -204,12 +204,17 @@ absl::StatusOr<zelda3::OverworldItem*> DuplicateItemByIdentity(
 /**
  * @brief Move an item by pixel deltas with overworld bounds clamping.
  *
+ * When `overworld` is non-null, re-resolves the destination screen and parent
+ * area so nudges across screen/area edges keep coordinates consistent.
+ *
  * @param item Item pointer to mutate
  * @param delta_x Signed world-space X delta
  * @param delta_y Signed world-space Y delta
+ * @param overworld Optional overworld context for parent-area resolution
  * @return OkStatus when applied
  */
-absl::Status NudgeItem(zelda3::OverworldItem* item, int delta_x, int delta_y);
+absl::Status NudgeItem(zelda3::OverworldItem* item, int delta_x, int delta_y,
+                       const zelda3::Overworld* overworld = nullptr);
 
 /**
  * @brief Find the best next item to keep selection continuity after deletion.
