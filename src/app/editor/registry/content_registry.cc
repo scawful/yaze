@@ -41,6 +41,7 @@ struct RegistryState {
   workflow::HackWorkflowBackend* hack_workflow_backend = nullptr;
   UserSettings* user_settings = nullptr;
   LayoutManager* layout_manager = nullptr;
+  ToastManager* toast_manager = nullptr;
   ProjectWorkflowStatus build_workflow_status;
   ProjectWorkflowStatus run_workflow_status;
   std::string build_workflow_log;
@@ -196,6 +197,16 @@ void SetLayoutManager(LayoutManager* manager) {
   RegistryState::Get().layout_manager = manager;
 }
 
+ToastManager* toast_manager() {
+  std::lock_guard<std::mutex> lock(RegistryState::Get().mutex);
+  return RegistryState::Get().toast_manager;
+}
+
+void SetToastManager(ToastManager* manager) {
+  std::lock_guard<std::mutex> lock(RegistryState::Get().mutex);
+  RegistryState::Get().toast_manager = manager;
+}
+
 workflow::HackWorkflowBackend* hack_workflow_backend() {
   std::lock_guard<std::mutex> lock(RegistryState::Get().mutex);
   return RegistryState::Get().hack_workflow_backend;
@@ -328,6 +339,7 @@ void Clear() {
   state.hack_workflow_backend = nullptr;
   state.user_settings = nullptr;
   state.layout_manager = nullptr;
+  state.toast_manager = nullptr;
   state.current_window_editors.clear();
   state.build_workflow_status = ProjectWorkflowStatus{};
   state.run_workflow_status = ProjectWorkflowStatus{};

@@ -25,6 +25,7 @@ class WindowContent;
 class Editor;
 class GlobalEditorContext;
 class LayoutManager;
+class ToastManager;
 class UserSettings;
 struct EditorDependencies;
 
@@ -165,6 +166,9 @@ void SetUserSettings(UserSettings* settings);
    */
 LayoutManager* layout_manager();
 void SetLayoutManager(LayoutManager* manager);
+
+ToastManager* toast_manager();
+void SetToastManager(ToastManager* manager);
 
 workflow::HackWorkflowBackend* hack_workflow_backend();
 workflow::ValidationCapability* hack_validation_backend();
