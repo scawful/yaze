@@ -4,6 +4,7 @@
 
 #include "core/project_workspace.h"
 
+#include <chrono>
 #include <cstdlib>
 #include <filesystem>
 #include <fstream>
@@ -15,9 +16,11 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
+#include "absl/strings/match.h"
 #include "core/project.h"
 #include "unique_temp_path.h"
 #include "util/flag.h"
+#include "util/rom_hash.h"
 
 namespace yaze::project {
 namespace {
@@ -313,6 +316,192 @@ TEST(ProjectWorkspaceTest, RecordOnOpenWritesSha1LikeTheLauncher) {
   EXPECT_EQ(RomHashToRecordOnOpen("00000000", "", crc32), crc32);
   EXPECT_EQ(RomHashToRecordOnOpen(crc32, "", crc32), "");
   EXPECT_EQ(RomHashToRecordOnOpen(crc32, "", ""), "");
+}
+
+TEST(ProjectWorkspaceTest, UpdateProjectDescriptorKeyUpdatesOnlyTargetKey) {
+  ScopedDir dir(yaze::test::UniqueTempPath("project_descriptor_key_update"));
+  const fs::path path = dir.path() / "project.yaze";
+  const std::string initial =
+      "# yaze Project File\n"
+      "# Last Modified: 2026-11-16 13:24:06\n"
+      "\n"
+      "[project]\n"
+      "name=Oracle-of-Secrets\n"
+      "last_modified=2026-11-16 13:24:06\n"
+      "\n"
+      "[rom]\n"
+      "role=dev\n"
+      "expected_hash=6b4b73eb\n"
+      "adopt_hash_on_open=false\n"
+      "\n"
+      "[graphics_sheets]\n"
+      "source_spec=Data/graphics/d4_zora_sprite_sheets.json\n"
+      "source_spec_sha1=1111111111111111111111111111111111111111\n"
+      "# scawful 2026-09-25: gfx 0x7B/0x7C must stay empty.\n"
+      "reserved_sheets=0x7B,0x7C\n";
+  WriteFile(path, initial);
+
+  auto updated_hash =
+      UpdateProjectDescriptorKey(path, "rom", "expected_hash", "cafebabe");
+  ASSERT_TRUE(updated_hash.ok()) << updated_hash.status();
+  EXPECT_EQ(ReadFile(path), *updated_hash);
+  EXPECT_THAT(*updated_hash,
+              HasSubstr("# Last Modified: 2026-11-16 13:24:06\n"));
+  EXPECT_THAT(*updated_hash, HasSubstr("last_modified=2026-11-16 13:24:06\n"));
+  EXPECT_THAT(*updated_hash, HasSubstr("expected_hash=cafebabe\n"));
+  EXPECT_THAT(
+      *updated_hash,
+      HasSubstr("# scawful 2026-09-25: gfx 0x7B/0x7C must stay empty.\n"));
+
+  auto updated_sha =
+      UpdateProjectDescriptorKey(path, "graphics_sheets", "source_spec_sha1",
+                                 "2222222222222222222222222222222222222222");
+  ASSERT_TRUE(updated_sha.ok()) << updated_sha.status();
+  EXPECT_THAT(
+      *updated_sha,
+      HasSubstr("source_spec_sha1=2222222222222222222222222222222222222222\n"));
+  EXPECT_THAT(*updated_sha, HasSubstr("expected_hash=cafebabe\n"));
+  EXPECT_THAT(*updated_sha, HasSubstr("reserved_sheets=0x7B,0x7C\n"));
+  EXPECT_FALSE(fs::exists(path.string() + ".tmp"));
+
+  // Missing key inside an existing section is inserted in that section.
+  auto inserted_key =
+      UpdateProjectDescriptorKey(path, "rom", "custom_tag", "alpha");
+  ASSERT_TRUE(inserted_key.ok()) << inserted_key.status();
+  EXPECT_THAT(*inserted_key,
+              HasSubstr("adopt_hash_on_open=false\ncustom_tag=alpha\n"));
+
+  // Missing section is appended cleanly at the end.
+  auto appended_section =
+      UpdateProjectDescriptorKey(path, "extra_section", "flag_key", "true");
+  ASSERT_TRUE(appended_section.ok()) << appended_section.status();
+  EXPECT_THAT(*appended_section, HasSubstr("[extra_section]\nflag_key=true\n"));
+}
+
+TEST(ProjectWorkspaceTest, UpdateProjectDescriptorKeyRejectsJsonAndDuplicates) {
+  ScopedDir dir(yaze::test::UniqueTempPath("project_descriptor_key_reject"));
+  const fs::path json_path = dir.path() / "project.yaze";
+  const std::string json_text = "{\"project\": {\"name\": \"Json\"}}\n";
+  WriteFile(json_path, json_text);
+  auto json_res =
+      UpdateProjectDescriptorKey(json_path, "rom", "expected_hash", "abcd");
+  EXPECT_EQ(json_res.status().code(), absl::StatusCode::kFailedPrecondition);
+  EXPECT_TRUE(absl::StrContains(json_res.status().message(),
+                                "not an INI project file"));
+  EXPECT_EQ(ReadFile(json_path), json_text);
+
+  const fs::path dup_path = dir.path() / "dup.yaze";
+  const std::string dup_text =
+      "[rom]\nexpected_hash=11111111\nexpected_hash=22222222\n";
+  WriteFile(dup_path, dup_text);
+  auto dup_res =
+      UpdateProjectDescriptorKey(dup_path, "rom", "expected_hash", "33333333");
+  EXPECT_EQ(dup_res.status().code(), absl::StatusCode::kFailedPrecondition);
+  EXPECT_EQ(ReadFile(dup_path), dup_text);
+
+  EXPECT_EQ(
+      UpdateProjectDescriptorKey(dir.path() / "missing.yaze", "rom", "k", "v")
+          .status()
+          .code(),
+      absl::StatusCode::kFailedPrecondition);
+}
+
+TEST(ProjectWorkspaceTest, InspectRomIdentityMismatchReportsBackupsAndHashes) {
+  ScopedDir dir(yaze::test::UniqueTempPath("project_rom_mismatch_info"));
+  const fs::path bundle = dir.path() / "Oracle.yazeproj";
+  const fs::path backups = bundle / "backups";
+  fs::create_directories(backups);
+
+  const fs::path rom_path = bundle / "rom";
+  const std::vector<uint8_t> rom_bytes(0x8000, 0x3C);
+  WriteFile(rom_path, std::string(rom_bytes.begin(), rom_bytes.end()));
+  const auto id =
+      yaze::util::ComputeRomIdentityHashes(rom_bytes.data(), rom_bytes.size());
+
+  const fs::path older_backup = backups / "rom_old.sfc";
+  const fs::path newer_backup = backups / "rom_new.sfc";
+  const fs::path dot_file = backups / ".DS_Store";
+  const fs::path tmp_file = backups / "rom_partial.tmp";
+  WriteFile(older_backup, "old");
+  WriteFile(newer_backup, "new");
+  WriteFile(dot_file, "ignore");
+  WriteFile(tmp_file, "ignore");
+
+  const auto base_time = fs::last_write_time(older_backup);
+  fs::last_write_time(newer_backup, base_time + std::chrono::seconds(10));
+  fs::last_write_time(dot_file, base_time + std::chrono::seconds(20));
+  fs::last_write_time(tmp_file, base_time + std::chrono::seconds(30));
+
+  const fs::path proj_path = bundle / "project.yaze";
+  WriteFile(proj_path,
+            "[project]\nname=Oracle\n[files]\nrom_filename=rom\n"
+            "[rom]\nexpected_hash=deadbeef\n");
+  YazeProject project;
+  ASSERT_TRUE(project.Open(proj_path.string()).ok());
+
+  const auto crc_info = InspectRomIdentityMismatch(
+      rom_bytes.data(), rom_bytes.size(), rom_path.string(), project);
+  EXPECT_EQ(crc_info.expected_hash, "deadbeef");
+  EXPECT_EQ(crc_info.loaded_hash, id.crc32);
+  EXPECT_EQ(crc_info.loaded_sha1, id.sha1);
+  EXPECT_NE(crc_info.rom_mtime, "unknown");
+  EXPECT_THAT(crc_info.newest_backup, HasSubstr("rom_new.sfc ("));
+
+  const std::string formatted = FormatRomIdentityMismatchFields(crc_info);
+  EXPECT_THAT(formatted, HasSubstr("expected_hash=deadbeef"));
+  EXPECT_THAT(formatted, HasSubstr("loaded_hash=" + id.crc32));
+  EXPECT_THAT(formatted, HasSubstr("rom_mtime="));
+  EXPECT_THAT(formatted, HasSubstr("newest_backup=rom_new.sfc ("));
+
+  project.rom_metadata.expected_hash =
+      "0000000000000000000000000000000000000000";
+  const auto sha_info = InspectRomIdentityMismatch(
+      rom_bytes.data(), rom_bytes.size(), rom_path.string(), project);
+  EXPECT_EQ(sha_info.loaded_hash, id.sha1);
+}
+
+TEST(ProjectWorkspaceTest,
+     UpdateDescriptorKeyOnDiskRefusesExternalEditAndPreservesDisk) {
+  ScopedDir dir(yaze::test::UniqueTempPath("project_key_external_guard"));
+  const fs::path path = dir.path() / "project.yaze";
+  const std::string initial =
+      "[project]\nname=GuardTest\n[rom]\nexpected_hash=11111111\n";
+  WriteFile(path, initial);
+
+  YazeProject proj;
+  ASSERT_TRUE(proj.Open(path.string()).ok());
+
+  const std::string external =
+      "[project]\nname=ExternalEdit\n[rom]\nexpected_hash=11111111\n";
+  WriteFile(path, external);
+
+  const absl::Status status =
+      proj.UpdateDescriptorKeyOnDisk("rom", "expected_hash", "cafebabe");
+  EXPECT_EQ(status.code(), absl::StatusCode::kFailedPrecondition);
+  EXPECT_EQ(ReadFile(path), external);
+  EXPECT_EQ(proj.rom_metadata.expected_hash, "11111111");
+  EXPECT_EQ(proj.Save().code(), absl::StatusCode::kFailedPrecondition);
+  EXPECT_EQ(ReadFile(path), external);
+}
+
+TEST(ProjectWorkspaceTest, UpdateProjectDescriptorKeyPreservesSymlinkTarget) {
+  ScopedDir dir(yaze::test::UniqueTempPath("project_descriptor_symlink"));
+  const fs::path real_path = dir.path() / "real_project.yaze";
+  const fs::path symlink_path = dir.path() / "project.yaze";
+  WriteFile(real_path,
+            "[project]\nname=Symlinked\n[rom]\nexpected_hash=11111111\n");
+  std::error_code ec;
+  fs::create_symlink(real_path, symlink_path, ec);
+  if (ec) {
+    GTEST_SKIP() << "Symlinks unsupported in test environment: "
+                 << ec.message();
+  }
+
+  auto updated = UpdateProjectDescriptorKey(symlink_path, "rom",
+                                            "expected_hash", "cafebabe");
+  ASSERT_TRUE(updated.ok()) << updated.status();
+  EXPECT_TRUE(fs::is_symlink(symlink_path));
+  EXPECT_THAT(ReadFile(real_path), HasSubstr("expected_hash=cafebabe\n"));
 }
 
 }  // namespace

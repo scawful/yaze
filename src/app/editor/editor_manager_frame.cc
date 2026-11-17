@@ -360,6 +360,12 @@ void EditorManager::DrawInterface() {
       right_drawer_manager_->SetRom(GetCurrentRom());
       right_drawer_manager_->Draw();
     }
+    if (status_bar_.has_notification_for_test() &&
+        user_settings_.prefs().show_status_bar) {
+      status_bar_.SetRom(GetCurrentRom());
+      status_bar_.SetEnabled(true);
+      status_bar_.Draw();
+    }
     welcome_was_shown_ = true;
     return;
   }

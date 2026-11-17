@@ -105,6 +105,9 @@ constexpr const char* kRomWriteConfirm = "ROM Write Confirmation";
 constexpr const char* kWriteConflictWarning = "Write Conflict Warning";
 constexpr const char* kUnsavedSessionChanges =
     "Unsaved Session Changes Confirmation";
+constexpr const char* kProjectNeedsAttention = "Project needs attention";
+constexpr const char* kProjectDescriptorChanged =
+    "Project file changed on disk";
 
 // Future expansion
 constexpr const char* kQuickExport = "Quick Export";
@@ -201,6 +204,8 @@ class PopupManager {
   void DrawRomWriteConfirmPopup();
   void DrawWriteConflictWarningPopup();
   void DrawUnsavedSessionChangesPopup();
+  void DrawProjectNeedsAttentionPopup();
+  void DrawProjectDescriptorChangedPopup();
 
   struct SaveAsState {
     bool initialized = false;

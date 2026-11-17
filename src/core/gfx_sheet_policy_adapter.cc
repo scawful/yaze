@@ -6,6 +6,7 @@
 #include "absl/status/status.h"
 #include "absl/strings/str_format.h"
 #include "absl/strings/str_join.h"
+#include "core/project_workspace.h"
 #include "rom/snes.h"
 #include "util/macro.h"
 #include "util/rom_hash.h"
@@ -69,8 +70,11 @@ absl::StatusOr<zelda3::ResolvedGfxSheetLayout> ResolveGfxSheetLayout(
       util::ComputeRomIdentityHashes(rom.data(), rom.size())
               .Match(project.rom_metadata.expected_hash) ==
           util::RomHashMatch::kMismatch) {
-    return absl::FailedPreconditionError(
-        "Loaded ROM does not match the project's expected ROM identity");
+    const auto mismatch = project::InspectRomIdentityMismatch(
+        rom.data(), rom.size(), rom.filename(), project);
+    return absl::FailedPreconditionError(absl::StrFormat(
+        "Loaded ROM does not match the project's expected ROM identity: %s",
+        project::FormatRomIdentityMismatchFields(mismatch)));
   }
   const auto& declared =
       project.hack_manifest.graphics_sheet_layout().pointer_layout;

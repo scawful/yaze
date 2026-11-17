@@ -2064,27 +2064,40 @@ absl::Status OverworldEditor::RenameProjectResourceLabelWithUndo(
   if (is_lyra_preview()) {
     return absl::FailedPreconditionError("Lyra preview is read-only");
   }
-  if (!dependencies_.project) {
+  project::YazeProject* primary = TerrainProject();
+  if (!primary) {
+    primary = dependencies_.project;
+  }
+  if (!primary) {
     return absl::FailedPreconditionError("No project is open");
   }
 
   FinalizePaintOperation();
-  const std::string before =
-      GetProjectResourceLabel(dependencies_.project, type, id);
-  RETURN_IF_ERROR(
-      RenameProjectResourceLabel(dependencies_.project, type, id, label));
-  const std::string after =
-      GetProjectResourceLabel(dependencies_.project, type, id);
+  const std::string before = GetProjectResourceLabel(primary, type, id);
+  auto apply_rename = [this, type,
+                       id](const std::string& value) -> absl::Status {
+    project::YazeProject* target = TerrainProject();
+    if (!target) {
+      target = dependencies_.project;
+    }
+    if (!target) {
+      return absl::FailedPreconditionError("No project is open");
+    }
+    RETURN_IF_ERROR(RenameProjectResourceLabel(target, type, id, value));
+    if (dependencies_.project && dependencies_.project != target) {
+      dependencies_.project->resource_labels = target->resource_labels;
+      dependencies_.project->InitializeResourceLabelProvider();
+    }
+    return absl::OkStatus();
+  };
+  RETURN_IF_ERROR(apply_rename(label));
+  const std::string after = GetProjectResourceLabel(primary, type, id);
   if (after == before) {
     return absl::OkStatus();
   }
 
   undo_manager_.Push(std::make_unique<OverworldProjectLabelEditAction>(
-      before, after,
-      [this, type, id](const std::string& value) {
-        return RenameProjectResourceLabel(dependencies_.project, type, id,
-                                          value);
-      },
+      before, after, apply_rename,
       absl::StrFormat("Rename %s 0x%02X", type, id)));
   return absl::OkStatus();
 }

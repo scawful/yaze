@@ -52,8 +52,10 @@
 #include "app/editor/ui/rom_load_options_dialog.h"
 #include "app/emu/emulator.h"
 #include "app/startup_flags.h"
+#include "core/gfx_sheet_source.h"
 #include "core/project.h"
 #include "core/project_editor_lock.h"
+#include "core/project_workspace.h"
 #include "core/version_manager.h"
 #include "imgui/imgui.h"
 #include "rom/rom.h"
@@ -232,6 +234,62 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
   /// Write `hash` as the project's expected hash, as AdoptCurrentRomHashForProject
   /// does for the hash it picks.
   absl::Status RecordProjectRomHash(const std::string& hash);
+
+  // User opens (Open ROM, recent files, the web drop zone, backups) show ROM
+  // load options for a raw ROM with no remembered choice. Startup,
+  // test-harness, and automation opens pass kNoPrompt: they still apply a
+  // remembered choice but never wait on the dialog.
+  enum class LoadOptionsPrompt { kAsk, kNoPrompt };
+
+  struct ProjectOpenAttention {
+    enum class Kind { kRomIdentityMismatch, kGraphicsSpecSha1Mismatch };
+
+    Kind kind = Kind::kRomIdentityMismatch;
+    std::string project_name;
+    std::string project_filepath;
+    std::string open_target_path;
+    LoadOptionsPrompt prompt = LoadOptionsPrompt::kAsk;
+    project::RomIdentityMismatchInfo rom_mismatch;
+    std::string adopt_rom_hash;
+    core::GfxSheetSource::SpecSha1MismatchInfo spec_mismatch;
+    std::optional<std::string> expected_descriptor_bytes;
+    bool can_adopt = false;
+    std::string adopt_disabled_reason;
+    std::string cancel_reason;
+  };
+
+  const std::optional<ProjectOpenAttention>& pending_project_open_attention()
+      const {
+    return pending_project_open_attention_;
+  }
+  bool has_pending_project_open_attention() const {
+    return pending_project_open_attention_.has_value();
+  }
+  absl::Status AdoptPendingProjectOpenAttention();
+  void CancelPendingProjectOpenAttention();
+
+  struct DescriptorSaveConflict {
+    std::string project_filepath;
+    std::string disk_mtime;
+    std::optional<std::string> pending_rom_hash_adoption;
+    bool can_reload = true;
+    std::string reload_disabled_reason;
+    bool confirming_overwrite = false;
+  };
+
+  const std::optional<DescriptorSaveConflict>&
+  pending_descriptor_save_conflict() const {
+    return pending_descriptor_save_conflict_;
+  }
+  bool has_pending_descriptor_save_conflict() const {
+    return pending_descriptor_save_conflict_.has_value();
+  }
+  absl::Status ReloadProjectAfterDescriptorConflict();
+  void RequestOverwriteDescriptorConflict();
+  absl::Status ConfirmOverwriteDescriptorConflict();
+  void BackFromOverwriteDescriptorConflict();
+  void CancelDescriptorConflict();
+
   std::vector<editor::RomFileManager::BackupEntry> GetRomBackups() const;
   bool IsRomBackupRestorePending() const;
   absl::Status RestoreRomBackup(const std::string& backup_path);
@@ -467,11 +525,6 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
   absl::Status SaveRom();
   absl::Status SaveRomAs(const std::string& filename);
   absl::Status ResumePendingRomSave();
-  // User opens (Open ROM, recent files, the web drop zone, backups) show ROM
-  // load options for a raw ROM with no remembered choice. Startup,
-  // test-harness, and automation opens pass kNoPrompt: they still apply a
-  // remembered choice but never wait on the dialog.
-  enum class LoadOptionsPrompt { kAsk, kNoPrompt };
   absl::Status OpenRomOrProject(
       const std::string& filename,
       LoadOptionsPrompt prompt = LoadOptionsPrompt::kAsk);
@@ -719,6 +772,13 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
   uint64_t project_rom_selection_generation_ = 0;
   bool pending_project_open_transition_ = false;
   std::optional<size_t> pending_project_open_previous_session_id_;
+  std::string current_project_open_target_path_;
+  LoadOptionsPrompt current_project_open_prompt_ = LoadOptionsPrompt::kAsk;
+  std::optional<ProjectOpenAttention> staged_project_open_attention_;
+  std::optional<ProjectOpenAttention> pending_project_open_attention_;
+  std::function<void()> deferred_startup_action_;
+  std::optional<DescriptorSaveConflict> pending_descriptor_save_conflict_;
+  bool allow_external_descriptor_overwrite_once_ = false;
   // current_project_ is a stable-address working copy owned by the active
   // user-facing session. Stable IDs survive UI-index compaction.
   std::optional<size_t> active_project_context_session_id_;
@@ -794,6 +854,8 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
       std::optional<size_t> previous_session_id);
   absl::Status DiscardProvisionalSessionCreatedSince(
       size_t previous_session_count);
+  void StageDescriptorSaveConflict(
+      std::optional<std::string> pending_rom_hash_adoption = std::nullopt);
   void ApplyCurrentProjectRuntimeContext();
   absl::StatusOr<const project::YazeProject*>
   PrepareActiveProjectContextForSave();
