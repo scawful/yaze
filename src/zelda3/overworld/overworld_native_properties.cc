@@ -1,9 +1,14 @@
 #include "zelda3/overworld/overworld.h"
 
 #include <algorithm>
+#include <cstddef>
+#include <cstdint>
 #include <iterator>
+#include <optional>
+#include <unordered_set>
 #include <utility>
 
+#include "absl/strings/str_format.h"
 #include "rom/lyra_layout_descriptor.h"
 #include "util/macro.h"
 
@@ -121,39 +126,47 @@ Overworld::NativeModelState Overworld::CaptureNativeNonTerrainState() const {
   for (const auto& m : overworld_maps_) {
     const int i = m.index();
     const bool child = m.parent() != i;
+    std::vector<int64_t> slice;
+    auto push_slice = [&](std::initializer_list<int64_t> values) {
+      slice.insert(slice.end(), values.begin(), values.end());
+    };
     if (profiles.size() != overworld_maps_.size() ||
         native_effective_area_profiles_.size() != overworld_maps_.size() ||
         m.parent() < 0 || m.parent() >= materialized_map_count()) {
-      add(6, {-2});
-      continue;
-    }
-    const auto& old = native_effective_area_profiles_[i];
-    const auto& parent = profiles[m.parent()];
-    auto inherited = [&](int value, int loaded, int parent_value) {
-      // Existing children may be refreshed lazily after a parent property edit.
-      // Neither their unchanged effective value nor the propagated parent value
-      // changes the child's cached raw slot. Other child mutations stay refused.
-      add(6, {child && value != loaded && value != parent_value ? value : -1});
-    };
-    if (m.uses_native_screen_appearance()) {
-      add(6, {-1});
-      add(6, {-1});
+      push_slice({-2});
     } else {
-      inherited(m.area_graphics(), old.graphics, parent.graphics);
-      inherited(m.area_palette(), old.palette, parent.palette);
+      const auto& old = native_effective_area_profiles_[i];
+      const auto& parent = profiles[m.parent()];
+      auto inherited = [&](int value, int loaded, int parent_value) {
+        // Existing children may be refreshed lazily after a parent property
+        // edit. Neither their unchanged effective value nor the propagated
+        // parent value changes the child's cached raw slot. Other child
+        // mutations stay refused.
+        push_slice(
+            {child && value != loaded && value != parent_value ? value : -1});
+      };
+      if (m.uses_native_screen_appearance()) {
+        push_slice({-1, -1});
+      } else {
+        inherited(m.area_graphics(), old.graphics, parent.graphics);
+        inherited(m.area_palette(), old.palette, parent.palette);
+      }
+      for (int phase = 0; phase < 4; ++phase)
+        inherited(m.area_music(phase), old.music[phase], parent.music[phase]);
+      for (int phase = 0; phase < 3; ++phase) {
+        inherited(m.sprite_graphics(phase), old.sprite_graphics[phase],
+                  parent.sprite_graphics[phase]);
+        inherited(m.sprite_palette(phase), old.sprite_palettes[phase],
+                  parent.sprite_palettes[phase]);
+        // Original LW/DW sprite selector editing remains a separate
+        // capability.
+        if (i < 128)
+          push_slice({profiles[i].sprite_graphics[phase],
+                      profiles[i].sprite_palettes[phase]});
+      }
     }
-    for (int phase = 0; phase < 4; ++phase)
-      inherited(m.area_music(phase), old.music[phase], parent.music[phase]);
-    for (int phase = 0; phase < 3; ++phase) {
-      inherited(m.sprite_graphics(phase), old.sprite_graphics[phase],
-                parent.sprite_graphics[phase]);
-      inherited(m.sprite_palette(phase), old.sprite_palettes[phase],
-                parent.sprite_palettes[phase]);
-      // Original LW/DW sprite selector editing remains a separate capability.
-      if (i < 128)
-        add(6, {profiles[i].sprite_graphics[phase],
-                profiles[i].sprite_palettes[phase]});
-    }
+    add(6, {i, static_cast<int64_t>(slice.size())});
+    state[6].insert(state[6].end(), slice.begin(), slice.end());
   }
   auto endpoints = CaptureNativeEndpointState();
   state[1] = std::move(endpoints[0]);
@@ -183,6 +196,215 @@ std::vector<int64_t> Overworld::CaptureNativeSpriteState() const {
     }
   }
   return state;
+}
+
+namespace {
+
+std::optional<int> FindFirstChangedItemMapId(
+    const std::vector<int64_t>& current, const std::vector<int64_t>& baseline) {
+  constexpr size_t kItemFields = 8;
+  const size_t cur_count =
+      current.empty() ? 0 : (current.size() - 1) / kItemFields;
+  const size_t base_count =
+      baseline.empty() ? 0 : (baseline.size() - 1) / kItemFields;
+  const size_t shared = std::min(cur_count, base_count);
+  for (size_t idx = 0; idx < shared; ++idx) {
+    const size_t offset = 1 + idx * kItemFields;
+    if (!std::equal(current.begin() + offset,
+                    current.begin() + offset + kItemFields,
+                    baseline.begin() + offset)) {
+      const int64_t map_id =
+          cur_count < base_count ? baseline[offset] : current[offset];
+      if (map_id >= 0) {
+        return static_cast<int>(map_id);
+      }
+      if (current[offset] >= 0) {
+        return static_cast<int>(current[offset]);
+      }
+      return std::nullopt;
+    }
+  }
+  if (cur_count > shared) {
+    const int64_t map_id = current[1 + shared * kItemFields];
+    if (map_id >= 0) {
+      return static_cast<int>(map_id);
+    }
+  } else if (base_count > shared) {
+    const int64_t map_id = baseline[1 + shared * kItemFields];
+    if (map_id >= 0) {
+      return static_cast<int>(map_id);
+    }
+  }
+  return std::nullopt;
+}
+
+std::optional<int> FindFirstChangedChildPropertyMapId(
+    const std::vector<int64_t>& current, const std::vector<int64_t>& baseline) {
+  size_t cur_pos = 1;
+  size_t base_pos = 1;
+  while (cur_pos + 1 < current.size() && base_pos + 1 < baseline.size()) {
+    const int64_t cur_map = current[cur_pos];
+    const int64_t cur_len = current[cur_pos + 1];
+    const int64_t base_map = baseline[base_pos];
+    const int64_t base_len = baseline[base_pos + 1];
+    if (cur_len < 0 || base_len < 0 ||
+        cur_pos + 2 + static_cast<size_t>(cur_len) > current.size() ||
+        base_pos + 2 + static_cast<size_t>(base_len) > baseline.size()) {
+      const int64_t map_id = cur_map >= 0 ? cur_map : base_map;
+      if (map_id >= 0) {
+        return static_cast<int>(map_id);
+      }
+      return std::nullopt;
+    }
+    const size_t len = static_cast<size_t>(cur_len);
+    if (cur_map != base_map || cur_len != base_len ||
+        !std::equal(current.begin() + cur_pos + 2,
+                    current.begin() + cur_pos + 2 + len,
+                    baseline.begin() + base_pos + 2)) {
+      const int64_t map_id = cur_map >= 0 ? cur_map : base_map;
+      if (map_id >= 0) {
+        return static_cast<int>(map_id);
+      }
+      return std::nullopt;
+    }
+    cur_pos += 2 + len;
+    base_pos += 2 + static_cast<size_t>(base_len);
+  }
+  if (cur_pos + 1 < current.size() && current[cur_pos] >= 0) {
+    return static_cast<int>(current[cur_pos]);
+  }
+  if (base_pos + 1 < baseline.size() && baseline[base_pos] >= 0) {
+    return static_cast<int>(baseline[base_pos]);
+  }
+  return std::nullopt;
+}
+
+}  // namespace
+
+std::string Overworld::DescribeNativeNonTerrainRefusal(
+    size_t group, const std::vector<int64_t>& current,
+    const std::vector<int64_t>& baseline) const {
+  if (group == 3) {
+    if (const auto map_id = FindFirstChangedItemMapId(current, baseline)) {
+      return absl::StrFormat(
+          "Native overworld save cannot publish pending items on map $%02X",
+          *map_id);
+    }
+    return "Native overworld save cannot publish pending items";
+  }
+
+  if (group == 5) {
+    std::unordered_set<uint16_t> changed_tile8;
+    const size_t min_len = std::min(current.size(), baseline.size());
+    const size_t type_len = std::min<size_t>(kNumTileTypes, min_len);
+    for (size_t idx = 0; idx < type_len; ++idx) {
+      if (current[idx] != baseline[idx]) {
+        changed_tile8.insert(static_cast<uint16_t>(idx));
+      }
+    }
+    std::unordered_set<uint16_t> changed_diggable_tile16;
+    const size_t max_len = std::max(current.size(), baseline.size());
+    for (size_t idx = kNumTileTypes; idx < max_len; ++idx) {
+      const uint8_t cur_byte =
+          idx < current.size() ? static_cast<uint8_t>(current[idx]) : 0;
+      const uint8_t base_byte =
+          idx < baseline.size() ? static_cast<uint8_t>(baseline[idx]) : 0;
+      const uint8_t diff = static_cast<uint8_t>(cur_byte ^ base_byte);
+      if (diff == 0) {
+        continue;
+      }
+      const size_t bit_base = (idx - kNumTileTypes) * 8;
+      for (int bit = 0; bit < 8; ++bit) {
+        if ((diff & (1u << bit)) != 0) {
+          changed_diggable_tile16.insert(static_cast<uint16_t>(bit_base + bit));
+        }
+      }
+    }
+
+    auto world_blockset = [&](int world) -> const OverworldBlockset* {
+      switch (world) {
+        case 0:
+          return &map_tiles_.light_world;
+        case 1:
+          return &map_tiles_.dark_world;
+        case 2:
+          return &map_tiles_.special_world;
+        default:
+          return nullptr;
+      }
+    };
+    std::optional<int> first_map;
+    const int map_count = materialized_map_count();
+    for (int map_id = 0; map_id < map_count && !first_map; ++map_id) {
+      const OverworldBlockset* grid = world_blockset(map_id / 0x40);
+      if (!grid) {
+        continue;
+      }
+      const int left = (map_id % 8) * 32;
+      const int top = ((map_id % 0x40) / 8) * 32;
+      if (static_cast<size_t>(left + 32) > grid->size()) {
+        continue;
+      }
+      const bool has_page_override = std::any_of(
+          page_tile16_.begin(), page_tile16_.end(),
+          [map_id](const auto& row) { return row.map_id == map_id; });
+      std::vector<gfx::Tile16> page_defs;
+      const std::vector<gfx::Tile16>* defs = &tiles16_;
+      if (has_page_override) {
+        page_defs = Tiles16ForMap(map_id);
+        defs = &page_defs;
+      }
+      for (int x = 0; x < 32 && !first_map; ++x) {
+        if (static_cast<size_t>(top + 32) > (*grid)[left + x].size()) {
+          continue;
+        }
+        for (int y = 0; y < 32; ++y) {
+          const uint16_t tile16_id = (*grid)[left + x][top + y];
+          if (changed_diggable_tile16.contains(tile16_id)) {
+            first_map = map_id;
+            break;
+          }
+          if (tile16_id < defs->size()) {
+            const auto& t = (*defs)[tile16_id];
+            if (changed_tile8.contains(t.tile0_.id_) ||
+                changed_tile8.contains(t.tile1_.id_) ||
+                changed_tile8.contains(t.tile2_.id_) ||
+                changed_tile8.contains(t.tile3_.id_)) {
+              first_map = map_id;
+              break;
+            }
+          }
+        }
+      }
+    }
+    if (first_map) {
+      return absl::StrFormat(
+          "Native overworld save cannot publish pending tile types on map "
+          "$%02X",
+          *first_map);
+    }
+    if (current_map_ >= 0 && current_map_ < materialized_map_count()) {
+      return absl::StrFormat(
+          "Native overworld save cannot publish pending tile types (map $%02X "
+          "active)",
+          current_map_);
+    }
+    return "Native overworld save cannot publish pending tile types";
+  }
+
+  if (group == 6) {
+    if (const auto map_id =
+            FindFirstChangedChildPropertyMapId(current, baseline)) {
+      return absl::StrFormat(
+          "Native overworld save cannot publish pending child-map properties "
+          "on map $%02X",
+          *map_id);
+    }
+    return "Native overworld save cannot publish pending child-map properties";
+  }
+
+  return "Native overworld save cannot publish pending geometry, inherited "
+         "properties or entities";
 }
 
 bool Overworld::HasPendingNativeSpriteChanges() const {

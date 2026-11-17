@@ -1001,6 +1001,9 @@ class Overworld {
   absl::StatusOr<std::vector<rom::NativeOverworldPropertyEdit>>
   PrepareNativePropertySave() const;
   NativeModelState CaptureNativeNonTerrainState() const;
+  std::string DescribeNativeNonTerrainRefusal(
+      size_t group, const std::vector<int64_t>& current,
+      const std::vector<int64_t>& baseline) const;
   using NativeEndpointState = std::array<std::vector<int64_t>, 2>;
   NativeEndpointState CaptureNativeEndpointState() const;
   absl::StatusOr<rom::NativeOverworldEndpointEdits> PrepareNativeEndpointSave(

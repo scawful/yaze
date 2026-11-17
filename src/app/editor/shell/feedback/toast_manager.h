@@ -17,6 +17,7 @@
 #include "app/gui/core/style_guard.h"
 #include "app/gui/core/theme_manager.h"
 #include "imgui/imgui.h"
+#include "util/i18n/tr.h"
 
 namespace yaze {
 namespace editor {
@@ -118,26 +119,46 @@ class ToastManager {
       // Use theme colors for toast backgrounds
       ImVec4 bg;
       ImVec4 text_color;
+      ImVec4 btn_bg;
+      ImVec4 btn_hover;
+      ImVec4 btn_active;
+      ImVec4 btn_border;
       switch (t.type) {
         case ToastType::kInfo:
           bg = gui::GetSurfaceContainerHighVec4();
           bg.w = 0.95f;
           text_color = gui::ConvertColorToImVec4(theme.text_primary);
+          btn_bg = gui::GetSurfaceContainerHighestVec4();
+          btn_hover = gui::ConvertColorToImVec4(theme.header_hovered);
+          btn_active = gui::ConvertColorToImVec4(theme.header_active);
+          btn_border = ImVec4(text_color.x, text_color.y, text_color.z, 0.30f);
           break;
         case ToastType::kSuccess:
           bg = gui::ConvertColorToImVec4(theme.success);
           bg.w = 0.95f;
           text_color = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
+          btn_bg = ImVec4(0.0f, 0.0f, 0.0f, 0.25f);
+          btn_hover = ImVec4(1.0f, 1.0f, 1.0f, 0.20f);
+          btn_active = ImVec4(0.0f, 0.0f, 0.0f, 0.40f);
+          btn_border = ImVec4(1.0f, 1.0f, 1.0f, 0.38f);
           break;
         case ToastType::kWarning:
           bg = gui::ConvertColorToImVec4(theme.warning);
           bg.w = 0.95f;
           text_color = ImVec4(0.0f, 0.0f, 0.0f, 1.0f);
+          btn_bg = ImVec4(0.0f, 0.0f, 0.0f, 0.12f);
+          btn_hover = ImVec4(0.0f, 0.0f, 0.0f, 0.22f);
+          btn_active = ImVec4(0.0f, 0.0f, 0.0f, 0.32f);
+          btn_border = ImVec4(0.0f, 0.0f, 0.0f, 0.30f);
           break;
         case ToastType::kError:
           bg = gui::ConvertColorToImVec4(theme.error);
           bg.w = 0.95f;
           text_color = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
+          btn_bg = ImVec4(0.0f, 0.0f, 0.0f, 0.25f);
+          btn_hover = ImVec4(1.0f, 1.0f, 1.0f, 0.20f);
+          btn_active = ImVec4(0.0f, 0.0f, 0.0f, 0.40f);
+          btn_border = ImVec4(1.0f, 1.0f, 1.0f, 0.38f);
           break;
       }
 
@@ -148,11 +169,17 @@ class ToastManager {
           ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoNav |
           ImGuiWindowFlags_NoFocusOnAppearing;
 
-      gui::StyleColorGuard color_guard(
-          {{ImGuiCol_WindowBg, bg}, {ImGuiCol_Text, text_color}});
+      gui::StyleColorGuard color_guard({{ImGuiCol_WindowBg, bg},
+                                        {ImGuiCol_Text, text_color},
+                                        {ImGuiCol_Button, btn_bg},
+                                        {ImGuiCol_ButtonHovered, btn_hover},
+                                        {ImGuiCol_ButtonActive, btn_active},
+                                        {ImGuiCol_Border, btn_border}});
       gui::StyleVarGuard var_guard(
           {{ImGuiStyleVar_WindowRounding, 6.0f},
-           {ImGuiStyleVar_WindowPadding, ImVec2(12.0f, 8.0f)}});
+           {ImGuiStyleVar_WindowPadding, ImVec2(12.0f, 8.0f)},
+           {ImGuiStyleVar_FrameRounding, 4.0f},
+           {ImGuiStyleVar_FrameBorderSize, 1.0f}});
 
       // Use unique window name per toast to allow multiple
       char window_name[32];
@@ -168,13 +195,28 @@ class ToastManager {
         ImGui::PushTextWrapPos(ImGui::GetCursorPos().x + max_width);
         ImGui::TextUnformatted(t.message.c_str());
         ImGui::PopTextWrapPos();
-        if (!t.action_label.empty()) {
+        const bool show_copy =
+            (t.type == ToastType::kError || t.type == ToastType::kWarning);
+        if (!t.action_label.empty() || show_copy) {
           ImGui::Spacing();
-          if (ImGui::SmallButton(t.action_label.c_str())) {
-            action_clicked = true;
+          if (!t.action_label.empty()) {
+            if (ImGui::SmallButton(t.action_label.c_str())) {
+              action_clicked = true;
+            }
+          }
+          if (show_copy) {
+            if (!t.action_label.empty()) {
+              ImGui::SameLine();
+            }
+            ImGui::PushID("toast_copy");
+            if (ImGui::SmallButton(tr("Copy"))) {
+              ImGui::SetClipboardText(t.message.c_str());
+            }
+            ImGui::PopID();
           }
         }
-        hovered = ImGui::IsWindowHovered();
+        hovered = ImGui::IsWindowHovered(
+            ImGuiHoveredFlags_AllowWhenBlockedByActiveItem);
         toast_height = ImGui::GetWindowSize().y;
       }
       ImGui::End();

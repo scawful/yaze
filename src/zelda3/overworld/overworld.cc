@@ -2776,9 +2776,8 @@ absl::Status Overworld::SaveNativeTerrain() {
         "Enable property saving to publish pending screen appearance");
   for (size_t i = 0; i < enabled.size(); ++i)
     if (enabled[i] && current[i] != native_nonterrain_baseline_[i])
-      return absl::FailedPreconditionError(
-          "Native overworld save cannot publish pending geometry, inherited "
-          "properties or entities");
+      return absl::FailedPreconditionError(DescribeNativeNonTerrainRefusal(
+          i, current[i], native_nonterrain_baseline_[i]));
   ASSIGN_OR_RETURN(auto endpoint_edits,
                    PrepareNativeEndpointSave(flags.kSaveOverworldEntrances,
                                              flags.kSaveOverworldExits));

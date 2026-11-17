@@ -2272,6 +2272,10 @@ void RightDrawerManager::DrawNotificationsPanel() {
       }
 
       gui::ColoredTextF(gui::GetTextDisabledVec4(), "  %s", time_str.c_str());
+      ImGui::SameLine();
+      if (ImGui::SmallButton(tr("Copy"))) {
+        ImGui::SetClipboardText(entry.message.c_str());
+      }
 
       ImGui::PopID();
       ImGui::Spacing();

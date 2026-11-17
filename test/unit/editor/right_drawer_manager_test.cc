@@ -3,6 +3,7 @@
 #include <gtest/gtest.h>
 
 #include <chrono>
+#include <cstring>
 #include <filesystem>
 #include <fstream>
 #include <memory>
@@ -44,6 +45,10 @@ class RightDrawerManagerTestPeer {
 
   static void DrawNavStrip(RightDrawerManager& manager) {
     manager.DrawDrawerNavStrip(manager.GetActiveDrawer());
+  }
+
+  static void DrawNotifications(RightDrawerManager& manager) {
+    manager.DrawNotificationsPanel();
   }
 
   static float ConfiguredWidth(RightDrawerManager& manager,
@@ -847,6 +852,87 @@ TEST_F(ProposalDrawerWorkflowTest,
   EXPECT_EQ(rom_address->dirty(), replacement_dirty);
 }
 #endif  // Z3ED_AI
+
+TEST_F(RightDrawerManagerTest, NotificationHistoryCopyButtonCopiesFullMessage) {
+  struct ClipboardState {
+    std::string text;
+  } clipboard;
+  ImGuiIO& io = ImGui::GetIO();
+  io.ClipboardUserData = &clipboard;
+  io.GetClipboardTextFn = [](void* data) -> const char* {
+    return static_cast<ClipboardState*>(data)->text.c_str();
+  };
+  io.SetClipboardTextFn = [](void* data, const char* text) {
+    static_cast<ClipboardState*>(data)->text = text != nullptr ? text : "";
+  };
+  auto& platform_io = ImGui::GetPlatformIO();
+  platform_io.Platform_GetClipboardTextFn = [](ImGuiContext* ctx) {
+    return static_cast<ClipboardState*>(ctx->IO.ClipboardUserData)
+        ->text.c_str();
+  };
+  platform_io.Platform_SetClipboardTextFn = [](ImGuiContext* ctx,
+                                               const char* text) {
+    static_cast<ClipboardState*>(ctx->IO.ClipboardUserData)->text =
+        text != nullptr ? text : "";
+  };
+
+  const std::string full_message =
+      "Save failed: Native overworld save cannot publish pending child-map "
+      "properties on map $01";
+  for (const float width : {280.0f, 360.0f}) {
+    SCOPED_TRACE(::testing::Message() << "width=" << width);
+    clipboard.text.clear();
+    ToastManager toasts;
+    toasts.Show(full_message, ToastType::kError, 10.0f);
+    RightDrawerManager manager;
+    manager.SetToastManager(&toasts);
+    manager.OpenDrawer(RightDrawerManager::DrawerType::kNotifications);
+
+    const auto draw = [&]() {
+      ImGui::NewFrame();
+      ImGui::SetNextWindowPos(ImVec2(20.0f, 20.0f));
+      ImGui::SetNextWindowSize(ImVec2(width, 320.0f));
+      ImGui::Begin(
+          "Notification history test", nullptr,
+          ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoSavedSettings);
+      RightDrawerManagerTestPeer::DrawNotifications(manager);
+      ImGui::End();
+      ImGui::Render();
+    };
+
+    io.AddMousePosEvent(-1000.0f, -1000.0f);
+    draw();
+    draw();
+
+    ImGuiWindow* list_win = nullptr;
+    for (ImGuiWindow* w : GImGui->Windows) {
+      if (w && w->Active && std::strstr(w->Name, "##NotificationList")) {
+        list_win = w;
+        break;
+      }
+    }
+    ASSERT_NE(list_win, nullptr);
+    const auto& style = ImGui::GetStyle();
+    const float btn_w =
+        ImGui::CalcTextSize("Copy").x + style.FramePadding.x * 2.0f;
+    const float copy_x = list_win->Pos.x + list_win->WindowPadding.x +
+                         ImGui::CalcTextSize("  just now").x +
+                         style.ItemSpacing.x + btn_w * 0.5f;
+    const float copy_y = list_win->DC.CursorPos.y - style.ItemSpacing.y * 2.0f -
+                         ImGui::GetFontSize() * 0.5f;
+    const ImVec2 copy_pos(copy_x, copy_y);
+
+    io.AddMousePosEvent(copy_pos.x, copy_pos.y);
+    draw();
+    EXPECT_NE(GImGui->HoveredId, 0u);
+    io.AddMouseButtonEvent(ImGuiMouseButton_Left, true);
+    draw();
+    io.AddMouseButtonEvent(ImGuiMouseButton_Left, false);
+    draw();
+
+    EXPECT_EQ(clipboard.text, full_message);
+  }
+}
 
 }  // namespace
 }  // namespace yaze::editor

@@ -5229,5 +5229,118 @@ TEST_F(NativeSpecialOverworldEditorTest, PageTile16SavedProjectPreflight) {
   EXPECT_EQ(ReadBytes(rom_path), rom_before);
 }
 
+TEST(LyraLayoutDescriptorTest,
+     NativeSaveRefusalNamesChangedGroupAndFirstMapId) {
+  const auto flags = core::FeatureFlags::get();
+  auto restore = absl::MakeCleanup([&] { core::FeatureFlags::get() = flags; });
+  auto& save = core::FeatureFlags::get().overworld;
+  save.kSaveOverworldMaps = false;
+  save.kSaveOverworldSprites = false;
+  save.kSaveOverworldProperties = true;
+  save.kSaveOverworldEntrances = false;
+  save.kSaveOverworldExits = false;
+  save.kSaveOverworldItems = true;
+
+  NativeDirectoryFixture fixture;
+  fixture.SeedNativeSpritePrefix();
+  fixture.bytes[zelda3::overworldItemsAddressBank] = 0x1B;
+  fixture.Word(0xD8000, 0xFFFF);
+  for (int map = 0; map < 192; ++map) {
+    fixture.Word(fixture.Entry(23).pc_address + map * 2, 0x8000);
+  }
+  // Make $00/$01/$08/$09 a valid 2x2 LargeArea (all four siblings must share
+  // parent $00 and LargeArea size).
+  for (int map : {0x00, 0x01, 0x08, 0x09}) {
+    fixture.bytes[fixture.Entry(7).pc_address + map] = 0x00;
+    fixture.bytes[fixture.Entry(30).pc_address + map] =
+        static_cast<uint8_t>(zelda3::AreaSizeEnum::LargeArea);
+  }
+
+  // Give map $03 a distinct Tile32 ($0004) -> Tile16 ($0001) -> Tile8 ($002A)
+  // so mutating tile type $2A pinpoints map $03.
+  const size_t kMap03LowStream = 0x240100;
+  fixture.bytes[kMap03LowStream] = 0xE4;
+  fixture.bytes[kMap03LowStream + 1] = 0xFF;
+  fixture.bytes[kMap03LowStream + 2] = 0x04;
+  fixture.bytes[kMap03LowStream + 3] = 0xFF;
+  fixture.Long(fixture.Entry(21).pc_address + 0x03 * 3,
+               NativeDirectoryFixture::Snes(kMap03LowStream));
+  fixture.bytes[fixture.Entry(401).pc_address + 6] = 0x01;
+  fixture.Word(fixture.Entry(400).pc_address + 1 * 8, 0x002A);
+  fixture.Seal();
+
+  Rom image;
+  ASSERT_TRUE(image.LoadFromData(fixture.bytes).ok());
+  auto world = std::make_unique<zelda3::Overworld>(&image);
+  const auto loaded = world->Load(&image);
+  ASSERT_TRUE(loaded.ok()) << loaded;
+
+  // 1. Secret item edits identify "items" and the first changed map ID ($28
+  // and tail map $AB).
+  {
+    auto* items = world->mutable_all_items();
+    items->emplace_back(/*id=*/0x01, /*room_map_id=*/0x28, /*x=*/16, /*y=*/16,
+                        /*bg2=*/false);
+    const absl::Status item_refusal = world->SaveNativeTerrain();
+    EXPECT_EQ(item_refusal.code(), absl::StatusCode::kFailedPrecondition);
+    EXPECT_NE(std::string(item_refusal.message()).find("items"),
+              std::string::npos)
+        << item_refusal;
+    EXPECT_NE(std::string(item_refusal.message()).find("map $28"),
+              std::string::npos)
+        << item_refusal;
+    items->clear();
+
+    items->emplace_back(/*id=*/0x02, /*room_map_id=*/0xAB, /*x=*/32, /*y=*/32,
+                        /*bg2=*/false);
+    const absl::Status tail_item_refusal = world->SaveNativeTerrain();
+    EXPECT_EQ(tail_item_refusal.code(), absl::StatusCode::kFailedPrecondition);
+    EXPECT_NE(std::string(tail_item_refusal.message()).find("items"),
+              std::string::npos)
+        << tail_item_refusal;
+    EXPECT_NE(std::string(tail_item_refusal.message()).find("map $AB"),
+              std::string::npos)
+        << tail_item_refusal;
+    items->clear();
+  }
+
+  // 2. Tile type mutations identify "tile types" and map $03.
+  {
+    auto* types = world->mutable_all_tiles_types();
+    const uint8_t prev = (*types)[0x2A];
+    (*types)[0x2A] = static_cast<uint8_t>(prev ^ 0x01);
+    const absl::Status tile_refusal = world->SaveNativeTerrain();
+    EXPECT_EQ(tile_refusal.code(), absl::StatusCode::kFailedPrecondition);
+    EXPECT_NE(std::string(tile_refusal.message()).find("tile types"),
+              std::string::npos)
+        << tile_refusal;
+    EXPECT_NE(std::string(tile_refusal.message()).find("map $03"),
+              std::string::npos)
+        << tile_refusal;
+    (*types)[0x2A] = prev;
+  }
+
+  // 3. Child-map inherited property mutations identify "child-map properties"
+  // and child map $01.
+  {
+    auto* child = world->mutable_overworld_map(0x01);
+    ASSERT_NE(child, nullptr);
+    const uint8_t prev_gfx = child->area_graphics();
+    child->set_area_graphics(static_cast<uint8_t>(prev_gfx + 1));
+    const absl::Status child_refusal = world->SaveNativeTerrain();
+    EXPECT_EQ(child_refusal.code(), absl::StatusCode::kFailedPrecondition);
+    EXPECT_NE(std::string(child_refusal.message()).find("child-map properties"),
+              std::string::npos)
+        << child_refusal;
+    EXPECT_NE(std::string(child_refusal.message()).find("map $01"),
+              std::string::npos)
+        << child_refusal;
+    child->set_area_graphics(prev_gfx);
+  }
+
+  // Reverted baseline saves cleanly as control.
+  EXPECT_TRUE(world->SaveNativeTerrain().ok());
+}
+
 }  // namespace
 }  // namespace yaze

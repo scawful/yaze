@@ -2,6 +2,16 @@
 
 #if defined(YAZE_ENABLE_IMGUI_TEST_ENGINE) && YAZE_ENABLE_IMGUI_TEST_ENGINE
 
+#include <chrono>
+#include <cstdlib>
+#include <filesystem>
+#include <string>
+
+#include "app/application.h"
+#include "app/editor/editor_manager.h"
+#include "app/editor/menu/right_drawer_manager.h"
+#include "app/editor/shell/feedback/toast_manager.h"
+#include "app/service/screenshot_utils.h"
 #include "imgui.h"
 #if __has_include("imgui_test_engine/imgui_te_context.h")
 #include "imgui_test_engine/imgui_te_context.h"
@@ -194,6 +204,80 @@ static void RegisterToastTests(ImGuiTestEngine* engine) {
       ctx->Yield(5);  // Let toasts settle
       IM_CHECK(ctx->GetWindowByRef("") != nullptr);
     };
+  }
+
+  const char* screenshot_env = std::getenv("YAZE_TOAST_COPY_SCREENSHOT");
+  if (screenshot_env && *screenshot_env) {
+    ImGuiTestEngine_GetIO(engine).ConfigLogToTTY = true;
+    ImGuiTest* shot_test = IM_REGISTER_TEST(engine, "toast_copy_acceptance",
+                                            "error_toast_screenshot");
+    shot_test->TestFunc = [](ImGuiTestContext* ctx) {
+      namespace fs = std::filesystem;
+      const char* dest_env = std::getenv("YAZE_TOAST_COPY_SCREENSHOT");
+      IM_CHECK(dest_env && *dest_env);
+      const fs::path error_dest(dest_env);
+      std::error_code ec;
+      fs::create_directories(error_dest.parent_path(), ec);
+      IM_CHECK(!ec);
+
+      Controller* controller = nullptr;
+      editor::EditorManager* manager = nullptr;
+      for (int frame = 0; frame < 300; ++frame) {
+        controller = Application::Instance().GetController();
+        manager = controller ? controller->editor_manager() : nullptr;
+        if (controller && manager && manager->toast_manager() &&
+            manager->right_drawer_manager() &&
+            ImGui::GetIO().DisplaySize.x >= 640.0f) {
+          break;
+        }
+        ctx->Yield(1);
+      }
+      IM_CHECK(controller && manager && manager->toast_manager() &&
+               manager->right_drawer_manager());
+      ctx->Yield(10);
+
+      struct ShotState {
+        bool done = false;
+        absl::StatusOr<test::ScreenshotArtifact> result =
+            absl::InternalError("uninitialized");
+      };
+      const auto capture = [&](const fs::path& path) {
+        auto state = std::make_shared<ShotState>();
+        Controller::ScreenshotRequest req;
+        req.preferred_path = path.string();
+        req.window_title = "";
+        req.format = test::ScreenshotFormat::kPng;
+        req.reveal_to_user = false;
+        req.callback = [state](absl::StatusOr<test::ScreenshotArtifact> res) {
+          state->result = std::move(res);
+          state->done = true;
+        };
+        controller->RequestScreenshot(req);
+        for (int i = 0; i < 60 && !state->done && !ctx->IsError(); ++i) {
+          ctx->Yield(1);
+        }
+        IM_CHECK(state->done && state->result.ok());
+      };
+
+      manager->toast_manager()->Show(
+          "Save failed: Native overworld save cannot publish pending items on "
+          "map $28",
+          editor::ToastType::kError, 30.0f);
+      ctx->Yield(5);
+      capture(error_dest);
+
+      manager->toast_manager()->Show(
+          "Warning: Unsaved property edits may require reload",
+          editor::ToastType::kWarning, 30.0f, "Details", []() {});
+      manager->right_drawer_manager()->OpenDrawer(
+          editor::RightDrawerManager::DrawerType::kNotifications);
+      ctx->Yield(5);
+      capture(error_dest.parent_path() / "notification_history_copy.png");
+
+      manager->Quit();
+    };
+    ImGuiTestEngine_QueueTest(engine, shot_test,
+                              ImGuiTestRunFlags_RunFromCommandLine);
   }
 }
 

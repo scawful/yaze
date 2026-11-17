@@ -4,9 +4,13 @@
 
 #include "app/editor/shell/feedback/toast_manager.h"
 
+#include <cstring>
+#include <optional>
 #include <thread>
 
 #include <gtest/gtest.h>
+
+#include "imgui/imgui_internal.h"
 
 namespace yaze::editor {
 namespace {
@@ -116,6 +120,18 @@ TEST(ToastActionTest, ShowWithoutActionLeavesLabelEmpty) {
 
 class ToastDrawTest : public ::testing::Test {
  protected:
+  struct ClipboardState {
+    std::string text;
+  };
+
+  static const char* GetClipboardText(void* user_data) {
+    return static_cast<ClipboardState*>(user_data)->text.c_str();
+  }
+
+  static void SetClipboardText(void* user_data, const char* text) {
+    static_cast<ClipboardState*>(user_data)->text = text != nullptr ? text : "";
+  }
+
   void SetUp() override {
     previous_context_ = ImGui::GetCurrentContext();
     context_ = ImGui::CreateContext();
@@ -123,6 +139,18 @@ class ToastDrawTest : public ::testing::Test {
     auto& io = ImGui::GetIO();
     io.IniFilename = nullptr;
     io.DisplaySize = ImVec2(1280, 720);
+    io.Fonts->AddFontDefault();
+    io.ClipboardUserData = &clipboard_;
+    io.GetClipboardTextFn = &GetClipboardText;
+    io.SetClipboardTextFn = &SetClipboardText;
+    auto& platform_io = ImGui::GetPlatformIO();
+    platform_io.Platform_GetClipboardTextFn = [](ImGuiContext* ctx) {
+      return GetClipboardText(ctx->IO.ClipboardUserData);
+    };
+    platform_io.Platform_SetClipboardTextFn = [](ImGuiContext* ctx,
+                                                 const char* text) {
+      SetClipboardText(ctx->IO.ClipboardUserData, text);
+    };
     unsigned char* pixels = nullptr;
     int width = 0;
     int height = 0;
@@ -146,6 +174,45 @@ class ToastDrawTest : public ::testing::Test {
     ImGui::Render();
   }
 
+  void ClickAt(ImVec2 pos) {
+    DrawFrame(1.0f / 60.0f, pos);
+    ImGui::GetIO().AddMouseButtonEvent(ImGuiMouseButton_Left, true);
+    DrawFrame(1.0f / 60.0f, pos);
+    ImGui::GetIO().AddMouseButtonEvent(ImGuiMouseButton_Left, false);
+    DrawFrame(1.0f / 60.0f, pos);
+  }
+
+  ImGuiWindow* FindActiveToastWindow() const {
+    for (ImGuiWindow* w : GImGui->Windows) {
+      if (w && w->Active && std::strncmp(w->Name, "##toast_", 8) == 0) {
+        return w;
+      }
+    }
+    return nullptr;
+  }
+
+  // Matches ToastManager::Draw() bottom button row geometry: SmallButton has
+  // height = FontSize and starts after action_label (if non-empty).
+  std::pair<std::optional<ImVec2>, ImVec2> BottomButtonCenters(
+      const ImGuiWindow* win, const char* action_label = nullptr) const {
+    const float btn_h = ImGui::GetFontSize();
+    const float y =
+        win->Pos.y + win->Size.y - win->WindowPadding.y - btn_h * 0.5f;
+    float x = win->Pos.x + win->WindowPadding.x;
+    const auto& style = ImGui::GetStyle();
+    std::optional<ImVec2> action_pos;
+    if (action_label && *action_label) {
+      const float action_w =
+          ImGui::CalcTextSize(action_label).x + style.FramePadding.x * 2.0f;
+      action_pos = ImVec2(x + action_w * 0.5f, y);
+      x += action_w + style.ItemSpacing.x;
+    }
+    const float copy_w =
+        ImGui::CalcTextSize("Copy").x + style.FramePadding.x * 2.0f;
+    return {action_pos, ImVec2(x + copy_w * 0.5f, y)};
+  }
+
+  ClipboardState clipboard_;
   ToastManager::Clock::time_point now_{};
   ToastManager toasts_{[this]() { return now_; }};
 
@@ -197,6 +264,70 @@ TEST_F(ToastDrawTest, HoverPausesLifetimeWithoutChargingItAfterLeaving) {
   ASSERT_EQ(toasts_.pending_count(), 1u);
   EXPECT_NEAR(toasts_.GetPendingToast(0)->ttl_seconds, before_hover - 0.25f,
               0.0001f);
+}
+
+TEST_F(ToastDrawTest, ErrorToastCopyButtonCopiesFullMessageWithoutDismissing) {
+  const std::string error_msg =
+      "Save failed: Native overworld save cannot publish pending items on map "
+      "$28";
+  toasts_.Show(error_msg, ToastType::kError, 10.0f);
+  DrawFrame(1.0f / 60.0f);
+  DrawFrame(1.0f / 60.0f);
+  ImGuiWindow* win = FindActiveToastWindow();
+  ASSERT_NE(win, nullptr);
+
+  const auto [unused_action, copy_pos] = BottomButtonCenters(win);
+  (void)unused_action;
+  DrawFrame(1.0f / 60.0f, copy_pos);
+  EXPECT_NE(GImGui->HoveredId, 0u);
+  ClickAt(copy_pos);
+
+  EXPECT_EQ(clipboard_.text, error_msg);
+  EXPECT_EQ(toasts_.pending_count(), 1u);
+}
+
+TEST_F(ToastDrawTest,
+       WarningToastWithActionCopiesFullMessageAndPreservesAction) {
+  const std::string warning_msg =
+      "Project saved with warnings: sprite metadata mismatch on map $AB";
+  bool action_fired = false;
+  toasts_.Show(warning_msg, ToastType::kWarning, 10.0f, "Details",
+               [&]() { action_fired = true; });
+  DrawFrame(1.0f / 60.0f);
+  DrawFrame(1.0f / 60.0f);
+  ImGuiWindow* win = FindActiveToastWindow();
+  ASSERT_NE(win, nullptr);
+
+  const auto [action_pos, copy_pos] = BottomButtonCenters(win, "Details");
+  ASSERT_TRUE(action_pos.has_value());
+
+  DrawFrame(1.0f / 60.0f, copy_pos);
+  EXPECT_NE(GImGui->HoveredId, 0u);
+  ClickAt(copy_pos);
+  EXPECT_EQ(clipboard_.text, warning_msg);
+  EXPECT_FALSE(action_fired);
+  ASSERT_EQ(toasts_.pending_count(), 1u);
+
+  ClickAt(*action_pos);
+  EXPECT_TRUE(action_fired);
+  EXPECT_EQ(toasts_.pending_count(), 0u);
+}
+
+TEST_F(ToastDrawTest, InfoAndSuccessToastsOmitCopyButton) {
+  for (const ToastType type : {ToastType::kInfo, ToastType::kSuccess}) {
+    clipboard_.text = "sentinel";
+    toasts_.Show("All checks passed", type, 10.0f);
+    DrawFrame(1.0f / 60.0f);
+    DrawFrame(1.0f / 60.0f);
+    ImGuiWindow* win = FindActiveToastWindow();
+    ASSERT_NE(win, nullptr);
+    const auto [unused_action, copy_pos] = BottomButtonCenters(win);
+    (void)unused_action;
+    ClickAt(copy_pos);
+    EXPECT_EQ(clipboard_.text, "sentinel");
+    DrawFrame(1.0f / 60.0f, ImVec2(-1000, -1000), 11.0f);
+    EXPECT_EQ(toasts_.pending_count(), 0u);
+  }
 }
 
 }  // namespace
