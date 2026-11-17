@@ -5,6 +5,7 @@
 #include "cli/handlers/game/dungeon_collision_commands.h"
 #include "cli/handlers/game/dungeon_commands.h"
 #include "cli/handlers/game/dungeon_edit_commands.h"
+#include "cli/handlers/game/dungeon_find_commands.h"
 #include "cli/handlers/game/dungeon_tile_type_commands.h"
 #include "cli/handlers/game/message_commands.h"
 #include "cli/handlers/game/minecart_commands.h"
@@ -240,6 +241,32 @@ void RegisterBuiltinAgentTools(ToolRegistry& registry) {
                               "Debug room header bytes",
                               "dungeon-room-header --room=<id>", {}, true,
                               false, DungeonRoomHeaderCommandHandler)
+  RegisterBuiltinTool<DungeonFindCommandHandler>(
+      registry,
+      {"dungeon-find",
+       "dungeon",
+       "Search all rooms for sprites, key drops, chest/pot items, tags, dark "
+       "rooms or spritesets",
+       "dungeon-find",
+       {"dungeon-find --item=0x0C", "dungeon-find --dark",
+        "dungeon-find --key-drop", "dungeon-find --sprite=Eyegore"},
+       true,
+       false,
+       ToolAccess::kReadOnly,
+       {},
+       {"dark", "key-drop"}});
+  RegisterBuiltinTool<DungeonListEntrancesCommandHandler>(
+      registry,
+      {"dungeon-list-entrances",
+       "dungeon",
+       "List regular dungeon entrances with room, dungeon and exit IDs",
+       "dungeon-list-entrances",
+       {"dungeon-list-entrances", "dungeon-list-entrances --dungeon=0x04"},
+       true,
+       false,
+       ToolAccess::kReadOnly,
+       {},
+       {}});
   REGISTER_BUILTIN_AGENT_TOOL(
       "dungeon-get-palette", "dungeon",
       "Resolve a US/OOS room's shared dungeon palette and affected rooms",

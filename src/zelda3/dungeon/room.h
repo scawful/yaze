@@ -863,6 +863,9 @@ class Room {
 
   // Getters for LoadRoomFromRom function
   bool IsLight() const { return is_light_; }
+  // Header byte0 bit0 (set = dark room, needs the lamp). Prefer this over
+  // IsLight(), whose value is also the dark bit despite its name.
+  bool IsDark() const { return is_dark_; }
 
   // Additional setters for LoadRoomFromRom function
   void SetMessageIdDirect(uint16_t mid) {

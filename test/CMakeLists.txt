@@ -592,6 +592,7 @@ if(YAZE_BUILD_TESTS)
     unit/cli/terrain_catalog_command_test.cc
     unit/cli/rom_write_commands_test.cc
     unit/cli/dungeon_room_destination_high_byte_test.cc
+    unit/cli/dungeon_find_commands_test.cc
     unit/cli/dungeon_room_census_commands_test.cc
     unit/cli/dungeon_graph_links_test.cc
     unit/cli/atlas_render_commands_test.cc
