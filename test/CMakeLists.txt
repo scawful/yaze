@@ -819,6 +819,7 @@ if(YAZE_BUILD_TESTS)
       unit/cli/conversational_agent_service_test.cc
       unit/cli/ai_config_utils_test.cc
       unit/cli/ai_service_factory_test.cc
+      unit/cli/cli_harness_service_test.cc
       unit/cli/model_registry_test.cc
       unit/cli/tool_dispatcher_test.cc
       unit/cli/tool_schema_builder_test.cc

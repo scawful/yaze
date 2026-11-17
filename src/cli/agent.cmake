@@ -124,6 +124,7 @@ set(YAZE_AGENT_CORE_SOURCES
   cli/service/ai/ai_action_parser.cc
   cli/service/ai/ai_service.cc
   cli/service/ai/model_registry.cc
+  cli/service/ai/subprocess_runner.cc
   cli/service/ai/vision_action_refiner.cc
   cli/service/api/http_server.cc
   cli/service/api/api_handlers.cc

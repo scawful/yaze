@@ -28,7 +28,6 @@ class LocalGeminiCliService : public AIService {
   std::string GetProviderName() const override { return kProviderGeminiCli; }
 
  private:
-  std::string EscapeShellArg(const std::string& arg);
   absl::StatusOr<AgentResponse> ExecuteGeminiCli(const std::string& prompt);
 
   std::string model_;
