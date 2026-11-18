@@ -43,7 +43,11 @@ long CurrentPid() {
 // `ps -o lstart=` prints strftime("%c") in the C locale.
 std::string FormatLocalStart(time_t seconds) {
   std::tm local{};
+#ifdef _WIN32
+  localtime_s(&local, &seconds);
+#else
   localtime_r(&seconds, &local);
+#endif
   char buffer[64];
   const size_t n =
       std::strftime(buffer, sizeof(buffer), "%a %b %e %H:%M:%S %Y", &local);
@@ -53,7 +57,11 @@ std::string FormatLocalStart(time_t seconds) {
 std::string UtcNowIso() {
   const time_t now = std::time(nullptr);
   std::tm utc{};
+#ifdef _WIN32
+  gmtime_s(&utc, &now);
+#else
   gmtime_r(&now, &utc);
+#endif
   char buffer[64];
   const size_t n =
       std::strftime(buffer, sizeof(buffer), "%Y-%m-%dT%H:%M:%S+00:00", &utc);

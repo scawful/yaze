@@ -629,6 +629,63 @@ TEST_F(RomTest, BestEffortBackupSameTargetCreatesBackup) {
   EXPECT_EQ(ReadFileBytes(backups.front()), target_before);
 }
 
+TEST_F(RomTest, BackupKeepPrunesOldestTargetBackups) {
+  ScopedTempDirectory temp;
+  const auto target = temp.path() / "target.sfc";
+  WriteFileBytes(target, {0xAA, 0xBB, 0xCC});
+  const auto now = std::filesystem::file_time_type::clock::now();
+  for (int i = 0; i < 5; ++i) {
+    const auto old_backup =
+        temp.path() / ("target.sfc_backup_old" + std::to_string(i));
+    WriteFileBytes(old_backup, {static_cast<uint8_t>(i)});
+    std::filesystem::last_write_time(old_backup,
+                                     now - std::chrono::hours(10 - i));
+  }
+  const auto in_flight = temp.path() / "target.sfc_backup_pending.tmp";
+  WriteFileBytes(in_flight, {0x01});
+  std::filesystem::last_write_time(in_flight, now - std::chrono::hours(48));
+  const auto other_rom = temp.path() / "other.sfc_backup_old";
+  WriteFileBytes(other_rom, {0x02});
+  std::filesystem::last_write_time(other_rom, now - std::chrono::hours(48));
+
+  EXPECT_OK(rom_.LoadFromData(kMockRomData));
+  rom_.set_filename(target.string());
+  Rom::SaveSettings settings;
+  settings.require_backup = true;
+  settings.backup_keep = 3;
+  EXPECT_OK(rom_.SaveToFile(settings));
+
+  EXPECT_EQ(ReadFileBytes(target), rom_.vector());
+  // New backup + the two newest old ones survive; the .tmp is not a backup.
+  const auto backups = FindFilesWithPrefix(temp.path(), "target.sfc_backup_");
+  EXPECT_EQ(backups.size(), 4);
+  EXPECT_TRUE(std::filesystem::exists(in_flight));
+  EXPECT_TRUE(std::filesystem::exists(temp.path() / "target.sfc_backup_old4"));
+  EXPECT_TRUE(std::filesystem::exists(temp.path() / "target.sfc_backup_old3"));
+  EXPECT_FALSE(std::filesystem::exists(temp.path() / "target.sfc_backup_old2"));
+  EXPECT_FALSE(std::filesystem::exists(temp.path() / "target.sfc_backup_old0"));
+  EXPECT_TRUE(std::filesystem::exists(other_rom));
+}
+
+TEST_F(RomTest, BackupKeepZeroKeepsEveryBackup) {
+  ScopedTempDirectory temp;
+  const auto target = temp.path() / "target.sfc";
+  WriteFileBytes(target, {0xAA, 0xBB, 0xCC});
+  for (int i = 0; i < 4; ++i) {
+    WriteFileBytes(temp.path() / ("target.sfc_backup_old" + std::to_string(i)),
+                   {static_cast<uint8_t>(i)});
+  }
+
+  EXPECT_OK(rom_.LoadFromData(kMockRomData));
+  rom_.set_filename(target.string());
+  Rom::SaveSettings settings;
+  settings.backup = true;
+  settings.backup_keep = 0;
+  EXPECT_OK(rom_.SaveToFile(settings));
+
+  EXPECT_EQ(FindFilesWithPrefix(temp.path(), "target.sfc_backup_").size(), 5);
+}
+
 TEST_F(RomTest, BestEffortBackupSaveNewSkipsUnreplacedBaseTarget) {
   ScopedTempDirectory temp;
   const auto base_target = temp.path() / "target.sfc";

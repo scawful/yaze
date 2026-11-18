@@ -2180,6 +2180,51 @@ TEST(DungeonNativeObjectRouteTest, RoomPropertyChangesOneHeaderByte) {
   EXPECT_EQ(rom.vector(), before);
 }
 
+TEST(DungeonNativeObjectRouteTest, RoomDarkPropertyFlipsOnlyHeaderBit0) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(NativeObjectRouteImage()).ok());
+  ScopedRomArtifactsCleanup cleanup(MakeUniqueTempRomPath());
+  rom.set_filename(cleanup.rom_path.string());
+  rom.set_dirty(false);
+  WriteRomFile(rom, cleanup.rom_path);
+  const auto before = rom.vector();
+  ASSERT_EQ(kRoomHeaderSentinel[0] & 0x01, 0x01);  // sentinel room is dark
+
+  const auto set_dark = [&rom](const std::string& value) {
+    handlers::DungeonSetRoomPropertyCommandHandler handler;
+    std::string output;
+    const absl::Status status = handler.Run(
+        {"--room=0x00", "--property=dark", "--value=" + value, "--format=json"},
+        &rom, &output);
+    return std::make_pair(status, output);
+  };
+
+  auto [lit_status, lit_output] = set_dark("0");
+  ASSERT_TRUE(lit_status.ok()) << lit_status << lit_output;
+  EXPECT_EQ(nlohmann::json::parse(lit_output)
+                .at("Dungeon Room Property Set")
+                .at("verified_reload"),
+            true);
+  const size_t byte0_pc = static_cast<size_t>(kRoomHeaderDataPc);
+  for (size_t pc = 0; pc < before.size(); ++pc) {
+    if (pc == byte0_pc) {
+      EXPECT_EQ(rom.vector()[pc], kRoomHeaderSentinel[0] & 0xFE);
+    } else {
+      EXPECT_EQ(rom.vector()[pc], before[pc]) << absl::StrFormat("0x%06X", pc);
+    }
+  }
+  EXPECT_EQ(ReadFile(cleanup.rom_path), rom.vector());
+
+  auto [dark_status, dark_output] = set_dark("1");
+  ASSERT_TRUE(dark_status.ok()) << dark_status << dark_output;
+  EXPECT_EQ(rom.vector(), before);
+
+  const auto lit_again = rom.vector();
+  auto [bad_status, bad_output] = set_dark("2");
+  EXPECT_EQ(bad_status.code(), absl::StatusCode::kInvalidArgument);
+  EXPECT_EQ(rom.vector(), lit_again);
+}
+
 TEST(DungeonNativeObjectRouteTest, RoomFloorEditChecksDoorPointer) {
   const auto set_floor1 = [](Rom* rom, nlohmann::json* out) {
     handlers::DungeonSetRoomPropertyCommandHandler handler;

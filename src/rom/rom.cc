@@ -142,6 +142,55 @@ void BestEffortFsyncFile(const std::filesystem::path& path);
 void BestEffortFsyncParentDir(const std::filesystem::path& file_path);
 #endif
 
+std::atomic<int> g_default_backup_keep{0};
+
+// Removes all but the newest `keep` regular files named `<target>_backup_*`
+// in the target's folder. In-flight `.tmp` copies are left alone.
+void PruneTargetBackups(const std::filesystem::path& target, int keep) {
+  if (keep <= 0) {
+    return;
+  }
+  const std::string prefix = target.filename().string() + "_backup_";
+  std::filesystem::path dir = target.parent_path();
+  if (dir.empty()) {
+    dir = ".";
+  }
+  std::vector<std::pair<std::filesystem::file_time_type, std::filesystem::path>>
+      backups;
+  std::error_code ec;
+  for (const auto& entry : std::filesystem::directory_iterator(dir, ec)) {
+    const std::string name = entry.path().filename().string();
+    std::error_code type_ec;
+    if (name.rfind(prefix, 0) != 0 || entry.path().extension() == ".tmp" ||
+        !entry.is_regular_file(type_ec) || entry.is_symlink(type_ec)) {
+      continue;
+    }
+    std::error_code time_ec;
+    const auto mtime = entry.last_write_time(time_ec);
+    if (!time_ec) {
+      backups.emplace_back(mtime, entry.path());
+    }
+  }
+  if (ec) {
+    LOG_WARN("Rom", "Could not list backups in %s: %s", dir.string().c_str(),
+             ec.message().c_str());
+    return;
+  }
+  if (backups.size() <= static_cast<size_t>(keep)) {
+    return;
+  }
+  std::sort(backups.begin(), backups.end(),
+            [](const auto& a, const auto& b) { return a.first > b.first; });
+  for (size_t i = static_cast<size_t>(keep); i < backups.size(); ++i) {
+    std::error_code remove_ec;
+    std::filesystem::remove(backups[i].second, remove_ec);
+    if (remove_ec) {
+      LOG_WARN("Rom", "Could not remove old backup %s: %s",
+               backups[i].second.string().c_str(), remove_ec.message().c_str());
+    }
+  }
+}
+
 absl::Status CreateRequiredBackup(
     const std::filesystem::path& source_path,
     const std::filesystem::path& requested_backup_path) {
@@ -1088,6 +1137,14 @@ absl::Status Rom::SaveLyraA0TerrainAs(const std::array<uint16_t, 256>& tiles,
 #endif
 }
 
+void Rom::SetDefaultBackupKeep(int keep) {
+  g_default_backup_keep.store(std::max(0, keep));
+}
+
+int Rom::DefaultBackupKeep() {
+  return g_default_backup_keep.load();
+}
+
 absl::Status Rom::SaveToFile(const SaveSettings& settings) {
   RETURN_IF_ERROR(CheckLayoutSaveable());
   RETURN_IF_ERROR(ValidateLyraPrivateReservation());
@@ -1115,6 +1172,7 @@ absl::Status Rom::SaveToFileUnchecked(const SaveSettings& settings) {
         absl::StrCat(filename_no_ext, "_", MakeSafeTimestamp(now_c), ".sfc");
   }
 
+  bool wrote_backup = false;
   if (settings.require_backup) {
     const std::filesystem::path target_path(filename);
     std::error_code exists_ec;
@@ -1133,6 +1191,7 @@ absl::Status Rom::SaveToFileUnchecked(const SaveSettings& settings) {
       std::string backup_filename =
           absl::StrCat(filename, "_backup_", MakeSafeTimestamp(now_c));
       RETURN_IF_ERROR(CreateRequiredBackup(target_path, backup_filename));
+      wrote_backup = true;
     }
   } else if (settings.backup) {
     try {
@@ -1147,10 +1206,16 @@ absl::Status Rom::SaveToFileUnchecked(const SaveSettings& settings) {
         std::filesystem::copy(
             target_path, backup_filename,
             std::filesystem::copy_options::overwrite_existing);
+        wrote_backup = true;
       }
     } catch (const std::filesystem::filesystem_error& e) {
       LOG_WARN("Rom", "Could not create backup: %s", e.what());
     }
+  }
+  if (wrote_backup) {
+    PruneTargetBackups(
+        std::filesystem::path(filename),
+        settings.backup_keep >= 0 ? settings.backup_keep : DefaultBackupKeep());
   }
 
   // A copier header stripped at load goes back in front of the data, so the

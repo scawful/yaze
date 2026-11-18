@@ -230,7 +230,9 @@ void RegisterBuiltinAgentTools(ToolRegistry& registry) {
       "[--type=<hex>] [--no-rows]",
       {}, true, false, DungeonTileTypesCommandHandler)
   REGISTER_BUILTIN_AGENT_TOOL(
-      "dungeon-set-room-property", "dungeon", "Set room property",
+      "dungeon-set-room-property", "dungeon",
+      "Set room property (palette, blockset, spriteset, effect, tag1, tag2, "
+      "holewarp, dark=0|1, layout, floor1, floor2)",
       "dungeon-set-room-property --room=<id> --property=<property> "
       "--value=<val>",
       {}, true, false, DungeonSetRoomPropertyCommandHandler)

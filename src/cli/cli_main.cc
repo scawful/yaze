@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <cstdio>
 #include <cstdlib>
 #include <iostream>
@@ -280,6 +281,18 @@ int main(int argc, char* argv[]) {
   if (options.self_test) {
     return RunSelfTest(out_style);
   }
+
+  // Every z3ed write that replaces a ROM leaves `<rom>_backup_<stamp>` next
+  // to it. Keep the newest few per ROM; Z3ED_BACKUP_KEEP=0 keeps all.
+  int backup_keep = 5;
+  if (const char* env = std::getenv("Z3ED_BACKUP_KEEP"); env && *env) {
+    char* end = nullptr;
+    const long value = std::strtol(env, &end, 10);
+    if (end && *end == '\0' && value >= 0) {
+      backup_keep = static_cast<int>(std::min(value, 100000L));
+    }
+  }
+  yaze::Rom::SetDefaultBackupKeep(backup_keep);
 
   CommandRegistry& registry = CommandRegistry::Instance();
 #ifdef YAZE_ENABLE_AGENT_CLI

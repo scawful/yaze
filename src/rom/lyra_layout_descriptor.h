@@ -104,6 +104,52 @@ inline bool IsNativeSpecialOverworldLayout(const LyraLayoutInspection& layout) {
 // its magic bytes. Unrelated ROM data at the locator is not attribution.
 LyraLayoutInspection InspectLyraLayout(const uint8_t* image, size_t size);
 
+// Stored versus computed CRC32 of one OOSOW192 directory entry. `index` is
+// the directory row; its CRC field is at descriptor + 32 + 16 * index + 12.
+struct LyraCrcEntry {
+  size_t index = 0;
+  uint16_t id = 0;
+  uint32_t pc_address = 0;
+  uint32_t length = 0;
+  uint32_t stored = 0;
+  uint32_t computed = 0;
+  bool stale() const { return stored != computed; }
+};
+
+// CRC state of a structurally valid descriptor. The descriptor CRC (+0x1C)
+// covers the 1024-byte descriptor with that field zeroed, so it is computed
+// over the entry CRC fields as stored.
+struct LyraCrcReport {
+  uint16_t revision = 0;
+  std::vector<LyraCrcEntry> entries;  // every directory row, in order
+  uint32_t descriptor_stored = 0;
+  uint32_t descriptor_computed = 0;
+  bool descriptor_stale() const {
+    return descriptor_stored != descriptor_computed;
+  }
+  size_t stale_entry_count() const {
+    size_t count = 0;
+    for (const auto& entry : entries)
+      count += entry.stale() ? 1 : 0;
+    return count;
+  }
+  bool stale() const { return descriptor_stale() || stale_entry_count() != 0; }
+};
+
+// Runs the InspectLyraLayout decoder with CRC mismatches recorded instead of
+// rejected; every structural rule still applies. NotFound when no descriptor
+// is present, FailedPrecondition when the layout is invalid for any reason
+// other than a CRC.
+absl::StatusOr<LyraCrcReport> CheckLyraLayoutCrcs(const uint8_t* image,
+                                                  size_t size);
+
+// Offline copy writer: returns a copy whose entry CRCs and descriptor CRC
+// match its data. Only those 4-byte CRC fields may differ from `image`, and
+// the copy must pass InspectLyraLayout. `before` receives the input report.
+// This is not a write admission; the caller writes the copy elsewhere.
+absl::StatusOr<std::vector<uint8_t>> RefreshLyraLayoutCrcs(
+    const std::vector<uint8_t>& image, LyraCrcReport* before = nullptr);
+
 // Checked, session-local reads from an already validated descriptor. The
 // descriptor owns table addresses; ordinary ROM settings are not consulted.
 std::optional<std::span<const uint8_t>> LyraLayoutRecord(

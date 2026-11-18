@@ -115,6 +115,11 @@ class ArgumentParser {
   std::optional<std::string> GetString(const std::string& name) const;
 
   /**
+   * @brief Every value of a repeatable named argument, in command-line order
+   */
+  std::vector<std::string> GetStrings(const std::string& name) const;
+
+  /**
    * @brief Parse an integer argument (supports hex with 0x prefix)
    */
   absl::StatusOr<int> GetInt(const std::string& name) const;

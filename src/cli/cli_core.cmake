@@ -93,6 +93,7 @@ set(YAZE_CLI_CORE_SOURCES
   cli/handlers/game/overworld_inspect.cc
   cli/handlers/game/overworld_tile_reference.cc
   cli/handlers/game/overworld_render_commands.cc
+  cli/handlers/game/overworld_copy_writer_commands.cc
   cli/handlers/game/overworld_sprite_edit_commands.cc
 
   cli/handlers/net/net_commands.cc

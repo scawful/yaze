@@ -21,6 +21,7 @@
 #include "cli/handlers/game/oracle_menu_commands.h"
 #include "cli/handlers/game/oracle_smoke_check_commands.h"
 #include "cli/handlers/game/overworld_commands.h"
+#include "cli/handlers/game/overworld_copy_writer_commands.h"
 #include "cli/handlers/game/overworld_graph_commands.h"
 #include "cli/handlers/game/overworld_render_commands.h"
 #include "cli/handlers/game/overworld_sprite_edit_commands.h"
@@ -223,6 +224,9 @@ CreateCliCommandHandlers() {
   handlers.push_back(std::make_unique<LyraInspectProjectCommandHandler>());
   handlers.push_back(
       std::make_unique<OverworldPlanNativeImportCommandHandler>());
+  handlers.push_back(std::make_unique<OverworldTile16RemapCommandHandler>());
+  handlers.push_back(std::make_unique<LyraCrcCheckCommandHandler>());
+  handlers.push_back(std::make_unique<LyraCrcRefreshCommandHandler>());
 
   // Overworld editing (dry-run by default; --write commits)
   handlers.push_back(std::make_unique<OverworldAddSpriteCommandHandler>());

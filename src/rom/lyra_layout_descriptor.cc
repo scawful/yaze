@@ -292,8 +292,11 @@ std::optional<EntrySpec> NativeSpec(uint16_t id, uint16_t capacity,
   return std::nullopt;
 }
 
+// crcs == nullptr is the strict validator. A CRC report run records stored
+// and computed CRCs instead of rejecting a mismatch; every other rule holds.
 LyraLayoutInspection InspectNativeLayout(const uint8_t* image, size_t size,
-                                         const uint8_t* d, uint16_t revision) {
+                                         const uint8_t* d, uint16_t revision,
+                                         LyraCrcReport* crcs) {
   const uint16_t capacity = U16(d + 0x0E);
   const uint16_t materialized = U16(d + 0x10);
   auto bad = [&](std::string error) {
@@ -325,10 +328,16 @@ LyraLayoutInspection InspectNativeLayout(const uint8_t* image, size_t size,
   std::array<uint8_t, kDescriptorSize> checked;
   std::copy_n(d, checked.size(), checked.begin());
   std::fill_n(checked.begin() + 0x1C, 4, 0);
-  if (Crc32(checked.data(), checked.size()) != U32(d + 0x1C) ||
+  const uint32_t descriptor_crc = Crc32(checked.data(), checked.size());
+  if ((crcs == nullptr && descriptor_crc != U32(d + 0x1C)) ||
       std::any_of(d + kUsedSize, d + kDescriptorSize,
                   [](uint8_t byte) { return byte != 0; })) {
     return bad("Native special-overworld descriptor CRC or padding invalid");
+  }
+  if (crcs != nullptr) {
+    crcs->revision = revision;
+    crcs->descriptor_stored = U32(d + 0x1C);
+    crcs->descriptor_computed = descriptor_crc;
   }
   LyraLayoutInspection result;
   result.presence = LyraLayoutPresence::kValid;
@@ -375,7 +384,11 @@ LyraLayoutInspection InspectNativeLayout(const uint8_t* image, size_t size,
         return bad("Native special-overworld directory overlap");
       }
     }
-    if (Crc32(image + e.pc_address, length) != e.crc32)
+    const uint32_t data_crc = Crc32(image + e.pc_address, length);
+    if (crcs != nullptr)
+      crcs->entries.push_back(
+          {i, e.id, e.pc_address, length, e.crc32, data_crc});
+    else if (data_crc != e.crc32)
       return bad("Native special-overworld data CRC mismatch");
     result.entries.push_back(e);
   }
@@ -703,7 +716,11 @@ absl::StatusOr<std::vector<uint8_t>> PlanNativePageTile16Initialization(
   return candidate;
 }
 
-LyraLayoutInspection InspectLyraLayout(const uint8_t* image, size_t size) {
+// crcs == nullptr is the strict validator behind InspectLyraLayout. A CRC
+// report run (CheckLyraLayoutCrcs) records CRCs instead of rejecting them.
+static LyraLayoutInspection InspectLyraLayoutImpl(const uint8_t* image,
+                                                  size_t size,
+                                                  LyraCrcReport* crcs) {
   LyraLayoutInspection absent;
   if (image == nullptr || size <= kDescriptorPc) {
     return absent;
@@ -777,7 +794,7 @@ LyraLayoutInspection InspectLyraLayout(const uint8_t* image, size_t size) {
   const uint16_t capacity = U16(d + 0x0E);
   const uint16_t active = U16(d + 0x10);
   if (revision == 3 || revision == 4 || revision == 5)
-    return InspectNativeLayout(image, size, d, revision);
+    return InspectNativeLayout(image, size, d, revision, crcs);
   auto bad = [&](std::string error) {
     return Invalid(std::move(error), revision, capacity, active);
   };
@@ -810,7 +827,12 @@ LyraLayoutInspection InspectLyraLayout(const uint8_t* image, size_t size) {
   std::array<uint8_t, kDescriptorSize> checked;
   std::copy_n(d, kDescriptorSize, checked.begin());
   std::fill_n(checked.begin() + 0x1C, 4, 0);
-  if (Crc32(checked.data(), checked.size()) != U32(d + 0x1C)) {
+  const uint32_t descriptor_crc = Crc32(checked.data(), checked.size());
+  if (crcs != nullptr) {
+    crcs->revision = revision;
+    crcs->descriptor_stored = U32(d + 0x1C);
+    crcs->descriptor_computed = descriptor_crc;
+  } else if (descriptor_crc != U32(d + 0x1C)) {
     return bad("Lyra descriptor CRC mismatch");
   }
   if (std::any_of(d + used_size, d + kDescriptorSize,
@@ -895,9 +917,15 @@ LyraLayoutInspection InspectLyraLayout(const uint8_t* image, size_t size) {
       result.entries[17].pc_address - result.entries[16].pc_address != 384) {
     return bad("Lyra sprite phase stride mismatch");
   }
-  for (const auto& e : result.entries) {
+  for (size_t i = 0; i < result.entries.size(); ++i) {
+    const auto& e = result.entries[i];
     const size_t length = static_cast<size_t>(e.count) * e.stride;
-    if (Crc32(image + e.pc_address, length) != e.crc32) {
+    const uint32_t data_crc = Crc32(image + e.pc_address, length);
+    if (crcs != nullptr) {
+      crcs->entries.push_back({i, e.id, e.pc_address,
+                               static_cast<uint32_t>(length), e.crc32,
+                               data_crc});
+    } else if (data_crc != e.crc32) {
       return bad("Lyra data CRC mismatch");
     }
   }
@@ -964,6 +992,10 @@ LyraLayoutInspection InspectLyraLayout(const uint8_t* image, size_t size) {
     }
   }
   return result;
+}
+
+LyraLayoutInspection InspectLyraLayout(const uint8_t* image, size_t size) {
+  return InspectLyraLayoutImpl(image, size, nullptr);
 }
 
 std::optional<std::span<const uint8_t>> LyraLayoutRecord(
@@ -1652,6 +1684,57 @@ NativeOverworldOwnedRanges(const LyraLayoutInspection& layout,
   add(kItemBegin, kItemEnd - kItemBegin);
   std::sort(ranges.begin(), ranges.end());
   return ranges;
+}
+
+absl::StatusOr<LyraCrcReport> CheckLyraLayoutCrcs(const uint8_t* image,
+                                                  size_t size) {
+  LyraCrcReport report;
+  const auto layout = InspectLyraLayoutImpl(image, size, &report);
+  if (layout.presence == LyraLayoutPresence::kAbsent)
+    return absl::NotFoundError("No OOSOW192 Lyra descriptor at PC 0x147000");
+  if (layout.presence != LyraLayoutPresence::kValid)
+    return absl::FailedPreconditionError(
+        "Lyra layout is invalid for a reason other than CRCs: " + layout.error);
+  if (report.entries.size() != layout.entries.size())
+    return absl::InternalError("Lyra CRC report does not cover every entry");
+  return report;
+}
+
+absl::StatusOr<std::vector<uint8_t>> RefreshLyraLayoutCrcs(
+    const std::vector<uint8_t>& image, LyraCrcReport* before) {
+  ASSIGN_OR_RETURN(auto report,
+                   CheckLyraLayoutCrcs(image.data(), image.size()));
+  auto staged = image;
+  const auto put32 = [&staged](size_t at, uint32_t value) {
+    for (int i = 0; i < 4; ++i)
+      staged[at + i] = static_cast<uint8_t>(value >> (i * 8));
+  };
+  for (const auto& entry : report.entries)
+    put32(kDescriptorPc + kHeaderSize + entry.index * kEntrySize + 12,
+          entry.computed);
+  put32(kDescriptorPc + 0x1C, 0);
+  put32(kDescriptorPc + 0x1C,
+        Crc32(staged.data() + kDescriptorPc, kDescriptorSize));
+  // Only the CRC fields are owned. No directory table covers the descriptor
+  // (native refuses it; legacy windows exclude it), so every other byte must
+  // still match the input.
+  const size_t rows_end =
+      kDescriptorPc + kHeaderSize + report.entries.size() * kEntrySize;
+  for (size_t pc = 0; pc < image.size(); ++pc) {
+    const bool crc_field =
+        (pc >= kDescriptorPc + 0x1C && pc < kDescriptorPc + 0x20) ||
+        (pc >= kDescriptorPc + kHeaderSize && pc < rows_end &&
+         (pc - kDescriptorPc - kHeaderSize) % kEntrySize >= 12);
+    if (!crc_field && staged[pc] != image[pc])
+      return absl::InternalError("Lyra CRC refresh changed a non-CRC byte");
+  }
+  const auto checked = InspectLyraLayout(staged.data(), staged.size());
+  if (checked.presence != LyraLayoutPresence::kValid)
+    return absl::InternalError("Lyra CRC refresh failed readback: " +
+                               checked.error);
+  if (before != nullptr)
+    *before = std::move(report);
+  return staged;
 }
 
 }  // namespace yaze::rom

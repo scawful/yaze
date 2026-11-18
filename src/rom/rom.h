@@ -61,7 +61,17 @@ class Rom {
     // the save. A new target has no previous bytes to protect. This implies
     // backup creation when `backup` is false.
     bool require_backup = false;
+    // After a save writes a backup, keep only the newest N `<target>_backup_*`
+    // files next to the target (by mtime). 0 keeps all; -1 uses
+    // Rom::DefaultBackupKeep(). A failed prune warns and never fails the save.
+    int backup_keep = -1;
   };
+
+  // Process default for SaveSettings::backup_keep (starts at 0 = keep all).
+  // z3ed sets it from Z3ED_BACKUP_KEEP; the editor uses RomFileManager's own
+  // retention for its backup folder.
+  static void SetDefaultBackupKeep(int keep);
+  static int DefaultBackupKeep();
 
   struct LoadOptions {
     // Detect a copier header (DetectCopierHeader) and keep it out of the ROM
