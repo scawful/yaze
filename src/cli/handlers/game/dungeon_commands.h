@@ -15,6 +15,11 @@ absl::Status WriteDungeonSpawnPointReport(Rom* rom, int spawn_id,
                                           resources::OutputFormatter& formatter,
                                           std::string_view object_title);
 
+// Loads the Oracle sprite registry named by --sprite-registry, if given, so
+// sprite names use project labels. No flag: returns OK and loads nothing.
+absl::Status LoadDungeonSpriteRegistryArg(
+    const resources::ArgumentParser& parser);
+
 /**
  * @brief Command handler for listing sprites in a dungeon room
  */

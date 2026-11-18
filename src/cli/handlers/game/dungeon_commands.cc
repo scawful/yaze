@@ -254,6 +254,11 @@ absl::Status MaybeLoadSpriteRegistry(const resources::ArgumentParser& parser) {
 
 }  // namespace
 
+absl::Status LoadDungeonSpriteRegistryArg(
+    const resources::ArgumentParser& parser) {
+  return MaybeLoadSpriteRegistry(parser);
+}
+
 absl::Status WriteDungeonSpawnPointReport(Rom* rom, int spawn_id,
                                           resources::OutputFormatter& formatter,
                                           std::string_view object_title) {
@@ -1303,7 +1308,13 @@ absl::Status DungeonRoomHeaderCommandHandler::Execute(
     formatter.BeginObject("decoded");
     formatter.AddField("bg2", (byte0 >> 5) & 0x07);
     formatter.AddField("collision", (byte0 >> 2) & 0x07);
+    // Header byte0 bit0 set means the room is DARK (needs the lamp).
+    formatter.AddField("is_dark", (byte0 & 0x01) != 0);
+    // Deprecated: same value as is_dark despite the name. Kept so existing
+    // consumers keep parsing; read is_dark instead.
     formatter.AddField("is_light", (byte0 & 0x01) == 1);
+    formatter.AddField("is_light_deprecated",
+                       "is_light is the dark bit; use is_dark");
     // This is the full 8-bit palette-set ID. Values 0x40-0x47 are valid;
     // masking to six bits silently aliases them to the wrong palette set.
     formatter.AddField("palette", byte1);

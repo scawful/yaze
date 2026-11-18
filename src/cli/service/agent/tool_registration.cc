@@ -5,11 +5,13 @@
 #include "cli/handlers/game/dungeon_collision_commands.h"
 #include "cli/handlers/game/dungeon_commands.h"
 #include "cli/handlers/game/dungeon_edit_commands.h"
+#include "cli/handlers/game/dungeon_find_commands.h"
 #include "cli/handlers/game/dungeon_tile_type_commands.h"
 #include "cli/handlers/game/message_commands.h"
 #include "cli/handlers/game/minecart_commands.h"
 #include "cli/handlers/game/music_commands.h"
 #include "cli/handlers/game/overworld_commands.h"
+#include "cli/handlers/game/progression_commands.h"
 #include "cli/handlers/graphics/sprite_commands.h"
 #include "cli/handlers/tools/test_helpers_commands.h"
 #include "cli/service/resources/command_context.h"
@@ -240,6 +242,60 @@ void RegisterBuiltinAgentTools(ToolRegistry& registry) {
                               "Debug room header bytes",
                               "dungeon-room-header --room=<id>", {}, true,
                               false, DungeonRoomHeaderCommandHandler)
+  RegisterBuiltinTool<DungeonFindCommandHandler>(
+      registry,
+      {"dungeon-find",
+       "dungeon",
+       "Search all rooms for sprites, key drops, chest/pot items, tags, dark "
+       "rooms or spritesets",
+       "dungeon-find",
+       {"dungeon-find --item=0x0C", "dungeon-find --dark",
+        "dungeon-find --key-drop", "dungeon-find --sprite=Eyegore"},
+       true,
+       false,
+       ToolAccess::kReadOnly,
+       {},
+       {"dark", "key-drop"}});
+  RegisterBuiltinTool<DungeonListEntrancesCommandHandler>(
+      registry,
+      {"dungeon-list-entrances",
+       "dungeon",
+       "List regular dungeon entrances with room, dungeon and exit IDs",
+       "dungeon-list-entrances",
+       {"dungeon-list-entrances", "dungeon-list-entrances --dungeon=0x04"},
+       true,
+       false,
+       ToolAccess::kReadOnly,
+       {},
+       {}});
+  RegisterBuiltinTool<DungeonKeyBalanceCommandHandler>(
+      registry,
+      {"dungeon-key-balance",
+       "dungeon",
+       "Count small/big key sources and sinks per dungeon; non-zero exit when "
+       "a dungeon is short of keys or lacks a big key",
+       "dungeon-key-balance",
+       {"dungeon-key-balance",
+        "dungeon-key-balance --project=<folder> "
+        "--dungeon=D1"},
+       true,
+       false,
+       ToolAccess::kReadOnly,
+       {},
+       {}});
+  RegisterBuiltinTool<ProgressionAuditCommandHandler>(
+      registry,
+      {"progression-audit",
+       "dungeon",
+       "Map room features to required items through a spec and check its "
+       "rules; non-zero exit on a failed rule",
+       "progression-audit --spec=<json>",
+       {"progression-audit --spec=expectations.json --project=<folder>"},
+       true,
+       false,
+       ToolAccess::kReadOnly,
+       {},
+       {"all-rooms"}});
   REGISTER_BUILTIN_AGENT_TOOL(
       "dungeon-get-palette", "dungeon",
       "Resolve a US/OOS room's shared dungeon palette and affected rooms",
