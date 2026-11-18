@@ -1,13 +1,17 @@
 #include "app/editor/overworld/tile16/tile16_edit_session.h"
 
 #include <chrono>
+#include <cmath>
 #include <filesystem>
 #include <string>
+#include <vector>
 
 #include "app/editor/graphics/usage_preview.h"
+#include "app/editor/overworld/canvas/overworld_canvas_renderer.h"
 #include "app/editor/overworld/overworld_undo_actions.h"
 #include "app/gfx/resource/arena.h"
 #include "gtest/gtest.h"
+#include "zelda3/common.h"
 #include "zelda3/overworld/tile16_metadata.h"
 
 namespace yaze::editor {
@@ -166,6 +170,115 @@ TEST_F(Tile16DocumentHistoryTest, FourDefinitionStampIsOneCompleteUndoStep) {
   ASSERT_TRUE(history_.Redo().ok());
   for (int id : {0, 1, 8, 9})
     ExpectDefinition(overworld_.tiles16()[id], after[id]);
+}
+
+TEST_F(Tile16DocumentHistoryTest, RangePasteIsOneCompleteUndoStep) {
+  auto* definitions = overworld_.mutable_tiles16();
+  for (int id = 1; id <= 4; ++id) {
+    (*definitions)[id] = initial_;
+    (*definitions)[id].tile0_.id_ = id + 16;
+    (*definitions)[id].tile2_.palette_ = 3;
+  }
+  const auto before = overworld_.tiles16();
+  ASSERT_TRUE(session_.CopyTile16RangeToClipboard(1, 4).ok());
+  EXPECT_EQ(history_.UndoStackSize(), 0u);
+  EXPECT_EQ(session_.range_clipboard().source_first, 1);
+  ASSERT_EQ(session_.range_clipboard().count(), 4);
+
+  ASSERT_TRUE(session_.PasteTile16RangeAt(0x100).ok());
+  EXPECT_EQ(history_.UndoStackSize(), 1u);
+  EXPECT_EQ(history_.GetUndoDescription(), "Paste 4 Tile16 definitions");
+  for (int i = 0; i < 4; ++i)
+    ExpectDefinition(overworld_.tiles16()[0x100 + i], before[1 + i]);
+  ASSERT_TRUE(history_.Undo().ok());
+  for (int i = 0; i < 4; ++i)
+    ExpectDefinition(overworld_.tiles16()[0x100 + i], before[0x100 + i]);
+  ASSERT_TRUE(history_.Redo().ok());
+  for (int i = 0; i < 4; ++i)
+    ExpectDefinition(overworld_.tiles16()[0x100 + i], before[1 + i]);
+}
+
+TEST_F(Tile16DocumentHistoryTest, RangePasteRejectsOverflowWithoutChanges) {
+  EXPECT_FALSE(session_.PasteTile16RangeAt(0x100).ok());  // Nothing copied.
+  ASSERT_TRUE(session_.CopyTile16RangeToClipboard(0, 4).ok());
+  const auto before = overworld_.tiles16();
+  const auto status =
+      session_.PasteTile16RangeAt(zelda3::kNumTile16Individual - 2);
+  EXPECT_EQ(status.code(), absl::StatusCode::kOutOfRange);
+  EXPECT_EQ(history_.UndoStackSize(), 0u);
+  for (int id = zelda3::kNumTile16Individual - 2;
+       id < zelda3::kNumTile16Individual; ++id)
+    ExpectDefinition(overworld_.tiles16()[id], before[id]);
+  EXPECT_FALSE(
+      session_.CopyTile16RangeToClipboard(zelda3::kNumTile16Individual - 1, 2)
+          .ok());
+}
+
+TEST(Tile16RangePasteBlockerTest, NeedsTileIdOrderRomMapAndRoom) {
+  EXPECT_EQ(Tile16RangePasteBlocker(4, 0x100, false, false), "");
+  EXPECT_NE(Tile16RangePasteBlocker(4, 0x100, true, false), "");
+  EXPECT_EQ(Tile16RangePasteBlocker(1, 0x100, true, false), "");
+  EXPECT_NE(Tile16RangePasteBlocker(4, 0x100, false, true), "");
+  EXPECT_NE(Tile16RangePasteBlocker(4, zelda3::kNumTile16Individual - 3, false,
+                                    false),
+            "");
+  EXPECT_EQ(Tile16RangePasteBlocker(4, zelda3::kNumTile16Individual - 4, false,
+                                    false),
+            "");
+  EXPECT_NE(Tile16RangePasteBlocker(4, -1, false, false), "");
+}
+
+TEST(AreaGraphicsSelectorTest, CellIndexIsTile8Id) {
+  const auto config = AreaGraphicsSelectorConfig();
+  EXPECT_EQ(config.tile_size, 8);
+  EXPECT_EQ(config.tiles_per_row, 16);
+  EXPECT_EQ(config.total_tiles, 1024);
+  // Tile8 $123 is drawn from pixel (3 * 8, 0x12 * 8) of the 128px sheet.
+  EXPECT_EQ(0x123 % config.tiles_per_row * config.tile_size, 24);
+  EXPECT_EQ(0x123 / config.tiles_per_row * config.tile_size, 0x12 * 8);
+}
+
+TEST(AreaGraphicsSelectorTest, FitAndFixedZoomsUseWholePixelCells) {
+  ImGuiContext* context = ImGui::CreateContext();
+  const auto config = AreaGraphicsSelectorConfig();
+  gui::TileSelectorWidget selector("AreaGraphicsSelectorTest", config);
+  const float chrome = gui::TileSelectorWidget::CurrentScrollbarSize() +
+                       2.0f * config.draw_offset.x;
+  for (const float width : {150.0f, 233.0f, 344.0f, 517.0f, 700.0f}) {
+    for (const auto mode :
+         {gui::AdaptiveSheetScaleMode::kFit, gui::AdaptiveSheetScaleMode::k1x,
+          gui::AdaptiveSheetScaleMode::k2x, gui::AdaptiveSheetScaleMode::k4x}) {
+      selector.SetDisplayScale(
+          gui::ResolveAdaptiveSheetLayout(width, 0x80, 0x200, mode, 0.25f, 4.0f,
+                                          chrome)
+              .display_scale);
+      const float cell = selector.TileCellSize();
+      EXPECT_FLOAT_EQ(cell, std::floor(cell)) << width;
+      const ImVec2 grid = selector.GetGridContentSize();
+      // Every one of the 64 rows is inside the scrollable content.
+      EXPECT_GE(grid.y, 64.0f * cell) << width;
+      if (mode == gui::AdaptiveSheetScaleMode::kFit) {
+        EXPECT_LE(grid.x + gui::TileSelectorWidget::CurrentScrollbarSize(),
+                  width)
+            << width;
+      }
+    }
+  }
+  ImGui::DestroyContext(context);
+}
+
+TEST(AreaGraphicsSelectorTest, CollisionLabelNeverInventsNormal) {
+  std::vector<uint8_t> types(zelda3::kNumTileTypes, 0);
+  types[0x1F] = 0x20;
+  EXPECT_EQ(Tile8CollisionLabel(0x1F, types), zelda3::TileTypeNames[0x20]);
+  EXPECT_EQ(Tile8CollisionLabel(0, types), zelda3::TileTypeNames[0]);
+  // No table (project terrain, unknown layout): no zero-filled "Normal".
+  EXPECT_EQ(Tile8CollisionLabel(0x1F, {}), "unavailable for this map/layout");
+  // Sprite-sheet rows ($200+) are outside the collision table.
+  EXPECT_EQ(Tile8CollisionLabel(0x200, types),
+            "unknown (Tile8 ID outside collision table)");
+  EXPECT_EQ(Tile8CollisionLabel(-1, types),
+            "unknown (Tile8 ID outside collision table)");
 }
 
 TEST_F(Tile16DocumentHistoryTest, LargeDefinitionImportIsOneCompleteUndoStep) {

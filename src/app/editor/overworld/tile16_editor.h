@@ -84,6 +84,15 @@ class Tile16Editor : public gfx::GfxContext {
   absl::Status PasteTile16FromClipboard() {
     return session_.PasteTile16FromClipboard();
   }
+  absl::Status CopyTile16RangeToClipboard(int first, int count) {
+    return session_.CopyTile16RangeToClipboard(first, count);
+  }
+  absl::Status PasteTile16RangeAt(int dest) {
+    return session_.PasteTile16RangeAt(dest);
+  }
+  const Tile16DefinitionClipboard& range_clipboard() const {
+    return session_.range_clipboard();
+  }
   absl::Status SaveTile16ToScratchSpace(int slot) {
     return session_.SaveTile16ToScratchSpace(slot);
   }

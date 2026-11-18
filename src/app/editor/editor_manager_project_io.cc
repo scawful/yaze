@@ -558,14 +558,14 @@ void EditorManager::AnnounceRememberedRomLoadChoice() {
 }
 
 void EditorManager::FinishRawRomOpen(bool remembered_load_options,
-                                     bool ask_for_load_options,
-                                     bool is_first_time_rom_path) {
+                                     bool ask_for_load_options) {
   status_bar_.ClearNotification();
   if (ask_for_load_options && ui_coordinator_) {
     // The dialog's confirm and cancel callbacks show the post-load surface.
-    // A path new to recent files leans toward creating a project.
+    // "Create associated project file" starts cleared on every open, so
+    // Continue writes nothing beside the ROM unless the user asks for it.
     ui_coordinator_->SetWelcomeScreenVisible(false);
-    rom_load_options_dialog_.Open(GetCurrentRom(), is_first_time_rom_path);
+    rom_load_options_dialog_.Open(GetCurrentRom(), false);
     show_rom_load_options_ = true;
     BindRomLoadOptionsToCurrentSession();
     return;
@@ -712,96 +712,88 @@ void EditorManager::SetupSidebarCallbacks() {
       });
 }
 
-absl::Status EditorManager::LoadRomInternal() {
-  auto load_from_path = [this](const std::string& file_name) -> absl::Status {
-    if (file_name.empty()) {
-      return absl::OkStatus();
-    }
-    if (ActivateExistingSessionForOpen(file_name)) {
-      return absl::OkStatus();
-    }
+absl::Status EditorManager::LoadRomFromPath(const std::string& file_name) {
+  if (file_name.empty()) {
+    return absl::OkStatus();
+  }
+  if (ActivateExistingSessionForOpen(file_name)) {
+    return absl::OkStatus();
+  }
 
-    // Check if this is a project file - route to project loading
-    if (absl::EndsWith(file_name, ".yaze") ||
-        absl::EndsWith(file_name, ".zsproj") ||
-        absl::EndsWith(file_name, ".yazeproj")) {
-      return OpenRomOrProjectInternal(file_name);
-    }
+  // Check if this is a project file - route to project loading
+  if (absl::EndsWith(file_name, ".yaze") ||
+      absl::EndsWith(file_name, ".zsproj") ||
+      absl::EndsWith(file_name, ".yazeproj")) {
+    return OpenRomOrProjectInternal(file_name);
+  }
 
-    auto path_status =
-        session_coordinator_->CheckBackingFileAvailable(file_name);
-    if (!path_status.ok()) {
-      toast_manager_.Show(std::string(path_status.message()),
-                          editor::ToastType::kWarning);
-      return path_status;
-    }
+  auto path_status = session_coordinator_->CheckBackingFileAvailable(file_name);
+  if (!path_status.ok()) {
+    toast_manager_.Show(std::string(path_status.message()),
+                        editor::ToastType::kWarning);
+    return path_status;
+  }
 
-    // Delegate ROM loading to RomFileManager
-    Rom temp_rom;
-    RETURN_IF_ERROR(rom_file_manager_.LoadRom(&temp_rom, file_name));
+  // Delegate ROM loading to RomFileManager
+  Rom temp_rom;
+  RETURN_IF_ERROR(LoadRawRomForOpen(file_name, &temp_rom));
 
-    const std::optional<size_t> previous_session_id =
-        active_project_context_session_id_;
-    const size_t previous_session_count =
-        session_coordinator_->GetTotalSessionCount();
-    auto session_or = session_coordinator_->CreateSessionFromRom(
-        std::move(temp_rom), file_name);
-    if (!session_or.ok()) {
-      return session_or.status();
-    }
+  const std::optional<size_t> previous_session_id =
+      active_project_context_session_id_;
+  const size_t previous_session_count =
+      session_coordinator_->GetTotalSessionCount();
+  auto session_or = session_coordinator_->CreateSessionFromRom(
+      std::move(temp_rom), file_name);
+  if (!session_or.ok()) {
+    return session_or.status();
+  }
 
-    ConfigureEditorDependencies(GetCurrentEditorSet(), GetCurrentRom(),
-                                GetCurrentSessionId());
-    RestoreCurrentRomIdentity();
+  ConfigureEditorDependencies(GetCurrentEditorSet(), GetCurrentRom(),
+                              GetCurrentSessionId());
+  RestoreCurrentRomIdentity();
 
-    // HandleSessionCreated binds the project context that governed this open.
-    // Reapply it here rather than partially clearing global runtime state.
-    ApplyCurrentProjectRuntimeContext();
-    CaptureActiveProjectContext();
-    // Remembered load options have to be live before assets load. Without a
-    // UI there is no dialog to skip, so headless opens keep neutral flags.
-    const bool remembered_load_options =
-        ui_coordinator_ != nullptr && ApplyRememberedRomLoadChoice();
+  // HandleSessionCreated binds the project context that governed this open.
+  // Reapply it here rather than partially clearing global runtime state.
+  ApplyCurrentProjectRuntimeContext();
+  CaptureActiveProjectContext();
+  // Remembered load options have to be live before assets load. Without a
+  // UI there is no dialog to skip, so headless opens keep neutral flags.
+  const bool remembered_load_options =
+      ui_coordinator_ != nullptr && ApplyRememberedRomLoadChoice();
 
-    // Keep ResourceLabelProvider in sync with the newly-active ROM session
-    // before any editors/assets query room/sprite names.
-    RefreshResourceLabelProvider();
+  // Keep ResourceLabelProvider in sync with the newly-active ROM session
+  // before any editors/assets query room/sprite names.
+  RefreshResourceLabelProvider();
 
 #ifdef YAZE_ENABLE_TESTING
-    test::TestManager::Get().SetCurrentRom(GetCurrentRom());
+  test::TestManager::Get().SetCurrentRom(GetCurrentRom());
 #endif
 
-    auto& manager = project::RecentFilesManager::GetInstance();
-    const auto& recent_files = manager.GetRecentFiles();
-    const bool is_first_time_rom_path =
-        std::find(recent_files.begin(), recent_files.end(), file_name) ==
-        recent_files.end();
-    auto asset_status = LoadAssetsForMode();
-    if (!asset_status.ok()) {
-      auto rollback_status =
-          DiscardProvisionalSessionCreatedSince(previous_session_count);
-      RestoreProjectContextAfterFailedOpen(previous_session_id);
-      if (!rollback_status.ok()) {
-        return absl::InternalError(
-            absl::StrFormat("%s; session rollback failed: %s",
-                            asset_status.message(), rollback_status.message()));
-      }
-      return asset_status;
+  auto asset_status = LoadAssetsForMode();
+  if (!asset_status.ok()) {
+    auto rollback_status =
+        DiscardProvisionalSessionCreatedSince(previous_session_count);
+    RestoreProjectContextAfterFailedOpen(previous_session_id);
+    if (!rollback_status.ok()) {
+      return absl::InternalError(
+          absl::StrFormat("%s; session rollback failed: %s",
+                          asset_status.message(), rollback_status.message()));
     }
+    return asset_status;
+  }
 
-    manager.AddFile(file_name);
-    manager.Save();
+  RecordRawRomOpen(file_name);
 
-    if (ui_coordinator_) {
-      FinishRawRomOpen(
-          remembered_load_options,
-          !remembered_load_options && !current_project_.project_opened(),
-          is_first_time_rom_path);
-    }
+  if (ui_coordinator_) {
+    FinishRawRomOpen(
+        remembered_load_options,
+        !remembered_load_options && !current_project_.project_opened());
+  }
 
-    return absl::OkStatus();
-  };
+  return absl::OkStatus();
+}
 
+absl::Status EditorManager::LoadRomInternal() {
 #if defined(__APPLE__) && TARGET_OS_IOS == 1
   // On iOS, route through the SwiftUI overlay document picker to get proper
   // security-scoped access to iCloud Drive and Files app locations. This
@@ -813,7 +805,7 @@ absl::Status EditorManager::LoadRomInternal() {
 #else
   auto file_name = util::FileDialogWrapper::ShowOpenFileDialog(
       util::MakeRomFileDialogOptions(false));
-  return load_from_path(file_name);
+  return LoadRomFromPath(file_name);
 #endif
 }
 

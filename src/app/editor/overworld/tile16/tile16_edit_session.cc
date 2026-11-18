@@ -648,6 +648,45 @@ absl::Status Tile16EditSession::PasteTile16FromClipboardImpl() {
   return absl::OkStatus();
 }
 
+absl::Status Tile16EditSession::CopyTile16RangeToClipboard(int first,
+                                                           int count) {
+  if (count <= 0 || first < 0 || first + count > kTile16Count) {
+    return absl::OutOfRangeError("Tile16 range is outside the document");
+  }
+  std::vector<gfx::Tile16> tiles;
+  tiles.reserve(count);
+  for (int id = first; id < first + count; ++id) {
+    if (id == current_tile16_) {
+      tiles.push_back(current_tile16_data_);
+    } else {
+      ASSIGN_OR_RETURN(auto tile, ReadDocumentTile(id));
+      tiles.push_back(std::move(tile));
+    }
+  }
+  range_clipboard_.source_first = first;
+  range_clipboard_.tiles = std::move(tiles);
+  return absl::OkStatus();
+}
+
+absl::Status Tile16EditSession::PasteTile16RangeAt(int dest) {
+  if (!range_clipboard_.has_data()) {
+    return absl::FailedPreconditionError("No Tile16 range copied");
+  }
+  const int count = range_clipboard_.count();
+  if (dest < 0 || dest + count > kTile16Count) {
+    return absl::OutOfRangeError(absl::StrFormat(
+        "Pasting %d Tile16 at $%03X runs past the last Tile16 ($%03X)", count,
+        dest, kTile16Count - 1));
+  }
+  std::vector<Tile16Commit> definitions;
+  definitions.reserve(count);
+  for (int i = 0; i < count; ++i) {
+    definitions.push_back({dest + i, range_clipboard_.tiles[i]});
+  }
+  return ImportDefinitions(
+      definitions, absl::StrFormat("Paste %d Tile16 definitions", count));
+}
+
 absl::Status Tile16EditSession::SaveTile16ToScratchSpace(int slot) {
   if (slot < 0 || slot >= kNumScratchSlots) {
     return absl::InvalidArgumentError("Invalid scratch space slot");

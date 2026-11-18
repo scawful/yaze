@@ -99,6 +99,14 @@ class ProjectManager {
       const std::string& project_path = std::string()) const;
 
   /**
+   * @brief The file FinalizeProjectCreation writes for a project whose ROM is
+   * rom_filename. An empty project_path puts the file beside the ROM.
+   */
+  static std::string ProjectCreationPathFor(const std::string& project_name,
+                                            const std::string& project_path,
+                                            const std::string& rom_filename);
+
+  /**
    * @brief Cancel pending project creation
    */
   void CancelPendingProject();
@@ -187,7 +195,7 @@ class ProjectManager {
   absl::Status SaveProjectToFile(const std::string& filename);
   std::string ResolveProjectCreationPath(const std::string& project_name,
                                          const std::string& project_path) const;
-  std::string GenerateProjectFilename(const std::string& project_name) const;
+  static std::string GenerateProjectFilename(const std::string& project_name);
   bool IsValidProjectFile(const std::string& filename) const;
   absl::Status InitializeProjectStructure(const std::string& project_path);
 

@@ -11,6 +11,7 @@
 #include "absl/strings/str_format.h"
 #include "absl/strings/str_split.h"
 #include "absl/strings/string_view.h"
+#include "app/editor/system/session/project_manager.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/style_guard.h"
 #include "app/gui/core/theme_manager.h"
@@ -414,6 +415,15 @@ void RomLoadOptionsDialog::DrawProjectOptions() {
     ImGui::TextColored(
         gui::GetTextSecondaryVec4(),
         tr("Project file stores settings, labels, and preferences."));
+    // Same resolution FinalizeNewProject uses for this ROM, so the path shown
+    // is the file Continue writes.
+    ImGui::PushTextWrapPos(0.0f);
+    ImGui::TextColored(
+        gui::GetTextSecondaryVec4(), tr("Writes %s"),
+        ProjectManager::ProjectCreationPathFor(
+            options_.project_name, options_.project_path, rom_filename_)
+            .c_str());
+    ImGui::PopTextWrapPos();
 
     ImGui::Unindent();
   }
@@ -427,6 +437,13 @@ void RomLoadOptionsDialog::DrawActionButtons() {
         tr("Skip this dialog the next time this file opens.\n"
            "Change it later with ROM Load Options… in the command palette.\n"
            "Forgotten when the ROM's ZSCustomOverworld version changes."));
+  }
+  if (options_.remember_for_rom) {
+    ImGui::PushTextWrapPos(0.0f);
+    ImGui::TextColored(
+        gui::GetTextSecondaryVec4(), "%s",
+        tr("Next open skips this dialog. Undo with ROM Load Options…"));
+    ImGui::PopTextWrapPos();
   }
   ImGui::Spacing();
 

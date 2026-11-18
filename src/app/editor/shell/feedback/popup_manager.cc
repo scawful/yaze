@@ -723,7 +723,8 @@ void PopupManager::DrawRomBackupManagerPopup() {
       }
       SameLine();
       if (Button(ICON_MD_OPEN_IN_NEW " Open")) {
-        auto status = editor_manager_->OpenRomOrProject(backup.path);
+        auto status = editor_manager_->OpenRomOrProject(
+            backup.path, EditorManager::LoadOptionsPrompt::kAskBackupCopy);
         if (!status.ok()) {
           if (auto* toast = editor_manager_->toast_manager()) {
             toast->Show(absl::StrFormat("Open failed: %s", status.message()),

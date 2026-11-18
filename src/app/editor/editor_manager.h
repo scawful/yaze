@@ -238,8 +238,9 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
   // User opens (Open ROM, recent files, the web drop zone, backups) show ROM
   // load options for a raw ROM with no remembered choice. Startup,
   // test-harness, and automation opens pass kNoPrompt: they still apply a
-  // remembered choice but never wait on the dialog.
-  enum class LoadOptionsPrompt { kAsk, kNoPrompt };
+  // remembered choice but never wait on the dialog. Backup copies pass
+  // kAskBackupCopy: they ask like kAsk but stay out of Recent Files.
+  enum class LoadOptionsPrompt { kAsk, kAskBackupCopy, kNoPrompt };
 
   struct ProjectOpenAttention {
     enum class Kind { kRomIdentityMismatch, kGraphicsSpecSha1Mismatch };
@@ -669,8 +670,8 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
   void AnnounceRememberedRomLoadChoice();
   // Ends a raw ROM open: shows the load options dialog when asked to, or the
   // post-load surface plus the remembered-choice toast.
-  void FinishRawRomOpen(bool remembered_load_options, bool ask_for_load_options,
-                        bool is_first_time_rom_path);
+  void FinishRawRomOpen(bool remembered_load_options,
+                        bool ask_for_load_options);
   struct RomLoadOptionsOwner {
     size_t session_id;
     std::string rom_key;
@@ -921,6 +922,15 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
   absl::Status OpenRomOrProjectInternal(
       const std::string& filename, bool allow_dialogs = true,
       LoadOptionsPrompt prompt = LoadOptionsPrompt::kAsk);
+  // File > Open ROM once the picker returns a path.
+  absl::Status LoadRomFromPath(const std::string& file_name);
+  // Shared by File > Open ROM and the raw branch of OpenRomOrProject.
+  // LoadRawRomForOpen reads the file and applies the project's open policy
+  // before the ROM can replace a session. RecordRawRomOpen moves an opened ROM
+  // to the top of Recent Files.
+  absl::Status LoadRawRomForOpen(const std::string& filename, Rom* rom);
+  void RecordRawRomOpen(const std::string& filename);
+  friend class EditorManagerOpenPathTestPeer;
   absl::Status OpenProjectInternal();
   absl::Status ValidateLyraTerrainProjectContext() const;
   absl::Status ValidateProjectRomSelection(const std::string& rom_path);
