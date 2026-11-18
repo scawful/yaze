@@ -348,6 +348,17 @@ void AgentConfigPanel::RenderModelConfigControls(AgentUIContext* context,
       entry.status_label = "Checking...";
       entry.tooltip = normalized_base;
     }
+#ifndef YAZE_AI_RUNTIME_AVAILABLE
+    // ai_http_client.cc is only built with YAZE_ENABLE_AI_RUNTIME.
+    (void)path;
+    {
+      std::lock_guard<std::mutex> lock(probe_state_->mutex);
+      auto& entry = probe_state_->statuses[provider_id];
+      entry.checking = false;
+      entry.status_label = "AI runtime off";
+      entry.tooltip = "This build has no AI runtime (YAZE_ENABLE_AI_RUNTIME)";
+    }
+#else
     std::thread([state = probe_state_, provider_id, normalized_base,
                  req_path = std::string(path)]() {
       auto resp_or = cli::PerformAiHttpRequest("GET", normalized_base, req_path,
@@ -371,6 +382,7 @@ void AgentConfigPanel::RenderModelConfigControls(AgentUIContext* context,
                               : absl::StrCat(normalized_base, ": ",
                                              resp_or.status().message()));
     }).detach();
+#endif
   };
 
   auto compute_row_status =
