@@ -320,12 +320,15 @@ TEST_F(EditorManagerSpriteLifecycleTest,
   std::filesystem::rename(project_path_, recovery);
   ASSERT_TRUE(std::filesystem::create_directory(project_path_));
   EXPECT_FALSE(editor_manager_->SaveProject().ok());
-  EXPECT_EQ(SavedFrameCount(sprite_path_), 2);
+  EXPECT_TRUE(editor_manager_->has_pending_descriptor_save_conflict());
+  EXPECT_EQ(SavedFrameCount(sprite_path_), 1);
   EXPECT_TRUE(sprite_->HasPendingSpriteChanges());
   EXPECT_TRUE(EditorManagerLayoutTestPeer::HasPendingWork(*editor_manager_));
+  editor_manager_->CancelDescriptorConflict();
   ASSERT_TRUE(std::filesystem::remove(project_path_));
   std::filesystem::rename(recovery, project_path_);
   ASSERT_TRUE(editor_manager_->SaveProject().ok());
+  EXPECT_EQ(SavedFrameCount(sprite_path_), 2);
   EXPECT_FALSE(sprite_->HasPendingSpriteChanges());
   EXPECT_FALSE(EditorManagerLayoutTestPeer::HasPendingWork(*editor_manager_));
 }
