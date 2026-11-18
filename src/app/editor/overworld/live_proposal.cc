@@ -15,6 +15,7 @@
 #include "absl/strings/ascii.h"
 #include "absl/strings/match.h"
 #include "absl/strings/str_format.h"
+#include "absl/strings/string_view.h"
 #include "core/source_artifact_publisher.h"
 #include "nlohmann/json.hpp"
 #include "util/indexed_png.h"
@@ -69,7 +70,8 @@ bool ValidAttachmentPath(std::string_view path) {
   if (path.empty() || path.size() > 255 ||
       path.find('\\') != std::string_view::npos ||
       path.find('\0') != std::string_view::npos ||
-      !absl::EndsWithIgnoreCase(path, ".png"))
+      !absl::EndsWithIgnoreCase(absl::string_view(path.data(), path.size()),
+                                ".png"))
     return false;
   const std::filesystem::path parsed{std::string(path)};
   if (parsed.is_absolute() || parsed.has_root_name() ||

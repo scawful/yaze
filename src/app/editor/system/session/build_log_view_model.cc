@@ -7,6 +7,7 @@
 #include "absl/strings/ascii.h"
 #include "absl/strings/match.h"
 #include "absl/strings/str_split.h"
+#include "absl/strings/string_view.h"
 
 #if defined(YAZE_WITH_JSON)
 #include "nlohmann/json.hpp"
@@ -16,18 +17,18 @@ namespace yaze::editor {
 
 namespace {
 
-constexpr std::string_view kReceiptPrefix = "Build receipt:";
+constexpr absl::string_view kReceiptPrefix = "Build receipt:";
 
-bool StartsWithNoCase(std::string_view text, std::string_view prefix) {
+bool StartsWithNoCase(absl::string_view text, absl::string_view prefix) {
   return text.size() >= prefix.size() &&
          absl::EqualsIgnoreCase(text.substr(0, prefix.size()), prefix);
 }
 
 // Accepts "path:line" and "path:line:col". The path may itself contain colons
 // (Windows drive letters), so only the trailing numeric segment is required.
-bool HasLineSuffix(std::string_view location) {
+bool HasLineSuffix(absl::string_view location) {
   const size_t colon = location.rfind(':');
-  if (colon == std::string_view::npos || colon == 0 ||
+  if (colon == absl::string_view::npos || colon == 0 ||
       colon + 1 == location.size()) {
     return false;
   }
@@ -37,56 +38,58 @@ bool HasLineSuffix(std::string_view location) {
 }
 
 // "file:line: warning: message" or "file:line:col: error: message".
-bool ParseDiagnostic(std::string_view line, BuildLogLine* out) {
+bool ParseDiagnostic(absl::string_view line, BuildLogLine* out) {
   for (const auto& [marker, severity] :
-       {std::pair{std::string_view(": warning:"), BuildLogSeverity::kWarning},
-        std::pair{std::string_view(": error:"), BuildLogSeverity::kError},
-        std::pair{std::string_view(": fatal error:"),
+       {std::pair{absl::string_view(": warning:"), BuildLogSeverity::kWarning},
+        std::pair{absl::string_view(": error:"), BuildLogSeverity::kError},
+        std::pair{absl::string_view(": fatal error:"),
                   BuildLogSeverity::kError}}) {
     const size_t at = line.find(marker);
-    if (at == std::string_view::npos || at == 0) {
+    if (at == absl::string_view::npos || at == 0) {
       continue;
     }
-    const std::string_view location = line.substr(0, at);
+    const absl::string_view location = line.substr(0, at);
     if (!HasLineSuffix(location)) {
       continue;
     }
     out->severity = severity;
-    out->location = std::string(location);
-    out->text = std::string(
-        absl::StripAsciiWhitespace(line.substr(at + marker.size())));
+    out->location = std::string(location.data(), location.size());
+    const absl::string_view stripped =
+        absl::StripAsciiWhitespace(line.substr(at + marker.size()));
+    out->text = std::string(stripped.data(), stripped.size());
     return true;
   }
   return false;
 }
 
 // "---  Name  ---" section banners.
-bool ParseSection(std::string_view line, std::string* title) {
+bool ParseSection(absl::string_view line, std::string* title) {
   if (!absl::StartsWith(line, "---") || !absl::EndsWith(line, "---") ||
       line.size() <= 6) {
     return false;
   }
-  const auto inner =
+  const absl::string_view inner =
       absl::StripAsciiWhitespace(line.substr(3, line.size() - 6));
-  if (inner.empty() || inner.find("---") != std::string_view::npos) {
+  if (inner.empty() || inner.find("---") != absl::string_view::npos) {
     return false;
   }
-  *title = std::string(inner);
+  *title = std::string(inner.data(), inner.size());
   return true;
 }
 
-BuildLogLine Classify(std::string_view line) {
+BuildLogLine Classify(absl::string_view line) {
   BuildLogLine result;
   if (ParseDiagnostic(line, &result)) {
     return result;
   }
-  const auto tagged = [&](std::string_view tag, BuildLogSeverity severity) {
+  const auto tagged = [&](absl::string_view tag, BuildLogSeverity severity) {
     if (!absl::StartsWith(line, tag)) {
       return false;
     }
     result.severity = severity;
-    result.text =
-        std::string(absl::StripAsciiWhitespace(line.substr(tag.size())));
+    const absl::string_view stripped =
+        absl::StripAsciiWhitespace(line.substr(tag.size()));
+    result.text = std::string(stripped.data(), stripped.size());
     return true;
   };
   if (tagged("[+]", BuildLogSeverity::kSuccess) ||
@@ -94,7 +97,7 @@ BuildLogLine Classify(std::string_view line) {
       tagged("[!]", BuildLogSeverity::kError)) {
     return result;
   }
-  result.text = std::string(line);
+  result.text = std::string(line.data(), line.size());
   if (StartsWithNoCase(line, "error:") || StartsWithNoCase(line, "error ") ||
       StartsWithNoCase(line, "fatal:")) {
     result.severity = BuildLogSeverity::kError;
@@ -114,20 +117,24 @@ BuildLogSummary ParseBuildLog(std::string_view log) {
     }
     return summary.steps.back();
   };
-  for (std::string_view raw : absl::StrSplit(log, '\n')) {
-    const std::string_view line = absl::StripTrailingAsciiWhitespace(raw);
+  const absl::string_view log_view(log.data(), log.size());
+  for (absl::string_view raw : absl::StrSplit(log_view, '\n')) {
+    const absl::string_view line = absl::StripTrailingAsciiWhitespace(raw);
     if (absl::StripAsciiWhitespace(line).empty()) {
       continue;
     }
     if (absl::StartsWith(line, kReceiptPrefix)) {
-      summary.receipt_path = std::string(
-          absl::StripAsciiWhitespace(line.substr(kReceiptPrefix.size())));
+      const absl::string_view receipt =
+          absl::StripAsciiWhitespace(line.substr(kReceiptPrefix.size()));
+      summary.receipt_path = std::string(receipt.data(), receipt.size());
       continue;
     }
     std::string section;
     if (absl::StartsWith(line, "[*]")) {
-      summary.steps.push_back(BuildLogStep{
-          .title = std::string(absl::StripAsciiWhitespace(line.substr(3)))});
+      const absl::string_view title =
+          absl::StripAsciiWhitespace(line.substr(3));
+      summary.steps.push_back(
+          BuildLogStep{.title = std::string(title.data(), title.size())});
       continue;
     }
     if (ParseSection(line, &section)) {
