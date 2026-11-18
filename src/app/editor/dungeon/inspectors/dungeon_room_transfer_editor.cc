@@ -59,7 +59,25 @@ void PreviewReplacement(DungeonCanvasViewer& viewer,
   }
 }
 
-void DrawCounts(const DungeonRoomTransferPlan& plan) {
+// The target or ROM changing starts a fresh form; an open popup survives.
+void SyncTransferTarget(DungeonCanvasViewer& viewer) {
+  auto& state = viewer.room_transfer_state();
+  const int target = viewer.current_room_id();
+  if (state.room_id == target && state.rom == viewer.rom())
+    return;
+  const int popup_room = state.popup_room_id;
+  const bool popup_open = state.popup_open;
+  state = {};
+  state.room_id = target;
+  state.rom = viewer.rom();
+  state.source_room_id = target == 0 ? 1 : 0;
+  state.popup_room_id = popup_room;
+  state.popup_open = popup_open;
+}
+
+}  // namespace
+
+void DrawDungeonRoomTransferCounts(const DungeonRoomTransferPlan& plan) {
   const auto& before = plan.before.contents;
   const auto& after = plan.after.contents;
   auto count = [&](const char* label, uint16_t bit, size_t old_count,
@@ -94,7 +112,48 @@ void DrawCounts(const DungeonRoomTransferPlan& plan) {
   }
 }
 
-}  // namespace
+bool DrawDungeonRoomTransferDomainChoices(uint16_t* domains,
+                                          bool* copy_destinations) {
+  bool changed = false;
+  ImGui::TextUnformatted("Replace these domains");
+  for (const auto& domain : kDomains) {
+    bool enabled = (*domains & domain.bit) != 0;
+    if (ImGui::Checkbox(domain.label, &enabled)) {
+      if (enabled) {
+        *domains |= domain.bit;
+      } else {
+        *domains &= ~domain.bit;
+      }
+      if ((*domains & kTransferMetadata) == 0) {
+        *copy_destinations = false;
+      }
+      changed = true;
+    }
+    gui::AutoRegisterLastItem("checkbox", domain.widget);
+  }
+  ImGui::BeginDisabled((*domains & kTransferMetadata) == 0);
+  if (ImGui::Checkbox("Copy destination links", copy_destinations)) {
+    changed = true;
+  }
+  gui::AutoRegisterLastItem("checkbox", "TransferDestinations");
+  ImGui::EndDisabled();
+  return changed;
+}
+
+void RequestDungeonRoomTransferPopup(DungeonCanvasViewer& viewer,
+                                     int source_room_id) {
+  SyncTransferTarget(viewer);
+  auto& state = viewer.room_transfer_state();
+  const int target = viewer.current_room_id();
+  if (source_room_id >= 0 && source_room_id < zelda3::kNumberOfRooms &&
+      source_room_id != target) {
+    InvalidatePreview(state);
+    state.import_json = false;
+    state.source_room_id = source_room_id;
+  }
+  state.popup_room_id = target;
+  state.request_popup = true;
+}
 
 void LoadDungeonRoomTransferFile(DungeonRoomTransferEditorState& state,
                                  const std::string& path) {
@@ -113,18 +172,9 @@ void LoadDungeonRoomTransferFile(DungeonRoomTransferEditorState& state,
 }
 
 void DrawDungeonRoomTransferEditor(DungeonCanvasViewer& viewer) {
+  SyncTransferTarget(viewer);
   auto& state = viewer.room_transfer_state();
   const int target = viewer.current_room_id();
-  if (state.room_id != target || state.rom != viewer.rom()) {
-    const int popup_room = state.popup_room_id;
-    const bool popup_open = state.popup_open;
-    state = {};
-    state.room_id = target;
-    state.rom = viewer.rom();
-    state.source_room_id = target == 0 ? 1 : 0;
-    state.popup_room_id = popup_room;
-    state.popup_open = popup_open;
-  }
   gui::AutoWidgetScope scope("Dungeon/RoomTransfer");
   ImGui::PushID("DungeonRoomTransfer");
   ImGui::PushID(&viewer);
@@ -226,28 +276,10 @@ void DrawDungeonRoomTransferEditor(DungeonCanvasViewer& viewer) {
     gui::AutoRegisterLastItem("input_int", "TransferSource");
   }
 
-  ImGui::TextUnformatted("Replace these domains");
-  for (const auto& domain : kDomains) {
-    bool enabled = (state.domains & domain.bit) != 0;
-    if (ImGui::Checkbox(domain.label, &enabled)) {
-      if (enabled) {
-        state.domains |= domain.bit;
-      } else {
-        state.domains &= ~domain.bit;
-      }
-      if ((state.domains & kTransferMetadata) == 0) {
-        state.copy_destinations = false;
-      }
-      InvalidatePreview(state);
-    }
-    gui::AutoRegisterLastItem("checkbox", domain.widget);
-  }
-  ImGui::BeginDisabled((state.domains & kTransferMetadata) == 0);
-  if (ImGui::Checkbox("Copy destination links", &state.copy_destinations)) {
+  if (DrawDungeonRoomTransferDomainChoices(&state.domains,
+                                           &state.copy_destinations)) {
     InvalidatePreview(state);
   }
-  gui::AutoRegisterLastItem("checkbox", "TransferDestinations");
-  ImGui::EndDisabled();
   ImGui::TextWrapped(
       "Destinations are preserved by default. Copied links may need changes "
       "for the new room.");
@@ -268,7 +300,7 @@ void DrawDungeonRoomTransferEditor(DungeonCanvasViewer& viewer) {
   if (state.preview) {
     ImGui::Separator();
     ImGui::TextWrapped("Preview for room %03X", state.preview->target_room_id);
-    DrawCounts(*state.preview);
+    DrawDungeonRoomTransferCounts(*state.preview);
     if (!state.preview->changed()) {
       ImGui::TextWrapped("Selected contents already match.");
     }

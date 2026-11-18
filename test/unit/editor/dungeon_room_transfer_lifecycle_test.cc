@@ -757,6 +757,124 @@ TEST_P(
   EXPECT_EQ(source.water_fill_sram_bit_mask(), 0x01);
 }
 
+TEST_P(DungeonRoomTransferLifecycleTest,
+       CoreSwapExchangesBothRoomsInOneUndoAction) {
+  const auto room0 = CaptureDungeonRoomDocument(Source());
+  const auto room1 = CaptureDungeonRoomDocument(Target());
+  const auto bytes = rom_.vector();
+  const auto plan = editor_->PreviewRoomSwap(0, 1, {});
+  ASSERT_TRUE(plan.ok()) << plan.status();
+  EXPECT_TRUE(plan->changed());
+  EXPECT_EQ(plan->first.target_room_id, 0);
+  EXPECT_EQ(plan->second.target_room_id, 1);
+  ExpectDocument(Source(), room0);
+  ExpectDocument(Target(), room1);
+  EXPECT_EQ(rom_.vector(), bytes);
+  EXPECT_EQ(UndoDepth(), 0u);
+
+  ASSERT_TRUE(editor_->ApplyRoomSwap(*plan).ok());
+  ExpectDocument(Source(), plan->first.after);
+  ExpectDocument(Target(), plan->second.after);
+  EXPECT_EQ(UndoDepth(), 1u);
+  EXPECT_EQ(Source().GetTileObjects().front().id_, 2);
+  EXPECT_EQ(Target().GetTileObjects().front().id_, 1);
+  EXPECT_EQ(Source().message_id(), room1.metadata.message);
+  EXPECT_EQ(Target().message_id(), room0.metadata.message);
+  // Destinations are opt-in and stay with each room ID by default.
+  EXPECT_EQ(Source().holewarp(), room0.metadata.holewarp);
+  EXPECT_EQ(Target().holewarp(), room1.metadata.holewarp);
+  EXPECT_EQ(rom_.vector(), bytes);
+
+  ASSERT_TRUE(editor_->Undo().ok());
+  ExpectDocument(Source(), room0);
+  ExpectDocument(Target(), room1);
+  ASSERT_TRUE(editor_->Redo().ok());
+  ExpectDocument(Source(), plan->first.after);
+  ExpectDocument(Target(), plan->second.after);
+}
+
+TEST_P(DungeonRoomTransferLifecycleTest,
+       SwapSaveReloadPersistsBothRoomsAndLeavesOthers) {
+  const auto room0 = CaptureDungeonRoomDocument(Source());
+  const auto room1 = CaptureDungeonRoomDocument(Target());
+  const auto other = CaptureDungeonRoomDocument(editor_->rooms()[2]);
+  const auto plan = editor_->PreviewRoomSwap(0, 1, {});
+  ASSERT_TRUE(plan.ok()) << plan.status();
+  ASSERT_TRUE(editor_->ApplyRoomSwap(*plan).ok());
+  // Both rooms carry chest edits, which must be saved together.
+  const auto save = [&] {
+    const auto status = editor_->Save();
+    EXPECT_TRUE(status.ok()) << status;
+  };
+  const auto reload = [&](int id) {
+    auto reloaded = zelda3::LoadRoomFromRom(&rom_, id);
+    reloaded.LoadSprites();
+    return reloaded;
+  };
+  save();
+  ExpectDocument(reload(0), plan->first.after, true);
+  ExpectDocument(reload(1), plan->second.after, true);
+  ExpectDocument(reload(2), other, true);
+
+  ASSERT_TRUE(editor_->Undo().ok());
+  save();
+  ExpectDocument(reload(0), room0, true);
+  ExpectDocument(reload(1), room1, true);
+}
+
+TEST_P(DungeonRoomTransferLifecycleTest,
+       StaleSwapRejectsWithoutChangingEitherRoom) {
+  const auto plan = editor_->PreviewRoomSwap(0, 1, {});
+  ASSERT_TRUE(plan.ok()) << plan.status();
+  Source().GetTileObjects()[0].x_ += 1;
+  ExpectRejectedWithoutChanges([&] { return editor_->ApplyRoomSwap(*plan); });
+  Source().GetTileObjects()[0].x_ -= 1;
+  Target().GetSprites()[0].set_layer(0);
+  ExpectRejectedWithoutChanges([&] { return editor_->ApplyRoomSwap(*plan); });
+  Target().GetSprites()[0].set_layer(1);
+  auto mismatched = *plan;
+  mismatched.second = mismatched.first;
+  ExpectRejectedWithoutChanges(
+      [&] { return editor_->ApplyRoomSwap(mismatched); });
+  ExpectRejectedWithoutChanges(
+      [&] { return editor_->PreviewRoomSwap(1, 1, {}).status(); });
+}
+
+TEST_P(DungeonRoomTransferLifecycleTest,
+       WaterSwapExchangesZonesButKeepsEachRoomsSaveBit) {
+  ASSERT_TRUE(
+      zelda3::WriteWaterFillTable(
+          &rom_, {{1, 0x02, {10}}, {2, 0x01, {131, 263}}, {8, 0x04, {99}}})
+          .ok());
+  core::FeatureFlags::get().dungeon.kSaveWaterFillZones = true;
+  const auto bytes = rom_.vector();
+  const auto plan = editor_->PreviewRoomSwap(1, 2, {kTransferWater});
+  ASSERT_TRUE(plan.ok()) << plan.status();
+  EXPECT_EQ(plan->first.after.water.sram_bit_mask, 0x02);
+  EXPECT_EQ(plan->second.after.water.sram_bit_mask, 0x01);
+  EXPECT_EQ(rom_.vector(), bytes);
+  ASSERT_TRUE(editor_->ApplyRoomSwap(*plan).ok());
+  ASSERT_TRUE(editor_->SaveRoom(1).ok());
+  ASSERT_TRUE(editor_->SaveRoom(2).ok());
+  const auto zones = zelda3::LoadWaterFillTable(&rom_);
+  ASSERT_TRUE(zones.ok()) << zones.status();
+  ASSERT_EQ(zones->size(), 3u);
+  for (const auto& zone : *zones) {
+    SCOPED_TRACE(zone.room_id);
+    if (zone.room_id == 1) {
+      EXPECT_EQ(zone.sram_bit_mask, 0x02);
+      EXPECT_EQ(zone.fill_offsets, (std::vector<uint16_t>{131, 263}));
+    } else if (zone.room_id == 2) {
+      EXPECT_EQ(zone.sram_bit_mask, 0x01);
+      EXPECT_EQ(zone.fill_offsets, (std::vector<uint16_t>{10}));
+    } else {
+      EXPECT_EQ(zone.room_id, 8);
+      EXPECT_EQ(zone.sram_bit_mask, 0x04);
+      EXPECT_EQ(zone.fill_offsets, (std::vector<uint16_t>{99}));
+    }
+  }
+}
+
 INSTANTIATE_TEST_SUITE_P(ViewerModes, DungeonRoomTransferLifecycleTest,
                          ::testing::Bool(), [](const auto& param) {
                            return param.param ? "Workbench" : "Standalone";
