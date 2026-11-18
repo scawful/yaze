@@ -154,7 +154,7 @@ TEST(Tile16CharRemapTest, RangeOverlapAndBadRulesLeaveTheImageUnchanged) {
   EXPECT_FALSE(handlers::ParseTile16Range("1-2-3", 4096).ok());
 }
 
-TEST(ArgumentParserTest, GetStringsReturnsEveryRepeatedValueInOrder) {
+TEST(ArgumentParserRepeatTest, GetStringsReturnsEveryRepeatedValueInOrder) {
   resources::ArgumentParser parser(
       {"--map=7:1C0=1E4", "--tiles", "0-F", "--map", "7:1C2=1B4"});
   EXPECT_EQ(parser.GetStrings("map"),
