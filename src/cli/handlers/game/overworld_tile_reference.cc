@@ -1,12 +1,13 @@
 #include "cli/handlers/game/overworld_tile_reference.h"
 
+#include <cctype>
 #include <climits>
 #include <fstream>
 
 #include "absl/strings/ascii.h"
 #include "absl/strings/match.h"
-#include "absl/strings/numbers.h"
 #include "absl/strings/str_format.h"
+#include "absl/strings/string_view.h"
 #include "app/gfx/types/snes_tile.h"
 #include "nlohmann/json.hpp"
 #include "rom/lyra_layout_descriptor.h"
@@ -20,13 +21,15 @@ namespace cli {
 namespace overworld {
 namespace {
 
-absl::StatusOr<uint16_t> ParseHexU16(std::string_view text) {
-  std::string cleaned(absl::StripAsciiWhitespace(text));
+absl::StatusOr<uint16_t> ParseHexU16(absl::string_view text) {
+  absl::string_view cleaned = absl::StripAsciiWhitespace(text);
   if (absl::StartsWithIgnoreCase(cleaned, "0x"))
-    cleaned = cleaned.substr(2);
+    cleaned.remove_prefix(2);
   uint32_t value = 0;
-  if (cleaned.empty() || !absl::SimpleHexAtoi(cleaned, &value) ||
-      value > 0xFFFF) {
+  if (cleaned.empty() || cleaned.front() == '$' ||
+      absl::StartsWithIgnoreCase(cleaned, "0x") ||
+      std::isspace(static_cast<unsigned char>(cleaned.front())) ||
+      !yaze::util::ParseHexString(cleaned, &value) || value > 0xFFFF) {
     return absl::InvalidArgumentError(
         absl::StrFormat("Invalid hex u16: %s", text));
   }
@@ -87,8 +90,8 @@ absl::StatusOr<TileReferenceRuleCell> ParseCell(const nlohmann::json& cell) {
   return out;
 }
 
-absl::StatusOr<TileReferenceStatus> ParseStatus(std::string_view text) {
-  const std::string value = absl::AsciiStrToLower(std::string(text));
+absl::StatusOr<TileReferenceStatus> ParseStatus(absl::string_view text) {
+  const std::string value = absl::AsciiStrToLower(text);
   if (value == "observed")
     return TileReferenceStatus::kObserved;
   if (value == "verified_valid" ||
