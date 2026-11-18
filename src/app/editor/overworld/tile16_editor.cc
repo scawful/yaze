@@ -335,5 +335,19 @@ absl::Status Tile16Editor::LoadLayoutFromScratch(int slot) {
   return absl::OkStatus();
 }
 
+absl::Status Tile16Editor::Undo() {
+  const std::string step = session_.UndoDescription();
+  RETURN_IF_ERROR(session_.Undo());
+  last_history_message_ = absl::StrFormat("Undid: %s", step);
+  return absl::OkStatus();
+}
+
+absl::Status Tile16Editor::Redo() {
+  const std::string step = session_.RedoDescription();
+  RETURN_IF_ERROR(session_.Redo());
+  last_history_message_ = absl::StrFormat("Redid: %s", step);
+  return absl::OkStatus();
+}
+
 }  // namespace editor
 }  // namespace yaze

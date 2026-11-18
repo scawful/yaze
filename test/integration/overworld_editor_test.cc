@@ -2,6 +2,8 @@
 
 #include <vector>
 
+#include "app/editor/overworld/canvas/overworld_context_target.h"
+
 namespace yaze {
 namespace test {
 
@@ -431,6 +433,63 @@ TEST_F(OverworldEditorTest, SelectingNonItemEntityClearsItemSelectionState) {
   EXPECT_FALSE(overworld_editor_->selected_item_identity().has_value());
   EXPECT_EQ(overworld_editor_->GetSelectedItem(), nullptr);
   EXPECT_FALSE(overworld_editor_->DeleteSelectedItem());
+}
+
+TEST_F(OverworldEditorTest, EveryTile16SelectionPathSyncsEditorAndPreview) {
+  auto& tile16_editor = overworld_editor_->tile16_editor();
+  auto expect_selected = [&](int tile_id) {
+    SCOPED_TRACE(testing::Message() << "Tile16 " << tile_id);
+    EXPECT_EQ(overworld_editor_->current_tile16_id(), tile_id);
+    EXPECT_EQ(tile16_editor.current_tile16(), tile_id);
+    ExpectTile16Equals(tile16_editor.current_tile16_data(),
+                       overworld_editor_->overworld().tiles16()[tile_id]);
+  };
+
+  overworld_editor_->RequestTile16Selection(30);
+  expect_selected(30);
+
+  overworld_editor_->CycleTileSelection(1);
+  expect_selected(31);
+  overworld_editor_->CycleTileSelection(-2);
+  expect_selected(29);
+
+  tile16_editor.RequestTileSwitch(50);
+  expect_selected(50);
+
+  window_manager_->RegisterWindow(window_manager_->GetActiveSessionId(),
+                                  editor::OverworldPanelIds::kTile16Editor,
+                                  "Tile16 Editor", "", "Overworld");
+  editor::OverworldContextTarget target;
+  target.map_id = 0;
+  target.parent_map_id =
+      overworld_editor_->overworld().overworld_map(0)->parent();
+  target.world = 0;
+  target.world_position = ImVec2(128.0f, 128.0f);
+  target.tile16_id = 40;
+  ASSERT_TRUE(target.valid());
+  overworld_editor_->HandleTile16Edit(target);
+  expect_selected(40);
+  EXPECT_TRUE(
+      window_manager_->IsWindowOpen(window_manager_->GetActiveSessionId(),
+                                    editor::OverworldPanelIds::kTile16Editor));
+}
+
+TEST_F(OverworldEditorTest, Tile16UndoRedoReportsTheStepItReverted) {
+  constexpr int kTile = 21;
+  auto& tile16_editor = overworld_editor_->tile16_editor();
+  overworld_editor_->RequestTile16Selection(kTile);
+  ASSERT_TRUE(
+      tile16_editor
+          .ApplyPaletteToQuadrant(
+              /*quadrant=*/0,
+              static_cast<uint8_t>((tile16_editor.current_palette() + 1) % 8))
+          .ok());
+  EXPECT_TRUE(tile16_editor.last_history_message().empty());
+
+  ASSERT_TRUE(tile16_editor.Undo().ok());
+  EXPECT_EQ(tile16_editor.last_history_message(), "Undid: Edit Tile16 0x015");
+  ASSERT_TRUE(tile16_editor.Redo().ok());
+  EXPECT_EQ(tile16_editor.last_history_message(), "Redid: Edit Tile16 0x015");
 }
 
 }  // namespace test

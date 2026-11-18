@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <set>
 
+#include "absl/strings/str_format.h"
 #include "app/editor/core/undo_action.h"
 #include "app/gfx/resource/arena.h"
 #include "util/macro.h"
@@ -47,7 +48,9 @@ class Tile16DefinitionEditAction final : public UndoAction {
   std::string Description() const override {
     if (!description_.empty())
       return description_;
-    return before_.size() == 1 ? "Edit Tile16 definition" : "Edit Tile16 stamp";
+    if (before_.size() == 1)
+      return absl::StrFormat("Edit Tile16 0x%03X", before_.front().tile_id);
+    return absl::StrFormat("Edit %zu Tile16 definitions", before_.size());
   }
   size_t MemoryUsage() const override {
     return (before_.size() + after_.size()) * sizeof(Tile16Commit);
