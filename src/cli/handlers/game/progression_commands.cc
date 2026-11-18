@@ -253,7 +253,7 @@ KeyItemIds ResolveKeyItemIds() {
   for (size_t i = 0; i < receipts.size(); ++i) {
     const std::string name =
         std::string(absl::StripAsciiWhitespace(receipts[i]));
-    if (name == "Key")
+    if (name == "Small Key" || name == "Key")
       ids.small_key_receipts.insert(static_cast<int>(i));
     else if (name == "Big Key")
       ids.big_key_receipts.insert(static_cast<int>(i));
