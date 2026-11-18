@@ -758,7 +758,7 @@ TEST_F(CanvasContextMenuOpenTest, OutsideClicksAndRightDragDoNotCaptureOrOpen) {
 }
 
 TEST(MapPropertiesContextMenuUnifiedTest,
-     ReadOnlyProviderDisablesWriteItemsAndExplainsReason) {
+     ValidUnifiedMapEnablesWriteItemsAndInvalidMapDisablesInsert) {
   Rom rom;
   std::vector<uint8_t> rom_data(0x200000, 0);
   ASSERT_TRUE(rom.LoadFromData(rom_data).ok());
@@ -786,22 +786,32 @@ TEST(MapPropertiesContextMenuUnifiedTest,
   props.SetOpenMapPropertiesCallback([]() {});
   props.SetEntityCallbacks(
       [](const std::string&, const OverworldContextTarget&) {});
-  props.SetCanvasReadOnlyProvider([]() { return true; });
   props.SetupCanvasContextMenu(canvas, target, locked, 0, nullptr, &clipboard);
 
   const auto* paste_item = FindMenuItem(canvas, "Paste Map Properties");
   ASSERT_NE(paste_item, nullptr);
-  EXPECT_FALSE(paste_item->enabled_condition());
-  EXPECT_EQ(paste_item->tooltip, kUnifiedReadOnlyReason);
+  EXPECT_TRUE(paste_item->enabled_condition());
+  EXPECT_FALSE(paste_item->tooltip.empty());
 
   const auto* insert_menu = FindRootMenuItem(canvas, "Insert");
   ASSERT_NE(insert_menu, nullptr);
-  EXPECT_FALSE(insert_menu->enabled_condition());
-  EXPECT_EQ(insert_menu->tooltip, kUnifiedReadOnlyReason);
+  EXPECT_TRUE(insert_menu->enabled_condition());
+  EXPECT_TRUE(insert_menu->tooltip.empty());
 
   const auto* properties_item = FindRootMenuItem(canvas, "Map Properties...");
   ASSERT_NE(properties_item, nullptr);
   EXPECT_TRUE(properties_item->enabled_condition());
+
+  // Gutter / empty-quadrant target (-1) keeps Insert disabled.
+  gui::Canvas gutter_canvas;
+  OverworldContextTarget gutter_target;
+  gutter_target.map_id = -1;
+  gutter_target.parent_map_id = -1;
+  props.SetupCanvasContextMenu(gutter_canvas, gutter_target, locked, 0, nullptr,
+                               &clipboard);
+  const auto* gutter_insert = FindRootMenuItem(gutter_canvas, "Insert");
+  ASSERT_NE(gutter_insert, nullptr);
+  EXPECT_FALSE(gutter_insert->enabled_condition());
 }
 
 }  // namespace

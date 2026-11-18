@@ -27,6 +27,15 @@ ImVec4 EntityMarkerColor(const AgentUITheme& theme,
                          zelda3::GameEntity::EntityType type,
                          bool is_hole = false);
 
+/// Minimum canvas zoom scale at which on-canvas entity text labels are drawn.
+/// Below this threshold marker boxes and sprite previews stay visible, while
+/// text labels are hidden so fit-zoom overviews do not overlap unreadable text
+/// or spill across block gutters and the SE quadrant.
+inline constexpr float kOverworldEntityLabelMinScale = 0.5f;
+
+/// Pure predicate returning whether entity text labels should render at @p scale.
+bool ShouldRenderEntityLabels(float scale);
+
 /**
  * @class OverworldEntityRenderer
  * @brief Handles visualization of all overworld entities (entrances, exits,

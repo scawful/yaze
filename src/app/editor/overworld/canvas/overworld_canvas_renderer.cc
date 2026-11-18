@@ -306,7 +306,6 @@ void OverworldCanvasRenderer::DrawOverworldCanvas() {
       }
       if (unified_layout) {
         DrawUnifiedBlockChrome(canvas_rt, layout);
-        DrawUnifiedReadOnlyBanner();
       }
       gui::EndCanvas(editor_->ow_map_canvas_, canvas_rt, frame_opts);
       ImGui::EndChild();
@@ -594,7 +593,6 @@ void OverworldCanvasRenderer::DrawOverworldCanvas() {
 
   if (unified_layout) {
     DrawUnifiedBlockChrome(canvas_rt, layout);
-    DrawUnifiedReadOnlyBanner();
   }
 
   // End canvas frame - draws grid/overlay based on frame_opts
@@ -650,28 +648,6 @@ void OverworldCanvasRenderer::DrawUnifiedBlockChrome(
     canvas_rt.draw_list->AddText(
         ImVec2(badge_min.x + pad.x, badge_min.y + pad.y), text_col, label);
   }
-}
-
-void OverworldCanvasRenderer::DrawUnifiedReadOnlyBanner() {
-  if (!editor_->IsUnifiedCanvas() ||
-      ImGui::GetTime() >= editor_->unified_readonly_banner_until_) {
-    return;
-  }
-  ImDrawList* draw_list = ImGui::GetWindowDrawList();
-  if (!draw_list) {
-    return;
-  }
-  const ImVec2 clip_min = draw_list->GetClipRectMin();
-  const char* text = ICON_MD_LOCK " Unified view is read-only in Phase 1";
-  const ImVec2 text_sz = ImGui::CalcTextSize(text);
-  const ImVec2 pad(10.0f, 6.0f);
-  const ImVec2 p0(clip_min.x + 12.0f, clip_min.y + 12.0f);
-  const ImVec2 p1(p0.x + text_sz.x + pad.x * 2.0f,
-                  p0.y + text_sz.y + pad.y * 2.0f);
-  draw_list->AddRectFilled(p0, p1, ImGui::GetColorU32(ImGuiCol_PopupBg), 4.0f);
-  draw_list->AddRect(p0, p1, ImGui::GetColorU32(ImGuiCol_Border), 4.0f);
-  draw_list->AddText(ImVec2(p0.x + pad.x, p0.y + pad.y),
-                     ImGui::GetColorU32(ImGuiCol_Text), text);
 }
 
 // =============================================================================

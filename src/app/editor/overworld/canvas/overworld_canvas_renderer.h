@@ -116,7 +116,6 @@ class OverworldCanvasRenderer {
   void DrawOverworldMaps();
   void DrawUnifiedBlockChrome(const gui::CanvasRuntime& canvas_rt,
                               const class OverworldCanvasLayout& layout);
-  void DrawUnifiedReadOnlyBanner();
   void DrawMapWithAreaLayers(int map_index, int map_x, int map_y, float scale);
 
   // Subscreen overlay layer per map (sky, fog, lava, canopy, rain), built in
