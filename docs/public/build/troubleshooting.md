@@ -226,7 +226,7 @@ sudo apt-get install -y \
   build-essential cmake ninja-build pkg-config \
   libglew-dev libxext-dev libwavpack-dev libboost-all-dev \
   libpng-dev python3-dev \
-  libasound2-dev libpulse-dev \
+  libasound2-dev libpulse-dev libpipewire-0.3-dev \
   libx11-dev libxrandr-dev libxcursor-dev libxinerama-dev libxi-dev \
   libxss-dev libxxf86vm-dev libxkbcommon-dev libwayland-dev libdecor-0-dev \
   libgtk-3-dev libdbus-1-dev git
@@ -238,11 +238,21 @@ sudo dnf install -y \
   gcc-c++ cmake ninja-build pkg-config \
   glew-devel libXext-devel wavpack-devel boost-devel \
   libpng-devel python3-devel \
-  alsa-lib-devel pulseaudio-libs-devel \
+  alsa-lib-devel pulseaudio-libs-devel pipewire-devel \
   libX11-devel libXrandr-devel libXcursor-devel libXinerama-devel libXi-devel \
   libXScrnSaver-devel libXxf86vm-devel libxkbcommon-devel wayland-devel \
   gtk3-devel dbus-devel git
 ```
+
+### No Sound in the Music Editor or Emulator
+
+yaze builds SDL from source, and SDL only includes the audio drivers whose
+headers it finds at configure time. A build without the ALSA, PulseAudio, or
+PipeWire development packages above has no audio output; the Music editor shows
+`No audio output` with the reason. Install the packages, delete the build
+directory, and configure again. Run with `SDL_AUDIODRIVER=pipewire`,
+`pulseaudio`, or `alsa` to try a specific driver; the log names the driver in
+use.
 
 ### GCC Version Too Old
 

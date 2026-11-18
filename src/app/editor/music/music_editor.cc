@@ -80,10 +80,16 @@ void MusicEditor::Initialize() {
     config.format = emu::audio::SampleFormat::INT16;
 
     if (audio_backend_->Initialize(config)) {
+      audio_init_error_.clear();
       LOG_INFO("MusicEditor", "Created shared audio backend: %s @ %dHz",
                audio_backend_->GetBackendName().c_str(), config.sample_rate);
     } else {
-      LOG_ERROR("MusicEditor", "Failed to initialize audio backend!");
+      audio_init_error_ = audio_backend_->GetLastError();
+      if (audio_init_error_.empty()) {
+        audio_init_error_ = "the audio device could not be opened";
+      }
+      LOG_ERROR("MusicEditor", "Failed to initialize audio backend: %s",
+                audio_init_error_.c_str());
       audio_backend_.reset();
     }
   }
@@ -180,6 +186,8 @@ void MusicEditor::Initialize() {
   playback_control->SetOnOpenSong([this](int index) { OpenSong(index); });
   playback_control->SetOnOpenPianoRoll(
       [this](int index) { OpenSongPianoRoll(index); });
+  playback_control->SetAudioErrorProvider(
+      [this]() { return audio_init_error_; });
   window_manager->RegisterWindowContent(std::move(playback_control));
 
   // Piano Roll Panel
