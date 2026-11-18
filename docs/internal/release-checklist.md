@@ -53,9 +53,11 @@ green commit or an open PR does not check a box.
 - [ ] Known critical network exposure is fixed or compiled out. The `release`
   preset builds with `YAZE_ENABLE_HTTP_API` off, so the unauthenticated
   `z3ed --http-port` and `yaze --enable_api` servers are absent from packages.
-  Confirm `HTTP API Server: OFF` in each Release build log, or merge
-  [PR #312](https://github.com/scawful/yaze/pull/312) first if the release
-  configuration enables it.
+  Confirm `HTTP API Server: OFF` in each Release build log.
+  [PR #312](https://github.com/scawful/yaze/pull/312) is merged (`13ebf9c59`):
+  `z3ed` now binds `localhost` and refuses command execution unless started
+  with `--http-allow-commands`. The desktop `yaze --enable_api` server still
+  listens on all interfaces, so the release configuration keeps the HTTP API off.
 - [ ] Release notes, `docs/CHANGELOG.md`, and `docs/internal/status.md` name
   the candidate SHA, Release run, and every check that was not run.
 

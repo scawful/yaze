@@ -123,7 +123,7 @@ are not part of 0.8.0.
 | Lyra project authoring | Experimental | Schema-3 project terrain document covering the 32 tail-map pages `$A0–$BF` | Later gameplay-area schemas and private transport/reward authoring are not in these downloads; a playable Oracle build requires separate qualification |
 | Overworld, Message, Palette | Experimental | Per-domain saves when their save flags are enabled | Status per domain is in the [coverage report](reference/feature-coverage-report.md) |
 | Screen, Music instruments/samples, Hex/Memory writes, emulator save states | Deferred | Viewing and partial editing | Blocked or not part of coordinated Save ROM |
-| HTTP API servers (`z3ed --http-port`, `yaze --enable_api`) | Not in release packages | Release packages are built with the HTTP API off | Source builds that enable it should use [PR #312](https://github.com/scawful/yaze/pull/312) once merged |
+| HTTP API servers (`z3ed --http-port`, `yaze --enable_api`) | Not in release packages | Release packages are built with the HTTP API off | In source builds that enable it, `z3ed` binds `localhost` and needs `--http-allow-commands` to run commands; `yaze --enable_api` still listens on all interfaces, so use a firewall or SSH tunnel |
 | Canonical graphics source publishing, graphics catalogs, 4bpp import, Plan Maps | Deferred | Open draft PRs, not part of 0.8.0 | When it lands, the canonical source publisher supports macOS and Linux only, not Windows |
 
 ### Dungeon completion continues after 0.8.0
