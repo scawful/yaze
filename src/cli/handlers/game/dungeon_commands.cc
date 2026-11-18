@@ -1101,9 +1101,10 @@ absl::Status DungeonSetRoomPropertyCommandHandler::Execute(
   } else if (prop == "dark") {
     // SetBg2 keeps the layer mode bits and updates both dark flags; the
     // header encoder writes bit 0 from them.
-    room.SetBg2(parsed_value != 0 ? zelda3::background2::DarkRoom
-                                  : static_cast<zelda3::background2>(
-                                        room.layer2_mode() & 0x07));
+    // background2 is the global C typedef from inc/zelda.h, not zelda3::.
+    room.SetBg2(parsed_value != 0
+                    ? ZELDA3_BG2_DARK_ROOM
+                    : static_cast<background2>(room.layer2_mode() & 0x07));
   } else {
     const absl::Status property_status = absl::InvalidArgumentError(
         absl::StrFormat("Unsupported property: %s", property));
