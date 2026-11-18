@@ -91,15 +91,17 @@ void PopulateUniqueTile32Maps(OverworldMapTiles* maps,
   maps->dark_world = make_world();
   maps->special_world = make_world();
 
-  uint16_t tile16_id = 1;
   int definition_index = 0;
-  const auto fill = [&tile16_id, &definition_index, unique_definition_count](
+  const auto fill = [&definition_index, unique_definition_count](
                         OverworldBlockset* world, int width, int height) {
     for (int y = 0; y < height; y += 2) {
       for (int x = 0; x < width; x += 2) {
-        // A distinct top-left Tile16 makes each packed Tile32 unique.
+        // Encode a distinct (tile0, tile1) pair so every packed Tile32 is
+        // unique while keeping all Tile16 IDs below the 4,096 definition cap.
         if (definition_index < unique_definition_count) {
-          (*world)[x][y] = tile16_id++;
+          const int id = definition_index + 1;
+          (*world)[x][y] = static_cast<uint16_t>((id % 4095) + 1);
+          (*world)[x + 1][y] = static_cast<uint16_t>(id / 4095);
         }
         ++definition_index;
       }

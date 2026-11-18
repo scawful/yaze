@@ -6,11 +6,22 @@
 #include <set>
 #include <type_traits>
 
+#include "absl/strings/string_view.h"
 #include "rom/native_overworld_authoring_metadata.h"
 #include "util/macro.h"
 
 namespace yaze::zelda3 {
 namespace {
+
+// Non-template wrappers avoid instantiating absl::SourceLocation's private
+// tag inside template functions under AppleClang + Homebrew Abseil PCH builds.
+absl::Status FailedPrecondition(absl::string_view message) {
+  return absl::FailedPreconditionError(message);
+}
+
+absl::Status InvalidArgument(absl::string_view message) {
+  return absl::InvalidArgumentError(message);
+}
 
 uint16_t PlacementSchema(const rom::NativeOverworldAuthoringMetadata& metadata,
                          uint16_t saved_schema) {
@@ -31,8 +42,7 @@ absl::StatusOr<rom::NativeAuthoringPlacement> EndpointModelPlacement(
   const int map = record.map_id_;
   const auto* area = world.overworld_map(map);
   if (!area || area->parent() != map || map >= world.materialized_map_count())
-    return absl::FailedPreconditionError(
-        "Endpoint must belong to a loaded parent area");
+    return FailedPrecondition("Endpoint must belong to a loaded parent area");
   const auto shape = area->area_size();
   const int width =
       (shape == AreaSizeEnum::LargeArea || shape == AreaSizeEnum::WideArea)
@@ -46,12 +56,11 @@ absl::StatusOr<rom::NativeAuthoringPlacement> EndpointModelPlacement(
   const int y = record.y_ - ((map % 64) / 8) * 512;
   if (x < 0 || y < 0 || x >= width || y >= height || record.game_x_ != x / 16 ||
       record.game_y_ != y / 16)
-    return absl::InvalidArgumentError(
-        "Endpoint position is outside its owning area");
+    return InvalidArgument("Endpoint position is outside its owning area");
   const int page = (map / 64) * 64 + record.x_ / 512 + (record.y_ / 512) * 8;
   const auto* physical = world.overworld_map(page);
   if (!physical || physical->parent() != map)
-    return absl::FailedPreconditionError(
+    return FailedPrecondition(
         "Endpoint physical page does not belong to its parent");
   auto result = identity;
   result.state = rom::NativePlacementState::kBound;
@@ -60,7 +69,7 @@ absl::StatusOr<rom::NativeAuthoringPlacement> EndpointModelPlacement(
   if constexpr (std::is_same_v<Record, OverworldEntrance>) {
     if (record.deleted || record.is_hole_ || x % 16 || y % 16 ||
         record.map_pos_ != ((y / 16) << 7 | (x / 16) << 1))
-      return absl::FailedPreconditionError(
+      return FailedPrecondition(
           "Select a live encoded door row before binding");
     result.value = rom::NativeAuthoringDoorPlacement{
         static_cast<uint8_t>(page), px, py, record.entrance_id_,
@@ -68,7 +77,7 @@ absl::StatusOr<rom::NativeAuthoringPlacement> EndpointModelPlacement(
   } else {
     if (record.deleted_ || record.x_player_ != record.x_ ||
         record.y_player_ != record.y_)
-      return absl::FailedPreconditionError(
+      return FailedPrecondition(
           "Select a live encoded return row before binding");
     result.value = rom::NativeAuthoringReturnPlacement{
         static_cast<uint8_t>(page), px, py, record.room_id_,
@@ -85,13 +94,11 @@ absl::Status CheckEndpointRow(const Overworld& world,
   if (!row || *row >= records.size() ||
       (records[*row].authoring_placement_id &&
        records[*row].authoring_placement_id != placement.id))
-    return absl::FailedPreconditionError(
-        "Endpoint row is unavailable or bound");
+    return FailedPrecondition("Endpoint row is unavailable or bound");
   ASSIGN_OR_RETURN(auto model, EndpointModelPlacement(world, placement,
                                                       records[*row], *row));
   if (model != placement)
-    return absl::FailedPreconditionError(
-        "Endpoint binding differs from its row");
+    return FailedPrecondition("Endpoint binding differs from its row");
   return absl::OkStatus();
 }
 
@@ -111,7 +118,7 @@ absl::Status UpdateEndpointPlacements(
                      [id](const auto& p) { return p.id == id; });
     if (!identities.insert(id).second || p == metadata->placements.end() ||
         p->value.index() + 1 != kind)
-      return absl::FailedPreconditionError(
+      return FailedPrecondition(
           "Endpoint model has a duplicate, missing or wrong-kind identity");
   }
   for (auto& p : metadata->placements) {
@@ -135,7 +142,7 @@ absl::Status UpdateEndpointPlacements(
           row == records.end())
         continue;  // An explicit binding Undo restored the authored plan.
       if (saved == baseline.placements.end())
-        return absl::FailedPreconditionError("Endpoint has no saved identity");
+        return FailedPrecondition("Endpoint has no saved identity");
       p = *saved;
       // A binding deleted before its first Save never became a live saved
       // identity. Keep the original pending plan rather than publish it.

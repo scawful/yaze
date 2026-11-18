@@ -2981,9 +2981,13 @@ absl::Status Overworld::CreateTile32Tilemap() {
                    ResolveMap32StorageLayout(*rom(), version_constants(),
                                              layout_inspect_options_));
 
+  // Build the complete unique definition list up to the 16-bit table limit so
+  // ValidateMap32DefinitionCount below reports the true overflowing count and
+  // SaveMap32* repeats the same capacity check if a caller ignores this error.
+  constexpr size_t kMaxPackedTile32Definitions = 65536;
   ASSIGN_OR_RETURN(auto packing, PlanOverworldTile32Packing(
                                      map_tiles_, materialized_map_count(),
-                                     storage_layout.definition_capacity));
+                                     kMaxPackedTile32Definitions));
   tiles32_unique_ = std::move(packing.definitions);
   for (const auto& page : packing.pages)
     tiles32_list_.insert(tiles32_list_.end(), page.begin(), page.end());
@@ -3019,6 +3023,10 @@ absl::Status Overworld::SaveMap32Expanded() {
   }
   // Capacity and alignment must be checked before updating relocation pointers
   // or writing any quadrant bytes.
+  if (tiles32_unique_.empty()) {
+    return absl::FailedPreconditionError(
+        "Tile32 definitions have not been packed before saving");
+  }
   RETURN_IF_ERROR(
       ValidateMap32DefinitionCount(tiles32_unique_.size(), storage_layout));
 
@@ -3186,6 +3194,10 @@ absl::Status Overworld::SaveMap32Tiles() {
   if (storage_layout.expanded) {
     return absl::FailedPreconditionError(
         "Vanilla Tile32 save requested for an expanded Tile32 layout");
+  }
+  if (tiles32_unique_.empty()) {
+    return absl::FailedPreconditionError(
+        "Tile32 definitions have not been packed before saving");
   }
   RETURN_IF_ERROR(
       ValidateMap32DefinitionCount(tiles32_unique_.size(), storage_layout));

@@ -213,10 +213,14 @@ TEST(ProjectWorkspaceTest, ReadFoldersResolvesAgainstProjectDir) {
   fs::create_directories(bundle);
   WriteFile(bundle / "project.yaze", kProjectText);
   const auto folders = ReadProjectWorkspaceFolders(bundle / "project.yaze");
-  EXPECT_EQ(folders.app_data_folder, (bundle / ".workspace/yaze").string());
+  EXPECT_EQ(folders.app_data_folder,
+            (bundle / ".workspace" / "yaze").lexically_normal().string());
   EXPECT_EQ(folders.proposal_folder,
-            (bundle / ".workspace/proposals").string());
-  EXPECT_EQ(folders.sandbox_folder, "/abs/sandboxes");
+            (bundle / ".workspace" / "proposals").lexically_normal().string());
+  EXPECT_EQ(folders.sandbox_folder,
+            fs::path(bundle.root_name().string() + "/abs/sandboxes")
+                .lexically_normal()
+                .string());
 }
 
 #ifndef _WIN32

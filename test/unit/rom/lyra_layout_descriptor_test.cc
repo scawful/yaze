@@ -3544,9 +3544,10 @@ TEST_F(NativeSpecialOverworldEditorTest, NormalSaveUndoFailureAndDiskReopen) {
   const char* path = std::getenv("YAZE_TEST_ROM_OOS");
   if (!path || !std::filesystem::exists(path))
     GTEST_SKIP() << "Set YAZE_TEST_ROM_OOS for native Save/reopen";
-  for (const auto [capacity, revision] :
-       {std::pair{160, 3}, std::pair{192, 3}, std::pair{160, 5},
-        std::pair{192, 5}}) {
+  for (const auto& entry : {std::pair{160, 3}, std::pair{192, 3},
+                            std::pair{160, 5}, std::pair{192, 5}}) {
+    const int capacity = entry.first;
+    const int revision = entry.second;
     SCOPED_TRACE(absl::StrFormat("capacity%d revision%d", capacity, revision));
     const auto flags = core::FeatureFlags::get();
     auto restore_flags =

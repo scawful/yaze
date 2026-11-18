@@ -1,6 +1,8 @@
 #include <gtest/gtest.h>
 
 #include <algorithm>
+#include <atomic>
+#include <chrono>
 #include <cstdlib>
 #include <filesystem>
 #include <fstream>
@@ -170,8 +172,14 @@ std::vector<std::string> SplitLines(const std::string& text) {
 class ProjectOpenResilienceTest : public ::testing::Test {
  protected:
   void SetUp() override {
+    static std::atomic<unsigned> root_counter{0};
+    const auto stamp =
+        std::chrono::steady_clock::now().time_since_epoch().count();
+    // Keep root_ short so nested appdata/native-saves/<sha256>.json temp
+    // publication paths stay well below Windows MAX_PATH (260).
     const fs::path raw_root =
-        yaze::test::UniqueTempPath("yaze_project_open_resilience");
+        fs::temp_directory_path() /
+        ("ypr_" + std::to_string(stamp) + "_" + std::to_string(root_counter++));
     ASSERT_TRUE(fs::create_directories(raw_root));
     root_ = fs::canonical(raw_root);
 
@@ -246,7 +254,8 @@ class ProjectOpenResilienceTest : public ::testing::Test {
            {"decoded_sha256", core::GfxSheetSource::DecodedSha256(pixels)},
            {"why", "Project open resilience fixture"}});
     }
-    out.spec_path = out.bundle_dir / "Data/graphics/source_sprite_sheets.json";
+    out.spec_path =
+        out.bundle_dir / "Data" / "graphics" / "source_sprite_sheets.json";
     WriteText(out.spec_path, spec.dump(2) + "\n");
     out.spec_sha1 = core::GfxSheetSource::SpecSha1(ReadText(out.spec_path));
 

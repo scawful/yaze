@@ -17,6 +17,7 @@
 #include "absl/strings/match.h"
 #include "absl/strings/str_format.h"
 #include "absl/strings/str_join.h"
+#include "absl/strings/string_view.h"
 #include "core/source_artifact_publisher.h"
 #include "nlohmann/json.hpp"
 #include "util/indexed_png.h"
@@ -657,7 +658,8 @@ std::vector<int> SortedReviewBoardIndices(
 }
 
 std::optional<absl::Time> ParseReviewBoardTimestamp(std::string_view text) {
-  const std::string_view trimmed = absl::StripAsciiWhitespace(text);
+  const absl::string_view trimmed =
+      absl::StripAsciiWhitespace(absl::string_view(text.data(), text.size()));
   if (trimmed.empty())
     return std::nullopt;
   absl::Time parsed;
@@ -1015,7 +1017,8 @@ bool MatchesReviewBoardQuery(const ReviewBoard& board, std::string_view query,
     return false;
   if (!author_filter.empty() && board.author != author_filter)
     return false;
-  const std::string_view q = absl::StripAsciiWhitespace(query);
+  const absl::string_view q =
+      absl::StripAsciiWhitespace(absl::string_view(query.data(), query.size()));
   if (q.empty())
     return true;
   return absl::StrContainsIgnoreCase(board.title, q) ||

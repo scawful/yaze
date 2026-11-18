@@ -11,8 +11,11 @@
 #include <vector>
 
 #include "absl/strings/match.h"
+#include "absl/strings/string_view.h"
 #include "app/application.h"
+#ifdef YAZE_BUILD_AGENT_UI
 #include "app/editor/agent/ui/review_boards/review_boards_view.h"
+#endif
 #include "app/editor/editor_manager.h"
 #include "app/editor/menu/right_drawer_manager.h"
 #include "app/editor/registry/content_registry.h"
@@ -289,7 +292,8 @@ static void RegisterToastTests(ImGuiTestEngine* engine) {
   }
 }
 
-static ImGuiWindow* FindImGuiWindowContaining(std::string_view needle) {
+#ifdef YAZE_BUILD_AGENT_UI
+static ImGuiWindow* FindImGuiWindowContaining(absl::string_view needle) {
   ImGuiContext* g = ImGui::GetCurrentContext();
   if (!g)
     return nullptr;
@@ -683,6 +687,7 @@ static void RegisterReviewBoardsUITests(ImGuiTestEngine* engine) {
     ImGuiTestEngine_QueueTest(engine, t, ImGuiTestRunFlags_RunFromCommandLine);
   }
 }
+#endif  // YAZE_BUILD_AGENT_UI
 
 // ============================================================================
 // Public registration entry point
@@ -694,7 +699,9 @@ void RegisterDungeonUITests(ImGuiTestEngine* engine) {
   RegisterToolbarTests(engine);
   RegisterKeyboardShortcutTests(engine);
   RegisterToastTests(engine);
+#ifdef YAZE_BUILD_AGENT_UI
   RegisterReviewBoardsUITests(engine);
+#endif
 }
 
 }  // namespace yaze::test

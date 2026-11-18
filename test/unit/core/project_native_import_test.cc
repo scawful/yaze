@@ -216,7 +216,8 @@ TEST_F(NativeOverworldProjectImportTest,
 }
 
 TEST_F(NativeOverworldProjectImportTest, RejectsConflictingManifestOutput) {
-  project_.build_target = (root_ / "source/Roms/oos168x.sfc").string();
+  project_.build_target =
+      (root_ / "source" / "Roms" / "oos168x.sfc").make_preferred().string();
   project_.hack_manifest_file = (root_ / "hack_manifest.json").string();
   const Json manifest = {
       {"manifest_version", 3},
@@ -247,13 +248,17 @@ TEST_F(NativeOverworldProjectImportTest, RejectsConflictingManifestOutput) {
 
 TEST_F(NativeOverworldProjectImportTest,
        SourceRefreshBindsOutputAndGuardsAdapter) {
-  fs::create_directories(root_ / "new-source/Scripts/Build");
-  fs::create_directories(root_ / "new-source/Roms");
-  fs::copy_file(root_ / "source/engine.asm", root_ / "new-source/engine.asm");
-  Write(root_ / "new-source/Scripts/Build/build_rom.sh", "compiler");
-  Write(root_ / "new-source/Scripts/Build/authoring_bundle_build.py",
-        "adapter");
-  project_.output_folder = (root_ / "source/Roms").string();
+  fs::create_directories(root_ / "new-source" / "Scripts" / "Build");
+  fs::create_directories(root_ / "new-source" / "Roms");
+  fs::copy_file(root_ / "source" / "engine.asm",
+                root_ / "new-source" / "engine.asm");
+  Write(root_ / "new-source" / "Scripts" / "Build" / "build_rom.sh",
+        "compiler");
+  Write(
+      root_ / "new-source" / "Scripts" / "Build" / "authoring_bundle_build.py",
+      "adapter");
+  project_.output_folder =
+      (root_ / "source" / "Roms").make_preferred().string();
   ASSERT_TRUE(project_.Save().ok());
   descriptor_ = Read(root_ / "project.yaze");
   NativeOverworldImportBuildSettings build{
@@ -265,7 +270,8 @@ TEST_F(NativeOverworldProjectImportTest,
       project_, (root_ / "candidate.sfc").string(),
       (root_ / "import.json").string(), Hash(descriptor_), build);
   ASSERT_TRUE(plan.ok()) << plan.status();
-  EXPECT_EQ(plan->project.output_folder, (root_ / "new-source/Roms").string());
+  EXPECT_EQ(plan->project.output_folder,
+            (root_ / "new-source" / "Roms").make_preferred().string());
   Write(root_ / "new-source/Scripts/Build/authoring_bundle_build.py",
         "changed");
   EXPECT_FALSE(plan->Publish().ok());

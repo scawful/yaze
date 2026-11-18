@@ -48,13 +48,17 @@ TEST(BuildRunAcceptanceAdmissionTest, LegacyRequiresBuildRunNameAndEditingRom) {
                    .ok());
 }
 
+std::string AbsoluteTestPath(const std::string& leaf) {
+  return (fs::temp_directory_path() / leaf).lexically_normal().string();
+}
+
 TEST(BuildRunAcceptanceAdmissionTest, ProposalEditRequiresAbsoluteRoot) {
   auto fixture = BaseFixture();
   fixture["workflow"] = "proposal_edit";
   EXPECT_FALSE(ParseBuildRunAcceptanceConfig(fixture).ok());
   fixture["proposal_root"] = "relative/packet";
   EXPECT_FALSE(ParseBuildRunAcceptanceConfig(fixture).ok());
-  fixture["proposal_root"] = "/abs/packet";
+  fixture["proposal_root"] = AbsoluteTestPath("packet");
   auto config = ParseBuildRunAcceptanceConfig(fixture);
   ASSERT_TRUE(config.ok()) << config.status();
   EXPECT_EQ(config->workflow, BuildRunWorkflow::kProposalEdit);
@@ -63,7 +67,7 @@ TEST(BuildRunAcceptanceAdmissionTest, ProposalEditRequiresAbsoluteRoot) {
 TEST(BuildRunAcceptanceAdmissionTest, ProposalEditRefusesExtraCells) {
   auto fixture = BaseFixture();
   fixture["workflow"] = "proposal_edit";
-  fixture["proposal_root"] = "/abs/packet";
+  fixture["proposal_root"] = AbsoluteTestPath("packet");
   fixture["extra_cells"] = json::array(
       {json{{"x", 1}, {"y", 1}, {"brush_id", 1}, {"original_tile", 2}}});
   EXPECT_FALSE(ParseBuildRunAcceptanceConfig(fixture).ok());
@@ -73,7 +77,7 @@ TEST(BuildRunAcceptanceAdmissionTest, ProposalEditReopenRequiresExpectedHash) {
   auto fixture = BaseFixture();
   fixture["workflow"] = "proposal_edit";
   fixture["phase"] = "reopen";
-  fixture["proposal_root"] = "/abs/packet";
+  fixture["proposal_root"] = AbsoluteTestPath("packet");
   fixture.erase("input_rom_sha256");
   EXPECT_FALSE(ParseBuildRunAcceptanceConfig(fixture).ok());
   fixture["expected_rom_sha256"] = std::string(64, 'b');

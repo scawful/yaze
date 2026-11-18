@@ -16,7 +16,9 @@
 #include <emscripten.h>
 #endif
 #include "app/application.h"
+#ifdef YAZE_BUILD_AGENT_UI
 #include "app/editor/agent/ui/review_boards/review_boards_view.h"
+#endif
 #include "app/editor/core/content_registry.h"
 #include "app/editor/editor.h"
 #include "app/editor/editor_manager.h"
@@ -1870,6 +1872,7 @@ void UICoordinator::RefreshWorkflowActions() {
   }
 #endif
 
+#ifdef YAZE_BUILD_AGENT_UI
   auto reveal_review_boards = [this]() -> ReviewBoardsView* {
     const size_t sid = session_coordinator_.GetActiveSessionId();
     if (window_manager_.GetWindowContent(sid, "agent.review_boards") ==
@@ -1915,6 +1918,7 @@ void UICoordinator::RefreshWorkflowActions() {
                                ToastType::kInfo);
          }
        }});
+#endif
 }
 
 void UICoordinator::RefreshCommandPalette(size_t session_id) {

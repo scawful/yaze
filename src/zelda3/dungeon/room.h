@@ -1220,7 +1220,7 @@ class Room {
   absl::Status ApplyStreamSavePlan(const StreamSavePlan& plan);
   absl::StatusOr<StagedRanges> StageStreamSavePlan(
       const StreamSavePlan& plan, std::vector<uint8_t>& image) const;
-  Rom* rom_;
+  Rom* rom_ = nullptr;
   GameData* game_data_ = nullptr;
 
   // Returns the 4096-byte 8bpp source for a sheet: an override when one is
