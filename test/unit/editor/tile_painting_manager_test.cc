@@ -5,11 +5,14 @@
 #include <algorithm>
 #include <limits>
 #include <memory>
+#include <string>
+#include <utility>
 #include <vector>
 
 #include "absl/status/status.h"
 #include "app/editor/overworld/canvas/overworld_canvas_layout.h"
 #include "app/editor/overworld/ui/ui_constants.h"
+#include "app/editor/shell/feedback/toast_manager.h"
 #include "app/gfx/resource/arena.h"
 #include "app/gui/canvas/canvas.h"
 #include "core/lyra_terrain_document.h"
@@ -350,8 +353,8 @@ class TilePaintingManagerGestureTest : public ::testing::Test {
     callbacks.canvas_layout = [this]() {
       return OverworldCanvasLayout(layout_mode_);
     };
-    callbacks.on_read_only_blocked = [this]() {
-      ++read_only_blocked_count_;
+    callbacks.show_toast = [this](const std::string& message, ToastType type) {
+      toasts_.emplace_back(message, type);
     };
     manager_ = std::make_unique<TilePaintingManager>(deps, callbacks);
 
@@ -568,7 +571,7 @@ class TilePaintingManagerGestureTest : public ::testing::Test {
   bool project_write_error_ = false;
   OverworldCanvasLayoutMode layout_mode_ =
       OverworldCanvasLayoutMode::kSingleWorld;
-  int read_only_blocked_count_ = 0;
+  std::vector<std::pair<std::string, ToastType>> toasts_;
   std::unique_ptr<TilePaintingManager> manager_;
 };
 
@@ -1772,15 +1775,35 @@ TEST_F(TilePaintingManagerGestureTest,
     ClickWorld(pt.x, pt.y);
     ExpectUnchanged();
 
+    toasts_.clear();
     ASSERT_TRUE(
         PasteAt(AtWorld(pt.x, pt.y), TileBrush{2, 2, {1, 2, 3, 4}}).ok());
     ExpectUnchanged();
+    ASSERT_EQ(toasts_.size(), 1u);
+    EXPECT_EQ(toasts_[0].first, "No map under cursor");
+    EXPECT_EQ(toasts_[0].second, ToastType::kInfo);
   }
 
   // PlaceBrushAt on gutter (tile 256, 0 -> px 4096, 0) and SE quadrant (300, 300).
+  toasts_.clear();
   ASSERT_TRUE(manager_->PlaceBrushAt({1, 1, {3}}, 256, 0).ok());
   ASSERT_TRUE(manager_->PlaceBrushAt({1, 1, {3}}, 300, 300).ok());
   ExpectUnchanged();
+  ASSERT_EQ(toasts_.size(), 2u);
+  EXPECT_EQ(toasts_[0].first, "No map under cursor");
+  EXPECT_EQ(toasts_[0].second, ToastType::kInfo);
+  EXPECT_EQ(toasts_[1].first, "No map under cursor");
+  EXPECT_EQ(toasts_[1].second, ToastType::kInfo);
+
+  // Valid-map PlaceBrushAt and PasteBrush do not emit the no-map toast.
+  toasts_.clear();
+  InitializeMapBitmap(0x00);
+  ASSERT_TRUE(manager_->PlaceBrushAt({1, 1, {3}}, 1, 1).ok());
+  EXPECT_EQ(overworld_->mutable_map_tiles()->light_world[1][1], 3);
+  SetView(1.0f, ImVec2(0.0f, 0.0f));
+  ASSERT_TRUE(PasteAt(AtWorld(40.0f, 40.0f), TileBrush{1, 1, {5}}).ok());
+  EXPECT_EQ(overworld_->mutable_map_tiles()->light_world[2][2], 5);
+  EXPECT_TRUE(toasts_.empty());
 }
 
 TEST_F(TilePaintingManagerGestureTest,
@@ -1800,7 +1823,7 @@ TEST_F(TilePaintingManagerGestureTest,
   EXPECT_EQ(current_mode_, EditingMode::DRAW_TILE);
   manager_->ActivateFillTool();
   EXPECT_EQ(current_mode_, EditingMode::FILL_TILE);
-  EXPECT_EQ(read_only_blocked_count_, 0);
+  EXPECT_TRUE(toasts_.empty());
   current_mode_ = EditingMode::MOUSE;
 
   // Eyedropper works read-only across DW block when current_world_ == 0.

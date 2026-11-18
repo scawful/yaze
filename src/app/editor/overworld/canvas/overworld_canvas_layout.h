@@ -16,9 +16,6 @@ enum class OverworldCanvasLayoutMode {
   kUnified = 1,
 };
 
-inline constexpr const char* kUnifiedReadOnlyReason =
-    "Unified view is read-only in Phase 1";
-
 // Phase 1 geometry constants for Single vs Unified overworld canvas layouts.
 inline constexpr int kOverworldWorldCount = 3;
 inline constexpr int kOverworldMapsPerWorld = 0x40;

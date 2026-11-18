@@ -1,5 +1,6 @@
 #include "overworld_entity_renderer.h"
 
+#include <cmath>
 #include <string>
 
 #include "absl/strings/str_format.h"
@@ -33,6 +34,10 @@ ImVec4 EntityMarkerColor(const AgentUITheme& theme, EntityType type,
   }
 }
 
+bool ShouldRenderEntityLabels(float scale) {
+  return std::isfinite(scale) && scale >= kOverworldEntityLabelMinScale;
+}
+
 namespace {
 ImVec4 MarkerColor(EntityType type, bool is_hole = false) {
   return EntityMarkerColor(AgentUI::GetTheme(), type, is_hole);
@@ -57,6 +62,7 @@ gui::CanvasRuntime OffsetRuntime(const gui::CanvasRuntime& rt,
 
 void OverworldEntityRenderer::DrawEntrancesForWorld(
     const gui::CanvasRuntime& rt, int world) {
+  const bool draw_labels = ShouldRenderEntityLabels(rt.scale);
   for (auto& each : overworld_->entrances()) {
     if (OverworldCanvasLayout::WorldForMap(each.map_id_) == world &&
         !each.deleted) {
@@ -65,14 +71,16 @@ void OverworldEntityRenderer::DrawEntrancesForWorld(
       if (IsMouseHoveringOverEntity(each, rt)) {
         hovered_entity_ = &each;
       }
-      std::string str = util::HexByte(each.entrance_id_);
-      gui::DrawText(rt, str, each.x_, each.y_);
+      if (draw_labels) {
+        gui::DrawText(rt, util::HexByte(each.entrance_id_), each.x_, each.y_);
+      }
     }
   }
 }
 
 void OverworldEntityRenderer::DrawExitsForWorld(const gui::CanvasRuntime& rt,
                                                 int world) {
+  const bool draw_labels = ShouldRenderEntityLabels(rt.scale);
   int i = 0;
   for (auto& each : *overworld_->mutable_exits()) {
     if (OverworldCanvasLayout::WorldForMap(each.map_id_) == world &&
@@ -83,8 +91,9 @@ void OverworldEntityRenderer::DrawExitsForWorld(const gui::CanvasRuntime& rt,
         hovered_entity_ = &each;
       }
       each.entity_id_ = i;
-      std::string str = util::HexByte(i);
-      gui::DrawText(rt, str, each.x_, each.y_);
+      if (draw_labels) {
+        gui::DrawText(rt, util::HexByte(i), each.x_, each.y_);
+      }
     }
     i++;
   }
@@ -92,6 +101,7 @@ void OverworldEntityRenderer::DrawExitsForWorld(const gui::CanvasRuntime& rt,
 
 void OverworldEntityRenderer::DrawItemsForWorld(const gui::CanvasRuntime& rt,
                                                 int world) {
+  const bool draw_labels = ShouldRenderEntityLabels(rt.scale);
   for (auto& item : *overworld_->mutable_all_items()) {
     if (OverworldCanvasLayout::WorldForMap(item.room_map_id_) == world &&
         !item.deleted) {
@@ -100,13 +110,15 @@ void OverworldEntityRenderer::DrawItemsForWorld(const gui::CanvasRuntime& rt,
       if (IsMouseHoveringOverEntity(item, rt)) {
         hovered_entity_ = &item;
       }
-      std::string item_name = "";
-      if (item.id_ < zelda3::kSecretItemNames.size()) {
-        item_name = zelda3::kSecretItemNames[item.id_];
-      } else {
-        item_name = absl::StrFormat("0x%02X", item.id_);
+      if (draw_labels) {
+        std::string item_name;
+        if (item.id_ < zelda3::kSecretItemNames.size()) {
+          item_name = zelda3::kSecretItemNames[item.id_];
+        } else {
+          item_name = absl::StrFormat("0x%02X", item.id_);
+        }
+        gui::DrawText(rt, item_name, item.x_, item.y_);
       }
-      gui::DrawText(rt, item_name, item.x_, item.y_);
     }
   }
 }
@@ -114,6 +126,7 @@ void OverworldEntityRenderer::DrawItemsForWorld(const gui::CanvasRuntime& rt,
 void OverworldEntityRenderer::DrawSpritesForWorld(const gui::CanvasRuntime& rt,
                                                   int world, int game_state,
                                                   bool unified_bitmap) {
+  const bool draw_labels = ShouldRenderEntityLabels(rt.scale);
   for (auto& sprite : *overworld_->mutable_sprites(game_state)) {
     if (!sprite.deleted() &&
         OverworldCanvasLayout::WorldForMap(sprite.map_id()) == world) {
@@ -127,7 +140,7 @@ void OverworldEntityRenderer::DrawSpritesForWorld(const gui::CanvasRuntime& rt,
       }
 
       if (core::FeatureFlags::get().overworld.kDrawOverworldSprites &&
-          sprite.id() < sprite_previews_->size() &&
+          sprite_previews_ && sprite.id() < sprite_previews_->size() &&
           (*sprite_previews_)[sprite.id()].is_active()) {
         if (unified_bitmap) {
           gui::DrawBitmap(rt, (*sprite_previews_)[sprite.id()],
@@ -141,8 +154,10 @@ void OverworldEntityRenderer::DrawSpritesForWorld(const gui::CanvasRuntime& rt,
         }
       }
 
-      gui::DrawText(rt, absl::StrFormat("%s", sprite.name()), sprite_x,
-                    sprite_y);
+      if (draw_labels) {
+        gui::DrawText(rt, absl::StrFormat("%s", sprite.name()), sprite_x,
+                      sprite_y);
+      }
     }
   }
 }
@@ -212,6 +227,7 @@ void OverworldEntityRenderer::DrawEntrances(ImVec2 canvas_p0, ImVec2 scrolling,
                                             int current_mode) {
   // Don't reset hovered_entity_ here - DrawExits resets it (called first)
   float scale = canvas_->global_scale();
+  const bool draw_labels = ShouldRenderEntityLabels(scale);
   int i = 0;
   for (auto& each : overworld_->entrances()) {
     if (OverworldCanvasLayout::WorldForMap(each.map_id_) == current_world &&
@@ -221,9 +237,10 @@ void OverworldEntityRenderer::DrawEntrances(ImVec2 canvas_p0, ImVec2 scrolling,
       if (IsMouseHoveringOverEntity(each, canvas_p0, scrolling, scale)) {
         hovered_entity_ = &each;
       }
-      std::string str = util::HexByte(each.entrance_id_);
-
-      canvas_->DrawText(str, each.x_, each.y_);
+      if (draw_labels) {
+        std::string str = util::HexByte(each.entrance_id_);
+        canvas_->DrawText(str, each.x_, each.y_);
+      }
     }
     i++;
   }
@@ -235,6 +252,7 @@ void OverworldEntityRenderer::DrawExits(ImVec2 canvas_p0, ImVec2 scrolling,
   // first)
   hovered_entity_ = nullptr;
   float scale = canvas_->global_scale();
+  const bool draw_labels = ShouldRenderEntityLabels(scale);
 
   int i = 0;
   for (auto& each : *overworld_->mutable_exits()) {
@@ -248,8 +266,10 @@ void OverworldEntityRenderer::DrawExits(ImVec2 canvas_p0, ImVec2 scrolling,
       }
       each.entity_id_ = i;
 
-      std::string str = util::HexByte(i);
-      canvas_->DrawText(str, each.x_, each.y_);
+      if (draw_labels) {
+        std::string str = util::HexByte(i);
+        canvas_->DrawText(str, each.x_, each.y_);
+      }
     }
     i++;
   }
@@ -257,6 +277,7 @@ void OverworldEntityRenderer::DrawExits(ImVec2 canvas_p0, ImVec2 scrolling,
 
 void OverworldEntityRenderer::DrawItems(int current_world, int current_mode) {
   float scale = canvas_->global_scale();
+  const bool draw_labels = ShouldRenderEntityLabels(scale);
   int i = 0;
   for (auto& item : *overworld_->mutable_all_items()) {
     // Get the item's bitmap and real X and Y positions
@@ -271,13 +292,15 @@ void OverworldEntityRenderer::DrawItems(int current_world, int current_mode) {
         hovered_entity_ = &item;
       }
 
-      std::string item_name = "";
-      if (item.id_ < zelda3::kSecretItemNames.size()) {
-        item_name = zelda3::kSecretItemNames[item.id_];
-      } else {
-        item_name = absl::StrFormat("0x%02X", item.id_);
+      if (draw_labels) {
+        std::string item_name = "";
+        if (item.id_ < zelda3::kSecretItemNames.size()) {
+          item_name = zelda3::kSecretItemNames[item.id_];
+        } else {
+          item_name = absl::StrFormat("0x%02X", item.id_);
+        }
+        canvas_->DrawText(item_name, item.x_, item.y_);
       }
-      canvas_->DrawText(item_name, item.x_, item.y_);
     }
     i++;
   }
@@ -286,6 +309,7 @@ void OverworldEntityRenderer::DrawItems(int current_world, int current_mode) {
 void OverworldEntityRenderer::DrawSprites(int current_world, int game_state,
                                           int current_mode) {
   float scale = canvas_->global_scale();
+  const bool draw_labels = ShouldRenderEntityLabels(scale);
   int i = 0;
   for (auto& sprite : *overworld_->mutable_sprites(game_state)) {
     // Filter sprites by current world - only show sprites for the current world
@@ -307,15 +331,18 @@ void OverworldEntityRenderer::DrawSprites(int current_world, int game_state,
         hovered_entity_ = &sprite;
       }
 
-      if (core::FeatureFlags::get().overworld.kDrawOverworldSprites) {
+      if (core::FeatureFlags::get().overworld.kDrawOverworldSprites &&
+          sprite_previews_ && sprite.id() < sprite_previews_->size()) {
         if ((*sprite_previews_)[sprite.id()].is_active()) {
           canvas_->DrawBitmap((*sprite_previews_)[sprite.id()], sprite_x,
                               sprite_y, 2.0f);
         }
       }
 
-      canvas_->DrawText(absl::StrFormat("%s", sprite.name()), sprite_x,
-                        sprite_y);
+      if (draw_labels) {
+        canvas_->DrawText(absl::StrFormat("%s", sprite.name()), sprite_x,
+                          sprite_y);
+      }
 
       // Restore original coordinates
       sprite.x_ = original_x;

@@ -13,6 +13,7 @@
 
 #include "absl/strings/ascii.h"
 #include "absl/strings/str_format.h"
+#include "app/editor/overworld/entity/overworld_entity_renderer.h"
 #include "app/gui/automation/widget_id_registry.h"
 #include "imgui/imgui.h"
 #include "zelda3/resource_labels.h"
@@ -937,6 +938,7 @@ void LyraTerrainCanvas::DrawEntities(const gui::CanvasRuntime& canvas,
   };
 
   const float marker_size = 16.0f * scale;
+  const bool draw_labels = ShouldRenderEntityLabels(scale);
 
   // Draw project map entities (sprites, doors, exits)
   for (int map_idx = 0; map_idx < Document::kMapCount; ++map_idx) {
@@ -953,8 +955,10 @@ void LyraTerrainCanvas::DrawEntities(const gui::CanvasRuntime& canvas,
       const ImVec2 p_max(p_min.x + marker_size, p_min.y + marker_size);
       draw->AddRectFilled(p_min, p_max, IM_COL32(230, 190, 40, 180));
       draw->AddRect(p_min, p_max, IM_COL32(255, 255, 255, 220));
-      draw->AddText(ImVec2(p_min.x + 2, p_min.y + 2), IM_COL32(0, 0, 0, 255),
-                    "exit");
+      if (draw_labels) {
+        draw->AddText(ImVec2(p_min.x + 2, p_min.y + 2), IM_COL32(0, 0, 0, 255),
+                      "exit");
+      }
     }
 
     // Doors / Entrances (Distinct color: green)
@@ -963,8 +967,10 @@ void LyraTerrainCanvas::DrawEntities(const gui::CanvasRuntime& canvas,
       const ImVec2 p_max(p_min.x + marker_size, p_min.y + marker_size);
       draw->AddRectFilled(p_min, p_max, IM_COL32(50, 190, 80, 180));
       draw->AddRect(p_min, p_max, IM_COL32(255, 255, 255, 220));
-      draw->AddText(ImVec2(p_min.x + 2, p_min.y + 2), IM_COL32(0, 0, 0, 255),
-                    "entrance");
+      if (draw_labels) {
+        draw->AddText(ImVec2(p_min.x + 2, p_min.y + 2), IM_COL32(0, 0, 0, 255),
+                      "entrance");
+      }
     }
 
     // Sprites matching current state (Distinct color: red / magenta)
@@ -977,8 +983,10 @@ void LyraTerrainCanvas::DrawEntities(const gui::CanvasRuntime& canvas,
       const ImVec2 p_max(p_min.x + marker_size, p_min.y + marker_size);
 
       draw->AddRect(p_min, p_max, IM_COL32(255, 255, 255, 220));
-      draw->AddText(ImVec2(p_min.x + 2, p_min.y + 2),
-                    IM_COL32(255, 255, 255, 255), "S");
+      if (draw_labels) {
+        draw->AddText(ImVec2(p_min.x + 2, p_min.y + 2),
+                      IM_COL32(255, 255, 255, 255), "S");
+      }
     }
   }
 
@@ -992,8 +1000,10 @@ void LyraTerrainCanvas::DrawEntities(const gui::CanvasRuntime& canvas,
     const ImVec2 p_max(p_min.x + marker_size, p_min.y + marker_size);
     draw->AddRectFilled(p_min, p_max, IM_COL32(40, 160, 220, 180));
     draw->AddRect(p_min, p_max, IM_COL32(255, 255, 255, 220));
-    draw->AddText(ImVec2(p_min.x + 2, p_min.y + 2), IM_COL32(0, 0, 0, 255),
-                  "flight");
+    if (draw_labels) {
+      draw->AddText(ImVec2(p_min.x + 2, p_min.y + 2), IM_COL32(0, 0, 0, 255),
+                    "flight");
+    }
   }
 }
 

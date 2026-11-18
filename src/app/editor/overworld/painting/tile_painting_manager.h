@@ -5,6 +5,7 @@
 #include <functional>
 #include <memory>
 #include <optional>
+#include <string>
 #include <vector>
 
 #include "absl/status/status.h"
@@ -12,6 +13,7 @@
 #include "app/editor/overworld/canvas/overworld_canvas_layout.h"
 #include "app/editor/overworld/painting/tile_brush.h"
 #include "app/editor/overworld/ui/ui_constants.h"
+#include "app/editor/shell/feedback/toast_manager.h"
 #include "app/gfx/core/bitmap.h"
 #include "app/gfx/render/tilemap.h"
 #include "app/gui/canvas/canvas.h"
@@ -66,7 +68,9 @@ struct TilePaintingCallbacks {
   std::function<const gfx::Bitmap*(int map_id)> project_tile_atlas;
   std::function<int(int world)> allocated_rows;
   std::function<OverworldCanvasLayout()> canvas_layout;
-  std::function<void()> on_read_only_blocked;
+  /// Reports informational feedback (e.g., "No map under cursor" on Unified
+  /// gutter / empty-quadrant paste or stamp).
+  std::function<void(const std::string& message, ToastType type)> show_toast;
 };
 
 /// One cell of a guarded stencil, in Tile16 cells local to its map (0..31).
@@ -213,6 +217,7 @@ class TilePaintingManager {
   void RefreshChangedMaps(const ChangedMaps& changed_maps);
   void RenderMapTile(int map_id, TilePosition position,
                      const std::vector<uint8_t>& tile_data);
+  void NotifyNoMapTarget() const;
 
   TilePaintingDependencies deps_;
   TilePaintingCallbacks callbacks_;
@@ -221,7 +226,6 @@ class TilePaintingManager {
   bool project_paint_pending_ = false;
   bool gesture_project_ = false;
   int gesture_world_ = 0;
-  std::optional<int> gesture_start_map_;
   EditingMode gesture_mode_ = EditingMode::DRAW_TILE;
   bool selection_gesture_owned_ = false;
   bool external_brush_active_ = false;

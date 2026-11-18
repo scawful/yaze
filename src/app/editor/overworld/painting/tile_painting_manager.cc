@@ -206,7 +206,6 @@ void TilePaintingManager::FinalizePendingPaint() {
 void TilePaintingManager::SuspendCanvasGestures() {
   FinalizePendingPaint();
   paint_gesture_owned_ = false;
-  gesture_start_map_.reset();
   selection_gesture_owned_ = false;
 }
 
@@ -230,24 +229,20 @@ void TilePaintingManager::CheckForOverworldEdits() {
       if (unified_target && canvas.IsMouseHovering() && ImGui::IsItemActive()) {
         paint_gesture_owned_ = true;
         gesture_world_ = unified_target->world;
-        gesture_start_map_ = unified_target->map_id;
         gesture_project_ = IsProjectTileForWorld(unified_target->world,
                                                  unified_target->position);
         gesture_mode_ = *deps_.current_mode;
       } else {
         paint_gesture_owned_ = false;
-        gesture_start_map_.reset();
       }
     } else {
       paint_gesture_owned_ = canvas.IsMouseHovering() && ImGui::IsItemActive();
       gesture_project_ = IsProjectTile(anchor);
       gesture_world_ = *deps_.current_world;
-      gesture_start_map_.reset();
       gesture_mode_ = *deps_.current_mode;
     }
   } else if (!ImGui::IsMouseDown(ImGuiMouseButton_Left)) {
     paint_gesture_owned_ = false;
-    gesture_start_map_.reset();
   }
 
   if (paint_gesture_owned_) {
@@ -269,7 +264,6 @@ void TilePaintingManager::CheckForOverworldEdits() {
       // switch between ROM and project terrain storage.
       FinalizePendingPaint();
       paint_gesture_owned_ = false;
-      gesture_start_map_.reset();
     }
   }
 
@@ -329,6 +323,12 @@ void TilePaintingManager::CheckForOverworldEdits() {
   }
 }
 
+void TilePaintingManager::NotifyNoMapTarget() const {
+  if (callbacks_.show_toast) {
+    callbacks_.show_toast("No map under cursor", ToastType::kInfo);
+  }
+}
+
 absl::Status TilePaintingManager::PasteBrush(const TileBrush& brush) {
   if (!brush.valid()) {
     return absl::InvalidArgumentError("Clipboard tile pattern is invalid");
@@ -340,6 +340,7 @@ absl::Status TilePaintingManager::PasteBrush(const TileBrush& brush) {
   if (Layout().IsUnified()) {
     const auto resolved = ResolveHoveredCanvasTile();
     if (!resolved) {
+      NotifyNoMapTarget();
       return absl::OkStatus();
     }
     return PaintPatternForWorld(resolved->world, brush, resolved->position,
@@ -364,6 +365,7 @@ absl::Status TilePaintingManager::PlaceBrushAt(const TileBrush& brush, int x,
         ResolveCanvasPoint(ImVec2(static_cast<float>(x * kTile16Size),
                                   static_cast<float>(y * kTile16Size)));
     if (!resolved) {
+      NotifyNoMapTarget();
       return absl::OkStatus();
     }
     return PaintPatternForWorld(resolved->world, brush, resolved->position,
@@ -395,7 +397,6 @@ absl::Status TilePaintingManager::PaintPatternForWorld(int world,
     if (!status.ok()) {
       FinalizePendingPaint();
       paint_gesture_owned_ = false;
-      gesture_start_map_.reset();
       return status;
     }
     project_paint_pending_ = !finalize;

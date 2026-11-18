@@ -538,7 +538,6 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   void SetCanvasLayoutMode(OverworldCanvasLayoutMode mode);
   void ScrollToWorldBlock(int world);
   void SwitchToWorldUnified(int world);
-  void NotifyUnifiedReadOnly();
   bool ContributeHoverPosToStatusBar(StatusBar* status_bar) const;
   /// Entity focus (entrances/exits/items/sprites); NONE = all entities.
   void SetEntityEditMode(EntityEditMode mode);
@@ -813,7 +812,29 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
 
   void SetupCanvasAutomation();
   gui::Canvas* GetOverworldCanvas() { return &ow_map_canvas_; }
+  /**
+   * @brief Set a Tile16 cell via canvas automation.
+   *
+   * Coordinate interpretation depends on the active canvas layout mode:
+   * - `Single` (`OverworldCanvasLayoutMode::kSingleWorld`): `x, y` are
+   *   world-local Tile16 coordinates in `current_world_`.
+   * - `Unified` (`OverworldCanvasLayoutMode::kUnified`): `x, y` are
+   *   unified-canvas Tile16 coordinates (`(x * 16, y * 16)` in 1x canvas
+   *   pixels), resolved to the target world and map via
+   *   `OverworldCanvasLayout::MapAt` (gutters and the empty SE quadrant return
+   *   `false`).
+   */
   bool AutomationSetTile(int x, int y, int tile_id);
+
+  /**
+   * @brief Query a Tile16 cell via canvas automation.
+   *
+   * Uses the same layout-dependent `x, y` Tile16 coordinate space as
+   * `AutomationSetTile`: world-local Tile16 coordinates in `Single` mode, and
+   * unified-canvas Tile16 coordinates resolved via
+   * `OverworldCanvasLayout::MapAt` in `Unified` mode (returning `-1` on gutters
+   * or out-of-bounds coordinates).
+   */
   int AutomationGetTile(int x, int y);
 
   // ===========================================================================
@@ -933,7 +954,6 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   OverworldCanvasLayoutMode canvas_layout_mode_ =
       OverworldCanvasLayoutMode::kSingleWorld;
   bool pending_skipped_native_items_warning_ = false;
-  double unified_readonly_banner_until_ = 0.0;
   float pre_unified_scale_ = 1.0f;
 
   // ===========================================================================

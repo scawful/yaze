@@ -22,6 +22,9 @@ void OverworldEditor::SetupCanvasAutomation() {
       [this](int x, int y) { return AutomationGetTile(x, y); });
 }
 
+// In Single mode, x/y are world-local Tile16 coordinates in current_world_.
+// In Unified mode, x/y are unified-canvas Tile16 coordinates resolved via
+// OverworldCanvasLayout::MapAt (gutters and the empty SE quadrant return false).
 bool OverworldEditor::AutomationSetTile(int x, int y, int tile_id) {
   if (!overworld_.is_loaded() || tile_id < 0 ||
       tile_id >= zelda3::kNumTile16Individual) {
@@ -66,6 +69,9 @@ bool OverworldEditor::AutomationSetTile(int x, int y, int tile_id) {
   return false;
 }
 
+// In Single mode, x/y are world-local Tile16 coordinates in current_world_.
+// In Unified mode, x/y are unified-canvas Tile16 coordinates resolved via
+// OverworldCanvasLayout::MapAt (gutters and the empty SE quadrant return -1).
 int OverworldEditor::AutomationGetTile(int x, int y) {
   if (!overworld_.is_loaded()) {
     return -1;

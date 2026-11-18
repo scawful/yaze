@@ -5,7 +5,6 @@
 #include "absl/strings/str_format.h"
 #include "app/editor/menu/status_bar.h"
 #include "app/editor/overworld/canvas/canvas_navigation_manager.h"
-#include "app/editor/shell/feedback/toast_manager.h"
 #include "app/gui/canvas/canvas_usage_tracker.h"
 #include "imgui/imgui.h"
 
@@ -72,7 +71,6 @@ void OverworldEditor::SetCanvasLayoutMode(OverworldCanvasLayoutMode mode) {
     }
   } else {
     canvas_layout_mode_ = mode;
-    unified_readonly_banner_until_ = 0.0;
     const float restore_scale =
         std::clamp(pre_unified_scale_, kOverworldMinZoom, kOverworldMaxZoom);
     ow_map_canvas_.set_global_scale(restore_scale);
@@ -106,15 +104,6 @@ void OverworldEditor::SwitchToWorldUnified(int world) {
   if (canvas_nav_) {
     canvas_nav_->SuspendHoverFollowUntilMouseMoves();
     canvas_nav_->ScrollToWorldBlock(clamped_world);
-  }
-}
-
-void OverworldEditor::NotifyUnifiedReadOnly() {
-  if (ImGui::GetCurrentContext()) {
-    unified_readonly_banner_until_ = ImGui::GetTime() + 3.5;
-  }
-  if (dependencies_.toast_manager) {
-    dependencies_.toast_manager->Show(kUnifiedReadOnlyReason, ToastType::kInfo);
   }
 }
 

@@ -696,9 +696,6 @@ void MapPropertiesSystem::SetupCanvasContextMenu(
     add(std::move(related_menu), ICON_MD_ACCOUNT_TREE, true);
   }
 
-  const bool canvas_read_only =
-      canvas_read_only_provider_ && canvas_read_only_provider_();
-
   // --- Clipboard: area properties (graphics, palettes, music, message) ------
   if (has_metadata && shared_clipboard) {
     add(gui::CanvasMenuItem(
@@ -724,16 +721,13 @@ void MapPropertiesSystem::SetupCanvasContextMenu(
                   "Paste map properties from 0x%02X",
                   shared_clipboard->overworld_map_metadata.source_map_id));
         },
-        [shared_clipboard, canvas_read_only]() {
-          return !canvas_read_only &&
-                 shared_clipboard->has_overworld_map_metadata &&
+        [shared_clipboard]() {
+          return shared_clipboard->has_overworld_map_metadata &&
                  CanPasteOverworldMapMetadata(
                      shared_clipboard->overworld_map_metadata, kScope);
         });
-    if (canvas_read_only) {
-      paste_item.tooltip = kUnifiedReadOnlyReason;
-    } else if (shared_clipboard->has_overworld_map_metadata &&
-               shared_clipboard->overworld_map_metadata.valid) {
+    if (shared_clipboard->has_overworld_map_metadata &&
+        shared_clipboard->overworld_map_metadata.valid) {
       paste_item.tooltip = DescribeOverworldMapMetadataClipboard(
           shared_clipboard->overworld_map_metadata);
     }
@@ -743,12 +737,9 @@ void MapPropertiesSystem::SetupCanvasContextMenu(
   // --- Insert: entities placed at the clicked tile --------------------------
   gui::CanvasMenuItem insert_menu;
   insert_menu.label = "Insert";
-  insert_menu.enabled_condition = [this, valid_map, canvas_read_only]() {
-    return !canvas_read_only && valid_map && bool(entity_insert_callback_);
+  insert_menu.enabled_condition = [this, valid_map]() {
+    return valid_map && bool(entity_insert_callback_);
   };
-  if (canvas_read_only) {
-    insert_menu.tooltip = kUnifiedReadOnlyReason;
-  }
   struct EntityType {
     const char* icon;
     const char* label;

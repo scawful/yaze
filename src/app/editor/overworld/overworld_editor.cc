@@ -369,7 +369,6 @@ void OverworldEditor::Initialize() {
        [this]() { show_overlay_preview_ = !show_overlay_preview_; }});
   map_properties_system_->SetCurrentMapProvider(
       [this]() { return current_map_; });
-  map_properties_system_->SetCanvasReadOnlyProvider([]() { return false; });
   map_properties_system_->SetMapJumpCallback(
       [this](int map_id) { JumpToMap(map_id); });
   map_properties_system_->SetShortcutHintProvider(
@@ -524,8 +523,10 @@ void OverworldEditor::InitTilePaintingManager() {
   callbacks.canvas_layout = [this]() {
     return GetCanvasLayout();
   };
-  callbacks.on_read_only_blocked = [this]() {
-    NotifyUnifiedReadOnly();
+  callbacks.show_toast = [this](const std::string& message, ToastType type) {
+    if (dependencies_.toast_manager) {
+      dependencies_.toast_manager->Show(message, type);
+    }
   };
 
   tile_painting_ = std::make_unique<TilePaintingManager>(deps, callbacks);

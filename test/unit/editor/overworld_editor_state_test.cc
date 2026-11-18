@@ -6,6 +6,8 @@
 
 #include <gtest/gtest.h>
 
+#include "app/editor/shell/feedback/toast_manager.h"
+#include "imgui/imgui.h"
 #include "rom/rom.h"
 #include "test_utils/overworld_model_test_peer.h"
 #include "zelda3/overworld/overworld_entrance.h"
@@ -25,6 +27,10 @@ class OverworldEditorStateTestPeer {
   }
   static int AutomationGetTile(OverworldEditor& editor, int x, int y) {
     return editor.AutomationGetTile(x, y);
+  }
+  static absl::Status PlaceBrushAt(OverworldEditor& editor,
+                                   const TileBrush& brush, int x, int y) {
+    return editor.tile_painting_->PlaceBrushAt(brush, x, y);
   }
   static void InitEditorPaintingForTest(OverworldEditor& editor) {
     zelda3::OverworldModelTestPeer::SetLoaded(editor.overworld_, true);
@@ -851,6 +857,87 @@ TEST_F(OverworldRecordEditLifecycleTest,
 
   editor_->SetCanvasLayoutMode(OverworldCanvasLayoutMode::kSingleWorld);
   EXPECT_FALSE(editor_->IsUnifiedCanvas());
+}
+
+TEST_F(OverworldRecordEditLifecycleTest,
+       UnifiedGutterPlaceAndPasteReportNoMapUnderCursorToast) {
+  {
+    ToastManager toasts;
+    EditorDependencies deps;
+    deps.toast_manager = &toasts;
+    OverworldEditor editor(&rom_, deps);
+    OverworldEditorStateTestPeer::InitEditorPaintingForTest(editor);
+    editor.SetCanvasLayoutMode(OverworldCanvasLayoutMode::kUnified);
+
+    const auto status = OverworldEditorStateTestPeer::PlaceBrushAt(
+        editor, TileBrush{1, 1, {3}}, 256, 0);
+    EXPECT_TRUE(status.ok()) << status;
+    EXPECT_FALSE(rom_.dirty());
+    ASSERT_EQ(toasts.pending_count(), 1u);
+    const Toast* toast = toasts.GetPendingToast(0);
+    ASSERT_NE(toast, nullptr);
+    EXPECT_EQ(toast->message, "No map under cursor");
+    EXPECT_EQ(toast->type, ToastType::kInfo);
+  }
+
+  {
+    ImGuiContext* context = ImGui::CreateContext();
+    ImGui::SetCurrentContext(context);
+    ImGuiIO& io = ImGui::GetIO();
+    io.DisplaySize = ImVec2(800, 600);
+    io.DeltaTime = 1.0f / 60.0f;
+    unsigned char* pixels = nullptr;
+    int tex_w = 0, tex_h = 0;
+    io.Fonts->GetTexDataAsRGBA32(&pixels, &tex_w, &tex_h);
+
+    ToastManager paste_toasts;
+    SharedClipboard clipboard;
+    clipboard.overworld_width = 1;
+    clipboard.overworld_height = 1;
+    clipboard.overworld_tile16_ids = {3};
+    clipboard.has_overworld_tile16 = true;
+    EditorDependencies deps;
+    deps.toast_manager = &paste_toasts;
+    deps.shared_clipboard = &clipboard;
+    OverworldEditor editor(&rom_, deps);
+    OverworldEditorStateTestPeer::InitEditorPaintingForTest(editor);
+    editor.SetCanvasLayoutMode(OverworldCanvasLayoutMode::kUnified);
+
+    auto& canvas = editor.ow_map_canvas();
+    canvas.SetCanvasSize(
+        OverworldCanvasLayout(OverworldCanvasLayoutMode::kUnified)
+            .CanvasSize());
+    canvas.set_global_scale(1.0f);
+    canvas.set_scrolling(ImVec2(-4160.0f, -4160.0f));
+
+    auto run_frame = [&](ImVec2 mouse) {
+      io.AddMousePosEvent(mouse.x, mouse.y);
+      ImGui::NewFrame();
+      ImGui::SetNextWindowPos(ImVec2(40, 40), ImGuiCond_Always);
+      ImGui::SetNextWindowSize(ImVec2(300, 300), ImGuiCond_Always);
+      ImGui::Begin("UnifiedPasteHost", nullptr,
+                   ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoMove |
+                       ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
+      canvas.DrawBackground(ImVec2(256, 256));
+      ImGui::End();
+      ImGui::Render();
+    };
+    const ImVec2 gutter_mouse(100.0f, 100.0f);
+    run_frame(gutter_mouse);
+    run_frame(gutter_mouse);
+    ASSERT_TRUE(canvas.IsMouseHovering());
+
+    const auto status = editor.Paste();
+    EXPECT_TRUE(status.ok()) << status;
+    EXPECT_FALSE(rom_.dirty());
+    ASSERT_EQ(paste_toasts.pending_count(), 1u);
+    const Toast* toast = paste_toasts.GetPendingToast(0);
+    ASSERT_NE(toast, nullptr);
+    EXPECT_EQ(toast->message, "No map under cursor");
+    EXPECT_EQ(toast->type, ToastType::kInfo);
+
+    ImGui::DestroyContext(context);
+  }
 }
 
 }  // namespace
