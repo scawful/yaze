@@ -50,6 +50,23 @@
 namespace yaze::cli {
 namespace {
 
+// POSIX setenv/unsetenv do not exist on Windows (clang-cl/MSVC).
+void SetTestEnv(const char* name, const char* value) {
+#ifdef _WIN32
+  _putenv_s(name, value);
+#else
+  setenv(name, value, 1);
+#endif
+}
+
+void UnsetTestEnv(const char* name) {
+#ifdef _WIN32
+  _putenv_s(name, "");
+#else
+  unsetenv(name);
+#endif
+}
+
 using overworld::AreaTileLocation;
 using overworld::ResolveAreaTileLocation;
 using ::testing::HasSubstr;
@@ -3027,16 +3044,16 @@ TEST_P(OverworldEndpointPlanTest, EnvOptInAdmitsRevision5ReadsOnlyWhenOne) {
       saved ? std::optional<std::string>(saved) : std::nullopt;
   auto restore = absl::MakeCleanup([&] {
     if (previous.has_value()) {
-      setenv(rom::kExperimentalPageTile16EnvVar, previous->c_str(), 1);
+      SetTestEnv(rom::kExperimentalPageTile16EnvVar, previous->c_str());
     } else {
-      unsetenv(rom::kExperimentalPageTile16EnvVar);
+      UnsetTestEnv(rom::kExperimentalPageTile16EnvVar);
     }
   });
   const auto read = [&](const char* env_value) {
     if (env_value != nullptr) {
-      setenv(rom::kExperimentalPageTile16EnvVar, env_value, 1);
+      SetTestEnv(rom::kExperimentalPageTile16EnvVar, env_value);
     } else {
-      unsetenv(rom::kExperimentalPageTile16EnvVar);
+      UnsetTestEnv(rom::kExperimentalPageTile16EnvVar);
     }
     Rom rom;
     EXPECT_TRUE(rom.LoadFromFile(input_.string()).ok());
