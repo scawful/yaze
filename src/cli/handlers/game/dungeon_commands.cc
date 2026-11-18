@@ -1023,13 +1023,22 @@ absl::Status DungeonSetRoomPropertyCommandHandler::Execute(
   const bool is_room_header = prop == "palette" || prop == "blockset" ||
                               prop == "spriteset" || prop == "effect" ||
                               prop == "tag1" || prop == "tag2" ||
-                              prop == "holewarp";
+                              prop == "holewarp" || prop == "dark";
   const int property_max = is_layout ? 0x07 : (is_floor ? 0x0F : 0xFF);
   if (is_object_stream_header &&
       (parsed_value < 0 || parsed_value > property_max)) {
     const absl::Status property_status =
         absl::InvalidArgumentError(absl::StrFormat(
             "Property %s must be in range 0..%d", property, property_max));
+    formatter.AddField("status", "error");
+    formatter.AddField("error", std::string(property_status.message()));
+    formatter.EndObject();
+    return property_status;
+  }
+  // Header byte 0 bit 0: 1 = dark room (needs the Lamp), 0 = lit.
+  if (prop == "dark" && parsed_value != 0 && parsed_value != 1) {
+    const absl::Status property_status =
+        absl::InvalidArgumentError("Property dark must be 0 (lit) or 1 (dark)");
     formatter.AddField("status", "error");
     formatter.AddField("error", std::string(property_status.message()));
     formatter.EndObject();
@@ -1089,6 +1098,12 @@ absl::Status DungeonSetRoomPropertyCommandHandler::Execute(
     room.SetTag2(static_cast<zelda3::TagKey>(parsed_value & 0xFF));
   } else if (prop == "holewarp") {
     room.SetHolewarp(static_cast<uint8_t>(parsed_value & 0xFF));
+  } else if (prop == "dark") {
+    // SetBg2 keeps the layer mode bits and updates both dark flags; the
+    // header encoder writes bit 0 from them.
+    room.SetBg2(parsed_value != 0 ? zelda3::background2::DarkRoom
+                                  : static_cast<zelda3::background2>(
+                                        room.layer2_mode() & 0x07));
   } else {
     const absl::Status property_status = absl::InvalidArgumentError(
         absl::StrFormat("Unsupported property: %s", property));
@@ -1116,6 +1131,8 @@ absl::Status DungeonSetRoomPropertyCommandHandler::Execute(
         return static_cast<int>(r.tag2());
       if (prop == "holewarp")
         return r.holewarp();
+      if (prop == "dark")
+        return r.IsLight() ? 1 : 0;  // IsLight() is the bit-0 dark flag
       if (prop == "floor1")
         return r.floor1();
       if (prop == "floor2")
@@ -1137,7 +1154,7 @@ absl::Status DungeonSetRoomPropertyCommandHandler::Execute(
       // change any byte besides the edited field.
       const std::map<std::string, uint32_t> kHeaderOffset = {
           {"palette", 1}, {"blockset", 2}, {"spriteset", 3}, {"effect", 4},
-          {"tag1", 5},    {"tag2", 6},     {"holewarp", 9}};
+          {"tag1", 5},    {"tag2", 6},     {"holewarp", 9},  {"dark", 0}};
       const uint32_t field_pc = ranges->front().first + kHeaderOffset.at(prop);
       for (size_t pc = 0; pc < candidate.size(); ++pc) {
         if (candidate[pc] != baseline[pc] && pc != field_pc) {
