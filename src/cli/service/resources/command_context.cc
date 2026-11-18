@@ -360,6 +360,22 @@ std::optional<std::string> ArgumentParser::GetString(
   return FindArgValue(name);
 }
 
+std::vector<std::string> ArgumentParser::GetStrings(
+    const std::string& name) const {
+  const std::string flag = "--" + name;
+  const std::string equals_form = flag + "=";
+  std::vector<std::string> values;
+  for (size_t i = 0; i < args_.size(); ++i) {
+    const std::string& arg = args_[i];
+    if (absl::StartsWith(arg, equals_form)) {
+      values.push_back(arg.substr(equals_form.length()));
+    } else if (arg == flag && i + 1 < args_.size()) {
+      values.push_back(args_[++i]);
+    }
+  }
+  return values;
+}
+
 absl::StatusOr<int> ArgumentParser::GetInt(const std::string& name) const {
   auto value = FindArgValue(name);
   if (!value.has_value()) {
