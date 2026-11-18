@@ -122,3 +122,32 @@ rules removed; created empty Space removed (or the exact remaining blocker).
 For installed-app quit regression testing, see
 `scripts/agents/test-installed-macos-quit.sh`. Follow this Space isolation policy
 as well; the script's process/exit checks do not by themselves prove isolation.
+
+## 6. Driving a test app on a hidden Space (observed 2026-11-12, macOS 26)
+
+- Launch with `open -n <bundle> --env YAZE_APP_DATA_DIR=... --env
+  YAZE_USER_DOCUMENTS_DIR=... --args ...`. A background job started from an
+  agent shell can be terminated when the tool command returns.
+- App-scoped screenshots work while the test Space is hidden, but the app does
+  not act on input there: computer-use clicks are refused and gRPC harness
+  actions (`--enable_test_harness`) wait until the Space is visible. Background
+  (no-raise) clicks did not reach ImGui even with the Space visible. Plan short,
+  scripted visible windows and get the user's consent before switching Spaces.
+- `z3ed gui-click` reports `status: Success` once the request is accepted, not
+  when the action ran; confirm the effect with a screenshot or
+  `gui-discover-tool`.
+- Harness target forms:
+  - `window:<panel id>` (for example `window:overworld.tile16_selector`); the
+    harness resolves panel IDs, not window titles. In this session it did not
+    bring an inactive docked tab to the front.
+  - `button://<Window Title>/<Label>` for buttons in popups and dialogs; a bare
+    label is looked up without a window and is not found. This dismissed the
+    unsaved-changes prompt with
+    `button://Unsaved Session Changes Confirmation/Quit Without Saving`.
+  - Avoid clicking `PanelWindow:<title>` widget keys from discovery. After one
+    such queued click, a tile appeared painted on the overworld map (cause not
+    isolated). Use a disposable ROM and discard changes on quit.
+- `osascript -e 'tell application id "<bundle id>" to quit'` reaches a hidden
+  test app. It can print `User canceled. (-128)` while the app still shuts down
+  cleanly; confirm with the process list and the app log. An unsaved-changes
+  prompt blocks the quit until it is answered.
