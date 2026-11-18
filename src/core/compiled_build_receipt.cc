@@ -10,6 +10,7 @@
 #include <vector>
 
 #include "absl/strings/str_cat.h"
+#include "absl/strings/string_view.h"
 #include "core/project.h"
 #include "core/source_artifact_publisher.h"
 #include "nlohmann/json.hpp"
@@ -25,7 +26,10 @@ constexpr uint64_t kMaxReceiptBytes = 16 * 1024 * 1024;
 constexpr uint64_t kMaxArtifactBytes = 1024ULL * 1024 * 1024;
 constexpr uint64_t kMaxRomBytes = 64 * 1024 * 1024;
 
-absl::Status Refused(std::string_view message) {
+// Use absl::string_view in helpers passed to absl::StrCat: older system
+// Abseil (e.g. Ubuntu 22.04) defines absl::string_view distinct from
+// std::string_view, so absl::AlphaNum does not accept std::string_view.
+absl::Status Refused(absl::string_view message) {
   return absl::FailedPreconditionError(
       absl::StrCat("Compiled build receipt refused: ", message));
 }
@@ -36,7 +40,7 @@ std::string PathText(const fs::path& path) {
 }
 
 absl::StatusOr<fs::path> Canonical(const std::string& text,
-                                   std::string_view what) {
+                                   absl::string_view what) {
   const auto path = fs::u8path(text);
   if (text.empty() || !path.is_absolute()) {
     return Refused(absl::StrCat(what, " requires an absolute path"));
@@ -50,7 +54,7 @@ absl::StatusOr<fs::path> Canonical(const std::string& text,
 }
 
 absl::StatusOr<std::string> ReadBounded(const fs::path& path, uint64_t limit,
-                                        std::string_view what) {
+                                        absl::string_view what) {
   std::error_code error;
   const bool regular = fs::is_regular_file(path, error);
   const auto size = regular && !error ? fs::file_size(path, error) : 0;
@@ -70,7 +74,7 @@ absl::StatusOr<std::string> ReadBounded(const fs::path& path, uint64_t limit,
 }
 
 // A recorded artifact whose canonical path still holds its recorded bytes.
-absl::StatusOr<fs::path> CheckArtifact(const Json& row, std::string_view what,
+absl::StatusOr<fs::path> CheckArtifact(const Json& row, absl::string_view what,
                                        bool require_size) {
   const auto& text = row.at("path").get_ref<const std::string&>();
   ASSIGN_OR_RETURN(auto path, Canonical(text, what));

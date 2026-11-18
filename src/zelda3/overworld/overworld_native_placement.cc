@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <limits>
+#include <optional>
 #include <set>
 #include <type_traits>
 
@@ -76,6 +77,79 @@ absl::StatusOr<rom::NativeAuthoringPlacement> EndpointModelPlacement(
   return result;
 }
 
+template <typename Record>
+absl::Status CheckEndpointRow(const Overworld& world,
+                              const rom::NativeAuthoringPlacement& placement,
+                              const std::vector<Record>& records,
+                              std::optional<uint16_t> row) {
+  if (!row || *row >= records.size() ||
+      (records[*row].authoring_placement_id &&
+       records[*row].authoring_placement_id != placement.id))
+    return absl::FailedPreconditionError(
+        "Endpoint row is unavailable or bound");
+  ASSIGN_OR_RETURN(auto model, EndpointModelPlacement(world, placement,
+                                                      records[*row], *row));
+  if (model != placement)
+    return absl::FailedPreconditionError(
+        "Endpoint binding differs from its row");
+  return absl::OkStatus();
+}
+
+template <typename Record>
+absl::Status UpdateEndpointPlacements(
+    const Overworld& world,
+    const rom::NativeOverworldAuthoringMetadata& baseline,
+    const std::vector<Record>& records, size_t kind,
+    rom::NativeOverworldAuthoringMetadata* metadata) {
+  std::set<uint32_t> identities;
+  for (const auto& e : records) {
+    if (!e.authoring_placement_id)
+      continue;
+    const auto id = *e.authoring_placement_id;
+    const auto p =
+        std::find_if(metadata->placements.begin(), metadata->placements.end(),
+                     [id](const auto& p) { return p.id == id; });
+    if (!identities.insert(id).second || p == metadata->placements.end() ||
+        p->value.index() + 1 != kind)
+      return absl::FailedPreconditionError(
+          "Endpoint model has a duplicate, missing or wrong-kind identity");
+  }
+  for (auto& p : metadata->placements) {
+    if (p.value.index() + 1 != kind)
+      continue;
+    const auto saved =
+        std::find_if(baseline.placements.begin(), baseline.placements.end(),
+                     [&](const auto& value) { return value.id == p.id; });
+    const auto row = std::find_if(
+        records.begin(), records.end(),
+        [&](const auto& e) { return e.authoring_placement_id == p.id; });
+    bool deleted = row == records.end();
+    if (row != records.end()) {
+      if constexpr (std::is_same_v<Record, OverworldEntrance>)
+        deleted = row->deleted;
+      else
+        deleted = row->deleted_;
+    }
+    if (deleted) {
+      if (p.state == rom::NativePlacementState::kPending &&
+          row == records.end())
+        continue;  // An explicit binding Undo restored the authored plan.
+      if (saved == baseline.placements.end())
+        return absl::FailedPreconditionError("Endpoint has no saved identity");
+      p = *saved;
+      // A binding deleted before its first Save never became a live saved
+      // identity. Keep the original pending plan rather than publish it.
+      if (saved->state != rom::NativePlacementState::kPending)
+        p.state = rom::NativePlacementState::kDeleted;
+      continue;
+    }
+    ASSIGN_OR_RETURN(
+        p, EndpointModelPlacement(world, p, *row,
+                                  static_cast<size_t>(row - records.begin())));
+  }
+  return absl::OkStatus();
+}
+
 }  // namespace
 
 absl::Status Overworld::BindNativeEndpointPlacements() {
@@ -146,27 +220,16 @@ absl::Status Overworld::RestoreNativeEndpointPlacement(
       candidate, materialized_map_count());
   if (!encoded.ok())
     return encoded.status();
-  auto check = [&](const auto& records, auto row) -> absl::Status {
-    if (!row || *row >= records.size() ||
-        (records[*row].authoring_placement_id &&
-         records[*row].authoring_placement_id != placement.id))
-      return absl::FailedPreconditionError(
-          "Endpoint row is unavailable or bound");
-    ASSIGN_OR_RETURN(auto model, EndpointModelPlacement(*this, placement,
-                                                        records[*row], *row));
-    if (model != placement)
-      return absl::FailedPreconditionError(
-          "Endpoint binding differs from its row");
-    return absl::OkStatus();
-  };
   if (placement.state == rom::NativePlacementState::kBound) {
     if (const auto* door =
             std::get_if<rom::NativeAuthoringDoorPlacement>(&placement.value)) {
-      RETURN_IF_ERROR(check(all_entrances_, door->trigger_row));
+      RETURN_IF_ERROR(CheckEndpointRow(*this, placement, all_entrances_,
+                                       door->trigger_row));
     } else {
       const auto& back =
           std::get<rom::NativeAuthoringReturnPlacement>(placement.value);
-      RETURN_IF_ERROR(check(all_exits_, back.return_row));
+      RETURN_IF_ERROR(
+          CheckEndpointRow(*this, placement, all_exits_, back.return_row));
     }
   }
   for (auto& e : all_entrances_)
@@ -409,63 +472,13 @@ Overworld::ProposeNativeAuthoringMetadataForSave(bool save_sprites,
 absl::Status Overworld::ProposeNativeEndpointPlacements(
     rom::NativeOverworldAuthoringMetadata* metadata, bool save_entrances,
     bool save_returns) const {
-  auto update = [&](auto& records, size_t kind) -> absl::Status {
-    std::set<uint32_t> identities;
-    for (const auto& e : records) {
-      if (!e.authoring_placement_id)
-        continue;
-      const auto id = *e.authoring_placement_id;
-      const auto p =
-          std::find_if(metadata->placements.begin(), metadata->placements.end(),
-                       [id](const auto& p) { return p.id == id; });
-      if (!identities.insert(id).second || p == metadata->placements.end() ||
-          p->value.index() + 1 != kind)
-        return absl::FailedPreconditionError(
-            "Endpoint model has a duplicate, missing or wrong-kind identity");
-    }
-    for (auto& p : metadata->placements) {
-      if (p.value.index() + 1 != kind)
-        continue;
-      const auto saved =
-          std::find_if(native_authoring_metadata_baseline_->placements.begin(),
-                       native_authoring_metadata_baseline_->placements.end(),
-                       [&](const auto& value) { return value.id == p.id; });
-      const auto row = std::find_if(
-          records.begin(), records.end(),
-          [&](const auto& e) { return e.authoring_placement_id == p.id; });
-      bool deleted = row == records.end();
-      if (row != records.end()) {
-        if constexpr (std::is_same_v<
-                          typename std::decay_t<decltype(records)>::value_type,
-                          OverworldEntrance>)
-          deleted = row->deleted;
-        else
-          deleted = row->deleted_;
-      }
-      if (deleted) {
-        if (p.state == rom::NativePlacementState::kPending &&
-            row == records.end())
-          continue;  // An explicit binding Undo restored the authored plan.
-        if (saved == native_authoring_metadata_baseline_->placements.end())
-          return absl::FailedPreconditionError(
-              "Endpoint has no saved identity");
-        p = *saved;
-        // A binding deleted before its first Save never became a live saved
-        // identity. Keep the original pending plan rather than publish it.
-        if (saved->state != rom::NativePlacementState::kPending)
-          p.state = rom::NativePlacementState::kDeleted;
-        continue;
-      }
-      ASSIGN_OR_RETURN(
-          p, EndpointModelPlacement(
-                 *this, p, *row, static_cast<size_t>(row - records.begin())));
-    }
-    return absl::OkStatus();
-  };
   if (save_entrances)
-    RETURN_IF_ERROR(update(all_entrances_, 2));
+    RETURN_IF_ERROR(
+        UpdateEndpointPlacements(*this, *native_authoring_metadata_baseline_,
+                                 all_entrances_, 2, metadata));
   if (save_returns)
-    RETURN_IF_ERROR(update(all_exits_, 3));
+    RETURN_IF_ERROR(UpdateEndpointPlacements(
+        *this, *native_authoring_metadata_baseline_, all_exits_, 3, metadata));
   return absl::OkStatus();
 }
 

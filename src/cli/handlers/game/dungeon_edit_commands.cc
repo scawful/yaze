@@ -1484,7 +1484,9 @@ LiftablePairing PairLiftables(Rom* rom, int room_id,
 
   for (const PotItemEntryView& entry : entries) {
     const uint16_t word = entry.item.position & 0x7FFF;
-    const auto [x, y] = tile(word);
+    const auto drop_tile = tile(word);
+    const int x = drop_tile.first;
+    const int y = drop_tile.second;
     std::string status = "orphaned";
     int match = -1;
     const auto find = [&](auto&& predicate) {
