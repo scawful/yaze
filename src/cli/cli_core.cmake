@@ -72,6 +72,7 @@ set(YAZE_CLI_CORE_SOURCES
   cli/handlers/game/dungeon_commands.cc
   cli/handlers/game/dungeon_edit_commands.cc
   cli/handlers/game/dungeon_find_commands.cc
+  cli/handlers/game/progression_commands.cc
   cli/handlers/game/dungeon_census_commands.cc
   cli/handlers/game/dungeon_graph_commands.cc
   cli/handlers/game/dungeon_group_commands.cc

@@ -27,6 +27,7 @@
 #include "cli/handlers/game/overworld_render_commands.h"
 #include "cli/handlers/game/overworld_sprite_edit_commands.h"
 #include "cli/handlers/game/overworld_tile_reference.h"
+#include "cli/handlers/game/progression_commands.h"
 #include "cli/handlers/game/terrain_catalog_commands.h"
 #include "cli/handlers/graphics/gfx_sheet_inventory_commands.h"
 #include "cli/handlers/graphics/gfx_sheet_png_commands.h"
@@ -165,6 +166,8 @@ CreateCliCommandHandlers() {
   handlers.push_back(std::make_unique<DungeonRoomHeaderCommandHandler>());
   handlers.push_back(std::make_unique<DungeonFindCommandHandler>());
   handlers.push_back(std::make_unique<DungeonListEntrancesCommandHandler>());
+  handlers.push_back(std::make_unique<DungeonKeyBalanceCommandHandler>());
+  handlers.push_back(std::make_unique<ProgressionAuditCommandHandler>());
   handlers.push_back(std::make_unique<DungeonGraphCommandHandler>());
   handlers.push_back(std::make_unique<DungeonRoomGraphCommandHandler>());
   handlers.push_back(std::make_unique<DungeonRoomCensusCommandHandler>());

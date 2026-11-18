@@ -136,38 +136,7 @@ DungeonFindRoom ReadRoom(Rom* rom, int room_id) {
   room.LoadSprites();
   room.LoadChests();
   room.LoadPotItems();
-
-  DungeonFindRoom data;
-  data.room_id = room_id;
-  data.is_dark = room.IsDark();
-  data.spriteset = room.spriteset();
-  data.tag1 = static_cast<int>(room.tag1());
-  data.tag2 = static_cast<int>(room.tag2());
-  for (const auto& sprite : room.GetSprites()) {
-    const auto label = zelda3::ResolveSpriteLabel(sprite.id());
-    data.sprites.push_back({.id = static_cast<int>(sprite.id()),
-                            .x = static_cast<int>(sprite.x()),
-                            .y = static_cast<int>(sprite.y()),
-                            .subtype = static_cast<int>(sprite.subtype()),
-                            .layer = static_cast<int>(sprite.layer()),
-                            .key_drop = static_cast<int>(sprite.key_drop()),
-                            .name = label.name,
-                            .vanilla_name = label.default_name});
-  }
-  for (const auto& chest : room.GetChests()) {
-    data.chests.push_back(
-        {.id = static_cast<int>(chest.id),
-         .is_big = static_cast<bool>(chest.size),
-         .name = zelda3::GetItemReceiptLabel(static_cast<uint8_t>(chest.id))});
-  }
-  for (const auto& pot : room.GetPotItems()) {
-    data.pots.push_back({.id = pot.item,
-                         .position = pot.position,
-                         .tile_x = pot.GetTileX(),
-                         .tile_y = pot.GetTileY(),
-                         .name = DungeonPotItemName(pot.item)});
-  }
-  return data;
+  return MakeDungeonFindRoom(room, room_id);
 }
 
 void AddMatchField(resources::OutputFormatter& formatter,
@@ -267,6 +236,40 @@ std::string DungeonPotItemName(int id) {
         absl::StripTrailingAsciiWhitespace(zelda3::kSecretItemNames[index]));
   }
   return absl::StrFormat("Unknown 0x%02X", id);
+}
+
+DungeonFindRoom MakeDungeonFindRoom(const zelda3::Room& room, int room_id) {
+  DungeonFindRoom data;
+  data.room_id = room_id;
+  data.is_dark = room.IsDark();
+  data.spriteset = room.spriteset();
+  data.tag1 = static_cast<int>(room.tag1());
+  data.tag2 = static_cast<int>(room.tag2());
+  for (const auto& sprite : room.GetSprites()) {
+    const auto label = zelda3::ResolveSpriteLabel(sprite.id());
+    data.sprites.push_back({.id = static_cast<int>(sprite.id()),
+                            .x = static_cast<int>(sprite.x()),
+                            .y = static_cast<int>(sprite.y()),
+                            .subtype = static_cast<int>(sprite.subtype()),
+                            .layer = static_cast<int>(sprite.layer()),
+                            .key_drop = static_cast<int>(sprite.key_drop()),
+                            .name = label.name,
+                            .vanilla_name = label.default_name});
+  }
+  for (const auto& chest : room.GetChests()) {
+    data.chests.push_back(
+        {.id = static_cast<int>(chest.id),
+         .is_big = static_cast<bool>(chest.size),
+         .name = zelda3::GetItemReceiptLabel(static_cast<uint8_t>(chest.id))});
+  }
+  for (const auto& pot : room.GetPotItems()) {
+    data.pots.push_back({.id = pot.item,
+                         .position = pot.position,
+                         .tile_x = pot.GetTileX(),
+                         .tile_y = pot.GetTileY(),
+                         .name = DungeonPotItemName(pot.item)});
+  }
+  return data;
 }
 
 std::vector<DungeonFindRow> FindDungeonRows(const DungeonFindRoom& room,

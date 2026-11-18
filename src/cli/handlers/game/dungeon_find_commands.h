@@ -10,6 +10,10 @@
 #include "absl/status/statusor.h"
 #include "cli/service/resources/command_handler.h"
 
+namespace yaze::zelda3 {
+class Room;
+}  // namespace yaze::zelda3
+
 namespace yaze::cli::handlers {
 
 // One element kind in a dungeon-find row.
@@ -104,6 +108,10 @@ struct DungeonFindRow {
 // ROM.
 std::vector<DungeonFindRow> FindDungeonRows(const DungeonFindRoom& room,
                                             const DungeonFindFilter& filter);
+
+// Converts a loaded room (header, sprites, chests and pot items) into the
+// dungeon-find view. Shared with dungeon-key-balance and progression-audit.
+DungeonFindRoom MakeDungeonFindRoom(const zelda3::Room& room, int room_id);
 
 // Pot-item name for a secret-item ID (0x00-0x16 and the 0x80+ even IDs).
 std::string DungeonPotItemName(int id);

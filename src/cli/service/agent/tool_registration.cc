@@ -11,6 +11,7 @@
 #include "cli/handlers/game/minecart_commands.h"
 #include "cli/handlers/game/music_commands.h"
 #include "cli/handlers/game/overworld_commands.h"
+#include "cli/handlers/game/progression_commands.h"
 #include "cli/handlers/graphics/sprite_commands.h"
 #include "cli/handlers/tools/test_helpers_commands.h"
 #include "cli/service/resources/command_context.h"
@@ -267,6 +268,34 @@ void RegisterBuiltinAgentTools(ToolRegistry& registry) {
        ToolAccess::kReadOnly,
        {},
        {}});
+  RegisterBuiltinTool<DungeonKeyBalanceCommandHandler>(
+      registry,
+      {"dungeon-key-balance",
+       "dungeon",
+       "Count small/big key sources and sinks per dungeon; non-zero exit when "
+       "a dungeon is short of keys or lacks a big key",
+       "dungeon-key-balance",
+       {"dungeon-key-balance",
+        "dungeon-key-balance --project=<folder> "
+        "--dungeon=D1"},
+       true,
+       false,
+       ToolAccess::kReadOnly,
+       {},
+       {}});
+  RegisterBuiltinTool<ProgressionAuditCommandHandler>(
+      registry,
+      {"progression-audit",
+       "dungeon",
+       "Map room features to required items through a spec and check its "
+       "rules; non-zero exit on a failed rule",
+       "progression-audit --spec=<json>",
+       {"progression-audit --spec=expectations.json --project=<folder>"},
+       true,
+       false,
+       ToolAccess::kReadOnly,
+       {},
+       {"all-rooms"}});
   REGISTER_BUILTIN_AGENT_TOOL(
       "dungeon-get-palette", "dungeon",
       "Resolve a US/OOS room's shared dungeon palette and affected rooms",
