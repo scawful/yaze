@@ -1,20 +1,11 @@
 #ifndef YAZE_APP_CORE_SERVICE_SCREENSHOT_UTILS_H_
 #define YAZE_APP_CORE_SERVICE_SCREENSHOT_UTILS_H_
 
-namespace yaze::test {
-enum class ScreenshotFormat { kAuto, kPng, kBmp };
-}  // namespace yaze::test
-
-#ifdef YAZE_WITH_GRPC
-
 #include <cstdint>
-#include <optional>
 #include <string>
 
-#include "absl/status/statusor.h"
-
-namespace yaze {
-namespace test {
+namespace yaze::test {
+enum class ScreenshotFormat { kAuto, kPng, kBmp };
 
 struct ScreenshotArtifact {
   std::string file_path;
@@ -22,6 +13,16 @@ struct ScreenshotArtifact {
   int height = 0;
   int64_t file_size_bytes = 0;
 };
+}  // namespace yaze::test
+
+#ifdef YAZE_WITH_GRPC
+
+#include <optional>
+
+#include "absl/status/statusor.h"
+
+namespace yaze {
+namespace test {
 
 struct CaptureRegion {
   int x = 0;

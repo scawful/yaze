@@ -85,5 +85,33 @@ TEST(RoomDefaultEntranceTest, CandidateFallsBackToFirstWithoutHeaderMatch) {
   EXPECT_EQ(SelectRoomEntranceCandidate({}, 0x09), -1);
 }
 
+TEST(RoomDefaultEntranceTest,
+     MultiCandidateDungeonMapSelectsHeaderMatchingBlockset) {
+  auto data = RomWithOneDungeonMap({0x10, 0x11, 0x12});
+  SetEntrance(data, 0x10, 0x010, 0x03, 0x12);
+  SetEntrance(data, 0x11, 0x011, 0x07, 0x12);
+  // Point room header table to $04:8000 (PC 0x20000) and room 0x12 header to
+  // $04:9000 (PC 0x21000) with secondary blockset 0x07.
+  data[0xB5DD] = 0x00;
+  data[0xB5DE] = 0x80;
+  data[0xB5DF] = 0x04;
+  data[0xB5E7] = 0x04;
+  data[0x20000 + 0x12 * 2] = 0x00;
+  data[0x20000 + 0x12 * 2 + 1] = 0x90;
+  data[0x21000 + 2] = 0x07;
+
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(data).ok());
+
+  const auto defaults = ComputeRoomDefaultEntrances(rom);
+
+  EXPECT_EQ(defaults[0x012].source, RoomEntranceSource::kDungeonMap);
+  EXPECT_EQ(defaults[0x012].entrance_id, 0x11);
+  EXPECT_EQ(defaults[0x012].main_blockset, 0x07);
+  ASSERT_EQ(defaults[0x012].candidates.size(), 2u);
+  EXPECT_EQ(defaults[0x012].candidates[0].entrance_id, 0x10);
+  EXPECT_EQ(defaults[0x012].candidates[1].entrance_id, 0x11);
+}
+
 }  // namespace
 }  // namespace yaze::zelda3

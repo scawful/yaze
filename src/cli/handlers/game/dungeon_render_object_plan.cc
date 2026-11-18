@@ -50,7 +50,8 @@ absl::Status CheckKeys(const Json& value,
           absl::StrFormat("Object plan is missing '%s'", key));
     }
   }
-  for (const auto& [key, unused] : value.items()) {
+  for (const auto& item : value.items()) {
+    const std::string& key = item.key();
     if (std::none_of(required.begin(), required.end(),
                      [&key](const char* name) { return key == name; }) &&
         std::none_of(optional.begin(), optional.end(),

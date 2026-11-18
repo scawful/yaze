@@ -178,10 +178,12 @@ std::vector<RoomDefaultEntrance> ComputeRoomDefaultEntrances(Rom& rom) {
     if (slot.source != RoomEntranceSource::kNone || candidates.empty()) {
       continue;
     }
-    const bool same_blockset = std::all_of(
-        candidates.begin(), candidates.end(), [&](const auto& candidate) {
-          return candidate.main_blockset == candidates.front().main_blockset;
-        });
+    const uint8_t first_blockset = candidates.front().main_blockset;
+    const bool same_blockset =
+        std::all_of(candidates.begin(), candidates.end(),
+                    [first_blockset](const auto& candidate) {
+                      return candidate.main_blockset == first_blockset;
+                    });
     // The header is read only when it can change the outcome.
     const uint8_t header_blockset =
         same_blockset ? candidates.front().main_blockset
