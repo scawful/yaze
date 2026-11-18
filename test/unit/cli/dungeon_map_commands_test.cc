@@ -174,6 +174,16 @@ TEST(DungeonMapCommandsTest, ExportSlotReadsSchemaBossFloorAndChests) {
       meta.at("chests")[1].at("chests")[0].at("is_big_chest").get<bool>());
   EXPECT_TRUE(exp.at("templates").contains("05"));
   EXPECT_TRUE(exp.at("templates").contains("10"));
+
+  // Slot 5 has no boss (0xFFFF); boss_icon_hidden must be false, not true.
+  std::string out5;
+  ASSERT_TRUE(handler.Run({"--slot=5", "--format=json"}, &rom, &out5).ok());
+  const auto exp5 =
+      nlohmann::json::parse(out5).at("Pause Map Export").at("export");
+  EXPECT_EQ(exp5.at("boss").get<std::string>(), "0F");
+  EXPECT_EQ(exp5.at("metadata").at("boss_floor_rom_word").get<std::string>(),
+            "0xFFFF");
+  EXPECT_FALSE(exp5.at("metadata").at("boss_icon_hidden").get<bool>());
 }
 
 TEST(DungeonMapCommandsTest, ExportRenderPreviewWithGfxBinWritesValidPng) {

@@ -84,8 +84,9 @@ class DungeonPauseMapApplyCommandHandler : public resources::CommandHandler {
   }
   std::string GetUsage() const override {
     return "dungeon-pause-map-apply --in <path> [--slot <0..13>] [--write] "
-           "[--dry-run] [--allow-template-overwrite] [--report <path>] "
-           "[--sandbox | --mock-rom] [--format <json|text>]";
+           "[--dry-run] [--allow-template-overwrite] "
+           "[--allow-lyra-layout-writes|--experimental-page-tile16] "
+           "[--report <path>] [--sandbox | --mock-rom] [--format <json|text>]";
   }
 
   absl::Status ValidateArgs(const resources::ArgumentParser& parser) override;

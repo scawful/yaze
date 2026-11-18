@@ -343,7 +343,8 @@ void RegisterBuiltinAgentTools(ToolRegistry& registry) {
        false,
        ToolAccess::kMutating,
        {},
-       {"write", "dry-run", "allow-template-overwrite", "sandbox",
+       {"write", "dry-run", "allow-template-overwrite",
+        "allow-lyra-layout-writes", "experimental-page-tile16", "sandbox",
         "mock-rom"}});
 
   // Overworld commands

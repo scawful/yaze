@@ -468,7 +468,8 @@ absl::StatusOr<json> BuildSlotExportJson(
   const auto derived_boss_floor = DerivedBossFloorSigned(map);
   const int8_t rom_boss_floor_signed =
       static_cast<int8_t>(boss_floor_rom_word & 0xFF);
-  const bool boss_icon_hidden = (boss_floor_rom_word & 0x8000) != 0;
+  const bool boss_icon_hidden =
+      has_boss && ((boss_floor_rom_word & 0x8000) != 0);
 
   json metadata = {
       {"nbr_of_floor", static_cast<int>(map.nbr_of_floor)},
@@ -709,7 +710,10 @@ absl::StatusOr<std::vector<uint8_t>> RenderPauseMapPreviewPng(
 
   ASSIGN_OR_RETURN(uint16_t boss_floor_rom_word,
                    rom->ReadWord(zelda3::kDungeonMapBossFloors + slot * 2));
-  const bool boss_icon_hidden = (boss_floor_rom_word & 0x8000) != 0;
+  const bool has_boss =
+      (map.boss_room != kNoBossVanilla && map.boss_room != kNoBossSentinel);
+  const bool boss_icon_hidden =
+      has_boss && ((boss_floor_rom_word & 0x8000) != 0);
   const auto derived_boss_floor = DerivedBossFloorSigned(map);
 
   const int floor_count =
@@ -1693,20 +1697,26 @@ absl::Status DungeonPauseMapApplyCommandHandler::ExecuteWithContext(
     }
   }
 
+  const auto baseline = rom->vector();
+  auto candidate = baseline;
+  std::vector<std::pair<uint32_t, uint32_t>> ranges;
+  ranges.reserve(all_writes.size());
+  for (const auto& w : all_writes) {
+    std::copy(w.data.begin(), w.data.end(), candidate.begin() + w.pc_address);
+    ranges.emplace_back(w.pc_address,
+                        w.pc_address + static_cast<uint32_t>(w.data.size()));
+  }
+
   // Always simulate on an in-RAM copy first to compute exact byte diffs and
   // validate readback before touching the caller's ROM.
   Rom sim_rom;
-  RETURN_IF_ERROR(sim_rom.LoadFromData(rom->vector()));
-  for (const auto& w : all_writes) {
-    RETURN_IF_ERROR(
-        sim_rom.WriteVector(static_cast<int>(w.pc_address), w.data));
-  }
+  RETURN_IF_ERROR(sim_rom.LoadFromData(candidate));
   RETURN_IF_ERROR(VerifyPauseMapReadback(sim_rom, proposed_maps, modified_slots,
                                          layout, template_writes));
 
   size_t changed_bytes = 0;
-  for (size_t i = 0; i < rom->size(); ++i) {
-    if (rom->vector()[i] != sim_rom.vector()[i]) {
+  for (size_t i = 0; i < baseline.size(); ++i) {
+    if (baseline[i] != candidate[i]) {
       ++changed_bytes;
     }
   }
@@ -1717,19 +1727,15 @@ absl::Status DungeonPauseMapApplyCommandHandler::ExecuteWithContext(
 
   if (do_write) {
     ScopedRomTransaction transaction(*rom);
-    if (rom::IsNativeSpecialOverworldLayout(rom->InspectLyraLayout())) {
-      const auto baseline = rom->vector();
-      auto candidate = baseline;
-      std::vector<std::pair<uint32_t, uint32_t>> ranges;
-      ranges.reserve(all_writes.size());
-      for (const auto& w : all_writes) {
-        std::copy(w.data.begin(), w.data.end(),
-                  candidate.begin() + w.pc_address);
-        ranges.emplace_back(
-            w.pc_address, w.pc_address + static_cast<uint32_t>(w.data.size()));
-      }
+    const auto lyra_layout = rom->InspectLyraLayout();
+    if (rom::IsNativeSpecialOverworldLayout(lyra_layout)) {
       RETURN_IF_ERROR(rom->CommitNativeNonOverworldImage(
           baseline, std::move(candidate), ranges));
+    } else if (lyra_layout.presence == rom::LyraLayoutPresence::kInvalid) {
+      return absl::FailedPreconditionError(
+          absl::StrFormat("Invalid Lyra overworld ROM layout: %s; pass "
+                          "--allow-lyra-layout-writes or --project-context",
+                          lyra_layout.error));
     } else {
       rom::WriteFence fence;
       for (const auto& w : all_writes) {
