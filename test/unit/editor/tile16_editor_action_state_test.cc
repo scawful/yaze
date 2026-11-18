@@ -5,64 +5,6 @@
 namespace yaze::editor {
 namespace {
 
-TEST(Tile16EditorActionStateTest, NoPendingNoUndoDisablesStagedActions) {
-  const auto state = ComputeTile16ActionControlState(
-      /*has_pending=*/false,
-      /*current_tile_pending=*/false,
-      /*can_undo=*/false,
-      /*can_redo=*/false);
-
-  EXPECT_FALSE(state.can_write_pending);
-  EXPECT_FALSE(state.can_discard_all);
-  EXPECT_FALSE(state.can_discard_current);
-  EXPECT_FALSE(state.can_undo);
-  EXPECT_FALSE(state.can_redo);
-}
-
-TEST(Tile16EditorActionStateTest,
-     PendingQueueEnablesWriteAndDiscardAllButNotCurrent) {
-  const auto state = ComputeTile16ActionControlState(
-      /*has_pending=*/true,
-      /*current_tile_pending=*/false,
-      /*can_undo=*/true,
-      /*can_redo=*/false);
-
-  EXPECT_TRUE(state.can_write_pending);
-  EXPECT_TRUE(state.can_discard_all);
-  EXPECT_FALSE(state.can_discard_current);
-  EXPECT_TRUE(state.can_undo);
-  EXPECT_FALSE(state.can_redo);
-}
-
-TEST(Tile16EditorActionStateTest,
-     CurrentTilePendingEnablesCurrentDiscardIndependently) {
-  const auto state = ComputeTile16ActionControlState(
-      /*has_pending=*/false,
-      /*current_tile_pending=*/true,
-      /*can_undo=*/true,
-      /*can_redo=*/false);
-
-  EXPECT_FALSE(state.can_write_pending);
-  EXPECT_FALSE(state.can_discard_all);
-  EXPECT_TRUE(state.can_discard_current);
-  EXPECT_TRUE(state.can_undo);
-  EXPECT_FALSE(state.can_redo);
-}
-
-TEST(Tile16EditorActionStateTest, FullPendingStateEnablesAllRelevantActions) {
-  const auto state = ComputeTile16ActionControlState(
-      /*has_pending=*/true,
-      /*current_tile_pending=*/true,
-      /*can_undo=*/false,
-      /*can_redo=*/true);
-
-  EXPECT_TRUE(state.can_write_pending);
-  EXPECT_TRUE(state.can_discard_all);
-  EXPECT_TRUE(state.can_discard_current);
-  EXPECT_FALSE(state.can_undo);
-  EXPECT_TRUE(state.can_redo);
-}
-
 TEST(Tile16EditorActionStateTest, CompactActionColumnsPreferReadableLabels) {
   EXPECT_EQ(ComputeTile16CompactActionColumnCount(920.0f), 7);
   EXPECT_EQ(ComputeTile16CompactActionColumnCount(760.0f), 5);

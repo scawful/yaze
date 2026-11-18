@@ -159,35 +159,36 @@ TEST_F(OverworldEditorTest, RequestTile16SelectionUpdatesEditorSelection) {
   EXPECT_EQ(overworld_editor_->tile16_editor().current_tile16(), kTile);
 }
 
-TEST_F(OverworldEditorTest,
-       RequestTile16SelectionWithStagedCurrentTileOpensEditorGuard) {
+TEST_F(OverworldEditorTest, RequestTile16SelectionAfterEditKeepsLiveEdit) {
   constexpr int kFromTile = 15;
   constexpr int kTargetTile = 16;
   auto& tile16_editor = overworld_editor_->tile16_editor();
+  const auto original = overworld_editor_->overworld().tiles16()[kFromTile];
+  const auto rom_before = rom_->ReadTile16(kFromTile, zelda3::kTile16Ptr);
+  ASSERT_TRUE(rom_before.ok());
 
   ASSERT_TRUE(tile16_editor.SetCurrentTile(kFromTile).ok());
+  const auto edited_palette =
+      static_cast<uint8_t>((tile16_editor.current_palette() + 1) % 8);
   ASSERT_TRUE(
-      tile16_editor
-          .ApplyPaletteToQuadrant(
-              /*quadrant=*/0,
-              static_cast<uint8_t>((tile16_editor.current_palette() + 1) % 8))
+      tile16_editor.ApplyPaletteToQuadrant(/*quadrant=*/0, edited_palette)
           .ok());
-  ASSERT_TRUE(tile16_editor.is_tile_modified(kFromTile));
-  window_manager_->RegisterWindow(window_manager_->GetActiveSessionId(),
-                                  editor::OverworldPanelIds::kTile16Editor,
-                                  "Tile16 Editor", "", "Overworld");
 
   overworld_editor_->RequestTile16Selection(kTargetTile);
 
-  EXPECT_EQ(tile16_editor.current_tile16(), kFromTile);
-  EXPECT_EQ(tile16_editor.pending_changes_count(), 1);
-  ASSERT_NE(window_manager_, nullptr);
-  EXPECT_TRUE(
-      window_manager_->IsWindowOpen(window_manager_->GetActiveSessionId(),
-                                    editor::OverworldPanelIds::kTile16Editor));
+  EXPECT_EQ(tile16_editor.current_tile16(), kTargetTile);
+  EXPECT_EQ(overworld_editor_->overworld().tiles16()[kFromTile].tile0_.palette_,
+            edited_palette);
+  const auto rom_after = rom_->ReadTile16(kFromTile, zelda3::kTile16Ptr);
+  ASSERT_TRUE(rom_after.ok());
+  ExpectTile16Equals(*rom_after, *rom_before);
+
+  ASSERT_TRUE(overworld_editor_->Undo().ok());
+  ExpectTile16Equals(overworld_editor_->overworld().tiles16()[kFromTile],
+                     original);
 }
 
-TEST_F(OverworldEditorTest, CommitTile16ChangesRefreshesOverworldState) {
+TEST_F(OverworldEditorTest, Tile16EditAppliesLiveAndSaveWritesRom) {
   constexpr int kTile = 21;
   auto& tile16_editor = overworld_editor_->tile16_editor();
 
@@ -198,16 +199,19 @@ TEST_F(OverworldEditorTest, CommitTile16ChangesRefreshesOverworldState) {
       static_cast<uint8_t>((original->tile0_.palette_ + 1) % 8);
 
   ASSERT_TRUE(tile16_editor.ApplyPaletteToAll(target_palette).ok());
-  ASSERT_TRUE(tile16_editor.is_tile_modified(kTile));
-  ASSERT_TRUE(tile16_editor.CommitAllChanges().ok());
-
-  const auto committed = rom_->ReadTile16(kTile, zelda3::kTile16Ptr);
-  ASSERT_TRUE(committed.ok());
-  EXPECT_FALSE(*committed == *original);
   ASSERT_GT(overworld_editor_->overworld().tiles16().size(),
             static_cast<size_t>(kTile));
-  ExpectTile16Equals(overworld_editor_->overworld().tiles16()[kTile],
-                     *committed);
+  const auto edited = overworld_editor_->overworld().tiles16()[kTile];
+  EXPECT_EQ(edited.tile0_.palette_, target_palette);
+  const auto before_save = rom_->ReadTile16(kTile, zelda3::kTile16Ptr);
+  ASSERT_TRUE(before_save.ok());
+  ExpectTile16Equals(*before_save, *original);
+
+  const auto status = overworld_editor_->Save();
+  ASSERT_TRUE(status.ok()) << "Save failed: " << status.message();
+  const auto saved = rom_->ReadTile16(kTile, zelda3::kTile16Ptr);
+  ASSERT_TRUE(saved.ok());
+  ExpectTile16Equals(*saved, edited);
 
   const auto* map = overworld_editor_->overworld().overworld_map(
       overworld_editor_->current_map_id());

@@ -1235,40 +1235,6 @@ void Tile16Editor::DrawPaletteSettings() {
       Text(tr("Current Palette: %d"), session_.current_palette());
 
       Separator();
-      Text(tr("Sheet-Specific Fixes:"));
-
-      // Sheet-specific palette fixes
-      static bool fix_sheet_0 = true;
-      static bool fix_sprite_sheets = true;
-      static bool use_transparent_for_terrain = false;
-
-      if (Checkbox(tr("Fix Sheet 0 (Trees)"), &fix_sheet_0)) {
-        auto reload_result = LoadTile8();
-        if (!reload_result.ok()) {
-          Text(tr("Error reloading: %s"), reload_result.message().data());
-        }
-      }
-      HOVER_HINT(
-          "Use direct palette for sheet 0 instead of transparent palette");
-
-      if (Checkbox(tr("Fix Sprite Sheets"), &fix_sprite_sheets)) {
-        auto reload_result = LoadTile8();
-        if (!reload_result.ok()) {
-          Text(tr("Error reloading: %s"), reload_result.message().data());
-        }
-      }
-      HOVER_HINT("Use direct palette for sprite graphics sheets");
-
-      if (Checkbox(tr("Transparent for Terrain"),
-                   &use_transparent_for_terrain)) {
-        auto reload_result = LoadTile8();
-        if (!reload_result.ok()) {
-          Text(tr("Error reloading: %s"), reload_result.message().data());
-        }
-      }
-      HOVER_HINT("Force transparent palette for terrain graphics");
-
-      Separator();
       Text(tr("Color Analysis:"));
       if (session_.current_tile8() >= 0 &&
           session_.current_tile8() <
