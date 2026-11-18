@@ -41,7 +41,7 @@ struct ProgressionRoom {
 
 // Item IDs that are keys, resolved from yaze's label tables by name.
 struct KeyItemIds {
-  std::set<int> small_key_receipts;  // chest receipt IDs ("Key")
+  std::set<int> small_key_receipts;  // chest receipt IDs ("Small Key")
   std::set<int> big_key_receipts;    // chest receipt IDs ("Big Key")
   std::set<int> small_key_pots;      // pot secret-item IDs ("Key")
   std::set<int> big_key_pots;        // pot secret-item IDs ("Big Key")
