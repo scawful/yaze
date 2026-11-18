@@ -43,6 +43,7 @@ ToolAccess InferToolAccess(const std::string& tool_name) {
       "build-test",
       "dungeon-import-custom-collision-json",
       "dungeon-import-water-fill-json",
+      "dungeon-pause-map-apply",
       "dungeon-set-palette-color",
       "dungeon-set-room-property",
       "emulator-clear-breakpoint",

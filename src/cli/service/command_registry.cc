@@ -74,6 +74,24 @@ void CommandRegistry::RegisterHandlers(
       if (name == "dungeon-describe-room") {
         metadata.examples = {
             "z3ed dungeon-describe-room --room=5 --format=json"};
+      } else if (name == "dungeon-pause-map-export") {
+        metadata.description =
+            "Export dungeon pause-map floor grids, Tile16 templates, boss "
+            "metadata, and chest markers to JSON (with optional preview PNG)";
+        metadata.examples = {
+            "z3ed dungeon-pause-map-export --rom=game.sfc --slot=all "
+            "--include-templates --out=pause_maps.json",
+            "z3ed dungeon-pause-map-export --rom=game.sfc --slot=D8 "
+            "--render-preview=d8.png --gfx-bin=Dungeons/dungeon_maps.bin"};
+      } else if (name == "dungeon-pause-map-apply") {
+        metadata.description =
+            "Validate (dry-run by default) or apply (--write) dungeon "
+            "pause-map JSON specs with ScreenEditor byte-exact parity";
+        metadata.examples = {
+            "z3ed dungeon-pause-map-apply --rom=game.sfc --in=d8_spec.json "
+            "--dry-run",
+            "z3ed dungeon-pause-map-apply --rom=work.sfc --in=d8_spec.json "
+            "--write --report=apply_report.json"};
       } else if (name == "dungeon-stream-plan") {
         metadata.description =
             "Read-only stream inventory, alias/overlap, and free-space "

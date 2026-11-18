@@ -600,6 +600,7 @@ if(YAZE_BUILD_TESTS)
     unit/cli/atlas_render_commands_test.cc
     unit/cli/dungeon_minecart_audit_test.cc
     unit/cli/dungeon_oracle_preflight_test.cc
+    unit/cli/dungeon_map_commands_test.cc
     unit/cli/oracle_smoke_check_test.cc
     unit/cli/oracle_menu_commands_test.cc
     unit/cli/palette_commands_test.cc

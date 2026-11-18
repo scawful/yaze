@@ -6,6 +6,7 @@
 #include "cli/handlers/game/dungeon_commands.h"
 #include "cli/handlers/game/dungeon_edit_commands.h"
 #include "cli/handlers/game/dungeon_find_commands.h"
+#include "cli/handlers/game/dungeon_map_commands.h"
 #include "cli/handlers/game/dungeon_tile_type_commands.h"
 #include "cli/handlers/game/message_commands.h"
 #include "cli/handlers/game/minecart_commands.h"
@@ -317,6 +318,34 @@ void RegisterBuiltinAgentTools(ToolRegistry& registry) {
        ToolAccess::kMutating,
        {},
        {"write"}});
+  RegisterBuiltinTool<DungeonPauseMapExportCommandHandler>(
+      registry,
+      {"dungeon-pause-map-export",
+       "dungeon",
+       "Export dungeon pause-map floor grids, templates, boss metadata, and "
+       "chest markers to JSON (with optional preview PNG)",
+       "dungeon-pause-map-export",
+       {},
+       true,
+       false,
+       ToolAccess::kReadOnly,
+       {},
+       {"include-templates", "include-chests"}});
+  RegisterBuiltinTool<DungeonPauseMapApplyCommandHandler>(
+      registry,
+      {"dungeon-pause-map-apply",
+       "dungeon",
+       "Validate (dry-run by default) or apply (--write) dungeon pause-map "
+       "JSON specs matching ScreenEditor serialization",
+       "dungeon-pause-map-apply",
+       {},
+       true,
+       false,
+       ToolAccess::kMutating,
+       {},
+       {"write", "dry-run", "allow-template-overwrite",
+        "allow-lyra-layout-writes", "experimental-page-tile16", "sandbox",
+        "mock-rom"}});
 
   // Overworld commands
   REGISTER_BUILTIN_AGENT_TOOL(

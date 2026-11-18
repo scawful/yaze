@@ -174,6 +174,8 @@ CreateCliCommandHandlers() {
   handlers.push_back(std::make_unique<AtlasRenderCommandHandler>());
   handlers.push_back(std::make_unique<DungeonGroupCommandHandler>());
   handlers.push_back(std::make_unique<DungeonMapCommandHandler>());
+  handlers.push_back(std::make_unique<DungeonPauseMapExportCommandHandler>());
+  handlers.push_back(std::make_unique<DungeonPauseMapApplyCommandHandler>());
   handlers.push_back(std::make_unique<DungeonMinecartAuditCommandHandler>());
   handlers.push_back(std::make_unique<DungeonMinecartMapCommandHandler>());
   handlers.push_back(std::make_unique<DungeonRenderCommandHandler>());
